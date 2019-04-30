@@ -73,10 +73,10 @@ public:
 		iAChartAttributeMapper const & mapper);
 
 	void SetCompareNode(iAImageTreeNode const * node);
-	int GetSliceNumber() const;
+	int sliceNumber() const;
 	void UpdateLikeHate(bool isLike, bool isHate);
 	bool IsShowingCluster() const;
-	void SetSliceNumber(int sliceNr);
+	void setSliceNumber(int sliceNr);
 	void SetMagicLensOpacity(double opacity);
 	void SetMagicLensCount(int count);
 	void UpdateMagicLensColors();

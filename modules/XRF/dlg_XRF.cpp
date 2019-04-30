@@ -1385,7 +1385,7 @@ void dlg_XRF::showPieGlyphsSettings(bool isChecked)
 void dlg_XRF::updatePieGlyphParameters(int newVal)
 {
 	updatePieGlyphParamsInternal();
-	computeGlyphs();
+	updateAllPieGlyphs();
 }
 
 void dlg_XRF::updatePieGlyphParamsInternal()
@@ -1409,95 +1409,108 @@ void dlg_XRF::pieGlyphsVisualization(int show)
 
 void dlg_XRF::setSlicerPieGlyphsOn(bool isOn)
 {
+	if (m_pieGlyphsEnabled == isOn)
+		return;
 	m_pieGlyphsEnabled = isOn;
-	// TODO: connect all slicer number changed to computeGlyphs
-	computeGlyphs();
+	auto child = dynamic_cast<MdiChild*>(parent());
+	for (int slicerMode = 0; slicerMode < iASlicerMode::SlicerCount; ++slicerMode)
+	{
+		if (isOn)
+			connect(child->slicer(slicerMode), &iASlicer::sliceNumberChanged, this, &dlg_XRF::updatePieGlyphs);
+		else
+			disconnect(child->slicer(slicerMode), &iASlicer::sliceNumberChanged, this, &dlg_XRF::updatePieGlyphs);
+	}
+	updateAllPieGlyphs();
 }
 
-void dlg_XRF::computeGlyphs()
+void dlg_XRF::updateAllPieGlyphs()
+{
+	for (int slicerMode = 0; slicerMode < iASlicerMode::SlicerCount; ++slicerMode)
+	{
+		updatePieGlyphs(slicerMode);
+	}
+}
+
+void dlg_XRF::updatePieGlyphs(int slicerMode)
 {
 	const double EPSILON = 0.0015;
 	auto child = dynamic_cast<MdiChild*>(parent());
-
-	for (int slicerIdx = 0; slicerIdx < 3; ++slicerIdx)
+	auto renWin = child->slicer(slicerMode)->renderWindow();
+	auto ren = renWin->GetRenderers()->GetFirstRenderer();
+	bool hasPieGlyphs = (m_pieGlyphs[slicerMode].size() > 0);
+	if (hasPieGlyphs)
 	{
-		auto renWin = child->slicer(slicerIdx)->renderWindow();
-		auto ren = renWin->GetRenderers()->GetFirstRenderer();
-		bool hasPieGlyphs = (m_pieGlyphs[slicerIdx].size() > 0);
+		for (int i = 0; i < m_pieGlyphs[slicerMode].size(); ++i)
+			ren->RemoveActor(m_pieGlyphs[slicerMode][i]->actor);
+		m_pieGlyphs[slicerMode].clear();
+	}
+
+	if (!m_pieGlyphsEnabled)
+	{
 		if (hasPieGlyphs)
-		{
-			for (int i = 0; i < m_pieGlyphs[slicerIdx].size(); ++i)
-				ren->RemoveActor(m_pieGlyphs[slicerIdx][i]->actor);
-			m_pieGlyphs[slicerIdx].clear();
-		}
+			renWin->GetInteractor()->Render();
+		return;
+	}
 
-		if (!m_pieGlyphsEnabled)
-		{
-			if (hasPieGlyphs)
-				renWin->GetInteractor()->Render();
+	QVector<double> angleOffsets;
+
+	for (int chan = 0; chan < m_channelIDs.size(); ++chan)
+	{
+		if (!child->slicer(slicerMode)->hasChannel(m_channelIDs[chan]))
 			continue;
-		}
+		iAChannelSlicerData * chSlicerData = child->slicer(slicerMode)->channel(m_channelIDs[chan]);
+		vtkSmartPointer<vtkImageResample> resampler = vtkSmartPointer<vtkImageResample>::New();
+		resampler->SetInputConnection(chSlicerData->reslicer()->GetOutputPort());
+		resampler->InterpolateOn();
+		resampler->SetAxisMagnificationFactor(0, m_pieGlyphMagFactor);
+		resampler->SetAxisMagnificationFactor(1, m_pieGlyphMagFactor);
+		resampler->SetAxisMagnificationFactor(2, m_pieGlyphMagFactor);
+		resampler->Update();
 
-		QVector<double> angleOffsets;
+		vtkImageData * imgData = resampler->GetOutput();
 
-		for (int chan = 0; chan < m_channelIDs.size(); ++chan)
+		int dims[3];
+		imgData->GetDimensions(dims);
+		QString scalarTypeStr(imgData->GetScalarTypeAsString());
+
+		double origin[3], spacing[3];
+		imgData->GetOrigin(origin); imgData->GetSpacing(spacing);
+
+		int index = 0;
+		for (int y = 0; y < dims[1]; y++)
 		{
-			if (!child->slicer(slicerIdx)->hasChannel(m_channelIDs[chan]))
-				continue;
-			iAChannelSlicerData * chSlicerData = child->slicer(slicerIdx)->channel(m_channelIDs[chan]);
-			vtkSmartPointer<vtkImageResample> resampler = vtkSmartPointer<vtkImageResample>::New();
-			resampler->SetInputConnection(chSlicerData->reslicer()->GetOutputPort());
-			resampler->InterpolateOn();
-			resampler->SetAxisMagnificationFactor(0, m_pieGlyphMagFactor);
-			resampler->SetAxisMagnificationFactor(1, m_pieGlyphMagFactor);
-			resampler->SetAxisMagnificationFactor(2, m_pieGlyphMagFactor);
-			resampler->Update();
-
-			vtkImageData * imgData = resampler->GetOutput();
-
-			int dims[3];
-			imgData->GetDimensions(dims);
-			QString scalarTypeStr(imgData->GetScalarTypeAsString());
-
-			double origin[3], spacing[3];
-			imgData->GetOrigin(origin); imgData->GetSpacing(spacing);
-
-			int index = 0;
-			for (int y = 0; y < dims[1]; y++)
+			for (int x = 0; x < dims[0]; ++x, ++index)
 			{
-				for (int x = 0; x < dims[0]; ++x, ++index)
+				float portion = static_cast<float*>(imgData->GetScalarPointer(x, y, 0))[0];
+				double angularRange[2] = { 0.0, 360.0*portion };
+				if (0 != chan)
 				{
-					float portion = static_cast<float*>(imgData->GetScalarPointer(x, y, 0))[0];
-					double angularRange[2] = { 0.0, 360.0*portion };
-					if (0 != chan)
-					{
-						angularRange[0] += angleOffsets[index];
-						angularRange[1] += angleOffsets[index];
-					}
-
-					if (portion > EPSILON)
-					{
-						auto pieGlyph = QSharedPointer<iAPieChartGlyph>(new iAPieChartGlyph(angularRange[0], angularRange[1]));
-						double pos[3] = { origin[0] + x * spacing[0], origin[1] + y * spacing[1], 1.0 };
-						pieGlyph->actor->SetPosition(pos);
-						pieGlyph->actor->SetScale((std::min)(spacing[0], spacing[1]) * m_pieGlyphSpacing);
-						QColor c(m_channelColors[chan]);
-						double color[3] = { c.redF(), c.greenF(), c.blueF() };
-						pieGlyph->actor->GetProperty()->SetColor(color);
-						pieGlyph->actor->GetProperty()->SetOpacity(m_pieGlyphOpacity);
-						ren->AddActor(pieGlyph->actor);
-						m_pieGlyphs[slicerIdx].push_back(pieGlyph);
-					}
-
-					if (0 == chan)
-						angleOffsets.push_back(angularRange[1]);
-					else
-						angleOffsets[index] = angularRange[1];
+					angularRange[0] += angleOffsets[index];
+					angularRange[1] += angleOffsets[index];
 				}
+
+				if (portion > EPSILON)
+				{
+					auto pieGlyph = QSharedPointer<iAPieChartGlyph>(new iAPieChartGlyph(angularRange[0], angularRange[1]));
+					double pos[3] = { origin[0] + x * spacing[0], origin[1] + y * spacing[1], 1.0 };
+					pieGlyph->actor->SetPosition(pos);
+					pieGlyph->actor->SetScale((std::min)(spacing[0], spacing[1]) * m_pieGlyphSpacing);
+					QColor c(m_channelColors[chan]);
+					double color[3] = { c.redF(), c.greenF(), c.blueF() };
+					pieGlyph->actor->GetProperty()->SetColor(color);
+					pieGlyph->actor->GetProperty()->SetOpacity(m_pieGlyphOpacity);
+					ren->AddActor(pieGlyph->actor);
+					m_pieGlyphs[slicerMode].push_back(pieGlyph);
+				}
+
+				if (0 == chan)
+					angleOffsets.push_back(angularRange[1]);
+				else
+					angleOffsets[index] = angularRange[1];
 			}
 		}
-		renWin->GetInteractor()->Render();
 	}
+	renWin->GetInteractor()->Render();
 }
 
 // } End Slicer Pie Glyphs

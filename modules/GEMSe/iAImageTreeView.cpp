@@ -294,10 +294,10 @@ void iAImageTreeView::AddNode(QSharedPointer<iAImageTreeNode > node, bool shrink
 {
 	iAImageNodeWidget* nodeWidget = new iAImageNodeWidget(this, node, m_previewPool, shrinked, m_representativeType);
 	connect(nodeWidget, SIGNAL(Expand(bool)), this, SLOT(ExpandNode(bool)));
-	connect(nodeWidget, SIGNAL(Clicked()), this, SLOT(NodeClicked()));
+	connect(nodeWidget, SIGNAL(clicked()), this, SLOT(NodeClicked()));
 	connect(nodeWidget, SIGNAL(ImageClicked()), this, SLOT(NodeImageClicked()));
 	connect(nodeWidget, SIGNAL(ImageRightClicked()), this, SLOT(NodeImageRightClicked()));
-	connect(nodeWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
+	connect(nodeWidget, SIGNAL(updated()), this, SIGNAL(ViewUpdated()));
 	m_nodeWidgets.insert(node.data(), nodeWidget);
 	nodeWidget->show();
 }
@@ -377,7 +377,7 @@ bool iAImageTreeView::ExpandNode(iAImageNodeWidget* nodeWidget, bool expand, boo
 	QSharedPointer<iAImageTreeNode> node = nodeWidget->GetClusterNode();
 	if (expand)
 	{
-		if (m_previewPool->Capacity() < 2)
+		if (m_previewPool->capacity() < 2)
 		{
 			//DebugOut() << "Not enough free slicers available; please either collapse other nodes or shrink the example view! expanded=" << (nodeWidget->IsExpanded()?"true":"false") << std::endl;
 			nodeWidget->ToggleButton();
@@ -484,7 +484,7 @@ void iAImageTreeView::NodeClicked()
 {
 	QObject* obj = sender();
 	iAImageNodeWidget* nodeWidget = dynamic_cast<iAImageNodeWidget*>(obj);
-	emit Clicked(nodeWidget->GetClusterNode());
+	emit clicked(nodeWidget->GetClusterNode());
 }
 
 

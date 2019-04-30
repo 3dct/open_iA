@@ -35,15 +35,14 @@ iAPreviewWidgetPool::iAPreviewWidgetPool(int maxWidgets, vtkCamera* camera, iASl
 	{
 		iAImagePreviewWidget* newW = new iAImagePreviewWidget(QString("SlicerView")+QString::number(i),
 				0, true, m_commonCamera, m_slicerMode, m_labelCount, true);
-		newW->SetColorTheme(m_colorTheme);
+		newW->setColorTheme(m_colorTheme);
 		newW->hide();
 		m_pool.push_back(newW);
 	}
 	std::fill(m_sliceNumber, m_sliceNumber+SlicerCount, iAImagePreviewWidget::SliceNumberNotSet);
 }
 
-
-iAImagePreviewWidget* iAPreviewWidgetPool::GetWidget(QWidget* parent, bool magicLens)
+iAImagePreviewWidget* iAPreviewWidgetPool::getWidget(QWidget* parent, bool magicLens)
 {
 	if (m_pool.size() == 0)
 	{
@@ -56,17 +55,16 @@ iAImagePreviewWidget* iAPreviewWidgetPool::GetWidget(QWidget* parent, bool magic
 	m_pool.remove(m_pool.size()-1);
 	result->setParent(parent);
 	result->show();
-	result->SetSlicerMode(m_slicerMode, m_sliceNumber[m_slicerMode], m_commonCamera);
+	result->setSlicerMode(m_slicerMode, m_sliceNumber[m_slicerMode], m_commonCamera);
 	if (m_sliceNumber[m_slicerMode] != iAImagePreviewWidget::SliceNumberNotSet)
 	{
-		result->SetSliceNumber(m_sliceNumber[m_slicerMode]);
+		result->setSliceNumber(m_sliceNumber[m_slicerMode]);
 	}
 	m_visible.push_back(result);
 	return result;
 }
 
-
-void iAPreviewWidgetPool::ReturnWidget(iAImagePreviewWidget* widget)
+void iAPreviewWidgetPool::returnWidget(iAImagePreviewWidget* widget)
 {
 	widget->hide();
 	widget->setParent(0);
@@ -76,8 +74,7 @@ void iAPreviewWidgetPool::ReturnWidget(iAImagePreviewWidget* widget)
 	m_pool.push_back(widget);
 }
 
-
-void iAPreviewWidgetPool::SetSlicerMode(iASlicerMode mode, int sliceNr, vtkCamera* camera)
+void iAPreviewWidgetPool::setSlicerMode(iASlicerMode mode, int sliceNr, vtkCamera* camera)
 {
 	m_slicerMode = mode;
 	if (m_sliceNumber[m_slicerMode] != sliceNr && m_sliceNumber[m_slicerMode] != iAImagePreviewWidget::SliceNumberNotSet)
@@ -90,48 +87,44 @@ void iAPreviewWidgetPool::SetSlicerMode(iASlicerMode mode, int sliceNr, vtkCamer
 	m_commonCamera = camera;
 	foreach(iAImagePreviewWidget* widget, m_visible)
 	{
-		widget->SetSlicerMode(mode, sliceNr, camera);
+		widget->setSlicerMode(mode, sliceNr, camera);
 	}
 }
 
-
-int iAPreviewWidgetPool::Capacity()
+int iAPreviewWidgetPool::capacity()
 {
 	return m_pool.size();
 }
 
-
-void iAPreviewWidgetPool::SetSliceNumber(int sliceNumber)
+void iAPreviewWidgetPool::setSliceNumber(int sliceNumber)
 {
 	m_sliceNumber[m_slicerMode] = sliceNumber;
 	foreach(iAImagePreviewWidget* widget, m_visible)
 	{
-		widget->SetSliceNumber(sliceNumber);
+		widget->setSliceNumber(sliceNumber);
 	}
 }
 
-
-void iAPreviewWidgetPool::UpdateViews()
+void iAPreviewWidgetPool::updateViews()
 {
 	foreach(iAImagePreviewWidget* nodeWidget, m_visible)
 	{
 		if (nodeWidget->isVisible())
 		{
-			nodeWidget->UpdateView();
+			nodeWidget->updateView();
 		}
 	}
 }
 
-
-void iAPreviewWidgetPool::SetColorTheme(iAColorTheme const * colorTheme)
+void iAPreviewWidgetPool::setColorTheme(iAColorTheme const * colorTheme)
 {
 	m_colorTheme = colorTheme;
 	foreach(iAImagePreviewWidget* nodeWidget, m_visible)
 	{
-		nodeWidget->SetColorTheme(colorTheme);
+		nodeWidget->setColorTheme(colorTheme);
 	}
 	foreach(iAImagePreviewWidget* nodeWidget, m_pool)
 	{
-		nodeWidget->SetColorTheme(colorTheme);
+		nodeWidget->setColorTheme(colorTheme);
 	}
 }

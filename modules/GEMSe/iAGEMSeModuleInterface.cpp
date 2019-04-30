@@ -124,7 +124,7 @@ void iAGEMSeModuleInterface::continuePreCalculatedDataLoading()
 	QMap<int, QString> const & samplings = m_seaFile->GetSamplings();
 	for (int key : samplings.keys())
 	{
-		result &= gemseAttach->LoadSampling(samplings[key], m_seaFile->GetLabelCount(), key);
+		result &= gemseAttach->LoadSampling(samplings[key], m_seaFile->labelCount(), key);
 		if (!result)
 			break;
 	}

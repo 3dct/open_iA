@@ -39,7 +39,7 @@ public:
 	iAImageTree(QSharedPointer<iAImageTreeNode >, int labelCount);
 	QSharedPointer<iAImageTreeNode > m_root;
 	bool Store(QString const & fileName) const;
-	int GetLabelCount() const;
+	int labelCount() const;
 private:
 	static void WriteNode(QTextStream & out, QSharedPointer<iAImageTreeNode >, int level);
 	static QSharedPointer<iAImageTreeNode> ReadNode(

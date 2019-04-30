@@ -87,7 +87,7 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 			m_separationColors->setCurrentText(themeName);
 		}
 	}
-	connect(m_separationColors, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetColorTheme(const QString &)));
+	connect(m_separationColors, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(setColorTheme(const QString &)));
 	QComboBox* lutSourceChoice = new QComboBox();
 	lutSourceChoice->addItem("None");
 	for (int c = 1; c < m_tableView->Table()->columnCount(); ++c) // first col is assumed to be ID/filename
@@ -178,7 +178,7 @@ void iAParamSPLOMView::SeparationChanged(int idx)
 	m_splom->setSeparation(idx-1);
 }
 
-void iAParamSPLOMView::SetColorTheme(const QString &name)
+void iAParamSPLOMView::setColorTheme(const QString &name)
 {
 	m_splom->setBackgroundColorTheme(iAColorThemeManager::instance().theme(name));
 }

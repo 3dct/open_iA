@@ -142,7 +142,21 @@ public slots:
 	void ReferenceSpectrumItemChanged( QStandardItem * item );
 	void energyBinsSelected( int binX, int binY );
 
+	//! @{ slicer pie glyphs
+private slots:
+	void updatePieGlyphs(int slicerMode);
 private:
+	void setSlicerPieGlyphsOn(bool isOn);
+	void updatePieGlyphParamsInternal();
+	void updateAllPieGlyphs();
+
+	bool            m_pieGlyphsEnabled;         //!< if slice pie glyphs are enabled
+	QVector<QSharedPointer<iAPieChartGlyph> > m_pieGlyphs[3];
+	double          m_pieGlyphMagFactor;
+	double          m_pieGlyphSpacing;
+	double          m_pieGlyphOpacity;
+	//! @}
+
 	void updateDecompositionGUI( QStringList elementsNames );
 	void initSpectraLinesDrawer();
 	void initSpectraOverlay();
@@ -151,18 +165,6 @@ private:
 	void enableControlsNeedingDecompositionData();
 	void InitElementRenderer(dlg_elementRenderer * elemRend, size_t index);
 	void InitCommonGUI(iAWidgetAddHelper & widgetAddHelper);
-
-	//! @{ slicer pie glyphs
-	void setSlicerPieGlyphsOn(bool isOn);
-	void computeGlyphs();
-	void updatePieGlyphParamsInternal();
-
-	bool            m_pieGlyphsEnabled;         //!< if slice pie glyphs are enabled
-	QVector<QSharedPointer<iAPieChartGlyph> > m_pieGlyphs[3];
-	double          m_pieGlyphMagFactor;
-	double          m_pieGlyphSpacing;
-	double          m_pieGlyphOpacity;
-	//! @}
 
 	QSharedPointer<QImage>                         m_spectraHistogramImage;
 	QImage                                         m_spectraHistogramColormap;

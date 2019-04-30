@@ -202,8 +202,8 @@ iADetailView::iADetailView(
 	connect(m_pbLike, SIGNAL(clicked()), this, SIGNAL(Like()));
 	connect(m_pbHate, SIGNAL(clicked()), this, SIGNAL(Hate()));
 	connect(m_pbGoto, SIGNAL(clicked()), this, SIGNAL(GoToCluster()));
-	connect(m_compareWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
-	connect(m_previewWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
+	connect(m_compareWidget, SIGNAL(updated()), this, SIGNAL(ViewUpdated()));
+	connect(m_previewWidget, SIGNAL(updated()), this, SIGNAL(ViewUpdated()));
 
 	connect(m_previewWidget->slicer(), SIGNAL(dblClicked()), this, SLOT(dblClicked()));
 	connect(m_previewWidget->slicer(), SIGNAL(shiftMouseWheel(int)), this, SLOT(changeModality(int)));
@@ -260,7 +260,7 @@ void iADetailView::changeModality(int offset)
 	QSharedPointer<iAModality> mod = m_modalities->get(m_magicLensCurrentModality);
 	vtkSmartPointer<vtkImageData> imageData = mod->component(m_magicLensCurrentComponent);
 	vtkColorTransferFunction* ctf = (mod->name() == "Ground Truth") ?
-		m_previewWidget->GetCTF().GetPointer() :
+		m_previewWidget->colorTF().GetPointer() :
 		mod->transfer()->colorTF();
 	vtkPiecewiseFunction* otf = (mod->name() == "Ground Truth") ?
 		GetDefaultOTF(imageData).GetPointer() :
@@ -290,16 +290,16 @@ void iADetailView::changeMagicLensOpacity(int chg)
 }
 
 
-void iADetailView::SetSliceNumber(int sliceNr)
+void iADetailView::setSliceNumber(int sliceNr)
 {
 	iASlicer* slicer = m_previewWidget->slicer();
 	slicer->update();
 }
 
 
-int iADetailView::GetSliceNumber() const
+int iADetailView::sliceNumber() const
 {
-	return m_previewWidget->GetSliceNumber();
+	return m_previewWidget->sliceNumber();
 }
 
 
@@ -427,7 +427,7 @@ void iADetailView::SetCompareNode(iAImageTreeNode const * node)
 	con.setImage(img);
 	vtkSmartPointer<vtkImageData> vtkImg = con.vtkImage();
 	// determine CTF/OTF from image / settings?
-	vtkColorTransferFunction* ctf = m_compareWidget->GetCTF().GetPointer();
+	vtkColorTransferFunction* ctf = m_compareWidget->colorTF().GetPointer();
 	vtkPiecewiseFunction* otf = GetDefaultOTF(vtkImg);
 	QString name;
 	if (dynamic_cast<iAFakeTreeNode const*>(node))
@@ -505,11 +505,11 @@ void iADetailView::SetCorrectnessUncertaintyOverlay(bool enabled)
 	m_correctnessUncertaintyOverlayEnabled = enabled;
 	if (enabled)
 	{
-		m_previewWidget->AddNoMapperChannel(m_node->GetCorrectnessEntropyImage(m_refImg));
+		m_previewWidget->addNoMapperChannel(m_node->GetCorrectnessEntropyImage(m_refImg));
 	}
 	else
 	{
-		m_previewWidget->RemoveChannel();
+		m_previewWidget->removeChannel();
 	}
 }
 
@@ -547,11 +547,11 @@ void iADetailView::setImage()
 		(m_node->IsLeaf() && m_representativeType != AverageEntropy) || m_representativeType == Difference || m_representativeType == AverageLabel);
 	if (m_correctnessUncertaintyOverlayEnabled)
 	{
-		m_previewWidget->RemoveChannel();
+		m_previewWidget->removeChannel();
 		vtkSmartPointer<vtkImageData> img = m_node->GetCorrectnessEntropyImage(m_refImg);
 		if (img)
 		{
-			m_previewWidget->AddNoMapperChannel(img);
+			m_previewWidget->addNoMapperChannel(img);
 		}
 	}
 }
@@ -725,7 +725,7 @@ void iADetailView::UpdateComparisonNumbers()
 		- equal pixels
 		- 
 	*/
-	if (m_compareWidget->Empty())
+	if (m_compareWidget->empty())
 	{
 		return;
 	}

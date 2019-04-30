@@ -1556,7 +1556,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 			m_dwSlicer[s]->sbSlice->setValue(m_imageData->GetDimensions()[mapSliceToGlobalAxis(s, iAAxisIndex::Z)] >> 1);
 			m_slicer[s]->channel(0)->reslicer()->SetResliceTransform(m_savedSlicerTransform[s]);
 			m_slicer[s]->channel(0)->reslicer()->SetOutputExtentToDefault();
-			m_slicer[s]->renderer()->ResetCamera();
+			m_slicer[s]->resetCamera();
 			m_slicer[s]->renderer()->Render();
 			m_slicer[s]->switchInteractionMode(iASlicer::Normal);
 		}
@@ -1764,7 +1764,7 @@ bool MdiChild::initView( QString const & title )
 	if (!m_raycasterInitialized)
 	{
 		m_renderer->initialize(m_imageData, m_polyData);
-		connect(m_renderer->getRenderObserver(), SIGNAL(InteractorModeSwitched(int)), m_dwModalities, SLOT(interactorModeSwitched(int)));
+		connect(m_renderer->getRenderObserver(), SIGNAL(interactorModeSwitched(int)), m_dwModalities, SLOT(interactorModeSwitched(int)));
 		m_raycasterInitialized = true;
 	}
 	if (modalities()->size() == 0 && isVolumeDataLoaded())

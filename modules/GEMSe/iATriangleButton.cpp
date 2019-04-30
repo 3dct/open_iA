@@ -67,7 +67,7 @@ void iATriangleButton::mouseReleaseEvent(QMouseEvent * ev)
 	if (ev->button() == Qt::LeftButton)
 	{
 		Toggle();
-		emit Clicked();
+		emit clicked();
 	}
 }
 
