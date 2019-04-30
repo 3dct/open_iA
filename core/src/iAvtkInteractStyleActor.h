@@ -26,14 +26,19 @@
 
 #include <QObject>
 
+
 class iAChannelSlicerData;
 class iAVolumeRenderer;
 class MdiChild;
 
 class vtkImageData;
 class vtkTransform; 
-
+//TODO REmove
 class vtkTransformFilter;
+class vtkCubeSource;
+class vtkPolyDataMapper; 
+class vtkSphereSource; 
+
 
 class iAvtkInteractStyleActor : public QObject, public vtkInteractorStyleTrackballActor
 {
@@ -91,7 +96,7 @@ private:
 	vtkSmartPointer<vtkTransform> m_transform3D;
 	vtkSmartPointer<vtkTransform> m_sliceTranslationTransform[3]; 
 
-	vtkSmartPointer<vtkTransformFilter> m_transformFilter;
+	vtkSmartPointer<vtkTransformFilter> m_transformFilter; //todo remove
 
 	//probably used to update the slicer
 	vtkSmartPointer<vtkTransform> m_SliceRotateTransform[3];  //transform for each reslicer
@@ -105,4 +110,18 @@ private:
 	void operator=(const iAvtkInteractStyleActor&) = delete;
 	iAvtkInteractStyleActor(const iAvtkInteractStyleActor &) = delete;
 	//! @}
+
+
+	//just a cube source for visualisation
+	//for debugging / visualisation
+
+	void initializeAndRenderPolyData(); 
+	vtkSmartPointer<vtkCubeSource> m_cubeSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_cubeMapper;
+	vtkSmartPointer<vtkActor> m_cubeActor;
+	
+	vtkSmartPointer<vtkSphereSource> m_SphereSourceCenter;
+	vtkSmartPointer<vtkPolyDataMapper> m_SphereMapper;
+	vtkSmartPointer<vtkActor> m_SphereActor;
+
 };
