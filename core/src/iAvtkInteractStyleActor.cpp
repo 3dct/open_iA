@@ -81,8 +81,9 @@ iAvtkInteractStyleActor::iAvtkInteractStyleActor():
 {
 	m_transform3D = vtkSmartPointer<vtkTransform>::New();
 	
-
-	m_SliceRotateTransform = vtkSmartPointer<vtkTransform>::New(); 
+	for (int i = 0; i < 3; i++) {
+		m_SliceRotateTransform[i] = vtkSmartPointer<vtkTransform>::New();
+	}
 	m_transformFilter = vtkSmartPointer<vtkTransformFilter>::New(); //TDOO Remove transform filter
 
 	for (int i = 0; i < 3; i++) {
@@ -303,6 +304,8 @@ void iAvtkInteractStyleActor::rotate2D()
 	
 	//TransformReslicer(obj_center/*imageCenter*/, relativeAngle); 
 
+
+	//this we need obviously
 	Update3DTransform(volCenter/*imageCenter*/, spacing, relativeAngle);
 	/*double *const Rendorientation = m_volumeRenderer->volume()->GetOrientation();
 	DEBUG_LOG(QString("orientation %1 %2. %3").arg(Rendorientation[0]).arg(Rendorientation[1]).arg(Rendorientation[2
@@ -316,7 +319,8 @@ void iAvtkInteractStyleActor::rotate2D()
 
 
 	/*perform rotation to reslicer*/
-	TransformReslicerExperimental(obj_center, angle);
+	/*for (int i = 0; i < iASlicerMode::SlicerCount; ++i)*/
+	TransformReslicerExperimental(volCenter, angle, spacing, m_currentSliceMode);
 	
 
 
@@ -345,25 +349,25 @@ void iAvtkInteractStyleActor::rotate2D()
 }
 
 
-void iAvtkInteractStyleActor::UpdateReslicerTransform2D(double *const Rendposition, const double *orientation, const double *imageCenter)
+void iAvtkInteractStyleActor::UpdateReslicerTransform2D(double *const Rendposition, const double *orientation, const double *imageCenter, int sliceMode)
 {
-	m_SliceRotateTransform->SetInput(m_transform3D);	
-	m_SliceRotateTransform->PostMultiply();
-	m_SliceRotateTransform->Translate(Rendposition);
+	m_SliceRotateTransform[sliceMode]->SetInput(m_transform3D);	
+	m_SliceRotateTransform[sliceMode]->PostMultiply();
+	m_SliceRotateTransform[sliceMode]->Translate(Rendposition);
 
 
 	switch (m_currentSliceMode)
 	{
 	case iASlicerMode::XY:
-		m_SliceRotateTransform->Translate(Rendposition[0], Rendposition[1], 0);
+		m_SliceRotateTransform[sliceMode]->Translate(Rendposition[0], Rendposition[1], 0);
 		break;
 	case iASlicerMode::XZ:
-		m_SliceRotateTransform->Translate(Rendposition[0], 0, Rendposition[2]);
+		m_SliceRotateTransform[sliceMode]->Translate(Rendposition[0], 0, Rendposition[2]);
 		/*origin[0] += pos[0];
 		origin[2] += pos[1];*/
 		break;
 	case iASlicerMode::YZ:
-		m_SliceRotateTransform->Translate(0, Rendposition[1], Rendposition[2]);
+		m_SliceRotateTransform[sliceMode]->Translate(0, Rendposition[1], Rendposition[2]);
 
 		/*origin[1] += pos[0];
 		origin[2] += pos[1];*/
@@ -381,7 +385,7 @@ void iAvtkInteractStyleActor::UpdateReslicerTransform2D(double *const Rendpositi
 	/*const double *imageCenter*/
 	//setconst double *imageCenter
 
-	m_slicerChannel[m_currentSliceMode]->reslicer()->SetResliceAxes(m_SliceRotateTransform->GetMatrix());
+	m_slicerChannel[m_currentSliceMode]->reslicer()->SetResliceAxes(m_SliceRotateTransform[sliceMode]->GetMatrix());
 
 
 	//get orientation and transform from the reslicer
@@ -497,59 +501,92 @@ void iAvtkInteractStyleActor::Update3DTransform(const double * imageCenter, cons
 	m_volumeRenderer->update(); 
 }
 
-void iAvtkInteractStyleActor::TransformReslicerExperimental(double * obj_center, double rotationAngle)
+void iAvtkInteractStyleActor::TransformReslicerExperimental(double const * obj_center, double rotationAngle, double const *spacing, int sliceMode)
 {
 
-	if (!m_image) { DEBUG_LOG(QString("image is null %1").arg(m_currentSliceMode)); return;  }
+	if (!m_image) { DEBUG_LOG(QString("image is null %1").arg(sliceMode)); return;  }
 	
 	//which transformation should be used
-	m_SliceRotateTransform->SetMatrix(m_volumeRenderer->volume()->GetMatrix()/*this->InteractionProp->GetMatrix()*/);
-	m_SliceRotateTransform->PostMultiply();
-	m_SliceRotateTransform->Translate(-obj_center[0] /** spacing[0]*/, -obj_center[1]  /*spacing[1]*/, 0 /** spacing[2]*/);
+	//rotate reslicer
+	//m_SliceRotateTransform[sliceMode]->SetMatrix(m_volumeRenderer->volume()->GetMatrix()/*this->InteractionProp->GetMatrix()*/);
+	m_SliceRotateTransform[sliceMode]->PostMultiply();
+	//m_SliceRotateTransform[sliceMode]->Translate(-obj_center[0] /** spacing[0]*/, -obj_center[1]  /*spacing[1]*/, 0 /** spacing[2]*/);
 
-	m_SliceRotateTransform->RotateZ(rotationAngle);
-	m_SliceRotateTransform->Translate(obj_center[0] /** spacing[0]*/, obj_center[1] /** spacing[1]*/,0/** spacing[2]*/);
-	
-	m_SliceRotateTransform->Inverse(); 
+	m_SliceRotateTransform[sliceMode]->Translate(-obj_center[0] * spacing[0],-obj_center[1]*spacing[1], -obj_center[2]*spacing[2]/*-obj_center[2]*/);
+
+	//switch (sliceMode) {
+	//case YZ:
+		//m_SliceRotateTransform[sliceMode]->Translate(0, -obj_center[1], -obj_center[2]); //-obj_center[0] /** spacing[0]*/, -obj_center[1]  /*spacing[1]*/, /** spacing[2]*/);
+		m_SliceRotateTransform[sliceMode]->RotateX(rotationAngle);
+		//m_SliceRotateTransform[sliceMode]->Translate(0, obj_center[1], obj_center[2]);
+	//	break;
+	//case XZ:
+		//m_SliceRotateTransform[sliceMode]->Translate(-obj_center[0], 0, -obj_center[2]); //-obj_center[0] /** spacing[0]*/, -obj_center[1]  /*spacing[1]*/, /** spacing[2]*/);
+		//m_SliceRotateTransform[sliceMode]->RotateY(rotationAngle);
+		//m_SliceRotateTransform[sliceMode]->Translate(obj_center[0], 0, obj_center[2]);
+	//	break;
+	//case XY:
+		//m_SliceRotateTransform[sliceMode]->Translate(-obj_center[0],-obj_center[1], 0); //-obj_center[0] /** spacing[0]*/, -obj_center[1]  /*spacing[1]*/, /** spacing[2]*/);
+	//	m_SliceRotateTransform[sliceMode]->RotateZ(rotationAngle);
+		//m_SliceRotateTransform[sliceMode]->Translate(obj_center[0],obj_center[1], 0);
+	//	break;
+	//}
+	/*default: break;
+	}*/
+	//m_SliceRotateTransform[sliceMode]->Inverse();
+	//m_SliceRotateTransform[sliceMode]->Translate(obj_center[0] /** spacing[0]*/, obj_center[1] /** spacing[1]*/,0/** spacing[2]*/);
+	m_SliceRotateTransform[sliceMode]->Translate(obj_center[0] * spacing[0], -obj_center[1]*spacing[1],-obj_center[2]*spacing[2] /*obj_center[2]*/);
+	m_SliceRotateTransform[sliceMode]->Inverse(); 
 
 
-	const int sliceNumber = m_mdiChild->sliceNumber(m_currentSliceMode);  /*m_slicerChannel[m_currentSliceMode]->reslicer()->GetNumber*/
-	const int sliceMode = m_currentSliceMode; 
+	const int sliceNumber = m_mdiChild->sliceNumber(sliceMode);  /*m_slicerChannel[m_currentSliceMode]->reslicer()->GetNumber*/
+	//const int sliceMode = m_currentSliceMode; 
 	double ofs[3] = { 0.0, 0.0, 0.0 };
 
-
-	updateReslicerRotationTransformation(sliceMode, ofs, sliceNumber);
+	//for (int i = 0; i < iASlicerMode::SlicerCount; ++i) {
+	//	int sliceMode = i; 
+	//	int sliceNumber = m_mdiChild->sliceNumber(sliceMode);
+	//	updateReslicerRotationTransformation2d(sliceMode, ofs, sliceNumber);
+	//}
 	
+	updateReslicerRotationTransformation2d(sliceMode, ofs, sliceNumber);
+	/*int sliceNumber2 = m_mdiChild->sliceNumber(1);
+	int sliceNumber3 = m_mdiChild->sliceNumber(2);
+
+
+	updateReslicerRotationTransformation2d(1, ofs, sliceNumber2);
+	updateReslicerRotationTransformation2d(2, ofs, sliceNumber3);*/
 	m_volumeRenderer->update(); 
 
 }
 
-void iAvtkInteractStyleActor::updateReslicerRotationTransformation(const int sliceMode, double * ofs, const int sliceNumber)
+void iAvtkInteractStyleActor::updateReslicerRotationTransformation2d(const int sliceMode, double * ofs, const int sliceNumber)
 {
-	{
-		m_slicerChannel[/*0*/sliceMode]->reslicer()->SetInputData(m_image);
+	
+		m_slicerChannel[sliceMode]->reslicer()->SetInputData(m_image);
 		double const * spacing = m_image->GetSpacing();
 		double const * origin = m_image->GetOrigin(); //origin bei null
-		int slicerZAxisIdx = mapSliceToGlobalAxis(m_currentSliceMode, iAAxisIndex::Z);
+		int slicerZAxisIdx = mapSliceToGlobalAxis(sliceMode, iAAxisIndex::X/*iAAxisIndex::Z*/);
+
+		//ist das immer die Z-Achse? 
 		ofs[slicerZAxisIdx] = sliceNumber * spacing[slicerZAxisIdx];
 		m_slicerChannel[/*0*/sliceMode]->reslicer()->SetResliceAxesOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
 
 
-		/*rotate2->Inverse(); */
-		/*m_slicerChannel[m]*/
-		m_slicerChannel[/*0*//*m_currentSliceMode*/sliceMode]->reslicer()->SetOutputExtent(m_image->GetExtent());
-		m_slicerChannel[/*0*//*m_currentSliceMode*/sliceMode]->reslicer()->SetOutputOrigin(origin);
-		m_slicerChannel[/*0*//*m_currentSliceMode*/sliceMode]->reslicer()->SetOutputSpacing(m_image->GetSpacing());
-		m_slicerChannel[/*0*//*m_currentSliceMode*/sliceMode]->reslicer()->Update();
+		
+		m_slicerChannel[sliceMode]->reslicer()->SetOutputExtent(m_image->GetExtent());
+		m_slicerChannel[sliceMode]->reslicer()->SetOutputOrigin(origin);
+		m_slicerChannel[sliceMode]->reslicer()->SetOutputSpacing(m_image->GetSpacing());
+		m_slicerChannel[sliceMode]->reslicer()->Update();
 
-		/*m_slicerChannel[m_currentSliceMode]->reslicer()->*/
+	
+		
+		//m_slicerChannel[sliceMode]->reslicer()->SetResliceAxes(m_SliceRotateTransform->GetMatrix());
+		m_slicerChannel[sliceMode]->reslicer()->SetResliceTransform(m_SliceRotateTransform[sliceMode]);
+		m_slicerChannel[sliceMode]->reslicer()->UpdateWholeExtent();
+		m_slicerChannel[sliceMode]->reslicer()->SetInterpolationModeToLinear();
 
-		/*m_slicerChannel[m_currentSliceMode]->reslicer()->Update();*/
-		//m_slicerChannel[m_currentSliceMode]->reslicer()->SetResliceAxes(m_SliceTransform->GetMatrix());
-		m_slicerChannel[/*0*//*m_currentSliceMode*/sliceMode]->reslicer()->SetResliceTransform(m_SliceRotateTransform);
-		m_slicerChannel[/*0*//*m_currentSliceMode*/sliceMode]->reslicer()->UpdateWholeExtent();
-		m_slicerChannel[/*0*//*m_currentSliceMode*/sliceMode]->reslicer()->SetInterpolationModeToLinear();
-
-		m_slicerChannel[/*0*//*m_currentSliceMode*/sliceMode]->reslicer()->Update();
-	}
+		m_slicerChannel[sliceMode]->reslicer()->Update();
+		//m_image = /*dynamic_cast<vtkImageData* >(*/m_slicerChannel[/*0*//*m_currentSliceMode*/sliceMode]->reslicer()->GetInformationInput()/*)*/;
+	
 }

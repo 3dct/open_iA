@@ -60,7 +60,7 @@ public:
 	//rotates 2d slicer/ interactor
 	void rotate2D(); 
 
-	void UpdateReslicerTransform2D(double *const Rendposition, const double *orientation, const double *imageCenter);
+	void UpdateReslicerTranslateTransform2D(double *const Rendposition, const double *orientation, const double *imageCenter, int sliceMode);
 	
 
 	//probably take a transform set to origin, then translate based on slice mode
@@ -70,11 +70,11 @@ public:
 	//updates interactor for 3d volume according to angle and axis
 	void Update3DTransform(const double * imageCenter, const double * spacing, double relativeAngle);
 
-	void TransformReslicerExperimental(double * obj_center, double rotationAngle);
+	void TransformReslicerExperimental(double const * obj_center, double rotationAngle, double const *spacing, int sliceMode);
 
 
 	// transformation of the reslicer rotation based on a slice mode
-	void updateReslicerRotationTransformation(const int sliceMode, double * ofs, const int sliceNumber);
+	void updateReslicerRotationTransformation2d(const int sliceMode, double * ofs, const int sliceNumber);
 	
 
 signals:
@@ -94,7 +94,7 @@ private:
 	vtkSmartPointer<vtkTransformFilter> m_transformFilter;
 
 	//probably used to update the slicer
-	vtkSmartPointer<vtkTransform> m_SliceRotateTransform;
+	vtkSmartPointer<vtkTransform> m_SliceRotateTransform[3];  //transform for each reslicer
 
 	int m_currentSliceMode;
 	bool m_rightButtonDragZoomEnabled = false;
