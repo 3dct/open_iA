@@ -219,10 +219,6 @@ public:
 	void updateChannelMappers();
 	//! @}
 
-	//! @{ slicer pie glyphs - move to XRF module!
-	void setSlicerPieGlyphsEnabled(bool isOn);
-	void setPieGlyphParameters(double opacity, double spacing, double magFactor);
-	//! @}
 
 	//! @{ Magic Lens
 	void toggleMagicLens(bool isEnabled);

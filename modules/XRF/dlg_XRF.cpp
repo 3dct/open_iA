@@ -32,6 +32,7 @@
 #include "iAEnergySpectrumWidget.h"
 #include "iAFunctionalBoxplotQtDrawer.h"
 #include "iAPeriodicTableListener.h"
+#include "iAPieChartGlyph.h"
 #include "iAPieChartWidget.h"
 #include "iAReferenceSpectraLibrary.h"
 #include "iAXRFData.h"
@@ -40,12 +41,14 @@
 #include <charts/iAPlotTypes.h>
 #include <charts/iAMappingDiagramData.h>
 #include <iAChannelData.h>
+#include <iAChannelSlicerData.h>
 #include <iAChartFunctionTransfer.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
 #include <iAFunctionalBoxplot.h>
 #include <iAMathUtility.h>
 #include <iARenderer.h>
+#include <iASlicer.h>
 #include <iAVtkWidget.h>
 #include <io/iAFileUtils.h>
 #include <io/iAIO.h>
@@ -68,13 +71,16 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkDiscretizableColorTransferFunction.h>
 #include <vtkImageData.h>
+#include <vtkImageResample.h>
 #include <vtkInteractorStyleImage.h>
 #include <vtkLookupTable.h>
 #include <vtkMath.h>
 #include <vtkMetaImageWriter.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
+#include <vtkProperty.h>
 #include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkScalarBarActor.h>
 #include <vtkTextProperty.h>
@@ -102,7 +108,8 @@ dlg_XRF::dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg
 	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
 	m_periodicTableListener(new iAPeriodicTableListener(this)),
 	m_refSpectra(dlgRefSpectra),
-	m_spectrumSelectionChannelID(NotExistingChannel)
+	m_spectrumSelectionChannelID(NotExistingChannel),
+	m_pieGlyphsEnabled(false)
 {
 	spectrumVisWidget->hide();
 
@@ -298,14 +305,14 @@ vtkSmartPointer<vtkColorTransferFunction> dlg_XRF::GetColorTransferFunction()
 	return m_xrfData->GetColorTransferFunction();
 }
 
-QObject* dlg_XRF::UpdateForVisualization()
+QThread* dlg_XRF::UpdateForVisualization()
 {
 	if (m_ctfChanged)
 	{
 		m_ctfChanged = false;
 		return m_xrfData->UpdateCombinedVolume(m_cTF);
 	}
-	return 0;
+	return nullptr;
 }
 
 QSharedPointer<iAXRFData> dlg_XRF::GetXRFData()
@@ -779,11 +786,13 @@ void dlg_XRF::combinedElementMaps(int show)
 			m_refSpectraLib->setElementChannel(i, -1);
 			continue;
 		}
-		if (m_channelIDs.size() <= i)
+		m_channelColors.resize(m_enabledChannels + 1);
+		if (m_channelIDs.size() <= m_enabledChannels)
 			m_channelIDs.push_back(mdiChild->createChannel());
-		auto chData = mdiChild->channelData(m_channelIDs[i]);
+		auto chData = mdiChild->channelData(m_channelIDs[m_enabledChannels]);
 		vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(m_decomposeSelectedElements.indexOf(i));
 		QColor color = m_refSpectraLib->getElementColor(i);
+		m_channelColors[m_enabledChannels] = color;
 		float h, s, v;
 		vtkMath::RGBToHSV(color.red()/255.0, color.green()/255.0, color.blue()/255.0, &h, &s, &v);
 		m_ctf[m_enabledChannels] = vtkSmartPointer<vtkLookupTable>::New();
@@ -799,12 +808,9 @@ void dlg_XRF::combinedElementMaps(int show)
 		m_otf[m_enabledChannels] = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		m_otf[m_enabledChannels]->AddPoint(0, 0);
 		m_otf[m_enabledChannels]->AddPoint(1, 0.1);
-
-		chData->setColor(color);
-		chData->setData(chImgData, m_ctf[m_enabledChannels], m_otf[m_enabledChannels]);
-		// TODO: initialize channel?
-		mdiChild->initChannelRenderer(m_channelIDs[i], false);
-		mdiChild->updateChannelOpacity(m_channelIDs[i], 1);
+		
+		mdiChild->updateChannel(m_channelIDs[m_enabledChannels], chImgData, m_ctf[m_enabledChannels], m_otf[m_enabledChannels], true);
+		mdiChild->updateChannelOpacity(m_channelIDs[m_enabledChannels], 1);
 
 		// set channel index in model data for reference:
 		m_refSpectraLib->setElementOpacity(i, 10);
@@ -816,19 +822,6 @@ void dlg_XRF::combinedElementMaps(int show)
 	{
 		cb_pieChartGlyphs->setEnabled(true);
 	}
-}
-
-void dlg_XRF::pieGlyphsVisualization( int show )
-{
-	bool isOn = (bool) show;
-	MdiChild * mdiChild = (dynamic_cast<MdiChild*>(parent()));
-	updatePieGlyphParameters();
-	mdiChild->setSlicerPieGlyphsEnabled(isOn);
-	tb_pieGlyphSettings->setEnabled(isOn);
-	if(isOn)
-		showPieGlyphsSettings( tb_pieGlyphSettings->isChecked() );
-	else
-		gb_pieGlyphsSettings->hide();
 }
 
 void dlg_XRF::recomputeSpectraHistograms()
@@ -982,24 +975,6 @@ void dlg_XRF::InitElementRenderer( dlg_elementRenderer * elemRend, size_t index 
 
 	elemRend->setWindowTitle(chElemName);
 	elemRend->SetDataToVisualize( chImgData, chPolyData, chOTF, chCTF );
-}
-
-void dlg_XRF::showPieGlyphsSettings( bool isChecked )
-{
-	if(isChecked)
-		gb_pieGlyphsSettings->show();
-	else
-		gb_pieGlyphsSettings->hide();
-}
-
-void dlg_XRF::updatePieGlyphParameters( int newVal )
-{
-	double opacity		= (double)sl_pieGlyphsOpacity->value() / sl_pieGlyphsOpacity->maximum();
-	double spacing		= 1.0 - (double)sl_pieGlyphsSpacing->value() / sl_pieGlyphsSpacing->maximum();
-	double magFactor	= (double)sl_pieGlyphResolution->value() / sl_pieGlyphResolution->maximum() * 0.7;
-
-	MdiChild * mdiChild = (dynamic_cast<MdiChild*>(parent()));
-	mdiChild->setPieGlyphParameters(opacity, spacing, magFactor);
 }
 
 void dlg_XRF::updateConcentrationOpacity(int newVal)
@@ -1396,3 +1371,133 @@ bool dlg_XRF::IsElementSelected(int elemIdx) const
 		return false;
 	return m_refSpectraLib->getItemModel()->item(modelIdx)->checkState() == Qt::Checked;
 }
+
+//  { Start Slicer Pie Glyphs
+
+void dlg_XRF::showPieGlyphsSettings(bool isChecked)
+{
+	if (isChecked)
+		gb_pieGlyphsSettings->show();
+	else
+		gb_pieGlyphsSettings->hide();
+}
+
+void dlg_XRF::updatePieGlyphParameters(int newVal)
+{
+	updatePieGlyphParamsInternal();
+	computeGlyphs();
+}
+
+void dlg_XRF::updatePieGlyphParamsInternal()
+{
+	m_pieGlyphOpacity = (double)sl_pieGlyphsOpacity->value() / sl_pieGlyphsOpacity->maximum();
+	m_pieGlyphSpacing = 1.0 - (double)sl_pieGlyphsSpacing->value() / sl_pieGlyphsSpacing->maximum();
+	m_pieGlyphMagFactor = (double)sl_pieGlyphResolution->value() / sl_pieGlyphResolution->maximum() * 0.7;
+}
+
+void dlg_XRF::pieGlyphsVisualization(int show)
+{
+	bool isOn = (bool)show;
+	updatePieGlyphParamsInternal();
+	setSlicerPieGlyphsOn(isOn);
+	tb_pieGlyphSettings->setEnabled(isOn);
+	if (isOn)
+		showPieGlyphsSettings(tb_pieGlyphSettings->isChecked());
+	else
+		gb_pieGlyphsSettings->hide();
+}
+
+void dlg_XRF::setSlicerPieGlyphsOn(bool isOn)
+{
+	m_pieGlyphsEnabled = isOn;
+	// TODO: connect all slicer number changed to computeGlyphs
+	computeGlyphs();
+}
+
+void dlg_XRF::computeGlyphs()
+{
+	const double EPSILON = 0.0015;
+	auto child = dynamic_cast<MdiChild*>(parent());
+
+	for (int slicerIdx = 0; slicerIdx < 3; ++slicerIdx)
+	{
+		auto renWin = child->slicer(slicerIdx)->renderWindow();
+		auto ren = renWin->GetRenderers()->GetFirstRenderer();
+		bool hasPieGlyphs = (m_pieGlyphs[slicerIdx].size() > 0);
+		if (hasPieGlyphs)
+		{
+			for (int i = 0; i < m_pieGlyphs[slicerIdx].size(); ++i)
+				ren->RemoveActor(m_pieGlyphs[slicerIdx][i]->actor);
+			m_pieGlyphs[slicerIdx].clear();
+		}
+
+		if (!m_pieGlyphsEnabled)
+		{
+			if (hasPieGlyphs)
+				renWin->GetInteractor()->Render();
+			continue;
+		}
+
+		QVector<double> angleOffsets;
+
+		for (int chan = 0; chan < m_channelIDs.size(); ++chan)
+		{
+			if (!child->slicer(slicerIdx)->hasChannel(m_channelIDs[chan]))
+				continue;
+			iAChannelSlicerData * chSlicerData = child->slicer(slicerIdx)->channel(m_channelIDs[chan]);
+			vtkSmartPointer<vtkImageResample> resampler = vtkSmartPointer<vtkImageResample>::New();
+			resampler->SetInputConnection(chSlicerData->reslicer()->GetOutputPort());
+			resampler->InterpolateOn();
+			resampler->SetAxisMagnificationFactor(0, m_pieGlyphMagFactor);
+			resampler->SetAxisMagnificationFactor(1, m_pieGlyphMagFactor);
+			resampler->SetAxisMagnificationFactor(2, m_pieGlyphMagFactor);
+			resampler->Update();
+
+			vtkImageData * imgData = resampler->GetOutput();
+
+			int dims[3];
+			imgData->GetDimensions(dims);
+			QString scalarTypeStr(imgData->GetScalarTypeAsString());
+
+			double origin[3], spacing[3];
+			imgData->GetOrigin(origin); imgData->GetSpacing(spacing);
+
+			int index = 0;
+			for (int y = 0; y < dims[1]; y++)
+			{
+				for (int x = 0; x < dims[0]; ++x, ++index)
+				{
+					float portion = static_cast<float*>(imgData->GetScalarPointer(x, y, 0))[0];
+					double angularRange[2] = { 0.0, 360.0*portion };
+					if (0 != chan)
+					{
+						angularRange[0] += angleOffsets[index];
+						angularRange[1] += angleOffsets[index];
+					}
+
+					if (portion > EPSILON)
+					{
+						auto pieGlyph = QSharedPointer<iAPieChartGlyph>(new iAPieChartGlyph(angularRange[0], angularRange[1]));
+						double pos[3] = { origin[0] + x * spacing[0], origin[1] + y * spacing[1], 1.0 };
+						pieGlyph->actor->SetPosition(pos);
+						pieGlyph->actor->SetScale((std::min)(spacing[0], spacing[1]) * m_pieGlyphSpacing);
+						QColor c(m_channelColors[chan]);
+						double color[3] = { c.redF(), c.greenF(), c.blueF() };
+						pieGlyph->actor->GetProperty()->SetColor(color);
+						pieGlyph->actor->GetProperty()->SetOpacity(m_pieGlyphOpacity);
+						ren->AddActor(pieGlyph->actor);
+						m_pieGlyphs[slicerIdx].push_back(pieGlyph);
+					}
+
+					if (0 == chan)
+						angleOffsets.push_back(angularRange[1]);
+					else
+						angleOffsets[index] = angularRange[1];
+				}
+			}
+		}
+		renWin->GetInteractor()->Render();
+	}
+}
+
+// } End Slicer Pie Glyphs

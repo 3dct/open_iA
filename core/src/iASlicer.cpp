@@ -33,7 +33,6 @@
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAMovieHelper.h"
-#include "iAPieChartGlyph.h"
 #include "iARulerWidget.h"
 #include "iARulerRepresentation.h"
 #include "iASlicer.h"
@@ -193,7 +192,6 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_decorations(decorations),
 	m_isSliceProfEnabled(false),
 	m_isArbProfEnabled(false),
-	m_pieGlyphsEnabled(false),
 	m_fisheyeLensActivated(false),
 	m_roiActive(false),
 	m_showPositionMarker(false),
@@ -520,7 +518,6 @@ void iASlicer::setSliceNumber( int sliceNumber )
 	for (auto ch : m_channels)
 		ch->setResliceAxesOrigin(origin[0] + xyz[0] * spacing[0], origin[1] + xyz[1] * spacing[1], origin[2] + xyz[2] * spacing[2]);
 	updateMagicLensColors();
-	computeGlyphs();
 	update();
 	emit sliceNumberChanged( m_mode, sliceNumber );
 }
@@ -2221,12 +2218,6 @@ void iASlicer::setLinkedMdiChild(MdiChild* mdiChild)
 	m_linkedMdiChild = mdiChild;
 }
 
-void iASlicer::setPieGlyphsOn(bool isOn)
-{
-	m_pieGlyphsEnabled = isOn;
-	computeGlyphs();
-}
-
 void iASlicer::resizeEvent(QResizeEvent * event)
 {
 	updateMagicLens();
@@ -2527,97 +2518,6 @@ void iASlicer::updateMagicLens()
 	int const mousePos[2] = { static_cast<int>(dpos[0]), static_cast<int>(dpos[1]) };
 	double const * worldP = ren->GetWorldPoint();
 	m_magicLens->updatePosition(ren->GetActiveCamera(), worldP, mousePos);
-}
-
-void iASlicer::computeGlyphs()
-{
-	/*
-	const double EPSILON = 0.0015;
-	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
-	bool hasPieGlyphs = (m_pieGlyphs.size() > 0);
-	if(hasPieGlyphs)
-	{
-		for(int i = 0; i< m_pieGlyphs.size(); ++i)
-			ren->RemoveActor(m_pieGlyphs[i]->actor);
-		m_pieGlyphs.clear();
-	}
-
-	if(!m_pieGlyphsEnabled)
-	{
-		if(hasPieGlyphs)
-			GetRenderWindow()->GetInteractor()->Render();
-		return;
-	}
-
-	QVector<double> angleOffsets;
-
-	for (int chan = 0; chan < GetEnabledChannels(); ++chan)
-	{
-		iAChannelSlicerData * chSlicerData = GetChannel(static_cast<iAChannelID>(ch_Concentration0 + chan));
-		if (!chSlicerData || !chSlicerData->isInitialized())
-			continue;
-
-		vtkSmartPointer<vtkImageResample> resampler = vtkSmartPointer<vtkImageResample>::New();
-		resampler->SetInputConnection( chSlicerData->reslicer->GetOutputPort() );
-		resampler->InterpolateOn();
-		resampler->SetAxisMagnificationFactor(0, m_pieGlyphMagFactor);
-		resampler->SetAxisMagnificationFactor(1, m_pieGlyphMagFactor);
-		resampler->SetAxisMagnificationFactor(2, m_pieGlyphMagFactor);
-		resampler->Update();
-
-		vtkImageData * imgData = resampler->GetOutput();
-
-		int dims[3];
-		imgData->GetDimensions(dims);
-		QString scalarTypeStr( imgData->GetScalarTypeAsString() );
-
-		double o[3], s[3];
-		imgData->GetOrigin(o); imgData->GetSpacing(s);
-
-		int index = 0;
-		for (int y = 0; y < dims[1]; y++)
-		{
-			for (int x = 0; x < dims[0]; ++x, ++index)
-			{
-				float portion = static_cast<float*>(imgData->GetScalarPointer(x, y, 0))[0];
-				double angularRange[2] = { 0.0, 360.0*portion};
-				if(0 != chan)
-				{
-					angularRange[0] += angleOffsets[index];
-					angularRange[1] += angleOffsets[index];
-				}
-
-				if(portion > EPSILON)
-				{
-					iAPieChartGlyph * pieGlyph = new iAPieChartGlyph(angularRange[0], angularRange[1]);
-					double pos[3] = { o[0] + x*s[0], o[1] + y*s[1], 1.0 };
-					pieGlyph->actor->SetPosition(pos);
-					pieGlyph->actor->SetScale( (std::min)(s[0], s[1]) * m_pieGlyphSpacing );
-					QColor c(chSlicerData->GetColor());
-					double color[3] = { c.redF(), c.greenF(), c.blueF() };
-					pieGlyph->actor->GetProperty()->SetColor(color);
-					pieGlyph->actor->GetProperty()->SetOpacity(m_pieGlyphOpacity);
-					ren->AddActor(pieGlyph->actor);
-					m_pieGlyphs.push_back( QSharedPointer<iAPieChartGlyph>(pieGlyph) );
-				}
-
-				if(0 == chan)
-					angleOffsets.push_back(angularRange[1]);
-				else
-					angleOffsets[index] = angularRange[1];
-			}
-		}
-	}
-	GetRenderWindow()->GetInteractor()->Render();
-	*/
-}
-
-void iASlicer::setPieGlyphParameters(double opacity, double spacing, double magFactor)
-{
-	m_pieGlyphOpacity = opacity;
-	m_pieGlyphSpacing = spacing;
-	m_pieGlyphMagFactor = magFactor;
-	computeGlyphs();
 }
 
 

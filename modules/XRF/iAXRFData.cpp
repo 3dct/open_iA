@@ -212,7 +212,7 @@ void iAXRFData::SetCombinedImage(vtkSmartPointer<vtkImageData> img)
 	m_combinedVolume = img;
 }
 
-QObject* iAXRFData::UpdateCombinedVolume(vtkSmartPointer<vtkColorTransferFunction> colorTransferEnergies)
+QThread* iAXRFData::UpdateCombinedVolume(vtkSmartPointer<vtkColorTransferFunction> colorTransferEnergies)
 {
 	iAXRFCombinedVolumeUpdater* updater = new iAXRFCombinedVolumeUpdater(*this, colorTransferEnergies);
 	updater->start();

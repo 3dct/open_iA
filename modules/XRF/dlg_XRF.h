@@ -56,6 +56,7 @@ struct iACharacteristicEnergy;
 class iADecompositionCalculator;
 class iAElementConcentrations;
 class iAEnergySpectrumDiagramData;
+class iAPieChartGlyph;
 class iAPieChartWidget;
 class iAReferenceSpectraLibrary;
 class iAPeriodicTableListener;
@@ -77,7 +78,7 @@ public:
 
 	vtkSmartPointer<vtkImageData> GetCombinedVolume();
 	vtkSmartPointer<vtkColorTransferFunction> GetColorTransferFunction();
-	QObject* UpdateForVisualization();
+	QThread* UpdateForVisualization();
 	QSharedPointer<iAXRFData> GetXRFData();
 	QSharedPointer<iAElementConcentrations> GetElementConcentrations();
 
@@ -143,7 +144,6 @@ public slots:
 
 private:
 	void updateDecompositionGUI( QStringList elementsNames );
-	void SetupConnections();
 	void initSpectraLinesDrawer();
 	void initSpectraOverlay();
 	void updateComposition(QVector<double> const & concentration);
@@ -151,6 +151,18 @@ private:
 	void enableControlsNeedingDecompositionData();
 	void InitElementRenderer(dlg_elementRenderer * elemRend, size_t index);
 	void InitCommonGUI(iAWidgetAddHelper & widgetAddHelper);
+
+	//! @{ slicer pie glyphs
+	void setSlicerPieGlyphsOn(bool isOn);
+	void computeGlyphs();
+	void updatePieGlyphParamsInternal();
+
+	bool            m_pieGlyphsEnabled;         //!< if slice pie glyphs are enabled
+	QVector<QSharedPointer<iAPieChartGlyph> > m_pieGlyphs[3];
+	double          m_pieGlyphMagFactor;
+	double          m_pieGlyphSpacing;
+	double          m_pieGlyphOpacity;
+	//! @}
 
 	QSharedPointer<QImage>                         m_spectraHistogramImage;
 	QImage                                         m_spectraHistogramColormap;
@@ -178,6 +190,7 @@ private:
 	QVector<int>                                   m_decomposeSelectedElements;
 	int                                            m_enabledChannels;
 	std::vector<uint>                              m_channelIDs;
+	std::vector<QColor>                            m_channelColors;
 	uint                                           m_spectrumSelectionChannelID;
 	vtkSmartPointer<vtkLookupTable>                m_ctf[3];
 	vtkSmartPointer<vtkPiecewiseFunction>          m_otf[3];

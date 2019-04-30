@@ -31,6 +31,8 @@ class vtkColorTransferFunction;
 class vtkDiscretizableColorTransferFunction;
 class vtkImageData;
 
+class QThread;
+
 struct iASpectrumFilter;
 
 enum iAFilterMode
@@ -49,7 +51,7 @@ public:
 	Container * GetDataPtr();
 	vtkSmartPointer<vtkImageData> const & image(size_t idx) const;
 	void GetExtent(int extent[6]) const;
-	QObject* UpdateCombinedVolume(vtkSmartPointer<vtkColorTransferFunction> colorTransferEnergies);
+	QThread* UpdateCombinedVolume(vtkSmartPointer<vtkColorTransferFunction> colorTransferEnergies);
 	vtkSmartPointer<vtkImageData> GetCombinedVolume();
 	vtkSmartPointer<vtkDiscretizableColorTransferFunction> GetColorTransferFunction();
 

@@ -22,12 +22,9 @@
 
 #include "open_iA_Core_export.h"
 
-#include <QColor>
-
 #include <vtkSmartPointer.h>
 
-
-class QString;
+#include <QString>
 
 class vtkImageData;
 class vtkPiecewiseFunction;
@@ -64,9 +61,6 @@ public:
 
 	// check if this can be somehow refactored (not needed for each kind of channel):
 	// begin
-	void setColor(QColor const & col);
-	QColor getColor() const;
-
 	bool isSimilarityRenderingEnabled() const;
 	void setSimilarityRenderingEnabled(bool enabled);
 	// end
@@ -78,7 +72,6 @@ private:
 	bool m_enabled;
 	double m_opacity;
 	bool m_threeD;
-	QColor m_color; // TODO: only used in XRF module, move there!
 	bool m_similarityRenderingEnabled;
 	vtkSmartPointer<vtkImageData>       m_image;
 	vtkScalarsToColors*                 m_cTF;

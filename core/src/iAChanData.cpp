@@ -73,6 +73,5 @@ void iAChanData::InitTFs()
 	vol_otf->AddPoint( imgData->GetScalarRange()[1] - 0.0002,	0.05 );
 	vol_otf->AddPoint( imgData->GetScalarRange()[1] - 0.0001,	1.0 );
 	vol_otf->AddPoint( imgData->GetScalarRange()[1],			1.0 );
-	visData->setColor( cols[0] );
 	visData->setData(imgData, tf, otf );
 }

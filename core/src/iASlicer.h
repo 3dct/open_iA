@@ -39,7 +39,6 @@ class iAChannelData;
 class iAChannelSlicerData;
 class iAInteractorStyleImage;
 class iAMagicLens;
-class iAPieChartGlyph;
 class iARulerWidget;
 class iASingleSlicerSettings;
 class iASlicer;
@@ -193,11 +192,6 @@ public:
 
 	void setIndex(int x, int y, int z);
 
-	// { TODO: Move to XRF
-	void computeGlyphs();
-	void setPieGlyphParameters(double opacity, double spacing, double magFactor);
-	// }
-
 	void setLinkedMdiChild(MdiChild* mdiChild);
 
 public slots:
@@ -230,8 +224,6 @@ public slots:
 	void setSliceProfileOn(bool isOn);
 	//! Toggle the possibility to move start and end point of the profile
 	void setArbitraryProfileOn(bool isOn);
-
-	void setPieGlyphsOn(bool isOn);  // TODO: Move to XRF module!
 
 	//! Adds a new spline point to the end of the spline curve.
 	void addPoint(double x, double y, double z);
@@ -283,14 +275,6 @@ protected:
 	vtkPoints *     m_worldSnakePoints;          //!< points of the snake slicer (owned by mdichild, not by this slicer)
 	iASlicerProfile	* m_sliceProfile;            //!< implements the raw slice profile
 	iAArbitraryProfileOnSlicer * m_arbProfile;   //!< implements drawing the start and end point of the "arbitrary" profile
-
-	// { TODO: move to XRF module
-	bool            m_pieGlyphsEnabled;         //!< if slice pie glyphs for xrf are enabled
-	QVector<QSharedPointer<iAPieChartGlyph> > m_pieGlyphs;
-	double          m_pieGlyphMagFactor;
-	double          m_pieGlyphSpacing;
-	double          m_pieGlyphOpacity;
-	// }
 
 	void keyPressEvent(QKeyEvent * event) override;
 	void mousePressEvent(QMouseEvent * event) override;

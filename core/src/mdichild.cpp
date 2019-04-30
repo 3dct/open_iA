@@ -2013,32 +2013,15 @@ void MdiChild::initChannelRenderer(uint id, bool use3D, bool enableChannel)
 	}
 	for (int s = 0; s < 3; ++s)
 		m_slicer[s]->addChannel(id, *data, false);
-	/*
-	// TODO: VOLUME: rewrite using separate volume
-	if (use3D)
-	{
-		data->Set3D(true);
-		m_renderer->addChannel(data);
-	}
-	*/
+
 	if (use3D)
 	{
 		data->set3D(true);
-		m_dwModalities->addModality(data->image(), QString("Channel %1").arg(id));
+		// TODO: VOLUME: rewrite using separate volume /
+		//    add capabilities of combining volumes from TripleHistogramTF module to renderer
+		// m_renderer->addChannel(data);
 	}
 	setChannelRenderingEnabled(id, enableChannel);
-}
-
-void MdiChild::setSlicerPieGlyphsEnabled( bool isOn )
-{
-	for (int s = 0; s<3; ++s)
-		m_slicer[s]->setPieGlyphsOn(isOn);
-}
-
-void MdiChild::setPieGlyphParameters( double opacity, double spacing, double magFactor )
-{
-	for (int s = 0; s<3; ++s)
-		m_slicer[s]->setPieGlyphParameters(opacity, spacing, magFactor);
 }
 
 iAChannelData * MdiChild::channelData(uint id)
