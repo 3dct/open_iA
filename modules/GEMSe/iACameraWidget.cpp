@@ -28,6 +28,7 @@
 #include <iAConsole.h>
 
 #include <vtkImageData.h>
+#include <vtkCamera.h>
 
 #include <QLabel>
 #include <QPainter>
@@ -91,6 +92,7 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 		gridLay->addWidget(m_sliceViews[i], GridSlicerMap[i].x(), GridSlicerMap[i].y());
 		connect(m_sliceViews[i], SIGNAL(clicked()), this, SLOT( MiniSlicerClicked() ));
 		connect(m_sliceViews[i], SIGNAL(updated()), this, SLOT( MiniSlicerUpdated() ));
+		m_sliceViews[i]->resetCamera();
 	}
 	miniSlicerContainer->setLayout(gridLay);
 

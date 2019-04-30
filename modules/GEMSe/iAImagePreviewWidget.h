@@ -52,6 +52,7 @@ public:
 	void setSlicerMode(iASlicerMode, int sliceNr, vtkCamera*);
 	vtkCamera* camera();
 	void setCamera(vtkCamera* camera);
+	void resetCamera();
 	vtkImageData * image() const;
 	void setColorTheme(iAColorTheme const * colorTheme);
 	int sliceNumber() const;
@@ -67,13 +68,12 @@ public slots:
 signals:
 	void clicked();
 	void rightClicked();
-	void MouseHover();
+	void mouseHover();
 	void updated();
 
 private:
 	void resizeEvent(QResizeEvent * event) override;
 	QSize sizeHint() const override;
-	void initializeSlicer();
 	void updateImage();
 	bool buildCTF();
 
@@ -95,7 +95,6 @@ private:
 	vtkSmartPointer<vtkImageActor> m_addChannelImgActor;
 
 private slots:
-	void SlicerClicked(int x, int y, int z);
 	void SlicerRightClicked(int x, int y, int z);
 	void SlicerHovered(int x, int y, int z, int mode);
 };

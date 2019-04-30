@@ -73,27 +73,8 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 	m_slicerTransform(vtkTransform::New())
 {
 	m_slicer = new iASlicer(this, mode, false, magicLens, m_slicerTransform);
-	setLayout(new QHBoxLayout);
-	layout()->setSpacing(0);
-	layout()->addWidget(m_slicer);
-}
-
-iAImagePreviewWidget::~iAImagePreviewWidget()
-{
-	delete m_slicer;
-	delete m_conn;
-}
-
-void iAImagePreviewWidget::initializeSlicer()
-{
-	buildCTF();
-	
 	m_slicer->setup(iASingleSlicerSettings());
-	m_slicer->addChannel(0, iAChannelData("", m_imageData, m_ctf), true);
 	m_slicer->setBackground(SLICER_BACKGROUND_COLOR[0], SLICER_BACKGROUND_COLOR[1], SLICER_BACKGROUND_COLOR[2]);
-	
-	// TODO: disable interaction in slicer
-	// adapt initial zoom
 	if (m_sliceNumber == SliceNumberNotSet)
 	{
 		m_sliceNumber = GetMiddleSliceNumber(m_imageData, m_slicer->mode());
@@ -109,16 +90,20 @@ void iAImagePreviewWidget::initializeSlicer()
 	{
 		m_slicer->disableInteractor();
 	}
-	
-	connect( m_slicer, SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
-	connect( m_slicer, SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
-	connect( m_slicer, SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerHovered(int, int, int, int)));
-	connect( m_slicer, SIGNAL(userInteraction()), this, SIGNAL(updated()));
+
+	connect(m_slicer, SIGNAL(clicked()), this, SIGNAL(clicked()));
+	connect(m_slicer, SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
+	connect(m_slicer, SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerHovered(int, int, int, int)));
+	connect(m_slicer, SIGNAL(userInteraction()), this, SIGNAL(updated()));
+	setLayout(new QHBoxLayout);
+	layout()->setSpacing(0);
+	layout()->addWidget(m_slicer);
 }
 
-void iAImagePreviewWidget::SlicerClicked(int x, int y, int z)
+iAImagePreviewWidget::~iAImagePreviewWidget()
 {
-	emit clicked();
+	delete m_slicer;
+	delete m_conn;
 }
 
 void iAImagePreviewWidget::SlicerRightClicked(int x, int y, int z)
@@ -128,7 +113,7 @@ void iAImagePreviewWidget::SlicerRightClicked(int x, int y, int z)
 
 void iAImagePreviewWidget::SlicerHovered(int x, int y, int z, int mode)
 {
-	emit MouseHover();
+	emit mouseHover();
 }
 
 void iAImagePreviewWidget::setSliceNumber(int sliceNr)
@@ -177,6 +162,11 @@ vtkCamera* iAImagePreviewWidget::camera()
 	return m_slicer->camera();
 }
 
+void iAImagePreviewWidget::resetCamera()
+{
+	m_slicer->resetCamera();
+}
+
 void iAImagePreviewWidget::setCamera(vtkCamera* camera)
 {
 	m_slicer->setCamera(camera, false);
@@ -205,10 +195,6 @@ void iAImagePreviewWidget::setImage(vtkSmartPointer<vtkImageData> img, bool empt
 		case YZ: m_aspectRatio = d / h; break;
 		default:
 		case XY: m_aspectRatio = h / w; break;
-	}
-	if (!m_slicerTransform)
-	{
-		initializeSlicer();
 	}
 	updateImage();
 }

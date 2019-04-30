@@ -112,7 +112,7 @@ void iAExampleImageWidget::AdaptLayout()
 	{
 		disconnect(m_gridWidget->m_previews[i], SIGNAL(clicked()), this, SLOT(ImageClicked()));
 		disconnect(m_gridWidget->m_previews[i], SIGNAL(rightClicked()), this, SLOT(ImageRightClicked()));
-		disconnect(m_gridWidget->m_previews[i], SIGNAL(MouseHover()), this, SLOT(ImageHovered()));
+		disconnect(m_gridWidget->m_previews[i], SIGNAL(mouseHover()), this, SLOT(ImageHovered()));
 		disconnect(m_gridWidget->m_previews[i], SIGNAL(updated()), this, SLOT(ImageUpdated()));
 		m_layout->removeWidget(m_gridWidget->m_previews[i]);
 		m_previewPool->returnWidget(m_gridWidget->m_previews[i]);
@@ -141,7 +141,7 @@ void iAExampleImageWidget::AdaptLayout()
 			m_layout->addWidget(imgWidget, y, x);
 			connect(imgWidget, SIGNAL(clicked()), this, SLOT(ImageClicked()));
 			connect(imgWidget, SIGNAL(rightClicked()), this, SLOT(ImageRightClicked()));
-			connect(imgWidget, SIGNAL(MouseHover()), this, SLOT(ImageHovered()));
+			connect(imgWidget, SIGNAL(mouseHover()), this, SLOT(ImageHovered()));
 			connect(imgWidget, SIGNAL(updated()), this, SLOT(ImageUpdated()) );
 		}
 	}
