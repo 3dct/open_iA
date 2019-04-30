@@ -188,7 +188,7 @@ QSharedPointer<iAImageTree> iAImageTree::Create(QString const & fileName,
 	return result;
 }
 
-int iAImageTree::GetLabelCount() const
+int iAImageTree::labelCount() const
 {
 	return m_labelCount;
 }

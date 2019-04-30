@@ -98,7 +98,7 @@ public:
 	QString GetAdditionalArguments() const;
 	QString GetPipelineName() const;
 	int GetSampleCount() const;
-	int GetLabelCount() const;
+	int labelCount() const;
 	void GetValues(QMap<QString, QString> & values) const;
 	QString GetImageBaseName() const;
 	bool GetSeparateFolder() const;

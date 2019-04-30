@@ -97,7 +97,7 @@ void iAExampleImageWidget::AdaptLayout()
 	double aspectRatio  = 1;
 	if (m_gridWidget->m_previews.size() > 0)
 	{
-		aspectRatio = clamp(0.5, 2.0, m_gridWidget->m_previews[0]->GetAspectRatio());
+		aspectRatio = clamp(0.5, 2.0, m_gridWidget->m_previews[0]->aspectRatio());
 	}
 	int widthFromHeight = (geometry().width() / static_cast<double>(geometry().height()) ) * aspectRatio;
 	int newWidth = clamp(1, 12, widthFromHeight);
@@ -110,18 +110,18 @@ void iAExampleImageWidget::AdaptLayout()
 	// remove existing widgets from layout
 	for (int i=0; i<m_gridWidget->m_previews.size(); ++i)
 	{
-		disconnect(m_gridWidget->m_previews[i], SIGNAL(Clicked()), this, SLOT(ImageClicked()));
-		disconnect(m_gridWidget->m_previews[i], SIGNAL(RightClicked()), this, SLOT(ImageRightClicked()));
+		disconnect(m_gridWidget->m_previews[i], SIGNAL(clicked()), this, SLOT(ImageClicked()));
+		disconnect(m_gridWidget->m_previews[i], SIGNAL(rightClicked()), this, SLOT(ImageRightClicked()));
 		disconnect(m_gridWidget->m_previews[i], SIGNAL(MouseHover()), this, SLOT(ImageHovered()));
-		disconnect(m_gridWidget->m_previews[i], SIGNAL(Updated()), this, SLOT(ImageUpdated()));
+		disconnect(m_gridWidget->m_previews[i], SIGNAL(updated()), this, SLOT(ImageUpdated()));
 		m_layout->removeWidget(m_gridWidget->m_previews[i]);
-		m_previewPool->ReturnWidget(m_gridWidget->m_previews[i]);
+		m_previewPool->returnWidget(m_gridWidget->m_previews[i]);
 	}
 	m_gridWidget->m_previews.clear();
 	// get new widgets:
 	for (int i=0; i<m_width*m_height; ++i)
 	{
-		iAImagePreviewWidget * imgWidget = m_previewPool->GetWidget(this);
+		iAImagePreviewWidget * imgWidget = m_previewPool->getWidget(this);
 		if (!imgWidget)
 		{
 			return;
@@ -139,10 +139,10 @@ void iAExampleImageWidget::AdaptLayout()
 			iAImagePreviewWidget * imgWidget = m_gridWidget->m_previews[idx];
 			imgWidget->show();
 			m_layout->addWidget(imgWidget, y, x);
-			connect(imgWidget, SIGNAL(Clicked()), this, SLOT(ImageClicked()));
-			connect(imgWidget, SIGNAL(RightClicked()), this, SLOT(ImageRightClicked()));
+			connect(imgWidget, SIGNAL(clicked()), this, SLOT(ImageClicked()));
+			connect(imgWidget, SIGNAL(rightClicked()), this, SLOT(ImageRightClicked()));
 			connect(imgWidget, SIGNAL(MouseHover()), this, SLOT(ImageHovered()));
-			connect(imgWidget, SIGNAL(Updated()), this, SLOT(ImageUpdated()) );
+			connect(imgWidget, SIGNAL(updated()), this, SLOT(ImageUpdated()) );
 		}
 	}
 	UpdateImages();

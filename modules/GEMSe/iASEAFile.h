@@ -48,7 +48,7 @@ public:
 	);
 	void Store(QString const & seaFileName);
 	QString const & GetModalityFileName() const;
-	int GetLabelCount() const;
+	int labelCount() const;
 	QMap<int, QString> const & GetSamplings() const;
 	QString const & GetClusteringFileName() const;
 	QString const & GetLayoutName() const;

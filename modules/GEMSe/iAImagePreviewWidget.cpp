@@ -84,9 +84,9 @@ iAImagePreviewWidget::~iAImagePreviewWidget()
 	delete m_conn;
 }
 
-void iAImagePreviewWidget::InitializeSlicer()
+void iAImagePreviewWidget::initializeSlicer()
 {
-	BuildCTF();
+	buildCTF();
 	
 	m_slicer->setup(iASingleSlicerSettings());
 	m_slicer->addChannel(0, iAChannelData("", m_imageData, m_ctf), true);
@@ -113,17 +113,17 @@ void iAImagePreviewWidget::InitializeSlicer()
 	connect( m_slicer, SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
 	connect( m_slicer, SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
 	connect( m_slicer, SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerHovered(int, int, int, int)));
-	connect( m_slicer, SIGNAL(userInteraction()), this, SIGNAL(Updated()));
+	connect( m_slicer, SIGNAL(userInteraction()), this, SIGNAL(updated()));
 }
 
 void iAImagePreviewWidget::SlicerClicked(int x, int y, int z)
 {
-	emit Clicked();
+	emit clicked();
 }
 
 void iAImagePreviewWidget::SlicerRightClicked(int x, int y, int z)
 {
-	emit RightClicked();
+	emit rightClicked();
 }
 
 void iAImagePreviewWidget::SlicerHovered(int x, int y, int z, int mode)
@@ -131,7 +131,7 @@ void iAImagePreviewWidget::SlicerHovered(int x, int y, int z, int mode)
 	emit MouseHover();
 }
 
-void iAImagePreviewWidget::SetSliceNumber(int sliceNr)
+void iAImagePreviewWidget::setSliceNumber(int sliceNr)
 {
 	m_sliceNumber = sliceNr;
 	if (m_slicerTransform)
@@ -140,7 +140,7 @@ void iAImagePreviewWidget::SetSliceNumber(int sliceNr)
 	}
 }
 
-int iAImagePreviewWidget::GetSliceNumber() const
+int iAImagePreviewWidget::sliceNumber() const
 {
 	return m_sliceNumber;
 }
@@ -150,13 +150,12 @@ iASlicer* iAImagePreviewWidget::slicer()
 	return m_slicer;
 }
 
-
-bool iAImagePreviewWidget::Empty() const
+bool iAImagePreviewWidget::empty() const
 {
 	return m_empty;
 }
 
-void iAImagePreviewWidget::SetSlicerMode(iASlicerMode mode, int sliceNr, vtkCamera* camera)
+void iAImagePreviewWidget::setSlicerMode(iASlicerMode mode, int sliceNr, vtkCamera* camera)
 {
 	m_mode = mode;
 	m_sliceNumber = sliceNr;
@@ -168,17 +167,17 @@ void iAImagePreviewWidget::SetSlicerMode(iASlicerMode mode, int sliceNr, vtkCame
 	}
 }
 
-iASlicerMode iAImagePreviewWidget::GetSlicerMode() const
+iASlicerMode iAImagePreviewWidget::slicerMode() const
 {
 	return m_slicer->mode();
 }
 
-vtkCamera* iAImagePreviewWidget::GetCamera()
+vtkCamera* iAImagePreviewWidget::camera()
 {
 	return m_slicer->camera();
 }
 
-void iAImagePreviewWidget::SetCamera(vtkCamera* camera)
+void iAImagePreviewWidget::setCamera(vtkCamera* camera)
 {
 	m_slicer->setCamera(camera, false);
 	m_slicer->update();
@@ -209,9 +208,9 @@ void iAImagePreviewWidget::setImage(vtkSmartPointer<vtkImageData> img, bool empt
 	}
 	if (!m_slicerTransform)
 	{
-		InitializeSlicer();
+		initializeSlicer();
 	}
-	UpdateImage();
+	updateImage();
 }
 
 void iAImagePreviewWidget::setImage(iAITKIO::ImagePointer const img, bool empty, bool isLabelImg)
@@ -229,7 +228,7 @@ void iAImagePreviewWidget::setImage(iAITKIO::ImagePointer const img, bool empty,
 	setImage(m_conn->vtkImage(), empty, isLabelImg);
 }
 
-void iAImagePreviewWidget::AddNoMapperChannel(vtkSmartPointer<vtkImageData> img)
+void iAImagePreviewWidget::addNoMapperChannel(vtkSmartPointer<vtkImageData> img)
 {
 	if (m_addChannelImgActor)
 	{
@@ -243,7 +242,7 @@ void iAImagePreviewWidget::AddNoMapperChannel(vtkSmartPointer<vtkImageData> img)
 	m_slicer->update();
 }
 
-void iAImagePreviewWidget::RemoveChannel()
+void iAImagePreviewWidget::removeChannel()
 {
 	if (m_addChannelImgActor)
 	{
@@ -253,7 +252,7 @@ void iAImagePreviewWidget::RemoveChannel()
 	m_addChannelImgActor = nullptr;
 }
 
- bool iAImagePreviewWidget::BuildCTF()
+ bool iAImagePreviewWidget::buildCTF()
 {
 	// TODO: cache/reuse ctf
 	if (m_empty || !m_isLabelImage)
@@ -292,18 +291,18 @@ void iAImagePreviewWidget::RemoveChannel()
 	return true;
 }
 
-void iAImagePreviewWidget::UpdateImage()
+void iAImagePreviewWidget::updateImage()
 {
-	if (!BuildCTF())
+	if (!buildCTF())
 		return;
 	if (m_slicer->hasChannel(0))
 		m_slicer->updateChannel(0, iAChannelData("", m_imageData, m_ctf));
 	else
 		m_slicer->addChannel(0, iAChannelData("", m_imageData, m_ctf), true);
-	UpdateView();
+	updateView();
 }
 
-void iAImagePreviewWidget::UpdateView()
+void iAImagePreviewWidget::updateView()
 {
 	m_slicer->update();
 }
@@ -340,22 +339,20 @@ void iAImagePreviewWidget::resizeEvent(QResizeEvent * event)
 }
 
 
-void iAImagePreviewWidget::SetColorTheme(iAColorTheme const * colorTheme)
+void iAImagePreviewWidget::setColorTheme(iAColorTheme const * colorTheme)
 {
 	m_colorTheme = colorTheme;
 	if (m_imageData)
-	{
-		UpdateImage();
-	}
+		updateImage();
 }
 
 
-double iAImagePreviewWidget::GetAspectRatio() const
+double iAImagePreviewWidget::aspectRatio() const
 {
 	return m_aspectRatio;
 }
 
-vtkSmartPointer<vtkColorTransferFunction> iAImagePreviewWidget::GetCTF()
+vtkSmartPointer<vtkColorTransferFunction> iAImagePreviewWidget::colorTF()
 {
 	return m_ctf;
 }

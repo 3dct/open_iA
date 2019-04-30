@@ -583,7 +583,7 @@ int dlg_samplingSettings::GetSampleCount() const
 	return sbNumberOfSamples->value();
 }
 
-int dlg_samplingSettings::GetLabelCount() const
+int dlg_samplingSettings::labelCount() const
 {
 	return sbLabelCount->value();
 }

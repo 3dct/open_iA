@@ -46,33 +46,36 @@ public:
 	~iAImagePreviewWidget();
 	void setImage(iAITKIO::ImagePointer img, bool empty, bool isLabelImg);
 	void setImage(vtkSmartPointer<vtkImageData> img, bool empty, bool isLabelImg);
-	void AddNoMapperChannel(vtkSmartPointer<vtkImageData> img);
-	void RemoveChannel();
-	iASlicerMode GetSlicerMode() const;
-	void SetSlicerMode(iASlicerMode, int sliceNr, vtkCamera*);
-	vtkCamera* GetCamera();
-	void SetCamera(vtkCamera* camera);
+	void addNoMapperChannel(vtkSmartPointer<vtkImageData> img);
+	void removeChannel();
+	iASlicerMode slicerMode() const;
+	void setSlicerMode(iASlicerMode, int sliceNr, vtkCamera*);
+	vtkCamera* camera();
+	void setCamera(vtkCamera* camera);
 	vtkImageData * image() const;
-	void SetColorTheme(iAColorTheme const * colorTheme);
-	int GetSliceNumber() const;
-	double GetAspectRatio() const;
-	vtkSmartPointer<vtkColorTransferFunction> GetCTF();
+	void setColorTheme(iAColorTheme const * colorTheme);
+	int sliceNumber() const;
+	double aspectRatio() const;
+	vtkSmartPointer<vtkColorTransferFunction> colorTF();
 	iASlicer* slicer();
-	bool Empty() const;
+	bool empty() const;
+
 public slots:
-	void UpdateView();
-	void SetSliceNumber(int sliceNr);
+	void updateView();
+	void setSliceNumber(int sliceNr);
+
 signals:
-	void Clicked();
-	void RightClicked();
+	void clicked();
+	void rightClicked();
 	void MouseHover();
-	void Updated();
+	void updated();
+
 private:
-	virtual void resizeEvent(QResizeEvent * event);
-	virtual QSize sizeHint() const;
-	void InitializeSlicer();
-	void UpdateImage();
-	bool BuildCTF();
+	void resizeEvent(QResizeEvent * event) override;
+	QSize sizeHint() const override;
+	void initializeSlicer();
+	void updateImage();
+	bool buildCTF();
 
 	bool m_isLabelImage;
 	bool m_empty;
@@ -90,6 +93,7 @@ private:
 	double m_aspectRatio;
 	iAColorTheme const * m_colorTheme;
 	vtkSmartPointer<vtkImageActor> m_addChannelImgActor;
+
 private slots:
 	void SlicerClicked(int x, int y, int z);
 	void SlicerRightClicked(int x, int y, int z);
