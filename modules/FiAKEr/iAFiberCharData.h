@@ -22,6 +22,8 @@
 
 #include "iAProgress.h"
 
+#include "iAvec3.h"
+
 #include <vtkSmartPointer.h>
 
 #include <QMap>
@@ -80,6 +82,8 @@ public:
 	QString fileName;
 	//! values for all timesteps, stored as: timestep, fiber, fibervalues
 	std::vector<std::vector<std::vector<double> > > timeValues;
+	//! information on curved fibers; fiber_id (size_t) maps to list of points along fiber
+	std::map<size_t, std::vector<iAVec3f> > curveInfo;
 	//! projection error stored as fiber, timestep, global projection error
 	std::vector<std::vector<double > > projectionError;
 	//! number of fibers in the dataset:
