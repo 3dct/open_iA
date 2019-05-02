@@ -54,6 +54,7 @@ public:
 	void addTo(vtkRenderer* w);
 	void remove();
 	vtkSmartPointer<vtkVolume> volume();
+	vtkRenderer* currentRenderer();
 	void update();
 	void showVolume(bool visible);
 
