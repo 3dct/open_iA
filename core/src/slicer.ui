@@ -487,13 +487,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QScrollBar" name="verticalScrollBar">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
+         <widget class="QSlider" name="verticalScrollBar">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
