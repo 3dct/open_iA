@@ -36,9 +36,10 @@ class vtkTransform;
 //TODO REmove
 class vtkTransformFilter;
 class vtkCubeSource;
+//class vtkPlaneSource;
 class vtkPolyDataMapper; 
 class vtkSphereSource; 
-
+class vtkTransform; 
 
 class iAvtkInteractStyleActor : public QObject, public vtkInteractorStyleTrackballActor
 {
@@ -116,7 +117,9 @@ private:
 	//for debugging / visualisation
 
 	void initializeAndRenderPolyData(); 
-	vtkSmartPointer<vtkCubeSource> m_cubeSource;
+	void transformPolydata(vtkSmartPointer<vtkTransform> polTransform); 
+
+	vtkSmartPointer<vtkCubeSource> m_CubeSource_X;
 	vtkSmartPointer<vtkPolyDataMapper> m_cubeMapper;
 	vtkSmartPointer<vtkActor> m_cubeActor;
 	
