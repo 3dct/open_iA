@@ -345,13 +345,8 @@ private:
 	void updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslicer, double lensRadius, double innerLensRadius);
 
 	bool m_fisheyeLensActivated;
-	double m_fisheyeRadius = 80.0; // 110.0;
-	double m_fisheyeRadiusDefault = 80.0;
-	double m_minFisheyeRadius = 2.0;
-	double m_maxFisheyeRadius = 220.0;
-	double m_innerFisheyeRadius = 70.0; // 86
-	double m_innerFisheyeRadiusDefault = 70.0;
-	double m_innerFisheyeMinRadius = 58; // for default radius 70.0
+	double m_fisheyeRadius;
+	double m_innerFisheyeRadius;
 
 	// variables for transformation
 	vtkSmartPointer<vtkThinPlateSplineTransform> m_fisheyeTransform;

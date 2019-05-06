@@ -168,7 +168,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 
 		if (m_mdiChild && m_volumeRenderer) {
 			m_volumeRenderer->getCurrentRenderer()->AddActor(m_cubeActor);
-			m_volumeRenderer->getCurrentRenderer()->AddActor(m_SphereActor);
+			m_volumeRenderer->currentRenderer()->AddActor(m_SphereActor);
 
 			m_volumeRenderer->update(); 
 		}

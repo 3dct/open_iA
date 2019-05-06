@@ -193,6 +193,8 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_isSliceProfEnabled(false),
 	m_isArbProfEnabled(false),
 	m_fisheyeLensActivated(false),
+	m_fisheyeRadius(80.0),
+	m_innerFisheyeRadius(70.0),
 	m_roiActive(false),
 	m_showPositionMarker(false),
 	m_userSetBackground(false),
@@ -1250,6 +1252,13 @@ namespace
 			.arg(inRange ? QString::number(tmpPix) : "exceeds img. dim.")
 			.arg(coord[0]).arg(coord[1]).arg(coord[2]);
 	}
+
+	const double FisheyeMinRadius = 4.0;
+	const double FisheyeMaxRadius = 220.0;
+	const double FisheyeRadiusDefault = 80.0;
+	const double FisheyeInnerRadiusDefault = 70.0;
+
+	double fisheyeMinInnerRadius(double radius) { return std::max(1, static_cast<int>((radius - 1) * 0.7)); }
 }
 
 void iASlicer::printVoxelInformation()
@@ -1843,93 +1852,34 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 	}
 
 	// magnify and unmagnify fisheye lens and distortion radius
-	if (m_fisheyeLensActivated)
+	if (m_fisheyeLensActivated && (
+		event->key() == Qt::Key_Minus ||
+		event->key() == Qt::Key_Plus  || event->nativeVirtualKey() == VK_OEM_PLUS))  // "native..." - workaround required for Ctrl+ "+" with non-numpad "+" key
 	{
 		ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
 
 		// TODO: fisheye lens on all channels???
 		auto reslicer = channel(0)->reslicer();
+		double oldInnerRadius = m_innerFisheyeRadius,
+			oldRadius = m_fisheyeRadius;
 		if (event->modifiers().testFlag(Qt::ControlModifier))
 		{
-			if (event->key() == Qt::Key_Minus)
-			{
-				if (m_fisheyeRadius <= 20 && m_innerFisheyeRadius + 1.0 <= 20.0)
-				{
-					m_innerFisheyeRadius += 1.0;
-					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-				}
-
-				else {
-					if ((m_innerFisheyeRadius + 2.0) <= m_fisheyeRadius)
-					{
-						m_innerFisheyeRadius += 2.0;
-						updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-					}
-
-				}
-			}
-			if (event->key() == Qt::Key_Plus)
-			{
-				if (m_fisheyeRadius <= 20 && m_innerFisheyeRadius - 1.0 >= 1.0)
-				{
-					m_innerFisheyeRadius -= 1.0;
-					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-				}
-				else
-				{
-					if ((m_innerFisheyeRadius - 2.0) >= (m_innerFisheyeMinRadius))
-					{
-						m_innerFisheyeRadius -= 2.0;
-						updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-					}
-				}
-			}
+			// change inner radius (~ zoom level) alone:
+			double ofs = ((m_fisheyeRadius <= 20.0) ? 1 : 2)    // how much to change it
+				* ((event->key() != Qt::Key_Minus) ? -1 : 1);   // which direction (!= instead of ==, as below, is intended!)
+			m_innerFisheyeRadius = clamp(fisheyeMinInnerRadius(m_fisheyeRadius), m_fisheyeRadius, m_innerFisheyeRadius + ofs);
 		}
-		else if (!(event->modifiers().testFlag(Qt::ControlModifier)))
+		else
 		{
-			if (event->key() == Qt::Key_Plus)
-			{
-				if (m_fisheyeRadius + 1.0 <= 20.0)
-				{
-					m_fisheyeRadius += 1.0;
-					m_innerFisheyeRadius = m_innerFisheyeRadius + 1.0;
-					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-				}
-				else
-				{
-					if (!(m_fisheyeRadius + 10.0 > m_maxFisheyeRadius))
-					{
-						m_fisheyeRadius += 10.0;
-						m_innerFisheyeRadius += 10.0;
-						m_innerFisheyeMinRadius += 8;
-						updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-					}
-				}
-			}
-			if (event->key() == Qt::Key_Minus) {
-
-				if (m_fisheyeRadius - 1.0 < 20.0 && m_fisheyeRadius - 1.0 >= m_minFisheyeRadius)
-				{
-					m_fisheyeRadius -= 1.0;
-					m_innerFisheyeRadius -= 1.0;
-					if (m_innerFisheyeMinRadius > 1.0)
-						m_innerFisheyeMinRadius = 1.0;
-					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-				}
-				else
-				{
-					if (!(m_fisheyeRadius - 10.0 < m_minFisheyeRadius))
-					{
-						m_fisheyeRadius -= 10.0;
-						m_innerFisheyeRadius -= 10.0;
-						m_innerFisheyeMinRadius -= - 8;
-						if (m_innerFisheyeRadius < m_innerFisheyeMinRadius)
-							m_innerFisheyeRadius = m_innerFisheyeMinRadius;
-						updateFisheyeTransform(ren->GetWorldPoint() /*pickedData.pos*/, reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-					}
-				}
-			}
+			// change radius of displayed fisheye lens, which requires changing inner radius as well:
+			double ofs = ((m_fisheyeRadius <= 20) ? 1 : 10)     // how much to change it
+				* ((event->key() == Qt::Key_Minus) ? -1 : 1);   // which direction
+			m_fisheyeRadius = clamp(FisheyeMinRadius, FisheyeMaxRadius, m_fisheyeRadius + ofs);
+			if (m_fisheyeRadius != oldRadius)
+				m_innerFisheyeRadius = clamp(fisheyeMinInnerRadius(m_fisheyeRadius), m_fisheyeRadius, m_innerFisheyeRadius + ofs);
 		}
+		if (oldRadius != m_fisheyeRadius || oldInnerRadius != m_innerFisheyeRadius) // only update if something changed
+			updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
 	}
 	if (event->key() == Qt::Key_S)
 	{

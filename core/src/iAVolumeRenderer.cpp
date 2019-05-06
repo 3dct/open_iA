@@ -223,6 +223,11 @@ vtkSmartPointer<vtkVolume> iAVolumeRenderer::volume()
 	return m_volume;
 }
 
+vtkRenderer* iAVolumeRenderer::currentRenderer()
+{
+	return m_currentRenderer;
+}
+
 void iAVolumeRenderer::update()
 {
 	if (m_isFlat)
