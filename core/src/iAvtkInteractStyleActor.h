@@ -116,15 +116,36 @@ private:
 	//just a cube source for visualisation
 	//for debugging / visualisation
 
-	void initializeAndRenderPolyData(); 
-	void transformPolydata(vtkSmartPointer<vtkTransform> polTransform); 
+	void initializeAndRenderPolyData(uint thickness); 
 
+	
+	
+
+	
+	void createReferenceObject(double /*const */* center, double const *spacing, uint thickness, const double *bounds, int mode);
+	void translatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, double X, double Y, double Z);
+	
+	//mode 0: rotateX, mode 1: rotate Y:, mode 2: rotate z
+	//************************************
+	// rotating polydata
+	// Parameter: vtkSmartPointer<vtkTransform> polTransform
+	// Parameter: vtkSmartPointer<vtkActor> & polyActor
+	// Parameter: const double * center
+	// Parameter: double angle
+	// Parameter: uint mode
+	//************************************
+	void rotatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, const double *center, double angle, uint mode);
 	vtkSmartPointer<vtkCubeSource> m_CubeSource_X;
 	vtkSmartPointer<vtkPolyDataMapper> m_cubeMapper;
 	vtkSmartPointer<vtkActor> m_cubeActor;
-	
+	vtkSmartPointer<vtkTransform> m_cubeXTransform; 
 	vtkSmartPointer<vtkSphereSource> m_SphereSourceCenter;
 	vtkSmartPointer<vtkPolyDataMapper> m_SphereMapper;
 	vtkSmartPointer<vtkActor> m_SphereActor;
 
+	vtkSmartPointer<vtkCubeSource> m_RefCubeSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_RefCubeMapper;
+	vtkSmartPointer<vtkActor> m_RefCubeActor;
+
+	//end for debugging; 
 };

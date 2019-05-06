@@ -104,7 +104,7 @@ iAvtkInteractStyleActor::iAvtkInteractStyleActor():
 	/*initializeCube(); */
 }
 
-void iAvtkInteractStyleActor::initializeAndRenderPolyData()
+void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 {
 	if (!m_image) return; 
 	
@@ -124,16 +124,15 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData()
 
 		m_cubeMapper->SetInputConnection(m_CubeSource_X->GetOutputPort());
 		m_cubeActor->SetMapper(m_cubeMapper);
+		m_cubeXTransform = vtkSmartPointer<vtkTransform>::New(); 
 
 
-
-		m_SphereSourceCenter->SetCenter(0, 0, 0);
-		m_SphereSourceCenter->SetRadius(50.0);
+	
 
 
 		m_SphereMapper->SetInputConnection(m_SphereSourceCenter->GetOutputPort());
 		m_SphereActor->SetMapper(m_SphereMapper);
-		m_SphereActor->GetProperty()->SetColor(0, 1, 0); //(R, G, B);
+		m_SphereActor->GetProperty()->SetColor(1, 1, 1); //(R, G, B);
 
 		m_SphereActor->GetProperty()->SetOpacity(0.7); //(R, G, B);
 
@@ -144,7 +143,8 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData()
 		imageCenter[0] = (bounds[1] + bounds[0]) / 2.0f;
 		imageCenter[1] = (bounds[3] + bounds[2]) / 2.0f;
 		imageCenter[2] = (bounds[5] + bounds[4]) / 2.0f;
-
+		m_SphereSourceCenter->SetCenter(imageCenter);
+		m_SphereSourceCenter->SetRadius(50.0);
 
 
 		//m_planeSource->SetPoint1(bounds[1], 0, 0);
@@ -152,8 +152,15 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData()
 		m_CubeSource_X->Update();
 		//m_cubeActor->SetMapper(m_cubeMapper);
 		m_CubeSource_X->SetCenter(imageCenter);
-		m_CubeSource_X->SetBounds(bounds[0], bounds[1]/*+300*/, 0+imageCenter[1], 5*spacing[1]+imageCenter[1], bounds[4]/*+300*/, bounds[5])/*+300)*/;
+		m_CubeSource_X->SetBounds(bounds[0], bounds[1]/*+300*/, 0+imageCenter[1], thickness*spacing[1]+imageCenter[1], bounds[4]/*+300*/, bounds[5])/*+300)*/;
 		m_CubeSource_X->Update();
+
+
+		/*this->rotatePolydata(m_cubeXTransform, imageCenter, 30, TODO); */
+		this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30.0, 1); 
+		this->createReferenceObject(imageCenter, spacing, 2, bounds, 1); 
+		//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30, 1); 
+		//this->translatePolydata(m_cubeXTransform, 0, 100, 0); 
 		//m_cubeSource->SetBounds(bounds[0], bounds[1], )
 		//m_cubeSource->SetXLength(bounds[1]);
 		//m_cubeSource->SetYLength(5*spacing[1]/*bounds[3]*/);
@@ -161,7 +168,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData()
 
 		if (m_mdiChild && m_volumeRenderer) {
 			m_volumeRenderer->getCurrentRenderer()->AddActor(m_cubeActor);
-			//m_volumeRenderer->getCurrentRenderer()->AddActor(m_SphereActor);
+			m_volumeRenderer->getCurrentRenderer()->AddActor(m_SphereActor);
 
 			m_volumeRenderer->update(); 
 		}
@@ -171,10 +178,78 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData()
 	}
 }
 
-void iAvtkInteractStyleActor::transformPolydata(vtkSmartPointer<vtkTransform> polTransform)
+void iAvtkInteractStyleActor::createReferenceObject(double /*const */* center, double const *spacing, uint thickness, const double *bounds, int mode) 
 {
-	m_cubeActor->SetUserTransform(polTransform); 
+
+	try {
+		m_RefCubeSource = vtkSmartPointer<vtkCubeSource>::New();
+		m_RefCubeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		m_RefCubeActor = vtkSmartPointer<vtkActor>::New();
+		m_RefCubeMapper->SetInputConnection(m_RefCubeSource->GetOutputPort());
+		m_RefCubeActor->SetMapper(m_RefCubeMapper);
+		m_RefCubeSource->SetCenter(center);
+		m_RefCubeActor->GetProperty()->SetColor(0, 0.7, 0); //(R, G, B);
+
+		m_RefCubeActor->GetProperty()->SetOpacity(0.5); //(R, G, B);
+		
+
+
+		switch (mode)
+		{
+		case 0: m_RefCubeSource->SetBounds(0 + center[0], thickness*spacing[0] + center[0], bounds[2], bounds[3],
+			bounds[4], bounds[5]); break;
+
+		case 1: m_RefCubeSource->SetBounds(bounds[0], bounds[1]/*+300*/,
+			0 + center[1], thickness*spacing[1] + center[1], bounds[4]/*+300*/, bounds[5])/*+300)*/; break;
+		case 2:
+			m_RefCubeSource->SetBounds(bounds[0], bounds[1]/*+300*/,
+				bounds[2], bounds[3], 0 + center[2], thickness*spacing[2] + center[0]); break;
+		default:
+			break;
+		}
+
+
+
+		if (m_mdiChild && m_volumeRenderer) {
+			m_volumeRenderer->getCurrentRenderer()->AddActor(m_RefCubeActor);
+			m_volumeRenderer->update();
+		}
+
+	}
+	catch (std::bad_alloc &ba) {
+		DEBUG_LOG("could not reserve memory for sphereactor");
+
+	}
+}
+
+void iAvtkInteractStyleActor::translatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, double X, double Y, double Z)
+{
+	//m_cubeXTransform->SetMatrix(m_cubeActor->GetMatrix()); 
+	polTransform->Translate(X, Y, Z);
+	polTransform->Update();
+	polyActor->SetUserTransform(polTransform);
 	m_volumeRenderer->update(); 
+}
+
+void iAvtkInteractStyleActor::rotatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, const double *center, double angle, uint mode)
+{
+	polTransform->PostMultiply();
+	polTransform->Translate(-center[0], -center[1], -center[2]);
+	switch (mode)
+	{
+	case 0: polTransform->RotateX(angle); break; 
+	case 1: polTransform->RotateY(angle); break;
+	case 2: polTransform->RotateZ(angle); break; 
+
+	default:
+		break;
+	}
+	
+	polTransform->Translate(center[0], center[1], center[2]);
+	
+	polTransform->Update();
+	polyActor->SetUserTransform(polTransform);
+	m_volumeRenderer->update();
 }
 
 void iAvtkInteractStyleActor::Rotate()
@@ -225,7 +300,7 @@ void iAvtkInteractStyleActor::initialize(vtkImageData *img, iAVolumeRenderer* vo
 	m_mdiChild = mdiChild;
 
 	if (currentMode == 0) {
-		initializeAndRenderPolyData(); 
+		initializeAndRenderPolyData(5); 
 	}
 	//just a test cube for one slcier; 
 
