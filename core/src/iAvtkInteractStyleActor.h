@@ -116,7 +116,7 @@ private:
 	iAvtkInteractStyleActor(const iAvtkInteractStyleActor &) = delete;
 	//! @}
 
-	double computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double relativeAngle);
+	void computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double &relativeAngle);
 
 	/*methods for polydata visualisation
 	*/

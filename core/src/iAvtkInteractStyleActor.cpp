@@ -471,11 +471,8 @@ void iAvtkInteractStyleActor::rotate2D()
 	double disp_obj_center[3];
 	double relativeAngle = 0.0f;
 	
-	relativeAngle = computeDisplayRotationAngle(sliceProbCenter, disp_obj_center, rwi, relativeAngle);
-
-	
-	//end original code
-	this->rotateSlicerProp(m_SliceInteractorTransform[m_currentSliceMode], sliceProbCenter, relativeAngle, this->InteractionProp,2);
+	computeDisplayRotationAngle(sliceProbCenter, disp_obj_center, rwi, relativeAngle);
+		this->rotateSlicerProp(m_SliceInteractorTransform[m_currentSliceMode], sliceProbCenter, relativeAngle, this->InteractionProp,2);
 
 	double const * orientXYZ = this->InteractionProp->GetOrientation();
 	double const * oriWXYZ = this->InteractionProp->GetOrientationWXYZ();
@@ -507,7 +504,7 @@ void iAvtkInteractStyleActor::rotate2D()
 	/*DEBUG_LOG(QString("orientation %1 %2. %3").arg(Rendposition[0]).arg(Rendposition[1]).arg(Rendposition[2
 	]));*/
 
-	double angle = newAngle - oldAngle;
+	//double angle = newAngle - oldAngle;
 
 
 
@@ -552,7 +549,7 @@ void iAvtkInteractStyleActor::rotate2D()
 }
 
 
-double iAvtkInteractStyleActor::computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double relativeAngle)
+void iAvtkInteractStyleActor::computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double &relativeAngle)
 {
 	//drag an angle, calculate angle from coords, objectCenter comes from interaction prop 
 	this->ComputeWorldToDisplay(sliceProbCenter[0], sliceProbCenter[1], sliceProbCenter[2],
@@ -567,7 +564,7 @@ double iAvtkInteractStyleActor::computeDisplayRotationAngle(double * sliceProbCe
 			rwi->GetLastEventPosition()[0] - disp_obj_center[0]));
 
 	//perform rotation of interaction prop of the slicer
-	relativeAngle = newAngle - oldAngle;	return relativeAngle;
+	relativeAngle = newAngle - oldAngle;	
 }
 
 void iAvtkInteractStyleActor::UpdateReslicerTranslateTransform2D(double *const Rendposition, const double *orientation, const double *imageCenter, int sliceMode)
