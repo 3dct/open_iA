@@ -476,7 +476,7 @@ void iASlicer::update()
 	for (auto ch : m_channels)
 	{
 		ch->updateMapper();
-		ch->reslicer()->UpdateWholeExtent();
+		ch->reslicer()->Update();
 	}
 	m_interactor->ReInitialize();
 	m_interactor->Render();

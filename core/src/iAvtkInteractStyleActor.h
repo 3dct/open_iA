@@ -41,6 +41,8 @@ class vtkPolyDataMapper;
 class vtkSphereSource; 
 class vtkTransform; 
 
+
+
 class iAvtkInteractStyleActor : public QObject, public vtkInteractorStyleTrackballActor
 {
 	Q_OBJECT
@@ -112,6 +114,10 @@ private:
 	iAvtkInteractStyleActor(const iAvtkInteractStyleActor &) = delete;
 	//! @}
 
+	
+
+	/*methods for polydata visualisation
+	*/
 
 	//just a cube source for visualisation
 	//for debugging / visualisation
@@ -122,7 +128,13 @@ private:
 	
 
 	
-	void createReferenceObject(double /*const */* center, double const *spacing, uint thickness, const double *bounds, int mode);
+	/*mode 0: X, mode 1: Y:, mode 2:  z
+	* reference object for plane ... 
+	*/
+	void createReferenceObject(double /*const */* center, double const *spacing, uint thickness, const double *bounds, uint mode);
+	
+
+	
 	void translatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, double X, double Y, double Z);
 	
 	//mode 0: rotateX, mode 1: rotate Y:, mode 2: rotate z

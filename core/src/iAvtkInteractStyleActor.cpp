@@ -76,9 +76,18 @@ namespace
 			break;
 		}
 	}
-				
+	
+
 	
 }
+
+namespace polyTransform {
+	enum vismod
+	{
+		x, y, z
+	};
+}
+
 
 	vtkStandardNewMacro(iAvtkInteractStyleActor);
 
@@ -88,20 +97,27 @@ iAvtkInteractStyleActor::iAvtkInteractStyleActor():
 	enable3D(false),
 	m_rotationEnabled(true)
 {
-	m_transform3D = vtkSmartPointer<vtkTransform>::New();
+
+	try {
+		m_transform3D = vtkSmartPointer<vtkTransform>::New();
+
+		for (int i = 0; i < 3; i++) {
+			m_SliceRotateTransform[i] = vtkSmartPointer<vtkTransform>::New();
+		}
+		m_transformFilter = vtkSmartPointer<vtkTransformFilter>::New(); //TDOO Remove transform filter
+
+		for (int i = 0; i < 3; i++) {
+			m_sliceTranslationTransform[i] = vtkSmartPointer < vtkTransform>::New();
+		}
+		std::fill(m_slicerChannel, m_slicerChannel + iASlicerMode::SlicerCount, nullptr);
+		InteractionPicker->SetTolerance(100.0);
+	}
+	catch (std::bad_alloc &ba) {
+		DEBUG_LOG("Error in Memory reservation"); 
+	}
 	
-	for (int i = 0; i < 3; i++) {
-		m_SliceRotateTransform[i] = vtkSmartPointer<vtkTransform>::New();
-	}
-	m_transformFilter = vtkSmartPointer<vtkTransformFilter>::New(); //TDOO Remove transform filter
-
-	for (int i = 0; i < 3; i++) {
-		m_sliceTranslationTransform[i] = vtkSmartPointer < vtkTransform>::New();
-	}
-	std::fill(m_slicerChannel, m_slicerChannel + iASlicerMode::SlicerCount, nullptr);
-	InteractionPicker->SetTolerance(100.0);
-
-	/*initializeCube(); */
+	
+	
 }
 
 void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
@@ -147,8 +163,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 		m_SphereSourceCenter->SetRadius(50.0);
 
 
-		//m_planeSource->SetPoint1(bounds[1], 0, 0);
-		//	m_planeSource->SetPoint2(bounds[1], bounds[3], 0);
+	
 		m_CubeSource_X->Update();
 		//m_cubeActor->SetMapper(m_cubeMapper);
 		m_CubeSource_X->SetCenter(imageCenter);
@@ -157,16 +172,15 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 
 
 		/*this->rotatePolydata(m_cubeXTransform, imageCenter, 30, TODO); */
-		this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30.0, 1); 
+		//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30.0, 1); 
 		this->createReferenceObject(imageCenter, spacing, 2, bounds, 1); 
 		//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30, 1); 
 		//this->translatePolydata(m_cubeXTransform, 0, 100, 0); 
 		//m_cubeSource->SetBounds(bounds[0], bounds[1], )
-		//m_cubeSource->SetXLength(bounds[1]);
-		//m_cubeSource->SetYLength(5*spacing[1]/*bounds[3]*/);
-		//m_cubeSource->SetZLength(bounds[5]);
+		
 
 		if (m_mdiChild && m_volumeRenderer) {
+
 			m_volumeRenderer->getCurrentRenderer()->AddActor(m_cubeActor);
 			m_volumeRenderer->currentRenderer()->AddActor(m_SphereActor);
 
@@ -178,7 +192,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 	}
 }
 
-void iAvtkInteractStyleActor::createReferenceObject(double /*const */* center, double const *spacing, uint thickness, const double *bounds, int mode) 
+void iAvtkInteractStyleActor::createReferenceObject(double /*const */* center, double const *spacing, uint thickness, const double *bounds, uint mode) 
 {
 
 	try {
@@ -233,6 +247,14 @@ void iAvtkInteractStyleActor::translatePolydata(vtkSmartPointer<vtkTransform> &p
 
 void iAvtkInteractStyleActor::rotatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, const double *center, double angle, uint mode)
 {
+
+	vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New(); 
+	mat = polyActor->GetUserMatrix();
+	if (mat) {
+		DEBUG_LOG("Matrix successfull");
+		polTransform->SetMatrix(mat); 
+	}
+
 	polTransform->PostMultiply();
 	polTransform->Translate(-center[0], -center[1], -center[2]);
 	switch (mode)
@@ -493,7 +515,7 @@ void iAvtkInteractStyleActor::rotate2D()
 	const int* imgExtend = m_image->GetExtent();
 	double cutstomCenter[3];
 
-
+	//this seems to be the same like image center? 
 	cutstomCenter[0] = m_image->GetOrigin()[0] + spacing[0] * 0.5 *(imgExtend[0] + imgExtend[1]);
 	cutstomCenter[1] = m_image->GetOrigin()[1] + spacing[1] * 0.5 *(imgExtend[2] + imgExtend[3]);
 	cutstomCenter[2] = m_image->GetOrigin()[2] + spacing[2] * 0.5 *(imgExtend[4] + imgExtend[5]);
@@ -504,7 +526,8 @@ void iAvtkInteractStyleActor::rotate2D()
 
 
 	TransformReslicerExperimental(imageCenter, angle, spacing, m_currentSliceMode);
-	
+	this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, angle,	1); 
+
 
 
 	//m_sliceTranslationTransform->
