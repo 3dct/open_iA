@@ -103,8 +103,10 @@ private:
 
 	//vtkSmartPointer<vtkTransformFilter> m_transformFilter; //todo remove
 
-	//probably used to update the slicer
-	vtkSmartPointer<vtkTransform> m_SliceInteractorTransform[3];  //transform for each reslicer
+	//used to update the slicer
+	vtkSmartPointer<vtkTransform> m_SliceInteractorTransform[3];  //transform for each interactor of slicer
+	vtkSmartPointer<vtkTransform> m_ReslicerTransform[3]; //transform for each reslicer
+
 
 	int m_currentSliceMode;
 	bool m_rightButtonDragZoomEnabled = false;
@@ -126,15 +128,15 @@ private:
 
 	void initializeAndRenderPolyData(uint thickness); 
 
-	//rotates a prop by a vtk transform, works fine
-	//void rotateInterActorProp(vtkSmartPointer<vtkTransform> &transform, double *center, double angle, vtkProp3D *prop, uint mode);
-
-
+	//rotates a prop by a vtk transform, works fine	   
 	void rotateInterActorProp(vtkSmartPointer<vtkTransform> &transform, double const *center, double angle, vtkProp3D *prop, uint mode);
 
 	//perform rotation of transform around an axis by angle
 	void rotateAroundAxis(vtkSmartPointer<vtkTransform> &transform, double const * center, uint mode, double angle);
 
+	
+
+	void rotateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, double const *center, uint mode, double angle);
 	/*mode 0: X, mode 1: Y:, mode 2:  z
 	* reference object for plane ... 
 	*/
