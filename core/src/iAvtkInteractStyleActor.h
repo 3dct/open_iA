@@ -30,6 +30,7 @@
 class iAChannelSlicerData;
 class iAVolumeRenderer;
 class MdiChild;
+class vtkProp3D; 
 
 class vtkImageData;
 class vtkTransform; 
@@ -68,6 +69,8 @@ public:
 	//rotates 2d slicer/ interactor
 	void rotate2D(); 
 
+	
+
 	void UpdateReslicerTranslateTransform2D(double *const Rendposition, const double *orientation, const double *imageCenter, int sliceMode);
 	
 
@@ -97,12 +100,11 @@ private:
 	vtkImageData *m_image;
 	iAChannelSlicerData* m_slicerChannel[3];
 	vtkSmartPointer<vtkTransform> m_transform3D;
-	vtkSmartPointer<vtkTransform> m_sliceTranslationTransform[3]; 
 
-	vtkSmartPointer<vtkTransformFilter> m_transformFilter; //todo remove
+	//vtkSmartPointer<vtkTransformFilter> m_transformFilter; //todo remove
 
 	//probably used to update the slicer
-	vtkSmartPointer<vtkTransform> m_SliceRotateTransform[3];  //transform for each reslicer
+	vtkSmartPointer<vtkTransform> m_SliceInteractorTransform[3];  //transform for each reslicer
 
 	int m_currentSliceMode;
 	bool m_rightButtonDragZoomEnabled = false;
@@ -114,7 +116,7 @@ private:
 	iAvtkInteractStyleActor(const iAvtkInteractStyleActor &) = delete;
 	//! @}
 
-	
+	double computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double relativeAngle);
 
 	/*methods for polydata visualisation
 	*/
@@ -124,10 +126,10 @@ private:
 
 	void initializeAndRenderPolyData(uint thickness); 
 
-	
-	
+	//rotates a prop by a vtk transform, works fine
+	void rotateSlicerProp(vtkSmartPointer<vtkTransform> &transform, double *center, double angle, vtkProp3D *prop, uint mode);
 
-	
+
 	/*mode 0: X, mode 1: Y:, mode 2:  z
 	* reference object for plane ... 
 	*/
@@ -158,6 +160,8 @@ private:
 	vtkSmartPointer<vtkCubeSource> m_RefCubeSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_RefCubeMapper;
 	vtkSmartPointer<vtkActor> m_RefCubeActor;
+	vtkSmartPointer<vtkTransform> m_RefTransform; 
+
 
 	//end for debugging; 
 };
