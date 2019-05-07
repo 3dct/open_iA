@@ -127,9 +127,10 @@ private:
 	void initializeAndRenderPolyData(uint thickness); 
 
 	//rotates a prop by a vtk transform, works fine
-	void rotateSlicerProp(vtkSmartPointer<vtkTransform> &transform, double *center, double angle, vtkProp3D *prop, uint mode);
+	//void rotateInterActorProp(vtkSmartPointer<vtkTransform> &transform, double *center, double angle, vtkProp3D *prop, uint mode);
 
 
+	void rotateInterActorProp(vtkSmartPointer<vtkTransform> &transform, double const *center, double angle, vtkProp3D *prop, uint mode);
 	/*mode 0: X, mode 1: Y:, mode 2:  z
 	* reference object for plane ... 
 	*/

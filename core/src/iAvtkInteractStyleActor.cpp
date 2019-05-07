@@ -190,7 +190,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 	}
 }
 
-void iAvtkInteractStyleActor::rotateSlicerProp(vtkSmartPointer<vtkTransform> &transform, double *center, double angle, vtkProp3D *prop, uint mode)
+void iAvtkInteractStyleActor::rotateInterActorProp(vtkSmartPointer<vtkTransform> &transform,  double const *center, double angle, vtkProp3D *prop, uint mode)
 {
 	vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
 	mat = prop->GetUserMatrix();
@@ -457,8 +457,6 @@ void iAvtkInteractStyleActor::rotate2D()
 	if (!m_image) { DEBUG_LOG(QString("Error on rotation %1").arg(m_currentSliceMode)); return; }
 
 	// Get the axis to rotate around = vector from eye to origin
-
-	
 	double const *imageBounds = this->m_image->GetBounds();
 	DEBUG_LOG(QString("Image Center"));
 	double imageCenter[3];//image center
@@ -472,34 +470,39 @@ void iAvtkInteractStyleActor::rotate2D()
 	double relativeAngle = 0.0f;
 	
 	computeDisplayRotationAngle(sliceProbCenter, disp_obj_center, rwi, relativeAngle);
-		this->rotateSlicerProp(m_SliceInteractorTransform[m_currentSliceMode], sliceProbCenter, relativeAngle, this->InteractionProp,2);
 
-	double const * orientXYZ = this->InteractionProp->GetOrientation();
-	double const * oriWXYZ = this->InteractionProp->GetOrientationWXYZ();
+	//2d, rotate Z; 
+	this->rotateInterActorProp(m_SliceInteractorTransform[m_currentSliceMode], sliceProbCenter, relativeAngle, this->InteractionProp,2);
 
-	DEBUG_LOG(QString("Orientation interactor XYZ %1 %2 %3 %4").arg(oriWXYZ[0]).arg(oriWXYZ[1]).arg(oriWXYZ[2]).arg(oriWXYZ[3]));
+	//double const * orientXYZ = this->InteractionProp->GetOrientation();
+	//double const * oriWXYZ = this->InteractionProp->GetOrientationWXYZ();
+
+	//DEBUG_LOG(QString("Orientation interactor XYZ %1 %2 %3 %4").arg(oriWXYZ[0]).arg(oriWXYZ[1]).arg(oriWXYZ[2]).arg(oriWXYZ[3]));
 
 
 	QString mode = slicerModeString(m_currentSliceMode);
 	DEBUG_LOG(QString("Mode %1 %2").arg(mode.toStdString().c_str()).arg(m_currentSliceMode));
 	double const * spacing = m_image->GetSpacing();
-
-	double const *volCenter = m_volumeRenderer->volume()->GetCenter();
-
+	double const *volImageCenter = m_volumeRenderer->volume()->GetCenter();
 	double const *orientationBefore = m_volumeRenderer->volume()->GetOrientation();
+	   
 	//DEBUG_LOG(QString("Orientation before %1 %2 %3").arg(orientationBefore[0]).arg(orientationBefore[1]).arg(orientationBefore[2]));
 
-
+	//rotate in 3d; 
 
 	//TransformReslicer(obj_center/*imageCenter*/, relativeAngle); 
 
 
 	//this we need obviously
-	Update3DTransform(volCenter/*imageCenter*/, spacing, relativeAngle);
-	/*double *const Rendorientation = m_volumeRenderer->volume()->GetOrientation();
-	DEBUG_LOG(QString("orientation %1 %2. %3").arg(Rendorientation[0]).arg(Rendorientation[1]).arg(Rendorientation[2
-	]));*/
 
+	//TODO replace this similarily as we did before
+
+	
+	//is the spacing needed  //otherwise multiply center with spacing??
+	this->rotateInterActorProp(m_transform3D, volImageCenter, relativeAngle, m_volumeRenderer->volume(), m_currentSliceMode); 
+	m_volumeRenderer->update(); 
+
+	
 	double *const Rendposition = m_volumeRenderer->volume()->GetPosition();
 	/*DEBUG_LOG(QString("orientation %1 %2. %3").arg(Rendposition[0]).arg(Rendposition[1]).arg(Rendposition[2
 	]));*/
@@ -521,7 +524,7 @@ void iAvtkInteractStyleActor::rotate2D()
 	cutstomCenter[2] = m_image->GetOrigin()[2] + spacing[2] * 0.5 *(imgExtend[4] + imgExtend[5]);
 
 	DEBUG_LOG(QString("Custom center is %1 %2 %3").arg(cutstomCenter[0]).arg(cutstomCenter[1]).arg(cutstomCenter[2]));
-	DEBUG_LOG(QString("VolCenter is %1 %2 %3").arg(volCenter[0]).arg(volCenter[1]).arg(volCenter[2]));
+	DEBUG_LOG(QString("VolCenter is %1 %2 %3").arg(volImageCenter[0]).arg(volImageCenter[1]).arg(volImageCenter[2]));
 	DEBUG_LOG(QString("ImageCenter is %1 %2 %3").arg(imageCenter[0]).arg(imageCenter[1]).arg(imageCenter[2]));
 
 
