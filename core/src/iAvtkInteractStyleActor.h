@@ -131,6 +131,10 @@ private:
 
 
 	void rotateInterActorProp(vtkSmartPointer<vtkTransform> &transform, double const *center, double angle, vtkProp3D *prop, uint mode);
+
+	//perform rotation of transform around an axis by angle
+	void rotateAroundAxis(vtkSmartPointer<vtkTransform> &transform, double const * center, uint mode, double angle);
+
 	/*mode 0: X, mode 1: Y:, mode 2:  z
 	* reference object for plane ... 
 	*/
