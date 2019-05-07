@@ -213,7 +213,8 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_mode(mode),
 	m_interactionMode(Normal),
 	m_xInd(0), m_yInd(0), m_zInd(0),
-	m_sliceNumber(0)
+	m_sliceNumber(0),
+	m_slabThickness(0)
 {
 	std::fill(m_angle, m_angle + 3, 0);
 	setAutoFillBackground(false);
