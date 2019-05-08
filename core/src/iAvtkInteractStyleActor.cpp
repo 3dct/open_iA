@@ -41,6 +41,8 @@
 #include <vtkAlgorithmOutput.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkCubeSource.h>
+#include <vtkLineSource.h>
+
 //#include <vtkPlaneSource.h>
 #include <vtkSphereSource.h>
 #include <vtkActor.h>
@@ -169,6 +171,8 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 		
 		//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30.0, 1); 
 		this->createReferenceObject(imageCenter, spacing, 2, bounds, 1); 
+		this->createAndInitLines(bounds, imageCenter);
+
 		
 		this->translatePolydata(m_RefTransform, m_RefCubeActor, 0, 100, 0); 
 		this->translatePolydata(m_RefTransform, m_RefCubeActor, 0, -100, 0);
@@ -226,13 +230,15 @@ void iAvtkInteractStyleActor::rotateAroundAxis(vtkSmartPointer<vtkTransform> & t
 
 void iAvtkInteractStyleActor::rotateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer,  double const *center, uint mode, double angle)
 {
-
+	
 	this->rotateAroundAxis(transform, center, mode, angle);  //transform is ready; 
 	
 
 	//m_slicerChannel[sliceMode]->reslicer()->SetInputData(m_image);
 	double const * spacing = m_image->GetSpacing();
 	double const * origin = m_image->GetOrigin(); //origin bei null
+
+	//TODO change axes; depending on slicer mode by switch caes
 	int slicerZAxisIdx = mapSliceToGlobalAxis(mode, iAAxisIndex::Z/*iAAxisIndex::Z*/);
 
 	//ist das immer die Z-Achse? 
@@ -250,7 +256,7 @@ void iAvtkInteractStyleActor::rotateReslicer(vtkSmartPointer<vtkTransform> &tran
 	//geht offensichtlich nur über das rotate transform
 
 		//m_slicerChannel[sliceMode]->reslicer()->SetResliceAxes(m_SliceRotateTransform[sliceMode]->GetMatrix());
-	m_slicerChannel[mode]->reslicer()->SetResliceTransform(m_SliceInteractorTransform[sliceMode]);
+	m_slicerChannel[mode]->reslicer()->SetResliceTransform(m_SliceInteractorTransform[mode]);
 	//m_slicerChannel[sliceMode]->reslicer()->UpdateWholeExtent();
 	m_slicerChannel[mode]->reslicer()->SetInterpolationModeToLinear();
 
@@ -302,6 +308,63 @@ void iAvtkInteractStyleActor::createReferenceObject(double /*const */* center, d
 		DEBUG_LOG("could not reserve memory for sphereactor");
 
 	}
+}
+
+void iAvtkInteractStyleActor::createAndInitLines(double const *bounds, double const * center)
+{ 
+	if ((!m_mdiChild) && (!m_volumeRenderer)) return; 
+	 try {
+		 vtkSmartPointer<vtkLineSource> refLine[3]; 
+		 vtkSmartPointer<vtkActor> refActor[3];
+		 vtkSmartPointer<vtkPolyDataMapper> refMapper[3]; 
+
+		for (int i = 0; i < 3; i++)
+		{
+			refLine[i] = vtkSmartPointer<vtkLineSource>::New();
+			refActor[i] = vtkSmartPointer<vtkActor>::New();
+			refMapper[i] = vtkSmartPointer<vtkPolyDataMapper>::New();
+
+			refMapper[i]->SetInputConnection(refLine[i]->GetOutputPort());
+			refActor[i]->SetMapper(refMapper[i]);
+			
+		}
+
+		this->initLine(refLine[0], refActor[0], center, bounds[0], bounds[1], 0);
+		this->initLine(refLine[1], refActor[1], center, bounds[2], bounds[3], 1);
+		this->initLine(refLine[2], refActor[2], center, bounds[4], bounds[5], 2);
+		
+		for (int i =0; i < 3; i++)
+		{
+			m_volumeRenderer->getCurrentRenderer()->AddActor(refActor[i]);
+		}
+
+		m_volumeRenderer->update();
+		
+
+	}catch (std::bad_alloc &ba) {
+		DEBUG_LOG("Mem error in line creation"); 
+	}
+}
+
+void iAvtkInteractStyleActor::initLine(vtkSmartPointer<vtkLineSource> &line, vtkSmartPointer<vtkActor>& lineActor, double const * center, double min, double max, uint sliceMode)
+{
+	if ((!line) & (!lineActor)) return;
+	if (sliceMode > 2) return; 
+	double dist_half = (min + max) / 2.0f; 
+
+	double color[3] = { 0, 0, 0 };
+	double point1[3] = { 0,0,0 };
+	double point2[3] = { 0,0,0 };
+
+	color[sliceMode] = 1;
+	point1[sliceMode] = center[sliceMode]-dist_half;
+	point2[sliceMode] = center[sliceMode]+dist_half;
+	
+	line->SetPoint1(point1); 
+	line->SetPoint2(point2);
+	lineActor->GetProperty()->SetColor(color); 
+	lineActor->GetProperty()->SetOpacity(0.82); 
+	lineActor->GetProperty()->SetLineWidth(4);
 }
 
 void iAvtkInteractStyleActor::translatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, double X, double Y, double Z)
@@ -529,12 +592,7 @@ void iAvtkInteractStyleActor::rotate2D()
 			
 	//rotate around axis based on the spacing needed  //otherwise multiply center with spacing??
 	this->rotateInterActorProp(m_transform3D, volImageCenter, relativeAngle, m_volumeRenderer->volume(), m_currentSliceMode); 
-		
-	double *const Rendposition = m_volumeRenderer->volume()->GetPosition();
-	/*DEBUG_LOG(QString("orientation %1 %2. %3").arg(Rendposition[0]).arg(Rendposition[1]).arg(Rendposition[2
-	]));*/
-
-	//double angle = newAngle - oldAngle;
+			
 		   
 	//evtl die Orientation an die Transform weiter geben als INPut //TODO
 
@@ -551,6 +609,8 @@ void iAvtkInteractStyleActor::rotate2D()
 	DEBUG_LOG(QString("VolCenter is %1 %2 %3").arg(volImageCenter[0]).arg(volImageCenter[1]).arg(volImageCenter[2]));
 	DEBUG_LOG(QString("ImageCenter is %1 %2 %3").arg(imageCenter[0]).arg(imageCenter[1]).arg(imageCenter[2]));
 	
+
+	//das brauchen wir nicht; 
 	//TransformReslicerExperimental(imageCenter, angle, spacing, m_currentSliceMode);
 	//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, angle,	1); 
 	//transform an die reslicer weitergeben

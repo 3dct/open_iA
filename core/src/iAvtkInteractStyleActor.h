@@ -31,9 +31,11 @@ class iAChannelSlicerData;
 class iAVolumeRenderer;
 class MdiChild;
 class vtkProp3D; 
+class vtkImageReslice; 
 
 class vtkImageData;
 class vtkTransform; 
+class vtkLineSource;
 //TODO REmove
 class vtkTransformFilter;
 class vtkCubeSource;
@@ -135,15 +137,22 @@ private:
 	void rotateAroundAxis(vtkSmartPointer<vtkTransform> &transform, double const * center, uint mode, double angle);
 
 	
-
+	//reslicer only for 3d rotation
 	void rotateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, double const *center, uint mode, double angle);
 	/*mode 0: X, mode 1: Y:, mode 2:  z
 	* reference object for plane ... 
 	*/
 	void createReferenceObject(double /*const */* center, double const *spacing, uint thickness, const double *bounds, uint mode);
 	
-
 	
+	
+	/*void createAndInitLines(double const *bounds); */
+	
+	
+	void createAndInitLines(double const *bounds, double const * center);
+	void initLine(vtkSmartPointer<vtkLineSource> &line, vtkSmartPointer<vtkActor>& lineActor, double const * center, double min, double max, uint sliceMode);
+	/*void initLine(vtkSmartPointer<vtkLineSource> &line, vtkSmartPointer<vtkActor> lineActor, double min, double max, int colorMode, uint sliceMode);*/
+	//void iAvtkInteractStyleActor::initLine(vtkSmartPointer<vtkLineSource>, double const *Point1, double const *Point2);
 	void translatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, double X, double Y, double Z);
 	
 	//mode 0: rotateX, mode 1: rotate Y:, mode 2: rotate z
@@ -169,6 +178,10 @@ private:
 	vtkSmartPointer<vtkActor> m_RefCubeActor;
 	vtkSmartPointer<vtkTransform> m_RefTransform; 
 
+	/*vtkSmartPointer<vtkLineSource> m_RefLine[3]; 
+	vtkSmartPointer<vtkActor> m_RefLineActor[3];
+	vtkSmartPointer<vtkPolyDataMapper> m_RefLineMapper[3];*/
+	
 
 	//end for debugging; 
 };
