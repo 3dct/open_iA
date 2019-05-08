@@ -137,6 +137,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 
 		m_cubeMapper->SetInputConnection(m_CubeSource_X->GetOutputPort());
 		m_cubeActor->SetMapper(m_cubeMapper);
+		m_cubeActor->SetDragable(0); 
 		m_cubeXTransform = vtkSmartPointer<vtkTransform>::New(); 
 		m_RefTransform = vtkSmartPointer<vtkTransform>::New(); 
 
@@ -157,7 +158,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 		imageCenter[1] = (bounds[3] + bounds[2]) / 2.0f;
 		imageCenter[2] = (bounds[5] + bounds[4]) / 2.0f;
 		m_SphereSourceCenter->SetCenter(imageCenter);
-		m_SphereSourceCenter->SetRadius(50.0);
+		m_SphereSourceCenter->SetRadius(5.0);
 
 
 	
@@ -184,9 +185,8 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 
 		if (m_mdiChild && m_volumeRenderer) {
 
-			m_volumeRenderer->getCurrentRenderer()->AddActor(m_cubeActor);
+			//m_volumeRenderer->getCurrentRenderer()->AddActor(m_cubeActor);
 			m_volumeRenderer->currentRenderer()->AddActor(m_SphereActor);
-
 			m_volumeRenderer->update(); 
 		}
 	}
@@ -279,7 +279,7 @@ void iAvtkInteractStyleActor::createReferenceObject(double /*const */* center, d
 		m_RefCubeActor->GetProperty()->SetColor(0, 0.7, 0); //(R, G, B);
 
 		m_RefCubeActor->GetProperty()->SetOpacity(0.5); //(R, G, B);
-		
+		m_RefCubeActor->SetDragable(0);
 
 		//mode 0: x, 1: y, 2:z
 		switch (mode)
@@ -353,8 +353,8 @@ void iAvtkInteractStyleActor::initLine(vtkSmartPointer<vtkLineSource> &line, vtk
 	double dist_half = (min + max) / 2.0f; 
 
 	double color[3] = { 0, 0, 0 };
-	double point1[3] = { 0,0,0 };
-	double point2[3] = { 0,0,0 };
+	double point1[3] = { center[0],center[1],center[2] };
+	double point2[3] = { center[0],center[1],center[2] };
 
 	color[sliceMode] = 1;
 	point1[sliceMode] = center[sliceMode]-dist_half;
@@ -365,6 +365,8 @@ void iAvtkInteractStyleActor::initLine(vtkSmartPointer<vtkLineSource> &line, vtk
 	lineActor->GetProperty()->SetColor(color); 
 	lineActor->GetProperty()->SetOpacity(0.82); 
 	lineActor->GetProperty()->SetLineWidth(4);
+	lineActor->SetDragable(0); 
+	lineActor->SetPickable(0); 
 }
 
 void iAvtkInteractStyleActor::translatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, double X, double Y, double Z)
