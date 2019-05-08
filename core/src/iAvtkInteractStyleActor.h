@@ -79,7 +79,7 @@ public:
 	//probably take a transform set to origin, then translate based on slice mode
 	
 	//void translateSlicerActor(const double *pos, const int sliceMode);
-	void translateSlicerActor(const double *origin, const double *pos, double *posOut, const int sliceMode);
+	//void translateSlicerActor(const double *origin, const double *pos, double *posOut, const int sliceMode);
 	//updates interactor for 3d volume according to angle and axis
 	void Update3DTransform(const double * imageCenter, const double * spacing, double relativeAngle);
 
@@ -132,7 +132,7 @@ private:
 
 	//rotates a prop by a vtk transform, works fine	   
 	void rotateInterActorProp(vtkSmartPointer<vtkTransform> &transform, double const *center, double angle, vtkProp3D *prop, uint mode);
-
+	void translateInterActorProp(vtkSmartPointer<vtkTransform> &transform, double const *position, vtkProp3D *prop, uint mode);
 	//perform rotation of transform around an axis by angle
 	void rotateAroundAxis(vtkSmartPointer<vtkTransform> &transform, double const * center, uint mode, double angle);
 
