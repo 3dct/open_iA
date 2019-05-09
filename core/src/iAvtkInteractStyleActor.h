@@ -43,7 +43,7 @@ class vtkCubeSource;
 class vtkPolyDataMapper; 
 class vtkSphereSource; 
 class vtkTransform; 
-
+class vtkImageActor; 
 
 
 class iAvtkInteractStyleActor : public QObject, public vtkInteractorStyleTrackballActor
@@ -113,7 +113,13 @@ private:
 	int m_currentSliceMode;
 	bool m_rightButtonDragZoomEnabled = false;
 	bool m_rotationEnabled; 
+	double m_currentSliceActorPosition[3]; //< position of the currentActor of slicer
 
+	inline void setActorPosition(double const *pos) {
+		m_currentSliceActorPosition[0] = pos[0]; 
+		m_currentSliceActorPosition[1] = pos[1];
+		m_currentSliceActorPosition[2] = pos[2]; 
+ 	}
 
 	//! @{ disable copying
 	void operator=(const iAvtkInteractStyleActor&) = delete;
@@ -132,7 +138,9 @@ private:
 
 	//rotates a prop by a vtk transform, works fine	   
 	void rotateInterActorProp(vtkSmartPointer<vtkTransform> &transform, double const *center, double angle, vtkProp3D *prop, uint mode);
-	void translateInterActorProp(vtkSmartPointer<vtkTransform> &transform, double const *position, vtkProp3D *prop, uint mode);
+
+	//translate in display coordinates
+	void translateInterActor(vtkSmartPointer<vtkTransform> &transform, vtkImageActor *actor, double const *position, uint mode);
 	//perform rotation of transform around an axis by angle
 	void rotateAroundAxis(vtkSmartPointer<vtkTransform> &transform, double const * center, uint mode, double angle);
 
