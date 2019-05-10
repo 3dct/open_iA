@@ -78,6 +78,11 @@ public:
 	void SetShowContours( bool show );
 	void SetContourLineParams( double lineWidth, bool dashed = false );
 	// }
+
+	vtkScalarsToColors*					m_ctf;
+	vtkPiecewiseFunction*				m_otf;
+	vtkSmartPointer<vtkLookupTable>		m_lut;
+
 private:
 	iAChannelSlicerData(iAChannelSlicerData const & other);
 
@@ -90,10 +95,10 @@ private:
 	vtkImageMapToColors*				colormapper;
 	bool								m_isInitialized;
 	QColor								color;
-	vtkSmartPointer<vtkLookupTable>		m_lut;
+	//vtkSmartPointer<vtkLookupTable>	m_lut;
 
-	vtkScalarsToColors*					m_ctf;
-	vtkPiecewiseFunction*				m_otf;
+	//vtkScalarsToColors*				m_ctf;
+	//vtkPiecewiseFunction*				m_otf;
 	QString                             m_name;};
 
 

@@ -136,12 +136,17 @@ private:
 	// }
 
 	void updateScrollBars(int newValue);
-	void updateHistogram();
+	void updateMainHistogram();
+	void updateMainSlicers();
 	void updateCopyTransferFunction(int index);
 	void updateOriginalTransferFunction(int index);
 	void applyWeights();
 
 	BCoord m_weights;
+
+	// Slicers
+	//vtkSmartPointer<vtkImageData> m_slicerInputs[3][3];
+	vtkSmartPointer<vtkImageData> m_slicerImages[3];
 
 	NumOfMod m_numOfMod = UNDEFINED;
 	QVector<QSharedPointer<iAModality>> m_modalitiesActive;

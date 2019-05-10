@@ -23,6 +23,8 @@
 
 #include "iASimpleSlicerWidget.h"
 
+#include <iAChannelID.h>
+#include <iAToolsVTK.h>
 #include <charts/iADiagramFctWidget.h>
 #include <charts/iAHistogramData.h>
 #include <charts/iAPlotTypes.h>
@@ -54,6 +56,8 @@
 #include <vtkVolumeProperty.h>
 #include <vtkSmartVolumeMapper.h>
 #include <vtkRenderer.h>
+#include <vtkImageMapToColors.h>
+#include <vtkLookupTable.h>
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -155,7 +159,8 @@ void iAMultimodalWidget::setWeightsProtected(BCoord bCoord, double t)
 
 	m_weights = bCoord;
 	applyWeights();
-	updateHistogram();
+	updateMainHistogram();
+	updateMainSlicers();
 	emit weightsChanged2(t);
 	emit weightsChanged3(bCoord);
 }
@@ -208,10 +213,105 @@ void iAMultimodalWidget::setSliceNumberProtected(int sliceNumber)
 	}
 }
 
-void iAMultimodalWidget::updateHistogram()
+void iAMultimodalWidget::updateMainHistogram()
 {
 	m_mdiChild->redrawHistogram();
 	m_mdiChild->getRenderer()->update();
+}
+
+void iAMultimodalWidget::updateMainSlicers() {
+	iASlicerData* slicerDataArray[] = {
+		m_mdiChild->getSlicerDataYZ(),
+		m_mdiChild->getSlicerDataXY(),
+		m_mdiChild->getSlicerDataXZ()
+	};
+
+	for (int mainSlicerIndex = 0; mainSlicerIndex < 3; mainSlicerIndex++) {
+
+		auto data = slicerDataArray[mainSlicerIndex];
+
+		vtkSmartPointer<vtkImageData> slicerInputs[3];
+		for (int modalityIndex = 0; modalityIndex < m_numOfMod; modalityIndex++) {
+			iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + modalityIndex);
+			auto channel = data->GetChannel(id);
+			data->setChannelOpacity(id, 0);
+
+			//vtkImageData imgMod = data->GetReslicer()->GetOutput();
+			//auto imgMod = data->GetChannel(ch_Meta0 + 1)->reslicer->GetOutput();
+			// This changes everytime the TF changes!
+			auto imgMod = channel->reslicer->GetOutput();
+
+			// Source: https://vtk.org/Wiki/VTK/Examples/Cxx/Images/ImageMapToColors
+			// This changes everytime the TF changes!
+			auto scalarValuesToColors = vtkSmartPointer<vtkImageMapToColors>::New(); // Will it work?
+			scalarValuesToColors->SetLookupTable(channel->m_lut);
+			scalarValuesToColors->SetInputData(imgMod);
+			scalarValuesToColors->Update();
+			slicerInputs[modalityIndex] = scalarValuesToColors->GetOutput();
+		}
+
+		auto imgIn1 = slicerInputs[0];
+		auto imgIn2 = slicerInputs[1];
+		auto imgIn3 = m_numOfMod == THREE ? slicerInputs[2] : nullptr;
+
+		auto imgOut = m_slicerImages[mainSlicerIndex];
+
+		FOR_VTKIMG_PIXELS(imgOut, x, y, z) {
+
+			// Ignore alpha values!
+
+			float r1 = imgIn1->GetScalarComponentAsFloat(x, y, z, 0);
+			float g1 = imgIn1->GetScalarComponentAsFloat(x, y, z, 1);
+			float b1 = imgIn1->GetScalarComponentAsFloat(x, y, z, 2);
+			float a1 = imgIn1->GetScalarComponentAsFloat(x, y, z, 3);
+
+			auto aaa = imgIn1->GetNumberOfScalarComponents();
+
+			float r2 = imgIn2->GetScalarComponentAsFloat(x, y, z, 0);
+			float g2 = imgIn2->GetScalarComponentAsFloat(x, y, z, 1);
+			float b2 = imgIn2->GetScalarComponentAsFloat(x, y, z, 2);
+			float a2 = imgIn2->GetScalarComponentAsFloat(x, y, z, 3);
+
+			float r3 = 0;
+			float g3 = 0;
+			float b3 = 0;
+			float a3 = 0;
+
+			if (m_numOfMod == THREE) {
+				r3 = imgIn3->GetScalarComponentAsFloat(x, y, z, 0);
+				g3 = imgIn3->GetScalarComponentAsFloat(x, y, z, 1);
+				b3 = imgIn3->GetScalarComponentAsFloat(x, y, z, 2);
+				a3 = imgIn3->GetScalarComponentAsFloat(x, y, z, 3);
+			}
+
+			auto w = getWeights();
+			float r = (r1 * w[0]) + (r2 * w[1]) + (r3 * w[2]);
+			float g = (g1 * w[0]) + (g2 * w[1]) + (g3 * w[2]);
+			float b = (b1 * w[0]) + (b2 * w[1]) + (b3 * w[2]);
+			float a = 255; // Max alpha!
+
+			// Debug
+			r = r1;
+			g = g1;
+			b = b1;
+			if (r > 150) {
+				int bbb = 0;
+			}
+
+			imgOut->SetScalarComponentFromFloat(x, y, z, 0, r);
+			imgOut->SetScalarComponentFromFloat(x, y, z, 1, g);
+			imgOut->SetScalarComponentFromFloat(x, y, z, 2, b);
+			imgOut->SetScalarComponentFromFloat(x, y, z, 3, a);
+		}
+
+		// Sets the INPUT image which will be sliced again, but we have a sliced image already
+		//m_mdiChild->getSlicerDataYZ()->changeImageData(imgOut);
+		data->GetImageActor()->SetInputData(imgOut);
+	}
+
+	m_mdiChild->getSlicerXY()->update();
+	m_mdiChild->getSlicerXZ()->update();
+	m_mdiChild->getSlicerYZ()->update();
 }
 
 void iAMultimodalWidget::updateScrollBars(int newValue)
@@ -241,7 +341,8 @@ void iAMultimodalWidget::updateTransferFunction(int index)
 	updateOriginalTransferFunction(index);
 	w_slicer(index)->update();
 	w_histogram(index)->update();
-	updateHistogram();
+	updateMainHistogram();
+	updateMainSlicers();
 }
 
 void iAMultimodalWidget::updateDisabledLabel()
@@ -313,13 +414,34 @@ void iAMultimodalWidget::histogramAvailable() {
 	}
 	m_mdiChild->getRenderer()->AddRenderer(m_combinedVolRenderer);
 
-	m_mdiChild->getSlicerDataXY()->GetImageActor()->SetOpacity(0.0);
-	m_mdiChild->getSlicerDataXZ()->GetImageActor()->SetOpacity(0.0);
-	m_mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(0.0);
+	// The remaining code sets up the main slicers
 
-	m_mdiChild->getSlicerDataXY()->SetManualBackground(1.0, 1.0, 1.0);
-	m_mdiChild->getSlicerDataXZ()->SetManualBackground(1.0, 1.0, 1.0);
-	m_mdiChild->getSlicerDataYZ()->SetManualBackground(1.0, 1.0, 1.0);
+	iASlicerData* slicerDataArray[] = {
+		m_mdiChild->getSlicerDataYZ(),
+		m_mdiChild->getSlicerDataXY(),
+		m_mdiChild->getSlicerDataXZ()
+	};
+
+	iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + 0);
+	int *dims = slicerDataArray[0]->GetChannel(id)->reslicer->GetOutput()->GetDimensions();;
+	for (int mainSlicerIndex = 0; mainSlicerIndex < 3; mainSlicerIndex++) {
+		iASlicerData *data = slicerDataArray[mainSlicerIndex];
+
+		//data->GetImageActor()->SetOpacity(0.0);
+		//data->SetManualBackground(1.0, 1.0, 1.0);
+		data->SetManualBackground(0.0, 0.0, 0.0);
+
+		//vtkSmartPointer<vtkImageData>::New() OR WHATEVER
+		//open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(vtkSmartPointer<vtkImageData> img);
+		//auto imgOut = AllocateImage(imgMod1);
+
+		auto imgOut = vtkSmartPointer<vtkImageData>::New();
+		m_slicerImages[mainSlicerIndex] = imgOut;
+		imgOut->SetDimensions(dims[0], dims[1], dims[2]);
+		imgOut->AllocateScalars(VTK_DOUBLE, 4); // or maybe VTK_DOUBLE?
+	}
+
+	updateMainSlicers();
 }
 
 // When new modalities are added/removed
@@ -454,6 +576,7 @@ void iAMultimodalWidget::originalHistogramChanged()
 		if (selected == getModality(i)) {
 			updateCopyTransferFunction(i);
 			updateTransferFunction(i);
+			updateMainSlicers();
 			return;
 		}
 	}
@@ -468,8 +591,9 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 	if (isReady()) {
 		double weight = getWeight(index);
 		if (weight == 0) {
-			updateOriginalTransferFunction(index);
-			alertWeightIsZero(getModality(index));
+			updateOriginalTransferFunction(index); // Revert the changes made to the effective TF
+			//alertWeightIsZero(getModality(index));
+			// For now, just return silently. TODO: show alert?
 			return;
 		}
 

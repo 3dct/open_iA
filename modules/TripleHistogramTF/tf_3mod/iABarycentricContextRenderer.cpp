@@ -78,12 +78,7 @@ void iABarycentricContextRenderer::calculateCoordinates(vtkSmartPointer<vtkImage
 
 	// Source: https://www.vtk.org/Wiki/VTK/Examples/Cxx/ImageData/IterateImageData (28.08.2018)
 	// 2 components because barycentric coordinates have 2 degrees of freedom (alpha and beta; gamma is dependent on the others)
-#if VTK_MAJOR_VERSION <= 5
-	m_barycentricCoordinates->SetNumberOfScalarComponents(2);
-	m_barycentricCoordinates->SetScalarTypeToDouble();
-#else
 	m_barycentricCoordinates->AllocateScalars(VTK_DOUBLE, 2);
-#endif
 
 	double rangea[2], rangeb[2], rangec[2];
 	d1->GetScalarRange(rangea);
