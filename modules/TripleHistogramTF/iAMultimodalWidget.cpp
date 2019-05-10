@@ -425,9 +425,9 @@ void iAMultimodalWidget::histogramAvailable() {
 	};
 
 	iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + 0);
-	int *dims = slicerDataArray[0]->GetChannel(id)->reslicer->GetOutput()->GetDimensions();;
 	for (int mainSlicerIndex = 0; mainSlicerIndex < 3; mainSlicerIndex++) {
 		iASlicerData *data = slicerDataArray[mainSlicerIndex];
+		int *dims = slicerDataArray[mainSlicerIndex]->GetChannel(id)->reslicer->GetOutput()->GetDimensions();
 
 		//data->GetImageActor()->SetOpacity(0.0);
 		//data->SetManualBackground(1.0, 1.0, 1.0);
