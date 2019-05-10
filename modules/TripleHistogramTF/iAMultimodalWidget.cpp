@@ -257,6 +257,8 @@ void iAMultimodalWidget::updateMainSlicers() {
 
 		auto imgOut = m_slicerImages[mainSlicerIndex];
 
+		// if you want to try out alternative using buffers below, start commenting out here
+
 		FOR_VTKIMG_PIXELS(imgOut, x, y, z) {
 
 			// Ignore alpha values!
@@ -265,8 +267,6 @@ void iAMultimodalWidget::updateMainSlicers() {
 			float g1 = imgIn1->GetScalarComponentAsFloat(x, y, z, 1);
 			float b1 = imgIn1->GetScalarComponentAsFloat(x, y, z, 2);
 			float a1 = imgIn1->GetScalarComponentAsFloat(x, y, z, 3);
-
-			auto aaa = imgIn1->GetNumberOfScalarComponents();
 
 			float r2 = imgIn2->GetScalarComponentAsFloat(x, y, z, 0);
 			float g2 = imgIn2->GetScalarComponentAsFloat(x, y, z, 1);
@@ -304,6 +304,38 @@ void iAMultimodalWidget::updateMainSlicers() {
 			imgOut->SetScalarComponentFromFloat(x, y, z, 2, b);
 			imgOut->SetScalarComponentFromFloat(x, y, z, 3, a);
 		}
+
+		/*
+		
+		// alternative implementation, avoiding calls to SetScalarComponentFromFloat,
+		// instead directly accessing the pixel buffer
+		// unfortunately it is not really faster - both take ~190ms on average on BF's machine, 
+		// though there were a few longer runs (up to ~350ms) for the variant above but not the
+		// one below.
+
+		unsigned char const * imgBuf1 = static_cast<unsigned char*>(imgIn1->GetScalarPointer());
+		unsigned char const * imgBuf2 = static_cast<unsigned char*>(imgIn2->GetScalarPointer());
+		unsigned char const * imgBuf3 = (m_numOfMod == THREE) ?
+			static_cast<unsigned char*>(imgIn3->GetScalarPointer()) : nullptr;
+		unsigned char * imgBufOut = static_cast<unsigned char*>(imgOut->GetScalarPointer());
+		FOR_VTKIMG_PIXELS_IDX(imgOut, idx) {
+			size_t curIdx = idx * 4;
+			unsigned char const * const rgba1 = imgBuf1 + curIdx;
+			unsigned char const * const rgba2 = imgBuf2 + curIdx;
+			unsigned char rgba3[4];
+			std::fill(rgba3, rgba3 + 4, 0);
+			if (m_numOfMod == THREE) {
+				for (int i = 0; i < 4; ++i) {
+					rgba3[i] = imgBuf3[curIdx + i];
+				}
+			}
+			unsigned char * rgbaOut = imgBufOut + curIdx;
+			auto w = getWeights();
+			for (int c=0; c<3; ++c)
+				rgbaOut[c] = (rgba1[c] * w[0]) + (rgba2[c] * w[1]) + (rgba3[c] * w[2]);
+			rgbaOut[4] = 255; // Max alpha!
+		}
+		*/
 
 		// Sets the INPUT image which will be sliced again, but we have a sliced image already
 		//m_mdiChild->getSlicerDataYZ()->changeImageData(imgOut);
