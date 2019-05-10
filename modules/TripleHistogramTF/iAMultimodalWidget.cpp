@@ -35,6 +35,7 @@
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
+//#include <iAPerformanceHelper.h>
 #include <iAPreferences.h>
 #include <iASlicerData.h>
 #include <iASlicerMode.h>
@@ -220,6 +221,7 @@ void iAMultimodalWidget::updateMainHistogram()
 }
 
 void iAMultimodalWidget::updateMainSlicers() {
+	//iATimeGuard test("updateMainSlicers");
 	iASlicerData* slicerDataArray[] = {
 		m_mdiChild->getSlicerDataYZ(),
 		m_mdiChild->getSlicerDataXY(),
