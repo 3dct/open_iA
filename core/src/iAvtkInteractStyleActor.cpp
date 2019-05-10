@@ -759,39 +759,38 @@ void iAvtkInteractStyleActor::updateInteractors()
 
 		//prepare the coords
 		double movement[3] = { 0,0,0 }; 
-		switch (m_currentSliceMode) {
-		case iASlicerMode::XY:
-			movement[0] = sliceActorPos[0] - m_currentSliceActorPosition[0];
-			movement[1] = sliceActorPos[1] - m_currentSliceActorPosition[1];
-			break;
-		case iASlicerMode::XZ:
-			movement[0] = sliceActorPos[0] - m_currentSliceActorPosition[0];
-			movement[2] = sliceActorPos[1] - m_currentSliceActorPosition[1];
-			break;
-		case iASlicerMode::YZ:
-			movement[1] = sliceActorPos[0] - m_currentSliceActorPosition[0];
-			movement[2] = sliceActorPos[1] - m_currentSliceActorPosition[1];
-			break;
-		}
 
-		DEBUG_LOG("Translation");
+		prepareCoordsXYZ(movement, sliceActorPos);
+
+		/*DEBUG_LOG("Translation");
 		DEBUG_LOG(QString("Current Pos  %1 %2 %3").arg(sliceActorPos[0]).arg(sliceActorPos[1]).arg(sliceActorPos[2]));
-		DEBUG_LOG(QString("x, y -> x z %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2])); 
+		DEBUG_LOG(QString("x, y -> x z %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2])); */
 		
 		//begin experimental
 		//xy -> 0
 		//xz -> 1
 		//yz -> 2
-		
-		for (int i = 0; i < 3; i++)
-		{
-			if (i == m_currentSliceMode) continue;
-		//richtung passt aber nicht die menge
-			//translateInterActor(m_SliceInteractorTransform[i],nullptr, m_slicerChannel[i]->imageActor(), movement, i);
-			//translateInterActor(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 0);
+
+		//m_SliceInteractorTransform[0]->Translate(relMovement[0], relMovement[1], 0);
+		////rel movement xz
+		//m_SliceInteractorTransform[1]->Translate(relMovement[0], relMovement[2], 0);
+		////rel movement yz
+		//m_SliceInteractorTransform[2]->Translate(relMovement[1], relMovement[2], 0);
+
+		//m_slicerChannel[0]->imageActor()->SetUserTransform(m_SliceInteractorTransform[0]);
+		//m_slicerChannel[1]->imageActor()->SetUserTransform(m_SliceInteractorTransform[1]);
+		//m_slicerChannel[2]->imageActor()->SetUserTransform(m_SliceInteractorTransform[2]);
+
+		//
+		//for (int i = 0; i < 3; i++)
+		//{
+		//	if (i == m_currentSliceMode) continue;
+		////richtung passt aber nicht die menge
+		//	//translateInterActor(m_SliceInteractorTransform[i],nullptr, m_slicerChannel[i]->imageActor(), movement, i);
+		//	//translateInterActor(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 0);
 
 
-		}
+		//}
 
 		//then translate 3d
 
@@ -810,6 +809,9 @@ void iAvtkInteractStyleActor::updateInteractors()
 		m_volumeRenderer->volume()->SetUserTransform(m_transform3D); 
 		//m_volumeRenderer->volume->SetPosition(0.0, 200, 100);
 		//translateInterActor(m_transform3D, m_volumeRenderer->volume(), nullptr, movement, 3);
+
+		
+
 
 		//end experimental
 
@@ -875,7 +877,23 @@ void iAvtkInteractStyleActor::updateInteractors()
 	emit actorsUpdated();
 }
 
-
+void iAvtkInteractStyleActor::prepareCoordsXYZ(double * movement, double const * sliceActorPos)
+{
+	switch (m_currentSliceMode) {
+	case iASlicerMode::XY:
+		movement[0] = sliceActorPos[0] - m_currentSliceActorPosition[0];
+		movement[1] = sliceActorPos[1] - m_currentSliceActorPosition[1];
+		break;
+	case iASlicerMode::XZ:
+		movement[0] = sliceActorPos[0] - m_currentSliceActorPosition[0];
+		movement[2] = sliceActorPos[1] - m_currentSliceActorPosition[1];
+		break;
+	case iASlicerMode::YZ:
+		movement[1] = sliceActorPos[0] - m_currentSliceActorPosition[0];
+		movement[2] = sliceActorPos[1] - m_currentSliceActorPosition[1];
+		break;
+	}
+}
 
 void iAvtkInteractStyleActor::rotate2D()
 {

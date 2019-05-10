@@ -66,7 +66,9 @@ public:
 		int currentMode, MdiChild *mdiChild);
 	
 	//update interactors of slicers, for translation
-	void updateInteractors(); 
+	void updateInteractors();
+
+	void prepareCoordsXYZ(double * movement, double const * sliceActorPos);
 	
 	//rotates 2d slicer/ interactor
 	void rotate2D(); 
