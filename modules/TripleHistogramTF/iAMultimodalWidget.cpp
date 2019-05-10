@@ -440,7 +440,7 @@ void iAMultimodalWidget::histogramAvailable() {
 		auto imgOut = vtkSmartPointer<vtkImageData>::New();
 		m_slicerImages[mainSlicerIndex] = imgOut;
 		imgOut->SetDimensions(dims[0], dims[1], dims[2]);
-		imgOut->AllocateScalars(VTK_DOUBLE, 4); // or maybe VTK_DOUBLE?
+		imgOut->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
 	}
 
 	updateMainSlicers();
