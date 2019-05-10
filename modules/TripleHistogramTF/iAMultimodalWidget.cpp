@@ -665,28 +665,20 @@ void iAMultimodalWidget::updateOriginalTransferFunction(int index)
 */
 void iAMultimodalWidget::applyWeights()
 {
-	if (isReady()) {
-		for (int i = 0; i < m_numOfMod; i++) {
-			vtkPiecewiseFunction *effective = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
-			vtkPiecewiseFunction *copy = m_copyTFs[i]->getOpacityFunction();
+	if (!isReady())
+		return;
+	for (int i = 0; i < m_numOfMod; i++) {
+		vtkPiecewiseFunction *effective = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
+		vtkPiecewiseFunction *copy = m_copyTFs[i]->getOpacityFunction();
 
-			double pntVal[4];
-			for (int j = 0; j < copy->GetSize(); ++j)
-			{
-				copy->GetNodeValue(j, pntVal);
-				pntVal[1] = pntVal[1] * getWeight(i); // index 1 in pntVal means opacity
-				effective->SetNodeValue(j, pntVal);
-			}
-			m_histograms[i]->update();
-
-			iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + i);
-			m_mdiChild->UpdateChannelSlicerOpacity(id, getWeight(i));
+		double pntVal[4];
+		for (int j = 0; j < copy->GetSize(); ++j)
+		{
+			copy->GetNodeValue(j, pntVal);
+			pntVal[1] = pntVal[1] * getWeight(i); // index 1 in pntVal means opacity
+			effective->SetNodeValue(j, pntVal);
 		}
-
-		m_mdiChild->getSlicerDataXY()->updateChannelMappers();
-		m_mdiChild->getSlicerDataXZ()->updateChannelMappers();
-		m_mdiChild->getSlicerDataYZ()->updateChannelMappers();
-		m_mdiChild->updateSlicers();
+		m_histograms[i]->update();
 	}
 }
 
