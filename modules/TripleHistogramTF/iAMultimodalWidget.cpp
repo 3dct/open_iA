@@ -244,7 +244,8 @@ void iAMultimodalWidget::updateMainSlicers() {
 			// Source: https://vtk.org/Wiki/VTK/Examples/Cxx/Images/ImageMapToColors
 			// This changes everytime the TF changes!
 			auto scalarValuesToColors = vtkSmartPointer<vtkImageMapToColors>::New(); // Will it work?
-			scalarValuesToColors->SetLookupTable(channel->m_lut);
+			//scalarValuesToColors->SetLookupTable(channel->m_lut);
+			scalarValuesToColors->SetLookupTable(channel->m_ctf);
 			scalarValuesToColors->SetInputData(imgMod);
 			scalarValuesToColors->Update();
 			slicerInputs[modalityIndex] = scalarValuesToColors->GetOutput();
@@ -306,6 +307,7 @@ void iAMultimodalWidget::updateMainSlicers() {
 
 		// Sets the INPUT image which will be sliced again, but we have a sliced image already
 		//m_mdiChild->getSlicerDataYZ()->changeImageData(imgOut);
+		imgOut->Modified();
 		data->GetImageActor()->SetInputData(imgOut);
 	}
 
