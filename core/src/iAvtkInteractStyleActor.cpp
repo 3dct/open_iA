@@ -685,29 +685,39 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//2 -> yz
 		//prepare transform for every slicer 
 		//relative translation of the interactor
-		
-		auto mat0 = m_slicerChannel[0]->imageActor()->GetUserMatrix(); 
+
+		auto mat0 = m_slicerChannel[0]->imageActor()->GetUserMatrix();
 		auto mat1 = m_slicerChannel[1]->imageActor()->GetUserMatrix();
 		auto mat2 = m_slicerChannel[2]->imageActor()->GetUserMatrix();
 
-		if (mat0)
-		m_SliceInteractorTransform[0]->SetMatrix(mat0);
-		
-		if(mat1)
-		m_SliceInteractorTransform[1]->SetMatrix(mat1);
-		if(mat2)
-		m_SliceInteractorTransform[2]->SetMatrix(mat2);
+		if (mat0) {
+			m_SliceInteractorTransform[0]->SetMatrix(mat0);
+			DEBUG_LOG("Mat xy 0k");
+		}
+		if (mat1) {
+			m_SliceInteractorTransform[1]->SetMatrix(mat1);
+			DEBUG_LOG("Mat xz 0k");
 
+		}
+	
+		if (mat2) {
+			m_SliceInteractorTransform[2]->SetMatrix(mat2);
+		}
 		/*m_slicerChannel[1]->imageActor()->SetUserMatrix(mat1);
 		m_slicerChannel[2]->imageActor()->SetUserMatrix(mat2);*/
 
+		//relative movement for xy
 		m_SliceInteractorTransform[0]->Translate(relMovement[0], relMovement[1], 0);
+		//rel movement xz
 		m_SliceInteractorTransform[1]->Translate(relMovement[0], relMovement[2], 0);
+		//rel movement yz
 		m_SliceInteractorTransform[2]->Translate(relMovement[1], relMovement[2], 0);
 
 		m_slicerChannel[0]->imageActor()->SetUserTransform(m_SliceInteractorTransform[0]);
 		m_slicerChannel[1]->imageActor()->SetUserTransform(m_SliceInteractorTransform[1]);
 		m_slicerChannel[2]->imageActor()->SetUserTransform(m_SliceInteractorTransform[2]);
+
+		//nur statt dem den reslicer transformieren
 
 		m_currentVolRendererPosition[0] = posVol[0];
 		m_currentVolRendererPosition[1] = posVol[1];
