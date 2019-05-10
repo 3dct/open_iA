@@ -749,20 +749,8 @@ void iAvtkInteractStyleActor::updateInteractors()
 
 		//prepare the coords
 		double movement[3] = { 0,0,0 }; 
-		switch (m_currentSliceMode) {
-		case iASlicerMode::XY:
-			movement[0] = sliceActorPos[0] - m_currentSliceActorPosition[0];
-			movement[1] = sliceActorPos[1] - m_currentSliceActorPosition[1];
-			break;
-		case iASlicerMode::XZ:
-			movement[0] = sliceActorPos[0] - m_currentSliceActorPosition[0];
-			movement[2] = sliceActorPos[1] - m_currentSliceActorPosition[1];
-			break;
-		case iASlicerMode::YZ:
-			movement[1] = sliceActorPos[0] - m_currentSliceActorPosition[0];
-			movement[2] = sliceActorPos[1] - m_currentSliceActorPosition[1];
-			break;
-		}
+		prepareCoordsXYZ(movement, sliceActorPos);
+
 
 		DEBUG_LOG("Translation");
 		DEBUG_LOG(QString("Current Pos  %1 %2 %3").arg(sliceActorPos[0]).arg(sliceActorPos[1]).arg(sliceActorPos[2]));
@@ -866,6 +854,24 @@ void iAvtkInteractStyleActor::updateInteractors()
 }
 
 
+
+void iAvtkInteractStyleActor::prepareCoordsXYZ(double * movement, double const * sliceActorPos)
+{
+	switch (m_currentSliceMode) {
+	case iASlicerMode::XY:
+		movement[0] = sliceActorPos[0] - m_currentSliceActorPosition[0];
+		movement[1] = sliceActorPos[1] - m_currentSliceActorPosition[1];
+		break;
+	case iASlicerMode::XZ:
+		movement[0] = sliceActorPos[0] - m_currentSliceActorPosition[0];
+		movement[2] = sliceActorPos[1] - m_currentSliceActorPosition[1];
+		break;
+	case iASlicerMode::YZ:
+		movement[1] = sliceActorPos[0] - m_currentSliceActorPosition[0];
+		movement[2] = sliceActorPos[1] - m_currentSliceActorPosition[1];
+		break;
+	}
+}
 
 void iAvtkInteractStyleActor::rotate2D()
 {
