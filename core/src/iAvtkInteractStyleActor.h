@@ -139,8 +139,14 @@ private:
 	//rotates a prop by a vtk transform, works fine	   
 	void rotateInterActorProp(vtkSmartPointer<vtkTransform> &transform, double const *center, double angle, vtkProp3D *prop, uint mode);
 
+	void translateInterActor(vtkSmartPointer<vtkTransform> &transform, vtkProp3D * vol, vtkImageActor *actor, double const *position, uint mode);
+	void TranslateActorMovement(vtkImageActor * actor, vtkProp3D * vol, uint mode, vtkSmartPointer<vtkTransform> & transform, double const * position);
 	//translate in display coordinates
-	void translateInterActor(vtkSmartPointer<vtkTransform> &transform, vtkImageActor *actor, double const *position, uint mode);
+	//void translateInterActor(vtkSmartPointer<vtkTransform> &transform, vtkImageActor *actor, double const *position, uint mode);
+
+	/*void translateInterActor(vtkSmartPointer<vtkTransform> &transform, vtkProp3D * vol vtkImageActor *actor, double const *position, uint mode);
+	void TranslateActorMovement(vtkImageActor * actor, uint mode, vtkSmartPointer<vtkTransform> & transform, double const * position);
+*/
 	//perform rotation of transform around an axis by angle
 	void rotateAroundAxis(vtkSmartPointer<vtkTransform> &transform, double const * center, uint mode, double angle);
 
