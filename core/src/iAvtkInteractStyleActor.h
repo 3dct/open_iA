@@ -114,12 +114,19 @@ private:
 	bool m_rightButtonDragZoomEnabled = false;
 	bool m_rotationEnabled; 
 	double m_currentSliceActorPosition[3]; //< position of the currentActor of slicer
+	double m_currentVolRendererPosition[3]; //< position of the currentActor of displayed volume
 
 	inline void setActorPosition(double const *pos) {
 		m_currentSliceActorPosition[0] = pos[0]; 
 		m_currentSliceActorPosition[1] = pos[1];
 		m_currentSliceActorPosition[2] = pos[2]; 
  	}
+
+	inline void setVolActorPosiont(double const *pos) {
+		m_currentVolRendererPosition[0] = pos[0];
+		m_currentVolRendererPosition[1] = pos[1];
+		m_currentVolRendererPosition[2] = pos[2];
+	}
 
 	//! @{ disable copying
 	void operator=(const iAvtkInteractStyleActor&) = delete;
