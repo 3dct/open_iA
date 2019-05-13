@@ -78,7 +78,9 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 	:
 	m_numOfMod(num),
 	m_mdiChild(mdiChild),
-	m_mainSlicersInitialized(false)
+	m_mainSlicersInitialized(false),
+	m_weightByOpacity(true),
+	m_minimumWeight(0.01)
 {
 	m_stackedLayout = new QStackedLayout(this);
 	m_stackedLayout->setStackingMode(QStackedLayout::StackOne);
@@ -236,7 +238,9 @@ void iAMultimodalWidget::updateMainSlicers() {
 
 		auto data = slicerDataArray[mainSlicerIndex];
 
-		vtkSmartPointer<vtkImageData> slicerInputs[3];
+		vtkSmartPointer<vtkImageData> slicersColored[3];
+		vtkSmartPointer<vtkImageData> slicerInput[3];
+		vtkPiecewiseFunction* slicerOpacity[3];
 		for (int modalityIndex = 0; modalityIndex < m_numOfMod; modalityIndex++) {
 			iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + modalityIndex);
 			auto channel = data->GetChannel(id);
@@ -246,6 +250,8 @@ void iAMultimodalWidget::updateMainSlicers() {
 			//auto imgMod = data->GetChannel(ch_Meta0 + 1)->reslicer->GetOutput();
 			// This changes everytime the TF changes!
 			auto imgMod = channel->reslicer->GetOutput();
+			slicerInput[modalityIndex] = imgMod;
+			slicerOpacity[modalityIndex] = channel->m_otf;
 
 			// Source: https://vtk.org/Wiki/VTK/Examples/Cxx/Images/ImageMapToColors
 			// This changes everytime the TF changes!
@@ -254,52 +260,54 @@ void iAMultimodalWidget::updateMainSlicers() {
 			scalarValuesToColors->SetLookupTable(channel->m_ctf);
 			scalarValuesToColors->SetInputData(imgMod);
 			scalarValuesToColors->Update();
-			slicerInputs[modalityIndex] = scalarValuesToColors->GetOutput();
+			slicersColored[modalityIndex] = scalarValuesToColors->GetOutput();
 		}
-
-		auto imgIn1 = slicerInputs[0];
-		auto imgIn2 = slicerInputs[1];
-		auto imgIn3 = m_numOfMod == THREE ? slicerInputs[2] : nullptr;
-
 		auto imgOut = m_slicerImages[mainSlicerIndex];
 
 		// if you want to try out alternative using buffers below, start commenting out here
-
+		auto w = getWeights();
 		FOR_VTKIMG_PIXELS(imgOut, x, y, z) {
 
-			// Ignore alpha values!
+			float modRGB[3][3];
+			float weight[3];
+			float weightSum = 0;
+			for (int mod = 0; mod < 3; ++mod)
+			{
+				// compute weight for this modality:
+				weight[mod] = w[mod];
+				if (m_weightByOpacity)
+				{
+					float intensity = slicerInput[mod]->GetScalarComponentAsFloat(x, y, z, 0);
+					double opacity = slicerOpacity[mod]->GetValue(intensity);
+					weight[mod] *= std::max(m_minimumWeight, opacity);
 
-			float r1 = imgIn1->GetScalarComponentAsFloat(x, y, z, 0);
-			float g1 = imgIn1->GetScalarComponentAsFloat(x, y, z, 1);
-			float b1 = imgIn1->GetScalarComponentAsFloat(x, y, z, 2);
-			float a1 = imgIn1->GetScalarComponentAsFloat(x, y, z, 3);
-
-			float r2 = imgIn2->GetScalarComponentAsFloat(x, y, z, 0);
-			float g2 = imgIn2->GetScalarComponentAsFloat(x, y, z, 1);
-			float b2 = imgIn2->GetScalarComponentAsFloat(x, y, z, 2);
-			float a2 = imgIn2->GetScalarComponentAsFloat(x, y, z, 3);
-
-			float r3 = 0;
-			float g3 = 0;
-			float b3 = 0;
-			float a3 = 0;
-
-			if (m_numOfMod == THREE) {
-				r3 = imgIn3->GetScalarComponentAsFloat(x, y, z, 0);
-				g3 = imgIn3->GetScalarComponentAsFloat(x, y, z, 1);
-				b3 = imgIn3->GetScalarComponentAsFloat(x, y, z, 2);
-				a3 = imgIn3->GetScalarComponentAsFloat(x, y, z, 3);
+				}
+				weightSum += weight[mod];
+				// get color of this modality:
+				for (int component = 0; component < 3; ++component)
+					modRGB[mod][component] = (mod >= m_numOfMod) ? 0
+						: slicersColored[mod]->GetScalarComponentAsFloat(x, y, z, component);
 			}
-
-			auto w = getWeights();
-			float r = (r1 * w[0]) + (r2 * w[1]) + (r3 * w[2]);
-			float g = (g1 * w[0]) + (g2 * w[1]) + (g3 * w[2]);
-			float b = (b1 * w[0]) + (b2 * w[1]) + (b3 * w[2]);
+			// "normalize" weights (i.e., make their sum equal to 1):
+			if (weightSum == 0)
+			{
+				for (int mod = 0; mod < 3; ++mod)
+					weight[mod] = 0.333333;
+			}
+			else
+			{
+				for (int mod = 0; mod < 3; ++mod)
+					weight[mod] /= weightSum;
+			}
+			// compute and set final color values:
+			for (int component = 0; component < 3; ++component)
+			{
+				float value = 0;
+				for (int mod = 0; mod < 3; ++mod)
+					value += modRGB[mod][component] * weight[mod];
+				imgOut->SetScalarComponentFromFloat(x, y, z, component, value);
+			}
 			float a = 255; // Max alpha!
-
-			imgOut->SetScalarComponentFromFloat(x, y, z, 0, r);
-			imgOut->SetScalarComponentFromFloat(x, y, z, 1, g);
-			imgOut->SetScalarComponentFromFloat(x, y, z, 2, b);
 			imgOut->SetScalarComponentFromFloat(x, y, z, 3, a);
 		}
 
@@ -457,7 +465,9 @@ void iAMultimodalWidget::histogramAvailable() {
 	iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + 0);
 	for (int mainSlicerIndex = 0; mainSlicerIndex < 3; mainSlicerIndex++) {
 		iASlicerData *data = slicerDataArray[mainSlicerIndex];
-		int *dims = slicerDataArray[mainSlicerIndex]->GetChannel(id)->reslicer->GetOutput()->GetDimensions();
+		int const *dims = slicerDataArray[mainSlicerIndex]->GetChannel(id)->reslicer->GetOutput()->GetDimensions();
+		// should be double const once VTK supports it:
+		double * spc = slicerDataArray[mainSlicerIndex]->GetChannel(id)->reslicer->GetOutput()->GetSpacing();
 
 		//data->GetImageActor()->SetOpacity(0.0);
 		//data->SetManualBackground(1.0, 1.0, 1.0);
@@ -466,11 +476,11 @@ void iAMultimodalWidget::histogramAvailable() {
 		//vtkSmartPointer<vtkImageData>::New() OR WHATEVER
 		//open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(vtkSmartPointer<vtkImageData> img);
 		//auto imgOut = AllocateImage(imgMod1);
-
 		auto imgOut = vtkSmartPointer<vtkImageData>::New();
-		m_slicerImages[mainSlicerIndex] = imgOut;
-		imgOut->SetDimensions(dims[0], dims[1], dims[2]);
+		imgOut->SetDimensions(dims);
+		imgOut->SetSpacing(spc);
 		imgOut->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
+		m_slicerImages[mainSlicerIndex] = imgOut;
 	}
 
 	m_mainSlicersInitialized = true;

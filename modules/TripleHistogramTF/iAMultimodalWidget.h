@@ -156,6 +156,8 @@ private:
 	vtkSmartPointer<vtkRenderer> m_combinedVolRenderer;
 	vtkSmartPointer<vtkVolume> m_combinedVol;
 	bool m_mainSlicersInitialized;
+	bool m_weightByOpacity;
+	double m_minimumWeight;
 
 	// Background stuff
 	void alertWeightIsZero(QSharedPointer<iAModality> modality);
