@@ -778,23 +778,23 @@ void iAvtkInteractStyleActor::updateInteractors()
 			this->performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 1);*/
 
 			//UpdateReslicerTranslateTransform2D(movement, )
-			this->UpdateReslicerTranslateTransform2D(m_ReslicerTransform[0],spacing, newMovement, 0);
-			this->UpdateReslicerTranslateTransform2D(m_ReslicerTransform[1], spacing, newMovement, 1);
+			this->TranslateReslicer(m_ReslicerTransform[0],spacing, newMovement, 0);
+			this->TranslateReslicer(m_ReslicerTransform[1], spacing, newMovement, 1);
 			break;
 		case iASlicerMode::XZ:
 			/*this->performTranslationTransform(m_SliceInteractorTransform[0], m_slicerChannel[0]->imageActor(), movement, 0);
 			this->performTranslationTransform(m_SliceInteractorTransform[2], m_slicerChannel[2]->imageActor(), movement, 2);*/
-			this->UpdateReslicerTranslateTransform2D(m_ReslicerTransform[0], spacing, newMovement, 0);
-			this->UpdateReslicerTranslateTransform2D(m_ReslicerTransform[2], spacing, newMovement, 2);
+			this->TranslateReslicer(m_ReslicerTransform[0], spacing, newMovement, 0);
+			this->TranslateReslicer(m_ReslicerTransform[2], spacing, newMovement, 2);
 
 
 			break;
 
 		case iASlicerMode::YZ:
-			this->performTranslationTransform(m_SliceInteractorTransform[0], m_slicerChannel[0]->imageActor(), movement, 0);
-			this->performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 1);
-			this->UpdateReslicerTranslateTransform2D(m_ReslicerTransform[0], spacing, newMovement, 0);
-			this->UpdateReslicerTranslateTransform2D(m_ReslicerTransform[1], spacing, newMovement, 1);
+			/*this->performTranslationTransform(m_SliceInteractorTransform[0], m_slicerChannel[0]->imageActor(), movement, 0);
+			this->performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 1);*/
+			this->TranslateReslicer(m_ReslicerTransform[0], spacing, newMovement, 0);
+			this->TranslateReslicer(m_ReslicerTransform[1], spacing, newMovement, 1);
 
 			break;
 		}
@@ -1094,11 +1094,15 @@ void iAvtkInteractStyleActor::computeDisplayRotationAngle(double * sliceProbCent
 	relativeAngle = newAngle - oldAngle;	
 }
 
-void iAvtkInteractStyleActor::UpdateReslicerTranslateTransform2D(vtkSmartPointer<vtkTransform> &transform, double /*const*/ *spacing,double *const position, /*const double *orientation,*/ /*const double *imageCenter*/ int sliceMode)
+void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, double *position, double *spacing,int sliceMode)
 {
-	//transform->SetInput(m_transform->getMat);	
-	//transform->PostMultiply();
-	//transform->Translate(Rendposition);
+	vtkSmartPointer<vtkMatrix4x4> mat = m_slicerChannel[sliceMode]->reslicer()->GetResliceAxes();
+	if (mat) {
+		DEBUG_LOG("Setting input matrix");
+		transform->SetMatrix(mat);
+	}
+	transform->PostMultiply();
+	transform->Translate(position);
 
 
 	switch (m_currentSliceMode)
@@ -1124,6 +1128,27 @@ void iAvtkInteractStyleActor::UpdateReslicerTranslateTransform2D(vtkSmartPointer
 		break;
 	}
 
+	int slicerZAxisIdx = mapSliceToGlobalAxis(sliceMode, iAAxisIndex::Z/*iAAxisIndex::Z*/);
+	double ofs[3] = { 0.0, 0.0, 0.0 };
+	const int sliceNumber = m_mdiChild->sliceNumber(sliceMode);
+	ofs[slicerZAxisIdx] = sliceNumber * spacing[slicerZAxisIdx];
+	//m_slicerChannel[mode]->reslicer()->SetResliceAxesOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
+
+
+	m_slicerChannel[sliceMode]->reslicer()->SetOutputExtent(m_image->GetExtent());
+	//m_slicerChannel[sliceMode]->reslicer()->SetOutputOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
+	m_slicerChannel[sliceMode]->reslicer()->SetOutputSpacing(spacing);
+	m_slicerChannel[sliceMode]->reslicer()->Update();
+	/*	m_slicerChannel[sliceMode]->reslicer()->SetOutputDimensionality(2);*/
+	//geht offensichtlich nur über das rotate transform
+
+		//m_slicerChannel[sliceMode]->reslicer()->SetResliceAxes(m_SliceRotateTransform[sliceMode]->GetMatrix());
+	m_slicerChannel[sliceMode]->reslicer()->SetResliceTransform(m_SliceInteractorTransform[sliceMode
+	]);
+	//m_slicerChannel[sliceMode]->reslicer()->UpdateWholeExtent();
+	m_slicerChannel[sliceMode]->reslicer()->SetInterpolationModeToLinear();
+
+	m_slicerChannel[sliceMode]->reslicer()->Update();
 	//m
 	//m_slicerChannel[m_currentSliceMode]
 	//m_SliceRotateTransform->RotateWXYZ()

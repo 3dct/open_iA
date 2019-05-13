@@ -141,12 +141,11 @@ private:
 
 	void computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double &relativeAngle);
 
-	void UpdateReslicerTranslateTransform2D(vtkSmartPointer<vtkTransform>& transform, double * const position,const double  * spacing,  int sliceMode);
+	void TranslateReslicer(vtkSmartPointer<vtkTransform>& transform, double * const position,const double  * spacing,  int sliceMode);
 
-	void UpdateReslicerTranslateTransform2D
-	(vtkSmartPointer<vtkTransform> &transform, double *spacing, double *const position, int sliceMode);
-	
 
+
+	void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, double *position, double *spacing, int sliceMode);
 	/*methods for polydata visualisation
 	*/
 
