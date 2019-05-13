@@ -155,6 +155,7 @@ private:
 	vtkSmartPointer<vtkSmartVolumeMapper> m_combinedVolMapper;
 	vtkSmartPointer<vtkRenderer> m_combinedVolRenderer;
 	vtkSmartPointer<vtkVolume> m_combinedVol;
+	bool m_mainSlicersInitialized;
 
 	// Background stuff
 	void alertWeightIsZero(QSharedPointer<iAModality> modality);

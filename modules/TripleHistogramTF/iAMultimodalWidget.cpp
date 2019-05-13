@@ -77,7 +77,8 @@ static const QString DISABLED_BACKGROUND_COLOR = "rgba(255,255,255)"; // white
 iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumOfMod num)
 	:
 	m_numOfMod(num),
-	m_mdiChild(mdiChild)
+	m_mdiChild(mdiChild),
+	m_mainSlicersInitialized(false)
 {
 	m_stackedLayout = new QStackedLayout(this);
 	m_stackedLayout->setStackingMode(QStackedLayout::StackOne);
@@ -209,6 +210,7 @@ void iAMultimodalWidget::setSliceNumberProtected(int sliceNumber)
 		for (QSharedPointer<iASimpleSlicerWidget> slicer : m_slicerWidgets) {
 			slicer->setSliceNumber(sliceNumber);
 		}
+		updateMainSlicers();
 		emit sliceNumberChanged(sliceNumber);
 		qDebug() << "setSliceNumberPrivate" << sliceNumber;
 	}
@@ -221,6 +223,8 @@ void iAMultimodalWidget::updateMainHistogram()
 }
 
 void iAMultimodalWidget::updateMainSlicers() {
+	if (!m_mainSlicersInitialized)
+		return;
 	//iATimeGuard test("updateMainSlicers");
 	iASlicerData* slicerDataArray[] = {
 		m_mdiChild->getSlicerDataYZ(),
@@ -469,6 +473,7 @@ void iAMultimodalWidget::histogramAvailable() {
 		imgOut->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
 	}
 
+	m_mainSlicersInitialized = true;
 	updateMainSlicers();
 }
 
