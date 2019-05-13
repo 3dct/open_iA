@@ -134,7 +134,7 @@ void iAVRModuleInterface::showFibers()
 
 	m_objectTable = creator.getTable();
 
-	m_cylinderVis.reset(new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, io.getOutputMapping(), QColor(255, 0, 0), 12));
+	m_cylinderVis.reset(new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, io.getOutputMapping(), QColor(255, 0, 0), std::map<size_t, std::vector<iAVec3f> >() ));
 	m_cylinderVis->show();
 
 	m_vrEnv->start();

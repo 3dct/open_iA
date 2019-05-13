@@ -18,37 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include <iAModuleAttachmentToChild.h>
+#pragma once
 
-#include <QVector>
-
-class iAChildData;
-class iADockWidgetWrapper;
-
-class iAParamFeaturesView;
-class iAParamSPLOMView;
-class iAParamSpatialView;
-class iAParamTableView;
-
-class QSettings;
-
-class iAParameterExplorerAttachment : public iAModuleAttachmentToChild
-{
-public:
-	static iAParameterExplorerAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	void LoadCSV(QString const & fileName);
-	void ToggleDockWidgetTitleBars();
-	void ToggleSettings(bool visible);
-	void SaveAll(QString const & fileName);
-	void SaveSettings(QSettings & settings);
-	void LoadSettings(QSettings const & settings);
-	QString const & CSVFileName() const;
-private:
-	iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData);
-	iAParamSPLOMView* m_SPLOMView;
-	iAParamSpatialView* m_spatialView;
-	iAParamTableView* m_tableView;
-	iAParamFeaturesView* m_featuresView;
-	QVector<iADockWidgetWrapper*> m_dockWidgets;
-	QString m_csvFileName;
-};
+const double DotAlpha = 0.5;
+const double SPLOMDotColor[4] = { 0.0, 0.0, 1.0, DotAlpha };
+const QColor SPLOMDotQColor = QColor(SPLOMDotColor[0] * 255, SPLOMDotColor[1] * 255, SPLOMDotColor[2] * 255);

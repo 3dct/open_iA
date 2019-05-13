@@ -18,37 +18,30 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include <iAModuleAttachmentToChild.h>
+#pragma once
 
-#include <QVector>
+#include <vtkVersion.h>
 
-class iAChildData;
-class iADockWidgetWrapper;
+#include <QtGlobal>
 
-class iAParamFeaturesView;
-class iAParamSPLOMView;
-class iAParamSpatialView;
-class iAParamTableView;
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 
-class QSettings;
+#include <QOpenGLWidget>
 
-class iAParameterExplorerAttachment : public iAModuleAttachmentToChild
-{
-public:
-	static iAParameterExplorerAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	void LoadCSV(QString const & fileName);
-	void ToggleDockWidgetTitleBars();
-	void ToggleSettings(bool visible);
-	void SaveAll(QString const & fileName);
-	void SaveSettings(QSettings & settings);
-	void LoadSettings(QSettings const & settings);
-	QString const & CSVFileName() const;
-private:
-	iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData);
-	iAParamSPLOMView* m_SPLOMView;
-	iAParamSpatialView* m_spatialView;
-	iAParamTableView* m_tableView;
-	iAParamFeaturesView* m_featuresView;
-	QVector<iADockWidgetWrapper*> m_dockWidgets;
-	QString m_csvFileName;
-};
+typedef QOpenGLWidget iAQGLWidget;
+typedef QSurfaceFormat iAQGLFormat;
+
+#define GRAB_FRAMEBUFFER grabFramebuffer
+
+#else
+
+#define WIN32_LEAN_AND_MEAN		// apparently QGLWidget might include windows.h...
+#define NOMINMAX
+#include <QGLWidget>
+
+typedef QGLWidget iAQGLWidget;
+typedef QGLFormat iAQGLFormat;
+
+#define GRAB_FRAMEBUFFER grabFrameBuffer
+
+#endif

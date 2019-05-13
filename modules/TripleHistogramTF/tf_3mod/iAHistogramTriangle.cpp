@@ -534,7 +534,7 @@ void iAHistogramTriangle::paintSlicers(QPainter &p)
 			p.setClipPath(m_slicerClipPaths[i]);
 			p.setTransform(m_transformSlicers[i]);
 
-			img = m_tmw->w_slicer(i)->getSlicer()->widget()->grabFramebuffer();
+			img = m_tmw->w_slicer(i)->getSlicer()->widget()->GRAB_FRAMEBUFFER();
 
 			QSize size = m_tmw->w_slicer(i)->getSlicer()->widget()->size();
 			//qDebug() << "Slicer framebuffer valid?" << m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->isValid();

@@ -18,37 +18,40 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include <iAModuleAttachmentToChild.h>
+#pragma once
 
-#include <QVector>
+#include "charts/iAHistogramData.h"
 
-class iAChildData;
-class iADockWidgetWrapper;
+#include <vtkImageData.h>
+#include <vtkSmartPointer.h>
 
-class iAParamFeaturesView;
-class iAParamSPLOMView;
-class iAParamSpatialView;
-class iAParamTableView;
+#include <QSharedPointer>
+#include <QThread>
 
-class QSettings;
-
-class iAParameterExplorerAttachment : public iAModuleAttachmentToChild
+class iAHistogramCreator : public QThread
 {
+	Q_OBJECT
 public:
-	static iAParameterExplorerAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	void LoadCSV(QString const & fileName);
-	void ToggleDockWidgetTitleBars();
-	void ToggleSettings(bool visible);
-	void SaveAll(QString const & fileName);
-	void SaveSettings(QSettings & settings);
-	void LoadSettings(QSettings const & settings);
-	QString const & CSVFileName() const;
+	iAHistogramCreator(vtkSmartPointer<vtkImageData> img, int binCount, int id) :
+		m_img(img),
+		m_binCount(binCount),
+		m_id(id)
+	{}
+	virtual void run()
+	{
+		m_histogramData = iAHistogramData::Create(m_img, m_binCount, nullptr);
+	}
+	QSharedPointer<iAHistogramData> GetData()
+	{
+		return m_histogramData;
+	}
+	int GetID() const
+	{
+		return m_id;
+	}
 private:
-	iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData);
-	iAParamSPLOMView* m_SPLOMView;
-	iAParamSpatialView* m_spatialView;
-	iAParamTableView* m_tableView;
-	iAParamFeaturesView* m_featuresView;
-	QVector<iADockWidgetWrapper*> m_dockWidgets;
-	QString m_csvFileName;
+	vtkSmartPointer<vtkImageData> m_img;
+	int m_binCount;
+	QSharedPointer<iAHistogramData> m_histogramData;
+	int m_id;
 };
