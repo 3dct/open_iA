@@ -293,14 +293,6 @@ void iAMultimodalWidget::updateMainSlicers() {
 			float b = (b1 * w[0]) + (b2 * w[1]) + (b3 * w[2]);
 			float a = 255; // Max alpha!
 
-			// Debug
-			r = r1;
-			g = g1;
-			b = b1;
-			if (r > 150) {
-				int bbb = 0;
-			}
-
 			imgOut->SetScalarComponentFromFloat(x, y, z, 0, r);
 			imgOut->SetScalarComponentFromFloat(x, y, z, 1, g);
 			imgOut->SetScalarComponentFromFloat(x, y, z, 2, b);
