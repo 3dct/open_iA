@@ -83,14 +83,11 @@ public:
 	
 
 	//probably take a transform set to origin, then translate based on slice mode
-	
-	//void translateSlicerActor(const double *pos, const int sliceMode);
-	//void translateSlicerActor(const double *origin, const double *pos, double *posOut, const int sliceMode);
 	//updates interactor for 3d volume according to angle and axis
 	void Update3DTransform(const double * imageCenter, const double * spacing, double relativeAngle);
 
-	void TransformReslicerExperimental(double const * obj_center, double rotationAngle, double const *spacing, int sliceMode);
-
+	/*void TransformReslicerExperimental(double const * obj_center, double rotationAngle, double const *spacing, int sliceMode);
+*/
 
 	// transformation of the reslicer rotation based on a slice mode
 	void updateReslicerRotationTransformation2d(const int sliceMode, double * ofs, const int sliceNumber);
@@ -108,8 +105,6 @@ private:
 	vtkImageData *m_image;
 	iAChannelSlicerData* m_slicerChannel[3];
 	vtkSmartPointer<vtkTransform> m_transform3D;
-
-	//vtkSmartPointer<vtkTransformFilter> m_transformFilter; //todo remove
 
 	//used to update the slicer
 	vtkSmartPointer<vtkTransform> m_SliceInteractorTransform[3];  //transform for each interactor of slicer
@@ -179,8 +174,7 @@ private:
 	
 	void createAndInitLines(double const *bounds, double const * center);
 	void initLine(vtkSmartPointer<vtkLineSource> &line, vtkSmartPointer<vtkActor>& lineActor, double const * center, double min, double max, uint sliceMode);
-	/*void initLine(vtkSmartPointer<vtkLineSource> &line, vtkSmartPointer<vtkActor> lineActor, double min, double max, int colorMode, uint sliceMode);*/
-	//void iAvtkInteractStyleActor::initLine(vtkSmartPointer<vtkLineSource>, double const *Point1, double const *Point2);
+	
 	void translatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, double X, double Y, double Z);
 	
 	//mode 0: rotateX, mode 1: rotate Y:, mode 2: rotate z
