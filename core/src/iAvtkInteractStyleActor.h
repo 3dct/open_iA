@@ -79,7 +79,7 @@ public:
 
 	
 
-	void UpdateReslicerTranslateTransform2D(double *const Rendposition, const double *orientation, const double *imageCenter, int sliceMode);
+	//void UpdateReslicerTranslateTransform2D(double *const Rendposition, /*const double *orientation,*/ const double *imageCenter, int sliceMode);
 	
 
 	//probably take a transform set to origin, then translate based on slice mode
@@ -140,6 +140,12 @@ private:
 	//! @}
 
 	void computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double &relativeAngle);
+
+	void UpdateReslicerTranslateTransform2D(vtkSmartPointer<vtkTransform>& transform, double * const position,const double  * spacing,  int sliceMode);
+
+	void UpdateReslicerTranslateTransform2D
+	(vtkSmartPointer<vtkTransform> &transform, double *spacing, double *const position, int sliceMode);
+	
 
 	/*methods for polydata visualisation
 	*/

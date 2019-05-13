@@ -698,9 +698,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 			m_SliceInteractorTransform[1]->SetMatrix(mat1);
 			DEBUG_LOG("Mat xz 0k");
 
-		}
-	
-		if (mat2) {
+		}if (mat2) {
 			m_SliceInteractorTransform[2]->SetMatrix(mat2);
 		}
 		/*m_slicerChannel[1]->imageActor()->SetUserMatrix(mat1);
@@ -716,6 +714,9 @@ void iAvtkInteractStyleActor::updateInteractors()
 		m_slicerChannel[0]->imageActor()->SetUserTransform(m_SliceInteractorTransform[0]);
 		m_slicerChannel[1]->imageActor()->SetUserTransform(m_SliceInteractorTransform[1]);
 		m_slicerChannel[2]->imageActor()->SetUserTransform(m_SliceInteractorTransform[2]);
+
+		//angenommen das geht dann den reslicer transformieren
+
 
 		//nur statt dem den reslicer transformieren
 
@@ -740,7 +741,8 @@ void iAvtkInteractStyleActor::updateInteractors()
 		if (sliceActorPos[0] == 0 && sliceActorPos[1] == 0 && sliceActorPos[2] == 0) //no movement
 			return;
 
-		
+		double spacing[3];
+		m_image->GetSpacing(spacing);
 		
 		//auto test = m_slicerChannel[2]; 
 		//m_slicerChannel[m_currentSliceMode]->imageActor()
@@ -762,9 +764,51 @@ void iAvtkInteractStyleActor::updateInteractors()
 
 		//output is movement
 		prepareCoordsXYZ(movement, sliceActorPos);
-		this->performTranslationTransform(m_SliceInteractorTransform[0], m_slicerChannel[0]->imageActor(), movement, 0);
-		this->performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 1);
 
+		double newMovement[3] = { 0,0,0 };
+
+		this->ComputeDisplayToWorld(movement[0], movement[1], movement[2],
+			newMovement);
+
+		//translate the actors
+		/*for (int i = 0; i < 3; i++) {*/
+		switch (m_currentSliceMode) {
+		case iASlicerMode::XY:
+			/*this->performTranslationTransform(m_SliceInteractorTransform[0], m_slicerChannel[0]->imageActor(), movement, 0);
+			this->performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 1);*/
+
+			//UpdateReslicerTranslateTransform2D(movement, )
+			this->UpdateReslicerTranslateTransform2D(m_ReslicerTransform[0],spacing, newMovement, 0);
+			this->UpdateReslicerTranslateTransform2D(m_ReslicerTransform[1], spacing, newMovement, 1);
+			break;
+		case iASlicerMode::XZ:
+			/*this->performTranslationTransform(m_SliceInteractorTransform[0], m_slicerChannel[0]->imageActor(), movement, 0);
+			this->performTranslationTransform(m_SliceInteractorTransform[2], m_slicerChannel[2]->imageActor(), movement, 2);*/
+			this->UpdateReslicerTranslateTransform2D(m_ReslicerTransform[0], spacing, newMovement, 0);
+			this->UpdateReslicerTranslateTransform2D(m_ReslicerTransform[2], spacing, newMovement, 2);
+
+
+			break;
+
+		case iASlicerMode::YZ:
+			this->performTranslationTransform(m_SliceInteractorTransform[0], m_slicerChannel[0]->imageActor(), movement, 0);
+			this->performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 1);
+			this->UpdateReslicerTranslateTransform2D(m_ReslicerTransform[0], spacing, newMovement, 0);
+			this->UpdateReslicerTranslateTransform2D(m_ReslicerTransform[1], spacing, newMovement, 1);
+
+			break;
+		}
+	//}
+
+
+			/*if (i !=  m_currentSliceMode);*/
+		/*this->performTranslationTransform(m_SliceInteractorTransform[i], m_slicerChannel[i]->imageActor(), movement, i);*/
+		//}
+
+
+		/*for (int i = 0; i < 3; i++) {
+			m_currentSliceActorPosition[i] = sliceActorPos[i];
+		}*/
 
 	/*	DEBUG_LOG("Translation");
 		DEBUG_LOG(QString("Current Pos  %1 %2 %3").arg(sliceActorPos[0]).arg(sliceActorPos[1]).arg(sliceActorPos[2]));
@@ -775,7 +819,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//xz -> 1
 		//yz -> 2
 
-		//	mperformTransform();
+		
 
 
 		//
@@ -802,7 +846,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 		matVol = m_volumeRenderer->volume()->GetUserMatrix();
 		if (matVol)
 		m_transform3D->SetMatrix(matVol);
-		m_transform3D->Translate(movement);
+		m_transform3D->Translate(movement[0]* spacing[0], movement[1]*spacing[1], movement[2]*spacing[2]);
 		m_volumeRenderer->volume()->SetUserTransform(m_transform3D); 
 		//m_volumeRenderer->volume->SetPosition(0.0, 200, 100);
 		//translateInterActor(m_transform3D, m_volumeRenderer->volume(), nullptr, movement, 3);
@@ -884,14 +928,17 @@ void iAvtkInteractStyleActor::performTranslationTransform(vtkSmartPointer<vtkTra
 	
 	switch (mode) {
 	case iASlicerMode::XY:
+		DEBUG_LOG("translate xy");
 		transform->Translate(relMovement[0], relMovement[1], 0);
 
 		break;
 	case iASlicerMode::XZ: 
+		DEBUG_LOG("translate xz");
 		transform->Translate(relMovement[1], relMovement[2], 0);
 		break;
 
 	case iASlicerMode::YZ: 
+		DEBUG_LOG("translate yz");
 		transform->Translate(relMovement[1], relMovement[2], 0);
 		break; 
 
@@ -1047,25 +1094,25 @@ void iAvtkInteractStyleActor::computeDisplayRotationAngle(double * sliceProbCent
 	relativeAngle = newAngle - oldAngle;	
 }
 
-void iAvtkInteractStyleActor::UpdateReslicerTranslateTransform2D(double *const Rendposition, const double *orientation, const double *imageCenter, int sliceMode)
+void iAvtkInteractStyleActor::UpdateReslicerTranslateTransform2D(vtkSmartPointer<vtkTransform> &transform, double /*const*/ *spacing,double *const position, /*const double *orientation,*/ /*const double *imageCenter*/ int sliceMode)
 {
-	m_SliceInteractorTransform[sliceMode]->SetInput(m_transform3D);	
-	m_SliceInteractorTransform[sliceMode]->PostMultiply();
-	m_SliceInteractorTransform[sliceMode]->Translate(Rendposition);
+	//transform->SetInput(m_transform->getMat);	
+	//transform->PostMultiply();
+	//transform->Translate(Rendposition);
 
 
 	switch (m_currentSliceMode)
 	{
 	case iASlicerMode::XY:
-		m_SliceInteractorTransform[sliceMode]->Translate(Rendposition[0], Rendposition[1], 0);
+		transform->Translate(position[0]*spacing[0], position[1]*spacing[1], 0);
 		break;
 	case iASlicerMode::XZ:
-		m_SliceInteractorTransform[sliceMode]->Translate(Rendposition[0], 0, Rendposition[2]);
+		transform->Translate(position[0]*spacing[0], 0, position[2]*spacing[2]);
 		/*origin[0] += pos[0];
 		origin[2] += pos[1];*/
 		break;
 	case iASlicerMode::YZ:
-		m_SliceInteractorTransform[sliceMode]->Translate(0, Rendposition[1], Rendposition[2]);
+		transform->Translate(0, position[1], position[2]);
 
 		/*origin[1] += pos[0];
 		origin[2] += pos[1];*/
