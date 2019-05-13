@@ -45,6 +45,7 @@ class vtkVolume;
 
 class QLabel;
 class QStackedLayout;
+class QCheckBox;
 
 enum NumOfMod {
 	UNDEFINED = -1,
@@ -78,6 +79,10 @@ public:
 
 	QSlider* w_sliceNumberSlider() {
 		return m_sliceSlider;
+	}
+
+	QCheckBox* w_checkBox_weightByOpacity() {
+		return m_checkBox_weightByOpacity;
 	}
 
 	void setWeights(BCoord bCoord) {
@@ -132,6 +137,7 @@ private:
 	QComboBox *m_slicerModeComboBox;
 	QSlider *m_sliceSlider;
 	QStackedLayout *m_stackedLayout;
+	QCheckBox *m_checkBox_weightByOpacity;
 	QLabel *m_disabledLabel;
 	// }
 
@@ -156,7 +162,7 @@ private:
 	vtkSmartPointer<vtkRenderer> m_combinedVolRenderer;
 	vtkSmartPointer<vtkVolume> m_combinedVol;
 	bool m_mainSlicersInitialized;
-	bool m_weightByOpacity;
+	//bool m_weightByOpacity;
 	double m_minimumWeight;
 
 	// Background stuff
@@ -184,6 +190,7 @@ private slots:
 
 	void slicerModeComboBoxIndexChanged(int newIndex);
 	void sliderValueChanged(int newValue);
+	void comboBoxSelectionChanged();
 
 	void setSliceXYScrollBar();
 	void setSliceXZScrollBar();

@@ -39,6 +39,7 @@
 #include <QPainter>
 #include <QResizeEvent>
 #include <QSlider>
+#include <QCheckBox>
 #include <QtMath>
 
 // Debug
@@ -96,6 +97,8 @@ void iAHistogramTriangle::initialize()
 	m_tmw->w_slicerModeComboBox()->setParent(this);
 
 	m_tmw->w_layoutComboBox()->setParent(this);
+
+	m_tmw->w_checkBox_weightByOpacity()->setParent(this);
 
 	calculatePositions();
 	m_fClear = true;
@@ -386,23 +389,28 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_clipPath.lineTo(left, bottom);
 	}
 
-	// Combo box and slider
+	// Other widgets
 	{
 		int slicerModeComboBoxWidth = m_tmw->w_slicerModeComboBox()->sizeHint().width();
 		int layoutTypeComboBoxWidth = m_tmw->w_layoutComboBox()->sizeHint().width();
 		int sliceSliderWidth = m_tmw->w_sliceNumberSlider()->sizeHint().width();
+		int checkBoxWeightByOpacityWidth = m_tmw->w_checkBox_weightByOpacity()->sizeHint().width();
 
-		int controlsWidth = qMax(qMax(slicerModeComboBoxWidth, layoutTypeComboBoxWidth), sliceSliderWidth);
+		int controlsWidth = qMax(qMax(slicerModeComboBoxWidth, qMax(layoutTypeComboBoxWidth, checkBoxWeightByOpacityWidth)), sliceSliderWidth);
 		int controlsBottom = controlsWidth * (-histoLateral1_2Y / histoTop1X) + histoLateral1_2Y;
 
 		int slicerModeComboBoxHeight = m_tmw->w_slicerModeComboBox()->sizeHint().height();
+		int checkBoxWeightByOpacityHeight = m_tmw->w_checkBox_weightByOpacity()->sizeHint().height();
 		int layoutTypeComboBoxHeight = m_tmw->w_layoutComboBox()->sizeHint().height();
-		int sliderHeight = controlsBottom - slicerModeComboBoxHeight - layoutTypeComboBoxHeight;
+		int sliderHeight = controlsBottom - slicerModeComboBoxHeight - layoutTypeComboBoxHeight - checkBoxWeightByOpacityHeight;
 
 		int bottom = 0;
 
 		m_tmw->w_layoutComboBox()->setGeometry(QRect(0, bottom, controlsWidth, layoutTypeComboBoxHeight));
 		bottom += layoutTypeComboBoxHeight;
+
+		m_tmw->w_checkBox_weightByOpacity()->setGeometry(QRect(0, bottom, controlsWidth, checkBoxWeightByOpacityHeight));
+		bottom += checkBoxWeightByOpacityHeight;
 
 		m_tmw->w_slicerModeComboBox()->setGeometry(QRect(0, bottom, controlsWidth, layoutTypeComboBoxHeight));
 		bottom += slicerModeComboBoxHeight;

@@ -66,6 +66,7 @@
 #include <QSharedPointer>
 #include <QStackedLayout>
 #include <QMessageBox>
+#include <QCheckBox>
 
 // Debug
 #include <QDebug>
@@ -79,7 +80,7 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 	m_numOfMod(num),
 	m_mdiChild(mdiChild),
 	m_mainSlicersInitialized(false),
-	m_weightByOpacity(true),
+	//m_weightByOpacity(true),
 	m_minimumWeight(0.01)
 {
 	m_stackedLayout = new QStackedLayout(this);
@@ -105,6 +106,9 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 	m_sliceSlider = new QSlider(Qt::Horizontal);
 	m_sliceSlider->setMinimum(0);
 
+	m_checkBox_weightByOpacity = new QCheckBox("Weight by opacity");
+	m_checkBox_weightByOpacity->setChecked(true);
+
 	for (int i = 0; i < m_numOfMod; i++) {
 		m_histograms.push_back(Q_NULLPTR);
 		m_slicerWidgets.push_back(Q_NULLPTR);
@@ -115,6 +119,7 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 
 	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slicerModeComboBoxIndexChanged(int)));
 	connect(m_sliceSlider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
+	connect(m_checkBox_weightByOpacity, SIGNAL(stateChanged(int)), this, SLOT(comboBoxSelectionChanged()));
 
 	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
 	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZScrollBar(int)));
@@ -227,7 +232,9 @@ void iAMultimodalWidget::updateMainHistogram()
 void iAMultimodalWidget::updateMainSlicers() {
 	if (!m_mainSlicersInitialized)
 		return;
+
 	//iATimeGuard test("updateMainSlicers");
+
 	iASlicerData* slicerDataArray[] = {
 		m_mdiChild->getSlicerDataYZ(),
 		m_mdiChild->getSlicerDataXY(),
@@ -275,7 +282,7 @@ void iAMultimodalWidget::updateMainSlicers() {
 			{
 				// compute weight for this modality:
 				weight[mod] = w[mod];
-				if (m_weightByOpacity)
+				if (m_checkBox_weightByOpacity->isChecked())
 				{
 					float intensity = slicerInput[mod]->GetScalarComponentAsFloat(x, y, z, 0);
 					double opacity = slicerOpacity[mod]->GetValue(intensity);
@@ -753,6 +760,11 @@ void iAMultimodalWidget::sliderValueChanged(int newValue)
 {
 	setSliceNumberProtected(newValue);
 	updateScrollBars(newValue);
+}
+
+void iAMultimodalWidget::comboBoxSelectionChanged()
+{
+	updateMainSlicers();
 }
 
 // SCROLLBARS (private SLOTS)

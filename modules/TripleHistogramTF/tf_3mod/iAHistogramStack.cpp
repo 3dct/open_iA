@@ -37,6 +37,7 @@
 #include <QResizeEvent>
 #include <QVBoxLayout>
 #include <QVector>
+#include <QCheckBox>
 
 iAHistogramStack::iAHistogramStack(QWidget* parent, iATripleModalityWidget *tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f)
 	: m_tmw(tripleModalityWidget)
@@ -74,6 +75,7 @@ void iAHistogramStack::initialize()
 	optionsContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	QHBoxLayout *optionsContainerLayout = new QHBoxLayout(optionsContainer);
 	optionsContainerLayout->addWidget(m_tmw->w_layoutComboBox());
+	optionsContainerLayout->addWidget(m_tmw->w_checkBox_weightByOpacity());
 	optionsContainerLayout->addWidget(m_tmw->w_slicerModeComboBox());
 	optionsContainerLayout->addWidget(m_tmw->w_sliceNumberSlider());
 	
