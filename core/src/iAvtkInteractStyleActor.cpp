@@ -661,9 +661,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 		if (posVol[0] == 0 && posVol[1] == 0 && posVol[2] == 0)
 			return;
 
-		//ggf muss das an alle actor weiter gegeben werden
-
-
+		//ggf muss das an alle actor weiter gegeben werden		
 		//new coords based on current volume renderer position
 		/*original code*/
 		/*updateCoords(origin, posVol, m_currentSliceMode);
@@ -701,8 +699,6 @@ void iAvtkInteractStyleActor::updateInteractors()
 		}if (mat2) {
 			m_SliceInteractorTransform[2]->SetMatrix(mat2);
 		}
-		/*m_slicerChannel[1]->imageActor()->SetUserMatrix(mat1);
-		m_slicerChannel[2]->imageActor()->SetUserMatrix(mat2);*/
 
 		//relative movement for xy
 		m_SliceInteractorTransform[0]->Translate(relMovement[0], relMovement[1], 0);
@@ -735,7 +731,6 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//This is a translation of current slicer
 		DEBUG_LOG(QString("iam translating %1").arg(m_currentSliceMode));
 
-
 		//takes position of the current actor //currentActor is translated
 		double sliceActorPos[3];
 		auto tmpslicepos = m_slicerChannel[m_currentSliceMode]->actorPosition();
@@ -747,9 +742,6 @@ void iAvtkInteractStyleActor::updateInteractors()
 		double spacing[3];
 		m_image->GetSpacing(spacing);
 
-		//auto test = m_slicerChannel[2]; 
-		//m_slicerChannel[m_currentSliceMode]->imageActor()
-		//vtkImageActor
 
 		// //mapping machen yz -> x, y	xy -> x, y		xz->x, y
 		////currentSlice pos, mode 
@@ -774,138 +766,27 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//DEBUG_LOG(QString("previous actor coords %1 %2 %3").arg("")
 		DEBUG_LOG(QString("current slice actor pos %1 %2 %3").arg(sliceActorPos[0]).arg(sliceActorPos[1]).arg(sliceActorPos[2]));
 		DEBUG_LOG(QString("x y z %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2]));
-		//seems to work
-		//double newMovement[3] = { 0,0,0 };
-	
+
 
 		//start from slice mode 0 which is slice YZ
 		int mode0_yz = m_currentSliceMode;
 
-		//TranslateActor(movement, 1);
-		DEBUG_LOG(QString("movement %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2]));
-		TranslateActor(movement, 0);
+
+		DEBUG_LOG(QString("movement %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2]));		
 
 		for (int i = 0; i < 3; i++) {
 			if (i < m_currentSliceMode) continue;
 			TranslateActor(movement, 0);
 
 		}
-		/*
-		performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 1); 
-		performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 2);
-		*/
-		//TranslateActor(movement, 1);
-		/*TranslateActor(movement, 1);
-		TranslateActor(movement, 2);*/
-		//this->ComputeDisplayToWorld(movement[0], movement[1], movement[2], newMovement);
-		//DEBUG_LOG(QString("new coords %1 %2 %3").arg(newMovement[0]).arg(newMovement[1]).arg(newMovement[2])); 
+
 
 		this->setPreivousActorPosition(sliceActorPos); //setting to original
 		//this->TranslateReslicer(m_ReslicerTransform[0],20, 0, 0,spacing, 0, m_image->GetCenter()); 
 		//DEBUG_LOG(QString("slice mode %1").arg(m_currentSliceMode));
 		int test_mode = 1; 
 		
-
-		//performTranslationTransform(m_SliceInteractorTransform[0], m_slicerChannel[0]->imageActor(), movement, 0);
-		//performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 1);
-		//this->translateInterActor(m_s)
-		////switch (test_mode)
-		//{
-
-		//case iASlicerMode::XY:
-		//{
-		//	DEBUG_LOG("Translation yz Translation XZ");
-		//	performTranslationTransform(m_SliceInteractorTransform[0], m_slicerChannel[0]->imageActor(), movement, 0);
-		//	performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 1);
-		//	break;
-		//}
-		//case iASlicerMode::XZ:
-		//{
-		//	DEBUG_LOG("Translation xy, Translation xy");
-		//	performTranslationTransform(m_SliceInteractorTransform[0], m_slicerChannel[0]->imageActor(), movement, 0);
-		//	performTranslationTransform(m_SliceInteractorTransform[2], m_slicerChannel[2]->imageActor(), movement, 2);
-		//	break;
-		//}
-		//case iASlicerMode::YZ:
-		//{
-		//	DEBUG_LOG("Translation xy, Translation xz");
-		//	performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 1);
-		//	performTranslationTransform(m_SliceInteractorTransform[2], m_slicerChannel[2]->imageActor(), movement, 2);
-		//	break;
-		//}
-		//default:
-		//	DEBUG_LOG("no interaction");
-		//	break;
-		//}
-
-
-		//}
-		//geht für yz
-		//geht für xy
-
-		/*this->ComputeDisplayToWorld(movement[0], movement[1], movement[2],
-			//newMovement);*/
-
-			//schauen wie muss ich das machen - go for the transform 
-
-
-
-			//translate the actors
-			/*for (int i = 0; i < 3; i++) {*/
-			//switch (m_currentSliceMode) {
-			//case iASlicerMode::XY:
-			//	/*this->performTranslationTransform(m_SliceInteractorTransform[0], m_slicerChannel[0]->imageActor(), movement, 0);
-			//	this->performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 1);*/
-
-			//	//UpdateReslicerTranslateTransform2D(movement, )
-			//	this->TranslateReslicer(m_ReslicerTransform[0],spacing, newMovement, 0);
-			//	this->TranslateReslicer(m_ReslicerTransform[1], spacing, newMovement, 1);
-			//	break;
-			//case iASlicerMode::XZ:
-			//	/*this->performTranslationTransform(m_SliceInteractorTransform[0], m_slicerChannel[0]->imageActor(), movement, 0);
-			//	this->performTranslationTransform(m_SliceInteractorTransform[2], m_slicerChannel[2]->imageActor(), movement, 2);*/
-			//	this->TranslateReslicer(m_ReslicerTransform[0], spacing, newMovement, 0);
-			//	this->TranslateReslicer(m_ReslicerTransform[2], spacing, newMovement, 2);
-
-
-			//	break;
-
-			//case iASlicerMode::YZ:
-			//	/*this->performTranslationTransform(m_SliceInteractorTransform[0], m_slicerChannel[0]->imageActor(), movement, 0);
-			//	this->performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 1);*/
-			//	this->TranslateReslicer(m_ReslicerTransform[0], spacing, newMovement, 0);
-			//	this->TranslateReslicer(m_ReslicerTransform[1], spacing, newMovement, 1);
-
-			//	break;
-			//}
-		//}
-
-
-
-
-
-
-
-			//begin experimental
-			//xy -> 0
-			//xz -> 1
-			//yz -> 2
-
-
-
-
-			//
-			//for (int i = 0; i < 3; i++)
-			//{
-			//	if (i == m_currentSliceMode) continue;
-			////richtung passt aber nicht die menge
-			//	//translateInterActor(m_SliceInteractorTransform[i],nullptr, m_slicerChannel[i]->imageActor(), movement, i);
-			//	//translateInterActor(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 0);
-
-
-			//}
-
-			//then translate 3d
+		//then translate 3d
 
 
 			//translate the volume renderer
@@ -915,11 +796,6 @@ void iAvtkInteractStyleActor::updateInteractors()
 			m_transform3D->SetMatrix(matVol);
 		m_transform3D->Translate(movement[0] * spacing[0], movement[1] * spacing[1], movement[2] * spacing[2]);
 		m_volumeRenderer->volume()->SetUserTransform(m_transform3D);
-		//m_volumeRenderer->volume->SetPosition(0.0, 200, 100);
-		//translateInterActor(m_transform3D, m_volumeRenderer->volume(), nullptr, movement, 3);
-
-
-
 
 		//end experimental
 
@@ -927,16 +803,10 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//perform translation based on an previous position
 
 		//end new code
-
-		//interactor of all things are there
-		//test->setActorPosition(100, 100, 0)
-		//get acpor position of reslicer -> translate this
-		//user matrix vom actor setzen; 
-
+		
 		//new code
 		//should be same as coords translate current interactor
-		//this->translateInterActorProp(m_SliceInteractorTransform[m_currentSliceMode], sliceActorPos, this->InteractionProp, m_currentSliceMode);
-		//perform translation to the transform; 
+		
 
 		//first translate interaction prop
 		//this->interaction prop
@@ -944,13 +814,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//probably take translation of reslicer, and initial coordinates put to transform
 		//eg. take matrix of slicer, put it into transform, and shift
 		//coordinates come from image origin
-
-
-
-
-	/*	translateSlicerActor( origin, pos, transformposOut, m_currentSliceMode);
-
-		//this->setActorPosition(sliceActorPos); //at the very end
+		
 		//original image
 
 		//begin original code
@@ -978,23 +842,15 @@ void iAvtkInteractStyleActor::updateInteractors()
 
 		m_volumeRenderer->update();
 		emit actorsUpdated();
-	}
+	//}
 }
 
 void iAvtkInteractStyleActor::TranslateActor(double const * movement, uint mode)
 {
 	DEBUG_LOG(QString("movement %1 %2 %3 ").arg(movement[0]).arg(movement[1]).arg(movement[2]));
-	/*for slice xz*/
-	//performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 1);
-	//performTranslationTransform(m_SliceInteractorTransform[2], m_slicerChannel[2]->imageActor(), movement, 2);
-
-	////slice xy
-	//performTranslationTransform(m_SliceInteractorTransform[0], m_slicerChannel[0]->imageActor(), movement, 0);
-	//performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 1);
-
-	////slice xz
-	//performTranslationTransform(m_SliceInteractorTransform[0], m_slicerChannel[0]->imageActor(), movement, 0);
-	//performTranslationTransform(m_SliceInteractorTransform[2], m_slicerChannel[2]->imageActor(), movement, 2);
+	//mode YZ ->translate xz and xz
+	//mode xy ->translate xz, yz
+	//mode xz ->tranlate xy, yz
 	
 	switch (mode)
 		{
