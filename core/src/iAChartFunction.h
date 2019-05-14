@@ -47,7 +47,7 @@ public:
 	virtual void draw(QPainter &painter, QColor color, int lineWidth) = 0;
 	virtual void drawOnTop(QPainter &painter) = 0;
 
-	virtual int selectPoint(QMouseEvent *event, int *x = 0) = 0;
+	virtual int selectPoint(QMouseEvent *event, int *x = nullptr) = 0;
 	virtual int getSelectedPoint() = 0;
 	virtual int addPoint(int x, int y) = 0;
 	virtual void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) = 0;
@@ -60,8 +60,8 @@ public:
 	virtual bool isDeletable(int index) = 0;
 
 	virtual void reset() = 0;
-	virtual void mouseReleaseEvent(QMouseEvent *event) {}
-	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *event) {}
+	virtual void mouseReleaseEvent(QMouseEvent *) {}
+	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *) {}
 
 	iADiagramFctWidget *chart;
 };
