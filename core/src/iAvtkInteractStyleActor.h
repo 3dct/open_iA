@@ -44,6 +44,7 @@ class vtkPolyDataMapper;
 class vtkSphereSource; 
 class vtkTransform; 
 class vtkImageActor; 
+class vtkImageReslice;
 
 
 class iAvtkInteractStyleActor : public QObject, public vtkInteractorStyleTrackballActor
@@ -79,7 +80,7 @@ public:
 	
 	//rotates 2d slicer/ interactor
 	void rotate2D(); 
-
+	int testMovement = 10; 
 	
 
 	//void UpdateReslicerTranslateTransform2D(double *const Rendposition, /*const double *orientation,*/ const double *imageCenter, int sliceMode);
@@ -139,12 +140,14 @@ private:
 
 	void computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double &relativeAngle);
 
+	void TranslateReslicer(vtkSmartPointer<vtkTransform>& transform, vtkImageReslice * reslice, double x, double y, double z, double * spacing, int sliceMode, double const * mageCenter);
+
 	//void TranslateReslicer(vtkSmartPointer<vtkTransform>& transform, double * const position,const double  * spacing,  int sliceMode);
 
 
 
 	//void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, double *position, double *spacing, int sliceMode);
-	void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, double x, double y, double z,/*double *position,*/ double *spacing, int sliceMode, double const * mageCenter);
+	//void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, double x, double y, double z,/*double *position,*/ double *spacing, int sliceMode, double const * mageCenter);
 	/*methods for polydata visualisation
 	*/
 
