@@ -173,8 +173,8 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 
 		
 		//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30.0, 1); 
-		//this->createReferenceObject(imageCenter, spacing, 2, bounds, 1); 
-		//this->createAndInitLines(bounds, imageCenter);
+		this->createReferenceObject(imageCenter, spacing, 2, bounds, 1); 
+		this->createAndInitLines(bounds, imageCenter);
 
 		
 		/*this->translatePolydata(m_RefTransform, m_RefCubeActor, 0, 100, 0); 
@@ -774,21 +774,22 @@ void iAvtkInteractStyleActor::updateInteractors()
 
 		DEBUG_LOG(QString("movement %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2]));		
 
-		for (int i = 0; i < 3; i++) {
+		//this works
+		/*for (int i = 0; i < 3; i++) {
 			if (i < m_currentSliceMode) continue;
 			TranslateActor(movement, 0);
 
-		}
+		
 
 
 		this->setPreivousActorPosition(sliceActorPos); //setting to original
-		//this->TranslateReslicer(m_ReslicerTransform[0],20, 0, 0,spacing, 0, m_image->GetCenter()); 
-		//DEBUG_LOG(QString("slice mode %1").arg(m_currentSliceMode));
+		}*/
+		
+		this->TranslateReslicer(m_ReslicerTransform[0],20, 0, 0,spacing, 0, m_image->GetCenter()); 
+		
 		int test_mode = 1; 
 		
 		//then translate 3d
-
-
 			//translate the volume renderer
 		vtkSmartPointer<vtkMatrix4x4> matVol = vtkSmartPointer<vtkMatrix4x4>::New();
 		matVol = m_volumeRenderer->volume()->GetUserMatrix();
@@ -810,11 +811,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 
 		//first translate interaction prop
 		//this->interaction prop
-
-		//probably take translation of reslicer, and initial coordinates put to transform
-		//eg. take matrix of slicer, put it into transform, and shift
-		//coordinates come from image origin
-		
+				
 		//original image
 
 		//begin original code
@@ -833,16 +830,16 @@ void iAvtkInteractStyleActor::updateInteractors()
 	////m_image->SetOrigin(/*transformposOut*//*origin)*/;  //< update image origin
 	//end original code
 
-	//TODO update actor
+	
 
 	//update reslicer
-		for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
-			if (i != m_currentSliceMode && m_slicerChannel[i])
-				m_slicerChannel[i]->updateReslicer();
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+		if (i != m_currentSliceMode && m_slicerChannel[i])
+			m_slicerChannel[i]->updateReslicer();
 
-		m_volumeRenderer->update();
-		emit actorsUpdated();
-	//}
+	m_volumeRenderer->update();
+	emit actorsUpdated();
+	
 }
 
 void iAvtkInteractStyleActor::TranslateActor(double const * movement, uint mode)
@@ -1067,10 +1064,10 @@ void iAvtkInteractStyleActor::computeDisplayRotationAngle(double * sliceProbCent
 void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, double x, double y, double z,/*double *position,*/ double *spacing,int sliceMode, double const * mageCenter)
 {
 	vtkSmartPointer<vtkMatrix4x4> mat = m_slicerChannel[sliceMode]->reslicer()->GetResliceAxes();
-	if (mat) {
+	/*if (mat) {
 		DEBUG_LOG("Setting input matrix");
 		transform->SetMatrix(mat);
-	}
+	}*/
 	//transform->PostMultiply();
 	//transform->Translate(position);
 
@@ -1101,7 +1098,7 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 
 	double const *origin = m_image->GetOrigin(); 
 
-	int slicerZAxisIdx = mapSliceToGlobalAxis(sliceMode, iAAxisIndex::Z/*iAAxisIndex::Z*/);
+	int slicerZAxisIdx = mapSliceToGlobalAxis(sliceMode, iAAxisIndex::X/*iAAxisIndex::Z*/);
 	double ofs[3] = { 0.0, 0.0, 0.0 };
 	const int sliceNumber = m_mdiChild->sliceNumber(sliceMode);
 	ofs[slicerZAxisIdx] = sliceNumber * spacing[slicerZAxisIdx];
@@ -1125,11 +1122,7 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 	m_slicerChannel[sliceMode]->reslicer()->SetInterpolationModeToLinear();
 
 	m_slicerChannel[sliceMode]->reslicer()->Update();
-	//m
-	//m_slicerChannel[m_currentSliceMode]
-	//m_SliceRotateTransform->RotateWXYZ()
-	/*const double *imageCenter*/
-	//setconst double *imageCenter
+	
 
 	/*m_slicerChannel[m_currentSliceMode]->reslicer()->SetResliceAxes(m_SliceInteractorTransform[sliceMode]->GetMatrix());*/
 

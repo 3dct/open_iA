@@ -172,10 +172,7 @@ private:
 	void createReferenceObject(double /*const */* center, double const *spacing, uint thickness, const double *bounds, uint mode);
 	
 	
-	
-	/*void createAndInitLines(double const *bounds); */
-	
-	
+		
 	void createAndInitLines(double const *bounds, double const * center);
 	void initLine(vtkSmartPointer<vtkLineSource> &line, vtkSmartPointer<vtkActor>& lineActor, double const * center, double min, double max, uint sliceMode);
 	
