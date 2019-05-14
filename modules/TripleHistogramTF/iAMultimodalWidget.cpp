@@ -233,6 +233,8 @@ void iAMultimodalWidget::updateMainSlicers() {
 	if (!m_mainSlicersInitialized)
 		return;
 
+	assert(m_numOfMod != UNDEFINED);
+
 	//iATimeGuard test("updateMainSlicers");
 
 	iASlicerData* slicerDataArray[] = {
@@ -278,7 +280,7 @@ void iAMultimodalWidget::updateMainSlicers() {
 			float modRGB[3][3];
 			float weight[3];
 			float weightSum = 0;
-			for (int mod = 0; mod < 3; ++mod)
+			for (int mod = 0; mod < m_numOfMod; ++mod)
 			{
 				// compute weight for this modality:
 				weight[mod] = w[mod];
@@ -298,19 +300,19 @@ void iAMultimodalWidget::updateMainSlicers() {
 			// "normalize" weights (i.e., make their sum equal to 1):
 			if (weightSum == 0)
 			{
-				for (int mod = 0; mod < 3; ++mod)
-					weight[mod] = 0.333333;
+				for (int mod = 0; mod < m_numOfMod; ++mod)
+					weight[mod] = 1/m_numOfMod;
 			}
 			else
 			{
-				for (int mod = 0; mod < 3; ++mod)
+				for (int mod = 0; mod < m_numOfMod; ++mod)
 					weight[mod] /= weightSum;
 			}
 			// compute and set final color values:
 			for (int component = 0; component < 3; ++component)
 			{
 				float value = 0;
-				for (int mod = 0; mod < 3; ++mod)
+				for (int mod = 0; mod < m_numOfMod; ++mod)
 					value += modRGB[mod][component] * weight[mod];
 				imgOut->SetScalarComponentFromFloat(x, y, z, component, value);
 			}
@@ -461,7 +463,7 @@ void iAMultimodalWidget::histogramAvailable() {
 	}
 	m_mdiChild->getRenderer()->AddRenderer(m_combinedVolRenderer);
 
-	// The remaining code sets up the main slicers
+	// The next code section sets up the main slicers
 
 	iASlicerData* slicerDataArray[] = {
 		m_mdiChild->getSlicerDataYZ(),
@@ -478,7 +480,7 @@ void iAMultimodalWidget::histogramAvailable() {
 
 		//data->GetImageActor()->SetOpacity(0.0);
 		//data->SetManualBackground(1.0, 1.0, 1.0);
-		data->SetManualBackground(0.0, 0.0, 0.0);
+		//data->SetManualBackground(0.0, 0.0, 0.0);
 
 		//vtkSmartPointer<vtkImageData>::New() OR WHATEVER
 		//open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(vtkSmartPointer<vtkImageData> img);
