@@ -32,10 +32,12 @@ private:
 	float* m_contextFactors;
 	size_t m_objectCount;
 	float m_contextDiameterFactor;
+	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberData;
 public:
 	static const int DefaultNumberOfCylinderSides = 12;
 	iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-		QColor const & color, int numberOfCylinderSides = DefaultNumberOfCylinderSides);
+		QColor const & color, std::map<size_t, std::vector<iAVec3f> > curvedFiberData,
+		int numberOfCylinderSides = DefaultNumberOfCylinderSides);
 	void setDiameterFactor(double diameterFactor);
 	void setContextDiameterFactor(double contextDiameterFactor);
 	void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive) override;

@@ -32,20 +32,23 @@
 
 
 iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-	QColor const & color, int numberOfCylinderSides ):
-	iA3DLineObjectVis( ren, objectTable, columnMapping, color ),
+	QColor const & color, std::map<size_t, std::vector<iAVec3f> > curvedFiberData, int numberOfCylinderSides):
+	iA3DLineObjectVis( ren, objectTable, columnMapping, color, curvedFiberData),
 	m_objectCount(objectTable->GetNumberOfRows()),
 	m_contextFactors(nullptr),
-	m_contextDiameterFactor(1.0)
+	m_contextDiameterFactor(1.0),
+	m_curvedFiberData(curvedFiberData)
 {
 	auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
 	tubeRadius->SetName("TubeRadius");
-	tubeRadius->SetNumberOfTuples(objectTable->GetNumberOfRows()*2);
+	tubeRadius->SetNumberOfTuples(m_points->GetNumberOfPoints());
 	for (vtkIdType row = 0; row < objectTable->GetNumberOfRows(); ++row)
 	{
+		auto it = curvedFiberData.find(row);
+		int numPoints = (it != curvedFiberData.end()) ? it->second.size() : 2;
 		double diameter = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::Diameter)).ToDouble();
-		tubeRadius->SetTuple1(row*2,   diameter/2);
-		tubeRadius->SetTuple1(row*2+1, diameter/2);
+		for (int p = 0; p < numPoints; ++p)
+			tubeRadius->SetTuple1(m_fiberPointMap[row]+p,   diameter/2);
 	}
 	m_linePolyData->GetPointData()->AddArray(tubeRadius);
 	m_linePolyData->GetPointData()->SetActiveScalars("TubeRadius");

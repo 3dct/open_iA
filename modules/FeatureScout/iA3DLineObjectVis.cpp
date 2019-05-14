@@ -33,26 +33,45 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkTable.h>
 
-iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color ):
-	iA3DColoredPolyObjectVis(ren, objectTable, columnMapping, color, 2)
+iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color,
+	std::map<size_t, std::vector<iAVec3f> > curvedFiberData):
+	iA3DColoredPolyObjectVis(ren, objectTable, columnMapping, color, 2),
+	m_curvedFiberData(curvedFiberData)
 {
 	m_points = vtkSmartPointer<vtkPoints>::New();
 	m_linePolyData = vtkSmartPointer<vtkPolyData>::New();
 	auto lines = vtkSmartPointer<vtkCellArray>::New();
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
 	{
-		float first[3], end[3];
-		for (int i = 0; i < 3; ++i)
+		m_fiberPointMap.push_back(m_points->GetNumberOfPoints());
+		auto it = curvedFiberData.find(row);
+		if (it != curvedFiberData.end())
 		{
-			first[i] = m_objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::StartX + i)).ToFloat();
-			end[i] = m_objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::EndX + i)).ToFloat();
+			m_points->InsertNextPoint(it->second[0].data());
+			for (int i = 1; i < it->second.size(); ++i)
+			{
+				m_points->InsertNextPoint(it->second[i].data());
+				auto line = vtkSmartPointer<vtkLine>::New();
+				line->GetPointIds()->SetId(0, m_points->GetNumberOfPoints() - 2);
+				line->GetPointIds()->SetId(1, m_points->GetNumberOfPoints() - 1);
+				lines->InsertNextCell(line);
+			}
 		}
-		m_points->InsertNextPoint(first);
-		m_points->InsertNextPoint(end);
-		auto line = vtkSmartPointer<vtkLine>::New();
-		line->GetPointIds()->SetId(0, 2 * row);     // the index of line start point in pts
-		line->GetPointIds()->SetId(1, 2 * row + 1); // the index of line end point in pts
-		lines->InsertNextCell(line);
+		else
+		{
+			float first[3], end[3];
+			for (int i = 0; i < 3; ++i)
+			{
+				first[i] = m_objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::StartX + i)).ToFloat();
+				end[i] = m_objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::EndX + i)).ToFloat();
+			}
+			m_points->InsertNextPoint(first);
+			m_points->InsertNextPoint(end);
+			auto line = vtkSmartPointer<vtkLine>::New();
+			line->GetPointIds()->SetId(0, m_points->GetNumberOfPoints()-2);
+			line->GetPointIds()->SetId(1, m_points->GetNumberOfPoints()-1);
+			lines->InsertNextCell(line);
+		}
 	}
 	m_linePolyData->SetPoints(m_points);
 	m_linePolyData->SetLines(lines);
