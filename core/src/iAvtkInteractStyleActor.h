@@ -68,9 +68,12 @@ public:
 	//update interactors of slicers, for translation
 	void updateInteractors();
 
+	/*void TranslateActor(double * movement, uint mode);*/
+
 	
 
 	
+	void TranslateActor(double const * movement, uint mode);
 	void performTranslationTransform(vtkSmartPointer<vtkTransform> &transform, vtkImageActor *actor, double const *relMovement, uint mode);
 	void prepareCoordsXYZ(double * movement, double const * sliceActorPos);
 	
@@ -117,7 +120,7 @@ private:
 	double m_currentSliceActorPosition[3]; //< position of the currentActor of slicer
 	double m_currentVolRendererPosition[3]; //< position of the currentActor of displayed volume
 
-	inline void setActorPosition(double const *pos) {
+	inline void setPreivousActorPosition(double const *pos) {
 		m_currentSliceActorPosition[0] = pos[0]; 
 		m_currentSliceActorPosition[1] = pos[1];
 		m_currentSliceActorPosition[2] = pos[2]; 
@@ -136,11 +139,12 @@ private:
 
 	void computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double &relativeAngle);
 
-	void TranslateReslicer(vtkSmartPointer<vtkTransform>& transform, double * const position,const double  * spacing,  int sliceMode);
+	//void TranslateReslicer(vtkSmartPointer<vtkTransform>& transform, double * const position,const double  * spacing,  int sliceMode);
 
 
 
-	void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, double *position, double *spacing, int sliceMode);
+	//void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, double *position, double *spacing, int sliceMode);
+	void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, double x, double y, double z,/*double *position,*/ double *spacing, int sliceMode, double const * mageCenter);
 	/*methods for polydata visualisation
 	*/
 
