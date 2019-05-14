@@ -784,6 +784,12 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//TranslateActor(movement, 1);
 		DEBUG_LOG(QString("movement %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2]));
 		TranslateActor(movement, 0);
+
+		for (int i = 0; i < 3; i++) {
+			if (i < m_currentSliceMode) continue;
+			TranslateActor(movement, 0);
+
+		}
 		/*
 		performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 1); 
 		performTranslationTransform(m_SliceInteractorTransform[1], m_slicerChannel[1]->imageActor(), movement, 2);
