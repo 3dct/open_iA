@@ -745,7 +745,9 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//takes position of the current actor //currentActor is translated
 		double sliceActorPos[3];
 		auto tmpslicepos = m_slicerChannel[m_currentSliceMode]->actorPosition();
+		//DEBUG_LOG(QString(" %1 %2 %3").arg(sliceActorPos[0]).arg(sliceActorPos[1]).arg(sliceActorPos[1])) // tmpslicepos = m_slicerChannel[m_currentSliceMode]->actorPosition();
 		std::copy(tmpslicepos, tmpslicepos + 3, sliceActorPos);
+		DEBUG_LOG(QString("Actor position %1 %2 %3").arg(sliceActorPos[0]).arg(sliceActorPos[1]).arg(sliceActorPos[1]))
 
 		if (sliceActorPos[0] == 0 && sliceActorPos[1] == 0 && sliceActorPos[2] == 0) //no movement
 			return;
@@ -790,7 +792,13 @@ void iAvtkInteractStyleActor::updateInteractors()
 			if (i < m_currentSliceMode) continue;
 			TranslateActor(movement, 0);
 
-		
+		//reslicer plane XZ moving by xy
+		//reslicer plane yz moving by xy
+		//reslicer plane xy moving by z
+
+		this->TranslateReslicer(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), trans_xy, m_image->GetSpacing(), 0, m_image->GetCenter());
+		this->TranslateReslicer(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), trans_xy, m_image->GetSpacing(), 1, m_image->GetCenter());
+		this->TranslateReslicer(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), trans_z, m_image->GetSpacing(), 2, m_image->GetCenter());
 
 
 		this->setPreivousActorPosition(sliceActorPos); //setting to original
@@ -804,15 +812,22 @@ void iAvtkInteractStyleActor::updateInteractors()
 		DEBUG_LOG(QString("%1").arg(testMovement));
 		int test_mode = 1; 
 		
+		double const *volRendPosBefore = m_volumeRenderer->volume()->GetPosition();
+		DEBUG_LOG(QString("VolRenderer position before\n %1 %2 %3").arg(volRendPosBefore[0]).arg(volRendPosBefore[1]).arg(volRendPosBefore[2]));
 		//then translate 3d
 			//translate the volume renderer
 		vtkSmartPointer<vtkMatrix4x4> matVol = vtkSmartPointer<vtkMatrix4x4>::New();
 		matVol = m_volumeRenderer->volume()->GetUserMatrix();
-		if (matVol)
-			m_transform3D->SetMatrix(matVol);
-		m_transform3D->Translate(movement[0] * spacing[0], movement[1] * spacing[1], movement[2] * spacing[2]);
-		m_volumeRenderer->volume()->SetUserTransform(m_transform3D);
+		/*if (matVol)
+			m_transform3D->SetMatrix(matVol);*/
+		m_transform3D->Translate(movement[0] /** spacing[0]*/, movement[1] /** spacing[1]*/, movement[2] /** spacing[2]*/);
+		//m_volumeRenderer->volume()->SetUserTransform(m_transform3D);
+		m_volumeRenderer->volume()->SetPosition(m_transform3D->GetPosition());
+		
+		double const *volRendPos = m_volumeRenderer->volume()->GetPosition();
+		DEBUG_LOG(QString("VolRenderer position %1 %2 %3").arg(volRendPos[0]).arg(volRendPos[1]).arg(volRendPos[2]));
 
+		//volRendPos[0]volRendPos[0]
 		//end experimental
 
 		//position vom actor abspeichern; 
