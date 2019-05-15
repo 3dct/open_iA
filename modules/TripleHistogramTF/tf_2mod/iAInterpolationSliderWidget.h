@@ -20,37 +20,94 @@
 * ************************************************************************************/
 #pragma once
 
+#include <QWidget>
 #include <QSlider>
+#include <QRect>
+#include <QPen>
+
+#include <vtkSmartPointer.h>
+
+class iAInterpolationSlider;
 
 class QResizeEvent;
-class QLabel;
+class QPaintEvent;
+class QImage;
+class QTimer;
+
+class vtkImageData;
+
+
+class iAInterpolationSliderWidget : public QWidget
+{
+	Q_OBJECT
+
+public:
+	//iAInterpolationSliderWidget(Qt::Orientation orientation, QWidget* parent = Q_NULLPTR);
+	iAInterpolationSliderWidget(QWidget* parent = Q_NULLPTR);
+
+	double getT() { return m_t; }
+	void setT(double t);
+
+private:
+	void setTPrivate(double t);
+
+	double m_t;
+	iAInterpolationSlider *m_slider;
+
+signals:
+	void tChanged(double t);
+
+};
+
+
 
 class iAInterpolationSlider : public QWidget
 {
 	Q_OBJECT
 
 public:
-	//iAInterpolationSlider(Qt::Orientation orientation, QWidget* parent = Q_NULLPTR);
 	iAInterpolationSlider(QWidget* parent = Q_NULLPTR);
 
-	double t() { return m_t; }
+	double getT();
 	void setT(double t);
 
-private:
-	void setTPrivate(double t);
-	void setValuePrivate(int v);
-	void updateValue() { setValuePrivate(m_slider->value()); }
+	void changeModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2);
 
-	QSlider *m_slider;
-	QLabel *m_labelA;
-	QLabel *m_labelB;
+	void setSchedulerWaitingTimeMs(int waitingTimeMs);
+	void resetSchedulerWaitingTime();
+
+protected:
+	void paintEvent(QPaintEvent* event) override;
+	void resizeEvent(QResizeEvent* event);
+
+private:
+	void calculateCoordinatesNow();
+
+	void calculateHistogramLater();
+	void calculateHistogramNow();
+
+	void layOut(); // As in the actual verb: to lay out
 
 	double m_t;
+	int m_timeToWaitMs;
+	QImage *m_histogramImg;
+	QTimer *m_timer_histogram;
+
+	QRect m_sliderRect;
+	QRect m_histogramRect;
+	QPen m_sliderPen;
+	QPen m_linePen;
+	int m_lineHeight;
+
+	vtkSmartPointer<vtkImageData> m_modalities[2];
+	vtkSmartPointer<vtkImageData> m_interpolationVolume;
 
 signals:
 	void tChanged(double t);
+	void histogramReady();
 
 private slots:
-	void slider_valueChanged(int v);
+	void onHistogramTimeout();
+	void onHistogramReady();
 
 };

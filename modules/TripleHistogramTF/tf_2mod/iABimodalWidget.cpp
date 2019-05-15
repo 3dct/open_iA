@@ -21,7 +21,7 @@
 
 #include "iABimodalWidget.h"
 
-#include "iAInterpolationSlider.h"
+#include "iAInterpolationSliderWidget.h"
 #include "iAHistogramStackGrid.h"
 
 #include <QLabel>
@@ -91,7 +91,7 @@ void iABimodalWidget::initialize()
 	m_slider->setT(0.5);
 
 	connect(m_slider, SIGNAL(tChanged(double)), this, SLOT(tChanged(double)));
-	tChanged(m_slider->t());
+	tChanged(m_slider->getT());
 }
 
 void iABimodalWidget::tChanged(double t)
