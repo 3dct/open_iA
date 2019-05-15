@@ -1111,7 +1111,20 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 	//mat->SetElement(0, 3, /*mageCenter[2]*/ +z);
 
 	reslice->SetOutputDimensionality(2);
+	//x0 y0 z0 x1 y1 z1 x2 y2 z2
+	//direction cosines 
+	//x0 x0 z0 origion[0]
+	//Y1 y1 z1 origion[1]
+	//Z2 y2 z2 origion[2]
+	//0 0 0	1
 
+	double x[3]; 
+	double y[3]; 
+	double z[3];
+
+	//GetResliceAxesDirectionCosines (double x[3], double y[3], double z[3])
+	//reslice->GetResliceAxesDirectionCosines(x, y, z);
+	//reslice->SetResliceAxesDirectionCosines()
 	/*reslice->SetD*/
 
 	//must be probably done via the direction cosines
