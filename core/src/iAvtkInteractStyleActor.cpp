@@ -173,8 +173,8 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 
 		
 		//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30.0, 1); 
-		this->createReferenceObject(imageCenter, spacing, 2, bounds, 1); 
-		this->createAndInitLines(bounds, imageCenter);
+	/*	this->createReferenceObject(imageCenter, spacing, 2, bounds, 1); 
+		this->createAndInitLines(bounds, imageCenter);*/
 
 		
 		/*this->translatePolydata(m_RefTransform, m_RefCubeActor, 0, 100, 0); 
@@ -785,8 +785,11 @@ void iAvtkInteractStyleActor::updateInteractors()
 		this->setPreivousActorPosition(sliceActorPos); //setting to original
 		}*/
 		
-		this->TranslateReslicer(m_ReslicerTransform[0], m_slicerChannel[m_currentSliceMode]->reslicer(), testMovement, 0, 0,spacing, 0, m_image->GetCenter());
-		testMovement += 10 * spacing[0]; 
+		//this->TranslateReslicer(m_ReslicerTransform[m_currentSliceMode], m_slicerChannel[m_currentSliceMode]->reslicer(),0,testMovement, 0, 0, testMovement, 0, m_image->GetCenter());
+		double reslPos[3] = { 0, 20, 0 };
+		this->TranslateReslicer(m_ReslicerTransform[m_currentSliceMode], m_slicerChannel[m_currentSliceMode]->reslicer(), reslPos, spacing, m_currentSliceMode, m_image->GetCenter());
+		testMovement += 10 * spacing[0];
+		DEBUG_LOG(QString("%1").arg(testMovement));
 		int test_mode = 1; 
 		
 		//then translate 3d
@@ -1061,40 +1064,19 @@ void iAvtkInteractStyleActor::computeDisplayRotationAngle(double * sliceProbCent
 	relativeAngle = newAngle - oldAngle;	
 }
 
-void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslice, double x, double y, double z,/*double *position,*/ double *spacing, int sliceMode, double const * mageCenter)
+void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslice, double const *position, double *spacing, int sliceMode, double const * mageCenter)
 {
 	if (!reslice)
 		return; 
 
-	vtkSmartPointer<vtkMatrix4x4> mat = m_slicerChannel[sliceMode]->reslicer()->GetResliceAxes();
-	if (mat) {
-		DEBUG_LOG("Setting input matrix");
-		transform->SetMatrix(mat);
-	}
-	
-		 
+	//vtkSmartPointer<vtkMatrix4x4> mat = m_slicerChannel[sliceMode]->reslicer()->GetResliceAxes();
+	//if (mat) {
+	//	DEBUG_LOG("Setting input matrix");
+	//	transform->SetMatrix(mat);
+	//}
 
-	vtkSmartPointer <vtkMatrix4x4> test = vtkSmartPointer<vtkMatrix4x4>::New(); 
-	test->Identity(); 
-	//matrix with ones in the diagonal
-	
-	/*test->SetElement(0, 0, 1);
-	m->SetElement(0, 1, 2);
-	m->SetElement(0, 2, 3);
-	m->SetElement(0, 3, 4);
-	m->SetElement(1, 0, 2);
-	m->SetElement(1, 1, 2);
-	m->SetElement(1, 2, 3);
-	m->SetElement(1, 3, 4);
-	m->SetElement(2, 0, 3);
-	m->SetElement(2, 1, 2);
-	m->SetElement(2, 2, 3);
-	m->SetElement(2, 3, 4);
-	m->SetElement(3, 0, 4);
-	m->SetElement(3, 1, 2);
-	m->SetElement(3, 2, 3);
-	m->SetElement(3, 3, 4);*/
-	
+	double value = 0; 
+
 
 	double const *origin = m_image->GetOrigin(); 
 
@@ -1102,15 +1084,10 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 	double ofs[3] = { 0.0, 0.0, 0.0 };
 	const int sliceNumber = m_mdiChild->sliceNumber(sliceMode);
 	ofs[slicerZAxisIdx] = sliceNumber * spacing[slicerZAxisIdx];
-	//m_slicerChannel[sliceMode]->reslicer()->SetResliceAxesOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
-
-	//transform->Translate(x*spacing[0]+sliceNumber*spacing[0], 0, 0);
-	//transform->Inverse();
-	//mat->SetElement(0, 0, /*origin[0] +*/ sliceNumber * spacing[0] +x);
-	//mat->SetElement(0, 2, /*mageCenter[1]*/ +y);
-	//mat->SetElement(0, 3, /*mageCenter[2]*/ +z);
-
+	
 	reslice->SetOutputDimensionality(2);
+	//transform->Translate(x *spacing[0], 0, 0);
+	transform->Translate(position[0]*spacing[0], position[1]*spacing[1], position[2]*spacing[2]);
 	//x0 y0 z0 x1 y1 z1 x2 y2 z2
 	//direction cosines 
 	//x0 x0 z0 origion[0]
@@ -1118,40 +1095,45 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 	//Z2 y2 z2 origion[2]
 	//0 0 0	1
 
-	double x[3]; 
-	double y[3]; 
-	double z[3];
+	//double x_1[3]; 
+	//double y_1[3]; 
+	//double z_1[3];
+	//double resOrigin[3];
 
-	//GetResliceAxesDirectionCosines (double x[3], double y[3], double z[3])
-	//reslice->GetResliceAxesDirectionCosines(x, y, z);
-	//reslice->SetResliceAxesDirectionCosines()
-	/*reslice->SetD*/
-
+	
+	
+	
 	//must be probably done via the direction cosines
 	//reslice->setDir
-
-	reslice->SetInformation(m_image->GetInformation());
+	reslice->SetResliceTransform(transform);
+	//reslice->SetInformation(m_image->GetInformation());
 	reslice->SetInputData(m_image);
 	reslice->SetOutputExtent(m_image->GetExtent());
-	/*m_slicerChannel[sliceMode]->reslicer()->SetSlabNumberOfSlices(20);*/
+	
+
+	
 	//reslice->SetOutputOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
 	//m_slicerChannel[sliceMode]->reslicer()->SetOutputOrigin(mageCenter);
 	//reslice->SetOutputOrigin(mageCenter);
-	//reslice->SetResliceAxesOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
+	/*reslice->SetResliceAxes(mat); */
 	reslice->SetOutputSpacing(spacing);
+	reslice->SetOutputOrigin(m_image->GetOrigin());
+	//reslice->SetResliceAxesOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
+	
+	
+		
+	reslice->SetInterpolationModeToCubic();
 	reslice->Update();
-	reslice->UpdateWholeExtent();
+	
 
-	//m_slicerChannel[sliceMode]->reslicer()->SetResliceAxes(m_SliceRotateTransform[sliceMode]->GetMatrix());
-	/*m_slicerChannel[sliceMode]->reslicer()->SetResliceAxes(m_SliceInteractorTransform[sliceMode
-	]->GetMatrix());*/
-	reslice->SetInterpolationModeToLinear();
-	reslice->SetResliceAxes(transform->GetMatrix());
+	
+	//reslice->SetResliceAxes(transform->GetMatrix());
 	//m_slicerChannel[sliceMode]->reslicer()->SetResliceTransform(m_SliceInteractorTransform[sliceMode]); 
 	//m_slicerChannel[sliceMode]->reslicer()->UpdateWholeExtent();
 	
+	
 
-	m_slicerChannel[sliceMode]->reslicer()->Update();
+	//m_slicerChannel[sliceMode]->reslicer()->Update();
 	
 
 	/*m_slicerChannel[m_currentSliceMode]->reslicer()->SetResliceAxes(m_SliceInteractorTransform[sliceMode]->GetMatrix());*/
