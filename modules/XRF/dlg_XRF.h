@@ -22,6 +22,7 @@
 
 #include "dlg_elementRenderer.h"
 
+#include "iACharacteristicEnergy.h"
 #include "iASpectrumFilter.h"
 #include "iASpectrumFunction.h"
 #include "ui_XRF.h"
@@ -39,23 +40,13 @@
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_XRF>   dlg_xrfContainer;
 
-class QDockWidget;
-class vtkColorTransferFunction;
-class vtkImageData;
-class vtkLookupTable;
-class vtkPiecewiseFunction;
-class vtkScalarBarActor;
-
-class iAEnergySpectrumWidget;
-class iAWidgetAddHelper;
-
 class dlg_periodicTable;
 class dlg_RefSpectra;
 class iAAccumulatedXRFData;
-struct iACharacteristicEnergy;
 class iADecompositionCalculator;
 class iAElementConcentrations;
 class iAEnergySpectrumDiagramData;
+class iAEnergySpectrumWidget;
 class iAPieChartGlyph;
 class iAPieChartWidget;
 class iAReferenceSpectraLibrary;
@@ -66,6 +57,15 @@ class iAPlot;
 class iAPlotCollection;
 class iASelectedBinPlot;
 class iAStepFunctionPlot;
+class iAWidgetAddHelper;
+
+class vtkColorTransferFunction;
+class vtkImageData;
+class vtkLookupTable;
+class vtkPiecewiseFunction;
+class vtkScalarBarActor;
+
+class QDockWidget;
 
 class dlg_XRF : public dlg_xrfContainer, public iASpectrumFilterListener
 {

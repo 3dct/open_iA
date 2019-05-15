@@ -189,32 +189,36 @@ private:
 iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	bool decorations /*= true*/, bool magicLensAvailable /*= true*/, vtkAbstractTransform *transform, vtkPoints* snakeSlicerPoints) :
 	iAVtkWidget(parent),
-	m_decorations(decorations),
+	m_contextMenuMagicLens(nullptr),
+	m_contextMenuSnakeSlicer(nullptr),
+	m_interactionMode(Normal),
 	m_isSliceProfEnabled(false),
 	m_isArbProfEnabled(false),
+	m_xInd(0), m_yInd(0), m_zInd(0),
+	m_snakeSpline(nullptr),
+	m_worldSnakePoints(snakeSlicerPoints),
+	m_sliceProfile(nullptr),
+	m_arbProfile(nullptr),
+	m_mode(mode),
+	m_decorations(decorations),
+	m_userSetBackground(false),
+	m_showPositionMarker(false),
+	m_magicLensInput(NotExistingChannel),
 	m_fisheyeLensActivated(false),
 	m_fisheyeRadius(80.0),
 	m_innerFisheyeRadius(70.0),
-	m_roiActive(false),
-	m_showPositionMarker(false),
-	m_userSetBackground(false),
-	m_cameraOwner(true),
-	m_cursorSet(false),
-	m_contextMenuMagicLens(nullptr),
-	m_contextMenuSnakeSlicer(nullptr),
 	m_interactor(nullptr),
+	m_interactorStyle(iAInteractorStyleImage::New()),
 	m_renWin(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New()),
 	m_ren(vtkSmartPointer<vtkRenderer>::New()),
-	m_interactorStyle(iAInteractorStyleImage::New()),
 	m_camera(vtkCamera::New()),
-	m_pointPicker(vtkSmartPointer<vtkWorldPointPicker>::New()),
+	m_cameraOwner(true),
 	m_transform(transform ? transform : vtkTransform::New()),
-	m_magicLensInput(NotExistingChannel),
-	m_mode(mode),
-	m_interactionMode(Normal),
-	m_xInd(0), m_yInd(0), m_zInd(0),
+	m_pointPicker(vtkSmartPointer<vtkWorldPointPicker>::New()),
+	m_slabThickness(0),
+	m_roiActive(false),
 	m_sliceNumber(0),
-	m_slabThickness(0)
+	m_cursorSet(false)
 {
 	std::fill(m_angle, m_angle + 3, 0);
 	setAutoFillBackground(false);
@@ -401,8 +405,6 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_ren->AddActor(m_diskActor);
 		m_ren->AddActor(m_roiActor);
 	}
-
-	m_worldSnakePoints = snakeSlicerPoints;
 	m_renWin->SetNumberOfLayers(3);
 	m_camera->SetParallelProjection(true);
 
@@ -938,7 +940,7 @@ void iASlicer::saveAsImage()
 		inPara << (output16Bit ? tr("true") : tr("false"));
 	}
 
-	dlg_commoninput dlg(this, "Save options", inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Save options", inList, inPara, nullptr);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	saveNative = dlg.getCheckValue(0);
@@ -1018,7 +1020,7 @@ void iASlicer::saveImageStack()
 		inList << tr("$16 bit native output (if disabled, native output will be 8 bit)");
 		inPara << (output16Bit ? tr("true") : tr("false"));
 	}
-	dlg_commoninput dlg(this, "Save options", inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Save options", inList, inPara, nullptr);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
@@ -1204,7 +1206,7 @@ void iASlicer::updatePosition()
 	const int ChannelID = 0; //< TODO: avoid using specific channel here!
 	if (!hasChannel(ChannelID))
 	{
-		std::fill(m_globalPt, m_globalPt + sizeof(m_globalPt), 0);
+		std::fill(m_globalPt, m_globalPt + 3, 0);
 		return;
 	}
 	double point[4] = { m_slicerPt[0], m_slicerPt[1], m_slicerPt[2], 1 };
@@ -1855,7 +1857,11 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 	// magnify and unmagnify fisheye lens and distortion radius
 	if (m_fisheyeLensActivated && (
 		event->key() == Qt::Key_Minus ||
-		event->key() == Qt::Key_Plus  || event->nativeVirtualKey() == VK_OEM_PLUS))  // "native..." - workaround required for Ctrl+ "+" with non-numpad "+" key
+		event->key() == Qt::Key_Plus
+#if defined(VK_OEM_PLUS)
+		|| event->nativeVirtualKey() == VK_OEM_PLUS // "native..." - workaround required for Ctrl+ "+" with non-numpad "+" key
+#endif
+		))
 	{
 		ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
 
@@ -2277,10 +2283,8 @@ void iASlicer::initializeFisheyeLens(vtkImageReslice* reslicer)
 void iASlicer::updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslicer, double lensRadius, double innerLensRadius)
 {
 	vtkImageData * reslicedImgData = reslicer->GetOutput();
-	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 
 	double * spacing = reslicedImgData->GetSpacing();
-	double * origin = reslicedImgData->GetOrigin();
 
 	double bounds[6];
 	reslicer->GetInformationInput()->GetBounds(bounds);

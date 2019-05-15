@@ -645,13 +645,14 @@ QWidget* iAFiAKErController::setupOptimStepView()
 namespace
 {
 	QSharedPointer<iA3DColoredPolyObjectVis> create3DVis(vtkRenderer* renderer,
-		vtkSmartPointer<vtkTable> table, QSharedPointer<QMap<uint, uint> > mapping, QColor const & color, int objectType)
+		vtkSmartPointer<vtkTable> table, QSharedPointer<QMap<uint, uint> > mapping, QColor const & color, int objectType,
+		std::map<size_t, std::vector<iAVec3f> > & curvedFiberData)
 	{
 		switch (objectType)
 		{
 		case iACsvConfig::Ellipses:  return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DEllipseObjectVis(renderer, table, mapping, color));
 		default:
-		case iACsvConfig::Cylinders: return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DCylinderObjectVis(renderer, table, mapping, color));
+		case iACsvConfig::Cylinders: return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DCylinderObjectVis(renderer, table, mapping, color, curvedFiberData));
 		}
 	}
 }
@@ -789,8 +790,8 @@ QWidget* iAFiAKErController::setupResultListView()
 		m_resultsListLayout->addWidget(uiData.stackedBars, resultID + 1, StackedBarColumn);
 		m_resultsListLayout->addWidget(uiData.histoChart, resultID + 1, HistogramColumn);
 
-		uiData.mini3DVis = create3DVis(ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType);
-		uiData.main3DVis = create3DVis(m_ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType);
+		uiData.mini3DVis = create3DVis(ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType, d.curveInfo);
+		uiData.main3DVis = create3DVis(m_ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType, d.curveInfo);
 		uiData.mini3DVis->setColor(getResultColor(resultID));
 		uiData.mini3DVis->show();
 		ren->ResetCamera();
@@ -2025,7 +2026,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	}
 
 	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_ren, m_refVisTable,
-		m_data->result[m_referenceID].mapping, QColor(0,0,0) ) );
+		m_data->result[m_referenceID].mapping, QColor(0,0,0), std::map<size_t, std::vector<iAVec3f> >()) );
 	/*
 	QSharedPointer<iALookupTable> lut(new iALookupTable);
 	*lut.data() = iALUT::Build(m_data->spmData->paramRange(m_data->spmData->numParams()-iARefDistCompute::EndColumns-iARefDistCompute::SimilarityMeasureCount+similarityMeasure),

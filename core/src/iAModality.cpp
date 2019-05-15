@@ -155,12 +155,12 @@ vtkSmartPointer<vtkImageData> iAModality::image() const
 
 QString iAModality::imageName(int componentIdx)
 {
-	QString name(name());
+	QString result(name());
 	if (componentCount() > 1)
 	{
-		return QString("%1-%2").arg(name).arg(componentIdx);
+		return QString("%1-%2").arg(result).arg(componentIdx);
 	}
-	return name;
+	return result;
 }
 
 iAImageInfo const & iAModality::info() const

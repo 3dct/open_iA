@@ -332,8 +332,7 @@ protected:
 private:
 	iASlicerMode m_mode;            //!< the (axis-aligned) slice plane this slicer views
 
-	bool m_decorations;             //!< whether "decorations" will be shown, i.e. scalar bar widget, text on hover, ...   
-	bool m_isolines;                //!< whether contours/isolines are shown
+	bool m_decorations;             //!< whether "decorations" will be shown, i.e. scalar bar widget, text on hover, ...
 	bool m_userSetBackground;       //!< whether the user has set a background
 	bool m_showPositionMarker;      //!< whether the position marker is shown in the slicer
 
