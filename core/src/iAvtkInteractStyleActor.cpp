@@ -700,21 +700,30 @@ void iAvtkInteractStyleActor::updateInteractors()
 			m_SliceInteractorTransform[2]->SetMatrix(mat2);
 		}
 
-		//relative movement for xy
-		m_SliceInteractorTransform[0]->Translate(relMovement[0], relMovement[1], 0);
-		//rel movement xz
-		m_SliceInteractorTransform[1]->Translate(relMovement[0], relMovement[2], 0);
-		//rel movement yz
-		m_SliceInteractorTransform[2]->Translate(relMovement[1], relMovement[2], 0);
+		//translate from 3d to 2d
+		
+		//for the actors
 
-		m_slicerChannel[0]->imageActor()->SetUserTransform(m_SliceInteractorTransform[0]);
-		m_slicerChannel[1]->imageActor()->SetUserTransform(m_SliceInteractorTransform[1]);
-		m_slicerChannel[2]->imageActor()->SetUserTransform(m_SliceInteractorTransform[2]);
+		//m_SliceInteractorTransform[0]->Translate(relMovement[0], relMovement[1], 0);//relative movement for xy
+		//m_SliceInteractorTransform[1]->Translate(relMovement[0], relMovement[2], 0);//rel movement xz
+		//m_SliceInteractorTransform[2]->Translate(relMovement[1], relMovement[2], 0); //rel movement yz
+		//m_slicerChannel[0]->imageActor()->SetUserTransform(m_SliceInteractorTransform[0]);
+		//m_slicerChannel[1]->imageActor()->SetUserTransform(m_SliceInteractorTransform[1]);
+		//m_slicerChannel[2]->imageActor()->SetUserTransform(m_SliceInteractorTransform[2]);
 
+		double trans_xy[3] = { relMovement[0], relMovement[1],0 };
+		double trans_xz[3] = { relMovement[0], 0,  relMovement[2] };
+		double trans_yz[3] = {0, relMovement[1],  relMovement[2] };
+		
+		this->TranslateReslicer(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), trans_xy, m_image->GetSpacing(), 0, m_image->GetCenter()); 
+		//this->TranslateReslicer(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), trans_xz, m_image->GetSpacing(), 1, m_image->GetCenter());
+		//this->TranslateReslicer(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), trans_xy, m_image->GetSpacing(), 2, m_image->GetCenter());
 		//angenommen das geht dann den reslicer transformieren
 
 
 		//nur statt dem den reslicer transformieren
+
+		//store current position of renderer
 
 		m_currentVolRendererPosition[0] = posVol[0];
 		m_currentVolRendererPosition[1] = posVol[1];
@@ -787,7 +796,8 @@ void iAvtkInteractStyleActor::updateInteractors()
 		
 		//this->TranslateReslicer(m_ReslicerTransform[m_currentSliceMode], m_slicerChannel[m_currentSliceMode]->reslicer(),0,testMovement, 0, 0, testMovement, 0, m_image->GetCenter());
 		double reslPos[3] = { 0, 20, 0 };
-		this->TranslateReslicer(m_ReslicerTransform[m_currentSliceMode], m_slicerChannel[m_currentSliceMode]->reslicer(), reslPos, spacing, m_currentSliceMode, m_image->GetCenter());
+		// 
+		//this->TranslateReslicer(m_ReslicerTransform[m_currentSliceMode], m_slicerChannel[m_currentSliceMode]->reslicer(), reslPos, spacing, m_currentSliceMode, m_image->GetCenter());
 		testMovement += 10 * spacing[0];
 		DEBUG_LOG(QString("%1").arg(testMovement));
 		int test_mode = 1; 
@@ -1086,30 +1096,13 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 	ofs[slicerZAxisIdx] = sliceNumber * spacing[slicerZAxisIdx];
 	
 	reslice->SetOutputDimensionality(2);
-	//transform->Translate(x *spacing[0], 0, 0);
-	transform->Translate(position[0]*spacing[0], position[1]*spacing[1], position[2]*spacing[2]);
-	//x0 y0 z0 x1 y1 z1 x2 y2 z2
-	//direction cosines 
-	//x0 x0 z0 origion[0]
-	//Y1 y1 z1 origion[1]
-	//Z2 y2 z2 origion[2]
-	//0 0 0	1
-
-	//double x_1[3]; 
-	//double y_1[3]; 
-	//double z_1[3];
-	//double resOrigin[3];
-
 	
+	transform->Translate(position[0], position[1], position[2]);
 	
-	
-	//must be probably done via the direction cosines
-	//reslice->setDir
-	reslice->SetResliceTransform(transform);
-	//reslice->SetInformation(m_image->GetInformation());
+	reslice->SetResliceTransform(transform);	
 	reslice->SetInputData(m_image);
 	reslice->SetOutputExtent(m_image->GetExtent());
-	
+	reslice->AutoCropOutputOff(); 
 
 	
 	//reslice->SetOutputOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
@@ -1124,20 +1117,9 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 		
 	reslice->SetInterpolationModeToCubic();
 	reslice->Update();
-	
+		
 
 	
-	//reslice->SetResliceAxes(transform->GetMatrix());
-	//m_slicerChannel[sliceMode]->reslicer()->SetResliceTransform(m_SliceInteractorTransform[sliceMode]); 
-	//m_slicerChannel[sliceMode]->reslicer()->UpdateWholeExtent();
-	
-	
-
-	//m_slicerChannel[sliceMode]->reslicer()->Update();
-	
-
-	/*m_slicerChannel[m_currentSliceMode]->reslicer()->SetResliceAxes(m_SliceInteractorTransform[sliceMode]->GetMatrix());*/
-
 
 	
 
