@@ -671,16 +671,13 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//similar thing like update coords; 
 		//original coords += positions; 
 
-		/*EXPERIMENTAL*/
+	
 
 		double relMovement[3] = { 0, 0, 0 };
 		relMovement[0] = posVol[0] - m_currentVolRendererPosition[0];
 		relMovement[1] = posVol[1] - m_currentVolRendererPosition[1];
 		relMovement[2] = posVol[2] - m_currentVolRendererPosition[2];
 
-		//0 -> xy
-		//1 -> xz
-		//2 -> yz
 		//prepare transform for every slicer 
 		//relative translation of the interactor
 
@@ -712,12 +709,17 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//m_slicerChannel[2]->imageActor()->SetUserTransform(m_SliceInteractorTransform[2]);
 
 		double trans_xy[3] = { relMovement[0], relMovement[1],0 };
-		double trans_xz[3] = { relMovement[0], 0,  relMovement[2] };
-		double trans_yz[3] = {0, relMovement[1],  relMovement[2] };
+	/*	double trans_xz[3] = { relMovement[0], 0,  relMovement[2] };
+		double trans_yz[3] = {0, relMovement[1],  relMovement[2] };*/
+		double trans_z[3] = { 0,0 , relMovement[2] };
+
+		//reslicer plane XZ moving by xy 
+		//reslicer plane yz moving by xy
+		//reslicer plane xy moving by z
 		
 		this->TranslateReslicer(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), trans_xy, m_image->GetSpacing(), 0, m_image->GetCenter()); 
-		//this->TranslateReslicer(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), trans_xz, m_image->GetSpacing(), 1, m_image->GetCenter());
-		//this->TranslateReslicer(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), trans_xy, m_image->GetSpacing(), 2, m_image->GetCenter());
+		this->TranslateReslicer(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), trans_xy, m_image->GetSpacing(), 1, m_image->GetCenter());
+		this->TranslateReslicer(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), trans_z, m_image->GetSpacing(), 2, m_image->GetCenter());
 		//angenommen das geht dann den reslicer transformieren
 
 
