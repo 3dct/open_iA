@@ -593,8 +593,8 @@ void dlg_GEMSeControl::SetRepresentative(const QString & reprType)
 		/* reprType == "Average Entropy" */		iARepresentativeType::AverageEntropy;
 	if (!m_dlgGEMSe->SetRepresentativeType(representativeType, m_refImg))
 	{   // could not set representative, reset
-		int reprType = m_dlgGEMSe->GetRepresentativeType();
-		cbRepresentative->setCurrentIndex(reprType);
+		int reprTypeIdx = m_dlgGEMSe->GetRepresentativeType();
+		cbRepresentative->setCurrentIndex(reprTypeIdx);
 	}
 }
 

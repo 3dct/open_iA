@@ -42,6 +42,7 @@ public:
 		Folder
 	};
 	iAFileChooserWidget(QWidget* parent, ChoiceType type):
+		QWidget(parent),
 		m_textEdit(new QLineEdit()),
 		m_browseButton(new QPushButton("...")),
 		m_choiceType(type)

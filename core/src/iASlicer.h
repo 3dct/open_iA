@@ -32,9 +32,8 @@
 #include <QSharedPointer>
 
 
-struct iASlicerProfile;
-struct iAArbitraryProfileOnSlicer;
-struct PickedData;
+class iASlicerProfile;
+class iAArbitraryProfileOnSlicer;
 class iAChannelData;
 class iAChannelSlicerData;
 class iAInteractorStyleImage;

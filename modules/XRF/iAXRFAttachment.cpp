@@ -136,8 +136,7 @@ void iAXRFAttachment::initXRF( bool enableChannel )
 	}
 	else if (isMagicLensEnabled)
 	{
-		m_child->setMagicLensInput(m_xrfChannelID,
-			!m_child->channelData(m_xrfChannelID)->isEnabled());
+		m_child->setMagicLensInput(m_xrfChannelID);
 	}
 	m_child->updateSlicers();
 	m_child->addMsg(tr("Spectral color image initialized."));

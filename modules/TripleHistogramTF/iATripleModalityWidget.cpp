@@ -490,8 +490,8 @@ void iATripleModalityWidget::applyWeights()
 			m_histograms[i]->update();
 
 			//m_mdiChild->updateChannelOpacity(m_channelIDs[i], m_weightCur[i]);
-			for (int i=0; i<3; ++i)
-				m_mdiChild->slicer(i)->updateChannelMappers();
+			for (int s=0; s<3; ++s)
+				m_mdiChild->slicer(s)->updateChannelMappers();
 			m_mdiChild->updateSlicers();
 		}
 	}
