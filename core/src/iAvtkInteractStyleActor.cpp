@@ -200,16 +200,17 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 void iAvtkInteractStyleActor::rotateInterActorProp(vtkSmartPointer<vtkTransform> &transform,  double const *center, double angle, vtkProp3D *prop, uint mode)
 {
 	vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
-	mat = prop->GetUserMatrix();
-	if (mat) {
-		//DEBUG_LOG("Matrix successfull");
-		transform->SetMatrix(mat);
-	}
+	//mat = prop->GetUserMatrix();
+	//if (mat) {
+	//	//DEBUG_LOG("Matrix successfull");
+	//	transform->SetMatrix(mat);
+	//}
 
 	rotateAroundAxis(transform, center, mode, angle);
 
 	prop->SetUserTransform(transform);
-	m_volumeRenderer->update();
+	//prop->SetOrientation(transform->GetOrientation()); 
+	//m_volumeRenderer->update();
 }
 
 void iAvtkInteractStyleActor::translateInterActor(vtkSmartPointer<vtkTransform> &transform, vtkImageActor *actor, double const *position, uint mode)
@@ -580,7 +581,8 @@ void iAvtkInteractStyleActor::Rotate()
   //rotate about center
 	if (enable3D) {
 		DEBUG_LOG("Rotate 3d"); 
-		vtkInteractorStyleTrackballActor::Rotate();
+		//vtkInteractorStyleTrackballActor::Rotate();
+		m_rotation3DEnabled= true; 
 	}
 	else {
 		m_rotationEnabled = true; 
@@ -611,11 +613,18 @@ void iAvtkInteractStyleActor::OnMouseMove()
 		this->rotate2D(); 
 		m_rotationEnabled = false;
 	}
+	else if (enable3D && m_rotation3DEnabled) {
+		this->rotate3D();
+		m_rotation3DEnabled = false; 
+	}
 }
 
 void iAvtkInteractStyleActor::initialize(vtkImageData *img, iAVolumeRenderer* volRend,
 	iAChannelSlicerData *slicerChannel[3], int currentMode, MdiChild *mdiChild)
 {
+	if (!img) DEBUG_LOG("no valid image!");
+
+
 	m_image = img;
 	m_volumeRenderer = volRend;
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
@@ -625,7 +634,7 @@ void iAvtkInteractStyleActor::initialize(vtkImageData *img, iAVolumeRenderer* vo
 	if (!mdiChild)
 		DEBUG_LOG("MdiChild not set!");
 	m_mdiChild = mdiChild;
-
+	m_image->GetSpacing(m_imageSpacing); 
 
 	//initialize pos of currentSlicer
 	if (!enable3D) {
@@ -648,6 +657,8 @@ void iAvtkInteractStyleActor::updateInteractors()
 	//coords initialized from the image origin;
 	double origin[3];
 	m_image->GetOrigin(origin);
+
+
 	// DEBUG_LOG(QString("  Old origin: %1, %2, %3").arg(origin[0]).arg(origin[1]).arg(origin[2]));
 
 	// relative movement of object - we take the position the object was moved to
@@ -796,13 +807,18 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//reslicer plane yz moving by xy
 		//reslicer plane xy moving
 		by z
-		
+		*/
+
+		double trans_xy[3] = { movement[0], movement[1],0 };
+		/*	double trans_xz[3] = { relMovement[0], 0,  relMovement[2] };
+			double trans_yz[3] = {0, relMovement[1],  relMovement[2] };*/
+		double trans_z[3] = { 0,0 , movement[2] };
 
 
 		this->TranslateReslicer(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), trans_xy, m_image->GetSpacing(), 0, m_image->GetCenter());
 		this->TranslateReslicer(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), trans_xy, m_image->GetSpacing(), 1, m_image->GetCenter());
 		this->TranslateReslicer(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), trans_z, m_image->GetSpacing(), 2, m_image->GetCenter());
-
+		/*
 
 		this->setPreivousActorPosition(sliceActorPos); //setting to original
 		}*/
@@ -821,6 +837,8 @@ void iAvtkInteractStyleActor::updateInteractors()
 		/*if (matVol)
 			m_transform3D->SetMatrix(matVol);*/
 		m_transform3D->Translate(movement[0], movement[1], movement[2]);
+		//error volumen wandert heraus
+
 		m_volumeRenderer->volume()->SetPosition(m_transform3D->GetPosition()); //has to do this
 		
 		double const *volRendPos = m_volumeRenderer->volume()->GetPosition();
@@ -1011,8 +1029,9 @@ void iAvtkInteractStyleActor::rotate2D()
 	computeDisplayRotationAngle(sliceProbCenter, disp_obj_center, rwi, relativeAngle);
 	
 
-	//this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 2, imageCenter, relativeAngle, m_image->GetSpacing());
-	this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing());
+	this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing());
+	this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing()); 
+	this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing());
 
 	//this->rotateInterActorProp(m_SliceInteractorTransform[m_currentSliceMode], sliceProbCenter, relativeAngle, this->InteractionProp,2);
 	//QString mode = slicerModeString(m_currentSliceMode);
@@ -1020,7 +1039,8 @@ void iAvtkInteractStyleActor::rotate2D()
 	double const * spacing = m_image->GetSpacing();
 	double const *volImageCenter = m_volumeRenderer->volume()->GetCenter();
 	double const *orientationBefore = m_volumeRenderer->volume()->GetOrientation();
-	   
+	DEBUG_LOG(QString("orientation before %1 %2 %3").arg(orientationBefore[0])
+		.arg(orientationBefore[1]).arg(orientationBefore[2]));
 	
 	//rotate around axis based on the spacing needed  //otherwise multiply center with spacing??
 	
@@ -1062,6 +1082,128 @@ void iAvtkInteractStyleActor::rotate2D()
 	
 }
 
+
+void iAvtkInteractStyleActor::rotate3D()
+{
+	if (this->CurrentRenderer == nullptr || this->InteractionProp == nullptr)
+	{
+		return;
+	}
+
+	vtkRenderWindowInteractor *rwi = this->Interactor;
+	vtkCamera *cam = this->CurrentRenderer->GetActiveCamera();
+
+	// First get the origin of the assembly
+	double *obj_center = this->InteractionProp->GetCenter();
+
+	// GetLength gets the length of the diagonal of the bounding box
+	double boundRadius = this->InteractionProp->GetLength() * 0.5;
+
+	// Get the view up and view right vectors
+	double view_up[3], view_look[3], view_right[3];
+
+	cam->OrthogonalizeViewUp();
+	cam->ComputeViewPlaneNormal();
+	cam->GetViewUp(view_up);
+	vtkMath::Normalize(view_up);
+	cam->GetViewPlaneNormal(view_look);
+	vtkMath::Cross(view_up, view_look, view_right);
+	vtkMath::Normalize(view_right);
+
+	// Get the furtherest point from object position+origin
+	double outsidept[3];
+
+	outsidept[0] = obj_center[0] + view_right[0] * boundRadius;
+	outsidept[1] = obj_center[1] + view_right[1] * boundRadius;
+	outsidept[2] = obj_center[2] + view_right[2] * boundRadius;
+
+	// Convert them to display coord
+	double disp_obj_center[3];
+
+	this->ComputeWorldToDisplay(obj_center[0], obj_center[1], obj_center[2],
+		disp_obj_center);
+
+	this->ComputeWorldToDisplay(outsidept[0], outsidept[1], outsidept[2],
+		outsidept);
+
+	double radius = sqrt(vtkMath::Distance2BetweenPoints(disp_obj_center,
+		outsidept));
+	double nxf = (rwi->GetEventPosition()[0] - disp_obj_center[0]) / radius;
+
+	double nyf = (rwi->GetEventPosition()[1] - disp_obj_center[1]) / radius;
+
+	double oxf = (rwi->GetLastEventPosition()[0] - disp_obj_center[0]) / radius;
+
+	double oyf = (rwi->GetLastEventPosition()[1] - disp_obj_center[1]) / radius;
+
+	if (((nxf * nxf + nyf * nyf) <= 1.0) &&
+		((oxf * oxf + oyf * oyf) <= 1.0))
+	{
+		double newXAngle = vtkMath::DegreesFromRadians(asin(nxf));
+		double newYAngle = vtkMath::DegreesFromRadians(asin(nyf));
+		double oldXAngle = vtkMath::DegreesFromRadians(asin(oxf));
+		double oldYAngle = vtkMath::DegreesFromRadians(asin(oyf));
+
+		double scale[3];
+		scale[0] = scale[1] = scale[2] = 1.0;
+
+		double **rotate = new double*[2];
+
+		rotate[0] = new double[4];
+		rotate[1] = new double[4];
+
+		rotate[0][0] = newXAngle - oldXAngle;
+		rotate[0][1] = view_up[0];
+		rotate[0][2] = view_up[1];
+		rotate[0][3] = view_up[2];
+
+		rotate[1][0] = oldYAngle - newYAngle;
+		rotate[1][1] = view_right[0];
+		rotate[1][2] = view_right[1];
+		rotate[1][3] = view_right[2];
+		
+		double const *orientationBefore = m_volumeRenderer->volume()->GetOrientation();
+		DEBUG_LOG(QString("Oriention before %1 %2 %3").arg(orientationBefore[0]).arg(orientationBefore[1]).arg(orientationBefore[2])); 
+
+		this->Prop3DTransform(this->InteractionProp,
+			obj_center,
+			2,
+			rotate,
+			scale);
+
+	    double const *orientationAfter = m_volumeRenderer->volume()->GetOrientation();
+		DEBUG_LOG(QString("new Orientation %1 %2 %3").arg(orientationAfter[0]).arg(orientationAfter[1]).arg(orientationAfter[2]));
+		
+		double test = oldYAngle - newYAngle;
+		DEBUG_LOG(QString("Angle %1").arg(test)); 
+		for (int mode = 0; mode < 3; mode++) {
+			this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 0, m_image->GetCenter(), 20, m_imageSpacing);
+		
+		}
+		delete[] rotate[0];
+		delete[] rotate[1];
+		delete[] rotate;
+
+		//this->rotateInterActorProp(m_SliceInteractorTransform[2], m_image->GetCenter(), oldXAngle - oldYAngle, m_slicerChannel[2]->imageActor(), 2);
+		/*m_slicerChannel[2]->imageActor()->SetPosition(20, test, test); */
+		/*if (this->AutoAdjustCameraClippingRange)
+		{
+			this->CurrentRenderer->ResetCameraClippingRange();
+		}*/
+
+		rwi->Render();
+
+		for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+			if (i != m_currentSliceMode && m_slicerChannel[i])
+				m_slicerChannel[i]->updateReslicer();
+
+		m_volumeRenderer->update();
+		emit actorsUpdated();
+
+	}
+
+
+}
 
 void iAvtkInteractStyleActor::computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double &relativeAngle)
 {
@@ -1208,6 +1350,7 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 
 void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, uint sliceMode, double const * center, double angle, double const *spacing)
 {
+	if (reslicer) DEBUG_LOG("Rotate Reslicer");
 	
 	this->rotateAroundAxis(transform, center, sliceMode, angle);
 	//todo map axis

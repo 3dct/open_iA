@@ -81,7 +81,7 @@ public:
 	//rotates 2d slicer/ interactor
 	void rotate2D(); 
 	
-
+	void rotate3D(); //3d rotation of the volume actor //TODO 
 	//void UpdateReslicerTranslateTransform2D(double *const Rendposition, /*const double *orientation,*/ const double *imageCenter, int sliceMode);
 	
 
@@ -113,10 +113,13 @@ private:
 	vtkSmartPointer<vtkTransform> m_SliceInteractorTransform[3];  //transform for each interactor of slicer
 	vtkSmartPointer<vtkTransform> m_ReslicerTransform[3]; //transform for each reslicer
 
+	double m_imageSpacing[3];
+	//double imageCenter[3]; 
 
 	int m_currentSliceMode;
 	bool m_rightButtonDragZoomEnabled = false;
 	bool m_rotationEnabled; 
+	bool m_rotation3DEnabled = false; 
 	double m_currentSliceActorPosition[3]; //< position of the currentActor of slicer
 	double m_currentVolRendererPosition[3]; //< position of the currentActor of displayed volume
 
