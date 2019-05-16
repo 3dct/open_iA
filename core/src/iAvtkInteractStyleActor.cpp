@@ -1176,10 +1176,12 @@ void iAvtkInteractStyleActor::rotate3D()
 		
 		double test = oldYAngle - newYAngle;
 		DEBUG_LOG(QString("Angle %1").arg(test)); 
-		for (int mode = 0; mode < 3; mode++) {
-			this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 0, m_image->GetCenter(), 20, m_imageSpacing);
-		
-		}
+	/*	for (int mode = 0; mode < 3; mode++) {*/
+		this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), 1, m_image->GetCenter(), orientationAfter[0], m_imageSpacing);
+		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), 1, m_image->GetCenter(), orientationAfter[1], m_imageSpacing);
+		this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 1, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
+
+		/*}*/
 		delete[] rotate[0];
 		delete[] rotate[1];
 		delete[] rotate;
