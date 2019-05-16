@@ -210,7 +210,7 @@ void iAvtkInteractStyleActor::rotateInterActorProp(vtkSmartPointer<vtkTransform>
 
 	prop->SetUserTransform(transform);
 	//prop->SetOrientation(transform->GetOrientation()); 
-	//m_volumeRenderer->update();
+	
 }
 
 void iAvtkInteractStyleActor::translateInterActor(vtkSmartPointer<vtkTransform> &transform, vtkImageActor *actor, double const *position, uint mode)
@@ -793,7 +793,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 
 
 		//start from slice mode 0 which is slice YZ
-		int mode0_yz = m_currentSliceMode;
+		//int mode0_yz = m_currentSliceMode;
 
 
 		DEBUG_LOG(QString("movement %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2]));		
@@ -836,13 +836,25 @@ void iAvtkInteractStyleActor::updateInteractors()
 		matVol = m_volumeRenderer->volume()->GetUserMatrix();
 		/*if (matVol)
 			m_transform3D->SetMatrix(matVol);*/
+			
+		double const *volRendPos = m_volumeRenderer->volume()->GetPosition();
+		double movement_3d[3] = { 0, 0, 0 };
+		
+		for (int i = 0; i < 3; i++) {
+			movement_3d[i] = volRendPos[0] + movement[0];
+
+		}
+
 		m_transform3D->Translate(movement[0], movement[1], movement[2]);
+		//m_transform3D->Translate(movement_3d); 
 		//error volumen wandert heraus
+
+		//stattdessen actor position zu den volume renderer
 
 		m_volumeRenderer->volume()->SetPosition(m_transform3D->GetPosition()); //has to do this
 		
-		double const *volRendPos = m_volumeRenderer->volume()->GetPosition();
-		DEBUG_LOG(QString("VolActor position %1 %2 %3").arg(volRendPos[0]).arg(volRendPos[1]).arg(volRendPos[2]));
+		double const *volRendPosafter = m_volumeRenderer->volume()->GetPosition();
+		DEBUG_LOG(QString("VolActor position %1 %2 %3").arg(volRendPosafter[0]).arg(volRendPosafter[1]).arg(volRendPosafter[2]));
 
 		
 		//end experimental
@@ -995,7 +1007,7 @@ void iAvtkInteractStyleActor::prepareCoordsXYZ(double * movement, double const *
 
 void iAvtkInteractStyleActor::rotate2D()
 {
-	//2d rotation should work in this way: 
+	//2d rotation  work in this way: 
 	/*
 	*1 perform perform rotation to interactor
 	*2  update 3d volume -> yes
@@ -1027,14 +1039,12 @@ void iAvtkInteractStyleActor::rotate2D()
 	
 	//2d, rotate Z; 
 	computeDisplayRotationAngle(sliceProbCenter, disp_obj_center, rwi, relativeAngle);
-	
-
 	this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing());
 	this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing()); 
-	this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing());
+	this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), 2, imageCenter, relativeAngle, m_image->GetSpacing());
 
 	//this->rotateInterActorProp(m_SliceInteractorTransform[m_currentSliceMode], sliceProbCenter, relativeAngle, this->InteractionProp,2);
-	//QString mode = slicerModeString(m_currentSliceMode);
+	
 	
 	double const * spacing = m_image->GetSpacing();
 	double const *volImageCenter = m_volumeRenderer->volume()->GetCenter();
@@ -1046,22 +1056,18 @@ void iAvtkInteractStyleActor::rotate2D()
 	
 	//rotate in actor in 3D
 	this->rotateInterActorProp(m_transform3D, imageCenter, relativeAngle, m_volumeRenderer->volume(), m_currentSliceMode); 
-			
-		   
 	//evtl die Orientation an die Transform weiter geben als INPut //TODO
 
 	//custom center
 	const int* imgExtend = m_image->GetExtent();
-	
-	
-	
+		
 
 	//das brauchen wir nicht; 
 	//TransformReslicerExperimental(imageCenter, angle, spacing, m_currentSliceMode);
 	//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, angle,	1); 
 	//transform an die reslicer weitergeben
 
-	//handle transform to reslicer
+	
 	
 
 
@@ -1176,23 +1182,18 @@ void iAvtkInteractStyleActor::rotate3D()
 		
 		double test = oldYAngle - newYAngle;
 		DEBUG_LOG(QString("Angle %1").arg(test)); 
-	/*	for (int mode = 0; mode < 3; mode++) {*/
-		this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), 1, m_image->GetCenter(), orientationAfter[0], m_imageSpacing);
-		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), 1, m_image->GetCenter(), orientationAfter[1], m_imageSpacing);
+
+		//ist das jetzt die Richtige Rotation ?? 
+
+		this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), 2, m_image->GetCenter(), orientationAfter[0], m_imageSpacing);
+		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), 2, m_image->GetCenter(), orientationAfter[1], m_imageSpacing);
 		this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 1, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
 
-		/*}*/
+		
 		delete[] rotate[0];
 		delete[] rotate[1];
 		delete[] rotate;
-
-		//this->rotateInterActorProp(m_SliceInteractorTransform[2], m_image->GetCenter(), oldXAngle - oldYAngle, m_slicerChannel[2]->imageActor(), 2);
-		/*m_slicerChannel[2]->imageActor()->SetPosition(20, test, test); */
-		/*if (this->AutoAdjustCameraClippingRange)
-		{
-			this->CurrentRenderer->ResetCameraClippingRange();
-		}*/
-
+		
 		rwi->Render();
 
 		for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
