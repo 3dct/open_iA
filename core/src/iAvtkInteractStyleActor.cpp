@@ -389,43 +389,43 @@ void iAvtkInteractStyleActor::rotateAroundAxis(vtkSmartPointer<vtkTransform> & t
 	transform->Update();
 }
 
-void iAvtkInteractStyleActor::rotateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer,  double const *center, uint mode, double angle)
-{
-	
-	this->rotateAroundAxis(transform, center, mode, angle);  //transform is ready; 
-	
-
-	//m_slicerChannel[sliceMode]->reslicer()->SetInputData(m_image);
-	double const * spacing = m_image->GetSpacing();
-	double const * origin = m_image->GetOrigin(); //origin bei null
-
-	//TODO change axes; depending on slicer mode by switch caes
-	int slicerZAxisIdx = mapSliceToGlobalAxis(mode, iAAxisIndex::Z/*iAAxisIndex::Z*/);
-
-	//ist das immer die Z-Achse? 
-	double ofs[3] = { 0.0, 0.0, 0.0 };
-	const int sliceNumber = m_mdiChild->sliceNumber(mode);
-	ofs[slicerZAxisIdx] = sliceNumber * spacing[slicerZAxisIdx];
-	//m_slicerChannel[mode]->reslicer()->SetResliceAxesOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
-	
-
-	m_slicerChannel[mode]->reslicer()->SetOutputExtent(m_image->GetExtent());
-	//m_slicerChannel[sliceMode]->reslicer()->SetOutputOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
-	m_slicerChannel[mode]->reslicer()->SetOutputSpacing(spacing);
-	m_slicerChannel[mode]->reslicer()->Update();
-	/*	m_slicerChannel[sliceMode]->reslicer()->SetOutputDimensionality(2);*/
-	//geht offensichtlich nur über das rotate transform
-
-		//m_slicerChannel[sliceMode]->reslicer()->SetResliceAxes(m_SliceRotateTransform[sliceMode]->GetMatrix());
-	m_slicerChannel[mode]->reslicer()->SetResliceTransform(m_SliceInteractorTransform[mode]);
-	//m_slicerChannel[sliceMode]->reslicer()->UpdateWholeExtent();
-	m_slicerChannel[mode]->reslicer()->SetInterpolationModeToLinear();
-
-	m_slicerChannel[mode]->reslicer()->Update();
-	
-	
-
-}
+//void iAvtkInteractStyleActor::rotateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer,  double const *center, uint mode, double angle)
+//{
+//	
+//	this->rotateAroundAxis(transform, center, mode, angle);  //transform is ready; 
+//	
+//
+//	//m_slicerChannel[sliceMode]->reslicer()->SetInputData(m_image);
+//	double const * spacing = m_image->GetSpacing();
+//	double const * origin = m_image->GetOrigin(); //origin bei null
+//
+//	//TODO change axes; depending on slicer mode by switch caes
+//	int slicerZAxisIdx = mapSliceToGlobalAxis(mode, iAAxisIndex::Z/*iAAxisIndex::Z*/);
+//
+//	//ist das immer die Z-Achse? 
+//	double ofs[3] = { 0.0, 0.0, 0.0 };
+//	const int sliceNumber = m_mdiChild->sliceNumber(mode);
+//	ofs[slicerZAxisIdx] = sliceNumber * spacing[slicerZAxisIdx];
+//	//m_slicerChannel[mode]->reslicer()->SetResliceAxesOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
+//	
+//
+//	m_slicerChannel[mode]->reslicer()->SetOutputExtent(m_image->GetExtent());
+//	//m_slicerChannel[sliceMode]->reslicer()->SetOutputOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
+//	m_slicerChannel[mode]->reslicer()->SetOutputSpacing(spacing);
+//	m_slicerChannel[mode]->reslicer()->Update();
+//	/*	m_slicerChannel[sliceMode]->reslicer()->SetOutputDimensionality(2);*/
+//	//geht offensichtlich nur über das rotate transform
+//
+//		//m_slicerChannel[sliceMode]->reslicer()->SetResliceAxes(m_SliceRotateTransform[sliceMode]->GetMatrix());
+//	m_slicerChannel[mode]->reslicer()->SetResliceTransform(m_SliceInteractorTransform[mode]);
+//	//m_slicerChannel[sliceMode]->reslicer()->UpdateWholeExtent();
+//	m_slicerChannel[mode]->reslicer()->SetInterpolationModeToLinear();
+//
+//	m_slicerChannel[mode]->reslicer()->Update();
+//	
+//	
+//
+//}
 
 void iAvtkInteractStyleActor::createReferenceObject(double /*const */* center, double const *spacing, uint thickness, const double *bounds, uint mode) 
 {
@@ -1011,7 +1011,7 @@ void iAvtkInteractStyleActor::rotate2D()
 	computeDisplayRotationAngle(sliceProbCenter, disp_obj_center, rwi, relativeAngle);
 	
 
-	this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 0, imageCenter, relativeAngle, m_image->GetSpacing());
+	this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 2, imageCenter, relativeAngle, m_image->GetSpacing());
 	//this->rotateInterActorProp(m_SliceInteractorTransform[m_currentSliceMode], sliceProbCenter, relativeAngle, this->InteractionProp,2);
 	//QString mode = slicerModeString(m_currentSliceMode);
 	
@@ -1022,7 +1022,7 @@ void iAvtkInteractStyleActor::rotate2D()
 	
 	//rotate around axis based on the spacing needed  //otherwise multiply center with spacing??
 	
-	//rotate in 3D
+	//rotate in actor in 3D
 	this->rotateInterActorProp(m_transform3D, volImageCenter, relativeAngle, m_volumeRenderer->volume(), m_currentSliceMode); 
 			
 		   
@@ -1213,51 +1213,45 @@ void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &tran
 	reslicer->SetInputData(m_image);
 	reslicer->SetOutputExtent(m_image->GetExtent());
 	reslicer->AutoCropOutputOff();
-
-
-	//reslice->SetOutputOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
-	//m_slicerChannel[sliceMode]->reslicer()->SetOutputOrigin(mageCenter);
-	//reslice->SetOutputOrigin(mageCenter);
+		
 	/*reslice->SetResliceAxes(mat); */
 	reslicer->SetOutputSpacing(spacing);
 	reslicer->SetOutputOrigin(m_image->GetOrigin());
 	//reslice->SetResliceAxesOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
-
-
-
+	   
 	reslicer->SetInterpolationModeToCubic();
 	reslicer->Update();
 
 }
 
-void iAvtkInteractStyleActor::updateReslicerRotationTransformation2d(const int sliceMode, double * ofs, const int sliceNumber)
-{
-
-	
-		m_slicerChannel[sliceMode]->reslicer()->SetInputData(m_image);
-		double const * spacing = m_image->GetSpacing();
-		double const * origin = m_image->GetOrigin(); //origin bei null
-		int slicerZAxisIdx = mapSliceToGlobalAxis(sliceMode, iAAxisIndex::Z/*iAAxisIndex::Z*/);
-
-		//ist das immer die Z-Achse? 
-		ofs[slicerZAxisIdx] = sliceNumber * spacing[slicerZAxisIdx];
-		m_slicerChannel[sliceMode]->reslicer()->SetResliceAxesOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
-
-
-		
-		m_slicerChannel[sliceMode]->reslicer()->SetOutputExtent(m_image->GetExtent());
-		//m_slicerChannel[sliceMode]->reslicer()->SetOutputOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
-		m_slicerChannel[sliceMode]->reslicer()->SetOutputSpacing(m_image->GetSpacing());
-		m_slicerChannel[sliceMode]->reslicer()->Update();
-	/*	m_slicerChannel[sliceMode]->reslicer()->SetOutputDimensionality(2);*/
-	//geht offensichtlich nur über das rotate transform
-		
-		//m_slicerChannel[sliceMode]->reslicer()->SetResliceAxes(m_SliceRotateTransform[sliceMode]->GetMatrix());
-		m_slicerChannel[sliceMode]->reslicer()->SetResliceTransform(m_SliceInteractorTransform[sliceMode]);
-		//m_slicerChannel[sliceMode]->reslicer()->UpdateWholeExtent();
-		m_slicerChannel[sliceMode]->reslicer()->SetInterpolationModeToLinear();
-
-		m_slicerChannel[sliceMode]->reslicer()->Update();
-		//m_image = /*dynamic_cast<vtkImageData* >(*/m_slicerChannel[/*0*//*m_currentSliceMode*/sliceMode]->reslicer()->GetInformationInput()/*)*/;
-	
-}
+//void iAvtkInteractStyleActor::updateReslicerRotationTransformation2d(const int sliceMode, double * ofs, const int sliceNumber)
+//{
+//
+//	
+//		m_slicerChannel[sliceMode]->reslicer()->SetInputData(m_image);
+//		double const * spacing = m_image->GetSpacing();
+//		double const * origin = m_image->GetOrigin(); //origin bei null
+//		int slicerZAxisIdx = mapSliceToGlobalAxis(sliceMode, iAAxisIndex::Z/*iAAxisIndex::Z*/);
+//
+//		//ist das immer die Z-Achse? 
+//		ofs[slicerZAxisIdx] = sliceNumber * spacing[slicerZAxisIdx];
+//		m_slicerChannel[sliceMode]->reslicer()->SetResliceAxesOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
+//
+//
+//		
+//		m_slicerChannel[sliceMode]->reslicer()->SetOutputExtent(m_image->GetExtent());
+//		//m_slicerChannel[sliceMode]->reslicer()->SetOutputOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
+//		m_slicerChannel[sliceMode]->reslicer()->SetOutputSpacing(m_image->GetSpacing());
+//		m_slicerChannel[sliceMode]->reslicer()->Update();
+//	/*	m_slicerChannel[sliceMode]->reslicer()->SetOutputDimensionality(2);*/
+//	//geht offensichtlich nur über das rotate transform
+//		
+//		//m_slicerChannel[sliceMode]->reslicer()->SetResliceAxes(m_SliceRotateTransform[sliceMode]->GetMatrix());
+//		m_slicerChannel[sliceMode]->reslicer()->SetResliceTransform(m_SliceInteractorTransform[sliceMode]);
+//		//m_slicerChannel[sliceMode]->reslicer()->UpdateWholeExtent();
+//		m_slicerChannel[sliceMode]->reslicer()->SetInterpolationModeToLinear();
+//
+//		m_slicerChannel[sliceMode]->reslicer()->Update();
+//		//m_image = /*dynamic_cast<vtkImageData* >(*/m_slicerChannel[/*0*//*m_currentSliceMode*/sliceMode]->reslicer()->GetInformationInput()/*)*/;
+//	
+//}
