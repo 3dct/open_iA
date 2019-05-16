@@ -188,7 +188,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 		if (m_mdiChild && m_volumeRenderer) {
 
 			//m_volumeRenderer->getCurrentRenderer()->AddActor(m_cubeActor);
-			m_volumeRenderer->currentRenderer()->AddActor(m_SphereActor);
+			//m_volumeRenderer->currentRenderer()->AddActor(m_SphereActor);
 			m_volumeRenderer->update(); 
 		}
 	}
@@ -1011,7 +1011,9 @@ void iAvtkInteractStyleActor::rotate2D()
 	computeDisplayRotationAngle(sliceProbCenter, disp_obj_center, rwi, relativeAngle);
 	
 
-	this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 2, imageCenter, relativeAngle, m_image->GetSpacing());
+	//this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 2, imageCenter, relativeAngle, m_image->GetSpacing());
+	this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing());
+
 	//this->rotateInterActorProp(m_SliceInteractorTransform[m_currentSliceMode], sliceProbCenter, relativeAngle, this->InteractionProp,2);
 	//QString mode = slicerModeString(m_currentSliceMode);
 	
@@ -1023,7 +1025,7 @@ void iAvtkInteractStyleActor::rotate2D()
 	//rotate around axis based on the spacing needed  //otherwise multiply center with spacing??
 	
 	//rotate in actor in 3D
-	this->rotateInterActorProp(m_transform3D, volImageCenter, relativeAngle, m_volumeRenderer->volume(), m_currentSliceMode); 
+	this->rotateInterActorProp(m_transform3D, imageCenter, relativeAngle, m_volumeRenderer->volume(), m_currentSliceMode); 
 			
 		   
 	//evtl die Orientation an die Transform weiter geben als INPut //TODO
