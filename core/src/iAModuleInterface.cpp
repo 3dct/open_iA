@@ -193,7 +193,7 @@ bool iAModuleInterface::AttachToMdiChild( MdiChild * child )
 		connect ( attachment, SIGNAL( detach() ), this, SLOT (detach() ) );
 	}
 	catch( itk::ExceptionObject &excep )
-	{
+	{  // check why we catch an ITK exception here! in the attachment initialization, no ITK filters should be called...
 		child->addMsg( tr("%1 in File %2, Line %3").arg( excep.GetDescription() )
 			.arg( excep.GetFile() )
 			.arg( excep.GetLine() ) );

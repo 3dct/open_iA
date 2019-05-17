@@ -75,7 +75,10 @@ void iASettings::LoadTransferFunction(QDomNode const & functionsNode, iATransfer
 {
 	QDomNode transferNode = functionsNode.namedItem("transfer");
 	if (!transferNode.isElement())
+	{
+		DEBUG_LOG("'transfer' node not found in given XML file, aborting load of transfer function!");
 		return;
+	}
 	transferFunction->getOpacityFunction()->RemoveAllPoints();
 	transferFunction->getColorFunction()->RemoveAllPoints();
 	QDomNodeList list = transferNode.childNodes();
