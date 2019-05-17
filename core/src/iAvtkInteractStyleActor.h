@@ -80,9 +80,8 @@ public:
 	
 	//rotates 2d slicer/ interactor
 	void rotate2D(); 
-	int testMovement = 10; 
 	
-
+	void rotate3D(); //3d rotation of the volume actor //TODO 
 	//void UpdateReslicerTranslateTransform2D(double *const Rendposition, /*const double *orientation,*/ const double *imageCenter, int sliceMode);
 	
 
@@ -94,7 +93,7 @@ public:
 */
 
 	// transformation of the reslicer rotation based on a slice mode
-	void updateReslicerRotationTransformation2d(const int sliceMode, double * ofs, const int sliceNumber);
+	//void updateReslicerRotationTransformation2d(const int sliceMode, double * ofs, const int sliceNumber);
 	
 
 signals:
@@ -114,10 +113,13 @@ private:
 	vtkSmartPointer<vtkTransform> m_SliceInteractorTransform[3];  //transform for each interactor of slicer
 	vtkSmartPointer<vtkTransform> m_ReslicerTransform[3]; //transform for each reslicer
 
+	double m_imageSpacing[3];
+	//double imageCenter[3]; 
 
 	int m_currentSliceMode;
 	bool m_rightButtonDragZoomEnabled = false;
 	bool m_rotationEnabled; 
+	bool m_rotation3DEnabled = false; 
 	double m_currentSliceActorPosition[3]; //< position of the currentActor of slicer
 	double m_currentVolRendererPosition[3]; //< position of the currentActor of displayed volume
 
@@ -140,15 +142,17 @@ private:
 
 	void computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double &relativeAngle);
 
-	//void TranslateReslicer(vtkSmartPointer<vtkTransform>& transform, vtkImageReslice * reslice, double x, double y, double z, double * spacing, int sliceMode, double const * mageCenter);
-
 	void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslice, double const *position, double *spacing, int sliceMode, double const * mageCenter);
 	//void TranslateReslicer(vtkSmartPointer<vtkTransform>& transform, double * const position,const double  * spacing,  int sliceMode);
 
+	//void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, double const *position, int sliceMode, double const * mageCenter);
 
 
-	//void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, double *position, double *spacing, int sliceMode);
-	//void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, double x, double y, double z,/*double *position,*/ double *spacing, int sliceMode, double const * mageCenter);
+	
+	/*mode 0: transform->RotateX(angle); 
+	mode 1: transform->RotateY(angle); 
+	mode 2: transform->RotateZ(angle);*/
+	void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, uint sliceMode, double const * center, double angle, double const *spacing);
 	/*methods for polydata visualisation
 	*/
 
@@ -169,7 +173,7 @@ private:
 
 	
 	//reslicer only for 3d rotation
-	void rotateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, double const *center, uint mode, double angle);
+	//void rotateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, double const *center, uint mode, double angle);
 	/*mode 0: X, mode 1: Y:, mode 2:  z
 	* reference object for plane ... 
 	*/
