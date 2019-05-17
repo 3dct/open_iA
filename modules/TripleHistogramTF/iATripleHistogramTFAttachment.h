@@ -20,19 +20,19 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include "iAModuleAttachmentToChild.h"
 
 class dlg_tf_2mod;
 class dlg_tf_3mod;
 
-class iATripleHistogramTFModuleInterface : public iAModuleInterface
+class iATripleHistogramTFAttachment : public iAModuleAttachmentToChild
 {
-	Q_OBJECT
 public:
-	void Initialize() override;
-protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData) override;
-private slots:
-	void menuItemSelected_2mod();
-	void menuItemSelected_3mod();
+	static iATripleHistogramTFAttachment* create(MainWindow * mainWnd, iAChildData childData);
+	void start2TF();
+	void start3TF();
+private:
+	iATripleHistogramTFAttachment(MainWindow * mainWnd, iAChildData childData);
+	dlg_tf_2mod *m_tf_2mod;
+	dlg_tf_3mod *m_tf_3mod;
 };

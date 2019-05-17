@@ -19,15 +19,11 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
-#include <iATripleHistogramTFModuleInterface.h>
+#include "iATripleHistogramTFModuleInterface.h"
+#include "iATripleHistogramTFAttachment.h"
 
-#include "tf_2mod/dlg_tf_2mod.h"
-#include "tf_3mod/dlg_tf_3mod.h"
-
+#include <iAConsole.h>
 #include <mainwindow.h>
-#include <mdichild.h>
-
-#include <QMessageBox>
 
 void iATripleHistogramTFModuleInterface::Initialize()
 {
@@ -47,25 +43,41 @@ void iATripleHistogramTFModuleInterface::Initialize()
 	connect(action_3mod, SIGNAL(triggered()), this, SLOT(menuItemSelected_3mod()));
 }
 
+iAModuleAttachmentToChild* iATripleHistogramTFModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+{
+	return iATripleHistogramTFAttachment::create(mainWnd, childData);
+}
+
 void iATripleHistogramTFModuleInterface::menuItemSelected_2mod()
 {
 	PrepareActiveChild();
-	m_tf_2mod = new dlg_tf_2mod(m_mdiChild);
-
-	m_mdiChild->tabifyDockWidget(m_mdiChild->logs, m_tf_2mod);
-
-	m_tf_2mod->show();
-	m_tf_2mod->raise();
+	auto attach = GetAttachment<iATripleHistogramTFAttachment>();
+	if (!attach)
+	{
+		AttachToMdiChild(m_mdiChild);
+		attach = GetAttachment<iATripleHistogramTFAttachment>();
+		if (!attach)
+		{
+			DEBUG_LOG("Attaching failed!");
+			return;
+		}
+	}
+	attach->start2TF();
 }
 
 void iATripleHistogramTFModuleInterface::menuItemSelected_3mod()
 {
 	PrepareActiveChild();
-	m_tf_3mod = new dlg_tf_3mod(m_mdiChild);
-
-	//m_mdiChild->addDockWidget(Qt::BottomDockWidgetArea, thtf);
-	m_mdiChild->tabifyDockWidget(m_mdiChild->logs, m_tf_3mod);
-
-	m_tf_3mod->show();
-	m_tf_3mod->raise();
+	auto attach = GetAttachment<iATripleHistogramTFAttachment>();
+	if (!attach)
+	{
+		AttachToMdiChild(m_mdiChild);
+		attach = GetAttachment<iATripleHistogramTFAttachment>();
+		if (!attach)
+		{
+			DEBUG_LOG("Attaching failed!");
+			return;
+		}
+	}
+	attach->start3TF();
 }

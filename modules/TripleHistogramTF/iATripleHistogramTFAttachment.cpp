@@ -18,21 +18,43 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iATripleHistogramTFAttachment.h"
 
-#include <iAModuleInterface.h>
+#include "tf_2mod/dlg_tf_2mod.h"
+#include "tf_3mod/dlg_tf_3mod.h"
 
-class dlg_tf_2mod;
-class dlg_tf_3mod;
+#include <mdichild.h>
 
-class iATripleHistogramTFModuleInterface : public iAModuleInterface
+iATripleHistogramTFAttachment::iATripleHistogramTFAttachment(MainWindow * mainWnd, iAChildData childData) :
+	iAModuleAttachmentToChild(mainWnd, childData),
+	m_tf_2mod(nullptr),
+	m_tf_3mod(nullptr)
+{}
+
+iATripleHistogramTFAttachment* iATripleHistogramTFAttachment::create(MainWindow * mainWnd, iAChildData childData)
 {
-	Q_OBJECT
-public:
-	void Initialize() override;
-protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData) override;
-private slots:
-	void menuItemSelected_2mod();
-	void menuItemSelected_3mod();
-};
+	auto newAttachment = new iATripleHistogramTFAttachment(mainWnd, childData);
+	return newAttachment;
+}
+
+void iATripleHistogramTFAttachment::start2TF()
+{
+	if (!m_tf_2mod)
+	{
+		m_tf_2mod = new dlg_tf_2mod(m_childData.child);
+		m_childData.child->tabifyDockWidget(m_childData.child->logs, m_tf_2mod);
+	}
+	m_tf_2mod->show();
+	m_tf_2mod->raise();
+}
+
+void iATripleHistogramTFAttachment::start3TF()
+{
+	if (!m_tf_3mod)
+	{
+		m_tf_3mod = new dlg_tf_3mod(m_childData.child);
+		m_childData.child->tabifyDockWidget(m_childData.child->logs, m_tf_3mod);
+	}
+	m_tf_3mod->show();
+	m_tf_3mod->raise();
+}
