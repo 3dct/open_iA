@@ -306,6 +306,16 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 			.arg(filter->Name()).arg(filter->RequiredInputs()));
 		return;
 	}
+	mdiChild->addMsg(QString("Starting %1 filter with parameters:").arg(thread->Filter()->Name()));
+	for (int p = 0; p < thread->Filter()->Parameters().size(); ++p)
+	{
+		auto paramDescriptor = thread->Filter()->Parameters()[p];
+		QString paramName = paramDescriptor->Name();
+		QString paramValue = paramDescriptor->ValueType() == Boolean ?
+			(paramValues[paramName].toBool() ? "yes" : "no")
+			: paramValues[paramName].toString();
+		mdiChild->addMsg(QString("    %1 = %2").arg(paramName).arg(paramValue));
+	}
 	ConnectThreadSignals(mdiChild, thread);
 	mdiChild->addStatusMsg(filter->Name());
 	mainWnd->statusBar()->showMessage(filter->Name(), 5000);
