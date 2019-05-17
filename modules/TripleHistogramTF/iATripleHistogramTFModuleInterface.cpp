@@ -33,16 +33,17 @@ void iATripleHistogramTFModuleInterface::Initialize()
 {
 	if (!m_mainWnd)    // if m_mainWnd is not set, we are running in command line mode
 	    return;        // in that case, we do not do anything as we can not add a menu entry there
-	QMenu *filtersMenu = m_mainWnd->getToolsMenu();  // alternatively, you can use getToolsMenu() here if you want to add a tool
+	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * menuMultiModalChannel = getMenuWithTitle(toolsMenu, QString("Multi-Modal/-Channel Images"), false);
 
 	QAction *action_2mod = new QAction(m_mainWnd);
 	action_2mod->setText(QApplication::translate("MainWindow", "Double Histogram Transfer Function", 0));
-	AddActionToMenuAlphabeticallySorted(filtersMenu, action_2mod, true); // "By specifying false in the third parameter to AddActionToMenuAlphabeticallySorted we say that the menu entry should not depend on the availability of an open file (if you say true here, the menu entry will only be enabled if a file is open)"
-	connect(action_2mod, SIGNAL(triggered()), this, SLOT(menuItemSelected_2mod())); // "The added menu entry is linked to the method TestAction via the call to the connect method (inherited from QObject). In the TestAction we just open a simple information message box"
+	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, action_2mod, true);
+	connect(action_2mod, SIGNAL(triggered()), this, SLOT(menuItemSelected_2mod()));
 
 	QAction *action_3mod = new QAction(m_mainWnd);
 	action_3mod->setText(QApplication::translate("MainWindow", "Triple Histogram Transfer Function", 0));
-	AddActionToMenuAlphabeticallySorted(filtersMenu, action_3mod, true);
+	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, action_3mod, true);
 	connect(action_3mod, SIGNAL(triggered()), this, SLOT(menuItemSelected_3mod()));
 }
 
