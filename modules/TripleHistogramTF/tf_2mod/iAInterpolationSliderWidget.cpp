@@ -189,7 +189,7 @@ iAInterpolationSlider::iAInterpolationSlider(QWidget* parent) :
 
 		m_sliderHandle.addEllipse(0, -cy, w, h);
 		m_sliderHandle.moveTo(r, 0);
-		m_sliderHandle.lineTo(cx, 0);
+		m_sliderHandle.lineTo(l, 0);
 
 		m_sliderHandleBrush = QBrush(QColor::fromRgb(0, 0, 0, 0.5));
 	}
