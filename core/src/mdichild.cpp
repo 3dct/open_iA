@@ -163,7 +163,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	SetModalities(modList);
 	splitDockWidget(logs, m_dlgModalities, Qt::Horizontal);
-	m_dlgModalities->SetSlicePlanes(Raycaster->getPlane1(), Raycaster->getPlane2(), Raycaster->getPlane3());
 	ApplyViewerPreferences();
 	imgProperty = nullptr;
 	imgProfile = nullptr;
@@ -1580,7 +1579,7 @@ void MdiChild::ApplyVolumeSettings(const bool loadSavedVolumeSettings)
 {
 	for (int i = 0; i < 3; ++i)
 		slicer[i]->widget()->showBorder(renderSettings.ShowSlicePlanes);
-	m_dlgModalities->ShowSlicers(renderSettings.ShowSlicers);
+	m_dlgModalities->ShowSlicers(renderSettings.ShowSlicers, Raycaster->getPlane1(), Raycaster->getPlane2(), Raycaster->getPlane3());
 	m_dlgModalities->ChangeRenderSettings(volumeSettings, loadSavedVolumeSettings);
 }
 

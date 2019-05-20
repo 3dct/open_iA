@@ -55,11 +55,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 
 	modalities(new iAModalityList),
 	m_magicLensWidget(magicLensWidget),
-	m_mainRenderer(mainRenderer),
-	m_showSlicers(false),
-	m_plane1(nullptr),
-	m_plane2(nullptr),
-	m_plane3(nullptr)
+	m_mainRenderer(mainRenderer)
 {
 	connect(pbAdd,    SIGNAL(clicked()), this, SLOT(AddClicked()));
 	connect(pbRemove, SIGNAL(clicked()), this, SLOT(RemoveClicked()));
@@ -406,9 +402,8 @@ void dlg_modalities::RendererMouseMoved()
 	}
 }
 
-void dlg_modalities::ShowSlicers(bool enabled)
+void dlg_modalities::ShowSlicers(bool enabled, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3)
 {
-	m_showSlicers = enabled;
 	for (int i = 0; i < modalities->size(); ++i)
 	{
 		QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetRenderer();
@@ -419,20 +414,13 @@ void dlg_modalities::ShowSlicers(bool enabled)
 		}
 		if (enabled)
 		{
-			renderer->SetCuttingPlanes(m_plane1, m_plane2, m_plane3);
+			renderer->SetCuttingPlanes(plane1, plane2, plane3);
 		}
 		else
 		{
 			renderer->RemoveCuttingPlanes();
 		}
 	}
-}
-
-void dlg_modalities::SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3)
-{
-	m_plane1 = plane1;
-	m_plane2 = plane2;
-	m_plane3 = plane3;
 }
 
 void dlg_modalities::AddModality(vtkSmartPointer<vtkImageData> img, QString const & name)
