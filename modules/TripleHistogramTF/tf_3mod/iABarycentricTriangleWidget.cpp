@@ -210,7 +210,7 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bo
 
 		m_modalityWeightPos[0] = m_modalityLabelPos[0] + QPoint(modalityLabel1width + MODALITY_LABEL_MARGIN, 0);
 		m_modalityWeightPos[1] = m_modalityLabelPos[1] + QPoint(modalityLabel2width + MODALITY_LABEL_MARGIN, 0);
-		m_modalityWeightPos[2] = m_modalityLabelPos[2] + QPoint(modalityLabel3width + MODALITY_LABEL_MARGIN, 0);
+		m_modalityWeightPos[2] = m_modalityLabelPos[2] + QPoint(-MODALITY_LABEL_MARGIN - modalityWeight3width, 0);
 	}
 
 	m_modalityLabelRect[0] = QRect(m_modalityLabelPos[0], QSize(modalityLabel1width, -modalityLabelHeight));

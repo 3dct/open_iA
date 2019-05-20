@@ -24,44 +24,135 @@
 #include <iAToolsVTK.h>
 
 #include <QResizeEvent>
-#include <QVBoxLayout>
+#include <QGridLayout>
 #include <QImage>
 #include <QTimer>
 #include <QPainter>
+#include <QSpinBox>
+#include <QSpacerItem>
 #include <QDebug>
 
 #include <vtkImageData.h>
-#include <vtkMath.h>
+//#include <vtkMath.h>
 //#include <vtkSMPTools.h>
 
+#include <math.h>
+#include <assert.h>
 
+static const int TIMER_T_MS_DEFAULT = 250; // in milliseconds
 
-//iAInterpolationSlider::iAInterpolationSlider(Qt::Orientation orientation, QWidget* parent)
 iAInterpolationSliderWidget::iAInterpolationSliderWidget(QWidget* parent) :
+	m_timerT(new QTimer()),
 	m_slider(new iAInterpolationSlider(this))
 {
-	QVBoxLayout *layout = new QVBoxLayout(this);
-	layout->addWidget(m_slider, 0);
+	for (int i = 0; i < 2; i++) {
+		auto sb = m_spinBoxes[i] = new QSpinBox(this);
+		sb->setRange(0, 100);
+		sb->setSingleStep(1);
+		sb->setSuffix("%");
+	}
 
-	setT(0.5);
+	m_timerT->setSingleShot(true); // Fires only once or every interval
+	setTWaitingTimeMs(TIMER_T_MS_DEFAULT);
 
-	connect(m_slider, SIGNAL(tChanged(double)), this, SIGNAL(tChanged(double)));
+	QGridLayout *layout = new QGridLayout(this);
+	layout->addWidget(m_spinBoxes[0], 0, 0, 1, 1);
+	layout->addWidget(m_slider, 1, 0, 1, 2);
+	layout->addWidget(m_spinBoxes[1], 2, 0, 1, 1);
+	layout->setColumnStretch(0, 0);
+	layout->setColumnStretch(1, 1);
+	layout->setRowStretch(0, 0);
+	layout->setRowStretch(1, 1);
+	layout->setRowStretch(2, 0);
+
+	double t = 0.5;
+	setT(t);
+
+	connect(m_timerT, SIGNAL(timeout()), this, SLOT(onTTimeout()));
+
+	connect(m_spinBoxes[0], SIGNAL(valueChanged(int)), this, SLOT(onSpinBox1ValueChanged(int)));
+	connect(m_spinBoxes[1], SIGNAL(valueChanged(int)), this, SLOT(onSpinBox2ValueChanged(int)));
+
+	connect(m_slider, SIGNAL(tChanged(double)), this, SLOT(onTChanged(double)));
 }
 
-void iAInterpolationSliderWidget::setT(double t)
-{
+void iAInterpolationSliderWidget::setT(double t) {
+	m_timerT->stop();
+
 	t = t > 1 ? 1 : (t < 0 ? 0 : t); // Make sure t is in range [0,1] (if not, clamp it)
+
+	int a = (1 - t) * 100;
+	int b = 100 - a;
+	setTPrivate(t, a, b);
+	emit tChanged(t);
+}
+
+void iAInterpolationSliderWidget::setTLater(double t) {
+	QSignalBlocker blocker(m_slider);
 	setTPrivate(t);
+	m_timerT->start(m_timeToWaitT);
+}
+
+void iAInterpolationSliderWidget::setTPrivate(double t, int a, int b)
+{
+	assert(a + b == 100);
+	assert(t >= 0 && t <= 1);
+
+	int ab[2] = { a, b };
+	for (int i = 0; i < 2; i++) {
+		QSpinBox *sb = m_spinBoxes[i];
+		QSignalBlocker blocker(sb);
+		sb->setValue(ab[i]);
+	}
+
+	QSignalBlocker blocker(m_slider);
+	m_slider->setT(t);
 }
 
 void iAInterpolationSliderWidget::setTPrivate(double t)
 {
-	m_t = t;
-
 	int a = (1 - t) * 100;
 	int b = 100 - a;
+	setTPrivate(t, a, b);
+}
 
-	emit tChanged(t);
+void iAInterpolationSliderWidget::onTChanged(double t) {
+	setTLater(t);
+}
+
+void iAInterpolationSliderWidget::onTTimeout() {
+	QSignalBlocker blocker(m_slider);
+	setT(m_slider->getT());
+}
+
+void iAInterpolationSliderWidget::onSpinBox1ValueChanged(int newValue) {
+	int a = newValue;
+	int b = 100 - newValue;
+	double t = b / 100.0f;
+	setTPrivate(t, a, b);
+}
+
+void iAInterpolationSliderWidget::onSpinBox2ValueChanged(int newValue) {
+	int b = newValue;
+	int a = 100 - newValue;
+	double t = b / 100.0f;
+	setTPrivate(t, a, b);
+}
+
+void iAInterpolationSliderWidget::changeModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2) {
+	m_slider->changeModalities(d1, d2);
+}
+
+void iAInterpolationSliderWidget::setTWaitingTimeMs(int waitingTimeMs) {
+	m_timeToWaitT = waitingTimeMs;
+}
+
+void iAInterpolationSliderWidget::resetTWaitingTime() {
+	m_timeToWaitT = TIMER_T_MS_DEFAULT;
+}
+
+double iAInterpolationSliderWidget::getT() {
+	return m_slider->getT();
 }
 
 
@@ -71,36 +162,57 @@ void iAInterpolationSliderWidget::setTPrivate(double t)
 // ------------------------------------------------------------------------------------------------
 
 static const QImage::Format IMAGE_FORMAT = QImage::Format::Format_Grayscale8;
-static const int TIMER_MS_DEFAULT = 5000;
+static const int TIMER_HISTOGRAM_MS_DEFAULT = 2500; // in milliseconds
 static const int SLIDER_RECTANGLE_WIDTH = 30;
+static const int HISTOGRAM_BAR_LENGTH_MIN = 10;
 
 iAInterpolationSlider::iAInterpolationSlider(QWidget* parent) :
-	m_timer_histogram(new QTimer()),
+	m_timerHistogram(new QTimer()),
 	m_histogramImg(new QImage(0, 0, IMAGE_FORMAT))
 {
 	m_sliderPen.setWidth(4);
 	m_sliderPen.setColor(Qt::black);
 
-	m_linePen.setWidth(2);
+	m_sliderHandlePen.setWidth(2);
 	m_sliderPen.setColor(Qt::black);
 
-	m_timer_histogram->setSingleShot(true); // Fires only once or every interval
-	setSchedulerWaitingTimeMs(TIMER_MS_DEFAULT); // 2.5 seconds
-	connect(m_timer_histogram, SIGNAL(timeout()), this, SLOT(onHistogramTimeout()));
+	// Create slider handle
+	{
+		int l = 0;
+		int r = SLIDER_RECTANGLE_WIDTH;
+		int t = 0;
+		int b = SLIDER_RECTANGLE_WIDTH;
+		int w = SLIDER_RECTANGLE_WIDTH;
+		int h = SLIDER_RECTANGLE_WIDTH;
+		int cx = l + w/2;
+		int cy = t + h / 2;
 
-	connect(this, SIGNAL(histogramReady()), this, SLOT(onHistogramReady()));
+		m_sliderHandle.addEllipse(0, -cy, w, h);
+		m_sliderHandle.moveTo(r, 0);
+		m_sliderHandle.lineTo(cx, 0);
+
+		m_sliderHandleBrush = QBrush(QColor::fromRgb(0, 0, 0, 0.5));
+	}
+
+	//setMouseTracking(true); // to enable mouse move events without the mouse button needing to be pressed
+
+	m_timerHistogram->setSingleShot(true); // Fires only once or every interval
+	setHistogramWaitingTimeMs(TIMER_HISTOGRAM_MS_DEFAULT);
+
+	connect(this, SIGNAL(volumeReady()), this, SLOT(onVolumeReady()));
 }
 
 double iAInterpolationSlider::getT() {
 	return m_t;
 }
 
-void iAInterpolationSlider::setT(double t) {
-	m_t = t;
-	emit tChanged(m_t);
+void iAInterpolationSlider::onHistogramTimeout() {
+	calculateHistogramNow();
 }
 
-void iAInterpolationSlider::onHistogramTimeout() {
+void iAInterpolationSlider::onVolumeReady() {
+	connect(this, SIGNAL(histogramReady()), this, SLOT(onHistogramReady()));
+	connect(m_timerHistogram, SIGNAL(timeout()), this, SLOT(onHistogramTimeout()));
 	calculateHistogramNow();
 }
 
@@ -108,24 +220,28 @@ void iAInterpolationSlider::onHistogramReady() {
 	update();
 }
 
-void iAInterpolationSlider::setSchedulerWaitingTimeMs(int waitingTimeMs) {
-	m_timeToWaitMs = waitingTimeMs;
+void iAInterpolationSlider::setHistogramWaitingTimeMs(int waitingTimeMs) {
+	m_timeToWaitHistogramMs = waitingTimeMs;
 }
 
-void iAInterpolationSlider::resetSchedulerWaitingTime() {
-	m_timeToWaitMs = TIMER_MS_DEFAULT;
+void iAInterpolationSlider::resetHistogramWaitingTime() {
+	m_timeToWaitHistogramMs = TIMER_HISTOGRAM_MS_DEFAULT;
 }
 
 void iAInterpolationSlider::changeModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2) {
 	m_modalities[0] = d1;
 	m_modalities[1] = d2;
 	calculateCoordinatesNow();
-	calculateHistogramNow();
 }
 
 
 
 // Lay out and paint
+
+bool iAInterpolationSlider::isPointInSlider(QPoint p) {
+	QRect rect = QRect(0, 0, SLIDER_RECTANGLE_WIDTH, m_sliderHeight);
+	return rect.contains(p);
+}
 
 void iAInterpolationSlider::layOut() {
 	int w = size().width();
@@ -133,7 +249,7 @@ void iAInterpolationSlider::layOut() {
 
 	m_sliderRect = QRect(0, 0, SLIDER_RECTANGLE_WIDTH, h);
 	m_histogramRect = QRect(m_sliderRect.width(), 0, (w - m_sliderRect.width()), h);
-	m_lineHeight = (1 - getT()) * h;
+	m_sliderHeight = h;
 }
 
 void iAInterpolationSlider::paintEvent(QPaintEvent* event) {
@@ -144,12 +260,17 @@ void iAInterpolationSlider::paintEvent(QPaintEvent* event) {
 	p.setPen(m_sliderPen);
 	p.drawRect(m_sliderRect);
 
-	// Paint line
-	p.setPen(m_linePen);
-	p.drawLine(0, m_lineHeight, SLIDER_RECTANGLE_WIDTH, m_lineHeight);
+	// Paint handle
+	p.setPen(m_sliderHandlePen);
+	//p.drawLine(0, m_lineHeight, SLIDER_RECTANGLE_WIDTH, m_lineHeight);
+	int handleHeight = getT() * m_sliderHeight;
+	auto sliderHandle = m_sliderHandle;
+	sliderHandle.translate(0, handleHeight);
+	p.fillPath(sliderHandle, m_sliderHandleBrush);
+	p.drawPath(sliderHandle);
 
 	// Paint histogram
-	p.drawImage(m_histogramRect, *m_histogramImg, m_histogramImg->rect());
+	p.drawImage(m_histogramRect, m_histogramImg->scaled(m_histogramRect.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 }
 
 void iAInterpolationSlider::resizeEvent(QResizeEvent* event) {
@@ -158,16 +279,42 @@ void iAInterpolationSlider::resizeEvent(QResizeEvent* event) {
 }
 
 
+// Mouse events
 
-// Schedule
+void iAInterpolationSlider::mousePressEvent(QMouseEvent* event) {
+	if (isPointInSlider(event->pos())) {
+		int y = event->pos().y();
+		double t = (double)y / (double)m_sliderHeight;
+		setT(t);
+	}
+}
 
-void iAInterpolationSlider::calculateHistogramLater() {
-	m_timer_histogram->start(m_timeToWaitMs);
+void iAInterpolationSlider::mouseMoveEvent(QMouseEvent* event) {
+	// Only called on mouse drag
+	int y = event->pos().y();
+	y = y < 0 ? 0 : (y > m_sliderHeight ? m_sliderHeight : y); // clamp 'y' to range [0, m_sliderHeight]
+	double t = (double)y / (double)m_sliderHeight;
+	setT(t);
 }
 
 
 
+// Schedule
+
+void iAInterpolationSlider::calculateHistogramLater() {
+	m_timerHistogram->start(m_timeToWaitHistogramMs);
+}
+	
+
+
+
 // Now (do not schedule)
+
+void iAInterpolationSlider::setT(double t) {
+	m_t = t;
+	update();
+	emit tChanged(m_t);
+}
 
 void iAInterpolationSlider::calculateCoordinatesNow() {
 	m_interpolationVolume = vtkSmartPointer<vtkImageData>::New();
@@ -181,7 +328,7 @@ void iAInterpolationSlider::calculateCoordinatesNow() {
 
 	// One component: the interpolation value in the range [0 1].
 	// Interpolation between 'a' and 'b' with value 't': a*(1-t) + b*(t)
-	m_interpolationVolume->AllocateScalars(VTK_DOUBLE, 1);
+	m_interpolationVolume->AllocateScalars(VTK_FLOAT, 1);
 
 	double rangea[2], rangeb[2], rangec[2];
 	d1->GetScalarRange(rangea);
@@ -191,34 +338,39 @@ void iAInterpolationSlider::calculateCoordinatesNow() {
 	rangec[1] -= rangec[0];
 
 	// TODO parallelize
-	double a, b, sum, *values;
+	float a, b, sum, *values;
 	FOR_VTKIMG_PIXELS(m_interpolationVolume, x, y, z) {
-		a = d1->GetScalarComponentAsDouble(x, y, z, 0);
-		b = d2->GetScalarComponentAsDouble(x, y, z, 0);
+		a = d1->GetScalarComponentAsFloat(x, y, z, 0);
+		b = d2->GetScalarComponentAsFloat(x, y, z, 0);
 
 		if (qIsNaN(a)) a = 0; else a = (a - rangea[0]) / rangea[1];
 		if (qIsNaN(b)) b = 0; else b = (b - rangeb[0]) / rangeb[1];
 
 		sum = a + b;
 
-		values = static_cast<double*>(m_interpolationVolume->GetScalarPointer(x, y, z));
+		values = static_cast<float*>(m_interpolationVolume->GetScalarPointer(x, y, z));
 		if (sum == 0) {
 			values[0] = 0.5;
-			values[1] = 0.5;
 		} else {
 			values[0] = a / sum;
-			values[1] = b / sum;
 		}
 	}
+
+	emit volumeReady();
 }
 
 void iAInterpolationSlider::calculateHistogramNow() {
+	m_timerHistogram->stop();
+
 	int h = m_histogramRect.height();
 	int w = m_histogramRect.width();
 
-	auto counter = vtkSmartPointer<vtkImageData>::New();
-	counter->SetDimensions(h, 1, 1);
-	counter->AllocateScalars(VTK_UNSIGNED_LONG, 1); // Maximum: 4.294.967.295 (2^32 - 1)
+	if (h == 0 || w == 0) {
+		return;
+	}
+
+	auto counter = std::vector<unsigned long>(h);
+	std::fill(counter.begin(), counter.end(), 0);
 
 	unsigned long max = 0;
 	//unsigned long min = VTK_UNSIGNED_LONG_MAX;
@@ -226,30 +378,37 @@ void iAInterpolationSlider::calculateHistogramNow() {
 	// On each iteration: ONE 3D-texture lookup, ONE 1D-texture lookup and ONE 1D-texture write
 	// Could be implemented in parallel... TODO
 	FOR_VTKIMG_PIXELS(m_interpolationVolume, x, y, z) {
-		double t = m_interpolationVolume->GetScalarComponentAsDouble(x, y, z, 0);
-		int pos = vtkMath::Round(h * t);
+		float t = m_interpolationVolume->GetScalarComponentAsFloat(x, y, z, 0);
+		int pos = floor( (h-1) * t );
 
-		// Count plus one -> -> -> -> -> -> -> -> -> -> -> -> -> -> -> -> -> -v right here
-		unsigned long c = counter->GetScalarComponentAsDouble(pos, 1, 1, 0) + 1;
-		max = vtkMath::Max(max, c);
+		assert(pos >= 0 && pos < h);
+
+		unsigned long c = ++counter[pos];
+		max = c > max ? c : max;
 		//min = vtkMath::Min(min, c);
 		
-		counter->SetScalarComponentFromDouble(pos, 1, 1, 0, c);
+		//counter->SetScalarComponentFromDouble(pos, 0, 0, 0, c);
 	}
+
+	const int histogramBarLengthInterval = (w - 1) - HISTOGRAM_BAR_LENGTH_MIN;
 
 	// Go through every pixel and set the pixel color based on the counts 1D-image
 	// TODO parallelize
 	// TODO accelerate using QImage::scanLine()
 	QImage *buf = new QImage(w, h, IMAGE_FORMAT);
-	double k = (double)w / (double)log(max);
-	int grayValue, count;
-	for (int y = 0; y < h; y++) {
-		unsigned long c = counter->GetScalarComponentAsDouble(y, 1, 1, 0);
-		int length = k * log(c);
-		assert(length >= 0);
-		assert(length <= w);
-		for (int x = 0; x < length; x++) {
-			buf->setPixelColor(x, y, QColor(160, 160, 160));
+	buf->fill(Qt::white);
+	if (max > 0) {
+		double k = (double)histogramBarLengthInterval / (double)log(max);
+		int grayValue, count;
+		for (int y = 0; y < h; y++) {
+			unsigned long c = counter[y];
+			if (c > 0) {
+				int length = k * log(c) + HISTOGRAM_BAR_LENGTH_MIN;
+				assert(length >= 0 && length <= w);
+				for (int x = 0; x < length; x++) {
+					buf->setPixelColor(x, y, QColor(100, 100, 100));
+				}
+			}
 		}
 	}
 	auto del = m_histogramImg;

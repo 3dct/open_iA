@@ -22,7 +22,7 @@
 
 #include "iAMultimodalWidget.h"
 
-class iAInterpolationSlider;
+class iAInterpolationSliderWidget;
 class MdiChild;
 
 class iABimodalWidget : public iAMultimodalWidget
@@ -34,7 +34,7 @@ public:
 	void initialize();
 
 private:
-	iAInterpolationSlider *m_slider;
+	iAInterpolationSliderWidget *m_slider;
 
 private slots:
 	void modalitiesLoaded_beforeUpdateSlot();

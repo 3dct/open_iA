@@ -25,7 +25,8 @@
 #include "iAHistogramStackGrid.h"
 
 #include <QLabel>
-#include <QHBoxLayout>
+#include <QHboxLayout>
+#include <QSplitter>
 
 iABimodalWidget::iABimodalWidget(QWidget *parent, MdiChild *mdiChild)
 	:
@@ -65,14 +66,14 @@ void iABimodalWidget::initialize()
 	optionsContainerLayout->addWidget(w_slicerModeComboBox());
 	optionsContainerLayout->addWidget(w_sliceNumberSlider());
 
-	QWidget *wmain = new QWidget();
-	QHBoxLayout *wmainl = new QHBoxLayout(wmain);
+	//QWidget *wmain = new QWidget();
+	//QHBoxLayout *wmainl = new QHBoxLayout(wmain);
 
 	//m_slider = new iAInterpolationSlider(Qt::Vertical, wmain);
-	m_slider = new iAInterpolationSlider(wmain);
+	m_slider = new iAInterpolationSliderWidget();
 	m_slider->setContentsMargins(QMargins(20, 20, 20, 20));
 
-	QWidget *wleft = new QWidget(wmain);
+	QWidget *wleft = new QWidget();
 	QVBoxLayout *wleftl = new QVBoxLayout(wleft);
 	wleftl->setSpacing(1);
 	wleftl->setMargin(0);
@@ -82,16 +83,22 @@ void iABimodalWidget::initialize()
 	wleftl->addWidget(optionsContainer, 0);
 	wleftl->addWidget(grid, 1);
 
-	wmainl->addWidget(wleft, 1);
-	wmainl->addWidget(m_slider, 0);
+	//wmainl->addWidget(wleft, 1);
+	//wmainl->addWidget(m_slider, 0);
 
-	m_innerLayout->addWidget(wmain);
+	QSplitter *splitter = new QSplitter(Qt::Horizontal);
+	splitter->addWidget(wleft);
+	splitter->addWidget(m_slider);
+	splitter->setStretchFactor(1, 0);
+
+	m_innerLayout->addWidget(splitter);
 
 	grid->adjustStretch();
-	m_slider->setT(0.5);
 
 	connect(m_slider, SIGNAL(tChanged(double)), this, SLOT(tChanged(double)));
 	tChanged(m_slider->getT());
+
+	m_slider->changeModalities(getModalityImage(0), getModalityImage(1));
 }
 
 void iABimodalWidget::tChanged(double t)
