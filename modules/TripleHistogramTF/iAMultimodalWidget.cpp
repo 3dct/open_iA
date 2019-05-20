@@ -67,6 +67,7 @@
 #include <QStackedLayout>
 #include <QMessageBox>
 #include <QCheckBox>
+#include <QTimer>
 
 // Debug
 #include <QDebug>
@@ -74,6 +75,7 @@
 //static const char *WEIGHT_FORMAT = "%.10f";
 static const QString DISABLED_TEXT_COLOR = "rgb(0,0,0)"; // black
 static const QString DISABLED_BACKGROUND_COLOR = "rgba(255,255,255)"; // white
+static const int TIMER_UPDATE_VISUALIZATIONS_WAIT_MS = 250;
 
 iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumOfMod num)
 	:
@@ -81,7 +83,8 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 	m_mdiChild(mdiChild),
 	m_mainSlicersInitialized(false),
 	m_slicerMode(iASlicerMode::XY),
-	m_minimumWeight(0.01)
+	m_minimumWeight(0.01),
+	m_timer_updateVisualizations(new QTimer())
 {
 	m_stackedLayout = new QStackedLayout(this);
 	m_stackedLayout->setStackingMode(QStackedLayout::StackOne);
@@ -105,6 +108,9 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 	m_checkBox_weightByOpacity = new QCheckBox("Weight by opacity");
 	m_checkBox_weightByOpacity->setChecked(true);
 
+	m_timer_updateVisualizations->setSingleShot(true);
+	m_timerWait_updateVisualizations = TIMER_UPDATE_VISUALIZATIONS_WAIT_MS;
+
 	for (int i = 0; i < m_numOfMod; i++) {
 		m_histograms.push_back(Q_NULLPTR);
 		m_slicerWidgets.push_back(Q_NULLPTR);
@@ -127,6 +133,8 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 	connect(mdiChild, SIGNAL(histogramAvailable()), this, SLOT(histogramAvailable()));
 	connect(mdiChild, &MdiChild::renderSettingsChanged, this, &iAMultimodalWidget::applyVolumeSettings);
 
+	connect(m_timer_updateVisualizations, SIGNAL(timeout()), this, SLOT(onUpdateVisualizationsTimeout()));
+
 	histogramAvailable();
 }
 
@@ -143,6 +151,8 @@ void iAMultimodalWidget::setSlicerMode(iASlicerMode slicerMode) {
 		w_slicer(i)->setSlicerMode(slicerMode);
 		w_slicer(i)->setSliceNumber(sliceNumber);
 	}
+	updateLabels();
+	updateVisualizationsLater();
 
 	emit slicerModeChangedExternally(slicerMode);
 }
@@ -151,6 +161,8 @@ void iAMultimodalWidget::setSliceNumber(int sliceNumber) {
 	for (int i = 0; i < m_numOfMod; i++) {
 		w_slicer(i)->setSliceNumber(sliceNumber);
 	}
+	updateLabels();
+	updateVisualizationsLater();
 
 	emit sliceNumberChangedExternally(sliceNumber);
 }
@@ -163,19 +175,22 @@ void iAMultimodalWidget::setWeightsProtected(BCoord bCoord, double t)
 
 	m_weights = bCoord;
 	applyWeights();
-	updateMainHistogram();
-	updateMainSlicers();
+	updateVisualizationsLater();
 	emit weightsChanged2(t);
 	emit weightsChanged3(bCoord);
 }
 
-void iAMultimodalWidget::updateMainHistogram()
-{
-	m_mdiChild->redrawHistogram();
-	m_mdiChild->getRenderer()->update();
+void iAMultimodalWidget::updateVisualizationsLater() {
+	m_timer_updateVisualizations->start(m_timerWait_updateVisualizations);
 }
 
-void iAMultimodalWidget::updateMainSlicers() {
+void iAMultimodalWidget::updateVisualizationsNow()
+{
+	m_timer_updateVisualizations->stop();
+
+	m_mdiChild->redrawHistogram();
+	m_mdiChild->getRenderer()->update();
+
 	if (!m_mainSlicersInitialized)
 		return;
 
@@ -282,8 +297,7 @@ void iAMultimodalWidget::updateTransferFunction(int index)
 	updateOriginalTransferFunction(index);
 	w_slicer(index)->update();
 	w_histogram(index)->update();
-	updateMainHistogram();
-	updateMainSlicers();
+	updateVisualizationsLater();
 }
 
 void iAMultimodalWidget::updateDisabledLabel()
@@ -385,7 +399,7 @@ void iAMultimodalWidget::histogramAvailable() {
 	}
 
 	m_mainSlicersInitialized = true;
-	updateMainSlicers();
+	updateVisualizationsNow();
 }
 
 void iAMultimodalWidget::applyVolumeSettings()
@@ -544,7 +558,7 @@ void iAMultimodalWidget::originalHistogramChanged()
 		if (selected == getModality(i)) {
 			updateCopyTransferFunction(i);
 			updateTransferFunction(i);
-			updateMainSlicers();
+			updateVisualizationsLater();
 			return;
 		}
 	}
@@ -599,29 +613,31 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 */
 void iAMultimodalWidget::updateOriginalTransferFunction(int index)
 {
-	if (isReady()) {
-		double weight = getWeight(index);
+	if (!isReady()) {
+		return;
+	}
 
-		// newly set transfer function (set via the histogram)
-		QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->GetTransfer();
+	double weight = getWeight(index);
 
-		// copy of previous transfer function, to be updated in this method
-		QSharedPointer<iATransferFunction> copy = m_copyTFs[index];
+	// newly set transfer function (set via the histogram)
+	QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->GetTransfer();
 
-		double valCol[6], valOp[4];
-		effective->getColorFunction()->RemoveAllPoints();
-		effective->getOpacityFunction()->RemoveAllPoints();
+	// copy of previous transfer function, to be updated in this method
+	QSharedPointer<iATransferFunction> copy = m_copyTFs[index];
 
-		for (int j = 0; j < copy->getColorFunction()->GetSize(); ++j)
-		{
-			copy->getColorFunction()->GetNodeValue(j, valCol);
-			copy->getOpacityFunction()->GetNodeValue(j, valOp);
+	double valCol[6], valOp[4];
+	effective->getColorFunction()->RemoveAllPoints();
+	effective->getOpacityFunction()->RemoveAllPoints();
 
-			valOp[1] = valOp[1] * weight; // index 1 means opacity
+	for (int j = 0; j < copy->getColorFunction()->GetSize(); ++j)
+	{
+		copy->getColorFunction()->GetNodeValue(j, valCol);
+		copy->getOpacityFunction()->GetNodeValue(j, valOp);
 
-			effective->getColorFunction()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
-			effective->getOpacityFunction()->AddPoint(valOp[0], valOp[1], valOp[2], valOp[3]);
-		}
+		valOp[1] = valOp[1] * weight; // index 1 means opacity
+
+		effective->getColorFunction()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
+		effective->getOpacityFunction()->AddPoint(valOp[0], valOp[1], valOp[2], valOp[3]);
 	}
 }
 
@@ -653,6 +669,10 @@ void iAMultimodalWidget::applyWeights()
 // ----------------------------------------------------------------------------------
 // Short methods
 // ----------------------------------------------------------------------------------
+
+void iAMultimodalWidget::onUpdateVisualizationsTimeout() {
+	updateVisualizationsNow();
+}
 
 iASlicerMode iAMultimodalWidget::getSlicerMode() {
 	return m_slicerMode;
@@ -694,7 +714,7 @@ int iAMultimodalWidget::getSliceNumber() {
 
 void iAMultimodalWidget::checkBoxSelectionChanged()
 {
-	updateMainSlicers();
+	updateVisualizationsNow();
 }
 
 // SCROLLBARS (private SLOTS)

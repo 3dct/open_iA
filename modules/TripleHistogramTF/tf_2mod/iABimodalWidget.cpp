@@ -63,9 +63,9 @@ void iABimodalWidget::initialize()
 	QWidget *optionsContainer = new QWidget();
 	optionsContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	QHBoxLayout *optionsContainerLayout = new QHBoxLayout(optionsContainer);
+	optionsContainerLayout->addStretch();
 	optionsContainerLayout->addWidget(w_slicerModeLabel());
 	optionsContainerLayout->addWidget(w_sliceNumberLabel());
-	optionsContainerLayout->addStretch();
 
 	//QWidget *wmain = new QWidget();
 	//QHBoxLayout *wmainl = new QHBoxLayout(wmain);

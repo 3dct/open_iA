@@ -57,6 +57,7 @@ const static int TRIANGLE_BOTTOM = HISTOGRAM_HEIGHT;
 const static double TRIANGLE_HEIGHT_RATIO = SIN60;
 const static double TRIANGLE_WIDTH_RATIO = 1.0 / TRIANGLE_HEIGHT_RATIO;
 const static int MODALITY_LABEL_MARGIN = 10;
+const static int WIDGETS_MARGIN = 10;
 
 iAHistogramTriangle::iAHistogramTriangle(QWidget* parent, iATripleModalityWidget* tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f)
 	: m_tmw(tripleModalityWidget)
@@ -387,10 +388,10 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 
 	// Other widgets
 	{
-		int slicerModeLabelWidth = m_tmw->w_slicerModeLabel()->sizeHint().width();
 		int layoutTypeComboBoxWidth = m_tmw->w_layoutComboBox()->sizeHint().width();
-		int sliceNumberLabelWidth = m_tmw->w_sliceNumberLabel()->sizeHint().width();
 		int checkBoxWeightByOpacityWidth = m_tmw->w_checkBox_weightByOpacity()->sizeHint().width();
+		int slicerModeLabelWidth = m_tmw->w_slicerModeLabel()->sizeHint().width();
+		int sliceNumberLabelWidth = m_tmw->w_sliceNumberLabel()->sizeHint().width();
 
 		int controlsWidth = qMax(qMax(slicerModeLabelWidth, qMax(layoutTypeComboBoxWidth, checkBoxWeightByOpacityWidth)), sliceNumberLabelWidth);
 		int controlsBottom = controlsWidth * (-histoLateral1_2Y / histoTop1X) + histoLateral1_2Y;
@@ -398,20 +399,20 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		int slicerModeComboBoxHeight = m_tmw->w_slicerModeLabel()->sizeHint().height();
 		int checkBoxWeightByOpacityHeight = m_tmw->w_checkBox_weightByOpacity()->sizeHint().height();
 		int layoutTypeComboBoxHeight = m_tmw->w_layoutComboBox()->sizeHint().height();
-		int sliderHeight = controlsBottom - slicerModeComboBoxHeight - layoutTypeComboBoxHeight - checkBoxWeightByOpacityHeight;
+		int sliceNumberLabelHeight = m_tmw->w_sliceNumberLabel()->sizeHint().height();
 
 		int bottom = 0;
 
 		m_tmw->w_layoutComboBox()->setGeometry(QRect(0, bottom, controlsWidth, layoutTypeComboBoxHeight));
-		bottom += layoutTypeComboBoxHeight;
+		bottom += layoutTypeComboBoxHeight + WIDGETS_MARGIN;
 
 		m_tmw->w_checkBox_weightByOpacity()->setGeometry(QRect(0, bottom, controlsWidth, checkBoxWeightByOpacityHeight));
-		bottom += checkBoxWeightByOpacityHeight;
+		bottom += checkBoxWeightByOpacityHeight + WIDGETS_MARGIN;
 
 		m_tmw->w_slicerModeLabel()->setGeometry(QRect(0, bottom, controlsWidth, layoutTypeComboBoxHeight));
-		bottom += slicerModeComboBoxHeight;
+		bottom += slicerModeComboBoxHeight + WIDGETS_MARGIN;
 
-		m_tmw->w_sliceNumberLabel()->setGeometry(QRect(0, bottom, controlsWidth, sliderHeight));
+		m_tmw->w_sliceNumberLabel()->setGeometry(QRect(0, bottom, controlsWidth, sliceNumberLabelHeight));
 
 		m_rControls = QRect(0, 0, controlsWidth, controlsBottom);
 	}

@@ -137,8 +137,10 @@ private:
 	QLabel *m_disabledLabel;
 	// }
 
-	void updateMainHistogram();
-	void updateMainSlicers();
+	QTimer *m_timer_updateVisualizations;
+	int m_timerWait_updateVisualizations;
+	void updateVisualizationsNow();
+	void updateVisualizationsLater();
 	void updateCopyTransferFunction(int index);
 	void updateOriginalTransferFunction(int index);
 	void applyWeights();
@@ -198,4 +200,7 @@ private slots:
 	//void modalitiesChanged();
 	void histogramAvailable();
 	void applyVolumeSettings();
+
+	// Timers
+	void onUpdateVisualizationsTimeout();
 };

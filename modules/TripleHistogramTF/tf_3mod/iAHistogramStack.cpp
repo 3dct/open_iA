@@ -72,9 +72,10 @@ void iAHistogramStack::initialize()
 	optionsContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	QHBoxLayout *optionsContainerLayout = new QHBoxLayout(optionsContainer);
 	optionsContainerLayout->addWidget(m_tmw->w_layoutComboBox());
+	optionsContainerLayout->addWidget(m_tmw->w_checkBox_weightByOpacity());
+	optionsContainerLayout->addStretch();
 	optionsContainerLayout->addWidget(m_tmw->w_slicerModeLabel());
 	optionsContainerLayout->addWidget(m_tmw->w_sliceNumberLabel());
-	optionsContainerLayout->addWidget(m_tmw->w_checkBox_weightByOpacity());
 	
 	m_grid = new iAHistogramStackGrid(this, histograms, slicers, labels);
 
