@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iASettings.h"
 
+#include <iAConsole.h>
 #include "dlg_transfer.h"
 
 #include <vtkPiecewiseFunction.h>
