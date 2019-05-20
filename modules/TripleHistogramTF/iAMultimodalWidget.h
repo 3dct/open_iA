@@ -201,5 +201,5 @@ private slots:
 
 	//void modalitiesChanged();
 	void histogramAvailable();
-
+	void applyVolumeSettings();
 };

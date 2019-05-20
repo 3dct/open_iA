@@ -131,6 +131,7 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 
 	//connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(modalitiesChanged()));
 	connect(mdiChild, SIGNAL(histogramAvailable()), this, SLOT(histogramAvailable()));
+	connect(mdiChild, &MdiChild::renderSettingsChanged, this, &iAMultimodalWidget::applyVolumeSettings);
 
 	histogramAvailable();
 }
@@ -431,7 +432,6 @@ void iAMultimodalWidget::histogramAvailable() {
 
 	m_combinedVol = vtkSmartPointer<vtkVolume>::New();
 	auto combinedVolProp = vtkSmartPointer<vtkVolumeProperty>::New();
-	combinedVolProp->SetInterpolationTypeToLinear();
 
 	for (int i = 0; i < m_numOfMod; i++) {
 		auto transfer = getModality(i)->GetTransfer();
@@ -445,6 +445,7 @@ void iAMultimodalWidget::histogramAvailable() {
 	m_combinedVolMapper->SetBlendModeToComposite();
 	m_combinedVolMapper->SetInputData(appendFilter->GetOutput());
 	m_combinedVolMapper->Update();
+	applyVolumeSettings();
 	m_combinedVol->SetMapper(m_combinedVolMapper);
 	m_combinedVol->Update();
 
@@ -494,6 +495,25 @@ void iAMultimodalWidget::histogramAvailable() {
 
 	m_mainSlicersInitialized = true;
 	updateMainSlicers();
+}
+
+void iAMultimodalWidget::applyVolumeSettings()
+{
+	auto vs = m_mdiChild->GetVolumeSettings();
+	auto volProp = m_combinedVol->GetProperty();
+	volProp->SetAmbient(vs.AmbientLighting);
+	volProp->SetDiffuse(vs.DiffuseLighting);
+	volProp->SetSpecular(vs.SpecularLighting);
+	volProp->SetSpecularPower(vs.SpecularPower);
+	volProp->SetInterpolationType(vs.LinearInterpolation);
+	volProp->SetShade(vs.Shading);
+	if (vs.ScalarOpacityUnitDistance > 0)
+		volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
+	m_combinedVolMapper->SetRequestedRenderMode(vs.RenderMode);
+#ifdef VTK_OPENGL2_BACKEND
+	m_combinedVolMapper->SetSampleDistance(vs.SampleDistance);
+	m_combinedVolMapper->InteractiveAdjustSampleDistancesOff();
+#endif
 }
 
 // When new modalities are added/removed
