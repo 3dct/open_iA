@@ -102,10 +102,6 @@ void iABarycentricTriangleWidget::initializeControlPointPaths()
 	);
 }
 
-iABarycentricTriangleWidget::~iABarycentricTriangleWidget()
-{
-}
-
 void iABarycentricTriangleWidget::mousePressEvent(QMouseEvent *event)
 {
 	if (!interactWithModalityLabel(event->pos(), true, event->button() == Qt::RightButton)) {
@@ -230,49 +226,46 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bo
 
 void iABarycentricTriangleWidget::updateControlPoint(BCoord bCoord, QPoint newPos)
 {
-	//updateControlPointPosition(m_triangle.getCartesianCoordinates(bCoord));
-	if (bCoord.isInside()) {
-		m_controlPointBCoord = bCoord;
-		moveControlPointTo(newPos);
-		updateModalityWeightLabels(bCoord);
-		update();
-		emit weightsChanged(bCoord);
+	if (!bCoord.isInside()) {
+		double a = bCoord.getAlpha();
+		double b = bCoord.getBeta();
+		double c = bCoord.getGamma();
 
-	} else {
-		// Do nothing for now
-		// TODO: Set point to closest positiont inside the triangle
+		a = a < 0 ? 0 : a;
+		b = b < 0 ? 0 : b;
+		c = c < 0 ? 0 : c;
+		double sum = a + b + c;
+		if (sum == 0) {
+			// No idea if this can possibly happen
+			// Probably good to be safe though
+			return;
+		}
+
+		a /= sum;
+		b /= sum;
+		//c /= sum;
+
+		bCoord = BCoord(a, b);
+		updateControlPointCoordinates(bCoord);
+		return;
 	}
+
+	m_controlPointBCoord = bCoord;
+	moveControlPointTo(newPos);
+	updateModalityWeightLabels(bCoord);
+	update();
+	emit weightsChanged(bCoord);
 }
 
 void iABarycentricTriangleWidget::updateModalityWeightLabels(BCoord bCoord)
 {
-	// To format double values {
-	//QString text; // Source: https://stackoverflow.com/questions/7234824/format-a-number-to-a-specific-qstring-format
-	//QString modalityWeight3 = text.sprintf(WEIGHT_FORMAT, bCoord.getGamma() * 100);
-
-	//QFontMetrics metrics = QFontMetrics(m_modalityWeightFont);
-	//int modalityWeight3Width = metrics.width(modalityWeight3);
-	//m_modalityWeight3Pos = QPoint(m_modalityLabel3Pos.x() - MODALITY_LABEL_MARGIN - modalityWeight3Width, m_modalityLabel3Pos.y());
-	
-	//m_modalityWeight1 = text.sprintf(WEIGHT_FORMAT, bCoord.getAlpha() * 100);
-	//m_modalityWeight2 = text.sprintf(WEIGHT_FORMAT, bCoord.getBeta() * 100);
-	//m_modalityWeight3 = modalityWeight3;
-	// }
-
-	// To format int values {
 	int a = qRound(bCoord.getAlpha() * 100);
 	int b = qRound(bCoord.getBeta() * 100);
 	int c = 100 - a - b;
 
-	QString modalityWeight3 = QString::number(c) + "%";
-	//QFontMetrics metrics = QFontMetrics(m_modalityWeightFont);
-	//int modalityWeight3Width = metrics.width(modalityWeight3);
-	//m_modalityWeight3Pos = QPoint(m_modalityLabel3Pos.x() - MODALITY_LABEL_MARGIN - modalityWeight3Width, m_modalityLabel3Pos.y());
-
 	m_modalityWeight1 = QString::number(a) + "%";
 	m_modalityWeight2 = QString::number(b) + "%";
-	m_modalityWeight3 = modalityWeight3;
-	// }
+	m_modalityWeight3 = QString::number(c) + "%";
 }
 
 void iABarycentricTriangleWidget::moveControlPointTo(QPoint newPos)

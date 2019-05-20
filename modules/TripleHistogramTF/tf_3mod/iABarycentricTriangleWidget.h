@@ -48,8 +48,6 @@ class iABarycentricTriangleWidget : public QWidget, public IBorderWidget
 
 public:
 	iABarycentricTriangleWidget(QWidget* parent = 0, Qt::WindowFlags f = 0);
-	
-	~iABarycentricTriangleWidget();
 
 	bool hasWidthForHeight() override;
 	int getWidthForHeight(int height) override;
