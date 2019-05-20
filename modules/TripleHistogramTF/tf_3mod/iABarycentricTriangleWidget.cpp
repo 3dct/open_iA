@@ -227,6 +227,8 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bo
 void iABarycentricTriangleWidget::updateControlPoint(BCoord bCoord, QPoint newPos)
 {
 	if (!bCoord.isInside()) {
+		// Snap to edge
+
 		double a = bCoord.getAlpha();
 		double b = bCoord.getBeta();
 		double c = bCoord.getGamma();
