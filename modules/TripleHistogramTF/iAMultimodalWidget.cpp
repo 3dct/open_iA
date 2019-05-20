@@ -510,6 +510,16 @@ void iAMultimodalWidget::applyVolumeSettings()
 	if (vs.ScalarOpacityUnitDistance > 0)
 		volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
 	m_combinedVolMapper->SetRequestedRenderMode(vs.RenderMode);
+	if (m_mdiChild->GetRenderSettings().ShowSlicers)
+	{
+		m_combinedVolMapper->AddClippingPlane(m_mdiChild->getRenderer()->getPlane1());
+		m_combinedVolMapper->AddClippingPlane(m_mdiChild->getRenderer()->getPlane2());
+		m_combinedVolMapper->AddClippingPlane(m_mdiChild->getRenderer()->getPlane3());
+	}
+	else
+	{
+		m_combinedVolMapper->RemoveAllClippingPlanes();
+	}
 #ifdef VTK_OPENGL2_BACKEND
 	m_combinedVolMapper->SetSampleDistance(vs.SampleDistance);
 	m_combinedVolMapper->InteractiveAdjustSampleDistancesOff();
