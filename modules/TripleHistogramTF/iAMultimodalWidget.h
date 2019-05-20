@@ -102,6 +102,7 @@ public:
 	int getSliceNumber();
 
 	QSharedPointer<iAModality> getModality(int index);
+	vtkSmartPointer<vtkImageData> getModalityImage(int index);
 	int getModalitiesCount();
 	bool containsModality(QSharedPointer<iAModality> modality);
 	void updateModalities();

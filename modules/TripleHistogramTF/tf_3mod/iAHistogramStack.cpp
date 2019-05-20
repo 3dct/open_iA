@@ -91,7 +91,6 @@ void iAHistogramStack::initialize()
 	m_splitter = new QSplitter(Qt::Horizontal);
 	m_splitter->addWidget(leftWidget);
 	m_splitter->addWidget(m_tmw->w_triangle());
-	m_splitter->setStretchFactor(0, 1);
 	m_splitter->setStretchFactor(1, 0);
 
 	QLayout *parentLayout = new QHBoxLayout(this); // TODO we don't need any layout here because QSplitter is the only widget... what to do?

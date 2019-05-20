@@ -830,6 +830,10 @@ QSharedPointer<iAModality> iAMultimodalWidget::getModality(int index)
 	return m_modalitiesActive[index];
 }
 
+vtkSmartPointer<vtkImageData> iAMultimodalWidget::getModalityImage(int index) {
+	return getModality(index)->GetImage();
+}
+
 BCoord iAMultimodalWidget::getWeights()
 {
 	return m_weights;
