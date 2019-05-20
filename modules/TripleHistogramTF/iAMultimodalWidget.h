@@ -73,16 +73,16 @@ public:
 		return m_slicerWidgets[i];
 	}
 
-	QComboBox* w_slicerModeComboBox() {
-		return m_slicerModeComboBox;
-	}
-
-	QSlider* w_sliceNumberSlider() {
-		return m_sliceSlider;
-	}
-
 	QCheckBox* w_checkBox_weightByOpacity() {
 		return m_checkBox_weightByOpacity;
+	}
+
+	QLabel* w_slicerModeLabel() {
+		return m_slicerModeLabel;
+	}
+
+	QLabel* w_sliceNumberLabel() {
+		return m_sliceNumberLabel;
 	}
 
 	void setWeights(BCoord bCoord) {
@@ -94,11 +94,10 @@ public:
 	BCoord getWeights();
 	double getWeight(int i);
 
-	bool setSlicerMode(iASlicerMode slicerMode);
+	void setSlicerMode(iASlicerMode slicerMode);
 	iASlicerMode getSlicerMode();
-	iASlicerMode getSlicerModeAt(int comboBoxIndex);
-
-	bool setSliceNumber(int sliceNumber);
+	QString getSlicerModeString();
+	void setSliceNumber(int sliceNumber);
 	int getSliceNumber();
 
 	QSharedPointer<iAModality> getModality(int index);
@@ -113,8 +112,6 @@ public:
 
 protected:
 	void setWeightsProtected(BCoord bCoord, double t);
-	void setSlicerModeProtected(iASlicerMode slicerMode);
-	void setSliceNumberProtected(int sliceNumber);
 
 	void resetSlicers();
 	void resetSlicer(int i);
@@ -135,14 +132,11 @@ private:
 	void updateDisabledLabel();
 	QVector<QSharedPointer<iADiagramFctWidget>> m_histograms;
 	QVector<QSharedPointer<iASimpleSlicerWidget>> m_slicerWidgets;
-	QComboBox *m_slicerModeComboBox;
-	QSlider *m_sliceSlider;
 	QStackedLayout *m_stackedLayout;
 	QCheckBox *m_checkBox_weightByOpacity;
 	QLabel *m_disabledLabel;
 	// }
 
-	void updateScrollBars(int newValue);
 	void updateMainHistogram();
 	void updateMainSlicers();
 	void updateCopyTransferFunction(int index);
@@ -150,6 +144,11 @@ private:
 	void applyWeights();
 
 	BCoord m_weights;
+
+	void updateLabels();
+	iASlicerMode m_slicerMode;
+	QLabel *m_slicerModeLabel;
+	QLabel *m_sliceNumberLabel;
 
 	// Slicers
 	//vtkSmartPointer<vtkImageData> m_slicerInputs[3][3];
@@ -174,8 +173,6 @@ private:
 signals:
 	void weightsChanged3(BCoord weights);
 	void weightsChanged2(double t);
-	void slicerModeChanged(iASlicerMode slicerMode);
-	void sliceNumberChanged(int sliceNumber);
 
 	void slicerModeChangedExternally(iASlicerMode slicerMode);
 	void sliceNumberChangedExternally(int sliceNumber);
@@ -189,9 +186,7 @@ private slots:
 
 	void originalHistogramChanged();
 
-	void slicerModeComboBoxIndexChanged(int newIndex);
-	void sliderValueChanged(int newValue);
-	void comboBoxSelectionChanged();
+	void checkBoxSelectionChanged();
 
 	void setSliceXYScrollBar();
 	void setSliceXZScrollBar();

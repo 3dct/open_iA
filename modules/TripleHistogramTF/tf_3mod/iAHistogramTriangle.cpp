@@ -41,6 +41,7 @@
 #include <QSlider>
 #include <QCheckBox>
 #include <QtMath>
+#include <QLabel>
 
 // Debug
 #include <QDebug>
@@ -90,14 +91,9 @@ void iAHistogramTriangle::initialize()
 	//QLayout *thisLayout = new QHBoxLayout(this);
 	//thisLayout->addWidget(temp);
 
-	m_tmw->w_sliceNumberSlider()->setOrientation(Qt::Vertical);
-	m_tmw->w_sliceNumberSlider()->setInvertedAppearance(true); // top to bottom, consistent with the main sliders's scroll bars
-	m_tmw->w_sliceNumberSlider()->setParent(this);
-
-	m_tmw->w_slicerModeComboBox()->setParent(this);
-
 	m_tmw->w_layoutComboBox()->setParent(this);
-
+	m_tmw->w_sliceNumberLabel()->setParent(this);
+	m_tmw->w_slicerModeLabel()->setParent(this);
 	m_tmw->w_checkBox_weightByOpacity()->setParent(this);
 
 	calculatePositions();
@@ -391,15 +387,15 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 
 	// Other widgets
 	{
-		int slicerModeComboBoxWidth = m_tmw->w_slicerModeComboBox()->sizeHint().width();
+		int slicerModeLabelWidth = m_tmw->w_slicerModeLabel()->sizeHint().width();
 		int layoutTypeComboBoxWidth = m_tmw->w_layoutComboBox()->sizeHint().width();
-		int sliceSliderWidth = m_tmw->w_sliceNumberSlider()->sizeHint().width();
+		int sliceNumberLabelWidth = m_tmw->w_sliceNumberLabel()->sizeHint().width();
 		int checkBoxWeightByOpacityWidth = m_tmw->w_checkBox_weightByOpacity()->sizeHint().width();
 
-		int controlsWidth = qMax(qMax(slicerModeComboBoxWidth, qMax(layoutTypeComboBoxWidth, checkBoxWeightByOpacityWidth)), sliceSliderWidth);
+		int controlsWidth = qMax(qMax(slicerModeLabelWidth, qMax(layoutTypeComboBoxWidth, checkBoxWeightByOpacityWidth)), sliceNumberLabelWidth);
 		int controlsBottom = controlsWidth * (-histoLateral1_2Y / histoTop1X) + histoLateral1_2Y;
 
-		int slicerModeComboBoxHeight = m_tmw->w_slicerModeComboBox()->sizeHint().height();
+		int slicerModeComboBoxHeight = m_tmw->w_slicerModeLabel()->sizeHint().height();
 		int checkBoxWeightByOpacityHeight = m_tmw->w_checkBox_weightByOpacity()->sizeHint().height();
 		int layoutTypeComboBoxHeight = m_tmw->w_layoutComboBox()->sizeHint().height();
 		int sliderHeight = controlsBottom - slicerModeComboBoxHeight - layoutTypeComboBoxHeight - checkBoxWeightByOpacityHeight;
@@ -412,10 +408,10 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_tmw->w_checkBox_weightByOpacity()->setGeometry(QRect(0, bottom, controlsWidth, checkBoxWeightByOpacityHeight));
 		bottom += checkBoxWeightByOpacityHeight;
 
-		m_tmw->w_slicerModeComboBox()->setGeometry(QRect(0, bottom, controlsWidth, layoutTypeComboBoxHeight));
+		m_tmw->w_slicerModeLabel()->setGeometry(QRect(0, bottom, controlsWidth, layoutTypeComboBoxHeight));
 		bottom += slicerModeComboBoxHeight;
 
-		m_tmw->w_sliceNumberSlider()->setGeometry(QRect(0, bottom, controlsWidth, sliderHeight));
+		m_tmw->w_sliceNumberLabel()->setGeometry(QRect(0, bottom, controlsWidth, sliderHeight));
 
 		m_rControls = QRect(0, 0, controlsWidth, controlsBottom);
 	}

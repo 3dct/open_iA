@@ -67,17 +67,14 @@ void iAHistogramStack::initialize()
 
 	m_tmw->w_triangle()->recalculatePositions();
 
-	m_tmw->w_sliceNumberSlider()->setOrientation(Qt::Horizontal);
-	m_tmw->w_sliceNumberSlider()->setInvertedAppearance(false);
-
 	QWidget *optionsContainer = new QWidget();
 	//optionsContainer->setStyleSheet("background-color:blue"); // test spacing/padding/margin
 	optionsContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	QHBoxLayout *optionsContainerLayout = new QHBoxLayout(optionsContainer);
 	optionsContainerLayout->addWidget(m_tmw->w_layoutComboBox());
+	optionsContainerLayout->addWidget(m_tmw->w_slicerModeLabel());
+	optionsContainerLayout->addWidget(m_tmw->w_sliceNumberLabel());
 	optionsContainerLayout->addWidget(m_tmw->w_checkBox_weightByOpacity());
-	optionsContainerLayout->addWidget(m_tmw->w_slicerModeComboBox());
-	optionsContainerLayout->addWidget(m_tmw->w_sliceNumberSlider());
 	
 	m_grid = new iAHistogramStackGrid(this, histograms, slicers, labels);
 

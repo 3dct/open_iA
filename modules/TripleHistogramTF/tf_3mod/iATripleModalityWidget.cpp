@@ -33,6 +33,7 @@
 #include <QComboBox>
 #include <QSharedPointer>
 #include <QCheckBox>
+#include <QLabel>
 
 iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiChild, Qt::WindowFlags f /*= 0 */) :
 	iAMultimodalWidget(parent, mdiChild, THREE)
@@ -123,8 +124,8 @@ void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) 
 		}
 		m_triangleWidget->setParent(NULL);
 		m_layoutComboBox->setParent(NULL);
-		w_slicerModeComboBox()->setParent(NULL);
-		w_sliceNumberSlider()->setParent(NULL);
+		w_slicerModeLabel()->setParent(NULL);
+		w_sliceNumberLabel()->setParent(NULL);
 		w_checkBox_weightByOpacity()->setParent(NULL);
 
 		//delete m_histogramAbstract;
