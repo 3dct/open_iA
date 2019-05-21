@@ -814,9 +814,28 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//*/
 		//mode 1 -> xZ
 		//mode 2 -> xy
-		this->TranslateReslicer(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), trans_xy, m_image->GetSpacing(), 0, m_image->GetCenter());
-		this->TranslateReslicer(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), trans_xy, m_image->GetSpacing(), 1, m_image->GetCenter());
-		this->TranslateReslicer(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), trans_xy, m_image->GetSpacing(), 0, m_image->GetCenter());
+		
+		//movement are xyz 
+		
+		double translation[3] = { movement[0], movement[1], movement[2] };
+	
+		switch (m_currentSliceMode) {
+		case iASlicerMode::XY:
+			translation[3] = 0; break;
+		case iASlicerMode::XZ:
+			translation[1] = 0; break;
+		case iASlicerMode::YZ:
+			translation[2] = 0; break; 
+		}
+
+		for (int i = 0; i < 3; i++) {
+			this->TranslateReslicer(m_ReslicerTransform[i], m_slicerChannel[i]->reslicer(), translation, m_image->GetSpacing(), 0, m_image->GetCenter());
+		}
+
+
+		//this->TranslateReslicer(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), trans_xy, m_image->GetSpacing(), 0, m_image->GetCenter());
+		//this->TranslateReslicer(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), trans_xy, m_image->GetSpacing(), 1, m_image->GetCenter());
+		//this->TranslateReslicer(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), trans_xy, m_image->GetSpacing(), 0, m_image->GetCenter());
 			   
 		double const *volRendPosBefore = m_volumeRenderer->volume()->GetPosition();
 		//DEBUG_LOG(QString("VolActor position before\n %1 %2 %3").arg(volRendPosBefore[0]).arg(volRendPosBefore[1]).arg(volRendPosBefore[2]));
@@ -832,9 +851,9 @@ void iAvtkInteractStyleActor::updateInteractors()
 
 		
 
-		double movement_3d[3] = {0, 0,0/* volRendPos[0], volRendPos[1], volRendPos[2]*/};
+		double movement_3d[3] = {0, 0,0};
 		double newPosition_3d[3] = { 0, 0, 0 };
-		//double test[3] =   m_currentSliceActorPosition[0]-
+	
 		//origin + actor position
 		
 		prepareCoordsXYZ(movement_3d, sliceActorPos, true);
@@ -1265,10 +1284,10 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 
 	double const *origin = m_image->GetOrigin(); 
 
-	int slicerZAxisIdx = mapSliceToGlobalAxis(sliceMode, iAAxisIndex::X/*iAAxisIndex::Z*/);
+	//int slicerZAxisIdx = mapSliceToGlobalAxis(sliceMode, iAAxisIndex::X/*iAAxisIndex::Z*/);
 	double ofs[3] = { 0.0, 0.0, 0.0 };
-	const int sliceNumber = m_mdiChild->sliceNumber(sliceMode);
-	ofs[slicerZAxisIdx] = sliceNumber * spacing[slicerZAxisIdx];
+	/*const int sliceNumber = m_mdiChild->sliceNumber(sliceMode);
+	ofs[slicerZAxisIdx] = sliceNumber * spacing[slicerZAxisIdx];*/
 	
 	reslice->SetOutputDimensionality(2);
 	
