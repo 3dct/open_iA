@@ -108,6 +108,9 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 	m_checkBox_weightByOpacity = new QCheckBox("Weight by opacity");
 	m_checkBox_weightByOpacity->setChecked(true);
 
+	m_checkBox_syncedCamera = new QCheckBox("Synchronize cameras");
+	m_checkBox_syncedCamera->setChecked(true);
+
 	m_timer_updateVisualizations->setSingleShot(true);
 	m_timerWait_updateVisualizations = TIMER_UPDATE_VISUALIZATIONS_WAIT_MS;
 
@@ -119,7 +122,8 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 		m_copyTFs.push_back(Q_NULLPTR);
 	}
 
-	connect(m_checkBox_weightByOpacity, SIGNAL(stateChanged(int)), this, SLOT(checkBoxSelectionChanged()));
+	connect(m_checkBox_weightByOpacity, SIGNAL(stateChanged(int)), this, SLOT(checkBoxWeightByOpacityChanged()));
+	connect(m_checkBox_syncedCamera,    SIGNAL(stateChanged(int)), this, SLOT(checkBoxSyncedCameraChanged()));
 
 	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(valueChanged(int)), this, SLOT(onMainXYSliceNumberChanged(int)));
 	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(valueChanged(int)), this, SLOT(onMainXZSliceNumberChanged(int)));
@@ -152,13 +156,14 @@ void iAMultimodalWidget::setSlicerMode(iASlicerMode slicerMode) {
 	if (m_slicerMode == slicerMode) {
 		return;
 	}
-
+	disconnectMainSlicer();
 	m_slicerMode = slicerMode;
 	int sliceNumber = getSliceNumber();
 	for (int i = 0; i < m_numOfMod; i++) {
 		w_slicer(i)->setSlicerMode(slicerMode);
 		w_slicer(i)->setSliceNumber(sliceNumber);
 	}
+	setMainSlicerCamera();
 	updateLabels();
 	updateVisualizationsLater();
 
@@ -405,6 +410,8 @@ void iAMultimodalWidget::histogramAvailable() {
 		imgOut->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
 		m_slicerImages[mainSlicerIndex] = imgOut;
 	}
+	connectAcrossSlicers();
+	setMainSlicerCamera();
 
 	m_mainSlicersInitialized = true;
 	updateVisualizationsNow();
@@ -436,6 +443,14 @@ void iAMultimodalWidget::applyVolumeSettings()
 	m_combinedVolMapper->SetSampleDistance(vs.SampleDistance);
 	m_combinedVolMapper->InteractiveAdjustSampleDistancesOff();
 #endif
+}
+
+void iAMultimodalWidget::applySlicerSettings()
+{
+	for (int i = 0; i < m_numOfMod; ++i)
+	{
+		m_slicerWidgets[i]->applySettings(m_mdiChild->GetSlicerSettings().SingleSlicer);
+	}
 }
 
 // When new modalities are added/removed
@@ -514,12 +529,6 @@ void iAMultimodalWidget::updateModalities()
 	emit(modalitiesLoaded_beforeUpdate());
 
 	update();
-}
-
-void iAMultimodalWidget::resetSlicers() {
-	for (int i = 0; i < m_numOfMod; i++) {
-		resetSlicer(i);
-	}
 }
 
 void iAMultimodalWidget::resetSlicer(int i)
@@ -671,7 +680,78 @@ void iAMultimodalWidget::applyWeights()
 	}
 }
 
+namespace {
+	iASlicer* slicerForMode(MdiChild* mdiChild, int slicerMode) {
+		switch (slicerMode) {
+		case iASlicerMode::YZ: return mdiChild->getSlicerYZ();
+		case iASlicerMode::XZ: return mdiChild->getSlicerXZ();
+		case iASlicerMode::XY: return mdiChild->getSlicerXY();
+		}
+		return nullptr;
+	}
+}
 
+void iAMultimodalWidget::setMainSlicerCamera()
+{
+	if (!m_checkBox_syncedCamera->isChecked())
+		return;
+	vtkCamera * mainCamera = slicerForMode(m_mdiChild, m_slicerMode)->GetCamera();
+	for (int i = 0; i < m_numOfMod; ++i)
+	{
+		w_slicer(i)->setCamera(mainCamera);
+		w_slicer(i)->update();
+	}
+	connectMainSlicer();
+}
+
+void iAMultimodalWidget::resetSlicerCamera()
+{
+	disconnectMainSlicer();
+	for (int i = 0; i < m_numOfMod; i++) {
+		auto cam = vtkSmartPointer<vtkCamera>::New();
+		w_slicer(i)->setCamera(cam);
+		w_slicer(i)->getSlicer()->GetSlicerData()->ResetCamera();
+		w_slicer(i)->update();
+	}
+}
+
+void iAMultimodalWidget::connectMainSlicer()
+{
+	if (!m_checkBox_syncedCamera->isChecked())
+		return;
+	iASlicer* slicer = slicerForMode(m_mdiChild, m_slicerMode);
+	for (int i = 0; i < m_numOfMod; ++i)
+	{
+		connect(slicer->GetSlicerData(), SIGNAL(UserInteraction()), w_slicer(i).data(), SLOT(update()));
+		connect(w_slicer(i)->getSlicer()->GetSlicerData(), SIGNAL(UserInteraction()), slicer, SLOT(update()));
+	}
+}
+
+void iAMultimodalWidget::disconnectMainSlicer()
+{
+	iASlicer* slicer = slicerForMode(m_mdiChild, m_slicerMode);
+	for (int i = 0; i < m_numOfMod; ++i)
+	{
+		disconnect(slicer->GetSlicerData(), SIGNAL(UserInteraction()), w_slicer(i).data(), SLOT(update()));
+		disconnect(w_slicer(i)->getSlicer()->GetSlicerData(), SIGNAL(UserInteraction()), slicer, SLOT(update()));
+	}
+}
+
+void iAMultimodalWidget::connectAcrossSlicers()
+{
+	for (int i = 0; i < m_numOfMod; ++i)
+		for (int j = 0; j < m_numOfMod; ++j)
+			if (i != j)
+				connect(w_slicer(i)->getSlicer()->GetSlicerData(), SIGNAL(UserInteraction()), w_slicer(j).data(), SLOT(update()));
+}
+
+void iAMultimodalWidget::disconnectAcrossSlicers()
+{
+	for (int i = 0; i < m_numOfMod; ++i)
+		for (int j = 0; j < m_numOfMod; ++j)
+			if (i != j)
+				disconnect(w_slicer(i)->getSlicer()->GetSlicerData(), SIGNAL(UserInteraction()), w_slicer(j).data(), SLOT(update()));
+}
 
 // ----------------------------------------------------------------------------------
 // Short methods
@@ -719,9 +799,20 @@ int iAMultimodalWidget::getSliceNumber() {
 	}
 }
 
-void iAMultimodalWidget::checkBoxSelectionChanged()
+void iAMultimodalWidget::checkBoxWeightByOpacityChanged()
 {
 	updateVisualizationsNow();
+}
+
+void iAMultimodalWidget::checkBoxSyncedCameraChanged()
+{
+	if (m_checkBox_syncedCamera->isChecked()) {
+		connectAcrossSlicers();
+		setMainSlicerCamera();
+	} else {
+		disconnectAcrossSlicers();
+		resetSlicerCamera();
+	}
 }
 
 // SCROLLBARS (private SLOTS)

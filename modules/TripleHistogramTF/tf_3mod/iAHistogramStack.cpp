@@ -73,6 +73,7 @@ void iAHistogramStack::initialize()
 	QHBoxLayout *optionsContainerLayout = new QHBoxLayout(optionsContainer);
 	optionsContainerLayout->addWidget(m_tmw->w_layoutComboBox());
 	optionsContainerLayout->addWidget(m_tmw->w_checkBox_weightByOpacity());
+	optionsContainerLayout->addWidget(m_tmw->w_checkBox_syncedCamera());
 	optionsContainerLayout->addStretch();
 	optionsContainerLayout->addWidget(m_tmw->w_slicerModeLabel());
 	optionsContainerLayout->addWidget(m_tmw->w_sliceNumberLabel());

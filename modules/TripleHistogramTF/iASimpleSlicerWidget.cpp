@@ -60,6 +60,11 @@ void iASimpleSlicerWidget::setSliceNumber(int sliceNumber)
 	m_slicer->setSliceNumber(sliceNumber);
 }
 
+void iASimpleSlicerWidget::setCamera(vtkCamera* camera)
+{
+	m_slicer->SetCamera(camera, false);
+}
+
 int iASimpleSlicerWidget::getSliceNumber()
 {
 	return m_slicer->GetSlicerData()->getSliceNumber();

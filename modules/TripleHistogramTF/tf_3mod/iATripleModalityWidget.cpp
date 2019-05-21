@@ -115,15 +115,16 @@ void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) 
 
 	if (m_histogramAbstract) {
 		for (int i = 0; i < 3; i++) {
-			w_histogram(i)->setParent(NULL);
-			w_slicer(i)->setParent(NULL);
+			w_histogram(i)->setParent(nullptr);
+			w_slicer(i)->setParent(nullptr);
 			resetSlicer(i);
 		}
-		m_triangleWidget->setParent(NULL);
-		m_layoutComboBox->setParent(NULL);
-		w_slicerModeLabel()->setParent(NULL);
-		w_sliceNumberLabel()->setParent(NULL);
-		w_checkBox_weightByOpacity()->setParent(NULL);
+		m_triangleWidget->setParent(nullptr);
+		m_layoutComboBox->setParent(nullptr);
+		w_slicerModeLabel()->setParent(nullptr);
+		w_sliceNumberLabel()->setParent(nullptr);
+		w_checkBox_weightByOpacity()->setParent(nullptr);
+		w_checkBox_syncedCamera()->setParent(nullptr);
 
 		//delete m_histogramAbstract;
 		m_innerLayout->replaceWidget(m_histogramAbstract, histogramAbstract_new, Qt::FindDirectChildrenOnly);

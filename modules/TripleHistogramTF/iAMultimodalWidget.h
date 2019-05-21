@@ -37,6 +37,7 @@
 
 class MdiChild;
 
+class vtkCamera;
 class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
 class vtkSmartVolumeMapper;
@@ -77,6 +78,10 @@ public:
 		return m_checkBox_weightByOpacity;
 	}
 
+	QCheckBox* w_checkBox_syncedCamera() {
+		return m_checkBox_syncedCamera;
+	}
+
 	QLabel* w_slicerModeLabel() {
 		return m_slicerModeLabel;
 	}
@@ -113,7 +118,6 @@ public:
 protected:
 	void setWeightsProtected(BCoord bCoord, double t);
 
-	void resetSlicers();
 	void resetSlicer(int i);
 
 	void setWeightsProtected(double t) {
@@ -135,6 +139,7 @@ private:
 	QStackedLayout *m_stackedLayout;
 	QCheckBox *m_checkBox_weightByOpacity;
 	QLabel *m_disabledLabel;
+	QCheckBox *m_checkBox_syncedCamera;
 	// }
 
 	QTimer *m_timer_updateVisualizations;
@@ -144,6 +149,15 @@ private:
 	void updateCopyTransferFunction(int index);
 	void updateOriginalTransferFunction(int index);
 	void applyWeights();
+
+	//! @{ Synced slicer camera helpers
+	void setMainSlicerCamera();
+	void resetSlicerCamera();
+	void connectMainSlicer();
+	void disconnectMainSlicer();
+	void connectAcrossSlicers();
+	void disconnectAcrossSlicers();
+	//! @}
 
 	BCoord m_weights;
 
@@ -188,7 +202,9 @@ private slots:
 
 	void originalHistogramChanged();
 
-	void checkBoxSelectionChanged();
+	void checkBoxWeightByOpacityChanged();
+	void checkBoxSyncedCameraChanged();
+
 
 	void onMainXYScrollBarPress();
 	void onMainXZScrollBarPress();

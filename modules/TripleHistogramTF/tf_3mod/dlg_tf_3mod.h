@@ -35,9 +35,8 @@ class vtkSmartVolumeMapper;
 class vtkVolume;
 class vtkRenderer;
 
-//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
 
-class dlg_tf_3mod : public QDockWidget//public TripleHistogramTFConnector
+class dlg_tf_3mod : public QDockWidget
 {
 	Q_OBJECT
 

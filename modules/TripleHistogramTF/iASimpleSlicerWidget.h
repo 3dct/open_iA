@@ -30,6 +30,8 @@
 class iAModality;
 class iASlicer;
 
+class vtkCamera;
+
 class iASimpleSlicerWidget : public QWidget
 {
 	Q_OBJECT
@@ -47,21 +49,17 @@ public:
 	bool hasHeightForWidth();
 	int heightForWidth(int width);
 
-	void update();
-
 	void changeModality(QSharedPointer<iAModality> modality);
+
+	void setCamera(vtkCamera* camera);
 
 	iASlicer* getSlicer() { return m_slicer; }
 
 public slots:
-
-signals:
-
-protected:
+	void update();
 
 private:
 	bool m_enableInteraction;
 	vtkTransform *m_slicerTransform;
 	iASlicer *m_slicer;
-	
 };

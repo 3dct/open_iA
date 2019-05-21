@@ -96,6 +96,7 @@ void iAHistogramTriangle::initialize()
 	m_tmw->w_sliceNumberLabel()->setParent(this);
 	m_tmw->w_slicerModeLabel()->setParent(this);
 	m_tmw->w_checkBox_weightByOpacity()->setParent(this);
+	m_tmw->w_checkBox_syncedCamera()->setParent(this);
 
 	calculatePositions();
 	m_fClear = true;
@@ -390,14 +391,16 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 	{
 		int layoutTypeComboBoxWidth = m_tmw->w_layoutComboBox()->sizeHint().width();
 		int checkBoxWeightByOpacityWidth = m_tmw->w_checkBox_weightByOpacity()->sizeHint().width();
+		int checkBoxSyncCameraWidth = m_tmw->w_checkBox_syncedCamera()->sizeHint().width();
 		int slicerModeLabelWidth = m_tmw->w_slicerModeLabel()->sizeHint().width();
 		int sliceNumberLabelWidth = m_tmw->w_sliceNumberLabel()->sizeHint().width();
 
-		int controlsWidth = qMax(qMax(slicerModeLabelWidth, qMax(layoutTypeComboBoxWidth, checkBoxWeightByOpacityWidth)), sliceNumberLabelWidth);
+		int controlsWidth = qMax(qMax(qMax(qMax(slicerModeLabelWidth, layoutTypeComboBoxWidth), checkBoxSyncCameraWidth), checkBoxWeightByOpacityWidth), sliceNumberLabelWidth);
 		int controlsBottom = controlsWidth * (-histoLateral1_2Y / histoTop1X) + histoLateral1_2Y;
 
 		int slicerModeComboBoxHeight = m_tmw->w_slicerModeLabel()->sizeHint().height();
 		int checkBoxWeightByOpacityHeight = m_tmw->w_checkBox_weightByOpacity()->sizeHint().height();
+		int checkBoxSyncCameraHeight = m_tmw->w_checkBox_syncedCamera()->sizeHint().height();
 		int layoutTypeComboBoxHeight = m_tmw->w_layoutComboBox()->sizeHint().height();
 		int sliceNumberLabelHeight = m_tmw->w_sliceNumberLabel()->sizeHint().height();
 
@@ -408,6 +411,9 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 
 		m_tmw->w_checkBox_weightByOpacity()->setGeometry(QRect(0, bottom, controlsWidth, checkBoxWeightByOpacityHeight));
 		bottom += checkBoxWeightByOpacityHeight + WIDGETS_MARGIN;
+
+		m_tmw->w_checkBox_syncedCamera()->setGeometry(QRect(0, bottom, controlsWidth, checkBoxSyncCameraHeight));
+		bottom += checkBoxSyncCameraHeight + WIDGETS_MARGIN;
 
 		m_tmw->w_slicerModeLabel()->setGeometry(QRect(0, bottom, controlsWidth, layoutTypeComboBoxHeight));
 		bottom += slicerModeComboBoxHeight + WIDGETS_MARGIN;
