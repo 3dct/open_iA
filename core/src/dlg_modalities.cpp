@@ -56,7 +56,7 @@
 
 
 dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
-	vtkRenderer* mainRenderer, int numBin, MdiChild* mdiChild) :
+	vtkRenderer* mainRenderer, MdiChild* mdiChild) :
 
 	m_modalities(new iAModalityList),
 	m_magicLensWidget(magicLensWidget),

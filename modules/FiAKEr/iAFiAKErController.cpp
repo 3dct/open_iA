@@ -1283,7 +1283,6 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 			vis->setDiameterFactor(DiameterFactor);
 			vis->setContextDiameterFactor(ContextDiameterFactor);
 		}
-		size_t colorLookupParam = m_distributionChoice->currentIndex();
 		if (matchQualityVisActive())
 			showSpatialOverview();
 		else if (m_spm->colorScheme() == iAQSplom::ByParameter)
