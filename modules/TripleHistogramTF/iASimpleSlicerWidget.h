@@ -28,6 +28,7 @@
 #include <QWidget>
 
 class iAModality;
+class iASingleSlicerSettings;
 class iASlicer;
 
 class vtkCamera;
@@ -49,6 +50,7 @@ public:
 	bool hasHeightForWidth();
 	int heightForWidth(int width);
 
+	void applySettings(iASingleSlicerSettings const & settings);
 	void changeModality(QSharedPointer<iAModality> modality);
 
 	void setCamera(vtkCamera* camera);

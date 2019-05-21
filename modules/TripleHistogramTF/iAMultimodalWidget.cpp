@@ -140,13 +140,12 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 	//connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(modalitiesChanged()));
 	connect(mdiChild, SIGNAL(histogramAvailable()), this, SLOT(histogramAvailable()));
 	connect(mdiChild, &MdiChild::renderSettingsChanged, this, &iAMultimodalWidget::applyVolumeSettings);
+	connect(mdiChild, &MdiChild::slicerSettingsChanged, this, &iAMultimodalWidget::applySlicerSettings);
 
 	connect(m_timer_updateVisualizations, SIGNAL(timeout()), this, SLOT(onUpdateVisualizationsTimeout()));
 
 	histogramAvailable();
 }
-
-
 
 // ----------------------------------------------------------------------------------
 // 
@@ -537,6 +536,7 @@ void iAMultimodalWidget::resetSlicer(int i)
 	// Make sure there are no other references to the old iASimpleSlicerWidget
 	// referenced by the QSharedPointer!
 	m_slicerWidgets[i] = QSharedPointer<iASimpleSlicerWidget>(new iASimpleSlicerWidget(nullptr, true));
+	m_slicerWidgets[i]->applySettings(m_mdiChild->GetSlicerSettings().SingleSlicer);
 	m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	if (m_modalitiesActive[i]) {
 		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);

@@ -45,6 +45,11 @@ iASimpleSlicerWidget::~iASimpleSlicerWidget()
 	delete m_slicer;
 }
 
+void iASimpleSlicerWidget::applySettings(iASingleSlicerSettings const & settings)
+{
+	m_slicer->setup(settings);
+}
+
 void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode)
 {
 	m_slicer->ChangeMode(slicerMode);
