@@ -284,6 +284,7 @@ Q_SIGNALS:
 	void closed();
 	void updatedViews();
 	void renderSettingsChanged();
+	void slicerSettingsChanged();
 	void preferencesChanged();
 	void viewInitialized();
 	void TransferFunctionChanged();

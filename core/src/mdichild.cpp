@@ -1729,6 +1729,7 @@ bool MdiChild::editSlicerSettings(iASlicerSettings const & slicerSettings)
 	setupSlicers(slicerSettings, false);
 	for (int s = 0; s<3; ++s)
 		slicer[s]->show();
+	emit slicerSettingsChanged();
 	return true;
 }
 
