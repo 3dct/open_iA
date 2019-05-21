@@ -44,6 +44,7 @@ class vtkPiecewiseFunction;
 class QComboBox;
 class QLabel;
 class QSlider;
+class QSpinBox;
 
 class iATripleModalityWidget : public iAMultimodalWidget
 {

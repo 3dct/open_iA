@@ -417,54 +417,6 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_rControls = QRect(0, 0, controlsWidth, controlsBottom);
 	}
 
-	// Triangle's labels and weights
-	{
-		int tangent1_2Y = (boxTop + histoLateral1_2Y) / 2;
-		QPoint textPoint1 = QPoint((boxLeft + histoTop1X) / 2, tangent1_2Y);
-		QPoint textPoint2 = QPoint((histoTop2X + boxRight) / 2, tangent1_2Y);
-
-		QRect weightRects[3] = {
-			m_tmw->w_triangle()->getModalityWeightRect(0),
-			m_tmw->w_triangle()->getModalityWeightRect(1),
-			m_tmw->w_triangle()->getModalityWeightRect(2)
-		};
-		QRect labelRects[3] = {
-			m_tmw->w_triangle()->getModalityLabelRect(0),
-			m_tmw->w_triangle()->getModalityLabelRect(1),
-			m_tmw->w_triangle()->getModalityLabelRect(2)
-		};
-		
-		/*QPoint weightPoints[3] = {
-			QPoint(textPoint1.x() - weightRects[0].width(), textPoint1.y()),
-			textPoint2,
-			QPoint(right, ((bottom + boxBottom) / 2) + ((labelRects[2].height() + weightRects[2].height()) / 2))
-		};
-		QPoint labelPoints[3] = {
-			QPoint(textPoint1.x() - labelRects[0].width(), textPoint1.y() - weightRects[0].height()),
-			QPoint(textPoint2.x(), textPoint2.y() - weightRects[1].height()),
-			QPoint(weightPoints[2].x(), weightPoints[2].y() - weightRects[2].height())
-		};*/
-
-		QPoint labelPoints[3] = {
-			textPoint1 + QPoint(-labelRects[0].width() - MODALITY_LABEL_MARGIN, 0),
-			textPoint2 + QPoint(MODALITY_LABEL_MARGIN, 0),
-			QPoint(right + MODALITY_LABEL_MARGIN, ((bottom + boxBottom) / 2) - (labelRects[2].height() / 2))
-		};
-		QPoint weightPoints[3] = {
-			labelPoints[0] + QPoint(-MODALITY_LABEL_MARGIN - weightRects[0].width(), 0),
-			labelPoints[1] + QPoint( MODALITY_LABEL_MARGIN + labelRects[1].width(), 0),
-			labelPoints[2] + QPoint( MODALITY_LABEL_MARGIN + labelRects[2].width(), 0)
-		};
-
-		m_tmw->w_triangle()->setModalityWeightPosition(weightPoints[0], 0);
-		m_tmw->w_triangle()->setModalityWeightPosition(weightPoints[1], 1);
-		m_tmw->w_triangle()->setModalityWeightPosition(weightPoints[2], 2);
-			   
-		m_tmw->w_triangle()->setModalityLabelPosition(labelPoints[0], 0);
-		m_tmw->w_triangle()->setModalityLabelPosition(labelPoints[1], 1);
-		m_tmw->w_triangle()->setModalityLabelPosition(labelPoints[2], 2);
-	}
-
 	m_fClear = true;
 }
 
@@ -492,12 +444,11 @@ void iAHistogramTriangle::paintEvent(QPaintEvent* event)
 	p.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 	//p.setClipPath(m_clipPath);
 
-	qDebug() << "Slice numbers (A B C):" << m_tmw->w_slicer(0)->getSliceNumber() << m_tmw->w_slicer(1)->getSliceNumber() << m_tmw->w_slicer(2)->getSliceNumber();
-	paintSlicers(p);
-
 	if (m_fRenderTriangle) {
 		m_tmw->w_triangle()->paintContext(p);
 	}
+
+	paintSlicers(p);
 
 	paintHistograms(p);
 
@@ -511,7 +462,6 @@ void iAHistogramTriangle::paintEvent(QPaintEvent* event)
 
 	p.begin(this);
 	p.drawImage(0, 0, m_buffer);
-	m_tmw->w_triangle()->paintModalityLabels(p); // Is repainted everytime!
 	m_tmw->w_triangle()->paintControlPoint(p);
 	p.end();
 

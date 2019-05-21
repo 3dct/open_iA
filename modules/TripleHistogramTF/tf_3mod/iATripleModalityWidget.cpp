@@ -34,6 +34,7 @@
 #include <QSharedPointer>
 #include <QCheckBox>
 #include <QLabel>
+#include <QSpinBox>
 
 iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiChild, Qt::WindowFlags f /*= 0 */) :
 	iAMultimodalWidget(parent, mdiChild, THREE)
@@ -46,9 +47,8 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	m_layoutComboBox->addItem("Stack", iAHistogramAbstractType::STACK);
 	m_layoutComboBox->addItem("Triangle", iAHistogramAbstractType::TRIANGLE);
 
-	// Initialize the inner widget {
+	// Initialize the inner widget
 	setHistogramAbstractType(iAHistogramAbstractType::STACK);
-	// }
 
 	connect(m_layoutComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(layoutComboBoxIndexChanged(int)));
 	connect(m_triangleWidget, SIGNAL(weightsChanged(BCoord)), this, SLOT(triangleWeightChanged(BCoord)));
@@ -101,14 +101,11 @@ void iATripleModalityWidget::modalitiesLoaded_beforeUpdateSlot() {
 	m_histogramAbstract->initialize();
 }
 
-// PUBLIC SETTERS { -------------------------------------------------------------------------
 void iATripleModalityWidget::setHistogramAbstractType(iAHistogramAbstractType type) {
 	setLayoutTypePrivate(type);
 	m_layoutComboBox->setCurrentIndex(m_layoutComboBox->findData(type));
 }
-// } ----------------------------------------------------------------------------------------
 
-// PRIVATE SETTERS { ------------------------------------------------------------------------
 void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) {
 	if (m_histogramAbstract && type == m_histogramAbstractType) {
 		return;
@@ -141,4 +138,3 @@ void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) 
 		m_histogramAbstract->initialize();
 	}
 }
-// } ----------------------------------------------------------------------------------------
