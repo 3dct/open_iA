@@ -26,27 +26,20 @@
 
 #include <QPainter>
 #include <QImage>
+#include <QTimer>
 
-static const QImage::Format IMAGE_FORMAT = QImage::Format::Format_ARGB32;
+static const QImage::Format IMAGE_FORMAT = QImage::Format::Format_Grayscale8;
 static const int ONE_DIV_THREE = 1.0 / 3.0;
 static const int GRAY_VALUE_MIN = 48;
 static const int GRAY_VALUE_INTERVAL = 255 - GRAY_VALUE_MIN;
+static const int TIMER_HEATMAP_WAIT = 2000; // in milliseconds
 
-iABarycentricContextRenderer::iABarycentricContextRenderer()
+iABarycentricContextRenderer::iABarycentricContextRenderer() :
+	m_timer_heatmap(new QTimer()),
+	m_timerWait_heatmap(TIMER_HEATMAP_WAIT),
+	m_image(new QImage())
 {
-	
-}
-
-iABarycentricContextRenderer::~iABarycentricContextRenderer()
-{
-
-}
-
-void iABarycentricContextRenderer::paintContext(QPainter &p)
-{
-	if (!m_image.isNull()) {
-		p.drawImage(m_imagePoint, m_image);
-	}
+	connect(m_timer_heatmap, SIGNAL(timeout()), this, SLOT(onHeatmapTimeout()));
 }
 
 void iABarycentricContextRenderer::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle)
@@ -60,9 +53,16 @@ void iABarycentricContextRenderer::setTriangle(BarycentricTriangle triangle)
 	updateTriangle(triangle);
 }
 
-bool iABarycentricContextRenderer::canPaint()
-{
-	return !m_image.isNull();
+QImage* iABarycentricContextRenderer::getImage() {
+	return m_image;
+}
+
+QRect iABarycentricContextRenderer::getImageRect() {
+	return m_imageRect;
+}
+
+void iABarycentricContextRenderer::onHeatmapTimeout() {
+	drawImageNow();
 }
 
 
@@ -129,40 +129,37 @@ void iABarycentricContextRenderer::updateTriangle(BarycentricTriangle triangle)
 		return;
 	}
 
-	int width, height;
-	{
-		int xMin = qMin(triangle.getXa(), qMin(triangle.getXb(), triangle.getXc()));
-		int yMin = qMin(triangle.getYa(), qMin(triangle.getYb(), triangle.getYc()));
+	QRect rect = triangle.getBounds();
+	m_imageRect = rect;
+	m_triangle = BarycentricTriangle(
+		triangle.getXa() - rect.x(), triangle.getYa() - rect.y(),
+		triangle.getXb() - rect.x(), triangle.getYb() - rect.y(),
+		triangle.getXc() - rect.x(), triangle.getYc() - rect.y()
+	);
 
-		int xMax = qMax(triangle.getXa(), qMax(triangle.getXb(), triangle.getXc()));
-		int yMax = qMax(triangle.getYa(), qMax(triangle.getYb(), triangle.getYc()));
-
-		width = xMax - xMin + 1;
-		height = yMax - yMin + 1;
-
-		m_imagePoint = QPoint(xMin, yMin);
-
-		if (!m_image.isNull() && m_image.width() == width && m_image.height() == height) {
-			return;
-		}
-
-		m_image = QImage(width, height, IMAGE_FORMAT);
-
-		triangle = triangle - m_imagePoint;
+	if (m_imageRect.size() != m_image->size()) {
+		drawImageLater();
 	}
-
-	drawImage(triangle, width, height);
 }
 
-void iABarycentricContextRenderer::drawImage(BarycentricTriangle triangle, int width, int height)
+void iABarycentricContextRenderer::drawImageLater()
 {
+	m_timer_heatmap->start(m_timerWait_heatmap);
+}
+
+void iABarycentricContextRenderer::drawImageNow()
+{
+	m_timer_heatmap->stop();
+
+	int width = m_imageRect.width();
+	int height = m_imageRect.height();
+
 	int widthMinusOne = width - 1;
 	int heightMinusOne = height - 1;
 
 	// TODO: a vector of vectors or another vtkImageData?
 	QVector<QVector<int>> counts = QVector<QVector<int>>(height, QVector<int>(width, 0));
 	int max = 0;
-	int min = std::numeric_limits<int>::infinity();
 	int maxx, maxy;
 
 	// Go though the volume (m_barycentricCoordinates) and write to the counts 2D-vector
@@ -173,7 +170,7 @@ void iABarycentricContextRenderer::drawImage(BarycentricTriangle triangle, int w
 			for (int x = 0; x < dims[0]; x++) {
 				
 				values = static_cast<double*>(m_barycentricCoordinates->GetScalarPointer(x, y, z));
-				QPoint cartesian = triangle.getCartesianCoordinates(values[0], values[1]);
+				QPoint cartesian = m_triangle.getCartesianCoordinates(values[0], values[1]);
 
 				// TODO do this in a better way? why is it happenning? numeric imprecision?
 				int cx = cartesian.x();
@@ -188,9 +185,6 @@ void iABarycentricContextRenderer::drawImage(BarycentricTriangle triangle, int w
 					maxx = cx;
 					maxy = cy;
 				}
-				if (count < min) {
-					min = count;
-				}
 				counts[cy][cx] = count;
 
 			}
@@ -199,27 +193,35 @@ void iABarycentricContextRenderer::drawImage(BarycentricTriangle triangle, int w
 
 	// Go through every pixel and set the pixel color based on the counts 2D-vector
 	//double c = (double) GRAY_VALUE_INTERVAL / (double) max;
+	QImage *buf = new QImage(width, height, IMAGE_FORMAT);
+	buf->fill(Qt::white);
 	double k = (double)GRAY_VALUE_INTERVAL / (double)log(max);
 	int grayValue, count;
 	QPoint p;
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
 			p = QPoint(x, y);
-			if (triangle.contains(x, y)) {
+			if (m_triangle.contains(x, y)) {
 				count = counts[y][x];
 				if (count > 0) {
 
 					//grayValue = 255 - ((count * c) + GRAY_VALUE_MIN);
 					grayValue = 255 - (k * log(count) + GRAY_VALUE_MIN);
-					m_image.setPixelColor(p, QColor(grayValue, grayValue, grayValue));
+					buf->setPixelColor(p, QColor(grayValue, grayValue, grayValue));
 
 				}
 				else {
-					m_image.setPixelColor(p, Qt::white);
+					buf->setPixelColor(p, Qt::white);
 				}
 			} else {
-				m_image.setPixelColor(p, Qt::transparent);
+				buf->setPixelColor(p, Qt::white);
 			}
 		}
 	}
+
+	auto del = m_image;
+	m_image = buf;
+	delete del;
+
+	emit heatmapReady();
 }

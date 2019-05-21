@@ -31,7 +31,7 @@
 #include <QPoint>
 #include <QWidget>
 
-class iATriangleRenderer;
+class iABarycentricContextRenderer;
 
 class vtkImageData;
 
@@ -69,7 +69,7 @@ public:
 	BCoord getWeight();
 	void setWeight(BCoord newWeight);
 
-	void setTriangleRenderer(iATriangleRenderer *triangleRenderer);
+	void setTriangleRenderer(iABarycentricContextRenderer *triangleRenderer);
 	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
 	void setModality1label(QString label);
 	void setModality2label(QString label);
@@ -85,6 +85,9 @@ public:
 
 signals:
 	void weightsChanged(BCoord bCoord);
+
+private slots:
+	void onHeatmapReady();
 
 protected:
 	void paintEvent(QPaintEvent* event);
@@ -126,7 +129,7 @@ private:
 	QPainterPath m_controlPointCrossPainterPath;
 	QPen m_controlPointCrossPen;
 
-	iATriangleRenderer *m_triangleRenderer = nullptr;
+	iABarycentricContextRenderer *m_triangleRenderer = nullptr;
 
 	bool m_dragging = false;
 

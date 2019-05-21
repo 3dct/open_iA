@@ -21,7 +21,7 @@
 
 #include "iABarycentricTriangleWidget.h"
 
-#include "iATriangleRenderer.h"
+#include "iABarycentricContextRenderer.h"
 
 #include <vtkMath.h>
 
@@ -417,9 +417,15 @@ void iABarycentricTriangleWidget::setWeight(BCoord newWeight)
 	updateControlPointCoordinates(newWeight);
 }
 
-void iABarycentricTriangleWidget::setTriangleRenderer(iATriangleRenderer *triangleRenderer)
+void iABarycentricTriangleWidget::setTriangleRenderer(iABarycentricContextRenderer *triangleRenderer)
 {
+	if (m_triangleRenderer) {
+		disconnect(m_triangleRenderer, SIGNAL(heatmapReady()), this, SLOT(onHeatmapReady()));
+	}
 	m_triangleRenderer = triangleRenderer;
+	if (m_triangleRenderer) {
+		connect(m_triangleRenderer, SIGNAL(heatmapReady()), this, SLOT(onHeatmapReady()));
+	}
 }
 
 void iABarycentricTriangleWidget::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3)
@@ -439,8 +445,8 @@ void iABarycentricTriangleWidget::resizeEvent(QResizeEvent* event)
 void iABarycentricTriangleWidget::paintEvent(QPaintEvent* event)
 {
 	QPainter p(this);
-	paintTriangleBorder(p);
 	paintContext(p);
+	paintTriangleBorder(p);
 	paintControlPoint(p);
 	paintModalityLabels(p);
 }
@@ -483,11 +489,20 @@ void iABarycentricTriangleWidget::paintModalityLabels(QPainter &p)
 }
 
 void iABarycentricTriangleWidget::paintContext(QPainter &p) {
-	if (m_triangleRenderer && m_triangleRenderer->canPaint()) {
-		m_triangleRenderer->paintContext(p);
-	} else {
+	QImage *img = m_triangleRenderer->getImage();
+	QSize size = img->size();
+
+	if (img->isNull() || size.width() == 0 || size.height() == 0) {
 		paintTriangleBorder(p);
 		paintTriangleFill(p);
+	} else {
+		QRect rect = m_triangleRenderer->getImageRect();
+
+		if (size != rect.size()) {
+			p.drawImage(rect, img->scaled(rect.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+		} else {
+			p.drawImage(rect, *img, img->rect());;
+		}
 	}
 }
 
@@ -541,4 +556,8 @@ QRect iABarycentricTriangleWidget::getModalityLabelRect(int modalityIndex)
 QRect iABarycentricTriangleWidget::getModalityWeightRect(int modalityIndex)
 {
 	return m_modalityWeightRect[modalityIndex];
+}
+
+void iABarycentricTriangleWidget::onHeatmapReady() {
+	update();
 }
