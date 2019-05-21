@@ -414,7 +414,6 @@ void iAMultimodalWidget::applyVolumeSettings()
 	volProp->SetShade(vs.Shading);
 	if (vs.ScalarOpacityUnitDistance > 0)
 		volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
-	m_combinedVolMapper->SetRequestedRenderMode(vs.RenderMode);
 	if (m_mdiChild->GetRenderSettings().ShowSlicers)
 	{
 		m_combinedVolMapper->AddClippingPlane(m_mdiChild->getRenderer()->getPlane1());
