@@ -638,7 +638,7 @@ void iAvtkInteractStyleActor::initialize(vtkImageData *img, iAVolumeRenderer* vo
 
 	//initialize pos of currentSlicer
 	if (!enable3D) {
-		setPreivousActorPosition(this->m_slicerChannel[m_currentSliceMode]->actorPosition());
+		setPreviousActorPosition(this->m_slicerChannel[m_currentSliceMode]->actorPosition());
 
 	}
 
@@ -672,8 +672,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 		if (posVol[0] == 0 && posVol[1] == 0 && posVol[2] == 0)
 			return;
 
-		//ggf muss das an alle actor weiter gegeben werden		
-		//new coords based on current volume renderer position
+		
 		/*original code*/
 		/*updateCoords(origin, posVol, m_currentSliceMode);
 		m_volumeRenderer->volume()->SetPosition(0, 0, 0);*/
@@ -758,19 +757,17 @@ void iAvtkInteractStyleActor::updateInteractors()
 		auto tmpslicepos = m_slicerChannel[m_currentSliceMode]->actorPosition();
 		//DEBUG_LOG(QString(" %1 %2 %3").arg(sliceActorPos[0]).arg(sliceActorPos[1]).arg(sliceActorPos[1])) // tmpslicepos = m_slicerChannel[m_currentSliceMode]->actorPosition();
 		std::copy(tmpslicepos, tmpslicepos + 3, sliceActorPos);
-		DEBUG_LOG(QString("Actor position %1 %2 %3").arg(sliceActorPos[0]).arg(sliceActorPos[1]).arg(sliceActorPos[1]))
+		//DEBUG_LOG(QString("Actor position %1 %2 %3").arg(sliceActorPos[0]).arg(sliceActorPos[1]).arg(sliceActorPos[1]))
 
 		if (sliceActorPos[0] == 0 && sliceActorPos[1] == 0 && sliceActorPos[2] == 0) //no movement
-			return;
+				return;
 
 		double spacing[3];
 		m_image->GetSpacing(spacing);
 
-
-		// //mapping machen yz -> x, y	xy -> x, y		xz->x, y
+		// //mapping yz -> x, y	xy -> x, y		xz->x, y
 		////currentSlice pos, mode 
-		////stub
-
+		
 		//new code
 		//translateInterActor(m_SliceInteractorTransform, TODO, sliceActorPos, mode);
 		//updateCoords(origin, sliceActorPos, m_currentSliceMode);
@@ -781,81 +778,86 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//prepare the coords thinking of relative movement in display coords
 		double movement[3] = { 0,0,0 };
 
-		
+
 		//output is movement
 		DEBUG_LOG(QString("previous position %1 %2 %3 ")
 			.arg(m_currentSliceActorPosition[0]).arg(m_currentSliceActorPosition[1]).arg(m_currentSliceActorPosition[2]));
-		prepareCoordsXYZ(movement, sliceActorPos);
+		prepareCoordsXYZ(movement, sliceActorPos, true);
 
 		//DEBUG_LOG(QString("previous actor coords %1 %2 %3").arg("")
-		DEBUG_LOG(QString("current slice actor pos %1 %2 %3").arg(sliceActorPos[0]).arg(sliceActorPos[1]).arg(sliceActorPos[2]));
-		DEBUG_LOG(QString("x y z %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2]));
-
+	/*	DEBUG_LOG(QString("current slice actor pos %1 %2 %3").arg(sliceActorPos[0]).arg(sliceActorPos[1]).arg(sliceActorPos[2]));
+		DEBUG_LOG(QString("coords x y z %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2]));
+*/
 
 		//start from slice mode 0 which is slice YZ
 		//int mode0_yz = m_currentSliceMode;
 
 
-		DEBUG_LOG(QString("movement %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2]));		
+		//DEBUG_LOG(QString("movement %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2]));
 
 		//this works
 		/*for (int i = 0; i < 3; i++) {
 			if (i < m_currentSliceMode) continue;
 			TranslateActor(movement, 0);
 
-		//reslicer plane XZ moving by xy
-		//reslicer plane yz moving by xy
-		//reslicer plane xy moving
-		by z
 		*/
 
 		double trans_xy[3] = { movement[0], movement[1],0 };
 		/*	double trans_xz[3] = { relMovement[0], 0,  relMovement[2] };
 			double trans_yz[3] = {0, relMovement[1],  relMovement[2] };*/
-		double trans_z[3] = { 0,0 , movement[2] };
+		double trans_z[3] = { 0,0 , movement[2] }; // only z
 
-
+		//mode 0 -> yZ	//reslicer plane XZ moving by xy
+		//reslicer plane yz moving by xy
+		//reslicer plane xy moving
+		//by z
+		//*/
+		//mode 1 -> xZ
+		//mode 2 -> xy
 		this->TranslateReslicer(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), trans_xy, m_image->GetSpacing(), 0, m_image->GetCenter());
 		this->TranslateReslicer(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), trans_xy, m_image->GetSpacing(), 1, m_image->GetCenter());
-		this->TranslateReslicer(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), trans_z, m_image->GetSpacing(), 2, m_image->GetCenter());
-		/*
-
-		this->setPreivousActorPosition(sliceActorPos); //setting to original
-		}*/
-		
-		//this->TranslateReslicer(m_ReslicerTransform[m_currentSliceMode], m_slicerChannel[m_currentSliceMode]->reslicer(),0,testMovement, 0, 0, testMovement, 0, m_image->GetCenter());
-		
-		// 
-		//this->TranslateReslicer(m_ReslicerTransform[m_currentSliceMode], m_slicerChannel[m_currentSliceMode]->reslicer(), reslPos, spacing, m_currentSliceMode, m_image->GetCenter());
-				
+		this->TranslateReslicer(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), trans_xy, m_image->GetSpacing(), 0, m_image->GetCenter());
+			   
 		double const *volRendPosBefore = m_volumeRenderer->volume()->GetPosition();
-		DEBUG_LOG(QString("VolActor position before\n %1 %2 %3").arg(volRendPosBefore[0]).arg(volRendPosBefore[1]).arg(volRendPosBefore[2]));
-		
+		//DEBUG_LOG(QString("VolActor position before\n %1 %2 %3").arg(volRendPosBefore[0]).arg(volRendPosBefore[1]).arg(volRendPosBefore[2]));
+
+
 		//translate the volume actor
-		vtkSmartPointer<vtkMatrix4x4> matVol = vtkSmartPointer<vtkMatrix4x4>::New();
-		matVol = m_volumeRenderer->volume()->GetUserMatrix();
+		//vtkSmartPointer<vtkMatrix4x4> matVol = vtkSmartPointer<vtkMatrix4x4>::New();
+		/*matVol = m_volumeRenderer->volume()->GetUserMatrix();*/
 		/*if (matVol)
-			m_transform3D->SetMatrix(matVol);*/
-			
+			m_transform3D->SetMactrix(matVol);*/
+
 		double const *volRendPos = m_volumeRenderer->volume()->GetPosition();
-		double movement_3d[3] = { 0, 0, 0 };
+
+		
+
+		double movement_3d[3] = {0, 0,0/* volRendPos[0], volRendPos[1], volRendPos[2]*/};
+		double newPosition_3d[3] = { 0, 0, 0 };
+		//double test[3] =   m_currentSliceActorPosition[0]-
+		//origin + actor position
+		
+		prepareCoordsXYZ(movement_3d, sliceActorPos, true);
+		
+		DEBUG_LOG(QString("movent 3d volume %1 %2 %3").arg(movement_3d[0]).arg(movement_3d[1]).arg(movement_3d[2]));
+		DEBUG_LOG(QString("volRendPos volume %1 %2 %3").arg(volRendPos[0]).arg(volRendPos[1]).arg(volRendPos[2]));
+		
 		
 		for (int i = 0; i < 3; i++) {
-			movement_3d[i] = volRendPos[0] + movement[0];
-
+			newPosition_3d[i] =volRendPos[i] + movement_3d[i]; 
 		}
-
-		m_transform3D->Translate(movement[0], movement[1], movement[2]);
+			   
+		//m_transform3D->Translate(movement[0], movement[1], movement[2]);
 		//m_transform3D->Translate(movement_3d); 
 		//error volumen wandert heraus
 
 		//stattdessen actor position zu den volume renderer
-
-		m_volumeRenderer->volume()->SetPosition(m_transform3D->GetPosition()); //has to do this
+				
+		m_volumeRenderer->volume()->SetPosition(newPosition_3d); //has to do this
 		
 		double const *volRendPosafter = m_volumeRenderer->volume()->GetPosition();
 		DEBUG_LOG(QString("VolActor position %1 %2 %3").arg(volRendPosafter[0]).arg(volRendPosafter[1]).arg(volRendPosafter[2]));
-
+		this->setPreviousActorPosition(sliceActorPos); //setting to original
 		
 		//end experimental
 
@@ -897,6 +899,19 @@ void iAvtkInteractStyleActor::updateInteractors()
 	m_volumeRenderer->update();
 	emit actorsUpdated();
 	
+}
+
+void iAvtkInteractStyleActor::reset()
+{
+	m_volumeRenderer->volume()->SetPosition(0, 0, 0);
+	m_volumeRenderer->volume()->SetOrientation(0, 0, 0);
+
+
+	//tba
+	/*for (int i = 0; i < 3; i++) {
+
+	}*/
+
 }
 
 void iAvtkInteractStyleActor::TranslateActor(double const * movement, uint mode)
@@ -986,20 +1001,28 @@ void iAvtkInteractStyleActor::performTranslationTransform(vtkSmartPointer<vtkTra
 
 
 
-void iAvtkInteractStyleActor::prepareCoordsXYZ(double * movement, double const * sliceActorPos)
-{
+void iAvtkInteractStyleActor::prepareCoordsXYZ(double * movement, double const * newPos, bool relativeMovement)
+{  //position = new - old
+
+	double oldPos[2] = { 0, 0 };
+	if (relativeMovement)
+	{
+		oldPos[0] = m_currentSliceActorPosition[0];
+		oldPos[1] = m_currentSliceActorPosition[1];
+	}
+
 	switch (m_currentSliceMode) {
 	case iASlicerMode::XY:
-		movement[0] = sliceActorPos[0] - m_currentSliceActorPosition[0];
-		movement[1] = sliceActorPos[1] - m_currentSliceActorPosition[1];
+		movement[0] = newPos[0] - oldPos[0];
+		movement[1] = newPos[1] - oldPos[1];
 		break;
 	case iASlicerMode::XZ:
-		movement[0] = sliceActorPos[0] - m_currentSliceActorPosition[0];
-		movement[2] = sliceActorPos[1] - m_currentSliceActorPosition[1];
+		movement[0] = newPos[0] - oldPos[0];
+		movement[2] = newPos[1] - oldPos[1];
 		break;
 	case iASlicerMode::YZ:
-		movement[1] = sliceActorPos[0] - m_currentSliceActorPosition[0];
-		movement[2] = sliceActorPos[1] - m_currentSliceActorPosition[1];
+		movement[1] = newPos[0] - oldPos[0];
+		movement[2] = newPos[1] - oldPos[1];
 		break;
 	}
 	DEBUG_LOG(QString("prepareCoords %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2]));
