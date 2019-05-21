@@ -190,12 +190,12 @@ private slots:
 
 	void checkBoxSelectionChanged();
 
-	void setSliceXYScrollBar();
-	void setSliceXZScrollBar();
-	void setSliceYZScrollBar();
-	void setSliceXYScrollBar(int sliceNumberXY);
-	void setSliceXZScrollBar(int sliceNumberXZ);
-	void setSliceYZScrollBar(int sliceNumberYZ);
+	void onMainXYScrollBarPress();
+	void onMainXZScrollBarPress();
+	void onMainYZScrollBarPress();
+	void onMainXYSliceNumberChanged(int sliceNumberXY);
+	void onMainXZSliceNumberChanged(int sliceNumberXZ);
+	void onMainYZSliceNumberChanged(int sliceNumberYZ);
 
 	//void modalitiesChanged();
 	void histogramAvailable();

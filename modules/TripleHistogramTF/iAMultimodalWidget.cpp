@@ -75,7 +75,7 @@
 //static const char *WEIGHT_FORMAT = "%.10f";
 static const QString DISABLED_TEXT_COLOR = "rgb(0,0,0)"; // black
 static const QString DISABLED_BACKGROUND_COLOR = "rgba(255,255,255)"; // white
-static const int TIMER_UPDATE_VISUALIZATIONS_WAIT_MS = 250;
+static const int TIMER_UPDATE_VISUALIZATIONS_WAIT_MS = 250; // in milliseconds
 
 iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumOfMod num)
 	:
@@ -121,13 +121,17 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 
 	connect(m_checkBox_weightByOpacity, SIGNAL(stateChanged(int)), this, SLOT(checkBoxSelectionChanged()));
 
-	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
-	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZScrollBar(int)));
-	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZScrollBar(int)));
+	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(valueChanged(int)), this, SLOT(onMainXYSliceNumberChanged(int)));
+	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(valueChanged(int)), this, SLOT(onMainXZSliceNumberChanged(int)));
+	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(valueChanged(int)), this, SLOT(onMainYZSliceNumberChanged(int)));
 
-	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(sliderPressed()), this, SLOT(setSliceXYScrollBar()));
-	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(sliderPressed()), this, SLOT(setSliceXZScrollBar()));
-	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(sliderPressed()), this, SLOT(setSliceYZScrollBar()));
+	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(sliderPressed()), this, SLOT(onMainXYScrollBarPress()));
+	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(sliderPressed()), this, SLOT(onMainXZScrollBarPress()));
+	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(sliderPressed()), this, SLOT(onMainYZScrollBarPress()));
+
+	connect(mdiChild->getSlicerDlgXY()->spinBoxXY, SIGNAL(valueChanged(int)), this, SLOT(onMainXYSliceNumberChanged(int)));
+	connect(mdiChild->getSlicerDlgXZ()->spinBoxXZ, SIGNAL(valueChanged(int)), this, SLOT(onMainXZSliceNumberChanged(int)));
+	connect(mdiChild->getSlicerDlgYZ()->spinBoxYZ, SIGNAL(valueChanged(int)), this, SLOT(onMainYZSliceNumberChanged(int)));
 
 	//connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(modalitiesChanged()));
 	connect(mdiChild, SIGNAL(histogramAvailable()), this, SLOT(histogramAvailable()));
@@ -145,6 +149,10 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 // ----------------------------------------------------------------------------------
 
 void iAMultimodalWidget::setSlicerMode(iASlicerMode slicerMode) {
+	if (m_slicerMode == slicerMode) {
+		return;
+	}
+
 	m_slicerMode = slicerMode;
 	int sliceNumber = getSliceNumber();
 	for (int i = 0; i < m_numOfMod; i++) {
@@ -717,28 +725,30 @@ void iAMultimodalWidget::checkBoxSelectionChanged()
 }
 
 // SCROLLBARS (private SLOTS)
-void iAMultimodalWidget::setSliceXYScrollBar()
-{
+void iAMultimodalWidget::onMainXYScrollBarPress() {
 	setSlicerMode(iASlicerMode::XY);
 }
-void iAMultimodalWidget::setSliceXZScrollBar()
-{
+
+void iAMultimodalWidget::onMainXZScrollBarPress() {
 	setSlicerMode(iASlicerMode::XZ);
 }
-void iAMultimodalWidget::setSliceYZScrollBar()
-{
+
+void iAMultimodalWidget::onMainYZScrollBarPress() {
 	setSlicerMode(iASlicerMode::YZ);
 }
-void iAMultimodalWidget::setSliceXYScrollBar(int sliceNumberXY)
-{
+
+void iAMultimodalWidget::onMainXYSliceNumberChanged(int sliceNumberXY) {
+	setSlicerMode(iASlicerMode::XY);
 	setSliceNumber(sliceNumberXY);
 }
-void iAMultimodalWidget::setSliceXZScrollBar(int sliceNumberXZ)
-{
+
+void iAMultimodalWidget::onMainXZSliceNumberChanged(int sliceNumberXZ) {
+	setSlicerMode(iASlicerMode::XZ);
 	setSliceNumber(sliceNumberXZ);
 }
-void iAMultimodalWidget::setSliceYZScrollBar(int sliceNumberYZ)
-{
+
+void iAMultimodalWidget::onMainYZSliceNumberChanged(int sliceNumberYZ) {
+	setSlicerMode(iASlicerMode::YZ);
 	setSliceNumber(sliceNumberYZ);
 }
 
