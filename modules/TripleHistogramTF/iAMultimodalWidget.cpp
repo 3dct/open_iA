@@ -67,6 +67,7 @@
 #include <QStackedLayout>
 #include <QMessageBox>
 #include <QCheckBox>
+#include <QTimer>
 
 // Debug
 #include <QDebug>
@@ -74,14 +75,16 @@
 //static const char *WEIGHT_FORMAT = "%.10f";
 static const QString DISABLED_TEXT_COLOR = "rgb(0,0,0)"; // black
 static const QString DISABLED_BACKGROUND_COLOR = "rgba(255,255,255)"; // white
+static const int TIMER_UPDATE_VISUALIZATIONS_WAIT_MS = 250; // in milliseconds
 
 iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumOfMod num)
 	:
 	m_numOfMod(num),
 	m_mdiChild(mdiChild),
 	m_mainSlicersInitialized(false),
-	//m_weightByOpacity(true),
-	m_minimumWeight(0.01)
+	m_slicerMode(iASlicerMode::XY),
+	m_minimumWeight(0.01),
+	m_timer_updateVisualizations(new QTimer())
 {
 	m_stackedLayout = new QStackedLayout(this);
 	m_stackedLayout->setStackingMode(QStackedLayout::StackOne);
@@ -98,16 +101,15 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 	m_stackedLayout->addWidget(m_disabledLabel);
 	m_stackedLayout->setCurrentIndex(1);
 
-	m_slicerModeComboBox = new QComboBox();
-	m_slicerModeComboBox->addItem("YZ", iASlicerMode::YZ);
-	m_slicerModeComboBox->addItem("XY", iASlicerMode::XY);
-	m_slicerModeComboBox->addItem("XZ", iASlicerMode::XZ);
-
-	m_sliceSlider = new QSlider(Qt::Horizontal);
-	m_sliceSlider->setMinimum(0);
+	m_slicerModeLabel = new QLabel();
+	m_sliceNumberLabel = new QLabel();
+	updateLabels();
 
 	m_checkBox_weightByOpacity = new QCheckBox("Weight by opacity");
 	m_checkBox_weightByOpacity->setChecked(true);
+
+	m_timer_updateVisualizations->setSingleShot(true);
+	m_timerWait_updateVisualizations = TIMER_UPDATE_VISUALIZATIONS_WAIT_MS;
 
 	for (int i = 0; i < m_numOfMod; i++) {
 		m_histograms.push_back(Q_NULLPTR);
@@ -117,21 +119,25 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 		m_copyTFs.push_back(Q_NULLPTR);
 	}
 
-	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slicerModeComboBoxIndexChanged(int)));
-	connect(m_sliceSlider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
-	connect(m_checkBox_weightByOpacity, SIGNAL(stateChanged(int)), this, SLOT(comboBoxSelectionChanged()));
+	connect(m_checkBox_weightByOpacity, SIGNAL(stateChanged(int)), this, SLOT(checkBoxSelectionChanged()));
 
-	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
-	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZScrollBar(int)));
-	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZScrollBar(int)));
+	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(valueChanged(int)), this, SLOT(onMainXYSliceNumberChanged(int)));
+	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(valueChanged(int)), this, SLOT(onMainXZSliceNumberChanged(int)));
+	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(valueChanged(int)), this, SLOT(onMainYZSliceNumberChanged(int)));
 
-	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(sliderPressed()), this, SLOT(setSliceXYScrollBar()));
-	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(sliderPressed()), this, SLOT(setSliceXZScrollBar()));
-	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(sliderPressed()), this, SLOT(setSliceYZScrollBar()));
+	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(sliderPressed()), this, SLOT(onMainXYScrollBarPress()));
+	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(sliderPressed()), this, SLOT(onMainXZScrollBarPress()));
+	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(sliderPressed()), this, SLOT(onMainYZScrollBarPress()));
+
+	connect(mdiChild->getSlicerDlgXY()->spinBoxXY, SIGNAL(valueChanged(int)), this, SLOT(onMainXYSliceNumberChanged(int)));
+	connect(mdiChild->getSlicerDlgXZ()->spinBoxXZ, SIGNAL(valueChanged(int)), this, SLOT(onMainXZSliceNumberChanged(int)));
+	connect(mdiChild->getSlicerDlgYZ()->spinBoxYZ, SIGNAL(valueChanged(int)), this, SLOT(onMainYZSliceNumberChanged(int)));
 
 	//connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(modalitiesChanged()));
 	connect(mdiChild, SIGNAL(histogramAvailable()), this, SLOT(histogramAvailable()));
 	connect(mdiChild, &MdiChild::renderSettingsChanged, this, &iAMultimodalWidget::applyVolumeSettings);
+
+	connect(m_timer_updateVisualizations, SIGNAL(timeout()), this, SLOT(onUpdateVisualizationsTimeout()));
 
 	histogramAvailable();
 }
@@ -142,23 +148,31 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 // 
 // ----------------------------------------------------------------------------------
 
-bool iAMultimodalWidget::setSlicerMode(iASlicerMode slicerMode) {
-	if (slicerMode != getSlicerMode()) {
-		m_slicerModeComboBox->setCurrentIndex(m_slicerModeComboBox->findData(slicerMode));
-		emit slicerModeChangedExternally(slicerMode);
-		return true;
+void iAMultimodalWidget::setSlicerMode(iASlicerMode slicerMode) {
+	if (m_slicerMode == slicerMode) {
+		return;
 	}
-	return false;
+
+	m_slicerMode = slicerMode;
+	int sliceNumber = getSliceNumber();
+	for (int i = 0; i < m_numOfMod; i++) {
+		w_slicer(i)->setSlicerMode(slicerMode);
+		w_slicer(i)->setSliceNumber(sliceNumber);
+	}
+	updateLabels();
+	updateVisualizationsLater();
+
+	emit slicerModeChangedExternally(slicerMode);
 }
 
-bool iAMultimodalWidget::setSliceNumber(int sliceNumber) {
-	if (sliceNumber != getSliceNumber()) {
-		m_sliceSlider->setValue(sliceNumber);
-		emit sliceNumberChangedExternally(sliceNumber);
-		qDebug() << "setSliceNumber" << sliceNumber;
-		return true;
+void iAMultimodalWidget::setSliceNumber(int sliceNumber) {
+	for (int i = 0; i < m_numOfMod; i++) {
+		w_slicer(i)->setSliceNumber(sliceNumber);
 	}
-	return false;
+	updateLabels();
+	updateVisualizationsLater();
+
+	emit sliceNumberChangedExternally(sliceNumber);
 }
 
 void iAMultimodalWidget::setWeightsProtected(BCoord bCoord, double t)
@@ -169,68 +183,22 @@ void iAMultimodalWidget::setWeightsProtected(BCoord bCoord, double t)
 
 	m_weights = bCoord;
 	applyWeights();
-	updateMainHistogram();
-	updateMainSlicers();
+	updateVisualizationsLater();
 	emit weightsChanged2(t);
 	emit weightsChanged3(bCoord);
 }
 
-void iAMultimodalWidget::setSlicerModeProtected(iASlicerMode slicerMode) {
-	if (isReady()) {
-		for (QSharedPointer<iASimpleSlicerWidget> slicer : m_slicerWidgets) {
-			slicer->setSlicerMode(slicerMode);
-		}
-
-		int dimensionIndex;
-		int sliceNumber;
-		switch (slicerMode)
-		{
-		case iASlicerMode::YZ:
-			dimensionIndex = 0; // X length is in position 0 in the dimensions array
-			sliceNumber = m_mdiChild->getSlicerDataYZ()->getSliceNumber();
-			break;
-		case iASlicerMode::XZ:
-			dimensionIndex = 1; // Y length is in position 1 in the dimensions array
-			sliceNumber = m_mdiChild->getSlicerDataXZ()->getSliceNumber();
-			break;
-		case iASlicerMode::XY:
-			dimensionIndex = 2; // Z length is in position 2 in the dimensions array
-			sliceNumber = m_mdiChild->getSlicerDataXY()->getSliceNumber();
-			break;
-		default:
-			// TODO exception
-			return;
-		}
-
-		int dimensionLength = m_mdiChild->getImageData()->GetDimensions()[dimensionIndex];
-		m_sliceSlider->setMaximum(dimensionLength - 1);
-		if (!setSliceNumber(sliceNumber)) {
-			sliderValueChanged(sliceNumber);
-		}
-
-		emit slicerModeChanged(slicerMode);
-	}
+void iAMultimodalWidget::updateVisualizationsLater() {
+	m_timer_updateVisualizations->start(m_timerWait_updateVisualizations);
 }
 
-void iAMultimodalWidget::setSliceNumberProtected(int sliceNumber)
+void iAMultimodalWidget::updateVisualizationsNow()
 {
-	if (isReady()) {
-		for (QSharedPointer<iASimpleSlicerWidget> slicer : m_slicerWidgets) {
-			slicer->setSliceNumber(sliceNumber);
-		}
-		updateMainSlicers();
-		emit sliceNumberChanged(sliceNumber);
-		qDebug() << "setSliceNumberPrivate" << sliceNumber;
-	}
-}
+	m_timer_updateVisualizations->stop();
 
-void iAMultimodalWidget::updateMainHistogram()
-{
 	m_mdiChild->redrawHistogram();
 	m_mdiChild->getRenderer()->update();
-}
 
-void iAMultimodalWidget::updateMainSlicers() {
 	if (!m_mainSlicersInitialized)
 		return;
 
@@ -321,38 +289,6 @@ void iAMultimodalWidget::updateMainSlicers() {
 			imgOut->SetScalarComponentFromFloat(x, y, z, 3, a);
 		}
 
-		/*
-		
-		// alternative implementation, avoiding calls to SetScalarComponentFromFloat,
-		// instead directly accessing the pixel buffer
-		// unfortunately it is not really faster - both take ~190ms on average on BF's machine, 
-		// though there were a few longer runs (up to ~350ms) for the variant above but not the
-		// one below.
-
-		unsigned char const * imgBuf1 = static_cast<unsigned char*>(imgIn1->GetScalarPointer());
-		unsigned char const * imgBuf2 = static_cast<unsigned char*>(imgIn2->GetScalarPointer());
-		unsigned char const * imgBuf3 = (m_numOfMod == THREE) ?
-			static_cast<unsigned char*>(imgIn3->GetScalarPointer()) : nullptr;
-		unsigned char * imgBufOut = static_cast<unsigned char*>(imgOut->GetScalarPointer());
-		FOR_VTKIMG_PIXELS_IDX(imgOut, idx) {
-			size_t curIdx = idx * 4;
-			unsigned char const * const rgba1 = imgBuf1 + curIdx;
-			unsigned char const * const rgba2 = imgBuf2 + curIdx;
-			unsigned char rgba3[4];
-			std::fill(rgba3, rgba3 + 4, 0);
-			if (m_numOfMod == THREE) {
-				for (int i = 0; i < 4; ++i) {
-					rgba3[i] = imgBuf3[curIdx + i];
-				}
-			}
-			unsigned char * rgbaOut = imgBufOut + curIdx;
-			auto w = getWeights();
-			for (int c=0; c<3; ++c)
-				rgbaOut[c] = (rgba1[c] * w[0]) + (rgba2[c] * w[1]) + (rgba3[c] * w[2]);
-			rgbaOut[4] = 255; // Max alpha!
-		}
-		*/
-
 		// Sets the INPUT image which will be sliced again, but we have a sliced image already
 		//m_mdiChild->getSlicerDataYZ()->changeImageData(imgOut);
 		imgOut->Modified();
@@ -364,35 +300,12 @@ void iAMultimodalWidget::updateMainSlicers() {
 	m_mdiChild->getSlicerYZ()->update();
 }
 
-void iAMultimodalWidget::updateScrollBars(int newValue)
-{
-	switch (getSlicerMode())
-	{
-	case iASlicerMode::YZ:
-		m_mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ->setValue(newValue);
-		//m_mdiChild->getSlicerYZ()->setSliceNumber(sliceNumber); // Not necessary because setting the scrollbar already does this
-		break;
-	case iASlicerMode::XZ:
-		m_mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ->setValue(newValue);
-		//m_mdiChild->getSlicerXZ()->setSliceNumber(sliceNumber);
-		break;
-	case iASlicerMode::XY:
-		m_mdiChild->getSlicerDlgXY()->verticalScrollBarXY->setValue(newValue);
-		//m_mdiChild->getSlicerXY()->setSliceNumber(sliceNumber);
-		break;
-	default:
-		// TODO exception
-		return;
-	}
-}
-
 void iAMultimodalWidget::updateTransferFunction(int index)
 {
 	updateOriginalTransferFunction(index);
 	w_slicer(index)->update();
 	w_histogram(index)->update();
-	updateMainHistogram();
-	updateMainSlicers();
+	updateVisualizationsLater();
 }
 
 void iAMultimodalWidget::updateDisabledLabel()
@@ -494,7 +407,7 @@ void iAMultimodalWidget::histogramAvailable() {
 	}
 
 	m_mainSlicersInitialized = true;
-	updateMainSlicers();
+	updateVisualizationsNow();
 }
 
 void iAMultimodalWidget::applyVolumeSettings()
@@ -509,7 +422,6 @@ void iAMultimodalWidget::applyVolumeSettings()
 	volProp->SetShade(vs.Shading);
 	if (vs.ScalarOpacityUnitDistance > 0)
 		volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
-	m_combinedVolMapper->SetRequestedRenderMode(vs.RenderMode);
 	if (m_mdiChild->GetRenderSettings().ShowSlicers)
 	{
 		m_combinedVolMapper->AddClippingPlane(m_mdiChild->getRenderer()->getPlane1());
@@ -601,9 +513,6 @@ void iAMultimodalWidget::updateModalities()
 
 	emit(modalitiesLoaded_beforeUpdate());
 
-	setSlicerModeProtected(getSlicerMode());
-	//setSliceNumber(getSliceNumber()); // Already called in setSlicerMode(iASlicerMode)
-
 	update();
 }
 
@@ -622,8 +531,6 @@ void iAMultimodalWidget::resetSlicer(int i)
 	m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	if (m_modalitiesActive[i]) {
 		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
-		m_slicerWidgets[i]->setSlicerMode(getSlicerMode());
-		m_slicerWidgets[i]->setSliceNumber(getSliceNumber());
 	}
 }
 
@@ -658,7 +565,7 @@ void iAMultimodalWidget::originalHistogramChanged()
 		if (selected == getModality(i)) {
 			updateCopyTransferFunction(i);
 			updateTransferFunction(i);
-			updateMainSlicers();
+			updateVisualizationsLater();
 			return;
 		}
 	}
@@ -713,29 +620,31 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 */
 void iAMultimodalWidget::updateOriginalTransferFunction(int index)
 {
-	if (isReady()) {
-		double weight = getWeight(index);
+	if (!isReady()) {
+		return;
+	}
 
-		// newly set transfer function (set via the histogram)
-		QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->GetTransfer();
+	double weight = getWeight(index);
 
-		// copy of previous transfer function, to be updated in this method
-		QSharedPointer<iATransferFunction> copy = m_copyTFs[index];
+	// newly set transfer function (set via the histogram)
+	QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->GetTransfer();
 
-		double valCol[6], valOp[4];
-		effective->getColorFunction()->RemoveAllPoints();
-		effective->getOpacityFunction()->RemoveAllPoints();
+	// copy of previous transfer function, to be updated in this method
+	QSharedPointer<iATransferFunction> copy = m_copyTFs[index];
 
-		for (int j = 0; j < copy->getColorFunction()->GetSize(); ++j)
-		{
-			copy->getColorFunction()->GetNodeValue(j, valCol);
-			copy->getOpacityFunction()->GetNodeValue(j, valOp);
+	double valCol[6], valOp[4];
+	effective->getColorFunction()->RemoveAllPoints();
+	effective->getOpacityFunction()->RemoveAllPoints();
 
-			valOp[1] = valOp[1] * weight; // index 1 means opacity
+	for (int j = 0; j < copy->getColorFunction()->GetSize(); ++j)
+	{
+		copy->getColorFunction()->GetNodeValue(j, valCol);
+		copy->getOpacityFunction()->GetNodeValue(j, valOp);
 
-			effective->getColorFunction()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
-			effective->getOpacityFunction()->AddPoint(valOp[0], valOp[1], valOp[2], valOp[3]);
-		}
+		valOp[1] = valOp[1] * weight; // index 1 means opacity
+
+		effective->getColorFunction()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
+		effective->getOpacityFunction()->AddPoint(valOp[0], valOp[1], valOp[2], valOp[3]);
 	}
 }
 
@@ -768,60 +677,78 @@ void iAMultimodalWidget::applyWeights()
 // Short methods
 // ----------------------------------------------------------------------------------
 
-iASlicerMode iAMultimodalWidget::getSlicerMode()
-{
-	return (iASlicerMode)m_slicerModeComboBox->currentData().toInt();
+void iAMultimodalWidget::onUpdateVisualizationsTimeout() {
+	updateVisualizationsNow();
 }
 
-iASlicerMode iAMultimodalWidget::getSlicerModeAt(int comboBoxIndex)
-{
-	return (iASlicerMode)m_slicerModeComboBox->itemData(comboBoxIndex).toInt();
+iASlicerMode iAMultimodalWidget::getSlicerMode() {
+	return m_slicerMode;
 }
 
-int iAMultimodalWidget::getSliceNumber()
-{
-	return m_sliceSlider->value();
+QString iAMultimodalWidget::getSlicerModeString() {
+	switch (m_slicerMode) {
+	case iASlicerMode::YZ:
+		return "YZ";
+	case iASlicerMode::XZ:
+		return "XZ";
+	case iASlicerMode::XY:
+		return "XY";
+	default:
+		// TODO exception
+		return -1;
+	}
 }
 
-void iAMultimodalWidget::slicerModeComboBoxIndexChanged(int newIndex)
-{
-	setSlicerModeProtected(getSlicerModeAt(newIndex));
+void iAMultimodalWidget::updateLabels() {
+	m_slicerModeLabel->setText("Slicer mode: " + getSlicerModeString());
+	m_sliceNumberLabel->setText("Slice number: " + QString::number(getSliceNumber()));
 }
 
-void iAMultimodalWidget::sliderValueChanged(int newValue)
-{
-	setSliceNumberProtected(newValue);
-	updateScrollBars(newValue);
+int iAMultimodalWidget::getSliceNumber() {
+	switch (m_slicerMode)
+	{
+	case iASlicerMode::YZ:
+		return m_mdiChild->getSlicerDataYZ()->getSliceNumber();
+	case iASlicerMode::XZ:
+		return m_mdiChild->getSlicerDataXZ()->getSliceNumber();
+	case iASlicerMode::XY:
+		return m_mdiChild->getSlicerDataXY()->getSliceNumber();
+	default:
+		// TODO exception
+		return -1;
+	}
 }
 
-void iAMultimodalWidget::comboBoxSelectionChanged()
+void iAMultimodalWidget::checkBoxSelectionChanged()
 {
-	updateMainSlicers();
+	updateVisualizationsNow();
 }
 
 // SCROLLBARS (private SLOTS)
-void iAMultimodalWidget::setSliceXYScrollBar()
-{
+void iAMultimodalWidget::onMainXYScrollBarPress() {
 	setSlicerMode(iASlicerMode::XY);
 }
-void iAMultimodalWidget::setSliceXZScrollBar()
-{
+
+void iAMultimodalWidget::onMainXZScrollBarPress() {
 	setSlicerMode(iASlicerMode::XZ);
 }
-void iAMultimodalWidget::setSliceYZScrollBar()
-{
+
+void iAMultimodalWidget::onMainYZScrollBarPress() {
 	setSlicerMode(iASlicerMode::YZ);
 }
-void iAMultimodalWidget::setSliceXYScrollBar(int sliceNumberXY)
-{
+
+void iAMultimodalWidget::onMainXYSliceNumberChanged(int sliceNumberXY) {
+	setSlicerMode(iASlicerMode::XY);
 	setSliceNumber(sliceNumberXY);
 }
-void iAMultimodalWidget::setSliceXZScrollBar(int sliceNumberXZ)
-{
+
+void iAMultimodalWidget::onMainXZSliceNumberChanged(int sliceNumberXZ) {
+	setSlicerMode(iASlicerMode::XZ);
 	setSliceNumber(sliceNumberXZ);
 }
-void iAMultimodalWidget::setSliceYZScrollBar(int sliceNumberYZ)
-{
+
+void iAMultimodalWidget::onMainYZSliceNumberChanged(int sliceNumberYZ) {
+	setSlicerMode(iASlicerMode::YZ);
 	setSliceNumber(sliceNumberYZ);
 }
 

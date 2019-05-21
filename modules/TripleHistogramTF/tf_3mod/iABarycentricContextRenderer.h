@@ -20,29 +20,45 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iATriangleRenderer.h"
+#include "BarycentricTriangle.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 
-#include <QImage>
+#include <QWidget>
 
-class iABarycentricContextRenderer : public iATriangleRenderer
+class QImage;
+class QRect;
+class QTimer;
+
+class iABarycentricContextRenderer : public QWidget
 {
+	Q_OBJECT
+
 public:
 	iABarycentricContextRenderer();
-	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle) override;
-	void setTriangle(BarycentricTriangle triangle) override;
-	~iABarycentricContextRenderer() override;
-	void paintContext(QPainter &p) override;
-	bool canPaint() override;
+	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle);
+	void setTriangle(BarycentricTriangle triangle);
+	QImage* getImage();
+	QRect getImageRect();
 
 private:
 	void calculateCoordinates(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
 	void updateTriangle(BarycentricTriangle triangle);
-	void drawImage(BarycentricTriangle triangle, int width, int height);
+	void drawImageLater();
+	void drawImageNow();
 
 	vtkSmartPointer<vtkImageData> m_barycentricCoordinates;
-	QImage m_image;
-	QPoint m_imagePoint;
+	QImage *m_image;
+	QRect m_imageRect;
+	BarycentricTriangle m_triangle;
+
+	QTimer *m_timer_heatmap;
+	int m_timerWait_heatmap;
+
+signals:
+	void heatmapReady();
+
+private slots:
+	void onHeatmapTimeout();
 };

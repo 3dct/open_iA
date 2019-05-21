@@ -31,7 +31,7 @@
 
 class iABarycentricTriangleWidget;
 class iASimpleSlicerWidget;
-class iATriangleRenderer;
+class iABarycentricContextRenderer;
 
 class iADiagramFctWidget;
 class iAModality;
@@ -44,6 +44,7 @@ class vtkPiecewiseFunction;
 class QComboBox;
 class QLabel;
 class QSlider;
+class QSpinBox;
 
 class iATripleModalityWidget : public iAMultimodalWidget
 {
@@ -75,7 +76,7 @@ private:
 	void setLayoutTypePrivate(iAHistogramAbstractType type);
 
 	iABarycentricTriangleWidget *m_triangleWidget;
-	iATriangleRenderer *m_triangleRenderer;
+	iABarycentricContextRenderer *m_triangleRenderer;
 
 	iAHistogramAbstract *m_histogramAbstract = nullptr;
 	iAHistogramAbstractType m_histogramAbstractType;
