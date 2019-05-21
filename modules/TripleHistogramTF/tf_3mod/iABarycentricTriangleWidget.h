@@ -118,7 +118,7 @@ private:
 	void updateControlPointPosition(QPoint newPos) {
 		auto bc = m_triangle.getBarycentricCoordinates(newPos.x(), newPos.y());
 		int a = bc[0] * 100;
-		int b = bc[0] * 100;
+		int b = bc[1] * 100;
 		int c = 100 - a - b;
 		updateControlPoint(bc, newPos, a, b, c);
 	}
