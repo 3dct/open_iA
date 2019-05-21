@@ -51,7 +51,6 @@
 // Debug
 #include <QDebug>
 
-const static QString DEFAULT_LABELS[3] = { "A", "B", "C" };
 
 dlg_tf_3mod::dlg_tf_3mod(MdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */)
 	:

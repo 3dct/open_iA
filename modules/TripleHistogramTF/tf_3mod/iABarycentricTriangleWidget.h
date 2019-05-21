@@ -53,7 +53,7 @@ public:
 	void setWeight(BCoord newWeight);
 
 	void setTriangleRenderer(iABarycentricContextRenderer *triangleRenderer);
-	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
+	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, QString const name[3]);
 
 	BarycentricTriangle getTriangle() { return m_triangle; }
 

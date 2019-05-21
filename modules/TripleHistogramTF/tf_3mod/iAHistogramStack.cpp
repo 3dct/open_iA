@@ -44,13 +44,12 @@ iAHistogramStack::iAHistogramStack(QWidget* parent, iATripleModalityWidget *trip
 {
 }
 
-void iAHistogramStack::initialize()
+void iAHistogramStack::initialize(QString const names[3])
 {
-	const QString modalityLabels[3] = { "A", "B", "C" };
 	QVector<QLabel*> labels;
 	for (int i = 0; i < 3; i++) {
-		auto l = new QLabel(modalityLabels[i]);
-		l->setStyleSheet("font-weight: bold");
+		auto l = new QLabel(names[i]);
+		l->setStyleSheet("font-weight: bold; font-size: 10pt;");
 		l->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 		labels.push_back(l);
 	}

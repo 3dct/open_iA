@@ -68,7 +68,7 @@ void iAHistogramTriangle::glresized() {
 	qDebug() << "GL RESIZED!";
 }
 
-void iAHistogramTriangle::initialize()
+void iAHistogramTriangle::initialize(QString const names[3])
 {
 	m_clipPathPen.setWidth(1);
 	m_clipPathPen.setColor(Qt::black);

@@ -32,7 +32,7 @@ enum iAHistogramAbstractType {
 class iAHistogramAbstract : public QWidget
 {
 public:
-	virtual void initialize() = 0;
+	virtual void initialize(QString const names[3]) = 0;
 	virtual bool isSlicerInteractionEnabled() = 0;
 
 	static iAHistogramAbstract* buildHistogramAbstract(iAHistogramAbstractType type, iATripleModalityWidget *tmw, MdiChild *mdiChild, Qt::WindowFlags f = 0);

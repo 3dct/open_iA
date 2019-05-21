@@ -41,7 +41,7 @@ public:
 	iAHistogramStack(QWidget* parent, iATripleModalityWidget *tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f = 0);
 
 	// OVERRIDES
-	void initialize() override;
+	void initialize(QString const names[3]) override;
 	bool isSlicerInteractionEnabled() override { return true; }
 
 private:

@@ -69,6 +69,7 @@ iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*
 		sb->setSingleStep(1);
 		sb->setSuffix("%");
 		sb->setPrefix(mod[i]);
+		sb->setStyleSheet("font-size: 10pt;");
 	}
 
 	connect(m_spinBoxes[0], SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged_1(int)));
@@ -372,9 +373,11 @@ void iABarycentricTriangleWidget::setTriangleRenderer(iABarycentricContextRender
 	}
 }
 
-void iABarycentricTriangleWidget::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3)
+void iABarycentricTriangleWidget::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, QString const name[3])
 {
 	m_triangleRenderer->setModalities(d1, d2, d3, m_triangle);
+	for (int i = 0; i < 3; ++i)
+		m_spinBoxes[i]->setPrefix(QString("%1: ").arg(name[i]));
 }
 
 void iABarycentricTriangleWidget::resizeEvent(QResizeEvent* event)

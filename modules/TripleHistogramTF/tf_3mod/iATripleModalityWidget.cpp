@@ -77,7 +77,10 @@ iAHistogramAbstractType iATripleModalityWidget::getLayoutTypeAt(int comboBoxInde
 
 void iATripleModalityWidget::updateModalities()
 {
-	m_triangleWidget->setModalities(getModality(0)->GetImage(), getModality(1)->GetImage(), getModality(2)->GetImage());
+	QString names[3];
+	for (int i = 0; i < 3; ++i)
+		names[i] = getModality(i)->GetName();
+	m_triangleWidget->setModalities(getModality(0)->GetImage(), getModality(1)->GetImage(), getModality(2)->GetImage(), names);
 	m_triangleWidget->update();
 }
 
@@ -98,7 +101,10 @@ void iATripleModalityWidget::weightsChangedSlot(BCoord bCoord)
 // SLOT
 void iATripleModalityWidget::modalitiesLoaded_beforeUpdateSlot() {
 	updateModalities();
-	m_histogramAbstract->initialize();
+	QString names[3];
+	for (int i = 0; i < 3; ++i)
+		names[i] = getModality(i)->GetName();
+	m_histogramAbstract->initialize(names);
 }
 
 void iATripleModalityWidget::setHistogramAbstractType(iAHistogramAbstractType type) {
@@ -136,6 +142,9 @@ void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) 
 	m_histogramAbstract = histogramAbstract_new;
 
 	if (isReady()) {
-		m_histogramAbstract->initialize();
+		QString names[3];
+		for (int i = 0; i < 3; ++i)
+			names[i] = getModality(i)->GetName();
+		m_histogramAbstract->initialize(names);
 	}
 }
