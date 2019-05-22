@@ -200,16 +200,22 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 void iAvtkInteractStyleActor::rotateInterActorProp(vtkSmartPointer<vtkTransform> &transform,  double const *center, double angle, vtkProp3D *prop, uint mode)
 {
 	vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
-	//mat = prop->GetUserMatrix();
-	//if (mat) {
-	//	//DEBUG_LOG("Matrix successfull");
-	//	transform->SetMatrix(mat);
-	//}
+	mat = prop->GetUserMatrix();
+	if (mat) {
+		//DEBUG_LOG("Matrix successfull");
+		transform->SetMatrix(mat);
+	}
+	//transform->Identity(); 
 
 	rotateAroundAxis(transform, center, mode, angle);
+	prop->SetPosition(transform->GetPosition());
 
-	prop->SetUserTransform(transform);
-	//prop->SetOrientation(transform->GetOrientation()); 
+
+	prop->SetOrientation(transform->GetOrientation());
+	//prop->SetUserTransform(transform);
+	//original
+
+	
 	
 }
 
@@ -688,6 +694,14 @@ void iAvtkInteractStyleActor::updateInteractors()
 		relMovement[1] = posVol[1] - m_currentVolRendererPosition[1];
 		relMovement[2] = posVol[2] - m_currentVolRendererPosition[2];
 
+		if ((relMovement[0] == 0) && (relMovement[1] == 0) && (relMovement[3] == 0))
+
+		{
+			DEBUG_LOG("no movement"); 
+			return; 
+		}
+			 
+
 		//prepare transform for every slicer 
 		//relative translation of the interactor
 
@@ -714,9 +728,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//m_SliceInteractorTransform[0]->Translate(relMovement[0], relMovement[1], 0);//relative movement for xy
 		//m_SliceInteractorTransform[1]->Translate(relMovement[0], relMovement[2], 0);//rel movement xz
 		//m_SliceInteractorTransform[2]->Translate(relMovement[1], relMovement[2], 0); //rel movement yz
-		//m_slicerChannel[0]->imageActor()->SetUserTransform(m_SliceInteractorTransform[0]);
-		//m_slicerChannel[1]->imageActor()->SetUserTransform(m_SliceInteractorTransform[1]);
-		//m_slicerChannel[2]->imageActor()->SetUserTransform(m_SliceInteractorTransform[2]);
+		
 
 		double trans_xy[3] = { relMovement[0], relMovement[1],0 };
 	/*	double trans_xz[3] = { relMovement[0], 0,  relMovement[2] };
@@ -733,8 +745,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//angenommen das geht dann den reslicer transformieren
 
 
-		//nur statt dem den reslicer transformieren
-
+		
 		//store current position of renderer
 
 		m_currentVolRendererPosition[0] = posVol[0];
@@ -750,7 +761,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 			return;
 
 		//This is a translation of current slicer
-		DEBUG_LOG(QString("iam translating %1").arg(m_currentSliceMode));
+		DEBUG_LOG(QString("2D translation %1").arg(m_currentSliceMode));
 
 		//takes position of the current actor //currentActor is translated
 		double sliceActorPos[3];
@@ -759,8 +770,8 @@ void iAvtkInteractStyleActor::updateInteractors()
 		std::copy(tmpslicepos, tmpslicepos + 3, sliceActorPos);
 		//DEBUG_LOG(QString("Actor position %1 %2 %3").arg(sliceActorPos[0]).arg(sliceActorPos[1]).arg(sliceActorPos[1]))
 
-		if (sliceActorPos[0] == 0 && sliceActorPos[1] == 0 && sliceActorPos[2] == 0) //no movement
-				return;
+		//if (sliceActorPos[0] == 0 && sliceActorPos[1] == 0 && sliceActorPos[2] == 0) //no movement
+		//		return;
 
 		double spacing[3];
 		m_image->GetSpacing(spacing);
@@ -784,6 +795,10 @@ void iAvtkInteractStyleActor::updateInteractors()
 			.arg(m_currentSliceActorPosition[0]).arg(m_currentSliceActorPosition[1]).arg(m_currentSliceActorPosition[2]));
 		prepareCoordsXYZ(movement, sliceActorPos, true);
 
+		if ((movement[0] == 0) && (movement[1] == 0) && (movement[2] == 0)){
+			return; 
+		}
+
 		//DEBUG_LOG(QString("previous actor coords %1 %2 %3").arg("")
 	/*	DEBUG_LOG(QString("current slice actor pos %1 %2 %3").arg(sliceActorPos[0]).arg(sliceActorPos[1]).arg(sliceActorPos[2]));
 		DEBUG_LOG(QString("coords x y z %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2]));
@@ -793,7 +808,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//int mode0_yz = m_currentSliceMode;
 
 
-		//DEBUG_LOG(QString("movement %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2]));
+		DEBUG_LOG(QString("Translation movement %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2]));
 
 		//this works
 		/*for (int i = 0; i < 3; i++) {
@@ -865,14 +880,13 @@ void iAvtkInteractStyleActor::updateInteractors()
 		for (int i = 0; i < 3; i++) {
 			newPosition_3d[i] =volRendPos[i] + movement_3d[i]; 
 		}
-			   
-		//m_transform3D->Translate(movement[0], movement[1], movement[2]);
-		//m_transform3D->Translate(movement_3d); 
+				
+		m_transform3D->Translate(movement_3d);
 		//error volumen wandert heraus
 
 		//stattdessen actor position zu den volume renderer
 				
-		m_volumeRenderer->volume()->SetPosition(newPosition_3d); //has to do this
+		m_volumeRenderer->volume()->SetPosition(m_transform3D->GetPosition());; //has to do this
 		
 		double const *volRendPosafter = m_volumeRenderer->volume()->GetPosition();
 		DEBUG_LOG(QString("VolActor position %1 %2 %3").arg(volRendPosafter[0]).arg(volRendPosafter[1]).arg(volRendPosafter[2]));
@@ -926,10 +940,7 @@ void iAvtkInteractStyleActor::reset()
 	m_volumeRenderer->volume()->SetOrientation(0, 0, 0);
 
 
-	//tba
-	/*for (int i = 0; i < 3; i++) {
 
-	}*/
 
 }
 
@@ -1011,10 +1022,7 @@ void iAvtkInteractStyleActor::performTranslationTransform(vtkSmartPointer<vtkTra
 		double posOut[3] = { 0,0, 0, };
 		
 		transform->GetPosition(posOut);//m_currentSliceActorPosition, posOut);
-		actor->SetPosition(posOut); 
-		//actor->SetUserTransform(transform);
-		/*m_slicerChannel[1]->imageActor()->SetUserTransform(m_SliceInteractorTransform[1]);
-		m_slicerChannel[2]->imageActor()->SetUserTransform(m_SliceInteractorTransform[2]);*/
+		actor->SetPosition(posOut);		
 		actor->Update();
 	}
 
@@ -1085,6 +1093,7 @@ void iAvtkInteractStyleActor::rotate2D()
 	this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing()); 
 	this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), 2, imageCenter, relativeAngle, m_image->GetSpacing());
 
+	this->setPreviousActorPosition(sliceProbCenter);
 	//this->rotateInterActorProp(m_SliceInteractorTransform[m_currentSliceMode], sliceProbCenter, relativeAngle, this->InteractionProp,2);
 	
 	
@@ -1096,9 +1105,20 @@ void iAvtkInteractStyleActor::rotate2D()
 	
 	//rotate around axis based on the spacing needed  //otherwise multiply center with spacing??
 	
+	double const *volObjPos = m_volumeRenderer->volume()->GetPosition(); 
+
+	DEBUG_LOG(QString("volPosition %1 %2 %3").arg(volObjPos[0]).arg(volObjPos[1]).arg(volObjPos[2]));
+	DEBUG_LOG(QString("volCenter %1 %2 %3").arg(volImageCenter[0]).arg(volImageCenter[1]).arg(volImageCenter[2]));
+	DEBUG_LOG(QString("imageCenter %1 %2 %3").arg(imageCenter[0]).arg(imageCenter[1]).arg(imageCenter[2]));
+
 	//rotate in actor in 3D
-	this->rotateInterActorProp(m_transform3D, imageCenter, relativeAngle, m_volumeRenderer->volume(), m_currentSliceMode); 
+	this->rotateInterActorProp(m_transform3D, m_volumeRenderer->volume()->GetCenter(), relativeAngle, m_volumeRenderer->volume(), m_currentSliceMode); 
 	//evtl die Orientation an die Transform weiter geben als INPut //TODO
+
+	double const *center = m_volumeRenderer->volume()->GetCenter(); 
+	//m_currentVolRendererPosition = m_volumeRenderer->volume()->GetCenter(); 
+	this->setPreviousVolActorPosion(center); 
+	
 
 	//custom center
 	const int* imgExtend = m_image->GetExtent();
@@ -1133,6 +1153,10 @@ void iAvtkInteractStyleActor::rotate2D()
 
 void iAvtkInteractStyleActor::rotate3D()
 {
+	//starting from 3d, then rotate reslicer
+
+	DEBUG_LOG("rotate 3d");
+
 	if (this->CurrentRenderer == nullptr || this->InteractionProp == nullptr)
 	{
 		return;
@@ -1221,7 +1245,8 @@ void iAvtkInteractStyleActor::rotate3D()
 
 	    double const *orientationAfter = m_volumeRenderer->volume()->GetOrientation();
 		DEBUG_LOG(QString("new Orientation %1 %2 %3").arg(orientationAfter[0]).arg(orientationAfter[1]).arg(orientationAfter[2]));
-		
+		//orientation after is zero
+
 		double test = oldYAngle - newYAngle;
 		DEBUG_LOG(QString("Angle %1").arg(test)); 
 
@@ -1273,6 +1298,7 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 	if (!reslice)
 		return; 
 
+	DEBUG_LOG("Translate reslicer");
 	//vtkSmartPointer<vtkMatrix4x4> mat = m_slicerChannel[sliceMode]->reslicer()->GetResliceAxes();
 	//if (mat) {
 	//	DEBUG_LOG("Setting input matrix");

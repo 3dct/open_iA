@@ -132,7 +132,7 @@ private:
 		m_currentSliceActorPosition[2] = pos[2]; 
  	}
 
-	inline void setVolActorPosiont(double const *pos) {
+	inline void setPreviousVolActorPosion(double const *pos) {
 		m_currentVolRendererPosition[0] = pos[0];
 		m_currentVolRendererPosition[1] = pos[1];
 		m_currentVolRendererPosition[2] = pos[2];
