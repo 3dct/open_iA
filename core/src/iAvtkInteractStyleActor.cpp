@@ -1156,11 +1156,8 @@ void iAvtkInteractStyleActor::rotate2D()
 
 	//rotate in actor in 3D
 	this->rotateInterActorProp(m_transform3D, m_volumeRenderer->volume()->GetCenter(), relativeAngle, m_volumeRenderer->volume(), m_currentSliceMode); 
-	//evtl die Orientation an die Transform weiter geben als INPut //TODO
-
-	double const *center = m_volumeRenderer->volume()->GetCenter(); 
-	//m_currentVolRendererPosition = m_volumeRenderer->volume()->GetCenter(); 
-	this->setPreviousVolActorPosition(center); 
+		 
+	this->setPreviousVolActorPosition(m_volumeRenderer->volume()->GetPosition());
 	this->setPreviouSlicesActorPosition(m_slicerChannel[m_currentSliceMode]->actorPosition());
 
 	
