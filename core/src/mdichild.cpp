@@ -2286,6 +2286,8 @@ void MdiChild::setCurrentFile(const QString &f)
 	fileInfo.setFile(f);
 	curFile = f;
 	path = fileInfo.canonicalPath();
+	if (isActiveWindow())
+		QDir::setCurrent(path);  // set current application working directory to the one where the file is in (as default directory, e.g. for file open)
 	isUntitled = f.isEmpty();
 	setWindowTitle(userFriendlyCurrentFile() + "[*]");
 }
