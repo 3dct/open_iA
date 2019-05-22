@@ -708,10 +708,10 @@ void iAvtkInteractStyleActor::updateInteractors()
 
 	/*	double trans_xz[3] = { relMovement[0], 0,  relMovement[2] };
 		double trans_yz[3] = {0, relMovement[1],  relMovement[2] };*/
-		double trans_z[3] = { 0,0 , relMovement[2] };
+		double trans_z[3] = { /*0*/ relMovement[0] ,relMovement[1],/*0*/ relMovement[2] };
 
 		//reslicer plane XZ moving by xy 
-		//reslicer plane yz moving by xy
+		//reslicer plane yz moving by yz
 		//reslicer plane xy moving by z
 		
 		this->TranslateReslicer(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), trans_xy, m_image->GetSpacing(), 0, m_image->GetCenter()); 
