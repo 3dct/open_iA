@@ -50,6 +50,10 @@
 #include <vtkProperty.h>
 //end TODO remove
 
+//
+//#include <vtkPropPicker.h>
+//end todo remove
+
 namespace
 {
 	//set the coords based on a slicer mode, keep other one fixed
@@ -112,7 +116,7 @@ iAvtkInteractStyleActor::iAvtkInteractStyleActor():
 		for (int i = 0; i < 3; i++) {
 			m_currentVolRendererPosition[i] = 0.0f;
 		}
-		/*m_currentActorPosition = new double[3]; */
+	
 
 	}
 	catch (std::bad_alloc &ba) {
@@ -614,14 +618,20 @@ void iAvtkInteractStyleActor::OnMouseMove()
 	//mouse move with shift key = translation //else rotation in 2d
 	if (this->Interactor->GetShiftKey()) {
 		updateInteractors();
+		
 	}
 	else if (m_rotationEnabled) { // do rotation of the slicer on mouse move
-		this->rotate2D(); 
+		this->rotate2D();
+		
 		m_rotationEnabled = false;
 	}
 	else if (enable3D && m_rotation3DEnabled) {
 		this->rotate3D();
 		m_rotation3DEnabled = false; 
+	}
+
+	if (!enable3D) {
+		this->SetCurrentRenderer(nullptr); 
 	}
 }
 
@@ -656,6 +666,38 @@ void iAvtkInteractStyleActor::initialize(vtkImageData *img, iAVolumeRenderer* vo
 
 }
 
+void iAvtkInteractStyleActor::OnLeftButtonDown()
+{
+	//if(this->Interactor->GetShiftKey())
+		vtkInteractorStyleTrackballActor::OnLeftButtonDown();
+}
+
+//void iAvtkInteractStyleActor::OnLeftButtonDown()
+//{
+//	
+//	int* clickPos = this->GetInteractor()->GetEventPosition();
+//
+//		// Pick from this location.
+//	vtkSmartPointer<vtkPropPicker>  picker =
+//			vtkSmartPointer<vtkPropPicker>::New();
+//	picker->Pick(clickPos[0], clickPos[1], 0, this);
+//
+//	double* pos = picker->GetPickPosition();
+//	DEBUG_LOG(QString("Pick pos %1 %2 %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
+//
+//	//std::cout << "Pick position (world coordinates) is: "
+//	//		<< pos[0] << " " << pos[1]
+//	//		<< " " << pos[2] << std::endl;
+//	auto *testActor = picker->GetActor();
+//	if (testActor) {
+//		DEBUG_LOG("actor selected");
+//	}
+//	else DEBUG_LOG("actor not selected");
+//
+//	vtkInteractorStyleTrackballActor::OnLeftButtonDown();
+//	//std::cout << "Picked actor: " << picker->GetActor() << std::endl;
+//}
+
 void iAvtkInteractStyleActor::updateInteractors()
 {
 	// DEBUG_LOG(QString("Move: %1").arg(enable3D ? "3D" : getSlicerModeString(m_currentSliceMode)));
@@ -665,7 +707,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 	m_image->GetOrigin(origin);
 
 
-	// DEBUG_LOG(QString("  Old origin: %1, %2, %3").arg(origin[0]).arg(origin[1]).arg(origin[2]));
+	
 
 	// relative movement of object - we take the position the object was moved to
 	// add that to the origin of the image, and reset the position
@@ -760,6 +802,15 @@ void iAvtkInteractStyleActor::updateInteractors()
 		if (!m_slicerChannel[m_currentSliceMode])
 			return;
 
+		
+		auto render = this->GetCurrentRenderer(); 
+		if (!render) {
+			DEBUG_LOG("#############################current renderer not initialised");
+			return; 
+
+		}
+		else DEBUG_LOG("##########################renderer is active");
+
 		//This is a translation of current slicer
 		DEBUG_LOG(QString("2D translation %1").arg(m_currentSliceMode));
 
@@ -779,14 +830,12 @@ void iAvtkInteractStyleActor::updateInteractors()
 		// //mapping yz -> x, y	xy -> x, y		xz->x, y
 		////currentSlice pos, mode 
 		
-		//new code
-		//translateInterActor(m_SliceInteractorTransform, TODO, sliceActorPos, mode);
-		//updateCoords(origin, sliceActorPos, m_currentSliceMode);
+		
 		//0 -> xy
 		//1 -> xz
 		//2 -> yz
 
-		//prepare the coords thinking of relative movement in display coords
+		//prepare the coords - relative movement in 
 		double movement[3] = { 0,0,0 };
 
 
@@ -798,11 +847,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 		if ((movement[0] == 0) && (movement[1] == 0) && (movement[2] == 0)){
 			return; 
 		}
-
-		//DEBUG_LOG(QString("previous actor coords %1 %2 %3").arg("")
-	/*	DEBUG_LOG(QString("current slice actor pos %1 %2 %3").arg(sliceActorPos[0]).arg(sliceActorPos[1]).arg(sliceActorPos[2]));
-		DEBUG_LOG(QString("coords x y z %1 %2 %3").arg(movement[0]).arg(movement[1]).arg(movement[2]));
-*/
+	
 
 		//start from slice mode 0 which is slice YZ
 		//int mode0_yz = m_currentSliceMode;
@@ -870,23 +915,19 @@ void iAvtkInteractStyleActor::updateInteractors()
 		double newPosition_3d[3] = { 0, 0, 0 };
 	
 		//origin + actor position
-		
 		prepareCoordsXYZ(movement_3d, sliceActorPos, true);
 		
 		DEBUG_LOG(QString("movent 3d volume %1 %2 %3").arg(movement_3d[0]).arg(movement_3d[1]).arg(movement_3d[2]));
 		DEBUG_LOG(QString("volRendPos volume %1 %2 %3").arg(volRendPos[0]).arg(volRendPos[1]).arg(volRendPos[2]));
 		
 		
-		for (int i = 0; i < 3; i++) {
-			newPosition_3d[i] =volRendPos[i] + movement_3d[i]; 
-		}
+		/*for (int i = 0; i < 3; i++) {
+			newPosition_3d[i] =volRendPos[i] + movement_3d[i];
+		}*/
 				
 		m_transform3D->Translate(movement_3d);
-		//error volumen wandert heraus
-
-		//stattdessen actor position zu den volume renderer
 				
-		m_volumeRenderer->volume()->SetPosition(m_transform3D->GetPosition());; //has to do this
+		m_volumeRenderer->volume()->SetPosition(m_transform3D->GetPosition());; //has to do this!
 		
 		double const *volRendPosafter = m_volumeRenderer->volume()->GetPosition();
 		DEBUG_LOG(QString("VolActor position %1 %2 %3").arg(volRendPosafter[0]).arg(volRendPosafter[1]).arg(volRendPosafter[2]));
@@ -899,8 +940,6 @@ void iAvtkInteractStyleActor::updateInteractors()
 
 		//end new code
 		
-		//new code
-		//should be same as coords translate current interactor
 		
 
 		
@@ -939,6 +978,7 @@ void iAvtkInteractStyleActor::reset()
 	m_volumeRenderer->volume()->SetPosition(0, 0, 0);
 	m_volumeRenderer->volume()->SetOrientation(0, 0, 0);
 
+	throw std::invalid_argument("not yet implemented"); 
 
 
 
@@ -1120,20 +1160,7 @@ void iAvtkInteractStyleActor::rotate2D()
 	this->setPreviousVolActorPosion(center); 
 	
 
-	//custom center
-	const int* imgExtend = m_image->GetExtent();
-		
-
-	//das brauchen wir nicht; 
-	//TransformReslicerExperimental(imageCenter, angle, spacing, m_currentSliceMode);
-	//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, angle,	1); 
-	//transform an die reslicer weitergeben
-
 	
-	
-
-
-
 	double const *orientationAfter = m_volumeRenderer->volume()->GetOrientation();
 	//DEBUG_LOG(QString("Orientation after %1 %2 %3").arg(orientationAfter[0]).arg(orientationAfter[1]).arg(orientationAfter[2]));;
 

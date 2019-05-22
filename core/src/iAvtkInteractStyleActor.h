@@ -66,6 +66,8 @@ public:
 	void initialize(vtkImageData *img, iAVolumeRenderer* volRend, iAChannelSlicerData *slicerChannel[4],
 		int currentMode, MdiChild *mdiChild);
 	
+	void OnLeftButtonDown() override; 
+
 	//update interactors of slicers, for translation
 	void updateInteractors();
 
