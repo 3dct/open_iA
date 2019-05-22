@@ -654,7 +654,7 @@ void iAvtkInteractStyleActor::initialize(vtkImageData *img, iAVolumeRenderer* vo
 
 	//initialize pos of currentSlicer
 	if (!enable3D) {
-		setPreviousActorPosition(this->m_slicerChannel[m_currentSliceMode]->actorPosition());
+		setPreviouSlicesActorPosition(this->m_slicerChannel[m_currentSliceMode]->actorPosition());
 
 	}
 
@@ -700,6 +700,7 @@ void iAvtkInteractStyleActor::OnLeftButtonDown()
 
 void iAvtkInteractStyleActor::updateInteractors()
 {
+	
 	// DEBUG_LOG(QString("Move: %1").arg(enable3D ? "3D" : getSlicerModeString(m_currentSliceMode)));
 
 	//coords initialized from the image origin;
@@ -716,6 +717,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 	double transformposOut[3];
 	if (enable3D)
 	{
+		DEBUG_LOG("starting 3d movement");
 		double const * posVol = m_volumeRenderer->position();
 		if (posVol[0] == 0 && posVol[1] == 0 && posVol[2] == 0)
 			return;
@@ -927,12 +929,12 @@ void iAvtkInteractStyleActor::updateInteractors()
 				
 		m_transform3D->Translate(movement_3d);
 				
-		m_volumeRenderer->volume()->SetPosition(m_transform3D->GetPosition());; //has to do this!
+		m_volumeRenderer->volume()->SetPosition(m_transform3D->GetPosition()); //has to do this!
 		
 		double const *volRendPosafter = m_volumeRenderer->volume()->GetPosition();
 		DEBUG_LOG(QString("VolActor position %1 %2 %3").arg(volRendPosafter[0]).arg(volRendPosafter[1]).arg(volRendPosafter[2]));
-		this->setPreviousActorPosition(sliceActorPos); //setting to original
-		
+		this->setPreviouSlicesActorPosition(sliceActorPos); //setting to original
+		this->setPreviousVolActorPosition(volRendPosafter);
 		//end experimental
 
 		//position vom actor abspeichern; 
@@ -1070,6 +1072,7 @@ void iAvtkInteractStyleActor::performTranslationTransform(vtkSmartPointer<vtkTra
 
 void iAvtkInteractStyleActor::prepareCoordsXYZ(double * movement, double const * newPos, bool relativeMovement)
 {  //position = new - old
+	//actor position is in 2d
 
 	double oldPos[2] = { 0, 0 };
 	if (relativeMovement)
@@ -1133,7 +1136,7 @@ void iAvtkInteractStyleActor::rotate2D()
 	this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing()); 
 	this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), 2, imageCenter, relativeAngle, m_image->GetSpacing());
 
-	this->setPreviousActorPosition(sliceProbCenter);
+	//this->setPreviouSlicesActorPosition(sliceProbCenter);
 	//this->rotateInterActorProp(m_SliceInteractorTransform[m_currentSliceMode], sliceProbCenter, relativeAngle, this->InteractionProp,2);
 	
 	
@@ -1157,8 +1160,8 @@ void iAvtkInteractStyleActor::rotate2D()
 
 	double const *center = m_volumeRenderer->volume()->GetCenter(); 
 	//m_currentVolRendererPosition = m_volumeRenderer->volume()->GetCenter(); 
-	this->setPreviousVolActorPosion(center); 
-	
+	this->setPreviousVolActorPosition(center); 
+	this->setPreviouSlicesActorPosition(m_slicerChannel[m_currentSliceMode]->actorPosition());
 
 	
 	double const *orientationAfter = m_volumeRenderer->volume()->GetOrientation();
