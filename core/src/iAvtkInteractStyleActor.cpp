@@ -724,7 +724,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//store current position of renderer
 		this->setPreviousVolActorPosition(posVolNew);
 		
-		//come from 3d 
+		
 		
 
 	}
@@ -1262,19 +1262,15 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 	//}
 
 	double value = 0; 
-
-
 	double const *origin = m_image->GetOrigin(); 
 
 	//int slicerZAxisIdx = mapSliceToGlobalAxis(sliceMode, iAAxisIndex::X/*iAAxisIndex::Z*/);
-	double ofs[3] = { 0.0, 0.0, 0.0 };
+	//double ofs[3] = { 0.0, 0.0, 0.0 };
 	/*const int sliceNumber = m_mdiChild->sliceNumber(sliceMode);
 	ofs[slicerZAxisIdx] = sliceNumber * spacing[slicerZAxisIdx];*/
 	
-	reslice->SetOutputDimensionality(2);
-	
-	transform->Translate(position[0], position[1], position[2]);
-	
+	reslice->SetOutputDimensionality(2);	
+	transform->Translate(position[0], position[1], position[2]);	
 	reslice->SetResliceTransform(transform);	
 	reslice->SetInputData(m_image);
 	reslice->SetOutputExtent(m_image->GetExtent());
