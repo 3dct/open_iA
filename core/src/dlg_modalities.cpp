@@ -97,7 +97,7 @@ bool CanHaveMultipleChannels(QString const & fileName)
 void dlg_modalities::AddClicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load"),
-		"",
+		modalities->size() > 0 ? QFileInfo(modalities->Get(0)->GetFileName()).absolutePath() : "",
 		iAIOProvider::GetSupportedLoadFormats() + tr("Volume Stack (*.volstack);;"));
 	if (fileName.isEmpty())
 		return;
