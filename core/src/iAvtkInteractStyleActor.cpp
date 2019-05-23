@@ -714,19 +714,13 @@ void iAvtkInteractStyleActor::updateInteractors()
 		//reslicer plane yz moving by yz
 		//reslicer plane xy moving by z
 		
-		this->TranslateReslicer(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), trans_xy, m_image->GetSpacing(), 0, m_image->GetCenter()); 
-		this->TranslateReslicer(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), trans_xy, m_image->GetSpacing(), 1, m_image->GetCenter());
-		this->TranslateReslicer(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), trans_z, m_image->GetSpacing(), 2, m_image->GetCenter());
-		//angenommen das geht dann den reslicer transformieren
-
-
-		
+		this->TranslateReslicer(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(),relMovement /*trans_xy*/, m_image->GetSpacing(), 0, m_image->GetCenter()); 
+		this->TranslateReslicer(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(),relMovement  /*trans_xy*/, m_image->GetSpacing(), 1, m_image->GetCenter());
+		this->TranslateReslicer(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(),relMovement/* trans_z*/, m_image->GetSpacing(), 2, m_image->GetCenter());
+						
 		//store current position of renderer
 		this->setPreviousVolActorPosition(posVolNew);
 		
-		
-		
-
 	}
 	else //update 2d Slicer
 	{
@@ -808,7 +802,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 		
 		//movement are xyz 
 		
-		double translation[3] = { movement[0], movement[1], movement[2] };
+		double translation[3] = { -movement[0],-movement[1],-movement[2] };
 	
 		switch (m_currentSliceMode) {
 		case iASlicerMode::XY:
@@ -821,7 +815,11 @@ void iAvtkInteractStyleActor::updateInteractors()
 
 		for (int i = 0; i < 3; i++) {
 			this->TranslateReslicer(m_ReslicerTransform[i], m_slicerChannel[i]->reslicer(), translation, m_image->GetSpacing(), 0, m_image->GetCenter());
+			
+			//this->m_slicerChannel[m_currentSliceMode]->setActorPosition(0, 0, 0);
+		
 		}
+		//this->InteractionProp->SetPosition(0, 0, 0);
 
 
 		//this->TranslateReslicer(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), trans_xy, m_image->GetSpacing(), 0, m_image->GetCenter());
@@ -866,7 +864,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 		this->setPreviousVolActorPosition(volRendPosafter);
 		//end experimental
 
-		//position vom actor abspeichern; 
+		
 		//perform translation based on an previous position
 
 		//end new code
@@ -1284,17 +1282,9 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 	reslice->SetOutputSpacing(spacing);
 	reslice->SetOutputOrigin(m_image->GetOrigin());
 	//reslice->SetResliceAxesOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
-	
-	
-		
 	reslice->SetInterpolationModeToCubic();
 	reslice->Update();
-		
-
 	
-
-	
-
 }
 
 
