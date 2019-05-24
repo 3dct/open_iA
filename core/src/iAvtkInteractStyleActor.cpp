@@ -532,9 +532,7 @@ void iAvtkInteractStyleActor::Spin()
 
 void iAvtkInteractStyleActor::OnMouseMove()
 {
-	vtkInteractorStyleTrackballActor::OnMouseMove();
-
-
+	vtkInteractorStyleTrackballActor::OnMouseMove();		
 
 	//mouse move with shift key = translation //else rotation in 2d
 	if (this->Interactor->GetShiftKey()) {
@@ -927,7 +925,8 @@ void iAvtkInteractStyleActor::rotate2D()
 	
 	//2d, rotate Z; 
 	computeDisplayRotationAngle(sliceProbCenter, disp_obj_center, rwi, relativeAngle);
-	this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing());
+	this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 2, 
+		imageCenter, relativeAngle, m_image->GetSpacing()); //xy -> rotate 0
 	this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing()); 
 	this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), 2, imageCenter, relativeAngle, m_image->GetSpacing());
 
@@ -1230,8 +1229,14 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 
 void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, uint sliceMode, double const * center, double angle, double const *spacing)
 {
-	if (reslicer) DEBUG_LOG("Rotate Reslicer");
+	if ((!reslicer) && (!transform)){
+		return; 
+	}
+
+	if (angle == 0) return; 
+	DEBUG_LOG("Rotate Reslicer");
 	
+	//rotate axis in degree
 	this->rotateAroundAxis(transform, center, sliceMode, angle);
 	//todo map axis
 	reslicer->SetResliceTransform(transform);
