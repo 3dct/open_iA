@@ -71,6 +71,10 @@ public:
 	//update interactors of slicers, for translation
 	void updateInteractors();
 
+	//input relative movement of actor -> xyz
+	//actor position for debugging
+	void update3DUpdateReslicer(double const * relMovementXYZ, double const * sliceActorPos);
+
 	/*void TranslateActor(double * movement, uint mode);*/
 
 	void reset(); 
