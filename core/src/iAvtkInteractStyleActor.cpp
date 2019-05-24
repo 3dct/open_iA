@@ -626,10 +626,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 
 	//coords initialized from the image origin;
 	double origin[3];
-	m_image->GetOrigin(origin);
-
-
-	
+	m_image->GetOrigin(origin);	
 
 	// relative movement of object - we take the position the object was moved to
 	// add that to the origin of the image, and reset the position
@@ -735,30 +732,30 @@ void iAvtkInteractStyleActor::updateInteractors()
 	
 }
 
-void iAvtkInteractStyleActor::update3DUpdateReslicer(double const * relMovementXYZ, double const * sliceActorPos)
+void iAvtkInteractStyleActor::update3DUpdateReslicer(double const * movementXYZ, double const * sliceActorPos)
 {
-	if (!relMovementXYZ) return; 
+	if (!movementXYZ) return; 
 
 	double const *volRendPos = m_volumeRenderer->volume()->GetPosition();
 	DEBUG_LOG(QString("VolActorbefore position %1 %2 %3").arg(volRendPos[0]).arg(volRendPos[1]).arg(volRendPos[2]));
-	DEBUG_LOG(QString("movement 3d %1 %2 %3").arg(relMovementXYZ[0]).arg(relMovementXYZ[1]).arg(relMovementXYZ[2]));
+	DEBUG_LOG(QString("movement 3d %1 %2 %3").arg(movementXYZ[0]).arg(movementXYZ[1]).arg(movementXYZ[2]));
 	double newPosition_3dAbs[3] = { 0, 0, 0 };
 	double slicerMoventXYZ[3] = { 0.0, 0.0, 0.0 };
 	//movement in xyz
 	//relative position + volactor in 3d
 
 	for (int i = 0; i < 3; i++) {
-		newPosition_3dAbs[i] = relMovementXYZ[i] + m_currentVolRendererPosition[i];//volRendPos[i] ;
-		slicerMoventXYZ[i] = -relMovementXYZ[i] /*+reslicerRelMovementXYZ[i]*/;
+		newPosition_3dAbs[i] = movementXYZ[i] + m_currentVolRendererPosition[i];
+		slicerMoventXYZ[i] = -movementXYZ[i];
 	}
 
 	double OutPos[3] = { 0, 0,0 };
-	m_transform3D->Translate(relMovementXYZ);
+	m_transform3D->Translate(movementXYZ);
 	m_transform3D->Update(); 
 	m_transform3D->TransformPoint(volRendPos, OutPos);
 	m_volumeRenderer->volume()->SetPosition(m_transform3D->GetPosition()); //not via setting transform!
 	//pass coordinates in 3d 
-	double volRendPosafter[3] = { 0,0, 0 };
+	double volRendPosafter[3] = { 0, 0, 0 };
 	m_volumeRenderer->volume()->GetPosition(volRendPosafter);				
 	double translation[3] = { volRendPosafter[0],volRendPosafter[1],volRendPosafter[2] };	
 	this->setPreviouSlicesActorPosition(sliceActorPos); //setting to original
