@@ -758,33 +758,9 @@ void iAvtkInteractStyleActor::updateInteractors()
 			return;
 		}
 			
-		update3DUpdateReslicer(relMovementXYZ, sliceActorPos);
+		update3DUpdateReslicer(relMovementXYZ, sliceActorPos);		
 		
-		//perform translation based on an previous position
-		//end new code
-		
-		
-
-		
-		//original image
-
-		//begin original code
-		//sets New Origin of the image
-	//	updateCoords(origin, sliceActorPos, m_currentSliceMode);
-
-		//m_slicerChannel[m_currentSliceMode]->setActorPosition(0, 0, 0);
-		//end original code
-
-		//and use origin to update it
 	}
-
-	//begin original code
-	
-
-	////m_image->SetOrigin(/*transformposOut*//*origin)*/;  //< update image origin
-	//end original code
-
-	
 
 	//update reslicer
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
