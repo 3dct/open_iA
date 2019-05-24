@@ -73,7 +73,7 @@ public:
 
 	//input relative movement of actor -> xyz
 	//actor position for debugging
-	void update3DUpdateReslicer(double const * relMovementXYZ, double const * sliceActorPos);
+	void update3DUpdateReslicer(double const * relMovementXYZ, double const * reslicerMovement, double const * sliceActorPos);
 
 	/*void TranslateActor(double * movement, uint mode);*/
 
@@ -85,7 +85,7 @@ public:
 	void performTranslationTransform(vtkSmartPointer<vtkTransform> &transform, vtkImageActor *actor, double const *relMovement, uint mode);
 	
 	//movent = newPos - oldPos
-	void prepareRelMoventCoords(double * movement, double const * sliceActorPos, bool relativeMovement);
+	void prepareMoventCoords(double * movement, double const * sliceActorPos, bool relativeMovement);
 	
 	//rotates 2d slicer/ interactor
 	void rotate2D(); 
