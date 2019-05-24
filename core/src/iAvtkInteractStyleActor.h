@@ -81,7 +81,7 @@ public:
 	void performTranslationTransform(vtkSmartPointer<vtkTransform> &transform, vtkImageActor *actor, double const *relMovement, uint mode);
 	
 	//movent = newPos - oldPos
-	void prepareCoordsXYZ(double * movement, double const * sliceActorPos, bool relativeMovement);
+	void prepareRelMoventCoords(double * movement, double const * sliceActorPos, bool relativeMovement);
 	
 	//rotates 2d slicer/ interactor
 	void rotate2D(); 
@@ -147,7 +147,8 @@ private:
 
 	void computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double &relativeAngle);
 
-	void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslice, double const *position, double *spacing, int sliceMode, double const * mageCenter);
+	//void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslice, double const *position, double *spacing, int sliceMode, double const * mageCenter);
+	void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslice, double const *position, double *spacing, double const * imageCenter);
 	//void TranslateReslicer(vtkSmartPointer<vtkTransform>& transform, double * const position,const double  * spacing,  int sliceMode);
 
 	//void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, double const *position, int sliceMode, double const * mageCenter);
