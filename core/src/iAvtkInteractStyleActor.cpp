@@ -211,7 +211,10 @@ void iAvtkInteractStyleActor::rotateInterActorProp(vtkSmartPointer<vtkTransform>
 	}
 	//transform->Identity(); 
 
-	rotateAroundAxis(transform, center, mode, angle);
+	rotationMode myMode = static_cast<rotationMode>(mode);;
+	
+
+	rotateAroundAxis(transform, center, myMode, angle);
 	prop->SetPosition(transform->GetPosition());
 
 
@@ -301,15 +304,17 @@ void iAvtkInteractStyleActor::TranslateActorMovement(vtkImageActor * actor, uint
 	
 }
 
-void iAvtkInteractStyleActor::rotateAroundAxis(vtkSmartPointer<vtkTransform> & transform, double const * center, uint mode, double angle)
+void iAvtkInteractStyleActor::rotateAroundAxis(vtkSmartPointer<vtkTransform> & transform, double const * center, rotationMode mode/*uint mode*/, double angle)
 {
+	if (!transform) return; 
+
 	transform->PostMultiply();
 	transform->Translate(-center[0], -center[1], -center[2]);
 	switch (mode)
 	{
-	case 0: transform->RotateX(angle); break;
-	case 1: transform->RotateY(angle); break;
-	case 2: transform->RotateZ(angle); break;
+	case rotationMode::x/*0*/: transform->RotateX(angle); DEBUG_LOG("Rotation X"); break;
+	case rotationMode::y/*1*/: transform->RotateY(angle); DEBUG_LOG("Rotation Y"); break;
+	case rotationMode::z: transform->RotateZ(angle); DEBUG_LOG("Rotation Z"); break;
 
 	default:
 		break;
@@ -928,12 +933,13 @@ void iAvtkInteractStyleActor::rotate2D()
 	//rotation of current slicer
 	DEBUG_LOG(QString("Current slice mode %1 ").arg(m_currentSliceMode)); 
 
-	uint rotationDir = 0; 
+	//enum rotationDir = 0; 
+	rotationMode rotationDir;
 	switch (m_currentSliceMode)
 	{
-	case 0: rotationDir = 0; break; //xy 
-	case 1: rotationDir = 1; relativeAngle *= -1.0f;  break;
-	case 2: rotationDir = 2; break;
+	case 0: rotationDir = rotationMode::x; break; //xy 
+	case 1: rotationDir = rotationMode::y; relativeAngle *= -1.0f;  break;
+	case 2: rotationDir = rotationMode::z;  break;
 	default:
 		break;
 	}
@@ -985,8 +991,7 @@ void iAvtkInteractStyleActor::rotate2D()
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 		if (i != m_currentSliceMode && m_slicerChannel[i])
 			m_slicerChannel[i]->updateReslicer();
-
-	// da muss die Rotation weitergegeben werden
+		
 
 	m_volumeRenderer->update();
 	emit actorsUpdated();
@@ -1097,9 +1102,9 @@ void iAvtkInteractStyleActor::rotate3D()
 
 		//ist das jetzt die Richtige Rotation ?? 
 
-		this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), 2, m_image->GetCenter(), orientationAfter[0], m_imageSpacing);
-		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), 2, m_image->GetCenter(), orientationAfter[1], m_imageSpacing);
-		this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 1, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
+		this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), rotationMode::z/*2*/, m_image->GetCenter(), orientationAfter[0], m_imageSpacing);
+		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), rotationMode::z/*2*/, m_image->GetCenter(), orientationAfter[1], m_imageSpacing);
+		this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), rotationMode::y/*1*/, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
 
 		
 		delete[] rotate[0];
@@ -1252,7 +1257,7 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 //
 //}
 
-void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, uint sliceMode, double const * center, double angle, double const *spacing)
+void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, rotationMode mode /*uint sliceMode*/, double const * center, double angle, double const *spacing)
 {
 	if ((!reslicer) && (!transform)){
 		return; 
@@ -1262,7 +1267,7 @@ void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &tran
 	DEBUG_LOG("Rotate Reslicer");
 	
 	//rotate axis in degree
-	this->rotateAroundAxis(transform, center, sliceMode, angle);
+	this->rotateAroundAxis(transform, center, mode, angle);
 	//todo map axis
 	reslicer->SetResliceTransform(transform);
 	reslicer->SetInputData(m_image);

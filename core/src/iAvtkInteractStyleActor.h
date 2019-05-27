@@ -46,6 +46,10 @@ class vtkTransform;
 class vtkImageActor; 
 class vtkImageReslice;
 
+enum rotationMode
+{
+	x, y, z
+};
 
 class iAvtkInteractStyleActor : public QObject, public vtkInteractorStyleTrackballActor
 {
@@ -150,25 +154,19 @@ private:
 	//! @}
 
 	void computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double &relativeAngle);
-
-	//void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslice, double const *position, double *spacing, int sliceMode, double const * mageCenter);
+    
 	void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslice, double const *position, double *spacing, double const * imageCenter);
-	//void TranslateReslicer(vtkSmartPointer<vtkTransform>& transform, double * const position,const double  * spacing,  int sliceMode);
-
-	//void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, double const *position, int sliceMode, double const * mageCenter);
-
-
 	
-	/*mode 0: transform->RotateX(angle); 
-	mode 1: transform->RotateY(angle); 
-	mode 2: transform->RotateZ(angle);*/
-	void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, uint sliceMode, double const * center, double angle, double const *spacing);
-	/*methods for polydata visualisation
-	*/
+		
+	/*mode x: RotateX(angle); 
+	mode y: RotateY(angle); 
+	mode Z: RotateZ(angle);*/
+	//void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, uint sliceMode, double const * center, double angle, double const *spacing);
+	
 
+	void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, rotationMode mode /*uint sliceMode*/, double const * center, double angle, double const *spacing);
 	//just a cube source for visualisation
 	//for debugging / visualisation
-
 	void initializeAndRenderPolyData(uint thickness); 
 
 	//rotates a prop by a vtk transform, works fine	   
@@ -179,9 +177,10 @@ private:
 	void TranslateActorMovement(vtkImageActor * actor, uint mode, vtkSmartPointer<vtkTransform> & transform, double const * position);
 	
 	//perform rotation of transform around an axis by angle
-	void rotateAroundAxis(vtkSmartPointer<vtkTransform> &transform, double const * center, uint mode, double angle);
+	//void rotateAroundAxis(vtkSmartPointer<vtkTransform> &transform, double const * center, uint mode, double angle);
 
 	
+	void rotateAroundAxis(vtkSmartPointer<vtkTransform> & transform, double const * center, rotationMode mode/*uint mode*/, double angle);
 	//reslicer only for 3d rotation
 	//void rotateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, double const *center, uint mode, double angle);
 	/*mode 0: X, mode 1: Y:, mode 2:  z
