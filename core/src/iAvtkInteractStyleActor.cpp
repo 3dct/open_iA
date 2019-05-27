@@ -926,9 +926,8 @@ void iAvtkInteractStyleActor::rotate2D()
 	this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 2, 
 		imageCenter, -relativeAngle, m_image->GetSpacing()); //xy -> rotate 0
 	this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), 0, imageCenter, -relativeAngle, m_image->GetSpacing()); 
-	this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), 2, imageCenter, -relativeAngle, m_image->GetSpacing());
+	this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing());
 
-	//this->setPreviouSlicesActorPosition(sliceProbCenter);
 	//this->rotateInterActorProp(m_SliceInteractorTransform[m_currentSliceMode], sliceProbCenter, relativeAngle, this->InteractionProp,2);
 	
 	
