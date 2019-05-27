@@ -164,7 +164,8 @@ private:
 	//void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, uint sliceMode, double const * center, double angle, double const *spacing);
 	
 
-	void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, rotationMode mode /*uint sliceMode*/, double const * center, double angle, double const *spacing);
+	//void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, rotationMode mode /*uint sliceMode*/, double const * center, double angle, double const *spacing);
+	void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, rotationMode mode, double const *rotXYZ, double const * center, double angle, double const *spacing);
 	//just a cube source for visualisation
 	//for debugging / visualisation
 	void initializeAndRenderPolyData(uint thickness); 
@@ -188,7 +189,7 @@ private:
 	*/
 	void createReferenceObject(double /*const */* center, double const *spacing, uint thickness, const double *bounds, uint mode);
 	
-	
+	void rotateXYZ(vtkSmartPointer<vtkTransform> &transform, double const *center, double const *rotationWXYZ);
 		
 	void createAndInitLines(double const *bounds, double const * center);
 	void initLine(vtkSmartPointer<vtkLineSource> &line, vtkSmartPointer<vtkActor>& lineActor, double const * center, double min, double max, uint sliceMode);

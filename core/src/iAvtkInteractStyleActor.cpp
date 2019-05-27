@@ -406,6 +406,17 @@ void iAvtkInteractStyleActor::createReferenceObject(double /*const */* center, d
 	}
 }
 
+void iAvtkInteractStyleActor::rotateXYZ(vtkSmartPointer<vtkTransform> &transform, double const *center, double const *rotationWXYZ)
+{
+	if (!transform) return;
+
+	transform->PostMultiply();
+	transform->Translate(-center[0], -center[1], -center[2]);
+	transform->RotateWXYZ(rotationWXYZ[0], rotationWXYZ[1], rotationWXYZ[2], rotationWXYZ[3]); 
+	transform->Translate(center[0], center[1], center[2]);
+	transform->Update();
+}
+
 void iAvtkInteractStyleActor::createAndInitLines(double const *bounds, double const * center)
 { 
 	if ((!m_mdiChild) && (!m_volumeRenderer)) return; 
@@ -944,13 +955,13 @@ void iAvtkInteractStyleActor::rotate2D()
 		break;
 	}
 	
-	this->ReslicerRotate(m_ReslicerTransform[m_currentSliceMode], m_slicerChannel[m_currentSliceMode]->reslicer(), rotationDir,
-		imageCenter, -relativeAngle, m_image->GetSpacing()); 
+	this->ReslicerRotate(m_ReslicerTransform[m_currentSliceMode], m_slicerChannel[m_currentSliceMode]->reslicer(),
+		rotationDir, nullptr, imageCenter, -relativeAngle, m_image->GetSpacing()); 
 
 	for (int i = 0; i < 3; i++) {
 		if (i == m_currentSliceMode) continue;
 		this->ReslicerRotate(m_ReslicerTransform[i], m_slicerChannel[i]->reslicer(), 
-			rotationDir, imageCenter, relativeAngle, m_image->GetSpacing());
+			rotationDir, nullptr, imageCenter, relativeAngle, m_image->GetSpacing());
 	}
 	
 
@@ -1094,18 +1105,32 @@ void iAvtkInteractStyleActor::rotate3D()
 			scale);
 
 	    double const *orientationAfter = m_volumeRenderer->volume()->GetOrientation();
-		DEBUG_LOG(QString("new Orientation %1 %2 %3").arg(orientationAfter[0]).arg(orientationAfter[1]).arg(orientationAfter[2]));
-		//orientation after is zero
+		//DEBUG_LOG(QString("new Orientation %1 %2 %3").arg(orientationAfter[0]).arg(orientationAfter[1]).arg(orientationAfter[2]));
+		
 
-		double test = oldYAngle - newYAngle;
-		DEBUG_LOG(QString("Angle %1").arg(test)); 
+	/*	double test = oldYAngle - newYAngle;
+		DEBUG_LOG(QString("Angle %1").arg(test));
+*/
+		double const *RotationWXYZ = m_volumeRenderer->volume()->GetOrientationWXYZ();
+		DEBUG_LOG(QString("Rotation after %1 %2 %3 %4").arg(RotationWXYZ[0]).
+			arg(RotationWXYZ[1]).arg(RotationWXYZ[2]).arg(RotationWXYZ[3]));
 
-		//ist das jetzt die Richtige Rotation ?? 
+		//for (int i = 0; i < 3; ++i) {
+		//	this->ReslicerRotate(m_ReslicerTransform[i], m_slicerChannel[i]->reslicer(), rotationMode::x, RotationWXYZ, m_image->GetCenter(), orientationAfter[0], m_image->GetSpacing());
+		//}
 
-		this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), rotationMode::z/*2*/, m_image->GetCenter(), orientationAfter[0], m_imageSpacing);
-		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), rotationMode::z/*2*/, m_image->GetCenter(), orientationAfter[1], m_imageSpacing);
-		this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), rotationMode::y/*1*/, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
+		/*
+		0-> YZ
+		1 -> XZ
+		2 -> XY
+		
+		*/
+		this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), rotationMode::y, RotationWXYZ/*2*/, m_image->GetCenter(), orientationAfter[1], m_imageSpacing);
+		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), rotationMode::z/*2*/,nullptr, m_image->GetCenter(), orientationAfter[0]/* orientationAfter[1]*/, m_imageSpacing);
+		this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), rotationMode::y/*1*/,nullptr, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
 
+		//probably give everything to reslicer
+		
 		
 		delete[] rotate[0];
 		delete[] rotate[1];
@@ -1127,7 +1152,10 @@ void iAvtkInteractStyleActor::rotate3D()
 
 void iAvtkInteractStyleActor::computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double &relativeAngle)
 {
-	//drag an angle, calculate angle from coords, objectCenter comes from interaction prop 
+	/*drag an angle,
+	/*calculate angle from coords, objectCenter comes from interaction prop 
+	*/
+
 	this->ComputeWorldToDisplay(sliceProbCenter[0], sliceProbCenter[1], sliceProbCenter[2],
 		disp_obj_center);
 
@@ -1257,18 +1285,26 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 //
 //}
 
-void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, rotationMode mode /*uint sliceMode*/, double const * center, double angle, double const *spacing)
+void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, rotationMode mode, double const *rotXYZ, double const * center, double angle, double const *spacing)
 {
 	if ((!reslicer) && (!transform)){
 		return; 
 	}
 
-	if (angle == 0) return; 
-	DEBUG_LOG("Rotate Reslicer");
-	
-	//rotate axis in degree
-	this->rotateAroundAxis(transform, center, mode, angle);
-	//todo map axis
+	//rotate by axis
+	if (!rotXYZ) {
+		if (angle == 0) return;
+		DEBUG_LOG("Rotate Axis");
+
+		//rotate axis in degree
+		this->rotateAroundAxis(transform, center, mode, angle);
+		//todo map axis
+	}
+	else { //perform WXYZ rotation
+		this->rotateXYZ(transform, center, rotXYZ);
+		DEBUG_LOG("rotate wxyz");
+	}
+
 	reslicer->SetResliceTransform(transform);
 	reslicer->SetInputData(m_image);
 	reslicer->SetOutputExtent(m_image->GetExtent());
