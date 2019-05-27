@@ -920,17 +920,45 @@ void iAvtkInteractStyleActor::rotate2D()
 	double *sliceProbCenter = this->InteractionProp->GetCenter();
 	double disp_obj_center[3];
 	double relativeAngle = 0.0f;
-	
+
 	//2d, rotate Z; 
+		
 	computeDisplayRotationAngle(sliceProbCenter, disp_obj_center, rwi, relativeAngle);
-	this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 2, 
-		imageCenter, -relativeAngle, m_image->GetSpacing()); //xy -> rotate 0
-	this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), 0, imageCenter, -relativeAngle, m_image->GetSpacing()); 
-	this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing());
+	
+	//rotation of current slicer
+	DEBUG_LOG(QString("Current slice mode %1 ").arg(m_currentSliceMode)); 
+
+	uint rotationDir = 0; 
+	switch (m_currentSliceMode)
+	{
+	case 0: rotationDir = 0; break; //xy 
+	case 1: rotationDir = 1; relativeAngle *= -1.0f;  break;
+	case 2: rotationDir = 2; break;
+	default:
+		break;
+	}
+	
+	this->ReslicerRotate(m_ReslicerTransform[m_currentSliceMode], m_slicerChannel[m_currentSliceMode]->reslicer(), rotationDir,
+		imageCenter, -relativeAngle, m_image->GetSpacing()); 
+
+	for (int i = 0; i < 3; i++) {
+		if (i == m_currentSliceMode) continue;
+		this->ReslicerRotate(m_ReslicerTransform[i], m_slicerChannel[i]->reslicer(), 
+			rotationDir, imageCenter, relativeAngle, m_image->GetSpacing());
+	}
+	
+
+	//this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 2, 
+	//	imageCenter, -relativeAngle, m_image->GetSpacing()); //xy -> rotate 0
+	//this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), 0, imageCenter, -relativeAngle, m_image->GetSpacing()); 
+	//this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing());
+
+
+
+
 
 	//this->rotateInterActorProp(m_SliceInteractorTransform[m_currentSliceMode], sliceProbCenter, relativeAngle, this->InteractionProp,2);
-	
-	
+		
 	double const * spacing = m_image->GetSpacing();
 	double const *volImageCenter = m_volumeRenderer->volume()->GetCenter();
 	double const *orientationBefore = m_volumeRenderer->volume()->GetOrientation();
