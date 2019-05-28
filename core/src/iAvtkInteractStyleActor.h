@@ -198,6 +198,10 @@ private:
 	
 	void translatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, double X, double Y, double Z);
 	
+	vtkSmartPointer<vtkTransform> getRefTransform() {
+		return this->m_RefTransform;
+	}
+
 	//mode 0: rotateX, mode 1: rotate Y:, mode 2: rotate z
 	//************************************
 	// rotating polydata

@@ -183,7 +183,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 		
 		/*this->translatePolydata(m_RefTransform, m_RefCubeActor, 0, 100, 0); 
 		this->translatePolydata(m_RefTransform, m_RefCubeActor, 0, -100, 0);*/
-		//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30, 1); 
+		this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30, 1); 
 		//this->translatePolydata(m_cubeXTransform, m_cubeActor, 0, 100, 0); 
 		//this->translatePolydata(m_cubeXTransform, 0, 100, 0); 
 		//m_cubeSource->SetBounds(bounds[0], bounds[1], )
