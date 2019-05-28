@@ -46,7 +46,7 @@ class vtkTransform;
 class vtkImageActor; 
 class vtkImageReslice;
 
-enum rotationMode
+enum transformationMode
 {
 	x, y, z
 };
@@ -165,7 +165,7 @@ private:
 	
 
 	//void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, rotationMode mode /*uint sliceMode*/, double const * center, double angle, double const *spacing);
-	void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, rotationMode mode, double const *rotXYZ, double const * center, double angle, double const *spacing);
+	void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, transformationMode mode, double const *rotXYZ, double const * center, double angle, double const *spacing);
 	//just a cube source for visualisation
 	//for debugging / visualisation
 	void initializeAndRenderPolyData(uint thickness); 
@@ -181,7 +181,7 @@ private:
 	//void rotateAroundAxis(vtkSmartPointer<vtkTransform> &transform, double const * center, uint mode, double angle);
 
 	
-	void rotateAroundAxis(vtkSmartPointer<vtkTransform> & transform, double const * center, rotationMode mode/*uint mode*/, double angle);
+	void rotateAroundAxis(vtkSmartPointer<vtkTransform> & transform, double const * center, transformationMode mode/*uint mode*/, double angle);
 	//reslicer only for 3d rotation
 	//void rotateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, double const *center, uint mode, double angle);
 	/*mode 0: X, mode 1: Y:, mode 2:  z

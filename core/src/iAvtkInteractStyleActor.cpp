@@ -211,7 +211,7 @@ void iAvtkInteractStyleActor::rotateInterActorProp(vtkSmartPointer<vtkTransform>
 	}
 	//transform->Identity(); 
 
-	rotationMode myMode = static_cast<rotationMode>(mode);;
+	transformationMode myMode = static_cast<transformationMode>(mode);;
 	
 
 	rotateAroundAxis(transform, center, myMode, angle);
@@ -304,7 +304,7 @@ void iAvtkInteractStyleActor::TranslateActorMovement(vtkImageActor * actor, uint
 	
 }
 
-void iAvtkInteractStyleActor::rotateAroundAxis(vtkSmartPointer<vtkTransform> & transform, double const * center, rotationMode mode/*uint mode*/, double angle)
+void iAvtkInteractStyleActor::rotateAroundAxis(vtkSmartPointer<vtkTransform> & transform, double const * center, transformationMode mode/*uint mode*/, double angle)
 {
 	if (!transform) return; 
 
@@ -312,9 +312,9 @@ void iAvtkInteractStyleActor::rotateAroundAxis(vtkSmartPointer<vtkTransform> & t
 	transform->Translate(-center[0], -center[1], -center[2]);
 	switch (mode)
 	{
-	case rotationMode::x/*0*/: transform->RotateX(angle); DEBUG_LOG("Rotation X"); break;
-	case rotationMode::y/*1*/: transform->RotateY(angle); DEBUG_LOG("Rotation Y"); break;
-	case rotationMode::z: transform->RotateZ(angle); DEBUG_LOG("Rotation Z"); break;
+	case transformationMode::x/*0*/: transform->RotateX(angle); DEBUG_LOG("Rotation X"); break;
+	case transformationMode::y/*1*/: transform->RotateY(angle); DEBUG_LOG("Rotation Y"); break;
+	case transformationMode::z: transform->RotateZ(angle); DEBUG_LOG("Rotation Z"); break;
 
 	default:
 		break;
@@ -945,12 +945,12 @@ void iAvtkInteractStyleActor::rotate2D()
 	DEBUG_LOG(QString("Current slice mode %1 ").arg(m_currentSliceMode)); 
 
 	//enum rotationDir = 0; 
-	rotationMode rotationDir;
+	transformationMode rotationDir;
 	switch (m_currentSliceMode)
 	{
-	case 0: rotationDir = rotationMode::x; break; //xy 
-	case 1: rotationDir = rotationMode::y; relativeAngle *= -1.0f;  break;
-	case 2: rotationDir = rotationMode::z;  break;
+	case 0: rotationDir = transformationMode::x; break; //xy 
+	case 1: rotationDir = transformationMode::y; relativeAngle *= -1.0f;  break;
+	case 2: rotationDir = transformationMode::z;  break;
 	default:
 		break;
 	}
@@ -1125,11 +1125,11 @@ void iAvtkInteractStyleActor::rotate3D()
 		2 -> XY
 		
 		*/
-		this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), rotationMode::z, nullptr/*RotationWXYZ*//*2*/, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
+		this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), transformationMode::z, nullptr/*RotationWXYZ*//*2*/, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
 		
 		
-		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), rotationMode::z/*2*/,nullptr, m_image->GetCenter(), orientationAfter[0]/* orientationAfter[1]*/, m_imageSpacing);
-		this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), rotationMode::x/*1*/,nullptr, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
+		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::z/*2*/,nullptr, m_image->GetCenter(), orientationAfter[0]/* orientationAfter[1]*/, m_imageSpacing);
+		this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), transformationMode::x/*1*/,nullptr, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
 
 		//probably give everything to reslicer
 		//visualize transform
@@ -1288,7 +1288,7 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 //
 //}
 
-void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, rotationMode mode, double const *rotXYZ, double const * center, double angle, double const *spacing)
+void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, transformationMode mode, double const *rotXYZ, double const * center, double angle, double const *spacing)
 {
 	if ((!reslicer) && (!transform)){
 		return; 
