@@ -202,6 +202,10 @@ private:
 		return this->m_RefTransform;
 	}
 
+	vtkSmartPointer<vtkActor> GetRefActor() {
+		return this->m_RefCubeActor; 
+	}
+
 	//mode 0: rotateX, mode 1: rotate Y:, mode 2: rotate z
 	//************************************
 	// rotating polydata
