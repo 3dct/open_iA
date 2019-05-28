@@ -177,8 +177,8 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 
 		
 		//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30.0, 1); 
-	/*	this->createReferenceObject(imageCenter, spacing, 2, bounds, 1); 
-		this->createAndInitLines(bounds, imageCenter);*/
+		this->createReferenceObject(imageCenter, spacing, 2, bounds, 1); 
+		this->createAndInitLines(bounds, imageCenter);
 
 		
 		/*this->translatePolydata(m_RefTransform, m_RefCubeActor, 0, 100, 0); 
@@ -1115,9 +1115,9 @@ void iAvtkInteractStyleActor::rotate3D()
 		DEBUG_LOG(QString("Rotation after %1 %2 %3 %4").arg(RotationWXYZ[0]).
 			arg(RotationWXYZ[1]).arg(RotationWXYZ[2]).arg(RotationWXYZ[3]));
 
-		//for (int i = 0; i < 3; ++i) {
-		//	this->ReslicerRotate(m_ReslicerTransform[i], m_slicerChannel[i]->reslicer(), rotationMode::x, RotationWXYZ, m_image->GetCenter(), orientationAfter[0], m_image->GetSpacing());
-		//}
+	/*	for (int i = 0; i < 3; ++i) {
+			this->ReslicerRotate(m_ReslicerTransform[i], m_slicerChannel[i]->reslicer(), rotationMode::x, RotationWXYZ, m_image->GetCenter(), orientationAfter[0], m_image->GetSpacing());
+		}*/
 
 		/*
 		0-> YZ
@@ -1125,12 +1125,15 @@ void iAvtkInteractStyleActor::rotate3D()
 		2 -> XY
 		
 		*/
-		this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), rotationMode::y, RotationWXYZ/*2*/, m_image->GetCenter(), orientationAfter[1], m_imageSpacing);
+		this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), rotationMode::z, nullptr/*RotationWXYZ*//*2*/, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
+		
+		
 		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), rotationMode::z/*2*/,nullptr, m_image->GetCenter(), orientationAfter[0]/* orientationAfter[1]*/, m_imageSpacing);
-		this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), rotationMode::y/*1*/,nullptr, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
+		this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), rotationMode::x/*1*/,nullptr, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
 
 		//probably give everything to reslicer
-		
+		//visualize transform
+
 		
 		delete[] rotate[0];
 		delete[] rotate[1];
