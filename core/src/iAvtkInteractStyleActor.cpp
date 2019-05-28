@@ -491,7 +491,7 @@ void iAvtkInteractStyleActor::translatePolydata(vtkSmartPointer<vtkTransform> &p
 	m_volumeRenderer->update(); 
 }
 
-void iAvtkInteractStyleActor::rotatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, const double *center, double angle, uint mode)
+void iAvtkInteractStyleActor::rotatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, const double *center, double angle, transformationMode mode)
 {
 
 	vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New(); 
@@ -505,9 +505,9 @@ void iAvtkInteractStyleActor::rotatePolydata(vtkSmartPointer<vtkTransform> &polT
 	polTransform->Translate(-center[0], -center[1], -center[2]);
 	switch (mode)
 	{
-	case 0: polTransform->RotateX(angle); break; 
-	case 1: polTransform->RotateY(angle); break;
-	case 2: polTransform->RotateZ(angle); break; 
+	case transformationMode::x: polTransform->RotateX(angle); break; 
+	case transformationMode::y: polTransform->RotateY(angle); break;
+	case transformationMode::z: polTransform->RotateZ(angle); break; 
 
 	default:
 		break;

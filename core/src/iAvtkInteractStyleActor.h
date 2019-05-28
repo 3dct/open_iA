@@ -215,7 +215,8 @@ private:
 	// Parameter: double angle
 	// Parameter: uint mode
 	//************************************
-	void rotatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, const double *center, double angle, uint mode);
+	//void rotatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, const double *center, double angle, uint mode);
+	void rotatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, const double *center, double angle, transformationMode mode);
 	vtkSmartPointer<vtkCubeSource> m_CubeSource_X;
 	vtkSmartPointer<vtkPolyDataMapper> m_cubeMapper;
 	vtkSmartPointer<vtkActor> m_cubeActor;
