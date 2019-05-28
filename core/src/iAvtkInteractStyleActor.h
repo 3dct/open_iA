@@ -187,8 +187,10 @@ private:
 	/*mode 0: X, mode 1: Y:, mode 2:  z
 	* reference object for plane ... 
 	*/
-	void createReferenceObject(double /*const */* center, double const *spacing, uint thickness, const double *bounds, uint mode);
+	//void createReferenceObject(double /*const */* center, double const *spacing, uint thickness, const double *bounds, uint mode);
 	
+	void createReferenceObject(double * center, double const * spacing, uint thickness, const double * bounds, transformationMode mode);
+
 	void rotateXYZ(vtkSmartPointer<vtkTransform> &transform, double const *center, double const *rotationWXYZ);
 		
 	void createAndInitLines(double const *bounds, double const * center);

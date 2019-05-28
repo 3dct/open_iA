@@ -177,7 +177,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 
 		
 		//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30.0, 1); 
-		this->createReferenceObject(imageCenter, spacing, 2, bounds, 1); 
+		this->createReferenceObject(imageCenter, spacing, 2, bounds, transformationMode::x); 
 		this->createAndInitLines(bounds, imageCenter);
 
 		
@@ -362,8 +362,9 @@ void iAvtkInteractStyleActor::rotateAroundAxis(vtkSmartPointer<vtkTransform> & t
 //
 //}
 
-void iAvtkInteractStyleActor::createReferenceObject(double /*const */* center, double const *spacing, uint thickness, const double *bounds, uint mode) 
+void iAvtkInteractStyleActor::createReferenceObject(double /*const */* center, double const *spacing, uint thickness, const double *bounds, transformationMode mode) 
 {
+	if ((!m_mdiChild) && (!m_volumeRenderer)) return; 
 
 	try {
 		m_RefCubeSource = vtkSmartPointer<vtkCubeSource>::New();
@@ -380,24 +381,22 @@ void iAvtkInteractStyleActor::createReferenceObject(double /*const */* center, d
 		//mode 0: x, 1: y, 2:z
 		switch (mode)
 		{
-		case 0: m_RefCubeSource->SetBounds(0 + center[0], thickness*spacing[0] + center[0], bounds[2], bounds[3],
+		case transformationMode::x: m_RefCubeSource->SetBounds(0 + center[0], thickness*spacing[0] + center[0], bounds[2], bounds[3],
 			bounds[4], bounds[5]); break;
 
-		case 1: m_RefCubeSource->SetBounds(bounds[0], bounds[1]/*+300*/,
+		case transformationMode::y: m_RefCubeSource->SetBounds(bounds[0], bounds[1]/*+300*/,
 			0 + center[1], thickness*spacing[1] + center[1], bounds[4]/*+300*/, bounds[5])/*+300)*/; break;
-		case 2:
+		case transformationMode::z:
 			m_RefCubeSource->SetBounds(bounds[0], bounds[1]/*+300*/,
 				bounds[2], bounds[3], 0 + center[2], thickness*spacing[2] + center[0]); break;
 		default:
 			break;
 		}
-
-
-
-		if (m_mdiChild && m_volumeRenderer) {
-			m_volumeRenderer->getCurrentRenderer()->AddActor(m_RefCubeActor);
-			m_volumeRenderer->update();
-		}
+			   
+		
+		m_volumeRenderer->getCurrentRenderer()->AddActor(m_RefCubeActor);
+		m_volumeRenderer->update();
+		
 
 	}
 	catch (std::bad_alloc &ba) {
