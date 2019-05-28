@@ -369,7 +369,7 @@ void iAvtkInteractStyleActor::createReferenceObject(double /*const */* center, d
 	try {
 		m_RefCubeSource = vtkSmartPointer<vtkCubeSource>::New();
 		m_RefCubeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		m_RefCubeActor = vtkSmartPointer<vtkActor>::New();
+		
 		m_RefCubeMapper->SetInputConnection(m_RefCubeSource->GetOutputPort());
 		m_RefCubeActor->SetMapper(m_RefCubeMapper);
 		m_RefCubeSource->SetCenter(center);
@@ -498,7 +498,7 @@ void iAvtkInteractStyleActor::rotatePolydata(vtkSmartPointer<vtkTransform> &polT
 		return; 
 	}
 	if (!polyActor) {
-		DEBUG_LOG("TRANSFORM IS NULL");
+		DEBUG_LOG("Actor IS NULL");
 		return;
 	}
 
@@ -592,6 +592,7 @@ void iAvtkInteractStyleActor::initialize(vtkImageData *img, iAVolumeRenderer* vo
 	m_mdiChild = mdiChild;
 	m_image->GetSpacing(m_imageSpacing); 
 	m_RefTransform = vtkSmartPointer<vtkTransform>::New(); 
+	m_RefCubeActor = vtkSmartPointer<vtkActor>::New();
 
 	//initialize pos of currentSlicer
 	if (!enable3D) {
