@@ -198,11 +198,11 @@ private:
 	
 	void translatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, double X, double Y, double Z);
 	
-	vtkSmartPointer<vtkTransform> getRefTransform() {
+	vtkSmartPointer<vtkTransform> &getRefTransform() {
 		return this->m_RefTransform;
 	}
 
-	vtkSmartPointer<vtkActor> GetRefActor() {
+	vtkSmartPointer<vtkActor> &GetRefActor() {
 		return this->m_RefCubeActor; 
 	}
 

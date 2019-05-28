@@ -149,7 +149,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 		m_cubeActor->SetMapper(m_cubeMapper);
 		m_cubeActor->SetDragable(0); 
 		m_cubeXTransform = vtkSmartPointer<vtkTransform>::New(); 
-		m_RefTransform = vtkSmartPointer<vtkTransform>::New(); 
+		//m_RefTransform = vtkSmartPointer<vtkTransform>::New(); 
 		
 		m_SphereMapper->SetInputConnection(m_SphereSourceCenter->GetOutputPort());
 		m_SphereActor->SetMapper(m_SphereMapper);
@@ -183,7 +183,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 		
 		/*this->translatePolydata(m_RefTransform, m_RefCubeActor, 0, 100, 0); 
 		this->translatePolydata(m_RefTransform, m_RefCubeActor, 0, -100, 0);*/
-		this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30, 1); 
+		//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30, 1); 
 		//this->translatePolydata(m_cubeXTransform, m_cubeActor, 0, 100, 0); 
 		//this->translatePolydata(m_cubeXTransform, 0, 100, 0); 
 		//m_cubeSource->SetBounds(bounds[0], bounds[1], )
@@ -312,8 +312,8 @@ void iAvtkInteractStyleActor::rotateAroundAxis(vtkSmartPointer<vtkTransform> & t
 	transform->Translate(-center[0], -center[1], -center[2]);
 	switch (mode)
 	{
-	case transformationMode::x/*0*/: transform->RotateX(angle); DEBUG_LOG("Rotation X"); break;
-	case transformationMode::y/*1*/: transform->RotateY(angle); DEBUG_LOG("Rotation Y"); break;
+	case transformationMode::x: transform->RotateX(angle); DEBUG_LOG("Rotation X"); break;
+	case transformationMode::y: transform->RotateY(angle); DEBUG_LOG("Rotation Y"); break;
 	case transformationMode::z: transform->RotateZ(angle); DEBUG_LOG("Rotation Z"); break;
 
 	default:
@@ -493,6 +493,14 @@ void iAvtkInteractStyleActor::translatePolydata(vtkSmartPointer<vtkTransform> &p
 
 void iAvtkInteractStyleActor::rotatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, const double *center, double angle, transformationMode mode)
 {
+	if (!polTransform) {
+		DEBUG_LOG("TRANSFORM IS NULL");
+		return; 
+	}
+	if (!polyActor) {
+		DEBUG_LOG("TRANSFORM IS NULL");
+		return;
+	}
 
 	vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New(); 
 	mat = polyActor->GetUserMatrix();
@@ -583,6 +591,7 @@ void iAvtkInteractStyleActor::initialize(vtkImageData *img, iAVolumeRenderer* vo
 		DEBUG_LOG("MdiChild not set!");
 	m_mdiChild = mdiChild;
 	m_image->GetSpacing(m_imageSpacing); 
+	m_RefTransform = vtkSmartPointer<vtkTransform>::New(); 
 
 	//initialize pos of currentSlicer
 	if (!enable3D) {
@@ -1124,8 +1133,10 @@ void iAvtkInteractStyleActor::rotate3D()
 		2 -> XY
 		
 		*/
+		////auto refActor = this->GetRefActor(); 
+
 		this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), transformationMode::z, nullptr/*RotationWXYZ*//*2*/, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
-		
+		this->rotatePolydata(m_RefTransform, m_RefCubeActor, m_image->GetCenter(), orientationAfter[2], transformationMode::z);
 		
 		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::z/*2*/,nullptr, m_image->GetCenter(), orientationAfter[0]/* orientationAfter[1]*/, m_imageSpacing);
 		this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), transformationMode::x/*1*/,nullptr, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
