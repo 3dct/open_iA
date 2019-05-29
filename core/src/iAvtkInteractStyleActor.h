@@ -127,6 +127,8 @@ private:
 	vtkSmartPointer<vtkTransform> m_ReslicerTransform[3]; //transform for each reslicer
 
 	double m_imageSpacing[3];
+
+	double m_imageRefOrientation[3]; 
 	//double imageCenter[3]; 
 
 	int m_currentSliceMode;
@@ -198,6 +200,13 @@ private:
 	
 	void translatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, double X, double Y, double Z);
 	
+	void setRefOrientation(double const* orientation) {
+		if (!orientation) return; 
+			for (int i = 0; i < 3; i++)
+				m_imageRefOrientation[i] = orientation[i];
+			
+	}
+
 	vtkSmartPointer<vtkTransform> &getRefTransform() {
 		return this->m_RefTransform;
 	}
@@ -205,6 +214,8 @@ private:
 	vtkSmartPointer<vtkActor> &GetRefActor() {
 		return this->m_RefCubeActor; 
 	}
+
+	//double test = 0;
 
 	//mode 0: rotateX, mode 1: rotate Y:, mode 2: rotate z
 	//************************************

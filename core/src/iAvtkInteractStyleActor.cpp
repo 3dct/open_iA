@@ -115,6 +115,7 @@ iAvtkInteractStyleActor::iAvtkInteractStyleActor():
 
 		for (int i = 0; i < 3; i++) {
 			m_currentVolRendererPosition[i] = 0.0f;
+			m_imageRefOrientation[i] = 0.0f; 
 		}
 	
 
@@ -502,29 +503,11 @@ void iAvtkInteractStyleActor::rotatePolydata(vtkSmartPointer<vtkTransform> &polT
 		return;
 	}
 
-	vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New(); 
-	mat = polyActor->GetUserMatrix();
-	if (mat) {
-		//DEBUG_LOG("Matrix successfull");
-		polTransform->SetMatrix(mat); 
-	}
-
-	polTransform->PostMultiply();
-	polTransform->Translate(-center[0], -center[1], -center[2]);
-	switch (mode)
-	{
-	case transformationMode::x: polTransform->RotateX(angle); break; 
-	case transformationMode::y: polTransform->RotateY(angle); break;
-	case transformationMode::z: polTransform->RotateZ(angle); break; 
-
-	default:
-		break;
-	}
-	
-	polTransform->Translate(center[0], center[1], center[2]);
+	this->rotateAroundAxis(polTransform, center, mode, angle); 
 	
 	polTransform->Update();
-	polyActor->SetUserTransform(polTransform);
+	polyActor->SetUserTransform(polTransform); 
+	//polyActor->SetOrientation(polTransform->GetOrientation());
 	m_volumeRenderer->update();
 }
 
@@ -566,6 +549,7 @@ void iAvtkInteractStyleActor::OnMouseMove()
 		m_rotationEnabled = false;
 	}
 	else if (enable3D && m_rotation3DEnabled) {
+		
 		this->rotate3D();
 		m_rotation3DEnabled = false; 
 	}
@@ -600,7 +584,7 @@ void iAvtkInteractStyleActor::initialize(vtkImageData *img, iAVolumeRenderer* vo
 
 	}
 
-	if (currentMode == 0) {
+	if (enable3D) {
 		initializeAndRenderPolyData(5); 
 	}
 	//just a test cube for one slcier; 
@@ -1025,12 +1009,19 @@ void iAvtkInteractStyleActor::rotate3D()
 {
 	//starting from 3d, then rotate reslicer
 
-	DEBUG_LOG("rotate 3d");
+	
 
 	if (this->CurrentRenderer == nullptr || this->InteractionProp == nullptr)
 	{
 		return;
 	}
+
+	DEBUG_LOG("rotate 3d");
+	//double const *refOrientation = m_volumeRenderer->volume()->GetOrientation();
+	this->setRefOrientation(m_volumeRenderer->volume()->GetOrientation()); 
+
+	//DEBUG_LOG(QString("ref %1 %2 %3").arg(refOrientation[0]).arg(refOrientation[1]).arg(refOrientation[2]));
+
 
 	vtkRenderWindowInteractor *rwi = this->Interactor;
 	vtkCamera *cam = this->CurrentRenderer->GetActiveCamera();
@@ -1104,9 +1095,9 @@ void iAvtkInteractStyleActor::rotate3D()
 		rotate[1][2] = view_right[1];
 		rotate[1][3] = view_right[2];
 		
-		double const *orientationBefore = m_volumeRenderer->volume()->GetOrientation();
+		/*double const *orientationBefore = m_volumeRenderer->volume()->GetOrientation();
 		DEBUG_LOG(QString("Oriention before %1 %2 %3").arg(orientationBefore[0]).arg(orientationBefore[1]).arg(orientationBefore[2])); 
-
+*/
 		this->Prop3DTransform(this->InteractionProp,
 			obj_center,
 			2,
@@ -1114,15 +1105,15 @@ void iAvtkInteractStyleActor::rotate3D()
 			scale);
 
 	    double const *orientationAfter = m_volumeRenderer->volume()->GetOrientation();
-		//DEBUG_LOG(QString("new Orientation %1 %2 %3").arg(orientationAfter[0]).arg(orientationAfter[1]).arg(orientationAfter[2]));
+		DEBUG_LOG(QString("new Orientation %1 %2 %3").arg(orientationAfter[0]).arg(orientationAfter[1]).arg(orientationAfter[2]));
 		
 
 	/*	double test = oldYAngle - newYAngle;
 		DEBUG_LOG(QString("Angle %1").arg(test));
 */
-		double const *RotationWXYZ = m_volumeRenderer->volume()->GetOrientationWXYZ();
-		DEBUG_LOG(QString("Rotation after %1 %2 %3 %4").arg(RotationWXYZ[0]).
-			arg(RotationWXYZ[1]).arg(RotationWXYZ[2]).arg(RotationWXYZ[3]));
+		//double const *RotationWXYZ = m_volumeRenderer->volume()->GetOrientationWXYZ();
+		/*DEBUG_LOG(QString("Rotation after %1 %2 %3 %4").arg(RotationWXYZ[0]).
+			arg(RotationWXYZ[1]).arg(RotationWXYZ[2]).arg(RotationWXYZ[3]));*/
 
 	/*	for (int i = 0; i < 3; ++i) {
 			this->ReslicerRotate(m_ReslicerTransform[i], m_slicerChannel[i]->reslicer(), rotationMode::x, RotationWXYZ, m_image->GetCenter(), orientationAfter[0], m_image->GetSpacing());
@@ -1135,12 +1126,24 @@ void iAvtkInteractStyleActor::rotate3D()
 		
 		*/
 		////auto refActor = this->GetRefActor(); 
+		/*test += 5; */
 
-		this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), transformationMode::z, nullptr/*RotationWXYZ*//*2*/, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
-		this->rotatePolydata(m_RefTransform, m_RefCubeActor, m_image->GetCenter(), orientationAfter[2], transformationMode::z);
+		double relRotation[3] = { 0, 0, 0 };
+		for (int i = 0; i < 3; i++) {
+			/*double tmp = 0;*/
+			DEBUG_LOG(QString("before after %1 %2").arg(m_imageRefOrientation[i]).arg(orientationAfter[i]));
 		
-		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::z/*2*/,nullptr, m_image->GetCenter(), orientationAfter[0]/* orientationAfter[1]*/, m_imageSpacing);
-		this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), transformationMode::x/*1*/,nullptr, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
+			relRotation[i] = m_imageRefOrientation[i] - orientationAfter[i];
+			
+			//this->ReslicerRotate(m_ReslicerTransform)
+		}
+	 
+		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::y, relRotation, m_image->GetCenter(), relRotation[1], m_imageSpacing);
+		//this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::y, nullptr/*RotationWXYZ*//*2*/, m_image->GetCenter(), relRotation[1], m_imageSpacing);
+		//this->rotatePolydata(m_RefTransform, m_RefCubeActor, m_image->GetCenter(), relRotation[1], transformationMode::y);
+		
+		//this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::z/*2*/,nullptr, m_image->GetCenter(), orientationAfter[0]/* orientationAfter[1]*/, m_imageSpacing);
+		//this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), transformationMode::x/*1*/,nullptr, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
 
 		//probably give everything to reslicer
 		//visualize transform
@@ -1149,7 +1152,7 @@ void iAvtkInteractStyleActor::rotate3D()
 		delete[] rotate[0];
 		delete[] rotate[1];
 		delete[] rotate;
-		
+
 		rwi->Render();
 
 		for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
