@@ -32,14 +32,12 @@
 #include <QSharedPointer>
 
 
-struct iASlicerProfile;
-struct iAArbitraryProfileOnSlicer;
-struct PickedData;
+class iASlicerProfile;
+class iAArbitraryProfileOnSlicer;
 class iAChannelData;
 class iAChannelSlicerData;
 class iAInteractorStyleImage;
 class iAMagicLens;
-class iAPieChartGlyph;
 class iARulerWidget;
 class iASingleSlicerSettings;
 class iASlicer;
@@ -91,8 +89,17 @@ public:
 		SnakeEdit,
 		SnakeShow
 	};
+	//! Creates a new slicer widget.
+	//! @param parent the parent widget; can be nullptr for no current parent.
+	//! @param mode determines which axis-aligned slice-plane is used for slicing. @See iASlicerMode.
+	//! @param decorations whether to show the scalar bar widget, the measure bar, the logo and the tooltip.
+	//! @param magicLensAvailable whether a magic lens should be available.
+	//! @param transform the basic transform the reslicers inside the channels of this slicer (should probably be removed here).
+	//! @param snakeSlicerPoints the array of points in the snake slicer (leave at default nullptr if you don't require snake slicer).
 	iASlicer(QWidget * parent, const iASlicerMode mode, bool decorations = true, bool magicLensAvailable = true,
 		vtkAbstractTransform *transform = nullptr, vtkPoints* snakeSlicerPoints = nullptr);
+	//! Sets up the slicer with the given settings.
+	void setup(iASingleSlicerSettings const & settings);
 	virtual ~iASlicer();
 	void update();
 
@@ -137,39 +144,57 @@ public:
 	//! @}
 
 	void setResliceAxesOrigin(double x, double y, double z);
-	void setup(iASingleSlicerSettings const & settings);
+	//! Access to the slicer's main renderer.
 	vtkRenderer * renderer();
+	//! Access to the slicer's render window.
 	vtkGenericOpenGLRenderWindow * renderWindow();
+	//! Access to the interactor of this slicer's render window.
 	vtkRenderWindowInteractor * interactor();
+	//! Access to the slicer's main renderer's camera.
 	vtkCamera * camera();
 
+	//! Get the slice mode (which axis-aligned slice-plane is used for slicing). @See iASlicerMode
 	iASlicerMode mode() const;
-	//! Sets the slice mode (which axis-aligned slice-plane to use for slicing)
+	//! Sets the slice mode (which axis-aligned slice-plane to use for slicing). @See iASlicerMode
 	void setMode(const iASlicerMode mode);
 
 	void setStatisticalExtent(int statExt);
 
+	//! Set the camera for the slicer's main renderer.
+	//! Use this if you want share the camera between multiple views (i.e. synchronize their viewing parameters)
+	//! @param camera the new camera to assing
+	//! @param whether the slicer should assume ownership of the camera. If true, Delete() will be called on it in the destructor
 	void setCamera(vtkCamera * camera, bool camOwner = true);
+	//! Resets the slicer's main renderer's camera such that all channels in it are visible.
 	void resetCamera();
-
+	//! Sets the background color of the slicer.
+	//! By default, background color is auto-determined via the slicer mode. If set manually
+	//! via this method, it will keep the given color indefinitely
+	//! @param r red color part (0..1)
+	//! @param g green color part (0..1)
+	//! @param b blue color part (0..1)
 	void setBackground(double r, double g, double b);
 
 	void setTransform(vtkAbstractTransform * tr);
 
 	void setDefaultInteractor();
 
-	//void blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range);
+	//! Blend two images. Should probably be implemented in terms of two channels?
+	void blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range);
+
+	//! Get current slice number
 	int sliceNumber() const;
-	//! set the position of the position marker (in slicer coordinates)
+	//! Set the position of the position marker (in slicer coordinates).
 	void setPositionMarkerCenter(double x, double y);
 
-	//! enable/disable contour lines
+	//! Enable/disable contour lines.
 	void showIsolines(bool s);
-	//! @{ set contour line parameters
+	//! @{ set contour line parameters.
 	void setContours(int numberOfContours, double contourMin, double contourMax);
 	void setContours(int numberOfContours, double const * contourValues);
 	//! @}
 
+	//! Enable/disable the tooltip text
 	void setShowText(bool isVisible);
 	void setMouseCursor(QString const & s);
 
@@ -181,7 +206,6 @@ public:
 	void updateChannelMappers();
 	//void switchContourSourceToChannel( uint id );
 
-	//vtkScalarBarWidget * scalarBarWidget();
 	void setScalarBarTF(vtkScalarsToColors* ctf);
 
 	QCursor mouseCursor();
@@ -189,11 +213,6 @@ public:
 	void setRightButtonDragZoomEnabled(bool enabled);
 
 	void setIndex(int x, int y, int z);
-
-	// { TODO: Move to XRF
-	void computeGlyphs();
-	void setPieGlyphParameters(double opacity, double spacing, double magFactor);
-	// }
 
 	void setLinkedMdiChild(MdiChild* mdiChild);
 
@@ -227,8 +246,6 @@ public slots:
 	void setSliceProfileOn(bool isOn);
 	//! Toggle the possibility to move start and end point of the profile
 	void setArbitraryProfileOn(bool isOn);
-
-	void setPieGlyphsOn(bool isOn);  // TODO: Move to XRF module!
 
 	//! Adds a new spline point to the end of the spline curve.
 	void addPoint(double x, double y, double z);
@@ -281,14 +298,6 @@ protected:
 	iASlicerProfile	* m_sliceProfile;            //!< implements the raw slice profile
 	iAArbitraryProfileOnSlicer * m_arbProfile;   //!< implements drawing the start and end point of the "arbitrary" profile
 
-	// { TODO: move to XRF module
-	bool            m_pieGlyphsEnabled;         //!< if slice pie glyphs for xrf are enabled
-	QVector<QSharedPointer<iAPieChartGlyph> > m_pieGlyphs;
-	double          m_pieGlyphMagFactor;
-	double          m_pieGlyphSpacing;
-	double          m_pieGlyphOpacity;
-	// }
-
 	void keyPressEvent(QKeyEvent * event) override;
 	void mousePressEvent(QMouseEvent * event) override;
 	void mouseMoveEvent(QMouseEvent * event) override;
@@ -322,8 +331,7 @@ protected:
 private:
 	iASlicerMode m_mode;            //!< the (axis-aligned) slice plane this slicer views
 
-	bool m_decorations;             //!< whether "decorations" will be shown, i.e. scalar bar widget, text on hover, ...   
-	bool m_isolines;                //!< whether contours/isolines are shown
+	bool m_decorations;             //!< whether "decorations" will be shown, i.e. scalar bar widget, text on hover, ...
 	bool m_userSetBackground;       //!< whether the user has set a background
 	bool m_showPositionMarker;      //!< whether the position marker is shown in the slicer
 
@@ -335,13 +343,8 @@ private:
 	void updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslicer, double lensRadius, double innerLensRadius);
 
 	bool m_fisheyeLensActivated;
-	double m_fisheyeRadius = 80.0; // 110.0;
-	double m_fisheyeRadiusDefault = 80.0;
-	double m_minFisheyeRadius = 2.0;
-	double m_maxFisheyeRadius = 220.0;
-	double m_innerFisheyeRadius = 70.0; // 86
-	double m_innerFisheyeRadiusDefault = 70.0;
-	double m_innerFisheyeMinRadius = 58; // for default radius 70.0
+	double m_fisheyeRadius;
+	double m_innerFisheyeRadius;
 
 	// variables for transformation
 	vtkSmartPointer<vtkThinPlateSplineTransform> m_fisheyeTransform;

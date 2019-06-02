@@ -55,7 +55,7 @@ class open_iA_Core_API dlg_modalities : public dlg_modalitiesUI
 {
 	Q_OBJECT
 public:
-	dlg_modalities(iAFast3DMagicLensWidget* renderer, vtkRenderer* mainRenderer, int numBin, MdiChild* mdiChild);
+	dlg_modalities(iAFast3DMagicLensWidget* renderer, vtkRenderer* mainRenderer, MdiChild* mdiChild);
 	void setModalities(QSharedPointer<iAModalityList> modalities);
 	QSharedPointer<iAModalityList const> modalities() const;
 	QSharedPointer<iAModalityList> modalities();

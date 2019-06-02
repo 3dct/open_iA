@@ -123,7 +123,7 @@ void iAStackedBarChart::paintEvent(QPaintEvent* ev)
 		auto & bar = m_bars[barID];
 		int bWidth = barWidth(bar);
 		QRect barRect(accumulatedWidth, topY, bWidth, barHeight);
-		QBrush barBrush(m_theme->GetColor(barID));
+		QBrush barBrush(m_theme->color(barID));
 		painter.fillRect(barRect, barBrush);
 		barRect.adjust(TextPadding, 0, -TextPadding, 0);
 		painter.drawText(barRect, Qt::AlignVCenter,

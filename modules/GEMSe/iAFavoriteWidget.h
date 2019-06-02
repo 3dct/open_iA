@@ -53,8 +53,8 @@ public:
 	QVector<iAImageTreeNode const *> GetFavorites(iAImageTreeNode::Attitude att) const;
 signals:
 	void ViewUpdated();
-	void Clicked(iAImageTreeNode * node);
-	void RightClicked(iAImageTreeNode * node);
+	void clicked(iAImageTreeNode * node);
+	void rightClicked(iAImageTreeNode * node);
 private slots:
 	void FavoriteClicked();
 	void FavoriteRightClicked();

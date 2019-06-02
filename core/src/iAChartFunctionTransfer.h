@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAChartfunction.h"
+#include "iAChartFunction.h"
 #include "iATransferFunction.h"
 #include "open_iA_Core_export.h"
 
@@ -44,7 +44,7 @@ public:
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
 	void drawOnTop(QPainter &painter) override;
-	int selectPoint(QMouseEvent *event, int *x = NULL) override;
+	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
 	int getSelectedPoint() override { return m_selectedPoint; }
 	int addPoint(int x, int y) override;
 	void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) override;

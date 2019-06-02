@@ -103,6 +103,7 @@ protected:
 	//! @{ Methods overrided from iAChartWidget
 	void addContextMenuEntries(QMenu* contextMenu) override;
 	void changeMode(int newMode, QMouseEvent *event) override;
+	void drawAfterPlots(QPainter& painter) override;
 	//! @}
 
 	virtual void drawFunctions(QPainter &painter);
@@ -144,5 +145,4 @@ private:
 	dlg_TFTable* m_TFTable;
 
 	void newTransferFunction();
-	void drawAfterPlots(QPainter& painter) override;
 };

@@ -24,7 +24,8 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QColor>
+#include <QString>
+
 
 class iAChannelData;
 
@@ -55,13 +56,13 @@ public:
 	vtkScalarsToColors* cTF();
 
 	void updateMapper();
-	QColor getColor() const;  //!< get "color" of this channel (TODO: used only for pie charts in XRF module -> move there?)
 	void updateResliceAxesDirectionCosines(int mode);
 	void setTransform(vtkAbstractTransform * transform);
 	void updateReslicer();
 	void updateLUT();
 	bool isEnabled() const;        //!< whether this channel is currently shown
 	QString const & name() const;  //!< the name of the channel
+	vtkImageActor * imageActor();  //! TODO: should be removed
 	vtkImageData * input() const;  // TODO: returned vtkImageData should be const
 	vtkImageData * output() const; // TODO: returned vtkImageData should be const
 	vtkImageReslice * reslicer() const; // check if that can be kept private somehow
@@ -89,7 +90,7 @@ private:
 	iAChannelSlicerData& operator=(iAChannelSlicerData const & other) = delete;
 	//! @}
 
-	void assign(vtkSmartPointer<vtkImageData> imageData, QColor const & col);
+	void assign(vtkSmartPointer<vtkImageData> imageData);
 	void setupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
 
 	vtkSmartPointer<vtkImageActor>  m_imageActor;
@@ -99,7 +100,6 @@ private:
 	vtkScalarsToColors *            m_cTF;   //! the color transfer function - should be const (as soon as VTK supports it)
 	vtkPiecewiseFunction *          m_oTF;   //! the opacity function - nullptr if not used - should be const (as soon as VTK supports it)
 	QString                         m_name;  //! name of the channel
-	QColor                          m_color; //! color of this channel (TODO: used only for pie charts in XRF module -> move there?)
 	bool                            m_enabled;//! whether this channel is enabled
 
 	//! @{ for contours / iso lines

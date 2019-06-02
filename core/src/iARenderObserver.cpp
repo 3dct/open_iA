@@ -103,14 +103,14 @@ void iARenderObserver::Execute(vtkObject * caller,
 			int x = static_cast<int>(pos[0] / spacing[0]),
 				y = static_cast<int>(pos[1] / spacing[1]),
 				z = static_cast<int>(pos[2] / spacing[2]);
-			emit Clicked(x, y, z);
+			emit clicked(x, y, z);
 			break;
 		}
 		case vtkCommand::KeyPressEvent:
 		{
 			if (keyCode == 'a' || keyCode == 'c')
 			{
-				emit InteractorModeSwitched(keyCode);
+				emit interactorModeSwitched(keyCode);
 			}
 			if (keyCode == '\t') {
 				mode++; if (mode > 1) mode = 0;

@@ -138,7 +138,7 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	m_comparisonWeightType(Equal)
 {
 	QString defaultTheme("Brewer Paired (max. 12)");
-	m_colorTheme = iAColorThemeManager::GetInstance().GetTheme(defaultTheme);
+	m_colorTheme = iAColorThemeManager::instance().theme(defaultTheme);
 
 	m_consensusCharts.push_back(CreateChartWidget("Undecided Pixels", "Mean Dice", mdiChild));
 	m_consensusCharts.push_back(CreateChartWidget("Consensus Method Parameter", "Mean Dice", mdiChild));
@@ -1364,7 +1364,7 @@ void dlg_Consensus::CheckBoxStateChanged(int state)
 	{
 		static int colorCnt = 0;
 		int colorIdx = (colorCnt++) % 12;
-		QColor plotColor = m_colorTheme->GetColor(colorIdx);
+		QColor plotColor = m_colorTheme->color(colorIdx);
 
 		QVector<vtkIdType> plots;
 		if (m_results[id]->GetNumberOfColumns() >= 3)
@@ -1409,19 +1409,19 @@ void dlg_Consensus::SampledItemClicked(QTableWidgetItem * item)
 	int row = item->row();
 	for (int l = 0; l < m_labelCount; ++l)
 	{
-		QColor plotColor = m_colorTheme->GetColor(l);
+		QColor plotColor = m_colorTheme->color(l);
 		AddPlot(vtkChart::LINE, m_consensusCharts[3].chart, m_results[row], 0, 3+l, plotColor);
 	}
 	m_consensusCharts[4].chart->ClearPlots();
 	for (int l = 0; l < m_labelCount+1; ++l)
 	{
-		QColor plotColor = (l==0) ? QColor(0, 0, 0) : m_colorTheme->GetColor(l-1);
+		QColor plotColor = (l==0) ? QColor(0, 0, 0) : m_colorTheme->color(l-1);
 		AddPlot(vtkChart::LINE, m_consensusCharts[4].chart, m_results[row], 0, 3+m_labelCount+l, plotColor);
 	}
 	m_consensusCharts[5].chart->ClearPlots();
 	for (int l = 0; l < m_labelCount+1; ++l)
 	{
-		QColor plotColor = (l==0) ? QColor(0, 0, 0) : m_colorTheme->GetColor(l-1);
+		QColor plotColor = (l==0) ? QColor(0, 0, 0) : m_colorTheme->color(l-1);
 		AddPlot(vtkChart::LINE, m_consensusCharts[5].chart, m_results[row], 0, 3+2*m_labelCount+1+l, plotColor);
 	}
 }

@@ -44,13 +44,8 @@
 
 const int maskOpacity = 127;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-iAPAQSplom::iAPAQSplom( MainWindow *mWnd, QWidget * parent, Qt::WindowFlags f /*= 0 */)
-	: iAQSplom( parent, f ),
-#else
-iAPAQSplom::iAPAQSplom(MainWindow *mWnd, QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */)
-	: iAQSplom( parent, shareWidget, f ),
-#endif
+iAPAQSplom::iAPAQSplom( MainWindow *mWnd, QWidget * parent, Qt::WindowFlags f /*= 0 */):
+	iAQSplom( parent, f ),
 	m_fixAction( nullptr ),
 	m_removeFixedAction( nullptr ),
 	m_detailsToFeatureScoutAction(nullptr),
@@ -59,6 +54,7 @@ iAPAQSplom::iAPAQSplom(MainWindow *mWnd, QWidget * parent /*= 0*/, const QGLWidg
 	m_mdiChild( nullptr ),
 	m_csvName("")
 {
+	setWindowFlags(f);
 	m_fixAction = m_contextMenu->addAction( "Fix Point", this, SLOT( fixPoint() ) );
 	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, SLOT( removeFixedPoint() ) );
 	

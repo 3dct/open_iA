@@ -21,7 +21,7 @@
 #pragma once
 
 #include "iAAlgorithm.h"
-#include "defines.h"          // for IOType
+#include "defines.h"          // for iAIOType
 #include "open_iA_Core_export.h"
 
 #include <vtkSmartPointer.h>

@@ -237,7 +237,7 @@ QString const & iASEAFile::GetModalityFileName() const
 	return m_ModalityFileName;
 }
 
-int iASEAFile::GetLabelCount() const
+int iASEAFile::labelCount() const
 {
 	return m_LabelCount;
 }

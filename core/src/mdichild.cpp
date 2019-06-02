@@ -168,7 +168,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	m_renderer = new iARenderer(this);
 	m_renderer->setAxesTransform(m_axesTransform);
 
-	m_dwModalities = new dlg_modalities(m_dwRenderer->vtkWidgetRC, m_renderer->renderer(), m_preferences.HistogramBins, this);
+	m_dwModalities = new dlg_modalities(m_dwRenderer->vtkWidgetRC, m_renderer->renderer(), this);
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	setModalities(modList);
 	splitDockWidget(m_dwLog, m_dwModalities, Qt::Horizontal);
@@ -1533,7 +1533,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 			m_dwSlicer[s]->sbSlice->setValue(m_imageData->GetDimensions()[mapSliceToGlobalAxis(s, iAAxisIndex::Z)] >> 1);
 			m_slicer[s]->channel(0)->reslicer()->SetResliceTransform(m_savedSlicerTransform[s]);
 			m_slicer[s]->channel(0)->reslicer()->SetOutputExtentToDefault();
-			m_slicer[s]->renderer()->ResetCamera();
+			m_slicer[s]->resetCamera();
 			m_slicer[s]->renderer()->Render();
 			m_slicer[s]->switchInteractionMode(iASlicer::Normal);
 		}
@@ -1741,7 +1741,7 @@ bool MdiChild::initView( QString const & title )
 	if (!m_raycasterInitialized)
 	{
 		m_renderer->initialize(m_imageData, m_polyData);
-		connect(m_renderer->getRenderObserver(), SIGNAL(InteractorModeSwitched(int)), m_dwModalities, SLOT(interactorModeSwitched(int)));
+		connect(m_renderer->getRenderObserver(), SIGNAL(interactorModeSwitched(int)), m_dwModalities, SLOT(interactorModeSwitched(int)));
 		m_raycasterInitialized = true;
 	}
 	if (modalities()->size() == 0 && isVolumeDataLoaded())
@@ -1774,9 +1774,6 @@ bool MdiChild::initView( QString const & title )
 		}
 		m_initVolumeRenderers = true;
 	}
-	vtkColorTransferFunction* colorFunction = (modalities()->size() > 0)
-		? modality(0)->transfer()->colorTF() : vtkColorTransferFunction::New();
-
 	m_dwRenderer->stackedWidgetRC->setCurrentIndex(0);
 
 	if (isVolumeDataLoaded())
@@ -1982,40 +1979,23 @@ void MdiChild::updateSlicer(int index)
 
 void MdiChild::initChannelRenderer(uint id, bool use3D, bool enableChannel)
 {
-	iAChannelData * data = channelData(id);
-	assert(data);
-	if (!data)
+	iAChannelData * chData = channelData(id);
+	assert(chData);
+	if (!chData)
 	{
 		return;
 	}
 	for (int s = 0; s < 3; ++s)
-		m_slicer[s]->addChannel(id, *data, false);
-	/*
-	// TODO: VOLUME: rewrite using separate volume
+		m_slicer[s]->addChannel(id, *chData, false);
+
 	if (use3D)
 	{
-		data->Set3D(true);
-		m_renderer->addChannel(data);
-	}
-	*/
-	if (use3D)
-	{
-		data->set3D(true);
-		m_dwModalities->addModality(data->image(), QString("Channel %1").arg(id));
+		chData->set3D(true);
+		// TODO: VOLUME: rewrite using separate volume /
+		//    add capabilities of combining volumes from TripleHistogramTF module to renderer
+		// m_renderer->addChannel(chData);
 	}
 	setChannelRenderingEnabled(id, enableChannel);
-}
-
-void MdiChild::setSlicerPieGlyphsEnabled( bool isOn )
-{
-	for (int s = 0; s<3; ++s)
-		m_slicer[s]->setPieGlyphsOn(isOn);
-}
-
-void MdiChild::setPieGlyphParameters( double opacity, double spacing, double magFactor )
-{
-	for (int s = 0; s<3; ++s)
-		m_slicer[s]->setPieGlyphParameters(opacity, spacing, magFactor);
 }
 
 iAChannelData * MdiChild::channelData(uint id)
@@ -2067,17 +2047,17 @@ void MdiChild::updateChannelOpacity(uint id, double opacity)
 
 void MdiChild::setChannelRenderingEnabled(uint id, bool enabled)
 {
-	iAChannelData * data = channelData(id);
-	if (!data || data->isEnabled() == enabled)
+	iAChannelData * chData = channelData(id);
+	if (!chData || chData->isEnabled() == enabled)
 	{
 		// the channel with the given ID doesn't exist or hasn't changed
 		return;
 	}
-	data->setEnabled(enabled);
+	chData->setEnabled(enabled);
 	setSlicerChannelEnabled(id, enabled);
 	/*
 	// TODO: VOLUME: rewrite using volume manager:
-	if (data->Uses3D())
+	if (chData->Uses3D())
 	{
 		renderWidget()->updateChannelImages();
 	}
@@ -2302,7 +2282,7 @@ void MdiChild::check2DMode()
 	}
 }
 
-void MdiChild::setMagicLensInput(uint id, bool initReslice)
+void MdiChild::setMagicLensInput(uint id)
 {
 	for (int s = 0; s<3; ++s)
 		m_slicer[s]->setMagicLensInput(id);
@@ -2336,7 +2316,7 @@ void MdiChild::reInitMagicLens(uint id, QString const & name, vtkSmartPointer<vt
 
 	for (int s = 0; s<3; ++s)
 		m_slicer[s]->updateChannel(id, iAChannelData(name, imgData, ctf));
-	setMagicLensInput( id, true);
+	setMagicLensInput( id );
 	updateSlicers();
 }
 
@@ -2403,7 +2383,7 @@ void MdiChild::changeMagicLensModality(int chg)
 	QString name(modality(m_currentModality)->imageName(m_currentComponent));
 	channelData(m_magicLensChannel)->setName(name);
 	updateChannel(m_magicLensChannel, img, m_dwModalities->colorTF(m_currentModality), m_dwModalities->opacityTF(m_currentModality), false);
-	setMagicLensInput(m_magicLensChannel, true);
+	setMagicLensInput(m_magicLensChannel);
 	setHistogramModality(m_currentModality);	// TODO: don't change histogram, just read/create min/max and transfer function?
 }
 

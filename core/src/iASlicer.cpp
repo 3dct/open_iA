@@ -33,7 +33,6 @@
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAMovieHelper.h"
-#include "iAPieChartGlyph.h"
 #include "iARulerWidget.h"
 #include "iARulerRepresentation.h"
 #include "iASlicer.h"
@@ -59,7 +58,7 @@
 #include <vtkGenericMovieWriter.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageActor.h>
-//#include <vtkImageBlend.h>
+#include <vtkImageBlend.h>
 #include <vtkImageCast.h>
 #include <vtkImageChangeInformation.h>
 #include <vtkImageData.h>
@@ -71,6 +70,7 @@
 #include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
+#include <vtkLookupTable.h>
 #include <vtkMarchingContourFilter.h>
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
@@ -189,30 +189,36 @@ private:
 iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	bool decorations /*= true*/, bool magicLensAvailable /*= true*/, vtkAbstractTransform *transform, vtkPoints* snakeSlicerPoints) :
 	iAVtkWidget(parent),
-	m_decorations(decorations),
-	m_isSliceProfEnabled(false),
-	m_isArbProfEnabled(false),
-	m_pieGlyphsEnabled(false),
-	m_fisheyeLensActivated(false),
-	m_roiActive(false),
-	m_showPositionMarker(false),
-	m_userSetBackground(false),
-	m_cameraOwner(true),
-	m_cursorSet(false),
 	m_contextMenuMagicLens(nullptr),
 	m_contextMenuSnakeSlicer(nullptr),
+	m_interactionMode(Normal),
+	m_isSliceProfEnabled(false),
+	m_isArbProfEnabled(false),
+	m_xInd(0), m_yInd(0), m_zInd(0),
+	m_snakeSpline(nullptr),
+	m_worldSnakePoints(snakeSlicerPoints),
+	m_sliceProfile(nullptr),
+	m_arbProfile(nullptr),
+	m_mode(mode),
+	m_decorations(decorations),
+	m_userSetBackground(false),
+	m_showPositionMarker(false),
+	m_magicLensInput(NotExistingChannel),
+	m_fisheyeLensActivated(false),
+	m_fisheyeRadius(80.0),
+	m_innerFisheyeRadius(70.0),
 	m_interactor(nullptr),
+	m_interactorStyle(iAInteractorStyleImage::New()),
 	m_renWin(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New()),
 	m_ren(vtkSmartPointer<vtkRenderer>::New()),
-	m_interactorStyle(iAInteractorStyleImage::New()),
 	m_camera(vtkCamera::New()),
-	m_pointPicker(vtkSmartPointer<vtkWorldPointPicker>::New()),
+	m_cameraOwner(true),
 	m_transform(transform ? transform : vtkTransform::New()),
-	m_magicLensInput(NotExistingChannel),
-	m_mode(mode),
-	m_interactionMode(Normal),
-	m_xInd(0), m_yInd(0), m_zInd(0),
-	m_sliceNumber(0)
+	m_pointPicker(vtkSmartPointer<vtkWorldPointPicker>::New()),
+	m_slabThickness(0),
+	m_roiActive(false),
+	m_sliceNumber(0),
+	m_cursorSet(false)
 {
 	std::fill(m_angle, m_angle + 3, 0);
 	setAutoFillBackground(false);
@@ -399,8 +405,6 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_ren->AddActor(m_diskActor);
 		m_ren->AddActor(m_roiActor);
 	}
-
-	m_worldSnakePoints = snakeSlicerPoints;
 	m_renWin->SetNumberOfLayers(3);
 	m_camera->SetParallelProjection(true);
 
@@ -475,7 +479,7 @@ void iASlicer::update()
 	for (auto ch : m_channels)
 	{
 		ch->updateMapper();
-		ch->reslicer()->UpdateWholeExtent();
+		ch->reslicer()->Update();
 	}
 	m_interactor->ReInitialize();
 	m_interactor->Render();
@@ -519,7 +523,6 @@ void iASlicer::setSliceNumber( int sliceNumber )
 	for (auto ch : m_channels)
 		ch->setResliceAxesOrigin(origin[0] + xyz[0] * spacing[0], origin[1] + xyz[1] * spacing[1], origin[2] + xyz[2] * spacing[2]);
 	updateMagicLensColors();
-	computeGlyphs();
 	update();
 	emit sliceNumberChanged( m_mode, sliceNumber );
 }
@@ -734,10 +737,12 @@ void iASlicer::removeImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 	m_ren->RemoveActor(imgActor);
 }
 
-/*
 void iASlicer::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
 	double opacity, double * range)
 {
+	if (!hasChannel(0))
+		return;
+	// ToDo: check what it does, implement using new slicer channel feature!
 	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
 	lut->SetRange( range );
 	lut->SetHueRange(0, 1);
@@ -753,18 +758,11 @@ void iASlicer::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
 	imgBlender->UpdateInformation();
 	imgBlender->Update();
 
-	reslicer->SetInputConnection(imgBlender->GetOutputPort());
-	pointPicker->SetTolerance(PickTolerance);
-
-	this->imageData = imgBlender->GetOutput();
-	this->imageData->Modified();
-
-	imgBlender->ReleaseDataFlagOn();
-
-	InitReslicerWithImageData();
+	channel(0)->update(iAChannelData(QString(""), imgBlender->GetOutput(), lut));
+	channel(0)->reslicer()->SetInputConnection(imgBlender->GetOutputPort());
+	channel(0)->updateReslicer();
 	update();
 }
-*/
 
 void iASlicer::setROIVisible(bool visible)
 {
@@ -942,7 +940,7 @@ void iASlicer::saveAsImage()
 		inPara << (output16Bit ? tr("true") : tr("false"));
 	}
 
-	dlg_commoninput dlg(this, "Save options", inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Save options", inList, inPara, nullptr);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	saveNative = dlg.getCheckValue(0);
@@ -1022,7 +1020,7 @@ void iASlicer::saveImageStack()
 		inList << tr("$16 bit native output (if disabled, native output will be 8 bit)");
 		inPara << (output16Bit ? tr("true") : tr("false"));
 	}
-	dlg_commoninput dlg(this, "Save options", inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Save options", inList, inPara, nullptr);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
@@ -1208,7 +1206,7 @@ void iASlicer::updatePosition()
 	const int ChannelID = 0; //< TODO: avoid using specific channel here!
 	if (!hasChannel(ChannelID))
 	{
-		std::fill(m_globalPt, m_globalPt + sizeof(m_globalPt), 0);
+		std::fill(m_globalPt, m_globalPt + 3, 0);
 		return;
 	}
 	double point[4] = { m_slicerPt[0], m_slicerPt[1], m_slicerPt[2], 1 };
@@ -1257,6 +1255,13 @@ namespace
 			.arg(inRange ? QString::number(tmpPix) : "exceeds img. dim.")
 			.arg(coord[0]).arg(coord[1]).arg(coord[2]);
 	}
+
+	const double FisheyeMinRadius = 4.0;
+	const double FisheyeMaxRadius = 220.0;
+	const double FisheyeRadiusDefault = 80.0;
+	const double FisheyeInnerRadiusDefault = 70.0;
+
+	double fisheyeMinInnerRadius(double radius) { return std::max(1, static_cast<int>((radius - 1) * 0.7)); }
 }
 
 void iASlicer::printVoxelInformation()
@@ -1766,14 +1771,6 @@ void iASlicer::setMouseCursor(QString const & s)
 	m_cursorSet = true;
 }
 
-/*
-vtkScalarBarWidget * iASlicer::getScalarBarWidget()
-{
-	assert(m_decorations);
-	return m_scalarBarWidget;
-}
-*/
-
 void iASlicer::setScalarBarTF(vtkScalarsToColors* ctf)
 {
 	if (!m_scalarBarWidget)
@@ -1858,93 +1855,38 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 	}
 
 	// magnify and unmagnify fisheye lens and distortion radius
-	if (m_fisheyeLensActivated)
+	if (m_fisheyeLensActivated && (
+		event->key() == Qt::Key_Minus ||
+		event->key() == Qt::Key_Plus
+#if defined(VK_OEM_PLUS)
+		|| event->nativeVirtualKey() == VK_OEM_PLUS // "native..." - workaround required for Ctrl+ "+" with non-numpad "+" key
+#endif
+		))
 	{
 		ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
 
 		// TODO: fisheye lens on all channels???
 		auto reslicer = channel(0)->reslicer();
+		double oldInnerRadius = m_innerFisheyeRadius,
+			oldRadius = m_fisheyeRadius;
 		if (event->modifiers().testFlag(Qt::ControlModifier))
 		{
-			if (event->key() == Qt::Key_Minus)
-			{
-				if (m_fisheyeRadius <= 20 && m_innerFisheyeRadius + 1.0 <= 20.0)
-				{
-					m_innerFisheyeRadius += 1.0;
-					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-				}
-
-				else {
-					if ((m_innerFisheyeRadius + 2.0) <= m_fisheyeRadius)
-					{
-						m_innerFisheyeRadius += 2.0;
-						updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-					}
-
-				}
-			}
-			if (event->key() == Qt::Key_Plus)
-			{
-				if (m_fisheyeRadius <= 20 && m_innerFisheyeRadius - 1.0 >= 1.0)
-				{
-					m_innerFisheyeRadius -= 1.0;
-					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-				}
-				else
-				{
-					if ((m_innerFisheyeRadius - 2.0) >= (m_innerFisheyeMinRadius))
-					{
-						m_innerFisheyeRadius -= 2.0;
-						updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-					}
-				}
-			}
+			// change inner radius (~ zoom level) alone:
+			double ofs = ((m_fisheyeRadius <= 20.0) ? 1 : 2)    // how much to change it
+				* ((event->key() != Qt::Key_Minus) ? -1 : 1);   // which direction (!= instead of ==, as below, is intended!)
+			m_innerFisheyeRadius = clamp(fisheyeMinInnerRadius(m_fisheyeRadius), m_fisheyeRadius, m_innerFisheyeRadius + ofs);
 		}
-		else if (!(event->modifiers().testFlag(Qt::ControlModifier)))
+		else
 		{
-			if (event->key() == Qt::Key_Plus)
-			{
-				if (m_fisheyeRadius + 1.0 <= 20.0)
-				{
-					m_fisheyeRadius += 1.0;
-					m_innerFisheyeRadius = m_innerFisheyeRadius + 1.0;
-					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-				}
-				else
-				{
-					if (!(m_fisheyeRadius + 10.0 > m_maxFisheyeRadius))
-					{
-						m_fisheyeRadius += 10.0;
-						m_innerFisheyeRadius += 10.0;
-						m_innerFisheyeMinRadius += 8;
-						updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-					}
-				}
-			}
-			if (event->key() == Qt::Key_Minus) {
-
-				if (m_fisheyeRadius - 1.0 < 20.0 && m_fisheyeRadius - 1.0 >= m_minFisheyeRadius)
-				{
-					m_fisheyeRadius -= 1.0;
-					m_innerFisheyeRadius -= 1.0;
-					if (m_innerFisheyeMinRadius > 1.0)
-						m_innerFisheyeMinRadius = 1.0;
-					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-				}
-				else
-				{
-					if (!(m_fisheyeRadius - 10.0 < m_minFisheyeRadius))
-					{
-						m_fisheyeRadius -= 10.0;
-						m_innerFisheyeRadius -= 10.0;
-						m_innerFisheyeMinRadius -= - 8;
-						if (m_innerFisheyeRadius < m_innerFisheyeMinRadius)
-							m_innerFisheyeRadius = m_innerFisheyeMinRadius;
-						updateFisheyeTransform(ren->GetWorldPoint() /*pickedData.pos*/, reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-					}
-				}
-			}
+			// change radius of displayed fisheye lens, which requires changing inner radius as well:
+			double ofs = ((m_fisheyeRadius <= 20) ? 1 : 10)     // how much to change it
+				* ((event->key() == Qt::Key_Minus) ? -1 : 1);   // which direction
+			m_fisheyeRadius = clamp(FisheyeMinRadius, FisheyeMaxRadius, m_fisheyeRadius + ofs);
+			if (m_fisheyeRadius != oldRadius)
+				m_innerFisheyeRadius = clamp(fisheyeMinInnerRadius(m_fisheyeRadius), m_fisheyeRadius, m_innerFisheyeRadius + ofs);
 		}
+		if (oldRadius != m_fisheyeRadius || oldInnerRadius != m_innerFisheyeRadius) // only update if something changed
+			updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
 	}
 	if (event->key() == Qt::Key_S)
 	{
@@ -2225,12 +2167,6 @@ void iASlicer::setLinkedMdiChild(MdiChild* mdiChild)
 	m_linkedMdiChild = mdiChild;
 }
 
-void iASlicer::setPieGlyphsOn(bool isOn)
-{
-	m_pieGlyphsEnabled = isOn;
-	computeGlyphs();
-}
-
 void iASlicer::resizeEvent(QResizeEvent * event)
 {
 	updateMagicLens();
@@ -2347,10 +2283,8 @@ void iASlicer::initializeFisheyeLens(vtkImageReslice* reslicer)
 void iASlicer::updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslicer, double lensRadius, double innerLensRadius)
 {
 	vtkImageData * reslicedImgData = reslicer->GetOutput();
-	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 
 	double * spacing = reslicedImgData->GetSpacing();
-	double * origin = reslicedImgData->GetOrigin();
 
 	double bounds[6];
 	reslicer->GetInformationInput()->GetBounds(bounds);
@@ -2531,97 +2465,6 @@ void iASlicer::updateMagicLens()
 	int const mousePos[2] = { static_cast<int>(dpos[0]), static_cast<int>(dpos[1]) };
 	double const * worldP = ren->GetWorldPoint();
 	m_magicLens->updatePosition(ren->GetActiveCamera(), worldP, mousePos);
-}
-
-void iASlicer::computeGlyphs()
-{
-	/*
-	const double EPSILON = 0.0015;
-	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
-	bool hasPieGlyphs = (m_pieGlyphs.size() > 0);
-	if(hasPieGlyphs)
-	{
-		for(int i = 0; i< m_pieGlyphs.size(); ++i)
-			ren->RemoveActor(m_pieGlyphs[i]->actor);
-		m_pieGlyphs.clear();
-	}
-
-	if(!m_pieGlyphsEnabled)
-	{
-		if(hasPieGlyphs)
-			GetRenderWindow()->GetInteractor()->Render();
-		return;
-	}
-
-	QVector<double> angleOffsets;
-
-	for (int chan = 0; chan < GetEnabledChannels(); ++chan)
-	{
-		iAChannelSlicerData * chSlicerData = GetChannel(static_cast<iAChannelID>(ch_Concentration0 + chan));
-		if (!chSlicerData || !chSlicerData->isInitialized())
-			continue;
-
-		vtkSmartPointer<vtkImageResample> resampler = vtkSmartPointer<vtkImageResample>::New();
-		resampler->SetInputConnection( chSlicerData->reslicer->GetOutputPort() );
-		resampler->InterpolateOn();
-		resampler->SetAxisMagnificationFactor(0, m_pieGlyphMagFactor);
-		resampler->SetAxisMagnificationFactor(1, m_pieGlyphMagFactor);
-		resampler->SetAxisMagnificationFactor(2, m_pieGlyphMagFactor);
-		resampler->Update();
-
-		vtkImageData * imgData = resampler->GetOutput();
-
-		int dims[3];
-		imgData->GetDimensions(dims);
-		QString scalarTypeStr( imgData->GetScalarTypeAsString() );
-
-		double o[3], s[3];
-		imgData->GetOrigin(o); imgData->GetSpacing(s);
-
-		int index = 0;
-		for (int y = 0; y < dims[1]; y++)
-		{
-			for (int x = 0; x < dims[0]; ++x, ++index)
-			{
-				float portion = static_cast<float*>(imgData->GetScalarPointer(x, y, 0))[0];
-				double angularRange[2] = { 0.0, 360.0*portion};
-				if(0 != chan)
-				{
-					angularRange[0] += angleOffsets[index];
-					angularRange[1] += angleOffsets[index];
-				}
-
-				if(portion > EPSILON)
-				{
-					iAPieChartGlyph * pieGlyph = new iAPieChartGlyph(angularRange[0], angularRange[1]);
-					double pos[3] = { o[0] + x*s[0], o[1] + y*s[1], 1.0 };
-					pieGlyph->actor->SetPosition(pos);
-					pieGlyph->actor->SetScale( (std::min)(s[0], s[1]) * m_pieGlyphSpacing );
-					QColor c(chSlicerData->GetColor());
-					double color[3] = { c.redF(), c.greenF(), c.blueF() };
-					pieGlyph->actor->GetProperty()->SetColor(color);
-					pieGlyph->actor->GetProperty()->SetOpacity(m_pieGlyphOpacity);
-					ren->AddActor(pieGlyph->actor);
-					m_pieGlyphs.push_back( QSharedPointer<iAPieChartGlyph>(pieGlyph) );
-				}
-
-				if(0 == chan)
-					angleOffsets.push_back(angularRange[1]);
-				else
-					angleOffsets[index] = angularRange[1];
-			}
-		}
-	}
-	GetRenderWindow()->GetInteractor()->Render();
-	*/
-}
-
-void iASlicer::setPieGlyphParameters(double opacity, double spacing, double magFactor)
-{
-	m_pieGlyphOpacity = opacity;
-	m_pieGlyphSpacing = spacing;
-	m_pieGlyphMagFactor = magFactor;
-	computeGlyphs();
 }
 
 

@@ -1,4 +1,4 @@
 #ifndef VERSION_H
 #define VERSION_H
-#define VERSION "@VERSION@"
+#define VERSION "@openiA_VERSION@"
 #endif

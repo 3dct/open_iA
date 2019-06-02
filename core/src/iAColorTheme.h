@@ -40,7 +40,7 @@ public:
 	//! returns the number of colors in this theme
 	virtual size_t size() const =0;
 	//! returns the color with the given index in this theme
-	virtual QColor const & GetColor(int idx) const =0;
+	virtual QColor const & color(int idx) const =0;
 	//! get the name of the color theme
 	QString const & name() const;
 private:
@@ -52,9 +52,9 @@ class open_iA_Core_API iAVectorColorTheme: public iAColorTheme
 public:
 	iAVectorColorTheme(QString const &  name);
 	size_t size() const override;
-	QColor const & GetColor(int idx) const override;
+	QColor const & color(int idx) const override;
 	//! add a color to the theme (typically only necessary for theme creators)
-	void AddColor(QColor const &);
+	void addColor(QColor const &);
 private:
 	std::vector<QColor> m_colors;
 	static QColor ErrorColor;
@@ -65,23 +65,24 @@ class open_iA_Core_API iASingleColorTheme : public iAColorTheme
 public:
 	iASingleColorTheme(QString const & name, QColor const & color);
 	size_t size() const override;
-	QColor const & GetColor(int idx) const override;
+	QColor const & color(int idx) const override;
 private:
 	QColor m_color;
 };
 
 //! Manager for color themes. Internally creates the qualitative color themes from
-//! Color Brewer (http://mkweb.bcgsc.ca/brewer/swatches/brewer.txt) and provides
-//! access to their names as well as the single themes.
+//! Color Brewer (http://mkweb.bcgsc.ca/brewer/swatches/brewer.txt) as well as from
+//! a few other sources and provides access to their names as well as the single
+//! themes.
 class open_iA_Core_API iAColorThemeManager
 {
 public:
-	//! only every need one of those
-	static iAColorThemeManager const & GetInstance();
+	//! only ever need one of those (Singleton)
+	static iAColorThemeManager const & instance();
 	//! Get the list of all available themes
-	QStringList GetAvailableThemes() const;
+	QStringList availableThemes() const;
 	//! Get a theme by name
-	iAColorTheme const * GetTheme(QString const & name) const;
+	iAColorTheme const * theme(QString const & name) const;
 private:
 	iAColorThemeManager();
 	~iAColorThemeManager();

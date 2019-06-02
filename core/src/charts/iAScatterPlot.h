@@ -21,28 +21,19 @@
 #pragma once
 
 #include "open_iA_Core_export.h"
+#include "qthelper/iAQGLWidgetFwd.h"
 
 #include <QList>
-#include <QtGlobal>
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-#include <QOpenGLWidget>
-#else
-#include <QGLWidget>
-#endif
 #include <QScopedPointer>
 #include <QWidget>
 
 class iALookupTable;
 class iAScatterPlotSelectionHandler;
 class iASPLOMData;
+
 class QTableWidget;
 class QTimer;
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-class QOpenGLBuffer;
-#else
-class QGLBuffer;
-#endif
+
 class vtkLookupTable;
 
 //! Represents a single scatter plot in the scatter plot matrix (SPLOM).
@@ -62,11 +53,7 @@ public:
 		Polygon
 	};
 	//!  Constructor: requires a parent SPLOM widget
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	iAScatterPlot(iAScatterPlotSelectionHandler * splom, QOpenGLWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
-#else
-	iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
-#endif
+	iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAQGLWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
 	~iAScatterPlot();
 
 	void setData( int x, int y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
@@ -184,13 +171,8 @@ public:
 	// Members
 	Settings settings;
 protected:
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	QOpenGLWidget* m_parentWidget;                                   //!< the parent widget
-	QOpenGLBuffer * m_pointsBuffer;                                  //!< OpenGL buffer used for points VBO
-#else
-	QGLWidget* m_parentWidget;                                       //!< the parent widget
-	QGLBuffer * m_pointsBuffer;                                      //!< OpenGL buffer used for points VBO
-#endif
+	iAQGLWidget * m_parentWidget;                                    //!< the parent widget
+	iAQGLBuffer * m_pointsBuffer;                                    //!< OpenGL buffer used for points VBO
 	iAScatterPlotSelectionHandler * m_splom;                         //!< selection/highlight/settings handler (if part of a SPLOM, the SPLOM-parent)
 	QRect m_globRect;                                                //!< plot's rectangle
 	QRectF m_locRect;                                                //!< plot's local drawing rectangle

@@ -89,7 +89,7 @@ public:
 		assert(m_theme);
 		if (!m_theme)
 			return QColor(0, 0, 0);
-		return m_theme->GetColor(idx);
+		return m_theme->color(idx);
 	}
 
 	void setLabelCount(int labelCount)
@@ -138,7 +138,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(m_dlgSamplings, SIGNAL(AddSampling()), this, SLOT(LoadSampling()));
 	dlgLabels->hide();
 	m_simpleLabelInfo->setColorTheme(colorTheme);
-	cbColorThemes->addItems(iAColorThemeManager::GetInstance().GetAvailableThemes());
+	cbColorThemes->addItems(iAColorThemeManager::instance().availableThemes());
 	cbColorThemes->setCurrentText(colorTheme->name());
 
 	connect(pbSample,           SIGNAL(clicked()), this, SLOT(StartSampling()));
@@ -157,7 +157,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 
 	connect(sbClusterViewPreviewSize, SIGNAL(valueChanged(int)), this, SLOT(SetIconSize(int)));
 	connect(sbMagicLensCount, SIGNAL(valueChanged(int)), this, SLOT(SetMagicLensCount(int)));
-	connect(cbColorThemes, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetColorTheme(const QString &)));
+	connect(cbColorThemes, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(setColorTheme(const QString &)));
 	connect(cbRepresentative, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetRepresentative(const QString &)));
 	connect(cbProbabilityProbing, SIGNAL(stateChanged(int)), this, SLOT(SetProbabilityProbing(int)));
 	connect(cbCorrectnessUncertainty, SIGNAL(stateChanged(int)), this, SLOT(SetCorrectnessUncertainty(int)));
@@ -190,19 +190,19 @@ void dlg_GEMSeControl::StartSampling()
 		m_outputFolder = m_dlgSamplingSettings->GetOutputFolder();
 		QDir outputFolder(m_outputFolder);
 		outputFolder.mkpath(".");
-		if (m_dlgSamplingSettings->GetLabelCount() < 2)
+		if (m_dlgSamplingSettings->labelCount() < 2)
 		{
 			DEBUG_LOG("Label Count must not be smaller than 2!");
 			QMessageBox::warning(this, "GEMSe", "Label Count must not be smaller than 2!");
 			return;
 		}
-		m_simpleLabelInfo->setLabelCount(m_dlgSamplingSettings->GetLabelCount());
+		m_simpleLabelInfo->setLabelCount(m_dlgSamplingSettings->labelCount());
 		m_sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
 			m_dlgModalities->modalities(),
 			parameters,
 			m_dlgSamplingSettings->GetGenerator(),
 			m_dlgSamplingSettings->GetSampleCount(),
-			m_dlgSamplingSettings->GetLabelCount(),
+			m_dlgSamplingSettings->labelCount(),
 			m_outputFolder,
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,
@@ -571,12 +571,12 @@ void dlg_GEMSeControl::SetIconSize(int newSize)
 }
 
 
-void dlg_GEMSeControl::SetColorTheme(const QString &themeName)
+void dlg_GEMSeControl::setColorTheme(const QString &themeName)
 {
-	iAColorTheme const * theme = iAColorThemeManager::GetInstance().GetTheme(themeName);
+	iAColorTheme const * theme = iAColorThemeManager::instance().theme(themeName);
 	m_dlgLabels->setColorTheme(theme);
 	m_simpleLabelInfo->setColorTheme(theme);
-	m_dlgGEMSe->SetColorTheme(theme, m_simpleLabelInfo.data());
+	m_dlgGEMSe->setColorTheme(theme, m_simpleLabelInfo.data());
 }
 
 
@@ -593,8 +593,8 @@ void dlg_GEMSeControl::SetRepresentative(const QString & reprType)
 		/* reprType == "Average Entropy" */		iARepresentativeType::AverageEntropy;
 	if (!m_dlgGEMSe->SetRepresentativeType(representativeType, m_refImg))
 	{   // could not set representative, reset
-		int reprType = m_dlgGEMSe->GetRepresentativeType();
-		cbRepresentative->setCurrentIndex(reprType);
+		int reprTypeIdx = m_dlgGEMSe->GetRepresentativeType();
+		cbRepresentative->setCurrentIndex(reprTypeIdx);
 	}
 }
 
@@ -759,6 +759,6 @@ void dlg_GEMSeControl::SetLabelInfo(QString const & colorTheme, QString const & 
 	if (colorTheme != "" && colorThemeIdx != -1)
 	{
 		cbColorThemes->setCurrentIndex(colorThemeIdx);
-			//SetColorTheme(); // maybe already done via signal, need to check
+			//setColorTheme(); // maybe already done via signal, need to check
 	}
 }

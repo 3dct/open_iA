@@ -630,19 +630,17 @@ void MainWindow::saveSliceViews(QDomDocument &doc)
 	}
 
 	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
-		saveSliceView(doc, sliceViewsNode, activeMdiChild()->slicer(i)->renderer(), slicerModeString(i));
+		saveSliceView(doc, sliceViewsNode, activeMdiChild()->slicer(i)->camera(), slicerModeString(i));
 }
 
-void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, QString const & elemStr)
+void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkCamera *cam, QString const & elemStr)
 {
-	// get parameters of slice views
-	vtkCamera *camera = ren->GetActiveCamera();
 	// remove views node if there is one
 	removeNode(sliceViewsNode, elemStr);
 	// add new slice view node
 	QDomElement cameraElement = doc.createElement(elemStr);
 
-	saveCamera(cameraElement, camera);
+	saveCamera(cameraElement, cam);
 
 	sliceViewsNode.appendChild(cameraElement);
 }

@@ -73,27 +73,8 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 	m_slicerTransform(vtkTransform::New())
 {
 	m_slicer = new iASlicer(this, mode, false, magicLens, m_slicerTransform);
-	setLayout(new QHBoxLayout);
-	layout()->setSpacing(0);
-	layout()->addWidget(m_slicer);
-}
-
-iAImagePreviewWidget::~iAImagePreviewWidget()
-{
-	delete m_slicer;
-	delete m_conn;
-}
-
-void iAImagePreviewWidget::InitializeSlicer()
-{
-	BuildCTF();
-	
 	m_slicer->setup(iASingleSlicerSettings());
-	m_slicer->addChannel(0, iAChannelData("", m_imageData, m_ctf), true);
 	m_slicer->setBackground(SLICER_BACKGROUND_COLOR[0], SLICER_BACKGROUND_COLOR[1], SLICER_BACKGROUND_COLOR[2]);
-	
-	// TODO: disable interaction in slicer
-	// adapt initial zoom
 	if (m_sliceNumber == SliceNumberNotSet)
 	{
 		m_sliceNumber = GetMiddleSliceNumber(m_imageData, m_slicer->mode());
@@ -109,29 +90,33 @@ void iAImagePreviewWidget::InitializeSlicer()
 	{
 		m_slicer->disableInteractor();
 	}
-	
-	connect( m_slicer, SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
-	connect( m_slicer, SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
-	connect( m_slicer, SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerHovered(int, int, int, int)));
-	connect( m_slicer, SIGNAL(userInteraction()), this, SIGNAL(Updated()));
+
+	connect(m_slicer, SIGNAL(clicked()), this, SIGNAL(clicked()));
+	connect(m_slicer, SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
+	connect(m_slicer, SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerHovered(int, int, int, int)));
+	connect(m_slicer, SIGNAL(userInteraction()), this, SIGNAL(updated()));
+	setLayout(new QHBoxLayout);
+	layout()->setSpacing(0);
+	layout()->addWidget(m_slicer);
 }
 
-void iAImagePreviewWidget::SlicerClicked(int x, int y, int z)
+iAImagePreviewWidget::~iAImagePreviewWidget()
 {
-	emit Clicked();
+	delete m_slicer;
+	delete m_conn;
 }
 
 void iAImagePreviewWidget::SlicerRightClicked(int x, int y, int z)
 {
-	emit RightClicked();
+	emit rightClicked();
 }
 
 void iAImagePreviewWidget::SlicerHovered(int x, int y, int z, int mode)
 {
-	emit MouseHover();
+	emit mouseHover();
 }
 
-void iAImagePreviewWidget::SetSliceNumber(int sliceNr)
+void iAImagePreviewWidget::setSliceNumber(int sliceNr)
 {
 	m_sliceNumber = sliceNr;
 	if (m_slicerTransform)
@@ -140,7 +125,7 @@ void iAImagePreviewWidget::SetSliceNumber(int sliceNr)
 	}
 }
 
-int iAImagePreviewWidget::GetSliceNumber() const
+int iAImagePreviewWidget::sliceNumber() const
 {
 	return m_sliceNumber;
 }
@@ -150,13 +135,12 @@ iASlicer* iAImagePreviewWidget::slicer()
 	return m_slicer;
 }
 
-
-bool iAImagePreviewWidget::Empty() const
+bool iAImagePreviewWidget::empty() const
 {
 	return m_empty;
 }
 
-void iAImagePreviewWidget::SetSlicerMode(iASlicerMode mode, int sliceNr, vtkCamera* camera)
+void iAImagePreviewWidget::setSlicerMode(iASlicerMode mode, int sliceNr, vtkCamera* camera)
 {
 	m_mode = mode;
 	m_sliceNumber = sliceNr;
@@ -168,17 +152,22 @@ void iAImagePreviewWidget::SetSlicerMode(iASlicerMode mode, int sliceNr, vtkCame
 	}
 }
 
-iASlicerMode iAImagePreviewWidget::GetSlicerMode() const
+iASlicerMode iAImagePreviewWidget::slicerMode() const
 {
 	return m_slicer->mode();
 }
 
-vtkCamera* iAImagePreviewWidget::GetCamera()
+vtkCamera* iAImagePreviewWidget::camera()
 {
 	return m_slicer->camera();
 }
 
-void iAImagePreviewWidget::SetCamera(vtkCamera* camera)
+void iAImagePreviewWidget::resetCamera()
+{
+	m_slicer->resetCamera();
+}
+
+void iAImagePreviewWidget::setCamera(vtkCamera* camera)
 {
 	m_slicer->setCamera(camera, false);
 	m_slicer->update();
@@ -207,11 +196,7 @@ void iAImagePreviewWidget::setImage(vtkSmartPointer<vtkImageData> img, bool empt
 		default:
 		case XY: m_aspectRatio = h / w; break;
 	}
-	if (!m_slicerTransform)
-	{
-		InitializeSlicer();
-	}
-	UpdateImage();
+	updateImage();
 }
 
 void iAImagePreviewWidget::setImage(iAITKIO::ImagePointer const img, bool empty, bool isLabelImg)
@@ -229,7 +214,7 @@ void iAImagePreviewWidget::setImage(iAITKIO::ImagePointer const img, bool empty,
 	setImage(m_conn->vtkImage(), empty, isLabelImg);
 }
 
-void iAImagePreviewWidget::AddNoMapperChannel(vtkSmartPointer<vtkImageData> img)
+void iAImagePreviewWidget::addNoMapperChannel(vtkSmartPointer<vtkImageData> img)
 {
 	if (m_addChannelImgActor)
 	{
@@ -243,7 +228,7 @@ void iAImagePreviewWidget::AddNoMapperChannel(vtkSmartPointer<vtkImageData> img)
 	m_slicer->update();
 }
 
-void iAImagePreviewWidget::RemoveChannel()
+void iAImagePreviewWidget::removeChannel()
 {
 	if (m_addChannelImgActor)
 	{
@@ -253,7 +238,7 @@ void iAImagePreviewWidget::RemoveChannel()
 	m_addChannelImgActor = nullptr;
 }
 
- bool iAImagePreviewWidget::BuildCTF()
+ bool iAImagePreviewWidget::buildCTF()
 {
 	// TODO: cache/reuse ctf
 	if (m_empty || !m_isLabelImage)
@@ -275,7 +260,7 @@ void iAImagePreviewWidget::RemoveChannel()
 		ctf->SetNumberOfValues(m_labelCount+1);
 		for (int i=0; i<m_labelCount; ++i)
 		{
-			QColor c(m_colorTheme->GetColor(i));
+			QColor c(m_colorTheme->color(i));
 			ctf->AddRGBPoint(i,
 				c.red()   / 255.0,
 				c.green() / 255.0,
@@ -292,15 +277,18 @@ void iAImagePreviewWidget::RemoveChannel()
 	return true;
 }
 
-void iAImagePreviewWidget::UpdateImage()
+void iAImagePreviewWidget::updateImage()
 {
-	if (!BuildCTF())
+	if (!buildCTF())
 		return;
-	m_slicer->updateChannel(0, iAChannelData("", m_imageData, m_ctf));
-	UpdateView();
+	if (m_slicer->hasChannel(0))
+		m_slicer->updateChannel(0, iAChannelData("", m_imageData, m_ctf));
+	else
+		m_slicer->addChannel(0, iAChannelData("", m_imageData, m_ctf), true);
+	updateView();
 }
 
-void iAImagePreviewWidget::UpdateView()
+void iAImagePreviewWidget::updateView()
 {
 	m_slicer->update();
 }
@@ -337,22 +325,20 @@ void iAImagePreviewWidget::resizeEvent(QResizeEvent * event)
 }
 
 
-void iAImagePreviewWidget::SetColorTheme(iAColorTheme const * colorTheme)
+void iAImagePreviewWidget::setColorTheme(iAColorTheme const * colorTheme)
 {
 	m_colorTheme = colorTheme;
 	if (m_imageData)
-	{
-		UpdateImage();
-	}
+		updateImage();
 }
 
 
-double iAImagePreviewWidget::GetAspectRatio() const
+double iAImagePreviewWidget::aspectRatio() const
 {
 	return m_aspectRatio;
 }
 
-vtkSmartPointer<vtkColorTransferFunction> iAImagePreviewWidget::GetCTF()
+vtkSmartPointer<vtkColorTransferFunction> iAImagePreviewWidget::colorTF()
 {
 	return m_ctf;
 }

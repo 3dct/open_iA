@@ -2163,7 +2163,7 @@ void dlg_FeatureScout::ClassLoadButton()
 
 	// create xml reader
 	QStandardItem *rootItem = this->classTreeModel->invisibleRootItem();
-	QStandardItem *activeItem;
+	QStandardItem *activeItem = nullptr;
 
 	QFile readFile( filename );
 	if ( !readFile.open( QIODevice::ReadOnly ) )

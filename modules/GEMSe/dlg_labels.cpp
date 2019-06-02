@@ -169,7 +169,7 @@ int dlg_labels::addLabelItem(QString const & labelText)
 	}
 	QStandardItem* newItem = new QStandardItem(labelText);
 	QStandardItem* newItemCount = new QStandardItem("0");
-	newItem->setData(m_colorTheme->GetColor(m_maxColor++), Qt::DecorationRole);
+	newItem->setData(m_colorTheme->color(m_maxColor++), Qt::DecorationRole);
 	QList<QStandardItem* > newRow;
 	newRow.append(newItem);
 	newRow.append(newItemCount);

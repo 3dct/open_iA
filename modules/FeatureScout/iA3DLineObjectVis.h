@@ -22,6 +22,8 @@
 
 #include "iA3DColoredPolyObjectVis.h"
 
+#include <iAvec3.h>
+
 #include <vtkSmartPointer.h>
 
 class vtkPoints;
@@ -29,11 +31,15 @@ class vtkPoints;
 class FeatureScout_API iA3DLineObjectVis: public iA3DColoredPolyObjectVis
 {
 public:
-	iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color );
+	iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+		QColor const & color, std::map<size_t, std::vector<iAVec3f> > curvedFiberData );
 	void updateValues( std::vector<std::vector<double> > const & values );
 	vtkPolyData* getPolyData() override;
 protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPoints> m_points;
+	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberData;
+	//! maps the fiber ID to the first index in the points array that belongs to this fiber
+	std::vector<size_t> m_fiberPointMap;
 };
 

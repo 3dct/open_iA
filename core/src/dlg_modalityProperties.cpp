@@ -50,7 +50,6 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 	cbShowInSlicer->setChecked(modality->hasRenderFlag(iAModality::Slicer));
 
 	double const * orientation = modality->renderer()->orientation();
-	double const * position = modality->renderer()->position();
 	double const * spacing = modality->spacing();
 	double const * origin = modality->origin();
 

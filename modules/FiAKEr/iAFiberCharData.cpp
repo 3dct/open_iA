@@ -324,6 +324,57 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 				}
 			}
 		}
+
+		QString curvedFileName(QFileInfo(csvFile).absolutePath() + "/curved/" + QFileInfo(csvFile).baseName() + "-CurvedFibrePoints.csv");
+		QFileInfo curvedInfo(curvedFileName);
+		if (curvedInfo.exists() && curvedInfo.isFile())
+		{
+			QFile curvedFiberPoints(curvedInfo.absoluteFilePath());
+			if (!curvedFiberPoints.open(QIODevice::ReadOnly | QIODevice::Text))
+			{
+				DEBUG_LOG(QString("Unable to open curvedFiberPoints file: %1. Error: %2")
+					.arg(curvedInfo.absoluteFilePath()).arg(curvedFiberPoints.errorString()));
+			}
+			else
+			{
+				QTextStream in(&curvedFiberPoints);
+				size_t lineNr = 0;
+				while (!in.atEnd())
+				{
+					++lineNr;
+					QString line = in.readLine();
+					if (lineNr <= 6)
+						continue;
+					QStringList valueStrList = line.split(",", QString::SkipEmptyParts);
+					if (valueStrList.size() < 7 || ((valueStrList.size() - 1) % 3) != 0)
+					{
+						DEBUG_LOG(QString("Invalid line in curvedFiberPoints file %1, line %2: %3 - number of elements: %4")
+							.arg(curvedInfo.absoluteFilePath()).arg(lineNr).arg(line).arg(valueStrList.size()));
+						continue;
+					}
+					size_t fiberID = valueStrList[0].toInt();
+					int numOfPoints = (valueStrList.size() - 1) / 3;
+					std::vector<iAVec3f> points;
+					for (int i = 0; i < numOfPoints; ++i)
+					{
+						int baseIdx = 1 + (i * 3);
+						bool ok1, ok2, ok3;
+						iAVec3f p(valueStrList[baseIdx].toFloat(&ok1), valueStrList[baseIdx + 1].toFloat(&ok2), valueStrList[baseIdx + 2].toFloat(&ok3));
+						if (!ok1 || !ok2 || !ok3)
+						{
+							DEBUG_LOG(QString("Invalid point (%1, %2, %3) in curvedFiberPoints file %4, line %5: %6 - number of elements: %7")
+								.arg(valueStrList[baseIdx]).arg(valueStrList[baseIdx + 1]).arg(valueStrList[baseIdx + 2])
+								.arg(curvedInfo.absoluteFilePath()).arg(lineNr).arg(line).arg(valueStrList.size()));
+							continue;
+						}
+						points.push_back(p);
+
+					}
+					curData.curveInfo.insert(std::make_pair(fiberID, points));
+				}
+			}
+		}
+
 		if (thisResultTimeStepMax > optimStepMax)
 		{
 			if (optimStepMax > 1)

@@ -51,12 +51,12 @@ public:
 	//!        + ... a combo box (in values, give a QStringList with all options, prefix the one that should be selected with a '!')
 	//!        * ... a SpinBox, asking for an (integer) number between 0 and 65536
 	//!        ^ ... a double SpinBox asking for a floating point number between -999999, 999999
-    //!        = ... a PlainTextEdit (allowing to enter multiple lines of text)
+	//!        = ... a PlainTextEdit (allowing to enter multiple lines of text)
 	//!        & ... Filter type (special) - PushButton, which on click enables user to select a filter name
 	//!        < ... file chooser (single file name for opening)
 	//!        { ... file chooser (multiple file names for opening)
 	//!        > ... file chooser (single file name for saving)
-    //!        ; ... folder chooser (single existing folder name)
+	//!        ; ... folder chooser (single existing folder name)
 	//!    e.g. "*Name" gives you an (integer) spinbox with label "Name"
 	//! @param values starting values for all parameters.
 	//! @param fDescr an optional description text, displayed on top of the dialog

@@ -102,7 +102,10 @@ iAXRFAttachment::~iAXRFAttachment()
 void iAXRFAttachment::reInitXRF()
 {	
 	vtkSmartPointer<vtkImageData> img = dlgXRF->GetCombinedVolume();
-	m_child->reInitMagicLens(m_xrfChannelID, "Spectral Color Image", img, dlgXRF->GetColorTransferFunction());
+	if (m_child->isMagicLensToggled())
+		m_child->reInitMagicLens(m_xrfChannelID, "Spectral Color Image", img, dlgXRF->GetColorTransferFunction());
+	if (m_child->channelData(m_xrfChannelID) && m_child->channelData(m_xrfChannelID)->isEnabled())
+		m_child->updateChannel(m_xrfChannelID, img, dlgXRF->GetColorTransferFunction(), nullptr, false);
 }
 
 void iAXRFAttachment::initXRF()
@@ -133,18 +136,17 @@ void iAXRFAttachment::initXRF( bool enableChannel )
 	}
 	else if (isMagicLensEnabled)
 	{
-		m_child->setMagicLensInput(m_xrfChannelID,
-			!m_child->channelData(m_xrfChannelID)->isEnabled());
+		m_child->setMagicLensInput(m_xrfChannelID);
 	}
 	m_child->updateSlicers();
 	m_child->addMsg(tr("Spectral color image initialized."));
 }
 
-QObject* iAXRFAttachment::recalculateXRF()
+QThread* iAXRFAttachment::recalculateXRF()
 {
 	if( !dlgXRF )
 	{
-		return 0;
+		return nullptr;
 	}
 	return dlgXRF->UpdateForVisualization();
 }
@@ -306,12 +308,13 @@ void iAXRFAttachment::updateXRF()
 	{
 		return;
 	}
-	QObject* calcThread = recalculateXRF();
+	QThread* calcThread = recalculateXRF();
 	if( !calcThread )
 	{
 		return;
 	}
-	QObject::connect( calcThread, SIGNAL( finished() ), this, SLOT( reInitXRF() ) );
+	connect( calcThread, &QThread::finished, this, &iAXRFAttachment::reInitXRF);
+	connect( calcThread, &QThread::finished, calcThread, &QThread::deleteLater);
 }
 
 void iAXRFAttachment::magicLensToggled( bool isOn )

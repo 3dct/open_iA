@@ -27,14 +27,6 @@
 
 class open_iA_Core_API iAChartFunctionGaussian : public iAChartFunction
 {
-	QColor color;
-
-	int    selectedPoint;
-	bool   active;
-	double mean;
-	double sigma;
-	double multiplier;
-
 public:
 	iAChartFunctionGaussian(iADiagramFctWidget *chart, QColor &color, bool reset = true);
 
@@ -55,17 +47,17 @@ public:
 	void reset() override;
 
 	// additional public functions
-	void setMean(double mean) { this->mean = mean; }
-	void setSigma(double sigma) { this->sigma = sigma; }
-	void setMultiplier(double multiplier) { this->multiplier = multiplier; }
-	void setMean(int mean) { this->mean = v2dX(mean); }
-	void setSigma(int sigma) { this->sigma = i2dX(sigma)-i2dX(0); }
+	void setMean(double mean)   { m_mean = mean; }
+	void setMean(int mean)      { m_mean = v2dX(mean); }
+	void setSigma(double sigma) { m_sigma = sigma; }
+	void setSigma(int sigma)    { m_sigma = i2dX(sigma) - i2dX(0); }
+	void setMultiplier(double multiplier) { m_multiplier = multiplier; }
 	void setMultiplier(int multiplier);
 
-	double getMean() { return this->mean; }
-	double getSigma() { return this->sigma; }
-	double getCovariance() { return this->sigma*this->sigma; }
-	double getMultiplier() { return this->multiplier; }
+	double getMean() { return m_mean; }
+	double getSigma() { return m_sigma; }
+	double getCovariance() { return m_sigma* m_sigma; }
+	double getMultiplier() { return m_multiplier; }
 
 private:
 
@@ -83,4 +75,10 @@ private:
 
 	// convert image to data
 	double i2dX(int x);
+
+	QColor m_color;
+	int    m_selectedPoint;
+	double m_mean;
+	double m_sigma;
+	double m_multiplier;
 };

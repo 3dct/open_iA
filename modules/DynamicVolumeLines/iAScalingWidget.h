@@ -21,14 +21,13 @@
 #pragma once
 
 #include <charts/qcustomplot.h>
+#include <qthelper/iAQGLWidget.h>
 
 #include <vtkSmartPointer.h>
 
-#include <QOpenGLWidget>
-
 class vtkLookupTable;
 
-class iAScalingWidget : public QOpenGLWidget
+class iAScalingWidget : public iAQGLWidget
 {
 	Q_OBJECT
 

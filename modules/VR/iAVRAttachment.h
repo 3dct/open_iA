@@ -40,7 +40,7 @@ class iAVRAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	iAVRAttachment( MainWindow * mainWnd, iAChildData childData );
+	iAVRAttachment( MainWindow * mainWnd, MdiChild* child );
 private:
 	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
 	QSharedPointer<iAVREnvironment> m_vrEnv;

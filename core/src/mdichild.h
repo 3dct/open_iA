@@ -220,15 +220,11 @@ public:
 	void updateChannelMappers();
 	//! @}
 
-	//! @{ slicer pie glyphs - move to XRF module!
-	void setSlicerPieGlyphsEnabled(bool isOn);
-	void setPieGlyphParameters(double opacity, double spacing, double magFactor);
-	//! @}
 
 	//! @{ Magic Lens
 	void toggleMagicLens(bool isEnabled);
 	bool isMagicLensToggled(void) const;
-	void setMagicLensInput(uint id, bool initReslicer);
+	void setMagicLensInput(uint id);
 	void setMagicLensEnabled(bool isOn);
 	void reInitMagicLens(uint id, QString const & name, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf);
 	int  magicLensSize() const;

@@ -60,9 +60,6 @@ iAAlgorithm::~iAAlgorithm()
 
 void iAAlgorithm::run()
 {
-	addMsg(tr("%1  %2 started.")
-		.arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
 	try
 	{
 		getConnector()->setImage(getVtkImageData());

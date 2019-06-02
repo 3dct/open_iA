@@ -22,6 +22,7 @@
 
 #include "dlg_elementRenderer.h"
 
+#include "iACharacteristicEnergy.h"
 #include "iASpectrumFilter.h"
 #include "iASpectrumFunction.h"
 #include "ui_XRF.h"
@@ -39,23 +40,14 @@
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_XRF>   dlg_xrfContainer;
 
-class QDockWidget;
-class vtkColorTransferFunction;
-class vtkImageData;
-class vtkLookupTable;
-class vtkPiecewiseFunction;
-class vtkScalarBarActor;
-
-class iAEnergySpectrumWidget;
-class iAWidgetAddHelper;
-
 class dlg_periodicTable;
 class dlg_RefSpectra;
 class iAAccumulatedXRFData;
-struct iACharacteristicEnergy;
 class iADecompositionCalculator;
 class iAElementConcentrations;
 class iAEnergySpectrumDiagramData;
+class iAEnergySpectrumWidget;
+class iAPieChartGlyph;
 class iAPieChartWidget;
 class iAReferenceSpectraLibrary;
 class iAPeriodicTableListener;
@@ -65,6 +57,15 @@ class iAPlot;
 class iAPlotCollection;
 class iASelectedBinPlot;
 class iAStepFunctionPlot;
+class iAWidgetAddHelper;
+
+class vtkColorTransferFunction;
+class vtkImageData;
+class vtkLookupTable;
+class vtkPiecewiseFunction;
+class vtkScalarBarActor;
+
+class QDockWidget;
 
 class dlg_XRF : public dlg_xrfContainer, public iASpectrumFilterListener
 {
@@ -77,7 +78,7 @@ public:
 
 	vtkSmartPointer<vtkImageData> GetCombinedVolume();
 	vtkSmartPointer<vtkColorTransferFunction> GetColorTransferFunction();
-	QObject* UpdateForVisualization();
+	QThread* UpdateForVisualization();
 	QSharedPointer<iAXRFData> GetXRFData();
 	QSharedPointer<iAElementConcentrations> GetElementConcentrations();
 
@@ -141,9 +142,22 @@ public slots:
 	void ReferenceSpectrumItemChanged( QStandardItem * item );
 	void energyBinsSelected( int binX, int binY );
 
+	//! @{ slicer pie glyphs
+private slots:
+	void updatePieGlyphs(int slicerMode);
 private:
+	void setSlicerPieGlyphsOn(bool isOn);
+	void updatePieGlyphParamsInternal();
+	void updateAllPieGlyphs();
+
+	bool            m_pieGlyphsEnabled;         //!< if slice pie glyphs are enabled
+	QVector<QSharedPointer<iAPieChartGlyph> > m_pieGlyphs[3];
+	double          m_pieGlyphMagFactor;
+	double          m_pieGlyphSpacing;
+	double          m_pieGlyphOpacity;
+	//! @}
+
 	void updateDecompositionGUI( QStringList elementsNames );
-	void SetupConnections();
 	void initSpectraLinesDrawer();
 	void initSpectraOverlay();
 	void updateComposition(QVector<double> const & concentration);
@@ -178,6 +192,7 @@ private:
 	QVector<int>                                   m_decomposeSelectedElements;
 	int                                            m_enabledChannels;
 	std::vector<uint>                              m_channelIDs;
+	std::vector<QColor>                            m_channelColors;
 	uint                                           m_spectrumSelectionChannelID;
 	vtkSmartPointer<vtkLookupTable>                m_ctf[3];
 	vtkSmartPointer<vtkPiecewiseFunction>          m_otf[3];

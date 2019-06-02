@@ -130,16 +130,6 @@ QString const & iAChannelData::name() const
 	return m_name;
 }
 
-void iAChannelData::setColor(QColor const & col)
-{
-	m_color = col;
-}
-
-QColor iAChannelData::getColor() const
-{
-	return m_color;
-}
-
 vtkPiecewiseFunction * iAChannelData::opacityTF() const
 {
 	return m_oTF;

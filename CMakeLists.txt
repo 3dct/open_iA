@@ -19,6 +19,10 @@ ENDIF()
 
 SET (Toolkit_DIR "${PROJECT_SOURCE_DIR}/Toolkit")
 
+# Prepare empty BUNDLE vars:
+SET (BUNDLE_DIRS "")
+SET (BUNDLE_LIBS "")
+
 INCLUDE(Common)
 
 IF (CMAKE_COMPILER_IS_GNUCXX)
@@ -43,6 +47,7 @@ ENDIF()
 #-------------------------
 ADD_SUBDIRECTORY(core)
 
+SET (EXE_NAME "open_iA${CMAKE_EXECUTABLE_SUFFIX}")
 IF (MSVC)
 	# Set up debugging/running environments	in Visual Studio to point to the correct dll files:
 	STRING(REGEX REPLACE "/" "\\\\" VTK_WIN_DIR ${VTK_DIR})
@@ -145,7 +150,6 @@ IF (MSVC)
 		SET (MinSizeRelLibraryPaths "${OPENVR_LIB_PATH};${MinSizeRelLibraryPaths}")
 	ENDIF()
 
-	SET (ExeName "open_iA.exe")
 	STRING(REGEX REPLACE "/" "\\\\" CMAKE_BINARY_WIN_DIR ${CMAKE_BINARY_DIR})
 ENDIF ()
 
@@ -154,6 +158,9 @@ ADD_SUBDIRECTORY(Toolkit)
 ADD_SUBDIRECTORY(gui)
 ADD_SUBDIRECTORY(cmd)
 
+ADD_SUBDIRECTORY(xinst)
+
+
 #-------------------------
 # Testing
 #-------------------------
@@ -161,9 +168,9 @@ ADD_SUBDIRECTORY(cmd)
 set(TESTING_DATA_OUTPUT ${PROJECT_SOURCE_DIR}/Test_files/TestITK/Output)
 #ITK testing
 option (openiA_TEST_ITK "When enabled, creates a special ITK test project. Default: disabled." OFF)
-if(openiA_TEST_ITK)
+IF (openiA_TEST_ITK)
 	add_subdirectory("${PROJECT_SOURCE_DIR}/Test_files/TestITK")
-endif()
+ENDIF ()
 
 #-------------------------
 # Installation
@@ -171,7 +178,4 @@ endif()
 # Text files:
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION .)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/README.md DESTINATION .)
-if (UNIX)
-	install(CODE "include(\"${CMAKE_SOURCE_DIR}/cmake/ChangeRPath.cmake\")")
-endif()
 include (CMakeCPack.cmake)
