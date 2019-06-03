@@ -173,7 +173,11 @@ private:
 	void prepareReslicer(vtkImageReslice * reslicer, vtkSmartPointer<vtkTransform> & transform, double const * spacing);
 
 	//rotate 3d in hope first Rotate x then rotate y then rotate Z
-	void rotateReslicerXYZ(vtkImageReslice *reslcier, vtkSmartPointer<vtkTransform> &transform, double const *rotXYZ, double const * center, double const *spacing);
+	/* mode 0 -> x Rotation
+	* mode 1 x and y Rotation
+	* mode 2 x, y, z Rotation, -> first rotate x, then y, then z
+	*/
+	void rotateReslicerXYZ(vtkImageReslice *reslicier, vtkSmartPointer<vtkTransform> &transform, double const *rotXYZ, uint rotationMode, double const * center, double const *spacing);
 	
 	//just a cube source for visualisation
 	//for debugging / visualisation
@@ -222,6 +226,11 @@ private:
 		return this->m_RefCubeActor; 
 	}
 
+	/*
+	* mode 0 -> YZ
+	* mode 1 -> XZ
+	* mode 2 -> XY
+	*/
 	inline vtkImageReslice * getReslicer(uint mode) {
 		if (mode > 3) {
 			return nullptr; 
@@ -230,10 +239,18 @@ private:
 		return m_slicerChannel[mode]->reslicer();
 	}
 
+	/*
+	* mode 0 -> YZ
+	* mode 1 -> XZ
+	* mode 2 -> XY
+	*/
 	inline vtkSmartPointer<vtkTransform> getResliceTransform(uint mode) {
 		if (mode < 4)			
-			return m_ReslicerTransform[mode]; 
-		//return  vtkSmartPointer<vtkTransform>::NewInstance(nullptr);
+			return m_ReslicerTransform[mode];
+		else {
+			vtkSmartPointer<vtkTransform> test = vtkSmartPointer<vtkTransform>(); 
+			return test; 
+		}
 	}
 
 	/*void setRefPlaneVisible(bool enableVisible) {
