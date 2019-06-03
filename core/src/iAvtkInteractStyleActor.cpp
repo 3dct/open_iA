@@ -119,15 +119,13 @@ iAvtkInteractStyleActor::iAvtkInteractStyleActor():
 	catch (std::bad_alloc &ba) {
 		DEBUG_LOG("Error in Memory reservation"); 
 	}
-	
-	
-	
+			
 }
 
 void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 {
 	if (!m_image) return; 
-	
+	if (thickness == 0) return; 
 
 	DEBUG_LOG("init cube"); 
 	try {
@@ -164,8 +162,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 		m_SphereSourceCenter->SetCenter(imageCenter);
 		m_SphereSourceCenter->SetRadius(5.0);
 			
-		m_CubeSource_X->Update();
-		
+		m_CubeSource_X->Update();		
 		m_CubeSource_X->SetCenter(imageCenter);
 		m_CubeSource_X->SetBounds(bounds[0], bounds[1], 0+imageCenter[1], thickness*spacing[1]+imageCenter[1], bounds[4], bounds[5]);
 		m_CubeSource_X->Update();
@@ -266,11 +263,7 @@ void iAvtkInteractStyleActor::TranslateActorMovement(vtkImageActor * actor, uint
 	 default:
 		return; 
 		break;
-		
-
-
-	
-	}
+			}
 
 	//transform->Translate(relMovement);
 	transform->Update();
@@ -564,7 +557,7 @@ void iAvtkInteractStyleActor::initialize(vtkImageData *img, iAVolumeRenderer* vo
 	if (enable3D) {
 		initializeAndRenderPolyData(5); 
 	}
-	//just a test cube for one slcier; 
+	
 
 
 }
@@ -751,13 +744,12 @@ void iAvtkInteractStyleActor::update3DUpdateReslicer(double const * movementXYZ,
 
 void iAvtkInteractStyleActor::reset()
 {
-	m_volumeRenderer->volume()->SetPosition(0, 0, 0);
-	m_volumeRenderer->volume()->SetOrientation(0, 0, 0);
+	throw std::invalid_argument("not yet implemented");
+	/*m_volumeRenderer->volume()->SetPosition(0, 0, 0);
+	m_volumeRenderer->volume()->SetOrientation(0, 0, 0);*/
 
-	throw std::invalid_argument("not yet implemented"); 
-
-
-
+	
+	
 }
 
 void iAvtkInteractStyleActor::TranslateActor(double const * movement, uint mode)
@@ -913,7 +905,6 @@ void iAvtkInteractStyleActor::rotate2D()
 	//rotation of current slicer
 	DEBUG_LOG(QString("Current slice mode %1 ").arg(m_currentSliceMode)); 
 
-	//enum rotationDir = 0; 
 	transformationMode rotationDir;
 	switch (m_currentSliceMode)
 	{
@@ -1080,7 +1071,6 @@ void iAvtkInteractStyleActor::rotate3D()
 		}
 
 		double const *posVol = m_volumeRenderer->volume()->GetPosition(); 
-
 		this->setPreviousVolActorPosition(posVol);
 						
 		delete[] rotate[0];
