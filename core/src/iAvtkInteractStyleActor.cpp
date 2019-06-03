@@ -1124,7 +1124,7 @@ void iAvtkInteractStyleActor::rotate3D()
 		//translate in XYZ
 		this->rotateReslicerXYZ(this->getResliceTransform(2), this->getReslicer(2), relRotation, 2, m_image->GetCenter(), m_imageSpacing); 
 
-		//this->ReslicerRotate(m_ReslicerTransform[0], this->getReslicer())
+	
 		
 		//this->rotatePolydata(m_RefTransform, m_RefCubeActor, m_image->GetCenter(), relRotation[1], transformationMode::y);
 		
