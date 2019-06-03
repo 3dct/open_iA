@@ -196,7 +196,7 @@ private:
 	
 	void createReferenceObject(double * center, double const * spacing, uint thickness, const double * bounds, transformationMode mode);
 
-	void rotateXYZ(vtkSmartPointer<vtkTransform> &transform, double const *center, double const *rotationWXYZ);
+	//void rotateXYZ(vtkSmartPointer<vtkTransform> &transform, double const *center, double const *rotationWXYZ);
 		
 	void createAndInitLines(double const *bounds, double const * center);
 	void initLine(vtkSmartPointer<vtkLineSource> &line, vtkSmartPointer<vtkActor>& lineActor, double const * center, double min, double max, uint sliceMode);

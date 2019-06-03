@@ -43,16 +43,12 @@
 #include <vtkCubeSource.h>
 #include <vtkLineSource.h>
 
-//#include <vtkPlaneSource.h>
 #include <vtkSphereSource.h>
 #include <vtkActor.h>
 #include <vtkRenderer.h>
 #include <vtkProperty.h>
 //end TODO remove
 
-//
-//#include <vtkPropPicker.h>
-//end todo remove
 
 namespace
 {
@@ -150,7 +146,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 		m_cubeActor->SetMapper(m_cubeMapper);
 		m_cubeActor->SetDragable(0); 
 		m_cubeXTransform = vtkSmartPointer<vtkTransform>::New(); 
-		//m_RefTransform = vtkSmartPointer<vtkTransform>::New(); 
+	
 		
 		m_SphereMapper->SetInputConnection(m_SphereSourceCenter->GetOutputPort());
 		m_SphereActor->SetMapper(m_SphereMapper);
@@ -167,29 +163,17 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 		imageCenter[2] = (bounds[5] + bounds[4]) / 2.0f;
 		m_SphereSourceCenter->SetCenter(imageCenter);
 		m_SphereSourceCenter->SetRadius(5.0);
-		
-	
+			
 		m_CubeSource_X->Update();
 		
 		m_CubeSource_X->SetCenter(imageCenter);
-		m_CubeSource_X->SetBounds(bounds[0], bounds[1]/*+300*/, 0+imageCenter[1], thickness*spacing[1]+imageCenter[1], bounds[4]/*+300*/, bounds[5])/*+300)*/;
+		m_CubeSource_X->SetBounds(bounds[0], bounds[1], 0+imageCenter[1], thickness*spacing[1]+imageCenter[1], bounds[4], bounds[5]);
 		m_CubeSource_X->Update();
 
-
-		
-		//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30.0, 1); 
 		//this->createReferenceObject(imageCenter, spacing, 2, bounds, transformationMode::x); 
 		//this->createAndInitLines(bounds, imageCenter);
 
 		
-		/*this->translatePolydata(m_RefTransform, m_RefCubeActor, 0, 100, 0); 
-		this->translatePolydata(m_RefTransform, m_RefCubeActor, 0, -100, 0);*/
-		//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30, 1); 
-		//this->translatePolydata(m_cubeXTransform, m_cubeActor, 0, 100, 0); 
-		//this->translatePolydata(m_cubeXTransform, 0, 100, 0); 
-		//m_cubeSource->SetBounds(bounds[0], bounds[1], )
-		
-
 		if (m_mdiChild && m_volumeRenderer) {
 
 			//m_volumeRenderer->getCurrentRenderer()->AddActor(m_cubeActor);
@@ -212,17 +196,10 @@ void iAvtkInteractStyleActor::rotateInterActorProp(vtkSmartPointer<vtkTransform>
 	}
 	//transform->Identity(); 
 
-	transformationMode myMode = static_cast<transformationMode>(mode);;
-	
-
+	transformationMode myMode = static_cast<transformationMode>(mode);
 	rotateAroundAxis(transform, center, myMode, angle);
 	prop->SetPosition(transform->GetPosition());
-
-
-	prop->SetOrientation(transform->GetOrientation());
-	
-	
-
+   	prop->SetOrientation(transform->GetOrientation());
 }
 
 void iAvtkInteractStyleActor::translateInterActor(vtkSmartPointer<vtkTransform> &transform, vtkImageActor *actor, double const *position, uint mode)
@@ -406,16 +383,16 @@ void iAvtkInteractStyleActor::createReferenceObject(double /*const */* center, d
 	}
 }
 
-void iAvtkInteractStyleActor::rotateXYZ(vtkSmartPointer<vtkTransform> &transform, double const *center, double const *rotationWXYZ)
-{
-	if (!transform) return;
-
-	transform->PostMultiply();
-	transform->Translate(-center[0], -center[1], -center[2]);
-	transform->RotateWXYZ(rotationWXYZ[0], rotationWXYZ[1], rotationWXYZ[2], rotationWXYZ[3]); 
-	transform->Translate(center[0], center[1], center[2]);
-	transform->Update();
-}
+//void iAvtkInteractStyleActor::rotateXYZ(vtkSmartPointer<vtkTransform> &transform, double const *center, double const *rotationWXYZ)
+//{
+//	if (!transform) return;
+//
+//	transform->PostMultiply();
+//	transform->Translate(-center[0], -center[1], -center[2]);
+//	transform->RotateWXYZ(rotationWXYZ[0], rotationWXYZ[1], rotationWXYZ[2], rotationWXYZ[3]); 
+//	transform->Translate(center[0], center[1], center[2]);
+//	transform->Update();
+//}
 
 void iAvtkInteractStyleActor::createAndInitLines(double const *bounds, double const * center)
 { 
@@ -930,8 +907,7 @@ void iAvtkInteractStyleActor::rotate2D()
 	double disp_obj_center[3];
 	double relativeAngle = 0.0f;
 
-	//2d, rotate Z; 
-		
+	//2d, rotate Z; 		
 	computeDisplayRotationAngle(sliceProbCenter, disp_obj_center, rwi, relativeAngle);
 	
 	//rotation of current slicer
@@ -987,15 +963,14 @@ void iAvtkInteractStyleActor::rotate2D()
 		
 	m_volumeRenderer->update();
 	emit actorsUpdated();
-
-
-	
+	  	
 }
 
 
 void iAvtkInteractStyleActor::rotate3D()
 {
-	//starting from 3d, then rotate reslicer in xyz - each
+	//starting from 3d, 
+	//then rotate reslicer in xyz - each direction
 	if (this->CurrentRenderer == nullptr || this->InteractionProp == nullptr)
 	{
 		return;
@@ -1004,6 +979,7 @@ void iAvtkInteractStyleActor::rotate3D()
 	//DEBUG_LOG("rotate 3d");	
 	this->setRefOrientation(m_volumeRenderer->volume()->GetOrientation()); 
 	vtkRenderWindowInteractor *rwi = this->Interactor;
+
 	vtkCamera *cam = this->CurrentRenderer->GetActiveCamera();
 
 	// First get the origin of the assembly
@@ -1011,7 +987,7 @@ void iAvtkInteractStyleActor::rotate3D()
 
 	// GetLength gets the length of the diagonal of the bounding box
 	double boundRadius = this->InteractionProp->GetLength() * 0.5;
-
+	//below copyied from superclass
 	// Get the view up and view right vectors
 	double view_up[3], view_look[3], view_right[3];
 
