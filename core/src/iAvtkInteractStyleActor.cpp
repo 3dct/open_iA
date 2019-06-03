@@ -1119,9 +1119,10 @@ void iAvtkInteractStyleActor::rotate3D()
 		//this->ReslicerRotate(this->getResliceTransform(0), this->getReslicer(0),
 		//	transformationMode::z, m_image->GetCenter(), relRotation[2], m_imageSpacing);
 
-		this->ReslicerRotate(this->getResliceTransform(2), this->getReslicer(2), transformationMode::y, m_image->GetCenter(), relRotation[1], m_imageSpacing);
+		//this->ReslicerRotate(this->getResliceTransform(2), this->getReslicer(2), transformationMode::y, m_image->GetCenter(), relRotation[1], m_imageSpacing);
 
-
+		//translate in XYZ
+		this->rotateReslicerXYZ(this->getResliceTransform(2), this->getReslicer(2), relRotation, 2, m_image->GetCenter(), m_imageSpacing); 
 
 		//this->ReslicerRotate(m_ReslicerTransform[0], this->getReslicer())
 		
@@ -1328,7 +1329,7 @@ void iAvtkInteractStyleActor::prepareReslicer(vtkImageReslice * reslicer, vtkSma
 	reslicer->Update();
 }
 
-void iAvtkInteractStyleActor::rotateReslicerXYZ(vtkImageReslice *reslcier, vtkSmartPointer<vtkTransform> &transform, double const *rotXYZ, uint rotationMode, double const * center, double const *spacing)
+void iAvtkInteractStyleActor::rotateReslicerXYZ( vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslcier, double const *rotXYZ, uint rotationMode, double const * center, double const *spacing)
 {
 	if (!transform) return;
 
@@ -1351,10 +1352,7 @@ void iAvtkInteractStyleActor::rotateReslicerXYZ(vtkImageReslice *reslcier, vtkSm
 	default:
 		break;
 	}
-
-	//transform->RotateX(rotXYZ[0]);
-	//transform->RotateY(rotXYZ[1]);
-	//transform->RotateZ(rotXYZ[2]); 
+	
 	transform->Translate(center[0], center[1], center[2]);
 	this->prepareReslicer(reslcier, transform, spacing);
 }
