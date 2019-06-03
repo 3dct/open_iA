@@ -217,7 +217,7 @@ private:
 
 	/*void setRefPlaneVisible(bool enableVisible) {
 		if (this->m_RefCubeActor) {
-			this->m_RefCubeActorSetVisibility(enableVisible);
+			this->m_RefCubeActor->SetVisibility(enableVisible);
 		}
 	}*/
 	//double test = 0;
