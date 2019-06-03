@@ -160,7 +160,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 
 		const double * bounds = m_image->GetBounds();
 		const double *spacing = m_image->GetSpacing();
-		//DEBUG_LOG(QString("img bounds %1 %2 %3 %4 %5 %6").arg(bounds[0]).arg(bounds[1]).arg(bounds[2]).arg(bounds[3]).arg(bounds[4]).arg(bounds[5]));
+		
 		double imageCenter[3];
 		imageCenter[0] = (bounds[1] + bounds[0]) / 2.0f;
 		imageCenter[1] = (bounds[3] + bounds[2]) / 2.0f;
@@ -178,8 +178,8 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 
 		
 		//this->rotatePolydata(m_cubeXTransform, m_cubeActor, imageCenter, 30.0, 1); 
-		this->createReferenceObject(imageCenter, spacing, 2, bounds, transformationMode::x); 
-		this->createAndInitLines(bounds, imageCenter);
+		//this->createReferenceObject(imageCenter, spacing, 2, bounds, transformationMode::x); 
+		//this->createAndInitLines(bounds, imageCenter);
 
 		
 		/*this->translatePolydata(m_RefTransform, m_RefCubeActor, 0, 100, 0); 
@@ -1102,6 +1102,10 @@ void iAvtkInteractStyleActor::rotate3D()
 			this->rotateReslicerXYZ(this->getResliceTransform(i), this->getReslicer(i), 
 				relRotation, 2, m_image->GetCenter(), m_imageSpacing);
 		}
+
+		double const *posVol = m_volumeRenderer->volume()->GetPosition(); 
+
+		this->setPreviousVolActorPosition(posVol);
 						
 		delete[] rotate[0];
 		delete[] rotate[1];
