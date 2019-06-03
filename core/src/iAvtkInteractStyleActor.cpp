@@ -1124,12 +1124,12 @@ void iAvtkInteractStyleActor::rotate3D()
 		
 		*/
 		////auto refActor = this->GetRefActor(); 
-		/*test += 5; */
-	//his->setRefPlaneVisible(false); 
+	
+	//this->setRefPlaneVisible(false); 
 
 		double relRotation[3] = { 0, 0, 0 };
 		for (int i = 0; i < 3; i++) {
-			/*double tmp = 0;*/
+		
 			DEBUG_LOG(QString("before after %1 %2").arg(m_imageRefOrientation[i]).arg(orientationAfter[i]));
 		
 			relRotation[i] = m_imageRefOrientation[i] - orientationAfter[i];
@@ -1137,6 +1137,8 @@ void iAvtkInteractStyleActor::rotate3D()
 			//this->ReslicerRotate(m_ReslicerTransform)
 		}
 	 
+		DEBUG_LOG(QString("or before %1 %2 %3").arg(m_imageRefOrientation[0]).arg(m_imageRefOrientation[1]).arg(m_imageRefOrientation[2]));
+		DEBUG_LOG(QString("orientation after %1 %2 %3").arg(relRotation[0]).arg(relRotation[1]).arg(relRotation[2])); 
 
 		//xz
 		//this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::y, nullptr, relRotation, m_image->GetCenter(), relRotation[1], m_imageSpacing);
