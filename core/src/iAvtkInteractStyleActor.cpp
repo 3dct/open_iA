@@ -1140,9 +1140,11 @@ void iAvtkInteractStyleActor::rotate3D()
 		DEBUG_LOG(QString("or before %1 %2 %3").arg(m_imageRefOrientation[0]).arg(m_imageRefOrientation[1]).arg(m_imageRefOrientation[2]));
 		DEBUG_LOG(QString("orientation after %1 %2 %3").arg(relRotation[0]).arg(relRotation[1]).arg(relRotation[2])); 
 
-		//xz
-		//this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::y, nullptr, relRotation, m_image->GetCenter(), relRotation[1], m_imageSpacing);
-		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::z, nullptr/*RotationWXYZ*/, m_image->GetCenter(), relRotation[2], m_imageSpacing);
+		//xz //rotate z then take z-coordinate of relative Rotati9n
+		this->ReslicerRotate(this->getResliceTransform(1), this->getReslicer(1), 
+			transformationMode::z, nullptr, m_image->GetCenter(), relRotation[2], m_imageSpacing);
+		//this->ReslicerRotate(m_ReslicerTransform[0], this->getReslicer())
+		
 		//this->rotatePolydata(m_RefTransform, m_RefCubeActor, m_image->GetCenter(), relRotation[1], transformationMode::y);
 		
 		//this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::z/*2*/,nullptr, m_image->GetCenter(), orientationAfter[0]/* orientationAfter[1]*/, m_imageSpacing);

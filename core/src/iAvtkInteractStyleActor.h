@@ -20,8 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAChannelSlicerData.h"
 #include <vtkInteractorStyleTrackballActor.h>
 #include <vtkSmartPointer.h>
+
 //#include <vtkTransform.h>
 
 #include <QObject>
@@ -220,6 +222,20 @@ private:
 
 	vtkSmartPointer<vtkActor> &GetRefActor() {
 		return this->m_RefCubeActor; 
+	}
+
+	inline vtkImageReslice * getReslicer(uint mode) {
+		if (mode > 3) {
+			return nullptr; 
+		}
+		
+		return m_slicerChannel[mode]->reslicer();
+	}
+
+	inline vtkSmartPointer<vtkTransform> getResliceTransform(uint mode) {
+		if (mode < 4)			
+			return m_ReslicerTransform[mode]; 
+		//return  vtkSmartPointer<vtkTransform>::NewInstance(nullptr);
 	}
 
 	/*void setRefPlaneVisible(bool enableVisible) {
