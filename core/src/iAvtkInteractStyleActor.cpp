@@ -534,7 +534,6 @@ void iAvtkInteractStyleActor::initialize(vtkImageData *img, iAVolumeRenderer* vo
 {
 	if (!img) DEBUG_LOG("no valid image!");
 
-
 	m_image = img;
 	m_volumeRenderer = volRend;
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
