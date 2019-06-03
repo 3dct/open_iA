@@ -1108,9 +1108,7 @@ void iAvtkInteractStyleActor::rotate3D()
 		DEBUG_LOG(QString("new Orientation %1 %2 %3").arg(orientationAfter[0]).arg(orientationAfter[1]).arg(orientationAfter[2]));
 		
 
-	/*	double test = oldYAngle - newYAngle;
-		DEBUG_LOG(QString("Angle %1").arg(test));
-*/
+	
 		//double const *RotationWXYZ = m_volumeRenderer->volume()->GetOrientationWXYZ();
 		/*DEBUG_LOG(QString("Rotation after %1 %2 %3 %4").arg(RotationWXYZ[0]).
 			arg(RotationWXYZ[1]).arg(RotationWXYZ[2]).arg(RotationWXYZ[3]));*/
@@ -1127,6 +1125,7 @@ void iAvtkInteractStyleActor::rotate3D()
 		*/
 		////auto refActor = this->GetRefActor(); 
 		/*test += 5; */
+	//his->setRefPlaneVisible(false); 
 
 		double relRotation[3] = { 0, 0, 0 };
 		for (int i = 0; i < 3; i++) {
@@ -1138,8 +1137,10 @@ void iAvtkInteractStyleActor::rotate3D()
 			//this->ReslicerRotate(m_ReslicerTransform)
 		}
 	 
-		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::y, relRotation, m_image->GetCenter(), relRotation[1], m_imageSpacing);
-		//this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::y, nullptr/*RotationWXYZ*//*2*/, m_image->GetCenter(), relRotation[1], m_imageSpacing);
+
+		//xz
+		//this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::y, nullptr, relRotation, m_image->GetCenter(), relRotation[1], m_imageSpacing);
+		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::z, nullptr/*RotationWXYZ*/, m_image->GetCenter(), orientationAfter[0], m_imageSpacing);
 		//this->rotatePolydata(m_RefTransform, m_RefCubeActor, m_image->GetCenter(), relRotation[1], transformationMode::y);
 		
 		//this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::z/*2*/,nullptr, m_image->GetCenter(), orientationAfter[0]/* orientationAfter[1]*/, m_imageSpacing);

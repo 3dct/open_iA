@@ -215,6 +215,11 @@ private:
 		return this->m_RefCubeActor; 
 	}
 
+	/*void setRefPlaneVisible(bool enableVisible) {
+		if (this->m_RefCubeActor) {
+			this->m_RefCubeActorSetVisibility(enableVisible);
+		}
+	}*/
 	//double test = 0;
 
 	//mode 0: rotateX, mode 1: rotate Y:, mode 2: rotate z
