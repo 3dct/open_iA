@@ -1142,7 +1142,7 @@ void iAvtkInteractStyleActor::rotate3D()
 
 		//xz
 		//this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::y, nullptr, relRotation, m_image->GetCenter(), relRotation[1], m_imageSpacing);
-		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::z, nullptr/*RotationWXYZ*/, m_image->GetCenter(), orientationAfter[0], m_imageSpacing);
+		this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::z, nullptr/*RotationWXYZ*/, m_image->GetCenter(), relRotation[2], m_imageSpacing);
 		//this->rotatePolydata(m_RefTransform, m_RefCubeActor, m_image->GetCenter(), relRotation[1], transformationMode::y);
 		
 		//this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::z/*2*/,nullptr, m_image->GetCenter(), orientationAfter[0]/* orientationAfter[1]*/, m_imageSpacing);
@@ -1325,19 +1325,38 @@ void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &tran
 		DEBUG_LOG("rotate wxyz");
 	}
 
+	prepareReslicer(reslicer, transform, spacing);
+
+
+}
+
+void iAvtkInteractStyleActor::prepareReslicer(vtkImageReslice * reslicer, vtkSmartPointer<vtkTransform> & transform, double const * spacing)
+{
 	reslicer->SetResliceTransform(transform);
 	reslicer->SetInputData(m_image);
 	reslicer->SetOutputExtent(m_image->GetExtent());
 	reslicer->AutoCropOutputOff();
-		
+
 	/*reslice->SetResliceAxes(mat); */
 	reslicer->SetOutputSpacing(spacing);
 	reslicer->SetOutputOrigin(m_image->GetOrigin());
 	//reslice->SetResliceAxesOrigin(origin[0] + ofs[0], origin[1] + ofs[1], origin[2] + ofs[2]);
-	   
+
 	reslicer->SetInterpolationModeToCubic();
 	reslicer->Update();
+}
 
+void iAvtkInteractStyleActor::rotateReslicerXYZ(vtkImageReslice *reslicer, vtkSmartPointer<vtkTransform> &transform, double const *rotXYZ, double const * center, double const *spacing)
+{
+	if (!transform) return;
+
+	transform->PostMultiply();
+	transform->Translate(-center[0], -center[1], -center[2]);
+	transform->RotateX(rotXYZ[0]);
+	transform->RotateY(rotXYZ[1]);
+	transform->RotateZ(rotXYZ[2]); 
+	transform->Translate(center[0], center[1], center[2]);
+	this->prepareReslicer(reslicer, transform, spacing);
 }
 
 //void iAvtkInteractStyleActor::updateReslicerRotationTransformation2d(const int sliceMode, double * ofs, const int sliceNumber)
