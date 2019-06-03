@@ -985,7 +985,6 @@ void iAvtkInteractStyleActor::rotate2D()
 		if (i != m_currentSliceMode && m_slicerChannel[i])
 			m_slicerChannel[i]->updateReslicer();
 		
-
 	m_volumeRenderer->update();
 	emit actorsUpdated();
 
@@ -996,13 +995,13 @@ void iAvtkInteractStyleActor::rotate2D()
 
 void iAvtkInteractStyleActor::rotate3D()
 {
-	//starting from 3d, then rotate reslicer
+	//starting from 3d, then rotate reslicer in xyz - each
 	if (this->CurrentRenderer == nullptr || this->InteractionProp == nullptr)
 	{
 		return;
 	}
 
-	DEBUG_LOG("rotate 3d");	
+	//DEBUG_LOG("rotate 3d");	
 	this->setRefOrientation(m_volumeRenderer->volume()->GetOrientation()); 
 	vtkRenderWindowInteractor *rwi = this->Interactor;
 	vtkCamera *cam = this->CurrentRenderer->GetActiveCamera();
@@ -1075,6 +1074,7 @@ void iAvtkInteractStyleActor::rotate3D()
 		rotate[1][2] = view_right[1];
 		rotate[1][3] = view_right[2];
 		
+		//rotate 3d volume 
 		this->Prop3DTransform(this->InteractionProp,
 			obj_center,
 			2,
@@ -1082,59 +1082,27 @@ void iAvtkInteractStyleActor::rotate3D()
 			scale);
 
 	    double const *orientationAfter = m_volumeRenderer->volume()->GetOrientation();
-		DEBUG_LOG(QString("new Orientation %1 %2 %3").arg(orientationAfter[0]).arg(orientationAfter[1]).arg(orientationAfter[2]));
-		
-
-	
-		//double const *RotationWXYZ = m_volumeRenderer->volume()->GetOrientationWXYZ();
-		/*DEBUG_LOG(QString("Rotation after %1 %2 %3 %4").arg(RotationWXYZ[0]).
-			arg(RotationWXYZ[1]).arg(RotationWXYZ[2]).arg(RotationWXYZ[3]));*/
-
-	/*for (int i = 0; i < 3; ++i) {
-			this->ReslicerRotate(m_ReslicerTransform[i], m_slicerChannel[i]->reslicer(), rotationMode::x, RotationWXYZ, m_image->GetCenter(), orientationAfter[0], m_image->GetSpacing());
-	}*/
-
-		/*
-		0-> YZ
-		1 -> XZ
-		2 -> XY
-		
-		*/
-	
-	//this->setRefPlaneVisible(false); 
+			    
+		//translate in XYZ
 		double relRotation[3] = { 0, 0, 0 };
 		for (int i = 0; i < 3; i++) {
-			DEBUG_LOG(QString("before after %1 %2").arg(m_imageRefOrientation[i]).arg(orientationAfter[i]));
 			relRotation[i] = m_imageRefOrientation[i] - orientationAfter[i];
-			
-			//this->ReslicerRotate(m_ReslicerTransform)
-		}
-	 
-		DEBUG_LOG(QString("or before %1 %2 %3").arg(m_imageRefOrientation[0]).arg(m_imageRefOrientation[1]).arg(m_imageRefOrientation[2]));
-		DEBUG_LOG(QString("orientation after %1 %2 %3").arg(relRotation[0]).arg(relRotation[1]).arg(relRotation[2])); 
+		}	 
+
 		//xz //rotate z then take z-coordinate of relative Rotati9n
 		/*this->ReslicerRotate(this->getResliceTransform(1), this->getReslicer(1),
 			transformationMode::z, m_image->GetCenter(), relRotation[2], m_imageSpacing);*/
-
 		//this->ReslicerRotate(this->getResliceTransform(0), this->getReslicer(0),
 		//	transformationMode::z, m_image->GetCenter(), relRotation[2], m_imageSpacing);
-
 		//this->ReslicerRotate(this->getResliceTransform(2), this->getReslicer(2), transformationMode::y, m_image->GetCenter(), relRotation[1], m_imageSpacing);
 
-		//translate in XYZ
-		this->rotateReslicerXYZ(this->getResliceTransform(2), this->getReslicer(2), relRotation, 2, m_image->GetCenter(), m_imageSpacing); 
-
-	
+		//rotate resclicer for xyz - coordinates
 		
-		//this->rotatePolydata(m_RefTransform, m_RefCubeActor, m_image->GetCenter(), relRotation[1], transformationMode::y);
-		
-		//this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), transformationMode::z/*2*/,nullptr, m_image->GetCenter(), orientationAfter[0]/* orientationAfter[1]*/, m_imageSpacing);
-		//this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), transformationMode::x/*1*/,nullptr, m_image->GetCenter(), orientationAfter[2], m_imageSpacing);
-
-		//probably give everything to reslicer
-		//visualize transform
-
-		
+		for (int i = 0; i < 3; i++) {
+			this->rotateReslicerXYZ(this->getResliceTransform(i), this->getReslicer(i), 
+				relRotation, 2, m_image->GetCenter(), m_imageSpacing);
+		}
+						
 		delete[] rotate[0];
 		delete[] rotate[1];
 		delete[] rotate;
@@ -1156,7 +1124,7 @@ void iAvtkInteractStyleActor::rotate3D()
 void iAvtkInteractStyleActor::computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double &relativeAngle)
 {
 	/*drag an angle,
-	/*calculate angle from coords, objectCenter comes from interaction prop 
+	/*calculates angle from coords, objectCenter comes from interaction prop 
 	*/
 
 	this->ComputeWorldToDisplay(sliceProbCenter[0], sliceProbCenter[1], sliceProbCenter[2],
@@ -1170,7 +1138,7 @@ void iAvtkInteractStyleActor::computeDisplayRotationAngle(double * sliceProbCent
 		vtkMath::DegreesFromRadians(atan2(rwi->GetLastEventPosition()[1] - disp_obj_center[1],
 			rwi->GetLastEventPosition()[0] - disp_obj_center[0]));
 
-	//perform rotation of interaction prop of the slicer
+	
 	relativeAngle = newAngle - oldAngle;	
 }
 
@@ -1215,60 +1183,6 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 }
 
 
-
-
-//void iAvtkInteractStyleActor::translateSlicerActor(const double *origin, const double *pos, double *posOut, const int sliceMode)
-//{
-//
-//}
-
-//void iAvtkInteractStyleActor::Update3DTransform(const double * imageCenter, const double * spacing, double relativeAngle)
-//{
-//	
-//	//m_volumeRenderer->volume()->GetOrientation(volOrientation);
-//	//double const *orientation = m_volumeRenderer->volume()->GetOrientation(); 
-//
-//
-//	
-//	//use angle from previous volume
-//	//m_transform3D->Identity(); 
-//	m_transform3D->SetMatrix(m_volumeRenderer->volume()->GetMatrix()); 
-//	m_transform3D->PostMultiply();
-//	m_transform3D->Translate(-imageCenter[0]/**spacing[0]*/, -imageCenter[1],/**spacing[1]*/ -imageCenter[2])/**spacing[2])*/;
-//		
-//	
-//	switch (m_currentSliceMode) {
-//	case YZ: 
-//		//angle = relativeAngle + orientation[0];
-//		m_transform3D->RotateX(relativeAngle); break;
-//	case XZ: 
-//		//angle = relativeAngle + orientation[1];
-//		m_transform3D->RotateY(relativeAngle); break;
-//	case XY: 
-//		//angle = relativeAngle + orientation[0];
-//		m_transform3D->RotateZ(relativeAngle); break;
-//	default: break;
-//
-//	}
-//
-//	m_transform3D->Translate(imageCenter[0],/**spacing[0],*/ imageCenter[1]/**spacing[1]*/, imageCenter[2]/**spacing[2]*/);
-//	
-//	double volOrientation[3];
-//
-//	
-//	
-//
-//	//m_image =dynamic_cast<vtkImageData * >( m_transformFilter->GetOutputDataObject(0));
-//
-//	//if (!m_image) { DEBUG_LOG("img is null"); return;  }
-//	//m_volumeRenderer->update(); */
-//	//*/	
-//	
-//	m_volumeRenderer->volume()->SetUserTransform(m_transform3D);
-//	
-//	m_volumeRenderer->update(); 
-//}
-
 //void iAvtkInteractStyleActor::TransformReslicerExperimental(double const * obj_center, double rotationAngle, double const *spacing, int sliceMode)
 //{
 //
@@ -1288,29 +1202,22 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 //
 //}
 
-void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, transformationMode mode, /*double const *rotXYZ,*/ double const * center, double angle, double const *spacing)
+void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, transformationMode mode, double const * center, double angle, double const *spacing)
 {
 	if ((!reslicer) && (!transform)){
 		return; 
 	}
 
 	//rotate by axis
-	/*if (!rotXYZ) {*/
-		if (angle == 0) return;
-		DEBUG_LOG("Rotate Axis");
+	if (angle == 0.0) 
+		return;
+	
+	//DEBUG_LOG("Rotate Axis");
 
 		//rotate axis in degree
-		this->rotateAroundAxis(transform, center, mode, angle);
-		//todo map axis
-	//}
-	//else { //perform WXYZ rotation
-	//	this->rotateXYZ(transform, center, rotXYZ);
-	//	DEBUG_LOG("rotate wxyz");
-	//}
-
+	this->rotateAroundAxis(transform, center, mode, angle);
 	prepareReslicer(reslicer, transform, spacing);
-
-
+	
 }
 
 void iAvtkInteractStyleActor::prepareReslicer(vtkImageReslice * reslicer, vtkSmartPointer<vtkTransform> & transform, double const * spacing)

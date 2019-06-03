@@ -94,18 +94,13 @@ public:
 	void prepareMoventCoords(double * movement, double const * sliceActorPos, bool relativeMovement);
 	
 	//rotates 2d slicer/ interactor
-	void rotate2D(); 
-	
+	void rotate2D(); 	
 	void rotate3D(); //3d rotation of the volume actor //TODO 
-	//void UpdateReslicerTranslateTransform2D(double *const Rendposition, /*const double *orientation,*/ const double *imageCenter, int sliceMode);
 	
 
 	//probably take a transform set to origin, then translate based on slice mode
 	//updates interactor for 3d volume according to angle and axis
 	void Update3DTransform(const double * imageCenter, const double * spacing, double relativeAngle);
-
-	/*void TransformReslicerExperimental(double const * obj_center, double rotationAngle, double const *spacing, int sliceMode);
-*/
 
 	// transformation of the reslicer rotation based on a slice mode
 	//void updateReslicerRotationTransformation2d(const int sliceMode, double * ofs, const int sliceNumber);
@@ -157,6 +152,7 @@ private:
 	iAvtkInteractStyleActor(const iAvtkInteractStyleActor &) = delete;
 	//! @}
 
+	//calculates relative rotation angle in xy of specified slicer
 	void computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double &relativeAngle);
     
 	void TranslateReslicer(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslice, double const *position, double *spacing, double const * imageCenter);
@@ -184,14 +180,11 @@ private:
 
 	//rotates a prop by a vtk transform, works fine	   
 	void rotateInterActorProp(vtkSmartPointer<vtkTransform> &transform, double const *center, double angle, vtkProp3D *prop, uint mode);
-
-	
+		
 	void translateInterActor(vtkSmartPointer<vtkTransform> &transform, vtkImageActor *actor, double const *position, uint mode);
 	void TranslateActorMovement(vtkImageActor * actor, uint mode, vtkSmartPointer<vtkTransform> & transform, double const * position);
 	
 	//perform rotation of transform around an axis by angle
-	//void rotateAroundAxis(vtkSmartPointer<vtkTransform> &transform, double const * center, uint mode, double angle);
-
 	
 	void rotateAroundAxis(vtkSmartPointer<vtkTransform> & transform, double const * center, transformationMode mode/*uint mode*/, double angle);
 	//reslicer only for 3d rotation
