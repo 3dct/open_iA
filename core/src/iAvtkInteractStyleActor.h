@@ -168,9 +168,7 @@ private:
 	//void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, uint sliceMode, double const * center, double angle, double const *spacing);
 	
 
-	//void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, rotationMode mode /*uint sliceMode*/, double const * center, double angle, double const *spacing);
-	void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, transformationMode mode, double const *rotXYZ, double const * center, double angle, double const *spacing);
-
+	void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, transformationMode mode, /*double const *rotXYZ,*/ double const * center, double angle, double const *spacing);
 	//update reslicer
 	void prepareReslicer(vtkImageReslice * reslicer, vtkSmartPointer<vtkTransform> & transform, double const * spacing);
 

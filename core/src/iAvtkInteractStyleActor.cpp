@@ -949,24 +949,14 @@ void iAvtkInteractStyleActor::rotate2D()
 	}
 	
 	this->ReslicerRotate(m_ReslicerTransform[m_currentSliceMode], m_slicerChannel[m_currentSliceMode]->reslicer(),
-		rotationDir, nullptr, imageCenter, -relativeAngle, m_image->GetSpacing()); 
+		rotationDir, imageCenter, -relativeAngle, m_image->GetSpacing()); 
 
 	for (int i = 0; i < 3; i++) {
 		if (i == m_currentSliceMode) continue;
 		this->ReslicerRotate(m_ReslicerTransform[i], m_slicerChannel[i]->reslicer(), 
-			rotationDir, nullptr, imageCenter, relativeAngle, m_image->GetSpacing());
+			rotationDir, imageCenter, relativeAngle, m_image->GetSpacing());
 	}
 	
-
-	//this->ReslicerRotate(m_ReslicerTransform[2], m_slicerChannel[2]->reslicer(), 2, 
-	//	imageCenter, -relativeAngle, m_image->GetSpacing()); //xy -> rotate 0
-	//this->ReslicerRotate(m_ReslicerTransform[0], m_slicerChannel[0]->reslicer(), 0, imageCenter, -relativeAngle, m_image->GetSpacing()); 
-	//this->ReslicerRotate(m_ReslicerTransform[1], m_slicerChannel[1]->reslicer(), 1, imageCenter, relativeAngle, m_image->GetSpacing());
-
-
-
-
-
 	//this->rotateInterActorProp(m_SliceInteractorTransform[m_currentSliceMode], sliceProbCenter, relativeAngle, this->InteractionProp,2);
 		
 	double const * spacing = m_image->GetSpacing();
@@ -1142,7 +1132,7 @@ void iAvtkInteractStyleActor::rotate3D()
 
 		//xz //rotate z then take z-coordinate of relative Rotati9n
 		this->ReslicerRotate(this->getResliceTransform(1), this->getReslicer(1), 
-			transformationMode::z, nullptr, m_image->GetCenter(), relRotation[2], m_imageSpacing);
+			transformationMode::z, m_image->GetCenter(), relRotation[2], m_imageSpacing);
 		//this->ReslicerRotate(m_ReslicerTransform[0], this->getReslicer())
 		
 		//this->rotatePolydata(m_RefTransform, m_RefCubeActor, m_image->GetCenter(), relRotation[1], transformationMode::y);
@@ -1307,25 +1297,25 @@ void iAvtkInteractStyleActor::TranslateReslicer(vtkSmartPointer<vtkTransform> &t
 //
 //}
 
-void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, transformationMode mode, double const *rotXYZ, double const * center, double angle, double const *spacing)
+void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, transformationMode mode, /*double const *rotXYZ,*/ double const * center, double angle, double const *spacing)
 {
 	if ((!reslicer) && (!transform)){
 		return; 
 	}
 
 	//rotate by axis
-	if (!rotXYZ) {
+	/*if (!rotXYZ) {*/
 		if (angle == 0) return;
 		DEBUG_LOG("Rotate Axis");
 
 		//rotate axis in degree
 		this->rotateAroundAxis(transform, center, mode, angle);
 		//todo map axis
-	}
-	else { //perform WXYZ rotation
-		this->rotateXYZ(transform, center, rotXYZ);
-		DEBUG_LOG("rotate wxyz");
-	}
+	//}
+	//else { //perform WXYZ rotation
+	//	this->rotateXYZ(transform, center, rotXYZ);
+	//	DEBUG_LOG("rotate wxyz");
+	//}
 
 	prepareReslicer(reslicer, transform, spacing);
 
