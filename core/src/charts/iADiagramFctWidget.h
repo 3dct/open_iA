@@ -51,7 +51,7 @@ public:
 
 	static const int SELECTED_POINT_RADIUS = 10;
 	static const int SELECTED_POINT_SIZE = 2*SELECTED_POINT_RADIUS;
-	static const int POINT_RADIUS = 4;
+	static const int POINT_RADIUS = 6/*4*/; 
 	static const int POINT_SIZE = 2*POINT_RADIUS;
 
 	static const int SELECTED_PIE_RADIUS = 16;
