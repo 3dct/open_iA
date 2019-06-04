@@ -485,7 +485,7 @@ void iAvtkInteractStyleActor::Rotate()
 { //todo disable translation
   //rotate about center
 	if (enable3D) {
-		DEBUG_LOG("Rotate 3d"); 
+		//DEBUG_LOG("Rotate 3d"); 
 		//vtkInteractorStyleTrackballActor::Rotate();
 		m_rotation3DEnabled= true; 
 	}
@@ -747,8 +747,9 @@ void iAvtkInteractStyleActor::reset()
 	/*m_volumeRenderer->volume()->SetPosition(0, 0, 0);
 	m_volumeRenderer->volume()->SetOrientation(0, 0, 0);*/
 
-	
-	
+	//here volume should reset, orientation of reslicer should be reset
+	//this->setPreviousVolActorPosition()
+	//this->setPreviouSlicesActorPosition()
 }
 
 void iAvtkInteractStyleActor::TranslateActor(double const * movement, uint mode)
@@ -1064,6 +1065,9 @@ void iAvtkInteractStyleActor::rotate3D()
 
 		//rotate resclicer for xyz - coordinates
 		
+
+		//posibly image center from bounds? 
+		//does the image center change
 		for (int i = 0; i < 3; i++) {
 			this->rotateReslicerXYZ(this->getResliceTransform(i), this->getReslicer(i), 
 				relRotation, 2, m_image->GetCenter(), m_imageSpacing);
