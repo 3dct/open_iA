@@ -47,7 +47,6 @@
 #include <vtkActor.h>
 #include <vtkRenderer.h>
 #include <vtkProperty.h>
-//end TODO remove
 
 
 namespace
