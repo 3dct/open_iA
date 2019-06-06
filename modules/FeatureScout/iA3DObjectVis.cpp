@@ -84,7 +84,6 @@ QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, MdiChild* mdi
 			return QSharedPointer<iA3DObjectVis>(new iA3DLabelledVolumeVis(mdi->renderDockWidget()->vtkWidgetRC->GetRenderWindow()->GetRenderers()->GetFirstRenderer(), mdi->colorTF(),
 				mdi->opacityTF(), table, columnMapping, mdi->imagePointer()->GetBounds()));
 		case iACsvConfig::Lines:
-			return QSharedPointer<iA3DObjectVis>(new iA3DLineObjectVis(mdi->renderDockWidget()->vtkWidgetRC, table, columnMapping, color));
 			return QSharedPointer<iA3DObjectVis>(new iA3DLineObjectVis(mdi->renderDockWidget()->vtkWidgetRC->GetRenderWindow()->GetRenderers()->GetFirstRenderer(), table, columnMapping, color, std::map<size_t, std::vector<iAVec3f> >()));
 		case iACsvConfig::Cylinders:
 			return QSharedPointer<iA3DObjectVis>(new iA3DCylinderObjectVis(mdi->renderDockWidget()->vtkWidgetRC->GetRenderWindow()->GetRenderers()->GetFirstRenderer(), table, columnMapping, color, std::map<size_t, std::vector<iAVec3f> >()));
