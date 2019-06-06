@@ -1,4 +1,5 @@
 #include "iAdaptiveThresholdModuleInterface.h"
+#include "dlg_AdaptiveThreshold.h"
 
 #include "mainwindow.h"
 
@@ -17,5 +18,8 @@ void iAdaptiveThresholdModuleInterface::Initialize()
 
 void iAdaptiveThresholdModuleInterface::TestAction()
 {
-	QMessageBox::information(m_mainWnd, "Test Module", "This is the Test Module!");
+	AdaptiveThreshold dlg_thres;
+	if (dlg_thres.exec() != QDialog::Accepted)
+		return;
+	/*QMessageBox::information(m_mainWnd, "Test Module", "This is the Test Module!");*/
 }

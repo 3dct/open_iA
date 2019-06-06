@@ -6,35 +6,85 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>679</width>
-    <height>300</height>
+    <width>1060</width>
+    <height>837</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QPushButton" name="pushButton">
-   <property name="geometry">
-    <rect>
-     <x>560</x>
-     <y>250</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>PushButton</string>
-   </property>
-  </widget>
-  <widget class="QTextEdit" name="textEdit">
+  <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>10</y>
-     <width>391</width>
-     <height>71</height>
+     <y>500</y>
+     <width>171</width>
+     <height>221</height>
     </rect>
    </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="0">
+     <widget class="QPushButton" name="pushButton_2">
+      <property name="text">
+       <string>Update</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QSpinBox" name="spinBox"/>
+    </item>
+    <item row="2" column="0">
+     <widget class="QPushButton" name="pushButton_4">
+      <property name="text">
+       <string>Load Data</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QPushButton" name="pushButton_5">
+      <property name="text">
+       <string>TestData</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>30</y>
+     <width>1001</width>
+     <height>431</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="mainLayout"/>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>830</x>
+     <y>750</y>
+     <width>158</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QPushButton" name="pushButton">
+      <property name="text">
+       <string>Confirm</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="pushButton_3">
+      <property name="text">
+       <string>Cancel</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>
@@ -42,16 +92,32 @@
   <connection>
    <sender>pushButton</sender>
    <signal>clicked()</signal>
-   <receiver>textEdit</receiver>
-   <slot>clear()</slot>
+   <receiver>AdaptiveThreshold</receiver>
+   <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>582</x>
-     <y>257</y>
+     <x>628</x>
+     <y>579</y>
     </hint>
     <hint type="destinationlabel">
-     <x>371</x>
-     <y>49</y>
+     <x>667</x>
+     <y>444</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_3</sender>
+   <signal>clicked()</signal>
+   <receiver>AdaptiveThreshold</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>720</x>
+     <y>579</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>761</x>
+     <y>451</y>
     </hint>
    </hints>
   </connection>
