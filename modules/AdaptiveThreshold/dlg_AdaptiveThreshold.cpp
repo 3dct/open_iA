@@ -25,6 +25,7 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags 
 
 		connect(this->btn_update, SIGNAL(clicked()), this, SLOT(buttonUpdateClicked()));
 		connect(this->btn_loadData, SIGNAL(clicked()), this, SLOT(buttonLoadDataClicked())); 
+		connect(this->btn_TestData, SIGNAL(clicked()), this, SLOT(createSampleSeries()));
 		//connect()
 	
 		this->mainLayout->addWidget(m_chartView);
@@ -95,7 +96,7 @@ void AdaptiveThreshold::initChart(/*double xmin, double xmax, double ymin, doubl
 
 	//QValueAxis * axisX = new QValueAxis;
 	//QValueAxis * axisY = new QValueAxis; 
-	axisX->setMax(12);
+	axisX->setMax(20);
 	axisX->setTickCount(10);
 	axisX->setTitleText("XGreyThreshold");
 	
@@ -124,6 +125,40 @@ void AdaptiveThreshold::initChart(/*double xmin, double xmax, double ymin, doubl
 	//m_chart->addAxis(axisY, Qt::AlignLeft); 
 	//m_chart->setTitle("line chart example"); 
 	
+}
+
+
+void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals)
+{
+	if (!aSeries) return; 
+	if (!(x_vals.size() == y_vals.size()))
+		return;
+	size_t lenght = x_vals.size();
+
+	for (size_t i = 0; i < lenght; ++i) {
+		double tmp_x = 0; double tmp_y = 0; 
+		tmp_x = x_vals[i];
+		tmp_y = y_vals[i];
+		*aSeries << QPointF(tmp_x, tmp_y); 
+
+	}
+
+}
+
+
+void AdaptiveThreshold::createSampleSeries()
+{
+	QScatterSeries *mySeries = new QScatterSeries;
+	std::vector<double> vec_x = { 4,6,8 }; 
+	std::vector<double> vec_y = { 7, 11, 15 };
+	this->prepareDataSeries(mySeries, vec_x, vec_y);
+	mySeries->setName("ATest");
+	mySeries->setColor(QColor(0, 0, 255)); 
+	m_chart->addSeries(mySeries);
+	mySeries->attachAxis(axisX);
+	mySeries->attachAxis(axisY);
+	m_chart->update();
+	m_chartView->update(); 
 }
 
 void AdaptiveThreshold::buttonUpdateClicked()
@@ -161,5 +196,11 @@ void AdaptiveThreshold::buttonLoadDataClicked()
 		"/home",
 		("Files (*.csv *.txt)"));
 	DEBUG_LOG(fName); 
+	if (!m_seriesLoader.loadCSV(fName)) {
+		return;
+	}
+
+	
+
 }
 

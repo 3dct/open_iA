@@ -16,8 +16,8 @@
   <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>1050</x>
-     <y>500</y>
+     <x>1070</x>
+     <y>40</y>
      <width>171</width>
      <height>221</height>
     </rect>
@@ -31,7 +31,7 @@
      </widget>
     </item>
     <item row="3" column="0">
-     <widget class="QPushButton" name="pushButton_5">
+     <widget class="QPushButton" name="btn_TestData">
       <property name="text">
        <string>TestData</string>
       </property>
@@ -63,8 +63,8 @@
   <widget class="QWidget" name="gridLayoutWidget_2">
    <property name="geometry">
     <rect>
-     <x>860</x>
-     <y>780</y>
+     <x>1040</x>
+     <y>820</y>
      <width>158</width>
      <height>25</height>
     </rect>
@@ -153,17 +153,6 @@
      </widget>
     </item>
    </layout>
-  </widget>
-  <widget class="QWidget" name="verticalLayoutWidget_2">
-   <property name="geometry">
-    <rect>
-     <x>1050</x>
-     <y>30</y>
-     <width>160</width>
-     <height>80</height>
-    </rect>
-   </property>
-   <layout class="QVBoxLayout" name="verticalLayout"/>
   </widget>
  </widget>
  <resources/>

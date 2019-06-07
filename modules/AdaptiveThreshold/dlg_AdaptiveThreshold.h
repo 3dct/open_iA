@@ -11,9 +11,8 @@
 
 using namespace QtCharts;
 
-struct Threshold{
-	
-};
+class QtCharts::QXYSeries; 
+
 
 class  AdaptiveThreshold : public QDialog, Ui_AdaptiveThreshold
 
@@ -29,15 +28,23 @@ public:
 
 	void initChart(/*double xmin, double xmax, double ymin, double ymax*/);
 
+	
+	//void prepareDataSeries(QXYSeries &aSeries,const std::vector<double> &x_vals, const std::vector<double> &y_vals); 
+
+	void prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals);
+	
+	
+
 private slots:
 		void buttonUpdateClicked();
 		void buttonLoadDataClicked(); 
+		void createSampleSeries();
 
 private: 
 	const int maxSeriesNumbers = 10; 
 	double xMinRef, xMaxRef, yMinRef, yMaxRef; 
 
-	Loader seriesLoader; 
+	Loader m_seriesLoader; 
 
 	std::vector<double> m_greyThresholds; 
 	std::vector<double> m_frequencies; 

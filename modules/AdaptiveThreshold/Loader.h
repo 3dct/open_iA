@@ -11,11 +11,11 @@ public:
 
 	bool loadCSV(const QString &Fname);
 
-	std::vector<double> &getFrequencies() {
+	const std::vector<double> &getFrequencies() {
 		return this->m_frequencies;
 	}
 
-	std::vector<double> &getGreyValues() {
+	const std::vector<double> &getGreyValues() {
 		return m_greyValues; 
 	}
 
