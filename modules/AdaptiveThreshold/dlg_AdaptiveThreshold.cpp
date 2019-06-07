@@ -85,31 +85,9 @@ void AdaptiveThreshold::initChart(/*double xmin, double xmax, double ymin, doubl
 	//s2->set
 	m_chart->addSeries(s2);
 	m_chart->legend()->markers(s2)[0]->setVisible(false);
-	//m_chart->createDefaultAxes(); 
-	//QValueAxis *axisY = new QValueAxis;
-	//m_refSeries->Get
-	axisY->setMin(4); 
-	axisY->setMax(20);
-	axisY->setTickCount(7);
-	//axisY->scal
-	axisY->setTitleText("YFrequencies");
-
-	//QValueAxis * axisX = new QValueAxis;
-	//QValueAxis * axisY = new QValueAxis; 
-	axisX->setMax(20);
-	axisX->setTickCount(10);
-	axisX->setTitleText("XGreyThreshold");
 	
-	m_chart->addAxis(axisX, Qt::AlignBottom);
+	prepareAxis();
 	
-	//axisY->setTitleText("Y");
-	m_chart->addAxis(axisY, Qt::AlignLeft); 
-	
-
-	/*axisX->setMax(0); 
-	axisX->setMin(10);*/
-	//axisX->setTitleText("X"); 
-	//series->attachAxis(axisX);
 	m_refSeries->attachAxis(axisX);
 	m_refSeries->attachAxis(axisY);
 
@@ -118,15 +96,26 @@ void AdaptiveThreshold::initChart(/*double xmin, double xmax, double ymin, doubl
 	series->attachAxis(axisX);
 	series->attachAxis(axisY);
 
-	//m_chart->addAxis(axisY, Qt::AlignLeft);
-	/*m_chart->addAxis(axisY, Qt::AlignTop);
-	m_chart->axisX(series)->setRange(0, 100);*/
-
-	//m_chart->addAxis(axisY, Qt::AlignLeft); 
-	//m_chart->setTitle("line chart example"); 
+	
 	
 }
 
+
+void AdaptiveThreshold::prepareAxis()
+{
+	axisY->setMin(4);
+	axisY->setMax(20);
+	axisY->setTickCount(7);	
+	axisY->setTitleText("YFrequencies");
+
+	axisX->setMin(0); 
+	axisX->setMax(20);
+	axisX->setTickCount(10);
+	axisX->setTitleText("XGreyThreshold");
+
+	m_chart->addAxis(axisX, Qt::AlignBottom);	
+	m_chart->addAxis(axisY, Qt::AlignLeft);
+}
 
 void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals)
 {

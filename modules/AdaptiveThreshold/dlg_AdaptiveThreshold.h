@@ -27,10 +27,8 @@ public:
 	void calculateMovingAvarage();	
 
 	void initChart(/*double xmin, double xmax, double ymin, double ymax*/);
-
 	
-	//void prepareDataSeries(QXYSeries &aSeries,const std::vector<double> &x_vals, const std::vector<double> &y_vals); 
-
+	
 	void prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals);
 	
 	
