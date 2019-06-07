@@ -4,6 +4,8 @@
 #include "iAConsole.h"
 #include "QColor"
 #include "QPoint"
+#include <QFileDialog>
+//#include "QtCharts/L"
 //#include <QTChart>
 
 AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/):QDialog(parent, f){
@@ -11,6 +13,7 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags 
 	try {
 		m_chart = new QtCharts::QChart;
 		m_chartView = new QtCharts::QChartView(m_chart);
+		m_chartView->setRubberBand(QChartView::HorizontalRubberBand);
 		axisX = new QValueAxis; 
 		axisY = new QValueAxis; 
 		m_refSeries = new QLineSeries();
@@ -21,6 +24,8 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags 
 		}
 
 		connect(this->btn_update, SIGNAL(clicked()), this, SLOT(buttonUpdateClicked()));
+		connect(this->btn_loadData, SIGNAL(clicked()), this, SLOT(buttonLoadDataClicked())); 
+		//connect()
 	
 		this->mainLayout->addWidget(m_chartView);
 	}
@@ -41,9 +46,14 @@ AdaptiveThreshold::~AdaptiveThreshold()
 	//delete m_refSeries; 
 }
 
-void AdaptiveThreshold::initChart()
+void AdaptiveThreshold::calculateMovingAvarage()
 {
 
+}
+
+void AdaptiveThreshold::initChart(/*double xmin, double xmax, double ymin, double ymax*/)
+{
+	
 	//QLineSeries *series = new QLineSeries();
 	m_refSeries->append(0, 6);
 	m_refSeries->append(2, 4);
@@ -53,30 +63,60 @@ void AdaptiveThreshold::initChart()
 	*m_refSeries << QPointF(2, 2) << QPointF(3, 3) << QPointF(20, 0); 
 	QColor color = QColor(255,0,0); 
 	m_refSeries->setColor(color);
+	m_refSeries->setName("TestSeries"); 
+	
+
+	QScatterSeries * series = new QScatterSeries(); 
+	series->append(4, 8);
+	series->append(2, 20); 
+	series->setName("AName");
+	series->setColor(QColor(0, 255, 0)); 
+	//m_refSeries->set
 	//m_refSeries->setLb
 	m_chart->addSeries(m_refSeries);
+	m_chart->addSeries(series);
+	QLineSeries * s2 = new QLineSeries();
+	s2->append(8, 0);
+	s2->append(8, 8);
 
+	//m_chart->legend()->markers(s2)->setVisible(false);
+	
+	//s2->set
+	m_chart->addSeries(s2);
+	m_chart->legend()->markers(s2)[0]->setVisible(false);
 	//m_chart->createDefaultAxes(); 
 	//QValueAxis *axisY = new QValueAxis;
-
+	//m_refSeries->Get
 	axisY->setMin(4); 
 	axisY->setMax(20);
-	axisY->setTitleText("Y");
+	axisY->setTickCount(7);
+	//axisY->scal
+	axisY->setTitleText("YFrequencies");
 
 	//QValueAxis * axisX = new QValueAxis;
 	//QValueAxis * axisY = new QValueAxis; 
+	axisX->setMax(12);
 	axisX->setTickCount(10);
-	axisX->setTitleText("X");
+	axisX->setTitleText("XGreyThreshold");
+	
 	m_chart->addAxis(axisX, Qt::AlignBottom);
 	
-	axisY->setTitleText("Y");
+	//axisY->setTitleText("Y");
 	m_chart->addAxis(axisY, Qt::AlignLeft); 
+	
+
 	/*axisX->setMax(0); 
 	axisX->setMin(10);*/
 	//axisX->setTitleText("X"); 
 	//series->attachAxis(axisX);
 	m_refSeries->attachAxis(axisX);
 	m_refSeries->attachAxis(axisY);
+
+	s2->attachAxis(axisX);
+	s2->attachAxis(axisY);
+	series->attachAxis(axisX);
+	series->attachAxis(axisY);
+
 	//m_chart->addAxis(axisY, Qt::AlignLeft);
 	/*m_chart->addAxis(axisY, Qt::AlignTop);
 	m_chart->axisX(series)->setRange(0, 100);*/
@@ -89,7 +129,7 @@ void AdaptiveThreshold::initChart()
 void AdaptiveThreshold::buttonUpdateClicked()
 {
 	DEBUG_LOG("Button update is clicked"); 
-	this->m_chart->setTitle("Hallo"); 
+	this->m_chart->setTitle("Grey value distribution"); 
 	this->m_chart->update(); 
 	this->m_chartView->update(); 
 	//DEBUG_LOG("Button update is clicked"); 
@@ -112,5 +152,14 @@ void AdaptiveThreshold::buttonUpdateClicked()
 
 	axisX->setRange(xmin_val, xmax_val);
 	m_chart->update(); 
+}
+
+void AdaptiveThreshold::buttonLoadDataClicked()
+{
+	DEBUG_LOG("Button update is clicked");
+	QString fName = QFileDialog::getOpenFileName(this, ("Open File"),
+		"/home",
+		("Files (*.csv *.txt)"));
+	DEBUG_LOG(fName); 
 }
 

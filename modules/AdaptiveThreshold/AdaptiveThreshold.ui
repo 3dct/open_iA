@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1060</width>
-    <height>837</height>
+    <width>1276</width>
+    <height>972</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>40</x>
+     <x>1050</x>
      <y>500</y>
      <width>171</width>
      <height>221</height>
@@ -30,20 +30,20 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="0">
-     <widget class="QSpinBox" name="spinBox"/>
-    </item>
-    <item row="2" column="0">
-     <widget class="QPushButton" name="pushButton_4">
-      <property name="text">
-       <string>Load Data</string>
-      </property>
-     </widget>
-    </item>
     <item row="3" column="0">
      <widget class="QPushButton" name="pushButton_5">
       <property name="text">
        <string>TestData</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QSpinBox" name="spinBox"/>
+    </item>
+    <item row="2" column="0">
+     <widget class="QPushButton" name="btn_loadData">
+      <property name="text">
+       <string>Load Data</string>
       </property>
      </widget>
     </item>
@@ -63,8 +63,8 @@
   <widget class="QWidget" name="gridLayoutWidget_2">
    <property name="geometry">
     <rect>
-     <x>830</x>
-     <y>750</y>
+     <x>860</x>
+     <y>780</y>
      <width>158</width>
      <height>25</height>
     </rect>
@@ -89,31 +89,17 @@
   <widget class="QWidget" name="formLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>290</x>
-     <y>510</y>
+     <x>70</x>
+     <y>500</y>
      <width>191</width>
-     <height>101</height>
+     <height>119</height>
     </rect>
    </property>
    <layout class="QFormLayout" name="formLayout_3">
-    <item row="0" column="0">
-     <widget class="QLineEdit" name="ed_xMIn">
-      <property name="text">
-       <string>0</string>
-      </property>
-     </widget>
-    </item>
     <item row="0" column="1">
      <widget class="QLabel" name="label">
       <property name="text">
        <string>Xmin</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>XMax</string>
       </property>
      </widget>
     </item>
@@ -124,17 +110,17 @@
       </property>
      </widget>
     </item>
+    <item row="1" column="1">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>XMax</string>
+      </property>
+     </widget>
+    </item>
     <item row="2" column="0">
      <widget class="QLineEdit" name="ed_Ymin">
       <property name="text">
        <string>0</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLineEdit" name="ed_YMax">
-      <property name="text">
-       <string>20</string>
       </property>
      </widget>
     </item>
@@ -145,6 +131,13 @@
       </property>
      </widget>
     </item>
+    <item row="3" column="0">
+     <widget class="QLineEdit" name="ed_YMax">
+      <property name="text">
+       <string>20</string>
+      </property>
+     </widget>
+    </item>
     <item row="3" column="1">
      <widget class="QLabel" name="label_4">
       <property name="text">
@@ -152,7 +145,25 @@
       </property>
      </widget>
     </item>
+    <item row="0" column="0">
+     <widget class="QLineEdit" name="ed_xMIn">
+      <property name="text">
+       <string>0</string>
+      </property>
+     </widget>
+    </item>
    </layout>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>1050</x>
+     <y>30</y>
+     <width>160</width>
+     <height>80</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout"/>
   </widget>
  </widget>
  <resources/>
