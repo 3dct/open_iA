@@ -2306,7 +2306,7 @@ void MainWindow::saveProject()
 void MainWindow::loadArguments(int argc, char** argv)
 {
 	QStringList files;
-	for (int a = 1; a < argc; ++a) files << argv[a];
+	for (int a = 1; a < argc; ++a) files << QString::fromLocal8Bit(argv[a]);
 	loadFiles(files);
 }
 
