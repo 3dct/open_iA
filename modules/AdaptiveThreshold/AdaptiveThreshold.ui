@@ -47,6 +47,13 @@
       </property>
      </widget>
     </item>
+    <item row="4" column="0">
+     <widget class="QPushButton" name="btn_clearChart">
+      <property name="text">
+       <string>ClearChart</string>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QWidget" name="verticalLayoutWidget">
@@ -89,17 +96,17 @@
   <widget class="QWidget" name="formLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>500</y>
+     <x>1070</x>
+     <y>280</y>
      <width>191</width>
      <height>119</height>
     </rect>
    </property>
    <layout class="QFormLayout" name="formLayout_3">
-    <item row="0" column="1">
-     <widget class="QLabel" name="label">
+    <item row="0" column="0">
+     <widget class="QLineEdit" name="ed_xMIn">
       <property name="text">
-       <string>Xmin</string>
+       <string>0</string>
       </property>
      </widget>
     </item>
@@ -145,10 +152,10 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="0">
-     <widget class="QLineEdit" name="ed_xMIn">
+    <item row="0" column="1">
+     <widget class="QLabel" name="label">
       <property name="text">
-       <string>0</string>
+       <string>Xmin</string>
       </property>
      </widget>
     </item>

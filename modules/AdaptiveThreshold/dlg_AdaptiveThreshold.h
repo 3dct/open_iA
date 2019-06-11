@@ -13,6 +13,16 @@ using namespace QtCharts;
 
 class QtCharts::QXYSeries; 
 
+enum axisMode {
+	x,
+	y
+};
+
+enum plotMode
+{
+	scatter,
+	lines
+};
 
 class  AdaptiveThreshold : public QDialog, Ui_AdaptiveThreshold
 
@@ -27,20 +37,39 @@ public:
 	void calculateMovingAvarage();	
 
 	void initChart(/*double xmin, double xmax, double ymin, double ymax*/);
-	
+
+	void initAxes(double xmin, double xmax, double ymin, double yMax, bool setDefaultAxis); 	
 	
 	void prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals);
+
+    void addSeries(QXYSeries *aSeries); 
 	
-	
+	QXYSeries *createDataSeries(const std::vector<double> &xvals, const std::vector<double> &y_vals,plotMode mode); 
+
+	inline void clearSeries(QXYSeries *series) {
+		series->clear();
+
+	}
 
 private slots:
 		void buttonUpdateClicked();
 		void buttonLoadDataClicked(); 
 		void createSampleSeries();
+		void clear(); 
 
-private: 
+private:
+	void prepareAxis(QValueAxis *axis, const QString &title, double min, double max, uint ticks, axisMode mode);
+	void generateSampleData(bool addserries);
+	void determineMinMax(const std::vector<double> &xVal, const std::vector<double> &yVal); 
+	
+	void setDefaultMinMax(double xMIn, double xMax, double yMin, double yMax); 
+	void setMinMaxToEdit(double xMin, double xMax, double yMin, double yMax); 
+
+	const int m_defautTickCountsX = 8;
+	const int m_defaultTickCountsY = 5; 
+
 	const int maxSeriesNumbers = 10; 
-	double xMinRef, xMaxRef, yMinRef, yMaxRef; 
+	double m_xMinRef, m_xMaxRef, m_yMinRef, m_yMaxRef; 
 
 	Loader m_seriesLoader; 
 
