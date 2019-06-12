@@ -4,8 +4,8 @@
 #include <qsharedpointer.h>
 #include <QtCharts/qlineseries.h>
 #include "iAConsole.h"
-#include "QColor"
-#include "QPoint"
+#include <QColor>
+#include <QPoint>
 #include <QFileDialog>
 //#include "QtCharts/L"
 //#include <QTChart>
@@ -35,21 +35,31 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags 
 		m_refSeries = new QLineSeries();
 		series_vec.reserve(maxSeriesNumbers); 
 
+		Qt::WindowFlags flags = this->windowFlags();
+		this->setWindowFlags(flags | Qt::Tool); 
+
 		for (auto series: series_vec) {
 			series = new QLineSeries(); 
 		}
 
-		connect(this->btn_update, SIGNAL(clicked()), this, SLOT(buttonUpdateClicked()));
-		connect(this->btn_loadData, SIGNAL(clicked()), this, SLOT(buttonLoadDataClicked())); 
-		connect(this->btn_TestData, SIGNAL(clicked()), this, SLOT(createSampleSeries()));
-		connect(this->btn_clearChart, SIGNAL(clicked()), this, SLOT(clear())); 
-		//connect()
-	
+		connectUIActions();
+
+			
 		this->mainLayout->addWidget(m_chartView);
 	}
 	catch (std::bad_alloc &ba) {
 		throw; 
 	}
+}
+
+void AdaptiveThreshold::connectUIActions()
+{
+	connect(this->btn_update, SIGNAL(clicked()), this, SLOT(buttonUpdateClicked()));
+	connect(this->btn_loadData, SIGNAL(clicked()), this, SLOT(buttonLoadDataClicked()));
+	connect(this->btn_TestData, SIGNAL(clicked()), this, SLOT(createSampleSeries()));
+	connect(this->btn_clearChart, SIGNAL(clicked()), this, SLOT(clear()));
+	connect(this->btn_resetGraph, SIGNAL(clicked()), this, SLOT(resetGraphToDefault()));
+	connect(this->btn_myAction, SIGNAL(clicked()), this, SLOT(myAction()));
 }
 
 AdaptiveThreshold::~AdaptiveThreshold()
@@ -64,10 +74,7 @@ AdaptiveThreshold::~AdaptiveThreshold()
 	//delete m_refSeries; 
 }
 
-void AdaptiveThreshold::calculateMovingAvarage()
-{
 
-}
 
 void AdaptiveThreshold::initChart(/*double xmin, double xmax, double ymin, double ymax*/)
 {
@@ -135,6 +142,26 @@ void AdaptiveThreshold::determineMinMax(const std::vector<double> &xVal, const s
 	m_yMaxRef = *std::min_element(std::begin(yVal), std::end(yVal));
 }
 
+void AdaptiveThreshold::resetGraphToDefault()
+{
+	DEBUG_LOG("reset to default"); 
+	DEBUG_LOG(QString("Default %1 %2 %3 %4").arg(minXDefault).arg(maxXDefault).arg(minYDefault).arg(maxYDefault)); 
+
+	this->initAxes(minXDefault, maxXDefault, minYDefault, maxYDefault, false); 
+	this->ed_xMIn->setText(QString("%1").arg(minXDefault)); 
+	this->ed_xMax->setText(QString("%1").arg(maxXDefault));
+	this->ed_Ymin->setText(QString("%1").arg(minYDefault));
+	this->ed_YMax->setText(QString("%1").arg(maxYDefault)); 
+
+	m_chart->update();
+	m_chartView->update(); 
+}
+
+void AdaptiveThreshold::myAction()
+{
+	m_thresCalculator.doubleTestSum();
+}
+
 void AdaptiveThreshold::setDefaultMinMax(double xMIn, double xMax, double yMin, double yMax)
 {
 	m_xMinRef = xMIn;
@@ -149,7 +176,7 @@ void AdaptiveThreshold::initAxes(double xmin, double xmax, double ymin, double y
 	QString titleY = "YFrequencies"; 
 
 	if (setDefaultAxis) {
-		m_chart->createDefaultAxes();
+		this->resetGraphToDefault();
 		return;
 	}
 
@@ -195,14 +222,15 @@ void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries, const std::vector<
 		return;
 
 	determineMinMax(x_vals, y_vals); 
-
-	setDefaultMinMax(m_xMinRef, 20000, 0, 25000); 
+	//setDefaultMinMax(m_xMinRef, 20000, 0, 25000); 
 
 
 	DEBUG_LOG(QString("xmin xmax ymin ymax %! %2 %3 %4").arg(m_xMinRef).arg(m_yMaxRef).
 		arg(m_yMinRef).arg(m_yMaxRef)); 
+
 	
-	this->initAxes(m_xMinRef, m_xMaxRef, m_yMinRef, m_yMinRef, false);
+	//this->initAxes(m_xMinRef, m_xMaxRef, m_yMinRef, m_yMinRef, false);
+	this->resetGraphToDefault(); 
 
 	size_t lenght = x_vals.size();
 
@@ -274,9 +302,7 @@ void AdaptiveThreshold::buttonUpdateClicked()
 {
 	DEBUG_LOG("Button update is clicked"); 
 	this->m_chart->setTitle("Grey value distribution"); 
-	this->m_chart->update(); 
-	this->m_chartView->update(); 
-	//DEBUG_LOG("Button update is clicked"); 
+
 	QString xmin, xMax, yMIn, yMax; 
 	double xmin_val, xmax_val, ymin_val, ymax_val;
 
@@ -292,10 +318,12 @@ void AdaptiveThreshold::buttonUpdateClicked()
 	xmin_val = xmin.toDouble();
 	xmax_val = xMax.toDouble();
 	ymin_val = yMIn.toDouble();
-	ymax_val = yMIn.toDouble();
+	ymax_val = yMax.toDouble();
 
 	axisX->setRange(xmin_val, xmax_val);
+	axisY->setRange(ymin_val, ymax_val);
 	m_chart->update(); 
+	this->m_chartView->update();
 }
 
 void AdaptiveThreshold::buttonLoadDataClicked()

@@ -2,12 +2,14 @@
 
 #include "ui_AdaptiveThreshold.h"
 #include "Loader.h"
+#include "ThesholdCalculator.h"
 
 #include <QSharedPointer>
 #include <QDialog>
 #include <QTCharts>
 #include <vector>
 #include <QtCharts/qlineseries.h>
+
 
 using namespace QtCharts;
 
@@ -32,9 +34,12 @@ Q_OBJECT
 public:
 	//! Create a new dialog, all parameters are optional
 	AdaptiveThreshold(QWidget * parent = 0, Qt::WindowFlags f = 0);
-	~AdaptiveThreshold(); 
 
-	void calculateMovingAvarage();	
+	void connectUIActions();
+
+	~AdaptiveThreshold();
+
+	//void calculateMovingAvarage();	
 
 	void initChart(/*double xmin, double xmax, double ymin, double ymax*/);
 
@@ -56,21 +61,32 @@ private slots:
 		void buttonLoadDataClicked(); 
 		void createSampleSeries();
 		void clear(); 
+		void resetGraphToDefault(); 
+
+		void myAction(); 
 
 private:
 	void prepareAxis(QValueAxis *axis, const QString &title, double min, double max, uint ticks, axisMode mode);
 	void generateSampleData(bool addserries);
 	void determineMinMax(const std::vector<double> &xVal, const std::vector<double> &yVal); 
 	
+
+	//TODO Refactoring
+
+
 	void setDefaultMinMax(double xMIn, double xMax, double yMin, double yMax); 
-	void setMinMaxToEdit(double xMin, double xMax, double yMin, double yMax); 
+	//void setMinMaxToEdit(double xMin, double xMax, double yMin, double yMax); 
+
+	const double minXDefault = 0; const double maxXDefault = 65535; 
+	const double minYDefault = 0; const double maxYDefault = 40000; 
+
 
 	const int m_defautTickCountsX = 8;
-	const int m_defaultTickCountsY = 5; 
+	const int m_defaultTickCountsY = 10; 
 
 	const int maxSeriesNumbers = 10; 
 	double m_xMinRef, m_xMaxRef, m_yMinRef, m_yMaxRef; 
-
+	ThesholdCalculator m_thresCalculator; 
 	Loader m_seriesLoader; 
 
 	std::vector<double> m_greyThresholds; 
