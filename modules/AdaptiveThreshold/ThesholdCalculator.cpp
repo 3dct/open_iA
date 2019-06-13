@@ -45,19 +45,38 @@ void ThesholdCalculator::doubleTestSum()
 
 }
 
-void ThesholdCalculator::calculateAverage(const std::vector<double> &v_in, std::vector<double> v_out, unsigned int count)
+void ThesholdCalculator::calculateFrequencies(size_t m_start, size_t m_end)
+{
+	//for (size_t m_i = (m_start + 1); m_i < (m_end - 1); m_i++)
+	//{
+	//	if (m_VolumeCount[m_i] > m_high_freq)
+	//	{
+	//		m_high_freq = (int) m_VolumeCount[m_i];
+	//		m_high_intensity = m_i;
+	//	}
+	//}
+
+	////find the low intensity peak
+	//for (m_i = (m_start + 1); m_i < m_centre; m_i++)
+	//{
+	//	if (m_VolumeCount[m_i] > m_low_freq)
+	//	{
+	//		m_low_freq = m_VolumeCount[m_i];
+	//		m_low_intensity = m_i;
+	//	}
+	//}
+}
+
+void ThesholdCalculator::calculateAverage(const std::vector<double> &v_in, std::vector<double> &v_out, unsigned int count)
 {
 	size_t v_lengh = v_in.size();
 	double value = 0.0f;
 	double sum = 0.0f;
 	const double moving = 3.0f;
 	double maxLen = v_lengh - 1;
-	//double tmp;
 
-	//check odd
 	if ((!(count % 2) == 1) || (count > maxLen) || (count == 0))
 		return; 
-
 
 	for (size_t posInd = 0; posInd < v_lengh; ++posInd) {
 

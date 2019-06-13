@@ -10,8 +10,12 @@ public:
 	ThesholdCalculator();
 	~ThesholdCalculator();
 
-	void calculateAverage(const std::vector<double> &v_in, std::vector<double> v_out, unsigned int count);
+	void calculateAverage(const std::vector<double> &v_in, std::vector<double> &v_out, unsigned int count);
 	void doubleTestSum();
+
+	
+	void calculateFrequencies(size_t m_start, size_t m_end);
+	void specifyRange(const std::vector<double> &v_in, const std::vector<double> &ind);
 
 private: 
 	double vectorSum(const std::vector<double> &sum, size_t startInd, size_t endInd);

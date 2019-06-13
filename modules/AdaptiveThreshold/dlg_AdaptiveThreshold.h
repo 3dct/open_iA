@@ -62,7 +62,7 @@ private slots:
 		void createSampleSeries();
 		void clear(); 
 		void resetGraphToDefault(); 
-
+		void visualizeMovingAverage(); 
 		void myAction(); 
 
 private:

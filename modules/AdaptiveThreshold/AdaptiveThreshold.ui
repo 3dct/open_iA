@@ -184,6 +184,19 @@
     <string>myAction</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="btn_movingAverage">
+   <property name="geometry">
+    <rect>
+     <x>1070</x>
+     <y>430</y>
+     <width>131</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>MovingAverageAndView</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections>

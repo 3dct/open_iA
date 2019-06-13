@@ -60,6 +60,7 @@ void AdaptiveThreshold::connectUIActions()
 	connect(this->btn_clearChart, SIGNAL(clicked()), this, SLOT(clear()));
 	connect(this->btn_resetGraph, SIGNAL(clicked()), this, SLOT(resetGraphToDefault()));
 	connect(this->btn_myAction, SIGNAL(clicked()), this, SLOT(myAction()));
+	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(visualizeMovingAverage()));
 }
 
 AdaptiveThreshold::~AdaptiveThreshold()
@@ -120,6 +121,7 @@ void AdaptiveThreshold::generateSampleData(bool addserries)
 	series->setName("AName");
 	series->setColor(QColor(0, 255, 0));
 
+
 	if (addserries)
 	{
 		m_chart->addSeries(m_refSeries);
@@ -155,6 +157,20 @@ void AdaptiveThreshold::resetGraphToDefault()
 
 	m_chart->update();
 	m_chartView->update(); 
+}
+
+void AdaptiveThreshold::visualizeMovingAverage()
+{
+	/*QMessageBox msgBox;
+	msgBox.setText("The document has been modified.");
+	msgBox.exec();*/
+
+	DEBUG_LOG("Moving Average"); 
+	m_thresCalculator.calculateAverage(m_movingFrequencies, m_movingFrequencies,10);
+	QLineSeries *newSeries = new QLineSeries;
+	this->prepareDataSeries(newSeries, m_greyThresholds, m_movingFrequencies);
+	
+	//this->pr
 }
 
 void AdaptiveThreshold::myAction()
@@ -215,11 +231,21 @@ void AdaptiveThreshold::clear()
 
 void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals)
 {
-	if (!aSeries) 
+	if (!aSeries) {
+		DEBUG_LOG("series is null"); 
 		return;
+	}
+	if ((x_vals.size() == 0) || (y_vals.size() == 0))
+	{
+		DEBUG_LOG("entries are empty"); 
+		return;
+	}
 
 	if (!(x_vals.size() == y_vals.size()))
+	{
+		DEBUG_LOG("size different");
 		return;
+	}
 
 	determineMinMax(x_vals, y_vals); 
 	//setDefaultMinMax(m_xMinRef, 20000, 0, 25000); 
