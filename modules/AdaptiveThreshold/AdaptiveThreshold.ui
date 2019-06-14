@@ -23,7 +23,7 @@
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="2" column="0">
+    <item row="1" column="0">
      <widget class="QPushButton" name="btn_loadData">
       <property name="text">
        <string>Load Data</string>
@@ -31,16 +31,13 @@
      </widget>
     </item>
     <item row="0" column="0">
-     <widget class="QSpinBox" name="spinBox"/>
-    </item>
-    <item row="1" column="0">
      <widget class="QPushButton" name="btn_update">
       <property name="text">
        <string>Update</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="0">
+    <item row="3" column="0">
      <widget class="QPushButton" name="btn_clearChart">
       <property name="enabled">
        <bool>false</bool>
@@ -50,14 +47,14 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="0">
+    <item row="2" column="0">
      <widget class="QPushButton" name="btn_TestData">
       <property name="text">
        <string>TestData</string>
       </property>
      </widget>
     </item>
-    <item row="5" column="0">
+    <item row="4" column="0">
      <widget class="QPushButton" name="btn_resetGraph">
       <property name="text">
        <string>ResetGraph</string>
@@ -184,18 +181,37 @@
     <string>myAction</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_movingAverage">
+  <widget class="QWidget" name="horizontalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>1070</x>
-     <y>430</y>
-     <width>131</width>
-     <height>21</height>
+     <x>1060</x>
+     <y>520</y>
+     <width>193</width>
+     <height>80</height>
     </rect>
    </property>
-   <property name="text">
-    <string>MovingAverageAndView</string>
-   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <item>
+     <widget class="QSpinBox" name="spinBox_average">
+      <property name="minimum">
+       <number>5</number>
+      </property>
+      <property name="maximum">
+       <number>100001</number>
+      </property>
+      <property name="singleStep">
+       <number>2</number>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="btn_movingAverage">
+      <property name="text">
+       <string>MovingAverageAndView</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>

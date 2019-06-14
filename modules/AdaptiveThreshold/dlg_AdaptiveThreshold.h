@@ -79,7 +79,7 @@ private:
 
 	const double minXDefault = 0; const double maxXDefault = 65535; 
 	const double minYDefault = 0; const double maxYDefault = 40000; 
-
+	int m_average = 0; 
 
 	const int m_defautTickCountsX = 8;
 	const int m_defaultTickCountsY = 10; 

@@ -69,7 +69,15 @@ void ThesholdCalculator::calculateFrequencies(size_t m_start, size_t m_end)
 
 void ThesholdCalculator::calculateAverage(const std::vector<double> &v_in, std::vector<double> &v_out, unsigned int count)
 {
+	DEBUG_LOG("Calculate average");
+	
 	size_t v_lengh = v_in.size();
+	
+	if (v_lengh == 0) {
+		DEBUG_LOG("input values are zero"); 
+		return; 
+	}
+
 	double value = 0.0f;
 	double sum = 0.0f;
 	const double moving = 3.0f;
@@ -81,21 +89,25 @@ void ThesholdCalculator::calculateAverage(const std::vector<double> &v_in, std::
 	for (size_t posInd = 0; posInd < v_lengh; ++posInd) {
 
 		if (posInd < count) {
-			sum = this->vectorSum(v_in,posInd,posInd+count);
+			sum = this->vectorSum(v_in,posInd,posInd+count/2);
 		}
-		else
-			if (posInd >= maxLen-count) {
-				sum = this->vectorSum(v_in,posInd, posInd - count);
+		else {
+			if (posInd >= maxLen - count) {
+				sum = this->vectorSum(v_in, posInd, posInd - count / 2);
 			}
 			else {
 				size_t minPos = posInd - (count / 2);
-				size_t maxPos = posInd + (count / 2); 
-				sum = this->vectorSum(v_in, minPos / 2, maxPos / 2);
+				size_t maxPos = posInd + (count / 2);
+				sum = this->vectorSum(v_in, minPos, maxPos);
 
 				DEBUG_LOG(QString("sum %1").arg(sum));
 			}
-		
+		}
+
+
 		sum /= count;
+		DEBUG_LOG(QString("Average %1").arg(sum)); 
+
 		v_out.push_back(sum);
 	}
 }

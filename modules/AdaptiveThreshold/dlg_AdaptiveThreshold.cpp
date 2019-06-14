@@ -165,9 +165,15 @@ void AdaptiveThreshold::visualizeMovingAverage()
 	msgBox.setText("The document has been modified.");
 	msgBox.exec();*/
 
+	uint averageCount = this->spinBox_average->text().toUInt();
 	DEBUG_LOG("Moving Average"); 
-	m_thresCalculator.calculateAverage(m_movingFrequencies, m_movingFrequencies,10);
+	DEBUG_LOG(QString("Freq size%1").arg(m_frequencies.size())); 
+
+	QString text = QString("Moving average %1").arg(averageCount);
+
+	m_thresCalculator.calculateAverage(m_frequencies, m_movingFrequencies, averageCount);
 	QLineSeries *newSeries = new QLineSeries;
+	newSeries->setObjectName(text); 
 	this->prepareDataSeries(newSeries, m_greyThresholds, m_movingFrequencies);
 	
 	//this->pr
@@ -363,7 +369,10 @@ void AdaptiveThreshold::buttonLoadDataClicked()
 		return;
 	}
 
-	prepareDataSeries(m_refSeries, m_seriesLoader.getGreyValues(), m_seriesLoader.getFrequencies()); 
+	this->m_greyThresholds = m_seriesLoader.getGreyValues(); 
+	this->m_frequencies = m_seriesLoader.getFrequencies(); 
+
+	prepareDataSeries(m_refSeries,m_greyThresholds, m_frequencies); 
 
 	
 
