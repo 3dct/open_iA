@@ -183,10 +183,18 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
   m_CentroidsDenominator.Fill(CentroidValueNumericTraitsType::Zero);
 
   ThreadIdType numThreads = this->GetNumberOfThreads();
+#if ITK_VERSION_MAJOR < 5
+  if( itk::MultiThreader::GetGlobalMaximumNumberOfThreads() != 0 )
+#else
   if( itk::MultiThreaderBase::GetGlobalMaximumNumberOfThreads() != 0 )
+#endif
     {
     numThreads =  std::min( this->GetNumberOfThreads(),
+#if ITK_VERSION_MAJOR < 5
+        itk::MultiThreader::GetGlobalMaximumNumberOfThreads() );
+#else
         itk::MultiThreaderBase::GetGlobalMaximumNumberOfThreads() );
+#endif
     }
   // number of threads can be constrained by the region size, so call the
   //SplitRequestedRegion to get the real number of threads which will be used
