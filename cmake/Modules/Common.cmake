@@ -53,27 +53,36 @@ ENDIF()
 # ITK
 FIND_PACKAGE(ITK REQUIRED)
 MESSAGE(STATUS "ITK: ${ITK_VERSION} in ${ITK_DIR}")
-IF(ITK_VERSION_MAJOR LESS 4 OR (ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR LESS 10)
+IF(ITK_VERSION_MAJOR LESS 4 OR (ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR LESS 10))
 	MESSAGE(FATAL_ERROR "Your ITK version is too old. Please use ITK >= 4.10")
 ENDIF()
-# ITK has been found in sufficient version, otherwise above REQUIRED / FATAL_ERROR would have triggered CMake abort
-# Now set it up with the components we need:
-FIND_PACKAGE(ITK REQUIRED COMPONENTS
+SET (ITK_COMPONENTS
 	ITKConvolution
 	ITKDenoising
 	ITKDistanceMap
 	ITKGPUAnisotropicSmoothing
 	ITKImageFeature
 	ITKImageFusion
-	ITKImageIO
 	ITKImageNoise
-	ITKIORAW
 	ITKLabelMap
 	ITKMesh
 	ITKReview       # for LabelGeometryImageFilter
 	ITKTestKernel   # for PipelineMonitorImageFilter
 	ITKVtkGlue
 	ITKWatersheds)
+IF (ITK_VERSION_MAJOR GREATER 4 OR (ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR GREATER 12))
+	LIST (APPEND ITK_COMPONENTS ITKImageIO)
+	LIST (APPEND ITK_COMPONENTS ITKIORAW)  # apparently not included in ITKImageIO
+ELSE()
+	FOREACH( mod IN LISTS ITK_MODULES_ENABLED)
+		IF( ${mod} MATCHES "IO")
+			LIST (APPEND ITK_COMPONENTS ${mod})
+		ENDIF()
+	ENDFOREACH()
+ENDIF()
+# ITK has been found in sufficient version, otherwise above REQUIRED / FATAL_ERROR would have triggered CMake abort
+# Now set it up with the components we need:
+FIND_PACKAGE(ITK REQUIRED COMPONENTS ${ITK_COMPONENTS})
 # apparently ITK (at least v5.0.0) adapts CMAKE_MODULE_PATH (bug?), reset it:
 SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
 INCLUDE(${ITK_USE_FILE}) # maybe avoid by using INCLUDE/LINK commands on targets instead?
