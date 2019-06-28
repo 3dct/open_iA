@@ -30,8 +30,9 @@ FCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
 ::FCMClassifierInitializationImageFilter()
 {
   m_DistanceMetric = DistanceMetricType::New();
-
+#if ITK_VERSION_MAJOR < 5
   m_CentroidsModificationAttributesLock = MutexLockType::New();
+#endif
 }
 
 
@@ -198,14 +199,21 @@ FCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     // Save new pixel memberships in the membership matrix.
     itrMembershipMatrix.Set(membershipPixel);
     }
-
+#if ITK_VERSION_MAJOR < 5
   m_CentroidsModificationAttributesLock->Lock();
+#else
+  m_CentroidsModificationAttributesLock.lock();
+#endif
   for (i = 0; i < this->m_NumberOfClasses; i++)
     {
     m_CentroidsNumerator[i] += tempThreadCentroidsNumerator[i];
     m_CentroidsDenominator[i] += tempThreadCentroidsDenominator[i];
     }
+#if ITK_VERSION_MAJOR < 5
   m_CentroidsModificationAttributesLock->Unlock();
+#else
+  m_CentroidsModificationAttributesLock.unlock();
+#endif
 }
 
 

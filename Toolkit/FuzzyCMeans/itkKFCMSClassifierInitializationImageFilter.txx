@@ -44,7 +44,9 @@ KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
   elementRadius.Fill(1);
   m_StructuringElement = StructuringElementType::Box(elementRadius);
 
+#if ITK_VERSION_MAJOR < 5
   m_CentroidsModificationAttributesLock = MutexLockType::New();
+#endif
 }
 
 
@@ -376,13 +378,21 @@ KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     itrMembershipMatrix.Set(membershipPixel);
     }
 
+#if ITK_VERSION_MAJOR < 5
   m_CentroidsModificationAttributesLock->Lock();
+#else
+  m_CentroidsModificationAttributesLock.lock();
+#endif
   for (i = 0; i < this->m_NumberOfClasses; i++)
     {
     m_CentroidsNumerator[i] += tempThreadCentroidsNumerator[i];
     m_CentroidsDenominator[i] += tempThreadCentroidsDenominator[i];
     }
+#if ITK_VERSION_MAJOR < 5
   m_CentroidsModificationAttributesLock->Unlock();
+#else
+m_CentroidsModificationAttributesLock.unlock();
+#endif
 }
 
 

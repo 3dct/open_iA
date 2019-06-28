@@ -23,7 +23,6 @@
 #include "itkArray.h"
 #include "itkSimpleDataObjectDecorator.h"
 #include "itksys/hash_map.hxx"
-#include "itkFastMutexLock.h"
 #include "itkLabelObject.h"
 #include "itkLabelMap.h"
 #include <vector>
@@ -492,8 +491,6 @@ private:
   LabelGeometry m_LabelGeometry;
   LabelsType    m_AllLabels;
   typename LabelMapType::Pointer m_LabelMap;
-
-  SimpleFastMutexLock m_Mutex;
 }; // end of class
 
 template< typename TLabelImage, typename TIntensityImage >
