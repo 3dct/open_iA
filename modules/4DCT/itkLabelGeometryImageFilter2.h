@@ -29,7 +29,7 @@
 #include "vnl/algo/vnl_symmetric_eigensystem.h"
 #include "vnl/vnl_det.h"
 #include "vnl/vnl_math.h"
-#include "vcl_cmath.h"
+#include <cmath>
 
 namespace itk
 {
@@ -197,7 +197,7 @@ public:
       m_Orientation = 0;
       LabelPointType emptyPoint;
       emptyPoint.Fill(0);
-      unsigned int numberOfVertices = (unsigned int)vcl_pow( (double)2, (int)ImageDimension );
+      unsigned int numberOfVertices = (unsigned int)std::pow( (double)2, (int)ImageDimension );
       m_OrientedBoundingBoxVertices.resize(numberOfVertices, emptyPoint);
       m_OrientedBoundingBoxVolume = 0;
       m_OrientedBoundingBoxSize.Fill(0);

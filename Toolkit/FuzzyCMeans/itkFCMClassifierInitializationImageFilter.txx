@@ -182,7 +182,7 @@ FCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
           }
         else
           {
-          tmpMembershipValue += vcl_pow( ( distanceOfNumerator /
+          tmpMembershipValue += std::pow( ( distanceOfNumerator /
                                            distanceOfDenominator ),
                                          exponentOfMembership );
           }
@@ -191,7 +191,7 @@ FCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
       membershipPixel[i] = 1.0 / tmpMembershipValue;
 
       // Calculations for the centroids.
-      tmpPowMembershipValue = vcl_pow(membershipPixel[i], this->m_M);
+      tmpPowMembershipValue = std::pow(membershipPixel[i], this->m_M);
       tempThreadCentroidsNumerator[i] += (tmpPowMembershipValue * currentPixel);
       tempThreadCentroidsDenominator[i] += tmpPowMembershipValue;
       }

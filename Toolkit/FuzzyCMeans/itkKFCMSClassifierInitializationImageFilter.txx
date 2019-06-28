@@ -314,7 +314,7 @@ KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
                                             this->m_Centroids[i] );
 
         tmpNeighborhoodFactorOfMemberships[i] +=
-          vcl_pow(1.0 - currentNeighborDistance, this->m_M);
+          std::pow(1.0 - currentNeighborDistance, this->m_M);
 
         tmpNeighborhoodFactorOfCentroidsNumerator[i] +=
           currentNeighborDistance * currentNeighborPixel;
@@ -341,7 +341,7 @@ KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
                                           this->m_Centroids[i] );
 
       membershipNumerator[i] =
-        vcl_pow( (1 - currentPixelDistance[i]) +
+        std::pow( (1 - currentPixelDistance[i]) +
                  (penaltyFactor * tmpNeighborhoodFactorOfMemberships[i]),
                  exponentOfMembership );
       membershipDenominator += membershipNumerator[i];
@@ -365,7 +365,7 @@ KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
         }
 
       // Calculations for the centroids.
-      tmpPowMembershipValue = vcl_pow(membershipPixel[i], this->m_M);
+      tmpPowMembershipValue = std::pow(membershipPixel[i], this->m_M);
       tempThreadCentroidsNumerator[i] += tmpPowMembershipValue *
         ( (currentPixelDistance[i] * currentPixel) +
           (penaltyFactor * tmpNeighborhoodFactorOfCentroidsNumerator[i]) );

@@ -270,7 +270,7 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
                                                        this->m_Centroids[i] );
 
       tmpMembershipNumerator[i] =
-        vcl_pow((1.0 - tmpKernel[i]), exponentOfMembership);
+        std::pow((1.0 - tmpKernel[i]), exponentOfMembership);
 
       tmpMembershipDenominator += tmpMembershipNumerator[i];
       }
@@ -425,9 +425,9 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     for (i = 0; i < this->m_NumberOfClasses; i++)
       {
       membershipNumerator[i] =
-        vcl_pow( itrNeighborhoodTmpMembershipMatrix.GetCenterPixel()[i],
+        std::pow( itrNeighborhoodTmpMembershipMatrix.GetCenterPixel()[i],
                  this->m_P ) *
-        vcl_pow(h[i], this->m_Q);
+		std::pow(h[i], this->m_Q);
       membershipDenominator += membershipNumerator[i];
       }
 
@@ -438,7 +438,7 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
       membershipPixel[i] = membershipNumerator[i] / membershipDenominator;
 
       // Calculations for the centroids.
-      membershipPixelPowM[i] = vcl_pow(membershipPixel[i], this->m_M);
+      membershipPixelPowM[i] = std::pow(membershipPixel[i], this->m_M);
       tempThreadCentroidsNumerator[i] +=
         itrImageToProcess.Get() * (itrMembershipMatrix.Get()[i]) *
         membershipPixelPowM[i];
