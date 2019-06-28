@@ -50,112 +50,40 @@ ENDIF()
 # LIBRARIES
 #-------------------------
 
-# ITK (>= 4)
+# ITK
 FIND_PACKAGE(ITK REQUIRED)
-
 MESSAGE(STATUS "ITK: ${ITK_VERSION} in ${ITK_DIR}")
-IF(ITK_VERSION_MAJOR LESS 4)
-	MESSAGE(FATAL_ERROR "Your ITK version is too old. Please use ITK >= 4.0")
-ELSEIF(ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR LESS 13)
-
-	MESSAGE(STATUS "    older than 4.13, using new library/include dir method")
-	SET( ITK_LIBRARIES
-		ITKBiasCorrection    ITKCommon       ITKDICOMParser       ITKEXPAT
-		ITKIOImageBase       ITKIOBioRad     ITKIOBMP             ITKIOGDCM            ITKIOGE         ITKIOGIPL
-		ITKIOHDF5            ITKIOIPL        ITKIOJPEG            ITKIOLSM             ITKIOMeta       ITKIONIFTI
-		ITKIONRRD            ITKIOPNG        ITKIOSiemens         ITKIOSpatialObjects  ITKIOStimulate  ITKIOTIFF
-		ITKIOVTK             ITKIOXML
-		ITKKLMRegionGrowing  ITKLabelMap     ITKMesh              ITKMetaIO            ITKniftiio      ITKNrrdIO
-		ITKOptimizers        ITKPath         ITKVNLInstantiation  ITKVTK               ITKVtkGlue      ITKWatersheds
-		ITKznz
-		itkjpeg              itkNetlibSlatec itkpng               itksys               itktiff         itkv3p_netlib
-		itkvcl               itkvnl          itkvnl_algo
-	)
-	IF ("${ITKZLIB_LIBRARIES}" STREQUAL "itkzlib")
-		SET (ITK_LIBRARIES ${ITK_LIBRARIES} itkzlib)
-	ENDIF()
-	IF (NOT ${ITKGPUCommon_LIBRARY_DIRS} STREQUAL "")
-		# cannot use ITKGPUCommon_LOADED - it is always defined - bug?
-		SET( ITK_LIBRARIES  ${ITK_LIBRARIES}
-			ITKGPUAnisotropicSmoothing
-			ITKGPUCommon
-			ITKGPUFiniteDifference
-			ITKGPUImageFilterBase
-			ITKGPUSmoothing
-			ITKGPUThresholding)
-	ENDIF()
-	IF (ITK_USE_SYSTEM_FFTW)
-		SET(ITK_LIBRARIES  ${ITK_LIBRARIES} ITKFFT)
-		IF (MSVC)
-			IF (NOT ITK_USE_FFTWF)
-				MESSAGE(SEND_ERROR "Required flag ITK_USE_FFTWF not enabled in ITK CMake configuration; please rebuild ITK with this flag enabled!")
-			ENDIF()
-			SET(FFTW_DLL ${ITK_FFTW_LIBDIR}/libfftw3f-3.dll)
-			MESSAGE(STATUS "ITK_USE_SYSTEM_FFTW is enabled, thus installing dll file: ${FFTW_DLL}")
-			INSTALL (FILES ${FFTW_DLL} DESTINATION .)
-		ELSE(MSVC)
-			MESSAGE(WARNING "ITK_USE_SYSTEM_FFTW is enabled, but the installation of the appropriate shared lib wasn't implemented yet!")
-			#INSTALL (FILES ${ITK_FFTW_LIBDIR}/libfftw3f-3.so DESTINATION .)
-		ENDIF (MSVC)
-	ENDIF (ITK_USE_SYSTEM_FFTW)
-	IF (ITK_VERSION_MAJOR LESS 5)
-		# some libraries were removed with ITK 5:
-		SET (ITK_LIBRARIES ${ITK_LIBRARIES} ITKBioCell  ITKFEM)
-	ENDIF()
-	IF (ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 12)
-		# apparently, in 4.12 the itkopenjpeg.lib isn't built anymore by default
-		SET (ITK_LIBRARIES ${ITK_LIBRARIES} itkopenjpeg)
-	ENDIF()
-	IF (ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 12)
-		# starting with ITK 4.13, there is an implicit dependency on ITKIOBruker and ITKIOMINC
-		SET (ITK_LIBRARIES ${ITK_LIBRARIES} ITKIOBruker ITKIOMINC)
-	ENDIF()
-	IF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
-		# starting with ITK 4.5, there is an implicit dependency on ITKIOMRC:
-		SET(ITK_LIBRARIES ${ITK_LIBRARIES} ITKIOMRC)
-		# SCIFIO only available in ITK >= 4.5?
-	ELSE ()
-		# ITKReview apparently not required to be linked in ITK > 4.5?
-		SET(ITK_LIBRARIES ${ITK_LIBRARIES} ITKReview)
-	ENDIF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
-
-	IF (SCIFIO_LOADED)
-		SET(ITK_LIBRARIES ${ITK_LIBRARIES} SCIFIO)
-	ENDIF()
-ELSE()
-	# NEW, simpler variant of assembling list of libraries:
-	MESSAGE(STATUS "    4.13 or newer, using new library/include dir method")
-	FIND_PACKAGE(ITK REQUIRED COMPONENTS
-		ITKConvolution
-		ITKDenoising
-		ITKDistanceMap
-		ITKGPUAnisotropicSmoothing
-		ITKImageFeature
-		ITKImageFusion
-		ITKImageIO
-		ITKImageNoise
-		ITKIORAW
-		ITKLabelMap
-		ITKMesh
-		ITKReview       # for LabelGeometryImageFilter
-		ITKTestKernel   # for PipelineMonitorImageFilter
-		ITKVtkGlue
-		ITKWatersheds)
-	# apparently ITK v5 adapts CMAKE_MODULE_PATH (bug?), reset it:
-	SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
-ENDIF ()
-
-IF(ITK_FOUND)
-	INCLUDE(${ITK_USE_FILE})
-	MESSAGE(STATUS "    Libraries: ${ITK_LIBRARIES}")
-	IF (MSVC)
-		SET (ITK_LIB_DIR "${ITK_DIR}/bin/Release")
-	ELSE()
-		SET (ITK_LIB_DIR "${ITK_DIR}/lib")
-	ENDIF()
-	LIST (APPEND BUNDLE_DIRS "${ITK_LIB_DIR}")
+IF(ITK_VERSION_MAJOR LESS 4 OR (ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR LESS 10)
+	MESSAGE(FATAL_ERROR "Your ITK version is too old. Please use ITK >= 4.10")
 ENDIF()
-
+# ITK has been found in sufficient version, otherwise above REQUIRED / FATAL_ERROR would have triggered CMake abort
+# Now set it up with the components we need:
+FIND_PACKAGE(ITK REQUIRED COMPONENTS
+	ITKConvolution
+	ITKDenoising
+	ITKDistanceMap
+	ITKGPUAnisotropicSmoothing
+	ITKImageFeature
+	ITKImageFusion
+	ITKImageIO
+	ITKImageNoise
+	ITKIORAW
+	ITKLabelMap
+	ITKMesh
+	ITKReview       # for LabelGeometryImageFilter
+	ITKTestKernel   # for PipelineMonitorImageFilter
+	ITKVtkGlue
+	ITKWatersheds)
+# apparently ITK (at least v5.0.0) adapts CMAKE_MODULE_PATH (bug?), reset it:
+SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
+INCLUDE(${ITK_USE_FILE}) # maybe avoid by using INCLUDE/LINK commands on targets instead?
+MESSAGE(STATUS "    Libraries: ${ITK_LIBRARIES}")
+IF (MSVC)
+	SET (ITK_LIB_DIR "${ITK_DIR}/bin/Release")
+ELSE()
+	SET (ITK_LIB_DIR "${ITK_DIR}/lib")
+ENDIF()
+LIST (APPEND BUNDLE_DIRS "${ITK_LIB_DIR}")
 IF (SCIFIO_LOADED)
 	ADD_DEFINITIONS(-DUSE_SCIFIO)
 	MESSAGE(STATUS "    SCIFIO support enabled!\n\
@@ -177,11 +105,14 @@ IF (SCIFIO_LOADED)
 ENDIF(SCIFIO_LOADED)
 
 
-# VTK (>= 6)
+# VTK
 FIND_PACKAGE(VTK)
+MESSAGE(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}")
+IF(VTK_VERSION_MAJOR LESS 8)
+	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 8.0")
+ENDIF()
 IF(VTK_FOUND)
 	INCLUDE(${VTK_USE_FILE})
-	MESSAGE(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}")
 	IF (MSVC)
 		SET (VTK_LIB_DIR "${VTK_DIR}/bin/Release")
 	ELSE ()
@@ -190,9 +121,6 @@ IF(VTK_FOUND)
 	LIST (APPEND BUNDLE_DIRS "${VTK_LIB_DIR}")
 ELSE()
 	MESSAGE(FATAL_ERROR "Cannot build without VTK. Please set VTK_DIR.")
-ENDIF()
-IF(VTK_VERSION_MAJOR LESS 7)
-	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 7.0")
 ENDIF()
 MESSAGE(STATUS "    Libraries: ${VTK_LIBRARIES}")
 MESSAGE(STATUS "    Rendering Backend: ${VTK_RENDERING_BACKEND}")
