@@ -147,13 +147,16 @@ void AdaptiveThreshold::determineMinMax(const std::vector<double> &xVal, const s
 void AdaptiveThreshold::resetGraphToDefault()
 {
 	DEBUG_LOG("reset to default"); 
-	DEBUG_LOG(QString("Default %1 %2 %3 %4").arg(minXDefault).arg(maxXDefault).arg(minYDefault).arg(maxYDefault)); 
-
-	this->initAxes(minXDefault, maxXDefault, minYDefault, maxYDefault, false); 
-	this->ed_xMIn->setText(QString("%1").arg(minXDefault)); 
-	this->ed_xMax->setText(QString("%1").arg(maxXDefault));
-	this->ed_Ymin->setText(QString("%1").arg(minYDefault));
-	this->ed_YMax->setText(QString("%1").arg(maxYDefault)); 
+	//DEBUG_LOG(QString("Default %1 %2 %3 %4").arg(minXDefault).arg(maxXDefault).arg(minYDefault).arg(maxYDefault)); 
+	//m_xMinRef /*= xMIn;*/
+	//m_xMaxRef /*= xMax;*/
+	//m_yMinRef /*= yMin;*/
+	//m_yMaxRef /*= yMax;*/
+	this->initAxes(m_xMinRef/*minXDefault*/, m_xMaxRef, m_yMinRef, m_yMaxRef, false);
+	this->ed_xMIn->setText(QString("%1").arg(m_xMinRef));
+	this->ed_xMax->setText(QString("%1").arg(m_xMaxRef));
+	this->ed_Ymin->setText(QString("%1").arg(m_yMinRef));
+	this->ed_YMax->setText(QString("%1").arg(m_yMaxRef));
 
 	m_chart->update();
 	m_chartView->update(); 
@@ -168,15 +171,17 @@ void AdaptiveThreshold::visualizeMovingAverage()
 	uint averageCount = this->spinBox_average->text().toUInt();
 	DEBUG_LOG("Moving Average"); 
 	DEBUG_LOG(QString("Freq size%1").arg(m_frequencies.size())); 
+	if (m_movingFrequencies.size() > 0)
+		m_movingFrequencies.clear();
 
 	QString text = QString("Moving average %1").arg(averageCount);
 
 	m_thresCalculator.calculateAverage(m_frequencies, m_movingFrequencies, averageCount);
 	QLineSeries *newSeries = new QLineSeries;
-	newSeries->setObjectName(text); 
-	this->prepareDataSeries(newSeries, m_greyThresholds, m_movingFrequencies);
+	/*newSeries->setObjectName(text); */
+	this->prepareDataSeries(newSeries, m_greyThresholds, m_movingFrequencies, false);
 	
-	//this->pr
+	
 }
 
 void AdaptiveThreshold::myAction()
@@ -235,7 +240,7 @@ void AdaptiveThreshold::clear()
 	m_chartView->update(); 
 }
 
-void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals)
+void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals, bool updateCoords)
 {
 	if (!aSeries) {
 		DEBUG_LOG("series is null"); 
@@ -262,7 +267,11 @@ void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries, const std::vector<
 
 	
 	//this->initAxes(m_xMinRef, m_xMaxRef, m_yMinRef, m_yMinRef, false);
-	this->resetGraphToDefault(); 
+	if (updateCoords)
+	{
+		this->resetGraphToDefault(); 
+	}
+	
 
 	size_t lenght = x_vals.size();
 
@@ -273,9 +282,13 @@ void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries, const std::vector<
 		*aSeries << QPointF(tmp_x, tmp_y); 
 	}
 
-	//aSeries->set
+	QString text = QString("Moving average %1").arg(5);
+	
+	//aSeries->setPointLabelsVisible(true);
 	this->addSeries(aSeries); 
-
+	aSeries->setObjectName(text);
+	this->m_chart->update();
+	this->m_chartView->update(); 
 
 }
 
@@ -320,7 +333,7 @@ void AdaptiveThreshold::createSampleSeries()
 	QScatterSeries *mySeries = new QScatterSeries;
 	std::vector<double> vec_x = { 4,6,8 }; 
 	std::vector<double> vec_y = { 7, 11, 15 };
-	this->prepareDataSeries(mySeries, vec_x, vec_y);
+	this->prepareDataSeries(mySeries, vec_x, vec_y, false);
 	mySeries->setName("ATest");
 	mySeries->setColor(QColor(0, 0, 255)); 
 	m_chart->addSeries(mySeries);
@@ -372,7 +385,7 @@ void AdaptiveThreshold::buttonLoadDataClicked()
 	this->m_greyThresholds = m_seriesLoader.getGreyValues(); 
 	this->m_frequencies = m_seriesLoader.getFrequencies(); 
 
-	prepareDataSeries(m_refSeries,m_greyThresholds, m_frequencies); 
+	prepareDataSeries(m_refSeries,m_greyThresholds, m_frequencies, true); 
 
 	
 

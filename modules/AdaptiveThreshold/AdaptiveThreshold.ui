@@ -169,6 +169,9 @@
    </layout>
   </widget>
   <widget class="QPushButton" name="btn_myAction">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>1040</x>
@@ -194,7 +197,7 @@
     <item>
      <widget class="QSpinBox" name="spinBox_average">
       <property name="minimum">
-       <number>5</number>
+       <number>3</number>
       </property>
       <property name="maximum">
        <number>100001</number>

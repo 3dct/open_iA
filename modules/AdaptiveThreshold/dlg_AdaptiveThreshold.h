@@ -6,7 +6,7 @@
 
 #include <QSharedPointer>
 #include <QDialog>
-#include <QTCharts>
+#include <QtCharts>
 #include <vector>
 #include <QtCharts/qlineseries.h>
 
@@ -45,7 +45,7 @@ public:
 
 	void initAxes(double xmin, double xmax, double ymin, double yMax, bool setDefaultAxis); 	
 	
-	void prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals);
+	void prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals, bool updateCoords);
 
     void addSeries(QXYSeries *aSeries); 
 	

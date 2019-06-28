@@ -19,7 +19,7 @@ double ThesholdCalculator::vectorSum(const std::vector<double> &vec, size_t star
 	/*for (size_t i = startInd; i < endInd+1; ++i) {*/
 	size_t i = startInd; 
 	while (i <= endInd){
-		DEBUG_LOG(QString("el %1").arg(vec[i])); 
+		//DEBUG_LOG(QString("el %1").arg(vec[i])); 
 		tmp += vec[i];
 		++i;
 	}
@@ -100,13 +100,13 @@ void ThesholdCalculator::calculateAverage(const std::vector<double> &v_in, std::
 				size_t maxPos = posInd + (count / 2);
 				sum = this->vectorSum(v_in, minPos, maxPos);
 
-				DEBUG_LOG(QString("sum %1").arg(sum));
+				//DEBUG_LOG(QString("sum %1").arg(sum));
 			}
 		}
 
 
 		sum /= count;
-		DEBUG_LOG(QString("Average %1").arg(sum)); 
+		//DEBUG_LOG(QString("Average %1").arg(sum)); 
 
 		v_out.push_back(sum);
 	}
