@@ -23,14 +23,13 @@
 #include "itkArray.h"
 #include "itkSimpleDataObjectDecorator.h"
 #include "itksys/hash_map.hxx"
-#include "itkFastMutexLock.h"
 #include "itkLabelObject.h"
 #include "itkLabelMap.h"
 #include <vector>
 #include "vnl/algo/vnl_symmetric_eigensystem.h"
 #include "vnl/vnl_det.h"
 #include "vnl/vnl_math.h"
-#include "vcl_cmath.h"
+#include <cmath>
 
 namespace itk
 {
@@ -198,7 +197,7 @@ public:
       m_Orientation = 0;
       LabelPointType emptyPoint;
       emptyPoint.Fill(0);
-      unsigned int numberOfVertices = (unsigned int)vcl_pow( (double)2, (int)ImageDimension );
+      unsigned int numberOfVertices = (unsigned int)std::pow( (double)2, (int)ImageDimension );
       m_OrientedBoundingBoxVertices.resize(numberOfVertices, emptyPoint);
       m_OrientedBoundingBoxVolume = 0;
       m_OrientedBoundingBoxSize.Fill(0);
@@ -492,8 +491,6 @@ private:
   LabelGeometry m_LabelGeometry;
   LabelsType    m_AllLabels;
   typename LabelMapType::Pointer m_LabelMap;
-
-  SimpleFastMutexLock m_Mutex;
 }; // end of class
 
 template< typename TLabelImage, typename TIntensityImage >

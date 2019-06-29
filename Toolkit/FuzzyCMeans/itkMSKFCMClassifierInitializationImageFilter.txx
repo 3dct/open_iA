@@ -45,7 +45,9 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
   elementRadius.Fill(1);
   m_StructuringElement = StructuringElementType::Box(elementRadius);
 
+#if ITK_VERSION_MAJOR < 5
   m_CentroidsModificationAttributesLock = MutexLockType::New();
+#endif
 
   m_TmpMembershipImage = MembershipImageType::New();
 }
@@ -181,18 +183,28 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
   m_CentroidsDenominator.Fill(CentroidValueNumericTraitsType::Zero);
 
   ThreadIdType numThreads = this->GetNumberOfThreads();
+#if ITK_VERSION_MAJOR < 5
   if( itk::MultiThreader::GetGlobalMaximumNumberOfThreads() != 0 )
+#else
+  if( itk::MultiThreaderBase::GetGlobalMaximumNumberOfThreads() != 0 )
+#endif
     {
-    numThreads =  vnl_math_min( this->GetNumberOfThreads(),
+    numThreads =  std::min( this->GetNumberOfThreads(),
+#if ITK_VERSION_MAJOR < 5
         itk::MultiThreader::GetGlobalMaximumNumberOfThreads() );
+#else
+        itk::MultiThreaderBase::GetGlobalMaximumNumberOfThreads() );
+#endif
     }
   // number of threads can be constrained by the region size, so call the
   //SplitRequestedRegion to get the real number of threads which will be used
   OutputImageRegionType splitRegion;  // dummy region - just to call the following method
   numThreads = this->SplitRequestedRegion(0, numThreads, splitRegion);
 
+#if ITK_VERSION_MAJOR < 5
   m_Barrier = Barrier::New();
   m_Barrier->Initialize( numThreads );
+#endif
 }
 
 
@@ -266,7 +278,7 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
                                                        this->m_Centroids[i] );
 
       tmpMembershipNumerator[i] =
-        vcl_pow((1.0 - tmpKernel[i]), exponentOfMembership);
+        std::pow((1.0 - tmpKernel[i]), exponentOfMembership);
 
       tmpMembershipDenominator += tmpMembershipNumerator[i];
       }
@@ -297,11 +309,13 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     itrTmpMembershipMatrix.Set(tmpMembershipPixel);
     }
 
+#if ITK_VERSION_MAJOR < 5
   // Synchronize threaded execution. As each thread enters the barrier it
   // blocks. When all threads have entered the barrier (and therefore all
   // memberships required to compute the second step of the procedure have
   // been calculated), all released and continue to execute.
   this->m_Barrier->Wait();
+#endif
 
   // These variables are used to accumulate the numerator and the denominator
   // of centroid expression.
@@ -419,9 +433,9 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     for (i = 0; i < this->m_NumberOfClasses; i++)
       {
       membershipNumerator[i] =
-        vcl_pow( itrNeighborhoodTmpMembershipMatrix.GetCenterPixel()[i],
+        std::pow( itrNeighborhoodTmpMembershipMatrix.GetCenterPixel()[i],
                  this->m_P ) *
-        vcl_pow(h[i], this->m_Q);
+		std::pow(h[i], this->m_Q);
       membershipDenominator += membershipNumerator[i];
       }
 
@@ -432,7 +446,7 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
       membershipPixel[i] = membershipNumerator[i] / membershipDenominator;
 
       // Calculations for the centroids.
-      membershipPixelPowM[i] = vcl_pow(membershipPixel[i], this->m_M);
+      membershipPixelPowM[i] = std::pow(membershipPixel[i], this->m_M);
       tempThreadCentroidsNumerator[i] +=
         itrImageToProcess.Get() * (itrMembershipMatrix.Get()[i]) *
         membershipPixelPowM[i];
@@ -446,13 +460,22 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     itrMembershipMatrix.Set(membershipPixel);
     }
 
+#if ITK_VERSION_MAJOR < 5
   m_CentroidsModificationAttributesLock->Lock();
+#else
+  m_CentroidsModificationAttributesLock.lock();
+#endif
   for (i = 0; i < this->m_NumberOfClasses; i++)
     {
     m_CentroidsNumerator[i] += tempThreadCentroidsNumerator[i];
     m_CentroidsDenominator[i] += tempThreadCentroidsDenominator[i];
     }
+
+#if ITK_VERSION_MAJOR < 5
   m_CentroidsModificationAttributesLock->Unlock();
+#else
+  m_CentroidsModificationAttributesLock.unlock();
+#endif
 }
 
 
