@@ -82,11 +82,10 @@ ELSE()
 ENDIF()
 # ITK has been found in sufficient version, otherwise above REQUIRED / FATAL_ERROR would have triggered CMake abort
 # Now set it up with the components we need:
-FIND_PACKAGE(ITK REQUIRED COMPONENTS ${ITK_COMPONENTS})
+FIND_PACKAGE(ITK COMPONENTS ${ITK_COMPONENTS})
 # apparently ITK (at least v5.0.0) adapts CMAKE_MODULE_PATH (bug?), reset it:
 SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
-INCLUDE(${ITK_USE_FILE}) # maybe avoid by using INCLUDE/LINK commands on targets instead?
-MESSAGE(STATUS "    Libraries: ${ITK_LIBRARIES}")
+INCLUDE(${ITK_USE_FILE})  # maybe avoid by using INCLUDE/LINK commands on targets instead?
 IF (MSVC)
 	SET (ITK_LIB_DIR "${ITK_DIR}/bin/Release")
 ELSE()
@@ -115,63 +114,27 @@ ENDIF(SCIFIO_LOADED)
 
 
 # VTK
-FIND_PACKAGE(VTK)
+FIND_PACKAGE(VTK REQUIRED)
 MESSAGE(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}")
+MESSAGE(STATUS "    Rendering Backend: ${VTK_RENDERING_BACKEND}")
 IF(VTK_VERSION_MAJOR LESS 8)
 	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 8.0")
 ENDIF()
-IF(VTK_FOUND)
-	INCLUDE(${VTK_USE_FILE})
-	IF (MSVC)
-		SET (VTK_LIB_DIR "${VTK_DIR}/bin/Release")
-	ELSE ()
-		SET (VTK_LIB_DIR "${VTK_DIR}/lib")
-	ENDIF()
-	LIST (APPEND BUNDLE_DIRS "${VTK_LIB_DIR}")
-ELSE()
-	MESSAGE(FATAL_ERROR "Cannot build without VTK. Please set VTK_DIR.")
-ENDIF()
-MESSAGE(STATUS "    Libraries: ${VTK_LIBRARIES}")
-MESSAGE(STATUS "    Rendering Backend: ${VTK_RENDERING_BACKEND}")
-IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-	ADD_DEFINITIONS(-DVTK_OPENGL2_BACKEND)
-ELSE()
-	IF (MSVC)
-		ADD_COMPILE_OPTIONS(/wd4081)
-	ENDIF()
-ENDIF()
-SET (VTK_LIBRARIES
-	vtkCommonCore
-	vtkCommonComputationalGeometry
-	vtkChartsCore
-	vtkDICOMParser
-	vtkFiltersCore vtkFiltersGeometry vtkFiltersExtraction vtkFiltersHybrid vtkFiltersModeling vtkFiltersStatistics
-	vtkGUISupportQt vtkGUISupportQtOpenGL vtkRenderingQt
-	vtkImagingCore vtkImagingStatistics
-	vtkInfovisCore
-	vtkIOCore vtkIOMovie vtkIOGeometry vtkIOXML
-	vtkRenderingCore vtkRenderingAnnotation vtkRenderingContext2D vtkRenderingFreeType vtkRenderingImage
-	vtkRenderingContext${VTK_RENDERING_BACKEND} vtkRendering${VTK_RENDERING_BACKEND} vtkRenderingVolume${VTK_RENDERING_BACKEND}
-	vtkViewsCore vtkViewsContext2D vtkViewsInfovis
-	vtksys)
-SET (VTK_LIBRARIES ${VTK_LIBRARIES}	)
-# Libraries introduced with VTK 7.1:
-IF (VTK_VERSION_MAJOR GREATER 7 OR (VTK_VERSION_MAJOR EQUAL 7 AND VTK_VERSION_MINOR GREATER 0))
-	SET(VTK_LIBRARIES ${VTK_LIBRARIES} vtkImagingHybrid)
-	IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-		SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRenderingGL2PSOpenGL2 vtkgl2ps)
-	ENDIF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-ENDIF()
-IF (vtkoggtheora_LOADED OR vtkogg_LOADED)
-	MESSAGE(STATUS "    Video: Ogg Theora Encoder available")
-	ADD_DEFINITIONS(-DVTK_USE_OGGTHEORA_ENCODER)
-ELSE()
-	MESSAGE(WARNING "    Video: No encoder available! You will not be able to record videos.")
-ENDIF()
-# ToDo: separate OpenVR search here?
+SET (VTK_COMPONENTS
+	vtkFiltersModeling         # for vtkRotationalExtrusionFilter, vtkOutlineFilter
+	vtkInteractionWidgets      # for vtkScalarBarWidget/Representation
+	vtkImagingStatistics       # for vtkImageAccumulate
+	vtkIOGeometry              # for vtkSTLReader/Writer
+	vtkIOMovie                 # for vtkGenericMovieWriter
+	vtkRenderingAnnotation     # for vtkAnnotatedCubeActor, vtkScalarBarActor
+	vtkRenderingImage          # for vtkImageResliceMapper
+	vtkRenderingVolume${VTK_RENDERING_BACKEND}  # for volume rendering
+	vtkRenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
+	vtkViewsContext2D          # for vtkContextView, vtkContextInteractorStyle
+	vtkViewsInfovis)           # for vtkGraphItem
 IF (vtkRenderingOpenVR_LOADED)
 	MESSAGE(STATUS "    RenderingOpenVR: available")
-	SET (VTK_LIBRARIES ${VTK_LIBRARIES} vtkRenderingOpenVR)
+	LIST (APPEND VTK_COMPONENTS vtkRenderingOpenVR)
 	STRING(FIND "${vtkRenderingOpenVR_INCLUDE_DIRS}" ";" semicolonpos REVERSE)
 	math(EXPR aftersemicolon "${semicolonpos}+1")
 	STRING(SUBSTRING "${vtkRenderingOpenVR_INCLUDE_DIRS}" ${aftersemicolon} -1 OPENVR_PATH_INCLUDE)
@@ -181,10 +144,31 @@ IF (vtkRenderingOpenVR_LOADED)
 	ELSE ()
 		SET (OPENVR_LIB_PATH "${OPENVR_PATH}/bin/linux64")
 	ENDIF()
+	LIST (APPEND BUNDLE_DIRS "${OPENVR_LIB_PATH}")
 ELSE()
 	MESSAGE(STATUS "    RenderingOpenVR: NOT available! Enable Module_vtkRenderingOpenVR in VTK to make it available.")
 ENDIF()
-LIST (APPEND BUNDLE_DIRS "${OPENVR_LIB_PATH}")
+FIND_PACKAGE(VTK COMPONENTS ${VTK_COMPONENTS})
+INCLUDE(${VTK_USE_FILE})  # maybe avoid by using INCLUDE/LINK commands on targets instead?
+IF (MSVC)
+	SET (VTK_LIB_DIR "${VTK_DIR}/bin/Release")
+ELSE ()
+	SET (VTK_LIB_DIR "${VTK_DIR}/lib")
+ENDIF()
+LIST (APPEND BUNDLE_DIRS "${VTK_LIB_DIR}")
+IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
+	ADD_DEFINITIONS(-DVTK_OPENGL2_BACKEND)
+ELSE()
+	IF (MSVC)
+		ADD_COMPILE_OPTIONS(/wd4081)
+	ENDIF()
+ENDIF()
+IF (vtkoggtheora_LOADED OR vtkogg_LOADED)
+	MESSAGE(STATUS "    Video: Ogg Theora Encoder available")
+	ADD_DEFINITIONS(-DVTK_USE_OGGTHEORA_ENCODER)
+ELSE()
+	MESSAGE(WARNING "    Video: No encoder available! You will not be able to record videos.")
+ENDIF()
 
 
 # Qt (>= 5)
