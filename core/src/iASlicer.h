@@ -108,7 +108,6 @@ public:
 	void setPositionMarkerCenter(double x, double y);
 	void SetROIVisible(bool isVisible);
 	void UpdateROI(int const roi[6]);
-	void update();
 	void saveMovie(QString& fileName, int qual = 2);
 	void saveImageStack();
 	vtkImageReslice * GetReslicer() const;
@@ -147,6 +146,7 @@ public slots:
 	void rotateSlice( double angle );
 	void setSlabThickness(int thickness);
 	void setSlabCompositeMode(int compositeMode);
+	void update();
 
 protected:
 	iASlicerData * m_data;

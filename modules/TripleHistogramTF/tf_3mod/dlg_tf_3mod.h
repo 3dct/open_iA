@@ -18,49 +18,31 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "BCoord.h"
+#pragma once
 
-#include "BarycentricTriangle.h"
+#include <vtkSmartPointer.h>
 
-BCoord::BCoord(double alpha, double beta) :
-	m_alpha(alpha), m_beta(beta)
+#include <QDockWidget>
+
+class QStackedLayout;
+class QLabel;
+
+class MdiChild;
+class iATripleModalityWidget;
+class BCoord;
+
+class vtkSmartVolumeMapper;
+class vtkVolume;
+class vtkRenderer;
+
+
+class dlg_tf_3mod : public QDockWidget
 {
-}
+	Q_OBJECT
 
-BCoord::BCoord(BarycentricTriangle triangle, double x, double y)
-{
-	double x1, y1, x2, y2, x3, y3;
-	x1 = triangle.getXa();
-	y1 = triangle.getYa();
-	x2 = triangle.getXb();
-	y2 = triangle.getYb();
-	x3 = triangle.getXc();
-	y3 = triangle.getYc();
+public:
+	dlg_tf_3mod(MdiChild* parent, Qt::WindowFlags f = 0);
 
-	double x_x3 = x - x3;
-	double y_y3 = y - y3;
-	double det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
-
-	m_alpha = ((y2 - y3) * x_x3 + (x3 - x2) * y_y3) / det;
-	m_beta = ((y3 - y1) * x_x3 + (x1 - x3) * y_y3) / det;
-}
-
-double BCoord::getAlpha() const
-{
-	return m_alpha;
-}
-
-double BCoord::getBeta() const
-{
-	return m_beta;
-}
-
-double BCoord::getGamma() const
-{
-	return 1 - m_alpha - m_beta;
-}
-
-bool BCoord::isInside() const
-{
-	return m_alpha >= 0 && m_beta >= 0 && m_alpha + m_beta <= 1;
-}
+private:
+	iATripleModalityWidget *m_tripleModalityWidget;
+};

@@ -20,26 +20,39 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iATripleModalityWidget.h"
+#include "iAHistogramAbstract.h"
 
 #include "BarycentricTriangle.h"
 
 #include <QPen>
 #include <QRect>
 
-class iASlicerWidget;
+class iATripleModalityWidget;
 
+class iASlicerWidget;
+class iADiagramFctWidget;
+
+class QPoint;
 class QMouseEvent;
 class QWheelEvent;
 
-class iAHistogramTriangle : public iATripleModalityWidget
+class iAHistogramTriangle : public iAHistogramAbstract
 {
-public:
-	iAHistogramTriangle(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+	Q_OBJECT
 
-	void initialize() override;
+private:
+	enum MouseEventType {
+		PRESS, MOVE, RELEASE
+	};
+	enum WidgetType {
+		NONE, HISTOGRAM, SLICER, TRIANGLE
+	};
+
+public:
+	iAHistogramTriangle(QWidget* parent, iATripleModalityWidget* tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+
+	void initialize(QString const names[3]) override;
 	bool isSlicerInteractionEnabled() override { return true; }
-	void setModalityLabel(QString label, int index) override;
 
 	void paintHistograms(QPainter &p);
 	void paintSlicers(QPainter& p);
@@ -49,22 +62,35 @@ protected:
 	void paintEvent(QPaintEvent* event) override;
 	void resizeEvent(QResizeEvent* event);
 
-	void mousePressEvent(QMouseEvent *event) { forwardMouseEvent(event); }
-	void mouseMoveEvent(QMouseEvent *event) { forwardMouseEvent(event); }
-	void mouseReleaseEvent(QMouseEvent *event) { forwardMouseEvent(event); }
+	void mousePressEvent(QMouseEvent *event) { forwardMouseEvent(event, PRESS); }
+	void mouseMoveEvent(QMouseEvent *event) { forwardMouseEvent(event, MOVE); }
+	void mouseReleaseEvent(QMouseEvent *event) { forwardMouseEvent(event, RELEASE); }
 	void wheelEvent(QWheelEvent *event) { forwardWheelEvent(event); }
 	void contextMenuEvent(QContextMenuEvent *event) { forwardContextMenuEvent(event); }
+
+private slots:
+	void updateSlicers();
+	void updateHistograms();
+
+	// Debug
+	void glresized();
 
 private:
 	void calculatePositions() { calculatePositions(size().width(), size().height()); }
 	void calculatePositions(int w, int h);
 
-	void forwardMouseEvent(QMouseEvent *event);
+	void forwardMouseEvent(QMouseEvent *event, MouseEventType type);
 	void forwardWheelEvent(QWheelEvent *event);
 	void forwardContextMenuEvent(QContextMenuEvent *event);
-	iADiagramFctWidget* onHistogram(QPoint p, QPoint &transformed, int &index);
+	QSharedPointer<iADiagramFctWidget> onHistogram(QPoint p, QPoint &transformed);
 	bool onTriangle(QPoint p);
-	iASlicerWidget* onSlicer(QPoint p, QPoint &transformed, int &index);
+	iASlicerWidget* onSlicer(QPoint p, QPoint &transformed);
+
+	QWidget* m_draggedWidget = nullptr;
+	WidgetType m_draggedType = NONE;
+	int m_lastIndex = -1;
+
+	iATripleModalityWidget* m_tmw;
 
 	QPainterPath m_clipPath;
 	QPen m_clipPathPen;

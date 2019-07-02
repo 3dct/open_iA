@@ -18,50 +18,57 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include <iASlicerMode.h>
+#include "dlg_tf_3mod.h"
 
-#include <vtkTransform.h>
+#include "iATripleModalityWidget.h"
+#include "iABarycentricContextRenderer.h"
+#include "iAHistogramStack.h"
+#include "iAHistogramTriangle.h"
 
-#include <QSharedPointer>
-#include <QWidget>
+#include <dlg_modalities.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAModalityTransfer.h>
+#include <iARenderer.h>
+#include <iASlicerData.h>
+#include <iAVolumeRenderer.h>
+#include <mdichild.h>
 
-class iAModality;
-class iASingleSlicerSettings;
-class iASlicer;
+#include <vtkCamera.h>
+#include <vtkImageData.h>
+#include <vtkRenderer.h>
+#include <vtkSmartVolumeMapper.h>
+#include <vtkVolume.h>
+#include <vtkVolumeProperty.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
+#include <vtkImageActor.h>
 
-class vtkCamera;
+#include <QLabel>
+#include <QSplitter>
+#include <QStackedLayout>
+// Debug
+#include <QDebug>
 
-class iASimpleSlicerWidget : public QWidget
+
+dlg_tf_3mod::dlg_tf_3mod(MdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */)
+	:
+	//TripleHistogramTFConnector(mdiChild, f), m_mdiChild(mdiChild)
+	QDockWidget("Triple Histogram Transfer Function", mdiChild, f)
 {
-	Q_OBJECT
 
-public:
-	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
-	~iASimpleSlicerWidget();
+	// Initialize dock widget
+	setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetVerticalTitleBar);
 
-	void setSlicerMode(iASlicerMode slicerMode);
-	iASlicerMode getSlicerMode();
+	//resize(779, 501);
 
-	void setSliceNumber(int sliceNumber);
-	int getSliceNumber();
+	QWidget *dockWidgetContents = new QWidget();
+	//QSplitter *dockWidgetContents = new QSplitter(Qt::Horizontal);
+	setWidget(dockWidgetContents);
+	dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
+	QHBoxLayout *layout = new QHBoxLayout(dockWidgetContents);
 
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
-
-	void applySettings(iASingleSlicerSettings const & settings);
-	void changeModality(QSharedPointer<iAModality> modality);
-
-	void setCamera(vtkCamera* camera);
-
-	iASlicer* getSlicer() { return m_slicer; }
-
-public slots:
-	void update();
-
-private:
-	bool m_enableInteraction;
-	vtkTransform *m_slicerTransform;
-	iASlicer *m_slicer;
-};
+	m_tripleModalityWidget = new iATripleModalityWidget(dockWidgetContents, mdiChild);
+	layout->addWidget(m_tripleModalityWidget);
+}

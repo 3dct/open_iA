@@ -18,50 +18,27 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include <iASlicerMode.h>
+#include "dlg_tf_2mod.h"
 
-#include <vtkTransform.h>
+#include "iABimodalWidget.h"
 
-#include <QSharedPointer>
-#include <QWidget>
+#include <mdichild.h>
 
-class iAModality;
-class iASingleSlicerSettings;
-class iASlicer;
-
-class vtkCamera;
-
-class iASimpleSlicerWidget : public QWidget
+dlg_tf_2mod::dlg_tf_2mod(MdiChild *mdiChild, Qt::WindowFlags f)
+	:
+	QDockWidget("Double Histogram Transfer Function", mdiChild, f),
+	m_mdiChild(mdiChild)
 {
-	Q_OBJECT
+	// Initialize dock widget
+	setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetVerticalTitleBar);
 
-public:
-	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
-	~iASimpleSlicerWidget();
+	QWidget *dockWidgetContents = new QWidget();
+	//QSplitter *dockWidgetContents = new QSplitter(Qt::Horizontal);
+	setWidget(dockWidgetContents);
+	dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
+	QHBoxLayout *layout = new QHBoxLayout(dockWidgetContents);
 
-	void setSlicerMode(iASlicerMode slicerMode);
-	iASlicerMode getSlicerMode();
-
-	void setSliceNumber(int sliceNumber);
-	int getSliceNumber();
-
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
-
-	void applySettings(iASingleSlicerSettings const & settings);
-	void changeModality(QSharedPointer<iAModality> modality);
-
-	void setCamera(vtkCamera* camera);
-
-	iASlicer* getSlicer() { return m_slicer; }
-
-public slots:
-	void update();
-
-private:
-	bool m_enableInteraction;
-	vtkTransform *m_slicerTransform;
-	iASlicer *m_slicer;
-};
+	m_bimodalWidget = new iABimodalWidget(dockWidgetContents, mdiChild);
+	layout->addWidget(m_bimodalWidget);
+}

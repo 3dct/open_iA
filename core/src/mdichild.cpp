@@ -163,7 +163,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	SetModalities(modList);
 	splitDockWidget(logs, m_dlgModalities, Qt::Horizontal);
-	m_dlgModalities->SetSlicePlanes(Raycaster->getPlane1(), Raycaster->getPlane2(), Raycaster->getPlane3());
 	ApplyViewerPreferences();
 	imgProperty = nullptr;
 	imgProfile = nullptr;
@@ -1580,7 +1579,7 @@ void MdiChild::ApplyVolumeSettings(const bool loadSavedVolumeSettings)
 {
 	for (int i = 0; i < 3; ++i)
 		slicer[i]->widget()->showBorder(renderSettings.ShowSlicePlanes);
-	m_dlgModalities->ShowSlicers(renderSettings.ShowSlicers);
+	m_dlgModalities->ShowSlicers(renderSettings.ShowSlicers, Raycaster->getPlane1(), Raycaster->getPlane2(), Raycaster->getPlane3());
 	m_dlgModalities->ChangeRenderSettings(volumeSettings, loadSavedVolumeSettings);
 }
 
@@ -1730,6 +1729,7 @@ bool MdiChild::editSlicerSettings(iASlicerSettings const & slicerSettings)
 	setupSlicers(slicerSettings, false);
 	for (int s = 0; s<3; ++s)
 		slicer[s]->show();
+	emit slicerSettingsChanged();
 	return true;
 }
 
@@ -2286,6 +2286,8 @@ void MdiChild::setCurrentFile(const QString &f)
 	fileInfo.setFile(f);
 	curFile = f;
 	path = fileInfo.canonicalPath();
+	if (isActiveWindow())
+		QDir::setCurrent(path);  // set current application working directory to the one where the file is in (as default directory, e.g. for file open)
 	isUntitled = f.isEmpty();
 	setWindowTitle(userFriendlyCurrentFile() + "[*]");
 }
