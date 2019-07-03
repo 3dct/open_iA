@@ -1018,6 +1018,7 @@ bool MdiChild::saveFile(const QString &f, int modalityNr, int componentNr)
 void MdiChild::updateViews()
 {
 	updateSlicers();
+	//TODO  doing reset camera this for single only for when edit clicked is doen  // same with slicer
 	Raycaster->GetRenderer()->ResetCamera(); 
 	Raycaster->update();
 	for (int s = 0; s < 3; ++s)
