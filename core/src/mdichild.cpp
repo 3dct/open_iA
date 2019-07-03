@@ -1019,7 +1019,13 @@ bool MdiChild::saveFile(const QString &f, int modalityNr, int componentNr)
 void MdiChild::updateViews()
 {
 	updateSlicers();
+	Raycaster->GetRenderer()->ResetCamera(); 
 	Raycaster->update();
+	for (int s = 0; s < 3; ++s)
+	{
+		slicer[s]->GetRenderer()->ResetCamera();
+		slicer[s]->update();
+	}
 	emit updatedViews();
 }
 
