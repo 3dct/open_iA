@@ -243,3 +243,12 @@ a {
 @media screen and (max-width: 42em) {
   .site-footer {
     font-size: 0.9rem; } }
+
+.highlights {
+	max-width: 500px;
+	margin: 5px auto 15px auto;
+}
+.highlights a {
+  color: #fff;
+  font-weight: bold;
+}
