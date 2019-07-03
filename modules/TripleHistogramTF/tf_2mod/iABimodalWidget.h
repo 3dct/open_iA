@@ -20,39 +20,24 @@
 * ************************************************************************************/
 #pragma once
 
-class BarycentricTriangle;
+#include "iAMultimodalWidget.h"
 
-class BCoord
+class iAInterpolationSliderWidget;
+class MdiChild;
+
+class iABimodalWidget : public iAMultimodalWidget
 {
+	Q_OBJECT
+
 public:
-	BCoord(double alpha, double beta);
-	BCoord() : BCoord((double)1 / (double)3, (double)1 / (double)3) {}
-	BCoord(BarycentricTriangle triangle, double x, double y);
-
-	double getAlpha() const;
-	double getBeta() const;
-	double getGamma() const;
-	bool isInside() const;
-
-	double operator[] (int x) {
-		switch (x) {
-		case 0: return getAlpha();
-		case 1: return getBeta();
-		case 2: return getGamma();
-		default: return 0;
-		}
-	}
-
-	bool operator== (const BCoord that) {
-		return getAlpha() == that.getAlpha() && getBeta() == that.getBeta();
-	}
-
-	bool operator!= (const BCoord that) {
-		return getAlpha() != that.getAlpha() || getBeta() != that.getBeta();
-	}
+	iABimodalWidget(QWidget *parent, MdiChild *mdiChild);
+	void initialize();
 
 private:
-	double m_alpha;
-	double m_beta;
+	iAInterpolationSliderWidget *m_slider;
+
+private slots:
+	void modalitiesLoaded_beforeUpdateSlot();
+	void tChanged(double t);
 
 };

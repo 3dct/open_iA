@@ -18,50 +18,43 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iATripleHistogramTFAttachment.h"
 
-#include <iASlicerMode.h>
+#include "tf_2mod/dlg_tf_2mod.h"
+#include "tf_3mod/dlg_tf_3mod.h"
 
-#include <vtkTransform.h>
+#include <mdichild.h>
 
-#include <QSharedPointer>
-#include <QWidget>
+iATripleHistogramTFAttachment::iATripleHistogramTFAttachment(MainWindow * mainWnd, iAChildData childData) :
+	iAModuleAttachmentToChild(mainWnd, childData),
+	m_tf_2mod(nullptr),
+	m_tf_3mod(nullptr)
+{}
 
-class iAModality;
-class iASingleSlicerSettings;
-class iASlicer;
-
-class vtkCamera;
-
-class iASimpleSlicerWidget : public QWidget
+iATripleHistogramTFAttachment* iATripleHistogramTFAttachment::create(MainWindow * mainWnd, iAChildData childData)
 {
-	Q_OBJECT
+	auto newAttachment = new iATripleHistogramTFAttachment(mainWnd, childData);
+	return newAttachment;
+}
 
-public:
-	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
-	~iASimpleSlicerWidget();
+void iATripleHistogramTFAttachment::start2TF()
+{
+	if (!m_tf_2mod)
+	{
+		m_tf_2mod = new dlg_tf_2mod(m_childData.child);
+		m_childData.child->tabifyDockWidget(m_childData.child->logs, m_tf_2mod);
+	}
+	m_tf_2mod->show();
+	m_tf_2mod->raise();
+}
 
-	void setSlicerMode(iASlicerMode slicerMode);
-	iASlicerMode getSlicerMode();
-
-	void setSliceNumber(int sliceNumber);
-	int getSliceNumber();
-
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
-
-	void applySettings(iASingleSlicerSettings const & settings);
-	void changeModality(QSharedPointer<iAModality> modality);
-
-	void setCamera(vtkCamera* camera);
-
-	iASlicer* getSlicer() { return m_slicer; }
-
-public slots:
-	void update();
-
-private:
-	bool m_enableInteraction;
-	vtkTransform *m_slicerTransform;
-	iASlicer *m_slicer;
-};
+void iATripleHistogramTFAttachment::start3TF()
+{
+	if (!m_tf_3mod)
+	{
+		m_tf_3mod = new dlg_tf_3mod(m_childData.child);
+		m_childData.child->tabifyDockWidget(m_childData.child->logs, m_tf_3mod);
+	}
+	m_tf_3mod->show();
+	m_tf_3mod->raise();
+}

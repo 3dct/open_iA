@@ -36,14 +36,18 @@ iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, bool enable
 	QWidget(parent, f), m_enableInteraction(enableInteraction)
 {
 	m_slicer = new iASlicer(this, iASlicerMode::XY, this,
-		// TODO: do this in a better way?
 		/*Qt::WindowFlags f = */f,
 		/*bool decorations = */false); // Hide everything except the slice itself
 }
 
 iASimpleSlicerWidget::~iASimpleSlicerWidget()
 {
-	//delete m_slicer; // TODO uncomment?
+	delete m_slicer;
+}
+
+void iASimpleSlicerWidget::applySettings(iASingleSlicerSettings const & settings)
+{
+	m_slicer->setup(settings);
 }
 
 void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode)
@@ -51,9 +55,24 @@ void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode)
 	m_slicer->ChangeMode(slicerMode);
 }
 
+iASlicerMode iASimpleSlicerWidget::getSlicerMode()
+{
+	return m_slicer->GetSlicerData()->getMode();
+}
+
 void iASimpleSlicerWidget::setSliceNumber(int sliceNumber)
 {
 	m_slicer->setSliceNumber(sliceNumber);
+}
+
+void iASimpleSlicerWidget::setCamera(vtkCamera* camera)
+{
+	m_slicer->SetCamera(camera, false);
+}
+
+int iASimpleSlicerWidget::getSliceNumber()
+{
+	return m_slicer->GetSlicerData()->getSliceNumber();
 }
 
 bool iASimpleSlicerWidget::hasHeightForWidth()

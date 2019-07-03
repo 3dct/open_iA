@@ -20,41 +20,66 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iATripleModalityWidget.h"
+#include "iAMultimodalWidget.h"
 
-#include <QWidget>
+#include "iAHistogramAbstract.h"
+#include "BCoord.h"
+
+#include <iASlicerMode.h>
+
+#include <vtkSmartPointer.h>
+
+class iABarycentricTriangleWidget;
+class iASimpleSlicerWidget;
+class iABarycentricContextRenderer;
 
 class iADiagramFctWidget;
-class iASimpleSlicerWidget;
+class iAModality;
+class iATransferFunction;
 class MdiChild;
 
-class QGridLayout;
-class QSplitter;
+class vtkColorTransferFunction;
+class vtkPiecewiseFunction;
 
-class iAHistogramStackGrid : public QWidget
+class QComboBox;
+class QLabel;
+class QSlider;
+class QSpinBox;
+
+class iATripleModalityWidget : public iAMultimodalWidget
 {
+	Q_OBJECT
+
 public:
-	iAHistogramStackGrid(QWidget *parent, iADiagramFctWidget *histograms[3], iASimpleSlicerWidget *slicers[3], QLabel *labels[3], Qt::WindowFlags f = 0);
-	void adjustStretch() { adjustStretch(size().width()); }
-protected:
-	void resizeEvent(QResizeEvent* event);
+	iATripleModalityWidget(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+	~iATripleModalityWidget();
+
+	iAHistogramAbstractType getLayoutTypeAt(int comboBoxIndex);
+	void setHistogramAbstractType(iAHistogramAbstractType type);
+
+	iABarycentricTriangleWidget* w_triangle() {
+		return m_triangleWidget;
+	}
+
+	QComboBox* w_layoutComboBox() {
+		return m_layoutComboBox;
+	}
+
+private slots:
+	void layoutComboBoxIndexChanged(int newIndex);
+	void triangleWeightChanged(BCoord newWeights);
+	void weightsChangedSlot(BCoord newWeights);
+	void modalitiesLoaded_beforeUpdateSlot();
+
 private:
-	void adjustStretch(int w);
-	QGridLayout *m_gridLayout;
-};
+	QComboBox *m_layoutComboBox;
+	void setLayoutTypePrivate(iAHistogramAbstractType type);
 
-class iAHistogramStack : public iATripleModalityWidget
-{
-public:
-	iAHistogramStack(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+	iABarycentricTriangleWidget *m_triangleWidget;
+	iABarycentricContextRenderer *m_triangleRenderer;
 
-	// OVERRIDES
-	void initialize() override;
-	bool isSlicerInteractionEnabled() override { return false; }
-	void setModalityLabel(QString label, int index) override;
+	iAHistogramAbstract *m_histogramAbstract = nullptr;
+	iAHistogramAbstractType m_histogramAbstractType;
 
-private:
-	QSplitter *m_splitter;
-	iAHistogramStackGrid *m_grid;
-	QLabel *m_modalityLabels[3] = { nullptr, nullptr, nullptr };
+	void updateModalities();
 };

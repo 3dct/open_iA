@@ -20,48 +20,19 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iASlicerMode.h>
+#include "iAModuleAttachmentToChild.h"
 
-#include <vtkTransform.h>
+class dlg_tf_2mod;
+class dlg_tf_3mod;
 
-#include <QSharedPointer>
-#include <QWidget>
-
-class iAModality;
-class iASingleSlicerSettings;
-class iASlicer;
-
-class vtkCamera;
-
-class iASimpleSlicerWidget : public QWidget
+class iATripleHistogramTFAttachment : public iAModuleAttachmentToChild
 {
-	Q_OBJECT
-
 public:
-	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
-	~iASimpleSlicerWidget();
-
-	void setSlicerMode(iASlicerMode slicerMode);
-	iASlicerMode getSlicerMode();
-
-	void setSliceNumber(int sliceNumber);
-	int getSliceNumber();
-
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
-
-	void applySettings(iASingleSlicerSettings const & settings);
-	void changeModality(QSharedPointer<iAModality> modality);
-
-	void setCamera(vtkCamera* camera);
-
-	iASlicer* getSlicer() { return m_slicer; }
-
-public slots:
-	void update();
-
+	static iATripleHistogramTFAttachment* create(MainWindow * mainWnd, iAChildData childData);
+	void start2TF();
+	void start3TF();
 private:
-	bool m_enableInteraction;
-	vtkTransform *m_slicerTransform;
-	iASlicer *m_slicer;
+	iATripleHistogramTFAttachment(MainWindow * mainWnd, iAChildData childData);
+	dlg_tf_2mod *m_tf_2mod;
+	dlg_tf_3mod *m_tf_3mod;
 };

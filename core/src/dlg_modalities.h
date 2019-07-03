@@ -60,8 +60,7 @@ public:
 	vtkSmartPointer<vtkColorTransferFunction> GetCTF(int modality);
 	vtkSmartPointer<vtkPiecewiseFunction> GetOTF(int modality);
 	void ChangeRenderSettings(iAVolumeSettings const & rs, const bool loadSavedVolumeSettings);
-	void ShowSlicers(bool enabled);
-	void SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
+	void ShowSlicers(bool enabled, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
 	void AddListItem(QSharedPointer<iAModality> mod);
 	//! initialize a modality's display in renderers
 	void InitDisplay(QSharedPointer<iAModality> mod);
@@ -96,8 +95,6 @@ private:
 	QSharedPointer<iAModalityList> modalities;
 	QString m_FileName;
 	iAFast3DMagicLensWidget* m_magicLensWidget;
-	bool m_showSlicers;
-	vtkPlane *m_plane1, *m_plane2, *m_plane3;
 	vtkRenderer* m_mainRenderer;
 
 	void AddToList(QSharedPointer<iAModality> mod);

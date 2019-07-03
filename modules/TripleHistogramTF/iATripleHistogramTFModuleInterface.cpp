@@ -18,33 +18,66 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+
 #include "iATripleHistogramTFModuleInterface.h"
+#include "iATripleHistogramTFAttachment.h"
 
-#include <dlg_TripleHistogramTF.h>
+#include <iAConsole.h>
 #include <mainwindow.h>
-#include <mdichild.h>
-
-#include <QMessageBox>
 
 void iATripleHistogramTFModuleInterface::Initialize()
 {
 	if (!m_mainWnd)    // if m_mainWnd is not set, we are running in command line mode
 	    return;        // in that case, we do not do anything as we can not add a menu entry there
-	QMenu * filtersMenu = m_mainWnd->getToolsMenu();  // alternatively, you can use getToolsMenu() here if you want to add a tool
-	QAction * actionTest = new QAction( m_mainWnd );
-	actionTest->setText( QApplication::translate( "MainWindow", "Triple Histogram Transfer Function", 0 ) );
-	AddActionToMenuAlphabeticallySorted(filtersMenu,  actionTest, true ); // "By specifying false in the third parameter to AddActionToMenuAlphabeticallySorted we say that the menu entry should not depend on the availability of an open file (if you say true here, the menu entry will only be enabled if a file is open)"
-	connect( actionTest, SIGNAL( triggered() ), this, SLOT(MenuItemSelected() ) ); // "The added menu entry is linked to the method TestAction via the call to the connect method (inherited from QObject). In the TestAction we just open a simple information message box"
+	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * menuMultiModalChannel = getMenuWithTitle(toolsMenu, QString("Multi-Modal/-Channel Images"), false);
+
+	QAction *action_2mod = new QAction(m_mainWnd);
+	action_2mod->setText(QApplication::translate("MainWindow", "Double Histogram Transfer Function", 0));
+	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, action_2mod, true);
+	connect(action_2mod, SIGNAL(triggered()), this, SLOT(menuItemSelected_2mod()));
+
+	QAction *action_3mod = new QAction(m_mainWnd);
+	action_3mod->setText(QApplication::translate("MainWindow", "Triple Histogram Transfer Function", 0));
+	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, action_3mod, true);
+	connect(action_3mod, SIGNAL(triggered()), this, SLOT(menuItemSelected_3mod()));
 }
 
-void iATripleHistogramTFModuleInterface::MenuItemSelected()
+iAModuleAttachmentToChild* iATripleHistogramTFModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+{
+	return iATripleHistogramTFAttachment::create(mainWnd, childData);
+}
+
+void iATripleHistogramTFModuleInterface::menuItemSelected_2mod()
 {
 	PrepareActiveChild();
-	thtf = new dlg_TripleHistogramTF(m_mdiChild);
+	auto attach = GetAttachment<iATripleHistogramTFAttachment>();
+	if (!attach)
+	{
+		AttachToMdiChild(m_mdiChild);
+		attach = GetAttachment<iATripleHistogramTFAttachment>();
+		if (!attach)
+		{
+			DEBUG_LOG("Attaching failed!");
+			return;
+		}
+	}
+	attach->start2TF();
+}
 
-	//m_mdiChild->addDockWidget(Qt::BottomDockWidgetArea, thtf);
-	m_mdiChild->tabifyDockWidget(m_mdiChild->logs, thtf);
-
-	thtf->show();
-	thtf->raise();
+void iATripleHistogramTFModuleInterface::menuItemSelected_3mod()
+{
+	PrepareActiveChild();
+	auto attach = GetAttachment<iATripleHistogramTFAttachment>();
+	if (!attach)
+	{
+		AttachToMdiChild(m_mdiChild);
+		attach = GetAttachment<iATripleHistogramTFAttachment>();
+		if (!attach)
+		{
+			DEBUG_LOG("Attaching failed!");
+			return;
+		}
+	}
+	attach->start3TF();
 }

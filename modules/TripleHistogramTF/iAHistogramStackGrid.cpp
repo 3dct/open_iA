@@ -18,50 +18,45 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include <iASlicerMode.h>
+#include "iAHistogramStackGrid.h"
 
-#include <vtkTransform.h>
+#include "charts/iADiagramFctWidget.h"
+#include "iASimpleSlicerWidget.h"
 
-#include <QSharedPointer>
-#include <QWidget>
+#include <QGridLayout>
+#include <QResizeEvent>
+#include <QLabel>
 
-class iAModality;
-class iASingleSlicerSettings;
-class iASlicer;
+iAHistogramStackGrid::iAHistogramStackGrid(
+	QWidget *parent,
+	QVector<iADiagramFctWidget*> histograms,
+	QVector<iASimpleSlicerWidget*> slicers,
+	QVector<QLabel*> labels,
+	Qt::WindowFlags f)
 
-class vtkCamera;
-
-class iASimpleSlicerWidget : public QWidget
+	: QWidget(parent, f)
 {
-	Q_OBJECT
+	m_gridLayout = new QGridLayout(this);
+	for (int i = 0; i < histograms.size(); i++) {
+		m_gridLayout->addWidget(histograms[i], i, 0);
+		m_gridLayout->addWidget(slicers[i], i, 1);
+		m_gridLayout->addWidget(labels[i], i, 2);
+	}
+	m_gridLayout->setSpacing(m_spacing);
+	m_gridLayout->setMargin(0);
+}
 
-public:
-	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
-	~iASimpleSlicerWidget();
+void iAHistogramStackGrid::resizeEvent(QResizeEvent* event)
+{
+	adjustStretch(event->size().width());
+}
 
-	void setSlicerMode(iASlicerMode slicerMode);
-	iASlicerMode getSlicerMode();
-
-	void setSliceNumber(int sliceNumber);
-	int getSliceNumber();
-
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
-
-	void applySettings(iASingleSlicerSettings const & settings);
-	void changeModality(QSharedPointer<iAModality> modality);
-
-	void setCamera(vtkCamera* camera);
-
-	iASlicer* getSlicer() { return m_slicer; }
-
-public slots:
-	void update();
-
-private:
-	bool m_enableInteraction;
-	vtkTransform *m_slicerTransform;
-	iASlicer *m_slicer;
-};
+void iAHistogramStackGrid::adjustStretch(int totalWidth)
+{
+	//QLayoutItem *item00 = m_gridLayout->itemAtPosition(0, 0);
+	//int histogramHeight = item00->widget()->size().height();
+	int histogramHeight = size().height() / 3 - 4 * m_spacing;
+	m_gridLayout->setColumnStretch(0, totalWidth - histogramHeight);
+	m_gridLayout->setColumnStretch(1, histogramHeight);
+}
