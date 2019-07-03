@@ -2,6 +2,7 @@
 #     legally, it shouldn't be a problem though to include the runtime libraries, see e.g.
 #     https://stackoverflow.com/questions/35097193/can-i-bundle-the-visual-studio-2015-c-redistributable-dlls-with-my-applicatio
 set (CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ".")
+set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
 include (InstallRequiredSystemLibraries)
 
 set(CPACK_PACKAGE_NAME "open_iA")
