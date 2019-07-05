@@ -127,7 +127,7 @@ void dlg_modalities::AddClicked()
 	{
 		modalities->Add(mod);
 	}
-	emit ModalitiesChanged();
+	emit ModalitiesChanged(false);
 }
 
 void dlg_modalities::MagicLens()
@@ -217,7 +217,8 @@ void dlg_modalities::RemoveClicked()
 	EnableButtons();
 
 	m_mainRenderer->GetRenderWindow()->Render();
-	emit ModalitiesChanged();
+	
+	emit ModalitiesChanged(false);
 }
 
 void dlg_modalities::EditClicked()
@@ -276,7 +277,7 @@ void dlg_modalities::EditClicked()
 		renderer->AddTo(m_magicLensWidget->getLensRenderer());
 	}
 	lwModalities->item(idx)->setText(GetCaption(*editModality));
-	emit ModalitiesChanged();
+	emit ModalitiesChanged(prop.spacingChanged());
 }
 
 void dlg_modalities::EnableButtons()

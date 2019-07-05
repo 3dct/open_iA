@@ -294,9 +294,10 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, SIGNAL(active()), this, SIGNAL(active()));
 	connect((dlg_transfer*)(m_histogram->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(ModalityTFChanged()));
 
-	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateImageProperties()));
-	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateViews()));
+	connect(m_dlgModalities, SIGNAL(ModalitiesChanged(bool)), this, SLOT(updateImageProperties()));
+	connect(m_dlgModalities, SIGNAL(ModalitiesChanged(bool)), this, SLOT(updateViews()));
 	connect(m_dlgModalities, SIGNAL(ModalitySelected(int)), this, SLOT(ShowModality(int)));
+	connect(m_dlgModalities, SIGNAL(ModalitiesChanged(bool)), this, SLOT(resetCamera(bool)));
 }
 
 void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithm* thread )
@@ -1018,14 +1019,7 @@ bool MdiChild::saveFile(const QString &f, int modalityNr, int componentNr)
 void MdiChild::updateViews()
 {
 	updateSlicers();
-	//TODO  doing reset camera this for single only for when edit clicked is doen  // same with slicer
-	Raycaster->GetRenderer()->ResetCamera(); 
 	Raycaster->update();
-	for (int s = 0; s < 3; ++s)
-	{
-		slicer[s]->GetRenderer()->ResetCamera();
-		slicer[s]->update();
-	}
 	emit updatedViews();
 }
 
@@ -2966,6 +2960,23 @@ void MdiChild::StatisticsAvailable(int modalityIdx)
 	}
 	ModalityTFChanged();
 	updateViews();
+}
+
+void MdiChild::resetCamera(bool spacingChanged)
+{
+	if (!spacingChanged)
+	{
+		return;
+	}
+	//TODO  doing reset camera this for single only for when edit clicked is doen  // same with slicer
+	Raycaster->GetRenderer()->ResetCamera();
+	Raycaster->update();
+	for (int s = 0; s < 3; ++s)
+	{
+		slicer[s]->GetRenderer()->ResetCamera();
+		slicer[s]->update();
+	}
+	emit updatedViews();
 }
 
 void MdiChild::InitVolumeRenderers()

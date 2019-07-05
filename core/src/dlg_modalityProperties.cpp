@@ -132,6 +132,19 @@ void dlg_modalityProperties::OKButtonClicked()
 		return;
 	}
 
+	double const * oldSpacing = m_modality->GetSpacing();
+	m_spacingChanged = false;
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (oldSpacing[i] != spacing[i])
+		{
+			m_spacingChanged = true;
+			break;
+		}
+	}
+
+
 	m_modality->SetOrigin(origin);
 	m_modality->SetSpacing(spacing);
 	m_modality->GetRenderer()->SetOrientation(orientation);
