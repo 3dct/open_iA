@@ -18,31 +18,43 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iATripleHistogramTFAttachment.h"
 
-#include "iATriangleRenderer.h"
+#include "tf_2mod/dlg_tf_2mod.h"
+#include "tf_3mod/dlg_tf_3mod.h"
 
-#include <vtkSmartPointer.h>
-#include <vtkImageData.h>
+#include <mdichild.h>
 
-#include <QImage>
+iATripleHistogramTFAttachment::iATripleHistogramTFAttachment(MainWindow * mainWnd, MdiChild* child) :
+	iAModuleAttachmentToChild(mainWnd, child),
+	m_tf_2mod(nullptr),
+	m_tf_3mod(nullptr)
+{}
 
-class iABarycentricContextRenderer : public iATriangleRenderer
+iATripleHistogramTFAttachment* iATripleHistogramTFAttachment::create(MainWindow * mainWnd, MdiChild* child)
 {
-public:
-	iABarycentricContextRenderer();
-	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle) override;
-	void setTriangle(BarycentricTriangle triangle) override;
-	~iABarycentricContextRenderer() override;
-	void paintContext(QPainter &p) override;
-	bool canPaint() override;
+	auto newAttachment = new iATripleHistogramTFAttachment(mainWnd, child);
+	return newAttachment;
+}
 
-private:
-	void calculateCoordinates(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
-	void updateTriangle(BarycentricTriangle triangle);
-	void drawImage(BarycentricTriangle triangle, int width, int height);
+void iATripleHistogramTFAttachment::start2TF()
+{
+	if (!m_tf_2mod)
+	{
+		m_tf_2mod = new dlg_tf_2mod(m_child);
+		m_child->tabifyDockWidget(m_child->logDockWidget(), m_tf_2mod);
+	}
+	m_tf_2mod->show();
+	m_tf_2mod->raise();
+}
 
-	vtkSmartPointer<vtkImageData> m_barycentricCoordinates;
-	QImage m_image;
-	QPoint m_imagePoint;
-};
+void iATripleHistogramTFAttachment::start3TF()
+{
+	if (!m_tf_3mod)
+	{
+		m_tf_3mod = new dlg_tf_3mod(m_child);
+		m_child->tabifyDockWidget(m_child->logDockWidget(), m_tf_3mod);
+	}
+	m_tf_3mod->show();
+	m_tf_3mod->raise();
+}

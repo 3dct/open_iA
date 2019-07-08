@@ -63,8 +63,7 @@ public:
 	vtkSmartPointer<vtkColorTransferFunction> colorTF(int modality);
 	vtkSmartPointer<vtkPiecewiseFunction> opacityTF(int modality);
 	void changeRenderSettings(iAVolumeSettings const & rs, const bool loadSavedVolumeSettings);
-	void showSlicers(bool enabled);
-	void setSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
+	void showSlicers(bool enabled, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
 	void addListItem(QSharedPointer<iAModality> mod);
 	//! initialize a modality's display in renderers
 	void initDisplay(QSharedPointer<iAModality> mod);
@@ -79,7 +78,7 @@ public slots:
 signals:
 	void modalityAvailable(int modalityIdx);
 	void modalitySelected(int modalityIdx);
-	void modalitiesChanged();
+	void modalitiesChanged(bool spacingChanged);
 
 private slots:
 	void addClicked();
@@ -111,8 +110,6 @@ private:
 	QSharedPointer<iAModalityList> m_modalities;
 	QString m_FileName;
 	iAFast3DMagicLensWidget* m_magicLensWidget;
-	bool m_showSlicers;
-	vtkPlane *m_plane1, *m_plane2, *m_plane3;
 	vtkRenderer* m_mainRenderer;
 	MdiChild* m_mdiChild;
 

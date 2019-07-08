@@ -20,39 +20,65 @@
 * ************************************************************************************/
 #pragma once
 
-class BarycentricTriangle;
+#include "iAMultimodalWidget.h"
 
-class BCoord
+#include "iAHistogramAbstract.h"
+#include "BCoord.h"
+
+#include <iASlicerMode.h>
+
+#include <vtkSmartPointer.h>
+
+class iABarycentricTriangleWidget;
+class iABarycentricContextRenderer;
+
+class iADiagramFctWidget;
+class iAModality;
+class iATransferFunction;
+class MdiChild;
+
+class vtkColorTransferFunction;
+class vtkPiecewiseFunction;
+
+class QComboBox;
+class QLabel;
+class QSlider;
+class QSpinBox;
+
+class iATripleModalityWidget : public iAMultimodalWidget
 {
+	Q_OBJECT
+
 public:
-	BCoord(double alpha, double beta);
-	BCoord() : BCoord((double)1 / (double)3, (double)1 / (double)3) {}
-	BCoord(BarycentricTriangle triangle, double x, double y);
+	iATripleModalityWidget(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+	~iATripleModalityWidget();
 
-	double getAlpha() const;
-	double getBeta() const;
-	double getGamma() const;
-	bool isInside() const;
+	iAHistogramAbstractType getLayoutTypeAt(int comboBoxIndex);
+	void setHistogramAbstractType(iAHistogramAbstractType type);
 
-	double operator[] (int x) {
-		switch (x) {
-		case 0: return getAlpha();
-		case 1: return getBeta();
-		case 2: return getGamma();
-		default: return 0;
-		}
+	iABarycentricTriangleWidget* w_triangle() {
+		return m_triangleWidget;
 	}
 
-	bool operator== (const BCoord that) {
-		return getAlpha() == that.getAlpha() && getBeta() == that.getBeta();
+	QComboBox* w_layoutComboBox() {
+		return m_layoutComboBox;
 	}
 
-	bool operator!= (const BCoord that) {
-		return getAlpha() != that.getAlpha() || getBeta() != that.getBeta();
-	}
+private slots:
+	void layoutComboBoxIndexChanged(int newIndex);
+	void triangleWeightChanged(BCoord newWeights);
+	void weightsChangedSlot(BCoord newWeights);
+	void modalitiesLoaded_beforeUpdateSlot();
 
 private:
-	double m_alpha;
-	double m_beta;
+	QComboBox *m_layoutComboBox;
+	void setLayoutTypePrivate(iAHistogramAbstractType type);
 
+	iABarycentricTriangleWidget *m_triangleWidget;
+	iABarycentricContextRenderer *m_triangleRenderer;
+
+	iAHistogramAbstract *m_histogramAbstract = nullptr;
+	iAHistogramAbstractType m_histogramAbstractType;
+
+	void updateModalities();
 };

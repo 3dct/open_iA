@@ -27,7 +27,11 @@
 #include "itkArray.h"
 #include "itkConstShapedNeighborhoodIterator.h"
 #include "itkNumericTraits.h"
+#if ITK_VERSION_MAJOR >= 5
+#include <mutex>
+#else
 #include "itkFastMutexLock.h"
+#endif
 #include <vector>
 
 namespace itk
@@ -139,7 +143,11 @@ public:
 
   /** Type definitions for mutex lock. Mutex lock allows the locking of
    * variables which are accessed through different threads. */
+#if ITK_VERSION_MAJOR >= 5
+  typedef std::mutex MutexLockType;
+#else
   typedef FastMutexLock MutexLockType;
+#endif
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -240,7 +248,12 @@ protected:
 
   /** Mutex lock used to protect the modification of attributes wich are
    * accessed through different threads. */
+
+#if ITK_VERSION_MAJOR < 5
   MutexLockType::Pointer m_CentroidsModificationAttributesLock;
+#else
+  MutexLockType m_CentroidsModificationAttributesLock;
+#endif
 
   /** Structuring element of the shaped neighborhood iterator*/
   StructuringElementType m_StructuringElement;

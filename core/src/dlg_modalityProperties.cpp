@@ -127,9 +127,23 @@ void dlg_modalityProperties::OKButtonClicked()
 		return;
 	}
 
+	double const * oldSpacing = m_modality->spacing();
+	m_spacingChanged = false;
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (oldSpacing[i] != spacing[i])
+		{
+			m_spacingChanged = true;
+			break;
+		}
+	}
+
+
 	m_modality->setOrigin(origin);
 	m_modality->setSpacing(spacing);
 	m_modality->renderer()->setOrientation(orientation);
+	//m_modality->renderer()->setPosition(position);
 	m_modality->renderer()->applySettings(m_volumeSettings);
 	done(QDialog::Accepted);
 }

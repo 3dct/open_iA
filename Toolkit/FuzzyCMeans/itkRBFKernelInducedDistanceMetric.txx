@@ -54,13 +54,13 @@ RBFKernelInducedDistanceMetric< TVector >
   for(unsigned int i = 0; i < measurementVectorSize; i++)
     {
     const double temp = this->GetOrigin()[i] - x[i];
-    subExpression += vcl_pow(vcl_fabs(temp), this->m_A);
+    subExpression += std::pow(std::fabs(temp), this->m_A);
     }
 
-  subExpression = - vcl_pow(subExpression, this->m_B);
-  subExpression = subExpression / vcl_pow(this->m_Sigma, 2);
+  subExpression = -std::pow(subExpression, this->m_B);
+  subExpression = subExpression / std::pow(this->m_Sigma, 2);
 
-  const double distance = vcl_exp( subExpression );
+  const double distance = std::exp( subExpression );
 
   return distance;
 }
@@ -89,13 +89,13 @@ RBFKernelInducedDistanceMetric< TVector >
   for(unsigned int i = 0; i < measurementVectorSize; i++)
     {
     const double temp = x1[i] - x2[i];
-    subExpression += vcl_pow(vcl_fabs(temp), this->m_A);
+    subExpression += std::pow(std::fabs(temp), this->m_A);
     }
 
-  subExpression = - vcl_pow(subExpression, this->m_B);
-  subExpression = subExpression / vcl_pow(this->m_Sigma, 2);
+  subExpression = -std::pow(subExpression, this->m_B);
+  subExpression = subExpression / std::pow(this->m_Sigma, 2);
 
-  const double distance = vcl_exp( subExpression );
+  const double distance = std::exp( subExpression );
 
   return distance;
 }
@@ -105,13 +105,13 @@ inline double
 RBFKernelInducedDistanceMetric< TVector >
 ::Evaluate(const ValueType &a, const ValueType &b) const
 {
-  double temp = vcl_fabs(static_cast< double >(a - b));
+  double temp = std::fabs(static_cast< double >(a - b));
 
-  temp = vcl_pow(temp, m_A);
-  temp = - vcl_pow(temp, m_B);
-  temp = temp / vcl_pow(m_Sigma, 2);
+  temp = std::pow(temp, m_A);
+  temp = -std::pow(temp, m_B);
+  temp = temp / std::pow(m_Sigma, 2);
 
-  return vcl_exp(temp);
+  return std::exp(temp);
 }
 
 template< class TVector >

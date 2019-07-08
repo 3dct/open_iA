@@ -44,7 +44,9 @@ KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
   elementRadius.Fill(1);
   m_StructuringElement = StructuringElementType::Box(elementRadius);
 
+#if ITK_VERSION_MAJOR < 5
   m_CentroidsModificationAttributesLock = MutexLockType::New();
+#endif
 }
 
 
@@ -312,7 +314,7 @@ KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
                                             this->m_Centroids[i] );
 
         tmpNeighborhoodFactorOfMemberships[i] +=
-          vcl_pow(1.0 - currentNeighborDistance, this->m_M);
+          std::pow(1.0 - currentNeighborDistance, this->m_M);
 
         tmpNeighborhoodFactorOfCentroidsNumerator[i] +=
           currentNeighborDistance * currentNeighborPixel;
@@ -339,7 +341,7 @@ KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
                                           this->m_Centroids[i] );
 
       membershipNumerator[i] =
-        vcl_pow( (1 - currentPixelDistance[i]) +
+        std::pow( (1 - currentPixelDistance[i]) +
                  (penaltyFactor * tmpNeighborhoodFactorOfMemberships[i]),
                  exponentOfMembership );
       membershipDenominator += membershipNumerator[i];
@@ -363,7 +365,7 @@ KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
         }
 
       // Calculations for the centroids.
-      tmpPowMembershipValue = vcl_pow(membershipPixel[i], this->m_M);
+      tmpPowMembershipValue = std::pow(membershipPixel[i], this->m_M);
       tempThreadCentroidsNumerator[i] += tmpPowMembershipValue *
         ( (currentPixelDistance[i] * currentPixel) +
           (penaltyFactor * tmpNeighborhoodFactorOfCentroidsNumerator[i]) );
@@ -376,13 +378,21 @@ KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     itrMembershipMatrix.Set(membershipPixel);
     }
 
+#if ITK_VERSION_MAJOR < 5
   m_CentroidsModificationAttributesLock->Lock();
+#else
+  m_CentroidsModificationAttributesLock.lock();
+#endif
   for (i = 0; i < this->m_NumberOfClasses; i++)
     {
     m_CentroidsNumerator[i] += tempThreadCentroidsNumerator[i];
     m_CentroidsDenominator[i] += tempThreadCentroidsDenominator[i];
     }
+#if ITK_VERSION_MAJOR < 5
   m_CentroidsModificationAttributesLock->Unlock();
+#else
+m_CentroidsModificationAttributesLock.unlock();
+#endif
 }
 
 

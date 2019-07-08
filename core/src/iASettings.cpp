@@ -21,6 +21,7 @@
 #include "iASettings.h"
 
 #include "iAChartFunctionTransfer.h"
+#include "iAConsole.h"
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
@@ -75,7 +76,10 @@ void iASettings::loadTransferFunction(QDomNode const & functionsNode, iATransfer
 {
 	QDomNode transferNode = functionsNode.namedItem("transfer");
 	if (!transferNode.isElement())
+	{
+		DEBUG_LOG("'transfer' node not found in given XML file, aborting load of transfer function!");
 		return;
+	}
 	transferFunction->opacityTF()->RemoveAllPoints();
 	transferFunction->colorTF()->RemoveAllPoints();
 	QDomNodeList list = transferNode.childNodes();

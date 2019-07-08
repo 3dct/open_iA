@@ -287,6 +287,7 @@ Q_SIGNALS:
 	void closed();
 	void viewsUpdated();
 	void renderSettingsChanged();
+	void slicerSettingsChanged();
 	void preferencesChanged();
 	void viewInitialized();
 	void transferFunctionChanged();
@@ -354,9 +355,10 @@ private slots:
 	void showModality(int modIdx);
 	void saveFinished();
 	void modalityAdded(int modalityIdx);
+	void resetCamera(bool spacingChanged);
 
 private:
-	void closeEvent(QCloseEvent *event);
+	void closeEvent(QCloseEvent *event) override;
 	void addImageProperty( );
 	bool addVolumePlayer();
 	void addProfile();

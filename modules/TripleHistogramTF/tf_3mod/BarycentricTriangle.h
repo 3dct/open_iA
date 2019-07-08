@@ -20,48 +20,60 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iASlicerMode.h>
+#include <QPoint>
+#include <QRect>
 
-#include <vtkTransform.h>
+class BCoord;
 
-#include <QSharedPointer>
-#include <QWidget>
-
-class iAModality;
-class iASingleSlicerSettings;
-class iASlicer;
-
-class vtkCamera;
-
-class iASimpleSlicerWidget : public QWidget
+class BarycentricTriangle
 {
-	Q_OBJECT
+	public: // TODO: int/double or references?
+		BarycentricTriangle(int xa, int ya, int xb, int yb, int xc, int yc);
+		BarycentricTriangle();
 
-public:
-	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
-	~iASimpleSlicerWidget();
+		BarycentricTriangle operator- (QPoint p) {
+			return BarycentricTriangle(m_xa - p.x(), m_ya - p.y(), m_xb - p.x(), m_yb - p.y(), m_xc - p.x(), m_yc - p.y());
+		}
 
-	void setSlicerMode(iASlicerMode slicerMode);
-	iASlicerMode getSlicerMode();
+		int getXa();
+		int getYa();
+		int getXb();
+		int getYb();
+		int getXc();
+		int getYc();
 
-	void setSliceNumber(int sliceNumber);
-	int getSliceNumber();
+		void set(int xa, int ya, int xb, int yb, int xc, int yc);
+		void setXa(int xa);
+		void setYa(int ya);
+		void setXb(int xb);
+		void setYb(int yb);
+		void setXc(int xc);
+		void setYc(int yc);
 
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
+		BCoord getBarycentricCoordinates(double x, double y);
+		BCoord getBarycentricCoordinatesA();
+		BCoord getBarycentricCoordinatesB();
+		BCoord getBarycentricCoordinatesC();
 
-	void applySettings(iASingleSlicerSettings const & settings);
-	void changeModality(QSharedPointer<iAModality> modality);
+		bool contains(double x, double y);
 
-	void setCamera(vtkCamera* camera);
+		QPoint getCartesianCoordinates(const BCoord &bCoord);
+		QPoint getCartesianCoordinates(double alpha, double beta);
+		void updateCartesianCoordinates(QPoint &qPoint, const BCoord &bCoord);
+		void updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta);
+		void updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta, double gamma);
 
-	iASlicer* getSlicer() { return m_slicer; }
+		QRect getBounds();
 
-public slots:
-	void update();
+	private:
+		int m_xa;
+		int m_ya;
 
-private:
-	bool m_enableInteraction;
-	vtkTransform *m_slicerTransform;
-	iASlicer *m_slicer;
+		int m_xb;
+		int m_yb;
+
+		int m_xc;
+		int m_yc;
+
+
 };

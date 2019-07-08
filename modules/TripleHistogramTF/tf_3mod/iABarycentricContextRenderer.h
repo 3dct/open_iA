@@ -20,48 +20,45 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iASlicerMode.h>
+#include "BarycentricTriangle.h"
 
-#include <vtkTransform.h>
+#include <vtkSmartPointer.h>
+#include <vtkImageData.h>
 
-#include <QSharedPointer>
 #include <QWidget>
 
-class iAModality;
-class iASingleSlicerSettings;
-class iASlicer;
+class QImage;
+class QRect;
+class QTimer;
 
-class vtkCamera;
-
-class iASimpleSlicerWidget : public QWidget
+class iABarycentricContextRenderer : public QWidget
 {
 	Q_OBJECT
 
 public:
-	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
-	~iASimpleSlicerWidget();
-
-	void setSlicerMode(iASlicerMode slicerMode);
-	iASlicerMode getSlicerMode();
-
-	void setSliceNumber(int sliceNumber);
-	int getSliceNumber();
-
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
-
-	void applySettings(iASingleSlicerSettings const & settings);
-	void changeModality(QSharedPointer<iAModality> modality);
-
-	void setCamera(vtkCamera* camera);
-
-	iASlicer* getSlicer() { return m_slicer; }
-
-public slots:
-	void update();
+	iABarycentricContextRenderer();
+	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle);
+	void setTriangle(BarycentricTriangle triangle);
+	QImage* getImage();
+	QRect getImageRect();
 
 private:
-	bool m_enableInteraction;
-	vtkTransform *m_slicerTransform;
-	iASlicer *m_slicer;
+	void calculateCoordinates(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
+	void updateTriangle(BarycentricTriangle triangle);
+	void drawImageLater();
+	void drawImageNow();
+
+	vtkSmartPointer<vtkImageData> m_barycentricCoordinates;
+	QImage *m_image;
+	QRect m_imageRect;
+	BarycentricTriangle m_triangle;
+
+	QTimer *m_timer_heatmap;
+	int m_timerWait_heatmap;
+
+signals:
+	void heatmapReady();
+
+private slots:
+	void onHeatmapTimeout();
 };

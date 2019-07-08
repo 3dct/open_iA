@@ -61,11 +61,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	m_modalities(new iAModalityList),
 	m_magicLensWidget(magicLensWidget),
 	m_mainRenderer(mainRenderer),
-	m_mdiChild(mdiChild),
-	m_showSlicers(false),
-	m_plane1(nullptr),
-	m_plane2(nullptr),
-	m_plane3(nullptr)
+	m_mdiChild(mdiChild)
 {
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
 	{
@@ -112,7 +108,7 @@ bool CanHaveMultipleChannels(QString const & fileName)
 void dlg_modalities::addClicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load"),
-		"",
+		m_modalities->size() > 0 ? QFileInfo(m_modalities->get(0)->fileName()).absolutePath() : "",
 		iAIOProvider::GetSupportedLoadFormats() + tr("Volume Stack (*.volstack);;"));
 	if (fileName.isEmpty())
 		return;
@@ -142,7 +138,7 @@ void dlg_modalities::addClicked()
 	{
 		m_modalities->add(mod);
 	}
-	emit modalitiesChanged();
+	emit modalitiesChanged(false);
 }
 
 void dlg_modalities::magicLens()
@@ -234,7 +230,8 @@ void dlg_modalities::removeClicked()
 	enableButtons();
 
 	m_mainRenderer->GetRenderWindow()->Render();
-	emit modalitiesChanged();
+	
+	emit modalitiesChanged(false);
 }
 
 void dlg_modalities::editClicked()
@@ -311,8 +308,7 @@ void dlg_modalities::editClicked()
 		m_mdiChild->updateViews();
 	}
 	lwModalities->item(idx)->setText(GetCaption(*editModality));
-	emit modalitiesChanged();
-	
+	emit modalitiesChanged(prop.spacingChanged());
 }
 
 void dlg_modalities::enableButtons()
@@ -507,9 +503,8 @@ void dlg_modalities::rendererMouseMoved()
 	}
 }
 
-void dlg_modalities::showSlicers(bool enabled)
+void dlg_modalities::showSlicers(bool enabled, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3)
 {
-	m_showSlicers = enabled;
 	for (int i = 0; i < m_modalities->size(); ++i)
 	{
 		QSharedPointer<iAVolumeRenderer> renderer = m_modalities->get(i)->renderer();
@@ -520,20 +515,13 @@ void dlg_modalities::showSlicers(bool enabled)
 		}
 		if (enabled)
 		{
-			renderer->setCuttingPlanes(m_plane1, m_plane2, m_plane3);
+			renderer->setCuttingPlanes(plane1, plane2, plane3);
 		}
 		else
 		{
 			renderer->removeCuttingPlanes();
 		}
 	}
-}
-
-void dlg_modalities::setSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3)
-{
-	m_plane1 = plane1;
-	m_plane2 = plane2;
-	m_plane3 = plane3;
 }
 
 void dlg_modalities::addModality(vtkSmartPointer<vtkImageData> img, QString const & name)

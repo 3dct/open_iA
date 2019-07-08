@@ -2094,14 +2094,12 @@ void iAFiAKErController::changeReferenceDisplay()
 						start2[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
 					end2[i] = ref.table->GetValue(refFiberID, ref.mapping->value(iACsvConfig::EndX + i)).ToFloat();
 				}
-				/*
 				if ((start1 - start2).length() > (start1 - end2).length() && (end1 - end2).length() > (end1 - start2).length())
 				{
 					iAVec3f tmp = start1;
 					start1 = start2;
 					start2 = tmp;
 				}
-				*/
 				points->InsertNextPoint(start1.data());
 				points->InsertNextPoint(end1.data());
 				auto line1 = vtkSmartPointer<vtkLine>::New();

@@ -101,7 +101,6 @@ public:
 	//! Sets up the slicer with the given settings.
 	void setup(iASingleSlicerSettings const & settings);
 	virtual ~iASlicer();
-	void update();
 
 	//! @{ Magic Lens methods
 	void setMagicLensEnabled( bool isEnabled );
@@ -229,6 +228,7 @@ public slots:
 	void rotateSlice( double angle );
 	void setSlabThickness(int thickness);
 	void setSlabCompositeMode(int compositeMode);
+	void update();
 
 	//! Sets coordinates for line profile
 	bool setArbitraryProfile(int pointInd, double * Pos, bool doClamp = false);

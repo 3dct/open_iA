@@ -22,15 +22,17 @@
 
 #include <iAModuleInterface.h>
 
-class dlg_TripleHistogramTF;
+class dlg_tf_2mod;
+class dlg_tf_3mod;
 
 class iATripleHistogramTFModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 public:
-	void Initialize();
+	void Initialize() override;
+protected:
+	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild* child) override;
 private slots:
-	void MenuItemSelected();
-private:
-	dlg_TripleHistogramTF * thtf;
+	void menuItemSelected_2mod();
+	void menuItemSelected_3mod();
 };

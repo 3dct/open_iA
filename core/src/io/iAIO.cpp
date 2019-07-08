@@ -315,7 +315,7 @@ void iAIO::readHDF5File()
 	{
 		throw std::runtime_error("HDF5 file: Insufficient path length.");
 	}
-	hid_t file = H5Fopen( getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+	hid_t file = H5Fopen( getLocalEncodingFileName(m_fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 	m_hdf5Path.removeLast();
 	hid_t loc_id = file;
 	QStack<hid_t> openGroups;
@@ -393,7 +393,7 @@ void iAIO::readHDF5File()
 	imgImport->SetImportVoidPointer(raw_data, 0);
 	imgImport->Update();
 	getConnector()->setImage(imgImport->GetOutput());
-	getConnector()->Modified();
+	getConnector()->modified();
 	postImageReadActions();
 }
 #endif
@@ -754,7 +754,7 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 		case HDF5_READER:
 		{
 			m_fileName = f;
-			hid_t file_id = H5Fopen( getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+			hid_t file_id = H5Fopen( getLocalEncodingFileName(m_fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 			if (file_id < 0)
 			{
 				printHDF5ErrorsToConsole();
@@ -768,13 +768,13 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 				return true;
 			}
 			OpenHDF5Dlg dlg;
-			dlg.setWindowTitle(QString("Open HDF5").arg(fileName));
+			dlg.setWindowTitle(QString("Open HDF5").arg(m_fileName));
 			QStandardItemModel* model = new QStandardItemModel();
 			model->setHorizontalHeaderLabels(QStringList() << "HDF5 Structure");
 			dlg.tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
-			QStandardItem* rootItem = new QStandardItem(QFileInfo(fileName).fileName() + "/");
+			QStandardItem* rootItem = new QStandardItem(QFileInfo(m_fileName).fileName() + "/");
 			rootItem->setData(GROUP, Qt::UserRole + 1);
-			rootItem->setData(fileName, Qt::UserRole + 2);
+			rootItem->setData(m_fileName, Qt::UserRole + 2);
 			model->appendRow(rootItem);
 
 			H5O_info_t infobuf;

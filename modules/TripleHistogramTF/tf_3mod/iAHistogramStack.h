@@ -20,50 +20,29 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkSmartPointer.h>
+#include "iAHistogramAbstract.h"
 
-#include <QDockWidget>
+#include <QWidget>
 
-class QStackedLayout;
-class QLabel;
+class iAHistogramStackGrid;
+class iATripleModalityWidget;
 
 class MdiChild;
-class iABarycentricTriangleWidget;
-class iATripleModalityWidget;
-class BCoord;
 
-class vtkSmartVolumeMapper;
-class vtkVolume;
-class vtkRenderer;
+class QSplitter;
 
-//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
-
-class dlg_TripleHistogramTF : public QDockWidget//public TripleHistogramTFConnector
+class iAHistogramStack : public iAHistogramAbstract
 {
-	Q_OBJECT
-
 public:
-	dlg_TripleHistogramTF(MdiChild* parent, Qt::WindowFlags f = 0);
-	~dlg_TripleHistogramTF();
+	iAHistogramStack(QWidget* parent, iATripleModalityWidget *tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f = 0);
 
-public slots:
-	void updateTransferFunction();
-	void updateModalities();
-
-private slots:
+	// OVERRIDES
+	void initialize(QString const names[3]) override;
+	bool isSlicerInteractionEnabled() override { return true; }
 
 private:
-	void updateDisabledLabel();
+	QSplitter *m_splitter;
+	iAHistogramStackGrid *m_grid;
 
-	// TODO: is it really good to keep the mdiChild as a member variable?
-	MdiChild *m_mdiChild;
-
-	// Widgets and stuff
-	QStackedLayout *m_stackedLayout;
-	QLabel *m_disabledLabel;
-	iATripleModalityWidget *m_histogramStack;
-	
-	vtkSmartPointer<vtkSmartVolumeMapper> combinedVolMapper;
-	vtkSmartPointer<vtkRenderer> combinedVolRenderer;
-	vtkSmartPointer<vtkVolume> combinedVol;
+	iATripleModalityWidget* m_tmw;
 };

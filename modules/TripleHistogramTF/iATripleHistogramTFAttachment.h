@@ -20,60 +20,19 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QPoint>
-#include <QRect>
+#include "iAModuleAttachmentToChild.h"
 
-class BCoord;
+class dlg_tf_2mod;
+class dlg_tf_3mod;
 
-class BarycentricTriangle
+class iATripleHistogramTFAttachment : public iAModuleAttachmentToChild
 {
-	public: // TODO: int/double or references?
-		BarycentricTriangle(int xa, int ya, int xb, int yb, int xc, int yc);
-		BarycentricTriangle();
-
-		BarycentricTriangle operator- (QPoint p) {
-			return BarycentricTriangle(m_xa - p.x(), m_ya - p.y(), m_xb - p.x(), m_yb - p.y(), m_xc - p.x(), m_yc - p.y());
-		}
-
-		int getXa();
-		int getYa();
-		int getXb();
-		int getYb();
-		int getXc();
-		int getYc();
-
-		void set(int xa, int ya, int xb, int yb, int xc, int yc);
-		void setXa(int xa);
-		void setYa(int ya);
-		void setXb(int xb);
-		void setYb(int yb);
-		void setXc(int xc);
-		void setYc(int yc);
-
-		BCoord getBarycentricCoordinates(double x, double y);
-		BCoord getBarycentricCoordinatesA();
-		BCoord getBarycentricCoordinatesB();
-		BCoord getBarycentricCoordinatesC();
-
-		bool contains(double x, double y);
-
-		QPoint getCartesianCoordinates(const BCoord &bCoord);
-		QPoint getCartesianCoordinates(double alpha, double beta);
-		void updateCartesianCoordinates(QPoint &qPoint, const BCoord &bCoord);
-		void updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta);
-		void updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta, double gamma);
-
-		QRect getBounds();
-
-	private:
-		int m_xa;
-		int m_ya;
-
-		int m_xb;
-		int m_yb;
-
-		int m_xc;
-		int m_yc;
-
-
+public:
+	static iATripleHistogramTFAttachment* create(MainWindow * mainWnd, MdiChild* child);
+	void start2TF();
+	void start3TF();
+private:
+	iATripleHistogramTFAttachment(MainWindow * mainWnd, MdiChild* child);
+	dlg_tf_2mod *m_tf_2mod;
+	dlg_tf_3mod *m_tf_3mod;
 };

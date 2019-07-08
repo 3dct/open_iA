@@ -138,6 +138,11 @@ void iAVolumeRenderer::setMovable(bool movable)
 	m_volume->SetDragable(movable);
 }
 
+bool iAVolumeRenderer::isRendered() const
+{
+	return m_currentRenderer;
+}
+
 const iAVolumeSettings& iAVolumeRenderer::volumeSettings() const
 {
 	return m_volSettings;

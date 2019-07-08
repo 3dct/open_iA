@@ -46,7 +46,12 @@ iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, bool enable
 
 iASimpleSlicerWidget::~iASimpleSlicerWidget()
 {
-	//delete m_slicer; // TODO uncomment?
+	delete m_slicer;
+}
+
+void iASimpleSlicerWidget::applySettings(iASingleSlicerSettings const & settings)
+{
+	m_slicer->setup(settings);
 }
 
 void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode)
@@ -54,9 +59,24 @@ void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode)
 	m_slicer->setMode(slicerMode);
 }
 
+iASlicerMode iASimpleSlicerWidget::getSlicerMode()
+{
+	return m_slicer->mode();
+}
+
 void iASimpleSlicerWidget::setSliceNumber(int sliceNumber)
 {
 	m_slicer->setSliceNumber(sliceNumber);
+}
+
+void iASimpleSlicerWidget::setCamera(vtkCamera* camera)
+{
+	m_slicer->setCamera(camera, false);
+}
+
+int iASimpleSlicerWidget::getSliceNumber()
+{
+	return m_slicer->sliceNumber();
 }
 
 bool iASimpleSlicerWidget::hasHeightForWidth()

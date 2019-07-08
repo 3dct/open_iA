@@ -18,50 +18,49 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "BCoord.h"
 
-#include <iASlicerMode.h>
+#include "BarycentricTriangle.h"
 
-#include <vtkTransform.h>
-
-#include <QSharedPointer>
-#include <QWidget>
-
-class iAModality;
-class iASingleSlicerSettings;
-class iASlicer;
-
-class vtkCamera;
-
-class iASimpleSlicerWidget : public QWidget
+BCoord::BCoord(double alpha, double beta) :
+	m_alpha(alpha), m_beta(beta)
 {
-	Q_OBJECT
+}
 
-public:
-	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
-	~iASimpleSlicerWidget();
+BCoord::BCoord(BarycentricTriangle triangle, double x, double y)
+{
+	double x1, y1, x2, y2, x3, y3;
+	x1 = triangle.getXa();
+	y1 = triangle.getYa();
+	x2 = triangle.getXb();
+	y2 = triangle.getYb();
+	x3 = triangle.getXc();
+	y3 = triangle.getYc();
 
-	void setSlicerMode(iASlicerMode slicerMode);
-	iASlicerMode getSlicerMode();
+	double x_x3 = x - x3;
+	double y_y3 = y - y3;
+	double det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
 
-	void setSliceNumber(int sliceNumber);
-	int getSliceNumber();
+	m_alpha = ((y2 - y3) * x_x3 + (x3 - x2) * y_y3) / det;
+	m_beta = ((y3 - y1) * x_x3 + (x1 - x3) * y_y3) / det;
+}
 
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
+double BCoord::getAlpha() const
+{
+	return m_alpha;
+}
 
-	void applySettings(iASingleSlicerSettings const & settings);
-	void changeModality(QSharedPointer<iAModality> modality);
+double BCoord::getBeta() const
+{
+	return m_beta;
+}
 
-	void setCamera(vtkCamera* camera);
+double BCoord::getGamma() const
+{
+	return 1 - m_alpha - m_beta;
+}
 
-	iASlicer* getSlicer() { return m_slicer; }
-
-public slots:
-	void update();
-
-private:
-	bool m_enableInteraction;
-	vtkTransform *m_slicerTransform;
-	iASlicer *m_slicer;
-};
+bool BCoord::isInside() const
+{
+	return m_alpha >= 0 && m_beta >= 0 && m_alpha + m_beta <= 1;
+}

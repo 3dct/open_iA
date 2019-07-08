@@ -20,41 +20,29 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iATripleModalityWidget.h"
+#include <vtkSmartPointer.h>
 
-#include <QWidget>
+#include <QDockWidget>
 
-class iADiagramFctWidget;
-class iASimpleSlicerWidget;
+class QStackedLayout;
+class QLabel;
+
 class MdiChild;
+class iATripleModalityWidget;
+class BCoord;
 
-class QGridLayout;
-class QSplitter;
+class vtkSmartVolumeMapper;
+class vtkVolume;
+class vtkRenderer;
 
-class iAHistogramStackGrid : public QWidget
+
+class dlg_tf_3mod : public QDockWidget
 {
-public:
-	iAHistogramStackGrid(QWidget *parent, iADiagramFctWidget *histograms[3], iASimpleSlicerWidget *slicers[3], QLabel *labels[3], Qt::WindowFlags f = 0);
-	void adjustStretch() { adjustStretch(size().width()); }
-protected:
-	void resizeEvent(QResizeEvent* event);
-private:
-	void adjustStretch(int w);
-	QGridLayout *m_gridLayout;
-};
+	Q_OBJECT
 
-class iAHistogramStack : public iATripleModalityWidget
-{
 public:
-	iAHistogramStack(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
-
-	// OVERRIDES
-	void initialize() override;
-	bool isSlicerInteractionEnabled() override { return false; }
-	void setModalityLabel(QString label, int index) override;
+	dlg_tf_3mod(MdiChild* parent, Qt::WindowFlags f = 0);
 
 private:
-	QSplitter *m_splitter;
-	iAHistogramStackGrid *m_grid;
-	QLabel *m_modalityLabels[3] = { nullptr, nullptr, nullptr };
+	iATripleModalityWidget *m_tripleModalityWidget;
 };

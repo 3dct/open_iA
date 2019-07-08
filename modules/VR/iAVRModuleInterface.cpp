@@ -70,7 +70,8 @@ void iAVRModuleInterface::info()
 	DEBUG_LOG(QString("VR Information:"));
 	DEBUG_LOG(QString("    Head-mounted display present: %1").arg(vr::VR_IsHmdPresent() ? "yes" : "no"));
 	DEBUG_LOG(QString("    Is Runtime installed: %1").arg(vr::VR_IsRuntimeInstalled() ? "yes" : "no"));
-	DEBUG_LOG(QString("    OpenVR runtime path: %1").arg(vr::VR_RuntimePath()));
+	//DEBUG_LOG(QString("    OpenVR runtime path: %1").arg(vr::VR_RuntimePath()));
+//#if (vr::k_nSteamVRVersionMajor > 1 || (vr::k_nSteamVRVersionMajor == 1 && k_nSteamVRVersionMinor >= 4))?	
 
 	vr::EVRInitError eError = vr::VRInitError_None;
 	auto pHMD = vr::VR_Init(&eError, vr::VRApplication_Scene);

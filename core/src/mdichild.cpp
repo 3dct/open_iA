@@ -172,7 +172,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	setModalities(modList);
 	splitDockWidget(m_dwLog, m_dwModalities, Qt::Horizontal);
-	m_dwModalities->setSlicePlanes(m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
 	applyViewerPreferences();
 	setRenderWindows();
 	connectSignalsToSlots();
@@ -243,9 +242,10 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, SIGNAL(active()), this, SIGNAL(active()));
 	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), SIGNAL(Changed()), this, SLOT(modalityTFChanged()));
 
-	connect(m_dwModalities, SIGNAL(modalitiesChanged()), this, SLOT(updateImageProperties()));
-	connect(m_dwModalities, SIGNAL(modalitiesChanged()), this, SLOT(updateViews()));
+	connect(m_dwModalities, SIGNAL(modalitiesChanged(bool)), this, SLOT(updateImageProperties()));
+	connect(m_dwModalities, SIGNAL(modalitiesChanged(bool)), this, SLOT(updateViews()));
 	connect(m_dwModalities, SIGNAL(modalitySelected(int)), this, SLOT(showModality(int)));
+	connect(m_dwModalities, SIGNAL(modalitiesChanged(bool)), this, SLOT(resetCamera(bool)));
 }
 
 void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithm* thread )
@@ -1273,7 +1273,7 @@ void MdiChild::applyVolumeSettings(const bool loadSavedVolumeSettings)
 {
 	for (int i = 0; i < 3; ++i)
 		m_dwSlicer[i]->showBorder(m_renderSettings.ShowSlicePlanes);
-	m_dwModalities->showSlicers(m_renderSettings.ShowSlicers && !m_snakeSlicer);
+	m_dwModalities->showSlicers(m_renderSettings.ShowSlicers && !m_snakeSlicer, m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
 	m_dwModalities->changeRenderSettings(m_volumeSettings, loadSavedVolumeSettings);
 }
 
@@ -1391,6 +1391,7 @@ bool MdiChild::editSlicerSettings(iASlicerSettings const & slicerSettings)
 	setupSlicers(slicerSettings, false);
 	for (int s = 0; s<3; ++s)
 		m_slicer[s]->show();
+	emit slicerSettingsChanged();
 	return true;
 }
 
@@ -1526,7 +1527,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 	if (m_snakeSlicer)
 	{
 		if (m_renderSettings.ShowSlicers)
-			m_dwModalities->showSlicers(false);
+			m_dwModalities->showSlicers(false, nullptr, nullptr, nullptr);
 
 		// save the slicer transforms
 		for (int s = 0; s < 3; ++s)
@@ -1561,7 +1562,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 			m_slicer[s]->switchInteractionMode(iASlicer::Normal);
 		}
 		if (m_renderSettings.ShowSlicers)
-			m_dwModalities->showSlicers(true);
+			m_dwModalities->showSlicers(true, m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
 	}
 }
 
@@ -1947,6 +1948,8 @@ void MdiChild::setCurrentFile(const QString &f)
 	m_fileInfo.setFile(f);
 	m_curFile = f;
 	m_path = m_fileInfo.canonicalPath();
+	if (isActiveWindow())
+		QDir::setCurrent(m_path);  // set current application working directory to the one where the file is in (as default directory, e.g. for file open)
 	m_isUntitled = f.isEmpty();
 	setWindowTitle(userFriendlyCurrentFile() + "[*]");
 }
@@ -2582,6 +2585,23 @@ void MdiChild::statisticsAvailable(int modalityIdx)
 	initVolumeRenderers();
 	modalityTFChanged();
 	updateViews();
+}
+
+void MdiChild::resetCamera(bool spacingChanged)
+{
+	if (!spacingChanged)
+	{
+		return;
+	}
+	//TODO  doing reset camera this for single only for when edit clicked is doen  // same with slicer
+	m_renderer->renderer()->ResetCamera();
+	m_renderer->update();
+	for (int s = 0; s < 3; ++s)
+	{
+		slicer(s)->renderer()->ResetCamera();
+		slicer(s)->update();
+	}
+	emit viewsUpdated();
 }
 
 void MdiChild::initVolumeRenderers()

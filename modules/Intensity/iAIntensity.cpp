@@ -293,7 +293,7 @@ template<class T> void adaptiveHistogramEqualization(iAFilter* filter, QMap<QStr
 	adaptHistoEqualFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	adaptHistoEqualFilter->SetAlpha(params["Alpha"].toDouble());
 	adaptHistoEqualFilter->SetBeta(params["Beta"].toDouble());
-	adaptHistoEqualFilter->SetRadius(1);
+	adaptHistoEqualFilter->SetRadius(params["Radius"].toUInt());
 	filter->progress()->Observe(adaptHistoEqualFilter);
 	adaptHistoEqualFilter->Update();
 	filter->addOutput(adaptHistoEqualFilter->GetOutput());
@@ -317,12 +317,15 @@ iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
 		"filter acts like an unsharp mask (Alpha=1). The parameter <em>Beta</em> "
 		"controls how much the filter acts like an unsharp mask (Beta=0) to "
 		"how much the filter acts like pass through (Beta=1, with Alpha=1)."
+		"<em>Radius</em> specifies the size of the region (in voxels) around "
+		"the current voxel used for filtering."
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AdaptiveHistogramEqualizationImageFilter.html\">"
 		"Adaptive Histogram Equalization Filter</a> in the ITK documentation.")
 {
 	addParameter("Alpha", Continuous, 0, 0, 1);
 	addParameter("Beta", Continuous, 0, 0, 1);
+	addParameter("Radius", Discrete, 5, 1);
 }
 
 

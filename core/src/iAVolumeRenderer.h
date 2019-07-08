@@ -78,6 +78,7 @@ public:
 	void setMovable(bool movable);
 
 	iAVolumeSettings const & volumeSettings() const;
+	bool isRendered() const;
 private:
 	iAVolumeSettings m_volSettings;
 	vtkSmartPointer<vtkVolume> m_volume;

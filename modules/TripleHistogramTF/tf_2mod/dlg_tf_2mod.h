@@ -20,48 +20,22 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iASlicerMode.h>
+#include <QDockWidget>
 
-#include <vtkTransform.h>
+class MdiChild;
+class iATripleModalityWidget;
+class iABimodalWidget;
 
-#include <QSharedPointer>
-#include <QWidget>
+//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
 
-class iAModality;
-class iASingleSlicerSettings;
-class iASlicer;
-
-class vtkCamera;
-
-class iASimpleSlicerWidget : public QWidget
+class dlg_tf_2mod : public QDockWidget//public TripleHistogramTFConnector
 {
 	Q_OBJECT
 
 public:
-	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
-	~iASimpleSlicerWidget();
-
-	void setSlicerMode(iASlicerMode slicerMode);
-	iASlicerMode getSlicerMode();
-
-	void setSliceNumber(int sliceNumber);
-	int getSliceNumber();
-
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
-
-	void applySettings(iASingleSlicerSettings const & settings);
-	void changeModality(QSharedPointer<iAModality> modality);
-
-	void setCamera(vtkCamera* camera);
-
-	iASlicer* getSlicer() { return m_slicer; }
-
-public slots:
-	void update();
+	dlg_tf_2mod(MdiChild* parent, Qt::WindowFlags f = 0);
 
 private:
-	bool m_enableInteraction;
-	vtkTransform *m_slicerTransform;
-	iASlicer *m_slicer;
+	MdiChild *m_mdiChild;
+	iABimodalWidget *m_bimodalWidget;
 };
