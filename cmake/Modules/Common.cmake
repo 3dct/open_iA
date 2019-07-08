@@ -51,6 +51,7 @@ ENDIF()
 #-------------------------
 
 # ITK
+SET(SAVED_CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}")
 FIND_PACKAGE(ITK REQUIRED)
 MESSAGE(STATUS "ITK: ${ITK_VERSION} in ${ITK_DIR}")
 IF(ITK_VERSION_MAJOR LESS 4 OR (ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR LESS 10))
@@ -84,7 +85,7 @@ ENDIF()
 # Now set it up with the components we need:
 FIND_PACKAGE(ITK COMPONENTS ${ITK_COMPONENTS})
 # apparently ITK (at least v5.0.0) adapts CMAKE_MODULE_PATH (bug?), reset it:
-SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
+SET(CMAKE_MODULE_PATH "${SAVED_CMAKE_MODULE_PATH}")
 INCLUDE(${ITK_USE_FILE})  # maybe avoid by using INCLUDE/LINK commands on targets instead?
 IF (MSVC)
 	SET (ITK_LIB_DIR "${ITK_DIR}/bin/Release")
