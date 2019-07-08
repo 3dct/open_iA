@@ -342,7 +342,7 @@ private slots:
 	void ModalityTFChanged();
 	void HistogramDataAvailable(int modalityIdx);
 	void StatisticsAvailable(int modalityIdx);
-	void resetCamera(bool spacingChanged);
+	void resetCamera(bool spacingChanged, double const * newSpacing);
 
 public slots:
 	void updateProgressBar(int i);

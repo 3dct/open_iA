@@ -134,7 +134,7 @@ void dlg_modalityProperties::OKButtonClicked()
 
 	double const * oldSpacing = m_modality->GetSpacing();
 	m_spacingChanged = false;
-
+	
 	for (int i = 0; i < 3; i++)
 	{
 		if (oldSpacing[i] != spacing[i])
@@ -144,6 +144,7 @@ void dlg_modalityProperties::OKButtonClicked()
 		}
 	}
 
+	m_currentSpacing = m_modality->GetSpacing();
 
 	m_modality->SetOrigin(origin);
 	m_modality->SetSpacing(spacing);
@@ -151,4 +152,14 @@ void dlg_modalityProperties::OKButtonClicked()
 	m_modality->GetRenderer()->SetPosition(position);
 	m_modality->GetRenderer()->ApplySettings(m_volumeSettings);
 	done(QDialog::Accepted);
+}
+
+bool dlg_modalityProperties::spacingChanged()
+{
+	return m_spacingChanged;
+}
+
+double const * dlg_modalityProperties::newSpacing()
+{
+	return m_currentSpacing;
 }

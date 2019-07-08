@@ -405,30 +405,9 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 
 	 this->	setArbitraryProfileOn(false);
 
-	double center[3], origin[3];
-	const int * dim = imageData->GetDimensions();
-	if (dim[0] == 0 || dim[1] == 0 || dim[2] == 0)
-		return;
-	const double * spc = imageData->GetSpacing();
-	for (int i = 0; i < 3; ++i)
-	{
-		center[i] = dim[i] * spc[i] / 2;
-		origin[i] = 0;
-	}
+	 updateSlicePlanes(imageData->GetSpacing());
 	for (int s = 0; s < 3; ++s)
 	{
-		m_slicePlaneSource[s]->SetOrigin(origin);
-		double point1[3], point2[3];
-		for (int j = 0; j < 3; ++j)
-		{
-			point1[j] = 0;
-			point2[j] = 0;
-		}
-		point1[GetSliceAxis(s, 0)] += 1.1 * dim[GetSliceAxis(s, 0)] * spc[GetSliceAxis(s, 0)];
-		point2[GetSliceAxis(s, 1)] += 1.1 * dim[GetSliceAxis(s, 1)] * spc[GetSliceAxis(s, 1)];
-		m_slicePlaneSource[s]->SetPoint1(point1);
-		m_slicePlaneSource[s]->SetPoint2(point2);
-		m_slicePlaneSource[s]->SetCenter(center);
 		m_slicePlaneMapper[s]->SetInputConnection(m_slicePlaneSource[s]->GetOutputPort());
 		m_slicePlaneActor[s]->SetMapper(m_slicePlaneMapper[s]);
 		m_slicePlaneActor[s]->GetProperty()->SetColor( (s == 0) ? 1:0, (s == 1) ? 1 : 0, (s == 2) ? 1 : 0);
@@ -976,4 +955,39 @@ void iARenderer::emitSelectedCells(vtkUnstructuredGrid* selectedCells)
 void iARenderer::emitNoSelectedCells()
 {
 	emit noCellsSelected();
+}
+
+void iARenderer::updateSlicePlanes(double const * newSpacing)
+{
+	if (!newSpacing)
+	{
+		DEBUG_LOG("Spacing is NULL");
+		return;
+	}
+	double const * spc = newSpacing;
+
+	double center[3], origin[3];
+	const int * dim = imageData->GetDimensions();
+	if (dim[0] == 0 || dim[1] == 0 || dim[2] == 0)
+		return;
+	for (int i = 0; i < 3; ++i)
+	{
+		center[i] = dim[i] * spc[i] / 2;
+		origin[i] = 0;
+	}
+	for (int s = 0; s < 3; ++s)
+	{
+		m_slicePlaneSource[s]->SetOrigin(origin);
+		double point1[3], point2[3];
+		for (int j = 0; j < 3; ++j)
+		{
+			point1[j] = 0;
+			point2[j] = 0;
+		}
+		point1[GetSliceAxis(s, 0)] += 1.1 * dim[GetSliceAxis(s, 0)] * spc[GetSliceAxis(s, 0)];
+		point2[GetSliceAxis(s, 1)] += 1.1 * dim[GetSliceAxis(s, 1)] * spc[GetSliceAxis(s, 1)];
+		m_slicePlaneSource[s]->SetPoint1(point1);
+		m_slicePlaneSource[s]->SetPoint2(point2);
+		m_slicePlaneSource[s]->SetCenter(center);
+	}
 }

@@ -75,7 +75,7 @@ public slots:
 signals:
 	void ModalityAvailable(int modalityIdx);
 	void ModalitySelected(int modalityIdx);
-	void ModalitiesChanged(bool spacingChanged);
+	void ModalitiesChanged(bool spacingChanged, double const * newSpacing);
 
 private slots:
 	void AddClicked();
