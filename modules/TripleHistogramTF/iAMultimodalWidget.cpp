@@ -23,6 +23,7 @@
 
 #include "iASimpleSlicerWidget.h"
 
+#include <iAChartFunctionTransfer.h>
 #include <charts/iADiagramFctWidget.h>
 #include <charts/iAHistogramData.h>
 #include <charts/iAPlotTypes.h>
@@ -40,7 +41,6 @@
 #include <iARenderer.h>
 #include <iAVolumeRenderer.h>
 #include <dlg_modalities.h>
-#include <dlg_transfer.h>
 #include <mdichild.h>
 
 #include <vtkCamera.h>
@@ -122,17 +122,17 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 	connect(m_checkBox_weightByOpacity, SIGNAL(stateChanged(int)), this, SLOT(checkBoxWeightByOpacityChanged()));
 	connect(m_checkBox_syncedCamera,    SIGNAL(stateChanged(int)), this, SLOT(checkBoxSyncedCameraChanged()));
 
-	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(valueChanged(int)), this, SLOT(onMainXYSliceNumberChanged(int)));
-	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(valueChanged(int)), this, SLOT(onMainXZSliceNumberChanged(int)));
-	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(valueChanged(int)), this, SLOT(onMainYZSliceNumberChanged(int)));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::XY)->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(onMainXYSliceNumberChanged(int)));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::XZ)->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(onMainXZSliceNumberChanged(int)));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::YZ)->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(onMainYZSliceNumberChanged(int)));
 
-	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(sliderPressed()), this, SLOT(onMainXYScrollBarPress()));
-	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(sliderPressed()), this, SLOT(onMainXZScrollBarPress()));
-	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(sliderPressed()), this, SLOT(onMainYZScrollBarPress()));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::XY)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(onMainXYScrollBarPress()));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::XZ)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(onMainXZScrollBarPress()));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::YZ)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(onMainYZScrollBarPress()));
 
-	connect(mdiChild->getSlicerDlgXY()->spinBoxXY, SIGNAL(valueChanged(int)), this, SLOT(onMainXYSliceNumberChanged(int)));
-	connect(mdiChild->getSlicerDlgXZ()->spinBoxXZ, SIGNAL(valueChanged(int)), this, SLOT(onMainXZSliceNumberChanged(int)));
-	connect(mdiChild->getSlicerDlgYZ()->spinBoxYZ, SIGNAL(valueChanged(int)), this, SLOT(onMainYZSliceNumberChanged(int)));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::XY)->spinBox, SIGNAL(valueChanged(int)), this, SLOT(onMainXYSliceNumberChanged(int)));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::XZ)->spinBox, SIGNAL(valueChanged(int)), this, SLOT(onMainXZSliceNumberChanged(int)));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::YZ)->spinBox, SIGNAL(valueChanged(int)), this, SLOT(onMainYZSliceNumberChanged(int)));
 
 	//connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(modalitiesChanged()));
 	connect(mdiChild, SIGNAL(histogramAvailable()), this, SLOT(histogramAvailable()));
@@ -207,10 +207,10 @@ void iAMultimodalWidget::updateVisualizationsNow()
 
 	//iATimeGuard test("updateMainSlicers");
 
-	iASlicerData* slicerDataArray[] = {
-		m_mdiChild->getSlicerDataYZ(),
-		m_mdiChild->getSlicerDataXY(),
-		m_mdiChild->getSlicerDataXZ()
+	iASlicer* slicerDataArray[] = {
+		m_mdiChild->slicer(iASlicerMode::YZ),
+		m_mdiChild->slicer(iASlicerMode::XY),
+		m_mdiChild->slicer(iASlicerMode::XZ)
 	};
 
 	for (int mainSlicerIndex = 0; mainSlicerIndex < 3; mainSlicerIndex++) {
@@ -222,7 +222,7 @@ void iAMultimodalWidget::updateVisualizationsNow()
 		vtkPiecewiseFunction* slicerOpacity[3];
 		for (int modalityIndex = 0; modalityIndex < m_numOfMod; modalityIndex++) {
 			iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + modalityIndex);
-			auto channel = data->GetChannel(id);
+			auto channel = data->channel(id);
 			data->setChannelOpacity(id, 0);
 
 			//vtkImageData imgMod = data->GetReslicer()->GetOutput();
@@ -296,9 +296,8 @@ void iAMultimodalWidget::updateVisualizationsNow()
 		data->GetImageActor()->SetInputData(imgOut);
 	}
 
-	m_mdiChild->getSlicerXY()->update();
-	m_mdiChild->getSlicerXZ()->update();
-	m_mdiChild->getSlicerYZ()->update();
+	for (int i=0; i<3; ++i)
+		m_mdiChild->slicer(i)->update();
 }
 
 void iAMultimodalWidget::updateTransferFunction(int index)
@@ -376,14 +375,14 @@ void iAMultimodalWidget::histogramAvailable() {
 		if (renderer->isRendered())
 			renderer->Remove();
 	}
-	m_mdiChild->getRenderer()->AddRenderer(m_combinedVolRenderer);
+	m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);
 
 	// The next code section sets up the main slicers
 
 	iASlicerData* slicerDataArray[] = {
-		m_mdiChild->getSlicerDataYZ(),
-		m_mdiChild->getSlicerDataXY(),
-		m_mdiChild->getSlicerDataXZ()
+		m_mdiChild->slicer(iASlicerMode::YZ),
+		m_mdiChild->slicer(iASlicerMode::XY),
+		m_mdiChild->slicer(iASlicerMode::XZ)
 	};
 
 	iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + 0);
@@ -415,7 +414,7 @@ void iAMultimodalWidget::histogramAvailable() {
 
 void iAMultimodalWidget::applyVolumeSettings()
 {
-	auto vs = m_mdiChild->GetVolumeSettings();
+	auto vs = m_mdiChild->volumeSettings();
 	auto volProp = m_combinedVol->GetProperty();
 	volProp->SetAmbient(vs.AmbientLighting);
 	volProp->SetDiffuse(vs.DiffuseLighting);
@@ -427,9 +426,9 @@ void iAMultimodalWidget::applyVolumeSettings()
 		volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
 	if (m_mdiChild->GetRenderSettings().ShowSlicers)
 	{
-		m_combinedVolMapper->AddClippingPlane(m_mdiChild->getRenderer()->getPlane1());
-		m_combinedVolMapper->AddClippingPlane(m_mdiChild->getRenderer()->getPlane2());
-		m_combinedVolMapper->AddClippingPlane(m_mdiChild->getRenderer()->getPlane3());
+		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane1());
+		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane2());
+		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane3());
 	}
 	else
 	{
@@ -445,17 +444,17 @@ void iAMultimodalWidget::applySlicerSettings()
 {
 	for (int i = 0; i < m_numOfMod; ++i)
 	{
-		m_slicerWidgets[i]->applySettings(m_mdiChild->GetSlicerSettings().SingleSlicer);
+		m_slicerWidgets[i]->applySettings(m_mdiChild->slicerSettings().SingleSlicer);
 	}
 }
 
 // When new modalities are added/removed
 void iAMultimodalWidget::updateModalities()
 {
-	if (m_mdiChild->GetModalities()->size() >= m_numOfMod) {
+	if (m_mdiChild->modalities()->size() >= m_numOfMod) {
 		bool allModalitiesAreHere = true;
 		for (int i = 0; i < m_numOfMod; i++) {
-			if (/*NOT*/ ! containsModality(m_mdiChild->GetModality(i))) {
+			if (/*NOT*/ ! containsModality(m_mdiChild->modality(i))) {
 				allModalitiesAreHere = false;
 				break;
 			}
@@ -466,8 +465,8 @@ void iAMultimodalWidget::updateModalities()
 
 	} else {
 		int i = 0;
-		for (; i < m_numOfMod && i < m_mdiChild->GetModalities()->size(); ++i) {
-			m_modalitiesActive[i] = m_mdiChild->GetModality(i);
+		for (; i < m_numOfMod && i < m_mdiChild->modalities()->size(); ++i) {
+			m_modalitiesActive[i] = m_mdiChild->modality(i);
 		}
 		for (; i < m_numOfMod; i++) {
 			m_modalitiesActive[i] = Q_NULLPTR;
@@ -479,8 +478,9 @@ void iAMultimodalWidget::updateModalities()
 	for (int i = 0; i < m_numOfMod; ++i) {
 		m_modalitiesActive[i] = m_mdiChild->GetModality(i);
 
+		// TODO: Don't duplicate code from mdichild, call it instead!
 		// Histogram {
-		if (!m_modalitiesActive[i]->GetHistogramData() || m_modalitiesActive[i]->GetHistogramData()->GetNumBin() != m_mdiChild->GetPreferences().HistogramBins)
+		if (!m_modalitiesActive[i]->histogramData() || m_modalitiesActive[i]->histogramData()->numBin() != m_mdiChild->preferences().HistogramBins)
 		{
 			m_modalitiesActive[i]->ComputeImageStatistics();
 			m_modalitiesActive[i]->ComputeHistogramData(m_mdiChild->GetPreferences().HistogramBins);
@@ -513,14 +513,14 @@ void iAMultimodalWidget::updateModalities()
 		m_mdiChild->InitChannelRenderer(id, false, true);
 	}
 
-	connect((dlg_transfer*)(m_histograms[0]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction1()));
-	connect((dlg_transfer*)(m_histograms[1]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction2()));
+	connect((iAChartFunctionTransfer*)(m_histograms[0]->functions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction1()));
+	connect((iAChartFunctionTransfer*)(m_histograms[1]->functions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction2()));
 	if (m_numOfMod >= THREE) {
-		connect((dlg_transfer*)(m_histograms[2]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction3()));
+		connect((iAChartFunctionTransfer*)(m_histograms[2]->functions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction3()));
 	}
 
 	applyWeights();
-	connect((dlg_transfer*)(m_mdiChild->getHistogram()->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
+	connect((iAChartFunctionTransfer*)(m_mdiChild->histogram()->functions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
 
 	emit(modalitiesLoaded_beforeUpdate());
 
@@ -542,8 +542,8 @@ void iAMultimodalWidget::resetSlicer(int i)
 
 QSharedPointer<iATransferFunction> iAMultimodalWidget::createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacityFunction)
 {
-	colorTf->DeepCopy(m_modalitiesActive[index]->GetTransfer()->getColorFunction());
-	opacityFunction->DeepCopy(m_modalitiesActive[index]->GetTransfer()->getOpacityFunction());
+	colorTf->DeepCopy(m_modalitiesActive[index]->transfer()->colorFunction());
+	opacityFunction->DeepCopy(m_modalitiesActive[index]->transfer()->opacityFunction());
 	return QSharedPointer<iATransferFunction>(
 		new iASimpleTransferFunction(colorTf, opacityFunction));
 }
