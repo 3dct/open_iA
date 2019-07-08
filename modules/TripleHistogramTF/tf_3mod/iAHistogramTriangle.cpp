@@ -86,7 +86,7 @@ void iAHistogramTriangle::initialize(QString const names[3])
 		// m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->isValid()
 		// returns true (see isValid() definition 19/04/2019)
 		// That prevents a "Framebuffer incomplete attachment" warning
-		m_tmw->w_slicer(i)->getSlicer()->widget()->grabFramebuffer();
+		m_tmw->w_slicer(i)->getSlicer()->widget()->GRAB_FRAMEBUFFER();
 	}
 
 	//QLayout *thisLayout = new QHBoxLayout(this);
