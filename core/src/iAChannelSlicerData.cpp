@@ -154,9 +154,14 @@ bool iAChannelSlicerData::isInitialized() const
 }
 */
 
-vtkScalarsToColors* iAChannelSlicerData::cTF()
+vtkScalarsToColors* iAChannelSlicerData::colorTF()
 {
 	return m_cTF;
+}
+
+vtkPiecewiseFunction * iAChannelSlicerData::opacityTF()
+{
+	return m_oTF;
 }
 
 void iAChannelSlicerData::updateMapper()

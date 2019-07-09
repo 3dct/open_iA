@@ -53,7 +53,9 @@ public:
 	//! Get lookup table (combined color transfer function + piecewise function for opacity)
 	//vtkScalarsToColors* getLookupTable();
 	//! Get color transfer function (only the colors, fully opaque)
-	vtkScalarsToColors* cTF();
+	vtkScalarsToColors * colorTF();
+	//! Get opacity transfer function (if not used for this channel data, nullptr is returned!)
+	vtkPiecewiseFunction * opacityTF();
 
 	void updateMapper();
 	void updateResliceAxesDirectionCosines(int mode);

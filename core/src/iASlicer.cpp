@@ -625,7 +625,7 @@ void iASlicer::setMagicLensInput(uint id)
 	if (!data)
 		return;
 	m_magicLensInput = id;
-	m_magicLens->addInput(data->reslicer(), data->cTF(), data->name());
+	m_magicLens->addInput(data->reslicer(), data->colorTF(), data->name());
 	update();
 }
 
