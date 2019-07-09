@@ -18,22 +18,30 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+
 #include "iAHistogramTriangle.h"
 
 #include "iABarycentricTriangleWidget.h"
+#include "iATripleModalityWidget.h"
 #include "iASimpleSlicerWidget.h"
+
+#include "iASlicerData.h"
+#include "iASlicerWidget.h"
 
 #include <charts/iADiagramFctWidget.h>
 #include <iASlicerData.h>
 #include <iASlicerWidget.h>
 
+#include <QPoint>
 #include <QApplication>
 #include <QComboBox>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QResizeEvent>
 #include <QSlider>
+#include <QCheckBox>
 #include <QtMath>
+#include <QLabel>
 
 // Debug
 #include <QDebug>
@@ -48,13 +56,19 @@ const static int TRIANGLE_RIGHT = TRIANGLE_LEFT;
 const static int TRIANGLE_BOTTOM = HISTOGRAM_HEIGHT;
 const static double TRIANGLE_HEIGHT_RATIO = SIN60;
 const static double TRIANGLE_WIDTH_RATIO = 1.0 / TRIANGLE_HEIGHT_RATIO;
+const static int MODALITY_LABEL_MARGIN = 10;
+const static int WIDGETS_MARGIN = 10;
 
-iAHistogramTriangle::iAHistogramTriangle(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f)
-	: iATripleModalityWidget(parent, mdiChild, f)
+iAHistogramTriangle::iAHistogramTriangle(QWidget* parent, iATripleModalityWidget* tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f)
+	: m_tmw(tripleModalityWidget)
 {
 }
 
-void iAHistogramTriangle::initialize()
+void iAHistogramTriangle::glresized() {
+	qDebug() << "GL RESIZED!";
+}
+
+void iAHistogramTriangle::initialize(QString const names[3])
 {
 	m_clipPathPen.setWidth(1);
 	m_clipPathPen.setColor(Qt::black);
@@ -64,29 +78,43 @@ void iAHistogramTriangle::initialize()
 	setMouseTracking(true);
 
 	QWidget *widget = new QWidget(this);
-	//temp->setVisible(false);
 	QLayout *layout = new QHBoxLayout(widget);
-	layout->addWidget(m_slicerWidgets[0]->getSlicer()->widget());
-	layout->addWidget(m_slicerWidgets[1]->getSlicer()->widget());
-	layout->addWidget(m_slicerWidgets[2]->getSlicer()->widget());
-	//layout->setGeometry(QRect(0, 0, 300, 300));
-	//layout->setMargin(300);
+	for (int i = 0; i < 3; i++) {
+		layout->addWidget(m_tmw->w_slicer(i)->getSlicer()->widget());
+
+		// The following call will make sure that
+		// m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->isValid()
+		// returns true (see isValid() definition 19/04/2019)
+		// That prevents a "Framebuffer incomplete attachment" warning
+		m_tmw->w_slicer(i)->getSlicer()->widget()->GRAB_FRAMEBUFFER();
+	}
 
 	//QLayout *thisLayout = new QHBoxLayout(this);
 	//thisLayout->addWidget(temp);
 
-	m_sliceSlider->setOrientation(Qt::Vertical);
-	m_sliceSlider->setInvertedAppearance(true); // top to bottom, consistent with the main sliders's scroll bars
-	//m_sliceSlider->setParent(this);
-
-	//m_slicerModeComboBox->setParent(this);
+	m_tmw->w_layoutComboBox()->setParent(this);
+	m_tmw->w_sliceNumberLabel()->setParent(this);
+	m_tmw->w_slicerModeLabel()->setParent(this);
+	m_tmw->w_checkBox_weightByOpacity()->setParent(this);
+	m_tmw->w_checkBox_syncedCamera()->setParent(this);
 
 	calculatePositions();
-}
+	m_fClear = true;
+	update();
 
-void iAHistogramTriangle::setModalityLabel(QString label, int index)
-{
-	// TODO
+	// Debug
+	for (int i = 0; i < 3; i++) {
+		connect(m_tmw->w_slicer(i)->getSlicer()->widget(), SIGNAL(resized()), this, SLOT(glresized()));
+	}
+
+	// CONNECTIONS
+	connect(m_tmw, SIGNAL(transferFunctionChanged()), this, SLOT(updateSlicers()));
+	connect(m_tmw, SIGNAL(slicerModeChanged(iASlicerMode)), this, SLOT(updateSlicers()));
+	connect(m_tmw, SIGNAL(sliceNumberChanged(int)), this, SLOT(updateSlicers()));
+	connect(m_tmw, SIGNAL(slicerModeChangedExternally(iASlicerMode)), this, SLOT(updateSlicers()));
+	connect(m_tmw, SIGNAL(sliceNumberChangedExternally(int)), this, SLOT(updateSlicers()));
+
+	connect(m_tmw, SIGNAL(transferFunctionChanged()), this, SLOT(updateHistograms()));
 }
 
 void iAHistogramTriangle::resizeEvent(QResizeEvent* event)
@@ -94,62 +122,93 @@ void iAHistogramTriangle::resizeEvent(QResizeEvent* event)
 	calculatePositions(event->size().width(), event->size().height());
 }
 
+void iAHistogramTriangle::updateSlicers()
+{
+	for (int i = 0; i < 3; i++) {
+		m_fRenderSlicer[i] = true;
+	}
+	update();
+}
+
+void iAHistogramTriangle::updateHistograms()
+{
+	for (int i = 0; i < 3; i++) {
+		m_fRenderHistogram[i] = true;
+	}
+	update();
+}
+
 // EVENTS ----------------------------------------------------------------------------------------------------------
 
-void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event)
+void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event, MouseEventType eventType)
 {
-	if (onTriangle(event->pos())) {
-		QApplication::sendEvent(m_triangleWidget, event);
+	WidgetType widgetType = NONE;
+	QPoint transformed = QPoint();
+	QWidget *target = nullptr;
+	if (m_draggedType == HISTOGRAM) {
+		transformed = m_transformHistograms[m_lastIndex].inverted().map(event->pos());
+	} else if (m_draggedType == SLICER) {
+		transformed = m_transformSlicers[m_lastIndex].inverted().map(event->pos());
+	}
+
+	if (m_draggedType == TRIANGLE || (m_draggedType == NONE && onTriangle(event->pos()))) {
 		m_fRenderTriangle = true;
-		update();
-		return;
+
+		widgetType = TRIANGLE;
+		target = m_tmw->w_triangle();
 	}
 
-	QPoint transformed;
-	int index;
-	QWidget *target;
-
-	if (target = onHistogram(event->pos(), transformed, index)) {
+	else if (m_draggedType == HISTOGRAM || (m_draggedType == NONE && (target = onHistogram(event->pos(), transformed).data()))) {
 		event->setLocalPos(transformed);
-		QApplication::sendEvent(target, event);
-		m_fRenderHistogram[index] = true;
-		m_fRenderSlicer[index] = true;
-		update();
-		return;
+		m_fRenderHistogram[m_lastIndex] = true; // m_lastIndex is affected by onHistogram function
+		m_fRenderSlicer[m_lastIndex] = true; // m_lastIndex is affected by onHistogram function
+
+		widgetType = HISTOGRAM;
+		target = target ? target : m_draggedWidget;
 	}
 
-	if (target = onSlicer(event->pos(), transformed, index)) {
+	else if (m_draggedType == SLICER || (m_draggedType == NONE && (target = onSlicer(event->pos(), transformed)))) {
 		event->setLocalPos(transformed);
-		QApplication::sendEvent(target, event);
-		update();
-		m_fRenderSlicer[index] = true;
-		return;
+		m_fRenderSlicer[m_lastIndex] = true; // m_lastIndex is affected by onHistogram function
+
+		widgetType = SLICER;
+		target = target ? target : m_draggedWidget;
 	}
 
-	// the triangle widget actually occupies the whole screen, despite the triangle
-	//     itself being smaller
-	// the modality labels, for example, are part of the triangle widget
-	// to keep the interaction, forward the event to the triangle widget here
-	QApplication::sendEvent(m_triangleWidget, event);
+	else {
+		// the triangle widget actually occupies the whole screen, despite the triangle
+		//     itself being smaller
+		// the modality labels, for example, are part of the triangle widget
+		// to keep the interaction, forward the event to the triangle widget here
+		target = m_tmw->w_triangle();
 
-	// BUT DON'T RENDER THE TRIANGLE!
-	// The modality labels are rendered anyway, there's no need for this flag to be set
-	//m_fRenderTriangle = true;
+		// BUT DON'T RENDER THE TRIANGLE!
+		// The modality labels are rendered anyway, there's no need for this flag to be set
+		//m_fRenderTriangle = true;
+	}
 
+	if (eventType == PRESS) {
+		m_draggedType = widgetType;
+		m_draggedWidget = target;
+	} else if (eventType == RELEASE) {
+		m_draggedType = NONE;
+		m_draggedWidget = nullptr;
+	}
+
+	QApplication::sendEvent(target, event);
 	update();
 }
 
 void iAHistogramTriangle::forwardWheelEvent(QWheelEvent *e)
 {
 	QPoint transformed;
-	int index;
 	iASlicerWidget *target;
-	if ((target = onSlicer(e->pos(), transformed, index))) {
+	if (target = onSlicer(e->pos(), transformed)) {
 		QWheelEvent *newE = new QWheelEvent(transformed, e->globalPosF(), e->pixelDelta(), e->angleDelta(),
 			e->delta(), e->orientation(), e->buttons(),
 			e->modifiers(), e->phase(), e->source(), e->inverted());
 		QApplication::sendEvent(target, newE);
-		m_fRenderSlicer[index] = true;
+		m_fRenderSlicer[m_lastIndex] = true;
 		update();
 		return;
 	}
@@ -158,8 +217,7 @@ void iAHistogramTriangle::forwardWheelEvent(QWheelEvent *e)
 void iAHistogramTriangle::forwardContextMenuEvent(QContextMenuEvent *e)
 {
 	QPoint transformed;
-	int index;
-	iADiagramFctWidget* target = onHistogram(e->pos(), transformed, index);
+	iADiagramFctWidget *target = onHistogram(e->pos(), transformed).data();
 	if (target) {
 		QContextMenuEvent *newE = new QContextMenuEvent(e->reason(), transformed, e->globalPos());
 		QApplication::sendEvent(target, newE);
@@ -169,34 +227,34 @@ void iAHistogramTriangle::forwardContextMenuEvent(QContextMenuEvent *e)
 	}
 }
 
-iADiagramFctWidget* iAHistogramTriangle::onHistogram(QPoint p, QPoint &transformed, int &index)
+QSharedPointer<iADiagramFctWidget> iAHistogramTriangle::onHistogram(QPoint p, QPoint &transformed)
 {
 	for (int i = 0; i < 3; i++) {
 		transformed = m_transformHistograms[i].inverted().map(p);
 		if (m_histogramsRect.contains(transformed)) {
-			index = i;
-			return m_histograms[i];
+			m_lastIndex = i;
+			return m_tmw->w_histogram(i);
 		}
 	}
-	index = -1;
+	m_lastIndex = -1;
 	return nullptr;
 }
 
 bool iAHistogramTriangle::onTriangle(QPoint p)
 {
-	return m_triangleWidget->getTriangle().contains(p.x(), p.y());
+	return m_tmw->w_triangle()->getTriangle().contains(p.x(), p.y());
 }
 
-iASlicerWidget* iAHistogramTriangle::onSlicer(QPoint p, QPoint &transformed, int &index)
+iASlicerWidget* iAHistogramTriangle::onSlicer(QPoint p, QPoint &transformed)
 {
 	for (int i = 0; i < 3; i++) {
 		if (m_slicerTriangles[i].contains(p.x(), p.y())) {
 			transformed = m_transformSlicers[i].inverted().map(p);
-			index = i;
-			return m_slicerWidgets[i]->getSlicer()->widget();
+			m_lastIndex = i;
+			return m_tmw->w_slicer(i)->getSlicer()->widget();
 		}
 	}
-	index = -1;
+	m_lastIndex = -1;
 	return nullptr;
 }
 
@@ -208,7 +266,8 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 	int left, top, right, bottom, centerX, width, height; // Big triangle's positions
 	int w, h, l, t, r; // Small triangle's positions
 
-	{ // Triangle positions
+	// Triangle positions
+	{
 		int aw  = totalWidth - TRIANGLE_LEFT - TRIANGLE_RIGHT; // Available width for the triangle
 		int ah = totalHeight - TRIANGLE_TOP - TRIANGLE_BOTTOM;
 
@@ -248,11 +307,12 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		//int b = bottom;
 		//int cx = centerX;
 
-		m_triangleWidget->recalculatePositions(w, h, BarycentricTriangle(l, t, r, t, centerX, bottom));
+		m_tmw->w_triangle()->recalculatePositions(w, h, BarycentricTriangle(l, t, r, t, centerX, bottom));
 		m_triangleBigWidth = width;
 	}
 
-	{ // Set up the histograms' transforms and resize them
+	// Set up the histograms' transforms and resize them
+	{
 		m_transformHistograms[0].reset(); // left
 		m_transformHistograms[0].translate(left - TRIANGLE_LEFT, bottom - TRIANGLE_TOP);
 		m_transformHistograms[0].rotate(-60.0);
@@ -266,12 +326,13 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 
 		QSize size = QSize(width, HISTOGRAM_HEIGHT);
 		m_histogramsRect = QRect(0, 0, width, HISTOGRAM_HEIGHT);
-		m_histograms[0]->resize(size);
-		m_histograms[1]->resize(size);
-		m_histograms[2]->resize(size);
+		m_tmw->w_histogram(0)->resize(size);
+		m_tmw->w_histogram(1)->resize(size);
+		m_tmw->w_histogram(2)->resize(size);
 	}
 
-	{ // Set up the slicers's transforms and resize them
+	// Set up the slicers's transforms and resize them
+	{
 		m_transformSlicers[0].reset(); // right
 		m_transformSlicers[0].translate(centerX, t);
 		m_slicerTriangles[0].set(centerX, bottom, r, t, right, bottom);
@@ -283,7 +344,6 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_transformSlicers[2].reset(); // top
 		m_transformSlicers[2].translate(l, top);
 		m_slicerTriangles[2].set(l, t, centerX, top, r, t);
-
 
 		// Path encloses the left small triangle. When drawing, the path can be translated
 		// to the other triangle's positions, then translated back to the initial position
@@ -299,21 +359,21 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_slicerClipPaths[0] = m_slicerClipPaths[1]; // right
 		m_slicerClipPaths[0].translate(w, 0);
 
-		QRect rect = QRect(0, 0, w, h);
-		m_slicerWidgets[0]->setGeometry(rect);
-		m_slicerWidgets[1]->setGeometry(rect);
-		m_slicerWidgets[2]->setGeometry(rect);
 		QSize size = QSize(w, h);
-		m_slicerWidgets[0]->getSlicer()->widget()->resize(size);
-		m_slicerWidgets[1]->getSlicer()->widget()->resize(size);
-		m_slicerWidgets[2]->getSlicer()->widget()->resize(size);
+		m_tmw->w_slicer(0)->getSlicer()->widget()->resize(size);
+		m_tmw->w_slicer(1)->getSlicer()->widget()->resize(size);
+		m_tmw->w_slicer(2)->getSlicer()->widget()->resize(size);
+
+		qDebug() << "Slicers resized to" << size.width() << "x" << size.height();
+		
 	}
 
 	int histoLateral1_2Y = bottom - TRIANGLE_TOP;
 	int histoTop1X = centerX - TRIANGLE_LEFT;
 	int histoTop2X = centerX + TRIANGLE_LEFT;
 
-	{ // Set up the clip path convering all widgets
+	// Set up the clip path covering all widgets
+	{
 		m_clipPath = QPainterPath();
 		m_clipPath.moveTo(left, bottom);
 		m_clipPath.lineTo(boxLeft, histoLateral1_2Y);
@@ -327,52 +387,40 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_clipPath.lineTo(left, bottom);
 	}
 
-	{ // Combo box and slider
-		int controlsWidth = qMax(m_slicerModeComboBox->sizeHint().width(), m_sliceSlider->sizeHint().width());
-		int controlsBottom = controlsWidth * (-histoLateral1_2Y / histoTop1X) + histoLateral1_2Y;
-		int comboBoxHeight = m_slicerModeComboBox->sizeHint().height();
-		int sliderHeight = controlsBottom - comboBoxHeight;
+	// Other widgets
+	{
+		int layoutTypeComboBoxWidth = m_tmw->w_layoutComboBox()->sizeHint().width();
+		int checkBoxWeightByOpacityWidth = m_tmw->w_checkBox_weightByOpacity()->sizeHint().width();
+		int checkBoxSyncCameraWidth = m_tmw->w_checkBox_syncedCamera()->sizeHint().width();
+		int slicerModeLabelWidth = m_tmw->w_slicerModeLabel()->sizeHint().width();
+		int sliceNumberLabelWidth = m_tmw->w_sliceNumberLabel()->sizeHint().width();
 
-		m_slicerModeComboBox->setGeometry(QRect(0, 0, controlsWidth, comboBoxHeight));
-		m_sliceSlider->setGeometry(QRect(0, m_slicerModeComboBox->sizeHint().height(), controlsWidth, sliderHeight));
+		int controlsWidth = qMax(qMax(qMax(qMax(slicerModeLabelWidth, layoutTypeComboBoxWidth), checkBoxSyncCameraWidth), checkBoxWeightByOpacityWidth), sliceNumberLabelWidth);
+		int controlsBottom = controlsWidth * (-histoLateral1_2Y / histoTop1X) + histoLateral1_2Y;
+
+		int slicerModeComboBoxHeight = m_tmw->w_slicerModeLabel()->sizeHint().height();
+		int checkBoxWeightByOpacityHeight = m_tmw->w_checkBox_weightByOpacity()->sizeHint().height();
+		int checkBoxSyncCameraHeight = m_tmw->w_checkBox_syncedCamera()->sizeHint().height();
+		int layoutTypeComboBoxHeight = m_tmw->w_layoutComboBox()->sizeHint().height();
+		int sliceNumberLabelHeight = m_tmw->w_sliceNumberLabel()->sizeHint().height();
+
+		int bottom = 0;
+
+		m_tmw->w_layoutComboBox()->setGeometry(QRect(0, bottom, controlsWidth, layoutTypeComboBoxHeight));
+		bottom += layoutTypeComboBoxHeight + WIDGETS_MARGIN;
+
+		m_tmw->w_checkBox_weightByOpacity()->setGeometry(QRect(0, bottom, controlsWidth, checkBoxWeightByOpacityHeight));
+		bottom += checkBoxWeightByOpacityHeight + WIDGETS_MARGIN;
+
+		m_tmw->w_checkBox_syncedCamera()->setGeometry(QRect(0, bottom, controlsWidth, checkBoxSyncCameraHeight));
+		bottom += checkBoxSyncCameraHeight + WIDGETS_MARGIN;
+
+		m_tmw->w_slicerModeLabel()->setGeometry(QRect(0, bottom, controlsWidth, layoutTypeComboBoxHeight));
+		bottom += slicerModeComboBoxHeight + WIDGETS_MARGIN;
+
+		m_tmw->w_sliceNumberLabel()->setGeometry(QRect(0, bottom, controlsWidth, sliceNumberLabelHeight));
 
 		m_rControls = QRect(0, 0, controlsWidth, controlsBottom);
-	}
-
-	{ // Triangle's labels and weights
-		int tangent1_2Y = (boxTop + histoLateral1_2Y) / 2;
-		QPoint textPoint1 = QPoint((boxLeft + histoTop1X) / 2, tangent1_2Y);
-		QPoint textPoint2 = QPoint((histoTop2X + boxRight) / 2, tangent1_2Y);
-
-		QRect weightRects[3] = {
-			m_triangleWidget->getModalityWeightRect(0),
-			m_triangleWidget->getModalityWeightRect(1),
-			m_triangleWidget->getModalityWeightRect(2)
-		};
-		QRect labelRects[3] = {
-			m_triangleWidget->getModalityLabelRect(0),
-			m_triangleWidget->getModalityLabelRect(1),
-			m_triangleWidget->getModalityLabelRect(2)
-		};
-		
-		QPoint weightPoints[3] = {
-			QPoint(textPoint1.x() - weightRects[0].width(), textPoint1.y()),
-			textPoint2,
-			QPoint(right, ((bottom + boxBottom) / 2) + ((labelRects[2].height() + weightRects[2].height()) / 2))
-		};
-		QPoint labelPoints[3] = {
-			QPoint(textPoint1.x() - labelRects[0].width(), textPoint1.y() - weightRects[0].height()),
-			QPoint(textPoint2.x(), textPoint2.y() - weightRects[1].height()),
-			QPoint(weightPoints[2].x(), weightPoints[2].y() - weightRects[2].height())
-		};
-
-		m_triangleWidget->setModalityWeightPosition(weightPoints[0], 0);
-		m_triangleWidget->setModalityWeightPosition(weightPoints[1], 1);
-		m_triangleWidget->setModalityWeightPosition(weightPoints[2], 2);
-
-		m_triangleWidget->setModalityLabelPosition(labelPoints[0], 0);
-		m_triangleWidget->setModalityLabelPosition(labelPoints[1], 1);
-		m_triangleWidget->setModalityLabelPosition(labelPoints[2], 2);
 	}
 
 	m_fClear = true;
@@ -380,6 +428,10 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 
 void iAHistogramTriangle::paintEvent(QPaintEvent* event)
 {
+	// Unfortunatelly, enabling this mechanism of not rendering everything leads to
+	// many updates not occurring. Probably a consequence of the Qt hacks this class
+	// does... No idea how to fix that, so disable this system for now (=> m_fClear = true).
+	m_fClear = true;
 	if (m_fClear) {
 		m_fRenderHistogram[0] = true;
 		m_fRenderHistogram[1] = true;
@@ -398,11 +450,11 @@ void iAHistogramTriangle::paintEvent(QPaintEvent* event)
 	p.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 	//p.setClipPath(m_clipPath);
 
-	paintSlicers(p);
-
 	if (m_fRenderTriangle) {
-		m_triangleWidget->paintContext(p);
+		m_tmw->w_triangle()->paintContext(p);
 	}
+
+	paintSlicers(p);
 
 	paintHistograms(p);
 
@@ -416,8 +468,7 @@ void iAHistogramTriangle::paintEvent(QPaintEvent* event)
 
 	p.begin(this);
 	p.drawImage(0, 0, m_buffer);
-	m_triangleWidget->paintModalityLabels(p); // gets repainted everytime!
-	m_triangleWidget->paintControlPoint(p);
+	m_tmw->w_triangle()->paintControlPoint(p);
 	p.end();
 
 	m_fClear = false;
@@ -444,7 +495,13 @@ void iAHistogramTriangle::paintSlicers(QPainter &p)
 			p.setClipPath(m_slicerClipPaths[i]);
 			p.setTransform(m_transformSlicers[i]);
 
-			img = m_slicerWidgets[i]->getSlicer()->widget()->GRAB_FRAMEBUFFER();
+			img = m_tmw->w_slicer(i)->getSlicer()->widget()->GRAB_FRAMEBUFFER();
+
+			QSize size = m_tmw->w_slicer(i)->getSlicer()->widget()->size();
+			//qDebug() << "Slicer framebuffer valid?" << m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->isValid();
+			qDebug() << "Slicer size:" << size.width() << "x" << size.height();
+			qDebug() << "Image size:" << img.size().width() << "x" << img.size().height();
+
 			p.drawImage(0, 0, img);
 
 			p.resetTransform(); // otherwise, clip path in setClipPath will be transformed as well
@@ -463,29 +520,14 @@ void iAHistogramTriangle::paintHistograms(QPainter &p)
 	//QPen oldPen = p.pen();
 	//p.setPen(m_histogramsBorderPen);
 
-	// LEFT
-	if (m_fRenderHistogram[0]) {
-		p.setTransform(m_transformHistograms[0]);
-		auto img = m_histograms[0]->drawOffscreen();
-		//img.save("C:\\test.png");
-		p.drawImage(0, 0, img);
-		//p.drawRect(m_histogramsRect);
-	}
-
-	// RIGHT
-	if (m_fRenderHistogram[1]) {
-		p.setTransform(m_transformHistograms[1]);
-		auto img = m_histograms[1]->drawOffscreen();
-		p.drawImage(0, 0, img);
-		//p.drawRect(m_histogramsRect);
-	}
-
-	// BOTTOM
-	if (m_fRenderHistogram[2]) {
-		p.setTransform(m_transformHistograms[2]);
-		auto img = m_histograms[2]->drawOffscreen();
-		p.drawImage(0, 0, img);
-		//p.drawRect(m_histogramsRect);
+	// LEFT, RIGHT then BOTTOM
+	for (int i = 0; i < 3; i++) {
+		if (m_fRenderHistogram[i]) {
+			p.setTransform(m_transformHistograms[i]);
+			auto img = m_tmw->w_histogram(i)->drawOffscreen();
+			p.drawImage(0, 0, img);
+			//p.drawRect(m_histogramsRect);
+		}
 	}
 
 	p.resetTransform();

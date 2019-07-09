@@ -70,6 +70,7 @@ public:
 	void SetMovable(bool movable);
 
 	const iAVolumeSettings& getVolumeSettings() const;
+	bool isRendered() const;
 private:
 	iAVolumeSettings m_VolSettings;
 	vtkSmartPointer<vtkVolume> volume;

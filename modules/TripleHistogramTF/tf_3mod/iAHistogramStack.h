@@ -20,48 +20,33 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iASlicerMode.h>
+#include "iAHistogramAbstract.h"
 
-#include <vtkTransform.h>
-
-#include <QSharedPointer>
 #include <QWidget>
 
-class iAModality;
-class iASingleSlicerSettings;
-class iASlicer;
+class iAHistogramStackGrid;
+class iATripleModalityWidget;
+class iADiagramFctWidget;
+class iASimpleSlicerWidget;
 
-class vtkCamera;
+class MdiChild;
 
-class iASimpleSlicerWidget : public QWidget
+class QGridLayout;
+class QSplitter;
+class QLabel;
+
+class iAHistogramStack : public iAHistogramAbstract
 {
-	Q_OBJECT
-
 public:
-	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
-	~iASimpleSlicerWidget();
+	iAHistogramStack(QWidget* parent, iATripleModalityWidget *tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f = 0);
 
-	void setSlicerMode(iASlicerMode slicerMode);
-	iASlicerMode getSlicerMode();
-
-	void setSliceNumber(int sliceNumber);
-	int getSliceNumber();
-
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
-
-	void applySettings(iASingleSlicerSettings const & settings);
-	void changeModality(QSharedPointer<iAModality> modality);
-
-	void setCamera(vtkCamera* camera);
-
-	iASlicer* getSlicer() { return m_slicer; }
-
-public slots:
-	void update();
+	// OVERRIDES
+	void initialize(QString const names[3]) override;
+	bool isSlicerInteractionEnabled() override { return true; }
 
 private:
-	bool m_enableInteraction;
-	vtkTransform *m_slicerTransform;
-	iASlicer *m_slicer;
+	QSplitter *m_splitter;
+	iAHistogramStackGrid *m_grid;
+
+	iATripleModalityWidget* m_tmw;
 };

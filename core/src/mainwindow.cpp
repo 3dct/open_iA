@@ -1655,6 +1655,10 @@ void MainWindow::updateMenus()
 			actionDeletePoint->setEnabled(true);
 			actionChangeColor->setEnabled(true);
 		}
+		// set current application working directory to the one where the file is in (as default directory, e.g. for file open)
+		// see also MdiChild::setCurrentFile
+		if (!activeMdiChild()->getFilePath().isEmpty())
+			QDir::setCurrent(activeMdiChild()->getFilePath());
 		//??if (activeMdiChild())
 		//	histogramToolbar->setEnabled(activeMdiChild()->getTabIndex() == 1 && !activeMdiChild()->isMaximized());
 	}
@@ -2306,7 +2310,7 @@ void MainWindow::saveProject()
 void MainWindow::loadArguments(int argc, char** argv)
 {
 	QStringList files;
-	for (int a = 1; a < argc; ++a) files << argv[a];
+	for (int a = 1; a < argc; ++a) files << QString::fromLocal8Bit(argv[a]);
 	loadFiles(files);
 }
 

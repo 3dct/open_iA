@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. WeissenbÃ¶ck, B. FrÃ¶hler, M. Schiwarth       *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,55 +15,22 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include <vtkSmartPointer.h>
+#include "iATripleModalityWidget.h"
+#include "iAHistogramStack.h"
+#include "iAHistogramTriangle.h"
 
-#include <QDockWidget>
+iAHistogramAbstract* iAHistogramAbstract::buildHistogramAbstract(iAHistogramAbstractType type, iATripleModalityWidget *tmw, MdiChild *mdiChild, Qt::WindowFlags f) {
+	switch (type) {
+	case STACK:
+		return new iAHistogramStack(tmw, tmw, mdiChild, f);
 
-class QStackedLayout;
-class QLabel;
+	case TRIANGLE:
+		return new iAHistogramTriangle(tmw, tmw, mdiChild, f);
+	}
 
-class MdiChild;
-class iABarycentricTriangleWidget;
-class iATripleModalityWidget;
-class BCoord;
-
-class vtkSmartVolumeMapper;
-class vtkVolume;
-class vtkRenderer;
-
-//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
-
-class dlg_TripleHistogramTF : public QDockWidget//public TripleHistogramTFConnector
-{
-	Q_OBJECT
-
-public:
-	dlg_TripleHistogramTF(MdiChild* parent, Qt::WindowFlags f = 0);
-	~dlg_TripleHistogramTF();
-
-public slots:
-	void updateTransferFunction();
-	void updateModalities();
-
-private slots:
-
-private:
-	void updateDisabledLabel();
-
-	// TODO: is it really good to keep the mdiChild as a member variable?
-	MdiChild *m_mdiChild;
-
-	// Widgets and stuff
-	QStackedLayout *m_stackedLayout;
-	QLabel *m_disabledLabel;
-	iATripleModalityWidget *m_histogramStack;
-	
-	vtkSmartPointer<vtkSmartVolumeMapper> combinedVolMapper;
-	vtkSmartPointer<vtkRenderer> combinedVolRenderer;
-	vtkSmartPointer<vtkVolume> combinedVol;
-};
+	throw "Unexpected type";
+}

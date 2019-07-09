@@ -163,7 +163,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	SetModalities(modList);
 	splitDockWidget(logs, m_dlgModalities, Qt::Horizontal);
-	m_dlgModalities->SetSlicePlanes(Raycaster->getPlane1(), Raycaster->getPlane2(), Raycaster->getPlane3());
 	ApplyViewerPreferences();
 	imgProperty = nullptr;
 	imgProfile = nullptr;
@@ -295,9 +294,10 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, SIGNAL(active()), this, SIGNAL(active()));
 	connect((dlg_transfer*)(m_histogram->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(ModalityTFChanged()));
 
-	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateImageProperties()));
-	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateViews()));
+	connect(m_dlgModalities, SIGNAL(ModalitiesChanged(bool)), this, SLOT(updateImageProperties()));
+	connect(m_dlgModalities, SIGNAL(ModalitiesChanged(bool)), this, SLOT(updateViews()));
 	connect(m_dlgModalities, SIGNAL(ModalitySelected(int)), this, SLOT(ShowModality(int)));
+	connect(m_dlgModalities, SIGNAL(ModalitiesChanged(bool, double const *)), this, SLOT(resetCamera(bool, double const *)));
 }
 
 void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithm* thread )
@@ -1580,7 +1580,7 @@ void MdiChild::ApplyVolumeSettings(const bool loadSavedVolumeSettings)
 {
 	for (int i = 0; i < 3; ++i)
 		slicer[i]->widget()->showBorder(renderSettings.ShowSlicePlanes);
-	m_dlgModalities->ShowSlicers(renderSettings.ShowSlicers);
+	m_dlgModalities->ShowSlicers(renderSettings.ShowSlicers, Raycaster->getPlane1(), Raycaster->getPlane2(), Raycaster->getPlane3());
 	m_dlgModalities->ChangeRenderSettings(volumeSettings, loadSavedVolumeSettings);
 }
 
@@ -1730,6 +1730,7 @@ bool MdiChild::editSlicerSettings(iASlicerSettings const & slicerSettings)
 	setupSlicers(slicerSettings, false);
 	for (int s = 0; s<3; ++s)
 		slicer[s]->show();
+	emit slicerSettingsChanged();
 	return true;
 }
 
@@ -2286,6 +2287,8 @@ void MdiChild::setCurrentFile(const QString &f)
 	fileInfo.setFile(f);
 	curFile = f;
 	path = fileInfo.canonicalPath();
+	if (isActiveWindow())
+		QDir::setCurrent(path);  // set current application working directory to the one where the file is in (as default directory, e.g. for file open)
 	isUntitled = f.isEmpty();
 	setWindowTitle(userFriendlyCurrentFile() + "[*]");
 }
@@ -2957,6 +2960,24 @@ void MdiChild::StatisticsAvailable(int modalityIdx)
 	}
 	ModalityTFChanged();
 	updateViews();
+}
+
+void MdiChild::resetCamera(bool spacingChanged, double const * newSpacing)
+{
+	if (!spacingChanged)
+	{
+		return;
+	}
+	//TODO  doing reset camera this for single only for when edit clicked is doen  // same with slicer
+	Raycaster->updateSlicePlanes(newSpacing);
+	Raycaster->GetRenderer()->ResetCamera();
+	Raycaster->update();
+	for (int s = 0; s < 3; ++s)
+	{
+		slicer[s]->GetRenderer()->ResetCamera();
+		slicer[s]->update();
+	}
+	emit updatedViews();
 }
 
 void MdiChild::InitVolumeRenderers()

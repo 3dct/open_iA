@@ -297,13 +297,13 @@ FuzzyClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     {
     for (j = 0; j < InputImagePixelDimension; j++)
       {
-      difference += vcl_pow((m_Centroids[i][j] - arrayOfCentroids[i][j]), 2);
+      difference += std::pow((m_Centroids[i][j] - arrayOfCentroids[i][j]), 2);
       }
     }
 
   difference /= m_NumberOfClasses;
 
-  return vcl_sqrt(difference);
+  return std::sqrt(difference);
 }
 
 

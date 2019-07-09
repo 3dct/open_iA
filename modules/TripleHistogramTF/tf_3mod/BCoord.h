@@ -20,48 +20,39 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iASlicerMode.h>
+class BarycentricTriangle;
 
-#include <vtkTransform.h>
-
-#include <QSharedPointer>
-#include <QWidget>
-
-class iAModality;
-class iASingleSlicerSettings;
-class iASlicer;
-
-class vtkCamera;
-
-class iASimpleSlicerWidget : public QWidget
+class BCoord
 {
-	Q_OBJECT
-
 public:
-	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
-	~iASimpleSlicerWidget();
+	BCoord(double alpha, double beta);
+	BCoord() : BCoord((double)1 / (double)3, (double)1 / (double)3) {}
+	BCoord(BarycentricTriangle triangle, double x, double y);
 
-	void setSlicerMode(iASlicerMode slicerMode);
-	iASlicerMode getSlicerMode();
+	double getAlpha() const;
+	double getBeta() const;
+	double getGamma() const;
+	bool isInside() const;
 
-	void setSliceNumber(int sliceNumber);
-	int getSliceNumber();
+	double operator[] (int x) {
+		switch (x) {
+		case 0: return getAlpha();
+		case 1: return getBeta();
+		case 2: return getGamma();
+		default: return 0;
+		}
+	}
 
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
+	bool operator== (const BCoord that) {
+		return getAlpha() == that.getAlpha() && getBeta() == that.getBeta();
+	}
 
-	void applySettings(iASingleSlicerSettings const & settings);
-	void changeModality(QSharedPointer<iAModality> modality);
-
-	void setCamera(vtkCamera* camera);
-
-	iASlicer* getSlicer() { return m_slicer; }
-
-public slots:
-	void update();
+	bool operator!= (const BCoord that) {
+		return getAlpha() != that.getAlpha() || getBeta() != that.getBeta();
+	}
 
 private:
-	bool m_enableInteraction;
-	vtkTransform *m_slicerTransform;
-	iASlicer *m_slicer;
+	double m_alpha;
+	double m_beta;
+
 };

@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "RightBorderLayout.h"
 #include "BarycentricTriangle.h"
 #include "BCoord.h"
 
@@ -31,51 +30,30 @@
 #include <QPoint>
 #include <QWidget>
 
-class iATriangleRenderer;
+class iABarycentricContextRenderer;
 
 class vtkImageData;
 
-// Constants (more in the cpp file!)
-static const QString MODALITY_LABEL_1_DEFAULT = "A";
-static const QString MODALITY_LABEL_2_DEFAULT = "B";
-static const QString MODALITY_LABEL_3_DEFAULT = "C";
+class QSpinBox;
 
-static const QColor BACKGROUND_DEFAULT = QColor(242, 242, 242, 255);
-
-class iABarycentricTriangleWidget : public QWidget, public IBorderWidget
+class iABarycentricTriangleWidget : public QWidget
 {
 	Q_OBJECT
 
 public:
 	iABarycentricTriangleWidget(QWidget* parent = 0, Qt::WindowFlags f = 0);
-	
-	~iABarycentricTriangleWidget();
 
-	bool hasWidthForHeight() override;
-	int getWidthForHeight(int height) override;
-	bool hasHeightForWidth() override;
-	int getHeightForWidth(int width) override;
-	QWidget* widget() override;
-
-	int getWidthForCurrentHeight();
-	int getHeightForCurrentWidth();
+	int getWidthForHeight(int height);
+	int getHeightForWidth(int width);
 
 	void recalculatePositions() { recalculatePositions(width(), height()); }
 	void recalculatePositions(int width, int height, BarycentricTriangle triange);
-	void setFont(QFont font);
-	void setModality1label(QString label);
-	void setModality2label(QString label);
-	void setModality3label(QString label);
-	void setModalityLabelPosition(QPoint position, int modalityIndex);
-	void setModalityWeightPosition(QPoint position, int modalityIndex);
-	QRect getModalityLabelRect(int modalityIndex);
-	QRect getModalityWeightRect(int modalityIndex);
 
 	BCoord getWeight();
 	void setWeight(BCoord newWeight);
 
-	void setTriangleRenderer(iATriangleRenderer *triangleRenderer);
-	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
+	void setTriangleRenderer(iABarycentricContextRenderer *triangleRenderer);
+	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, QString const name[3]);
 
 	BarycentricTriangle getTriangle() { return m_triangle; }
 
@@ -83,12 +61,16 @@ public:
 	void paintTriangleBorder(QPainter &p);
 	void paintContext(QPainter &p);
 	void paintControlPoint(QPainter &p);
-	void paintModalityLabels(QPainter &p);
-
-public slots:
 
 signals:
-	void weightChanged(BCoord bCoord);
+	void weightsChanged(BCoord bCoord);
+
+private slots:
+	void onHeatmapReady();
+
+	void onSpinBoxValueChanged_1(int newValue);
+	void onSpinBoxValueChanged_2(int newValue);
+	void onSpinBoxValueChanged_3(int newValue);
 
 protected:
 	void paintEvent(QPaintEvent* event);
@@ -103,23 +85,7 @@ private:
 	QPoint m_controlPointOld;
 	BCoord m_controlPointBCoord;
 
-	QFont m_modalityLabelFont;
-	QString m_modalityLabel1 = MODALITY_LABEL_1_DEFAULT;
-	QString m_modalityLabel2 = MODALITY_LABEL_2_DEFAULT;
-	QString m_modalityLabel3 = MODALITY_LABEL_3_DEFAULT;
-	QPoint m_modalityLabelPos[3];
-	QRect m_modalityLabelRect[3];
-	QPen m_modalityLabelHighlightPen;
-	int m_modalityHighlightedIndex = -1; // -1 for none (or any value < 0)
-	bool interactWithModalityLabel(QPoint p, bool press);
-
-	QFont m_modalityWeightFont;
-	QString m_modalityWeight1;
-	QString m_modalityWeight2;
-	QString m_modalityWeight3;
-	QPoint m_modalityWeightPos[3];
-	QRect m_modalityWeightRect[3];
-	void updateModalityWeightLabels(BCoord bCoord);
+	QSpinBox *m_spinBoxes[3];
 
 	QPainterPath m_trianglePainterPath;
 	QBrush m_triangleFillBrush;
@@ -130,22 +96,41 @@ private:
 	QPainterPath m_controlPointCrossPainterPath;
 	QPen m_controlPointCrossPen;
 
-	iATriangleRenderer *m_triangleRenderer = nullptr;
+	iABarycentricContextRenderer *m_triangleRenderer = nullptr;
 
 	bool m_dragging = false;
 
 	void initializeControlPointPaths();
-	void updateControlPointCoordinates(BCoord bCoord);
-	void updateControlPointPosition(QPoint newPos);
-	void updateControlPointPosition();
+	void updateControlPoint(BCoord bCoord, QPoint newPos, int a, int b, int c);
 	void moveControlPointTo(QPoint newPos);
+
+	void updateControlPointCoordinates(BCoord bc) {
+		int a = bc[0] * 100;
+		int b = bc[1] * 100;
+		int c = 100 - a - b;
+		updateControlPointCoordinates(bc, a, b, c);
+	}
+
+	void updateControlPointCoordinates(BCoord bCoord, int a, int b, int c) {
+		updateControlPoint(bCoord, m_triangle.getCartesianCoordinates(bCoord), a, b, c);
+	}
+
+	void updateControlPointPosition(QPoint newPos) {
+		auto bc = m_triangle.getBarycentricCoordinates(newPos.x(), newPos.y());
+		int a = bc[0] * 100;
+		int b = bc[1] * 100;
+		int c = 100 - a - b;
+		updateControlPoint(bc, newPos, a, b, c);
+	}
+
+	void updateControlPointPosition() {
+		updateControlPointCoordinates(m_controlPointBCoord);
+	}
 
 	void recalculatePositions(int w, int h);
 	void recalculatePositions(int w, int h, bool changeTriangle);
 
 	bool isTooWide(int width, int height);
 	bool isTooTall(int width, int height);
-
-	void clearGL();
 
 };

@@ -20,20 +20,22 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkSmartPointer.h>
+#include <QDockWidget>
 
-class BarycentricTriangle;
+class MdiChild;
+class iATripleModalityWidget;
+class iABimodalWidget;
 
-class vtkImageData;
+//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
 
-class QPainter;
-
-class iATriangleRenderer
+class dlg_tf_2mod : public QDockWidget//public TripleHistogramTFConnector
 {
+	Q_OBJECT
+
 public:
-	virtual ~iATriangleRenderer() {}
-	virtual void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle) = 0;
-	virtual void setTriangle(BarycentricTriangle triangle) = 0;
-	virtual void paintContext(QPainter &p) = 0;
-	virtual bool canPaint() = 0;
+	dlg_tf_2mod(MdiChild* parent, Qt::WindowFlags f = 0);
+
+private:
+	MdiChild *m_mdiChild;
+	iABimodalWidget *m_bimodalWidget;
 };

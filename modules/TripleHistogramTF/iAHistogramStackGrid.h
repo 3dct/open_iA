@@ -20,48 +20,33 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iASlicerMode.h>
-
-#include <vtkTransform.h>
-
-#include <QSharedPointer>
 #include <QWidget>
 
-class iAModality;
-class iASingleSlicerSettings;
-class iASlicer;
+#include <QVector>
+#include <QSharedPointer>
 
-class vtkCamera;
+class iADiagramFctWidget;
+class iASimpleSlicerWidget;
 
-class iASimpleSlicerWidget : public QWidget
+class QLabel;
+class QGridLayout;
+class QResizeEvent;
+
+class iAHistogramStackGrid : public QWidget
 {
-	Q_OBJECT
-
 public:
-	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
-	~iASimpleSlicerWidget();
+	iAHistogramStackGrid(
+		QWidget *parent,
+		QVector<iADiagramFctWidget*> histograms,
+		QVector<iASimpleSlicerWidget*> slicers,
+		QVector<QLabel*> labels,
+		Qt::WindowFlags f = 0);
 
-	void setSlicerMode(iASlicerMode slicerMode);
-	iASlicerMode getSlicerMode();
-
-	void setSliceNumber(int sliceNumber);
-	int getSliceNumber();
-
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
-
-	void applySettings(iASingleSlicerSettings const & settings);
-	void changeModality(QSharedPointer<iAModality> modality);
-
-	void setCamera(vtkCamera* camera);
-
-	iASlicer* getSlicer() { return m_slicer; }
-
-public slots:
-	void update();
-
+	void adjustStretch() { adjustStretch(size().width()); }
+protected:
+	void resizeEvent(QResizeEvent* event);
 private:
-	bool m_enableInteraction;
-	vtkTransform *m_slicerTransform;
-	iASlicer *m_slicer;
+	void adjustStretch(int w);
+	QGridLayout *m_gridLayout;
+	int m_spacing = 1;
 };

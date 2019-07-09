@@ -108,6 +108,11 @@ const iAVolumeSettings& iAVolumeRenderer::getVolumeSettings() const
 	return m_VolSettings;
 }
 
+bool iAVolumeRenderer::isRendered() const
+{
+	return currentRenderer;
+}
+
 void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & vs)
 {
 	if (m_isFlat)
