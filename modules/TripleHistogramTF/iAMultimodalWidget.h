@@ -136,6 +136,7 @@ private:
 	void updateDisabledLabel();
 	QVector<QSharedPointer<iADiagramFctWidget>> m_histograms;
 	QVector<QSharedPointer<iASimpleSlicerWidget>> m_slicerWidgets;
+	QVector<uint> m_channelID;
 	QStackedLayout *m_stackedLayout;
 	QCheckBox *m_checkBox_weightByOpacity;
 	QLabel *m_disabledLabel;

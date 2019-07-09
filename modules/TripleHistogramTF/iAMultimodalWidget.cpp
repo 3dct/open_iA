@@ -23,24 +23,26 @@
 
 #include "iASimpleSlicerWidget.h"
 
-#include <iAChartFunctionTransfer.h>
 #include <charts/iADiagramFctWidget.h>
 #include <charts/iAHistogramData.h>
 #include <charts/iAPlotTypes.h>
 #include <charts/iAProfileWidget.h>
+#include <dlg_modalities.h>
+#include <dlg_slicer.h>
+#include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
-#include <iASlicer.h>
+#include <iAChartFunctionTransfer.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
 //#include <iAPerformanceHelper.h>
 #include <iAPreferences.h>
+#include <iARenderer.h>
+#include <iASlicer.h>
 #include <iASlicerMode.h>
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
-#include <iARenderer.h>
 #include <iAVolumeRenderer.h>
-#include <dlg_modalities.h>
 #include <mdichild.h>
 
 #include <vtkCamera.h>
@@ -130,9 +132,9 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 	connect(mdiChild->slicerDockWidget(iASlicerMode::XZ)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(onMainXZScrollBarPress()));
 	connect(mdiChild->slicerDockWidget(iASlicerMode::YZ)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(onMainYZScrollBarPress()));
 
-	connect(mdiChild->slicerDockWidget(iASlicerMode::XY)->spinBox, SIGNAL(valueChanged(int)), this, SLOT(onMainXYSliceNumberChanged(int)));
-	connect(mdiChild->slicerDockWidget(iASlicerMode::XZ)->spinBox, SIGNAL(valueChanged(int)), this, SLOT(onMainXZSliceNumberChanged(int)));
-	connect(mdiChild->slicerDockWidget(iASlicerMode::YZ)->spinBox, SIGNAL(valueChanged(int)), this, SLOT(onMainYZSliceNumberChanged(int)));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::XY)->sbSlice, SIGNAL(valueChanged(int)), this, SLOT(onMainXYSliceNumberChanged(int)));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::XZ)->sbSlice, SIGNAL(valueChanged(int)), this, SLOT(onMainXZSliceNumberChanged(int)));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::YZ)->sbSlice, SIGNAL(valueChanged(int)), this, SLOT(onMainYZSliceNumberChanged(int)));
 
 	//connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(modalitiesChanged()));
 	connect(mdiChild, SIGNAL(histogramAvailable()), this, SLOT(histogramAvailable()));
@@ -198,7 +200,7 @@ void iAMultimodalWidget::updateVisualizationsNow()
 	m_timer_updateVisualizations->stop();
 
 	m_mdiChild->redrawHistogram();
-	m_mdiChild->getRenderer()->update();
+	m_mdiChild->renderer()->update();
 
 	if (!m_mainSlicersInitialized)
 		return;
@@ -207,7 +209,7 @@ void iAMultimodalWidget::updateVisualizationsNow()
 
 	//iATimeGuard test("updateMainSlicers");
 
-	iASlicer* slicerDataArray[] = {
+	iASlicer* slicerArray[] = {
 		m_mdiChild->slicer(iASlicerMode::YZ),
 		m_mdiChild->slicer(iASlicerMode::XY),
 		m_mdiChild->slicer(iASlicerMode::XZ)
@@ -215,28 +217,25 @@ void iAMultimodalWidget::updateVisualizationsNow()
 
 	for (int mainSlicerIndex = 0; mainSlicerIndex < 3; mainSlicerIndex++) {
 
-		auto data = slicerDataArray[mainSlicerIndex];
+		auto slicer = slicerArray[mainSlicerIndex];
 
 		vtkSmartPointer<vtkImageData> slicersColored[3];
 		vtkSmartPointer<vtkImageData> slicerInput[3];
 		vtkPiecewiseFunction* slicerOpacity[3];
 		for (int modalityIndex = 0; modalityIndex < m_numOfMod; modalityIndex++) {
-			iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + modalityIndex);
-			auto channel = data->channel(id);
-			data->setChannelOpacity(id, 0);
+			auto channel = slicer->channel(m_channelID[modalityIndex]);
+			slicer->setChannelOpacity(m_channelID[modalityIndex], 0);
 
-			//vtkImageData imgMod = data->GetReslicer()->GetOutput();
-			//auto imgMod = data->GetChannel(ch_Meta0 + 1)->reslicer->GetOutput();
 			// This changes everytime the TF changes!
-			auto imgMod = channel->reslicer->GetOutput();
+			auto imgMod = channel->reslicer()->GetOutput();
 			slicerInput[modalityIndex] = imgMod;
-			slicerOpacity[modalityIndex] = channel->m_otf;
+			slicerOpacity[modalityIndex] = channel->opacityTF();
 
 			// Source: https://vtk.org/Wiki/VTK/Examples/Cxx/Images/ImageMapToColors
 			// This changes everytime the TF changes!
 			auto scalarValuesToColors = vtkSmartPointer<vtkImageMapToColors>::New(); // Will it work?
 			//scalarValuesToColors->SetLookupTable(channel->m_lut);
-			scalarValuesToColors->SetLookupTable(channel->m_ctf);
+			scalarValuesToColors->SetLookupTable(channel->colorTF());
 			scalarValuesToColors->SetInputData(imgMod);
 			scalarValuesToColors->Update();
 			slicersColored[modalityIndex] = scalarValuesToColors->GetOutput();
@@ -293,7 +292,7 @@ void iAMultimodalWidget::updateVisualizationsNow()
 		// Sets the INPUT image which will be sliced again, but we have a sliced image already
 		//m_mdiChild->getSlicerDataYZ()->changeImageData(imgOut);
 		imgOut->Modified();
-		data->GetImageActor()->SetInputData(imgOut);
+		slicer->channel(0)->imageActor()->SetInputData(imgOut);
 	}
 
 	for (int i=0; i<3; ++i)
@@ -337,9 +336,9 @@ void iAMultimodalWidget::histogramAvailable() {
 	m_stackedLayout->setCurrentIndex(0);
 
 	auto appendFilter = vtkSmartPointer<vtkImageAppendComponents>::New();
-	appendFilter->SetInputData(getModality(0)->GetImage());
+	appendFilter->SetInputData(getModality(0)->image());
 	for (int i = 1; i < m_numOfMod; i++) {
-		appendFilter->AddInputData(getModality(i)->GetImage());
+		appendFilter->AddInputData(getModality(i)->image());
 	}
 	appendFilter->Update();
 
@@ -347,9 +346,9 @@ void iAMultimodalWidget::histogramAvailable() {
 	auto combinedVolProp = vtkSmartPointer<vtkVolumeProperty>::New();
 
 	for (int i = 0; i < m_numOfMod; i++) {
-		auto transfer = getModality(i)->GetTransfer();
-		combinedVolProp->SetColor(i, transfer->getColorFunction());
-		combinedVolProp->SetScalarOpacity(i, transfer->getOpacityFunction());
+		auto transfer = getModality(i)->transfer();
+		combinedVolProp->SetColor(i, transfer->colorTF());
+		combinedVolProp->SetScalarOpacity(i, transfer->opacityTF());
 	}
 
 	m_combinedVol->SetProperty(combinedVolProp);
@@ -363,7 +362,7 @@ void iAMultimodalWidget::histogramAvailable() {
 	m_combinedVol->Update();
 
 	m_combinedVolRenderer = vtkSmartPointer<vtkRenderer>::New();
-	m_combinedVolRenderer->SetActiveCamera(m_mdiChild->getRenderer()->getCamera());
+	m_combinedVolRenderer->SetActiveCamera(m_mdiChild->renderer()->camera());
 	m_combinedVolRenderer->GetActiveCamera()->ParallelProjectionOn();
 	m_combinedVolRenderer->SetLayer(1);
 	m_combinedVolRenderer->AddVolume(m_combinedVol);
@@ -371,34 +370,29 @@ void iAMultimodalWidget::histogramAvailable() {
 
 	for (int i = 0; i < m_numOfMod; ++i)
 	{
-		QSharedPointer<iAVolumeRenderer> renderer = getModality(i)->GetRenderer();
+		QSharedPointer<iAVolumeRenderer> renderer = getModality(i)->renderer();
 		if (renderer->isRendered())
-			renderer->Remove();
+			renderer->remove();
 	}
 	m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);
 
 	// The next code section sets up the main slicers
 
-	iASlicerData* slicerDataArray[] = {
+	iASlicer* slicerArray[] = {
 		m_mdiChild->slicer(iASlicerMode::YZ),
 		m_mdiChild->slicer(iASlicerMode::XY),
 		m_mdiChild->slicer(iASlicerMode::XZ)
 	};
 
-	iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + 0);
 	for (int mainSlicerIndex = 0; mainSlicerIndex < 3; mainSlicerIndex++) {
-		iASlicerData *data = slicerDataArray[mainSlicerIndex];
-		int const *dims = slicerDataArray[mainSlicerIndex]->GetChannel(id)->reslicer->GetOutput()->GetDimensions();
+		int const *dims = slicerArray[mainSlicerIndex]->channel(m_channelID[0])->reslicer()->GetOutput()->GetDimensions();
 		// should be double const once VTK supports it:
-		double * spc = slicerDataArray[mainSlicerIndex]->GetChannel(id)->reslicer->GetOutput()->GetSpacing();
+		double * spc = slicerArray[mainSlicerIndex]->channel(m_channelID[0])->reslicer()->GetOutput()->GetSpacing();
 
 		//data->GetImageActor()->SetOpacity(0.0);
 		//data->SetManualBackground(1.0, 1.0, 1.0);
 		//data->SetManualBackground(0.0, 0.0, 0.0);
 
-		//vtkSmartPointer<vtkImageData>::New() OR WHATEVER
-		//open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(vtkSmartPointer<vtkImageData> img);
-		//auto imgOut = AllocateImage(imgMod1);
 		auto imgOut = vtkSmartPointer<vtkImageData>::New();
 		imgOut->SetDimensions(dims);
 		imgOut->SetSpacing(spc);
@@ -424,7 +418,7 @@ void iAMultimodalWidget::applyVolumeSettings()
 	volProp->SetShade(vs.Shading);
 	if (vs.ScalarOpacityUnitDistance > 0)
 		volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
-	if (m_mdiChild->GetRenderSettings().ShowSlicers)
+	if (m_mdiChild->renderSettings().ShowSlicers)
 	{
 		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane1());
 		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane2());
@@ -474,16 +468,17 @@ void iAMultimodalWidget::updateModalities()
 		return;
 	}
 
+	m_channelID.clear();
 	// Initialize modalities being added
 	for (int i = 0; i < m_numOfMod; ++i) {
-		m_modalitiesActive[i] = m_mdiChild->GetModality(i);
+		m_modalitiesActive[i] = m_mdiChild->modality(i);
 
 		// TODO: Don't duplicate code from mdichild, call it instead!
 		// Histogram {
 		if (!m_modalitiesActive[i]->histogramData() || m_modalitiesActive[i]->histogramData()->numBin() != m_mdiChild->preferences().HistogramBins)
 		{
-			m_modalitiesActive[i]->ComputeImageStatistics();
-			m_modalitiesActive[i]->ComputeHistogramData(m_mdiChild->GetPreferences().HistogramBins);
+			m_modalitiesActive[i]->computeImageStatistics();
+			m_modalitiesActive[i]->computeHistogramData(m_mdiChild->preferences().HistogramBins);
 		}
 		m_modalitiesHistogramAvailable[i] = true;
 
@@ -491,11 +486,11 @@ void iAMultimodalWidget::updateModalities()
 		vtkPiecewiseFunction *opFuncCopy = vtkPiecewiseFunction::New();
 		m_copyTFs[i] = createCopyTf(i, colorFuncCopy, opFuncCopy);
 
-		m_histograms[i] = QSharedPointer<iADiagramFctWidget>(new iADiagramFctWidget(nullptr, m_mdiChild, m_modalitiesActive[i]->GetName()+" gray value", "Frequency"));
+		m_histograms[i] = QSharedPointer<iADiagramFctWidget>(new iADiagramFctWidget(nullptr, m_mdiChild, m_modalitiesActive[i]->name()+" gray value", "Frequency"));
 		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
-			new	iABarGraphPlot(m_modalitiesActive[i]->GetHistogramData(), QColor(70, 70, 70, 255)));
+			new	iABarGraphPlot(m_modalitiesActive[i]->histogramData(), QColor(70, 70, 70, 255)));
 		m_histograms[i]->addPlot(histogramPlot);
-		m_histograms[i]->setTransferFunctions(m_copyTFs[i]->getColorFunction(), m_copyTFs[i]->getOpacityFunction());
+		m_histograms[i]->setTransferFunctions(m_copyTFs[i]->colorTF(), m_copyTFs[i]->opacityTF());
 		m_histograms[i]->updateTrf();
 		// }
 
@@ -503,24 +498,23 @@ void iAMultimodalWidget::updateModalities()
 		resetSlicer(i);
 		// }
 
-		iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + i);
-		iAChannelVisualizationData* chData = new iAChannelVisualizationData();
-		m_mdiChild->InsertChannelData(id, chData);
-		vtkImageData* imageData = m_modalitiesActive[i]->GetImage();
-		vtkColorTransferFunction* ctf = m_modalitiesActive[i]->GetTransfer()->getColorFunction();
-		vtkPiecewiseFunction* otf = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
-		ResetChannel(chData, imageData, ctf, otf);
-		m_mdiChild->InitChannelRenderer(id, false, true);
+		m_channelID.push_back(m_mdiChild->createChannel());
+		auto chData = m_mdiChild->channelData(m_channelID[i]);
+		vtkImageData* imageData = m_modalitiesActive[i]->image();
+		vtkColorTransferFunction* ctf = m_modalitiesActive[i]->transfer()->colorTF();
+		vtkPiecewiseFunction* otf = m_modalitiesActive[i]->transfer()->opacityTF();
+		chData->setData(imageData, ctf, otf);
+		m_mdiChild->initChannelRenderer(m_channelID[i], false, true);
 	}
 
-	connect((iAChartFunctionTransfer*)(m_histograms[0]->functions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction1()));
-	connect((iAChartFunctionTransfer*)(m_histograms[1]->functions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction2()));
+	connect((iAChartTransferFunction*)(m_histograms[0]->functions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction1()));
+	connect((iAChartTransferFunction*)(m_histograms[1]->functions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction2()));
 	if (m_numOfMod >= THREE) {
-		connect((iAChartFunctionTransfer*)(m_histograms[2]->functions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction3()));
+		connect((iAChartTransferFunction*)(m_histograms[2]->functions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction3()));
 	}
 
 	applyWeights();
-	connect((iAChartFunctionTransfer*)(m_mdiChild->histogram()->functions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
+	connect((iAChartTransferFunction*)(m_mdiChild->histogram()->functions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
 
 	emit(modalitiesLoaded_beforeUpdate());
 
@@ -533,7 +527,7 @@ void iAMultimodalWidget::resetSlicer(int i)
 	// Make sure there are no other references to the old iASimpleSlicerWidget
 	// referenced by the QSharedPointer!
 	m_slicerWidgets[i] = QSharedPointer<iASimpleSlicerWidget>(new iASimpleSlicerWidget(nullptr, true));
-	m_slicerWidgets[i]->applySettings(m_mdiChild->GetSlicerSettings().SingleSlicer);
+	m_slicerWidgets[i]->applySettings(m_mdiChild->slicerSettings().SingleSlicer);
 	m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	if (m_modalitiesActive[i]) {
 		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
@@ -542,15 +536,15 @@ void iAMultimodalWidget::resetSlicer(int i)
 
 QSharedPointer<iATransferFunction> iAMultimodalWidget::createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacityFunction)
 {
-	colorTf->DeepCopy(m_modalitiesActive[index]->transfer()->colorFunction());
-	opacityFunction->DeepCopy(m_modalitiesActive[index]->transfer()->opacityFunction());
+	colorTf->DeepCopy(m_modalitiesActive[index]->transfer()->colorTF());
+	opacityFunction->DeepCopy(m_modalitiesActive[index]->transfer()->opacityTF());
 	return QSharedPointer<iATransferFunction>(
 		new iASimpleTransferFunction(colorTf, opacityFunction));
 }
 
 void iAMultimodalWidget::alertWeightIsZero(QSharedPointer<iAModality> modality)
 {
-	QString name = modality->GetFileName();
+	QString name = modality->fileName();
 	QString text =
 		"The main transfer function of a modality cannot be changed "
 		"while the weight of that modality is zero.\n"
@@ -566,7 +560,7 @@ void iAMultimodalWidget::alertWeightIsZero(QSharedPointer<iAModality> modality)
 
 void iAMultimodalWidget::originalHistogramChanged()
 {
-	QSharedPointer<iAModality> selected = m_mdiChild->GetModalitiesDlg()->GetModalities()->Get(m_mdiChild->GetModalitiesDlg()->GetSelected());
+	QSharedPointer<iAModality> selected = m_mdiChild->modality(m_mdiChild->modalitiesDockWidget()->selected());
 	for (int i = 0; i < m_numOfMod; i++) {
 		if (selected == getModality(i)) {
 			updateCopyTransferFunction(i);
@@ -593,29 +587,29 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 		}
 
 		// newly set transfer function (set via the histogram)
-		QSharedPointer<iAModalityTransfer> effective = getModality(index)->GetTransfer();
+		QSharedPointer<iAModalityTransfer> effective = getModality(index)->transfer();
 
 		// copy of previous transfer function, to be updated in this method
 		QSharedPointer<iATransferFunction> copy = m_copyTFs[index];
 
 		double valCol[6], valOp[4];
-		copy->getColorFunction()->RemoveAllPoints();
-		copy->getOpacityFunction()->RemoveAllPoints();
+		copy->colorTF()->RemoveAllPoints();
+		copy->opacityTF()->RemoveAllPoints();
 
-		for (int j = 0; j < effective->getColorFunction()->GetSize(); ++j)
+		for (int j = 0; j < effective->colorTF()->GetSize(); ++j)
 		{
-			effective->getColorFunction()->GetNodeValue(j, valCol);
-			effective->getOpacityFunction()->GetNodeValue(j, valOp);
+			effective->colorTF()->GetNodeValue(j, valCol);
+			effective->opacityTF()->GetNodeValue(j, valOp);
 
 			if (valOp[1] > weight) {
 				valOp[1] = weight;
 			}
 			double copyOp = valOp[1] / weight;
 
-			effective->getOpacityFunction()->SetNodeValue(j, valOp);
+			effective->opacityTF()->SetNodeValue(j, valOp);
 
-			copy->getColorFunction()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
-			copy->getOpacityFunction()->AddPoint(valOp[0], copyOp, valOp[2], valOp[3]);
+			copy->colorTF()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
+			copy->opacityTF()->AddPoint(valOp[0], copyOp, valOp[2], valOp[3]);
 		}
 	}
 }
@@ -633,24 +627,24 @@ void iAMultimodalWidget::updateOriginalTransferFunction(int index)
 	double weight = getWeight(index);
 
 	// newly set transfer function (set via the histogram)
-	QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->GetTransfer();
+	QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->transfer();
 
 	// copy of previous transfer function, to be updated in this method
 	QSharedPointer<iATransferFunction> copy = m_copyTFs[index];
 
 	double valCol[6], valOp[4];
-	effective->getColorFunction()->RemoveAllPoints();
-	effective->getOpacityFunction()->RemoveAllPoints();
+	effective->colorTF()->RemoveAllPoints();
+	effective->opacityTF()->RemoveAllPoints();
 
-	for (int j = 0; j < copy->getColorFunction()->GetSize(); ++j)
+	for (int j = 0; j < copy->colorTF()->GetSize(); ++j)
 	{
-		copy->getColorFunction()->GetNodeValue(j, valCol);
-		copy->getOpacityFunction()->GetNodeValue(j, valOp);
+		copy->colorTF()->GetNodeValue(j, valCol);
+		copy->opacityTF()->GetNodeValue(j, valOp);
 
 		valOp[1] = valOp[1] * weight; // index 1 means opacity
 
-		effective->getColorFunction()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
-		effective->getOpacityFunction()->AddPoint(valOp[0], valOp[1], valOp[2], valOp[3]);
+		effective->colorTF()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
+		effective->opacityTF()->AddPoint(valOp[0], valOp[1], valOp[2], valOp[3]);
 	}
 }
 
@@ -663,8 +657,8 @@ void iAMultimodalWidget::applyWeights()
 	if (!isReady())
 		return;
 	for (int i = 0; i < m_numOfMod; i++) {
-		vtkPiecewiseFunction *effective = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
-		vtkPiecewiseFunction *copy = m_copyTFs[i]->getOpacityFunction();
+		vtkPiecewiseFunction *effective = m_modalitiesActive[i]->transfer()->opacityTF();
+		vtkPiecewiseFunction *copy = m_copyTFs[i]->opacityTF();
 
 		double pntVal[4];
 		for (int j = 0; j < copy->GetSize(); ++j)
@@ -678,13 +672,9 @@ void iAMultimodalWidget::applyWeights()
 }
 
 namespace {
-	iASlicer* slicerForMode(MdiChild* mdiChild, int slicerMode) {
-		switch (slicerMode) {
-		case iASlicerMode::YZ: return mdiChild->getSlicerYZ();
-		case iASlicerMode::XZ: return mdiChild->getSlicerXZ();
-		case iASlicerMode::XY: return mdiChild->getSlicerXY();
-		}
-		return nullptr;
+	iASlicer* slicerForMode(MdiChild* mdiChild, int slicerMode)
+	{
+		return mdiChild->slicer(slicerMode);
 	}
 }
 
@@ -692,7 +682,7 @@ void iAMultimodalWidget::setMainSlicerCamera()
 {
 	if (!m_checkBox_syncedCamera->isChecked())
 		return;
-	vtkCamera * mainCamera = slicerForMode(m_mdiChild, m_slicerMode)->GetCamera();
+	vtkCamera * mainCamera = slicerForMode(m_mdiChild, m_slicerMode)->camera();
 	for (int i = 0; i < m_numOfMod; ++i)
 	{
 		w_slicer(i)->setCamera(mainCamera);
@@ -707,7 +697,7 @@ void iAMultimodalWidget::resetSlicerCamera()
 	for (int i = 0; i < m_numOfMod; i++) {
 		auto cam = vtkSmartPointer<vtkCamera>::New();
 		w_slicer(i)->setCamera(cam);
-		w_slicer(i)->getSlicer()->GetSlicerData()->ResetCamera();
+		w_slicer(i)->getSlicer()->resetCamera();
 		w_slicer(i)->update();
 	}
 }
@@ -719,8 +709,8 @@ void iAMultimodalWidget::connectMainSlicer()
 	iASlicer* slicer = slicerForMode(m_mdiChild, m_slicerMode);
 	for (int i = 0; i < m_numOfMod; ++i)
 	{
-		connect(slicer->GetSlicerData(), SIGNAL(UserInteraction()), w_slicer(i).data(), SLOT(update()));
-		connect(w_slicer(i)->getSlicer()->GetSlicerData(), SIGNAL(UserInteraction()), slicer, SLOT(update()));
+		connect(slicer, SIGNAL(userInteraction()), w_slicer(i).data(), SLOT(update()));
+		connect(w_slicer(i)->getSlicer(), SIGNAL(userInteraction()), slicer, SLOT(update()));
 	}
 }
 
@@ -729,8 +719,8 @@ void iAMultimodalWidget::disconnectMainSlicer()
 	iASlicer* slicer = slicerForMode(m_mdiChild, m_slicerMode);
 	for (int i = 0; i < m_numOfMod; ++i)
 	{
-		disconnect(slicer->GetSlicerData(), SIGNAL(UserInteraction()), w_slicer(i).data(), SLOT(update()));
-		disconnect(w_slicer(i)->getSlicer()->GetSlicerData(), SIGNAL(UserInteraction()), slicer, SLOT(update()));
+		disconnect(slicer, SIGNAL(userInteraction()), w_slicer(i).data(), SLOT(update()));
+		disconnect(w_slicer(i)->getSlicer(), SIGNAL(userInteraction()), slicer, SLOT(update()));
 	}
 }
 
@@ -739,7 +729,7 @@ void iAMultimodalWidget::connectAcrossSlicers()
 	for (int i = 0; i < m_numOfMod; ++i)
 		for (int j = 0; j < m_numOfMod; ++j)
 			if (i != j)
-				connect(w_slicer(i)->getSlicer()->GetSlicerData(), SIGNAL(UserInteraction()), w_slicer(j).data(), SLOT(update()));
+				connect(w_slicer(i)->getSlicer(), SIGNAL(userInteraction()), w_slicer(j).data(), SLOT(update()));
 }
 
 void iAMultimodalWidget::disconnectAcrossSlicers()
@@ -747,7 +737,7 @@ void iAMultimodalWidget::disconnectAcrossSlicers()
 	for (int i = 0; i < m_numOfMod; ++i)
 		for (int j = 0; j < m_numOfMod; ++j)
 			if (i != j)
-				disconnect(w_slicer(i)->getSlicer()->GetSlicerData(), SIGNAL(UserInteraction()), w_slicer(j).data(), SLOT(update()));
+				disconnect(w_slicer(i)->getSlicer(), SIGNAL(userInteraction()), w_slicer(j).data(), SLOT(update()));
 }
 
 // ----------------------------------------------------------------------------------
@@ -781,19 +771,9 @@ void iAMultimodalWidget::updateLabels() {
 	m_sliceNumberLabel->setText("Slice number: " + QString::number(getSliceNumber()));
 }
 
-int iAMultimodalWidget::getSliceNumber() {
-	switch (m_slicerMode)
-	{
-	case iASlicerMode::YZ:
-		return m_mdiChild->getSlicerDataYZ()->getSliceNumber();
-	case iASlicerMode::XZ:
-		return m_mdiChild->getSlicerDataXZ()->getSliceNumber();
-	case iASlicerMode::XY:
-		return m_mdiChild->getSlicerDataXY()->getSliceNumber();
-	default:
-		// TODO exception
-		return -1;
-	}
+int iAMultimodalWidget::getSliceNumber()
+{
+	return m_mdiChild->slicer(m_slicerMode)->sliceNumber();
 }
 
 void iAMultimodalWidget::checkBoxWeightByOpacityChanged()
@@ -846,7 +826,7 @@ QSharedPointer<iAModality> iAMultimodalWidget::getModality(int index)
 }
 
 vtkSmartPointer<vtkImageData> iAMultimodalWidget::getModalityImage(int index) {
-	return getModality(index)->GetImage();
+	return getModality(index)->image();
 }
 
 BCoord iAMultimodalWidget::getWeights()
