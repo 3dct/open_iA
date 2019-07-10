@@ -123,10 +123,8 @@ iAvtkInteractStyleActor::iAvtkInteractStyleActor():
 
 void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 {
-	if (!m_image) return; 
-	if (thickness == 0) return; 
-
-	DEBUG_LOG("init cube"); 
+	DEBUG_LOG("init cube");
+	if (!m_image || thickness == 0) return;
 	try {
 		m_CubeSource_X = vtkSmartPointer<vtkCubeSource>::New();
 		m_cubeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -195,7 +193,7 @@ void iAvtkInteractStyleActor::rotateInterActorProp(vtkSmartPointer<vtkTransform>
 	transformationMode myMode = static_cast<transformationMode>(mode);
 	rotateAroundAxis(transform, center, myMode, angle);
 	prop->SetPosition(transform->GetPosition());
-   	prop->SetOrientation(transform->GetOrientation());
+	prop->SetOrientation(transform->GetOrientation());
 }
 
 void iAvtkInteractStyleActor::translateInterActor(vtkSmartPointer<vtkTransform> &transform, vtkImageActor *actor, double const *position, uint mode)
@@ -210,7 +208,7 @@ void iAvtkInteractStyleActor::translateInterActor(vtkSmartPointer<vtkTransform> 
 	//	transform->SetMatrix(mat);
 	//}
 
- 	TranslateActorMovement(actor,mode,  transform, position);
+	TranslateActorMovement(actor,mode,  transform, position);
 
 }
 
@@ -702,7 +700,6 @@ void iAvtkInteractStyleActor::updateInteractors()
 
 	m_volumeRenderer->update();
 	emit actorsUpdated();
-	
 }
 
 void iAvtkInteractStyleActor::update3DUpdateReslicer(double const * movementXYZ, double const * sliceActorPos)
@@ -946,14 +943,13 @@ void iAvtkInteractStyleActor::rotate2D()
 	this->setPreviouSlicesActorPosition(m_slicerChannel[m_currentSliceMode]->actorPosition());
 	
 	double const *orientationAfter = m_volumeRenderer->volume()->GetOrientation();
-	
+
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 		if (i != m_currentSliceMode && m_slicerChannel[i])
 			m_slicerChannel[i]->updateReslicer();
 		
 	m_volumeRenderer->update();
 	emit actorsUpdated();
-	  	
 }
 
 
@@ -1047,8 +1043,8 @@ void iAvtkInteractStyleActor::rotate3D()
 			rotate,
 			scale);
 
-	    double const *orientationAfter = m_volumeRenderer->volume()->GetOrientation();
-			    
+		double const *orientationAfter = m_volumeRenderer->volume()->GetOrientation();
+
 		//translate in XYZ
 		double relRotation[3] = { 0, 0, 0 };
 		for (int i = 0; i < 3; i++) {
@@ -1087,10 +1083,7 @@ void iAvtkInteractStyleActor::rotate3D()
 
 		m_volumeRenderer->update();
 		emit actorsUpdated();
-
 	}
-
-
 }
 
 void iAvtkInteractStyleActor::computeDisplayRotationAngle(double * sliceProbCenter, double * disp_obj_center, vtkRenderWindowInteractor * rwi, double &relativeAngle)
