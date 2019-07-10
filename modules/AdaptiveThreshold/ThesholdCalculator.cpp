@@ -28,9 +28,11 @@ double ThesholdCalculator::vectorSum(const std::vector<double> &vec, size_t star
 	return tmp; 
 }
 
-void ThesholdCalculator::testAverage()
+void ThesholdCalculator::testPeakDetect()
 {
-
+	std::vector<double> data{ 6, 8, 9, 14, 10, 12 };
+	double res = this->findMaxPeak(data); 
+	DEBUG_LOG(QString("max peak %1").arg(data)); 
 }
 
 void ThesholdCalculator::doubleTestSum()
