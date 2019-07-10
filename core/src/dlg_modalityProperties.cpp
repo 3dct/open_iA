@@ -139,7 +139,7 @@ void dlg_modalityProperties::OKButtonClicked()
 		}
 	}
 
-	m_currentSpacing = m_modality->GetSpacing();
+	m_currentSpacing = m_modality->spacing();
 
 	m_modality->setOrigin(origin);
 	m_modality->setSpacing(spacing);

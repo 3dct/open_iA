@@ -974,7 +974,7 @@ void iARenderer::updateSlicePlanes(double const * newSpacing)
 	double const * spc = newSpacing;
 
 	double center[3], origin[3];
-	const int * dim = imageData->GetDimensions();
+	const int * dim = m_imageData->GetDimensions();
 	if (dim[0] == 0 || dim[1] == 0 || dim[2] == 0)
 		return;
 	for (int i = 0; i < 3; ++i)
