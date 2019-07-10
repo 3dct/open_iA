@@ -1,5 +1,6 @@
 #include "ThesholdCalculator.h"
 #include <numeric>
+#include <algorithm>
 #include "iAConsole.h"
 
 
@@ -65,6 +66,37 @@ void ThesholdCalculator::calculateFrequencies(size_t m_start, size_t m_end)
 	//		m_low_intensity = m_i;
 	//	}
 	//}
+}
+
+
+
+void ThesholdCalculator::findMaxPeak(const std::vector<double>& v_ind/*, unsigned int toleranceVal*/)
+{
+	auto peak = std::adjacent_find(v_ind.begin(), v_ind.end(), std::greater<double>());
+	If(peak == v_ind.end()) {
+		--peak;
+	
+	}
+
+	return *peak;
+}
+
+void ThesholdCalculator::specifyRange(const std::vector<double>& v_in, const std::vector<double>& v_ind, double min, double max)
+{
+	if (v_in.size() == 0)
+		throw std::invalid_argument("invalid parameter input");
+
+	if (min < 0) || (max == 0) {
+		throw std::invalid_argument("Invalid input parameter");
+	}
+
+	for (const double& el :v_in ) {
+		if (el < min) && (el > max) {
+			continue; 
+		}
+
+		v_ind.push_back(el); 
+	}
 }
 
 void ThesholdCalculator::calculateAverage(const std::vector<double> &v_in, std::vector<double> &v_out, unsigned int count)
