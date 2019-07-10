@@ -127,6 +127,7 @@ IF(VTK_VERSION_MAJOR LESS 8)
 ENDIF()
 SET (VTK_COMPONENTS
 	vtkFiltersModeling         # for vtkRotationalExtrusionFilter, vtkOutlineFilter
+	vtkInteractionImage        # for vtkImageViewer2
 	vtkInteractionWidgets      # for vtkScalarBarWidget/Representation
 	vtkImagingStatistics       # for vtkImageAccumulate
 	vtkIOGeometry              # for vtkSTLReader/Writer
