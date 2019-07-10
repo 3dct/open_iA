@@ -355,7 +355,7 @@ private slots:
 	void showModality(int modIdx);
 	void saveFinished();
 	void modalityAdded(int modalityIdx);
-	void resetCamera(bool spacingChanged);
+	void resetCamera(bool spacingChanged, double const * newSpacing);
 
 private:
 	void closeEvent(QCloseEvent *event) override;

@@ -245,7 +245,7 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_dwModalities, SIGNAL(modalitiesChanged(bool)), this, SLOT(updateImageProperties()));
 	connect(m_dwModalities, SIGNAL(modalitiesChanged(bool)), this, SLOT(updateViews()));
 	connect(m_dwModalities, SIGNAL(modalitySelected(int)), this, SLOT(showModality(int)));
-	connect(m_dwModalities, SIGNAL(modalitiesChanged(bool)), this, SLOT(resetCamera(bool)));
+	connect(m_dwModalities, SIGNAL(modalitiesChanged(bool, double const *)), this, SLOT(resetCamera(bool, double const *)));
 }
 
 void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithm* thread )
@@ -2587,13 +2587,14 @@ void MdiChild::statisticsAvailable(int modalityIdx)
 	updateViews();
 }
 
-void MdiChild::resetCamera(bool spacingChanged)
+void MdiChild::resetCamera(bool spacingChanged, double const * newSpacing)
 {
 	if (!spacingChanged)
 	{
 		return;
 	}
 	//TODO  doing reset camera this for single only for when edit clicked is doen  // same with slicer
+	m_renderer->updateSlicePlanes(newSpacing);
 	m_renderer->renderer()->ResetCamera();
 	m_renderer->update();
 	for (int s = 0; s < 3; ++s)

@@ -113,6 +113,9 @@ public:
 	void showHelpers(bool show);
 	void showRPosition(bool show);
 	void showSlicePlanes(bool show);
+	//! Updates the position and size of the three slice planes according to the given spacing (and the dimensions of the internally stored image data)
+	//! @param newSpacing the spacing of the dataset.
+	void updateSlicePlanes(double const * newSpacing);
 
 	vtkPlane* plane1();
 	vtkPlane* plane2();
