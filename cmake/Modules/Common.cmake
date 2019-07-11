@@ -133,6 +133,7 @@ SET (VTK_COMPONENTS
 	vtkIOGeometry              # for vtkSTLReader/Writer
 	vtkIOMovie                 # for vtkGenericMovieWriter
 	vtkRenderingAnnotation     # for vtkAnnotatedCubeActor, vtkScalarBarActor
+	vtkRenderingContext${VTK_RENDERING_BACKEND} # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
 	vtkRenderingImage          # for vtkImageResliceMapper
 	vtkRenderingVolume${VTK_RENDERING_BACKEND}  # for volume rendering
 	vtkRenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
