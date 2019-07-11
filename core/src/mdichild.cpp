@@ -294,8 +294,8 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, SIGNAL(active()), this, SIGNAL(active()));
 	connect((dlg_transfer*)(m_histogram->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(ModalityTFChanged()));
 
-	connect(m_dlgModalities, SIGNAL(ModalitiesChanged(bool)), this, SLOT(updateImageProperties()));
-	connect(m_dlgModalities, SIGNAL(ModalitiesChanged(bool)), this, SLOT(updateViews()));
+	connect(m_dlgModalities, SIGNAL(ModalitiesChanged(bool, double const *)), this, SLOT(updateImageProperties()));
+	connect(m_dlgModalities, SIGNAL(ModalitiesChanged(bool, double const *)), this, SLOT(updateViews()));
 	connect(m_dlgModalities, SIGNAL(ModalitySelected(int)), this, SLOT(ShowModality(int)));
 	connect(m_dlgModalities, SIGNAL(ModalitiesChanged(bool, double const *)), this, SLOT(resetCamera(bool, double const *)));
 }
