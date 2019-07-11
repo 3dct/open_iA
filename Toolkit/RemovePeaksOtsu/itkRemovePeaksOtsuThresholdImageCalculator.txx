@@ -154,7 +154,11 @@ RemovePeaksOtsuThresholdImageCalculator<TInputImage>
   double meanRight = ( totalMean - freqLeft ) / ( 1.0 - freqLeft );
 
   double maxVarBetween = freqLeft * ( 1.0 - freqLeft ) *
+#if ITK_VERSION_MAJOR < 5
+    vnl_math_sqr( meanLeft - meanRight );
+#else
     vnl_math::sqr( meanLeft - meanRight );
+#endif
   int maxBinNumber = 0;
 
   double freqLeftOld = freqLeft;
