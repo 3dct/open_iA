@@ -4,6 +4,16 @@
 #include "iAConsole.h"
 
 
+namespace algorithm {
+	static bool greaterThan(double u, double v) {
+		return u > v;
+	}
+
+	static bool smallerThan(double u, double v) {
+		return u < v;
+	}
+}
+
 ThesholdCalculator::ThesholdCalculator()
 {
 }
@@ -30,9 +40,9 @@ double ThesholdCalculator::vectorSum(const std::vector<double> &vec, size_t star
 
 void ThesholdCalculator::testPeakDetect()
 {
-	std::vector<double> data{ 6, 8, 9, 14, 10, 12 };
+	std::vector<double> data{ 6.1, 8.0, 9.0, 14.1, 10.0,14.3, 12.1, 14.4 };
 	double res = this->findMaxPeak(data); 
-	DEBUG_LOG(QString("max peak %1").arg(data)); 
+	DEBUG_LOG(QString("max peak %1").arg(res)) 
 }
 
 void ThesholdCalculator::doubleTestSum()
@@ -72,32 +82,45 @@ void ThesholdCalculator::calculateFrequencies(size_t m_start, size_t m_end)
 
 
 
-void ThesholdCalculator::findMaxPeak(const std::vector<double>& v_ind/*, unsigned int toleranceVal*/)
+double ThesholdCalculator::findMaxPeak(std::vector<double>& v_ind/*, unsigned int toleranceVal*/)
 {
+	std::sort(v_ind.begin(), v_ind.end(), algorithm::greaterThan);
 	auto peak = std::adjacent_find(v_ind.begin(), v_ind.end(), std::greater<double>());
-	If(peak == v_ind.end()) {
-		--peak;
 	
+	if (peak == v_ind.end()) {
+		--peak;
 	}
 
 	return *peak;
 }
 
-void ThesholdCalculator::specifyRange(const std::vector<double>& v_in, const std::vector<double>& v_ind, double min, double max)
+double ThesholdCalculator::findMinPeak(std::vector<double>& v_ind){
+	std::sort(v_ind.begin(), v_ind.end(), algorithm::smallerThan);
+	auto peak = std::adjacent_find(v_ind.begin(), v_ind.end(), std::greater<double>());
+
+	if (peak == v_ind.end()) {
+		--peak;
+	}
+
+	return *peak;
+}
+
+
+void ThesholdCalculator::specifyRange(const std::vector<double>& v_in, std::vector<double>& v_out, double min, double max)
 {
 	if (v_in.size() == 0)
 		throw std::invalid_argument("invalid parameter input");
 
-	if (min < 0) || (max == 0) {
+	if ((min < 0) || (max == 0)) {
 		throw std::invalid_argument("Invalid input parameter");
 	}
 
-	for (const double& el :v_in ) {
-		if (el < min) && (el > max) {
+	for ( auto & el :v_in ) {
+		if ((el < min) && (el > max)) {
 			continue; 
 		}
 
-		v_ind.push_back(el); 
+		v_out.push_back(el);
 	}
 }
 

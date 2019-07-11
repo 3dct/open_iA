@@ -177,6 +177,9 @@ void AdaptiveThreshold::visualizeMovingAverage()
 	QString text = QString("Moving average %1").arg(averageCount);
 
 	m_thresCalculator.calculateAverage(m_frequencies, m_movingFrequencies, averageCount);
+	
+	m_thresCalculator.testPeakDetect();
+
 	QLineSeries *newSeries = new QLineSeries;
 	/*newSeries->setObjectName(text); */
 	this->prepareDataSeries(newSeries, m_greyThresholds, m_movingFrequencies, false);
