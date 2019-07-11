@@ -407,7 +407,6 @@ private:
 	void resizeDockWidget(QDockWidget * dw);
 
 	void connectSignalsToSlots();
-	void SetRenderWindows();
 	void getSnakeNormal(int index, double point[3], double normal[3]);
 	void updateReslicer(double point[3], double normal[3], int mode);
 	void updateSliceIndicators();

@@ -158,6 +158,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	
 	Raycaster = new iARenderer(this);
 	Raycaster->setAxesTransform(axesTransform);
+	renderer->vtkWidgetRC->SetMainRenderWindow((vtkGenericOpenGLRenderWindow*)Raycaster->GetRenderWindow());
 
 	m_dlgModalities = new dlg_modalities(renderer->vtkWidgetRC, Raycaster->GetRenderer(), preferences.HistogramBins);
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
@@ -166,7 +167,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	ApplyViewerPreferences();
 	imgProperty = nullptr;
 	imgProfile = nullptr;
-	SetRenderWindows();
 	connectSignalsToSlots();
 	pbar->setValue(100);
 
@@ -325,11 +325,6 @@ void MdiChild::addAlgorithm(iAAlgorithm* thread)
 {
 	workingAlgorithms.push_back(thread);
 	connect(thread, SIGNAL(finished()), this, SLOT(removeFinishedAlgorithms()));
-}
-
-void MdiChild::SetRenderWindows()
-{
-	renderer->vtkWidgetRC->SetMainRenderWindow((vtkGenericOpenGLRenderWindow*)Raycaster->GetRenderWindow());
 }
 
 void MdiChild::updateRenderWindows(int channels)

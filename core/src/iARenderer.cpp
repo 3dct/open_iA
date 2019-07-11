@@ -225,13 +225,8 @@ void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double 
 iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	interactor(0),
 	renderObserver(0),
-    m_SlicePlaneOpacity(0.8)
+	m_SlicePlaneOpacity(0.8)
 {
-	renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();		// TODO: move out of here?
-	renWin->AlphaBitPlanesOn();
-	renWin->LineSmoothingOn();
-	renWin->PointSmoothingOn();
-
 	cam = vtkSmartPointer<vtkCamera>::New();
 
 	cSource = vtkSmartPointer<vtkCubeSource>::New();
@@ -242,8 +237,25 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	logoWidget = vtkSmartPointer<vtkLogoWidget>::New();
 	logoImage = vtkSmartPointer<vtkQImageToImageSource>::New();
 
-	labelRen = vtkSmartPointer<vtkOpenGLRenderer>::New();
 	ren = vtkSmartPointer<vtkOpenGLRenderer>::New();
+	ren->SetLayer(0);
+	ren->UseDepthPeelingOn();
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+	ren->UseDepthPeelingForVolumesOn();
+#endif
+
+	labelRen = vtkSmartPointer<vtkOpenGLRenderer>::New();
+	labelRen->SetLayer(1);
+	labelRen->InteractiveOff();
+	labelRen->UseDepthPeelingOn();
+
+	renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();		// TODO: move out of here?
+	renWin->AlphaBitPlanesOn();
+	renWin->LineSmoothingOn();
+	renWin->PointSmoothingOn();
+	renWin->SetNumberOfLayers(5);
+	renWin->AddRenderer(ren);
+	renWin->AddRenderer(labelRen);
 
 	polyMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	polyActor = vtkSmartPointer<vtkActor>::New();
@@ -327,17 +339,6 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 			cellLocator->BuildLocator();
 	ext = e;
 	double spacing[3];	ds->GetSpacing(spacing);
-	ren->SetLayer(0);
-	ren->UseDepthPeelingOn();
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	ren->UseDepthPeelingForVolumesOn();
-#endif
-	labelRen->SetLayer(1);
-	labelRen->InteractiveOff();
-	labelRen->UseDepthPeelingOn();
-	renWin->SetNumberOfLayers(5);
-	renWin->AddRenderer(ren);
-	renWin->AddRenderer(labelRen);
 	interactor = renWin->GetInteractor();
 	setPointPicker();	
 	InitObserver();
