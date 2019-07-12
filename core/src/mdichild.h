@@ -209,8 +209,11 @@ public:
 	
 	void setChannelRenderingEnabled(uint, bool enabled);
 	
-	//! Enable / disable all slicers
+	//! Enable / disable a channel in all slicers.
 	void setSlicerChannelEnabled(uint id, bool enabled);
+
+	//! Remove channel in all slicers.
+	void removeChannel(uint id);
 
 	
 	iAChannelData * channelData(uint id);

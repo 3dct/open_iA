@@ -157,6 +157,7 @@ void dlg_modalities::initDisplay(QSharedPointer<iAModality> mod)
 {
 	QSharedPointer<iAVolumeRenderer> renderer(new iAVolumeRenderer(mod->transfer().data(), mod->image()));
 	mod->setRenderer(renderer);
+	// TODO: Duplication between initDisplay / removeClicked / editClicked
 	if (mod->hasRenderFlag(iAModality::MainRenderer))
 	{
 		renderer->addTo(m_mainRenderer);
@@ -168,6 +169,14 @@ void dlg_modalities::initDisplay(QSharedPointer<iAModality> mod)
 	if (mod->hasRenderFlag(iAModality::MagicLens))
 	{
 		renderer->addTo(m_magicLensWidget->getLensRenderer());
+	}
+	if (mod->hasRenderFlag(iAModality::Slicer))
+	{
+		if (mod->channelID() == NotExistingChannel)
+			mod->setChannelID(m_mdiChild->createChannel());
+		m_mdiChild->updateChannel(mod->channelID(), mod->image(), mod->transfer()->colorTF(), mod->transfer()->opacityTF(), true);
+		m_mdiChild->updateChannelOpacity(mod->channelID(), 1);
+		m_mdiChild->updateViews();
 	}
 }
 
@@ -214,16 +223,23 @@ void dlg_modalities::removeClicked()
 		return;
 	}
 	m_mdiChild->clearHistogram();
-	QSharedPointer<iAVolumeRenderer> renderer = m_modalities->get(idx)->renderer();
-	if (m_modalities->get(idx)->hasRenderFlag(iAModality::MainRenderer) ||
-		m_modalities->get(idx)->hasRenderFlag(iAModality::MagicLens))
+	// TODO: Duplication between initDisplay / removeClicked / editClicked
+	auto mod = m_modalities->get(idx);
+	QSharedPointer<iAVolumeRenderer> renderer = mod->renderer();
+	if (mod->hasRenderFlag(iAModality::MainRenderer) ||
+		mod->hasRenderFlag(iAModality::MagicLens))
 	{
 		renderer->remove();
 	}
-	if (m_modalities->get(idx)->hasRenderFlag(iAModality::BoundingBox))
+	if (mod->hasRenderFlag(iAModality::BoundingBox))
 	{
 		renderer->removeBoundingBox();
 	}
+	if (mod->hasRenderFlag(iAModality::Slicer) && mod->channelID() != NotExistingChannel)
+	{
+		m_mdiChild->removeChannel(mod->channelID());
+	}
+
 	m_modalities->remove(idx);
 	delete lwModalities->takeItem(idx);
 	lwModalities->setCurrentRow(-1);
@@ -254,6 +270,7 @@ void dlg_modalities::editClicked()
 	{
 		return;
 	}
+	// TODO: Duplication between initDisplay / removeClicked / editClicked
 	QSharedPointer<iAVolumeRenderer> renderer = m_modalities->get(idx)->renderer();
 	if (!renderer)
 	{
@@ -294,7 +311,7 @@ void dlg_modalities::editClicked()
 	{
 		if (editModality->channelID() != NotExistingChannel)
 		{
-			m_mdiChild->setSlicerChannelEnabled(editModality->channelID(), false);
+			m_mdiChild->removeChannel(editModality->channelID());
 			editModality->setChannelID(NotExistingChannel); //reset id to not existing
 		}
 	}

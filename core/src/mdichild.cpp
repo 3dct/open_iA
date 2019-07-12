@@ -2092,6 +2092,16 @@ void MdiChild::setSlicerChannelEnabled(uint id, bool enabled)
 		slicer(i)->enableChannel(id, enabled);
 }
 
+void MdiChild::removeChannel(uint id)
+{
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+	{
+		if (slicer(i)->hasChannel(id))
+			slicer(i)->removeChannel(id);
+	}
+	m_channels.remove(id);
+}
+
 void MdiChild::removeFinishedAlgorithms()
 {
 	for (int i = m_workingAlgorithms.size()-1; i >= 0;  i--)

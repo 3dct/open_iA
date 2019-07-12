@@ -1649,6 +1649,8 @@ iAChannelSlicerData * iASlicer::channel(uint id)
 
 void iASlicer::removeChannel(uint id)
 {
+	if (channel(id)->isEnabled())
+		enableChannel(id, false);
 	m_channels.remove(id);
 }
 
