@@ -126,7 +126,7 @@ LabelPixelHistPtr iAImageTreeLeaf::UpdateLabelDistribution() const
 	LabelImageType::SizeType size = img->GetLargestPossibleRegion().GetSize();
 	for (int l = 0; l < m_labelCount; ++l)
 	{
-		LabelImagePointer p = CreateImage<LabelImageType>(
+		LabelImagePointer p = createImage<LabelImageType>(
 			size,
 			img->GetSpacing());
 		result->hist.push_back(p);

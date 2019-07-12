@@ -188,7 +188,7 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	m_popupHeight(0),
 	m_separationIdx(-1),
 	m_contextMenu(new QMenu(this)),
-	m_bgColorTheme(iAColorThemeManager::GetInstance().GetTheme("White")),
+	m_bgColorTheme(iAColorThemeManager::instance().theme("White")),
 	m_settingsDlg(new iASPMSettings(this, f))
 {
 	setWindowFlags(f);
@@ -269,7 +269,7 @@ void iAQSplom::updateHistogram(size_t paramIndex)
 	if (m_histograms[paramIndex]->plots().size() > 0)
 		m_histograms[paramIndex]->removePlot(m_histograms[paramIndex]->plots()[0]);
 
-	auto histogramData = iAHistogramData::Create(hist_InputValues, settings.histogramBins);
+	auto histogramData = iAHistogramData::create(hist_InputValues, settings.histogramBins);
 	auto histogramPlot = QSharedPointer<iABarGraphPlot>(new iABarGraphPlot(histogramData, QColor(70, 70, 70, 255)));
 	m_histograms[paramIndex]->addPlot(histogramPlot);
 	m_histograms[paramIndex]->update();
@@ -900,12 +900,12 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 		QRect r1(
 			QPoint(upperLeft.left(), upperLeft.top()), QPoint(separation.left() - settings.separationMargin - settings.plotsSpacing, separation.bottom())
 		);
-		QColor c1(m_bgColorTheme->GetColor(0)); c1.setAlpha(64);
+		QColor c1(m_bgColorTheme->color(0)); c1.setAlpha(64);
 		painter.fillRect(r1, QBrush(c1));
 		if (!m_maximizedPlot)
 		{
-			QColor c2(m_bgColorTheme->GetColor(1)); c2.setAlpha(64);
-			QColor c3(m_bgColorTheme->GetColor(3)); c3.setAlpha(64);
+			QColor c2(m_bgColorTheme->color(1)); c2.setAlpha(64);
+			QColor c3(m_bgColorTheme->color(3)); c3.setAlpha(64);
 			QRect r2(
 				QPoint(separation.left(), separation.bottom() + settings.separationMargin + settings.plotsSpacing), QPoint(lowerRight.right(), lowerRight.bottom())
 			), r3(

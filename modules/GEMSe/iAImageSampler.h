@@ -61,9 +61,9 @@ public:
 		int samplingID);
 	QSharedPointer<iASamplingResults> GetResults();
 	void run();
-	virtual double elapsed() const;
-	virtual double estimatedTimeRemaining() const;
-	void Abort();
+	double elapsed() const override;
+	double estimatedTimeRemaining() const override;
+	void abort() override;
 	bool IsAborted();
 signals:
 	void Progress(int);

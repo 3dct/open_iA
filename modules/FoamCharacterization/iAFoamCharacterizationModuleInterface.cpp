@@ -28,7 +28,7 @@ void iAFoamCharacterizationModuleInterface::Initialize( )
 {
 	if (!m_mainWnd)
 		return;
-	QMenu* toolsMenu (m_mainWnd->getToolsMenu());
+	QMenu* toolsMenu (m_mainWnd->toolsMenu());
 	QAction* pFoamCharacterization(new QAction(QApplication::translate("MainWindows", "Foam characterization", 0), m_mainWnd));
 	connect(pFoamCharacterization, SIGNAL(triggered()), this, SLOT(slotFoamCharacterization()));
 	AddActionToMenuAlphabeticallySorted(toolsMenu, pFoamCharacterization);
@@ -44,7 +44,7 @@ void iAFoamCharacterizationModuleInterface::slotFoamCharacterization()
 	}
 }
 
-iAModuleAttachmentToChild* iAFoamCharacterizationModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+iAModuleAttachmentToChild* iAFoamCharacterizationModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
 {
-	return new iAFoamCharacterizationAttachment(mainWnd, childData);
+	return new iAFoamCharacterizationAttachment(mainWnd, child);
 }

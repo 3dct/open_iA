@@ -38,7 +38,7 @@ void iAUncertaintyModuleInterface::Initialize()
 	REGISTER_FILTER(iACSVtoMHD);
 	if (!m_mainWnd)
 		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuSegmentation = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
 	QAction * actionUncertainty = new QAction(QApplication::translate("MainWindow", "Uncertainty Exploration", 0), m_mainWnd );
 	AddActionToMenuAlphabeticallySorted(menuSegmentation, actionUncertainty, false);
@@ -46,9 +46,9 @@ void iAUncertaintyModuleInterface::Initialize()
 }
 
 
-iAModuleAttachmentToChild* iAUncertaintyModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+iAModuleAttachmentToChild* iAUncertaintyModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
 {
-	iAUncertaintyAttachment* result = iAUncertaintyAttachment::Create( mainWnd, childData);
+	iAUncertaintyAttachment* result = iAUncertaintyAttachment::Create( mainWnd, child);
 	return result;
 }
 
@@ -57,7 +57,7 @@ void iAUncertaintyModuleInterface::UncertaintyExploration()
 {
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
 		tr("Load Ensemble"),
-		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->getFilePath(): QString(),
+		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->filePath(): QString(),
 		tr("Image Analysis Ensemble (*.iae );;") );
 	if (!fileName.isEmpty())
 	{
@@ -69,7 +69,6 @@ void iAUncertaintyModuleInterface::LoadEnsemble(QString const & fileName)
 {
 	SetupToolBar();
 	m_mdiChild = m_mainWnd->createMdiChild(false);
-	UpdateChildData();
 	bool result = AttachToMdiChild(m_mdiChild);
 	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
 	if (!result || !attach)
@@ -145,7 +144,7 @@ void iAUncertaintyModuleInterface::WriteFullDataFile()
 	}
 	QString fileName = QFileDialog::getSaveFileName(m_mainWnd,
 		tr("Save Full Data file"),
-		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->getFilePath() : QString(),
+		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->filePath() : QString(),
 		tr("SVM file format (*.svm);;"));
 	if (fileName.isEmpty())
 		return;

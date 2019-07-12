@@ -67,7 +67,7 @@ vtkSmartPointer<vtkLookupTable> BuildLabelOverlayLUT(int labelCount, iAColorThem
 	result->SetTableValue(0.0, 0.0, 0.0, 0.0, 0.0);   // value 0 is transparent
 	for (int i = 0; i<labelCount; ++i)
 	{
-		QColor c(colorTheme->GetColor(i));
+		QColor c(colorTheme->color(i));
 		result->SetTableValue(i+1,
 			c.red() / 255.0,
 			c.green() / 255.0,
@@ -91,7 +91,7 @@ vtkSmartPointer<vtkImageData> iALabelOverlayThread::drawImage()
 	result->SetExtent(m_imageExtent);
 	result->SetSpacing(m_imageSpacing);
 	result->AllocateScalars(VTK_INT, 1);
-	clearImage(result, m_labelCount);
+	clearImage(result, 0);
 
 	for (int l = 0; l<m_itemModel->rowCount(); ++l)
 	{

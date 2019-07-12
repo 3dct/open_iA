@@ -47,18 +47,18 @@ void GPU_gradient_anisotropic_diffusion(iAFilter* filter, QMap<QString, QVariant
 	gadFilter->SetNumberOfIterations(params["Number of iterations"].toUInt());
 	gadFilter->SetTimeStep(params["Time Step"].toDouble());
 	gadFilter->SetConductanceParameter(params["Conductance"].toDouble());
-	gadFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
-	filter->Progress()->Observe(gadFilter);
+	gadFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
+	filter->progress()->Observe(gadFilter);
 	gadFilter->Update();
 	if (params["Convert back to input type"].toBool())
-		filter->AddOutput(CastImageTo<T>(gadFilter->GetOutput()));
+		filter->addOutput(castImageTo<T>(gadFilter->GetOutput()));
 	else
-		filter->AddOutput(gadFilter->GetOutput());
+		filter->addOutput(gadFilter->GetOutput());
 }
 
-void iAGPUEdgePreservingSmoothing::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAGPUEdgePreservingSmoothing::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(GPU_gradient_anisotropic_diffusion, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(GPU_gradient_anisotropic_diffusion, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAGPUEdgePreservingSmoothing)
@@ -70,8 +70,8 @@ iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GPUGradientAnisotropicDiffusionImageFilter.html\">"
 		"GPU Gradient Anisotropic Diffusion Filter</a> in the ITK documentation.")
 {
-	AddParameter("Number of iterations", Discrete, 100, 1);
-	AddParameter("Time step", Continuous, 0.0625);
-	AddParameter("Conductance", Continuous, 1);
-	AddParameter("Convert back to input type", Boolean, false);
+	addParameter("Number of iterations", Discrete, 100, 1);
+	addParameter("Time step", Continuous, 0.0625);
+	addParameter("Conductance", Continuous, 1);
+	addParameter("Convert back to input type", Boolean, false);
 }

@@ -44,7 +44,7 @@ class iAParamSpatialView: public QWidget
 	Q_OBJECT
 public:
 	iAParamSpatialView(iAParamTableView* table, QString const & basePath, iADiagramFctWidget* chartWidget, int binCount);
-	void SetImage(size_t id);
+	void setImage(size_t id);
 	void ToggleSettings(bool visible);
 private slots:
 	void SlicerModeButtonClicked(bool checked);

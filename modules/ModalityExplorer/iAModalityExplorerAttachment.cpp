@@ -25,12 +25,12 @@
 #include <iAModality.h>
 #include <mdichild.h>
 
-iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd, iAChildData childData):
-	iAModuleAttachmentToChild(mainWnd, childData)
+iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd, MdiChild * child):
+	iAModuleAttachmentToChild(mainWnd, child)
 {
 	m_dlgModalitySPLOM = new dlg_modalitySPLOM();
-	m_dlgModalitySPLOM->SetData(childData.child->GetModalities());
-	childData.child->tabifyDockWidget(m_childData.logs, m_dlgModalitySPLOM);
+	m_dlgModalitySPLOM->SetData(child->modalities());
+	child->tabifyDockWidget(child->logDockWidget(), m_dlgModalitySPLOM);
 	/*
 	dlg_planeSlicer* planeSlicer = new dlg_planeSlicer();
 	mdiChild->splitDockWidget(renderWidget, planeSlicer, Qt::Horizontal);
@@ -38,8 +38,8 @@ iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd,
 	*/
 }
 
-iAModalityExplorerAttachment* iAModalityExplorerAttachment::create(MainWindow * mainWnd, iAChildData childData)
+iAModalityExplorerAttachment* iAModalityExplorerAttachment::create(MainWindow * mainWnd, MdiChild * child)
 {
-	iAModalityExplorerAttachment * newAttachment = new iAModalityExplorerAttachment(mainWnd, childData);
+	iAModalityExplorerAttachment * newAttachment = new iAModalityExplorerAttachment(mainWnd, child);
 	return newAttachment;
 }

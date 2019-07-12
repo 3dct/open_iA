@@ -128,18 +128,18 @@ void iAFavoriteWidget::Add(iAImageTreeNode * node)
 	{
 		return;
 	}
-	iAImagePreviewWidget * widget = m_previewPool->GetWidget(this);
+	iAImagePreviewWidget * widget = m_previewPool->getWidget(this);
 	if (!widget)
 	{
 		DEBUG_LOG("FavoriteView: No more slicer widgets available.\n");
 		return;
 	}
 	widget->setFixedSize(FavoriteWidth, FavoriteWidth);
-	widget->SetImage(node->GetRepresentativeImage(iARepresentativeType::Difference,
+	widget->setImage(node->GetRepresentativeImage(iARepresentativeType::Difference,
 		LabelImagePointer()), false, true);
-	connect(widget, SIGNAL(Clicked()), this, SLOT(FavoriteClicked()));
-	connect(widget, SIGNAL(RightClicked()), this, SLOT(FavoriteRightClicked()));
-	connect(widget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
+	connect(widget, SIGNAL(clicked()), this, SLOT(FavoriteClicked()));
+	connect(widget, SIGNAL(rightClicked()), this, SLOT(FavoriteRightClicked()));
+	connect(widget, SIGNAL(updated()), this, SIGNAL(ViewUpdated()));
 	m_favorites.push_back(FavoriteData(node, widget));
 	dynamic_cast<LikeLayoutType*>(m_likeLayout)->insertWidget(0, widget);
 }
@@ -167,10 +167,10 @@ void iAFavoriteWidget::Remove(iAImageTreeNode const * node)
 	m_favorites[idx].node = 0;
 	m_favorites[idx].widget = 0;
 	m_favorites.remove(idx);
-	disconnect(widget, SIGNAL(Clicked()), this, SLOT(FavoriteClicked()));
-	disconnect(widget, SIGNAL(RightClicked()), this, SLOT(FavoriteRightClicked()));
-	disconnect(widget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
-	m_previewPool->ReturnWidget(widget);
+	disconnect(widget, SIGNAL(clicked()), this, SLOT(FavoriteClicked()));
+	disconnect(widget, SIGNAL(rightClicked()), this, SLOT(FavoriteRightClicked()));
+	disconnect(widget, SIGNAL(updated()), this, SIGNAL(ViewUpdated()));
+	m_previewPool->returnWidget(widget);
 }
 
 
@@ -186,7 +186,7 @@ void iAFavoriteWidget::FavoriteClicked()
 	{
 		DEBUG_LOG("FavoriteClicked: Error: node not found!\n");
 	}
-	emit Clicked(node);
+	emit clicked(node);
 }
 
 
@@ -202,7 +202,7 @@ void iAFavoriteWidget::FavoriteRightClicked()
 	{
 		DEBUG_LOG("FavoriteClicked: Error: node not found!\n");
 	}
-	emit RightClicked(node);
+	emit rightClicked(node);
 }
 
 

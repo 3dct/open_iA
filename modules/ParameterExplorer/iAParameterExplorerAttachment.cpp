@@ -30,13 +30,13 @@
 #include <mdichild.h>
 #include <qthelper/iADockWidgetWrapper.h>
 
-iAParameterExplorerAttachment* iAParameterExplorerAttachment::create(MainWindow * mainWnd, iAChildData childData)
+iAParameterExplorerAttachment* iAParameterExplorerAttachment::create(MainWindow * mainWnd, MdiChild * child)
 {
-	return new iAParameterExplorerAttachment(mainWnd, childData);
+	return new iAParameterExplorerAttachment(mainWnd, child);
 }
 
-iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData)
-	:iAModuleAttachmentToChild(mainWnd, childData)
+iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWnd, MdiChild * child)
+	:iAModuleAttachmentToChild(mainWnd, child)
 {
 }
 
@@ -47,7 +47,7 @@ void iAParameterExplorerAttachment::LoadCSV(QString const & csvFileName)
 	m_csvFileName = csvFileName;
 	m_tableView = new iAParamTableView(csvFileName);
 	m_spatialView = new iAParamSpatialView(m_tableView, QFileInfo(csvFileName).absolutePath(),
-		m_childData.child->getHistogram(), m_childData.child->GetPreferences().HistogramBins);
+		m_child->histogram(), m_child->preferences().HistogramBins);
 	m_SPLOMView = new iAParamSPLOMView(m_tableView, m_spatialView);
 	m_featuresView = new iAParamFeaturesView(m_tableView->Table());
 	connect(m_featuresView, SIGNAL(ShowFeature(int, bool)), m_SPLOMView, SLOT(ShowFeature(int, bool)));
@@ -56,12 +56,12 @@ void iAParameterExplorerAttachment::LoadCSV(QString const & csvFileName)
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial", "ParamSpatialView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_SPLOMView, "Scatter Plot Matrix", "ParamSPLOMView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_tableView, "Table", "ParamTableView"));
-	m_dockWidgets.push_back(m_childData.child->getHistogramDockWidget());
+	m_dockWidgets.push_back(m_child->histogramDockWidget());
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_featuresView, "Features", "ParamFeaturesView"));
-	m_childData.child->splitDockWidget(m_childData.child->logs, m_dockWidgets[0], Qt::Horizontal);
-	m_childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Horizontal);
-	m_childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Vertical);
-	m_childData.child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[4], Qt::Vertical);
+	m_child->splitDockWidget(m_child->logDockWidget(), m_dockWidgets[0], Qt::Horizontal);
+	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Horizontal);
+	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Vertical);
+	m_child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[4], Qt::Vertical);
 }
 
 void iAParameterExplorerAttachment::ToggleDockWidgetTitleBars()

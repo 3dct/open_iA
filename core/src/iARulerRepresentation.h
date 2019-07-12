@@ -31,33 +31,31 @@ public:
   void PrintSelf(ostream &os, vtkIndent indent) override;
   static iARulerRepresentation *New();
 
-  // Description:
-  // The prop that is placed in the renderer.
+  //! The prop that is placed in the renderer.
   vtkGetObjectMacro(RulerActor, iARulerActor);
   virtual void SetScalarBarActor(iARulerActor *);
 
-  // Description:
-  // Satisfy the superclass' API.
+  //! Satisfy the superclass' API.
   void BuildRepresentation() override;
   void GetSize(double size[2]) override
     {size[0]=2.0; size[1]=2.0;}
 
-  // Description:
-  // These methods are necessary to make this representation behave as
-  // a vtkProp.
+  //! @{ These methods are necessary to make this representation behave as a vtkProp.
   void GetActors2D(vtkPropCollection *collection) override;
   void ReleaseGraphicsResources(vtkWindow *window) override;
   int RenderOverlay(vtkViewport*) override;
   int RenderOpaqueGeometry(vtkViewport*) override;
   int RenderTranslucentPolygonalGeometry(vtkViewport*) override;
   int HasTranslucentPolygonalGeometry() override;
+  //! @}
 
 protected:
   iARulerRepresentation();
   ~iARulerRepresentation();
 
   iARulerActor *RulerActor;
+
 private:
-  iARulerRepresentation(const iARulerRepresentation &); // Not implemented
-  void operator=(const iARulerRepresentation &);   // Not implemented
+  iARulerRepresentation(const iARulerRepresentation &) =delete;
+  void operator=(const iARulerRepresentation &) =delete;
 };

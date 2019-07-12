@@ -36,27 +36,27 @@
 
 // TODO: unify with iAITKIO !
 
-open_iA_Core_API itk::ImageIOBase::IOComponentType GetITKScalarPixelType(iAITKIO::ImagePointer image);
-open_iA_Core_API itk::ImageIOBase::IOPixelType GetITKPixelType( iAITKIO::ImagePointer image );
-open_iA_Core_API iAITKIO::ImagePointer AllocateImage(iAITKIO::ImagePointer img);
-open_iA_Core_API iAITKIO::ImagePointer AllocateImage(int const size[iAITKIO::m_DIM], double const spacing[iAITKIO::m_DIM], itk::ImageIOBase::IOComponentType type);
-open_iA_Core_API void StoreImage(iAITKIO::ImagePointer image, QString const & filename, bool useCompression);
+open_iA_Core_API itk::ImageIOBase::IOComponentType itkScalarPixelType(iAITKIO::ImagePointer image);
+open_iA_Core_API itk::ImageIOBase::IOPixelType itkPixelType( iAITKIO::ImagePointer image );
+open_iA_Core_API iAITKIO::ImagePointer allocateImage(iAITKIO::ImagePointer img);
+open_iA_Core_API iAITKIO::ImagePointer allocateImage(int const size[iAITKIO::m_DIM], double const spacing[iAITKIO::m_DIM], itk::ImageIOBase::IOComponentType type);
+open_iA_Core_API void storeImage(iAITKIO::ImagePointer image, QString const & filename, bool useCompression);
 
 //! @{
 //! Generic access to pixels of any ITK image as double.
 //! Slow! If you need to access more than a few pixels,
 //! convert the whole image first (maybe using templates) and then access directly!
-open_iA_Core_API double GetITKPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx);
-open_iA_Core_API void SetITKPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx, double value);
+open_iA_Core_API double itkPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx);
+open_iA_Core_API void setITKPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx, double value);
 //! @}
 
 //! extract part of an image as a new file
-open_iA_Core_API iAITKIO::ImagePointer ExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM]);
+open_iA_Core_API iAITKIO::ImagePointer extractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM]);
 
 //! set index offset of an image to (0,0,0)
-//open_iA_Core_API iAITKIO::ImagePointer SetIndexOffsetToZero(iAITKIO::ImagePointer inImg);
+//open_iA_Core_API iAITKIO::ImagePointer setIndexOffsetToZero(iAITKIO::ImagePointer inImg);
 template <typename T>
-typename itk::Image<T, iAITKIO::m_DIM>::Pointer SetIndexOffsetToZero(typename itk::Image<T, iAITKIO::m_DIM>::Pointer inImg)
+typename itk::Image<T, iAITKIO::m_DIM>::Pointer setIndexOffsetToZero(typename itk::Image<T, iAITKIO::m_DIM>::Pointer inImg)
 {
 	// change output image index offset to zero
 	typedef itk::Image<T, iAITKIO::m_DIM> ImageType;
@@ -83,7 +83,7 @@ typename itk::Image<T, iAITKIO::m_DIM>::Pointer SetIndexOffsetToZero(typename it
 
 //! Source: http://itk.org/Wiki/ITK/Examples/Utilities/DeepCopy
 template<typename TImage>
-void DeepCopy(typename TImage::Pointer input, typename TImage::Pointer output)
+void deepCopy(typename TImage::Pointer input, typename TImage::Pointer output)
 {
 	output->SetRegions(input->GetLargestPossibleRegion());
 	output->SetSpacing(input->GetSpacing());
@@ -101,7 +101,7 @@ void DeepCopy(typename TImage::Pointer input, typename TImage::Pointer output)
 }
 
 template <typename TImage>
-typename TImage::Pointer CreateImage(typename TImage::SizeType size, typename TImage::SpacingType spacing)
+typename TImage::Pointer createImage(typename TImage::SizeType size, typename TImage::SpacingType spacing)
 {
 	typename TImage::Pointer image = TImage::New();
 	typename TImage::IndexType start;
@@ -115,7 +115,7 @@ typename TImage::Pointer CreateImage(typename TImage::SizeType size, typename TI
 }
 
 template <typename TImage>
-typename TImage::Pointer CreateImage(typename TImage::Pointer otherImg)
+typename TImage::Pointer createImage(typename TImage::Pointer otherImg)
 {
 	typename TImage::Pointer image = TImage::New();
 	typename TImage::RegionType reg(
@@ -130,7 +130,7 @@ typename TImage::Pointer CreateImage(typename TImage::Pointer otherImg)
 }
 
 template <typename TImage>
-void StoreImage(TImage * image, QString const & filename, bool useCompression = true)
+void storeImage(TImage * image, QString const & filename, bool useCompression = true)
 {
 	typename itk::ImageFileWriter<TImage>::Pointer writer = itk::ImageFileWriter<TImage>::New();
 	try
@@ -149,7 +149,7 @@ void StoreImage(TImage * image, QString const & filename, bool useCompression = 
 }
 
 template<typename SourceImageType, typename ResultImageType>
-iAITKIO::ImagePointer InternalCastImageTo(iAITKIO::ImagePointer img)
+iAITKIO::ImagePointer internalCastImageTo(iAITKIO::ImagePointer img)
 {
 	typedef itk::CastImageFilter<SourceImageType, ResultImageType> CastType;
 	typename CastType::Pointer cast = CastType::New();
@@ -159,37 +159,37 @@ iAITKIO::ImagePointer InternalCastImageTo(iAITKIO::ImagePointer img)
 }
 
 template<typename ResultPixelType>
-iAITKIO::ImagePointer CastImageTo(iAITKIO::ImagePointer img)
+iAITKIO::ImagePointer castImageTo(iAITKIO::ImagePointer img)
 {
 	// can I retrieve number of dimensions somehow? otherwise assume 3 fixed?
-	switch (GetITKScalarPixelType(img))
+	switch (itkScalarPixelType(img))
 	{
 		case itk::ImageIOBase::UCHAR:
-			return InternalCastImageTo<itk::Image<unsigned char, 3>, itk::Image<ResultPixelType, 3> >(img);
+			return internalCastImageTo<itk::Image<unsigned char, 3>, itk::Image<ResultPixelType, 3> >(img);
 		case itk::ImageIOBase::CHAR:
-			return InternalCastImageTo<itk::Image<char, 3>, itk::Image<ResultPixelType, 3> >(img);
+			return internalCastImageTo<itk::Image<char, 3>, itk::Image<ResultPixelType, 3> >(img);
 		case itk::ImageIOBase::SHORT:
-			return InternalCastImageTo<itk::Image<short, 3>, itk::Image<ResultPixelType, 3> >(img);
+			return internalCastImageTo<itk::Image<short, 3>, itk::Image<ResultPixelType, 3> >(img);
 		case itk::ImageIOBase::USHORT:
-			return InternalCastImageTo<itk::Image<unsigned short, 3>, itk::Image<ResultPixelType, 3> >(img);
+			return internalCastImageTo<itk::Image<unsigned short, 3>, itk::Image<ResultPixelType, 3> >(img);
 		case itk::ImageIOBase::INT:
-			return InternalCastImageTo<itk::Image<int, 3>, itk::Image<ResultPixelType, 3> >(img);
+			return internalCastImageTo<itk::Image<int, 3>, itk::Image<ResultPixelType, 3> >(img);
 		case itk::ImageIOBase::UINT:
-			return InternalCastImageTo<itk::Image<unsigned int, 3>, itk::Image<ResultPixelType, 3> >(img);
+			return internalCastImageTo<itk::Image<unsigned int, 3>, itk::Image<ResultPixelType, 3> >(img);
 		case itk::ImageIOBase::LONG:
-			return InternalCastImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img);
+			return internalCastImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img);
 		case itk::ImageIOBase::ULONG:
-			return InternalCastImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img);
+			return internalCastImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img);
 		case itk::ImageIOBase::FLOAT:
-			return InternalCastImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img);
+			return internalCastImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img);
 		default:
 		case itk::ImageIOBase::DOUBLE:
-			return InternalCastImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img);
+			return internalCastImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img);
 	}
 }
 
 template<typename SourceImageType, typename ResultImageType>
-iAITKIO::ImagePointer InternalRescaleImageTo(iAITKIO::ImagePointer img, double min, double max)
+iAITKIO::ImagePointer internalRescaleImageTo(iAITKIO::ImagePointer img, double min, double max)
 {
 	typedef itk::RescaleIntensityImageFilter<SourceImageType, ResultImageType> RescaleType;
 	typename RescaleType::Pointer rescale = RescaleType::New();
@@ -201,32 +201,32 @@ iAITKIO::ImagePointer InternalRescaleImageTo(iAITKIO::ImagePointer img, double m
 }
 
 template<typename ResultPixelType>
-iAITKIO::ImagePointer RescaleImageTo(iAITKIO::ImagePointer img, double min, double max)
+iAITKIO::ImagePointer rescaleImageTo(iAITKIO::ImagePointer img, double min, double max)
 {
 	// can I retrieve number of dimensions somehow? otherwise assume 3 fixed?
-	switch (GetITKScalarPixelType(img))
+	switch (itkScalarPixelType(img))
 	{
 	case itk::ImageIOBase::UCHAR:
-		return InternalRescaleImageTo<itk::Image<unsigned char, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+		return internalRescaleImageTo<itk::Image<unsigned char, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	case itk::ImageIOBase::CHAR:
-		return InternalRescaleImageTo<itk::Image<char, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+		return internalRescaleImageTo<itk::Image<char, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	case itk::ImageIOBase::SHORT:
-		return InternalRescaleImageTo<itk::Image<short, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+		return internalRescaleImageTo<itk::Image<short, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	case itk::ImageIOBase::USHORT:
-		return InternalRescaleImageTo<itk::Image<unsigned short, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+		return internalRescaleImageTo<itk::Image<unsigned short, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	case itk::ImageIOBase::INT:
-		return InternalRescaleImageTo<itk::Image<int, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+		return internalRescaleImageTo<itk::Image<int, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	case itk::ImageIOBase::UINT:
-		return InternalRescaleImageTo<itk::Image<unsigned int, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+		return internalRescaleImageTo<itk::Image<unsigned int, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	case itk::ImageIOBase::LONG:
-		return InternalRescaleImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+		return internalRescaleImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	case itk::ImageIOBase::ULONG:
-		return InternalRescaleImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+		return internalRescaleImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	case itk::ImageIOBase::FLOAT:
-		return InternalRescaleImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+		return internalRescaleImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	default:
 	case itk::ImageIOBase::DOUBLE:
-		return InternalRescaleImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+		return internalRescaleImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	}
 }
 

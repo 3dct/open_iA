@@ -27,9 +27,7 @@
 #include <QPen>
 #include <QRect>
 
-class iATripleModalityWidget;
-
-class iASlicerWidget;
+class iASlicer;
 class iADiagramFctWidget;
 
 class QPoint;
@@ -84,7 +82,7 @@ private:
 	void forwardContextMenuEvent(QContextMenuEvent *event);
 	QSharedPointer<iADiagramFctWidget> onHistogram(QPoint p, QPoint &transformed);
 	bool onTriangle(QPoint p);
-	iASlicerWidget* onSlicer(QPoint p, QPoint &transformed);
+	iASlicer* onSlicer(QPoint p, QPoint &transformed);
 
 	QWidget* m_draggedWidget = nullptr;
 	WidgetType m_draggedType = NONE;

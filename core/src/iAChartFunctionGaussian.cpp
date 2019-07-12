@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_gaussian.h"
+#include "iAChartFunctionGaussian.h"
 
 #include "charts/iADiagramFctWidget.h"
 #include "iAMapper.h"
@@ -30,28 +30,26 @@
 #include <QPainter>
 #include <QMouseEvent>
 
-dlg_gaussian::dlg_gaussian(iADiagramFctWidget *chart, QColor &color, bool res): dlg_function(chart)
+iAChartFunctionGaussian::iAChartFunctionGaussian(iADiagramFctWidget *chart, QColor &color, bool res):
+	iAChartFunction(chart),
+	m_color(color),
+	m_sigma(0.0),
+	m_mean(0.0),
+	m_multiplier(0.0),
+	m_selectedPoint(-1)
 {
-	this->color = color;
-	active = false;
-
-	sigma = 0.0;
-	mean = 0.0;
-	multiplier  = 0.0;
-	selectedPoint = -1;
-
 	if (res)
 		reset();
 }
 
-void dlg_gaussian::draw(QPainter &painter)
+void iAChartFunctionGaussian::draw(QPainter &painter)
 {
-	draw(painter, color, 3);
+	draw(painter, m_color, 3);
 }
 
-void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
+void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidth)
 {
-	bool active = (chart->getSelectedFunction() == this);
+	bool active = (chart->selectedFunction() == this);
 	// draw line
 	QPen pen = painter.pen();
 	pen.setColor(color);
@@ -65,14 +63,14 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 
 	double X1 = chart->xBounds()[0];
 	double X2 = X1;
-	double Y1 = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*exp(-pow((X2-mean)/sigma, 2)/2) *multiplier;
+	double Y1 = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()))*exp(-pow((X2 - m_mean)/ m_sigma, 2)/2) * m_multiplier;
 	double Y2 = Y1;
 
-	double smallStep = std::max(6 * sigma / 100, 0.25*i2dX(1));
+	double smallStep = std::max(6 * m_sigma / 100, 0.25*i2dX(1));
 	while (X2 <= chart->xBounds()[1]+step && step > std::numeric_limits<double>::epsilon())
 	{
 		Y1 = Y2;
-		Y2 = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*exp(-pow((X2-mean)/sigma, 2)/2) *multiplier;
+		Y2 = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()))*exp(-pow((X2 - m_mean)/ m_sigma, 2)/2) * m_multiplier;
 
 		int x1, y1;
 		x1 = d2iX(X1);
@@ -86,7 +84,7 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 
 		X1 = X2;
 
-		if (X2+startStep > mean-3*sigma && X1 < mean+3*sigma)
+		if (X2+startStep > m_mean-3* m_sigma && X1 < m_mean+3* m_sigma)
 			step = smallStep;
 		else
 			step = startStep;
@@ -110,11 +108,11 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 		painter.setPen(pen);
 
 		int x, lx, rx, y;
-		double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*multiplier;
+		double meanValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()))*m_multiplier;
 
-		x = d2iX(mean);
-		lx = d2iX(mean-sigma);
-		rx = d2iX(mean+sigma);
+		x = d2iX(m_mean);
+		lx = d2iX(m_mean - m_sigma);
+		rx = d2iX(m_mean + m_sigma);
 		y = d2iY(meanValue);
 
 		painter.drawLine(lx, y, rx, y);
@@ -139,102 +137,102 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 	}
 }
 
-int dlg_gaussian::selectPoint(QMouseEvent *event, int*)
+int iAChartFunctionGaussian::selectPoint(QMouseEvent *event, int*)
 {
 	int lx = event->x();
 	int ly = chart->geometry().height() - event->y() - chart->bottomMargin();
 
-	double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()));
+	double meanValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()));
 
-	int viewXPoint = d2vX(mean);
-	int viewYPoint = d2vY(meanValue*multiplier);
+	int viewXPoint = d2vX(m_mean);
+	int viewYPoint = d2vY(meanValue*m_multiplier);
 
-	int viewXLeftSigmaPoint  = d2vX(mean-sigma);
-	int viewXRightSigmaPoint = d2vX(mean+sigma);
+	int viewXLeftSigmaPoint  = d2vX(m_mean-m_sigma);
+	int viewXRightSigmaPoint = d2vX(m_mean+m_sigma);
 
 	if (lx >= viewXLeftSigmaPoint-iADiagramFctWidget::POINT_RADIUS/2 && lx <= viewXLeftSigmaPoint+iADiagramFctWidget::POINT_RADIUS/2 &&
 		ly >= viewYPoint-iADiagramFctWidget::POINT_RADIUS/2 && ly <= viewYPoint+iADiagramFctWidget::POINT_RADIUS/2)
-		selectedPoint = 1;
+		m_selectedPoint = 1;
 	else if (lx >= viewXRightSigmaPoint-iADiagramFctWidget::POINT_RADIUS/2 && lx <= viewXRightSigmaPoint+iADiagramFctWidget::POINT_RADIUS/2 &&
 			ly >= viewYPoint-iADiagramFctWidget::POINT_RADIUS/2 && ly <= viewYPoint+iADiagramFctWidget::POINT_RADIUS/2)
-		selectedPoint = 2;
+		m_selectedPoint = 2;
 	else if (lx >= viewXPoint-iADiagramFctWidget::POINT_RADIUS && lx <= viewXPoint+iADiagramFctWidget::POINT_RADIUS &&
 			ly >= viewYPoint-iADiagramFctWidget::POINT_RADIUS && ly <= viewYPoint+iADiagramFctWidget::POINT_RADIUS)
-		selectedPoint = 0;
+		m_selectedPoint = 0;
 
 	else
-		selectedPoint = -1;
+		m_selectedPoint = -1;
 
-	return selectedPoint;
+	return m_selectedPoint;
 }
 
-void dlg_gaussian::moveSelectedPoint(int x, int y)
+void iAChartFunctionGaussian::moveSelectedPoint(int x, int y)
 {
 	y = clamp(0, chart->geometry().height() - chart->bottomMargin() - 1, y);
-	if (selectedPoint != -1)
+	if (m_selectedPoint != -1)
 	{
-		switch(selectedPoint)
+		switch(m_selectedPoint)
 		{
 			case 0:
 			{
 				x = clamp(0, chart->geometry().width() - 1, x);
-				mean = v2dX(x);
+				m_mean = v2dX(x);
 			}
 			break;
 			case 1: case 2:
 			{
-				sigma = fabs(mean -v2dX(x));
-				if (sigma <= std::numeric_limits<double>::epsilon())
-					sigma = fabs(mean - v2dX(x+1));
+				m_sigma = fabs(m_mean - v2dX(x));
+				if (m_sigma <= std::numeric_limits<double>::epsilon())
+					m_sigma = fabs(m_mean - v2dX(x+1));
 			}
 		}
 
-		double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*chart->YZoom();
-		multiplier  = (double)y /(chart->geometry().height() - chart->bottomMargin()-1)*chart->yBounds()[1] /meanValue;
+		double meanValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()))*chart->yZoom();
+		m_multiplier  = (double)y /(chart->geometry().height() - chart->bottomMargin()-1)*chart->yBounds()[1] /meanValue;
 	}
 }
 
-void dlg_gaussian::reset()
+void iAChartFunctionGaussian::reset()
 {}
 
-void dlg_gaussian::setMultiplier(int multiplier)
+void iAChartFunctionGaussian::setMultiplier(int multiplier)
 {
-	double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*chart->YZoom();
-	this->multiplier = v2dY(multiplier) /meanValue;
+	double meanValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()))*chart->yZoom();
+	m_multiplier = v2dY(multiplier) / meanValue;
 }
 
 // TODO: unify somewhere!
-double dlg_gaussian::v2dX(int x)
+double iAChartFunctionGaussian::v2dX(int x)
 {
-	return ((double)(x-chart->xShift()) / (double)chart->geometry().width() * chart->xRange()) /chart->XZoom() + chart->xBounds()[0];
+	return ((double)(x-chart->xShift()) / (double)chart->geometry().width() * chart->xRange()) /chart->xZoom() + chart->xBounds()[0];
 }
 
-double dlg_gaussian::v2dY(int y)
+double iAChartFunctionGaussian::v2dY(int y)
 {
-	return chart->yMapper().srcToDst(y) *chart->yBounds()[1] /chart->YZoom();
+	return chart->yMapper().srcToDst(y) *chart->yBounds()[1] /chart->yZoom();
 }
 
-int dlg_gaussian::d2vX(double x)
+int iAChartFunctionGaussian::d2vX(double x)
 {
-	return (int)((x - chart->xBounds()[0]) * (double)chart->geometry().width() / chart->xRange()*chart->XZoom()) +chart->xShift();
+	return (int)((x - chart->xBounds()[0]) * (double)chart->geometry().width() / chart->xRange()*chart->xZoom()) +chart->xShift();
 }
 
-int dlg_gaussian::d2vY(double y)
+int iAChartFunctionGaussian::d2vY(double y)
 {
-	return (int)(y /chart->yBounds()[1] *(double)(chart->geometry().height() - chart->bottomMargin()-1) *chart->YZoom());
+	return (int)(y /chart->yBounds()[1] *(double)(chart->geometry().height() - chart->bottomMargin()-1) *chart->yZoom());
 }
 
-int dlg_gaussian::d2iX(double x)
+int iAChartFunctionGaussian::d2iX(double x)
 {
 	return d2vX(x) -chart->xShift();
 }
 
-int dlg_gaussian::d2iY(double y)
+int iAChartFunctionGaussian::d2iY(double y)
 {
 	return d2vY(y);
 }
 
-double dlg_gaussian::i2dX(int x)
+double iAChartFunctionGaussian::i2dX(int x)
 {
-	return ((double)x / (double)chart->geometry().width() * chart->xRange()) /chart->XZoom() + chart->xBounds()[0];
+	return ((double)x / (double)chart->geometry().width() * chart->xRange()) /chart->xZoom() + chart->xBounds()[0];
 }

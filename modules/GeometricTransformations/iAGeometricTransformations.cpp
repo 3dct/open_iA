@@ -88,21 +88,21 @@ template<typename T> void resampler(iAFilter* filter, QMap<QString, QVariant> co
 		auto interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
-	resampler->SetInput( dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage() ) );
+	resampler->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage() ) );
 	resampler->SetOutputOrigin( origin );
 	resampler->SetOutputSpacing( spacing );
 	resampler->SetSize( size );
 	resampler->SetDefaultPixelValue( 0 );
-	filter->Progress()->Observe( resampler );
+	filter->progress()->Observe( resampler );
 	resampler->Update( );
-	filter->AddOutput( resampler->GetOutput() );
+	filter->addOutput( resampler->GetOutput() );
 }
 
 IAFILTER_CREATE(iAResampleFilter)
 
-void iAResampleFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAResampleFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(resampler, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(resampler, inputPixelType(), this, parameters);
 }
 
 iAResampleFilter::iAResampleFilter() :
@@ -112,38 +112,38 @@ iAResampleFilter::iAResampleFilter() :
 		"<a href=\"https ://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
 		"Resample Filter</a> in the ITK documentation.")
 {
-	AddParameter("Origin X", Discrete, 0);
-	AddParameter("Origin Y", Discrete, 0);
-	AddParameter("Origin Z", Discrete, 0);
-	AddParameter("Spacing X", Continuous, 0);
-	AddParameter("Spacing Y", Continuous, 0);
-	AddParameter("Spacing Z", Continuous, 0);
-	AddParameter("Size X", Discrete, 1, 1);
-	AddParameter("Size Y", Discrete, 1, 1);
-	AddParameter("Size Z", Discrete, 1, 1);
+	addParameter("Origin X", Discrete, 0);
+	addParameter("Origin Y", Discrete, 0);
+	addParameter("Origin Z", Discrete, 0);
+	addParameter("Spacing X", Continuous, 0);
+	addParameter("Spacing Y", Continuous, 0);
+	addParameter("Spacing Z", Continuous, 0);
+	addParameter("Size X", Discrete, 1, 1);
+	addParameter("Size Y", Discrete, 1, 1);
+	addParameter("Size Z", Discrete, 1, 1);
 	QStringList interpolators;
 	interpolators
 		<< InterpLinear
 		<< InterpNearestNeighbour
 		<< InterpBSpline
 		<< InterpWindowedSinc;
-	AddParameter("Interpolator", Categorical, interpolators);
+	addParameter("Interpolator", Categorical, interpolators);
 }
 
-QSharedPointer<iAFilterRunnerGUI> iAResampleFilterRunner::Create()
+QSharedPointer<iAFilterRunnerGUI> iAResampleFilterRunner::create()
 {
 	return QSharedPointer<iAFilterRunnerGUI>(new iAResampleFilterRunner());
 }
 
-QMap<QString, QVariant> iAResampleFilterRunner::LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
+QMap<QString, QVariant> iAResampleFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
 {
-	auto params = iAFilterRunnerGUI::LoadParameters(filter, sourceMdi);
-	params["Spacing X"] = sourceMdi->getImagePointer()->GetSpacing()[0];
-	params["Spacing Y"] = sourceMdi->getImagePointer()->GetSpacing()[1];
-	params["Spacing Z"] = sourceMdi->getImagePointer()->GetSpacing()[2];
-	params["Size X"] = sourceMdi->getImagePointer()->GetDimensions()[0];
-	params["Size Y"] = sourceMdi->getImagePointer()->GetDimensions()[1];
-	params["Size Z"] = sourceMdi->getImagePointer()->GetDimensions()[2];
+	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
+	params["Spacing X"] = sourceMdi->imagePointer()->GetSpacing()[0];
+	params["Spacing Y"] = sourceMdi->imagePointer()->GetSpacing()[1];
+	params["Spacing Z"] = sourceMdi->imagePointer()->GetSpacing()[2];
+	params["Size X"] = sourceMdi->imagePointer()->GetDimensions()[0];
+	params["Size Y"] = sourceMdi->imagePointer()->GetDimensions()[1];
+	params["Size Z"] = sourceMdi->imagePointer()->GetDimensions()[2];
 	return params;
 }
 
@@ -162,19 +162,19 @@ void extractImage(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	typename EIFType::InputImageRegionType region; region.SetIndex(index); region.SetSize(size);
 
 	auto extractFilter = EIFType::New();
-	extractFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	extractFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	extractFilter->SetExtractionRegion(region);
-	filter->Progress()->Observe(extractFilter);
+	filter->progress()->Observe(extractFilter);
 	extractFilter->Update();
 
-	filter->AddOutput(SetIndexOffsetToZero<T>(extractFilter->GetOutput()));
+	filter->addOutput(setIndexOffsetToZero<T>(extractFilter->GetOutput()));
 }
 
 IAFILTER_CREATE(iAExtractImageFilter)
 
-void iAExtractImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAExtractImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(extractImage, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(extractImage, inputPixelType(), this, parameters);
 }
 
 iAExtractImageFilter::iAExtractImageFilter() :
@@ -185,23 +185,23 @@ iAExtractImageFilter::iAExtractImageFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ExtractImageFilter.html\">"
 		"Extract Image Filter</a> in the ITK documentation.")
 {
-	AddParameter("Index X", Discrete, 0);
-	AddParameter("Index Y", Discrete, 0);
-	AddParameter("Index Z", Discrete, 0);
-	AddParameter("Size X", Discrete, 1, 1);
-	AddParameter("Size Y", Discrete, 1, 1);
-	AddParameter("Size Z", Discrete, 1, 1);
+	addParameter("Index X", Discrete, 0);
+	addParameter("Index Y", Discrete, 0);
+	addParameter("Index Z", Discrete, 0);
+	addParameter("Size X", Discrete, 1, 1);
+	addParameter("Size Y", Discrete, 1, 1);
+	addParameter("Size Z", Discrete, 1, 1);
 }
 
-QSharedPointer<iAFilterRunnerGUI> iAExtractImageFilterRunner::Create()
+QSharedPointer<iAFilterRunnerGUI> iAExtractImageFilterRunner::create()
 {
 	return QSharedPointer<iAFilterRunnerGUI>(new iAExtractImageFilterRunner());
 }
 
-QMap<QString, QVariant> iAExtractImageFilterRunner::LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
+QMap<QString, QVariant> iAExtractImageFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
 {
-	auto params = iAFilterRunnerGUI::LoadParameters(filter, sourceMdi);
-	int const * dim = sourceMdi->getImagePointer()->GetDimensions();
+	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
+	int const * dim = sourceMdi->imagePointer()->GetDimensions();
 	if (params["Index X"].toUInt() >= dim[0])
 		params["Index X"] = 0;
 	if (params["Index Y"].toUInt() >= dim[1])
@@ -233,21 +233,21 @@ template<typename T> void padImage(iAFilter* filter, QMap<QString, QVariant> con
 	upperPadSize[2] = parameters["Upper Z padding"].toUInt();
 
 	auto padFilter = PadType::New();
-	padFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	padFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	padFilter->SetPadLowerBound(lowerPadSize);
 	padFilter->SetPadUpperBound(upperPadSize);
 	padFilter->SetConstant(parameters["Value"].toDouble());
-	filter->Progress()->Observe(padFilter);
+	filter->progress()->Observe(padFilter);
 	padFilter->Update();
 
-	filter->AddOutput(SetIndexOffsetToZero<T>(padFilter->GetOutput()));
+	filter->addOutput(setIndexOffsetToZero<T>(padFilter->GetOutput()));
 }
 
 IAFILTER_CREATE(iAPadImageFilter)
 
-void iAPadImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAPadImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(padImage, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(padImage, inputPixelType(), this, parameters);
 }
 
 iAPadImageFilter::iAPadImageFilter() :
@@ -260,11 +260,11 @@ iAPadImageFilter::iAPadImageFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ConstantPadImageFilter.html\">"
 		"Extract Image Filter</a> in the ITK documentation.")
 {
-	AddParameter("Lower X padding", Discrete, 1, 0);
-	AddParameter("Lower Y padding", Discrete, 1, 0);
-	AddParameter("Lower Z padding", Discrete, 1, 0);
-	AddParameter("Upper X padding", Discrete, 1, 0);
-	AddParameter("Upper Y padding", Discrete, 1, 0);
-	AddParameter("Upper Z padding", Discrete, 1, 0);
-	AddParameter("Value", Continuous, 0.0);
+	addParameter("Lower X padding", Discrete, 1, 0);
+	addParameter("Lower Y padding", Discrete, 1, 0);
+	addParameter("Lower Z padding", Discrete, 1, 0);
+	addParameter("Upper X padding", Discrete, 1, 0);
+	addParameter("Upper Y padding", Discrete, 1, 0);
+	addParameter("Upper Z padding", Discrete, 1, 0);
+	addParameter("Value", Continuous, 0.0);
 }

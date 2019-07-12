@@ -53,7 +53,7 @@ iAXRFData::Container * iAXRFData::GetDataPtr()
 	return &m_data;
 }
 
-vtkSmartPointer<vtkImageData> const & iAXRFData::GetImage(size_t idx) const
+vtkSmartPointer<vtkImageData> const & iAXRFData::image(size_t idx) const
 {
 	return m_data[idx];
 }
@@ -127,7 +127,7 @@ public:
 		double componentMax(0.0);
 		for (size_t i=0; i<xrfData.size(); ++i)
 		{
-			vtkSmartPointer<vtkImageData> countsForEnergy = xrfData.GetImage(i);
+			vtkSmartPointer<vtkImageData> countsForEnergy = xrfData.image(i);
 			assert (countsForEnergy->GetNumberOfScalarComponents() == 1);
 			int type = countsForEnergy->GetScalarType();
 
@@ -212,7 +212,7 @@ void iAXRFData::SetCombinedImage(vtkSmartPointer<vtkImageData> img)
 	m_combinedVolume = img;
 }
 
-QObject* iAXRFData::UpdateCombinedVolume(vtkSmartPointer<vtkColorTransferFunction> colorTransferEnergies)
+QThread* iAXRFData::UpdateCombinedVolume(vtkSmartPointer<vtkColorTransferFunction> colorTransferEnergies)
 {
 	iAXRFCombinedVolumeUpdater* updater = new iAXRFCombinedVolumeUpdater(*this, colorTransferEnergies);
 	updater->start();

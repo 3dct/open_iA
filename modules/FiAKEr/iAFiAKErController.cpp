@@ -170,7 +170,7 @@ public:
 };
 
 iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
-	m_resultColorTheme(iAColorThemeManager::GetInstance().GetTheme(DefaultResultColorTheme)),
+	m_resultColorTheme(iAColorThemeManager::instance().theme(DefaultResultColorTheme)),
 	m_mainWnd(mainWnd),
 	m_spm(new iAQSplom()),
 	m_referenceID(NoResult),
@@ -522,7 +522,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 	distributionChartTypeWidget->layout()->addWidget(m_distributionChartType);
 
 	auto stackedBarColorThemeChoice = new QComboBox();
-	stackedBarColorThemeChoice->addItems(iAColorThemeManager::GetInstance().GetAvailableThemes());
+	stackedBarColorThemeChoice->addItems(iAColorThemeManager::instance().availableThemes());
 	stackedBarColorThemeChoice->setCurrentText(DefaultStackedBarColorTheme);
 	connect(stackedBarColorThemeChoice, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(stackedBarColorThemeChanged(QString const &)));
 
@@ -554,7 +554,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 	distrColorThemeChoiceWidget->layout()->addWidget(distrColorThemeChoice);
 
 	auto resultColorThemeChoice = new QComboBox();
-	resultColorThemeChoice->addItems(iAColorThemeManager::GetInstance().GetAvailableThemes());
+	resultColorThemeChoice->addItems(iAColorThemeManager::instance().availableThemes());
 	resultColorThemeChoice->setCurrentText(DefaultResultColorTheme);
 	connect(resultColorThemeChoice, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(resultColorThemeChanged(QString const &)));
 	auto resultColorThemeChoiceWidget = new QWidget();
@@ -666,8 +666,8 @@ QWidget* iAFiAKErController::setupResultListView()
 		QString baseName = QFileInfo(m_data->result[resultID].fileName).baseName();
 		if (resultID > 0)
 		{
-			commonPrefixLength = std::min(commonPrefixLength, static_cast<size_t>(GreatestCommonPrefixLength(baseName, baseName0)));
-			commonSuffixLength = std::min(commonSuffixLength, static_cast<size_t>(GreatestCommonSuffixLength(baseName, baseName0)));
+			commonPrefixLength = std::min(commonPrefixLength, static_cast<size_t>(greatestCommonPrefixLength(baseName, baseName0)));
+			commonSuffixLength = std::min(commonSuffixLength, static_cast<size_t>(greatestCommonSuffixLength(baseName, baseName0)));
 		}
 		else
 		{
@@ -691,7 +691,7 @@ QWidget* iAFiAKErController::setupResultListView()
 	m_resultsListLayout->setColumnStretch(StackedBarColumn, m_data->result.size());
 	m_resultsListLayout->setColumnStretch(HistogramColumn, 2 * m_data->result.size());
 
-	auto colorTheme = iAColorThemeManager::GetInstance().GetTheme(DefaultStackedBarColorTheme);
+	auto colorTheme = iAColorThemeManager::instance().theme(DefaultStackedBarColorTheme);
 	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
 	m_stackedBarsHeaders->setMinimumWidth(StackedBarMinWidth);
 	auto headerFiberCountAction = new QAction("Fiber Count", nullptr);
@@ -939,7 +939,7 @@ void iAFiAKErController::setSPMColorByResult()
 	lut.setRange(0, numOfResults - 1);
 	lut.allocate(numOfResults);
 	for (size_t i = 0; i < numOfResults; i++)
-		lut.setColor(i, m_resultColorTheme->GetColor(i));
+		lut.setColor(i, m_resultColorTheme->color(i));
 	m_spm->setLookupTable(lut, m_data->spmData->numParams() - 1);
 }
 
@@ -996,7 +996,7 @@ bool iAFiAKErController::matchQualityVisActive() const
 void iAFiAKErController::resultColorThemeChanged(QString const & colorThemeName)
 {
 	addInteraction(QString("Changed result color theme to '%1'.").arg(colorThemeName));
-	m_resultColorTheme = iAColorThemeManager::GetInstance().GetTheme(colorThemeName);
+	m_resultColorTheme = iAColorThemeManager::instance().theme(colorThemeName);
 
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 		m_resultUIs[resultID].mini3DVis->setColor(getResultColor(resultID));
@@ -1027,7 +1027,7 @@ void iAFiAKErController::resultColorThemeChanged(QString const & colorThemeName)
 void iAFiAKErController::stackedBarColorThemeChanged(QString const & colorThemeName)
 {
 	addInteraction(QString("Changed stacked bar color theme to '%1'.").arg(colorThemeName));
-	auto colorTheme = iAColorThemeManager::GetInstance().GetTheme(colorThemeName);
+	auto colorTheme = iAColorThemeManager::instance().theme(colorThemeName);
 	m_stackedBarsHeaders->setColorTheme(colorTheme);
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 		m_resultUIs[resultID].stackedBars->setColorTheme(colorTheme);
@@ -1064,14 +1064,14 @@ void iAFiAKErController::changeDistributionSource(int index)
 		for (size_t fiberID = 0; fiberID<d.fiberCount; ++fiberID)
 			fiberData[fiberID] = matchQualityVisActive() ? m_data->avgRefFiberMatch[fiberID]
 					: d.table->GetValue(fiberID, index).ToDouble();
-		auto histogramData = iAHistogramData::Create(fiberData, HistogramBins, Continuous, range[0], range[1]);
+		auto histogramData = iAHistogramData::create(fiberData, HistogramBins, Continuous, range[0], range[1]);
 		QSharedPointer<iAPlot> histogramPlot =
 			(m_distributionChartType->currentIndex() == 0) ?
-			QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, m_resultColorTheme->GetColor(resultID)))
-			: QSharedPointer<iAPlot>(new iALinePlot(histogramData, m_resultColorTheme->GetColor(resultID)));
+			QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, m_resultColorTheme->color(resultID)))
+			: QSharedPointer<iAPlot>(new iALinePlot(histogramData, m_resultColorTheme->color(resultID)));
 		chart->addPlot(histogramPlot);
-		if (histogramData->YBounds()[1] > yMax)
-			yMax = histogramData->YBounds()[1];
+		if (histogramData->yBounds()[1] > yMax)
+			yMax = histogramData->yBounds()[1];
 	}
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -1114,7 +1114,7 @@ void iAFiAKErController::updateRefDistPlots()
 			chart->removePlot(chart->plots()[1]);
 		if (m_referenceID != NoResult && resultID != m_referenceID && !matchQualityVisActive() && m_showReferenceInChart->isChecked())
 		{
-			QColor refColor = m_resultColorTheme->GetColor(m_referenceID);
+			QColor refColor = m_resultColorTheme->color(m_referenceID);
 			refColor.setAlpha(DistributionRefAlpha);
 			QSharedPointer<iAPlotData> refPlotData = m_resultUIs[m_referenceID].histoChart->plots()[0]->data();
 			QSharedPointer<iAPlot> refPlot =
@@ -1162,7 +1162,7 @@ void iAFiAKErController::colorByDistrToggled()
 
 QColor iAFiAKErController::getResultColor(int resultID)
 {
-	QColor color = m_resultColorTheme->GetColor(resultID);
+	QColor color = m_resultColorTheme->color(resultID);
 	color.setAlpha(SelectionOpacity);
 	return color;
 }
@@ -1283,7 +1283,6 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 			vis->setDiameterFactor(DiameterFactor);
 			vis->setContextDiameterFactor(ContextDiameterFactor);
 		}
-		size_t colorLookupParam = m_distributionChoice->currentIndex();
 		if (matchQualityVisActive())
 			showSpatialOverview();
 		else if (m_spm->colorScheme() == iAQSplom::ByParameter)
@@ -1581,7 +1580,7 @@ void iAFiAKErController::miniMouseEvent(QMouseEvent* ev)
 		MdiChild* newChild = m_mainWnd->createMdiChild(false);
 		iACsvConfig config = getCsvConfig(m_data->result[resultID].fileName, m_configName);
 		featureScout->LoadFeatureScout(config, newChild);
-		newChild->LoadLayout("FeatureScout");
+		newChild->loadLayout("FeatureScout");
 	}
 }
 
@@ -2370,18 +2369,18 @@ void iAFiAKErController::loadVolume(QString const & fileName)
 	iAConnector con;
 	iAITKIO::ScalarPixelType pixelType;
 	iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-	con.SetImage(img);
+	con.setImage(img);
 	m_refImg = vtkSmartPointer<vtkImageData>::New();
-	m_refImg->DeepCopy(con.GetVTKImage());
+	m_refImg->DeepCopy(con.vtkImage());
 	double rng[2]; m_refImg->GetScalarRange(rng);
-	m_refCF = GetDefaultColorTransferFunction(rng);
-	m_refOF = GetDefaultPiecewiseFunction(rng, true);
+	m_refCF = defaultColorTF(rng);
+	m_refOF = defaultOpacityTF(rng, true);
 	iASimpleTransferFunction tf(
 		m_refCF.GetPointer(),
 		m_refOF.GetPointer()
 	);
 	m_refRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_refImg));
-	m_refRenderer->AddTo(m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+	m_refRenderer->addTo(m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 }
 
 void iAFiAKErController::showReferenceInChartToggled()

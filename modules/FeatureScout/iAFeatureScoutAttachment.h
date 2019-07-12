@@ -36,7 +36,7 @@ class iAFeatureScoutAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	iAFeatureScoutAttachment(MainWindow* mainWnd, iAChildData childData);
+	iAFeatureScoutAttachment(MainWindow* mainWnd, MdiChild * child);
 	~iAFeatureScoutAttachment();
 	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, int visType, QSharedPointer<QMap<uint, uint> > columnMapping);
 	void enableBlobVisualization();

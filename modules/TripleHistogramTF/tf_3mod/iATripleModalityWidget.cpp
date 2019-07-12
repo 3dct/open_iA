@@ -79,8 +79,8 @@ void iATripleModalityWidget::updateModalities()
 {
 	QString names[3];
 	for (int i = 0; i < 3; ++i)
-		names[i] = getModality(i)->GetName();
-	m_triangleWidget->setModalities(getModality(0)->GetImage(), getModality(1)->GetImage(), getModality(2)->GetImage(), names);
+		names[i] = getModality(i)->name();
+	m_triangleWidget->setModalities(getModality(0)->image(), getModality(1)->image(), getModality(2)->image(), names);
 	m_triangleWidget->update();
 }
 
@@ -103,7 +103,7 @@ void iATripleModalityWidget::modalitiesLoaded_beforeUpdateSlot() {
 	updateModalities();
 	QString names[3];
 	for (int i = 0; i < 3; ++i)
-		names[i] = getModality(i)->GetName();
+		names[i] = getModality(i)->name();
 	m_histogramAbstract->initialize(names);
 }
 
@@ -144,7 +144,7 @@ void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) 
 	if (isReady()) {
 		QString names[3];
 		for (int i = 0; i < 3; ++i)
-			names[i] = getModality(i)->GetName();
+			names[i] = getModality(i)->name();
 		m_histogramAbstract->initialize(names);
 	}
 }

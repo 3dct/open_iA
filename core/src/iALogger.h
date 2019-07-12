@@ -28,5 +28,5 @@ class open_iA_Core_API iALogger
 {
 public:
 	virtual ~iALogger();
-	virtual void Log(QString const & msg) =0;
+	virtual void log(QString const & msg) =0;
 };

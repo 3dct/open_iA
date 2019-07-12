@@ -62,8 +62,8 @@ void iAAlgorithm::run()
 {
 	try
 	{
-		getConnector()->SetImage(getVtkImageData());
-		getConnector()->Modified();
+		getConnector()->setImage(getVtkImageData());
+		getConnector()->modified();
 		performWork();
 	}
 	catch (itk::ExceptionObject &excep)
@@ -130,11 +130,11 @@ void iAAlgorithm::addMsg(QString txt)
 {
 	if (m_logger)
 	{
-		m_logger->Log(txt);
+		m_logger->log(txt);
 	}
 }
 
-iALogger* iAAlgorithm::getLogger() const
+iALogger* iAAlgorithm::logger() const
 {
 	return m_logger;
 }
@@ -167,8 +167,8 @@ QVector<iAConnector*> const & iAAlgorithm::Connectors() const
 void iAAlgorithm::AddImage(vtkImageData* i)
 {
 	auto con = new iAConnector();
-	con->SetImage(i);
-	con->Modified();
+	con->setImage(i);
+	con->modified();
 	m_connectors.push_back(con);
 }
 
@@ -199,12 +199,12 @@ iAProgress* iAAlgorithm::ProgressObserver()
 void iAAlgorithm::updateVtkImageData(int ch)
 {	// updates the vtk image data in the mdi child to be the one contained
 	// in the m_connectors[ch].
-	if (m_image == m_connectors[ch]->GetVTKImage().GetPointer())
+	if (m_image == m_connectors[ch]->vtkImage().GetPointer())
 		return;
 	m_image->ReleaseData();
 	m_image->Initialize();
-	m_image->DeepCopy(m_connectors[ch]->GetVTKImage());
-	m_image->CopyInformationFromPipeline(m_connectors[ch]->GetVTKImage()->GetInformation());
+	m_image->DeepCopy(m_connectors[ch]->vtkImage());
+	m_image->CopyInformationFromPipeline(m_connectors[ch]->vtkImage()->GetInformation());
 	m_image->Modified();
 }
 

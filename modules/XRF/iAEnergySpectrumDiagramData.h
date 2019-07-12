@@ -32,11 +32,11 @@ public:
 	iAEnergySpectrumDiagramData(iAXRFData * xrfData, iAPlotData* other);
 	~iAEnergySpectrumDiagramData();
 	void updateEnergyFunction(int x, int y, int z);
-	DataType const * GetRawData() const override;
-	size_t GetNumBin() const override;
-	double GetSpacing() const override;
-	double const * XBounds() const override;
-	DataType const * YBounds() const override;
+	DataType const * rawData() const override;
+	size_t numBin() const override;
+	double spacing() const override;
+	double const * xBounds() const override;
+	DataType const * yBounds() const override;
 private:
 	DataType* m_energyFunction;
 	iAXRFData * m_xrfData_ext;

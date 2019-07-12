@@ -20,54 +20,60 @@
 * ************************************************************************************/
 #pragma once
 
-#include "dlg_function.h"
+#include "iAChartFunction.h"
 #include "open_iA_Core_export.h"
 
 #include <QColor>
 
-class open_iA_Core_API dlg_gaussian : public dlg_function
+#include <vector>
+
+class QPointF;
+
+class open_iA_Core_API iAChartFunctionBezier : public iAChartFunction
 {
 	QColor color;
 
-	int    selectedPoint;
+	unsigned int selectedPoint;
 	bool   active;
-	double mean;
-	double sigma;
-	double multiplier;
+	double controlDist;
+	double length;
+	double oppositeLength;
+	std::vector<QPointF> viewPoints;
+	std::vector<QPointF> realPoints;
 
 public:
-	dlg_gaussian(iADiagramFctWidget *chart, QColor &color, bool reset = true);
+	iAChartFunctionBezier(iADiagramFctWidget *chart, QColor &color, bool reset = true);
 
-	int getType() override { return GAUSSIAN; }
+	int getType() override { return BEZIER; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
 	void drawOnTop(QPainter&) override {}
 	int selectPoint(QMouseEvent *event, int *x = NULL) override;
-	int getSelectedPoint() override { return 0; }
-	int addPoint(int, int) override { return 0; }
+	int getSelectedPoint() override { return selectedPoint; }
+	int addPoint(int x, int y) override;
 	void addColorPoint(int, double, double, double) override {}
-	void removePoint(int) override {}
+	void removePoint(int index) override;
 	void moveSelectedPoint(int x, int y) override;
-	void changeColor(QMouseEvent *) override {}
+	void changeColor(QMouseEvent *) override{}
 	bool isColored() override { return false; }
-	bool isEndPoint(int) override { return true; }
-	bool isDeletable(int) override { return false; }
+	bool isEndPoint(int index) override;
+	bool isDeletable(int index) override;
 	void reset() override;
+	void mouseReleaseEvent(QMouseEvent *event) override;
 
-	// additional public functions
-	void setMean(double mean) { this->mean = mean; }
-	void setSigma(double sigma) { this->sigma = sigma; }
-	void setMultiplier(double multiplier) { this->multiplier = multiplier; }
-	void setMean(int mean) { this->mean = v2dX(mean); }
-	void setSigma(int sigma) { this->sigma = i2dX(sigma)-i2dX(0); }
-	void setMultiplier(int multiplier);
-
-	double getMean() { return this->mean; }
-	double getSigma() { return this->sigma; }
-	double getCovariance() { return this->sigma*this->sigma; }
-	double getMultiplier() { return this->multiplier; }
-
+	void push_back(double x, double y);
+	std::vector<QPointF> &getPoints() { return realPoints; }
 private:
+	bool isFunctionPoint(int point);
+	bool isControlPoint(int point);
+
+	void insert(unsigned int index, unsigned int x, unsigned int y);
+
+	void setViewPoint(int selectedPoint);
+	void setOppositeViewPoint(int selectedPoint);
+
+	int getFunctionPointIndex(int index);
+	double getLength(QPointF start, QPointF end);
 
 	// convert view to data
 	double v2dX(int x);
@@ -80,7 +86,4 @@ private:
 	// convert data to image
 	int d2iX(double x);
 	int d2iY(double y);
-
-	// convert image to data
-	double i2dX(int x);
 };

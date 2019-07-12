@@ -35,27 +35,27 @@ class open_iA_Core_API iAHistogramData: public iAPlotData
 {
 public:
 	~iAHistogramData();
-	double GetSpacing() const override;
-	double const * XBounds() const override;
-	DataType const * GetRawData() const override;
-	size_t GetNumBin() const override;
-	DataType const * YBounds() const override;
-	iAValueType GetRangeType() const override;
+	double spacing() const override;
+	double const * xBounds() const override;
+	DataType const * rawData() const override;
+	size_t numBin() const override;
+	DataType const * yBounds() const override;
+	iAValueType valueType() const override;
 
-	static QSharedPointer<iAHistogramData> Create(vtkImageData* img, size_t binCount, iAImageInfo* imageInfo = nullptr);
-	static QSharedPointer<iAHistogramData> Create(DataType* data, size_t binCount, double space, DataType min, DataType max);
-	static QSharedPointer<iAHistogramData> Create(const std::vector<DataType> &histData, size_t binCount,
+	static QSharedPointer<iAHistogramData> create(vtkImageData* img, size_t binCount, iAImageInfo* imageInfo = nullptr);
+	static QSharedPointer<iAHistogramData> create(DataType* data, size_t binCount, double space, DataType min, DataType max);
+	static QSharedPointer<iAHistogramData> create(const std::vector<DataType> &histData, size_t binCount,
 		iAValueType type = Continuous,
 		DataType minValue=std::numeric_limits<double>::infinity(),
 		DataType maxValue=std::numeric_limits<double>::infinity());
 private:
 	iAHistogramData();
-	void SetMaxFreq();
+	void setMaxFreq();
 
 	size_t m_binCount;
-	iAPlotData::DataType* rawData;
-	iAPlotData::DataType yBounds[2];
-	double accSpacing;
-	double xBounds[2];
+	iAPlotData::DataType* m_rawData;
+	iAPlotData::DataType m_yBounds[2];
+	double m_accSpacing;
+	double m_xBounds[2];
 	iAValueType m_type;
 };

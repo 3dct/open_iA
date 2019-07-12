@@ -24,18 +24,18 @@
 
 #include <vector>
 
-//! Class representing intersection between triangle and ray.
-class Intersection
+//! Class representing an intersection between triangle and ray.
+class iAIntersection
 {
 public:
 	unsigned int tri_index; //!< index of intersected triangle in object
 	float dip_angle;        //!< cos of dip angle btw intersected triangle and ray
 
-	Intersection():tri_index(0), dip_angle(0.0f)
+	iAIntersection():tri_index(0), dip_angle(0.0f)
 	{
 		m_write2FileSize = sizeof(tri_index)+sizeof(dip_angle);
 	}
-	Intersection(int a_tri_index, float a_dip_angle):tri_index(a_tri_index), dip_angle(a_dip_angle)
+	iAIntersection(int a_tri_index, float a_dip_angle):tri_index(a_tri_index), dip_angle(a_dip_angle)
 	{
 		m_write2FileSize = sizeof(tri_index)+sizeof(dip_angle);
 	}
@@ -59,7 +59,7 @@ protected:
 };
 
 //! Class representing total penetration of single ray into object.
-class RayPenetration
+class iARayPenetration
 {
 public:
 	int m_X, m_Y;           //!< ray X, Y coordinates on plate
@@ -67,11 +67,11 @@ public:
 	float avDipAng;         //!< average dip angle cos of ray
 	unsigned int penetrationsSize; //!< number of all ray penetrations
 
-	RayPenetration(){
+	iARayPenetration(){
 		penetrationsSize=0;
 		m_write2FileSize = sizeof(m_X)+sizeof(m_Y)+sizeof(totalPenetrLen)+sizeof(avDipAng)+sizeof(penetrationsSize);
 	}
-	RayPenetration(int a_X, int a_Y, float a_totalPenetrLen, float a_avDip): 
+	iARayPenetration(int a_X, int a_Y, float a_totalPenetrLen, float a_avDip):
 		m_X(a_X),
 		m_Y(a_Y),
 		totalPenetrLen(a_totalPenetrLen),
@@ -94,15 +94,15 @@ protected:
 //! Parameters are: rotations about X and Y axes, object's position, average penetration length of render,
 //! average dip angle cos of render.
 //! Also contains all statistical data as: all intersections data, all rays' penetrations data.
-class RenderFromPosition
+class iARenderFromPosition
 {
 public:
-	RenderFromPosition()
+	iARenderFromPosition()
 	{
 		m_headerSize = sizeof(rotX)+sizeof(rotY)+sizeof(rotZ)+sizeof(pos)+sizeof(avPenetrLen)+sizeof(avDipAngle)+sizeof(maxPenetrLen)+sizeof(badAreaPercentage)+sizeof(raysSize);
 		rawPtrRaysVec.clear();
 	};
-	~RenderFromPosition()
+	~iARenderFromPosition()
 	{
 		clear();
 	}
@@ -114,9 +114,9 @@ public:
 	float maxPenetrLen;      //!< maximum penetration length in rendering
 	float badAreaPercentage; //!< percentage of bad surface area corresponding to radon space analysis
 	unsigned int raysSize;   //!< number of rays
-	std::vector<RayPenetration*> rays; //!<rays' penetrations data
-	std::vector<RayPenetration*> rawPtrRaysVec;
-	std::vector<Intersection*> intersections; //!< intersections data
+	std::vector<iARayPenetration*> rays; //!<rays' penetrations data
+	std::vector<iARayPenetration*> rawPtrRaysVec;
+	std::vector<iAIntersection*> intersections; //!< intersections data
 	unsigned int intersectionsSize; //!< number of intersections
 
 	//! Clears all statistical data (penetrations and intersectoins data).

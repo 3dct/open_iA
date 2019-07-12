@@ -39,7 +39,7 @@ public:
 	{}
 	virtual void run()
 	{
-		m_histogramData = iAHistogramData::Create(m_img, m_binCount, nullptr);
+		m_histogramData = iAHistogramData::create(m_img, m_binCount, nullptr);
 	}
 	QSharedPointer<iAHistogramData> GetData()
 	{

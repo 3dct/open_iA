@@ -29,7 +29,7 @@ void iATripleHistogramTFModuleInterface::Initialize()
 {
 	if (!m_mainWnd)    // if m_mainWnd is not set, we are running in command line mode
 	    return;        // in that case, we do not do anything as we can not add a menu entry there
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuMultiModalChannel = getMenuWithTitle(toolsMenu, QString("Multi-Modal/-Channel Images"), false);
 
 	QAction *action_2mod = new QAction(m_mainWnd);
@@ -43,9 +43,9 @@ void iATripleHistogramTFModuleInterface::Initialize()
 	connect(action_3mod, SIGNAL(triggered()), this, SLOT(menuItemSelected_3mod()));
 }
 
-iAModuleAttachmentToChild* iATripleHistogramTFModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+iAModuleAttachmentToChild* iATripleHistogramTFModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild* child)
 {
-	return iATripleHistogramTFAttachment::create(mainWnd, childData);
+	return iATripleHistogramTFAttachment::create(mainWnd, child);
 }
 
 void iATripleHistogramTFModuleInterface::menuItemSelected_2mod()

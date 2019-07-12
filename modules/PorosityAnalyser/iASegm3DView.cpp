@@ -100,7 +100,7 @@ void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPo
 		sd->GetWidget()->setParent( container );
 		sd->SetDataToVisualize( imgData[i], polyData[i], otf[i], ctf[i] );
 		m_data.push_back( sd );
-		m_renMgr->addToBundle( sd->GetRenderer()->GetRenderer() );
+		m_renMgr->addToBundle( sd->GetRenderer()->renderer() );
 
 		m_layout->addWidget( container );
 	}
@@ -178,7 +178,7 @@ iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
 	vtkScalarBarActor *scalarBarActor = scalarBarWgt->GetScalarBarActor();
 	scalarBarActor->SetTitle( "Distance" );
 	scalarBarActor->SetNumberOfLabels( 4 );
-	vtkPolyDataMapper * mapper = m_renderer->GetPolyMapper();
+	vtkPolyDataMapper * mapper = m_renderer->polyMapper();
 	double sr[2];  mapper->GetScalarRange(sr);
 	iALUT::BuildLUT( m_lut, sr, "Diverging blue-gray-red" );
 	m_lut->SetRange( sr ); m_lut->SetTableRange( sr );
@@ -202,9 +202,9 @@ iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
 	m_wireActor->GetProperty()->SetAmbient( 1.0 );
 	m_wireActor->GetProperty()->SetDiffuse( 0.0 );
 	m_wireActor->GetProperty()->SetSpecular( 0.0 );
-	m_renderer->GetRenderer()->AddActor( m_wireActor );
+	m_renderer->renderer()->AddActor( m_wireActor );
 
-	m_wgt->SetRenderWindow( (vtkGenericOpenGLRenderWindow* )m_renderer->GetRenderWindow() );
+	m_wgt->SetRenderWindow( (vtkGenericOpenGLRenderWindow* )m_renderer->renderWindow() );
 	m_renderer->setAxesTransform( m_axesTransform );
 
 	QObject::connect( m_wgt, SIGNAL( rightButtonReleasedSignal() ), m_renderer, SLOT( mouseRightButtonReleasedSlot() ) );
@@ -233,25 +233,25 @@ void iASegm3DViewData::SetDataToVisualize( vtkImageData * imgData, vtkPolyData *
 	{
 		m_renderer->initialize( imgData, polyData );
 		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, imgData));
-		m_volumeRenderer->AddTo(m_renderer->GetRenderer());
-		m_volumeRenderer->AddBoundingBoxTo(m_renderer->GetRenderer());
+		m_volumeRenderer->addTo(m_renderer->renderer());
+		m_volumeRenderer->addBoundingBoxTo(m_renderer->renderer());
 		m_rendInitialized = true;
 	}
 	else
 	{
 		m_renderer->reInitialize(imgData, polyData);
-		m_volumeRenderer->SetImage(&tf, imgData);
+		m_volumeRenderer->setImage(&tf, imgData);
 	}
 	m_wireMapper->SetInputData( polyData );
 	UpdateColorCoding();
-	vtkPolyDataMapper * mapper = m_renderer->GetPolyMapper();
+	vtkPolyDataMapper * mapper = m_renderer->polyMapper();
 	double sr[2];  mapper->GetScalarRange( sr );
 	m_lut->SetRange( sr ); m_lut->SetTableRange( sr );
 	mapper->SetLookupTable( m_lut );
 	scalarBarWgt->GetScalarBarActor()->SetLookupTable( m_lut );
-	scalarBarWgt->SetInteractor( m_renderer->GetInteractor() );
+	scalarBarWgt->SetInteractor( m_renderer->interactor() );
 	volScalarBarWgt->GetScalarBarActor()->SetLookupTable( ctf );
-	volScalarBarWgt->SetInteractor( m_renderer->GetInteractor() );
+	volScalarBarWgt->SetInteractor( m_renderer->interactor() );
 	LoadAndApplySettings();
 }
 
@@ -261,13 +261,13 @@ void iASegm3DViewData::SetPolyData( vtkPolyData * polyData )
 		return;
 	m_wireMapper->SetInputData( polyData );
 	m_renderer->setPolyData( polyData );
-	vtkPolyDataMapper * mapper = m_renderer->GetPolyMapper();
+	vtkPolyDataMapper * mapper = m_renderer->polyMapper();
 	UpdateColorCoding();
 	double sr[2];  mapper->GetScalarRange( sr );
 	m_lut->SetRange( sr ); m_lut->SetTableRange( sr );
 	mapper->SetLookupTable( m_lut );
 	scalarBarWgt->GetScalarBarActor()->SetLookupTable( m_lut );
-	scalarBarWgt->SetInteractor( m_renderer->GetInteractor() );
+	scalarBarWgt->SetInteractor( m_renderer->interactor() );
 }
 
 iARenderer * iASegm3DViewData::GetRenderer()
@@ -299,26 +299,26 @@ void iASegm3DViewData::LoadAndApplySettings()
 	volumeSettings.SpecularPower = settings.value("Renderer/rsSpecularPower", 1).toDouble();
 	volumeSettings.RenderMode = settings.value("Renderer/rsRenderMode", 0).toInt();
 
-	m_renderer->ApplySettings(renderSettings);
-	m_volumeRenderer->ApplySettings(volumeSettings);
+	m_renderer->applySettings(renderSettings);
+	m_volumeRenderer->applySettings(volumeSettings);
 
 	// TODO: VOLUME: apply volume/bounding box vis.!
 	bool showBoundingBox = settings.value("Renderer/rsBoundingBox", true).toBool();
 	bool showVolume = settings.value("PorosityAnalyser/GUI/ShowVolume", false).toBool();
 	// m_renderer->GetOutlineActor()->SetVisibility(showBoundingBox);
-	m_volumeRenderer->ShowBoundingBox(showBoundingBox);
-	m_volumeRenderer->ShowVolume(showVolume);
+	m_volumeRenderer->showBoundingBox(showBoundingBox);
+	m_volumeRenderer->showVolume(showVolume);
 
-	m_renderer->GetPolyActor()->SetVisibility( settings.value( "PorosityAnalyser/GUI/ShowSurface", false ).toBool() );
+	m_renderer->polyActor()->SetVisibility( settings.value( "PorosityAnalyser/GUI/ShowSurface", false ).toBool() );
 	m_wireActor->SetVisibility( settings.value( "PorosityAnalyser/GUI/ShowWireframe", false ).toBool() );
 	
-	m_renderer->GetPolyActor()->GetProperty()->SetSpecular( 0 );
-	m_renderer->GetPolyActor()->GetProperty()->SetDiffuse( 0 );
-	m_renderer->GetPolyActor()->GetProperty()->SetAmbient( 1 );
+	m_renderer->polyActor()->GetProperty()->SetSpecular( 0 );
+	m_renderer->polyActor()->GetProperty()->SetDiffuse( 0 );
+	m_renderer->polyActor()->GetProperty()->SetAmbient( 1 );
 	scalarBarWgt->SetEnabled( settings.value( "PorosityAnalyser/GUI/ShowSurface", false ).toBool() );
 	volScalarBarWgt->SetEnabled( settings.value( "PorosityAnalyser/GUI/ShowVolume", false ).toBool() );
 
-	m_renderer->GetRenderer()->ResetCamera();
+	m_renderer->renderer()->ResetCamera();
 
 	vtkSmartPointer<vtkLight> light = vtkSmartPointer<vtkLight>::New();
 	light->SetLightTypeToSceneLight();
@@ -328,7 +328,7 @@ void iASegm3DViewData::LoadAndApplySettings()
 	light->SetDiffuseColor( 1, 1, 1 );
 	light->SetAmbientColor( 1, 1, 1 );
 	light->SetSpecularColor( 1, 1, 1 );
-	m_renderer->GetRenderer()->AddLight( light );
+	m_renderer->renderer()->AddLight( light );
 }
 
 iAFast3DMagicLensWidget * iASegm3DViewData::GetWidget()
@@ -338,14 +338,14 @@ iAFast3DMagicLensWidget * iASegm3DViewData::GetWidget()
 
 void iASegm3DViewData::ShowVolume( bool visible )
 {
-	m_volumeRenderer->ShowVolume(visible);
+	m_volumeRenderer->showVolume(visible);
 	volScalarBarWgt->SetEnabled( visible );
 	m_renderer->update();
 }
 
 void iASegm3DViewData::ShowSurface( bool visible )
 {
-	m_renderer->GetPolyActor()->SetVisibility( visible );
+	m_renderer->polyActor()->SetVisibility( visible );
 	scalarBarWgt->SetEnabled( visible );
 	m_renderer->update();
 }
@@ -358,7 +358,7 @@ void iASegm3DViewData::ShowWireframe( bool visible )
 
 void iASegm3DViewData::UpdateColorCoding()
 {
-	vtkPolyData * pd = m_renderer->GetPolyMapper()->GetInput();
+	vtkPolyData * pd = m_renderer->polyMapper()->GetInput();
 	if( !pd )
 		return;
 	double range[2]; pd->GetPointData()->GetScalars()->GetRange( range );
@@ -376,7 +376,7 @@ void iASegm3DViewData::SetSensitivity( double sensitivity )
 
 void iASegm3DViewData::UpdateRange()
 {
-	vtkPolyDataMapper * mapper = m_renderer->GetPolyMapper();
+	vtkPolyDataMapper * mapper = m_renderer->polyMapper();
 	mapper->SetScalarRange( -*m_rangeExt, *m_rangeExt );
 	m_renderer->update();
 }

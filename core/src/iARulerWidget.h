@@ -32,46 +32,39 @@ public:
   vtkTypeMacro(iARulerWidget, vtkBorderWidget);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  // Description:
-  // Specify an instance of vtkWidgetRepresentation used to represent this
-  // widget in the scene. Note that the representation is a subclass of vtkProp
-  // so it can be added to the renderer independent of the widget.
+  //! Specify an instance of vtkWidgetRepresentation used to represent this
+  //! widget in the scene. Note that the representation is a subclass of vtkProp
+  //! so it can be added to the renderer independent of the widget.
   virtual void SetRepresentation(iARulerRepresentation *rep);
 
   iARulerRepresentation *GetScalarBarRepresentation()
     { return reinterpret_cast<iARulerRepresentation *>(this->GetRepresentation()); }
 
-  // Description:
-  // Get the ScalarBar used by this Widget. One is created automatically.
+  //! Get the ScalarBar used by this Widget. One is created automatically.
   virtual void SetRulerActor(iARulerActor *actor);
   virtual iARulerActor *GetRulerActor();
 
-  // Description:
-  // Can the widget be moved. On by default. If off, the widget cannot be moved
-  // around.
-  //
+  //! Can the widget be moved. On by default. If off, the widget cannot be moved around.
   // TODO: This functionality should probably be moved to the superclass.
   vtkSetMacro(Repositionable, int);
   vtkGetMacro(Repositionable, int);
   vtkBooleanMacro(Repositionable, int);
 
-  // Description:
-  // Create the default widget representation if one is not set.
+  //! Create the default widget representation if one is not set.
   void CreateDefaultRepresentation() override;
 
 protected:
   iARulerWidget();
-  ~iARulerWidget();
 
   int Repositionable;
 
-  // Handle the case of Repositionable == 0
+  //! Handle the case of Repositionable == 0
   static void MoveAction(vtkAbstractWidget*);
 
-  // set the cursor to the correct shape based on State argument
+  //! Set the cursor to the correct shape based on State argument
   void SetCursor(int State) override;
 
 private:
-  iARulerWidget(const iARulerWidget&);  //Not implemented
-  void operator=(const iARulerWidget&);  //Not implemented
+  iARulerWidget(const iARulerWidget&) =delete;
+  void operator=(const iARulerWidget&) =delete;
 };

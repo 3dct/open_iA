@@ -28,6 +28,7 @@
 #include <iAConsole.h>
 
 #include <vtkImageData.h>
+#include <vtkCamera.h>
 
 #include <QLabel>
 #include <QPainter>
@@ -75,10 +76,10 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 
 	for (int i=0; i<SLICE_VIEW_COUNT; ++i)
 	{
-		char const * caption = GetSlicerModeString(i);
+		QString caption(slicerModeString(i));
 		m_sliceViews[i] = new iAImagePreviewWidget(QString("CameraView")+caption,
 			0, false, 0, static_cast<iASlicerMode>(i), labelCount);
-		m_sliceViews[i]->SetImage(originalData, false, false);
+		m_sliceViews[i]->setImage(originalData, false, false);
 		m_sliceViews[i]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		/*
 		// why should that be necessary?
@@ -89,36 +90,37 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 		*/
 
 		gridLay->addWidget(m_sliceViews[i], GridSlicerMap[i].x(), GridSlicerMap[i].y());
-		connect(m_sliceViews[i], SIGNAL(Clicked()), this, SLOT( MiniSlicerClicked() ));
-		connect(m_sliceViews[i], SIGNAL(Updated()), this, SLOT( MiniSlicerUpdated() ));
+		connect(m_sliceViews[i], SIGNAL(clicked()), this, SLOT( MiniSlicerClicked() ));
+		connect(m_sliceViews[i], SIGNAL(updated()), this, SLOT( MiniSlicerUpdated() ));
+		m_sliceViews[i]->resetCamera();
 	}
 	miniSlicerContainer->setLayout(gridLay);
 
 	m_sliceScrollBar = new QScrollBar(Qt::Vertical);
 
-	m_commonCamera = m_sliceViews[static_cast<int>(InitialSlicerMode)]->GetCamera();
+	m_commonCamera = m_sliceViews[static_cast<int>(InitialSlicerMode)]->camera();
 	QHBoxLayout* mainLay = new QHBoxLayout;
 	mainLay->setSpacing(CameraSpacing);
 	mainLay->setContentsMargins(0,0,0,0);
 	mainLay->addWidget(m_sliceScrollBar, 1);
 	mainLay->addWidget(miniSlicerContainer, 10);
 	setLayout(mainLay);
-	UpdateScrollBar(m_sliceViews[static_cast<int>(InitialSlicerMode)]->GetSliceNumber());
+	updateScrollBar(m_sliceViews[static_cast<int>(InitialSlicerMode)]->sliceNumber());
 
 	connect(m_sliceScrollBar, SIGNAL(valueChanged(int)), this, SLOT(ScrollBarChanged(int)));
 }
 
-void iACameraWidget::UpdateScrollBar(int sliceNumber)
+void iACameraWidget::updateScrollBar(int sliceNumber)
 {
 	int extent[6];
-	m_sliceViews[static_cast<int>(InitialSlicerMode)]->GetImage()->GetExtent(extent);
+	m_sliceViews[static_cast<int>(InitialSlicerMode)]->image()->GetExtent(extent);
 	int minIdx = (m_slicerMode == iASlicerMode::XY) ? 4 : (
 		(m_slicerMode == iASlicerMode::YZ) ? 0 : 2
 	);
 	int maxIdx = minIdx + 1;
 	m_sliceScrollBar->setRange(0, extent[maxIdx]-extent[minIdx]);
 	m_sliceScrollBar->setValue(sliceNumber);
-	UpdateSliceLabel(sliceNumber);
+	updateSliceLabel(sliceNumber);
 }
 
 void iACameraWidget::MiniSlicerClicked()
@@ -129,37 +131,37 @@ void iACameraWidget::MiniSlicerClicked()
 	{
 		return;
 	}
-	m_commonCamera = miniSlicer->GetCamera();
-	m_slicerMode = miniSlicer->GetSlicerMode();
+	m_commonCamera = miniSlicer->camera();
+	m_slicerMode = miniSlicer->slicerMode();
 	QSignalBlocker blockScrollSignal(m_sliceScrollBar);
-	UpdateScrollBar(miniSlicer->GetSliceNumber());
-	emit ModeChanged(miniSlicer->GetSlicerMode(), miniSlicer->GetSliceNumber());
+	updateScrollBar(miniSlicer->sliceNumber());
+	emit ModeChanged(miniSlicer->slicerMode(), miniSlicer->sliceNumber());
 }
 
-vtkCamera* iACameraWidget::GetCommonCamera()
+vtkCamera* iACameraWidget::commonCamera()
 {
 	return m_commonCamera;
 }
 
 void iACameraWidget::ScrollBarChanged(int value)
 {
-	m_sliceViews[m_slicerMode]->SetSliceNumber(value);
-	UpdateSliceLabel(value);
+	m_sliceViews[m_slicerMode]->setSliceNumber(value);
+	updateSliceLabel(value);
 	emit SliceChanged(value);
 }
 
-void iACameraWidget::UpdateSliceLabel(int sliceNumber)
+void iACameraWidget::updateSliceLabel(int sliceNumber)
 {
 	m_sliceLabel->setText(QString("Selected Axis: %1\nSlice: %2")
-		.arg(GetSlicerModeString(m_slicerMode))
+		.arg(slicerModeString(m_slicerMode))
 		.arg(sliceNumber));
 }
 
-void iACameraWidget::UpdateView()
+void iACameraWidget::updateView()
 {
 	for (int i=0; i<SLICE_VIEW_COUNT; ++i)
 	{
-		m_sliceViews[i]->UpdateView();
+		m_sliceViews[i]->updateView();
 	}
 }
 
@@ -170,14 +172,14 @@ void iACameraWidget::MiniSlicerUpdated()
 	{
 		if (m_sliceViews[i] != miniSlicer)
 		{
-			m_sliceViews[i]->UpdateView();
+			m_sliceViews[i]->updateView();
 		}
 	}
 	emit ViewUpdated();
 }
 
 
-void iACameraWidget::ShowImage(vtkSmartPointer<vtkImageData> imgData)
+void iACameraWidget::showImage(vtkSmartPointer<vtkImageData> imgData)
 {
 	if (!imgData)
 	{
@@ -187,6 +189,6 @@ void iACameraWidget::ShowImage(vtkSmartPointer<vtkImageData> imgData)
 	
 	for (int i=0; i<SLICE_VIEW_COUNT; ++i)
 	{
-		m_sliceViews[i]->SetImage(imgData, false, false);
+		m_sliceViews[i]->setImage(imgData, false, false);
 	}
 }

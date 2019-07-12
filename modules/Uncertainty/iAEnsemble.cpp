@@ -77,7 +77,7 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 {
 	QSharedPointer<iAEnsemble> result(new iAEnsemble(entropyBinCount));
 	QSharedPointer<iASamplingResults> samplingResults(new iASamplingResults(superSet->Attributes(),
-		"Subset", superSet->Path(), superSet->Executable(), superSet->AdditionalArguments(), superSet->Name(), id));
+		"Subset", superSet->Path(), superSet->Executable(), superSet->AdditionalArguments(), superSet->name(), id));
 	samplingResults->SetMembers(member);
 	result->m_samplings.push_back(samplingResults);
 	result->m_cachePath = cachePath;
@@ -119,7 +119,7 @@ namespace
 		auto spacing = distribution[0]->GetSpacing();
 		double limit = std::log(distribution.size());  // max entropy: - N* (1/N * log(1/N)) = log(N)
 		double normalizeFactor = normalize ? 1.0 / limit : 1.0;
-		auto result = CreateImage<DoubleImage>(size, spacing);
+		auto result = createImage<DoubleImage>(size, spacing);
 		itk::Index<3> idx; // optimize speed via iterators / direct access?
 		for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
 		{
@@ -210,8 +210,8 @@ namespace
 	vtkSmartPointer<vtkImageData> ConvertITK2VTK(typename TImage::Pointer itkImg)
 	{
 		iAConnector con;
-		con.SetImage(itkImg);
-		return con.GetVTKImage();
+		con.setImage(itkImg);
+		return con.vtkImage();
 	}
 
 	bool LoadHistogram(QString const & fileName, double* & destination, int & binCount)
@@ -326,7 +326,7 @@ namespace
 
 DoubleImage::Pointer NeighbourhoodEntropyImage(IntImage::Pointer intImage, int labelCount, size_t patchSize, itk::Size<3> size, itk::Vector<double, 3> spacing)
 {
-	DoubleImage::Pointer result = CreateImage<DoubleImage>(size, spacing);
+	DoubleImage::Pointer result = createImage<DoubleImage>(size, spacing);
 	int neighbourhoodSize = std::pow(patchSize * 2 + 1, 3);
 	int * labelHistogram = new int[neighbourhoodSize];
 	double probFactor = 1.0 / neighbourhoodSize;
@@ -438,8 +438,8 @@ void iAEnsemble::CreateUncertaintyImages()
 					if (m_labelDistr.empty())
 					{	// initialize empty sums:
 						for (int i = 0; i < m_labelCount; ++i)
-						{	// AllocateImage automatically initializes to 0
-							auto labelSumI = CreateImage<IntImage>(intlabelImg);
+						{	// allocateImage automatically initializes to 0
+							auto labelSumI = createImage<IntImage>(intlabelImg);
 							m_labelDistr.push_back(labelSumI);
 						}
 						size = intlabelImg->GetLargestPossibleRegion().GetSize();
@@ -477,7 +477,7 @@ void iAEnsemble::CreateUncertaintyImages()
 			|| !LoadValues(m_cachePath + "/algorithmEntropyMean.csv", m_memberEntropyAvg)
 			|| !LoadValues(m_cachePath + "/algorithmEntropyVar.csv", m_memberEntropyVar))
 		{
-			m_entropyAvgEntropy = CreateImage<DoubleImage>(size, spacing);
+			m_entropyAvgEntropy = createImage<DoubleImage>(size, spacing);
 			int memberIdx = 0;
 			double numberOfPixels = size[0] * size[1] * size[2];
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
@@ -523,7 +523,7 @@ void iAEnsemble::CreateUncertaintyImages()
 
 		if (!LoadCachedImage<DoubleImage>(m_neighbourhoodAvgEntropy3x3, m_cachePath + "/entropyNeighbourhood3x3.mhd", "neighbourhood entropy (3x3)"))
 		{
-			m_neighbourhoodAvgEntropy3x3 = CreateImage<DoubleImage>(size, spacing);
+			m_neighbourhoodAvgEntropy3x3 = createImage<DoubleImage>(size, spacing);
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 			{
 				for (QSharedPointer<iAMember> member : sampling->Members())
@@ -595,9 +595,9 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 				{
 					for (int m = 0; m < modalities->size(); ++m)
 					{
-						for (int c = 0; c < modalities->Get(m)->ComponentCount(); ++c)
+						for (int c = 0; c < modalities->get(m)->componentCount(); ++c)
 						{
-							auto img = modalities->Get(m)->GetComponent(c);
+							auto img = modalities->get(m)->component(c);
 							line += QString::number(++curFeature) + ":" + QString::number(img->GetScalarComponentAsDouble(idx[0], idx[1], idx[2], 0)) + " ";
 						}
 					}

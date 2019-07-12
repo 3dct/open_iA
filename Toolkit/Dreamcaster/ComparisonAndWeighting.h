@@ -18,57 +18,50 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#ifndef COMPARISONANDWEIGHTING_H
-#define COMPARISONANDWEIGHTING_H
+#pragma once
+
+class iAPaintWidget;
 
 class QWidget;
 class QPixmap;
-class PaintWidget;
-/**	\class ParamWidget.
-\brief Class representing widget that shows height map of one parameter.
 
-Contains: PaintWidget, pixmap that it uses, memory buffer used to fill pixmap and dimensions of that buffer.	
-*/
-struct ParamWidget
+//! Class representing widget that shows height map of one parameter.
+//! Contains: PaintWidget, pixmap that it uses, memory buffer used to fill pixmap and dimensions of that buffer.
+struct iAParamWidget
 {
 public:
-	//methods
-	ParamWidget();
+	// methods
+	iAParamWidget();
+	~iAParamWidget();
 	void Init(int pxmpWidth, int pxmpHeight, QWidget *widget);
 	int AllocateBuffer(int width, int height);
-	~ParamWidget();
-	//props
+	// properties
 	QPixmap *pxmp;
-	PaintWidget *paintWidget;
+	iAPaintWidget *paintWidget;
 	unsigned int * buffer;
 	int bufferWidth, bufferHeight;
 protected:
 	bool initialized;
 };
-/**	\struct ParametersView.
-\brief struct that uses all parameters.
 
-Contains: ParamWidget for every parameter.
-*/
-struct ParametersView
+//! Struct that uses all parameters.
+//! Contains: ParamWidget for every parameter.
+struct iAParametersView
 {
-	//meth
-	ParametersView(int width, int height, QWidget *w1, QWidget *w2, QWidget *w3);
+	// methods
+	iAParametersView(int width, int height, QWidget *w1, QWidget *w2, QWidget *w3);
 	virtual void Update();
-	//props
-	ParamWidget paramWidgets[3];
+	// properties
+	iAParamWidget paramWidgets[3];
 };
-/**	\struct WeightingView.
-\brief struct that uses all parameters and combination of all parameters.
 
-Contains: ParamWidget for every parameter and one for combination results
-*/
-struct CombinedParametersView
+//! Struct that uses all parameters and combination of all parameters.
+//! Contains: ParamWidget for every parameter and one for combination results
+struct iACombinedParametersView
 {
-	//meth
-	CombinedParametersView(QWidget *resultsWidget, int width, int height);
+	// methods
+	iACombinedParametersView(QWidget *resultsWidget, int width, int height);
 	virtual void Update();
-	//props
-	ParamWidget results;
+	// properties
+	iAParamWidget results;
 };
-#endif//COMPARISONANDWEIGHTING_H

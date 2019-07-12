@@ -30,5 +30,5 @@ public:
 private slots:
 	bool XRF_Visualization();
 private:
-	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData ) override;
+	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * child ) override;
 };

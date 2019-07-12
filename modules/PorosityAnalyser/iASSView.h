@@ -22,7 +22,6 @@
 
 #include "ui_SSView.h"
 
-#include <iAChannelID.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>

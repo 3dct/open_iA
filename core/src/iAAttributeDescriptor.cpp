@@ -102,7 +102,7 @@ QString AttribType2Str(iAAttributeDescriptor::iAAttributeType type)
 	}
 }
 
-QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString const & def)
+QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString const & def)
 {
 	QStringList defTokens = def.split(AttributeSplitString);
 	if (defTokens.size() < 3)
@@ -113,14 +113,14 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString cons
 	QSharedPointer<iAAttributeDescriptor> result(new iAAttributeDescriptor(
 			defTokens[0], Str2AttribType(defTokens[1]), Str2ValueType(defTokens[2])
 	));
-	int requiredTokens = (result->ValueType() == Boolean) ? 3 :
-		((result->ValueType() == Categorical) ? 4 : 5);
+	int requiredTokens = (result->valueType() == Boolean) ? 3 :
+		((result->valueType() == Categorical) ? 4 : 5);
 	if (defTokens.size() < requiredTokens)
 	{
 		DEBUG_LOG(QString("Not enough tokens in attribute descriptor '%1'").arg(def));
 		return QSharedPointer<iAAttributeDescriptor>();
 	}
-	switch (result->ValueType())
+	switch (result->valueType())
 	{
 		case Continuous:	// intentional fall-through!
 		case Discrete:
@@ -154,7 +154,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString cons
 	return result;
 }
 
-QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::CreateParam(
+QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::createParam(
 	QString const & name, iAValueType valueType,
 	QVariant defaultValue, double min, double max)
 {
@@ -166,31 +166,31 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::CreateParam(
 }
 
 
-QString iAAttributeDescriptor::ToString() const
+QString iAAttributeDescriptor::toString() const
 {
-	QString result = Name() + AttributeSplitString +
-		AttribType2Str(AttribType()) + AttributeSplitString +
-		ValueType2Str(ValueType()) + AttributeSplitString;
-	switch (ValueType())
+	QString result = name() + AttributeSplitString +
+		AttribType2Str(attribType()) + AttributeSplitString +
+		ValueType2Str(valueType()) + AttributeSplitString;
+	switch (valueType())
 	{
 		case iAValueType::Continuous: // intentional fall-through!
 		case iAValueType::Discrete:
-			result += QString::number(Min()) + AttributeSplitString + QString::number(Max()) + AttributeSplitString + (m_logarithmic ? LogarithmicStr : LinearStr);
+			result += QString::number(min()) + AttributeSplitString + QString::number(max()) + AttributeSplitString + (m_logarithmic ? LogarithmicStr : LinearStr);
 			break;
 		case iAValueType::Categorical:	{
 			if (!m_nameMapper)
 			{
-				DEBUG_LOG("NameMapper NULL for categorical attribute!\n");
-				for (int i = Min(); i <= Max(); ++i)
+				DEBUG_LOG("nameMapper NULL for categorical attribute!\n");
+				for (int i = min(); i <= max(); ++i)
 				{
 					result += QString::number(i);
-					if (i < Max()) result += CategoricalValueSplitString;
+					if (i < max()) result += CategoricalValueSplitString;
 				}
 				break;
 			}
-			for (int i = Min(); i <= Max(); ++i)
+			for (int i = min(); i <= max(); ++i)
 			{
-				result += m_nameMapper->GetName(i);
+				result += m_nameMapper->name(i);
 				if (i < m_nameMapper->size() - 1)
 				{
 					result += CategoricalValueSplitString;
@@ -209,26 +209,26 @@ iAAttributeDescriptor::iAAttributeDescriptor(
 	m_valueType(valueType),
 	m_logarithmic(false)
 {
-	ResetMinMax();	// TODO: check why we set it in constructor when it's reset again here anyway; maybe move this to where it's actually needed?
+	resetMinMax();	// TODO: check why we set it in constructor when it's reset again here anyway; maybe move this to where it's actually needed?
 }
 
-iAAttributeDescriptor::iAAttributeType iAAttributeDescriptor::AttribType() const
+iAAttributeDescriptor::iAAttributeType iAAttributeDescriptor::attribType() const
 {
 	return m_attribType;
 }
 
-iAValueType iAAttributeDescriptor::ValueType() const
+iAValueType iAAttributeDescriptor::valueType() const
 {
 	return m_valueType;
 }
 
-void iAAttributeDescriptor::ResetMinMax()
+void iAAttributeDescriptor::resetMinMax()
 {
 	m_min = std::numeric_limits<double>::max();
 	m_max = std::numeric_limits<double>::lowest();
 }
 
-void iAAttributeDescriptor::AdjustMinMax(double value)
+void iAAttributeDescriptor::adjustMinMax(double value)
 {
 	if (value < m_min)
 	{
@@ -240,48 +240,48 @@ void iAAttributeDescriptor::AdjustMinMax(double value)
 	}
 }
 
-double iAAttributeDescriptor::Min() const
+double iAAttributeDescriptor::min() const
 {
 	return m_min;
 }
 
-double iAAttributeDescriptor::Max() const
+double iAAttributeDescriptor::max() const
 {
 	return m_max;
 }
 
-QVariant iAAttributeDescriptor::DefaultValue() const
+QVariant iAAttributeDescriptor::defaultValue() const
 {
 	return m_defaultValue;
 }
 
-QString iAAttributeDescriptor::Name() const
+QString const & iAAttributeDescriptor::name() const
 {
 	return m_name;
 }
 
-bool iAAttributeDescriptor::IsLogScale() const
+bool iAAttributeDescriptor::isLogScale() const
 {
 	return m_logarithmic;
 }
 
 
-void iAAttributeDescriptor::SetLogScale(bool l)
+void iAAttributeDescriptor::setLogScale(bool l)
 {
 	m_logarithmic = l;
 }
 
-bool iAAttributeDescriptor::CoversWholeRange(double min, double max) const
+bool iAAttributeDescriptor::coversWholeRange(double min, double max) const
 {
 	return min <= m_min && m_max <= max;
 }
 
-QSharedPointer<iANameMapper> iAAttributeDescriptor::NameMapper() const
+QSharedPointer<iANameMapper> iAAttributeDescriptor::nameMapper() const
 {
 	return m_nameMapper;
 }
 
-void iAAttributeDescriptor::SetNameMapper(QSharedPointer<iANameMapper> mapper)
+void iAAttributeDescriptor::setNameMapper(QSharedPointer<iANameMapper> mapper)
 {
 	m_nameMapper = mapper;
 }

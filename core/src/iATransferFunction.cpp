@@ -33,24 +33,24 @@ iASimpleTransferFunction::iASimpleTransferFunction(vtkColorTransferFunction* ctf
 	m_otf(otf)
 {}
 
-vtkColorTransferFunction * iASimpleTransferFunction::getColorFunction()
+vtkColorTransferFunction * iASimpleTransferFunction::colorTF()
 {
 	return m_ctf;
 }
 
-vtkPiecewiseFunction * iASimpleTransferFunction::getOpacityFunction()
+vtkPiecewiseFunction * iASimpleTransferFunction::opacityTF()
 {
 	return m_otf;
 }
 
-vtkSmartPointer<vtkColorTransferFunction> GetDefaultColorTransferFunction(double const range[2])
+vtkSmartPointer<vtkColorTransferFunction> defaultColorTF(double const range[2])
 {
 	auto cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
-	GetDefaultColorTransferFunction(cTF, range);
+	defaultColorTF(cTF, range);
 	return cTF;
 }
 
-void GetDefaultColorTransferFunction(vtkSmartPointer<vtkColorTransferFunction> cTF, double const range[2])
+void defaultColorTF(vtkSmartPointer<vtkColorTransferFunction> cTF, double const range[2])
 {
 	cTF->RemoveAllPoints();
 	cTF->AddRGBPoint(range[0], 0.0, 0.0, 0.0);
@@ -58,14 +58,14 @@ void GetDefaultColorTransferFunction(vtkSmartPointer<vtkColorTransferFunction> c
 	cTF->Build();
 }
 
-vtkSmartPointer<vtkPiecewiseFunction> GetDefaultPiecewiseFunction(double const range[2], bool opaqueRamp)
+vtkSmartPointer<vtkPiecewiseFunction> defaultOpacityTF(double const range[2], bool opaqueRamp)
 {
 	auto pWF = vtkSmartPointer<vtkPiecewiseFunction>::New();
-	GetDefaultPiecewiseFunction(pWF, range, opaqueRamp);
+	defaultOpacityTF(pWF, range, opaqueRamp);
 	return pWF;
 }
 
-void GetDefaultPiecewiseFunction(vtkSmartPointer<vtkPiecewiseFunction> pWF, double const range[2], bool opaqueRamp)
+void defaultOpacityTF(vtkSmartPointer<vtkPiecewiseFunction> pWF, double const range[2], bool opaqueRamp)
 {
 	pWF->RemoveAllPoints();
 	if (opaqueRamp)

@@ -20,55 +20,29 @@
 * ************************************************************************************/
 #pragma once
 
-// TODO: remove completely. instead, return ID when creating channel
-enum iAChannelID
+#include "iASlicerMode.h"
+#include "ui_slicer.h"
+
+#include <QDockWidget>
+
+class iASlicer;
+
+class dlg_slicer : public QDockWidget, public Ui_slicer
 {
-	ch_None = -1,
-	// don't change the order of the ch_MetaN elements!
-	ch_Meta0,
-	ch_Meta1,
-	ch_Meta2,
+Q_OBJECT
 
-	ch_XRF,
-	ch_SpectrumSelection,
-	ch_DistVisLabels,
-	ch_DistVisSampledPoints,
-	ch_DistVisDistancePairs,
-	ch_DistVisEntropy,
-
-	ch_VolumePlayer0,
-	ch_VolumePlayer1,
-
-	ch_fixed,
-	ch_moving,
-
-	ch_Microscopy1,
-	ch_Microscopy2,
-	ch_Microscopy3,
-	ch_Microscopy4,
-
-	ch_ModSPLOMSelection,
-
-	ch_DefectView0,
-	ch_DefectView1,
-	ch_DefectView2,
-	ch_DefectView3,
-
-	ch_DensityMap,
-
-	ch_LabelOverlay,
-
-	ch_SlicerMagicLens,
-
-	// needs to be the last one, as there can be an arbitrary number of such concentration layers:
-	ch_Concentration0,
-	ch_Concentration1,
-	ch_Concentration2,
-	ch_Concentration3,
-	ch_Concentration4,
-	ch_Concentration5,
-	ch_Concentration6,
-	ch_Concentration7,
-	ch_Concentration8,
-	ch_Concentration9,
+public:
+	static const int BorderWidth;
+	static QColor slicerColor(iASlicerMode mode);
+	dlg_slicer(iASlicer* slicer);
+	void showBorder(bool show);
+private slots:
+	void setSliceSpinBox(int s);
+	void setSliceScrollBar(int s);
+	void setSlabMode(bool slabMode);
+	void updateSlabThickness(int thickness);
+	void updateSlabCompositeMode(int compositeMode);
+	void updateSliceControls(int minIdx, int maxIdx);
+private:
+	iASlicer* m_slicer;
 };

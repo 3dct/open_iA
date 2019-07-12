@@ -70,7 +70,7 @@ void dlg_SimilarityMap::loadMap()
 	QString mapFileName = QFileDialog::getOpenFileName(
 		QApplication::activeWindow(),
 		tr("Open File"),
-		(dynamic_cast<MdiChild*>(parent()))->getFilePath(),
+		(dynamic_cast<MdiChild*>(parent()))->filePath(),
 		tr("MetaImages (*.mhd *.mha );;") );
 	if(mapFileName == "")
 		return;

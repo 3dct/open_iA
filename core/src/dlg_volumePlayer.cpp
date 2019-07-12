@@ -21,10 +21,9 @@
 #include "dlg_volumePlayer.h"
 
 #include "dlg_commoninput.h"
-#include "iAChannelID.h"
-#include "iAChannelVisualizationData.h"
+#include "iAChannelData.h"
 #include "iARenderer.h"
-#include "iASlicerData.h"
+#include "iASlicer.h"
 #include "iAVolumeStack.h"
 #include "mdichild.h"
 
@@ -49,8 +48,9 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 	setupUi(this);
 	m_isBlendingOn = blending->isChecked();
 	m_mdiChild = dynamic_cast<MdiChild*>(parent);
-	m_numberOfVolumes=m_volumeStack->getNumberOfVolumes();
-	for (int i = 0; i < m_numberOfVolumes; i++) {
+	m_numberOfVolumes=m_volumeStack->numberOfVolumes();
+	for (int i = 0; i < m_numberOfVolumes; i++)
+	{
 		showVolume(i);
 	}
 
@@ -92,7 +92,8 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 	m_fileColumn=countNumber++;
 	m_sortColumn=countNumber++;
 
-	for (int i=0; i<m_numberOfVolumes; i++) {
+	for (int i=0; i<m_numberOfVolumes; i++)
+	{
 		m_tempStr=QString("%1").arg(i);
 		m_newWidget = new QCheckBox(this);
 		m_newWidget->setObjectName(m_tempStr.append("check"));
@@ -101,10 +102,12 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 		connect(m_newWidget, SIGNAL(stateChanged(int)), this, SLOT(enableVolume(int)));
 		m_widgetList.insert(i, m_tempStr);
 		dataTable->setRowHeight(i, 17);
-		dataTable->setItem(i,m_dimColumn,new QTableWidgetItem(QString("%1").arg(volumeStack->getVolume(i)->GetDimensions()[0]).append(QString(", %1").arg(volumeStack->getVolume(i)->GetDimensions()[1]).append(QString(", %1").arg(volumeStack->getVolume(i)->GetDimensions()[2])))));
-		dataTable->setItem(i,m_spacColumn,new QTableWidgetItem(QString("%1").arg(volumeStack->getVolume(i)->GetSpacing()[0]).append(QString(", %1").arg(volumeStack->getVolume(i)->GetSpacing()[1]).append(QString(", %1").arg(volumeStack->getVolume(i)->GetSpacing()[2])))));
-		dataTable->setItem(i,m_fileColumn,new QTableWidgetItem(volumeStack->getFileName(i)));
-		dataTable->setItem(i,m_sortColumn,new QTableWidgetItem(QString("%1").arg(0)));
+		dataTable->setItem(i, m_dimColumn, new QTableWidgetItem(QString("%1, %2, %3")
+			.arg(volumeStack->volume(i)->GetDimensions()[0]).arg(volumeStack->volume(i)->GetDimensions()[1]).arg(volumeStack->volume(i)->GetDimensions()[2])));
+		dataTable->setItem(i, m_spacColumn,new QTableWidgetItem(QString("%1, %2, %3")
+			.arg(volumeStack->volume(i)->GetSpacing()[0])   .arg(volumeStack->volume(i)->GetSpacing()[1])   .arg(volumeStack->volume(i)->GetSpacing()[2])));
+		dataTable->setItem(i, m_fileColumn,new QTableWidgetItem(volumeStack->fileName(i)));
+		dataTable->setItem(i, m_sortColumn,new QTableWidgetItem(QString("%1").arg(0)));
 	}
 	m_old_r=1;
 
@@ -114,7 +117,6 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 	dataTable->setColumnHidden(m_sortColumn, true);
 
 	//Contextmenu start
-
 	m_contextDimensions = new QAction(tr("Dimensions"), this );
 	connect( m_contextDimensions, SIGNAL(activated()), this, SLOT(dimensionsActive()) );
 	m_contextDimensions->setCheckable(true);
@@ -131,16 +133,16 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 	addAction( m_contextDimensions );
 	addAction( m_contextSpacing );
 	addAction( m_contextFileName );
+	//Contextmenu end
 
 	m_dimShow=m_spacShow=m_fileShow=true;
 	dataTable->resizeColumnsToContents();
 
-	//Contextmenu end
-
 	emit setAllSelected(0);
 }
 
-dlg_volumePlayer::~dlg_volumePlayer() {
+dlg_volumePlayer::~dlg_volumePlayer()
+{
 
 }
 
@@ -159,19 +161,17 @@ void dlg_volumePlayer::nextVolume()
 void dlg_volumePlayer::previousVolume()
 {
 	int index = volumeSlider->value();
-	if (--index < 0) {
+	if (--index < 0)
 		index=volumeSlider->maximum();
-	}
 	volumeSlider->setValue(index);
 }
 
 void dlg_volumePlayer::sliderChanged()
 {
-	if(m_isBlendingOn) {
+	if(m_isBlendingOn)
 		updateMultiChannelVisualization();
-	} else {
+	else
 		emit update(sliderIndexToVolumeIndex(volumeSlider->value()));
-	}
 }
 
 void dlg_volumePlayer::playVolume()
@@ -197,35 +197,38 @@ void dlg_volumePlayer::setSpeed()
 	this->speedValue->setText(QString::number(speed, 'f', 2));
 }
 
-void dlg_volumePlayer::updateView(int r, int c) {
+void dlg_volumePlayer::updateView(int r, int c)
+{
 	emit update(r);
 }
 
-void dlg_volumePlayer::editMaxSpeed() {
+void dlg_volumePlayer::editMaxSpeed()
+{
 	QStringList inList		= (QStringList() << tr("#Speed (one step/msec)"));
 	QList<QVariant> inPara	= (QList<QVariant>() << tr("%1").arg(getCurrentSpeed()));
 
 	dlg_commoninput dlg(m_mdiChild, "Set speed", inList, inPara, NULL);
 
-	if (dlg.exec() == QDialog::Accepted){
+	if (dlg.exec() == QDialog::Accepted)
+	{
 		float speed = (float)dlg.getDblValue(0);
 		m_timer.setInterval((int)((1/speed) * SECONDS_TO_MILISECONDS));
 		this->speedValue->setText(QString::number(speed, 'f', 2));
 	}
 }
 
-void dlg_volumePlayer::setChecked(int r, int c) {
-
-	for (int i=1; i<m_numberOfColumns;i++) {
+void dlg_volumePlayer::setChecked(int r, int c)
+{
+	for (int i=1; i<m_numberOfColumns;i++)
+	{
 		dataTable->item(m_old_r,i)->setBackgroundColor(Qt::white);
 		dataTable->item(r,i)->setBackgroundColor(Qt::lightGray);
 	}
-
 	m_old_r=r;
 }
 
-QList<int> dlg_volumePlayer::getCheckedList() {
-
+QList<int> dlg_volumePlayer::getCheckedList()
+{
 	m_outCheckList.clear();
 	for (int i = 0; i < m_numberOfVolumes; i++)
 	{
@@ -243,65 +246,81 @@ QList<int> dlg_volumePlayer::getCheckedList() {
 	return (m_outCheckList);
 }
 
-
-
-void dlg_volumePlayer::selectAll(int c) {
-	if (c==m_checkColumn) {
+void dlg_volumePlayer::selectAll(int c)
+{
+	if (c==m_checkColumn)
+	{
 		m_areAllChecked=true;
-		for (int i=0; i<m_numberOfVolumes;i++) {
+		for (int i=0; i<m_numberOfVolumes;i++)
+		{
 			QCheckBox *t = this->findChild<QCheckBox*>(m_widgetList[i]);
-			if (t->checkState()>=1) {
+			if (t->checkState()>=1)
+			{
 			}
-			else {
+			else
+			{
 				m_areAllChecked=false;
 			}
 		}
-		for (int i=0; i<m_numberOfVolumes;i++) {
+		for (int i=0; i<m_numberOfVolumes;i++)
+		{
 			QCheckBox *t = this->findChild<QCheckBox*>(m_widgetList[i]);
-			if (m_areAllChecked) {
+			if (m_areAllChecked)
+			{
 				t->setChecked(false);
 			}
-			else {
+			else
+			{
 				t->setChecked(true);
 			}
 		}
 	}
 }
 
-void dlg_volumePlayer::dimensionsActive() {
-	if (dataTable->columnWidth(m_dimColumn)==0) {
+void dlg_volumePlayer::dimensionsActive()
+{
+	if (dataTable->columnWidth(m_dimColumn)==0)
+	{
 		dataTable->resizeColumnToContents(m_dimColumn);
 		m_contextDimensions->setChecked(true);
 	}
-	else {
+	else
+	{
 		dataTable->setColumnWidth(m_dimColumn, 0);
 		m_contextDimensions->setChecked(false);
 	}
 }
 
-void dlg_volumePlayer::spacingActive() {
-	if (dataTable->columnWidth(m_spacColumn)==0) {
+void dlg_volumePlayer::spacingActive()
+{
+	if (dataTable->columnWidth(m_spacColumn)==0)
+	{
 		dataTable->resizeColumnToContents(m_spacColumn);
 		m_contextSpacing->setChecked(true);
 	}
-	else {
+	else
+	{
 		dataTable->setColumnWidth(m_spacColumn, 0);
 		m_contextSpacing->setChecked(false);
 	}
 }
 
-void dlg_volumePlayer::fileNameActive() {
-	if (dataTable->columnWidth(m_fileColumn)==0) {
+void dlg_volumePlayer::fileNameActive()
+{
+	if (dataTable->columnWidth(m_fileColumn)==0)
+	{
 		dataTable->resizeColumnToContents(m_fileColumn);
 		m_contextFileName->setChecked(true);
 	}
-	else {
+	else
+	{
 		dataTable->setColumnWidth(m_fileColumn, 0);
 		m_contextFileName->setChecked(false);
 	}
 }
 
-float dlg_volumePlayer::getCurrentSpeed() {
+float dlg_volumePlayer::getCurrentSpeed()
+{
 	float speed = TIMER_MIN_SPEED + (TIMER_MAX_SPEED - TIMER_MIN_SPEED) * ((float)speedSlider->value() / speedSlider->maximum());
 	return speed;
 }
@@ -309,10 +328,9 @@ float dlg_volumePlayer::getCurrentSpeed() {
 void dlg_volumePlayer::blendingStateChanged(int state)
 {
 	m_isBlendingOn = state;
-
-
 	int oldVal = volumeSlider->value();
-	if (m_isBlendingOn) {
+	if (m_isBlendingOn)
+	{
 		// set slider parameters
 		volumeSlider->setMaximum((getNumberOfCheckedVolumes() - 1) * DIVISIONS_PER_VOLUME);
 		volumeSlider->setValue(oldVal * DIVISIONS_PER_VOLUME);
@@ -323,7 +341,9 @@ void dlg_volumePlayer::blendingStateChanged(int state)
 
 		// setup gui
 		applyForAllButton->setEnabled(false);
-	} else {
+	}
+	else
+	{
 		// set slider parameters
 		volumeSlider->setMaximum(getNumberOfCheckedVolumes() - 1);
 		volumeSlider->setValue(floor((double)(oldVal + 1) / DIVISIONS_PER_VOLUME + 0.5));
@@ -337,14 +357,16 @@ void dlg_volumePlayer::blendingStateChanged(int state)
 	}
 }
 
-void dlg_volumePlayer::enableVolume(int state) {
+void dlg_volumePlayer::enableVolume(int state)
+{
 	QCheckBox* check = static_cast<QCheckBox*>(QObject::sender());
-	if(check == NULL) {
+	if (!check)
 		return;
-	}
 
-	for(int i = 0; i < m_checkBoxes.size(); i++) {
-		if (check == m_checkBoxes[i]) {
+	for(int i = 0; i < m_checkBoxes.size(); i++)
+	{
+		if (check == m_checkBoxes[i])
+		{
 			switch(state) {
 			case Qt::Checked:
 				showVolume(i);
@@ -361,41 +383,48 @@ void dlg_volumePlayer::enableVolume(int state) {
 	}
 
 	int numOfCheckedVolumes = getNumberOfCheckedVolumes();
-	for(int i = 0; i < m_checkBoxes.size(); i++) {
-		if(numOfCheckedVolumes <= 1 && m_checkBoxes[i]->isChecked()) {
+	for(int i = 0; i < m_checkBoxes.size(); i++)
+	{
+		if(numOfCheckedVolumes <= 1 && m_checkBoxes[i]->isChecked())
 			m_checkBoxes[i]->setEnabled(false);
-		} else {
+		else
 			m_checkBoxes[i]->setEnabled(true);
-		}
 	}
 
 	// setup slider
 	int oldVal = volumeSlider->value();
-	if(m_isBlendingOn) {
+	if(m_isBlendingOn)
+	{
 		volumeSlider->setMaximum((getNumberOfCheckedVolumes() - 1) * DIVISIONS_PER_VOLUME);
-	} else {
+	}
+	else
+	{
 		volumeSlider->setMaximum(getNumberOfCheckedVolumes() - 1);
 	}
 	volumeSlider->setValue(volumeSlider->minimum());
 }
 
-int dlg_volumePlayer::volumeIndexToSlicerIndex(int volumeIndex) {
+int dlg_volumePlayer::volumeIndexToSlicerIndex(int volumeIndex)
+{
 	int slicerIndex = -1;
-
-	if(((m_mask>>volumeIndex)&1) == 0) return -1;
-
-	for(int i = 0; i <= volumeIndex; i++) {
-		if(((m_mask>>i)&1) == 1) ++slicerIndex;
-	}
+	if (((m_mask>>volumeIndex)&1) == 0)
+		return -1;
+	for(int i = 0; i <= volumeIndex; i++)
+		if (((m_mask>>i)&1) == 1)
+			++slicerIndex;
 	return slicerIndex;
 }
 
-int dlg_volumePlayer::sliderIndexToVolumeIndex(int slicerIndex) {
+int dlg_volumePlayer::sliderIndexToVolumeIndex(int slicerIndex)
+{
 	int passedVolumes = 0;
-	for(int i = 0; i <= m_numberOfVolumes; i++) {
-		if(((m_mask>>i)&1) == 1) {
+	for (int i = 0; i <= m_numberOfVolumes; i++)
+	{
+		if (((m_mask>>i)&1) == 1)
+		{
 			passedVolumes++;
-			if(passedVolumes > slicerIndex) {
+			if (passedVolumes > slicerIndex)
+			{
 				return i;
 			}
 		}
@@ -403,15 +432,18 @@ int dlg_volumePlayer::sliderIndexToVolumeIndex(int slicerIndex) {
 	return -1;
 }
 
-void dlg_volumePlayer::showVolume(int volumeIndex) {
+void dlg_volumePlayer::showVolume(int volumeIndex)
+{
 	m_mask = m_mask|(1<<volumeIndex);
 }
 
-void dlg_volumePlayer::hideVolume(int volumeIndex) {
+void dlg_volumePlayer::hideVolume(int volumeIndex)
+{
 	m_mask = m_mask&~(1<<volumeIndex);
 }
 
-int dlg_volumePlayer::getNumberOfCheckedVolumes() {
+int dlg_volumePlayer::getNumberOfCheckedVolumes()
+{
 	int num = 0;
 	for(int i = 0; i < m_numberOfVolumes; i++) {
 		if(volumeIsShown(i)) num++;
@@ -419,87 +451,88 @@ int dlg_volumePlayer::getNumberOfCheckedVolumes() {
 	return num;
 }
 
-bool dlg_volumePlayer::volumeIsShown (int volumeIndex) {
+bool dlg_volumePlayer::volumeIsShown (int volumeIndex)
+{
 	return (((m_mask>>volumeIndex)&1) == 1);
 }
 
-void dlg_volumePlayer::enableMultiChannelVisualization() {
-	if (m_mdiChild == NULL) {
+void dlg_volumePlayer::enableMultiChannelVisualization()
+{
+	if (!m_mdiChild)
 		return;
-	}
 
 	for(int i = 0; i < CHANNELS_COUNT; i++)
-		m_mdiChild->SetChannelRenderingEnabled(static_cast<iAChannelID>(ch_VolumePlayer0 + i), true);
+		m_mdiChild->setChannelRenderingEnabled(m_channelID[i], true);
 }
 
-void dlg_volumePlayer::disableMultiChannelVisualization() {
-	if (m_mdiChild == NULL) {
+void dlg_volumePlayer::disableMultiChannelVisualization()
+{
+	if (!m_mdiChild)
 		return;
-	}
 
 	for(int i = 0; i < CHANNELS_COUNT; i++)
-		m_mdiChild->SetChannelRenderingEnabled(static_cast<iAChannelID>(ch_VolumePlayer0 + i), false);
+		m_mdiChild->setChannelRenderingEnabled(m_channelID[i], false);
 }
 
-void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volumeIndex2, double blendingCoeff) {
-	if (m_mdiChild == NULL) {
+void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volumeIndex2, double blendingCoeff)
+{
+	if (!m_mdiChild)
 		return;
-	}
 
 	int volumeIndex[] = { volumeIndex1, volumeIndex2 };
 	double opacity[] = { 1., blendingCoeff };
 
-	for(int i = 0; i < CHANNELS_COUNT; i++) {
-		iAChannelID id = static_cast<iAChannelID>(ch_VolumePlayer0 + i);
-
-		iAChannelVisualizationData* chData;
-		if(!m_multiChannelIsInitialized) {
-			chData = new iAChannelVisualizationData();
-			m_mdiChild->InsertChannelData(id, chData);
-		} else {
-			chData = m_mdiChild->GetChannelData(id);
-		}
-
-		vtkImageData* imageData = m_volumeStack->getVolume(volumeIndex[i]);
-		vtkColorTransferFunction* ctf = m_volumeStack->getColorTransferFunction(volumeIndex[i]);
-		if(!m_multiChannelIsInitialized) {
+	if (!m_multiChannelIsInitialized)
+		for (int i = 0; i < CHANNELS_COUNT; i++)
+			m_channelID.push_back(m_mdiChild->createChannel());
+	for(int i = 0; i < CHANNELS_COUNT; i++)
+	{
+		iAChannelData* chData = m_mdiChild->channelData(m_channelID[i]);
+		vtkImageData* imageData = m_volumeStack->volume(volumeIndex[i]);
+		vtkColorTransferFunction* ctf = m_volumeStack->colorTF(volumeIndex[i]);
+		if(!m_multiChannelIsInitialized)
+		{
 			m_otf[i] = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		}
-		m_otf[i]->ShallowCopy(m_volumeStack->getPiecewiseFunction(volumeIndex[i]));
+		m_otf[i]->ShallowCopy(m_volumeStack->opacityTF(volumeIndex[i]));
 
-		for(int j = 0; j < m_otf[i]->GetSize(); j++) {
+		for(int j = 0; j < m_otf[i]->GetSize(); j++)
+		{
 			double val[4];
 			m_otf[i]->GetNodeValue(j, val);
 			val[1] *= opacity[i];
 			m_otf[i]->SetNodeValue(j, val);
 		}
 
-		ResetChannel(chData, imageData, ctf, m_otf[i]);
+		chData->setData(imageData, ctf, m_otf[i]);
 
-		if(!m_multiChannelIsInitialized) {
-			m_mdiChild->InitChannelRenderer(id, true);
+		if(!m_multiChannelIsInitialized)
+		{
+			m_mdiChild->initChannelRenderer(m_channelID[i], true);
 			// TODO: VOLUME: rewrite!
-			// m_mdiChild->getRenderer()->showMainVolumeWithChannels(false);
+			// m_mdiChild->renderer()->showMainVolumeWithChannels(false);
 		}
-
-		m_mdiChild->UpdateChannelSlicerOpacity(id, opacity[i]);
+		m_mdiChild->updateChannelOpacity(m_channelID[i], opacity[i]);
 	}
 
 	if(!m_multiChannelIsInitialized) m_multiChannelIsInitialized = true;
 
-//	m_mdiChild->getRenderer()->updateChannelImages();
-	m_mdiChild->getSlicerDataXY()->updateChannelMappers();
-	m_mdiChild->getSlicerDataXZ()->updateChannelMappers();
-	m_mdiChild->getSlicerDataYZ()->updateChannelMappers();
+//	m_mdiChild->renderer()->updateChannelImages();
+	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
+		m_mdiChild->slicer(i)->updateChannelMappers();
 	m_mdiChild->updateViews();
 }
 
-void dlg_volumePlayer::updateMultiChannelVisualization() {
+void dlg_volumePlayer::updateMultiChannelVisualization()
+{
 	double sliderVal = (double)volumeSlider->value() / DIVISIONS_PER_VOLUME;
 	double blend = sliderVal - floor(sliderVal);
-	if (volumeSlider->value() == volumeSlider->maximum()) {
+	if (volumeSlider->value() == volumeSlider->maximum())
+	{
 		setMultiChannelVisualization(sliderIndexToVolumeIndex(floor(sliderVal) - 1), sliderIndexToVolumeIndex(floor(sliderVal)), 1);
-	} else {
+	}
+	else
+	{
 		setMultiChannelVisualization(sliderIndexToVolumeIndex(floor(sliderVal)), sliderIndexToVolumeIndex(floor(sliderVal) + 1), blend);
 	}
 }

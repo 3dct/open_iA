@@ -28,29 +28,29 @@ class vtkRenderer;
 class vtkImageData;
 class vtkActor;
 
-struct iAArbitraryProfileOnSlicer
+//! Adds handles for start and end of a profile line to the given renderer
+class iAArbitraryProfileOnSlicer
 {
+public:
 	iAArbitraryProfileOnSlicer();
 
-	void initialize(vtkRenderer * ren);
+	void addToRenderer(vtkRenderer * ren);
 	void setPointScaling(double scaling);
-	void SetVisibility(bool isVisible);
-	void FindSelectedPntInd(double x, double y);
-	int setup(int pointInd, double * pos3d, double * pos2d, vtkImageData *imgData);
-	int GetPntInd() const;
-	double * GetPosition(int index);
+	void setVisibility(bool isVisible);
+	void findSelectedPointIdx(double x, double y);
+	int setup(int pointInd, double const * pos3d, double const * pos2d, vtkImageData *imgData);
+	int pointIdx() const;
+	double const * position(int pointIdx);
 
-	static const int Z_COORD = 0;
-	static const int ARB_RADIUS = 5;
+	static const int ZCoord = 0;
+	static const int PointRadius = 5;
 
 protected:
-	vtkRenderer * m_ren;	//vtk renderer
-	double m_radius;		//radius, taking into account image spacing
-	int m_arbProfPntInd;	// currently selected point of arbitrary profile
-
-	iALineSegment		m_hLine[2], m_vLine[2]; //horizontal and vertical lines
-	iALineSegment		m_profLine;				//profile line
-	iALinePointers		m_zeroLine;				//zero line
-	iADiskData			m_points[2];
-	double				m_positions[2][3];
+	double              m_radius;               //!< radius, taking into account image spacing
+	int                 m_arbProfPntInd;        //!< currently selected point of arbitrary profile
+	iALineSegment       m_hLine[2], m_vLine[2]; //!< horizontal and vertical lines
+	iALineSegment       m_profLine;             //!< profile line
+	iALinePointers      m_zeroLine;             //!< zero line
+	iADiskData          m_points[2];            //!< data for the disk visualizations of start and end point
+	double              m_positions[2][3];
 };

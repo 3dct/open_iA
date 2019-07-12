@@ -20,11 +20,10 @@
 * ************************************************************************************/
 #include "iADiagramFctWidget.h"
 
-#include "dlg_bezier.h"
-#include "dlg_function.h"
-#include "dlg_gaussian.h"
 #include "dlg_TFTable.h"
-#include "dlg_transfer.h"
+#include "iAChartFunctionBezier.h"
+#include "iAChartFunctionGaussian.h"
+#include "iAChartFunctionTransfer.h"
 #include "iAPlotData.h"
 #include "iAMathUtility.h"
 #include "iASettings.h"
@@ -47,38 +46,38 @@
 iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
 	QString const & xLabel, QString const & yLabel) :
 	iAChartWidget(parent, xLabel, yLabel),
-	TFTable(0),
+	m_TFTable(nullptr),
 	m_allowTrfReset(true),
 	m_enableAdditionalFunctions(true),
 	m_showFunctions(false),
-	selectedFunction(0),
-	activeChild(mdiChild)
+	m_selectedFunction(0),
+	m_activeChild(mdiChild)
 {
-	dlg_transfer *transferFunction = new dlg_transfer(this, QColor(0, 0, 0, 255));
-	functions.push_back(transferFunction);
+	iAChartTransferFunction *transferFunction = new iAChartTransferFunction(this, QColor(0, 0, 0, 255));
+	m_functions.push_back(transferFunction);
 }
 
 iADiagramFctWidget::~iADiagramFctWidget()
 {
-	for (auto fct: functions)
+	for (auto fct: m_functions)
 		delete fct;
 }
 
-int iADiagramFctWidget::getSelectedFuncPoint() const
+int iADiagramFctWidget::selectedFuncPoint() const
 {
-	auto it = functions.begin();
-	if (it == functions.end())
+	auto it = m_functions.begin();
+	if (it == m_functions.end())
 		return -1;
-	dlg_function *func = *(it + selectedFunction);
+	iAChartFunction *func = *(it + m_selectedFunction);
 	return func->getSelectedPoint();
 }
 
 bool iADiagramFctWidget::isFuncEndPoint(int index) const
 {
-	auto it = functions.begin();
-	if (it == functions.end())
+	auto it = m_functions.begin();
+	if (it == m_functions.end())
 		return false;
-	dlg_function *func = *(it + selectedFunction);
+	iAChartFunction *func = *(it + m_selectedFunction);
 	return func->isEndPoint(index);
 }
 
@@ -91,12 +90,12 @@ void iADiagramFctWidget::drawAfterPlots(QPainter & painter)
 void iADiagramFctWidget::drawFunctions(QPainter &painter)
 {
 	int counter = 0;
-	std::vector<dlg_function*>::iterator it = functions.begin();
-	while (it != functions.end())
+	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
+	while (it != m_functions.end())
 	{
-		dlg_function *func = (*it);
+		iAChartFunction *func = (*it);
 
-		if (counter == selectedFunction)
+		if (counter == m_selectedFunction)
 		{
 			func->draw(painter, QColor(255,128,0,255), 2);
 		}
@@ -108,10 +107,10 @@ void iADiagramFctWidget::drawFunctions(QPainter &painter)
 		counter++;
 	}
 
-	it = functions.begin();
-	while (it != functions.end())
+	it = m_functions.begin();
+	while (it != m_functions.end())
 	{
-		dlg_function *func = (*it);
+		iAChartFunction *func = (*it);
 		func->drawOnTop(painter);
 		++it;
 	}
@@ -126,20 +125,20 @@ void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)
 				((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) &&
 				((event->modifiers() & Qt::AltModifier) == Qt::AltModifier))
 			{
-				zoomY = event->y();
+				m_zoomYPos = event->y();
 				changeMode(Y_ZOOM_MODE, event);
 			}
 			else if (((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) &&
 				((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier))
 			{
-				zoomX = event->x();
-				zoomY = event->y();
-				xZoomStart = xZoom;
+				m_zoomXPos = event->x();
+				m_zoomYPos = event->y();
+				m_xZoomStart = m_xZoom;
 				changeMode(X_ZOOM_MODE, event);
 			}
 			else if ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier)
 			{
-				translationStartX = translationX;
+				m_translationStartX = m_translationX;
 				changeMode(MOVE_VIEW_MODE, event);
 			}
 			else if (!isContextMenuVisible())
@@ -149,8 +148,8 @@ void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)
 		{
 			if (!m_showFunctions)
 				return;
-			std::vector<dlg_function*>::iterator it = functions.begin();
-			dlg_function *func = *(it + selectedFunction);
+			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
+			iAChartFunction *func = *(it + m_selectedFunction);
 			int selectedPoint = func->selectPoint(event);
 			if (selectedPoint == -1)
 				emit noPointSelected();
@@ -170,17 +169,17 @@ void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)
 		iAChartWidget::mouseReleaseEvent(event);
 		return;
 	}
-	std::vector<dlg_function*>::iterator it = functions.begin();
-	dlg_function *func = *(it + selectedFunction);
+	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
+	iAChartFunction *func = *(it + m_selectedFunction);
 	if (event->button() == Qt::LeftButton)
 	{
-		if (mode == MOVE_NEW_POINT_MODE)
+		if (m_mode == MOVE_NEW_POINT_MODE)
 			func->mouseReleaseEventAfterNewPoint(event);
 		update();
 		emit updateTFTable();
 		emit updateViews();
 	}
-	mode = NO_MODE;
+	m_mode = NO_MODE;
 	m_contextMenuVisible = false;
 	func->mouseReleaseEvent(event);
 }
@@ -196,7 +195,7 @@ void iADiagramFctWidget::mouseDoubleClickEvent(QMouseEvent *event)
 
 void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	switch (mode)
+	switch (m_mode)
 	{
 		case MOVE_POINT_MODE:
 		case MOVE_NEW_POINT_MODE:
@@ -205,13 +204,12 @@ void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)
 			int viewY = geometry().height() -event->y() -bottomMargin();
 			if (m_showFunctions)
 			{
-				std::vector<dlg_function*>::iterator it = functions.begin();
-				dlg_function *func = *(it + selectedFunction);
+				std::vector<iAChartFunction*>::iterator it = m_functions.begin();
+				iAChartFunction *func = *(it + m_selectedFunction);
 				func->moveSelectedPoint(viewX, viewY);
 				update();
 				emit updateTFTable();
 			}
-			showDataTooltip(event);
 		}
 		break;
 		default:
@@ -228,18 +226,18 @@ void iADiagramFctWidget::keyPressEvent(QKeyEvent *event)
 {
 	if (event->key() == Qt::Key_Down)
 	{
-		selectedFunction++;
-		if (selectedFunction >= functions.size())
-			selectedFunction = 0;
+		m_selectedFunction++;
+		if (m_selectedFunction >= m_functions.size())
+			m_selectedFunction = 0;
 
 		update();
 	}
 	else if (event->key() == Qt::Key_Up)
 	{
-		if(selectedFunction > 0)
-			selectedFunction--;
+		if (m_selectedFunction > 0)
+			m_selectedFunction--;
 		else
-			selectedFunction = (int)(functions.size()-1);
+			m_selectedFunction = (int)(m_functions.size()-1);
 
 		update();
 	}
@@ -249,8 +247,8 @@ void iADiagramFctWidget::addContextMenuEntries(QMenu* contextMenu)
 {
 	if (m_showFunctions)
 	{
-		std::vector<dlg_function*>::iterator it = functions.begin();
-		dlg_function *func = *(it + selectedFunction);
+		std::vector<iAChartFunction*>::iterator it = m_functions.begin();
+		iAChartFunction *func = *(it + m_selectedFunction);
 
 		if (func->getSelectedPoint() != -1)
 		{
@@ -281,7 +279,7 @@ void iADiagramFctWidget::addContextMenuEntries(QMenu* contextMenu)
 		contextMenu->addAction(QIcon(":/images/openFkt.png"), tr("Load functions"), this, SLOT(loadFunctions()));
 		contextMenu->addAction(QIcon(":/images/saveFkt.png"), tr("Save functions"), this, SLOT(saveFunctions()));
 
-		if (selectedFunction != 0)
+		if (m_selectedFunction != 0)
 			contextMenu->addAction(QIcon(":/images/removeFkt.png"), tr("Remove selected function"), this, SLOT(removeFunction()));
 	}
 }
@@ -294,8 +292,8 @@ void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
 		{
 			if (!m_showFunctions)
 				return;
-			std::vector<dlg_function*>::iterator it = functions.begin();
-			dlg_function *func = *(it + selectedFunction);
+			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
+			iAChartFunction *func = *(it + m_selectedFunction);
 			int x = event->x() - leftMargin();
 			int y = geometry().height() - event->y() -bottomMargin();
 			int selectedPoint = func->selectPoint(event, &x);
@@ -312,10 +310,10 @@ void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
 				selectedPoint = func->addPoint(x, y);
 				func->addColorPoint(x);
 
-				mode = MOVE_NEW_POINT_MODE;
+				m_mode = MOVE_NEW_POINT_MODE;
 			}
 			else
-				mode = MOVE_POINT_MODE;
+				m_mode = MOVE_POINT_MODE;
 
 			update();
 
@@ -334,8 +332,8 @@ void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
 
 int iADiagramFctWidget::deletePoint()
 {
-	std::vector<dlg_function*>::iterator it = functions.begin();
-	dlg_function *func = *(it + selectedFunction);
+	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
+	iAChartFunction *func = *(it + m_selectedFunction);
 
 	int selectedPoint = func->getSelectedPoint();
 	func->removePoint(selectedPoint);
@@ -350,8 +348,8 @@ void iADiagramFctWidget::changeColor(QMouseEvent *event)
 {
 	if (!m_showFunctions)
 		return;
-	std::vector<dlg_function*>::iterator it = functions.begin();
-	dlg_function *func = *(it + selectedFunction);
+	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
+	iAChartFunction *func = *(it + m_selectedFunction);
 
 	func->changeColor(event);
 
@@ -362,8 +360,8 @@ void iADiagramFctWidget::changeColor(QMouseEvent *event)
 
 void iADiagramFctWidget::resetTrf()
 {
-	std::vector<dlg_function*>::iterator it = functions.begin();
-	dlg_function *func = *(it + selectedFunction);
+	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
+	iAChartFunction *func = *(it + m_selectedFunction);
 
 	func->reset();
 	update();
@@ -373,7 +371,7 @@ void iADiagramFctWidget::resetTrf()
 
 void iADiagramFctWidget::updateTrf()
 {
-	((dlg_transfer*)functions[0])->TranslateToNewRange(xBounds());
+	((iAChartTransferFunction*)m_functions[0])->TranslateToNewRange(xBounds());
 	update();
 }
 
@@ -382,38 +380,38 @@ void iADiagramFctWidget::newTransferFunction()
 	update();
 	emit noPointSelected();
 	emit updateTFTable();
-	dynamic_cast<dlg_transfer*>(functions[0])->triggerOnChange();
+	dynamic_cast<iAChartTransferFunction*>(m_functions[0])->triggerOnChange();
 	emit updateViews();
 }
 
 void iADiagramFctWidget::loadTransferFunction()
 {
-	QString filePath = (activeChild) ? activeChild->getFilePath() : "";
+	QString filePath = (m_activeChild) ? m_activeChild->filePath() : "";
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{
 		iASettings s(fileName);
-		s.LoadTransferFunction((dlg_transfer*)functions[0]);
+		s.loadTransferFunction((iAChartTransferFunction*)m_functions[0]);
 		newTransferFunction();
 	}
 }
 
 void iADiagramFctWidget::loadTransferFunction(QDomNode &functionsNode)
 {
-	iASettings::LoadTransferFunction(functionsNode, (dlg_transfer*)functions[0]);
+	iASettings::loadTransferFunction(functionsNode, (iAChartTransferFunction*)m_functions[0]);
 	newTransferFunction();
 }
 
 void iADiagramFctWidget::saveTransferFunction()
 {
-	dlg_transfer *transferFunction = (dlg_transfer*)functions[0];
-	QString filePath = (activeChild) ? activeChild->getFilePath() : "";
+	iAChartTransferFunction *transferFunction = (iAChartTransferFunction*)m_functions[0];
+	QString filePath = (m_activeChild) ? m_activeChild->filePath() : "";
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{
 		iASettings s;
-		s.StoreTransferFunction(transferFunction);
-		s.Save(fileName);
+		s.storeTransferFunction(transferFunction);
+		s.save(fileName);
 	}
 }
 
@@ -424,10 +422,10 @@ void iADiagramFctWidget::applyTransferFunctionForAll()
 
 void iADiagramFctWidget::addBezierFunction()
 {
-	dlg_bezier *bezier = new dlg_bezier(this, PredefinedColors()[functions.size() % 7]);
+	iAChartFunctionBezier *bezier = new iAChartFunctionBezier(this, PredefinedColors()[m_functions.size() % 7]);
 	bezier->addPoint(contextMenuPos().x(), activeHeight()- contextMenuPos().y());
-	selectedFunction = (unsigned int)functions.size();
-	functions.push_back(bezier);
+	m_selectedFunction = (unsigned int)m_functions.size();
+	m_functions.push_back(bezier);
 
 	update();
 	emit updateTFTable();
@@ -436,17 +434,17 @@ void iADiagramFctWidget::addBezierFunction()
 
 void iADiagramFctWidget::addGaussianFunction()
 {
-	addGaussianFunction(contextMenuPos().x(), geometry().width() / 6, (int)((activeHeight() - contextMenuPos().y())*YZoom()));
+	addGaussianFunction(contextMenuPos().x(), geometry().width() / 6, (int)((activeHeight() - contextMenuPos().y())*yZoom()));
 }
 
 void iADiagramFctWidget::addGaussianFunction(double mean, double sigma, double multiplier)
 {
-	dlg_gaussian *gaussian = new dlg_gaussian(this, PredefinedColors()[functions.size() % 7]);
+	iAChartFunctionGaussian *gaussian = new iAChartFunctionGaussian(this, PredefinedColors()[m_functions.size() % 7]);
 	gaussian->setMean(mean);
 	gaussian->setSigma(sigma);
 	gaussian->setMultiplier(multiplier);
-	selectedFunction = (unsigned int)functions.size();
-	functions.push_back(gaussian);
+	m_selectedFunction = (unsigned int)m_functions.size();
+	m_functions.push_back(gaussian);
 
 	update();
 	emit updateTFTable();
@@ -455,23 +453,23 @@ void iADiagramFctWidget::addGaussianFunction(double mean, double sigma, double m
 
 bool iADiagramFctWidget::loadFunctions()
 {
-	if (!activeChild)
+	if (!m_activeChild)
 	{
 		return false;
 	}
-	QString filePath = activeChild->getFilePath();
+	QString filePath = m_activeChild->filePath();
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{
-		MdiChild* child = activeChild;
+		MdiChild* child = m_activeChild;
 		MainWindow *mw = (MainWindow*)child->window();
 		QDomDocument doc = mw->loadSettingsFile(fileName);
 		QDomElement root = doc.documentElement();
 
-		for (unsigned int i = 1; i < functions.size(); i++)
+		for (unsigned int i = 1; i < m_functions.size(); i++)
 		{
-			delete functions.back();
-			functions.pop_back();
+			delete m_functions.back();
+			m_functions.pop_back();
 		}
 
 		QDomNode functionsNode = root.namedItem("functions");
@@ -488,15 +486,15 @@ bool iADiagramFctWidget::loadFunctions()
 
 bool iADiagramFctWidget::saveFunctions()
 {
-	if (!activeChild)
+	if (!m_activeChild)
 	{
 		return false;
 	}
-	QString filePath = activeChild->getFilePath();
+	QString filePath = m_activeChild->filePath();
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{
-		MdiChild* child = activeChild;
+		MdiChild* child = m_activeChild;
 		MainWindow *mw = (MainWindow*)child->window();
 
 		QDomDocument doc = mw->loadSettingsFile(fileName);
@@ -508,11 +506,11 @@ bool iADiagramFctWidget::saveFunctions()
 
 void iADiagramFctWidget::removeFunction()
 {
-	std::vector<dlg_function*>::iterator it = functions.begin()+selectedFunction;
-	dlg_function *function = *it;
-	functions.erase(it);
+	std::vector<iAChartFunction*>::iterator it = m_functions.begin()+ m_selectedFunction;
+	iAChartFunction *function = *it;
+	m_functions.erase(it);
 	delete function;
-	selectedFunction--;
+	m_selectedFunction--;
 	update();
 	emit updateViews();
 }
@@ -522,14 +520,14 @@ void iADiagramFctWidget::setTransferFunctions(vtkColorTransferFunction* ctf, vtk
 	m_showFunctions = ctf && pwf;
 	if (!m_showFunctions)
 		return;
-	((dlg_transfer*)functions[0])->setColorFunction(ctf);
-	((dlg_transfer*)functions[0])->setOpacityFunction(pwf);
+	((iAChartTransferFunction*)m_functions[0])->setColorFunction(ctf);
+	((iAChartTransferFunction*)m_functions[0])->setOpacityFunction(pwf);
 	newTransferFunction();
 }
 
-dlg_function *iADiagramFctWidget::getSelectedFunction()
+iAChartFunction *iADiagramFctWidget::selectedFunction()
 {
-	return functions[selectedFunction];
+	return m_functions[m_selectedFunction];
 }
 
 int iADiagramFctWidget::chartHeight() const
@@ -537,9 +535,9 @@ int iADiagramFctWidget::chartHeight() const
 	return geometry().height() - bottomMargin();
 }
 
-std::vector<dlg_function*> &iADiagramFctWidget::getFunctions()
+std::vector<iAChartFunction*> &iADiagramFctWidget::functions()
 {
-	return functions;
+	return m_functions;
 }
 
 void iADiagramFctWidget::setAllowTrfReset(bool allow)
@@ -554,45 +552,45 @@ void iADiagramFctWidget::setEnableAdditionalFunctions(bool enable)
 
 void iADiagramFctWidget::showTFTable()
 {
-	if ( !TFTable )
+	if ( !m_TFTable )
 	{
-		std::vector<dlg_function*>::iterator it = functions.begin();
-		dlg_function* func = *( it + selectedFunction );
+		std::vector<iAChartFunction*>::iterator it = m_functions.begin();
+		iAChartFunction* func = *( it + m_selectedFunction );
 
-		TFTable = new dlg_TFTable( this, func );
-		TFTable->setWindowTitle( "Transfer Function Table View" );
-		TFTable->setWindowFlags( Qt::Dialog |Qt::WindowMinimizeButtonHint |Qt::WindowCloseButtonHint );
-		TFTable->setAttribute( Qt::WA_DeleteOnClose, true);
-		TFTable->show();
+		m_TFTable = new dlg_TFTable( this, func );
+		m_TFTable->setWindowTitle( "Transfer Function Table View" );
+		m_TFTable->setWindowFlags( Qt::Dialog |Qt::WindowMinimizeButtonHint |Qt::WindowCloseButtonHint );
+		m_TFTable->setAttribute( Qt::WA_DeleteOnClose, true);
+		m_TFTable->show();
 
-		connect( TFTable, SIGNAL( destroyed( QObject* ) ), this, SLOT( tfTableIsFinished() ) );
-		connect( this, SIGNAL( updateTFTable() ), TFTable, SLOT( updateTable() ) );
+		connect(m_TFTable, SIGNAL( destroyed( QObject* ) ), this, SLOT( tfTableIsFinished() ) );
+		connect( this, SIGNAL( updateTFTable() ), m_TFTable, SLOT( updateTable() ) );
 	}
 }
 
 QPoint iADiagramFctWidget::getTFTablePos() const
 {
-	return TFTable->pos();
+	return m_TFTable->pos();
 }
 
 void iADiagramFctWidget::setTFTablePos( QPoint pos )
 {
-	TFTable->move( pos );
+	m_TFTable->move( pos );
 }
 
 bool iADiagramFctWidget::isTFTableCreated() const
 {
 	bool created;
-	TFTable ? created = true : created = false;
+	m_TFTable ? created = true : created = false;
 	return created;
 }
 
 void iADiagramFctWidget::closeTFTable()
 {
-	TFTable->close();
+	m_TFTable->close();
 }
 
 void iADiagramFctWidget::tfTableIsFinished()
 {
-	TFTable = NULL;
+	m_TFTable = nullptr;
 }

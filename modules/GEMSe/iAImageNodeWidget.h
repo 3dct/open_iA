@@ -68,10 +68,10 @@ protected:
 	virtual void mouseReleaseEvent(QMouseEvent * ev);
 signals:
 	void Expand(bool expand);
-	void Clicked();
+	void clicked();
 	void ImageClicked();
 	void ImageRightClicked();
-	void Updated();
+	void updated();
 private slots:
 	void ExpandButtonClicked();
 private:

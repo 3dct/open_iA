@@ -102,8 +102,8 @@ void iAParamFeaturesView::SaveSettings(QSettings & settings)
 		shownList << m_featureTable->cellWidget(row, ShowColumn)->findChildren<QCheckBox*>()[0]->isChecked();
 		invertedList << m_featureTable->cellWidget(row, InvertColumn)->findChildren<QCheckBox*>()[0]->isChecked();
 	}
-	settings.setValue("Shown", Join(shownList, ","));
-	settings.setValue("Inverted", Join(invertedList, ","));
+	settings.setValue("Shown", join(shownList, ","));
+	settings.setValue("Inverted", join(invertedList, ","));
 }
 
 void iAParamFeaturesView::LoadSettings(QSettings const & settings)

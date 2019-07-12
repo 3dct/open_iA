@@ -41,12 +41,9 @@
 class vtkPicker;
 class vtkPlane;
 
-/**
- * \brief	observes the mouse moving
- *
- * This class servers the iARenderer class to observe mouse movement and to extract coordinates
- * and the corresponding data "below" the mouse pointer.
- */
+//! Observes the mouse movements in an iARenderer.
+//! This class servers the iARenderer class to observe mouse movement and to extract coordinates
+//! and the corresponding data "below" the mouse pointer.
 class open_iA_Core_API iARenderObserver : public QObject, public vtkCommand
 {
 	Q_OBJECT
@@ -122,12 +119,12 @@ private:
 	double scale;
 	std::vector<vtkCommand*> m_listener;
 
-	virtual void Execute(vtkObject *caller, unsigned long, void*);
+	void Execute(vtkObject *caller, unsigned long, void*) override;
 	void PickVolume(double point[3]);
 	void SetAxis(Axis axis, double point[3]);
 	void CheckPos(int dim);
 
 Q_SIGNALS:
-	void Clicked(int x, int y, int z);
-	void InteractorModeSwitched(int newMode);
+	void clicked(int x, int y, int z);
+	void interactorModeSwitched(int newMode);
 };

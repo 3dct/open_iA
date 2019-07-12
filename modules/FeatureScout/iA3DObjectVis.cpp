@@ -83,14 +83,14 @@ QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, MdiChild* mdi
 	{
 		default:
 		case iACsvConfig::UseVolume:
-			return QSharedPointer<iA3DObjectVis>(new iA3DLabelledVolumeVis(mdi->getRenderer()->GetRenderer(), mdi->getColorTransferFunction(),
-				mdi->getPiecewiseFunction(), table, columnMapping, mdi->getImagePointer()->GetBounds()));
+			return QSharedPointer<iA3DObjectVis>(new iA3DLabelledVolumeVis(mdi->renderer()->renderer(), mdi->colorTF(),
+				mdi->opacityTF(), table, columnMapping, mdi->imagePointer()->GetBounds()));
 		case iACsvConfig::Lines:
-			return QSharedPointer<iA3DObjectVis>(new iA3DLineObjectVis(mdi->getRenderer()->GetRenderer(), table, columnMapping, color, std::map<size_t, std::vector<iAVec3f> >()));
+			return QSharedPointer<iA3DObjectVis>(new iA3DLineObjectVis(mdi->renderer()->renderer(), table, columnMapping, color, std::map<size_t, std::vector<iAVec3f> >()));
 		case iACsvConfig::Cylinders:
-			return QSharedPointer<iA3DObjectVis>(new iA3DCylinderObjectVis(mdi->getRenderer()->GetRenderer(), table, columnMapping, color, std::map<size_t, std::vector<iAVec3f> >()));
+			return QSharedPointer<iA3DObjectVis>(new iA3DCylinderObjectVis(mdi->renderer()->renderer(), table, columnMapping, color, std::map<size_t, std::vector<iAVec3f> >()));
 		case iACsvConfig::Ellipses:
-			return QSharedPointer<iA3DObjectVis>(new iA3DEllipseObjectVis(mdi->getRenderer()->GetRenderer(), table, columnMapping, color));
+			return QSharedPointer<iA3DObjectVis>(new iA3DEllipseObjectVis(mdi->renderer()->renderer(), table, columnMapping, color));
 		case iACsvConfig::NoVis:
 			return QSharedPointer<iA3DObjectVis>(new iA3DNoVis());
 	}

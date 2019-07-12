@@ -46,43 +46,51 @@ public:
 	iAVolumeRenderer(
 		iATransferFunction * transfer,
 		vtkSmartPointer<vtkImageData> imgData);
-	void ApplySettings(iAVolumeSettings const & rs);
-	double * GetOrientation();
-	double * GetPosition();
-	void SetPosition(double *);
-	void SetOrientation(double *);
-	void AddTo(vtkRenderer* w);
-	void Remove();
-	vtkSmartPointer<vtkVolume> GetVolume();
-	void Update();
-	void ShowVolume(bool visible);
+	void applySettings(iAVolumeSettings const & rs);
+	double const * orientation() const;
+	double const * position() const;
+	void setPosition(double *);
+	void setOrientation(double *);
+	void addTo(vtkRenderer* w);
+	void remove();
+	vtkSmartPointer<vtkVolume> volume();
+	vtkRenderer* currentRenderer();
+	void update();
+	void showVolume(bool visible);
 
-	void SetCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3);
-	void RemoveCuttingPlanes();
+	void setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3);
+	void removeCuttingPlanes();
 
-	void AddBoundingBoxTo(vtkRenderer* w);
-	void RemoveBoundingBox();
-	void UpdateBoundingBox();
-	void ShowBoundingBox(bool visible);
+	void addBoundingBoxTo(vtkRenderer* w);
+	void removeBoundingBox();
+	void updateBoundingBox();
+	void showBoundingBox(bool visible);
 
-	void SetImage(iATransferFunction * transfer, vtkSmartPointer<vtkImageData> imgData);
+	void setImage(iATransferFunction * transfer, vtkSmartPointer<vtkImageData> imgData);
 
-	void SetMovable(bool movable);
+	void setImage(vtkImageData * data); //todo is this necessary??? 
+	//just for testing
+	vtkRenderer * getCurrentRenderer() {
+		return m_currentRenderer; 
+	}
 
-	const iAVolumeSettings& getVolumeSettings() const;
+
+	void setMovable(bool movable);
+
+	iAVolumeSettings const & volumeSettings() const;
 	bool isRendered() const;
 private:
-	iAVolumeSettings m_VolSettings;
-	vtkSmartPointer<vtkVolume> volume;
-	vtkSmartPointer<vtkVolumeProperty> volProp;
-	vtkSmartPointer<vtkSmartVolumeMapper> volMapper;
-	vtkRenderer* currentRenderer;
+	iAVolumeSettings m_volSettings;
+	vtkSmartPointer<vtkVolume> m_volume;
+	vtkSmartPointer<vtkVolumeProperty> m_volProp;
+	vtkSmartPointer<vtkSmartVolumeMapper> m_volMapper;
+	vtkRenderer* m_currentRenderer;
 
 	//! @{ Bounding Box
-	vtkSmartPointer<vtkOutlineFilter> outlineFilter;
-	vtkSmartPointer<vtkPolyDataMapper> outlineMapper;
-	vtkSmartPointer<vtkActor> outlineActor;
-	vtkRenderer* currentBoundingBoxRenderer;
+	vtkSmartPointer<vtkOutlineFilter> m_outlineFilter;
+	vtkSmartPointer<vtkPolyDataMapper> m_outlineMapper;
+	vtkSmartPointer<vtkActor> m_outlineActor;
+	vtkRenderer* m_currentBoundingBoxRenderer;
 	//! @}
 
 	bool m_isFlat;

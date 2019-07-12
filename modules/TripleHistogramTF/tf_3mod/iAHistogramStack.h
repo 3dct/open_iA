@@ -26,14 +26,10 @@
 
 class iAHistogramStackGrid;
 class iATripleModalityWidget;
-class iADiagramFctWidget;
-class iASimpleSlicerWidget;
 
 class MdiChild;
 
-class QGridLayout;
 class QSplitter;
-class QLabel;
 
 class iAHistogramStack : public iAHistogramAbstract
 {

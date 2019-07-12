@@ -25,15 +25,15 @@
 
 #include <mdichild.h>
 
-iATripleHistogramTFAttachment::iATripleHistogramTFAttachment(MainWindow * mainWnd, iAChildData childData) :
-	iAModuleAttachmentToChild(mainWnd, childData),
+iATripleHistogramTFAttachment::iATripleHistogramTFAttachment(MainWindow * mainWnd, MdiChild* child) :
+	iAModuleAttachmentToChild(mainWnd, child),
 	m_tf_2mod(nullptr),
 	m_tf_3mod(nullptr)
 {}
 
-iATripleHistogramTFAttachment* iATripleHistogramTFAttachment::create(MainWindow * mainWnd, iAChildData childData)
+iATripleHistogramTFAttachment* iATripleHistogramTFAttachment::create(MainWindow * mainWnd, MdiChild* child)
 {
-	auto newAttachment = new iATripleHistogramTFAttachment(mainWnd, childData);
+	auto newAttachment = new iATripleHistogramTFAttachment(mainWnd, child);
 	return newAttachment;
 }
 
@@ -41,8 +41,8 @@ void iATripleHistogramTFAttachment::start2TF()
 {
 	if (!m_tf_2mod)
 	{
-		m_tf_2mod = new dlg_tf_2mod(m_childData.child);
-		m_childData.child->tabifyDockWidget(m_childData.child->logs, m_tf_2mod);
+		m_tf_2mod = new dlg_tf_2mod(m_child);
+		m_child->tabifyDockWidget(m_child->logDockWidget(), m_tf_2mod);
 	}
 	m_tf_2mod->show();
 	m_tf_2mod->raise();
@@ -52,8 +52,8 @@ void iATripleHistogramTFAttachment::start3TF()
 {
 	if (!m_tf_3mod)
 	{
-		m_tf_3mod = new dlg_tf_3mod(m_childData.child);
-		m_childData.child->tabifyDockWidget(m_childData.child->logs, m_tf_3mod);
+		m_tf_3mod = new dlg_tf_3mod(m_child);
+		m_child->tabifyDockWidget(m_child->logDockWidget(), m_tf_3mod);
 	}
 	m_tf_3mod->show();
 	m_tf_3mod->raise();
