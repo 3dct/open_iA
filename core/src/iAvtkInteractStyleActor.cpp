@@ -123,7 +123,7 @@ iAvtkInteractStyleActor::iAvtkInteractStyleActor():
 
 void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 {
-	DEBUG_LOG("init cube");
+	//DEBUG_LOG("init cube");
 	if (!m_image || thickness == 0) return;
 	try {
 		m_CubeSource_X = vtkSmartPointer<vtkCubeSource>::New();
@@ -550,9 +550,11 @@ void iAvtkInteractStyleActor::initialize(vtkImageData *img, iAVolumeRenderer* vo
 
 	}
 
-	if (enable3D) {
+
+	//TODO remove Later
+	/*if (enable3D) {
 		initializeAndRenderPolyData(5); 
-	}
+	}*/
 	
 
 
