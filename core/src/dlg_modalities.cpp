@@ -157,6 +157,7 @@ void dlg_modalities::initDisplay(QSharedPointer<iAModality> mod)
 {
 	QSharedPointer<iAVolumeRenderer> renderer(new iAVolumeRenderer(mod->transfer().data(), mod->image()));
 	mod->setRenderer(renderer);
+	renderer->applySettings(m_mdiChild->volumeSettings());
 	// TODO: Duplication between initDisplay / removeClicked / editClicked
 	if (mod->hasRenderFlag(iAModality::MainRenderer))
 	{
