@@ -156,10 +156,9 @@ void iAMultimodalWidget::setSlicerMode(iASlicerMode slicerMode) {
 	}
 	disconnectMainSlicer();
 	m_slicerMode = slicerMode;
-	int sliceNumber = sliceNumber();
 	for (int i = 0; i < m_numOfMod; i++) {
 		w_slicer(i)->setSlicerMode(slicerMode);
-		w_slicer(i)->setSliceNumber(sliceNumber);
+		w_slicer(i)->setSliceNumber(sliceNumber());
 	}
 	setMainSlicerCamera();
 	updateLabels();
@@ -748,7 +747,7 @@ void iAMultimodalWidget::onUpdateVisualizationsTimeout() {
 	updateVisualizationsNow();
 }
 
-iASlicerMode iAMultimodalWidget::slicerMode() {
+iASlicerMode iAMultimodalWidget::slicerMode() const {
 	return m_slicerMode;
 }
 
@@ -757,7 +756,7 @@ void iAMultimodalWidget::updateLabels() {
 	m_sliceNumberLabel->setText("Slice number: " + QString::number(sliceNumber()));
 }
 
-int iAMultimodalWidget::sliceNumber()
+int iAMultimodalWidget::sliceNumber() const
 {
 	return m_mdiChild->slicer(m_slicerMode)->sliceNumber();
 }
