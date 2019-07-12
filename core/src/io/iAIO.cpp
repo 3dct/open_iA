@@ -38,6 +38,7 @@
 #include "iATypedCallHelper.h"
 
 #include <itkExceptionObject.h>
+#include <itkBMPImageIO.h>
 #include <itkGDCMImageIO.h>
 #include <itkGDCMSeriesFileNames.h>
 #include <itkImage.h>
@@ -46,9 +47,11 @@
 #include <itkImageIOBase.h>
 #include <itkImageSeriesReader.h>
 #include <itkImageSeriesWriter.h>
-//#include <itkNrrdImageIO.h>
+#include <itkJPEGImageIO.h>
 #include <itkNumericSeriesFileNames.h>
+#include <itkPNGImageIO.h>
 #include <itkRawImageIO.h>
+#include <itkTIFFImageIO.h>
 
 #include <vtkBMPReader.h>
 #include <vtkImageData.h>
@@ -1489,10 +1492,9 @@ void writeImageStack_template(QString const & fileName, iAProgress* p, iAConnect
 
 	QFileInfo fi(fileName);
 
-	if (fi.completeSuffix() == "DCM")	// should be equal to if (ioID == DCM_WRITER)
+	if (fi.completeSuffix().toUpper() == "DCM")	// should be equal to if (ioID == DCM_WRITER)
 	{
-		typedef itk::GDCMImageIO ImageIOType;
-		ImageIOType::Pointer gdcmIO = ImageIOType::New();
+		auto gdcmIO = itk::GDCMImageIO::New();
 		itk::MetaDataDictionary & dict = gdcmIO->GetMetaDataDictionary();
 		std::string tagkey, value;
 		tagkey = "0008|0060";	//Modality
@@ -1506,7 +1508,27 @@ void writeImageStack_template(QString const & fileName, iAProgress* p, iAConnect
 		itk::EncapsulateMetaData<std::string>(dict, tagkey, value);
 		writer->SetImageIO(gdcmIO);
 	}
-
+	// to avoid SCIFIO claiming being able to write those image formats and then failing:
+	else if (fi.completeSuffix().toUpper() == "BMP")
+	{
+		auto imgIO = itk::BMPImageIO::New();
+		writer->SetImageIO(imgIO);
+	}
+	else if (fi.completeSuffix().toUpper() == "JPG" || fi.completeSuffix().toUpper() == "JPEG")
+	{
+		auto imgIO = itk::JPEGImageIO::New();
+		writer->SetImageIO(imgIO);
+	}
+	else if (fi.completeSuffix().toUpper() == "PNG")
+	{
+		auto imgIO = itk::PNGImageIO::New();
+		writer->SetImageIO(imgIO);
+	}
+	else if (fi.completeSuffix().toUpper() == "TIF" || fi.completeSuffix().toUpper() == "TIFF")
+	{
+		auto imgIO = itk::TIFFImageIO::New();
+		writer->SetImageIO(imgIO);
+	}
 	QString format(fi.absolutePath() + "/" + fi.baseName() + "%d." + fi.completeSuffix());
 	nameGenerator->SetSeriesFormat( getLocalEncodingFileName(format).c_str());
 	writer->SetFileNames(nameGenerator->GetFileNames());
