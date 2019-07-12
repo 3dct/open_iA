@@ -171,6 +171,8 @@ void dlg_modalities::initDisplay(QSharedPointer<iAModality> mod)
 	{
 		renderer->addTo(m_magicLensWidget->getLensRenderer());
 	}
+	/*
+	// don't do this here (yet?) otherwise manually created slicer with no transparency will be overruled and transparency used again in 1st slicer
 	if (mod->hasRenderFlag(iAModality::Slicer))
 	{
 		if (mod->channelID() == NotExistingChannel)
@@ -179,6 +181,7 @@ void dlg_modalities::initDisplay(QSharedPointer<iAModality> mod)
 		m_mdiChild->updateChannelOpacity(mod->channelID(), 1);
 		m_mdiChild->updateViews();
 	}
+	*/
 }
 
 void dlg_modalities::addToList(QSharedPointer<iAModality> mod)
