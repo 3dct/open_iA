@@ -100,10 +100,9 @@ public:
 	double getWeight(int i);
 
 	void setSlicerMode(iASlicerMode slicerMode);
-	iASlicerMode getSlicerMode();
-	QString getSlicerModeString();
+	iASlicerMode slicerMode();
 	void setSliceNumber(int sliceNumber);
-	int getSliceNumber();
+	int sliceNumber();
 
 	QSharedPointer<iAModality> getModality(int index);
 	vtkSmartPointer<vtkImageData> getModalityImage(int index);

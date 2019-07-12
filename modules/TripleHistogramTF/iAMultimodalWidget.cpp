@@ -156,7 +156,7 @@ void iAMultimodalWidget::setSlicerMode(iASlicerMode slicerMode) {
 	}
 	disconnectMainSlicer();
 	m_slicerMode = slicerMode;
-	int sliceNumber = getSliceNumber();
+	int sliceNumber = sliceNumber();
 	for (int i = 0; i < m_numOfMod; i++) {
 		w_slicer(i)->setSlicerMode(slicerMode);
 		w_slicer(i)->setSliceNumber(sliceNumber);
@@ -748,30 +748,16 @@ void iAMultimodalWidget::onUpdateVisualizationsTimeout() {
 	updateVisualizationsNow();
 }
 
-iASlicerMode iAMultimodalWidget::getSlicerMode() {
+iASlicerMode iAMultimodalWidget::slicerMode() {
 	return m_slicerMode;
 }
 
-QString iAMultimodalWidget::getSlicerModeString() {
-	switch (m_slicerMode) {
-	case iASlicerMode::YZ:
-		return "YZ";
-	case iASlicerMode::XZ:
-		return "XZ";
-	case iASlicerMode::XY:
-		return "XY";
-	default:
-		// TODO exception
-		return -1;
-	}
-}
-
 void iAMultimodalWidget::updateLabels() {
-	m_slicerModeLabel->setText("Slicer mode: " + getSlicerModeString());
-	m_sliceNumberLabel->setText("Slice number: " + QString::number(getSliceNumber()));
+	m_slicerModeLabel->setText("Slicer mode: " + slicerModeString(m_slicerMode));
+	m_sliceNumberLabel->setText("Slice number: " + QString::number(sliceNumber()));
 }
 
-int iAMultimodalWidget::getSliceNumber()
+int iAMultimodalWidget::sliceNumber()
 {
 	return m_mdiChild->slicer(m_slicerMode)->sliceNumber();
 }
