@@ -304,8 +304,11 @@ void MdiChild::enableRenderWindows()	// = image data available
 	if (isVolumeDataLoaded() && m_reInitializeRenderWindows)
 	{
 		m_renderer->enableInteractor();
-		for (int s = 0; s<3; ++s)
+		for (int s = 0; s < 3; ++s)
+		{
 			m_slicer[s]->enableInteractor();
+			m_slicer[s]->triggerSliceRangeChange();
+		}
 		updateViews();
 		updateImageProperties();
 		if (m_imageData->GetNumberOfScalarComponents() == 1)
@@ -329,7 +332,7 @@ void MdiChild::enableRenderWindows()	// = image data available
 	camIso();
 	vtkCamera* cam = m_renderer->camera();
 	modalities()->applyCameraSettings(cam);
-
+	
 	for (auto channelID: m_channels.keys())
 	{
 		iAChannelData * chData = m_channels.value(channelID).data();

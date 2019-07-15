@@ -212,9 +212,10 @@ public:
 	void setRightButtonDragZoomEnabled(bool enabled);
 
 	void setIndex(int x, int y, int z);
-
+	//! in case the "linked mdi" feature is used, use this to set the mdi child this slicer is linked to.
 	void setLinkedMdiChild(MdiChild* mdiChild);
-
+	//! call if the dimension of the input in direction of the slice axis has changed.
+	void triggerSliceRangeChange();
 public slots:
 	//! Save an image of the image viewer native resolution or the current view.
 	void saveAsImage();
@@ -284,7 +285,7 @@ signals:
 	//! @param mode slicer mode (=plane)
 	//! @param sliceNumber number of the slice that was switched to
 	void sliceNumberChanged(int mode, int sliceNumber);
-	void firstChannelAdded(int minIdx, int maxIdx);
+	void sliceRangeChanged(int minIdx, int maxIdx);
 
 protected:
 	QMenu *         m_contextMenuMagicLens;      //!< context menu for when magic lens is shown
