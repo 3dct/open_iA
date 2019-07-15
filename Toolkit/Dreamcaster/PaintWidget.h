@@ -18,45 +18,32 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#ifndef PAINT_WIDGET_H
-#define PAINT_WIDGET_H
+#pragma once
 
 #include <QWidget>
 #include <QPainter>
 #include <QMouseEvent>
 
-//#include "dreamcaster.h"
-/**	\class PaintWidget.
-	\brief Class, inherited from QWidget. It is possible to draw on this widget outside paintEvent event.
-
-	Class have QPixmap pointer.	Drawing on widget is implemented by drawing on this pixmap.
-	
-	paintEvent is redefined to draw data contained in pxmp on widget.
-*/
-//extern DreamCaster * dcast;
-
-class PaintWidget : public QWidget
+//! Widget having a QPixmap pointer, drawing on widget is implemented by drawing on this pixmap.
+//! paintEvent is redefined to draw data contained in pixmap on widget.
+//! In this way, it is possible to draw on this widget outside paintEvent event.
+class iAPaintWidget : public QWidget
 {
 	Q_OBJECT
 
 public:
-	PaintWidget(QPixmap *a_pxmp, QWidget *parent);
-	~PaintWidget();
+	iAPaintWidget(QPixmap *a_pxmp, QWidget *parent);
+	~iAPaintWidget();
 	QPixmap * GetPixmap(){ return m_pxmp; }
 	void SetPixmap(QPixmap *pxmp){ m_pxmp = pxmp; }
 	void SetHiglightedIndices(int *inds_x, int *inds_y, unsigned int count);
 	void SetHighlightStyle(const QColor &color, float penWidth);
 	void RemoveHighlights();
-	//virtual int heightForWidth ( int w ) const
-	//{
-	//	return ratio*w;
-	//}
-
 protected:
-	void paintEvent(QPaintEvent *event);
-	void mouseReleaseEvent ( QMouseEvent * event );
-	void mousePressEvent ( QMouseEvent * event );
-	void mouseMoveEvent ( QMouseEvent * event );
+	void paintEvent(QPaintEvent *event) override;
+	void mouseReleaseEvent ( QMouseEvent * event ) override;
+	void mousePressEvent ( QMouseEvent * event ) override;
+	void mouseMoveEvent ( QMouseEvent * event ) override;
 public:
 	int lastX, lastY;
 	int lastMoveX, lastMoveY;
@@ -86,6 +73,3 @@ private:
 	QColor highlightColor;
 	int m_lastMoveX, m_lastMoveY;
 };
-
-
-#endif//PAINT_WIDGET_H

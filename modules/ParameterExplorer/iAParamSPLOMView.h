@@ -54,7 +54,7 @@ private slots:
 	void SplomSelection(std::vector<size_t> const &);
 	void PointHovered(size_t);
 	void SeparationChanged(int);
-	void SetColorTheme(const QString &name);
+	void setColorTheme(const QString &name);
 private:
 	iAParamSpatialView* m_spatialView;
 	iAParamTableView* m_tableView;

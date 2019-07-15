@@ -43,10 +43,10 @@ public:
 
 	QSharedPointer<iAImageTree > GetResult();
 
-	void Abort();
+	void abort() override;
 	bool IsAborted();
-	virtual double elapsed() const;
-	virtual double estimatedTimeRemaining() const;
+	double elapsed() const override;
+	double estimatedTimeRemaining() const override;
 signals:
 	void Progress(int);
 	void Status(QString const &);

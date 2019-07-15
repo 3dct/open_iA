@@ -49,7 +49,7 @@ public:
 	QVector<QSharedPointer<iAMember> > const & Members() const;
 	void SetMembers(QVector<QSharedPointer<iAMember> > const & members);
 	QSharedPointer<iAAttributes> Attributes() const;
-	QString Name() const;
+	QString name() const;
 	QString FileName() const;
 	QString Path(int id) const;
 	QString Path() const;

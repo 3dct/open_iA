@@ -37,13 +37,13 @@ class iARedirectItkOutput;
 class open_iA_Core_API iAGlobalLogger
 {
 public:
-	static void SetLogger(iALogger* logger);
-	static iALogger* Get();
+	static void setLogger(iALogger* logger);
+	static iALogger* get();
 private:
 	static iALogger* m_globalLogger;
 };
 
-#define DEBUG_LOG(t) { if (iAGlobalLogger::Get()) iAGlobalLogger::Get()->Log(t); }
+#define DEBUG_LOG(t) { if (iAGlobalLogger::get()) iAGlobalLogger::get()->log(t); }
 
 //! Debugging helper class. Instantiates a dlg_console to
 //! log debug messages
@@ -52,18 +52,18 @@ class open_iA_Core_API iAConsole: public QObject, public iALogger
 {
 	Q_OBJECT
 public:
-	static iAConsole* GetInstance();
-	static void Close();
-	void Log(QString const & text) override;
-	void SetLogToFile(bool value, QString const & fileName, bool verbose=false);
-	bool IsLogToFileOn() const;
-	QString GetLogFileName() const;
-	bool IsFileLogError() const;
+	static iAConsole* instance();
+	static void closeInstance();
+	void log(QString const & text) override;
+	void setLogToFile(bool value, QString const & fileName, bool verbose=false);
+	bool isLogToFileOn() const;
+	QString logFileName() const;
+	bool isFileLogError() const;
 // decouple logging methods from GUI logging (to allow logging from any thread):
 signals:
-	void LogSignal(QString const & text);
+	void logSignal(QString const & text);
 private slots:
-	void LogSlot(QString const & text);
+	void logSlot(QString const & text);
 private:
 	iAConsole();
 	~iAConsole();
@@ -88,8 +88,8 @@ private:
 class open_iA_Core_API iAConsoleLogger : public iALogger
 {
 public:
-	void Log(QString const & msg) override;
-	static iAConsoleLogger * Get();
+	void log(QString const & msg) override;
+	static iAConsoleLogger * get();
 private:
 	iAConsoleLogger();
 	iAConsoleLogger(iAConsoleLogger const&);
@@ -99,8 +99,8 @@ private:
 class open_iA_Core_API iAStdOutLogger : public iALogger
 {
 public:
-	void Log(QString const & msg) override;
-	static iAStdOutLogger * Get();
+	void log(QString const & msg) override;
+	static iAStdOutLogger * get();
 private:
 	iAStdOutLogger();
 	iAStdOutLogger(iAStdOutLogger const&);

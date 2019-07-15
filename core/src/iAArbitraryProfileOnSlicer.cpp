@@ -28,33 +28,13 @@
 #include <vtkRenderer.h>
 
 
-void iAArbitraryProfileOnSlicer::SetVisibility( bool isVisible )
-{
-	m_profLine.actor->SetVisibility(isVisible);
 
-	for (int i=0; i<2; i++)
-	{
-		m_points[i].actor->SetVisibility(isVisible);
-		m_hLine[i].actor->SetVisibility(isVisible);
-		m_vLine[i].actor->SetVisibility(isVisible);
-	}
-}
-
-void iAArbitraryProfileOnSlicer::setPointScaling( double scaling )
-{
-	m_radius = ARB_RADIUS*scaling;
-	for (vtkIdType i=0; i<2; i++)
-		m_points[i].source->SetOuterRadius(m_radius);
-}
-
-
-iAArbitraryProfileOnSlicer::iAArbitraryProfileOnSlicer()
-	: m_radius(ARB_RADIUS),
-	m_ren(0),
+iAArbitraryProfileOnSlicer::iAArbitraryProfileOnSlicer():
+	m_radius(PointRadius),
 	m_arbProfPntInd(-1)
 {
-	for (int i=0; i<2; i++)
-		for (int j=0; j<3; j++)
+	for (int i = 0; i < 2; i++)
+		for (int j = 0; j < 3; j++)
 			m_positions[i][j] = 0;
 
 	m_profLine.actor->GetProperty()->SetColor(0.59, 0.73, 0.94);//ffa800//150, 186, 240
@@ -63,9 +43,9 @@ iAArbitraryProfileOnSlicer::iAArbitraryProfileOnSlicer()
 	m_profLine.actor->GetProperty()->SetLineStippleRepeatFactor(1);
 	m_profLine.actor->GetProperty()->SetPointSize(2);
 
-	for (int i=0; i<2; i++)
+	for (int i = 0; i < 2; i++)
 	{
-		m_points[i].source->SetOuterRadius(ARB_RADIUS);
+		m_points[i].source->SetOuterRadius(m_radius);
 		m_points[i].actor->GetProperty()->SetOpacity(0.3);
 
 		m_hLine[i].actor->GetProperty()->SetOpacity(0.3);
@@ -81,27 +61,42 @@ iAArbitraryProfileOnSlicer::iAArbitraryProfileOnSlicer()
 	m_points[1].actor->GetProperty()->SetColor(0.0, 0.65, 1.0);
 }
 
-// search for selected point
-void iAArbitraryProfileOnSlicer::FindSelectedPntInd( double x, double y )
+void iAArbitraryProfileOnSlicer::setVisibility( bool isVisible )
+{
+	m_profLine.actor->SetVisibility(isVisible);
+
+	for (int i=0; i<2; i++)
+	{
+		m_points[i].actor->SetVisibility(isVisible);
+		m_hLine[i].actor->SetVisibility(isVisible);
+		m_vLine[i].actor->SetVisibility(isVisible);
+	}
+}
+
+void iAArbitraryProfileOnSlicer::setPointScaling( double scaling )
+{
+	m_radius = PointRadius * scaling;
+	for (vtkIdType i=0; i<2; i++)
+		m_points[i].source->SetOuterRadius(m_radius);
+}
+
+void iAArbitraryProfileOnSlicer::findSelectedPointIdx( double x, double y )
 {
 	m_arbProfPntInd = -1;
 	for (int i = 0; i < 2; i++)
 	{
 		double *handlePos = m_points[i].actor->GetPosition();
-
-		if (	x >= handlePos[0] - m_radius &&  x <= handlePos[0] + m_radius
-			&&  y >= handlePos[1] - m_radius &&  y <= handlePos[1] + m_radius )
+		if (x >= handlePos[0] - m_radius && x <= handlePos[0] + m_radius
+			&& y >= handlePos[1] - m_radius && y <= handlePos[1] + m_radius)
+		{
 			m_arbProfPntInd = i;
-
-		if (m_arbProfPntInd != -1)
 			break;
+		}
 	}
 }
 
-void iAArbitraryProfileOnSlicer::initialize( vtkRenderer * ren )
+void iAArbitraryProfileOnSlicer::addToRenderer( vtkRenderer * ren )
 {
-	m_ren = ren;
-
 	ren->AddActor(m_profLine.actor);
 	for (vtkIdType i=0; i<2; i++)
 	{
@@ -111,50 +106,49 @@ void iAArbitraryProfileOnSlicer::initialize( vtkRenderer * ren )
 	}
 }
 
-
-int iAArbitraryProfileOnSlicer::setup( int pointInd, double * pos3d, double * pos2d, vtkImageData *imgData )
+int iAArbitraryProfileOnSlicer::setup( int pointIdx, double const * pos3d, double const * pos2d, vtkImageData *imgData )
 {
-	if(pointInd<0 || pointInd>1)
+	if(pointIdx <0 || pointIdx>1)
 		return 0;
 	for (int i=0; i<3; i++)
-		m_positions[pointInd][i] = pos3d[i];
+		m_positions[pointIdx][i] = pos3d[i];
 
 	// get spacing for point creation whose size depends on
 	double * spacing	= imgData->GetSpacing();
 	double * origin		= imgData->GetOrigin();
 	int * dimensions	= imgData->GetDimensions();
 
-	m_profLine.points->SetPoint(pointInd, pos2d[0], pos2d[1], iAArbitraryProfileOnSlicer::Z_COORD);
+	m_profLine.points->SetPoint(pointIdx, pos2d[0], pos2d[1], ZCoord);
 
-	m_hLine[pointInd].points->SetPoint(0, origin[0], pos2d[1], iAArbitraryProfileOnSlicer::Z_COORD);
-	m_hLine[pointInd].points->SetPoint(1, origin[0] + dimensions[0]*spacing[0], pos2d[1], iAArbitraryProfileOnSlicer::Z_COORD);
-	m_hLine[pointInd].lineSource->SetPoint1(m_hLine[pointInd].points->GetPoint(0));
-	m_hLine[pointInd].lineSource->SetPoint2(m_hLine[pointInd].points->GetPoint(1));
+	m_hLine[pointIdx].points->SetPoint(0, origin[0], pos2d[1], ZCoord);
+	m_hLine[pointIdx].points->SetPoint(1, origin[0] + dimensions[0]*spacing[0], pos2d[1], ZCoord);
+	m_hLine[pointIdx].lineSource->SetPoint1(m_hLine[pointIdx].points->GetPoint(0));
+	m_hLine[pointIdx].lineSource->SetPoint2(m_hLine[pointIdx].points->GetPoint(1));
 
-	m_vLine[pointInd].points->SetPoint(0, pos2d[0], origin[1], iAArbitraryProfileOnSlicer::Z_COORD);
-	m_vLine[pointInd].points->SetPoint(1, pos2d[0], origin[1] + dimensions[1]*spacing[1], iAArbitraryProfileOnSlicer::Z_COORD);
-	m_vLine[pointInd].lineSource->SetPoint1(m_vLine[pointInd].points->GetPoint(0));
-	m_vLine[pointInd].lineSource->SetPoint2(m_vLine[pointInd].points->GetPoint(1));
+	m_vLine[pointIdx].points->SetPoint(0, pos2d[0], origin[1], ZCoord);
+	m_vLine[pointIdx].points->SetPoint(1, pos2d[0], origin[1] + dimensions[1]*spacing[1], ZCoord);
+	m_vLine[pointIdx].lineSource->SetPoint1(m_vLine[pointIdx].points->GetPoint(0));
+	m_vLine[pointIdx].lineSource->SetPoint2(m_vLine[pointIdx].points->GetPoint(1));
 
-	if(pointInd == 0)
+	if(pointIdx == 0)
 		m_profLine.lineSource->SetPoint1(m_profLine.points->GetPoint(0));
 	else
 		m_profLine.lineSource->SetPoint2(m_profLine.points->GetPoint(1));
 
-	double currentPos[3]; m_points[pointInd].actor->GetPosition(currentPos);
-	m_points[pointInd].actor->SetPosition(pos2d[0], pos2d[1], iAArbitraryProfileOnSlicer::Z_COORD);
+	double currentPos[3]; m_points[pointIdx].actor->GetPosition(currentPos);
+	m_points[pointIdx].actor->SetPosition(pos2d[0], pos2d[1], ZCoord);
 
 	setPointScaling(spacing[0] > spacing[1] ? spacing[0] : spacing[1]);
 	return 1;
 }
 
-int iAArbitraryProfileOnSlicer::GetPntInd() const
+int iAArbitraryProfileOnSlicer::pointIdx() const
 {
 	return m_arbProfPntInd;
 }
 
-double * iAArbitraryProfileOnSlicer::GetPosition( int pointIndex )
+double const * iAArbitraryProfileOnSlicer::position( int pointIdx)
 {
-	return m_positions[pointIndex];
+	return m_positions[pointIdx];
 }
 

@@ -139,7 +139,7 @@ void iATLGICTLoader::run()
 			}
 			else
 			{
-				fileNameBase = GreatestCommonPrefix(fileNameBase, imgFileInfo.absoluteFilePath());
+				fileNameBase = greatestCommonPrefix(fileNameBase, imgFileInfo.absoluteFilePath());
 			}
 		}
 		int baseLength = fileNameBase.length();
@@ -243,7 +243,7 @@ void iATLGICTLoader::run()
 		// add modality
 		QString modName = subDirFileInfo.baseName();
 		modName = modName.left(modName.length() - 4); // 4 => length of "_rec"
-		m_modList->Add(QSharedPointer<iAModality>(new iAModality(modName, subDirFileInfo.absoluteFilePath(), -1, img, 0)));
+		m_modList->add(QSharedPointer<iAModality>(new iAModality(modName, subDirFileInfo.absoluteFilePath(), -1, img, 0)));
 		m_multiStepObserver->SetCompletedSteps(++completedDirs);
 	}
 	if (m_modList->size() == 0)
@@ -258,7 +258,7 @@ void iATLGICTLoader::run()
 void iATLGICTLoader::finishUp()
 {
 	m_child->setCurrentFile(m_baseDirectory);
-	m_child->SetModalities(m_modList);
+	m_child->setModalities(m_modList);
 	m_child->addMsg(tr("Loading sequence completed; directory: %1.").arg(m_baseDirectory));
 	delete this;
 }

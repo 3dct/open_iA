@@ -32,10 +32,11 @@ inline float Rand( float a_Range );
 
 //namespace Raytracer {
 	//#define SQRDISTANCE(A,B) ((A.x-B.x)*(A.x-B.x)+(A.y-B.y)*(A.y-B.y)+(A.z-B.z)*(A.z-B.z))
-	//main application settings stored in registry
-	struct SETTINGS
+	
+	//! main application settings stored in registry
+	struct iADreamCasterSettings
 	{
-		SETTINGS()
+		iADreamCasterSettings()
 		{
 			EPSILON		= 0.0011f;
 			TRACEDEPTH		= 6;
@@ -137,7 +138,7 @@ inline float Rand( float a_Range );
 	};
 	//! Parses config (from local config store). Initializes some variables.
 	//! @param settings struct where the options will be stored
-	int ParseConfigFile(SETTINGS * settings);
+	int ParseConfigFile(iADreamCasterSettings * settings);
 
 	inline void Time2Char(int ftime, char *t)
 	{
@@ -156,15 +157,15 @@ inline float Rand( float a_Range );
 	float distLineToLine( iAVec3f & o1, iAVec3f & d1, iAVec3f & o2, iAVec3f & d2 );
 	
 	//! Structure representing combination of parameters in single placement.
-	struct parameters_t
+	struct iAparameters_t
 	{
-		parameters_t(double a_av_pen_len, double a_av_dip_ang, double a_max_pen_len, double a_badSurfPrcnt) :
+		iAparameters_t(double a_av_pen_len, double a_av_dip_ang, double a_max_pen_len, double a_badSurfPrcnt) :
 			avPenLen(a_av_pen_len), 
 			avDipAng(a_av_dip_ang), 
 			maxPenLen(a_max_pen_len),
 			badAreaPercentage(a_badSurfPrcnt)
 		{}
-		parameters_t() :
+		iAparameters_t() :
 			avPenLen(0.0), 
 			avDipAng(0.0), 
 			maxPenLen(0.0),
@@ -201,20 +202,20 @@ inline float Rand( float a_Range );
 	};
 
 	//! Structure representing rotations of rendering about x, y, z axes in radians.
-	struct rotation_t
+	struct iArotation_t
 	{
-		rotation_t() :rotX(0), rotY(0), rotZ(0) {}
-		rotation_t(float a_rotX, float a_rotY, float a_rotZ) :rotX(a_rotX), rotY(a_rotY), rotZ(a_rotZ) {}
+		iArotation_t() :rotX(0), rotY(0), rotZ(0) {}
+		iArotation_t(float a_rotX, float a_rotY, float a_rotZ) :rotX(a_rotX), rotY(a_rotY), rotZ(a_rotZ) {}
 		float rotX, rotY, rotZ;
 	};
 
 	//! Structure representing axis aligned bounding box.
 	//! Has ranges of each of 3 axes values, center coordinates, half-dimensions, index of maximum dimension.	
-	struct aabb
+	struct iAaabb
 	{
-		aabb();
-		aabb(aabb& el);
-		aabb(float a_x1, float a_x2, float a_y1, float a_y2, float a_z1, float a_z2);
+		iAaabb();
+		iAaabb(iAaabb& el);
+		iAaabb(float a_x1, float a_x2, float a_y1, float a_y2, float a_z1, float a_z2);
 		//! Determines if v is inside AABB.
 		//! @note if point is on bound it considered to be inside AABB
 		//! @return 1 if inside, 0 otherwise
@@ -227,7 +228,7 @@ inline float Rand( float a_Range );
 			return 0;
 		}
 		void setData(float a_x1, float a_x2, float a_y1, float a_y2, float a_z1, float a_z2);
-		void setData(const aabb & el);
+		void setData(const iAaabb & el);
 		//! Calculate center vector of bb.
 		iAVec3f center() const;
 		//! Calculate half size vector of bb.
@@ -239,12 +240,13 @@ inline float Rand( float a_Range );
 		float x1,x2,y1,y2,z1,z2;
 	};
 
-	iAMat4 ScaleAndCentreBBox(aabb &box, float *scale_coef_out=0, float* translate3f_out = 0);
-	class Vertex
+	iAMat4 ScaleAndCentreBBox(iAaabb &box, float *scale_coef_out=0, float* translate3f_out = 0);
+
+	class iAVertex
 	{
 	public:
-		Vertex() {};
-		Vertex( iAVec3f a_Pos ) : m_Pos( a_Pos ) {};
+		iAVertex() {};
+		iAVertex( iAVec3f a_Pos ) : m_Pos( a_Pos ) {};
 		//float GetU() { return m_U; }
 		//float GetV() { return m_V; }
 		iAVec3f & GetNormal() { return m_Normal; }
@@ -257,15 +259,15 @@ inline float Rand( float a_Range );
 		iAVec3f m_Normal;
 	};
 	//! Class representing triangle in 3d space, containing all parameters needed for triangle description.
-	struct triangle
+	struct iAtriangle
 	{
-		triangle( iAVec3f* a_V1, iAVec3f* a_V2, iAVec3f* a_V3)
+		iAtriangle( iAVec3f* a_V1, iAVec3f* a_V2, iAVec3f* a_V3)
 		{
 			vertices[0] = a_V1;
 			vertices[1] = a_V2;
 			vertices[2] = a_V3;
 		};
-		triangle()
+		iAtriangle()
 		{
 			vertices[0] = 0;
 			vertices[1] = 0;
@@ -275,7 +277,7 @@ inline float Rand( float a_Range );
 		iAVec3f *vertices[3];// 12
 	};
 
-	struct wald_tri
+	struct iAwald_tri
 	{
 		iAVec3f m_N;
 		iAVec3f m_A;
@@ -284,25 +286,26 @@ inline float Rand( float a_Range );
 		float bnu, bnv;
 		float cnu, cnv;	
 	};
-	struct ct_state{
-		iAVec3f o;///< rays origin
-		iAVec3f c;///< corner of plate
-		iAVec3f dx;///< dx of plane in 3d
-		iAVec3f dy;///< dy of plane in 3d
+	struct iAct_state{
+		iAVec3f o;  //!< rays origin
+		iAVec3f c;  //!< corner of plate
+		iAVec3f dx; //!< dx of plane in 3d
+		iAVec3f dy; //!< dy of plane in 3d
 	};
+
 	//! Class representing plane in 3d space, containing all parameters needed for plane description.
-	class plane
+	class iAplane
 	{
 	public:
-		plane() : N( 0, 0, 0 ), D( 0 ) {};
-		plane( iAVec3f a_Normal, float a_D ) : N( a_Normal ), D( a_D ) {};
+		iAplane() : N( 0, 0, 0 ), D( 0 ) {};
+		iAplane( iAVec3f a_Normal, float a_D ) : N( a_Normal ), D( a_D ) {};
 		iAVec3f N;
 		float D;
 	};
 
-	struct ModelData 
+	struct iAModelData
 	{
-		std::vector<triangle*> stlMesh; //!< loaded mesh's triangles vector
+		std::vector<iAtriangle*> stlMesh; //!< loaded mesh's triangles vector
 		std::vector<iAVec3f*> vertices; //!< loaded mesh's vertices vector
-		aabb box;                       //!< loaded mesh's aabb
+		iAaabb box;                       //!< loaded mesh's aabb
 	};

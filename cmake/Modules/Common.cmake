@@ -53,7 +53,7 @@ ENDIF()
 # ITK
 SET(SAVED_CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}")
 FIND_PACKAGE(ITK REQUIRED)
-MESSAGE(STATUS "ITK: ${ITK_VERSION} in ${ITK_DIR}")
+MESSAGE(STATUS "ITK: ${ITK_VERSION} in ${ITK_DIR}.")
 IF(ITK_VERSION_MAJOR LESS 4 OR (ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR LESS 10))
 	MESSAGE(FATAL_ERROR "Your ITK version is too old. Please use ITK >= 4.10")
 ENDIF()
@@ -80,6 +80,10 @@ ELSE()
 			LIST (APPEND ITK_COMPONENTS ${mod})
 		ENDIF()
 	ENDFOREACH()
+ENDIF()
+IF (RTK_LOADED)
+	MESSAGE(STATUS "    RTK ${RTK_VERSION_MAJOR}.${RTK_VERSION_MINOR}.${RTK_VERSION_PATCH} available as ITK module.")
+	LIST (APPEND ITK_COMPONENTS RTK)
 ENDIF()
 # ITK has been found in sufficient version, otherwise above REQUIRED / FATAL_ERROR would have triggered CMake abort
 # Now set it up with the components we need:
@@ -116,18 +120,20 @@ ENDIF(SCIFIO_LOADED)
 
 # VTK
 FIND_PACKAGE(VTK REQUIRED)
-MESSAGE(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}")
+MESSAGE(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}.")
 MESSAGE(STATUS "    Rendering Backend: ${VTK_RENDERING_BACKEND}")
 IF(VTK_VERSION_MAJOR LESS 8)
 	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 8.0")
 ENDIF()
 SET (VTK_COMPONENTS
 	vtkFiltersModeling         # for vtkRotationalExtrusionFilter, vtkOutlineFilter
+	vtkInteractionImage        # for vtkImageViewer2
 	vtkInteractionWidgets      # for vtkScalarBarWidget/Representation
 	vtkImagingStatistics       # for vtkImageAccumulate
 	vtkIOGeometry              # for vtkSTLReader/Writer
 	vtkIOMovie                 # for vtkGenericMovieWriter
 	vtkRenderingAnnotation     # for vtkAnnotatedCubeActor, vtkScalarBarActor
+	vtkRenderingContext${VTK_RENDERING_BACKEND} # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
 	vtkRenderingImage          # for vtkImageResliceMapper
 	vtkRenderingVolume${VTK_RENDERING_BACKEND}  # for volume rendering
 	vtkRenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
@@ -242,6 +248,7 @@ FIND_PACKAGE(Eigen3)
 IF(EIGEN3_FOUND)
 	ADD_DEFINITIONS(-DUSE_EIGEN)
 	INCLUDE_DIRECTORIES( ${EIGEN3_INCLUDE_DIR} )
+	MESSAGE(STATUS "Eigen: ${EIGEN3_VERSION} in ${EIGEN3_INCLUDE_DIR}")
 ENDIF(EIGEN3_FOUND)
 
 
@@ -270,12 +277,16 @@ IF (HDF5_FOUND)
 	UNSET(HDF5_Z_LIB CACHE)
 	UNSET(HDF5_SZIP_LIB CACHE)
 	UNSET(HDF5_CORE_LIB CACHE)
+	MESSAGE(STATUS "HDF5: ${HDF5_VERSION} in ${HDF5_DIR}.")
+ELSE()
+	MESSAGE(STATUS "HDF5: Not found.")
 ENDIF()
 
 
 # Astra Toolbox
 FIND_PACKAGE(AstraToolbox)
 IF (ASTRA_TOOLBOX_FOUND)
+	MESSAGE(STATUS "Astra Toolbox in ${ASTRA_TOOLBOX_DIR}.")
 	IF (WIN32)
 		SET (ASTRA_LIB_DIR "${ASTRA_TOOLBOX_DIR}/bin/x64/Release_CUDA")
 	ELSEIF(UNIX AND NOT APPLE)
@@ -288,6 +299,7 @@ LIST (APPEND BUNDLE_DIRS "${ASTRA_LIB_DIR}")
 # CUDA:
 FIND_PACKAGE(CUDA)
 IF (CUDA_FOUND)
+	MESSAGE(STATUS "CUDA: ${CUDA_VERSION} in ${CUDA_TOOLKIT_ROOT_DIR}.")
 	ADD_DEFINITIONS(-DASTRA_CUDA)
 	IF (WIN32)
 		SET (CUDA_LIB_DIR ${CUDA_TOOLKIT_ROOT_DIR}/bin)

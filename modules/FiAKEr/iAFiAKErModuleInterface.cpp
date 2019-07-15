@@ -35,7 +35,7 @@ void iAFiAKErModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * fiakerMenu = getMenuWithTitle(toolsMenu, tr("FiAKEr"), false);
 	QAction * actionFiAKEr = new QAction( "Open Results Folder", nullptr );
 	actionFiAKEr->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_O));
@@ -50,7 +50,7 @@ void iAFiAKErModuleInterface::Initialize()
 void iAFiAKErModuleInterface::startFiAKEr()
 {
 	setupToolBar();
-	QString path = QFileDialog::getExistingDirectory(m_mainWnd, "Choose Folder containing Result csv", m_mainWnd->getPath());
+	QString path = QFileDialog::getExistingDirectory(m_mainWnd, "Choose Folder containing Result csv", m_mainWnd->path());
 	if (path.isEmpty())
 		return;
 	
@@ -80,7 +80,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 void iAFiAKErModuleInterface::loadFiAKErProject()
 {
 	setupToolBar();
-	iAFiAKErController::loadAnalysis(m_mainWnd, m_mainWnd->getPath());
+	iAFiAKErController::loadAnalysis(m_mainWnd, m_mainWnd->path());
 }
 
 void iAFiAKErModuleInterface::setupToolBar()

@@ -48,24 +48,24 @@ public:
 		fctDefault = fctMax,
 	};
 	iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, double minEnergy, double maxEnergy);
-	double GetSpacing() const override;
-	double const * XBounds() const override;
-	DataType const * YBounds() const override;
-	DataType const * GetRawData() const override;
-	size_t GetNumBin() const override;
-	void SetFct(int fctIdx);
-	void RetrieveHistData(long numBin_in, DataType * &data_out, size_t &numHist_out, DataType &maxValue_out);
-	CountType GetSpectraHistogramMax() const;
-	DataType const * GetAvgData() const;
-	FunctionalBoxPlot* const GetFunctionalBoxPlot();
+	double spacing() const override;
+	double const * xBounds() const override;
+	DataType const * yBounds() const override;
+	DataType const * rawData() const override;
+	size_t numBin() const override;
+	void setFct(int fctIdx);
+	void retrieveHistData(long numBin_in, DataType * &data_out, size_t &numHist_out, DataType &maxValue_out);
+	CountType spectraHistogramMax() const;
+	DataType const * avgData() const;
+	FunctionalBoxPlot* const functionalBoxPlot();
 private:
-	void ComputeSpectraHistograms( long numBins );
+	void computeSpectraHistograms( long numBins );
 	iAAccumulatedXRFData(iAAccumulatedXRFData const & other);
 	iAAccumulatedXRFData operator=(iAAccumulatedXRFData const & other);
 	void calculateStatistics();
 	void calculateFunctionBoxplots();
 	void createSpectrumFunctions();
-	std::vector<iAFunction<size_t, unsigned int> *> const & GetSpectrumFunctions();
+	std::vector<iAFunction<size_t, unsigned int> *> const & spectrumFunctions();
 
 	QSharedPointer<iAXRFData> m_xrfData;
 	CountType* m_maximum;

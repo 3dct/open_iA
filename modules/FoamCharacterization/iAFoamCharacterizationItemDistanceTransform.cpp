@@ -69,11 +69,11 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 	t.start();
 
 	QScopedPointer<iAConnector> pConnector(new iAConnector());
-	pConnector->SetImage(m_pImageData);
+	pConnector->setImage(m_pImageData);
 
 	typedef itk::DanielssonDistanceMapImageFilter<itk::Image<unsigned short, 3>, itk::Image<float, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->itkImage()));
 	pFilter->SetUseImageSpacing(m_bImageSpacing);
 	pFilter->InputIsBinaryOn();
 	
@@ -94,7 +94,7 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 	pInvert->SetMaximum(pCalculator->GetMaximum());
 	pInvert->Update();
 
-	pConnector->SetImage(pInvert->GetOutput());
+	pConnector->setImage(pInvert->GetOutput());
 
 	if (m_iItemMask > -1)
 	{
@@ -104,8 +104,8 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 		}
 	}
 
-	m_pImageData->DeepCopy(pConnector->GetVTKImage());
-	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
+	m_pImageData->DeepCopy(pConnector->vtkImage());
+	m_pImageData->CopyInformationFromPipeline(pConnector->vtkImage()->GetInformation());
 
 	m_dExecuteTime = 0.001 * (double) t.elapsed();
 

@@ -81,11 +81,11 @@ template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const 
 		structuringElement.SetRadius(params["Radius"].toUInt());
 		structuringElement.CreateStructuringElement();
 		auto dilateFilter = DilateImageFilterType::New();
-		dilateFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		dilateFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		dilateFilter->SetKernel(structuringElement);
-		filter->Progress()->Observe(dilateFilter);
+		filter->progress()->Observe(dilateFilter);
 		dilateFilter->Update();
-		filter->AddOutput(dilateFilter->GetOutput());
+		filter->addOutput(dilateFilter->GetOutput());
 	}
 	else
 	{
@@ -103,17 +103,17 @@ template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const 
 			structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
 
 		auto dilateFilter = DilateImageFilterType::New();
-		dilateFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		dilateFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		dilateFilter->SetKernel(structuringElement);
-		filter->Progress()->Observe(dilateFilter);
+		filter->progress()->Observe(dilateFilter);
 		dilateFilter->Update();
-		filter->AddOutput(dilateFilter->GetOutput());
+		filter->addOutput(dilateFilter->GetOutput());
 	}
 }
 
-void iADilation::PerformWork(QMap<QString, QVariant> const & parameters)
+void iADilation::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(dilation, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(dilation, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iADilation)
@@ -133,8 +133,8 @@ iADilation::iADilation() :
 		"in the ITK documentation.")
 {
 	Morphology::morphEl morph_text;
-	AddParameter("Radius", Discrete, 1, 1);
-	AddParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
+	addParameter("Radius", Discrete, 1, 1);
+	addParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
 }
 
 template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const & params)
@@ -151,12 +151,11 @@ template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const &
 		structuringElement.SetRadius(params["Radius"].toUInt());
 		structuringElement.CreateStructuringElement();
 		auto erodeFilter = ErodeImageFilterType::New();
-		erodeFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		erodeFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		erodeFilter->SetKernel(structuringElement);
-
-		filter->Progress()->Observe(erodeFilter);
+		filter->progress()->Observe(erodeFilter);
 		erodeFilter->Update();
-		filter->AddOutput(erodeFilter->GetOutput());
+		filter->addOutput(erodeFilter->GetOutput());
 	}
 	else
 	{
@@ -175,17 +174,17 @@ template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const &
 			structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
 
 		auto erodeFilter = ErodeImageFilterType::New();
-		erodeFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		erodeFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		erodeFilter->SetKernel(structuringElement);
-		filter->Progress()->Observe(erodeFilter);
+		filter->progress()->Observe(erodeFilter);
 		erodeFilter->Update();
-		filter->AddOutput(erodeFilter->GetOutput());
+		filter->addOutput(erodeFilter->GetOutput());
 	}
 }
 
-void iAErosion::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAErosion::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(erosion, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(erosion, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAErosion)
@@ -205,8 +204,8 @@ iAErosion::iAErosion() :
 		"in the ITK documentation.")
 {
 	Morphology::morphEl morph_text;
-	AddParameter("Radius", Discrete, 1, 1);
-	AddParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
+	addParameter("Radius", Discrete, 1, 1);
+	addParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
 }
 
 template<class T> void vesselEnhancement(iAFilter* filter, QMap<QString, QVariant> const & params)
@@ -216,18 +215,18 @@ template<class T> void vesselEnhancement(iAFilter* filter, QMap<QString, QVarian
 	typedef itk::HessianRecursiveGaussianImageFilter<InputImageType> HRGIFType;
 
 	auto hessfilter = HRGIFType::New();
-	hessfilter->SetInput(dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ));
+	hessfilter->SetInput(dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ));
 	hessfilter->SetSigma(params["Sigma"].toDouble());
 	hessfilter->Update();
 	auto vesselness = EnhancementFilter::New();
 	vesselness->SetInput( hessfilter->GetOutput() );
 	vesselness->Update();
-	filter->AddOutput(vesselness->GetOutput());
+	filter->addOutput(vesselness->GetOutput());
 }
 
-void iAVesselEnhancement::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAVesselEnhancement::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(vesselEnhancement, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(vesselEnhancement, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAVesselEnhancement)
@@ -243,7 +242,7 @@ iAVesselEnhancement::iAVesselEnhancement() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1Hessian3DToVesselnessMeasureImageFilter.html\">"
 		"Hessian 3D to Vesselness Measure Filter</a> in the ITK documentation.")
 {
-	AddParameter("Sigma", Continuous, 0);
+	addParameter("Sigma", Continuous, 0);
 }
 
 template<class T> void morphOpening(iAFilter* filter, QMap<QString, QVariant> const & params)
@@ -259,11 +258,11 @@ template<class T> void morphOpening(iAFilter* filter, QMap<QString, QVariant> co
 		structuringElement.SetRadius(params["Radius"].toUInt());
 		structuringElement.CreateStructuringElement();
 		auto morphOpeningFilter = MorphOpeningImageFilterType::New(); //::New();
-		morphOpeningFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		morphOpeningFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		morphOpeningFilter->SetKernel(structuringElement);
-		filter->Progress()->Observe(morphOpeningFilter);
+		filter->progress()->Observe(morphOpeningFilter);
 		morphOpeningFilter->Update();
-		filter->AddOutput(morphOpeningFilter->GetOutput());
+		filter->addOutput(morphOpeningFilter->GetOutput());
 	}
 	else
 	{
@@ -281,17 +280,17 @@ template<class T> void morphOpening(iAFilter* filter, QMap<QString, QVariant> co
 			structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
 
 		auto morphOpeningFilter = MorphOpeningImageFilterType::New();
-		morphOpeningFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		morphOpeningFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		morphOpeningFilter->SetKernel(structuringElement);
-		filter->Progress()->Observe(morphOpeningFilter);
+		filter->progress()->Observe(morphOpeningFilter);
 		morphOpeningFilter->Update();
-		filter->AddOutput(morphOpeningFilter->GetOutput());
+		filter->addOutput(morphOpeningFilter->GetOutput());
 	}
 }
 
-void iAMorphOpening::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAMorphOpening::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(morphOpening, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(morphOpening, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAMorphOpening)
@@ -311,8 +310,8 @@ iAMorphOpening::iAMorphOpening():
 		"in the ITK documentation.")
 {
 	Morphology::morphEl morph_text;
-	AddParameter("Radius", Discrete, 1, 1);
-	AddParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
+	addParameter("Radius", Discrete, 1, 1);
+	addParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
 }
 
 template<class T> void morphClosing(iAFilter* filter, QMap<QString, QVariant> const & params)
@@ -327,11 +326,11 @@ template<class T> void morphClosing(iAFilter* filter, QMap<QString, QVariant> co
 		structuringElement.SetRadius(params["Radius"].toUInt());
 		structuringElement.CreateStructuringElement();
 		auto morphClosingFilter = MorphClosingImageFilterType::New();
-		morphClosingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		morphClosingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		morphClosingFilter->SetKernel(structuringElement);
-		filter->Progress()->Observe(morphClosingFilter);
+		filter->progress()->Observe(morphClosingFilter);
 		morphClosingFilter->Update();
-		filter->AddOutput(morphClosingFilter->GetOutput());
+		filter->addOutput(morphClosingFilter->GetOutput());
 	}
 	else
 	{
@@ -349,17 +348,17 @@ template<class T> void morphClosing(iAFilter* filter, QMap<QString, QVariant> co
 			structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
 
 		auto morphClosingFilter = MorphClosingImageFilterType::New();
-		morphClosingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		morphClosingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		morphClosingFilter->SetKernel(structuringElement);
-		filter->Progress()->Observe(morphClosingFilter);
+		filter->progress()->Observe(morphClosingFilter);
 		morphClosingFilter->Update();
-		filter->AddOutput(morphClosingFilter->GetOutput());
+		filter->addOutput(morphClosingFilter->GetOutput());
 	}
 }
 
-void iAMorphClosing::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAMorphClosing::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(morphClosing, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(morphClosing, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAMorphClosing)
@@ -379,8 +378,8 @@ iAMorphClosing::iAMorphClosing() :
 		"in the ITK documentation.")
 {
 	Morphology::morphEl morph_text;
-	AddParameter("Radius", Discrete, 1, 1);
-	AddParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
+	addParameter("Radius", Discrete, 1, 1);
+	addParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
 }
 
 template<class T> void fillHole(iAFilter* filter, QMap<QString, QVariant> const & params)
@@ -388,16 +387,16 @@ template<class T> void fillHole(iAFilter* filter, QMap<QString, QVariant> const 
 	using namespace Morphology;
 	typedef itk::GrayscaleFillholeImageFilter <InputImageType<T>, InputImageType<T>> FillHoleImageFilterType;
 	typename FillHoleImageFilterType::Pointer fillHoleFilter = FillHoleImageFilterType::New();
-	fillHoleFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+	fillHoleFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 	fillHoleFilter->SetFullyConnected(params["Fully Connected"].toBool());
-	filter->Progress()->Observe(fillHoleFilter);
+	filter->progress()->Observe(fillHoleFilter);
 	fillHoleFilter->Update();
-	filter->AddOutput(fillHoleFilter->GetOutput());
+	filter->addOutput(fillHoleFilter->GetOutput());
 }
 
-void iAFillHole::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAFillHole::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(fillHole, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(fillHole, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAFillHole)
@@ -412,5 +411,5 @@ iAFillHole::iAFillHole() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleFillholeImageFilter.html\">"
 		"GrayscaleFillholeImageFilter</a>")
 {
-	AddParameter("Fully Connected", Boolean, false);
+	addParameter("Fully Connected", Boolean, false);
 }

@@ -86,7 +86,7 @@ signals:
 	void compLevelRangeChanged(QVector<double> compRange);
 
 protected:
-	virtual bool eventFilter(QObject * obj, QEvent * event);
+	bool eventFilter(QObject * obj, QEvent * event) override;
 
 private:
 	MdiChild *m_mdiChild;

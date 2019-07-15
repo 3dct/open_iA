@@ -23,7 +23,8 @@
 #include "PorosityAnalyserHelpers.h"
 
 #include <iAChanData.h>
-#include <iAChannelVisualizationData.h>
+#include <iAChannelData.h>
+#include <iAChannelSlicerData.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
 #include <iASlicer.h>
@@ -53,12 +54,6 @@
 #include <QVBoxLayout>
 #include <QLabel>
 
-extern const iAChannelID MasksChanID = ch_Concentration0;
-extern const iAChannelID GTChanID = ch_Concentration1;
-
-extern const iAChannelID minChanID = ch_Concentration2;
-extern const iAChannelID medChanID = ch_Concentration3;
-extern const iAChannelID maxChanID = ch_Concentration4;
 const double contourValue = 0.99999;
 
 const QList<QColor> brewer_YlOrRd = QList<QColor>() \
@@ -104,12 +99,21 @@ void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & im
 		DEBUG_LOG("Image data is NULL!");
 }
 
-iASSSlicer::iASSSlicer( const QString slicerName ) :
+namespace
+{
+	const uint MasksChanID = 0;
+	const uint GTChanID    = 1;
+	const uint MinChanID   = 2;
+	const uint MedChanID   = 3;
+	const uint MaxChanID   = 4;
+}
+
+iASSSlicer::iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> transform) :
 	masksChan( new iAChanData( brewer_RdPu, MasksChanID ) ),
 	gtChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 255, 255, 0 ), GTChanID ) ),
-	minChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 80, 80, 80 ), minChanID ) ),
-	medChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 160, 160, 160 ), medChanID ) ),
-	maxChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 240, 240, 240 ), maxChanID ) ),
+	minChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 80, 80, 80 ), MinChanID ) ),
+	medChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 160, 160, 160 ), MedChanID ) ),
+	maxChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 240, 240, 240 ), MaxChanID ) ),
 	medContour( vtkSmartPointer<vtkMarchingContourFilter>::New() ),
 	minContour( vtkSmartPointer<vtkMarchingContourFilter>::New() ),
 	maxContour( vtkSmartPointer<vtkMarchingContourFilter>::New() ),
@@ -126,8 +130,7 @@ iASSSlicer::iASSSlicer( const QString slicerName ) :
 	selTextLabel->setFixedHeight( 15 );
 	selTextLabel->setStyleSheet( "font-weight: bold;" );
 
-	wgt = new QWidget(container);
-	slicer = new iASlicer( wgt, iASlicerMode::XY, wgt );
+	slicer = new iASlicer( wgt, iASlicerMode::XY, true, true, transform);
 
 	medContour->SetNumberOfContours( 1 );
 	medContour->SetValue( 0, contourValue );
@@ -148,7 +151,7 @@ iASSSlicer::iASSSlicer( const QString slicerName ) :
 	maxContour->SetComputeNormals( false );
 
 	containerLayout->addWidget( selTextLabel );
-	containerLayout->addWidget( wgt );
+	containerLayout->addWidget( slicer );
 }
 
 void iASSSlicer::enableMasksChannel( bool isEnabled )
@@ -182,22 +185,21 @@ iASSSlicer::~iASSSlicer()
 
 void iASSSlicer::changeMode( iASlicerMode mode )
 {
-	slicer->ChangeMode( mode );
+	slicer->setMode( mode );
 	slicer->update();
 }
 
-void iASSSlicer::initialize( vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkTransform> transform, vtkSmartPointer<vtkColorTransferFunction> tf )
+void iASSSlicer::initialize( vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkColorTransferFunction> tf )
 {
 	slicer->setup( iASingleSlicerSettings() );
-	slicer->initializeData(img, transform, tf);
-	slicer->initializeWidget( img );
+	slicer->addChannel(0, iAChannelData("", img, tf), true);
 	slicer->update();
 }
 
 void iASSSlicer::initializeChannel( iAChanData * chData )
 {
 	chData->InitTFs();
-	slicer->initializeChannel( chData->id, chData->visData.data() );
+	slicer->addChannel( chData->id, *chData->visData.data(), true);
 }
 
 void iASSSlicer::initBPDChans( QString const & minFile, QString const & medFile, QString const & maxFile )
@@ -217,13 +219,13 @@ void iASSSlicer::initBPDChans( QString const & minFile, QString const & medFile,
 		slicer->enableChannel( contourChans[i]->id, true );
 		slicer->setChannelOpacity( contourChans[i]->id, 0.0 );
 
-		iAChannelSlicerData * chanSData = slicer->GetChannel( contourChans[i]->id );
-		chanSData = slicer->GetChannel( contourChans[i]->id );
-		chanSData->SetContourLineParams( lineWidths[i] );
-		chanSData->SetContoursColor( contRGBs[i] );
-		chanSData->SetContoursOpacity( 0.8 );
-		chanSData->SetContours( 1, &contourValue );
-		chanSData->SetShowContours( true );
+		iAChannelSlicerData * chanSData = slicer->channel( contourChans[i]->id );
+		chanSData = slicer->channel( contourChans[i]->id );
+		chanSData->setContourLineParams( lineWidths[i] );
+		chanSData->setContoursColor( contRGBs[i] );
+		chanSData->setContoursOpacity( 0.8 );
+		chanSData->setContours( 1, &contourValue );
+		chanSData->setShowContours( slicer->renderer(), true );
 	}
 	medContour->SetInputData( medChan->imgData );
 	minContour->SetInputData( minChan->imgData );
@@ -275,8 +277,8 @@ void iASSSlicer::computeAggregatedImageData( const QStringList & filesList )
 	// 	imageToVTK->SetInput( input );
 	// 	imageToVTK->Update();
 	// 	imgData->DeepCopy( imageToVTK->GetOutput() );
-	iAConnector con; con.SetImage( input );
-	imgData->DeepCopy( con.GetVTKImage() );
+	iAConnector con; con.setImage( input );
+	imgData->DeepCopy( con.vtkImage() );
 }
 
 void iASSSlicer::initializeMasks( QStringList & masks )
@@ -291,7 +293,7 @@ void iASSSlicer::initializeMasks( QStringList & masks )
 	sbw->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue( 0.06, 0.75 );
 	sbw->GetScalarBarActor()->SetTitle( "Mask count" );
 	sbw->GetScalarBarActor()->SetNumberOfLabels( 4 );
-	sbw->SetInteractor( slicer->GetRenderWindow()->GetInteractor() );
+	sbw->SetInteractor( slicer->renderWindow()->GetInteractor() );
 	masksChan->scalarBarWgt->SetEnabled( true );
 }
 
@@ -306,8 +308,8 @@ void iASSSlicer::enableContours( bool isEnabled )
 	iAChanData * contourChans[3] = { minChan.data(), maxChan.data(), medChan.data() };
 	for( int i = 0; i < 3; ++i )
 	{
-		iAChannelSlicerData * contourChan = slicer->GetChannel( contourChans[i]->id );
-		contourChan->SetShowContours( isEnabled );
+		iAChannelSlicerData * contourChan = slicer->channel( contourChans[i]->id );
+		contourChan->setShowContours( slicer->renderer(), isEnabled );
 		slicer->enableChannel( contourChans[i]->id, isEnabled );
 	}
 	update();

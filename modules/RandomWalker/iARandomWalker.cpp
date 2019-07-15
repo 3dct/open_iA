@@ -71,7 +71,7 @@ namespace
 		int labelCount)
 	{
 		// create labelled image (as value at k = arg l max(p_l^k) for each pixel k)
-		iAITKIO::ImagePointer labelImgP = AllocateImage(dim, spacing, itk::ImageIOBase::INT);
+		iAITKIO::ImagePointer labelImgP = allocateImage(dim, spacing, itk::ImageIOBase::INT);
 		LabelImageType* labelImg = dynamic_cast<LabelImageType*>(labelImgP.GetPointer());
 		QVector<ProbImageType*> probImgs;
 		for (int i = 0; i < labelCount; ++i)
@@ -120,7 +120,7 @@ namespace
 #else
 			double imgVal = values[it.value()];
 #endif
-			iAImageCoordinate coord = conv.GetCoordinatesFromIndex(it.key());
+			iAImageCoordinate coord = conv.coordinatesFromIndex(it.key());
 			ProbImageType::IndexType pixelIndex;
 			pixelIndex[0] = coord.x;
 			pixelIndex[1] = coord.y;
@@ -128,7 +128,7 @@ namespace
 			if (imgVal < 0 || imgVal > 1 || qIsInf(imgVal) || qIsNaN(imgVal))
 			{
 				/*
-				AddMsg(QString("Invalid pixel value at (%1, %2, %3): %4")
+				addMsg(QString("Invalid pixel value at (%1, %2, %3): %4")
 					.arg(pixelIndex[0]).arg(pixelIndex[1]).arg(pixelIndex[2]).arg(imgVal));
 				*/
 				imgVal = 0;
@@ -150,9 +150,9 @@ namespace
 		output.reserve(Eigen::VectorXi::Constant(rowIndices.size(), 7));
 #endif
 		// edge weights:
-		for (iAEdgeIndexType edgeIdx = 0; edgeIdx < imageGraph.GetEdgeCount(); ++edgeIdx)
+		for (iAEdgeIndexType edgeIdx = 0; edgeIdx < imageGraph.edgeCount(); ++edgeIdx)
 		{
-			iAEdgeType const & edge = imageGraph.GetEdge(edgeIdx);
+			iAEdgeType const & edge = imageGraph.edge(edgeIdx);
 			if (rowIndices.contains(edge.first) && colIndices.contains(edge.second))
 			{
 				iAVertexIndexType newRowIdx = rowIndices[edge.first];
@@ -210,9 +210,9 @@ namespace
 		QStringList normalizeFunctions;
 		for (int j = 0; j < nmCount; j++)
 			normalizeFunctions << GetNormalizerNames()[j];
-		filter->AddParameter("Beta", Continuous, 100);
-		filter->AddParameter("Distance Function", Categorical, distanceFunctions);
-		filter->AddParameter("Normalizer", Categorical, normalizeFunctions);
+		filter->addParameter("Beta", Continuous, 100);
+		filter->addParameter("Distance Function", Categorical, distanceFunctions);
+		filter->addParameter("Normalizer", Categorical, normalizeFunctions);
 	}
 	QString CommonRWParameterDescription("The <em>Distance Function</em> "
 		"determines how the distance between two data points is calculated."
@@ -235,27 +235,27 @@ iARandomWalker::iARandomWalker() :
 		"(inventor of the algorithm)</a>")
 {
 	AddCommonRWParameters(this);
-	AddParameter("Seeds", Text, "");
+	addParameter("Seeds", Text, "");
 }
 
 IAFILTER_CREATE(iARandomWalker)
 
-void iARandomWalker::PerformWork(QMap<QString, QVariant> const & parameters)
+void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 {
-	int const * dim = Input()[0]->GetVTKImage()->GetDimensions();
-	double const * spc = Input()[0]->GetVTKImage()->GetSpacing();
+	int const * dim = input()[0]->vtkImage()->GetDimensions();
+	double const * spc = input()[0]->vtkImage()->GetSpacing();
 	QVector<iARWInputChannel> inputChannels;
-	iARWInputChannel input;
+	iARWInputChannel inputChannel;
 	auto vtkPixelAccess = QSharedPointer<iAvtkPixelVectorArray>(new iAvtkPixelVectorArray(dim));
-	for (int i = 0; i < Input().size(); ++i)
+	for (int i = 0; i < input().size(); ++i)
 	{
-		vtkPixelAccess->AddImage(Input()[i]->GetVTKImage());
+		vtkPixelAccess->AddImage(input()[i]->vtkImage());
 	}
-	input.image = vtkPixelAccess;
-	input.distanceFunc = GetDistanceMeasure(parameters["Distance Function"].toString());
-	input.normalizeFunc = CreateNormalizer(parameters["Normalizer"].toString(), parameters["Beta"].toDouble());
-	input.weight = 1.0;
-	inputChannels.push_back(input);
+	inputChannel.image = vtkPixelAccess;
+	inputChannel.distanceFunc = GetDistanceMeasure(parameters["Distance Function"].toString());
+	inputChannel.normalizeFunc = CreateNormalizer(parameters["Normalizer"].toString(), parameters["Beta"].toDouble());
+	inputChannel.weight = 1.0;
+	inputChannels.push_back(inputChannel);
 	iAVertexIndexType vertexCount = static_cast<iAVertexIndexType>(dim[0]) * dim[1] * dim[2];
 	iAImageGraph imageGraph(dim[0], dim[1], dim[2], iAImageCoordinate::ColRowDepMajor);
 	iASeedsPointer seeds = ExtractSeedVector(parameters["Seeds"].toString(), dim[0], dim[1], dim[2]);
@@ -275,17 +275,17 @@ void iARandomWalker::PerformWork(QMap<QString, QVariant> const & parameters)
 	}
 	if (inputChannels.size() == 0)
 	{
-		AddMsg("Input Channels must not be empty!");
+		addMsg("Input Channels must not be empty!");
 		return;
 	}
 	if (seeds->size() == 0)
 	{
-		AddMsg("Seeds must not be empty!");
+		addMsg("Seeds must not be empty!");
 		return;
 	}
 	if (minLabel != 0)
 	{
-		AddMsg("Labels must start at 0");
+		addMsg("Labels must start at 0");
 		return;
 	}
 
@@ -293,13 +293,13 @@ void iARandomWalker::PerformWork(QMap<QString, QVariant> const & parameters)
 	QSet<int> labelSet;
 	for (iAVertexIndexType seedIdx = 0; seedIdx < seeds->size(); ++seedIdx)
 	{
-		seedMap.insert(imageGraph.GetConverter().GetIndexFromCoordinates(seeds->at(seedIdx).first), seedIdx);
+		seedMap.insert(imageGraph.converter().indexFromCoordinates(seeds->at(seedIdx).first), seedIdx);
 		labelSet.insert(seeds->at(seedIdx).second);
 	}
 	int labelCount = labelSet.size();
 	if (maxLabel != labelCount - 1)
 	{
-		AddMsg("Labels must be consecutive from 0 .. maxLabel !");
+		addMsg("Labels must be consecutive from 0 .. maxLabel !");
 		return;
 	}
 
@@ -322,9 +322,9 @@ void iARandomWalker::PerformWork(QMap<QString, QVariant> const & parameters)
 		CombineGraphWeights(graphWeights, weightsForChannels);
 
 	QVector<double> vertexWeightSum(vertexCount);
-	for (iAEdgeIndexType edgeIdx = 0; edgeIdx < imageGraph.GetEdgeCount(); ++edgeIdx)
+	for (iAEdgeIndexType edgeIdx = 0; edgeIdx < imageGraph.edgeCount(); ++edgeIdx)
 	{
-		iAEdgeType const & edge = imageGraph.GetEdge(edgeIdx);
+		iAEdgeType const & edge = imageGraph.edge(edgeIdx);
 		vertexWeightSum[edge.first] += finalWeight->GetWeight(edgeIdx);
 		vertexWeightSum[edge.second] += finalWeight->GetWeight(edgeIdx);
 	}
@@ -364,14 +364,14 @@ void iARandomWalker::PerformWork(QMap<QString, QVariant> const & parameters)
 	std::string error = solver.lastErrorMessage();
 	if (error != "")
 	{
-		AddMsg(QString(error.c_str()));
+		addMsg(QString(error.c_str()));
 		return;
 	}
 	solver.factorize(A);
 	error = solver.lastErrorMessage();
 	if (error != "")
 	{
-		AddMsg(QString(error.c_str()));
+		addMsg(QString(error.c_str()));
 		return;
 	}
 #else
@@ -403,15 +403,15 @@ void iARandomWalker::PerformWork(QMap<QString, QVariant> const & parameters)
 		linear_solver.solve(b, &x);
 #endif
 		// put values into probability image
-		iAITKIO::ImagePointer pImg = AllocateImage(dim, spc, itk::ImageIOBase::DOUBLE);
-		SetIndexMapValues(pImg, x, unlabeledMap, imageGraph.GetConverter());
-		SetIndexMapValues(pImg, boundary, seedMap, imageGraph.GetConverter());
+		iAITKIO::ImagePointer pImg = allocateImage(dim, spc, itk::ImageIOBase::DOUBLE);
+		SetIndexMapValues(pImg, x, unlabeledMap, imageGraph.converter());
+		SetIndexMapValues(pImg, boundary, seedMap, imageGraph.converter());
 		probImgs.push_back(pImg);
 	}
 	auto labelImg = CreateLabelImage(dim, spc, probImgs, labelCount);
-	AddOutput(labelImg);
+	addOutput(labelImg);
 	for (int i=0; i<labelCount; ++i)
-		AddOutput(probImgs[i]);
+		addOutput(probImgs[i]);
 }
 
 
@@ -437,8 +437,8 @@ iAExtendedRandomWalker::iAExtendedRandomWalker() :
 		"(inventor of the algorithm)</a>", 2)
 {
 	AddCommonRWParameters(this);
-	AddParameter("Maximum Iterations", Discrete, 100);
-	AddParameter("Gamma", Continuous, 1);
+	addParameter("Maximum Iterations", Discrete, 100);
+	addParameter("Gamma", Continuous, 1);
 }
 
 IAFILTER_CREATE(iAExtendedRandomWalker)
@@ -446,34 +446,34 @@ IAFILTER_CREATE(iAExtendedRandomWalker)
 
 const double EPSILON = 1e-6;
 
-void iAExtendedRandomWalker::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 {
-	int const * dim = Input()[0]->GetVTKImage()->GetDimensions();
-	double const * spc = Input()[0]->GetVTKImage()->GetSpacing();
+	int const * dim = input()[0]->vtkImage()->GetDimensions();
+	double const * spc = input()[0]->vtkImage()->GetSpacing();
 	QVector<iARWInputChannel> inputChannels;
-	iARWInputChannel input;
+	iARWInputChannel inputChannel;
 	auto vtkPixelAccess = QSharedPointer<iAvtkPixelVectorArray>(new iAvtkPixelVectorArray(dim));
-	for (int i = 0; i < FirstInputChannels(); ++i)
+	for (int i = 0; i < firstInputChannels(); ++i)
 	{
-		vtkPixelAccess->AddImage(Input()[i]->GetVTKImage());
+		vtkPixelAccess->AddImage(input()[i]->vtkImage());
 	}
-	input.image = vtkPixelAccess;
-	input.distanceFunc = GetDistanceMeasure(parameters["Distance Function"].toString());
-	input.normalizeFunc = CreateNormalizer(parameters["Normalizer"].toString(), parameters["Beta"].toDouble());
-	input.weight = 1.0;
-	inputChannels.push_back(input);
+	inputChannel.image = vtkPixelAccess;
+	inputChannel.distanceFunc = GetDistanceMeasure(parameters["Distance Function"].toString());
+	inputChannel.normalizeFunc = CreateNormalizer(parameters["Normalizer"].toString(), parameters["Beta"].toDouble());
+	inputChannel.weight = 1.0;
+	inputChannels.push_back(inputChannel);
 	iAVertexIndexType vertexCount = static_cast<iAVertexIndexType>(dim[0]) * dim[1] * dim[2];
 	iAImageGraph imageGraph(dim[0], dim[1], dim[2], iAImageCoordinate::ColRowDepMajor);
 
 	QVector<iAConnector*> priorModel;
-	for (int p = FirstInputChannels(); p < Input().size(); ++p)
+	for (int p = firstInputChannels(); p < input().size(); ++p)
 	{
-		priorModel.push_back(Input()[p]);
+		priorModel.push_back(input()[p]);
 	}
 
 	if (inputChannels.size() == 0)
 	{
-		AddMsg("Input Channels must not be empty!");
+		addMsg("Input Channels must not be empty!");
 		return;
 	}
 
@@ -496,9 +496,9 @@ void iAExtendedRandomWalker::PerformWork(QMap<QString, QVariant> const & paramet
 		CombineGraphWeights(graphWeights, weightsForChannels);
 
 	QVector<double> vertexWeightSum(vertexCount);
-	for (iAEdgeIndexType edgeIdx = 0; edgeIdx < imageGraph.GetEdgeCount(); ++edgeIdx)
+	for (iAEdgeIndexType edgeIdx = 0; edgeIdx < imageGraph.edgeCount(); ++edgeIdx)
 	{
-		iAEdgeType const & edge = imageGraph.GetEdge(edgeIdx);
+		iAEdgeType const & edge = imageGraph.edge(edgeIdx);
 		vertexWeightSum[edge.first] += finalWeight->GetWeight(edgeIdx);
 		vertexWeightSum[edge.second] += finalWeight->GetWeight(edgeIdx);
 	}
@@ -514,7 +514,7 @@ void iAExtendedRandomWalker::PerformWork(QMap<QString, QVariant> const & paramet
 		double sum = 0;
 
 		//PriorModelImageType::IndexType idx;
-		iAImageCoordinate coord = imageGraph.GetConverter().GetCoordinatesFromIndex(voxelIdx);
+		iAImageCoordinate coord = imageGraph.converter().coordinatesFromIndex(voxelIdx);
 		/*
 		idx[0] = coord.x;
 		idx[1] = coord.y;
@@ -523,7 +523,7 @@ void iAExtendedRandomWalker::PerformWork(QMap<QString, QVariant> const & paramet
 		for (int labelIdx = 0; labelIdx < labelCount; ++labelIdx)
 		{
 			//sum += (*m_priorModel)[labelIdx]->GetPixel(idx);
-			double value = priorModel[labelIdx]->GetVTKImage()->GetScalarComponentAsDouble(coord.x, coord.y, coord.z, 0);
+			double value = priorModel[labelIdx]->vtkImage()->GetScalarComponentAsDouble(coord.x, coord.y, coord.z, 0);
 			sum += value;
 		}
 		assert (std::abs(sum-1.0) < EPSILON);
@@ -581,13 +581,13 @@ void iAExtendedRandomWalker::PerformWork(QMap<QString, QVariant> const & paramet
 		for (iAVoxelIndexType voxelIdx = 0; voxelIdx < vertexCount; ++ voxelIdx)
 		{
 			//PriorModelImageType::IndexType idx;
-			iAImageCoordinate coord = imageGraph.GetConverter().GetCoordinatesFromIndex(voxelIdx);
+			iAImageCoordinate coord = imageGraph.converter().coordinatesFromIndex(voxelIdx);
 			/*
 			idx[0] = coord.x;
 			idx[1] = coord.y;
 			idx[2] = coord.z;
 			*/
-			priorForLabel[voxelIdx] = priorModel[i]->GetVTKImage()->GetScalarComponentAsDouble(coord.x, coord.y, coord.z, 0);
+			priorForLabel[voxelIdx] = priorModel[i]->vtkImage()->GetScalarComponentAsDouble(coord.x, coord.y, coord.z, 0);
 		}
 
 		VectorType x(vertexCount);
@@ -601,15 +601,15 @@ void iAExtendedRandomWalker::PerformWork(QMap<QString, QVariant> const & paramet
 		//linear_solver.solve(priorForLabel, &x);
 #endif
 		// put values into probability image
-		iAITKIO::ImagePointer pImg = AllocateImage(dim, spc, itk::ImageIOBase::DOUBLE);
-		SetIndexMapValues(pImg, x, fullMap, imageGraph.GetConverter());
+		iAITKIO::ImagePointer pImg = allocateImage(dim, spc, itk::ImageIOBase::DOUBLE);
+		SetIndexMapValues(pImg, x, fullMap, imageGraph.converter());
 		probImgs.push_back(pImg);
 	}
 	// create labelled image (as value at k = arg l max(p_l^k) for each pixel k)
 	auto labelImg = CreateLabelImage(dim, spc, probImgs, labelCount);
-	AddOutput(labelImg);
+	addOutput(labelImg);
 	for (int i=0; i<labelCount; ++i)
-		AddOutput(probImgs[i]);
+		addOutput(probImgs[i]);
 }
 
 
@@ -623,20 +623,19 @@ iAMaximumDecisionRule::iAMaximumDecisionRule() :
 
 IAFILTER_CREATE(iAMaximumDecisionRule)
 
-void iAMaximumDecisionRule::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAMaximumDecisionRule::performWork(QMap<QString, QVariant> const & parameters)
 {
-	if (Input().size() <= 1)
+	if (input().size() <= 1)
 	{
 		throw std::invalid_argument("Input has to have at least two channels!");
-		return;
 	}
-	int const * dim = Input()[0]->GetVTKImage()->GetDimensions();
-	double const * spc = Input()[0]->GetVTKImage()->GetSpacing();
+	int const * dim = input()[0]->vtkImage()->GetDimensions();
+	double const * spc = input()[0]->vtkImage()->GetSpacing();
 	QVector<iAITKIO::ImagePointer> probImgs;
-	for (int i = 0; i < Input().size(); ++i)
+	for (int i = 0; i < input().size(); ++i)
 	{
-		probImgs.push_back(Input()[i]->GetITKImage());
+		probImgs.push_back(input()[i]->itkImage());
 	}
-	auto labelImg = CreateLabelImage(dim, spc, probImgs, Input().size());
-	AddOutput(labelImg);
+	auto labelImg = CreateLabelImage(dim, spc, probImgs, input().size());
+	addOutput(labelImg);
 }

@@ -23,5 +23,5 @@
 class iAAbortListener
 {
 public:
-	virtual void Abort() =0;
+	virtual void abort() =0;
 };

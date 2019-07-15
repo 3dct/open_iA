@@ -51,19 +51,19 @@ template<class T> void invert_intensity(iAFilter* filter, QMap<QString, QVariant
 	typedef itk::InvertIntensityImageFilter< ImageType, ImageType> InvertFilterType;
 
 	auto invFilter = InvertFilterType::New();
-	invFilter->SetInput(0, dynamic_cast< ImageType * >(filter->Input()[0]->GetITKImage()));
+	invFilter->SetInput(0, dynamic_cast< ImageType * >(filter->input()[0]->itkImage()));
 	if (parameters["Set Maximum"].toBool())
 	{
 		invFilter->SetMaximum(parameters["Maximum"].toDouble());
 	}
-	filter->Progress()->Observe(invFilter);
+	filter->progress()->Observe(invFilter);
 	invFilter->Update();
-	filter->AddOutput(invFilter->GetOutput());
+	filter->addOutput(invFilter->GetOutput());
 }
 
-void iAInvertIntensityFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAInvertIntensityFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(invert_intensity, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(invert_intensity, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAInvertIntensityFilter)
@@ -77,8 +77,8 @@ iAInvertIntensityFilter::iAInvertIntensityFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1InvertIntensityImageFilter.html\">"
 		"Invert Intensity Filter</a> in the ITK documentation.")
 {
-	AddParameter("Set Maximum", Boolean, false);
-	AddParameter("Maximum", Continuous, 65535);
+	addParameter("Set Maximum", Boolean, false);
+	addParameter("Maximum", Continuous, 65535);
 }
 
 
@@ -90,16 +90,16 @@ template<class T> void normalize(iAFilter* filter)
 	typedef itk::NormalizeImageFilter< ImageType, ImageType > NormalizeFilterType;
 
 	auto normalizeFilter = NormalizeFilterType::New();
-	normalizeFilter->SetInput(dynamic_cast< ImageType * >(filter->Input()[0]->GetITKImage()));
+	normalizeFilter->SetInput(dynamic_cast< ImageType * >(filter->input()[0]->itkImage()));
 	normalizeFilter->Update();
-	filter->Progress()->Observe(normalizeFilter);
+	filter->progress()->Observe(normalizeFilter);
 	normalizeFilter->Update();
-	filter->AddOutput(normalizeFilter->GetOutput());
+	filter->addOutput(normalizeFilter->GetOutput());
 }
 
-void iANormalizeIntensityFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iANormalizeIntensityFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(normalize, InputPixelType(), this);
+	ITK_TYPED_CALL(normalize, inputPixelType(), this);
 }
 
 IAFILTER_CREATE(iANormalizeIntensityFilter)
@@ -126,20 +126,20 @@ void intensity_windowing(iAFilter* filter, QMap<QString, QVariant> const & param
 	typedef itk::IntensityWindowingImageFilter <ImageType, ImageType> IntensityWindowingImageFilterType;
 
 	auto intensityWindowingFilter = IntensityWindowingImageFilterType::New();
-	intensityWindowingFilter->SetInput(dynamic_cast< ImageType * >(filter->Input()[0]->GetITKImage()));
+	intensityWindowingFilter->SetInput(dynamic_cast< ImageType * >(filter->input()[0]->itkImage()));
 	intensityWindowingFilter->SetWindowMinimum(parameters["Window Minimum"].toDouble());
 	intensityWindowingFilter->SetWindowMaximum(parameters["Window Maximum"].toDouble());
 	intensityWindowingFilter->SetOutputMinimum(parameters["Output Minimum"].toDouble());
 	intensityWindowingFilter->SetOutputMaximum(parameters["Output Maximum"].toDouble());
 	intensityWindowingFilter->Update();
-	filter->Progress()->Observe(intensityWindowingFilter);
+	filter->progress()->Observe(intensityWindowingFilter);
 	intensityWindowingFilter->Update();
-	filter->AddOutput(intensityWindowingFilter->GetOutput());
+	filter->addOutput(intensityWindowingFilter->GetOutput());
 }
 
-void iAIntensityWindowingFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAIntensityWindowingFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(intensity_windowing, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(intensity_windowing, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAIntensityWindowingFilter)
@@ -156,10 +156,10 @@ iAIntensityWindowingFilter::iAIntensityWindowingFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1IntensityWindowingImageFilter.html\">"
 		"Intensity Windowing Filter</a> in the ITK documentation.")
 {
-	AddParameter("Window Minimum", Continuous, 0);
-	AddParameter("Window Maximum", Continuous, 1);
-	AddParameter("Output Minimum", Continuous, 0);
-	AddParameter("Output Maximum", Continuous, 1);
+	addParameter("Window Minimum", Continuous, 0);
+	addParameter("Window Maximum", Continuous, 1);
+	addParameter("Output Minimum", Continuous, 0);
+	addParameter("Output Maximum", Continuous, 1);
 }
 
 
@@ -173,15 +173,15 @@ template<class T> void threshold(iAFilter* filter, QMap<QString, QVariant> const
 	thresholdFilter->SetOutsideValue( parameters["Outside value"].toDouble() );
 	thresholdFilter->ThresholdOutside( parameters["Lower threshold"].toDouble(),
 			parameters["Upper threshold"].toDouble());
-	thresholdFilter->SetInput( dynamic_cast< ImageType * >( filter->Input()[0]->GetITKImage() ) );
-	filter->Progress()->Observe( thresholdFilter );
+	thresholdFilter->SetInput( dynamic_cast< ImageType * >( filter->input()[0]->itkImage() ) );
+	filter->progress()->Observe( thresholdFilter );
 	thresholdFilter->Update();
-	filter->AddOutput(thresholdFilter->GetOutput());
+	filter->addOutput(thresholdFilter->GetOutput());
 }
 
-void iAGeneralThreshold::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAGeneralThreshold::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(threshold, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(threshold, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAGeneralThreshold)
@@ -193,9 +193,9 @@ iAGeneralThreshold::iAGeneralThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ThresholdImageFilter.html\">"
 		"Threshold Filter</a> in the ITK documentation.")
 {
-	AddParameter("Lower threshold", Continuous, 0);
-	AddParameter("Upper threshold", Continuous, 1);
-	AddParameter("Outside value", Continuous, 0);
+	addParameter("Lower threshold", Continuous, 0);
+	addParameter("Upper threshold", Continuous, 1);
+	addParameter("Outside value", Continuous, 0);
 }
 
 
@@ -209,17 +209,17 @@ template<class T> void rescaleImage(iAFilter* filter, QMap<QString, QVariant> co
 	typedef itk::RescaleIntensityImageFilter< InputImageType, OutputImageType > RescalerType;
 
 	auto rescaleFilter = RescalerType::New();
-	rescaleFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	rescaleFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	rescaleFilter->SetOutputMinimum(parameters["Output Minimum"].toDouble());
 	rescaleFilter->SetOutputMaximum(parameters["Output Maximum"].toDouble());
-	filter->Progress()->Observe(rescaleFilter);
+	filter->progress()->Observe(rescaleFilter);
 	rescaleFilter->Update();
-	filter->AddOutput(rescaleFilter->GetOutput());
+	filter->addOutput(rescaleFilter->GetOutput());
 }
 
-void iARescaleIntensityFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iARescaleIntensityFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(rescaleImage, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(rescaleImage, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iARescaleIntensityFilter)
@@ -241,8 +241,8 @@ iARescaleIntensityFilter::iARescaleIntensityFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RescaleIntensityImageFilter.html\">"
 		"Rescale Intensity Filter</a> in the ITK documentation.")
 {
-	AddParameter("Output Minimum", Continuous, 0);
-	AddParameter("Output Maximum", Continuous, 1);
+	addParameter("Output Minimum", Continuous, 0);
+	addParameter("Output Maximum", Continuous, 1);
 }
 
 
@@ -255,17 +255,17 @@ template<class T> void shiftScale(iAFilter* filter, QMap<QString, QVariant> cons
 	typedef itk::ShiftScaleImageFilter< InputImageType, OutputImageType > RescalerType;
 
 	auto rescaleFilter = RescalerType::New();
-	rescaleFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	rescaleFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	rescaleFilter->SetShift(parameters["Shift"].toDouble());
 	rescaleFilter->SetScale(parameters["Scale"].toDouble());
-	filter->Progress()->Observe(rescaleFilter);
+	filter->progress()->Observe(rescaleFilter);
 	rescaleFilter->Update();
-	filter->AddOutput(rescaleFilter->GetOutput());
+	filter->addOutput(rescaleFilter->GetOutput());
 }
 
-void iAShiftScaleIntensityFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAShiftScaleIntensityFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(shiftScale, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(shiftScale, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAShiftScaleIntensityFilter)
@@ -280,8 +280,8 @@ iAShiftScaleIntensityFilter::iAShiftScaleIntensityFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ShiftScaleImageFilter.html\">"
 		"Shift Scale Filter</a> in the ITK documentation.")
 {
-	AddParameter("Shift", Continuous, 0);
-	AddParameter("Scale", Continuous, 1);
+	addParameter("Shift", Continuous, 0);
+	addParameter("Scale", Continuous, 1);
 }
 
 
@@ -290,20 +290,20 @@ template<class T> void adaptiveHistogramEqualization(iAFilter* filter, QMap<QStr
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef  itk::AdaptiveHistogramEqualizationImageFilter< InputImageType > AdaptHistoEqualFilterType;
 	auto adaptHistoEqualFilter = AdaptHistoEqualFilterType::New();
-	adaptHistoEqualFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	adaptHistoEqualFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	adaptHistoEqualFilter->SetAlpha(params["Alpha"].toDouble());
 	adaptHistoEqualFilter->SetBeta(params["Beta"].toDouble());
 	adaptHistoEqualFilter->SetRadius(params["Radius"].toUInt());
-	filter->Progress()->Observe(adaptHistoEqualFilter);
+	filter->progress()->Observe(adaptHistoEqualFilter);
 	adaptHistoEqualFilter->Update();
-	filter->AddOutput(adaptHistoEqualFilter->GetOutput());
+	filter->addOutput(adaptHistoEqualFilter->GetOutput());
 }
 
 IAFILTER_CREATE(iAAdaptiveHistogramEqualization)
 
-void iAAdaptiveHistogramEqualization::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAAdaptiveHistogramEqualization::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(adaptiveHistogramEqualization, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(adaptiveHistogramEqualization, inputPixelType(), this, parameters);
 }
 
 iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
@@ -323,9 +323,9 @@ iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AdaptiveHistogramEqualizationImageFilter.html\">"
 		"Adaptive Histogram Equalization Filter</a> in the ITK documentation.")
 {
-	AddParameter("Alpha", Continuous, 0, 0, 1);
-	AddParameter("Beta", Continuous, 0, 0, 1);
-	AddParameter("Radius", Discrete, 5, 1);
+	addParameter("Alpha", Continuous, 0, 0, 1);
+	addParameter("Beta", Continuous, 0, 0, 1);
+	addParameter("Radius", Discrete, 5, 1);
 }
 
 
@@ -343,17 +343,17 @@ template<class T> void addImages(iAFilter* filter)
 
 	auto fusion = AddImageFilter::New();
 	fusion->InPlaceOff();
-	fusion->SetInput1(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
-	auto img2 = CastImageTo<T>(filter->Input()[1]->GetITKImage());
+	fusion->SetInput1(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	auto img2 = castImageTo<T>(filter->input()[1]->itkImage());
 	fusion->SetInput2(dynamic_cast<InputImageType *>(img2.GetPointer()));
-	filter->Progress()->Observe(fusion);
+	filter->progress()->Observe(fusion);
 	fusion->Update();
-	filter->AddOutput(fusion->GetOutput());
+	filter->addOutput(fusion->GetOutput());
 }
 
-void iAAddFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAAddFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(addImages, InputPixelType(), this);
+	ITK_TYPED_CALL(addImages, inputPixelType(), this);
 }
 
 IAFILTER_CREATE(iAAddFilter)
@@ -378,17 +378,17 @@ template<class T> void subtractImages(iAFilter* filter)
 	typedef itk::SubtractImageFilter<InputImageType, InputImageType, OutputImageType> SubractFilterType;
 
 	auto subFilter = SubractFilterType::New();
-	subFilter->SetInput1(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
-	auto img2 = CastImageTo<T>(filter->Input()[1]->GetITKImage());
+	subFilter->SetInput1(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
+	auto img2 = castImageTo<T>(filter->input()[1]->itkImage());
 	subFilter->SetInput2(dynamic_cast<InputImageType *>(img2.GetPointer()));
-	filter->Progress()->Observe(subFilter);
+	filter->progress()->Observe(subFilter);
 	subFilter->Update();
-	filter->AddOutput(subFilter->GetOutput());
+	filter->addOutput(subFilter->GetOutput());
 }
 
-void iASubtractFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iASubtractFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(subtractImages, InputPixelType(), this);
+	ITK_TYPED_CALL(subtractImages, inputPixelType(), this);
 }
 
 IAFILTER_CREATE(iASubtractFilter)
@@ -414,17 +414,17 @@ template<class T> void difference(iAFilter* filter, QMap<QString, QVariant> cons
 	auto diffFilter = FilterType::New();
 	diffFilter->SetDifferenceThreshold(parameters["Difference threshold"].toDouble());
 	diffFilter->SetToleranceRadius(parameters["Tolerance radius"].toDouble());
-	diffFilter->SetInput(dynamic_cast< ImageType * >(filter->Input()[0]->GetITKImage()));
-	auto img2 = CastImageTo<T>(filter->Input()[1]->GetITKImage());
+	diffFilter->SetInput(dynamic_cast< ImageType * >(filter->input()[0]->itkImage()));
+	auto img2 = castImageTo<T>(filter->input()[1]->itkImage());
 	diffFilter->SetInput(1, dynamic_cast<ImageType *>(img2.GetPointer()));
-	filter->Progress()->Observe(diffFilter);
+	filter->progress()->Observe(diffFilter);
 	diffFilter->Update();
-	filter->AddOutput(diffFilter->GetOutput());
+	filter->addOutput(diffFilter->GetOutput());
 }
 
-void iADifferenceFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iADifferenceFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(difference, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(difference, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iADifferenceFilter)
@@ -440,8 +440,8 @@ iADifferenceFilter::iADifferenceFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1Testing_1_1ComparisonImageFilter.html\">"
 		"Testing Comparison Filter</a> in the ITK documentation.", 2)
 {
-	AddParameter("Difference threshold", Continuous, 0);
-	AddParameter("Tolerance radius", Continuous, 0);
+	addParameter("Difference threshold", Continuous, 0);
+	addParameter("Tolerance radius", Continuous, 0);
 }
 
 
@@ -453,16 +453,16 @@ template<class T> void mask(iAFilter* filter)
 	typedef itk::MaskImageFilter< ImageType, ImageType > MaskFilterType;
 
 	auto maskFilter = MaskFilterType::New();
-	maskFilter->SetInput(dynamic_cast< ImageType * >(filter->Input()[0]->GetITKImage()));
-	maskFilter->SetMaskImage(dynamic_cast< ImageType * >(filter->Input()[1]->GetITKImage()));
-	filter->Progress()->Observe(maskFilter);
+	maskFilter->SetInput(dynamic_cast< ImageType * >(filter->input()[0]->itkImage()));
+	maskFilter->SetMaskImage(dynamic_cast< ImageType * >(filter->input()[1]->itkImage()));
+	filter->progress()->Observe(maskFilter);
 	maskFilter->Update();
-	filter->AddOutput(maskFilter->GetOutput());
+	filter->addOutput(maskFilter->GetOutput());
 }
 
-void iAMaskIntensityFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAMaskIntensityFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(mask, InputPixelType(), this);
+	ITK_TYPED_CALL(mask, inputPixelType(), this);
 }
 
 IAFILTER_CREATE(iAMaskIntensityFilter)
@@ -494,8 +494,8 @@ void histomatch(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 	auto fixedImageCaster = CasterType::New();
 	auto movingImageCaster = CasterType::New();
-	fixedImageCaster->SetInput( dynamic_cast< ImageType * >( filter->Input()[0]->GetITKImage() ) );
-	movingImageCaster->SetInput( dynamic_cast< ImageType * >( filter->Input()[1]->GetITKImage() ) );
+	fixedImageCaster->SetInput( dynamic_cast< ImageType * >( filter->input()[0]->itkImage() ) );
+	movingImageCaster->SetInput( dynamic_cast< ImageType * >( filter->input()[1]->itkImage() ) );
 	auto matcher = MatchingFilterType::New();
 	matcher->SetInput( movingImageCaster->GetOutput() );
 	matcher->SetReferenceImage( fixedImageCaster->GetOutput() );
@@ -505,14 +505,14 @@ void histomatch(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	{
 		matcher->ThresholdAtMeanIntensityOn();
 	}
-	filter->Progress()->Observe( matcher );
+	filter->progress()->Observe( matcher );
 	matcher->Update();
-	filter->AddOutput( matcher->GetOutput() );
+	filter->addOutput( matcher->GetOutput() );
 }
 
-void iAHistogramMatchingFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAHistogramMatchingFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(histomatch, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(histomatch, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAHistogramMatchingFilter)
@@ -538,7 +538,7 @@ iAHistogramMatchingFilter::iAHistogramMatchingFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1HistogramMatchingImageFilter.html\">"
 		"Histogram Matching Filter</a> in the ITK documentation.", 2)
 {
-	AddParameter("Threshold at mean intensity", Boolean, true);
-	AddParameter("Number of histogram levels", Continuous, 256);
-	AddParameter("Number of match points", Continuous, 1);
+	addParameter("Threshold at mean intensity", Boolean, true);
+	addParameter("Number of histogram levels", Continuous, 256);
+	addParameter("Number of match points", Continuous, 1);
 }

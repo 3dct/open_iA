@@ -69,10 +69,10 @@ QSharedPointer<iAGraphWeights> CalculateGraphWeights(
 	iAVectorArray const & voxelData,
 	iAVectorDistance const & distanceFunc)
 {
-	QSharedPointer<iAGraphWeights> result(new iAGraphWeights(graph.GetEdgeCount()));
-	for (int i=0; i<graph.GetEdgeCount(); ++i)
+	QSharedPointer<iAGraphWeights> result(new iAGraphWeights(graph.edgeCount()));
+	for (int i=0; i<graph.edgeCount(); ++i)
 	{
-		iAEdgeType edge = graph.GetEdge(i);
+		iAEdgeType edge = graph.edge(i);
 		iADistanceType dist = distanceFunc.GetDistance(voxelData.get(edge.first), voxelData.get(edge.second));
 		result->SetWeight(i, dist);
 	}

@@ -22,11 +22,50 @@
 
 #include "open_iA_Core_export.h"
 
-enum iASlicerMode{
-	YZ,
-	XY, // TODO: for logical reasons, XY and XZ should be swapped (then index would
-	XZ, // represent the index of the axis normal to the cutting plane)
-	SlicerModeCount
+#include <QString>
+
+//! Index of the coordinate axes, to prevent "magic numbers" in code
+enum iAAxisIndex
+{
+	X,
+	Y,
+	Z,
+	AxisCount
 };
 
-open_iA_Core_API const char* GetSlicerModeString(int mode);
+//! Constants for the three axis-aligned slicer modes.
+enum iASlicerMode
+{
+	YZ,  // slice along x-Axis
+	XZ,  // slice along y-Axis
+	XY,  // slice along z-Axis
+	SlicerCount
+};
+
+// Helper functions for axes and slicer modes - defined in iASlicer.cpp!
+
+//! Get the name of the given axis
+//! @param axis the index of the axis (see iAAxisIndex)
+open_iA_Core_API QString axisName(int axis);
+
+//! Get the "name" of the given slicer mode (i.e. the slicer plane, "XY" for iASlicerMode XY).
+open_iA_Core_API QString slicerModeString(int mode);
+
+//! Map the index of an axis of the slicer to the index of the corresponding global axis.
+//! @param mode the slicer mode, @see iASlicerMode
+//! @param index the slicer axis index (x=0, y=1, z=2), @see iAAxisIndex
+//! @return the global axis index; for values of index = 0,1,2 it returns:
+//! - 1, 2, 0 for mode=YZ
+//! - 0, 2, 1 for mode=XZ
+//! - 0, 1, 2 for mode=XY
+open_iA_Core_API int mapSliceToGlobalAxis(int mode, int index);
+
+// ! Map the index of a global axis to the index of the corresponding axis of the slicer.
+// ! @param mode the slicer mode, @see iASlicerMode
+// ! @param index the slicer axis index (x=0, y=1, z=2), @see iAAxisIndex
+// ! @return the slicer axis index; for values of index = 0,1,2 it returns:
+// ! - 2, 0, 1 for YZ
+// ! - 0, 2, 1 for XZ
+// ! - 0, 1, 2 for XY
+// Currently not used...
+// open_iA_Core_API int mapGlobalToSliceAxis(int mode, int index);

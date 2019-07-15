@@ -22,6 +22,7 @@
 
 #include "iALineSegment.h"
 #include "iALinePointers.h"
+
 #include <vtkType.h>
 #include <vtkSmartPointer.h>
 
@@ -34,32 +35,28 @@ class vtkPolyDataMapper;
 class vtkRenderer;
 class vtkImageData;
 
-
-
-struct iASlicerProfile
+//! Represents a "raw" profile that can be drawn over an image on a given renderer.
+class iASlicerProfile
 {
-	iASlicerProfile();
-	void SetVisibility ( bool isVisible );
-	void GetPoint ( vtkIdType id, double pos_out[3] );
-	void initialize (vtkRenderer * ren);
-	int updatePosition( double posY, vtkImageData * imgData );
-
 public:
-	static const int Z_COORD = 0;
+	iASlicerProfile();
+	void setVisibility ( bool isVisible );
+	void point ( vtkIdType id, double pos_out[3] );
+	void addToRenderer (vtkRenderer * ren);
+	bool updatePosition( double posY, vtkImageData * imgData );
+
+	static const int ZCoord = 0;
 
 protected:
-	vtkRenderer			* m_ren;
-
-	iALineSegment		m_profileLine;
-	iALinePointers		m_zeroLine;
-
+	iALineSegment                      m_profileLine;
+	iALinePointers                     m_zeroLine;
 	//plot
-	vtkSmartPointer<vtkPolyLine>		m_plotPolyLine;
-	vtkSmartPointer<vtkCellArray>		m_plotCells;
-	vtkSmartPointer<vtkPolyData>		m_plotPolyData;
-	vtkSmartPointer<vtkPoints>			m_plotPoints;
-	vtkSmartPointer<vtkActor>			m_plotActor;
-	vtkSmartPointer<vtkActor>			m_plotActorHalo;
-	vtkSmartPointer<vtkPolyDataMapper>	m_plotMapper;
-	float								m_plotScaleFactor;
+	vtkSmartPointer<vtkPolyLine>       m_plotPolyLine;
+	vtkSmartPointer<vtkCellArray>      m_plotCells;
+	vtkSmartPointer<vtkPolyData>       m_plotPolyData;
+	vtkSmartPointer<vtkPoints>         m_plotPoints;
+	vtkSmartPointer<vtkActor>          m_plotActor;
+	vtkSmartPointer<vtkActor>          m_plotActorHalo;
+	vtkSmartPointer<vtkPolyDataMapper> m_plotMapper;
+	float                              m_plotScaleFactor;
 };

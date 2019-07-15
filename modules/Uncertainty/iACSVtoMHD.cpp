@@ -47,26 +47,26 @@ iACSVtoMHD::iACSVtoMHD() : iAFilter("CSV to MHD", "Uncertainty",
 		<< QString("VTK_UNSIGNED_LONG")
 		<< QString("VTK_FLOAT")
 		<< QString("VTK_DOUBLE");
-	AddParameter("CSV FileName", String, "");
-	AddParameter("Output fileName", String, "");
-	//AddParameter("Field separator", String, ";");
-	AddParameter("Pixel Type", Categorical, pixelTypes);
-	AddParameter("Size X", Discrete, 1);
-	AddParameter("Size Y", Discrete, 1);
-	AddParameter("Size Z", Discrete, 1);
-	AddParameter("Spacing X", Continuous, 1);
-	AddParameter("Spacing Y", Continuous, 1);
-	AddParameter("Spacing Z", Continuous, 1);
+	addParameter("CSV FileName", String, "");
+	addParameter("Output fileName", String, "");
+	//addParameter("Field separator", String, ";");
+	addParameter("Pixel Type", Categorical, pixelTypes);
+	addParameter("Size X", Discrete, 1);
+	addParameter("Size Y", Discrete, 1);
+	addParameter("Size Z", Discrete, 1);
+	addParameter("Spacing X", Continuous, 1);
+	addParameter("Spacing Y", Continuous, 1);
+	addParameter("Spacing Z", Continuous, 1);
 	QStringList coordOrders;
 	coordOrders
 		<< "XYZ"
 		<< "ZYX";
-	AddParameter("Coordinate Order", Categorical, coordOrders);
+	addParameter("Coordinate Order", Categorical, coordOrders);
 }
 
 IAFILTER_CREATE(iACSVtoMHD)
 
-void iACSVtoMHD::PerformWork(QMap<QString, QVariant> const & parameters)
+void iACSVtoMHD::performWork(QMap<QString, QVariant> const & parameters)
 {
 	int dim[3];
 	dim[0] = parameters["Size X"].toUInt();
@@ -76,7 +76,7 @@ void iACSVtoMHD::PerformWork(QMap<QString, QVariant> const & parameters)
 	spacing[0] = parameters["Spacing X"].toUInt();
 	spacing[1] = parameters["Spacing Y"].toUInt();
 	spacing[2] = parameters["Spacing Z"].toUInt();
-	auto img = AllocateImage(MapVTKTypeStringToInt(parameters["Pixel Type"].toString()), dim, spacing);
+	auto img = allocateImage(mapVTKTypeStringToInt(parameters["Pixel Type"].toString()), dim, spacing);
 
 	QString fileName(parameters["CSV FileName"].toString());
 	QFile in(fileName);
@@ -148,10 +148,10 @@ void iACSVtoMHD::PerformWork(QMap<QString, QVariant> const & parameters)
 		}
 	}
 	in.close();
-	AddOutput(img);
+	addOutput(img);
 	QString outputFileName = parameters["Output fileName"].toString();
 	if (!outputFileName.isEmpty())
 	{
-		StoreImage(img, outputFileName);
+		storeImage(img, outputFileName);
 	}
 }

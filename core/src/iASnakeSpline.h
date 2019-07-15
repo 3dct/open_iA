@@ -58,7 +58,7 @@ public:
 		snakeDisk->actor->GetProperty()->SetColor(1.0, 1.0, 1.0);
 		snakeDisk->actor->GetProperty()->SetOpacity(0.8);
 		snakeDisk->actor->SetVisibility(true);
-		snakeDisk->actor->SetPosition(x, y, Z);
+		snakeDisk->actor->SetPosition(x, y, ZCoord);
 
 		// add actor to actor list to be able to find the point for selection
 		m_snakeDisks.push_back(snakeDisk);
@@ -67,7 +67,7 @@ public:
 		m_ren->AddActor(snakeDisk->actor);
 
 		// add point to the spline points
-		double pos[3] = {x, y, Z};
+		double pos[3] = {x, y, ZCoord};
 		m_spline.addPoint(pos);
 
 		// the new created point is now the selected one
@@ -80,8 +80,8 @@ public:
 		{
 			// get current position of point and only move in two directions depending on slice view
 			double * currentPos = m_snakeDisks[selectedPntInd]->actor->GetPosition();
-			m_snakeDisks[selectedPntInd]->actor->SetPosition(x, y, Z);
-			m_spline.SetPoint(selectedPntInd, x, y, Z);
+			m_snakeDisks[selectedPntInd]->actor->SetPosition(x, y, ZCoord);
+			m_spline.SetPoint(selectedPntInd, x, y, ZCoord);
 		}
 
 		// update spline curve
@@ -141,7 +141,6 @@ public:
 		m_selectedPntInd = -1;
 	}
 
-public:
 	static const int RADIUS = 5;
 
 protected:
@@ -150,7 +149,7 @@ protected:
 	disc_vector::size_type m_selectedPntInd;	// currently selected spline point
 	vtkRenderer * m_ren;
 	double m_radius;
-	static const double Z;
+	static const double ZCoord;
 };
 
-const double iASnakeSpline::Z = 0.2;
+const double iASnakeSpline::ZCoord = 0;

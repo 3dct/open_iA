@@ -37,11 +37,9 @@ class QTimer;
 class vtkLookupTable;
 
 //! Represents a single scatter plot in the scatter plot matrix (SPLOM).
-/*!
-The class is managed from the parent SPLOM.
-Draws its contents in a given rectangle on a parent SPLOM widget.
-Appearance can be customized via the public settings member.
-*/
+//! The class is managed from the parent SPLOM.
+//! Draws its contents in a given rectangle on a parent SPLOM widget.
+//! Appearance can be customized via the public settings member.
 class open_iA_Core_API iAScatterPlot : public QObject
 {
 	Q_OBJECT

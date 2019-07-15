@@ -31,9 +31,6 @@ iAFeature::iAFeature()
 	bb[0] = 0; bb[1] = 0; bb[2] = 0; bb[3] = 0; bb[4] = 0; bb[5] = 0;
 }
 
-iAFeature::~iAFeature()
-{ }
-
 std::ostream& operator<<( std::ostream& os, const iAFeature& obj )
 {
 	os << obj.id << " ";

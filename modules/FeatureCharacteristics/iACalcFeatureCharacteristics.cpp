@@ -37,7 +37,7 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 	// Cast iamge to type long
 	typedef itk::Image< T, DIM > InputImageType;
 	typename InputImageType::Pointer inputImage;
-	inputImage = dynamic_cast<InputImageType *>( image->GetITKImage() );
+	inputImage = dynamic_cast<InputImageType *>( image->itkImage() );
 	typedef itk::Image<long, DIM> LongImageType;
 	typename LongImageType::Pointer longImage;
 	typedef itk::CastImageFilter<InputImageType, LongImageType> CIFType;
@@ -265,16 +265,16 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics():
 		"Label Image to Shape Label Map Filter </a> "
 		"in the ITK documentation.", 1, 0)
 {
-	AddParameter("Output CSV filename", FileNameSave, "");
-	AddParameter("Calculate Feret Diameter", Boolean, false);
+	addParameter("Output CSV filename", FileNameSave, "");
+	addParameter("Calculate Feret Diameter", Boolean, false);
 }
 
 IAFILTER_CREATE(iACalcFeatureCharacteristics)
 
-void iACalcFeatureCharacteristics::PerformWork(QMap<QString, QVariant> const & parameters)
+void iACalcFeatureCharacteristics::performWork(QMap<QString, QVariant> const & parameters)
 {
 	QString pathCSV = parameters["Output CSV filename"].toString();
-	ITK_TYPED_CALL(calcFeatureCharacteristics_template, InputPixelType(), Input()[0], Progress(), pathCSV,
+	ITK_TYPED_CALL(calcFeatureCharacteristics_template, inputPixelType(), input()[0], progress(), pathCSV,
 		parameters["Calculate Feret Diameter"].toBool());
-	AddMsg(QString("Feature csv file created in: %1").arg(pathCSV));
+	addMsg(QString("Feature csv file created in: %1").arg(pathCSV));
 }

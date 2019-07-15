@@ -33,8 +33,8 @@ class open_iA_Core_API iATransferFunction
 {
 public:
 	virtual ~iATransferFunction();
-	virtual vtkPiecewiseFunction* getOpacityFunction() =0;
-	virtual vtkColorTransferFunction* getColorFunction() = 0;
+	virtual vtkPiecewiseFunction* opacityTF() =0;
+	virtual vtkColorTransferFunction* colorTF() = 0;
 };
 
 //! simplest possible transfer function: just a container for ctf and otf
@@ -43,16 +43,16 @@ class open_iA_Core_API iASimpleTransferFunction : public iATransferFunction
 {
 public:
 	iASimpleTransferFunction(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf);
-	vtkColorTransferFunction * getColorFunction() override;
-	vtkPiecewiseFunction * getOpacityFunction() override;
+	vtkColorTransferFunction * colorTF() override;
+	vtkPiecewiseFunction * opacityTF() override;
 private:
 	vtkColorTransferFunction * m_ctf;
 	vtkPiecewiseFunction * m_otf;
 };
 
 // double range? pass in vtk variables?
-open_iA_Core_API vtkSmartPointer<vtkColorTransferFunction> GetDefaultColorTransferFunction(double const range[2]);
-open_iA_Core_API vtkSmartPointer<vtkPiecewiseFunction> GetDefaultPiecewiseFunction(double const range[2], bool opaqueRamp);
+open_iA_Core_API vtkSmartPointer<vtkColorTransferFunction> defaultColorTF(double const range[2]);
+open_iA_Core_API vtkSmartPointer<vtkPiecewiseFunction> defaultOpacityTF(double const range[2], bool opaqueRamp);
 
-open_iA_Core_API void GetDefaultColorTransferFunction(vtkSmartPointer<vtkColorTransferFunction> cTF, double const range[2]);
-open_iA_Core_API void GetDefaultPiecewiseFunction(vtkSmartPointer<vtkPiecewiseFunction> pWF, double const range[2], bool opaqueRamp);
+open_iA_Core_API void defaultColorTF(vtkSmartPointer<vtkColorTransferFunction> cTF, double const range[2]);
+open_iA_Core_API void defaultOpacityTF(vtkSmartPointer<vtkPiecewiseFunction> pWF, double const range[2], bool opaqueRamp);

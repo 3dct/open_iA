@@ -28,9 +28,6 @@ iA4DCTForceWidget::iA4DCTForceWidget( QWidget * parent )
 	: QLabel( parent )
 { /* not implemented */ }
 
-iA4DCTForceWidget::~iA4DCTForceWidget( )
-{ /* not implemented */ }
-
 void iA4DCTForceWidget::setValue( int val )
 {
 	m_value = val;

@@ -35,12 +35,10 @@ class vtkWindow;
 class iARulerActor : public vtkProp
 {
 public:
-  // Description:
-  // Instantiate the class.
+  //! Instantiate the class.
   static iARulerActor *New();
 
-  // Description:
-  // Standard methods for the class.
+  //! Standard methods for the class.
   vtkTypeMacro(iARulerActor,vtkProp);
   void PrintSelf(ostream& os, vtkIndent indent) override;
   void SetPosition(double *coord);
@@ -54,19 +52,17 @@ public:
   };
 //ETX
 
-  // Description:
-  // Specify the mode for labeling the scale axes. By default, the axes are
-  // labeled with the distance between points (centered at a distance of
-  // 0.0). Alternatively if you know that the view is down the z-axis; the
-  // axes can be labeled with x-y coordinate values.
+  //! Specify the mode for labeling the scale axes. By default, the axes are
+  //! labeled with the distance between points (centered at a distance of
+  //! 0.0). Alternatively if you know that the view is down the z-axis; the
+  //! axes can be labeled with x-y coordinate values.
   vtkSetClampMacro(LabelMode,int,DISTANCE,XY_COORDINATES);
   vtkGetMacro(LabelMode,int);
   void SetLabelModeToDistance() {this->SetLabelMode(DISTANCE);}
   void SetLabelModeToXYCoordinates() {this->SetLabelMode(XY_COORDINATES);}
 
-  // Description:
-  // Set/Get the flags that control which of the four axes to display (top,
-  // bottom, left and right). By default, all the axes are displayed.
+  //! Set/Get the flags that control which of the four axes to display (top,
+  //! bottom, left and right). By default, all the axes are displayed.
   vtkSetMacro(LeftAxisVisibility,int);
   vtkGetMacro(LeftAxisVisibility,int);
   vtkBooleanMacro(LeftAxisVisibility,int);
@@ -74,59 +70,50 @@ public:
   vtkGetMacro(BottomAxisVisibility,int);
   vtkBooleanMacro(BottomAxisVisibility,int);
 
-  // Description:
-  // Convenience method that turns all the axes either on or off.
+  //! Convenience method that turns all the axes either on or off.
   void AllAxesOn();
   void AllAxesOff();
 
-  // Description:
-  // Convenience method that turns all the axes and the legend scale.
+  //! Convenience method that turns all the axes and the legend scale.
   void AllAnnotationsOn();
   void AllAnnotationsOff();
 
-  // Description:
-  // Set/Get the offset of the right axis from the border. This number is expressed in
-  // pixels, and represents the approximate distance of the axes from the sides
-  // of the renderer. The default is 50.
+  //! Set/Get the offset of the right axis from the border. This number is expressed in
+  //! pixels, and represents the approximate distance of the axes from the sides
+  //! of the renderer. The default is 50.
   vtkSetClampMacro(RightBorderOffset, int, 5, VTK_INT_MAX);
   vtkGetMacro(RightBorderOffset,int);
 
-  // Description:
-  // Set/Get the offset of the top axis from the border. This number is expressed in
-  // pixels, and represents the approximate distance of the axes from the sides
-  // of the renderer. The default is 30.
+  //! Set/Get the offset of the top axis from the border. This number is expressed in
+  //! pixels, and represents the approximate distance of the axes from the sides
+  //! of the renderer. The default is 30.
   vtkSetClampMacro(TopBorderOffset, int, 5, VTK_INT_MAX);
   vtkGetMacro(TopBorderOffset,int);
 
-  // Description:
-  // Set/Get the offset of the left axis from the border. This number is expressed in
-  // pixels, and represents the approximate distance of the axes from the sides
-  // of the renderer. The default is 50.
+  //! Set/Get the offset of the left axis from the border. This number is expressed in
+  //! pixels, and represents the approximate distance of the axes from the sides
+  //! of the renderer. The default is 50.
   vtkSetClampMacro(LeftBorderOffset, int, 5, VTK_INT_MAX);
   vtkGetMacro(LeftBorderOffset,int);
 
-  // Description:
-  // Set/Get the offset of the bottom axis from the border. This number is expressed in
-  // pixels, and represents the approximate distance of the axes from the sides
-  // of the renderer. The default is 30.
+  //! Set/Get the offset of the bottom axis from the border. This number is expressed in
+  //! pixels, and represents the approximate distance of the axes from the sides
+  //! of the renderer. The default is 30.
   vtkSetClampMacro(BottomBorderOffset, int, 5, VTK_INT_MAX);
   vtkGetMacro(BottomBorderOffset,int);
 
-  // Description:
-  // Get/Set the corner offset. This is the offset factor used to offset the
-  // axes at the corners. Default value is 2.0.
+  //! Get/Set the corner offset. This is the offset factor used to offset the
+  //! axes at the corners. Default value is 2.0.
   vtkSetClampMacro(CornerOffsetFactor, double, 1.0, 10.0);
   vtkGetMacro(CornerOffsetFactor, double);
 
-  // Description:
-  // These are methods to retrieve the vtkAxisActors used to represent
-  // the four axes that form this representation. Users may retrieve and
-  // then modify these axes to control their appearance.
+  //! These are methods to retrieve the vtkAxisActors used to represent
+  //! the four axes that form this representation. Users may retrieve and
+  //! then modify these axes to control their appearance.
   vtkGetObjectMacro(LeftAxis,vtkAxisActor2D);
   vtkGetObjectMacro(BottomAxis,vtkAxisActor2D);
 
-  // Description:
-  // Standard methods supporting the rendering process.
+  //! Standard methods supporting the rendering process.
   virtual void BuildRepresentation(vtkViewport *viewport);
   void GetActors2D(vtkPropCollection*) override;
   void ReleaseGraphicsResources(vtkWindow*) override;
@@ -145,20 +132,23 @@ protected:
   int    BottomBorderOffset;
   double CornerOffsetFactor;
 
-  // The axes around the borders of the renderer
+  //! @{ The axes around the borders of the renderer
   vtkAxisActor2D *LeftAxis;
   vtkAxisActor2D *BottomAxis;
+  //! @}
 
-  // Control the display of the axes
+  //! @{ Control the display of the axes
   int LeftAxisVisibility;
   int BottomAxisVisibility;
+  //! @}
 
   vtkTimeStamp         BuildTime;
 
   vtkCoordinate * ReferenceCoordinate;
   vtkCoordinate * PositionCoordinate;
   vtkCoordinate * SizeCoordinate;
+
 private:
-  iARulerActor(const iARulerActor&);  //Not implemented
-  void operator=(const iARulerActor&);  //Not implemented
+  iARulerActor(const iARulerActor&) =delete;
+  void operator=(const iARulerActor&) =delete;
 };

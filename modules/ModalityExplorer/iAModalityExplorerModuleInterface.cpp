@@ -30,7 +30,7 @@ void iAModalityExplorerModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuMultiModalChannel = getMenuWithTitle( toolsMenu, QString( "Multi-Modal/-Channel Images" ), false );
 
 	QAction * actionModalitySPLOM = new QAction(QApplication::translate("MainWindow", "Modality SPLOM", 0), m_mainWnd);
@@ -39,9 +39,9 @@ void iAModalityExplorerModuleInterface::Initialize()
 }
 
 
-iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
 {
-	iAModalityExplorerAttachment* result = iAModalityExplorerAttachment::create( mainWnd, childData);
+	iAModalityExplorerAttachment* result = iAModalityExplorerAttachment::create( mainWnd, child);
 	return result;
 }
 
@@ -49,7 +49,6 @@ iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(M
 void iAModalityExplorerModuleInterface::ModalitySPLOM()
 {
 	PrepareActiveChild();
-	UpdateChildData();
 	bool result = AttachToMdiChild(m_mdiChild);
 	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
 	if (!result || !attach)

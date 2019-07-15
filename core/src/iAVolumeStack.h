@@ -39,23 +39,23 @@ class open_iA_Core_API iAVolumeStack
 		iAVolumeStack();
 		~iAVolumeStack();
 
-		vtkImageData* getVolume(int i);
+		vtkImageData* volume(int i);
 		void addVolume(vtkImageData* volume);
 		void addFileName(QString fileName);
-		QString getFileName(int i);
-		size_t getNumberOfVolumes();
+		QString fileName(int i);
+		size_t numberOfVolumes();
 		void addVolumeAt(vtkImageData* volume, int i);
 		void addColorTransferFunction(vtkColorTransferFunction* instance);
 		void addPiecewiseFunction(vtkPiecewiseFunction* instance);
-		vtkColorTransferFunction* getColorTransferFunction(int i);
-		vtkPiecewiseFunction* getPiecewiseFunction(int i);
-		std::vector<vtkSmartPointer<vtkImageData> > * GetVolumes();
-		std::vector<QString> * GetFileNames();
+		vtkColorTransferFunction* colorTF(int i);
+		vtkPiecewiseFunction* opacityTF(int i);
+		std::vector<vtkSmartPointer<vtkImageData> > * volumes();
+		std::vector<QString> * fileNames();
 
 	private:
-		int id;
-		std::vector<vtkSmartPointer<vtkImageData> > volumes;
-		std::vector<vtkColorTransferFunction*> colorTransferVector;
-		std::vector<vtkPiecewiseFunction*> piecewiseVector;
-		std::vector<QString> fileNameArray;
+		int m_id;
+		std::vector<vtkSmartPointer<vtkImageData> > m_volumes;
+		std::vector<vtkColorTransferFunction*> m_colorTFVector;
+		std::vector<vtkPiecewiseFunction*> m_opacityTFVector;
+		std::vector<QString> m_fileNameArray;
 };

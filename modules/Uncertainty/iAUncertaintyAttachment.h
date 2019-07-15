@@ -44,7 +44,7 @@ class iAUncertaintyAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	static iAUncertaintyAttachment* Create(MainWindow * mainWnd, iAChildData childData);
+	static iAUncertaintyAttachment* Create(MainWindow * mainWnd, MdiChild * child);
 	void ToggleDockWidgetTitleBars();
 	void ToggleSettings();
 	void CalculateNewSubEnsemble();
@@ -55,7 +55,7 @@ private slots:
 	void EnsembleSelected(QSharedPointer<iAEnsemble> ensemble);
 	void ContinueEnsembleLoading();
 private:
-	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
+	iAUncertaintyAttachment(MainWindow * mainWnd, MdiChild * child);
 	iAHistogramView * m_labelDistributionView, * m_uncertaintyDistributionView;
 	iAMemberView* m_memberView;
 	iAScatterPlotView* m_scatterplotView;

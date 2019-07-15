@@ -38,7 +38,7 @@ class QStandardItemModel;
 class QTextEdit;
 
 class iAAttributes;
-class iAChannelVisualizationData;
+class iAChannelData;
 class iAChartAttributeMapper;
 class iAColorTheme;
 class iAImageCoordinate;
@@ -73,10 +73,10 @@ public:
 		iAChartAttributeMapper const & mapper);
 
 	void SetCompareNode(iAImageTreeNode const * node);
-	int GetSliceNumber() const;
+	int sliceNumber() const;
 	void UpdateLikeHate(bool isLike, bool isHate);
 	bool IsShowingCluster() const;
-	void SetSliceNumber(int sliceNr);
+	void setSliceNumber(int sliceNr);
 	void SetMagicLensOpacity(double opacity);
 	void SetMagicLensCount(int count);
 	void UpdateMagicLensColors();
@@ -97,16 +97,16 @@ signals:
 protected:
 	virtual void paintEvent(QPaintEvent * );
 private slots:
-	void DblClicked();
-	void ChangeModality(int);
-	void ChangeMagicLensOpacity(int);
+	void dblClicked();
+	void changeModality(int);
+	void changeMagicLensOpacity(int);
 	void SlicerClicked(int, int, int);
 	void SlicerMouseMove(int x, int y, int z, int c);
 	void SlicerReleased(int x, int y, int z);
 	void TriggerResultFilterUpdate();
 	void ResetResultFilter();
 private:
-	void SetImage();
+	void setImage();
 	void AddResultFilterPixel(int x, int y, int z);
 	void AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf, QString const & name);
 	void UpdateComparisonNumbers();
@@ -131,13 +131,13 @@ private:
 	int m_magicLensCount;
 	iAColorTheme const * m_colorTheme;
 
-	int m_nextChannelID;
+	uint m_nextChannelID;
 
 	vtkSmartPointer<iAvtkImageData> m_resultFilterImg;
 	vtkSmartPointer<vtkLookupTable> m_resultFilterOverlayLUT;
 	vtkSmartPointer<vtkPiecewiseFunction> m_resultFilterOverlayOTF;
 	iAResultFilter m_resultFilter;
-	QSharedPointer<iAChannelVisualizationData> m_resultFilterChannel;
+	QSharedPointer<iAChannelData> m_resultFilterChannel;
 	int m_lastResultFilterX, m_lastResultFilterY, m_lastResultFilterZ;
 	iATimedEvent* m_resultFilterTriggerThread;
 	bool m_MouseButtonDown;

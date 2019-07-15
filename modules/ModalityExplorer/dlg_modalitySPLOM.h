@@ -55,4 +55,5 @@ private:
 	vtkSmartPointer<vtkColorTransferFunction> m_selection_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_selection_otf;
 	bool m_selected;
+	uint m_SPLOMSelectionChannelID;
 };

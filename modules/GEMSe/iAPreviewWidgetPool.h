@@ -36,25 +36,25 @@ public:
 	//! create a pool with the given amount of widgets
 	iAPreviewWidgetPool(int maxWidgets, vtkCamera* camera, iASlicerMode slicerMode, int labelCount, iAColorTheme const * colorTheme);
 	//! retrieve a widget from the pool
-	iAImagePreviewWidget* GetWidget(QWidget* parent, bool magicLens=false);
+	iAImagePreviewWidget* getWidget(QWidget* parent, bool magicLens=false);
 	//! return widget to the pool (because it is not used anymore)
 	//! hides the widget
-	void ReturnWidget(iAImagePreviewWidget*);
+	void returnWidget(iAImagePreviewWidget*);
 	//! set slicer mode for all widgets
-	void SetSlicerMode(iASlicerMode mode, int sliceNr, vtkCamera* camera);
+	void setSlicerMode(iASlicerMode mode, int sliceNr, vtkCamera* camera);
 	//! change the shown slice number
-	void SetSliceNumber(int sliceNr);
+	void setSliceNumber(int sliceNr);
 	//! update all views
-	void UpdateViews();
+	void updateViews();
 	//! retrieve the number of currently available widgets
-	int Capacity();
-	void SetColorTheme(iAColorTheme const * colorTheme);
+	int capacity();
+	void setColorTheme(iAColorTheme const * colorTheme);
 private:
 	QVector<iAImagePreviewWidget*> m_pool;
 	QVector<iAImagePreviewWidget*> m_visible;
 	vtkCamera*   m_commonCamera;
 	iASlicerMode m_slicerMode;
-	int m_sliceNumber[SlicerModeCount];
+	int m_sliceNumber[SlicerCount];
 	int m_maxWidgets;
 	int m_labelCount;
 	iAColorTheme const * m_colorTheme;

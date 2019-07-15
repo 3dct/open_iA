@@ -62,22 +62,22 @@ template<class TPixelType> void flip(iAFilter* filter, QString const & axis)
 	auto flipFilter = FilterType::New();
 	typename FilterType::FlipAxesArrayType flip;
 	typename ImageType::PointType origin;
-	center_image<ImageType>(dynamic_cast<ImageType *>(filter->Input()[0]->GetITKImage()), &origin);
-	flipFilter->SetInput(dynamic_cast<ImageType *>(filter->Input()[0]->GetITKImage()));
+	center_image<ImageType>(dynamic_cast<ImageType *>(filter->input()[0]->itkImage()), &origin);
+	flipFilter->SetInput(dynamic_cast<ImageType *>(filter->input()[0]->itkImage()));
 	flip[0] = (axis == "X");
 	flip[1] = (axis == "Y");
 	flip[2] = (axis == "Z");
 	flipFilter->SetFlipAxes(flip);
-	filter->Progress()->Observe(flipFilter);
+	filter->progress()->Observe(flipFilter);
 	flipFilter->Update();
 	ImageType * outImage = flipFilter->GetOutput();
 	outImage->SetOrigin(origin);
-	filter->AddOutput(outImage);
+	filter->addOutput(outImage);
 }
 
-void iAFlipAxis::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAFlipAxis::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(flip, InputPixelType(), this, parameters["Flip axis"].toString());
+	ITK_TYPED_CALL(flip, inputPixelType(), this, parameters["Flip axis"].toString());
 }
 
 IAFILTER_CREATE(iAFlipAxis)
@@ -90,7 +90,7 @@ iAFlipAxis::iAFlipAxis() :
 		"Flip Filter</a> in the ITK documentation.")
 {
 	QStringList flipAxis = { "X", "Y", "Z" };
-	AddParameter("Flip axis", Categorical, flipAxis);
+	addParameter("Flip axis", Categorical, flipAxis);
 }
 
 
@@ -101,7 +101,7 @@ static void affine(iAFilter* filter, itk::AffineTransform<TPrecision, DIM> * tra
 	typedef itk::Image<TPixelType, DIM>         			ImageType;
 	typedef itk::ResampleImageFilter<ImageType, ImageType, TPrecision>	FilterType;
 
-	ImageType * inpImage = dynamic_cast<ImageType *>(filter->Input()[0]->GetITKImage());
+	ImageType * inpImage = dynamic_cast<ImageType *>(filter->input()[0]->itkImage());
 	auto inpOrigin = inpImage->GetOrigin();
 	auto inpSize = inpImage->GetLargestPossibleRegion().GetSize();
 	auto inpSpacing = inpImage->GetSpacing();
@@ -113,9 +113,9 @@ static void affine(iAFilter* filter, itk::AffineTransform<TPrecision, DIM> * tra
 	resample->SetOutputDirection(inpImage->GetDirection());
 	resample->SetInput(inpImage);
 	resample->SetTransform(transform);
-	filter->Progress()->Observe(resample);
+	filter->progress()->Observe(resample);
 	resample->Update();
-	filter->AddOutput(resample->GetOutput());
+	filter->addOutput(resample->GetOutput());
 }
 
 typedef double TPrecision;
@@ -139,7 +139,7 @@ static void rotate(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	rotationAxis[2] = parameters["Rotation axis"].toString() == "Rotation along Z" ? 1 : 0;
 
 	//get rotation center
-	ImageType * inpImage = dynamic_cast<ImageType *>(filter->Input()[0]->GetITKImage());
+	ImageType * inpImage = dynamic_cast<ImageType *>(filter->input()[0]->itkImage());
 	if (parameters["Rotation center"] == "Image center")
 	{
 		center = image_center(inpImage);
@@ -165,9 +165,9 @@ static void rotate(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	affine<TPixelType, TPrecision>(filter, transform);
 }
 
-void iARotate::PerformWork(QMap<QString, QVariant> const & parameters)
+void iARotate::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(rotate, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(rotate, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iARotate)
@@ -181,14 +181,14 @@ iARotate::iARotate() :
 		"https://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
 		"Resample Image Filter</a> in the ITK documentation.")
 {
-	AddParameter("Rotation angle", Continuous, 0.0, 0.0, 360.0);
+	addParameter("Rotation angle", Continuous, 0.0, 0.0, 360.0);
 	QStringList rotAxes = QStringList() << "Rotation along X" << "Rotation along Y" << "Rotation along Z";
-	AddParameter("Rotation axis", Categorical, rotAxes);
+	addParameter("Rotation axis", Categorical, rotAxes);
 	QStringList rotCenter = QStringList() << "Image center" << "Origin" << "Specify coordinate";
-	AddParameter("Rotation center", Categorical, rotCenter);
-	AddParameter("Center X", Continuous, 0);
-	AddParameter("Center Y", Continuous, 0);
-	AddParameter("Center Z", Continuous, 0);
+	addParameter("Rotation center", Categorical, rotCenter);
+	addParameter("Center X", Continuous, 0);
+	addParameter("Center Y", Continuous, 0);
+	addParameter("Center Z", Continuous, 0);
 }
 
 
@@ -206,9 +206,9 @@ static void translate(iAFilter* filter, QMap<QString, QVariant> const & paramete
 	affine<TPixelType, TPrecision>(filter, transform);
 }
 
-void iATranslate::PerformWork(QMap<QString, QVariant> const & parameters)
+void iATranslate::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(translate, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(translate, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iATranslate)
@@ -223,9 +223,9 @@ iATranslate::iATranslate() :
 		"https://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
 		"Resample Image Filter</a> in the ITK documentation.")
 {
-	AddParameter("Translate X", Continuous, 0);
-	AddParameter("Translate Y", Continuous, 0);
-	AddParameter("Translate Z", Continuous, 0);
+	addParameter("Translate X", Continuous, 0);
+	addParameter("Translate Y", Continuous, 0);
+	addParameter("Translate Z", Continuous, 0);
 }
 
 
@@ -236,21 +236,21 @@ template<class TPixelType> void permute(iAFilter* filter, QString  const & order
 
 	auto permFilter = FilterType::New();
 	typename FilterType::PermuteOrderArrayType order;
-	permFilter->SetInput(dynamic_cast<ImageType *>(filter->Input()[0]->GetITKImage()));
+	permFilter->SetInput(dynamic_cast<ImageType *>(filter->input()[0]->itkImage()));
 	for (int k = 0; k < 3; k++)
 	{
 		char axes = orderStr.at(k).toUpper().toLatin1();
 		order[k] = axes - QChar('X').toLatin1();
 	}
 	permFilter->SetOrder(order);
-	filter->Progress()->Observe(permFilter);
+	filter->progress()->Observe(permFilter);
 	permFilter->Update();
-	filter->AddOutput(permFilter->GetOutput());
+	filter->addOutput(permFilter->GetOutput());
 }
 
-void iAPermuteAxes::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAPermuteAxes::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(permute, InputPixelType(), this, parameters["Order"].toString());
+	ITK_TYPED_CALL(permute, inputPixelType(), this, parameters["Order"].toString());
 }
 
 IAFILTER_CREATE(iAPermuteAxes)
@@ -265,5 +265,5 @@ iAPermuteAxes::iAPermuteAxes() :
 		"Permute Axes Filter</a> in the ITK documentation.")
 {
 	QStringList permutationOrder = QStringList() << "XZY" << "YXZ" << "YZX" << "ZXY" << "ZYX";
-	AddParameter("Order", Categorical, permutationOrder);
+	addParameter("Order", Categorical, permutationOrder);
 }

@@ -31,23 +31,23 @@ public:
 	~iARangeSliderDiagramData();
 	void updateRangeSliderFunction();
 	
-	DataType const * GetRawData() const override;
-	size_t GetNumBin() const override;
+	DataType const * rawData() const override;
+	size_t numBin() const override;
 
-	double GetSpacing() const override
+	double spacing() const override
 	{
-		if ( GetNumBin() <= 1 )
+		if ( numBin() <= 1 )
 			return 0.0;
 		
-		return ( m_xBounds[1] - m_xBounds[0] ) / (GetNumBin() - 1.0);
+		return ( m_xBounds[1] - m_xBounds[0] ) / (numBin() - 1.0);
 	}
 
-	double const * XBounds() const override
+	double const * xBounds() const override
 	{
 		return m_xBounds;
 	}
 
-	DataType const * YBounds() const override
+	DataType const * yBounds() const override
 	{
 		return m_yBounds;
 	}

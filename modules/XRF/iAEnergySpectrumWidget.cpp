@@ -207,6 +207,7 @@ void iAEnergySpectrumWidget::drawAfterPlots(QPainter& painter)
 			}
 		}
 	}
+	iADiagramFctWidget::drawAfterPlots(painter);
 }
 
 void iAEnergySpectrumWidget::NotifySelectionUpdateListener()

@@ -30,10 +30,10 @@
 #include <iAMathUtility.h>
 #include <iAModuleDispatcher.h>
 
+#include <QAbstractTextDocumentLayout>
 #include <QDir>
 #include <QKeyEvent>
 #include <QMenu>
-#include <QAbstractTextDocumentLayout>
 
 //openMP
 #ifndef __APPLE__

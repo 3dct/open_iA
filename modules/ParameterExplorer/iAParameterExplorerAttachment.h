@@ -22,7 +22,6 @@
 
 #include <QVector>
 
-class iAChildData;
 class iADockWidgetWrapper;
 
 class iAParamFeaturesView;
@@ -35,7 +34,7 @@ class QSettings;
 class iAParameterExplorerAttachment : public iAModuleAttachmentToChild
 {
 public:
-	static iAParameterExplorerAttachment* create(MainWindow * mainWnd, iAChildData childData);
+	static iAParameterExplorerAttachment* create(MainWindow * mainWnd, MdiChild * child);
 	void LoadCSV(QString const & fileName);
 	void ToggleDockWidgetTitleBars();
 	void ToggleSettings(bool visible);
@@ -44,7 +43,7 @@ public:
 	void LoadSettings(QSettings const & settings);
 	QString const & CSVFileName() const;
 private:
-	iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData);
+	iAParameterExplorerAttachment(MainWindow * mainWnd, MdiChild * child);
 	iAParamSPLOMView* m_SPLOMView;
 	iAParamSpatialView* m_spatialView;
 	iAParamTableView* m_tableView;

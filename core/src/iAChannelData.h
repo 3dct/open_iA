@@ -22,46 +22,59 @@
 
 #include "open_iA_Core_export.h"
 
-#include <QObject>
+#include <vtkSmartPointer.h>
 
-#include "open_iA_Core_export.h"
+#include <QString>
 
-class QColor;
-class QMouseEvent;
-class QPainter;
-class iADiagramFctWidget;
+class vtkImageData;
+class vtkPiecewiseFunction;
+class vtkScalarsToColors;
 
-class open_iA_Core_API dlg_function: public QObject
+
+class open_iA_Core_API iAChannelData
 {
-	Q_OBJECT
 public:
-	static const int TRANSFER = 0;
-	static const int GAUSSIAN = 1;
-	static const int BEZIER   = 2;
+	static const size_t Maximum3DChannels = 3;
 
-	dlg_function(iADiagramFctWidget* chart) : chart(chart) { }
+	iAChannelData();
+	iAChannelData(QString const & name, vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf=nullptr);
+	virtual ~iAChannelData();
 
-	virtual int getType() = 0;
+	virtual void reset();
+	void setData(vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
 
-	virtual void draw(QPainter &painter) = 0;
-	virtual void draw(QPainter &painter, QColor color, int lineWidth) = 0;
-	virtual void drawOnTop(QPainter &painter) = 0;
+	void setOpacity(double opacity);
+	double opacity() const;
 
-	virtual int selectPoint(QMouseEvent *event, int *x = 0) = 0;
-	virtual int getSelectedPoint() = 0;
-	virtual int addPoint(int x, int y) = 0;
-	virtual void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) = 0;
-	virtual void removePoint(int index) = 0;
-	virtual void moveSelectedPoint(int x, int y) = 0;
-	virtual void changeColor(QMouseEvent *event) = 0;
+	bool isEnabled() const;
+	void setEnabled(bool enabled);
 
-	virtual bool isColored() = 0;
-	virtual bool isEndPoint(int index) = 0;
-	virtual bool isDeletable(int index) = 0;
+	bool uses3D() const;
+	void set3D(bool enabled);
 
-	virtual void reset() = 0;
-	virtual void mouseReleaseEvent(QMouseEvent *event) {}
-	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *event) {}
+	void setImage(vtkSmartPointer<vtkImageData> image);
+	void setColorTF(vtkScalarsToColors* cTF);
+	void setOpacityTF(vtkPiecewiseFunction* oTF);
 
-	iADiagramFctWidget *chart;
+	void setName(QString name);
+	QString const & name() const;
+
+	// check if this can be somehow refactored (not needed for each kind of channel):
+	// begin
+	bool isSimilarityRenderingEnabled() const;
+	void setSimilarityRenderingEnabled(bool enabled);
+	// end
+
+	vtkSmartPointer<vtkImageData> image() const;
+	vtkPiecewiseFunction * opacityTF() const;
+	vtkScalarsToColors * colorTF() const;
+private:
+	bool m_enabled;
+	double m_opacity;
+	bool m_threeD;
+	bool m_similarityRenderingEnabled;
+	vtkSmartPointer<vtkImageData>       m_image;
+	vtkScalarsToColors*                 m_cTF;
+	vtkPiecewiseFunction*               m_oTF;
+	QString                             m_name;
 };

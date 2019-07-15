@@ -31,7 +31,7 @@ public:
 	iAListNameMapper(QStringList const & names) :
 		m_names(names)
 	{}
-	virtual QString GetName(int idx) const
+	virtual QString name(int idx) const
 	{
 		return m_names[idx];
 	}

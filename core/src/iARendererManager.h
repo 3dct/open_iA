@@ -24,34 +24,27 @@
 
 #include <QVector>
 
-//forward declaration
 class vtkRenderer;
 class vtkObject;
 class vtkCamera;
 
-// the class is singleton
+//! Class synchronizing the camera between multiple renderers
+//! 
 class open_iA_Core_API iARendererManager
 {
 public:
-// 	static iARendererManager&	getInstance () {
-// 		static iARendererManager instance;
-// 		return instance;
-// 	}
-				iARendererManager();
-	void		addToBundle(vtkRenderer* renderer);
-	bool		removeFromBundle(vtkRenderer* renderer);
-	void		removeAll();
+	iARendererManager();
+	void addToBundle(vtkRenderer* renderer);
+	bool removeFromBundle(vtkRenderer* renderer);
+	void removeAll();
 
 private:
-// 							iARendererManager();
-// 							iARendererManager(const iARendererManager&);
-// 	iARendererManager&		operator=(const iARendererManager&);
+	iARendererManager(const iARendererManager&) =delete;
+	iARendererManager& operator=(const iARendererManager&) =delete;
 
-	void					redrawOtherRenderers(vtkObject* caller,
-												 long unsigned int eventId,
-												 void* callData);
+	void redrawOtherRenderers(vtkObject* caller, long unsigned int eventId, void* callData);
 
-	QVector<vtkRenderer*>	m_renderers;
-	int						m_isRedrawn;
-	vtkCamera*				m_commonCamera;
+	QVector<vtkRenderer*> m_renderers;
+	int m_isRedrawn;
+	vtkCamera* m_commonCamera;
 };

@@ -44,7 +44,7 @@ void iAFeatureScoutModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionFibreScout = new QAction( QObject::tr("FeatureScout"), nullptr );
 	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreScout, false );
 	connect(actionFibreScout, SIGNAL(triggered()), this, SLOT(FeatureScout()));
@@ -54,14 +54,14 @@ void iAFeatureScoutModuleInterface::Initialize()
 void iAFeatureScoutModuleInterface::FeatureScout()
 {
 	bool volumeDataAvailable = m_mainWnd->activeMdiChild() &&
-		m_mainWnd->activeMdiChild()->GetModalities()->size() > 0 &&
-		m_mainWnd->activeMdiChild()->IsVolumeDataLoaded();
+		m_mainWnd->activeMdiChild()->modalities()->size() > 0 &&
+		m_mainWnd->activeMdiChild()->isVolumeDataLoaded();
 	dlg_CSVInput dlg(volumeDataAvailable);
 	if (m_mainWnd->activeMdiChild())
 	{
 		auto mdi = m_mainWnd->activeMdiChild();
-		QString testCSVFileName = mdi->getFileInfo().canonicalPath() + "/" +
-				mdi->getFileInfo().completeBaseName() + ".csv";
+		QString testCSVFileName = mdi->fileInfo().canonicalPath() + "/" +
+				mdi->fileInfo().completeBaseName() + ".csv";
 		if (QFile(testCSVFileName).exists())
 		{
 			dlg.setFileName(testCSVFileName);
@@ -70,7 +70,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 				dlg.setFormat(type == Voids ? iACsvConfig::LegacyVoidFormat : iACsvConfig::LegacyFiberFormat);
 		}
 		else
-			dlg.setPath(mdi->getFilePath());
+			dlg.setPath(mdi->filePath());
 	}
 	if (dlg.exec() != QDialog::Accepted)
 		return;
@@ -153,8 +153,8 @@ void iAFeatureScoutModuleInterface::SetupToolbar()
 
 void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 {
-	iARenderSettings FS_RenderSettings = m_mdiChild->GetRenderSettings();
-	iAVolumeSettings FS_VolumeSettings = m_mdiChild->GetVolumeSettings();
+	iARenderSettings FS_RenderSettings = m_mdiChild->renderSettings();
+	iAVolumeSettings FS_VolumeSettings = m_mdiChild->volumeSettings();
 	FS_RenderSettings.ParallelProjection = true;
 	FS_RenderSettings.ShowHelpers = true;
 	FS_RenderSettings.ShowRPosition = true;
@@ -187,7 +187,7 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		m_mdiChild->addMsg( "Error while attaching FeatureScout to mdi child window!" );
 		return false;
 	}
-	attach->init(csvConfig.objectType, csvConfig.fileName, creator.getTable(), csvConfig.visType, io.getOutputMapping());
+	attach->init(csvConfig.objectType, csvConfig.fileName, creator.table(), csvConfig.visType, io.getOutputMapping());
 	SetupToolbar();
 	m_mdiChild->addStatusMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
 	m_mdiChild->addMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
@@ -237,7 +237,7 @@ void iAFeatureScoutModuleInterface::onChildClose()
 	tlbFeatureScout = nullptr;
 }
 
-iAModuleAttachmentToChild * iAFeatureScoutModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )
+iAModuleAttachmentToChild * iAFeatureScoutModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild * child )
 {
-	return new iAFeatureScoutAttachment( mainWnd, childData );
+	return new iAFeatureScoutAttachment( mainWnd, child );
 }

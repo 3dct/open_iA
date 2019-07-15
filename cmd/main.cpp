@@ -27,7 +27,7 @@
 
 int main(int argc, char *argv[])
 {
-	iAGlobalLogger::SetLogger(iAStdOutLogger::Get());
+	iAGlobalLogger::setLogger(iAStdOutLogger::get());
 	QFileInfo fi(argv[0]);
 	CheckSCIFIO(fi.absolutePath());
 	return ProcessCommandLine(argc, argv, VERSION);

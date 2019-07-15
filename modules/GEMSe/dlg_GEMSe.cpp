@@ -103,25 +103,25 @@ void dlg_GEMSe::SetTree(
 	}
 	m_selectedCluster = imageTree->m_root;
 	m_selectedLeaf = 0;
-	m_cameraWidget = new iACameraWidget(this, originalImage, imageTree->GetLabelCount(), iACameraWidget::GridLayout);
+	m_cameraWidget = new iACameraWidget(this, originalImage, imageTree->labelCount(), iACameraWidget::GridLayout);
 	wdCamera->layout()->addWidget(m_cameraWidget);
 
 	m_previewWidgetPool = new iAPreviewWidgetPool(
-		MaxPreviewWidgets, m_cameraWidget->GetCommonCamera(), iASlicerMode::XY, imageTree->GetLabelCount(), m_colorTheme);
+		MaxPreviewWidgets, m_cameraWidget->commonCamera(), iASlicerMode::XY, imageTree->labelCount(), m_colorTheme);
 
-	m_nullImage = AllocateImage(imageTree->m_root->GetRepresentativeImage(iARepresentativeType::Difference,
+	m_nullImage = allocateImage(imageTree->m_root->GetRepresentativeImage(iARepresentativeType::Difference,
 		LabelImagePointer()));
 
 	m_treeView = new iAImageTreeView(wdTree, imageTree, m_previewWidgetPool, m_representativeType);
 	m_treeView->AddSelectedNode(m_selectedCluster, false);
 
-	m_detailView = new iADetailView(m_previewWidgetPool->GetWidget(this, true),
-		m_previewWidgetPool->GetWidget(this, false),
+	m_detailView = new iADetailView(m_previewWidgetPool->getWidget(this, true),
+		m_previewWidgetPool->getWidget(this, false),
 		m_nullImage, modalities, *labelInfo,
 		m_colorTheme, m_representativeType,
 		wdDetails);
 	m_detailView->SetNode(m_selectedCluster.data(), m_chartAttributes, m_chartAttributeMapper);
-	m_previewWidgetPool->SetSliceNumber(m_detailView->GetSliceNumber());
+	m_previewWidgetPool->setSliceNumber(m_detailView->sliceNumber());
 	wdImagePreview->layout()->addWidget(m_detailView);
 
 	int extent[6];
@@ -154,7 +154,7 @@ void dlg_GEMSe::SetTree(
 	wdProbing->layout()->addWidget(m_probingWidget);
 
 	connect(m_cameraWidget, SIGNAL(ModeChanged(iASlicerMode, int)), this, SLOT(SlicerModeChanged(iASlicerMode, int)));
-	connect(m_treeView, SIGNAL(Clicked(QSharedPointer<iAImageTreeNode>)), this, SLOT(ClusterNodeClicked(QSharedPointer<iAImageTreeNode>)));
+	connect(m_treeView, SIGNAL(clicked(QSharedPointer<iAImageTreeNode>)), this, SLOT(ClusterNodeClicked(QSharedPointer<iAImageTreeNode>)));
 	connect(m_treeView, SIGNAL(ImageClicked(QSharedPointer<iAImageTreeNode>)), this, SLOT(ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode>)));
 	connect(m_treeView, SIGNAL(ImageRightClicked(iAImageTreeNode *)), this, SLOT(CompareAlternateSelected(iAImageTreeNode *)));
 	connect(m_treeView, SIGNAL(Expanded(QSharedPointer<iAImageTreeNode>)), this, SLOT(SelectCluster(QSharedPointer<iAImageTreeNode>)));
@@ -167,8 +167,8 @@ void dlg_GEMSe::SetTree(
 	connect(m_detailView, SIGNAL(GoToCluster()), this, SLOT(GoToCluster()));
 	connect(m_detailView, SIGNAL(ResultFilterUpdate()), this, SLOT(UpdateResultFilter()));
 	connect(m_cameraWidget, SIGNAL(SliceChanged(int)), this, SLOT(SliceNumberChanged(int)));
-	connect(m_favoriteWidget, SIGNAL(Clicked(iAImageTreeNode *)), this, SLOT(FavoriteClicked(iAImageTreeNode *)));
-	connect(m_favoriteWidget, SIGNAL(RightClicked(iAImageTreeNode *)), this, SLOT(CompareAlternateSelected(iAImageTreeNode *)));
+	connect(m_favoriteWidget, SIGNAL(clicked(iAImageTreeNode *)), this, SLOT(FavoriteClicked(iAImageTreeNode *)));
+	connect(m_favoriteWidget, SIGNAL(rightClicked(iAImageTreeNode *)), this, SLOT(CompareAlternateSelected(iAImageTreeNode *)));
 	connect(m_histogramContainer, SIGNAL(ChartSelectionUpdated()), this, SLOT(HistogramSelectionUpdated()));
 	connect(m_histogramContainer, SIGNAL(FilterChanged(int, double, double)), this, SLOT(FilterChanged(int, double, double)));
 	connect(m_histogramContainer, SIGNAL(ChartDblClicked(int)), this, SLOT(ChartDblClicked(int)));
@@ -191,7 +191,7 @@ void dlg_GEMSe::CreateMapper()
 	for (int samplingIdx=0; samplingIdx<m_samplings->size(); ++samplingIdx)
 	{
 		QSharedPointer<iASamplingResults> sampling = m_samplings->at(samplingIdx);
-		m_pipelineNames.push_back(sampling->GetName());
+		m_pipelineNames.push_back(sampling->name());
 		int datasetID = sampling->GetID();
 		QSharedPointer<iAAttributes> attributes = sampling->GetAttributes();
 		for (int attributeID = 0; attributeID < attributes->size(); ++attributeID)
@@ -201,21 +201,21 @@ void dlg_GEMSe::CreateMapper()
 			
 			// check if previous datasets have an attribute with the same name
 			if (samplingIdx > 0 &&
-				attribute->AttribType() ==
+				attribute->attribType() ==
 				iAAttributeDescriptor::DerivedOutput) // at the moment for derived output only
 			{
-				chartID = m_chartAttributes->Find(attribute->Name());
+				chartID = m_chartAttributes->find(attribute->name());
 			}
 			if (chartID != -1)
 			{	// reuse existing chart, only add mapping:
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
 				// and update min/max:
-				m_chartAttributes->at(chartID)->AdjustMinMax(attribute->Min());
-				m_chartAttributes->at(chartID)->AdjustMinMax(attribute->Max());
+				m_chartAttributes->at(chartID)->adjustMinMax(attribute->min());
+				m_chartAttributes->at(chartID)->adjustMinMax(attribute->max());
 			}
 			else
 			{	// add chart and mapping:
-				m_chartAttributes->Add(attribute);
+				m_chartAttributes->add(attribute);
 				chartID = nextChartID;
 				nextChartID++;
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
@@ -331,10 +331,10 @@ void dlg_GEMSe::HistogramSelectionUpdated()
 	m_scatterplot->SetDataSource(
 		m_histogramContainer->GetSelectedChartID(0),
 		m_histogramContainer->GetSelectedChartID(1),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->Name(),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->Name(),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->IsLogScale(),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->IsLogScale(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->name(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->name(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->isLogScale(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->isLogScale(),
 		m_chartAttributeMapper,
 		m_chartFilter,
 		GetRoot().data(),
@@ -380,7 +380,7 @@ void dlg_GEMSe::UpdateFilteredData()
 
 void dlg_GEMSe::FilterChanged(int chartID, double min, double max)
 {
-	if (m_chartAttributes->at(chartID)->CoversWholeRange(min, max))
+	if (m_chartAttributes->at(chartID)->coversWholeRange(min, max))
 	{
 		m_chartFilter.RemoveFilter(chartID);
 	}
@@ -544,21 +544,21 @@ void dlg_GEMSe::GoToCluster()
 
 void dlg_GEMSe::SliceNumberChanged(int sliceNr)
 {
-	m_previewWidgetPool->SetSliceNumber(sliceNr);
-	m_detailView->SetSliceNumber(sliceNr);
+	m_previewWidgetPool->setSliceNumber(sliceNr);
+	m_detailView->setSliceNumber(sliceNr);
 }
 
 
 void dlg_GEMSe::SlicerModeChanged(iASlicerMode mode, int sliceNr)
 {
-	m_previewWidgetPool->SetSlicerMode(mode, sliceNr, m_cameraWidget->GetCommonCamera());
+	m_previewWidgetPool->setSlicerMode(mode, sliceNr, m_cameraWidget->commonCamera());
 }
 
 
 void dlg_GEMSe::UpdateViews()
 {
-	m_cameraWidget->UpdateView();
-	m_previewWidgetPool->UpdateViews();
+	m_cameraWidget->updateView();
+	m_previewWidgetPool->updateViews();
 }
 
 
@@ -569,7 +569,7 @@ void dlg_GEMSe::ShowImage(vtkSmartPointer<vtkImageData> imgData)
 		DEBUG_LOG("ShowImage: Camera Widget not set!");
 		return;
 	}
-	m_cameraWidget->ShowImage(imgData);
+	m_cameraWidget->showImage(imgData);
 }
 
 
@@ -627,7 +627,7 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelI
 			int chartID = m_MeasureChartIDStart + i;
 			int attributeID = m_chartAttributeMapper.GetAttributeID(chartID, leaf->GetDatasetID());
 			leaf->SetAttribute(attributeID, measures[i]);
-			m_chartAttributes->at(chartID)->AdjustMinMax(measures[i]);
+			m_chartAttributes->at(chartID)->adjustMinMax(measures[i]);
 		}
 	}
 	else
@@ -651,8 +651,8 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 	{
 		return;
 	}
-	int labelCount = m_treeView->GetTree()->GetLabelCount();
-	m_MeasureChartIDStart = m_chartAttributes->Find("Dice");
+	int labelCount = m_treeView->GetTree()->labelCount();
+	m_MeasureChartIDStart = m_chartAttributes->find("Dice");
 	if (m_MeasureChartIDStart == -1)
 	{
 		QVector<QSharedPointer<iAAttributeDescriptor> > measures;
@@ -675,21 +675,21 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
 		{
 			int chartID = m_chartAttributes->size();
-			m_chartAttributes->Add(measure);
+			m_chartAttributes->add(measure);
 			// add mappings:
 			for (int sampleIdx = 0; sampleIdx < m_samplings->size(); ++sampleIdx)
 			{
 				QSharedPointer<iAAttributes> attribs = m_samplings->at(sampleIdx)->GetAttributes();
 				int attributeID = attribs->size();
 				int datasetID = m_samplings->at(sampleIdx)->GetID();
-				attribs->Add(measure);
+				attribs->add(measure);
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
 			}
 		}
 	}
 	for (int i= m_MeasureChartIDStart; i<m_MeasureChartIDStart + 5 +labelCount; ++i)
 	{
-		m_chartAttributes->at(i)->ResetMinMax();
+		m_chartAttributes->at(i)->resetMinMax();
 	}
 
 	//DEBUG_LOG("Measures for ENSEMBLE:");
@@ -701,12 +701,12 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 }
 
 
-void dlg_GEMSe::SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const * labelInfo)
+void dlg_GEMSe::setColorTheme(iAColorTheme const * colorTheme, iALabelInfo const * labelInfo)
 {
 	m_colorTheme = colorTheme;
 	if (m_previewWidgetPool)
 	{
-		m_previewWidgetPool->SetColorTheme(colorTheme);
+		m_previewWidgetPool->setColorTheme(colorTheme);
 	}
 	if (m_detailView)
 	{

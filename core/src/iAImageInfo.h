@@ -34,7 +34,7 @@ public:
 	double max() const  { return m_max; }
 	double mean() const { return m_mean; }
 	double standardDeviation() const { return m_stdDev; }
-	bool computing() const { return m_computing; }
+	bool isComputing() const { return m_computing; }
 	void setComputing() const { m_computing = true; }
 private:
 	size_t m_voxelCount;

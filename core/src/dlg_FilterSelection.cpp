@@ -33,8 +33,8 @@ dlg_FilterSelection::dlg_FilterSelection(QWidget * parent, QString const & prese
 		this, SLOT(ListSelectionChanged(QListWidgetItem *, QListWidgetItem *)));
 	connect(lwFilterList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(accept()));
 	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-	for (auto filterFactory : iAFilterRegistry::FilterFactories())
-		lwFilterList->addItem(filterFactory->Create()->Name());
+	for (auto filterFactory : iAFilterRegistry::filterFactories())
+		lwFilterList->addItem(filterFactory->create()->name());
 	if (!preselectedFilter.isEmpty())
 	{
 		auto matching = lwFilterList->findItems(preselectedFilter, Qt::MatchExactly);

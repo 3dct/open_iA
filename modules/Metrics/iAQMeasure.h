@@ -29,9 +29,9 @@ class MdiChild;
 class iAQMeasure : public iAFilter
 {
 public:
-	static QSharedPointer<iAQMeasure> Create();
-	void PerformWork(QMap<QString, QVariant> const & parameters) override;
-	void SetupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild);
+	static QSharedPointer<iAQMeasure> create();
+	void performWork(QMap<QString, QVariant> const & parameters) override;
+	void setupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild);
 	iAChartWidget* m_chart;
 	MdiChild* m_mdiChild;
 private:
@@ -42,8 +42,8 @@ private:
 class iAQMeasureRunner : public iAFilterRunnerGUI
 {
 public:
-	static QSharedPointer<iAFilterRunnerGUI> Create();
-	void FilterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd) override;
+	static QSharedPointer<iAFilterRunnerGUI> create();
+	void filterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd) override;
 };
 
 

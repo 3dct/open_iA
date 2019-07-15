@@ -32,4 +32,4 @@ class QString;
 //! @param vertices the vertices of the mesh
 //! @param box the bounding box of the mesh
 //! @return 0 if reading succeeded, otherwise an error code
-int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std::vector<iAVec3f*> & vertices, aabb & box);
+int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, std::vector<iAVec3f*> & vertices, iAaabb & box);

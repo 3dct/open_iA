@@ -33,8 +33,8 @@ void CalculateSegmentationMetrics(iAFilter* filter)
 	typedef typename ImageType::Pointer ImagePointer;
 	typedef itk::LabelOverlapMeasuresImageFilter<ImageType > DiceFilterType;
 	auto diceFilter = DiceFilterType::New();
-	ImagePointer groundTruthPtr = dynamic_cast<ImageType*>(filter->Input()[0]->GetITKImage());
-	ImagePointer segmentedPtr = dynamic_cast<ImageType*>(filter->Input()[1]->GetITKImage());
+	ImagePointer groundTruthPtr = dynamic_cast<ImageType*>(filter->input()[0]->itkImage());
+	ImagePointer segmentedPtr = dynamic_cast<ImageType*>(filter->input()[1]->itkImage());
 	if (!groundTruthPtr || !segmentedPtr)
 	{
 		DEBUG_LOG("Input images do not have the same type, but are required to!");
@@ -44,12 +44,12 @@ void CalculateSegmentationMetrics(iAFilter* filter)
 	diceFilter->SetTargetImage(segmentedPtr);
 	diceFilter->Update();
 
-	filter->AddOutputValue("Total Overlap", diceFilter->GetTotalOverlap());
-	filter->AddOutputValue("Union Overlap (Jaccard)", diceFilter->GetUnionOverlap());
-	filter->AddOutputValue("Mean Overlap (Dice)", diceFilter->GetMeanOverlap());
-	filter->AddOutputValue("Volume Similarity", diceFilter->GetVolumeSimilarity());
-	//filter->AddOutputValue("False negatives", diceFilter->GetFalseNegativeError());
-	//filter->AddOutputValue("False positives", diceFilter->GetFalsePositiveError());
+	filter->addOutputValue("Total Overlap", diceFilter->GetTotalOverlap());
+	filter->addOutputValue("Union Overlap (Jaccard)", diceFilter->GetUnionOverlap());
+	filter->addOutputValue("Mean Overlap (Dice)", diceFilter->GetMeanOverlap());
+	filter->addOutputValue("Volume Similarity", diceFilter->GetVolumeSimilarity());
+	//filter->addOutputValue("False negatives", diceFilter->GetFalseNegativeError());
+	//filter->addOutputValue("False positives", diceFilter->GetFalsePositiveError());
 
 	typename DiceFilterType::MapType labelMap = diceFilter->GetLabelSetMeasures();
 	typename DiceFilterType::MapType::const_iterator it;
@@ -60,12 +60,12 @@ void CalculateSegmentationMetrics(iAFilter* filter)
 			continue;
 		}
 		int label = (*it).first;
-		filter->AddOutputValue(QString("Label %1 Target Overlap").arg(label), diceFilter->GetTargetOverlap(label));
-		filter->AddOutputValue(QString("Label %1 Union Overlap").arg(label), diceFilter->GetUnionOverlap(label));
-		filter->AddOutputValue(QString("Label %1 Mean Overlap").arg(label), diceFilter->GetMeanOverlap(label));
-		filter->AddOutputValue(QString("Label %1 Volume Similarity").arg(label), diceFilter->GetVolumeSimilarity(label));
-		//filter->AddOutputValue(QString("Label %1 False negatives").arg(label), diceFilter->GetFalseNegativeError(label));
-		//filter->AddOutputValue(QString("Label %1 False positives").arg(label), diceFilter->GetFalsePositiveError(label));
+		filter->addOutputValue(QString("Label %1 Target Overlap").arg(label), diceFilter->GetTargetOverlap(label));
+		filter->addOutputValue(QString("Label %1 Union Overlap").arg(label), diceFilter->GetUnionOverlap(label));
+		filter->addOutputValue(QString("Label %1 Mean Overlap").arg(label), diceFilter->GetMeanOverlap(label));
+		filter->addOutputValue(QString("Label %1 Volume Similarity").arg(label), diceFilter->GetVolumeSimilarity(label));
+		//filter->addOutputValue(QString("Label %1 False negatives").arg(label), diceFilter->GetFalseNegativeError(label));
+		//filter->addOutputValue(QString("Label %1 False positives").arg(label), diceFilter->GetFalsePositiveError(label));
 	}
 }
 IAFILTER_CREATE(iASegmentationMetrics)
@@ -80,9 +80,9 @@ iASegmentationMetrics::iASegmentationMetrics() :
 		"Label Overlap Measures Filter</a> in the ITK documentation.", 2, 0)
 {}
 
-void iASegmentationMetrics::PerformWork(QMap<QString, QVariant> const & parameters)
+void iASegmentationMetrics::performWork(QMap<QString, QVariant> const & parameters)
 {
-	switch (InputPixelType())
+	switch (inputPixelType())
 	{	// only int types, so ITK_TYPED_CALL won't work
 	case itk::ImageIOBase::UCHAR: CalculateSegmentationMetrics<unsigned char> (this); break;
 	case itk::ImageIOBase::CHAR:  CalculateSegmentationMetrics<char>          (this); break;

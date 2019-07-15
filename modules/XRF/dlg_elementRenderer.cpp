@@ -41,8 +41,8 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	m_tag(0),
 	m_indexInReferenceLib(-1)
 {
-	renContainer->SetRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_renderer->GetRenderWindow()));
-	m_renderer->GetRenderer()->InteractiveOff();
+	renContainer->SetRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_renderer->renderWindow()));
+	m_renderer->renderer()->InteractiveOff();
 	m_renderer->setAxesTransform(m_axesTransform);
 
 	connect(renContainer, SIGNAL(rightButtonReleasedSignal()), m_renderer, SLOT(mouseRightButtonReleasedSlot()) );
@@ -64,15 +64,15 @@ void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyDat
 	{
 		m_renderer->initialize(imgData, polyData);
 		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));
-		m_volumeRenderer->AddTo(m_renderer->GetRenderer());
+		m_volumeRenderer->addTo(m_renderer->renderer());
 		m_rendInitialized = true;
 	}
 	else
 	{
-		m_volumeRenderer->Remove();
+		m_volumeRenderer->remove();
 		m_renderer->reInitialize(imgData, polyData);
 		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));
-		m_volumeRenderer->AddTo(m_renderer->GetRenderer());
+		m_volumeRenderer->addTo(m_renderer->renderer());
 	}
 }
 
@@ -93,5 +93,5 @@ size_t dlg_elementRenderer::GetRefLibIndex()
 
 void dlg_elementRenderer::ApplyVolumeSettings(iAVolumeSettings const & vs)
 {
-	m_volumeRenderer->ApplySettings(vs);
+	m_volumeRenderer->applySettings(vs);
 }

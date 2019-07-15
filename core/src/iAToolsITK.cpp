@@ -26,7 +26,7 @@
 #include <itkExtractImageFilter.h>
 #include <itkStatisticsImageFilter.h>
 
-itk::ImageIOBase::IOComponentType GetITKScalarPixelType(iAITKIO::ImagePointer image)
+itk::ImageIOBase::IOComponentType itkScalarPixelType(iAITKIO::ImagePointer image)
 {
 	itk::ImageIOBase::IOComponentType result = itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
 	iAITKIO::ImageBaseType * imagePtr = image.GetPointer();
@@ -96,7 +96,7 @@ itk::ImageIOBase::IOComponentType GetITKScalarPixelType(iAITKIO::ImagePointer im
 }
 
 
-itk::ImageIOBase::IOPixelType GetITKPixelType( iAITKIO::ImagePointer image )
+itk::ImageIOBase::IOPixelType itkPixelType( iAITKIO::ImagePointer image )
 {
 	itk::ImageIOBase::IOPixelType result = itk::ImageIOBase::UNKNOWNPIXELTYPE;
 	iAITKIO::ImageBaseType * imagePtr = image.GetPointer();
@@ -185,10 +185,10 @@ void alloc_image_tmpl(iAITKIO::ImagePointer otherImg, iAITKIO::ImagePointer & re
 }
 
 
-iAITKIO::ImagePointer AllocateImage(iAITKIO::ImagePointer img)
+iAITKIO::ImagePointer allocateImage(iAITKIO::ImagePointer img)
 {
 	iAITKIO::ImagePointer result;
-	ITK_TYPED_CALL(alloc_image_tmpl, GetITKScalarPixelType(img), img, result);
+	ITK_TYPED_CALL(alloc_image_tmpl, itkScalarPixelType(img), img, result);
 	return result;
 }
 
@@ -217,7 +217,7 @@ void alloc_image_tmpl2(int const size[iAITKIO::m_DIM], double const spacing[iAIT
 }
 
 
-iAITKIO::ImagePointer AllocateImage(int const size[iAITKIO::m_DIM], double const spacing[iAITKIO::m_DIM], itk::ImageIOBase::IOComponentType type)
+iAITKIO::ImagePointer allocateImage(int const size[iAITKIO::m_DIM], double const spacing[iAITKIO::m_DIM], itk::ImageIOBase::IOComponentType type)
 {
 	iAITKIO::ImagePointer result;
 	ITK_TYPED_CALL(alloc_image_tmpl2, type, size, spacing, result);
@@ -225,54 +225,54 @@ iAITKIO::ImagePointer AllocateImage(int const size[iAITKIO::m_DIM], double const
 }
 
 
-void StoreImage(iAITKIO::ImagePointer image, QString const & filename, bool useCompression)
+void storeImage(iAITKIO::ImagePointer image, QString const & filename, bool useCompression)
 {
-	iAITKIO::writeFile(filename, image, GetITKScalarPixelType(image), useCompression);
+	iAITKIO::writeFile(filename, image, itkScalarPixelType(image), useCompression);
 }
 
 template <class TImage>
-void GetITKPixel2(double & result, TImage* image, typename TImage::IndexType idx)
+void itkPixel2(double & result, TImage* image, typename TImage::IndexType idx)
 {
 	result = image->GetPixel(idx);
 }
 
 template <class T>
-void GetITKPixel(double & result, iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx)
+void itkPixel(double & result, iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx)
 {
 	typedef itk::Image<T, iAITKIO::m_DIM > ImageType;
-	GetITKPixel2(result, dynamic_cast<ImageType*>(img.GetPointer()), idx);
+	itkPixel2(result, dynamic_cast<ImageType*>(img.GetPointer()), idx);
 }
 
 
-double GetITKPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx)
+double itkPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx)
 {
 	double result;
-	ITK_TYPED_CALL(GetITKPixel, GetITKScalarPixelType(img), result, img,  idx);
+	ITK_TYPED_CALL(itkPixel, itkScalarPixelType(img), result, img,  idx);
 	return result;
 }
 
 template <class TImage>
-void SetITKPixel2(double value, TImage* image, typename TImage::IndexType idx)
+void setITKPixel2(double value, TImage* image, typename TImage::IndexType idx)
 {
 	image->SetPixel(idx, value);
 }
 
 template <class T>
-void SetITKPixel(double value, iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx)
+void setITKPixel(double value, iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx)
 {
 	typedef itk::Image<T, iAITKIO::m_DIM > ImageType;
-	SetITKPixel2(value, dynamic_cast<ImageType*>(img.GetPointer()), idx);
+	setITKPixel2(value, dynamic_cast<ImageType*>(img.GetPointer()), idx);
 }
 
 
-void SetITKPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx, double value)
+void setITKPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx, double value)
 {
-	ITK_TYPED_CALL(SetITKPixel, GetITKScalarPixelType(img), value, img, idx);
+	ITK_TYPED_CALL(setITKPixel, itkScalarPixelType(img), value, img, idx);
 }
 
 
 template <typename T>
-void InternalExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM], iAITKIO::ImagePointer & outImg)
+void internalExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM], iAITKIO::ImagePointer & outImg)
 {
 	typedef itk::Image< T, iAITKIO::m_DIM > ImageType;
 	auto typedImg = dynamic_cast<ImageType *>(inImg.GetPointer());
@@ -291,13 +291,13 @@ void InternalExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAI
 	extractor->SetInput(typedImg);
 	extractor->SetExtractionRegion(region);
 	extractor->Update();
-	outImg = SetIndexOffsetToZero<T>(extractor->GetOutput());
+	outImg = setIndexOffsetToZero<T>(extractor->GetOutput());
 }
 
-iAITKIO::ImagePointer ExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM])
+iAITKIO::ImagePointer extractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM])
 {
 	iAITKIO::ImagePointer outImg;
-	ITK_TYPED_CALL(InternalExtractImage, GetITKScalarPixelType(inImg), inImg, indexArr, sizeArr, outImg);
+	ITK_TYPED_CALL(internalExtractImage, itkScalarPixelType(inImg), inImg, indexArr, sizeArr, outImg);
 	return outImg;
 }
 
@@ -318,5 +318,5 @@ void internalGetStatistics(iAITKIO::ImagePointer img, double* min, double* max, 
 
 void getStatistics(iAITKIO::ImagePointer img, double* min, double* max, double* mean, double* stddev, double* variance, double * sum)
 {
-	ITK_TYPED_CALL(internalGetStatistics, GetITKScalarPixelType(img), img, min, max, mean, stddev, variance, sum);
+	ITK_TYPED_CALL(internalGetStatistics, itkScalarPixelType(img), img, min, max, mean, stddev, variance, sum);
 }

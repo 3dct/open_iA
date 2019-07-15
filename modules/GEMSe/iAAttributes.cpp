@@ -24,14 +24,14 @@
 
 #include <QTextStream>
 
-QSharedPointer<iAAttributes> iAAttributes::Create(QTextStream & in)
+QSharedPointer<iAAttributes> iAAttributes::create(QTextStream & in)
 {
 	QSharedPointer<iAAttributes> result(new iAAttributes);
 	while (!in.atEnd())
 	{
 		QString line = in.readLine();
 		QSharedPointer<iAAttributeDescriptor> descriptor =
-			iAAttributeDescriptor::Create(line);
+			iAAttributeDescriptor::create(line);
 		if (descriptor)
 		{
 			result->m_attributes.push_back(descriptor);
@@ -61,24 +61,24 @@ QSharedPointer<iAAttributeDescriptor const> iAAttributes::at(int idx) const
 }
 
 
-void iAAttributes::Add(QSharedPointer<iAAttributeDescriptor> range)
+void iAAttributes::add(QSharedPointer<iAAttributeDescriptor> range)
 {
 	m_attributes.push_back(range);
 }
 
-void iAAttributes::Store(QTextStream & out)
+void iAAttributes::store(QTextStream & out)
 {
 	for (int i = 0; i < m_attributes.size(); ++i)
 	{
-		out << m_attributes[i]->ToString();
+		out << m_attributes[i]->toString();
 	}
 }
 
-int iAAttributes::Find(QString const & name)
+int iAAttributes::find(QString const & name)
 {
 	for (int i = 0; i < m_attributes.size(); ++i)
 	{
-		if (m_attributes[i]->Name() == name)
+		if (m_attributes[i]->name() == name)
 		{
 			return i;
 		}
@@ -87,12 +87,12 @@ int iAAttributes::Find(QString const & name)
 }
 
 
-int iAAttributes::Count(iAAttributeDescriptor::iAAttributeType type) const
+int iAAttributes::count(iAAttributeDescriptor::iAAttributeType type) const
 {
 	int count = 0;
 	for (int i = 0; i < m_attributes.size(); ++i)
 	{
-		if (type == iAAttributeDescriptor::None	|| m_attributes[i]->AttribType() == type)
+		if (type == iAAttributeDescriptor::None	|| m_attributes[i]->attribType() == type)
 		{
 			count++;
 		}

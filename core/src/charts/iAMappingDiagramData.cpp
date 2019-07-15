@@ -67,27 +67,27 @@ iAMappingDiagramData::~iAMappingDiagramData()
 	delete [] m_data;
 }
 
-size_t iAMappingDiagramData::GetNumBin() const
+size_t iAMappingDiagramData::numBin() const
 {
 	return m_numBin;
 }
 
-iAMappingDiagramData::DataType const * iAMappingDiagramData::GetRawData() const
+iAMappingDiagramData::DataType const * iAMappingDiagramData::rawData() const
 {
 	return m_data;
 }
 
-double iAMappingDiagramData::GetSpacing() const
+double iAMappingDiagramData::spacing() const
 {
 	return m_spacing;
 }
 
-double const * iAMappingDiagramData::XBounds() const
+double const * iAMappingDiagramData::xBounds() const
 {
 	return m_xBounds;
 }
 
-iAPlotData::DataType const * iAMappingDiagramData::YBounds() const
+iAPlotData::DataType const * iAMappingDiagramData::yBounds() const
 {
 	return m_yBounds;
 }

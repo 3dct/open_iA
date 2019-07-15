@@ -30,7 +30,6 @@
 #include <vtkSmartPointer.h>
 
 class iABarycentricTriangleWidget;
-class iASimpleSlicerWidget;
 class iABarycentricContextRenderer;
 
 class iADiagramFctWidget;

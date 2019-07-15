@@ -23,7 +23,7 @@
 #include <cstddef>    // for size_t
 #include <vector>
 
-//! class providing a few selection/highlight/settings details to a single scatterplot
+//! Class providing a few selection/highlight/settings details to a single scatterplot
 //! implemented by iAQSplom, but can also be implemented separately to e.g. allow a
 //! standalone scatterplot
 class iAScatterPlotSelectionHandler

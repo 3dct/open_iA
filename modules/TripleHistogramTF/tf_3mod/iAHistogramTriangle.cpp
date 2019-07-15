@@ -25,16 +25,13 @@
 #include "iATripleModalityWidget.h"
 #include "iASimpleSlicerWidget.h"
 
-#include "iASlicerData.h"
-#include "iASlicerWidget.h"
-
 #include <charts/iADiagramFctWidget.h>
-#include <iASlicerData.h>
-#include <iASlicerWidget.h>
+#include <iASlicer.h>
 
 #include <QPoint>
 #include <QApplication>
 #include <QComboBox>
+#include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QResizeEvent>
@@ -80,13 +77,13 @@ void iAHistogramTriangle::initialize(QString const names[3])
 	QWidget *widget = new QWidget(this);
 	QLayout *layout = new QHBoxLayout(widget);
 	for (int i = 0; i < 3; i++) {
-		layout->addWidget(m_tmw->w_slicer(i)->getSlicer()->widget());
+		layout->addWidget(m_tmw->w_slicer(i)->getSlicer());
 
 		// The following call will make sure that
 		// m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->isValid()
 		// returns true (see isValid() definition 19/04/2019)
 		// That prevents a "Framebuffer incomplete attachment" warning
-		m_tmw->w_slicer(i)->getSlicer()->widget()->GRAB_FRAMEBUFFER();
+		m_tmw->w_slicer(i)->getSlicer()->GRAB_FRAMEBUFFER();
 	}
 
 	//QLayout *thisLayout = new QHBoxLayout(this);
@@ -104,7 +101,7 @@ void iAHistogramTriangle::initialize(QString const names[3])
 
 	// Debug
 	for (int i = 0; i < 3; i++) {
-		connect(m_tmw->w_slicer(i)->getSlicer()->widget(), SIGNAL(resized()), this, SLOT(glresized()));
+		connect(m_tmw->w_slicer(i)->getSlicer(), SIGNAL(resized()), this, SLOT(glresized()));
 	}
 
 	// CONNECTIONS
@@ -202,7 +199,7 @@ void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event, MouseEventType e
 void iAHistogramTriangle::forwardWheelEvent(QWheelEvent *e)
 {
 	QPoint transformed;
-	iASlicerWidget *target;
+	iASlicer * target;
 	if (target = onSlicer(e->pos(), transformed)) {
 		QWheelEvent *newE = new QWheelEvent(transformed, e->globalPosF(), e->pixelDelta(), e->angleDelta(),
 			e->delta(), e->orientation(), e->buttons(),
@@ -245,13 +242,13 @@ bool iAHistogramTriangle::onTriangle(QPoint p)
 	return m_tmw->w_triangle()->getTriangle().contains(p.x(), p.y());
 }
 
-iASlicerWidget* iAHistogramTriangle::onSlicer(QPoint p, QPoint &transformed)
+iASlicer* iAHistogramTriangle::onSlicer(QPoint p, QPoint &transformed)
 {
 	for (int i = 0; i < 3; i++) {
 		if (m_slicerTriangles[i].contains(p.x(), p.y())) {
 			transformed = m_transformSlicers[i].inverted().map(p);
 			m_lastIndex = i;
-			return m_tmw->w_slicer(i)->getSlicer()->widget();
+			return m_tmw->w_slicer(i)->getSlicer();
 		}
 	}
 	m_lastIndex = -1;
@@ -360,12 +357,10 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_slicerClipPaths[0].translate(w, 0);
 
 		QSize size = QSize(w, h);
-		m_tmw->w_slicer(0)->getSlicer()->widget()->resize(size);
-		m_tmw->w_slicer(1)->getSlicer()->widget()->resize(size);
-		m_tmw->w_slicer(2)->getSlicer()->widget()->resize(size);
-
+		m_tmw->w_slicer(0)->getSlicer()->resize(size);
+		m_tmw->w_slicer(1)->getSlicer()->resize(size);
+		m_tmw->w_slicer(2)->getSlicer()->resize(size);
 		qDebug() << "Slicers resized to" << size.width() << "x" << size.height();
-		
 	}
 
 	int histoLateral1_2Y = bottom - TRIANGLE_TOP;
@@ -495,13 +490,12 @@ void iAHistogramTriangle::paintSlicers(QPainter &p)
 			p.setClipPath(m_slicerClipPaths[i]);
 			p.setTransform(m_transformSlicers[i]);
 
-			img = m_tmw->w_slicer(i)->getSlicer()->widget()->GRAB_FRAMEBUFFER();
+			img = m_tmw->w_slicer(i)->getSlicer()->GRAB_FRAMEBUFFER();
 
-			QSize size = m_tmw->w_slicer(i)->getSlicer()->widget()->size();
+			QSize size = m_tmw->w_slicer(i)->getSlicer()->size();
 			//qDebug() << "Slicer framebuffer valid?" << m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->isValid();
 			qDebug() << "Slicer size:" << size.width() << "x" << size.height();
 			qDebug() << "Image size:" << img.size().width() << "x" << img.size().height();
-
 			p.drawImage(0, 0, img);
 
 			p.resetTransform(); // otherwise, clip path in setClipPath will be transformed as well

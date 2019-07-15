@@ -24,53 +24,53 @@
 #include <vtkConeSource.h>
 #include <vtkPoints.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkVersion.h>
+#include <vtkProperty.h>
+#include <vtkRenderer.h>
 
-
-void iALinePointers::setPointersScaling( double scaling )
+iALinePointers::iALinePointers():
+	points(vtkSmartPointer<vtkPoints>::New())
 {
-	double height = iALinePointers::CONE_HEIGHT*scaling;
-	for (vtkIdType i=0; i<2; i++)
-	{
-		pointers[i]->SetHeight(height);
-		pointers[i]->SetRadius(height/4.0);
-	}
-	actors[0]->SetPosition(-height/2, 0, 0);
-	actors[1]->SetPosition(height/2, 0, 0);
-}
-
-iALinePointers::~iALinePointers()
-{
-	points->Delete();
-	for (vtkIdType i=0; i<2; i++)
-	{
-		pointers[i]->Delete();
-		mappers[i]->Delete();
-		actors[i]->Delete();
-	}
-}
-
-iALinePointers::iALinePointers()
-{
-	double height = CONE_HEIGHT;
-	points = vtkPoints::New();
+	double height = ConeHeight;
 	points->Allocate(2);
-	for (vtkIdType i=0; i<2; i++)
+	for (vtkIdType i = 0; i < 2; i++)
 	{
-		pointers[i] = vtkConeSource::New();
-		pointers[i]->SetCenter(points->GetPoint(i));
-		pointers[i]->SetHeight(height);
-		pointers[i]->SetRadius(height/4);
+		pointers[i] = vtkSmartPointer<vtkConeSource>::New();
+		mappers[i] = vtkSmartPointer<vtkPolyDataMapper>::New();
+		actors[i] = vtkSmartPointer<vtkActor>::New();
 		pointers[i]->SetResolution(4);
-
-		mappers[i] = vtkPolyDataMapper::New();
-		actors[i] = vtkActor::New();
-
 		mappers[i]->SetInputConnection(pointers[i]->GetOutputPort());
 		actors[i]->SetMapper(mappers[i]);
+		actors[i]->GetProperty()->SetAmbientColor(1.0, 1.0, 1.0);
+		actors[i]->GetProperty()->SetAmbient(1.0);
+		//actors[i]->GetProperty()->SetLineWidth(1);
 	}
-	pointers[1]->SetDirection(-1,0,0);
-	actors[0]->SetPosition(-height/2, 0, 0);
-	actors[1]->SetPosition(height/2, 0, 0);
+	pointers[1]->SetDirection(-1, 0, 0);
 }
 
+void iALinePointers::setVisible(bool visible)
+{
+	for (vtkIdType i = 0; i < 2; i++)
+		actors[i]->SetVisibility(visible);
+}
+
+void iALinePointers::addToRenderer(vtkRenderer * ren)
+{
+	for (vtkIdType i = 0; i < 2; i++)
+		ren->AddActor(actors[i]);
+}
+
+void iALinePointers::updatePosition(double posY, double zeroLevelPosY, double startX, double endX, double const * spacing)
+{
+	points->SetPoint(0, startX, zeroLevelPosY, ZCoord);
+	points->SetPoint(1, endX, zeroLevelPosY, ZCoord);
+	double scaling = spacing[0] > spacing[1] ? spacing[0] : spacing[1];
+	double height = ConeHeight * scaling;
+	for (int i = 0; i < 2; ++i)
+	{
+		pointers[i]->SetHeight(height);
+		pointers[i]->SetRadius(height / 4.0);
+		pointers[i]->SetCenter(points->GetPoint(i));
+	}
+	actors[0]->SetPosition(-height / 2, posY, 0);
+	actors[1]->SetPosition( height / 2, posY, 0);
+}

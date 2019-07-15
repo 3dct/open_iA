@@ -22,12 +22,12 @@
 
 #include "mdichild.h"
 
-MdiChildLogger::MdiChildLogger(MdiChild* mdiChild)
+iAMdiChildLogger::iAMdiChildLogger(MdiChild* mdiChild)
 {
 	connect(this, SIGNAL(logSignal(QString)), mdiChild, SLOT(addMsg(QString)));
 }
 
-void MdiChildLogger::Log(QString const & msg)
+void iAMdiChildLogger::log(QString const & msg)
 {
 	emit logSignal(msg);
 }

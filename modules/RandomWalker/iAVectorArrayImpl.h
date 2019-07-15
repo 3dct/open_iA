@@ -38,10 +38,10 @@ class iAvtkPixelVectorArray: public iAVectorArray
 public:
 	iAvtkPixelVectorArray(int const * dim);
 	iAvtkPixelVectorArray(size_t width, size_t height, size_t depth);
-	virtual size_t size() const;
-	virtual size_t channelCount() const;
-	virtual QSharedPointer<iAVectorType const> get(size_t voxelIdx) const;
-	virtual iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const;
+	size_t size() const override;
+	size_t channelCount() const override;
+	QSharedPointer<iAVectorType const> get(size_t voxelIdx) const override;
+	iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const override;
 	void AddImage(vtkSmartPointer<vtkImageData> img);
 private:
 	std::vector<vtkSmartPointer<vtkImageData> > m_images;
@@ -53,10 +53,10 @@ class iAitkPixelVectorArray : public iAVectorArray
 {
 public:
 	iAitkPixelVectorArray(size_t width, size_t height, size_t depth);
-	virtual size_t size() const;
-	virtual size_t channelCount() const;
-	virtual QSharedPointer<iAVectorType const> get(size_t voxelIdx) const;
-	virtual iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const;
+	size_t size() const override;
+	size_t channelCount() const override;
+	QSharedPointer<iAVectorType const> get(size_t voxelIdx) const override;
+	iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const override;
 	void AddImage(itk::SmartPointer<ImageType> img);
 private:
 	std::vector<itk::SmartPointer<ImageType> > m_images;
@@ -70,22 +70,21 @@ iAitkPixelVectorArray<ImageType>::iAitkPixelVectorArray(size_t width, size_t hei
 {
 }
 
-
 template <typename ImageType>
 void iAitkPixelVectorArray<ImageType>::AddImage(itk::SmartPointer<ImageType> img)
 {
 	typename ImageType::RegionType region = img->GetLargestPossibleRegion();
 	typename ImageType::SizeType size = region.GetSize();
-	assert(size[0] = m_coordConv.GetWidth() &&
-		size[1] == m_coordConv.GetHeight() &&
-		size[2] == m_coordConv.GetDepth());
+	assert(size[0] = m_coordConv.width() &&
+		size[1] == m_coordConv.height() &&
+		size[2] == m_coordConv.depth());
 	m_images.push_back(img);
 }
 
 template <typename ImageType>
 size_t iAitkPixelVectorArray<ImageType>::size() const
 {
-	return m_coordConv.GetVertexCount();
+	return m_coordConv.vertexCount();
 }
 
 template <typename ImageType>
@@ -104,7 +103,7 @@ template <typename ImageType>
 iAVectorDataType iAitkPixelVectorArray<ImageType>::get(size_t voxelIdx, size_t channelIdx) const
 {
 	typename ImageType::IndexType idx;
-	iAImageCoordinate coords = m_coordConv.GetCoordinatesFromIndex(voxelIdx);
+	iAImageCoordinate coords = m_coordConv.coordinatesFromIndex(voxelIdx);
 	idx[0] = coords.x;
 	idx[1] = coords.y;
 	idx[2] = coords.z;

@@ -100,10 +100,9 @@ public:
 	double getWeight(int i);
 
 	void setSlicerMode(iASlicerMode slicerMode);
-	iASlicerMode getSlicerMode();
-	QString getSlicerModeString();
+	iASlicerMode slicerMode() const;
 	void setSliceNumber(int sliceNumber);
-	int getSliceNumber();
+	int sliceNumber() const;
 
 	QSharedPointer<iAModality> getModality(int index);
 	vtkSmartPointer<vtkImageData> getModalityImage(int index);
@@ -136,6 +135,7 @@ private:
 	void updateDisabledLabel();
 	QVector<QSharedPointer<iADiagramFctWidget>> m_histograms;
 	QVector<QSharedPointer<iASimpleSlicerWidget>> m_slicerWidgets;
+	QVector<uint> m_channelID;
 	QStackedLayout *m_stackedLayout;
 	QCheckBox *m_checkBox_weightByOpacity;
 	QLabel *m_disabledLabel;
