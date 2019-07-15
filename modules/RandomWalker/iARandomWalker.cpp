@@ -150,9 +150,9 @@ namespace
 		output.reserve(Eigen::VectorXi::Constant(rowIndices.size(), 7));
 #endif
 		// edge weights:
-		for (iAEdgeIndexType edgeIdx = 0; edgeIdx < imageGraph.GetEdgeCount(); ++edgeIdx)
+		for (iAEdgeIndexType edgeIdx = 0; edgeIdx < imageGraph.edgeCount(); ++edgeIdx)
 		{
-			iAEdgeType const & edge = imageGraph.GetEdge(edgeIdx);
+			iAEdgeType const & edge = imageGraph.edge(edgeIdx);
 			if (rowIndices.contains(edge.first) && colIndices.contains(edge.second))
 			{
 				iAVertexIndexType newRowIdx = rowIndices[edge.first];
@@ -293,7 +293,7 @@ void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 	QSet<int> labelSet;
 	for (iAVertexIndexType seedIdx = 0; seedIdx < seeds->size(); ++seedIdx)
 	{
-		seedMap.insert(imageGraph.GetConverter().indexFromCoordinates(seeds->at(seedIdx).first), seedIdx);
+		seedMap.insert(imageGraph.converter().indexFromCoordinates(seeds->at(seedIdx).first), seedIdx);
 		labelSet.insert(seeds->at(seedIdx).second);
 	}
 	int labelCount = labelSet.size();
@@ -322,9 +322,9 @@ void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 		CombineGraphWeights(graphWeights, weightsForChannels);
 
 	QVector<double> vertexWeightSum(vertexCount);
-	for (iAEdgeIndexType edgeIdx = 0; edgeIdx < imageGraph.GetEdgeCount(); ++edgeIdx)
+	for (iAEdgeIndexType edgeIdx = 0; edgeIdx < imageGraph.edgeCount(); ++edgeIdx)
 	{
-		iAEdgeType const & edge = imageGraph.GetEdge(edgeIdx);
+		iAEdgeType const & edge = imageGraph.edge(edgeIdx);
 		vertexWeightSum[edge.first] += finalWeight->GetWeight(edgeIdx);
 		vertexWeightSum[edge.second] += finalWeight->GetWeight(edgeIdx);
 	}
@@ -404,8 +404,8 @@ void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 #endif
 		// put values into probability image
 		iAITKIO::ImagePointer pImg = allocateImage(dim, spc, itk::ImageIOBase::DOUBLE);
-		SetIndexMapValues(pImg, x, unlabeledMap, imageGraph.GetConverter());
-		SetIndexMapValues(pImg, boundary, seedMap, imageGraph.GetConverter());
+		SetIndexMapValues(pImg, x, unlabeledMap, imageGraph.converter());
+		SetIndexMapValues(pImg, boundary, seedMap, imageGraph.converter());
 		probImgs.push_back(pImg);
 	}
 	auto labelImg = CreateLabelImage(dim, spc, probImgs, labelCount);
@@ -496,9 +496,9 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 		CombineGraphWeights(graphWeights, weightsForChannels);
 
 	QVector<double> vertexWeightSum(vertexCount);
-	for (iAEdgeIndexType edgeIdx = 0; edgeIdx < imageGraph.GetEdgeCount(); ++edgeIdx)
+	for (iAEdgeIndexType edgeIdx = 0; edgeIdx < imageGraph.edgeCount(); ++edgeIdx)
 	{
-		iAEdgeType const & edge = imageGraph.GetEdge(edgeIdx);
+		iAEdgeType const & edge = imageGraph.edge(edgeIdx);
 		vertexWeightSum[edge.first] += finalWeight->GetWeight(edgeIdx);
 		vertexWeightSum[edge.second] += finalWeight->GetWeight(edgeIdx);
 	}
@@ -514,7 +514,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 		double sum = 0;
 
 		//PriorModelImageType::IndexType idx;
-		iAImageCoordinate coord = imageGraph.GetConverter().coordinatesFromIndex(voxelIdx);
+		iAImageCoordinate coord = imageGraph.converter().coordinatesFromIndex(voxelIdx);
 		/*
 		idx[0] = coord.x;
 		idx[1] = coord.y;
@@ -581,7 +581,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 		for (iAVoxelIndexType voxelIdx = 0; voxelIdx < vertexCount; ++ voxelIdx)
 		{
 			//PriorModelImageType::IndexType idx;
-			iAImageCoordinate coord = imageGraph.GetConverter().coordinatesFromIndex(voxelIdx);
+			iAImageCoordinate coord = imageGraph.converter().coordinatesFromIndex(voxelIdx);
 			/*
 			idx[0] = coord.x;
 			idx[1] = coord.y;
@@ -602,7 +602,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 #endif
 		// put values into probability image
 		iAITKIO::ImagePointer pImg = allocateImage(dim, spc, itk::ImageIOBase::DOUBLE);
-		SetIndexMapValues(pImg, x, fullMap, imageGraph.GetConverter());
+		SetIndexMapValues(pImg, x, fullMap, imageGraph.converter());
 		probImgs.push_back(pImg);
 	}
 	// create labelled image (as value at k = arg l max(p_l^k) for each pixel k)
@@ -628,7 +628,6 @@ void iAMaximumDecisionRule::performWork(QMap<QString, QVariant> const & paramete
 	if (input().size() <= 1)
 	{
 		throw std::invalid_argument("Input has to have at least two channels!");
-		return;
 	}
 	int const * dim = input()[0]->vtkImage()->GetDimensions();
 	double const * spc = input()[0]->vtkImage()->GetSpacing();

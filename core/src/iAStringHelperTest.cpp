@@ -32,40 +32,40 @@ std::ostream& operator<<(std::ostream& o, const QString & s)
 
 BEGIN_TEST
 	// special case: empty quote at beginning
-	QStringList split = SplitPossiblyQuotedString("\"\" a b");
+	QStringList split = splitPossiblyQuotedString("\"\" a b");
 	TestEqual(split.size(), 3);
 	TestEqual(split.at(0), QString(""));
 	TestEqual(split.at(1), QString("a"));
 	TestEqual(split.at(2), QString("b"));
 
 	// special case: no space between two quoted strings:
-	QStringList split2 = SplitPossiblyQuotedString("\"a\"\"b\"");
+	QStringList split2 = splitPossiblyQuotedString("\"a\"\"b\"");
 	TestEqual(split2.size(), 2);
 	TestEqual(split2.at(0), QString("a"));
 	TestEqual(split2.at(1), QString("b"));
 
 	// special case: empty quote at end
-	QStringList split3 = SplitPossiblyQuotedString("a b \"\"");
+	QStringList split3 = splitPossiblyQuotedString("a b \"\"");
 	TestEqual(split3.size(), 3);
 	TestEqual(split3.at(0), QString("a"));
 	TestEqual(split3.at(1), QString("b"));
 	TestEqual(split3.at(2), QString(""));
 
 	// special case: space at end of quoted string:
-	QStringList split4 = SplitPossiblyQuotedString("a \"b     \"");
+	QStringList split4 = splitPossiblyQuotedString("a \"b     \"");
 	TestEqual(split4.size(), 2);
 	TestEqual(split4.at(0), QString("a"));
 	TestEqual(split4.at(1), QString("b     "));
 
 	// "normal" case
-	QStringList split5 = SplitPossiblyQuotedString("a \"b c\" d");
+	QStringList split5 = splitPossiblyQuotedString("a \"b c\" d");
 	TestEqual(split5.size(), 3);
 	TestEqual(split5.at(0), QString("a"));
 	TestEqual(split5.at(1), QString("b c"));
 	TestEqual(split5.at(2), QString("d"));
 
 	// special case: empty quote in the middle
-	QStringList split6 = SplitPossiblyQuotedString("a \"\" b");
+	QStringList split6 = splitPossiblyQuotedString("a \"\" b");
 	TestEqual(split6.size(), 3);
 	TestEqual(split6.at(0), QString("a"));
 	TestEqual(split6.at(1), QString(""));
