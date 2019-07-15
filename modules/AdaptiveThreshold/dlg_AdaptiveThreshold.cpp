@@ -391,5 +391,7 @@ void AdaptiveThreshold::buttonLoadHistDataClicked()
 {
 	this->textEdit->append("Loading histogram data\n");
 	m_thresCalculator.retrieveHistData(); 
+	this->prepareDataSeries(m_refSeries, m_thresCalculator.getThresBins(), 
+		m_thresCalculator.getFreqValsY(), true); 
 }
 

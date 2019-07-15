@@ -86,27 +86,29 @@ void ThesholdCalculator::calculateFrequencies(size_t m_start, size_t m_end)
 
 void ThesholdCalculator::retrieveHistData()
 {
-	if (!m_data) 
+	if (!m_data)
 		throw std::invalid_argument("Error data cannot be retrieved");
 
-	double binVals_X; 
+	double binVals_X;
 	double freq_valsY;
-	
+
 	//goes over all bins;
 
 	for (int b = 0; b < m_data->numBin(); ++b) {
 		binVals_X = m_data->binStart(b);
 		freq_valsY = m_data->rawData()[b];
 
-		DEBUG_LOG(QString("bin %1").arg(binVals_X));
-		DEBUG_LOG(QString("freq %1").arg(freq_valsY)); 
-		
+		/*	DEBUG_LOG(QString("bin %1").arg(binVals_X));
+			DEBUG_LOG(QString("freq %1").arg(freq_valsY));*/
+		m_thresBinsX.push_back(binVals_X);
+		m_freqValsY.push_back(freq_valsY); 
+
 		//push back some how
 		////Todo Remove
 		//if (b == 10) break;
 		///*for(int p = 0; p < m_plots.size(); ++p)*/
 	}
-	
+}
 
 double ThesholdCalculator::findMaxPeak(std::vector<double>& v_ind/*, unsigned int toleranceVal*/)
 {

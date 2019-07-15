@@ -3,7 +3,7 @@
 #include "charts/iAPlotData.h"
 #include <QSharedPointer>
 
-//template <class
+
 
 
 class ThesholdCalculator
@@ -33,11 +33,20 @@ public:
 		m_data = data; 
 	}
 
+	const std::vector<double> &getThresBins() {
+		return this->m_thresBinsX; 
+	}
 
+	const std::vector<double> &getFreqValsY() {
+		return this->m_freqValsY; 
+	}
 
 private:
 	double vectorSum(const std::vector<double> &sum, size_t startInd, size_t endInd);
 	QSharedPointer<iAPlotData> m_data;
+
+	std::vector<double> m_thresBinsX; 
+	std::vector<double> m_freqValsY; 
 	//void testAverage();
 	
 
