@@ -30,14 +30,7 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="0">
-     <widget class="QPushButton" name="btn_update">
-      <property name="text">
-       <string>Update</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
+    <item row="6" column="0">
      <widget class="QPushButton" name="btn_clearChart">
       <property name="enabled">
        <bool>false</bool>
@@ -47,17 +40,31 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="0">
+    <item row="3" column="0">
      <widget class="QPushButton" name="btn_TestData">
       <property name="text">
        <string>TestData</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="0">
+    <item row="7" column="0">
      <widget class="QPushButton" name="btn_resetGraph">
       <property name="text">
        <string>ResetGraph</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0">
+     <widget class="QPushButton" name="btn_update">
+      <property name="text">
+       <string>Update</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QPushButton" name="btn_loadHistData">
+      <property name="text">
+       <string>LoadHistogram</string>
       </property>
      </widget>
     </item>
