@@ -27,6 +27,7 @@ struct axisParams {
 AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/):QDialog(parent, f){
 	setupUi(this);
 	try {
+		 
 		m_chart = new QtCharts::QChart;
 		m_chartView = new QtCharts::QChartView(m_chart);
 		m_chartView->setRubberBand(QChartView::RectangleRubberBand);
@@ -61,6 +62,7 @@ void AdaptiveThreshold::connectUIActions()
 	connect(this->btn_resetGraph, SIGNAL(clicked()), this, SLOT(resetGraphToDefault()));
 	connect(this->btn_myAction, SIGNAL(clicked()), this, SLOT(myAction()));
 	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(visualizeMovingAverage()));
+	connect(this->btn_loadData, SIGNAL(clicked()), this, SLOT(buttonLoadHistDataClicked())); //loading histogram data
 }
 
 AdaptiveThreshold::~AdaptiveThreshold()
@@ -77,9 +79,10 @@ AdaptiveThreshold::~AdaptiveThreshold()
 
 
 
-void AdaptiveThreshold::initChart(/*double xmin, double xmax, double ymin, double ymax*/)
+void AdaptiveThreshold::initChart(const QSharedPointer<iAPlotData>& data)
 {
-	
+	//if (data)
+	//	m_plotData = data; 
 	//QLineSeries *series = new QLineSeries();
 	//generateSampleData(false);
 
@@ -100,6 +103,8 @@ void AdaptiveThreshold::initChart(/*double xmin, double xmax, double ymin, doubl
 	
 	
 }
+
+
 
 
 void AdaptiveThreshold::generateSampleData(bool addserries)
@@ -392,5 +397,10 @@ void AdaptiveThreshold::buttonLoadDataClicked()
 
 	
 
+}
+
+void AdaptiveThreshold::buttonLoadHistDataClicked()
+{
+	DEBUG_LOG("Loading histogram data"); 
 }
 

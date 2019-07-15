@@ -1,5 +1,7 @@
 #pragma once
 #include <vector>
+#include "charts/iAPlotData.h"
+#include <QSharedPointer>
 
 //template <class
 
@@ -15,6 +17,8 @@ public:
 
 	
 	void calculateFrequencies(size_t m_start, size_t m_end);
+
+	void histData(); 
 	//double findMaxPeak(const std::vector<double>& v_ind);
 	
 	
@@ -26,10 +30,16 @@ public:
 	//select values only in the range between min and max
 	void specifyRange(const std::vector<double>& v_in, std::vector<double>& v_out, double min, double max);
 	void testPeakDetect();
+	void setData(QSharedPointer<iAPlotData>& data) {
+		m_data = data; 
+	}
+
+
 
 private:
 	double vectorSum(const std::vector<double> &sum, size_t startInd, size_t endInd);
 	
+	QSharedPointer<iAPlotData> m_data;
 	//void testAverage();
 	
 

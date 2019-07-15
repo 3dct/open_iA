@@ -3,6 +3,7 @@
 #include "ui_AdaptiveThreshold.h"
 #include "Loader.h"
 #include "ThesholdCalculator.h"
+#include "charts/iAPlotData.h"
 
 #include <QSharedPointer>
 #include <QDialog>
@@ -41,7 +42,7 @@ public:
 
 	//void calculateMovingAvarage();	
 
-	void initChart(/*double xmin, double xmax, double ymin, double ymax*/);
+	void initChart(const QSharedPointer<iAPlotData> &data);
 
 	void initAxes(double xmin, double xmax, double ymin, double yMax, bool setDefaultAxis); 	
 	
@@ -56,9 +57,15 @@ public:
 
 	}
 
+	inline void setHistData(QSharedPointer<iAPlotData> &data) {
+		m_thresCalculator.setData(data); 
+	}
+	
+
 private slots:
 		void buttonUpdateClicked();
 		void buttonLoadDataClicked(); 
+		void buttonLoadHistDataClicked(); 
 		void createSampleSeries();
 		void clear(); 
 		void resetGraphToDefault(); 
@@ -96,7 +103,7 @@ private:
 	std::vector<QLineSeries*> series_vec;
 	double resThreshold; 
 
-
+	
 	QChartView *m_chartView;
 	QChart *m_chart; 
 	QValueAxis *axisX;
