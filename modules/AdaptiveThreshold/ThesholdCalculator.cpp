@@ -84,10 +84,11 @@ void ThesholdCalculator::calculateFrequencies(size_t m_start, size_t m_end)
 
 
 
-void ThesholdCalculator::histData()
+void ThesholdCalculator::retrieveHistData()
 {
 	if (!m_data) 
 		throw std::invalid_argument("Error data cannot be retrieved");
+
 	double binVals_X; 
 	double freq_valsY;
 	
@@ -100,31 +101,12 @@ void ThesholdCalculator::histData()
 		DEBUG_LOG(QString("bin %1").arg(binVals_X));
 		DEBUG_LOG(QString("freq %1").arg(freq_valsY)); 
 		
-
-		//Todo Remove
-		if (b == 4) break;
-		/*for(int p = 0; p < m_plots.size(); ++p)*/
+		//push back some how
+		////Todo Remove
+		//if (b == 10) break;
+		///*for(int p = 0; p < m_plots.size(); ++p)*/
 	}
-	/*if (m_plots.empty())*/
-		//		return;
-		//	
-		//	for (int b = 0; b < m_plots[0]->data()->numBin(); ++b)
-		//	{
-		//		double thres = m_plots[0]->data()->binStart(b);
-		//		double freq = 0;
-		//		///*out*/ /*<< QString::number*/m_plots[0]->data()->binStart(b),/* 'g', 15).toStdString()*/;
-		//		for (int p = 0; p < m_plots.size(); ++p)
-		//		{
-		//			freq = m_plots[p]->data()->rawData()[b];
-		//		}
-		//
-		//		data_l.insertElem(thres, freq); 
-		//		
-		//		//out << std::endl;
-		//
-		//	}
-		//	//out.close();
-}
+	
 
 double ThesholdCalculator::findMaxPeak(std::vector<double>& v_ind/*, unsigned int toleranceVal*/)
 {

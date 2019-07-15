@@ -10,9 +10,7 @@
 //#include "QtCharts/L"
 //#include <QTChart>
 
-//namespace {
-//	
-//}
+
 
 struct axisParams {
 	double xmin; 
@@ -35,6 +33,10 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags 
 		axisY = new QValueAxis; 
 		m_refSeries = new QLineSeries();
 		series_vec.reserve(maxSeriesNumbers); 
+		this->ed_xMIn->setText("");
+		this->ed_xMax->setText("");
+		this->ed_YMax->setText("");
+		this->ed_Ymin->setText(""); 
 
 		Qt::WindowFlags flags = this->windowFlags();
 		this->setWindowFlags(flags | Qt::Tool); 
@@ -43,9 +45,8 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags 
 			series = new QLineSeries(); 
 		}
 
-		connectUIActions();
+		setupUIActions();
 
-			
 		this->mainLayout->addWidget(m_chartView);
 	}
 	catch (std::bad_alloc &ba) {
@@ -53,7 +54,7 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags 
 	}
 }
 
-void AdaptiveThreshold::connectUIActions()
+void AdaptiveThreshold::setupUIActions()
 {
 	connect(this->btn_update, SIGNAL(clicked()), this, SLOT(buttonUpdateClicked()));
 	connect(this->btn_loadData, SIGNAL(clicked()), this, SLOT(buttonLoadDataClicked()));
@@ -62,7 +63,9 @@ void AdaptiveThreshold::connectUIActions()
 	connect(this->btn_resetGraph, SIGNAL(clicked()), this, SLOT(resetGraphToDefault()));
 	connect(this->btn_myAction, SIGNAL(clicked()), this, SLOT(myAction()));
 	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(visualizeMovingAverage()));
-	connect(this->btn_loadData, SIGNAL(clicked()), this, SLOT(buttonLoadHistDataClicked())); //loading histogram data
+	connect(this->btn_loadHistData, SIGNAL(clicked()), this, SLOT(buttonLoadHistDataClicked())); 
+	connect(this->btn_clear, SIGNAL(clicked()), this, SLOT(clearEditField()));
+
 }
 
 AdaptiveThreshold::~AdaptiveThreshold()
@@ -74,34 +77,17 @@ AdaptiveThreshold::~AdaptiveThreshold()
 		if (p)
 			delete p;
 	}
-	//delete m_refSeries; 
+	
 }
 
 
 
-void AdaptiveThreshold::initChart(const QSharedPointer<iAPlotData>& data)
+void AdaptiveThreshold::initChart()
 {
-	//if (data)
-	//	m_plotData = data; 
-	//QLineSeries *series = new QLineSeries();
-	//generateSampleData(false);
-
+	
 	/*m_chart->addSeries(s2);
 	m_chart->legend()->markers(s2)[0]->setVisible(false);*/
-	
 	initAxes(0, 20, 2, 20, true); 
-	
-	/*
-	m_refSeries->attachAxis(axisX);
-	m_refSeries->attachAxis(axisY);*/
-
-	//s2->attachAxis(axisX);
-	//s2->attachAxis(axisY);
-	//series->attachAxis(axisX);
-	//series->attachAxis(axisY);
-
-	
-	
 }
 
 
@@ -118,15 +104,13 @@ void AdaptiveThreshold::generateSampleData(bool addserries)
 	QColor color = QColor(255, 0, 0);
 	m_refSeries->setColor(color);
 	m_refSeries->setName("TestSeries");
-
-
+	
 	QScatterSeries * series = new QScatterSeries();
 	series->append(4, 8);
 	series->append(2, 20);
 	series->setName("AName");
 	series->setColor(QColor(0, 255, 0));
-
-
+	
 	if (addserries)
 	{
 		m_chart->addSeries(m_refSeries);
@@ -149,6 +133,19 @@ void AdaptiveThreshold::determineMinMax(const std::vector<double> &xVal, const s
 	m_yMaxRef = *std::min_element(std::begin(yVal), std::end(yVal));
 }
 
+void AdaptiveThreshold::setOutputText(const QString& Text)
+{
+	this->textEdit->append(Text + "\n"); 
+}
+
+void AdaptiveThreshold::setHistData (QSharedPointer<iAPlotData> &data)
+{
+	if (!data) 
+		throw std::invalid_argument("data empty");
+
+	m_thresCalculator.setData(data); 
+}
+
 void AdaptiveThreshold::resetGraphToDefault()
 {
 	DEBUG_LOG("reset to default"); 
@@ -169,10 +166,6 @@ void AdaptiveThreshold::resetGraphToDefault()
 
 void AdaptiveThreshold::visualizeMovingAverage()
 {
-	/*QMessageBox msgBox;
-	msgBox.setText("The document has been modified.");
-	msgBox.exec();*/
-
 	uint averageCount = this->spinBox_average->text().toUInt();
 	DEBUG_LOG("Moving Average"); 
 	DEBUG_LOG(QString("Freq size%1").arg(m_frequencies.size())); 
@@ -180,15 +173,10 @@ void AdaptiveThreshold::visualizeMovingAverage()
 		m_movingFrequencies.clear();
 
 	QString text = QString("Moving average %1").arg(averageCount);
-
-	m_thresCalculator.calculateAverage(m_frequencies, m_movingFrequencies, averageCount);
-	
+	m_thresCalculator.calculateAverage(m_frequencies, m_movingFrequencies, averageCount);	
 	m_thresCalculator.testPeakDetect();
-
 	QLineSeries *newSeries = new QLineSeries;
-	/*newSeries->setObjectName(text); */
 	this->prepareDataSeries(newSeries, m_greyThresholds, m_movingFrequencies, false);
-	
 	
 }
 
@@ -401,6 +389,7 @@ void AdaptiveThreshold::buttonLoadDataClicked()
 
 void AdaptiveThreshold::buttonLoadHistDataClicked()
 {
-	DEBUG_LOG("Loading histogram data"); 
+	this->textEdit->append("Loading histogram data\n");
+	m_thresCalculator.retrieveHistData(); 
 }
 

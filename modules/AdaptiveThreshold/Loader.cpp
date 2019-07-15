@@ -47,7 +47,4 @@ bool Loader::loadCSV(const QString &Fname)
 	}
 	else
 		return false; 
-
-
-	
 }

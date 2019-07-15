@@ -224,10 +224,13 @@
    </layout>
   </widget>
   <widget class="QTextEdit" name="textEdit">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
-     <x>40</x>
-     <y>530</y>
+     <x>80</x>
+     <y>750</y>
      <width>691</width>
      <height>31</height>
     </rect>
@@ -236,14 +239,33 @@
   <widget class="QLabel" name="label_5">
    <property name="geometry">
     <rect>
-     <x>40</x>
-     <y>500</y>
+     <x>80</x>
+     <y>720</y>
      <width>161</width>
      <height>31</height>
     </rect>
    </property>
+   <property name="minimumSize">
+    <size>
+     <width>161</width>
+     <height>31</height>
+    </size>
+   </property>
    <property name="text">
     <string>TAusgabe</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_clear">
+   <property name="geometry">
+    <rect>
+     <x>700</x>
+     <y>800</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>ClearLog</string>
    </property>
   </widget>
  </widget>

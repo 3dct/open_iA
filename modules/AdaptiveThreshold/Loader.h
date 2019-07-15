@@ -3,35 +3,35 @@
 
 class QString; 
 
-namespace histExp {
-	class HistData 
-	{
-	public: 
-		HistData() {
-			m_data_thres.reserve(1000);
-			m_data_freq.reserve(1000);
-
-		}
-
-		const std::vector<double>& getThresholds() const {
-			return m_data_thres; 
-		};
-		const std::vector<double>& getFrequencies() const {
-			return m_data_freq; 
-		
-		};
-	
-		void insertElem(double thres, double freq) {
-			m_data_freq.push_back(freq);
-			m_data_thres.push_back(thres); 
-		
-		};
-
-	private:
-		std::vector<double> m_data_thres; 
-		std::vector<double> m_data_freq; 
-	};
-};
+//namespace histExp {
+//	class HistData 
+//	{
+//	public: 
+//		HistData() {
+//			m_data_thres.reserve(1000);
+//			m_data_freq.reserve(1000);
+//
+//		}
+//
+//		const std::vector<double>& getThresholds() const {
+//			return m_data_thres; 
+//		};
+//		const std::vector<double>& getFrequencies() const {
+//			return m_data_freq; 
+//		
+//		};
+//	
+//		void insertElem(double thres, double freq) {
+//			m_data_freq.push_back(freq);
+//			m_data_thres.push_back(thres); 
+//		
+//		};
+//
+//	private:
+//		std::vector<double> m_data_thres; 
+//		std::vector<double> m_data_freq; 
+//	};
+//};
 
 
 class Loader

@@ -36,13 +36,13 @@ public:
 	//! Create a new dialog, all parameters are optional
 	AdaptiveThreshold(QWidget * parent = 0, Qt::WindowFlags f = 0);
 
-	void connectUIActions();
+	void setupUIActions();
 
 	~AdaptiveThreshold();
 
 	//void calculateMovingAvarage();	
 
-	void initChart(const QSharedPointer<iAPlotData> &data);
+	void initChart();
 
 	void initAxes(double xmin, double xmax, double ymin, double yMax, bool setDefaultAxis); 	
 	
@@ -57,9 +57,8 @@ public:
 
 	}
 
-	inline void setHistData(QSharedPointer<iAPlotData> &data) {
-		m_thresCalculator.setData(data); 
-	}
+	void setHistData(/*const*/ QSharedPointer<iAPlotData>& data);
+	
 	
 
 private slots:
@@ -71,13 +70,16 @@ private slots:
 		void resetGraphToDefault(); 
 		void visualizeMovingAverage(); 
 		void myAction(); 
+		inline void clearEditField() {
+			this->textEdit->clear();
+		}
 
 private:
 	void prepareAxis(QValueAxis *axis, const QString &title, double min, double max, uint ticks, axisMode mode);
 	void generateSampleData(bool addserries);
 	void determineMinMax(const std::vector<double> &xVal, const std::vector<double> &yVal); 
+	void setOutputText(const QString& Text); 
 	
-
 	//TODO Refactoring
 
 

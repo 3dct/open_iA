@@ -26,22 +26,30 @@ void iAdaptiveThresholdModuleInterface::Initialize()
 
 void iAdaptiveThresholdModuleInterface::determineThreshold()
 {
-	AdaptiveThreshold dlg_thres;
-	
 	/*
-	QSharedPointer<iAPlotData> data; 
+	QSharedPointer<iAPlotData> data;
 	data->binStart(0);
 	data->minX();*/
+
+	AdaptiveThreshold dlg_thres;
+		
 	if (!m_mainWnd->activeMdiChild())
 	{
 		DEBUG_LOG("image not loaded");
 		return; 
 	}
 
-	auto hist = m_mainWnd->activeMdiChild()->histogram(); 
-	auto data = hist->plots()[0]->data(); 
-	dlg_thres.initChart(data);
-	if (dlg_thres.exec() != QDialog::Accepted)
-		return;
-	
+
+	try {
+		auto hist = m_mainWnd->activeMdiChild()->histogram();
+		auto data = hist->plots()[0]->data();
+		dlg_thres.initChart();
+		dlg_thres.setHistData(data);
+		if (dlg_thres.exec() != QDialog::Accepted)
+			return;
+	}
+	catch (std::invalid_argument& iaex) {
+		DEBUG_LOG(iaex.what()); 
+		return; 
+	}
 }
