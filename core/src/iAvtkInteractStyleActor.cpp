@@ -92,8 +92,8 @@ namespace polyTransform {
 	vtkStandardNewMacro(iAvtkInteractStyleActor);
 
 iAvtkInteractStyleActor::iAvtkInteractStyleActor():
-	m_volumeRenderer(nullptr),
 	m_mdiChild(nullptr),
+	m_volumeRenderer(nullptr),
 	enable3D(false),
 	m_rotationEnabled(true)
 {
@@ -109,13 +109,13 @@ iAvtkInteractStyleActor::iAvtkInteractStyleActor():
 		InteractionPicker->SetTolerance(100.0);
 
 		for (int i = 0; i < 3; i++) {
-			m_currentVolRendererPosition[i] = 0.0f;
-			m_imageRefOrientation[i] = 0.0f; 
+			m_currentVolRendererPosition[i] = 0.0;
+			m_imageRefOrientation[i] = 0.0;
 		}
 	
 
 	}
-	catch (std::bad_alloc &ba) {
+	catch (std::bad_alloc &/*ba*/) {
 		DEBUG_LOG("Error in Memory reservation"); 
 	}
 			
@@ -153,9 +153,9 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 		const double *spacing = m_image->GetSpacing();
 		
 		double imageCenter[3];
-		imageCenter[0] = (bounds[1] + bounds[0]) / 2.0f;
-		imageCenter[1] = (bounds[3] + bounds[2]) / 2.0f;
-		imageCenter[2] = (bounds[5] + bounds[4]) / 2.0f;
+		imageCenter[0] = (bounds[1] + bounds[0]) / 2.0;
+		imageCenter[1] = (bounds[3] + bounds[2]) / 2.0;
+		imageCenter[2] = (bounds[5] + bounds[4]) / 2.0;
 		m_SphereSourceCenter->SetCenter(imageCenter);
 		m_SphereSourceCenter->SetRadius(5.0);
 			
@@ -175,7 +175,7 @@ void iAvtkInteractStyleActor::initializeAndRenderPolyData(uint thickness)
 			m_volumeRenderer->update(); 
 		}
 	}
-	catch (std::bad_alloc &ba) {
+	catch (std::bad_alloc &/*ba*/) {
 		DEBUG_LOG("could not reserve memory for sphereactor");
 	}
 }
@@ -415,7 +415,7 @@ void iAvtkInteractStyleActor::createAndInitLines(double const *bounds, double co
 		m_volumeRenderer->update();
 		
 
-	}catch (std::bad_alloc &ba) {
+	}catch (std::bad_alloc &/*ba*/) {
 		DEBUG_LOG("Mem error in line creation"); 
 	}
 }
@@ -1187,7 +1187,7 @@ void iAvtkInteractStyleActor::ReslicerRotate(vtkSmartPointer<vtkTransform> &tran
 	
 }
 
-void iAvtkInteractStyleActor::prepareReslicer(vtkImageReslice * reslicer, vtkSmartPointer<vtkTransform> & transform, double const * spacing)
+void iAvtkInteractStyleActor::prepareReslicer(vtkImageReslice * reslicer, vtkSmartPointer<vtkTransform> transform, double const * spacing)
 {
 	reslicer->SetResliceTransform(transform);
 	reslicer->SetInputData(m_image);
@@ -1203,7 +1203,7 @@ void iAvtkInteractStyleActor::prepareReslicer(vtkImageReslice * reslicer, vtkSma
 	reslicer->Update();
 }
 
-void iAvtkInteractStyleActor::rotateReslicerXYZ( vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslcier, double const *rotXYZ, uint rotationMode, double const * center, double const *spacing)
+void iAvtkInteractStyleActor::rotateReslicerXYZ( vtkSmartPointer<vtkTransform> transform, vtkImageReslice *reslcier, double const *rotXYZ, uint rotationMode, double const * center, double const *spacing)
 {
 	if (!transform) return;
 

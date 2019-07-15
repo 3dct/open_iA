@@ -166,14 +166,14 @@ private:
 
 	void ReslicerRotate(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslicer, transformationMode mode, /*double const *rotXYZ,*/ double const * center, double angle, double const *spacing);
 	//update reslicer
-	void prepareReslicer(vtkImageReslice * reslicer, vtkSmartPointer<vtkTransform> & transform, double const * spacing);
+	void prepareReslicer(vtkImageReslice * reslicer, vtkSmartPointer<vtkTransform> transform, double const * spacing);
 
 	//rotate 3d in hope first Rotate x then rotate y then rotate Z
 	/* mode 0 -> x Rotation
 	* mode 1 x and y Rotation
 	* mode 2 x, y, z Rotation, -> first rotate x, then y, then z
 	*/	
-	void rotateReslicerXYZ(vtkSmartPointer<vtkTransform> &transform, vtkImageReslice *reslcier, double const *rotXYZ, uint rotationMode, double const * center, double const *spacing);
+	void rotateReslicerXYZ(vtkSmartPointer<vtkTransform> transform, vtkImageReslice *reslcier, double const *rotXYZ, uint rotationMode, double const * center, double const *spacing);
 	//just a cube source for visualisation
 	//for debugging / visualisation
 	void initializeAndRenderPolyData(uint thickness); 
