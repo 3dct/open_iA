@@ -929,11 +929,7 @@ void iARenderer::setSlicePlane(int planeID, double originX, double originY, doub
 
 void iARenderer::applySettings(iARenderSettings const & settings)
 {
-#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
 	m_ren->SetUseFXAA(settings.UseFXAA);
-#else
-	DEBUG_LOG("FXAA Anti-Aliasing is not support with your VTK version");
-#endif
 	m_cam->SetParallelProjection(settings.ParallelProjection);
 	QColor bgTop(settings.BackgroundTop);
 	QColor bgBottom(settings.BackgroundBottom);

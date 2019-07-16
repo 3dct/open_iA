@@ -2054,11 +2054,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	size_t colorCount = m_refVisTable->GetNumberOfRows() * 4;
 	for (size_t row = 0; row < colorCount; ++row)
 	{
-#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
-		m_colors->InsertNextTupleValue(c);
-#else
 		colors->InsertNextTypedTuple(c);
-#endif
 	}
 	auto points = vtkSmartPointer<vtkPoints>::New();
 	auto linePolyData = vtkSmartPointer<vtkPolyData>::New();
@@ -2216,11 +2212,7 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 	colors->SetName ("Colors");
 	unsigned char blue[3] = {0, 0, 255};
 	for (size_t s = 0; s < sampledPoints.size(); ++s)
-#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
-		colors->InsertNextTupleValue(blue);
-#else
 		colors->InsertNextTypedTuple(blue);
-#endif
 	polydata->GetPointData()->SetScalars(colors);
 
 	auto sampleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
