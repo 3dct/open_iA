@@ -79,7 +79,7 @@ private:
 	void generateSampleData(bool addserries);
 	void determineMinMax(const std::vector<double> &xVal, const std::vector<double> &yVal); 
 	void setOutputText(const QString& Text); 
-	
+	void setInputData(const std::vector<double> &thres_binInX, const std::vector<double> &freqValsInY);
 	//TODO Refactoring
 
 

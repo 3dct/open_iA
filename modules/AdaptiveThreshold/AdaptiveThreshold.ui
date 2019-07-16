@@ -57,7 +57,7 @@
     <item row="4" column="0">
      <widget class="QPushButton" name="btn_update">
       <property name="text">
-       <string>Update</string>
+       <string>RescaleChart</string>
       </property>
      </widget>
     </item>

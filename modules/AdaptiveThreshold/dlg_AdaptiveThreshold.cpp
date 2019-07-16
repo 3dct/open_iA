@@ -138,6 +138,12 @@ void AdaptiveThreshold::setOutputText(const QString& Text)
 	this->textEdit->append(Text + "\n"); 
 }
 
+void AdaptiveThreshold::setInputData(const std::vector<double> &thres_binInX,const std::vector<double> &freqValsInY)
+{
+	m_greyThresholds = thres_binInX; 
+	m_frequencies = freqValsInY; 
+}
+
 void AdaptiveThreshold::setHistData (QSharedPointer<iAPlotData> &data)
 {
 	if (!data) 
@@ -166,8 +172,9 @@ void AdaptiveThreshold::resetGraphToDefault()
 
 void AdaptiveThreshold::visualizeMovingAverage()
 {
+	DEBUG_LOG("Moving Average");
 	uint averageCount = this->spinBox_average->text().toUInt();
-	DEBUG_LOG("Moving Average"); 
+	if (averageCount <= 2) return; 	 
 	DEBUG_LOG(QString("Freq size%1").arg(m_frequencies.size())); 
 	if (m_movingFrequencies.size() > 0)
 		m_movingFrequencies.clear();
@@ -199,7 +206,7 @@ void AdaptiveThreshold::initAxes(double xmin, double xmax, double ymin, double y
 	QString titleY = "YFrequencies"; 
 
 	if (setDefaultAxis) {
-		this->resetGraphToDefault();
+		//this->resetGraphToDefault();
 		return;
 	}
 
@@ -391,7 +398,10 @@ void AdaptiveThreshold::buttonLoadHistDataClicked()
 {
 	this->textEdit->append("Loading histogram data\n");
 	m_thresCalculator.retrieveHistData(); 
-	this->prepareDataSeries(m_refSeries, m_thresCalculator.getThresBins(), 
-		m_thresCalculator.getFreqValsY(), true); 
+
+	this->setInputData(m_thresCalculator.getThresBins(), m_thresCalculator.getFreqValsY()); 
+
+	this->prepareDataSeries(m_refSeries, m_greyThresholds, 
+		m_frequencies, true); 
 }
 

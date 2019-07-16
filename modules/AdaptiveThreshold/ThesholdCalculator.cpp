@@ -159,7 +159,7 @@ void ThesholdCalculator::calculateAverage(const std::vector<double> &v_in, std::
 	size_t v_lengh = v_in.size();
 	
 	if (v_lengh == 0) {
-		DEBUG_LOG("input values are zero"); 
+		DEBUG_LOG("input lenght values are zero"); 
 		return; 
 	}
 
