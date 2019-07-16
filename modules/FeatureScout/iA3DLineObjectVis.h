@@ -32,14 +32,16 @@ class FeatureScout_API iA3DLineObjectVis: public iA3DColoredPolyObjectVis
 {
 public:
 	iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-		QColor const & color, std::map<size_t, std::vector<iAVec3f> > curvedFiberData );
+		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData );
 	void updateValues( std::vector<std::vector<double> > const & values );
 	vtkPolyData* getPolyData() override;
 protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPoints> m_points;
-	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberData;
-	//! maps the fiber ID to the first index in the points array that belongs to this fiber
-	std::vector<size_t> m_fiberPointMap;
+	//! maps the fiber ID to (first=) the first index in the points array that belongs to this fiber, and (second=) the number of points
+	std::vector<std::pair<size_t, size_t>> m_fiberPointMap;
+private:
+	int objectStartPointIdx(int objIdx) const override;
+	int objectPointCount(int objIdx) const override;
 };
 
