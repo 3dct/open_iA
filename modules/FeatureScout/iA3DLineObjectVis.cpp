@@ -31,6 +31,7 @@
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkPolyLine.h>
 #include <vtkTable.h>
 
 iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color,
@@ -47,15 +48,14 @@ iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QS
 		auto it = curvedFiberData.find(row);
 		if (it != curvedFiberData.end())
 		{
-			m_points->InsertNextPoint(it->second[0].data());
-			for (int i = 1; i < it->second.size(); ++i)
+			auto line = vtkSmartPointer<vtkPolyLine>::New();
+			line->GetPointIds()->SetNumberOfIds(it->second.size());
+			for (int i = 0; i < it->second.size(); ++i)
 			{
 				m_points->InsertNextPoint(it->second[i].data());
-				auto line = vtkSmartPointer<vtkLine>::New();
-				line->GetPointIds()->SetId(0, m_points->GetNumberOfPoints() - 2);
-				line->GetPointIds()->SetId(1, m_points->GetNumberOfPoints() - 1);
-				lines->InsertNextCell(line);
+				line->GetPointIds()->SetId(i, m_points->GetNumberOfPoints()-1);
 			}
+			lines->InsertNextCell(line);
 		}
 		else
 		{
