@@ -68,12 +68,14 @@ public slots:
 	void clear();
 	void colorThemeChanged(QString const & newThemeName);
 	QString const & fileName();
+	void opacityChanged(int newValue);
 private:
 	void addSeed(int, int, int);
 	void removeSeed(QStandardItem* item, int x, int y, int z);
 	void addSeedItem(int label, int x, int y, int z);
 	int addLabelItem(QString const & labelText);
 	void reInitChannelTF();
+	void recolorItems();
 	void updateChannel();
 
 	QStandardItemModel* m_itemModel;

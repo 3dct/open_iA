@@ -13,7 +13,7 @@
   <property name="minimumSize">
    <size>
     <width>189</width>
-    <height>235</height>
+    <height>274</height>
    </size>
   </property>
   <property name="features">
@@ -45,51 +45,7 @@
     <property name="spacing">
      <number>2</number>
     </property>
-    <item row="8" column="2">
-     <widget class="QPushButton" name="pbStoreImage">
-      <property name="text">
-       <string>Store Image</string>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="2">
-     <widget class="QPushButton" name="pbClear">
-      <property name="text">
-       <string>Clear</string>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="2">
-     <widget class="QPushButton" name="pbSample">
-      <property name="text">
-       <string>Sample</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="2">
-     <widget class="QPushButton" name="pbRemove">
-      <property name="text">
-       <string>-</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="2">
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="4" column="2">
-     <widget class="QComboBox" name="cbColorTheme"/>
-    </item>
-    <item row="9" column="2">
+    <item row="11" column="2">
      <widget class="QPushButton" name="pbStore">
       <property name="enabled">
        <bool>false</bool>
@@ -99,7 +55,14 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="1" rowspan="11">
+    <item row="12" column="2">
+     <widget class="QPushButton" name="pbLoad">
+      <property name="text">
+       <string>Load</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1" rowspan="13">
      <widget class="QTreeView" name="lvLabels">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -116,6 +79,30 @@
       </property>
      </widget>
     </item>
+    <item row="4" column="2">
+     <widget class="QComboBox" name="cbColorTheme"/>
+    </item>
+    <item row="5" column="2">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Opacity:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="2">
+     <widget class="QPushButton" name="pbClear">
+      <property name="text">
+       <string>Clear</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QPushButton" name="pbRemove">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </widget>
+    </item>
     <item row="2" column="2">
      <widget class="QCheckBox" name="cbEnableEditing">
       <property name="text">
@@ -124,9 +111,9 @@
      </widget>
     </item>
     <item row="10" column="2">
-     <widget class="QPushButton" name="pbLoad">
+     <widget class="QPushButton" name="pbStoreImage">
       <property name="text">
-       <string>Load</string>
+       <string>Store Image</string>
       </property>
      </widget>
     </item>
@@ -134,6 +121,39 @@
      <widget class="QLabel" name="label">
       <property name="text">
        <string>Color Theme:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="2">
+     <widget class="QPushButton" name="pbSample">
+      <property name="text">
+       <string>Sample</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="2">
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="6" column="2">
+     <widget class="QSlider" name="slOpacity">
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="value">
+       <number>50</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </item>

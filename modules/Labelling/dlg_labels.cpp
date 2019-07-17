@@ -50,6 +50,10 @@
 
 #include <random>
 
+namespace
+{
+	const double DefaultOpacity = 0.5;
+}
 
 dlg_labels::dlg_labels(MdiChild* mdiChild):
 	m_itemModel(new QStandardItemModel()),
@@ -68,6 +72,8 @@ dlg_labels::dlg_labels(MdiChild* mdiChild):
 	connect(pbSample, &QPushButton::clicked, this, &dlg_labels::sample);
 	connect(pbClear, &QPushButton::clicked, this, &dlg_labels::clear);
 	connect(cbColorTheme, &QComboBox::currentTextChanged, this, &dlg_labels::colorThemeChanged);
+	slOpacity->setValue(DefaultOpacity * slOpacity->maximum());
+	connect(slOpacity, &QSlider::valueChanged, this, &dlg_labels::opacityChanged);
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
 	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	lvLabels->setModel(m_itemModel);
@@ -203,6 +209,12 @@ void dlg_labels::reInitChannelTF()
 	m_labelOverlayOTF = iALUT::BuildLabelOpacityTF(count());
 }
 
+void dlg_labels::recolorItems()
+{
+	for (int row = 0; row < m_itemModel->rowCount(); ++row)
+		m_itemModel->item(row)->setData(m_colorTheme->color(row), Qt::DecorationRole);
+}
+
 void dlg_labels::updateChannel()
 {
 	m_labelOverlayImg->Modified();
@@ -236,12 +248,21 @@ void dlg_labels::remove()
 		{
 			return;
 		}
-		// TODO: remove all pixels from m_labelOverlayImg as well!
+		for (int s = item->rowCount()-1; s >= 0; --s)
+		{
+			auto seed = item->child(s);
+			int x = item->data(Qt::UserRole + 1).toInt();
+			int y = item->data(Qt::UserRole + 2).toInt();
+			int z = item->data(Qt::UserRole + 3).toInt();
+			drawPixel(m_labelOverlayImg, x, y, z, 0);
+		}
 		m_itemModel->removeRow(curLabel);
 		if (count() == 0)
 		{
 			pbStore->setEnabled(false);
 		}
+		recolorItems();
+		updateChannel();
 	}
 	else
 	{							// remove a single seed
@@ -626,10 +647,13 @@ void dlg_labels::colorThemeChanged(QString const & newThemeName)
 {
 	m_colorTheme = iAColorThemeManager::instance().theme(newThemeName);
 	reInitChannelTF();
-	for (int row = 0; row < m_itemModel->rowCount(); ++row)
-	{
-		m_itemModel->item(row)->setData(m_colorTheme->color(row), Qt::DecorationRole);
-	}
+	recolorItems();
 	if (m_labelOverlayImg)
 		updateChannel();
+}
+
+void dlg_labels::opacityChanged(int newValue)
+{
+	double opacity = static_cast<double>(newValue) / slOpacity->maximum();
+	m_mdiChild->updateChannelOpacity(m_labelChannelID, opacity);
 }
