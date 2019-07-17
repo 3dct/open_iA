@@ -205,8 +205,8 @@ void dlg_labels::add()
 
 void dlg_labels::reInitChannelTF()
 {
-	m_labelOverlayLUT = iALUT::BuildLabelColorTF(count(), m_colorTheme);
-	m_labelOverlayOTF = iALUT::BuildLabelOpacityTF(count());
+	m_labelColorTF = iALUT::BuildLabelColorTF(count(), m_colorTheme);
+	m_labelOpacityTF = iALUT::BuildLabelOpacityTF(count());
 }
 
 void dlg_labels::recolorItems()
@@ -219,7 +219,7 @@ void dlg_labels::updateChannel()
 {
 	m_labelOverlayImg->Modified();
 	m_labelOverlayImg->SetScalarRange(0, count());
-	m_mdiChild->updateChannel(m_labelChannelID, m_labelOverlayImg, m_labelOverlayLUT, m_labelOverlayOTF, true);
+	m_mdiChild->updateChannel(m_labelChannelID, m_labelOverlayImg, m_labelColorTF, m_labelOpacityTF, true);
 	m_mdiChild->updateViews();
 }
 

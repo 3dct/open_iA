@@ -85,8 +85,8 @@ private:
 
 	// for label overlay:
 	vtkSmartPointer<iAvtkImageData> m_labelOverlayImg;
-	vtkSmartPointer<vtkLookupTable> m_labelOverlayLUT;
-	vtkSmartPointer<vtkPiecewiseFunction> m_labelOverlayOTF;
+	vtkSmartPointer<vtkLookupTable> m_labelColorTF;
+	vtkSmartPointer<vtkPiecewiseFunction> m_labelOpacityTF;
 	MdiChild* m_mdiChild;
 	bool m_newOverlay;
 	uint m_labelChannelID;
