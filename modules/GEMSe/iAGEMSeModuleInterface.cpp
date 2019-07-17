@@ -35,7 +35,7 @@
 #include <cassert>
 
 iAGEMSeModuleInterface::iAGEMSeModuleInterface():
-	m_toolbar(0)
+	m_toolbar(nullptr)
 {}
 
 void iAGEMSeModuleInterface::Initialize()
@@ -64,7 +64,7 @@ void iAGEMSeModuleInterface::StartGEMSe()
 
 iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
 {
-	iAGEMSeAttachment* result = iAGEMSeAttachment::create( mainWnd, child);
+	auto result = iAGEMSeAttachment::create( mainWnd, child);
 	if (result)
 	{
 		SetupToolbar();

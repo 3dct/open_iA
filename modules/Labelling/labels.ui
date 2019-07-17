@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>150</width>
-    <height>150</height>
+    <width>252</width>
+    <height>302</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>150</width>
-    <height>150</height>
+    <width>189</width>
+    <height>235</height>
    </size>
   </property>
   <property name="features">
@@ -45,24 +45,24 @@
     <property name="spacing">
      <number>2</number>
     </property>
-    <item row="6" column="2">
+    <item row="8" column="2">
      <widget class="QPushButton" name="pbStoreImage">
       <property name="text">
        <string>Store Image</string>
       </property>
      </widget>
     </item>
-    <item row="2" column="2">
-     <widget class="QCheckBox" name="cbEnableEditing">
+    <item row="6" column="2">
+     <widget class="QPushButton" name="pbClear">
       <property name="text">
-       <string>Enable Editing</string>
+       <string>Clear</string>
       </property>
      </widget>
     </item>
-    <item row="8" column="2">
-     <widget class="QPushButton" name="pbLoad">
+    <item row="7" column="2">
+     <widget class="QPushButton" name="pbSample">
       <property name="text">
-       <string>Load</string>
+       <string>Sample</string>
       </property>
      </widget>
     </item>
@@ -73,7 +73,33 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="1" rowspan="9">
+    <item row="5" column="2">
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="4" column="2">
+     <widget class="QComboBox" name="cbColorTheme"/>
+    </item>
+    <item row="9" column="2">
+     <widget class="QPushButton" name="pbStore">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Store</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1" rowspan="11">
      <widget class="QTreeView" name="lvLabels">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -90,40 +116,24 @@
       </property>
      </widget>
     </item>
+    <item row="2" column="2">
+     <widget class="QCheckBox" name="cbEnableEditing">
+      <property name="text">
+       <string>Enable Editing</string>
+      </property>
+     </widget>
+    </item>
+    <item row="10" column="2">
+     <widget class="QPushButton" name="pbLoad">
+      <property name="text">
+       <string>Load</string>
+      </property>
+     </widget>
+    </item>
     <item row="3" column="2">
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="7" column="2">
-     <widget class="QPushButton" name="pbStore">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
+     <widget class="QLabel" name="label">
       <property name="text">
-       <string>Store</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="2">
-     <widget class="QPushButton" name="pbSample">
-      <property name="text">
-       <string>Sample</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="2">
-     <widget class="QPushButton" name="pbClear">
-      <property name="text">
-       <string>Clear</string>
+       <string>Color Theme:</string>
       </property>
      </widget>
     </item>

@@ -22,8 +22,6 @@
 
 #include "ui_labels.h"
 
-#include "iALabelInfo.h"
-
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
@@ -41,38 +39,34 @@ class vtkLookupTable;
 class vtkObject;
 class vtkPiecewiseFunction;
 
-class iALabelOverlayThread;
-
 struct iAImageCoordinate;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
 
-class dlg_labels : public dlg_labelUI, public iALabelInfo
+class dlg_labels : public dlg_labelUI
 {
 	Q_OBJECT
 public:
-	dlg_labels(MdiChild* mdiChild, iAColorTheme const * theme);
+	dlg_labels(MdiChild* mdiChild);
 	int curLabelRow() const;
 	int seedCount(int labelIdx) const;
 	bool load(QString const & filename);
 	bool store(QString const & filename, bool extendedFormat);
-	void setColorTheme(iAColorTheme const *);
-	//! @{ implementing iALabelInfo methods
-	int count() const override;
-	QString name(int idx) const override;
-	QColor color(int idx) const override;
-	//! @}
+	int count() const;
+	QString name(int idx) const;
+	QColor color(int idx) const;
 public slots:
-	void RendererClicked(int, int, int);
-	void SlicerClicked(int, int, int);
-	void SlicerRightClicked(int, int, int);
-	void Add();
-	void Remove();
-	void Store();
-	void Load();
+	void rendererClicked(int, int, int);
+	void slicerClicked(int, int, int);
+	void slicerRightClicked(int, int, int);
+	void add();
+	void remove();
+	void storeLabels();
+	void loadLabels();
 	void storeImage();
-	void Sample();
-	void Clear();
+	void sample();
+	void clear();
+	void colorThemeChanged(QString const & newThemeName);
 	QString const & fileName();
 private:
 	void addSeed(int, int, int);

@@ -20,25 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include <iAModuleInterface.h>
 
-#include <vtkSmartPointer.h>
-
-#include <QString>
-
-class iAColorTheme;
-class iALookupTable;
-
-class vtkLookupTable;
-class vtkPiecewiseFunction;
-
-namespace iALUT
+class iALabellingModuleInterface : public iAModuleInterface
 {
-	open_iA_Core_API const QStringList&  GetColorMapNames();
-	open_iA_Core_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols = 256 );
-	open_iA_Core_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols = 256 );
-	open_iA_Core_API iALookupTable Build(double const * lutRange, QString colorMap, int numCols, double alpha);
-
-	open_iA_Core_API vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOpacityTF(int labelCount);
-	open_iA_Core_API vtkSmartPointer<vtkLookupTable> BuildLabelColorTF(int labelCount, iAColorTheme const * colorTheme);
-}
+	Q_OBJECT
+public:
+	void Initialize() override;
+protected:
+	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
+private slots:
+	//! Menu entries:
+	void startLabelling();
+};

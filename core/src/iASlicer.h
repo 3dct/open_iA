@@ -274,7 +274,7 @@ signals:
 	void msg(QString s);
 	void progress(int);
 	void updateSignal();
-	void clicked(int x, int y, int z);
+	void leftClicked(int x, int y, int z);
 	void rightClicked(int x, int y, int z);
 	void released(int x, int y, int z);
 	void userInteraction();

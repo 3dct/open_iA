@@ -28,12 +28,12 @@
 #include "iAImageTreeLeaf.h"
 #include "iAImagePreviewWidget.h"
 #include "iALabelInfo.h"
-#include "iALabelOverlayThread.h"
 
 #include <iAAttributeDescriptor.h>
 #include <iAChannelData.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
+#include <iALUT.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
@@ -210,7 +210,7 @@ iADetailView::iADetailView(
 	connect(m_previewWidget->slicer(), SIGNAL(altMouseWheel(int)), this, SLOT(changeMagicLensOpacity(int)));
 	connect(m_previewWidget->slicer(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
 	connect(m_previewWidget->slicer(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerMouseMove(int, int, int, int)));
-	connect(m_previewWidget->slicer(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
+	connect(m_previewWidget->slicer(), &iASlicer::leftClicked, this, &iADetailView::SlicerClicked);
 	connect(m_previewWidget->slicer(), SIGNAL(released(int, int, int)), this, SLOT(SlicerReleased(int, int, int)));
 }
 
@@ -478,8 +478,8 @@ void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme cons
 
 	if (m_resultFilterImg)
 	{
-		m_resultFilterOverlayLUT = BuildLabelOverlayLUT(m_labelCount, m_colorTheme);
-		m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
+		m_resultFilterOverlayLUT = iALUT::BuildLabelColorTF(m_labelCount, m_colorTheme);
+		m_resultFilterOverlayOTF = iALUT::BuildLabelOpacityTF(m_labelCount);
 		m_resultFilterChannel->setData(m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
 		iASlicer* slicer = m_previewWidget->slicer();
 		slicer->updateChannel(ResultFilterChannelID, *m_resultFilterChannel.data());
@@ -662,8 +662,8 @@ void iADetailView::AddResultFilterPixel(int x, int y, int z)
 		m_resultFilterImg->AllocateScalars(VTK_INT, 1);
 		m_resultFilterImg->SetSpacing(m_spacing);
 		clearImage(m_resultFilterImg, 0);
-		m_resultFilterOverlayLUT = BuildLabelOverlayLUT(m_labelCount, m_colorTheme);
-		m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
+		m_resultFilterOverlayLUT = iALUT::BuildLabelColorTF(m_labelCount, m_colorTheme);
+		m_resultFilterOverlayOTF = iALUT::BuildLabelOpacityTF(m_labelCount);
 	}
 	drawPixel(m_resultFilterImg, x, y, z, label+1);
 	m_resultFilterImg->Modified();

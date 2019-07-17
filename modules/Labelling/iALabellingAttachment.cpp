@@ -18,27 +18,21 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iALabellingAttachment.h"
 
-#include "open_iA_Core_export.h"
+#include "dlg_labels.h"
 
-#include <vtkSmartPointer.h>
+#include <mdichild.h>
 
-#include <QString>
-
-class iAColorTheme;
-class iALookupTable;
-
-class vtkLookupTable;
-class vtkPiecewiseFunction;
-
-namespace iALUT
+iALabellingAttachment::iALabellingAttachment(MainWindow * mainWnd, MdiChild * child):
+	iAModuleAttachmentToChild(mainWnd, child)
 {
-	open_iA_Core_API const QStringList&  GetColorMapNames();
-	open_iA_Core_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols = 256 );
-	open_iA_Core_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols = 256 );
-	open_iA_Core_API iALookupTable Build(double const * lutRange, QString colorMap, int numCols, double alpha);
+}
 
-	open_iA_Core_API vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOpacityTF(int labelCount);
-	open_iA_Core_API vtkSmartPointer<vtkLookupTable> BuildLabelColorTF(int labelCount, iAColorTheme const * colorTheme);
+iALabellingAttachment* iALabellingAttachment::create(MainWindow * mainWnd, MdiChild * child)
+{
+	iALabellingAttachment * newAttachment = new iALabellingAttachment(mainWnd, child);
+	newAttachment->m_dlgLabels = new dlg_labels(child);
+	child->splitDockWidget(child->logDockWidget(), newAttachment->m_dlgLabels, Qt::Vertical);
+	return newAttachment;
 }

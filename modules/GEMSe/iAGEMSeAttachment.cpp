@@ -22,7 +22,6 @@
 
 #include "dlg_GEMSeControl.h"
 #include "dlg_GEMSe.h"
-#include "dlg_labels.h"
 #include "dlg_samplings.h"
 
 #include <dlg_modalities.h>
@@ -52,28 +51,17 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * ch
 	iAColorTheme const * colorTheme = iAColorThemeManager::instance().theme(defaultThemeName);
 	
 	newAttachment->m_dlgGEMSe = new dlg_GEMSe(child, child->logger(), colorTheme);
-	
-	newAttachment->m_dlgLabels = new dlg_labels(child, colorTheme);
 	newAttachment->m_dlgSamplings = new dlg_samplings();
 	newAttachment->m_dlgGEMSeControl = new dlg_GEMSeControl(
 		child,
 		newAttachment->m_dlgGEMSe,
 		child->modalitiesDockWidget(),
-		newAttachment->m_dlgLabels,
 		newAttachment->m_dlgSamplings,
 		colorTheme
 	);
 	child->splitDockWidget(child->logDockWidget(), newAttachment->m_dlgGEMSe, Qt::Vertical);
 	child->splitDockWidget(child->logDockWidget(), newAttachment->m_dlgGEMSeControl, Qt::Horizontal);
-	child->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgLabels, Qt::Vertical);
 	child->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgSamplings, Qt::Vertical);
-
-	//connect(mdiChild->renderer(),     SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(RendererClicked(int, int, int)));
-	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
-	{
-		connect(child->slicer(i), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
-		connect(child->slicer(i), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
-	}
 	return newAttachment;
 }
 

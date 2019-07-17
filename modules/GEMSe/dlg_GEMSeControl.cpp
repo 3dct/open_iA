@@ -21,7 +21,6 @@
 #include "dlg_GEMSeControl.h"
 
 #include "dlg_GEMSe.h"
-#include "dlg_labels.h"
 #include "dlg_Consensus.h"
 #include "dlg_progress.h"
 #include "dlg_samplings.h"
@@ -120,7 +119,6 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	QWidget *parentWidget,
 	dlg_GEMSe* dlgGEMSe,
 	dlg_modalities* dlgModalities,
-	dlg_labels* dlgLabels,
 	dlg_samplings* dlgSamplings,
 	iAColorTheme const * colorTheme
 ):
@@ -130,13 +128,11 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	m_dlgConsensus(0),
 	m_dlgGEMSe(dlgGEMSe),
 	m_dlgModalities(dlgModalities),
-	m_dlgLabels(dlgLabels),
 	m_dlgSamplings(dlgSamplings),
 	m_simpleLabelInfo(new iASimpleLabelInfo())
 
 {
 	connect(m_dlgSamplings, SIGNAL(AddSampling()), this, SLOT(LoadSampling()));
-	dlgLabels->hide();
 	m_simpleLabelInfo->setColorTheme(colorTheme);
 	cbColorThemes->addItems(iAColorThemeManager::instance().availableThemes());
 	cbColorThemes->setCurrentText(colorTheme->name());
@@ -574,7 +570,6 @@ void dlg_GEMSeControl::SetIconSize(int newSize)
 void dlg_GEMSeControl::setColorTheme(const QString &themeName)
 {
 	iAColorTheme const * theme = iAColorThemeManager::instance().theme(themeName);
-	m_dlgLabels->setColorTheme(theme);
 	m_simpleLabelInfo->setColorTheme(theme);
 	m_dlgGEMSe->setColorTheme(theme, m_simpleLabelInfo.data());
 }

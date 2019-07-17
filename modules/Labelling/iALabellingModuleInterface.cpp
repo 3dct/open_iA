@@ -18,45 +18,35 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iALabellingModuleInterface.h"
 
-#include <vtkSmartPointer.h>
+#include "iALabellingAttachment.h"
 
-#include <QThread>
+#include <iAModuleDispatcher.h>
+#include <mainwindow.h>
 
-class iAColorTheme;
 
-class vtkImageData;
-class vtkLookupTable;
-class vtkPiecewiseFunction;
-
-class QStandardItemModel;
-
-class iALabelOverlayThread : public QThread
+void iALabellingModuleInterface::Initialize()
 {
-public:
-	iALabelOverlayThread(vtkSmartPointer<vtkImageData>& labelOverlayImg,
-		vtkSmartPointer<vtkLookupTable>& labelOverlayLUT,
-		vtkSmartPointer<vtkPiecewiseFunction>& labelOverlayOTF,
-		QStandardItemModel* itemModel,
-		int labelCount,
-		iAColorTheme const * colorTheme,
-		int *    imageExtent,
-		double * imageSpacing);
-	void RebuildLabelOverlayLUT();
-	vtkSmartPointer<vtkImageData> drawImage();
-	void run();
-private:
-	vtkSmartPointer<vtkImageData>& m_labelOverlayImg;
-	vtkSmartPointer<vtkLookupTable>& m_labelOverlayLUT;
-	vtkSmartPointer<vtkPiecewiseFunction>& m_labelOverlayOTF;
-	QStandardItemModel* m_itemModel;
-	int m_labelCount;
-	iAColorTheme const * m_colorTheme;
-	int *    m_imageExtent;
-	double * m_imageSpacing;
-};
+	if (!m_mainWnd)
+		return;
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
+	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, tr( "Image Ensembles" ), false );
+	
+	QAction * actionLabelling = new QAction( tr("Labelling"), nullptr);
+	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionLabelling, true);
+	connect(actionLabelling, SIGNAL(triggered()), this, SLOT(startLabelling()));
+}
 
-vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOverlayOTF(int labelCount);
+void iALabellingModuleInterface::startLabelling()
+{
+	PrepareActiveChild();
+	if (!m_mdiChild)
+		return;
+	AttachToMdiChild(m_mdiChild);
+}
 
-vtkSmartPointer<vtkLookupTable> BuildLabelOverlayLUT(int labelCount, iAColorTheme const * colorTheme);
+iAModuleAttachmentToChild* iALabellingModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+{
+	return iALabellingAttachment::create( mainWnd, child);
+}
