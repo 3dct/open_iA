@@ -251,12 +251,25 @@ void dlg_labels::remove()
 		for (int s = item->rowCount()-1; s >= 0; --s)
 		{
 			auto seed = item->child(s);
-			int x = item->data(Qt::UserRole + 1).toInt();
-			int y = item->data(Qt::UserRole + 2).toInt();
-			int z = item->data(Qt::UserRole + 3).toInt();
+			int x = seed->data(Qt::UserRole + 1).toInt();
+			int y = seed->data(Qt::UserRole + 2).toInt();
+			int z = seed->data(Qt::UserRole + 3).toInt();
 			drawPixel(m_labelOverlayImg, x, y, z, 0);
 		}
 		m_itemModel->removeRow(curLabel);
+		for (int l = curLabel; l < m_itemModel->rowCount(); ++l)
+		{
+			auto itemAfter = m_itemModel->item(l);
+			itemAfter->setText(QString::number(l));
+			for (int s = itemAfter->rowCount() - 1; s >= 0; --s)
+			{
+				auto seed = itemAfter->child(s);
+				int x = seed->data(Qt::UserRole + 1).toInt();
+				int y = seed->data(Qt::UserRole + 2).toInt();
+				int z = seed->data(Qt::UserRole + 3).toInt();
+				drawPixel(m_labelOverlayImg, x, y, z, l+1);
+			}
+		}
 		if (count() == 0)
 		{
 			pbStore->setEnabled(false);
