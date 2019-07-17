@@ -274,7 +274,7 @@ QString dlg_labels::name(int idx) const
 
 QColor dlg_labels::color(int idx) const
 {
-	return m_itemModel->item(idx)->data(Qt::DecorationRole).value<QColor>();
+	return m_colorTheme->color(idx);
 }
 
 int dlg_labels::curLabelRow() const
@@ -626,7 +626,10 @@ void dlg_labels::colorThemeChanged(QString const & newThemeName)
 {
 	m_colorTheme = iAColorThemeManager::instance().theme(newThemeName);
 	reInitChannelTF();
-	// TODO: re-color existing list items!
+	for (int row = 0; row < m_itemModel->rowCount(); ++row)
+	{
+		m_itemModel->item(row)->setData(m_colorTheme->color(row), Qt::DecorationRole);
+	}
 	if (m_labelOverlayImg)
 		updateChannel();
 }
