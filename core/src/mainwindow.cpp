@@ -228,7 +228,7 @@ void MainWindow::open()
 			this,
 			tr("Open Files"),
 			m_path,
-			iAIOProvider::GetSupportedLoadFormats() + iAIOProvider::ProjectFileTypeFilter
+			iAIOProvider::GetSupportedLoadFormats()
 		)
 	);
 }
