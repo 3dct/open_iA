@@ -1785,10 +1785,14 @@ bool MdiChild::initView( QString const & title )
 			currentFile(), -1, m_imageData, iAModality::MainRenderer + iAModality::Slicer));
 		modalities()->add(mod);
 		m_dwModalities->addListItem(mod);
+	}
+	if (m_channels.empty())
+	{
 		QSharedPointer<iAModalityTransfer> modTrans = modality(0)->transfer();
 		uint channelID = createChannel();
 		assert(channelID == 0); // first modality we create, there shouldn't be another channel yet!
 		modality(0)->setChannelID(channelID);
+		modality(0)->setRenderFlag(modality(0)->renderFlags() | iAModality::RenderFlag::Slicer);
 		for (int s = 0; s < 3; ++s)
 		{
 			m_slicer[s]->addChannel(channelID, iAChannelData(modality(0)->name(), modality(0)->image(), modTrans->colorTF()), true);
