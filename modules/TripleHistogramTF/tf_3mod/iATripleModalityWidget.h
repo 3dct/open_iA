@@ -71,6 +71,7 @@ private slots:
 	void modalitiesLoaded_beforeUpdateSlot();
 
 private:
+	void modalitiesChanged() override;
 	QComboBox *m_layoutComboBox;
 	void setLayoutTypePrivate(iAHistogramAbstractType type);
 

@@ -25,6 +25,8 @@
 class iAInterpolationSliderWidget;
 class MdiChild;
 
+class QLabel;
+
 class iABimodalWidget : public iAMultimodalWidget
 {
 	Q_OBJECT
@@ -35,6 +37,8 @@ public:
 
 private:
 	iAInterpolationSliderWidget *m_slider;
+	QVector<QLabel*> m_labels;
+	void modalitiesChanged() override;
 
 private slots:
 	void modalitiesLoaded_beforeUpdateSlot();

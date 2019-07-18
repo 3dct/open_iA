@@ -34,3 +34,6 @@ iAHistogramAbstract* iAHistogramAbstract::buildHistogramAbstract(iAHistogramAbst
 
 	throw "Unexpected type";
 }
+
+void iAHistogramAbstract::updateModalityNames(QString const names[3])
+{}

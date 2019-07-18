@@ -30,9 +30,9 @@
 
 iAHistogramStackGrid::iAHistogramStackGrid(
 	QWidget *parent,
-	QVector<iADiagramFctWidget*> histograms,
-	QVector<iASimpleSlicerWidget*> slicers,
-	QVector<QLabel*> labels,
+	QVector<iADiagramFctWidget*> const & histograms,
+	QVector<iASimpleSlicerWidget*> const & slicers,
+	QVector<QLabel*> const & labels,
 	Qt::WindowFlags f)
 
 	: QWidget(parent, f)
