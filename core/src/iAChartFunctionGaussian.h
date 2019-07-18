@@ -45,6 +45,7 @@ public:
 	bool isEndPoint(int) override { return true; }
 	bool isDeletable(int) override { return false; }
 	void reset() override;
+	int numPoints() const override;
 
 	// additional public functions
 	void setMean(double mean)   { m_mean = mean; }
