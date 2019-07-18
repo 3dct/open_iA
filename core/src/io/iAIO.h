@@ -23,6 +23,7 @@
 #include "iAAlgorithm.h"
 #include "defines.h"          // for iAIOType
 #include "open_iA_Core_export.h"
+#include "iARawFileParameters.h"
 
 #include <vtkSmartPointer.h>
 
@@ -38,6 +39,8 @@ class vtkPolyData;
 class vtkStringArray;
 
 class iAModalityList;
+unsigned int mapVTKTypeToIdx(unsigned int vtkScalarType);
+unsigned int mapVTKByteOrderToIdx(unsigned int vtkByteOrder);
 
 //! Class currently containing most IO operations (file reading and writing).
 //! Should be split up into readers for specific formats!
@@ -133,10 +136,7 @@ private:
 	double m_origin[3];
 	bool m_compression;
 
-	int m_rawSizeX, m_rawSizeY, m_rawSizeZ;
-	double m_rawSpaceX, m_rawSpaceY, m_rawSpaceZ;
-	double m_rawOriginX, m_rawOriginY, m_rawOriginZ;
-	unsigned int m_rawHeaderSize, m_rawByteOrder, m_rawScalarType;
+	iARawFileParameters m_rawFileParams;
 
 	int m_ioID;
 	std::vector<vtkSmartPointer<vtkImageData> > * m_volumes;

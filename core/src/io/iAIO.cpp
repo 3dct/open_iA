@@ -36,6 +36,7 @@
 #include "iAVolumeStack.h"
 #include "iAToolsVTK.h"
 #include "iATypedCallHelper.h"
+#include "iARawFileParameters.h"
 
 #include <itkExceptionObject.h>
 #include <itkBMPImageIO.h>
@@ -1039,7 +1040,7 @@ void iAIO::writeVolumeStack()
 void iAIO::readRawImage()
 {
 	VTK_TYPED_CALL(read_raw_image_template, m_scalarType, m_headersize, m_byteOrder,
-		m_extent, m_spacing, m_origin, m_fileName, ProgressObserver(), getConnector());
+		m_spacing, m_rawSpace, m_rigin, m_fileName, ProgressObserver(), getConnector());
 }
 
 void iAIO::postImageReadActions()
@@ -1238,9 +1239,9 @@ bool iAIO::setupVolumeStackReader(QString f)
 	m_fileNamesBase = f;
 	m_extension = "." + QFileInfo(f).suffix();
 	QStringList datatype(vtkDataTypeList());
-	datatype[mapVTKTypeToIdx(m_rawScalarType)] = "!" + datatype[mapVTKTypeToIdx(m_rawScalarType)];
+	datatype[mapVTKTypeToIdx(m_scalarType)] = "!" + datatype[mapVTKTypeToIdx(m_scalarType)];
 	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
-	byteOrderStr[mapVTKByteOrderToIdx(m_rawByteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(m_rawByteOrder)];
+	byteOrderStr[mapVTKByteOrderToIdx(m_byteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(m_byteOrder)];
 	QStringList labels = (QStringList()
 		<< tr("#File Names Base") << tr("#Extension")
 		<< tr("#Number of Digits in Index")
@@ -1255,39 +1256,39 @@ bool iAIO::setupVolumeStackReader(QString f)
 		<< m_fileNamesBase << m_extension
 		<< tr("%1").arg(digitsInIndex)
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1])
-		<< tr("%1").arg(m_rawSizeX) << tr("%1").arg(m_rawSizeY) << tr("%1").arg(m_rawSizeZ)
+		<< tr("%1").arg(m_spacing[0]) << tr("%1").arg(m_spacing[1]) << tr("%1").arg(m_spacing[2])
 		<< tr("%1").arg(m_spacing[0]) << tr("%1").arg(m_spacing[1]) << tr("%1").arg(m_spacing[2])
 		<< tr("%1").arg(m_origin[0]) << tr("%1").arg(m_origin[1]) << tr("%1").arg(m_origin[2])
-		<< tr("%1").arg(m_rawHeaderSize)
+		<< tr("%1").arg(m_headersize)
 		<< datatype
 		<< byteOrderStr);
 
-	dlg_openfile_sizecheck *dlg = new dlg_openfile_sizecheck (true, f, m_parent, "RAW file specs", labels, values);
-	if (dlg->exec() != QDialog::Accepted)
+	dlg_openfile_sizecheck dlg(true, f, m_parent, "RAW file specs", labels, values, m_rawFileParams);
+	if (dlg.inputDlg->exec() != QDialog::Accepted)
 		return false;
 
-	m_rawSizeX = dlg->getDblValue(5); m_rawSizeY = dlg->getDblValue(6); m_rawSizeZ = dlg->getDblValue(7);
+	/*m_spacing[0] = dlg->getDblValue(5); m_spacing[1] = dlg->getDblValue(6); m_spacing[2] = dlg->getDblValue(7);
 	m_extent[0] = 0; m_extent[2] = 0; m_extent[4] = 0;
-	m_extent[1] = m_rawSizeX; m_extent[3]= m_rawSizeY; m_extent[5] = m_rawSizeZ;
-	m_extent[1]--; m_extent[3]--; m_extent[5]--;
+	m_extent[1] = m_spacing[0]; m_extent[3]= m_spacing[1]; m_extent[5] = m_spacing[2];
+	m_extent[1]--; m_extent[3]--; m_extent[5]--;*/
 
-	m_fileNamesBase = dlg->getText(0);
-	m_extension = dlg->getText(1);
-	digitsInIndex = dlg->getDblValue(2);
-	indexRange[0] = dlg->getDblValue(3); indexRange[1]= dlg->getDblValue(4);
-	m_spacing[0] = dlg->getDblValue(8); m_spacing[1]= dlg->getDblValue(9); m_spacing[2] = dlg->getDblValue(10);
-	m_origin[0] = dlg->getDblValue(11); m_origin[1]= dlg->getDblValue(12); m_origin[2] = dlg->getDblValue(13);
+	m_fileNamesBase = dlg.inputDlg->getText(0);
+	m_extension = dlg.inputDlg->getText(1);
+	digitsInIndex = dlg.inputDlg->getDblValue(2);
+	indexRange[0] = dlg.inputDlg->getDblValue(3); indexRange[1]= dlg.inputDlg->getDblValue(4);
+	m_spacing[0] = dlg.inputDlg->getDblValue(8); m_spacing[1]= dlg.inputDlg->getDblValue(9); m_spacing[2] = dlg.inputDlg->getDblValue(10);
+	m_origin[0] = dlg.inputDlg->getDblValue(11); m_origin[1]= dlg.inputDlg->getDblValue(12); m_origin[2] = dlg.inputDlg->getDblValue(13);
 
-	m_rawHeaderSize = dlg->getDblValue(15);
-	m_headersize = m_rawHeaderSize;
-	m_scalarType = mapVTKTypeStringToInt(dlg->getComboBoxValue(14));
-	m_rawScalarType = m_scalarType;
+	m_headersize = dlg.inputDlg->getDblValue(15);
+	m_headersize = m_headersize;
+	m_scalarType = mapVTKTypeStringToInt(dlg.inputDlg->getComboBoxValue(14));
+	m_scalarType = m_scalarType;
 
-	if (dlg->getComboBoxValue(16) == "Little Endian")
+	if (dlg.inputDlg->getComboBoxValue(16) == "Little Endian")
 		m_byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
-	else if (dlg->getComboBoxValue(16) == "Big Endian")
+	else if (dlg.inputDlg->getComboBoxValue(16) == "Big Endian")
 		m_byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
-	m_rawByteOrder = m_byteOrder;
+	m_byteOrder = m_byteOrder;
 
 	fillFileNameArray(indexRange, digitsInIndex);
 	return true;
@@ -1295,7 +1296,7 @@ bool iAIO::setupVolumeStackReader(QString f)
 
 bool iAIO::setupRAWReader( QString f )
 {
-	QStringList datatype(vtkDataTypeList());
+	/*QStringList datatype(vtkDataTypeList());
 	datatype[mapVTKTypeToIdx(m_rawScalarType)] = "!" + datatype[mapVTKTypeToIdx(m_rawScalarType)];
 	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
 	byteOrderStr[mapVTKByteOrderToIdx(m_rawByteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(m_rawByteOrder)];
@@ -1324,11 +1325,11 @@ bool iAIO::setupRAWReader( QString f )
 	m_extent[1] = m_rawSizeX; m_extent[3]= m_rawSizeY; m_extent[5] = m_rawSizeZ;
 	m_extent[1]--; m_extent[3]--; m_extent[5]--;
 
-	m_rawSpaceX = dlg->getDblValue(3); m_rawSpaceY = dlg->getDblValue(4); m_rawSpaceZ = dlg->getDblValue(5);
-	m_spacing[0] = m_rawSpaceX; m_spacing[1]= m_rawSpaceY; m_spacing[2] = m_rawSpaceZ;
+	m_rawSpace[0] = dlg->getDblValue(3); m_rawSpaceY = dlg->getDblValue(4); m_rawSpaceZ = dlg->getDblValue(5);
+	
 
 	m_rawOriginX = dlg->getDblValue(6); m_rawOriginY = dlg->getDblValue(7); m_rawOriginZ = dlg->getDblValue(8);
-	m_origin[0] = m_rawOriginX; m_origin[1]= m_rawOriginY; m_origin[2] = m_rawOriginZ;
+	
 
 	m_rawHeaderSize = dlg->getDblValue(9);
 	m_headersize = m_rawHeaderSize;
@@ -1341,6 +1342,7 @@ bool iAIO::setupRAWReader( QString f )
 		m_byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
 
 	m_rawByteOrder = m_byteOrder;
+	return true; */
 	return true;
 }
 
@@ -1681,35 +1683,35 @@ void iAIO::readImageStack()
 void iAIO::storeIOSettings()
 {
 	QSettings settings;
-	settings.setValue("IO/rawSizeX", m_rawSizeX);
-	settings.setValue("IO/rawSizeY", m_rawSizeY);
-	settings.setValue("IO/rawSizeZ", m_rawSizeZ);
-	settings.setValue("IO/rawSpaceX", m_rawSpaceX);
-	settings.setValue("IO/rawSpaceY", m_rawSpaceY);
-	settings.setValue("IO/rawSpaceZ", m_rawSpaceZ);
-	settings.setValue("IO/rawOriginX", m_rawOriginX);
-	settings.setValue("IO/rawOriginY", m_rawOriginY);
-	settings.setValue("IO/rawOriginZ", m_rawOriginZ);
-	settings.setValue("IO/rawScalar", m_rawScalarType);
-	settings.setValue("IO/rawByte", m_rawByteOrder);
-	settings.setValue("IO/rawHeader", m_rawHeaderSize);
+	settings.setValue("IO/rawSizeX", m_rawFileParams.m_extent[1] + 1);
+	settings.setValue("IO/rawSizeY", m_rawFileParams.m_extent[3] + 1);
+	settings.setValue("IO/rawSizeZ", m_rawFileParams.m_extent[5] + 1);
+	settings.setValue("IO/rawSpaceX", m_rawFileParams.m_spacing[0]);
+	settings.setValue("IO/rawSpaceY", m_rawFileParams.m_spacing[1]);
+	settings.setValue("IO/rawSpaceZ", m_rawFileParams.m_spacing[2]);
+	settings.setValue("IO/rawOriginX", m_rawFileParams.m_origin[0]);
+	settings.setValue("IO/rawOriginY", m_rawFileParams.m_origin[1]);
+	settings.setValue("IO/rawOriginZ", m_rawFileParams.m_origin[2]);
+	settings.setValue("IO/rawScalar", m_rawFileParams.m_scalarType);
+	settings.setValue("IO/rawByte", m_rawFileParams.m_byteOrder);
+	settings.setValue("IO/rawHeader", m_rawFileParams.m_headersize);
 }
 
 void iAIO::loadIOSettings()
 {
 	QSettings settings;
-	m_rawOriginX = settings.value("IO/rawOriginX").toDouble();
-	m_rawOriginY = settings.value("IO/rawOriginY").toDouble();
-	m_rawOriginZ = settings.value("IO/rawOriginZ").toDouble();
-	m_rawSpaceX = settings.value("IO/rawSpaceX", 1).toDouble();	if (m_rawSpaceX == 0) m_rawSpaceX = 1;
-	m_rawSpaceY = settings.value("IO/rawSpaceY", 1).toDouble();	if (m_rawSpaceY == 0) m_rawSpaceY = 1;
-	m_rawSpaceZ = settings.value("IO/rawSpaceZ", 1).toDouble();	if (m_rawSpaceZ == 0) m_rawSpaceZ = 1;
-	m_rawSizeX = settings.value("IO/rawSizeX").toInt();
-	m_rawSizeY = settings.value("IO/rawSizeY").toInt();
-	m_rawSizeZ = settings.value("IO/rawSizeZ").toInt();
-	m_rawScalarType = settings.value("IO/rawScalar", 2).toInt(); // default data type: unsigned char
-	m_rawByteOrder = settings.value("IO/rawByte", 0).toInt();    // default byte order: little endian
-	m_rawHeaderSize = settings.value("IO/rawHeader").toInt();
+	m_rawFileParams.m_origin[0] = settings.value("IO/rawOriginX").toDouble();
+	m_rawFileParams.m_origin[1] = settings.value("IO/rawOriginY").toDouble();
+	m_rawFileParams.m_origin[2] = settings.value("IO/rawOriginZ").toDouble();
+	m_rawFileParams.m_spacing[0] = settings.value("IO/rawSpaceX", 1).toDouble();	if (m_rawFileParams.m_spacing[0] == 0) m_rawFileParams.m_spacing[0] = 1;
+	m_rawFileParams.m_spacing[1] = settings.value("IO/rawSpaceY", 1).toDouble();	if (m_rawFileParams.m_spacing[1] == 0) m_rawFileParams.m_spacing[1] = 1;
+	m_rawFileParams.m_spacing[2] = settings.value("IO/rawSpaceZ", 1).toDouble();	if (m_rawFileParams.m_spacing[2] == 0) m_rawFileParams.m_spacing[2] = 1;
+	m_rawFileParams.m_extent[1] = settings.value("IO/rawSizeX").toInt();
+	m_rawFileParams.m_extent[3] = settings.value("IO/rawSizeY").toInt();
+	m_rawFileParams.m_extent[5] = settings.value("IO/rawSizeZ").toInt();
+	m_rawFileParams.m_scalarType = settings.value("IO/rawScalar", 2).toInt(); // default data type: unsigned char
+	m_rawFileParams.m_byteOrder = settings.value("IO/rawByte", 0).toInt();    // default byte order: little endian
+	m_rawFileParams.m_headersize = settings.value("IO/rawHeader").toInt();
 }
 
 void iAIO::printSTLFileInfos()
