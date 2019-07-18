@@ -95,12 +95,16 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 	c = QColor(colorTFValue[1]*255.0, colorTFValue[2]*255.0, colorTFValue[3]*255.0, 150);
 	m_gradient.setColorAt((double)x1/gradientWidth, c );
 
+	int lastX = x1;
 	for ( int i = 1; i < m_opacityTF->GetSize(); i++)
 	{
 		m_opacityTF->GetNodeValue(i, opacityTFValue);
 		m_colorTF->GetNodeValue(i, colorTFValue);
 
 		int x2 = d2iX(opacityTFValue[0]);
+		if (x2 == lastX)
+			++x2;
+		lastX = x2;
 		int y2 = d2iY(opacityTFValue[1]);
 		painter.drawLine(x1, y1, x2, y2); // draw line
 		if (active)
