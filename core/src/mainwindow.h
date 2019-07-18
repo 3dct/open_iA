@@ -129,7 +129,6 @@ private slots:
 	void saveAs();
 	bool loadSettings();
 	bool saveSettings();
-	void loadProject();
 	void saveProject();
 	void maxXY();
 	void maxXZ();
