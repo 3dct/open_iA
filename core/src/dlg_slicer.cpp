@@ -65,7 +65,7 @@ dlg_slicer::dlg_slicer(iASlicer* slicer):
 	connect(cbSlabMode, &QCheckBox::toggled, this, &dlg_slicer::setSlabMode);
 	connect(sbSlabThickness, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThickness(int)));
 	connect(cbSlabCompositeMode, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlabCompositeMode(int)));
-	connect(m_slicer, &iASlicer::firstChannelAdded, this, &dlg_slicer::updateSliceControls);
+	connect(m_slicer, &iASlicer::sliceRangeChanged, this, &dlg_slicer::updateSliceControls);
 }
 
 void dlg_slicer::showBorder(bool show)

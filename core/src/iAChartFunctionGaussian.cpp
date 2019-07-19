@@ -195,6 +195,11 @@ void iAChartFunctionGaussian::moveSelectedPoint(int x, int y)
 void iAChartFunctionGaussian::reset()
 {}
 
+int iAChartFunctionGaussian::numPoints() const
+{
+	return 3;
+}
+
 void iAChartFunctionGaussian::setMultiplier(int multiplier)
 {
 	double meanValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()))*chart->yZoom();

@@ -22,6 +22,7 @@
 
 #include "iAHistogramAbstract.h"
 
+#include <QVector>
 #include <QWidget>
 
 class iAHistogramStackGrid;
@@ -29,6 +30,7 @@ class iATripleModalityWidget;
 
 class MdiChild;
 
+class QLabel;
 class QSplitter;
 
 class iAHistogramStack : public iAHistogramAbstract
@@ -39,10 +41,12 @@ public:
 	// OVERRIDES
 	void initialize(QString const names[3]) override;
 	bool isSlicerInteractionEnabled() override { return true; }
+	void updateModalityNames(QString const names[3]) override;
 
 private:
 	QSplitter *m_splitter;
 	iAHistogramStackGrid *m_grid;
+	QVector<QLabel*> m_labels;
 
 	iATripleModalityWidget* m_tmw;
 };

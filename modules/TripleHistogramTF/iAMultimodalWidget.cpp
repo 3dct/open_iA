@@ -136,10 +136,11 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 	connect(mdiChild->slicerDockWidget(iASlicerMode::XZ)->sbSlice, SIGNAL(valueChanged(int)), this, SLOT(onMainXZSliceNumberChanged(int)));
 	connect(mdiChild->slicerDockWidget(iASlicerMode::YZ)->sbSlice, SIGNAL(valueChanged(int)), this, SLOT(onMainYZSliceNumberChanged(int)));
 
-	//connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(modalitiesChanged()));
 	connect(mdiChild, SIGNAL(histogramAvailable()), this, SLOT(histogramAvailable()));
 	connect(mdiChild, &MdiChild::renderSettingsChanged, this, &iAMultimodalWidget::applyVolumeSettings);
 	connect(mdiChild, &MdiChild::slicerSettingsChanged, this, &iAMultimodalWidget::applySlicerSettings);
+
+	connect(m_mdiChild->modalitiesDockWidget(), &dlg_modalities::modalitiesChanged, this, &iAMultimodalWidget::modalitiesChangedSlot);
 
 	connect(m_timer_updateVisualizations, SIGNAL(timeout()), this, SLOT(onUpdateVisualizationsTimeout()));
 
@@ -855,4 +856,13 @@ int iAMultimodalWidget::getModalitiesCount()
 		}
 	}
 	return 0;
+}
+
+void iAMultimodalWidget::modalitiesChangedSlot(bool, double const *)
+{
+	if (getModalitiesCount() < m_numOfMod)
+		return;
+	for (int m = 0; m < m_histograms.size(); ++m)
+		m_histograms[m]->setXCaption( m_modalitiesActive[m]->name() + " gray value");
+	modalitiesChanged();
 }

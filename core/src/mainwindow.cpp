@@ -1752,7 +1752,6 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionOpenTLGICTData, &QAction::triggered, this, &MainWindow::openTLGICTData);
 	connect(actionSave, &QAction::triggered, this, &MainWindow::save);
 	connect(actionSaveAs, &QAction::triggered, this, &MainWindow::saveAs);
-	connect(actionOpenProject, &QAction::triggered, this, &MainWindow::loadProject);
 	connect(actionSaveProject, &QAction::triggered, this, &MainWindow::saveProject);
 	connect(actionLoadSettings, &QAction::triggered, this, &MainWindow::loadSettings);
 	connect(actionSaveSettings, &QAction::triggered, this, &MainWindow::saveSettings);
@@ -2311,16 +2310,6 @@ void MainWindow::childClosed()
 		if( child == sender )
 			setModuleActionsEnabled( false );
 	}
-}
-
-void MainWindow::loadProject()
-{
-	QString fileName = QFileDialog::getOpenFileName(
-		QApplication::activeWindow(),
-		tr("Open Input File"),
-		m_path,
-		iAIOProvider::ProjectFileTypeFilter);
-	loadFile(fileName);
 }
 
 void MainWindow::saveProject()

@@ -304,12 +304,20 @@ void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
 			// disallow removal and reinsertion of first point; instead, insert a point after it:
 			if (selectedPoint == -1 && x == 0)
 				x = 1;
+			bool added = false;
 			if (selectedPoint == -1)
 			{
-				if (y < 0) y = 0;
+				if (y < 0)
+					y = 0;
+				int numPointsBefore = func->numPoints();
+				// if point's x is the same as for an existing point, that point will be selected, instead of a new one created:
 				selectedPoint = func->addPoint(x, y);
+				// to know whether really a point was added, we need to check whether the number of points has increased:
+				added = numPointsBefore < func->numPoints();
+			}
+			if (added)
+			{
 				func->addColorPoint(x);
-
 				m_mode = MOVE_NEW_POINT_MODE;
 			}
 			else
