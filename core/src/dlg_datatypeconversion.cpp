@@ -64,7 +64,7 @@ namespace
 	FILE* openFile(QString const & filename)
 	{
 		FILE * pFile = fopen(getLocalEncodingFileName(filename).c_str(), "rb");
-		if (pFile == NULL)
+		if (pFile == nullptr)
 		{
 			QString msg(QString("Failed to open file %1!").arg(filename));
 			throw std::runtime_error(msg.toStdString());
@@ -91,7 +91,7 @@ template<class T> void getFileMinMax(FILE* pFile, double& minVal, double& maxVal
 	}
 }
 
-template <class T> void extractSliceImage(typename itk::Image<T, 3>::Pointer itkimage, int firstDir, int secondDir, /*int sliceNr, projectionMethod[=SUM], */iAConnector* image)
+template <class T> void extractSliceImage(typename itk::Image<T, 3>::Pointer itkimage, unsigned int firstDir, unsigned int secondDir, /*int sliceNr, projectionMethod[=SUM], */iAConnector* image)
 {
 	typedef typename itk::Image<T, 3> InputImageType;
 	typedef typename itk::Image<double, 3> TwoDInputImageType;
@@ -140,7 +140,6 @@ template <class T> void extractSliceImage(typename itk::Image<T, 3>::Pointer itk
 				while (!SliceIter.IsAtEndOfLine())
 				{
 					typename InputImageType::PixelType value = SliceIter.Get();
-					typename InputImageType::IndexType index = SliceIter.GetIndex();
 					typename TwoDInputImageType::PixelType pix = iter.Get() + value;  // sum projection
 					iter.Set(pix);
 					++iter;
@@ -177,7 +176,7 @@ template <class T> void extractSliceImage(typename itk::Image<T, 3>::Pointer itk
 	//metaImageWriter->Write();
 }
 
-template<class T> void DataTypeConversion_template(QString const & filename, iARawFileParameters const & p, int zSkip, int numBins,
+template<class T> void DataTypeConversion_template(QString const & filename, iARawFileParameters const & p, unsigned int zSkip, int numBins,
 	iAPlotData::DataType * histptr, double & minVal, double & maxVal, double & discretization, iAConnector* xyimage, iAConnector* xzimage, iAConnector* yzimage)
 {
 	// TODO: use itk methods instead?
@@ -190,20 +189,20 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 	// create itk image
 	typename InputImageType::SpacingType itkspacing;
 	itkspacing[0] = p.m_spacing[0]; itkspacing[1] = p.m_spacing[1];	itkspacing[2] = p.m_spacing[2];
-	typename InputImageType::SizeType itksize;
+	typename itk::Size<3> itksize;
 	itksize[0] = p.m_size[0]; itksize[1] = p.m_size[1];
-	itksize[2] = static_cast<int>(std::floor(static_cast<float>(p.m_size[2]-1) / zSkip + 1));
+	itksize[2] = static_cast<itk::Size<3>::SizeValueType>(std::floor(static_cast<float>(p.m_size[2]-1) / zSkip + 1));
 	typename InputImageType::IndexType itkindex;	itkindex.Fill(0);
 	typename InputImageType::RegionType itkregion;	itkregion.SetSize(itksize);	itkregion.SetIndex(itkindex);
 
 	itkimage->SetSpacing(itkspacing);	itkimage->SetRegions(itkregion);	itkimage->Allocate();	itkimage->FillBuffer(0);
 
 	typename InputImageType::PixelType buffer;
-	unsigned long datatypesize = sizeof(buffer);
-	long slicesize = itksize[0] * itksize[1];
-	int slicecounter = 0;
-	int numsliceread = 0;
-	long totalsize = slicesize * p.m_size[2] * datatypesize;
+	size_t datatypesize = sizeof(buffer);
+	size_t slicesize = itksize[0] * itksize[1];
+	size_t slicecounter = 0;
+	size_t numsliceread = 0;
+	size_t totalsize = slicesize * p.m_size[2] * datatypesize;
 
 	getFileMinMax<typename InputImageType::PixelType>(pFile, minVal, maxVal);
 	discretization = (maxVal - minVal) / numBins;
@@ -230,9 +229,9 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 		{	// TO CHECK: does that really skip anything?
 			slicecounter = 0;
 			numsliceread++;
-			long skipmemory = slicesize*datatypesize * zSkip * numsliceread;
+			size_t skipmemory = slicesize*datatypesize * zSkip * numsliceread;
 			if ( skipmemory < totalsize )
-				fseek ( pFile , skipmemory , SEEK_SET );
+				fseek ( pFile , static_cast<long>(skipmemory) , SEEK_SET );
 			else
 				loop = false;
 		}
@@ -244,7 +243,7 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 	extractSliceImage<typename InputImageType::PixelType>(itkimage, 1, 2/*, itkimage->GetLargestPossibleRegion().GetSize()[0] / 2*/, yzimage); // YZ plane - along x axis
 }
 
-void dlg_datatypeconversion::DataTypeConversion(QString const & filename, iARawFileParameters const & p, int zSkip, int numBins)
+void dlg_datatypeconversion::loadPreview(QString const & filename, iARawFileParameters const & p, unsigned int zSkip, int numBins)
 {
 	VTK_TYPED_CALL(DataTypeConversion_template, p.m_scalarType, filename, p, zSkip, numBins, m_histbinlist, m_min, m_max, m_dis, m_xyimage, m_xzimage, m_yzimage);
 }
@@ -383,7 +382,7 @@ QVBoxLayout* setupSliceWidget(iAVtkWidget* &widget, vtkSmartPointer<vtkPlaneSour
 }
 
 dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & filename, iARawFileParameters const & p,
-	int zSkip, int numBins, double* c, double* inPara) : QDialog (parent)
+	unsigned int zSkip, int numBins, double* c, double* inPara) : QDialog (parent)
 {
 	setupUi(this);
 
@@ -402,7 +401,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 
 	m_histbinlist = new iAPlotData::DataType[numBins];
 
-	DataTypeConversion(filename, p, zSkip, numBins);
+	loadPreview(filename, p, zSkip, numBins);
 
 	createHistogram(m_histbinlist, m_min, m_max, numBins, m_dis);
 
@@ -420,9 +419,8 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	verticalLayout->addLayout(hboxlayout);
 
 	//data entry
-	QLabel *label5 = new QLabel(this, 0);
+	QLabel *label5 = new QLabel("Output Datatype", this);
 	label5->setMinimumWidth(50);
-	label5->setText("Output Datatype");
 	QStringList datatypecon = (QStringList() <<  tr("VTK_SIGNED_CHAR") <<  tr("VTK_UNSIGNED_CHAR") <<  tr("VTK_SHORT")
 		<<  tr("VTK_UNSIGNED_SHORT") <<  tr("VTK_INT") <<  tr("VTK_UNSIGNED_INT") <<  tr("VTK_FLOAT") <<  tr("VTK_DOUBLE") );
 	cbDataType = new QComboBox(this);
@@ -437,15 +435,13 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	//hbox0->addWidget(chUseMaxDatatypeRange);
 	verticalLayout->addLayout(hbox0);
 
-	QLabel *label1 = new QLabel(this, 0);
+	QLabel *label1 = new QLabel("Lower Range", this);
 	label1->setMinimumWidth(50);
-	label1->setText("Lower Range");
 	leRangeLower = new QLineEdit(this);
 	leRangeLower->setMinimumWidth(50);
 
-	QLabel *label2 = new QLabel(this, 0);
+	QLabel *label2 = new QLabel("Upper Range", this);
 	label2->setMinimumWidth(50);
-	label2->setText("Upper Range");
 	leRangeUpper = new QLineEdit(this);
 	leRangeUpper->setMinimumWidth(50);
 
@@ -456,15 +452,13 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	hbox1->addWidget(leRangeUpper);
 	verticalLayout->addLayout(hbox1);
 
-	QLabel *label3 = new QLabel(this, 0);
+	QLabel *label3 = new QLabel("Minimum Output Value", this);
 	label3->setMinimumWidth(50);
-	label3->setText("Minimum Output Value");
 	leOutputMin = new QLineEdit(this);
 	leOutputMin->setMinimumWidth(50);
 
-	QLabel *label4 = new QLabel(this, 0);
+	QLabel *label4 = new QLabel("Maximum Output Value", this);
 	label4->setMinimumWidth(50);
-	label4->setText("Maximum Output Value");
 	leOutputMax = new QLineEdit(this);
 	leOutputMax->setMinimumWidth(50);
 
@@ -475,16 +469,14 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	hbox2->addWidget(leOutputMax);
 	verticalLayout->addLayout(hbox2);
 
-	QLabel *label6 = new QLabel(this, 0);
+	QLabel *label6 = new QLabel("X Origin", this);
 	label6->setMinimumWidth(50);
-	label6->setText("X Origin");
 	leXOrigin = new QLineEdit(this);
 	leXOrigin->setMinimumWidth(50);
 	leXOrigin->setObjectName("XOrigin");
 
-	QLabel *label7 = new QLabel(this, 0);
+	QLabel *label7 = new QLabel("X Size", this);
 	label7->setMinimumWidth(50);
-	label7->setText("X Size");
 	leXSize = new QLineEdit(this);
 	leXSize->setMinimumWidth(50);
 	leXSize->setObjectName("XSize");
@@ -496,16 +488,14 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	hbox3->addWidget(leXSize);
 	verticalLayout->addLayout(hbox3);
 
-	QLabel *label8 = new QLabel(this, 0);
+	QLabel *label8 = new QLabel("Y Origin", this);
 	label8->setMinimumWidth(50);
-	label8->setText("Y Origin");
 	leYOrigin = new QLineEdit(this);
 	leYOrigin->setMinimumWidth(50);
 	leYOrigin->setObjectName("YOrigin");
 
-	QLabel *label9 = new QLabel(this, 0);
+	QLabel *label9 = new QLabel("Y Size", this);
 	label9->setMinimumWidth(50);
-	label9->setText("Y Size");
 	leYSize = new QLineEdit(this);
 	leYSize->setMinimumWidth(50);
 	leYSize->setObjectName("YSize");
@@ -517,16 +507,14 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	hbox4->addWidget(leYSize);
 	verticalLayout->addLayout(hbox4);
 
-	QLabel *label10 = new QLabel(this, 0);
+	QLabel *label10 = new QLabel("Z Origin", this);
 	label10->setMinimumWidth(50);
-	label10->setText("Z Origin");
 	leZOrigin = new QLineEdit(this);
 	leZOrigin->setMinimumWidth(50);
 	leZOrigin->setObjectName("ZOrigin");
 
-	QLabel *label11 = new QLabel(this, 0);
+	QLabel *label11 = new QLabel("Z Size", this);
 	label11->setMinimumWidth(50);
-	label11->setText("Z Size");
 	leZSize = new QLineEdit(this);
 	leZSize->setMinimumWidth(50);
 	leZSize->setObjectName("ZSize");

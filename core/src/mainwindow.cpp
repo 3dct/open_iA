@@ -1904,13 +1904,13 @@ void MainWindow::readSettings()
 	m_spRenderSettings = settings.value("Parameters/spRenderSettings").toBool();
 	m_spSlicerSettings = settings.value("Parameters/spSlicerSettings").toBool();
 
-	m_owdtcs = settings.value("OpenWithDataTypeConversion/owdtcs").toInt();
-	m_rawFileParams.m_size[0] = settings.value("OpenWithDataTypeConversion/owdtcx").toInt();
-	m_rawFileParams.m_size[1] = settings.value("OpenWithDataTypeConversion/owdtcy").toInt();
-	m_rawFileParams.m_size[2] = settings.value("OpenWithDataTypeConversion/owdtcz").toInt();
-	m_rawFileParams.m_spacing[0] = settings.value("OpenWithDataTypeConversion/owdtcsx").toDouble();
-	m_rawFileParams.m_spacing[1] = settings.value("OpenWithDataTypeConversion/owdtcsy").toDouble();
-	m_rawFileParams.m_spacing[2] = settings.value("OpenWithDataTypeConversion/owdtcsz").toDouble();
+	m_owdtcs = settings.value("OpenWithDataTypeConversion/owdtcs", 1).toInt();
+	m_rawFileParams.m_size[0] = settings.value("OpenWithDataTypeConversion/owdtcx", 1).toInt();
+	m_rawFileParams.m_size[1] = settings.value("OpenWithDataTypeConversion/owdtcy", 1).toInt();
+	m_rawFileParams.m_size[2] = settings.value("OpenWithDataTypeConversion/owdtcz", 1).toInt();
+	m_rawFileParams.m_spacing[0] = settings.value("OpenWithDataTypeConversion/owdtcsx", 1.0).toDouble();
+	m_rawFileParams.m_spacing[1] = settings.value("OpenWithDataTypeConversion/owdtcsy", 1.0).toDouble();
+	m_rawFileParams.m_spacing[2] = settings.value("OpenWithDataTypeConversion/owdtcsz", 1.0).toDouble();
 	m_owdtcmin = settings.value("OpenWithDataTypeConversion/owdtcmin").toDouble();
 	m_owdtcmax = settings.value("OpenWithDataTypeConversion/owdtcmax").toDouble();
 	m_owdtcoutmin = settings.value("OpenWithDataTypeConversion/owdtcoutmin").toDouble();
@@ -2358,7 +2358,7 @@ void MainWindow::openWithDataTypeConversion()
 	{
 		return;
 	}
-	m_owdtcs = dlg.inputDlg()->getDblValue(dlg.fixedParams());
+	m_owdtcs = clamp(1u, m_rawFileParams.m_size[2], static_cast<unsigned int>(dlg.inputDlg()->getIntValue(dlg.fixedParams())));
 
 	QSize qwinsize = this->size();
 	double winsize[2];

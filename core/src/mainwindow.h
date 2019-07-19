@@ -218,13 +218,12 @@ private:
 	iAPreferences m_defaultPreferences;
 
 	//! @{ Open with DataType Conversion settings
-	int m_owdtcs,
-		m_owdtcxori, m_owdtcyori, m_owdtczori,
+	unsigned int m_owdtcs;
+	int m_owdtcxori, m_owdtcyori, m_owdtczori,
 		m_owdtcxsize, m_owdtcysize, m_owdtczsize,
 		m_owdtcdov;
 	iARawFileParameters m_rawFileParams;
-	double m_owdtcoutmin, m_owdtcoutmax;
-	float m_owdtcmin, m_owdtcmax;
+	double m_owdtcoutmin, m_owdtcoutmax, m_owdtcmin, m_owdtcmax;
 	//! @}
 
 	bool m_lpCamera, m_lpSliceViews, m_lpTransferFunction, m_lpProbabilityFunctions, m_lpPreferences, m_lpRenderSettings, m_lpSlicerSettings;

@@ -95,7 +95,6 @@ void dlg_TFTable::updateTable()
 	table->blockSignals( true );
 	for ( int i = 0; i < m_oTF->GetSize(); ++i )
 	{
-		int t = m_oTF->GetSize();
 		double pointValue[4], color[4];
 		m_oTF->GetNodeValue( i, pointValue );
 		m_cTF->GetIndexedColor( i, color );
@@ -103,8 +102,8 @@ void dlg_TFTable::updateTable()
 		MyTableWidgetItem* xItem = new MyTableWidgetItem;
 		MyTableWidgetItem* yItem = new MyTableWidgetItem;
 		MyTableWidgetItem* colorItem = new MyTableWidgetItem;
-		xItem->setData( Qt::DisplayRole, QString::number( (double) pointValue[0] ) );
-		yItem->setData( Qt::DisplayRole, QString::number( (double) pointValue[1] ) );
+		xItem->setData( Qt::DisplayRole, QString::number( pointValue[0] ) );
+		yItem->setData( Qt::DisplayRole, QString::number( pointValue[1] ) );
 		colorItem->setBackgroundColor( c );
 		if ( i == 0 || i == m_oTF->GetSize() - 1 )
 		{

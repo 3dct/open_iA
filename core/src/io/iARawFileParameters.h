@@ -35,7 +35,7 @@ struct iARawFileParameters
 	unsigned int m_size[3];
 	double m_spacing[3];
 	double m_origin[3];
-	unsigned int  m_scalarType;
-	size_t m_headersize;
+	int  m_scalarType;
+	quint64 m_headersize;
 	int m_byteOrder;
 };
