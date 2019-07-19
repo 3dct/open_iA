@@ -20,10 +20,19 @@
 * ************************************************************************************/
 #pragma once
 
+//! This data structure contains all metadata required to load a raw data file.
 struct iARawFileParameters
 {
-	iARawFileParameters() {}
-	int m_extent[6];
+	iARawFileParameters()
+	{
+		std::fill(m_size, m_size+3, 1);
+		std::fill(m_spacing, m_spacing+3, 1.0);
+		std::fill(m_origin, m_origin+3, 0.0);
+		m_headersize = 0;
+		m_scalarType = 0;
+		m_byteOrder = 1;
+	}
+	unsigned int m_size[3];
 	double m_spacing[3];
 	double m_origin[3];
 	unsigned int  m_scalarType;

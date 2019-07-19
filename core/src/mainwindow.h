@@ -27,6 +27,7 @@
 #include "iARenderSettings.h"
 #include "iASlicerSettings.h"
 #include "iAVolumeSettings.h"
+#include "io/iARawFileParameters.h"
 
 #include <QMainWindow>
 #include <QSharedPointer>
@@ -219,12 +220,11 @@ private:
 
 	//! @{ Open with DataType Conversion settings
 	int m_owdtcs,
-		m_owdtcx, m_owdtcy, m_owdtcz,
 		m_owdtcxori, m_owdtcyori, m_owdtczori,
 		m_owdtcxsize, m_owdtcysize, m_owdtczsize,
 		m_owdtcdov;
-	double m_owdtcsx, m_owdtcsy, m_owdtcsz,
-		m_owdtcoutmin, m_owdtcoutmax;
+	iARawFileParameters m_rawFileParams;
+	double m_owdtcoutmin, m_owdtcoutmax;
 	float m_owdtcmin, m_owdtcmax;
 	//! @}
 

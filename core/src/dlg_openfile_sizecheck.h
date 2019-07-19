@@ -24,6 +24,7 @@
 
 class dlg_commoninput;
 struct iARawFileParameters;
+
 class QLabel;
 
 class dlg_openfile_sizecheck: public QObject
@@ -32,17 +33,18 @@ class dlg_openfile_sizecheck: public QObject
 
 public:
 	//! constructor
-	//! @param isVolumeStack   whether we are opening a volume stack (true) or a single file (false).
-	//! @param fileName        File name of the RAW file.
-	//! @param [in,out]	parent The parent widget.
-	//! @param title           The window title.
-	//! @param labels          List of input parameter labels (@see dlg_commoninput).
-	//! @param values          List of input parameter values (@see dlg_commoninput).
+	//! @param isVolumeStack    Whether we are opening a volume stack (true) or a single file (false).
+	//! @param fileName         File name of the RAW file.
+	//! @param [in,out]	parent  The parent widget.
+	//! @param title            The window title.
+	//! @param additionalLabels List of additional input parameter labels (@see dlg_commoninput).
+	//! @param values           List of additional input parameter values (@see dlg_commoninput).
 	dlg_openfile_sizecheck (bool isVolumeStack, QString const & fileName, QWidget *parent, QString const & title,
-		QStringList const & labels,	QList<QVariant> const & values, iARawFileParameters & rawFileParams);
+		QStringList const & additionalLabels, QList<QVariant> const & additionalValues, iARawFileParameters & rawFileParams);
 	~dlg_openfile_sizecheck();
-
-	dlg_commoninput const* inputDlg();
+	bool accepted() const;
+	int fixedParams() const;
+	dlg_commoninput const * inputDlg() const;
 private:
 	qint64 m_fileSize;
 	QLabel * m_actualSizeLabel;
@@ -50,7 +52,8 @@ private:
 	int m_extentXIdx, m_extentYIdx, m_extentZIdx, m_voxelSizeIdx;
 	double * dlg;
 	dlg_commoninput* m_inputDlg;
-	iARawFileParameters & m_rawFileParams;
+	bool m_accepted;
+	int m_fixedParams;
 private slots:
 	//! update labels indicating whether current parameters fit the actual file size
 	void checkFileSize();

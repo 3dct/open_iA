@@ -24,6 +24,7 @@
 #include "defines.h"
 #include "dlg_commoninput.h"
 #include "dlg_datatypeconversion.h"
+#include "dlg_openfile_sizecheck.h"
 #include "iAChartFunctionBezier.h"
 #include "iAChartFunctionGaussian.h"
 #include "iAChartFunctionTransfer.h"
@@ -1905,12 +1906,12 @@ void MainWindow::readSettings()
 	m_spSlicerSettings = settings.value("Parameters/spSlicerSettings").toBool();
 
 	m_owdtcs = settings.value("OpenWithDataTypeConversion/owdtcs").toInt();
-	m_owdtcx = settings.value("OpenWithDataTypeConversion/owdtcx").toInt();
-	m_owdtcy = settings.value("OpenWithDataTypeConversion/owdtcy").toInt();
-	m_owdtcz = settings.value("OpenWithDataTypeConversion/owdtcz").toInt();
-	m_owdtcsx = settings.value("OpenWithDataTypeConversion/owdtcsx").toDouble();
-	m_owdtcsy = settings.value("OpenWithDataTypeConversion/owdtcsy").toDouble();
-	m_owdtcsz = settings.value("OpenWithDataTypeConversion/owdtcsz").toDouble();
+	m_rawFileParams.m_size[0] = settings.value("OpenWithDataTypeConversion/owdtcx").toInt();
+	m_rawFileParams.m_size[1] = settings.value("OpenWithDataTypeConversion/owdtcy").toInt();
+	m_rawFileParams.m_size[2] = settings.value("OpenWithDataTypeConversion/owdtcz").toInt();
+	m_rawFileParams.m_spacing[0] = settings.value("OpenWithDataTypeConversion/owdtcsx").toDouble();
+	m_rawFileParams.m_spacing[1] = settings.value("OpenWithDataTypeConversion/owdtcsy").toDouble();
+	m_rawFileParams.m_spacing[2] = settings.value("OpenWithDataTypeConversion/owdtcsz").toDouble();
 	m_owdtcmin = settings.value("OpenWithDataTypeConversion/owdtcmin").toDouble();
 	m_owdtcmax = settings.value("OpenWithDataTypeConversion/owdtcmax").toDouble();
 	m_owdtcoutmin = settings.value("OpenWithDataTypeConversion/owdtcoutmin").toDouble();
@@ -2000,12 +2001,12 @@ void MainWindow::writeSettings()
 	settings.setValue("Parameters/spSlicerSettings", m_spSlicerSettings);
 
 	settings.setValue("OpenWithDataTypeConversion/owdtcs", m_owdtcs);
-	settings.setValue("OpenWithDataTypeConversion/owdtcx", m_owdtcx);
-	settings.setValue("OpenWithDataTypeConversion/owdtcy", m_owdtcy);
-	settings.setValue("OpenWithDataTypeConversion/owdtcz", m_owdtcz);
-	settings.setValue("OpenWithDataTypeConversion/owdtcsx", m_owdtcsx);
-	settings.setValue("OpenWithDataTypeConversion/owdtcsy", m_owdtcsy);
-	settings.setValue("OpenWithDataTypeConversion/owdtcsz", m_owdtcsz);
+	settings.setValue("OpenWithDataTypeConversion/owdtcx", m_rawFileParams.m_size[0]);
+	settings.setValue("OpenWithDataTypeConversion/owdtcy", m_rawFileParams.m_size[1]);
+	settings.setValue("OpenWithDataTypeConversion/owdtcz", m_rawFileParams.m_size[2]);
+	settings.setValue("OpenWithDataTypeConversion/owdtcsx", m_rawFileParams.m_spacing[0]);
+	settings.setValue("OpenWithDataTypeConversion/owdtcsy", m_rawFileParams.m_spacing[1]);
+	settings.setValue("OpenWithDataTypeConversion/owdtcsz", m_rawFileParams.m_spacing[2]);
 	settings.setValue("OpenWithDataTypeConversion/owdtcmin", m_owdtcmin);
 	settings.setValue("OpenWithDataTypeConversion/owdtcmax", m_owdtcmax);
 	settings.setValue("OpenWithDataTypeConversion/owdtcoutmin", m_owdtcoutmin);
@@ -2352,9 +2353,6 @@ iAModuleDispatcher & MainWindow::getModuleDispatcher() const
 
 void MainWindow::openWithDataTypeConversion()
 {
-	QString finalfilename;
-	QString testfinalfilename;
-
 	QString file = QFileDialog::getOpenFileName(this,
 		tr("Open File"),
 		m_path,
@@ -2363,33 +2361,15 @@ void MainWindow::openWithDataTypeConversion()
 	if (file.isEmpty())
 		return;
 
-	QStringList inList = (QStringList()
-		<< tr("+Data Type")
-		<< tr("#Slice sample rate")
-		<< tr("# Dim X")   << tr("# Dim Y")   << tr("# Dim Z")
-		<< tr("# Space X") << tr("# Space Y") << tr("# Space Z"));
-	QList<QVariant> inPara;
-	inPara << vtkDataTypeList()
-		<< tr("%1").arg(m_owdtcs)
-		<< tr("%1").arg(m_owdtcx) << tr("%1").arg(m_owdtcy) << tr("%1").arg(m_owdtcz)
-		<< tr("%1").arg(m_owdtcsx)<< tr("%1").arg(m_owdtcsy)<< tr("%1").arg(m_owdtcsz);
+	QStringList additionalLabels = (QStringList() << tr("#Slice sample rate"));
+	QList<QVariant> additionalValues = (QList<QVariant>() << tr("%1").arg(m_owdtcs));
 
-	dlg_commoninput dlg(this, "Open With DataType Conversion", inList, inPara, NULL);
-	if (dlg.exec() != QDialog::Accepted)
+	dlg_openfile_sizecheck dlg(false, file, this, "Open With DataType Conversion", additionalLabels, additionalValues, m_rawFileParams);
+	if (!dlg.accepted())
 	{
 		return;
 	}
-	m_owdtcs = dlg.getDblValue(1);
-	m_owdtcx = dlg.getDblValue(2);  m_owdtcy = dlg.getDblValue(3);  m_owdtcz = dlg.getDblValue(4);
-	m_owdtcsx = dlg.getDblValue(5); m_owdtcsy = dlg.getDblValue(6);	m_owdtcsz = dlg.getDblValue(7);
-
-	QString owdtcintype = dlg.getComboBoxValue(0);
-
-	double para[8];
-	para[0] = dlg.getDblValue(1);
-	para[1] = dlg.getDblValue(2); para[2] = dlg.getDblValue(3); para[3] = dlg.getDblValue(4);
-	para[4] = dlg.getDblValue(5); para[5] = dlg.getDblValue(6);	para[6] = dlg.getDblValue(7);
-	para[7] = m_defaultPreferences.HistogramBins;
+	m_owdtcs = dlg.inputDlg()->getDblValue(dlg.fixedParams());
 
 	QSize qwinsize = this->size();
 	double winsize[2];
@@ -2400,37 +2380,38 @@ void MainWindow::openWithDataTypeConversion()
 	convPara[6] = m_owdtcxsize; convPara[7] = m_owdtcyori; convPara[8] = m_owdtcysize;  convPara[9] = m_owdtczori;   convPara[10] = m_owdtczsize;
 	try
 	{
-		dlg_datatypeconversion* conversionwidget = new dlg_datatypeconversion(this, file, mapVTKTypeStringToInt(owdtcintype), para, winsize, convPara);
-		if (conversionwidget->exec() != QDialog::Accepted)
+		dlg_datatypeconversion conversionwidget(this, file, m_rawFileParams,
+			m_owdtcs, m_defaultPreferences.HistogramBins, winsize, convPara);
+		if (conversionwidget.exec() != QDialog::Accepted)
 			return;
 
-		QString outDataType = conversionwidget->getDataType();
-		m_owdtcmin = conversionwidget->getRangeLower();   m_owdtcmax = conversionwidget->getRangeUpper();
-		m_owdtcoutmin = conversionwidget->getOutputMin(); m_owdtcoutmax = conversionwidget->getOutputMax();
-		m_owdtcdov = conversionwidget->getConvertROI();
-		m_owdtcxori = conversionwidget->getXOrigin(); m_owdtcxsize = conversionwidget->getXSize();
-		m_owdtcyori = conversionwidget->getYOrigin(); m_owdtcysize = conversionwidget->getYSize();
-		m_owdtczori = conversionwidget->getZOrigin(); m_owdtczsize = conversionwidget->getZSize();
+		QString outDataType = conversionwidget.getDataType();
+		m_owdtcmin = conversionwidget.getRangeLower();   m_owdtcmax = conversionwidget.getRangeUpper();
+		m_owdtcoutmin = conversionwidget.getOutputMin(); m_owdtcoutmax = conversionwidget.getOutputMax();
+		m_owdtcdov = conversionwidget.getConvertROI();
+		m_owdtcxori = conversionwidget.getXOrigin(); m_owdtcxsize = conversionwidget.getXSize();
+		m_owdtcyori = conversionwidget.getYOrigin(); m_owdtcysize = conversionwidget.getYSize();
+		m_owdtczori = conversionwidget.getZOrigin(); m_owdtczsize = conversionwidget.getZSize();
 
 		double roi[6];
 		roi[0] = m_owdtcxori; roi[1] = m_owdtcxsize;
 		roi[2] = m_owdtcyori; roi[3] = m_owdtcysize;
 		roi[4] = m_owdtczori; roi[5] = m_owdtczsize;
 
+		QString finalfilename;
 		if (m_owdtcdov == 0)
 		{
-			testfinalfilename = conversionwidget->coreconversionfunction(file, finalfilename, para,
-				mapVTKTypeStringToInt(owdtcintype),
+			finalfilename = conversionwidget.convert(file, m_rawFileParams,
 				mapVTKTypeStringToInt(outDataType),
 				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, m_owdtcdov);
 		}
 		else
 		{
-			testfinalfilename = conversionwidget->coreconversionfunctionforroi(file, finalfilename, para,
+			finalfilename = conversionwidget.convertROI(file, m_rawFileParams,
 				mapVTKTypeStringToInt(outDataType),
 				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, m_owdtcdov, roi);
 		}
-		loadFile(testfinalfilename, false);
+		loadFile(finalfilename, false);
 	}
 	catch (std::exception & e)
 	{
