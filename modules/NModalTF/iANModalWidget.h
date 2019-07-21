@@ -45,7 +45,7 @@ class iANModalWidgetModuleInterface : public iAModuleInterface {
 public:
 	void Initialize() override;
 protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData) override;
+	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild *child) override;
 	private slots:
 	void onMenuItemSelected();
 };
@@ -53,9 +53,9 @@ protected:
 class iANModalWidgetAttachment : public iAModuleAttachmentToChild {
 	Q_OBJECT
 public:
-	static iANModalWidgetAttachment* create(MainWindow * mainWnd, iAChildData childData);
+	static iANModalWidgetAttachment* create(MainWindow *mainWnd, MdiChild *child);
 	void start();
 private:
-	iANModalWidgetAttachment(MainWindow *mainWnd, iAChildData childData);
+	iANModalWidgetAttachment(MainWindow *mainWnd, MdiChild *child);
 	iANModalWidget *m_nModalWidget;
 };
