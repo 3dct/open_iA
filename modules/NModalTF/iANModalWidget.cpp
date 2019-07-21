@@ -6,6 +6,9 @@
 
 #include <QHBoxLayout>
 
+
+// Module interface and Attachment --------------------------------------------------------
+
 iANModalWidgetAttachment::iANModalWidgetAttachment(MainWindow * mainWnd, iAChildData childData) :
 	iAModuleAttachmentToChild(mainWnd, childData)
 {
@@ -57,6 +60,9 @@ void iANModalWidgetModuleInterface::onMenuItemSelected() {
 	}
 	attach->start();
 }
+
+
+// n-Modal Widget -------------------------------------------------------------------------
 
 iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 

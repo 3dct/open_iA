@@ -27,6 +27,7 @@
 
 class MdiChild;
 
+
 // n-Modal Widget -------------------------------------------------------------------------
 
 class iANModalWidget : public QDockWidget {
