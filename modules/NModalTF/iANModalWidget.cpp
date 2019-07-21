@@ -10,7 +10,8 @@
 // Module interface and Attachment --------------------------------------------------------
 
 iANModalWidgetAttachment::iANModalWidgetAttachment(MainWindow * mainWnd, MdiChild *child) :
-	iAModuleAttachmentToChild(mainWnd, child)
+	iAModuleAttachmentToChild(mainWnd, child),
+	m_nModalWidget(nullptr)
 {
 	// Do nothing
 }
@@ -64,6 +65,10 @@ void iANModalWidgetModuleInterface::onMenuItemSelected() {
 
 // n-Modal Widget -------------------------------------------------------------------------
 
-iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
+iANModalWidget::iANModalWidget(MdiChild *mdiChild):
+	QDockWidget("n-Modal Transfer Function", mdiChild)
+{
+	QHBoxLayout *layout = new QHBoxLayout(this);
+
 
 }
