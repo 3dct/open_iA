@@ -53,10 +53,10 @@ iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*
 	QWidget(parent, f)
 {
 	m_controlPointBorderPen.setWidth(3);
-	m_controlPointBorderPen.setColor(Qt::black);
+	m_controlPointBorderPen.setColor(Qt::red);
 
 	m_controlPointCrossPen.setWidth(2);
-	m_controlPointCrossPen.setColor(Qt::black);
+	m_controlPointCrossPen.setColor(Qt::red);
 
 	//setMouseTracking(true); // to enable mouse move events without the mouse button needing to be pressed
 
