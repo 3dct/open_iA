@@ -380,7 +380,7 @@ public slots:
 	void UpdateProbe(int ptIndex, double * newPos);
 	void resetLayout();
 private:
-	void closeEvent(QCloseEvent *event);
+	void closeEvent(QCloseEvent *event) override;
 	void addImageProperty( );
 	bool addVolumePlayer(iAVolumeStack *volumeStack);
 	void addProfile();
