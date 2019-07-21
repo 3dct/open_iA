@@ -45,11 +45,13 @@ class dlg_datatypeconversion : public QDialog, public Ui_DataTypeConversion
 
 public:
 	dlg_datatypeconversion ( QWidget *parent, QString const & filename, iARawFileParameters const & p,
-		unsigned int zSkip, int numBins, double* c, double* inPara );
+		unsigned int zSkip, size_t numBins, double* c, double* inPara );
 	~dlg_datatypeconversion();
 
-	QString convert(QString const & filename, iARawFileParameters const & p, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check);
-	QString convertROI(QString const & filename, iARawFileParameters const & p, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check, double* roi);
+	QString convert(QString const & filename, iARawFileParameters const & p, int outdatatype,
+		double minrange, double maxrange, double minout, double maxout, int check);
+	QString convertROI(QString const & filename, iARawFileParameters const & p, int outdatatype,
+		double minrange, double maxrange, double minout, double maxout, int check, double* roi);
 
 	double getRangeLower() const;
 	double getRangeUpper() const;
@@ -68,7 +70,7 @@ private slots:
 	void update(QString a);
 
 private:
-	void loadPreview(QString const & filename, iARawFileParameters const & p, unsigned int zSkip, int numBins);
+	void loadPreview(QString const & filename, iARawFileParameters const & p, unsigned int zSkip, size_t numBins);
 	void DataTypeConversionROI(QString const & filename, iARawFileParameters const & p, double *roi);
 	void createHistogram(iAPlotData::DataType* histbinlist, double minVal, double maxVal, int m_bins, double discretization);
 	void updatevalues(double* inPara);

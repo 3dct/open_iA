@@ -24,6 +24,7 @@
 #include "charts/iAHistogramData.h"
 #include "charts/iAPlotTypes.h"
 #include "iAConnector.h"
+#include "iAMathUtility.h"
 #include "iAToolsITK.h"
 #include "iAToolsVTK.h"
 #include "iATransferFunction.h"    // for GetDefault... functions
@@ -176,7 +177,7 @@ template <class T> void extractSliceImage(typename itk::Image<T, 3>::Pointer itk
 	//metaImageWriter->Write();
 }
 
-template<class T> void DataTypeConversion_template(QString const & filename, iARawFileParameters const & p, unsigned int zSkip, int numBins,
+template<class T> void DataTypeConversion_template(QString const & filename, iARawFileParameters const & p, unsigned int zSkip, size_t numBins,
 	iAPlotData::DataType * histptr, double & minVal, double & maxVal, double & discretization, iAConnector* xyimage, iAConnector* xzimage, iAConnector* yzimage)
 {
 	// TODO: use itk methods instead?
@@ -219,12 +220,11 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 	while (loop)
 	{
 		result = fread (reinterpret_cast<char*>(&buffer),datatypesize, elemCount, pFile);
-		// TODO: check result!
-		size_t binIdx = ((buffer-minVal)/discretization);
+		size_t binIdx = clamp(static_cast<size_t>(0), numBins-1, static_cast<size_t>((buffer-minVal)/discretization));
 		iter.Set(buffer);
 		++iter;
-		histptr[binIdx] += 1;
-		slicecounter++;
+		++histptr[binIdx];
+		++slicecounter;
 		if ( slicecounter == slicesize )
 		{	// TO CHECK: does that really skip anything?
 			slicecounter = 0;
@@ -243,7 +243,7 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 	extractSliceImage<typename InputImageType::PixelType>(itkimage, 1, 2/*, itkimage->GetLargestPossibleRegion().GetSize()[0] / 2*/, yzimage); // YZ plane - along x axis
 }
 
-void dlg_datatypeconversion::loadPreview(QString const & filename, iARawFileParameters const & p, unsigned int zSkip, int numBins)
+void dlg_datatypeconversion::loadPreview(QString const & filename, iARawFileParameters const & p, unsigned int zSkip, size_t numBins)
 {
 	VTK_TYPED_CALL(DataTypeConversion_template, p.m_scalarType, filename, p, zSkip, numBins, m_histbinlist, m_min, m_max, m_dis, m_xyimage, m_xzimage, m_yzimage);
 }
@@ -376,13 +376,12 @@ QVBoxLayout* setupSliceWidget(iAVtkWidget* &widget, vtkSmartPointer<vtkPlaneSour
 	window->GetInteractor()->SetInteractorStyle(imageStyle);
 	widget->update();
 	window->Render();
-
 	widget->show();
 	return boxlayout;
 }
 
 dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & filename, iARawFileParameters const & p,
-	unsigned int zSkip, int numBins, double* c, double* inPara) : QDialog (parent)
+	unsigned int zSkip, size_t numBins, double* c, double* inPara) : QDialog (parent)
 {
 	setupUi(this);
 
