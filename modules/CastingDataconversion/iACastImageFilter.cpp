@@ -23,7 +23,7 @@
 #include <defines.h>          // for DIM
 #include <iAConnector.h>
 #include <iAProgress.h>
-#include <iAToolsITK.h>    // for CastImageTo
+#include <iAToolsITK.h>    // for castImageTo
 #include <iAToolsVTK.h>    // for VTKDataTypeList
 #include <iATypedCallHelper.h>
 #include <itkFHWRescaleIntensityImageFilter.h>
@@ -43,10 +43,10 @@ template <class InT, class OutT> void CastImage(iAFilter* filter)
 	typedef itk::Image<OutT, DIM> OutputImageType;
 	typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
 	typename OTIFType::Pointer castFilter = OTIFType::New();
-	castFilter->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
-	filter->Progress()->Observe(castFilter);
+	castFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	filter->progress()->Observe(castFilter);
 	castFilter->Update();
-	filter->AddOutput(castFilter->GetOutput());
+	filter->addOutput(castFilter->GetOutput());
 }
 
 template<class T> void CastImage(iAFilter* filter, std::string datatype)
@@ -112,11 +112,11 @@ void DataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parame
 	typedef itk::Image<OutT, DIM> OutputImageType;
 	typedef itk::FHWRescaleIntensityImageFilter<InputImageType, OutputImageType> RIIFType;
 	typename RIIFType::Pointer rescaleFilter = RIIFType::New();
-	rescaleFilter->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
+	rescaleFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
 	if (parameters["Automatic Input Range"].toBool())
 	{
 		double minVal, maxVal;
-		getStatistics(filter->Input()[0]->GetITKImage(), nullptr, nullptr, &minVal, &maxVal);
+		getStatistics(filter->input()[0]->itkImage(), nullptr, nullptr, &minVal, &maxVal);
 		rescaleFilter->SetInputMinimum(minVal);
 		rescaleFilter->SetInputMaximum(maxVal);
 	}
@@ -135,9 +135,9 @@ void DataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parame
 		rescaleFilter->SetOutputMinimum(parameters["Output Min"].toDouble());
 		rescaleFilter->SetOutputMaximum(parameters["Output Max"].toDouble());
 	}
-	filter->Progress()->Observe(rescaleFilter);
+	filter->progress()->Observe(rescaleFilter);
 	rescaleFilter->Update();
-	filter->AddOutput(rescaleFilter->GetOutput());
+	filter->addOutput(rescaleFilter->GetOutput());
 }
 
 template<class T>
@@ -201,9 +201,9 @@ void DataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parame
 template<class T>
 void ConvertToRGB(iAFilter * filter)
 {
-	iAITKIO::ImagePointer input = filter->Input()[0]->GetITKImage();
-	if (filter->InputPixelType() != itk::ImageIOBase::ULONG)
-		input = CastImageTo<unsigned long>(input);
+	iAITKIO::ImagePointer input = filter->input()[0]->itkImage();
+	if (filter->inputPixelType() != itk::ImageIOBase::ULONG)
+		input = castImageTo<unsigned long>(input);
 
 	typedef itk::Image< unsigned long, DIM > LongImageType;
 	typedef itk::RGBPixel< unsigned char > RGBPixelType;
@@ -234,24 +234,24 @@ void ConvertToRGB(iAFilter * filter)
 		it.Value().SetGreen(cit.Value().GetGreen());
 		it.Value().SetAlpha(255);
 	}
-	filter->AddOutput(rgbaImage);
+	filter->addOutput(rgbaImage);
 }
 
 IAFILTER_CREATE(iACastImageFilter)
 
-void iACastImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iACastImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
 	if (parameters["Data Type"].toString() == "Label image to color-coded RGBA image")
 	{
-		ITK_TYPED_CALL(ConvertToRGB, InputPixelType(), this);
+		ITK_TYPED_CALL(ConvertToRGB, inputPixelType(), this);
 	}
 	else if (parameters["Rescale Range"].toBool())
 	{
-		ITK_TYPED_CALL(DataTypeConversion, InputPixelType(), this, parameters);
+		ITK_TYPED_CALL(DataTypeConversion, inputPixelType(), this, parameters);
 	}
 	else
 	{
-		ITK_TYPED_CALL(CastImage, InputPixelType(), this, parameters["Data Type"].toString().toStdString());
+		ITK_TYPED_CALL(CastImage, inputPixelType(), this, parameters["Data Type"].toString().toStdString());
 	}
 }
 
@@ -271,7 +271,7 @@ iACastImageFilter::iACastImageFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RescaleIntensityImageFilter.html\">"
 		"Rescale Image Filter</a> in the ITK documentation.")
 {
-	QStringList datatypes = VTKDataTypeList();
+	QStringList datatypes = vtkDataTypeList();
 	datatypes
 		/*	// not yet currently supported by ITK and VTK!
 		<< QString("VTK_LONG_LONG")
@@ -280,12 +280,12 @@ iACastImageFilter::iACastImageFilter() :
 		<< QString("VTK_UNSIGNED__INT64")
 		*/
 		<< ("Label image to color-coded RGBA image");
-	AddParameter("Data Type", Categorical, datatypes);
-	AddParameter("Rescale Range", Boolean, false);
-	AddParameter("Automatic Input Range", Boolean, false);
-	AddParameter("Input Min", Continuous, 0);
-	AddParameter("Input Max", Continuous, 1);
-	AddParameter("Use Full Output Range", Boolean, true);
-	AddParameter("Output Min", Continuous, 0);
-	AddParameter("Output Max", Continuous, 1);
+	addParameter("Data Type", Categorical, datatypes);
+	addParameter("Rescale Range", Boolean, false);
+	addParameter("Automatic Input Range", Boolean, false);
+	addParameter("Input Min", Continuous, 0);
+	addParameter("Input Max", Continuous, 1);
+	addParameter("Use Full Output Range", Boolean, true);
+	addParameter("Output Min", Continuous, 0);
+	addParameter("Output Max", Continuous, 1);
 }

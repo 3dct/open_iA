@@ -47,7 +47,7 @@ class open_iA_Core_API iAFilterRunnerGUIThread : public iAAlgorithm
 public:
 	iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild);
 	void performWork();
-	QSharedPointer<iAFilter> Filter();
+	QSharedPointer<iAFilter> filter();
 private:
 	QSharedPointer<iAFilter> m_filter;
 	QMap<QString, QVariant> m_paramValues;
@@ -71,17 +71,17 @@ public:
 	//! Method to create an instance of this runner. If you override this class,
 	//! don't forget to create your own Create method (called from the factory
 	//! template), otherwise still an iAFilterRunnerGUI will be created!
-	static QSharedPointer<iAFilterRunnerGUI> Create();
+	static QSharedPointer<iAFilterRunnerGUI> create();
 
 	//! do any potentially necessary GUI preparations (directly before the filter is run)
-	virtual void FilterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd);
+	virtual void filterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd);
 
 	//! Main run method. Calls all the other (non-static) methods in this class.
 	//! Override only if you want to change the whole way the filter running works;
 	//! typically you will only want to override one of the methods below
 	//! @param filter the filter to run
 	//! @param mainWnd access to the main window
-	virtual void Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd);
+	virtual void run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd);
 
 	//! Prompts the user to adapt the parameters to his needs for the current filter run.
 	//! @param filter the filter that should be run
@@ -90,7 +90,7 @@ public:
 	//! @param mainWnd access to the main window (as parent for GUI windows)
 	//! @param askForAdditionalInput whether the parameter dialog should also ask for additional
 	//!     inputs if the filter requires more than 1
-	virtual bool AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
+	virtual bool askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
 		MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput);
 
 	//! Loads parameters from the platform-specific store.
@@ -100,7 +100,7 @@ public:
 	//!     properties of the input file, e.g. in the extract image filter it is used to get the size
 	//!     of the input image.
 	//! @return a map containing for each parameter name the stored value
-	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
+	virtual QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
 
 	//! Store parameters in the platform-specific store.
 	//! @param filter the filter for which to store the parameters
@@ -114,9 +114,9 @@ public:
 	//! the result gets updated in the mdi child
 	//! @param mdiChild the child window into which the results should go
 	//! @param thread the thread used to run the filter
-	virtual void ConnectThreadSignals(MdiChild* mdiChild, iAFilterRunnerGUIThread* thread);
+	virtual void connectThreadSignals(MdiChild* mdiChild, iAFilterRunnerGUIThread* thread);
 private slots:
-	void FilterFinished();
+	void filterFinished();
 signals:
 	//! Signal which by default (in the default ConnectThreadSignals) is connected
 	//! to be emitted at the end of the filter thread run
@@ -126,7 +126,7 @@ private:
 };
 
 #define IAFILTER_RUNNER_CREATE(FilterRunnerName) \
-QSharedPointer<iAFilterRunnerGUI> FilterRunnerName::Create() \
+QSharedPointer<iAFilterRunnerGUI> FilterRunnerName::create() \
 { \
 	return QSharedPointer<FilterRunnerName>(new FilterRunnerName()); \
 }

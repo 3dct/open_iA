@@ -177,7 +177,7 @@ QSharedPointer<RandomGenerator> CreateRand(bool log, double min, double max, iAV
 	}
 }
 
-QString iARandomParameterGenerator::GetName() const
+QString iARandomParameterGenerator::name() const
 {
 	return QString("Random");
 }
@@ -190,10 +190,10 @@ ParameterSetsPointer iARandomParameterGenerator::GetParameterSets(QSharedPointer
 	for (int p = 0; p < parameter->size(); ++p)
 	{
 		random.push_back(CreateRand(
-			parameter->at(p)->IsLogScale(),
-			parameter->at(p)->Min(),
-			parameter->at(p)->Max(),
-			parameter->at(p)->ValueType()
+			parameter->at(p)->isLogScale(),
+			parameter->at(p)->min(),
+			parameter->at(p)->max(),
+			parameter->at(p)->valueType()
 		));
 	}
 
@@ -282,7 +282,7 @@ QSharedPointer<MyRange> CreateRange(bool log, double min, double max, int count,
 }
 
 
-QString iALatinHypercubeParameterGenerator::GetName() const
+QString iALatinHypercubeParameterGenerator::name() const
 {
 	return QString("Latin HyperCube");
 }
@@ -299,10 +299,10 @@ ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QShare
 	MyExtDblRandom dblRand;
 	for (int p = 0; p < parameter->size(); ++p)
 	{
-		iAValueType valueType = parameter->at(p)->ValueType();
-		QSharedPointer<MyRange> range = CreateRange(parameter->at(p)->IsLogScale(),
-			parameter->at(p)->Min(),
-			parameter->at(p)->Max(),
+		iAValueType valueType = parameter->at(p)->valueType();
+		QSharedPointer<MyRange> range = CreateRange(parameter->at(p)->isLogScale(),
+			parameter->at(p)->min(),
+			parameter->at(p)->max(),
 			sampleCount,
 			valueType);
 		
@@ -335,7 +335,7 @@ ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QShare
 	return result;
 }
 
-QString iACartesianGridParameterGenerator::GetName() const
+QString iACartesianGridParameterGenerator::name() const
 {
 	return QString("Cartesian Grid");
 }
@@ -363,12 +363,12 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 	QVector<QSharedPointer<MyRange>> ranges;
 	for (int p = 0; p < parameter->size(); ++p)
 	{
-		iAValueType valueType = parameter->at(p)->ValueType();
+		iAValueType valueType = parameter->at(p)->valueType();
 		ranges.push_back(
 			CreateRange(
-				parameter->at(p)->IsLogScale(),
-				parameter->at(p)->Min(),
-				parameter->at(p)->Max(),
+				parameter->at(p)->isLogScale(),
+				parameter->at(p)->min(),
+				parameter->at(p)->max(),
 				samplesPerParameter-1, // -1 because we choose from the edges of the range
 				valueType)
 			);
@@ -382,7 +382,7 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 		for (int p = 0; p < parameter->size(); ++p)
 		{
 			double value = ranges[p]->min(parameterRangeIdx[p]);
-			iAValueType valueType = parameter->at(p)->ValueType();
+			iAValueType valueType = parameter->at(p)->valueType();
 			if (valueType == Discrete || valueType == Categorical)
 			{
 				value = static_cast<int>(value);
@@ -429,7 +429,7 @@ ParameterSetsPointer iASelectionParameterGenerator::GetParameterSets(QSharedPoin
 	return m_parameterSets;
 }
 
-QString iASelectionParameterGenerator::GetName() const
+QString iASelectionParameterGenerator::name() const
 {
 	return m_name;
 }

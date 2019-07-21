@@ -35,14 +35,14 @@
 #include <cassert>
 
 iAGEMSeModuleInterface::iAGEMSeModuleInterface():
-	m_toolbar(0)
+	m_toolbar(nullptr)
 {}
 
 void iAGEMSeModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, tr( "Image Ensembles" ), false );
 	
 	QAction * actionGEMSe = new QAction( tr("GEMSe"), nullptr);
@@ -62,9 +62,9 @@ void iAGEMSeModuleInterface::StartGEMSe()
 	AttachToMdiChild(m_mdiChild);
 }
 
-iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
 {
-	iAGEMSeAttachment* result = iAGEMSeAttachment::create( mainWnd, childData);
+	auto result = iAGEMSeAttachment::create( mainWnd, child);
 	if (result)
 	{
 		SetupToolbar();
@@ -76,7 +76,7 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData()
 {
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
 		tr("Load Precalculated Sampling & Clustering Data"),
-		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->getFilePath() : QString(),
+		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->filePath() : QString(),
 		tr("GEMSe project (*.sea );;") );
 	if (fileName != "")
 	{
@@ -112,8 +112,6 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 
 void iAGEMSeModuleInterface::continuePreCalculatedDataLoading()
 {
-	UpdateChildData();
-
 	// load segmentation explorer:
 	bool result = AttachToMdiChild( m_mdiChild );
 	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
@@ -126,7 +124,7 @@ void iAGEMSeModuleInterface::continuePreCalculatedDataLoading()
 	QMap<int, QString> const & samplings = m_seaFile->GetSamplings();
 	for (int key : samplings.keys())
 	{
-		result &= gemseAttach->LoadSampling(samplings[key], m_seaFile->GetLabelCount(), key);
+		result &= gemseAttach->LoadSampling(samplings[key], m_seaFile->labelCount(), key);
 		if (!result)
 			break;
 	}
@@ -136,7 +134,7 @@ void iAGEMSeModuleInterface::continuePreCalculatedDataLoading()
 	}
 	if (m_seaFile->GetLayoutName() != "")
 	{
-		m_mdiChild->LoadLayout(m_seaFile->GetLayoutName());
+		m_mdiChild->loadLayout(m_seaFile->GetLayoutName());
 	}
 	if (m_seaFile->GetReferenceImage() != "")
 	{

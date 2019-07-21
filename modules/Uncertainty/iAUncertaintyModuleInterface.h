@@ -22,7 +22,6 @@
 
 #include "ui_UncertaintyToolBar.h"
 
-#include <iAChildData.h>
 #include <iAModuleInterface.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
@@ -39,7 +38,7 @@ class iAUncertaintyModuleInterface : public iAModuleInterface
 public:
 	void Initialize() override;
 protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData) override;
+	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
 private slots:
 	void UncertaintyExploration();
 	void ToggleDockWidgetTitleBars();

@@ -88,7 +88,7 @@ void dlg_imageproperty::AddInfo(vtkImageData* src, iAImageInfo const & info, QSt
 
 	if ( src->GetNumberOfScalarComponents() == 1 ) //No histogram statistics for rgb, rgba or vector pixel type images
 	{
-		if (info.computing())
+		if (info.isComputing())
 			EnterMsg("    Statistics are currently computing...");
 		else if (info.voxelCount() == 0)
 			EnterMsg("    Statistics not computed yet. Activate modality (by clicking on it) to do so.");

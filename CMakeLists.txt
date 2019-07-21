@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED ( VERSION 3.1 )
+CMAKE_MINIMUM_REQUIRED ( VERSION 3.8 )
 
 PROJECT ( open_iA LANGUAGES CXX )
 
@@ -143,7 +143,6 @@ IF (MSVC)
 		STRING(REGEX REPLACE "/headers" "" OPENVR_PATH ${OPENVR_PATH_INCLUDE})
 		STRING(REGEX REPLACE "/" "\\\\" OPENVR_PATH_WIN ${OPENVR_PATH})
 		SET (OPENVR_LIB_PATH "${OPENVR_PATH_WIN}\\bin\\win64")
-		MESSAGE(STATUS "OpenVR lib path: ${OPENVR_LIB_PATH}")
 		SET (RelWithDebInfoLibraryPaths "${OPENVR_LIB_PATH};${RelWithDebInfoLibraryPaths}")
 		SET (ReleaseLibraryPaths "${OPENVR_LIB_PATH};${ReleaseLibraryPaths}")
 		SET (DebugLibraryPaths "${OPENVR_LIB_PATH};${DebugLibraryPaths}")

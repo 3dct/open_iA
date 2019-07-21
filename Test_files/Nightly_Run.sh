@@ -40,7 +40,6 @@ mkdir -p $TEST_BIN_DIR
 cd $TEST_BIN_DIR
 
 # Set up basic build environment
-$buildtool clean
 cmake -C $CONFIG_FILE $TEST_SRC_DIR 2>&1
 
 # Create test configurations:

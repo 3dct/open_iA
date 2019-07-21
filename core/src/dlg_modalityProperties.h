@@ -36,9 +36,13 @@ class dlg_modalityProperties : public dlg_modalityPropertiesUI
 	Q_OBJECT
 public:
 	dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality);
+	bool spacingChanged();
+	double const * newSpacing();
 public slots:
 	void OKButtonClicked();
 private:
 	QSharedPointer<iAModality> m_modality;
 	iAVolumeSettings m_volumeSettings;
+	bool m_spacingChanged;
+	double const * m_currentSpacing;
 };

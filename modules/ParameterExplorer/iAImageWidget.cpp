@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAImageWidget.h"
 
+#include <iAChannelData.h>
+#include <iAChannelSlicerData.h>
 #include <iASlicerSettings.h>
 #include <iASlicer.h>
 #include <iATransferFunction.h>
@@ -28,26 +30,30 @@
 #include <vtkImageData.h>
 #include <vtkTransform.h>
 
-iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
+#include <QHBoxLayout>
+
+iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img):
+	m_transform(vtkSmartPointer<vtkTransform>::New())
 {
-	m_slicer = new iASlicer(this, iASlicerMode::XY, this, false, true);
-	m_transform = vtkSmartPointer<vtkTransform>::New();
+	m_slicer = new iASlicer(this, iASlicerMode::XY, false, true, m_transform);
+	setLayout(new QHBoxLayout());
+	layout()->setSpacing(0);
+	layout()->addWidget(m_slicer);
 	m_slicer->setup(iASingleSlicerSettings());
-	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
-	m_slicer->initializeData(img, m_transform, m_ctf);
-	m_slicer->initializeWidget(img);
+	m_ctf = defaultColorTF(img->GetScalarRange());
+	m_slicer->addChannel(0, iAChannelData("", img, m_ctf), true);
 	StyleChanged();
 }
 
 void iAImageWidget::StyleChanged()
 {
 	QColor bgColor = QWidget::palette().color(QWidget::backgroundRole());
-	m_slicer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
+	m_slicer->setBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
 }
 
 void iAImageWidget::SetMode(int slicerMode)
 {
-	m_slicer->ChangeMode(static_cast<iASlicerMode>(slicerMode));
+	m_slicer->setMode(static_cast<iASlicerMode>(slicerMode));
 	m_slicer->update();
 }
 
@@ -59,8 +65,8 @@ void iAImageWidget::SetSlice(int sliceNumber)
 
 int iAImageWidget::GetSliceCount() const
 {
-	int * ext = m_slicer->GetImageData()->GetExtent();
-	switch (m_slicer->GetMode())
+	int const * ext = m_slicer->channel(0)->input()->GetExtent();
+	switch (m_slicer->mode())
 	{
 		case XZ: return ext[3] - ext[2] + 1;
 		case YZ: return ext[1] - ext[0] + 1;
@@ -69,10 +75,10 @@ int iAImageWidget::GetSliceCount() const
 	}
 }
 
-void iAImageWidget::SetImage(vtkSmartPointer<vtkImageData> img)
+void iAImageWidget::setImage(vtkSmartPointer<vtkImageData> img)
 {
-	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
-	m_slicer->reInitialize(img, m_transform, m_ctf);
+	m_ctf = defaultColorTF(img->GetScalarRange());
+	m_slicer->updateChannel(0, iAChannelData("", img, m_ctf));
 	m_slicer->update();
 }
 

@@ -30,7 +30,7 @@ public:
 	bool Toggle();
 	bool IsExpanded() const;
 signals:
-	void Clicked();
+	void clicked();
 protected:
 	virtual void paintEvent(QPaintEvent* ev);
 	virtual void mouseReleaseEvent(QMouseEvent * ev);

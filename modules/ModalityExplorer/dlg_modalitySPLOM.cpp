@@ -21,7 +21,7 @@
 #include "dlg_modalitySPLOM.h"
 
 #include <charts/iAQSplom.h>
-#include <iAChannelVisualizationData.h>
+#include <iAChannelData.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAPerformanceHelper.h>
@@ -41,7 +41,8 @@ dlg_modalitySPLOM::dlg_modalitySPLOM():
 	m_splom(new iAQSplom(this)),
 	m_voxelData(new QTableWidget()),
 	m_selection_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
-	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New())
+	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
+	m_SPLOMSelectionChannelID(NotExistingChannel)
 {
 	m_selection_ctf->AddRGBPoint(0, 0, 0, 0);
 	m_selection_ctf->AddRGBPoint(1, 1.0, 0.0, 0.0);
@@ -93,21 +94,18 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 	if (!m_selected)
 	{
-		mdiChild->SetChannelRenderingEnabled(ch_ModSPLOMSelection, false);
+		mdiChild->setChannelRenderingEnabled(m_SPLOMSelectionChannelID, false);
 		m_selected = true;
 		return;
 	}
 	
-	iAChannelVisualizationData* chData = mdiChild->GetChannelData(ch_ModSPLOMSelection);
-	if (!chData)
-	{
-		chData = new iAChannelVisualizationData();
-		mdiChild->InsertChannelData(ch_ModSPLOMSelection, chData);
-	}
-	ResetChannel(chData, result, m_selection_ctf, m_selection_otf);
-
-	mdiChild->InitChannelRenderer(ch_ModSPLOMSelection, true);
-	mdiChild->UpdateChannelSlicerOpacity(ch_ModSPLOMSelection, 0.5);
+	if (m_SPLOMSelectionChannelID == NotExistingChannel)
+		m_SPLOMSelectionChannelID = mdiChild->createChannel();
+	auto chData = mdiChild->channelData(m_SPLOMSelectionChannelID);
+	chData->setData(result, m_selection_ctf, m_selection_otf);
+	// TODO: initialize channel?
+	mdiChild->initChannelRenderer(m_SPLOMSelectionChannelID, false);
+	mdiChild->updateChannelOpacity(m_SPLOMSelectionChannelID, 0.5);
 	mdiChild->updateViews();
 }
 
@@ -162,9 +160,9 @@ void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 	m_voxelData->clear();
 	m_voxelData->setColumnCount(3 + modalities->size()); // x,y,z coordinate + one value per modality
 
-	modalities->Get(0)->GetImage()->GetExtent(m_extent);
-	modalities->Get(0)->GetImage()->GetSpacing(m_spacing);
-	modalities->Get(0)->GetImage()->GetOrigin(m_origin);
+	modalities->get(0)->image()->GetExtent(m_extent);
+	modalities->get(0)->image()->GetSpacing(m_spacing);
+	modalities->get(0)->image()->GetOrigin(m_origin);
 
 	
 	// TODO: improve this very crude regular sampling. maybe random sampling is better?
@@ -193,7 +191,7 @@ void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 	{
 		m_voxelData->setItem(0, 3+imgIdx, new QTableWidgetItem(QString("Mod")+QString::number(imgIdx)));
 		voxelIdx = 1;
-		vtkSmartPointer<vtkImageData> img = modalities->Get(imgIdx)->GetImage();
+		vtkSmartPointer<vtkImageData> img = modalities->get(imgIdx)->image();
 		std::function<void (int[3], VoxelValueType)> pixelVisitor = [this, &imgIdx, &voxelIdx, &adder, &tableSize](int coord[3], VoxelValueType modalityValue)
 		{
 			assert (voxelIdx < tableSize);

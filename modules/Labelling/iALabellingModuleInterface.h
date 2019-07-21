@@ -20,18 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
-class MdiChild;
-class vtkImageData;
-class vtkPolyData;
-class QDockWidget;
+#include <iAModuleInterface.h>
 
-struct iAChildData
+class iALabellingModuleInterface : public iAModuleInterface
 {
-	iAChildData();
-	iAChildData( MdiChild * a_child );
-
-	MdiChild * child;
-	vtkImageData * imgData;
-	vtkPolyData * polyData;
-	QDockWidget * logs;
+	Q_OBJECT
+public:
+	void Initialize() override;
+protected:
+	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
+private slots:
+	//! Menu entries:
+	void startLabelling();
 };

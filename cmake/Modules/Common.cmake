@@ -50,160 +50,106 @@ ENDIF()
 # LIBRARIES
 #-------------------------
 
-# ITK (>= 4)
-FIND_PACKAGE(ITK)
-IF(ITK_FOUND)
-	INCLUDE(${ITK_USE_FILE})
-	MESSAGE(STATUS "ITK: ${ITK_VERSION} in ${ITK_DIR}")
-	IF (MSVC)
-		SET (ITK_LIB_DIR "${ITK_DIR}/bin/Release")
-	ELSE()
-		SET (ITK_LIB_DIR "${ITK_DIR}/lib")
-	ENDIF()
-	LIST (APPEND BUNDLE_DIRS "${ITK_LIB_DIR}")
-ELSE(ITK_FOUND)
-	MESSAGE(FATAL_ERROR "Cannot build without ITK.  Please set ITK_DIR.")
-ENDIF(ITK_FOUND)
-IF(ITK_VERSION_MAJOR LESS 4)
-	MESSAGE(FATAL_ERROR "Your ITK version is too old. Please use ITK >= 4.x")
-ENDIF (ITK_VERSION_MAJOR LESS 4)
-SET( ITK_LIBRARIES
-	ITKBiasCorrection    ITKCommon       ITKDICOMParser       ITKEXPAT
-	ITKIOImageBase       ITKIOBioRad     ITKIOBMP             ITKIOGDCM            ITKIOGE         ITKIOGIPL
-	ITKIOHDF5            ITKIOIPL        ITKIOJPEG            ITKIOLSM             ITKIOMeta       ITKIONIFTI
-	ITKIONRRD            ITKIOPNG        ITKIOSiemens         ITKIOSpatialObjects  ITKIOStimulate  ITKIOTIFF
-	ITKIOVTK             ITKIOXML
-	ITKKLMRegionGrowing  ITKLabelMap     ITKMesh              ITKMetaIO            ITKniftiio      ITKNrrdIO
-	ITKOptimizers        ITKPath         ITKVNLInstantiation  ITKVTK               ITKVtkGlue      ITKWatersheds
-	ITKznz
-	itkjpeg              itkNetlibSlatec itkpng               itksys               itktiff         itkv3p_netlib
-	itkvcl               itkvnl          itkvnl_algo
-)
-IF ("${ITKZLIB_LIBRARIES}" STREQUAL "itkzlib")
-	SET (ITK_LIBRARIES ${ITK_LIBRARIES} itkzlib)
+# ITK
+SET(SAVED_CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}")
+FIND_PACKAGE(ITK REQUIRED)
+MESSAGE(STATUS "ITK: ${ITK_VERSION} in ${ITK_DIR}.")
+IF(ITK_VERSION_MAJOR LESS 4 OR (ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR LESS 10))
+	MESSAGE(FATAL_ERROR "Your ITK version is too old. Please use ITK >= 4.10")
 ENDIF()
-IF (NOT ${ITKGPUCommon_LIBRARY_DIRS} STREQUAL "")
-	# cannot use ITKGPUCommon_LOADED - it is always defined - bug?
-	SET( ITK_LIBRARIES  ${ITK_LIBRARIES}
-		ITKGPUAnisotropicSmoothing
-		ITKGPUCommon
-		ITKGPUFiniteDifference
-		ITKGPUImageFilterBase
-		ITKGPUSmoothing
-		ITKGPUThresholding)
-ENDIF()
-IF (ITK_USE_SYSTEM_FFTW)
-	SET(ITK_LIBRARIES  ${ITK_LIBRARIES} ITKFFT)
-	IF (MSVC)
-		IF (NOT ITK_USE_FFTWF)
-			MESSAGE(SEND_ERROR "Required flag ITK_USE_FFTWF not enabled in ITK CMake configuration; please rebuild ITK with this flag enabled!")
-		ENDIF()
-		SET(FFTW_DLL ${ITK_FFTW_LIBDIR}/libfftw3f-3.dll)
-		MESSAGE(STATUS "ITK_USE_SYSTEM_FFTW is enabled, thus installing dll file: ${FFTW_DLL}")
-		INSTALL (FILES ${FFTW_DLL} DESTINATION .)
-	ELSE(MSVC)
-		MESSAGE(WARNING "ITK_USE_SYSTEM_FFTW is enabled, but the installation of the appropriate shared lib wasn't implemented yet!")
-		#INSTALL (FILES ${ITK_FFTW_LIBDIR}/libfftw3f-3.so DESTINATION .)
-	ENDIF (MSVC)
-ENDIF (ITK_USE_SYSTEM_FFTW)
-IF (ITK_VERSION_MAJOR LESS 5)
-	# some libraries were removed with ITK 5:
-	SET (ITK_LIBRARIES ${ITK_LIBRARIES} ITKBioCell  ITKFEM)
-ENDIF()
-IF (ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 12)
-	# apparently, in 4.12 the itkopenjpeg.lib isn't built anymore by default
-	SET (ITK_LIBRARIES ${ITK_LIBRARIES} itkopenjpeg)
-ENDIF()
-IF (ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 12)
-	# starting with ITK 4.13, there is an implicit dependency on ITKIOBruker and ITKIOMINC
-	SET (ITK_LIBRARIES ${ITK_LIBRARIES} ITKIOBruker ITKIOMINC)
-ENDIF()
-IF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
-	# starting with ITK 4.5, there is an implicit dependency on ITKIOMRC:
-	SET(ITK_LIBRARIES ${ITK_LIBRARIES} ITKIOMRC)
-	# SCIFIO only available in ITK >= 4.5?
-	IF (SCIFIO_LOADED)
-		ADD_DEFINITIONS(-DUSE_SCIFIO)
-		MESSAGE(STATUS "    SCIFIO support enabled!\n\
-    Notice that in order to run a build with this library on another machine\n\
-    than the one you built it, the environment variable SCIFIO_PATH\n\
-    has to be set to the path containing the SCIFIO jar files!\n\
-    Otherwise loading images will fail!")
-		SET (SCIFIO_PATH "${ITK_DIR}/lib/jars")
-		IF (MSVC)
-			# variable will be set to the debugging environment instead of copying (see gui/CMakeLists.txt)
-		ELSE(MSVC)
-			SET (DESTDIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scifio_jars")
-			MESSAGE(STATUS "Copying SCIFIO jars from ${SCIFIO_PATH} to ${DESTDIR}")
-			configure_file("${SCIFIO_PATH}/bioformats_package.jar" "${DESTDIR}/bioformats_package.jar" COPYONLY)
-			configure_file("${SCIFIO_PATH}/scifio-itk-bridge.jar" "${DESTDIR}/scifio-itk-bridge.jar" COPYONLY)
-		ENDIF(MSVC)
-		INSTALL(FILES "${SCIFIO_PATH}/bioformats_package.jar" DESTINATION scifio_jars)
-		INSTALL(FILES "${SCIFIO_PATH}/scifio-itk-bridge.jar" DESTINATION scifio_jars)
-		SET(ITK_LIBRARIES ${ITK_LIBRARIES} SCIFIO)
-	ENDIF(SCIFIO_LOADED)
-ELSE ()
-	# ITKReview apparently not required to be linked in ITK > 4.5?
-	SET(ITK_LIBRARIES ${ITK_LIBRARIES} ITKReview)
-ENDIF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
-
-
-# VTK (>= 6)
-FIND_PACKAGE(VTK)
-IF(VTK_FOUND)
-	INCLUDE(${VTK_USE_FILE})
-	MESSAGE(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}")
-	IF (MSVC)
-		SET (VTK_LIB_DIR "${VTK_DIR}/bin/Release")
-	ELSE ()
-		SET (VTK_LIB_DIR "${VTK_DIR}/lib")
-	ENDIF()
-	LIST (APPEND BUNDLE_DIRS "${VTK_LIB_DIR}")
+SET (ITK_COMPONENTS
+	ITKConvolution
+	ITKDenoising
+	ITKDistanceMap
+	ITKGPUAnisotropicSmoothing
+	ITKImageFeature
+	ITKImageFusion
+	ITKImageNoise
+	ITKLabelMap
+	ITKMesh
+	ITKReview       # for LabelGeometryImageFilter
+	ITKTestKernel   # for PipelineMonitorImageFilter
+	ITKVtkGlue
+	ITKWatersheds)
+IF (ITK_VERSION_MAJOR GREATER 4 OR (ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR GREATER 12))
+	LIST (APPEND ITK_COMPONENTS ITKImageIO)
+	LIST (APPEND ITK_COMPONENTS ITKIORAW)  # apparently not included in ITKImageIO
 ELSE()
-	MESSAGE(FATAL_ERROR "Cannot build without VTK. Please set VTK_DIR.")
+	FOREACH( mod IN LISTS ITK_MODULES_ENABLED)
+		IF( ${mod} MATCHES "IO")
+			LIST (APPEND ITK_COMPONENTS ${mod})
+		ENDIF()
+	ENDFOREACH()
 ENDIF()
-IF(VTK_VERSION_MAJOR LESS 7)
-	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 7.0")
+IF (RTK_LOADED)
+	MESSAGE(STATUS "    RTK ${RTK_VERSION_MAJOR}.${RTK_VERSION_MINOR}.${RTK_VERSION_PATCH} available as ITK module.")
+	LIST (APPEND ITK_COMPONENTS RTK)
 ENDIF()
+# ITK has been found in sufficient version, otherwise above REQUIRED / FATAL_ERROR would have triggered CMake abort
+# Now set it up with the components we need:
+FIND_PACKAGE(ITK COMPONENTS ${ITK_COMPONENTS})
+# apparently ITK (at least v5.0.0) adapts CMAKE_MODULE_PATH (bug?), reset it:
+SET(CMAKE_MODULE_PATH "${SAVED_CMAKE_MODULE_PATH}")
+INCLUDE(${ITK_USE_FILE})  # maybe avoid by using INCLUDE/LINK commands on targets instead?
+IF (MSVC)
+	SET (ITK_LIB_DIR "${ITK_DIR}/bin/Release")
+ELSE()
+	SET (ITK_LIB_DIR "${ITK_DIR}/lib")
+ENDIF()
+LIST (APPEND BUNDLE_DIRS "${ITK_LIB_DIR}")
+IF (SCIFIO_LOADED)
+	ADD_DEFINITIONS(-DUSE_SCIFIO)
+	MESSAGE(STATUS "    SCIFIO support enabled!\n\
+      Notice that in order to run a build with this library on another machine\n\
+      than the one you built it, the environment variable SCIFIO_PATH\n\
+      has to be set to the path containing the SCIFIO jar files!\n\
+      Otherwise loading images will fail!")
+	SET (SCIFIO_PATH "${ITK_DIR}/lib/jars")
+	IF (MSVC)
+		# variable will be set to the debugging environment instead of copying (see gui/CMakeLists.txt)
+	ELSE(MSVC)
+		SET (DESTDIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scifio_jars")
+		MESSAGE(STATUS "Copying SCIFIO jars from ${SCIFIO_PATH} to ${DESTDIR}")
+		configure_file("${SCIFIO_PATH}/bioformats_package.jar" "${DESTDIR}/bioformats_package.jar" COPYONLY)
+		configure_file("${SCIFIO_PATH}/scifio-itk-bridge.jar" "${DESTDIR}/scifio-itk-bridge.jar" COPYONLY)
+	ENDIF(MSVC)
+	INSTALL(FILES "${SCIFIO_PATH}/bioformats_package.jar" DESTINATION scifio_jars)
+	INSTALL(FILES "${SCIFIO_PATH}/scifio-itk-bridge.jar" DESTINATION scifio_jars)
+ENDIF(SCIFIO_LOADED)
+
+
+# VTK
+FIND_PACKAGE(VTK REQUIRED)
+MESSAGE(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}.")
 MESSAGE(STATUS "    Rendering Backend: ${VTK_RENDERING_BACKEND}")
+IF(VTK_VERSION_MAJOR LESS 8)
+	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 8.0")
+ENDIF()
+SET (VTK_COMPONENTS
+	vtkFiltersModeling         # for vtkRotationalExtrusionFilter, vtkOutlineFilter
+	vtkInteractionImage        # for vtkImageViewer2
+	vtkInteractionWidgets      # for vtkScalarBarWidget/Representation
+	vtkImagingStatistics       # for vtkImageAccumulate
+	vtkIOGeometry              # for vtkSTLReader/Writer
+	vtkIOMovie                 # for vtkGenericMovieWriter
+	vtkRenderingAnnotation     # for vtkAnnotatedCubeActor, vtkScalarBarActor
+	vtkRenderingContext${VTK_RENDERING_BACKEND} # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
+	vtkRenderingImage          # for vtkImageResliceMapper
+	vtkRenderingVolume${VTK_RENDERING_BACKEND}  # for volume rendering
+	vtkRenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
+	vtkViewsContext2D          # for vtkContextView, vtkContextInteractorStyle
+	vtkViewsInfovis)           # for vtkGraphItem
 IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
 	ADD_DEFINITIONS(-DVTK_OPENGL2_BACKEND)
 ELSE()
 	IF (MSVC)
 		ADD_COMPILE_OPTIONS(/wd4081)
 	ENDIF()
+	LIST (APPEND VTK_COMPONENTS vtkGUISupportQtOpenGL)    # for QVTKWidget2
 ENDIF()
-SET (VTK_LIBRARIES
-	vtkCommonCore
-	vtkChartsCore
-	vtkDICOMParser
-	vtkFiltersCore vtkFiltersHybrid vtkFiltersModeling
-	vtkGUISupportQt vtkGUISupportQtOpenGL vtkRenderingQt
-	vtkImagingCore vtkImagingStatistics
-	vtkInfovisCore
-	vtkIOCore vtkIOMovie vtkIOGeometry vtkIOXML
-	vtkRenderingCore vtkRenderingAnnotation vtkRenderingContext2D vtkRenderingFreeType vtkRenderingImage
-	vtkRenderingContext${VTK_RENDERING_BACKEND} vtkRendering${VTK_RENDERING_BACKEND} vtkRenderingVolume${VTK_RENDERING_BACKEND}
-	vtkViewsCore vtkViewsContext2D vtkViewsInfovis
-	vtksys)
-	SET (VTK_LIBRARIES ${VTK_LIBRARIES}	)
-# Libraries introduced with VTK 7.1:
-IF (VTK_VERSION_MAJOR GREATER 7 OR (VTK_VERSION_MAJOR EQUAL 7 AND VTK_VERSION_MINOR GREATER 0))
-	SET(VTK_LIBRARIES ${VTK_LIBRARIES} vtkImagingHybrid)
-	IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-		SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRenderingGL2PSOpenGL2 vtkgl2ps)
-	ENDIF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-ENDIF()
-IF (vtkoggtheora_LOADED OR vtkogg_LOADED)
-	MESSAGE(STATUS "    Video: Ogg Theora Encoder available")
-	ADD_DEFINITIONS(-DVTK_USE_OGGTHEORA_ENCODER)
-ELSE()
-	MESSAGE(WARNING "    Video: No encoder available! You will not be able to record videos.")
-ENDIF()
-# ToDo: separate OpenVR search here?
 IF (vtkRenderingOpenVR_LOADED)
 	MESSAGE(STATUS "    RenderingOpenVR: available")
-	SET (VTK_LIBRARIES ${VTK_LIBRARIES} vtkRenderingOpenVR)
+	LIST (APPEND VTK_COMPONENTS vtkRenderingOpenVR)
 	STRING(FIND "${vtkRenderingOpenVR_INCLUDE_DIRS}" ";" semicolonpos REVERSE)
 	math(EXPR aftersemicolon "${semicolonpos}+1")
 	STRING(SUBSTRING "${vtkRenderingOpenVR_INCLUDE_DIRS}" ${aftersemicolon} -1 OPENVR_PATH_INCLUDE)
@@ -213,10 +159,24 @@ IF (vtkRenderingOpenVR_LOADED)
 	ELSE ()
 		SET (OPENVR_LIB_PATH "${OPENVR_PATH}/bin/linux64")
 	ENDIF()
+	LIST (APPEND BUNDLE_DIRS "${OPENVR_LIB_PATH}")
 ELSE()
 	MESSAGE(STATUS "    RenderingOpenVR: NOT available! Enable Module_vtkRenderingOpenVR in VTK to make it available.")
 ENDIF()
-LIST (APPEND BUNDLE_DIRS "${OPENVR_LIB_PATH}")
+FIND_PACKAGE(VTK COMPONENTS ${VTK_COMPONENTS})
+INCLUDE(${VTK_USE_FILE})  # maybe avoid by using INCLUDE/LINK commands on targets instead?
+IF (MSVC)
+	SET (VTK_LIB_DIR "${VTK_DIR}/bin/Release")
+ELSE ()
+	SET (VTK_LIB_DIR "${VTK_DIR}/lib")
+ENDIF()
+LIST (APPEND BUNDLE_DIRS "${VTK_LIB_DIR}")
+IF (vtkoggtheora_LOADED OR vtkogg_LOADED)
+	MESSAGE(STATUS "    Video: Ogg Theora Encoder available")
+	ADD_DEFINITIONS(-DVTK_USE_OGGTHEORA_ENCODER)
+ELSE()
+	MESSAGE(WARNING "    Video: No encoder available! You will not be able to record videos.")
+ENDIF()
 
 
 # Qt (>= 5)
@@ -226,8 +186,9 @@ SET(QT_USE_QTXML TRUE)
 #	SET( CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/Program Files (x86)/Windows Kits/8.1/Lib/winv6.3/um/x64" )
 #ENDIF (WIN32)
 FIND_PACKAGE(Qt5 COMPONENTS Widgets Xml Network Test OpenGL PrintSupport REQUIRED)
-IF (Qt5_FOUND)
-	MESSAGE(STATUS "Qt: ${Qt5_VERSION} in ${Qt5_DIR}")
+MESSAGE(STATUS "Qt: ${Qt5_VERSION} in ${Qt5_DIR}")
+IF (Qt5_VERSION_MINOR LESS 9)
+	MESSAGE(FATAL_ERROR "Your Qt version is too old. Please use Qt >= 5.9")
 ENDIF()
 # Qt5OpenGL_INCLUDE_DIRS seems to be required on linux only, but doesn't hurt on Windows:
 INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} )
@@ -285,6 +246,7 @@ FIND_PACKAGE(Eigen3)
 IF(EIGEN3_FOUND)
 	ADD_DEFINITIONS(-DUSE_EIGEN)
 	INCLUDE_DIRECTORIES( ${EIGEN3_INCLUDE_DIR} )
+	MESSAGE(STATUS "Eigen: ${EIGEN3_VERSION} in ${EIGEN3_INCLUDE_DIR}")
 ENDIF(EIGEN3_FOUND)
 
 
@@ -313,12 +275,16 @@ IF (HDF5_FOUND)
 	UNSET(HDF5_Z_LIB CACHE)
 	UNSET(HDF5_SZIP_LIB CACHE)
 	UNSET(HDF5_CORE_LIB CACHE)
+	MESSAGE(STATUS "HDF5: ${HDF5_VERSION} in ${HDF5_DIR}.")
+ELSE()
+	MESSAGE(STATUS "HDF5: Not found.")
 ENDIF()
 
 
 # Astra Toolbox
 FIND_PACKAGE(AstraToolbox)
 IF (ASTRA_TOOLBOX_FOUND)
+	MESSAGE(STATUS "Astra Toolbox in ${ASTRA_TOOLBOX_DIR}.")
 	IF (WIN32)
 		SET (ASTRA_LIB_DIR "${ASTRA_TOOLBOX_DIR}/bin/x64/Release_CUDA")
 	ELSEIF(UNIX AND NOT APPLE)
@@ -331,6 +297,7 @@ LIST (APPEND BUNDLE_DIRS "${ASTRA_LIB_DIR}")
 # CUDA:
 FIND_PACKAGE(CUDA)
 IF (CUDA_FOUND)
+	MESSAGE(STATUS "CUDA: ${CUDA_VERSION} in ${CUDA_TOOLKIT_ROOT_DIR}.")
 	ADD_DEFINITIONS(-DASTRA_CUDA)
 	IF (WIN32)
 		SET (CUDA_LIB_DIR ${CUDA_TOOLKIT_ROOT_DIR}/bin)
@@ -348,7 +315,6 @@ LIST (APPEND BUNDLE_DIRS "${CUDA_LIB_DIR}")
 
 # OpenCL
 FIND_PACKAGE(OpenCL)
-# OpenCL
 IF (OPENCL_FOUND)
 	IF (WIN32)
 		# OPENCL_LIBRARIES is set fixed to the OpenCL.lib file, but we need the dll

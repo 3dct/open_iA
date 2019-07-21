@@ -34,6 +34,7 @@
 #include <dlg_commoninput.h>
 #include <dlg_imageproperty.h>
 #include <dlg_modalities.h>
+#include <dlg_slicer.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
 #include <iALookupTable.h>
@@ -202,7 +203,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping)
 	: QDockWidget( parent ),
 	csvTable( csvtbl ),
-	raycaster( parent->getRenderer() ),
+	m_renderer( parent->renderer() ),
 	elementTableModel(nullptr),
 	classTreeModel(new QStandardItemModel()),
 	iovSPM(nullptr),
@@ -211,7 +212,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	iovDV(nullptr),
 	iovMO(nullptr),
 	m_splom(new iAFeatureScoutSPLOM()),
-	m_sourcePath( parent->getFilePath() ),
+	m_sourcePath( parent->filePath() ),
 	m_columnMapping(columnMapping),
 	m_renderMode(rmSingleClass),
 	m_singleObjectSelected(false),
@@ -254,9 +255,9 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	else
 		SingleRendering();
 	m_3dvis->show();
-	parent->getRenderer()->GetRenderer()->ResetCamera();
+	parent->renderer()->renderer()->ResetCamera();
 	blobVisDialog = new dlg_blobVisualization();
-	blobManager->SetRenderers(blobRen, this->raycaster->GetLabelRenderer());
+	blobManager->SetRenderers(blobRen, m_renderer->labelRenderer());
 	blobManager->SetBounds(m_3dvis->bounds());
 	blobManager->SetProtrusion(1.5);
 	int dimens[3] = { 50, 50, 50 };
@@ -792,23 +793,23 @@ void dlg_FeatureScout::RenderMeanObject()
 	typedef itk::Image< long, DIM > IType;
 	typedef itk::VTKImageToImageFilter<IType> VTKToITKConnector;
 	VTKToITKConnector::Pointer vtkToItkConverter = VTKToITKConnector::New();
-	if ( activeChild->getImagePointer()->GetScalarType() != 8 )	// long type
+	if ( activeChild->imagePointer()->GetScalarType() != 8 )	// long type
 	{
 		auto cast = vtkSmartPointer<vtkImageCast>::New();
-		cast->SetInputData( activeChild->getImagePointer() );
+		cast->SetInputData( activeChild->imagePointer() );
 		cast->SetOutputScalarTypeToLong();
 		cast->Update();
 		vtkToItkConverter->SetInput( cast->GetOutput() );
 	}
 	else
-		vtkToItkConverter->SetInput( static_cast<MdiChild*>( activeChild )->getImagePointer() );
+		vtkToItkConverter->SetInput( static_cast<MdiChild*>( activeChild )->imagePointer() );
 	vtkToItkConverter->Update();
 
 	IType::Pointer itkImageData = vtkToItkConverter->GetOutput();
 	double spacing[3];
-	spacing[0] = activeChild->getImagePointer()->GetSpacing()[0];
-	spacing[1] = activeChild->getImagePointer()->GetSpacing()[1];
-	spacing[2] = activeChild->getImagePointer()->GetSpacing()[2];
+	spacing[0] = activeChild->imagePointer()->GetSpacing()[0];
+	spacing[1] = activeChild->imagePointer()->GetSpacing()[1];
+	spacing[2] = activeChild->imagePointer()->GetSpacing()[2];
 	itk::Size<DIM> itkImageDataSize = itkImageData->GetLargestPossibleRegion().GetSize();
 
 	typedef itk::BinaryThresholdImageFilter <IType, IType> BinaryThresholdImageFilterType;
@@ -961,38 +962,38 @@ void dlg_FeatureScout::RenderMeanObject()
 		// Create MObject default Transfer Tunctions
 		if ( filterID == iAFeatureScoutObjectType::Fibers ) // Fibers
 		{
-			m_MOData.moHistogramList[currClass-1]->getColorFunction()->AddRGBPoint( 0.0, 0.0, 0.0, 0.0 );
-			m_MOData.moHistogramList[currClass-1]->getColorFunction()->AddRGBPoint( 0.01, 1.0, 1.0, 0.0 );
-			m_MOData.moHistogramList[currClass-1]->getColorFunction()->AddRGBPoint( 0.095, 1.0, 1.0, 0.0 );
-			m_MOData.moHistogramList[currClass-1]->getColorFunction()->AddRGBPoint( 0.1, 0.0, 0.0, 1.0 );
-			m_MOData.moHistogramList[currClass-1]->getColorFunction()->AddRGBPoint( 1.00, 0.0, 0.0, 1.0 );
-			m_MOData.moHistogramList[currClass-1]->getOpacityFunction()->AddPoint( 0.0, 0.0 );
-			m_MOData.moHistogramList[currClass-1]->getOpacityFunction()->AddPoint( 0.01, 0.01 );
-			m_MOData.moHistogramList[currClass-1]->getOpacityFunction()->AddPoint( 0.095, 0.01 );
-			m_MOData.moHistogramList[currClass-1]->getOpacityFunction()->AddPoint( 0.1, 0.05 );
-			m_MOData.moHistogramList[currClass-1]->getOpacityFunction()->AddPoint( 1.00, 0.18 );
+			m_MOData.moHistogramList[currClass-1]->colorTF()->AddRGBPoint( 0.0, 0.0, 0.0, 0.0 );
+			m_MOData.moHistogramList[currClass-1]->colorTF()->AddRGBPoint( 0.01, 1.0, 1.0, 0.0 );
+			m_MOData.moHistogramList[currClass-1]->colorTF()->AddRGBPoint( 0.095, 1.0, 1.0, 0.0 );
+			m_MOData.moHistogramList[currClass-1]->colorTF()->AddRGBPoint( 0.1, 0.0, 0.0, 1.0 );
+			m_MOData.moHistogramList[currClass-1]->colorTF()->AddRGBPoint( 1.00, 0.0, 0.0, 1.0 );
+			m_MOData.moHistogramList[currClass-1]->opacityTF()->AddPoint( 0.0, 0.0 );
+			m_MOData.moHistogramList[currClass-1]->opacityTF()->AddPoint( 0.01, 0.01 );
+			m_MOData.moHistogramList[currClass-1]->opacityTF()->AddPoint( 0.095, 0.01 );
+			m_MOData.moHistogramList[currClass-1]->opacityTF()->AddPoint( 0.1, 0.05 );
+			m_MOData.moHistogramList[currClass-1]->opacityTF()->AddPoint( 1.00, 0.18 );
 		}
 		else // Voids
 		{
-			m_MOData.moHistogramList[currClass - 1]->getColorFunction()->AddRGBPoint( 0.0, 0.0, 0.0, 0.0 );
-			m_MOData.moHistogramList[currClass - 1]->getColorFunction()->AddRGBPoint( 0.0001, 0.0, 0.0, 0.0 );
-			m_MOData.moHistogramList[currClass - 1]->getColorFunction()->AddRGBPoint( 0.001, 1.0, 1.0, 0.0 );
-			m_MOData.moHistogramList[currClass - 1]->getColorFunction()->AddRGBPoint( 0.18, 1.0, 1.0, 0.0 );
-			m_MOData.moHistogramList[currClass - 1]->getColorFunction()->AddRGBPoint( 0.2, 0.0, 0.0, 1.0 );
-			m_MOData.moHistogramList[currClass - 1]->getColorFunction()->AddRGBPoint( 1.0, 0.0, 0.0, 1.0 );
-			m_MOData.moHistogramList[currClass - 1]->getOpacityFunction()->AddPoint( 0.0, 0.0 );
-			m_MOData.moHistogramList[currClass - 1]->getOpacityFunction()->AddPoint( 0.0001, 0.0 );
-			m_MOData.moHistogramList[currClass - 1]->getOpacityFunction()->AddPoint( 0.001, 0.005 );
-			m_MOData.moHistogramList[currClass - 1]->getOpacityFunction()->AddPoint( 0.18, 0.005 );
-			m_MOData.moHistogramList[currClass - 1]->getOpacityFunction()->AddPoint( 0.2, 0.08 );
-			m_MOData.moHistogramList[currClass - 1]->getOpacityFunction()->AddPoint( 1.0, 0.5 );
+			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint( 0.0, 0.0, 0.0, 0.0 );
+			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint( 0.0001, 0.0, 0.0, 0.0 );
+			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint( 0.001, 1.0, 1.0, 0.0 );
+			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint( 0.18, 1.0, 1.0, 0.0 );
+			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint( 0.2, 0.0, 0.0, 1.0 );
+			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint( 1.0, 0.0, 0.0, 1.0 );
+			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint( 0.0, 0.0 );
+			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint( 0.0001, 0.0 );
+			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint( 0.001, 0.005 );
+			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint( 0.18, 0.005 );
+			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint( 0.2, 0.08 );
+			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint( 1.0, 0.5 );
 		}
 
 		// Create the property and attach the transfer functions
 		auto vProperty = vtkSmartPointer<vtkVolumeProperty>::New();
 		m_MOData.moVolumePropertyList.append( vProperty );
-		vProperty->SetColor( m_MOData.moHistogramList[currClass - 1]->getColorFunction() );
-		vProperty->SetScalarOpacity( m_MOData.moHistogramList[currClass - 1]->getOpacityFunction() );
+		vProperty->SetColor( m_MOData.moHistogramList[currClass - 1]->colorTF() );
+		vProperty->SetScalarOpacity( m_MOData.moHistogramList[currClass - 1]->opacityTF() );
 		vProperty->SetInterpolationTypeToLinear();
 		vProperty->ShadeOff();
 
@@ -1096,7 +1097,7 @@ void dlg_FeatureScout::RenderMeanObject()
 		if ( i < m_MOData.moVolumesList.size() )
 		{
 			renderer->AddVolume( m_MOData.moVolumesList[i] );
-			renderer->SetActiveCamera( raycaster->GetRenderer()->GetActiveCamera() );
+			renderer->SetActiveCamera( m_renderer->renderer()->GetActiveCamera() );
 			renderer->GetActiveCamera()->SetParallelScale( maxDim );	//use maxDim for right scaling to fit the data in the viewports
 
 			auto cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
@@ -1152,7 +1153,7 @@ void dlg_FeatureScout::modifyMeanObjectTF()
 	m_motfView->setWindowTitle( QString("%1 %2 Mean Object Transfer Function")
 		.arg(iovMO->cb_Classes->itemText(iovMO->cb_Classes->currentIndex()))
 		.arg(MapObjectTypeToString(filterID)) );
-	iADiagramFctWidget* histogram = activeChild->getHistogram();
+	iADiagramFctWidget* histogram = activeChild->histogram();
 	connect( histogram, SIGNAL( updateViews() ), this, SLOT( updateMOView() ) );
 	m_motfView->horizontalLayout->addWidget( histogram );
 	histogram->show();
@@ -1474,7 +1475,7 @@ void dlg_FeatureScout::RenderLengthDistribution()
 
 	iovPP->colorMapSelection->hide();
 	showLengthDistribution(true, cTFun);
-	raycaster->update();
+	m_renderer->update();
 
 	// plot length distribution
 	auto chart = vtkSmartPointer<vtkChartXY>::New();
@@ -1961,7 +1962,7 @@ void dlg_FeatureScout::ExportClassButton()
 	// if no volume loaded, then exit
 	if ( visualization != iACsvConfig::UseVolume )
 	{
-		if (activeChild->GetModalities()->size() == 0)
+		if (activeChild->modalities()->size() == 0)
 		{
 			QMessageBox::information(this, "FeatureScout", "Feature only available if labeled volume is loaded!");
 			return;
@@ -1983,9 +1984,9 @@ void dlg_FeatureScout::ExportClassButton()
 	if (fileName.isEmpty())
 		return;
 	iAConnector con;
-	auto img_data = activeChild->getImagePointer();
-	con.SetImage(img_data);
-	ITK_TYPED_CALL(CreateLabelledOutputMask, con.GetITKScalarPixelType(), con, fileName);
+	auto img_data = activeChild->imagePointer();
+	con.setImage(img_data);
+	ITK_TYPED_CALL(CreateLabelledOutputMask, con.itkScalarPixelType(), con, fileName);
 }
 
 template <class T>
@@ -2037,10 +2038,10 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector & con, const QString
 		fiberIDLabelling = false;
 	}
 
-	auto in_img = dynamic_cast<InputImageType*>(con.GetITKImage());
+	auto in_img = dynamic_cast<InputImageType*>(con.itkImage());
 	auto region_in = in_img->GetLargestPossibleRegion();
 	const OutputImageType::SpacingType outSpacing = in_img ->GetSpacing();
-	auto out_img = CreateImage<OutputImageType>(region_in.GetSize(), outSpacing);
+	auto out_img = createImage<OutputImageType>(region_in.GetSize(), outSpacing);
 	itk::ImageRegionConstIterator<InputImageType> in(in_img, region_in);
 	itk::ImageRegionIterator<OutputImageType> out(out_img, region_in);
 	while (!in.IsAtEnd())
@@ -2064,7 +2065,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector & con, const QString
 		++in;
 		++out;
 	}
-	StoreImage<OutputImageType>(out_img, fOutPath, activeChild->GetPreferences().Compression);
+	storeImage<OutputImageType>(out_img, fOutPath, activeChild->preferences().Compression);
 	activeChild->addMsg("Stored image of of classes.");
 }
 
@@ -2162,7 +2163,7 @@ void dlg_FeatureScout::ClassLoadButton()
 
 	// create xml reader
 	QStandardItem *rootItem = this->classTreeModel->invisibleRootItem();
-	QStandardItem *activeItem;
+	QStandardItem *activeItem = nullptr;
 
 	QFile readFile( filename );
 	if ( !readFile.open( QIODevice::ReadOnly ) )
@@ -2578,7 +2579,7 @@ void dlg_FeatureScout::showLengthDistribution(bool show, vtkScalarsToColors* lut
 		m_scalarBarFLD->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
 		m_scalarBarFLD->SetTitle("Length in microns");
 		m_scalarBarFLD->SetNumberOfLabels(9);
-		m_scalarWidgetFLD->SetInteractor(raycaster->GetInteractor());
+		m_scalarWidgetFLD->SetInteractor(m_renderer->interactor());
 		m_scalarWidgetFLD->SetScalarBarActor(m_scalarBarFLD);
 		m_scalarWidgetFLD->SetEnabled(true);
 		m_scalarWidgetFLD->SetRepositionable(true);
@@ -3450,13 +3451,13 @@ void dlg_FeatureScout::SaveBlobMovie()
 	for ( int ind = 0; ind < 2; ++ind )	dimY[ind] = dlg.getIntValue(i++);
 	for ( int ind = 0; ind < 2; ++ind )	dimZ[ind] = dlg.getIntValue(i++);
 
-	QFileInfo fileInfo = activeChild->getFileInfo();
+	QFileInfo fileInfo = activeChild->fileInfo();
 
 	blobManager->SaveMovie( activeChild,
-		raycaster,
-		raycaster->GetRenderer()->GetActiveCamera(),
-		raycaster->GetInteractor(),
-		raycaster->GetRenderWindow(),
+		m_renderer,
+		m_renderer->renderer()->GetActiveCamera(),
+		m_renderer->interactor(),
+		m_renderer->renderWindow(),
 		numFrames,
 		range,
 		blobOpacity,
@@ -3485,13 +3486,12 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	connect(iovPP->orientationColorMap, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderOrientation()));
 
 	if (visualization == iACsvConfig::UseVolume)
-		activeChild->getImagePropertyDlg()->hide();
-	activeChild->HideHistogram();
-	activeChild->logs->hide();
-	activeChild->sYZ->hide();
-	activeChild->sXZ->hide();
-	activeChild->sXY->hide();
-	activeChild->GetModalitiesDlg()->hide();
+		activeChild->imagePropertyDockWidget()->hide();
+	activeChild->hideHistogram();
+	activeChild->logDockWidget()->hide();
+	for (int i=0; i<3; ++i)
+		activeChild->slicerDockWidget(i)->hide();
+	activeChild->modalitiesDockWidget()->hide();
 }
 
 void dlg_FeatureScout::changeFeatureScout_Options( int idx )

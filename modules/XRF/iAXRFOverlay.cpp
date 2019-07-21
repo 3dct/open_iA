@@ -31,7 +31,7 @@ void initSpectraColormap(
 	int colormapHeight = spectraHistogramColormap.height();
 	double sensitivity = (max - val) / max;
 	sensitivity *= sensitivity; //square scaling
-	double scale = sensitivity * accData->YBounds()[1] / colormapHeight;
+	double scale = sensitivity * accData->yBounds()[1] / colormapHeight;
 	colormapLUT->RemoveAllPoints();
 	for (int y=0; y<colormapHeight; ++y)
 	{
@@ -54,7 +54,7 @@ QSharedPointer<QImage> CalculateSpectraHistogramImage(
 	CountType * histData = 0;
 	CountType maxHistVal;
 	size_t numHist;	
-	accData->RetrieveHistData(numBin, histData, numHist, maxHistVal);
+	accData->retrieveHistData(numBin, histData, numHist, maxHistVal);
 	initSpectraColormap(colormapLUT, accData, sensVal, sensMax, spectraHistogramColormap);
 
 	double opacThreshold = 0.1 * threshVal / threshMax;

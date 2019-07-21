@@ -27,17 +27,16 @@ class iA4DCTForceWidget : public QLabel
 {
 	Q_OBJECT
 public:
-					iA4DCTForceWidget( QWidget * parent );
-					~iA4DCTForceWidget( );
-	void			setValue( int val );
-	int				getValue( );
+	iA4DCTForceWidget( QWidget * parent );
+	void setValue( int val );
+	int getValue( );
 
 signals:
-	void			valueChanged( int val );
+	void valueChanged( int val );
 
 protected:
-	virtual void	mouseDoubleClickEvent( QMouseEvent * event );
+	void mouseDoubleClickEvent( QMouseEvent * event ) override;
 
 private:
-	int				m_value;
+	int m_value;
 };

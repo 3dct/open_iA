@@ -36,52 +36,52 @@ class QShortcut;
 
 typedef iAQTtoUIConnector<QDialog, Ui_samplingSettings> dlg_samplingSettingsUI;
 
-class ParameterInputs
+class iAParameterInputs
 {
 public:
-	virtual ~ParameterInputs() {}
+	virtual ~iAParameterInputs() {}
 	QLabel* label;
 	QSharedPointer<iAAttributeDescriptor> descriptor;
-	ParameterInputs():
+	iAParameterInputs():
 		label(0)
 	{}
-	virtual void RetrieveInputValues(QMap<QString, QString> & values) =0;
-	virtual void ChangeInputValues(QMap<QString, QString> const & values) =0;
-	void DeleteGUI();
-	virtual QSharedPointer<iAAttributeDescriptor> GetCurrentDescriptor() = 0;
+	virtual void retrieveInputValues(QMap<QString, QString> & values) =0;
+	virtual void changeInputValues(QMap<QString, QString> const & values) =0;
+	void deleteGUI();
+	virtual QSharedPointer<iAAttributeDescriptor> currentDescriptor() = 0;
 private:
-	virtual void DeleteGUIComponents() = 0;
+	virtual void deleteGUIComponents() = 0;
 };
 
-class NumberParameterInputs: public ParameterInputs
+class iANumberParameterInputs: public iAParameterInputs
 {
 public:
 	QLineEdit* from;
 	QLineEdit* to;
 	QCheckBox* logScale;
-	NumberParameterInputs():
-		ParameterInputs(),
+	iANumberParameterInputs():
+		iAParameterInputs(),
 		from(0),
 		to(0),
 		logScale(0)
 	{}
-	virtual void RetrieveInputValues(QMap<QString, QString> & values);
-	virtual void ChangeInputValues(QMap<QString, QString> const & values);
-	virtual QSharedPointer<iAAttributeDescriptor> GetCurrentDescriptor();
+	void retrieveInputValues(QMap<QString, QString> & values) override;
+	void changeInputValues(QMap<QString, QString> const & values) override;
+	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
 private:
-	virtual void DeleteGUIComponents();
+	void deleteGUIComponents() override;
 };
 
-class CategoryParameterInputs : public ParameterInputs
+class iACategoryParameterInputs : public iAParameterInputs
 {
 public:
 	QVector<QCheckBox*> m_features;
-	QString GetFeatureString();
-	virtual void RetrieveInputValues(QMap<QString, QString> & values);
-	virtual void ChangeInputValues(QMap<QString, QString> const & values);
-	virtual QSharedPointer<iAAttributeDescriptor> GetCurrentDescriptor();
+	QString featureString();
+	void retrieveInputValues(QMap<QString, QString> & values) override;
+	void changeInputValues(QMap<QString, QString> const & values) override;
+	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
 private:
-	virtual void DeleteGUIComponents();
+	void deleteGUIComponents() override;
 };
 
 class dlg_samplingSettings : public dlg_samplingSettingsUI
@@ -98,7 +98,7 @@ public:
 	QString GetAdditionalArguments() const;
 	QString GetPipelineName() const;
 	int GetSampleCount() const;
-	int GetLabelCount() const;
+	int labelCount() const;
 	void GetValues(QMap<QString, QString> & values) const;
 	QString GetImageBaseName() const;
 	bool GetSeparateFolder() const;
@@ -111,14 +111,14 @@ private slots:
 	void SaveSettings();
 	void LoadSettings();
 private:
-	void SetInputsFromMap(QMap<QString, QString> const & values);
+	void setInputsFromMap(QMap<QString, QString> const & values);
+	void loadDescriptor(QString const & fileName);
+
 	int m_nbOfSamples;
 	double m_imagePixelCount;
 	int m_startLine;
 	int m_modalityCount;
 	QSharedPointer<iAAttributes> m_descriptor;
 	QString m_descriptorFileName;
-	QVector<QSharedPointer<ParameterInputs> > m_paramInputs;
-
-	void LoadDescriptor(QString const & fileName);
+	QVector<QSharedPointer<iAParameterInputs> > m_paramInputs;
 };

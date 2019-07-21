@@ -51,17 +51,17 @@ public:
 	iAImageGraph(iAVoxelIndexType width,
 		iAVoxelIndexType height,
 		iAVoxelIndexType depth=1,
-		iAImageCoordinate::IndexOrdering indexOrdering = iAImageCoordinate::RowColDepMajor,
+		iAImageCoordinate::iAIndexOrdering indexOrdering = iAImageCoordinate::RowColDepMajor,
 		NeighbourhoodType neighbourhoodType = nbhVonNeumann
 	);
 
-	iAEdgeIndexType GetEdgeCount() const;
-	iAEdgeType const & GetEdge(iAEdgeIndexType idx) const;
-	bool ContainsEdge(iAVoxelIndexType voxel1, iAVoxelIndexType voxel2);
-	bool ContainsEdge(iAImageCoordinate voxel1, iAImageCoordinate voxel2);
-	iAImageCoordConverter const & GetConverter() const;
+	iAEdgeIndexType edgeCount() const;
+	iAEdgeType const & edge(iAEdgeIndexType idx) const;
+	bool containsEdge(iAVoxelIndexType voxel1, iAVoxelIndexType voxel2);
+	bool containsEdge(iAImageCoordinate voxel1, iAImageCoordinate voxel2);
+	iAImageCoordConverter const & converter() const;
 private:
-	void AddEdge(iAImageCoordinate voxel1, iAImageCoordinate voxel2);
+	void addEdge(iAImageCoordinate voxel1, iAImageCoordinate voxel2);
 	iAImageCoordConverter m_converter;
 	QVector<iAEdgeType> m_edges;
 };

@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
+//! Settings for vtkRenderer, and helpers defined in iARenderer.
 class iARenderSettings
 {
 public:

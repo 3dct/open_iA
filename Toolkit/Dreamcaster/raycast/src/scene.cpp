@@ -61,22 +61,23 @@
 	if(p0 < p1) { min = p0; max = p1; } else { min = p1; max = p0; }            \
 	rad = fa * a_BoxHalfsize.x() + fb * a_BoxHalfsize.y();                      \
 	if (min > rad || max < -rad) return 0;
+
 //------------------------------------------------------------
-//TriPrim class implementation
+//iATriPrim class implementation
 //------------------------------------------------------------
-TriPrim::TriPrim( triangle *a_Tri, unsigned int index) :m_Tri(a_Tri->vertices[0],a_Tri->vertices[1],a_Tri->vertices[2])
+iATriPrim::iATriPrim( iAtriangle *a_Tri, unsigned int index) :m_Tri(a_Tri->vertices[0],a_Tri->vertices[1],a_Tri->vertices[2])
 {
 	m_index = index;
 	precompute();
 }
-TriPrim::TriPrim( iAVec3f* a_V1, iAVec3f* a_V2, iAVec3f* a_V3, unsigned int index ) :m_Tri(a_V1, a_V2, a_V3)
+iATriPrim::iATriPrim( iAVec3f* a_V1, iAVec3f* a_V2, iAVec3f* a_V3, unsigned int index ) :m_Tri(a_V1, a_V2, a_V3)
 {
 	m_index = index;
 	precompute();
 }
 
 unsigned int modulo[] = { 0, 1, 2, 0, 1 };
-int TriPrim::Intersect( Ray& a_Ray, float& a_Dist ) const
+int iATriPrim::Intersect( iARay& a_Ray, float& a_Dist ) const
 {
 	#define ku modulo[m_WaldTri.k + 1]
 	#define kv modulo[m_WaldTri.k + 2]
@@ -116,7 +117,7 @@ bool PlaneBoxOverlap( iAVec3f & a_Normal, iAVec3f & a_Vert, iAVec3f & a_MaxBox )
 	if (( a_Normal&vmax) >= 0.0f) return true;
 	return false;
 }
-int TriPrim::Intersect(aabb &a_aabb, iAVec3f & a_BoxCentre, iAVec3f & a_BoxHalfsize) const
+int iATriPrim::Intersect(iAaabb &a_aabb, iAVec3f & a_BoxCentre, iAVec3f & a_BoxHalfsize) const
 {
 	iAVec3f * a_V0 = m_Tri.vertices[0];
 	iAVec3f * a_V1 = m_Tri.vertices[1];
@@ -157,7 +158,7 @@ int TriPrim::Intersect(aabb &a_aabb, iAVec3f & a_BoxCentre, iAVec3f & a_BoxHalfs
 	return true;
 }
 
-void TriPrim::precompute()
+void iATriPrim::precompute()
 {
 	// init precomp
 	//normal
@@ -198,7 +199,7 @@ void TriPrim::precompute()
 	m_WaldTri.m_N = m_Tri.N;
 }
 
-int TriPrim::CenterInside( aabb &a_aabb ) const
+int iATriPrim::CenterInside(iAaabb &a_aabb ) const
 {
 	float center[3] =	{0.5f*(getAxisBound(0,0) + getAxisBound(0,1)),
 						 0.5f*(getAxisBound(1,0) + getAxisBound(1,1)),
@@ -206,16 +207,16 @@ int TriPrim::CenterInside( aabb &a_aabb ) const
 	return (int)(center[0]>a_aabb.x1 && center[0]<a_aabb.x2 && center[1]>a_aabb.y1 && center[1]<a_aabb.y2 && center[2]>a_aabb.z1 && center[2]<a_aabb.z2);
 }
 
-void TriPrim::recalculateD( iAVec3f *translate )
+void iATriPrim::recalculateD( iAVec3f *translate )
 {
 	m_d = (m_Tri.N) & ((*m_Tri.vertices[0]) - (*translate));
 }
 
 // -----------------------------------------------------------
-// Scene class implementation
+// iAScene class implementation
 // -----------------------------------------------------------
 
-Scene::~Scene()
+iAScene::~iAScene()
 {
 	for (unsigned int i=0; i<m_tris.size(); i++)
 	{
@@ -226,16 +227,16 @@ Scene::~Scene()
 		delete m_bsp;
 }
 
-int Scene::initScene(ModelData & mdata, SETTINGS * s, QString const & filename)
+int iAScene::initScene(iAModelData & mdata, iADreamCasterSettings * s, QString const & filename)
 {
 	unsigned int i=0;
-	TriPrim* pr;
+	iATriPrim* pr;
 	for (i=0; i<mdata.stlMesh.size(); i++)
 	{
-		pr = new TriPrim(mdata.stlMesh[i], i);
+		pr = new iATriPrim(mdata.stlMesh[i], i);
 		m_tris.push_back(pr);
 	}/**/
-	m_bsp = new BSPTree;
+	m_bsp = new iABSPTree;
 	if (filename.isEmpty())
 	{
 		if(m_tris.size()>(unsigned int)s->TREE_SPLIT2)
@@ -272,7 +273,7 @@ int Scene::initScene(ModelData & mdata, SETTINGS * s, QString const & filename)
 	return 1;
 }
 
-void Scene::recalculateD( iAVec3f *translate )
+void iAScene::recalculateD( iAVec3f *translate )
 {
 	for (unsigned int i = 0; i < m_tris.size(); i++)
 	{
@@ -280,7 +281,7 @@ void Scene::recalculateD( iAVec3f *translate )
 	}
 }
 
-int IntersectCyl(const Ray & ray, const aabb& box, float &tmin, float&tmax, int ind)
+int IntersectCyl(const iARay & ray, const iAaabb& box, float &tmin, float&tmax, int ind)
 {
 	iAVec3f ro = ray.GetOrigin();
 	iAVec3f rd = ray.GetDirection();

@@ -30,7 +30,7 @@
 const QString organisationName = "FHW";
 const QString applicationName = "open_iA";
 
-enum IOType
+enum iAIOType
 {
 	UNKNOWN_READER,
 	MHD_READER,
@@ -82,3 +82,5 @@ const int DefaultHistogramBins = 2048;
 
 // define preset colors
 open_iA_Core_API QColor * PredefinedColors();
+
+const uint NotExistingChannel = std::numeric_limits<uint>::max();

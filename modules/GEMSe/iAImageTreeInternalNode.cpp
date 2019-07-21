@@ -95,12 +95,12 @@ ClusterImageType iAImageTreeInternalNode::CalculateRepresentative(int type, Labe
 		{
 			GetChild(i)->DiscardDetails();
 		}
-		StoreImage(m_representative[iARepresentativeType::Difference], GetCachedFileName(type), true);
+		storeImage(m_representative[iARepresentativeType::Difference], GetCachedFileName(type), true);
 		return m_representative[iARepresentativeType::Difference];
 	}
 	case iARepresentativeType::LabelDistribution:
 		UpdateLabelDistribution();
-		//StoreImage(m_representative[iARepresentativeType::LabelDistribution], GetCachedFileName(type), true);
+		//storeImage(m_representative[iARepresentativeType::LabelDistribution], GetCachedFileName(type), true);
 		return m_representative[iARepresentativeType::LabelDistribution];
 
 	case iARepresentativeType::AverageEntropy:
@@ -108,7 +108,7 @@ ClusterImageType iAImageTreeInternalNode::CalculateRepresentative(int type, Labe
 		CombinedProbPtr result = UpdateProbabilities();
 		if (result->prob.size() == 0)
 			return ClusterImageType();
-		//StoreImage(m_representative[iARepresentativeType::AverageEntropy], GetCachedFileName(type), true);
+		//storeImage(m_representative[iARepresentativeType::AverageEntropy], GetCachedFileName(type), true);
 		return m_representative[iARepresentativeType::AverageEntropy];
 	}
 	case iARepresentativeType::Correctness:
@@ -118,7 +118,7 @@ ClusterImageType iAImageTreeInternalNode::CalculateRepresentative(int type, Labe
 			return ClusterImageType();
 		}
 		ClusterImageType diffRep = GetRepresentativeImage(iARepresentativeType::Difference, LabelImagePointer());
-		ClusterImageType correctnessImg = AllocateImage(diffRep);
+		ClusterImageType correctnessImg = allocateImage(diffRep);
 		auto diffImg = dynamic_cast<LabelImageType*>(diffRep.GetPointer());
 		auto corrImg = dynamic_cast<LabelImageType*>(correctnessImg.GetPointer());
 		itk::ImageRegionIterator<LabelImageType> refIt(refImg, refImg->GetLargestPossibleRegion());
@@ -149,7 +149,7 @@ ClusterImageType iAImageTreeInternalNode::CalculateRepresentative(int type, Labe
 			m_representative.resize(iARepresentativeType::Correctness + 1);
 		}
 		m_representative[iARepresentativeType::Correctness] = correctnessImg;
-		StoreImage(m_representative[iARepresentativeType::Correctness], GetCachedFileName(iARepresentativeType::Correctness), true);
+		storeImage(m_representative[iARepresentativeType::Correctness], GetCachedFileName(iARepresentativeType::Correctness), true);
 
 		return m_representative[iARepresentativeType::Correctness];
 	}
@@ -396,7 +396,7 @@ LabelPixelHistPtr iAImageTreeInternalNode::UpdateLabelDistribution() const
 	}
 	result->count = childResult1->count + childResult2->count;
 
-	ProbabilityImagePointer labelEntropy = CreateImage<ProbabilityImageType>(
+	ProbabilityImagePointer labelEntropy = createImage<ProbabilityImageType>(
 		size,
 		img->GetSpacing()
 		);
@@ -435,7 +435,7 @@ LabelPixelHistPtr iAImageTreeInternalNode::UpdateLabelDistribution() const
 	}
 	m_representative[iARepresentativeType::LabelDistribution] = labelEntropy;
 	// unify with GetRepresentative somehow
-	StoreImage(m_representative[iARepresentativeType::LabelDistribution], GetCachedFileName(iARepresentativeType::LabelDistribution), true);
+	storeImage(m_representative[iARepresentativeType::LabelDistribution], GetCachedFileName(iARepresentativeType::LabelDistribution), true);
 	return result;
 }
 
@@ -472,13 +472,13 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 	}
 	result->count = childResult1->count + childResult2->count;
 
-	ProbabilityImagePointer averageEntropy = CreateImage<ProbabilityImageType>(
+	ProbabilityImagePointer averageEntropy = createImage<ProbabilityImageType>(
 		size,
 		img->GetSpacing()
 		);
 	ProbabilityImageType::IndexType idx;
 
-	LabelImagePointer averageLabel = CreateImage<LabelImageType>(
+	LabelImagePointer averageLabel = createImage<LabelImageType>(
 		size,
 		img->GetSpacing()
 		);
@@ -525,8 +525,8 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 	m_representative[iARepresentativeType::AverageEntropy] = averageEntropy;
 	m_representative[iARepresentativeType::AverageLabel] = averageLabel;
 	// unify with GetRepresentative somehow
-	StoreImage(m_representative[iARepresentativeType::AverageEntropy], GetCachedFileName(iARepresentativeType::AverageEntropy), true);
-	StoreImage(m_representative[iARepresentativeType::AverageLabel], GetCachedFileName(iARepresentativeType::AverageLabel), true);
+	storeImage(m_representative[iARepresentativeType::AverageEntropy], GetCachedFileName(iARepresentativeType::AverageEntropy), true);
+	storeImage(m_representative[iARepresentativeType::AverageLabel], GetCachedFileName(iARepresentativeType::AverageLabel), true);
 	return result;
 }
 

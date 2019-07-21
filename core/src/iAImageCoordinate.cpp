@@ -36,7 +36,7 @@ bool operator==(iAImageCoordinate const & a, iAImageCoordinate const & b)
 
 
 iAImageCoordConverter::iAImageCoordConverter(
-	iAVoxelIndexType width, iAVoxelIndexType height, iAVoxelIndexType depth, iAImageCoordinate::IndexOrdering ordering):
+	iAVoxelIndexType width, iAVoxelIndexType height, iAVoxelIndexType depth, iAImageCoordinate::iAIndexOrdering ordering):
 		m_width(width),
 		m_height(height),
 		m_depth(depth),
@@ -45,27 +45,27 @@ iAImageCoordConverter::iAImageCoordConverter(
 	assert(m_width >= 0 && m_height >= 0 && m_depth >= 0);
 }
 
-iAVoxelIndexType iAImageCoordConverter::GetVertexCount() const
+iAVoxelIndexType iAImageCoordConverter::vertexCount() const
 {
 	return m_width*m_height*m_depth;
 }
 
-iAImageCoordinate iAImageCoordConverter::GetCoordinatesFromIndex(iAVoxelIndexType index) const
+iAImageCoordinate iAImageCoordConverter::coordinatesFromIndex(iAVoxelIndexType index) const
 {
-	return iAImageCoordConverter::GetCoordinatesFromIndex(index, m_width, m_height, m_depth, m_ordering);
+	return iAImageCoordConverter::coordinatesFromIndex(index, m_width, m_height, m_depth, m_ordering);
 }
 
-iAVoxelIndexType iAImageCoordConverter::GetIndexFromCoordinates(iAImageCoordinate coords) const
+iAVoxelIndexType iAImageCoordConverter::indexFromCoordinates(iAImageCoordinate coords) const
 {
-	return iAImageCoordConverter::GetIndexFromCoordinates(coords, m_width, m_height, m_depth, m_ordering);
+	return iAImageCoordConverter::indexFromCoordinates(coords, m_width, m_height, m_depth, m_ordering);
 }
 
-iAImageCoordinate iAImageCoordConverter::GetCoordinatesFromIndex(
+iAImageCoordinate iAImageCoordConverter::coordinatesFromIndex(
 		iAVoxelIndexType index,
 		iAVoxelIndexType width,
 		iAVoxelIndexType height,
 		iAVoxelIndexType depth,
-		iAImageCoordinate::IndexOrdering ordering)
+		iAImageCoordinate::iAIndexOrdering ordering)
 {
 	iAImageCoordinate result;
 	result.z = index / (width*height);
@@ -83,12 +83,12 @@ iAImageCoordinate iAImageCoordConverter::GetCoordinatesFromIndex(
 	return result;
 }
 
-iAVoxelIndexType iAImageCoordConverter::GetIndexFromCoordinates(
+iAVoxelIndexType iAImageCoordConverter::indexFromCoordinates(
 		iAImageCoordinate coords,
 		iAVoxelIndexType width,
 		iAVoxelIndexType height,
 		iAVoxelIndexType depth,
-		iAImageCoordinate::IndexOrdering ordering)
+		iAImageCoordinate::iAIndexOrdering ordering)
 {
 	assert(coords.x >= 0 && coords.x < width &&
 		coords.y >= 0 && coords.y < height &&
@@ -104,17 +104,17 @@ iAVoxelIndexType iAImageCoordConverter::GetIndexFromCoordinates(
 }
 
 
-iAVoxelIndexType iAImageCoordConverter::GetWidth() const
+iAVoxelIndexType iAImageCoordConverter::width() const
 {
 	return m_width;
 }
 
-iAVoxelIndexType iAImageCoordConverter::GetHeight() const
+iAVoxelIndexType iAImageCoordConverter::height() const
 {
 	return m_height;
 }
 
-iAVoxelIndexType iAImageCoordConverter::GetDepth() const
+iAVoxelIndexType iAImageCoordConverter::depth() const
 {
 	return m_depth;
 }

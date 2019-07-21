@@ -63,7 +63,7 @@ public:
 
 		for(int i=0; i<spectra.size(); ++i)
 		{
-			QStandardItem * item = new QStandardItem(spectra[i].GetName()); //TODO: make sure that the memory does not leak
+			QStandardItem * item = new QStandardItem(spectra[i].name()); //TODO: make sure that the memory does not leak
 			item->setData(QColor(255, 0, 0, 255), Qt::DecorationRole);
 			item->setData(QVariant(0), Qt::UserRole);
 			item->setData(QVariant(-1), Qt::UserRole+1);

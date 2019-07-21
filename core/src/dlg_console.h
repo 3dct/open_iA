@@ -25,10 +25,9 @@
 class dlg_console : public QMainWindow, public Ui_Console
 {
 	Q_OBJECT
-
 public:
 	dlg_console();
-	~dlg_console();
-
-	void Log(QString text);
+	void log(QString text);
+private slots:
+	void clear();
 };

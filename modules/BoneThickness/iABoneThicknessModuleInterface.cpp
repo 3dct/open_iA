@@ -28,7 +28,7 @@ void iABoneThicknessModuleInterface::Initialize( )
 {
 	if (!m_mainWnd)
 		return;
-	QMenu* toolsMenu (m_mainWnd->getToolsMenu());
+	QMenu* toolsMenu (m_mainWnd->toolsMenu());
 
 	QAction* pBoneThickness (new QAction(QApplication::translate("MainWindows", "Bone thickness", 0), m_mainWnd));
 	connect(pBoneThickness, SIGNAL(triggered()), this, SLOT(slotBoneThickness()));
@@ -45,7 +45,7 @@ void iABoneThicknessModuleInterface::slotBoneThickness()
 	}
 }
 
-iAModuleAttachmentToChild* iABoneThicknessModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+iAModuleAttachmentToChild* iABoneThicknessModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
 {
-	return new iABoneThicknessAttachment(mainWnd, childData);
+	return new iABoneThicknessAttachment(mainWnd, child);
 }

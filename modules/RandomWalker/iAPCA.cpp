@@ -42,7 +42,7 @@ iAPCA::iAPCA() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ImagePCAShapeModelEstimator.html/\">"
 		"Image PCA Shape Model Estimator</a> ITK documentation.")
 {
-	AddParameter("Cutoff", Discrete, 1);
+	addParameter("Cutoff", Discrete, 1);
 }
 
 IAFILTER_CREATE(iAPCA)
@@ -56,10 +56,10 @@ void pca(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	typedef itk::ImagePCAShapeModelEstimator<ImageType, ImageType>  EstimatorType;
 
 	auto pcaFilter = EstimatorType::New();
-	pcaFilter->SetNumberOfTrainingImages(filter->Input().size());
+	pcaFilter->SetNumberOfTrainingImages(filter->input().size());
 	pcaFilter->SetNumberOfPrincipalComponentsRequired(parameters["Cutoff"].toUInt());
-	for (unsigned int k = 0; k < filter->Input().size(); k++)
-		pcaFilter->SetInput(k, dynamic_cast<ImageType*>(filter->Input()[k]->GetITKImage()));
+	for (unsigned int k = 0; k < filter->input().size(); k++)
+		pcaFilter->SetInput(k, dynamic_cast<ImageType*>(filter->input()[k]->itkImage()));
 	pcaFilter->Update();
 	auto scaler = ScaleType::New();
 	auto v = pcaFilter->GetEigenValues();
@@ -71,11 +71,11 @@ void pca(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		scaler->SetConstant(sv_n);
 		scaler->SetInput(pcaFilter->GetOutput(o));
 		scaler->Update();
-		filter->AddOutput(scaler->GetOutput());
+		filter->addOutput(scaler->GetOutput());
 	}
 }
 
-void iAPCA::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAPCA::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(pca, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(pca, inputPixelType(), this, parameters);
 }

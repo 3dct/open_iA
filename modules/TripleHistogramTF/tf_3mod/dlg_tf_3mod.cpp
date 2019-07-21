@@ -31,7 +31,6 @@
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
 #include <iARenderer.h>
-#include <iASlicerData.h>
 #include <iAVolumeRenderer.h>
 #include <mdichild.h>
 

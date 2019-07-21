@@ -25,7 +25,7 @@
 #include "iAHistogramStackGrid.h"
 
 #include <QLabel>
-#include <QHboxLayout>
+#include <QHBoxLayout>
 #include <QSplitter>
 
 iABimodalWidget::iABimodalWidget(QWidget *parent, MdiChild *mdiChild)

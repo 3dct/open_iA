@@ -37,12 +37,13 @@ public:
 		int avgUncIdx,
 		int labelCount);
 	bool success();
+
 private:
 	QSharedPointer<iASingleResult> m_result;
 	int m_objCountIdx;
 	int m_avgUncIdx;
 	bool m_success;
 	int m_labelCount;
-	virtual void run();
 
+	void run() override;
 };

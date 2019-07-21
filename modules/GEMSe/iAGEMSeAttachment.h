@@ -28,7 +28,6 @@
 
 class dlg_GEMSe;
 class dlg_GEMSeControl;
-class dlg_labels;
 class dlg_priors;
 class dlg_samplings;
 class iAWidgetAddHelper;
@@ -40,7 +39,7 @@ class iAGEMSeAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	static iAGEMSeAttachment* create(MainWindow * mainWnd, iAChildData childData);
+	static iAGEMSeAttachment* create(MainWindow * mainWnd, MdiChild * child);
 	bool LoadSampling(QString const & smpFileName, int labelCount, int datasetID);
 	bool LoadClustering(QString const & fileName);
 	bool LoadRefImg(QString const & refImgName);
@@ -55,8 +54,7 @@ public:
 	void ExportRankings();
 	void ImportRankings();
 private:
-	iAGEMSeAttachment(MainWindow * mainWnd, iAChildData childData);
-	dlg_labels*						  m_dlgLabels;
+	iAGEMSeAttachment(MainWindow * mainWnd, MdiChild * child);
 	dlg_priors*                       m_dlgPriors;
 	dlg_GEMSeControl*                 m_dlgGEMSeControl;
 	QWidget*                          m_dummyTitleWidget;

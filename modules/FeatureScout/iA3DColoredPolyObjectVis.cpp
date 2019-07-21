@@ -85,10 +85,8 @@ void iA3DColoredPolyObjectVis::show()
 {
 	if (m_visible)
 		return;
+
 	m_ren->AddActor(m_actor);
-	// TODO: check whether we even should reset the camera here!
-	if (m_ren->GetRenderWindow())
-		m_ren->ResetCamera();
 	m_visible = true;
 }
 

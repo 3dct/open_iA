@@ -37,10 +37,10 @@ public:
 	int size() const;
 	QSharedPointer<iAAttributeDescriptor const> at(int idx) const;
 	QSharedPointer<iAAttributeDescriptor> at(int idx);
-	void Add(QSharedPointer<iAAttributeDescriptor> range);
-	void Store(QTextStream & out);
-	int Find(QString const & name);
-	int Count(iAAttributeDescriptor::iAAttributeType type=iAAttributeDescriptor::None) const;
+	void add(QSharedPointer<iAAttributeDescriptor> range);
+	void store(QTextStream & out);
+	int find(QString const & name);
+	int count(iAAttributeDescriptor::iAAttributeType type=iAAttributeDescriptor::None) const;
 private:
 	QVector<QSharedPointer<iAAttributeDescriptor> > m_attributes;
 };

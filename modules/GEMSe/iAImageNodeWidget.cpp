@@ -74,7 +74,7 @@ iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
 		m_expandButton->setFixedSize(TreeButtonWidth, TreeButtonHeight);
 		m_expandButton->setContentsMargins(QMargins(0, 0, 0, 0));
 		m_leftLayout->addWidget(m_expandButton);
-		connect(m_expandButton, SIGNAL(Clicked()), this, SLOT(ExpandButtonClicked()));
+		connect(m_expandButton, SIGNAL(clicked()), this, SLOT(ExpandButtonClicked()));
 	}
 	leftContainer->setLayout(m_leftLayout);
 
@@ -95,15 +95,15 @@ iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
 
 bool iAImageNodeWidget::CreatePreview(LabelImagePointer refImg)
 {
-	m_imageView = m_previewPool->GetWidget(this);
+	m_imageView = m_previewPool->getWidget(this);
 	if (!m_imageView)
 	{
 		return false;
 	}
 	UpdateRepresentative(refImg);
-	connect(m_imageView, SIGNAL(Clicked()), this, SIGNAL(ImageClicked()));
-	connect(m_imageView, SIGNAL(RightClicked()), this, SIGNAL(ImageRightClicked()));
-	connect(m_imageView, SIGNAL(Updated()), this, SIGNAL(Updated()) );
+	connect(m_imageView, SIGNAL(clicked()), this, SIGNAL(ImageClicked()));
+	connect(m_imageView, SIGNAL(rightClicked()), this, SIGNAL(ImageRightClicked()));
+	connect(m_imageView, SIGNAL(updated()), this, SIGNAL(updated()) );
 	m_mainLayout->addWidget(m_imageView);
 	return true;
 }
@@ -112,10 +112,10 @@ void iAImageNodeWidget::ReturnPreview()
 {
 	m_imageView->hide();
 	m_mainLayout->removeWidget(m_imageView);
-	disconnect(m_imageView, SIGNAL(Clicked()), this, SIGNAL(ImageClicked()));
-	disconnect(m_imageView, SIGNAL(RightClicked()), this, SIGNAL(ImageRightClicked()));
-	disconnect(m_imageView, SIGNAL(Updated()),   this, SIGNAL(Updated()) );
-	m_previewPool->ReturnWidget(m_imageView);
+	disconnect(m_imageView, SIGNAL(clicked()), this, SIGNAL(ImageClicked()));
+	disconnect(m_imageView, SIGNAL(rightClicked()), this, SIGNAL(ImageRightClicked()));
+	disconnect(m_imageView, SIGNAL(updated()),   this, SIGNAL(updated()) );
+	m_previewPool->returnWidget(m_imageView);
 	m_imageView = 0;
 	m_cluster->DiscardDetails();
 }
@@ -209,7 +209,7 @@ void iAImageNodeWidget::mouseReleaseEvent(QMouseEvent * ev)
 	QWidget::mouseReleaseEvent(ev);
 	if (ev->button() == Qt::LeftButton)
 	{
-		emit Clicked();
+		emit clicked();
 	}
 }
 
@@ -293,7 +293,7 @@ bool iAImageNodeWidget::UpdateRepresentative(LabelImagePointer refImg)
 	{
 		return false;
 	}
-	m_imageView->SetImage(m_cluster->GetRepresentativeImage(m_representativeType, refImg), false,
+	m_imageView->setImage(m_cluster->GetRepresentativeImage(m_representativeType, refImg), false,
 		m_cluster->IsLeaf() || m_representativeType == Difference || m_representativeType == AverageLabel);
 	m_imageView->update();
 	return true;

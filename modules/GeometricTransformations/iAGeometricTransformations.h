@@ -30,13 +30,13 @@ IAFILTER_DEFAULT_CLASS(iAPadImageFilter);
 class iAResampleFilterRunner : public iAFilterRunnerGUI
 {
 public:
-	static QSharedPointer<iAFilterRunnerGUI> Create();
-	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
+	static QSharedPointer<iAFilterRunnerGUI> create();
+	QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi) override;
 };
 
 class iAExtractImageFilterRunner : public iAFilterRunnerGUI
 {
 public:
-	static QSharedPointer<iAFilterRunnerGUI> Create();
-	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
+	static QSharedPointer<iAFilterRunnerGUI> create();
+	QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi) override;
 };

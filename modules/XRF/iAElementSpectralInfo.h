@@ -94,7 +94,7 @@ public:
 	/**
 	* Get name of the chemical element
 	*/
-	const QString & GetName() const
+	const QString & name() const
 	{
 		return m_name;
 	}

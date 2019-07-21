@@ -49,7 +49,7 @@ void iAVRModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu* vrMenu = getMenuWithTitle(toolsMenu, tr("VR"), false);
 
 	QAction * actionVRInfo = new QAction(tr("Info"), nullptr);
@@ -70,7 +70,8 @@ void iAVRModuleInterface::info()
 	DEBUG_LOG(QString("VR Information:"));
 	DEBUG_LOG(QString("    Head-mounted display present: %1").arg(vr::VR_IsHmdPresent() ? "yes" : "no"));
 	DEBUG_LOG(QString("    Is Runtime installed: %1").arg(vr::VR_IsRuntimeInstalled() ? "yes" : "no"));
-	DEBUG_LOG(QString("    OpenVR runtime path: %1").arg(vr::VR_RuntimePath()));
+	//DEBUG_LOG(QString("    OpenVR runtime path: %1").arg(vr::VR_RuntimePath()));
+//#if (vr::k_nSteamVRVersionMajor > 1 || (vr::k_nSteamVRVersionMajor == 1 && k_nSteamVRVersionMinor >= 4))?	
 
 	vr::EVRInitError eError = vr::VRInitError_None;
 	auto pHMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
@@ -132,7 +133,7 @@ void iAVRModuleInterface::showFibers()
 	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRModuleInterface::vrDone);
 	m_actionVRShowFibers->setText("Stop Show Fibers");
 
-	m_objectTable = creator.getTable();
+	m_objectTable = creator.table();
 
 	m_cylinderVis.reset(new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, io.getOutputMapping(), QColor(255, 0, 0), std::map<size_t, std::vector<iAVec3f> >() ));
 	m_cylinderVis->show();
@@ -157,9 +158,9 @@ bool iAVRModuleInterface::vrAvailable()
 	return true;
 }
 
-iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )
+iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild* child)
 {
-	return new iAVRAttachment( mainWnd, childData );
+	return new iAVRAttachment( mainWnd, child );
 }
 
 void iAVRModuleInterface::vrDone()

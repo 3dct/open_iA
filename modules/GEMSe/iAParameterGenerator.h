@@ -32,6 +32,6 @@ typedef QSharedPointer<ParameterSets> ParameterSetsPointer;
 class iAParameterGenerator
 {
 public:
-	virtual QString GetName() const =0;
+	virtual QString name() const =0;
 	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameters, int sampleCount) =0;
 };

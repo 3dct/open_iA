@@ -485,7 +485,7 @@ vtkIdType iABoneThickness::selected() const
 void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABoneThicknessChartBar* _pBoneThicknessChartBar, iABoneThicknessTable* _pBoneThicknessTable)
 {
 	m_iARenderer = _iARenderer;
-	m_iARenderer->GetPolyActor()->GetProperty()->SetOpacity(m_dSurfaceOpacity);
+	m_iARenderer->polyActor()->GetProperty()->SetOpacity(m_dSurfaceOpacity);
 
 	m_pPolyData = _pPolyData;
 	m_pPolyData->GetBounds(m_pBound);
@@ -504,10 +504,10 @@ void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABo
 	m_pSpheres = vtkActorCollection::New();
 
 	vtkSmartPointer<iABoneThicknessMouseInteractor> pMouseInteractor(vtkSmartPointer<iABoneThicknessMouseInteractor>::New());
-	pMouseInteractor->SetDefaultRenderer(m_iARenderer->GetRenderer());
+	pMouseInteractor->SetDefaultRenderer(m_iARenderer->renderer());
 	pMouseInteractor->set(this, _pBoneThicknessChartBar, _pBoneThicknessTable, m_pSpheres);
 
-	vtkRenderWindowInteractor* pWindowInteractor(m_iARenderer->GetInteractor());
+	vtkRenderWindowInteractor* pWindowInteractor(m_iARenderer->interactor());
 	pWindowInteractor->SetInteractorStyle(pMouseInteractor);
 
 	//pWindowInteractor->Initialize();
@@ -588,7 +588,7 @@ void iABoneThickness::setSurfaceOpacity(const double& _dSurfaceOpacity)
 	m_dSurfaceOpacity = _dSurfaceOpacity;
 
 	setTranslucent();
-	m_iARenderer->GetPolyActor()->GetProperty()->SetOpacity(m_dSurfaceOpacity);
+	m_iARenderer->polyActor()->GetProperty()->SetOpacity(m_dSurfaceOpacity);
 }
 
 void iABoneThickness::setTable(iABoneThicknessTable* _iABoneThicknessTable)
@@ -661,8 +661,8 @@ void iABoneThickness::setSurfaceDistanceMaximum(const double& _dSurfaceDistanceM
 
 void iABoneThickness::setTranslucent()
 {
-	vtkOpenGLRenderer* pRenderer(m_iARenderer->GetRenderer());
-	vtkRenderWindow* pWindow(m_iARenderer->GetRenderWindow());
+	vtkOpenGLRenderer* pRenderer(m_iARenderer->renderer());
+	vtkRenderWindow* pWindow(m_iARenderer->renderWindow());
 
 	if ((m_dSphereOpacity < 0.99) || (m_dSurfaceOpacity < 0.99))
 	{
@@ -718,7 +718,7 @@ void iABoneThickness::setWindowSpheres()
 
 		for (int i(0); i < idSpheresSize; ++i)
 		{
-			m_iARenderer->GetRenderer()->RemoveActor(m_pSpheres->GetNextActor());
+			m_iARenderer->renderer()->RemoveActor(m_pSpheres->GetNextActor());
 		}
 
 		while (m_pSpheres->GetNumberOfItems())
@@ -754,7 +754,7 @@ void iABoneThickness::setWindowSpheres()
 		pActor->SetMapper(pMapper);
 
 		m_pSpheres->AddItem(pActor);
-		m_iARenderer->GetRenderer()->AddActor(pActor);
+		m_iARenderer->renderer()->AddActor(pActor);
 	}
 }
 
@@ -768,7 +768,7 @@ void iABoneThickness::setWindowThicknessLines()
 
 		for (int i(0); i < idThicknessLinesSize; ++i)
 		{
-			m_iARenderer->GetRenderer()->RemoveActor(m_pThicknessLines->GetNextActor());
+			m_iARenderer->renderer()->RemoveActor(m_pThicknessLines->GetNextActor());
 		}
 
 		while (m_pThicknessLines->GetNumberOfItems())
@@ -785,7 +785,7 @@ void iABoneThickness::setWindowThicknessLines()
 
 		for (int i(0); i < idThicknessLinesSize; ++i)
 		{
-			m_iARenderer->GetRenderer()->RemoveActor(m_pDistanceLines->GetNextActor());
+			m_iARenderer->renderer()->RemoveActor(m_pDistanceLines->GetNextActor());
 		}
 
 		while (m_pDistanceLines->GetNumberOfItems())
@@ -816,7 +816,7 @@ void iABoneThickness::setWindowThicknessLines()
 				pTubeActor->SetMapper(pTubeMapper);
 
 				m_pThicknessLines->AddItem(pTubeActor);
-				m_iARenderer->GetRenderer()->AddActor(pTubeActor);
+				m_iARenderer->renderer()->AddActor(pTubeActor);
 			}
 
 			if (m_daDistance->GetTuple1(i) > 0.01)
@@ -835,7 +835,7 @@ void iABoneThickness::setWindowThicknessLines()
 				pTubeActor->SetMapper(pTubeMapper);
 
 				m_pDistanceLines->AddItem(pTubeActor);
-				m_iARenderer->GetRenderer()->AddActor(pTubeActor);
+				m_iARenderer->renderer()->AddActor(pTubeActor);
 			}
 		}
 	}

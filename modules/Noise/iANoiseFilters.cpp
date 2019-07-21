@@ -36,17 +36,17 @@ template<class T> void additiveGaussianNoise(iAFilter* filter, QMap<QString, QVa
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::AdditiveGaussianNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
 	auto noiseFilter = NoiseFilterType::New();
-	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	noiseFilter->SetMean(parameters["Mean"].toDouble());
 	noiseFilter->SetStandardDeviation(parameters["Standard deviation"].toDouble());
-	filter->Progress()->Observe( noiseFilter );
+	filter->progress()->Observe( noiseFilter );
 	noiseFilter->Update();
-	filter->AddOutput(noiseFilter->GetOutput());
+	filter->addOutput(noiseFilter->GetOutput());
 }
 
-void iAAdditiveGaussianNoise::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAAdditiveGaussianNoise::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(additiveGaussianNoise, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(additiveGaussianNoise, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAAdditiveGaussianNoise)
@@ -60,8 +60,8 @@ iAAdditiveGaussianNoise::iAAdditiveGaussianNoise() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AdditiveGaussianNoiseImageFilter.html\">"
 		"Additive Gaussian Noise Filter</a> in the ITK documentation.")
 {
-	AddParameter("Mean", Continuous, 0);
-	AddParameter("Standard deviation", Continuous, 0.1, std::numeric_limits<double>::epsilon());
+	addParameter("Mean", Continuous, 0);
+	addParameter("Standard deviation", Continuous, 0.1, std::numeric_limits<double>::epsilon());
 }
 
 
@@ -71,16 +71,16 @@ template<class T> void saltAndPepperNoise(iAFilter* filter, QMap<QString, QVaria
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::SaltAndPepperNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
 	auto noiseFilter = NoiseFilterType::New();
-	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	noiseFilter->SetProbability(parameters["Probability"].toDouble());
-	filter->Progress()->Observe( noiseFilter );
+	filter->progress()->Observe( noiseFilter );
 	noiseFilter->Update();
-	filter->AddOutput(noiseFilter->GetOutput());
+	filter->addOutput(noiseFilter->GetOutput());
 }
 
-void iASaltAndPepperNoise::PerformWork(QMap<QString, QVariant> const & parameters)
+void iASaltAndPepperNoise::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(saltAndPepperNoise, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(saltAndPepperNoise, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iASaltAndPepperNoise)
@@ -94,7 +94,7 @@ iASaltAndPepperNoise::iASaltAndPepperNoise() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1SaltAndPepperNoiseImageFilter.html\">"
 		"Salt and Pepper Noise Filter</a> in the ITK documentation.")
 {
-	AddParameter("Probability", Continuous, 0.1, 0, 1);
+	addParameter("Probability", Continuous, 0.1, 0, 1);
 }
 
 
@@ -104,16 +104,16 @@ template<class T> void shotNoise(iAFilter* filter, QMap<QString, QVariant> const
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::ShotNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
 	auto noiseFilter = NoiseFilterType::New();
-	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	noiseFilter->SetScale(parameters["Scale"].toDouble());
-	filter->Progress()->Observe( noiseFilter );
+	filter->progress()->Observe( noiseFilter );
 	noiseFilter->Update();
-	filter->AddOutput(noiseFilter->GetOutput());
+	filter->addOutput(noiseFilter->GetOutput());
 }
 
-void iAShotNoise::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAShotNoise::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(shotNoise, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(shotNoise, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAShotNoise)
@@ -127,7 +127,7 @@ iAShotNoise::iAShotNoise() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ShotNoiseImageFilter.html\">"
 		"Shot Noise Filter</a> in the ITK documentation.")
 {
-	AddParameter("Scale", Continuous, 1, std::numeric_limits<double>::epsilon());
+	addParameter("Scale", Continuous, 1, std::numeric_limits<double>::epsilon());
 }
 
 
@@ -137,16 +137,16 @@ template<class T> void speckleNoise(iAFilter* filter, QMap<QString, QVariant> co
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::SpeckleNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
 	auto noiseFilter = NoiseFilterType::New();
-	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	noiseFilter->SetStandardDeviation(parameters["Standard deviation"].toDouble());
-	filter->Progress()->Observe( noiseFilter );
+	filter->progress()->Observe( noiseFilter );
 	noiseFilter->Update();
-	filter->AddOutput(noiseFilter->GetOutput());
+	filter->addOutput(noiseFilter->GetOutput());
 }
 
-void iASpeckleNoise::PerformWork(QMap<QString, QVariant> const & parameters)
+void iASpeckleNoise::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(speckleNoise, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(speckleNoise, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iASpeckleNoise)
@@ -160,5 +160,5 @@ iASpeckleNoise::iASpeckleNoise() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1SpeckleNoiseImageFilter.html\">"
 		"Speckle Noise Filter</a> in the ITK documentation.")
 {
-	AddParameter("Standard deviation", Continuous, 0.1, std::numeric_limits<double>::epsilon());
+	addParameter("Standard deviation", Continuous, 0.1, std::numeric_limits<double>::epsilon());
 }

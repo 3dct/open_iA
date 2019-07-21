@@ -23,17 +23,17 @@
 #include "itkNumericTraits.h"
 #include "itkArray.h"
 #include "itkMacro.h"
-#include "itkFastMutexLock.h"
 
-#if ITK_VERSION_MAJOR < 4
-#ifdef ITK_USE_REVIEW_STATISTICS
+
 #include "itkEuclideanDistanceMetric.h"
+
+
+#if ITK_VERSION_MAJOR >= 5
+#include <mutex>
 #else
-#include "itkEuclideanDistance.h"
+#include "itkFastMutexLock.h"
 #endif
-#else
-#include "itkEuclideanDistanceMetric.h"
-#endif
+
 
 namespace itk
 {
@@ -134,7 +134,12 @@ public:
 
   /** Type definitions for mutex lock. Mutex lock allows the locking of
    * variables which are accessed through different threads. */
+
+#if ITK_VERSION_MAJOR >= 5
+  typedef std::mutex MutexLockType;
+#else
   typedef FastMutexLock MutexLockType;
+#endif
 
 
   /** Method for creation through the object factory. */
@@ -205,7 +210,12 @@ protected:
 
   /** Mutex lock used to protect the modification of attributes wich are
    * accessed through different threads. */
+
+#if ITK_VERSION_MAJOR >= 5
+  MutexLockType m_CentroidsModificationAttributesLock;
+#else
   MutexLockType::Pointer m_CentroidsModificationAttributesLock;
+#endif
 
 
 private:

@@ -602,7 +602,7 @@ void dlg_ParamSpaceSampling::createHistoPlot()
 
 	// Create histogram plot
 	m_histoPlot = new QCustomPlot( this );
-	m_histoPlot->setMinimumHeight( 150 );
+	m_histoPlot->setMinimumHeight( 300 );
 	m_histoPlot->xAxis->setLabel( "Gray value" );
 	m_histoPlot->yAxis->setLabel( "Frequency" );
 	m_histoPlot->xAxis->setRange( 0, 65535 );

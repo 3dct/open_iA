@@ -22,15 +22,12 @@
 
 #include "iA4DCTMainWin.h"
 #include "iA4DCTSettings.h"
-#include "iAConsole.h"
-#include "iASlicer.h"
-#include "iASlicerWidget.h"
-#include "mainwindow.h"
-#include "mdichild.h"
 #include "iAFeatureExtraction.h"
 #include "iAFeatureExtractionDialog.h"
 #include "iADefectClassifier.h"
 #include "iAClassifyDefectsDialog.h"
+
+#include <mainwindow.h>
 
 #include <vtkMath.h>
 
@@ -68,7 +65,7 @@ void iA4DCTModuleInterface::Initialize( )
 {
 	if (!m_mainWnd)
 		return;
-	QMenu* toolsMenu = m_mainWnd->getToolsMenu( );
+	QMenu* toolsMenu = m_mainWnd->toolsMenu( );
 	QMenu* menu4DCT = getMenuWithTitle(toolsMenu, tr("4DCT"), false);
 
 	QAction * newProj = new QAction(tr("New 4DCT project"), nullptr );
@@ -179,7 +176,7 @@ void iA4DCTModuleInterface::defectClassification()
 //{
 //	PrepareActiveChild();
 //	/*m_densityMap = new dlg_densityMap(m_mainWnd, m_mdiChild);
-//	m_mdiChild->tabifyDockWidget(m_childData.logs, m_densityMap);*/
+//	m_mdiChild->tabifyDockWidget(m_mdiChild->logDockWidget, m_densityMap);*/
 //
 //	dlg_4dctRegistration* reg = new dlg_4dctRegistration();
 //	m_mainWnd->addSubWindow(reg);
@@ -189,8 +186,8 @@ void iA4DCTModuleInterface::defectClassification()
 //	foreach(QMdiSubWindow* window, m_mainWnd->MdiChildList())
 //	{
 //		MdiChild *mdiChild = qobject_cast<MdiChild *>(window->widget());
-//		mdiChild->getSlicerXY()->widget()->set4DCTRegistration(reg);
-//		mdiChild->getSlicerXZ()->widget()->set4DCTRegistration(reg);
-//		mdiChild->getSlicerYZ()->widget()->set4DCTRegistration(reg);
+//		mdiChild->slicer(iASlicerMode::XY)->set4DCTRegistration(reg);
+//		mdiChild->slicer(iASlicerMode::XZ)->set4DCTRegistration(reg);
+//		mdiChild->slicer(iASlicerMode::YZ)->set4DCTRegistration(reg);
 //	}
 //}

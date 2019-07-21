@@ -23,6 +23,6 @@
 
 int main(int argc, char *argv[])
 {
-	return MainWindow::RunGUI(argc, argv, "open_iA", VERSION,
+	return MainWindow::runGUI(argc, argv, "open_iA", VERSION,
 		":/images/splashscreen.png", ":/images/ia.png");
 }

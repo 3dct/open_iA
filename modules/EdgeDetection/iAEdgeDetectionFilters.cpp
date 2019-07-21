@@ -36,23 +36,23 @@ void canny_edge_detection(iAFilter* filter, QMap<QString, QVariant> const & para
 	typedef itk::CannyEdgeDetectionImageFilter < RealImageType, RealImageType > CannyEDFType;
 
 	auto toReal = CastToRealFilterType::New();
-	toReal->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
+	toReal->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	auto canny = CannyEDFType::New();
 	canny->SetVariance(parameters["Variance"].toDouble());
 	canny->SetMaximumError(parameters["Maximum error"].toDouble());
 	canny->SetUpperThreshold(parameters["Upper threshold"].toDouble());
 	canny->SetLowerThreshold(parameters["Lower threshold"].toDouble());
 	canny->SetInput( toReal->GetOutput() );
-	filter->Progress()->Observe( canny );
+	filter->progress()->Observe( canny );
 	canny->Update();
-	filter->AddOutput(canny->GetOutput());
+	filter->addOutput(canny->GetOutput());
 }
 
 IAFILTER_CREATE(iACannyEdgeDetection)
 
-void iACannyEdgeDetection::PerformWork(QMap<QString, QVariant> const & parameters)
+void iACannyEdgeDetection::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(canny_edge_detection, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(canny_edge_detection, inputPixelType(), this, parameters);
 }
 
 iACannyEdgeDetection::iACannyEdgeDetection() :
@@ -64,8 +64,8 @@ iACannyEdgeDetection::iACannyEdgeDetection() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1CannyEdgeDetectionImageFilter.html\">"
 		"Canny Edge Detection Filter</a> in the ITK documentation.")
 {
-	AddParameter("Variance", Continuous, 0.01);
-	AddParameter("Maximum error", Continuous, 0.01, std::numeric_limits<double>::epsilon(), 1);
-	AddParameter("Lower threshold", Continuous, 0);
-	AddParameter("Upper threshold", Continuous, 1);
+	addParameter("Variance", Continuous, 0.01);
+	addParameter("Maximum error", Continuous, 0.01, std::numeric_limits<double>::epsilon(), 1);
+	addParameter("Lower threshold", Continuous, 0);
+	addParameter("Upper threshold", Continuous, 1);
 }

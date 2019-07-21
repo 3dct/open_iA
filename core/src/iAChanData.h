@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAChannelID.h"
 #include "open_iA_Core_export.h"
 
 #include <vtkSmartPointer.h>
@@ -28,24 +27,23 @@
 #include <QColor>
 
 class vtkImageData;
-class vtkTransform;
 class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
-class iAChannelVisualizationData;
+class iAChannelData;
 class vtkScalarBarWidget;
 
 struct open_iA_Core_API iAChanData
 {
-	iAChanData( QColor c1, QColor c2, iAChannelID chanId );
-	iAChanData( const QList<QColor> & colors, iAChannelID chanId );
+	iAChanData( QColor c1, QColor c2, uint chanId );
+	iAChanData( const QList<QColor> & colors, uint chanId );
 	void InitTFs();
 
-	QScopedPointer<iAChannelVisualizationData> visData;
+	QScopedPointer<iAChannelData> visData;
 	vtkSmartPointer<vtkImageData> imgData;
 	vtkSmartPointer<vtkColorTransferFunction> tf;
 	vtkSmartPointer<vtkPiecewiseFunction> otf;
 	vtkSmartPointer<vtkPiecewiseFunction> vol_otf;
 	QList<QColor> cols;
-	const iAChannelID id;
+	const uint id;
 	vtkSmartPointer<vtkScalarBarWidget> scalarBarWgt;
 };

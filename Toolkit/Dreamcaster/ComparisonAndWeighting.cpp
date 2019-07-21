@@ -19,13 +19,15 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "ComparisonAndWeighting.h"
+
 #include "raycast/include/common.h"
 #include "PaintWidget.h"
+
 #include <QWidget>
 #include <QPixmap>
 
 //ParamWidget impl//////////////////////////////////////////////////////////////////////////
-ParamWidget::ParamWidget()
+iAParamWidget::iAParamWidget()
 {
 	pxmp = 0;
 	paintWidget = 0;
@@ -33,13 +35,13 @@ ParamWidget::ParamWidget()
 	initialized = false;
 }
 
-void ParamWidget::Init(int pxmpWidth, int pxmpHeight, QWidget *widget)
+void iAParamWidget::Init(int pxmpWidth, int pxmpHeight, QWidget *widget)
 {
 	if(initialized)
 		return;
 	pxmp = new QPixmap(pxmpWidth, pxmpHeight);
 
-	paintWidget = new PaintWidget(pxmp, widget);
+	paintWidget = new iAPaintWidget(pxmp, widget);
 	paintWidget->setGeometry(0, 0, widget->geometry().width(), widget->geometry().height());
 	paintWidget->setCursor(widget->cursor());
 	QColor tempColor(250,250,0);
@@ -48,7 +50,7 @@ void ParamWidget::Init(int pxmpWidth, int pxmpHeight, QWidget *widget)
 	initialized = true;
 }
 
-int ParamWidget::AllocateBuffer(int width, int height)
+int iAParamWidget::AllocateBuffer(int width, int height)
 {
 	if(pxmp)
 		delete pxmp;
@@ -69,7 +71,7 @@ int ParamWidget::AllocateBuffer(int width, int height)
 	return 1;
 }
 
-ParamWidget::~ParamWidget()
+iAParamWidget::~iAParamWidget()
 {
 	if(buffer)
 		delete [] buffer;
@@ -80,14 +82,14 @@ ParamWidget::~ParamWidget()
 }
 
 //ParametersView impl //////////////////////////////////////////////////////////////////////////
-ParametersView::ParametersView(int width, int height, QWidget *w1, QWidget *w2, QWidget *w3)
+iAParametersView::iAParametersView(int width, int height, QWidget *w1, QWidget *w2, QWidget *w3)
 {
 	paramWidgets[0].Init(width, height, w1);
 	paramWidgets[1].Init(width, height, w2);
 	paramWidgets[2].Init(width, height, w3);
 }
 
-void ParametersView::Update()
+void iAParametersView::Update()
 {
 	QPainter painter;
 	for (unsigned int i=0; i<3; i++)
@@ -101,12 +103,12 @@ void ParametersView::Update()
 }
 
 //WeightingView impl //////////////////////////////////////////////////////////////////////////
-CombinedParametersView::CombinedParametersView(QWidget *resultsWidget, int width, int height) 
+iACombinedParametersView::iACombinedParametersView(QWidget *resultsWidget, int width, int height)
 {
 	results.Init(width, height, resultsWidget);
 }
 
-void CombinedParametersView::Update()
+void iACombinedParametersView::Update()
 {
 	QPainter painter;
 	QImage img = QImage((uchar*)results.buffer, results.bufferWidth, results.bufferHeight, QImage::Format_RGB32); 

@@ -46,11 +46,6 @@ iARulerWidget::iARulerWidget()
 }
 
 
-iARulerWidget::~iARulerWidget()
-{
-}
-
-
 void iARulerWidget::SetRepresentation(iARulerRepresentation *rep)
 {
 	this->SetWidgetRepresentation(rep);

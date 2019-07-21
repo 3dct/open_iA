@@ -66,44 +66,44 @@ namespace
 	template <typename T>
 	void patch(iAFilter* patchFilter, QMap<QString, QVariant> const & parameters)
 	{
-		auto filter = iAFilterRegistry::Filter(parameters["Filter"].toString());
+		auto filter = iAFilterRegistry::filter(parameters["Filter"].toString());
 		if (!filter)
 		{
-			patchFilter->AddMsg(QString("Patch: Cannot run filter '%1', it does not exist!").arg(parameters["Filter"].toString()));
+			patchFilter->addMsg(QString("Patch: Cannot run filter '%1', it does not exist!").arg(parameters["Filter"].toString()));
 			return;
 		}
 		typedef itk::Image<T, DIM> InputImageType;
 		typedef itk::Image<double, DIM> OutputImageType;
-		auto size = dynamic_cast<InputImageType*>(patchFilter->Input()[0]->GetITKImage())->GetLargestPossibleRegion().GetSize();
+		auto size = dynamic_cast<InputImageType*>(patchFilter->input()[0]->itkImage())->GetLargestPossibleRegion().GetSize();
 		//DEBUG_LOG(QString("Size: (%1, %2, %3)").arg(size[0]).arg(size[1]).arg(size[2]));
-		auto inputSpacing = dynamic_cast<InputImageType*>(patchFilter->Input()[0]->GetITKImage())->GetSpacing();
+		auto inputSpacing = dynamic_cast<InputImageType*>(patchFilter->input()[0]->itkImage())->GetSpacing();
 	
-		QStringList filterParamStrs = SplitPossiblyQuotedString(parameters["Parameters"].toString());
-		if (filter->Parameters().size() != filterParamStrs.size())
+		QStringList filterParamStrs = splitPossiblyQuotedString(parameters["Parameters"].toString());
+		if (filter->parameters().size() != filterParamStrs.size())
 		{
 			DEBUG_LOG(QString("PatchFilter: Invalid number of parameters: %1 expected, %2 given!")
-				.arg(filter->Parameters().size())
+				.arg(filter->parameters().size())
 				.arg(filterParamStrs.size()));
 			return;
 		}
 		QMap<QString, QVariant> filterParams;
 		for (int i = 0; i<filterParamStrs.size(); ++i)
-			filterParams.insert(filter->Parameters()[i]->Name(), filterParamStrs[i]);
+			filterParams.insert(filter->parameters()[i]->name(), filterParamStrs[i]);
 		
 		QVector<iAConnector*> inputImages;
 		inputImages.push_back(new iAConnector);
-		inputImages[0]->SetImage(patchFilter->Input()[0]->GetITKImage());
+		inputImages[0]->setImage(patchFilter->input()[0]->itkImage());
 		QVector<iAConnector*> smallImageInput;
 		smallImageInput.push_back(new iAConnector);
 		// TODO: read from con array?
-		QStringList additionalInput = SplitPossiblyQuotedString(parameters["Additional input"].toString());
+		QStringList additionalInput = splitPossiblyQuotedString(parameters["Additional input"].toString());
 		for (QString fileName : additionalInput)
 		{
 			//fileName = MakeAbsolute(batchDir, fileName);
 			auto newCon = new iAConnector();
 			iAITKIO::ScalarPixelType pixelType;
 			iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-			newCon->SetImage(img);
+			newCon->setImage(img);
 			inputImages.push_back(newCon);
 			smallImageInput.push_back(new iAConnector);
 		}
@@ -138,13 +138,13 @@ namespace
 		QVector<iAITKIO::ImagePointer> outputImages;
 		QStringList outputNames;
 		if (doImage)
-			while (outputImages.size() < filter->OutputValueNames().size())
+			while (outputImages.size() < filter->outputValueNames().size())
 			{
-				outputImages.push_back(AllocateImage(blockCount, outputSpacing, itk::ImageIOBase::DOUBLE));
-				outputNames << filter->OutputValueNames()[outputImages.size() - 1];
+				outputImages.push_back(allocateImage(blockCount, outputSpacing, itk::ImageIOBase::DOUBLE));
+				outputNames << filter->outputValueNames()[outputImages.size() - 1];
 			}
-		filter->SetLogger(patchFilter->Logger());
-		filter->SetProgress(&dummyProgress);
+		filter->setLogger(patchFilter->logger());
+		filter->setProgress(&dummyProgress);
 		// iterate over all patches:
 		itk::Index<DIM> outIdx; outIdx[0] = 0;
 		for (int x = 0; x < size[0]; x += stepSize[0])
@@ -184,27 +184,27 @@ namespace
 						// extract patch from all inputs:
 						for (int i = 0; i < inputImages.size(); ++i)
 						{
-							auto itkExtractImg = ExtractImage(inputImages[i]->GetITKImage(), extractIndex, extractSize);
-							smallImageInput[i]->SetImage(itkExtractImg);
+							auto itkExtractImg = extractImage(inputImages[i]->itkImage(), extractIndex, extractSize);
+							smallImageInput[i]->setImage(itkExtractImg);
 						}
 
 						// run filter on inputs:
-						filter->ClearInput();
+						filter->clearInput();
 						for (int i=0; i<smallImageInput.size(); ++i)
-							filter->AddInput(smallImageInput[i]);
-						filter->Run(filterParams);
+							filter->addInput(smallImageInput[i]);
+						filter->run(filterParams);
 
 						// get output images and values from filter:
-						if (filter->OutputCount() > 0 || filter->Output().size() > 0)
+						if (filter->outputCount() > 0 || filter->output().size() > 0)
 							warnOutputNotSupported = true;
 
-						if (filter->OutputValues().size() > 0)
+						if (filter->outputValues().size() > 0)
 						{
 							if (curOp == 0)
 							{
 								QStringList captions;
 								captions << "x" << "y" << "z";
-								for (auto outValue : filter->OutputValues())
+								for (auto outValue : filter->outputValues())
 								{
 									captions << outValue.first;
 								}
@@ -212,12 +212,12 @@ namespace
 							}
 							QStringList values;
 							values << QString::number(x) << QString::number(y) << QString::number(z);
-							for (auto outValue : filter->OutputValues())
+							for (auto outValue : filter->outputValues())
 								values.append(outValue.second.toString());
 							outputBuffer.append(values.join(","));
 							if (doImage)
-								for (int i = 0; i < filter->OutputValues().size(); ++i)
-									(dynamic_cast<OutputImageType*>(outputImages[i].GetPointer()))->SetPixel(outIdx, filter->OutputValues()[i].second.toDouble());
+								for (int i = 0; i < filter->outputValues().size(); ++i)
+									(dynamic_cast<OutputImageType*>(outputImages[i].GetPointer()))->SetPixel(outIdx, filter->outputValues()[i].second.toDouble());
 						}
 					}
 					catch (std::exception& e)
@@ -230,7 +230,7 @@ namespace
 							throw e;
 					}
 					
-					patchFilter->Progress()->EmitProgress(static_cast<int>(100.0 * curOp / totalOps));
+					patchFilter->progress()->EmitProgress(static_cast<int>(100.0 * curOp / totalOps));
 					++curOp;
 					++outIdx[2];
 				}
@@ -262,7 +262,7 @@ namespace
 				.arg(fi.baseName())
 				.arg(outputNames[i])
 				.arg(fi.completeSuffix());
-			StoreImage(outputImages[i], outFileName, parameters["Compress image"].toBool());
+			storeImage(outputImages[i], outFileName, parameters["Compress image"].toBool());
 			//DEBUG_LOG(QString("Storing output for '%1' in file '%2'").arg(outputNames[i]).arg(outFileName));
 		}
 	}
@@ -272,26 +272,26 @@ iAPatchFilter::iAPatchFilter():
 	iAFilter("Patch Filter", "Image Ensembles",
 		"Create patches from an input image and apply a filter each patch.<br/>", 1, 0)
 {
-	AddParameter("Patch size X", Discrete, 1, 1);
-	AddParameter("Patch size Y", Discrete, 1, 1);
-	AddParameter("Patch size Z", Discrete, 1, 1);
-	AddParameter("Step size X", Discrete, 1, 1);
-	AddParameter("Step size Y", Discrete, 1, 1);
-	AddParameter("Step size Z", Discrete, 1, 1);
-	AddParameter("Center patch", Boolean, true);
-	AddParameter("Filter", FilterName, "Image Quality");
-	AddParameter("Parameters", FilterParameters, "");
-	AddParameter("Additional input", FileNamesOpen, "");
-	AddParameter("Output csv file", FileNameSave, "");
-	AddParameter("Write output value image", Boolean, true);
-	AddParameter("Output image base name", String, "output.mhd");
-	AddParameter("Compress image", Boolean, true);
-	AddParameter("Continue on error", Boolean, true);
+	addParameter("Patch size X", Discrete, 1, 1);
+	addParameter("Patch size Y", Discrete, 1, 1);
+	addParameter("Patch size Z", Discrete, 1, 1);
+	addParameter("Step size X", Discrete, 1, 1);
+	addParameter("Step size Y", Discrete, 1, 1);
+	addParameter("Step size Z", Discrete, 1, 1);
+	addParameter("Center patch", Boolean, true);
+	addParameter("Filter", FilterName, "Image Quality");
+	addParameter("Parameters", FilterParameters, "");
+	addParameter("Additional input", FileNamesOpen, "");
+	addParameter("Output csv file", FileNameSave, "");
+	addParameter("Write output value image", Boolean, true);
+	addParameter("Output image base name", String, "output.mhd");
+	addParameter("Compress image", Boolean, true);
+	addParameter("Continue on error", Boolean, true);
 }
 
-void iAPatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAPatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(patch, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(patch, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAPatchFilter);

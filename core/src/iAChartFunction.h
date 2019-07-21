@@ -18,15 +18,50 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAChildData.h"
+#pragma once
 
-#include "mdichild.h"
+#include "open_iA_Core_export.h"
 
-iAChildData::iAChildData( MdiChild * a_child ) : child( a_child )
+#include <QObject>
+
+#include "open_iA_Core_export.h"
+
+class QColor;
+class QMouseEvent;
+class QPainter;
+class iADiagramFctWidget;
+
+class open_iA_Core_API iAChartFunction: public QObject
 {
-	imgData = child->getImageData();
-	polyData = child->getPolyData();
-	logs = child->logs;
-}
+	Q_OBJECT
+public:
+	static const int TRANSFER = 0;
+	static const int GAUSSIAN = 1;
+	static const int BEZIER   = 2;
 
-iAChildData::iAChildData() : child( 0 ), imgData( 0 ), polyData( 0 ), logs( 0 ) {}
+	iAChartFunction(iADiagramFctWidget* chart) : chart(chart) { }
+
+	virtual int getType() = 0;
+
+	virtual void draw(QPainter &painter) = 0;
+	virtual void draw(QPainter &painter, QColor color, int lineWidth) = 0;
+	virtual void drawOnTop(QPainter &painter) = 0;
+
+	virtual int selectPoint(QMouseEvent *event, int *x = nullptr) = 0;
+	virtual int getSelectedPoint() = 0;
+	virtual int addPoint(int x, int y) = 0;
+	virtual void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) = 0;
+	virtual void removePoint(int index) = 0;
+	virtual void moveSelectedPoint(int x, int y) = 0;
+	virtual void changeColor(QMouseEvent *event) = 0;
+
+	virtual bool isColored() = 0;
+	virtual bool isEndPoint(int index) = 0;
+	virtual bool isDeletable(int index) = 0;
+
+	virtual void reset() = 0;
+	virtual void mouseReleaseEvent(QMouseEvent *) {}
+	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *) {}
+
+	iADiagramFctWidget *chart;
+};

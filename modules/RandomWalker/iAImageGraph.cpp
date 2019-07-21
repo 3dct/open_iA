@@ -22,7 +22,7 @@
 
 namespace
 {
-	iAEdgeIndexType GetNumberOfEdges(iAVoxelIndexType width, iAVoxelIndexType height, iAVoxelIndexType depth,
+	iAEdgeIndexType numberOfEdges(iAVoxelIndexType width, iAVoxelIndexType height, iAVoxelIndexType depth,
 		iAImageGraph::NeighbourhoodType neighbourhoodType)
 	{
 		switch (neighbourhoodType)
@@ -40,12 +40,12 @@ namespace
 // iAImageGraph
 
 iAImageGraph::iAImageGraph(iAVoxelIndexType width, iAVoxelIndexType height, iAVoxelIndexType depth,
-		iAImageCoordinate::IndexOrdering indexOrdering,
+		iAImageCoordinate::iAIndexOrdering indexOrdering,
 		NeighbourhoodType neighbourhoodType
 	):
 		m_converter(width, height, depth, indexOrdering)
 {
-	m_edges.reserve(GetNumberOfEdges(width, height, depth, neighbourhoodType));
+	m_edges.reserve(numberOfEdges(width, height, depth, neighbourhoodType));
 	iAVoxelIndexType N=width*height*depth;
 
 	// edges are bi-directional; here we will always consider only one "working direction";
@@ -54,14 +54,14 @@ iAImageGraph::iAImageGraph(iAVoxelIndexType width, iAVoxelIndexType height, iAVo
 
 	for (iAVoxelIndexType i=0; i<N-1; ++i)
 	{
-		iAImageCoordinate coord1 = m_converter.GetCoordinatesFromIndex(i);
+		iAImageCoordinate coord1 = m_converter.coordinatesFromIndex(i);
 
 		// connect to right neighbour
 		if (coord1.x < width-1)
 		{
 			iAImageCoordinate coord2(coord1);
 			coord2.x += 1;
-			AddEdge(coord1, coord2);
+			addEdge(coord1, coord2);
 		}
 
 		// connect to lower neighbour
@@ -69,14 +69,14 @@ iAImageGraph::iAImageGraph(iAVoxelIndexType width, iAVoxelIndexType height, iAVo
 		{
 			iAImageCoordinate coord2(coord1);
 			coord2.y += 1;
-			AddEdge(coord1, coord2);
+			addEdge(coord1, coord2);
 		}
 		// connect to front/back neighbour (if depth == 1, then nothing will be added here)
 		if (coord1.z < depth-1)
 		{
 			iAImageCoordinate coord2(coord1);
 			coord2.z += 1;
-			AddEdge(coord1, coord2);
+			addEdge(coord1, coord2);
 		}
 		if (neighbourhoodType == nbhMoore)
 		{
@@ -86,39 +86,39 @@ iAImageGraph::iAImageGraph(iAVoxelIndexType width, iAVoxelIndexType height, iAVo
 				iAImageCoordinate coord2_1(coord1);
 				coord2_1.x += 1;
 				coord2_1.y += 1;
-				AddEdge(coord1, coord2_1);
+				addEdge(coord1, coord2_1);
 
 				iAImageCoordinate coord1_2(coord1);
 				coord1_2.x += 1;
 				iAImageCoordinate coord2_2(coord1);
 				coord2_2.y += 1;
-				AddEdge(coord1_2, coord2_2);
+				addEdge(coord1_2, coord2_2);
 			}
 			if (coord1.x < width-1 && coord1.z < depth-1)
 			{
 				iAImageCoordinate coord2_1(coord1);
 				coord2_1.x += 1;
 				coord2_1.z += 1;
-				AddEdge(coord1, coord2_1);
+				addEdge(coord1, coord2_1);
 
 				iAImageCoordinate coord1_2(coord1);
 				coord1_2.x += 1;
 				iAImageCoordinate coord2_2(coord1);
 				coord2_2.z += 1;
-				AddEdge(coord1_2, coord2_2);
+				addEdge(coord1_2, coord2_2);
 			}
 			if (coord1.y < height-1 && coord1.z < depth-1)
 			{
 				iAImageCoordinate coord2_1(coord1);
 				coord2_1.y += 1;
 				coord2_1.z += 1;
-				AddEdge(coord1, coord2_1);
+				addEdge(coord1, coord2_1);
 
 				iAImageCoordinate coord1_2(coord1);
 				coord1_2.y += 1;
 				iAImageCoordinate coord2_2(coord1);
 				coord2_2.z += 1;
-				AddEdge(coord1_2, coord2_2);
+				addEdge(coord1_2, coord2_2);
 			}
 
 			if (coord1.x < width-1 && coord1.y < height-1 && coord1.z < depth-1)
@@ -127,34 +127,34 @@ iAImageGraph::iAImageGraph(iAVoxelIndexType width, iAVoxelIndexType height, iAVo
 				coord2_1.x += 1;
 				coord2_1.y += 1;
 				coord2_1.z += 1;
-				AddEdge(coord1, coord2_1);
+				addEdge(coord1, coord2_1);
 
 				iAImageCoordinate coord1_2(coord1);
 				coord1_2.x += 1;
 				iAImageCoordinate coord2_2(coord1);
 				coord2_2.y += 1;
 				coord2_2.z += 1;
-				AddEdge(coord1_2, coord2_2);
+				addEdge(coord1_2, coord2_2);
 
 				iAImageCoordinate coord1_3(coord1);
 				coord1_3.y += 1;
 				iAImageCoordinate coord2_3(coord1);
 				coord2_3.x += 1;
 				coord2_3.z += 1;
-				AddEdge(coord1_3, coord2_3);
+				addEdge(coord1_3, coord2_3);
 
 				iAImageCoordinate coord1_4(coord1);
 				coord1_4.z += 1;
 				iAImageCoordinate coord2_4(coord1);
 				coord2_4.x += 1;
 				coord2_4.y += 1;
-				AddEdge(coord1_4, coord2_4);
+				addEdge(coord1_4, coord2_4);
 			}
 		}
 	}
 }
 
-bool iAImageGraph::ContainsEdge(iAVoxelIndexType voxel1, iAVoxelIndexType voxel2)
+bool iAImageGraph::containsEdge(iAVoxelIndexType voxel1, iAVoxelIndexType voxel2)
 {
 	for (iAEdgeIndexType i=0; i<m_edges.size(); ++i)
 	{
@@ -168,27 +168,27 @@ bool iAImageGraph::ContainsEdge(iAVoxelIndexType voxel1, iAVoxelIndexType voxel2
 	return false;
 }
 
-bool iAImageGraph::ContainsEdge(iAImageCoordinate voxel1, iAImageCoordinate voxel2)
+bool iAImageGraph::containsEdge(iAImageCoordinate voxel1, iAImageCoordinate voxel2)
 {
-	iAVoxelIndexType idx1 = m_converter.GetIndexFromCoordinates(voxel1);
-	iAVoxelIndexType idx2 = m_converter.GetIndexFromCoordinates(voxel2);
-	return ContainsEdge(idx1, idx2);
+	iAVoxelIndexType idx1 = m_converter.indexFromCoordinates(voxel1);
+	iAVoxelIndexType idx2 = m_converter.indexFromCoordinates(voxel2);
+	return containsEdge(idx1, idx2);
 }
 
-iAEdgeIndexType iAImageGraph::GetEdgeCount() const
+iAEdgeIndexType iAImageGraph::edgeCount() const
 {
 	return m_edges.size();
 }
 
-iAEdgeType const & iAImageGraph::GetEdge(iAEdgeIndexType idx) const
+iAEdgeType const & iAImageGraph::edge(iAEdgeIndexType idx) const
 {
 	return m_edges[idx];
 }
 
-void iAImageGraph::AddEdge(iAImageCoordinate voxel1, iAImageCoordinate voxel2)
+void iAImageGraph::addEdge(iAImageCoordinate voxel1, iAImageCoordinate voxel2)
 {
-	iAVoxelIndexType idx1 = m_converter.GetIndexFromCoordinates(voxel1);
-	iAVoxelIndexType idx2 = m_converter.GetIndexFromCoordinates(voxel2);
+	iAVoxelIndexType idx1 = m_converter.indexFromCoordinates(voxel1);
+	iAVoxelIndexType idx2 = m_converter.indexFromCoordinates(voxel2);
 	/*
 	assert (!ContainsEdge(idx1, idx2));
 	assert (!ContainsEdge(idx2, idx1));
@@ -198,7 +198,7 @@ void iAImageGraph::AddEdge(iAImageCoordinate voxel1, iAImageCoordinate voxel2)
 	m_edges.push_back(std::make_pair(idx1, idx2));
 }
 
-iAImageCoordConverter const & iAImageGraph::GetConverter() const
+iAImageCoordConverter const & iAImageGraph::converter() const
 {
 	return m_converter;
 }

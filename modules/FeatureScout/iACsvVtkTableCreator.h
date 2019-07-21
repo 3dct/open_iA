@@ -34,7 +34,7 @@ public:
 	iACsvVtkTableCreator();
 	void initialize(QStringList const & headers, size_t const rowCount) override;
 	void addRow(size_t row, QStringList const & values) override;
-	vtkSmartPointer<vtkTable> getTable();
+	vtkSmartPointer<vtkTable> table();
 private:
 	vtkSmartPointer<vtkTable> m_table;   //!< output vtk table
 	//void debugTable(const bool useTabSeparator); //! <debugTable)

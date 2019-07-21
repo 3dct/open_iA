@@ -39,25 +39,25 @@ class open_iA_Core_API iAModalityList : public QObject
 	Q_OBJECT
 public:
 	iAModalityList();
-	void Store(QString const & filename, vtkCamera* cam);
-	bool Load(QString const & filename, iAProgress& progress);
-	void ApplyCameraSettings(vtkCamera* cam);
+	void store(QString const & filename, vtkCamera* cam);
+	bool load(QString const & filename, iAProgress& progress);
+	void applyCameraSettings(vtkCamera* cam);
 
 	int size() const;
-	QSharedPointer<iAModality> Get(int idx);
-	QSharedPointer<iAModality const> Get(int idx) const;
-	void Add(QSharedPointer<iAModality> mod);
-	void Remove(int idx);
-	QString const & GetFileName() const;
-	static ModalityCollection Load(QString const & filename, QString const & name, int channel, bool split, int renderFlags);
-	bool HasUnsavedModality() const;
+	QSharedPointer<iAModality> get(int idx);
+	QSharedPointer<iAModality const> get(int idx) const;
+	void add(QSharedPointer<iAModality> mod);
+	void remove(int idx);
+	QString const & fileName() const;
+	static ModalityCollection load(QString const & filename, QString const & name, int channel, bool split, int renderFlags);
+	bool hasUnsavedModality() const;
 signals:
-	void Added(QSharedPointer<iAModality> mod);
+	void added(QSharedPointer<iAModality> mod);
 private:
-	bool ModalityExists(QString const & filename, int channel) const;
+	bool modalityExists(QString const & filename, int channel) const;
 	ModalityCollection m_modalitiesActive;
 	QString m_fileName;
 	bool m_camSettingsAvailable;
-	double camPosition[3], camFocalPoint[3], camViewUp[3];
+	double m_camPosition[3], m_camFocalPoint[3], m_camViewUp[3];
 };
 

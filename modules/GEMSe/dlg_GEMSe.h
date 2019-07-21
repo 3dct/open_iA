@@ -71,7 +71,7 @@ public:
 	void StoreClustering(QString const & fileName);
 	QSharedPointer<iAImageTreeNode> GetCurrentCluster();
 	QSharedPointer<iAImageTreeNode> GetRoot();
-	void SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const * labelInfo);
+	void setColorTheme(iAColorTheme const * colorTheme, iALabelInfo const * labelInfo);
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
 	void CalcRefImgComp(LabelImagePointer refImg);
 	void ToggleAutoShrink();

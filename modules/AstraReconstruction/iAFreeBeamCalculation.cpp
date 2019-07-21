@@ -41,9 +41,9 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 	double I0 = params["Manual I0"].toDouble();
 	typedef itk::Image< InPixelType, DIM > InputImageType;
 	typedef itk::Image< OutPixelType, DIM > OutputImageType;
-	const typename OutputImageType::SpacingType& outputSpacing = dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage())->GetSpacing();
-	const typename OutputImageType::PointType& outputOrigin = dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage())->GetOrigin();
-	typename OutputImageType::RegionType outputRegion = dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage())->GetLargestPossibleRegion();
+	const typename OutputImageType::SpacingType& outputSpacing = dynamic_cast<InputImageType *>(filter->input()[0]->itkImage())->GetSpacing();
+	const typename OutputImageType::PointType& outputOrigin = dynamic_cast<InputImageType *>(filter->input()[0]->itkImage())->GetOrigin();
+	typename OutputImageType::RegionType outputRegion = dynamic_cast<InputImageType *>(filter->input()[0]->itkImage())->GetLargestPossibleRegion();
 	typename OutputImageType::Pointer outputImage = OutputImageType::New();
 	outputImage->SetRegions(outputRegion);
 	outputImage->SetSpacing(outputSpacing);
@@ -69,11 +69,11 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 		typename EIFType::InputImageRegionType::SizeType roiSize;
 		roiSize[0] = params["Size X"].toUInt();
 		roiSize[1] = params["Size Y"].toUInt();
-		roiSize[2] =  filter->Input()[0]->GetITKImage()->GetLargestPossibleRegion().GetSize()[2];
+		roiSize[2] =  filter->input()[0]->itkImage()->GetLargestPossibleRegion().GetSize()[2];
 		typename EIFType::InputImageRegionType::IndexType roiIndex;
 		roiIndex[0] = params["Index X"].toUInt(); roiIndex[1] = params["Index Y"].toUInt(); roiIndex[2] = 0;
 		typename EIFType::InputImageRegionType roiRegion; roiRegion.SetIndex(roiIndex); roiRegion.SetSize(roiSize);
-		roiFilter->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
+		roiFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
 		roiFilter->SetExtractionRegion(roiRegion);
 		roiFilter->Update();
 
@@ -100,8 +100,8 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 		inputROIIt.SetFirstDirection(direction[1]);
 		inputROIIt.SetSecondDirection(direction[0]);
 		outputROISliceIt.SetDirection(1 - direction[0]);
-		SliceConstIteratorType inputIt(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()),
-			dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage())->GetLargestPossibleRegion());
+		SliceConstIteratorType inputIt(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()),
+			dynamic_cast<InputImageType *>(filter->input()[0]->itkImage())->GetLargestPossibleRegion());
 		SliceIteratorType outputIt(outputImage, outputImage->GetLargestPossibleRegion());
 		inputIt.SetFirstDirection(direction[1]);
 		inputIt.SetSecondDirection(direction[0]);
@@ -152,13 +152,13 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 			outputROISliceIt.GoToBegin();
 			inputROIIt.NextSlice();
 			++curSlice;
-			filter->Progress()->EmitProgress(static_cast<int>((100.0 * curSlice) / roiSize[2]));
+			filter->progress()->EmitProgress(static_cast<int>((100.0 * curSlice) / roiSize[2]));
 		}
 		roiFilter->ReleaseDataFlagOn();
 	}
 	else
 	{
-		auto img = dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage());
+		auto img = dynamic_cast<InputImageType *>(filter->input()[0]->itkImage());
 		typedef itk::ImageRegionConstIterator< InputImageType > InputIteratorType;
 		typedef itk::ImageRegionIterator< OutputImageType > OutputIteratorType;
 		InputIteratorType inputIt(img, img->GetLargestPossibleRegion());
@@ -181,12 +181,12 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 			++curVoxel;
 			if (curVoxel > (lastProgressReportVoxel + progressVoxelDist))
 			{
-				filter->Progress()->EmitProgress(static_cast<int>((100.0 * curVoxel) / voxelCount));
+				filter->progress()->EmitProgress(static_cast<int>((100.0 * curVoxel) / voxelCount));
 				lastProgressReportVoxel = curVoxel;
 			}
 		}
 	}
-	filter->AddOutput(outputImage);
+	filter->addOutput(outputImage);
 }
 
 template<class InPixelType>
@@ -198,9 +198,9 @@ void freeBeamCalculation_OutType(QMap<QString, QVariant> const & parameters, iAF
 		freeBeamCalculation<InPixelType, double>(parameters, filter);
 }
 
-void iAFreeBeamCalculation::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAFreeBeamCalculation::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(freeBeamCalculation_OutType, InputPixelType(), parameters, this);
+	ITK_TYPED_CALL(freeBeamCalculation_OutType, inputPixelType(), parameters, this);
 }
 
 IAFILTER_CREATE(iAFreeBeamCalculation)
@@ -218,11 +218,11 @@ iAFreeBeamCalculation::iAFreeBeamCalculation() :
 		"If <em>Float output</em> is enabled, then the output will be in float "
 		"datatype, otherwise double will be used.")
 {
-	AddParameter("Index X", Discrete, 0);
-	AddParameter("Index Y", Discrete, 0);
-	AddParameter("Size X", Discrete, 1, 1);
-	AddParameter("Size Y", Discrete, 1, 1);
-	AddParameter("Set I0 manually", Boolean, false);
-	AddParameter("Manual I0", Continuous, 0);
-	AddParameter("Float output", Boolean, true);
+	addParameter("Index X", Discrete, 0);
+	addParameter("Index Y", Discrete, 0);
+	addParameter("Size X", Discrete, 1, 1);
+	addParameter("Size Y", Discrete, 1, 1);
+	addParameter("Set I0 manually", Boolean, false);
+	addParameter("Manual I0", Continuous, 0);
+	addParameter("Float output", Boolean, true);
 }

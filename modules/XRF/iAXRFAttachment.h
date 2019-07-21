@@ -35,12 +35,14 @@ class iAIO;
 
 class vtkPiecewiseFunction;
 
+class QThread;
+
 class iAXRFAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 
 public:
-	iAXRFAttachment( MainWindow * mainWnd, iAChildData childData );
+	iAXRFAttachment( MainWindow * mainWnd, MdiChild * child );
 	~iAXRFAttachment();
 
 private slots:
@@ -60,7 +62,7 @@ private slots:
 
 protected:
 	void updateSlicerXRFOpacity();
-	QObject* recalculateXRF();
+	QThread* recalculateXRF();
 	void initSlicerXRF( bool enableChannel );
 
 protected:
@@ -69,5 +71,5 @@ protected:
 	dlg_SimilarityMap * dlgSimilarityMap;
 	dlg_XRF * dlgXRF;
 	iAIO * ioThread;
-	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
+	uint m_xrfChannelID;
 };

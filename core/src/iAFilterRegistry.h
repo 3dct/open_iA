@@ -44,23 +44,23 @@ class open_iA_Core_API iAFilterRegistry
 public:
 	//! Adds a given filter factory to the registry, which will be run with the default
 	//! GUI runner. REGISTER_FILTER provide simplified access to this method.
-	static void AddFilterFactory(QSharedPointer<iAIFilterFactory> factory);
+	static void addFilterFactory(QSharedPointer<iAIFilterFactory> factory);
 	//! Adds a given filter factory to the registry, which will be run with the runner for
 	//! which the factory is supplied. REGISTER_FILTER_WITH_RUNNER
 	//! provides simplified access to this method.
-	static void AddFilterFactory(QSharedPointer<iAIFilterFactory> factory,
+	static void addFilterFactory(QSharedPointer<iAIFilterFactory> factory,
 		QSharedPointer<iAIFilterRunnerGUIFactory> runner);
 	//! Retrieve a list of all currently registered filter (factories)
-	static QVector<QSharedPointer<iAIFilterFactory>> const & FilterFactories();
+	static QVector<QSharedPointer<iAIFilterFactory>> const & filterFactories();
 	//! Retrieve the filter with the given name.
 	//! If there is no such filter, a "null" shared pointer is returned
-	static QSharedPointer<iAFilter> Filter(QString const & name);
+	static QSharedPointer<iAFilter> filter(QString const & name);
 	//! Retrieve the ID of the filter with the given name
 	//! If there is no such filter, -1 is returned
-	static int FilterID(QString const & name);
+	static int filterID(QString const & name);
 	//! Retrieve the callback for a given factory (if the given factory does not
 	//! have a callback, nullptr is returned).
-	static QSharedPointer<iAIFilterRunnerGUIFactory> FilterRunner(int filterID);
+	static QSharedPointer<iAIFilterRunnerGUIFactory> filterRunner(int filterID);
 private:
 	iAFilterRegistry();	//!< iAFilterRegistry is meant to be used as a singleton, thus prevent creation of objects
 	static QVector<QSharedPointer<iAIFilterFactory> > m_filters;
@@ -75,7 +75,7 @@ class iAFilterRunnerGUI;
 class open_iA_Core_API iAIFilterFactory
 {
 public:
-	virtual QSharedPointer<iAFilter> Create() = 0;
+	virtual QSharedPointer<iAFilter> create() = 0;
 	virtual ~iAIFilterFactory();
 };
 
@@ -85,7 +85,7 @@ public:
 class open_iA_Core_API iAIFilterRunnerGUIFactory
 {
 public:
-	virtual QSharedPointer<iAFilterRunnerGUI> Create() = 0;
+	virtual QSharedPointer<iAFilterRunnerGUI> create() = 0;
 	virtual ~iAIFilterRunnerGUIFactory();
 };
 
@@ -96,9 +96,9 @@ template <typename FilterType>
 class iAFilterFactory: public iAIFilterFactory
 {
 public:
-	QSharedPointer<iAFilter> Create() override
+	QSharedPointer<iAFilter> create() override
 	{
-		return FilterType::Create();
+		return FilterType::create();
 	}
 };
 
@@ -110,16 +110,16 @@ template <typename FilterRunnerGUIType>
 class iAFilterRunnerGUIFactory : public iAIFilterRunnerGUIFactory
 {
 public:
-	QSharedPointer<iAFilterRunnerGUI> Create() override
+	QSharedPointer<iAFilterRunnerGUI> create() override
 	{
-		return FilterRunnerGUIType::Create();
+		return FilterRunnerGUIType::create();
 	}
 };
 
 //! Macro to register a class derived from iAFilter in the iAFilterRegistry, with
 //! a default GUI runner. See iAFilterRegistry for more details
 #define REGISTER_FILTER(FilterType) \
-iAFilterRegistry::AddFilterFactory(QSharedPointer<iAIFilterFactory>(new iAFilterFactory<FilterType>()));
+iAFilterRegistry::addFilterFactory(QSharedPointer<iAIFilterFactory>(new iAFilterFactory<FilterType>()));
 
 //! Macro to register a class derived from iAFilter in the iAFilterRegistry,
 //! along with a runner. In comparison to the macro above, you can provide your
@@ -127,5 +127,5 @@ iAFilterRegistry::AddFilterFactory(QSharedPointer<iAIFilterFactory>(new iAFilter
 //! behavior of the filter when run from the GUI.
 //! See iAFilterRegistry for more details
 #define REGISTER_FILTER_WITH_RUNNER(FilterType, FilterRunnerType) \
-iAFilterRegistry::AddFilterFactory(QSharedPointer<iAIFilterFactory>(new iAFilterFactory<FilterType>()), \
+iAFilterRegistry::addFilterFactory(QSharedPointer<iAIFilterFactory>(new iAFilterFactory<FilterType>()), \
 	QSharedPointer<iAIFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<FilterRunnerType>()));

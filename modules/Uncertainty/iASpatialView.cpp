@@ -23,11 +23,9 @@
 #include "iAUncertaintyColors.h"
 #include "iAImageWidget.h"
 
-#include <iAChannelVisualizationData.h>
+#include <iAChannelData.h>
 #include <iAConsole.h>
-#include <iAChannelID.h>
 #include <iASlicer.h>
-#include <iASlicerData.h>
 #include <iASlicerMode.h>
 #include <iATransferFunction.h>
 #include <qthelper/iAQFlowLayout.h>
@@ -121,7 +119,7 @@ void iASpatialView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs,
 {
 	m_labelImgLut = labelImgLut;
 	double uncertaintyRange[2] = {0.0, 1.0};
-	m_uncertaintyLut = GetDefaultColorTransferFunction(uncertaintyRange);
+	m_uncertaintyLut = defaultColorTF(uncertaintyRange);
 
 	newImgID = 0;
 	for (auto widget : m_imageBar->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
@@ -163,22 +161,17 @@ QToolButton* iASpatialView::AddImage(QString const & caption, vtkImagePointer im
 	return button;
 }
 
-void InitializeChannel(ImageGUIElements & gui, QSharedPointer<iAChannelVisualizationData> selectionData)
+namespace
 {
-	iASlicer* slicer = gui.imageWidget->GetSlicer();
-	iAChannelID id = static_cast<iAChannelID>(ch_Concentration0);
-	selectionData->SetName("Scatterplot Selection");
-	slicer->initializeChannel(id, selectionData.data());
-	int sliceNr = slicer->GetSlicerData()->getSliceNumber();
-	switch (slicer->GetMode())
+	void InitializeChannel(ImageGUIElements & gui, QSharedPointer<iAChannelData> selectionData)
 	{
-	case YZ: slicer->enableChannel(id, true, static_cast<double>(sliceNr) * selectionData->GetImage()->GetSpacing()[0], 0, 0); break;
-	case XY: slicer->enableChannel(id, true, 0, 0, static_cast<double>(sliceNr) * selectionData->GetImage()->GetSpacing()[2]); break;
-	case XZ: slicer->enableChannel(id, true, 0, static_cast<double>(sliceNr) * selectionData->GetImage()->GetSpacing()[1], 0); break;
+		iASlicer* slicer = gui.imageWidget->GetSlicer();
+		const uint SelectionChannelID = 0;
+		selectionData->setName("Scatterplot Selection");
+		slicer->addChannel(SelectionChannelID, *selectionData.data(), true);
+		gui.m_selectionChannelInitialized = true;
 	}
-	gui.m_selectionChannelInitialized = true;
 }
-
 
 void iASpatialView::AddImageDisplay(int idx)
 {
@@ -298,8 +291,8 @@ void iASpatialView::SetupSelection(vtkImagePointer selectionImg)
 {
 	m_ctf = BuildLabelOverlayLUT();
 	m_otf = BuildLabelOverlayOTF();
-	m_selectionData = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
-	ResetChannel(m_selectionData.data(), selectionImg, m_ctf, m_otf);
+	m_selectionData = QSharedPointer<iAChannelData>(new iAChannelData);
+	m_selectionData->setData(selectionImg, m_ctf, m_otf);
 }
 
 

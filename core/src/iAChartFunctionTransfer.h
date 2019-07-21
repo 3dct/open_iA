@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "dlg_function.h"
-#include "open_iA_Core_export.h"
+#include "iAChartFunction.h"
 #include "iATransferFunction.h"
+#include "open_iA_Core_export.h"
 
 #include <QLinearGradient>
 
@@ -32,27 +32,20 @@ class QDomNode;
 class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 
-class open_iA_Core_API dlg_transfer : public dlg_function, public iATransferFunction
+class open_iA_Core_API iAChartTransferFunction : public iAChartFunction, public iATransferFunction
 {
 Q_OBJECT
-	int selectedPoint;
 
-	QColor          color;
-	QColorDialog    *dlg;
-	QLinearGradient gradient;
-
-	vtkPiecewiseFunction     *opacityTF;
-	vtkColorTransferFunction *colorTF;
 public:
-	dlg_transfer(iADiagramFctWidget *histogram, QColor color);
-	~dlg_transfer();
+	iAChartTransferFunction(iADiagramFctWidget *histogram, QColor color);
+	~iAChartTransferFunction();
 
 	int getType() override { return TRANSFER; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
 	void drawOnTop(QPainter &painter) override;
-	int selectPoint(QMouseEvent *event, int *x = NULL) override;
-	int getSelectedPoint() override { return selectedPoint; }
+	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
+	int getSelectedPoint() override { return m_selectedPoint; }
 	int addPoint(int x, int y) override;
 	void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) override;
 	void removePoint(int index) override;
@@ -64,13 +57,13 @@ public:
 	bool isDeletable(int index) override;
 	void reset() override;
 
-	vtkPiecewiseFunction* getOpacityFunction() override { return opacityTF; }
-	vtkColorTransferFunction* getColorFunction() override { return colorTF; }
+	vtkPiecewiseFunction* opacityTF() override { return m_opacityTF; }
+	vtkColorTransferFunction* colorTF() override { return m_colorTF; }
 
 	void TranslateToNewRange(double const oldDataRange[2]);
 	void enableRangeSliderHandles( bool rangeSliderHandles );
-	void setOpacityFunction(vtkPiecewiseFunction *opacityTF) { this->opacityTF = opacityTF; }
-	void setColorFunction(vtkColorTransferFunction *colorTF) { this->colorTF = colorTF; }
+	void setOpacityFunction(vtkPiecewiseFunction *opacityTF) { m_opacityTF = opacityTF; }
+	void setColorFunction(vtkColorTransferFunction *colorTF) { m_colorTF = colorTF; }
 	void triggerOnChange();
 signals:
 	void Changed();
@@ -95,4 +88,12 @@ private:
 	int d2iY(double y);
 
 	bool m_rangeSliderHandles;
+	int m_selectedPoint;
+
+	QColor          m_color;
+	QColorDialog    *m_colorDlg;
+	QLinearGradient m_gradient;
+
+	vtkPiecewiseFunction     *m_opacityTF;
+	vtkColorTransferFunction *m_colorTF;
 };

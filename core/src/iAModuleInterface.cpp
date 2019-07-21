@@ -31,24 +31,22 @@
 
 void iAModuleInterface::PrepareResultChild( QString const & title )
 {
-	m_mdiChild = m_mainWnd->getResultChild( title + " " + m_mainWnd->activeMdiChild()->windowTitle().replace("[*]",""));
+	m_mdiChild = m_mainWnd->resultChild( title + " " + m_mainWnd->activeMdiChild()->windowTitle().replace("[*]",""));
 	if( !m_mdiChild )
 	{
 		m_mainWnd->statusBar()->showMessage( "Cannot get result child from main window!", 5000 );
 		return;
 	}
-	UpdateChildData();
 }
 
 void iAModuleInterface::PrepareResultChild( int childInd, QString const & title )
 {
-	m_mdiChild = m_mainWnd->getResultChild( childInd, title );
+	m_mdiChild = m_mainWnd->resultChild( childInd, title );
 	if( !m_mdiChild )
 	{
 		m_mainWnd->statusBar()->showMessage( "Cannot get result child from main window!", 5000 );
 		return;
 	}
-	UpdateChildData();
 }
 
 void iAModuleInterface::SetMainWindow( MainWindow * mainWnd )
@@ -75,7 +73,6 @@ void iAModuleInterface::PrepareActiveChild()
 		m_mainWnd->statusBar()->showMessage( "Cannot get active child from main window!", 5000 );
 		return;
 	}
-	UpdateChildData();
 }
 
 MdiChild * iAModuleInterface::GetSecondNonActiveChild() const
@@ -105,16 +102,6 @@ QMenu * iAModuleInterface::getMenuWithTitle( QMenu * parentMenu, QString const &
 
 void iAModuleInterface::SaveSettings() const {}
 
-void iAModuleInterface::UpdateChildData()
-{
-	m_childData = iAChildData( m_mdiChild );
-}
-
-iAChildData iAModuleInterface::GetChildData() const
-{
-	return m_childData;
-}
-
 void iAModuleInterface::ChildCreated(MdiChild* child)
 {
 }
@@ -134,7 +121,7 @@ void iAModuleInterface::detachChild(MdiChild* child)
 		return;
 	for( int i = 0; i < m_attachments.size(); ++i )
 	{
-		if( m_attachments[i]->GetMdiChild() == child )
+		if( m_attachments[i]->getMdiChild() == child )
 		{
 			delete m_attachments[i];	// should probably be deleted in module dll as its created there?
 			m_attachments.remove( i );
@@ -151,7 +138,7 @@ void iAModuleInterface::attachedChildClosed()
 void iAModuleInterface::detach()
 {
 	iAModuleAttachmentToChild * attachment= dynamic_cast<iAModuleAttachmentToChild*> (QObject::sender());
-	detachChild(attachment->GetMdiChild());
+	detachChild(attachment->getMdiChild());
 }
 
 bool iAModuleInterface::isAttached()
@@ -159,7 +146,7 @@ bool iAModuleInterface::isAttached()
 	//check if already attached
 	for( int i = 0; i < m_attachments.size(); ++i )
 	{
-		if( m_attachments[i]->GetMdiChild() == m_mdiChild )
+		if( m_attachments[i]->getMdiChild() == m_mdiChild )
 			return true;
 	}
 	return false;
@@ -170,7 +157,7 @@ void iAModuleInterface::AddActionToMenuAlphabeticallySorted( QMenu * menu, QActi
 	m_dispatcher->AddActionToMenuAlphabeticallySorted(menu, action, isDisablable);
 }
 
-iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )
+iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild * child )
 {
 	return nullptr;
 }
@@ -184,7 +171,7 @@ bool iAModuleInterface::AttachToMdiChild( MdiChild * child )
 	//create attachment
 	try
 	{
-		iAModuleAttachmentToChild * attachment = CreateAttachment( m_mainWnd, iAChildData( child ) );
+		iAModuleAttachmentToChild * attachment = CreateAttachment( m_mainWnd, child );
 		if( !attachment )
 			return false;
 		//add an attachment

@@ -71,7 +71,7 @@ public:
 	void FreeMemory(QSharedPointer<iAImageTreeNode> node, bool overrideFree);
 	void SetRefImg(LabelImagePointer refImg);
 signals:
-	void Clicked(QSharedPointer<iAImageTreeNode >);
+	void clicked(QSharedPointer<iAImageTreeNode >);
 	void ImageClicked(QSharedPointer<iAImageTreeNode >);
 	void ImageRightClicked(iAImageTreeNode *);
 	void Expanded(QSharedPointer<iAImageTreeNode >);

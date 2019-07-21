@@ -26,14 +26,19 @@
 
 #include <QString>
 
+class iAColorTheme;
 class iALookupTable;
 
 class vtkLookupTable;
+class vtkPiecewiseFunction;
 
 namespace iALUT
 {
 	open_iA_Core_API const QStringList&  GetColorMapNames();
 	open_iA_Core_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols = 256 );
 	open_iA_Core_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols = 256 );
-	iALookupTable open_iA_Core_API Build(double const * lutRange, QString colorMap, int numCols, double alpha);
+	open_iA_Core_API iALookupTable Build(double const * lutRange, QString colorMap, int numCols, double alpha);
+
+	open_iA_Core_API vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOpacityTF(int labelCount);
+	open_iA_Core_API vtkSmartPointer<vtkLookupTable> BuildLabelColorTF(int labelCount, iAColorTheme const * colorTheme);
 }

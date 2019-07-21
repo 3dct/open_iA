@@ -28,18 +28,16 @@
 #include "iAImageTreeLeaf.h"
 #include "iAImagePreviewWidget.h"
 #include "iALabelInfo.h"
-#include "iALabelOverlayThread.h"
 
 #include <iAAttributeDescriptor.h>
-#include <iAChannelVisualizationData.h>
+#include <iAChannelData.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
+#include <iALUT.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
 #include <iANameMapper.h>
-#include <iASlicerData.h>
-#include <iASlicerWidget.h>
 #include <iAVtkDraw.h>
 #include <iAToolsITK.h>
 #include <iAToolsVTK.h>
@@ -158,7 +156,7 @@ iADetailView::iADetailView(
 	m_lvLegend->setStyleSheet("border: none; outline:none;");
 	m_detailText->setStyleSheet("border: none; outline:none;");
 
-	m_compareWidget->SetImage(m_nullImage, true, false);
+	m_compareWidget->setImage(m_nullImage, true, false);
 
 	QWidget* buttonBarStandin = new QWidget();
 	buttonBarStandin->setFixedHeight(25);
@@ -204,16 +202,16 @@ iADetailView::iADetailView(
 	connect(m_pbLike, SIGNAL(clicked()), this, SIGNAL(Like()));
 	connect(m_pbHate, SIGNAL(clicked()), this, SIGNAL(Hate()));
 	connect(m_pbGoto, SIGNAL(clicked()), this, SIGNAL(GoToCluster()));
-	connect(m_compareWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
-	connect(m_previewWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
+	connect(m_compareWidget, SIGNAL(updated()), this, SIGNAL(ViewUpdated()));
+	connect(m_previewWidget, SIGNAL(updated()), this, SIGNAL(ViewUpdated()));
 
-	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(DblClicked()), this, SLOT(DblClicked()));
-	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
-	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
-	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
-	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerMouseMove(int, int, int, int)));
-	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
-	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(released(int, int, int)), this, SLOT(SlicerReleased(int, int, int)));
+	connect(m_previewWidget->slicer(), SIGNAL(dblClicked()), this, SLOT(dblClicked()));
+	connect(m_previewWidget->slicer(), SIGNAL(shiftMouseWheel(int)), this, SLOT(changeModality(int)));
+	connect(m_previewWidget->slicer(), SIGNAL(altMouseWheel(int)), this, SLOT(changeMagicLensOpacity(int)));
+	connect(m_previewWidget->slicer(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
+	connect(m_previewWidget->slicer(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerMouseMove(int, int, int, int)));
+	connect(m_previewWidget->slicer(), &iASlicer::leftClicked, this, &iADetailView::SlicerClicked);
+	connect(m_previewWidget->slicer(), SIGNAL(released(int, int, int)), this, SLOT(SlicerReleased(int, int, int)));
 }
 
 
@@ -238,90 +236,78 @@ vtkSmartPointer<vtkPiecewiseFunction> GetDefaultOTF(vtkSmartPointer<vtkImageData
 }
 
 
-void iADetailView::DblClicked()
+void iADetailView::dblClicked()
 {
 	m_magicLensEnabled = !m_magicLensEnabled;
 	if (m_magicLensEnabled)
 	{
-		ChangeModality(0);
+		changeModality(0);
 	}
-	iASlicer* slicer = m_previewWidget->GetSlicer();
-	slicer->SetMagicLensEnabled(m_magicLensEnabled);
+	iASlicer* slicer = m_previewWidget->slicer();
+	slicer->setMagicLensEnabled(m_magicLensEnabled);
 }
 
 
-void iADetailView::ChangeModality(int offset)
+void iADetailView::changeModality(int offset)
 {
-	// TOOD: refactor to remove duplication between here and MdiChild::ChangeModality!
+	// TOOD: refactor to remove duplication between here and MdiChild::changeModality!
 	m_magicLensCurrentComponent = (m_magicLensCurrentComponent + offset);
-	if (m_magicLensCurrentComponent < 0 || m_magicLensCurrentComponent >= m_modalities->Get(m_magicLensCurrentModality)->ComponentCount())
+	if (m_magicLensCurrentComponent < 0 || m_magicLensCurrentComponent >= m_modalities->get(m_magicLensCurrentModality)->componentCount())
 	{
 		m_magicLensCurrentComponent = 0;
 		m_magicLensCurrentModality = (m_magicLensCurrentModality + offset + m_modalities->size()) % m_modalities->size();
 	}
-	QSharedPointer<iAModality> mod = m_modalities->Get(m_magicLensCurrentModality);
-	vtkSmartPointer<vtkImageData> imageData = mod->GetComponent(m_magicLensCurrentComponent);
-	vtkColorTransferFunction* ctf = (mod->GetName() == "Ground Truth") ?
-		m_previewWidget->GetCTF().GetPointer() :
-		mod->GetTransfer()->getColorFunction();
-	vtkPiecewiseFunction* otf = (mod->GetName() == "Ground Truth") ?
+	QSharedPointer<iAModality> mod = m_modalities->get(m_magicLensCurrentModality);
+	vtkSmartPointer<vtkImageData> imageData = mod->component(m_magicLensCurrentComponent);
+	vtkColorTransferFunction* ctf = (mod->name() == "Ground Truth") ?
+		m_previewWidget->colorTF().GetPointer() :
+		mod->transfer()->colorTF();
+	vtkPiecewiseFunction* otf = (mod->name() == "Ground Truth") ?
 		GetDefaultOTF(imageData).GetPointer() :
-		mod->GetTransfer()->getOpacityFunction();
-	QString name(mod->GetImageName(m_magicLensCurrentComponent));
+		mod->transfer()->opacityTF();
+	QString name(mod->imageName(m_magicLensCurrentComponent));
 	AddMagicLensInput(imageData, ctf, otf, name);
 }
 
 void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf, QString const & name)
 {
-	iAChannelID removedID = static_cast<iAChannelID>(ch_Concentration0 + m_nextChannelID - m_magicLensCount);
+	uint removedID = (m_nextChannelID - m_magicLensCount);
 
-	iAChannelID id = static_cast<iAChannelID>(ch_Concentration0 + m_nextChannelID);
+	uint id = m_nextChannelID;
 	m_nextChannelID = (m_nextChannelID + 1) % 8;
-	iAChannelVisualizationData magicLensData;
-	ResetChannel(&magicLensData, img, ctf, otf);
-	magicLensData.SetName(name);
-
-	iASlicer* slicer = m_previewWidget->GetSlicer();
+	iAChannelData magicLensData(name, img, ctf, otf);
+	iASlicer* slicer = m_previewWidget->slicer();
 	slicer->removeChannel(removedID);
-	slicer->initializeChannel(id, &magicLensData);
-	int sliceNr = m_previewWidget->GetSliceNumber();
-	double * spc = img->GetSpacing();
-	double * origin = img->GetOrigin();
-	switch (slicer->GetMode())
-	{
-	case YZ: slicer->setResliceChannelAxesOrigin(id, origin[0] + static_cast<double>(sliceNr) * spc[0], origin[1], origin[2]); break;
-	case XY: slicer->setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2] + static_cast<double>(sliceNr) * spc[2]); break;
-	case XZ: slicer->setResliceChannelAxesOrigin(id, origin[0], origin[1] + static_cast<double>(sliceNr) * spc[1], origin[2]); break;
-	}
-	slicer->SetMagicLensInput(id);
+	slicer->addChannel(id, magicLensData, false);
+	slicer->setMagicLensInput(id);
 	slicer->update();
 }
 
 
-void iADetailView::ChangeMagicLensOpacity(int chg)
+void iADetailView::changeMagicLensOpacity(int chg)
 {
-	m_previewWidget->GetSlicer()->SetMagicLensOpacity(m_previewWidget->GetSlicer()->GetMagicLensOpacity() + (chg*0.05));
+	m_previewWidget->slicer()->setMagicLensOpacity(m_previewWidget->slicer()->magicLensOpacity() + (chg*0.05));
 }
 
 
-void iADetailView::SetSliceNumber(int sliceNr)
+void iADetailView::setSliceNumber(int sliceNr)
 {
-	iASlicer* slicer = m_previewWidget->GetSlicer();
+	iASlicer* slicer = m_previewWidget->slicer();
 	slicer->update();
 }
 
 
-int iADetailView::GetSliceNumber() const
+int iADetailView::sliceNumber() const
 {
-	return m_previewWidget->GetSliceNumber();
+	return m_previewWidget->sliceNumber();
 }
 
 
 void iADetailView::UpdateMagicLensColors()
 {
-	m_previewWidget->GetSlicer()->GetSlicerData()->updateChannelMappers();
-	m_previewWidget->GetSlicer()->UpdateMagicLensColors();
-	m_previewWidget->GetSlicer()->update();
+	m_previewWidget->slicer()->updateChannelMappers();
+	m_previewWidget->slicer()->updateMagicLensColors();
+	m_previewWidget->slicer()->update();
 
 }
 
@@ -354,10 +340,10 @@ void iADetailView::UpdateLikeHate(bool isLike, bool isHate)
 
 QString attrValueStr(double value, QSharedPointer<iAAttributes> attributes, int id)
 {
-	switch(attributes->at(id)->ValueType())
+	switch(attributes->at(id)->valueType())
 	{
 		case Discrete:    return QString::number(static_cast<int>(value)); break;
-		case Categorical: return attributes->at(id)->NameMapper()->GetName(static_cast<int>(value)); break;
+		case Categorical: return attributes->at(id)->nameMapper()->name(static_cast<int>(value)); break;
 		default:          return QString::number(value); break;
 	}
 }
@@ -368,7 +354,7 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 	iAChartAttributeMapper const & mapper)
 {
 	m_node = node;
-	SetImage();
+	setImage();
 	m_showingClusterRepresentative = !node->IsLeaf();
 	m_pbGoto->setVisible(node->IsLeaf());
 	update();
@@ -385,7 +371,7 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 			double value = node->GetAttribute(attributeID);
 			QString valueStr = attrValueStr(value, attributes, attributeID);
 
-			m_detailText->append(attributes->at(attributeID)->Name() + " = " + valueStr);
+			m_detailText->append(attributes->at(attributeID)->name() + " = " + valueStr);
 		}
 	}
 	else
@@ -400,7 +386,7 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 		{
 			for (int chartID = 0; chartID < allAttributes->size(); ++chartID)
 			{
-				if (allAttributes->at(chartID)->ValueType() != Categorical)
+				if (allAttributes->at(chartID)->valueType() != Categorical)
 				{
 					double min,	max;
 					GetClusterMinMax(node, chartID, min, max, mapper);
@@ -410,7 +396,7 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 						QString minStr = attrValueStr(min, allAttributes, chartID);
 						QString maxStr = attrValueStr(max, allAttributes, chartID);
 						QString rangeStr = (minStr == maxStr) ? minStr : "[" + minStr + ".." + maxStr + "]";
-						m_detailText->append(allAttributes->at(chartID)->Name() + ": " + rangeStr);
+						m_detailText->append(allAttributes->at(chartID)->name() + ": " + rangeStr);
 					}
 				}
 				// else { } // collect list of all categorical values used!
@@ -431,22 +417,22 @@ void iADetailView::SetCompareNode(iAImageTreeNode const * node)
 	{
 		return;
 	}
-	auto pixelType = GetITKScalarPixelType(img);
-	m_compareWidget->SetImage(img ?
+	auto pixelType = itkScalarPixelType(img);
+	m_compareWidget->setImage(img ?
 		img : m_nullImage,
 		!img,
 		(pixelType != itk::ImageIOBase::FLOAT && pixelType != itk::ImageIOBase::DOUBLE));
 
 	iAConnector con;
-	con.SetImage(img);
-	vtkSmartPointer<vtkImageData> vtkImg = con.GetVTKImage();
+	con.setImage(img);
+	vtkSmartPointer<vtkImageData> vtkImg = con.vtkImage();
 	// determine CTF/OTF from image / settings?
-	vtkColorTransferFunction* ctf = m_compareWidget->GetCTF().GetPointer();
+	vtkColorTransferFunction* ctf = m_compareWidget->colorTF().GetPointer();
 	vtkPiecewiseFunction* otf = GetDefaultOTF(vtkImg);
 	QString name;
 	if (dynamic_cast<iAFakeTreeNode const*>(node))
 	{
-		name = dynamic_cast<iAFakeTreeNode const*>(node)->GetName();
+		name = dynamic_cast<iAFakeTreeNode const*>(node)->name();
 	}
 	else
 	{
@@ -457,19 +443,21 @@ void iADetailView::SetCompareNode(iAImageTreeNode const * node)
 	UpdateComparisonNumbers();
 }
 
-
 bool iADetailView::IsShowingCluster() const
 {
 	return m_showingClusterRepresentative;
 }
 
-
 void iADetailView::SetMagicLensOpacity(double opacity)
 {
-	iASlicer* slicer = m_previewWidget->GetSlicer();
-	slicer->SetMagicLensOpacity(opacity);
+	iASlicer* slicer = m_previewWidget->slicer();
+	slicer->setMagicLensOpacity(opacity);
 }
 
+namespace
+{
+	const uint ResultFilterChannelID = 9;
+}
 
 void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme const * colorTheme)
 {
@@ -478,10 +466,10 @@ void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme cons
 	m_labelItemModel->clear();
 	for (int i=0; i<m_labelCount; ++i)
 	{
-		QStandardItem* item = new QStandardItem(labelInfo.GetName(i));
-		item->setData(labelInfo.GetColor(i), Qt::DecorationRole);
+		QStandardItem* item = new QStandardItem(labelInfo.name(i));
+		item->setData(labelInfo.color(i), Qt::DecorationRole);
 		m_labelItemModel->appendRow(item);
-		item = new QStandardItem(labelInfo.GetName(i));
+		item = new QStandardItem(labelInfo.name(i));
 	}
 	QStandardItem* diffItem = new QStandardItem("Difference");
 	diffItem->setFlags(diffItem->flags() & ~Qt::ItemIsSelectable);
@@ -490,11 +478,11 @@ void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme cons
 
 	if (m_resultFilterImg)
 	{
-		m_resultFilterOverlayLUT = BuildLabelOverlayLUT(m_labelCount, m_colorTheme);
-		m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
-		ResetChannel(m_resultFilterChannel.data(), m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
-		iASlicer* slicer = m_previewWidget->GetSlicer();
-		slicer->reInitializeChannel(ch_LabelOverlay, m_resultFilterChannel.data());
+		m_resultFilterOverlayLUT = iALUT::BuildLabelColorTF(m_labelCount, m_colorTheme);
+		m_resultFilterOverlayOTF = iALUT::BuildLabelOpacityTF(m_labelCount);
+		m_resultFilterChannel->setData(m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
+		iASlicer* slicer = m_previewWidget->slicer();
+		slicer->updateChannel(ResultFilterChannelID, *m_resultFilterChannel.data());
 		slicer->update();
 	}
 }
@@ -503,7 +491,7 @@ void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme cons
 void iADetailView::SetRepresentativeType(int representativeType)
 {
 	m_representativeType = representativeType;
-	SetImage();
+	setImage();
 }
 
 
@@ -517,11 +505,11 @@ void iADetailView::SetCorrectnessUncertaintyOverlay(bool enabled)
 	m_correctnessUncertaintyOverlayEnabled = enabled;
 	if (enabled)
 	{
-		m_previewWidget->AddNoMapperChannel(m_node->GetCorrectnessEntropyImage(m_refImg));
+		m_previewWidget->addNoMapperChannel(m_node->GetCorrectnessEntropyImage(m_refImg));
 	}
 	else
 	{
-		m_previewWidget->RemoveChannel();
+		m_previewWidget->removeChannel();
 	}
 }
 
@@ -538,7 +526,7 @@ void iADetailView::SetRefImg(LabelImagePointer refImg)
 }
 
 
-void iADetailView::SetImage()
+void iADetailView::setImage()
 {
 	ClusterImageType img = m_node->GetRepresentativeImage(m_representativeType, m_refImg);
 	if (!img)
@@ -553,17 +541,17 @@ void iADetailView::SetImage()
 	itk::Index<3> idx = region.GetIndex();
 	m_dimensions[0] = size[0]; m_dimensions[1] = size[1]; m_dimensions[2] = size[2];
 	// }
-	m_previewWidget->SetImage(img ?
+	m_previewWidget->setImage(img ?
 		img : m_nullImage,
 		!img,
 		(m_node->IsLeaf() && m_representativeType != AverageEntropy) || m_representativeType == Difference || m_representativeType == AverageLabel);
 	if (m_correctnessUncertaintyOverlayEnabled)
 	{
-		m_previewWidget->RemoveChannel();
+		m_previewWidget->removeChannel();
 		vtkSmartPointer<vtkImageData> img = m_node->GetCorrectnessEntropyImage(m_refImg);
 		if (img)
 		{
-			m_previewWidget->AddNoMapperChannel(img);
+			m_previewWidget->addNoMapperChannel(img);
 		}
 	}
 }
@@ -571,8 +559,8 @@ void iADetailView::SetImage()
 void iADetailView::SetMagicLensCount(int count)
 {
 	m_magicLensCount = count;
-	iASlicer* slicer = m_previewWidget->GetSlicer();
-	slicer->SetMagicLensCount(count);
+	iASlicer* slicer = m_previewWidget->slicer();
+	slicer->setMagicLensCount(count);
 }
 
 
@@ -673,31 +661,20 @@ void iADetailView::AddResultFilterPixel(int x, int y, int z)
 		m_resultFilterImg->SetDimensions(m_dimensions);
 		m_resultFilterImg->AllocateScalars(VTK_INT, 1);
 		m_resultFilterImg->SetSpacing(m_spacing);
-		clearImage(m_resultFilterImg, m_labelCount);
-		m_resultFilterOverlayLUT = BuildLabelOverlayLUT(m_labelCount, m_colorTheme);
-		m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
+		clearImage(m_resultFilterImg, 0);
+		m_resultFilterOverlayLUT = iALUT::BuildLabelColorTF(m_labelCount, m_colorTheme);
+		m_resultFilterOverlayOTF = iALUT::BuildLabelOpacityTF(m_labelCount);
 	}
-	drawPixel(m_resultFilterImg, x, y, z, label);
+	drawPixel(m_resultFilterImg, x, y, z, label+1);
 	m_resultFilterImg->Modified();
 	m_resultFilterImg->SetScalarRange(0, m_labelCount);
 	m_resultFilter.append(QPair<iAImageCoordinate, int>(iAImageCoordinate(x, y, z), label));
 
-	iAChannelID id = static_cast<iAChannelID>(ch_LabelOverlay);
-	iASlicer* slicer = m_previewWidget->GetSlicer();
+	iASlicer* slicer = m_previewWidget->slicer();
 	if (!m_resultFilterChannel)
 	{
-		m_resultFilterChannel = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
-		m_resultFilterChannel->SetName("Result Filter");
-		ResetChannel(m_resultFilterChannel.data(), m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
-		slicer->initializeChannel(id, m_resultFilterChannel.data());
-
-		int sliceNr = m_previewWidget->GetSliceNumber();
-		switch (slicer->GetMode())
-		{
-		case YZ: slicer->GetSlicerData()->enableChannel(id, true, static_cast<double>(sliceNr) * m_spacing[0], 0, 0); break;
-		case XY: slicer->GetSlicerData()->enableChannel(id, true, 0, 0, static_cast<double>(sliceNr) * m_spacing[2]); break;
-		case XZ: slicer->GetSlicerData()->enableChannel(id, true, 0, static_cast<double>(sliceNr) * m_spacing[1], 0); break;
-		}
+		m_resultFilterChannel = QSharedPointer<iAChannelData>(new iAChannelData("Result Filter", m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF));
+		slicer->addChannel(ResultFilterChannelID, *m_resultFilterChannel.data(), true);
 	}
 	slicer->update();
 }
@@ -707,9 +684,9 @@ void iADetailView::ResetResultFilter()
 {
 	if (m_resultFilterImg)
 	{
-		clearImage(m_resultFilterImg, m_labelCount);
+		clearImage(m_resultFilterImg, 0);
 		m_resultFilterImg->Modified();
-		iASlicer* slicer = m_previewWidget->GetSlicer();
+		iASlicer* slicer = m_previewWidget->slicer();
 		slicer->update();
 		m_resultFilter.clear();
 		emit ResultFilterUpdate();
@@ -748,12 +725,12 @@ void iADetailView::UpdateComparisonNumbers()
 		- equal pixels
 		- 
 	*/
-	if (m_compareWidget->Empty())
+	if (m_compareWidget->empty())
 	{
 		return;
 	}
-	vtkImageData* left = m_previewWidget->GetImage();
-	vtkImageData* right = m_compareWidget->GetImage();
+	vtkImageData* left = m_previewWidget->image();
+	vtkImageData* right = m_compareWidget->image();
 
 	if (left->GetScalarType() != VTK_INT)
 	{
@@ -765,8 +742,8 @@ void iADetailView::UpdateComparisonNumbers()
 		m_cmpDetailsLabel->setText("Right image is not of int type!");
 		return;
 	}
-	iAConnector leftCon;  leftCon.SetImage(left);  auto itkLeft = dynamic_cast<LabelImageType*>(leftCon.GetITKImage());
-	iAConnector rightCon; rightCon.SetImage(right); auto itkRight = dynamic_cast<LabelImageType*>(rightCon.GetITKImage());
+	iAConnector leftCon;  leftCon.setImage(left);  auto itkLeft = dynamic_cast<LabelImageType*>(leftCon.itkImage());
+	iAConnector rightCon; rightCon.setImage(right); auto itkRight = dynamic_cast<LabelImageType*>(rightCon.itkImage());
 
 	if (!itkLeft)
 	{

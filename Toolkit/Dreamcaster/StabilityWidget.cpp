@@ -19,56 +19,60 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "StabilityWidget.h"
-#include <qmath.h>
+
 #include "raycast/include/common.h"
 
+#include <qmath.h>
+#include <QMouseEvent>
+#include <QPainter>
+
 const float SCALE = 1.0f/3.5f;
-StabilityWidget::StabilityWidget(QWidget *parent): QWidget(parent), m_pix_size(min_macro(parent->width(),parent->height()))
+iAStabilityWidget::iAStabilityWidget(QWidget *parent): QWidget(parent), m_pix_size(min_macro(parent->width(),parent->height()))
 {
 	m_parent = parent;
 	m_pix_size*=SCALE;
 	m_countX = 5;
 	m_countY = 5;
 	m_countZ = 5;
-	stepPixSize = m_pix_size;
-	spanAngleZ = 140.f;
-	colsXY = new QColor*[2*m_countX+1];
+	m_stepPixSize = m_pix_size;
+	m_spanAngleZ = 140.f;
+	m_colsXY = new QColor*[2*m_countX+1];
 	for (unsigned int i=0; i<2*m_countX+1; i++)
-		colsXY[i] = new QColor[2*m_countY+1];
+		m_colsXY[i] = new QColor[2*m_countY+1];
 	for (unsigned int i=0; i<2*m_countX+1; i++)
 		for (unsigned int j=0; j<2*m_countY+1; j++)
 		{
-			colsXY[i][j] = QColor(255,255,255);
+			m_colsXY[i][j] = QColor(255,255,255);
 		}
-	colsZ = new QColor[2*m_countZ+1];
-	colArrowX = QColor(255,255,255);
-	colArrowY = QColor(255,255,255);
-	colArrowZ = QColor(255,255,255);
+	m_colsZ = new QColor[2*m_countZ+1];
+	m_colArrowX = QColor(255,255,255);
+	m_colArrowY = QColor(255,255,255);
+	m_colArrowZ = QColor(255,255,255);
 }
 
-StabilityWidget::~StabilityWidget()
+iAStabilityWidget::~iAStabilityWidget()
 {
 	for (unsigned int i=0; i<m_countX; i++)
-		if (colsXY[i])
-			delete[] colsXY[i];
-	if (colsXY)
-		delete[] colsXY;
-	if (colsZ)
-		delete[] colsZ;
+		if (m_colsXY[i])
+			delete[] m_colsXY[i];
+	if (m_colsXY)
+		delete[] m_colsXY;
+	if (m_colsZ)
+		delete[] m_colsZ;
 }
 
-void StabilityWidget::paintEvent(QPaintEvent *event)
+void iAStabilityWidget::paintEvent(QPaintEvent *event)
 {
 	m_pix_size = min_macro(m_parent->geometry().width(), m_parent->geometry().height());
 	m_pix_size *= SCALE;
-	stepPixSize = m_pix_size/(float)m_countX;
+	m_stepPixSize = m_pix_size/(float)m_countX;
 	//TODO: get the constants out
 	unsigned int centerX = m_parent->geometry().width()/2;
 	unsigned int centerY = m_parent->geometry().height()/2;
-	unsigned int halfStep = (unsigned int)(stepPixSize/2);
+	unsigned int halfStep = (unsigned int)(m_stepPixSize/2);
 	unsigned int shiftedCenterX = centerX-halfStep;
 	unsigned int shiftedCenterY = centerY-halfStep;
-	painter.begin(this);
+	QPainter painter(this);
 	if(painter.isActive() == false)
 		return;
 	//QFont font;
@@ -94,11 +98,11 @@ void StabilityWidget::paintEvent(QPaintEvent *event)
 					;//pen.setColor(QColor(0,0,0));
 				else
 				{
-					pen.setColor(colsXY[j][l]);
+					pen.setColor(m_colsXY[j][l]);
 					painter.setPen(pen);
-					brush.setColor(colsXY[j][l]);
+					brush.setColor(m_colsXY[j][l]);
 					painter.setBrush(brush);
-					painter.drawRect((int)(shiftedCenterX+stepPixSize*i), (int)(shiftedCenterY+stepPixSize*k), (int)stepPixSize, (int)stepPixSize);
+					painter.drawRect((int)(shiftedCenterX+ m_stepPixSize*i), (int)(shiftedCenterY+ m_stepPixSize*k), (int)m_stepPixSize, (int)m_stepPixSize);
 				}
 			}
 		}
@@ -113,9 +117,9 @@ void StabilityWidget::paintEvent(QPaintEvent *event)
 				{
 					pen.setColor(QColor(0,0,0));
 					painter.setPen(pen);
-					brush.setColor(colsXY[j][l]);
+					brush.setColor(m_colsXY[j][l]);
 					painter.setBrush(brush);
-					painter.drawRect((int)(shiftedCenterX+stepPixSize*i), (int)(shiftedCenterY+stepPixSize*k), (int)stepPixSize, (int)stepPixSize);
+					painter.drawRect((int)(shiftedCenterX+ m_stepPixSize*i), (int)(shiftedCenterY+ m_stepPixSize*k), (int)m_stepPixSize, (int)m_stepPixSize);
 				}
 			}
 		}
@@ -144,21 +148,21 @@ void StabilityWidget::paintEvent(QPaintEvent *event)
 	pen.setWidthF(3.f);
 	painter.setPen(pen);
 	QPointF tri[3];
-	tri[0] = QPointF(shiftedCenterX+stepPixSize*(m_countX+1),centerY-stepPixSize);
-	tri[1] = QPointF(shiftedCenterX+stepPixSize*(m_countX+2),centerY);
-	tri[2] = QPointF(shiftedCenterX+stepPixSize*(m_countX+1),centerY+stepPixSize);
-	brush.setColor(colArrowX);
+	tri[0] = QPointF(shiftedCenterX+m_stepPixSize*(m_countX+1),centerY- m_stepPixSize);
+	tri[1] = QPointF(shiftedCenterX+m_stepPixSize*(m_countX+2),centerY);
+	tri[2] = QPointF(shiftedCenterX+m_stepPixSize*(m_countX+1),centerY+ m_stepPixSize);
+	brush.setColor(m_colArrowX);
 	painter.setBrush(brush);
 	painter.drawConvexPolygon(tri, 3);
-	painter.drawText((int)(shiftedCenterX+stepPixSize*(m_countX+2)), (int)(centerY-stepPixSize), "rotX");
+	painter.drawText((int)(shiftedCenterX+ m_stepPixSize*(m_countX+2)), (int)(centerY- m_stepPixSize), "rotX");
 	//draw Y axis
-	tri[0] = QPointF(centerX - stepPixSize, centerY + halfStep - stepPixSize*(m_countY+1));
-	tri[1] = QPointF(centerX, centerY + halfStep - stepPixSize*(m_countY+2));
-	tri[2] = QPointF(centerX + stepPixSize, centerY + halfStep - stepPixSize*(m_countY+1));
-	brush.setColor(colArrowY);
+	tri[0] = QPointF(centerX - m_stepPixSize, centerY + halfStep - m_stepPixSize*(m_countY+1));
+	tri[1] = QPointF(centerX, centerY + halfStep - m_stepPixSize*(m_countY+2));
+	tri[2] = QPointF(centerX + m_stepPixSize, centerY + halfStep - m_stepPixSize*(m_countY+1));
+	brush.setColor(m_colArrowY);
 	painter.setBrush(brush);
 	painter.drawConvexPolygon(tri, 3);
-	painter.drawText((int)(centerX+stepPixSize+5),(int)(centerY + halfStep - stepPixSize*(m_countY+2)), "rotZ");
+	painter.drawText((int)(centerX+ m_stepPixSize+5),(int)(centerY + halfStep - m_stepPixSize*(m_countY+2)), "rotZ");
 	//draw Z axis
 /*
 	brush.setStyle(Qt::NoBrush);
@@ -200,36 +204,36 @@ void StabilityWidget::paintEvent(QPaintEvent *event)
 	painter.end();
 }
 
-void StabilityWidget::mouseReleaseEvent ( QMouseEvent * event )
+void iAStabilityWidget::mouseReleaseEvent ( QMouseEvent * event )
 {
-	lastX = event->x();
-	lastY = event->y();
+	m_lastX = event->x();
+	m_lastY = event->y();
 	mouseReleaseEventSignal();
 }
 
-void StabilityWidget::SetCount(int count)
+void iAStabilityWidget::SetCount(int count)
 { 
 	for (unsigned int i=0; i<m_countX; i++)
-		if (colsXY[i])
-			delete[] colsXY[i];
-	if (colsXY)
-		delete[] colsXY;
+		if (m_colsXY[i])
+			delete[] m_colsXY[i];
+	if (m_colsXY)
+		delete[] m_colsXY;
 
 	m_countX = count; m_countY = count;	m_countZ = count;
 	m_pix_size = min_macro(m_parent->geometry().width(), m_parent->geometry().height());
 	m_pix_size*=SCALE;
-	stepPixSize = m_pix_size/(float)count;
+	m_stepPixSize = m_pix_size/(float)count;
 
-	colsXY = new QColor*[2*m_countX+1];
+	m_colsXY = new QColor*[2*m_countX+1];
 	for (unsigned int i=0; i<2*m_countX+1; i++)
-		colsXY[i] = new QColor[2*m_countY+1];
+		m_colsXY[i] = new QColor[2*m_countY+1];
 	for (unsigned int i=0; i<2*m_countX+1; i++)
 		for (unsigned int j=0; j<2*m_countY+1; j++)
 		{
-			colsXY[i][j] = QColor(255,255,255);
+			m_colsXY[i][j] = QColor(255,255,255);
 		}
 
-	colArrowX = QColor(255,255,255);
-	colArrowY = QColor(255,255,255);
-	colArrowZ = QColor(255,255,255);
+	m_colArrowX = QColor(255,255,255);
+	m_colArrowY = QColor(255,255,255);
+	m_colArrowZ = QColor(255,255,255);
 }
