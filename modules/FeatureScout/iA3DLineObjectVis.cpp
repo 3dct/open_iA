@@ -44,7 +44,7 @@ iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QS
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
 	{
 		auto it = curvedFiberData.find(row);
-		m_fiberPointMap.push_back(std::make_pair(static_cast<size_t>(m_points->GetNumberOfPoints()),
+		m_objectPointMap.push_back(std::make_pair(static_cast<size_t>(m_points->GetNumberOfPoints()),
 			it != curvedFiberData.end() ? it->second.size() : 2));
 		if (it != curvedFiberData.end())
 		{
@@ -102,10 +102,10 @@ vtkPolyData* iA3DLineObjectVis::getPolyData()
 
 int iA3DLineObjectVis::objectStartPointIdx(int objIdx) const
 {
-	return m_fiberPointMap[objIdx].first;
+	return m_objectPointMap[objIdx].first;
 }
 
 int iA3DLineObjectVis::objectPointCount(int objIdx) const
 {
-	return m_fiberPointMap[objIdx].second;
+	return m_objectPointMap[objIdx].second;
 }

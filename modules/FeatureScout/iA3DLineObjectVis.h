@@ -36,12 +36,12 @@ public:
 	void updateValues( std::vector<std::vector<double> > const & values );
 	vtkPolyData* getPolyData() override;
 protected:
-	vtkSmartPointer<vtkPolyData> m_linePolyData;
-	vtkSmartPointer<vtkPoints> m_points;
-	//! maps the fiber ID to (first=) the first index in the points array that belongs to this fiber, and (second=) the number of points
-	std::vector<std::pair<size_t, size_t>> m_fiberPointMap;
-private:
 	int objectStartPointIdx(int objIdx) const override;
 	int objectPointCount(int objIdx) const override;
+	vtkSmartPointer<vtkPolyData> m_linePolyData;
+	vtkSmartPointer<vtkPoints> m_points;
+private:
+	//! maps the object ID to (first=) the first index in the points array that belongs to this object, and (second=) the number of points
+	std::vector<std::pair<size_t, size_t>> m_objectPointMap;
 };
 

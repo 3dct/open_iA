@@ -81,12 +81,6 @@ protected:
 	void setupOriginalIds();
 	void setupColors();
 
-private:
-	QSharedPointer<iALookupTable> m_lut;
-	size_t m_colorParamIdx;
-	bool m_selectionActive;
-
-	const int DefaultPointsPerObject = 2;
 	//! Get the index of the first point of a given object.
 	//! @param objIdx the index of the object.
 	//! @return the index of the first point in the object.
@@ -95,6 +89,14 @@ private:
 	//! @param objIdx the index of the object.
 	//! @return the number of points in the object.
 	virtual int objectPointCount(int objIdx) const;
-
+	//! Get the number of points in all objects.
+	//! @return the number of points in all objects, i.e. the sum of objectPointCount over all object indices.
 	size_t allPointCount() const;
+
+private:
+	QSharedPointer<iALookupTable> m_lut;
+	size_t m_colorParamIdx;
+	bool m_selectionActive;
+
+	const int DefaultPointsPerObject = 2;
 };
