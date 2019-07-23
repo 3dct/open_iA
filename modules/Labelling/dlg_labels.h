@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "Labelling_export.h"
+
 #include "ui_labels.h"
 
 #include <qthelper/iAQTtoUIConnector.h>
