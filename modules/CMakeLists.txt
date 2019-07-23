@@ -167,6 +167,7 @@ FOREACH( indx RANGE ${len} )
 			execute_process(COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj)
 			SET (CACHED_${module_name}_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
 		ENDIF ()
+		add_dependencies(${module_name} ${GUI_EXECUTABLE_NAME})
 	ELSE()
 		IF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 			set_target_properties(${module_name} PROPERTIES
