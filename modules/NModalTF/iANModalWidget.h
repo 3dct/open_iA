@@ -35,6 +35,19 @@ class MdiChild;
 
 class QLabel;
 
+struct LabeledVoxel {
+	int x;
+	int y;
+	int z;
+	double scalar;
+	double r;
+	double g;
+	double b;
+	QString text() {
+		return QString::number(x) + "," + QString::number(y) + "," + QString::number(z) + "," + QString::number(scalar) + "," + QString::number(r) + "," + QString::number(g) + "," + QString::number(b);
+	}
+};
+
 class iANModalWidget : public QDockWidget {
 	Q_OBJECT
 
@@ -42,7 +55,12 @@ public:
 	iANModalWidget(MdiChild *mdiChild);
 
 private:
+	MdiChild *m_mdiChild;
 	QLabel *m_label;
+
+	// TEMPORARY STUFF
+	void resetTf();
+	void adjustTf();
 
 private slots:
 	void onButtonClicked();

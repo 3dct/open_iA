@@ -57,6 +57,10 @@ public:
 	int count() const;
 	QString name(int idx) const;
 	QColor color(int idx) const;
+
+	// TEMPORARY
+	QStandardItemModel* m_itemModel; // TODO: make private
+
 public slots:
 	void rendererClicked(int, int, int);
 	void slicerClicked(int, int, int);
@@ -80,7 +84,6 @@ private:
 	void recolorItems();
 	void updateChannel();
 
-	QStandardItemModel* m_itemModel;
 	iAColorTheme const * m_colorTheme;
 	int m_maxColor;
 	QString m_fileName;
