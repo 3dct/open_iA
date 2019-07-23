@@ -43,6 +43,7 @@ struct LabeledVoxel {
 	double r;
 	double g;
 	double b;
+	bool remover = false;
 	QString text() {
 		return QString::number(x) + "," + QString::number(y) + "," + QString::number(z) + "," + QString::number(scalar) + "," + QString::number(r) + "," + QString::number(g) + "," + QString::number(b);
 	}
@@ -59,7 +60,6 @@ private:
 	QLabel *m_label;
 
 	// TEMPORARY STUFF
-	void resetTf();
 	void adjustTf();
 
 private slots:

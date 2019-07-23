@@ -110,24 +110,16 @@ void iANModalWidget::onButtonClicked() {
 	adjustTf();
 }
 
-void iANModalWidget::resetTf() {
-	QSharedPointer<iAModality> modality = m_mdiChild->modality(0);
-	QSharedPointer<iAModalityTransfer> tf = modality->transfer();
-
-	tf->colorTF()->RemoveAllPoints();
-	tf->colorTF()->AddRGBPoint(0, 0, 0, 0);
-	tf->colorTF()->AddRGBPoint(1, 0, 0, 0);
-
-	tf->opacityTF()->RemoveAllPoints();
-	tf->opacityTF()->AddPoint(0, 0);
-	tf->opacityTF()->AddPoint(1, 0);
-}
-
 void iANModalWidget::adjustTf() {
 
 	QSharedPointer<iAModality> modality = m_mdiChild->modality(0);
 	vtkSmartPointer<vtkImageData> image = modality->image();
 	QSharedPointer<iAModalityTransfer> tf = modality->transfer();
+
+	double range[2];
+	image->GetScalarRange(range);
+	double min = range[0];
+	double max = range[1];
 
 	QList<LabeledVoxel> voxels;
 
@@ -143,7 +135,12 @@ void iANModalWidget::adjustTf() {
 		for (int row = 0; row < items->rowCount(); row++) {
 			QStandardItem *item = items->item(row, 0);
 
-			QColor color = qvariant_cast<QColor>(item->data());
+			if (row == 0) {
+				item->setText("Remover");
+				item->setData(QColor(0, 0, 0), Qt::DecorationRole);
+			}
+
+			QColor color = qvariant_cast<QColor>(item->data(Qt::DecorationRole));
 			int count = items->item(row, 1)->text().toInt();
 			for (int childRow = 0; childRow < item->rowCount(); childRow++) {
 				QString t = item->child(childRow, 0)->text();
@@ -164,6 +161,7 @@ void iANModalWidget::adjustTf() {
 				v.r = color.redF();
 				v.g = color.greenF();
 				v.b = color.blueF();
+				v.remover = (row == 0);
 
 				voxels.append(v);
 
@@ -173,22 +171,21 @@ void iANModalWidget::adjustTf() {
 
 		m_label->setText(text);
 	}
-	return;
 
-	resetTf();
+	tf->colorTF()->RemoveAllPoints();
+	tf->colorTF()->AddRGBPoint(min, 0.0, 0.0, 0.0);
+	tf->colorTF()->AddRGBPoint(max, 0.0, 0.0, 0.0);
 
-	/*double valCol[6], valOp[4];
-	effective->colorTF()->RemoveAllPoints();
-	effective->opacityTF()->RemoveAllPoints();
+	tf->opacityTF()->RemoveAllPoints();
+	tf->opacityTF()->AddPoint(min, 0.0);
+	tf->opacityTF()->AddPoint(max, 0.0);
 
-	for (int j = 0; j < copy->colorTF()->GetSize(); ++j)
-	{
-		copy->colorTF()->GetNodeValue(j, valCol);
-		copy->opacityTF()->GetNodeValue(j, valOp);
+	for (int i = 0; i < voxels.size(); i++) {
+		LabeledVoxel v = voxels[i];
 
-		valOp[1] = valOp[1] * weight; // index 1 means opacity
+		double opacity = v.remover ? 0.0 : (1.0 / voxels.size());
 
-		effective->colorTF()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
-		effective->opacityTF()->AddPoint(valOp[0], valOp[1], valOp[2], valOp[3]);
-	}*/
+		tf->colorTF()->AddRGBPoint(v.scalar, v.r, v.g, v.b);
+		tf->opacityTF()->AddPoint(v.scalar, opacity);
+	}
 }
