@@ -4,8 +4,6 @@
 #include "mainwindow.h"
 #include "mdichild.h"
 
-#include <QHBoxLayout>
-
 
 // Module interface and Attachment --------------------------------------------------------
 
@@ -65,10 +63,32 @@ void iANModalWidgetModuleInterface::onMenuItemSelected() {
 
 // n-Modal Widget -------------------------------------------------------------------------
 
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
+
 iANModalWidget::iANModalWidget(MdiChild *mdiChild):
 	QDockWidget("n-Modal Transfer Function", mdiChild)
 {
-	QHBoxLayout *layout = new QHBoxLayout(this);
+	setFeatures(QDockWidget::DockWidgetVerticalTitleBar);
 
+	m_label = new QLabel("n-Modal Transfer Function");
 
+	QPushButton *button = new QPushButton("Click me!");
+
+	QHBoxLayout *layout = new QHBoxLayout();
+	layout->addWidget(m_label);
+	layout->addWidget(button);
+
+	QWidget *widget = new QWidget();
+	widget->setLayout(layout);
+
+	setWidget(widget);
+
+	// Connect
+	connect(button, SIGNAL(clicked()), this, SLOT(onButtonClicked()));
+}
+
+void iANModalWidget::onButtonClicked() {
+	m_label->setText("Clicked");
 }

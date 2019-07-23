@@ -20,6 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
+// Labeling
+#include "dlg_labels.h"
+
 #include "iAModuleInterface.h"
 #include "iAModuleAttachmentToChild.h"
 
@@ -30,11 +33,19 @@ class MdiChild;
 
 // n-Modal Widget -------------------------------------------------------------------------
 
+class QLabel;
+
 class iANModalWidget : public QDockWidget {
 	Q_OBJECT
 
 public:
 	iANModalWidget(MdiChild *mdiChild);
+
+private:
+	QLabel *m_label;
+
+private slots:
+	void onButtonClicked();
 };
 
 
