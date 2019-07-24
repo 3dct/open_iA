@@ -68,7 +68,7 @@ private slots:
 		void createSampleSeries();
 		void clear(); 
 		void resetGraphToDefault(); 
-		void visualizeMovingAverage(); 
+		void calculateMovingAverage(); 
 		void myAction(); 
 		inline void clearEditField() {
 			this->textEdit->clear();

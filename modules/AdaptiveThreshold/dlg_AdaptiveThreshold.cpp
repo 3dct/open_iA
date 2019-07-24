@@ -62,7 +62,7 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_clearChart, SIGNAL(clicked()), this, SLOT(clear()));
 	connect(this->btn_resetGraph, SIGNAL(clicked()), this, SLOT(resetGraphToDefault()));
 	connect(this->btn_myAction, SIGNAL(clicked()), this, SLOT(myAction()));
-	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(visualizeMovingAverage()));
+	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(calculateMovingAverage()));
 	connect(this->btn_loadHistData, SIGNAL(clicked()), this, SLOT(buttonLoadHistDataClicked())); 
 	connect(this->btn_clear, SIGNAL(clicked()), this, SLOT(clearEditField()));
 
@@ -170,7 +170,7 @@ void AdaptiveThreshold::resetGraphToDefault()
 	m_chartView->update(); 
 }
 
-void AdaptiveThreshold::visualizeMovingAverage()
+void AdaptiveThreshold::calculateMovingAverage()
 {
 	DEBUG_LOG("Moving Average");
 	uint averageCount = this->spinBox_average->text().toUInt();
@@ -180,8 +180,9 @@ void AdaptiveThreshold::visualizeMovingAverage()
 		m_movingFrequencies.clear();
 
 	QString text = QString("Moving average %1").arg(averageCount);
-	m_thresCalculator.calculateAverage(m_frequencies, m_movingFrequencies, averageCount);	
-	m_thresCalculator.testPeakDetect();
+	m_thresCalculator.determineMovingAverage(m_frequencies, m_movingFrequencies, averageCount);	
+
+	//m_thresCalculator.testPeakDetect();
 	QLineSeries *newSeries = new QLineSeries;
 	this->prepareDataSeries(newSeries, m_greyThresholds, m_movingFrequencies, false);
 	
@@ -376,7 +377,7 @@ void AdaptiveThreshold::buttonUpdateClicked()
 
 void AdaptiveThreshold::buttonLoadDataClicked()
 {
-	DEBUG_LOG("Button update is clicked");
+	//DEBUG_LOG("Button update is clicked");
 	QString fName = QFileDialog::getOpenFileName(this, ("Open File"),
 		"/home",
 		("Files (*.csv *.txt)"));

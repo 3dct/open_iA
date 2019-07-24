@@ -12,6 +12,7 @@ namespace algorithm {
 	static bool smallerThan(double u, double v) {
 		return u < v;
 	}
+
 }
 
 
@@ -45,6 +46,19 @@ void ThesholdCalculator::testPeakDetect()
 	std::vector<double> data{ 6.1, 8.0, 9.0, 14.1, 10.0,14.3, 12.1, 14.4 };
 	double res = this->findMaxPeak(data); 
 	DEBUG_LOG(QString("max peak %1").arg(res)) 
+}
+
+void ThesholdCalculator::performCalculation(std::vector<double> inputRange, double xmin, double xmax)
+{
+	//double xmin = 0;
+	//double xmax = 0; 
+	std::vector<double> vals_out; 
+	specifyRange(m_thresBinsX, m_movingFreqs, vals_out, xmin, xmax);
+
+	double min = this->findMinPeak(vals_out);
+	double max = this->findMaxPeak(vals_out);
+	//this->calcalulateMinMax(vals_out, 10);
+
 }
 
 void ThesholdCalculator::doubleTestSum()
@@ -134,25 +148,36 @@ double ThesholdCalculator::findMinPeak(std::vector<double>& v_ind){
 }
 
 
-void ThesholdCalculator::specifyRange(const std::vector<double>& v_in, std::vector<double>& v_out, double min, double max)
+void ThesholdCalculator::specifyRange(const std::vector<double>& v_inRef, const std::vector<double> &vals, std::vector<double>& v_out, double xmin, double xmax)
 {
-	if (v_in.size() == 0)
+	size_t vrefLengh = v_inRef.size();
+	size_t valsLenght = vals.size(); 
+	if ((vrefLengh == 0 ) || (valsLenght ==0) || (xmin > 0) || xmax > 0)
+	{
+		DEBUG_LOG(QString("size vec1 %1 size vec2 %2 xmin %3 xmax %4").arg(v_inRef.size()).
+			arg(vals.size()).arg(xmin).arg(xmax));
+
 		throw std::invalid_argument("invalid parameter input");
 
-	if ((min < 0) || (max == 0)) {
-		throw std::invalid_argument("Invalid input parameter");
+	}
+	else if (vrefLengh != valsLenght) {
+		throw std::invalid_argument("input and reference vector size is not equal"); 
 	}
 
-	for ( auto & el :v_in ) {
-		if ((el < min) && (el > max)) {
+	for (size_t ind = 0;ind < vrefLengh; ++ind) {
+		double val = 0; 
+		double el = v_inRef[ind]; 
+		
+		if ((el < xmin) && (el > xmax)) {
 			continue; 
 		}
-
-		v_out.push_back(el);
+		
+		val = vals[ind]; 
+		v_out.push_back(val);
 	}
 }
 
-void ThesholdCalculator::calculateAverage(const std::vector<double> &v_in, std::vector<double> &v_out, unsigned int count)
+void ThesholdCalculator::determineMovingAverage(const std::vector<double> &v_in, std::vector<double> &v_out, unsigned int count)
 {
 	DEBUG_LOG("Calculate average");
 	
