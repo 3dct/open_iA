@@ -35,7 +35,7 @@ void iANModalWidgetModuleInterface::Initialize() {
 	QMenu *menuMultiModalChannel = getMenuWithTitle(toolsMenu, QString("Multi-Modal/-Channel Images"), false);
 
 	QAction *action = new QAction(m_mainWnd);
-	action->setText(QApplication::translate("MainWindow", "n-Modal Transfer Function", 0));
+	action->setText(QApplication::translate("MainWindow", "n-Modal Transfer Function", nullptr));
 	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, action, true);
 	connect(action, SIGNAL(triggered()), this, SLOT(onMenuItemSelected()));
 }

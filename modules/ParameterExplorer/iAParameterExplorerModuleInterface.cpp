@@ -38,12 +38,12 @@ void iAParameterExplorerModuleInterface::Initialize()
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
 	QAction * actionExplore = new QAction( m_mainWnd );
-	actionExplore->setText(QApplication::translate("MainWindow", "Parameter Explorer", 0));
+	actionExplore->setText(QApplication::translate("MainWindow", "Parameter Explorer", nullptr));
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionExplore, true);
 	connect(actionExplore, SIGNAL(triggered()), this, SLOT(StartParameterExplorer()));
 	
 	QAction * actionLoad = new QAction(m_mainWnd);
-	actionLoad->setText(QApplication::translate("MainWindow", "Load Parameter Explorer State", 0));
+	actionLoad->setText(QApplication::translate("MainWindow", "Load Parameter Explorer State", nullptr));
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionLoad, false);
 	connect(actionLoad, SIGNAL(triggered()), this, SLOT(LoadState()));
 }
