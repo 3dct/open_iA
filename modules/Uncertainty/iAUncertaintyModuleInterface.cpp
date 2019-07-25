@@ -70,7 +70,7 @@ void iAUncertaintyModuleInterface::LoadEnsemble(QString const & fileName)
 	SetupToolBar();
 	m_mdiChild = m_mainWnd->createMdiChild(false);
 	bool result = AttachToMdiChild(m_mdiChild);
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mdiChild);
 	if (!result || !attach)
 	{
 		DEBUG_LOG("Uncertainty exploration could not be initialized!");
@@ -101,7 +101,7 @@ void iAUncertaintyModuleInterface::SetupToolBar()
 
 void iAUncertaintyModuleInterface::ToggleDockWidgetTitleBars()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
@@ -112,7 +112,7 @@ void iAUncertaintyModuleInterface::ToggleDockWidgetTitleBars()
 
 void iAUncertaintyModuleInterface::ToggleSettings()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
@@ -123,7 +123,7 @@ void iAUncertaintyModuleInterface::ToggleSettings()
 
 void iAUncertaintyModuleInterface::CalculateNewSubEnsemble()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
@@ -136,7 +136,7 @@ void iAUncertaintyModuleInterface::CalculateNewSubEnsemble()
 
 void iAUncertaintyModuleInterface::WriteFullDataFile()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		DEBUG_LOG("Uncertainty exploration was not loaded properly!");

@@ -114,7 +114,7 @@ void iAGEMSeModuleInterface::continuePreCalculatedDataLoading()
 {
 	// load segmentation explorer:
 	bool result = AttachToMdiChild( m_mdiChild );
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mdiChild);
 	if (!result || !gemseAttach)
 	{
 		DEBUG_LOG("GEMSE module is not attached!");
@@ -168,7 +168,7 @@ void iAGEMSeModuleInterface::SetupToolbar()
 
 void iAGEMSeModuleInterface::ResetFilter()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
 		DEBUG_LOG("GEMSE module is not attached!");
@@ -179,7 +179,7 @@ void iAGEMSeModuleInterface::ResetFilter()
 
 void iAGEMSeModuleInterface::ToggleAutoShrink()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
 		DEBUG_LOG("GEMSE module is not attached!");
@@ -190,7 +190,7 @@ void iAGEMSeModuleInterface::ToggleAutoShrink()
 
 void iAGEMSeModuleInterface::ToggleDockWidgetTitleBar()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
 		DEBUG_LOG("GEMSE module is not attached!");
@@ -201,7 +201,7 @@ void iAGEMSeModuleInterface::ToggleDockWidgetTitleBar()
 
 void iAGEMSeModuleInterface::ExportClusterIDs()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
 		DEBUG_LOG("GEMSE module is not attached!");
@@ -212,7 +212,7 @@ void iAGEMSeModuleInterface::ExportClusterIDs()
 
 void iAGEMSeModuleInterface::ExportAttributeRangeRanking()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
 		DEBUG_LOG("GEMSE module is not attached!");
@@ -224,7 +224,7 @@ void iAGEMSeModuleInterface::ExportAttributeRangeRanking()
 
 void iAGEMSeModuleInterface::ExportRankings()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
 		DEBUG_LOG("GEMSE module is not attached!");
@@ -236,7 +236,7 @@ void iAGEMSeModuleInterface::ExportRankings()
 
 void iAGEMSeModuleInterface::ImportRankings()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
 		DEBUG_LOG("GEMSE module is not attached!");

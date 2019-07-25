@@ -46,11 +46,11 @@ iAModuleAttachmentToChild* iANModalWidgetModuleInterface::CreateAttachment(MainW
 
 void iANModalWidgetModuleInterface::onMenuItemSelected() {
 	PrepareActiveChild();
-	auto attach = GetAttachment<iANModalWidgetAttachment>();
+	auto attach = GetAttachment<iANModalWidgetAttachment>(m_mdiChild);
 	if (!attach)
 	{
 		AttachToMdiChild(m_mdiChild);
-		attach = GetAttachment<iANModalWidgetAttachment>();
+		attach = GetAttachment<iANModalWidgetAttachment>(m_mdiChild);
 		if (!attach)
 		{
 			DEBUG_LOG("Attaching failed!");
