@@ -18,60 +18,43 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iANModalTFModuleInterface.h"
 
-// Labeling
-#include "dlg_labels.h"
+#include "iANModalWidget.h"
 
-#include "iAModuleAttachmentToChild.h"
+#include <iAConsole.h>
+#include <mainwindow.h>
+#include <mdichild.h>
 
-#include <QDockWidget>
+void iANModalTFModuleInterface::Initialize() {
+	if (!m_mainWnd) // if m_mainWnd is not set, we are running in command line mode
+		return;     // in that case, we do not do anything as we can not add a menu entry there
+	QMenu *toolsMenu = m_mainWnd->toolsMenu();
+	QMenu *menuMultiModalChannel = getMenuWithTitle(toolsMenu, QString("Multi-Modal/-Channel Images"), false);
 
-class MdiChild;
+	QAction *action = new QAction(m_mainWnd);
+	action->setText(QApplication::translate("MainWindow", "n-Modal Transfer Function", nullptr));
+	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, action, true);
+	connect(action, SIGNAL(triggered()), this, SLOT(onMenuItemSelected()));
+}
 
+iAModuleAttachmentToChild* iANModalTFModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild *childData) {
+	return iANModalWidgetAttachment::create(mainWnd, childData);
+}
 
-// n-Modal Widget -------------------------------------------------------------------------
-
-class QLabel;
-
-struct LabeledVoxel {
-	int x;
-	int y;
-	int z;
-	double scalar;
-	double r;
-	double g;
-	double b;
-	bool remover = false;
-	QString text() {
-		return QString::number(x) + "," + QString::number(y) + "," + QString::number(z) + "," + QString::number(scalar) + "," + QString::number(r) + "," + QString::number(g) + "," + QString::number(b);
+void iANModalTFModuleInterface::onMenuItemSelected() {
+	PrepareActiveChild();
+    auto attach = GetAttachment<iANModalWidgetAttachment>(m_mdiChild);
+	if (!attach)
+	{
+		AttachToMdiChild(m_mdiChild);
+		attach = GetAttachment<iANModalWidgetAttachment>(m_mdiChild);
+		if (!attach)
+		{
+			DEBUG_LOG("Attaching failed!");
+			return;
+		}
 	}
-};
+	attach->start();
+}
 
-class iANModalWidget : public QDockWidget {
-	Q_OBJECT
-
-public:
-	iANModalWidget(MdiChild *mdiChild);
-
-private:
-	MdiChild *m_mdiChild;
-	QLabel *m_label;
-
-	// TEMPORARY STUFF
-	void adjustTf();
-
-private slots:
-	void onButtonClicked();
-};
-
-
-class iANModalWidgetAttachment : public iAModuleAttachmentToChild {
-	Q_OBJECT
-public:
-	static iANModalWidgetAttachment* create(MainWindow *mainWnd, MdiChild *child);
-	void start();
-private:
-	iANModalWidgetAttachment(MainWindow *mainWnd, MdiChild *child);
-	iANModalWidget *m_nModalWidget;
-};

@@ -21,7 +21,6 @@
 #include "iANModalWidget.h"
 
 #include "iAConsole.h"
-#include "mainwindow.h"
 #include "mdichild.h"
 
 
@@ -46,38 +45,6 @@ void iANModalWidgetAttachment::start() {
 	}
 	m_nModalWidget->show();
 	m_nModalWidget->raise();
-}
-
-void iANModalWidgetModuleInterface::Initialize() {
-	if (!m_mainWnd) // if m_mainWnd is not set, we are running in command line mode
-		return;     // in that case, we do not do anything as we can not add a menu entry there
-	QMenu *toolsMenu = m_mainWnd->toolsMenu();
-	QMenu *menuMultiModalChannel = getMenuWithTitle(toolsMenu, QString("Multi-Modal/-Channel Images"), false);
-
-	QAction *action = new QAction(m_mainWnd);
-	action->setText(QApplication::translate("MainWindow", "n-Modal Transfer Function", nullptr));
-	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, action, true);
-	connect(action, SIGNAL(triggered()), this, SLOT(onMenuItemSelected()));
-}
-
-iAModuleAttachmentToChild* iANModalWidgetModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild *childData) {
-	return iANModalWidgetAttachment::create(mainWnd, childData);
-}
-
-void iANModalWidgetModuleInterface::onMenuItemSelected() {
-	PrepareActiveChild();
-	auto attach = GetAttachment<iANModalWidgetAttachment>(m_mdiChild);
-	if (!attach)
-	{
-		AttachToMdiChild(m_mdiChild);
-		attach = GetAttachment<iANModalWidgetAttachment>(m_mdiChild);
-		if (!attach)
-		{
-			DEBUG_LOG("Attaching failed!");
-			return;
-		}
-	}
-	attach->start();
 }
 
 

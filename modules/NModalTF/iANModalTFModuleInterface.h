@@ -20,58 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-// Labeling
-#include "dlg_labels.h"
+#include <iAModuleInterface.h>
 
-#include "iAModuleAttachmentToChild.h"
-
-#include <QDockWidget>
-
-class MdiChild;
-
-
-// n-Modal Widget -------------------------------------------------------------------------
-
-class QLabel;
-
-struct LabeledVoxel {
-	int x;
-	int y;
-	int z;
-	double scalar;
-	double r;
-	double g;
-	double b;
-	bool remover = false;
-	QString text() {
-		return QString::number(x) + "," + QString::number(y) + "," + QString::number(z) + "," + QString::number(scalar) + "," + QString::number(r) + "," + QString::number(g) + "," + QString::number(b);
-	}
-};
-
-class iANModalWidget : public QDockWidget {
+class iANModalTFModuleInterface : public iAModuleInterface {
 	Q_OBJECT
-
 public:
-	iANModalWidget(MdiChild *mdiChild);
-
-private:
-	MdiChild *m_mdiChild;
-	QLabel *m_label;
-
-	// TEMPORARY STUFF
-	void adjustTf();
-
+	void Initialize() override;
+protected:
+	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild *child) override;
 private slots:
-	void onButtonClicked();
+	void onMenuItemSelected();
 };
 
-
-class iANModalWidgetAttachment : public iAModuleAttachmentToChild {
-	Q_OBJECT
-public:
-	static iANModalWidgetAttachment* create(MainWindow *mainWnd, MdiChild *child);
-	void start();
-private:
-	iANModalWidgetAttachment(MainWindow *mainWnd, MdiChild *child);
-	iANModalWidget *m_nModalWidget;
-};
