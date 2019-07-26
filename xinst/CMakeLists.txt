@@ -11,5 +11,5 @@ INSTALL(CODE "
 	")
 
 IF (UNIX)
-	INSTALL(CODE "include(\"${CMAKE_SOURCE_DIR}/cmake/ChangeRPath.cmake\")")
+	INSTALL(CODE "include(\"${CMAKE_CURRENT_SOURCE_DIR}/../cmake/ChangeRPath.cmake\")")
 ENDIF()
