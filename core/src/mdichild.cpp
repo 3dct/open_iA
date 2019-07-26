@@ -1786,7 +1786,7 @@ bool MdiChild::initView( QString const & title )
 		modalities()->add(mod);
 		m_dwModalities->addListItem(mod);
 	}
-	if (m_channels.empty())
+	if (m_channels.empty() && modalities()->size() > 0)
 	{
 		QSharedPointer<iAModalityTransfer> modTrans = modality(0)->transfer();
 		uint channelID = createChannel();
