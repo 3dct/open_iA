@@ -36,3 +36,8 @@ iALabellingAttachment* iALabellingAttachment::create(MainWindow * mainWnd, MdiCh
 	child->splitDockWidget(child->logDockWidget(), newAttachment->m_dlgLabels, Qt::Vertical);
 	return newAttachment;
 }
+
+dlg_labels* iALabellingAttachment::labelsDlg()
+{
+	return m_dlgLabels;
+}

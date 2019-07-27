@@ -29,6 +29,7 @@ class iALabellingAttachment : public iAModuleAttachmentToChild
 	Q_OBJECT
 public:
 	static iALabellingAttachment* create(MainWindow * mainWnd, MdiChild * child);
+	dlg_labels* labelsDlg();
 private:
 	iALabellingAttachment(MainWindow * mainWnd, MdiChild * child);
 	dlg_labels*						  m_dlgLabels;
