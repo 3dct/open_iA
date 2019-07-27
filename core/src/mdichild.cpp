@@ -2474,6 +2474,15 @@ dlg_modalities* MdiChild::modalitiesDockWidget()
 	return m_dwModalities;
 }
 
+#include "iAModuleDispatcher.h"
+#include "iAModuleInterface.h"
+
+template <typename ModuleType, typename AttachmentType> AttachmentType* MdiChild::attachment()
+{
+	ModuleType* module = m_mainWnd->moduleDispatcher().module<ModuleType>();
+	return module->template attachment<AttachmentType>(this);
+}
+
 QSharedPointer<iAModalityList> MdiChild::modalities()
 {
 	return m_dwModalities->modalities();
