@@ -54,8 +54,6 @@ void iANModalWidgetAttachment::start() {
 #include "iAModalityTransfer.h"
 
 // Labelling module
-#include "iALabellingAttachment.h"
-#include "iALabellingModuleInterface.h"
 #include "dlg_labels.h"
 
 #include <vtkSmartPointer.h>
@@ -116,9 +114,8 @@ void iANModalWidget::adjustTf() {
 	QList<LabeledVoxel> voxels;
 
 	{
-		auto labelAttachment = m_mdiChild->attachment<iALabellingModuleInterface, iALabellingAttachment>();
-		dlg_labels* labeling = labelAttachment->labelsDlg();
-
+		QObject *obj = m_mdiChild->findChild<QObject*>("labels");
+		dlg_labels* labeling = static_cast<dlg_labels*>(obj);
 		QString text = QString();
 
 		QStandardItemModel *items = labeling->m_itemModel;

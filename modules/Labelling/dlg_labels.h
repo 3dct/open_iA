@@ -45,7 +45,7 @@ struct iAImageCoordinate;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
 
-class dlg_labels : public dlg_labelUI
+class Labelling_API dlg_labels : public dlg_labelUI
 {
 	Q_OBJECT
 public:
