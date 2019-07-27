@@ -40,7 +40,7 @@ void iAUncertaintyModuleInterface::Initialize()
 		return;
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuSegmentation = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
-	QAction * actionUncertainty = new QAction(QApplication::translate("MainWindow", "Uncertainty Exploration", 0), m_mainWnd );
+	QAction * actionUncertainty = new QAction(QApplication::translate("MainWindow", "Uncertainty Exploration", nullptr), m_mainWnd );
 	AddActionToMenuAlphabeticallySorted(menuSegmentation, actionUncertainty, false);
 	connect(actionUncertainty, SIGNAL(triggered()), this, SLOT(UncertaintyExploration()));
 }

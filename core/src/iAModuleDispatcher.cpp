@@ -59,7 +59,7 @@ typedef iAModuleInterface*(CALLCONV *f_GetModuleInterface)();
 
 
 iALoadedModule::iALoadedModule():
-	handle(0), moduleInterface(0)
+	handle(nullptr), moduleInterface(nullptr)
 {}
 
 iALoadedModule::iALoadedModule(QString const & n, MODULE_HANDLE h, iAModuleInterface* i) :
@@ -218,7 +218,7 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 		for (auto cat : categories)
 			if (!cat.isEmpty())
 				filterMenu = getMenuWithTitle(filterMenu, cat);
-		QAction * filterAction = new QAction(QApplication::translate("MainWindow", filter->name().toStdString().c_str(), 0), m_mainWnd);
+		QAction * filterAction = new QAction(QApplication::translate("MainWindow", filter->name().toStdString().c_str(), nullptr), m_mainWnd);
 		AddActionToMenuAlphabeticallySorted(filterMenu, filterAction);
 		filterAction->setData(i);
 		connect(filterAction, SIGNAL(triggered()), this, SLOT(ExecuteFilter()));
@@ -230,7 +230,7 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 	if (m_mainWnd->filtersMenu()->actions().size() > 0)
 	{
 		QMenu * filterMenu = m_mainWnd->filtersMenu();
-		QAction * selectAndRunFilterAction = new QAction(QApplication::translate("MainWindow", "Select and Run Filter...", 0), m_mainWnd);
+		QAction * selectAndRunFilterAction = new QAction(QApplication::translate("MainWindow", "Select and Run Filter...", nullptr), m_mainWnd);
 		AddModuleAction(selectAndRunFilterAction, true);
 		filterMenu->insertAction(filterMenu->actions()[0], selectAndRunFilterAction);
 		connect(selectAndRunFilterAction, SIGNAL(triggered()), this, SLOT(SelectAndRunFilter()));

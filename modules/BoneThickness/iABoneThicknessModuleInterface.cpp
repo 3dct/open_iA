@@ -30,7 +30,7 @@ void iABoneThicknessModuleInterface::Initialize( )
 		return;
 	QMenu* toolsMenu (m_mainWnd->toolsMenu());
 
-	QAction* pBoneThickness (new QAction(QApplication::translate("MainWindows", "Bone thickness", 0), m_mainWnd));
+	QAction* pBoneThickness (new QAction(QApplication::translate("MainWindows", "Bone thickness", nullptr), m_mainWnd));
 	connect(pBoneThickness, SIGNAL(triggered()), this, SLOT(slotBoneThickness()));
 	AddActionToMenuAlphabeticallySorted(toolsMenu, pBoneThickness);
 }
