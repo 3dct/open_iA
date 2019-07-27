@@ -51,11 +51,11 @@ iAModuleAttachmentToChild* iATripleHistogramTFModuleInterface::CreateAttachment(
 void iATripleHistogramTFModuleInterface::menuItemSelected_2mod()
 {
 	PrepareActiveChild();
-	auto attach = GetAttachment<iATripleHistogramTFAttachment>(m_mdiChild);
+	auto attach = attachment<iATripleHistogramTFAttachment>(m_mdiChild);
 	if (!attach)
 	{
 		AttachToMdiChild(m_mdiChild);
-		attach = GetAttachment<iATripleHistogramTFAttachment>(m_mdiChild);
+		attach = attachment<iATripleHistogramTFAttachment>(m_mdiChild);
 		if (!attach)
 		{
 			DEBUG_LOG("Attaching failed!");
@@ -68,11 +68,11 @@ void iATripleHistogramTFModuleInterface::menuItemSelected_2mod()
 void iATripleHistogramTFModuleInterface::menuItemSelected_3mod()
 {
 	PrepareActiveChild();
-	auto attach = GetAttachment<iATripleHistogramTFAttachment>(m_mdiChild);
+	auto attach = attachment<iATripleHistogramTFAttachment>(m_mdiChild);
 	if (!attach)
 	{
 		AttachToMdiChild(m_mdiChild);
-		attach = GetAttachment<iATripleHistogramTFAttachment>(m_mdiChild);
+		attach = attachment<iATripleHistogramTFAttachment>(m_mdiChild);
 		if (!attach)
 		{
 			DEBUG_LOG("Attaching failed!");

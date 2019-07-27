@@ -106,8 +106,8 @@ public:
 	QList<MdiChild*> mdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
 	QMdiSubWindow* addSubWindow(QWidget * child);
 	void loadArguments(int argc, char** argv);
-	iAPreferences const & getDefaultPreferences() const;
-	iAModuleDispatcher& getModuleDispatcher() const; 
+	iAPreferences const & defaultPreferences() const;
+	iAModuleDispatcher& moduleDispatcher() const;
 	MdiChild *createMdiChild(bool unsavedChanges);
 	void closeMdiChild(MdiChild* child);
 	void closeAllSubWindows();

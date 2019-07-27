@@ -397,7 +397,7 @@ void iAPAQSplom::getFilesLabeledFromPoint(QString &fileName, QString &mhdName)
 
 void iAPAQSplom::StartFeatureScout()
 {
-	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
+	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->moduleDispatcher().module<iAFeatureScoutModuleInterface>();
 	if (!featureScout)
 		return;
 	featureScout->LoadFeatureScoutWithParams(m_csvName, m_mdiChild);

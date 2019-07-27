@@ -76,10 +76,10 @@ public:
 	~iAModuleDispatcher();
 	void InitializeModules(iALogger* logger);
 	void SaveModulesSettings() const;
-	MainWindow * GetMainWnd() const;
+	MainWindow * mainWnd() const;
 	void AddModuleAction(QAction * action, bool isDisablable);
 	void SetModuleActionsEnabled( bool isEnabled );
-	template <typename T> T* GetModule();
+	template <typename T> T* module();
 	void ChildCreated(MdiChild* child);
 	QMenu * getMenuWithTitle(QMenu * parentMenu, QString const & title, bool isDisablable = true);
 	void AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable = true);
@@ -98,7 +98,7 @@ private:
 	void RunFilter(int filterID);
 };
 
-template <typename T> T* iAModuleDispatcher::GetModule()
+template <typename T> T* iAModuleDispatcher::module()
 {
 	for (iALoadedModule m: m_loadedModules)
 	{

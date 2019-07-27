@@ -1576,7 +1576,7 @@ void iAFiAKErController::miniMouseEvent(QMouseEvent* ev)
 	{
 		int resultID = QObject::sender()->property("resultID").toInt();
 		addInteraction(QString("Started FiberScout for %1.").arg(resultName(resultID)));
-		iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
+		iAFeatureScoutModuleInterface * featureScout = m_mainWnd->moduleDispatcher().module<iAFeatureScoutModuleInterface>();
 		MdiChild* newChild = m_mainWnd->createMdiChild(false);
 		iACsvConfig config = getCsvConfig(m_data->result[resultID].fileName, m_configName);
 		featureScout->LoadFeatureScout(config, newChild);

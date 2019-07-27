@@ -65,7 +65,7 @@ void iAParameterExplorerModuleInterface::SetupToolBar()
 
 void iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars()
 {
-	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>(m_mainWnd->activeMdiChild());
+	iAParameterExplorerAttachment* attach = attachment<iAParameterExplorerAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		DEBUG_LOG("ParameterExplorer was not loaded properly!");
@@ -76,7 +76,7 @@ void iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars()
 
 void iAParameterExplorerModuleInterface::ToggleSettings()
 {
-	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>(m_mainWnd->activeMdiChild());
+	iAParameterExplorerAttachment* attach = attachment<iAParameterExplorerAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		DEBUG_LOG("ParameterExplorer was not loaded properly!");
@@ -100,7 +100,7 @@ void iAParameterExplorerModuleInterface::StartParameterExplorer()
 void iAParameterExplorerModuleInterface::SaveState()
 {
 	m_mdiChild = m_mainWnd->activeMdiChild();
-	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>(m_mdiChild);
+	iAParameterExplorerAttachment* attach = attachment<iAParameterExplorerAttachment>(m_mdiChild);
 	if (!attach)
 	{
 		DEBUG_LOG("ParameterExplorer was not loaded properly!");
@@ -141,7 +141,7 @@ void iAParameterExplorerModuleInterface::ContinueStateLoading()
 {
 	MdiChild* child = dynamic_cast<MdiChild*>(QObject::sender());
 	m_mdiChild = child;	// TODO: might not be needed anymore with change to GetAttachment to take child as parameter
-	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>(child);
+	iAParameterExplorerAttachment* attach = attachment<iAParameterExplorerAttachment>(child);
 	if (!child || attach)
 	{
 		DEBUG_LOG("ParameterExplorer: Invalid state - child null or Parameter Explorer already attached!");
@@ -153,7 +153,7 @@ void iAParameterExplorerModuleInterface::ContinueStateLoading()
 	QString csvFileName = MakeAbsolute(stateFileInfo.absolutePath(), stateFileSettings.value("CSVFile").toString());
 	if (!CreateAttachment(csvFileName, child))
 		return;
-	attach = GetAttachment<iAParameterExplorerAttachment>(child);
+	attach = attachment<iAParameterExplorerAttachment>(child);
 	if (!attach)
 	{
 		DEBUG_LOG("ParameterExplorer was not loaded properly!");
@@ -171,7 +171,7 @@ bool iAParameterExplorerModuleInterface::CreateAttachment(QString const & csvFil
 	m_mdiChild = child;	// TODO: might not be needed anymore with change to GetAttachment to take child as parameter
 	if (!result)
 		return false;
-	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>(child);
+	iAParameterExplorerAttachment* attach = attachment<iAParameterExplorerAttachment>(child);
 	if (!attach)
 	{
 		DEBUG_LOG("ParameterExplorer was not loaded properly!");

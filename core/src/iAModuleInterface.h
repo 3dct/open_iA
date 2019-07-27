@@ -87,7 +87,7 @@ protected:
 	//! Get the attachment of the given mdi child.
 	//! @param mdiChild the child window for which to retrieve the attachment
 	//! @return the attachment, or nullptr if no attachment was created yet.
-	template <class T> T* GetAttachment(MdiChild* mdiChild);
+	template <class T> T* attachment(MdiChild* mdiChild);
 	//! Sets up a new attachment for the given MdiChild via CreateAttachment and links the two.
 	bool AttachToMdiChild( MdiChild * child );
 
@@ -110,7 +110,7 @@ protected slots:
 
 
 template <class T>
-T* iAModuleInterface::GetAttachment(MdiChild* mdiChild)
+T* iAModuleInterface::attachment(MdiChild* mdiChild)
 {
 	static_assert(std::is_base_of<iAModuleAttachmentToChild, T>::value, "GetAttachment: given type must inherit from iAModuleAttachmentToChild!");
 	for (int i = 0; i < m_attachments.size(); ++i)

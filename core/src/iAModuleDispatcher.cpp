@@ -281,7 +281,7 @@ void iAModuleDispatcher::SaveModulesSettings() const
 	}
 }
 
-MainWindow * iAModuleDispatcher::GetMainWnd() const
+MainWindow * iAModuleDispatcher::mainWnd() const
 {
 	return m_mainWnd;
 }
