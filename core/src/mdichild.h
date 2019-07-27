@@ -176,9 +176,6 @@ public:
 	//! Access to modalities dock widget
 	dlg_modalities* modalitiesDockWidget();
 
-	//! Retrieve an attachment of a specific type attached to this window
-	template <typename ModuleType, typename AttachmentType> AttachmentType* attachment();
-
 	void setReInitializeRenderWindows(bool reInit);
 	vtkTransform* slicerTransform();
 	bool resultInNewWindow() const;
