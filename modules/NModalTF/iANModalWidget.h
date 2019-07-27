@@ -20,9 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-// Labeling
-#include "dlg_labels.h"
-
 #include "iAModuleAttachmentToChild.h"
 
 #include <QDockWidget>

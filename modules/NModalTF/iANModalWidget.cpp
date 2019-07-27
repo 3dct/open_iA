@@ -53,6 +53,11 @@ void iANModalWidgetAttachment::start() {
 #include "iAModality.h"
 #include "iAModalityTransfer.h"
 
+// Labelling module
+#include "iALabellingAttachment.h"
+#include "iALabellingModuleInterface.h"
+#include "dlg_labels.h"
+
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 #include <vtkColorTransferFunction.h>
@@ -111,10 +116,8 @@ void iANModalWidget::adjustTf() {
 	QList<LabeledVoxel> voxels;
 
 	{
-		// Find with string "labels": TERRIBLE IDEA! TODO: improve
-		//dlg_labels *labeling = m_mdiChild->findChild<dlg_labels*>("labels"); // Doesn't work... dunno why
-		QObject *obj = m_mdiChild->findChild<QObject*>("labels");
-		dlg_labels* labeling = static_cast<dlg_labels*>(obj);
+		auto labelAttachment = m_mdiChild->attachment<iALabellingModuleInterface, iALabellingAttachment>();
+		dlg_labels* labeling = labelAttachment->labelsDlg();
 
 		QString text = QString();
 
