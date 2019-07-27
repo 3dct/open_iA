@@ -77,7 +77,7 @@ public:
 	typedef std::vector<std::vector<size_t> > SelectionType;
 	iAFiAKErController(MainWindow* mainWnd);
 	void start(QString const & path, QString const & configName, double stepShift);
-	~iAFiAKErController();
+	~iAFiAKErController() override;
 	std::vector<std::vector<size_t> > & selection() override;
 	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
 	void toggleDockWidgetTitleBars();

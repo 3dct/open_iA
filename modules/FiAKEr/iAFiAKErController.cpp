@@ -170,17 +170,17 @@ public:
 };
 
 iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
+	m_renderManager(new iARendererManager()),
 	m_resultColorTheme(iAColorThemeManager::instance().theme(DefaultResultColorTheme)),
 	m_mainWnd(mainWnd),
-	m_spm(new iAQSplom()),
 	m_referenceID(NoResult),
 	m_playTimer(new QTimer(this)),
 	m_refDistCompute(nullptr),
-	m_renderManager(new iARendererManager()),
 	m_colorByThemeName(iALUT::GetColorMapNames()[0]),
 	m_showFiberContext(false),
 	m_mergeContextBoxes(false),
-	m_contextSpacing(0.0)
+	m_contextSpacing(0.0),
+	m_spm(new iAQSplom())
 {
 	setDockOptions(AllowNestedDocks | AllowTabbedDocks);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
