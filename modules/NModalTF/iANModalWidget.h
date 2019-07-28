@@ -26,9 +26,6 @@
 
 class MdiChild;
 
-
-// n-Modal Widget -------------------------------------------------------------------------
-
 class QLabel;
 
 struct LabeledVoxel {

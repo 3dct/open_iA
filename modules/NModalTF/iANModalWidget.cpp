@@ -53,7 +53,6 @@ void iANModalWidgetAttachment::start() {
 #include "iAModality.h"
 #include "iAModalityTransfer.h"
 
-// Labelling module
 #include "dlg_labels.h"
 
 #include <vtkSmartPointer.h>

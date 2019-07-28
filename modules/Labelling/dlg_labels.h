@@ -64,6 +64,7 @@ public:
 public slots:
 	void rendererClicked(int, int, int);
 	void slicerClicked(int, int, int);
+	void slicerDragged(int, int, int);
 	void slicerRightClicked(int, int, int);
 	void add();
 	void remove();

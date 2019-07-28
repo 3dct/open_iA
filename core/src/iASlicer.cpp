@@ -1140,6 +1140,7 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 
 	if (eventId == vtkCommand::LeftButtonPressEvent)
 	{
+		m_leftMouseDrag = true;
 		emit clicked();
 	}
 	if (eventId == vtkCommand::MouseWheelForwardEvent ||
@@ -1161,6 +1162,7 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 	}
 	case vtkCommand::LeftButtonReleaseEvent:
 	{
+		m_leftMouseDrag = false;
 		emit released(channel0Coords[0], channel0Coords[1], channel0Coords[2]);
 		emit userInteraction();
 		break;
@@ -1177,6 +1179,10 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 		{
 			m_positionMarkerActor->SetVisibility(false);
 			printVoxelInformation();
+		}
+		if (m_leftMouseDrag)
+		{
+			emit leftDragged(channel0Coords[0], channel0Coords[1], channel0Coords[2]);
 		}
 		emit oslicerPos(channel0Coords[0], channel0Coords[1], channel0Coords[2], m_mode);
 		emit userInteraction();

@@ -275,6 +275,7 @@ signals:
 	void progress(int);
 	void updateSignal();
 	void leftClicked(int x, int y, int z);
+	void leftDragged(int x, int y, int z);
 	void rightClicked(int x, int y, int z);
 	void released(int x, int y, int z);
 	void userInteraction();
@@ -335,6 +336,8 @@ private:
 	bool m_decorations;             //!< whether "decorations" will be shown, i.e. scalar bar widget, text on hover, ...
 	bool m_userSetBackground;       //!< whether the user has set a background
 	bool m_showPositionMarker;      //!< whether the position marker is shown in the slicer
+
+	bool m_leftMouseDrag = false;   //!< whether the left mouse button is currently being held down
 
 	uint m_magicLensInput;
 	QSharedPointer<iAMagicLens> m_magicLens;

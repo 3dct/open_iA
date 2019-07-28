@@ -82,6 +82,7 @@ dlg_labels::dlg_labels(MdiChild* mdiChild):
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
 		connect(mdiChild->slicer(i), &iASlicer::leftClicked, this, &dlg_labels::slicerClicked);
+		connect(mdiChild->slicer(i), &iASlicer::leftDragged, this, &dlg_labels::slicerDragged);
 		connect(mdiChild->slicer(i), &iASlicer::rightClicked, this, &dlg_labels::slicerRightClicked);
 	}
 }
@@ -148,6 +149,11 @@ void dlg_labels::addSeed(int x, int y, int z)
 }
 
 void dlg_labels::slicerClicked(int x, int y, int z)
+{
+	addSeed(x, y, z);
+}
+
+void dlg_labels::slicerDragged(int x, int y, int z)
 {
 	addSeed(x, y, z);
 }
