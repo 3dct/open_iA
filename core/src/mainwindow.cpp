@@ -90,10 +90,10 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_splashScreen->showMessage("\n      Reading settings...", Qt::AlignTop, QColor(255, 255, 255));
 	readSettings();
 
-	m_timer = new QTimer();
-	m_timer->setSingleShot(true);
-	connect(m_timer, SIGNAL(timeout()), this, SLOT(timeout()));
-	m_timer->start(2000);
+	m_splashTimer = new QTimer();
+	m_splashTimer->setSingleShot(true);
+	connect(m_splashTimer, SIGNAL(timeout()), this, SLOT(hideSplashSlot()));
+	m_splashTimer->start(2000);
 
 	m_splashScreen->showMessage("\n      Setup UI...", Qt::AlignTop, QColor(255, 255, 255));
 	applyQSS();
@@ -147,10 +147,16 @@ MainWindow::~MainWindow()
 	m_windowMapper = nullptr;
 }
 
-void MainWindow::timeout()
+void MainWindow::hideSplashSlot()
 {
 	m_splashScreen->finish(this);
-	delete m_timer;
+	delete m_splashTimer;
+}
+
+void MainWindow::quitTimerSlot()
+{
+	delete m_quitTimer;
+	qApp->closeAllWindows();
 }
 
 bool MainWindow::keepOpen()
@@ -2322,7 +2328,28 @@ void MainWindow::saveProject()
 void MainWindow::loadArguments(int argc, char** argv)
 {
 	QStringList files;
-	for (int a = 1; a < argc; ++a) files << QString::fromLocal8Bit(argv[a]);
+	for (int a = 1; a < argc; ++a)
+	{
+		if (QString(argv[a]).startsWith("--quit"))
+		{
+			++a;
+			bool ok;
+			quint64 ms = QString(argv[a]).toULongLong(&ok);
+			if (ok)
+			{
+				m_quitTimer = new QTimer();
+				m_quitTimer->setSingleShot(true);
+				connect(m_quitTimer, SIGNAL(timeout()), this, SLOT(quitTimerSlot()));
+				m_quitTimer->start(ms);
+			}
+			else
+			{
+				DEBUG_LOG("Invalid --quit parameter; must be followed by an integer number (milliseconds) after which to quit, e.g. '--quit 1000'");
+			}
+		}
+		else
+			files << QString::fromLocal8Bit(argv[a]);
+	}
 	loadFiles(files);
 }
 
