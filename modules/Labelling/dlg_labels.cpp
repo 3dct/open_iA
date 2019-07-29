@@ -47,6 +47,7 @@
 #include <QStandardItemModel>
 #include <QThread>
 #include <QXmlStreamReader>
+#include <QSignalMapper>
 
 #include <random>
 
@@ -79,11 +80,19 @@ dlg_labels::dlg_labels(MdiChild* mdiChild):
 	lvLabels->setModel(m_itemModel);
 
 	//connect(mdiChild->renderer(), &iARenderer::clicked, this, &dlg_labels::rendererClicked);
+
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
-		connect(mdiChild->slicer(i), &iASlicer::leftClicked, this, &dlg_labels::slicerClicked);
-		connect(mdiChild->slicer(i), &iASlicer::leftDragged, this, &dlg_labels::slicerDragged);
-		connect(mdiChild->slicer(i), &iASlicer::rightClicked, this, &dlg_labels::slicerRightClicked);
+		//connect(mdiChild->slicer(i), &iASlicer::leftClicked, this, &dlg_labels::slicerClicked);
+		//connect(mdiChild->slicer(i), &iASlicer::leftDragged, this, &dlg_labels::slicerDragged);
+		//connect(mdiChild->slicer(i), &iASlicer::rightClicked, this, &dlg_labels::slicerRightClicked);
+
+		auto slicer = mdiChild->slicer(i);
+		auto mode = slicer->mode();
+
+		connect(slicer, &iASlicer::leftClicked,  this, [this, mode] (int x, int y, int z) { slicerClicked(x, y, z, mode); });
+		connect(slicer, &iASlicer::leftDragged,  this, [this, mode] (int x, int y, int z) { slicerDragged(x, y, z, mode); });
+		connect(slicer, &iASlicer::rightClicked, this, [this, mode] (int x, int y, int z) { slicerRightClicked(x, y, z, mode); });
 	}
 }
 
@@ -99,9 +108,9 @@ namespace
 	}
 }
 
-void dlg_labels::rendererClicked(int x, int y, int z)
+void dlg_labels::rendererClicked(int x, int y, int z, iASlicerMode mode)
 {
-	addSeed(x, y, z);
+	addSeed(x, y, z, mode);
 }
 
 int findSeed(QStandardItem* labelItem, int x, int y, int z)
@@ -123,24 +132,71 @@ bool seedAlreadyExists(QStandardItem* labelItem, int x, int y, int z)
 	return findSeed(labelItem, x, y, z) != -1;
 }
 
-void dlg_labels::addSeed(int x, int y, int z)
+void dlg_labels::addSeed(int cx, int cy, int cz, iASlicerMode mode)
 {
 	if (!cbEnableEditing->isChecked())
 	{
 		return;
 	}
+
 	int labelRow = curLabelRow();
 	if (labelRow == -1)
 	{
 		return;
 	}
 
+	int radius = spinBox->value() - 1; // -1 because the center voxel shouldn't count
+	auto extent = m_labelOverlayImg->GetExtent();
+	int minx = cx;
+	int maxx = cx;
+	int miny = cy;
+	int maxy = cy;
+	int minz = cz;
+	int maxz = cz;
+	if (mode != iASlicerMode::XY)
+	{
+		minz = vtkMath::Max(cz - radius, extent[4]);
+		maxz = vtkMath::Min(cz + radius, extent[5]);
+	}
+	if (mode != iASlicerMode::XZ)
+	{
+		miny = vtkMath::Max(cy - radius, extent[2]);
+		maxy = vtkMath::Min(cy + radius, extent[3]);
+	}
+	if (mode != iASlicerMode::YZ)
+	{
+		minx = vtkMath::Max(cx - radius, extent[0]);
+		maxx = vtkMath::Min(cx + radius, extent[1]);
+	}
+
+	for (int x = minx; x <= maxx; x++)
+	{
+		for (int y = miny; y <= maxy; y++)
+		{
+			for (int z = minz; z <= maxz; z++)
+			{
+				int dx = x - cx;
+				int dy = y - cy;
+				double dis = sqrt(dx*dx + dy*dy);
+				if (dis <= radius)
+				{
+					addSingleSeed(x, y, z, labelRow);
+				}
+			}
+		}
+	}
+}
+
+void dlg_labels::addSingleSeed(int x, int y, int z, int labelRow)
+{
 	// make sure we're not adding the same seed twice:
 	for (int l = 0; l < count(); ++l)
 	{
-		if (seedAlreadyExists(m_itemModel->item(l), x, y, z))
+		auto item = m_itemModel->item(l);
+		if (seedAlreadyExists(item, x, y, z))
 		{
 			return;
+			//removeSeed(item, x, y, z);
 		}
 	}
 
@@ -148,17 +204,17 @@ void dlg_labels::addSeed(int x, int y, int z)
 	updateChannel();
 }
 
-void dlg_labels::slicerClicked(int x, int y, int z)
+void dlg_labels::slicerClicked(int x, int y, int z, iASlicerMode mode)
 {
-	addSeed(x, y, z);
+	addSeed(x, y, z, mode);
 }
 
-void dlg_labels::slicerDragged(int x, int y, int z)
+void dlg_labels::slicerDragged(int x, int y, int z, iASlicerMode mode)
 {
-	addSeed(x, y, z);
+	addSeed(x, y, z, mode);
 }
 
-void dlg_labels::slicerRightClicked(int x, int y, int z)
+void dlg_labels::slicerRightClicked(int x, int y, int z, iASlicerMode mode)
 {
 	for (int l = 0; l < count(); ++l)
 	{

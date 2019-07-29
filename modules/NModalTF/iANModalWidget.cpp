@@ -169,7 +169,7 @@ void iANModalWidget::adjustTf() {
 	for (int i = 0; i < voxels.size(); i++) {
 		LabeledVoxel v = voxels[i];
 
-		double opacity = v.remover ? 0.0 : (1.0 / voxels.size());
+		double opacity = v.remover ? 0.0 : 0.5;
 
 		tf->colorTF()->AddRGBPoint(v.scalar, v.r, v.g, v.b);
 		tf->opacityTF()->AddPoint(v.scalar, opacity);

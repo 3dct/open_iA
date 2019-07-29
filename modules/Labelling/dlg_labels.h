@@ -30,6 +30,7 @@
 
 #include <QList>
 
+enum iASlicerMode;
 class iAColorTheme;
 class MdiChild;
 
@@ -62,10 +63,10 @@ public:
 	QStandardItemModel* m_itemModel; // TODO: make private
 
 public slots:
-	void rendererClicked(int, int, int);
-	void slicerClicked(int, int, int);
-	void slicerDragged(int, int, int);
-	void slicerRightClicked(int, int, int);
+	void rendererClicked(int, int, int, iASlicerMode);
+	void slicerClicked(int, int, int, iASlicerMode);
+	void slicerDragged(int, int, int, iASlicerMode);
+	void slicerRightClicked(int, int, int, iASlicerMode);
 	void add();
 	void remove();
 	void storeLabels();
@@ -77,7 +78,8 @@ public slots:
 	QString const & fileName();
 	void opacityChanged(int newValue);
 private:
-	void addSeed(int, int, int);
+	void addSingleSeed(int, int, int, int);
+	void addSeed(int, int, int, iASlicerMode);
 	void removeSeed(QStandardItem* item, int x, int y, int z);
 	void addSeedItem(int label, int x, int y, int z);
 	int addLabelItem(QString const & labelText);
