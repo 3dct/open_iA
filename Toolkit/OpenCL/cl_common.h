@@ -9,6 +9,7 @@
 // When the AMD OpenCL 1.2 installed, we need this line to do the work
 // if it does not work on your PC, just uncomment the following line 
 #define CL_USE_DEPRECATED_OPENCL_1_1_APIS
+#define CL_TARGET_OPENCL_VERSION 120
 
 #ifndef __APPLE__
 #ifndef __MACOSX
