@@ -1,5 +1,4 @@
 #include "dlg_AdaptiveThreshold.h"
-
 #include <algorithm>
 #include <qsharedpointer.h>
 #include <QtCharts/qlineseries.h>
@@ -7,8 +6,7 @@
 #include <QColor>
 #include <QPoint>
 #include <QFileDialog>
-//#include "QtCharts/L"
-//#include <QTChart>
+
 
 
 
@@ -65,19 +63,13 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(calculateMovingAverage()));
 	connect(this->btn_loadHistData, SIGNAL(clicked()), this, SLOT(buttonLoadHistDataClicked())); 
 	connect(this->btn_clear, SIGNAL(clicked()), this, SLOT(clearEditField()));
+	connect(this->btn_aTestAction, SIGNAL(clicked()), this, SLOT(aTestAction())); 
 
 }
 
 AdaptiveThreshold::~AdaptiveThreshold()
 {
-	delete m_chart;
-	delete m_chartView; 
-
-	for (auto p:series_vec) {
-		if (p)
-			delete p;
-	}
-	
+			
 }
 
 
@@ -174,7 +166,8 @@ void AdaptiveThreshold::calculateMovingAverage()
 {
 	DEBUG_LOG("Moving Average");
 	uint averageCount = this->spinBox_average->text().toUInt();
-	if (averageCount <= 2) return; 	 
+	if (averageCount <= 2) return; 	
+
 	DEBUG_LOG(QString("Freq size%1").arg(m_frequencies.size())); 
 	if (m_movingFrequencies.size() > 0)
 		m_movingFrequencies.clear();
@@ -191,6 +184,12 @@ void AdaptiveThreshold::calculateMovingAverage()
 void AdaptiveThreshold::myAction()
 {
 	m_thresCalculator.doubleTestSum();
+}
+
+void AdaptiveThreshold::aTestAction()
+{
+	DEBUG_LOG("ATestAction is controlled"); 
+	m_thresCalculator.testSpecifyRange(); 
 }
 
 void AdaptiveThreshold::setDefaultMinMax(double xMIn, double xMax, double yMin, double yMax)

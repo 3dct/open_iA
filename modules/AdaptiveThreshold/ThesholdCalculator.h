@@ -3,6 +3,9 @@
 #include "charts/iAPlotData.h"
 #include <QSharedPointer>
 #include "DebugHelper.h"
+//#include "ThresholdDefinitions.h"
+
+class ParametersRanges; 
 
 
 struct HistMinMax{
@@ -17,31 +20,8 @@ struct HistMinMax{
 	double yMax; 
 };
 
-class ParametersRanges {
-
-public:
-	ParametersRanges() {
-		x_vals.reserve(1000);
-		y_vals.reserve(1000);
-	}
-
-	void insertElem(double x, double y) {
-		x_vals.push_back(x);
-		y_vals.push_back(y);
-	}
 
 
-	const std::vector<double>& getXRange() {
-		return x_vals;
-	}
-	const std::vector<double>& getYRange() {
-		return y_vals;
-	}
-
-private:
-	std::vector<double> x_vals;
-	std::vector<double> y_vals;
-};
 
 
 class ThesholdCalculator
@@ -63,7 +43,7 @@ public:
 	//void calcalulateMinMax(const std::vector<double>& v_ind, unsigned int toleranceVal);
 
 	//select values only in the range between min and max
-	void specifyRange(const std::vector<double>& v_in, const std::vector<double> &vals, std::vector<double>& v_out, double xmin, double xmax);
+	void specifyRange(const std::vector<double>& v_in, const std::vector<double> &vals, ParametersRanges &outRange, double xmin, double xmax);
 	void testPeakDetect();
 	void testSpecifyRange(); 
 

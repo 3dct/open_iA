@@ -50,6 +50,7 @@ public:
 
     void addSeries(QXYSeries *aSeries); 
 	
+	//TBA those will be empty
 	QXYSeries *createDataSeries(const std::vector<double> &xvals, const std::vector<double> &y_vals,plotMode mode); 
 
 	inline void clearSeries(QXYSeries *series) {
@@ -69,7 +70,9 @@ private slots:
 		void clear(); 
 		void resetGraphToDefault(); 
 		void calculateMovingAverage(); 
-		void myAction(); 
+		void myAction();
+		void aTestAction(); 
+
 		inline void clearEditField() {
 			this->textEdit->clear();
 		}

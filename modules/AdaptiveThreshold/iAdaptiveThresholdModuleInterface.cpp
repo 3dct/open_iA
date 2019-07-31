@@ -39,9 +39,14 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 		return; 
 	}
 
+	auto hist = m_mainWnd->activeMdiChild()->histogram();
+	if (!hist || hist->plots().empty()) {
+		DEBUG_LOG("Current data does not have a histogram or histogram not ready"); 
+		return;
+	}
 
 	try {
-		auto hist = m_mainWnd->activeMdiChild()->histogram();
+			
 		auto data = hist->plots()[0]->data();
 		dlg_thres.initChart();
 		dlg_thres.setHistData(data);

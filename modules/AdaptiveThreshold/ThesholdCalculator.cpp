@@ -2,6 +2,7 @@
 #include <numeric>
 #include <algorithm>
 #include "iAConsole.h"
+#include "ThresholdDefinitions.h"
 
 
 namespace algorithm {
@@ -50,27 +51,38 @@ void ThesholdCalculator::testPeakDetect()
 
 void ThesholdCalculator::testSpecifyRange()
 {
-	std::vector<double> v_inRange = { 1,5, 6, 8 , 4, 10, 11, 12, };
-	std::vector<double> v_elements = { 13, 3, 4, 10, 20, 23,5,0.5 }; 
-	std::vector<double> out_range;
-	out_range.reserve(v_elements.size()); 
+	std::vector<double> v_inRange = { 2.005, 1,0.1,2.0001, 0, 0, 8 , 4, 10, 7, 12 };
+	
+	//									1	2	3		4	5	6	7	8
+	std::vector<double> v_elements = {0, 100, 200, 300, 400, 500, 600,700,800, 900, 1000 }; 
+	
+	ParametersRanges outputRanges; 
+	//std::vector<double> out_range;
+	//out_range.reserve(v_elements.size()); 
 	double x_min = 2.0; 
 	double x_max = 8.0; 
 
-	this->specifyRange(v_inRange, v_elements, out_range, x_min, x_max); 
-	
+	this->specifyRange(v_inRange, v_elements, outputRanges, x_min, x_max);
+	DEBUG_LOG(QString("Limits(min, max) %1 %2").arg(x_min).arg(x_max)); 
+	DEBUG_LOG("input vector");
+	m_dbgHelper.debugVector(v_elements); 
 
+	DEBUG_LOG("output vector");
+	
+	
+	//m_dbgHelper.debugVector(outputRanges);
+	
 }
 
 void ThesholdCalculator::performCalculation(std::vector<double> inputRange, double xmin, double xmax)
 {
 	//double xmin = 0;
 	//double xmax = 0; 
-	std::vector<double> vals_out; 
+	/*std::vector<double> vals_out; 
 	specifyRange(m_thresBinsX, m_movingFreqs, vals_out, xmin, xmax);
 
 	double min = this->findMinPeak(vals_out);
-	double max = this->findMaxPeak(vals_out);
+	double max = this->findMaxPeak(vals_out);*/
 	//this->calcalulateMinMax(vals_out, 10);
 
 }
@@ -162,12 +174,12 @@ double ThesholdCalculator::findMinPeak(std::vector<double>& v_ind){
 }
 
 
-void ThesholdCalculator::specifyRange(const std::vector<double>& v_inRef, const std::vector<double> &vals, std::vector<double>& v_out, double xmin, double xmax)
+void ThesholdCalculator::specifyRange(const std::vector<double>& v_inRef, const std::vector<double> &vals, ParametersRanges &outRange, double xmin, double xmax)
 {
 	size_t vrefLengh = v_inRef.size();
 	size_t valsLenght = vals.size(); 
 
-	if ((vrefLengh == 0 ) || (valsLenght ==0) || (xmin > 0) || xmax > 0)
+	if ((vrefLengh == 0 ) || (valsLenght ==0) || (xmin <= 0) || xmax <= 0)
 	{
 		DEBUG_LOG(QString("size vec1 %1 size vec2 %2 xmin %3 xmax %4").arg(v_inRef.size()).
 			arg(vals.size()).arg(xmin).arg(xmax));
@@ -180,15 +192,16 @@ void ThesholdCalculator::specifyRange(const std::vector<double>& v_inRef, const 
 	}
 
 	for (size_t ind = 0;ind < vrefLengh; ++ind) {
-		double val = 0; 
-		double el = v_inRef[ind]; 
+		double val_y = 0; 
+		double el_x = v_inRef[ind]; 
 		
-		if ((el < xmin) && (el > xmax)) {
+		if ((el_x < xmin) || (el_x > xmax)) {
 			continue; 
 		}
 		
-		val = vals[ind]; 
-		v_out.push_back(val);
+		val_y = vals[ind]; 
+		//v_out.push_back(val);
+		outRange.insertElem(el_x, val_y);
 	}
 
 }
