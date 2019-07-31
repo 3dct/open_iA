@@ -327,6 +327,19 @@
     <string>Calculate stuff</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="btn_aTestAction">
+   <property name="geometry">
+    <rect>
+     <x>330</x>
+     <y>520</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>ATestAction</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections>

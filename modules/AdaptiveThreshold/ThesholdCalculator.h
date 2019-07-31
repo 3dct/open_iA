@@ -2,11 +2,11 @@
 #include <vector>
 #include "charts/iAPlotData.h"
 #include <QSharedPointer>
+#include "DebugHelper.h"
+
 
 struct HistMinMax{
-	/*HistMinMax() :min(0), max(0) {
 	
-	}*/
 	HistMinMax() {
 		init(); 
 	}
@@ -65,6 +65,7 @@ public:
 	//select values only in the range between min and max
 	void specifyRange(const std::vector<double>& v_in, const std::vector<double> &vals, std::vector<double>& v_out, double xmin, double xmax);
 	void testPeakDetect();
+	void testSpecifyRange(); 
 
 
 	/*TODO specify input range: min max
@@ -93,12 +94,11 @@ public:
 private:
 	double vectorSum(const std::vector<double> &sum, size_t startInd, size_t endInd);
 	QSharedPointer<iAPlotData> m_data;
+	DebugHelper m_dbgHelper; 	
 
 	std::vector<double> m_thresBinsX; 
 	std::vector<double> m_freqValsY; 
 	std::vector<double> m_movingFreqs; 
 	
-	
-
 };
 
