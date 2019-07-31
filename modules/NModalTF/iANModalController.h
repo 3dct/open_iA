@@ -20,26 +20,61 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
+#include <vtkSmartPointer.h>
 
-class iANModalController;
+#include <QString>
+#include <QList>
+#include <QSharedPointer>
+
+class iAModality;
 class MdiChild;
 
-class QLabel;
+class vtkVolume;
+class vtkSmartVolumeMapper;
+class vtkRenderer;
+class vtkImageData;
 
-class iANModalWidget : public QWidget {
-	Q_OBJECT
+struct LabeledVoxel {
+	int x;
+	int y;
+	int z;
+	double scalar;
+	double r;
+	double g;
+	double b;
+	bool remover = false;
+	QString text() {
+		return QString::number(x) + "," + QString::number(y) + "," + QString::number(z) + "," + QString::number(scalar) + "," + QString::number(r) + "," + QString::number(g) + "," + QString::number(b);
+	}
+};
+
+class iANModalController {
 
 public:
-	iANModalWidget(MdiChild *mdiChild);
+	iANModalController(MdiChild *mdiChild);
+	void initialize();
+
+	int countModalities();
+	QList<QSharedPointer<iAModality>> cherryPickModalities(QList<QSharedPointer<iAModality>> modalities);
+	bool setModalities(QList<QSharedPointer<iAModality>> modalities);
+	void reinitialize();
+
+	// TEMPORARY STUFF
+	void adjustTf(QSharedPointer<iAModality> modality, QList<LabeledVoxel> voxels);
 
 private:
-	iANModalController *m_c;
 	MdiChild *m_mdiChild;
 
-	QLabel *m_label;
+	void _initialize();
+	bool _checkModalities(QList<QSharedPointer<iAModality>> modalities);
+	bool _matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2);
+	QList<QSharedPointer<iAModality>> m_modalities;
+	vtkSmartPointer<vtkVolume> m_combinedVol;
+	vtkSmartPointer<vtkSmartVolumeMapper> m_combinedVolMapper;
+	vtkSmartPointer<vtkRenderer> m_combinedVolRenderer;
+	QList<uint> m_channelIds;
+	vtkSmartPointer<vtkImageData> m_slicerImages[3];
+	bool m_initialized = false;
 
-private slots:
-	void onButtonClicked();
-
+	void applyVolumeSettings();
 };

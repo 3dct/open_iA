@@ -19,63 +19,20 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iANModalWidget.h"
-
-#include "iAConsole.h"
-#include "mdichild.h"
-
-
-// Module interface and Attachment --------------------------------------------------------
-
-iANModalWidgetAttachment::iANModalWidgetAttachment(MainWindow * mainWnd, MdiChild *child) :
-	iAModuleAttachmentToChild(mainWnd, child),
-	m_nModalWidget(nullptr)
-{
-	// Do nothing
-}
-
-iANModalWidgetAttachment* iANModalWidgetAttachment::create(MainWindow * mainWnd, MdiChild *child) {
-	auto newAttachment = new iANModalWidgetAttachment(mainWnd, child);
-	return newAttachment;
-}
-
-void iANModalWidgetAttachment::start() {
-	if (!m_nModalWidget) {
-		m_nModalWidget = new iANModalWidget(m_child);
-		m_child->tabifyDockWidget(m_child->logDockWidget(), m_nModalWidget);
-	}
-	m_nModalWidget->show();
-	m_nModalWidget->raise();
-}
-
-
-// n-Modal Widget -------------------------------------------------------------------------
-
-#include "iAModality.h"
-#include "iAModalityTransfer.h"
+#include "iANModalController.h"
 
 #include "dlg_labels.h"
+#include "iAModality.h"
+#include "mdichild.h"
 
-#include <vtkSmartPointer.h>
 #include <vtkImageData.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkPiecewiseFunction.h>
+#include <vtkSmartPointer.h>
 
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QPushButton>
-#include <QSharedPointer>
-
-// TEMPORARY
 #include <QStandardItemModel>
-#include <QObjectList>
-#include <QColor>
-#include <QStandardItem>
 
-iANModalWidget::iANModalWidget(MdiChild *mdiChild):
-	QDockWidget("n-Modal Transfer Function", mdiChild)
-{
+iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 	m_mdiChild = mdiChild;
-	setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetVerticalTitleBar);
+	m_c = new iANModalController(mdiChild);
 
 	m_label = new QLabel("n-Modal Transfer Function");
 
@@ -85,37 +42,24 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild):
 	layout->addWidget(m_label);
 	layout->addWidget(button);
 
-	QWidget *widget = new QWidget();
-	widget->setLayout(layout);
-
-	setWidget(widget);
+	setLayout(layout);
 
 	// Connect
-	connect(button, SIGNAL(clicked()), this, SLOT(onButtonClicked()));
+	{
+		connect(button, SIGNAL(clicked()), this, SLOT(onButtonClicked()));
+	}
 }
 
 void iANModalWidget::onButtonClicked() {
-	//m_label->setText("Clicked");
-	adjustTf();
-}
-
-void iANModalWidget::adjustTf() {
 
 	QSharedPointer<iAModality> modality = m_mdiChild->modality(0);
 	vtkSmartPointer<vtkImageData> image = modality->image();
-	QSharedPointer<iAModalityTransfer> tf = modality->transfer();
-
-	double range[2];
-	image->GetScalarRange(range);
-	double min = range[0];
-	double max = range[1];
 
 	QList<LabeledVoxel> voxels;
 
 	{
 		QObject *obj = m_mdiChild->findChild<QObject*>("labels");
 		dlg_labels* labeling = static_cast<dlg_labels*>(obj);
-		QString text = QString();
 
 		QStandardItemModel *items = labeling->m_itemModel;
 		for (int row = 0; row < items->rowCount(); row++) {
@@ -150,28 +94,9 @@ void iANModalWidget::adjustTf() {
 				v.remover = (row == 0);
 
 				voxels.append(v);
-
-				text += v.text() + "\n";
 			}
 		}
-
-		m_label->setText(text);
 	}
 
-	tf->colorTF()->RemoveAllPoints();
-	tf->colorTF()->AddRGBPoint(min, 0.0, 0.0, 0.0);
-	tf->colorTF()->AddRGBPoint(max, 0.0, 0.0, 0.0);
-
-	tf->opacityTF()->RemoveAllPoints();
-	tf->opacityTF()->AddPoint(min, 0.0);
-	tf->opacityTF()->AddPoint(max, 0.0);
-
-	for (int i = 0; i < voxels.size(); i++) {
-		LabeledVoxel v = voxels[i];
-
-		double opacity = v.remover ? 0.0 : 0.5;
-
-		tf->colorTF()->AddRGBPoint(v.scalar, v.r, v.g, v.b);
-		tf->opacityTF()->AddPoint(v.scalar, opacity);
-	}
+	m_c->adjustTf(modality, voxels);
 }

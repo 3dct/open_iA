@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iANModalTFModuleInterface.h"
 
-#include "iANModalWidget.h"
+#include "iANModalMain.h"
 
 #include <iAConsole.h>
 #include <mainwindow.h>
@@ -39,16 +39,16 @@ void iANModalTFModuleInterface::Initialize() {
 }
 
 iAModuleAttachmentToChild* iANModalTFModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild *childData) {
-	return iANModalWidgetAttachment::create(mainWnd, childData);
+	return iANModalAttachment::create(mainWnd, childData);
 }
 
 void iANModalTFModuleInterface::onMenuItemSelected() {
 	PrepareActiveChild();
-	auto attach = attachment<iANModalWidgetAttachment>(m_mdiChild);
+	auto attach = attachment<iANModalAttachment>(m_mdiChild);
 	if (!attach)
 	{
 		AttachToMdiChild(m_mdiChild);
-		attach = attachment<iANModalWidgetAttachment>(m_mdiChild);
+		attach = attachment<iANModalAttachment>(m_mdiChild);
 		if (!attach)
 		{
 			DEBUG_LOG("Attaching failed!");

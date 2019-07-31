@@ -20,26 +20,33 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
+#include "iAModuleAttachmentToChild.h"
 
-class iANModalController;
+#include <QDockWidget>
+
+class iANModalWidget;
 class MdiChild;
 
 class QLabel;
 
-class iANModalWidget : public QWidget {
+class iANModalMain : public QDockWidget {
 	Q_OBJECT
 
 public:
-	iANModalWidget(MdiChild *mdiChild);
+	iANModalMain(MdiChild *mdiChild);
+	iANModalWidget* nModalWidget();
 
 private:
-	iANModalController *m_c;
-	MdiChild *m_mdiChild;
+	iANModalWidget *m_nModalWidget;
+};
 
-	QLabel *m_label;
 
-private slots:
-	void onButtonClicked();
-
+class iANModalAttachment : public iAModuleAttachmentToChild {
+	Q_OBJECT
+public:
+	static iANModalAttachment* create(MainWindow *mainWnd, MdiChild *child);
+	void start();
+private:
+	iANModalAttachment(MainWindow *mainWnd, MdiChild *child);
+	iANModalMain *m_nModalMain;
 };

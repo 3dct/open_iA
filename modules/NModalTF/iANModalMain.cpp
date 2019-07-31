@@ -18,28 +18,47 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iANModalMain.h"
 
-#include <QWidget>
+#include "iAConsole.h"
+#include "mdichild.h"
 
-class iANModalController;
-class MdiChild;
 
-class QLabel;
+// Module interface and Attachment --------------------------------------------------------
 
-class iANModalWidget : public QWidget {
-	Q_OBJECT
+iANModalAttachment::iANModalAttachment(MainWindow * mainWnd, MdiChild *child) :
+	iAModuleAttachmentToChild(mainWnd, child),
+	m_nModalMain(nullptr)
+{
+	// Do nothing
+}
 
-public:
-	iANModalWidget(MdiChild *mdiChild);
+iANModalAttachment* iANModalAttachment::create(MainWindow * mainWnd, MdiChild *child) {
+	auto newAttachment = new iANModalAttachment(mainWnd, child);
+	return newAttachment;
+}
 
-private:
-	iANModalController *m_c;
-	MdiChild *m_mdiChild;
+void iANModalAttachment::start() {
+	if (!m_nModalMain) {
+		m_nModalMain = new iANModalMain(m_child);
+		m_child->tabifyDockWidget(m_child->logDockWidget(), m_nModalMain);
+	}
+	m_nModalMain->show();
+	m_nModalMain->raise();
+}
 
-	QLabel *m_label;
 
-private slots:
-	void onButtonClicked();
+// n-Modal Widget -------------------------------------------------------------------------
 
-};
+#include "iANModalWidget.h"
+
+iANModalMain::iANModalMain(MdiChild *mdiChild):
+	QDockWidget("n-Modal Transfer Function", mdiChild)
+{
+	setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetVerticalTitleBar);
+	m_nModalWidget = new iANModalWidget(mdiChild);
+	setWidget(m_nModalWidget);
+}
+iANModalWidget* iANModalMain::nModalWidget() {
+	return m_nModalWidget;
+}
