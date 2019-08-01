@@ -42,10 +42,10 @@ double ThesholdCalculator::vectorSum(const std::vector<double> &vec, size_t star
 	return tmp; 
 }
 
-void ThesholdCalculator::createDataVisualisation(const std::vector<double> v_x, const std::vector<double> v_y)
-{
-
-}
+//void ThesholdCalculator::createDataVisualisation(const std::vector<double> v_x, const std::vector<double> v_y)
+//{
+//
+//}
 
 void ThesholdCalculator::testPeakDetect()
 {
@@ -54,14 +54,10 @@ void ThesholdCalculator::testPeakDetect()
 	DEBUG_LOG(QString("max peak %1").arg(res)) 
 }
 
-void ThesholdCalculator::testSpecifyRange()
+void ThesholdCalculator::testSpecifyRange(const std::vector<double> &v_inRange, 
+	const std::vector<double> &v_elements, ParametersRanges &outputRanges)
 {
-	std::vector<double> v_inRange = { 2.005, 1,0.1,2.0001, 0, 0, 8 , 4, 10, 7, 12 };
-	
-	//									1	2	3		4	5	6	7	8
-	std::vector<double> v_elements = {0, 100, 200, 300, 400, 500, 600,700,800, 900, 1000 }; 
-	
-	ParametersRanges outputRanges; 
+	 
 	//std::vector<double> out_range;
 	//out_range.reserve(v_elements.size()); 
 	double x_min = 2.0; 
@@ -205,7 +201,7 @@ void ThesholdCalculator::specifyRange(const std::vector<double>& v_inRef, const 
 		}
 		
 		val_y = vals[ind]; 
-		//v_out.push_back(val);
+		
 		outRange.insertElem(el_x, val_y);
 	}
 

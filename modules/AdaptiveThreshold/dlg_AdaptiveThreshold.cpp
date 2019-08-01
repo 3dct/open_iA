@@ -7,6 +7,7 @@
 #include <QPoint>
 #include <QFileDialog>
 #include "ChartVisHelper.h"
+#include "ThresholdDefinitions.h"
 
 
 
@@ -35,7 +36,7 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags 
 		this->ed_xMax->setText("");
 		this->ed_YMax->setText("");
 		this->ed_Ymin->setText(""); 
-
+		
 		Qt::WindowFlags flags = this->windowFlags();
 		this->setWindowFlags(flags | Qt::Tool); 
 
@@ -44,11 +45,10 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags 
 		}
 
 		setupUIActions();
-
 		this->mainLayout->addWidget(m_chartView);
 	}
 	catch (std::bad_alloc &ba) {
-		throw; 
+		DEBUG_LOG("Not enough memory to create objects"); 
 	}
 }
 
@@ -147,11 +147,6 @@ void AdaptiveThreshold::setHistData (QSharedPointer<iAPlotData> &data)
 void AdaptiveThreshold::resetGraphToDefault()
 {
 	DEBUG_LOG("reset to default"); 
-	//DEBUG_LOG(QString("Default %1 %2 %3 %4").arg(minXDefault).arg(maxXDefault).arg(minYDefault).arg(maxYDefault)); 
-	//m_xMinRef /*= xMIn;*/
-	//m_xMaxRef /*= xMax;*/
-	//m_yMinRef /*= yMin;*/
-	//m_yMaxRef /*= yMax;*/
 	this->initAxes(m_xMinRef/*minXDefault*/, m_xMaxRef, m_yMinRef, m_yMaxRef, false);
 	this->ed_xMIn->setText(QString("%1").arg(m_xMinRef));
 	this->ed_xMax->setText(QString("%1").arg(m_xMaxRef));
@@ -188,8 +183,17 @@ void AdaptiveThreshold::myAction()
 
 void AdaptiveThreshold::aTestAction()
 {
-	DEBUG_LOG("ATestAction is controlled"); 
-	m_thresCalculator.testSpecifyRange(); 
+	DEBUG_LOG("ATestAction is controlled");
+
+	std::vector<double> v_inRange = { 2.005, 1,0.1,2.0001, 0, 0, 8 , 4, 10, 7, 12 };
+	//								1	2	3		4	5	6	7	8
+	std::vector<double> v_elements = { 0, 100, 200, 300, 400, 500, 600,700,800, 900, 1000 };
+	ParametersRanges outputRanges;
+	m_thresCalculator.testSpecifyRange(v_inRange, v_elements,outputRanges);
+
+
+
+
 }
 
 void AdaptiveThreshold::AnotherAction()
@@ -198,8 +202,7 @@ void AdaptiveThreshold::AnotherAction()
 
 	std::vector<double> vec_x = { 1, 2, 3, 4,8};
 	std::vector<double> vec_y = { 100, 117, 120, 110, 120 };
-
-	QScatterSeries* mySeries = dynamic_cast<QScatterSeries*> (ChartVisHelper::create(vec_x, vec_y)); 
+	QLineSeries* mySeries = ChartVisHelper::createLineSeries(vec_x, vec_y); 
 	this->addSeries(mySeries); 
 	QColor color = QColor(0, 255, 0); 
 	mySeries->setColor(color); 
@@ -275,14 +278,10 @@ void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries, const std::vector<
 	}
 
 	determineMinMax(x_vals, y_vals); 
-	//setDefaultMinMax(m_xMinRef, 20000, 0, 25000); 
-
-
+	
 	DEBUG_LOG(QString("xmin xmax ymin ymax %! %2 %3 %4").arg(m_xMinRef).arg(m_yMaxRef).
 		arg(m_yMinRef).arg(m_yMaxRef)); 
-
-	
-	//this->initAxes(m_xMinRef, m_xMaxRef, m_yMinRef, m_yMinRef, false);
+		
 	if (updateCoords)
 	{
 		this->resetGraphToDefault(); 
@@ -313,36 +312,15 @@ void AdaptiveThreshold::addSeries(QXYSeries *aSeries)
 {
 	if (!aSeries) 
 		return; 
-	if (!axisX | !axisY)
-		return; 
-
+	
 	this->m_chart->addSeries(aSeries);
 	aSeries->attachAxis(axisX);
 	aSeries->attachAxis(axisY); 
-
 	m_chart->update();
 	m_chartView->update(); 
 
 }
 
-QT_CHARTS_NAMESPACE::QXYSeries * AdaptiveThreshold::createDataSeries(const std::vector<double> &xvals, const std::vector<double> &y_vals, plotMode mode)
-{
-	QXYSeries *series = nullptr; 
-	switch (mode)	
-	{
-	case plotMode::lines:
-			series = new QScatterSeries;
-			break;
-
-	case plotMode::scatter:
-		series = new QLineSeries; 
-		break; 
-	default:
-		break;
-	}
-
-	return series; 
-}
 
 void AdaptiveThreshold::createSampleSeries()
 {
@@ -389,7 +367,6 @@ void AdaptiveThreshold::buttonUpdateClicked()
 
 void AdaptiveThreshold::buttonLoadDataClicked()
 {
-	//DEBUG_LOG("Button update is clicked");
 	QString fName = QFileDialog::getOpenFileName(this, ("Open File"),
 		"/home",
 		("Files (*.csv *.txt)"));
@@ -400,20 +377,14 @@ void AdaptiveThreshold::buttonLoadDataClicked()
 
 	this->m_greyThresholds = m_seriesLoader.getGreyValues(); 
 	this->m_frequencies = m_seriesLoader.getFrequencies(); 
-
 	prepareDataSeries(m_refSeries,m_greyThresholds, m_frequencies, true); 
-
-	
-
 }
 
 void AdaptiveThreshold::buttonLoadHistDataClicked()
 {
 	this->textEdit->append("Loading histogram data\n");
 	m_thresCalculator.retrieveHistData(); 
-
 	this->setInputData(m_thresCalculator.getThresBins(), m_thresCalculator.getFreqValsY()); 
-
 	this->prepareDataSeries(m_refSeries, m_greyThresholds, 
 		m_frequencies, true); 
 }

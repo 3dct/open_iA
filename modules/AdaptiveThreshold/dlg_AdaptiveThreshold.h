@@ -44,17 +44,18 @@ public:
 
 	void initChart();
 
+
+	//init Axis in x and y, also with ticks
 	void initAxes(double xmin, double xmax, double ymin, double yMax, bool setDefaultAxis); 	
 	
 	void prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals, bool updateCoords);
 
     void addSeries(QXYSeries *aSeries); 
 	
-	//TBA those will be empty
-	QXYSeries *createDataSeries(const std::vector<double> &xvals, const std::vector<double> &y_vals,plotMode mode); 
 
+	//TBA
 	inline void clearSeries(QXYSeries *series) {
-		series->clear();
+		//series->clear();
 
 	}
 
@@ -89,8 +90,7 @@ private:
 
 
 	void setDefaultMinMax(double xMIn, double xMax, double yMin, double yMax); 
-	//void setMinMaxToEdit(double xMin, double xMax, double yMin, double yMax); 
-
+	
 	const double minXDefault = 0; const double maxXDefault = 65535; 
 	const double minYDefault = 0; const double maxYDefault = 40000; 
 	int m_average = 0; 

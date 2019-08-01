@@ -47,13 +47,11 @@ public:
 	//select values only in the range between min and max
 	void specifyRange(const std::vector<double>& v_in, const std::vector<double> &vals, ParametersRanges &outRange, double xmin, double xmax);
 	void testPeakDetect();
-	void testSpecifyRange(); 
+	
 
 
-	/*TODO specify input range: min max
-	-> determine peaks min max
-	-> return min max
-	*/
+	void testSpecifyRange(const std::vector<double>& v_inRange, const std::vector<double>& v_elements, ParametersRanges& outputRanges);
+	
 	void performCalculation(std::vector<double> inputRange, double xmin, double xmax); 
 
 
@@ -79,7 +77,7 @@ public:
 private:
 	double vectorSum(const std::vector<double> &sum, size_t startInd, size_t endInd);
 	
-	void createDataVisualisation(const std::vector<double> v_x, const std::vector<double> v_y);
+	//void createDataVisualisation(const std::vector<double> v_x, const std::vector<double> v_y);
 	
 	QSharedPointer<iAPlotData> m_data;
 	DebugHelper m_dbgHelper; 	
