@@ -63,7 +63,10 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(calculateMovingAverage()));
 	connect(this->btn_loadHistData, SIGNAL(clicked()), this, SLOT(buttonLoadHistDataClicked())); 
 	connect(this->btn_clear, SIGNAL(clicked()), this, SLOT(clearEditField()));
-	connect(this->btn_aTestAction, SIGNAL(clicked()), this, SLOT(AnotherAction())); 
+	//connect(this->btn_aTestAction, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClicked()));
+	connect(this->btn_selectRange, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClicked()));
+	//connect(this->btn)
+
 
 }
 
@@ -79,7 +82,7 @@ void AdaptiveThreshold::initChart()
 	
 	/*m_chart->addSeries(s2);
 	m_chart->legend()->markers(s2)[0]->setVisible(false);*/
-	initAxes(0, 20, 2, 20, true); 
+	initAxes(0, 20, 2, 20, false); 
 }
 
 
@@ -164,6 +167,8 @@ void AdaptiveThreshold::calculateMovingAverage()
 	if (averageCount <= 2) return; 	
 
 	DEBUG_LOG(QString("Freq size%1").arg(m_frequencies.size())); 
+
+	//reset the frequency
 	if (m_movingFrequencies.size() > 0)
 		m_movingFrequencies.clear();
 
@@ -174,6 +179,65 @@ void AdaptiveThreshold::calculateMovingAverage()
 	QLineSeries *newSeries = new QLineSeries;
 	this->prepareDataSeries(newSeries, m_greyThresholds, m_movingFrequencies, false);
 	
+}
+
+void AdaptiveThreshold::buttonSelectRangesClicked()
+{
+	double x_min = 0;
+	double x_max = 0;
+
+	bool* x_OK = new bool; bool* x2_OK = new bool;
+	
+	x_min = this->ed_minRange->text().toDouble(x_OK);
+	x_max = this->ed_maxRange->text().toDouble(x2_OK);
+	
+	if ((!x_OK) || (!x2_OK)) {
+		this->textEdit->setText("invalid input");
+		return;
+
+	}else if ((x_min < 0) || (x_max <= 0)) {
+		this->textEdit->setText("please again check parameters");
+		return; 
+	}
+
+	delete x_OK; 
+	delete x2_OK; 
+	
+	try
+	{
+		ParametersRanges paramRanges;
+		QLineSeries* rangedSeries = nullptr;
+
+
+		if (m_movingFrequencies.empty())
+		{
+			this->textEdit->append("moving average not yet created, create average sequence before");
+			return;
+		}
+
+		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies/*m_frequencies*/, paramRanges, x_min, x_max);
+		rangedSeries = ChartVisHelper::createLineSeries(paramRanges);
+
+		if (!rangedSeries)
+		{
+			DEBUG_LOG("Range series not created");
+			return;
+		}
+
+		QColor color = QColor(255, 0, 0);
+		rangedSeries->setColor(color);
+		this->addSeries(rangedSeries);
+
+	}catch (std::bad_alloc& ba){
+			this->textEdit->append("not enough memory avaiable"); 
+
+	}catch (std::invalid_argument& ia)
+	{
+
+		QString output = ia.what();
+		this->textEdit->append(output); 
+
+	}
 }
 
 void AdaptiveThreshold::myAction()
@@ -190,9 +254,8 @@ void AdaptiveThreshold::aTestAction()
 	std::vector<double> v_elements = { 0, 100, 200, 300, 400, 500, 600,700,800, 900, 1000 };
 	ParametersRanges outputRanges;
 	m_thresCalculator.testSpecifyRange(v_inRange, v_elements,outputRanges);
-
-
-
+	QScatterSeries *testSeries = ChartVisHelper::createScatterSeries(outputRanges); 
+	this->addSeries(testSeries); 
 
 }
 
@@ -203,6 +266,7 @@ void AdaptiveThreshold::AnotherAction()
 	std::vector<double> vec_x = { 1, 2, 3, 4,8};
 	std::vector<double> vec_y = { 100, 117, 120, 110, 120 };
 	QLineSeries* mySeries = ChartVisHelper::createLineSeries(vec_x, vec_y); 
+	this->initAxes(0, 10, 90, 100, false);
 	this->addSeries(mySeries); 
 	QColor color = QColor(0, 255, 0); 
 	mySeries->setColor(color); 
@@ -273,13 +337,13 @@ void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries, const std::vector<
 
 	if (!(x_vals.size() == y_vals.size()))
 	{
-		DEBUG_LOG("size different");
+		DEBUG_LOG("x, y size different");
 		return;
 	}
 
 	determineMinMax(x_vals, y_vals); 
 	
-	DEBUG_LOG(QString("xmin xmax ymin ymax %! %2 %3 %4").arg(m_xMinRef).arg(m_yMaxRef).
+	DEBUG_LOG(QString("xmin xmax ymin ymax %1 %2 %3 %4").arg(m_xMinRef).arg(m_yMaxRef).
 		arg(m_yMinRef).arg(m_yMaxRef)); 
 		
 	if (updateCoords)
@@ -299,7 +363,6 @@ void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries, const std::vector<
 
 	QString text = QString("Moving average %1").arg(5);
 	
-	//aSeries->setPointLabelsVisible(true);
 	this->addSeries(aSeries); 
 	aSeries->setObjectName(text);
 	this->m_chart->update();
@@ -381,8 +444,11 @@ void AdaptiveThreshold::buttonLoadDataClicked()
 }
 
 void AdaptiveThreshold::buttonLoadHistDataClicked()
-{
+{   //load histogram 
+	//retrieve thresholds and frequencies
+	//visualize it
 	this->textEdit->append("Loading histogram data\n");
+	
 	m_thresCalculator.retrieveHistData(); 
 	this->setInputData(m_thresCalculator.getThresBins(), m_thresCalculator.getFreqValsY()); 
 	this->prepareDataSeries(m_refSeries, m_greyThresholds, 

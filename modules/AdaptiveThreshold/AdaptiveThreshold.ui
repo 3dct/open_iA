@@ -232,7 +232,7 @@
      <x>80</x>
      <y>750</y>
      <width>691</width>
-     <height>31</height>
+     <height>71</height>
     </rect>
    </property>
   </widget>
@@ -252,23 +252,23 @@
     </size>
    </property>
    <property name="text">
-    <string>TAusgabe</string>
+    <string>Log</string>
    </property>
   </widget>
   <widget class="QPushButton" name="btn_clear">
    <property name="geometry">
     <rect>
-     <x>700</x>
-     <y>800</y>
-     <width>75</width>
-     <height>23</height>
+     <x>80</x>
+     <y>830</y>
+     <width>231</width>
+     <height>41</height>
     </rect>
    </property>
    <property name="text">
     <string>ClearLog</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEdit">
+  <widget class="QLineEdit" name="ed_minRange">
    <property name="geometry">
     <rect>
      <x>40</x>
@@ -278,7 +278,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEdit_2">
+  <widget class="QLineEdit" name="ed_maxRange">
    <property name="geometry">
     <rect>
      <x>40</x>
@@ -314,24 +314,27 @@
     <string>RangeXMax</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_calculateThreshold">
+  <widget class="QPushButton" name="btn_selectRange">
    <property name="geometry">
     <rect>
-     <x>190</x>
-     <y>520</y>
+     <x>170</x>
+     <y>500</y>
      <width>75</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string>Calculate stuff</string>
+    <string>SelectRanges</string>
    </property>
   </widget>
   <widget class="QPushButton" name="btn_aTestAction">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
-     <x>330</x>
-     <y>520</y>
+     <x>40</x>
+     <y>610</y>
      <width>75</width>
      <height>23</height>
     </rect>

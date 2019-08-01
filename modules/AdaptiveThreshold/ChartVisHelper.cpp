@@ -9,7 +9,8 @@ QLineSeries* ChartVisHelper::createLineSeries(const ParametersRanges& ranges)
 	const std::vector<double> y_series = ranges.getYRange();
 	
 	if (x_series.empty() || y_series.empty()) {
-		return series = nullptr; 
+		delete series; 
+		throw std::invalid_argument("data is empty"); 
 	}
 
 	fillSeries(series, x_series, y_series); 

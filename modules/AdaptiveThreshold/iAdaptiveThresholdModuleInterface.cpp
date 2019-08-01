@@ -35,7 +35,7 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 		
 	if (!m_mainWnd->activeMdiChild())
 	{
-		DEBUG_LOG("image not loaded");
+		DEBUG_LOG("data not avaiable, please load a data set before");
 		return; 
 	}
 
@@ -45,15 +45,14 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 		return;
 	}
 
-	try {
-			
+	try
+	{
 		auto data = hist->plots()[0]->data();
 		dlg_thres.initChart();
 		dlg_thres.setHistData(data);
 		if (dlg_thres.exec() != QDialog::Accepted)
 			return;
-	}
-	catch (std::invalid_argument& iaex) {
+	}catch (std::invalid_argument& iaex) {
 		DEBUG_LOG(iaex.what()); 
 		return; 
 	}

@@ -138,16 +138,9 @@ void ThesholdCalculator::retrieveHistData()
 	for (int b = 0; b < m_data->numBin(); ++b) {
 		binVals_X = m_data->binStart(b);
 		freq_valsY = m_data->rawData()[b];
-
-		/*	DEBUG_LOG(QString("bin %1").arg(binVals_X));
-			DEBUG_LOG(QString("freq %1").arg(freq_valsY));*/
 		m_thresBinsX.push_back(binVals_X);
 		m_freqValsY.push_back(freq_valsY); 
 
-		//push back some how
-		////Todo Remove
-		//if (b == 10) break;
-		///*for(int p = 0; p < m_plots.size(); ++p)*/
 	}
 }
 
@@ -180,7 +173,12 @@ void ThesholdCalculator::specifyRange(const std::vector<double>& v_inRef, const 
 	size_t vrefLengh = v_inRef.size();
 	size_t valsLenght = vals.size(); 
 
-	if ((vrefLengh == 0 ) || (valsLenght ==0) || (xmin <= 0) || xmax <= 0)
+	if ((vrefLengh == 0) || (valsLenght == 0)) {
+
+		throw std::invalid_argument("data is empty");
+
+	}else 
+	if ( (xmin < 0) || xmax <= 0)
 	{
 		DEBUG_LOG(QString("size vec1 %1 size vec2 %2 xmin %3 xmax %4").arg(v_inRef.size()).
 			arg(vals.size()).arg(xmin).arg(xmax));
@@ -188,7 +186,12 @@ void ThesholdCalculator::specifyRange(const std::vector<double>& v_inRef, const 
 		throw std::invalid_argument("invalid parameter input");
 
 	}
-	else if (vrefLengh != valsLenght) {
+	else if ((xmax > 65535) || (xmax <= xmin))
+	{
+		QString msg = QString("invalid range or out short %1").arg(xmax);
+		throw std::invalid_argument(msg.toStdString().c_str());
+
+	}else if (vrefLengh != valsLenght) {
 		throw std::invalid_argument("size of input and reference vector size are not equal"); 
 	}
 

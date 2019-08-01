@@ -22,8 +22,7 @@ public:
 	//iACutstomChartView(QChart * chart);
 	iACutstomChartView(QWidget *parent);
 	~iACutstomChartView();
-
-
+	
 	void prepareAxisX(const QString &title, double min, double max, uint tick_count);
 	void prepareAxisY(const QString &title, double min, double max, uint tick_count); 	
 	void addSeries(QAbstractSeries *aSerie, const QString *title, bool noLegendSymbol);

@@ -35,13 +35,9 @@ Q_OBJECT
 public:
 	//! Create a new dialog, all parameters are optional
 	AdaptiveThreshold(QWidget * parent = 0, Qt::WindowFlags f = 0);
-
-	void setupUIActions();
-
 	~AdaptiveThreshold();
 
-	//void calculateMovingAvarage();	
-
+	void setupUIActions();
 	void initChart();
 
 
@@ -49,11 +45,9 @@ public:
 	void initAxes(double xmin, double xmax, double ymin, double yMax, bool setDefaultAxis); 	
 	
 	void prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals, bool updateCoords);
-
-    void addSeries(QXYSeries *aSeries); 
-	
-
+	void addSeries(QXYSeries *aSeries); 
 	//TBA
+
 	inline void clearSeries(QXYSeries *series) {
 		//series->clear();
 
@@ -61,8 +55,6 @@ public:
 
 	void setHistData(/*const*/ QSharedPointer<iAPlotData>& data);
 	
-	
-
 private slots:
 		void buttonUpdateClicked();
 		void buttonLoadDataClicked(); 
@@ -70,12 +62,15 @@ private slots:
 		void createSampleSeries();
 		void clear(); 
 		void resetGraphToDefault(); 
-		void calculateMovingAverage(); 
+		void calculateMovingAverage();
+		void buttonSelectRangesClicked(); 
+
+		//TBa remove test actions below
 		void myAction();
 		void aTestAction(); 
 
 		void AnotherAction(); 
-
+		//end tba
 		inline void clearEditField() {
 			this->textEdit->clear();
 		}
