@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                          Amirkhanov, J. WeissenbÃ¶ck, B. FrÃ¶hler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,25 +15,16 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
-#include "iATripleModalityWidget.h"
-#include "iAHistogramStack.h"
-#include "iAHistogramTriangle.h"
+#include "iASimpleTester.h"
+#include "iAvec3.h"
 
-iAHistogramAbstract* iAHistogramAbstract::buildHistogramAbstract(iAHistogramAbstractType type, iATripleModalityWidget *tmw, MdiChild *mdiChild, Qt::WindowFlags f) {
-	switch (type) {
-	case STACK:
-		return new iAHistogramStack(tmw, tmw, mdiChild, f);
-
-	case TRIANGLE:
-		return new iAHistogramTriangle(tmw, tmw, mdiChild, f);
-	}
-
-	throw "Unexpected type";
-}
-
-void iAHistogramAbstract::updateModalityNames(QString const names[3])
-{}
+BEGIN_TEST
+	iAVec3i vec1(0, 1, 2);
+	iAVec3i vec2(2, 3, 4);
+	iAVec3i resVec = vec1 + vec2;
+	TestAssert(resVec[0] == 2 && resVec[1] == 4 && resVec[2] == 6);
+END_TEST

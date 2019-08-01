@@ -28,6 +28,8 @@ IF (MSVC)
 ELSE()
 	find_library(ASTRA_TOOLBOX_LIBRARIES_RELEASE astra
 		PATHS ${ASTRA_TOOLBOX_DIR}/build/linux/.libs
+		${ASTRA_TOOLBOX_DIR}/lib
+
 	)
 ENDIF()
 

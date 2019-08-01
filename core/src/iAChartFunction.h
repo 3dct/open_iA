@@ -58,6 +58,7 @@ public:
 	virtual bool isColored() = 0;
 	virtual bool isEndPoint(int index) = 0;
 	virtual bool isDeletable(int index) = 0;
+	virtual int numPoints() const = 0;
 
 	virtual void reset() = 0;
 	virtual void mouseReleaseEvent(QMouseEvent *) {}

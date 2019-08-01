@@ -21,6 +21,9 @@
 
 #include "iABimodalWidget.h"
 
+#include <iAModality.h>
+#include <mdichild.h>
+
 #include "iAInterpolationSliderWidget.h"
 #include "iAHistogramStackGrid.h"
 
@@ -45,17 +48,16 @@ void iABimodalWidget::modalitiesLoaded_beforeUpdateSlot()
 
 void iABimodalWidget::initialize()
 {
-	QString strings[2] = { "A", "B" };
-	QVector<QLabel*> labels;
 	QVector<iADiagramFctWidget*> histograms;
 	QVector<iASimpleSlicerWidget*> slicers;
+	m_labels.clear();
 
 	for (int i = 0; i < 2; i++) {
-		QLabel *l = new QLabel(strings[i]);
+		QLabel *l = new QLabel(m_mdiChild->modality(i)->name());
 		l->setStyleSheet("font-weight: bold");
 		l->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
-		labels.push_back(l);
+		m_labels.push_back(l);
 		histograms.push_back(w_histogram(i).data());
 		slicers.push_back(w_slicer(i).data());
 	}
@@ -79,7 +81,7 @@ void iABimodalWidget::initialize()
 	wleftl->setSpacing(1);
 	wleftl->setMargin(0);
 
-	auto grid = new iAHistogramStackGrid(wleft, histograms, slicers, labels);
+	auto grid = new iAHistogramStackGrid(wleft, histograms, slicers, m_labels);
 
 	wleftl->addWidget(optionsContainer, 0);
 	wleftl->addWidget(grid, 1);
@@ -105,4 +107,10 @@ void iABimodalWidget::initialize()
 void iABimodalWidget::tChanged(double t)
 {
 	setWeightsProtected(t);
+}
+
+void iABimodalWidget::modalitiesChanged()
+{
+	for (int i = 0; i < 2; i++)
+		m_labels[i]->setText(m_mdiChild->modality(i)->name());
 }

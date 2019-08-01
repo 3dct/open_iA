@@ -416,8 +416,11 @@ void dlg_modalities::listClicked(QListWidgetItem* item)
 	{
 		return;
 	}
-	setModalitySelectionMovable(selectedRow);
-	configureInterActorStyles(m_modalities->get(selectedRow));
+	if (cbManualRegistration->isChecked())
+	{
+		setModalitySelectionMovable(selectedRow);
+		configureInterActorStyles(m_modalities->get(selectedRow));
+	}
 
 	emit modalitySelected(selectedRow);
 }

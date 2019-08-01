@@ -28,10 +28,10 @@ IF (MSVC)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive-")
 	ENDIF()
 
-	IF (NOT EXISTS ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user 
-	OR NOT EXISTS ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj.user 
-	OR NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_OPENIA_GUI_DBG_ENV_PATH}")
-		
+	IF (NOT EXISTS ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user
+		OR NOT EXISTS ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj.user
+		OR NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_OPENIA_GUI_DBG_ENV_PATH}")
+
 		MESSAGE(STATUS "LIBRARY paths changed new=${DebugLibraryPaths}, cached=${CACHED_OPENIA_GUI_DBG_ENV_PATH}")
 		# force cmake to copy the files:
 		file(REMOVE ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj.user)
@@ -46,11 +46,20 @@ IF (MSVC)
 
 		foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
 			set (ADDITIONAL_PATH ${${CONFIG}LibraryPaths})
-			file(REMOVE ${CMAKE_BINARY_DIR}/open_iA_gui_${CONFIG}.bat )
+			file(REMOVE ${CMAKE_BINARY_DIR}/x64/open_iA_gui_${CONFIG}.bat )
 			CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/cmake/run-tmpl.bat ${CMAKE_BINARY_DIR}/x64/open_iA_gui_${CONFIG}.bat @ONLY)
 		endforeach()
 	ENDIF ()
 ENDIF (MSVC)
+
+IF (BUILD_TESTING)
+	IF (MSVC)
+		SET (FileOpenTestBinary "${CMAKE_BINARY_DIR}/x64/open_iA_gui_Release.bat")
+	ELSE()
+		SET (FileOpenTestBinary "${CMAKE_SOURCE_DIR}/Test_files/run_with_xserver.sh" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${EXECUTABLE_NAME}")
+	ENDIF()
+	ADD_TEST(NAME FileOpenTest COMMAND ${FileOpenTestBinary} ${CMAKE_SOURCE_DIR}/Test_files/TestITK/Input/template_sphere_d13um.mhd --quit 3000)
+ENDIF()
 
 IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIE")

@@ -252,9 +252,6 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 
 int iAChartFunctionBezier::addPoint(int x, int y)
 {
-	if (y < 0)
-		y = 0;
-
 	double xf = v2dX(x);
 
 	int index = 0;
@@ -390,6 +387,11 @@ void iAChartFunctionBezier::reset()
 	realPoints.push_back(QPointF(end, 0.0));
 
 	selectedPoint = -1;
+}
+
+int iAChartFunctionBezier::numPoints() const
+{
+	return realPoints.size();
 }
 
 void iAChartFunctionBezier::mouseReleaseEvent(QMouseEvent*)

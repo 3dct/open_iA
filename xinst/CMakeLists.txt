@@ -9,3 +9,7 @@ INSTALL(CODE "
 	include(BundleUtilities)
 	fixup_bundle(\"${BUNDLE_APP}\" \"\${BUNDLE_LIBS}\" \"${BUNDLE_DIRS}\")
 	")
+
+IF (UNIX)
+	INSTALL(CODE "include(\"${CMAKE_CURRENT_SOURCE_DIR}/../cmake/ChangeRPath.cmake\")")
+ENDIF()

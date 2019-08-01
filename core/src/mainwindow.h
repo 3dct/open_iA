@@ -118,7 +118,8 @@ protected:
 	void dropEvent(QDropEvent *e) override;
 
 private slots:
-	void timeout();
+	void quitTimerSlot();
+	void hideSplashSlot();
 	void open();
 	void openRaw();
 	void openImageStack();
@@ -129,7 +130,6 @@ private slots:
 	void saveAs();
 	bool loadSettings();
 	bool saveSettings();
-	void loadProject();
 	void saveProject();
 	void maxXY();
 	void maxXZ();
@@ -233,7 +233,7 @@ private:
 
 	QString m_defaultLayout;
 	QString m_curFile, m_path;
-	QTimer *m_timer;
+	QTimer *m_splashTimer, *m_quitTimer;
 	QComboBox * m_layout;
 	QScopedPointer<iAModuleDispatcher> m_moduleDispatcher;
 	QStringList m_layoutNames;
