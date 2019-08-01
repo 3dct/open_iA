@@ -27,6 +27,7 @@
 #include "iAChartFunctionBezier.h"
 #include "iAChartFunctionGaussian.h"
 #include "iAChartFunctionTransfer.h"
+#include "iACheckOpenGL.h"
 #include "iAConsole.h"
 #include "iALogger.h"
 #include "iAMathUtility.h"
@@ -2504,15 +2505,16 @@ void MainWindow::initResources()
 int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString const & version,
 	QString const & splashPath, QString const & iconPath)
 {
+	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
 	MainWindow::initResources();
 	QApplication app(argc, argv);
-	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 	app.setAttribute(Qt::AA_ShareOpenGLContexts);
 	iAGlobalLogger::setLogger(iAConsole::instance());
 	MainWindow mainWin(appName, version, splashPath);
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
 	mainWin.loadArguments(argc, argv);
+	checkOpenGLVersion();
 	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
 	qApp->setStyle(new MyProxyStyle(qApp->style()));
