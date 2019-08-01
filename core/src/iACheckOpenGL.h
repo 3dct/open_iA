@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+class QString;
+
 //! Check whether the available OpenGL version is sufficient
 //! to render things properly on this machine with Qt / VTK
-bool checkOpenGLVersion();
+bool checkOpenGLVersion(QString & msg);

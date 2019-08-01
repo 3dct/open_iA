@@ -2508,13 +2508,18 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
 	MainWindow::initResources();
 	QApplication app(argc, argv);
+	QString msg;
+	if (!checkOpenGLVersion(msg))
+	{
+		QMessageBox::warning(nullptr, appName, msg);
+		return 1;
+	}
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 	app.setAttribute(Qt::AA_ShareOpenGLContexts);
 	iAGlobalLogger::setLogger(iAConsole::instance());
 	MainWindow mainWin(appName, version, splashPath);
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
 	mainWin.loadArguments(argc, argv);
-	checkOpenGLVersion();
 	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
 	qApp->setStyle(new MyProxyStyle(qApp->style()));

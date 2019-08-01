@@ -18,12 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAConsole.h"
 
 #include <QOpenGLFunctions>
+#include <QString>
 #include <QWindow>
 
-bool checkOpenGLVersion()
+bool checkOpenGLVersion(QString & msg)
 {
 	try
 	{
@@ -36,31 +36,78 @@ bool checkOpenGLVersion()
 		context->setFormat(test.requestedFormat());
 		if (!context->create())
 		{
-			DEBUG_LOG("Creating OpenGL context failed!");
+			msg = "Creating OpenGL context failed!";
 			delete context;
 			return false;
 		}
 		test.show();
 		if (!context->makeCurrent(&test))
 		{
-			DEBUG_LOG("Making OpenGL context current failed!");
+			msg = "Making OpenGL context current failed!";
 			delete context;
 			return false;
 		}
 		QOpenGLFunctions *f = context->functions();
 		if (!f)
 		{
-			DEBUG_LOG("Fetching OpenGL functions failed!");
+			msg = "Fetching OpenGL functions failed!";
 			delete context;
 			return false;
 		}
 		const char *openGLVersion = reinterpret_cast<const char *>(f->glGetString(GL_VERSION));
-		DEBUG_LOG(QString("OpenGL Version: %1").arg(openGLVersion ? openGLVersion : "null"));
+		if (!openGLVersion)
+		{
+			msg = "No version available!";
+			delete context;
+			return false;
+		}
+		QString qopenGLVersion(openGLVersion);
+		auto versionStringParts = qopenGLVersion.split(" ");
+		if (qopenGLVersion.size() == 0 || versionStringParts.size() < 1)
+		{
+			msg = QString("Invalid OpenGL version string: %1").arg(openGLVersion);
+			delete context;
+			return false;
+		}
+		auto majorMinorPatch = versionStringParts[0].split(".");
+		if (majorMinorPatch.size() < 2)
+		{
+			msg = QString("Invalid OpenGL version format; expected 3 parts (Major.Minor.Patch) but got %1 (%2).")
+					.arg(majorMinorPatch.size())
+					.arg(versionStringParts[0]);
+			delete context;
+			return false;
+		}
+		bool ok1, ok2;
+		int major = majorMinorPatch[0].toInt(&ok1);
+		int minor = majorMinorPatch[1].toInt(&ok2);
+		if (!ok1 || !ok2)
+		{
+			msg = QString("OpenGL version does not consist of valid integer numbers: %1.").arg(versionStringParts[0]);
+			delete context;
+			return false;
+		}
+#if (defined(VTK_OPENGL2_BACKEND))
+		const int minMajor = 3;
+		const int minMinor = 2;
+#else
+		const int minMajor = 1;
+		const int minMinor = 1;
+#endif
+		if (major < minMajor || (major == minMajor && minor < minMinor))
+		{
+			msg = QString("OpenGL version available on your system (%1.%2) insufficient for compiled VTK backend (requires %3.%4)."
+				" Please update drivers, or use program on newer hardware!")
+				.arg(major).arg(minor).arg(minMajor).arg(minMinor);
+			delete context;
+			return false;
+		}
+
 		delete context;
 	}
 	catch (std::exception const & e)
 	{
-		DEBUG_LOG(QString("Error checking OpenGL version: %1").arg(e.what()));
+		msg = QString("Error checking OpenGL version: %1").arg(e.what());
 		return false;
 	}
 	return true;
