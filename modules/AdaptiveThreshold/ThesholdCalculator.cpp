@@ -3,7 +3,7 @@
 #include <algorithm>
 #include "iAConsole.h"
 #include "ThresholdDefinitions.h"
-
+#include "ChartVisHelper.h"
 
 namespace algorithm {
 	static bool greaterThan(double u, double v) {
@@ -20,7 +20,7 @@ namespace algorithm {
 
 ThesholdCalculator::ThesholdCalculator()
 {
-
+	m_newDataSeries = nullptr; 
 }
 
 ThesholdCalculator::~ThesholdCalculator()
@@ -40,6 +40,11 @@ double ThesholdCalculator::vectorSum(const std::vector<double> &vec, size_t star
 	}
 
 	return tmp; 
+}
+
+void ThesholdCalculator::createDataVisualisation(const std::vector<double> v_x, const std::vector<double> v_y)
+{
+
 }
 
 void ThesholdCalculator::testPeakDetect()

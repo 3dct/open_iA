@@ -73,6 +73,8 @@ private slots:
 		void myAction();
 		void aTestAction(); 
 
+		void AnotherAction(); 
+
 		inline void clearEditField() {
 			this->textEdit->clear();
 		}

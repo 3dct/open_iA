@@ -15,10 +15,10 @@ public:
 	}
 
 
-	const std::vector<double>& getXRange() {
+	const std::vector<double>& getXRange() const {
 		return x_vals;
 	}
-	const std::vector<double>& getYRange() {
+	const std::vector<double>& getYRange() const {
 		return y_vals;
 	}
 

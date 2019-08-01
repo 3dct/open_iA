@@ -6,7 +6,7 @@
 #include <QColor>
 #include <QPoint>
 #include <QFileDialog>
-
+#include "ChartVisHelper.h"
 
 
 
@@ -63,7 +63,7 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(calculateMovingAverage()));
 	connect(this->btn_loadHistData, SIGNAL(clicked()), this, SLOT(buttonLoadHistDataClicked())); 
 	connect(this->btn_clear, SIGNAL(clicked()), this, SLOT(clearEditField()));
-	connect(this->btn_aTestAction, SIGNAL(clicked()), this, SLOT(aTestAction())); 
+	connect(this->btn_aTestAction, SIGNAL(clicked()), this, SLOT(AnotherAction())); 
 
 }
 
@@ -190,6 +190,19 @@ void AdaptiveThreshold::aTestAction()
 {
 	DEBUG_LOG("ATestAction is controlled"); 
 	m_thresCalculator.testSpecifyRange(); 
+}
+
+void AdaptiveThreshold::AnotherAction()
+{
+	DEBUG_LOG("Another Action fired"); 
+
+	std::vector<double> vec_x = { 1, 2, 3, 4,8};
+	std::vector<double> vec_y = { 100, 117, 120, 110, 120 };
+
+	QScatterSeries* mySeries = dynamic_cast<QScatterSeries*> (ChartVisHelper::create(vec_x, vec_y)); 
+	this->addSeries(mySeries); 
+	QColor color = QColor(0, 255, 0); 
+	mySeries->setColor(color); 
 }
 
 void AdaptiveThreshold::setDefaultMinMax(double xMIn, double xMax, double yMin, double yMax)

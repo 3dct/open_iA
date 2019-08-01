@@ -3,6 +3,8 @@
 #include "charts/iAPlotData.h"
 #include <QSharedPointer>
 #include "DebugHelper.h"
+#include <QTCharts>
+#include <QtCharts/qlineseries.h>
 //#include "ThresholdDefinitions.h"
 
 class ParametersRanges; 
@@ -71,14 +73,22 @@ public:
 		return this->m_freqValsY; 
 	}
 
+
+
+
 private:
 	double vectorSum(const std::vector<double> &sum, size_t startInd, size_t endInd);
+	
+	void createDataVisualisation(const std::vector<double> v_x, const std::vector<double> v_y);
+	
 	QSharedPointer<iAPlotData> m_data;
 	DebugHelper m_dbgHelper; 	
 
 	std::vector<double> m_thresBinsX; 
 	std::vector<double> m_freqValsY; 
 	std::vector<double> m_movingFreqs; 
+
+	QLineSeries *m_newDataSeries; 
 	
 };
 
