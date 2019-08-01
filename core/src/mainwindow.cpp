@@ -2506,6 +2506,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 {
 	MainWindow::initResources();
 	QApplication app(argc, argv);
+	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 	app.setAttribute(Qt::AA_ShareOpenGLContexts);
 	iAGlobalLogger::setLogger(iAConsole::instance());
