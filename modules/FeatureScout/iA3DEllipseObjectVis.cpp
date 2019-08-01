@@ -34,7 +34,8 @@
 
 iA3DEllipseObjectVis::iA3DEllipseObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 	QColor const & color, int phiRes, int thetaRes) :
-	iA3DColoredPolyObjectVis(ren, objectTable, columnMapping, color, (phiRes - 2) * thetaRes + 2)
+	iA3DColoredPolyObjectVis(ren, objectTable, columnMapping, color),
+	m_pointsPerEllipse((phiRes - 2) * thetaRes + 2)
 {
 	auto fullPolySource = vtkSmartPointer<vtkAppendPolyData>::New();
 	// maybe use vtkParametricFunctionSource with vtkParametricEllipsoid?
@@ -58,8 +59,9 @@ iA3DEllipseObjectVis::iA3DEllipseObjectVis(vtkRenderer* ren, vtkTable* objectTab
 	}
 	fullPolySource->Update();
 	m_fullPoly = fullPolySource->GetOutput();
+	setupColors();
 	m_fullPoly->GetPointData()->AddArray(m_colors);
-	assert ( m_pointsPerObject*objectTable->GetNumberOfRows() == fullPolySource->GetOutput()->GetNumberOfPoints() );
+	assert ( objectPointCount(0)*objectTable->GetNumberOfRows() == fullPolySource->GetOutput()->GetNumberOfPoints() );
 	m_mapper->SetInputData(m_fullPoly);
 	setupBoundingBox();
 	setupOriginalIds();
@@ -73,4 +75,14 @@ double const * iA3DEllipseObjectVis::bounds()
 vtkPolyData* iA3DEllipseObjectVis::getPolyData()
 {
 	return m_fullPoly;
+}
+
+int iA3DEllipseObjectVis::objectStartPointIdx(int objIdx) const
+{
+	return objIdx * m_pointsPerEllipse;
+}
+
+int iA3DEllipseObjectVis::objectPointCount(int objIdx) const
+{
+	return m_pointsPerEllipse;
 }

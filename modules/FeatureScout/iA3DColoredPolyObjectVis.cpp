@@ -43,15 +43,14 @@ namespace
 }
 
 iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-	QColor const & color, size_t pointsPerObject) :
+	QColor const & color) :
 	iA3DObjectVis(ren, objectTable, columnMapping),
 	m_colors(vtkSmartPointer<vtkUnsignedCharArray>::New()),
 	m_mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_pointsPerObject(pointsPerObject),
 	m_contextAlpha(DefaultContextOpacity),
 	m_selectionAlpha(DefaultSelectionOpacity),
 	m_selectionColor(SelectedColor),
-	m_baseColor(128, 128, 128),
+	m_baseColor(color),
 	m_actor(vtkSmartPointer<vtkActor>::New()),
 	m_visible(false),
 	m_selectionActive(false),
@@ -59,23 +58,6 @@ iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(vtkRenderer* ren, vtkTable* o
 	m_outlineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_outlineActor(vtkSmartPointer<vtkActor>::New())
 {
-	m_colors->SetNumberOfComponents(4);
-	m_colors->SetName("Colors");
-	unsigned char c[4];
-	c[0] = color.red();
-	c[1] = color.green();
-	c[2] = color.blue();
-	c[3] = color.alpha();
-	size_t colorCount = m_objectTable->GetNumberOfRows()*pointsPerObject;
-	for (size_t row = 0; row < colorCount; ++row)
-	{
-#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
-		m_colors->InsertNextTupleValue(c);
-#else
-		m_colors->InsertNextTypedTuple(c);
-#endif
-	}
-	m_mapper->SelectColorArray("Colors");
 	m_mapper->SetScalarModeToUsePointFieldData();
 	m_mapper->ScalarVisibilityOn();
 	m_actor->SetMapper(m_mapper);
@@ -121,7 +103,7 @@ void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sorte
 			((curClassID == classID) ?
 				classColor :
 				BackColor);
-		setPolyPointColor(objID, curColor);
+		setObjectColor(objID, curColor);
 		if (objID == curSelObjID)
 		{
 			++currentObjectIndexInSelection;
@@ -141,7 +123,7 @@ void iA3DColoredPolyObjectVis::renderSingle(int labelID, int classID, QColor con
 	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
 	{
 		int curClassID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
-		setPolyPointColor(objID, (labelID > 0 && objID + 1 == labelID) ? SelectedColor : (curClassID == classID) ? classColor : nonClassColor);
+		setObjectColor(objID, (labelID > 0 && objID + 1 == labelID) ? SelectedColor : (curClassID == classID) ? classColor : nonClassColor);
 	}
 	updatePolyMapper();
 }
@@ -151,7 +133,7 @@ void iA3DColoredPolyObjectVis::multiClassRendering(QList<QColor> const & classCo
 	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
 	{
 		int classID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
-		setPolyPointColor(objID, classColors.at(classID));
+		setObjectColor(objID, classColors.at(classID));
 	}
 	updatePolyMapper();
 }
@@ -161,7 +143,7 @@ void iA3DColoredPolyObjectVis::renderOrientationDistribution(vtkImageData* oi)
 	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
 	{
 		QColor color = getOrientationColor(oi, objID);
-		setPolyPointColor(objID, color);
+		setObjectColor(objID, color);
 	}
 	updatePolyMapper();
 }
@@ -171,12 +153,12 @@ void iA3DColoredPolyObjectVis::renderLengthDistribution(vtkColorTransferFunction
 	for (int objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
 	{
 		QColor color = getLengthColor(ctFun, objID);
-		setPolyPointColor(objID, color);
+		setObjectColor(objID, color);
 	}
 	updatePolyMapper();
 }
 
-void iA3DColoredPolyObjectVis::setPolyPointColor(int ptIdx, QColor const & qcolor)
+void iA3DColoredPolyObjectVis::setObjectColor(int objIdx, QColor const & qcolor)
 {
 	unsigned char color[4];
 	color[0] = qcolor.red();
@@ -184,8 +166,8 @@ void iA3DColoredPolyObjectVis::setPolyPointColor(int ptIdx, QColor const & qcolo
 	color[2] = qcolor.blue();
 	color[3] = qcolor.alpha();
 	for (int c = 0; c < 4; ++c)
-		for (size_t p=0; p<m_pointsPerObject; ++p)
-			m_colors->SetComponent(ptIdx * m_pointsPerObject + p, c, color[c]);
+		for (size_t p=0; p < objectPointCount(objIdx); ++p)
+			m_colors->SetComponent(objectStartPointIdx(objIdx) + p, c, color[c]);
 }
 
 void iA3DColoredPolyObjectVis::updatePolyMapper()
@@ -224,17 +206,32 @@ void iA3DColoredPolyObjectVis::setupBoundingBox()
 	m_outlineActor->SetMapper(m_outlineMapper);
 }
 
-
 void iA3DColoredPolyObjectVis::setupOriginalIds()
 {
 	auto ids = vtkSmartPointer<vtkIdTypeArray>::New();
 	ids->SetName("OriginalIds");
-	vtkIdType numPoints = m_objectTable->GetNumberOfRows() * m_pointsPerObject;
-	ids->SetNumberOfTuples(numPoints);
-	for (vtkIdType id = 0; id < m_objectTable->GetNumberOfRows(); ++id)
-		for (vtkIdType objectPoints = 0; objectPoints < m_pointsPerObject; ++objectPoints)
-		ids->SetTuple1(id*m_pointsPerObject + objectPoints, id);
+	ids->SetNumberOfTuples(allPointCount());
+	for (vtkIdType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+		for (vtkIdType pt = 0; pt < objectPointCount(objID); ++pt)
+		ids->SetTuple1(objectStartPointIdx(objID) + pt, objID);
 	getPolyData()->GetPointData()->AddArray(ids);
+}
+
+void iA3DColoredPolyObjectVis::setupColors()
+{
+	m_colors->SetNumberOfComponents(4);
+	m_colors->SetName("Colors");
+	unsigned char c[4];
+	c[0] = m_baseColor.red();
+	c[1] = m_baseColor.green();
+	c[2] = m_baseColor.blue();
+	c[3] = m_baseColor.alpha();
+	size_t colorCount = allPointCount();
+	for (size_t ptIdx = 0; ptIdx < colorCount; ++ptIdx)
+	{
+		m_colors->InsertNextTypedTuple(c);
+	}
+	m_mapper->SelectColorArray("Colors");
 }
 
 void iA3DColoredPolyObjectVis::showBoundingBox()
@@ -300,8 +297,25 @@ void iA3DColoredPolyObjectVis::updateColorSelectionRendering()
 		}
 		else
 			color.setAlpha(m_selectionAlpha);
-		setPolyPointColor(objID, color);
+		setObjectColor(objID, color);
 	}
 	updatePolyMapper();
 }
 
+int iA3DColoredPolyObjectVis::objectPointCount(int ptIdx) const
+{
+	return DefaultPointsPerObject;
+}
+
+int iA3DColoredPolyObjectVis::objectStartPointIdx(int ptIdx) const
+{
+	return ptIdx * DefaultPointsPerObject;
+}
+
+size_t iA3DColoredPolyObjectVis::allPointCount() const
+{
+	size_t pointCount = 0;
+	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+		pointCount += objectPointCount(objID);
+	return pointCount;
+}

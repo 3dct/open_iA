@@ -120,14 +120,7 @@ void addColumn(vtkSmartPointer<vtkTable> table, float value, char const * column
 	vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
 	arrX->SetName(columnName);
 	arrX->SetNumberOfValues(numRows);
-#if (VTK_MAJOR_VERSION >= 8)
 	arrX->Fill(value);
-#else
-	for (vtkIdType i=0; i<numRows; ++i)
-	{
-		arrX->SetValue(i, value);
-	}
-#endif
 	table->AddColumn(arrX);
 }
 
@@ -352,7 +345,8 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 							.arg(curvedInfo.absoluteFilePath()).arg(lineNr).arg(line).arg(valueStrList.size()));
 						continue;
 					}
-					size_t fiberID = valueStrList[0].toInt();
+					// TODO: better solution for Label (1..N) <-> internal fiber ID (0..N-1) mapping!!!
+					size_t fiberID = valueStrList[0].toInt() - 1;
 					int numOfPoints = (valueStrList.size() - 1) / 3;
 					std::vector<iAVec3f> points;
 					for (int i = 0; i < numOfPoints; ++i)

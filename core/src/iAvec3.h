@@ -57,6 +57,8 @@ public:
 	T& operator[] (size_t index);
 	//! access to the raw array of size 3 holding the components
 	T * data();
+	//! access to the raw array of size 3 holding the components (const version)
+	T const * data() const;
 
 	//! get the length of the vector, alias for magnitude()
 	T length() const;
@@ -292,6 +294,12 @@ iAVec3T<T> iAVec3T<T>::normalized() const
 
 template <typename T>
 T * iAVec3T<T>::data()
+{
+	return values;
+}
+
+template <typename T>
+T const * iAVec3T<T>::data() const
 {
 	return values;
 }
