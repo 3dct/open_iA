@@ -96,8 +96,16 @@ bool checkOpenGLVersion(QString & msg)
 #endif
 		if (major < minMajor || (major == minMajor && minor < minMinor))
 		{
-			msg = QString("OpenGL version available on your system (%1.%2) insufficient for compiled VTK backend (requires %3.%4)."
-				" Please update drivers, or use program on newer hardware!")
+			msg = QString("The OpenGL version currently available on your system (%1.%2) is insufficient, required is at least %3.%4.\n\n"
+				"If you are using Remote Desktop, you might be able to get better OpenGL support when using other remote access software "
+				"such as VNC, TeamViewer, NoMachine or similar. "
+#if (defined(VTK_OPENGL2_BACKEND))
+				"You can also use the compatibility version with 'c' suffix, or if you have built yourself, "
+				"compile VTK with 'OpenGL' VTK_RENDERING_BACKEND instead of 'OpenGL2' "
+				"(note that the 'OpenGL' option is only available up until VTK version 8.1.2, it is not available in newer versions). "
+#endif
+				"It might also help to update the display drivers; "
+				"or if you have the chance, use the program on newer hardware.")
 				.arg(major).arg(minor).arg(minMajor).arg(minMinor);
 			delete context;
 			return false;

@@ -2511,7 +2511,23 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	QString msg;
 	if (!checkOpenGLVersion(msg))
 	{
-		QMessageBox::warning(nullptr, appName, msg);
+		bool runningScripted = false;
+		for (int a = 1; a < argc; ++a)
+		{
+			if (QString(argv[a]).startsWith("--quit"))
+			{
+				runningScripted = true;
+				break;
+			}
+		}
+		if (runningScripted)
+		{
+			DEBUG_LOG(msg);
+		}
+		else
+		{
+			QMessageBox::warning(nullptr, appName, msg);
+		}
 		return 1;
 	}
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
