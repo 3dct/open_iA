@@ -229,8 +229,8 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>80</x>
-     <y>750</y>
+     <x>60</x>
+     <y>830</y>
      <width>691</width>
      <height>71</height>
     </rect>
@@ -258,8 +258,8 @@
   <widget class="QPushButton" name="btn_clear">
    <property name="geometry">
     <rect>
-     <x>80</x>
-     <y>830</y>
+     <x>60</x>
+     <y>910</y>
      <width>231</width>
      <height>41</height>
     </rect>
@@ -342,6 +342,17 @@
    <property name="text">
     <string>ATestAction</string>
    </property>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget_3">
+   <property name="geometry">
+    <rect>
+     <x>320</x>
+     <y>520</y>
+     <width>621</width>
+     <height>211</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_2"/>
   </widget>
  </widget>
  <resources/>

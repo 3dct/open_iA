@@ -105,10 +105,10 @@ private:
 	std::vector<QLineSeries*> series_vec;
 	double resThreshold; 
 
-	
-	QChartView *m_chartView;
-	QChart *m_chart; 
-	QValueAxis *axisX;
-	QValueAxis *axisY; 
+
+	QChartView* m_chartView;
+	QChart* m_chart;
+	QValueAxis* axisX;
+	QValueAxis* axisY;
 };
 

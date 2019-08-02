@@ -215,8 +215,17 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 			return;
 		}
 
+		//output are the moving freqs
 		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies/*m_frequencies*/, paramRanges, x_min, x_max);
 		rangedSeries = ChartVisHelper::createLineSeries(paramRanges);
+
+		//then determine min max of the moving frequencys
+		
+		
+		//m_thresCalculator->findMaxPeak(m_movingFrequencies)
+
+
+
 
 		if (!rangedSeries)
 		{

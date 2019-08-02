@@ -42,6 +42,7 @@ void iACutstomChartView::addSeries(QAbstractSeries *aSerie, const QString *title
 	m_chart->addSeries(aSerie);
 	if (title && (!title->isEmpty() || !title->isNull()));
 	aSerie->setObjectName(*title); 
+
 	aSerie->attachAxis(m_axisX);
 	aSerie->attachAxis(m_axisX);
 

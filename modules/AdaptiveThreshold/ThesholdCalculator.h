@@ -22,7 +22,16 @@ struct HistMinMax{
 	double yMax; 
 };
 
+struct ThresIndx {
+	ThresIndx() {
+		thrIndx = -1;
+		value = -std::numeric_limits<double>::infinity();
+	}
 
+	size_t thrIndx;
+	double value; 
+
+};
 
 
 
@@ -50,6 +59,7 @@ public:
 	
 
 
+	void testFindIndex(double value);
 	void testSpecifyRange(const std::vector<double>& v_inRange, const std::vector<double>& v_elements, ParametersRanges& outputRanges);
 	
 	void performCalculation(std::vector<double> inputRange, double xmin, double xmax); 
@@ -77,6 +87,13 @@ public:
 private:
 	double vectorSum(const std::vector<double> &sum, size_t startInd, size_t endInd);
 	
+	inline bool compareDouble(double a, double b) {
+		return fabs(a - b) < epsilon; 
+	}
+
+	ThresIndx findIndex(const std::vector<double>& vec, double elem);
+	const double epsilon = 0.0001; 
+
 	//void createDataVisualisation(const std::vector<double> v_x, const std::vector<double> v_y);
 	
 	QSharedPointer<iAPlotData> m_data;
