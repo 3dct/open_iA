@@ -18,10 +18,10 @@ if [ -n "$6" ];
 then
 	buildtool=$6
 fi
-TEST_FILES_DIR=$TEST_SRC_DIR/Test_files
+TEST_DIR=$TEST_SRC_DIR/test
 if [ -n "$7" ];
 then
-	TEST_FILES_DIR=$7
+	TEST_DIR=$7
 fi
 MODULE_DIRS=$TEST_SRC_DIR/modules
 if [ -n "$8" ];
@@ -45,7 +45,7 @@ cmake -C $CONFIG_FILE $TEST_SRC_DIR 2>&1
 # Create test configurations:
 mkdir -p $TEST_CONFIG_DIR
 echo $MODULE_DIRS
-python $TEST_FILES_DIR/CreateTestConfigurations.py $TEST_SRC_DIR $GIT_BRANCH $TEST_CONFIG_DIR $MODULE_DIRS $COMPILER
+python $TEST_DIR/CreateTestConfigurations.py $TEST_SRC_DIR $GIT_BRANCH $TEST_CONFIG_DIR $MODULE_DIRS $COMPILER
 
 # Run with all flags enabled:
 cmake -C $TEST_CONFIG_DIR/all_flags.cmake $TEST_SRC_DIR 2>&1

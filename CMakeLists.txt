@@ -158,18 +158,6 @@ ADD_SUBDIRECTORY(cmd)
 
 ADD_SUBDIRECTORY(xinst)
 
-
-#-------------------------
-# Testing
-#-------------------------
-# Configure the default TESTING_DATA_ROOT for the location of Data.
-set(TESTING_DATA_OUTPUT ${PROJECT_SOURCE_DIR}/Test_files/TestITK/Output)
-#ITK testing
-option (openiA_TEST_ITK "When enabled, creates a special ITK test project. Default: disabled." OFF)
-IF (openiA_TEST_ITK)
-	add_subdirectory("${PROJECT_SOURCE_DIR}/Test_files/TestITK")
-ENDIF ()
-
 #-------------------------
 # Installation
 #-------------------------
