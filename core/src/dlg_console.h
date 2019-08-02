@@ -30,4 +30,8 @@ public:
 	void log(QString text);
 private slots:
 	void clear();
+private:
+	void closeEvent(QCloseEvent *event) override;
+signals:
+	void onClose();
 };

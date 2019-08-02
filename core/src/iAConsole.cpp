@@ -34,11 +34,11 @@
 
 iALogger* iAGlobalLogger::m_globalLogger(nullptr);
 
-
 void iAGlobalLogger::setLogger(iALogger* logger)
 {
 	m_globalLogger = logger;
 }
+
 iALogger* iAGlobalLogger::get()
 {
 	return m_globalLogger;
@@ -60,7 +60,11 @@ void iAConsole::logSlot(QString const & text)
 	// has been called. This allows the program to exit properly.
 	if (!m_closed)
 	{
-		m_console->show();
+		if (!m_console->isVisible())
+		{
+			m_console->show();
+			emit consoleVisibilityChanged(true);
+		}
 		m_console->log(text);
 	}
 	if (m_logToFile)
@@ -87,6 +91,13 @@ void iAConsole::logSlot(QString const & text)
 	}
 }
 
+void iAConsole::setVisible(bool visible)
+{
+	if (m_closed)
+		return;
+	m_console->setVisible(visible);
+}
+
 void iAConsole::setLogToFile(bool value, QString const & fileName, bool verbose)
 {
 	if (verbose && m_logToFile != value)
@@ -102,10 +113,14 @@ bool iAConsole::isLogToFileOn() const
 	return m_logToFile;
 }
 
-
 bool iAConsole::isFileLogError() const
 {
 	return m_fileLogError;
+}
+
+bool iAConsole::isVisible() const
+{
+	return m_console->isVisible();
 }
 
 QString iAConsole::logFileName() const
@@ -126,7 +141,8 @@ iAConsole::iAConsole() :
 	vtkOutputWindow::SetInstance(m_vtkOutputWindow);
 	itk::OutputWindow::SetInstance(m_itkOutputWindow);
 
-	connect(this, SIGNAL(logSignal(QString const &)), this, SLOT(logSlot(QString const &)));
+	connect(this, &iAConsole::logSignal, this, &iAConsole::logSlot);
+	connect(m_console, &dlg_console::onClose, this, &iAConsole::consoleClosed);
 }
 
 iAConsole::~iAConsole()
@@ -140,13 +156,16 @@ iAConsole* iAConsole::instance()
 	return &s_instance;
 }
 
+void iAConsole::consoleClosed()
+{
+	emit consoleVisibilityChanged(false);
+}
 
 void iAConsole::close()
 {
 	m_closed = true;
 	m_console->close();
 }
-
 
 void iAConsole::closeInstance()
 {

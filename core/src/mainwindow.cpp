@@ -131,6 +131,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_layout->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 	this->layoutToolbar->insertWidget(this->actionSaveLayout, m_layout);
 
+	// why do we use iAConsoleLogger::get here and not iAConsole::instance()?
 	m_moduleDispatcher->InitializeModules(iAConsoleLogger::get());
 	setModuleActionsEnabled( false );
 	statusBar()->showMessage(tr("Ready"));
@@ -1076,6 +1077,11 @@ void MainWindow::enableInteraction()
 	}
 }
 
+void MainWindow::toggleConsole()
+{
+	iAConsole::instance()->setVisible(actionShowConsole->isChecked());
+}
+
 void MainWindow::toggleFullScreen()
 {
 	bool fullScreen = actionFullScreenMode->isChecked();
@@ -1785,6 +1791,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionLinkViews, &QAction::triggered, this, &MainWindow::linkViews);
 	connect(actionLinkMdis, &QAction::triggered, this, &MainWindow::linkMDIs);
 	connect(actionEnableInteraction, &QAction::triggered, this, &MainWindow::enableInteraction);
+	connect(actionShowConsole, &QAction::triggered, this, &MainWindow::toggleConsole);
 	connect(actionFullScreenMode, &QAction::triggered, this, &MainWindow::toggleFullScreen);
 	connect(actionShowMenu, &QAction::triggered, this, &MainWindow::toggleMenu);
 	connect(actionShowToolbar, &QAction::triggered, this, &MainWindow::toggleToolbar);
@@ -1840,6 +1847,9 @@ void MainWindow::connectSignalsToSlots()
 	connect(mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::childActivatedSlot);
 	connect(mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::updateMenus);
 	connect(m_windowMapper, SIGNAL(mapped(QWidget*)), this, SLOT(setActiveSubWindow(QWidget*)));
+
+	consoleVisibilityChanged(iAConsole::instance()->isVisible());
+	connect(iAConsole::instance(), &iAConsole::consoleVisibilityChanged, this, &MainWindow::consoleVisibilityChanged);
 }
 
 void MainWindow::readSettings()
@@ -2136,6 +2146,12 @@ void MainWindow::setHistogramFocus()
 {
 	if (activeMdiChild())
 		activeMdiChild()->setHistogramFocus();
+}
+
+void MainWindow::consoleVisibilityChanged(bool newVisibility)
+{
+	QSignalBlocker block(actionShowConsole);
+	actionShowConsole->setChecked(newVisibility);
 }
 
 QList<MdiChild*> MainWindow::mdiChildList(QMdiArea::WindowOrder order)

@@ -149,6 +149,7 @@
     <addaction name="actionDeleteLayout"/>
     <addaction name="separator"/>
     <addaction name="actionEnableInteraction"/>
+    <addaction name="actionShowConsole"/>
     <addaction name="actionMainWindowStatusBar"/>
     <addaction name="actionShowToolbar"/>
     <addaction name="actionFullScreenMode"/>
@@ -1026,6 +1027,14 @@
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>
+   </property>
+  </action>
+  <action name="actionShowConsole">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Console</string>
    </property>
   </action>
  </widget>
