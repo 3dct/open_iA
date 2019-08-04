@@ -21,11 +21,13 @@
 #include "iANModalController.h"
 
 #include "iAModality.h"
+#include "iAModalityList.h"
 #include "iAModalityTransfer.h"
 #include "iARenderer.h"
 #include "iAVolumeRenderer.h"
 #include "iASlicer.h"
 #include "iAChannelSlicerData.h"
+#include "iAChannelData.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
@@ -55,11 +57,21 @@ void iANModalController::reinitialize() {
 }
 
 void iANModalController::_initialize() {
+	m_modalities.clear();
+	auto modalities = m_mdiChild->modalities();
+	for (int i = 0; i < modalities->size(); i++) {
+		auto modality = modalities->get(i);
+		m_modalities.append(modality);
+	}
+
+	// TODO: cherry pick modalities
+
 	assert(countModalities() >= 1 && countModalities() < 4);
 
-	// TODO remove
-	auto modality = m_mdiChild->modality(0);
-	m_modalities.append(modality);
+	m_slicers.clear();
+	for (int i = 0; i < m_modalities.size(); i++) {
+		_initializeModality(m_modalities[i]);
+	}
 
 	auto appendFilter = vtkSmartPointer<vtkImageAppendComponents>::New();
 	appendFilter->SetInputData(m_modalities[0]->image());
@@ -135,6 +147,46 @@ void iANModalController::_initialize() {
 	//updateVisualizationsNow();
 
 	m_initialized = true;
+}
+
+void iANModalController::_initializeModality(QSharedPointer<iAModality> modality) {
+	// Hide everything except the slice itself
+	auto slicerXY = new iASlicer(nullptr, iASlicerMode::XY, /*bool decorations = */false);
+	auto slicerXZ = new iASlicer(nullptr, iASlicerMode::XZ, /*bool decorations = */false);
+	auto slicerYZ = new iASlicer(nullptr, iASlicerMode::YZ, /*bool decorations = */false);
+	iASlicer *slicers[3] = {
+		new iASlicer(nullptr, iASlicerMode::XY, /*bool decorations = */false),
+		new iASlicer(nullptr, iASlicerMode::XZ, /*bool decorations = */false),
+		new iASlicer(nullptr, iASlicerMode::YZ, /*bool decorations = */false)
+	};
+
+	vtkImageData *image = modality->image().GetPointer();
+	vtkColorTransferFunction* colorTf = modality->transfer()->colorTF();
+
+	double* origin = image->GetOrigin();
+	int* extent = image->GetExtent();
+	double* spacing = image->GetSpacing();
+
+	double xc = origin[0] + 0.5*(extent[0] + extent[1])*spacing[0];
+	double yc = origin[1] + 0.5*(extent[2] + extent[3])*spacing[1];
+	double xd = (extent[1] - extent[0] + 1)*spacing[0];
+	double yd = (extent[3] - extent[2] + 1)*spacing[1];
+
+	for (int i = 0; i < 3; i++) {
+		auto slicer = slicers[i];
+
+		slicer->setup(m_mdiChild->slicerSettings().SingleSlicer);
+		slicer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+		slicer->addChannel(0, iAChannelData(modality->name(), image, colorTf), true);
+
+		vtkCamera *camera = slicer->camera();
+		double d = camera->GetDistance();
+		camera->SetParallelScale(0.5*yd);
+		camera->SetFocalPoint(xc, yc, 0.0);
+		camera->SetPosition(xc, yc, +d);
+
+		m_slicers.append(QSharedPointer<iASlicer>(slicer));
+	}
 }
 
 void iANModalController::applyVolumeSettings() {
