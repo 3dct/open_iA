@@ -41,6 +41,19 @@ namespace threshold_defs {
 		std::vector<double> y_vals;
 	};
 
+
+	struct pt2D {
+
+		double x; 
+		double y; 
+
+		/*bool isEqual(const pt2D &other) {
+
+
+
+		}*/
+	};
+
 	//storing xInd and threshold
 	struct ThresIndx {
 		ThresIndx() {

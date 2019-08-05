@@ -37,6 +37,8 @@ public:
 	void determineMovingAverage(const std::vector<double>& v_in, std::vector<double>& v_out, unsigned int count);
 	void doubleTestSum();	
 	void calculateFrequencies(size_t m_start, size_t m_end);
+	threshold_defs::ThresMinMax calcMinMax(const threshold_defs::ParametersRanges &ranges); 
+
 	void retrieveHistData(); 
 		
 

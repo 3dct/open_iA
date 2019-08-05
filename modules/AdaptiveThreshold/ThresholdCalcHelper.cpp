@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 #include "ThresAlgo.h"
+#include "iAConsole.h"
 
 double ThresholdCalcHelper::findMaxPeak(std::vector<double>& v_ind) const
 {
@@ -20,7 +21,7 @@ double ThresholdCalcHelper::findMaxPeak(std::vector<double>& v_ind) const
 
 double ThresholdCalcHelper::findMinPeak(std::vector<double>& v_ind) const {
 	std::sort(v_ind.begin(), v_ind.end(), algorithm::smallerThan);
-	auto peak = std::adjacent_find(v_ind.begin(), v_ind.end(), std::greater<double>());
+	auto peak = std::adjacent_find(v_ind.begin(), v_ind.end(), std::less<double>());
 
 	if (peak == v_ind.end()) {
 		--peak;
@@ -50,6 +51,9 @@ threshold_defs::ThresIndx ThresholdCalcHelper::findIndex(const std::vector<doubl
 	threshold_defs::ThresIndx thrInd;
 	long ind = 0;
 	thrInd.value = cmpVal;
+	if (vec.empty()) {
+		thrInd.thrIndx = -1; 
+	}
 
 	for (const double& el : vec) {
 		bool isEqual = algorithm::compareDouble(el, cmpVal);
@@ -74,22 +78,26 @@ threshold_defs::ThresMinMax ThresholdCalcHelper::calculateMinMax(const threshold
 	double y_max = 0;
 	std::vector<double> yRange = inRanges.getYRange();
 	std::vector<double> xRange = inRanges.getXRange();
-
+	
+	//or copy this because the array is sorted
 	y_max = this->findMaxPeak(yRange);
 	y_min = this->findMinPeak(yRange);
-
-	//threshold_defs::ThresIndx indMax;
-	const auto indMax = this->findIndex(yRange, y_max);
-	const auto indMin = this->findIndex(yRange, y_min);
+	DEBUG_LOG(QString("peaks at y %1 %2").arg(y_max).arg(y_min));
+	
+	const auto indMax = this->findIndex(inRanges.getYRange(), y_max);
+	const auto indMin = this->findIndex(inRanges.getYRange(), y_min);
+	
+	if ((indMin.thrIndx == -1) || (indMax.thrIndx == -1)) 
+		throw std::invalid_argument("index out of range");
+	
 	double x_max = xRange[indMax.thrIndx];
 	double x_min = xRange[indMin.thrIndx];	
 	
 	threshold_defs::ThresMinMax thrMinMax;
-
+	
 	thrMinMax.maxThresholdY = y_max;
 	thrMinMax.minThresholdY = y_min;
 	thrMinMax.minX = x_min;
 	thrMinMax.maxX = x_max;
-
 	return thrMinMax; 
 }

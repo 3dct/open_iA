@@ -93,6 +93,13 @@ private:
 	void setDefaultMinMax(double xMIn, double xMax, double yMin, double yMax); 
 
 	void readValues(double& x_min, double& x_max);
+
+	inline void writeText(const QString& Text) {
+		if (Text.isNull() || Text.isEmpty()) return; 
+		
+		this->textEdit->append(Text);
+		
+	}
 	
 	const double minXDefault = 0; const double maxXDefault = 65535; 
 	const double minYDefault = 0; const double maxYDefault = 40000; 

@@ -201,9 +201,10 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 
 		//input grauwerte und moving freqs, output is paramRanges
 		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies/*m_frequencies*/, paramRanges, x_min, x_max);
-		
-		
 		rangedSeries = ChartVisHelper::createLineSeries(paramRanges);
+		auto outVals = m_thresCalculator.calcMinMax(paramRanges);
+		
+		this->writeText(outVals.toString());
 
 		//then determine min max of the moving frequencys
 		
@@ -225,10 +226,8 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 
 	}catch (std::invalid_argument& ia)
 	{
-
 		QString output = ia.what();
 		this->textEdit->append(output); 
-
 	}
 }
 

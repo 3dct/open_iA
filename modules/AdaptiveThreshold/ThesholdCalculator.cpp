@@ -113,6 +113,16 @@ void ThesholdCalculator::calculateFrequencies(size_t m_start, size_t m_end)
 
 
 
+threshold_defs::ThresMinMax ThesholdCalculator::calcMinMax(const threshold_defs::ParametersRanges& ranges)
+{
+	try {
+		return m_calcHelper.calculateMinMax(ranges);
+	}
+	catch (std::invalid_argument& iaex) {
+		throw iaex; 
+	}
+}
+
 void ThesholdCalculator::retrieveHistData()
 {
 	if (!m_data)

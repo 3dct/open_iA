@@ -17,6 +17,36 @@ QLineSeries* ChartVisHelper::createLineSeries(const threshold_defs::ParametersRa
 	return series; 
 }
 
+QLineSeries* ChartVisHelper::createLineSeries(const QPointF& pt_1, const QPointF& pt_2, LineVisOption option)
+{
+	double x_1 = pt_1.x();
+	double y_1 = pt_1.y();
+	double x_2 = pt_2.x();
+	double y_2 = pt_2.y();
+
+	//horizontal xy use xy coordinates
+	QLineSeries* series = new QLineSeries;
+	switch (option) {
+	case horizontally: y_1 = 0; y_2 = 0;break;
+	case vertically: x_1; x_2 = 0; break;
+	case horizontal_xy: break; 
+	//leave it
+	default:
+		break; 
+	}
+
+	series->append(x_1, y_1);
+	series->append(x_2, y_2);
+
+	return series; 
+
+	
+
+
+}
+
+
+
 QScatterSeries* ChartVisHelper::createScatterSeries(const std::vector<double>& vec_x, const std::vector<double>& vec_y)
 {
 	QScatterSeries* series = nullptr; 
