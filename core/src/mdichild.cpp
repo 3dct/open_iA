@@ -158,7 +158,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	std::fill(m_position, m_position + 3, 0);
 
 	m_imageData = vtkSmartPointer<vtkImageData>::New();
-	m_imageData->AllocateScalars(VTK_DOUBLE, 1);
 	m_polyData = vtkPolyData::New();
 
 	m_axesTransform = vtkTransform::New();
@@ -311,7 +310,7 @@ void MdiChild::enableRenderWindows()	// = image data available
 		}
 		updateViews();
 		updateImageProperties();
-		if (m_imageData->GetNumberOfScalarComponents() == 1)
+		if (modalities()->size() > 0 && modality(0)->image()->GetNumberOfScalarComponents() == 1)
 		{
 			setHistogramModality(0);
 			updateProfile();
@@ -325,7 +324,7 @@ void MdiChild::enableRenderWindows()	// = image data available
 	// unless explicitly set otherwise)
 	m_reInitializeRenderWindows = true;
 
-	m_renderer->reInitialize(m_imageData, m_polyData);
+	m_renderer->reInitialize(modality(0)->image(), m_polyData);
 
 	if (!isVolumeDataLoaded())
 		return;
@@ -371,7 +370,8 @@ void MdiChild::updatePositionMarker(int x, int y, int z, int mode)
 		return;
 	m_position[0] = x; m_position[1] = y; m_position[2] = z;
 	double spacing[3];
-	m_imageData->GetSpacing(spacing);
+	// TODO: Use a separate "display" spacing here instead of the one from the first modality?
+	modality(0)->image()->GetSpacing(spacing);
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
 		if (mode == i)  // only update other slicers
@@ -456,7 +456,7 @@ bool MdiChild::setupLoadIO(QString const & f, bool isStack)
 	{
 		return m_ioThread->setupIO(VTK_READER, f);
 	}
-	m_imageData->ReleaseData();
+	//m_imageData->ReleaseData();
 	QString extension = m_fileInfo.suffix();
 	extension = extension.toUpper();
 	const mapQString2int * ext2id = &extensionToId;
@@ -481,7 +481,7 @@ bool MdiChild::loadRaw(const QString &f)
 	connectIOThreadSignals(m_ioThread);
 	connect(m_ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
 	m_polyData->ReleaseData();
-	m_imageData->ReleaseData();
+	//m_imageData->ReleaseData();
 	if (!m_ioThread->setupIO(RAW_READER, f))
 	{
 		ioFinished();
@@ -1052,9 +1052,9 @@ void MdiChild::triggerInteractionRaycaster()
 
 void MdiChild::setSlice(int mode, int s)
 {
-	int sliceAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::Z);
 	if (m_snakeSlicer)
 	{
+		int sliceAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::Z);
 		updateSnakeSlicer(m_dwSlicer[mode]->sbSlice, m_slicer[mode], sliceAxis, s);
 	}
 	else
@@ -1062,13 +1062,19 @@ void MdiChild::setSlice(int mode, int s)
 		m_position[mode] = s;
 		if (m_renderSettings.ShowSlicers || m_renderSettings.ShowSlicePlanes)
 		{
-			double plane[3];
-			std::fill(plane, plane + 3, 0);
-			// + 0.5 to place slice plane in the middle of the sliced voxel:
-			plane[sliceAxis] = (s + 0.5) * m_imageData->GetSpacing()[sliceAxis];
-			m_renderer->setSlicePlanePos(sliceAxis, plane[0], plane[1], plane[2]);
+			set3DSlicePlanePos(mode, s);
 		}
 	}
+}
+
+void MdiChild::set3DSlicePlanePos(int mode, int slice)
+{
+	int sliceAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::Z);
+	double plane[3];
+	std::fill(plane, plane + 3, 0);
+	// + 0.5 to place slice plane in the middle of the sliced voxel:
+	plane[sliceAxis] = (slice + 0.5) * m_imageData->GetSpacing()[sliceAxis];
+	m_renderer->setSlicePlanePos(sliceAxis, plane[0], plane[1], plane[2]);
 }
 
 void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s)
@@ -2305,18 +2311,21 @@ bool MdiChild::linkedViews() const
 
 void MdiChild::check2DMode()
 {
-	int arr[3];
-	m_imageData->GetDimensions(arr);
+	if (modalities()->size() == 0)
+		return;
+	// TODO: check over all modalities?
+	int dim[3];
+	modality(0)->image()->GetDimensions(dim);
 
-	if (arr[0]==1 && arr[1]>1 && arr[2]>1){
+	if (dim[0]==1 && dim[1]>1 && dim[2]>1){
 		maximizeYZ();
 	}
 
-	else if (arr[0]>1 && arr[1]==1 && arr[2]>1){
+	else if (dim[0]>1 && dim[1]==1 && dim[2]>1){
 		maximizeXZ();
 	}
 
-	else if (arr[0]>1 && arr[1]>1 && arr[2]==1){
+	else if (dim[0]>1 && dim[1]>1 && dim[2]==1){
 		maximizeXY();
 	}
 }
@@ -2606,12 +2615,14 @@ void MdiChild::resetCamera(bool spacingChanged, double const * newSpacing)
 	{
 		return;
 	}
-	//TODO  doing reset camera this for single only for when edit clicked is doen  // same with slicer
+	// reset camera when the spacing of modality was changed
+	// TODO: maybe instead of reset, apply a zoom corresponding to the ratio of spacing change?
 	m_renderer->updateSlicePlanes(newSpacing);
 	m_renderer->renderer()->ResetCamera();
 	m_renderer->update();
 	for (int s = 0; s < 3; ++s)
 	{
+		set3DSlicePlanePos(s, sliceNumber(s) );
 		slicer(s)->renderer()->ResetCamera();
 		slicer(s)->update();
 	}
