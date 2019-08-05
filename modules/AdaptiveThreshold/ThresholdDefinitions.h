@@ -55,11 +55,17 @@ namespace threshold_defs {
 
 	struct ThresMinMax {
 
-		double minThreshold;
-		double x_value;
+		double minThresholdY;
+		double minX;
 
-		double maxThreshold;
-		double y_value;
+		double maxThresholdY;
+		double maxX;
+
+		QString toString() {
+			QString res = QString("minx%1 maxX%2 minY%3 maxY%4").arg(minX).arg(maxX).arg(minThresholdY).arg(maxThresholdY);
+			return res; 
+
+		}
 	};
 
 

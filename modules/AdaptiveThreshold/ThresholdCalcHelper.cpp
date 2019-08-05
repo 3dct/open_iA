@@ -6,7 +6,7 @@
 
 #include "ThresAlgo.h"
 
-double ThresholdCalcHelper::findMaxPeak(std::vector<double>& v_ind)
+double ThresholdCalcHelper::findMaxPeak(std::vector<double>& v_ind) const
 {
 	std::sort(v_ind.begin(), v_ind.end(), algorithm::greaterThan);
 	auto peak = std::adjacent_find(v_ind.begin(), v_ind.end(), std::greater<double>());
@@ -18,7 +18,7 @@ double ThresholdCalcHelper::findMaxPeak(std::vector<double>& v_ind)
 	return *peak;
 }
 
-double ThresholdCalcHelper::findMinPeak(std::vector<double>& v_ind) {
+double ThresholdCalcHelper::findMinPeak(std::vector<double>& v_ind) const {
 	std::sort(v_ind.begin(), v_ind.end(), algorithm::smallerThan);
 	auto peak = std::adjacent_find(v_ind.begin(), v_ind.end(), std::greater<double>());
 
@@ -44,8 +44,9 @@ double ThresholdCalcHelper::vectorSum(const std::vector<double>& vec, size_t sta
 	return tmp;
 }
 
-threshold_defs::ThresIndx ThresholdCalcHelper::findIndex(const std::vector<double>& vec, double cmpVal)
+threshold_defs::ThresIndx ThresholdCalcHelper::findIndex(const std::vector<double>& vec, double cmpVal) const
 {
+
 	threshold_defs::ThresIndx thrInd;
 	long ind = 0;
 	thrInd.value = cmpVal;
@@ -65,4 +66,30 @@ threshold_defs::ThresIndx ThresholdCalcHelper::findIndex(const std::vector<doubl
 
 	return thrInd;
 
+}
+
+threshold_defs::ThresMinMax ThresholdCalcHelper::calculateMinMax(const threshold_defs::ParametersRanges& inRanges) const
+{
+	double y_min = 0;
+	double y_max = 0;
+	std::vector<double> yRange = inRanges.getYRange();
+	std::vector<double> xRange = inRanges.getXRange();
+
+	y_max = this->findMaxPeak(yRange);
+	y_min = this->findMinPeak(yRange);
+
+	//threshold_defs::ThresIndx indMax;
+	const auto indMax = this->findIndex(yRange, y_max);
+	const auto indMin = this->findIndex(yRange, y_min);
+	double x_max = xRange[indMax.thrIndx];
+	double x_min = xRange[indMin.thrIndx];	
+	
+	threshold_defs::ThresMinMax thrMinMax;
+
+	thrMinMax.maxThresholdY = y_max;
+	thrMinMax.minThresholdY = y_min;
+	thrMinMax.minX = x_min;
+	thrMinMax.maxX = x_max;
+
+	return thrMinMax; 
 }

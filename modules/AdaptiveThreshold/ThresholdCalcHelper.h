@@ -10,11 +10,15 @@ public:
 	//ThresholdCalcHelper(); 
 
 
-	double findMaxPeak(std::vector<double>& v_ind);
-	double findMinPeak(std::vector<double>& v_ind);
+	//double findMaxPeak( std::vector<double>& v_ind) const;
+	double findMaxPeak(std::vector<double>& v_ind) const;
+	double findMinPeak(std::vector<double>& v_ind) const;
 	double vectorSum(const std::vector<double>& vec, size_t startInd, size_t endInd);
-	threshold_defs::ThresIndx findIndex(const std::vector<double>& vec, double cmpVal);
+	threshold_defs::ThresIndx findIndex(const std::vector<double>& vec, double cmpVal) const;
 
+	//threshold_defs::ThresMinMax calculateMinMax(threshold_defs::ParametersRanges& inRanges);
+
+	threshold_defs::ThresMinMax calculateMinMax(const threshold_defs::ParametersRanges& inRanges) const;
 private:
 	
 };

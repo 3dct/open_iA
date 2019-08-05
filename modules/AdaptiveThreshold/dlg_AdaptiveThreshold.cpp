@@ -185,24 +185,8 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 {
 	double x_min = 0;
 	double x_max = 0;
-
-	bool* x_OK = new bool; bool* x2_OK = new bool;
-	
-	x_min = this->ed_minRange->text().toDouble(x_OK);
-	x_max = this->ed_maxRange->text().toDouble(x2_OK);
-	
-	if ((!x_OK) || (!x2_OK)) {
-		this->textEdit->setText("invalid input");
-		return;
-
-	}else if ((x_min < 0) || (x_max <= 0)) {
-		this->textEdit->setText("please again check parameters");
-		return; 
-	}
-
-	delete x_OK; 
-	delete x2_OK; 
-	
+	readValues(x_min, x_max);
+		
 	try
 	{
 		threshold_defs::ParametersRanges paramRanges;
@@ -217,16 +201,15 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 
 		//input grauwerte und moving freqs, output is paramRanges
 		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies/*m_frequencies*/, paramRanges, x_min, x_max);
+		
+		
 		rangedSeries = ChartVisHelper::createLineSeries(paramRanges);
 
 		//then determine min max of the moving frequencys
 		
 		
 		//m_thresCalculator->findMaxPeak(m_movingFrequencies)
-
-
-
-
+			   		 
 		if (!rangedSeries)
 		{
 			DEBUG_LOG("Range series not created");
@@ -247,6 +230,27 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		this->textEdit->append(output); 
 
 	}
+}
+
+void AdaptiveThreshold::readValues(double& x_min, double& x_max)
+{
+	bool* x_OK = new bool; bool* x2_OK = new bool;
+
+	x_min = this->ed_minRange->text().toDouble(x_OK);
+	x_max = this->ed_maxRange->text().toDouble(x2_OK);
+
+	if ((!x_OK) || (!x2_OK)) {
+		this->textEdit->setText("invalid input");
+		return;
+
+	}
+	else if ((x_min < 0) || (x_max <= 0)) {
+		this->textEdit->setText("please again check parameters");
+		return;
+	}
+
+	delete x_OK;
+	delete x2_OK;
 }
 
 void AdaptiveThreshold::buttonMinMaxClicked()

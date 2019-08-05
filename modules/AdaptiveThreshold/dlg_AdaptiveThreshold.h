@@ -64,7 +64,10 @@ private slots:
 		void resetGraphToDefault(); 
 		void calculateMovingAverage();
 		void buttonSelectRangesClicked(); 
-		void buttonMinMaxClicked(); 
+
+		
+
+		void buttonMinMaxClicked();
 
 
 		//TBa remove test actions below
@@ -88,6 +91,8 @@ private:
 
 
 	void setDefaultMinMax(double xMIn, double xMax, double yMin, double yMax); 
+
+	void readValues(double& x_min, double& x_max);
 	
 	const double minXDefault = 0; const double maxXDefault = 65535; 
 	const double minYDefault = 0; const double maxYDefault = 40000; 

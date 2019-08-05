@@ -40,7 +40,7 @@ public:
 	void retrieveHistData(); 
 		
 
-	//select values only in the range between min and max
+	//select values only in the range between min and max, output parameter ranges(x<double>, y<double>) 
 	void specifyRange(const std::vector<double>& v_in, const std::vector<double> &vals, threshold_defs::ParametersRanges &outRange, double xmin, double xmax);
 	void testPeakDetect();
 	
