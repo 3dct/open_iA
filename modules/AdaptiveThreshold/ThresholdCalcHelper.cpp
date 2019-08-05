@@ -29,7 +29,6 @@ double ThresholdCalcHelper::findMinPeak(std::vector<double>& v_ind) {
 	return *peak;
 }
 
-
 double ThresholdCalcHelper::vectorSum(const std::vector<double>& vec, size_t startInd, size_t endInd)
 {
 	if (startInd >= vec.size() || endInd >= vec.size()) throw new std::invalid_argument("test");
@@ -45,9 +44,9 @@ double ThresholdCalcHelper::vectorSum(const std::vector<double>& vec, size_t sta
 	return tmp;
 }
 
-ThresIndx ThresholdCalcHelper::findIndex(const std::vector<double>& vec, double cmpVal)
+threshold_defs::ThresIndx ThresholdCalcHelper::findIndex(const std::vector<double>& vec, double cmpVal)
 {
-	ThresIndx thrInd;
+	threshold_defs::ThresIndx thrInd;
 	long ind = 0;
 	thrInd.value = cmpVal;
 

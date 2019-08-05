@@ -27,17 +27,6 @@ struct HistMinMax{
 
 //resulting data structure for min and maximum threshold
 
-struct ThresMinMax {
-
-	double minThreshold;
-	double x_value;
-
-	double maxThreshold; 
-	double y_value; 
-};
-
-
-
 class ThesholdCalculator
 {
 public:
@@ -52,13 +41,13 @@ public:
 		
 
 	//select values only in the range between min and max
-	void specifyRange(const std::vector<double>& v_in, const std::vector<double> &vals, ParametersRanges &outRange, double xmin, double xmax);
+	void specifyRange(const std::vector<double>& v_in, const std::vector<double> &vals, threshold_defs::ParametersRanges &outRange, double xmin, double xmax);
 	void testPeakDetect();
 	
 
 	//searches array for a double value and returns index and value
-	ThresIndx testFindIndex(double value);
-	void testSpecifyRange(const std::vector<double>& v_inRange, const std::vector<double>& v_elements, ParametersRanges& outputRanges);
+	threshold_defs::ThresIndx testFindIndex(double value);
+	void testSpecifyRange(const std::vector<double>& v_inRange, const std::vector<double>& v_elements, threshold_defs::ParametersRanges& outputRanges);
 	
 	void performCalculation(std::vector<double> inputRange, double xmin, double xmax); 
 

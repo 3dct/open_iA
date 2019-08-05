@@ -2,7 +2,7 @@
 #include "ThresholdDefinitions.h"
 #include <vector>
 
-QLineSeries* ChartVisHelper::createLineSeries(const ParametersRanges& ranges)
+QLineSeries* ChartVisHelper::createLineSeries(const threshold_defs::ParametersRanges& ranges)
 {
 	QLineSeries * series = new QLineSeries;
 	const std::vector<double> x_series = ranges.getXRange(); 
@@ -29,7 +29,7 @@ QScatterSeries* ChartVisHelper::createScatterSeries(const std::vector<double>& v
 
 }
 
-QScatterSeries* ChartVisHelper::createScatterSeries(const ParametersRanges& ranges)
+QScatterSeries* ChartVisHelper::createScatterSeries(const threshold_defs::ParametersRanges& ranges)
 {
 	QScatterSeries* series = new QScatterSeries;
 	const std::vector<double> x_series = ranges.getXRange();

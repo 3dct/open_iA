@@ -205,7 +205,7 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 	
 	try
 	{
-		ParametersRanges paramRanges;
+		threshold_defs::ParametersRanges paramRanges;
 		QLineSeries* rangedSeries = nullptr;
 
 
@@ -278,7 +278,7 @@ void AdaptiveThreshold::aTestAction()
 	std::vector<double> v_inRange = { 2.005, 1,0.1,2.0001, 0, 0, 8 , 4, 10, 7, 12 };
 	//								1	2	3		4	5	6	7	8
 	std::vector<double> v_elements = { 0, 100, 200, 300, 400, 500, 600,700,800, 900, 1000 };
-	ParametersRanges outputRanges;
+	threshold_defs::ParametersRanges outputRanges;
 	m_thresCalculator.testSpecifyRange(v_inRange, v_elements,outputRanges);
 	QScatterSeries *testSeries = ChartVisHelper::createScatterSeries(outputRanges); 
 	this->addSeries(testSeries); 

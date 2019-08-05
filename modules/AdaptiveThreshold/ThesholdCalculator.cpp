@@ -40,7 +40,7 @@ void ThesholdCalculator::testPeakDetect()
 	DEBUG_LOG(QString("max peak %1").arg(res)) 
 }
 
-ThresIndx ThesholdCalculator::testFindIndex(double value) {
+threshold_defs::ThresIndx ThesholdCalculator::testFindIndex(double value) {
 	//						ind 0   1   2    3     4    5     6     7 
 	std::vector<double> data{ 6.1, 8.0, 9.0, 14.1, 10.0,14.3, 12.1, 14.4 };
 	auto res = m_calcHelper.findIndex(data, value);
@@ -50,7 +50,7 @@ ThresIndx ThesholdCalculator::testFindIndex(double value) {
 	
 
 void ThesholdCalculator::testSpecifyRange(const std::vector<double> &v_inRange, 
-	const std::vector<double> &v_elements, ParametersRanges &outputRanges)
+	const std::vector<double> &v_elements, threshold_defs::ParametersRanges &outputRanges)
 {
 	double x_min = 2.0; 
 	double x_max = 8.0; 
@@ -135,7 +135,7 @@ void ThesholdCalculator::retrieveHistData()
 
 
 
-void ThesholdCalculator::specifyRange(const std::vector<double>& v_inRef, const std::vector<double> &vals, ParametersRanges &outRange, double xmin, double xmax)
+void ThesholdCalculator::specifyRange(const std::vector<double>& v_inRef, const std::vector<double> &vals, threshold_defs::ParametersRanges &outRange, double xmin, double xmax)
 {
 	size_t vrefLengh = v_inRef.size();
 	size_t valsLenght = vals.size(); 
