@@ -45,7 +45,7 @@ double ThesholdCalculator::vectorSum(const std::vector<double> &vec, size_t star
 ThresIndx ThesholdCalculator::findIndex(const std::vector<double>& vec, double cmpVal)
 {
 	ThresIndx thrInd; 
-	size_t ind = 0; 
+	long ind = 0; 
 	thrInd.value = cmpVal; 
 
 	for(const double &el:vec){
@@ -53,6 +53,9 @@ ThresIndx ThesholdCalculator::findIndex(const std::vector<double>& vec, double c
 		if (isEqual) {
 			thrInd.thrIndx = ind; 
 			break;
+		}
+		else {
+			thrInd.thrIndx = -1;
 		}
 
 		ind++;
@@ -70,12 +73,13 @@ void ThesholdCalculator::testPeakDetect()
 	DEBUG_LOG(QString("max peak %1").arg(res)) 
 }
 
-void ThesholdCalculator::testFindIndex(double value) {
+ThresIndx ThesholdCalculator::testFindIndex(double value) {
 	//						ind 0   1   2    3     4    5     6     7 
 	std::vector<double> data{ 6.1, 8.0, 9.0, 14.1, 10.0,14.3, 12.1, 14.4 };
 	auto res = this->findIndex(data, value);
-
-	DEBUG_LOG(QString("ind%1 val%2").arg(res.thrIndx).arg(res.value));
+	return res; 
+	
+	//DEBUG_LOG(QString("ind%1 val%2").arg(res.thrIndx).arg(res.value));
 }
 
 void ThesholdCalculator::testSpecifyRange(const std::vector<double> &v_inRange, 

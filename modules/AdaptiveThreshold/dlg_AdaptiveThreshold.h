@@ -65,8 +65,10 @@ private slots:
 		void calculateMovingAverage();
 		void buttonSelectRangesClicked(); 
 
+
 		//TBa remove test actions below
 		void myAction();
+		void aTestAction_2(); 
 		void aTestAction(); 
 
 		void AnotherAction(); 

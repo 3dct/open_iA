@@ -24,11 +24,11 @@ struct HistMinMax{
 
 struct ThresIndx {
 	ThresIndx() {
-		thrIndx = -1;
+		thrIndx = -std::numeric_limits<long int>::infinity();
 		value = -std::numeric_limits<double>::infinity();
 	}
 
-	size_t thrIndx;
+	long int thrIndx;
 	double value; 
 
 };
@@ -58,8 +58,8 @@ public:
 	void testPeakDetect();
 	
 
-
-	void testFindIndex(double value);
+	//searches array in a double value and returns index and value
+	ThresIndx testFindIndex(double value);
 	void testSpecifyRange(const std::vector<double>& v_inRange, const std::vector<double>& v_elements, ParametersRanges& outputRanges);
 	
 	void performCalculation(std::vector<double> inputRange, double xmin, double xmax); 
@@ -92,7 +92,7 @@ private:
 	}
 
 	ThresIndx findIndex(const std::vector<double>& vec, double elem);
-	const double epsilon = 0.0001; 
+	const double epsilon = 0.0000000001; 
 
 	//void createDataVisualisation(const std::vector<double> v_x, const std::vector<double> v_y);
 	

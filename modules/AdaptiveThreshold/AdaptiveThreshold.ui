@@ -329,7 +329,7 @@
   </widget>
   <widget class="QPushButton" name="btn_aTestAction">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="geometry">
     <rect>
@@ -353,6 +353,29 @@
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout_2"/>
+  </widget>
+  <widget class="QLineEdit" name="ed_testText">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>610</y>
+     <width>113</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_8">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>590</y>
+     <width>47</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>TestAction</string>
+   </property>
   </widget>
  </widget>
  <resources/>

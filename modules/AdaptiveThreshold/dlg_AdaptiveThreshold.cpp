@@ -63,9 +63,9 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(calculateMovingAverage()));
 	connect(this->btn_loadHistData, SIGNAL(clicked()), this, SLOT(buttonLoadHistDataClicked())); 
 	connect(this->btn_clear, SIGNAL(clicked()), this, SLOT(clearEditField()));
-	//connect(this->btn_aTestAction, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClicked()));
+	connect(this->btn_aTestAction, SIGNAL(clicked()), this, SLOT(aTestAction_2()));
 	connect(this->btn_selectRange, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClicked()));
-	//connect(this->btn)
+
 
 
 }
@@ -252,6 +252,18 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 void AdaptiveThreshold::myAction()
 {
 	m_thresCalculator.doubleTestSum();
+}
+
+void AdaptiveThreshold::aTestAction_2()
+{
+	DEBUG_LOG("TestAction_2 is fired"); 
+	//double val = 
+	double val = ed_testText->text().toDouble(); 
+	//	std::vector<double> data{ 6.1, 8.0, 9.0, 14.1, 10.0,14.3, 12.1, 14.4 };
+	auto res = 	m_thresCalculator.testFindIndex(val);
+	QString tmp = QString("ind %1 val %2").arg(res.thrIndx).arg(res.value);
+
+	this->textEdit->append(tmp); 
 }
 
 void AdaptiveThreshold::aTestAction()
