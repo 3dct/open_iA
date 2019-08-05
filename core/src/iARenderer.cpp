@@ -313,11 +313,7 @@ iARenderer::~iARenderer(void)
 void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 {
 	m_imageData = ds;
-	m_polyData = pd;
-	m_cellLocator->SetDataSet(m_polyData);
-	if(m_polyData)
-		if( m_polyData->GetNumberOfCells() )
-			m_cellLocator->BuildLocator();
+	setPolyData(pd);
 	double spacing[3];	ds->GetSpacing(spacing);
 
 	m_interactor = m_renWin->GetInteractor();
@@ -395,7 +391,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 
 	setArbitraryProfileOn(false);
 
-	 updateSlicePlanes(m_imageData->GetSpacing());
+	updateSlicePlanes(m_imageData->GetSpacing());
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicePlaneMapper[s]->SetInputConnection(m_slicePlaneSource[s]->GetOutputPort());
@@ -409,15 +405,8 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd)
 {
 	m_imageData = ds;
-	m_polyData = pd;
+	setPolyData(pd);
 	updatePositionMarkerExtent();
-	if (m_polyData)
-	{
-		m_cellLocator->SetDataSet(m_polyData );
-		if (m_polyData->GetNumberOfCells())
-			m_cellLocator->BuildLocator();
-	}
-	m_polyMapper->SetInputData(m_polyData);
 	m_renderObserver->ReInitialize(m_ren, m_labelRen, m_interactor, m_pointPicker,
 		m_moveableAxesTransform, ds,
 		m_plane1, m_plane2, m_plane3, m_cellLocator );
@@ -541,7 +530,6 @@ void iARenderer::setupOrientationMarker()
 
 void iARenderer::setupRenderer()
 {
-	m_polyMapper->SetInputData(m_polyData);
 	m_polyMapper->SelectColorArray("Colors");
 	m_polyMapper->SetScalarModeToUsePointFieldData();
 	m_polyActor->SetMapper(m_polyMapper);
@@ -858,13 +846,12 @@ void iARenderer::initObserver()
 void iARenderer::setPolyData(vtkPolyData* pd)
 {
 	m_polyData = pd;
-	if (m_polyData)
-	{
-		m_cellLocator->SetDataSet(m_polyData);
-		if (m_polyData->GetNumberOfCells())
-			m_cellLocator->BuildLocator();
-	}
-	m_polyMapper->SetInputData(m_polyData );
+	if (!m_polyData)
+		return;
+	m_polyMapper->SetInputData(m_polyData);
+	m_cellLocator->SetDataSet(m_polyData);
+	if (m_polyData->GetNumberOfCells())
+		m_cellLocator->BuildLocator();
 }
 
 void iARenderer::addRenderer(vtkRenderer* renderer)
@@ -910,7 +897,7 @@ void iARenderer::setCubeVisible(bool visible)
 	m_sliceCubeActor->SetVisibility(visible);
 }
 
-void iARenderer::setSlicePlane(int planeID, double originX, double originY, double originZ)
+void iARenderer::setSlicePlanePos(int planeID, double originX, double originY, double originZ)
 {
 	switch (planeID)
 	{

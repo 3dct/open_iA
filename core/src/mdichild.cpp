@@ -1064,8 +1064,9 @@ void MdiChild::setSlice(int mode, int s)
 		{
 			double plane[3];
 			std::fill(plane, plane + 3, 0);
-			plane[sliceAxis] = s * m_imageData->GetSpacing()[sliceAxis];
-			m_renderer->setSlicePlane(sliceAxis, plane[0], plane[1], plane[2]);
+			// + 0.5 to place slice plane in the middle of the sliced voxel:
+			plane[sliceAxis] = (s + 0.5) * m_imageData->GetSpacing()[sliceAxis];
+			m_renderer->setSlicePlanePos(sliceAxis, plane[0], plane[1], plane[2]);
 		}
 	}
 }
