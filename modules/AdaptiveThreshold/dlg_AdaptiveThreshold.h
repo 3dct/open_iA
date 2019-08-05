@@ -64,6 +64,7 @@ private slots:
 		void resetGraphToDefault(); 
 		void calculateMovingAverage();
 		void buttonSelectRangesClicked(); 
+		void buttonMinMaxClicked(); 
 
 
 		//TBa remove test actions below

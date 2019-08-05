@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 
+
+//Ranges in XY direction
 class ParametersRanges {
 
 public:

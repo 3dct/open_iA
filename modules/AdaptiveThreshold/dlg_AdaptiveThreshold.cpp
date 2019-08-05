@@ -65,7 +65,7 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_clear, SIGNAL(clicked()), this, SLOT(clearEditField()));
 	connect(this->btn_aTestAction, SIGNAL(clicked()), this, SLOT(aTestAction_2()));
 	connect(this->btn_selectRange, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClicked()));
-
+	connect(this->btn_MinMax, SIGNAL(clicked()), this, SLOT(buttonMinMaxClicked())); 
 
 
 }
@@ -215,7 +215,7 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 			return;
 		}
 
-		//output are the moving freqs
+		//input grauwerte und moving freqs, output is paramRanges
 		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies/*m_frequencies*/, paramRanges, x_min, x_max);
 		rangedSeries = ChartVisHelper::createLineSeries(paramRanges);
 
@@ -247,6 +247,11 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		this->textEdit->append(output); 
 
 	}
+}
+
+void AdaptiveThreshold::buttonMinMaxClicked()
+{
+
 }
 
 void AdaptiveThreshold::myAction()

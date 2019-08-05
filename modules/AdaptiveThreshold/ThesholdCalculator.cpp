@@ -5,17 +5,6 @@
 #include "ThresholdDefinitions.h"
 #include "ChartVisHelper.h"
 
-namespace algorithm {
-	static bool greaterThan(double u, double v) {
-		return u > v;
-	}
-
-	static bool smallerThan(double u, double v) {
-		return u < v;
-	}
-
-}
-
 
 
 ThesholdCalculator::ThesholdCalculator()
@@ -27,20 +16,20 @@ ThesholdCalculator::~ThesholdCalculator()
 {
 }
 
-double ThesholdCalculator::vectorSum(const std::vector<double> &vec, size_t startInd, size_t endInd)
-{
-	if (startInd >= vec.size() || endInd >= vec.size()) throw new std::invalid_argument("test"); 
-	double tmp = 0.0f; 
-	
-	size_t i = startInd; 
-	while (i <= endInd){
-		
-		tmp += vec[i];
-		++i;
-	}
-
-	return tmp; 
-}
+//double ThesholdCalculator::vectorSum(const std::vector<double> &vec, size_t startInd, size_t endInd)
+//{
+//	if (startInd >= vec.size() || endInd >= vec.size()) throw new std::invalid_argument("test"); 
+//	double tmp = 0.0f; 
+//	
+//	size_t i = startInd; 
+//	while (i <= endInd){
+//		
+//		tmp += vec[i];
+//		++i;
+//	}
+//
+//	return tmp; 
+//}
 
 ThresIndx ThesholdCalculator::findIndex(const std::vector<double>& vec, double cmpVal)
 {
@@ -69,7 +58,7 @@ ThresIndx ThesholdCalculator::findIndex(const std::vector<double>& vec, double c
 void ThesholdCalculator::testPeakDetect()
 {
 	std::vector<double> data{ 6.1, 8.0, 9.0, 14.1, 10.0,14.3, 12.1, 14.4 };
-	double res = this->findMaxPeak(data); 
+	double res = m_calcHelper.findMaxPeak(data); 
 	DEBUG_LOG(QString("max peak %1").arg(res)) 
 }
 
@@ -77,10 +66,10 @@ ThresIndx ThesholdCalculator::testFindIndex(double value) {
 	//						ind 0   1   2    3     4    5     6     7 
 	std::vector<double> data{ 6.1, 8.0, 9.0, 14.1, 10.0,14.3, 12.1, 14.4 };
 	auto res = this->findIndex(data, value);
-	return res; 
-	
-	//DEBUG_LOG(QString("ind%1 val%2").arg(res.thrIndx).arg(res.value));
+	return res;
 }
+	
+	
 
 void ThesholdCalculator::testSpecifyRange(const std::vector<double> &v_inRange, 
 	const std::vector<double> &v_elements, ParametersRanges &outputRanges)
@@ -97,8 +86,7 @@ void ThesholdCalculator::testSpecifyRange(const std::vector<double> &v_inRange,
 
 	DEBUG_LOG("output vector");
 	
-	
-	//m_dbgHelper.debugVector(outputRanges);
+		
 	
 }
 
@@ -119,11 +107,11 @@ void ThesholdCalculator::doubleTestSum()
 {
 	std::vector<double> vals = { 1, 2, 3, 4, 5, 6, 7, 8, 9 }; 
 	double tmp = 0.0f; 
-	tmp = this->vectorSum(vals, 0, 2);
+	tmp = m_calcHelper.vectorSum(vals, 0, 2);
 	DEBUG_LOG(QString("su 0, 2: %1").arg(tmp));
-	tmp = this->vectorSum(vals, 1, 4);
+	tmp = m_calcHelper.vectorSum(vals, 1, 4);
 	DEBUG_LOG(QString("su 1, 4 %1").arg(tmp)); 
-	tmp = this->vectorSum(vals, 4, 6);
+	tmp = m_calcHelper.vectorSum(vals, 4, 6);
 	DEBUG_LOG(QString("su 4, 6 %1").arg(tmp)); 
 
 }
@@ -171,28 +159,7 @@ void ThesholdCalculator::retrieveHistData()
 	}
 }
 
-double ThesholdCalculator::findMaxPeak(std::vector<double>& v_ind/*, unsigned int toleranceVal*/)
-{
-	std::sort(v_ind.begin(), v_ind.end(), algorithm::greaterThan);
-	auto peak = std::adjacent_find(v_ind.begin(), v_ind.end(), std::greater<double>());
-	
-	if (peak == v_ind.end()) {
-		--peak;
-	}
 
-	return *peak;
-}
-
-double ThesholdCalculator::findMinPeak(std::vector<double>& v_ind){
-	std::sort(v_ind.begin(), v_ind.end(), algorithm::smallerThan);
-	auto peak = std::adjacent_find(v_ind.begin(), v_ind.end(), std::greater<double>());
-
-	if (peak == v_ind.end()) {
-		--peak;
-	}
-
-	return *peak;
-}
 
 
 void ThesholdCalculator::specifyRange(const std::vector<double>& v_inRef, const std::vector<double> &vals, ParametersRanges &outRange, double xmin, double xmax)
@@ -259,25 +226,23 @@ void ThesholdCalculator::determineMovingAverage(const std::vector<double> &v_in,
 	for (size_t posInd = 0; posInd < v_lengh; ++posInd) {
 
 		if (posInd < count) {
-			sum = this->vectorSum(v_in,posInd,posInd+count/2);
+			sum = m_calcHelper.vectorSum(v_in,posInd,posInd+count/2);
 		}
 		else {
 			if (posInd >= maxLen - count) {
-				sum = this->vectorSum(v_in, posInd, posInd - count / 2);
+				sum = m_calcHelper.vectorSum(v_in, posInd, posInd - count / 2);
 			}
 			else {
 				size_t minPos = posInd - (count / 2);
 				size_t maxPos = posInd + (count / 2);
-				sum = this->vectorSum(v_in, minPos, maxPos);
+				sum = m_calcHelper.vectorSum(v_in, minPos, maxPos);
 
-				//DEBUG_LOG(QString("sum %1").arg(sum));
+			
 			}
 		}
 
 
 		sum /= count;
-		//DEBUG_LOG(QString("Average %1").arg(sum)); 
-
 		v_out.push_back(sum);
 	}
 }
