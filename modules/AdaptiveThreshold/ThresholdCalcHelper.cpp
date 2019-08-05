@@ -1,5 +1,6 @@
 #include "ThresholdCalcHelper.h"
 #include <numeric>
+#include "ThresholdDefinitions.h"
 #include <algorithm>
 #include <stdexcept>
 
@@ -42,4 +43,27 @@ double ThresholdCalcHelper::vectorSum(const std::vector<double>& vec, size_t sta
 	}
 
 	return tmp;
+}
+
+ThresIndx ThresholdCalcHelper::findIndex(const std::vector<double>& vec, double cmpVal)
+{
+	ThresIndx thrInd;
+	long ind = 0;
+	thrInd.value = cmpVal;
+
+	for (const double& el : vec) {
+		bool isEqual = algorithm::compareDouble(el, cmpVal);
+		if (isEqual) {
+			thrInd.thrIndx = ind;
+			break;
+		}
+		else {
+			thrInd.thrIndx = -1;
+		}
+
+		ind++;
+	}
+
+	return thrInd;
+
 }

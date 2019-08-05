@@ -25,18 +25,6 @@ struct HistMinMax{
 };
 
 
-//storing xInd and threshold
-struct ThresIndx {
-	ThresIndx() {
-		thrIndx = -std::numeric_limits<long int>::infinity();
-		value = -std::numeric_limits<double>::infinity();
-	}
-
-	long int thrIndx;
-	double value; 
-
-};
-
 //resulting data structure for min and maximum threshold
 
 struct ThresMinMax {
@@ -95,14 +83,7 @@ public:
 
 
 private:
-	//double vectorSum(const std::vector<double> &sum, size_t startInd, size_t endInd);
-	
-	inline bool compareDouble(double a, double b) {
-		return fabs(a - b) < epsilon; 
-	}
-
-	ThresIndx findIndex(const std::vector<double>& vec, double elem);
-	const double epsilon = 0.0000000001; 			
+		
 	QSharedPointer<iAPlotData> m_data;
 	DebugHelper m_dbgHelper; 
 	ThresholdCalcHelper m_calcHelper; 

@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-
+#include <QString>
 
 //Ranges in XY direction
 class ParametersRanges {
@@ -39,3 +39,14 @@ private:
 	std::vector<double> y_vals;
 };
 
+//storing xInd and threshold
+struct ThresIndx {
+	ThresIndx() {
+		thrIndx = -std::numeric_limits<long int>::infinity();
+		value = -std::numeric_limits<double>::infinity();
+	}
+
+	long int thrIndx;
+	double value;
+
+};

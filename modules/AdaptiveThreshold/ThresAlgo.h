@@ -8,4 +8,10 @@ namespace algorithm {
 		return u < v;
 	}
 
+	const double epsilon = 0.0000000001;
+
+	static bool compareDouble(double a, double b) {
+		return fabs(a - b) < epsilon;
+	}
+
 }

@@ -31,28 +31,6 @@ ThesholdCalculator::~ThesholdCalculator()
 //	return tmp; 
 //}
 
-ThresIndx ThesholdCalculator::findIndex(const std::vector<double>& vec, double cmpVal)
-{
-	ThresIndx thrInd; 
-	long ind = 0; 
-	thrInd.value = cmpVal; 
-
-	for(const double &el:vec){
-		bool isEqual = this->compareDouble(el, cmpVal); 
-		if (isEqual) {
-			thrInd.thrIndx = ind; 
-			break;
-		}
-		else {
-			thrInd.thrIndx = -1;
-		}
-
-		ind++;
-	}
-
-	return thrInd; 
-
-}
 
 
 void ThesholdCalculator::testPeakDetect()
@@ -65,7 +43,7 @@ void ThesholdCalculator::testPeakDetect()
 ThresIndx ThesholdCalculator::testFindIndex(double value) {
 	//						ind 0   1   2    3     4    5     6     7 
 	std::vector<double> data{ 6.1, 8.0, 9.0, 14.1, 10.0,14.3, 12.1, 14.4 };
-	auto res = this->findIndex(data, value);
+	auto res = m_calcHelper.findIndex(data, value);
 	return res;
 }
 	
@@ -74,8 +52,6 @@ ThresIndx ThesholdCalculator::testFindIndex(double value) {
 void ThesholdCalculator::testSpecifyRange(const std::vector<double> &v_inRange, 
 	const std::vector<double> &v_elements, ParametersRanges &outputRanges)
 {
-	 
-
 	double x_min = 2.0; 
 	double x_max = 8.0; 
 
@@ -85,9 +61,6 @@ void ThesholdCalculator::testSpecifyRange(const std::vector<double> &v_inRange,
 	m_dbgHelper.debugVector(v_elements); 
 
 	DEBUG_LOG("output vector");
-	
-		
-	
 }
 
 void ThesholdCalculator::performCalculation(std::vector<double> inputRange, double xmin, double xmax)
