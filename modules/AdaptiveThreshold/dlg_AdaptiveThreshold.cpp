@@ -190,7 +190,7 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 	try
 	{
 		threshold_defs::ParametersRanges paramRanges;
-		QLineSeries* rangedSeries = nullptr;
+		
 
 
 		if (m_movingFrequencies.empty())
@@ -201,25 +201,8 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 
 		//input grauwerte und moving freqs, output is paramRanges
 		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies/*m_frequencies*/, paramRanges, x_min, x_max);
-		rangedSeries = ChartVisHelper::createLineSeries(paramRanges);
-		auto outVals = m_thresCalculator.calcMinMax(paramRanges);
-		
-		this->writeText(outVals.toString());
-
-		//then determine min max of the moving frequencys
-		
-		
-		//m_thresCalculator->findMaxPeak(m_movingFrequencies)
-			   		 
-		if (!rangedSeries)
-		{
-			DEBUG_LOG("Range series not created");
-			return;
-		}
-
-		QColor color = QColor(255, 0, 0);
-		rangedSeries->setColor(color);
-		this->addSeries(rangedSeries);
+		createVisulisation(paramRanges);
+		return;
 
 	}catch (std::bad_alloc& ba){
 			this->textEdit->append("not enough memory avaiable"); 
@@ -228,6 +211,55 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 	{
 		QString output = ia.what();
 		this->textEdit->append(output); 
+	}
+}
+
+void AdaptiveThreshold::createVisulisation(threshold_defs::ParametersRanges paramRanges)
+{
+	try {
+		QLineSeries* rangedSeries = nullptr;
+		rangedSeries = ChartVisHelper::createLineSeries(paramRanges);
+		auto outVals = m_thresCalculator.calcMinMax(paramRanges);
+
+		QPointF p1 = ChartVisHelper::createPoint(outVals.maxX, outVals.maxThresholdY);
+		QPointF p2 = ChartVisHelper::createPoint(outVals.minX, outVals.minThresholdY);
+
+
+		if (!rangedSeries)
+		{
+			DEBUG_LOG("Range series not created");
+			return;
+		}
+
+		auto SeriesTwoPoints = ChartVisHelper::createLineSeries(p1, p1, LineVisOption::vertically);
+		auto SeriesTwoPointsb = ChartVisHelper::createLineSeries(p1, p1, LineVisOption::horizontally);
+		SeriesTwoPointsb->setColor(QColor(0, 0, 255));
+		SeriesTwoPoints->setColor(QColor(0, 0, 255));
+	
+
+		auto series_p2 = ChartVisHelper::createLineSeries(p2, p2, LineVisOption::horizontally);
+		auto series_p2_b = ChartVisHelper::createLineSeries(p2, p2, LineVisOption::vertically);
+
+		series_p2_b->setColor(QColor(0, 255, 0));
+		series_p2->setColor(QColor(0, 255, 0));
+
+		if(series_p2)
+			this->addSeries(series_p2);
+		if (series_p2_b)
+			this->addSeries(series_p2_b); 
+		if(SeriesTwoPoints)
+			this->addSeries(SeriesTwoPoints);
+		if(SeriesTwoPointsb)
+			this->addSeries(SeriesTwoPointsb);
+
+		QColor color = QColor(255, 0, 0);
+		rangedSeries->setColor(color);
+		this->addSeries(rangedSeries);
+		this->writeText(outVals.toString());
+	}
+	catch (std::invalid_argument iae) {
+		throw; 
+	
 	}
 }
 

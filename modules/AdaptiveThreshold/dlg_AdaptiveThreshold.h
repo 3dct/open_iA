@@ -65,6 +65,8 @@ private slots:
 		void calculateMovingAverage();
 		void buttonSelectRangesClicked(); 
 
+		void createVisulisation(threshold_defs::ParametersRanges paramRanges);
+
 		
 
 		void buttonMinMaxClicked();

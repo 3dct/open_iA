@@ -27,8 +27,8 @@ QLineSeries* ChartVisHelper::createLineSeries(const QPointF& pt_1, const QPointF
 	//horizontal xy use xy coordinates
 	QLineSeries* series = new QLineSeries;
 	switch (option) {
-	case horizontally: y_1 = 0; y_2 = 0;break;
-	case vertically: x_1; x_2 = 0; break;
+	case horizontally: y_1 = 0; /*y_2 = 0*/;break;
+	case vertically: /*x_1 = 0*/; x_2 = 0; break;
 	case horizontal_xy: break; 
 	//leave it
 	default:
@@ -39,10 +39,6 @@ QLineSeries* ChartVisHelper::createLineSeries(const QPointF& pt_1, const QPointF
 	series->append(x_2, y_2);
 
 	return series; 
-
-	
-
-
 }
 
 

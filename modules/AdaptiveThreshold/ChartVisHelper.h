@@ -24,7 +24,6 @@ class ChartVisHelper
 public:
 	//Create a scatter series from data typ
 	static QLineSeries* createLineSeries(const threshold_defs::ParametersRanges& ranges);
-	QLineSeries* createLineSeries(const threshold_defs::pt2D& pt_1, const threshold_defs::pt2D& pt_2, LineVisOption option);
 	static QScatterSeries* createScatterSeries(const threshold_defs::ParametersRanges& ranges);
 	static QScatterSeries* createScatterSeries(const std::vector<double>& vec_x,
 		const std::vector<double>& vec_y); 
@@ -35,7 +34,9 @@ public:
 	static QLineSeries* createLineSeries(const QPointF& pt_1, const QPointF& pt_2, LineVisOption option);
 
 	//inline static QPointF create(double x_1, double y_1, double, double x_2, double y_1 )
-
+	static QPointF createPoint(double x, double y) {
+		return QPointF(x, y);
+	}
 
 private:
 	static void fillSeries(QXYSeries* aSeries, const std::vector<double> &vec_x, const std::vector<double> &vec_y);
