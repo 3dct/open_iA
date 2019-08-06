@@ -212,6 +212,9 @@
       <property name="singleStep">
        <number>2</number>
       </property>
+      <property name="value">
+       <number>17</number>
+      </property>
      </widget>
     </item>
     <item>
@@ -388,6 +391,19 @@
    </property>
    <property name="text">
     <string>DetermineMinMax</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_redraw">
+   <property name="geometry">
+    <rect>
+     <x>1060</x>
+     <y>420</y>
+     <width>171</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Redraw</string>
    </property>
   </widget>
  </widget>

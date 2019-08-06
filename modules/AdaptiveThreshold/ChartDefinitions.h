@@ -53,8 +53,5 @@ namespace chartV {
 		int ticks_y;
 	};
 }
-//void AxisParams::setDefaultTicks()
-//{
-//
-//}
+
 

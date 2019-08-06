@@ -76,6 +76,8 @@ void ThesholdCalculator::performCalculation(std::vector<double> inputRange, doub
 
 }
 
+
+
 void ThesholdCalculator::doubleTestSum()
 {
 	std::vector<double> vals = { 1, 2, 3, 4, 5, 6, 7, 8, 9 }; 
@@ -126,7 +128,7 @@ threshold_defs::ThresMinMax ThesholdCalculator::calcMinMax(const threshold_defs:
 void ThesholdCalculator::retrieveHistData()
 {
 	if (!m_data)
-		throw std::invalid_argument("Error data cannot be retrieved");
+		throw std::invalid_argument("Error histogram data cannot be retrieved");
 
 	double binVals_X;
 	double freq_valsY;
@@ -187,10 +189,9 @@ void ThesholdCalculator::specifyRange(const std::vector<double>& v_inRef, const 
 
 }
 
-void ThesholdCalculator::determineMovingAverage(const std::vector<double> &v_in, std::vector<double> &v_out, unsigned int count)
+void ThesholdCalculator::calculateMovingAverage(const std::vector<double> &v_in, std::vector<double> &v_out, unsigned int count)
 {
-	DEBUG_LOG("Calculate average");
-	
+	DEBUG_LOG("Calculate average");	
 	size_t v_lengh = v_in.size();
 	
 	if (v_lengh == 0) {

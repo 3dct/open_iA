@@ -34,7 +34,7 @@ public:
 	~ThesholdCalculator();
 
 	//ouble vectorSum(const std::vector<double>& vec, size_t startInd, size_t endInd);
-	void determineMovingAverage(const std::vector<double>& v_in, std::vector<double>& v_out, unsigned int count);
+	void calculateMovingAverage(const std::vector<double>& v_in, std::vector<double>& v_out, unsigned int count);
 	void doubleTestSum();	
 	void calculateFrequencies(size_t m_start, size_t m_end);
 	threshold_defs::ThresMinMax calcMinMax(const threshold_defs::ParametersRanges &ranges); 
@@ -74,7 +74,11 @@ public:
 
 
 private:
-		
+
+	//delete series
+	//void redrawPlot(); 
+
+
 	QSharedPointer<iAPlotData> m_data;
 	DebugHelper m_dbgHelper; 
 	ThresholdCalcHelper m_calcHelper; 

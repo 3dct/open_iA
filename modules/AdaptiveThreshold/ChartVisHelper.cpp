@@ -70,6 +70,22 @@ QScatterSeries* ChartVisHelper::createScatterSeries(const threshold_defs::Parame
 
 }
 
+QT_CHARTS_NAMESPACE::QScatterSeries* ChartVisHelper::createScatterSeries(const std::vector<QPointF> pts)
+{
+	QScatterSeries* series = new QScatterSeries;
+	if (pts.empty()) {
+		delete series; series = nullptr; 
+	}
+
+	for (const QPointF& el : pts) {
+		series->append(el);
+	
+	}
+	
+	return series;
+
+}
+
 QLineSeries *ChartVisHelper::createLineSeries(const std::vector<double> &vec_x, const std::vector<double> &vec_y)
 {
 	QLineSeries *series = nullptr;

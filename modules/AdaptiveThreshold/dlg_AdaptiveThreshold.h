@@ -70,7 +70,7 @@ private slots:
 		
 
 		void buttonMinMaxClicked();
-
+		void redrawPlots();
 
 		//TBa remove test actions below
 		void myAction();
@@ -90,7 +90,7 @@ private:
 	void setOutputText(const QString& Text); 
 	void setInputData(const std::vector<double> &thres_binInX, const std::vector<double> &freqValsInY);
 	//TODO Refactoring
-
+	void addAllSeries(std::vector<QXYSeries*> allSeries);
 
 	void setDefaultMinMax(double xMIn, double xMax, double yMin, double yMax); 
 
@@ -103,6 +103,11 @@ private:
 		
 	}
 	
+	//take current plots and redraw everything
+
+	
+private: 
+
 	const double minXDefault = 0; const double maxXDefault = 65535; 
 	const double minYDefault = 0; const double maxYDefault = 40000; 
 	int m_average = 0; 

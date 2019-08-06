@@ -27,6 +27,8 @@ public:
 	static QScatterSeries* createScatterSeries(const threshold_defs::ParametersRanges& ranges);
 	static QScatterSeries* createScatterSeries(const std::vector<double>& vec_x,
 		const std::vector<double>& vec_y); 
+
+	static QScatterSeries *createScatterSeries(const std::vector<QPointF> pts); 
 	static QLineSeries* createLineSeries(const std::vector<double>& vec_x, 
 		const std::vector<double>& vec_y);
 	
