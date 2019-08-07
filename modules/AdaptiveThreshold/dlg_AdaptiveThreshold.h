@@ -44,7 +44,7 @@ public:
 	//init Axis in x and y, also with ticks
 	void initAxes(double xmin, double xmax, double ymin, double yMax, bool setDefaultAxis); 	
 	
-	void prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals, bool updateCoords);
+	void prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals, QString *grText, bool updateCoords);
 	void addSeries(QXYSeries *aSeries); 
 	//TBA
 
@@ -56,7 +56,7 @@ public:
 	void setHistData(/*const*/ QSharedPointer<iAPlotData>& data);
 	
 private slots:
-		void buttonUpdateClicked();
+		void UpdateChartClicked();
 		void buttonLoadDataClicked(); 
 		void buttonLoadHistDataClicked(); 
 		void createSampleSeries();
@@ -66,8 +66,6 @@ private slots:
 		void buttonSelectRangesClicked(); 
 
 		void createVisulisation(threshold_defs::ParametersRanges paramRanges);
-
-		
 
 		void buttonMinMaxClicked();
 		void redrawPlots();
@@ -94,7 +92,7 @@ private:
 
 	void setDefaultMinMax(double xMIn, double xMax, double yMin, double yMax); 
 
-	void readValues(double& x_min, double& x_max);
+	void assignValuesFromField(double& x_min, double& x_max);
 
 	inline void writeText(const QString& Text) {
 		if (Text.isNull() || Text.isEmpty()) return; 
@@ -102,17 +100,28 @@ private:
 		this->textEdit->append(Text);
 		
 	}
-	
-	//take current plots and redraw everything
+	inline void setTicks(uint xTicks, uint yTicks, bool update) {
+		if ((xTicks > 0) && (yTicks > 0)) {
+			axisX->setTickCount(xTicks);
+			axisY->setTickCount(yTicks); 
+		}
+		else {
+			writeText(QString("Please set a tick count greater 0")); 
+		}
 
-	
+		if (update) {
+			m_chart->update();
+			m_chartView->update(); 
+		}
+	}
+		
 private: 
-
+	
 	const double minXDefault = 0; const double maxXDefault = 65535; 
 	const double minYDefault = 0; const double maxYDefault = 40000; 
 	int m_average = 0; 
 
-	const int m_defautTickCountsX = 8;
+	const int m_defautTickCountsX = 10;
 	const int m_defaultTickCountsY = 10; 
 
 	const int maxSeriesNumbers = 10; 

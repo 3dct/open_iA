@@ -220,8 +220,6 @@ void ThesholdCalculator::calculateMovingAverage(const std::vector<double> &v_in,
 				size_t minPos = posInd - (count / 2);
 				size_t maxPos = posInd + (count / 2);
 				sum = m_calcHelper.vectorSum(v_in, minPos, maxPos);
-
-			
 			}
 		}
 

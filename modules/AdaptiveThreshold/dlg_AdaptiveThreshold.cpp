@@ -35,10 +35,13 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags 
 		this->ed_xMIn->setText("");
 		this->ed_xMax->setText("");
 		this->ed_YMax->setText("");
-		this->ed_Ymin->setText(""); 
+		this->ed_Ymin->setText("");
+
+		
 		
 		Qt::WindowFlags flags = this->windowFlags();
-		this->setWindowFlags(flags | Qt::Tool); 
+		flags |= Qt::Tool;
+		this->setWindowFlags(flags);
 
 		for (auto series: series_vec) {
 			series = new QLineSeries(); 
@@ -54,7 +57,7 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags 
 
 void AdaptiveThreshold::setupUIActions()
 {
-	connect(this->btn_update, SIGNAL(clicked()), this, SLOT(buttonUpdateClicked()));
+	connect(this->btn_update, SIGNAL(clicked()), this, SLOT(UpdateChartClicked()));
 	connect(this->btn_loadData, SIGNAL(clicked()), this, SLOT(buttonLoadDataClicked()));
 	connect(this->btn_TestData, SIGNAL(clicked()), this, SLOT(createSampleSeries()));
 	connect(this->btn_clearChart, SIGNAL(clicked()), this, SLOT(clear()));
@@ -119,13 +122,21 @@ void AdaptiveThreshold::generateSampleData(bool addserries)
 
 void AdaptiveThreshold::determineMinMax(const std::vector<double> &xVal, const std::vector<double> &yVal)
 {
-	if ((xVal.size() == 0) ||(yVal.size() == 0))
-		return; 
+	if ((xVal.size() == 0) || (yVal.size() == 0)) {
+		DEBUG_LOG("could not determine min and maximum of input range"); 
+		return;
+	}
+
+	if (xVal.size() != yVal.size())
+	{
+		DEBUG_LOG("min max of input range are not of equal size"); 
+		return;
+	}
 
 	m_xMinRef = *std::min_element(std::begin(xVal), std::end(xVal));
 	m_xMaxRef = *std::max_element(std::begin(xVal), std::end(xVal));
 	m_yMinRef = *std::min_element(std::begin(yVal), std::end(yVal));
-	m_yMaxRef = *std::min_element(std::begin(yVal), std::end(yVal));
+	m_yMaxRef = *std::max_element(std::begin(yVal), std::end(yVal));
 }
 
 void AdaptiveThreshold::setOutputText(const QString& Text)
@@ -184,7 +195,7 @@ void AdaptiveThreshold::calculateMovingAverage()
 
 	//m_thresCalculator.testPeakDetect();
 	QLineSeries *newSeries = new QLineSeries;
-	this->prepareDataSeries(newSeries, m_greyThresholds, m_movingFrequencies, false);
+	this->prepareDataSeries(newSeries, m_greyThresholds, m_movingFrequencies, &text, false);
 	
 }
 
@@ -192,13 +203,11 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 {
 	double x_min = 0;
 	double x_max = 0;
-	readValues(x_min, x_max);
+	assignValuesFromField(x_min, x_max);
 		
 	try
 	{
 		threshold_defs::ParametersRanges paramRanges;
-		
-
 
 		if (m_movingFrequencies.empty())
 		{
@@ -238,25 +247,26 @@ void AdaptiveThreshold::createVisulisation(threshold_defs::ParametersRanges para
 			return;
 		}
 
+		//rangedSeries->i
 		//cleaning
 		std::vector<QXYSeries*> data; 
-		if (!data.empty()) {
-			DEBUG_LOG("Clean up");
+		//if (!data.empty()) {
+		//	DEBUG_LOG("Clean up");
 
-			for (QXYSeries* el : data) {
-				if (el) { 
-					el->detachAxis(axisX);
-					el->detachAxis(axisY);
-					m_chart->removeSeries(el); 
-				
-					//delete el;
-				}
-				
-				m_chart->update(); 
-				m_chartView->update(); 
-			}
-		
-		}
+		//	for (QXYSeries* el : data) {
+		//		if (el) { 
+		//			el->detachAxis(axisX);
+		//			el->detachAxis(axisY);
+		//			m_chart->removeSeries(el); 
+		//		
+		//			//delete el;
+		//		}
+		//		
+		//		m_chart->update(); 
+		//		m_chartView->update(); 
+		//	}
+		//
+		//}
 
 
 		//normaler weise müsste man das neu zeichnen
@@ -295,7 +305,7 @@ void AdaptiveThreshold::createVisulisation(threshold_defs::ParametersRanges para
 	}
 }
 
-void AdaptiveThreshold::readValues(double& x_min, double& x_max)
+void AdaptiveThreshold::assignValuesFromField(double& x_min, double& x_max)
 {
 	bool* x_OK = new bool; bool* x2_OK = new bool;
 
@@ -360,9 +370,10 @@ void AdaptiveThreshold::redrawPlots()
 		delete m_refSeries;
 	}
 	m_refSeries = new QLineSeries; 
+	QString hist = "Histogram";
 
 	this->prepareDataSeries(m_refSeries, m_greyThresholds,
-		m_frequencies, false);
+		m_frequencies, &hist, false);
 
 	//series have to be redone
 	this->addSeries(m_refSeries);
@@ -471,7 +482,7 @@ void AdaptiveThreshold::clear()
 	m_chartView->update(); 
 }
 
-void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals, bool updateCoords)
+void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals, QString *grText, bool updateCoords)
 {
 	if (!aSeries) {
 		DEBUG_LOG("series is null"); 
@@ -509,10 +520,13 @@ void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries, const std::vector<
 		*aSeries << QPointF(tmp_x, tmp_y); 
 	}
 
-	QString text = QString("Moving average %1").arg(5);
+	
 	
 	this->addSeries(aSeries); 
-	aSeries->setObjectName(text);
+	if (grText) {
+		QString stext = *grText;
+			aSeries->setName(stext);
+	}
 	this->m_chart->update();
 	this->m_chartView->update(); 
 
@@ -538,7 +552,7 @@ void AdaptiveThreshold::createSampleSeries()
 	QScatterSeries *mySeries = new QScatterSeries;
 	std::vector<double> vec_x = { 4,6,8 }; 
 	std::vector<double> vec_y = { 7, 11, 15 };
-	this->prepareDataSeries(mySeries, vec_x, vec_y, false);
+	this->prepareDataSeries(mySeries, vec_x, vec_y,nullptr, false);
 	mySeries->setName("ATest");
 	mySeries->setColor(QColor(0, 0, 255)); 
 	m_chart->addSeries(mySeries);
@@ -548,21 +562,32 @@ void AdaptiveThreshold::createSampleSeries()
 	m_chartView->update(); 
 }
 
-void AdaptiveThreshold::buttonUpdateClicked()
+void AdaptiveThreshold::UpdateChartClicked()
 {
-	DEBUG_LOG("Button update is clicked"); 
+	DEBUG_LOG("rescale graph"); 
 	this->m_chart->setTitle("Grey value distribution"); 
 
-	QString xmin, xMax, yMIn, yMax; 
+	QString xmin, xMax, yMIn, yMax;
+	QString xTicks, yTicks; 
+
 	double xmin_val, xmax_val, ymin_val, ymax_val;
 
 	xmin = this->ed_xMIn->text();
 	xMax = this->ed_xMax->text();
 	yMIn = this->ed_Ymin->text();
 	yMax = this->ed_YMax->text(); 
+	xTicks = this->spin_xTicks->text();
+	yTicks = this->spin_yTicks->text(); 
 
 	if (xmin.isEmpty() && xMax.isEmpty() && yMIn.isEmpty() && yMax.isEmpty()) {
 		return;
+	}
+
+	uint xTickcount = xTicks.toUInt();
+	uint yTickcount = yTicks.toUInt(); 
+
+	if ((!yTicks.isEmpty()) && (!xTicks.isEmpty())) {
+		this->setTicks(xTickcount, yTickcount, false);
 	}
 
 	xmin_val = xmin.toDouble();
@@ -570,8 +595,13 @@ void AdaptiveThreshold::buttonUpdateClicked()
 	ymin_val = yMIn.toDouble();
 	ymax_val = yMax.toDouble();
 
+
+
 	axisX->setRange(xmin_val, xmax_val);
 	axisY->setRange(ymin_val, ymax_val);
+
+
+
 	m_chart->update(); 
 	this->m_chartView->update();
 }
@@ -588,7 +618,7 @@ void AdaptiveThreshold::buttonLoadDataClicked()
 
 	this->m_greyThresholds = m_seriesLoader.getGreyValues(); 
 	this->m_frequencies = m_seriesLoader.getFrequencies(); 
-	prepareDataSeries(m_refSeries,m_greyThresholds, m_frequencies, true); 
+	prepareDataSeries(m_refSeries,m_greyThresholds, m_frequencies,nullptr, true); 
 }
 
 void AdaptiveThreshold::buttonLoadHistDataClicked()
@@ -596,10 +626,10 @@ void AdaptiveThreshold::buttonLoadHistDataClicked()
 	//retrieve thresholds and frequencies
 	//visualize it
 	this->textEdit->append("Loading histogram data\n");
-	
+	QString text = "Histogram data";
 	m_thresCalculator.retrieveHistData(); 
 	this->setInputData(m_thresCalculator.getThresBins(), m_thresCalculator.getFreqValsY()); 
 	this->prepareDataSeries(m_refSeries, m_greyThresholds, 
-		m_frequencies, true); 
+		m_frequencies, &text, true);
 }
 
