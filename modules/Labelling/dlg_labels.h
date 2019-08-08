@@ -85,7 +85,6 @@ private:
 	void updateChannel();
 
 	iAColorTheme const * m_colorTheme;
-	int m_maxColor;
 	QString m_fileName;
 
 	// for label overlay:

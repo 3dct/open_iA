@@ -54,13 +54,13 @@
 namespace
 {
 	const double DefaultOpacity = 0.5;
+	typedef int LabelPixelType;
 }
 
 dlg_labels::dlg_labels(MdiChild* mdiChild):
 	m_itemModel(new QStandardItemModel()),
 	m_colorTheme(iAColorThemeManager::instance().theme("Brewer Set3 (max. 12)")),
 	m_mdiChild(mdiChild),
-	m_maxColor(0),
 	m_labelChannelID(mdiChild->createChannel())
 {
 	cbColorTheme->addItems(iAColorThemeManager::instance().availableThemes());
@@ -239,7 +239,7 @@ void dlg_labels::addSeedItem(int labelRow, int x, int y, int z)
 		m_itemModel->item(labelRow)->rowCount(),
 		createCoordinateItem(x, y, z)
 	);
-	drawPixel(m_labelOverlayImg, x, y, z, labelRow+1);
+	drawPixel<LabelPixelType>(m_labelOverlayImg, x, y, z, labelRow+1);
 }
 
 int dlg_labels::addLabelItem(QString const & labelText)
@@ -250,11 +250,11 @@ int dlg_labels::addLabelItem(QString const & labelText)
 		m_labelOverlayImg->SetExtent(m_mdiChild->imagePointer()->GetExtent());
 		m_labelOverlayImg->SetSpacing(m_mdiChild->imagePointer()->GetSpacing());
 		m_labelOverlayImg->AllocateScalars(VTK_INT, 1);
-		clearImage(m_labelOverlayImg, 0);
+		clearImage<LabelPixelType>(m_labelOverlayImg, 0);
 	}
 	QStandardItem* newItem = new QStandardItem(labelText);
 	QStandardItem* newItemCount = new QStandardItem("0");
-	newItem->setData(m_colorTheme->color(m_maxColor++), Qt::DecorationRole);
+	newItem->setData(m_colorTheme->color(m_itemModel->rowCount()), Qt::DecorationRole);
 	QList<QStandardItem* > newRow;
 	newRow.append(newItem);
 	newRow.append(newItemCount);
@@ -265,8 +265,7 @@ int dlg_labels::addLabelItem(QString const & labelText)
 void dlg_labels::add()
 {
 	pbStore->setEnabled(true);
-	int labelCount = m_itemModel->rowCount();
-	addLabelItem(QString::number( labelCount ));
+	addLabelItem(QString::number( m_itemModel->rowCount() ));
 	reInitChannelTF();
 }
 
@@ -321,7 +320,7 @@ void dlg_labels::remove()
 			int x = seed->data(Qt::UserRole + 1).toInt();
 			int y = seed->data(Qt::UserRole + 2).toInt();
 			int z = seed->data(Qt::UserRole + 3).toInt();
-			drawPixel(m_labelOverlayImg, x, y, z, 0);
+			drawPixel<LabelPixelType>(m_labelOverlayImg, x, y, z, 0);
 		}
 		m_itemModel->removeRow(curLabel);
 		for (int l = curLabel; l < m_itemModel->rowCount(); ++l)
@@ -334,7 +333,7 @@ void dlg_labels::remove()
 				int x = seed->data(Qt::UserRole + 1).toInt();
 				int y = seed->data(Qt::UserRole + 2).toInt();
 				int z = seed->data(Qt::UserRole + 3).toInt();
-				drawPixel(m_labelOverlayImg, x, y, z, l+1);
+				drawPixel<LabelPixelType>(m_labelOverlayImg, x, y, z, l+1);
 			}
 		}
 		if (m_itemModel->rowCount() == 0)
@@ -356,7 +355,7 @@ void dlg_labels::remove()
 
 void dlg_labels::removeSeed(QStandardItem* item, int x, int y, int z)
 {
-	drawPixel(m_labelOverlayImg, x, y, z, 0);
+	drawPixel<LabelPixelType>(m_labelOverlayImg, x, y, z, 0);
 	int labelRow = item->parent()->row();
 	item->parent()->removeRow(item->row());
 	m_itemModel->item(labelRow, 1)->setText(QString::number(m_itemModel->item(labelRow, 1)->text().toInt() - 1));
@@ -387,9 +386,8 @@ bool dlg_labels::load(QString const & filename)
 {
 	if (m_labelOverlayImg)
 	{
-		clearImage(m_labelOverlayImg, 0);
+		clearImage<LabelPixelType>(m_labelOverlayImg, 0);
 	}
-	m_maxColor = 0;
 	m_itemModel->clear();
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
 	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
@@ -695,11 +693,10 @@ void dlg_labels::clear()
 {
 	if (m_labelOverlayImg)
 	{
-		clearImage(m_labelOverlayImg, 0);
+		clearImage<LabelPixelType>(m_labelOverlayImg, 0);
 		updateChannel();
 	}
 	m_itemModel->clear();
-	m_maxColor = 0;
 }
 
 QString const & dlg_labels::fileName()
