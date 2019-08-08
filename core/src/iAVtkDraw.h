@@ -126,8 +126,11 @@ void drawLine(vtkImageData* img, int x1, int y1, int x2, int y2, T c)
 template <typename T>
 void clearImage(vtkImageData* img, T c)
 {
-	int extent[6];
-	img->GetExtent(extent);
+	int const * dim = img->GetDimensions();
+	int * rawDataPtr = static_cast<T*>(img->GetScalarPointer());
+	size_t fullSize = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
+	std::fill(rawDataPtr, rawDataPtr + fullSize, c);
+	/*
 	for (int x=extent[0]; x<=extent[1]; ++x)
 	{
 		for (int y=extent[2]; y<=extent[3]; ++y)
@@ -138,4 +141,5 @@ void clearImage(vtkImageData* img, T c)
 			}
 		}
 	}
+	*/
 }
