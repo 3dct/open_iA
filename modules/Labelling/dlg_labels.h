@@ -55,9 +55,6 @@ public:
 	int seedCount(int labelIdx) const;
 	bool load(QString const & filename);
 	bool store(QString const & filename, bool extendedFormat);
-	int count() const;
-	QString name(int idx) const;
-	QColor color(int idx) const;
 
 	// TEMPORARY
 	QStandardItemModel* m_itemModel; // TODO: make private

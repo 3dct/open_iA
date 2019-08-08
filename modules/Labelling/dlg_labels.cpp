@@ -180,26 +180,16 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicerMode mode)
 				double dis = sqrt(dx*dx + dy*dy);
 				if (dis <= radius)
 				{
-					addSingleSeed(x, y, z, labelRow);
+					addSeedItem(labelRow, x, y, z);
 				}
 			}
 		}
 	}
+	updateChannel();
 }
 
 void dlg_labels::addSingleSeed(int x, int y, int z, int labelRow)
 {
-	// make sure we're not adding the same seed twice:
-	for (int l = 0; l < count(); ++l)
-	{
-		auto item = m_itemModel->item(l);
-		if (seedAlreadyExists(item, x, y, z))
-		{
-			return;
-			//removeSeed(item, x, y, z);
-		}
-	}
-
 	addSeedItem(labelRow, x, y, z);
 	updateChannel();
 }
@@ -216,12 +206,13 @@ void dlg_labels::slicerDragged(int x, int y, int z, iASlicerMode mode)
 
 void dlg_labels::slicerRightClicked(int x, int y, int z, iASlicerMode mode)
 {
-	for (int l = 0; l < count(); ++l)
+	for (int l = 0; l < m_itemModel->rowCount(); ++l)
 	{
 		int idx = findSeed(m_itemModel->item(l), x, y, z);
 		if (idx != -1)
 		{
 			removeSeed(m_itemModel->item(l)->child(idx), x, y, z);
+			updateChannel();
 			break;
 		}
 	}
@@ -229,6 +220,20 @@ void dlg_labels::slicerRightClicked(int x, int y, int z, iASlicerMode mode)
 
 void dlg_labels::addSeedItem(int labelRow, int x, int y, int z)
 {
+	// make sure we're not adding the same seed twice:
+	for (int l = 0; l < m_itemModel->rowCount(); ++l)
+	{
+		auto item = m_itemModel->item(l);
+		int childIdx = findSeed(item, x, y, z);
+		if (childIdx != -1)
+		{
+			if (l == labelRow)
+				return; // seed already exists with same label, nothing to do
+			else
+				// seed already exists with different label; need to remove other
+				removeSeed(item->child(childIdx), x, y, z);
+		}
+	}
 	m_itemModel->item(labelRow, 1)->setText(QString::number(m_itemModel->item(labelRow, 1)->text().toInt() + 1));
 	m_itemModel->item(labelRow)->setChild(
 		m_itemModel->item(labelRow)->rowCount(),
@@ -260,15 +265,15 @@ int dlg_labels::addLabelItem(QString const & labelText)
 void dlg_labels::add()
 {
 	pbStore->setEnabled(true);
-	int labelCount = count();
+	int labelCount = m_itemModel->rowCount();
 	addLabelItem(QString::number( labelCount ));
 	reInitChannelTF();
 }
 
 void dlg_labels::reInitChannelTF()
 {
-	m_labelColorTF = iALUT::BuildLabelColorTF(count(), m_colorTheme);
-	m_labelOpacityTF = iALUT::BuildLabelOpacityTF(count());
+	m_labelColorTF = iALUT::BuildLabelColorTF(m_itemModel->rowCount(), m_colorTheme);
+	m_labelOpacityTF = iALUT::BuildLabelOpacityTF(m_itemModel->rowCount());
 }
 
 void dlg_labels::recolorItems()
@@ -280,7 +285,7 @@ void dlg_labels::recolorItems()
 void dlg_labels::updateChannel()
 {
 	m_labelOverlayImg->Modified();
-	m_labelOverlayImg->SetScalarRange(0, count());
+	m_labelOverlayImg->SetScalarRange(0, m_itemModel->rowCount());
 	m_mdiChild->updateChannel(m_labelChannelID, m_labelOverlayImg, m_labelColorTF, m_labelOpacityTF, true);
 	m_mdiChild->updateViews();
 }
@@ -332,7 +337,7 @@ void dlg_labels::remove()
 				drawPixel(m_labelOverlayImg, x, y, z, l+1);
 			}
 		}
-		if (count() == 0)
+		if (m_itemModel->rowCount() == 0)
 		{
 			pbStore->setEnabled(false);
 		}
@@ -345,6 +350,7 @@ void dlg_labels::remove()
 		int y = item->data(Qt::UserRole + 2).toInt();
 		int z = item->data(Qt::UserRole + 3).toInt();
 		removeSeed(item, x, y, z);
+		updateChannel();
 	}
 }
 
@@ -354,23 +360,6 @@ void dlg_labels::removeSeed(QStandardItem* item, int x, int y, int z)
 	int labelRow = item->parent()->row();
 	item->parent()->removeRow(item->row());
 	m_itemModel->item(labelRow, 1)->setText(QString::number(m_itemModel->item(labelRow, 1)->text().toInt() - 1));
-	updateChannel();
-}
-
-int dlg_labels::count() const
-{
-	return m_itemModel->rowCount();
-}
-
-QString dlg_labels::name(int idx) const
-{
-	QStandardItem * labelItem = m_itemModel->item(idx);
-	return labelItem->text();
-}
-
-QColor dlg_labels::color(int idx) const
-{
-	return m_colorTheme->color(idx);
 }
 
 int dlg_labels::curLabelRow() const
