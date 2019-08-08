@@ -43,7 +43,7 @@
              <item>
               <widget class="QLineEdit" name="ed_xMIn">
                <property name="text">
-                <string/>
+                <string>0</string>
                </property>
               </widget>
              </item>
@@ -53,6 +53,19 @@
                 <string>Xmin</string>
                </property>
               </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_10">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
              </item>
             </layout>
            </item>
@@ -74,7 +87,7 @@
              <item>
               <widget class="QLineEdit" name="ed_xMax">
                <property name="text">
-                <string/>
+                <string>0</string>
                </property>
               </widget>
              </item>
@@ -84,6 +97,19 @@
                 <string>XMax</string>
                </property>
               </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_11">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
              </item>
             </layout>
            </item>
@@ -105,7 +131,7 @@
              <item>
               <widget class="QLineEdit" name="ed_Ymin">
                <property name="text">
-                <string/>
+                <string>0</string>
                </property>
               </widget>
              </item>
@@ -115,6 +141,19 @@
                 <string>YMin</string>
                </property>
               </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_13">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
              </item>
             </layout>
            </item>
@@ -136,7 +175,7 @@
              <item>
               <widget class="QLineEdit" name="ed_YMax">
                <property name="text">
-                <string/>
+                <string>0</string>
                </property>
               </widget>
              </item>
@@ -146,6 +185,19 @@
                 <string>Ymax</string>
                </property>
               </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_12">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
              </item>
             </layout>
            </item>
@@ -186,6 +238,9 @@
                  <property name="minimum">
                   <number>4</number>
                  </property>
+                 <property name="value">
+                  <number>8</number>
+                 </property>
                 </widget>
                </item>
                <item>
@@ -198,6 +253,22 @@
               </layout>
              </item>
             </layout>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_14">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Preferred</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -271,13 +342,13 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_16" stretch="2,3">
+    <layout class="QHBoxLayout" name="horizontalLayout_16" stretch="2">
      <item>
       <widget class="QGroupBox" name="groupBox_5">
        <property name="title">
         <string>Adative Thresholding Parametrisation</string>
        </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="1,1">
+       <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="1,1,1">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
@@ -307,9 +378,9 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="btn_movingAverage">
+                  <widget class="QLabel" name="label_14">
                    <property name="text">
-                    <string>VisualizeMovingAverage</string>
+                    <string>TextLabel</string>
                    </property>
                   </widget>
                  </item>
@@ -330,6 +401,13 @@
                   </spacer>
                  </item>
                 </layout>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btn_movingAverage">
+                 <property name="text">
+                  <string>VisualizeMovingAverage</string>
+                 </property>
+                </widget>
                </item>
                <item>
                 <spacer name="verticalSpacer">
@@ -426,6 +504,13 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QCheckBox" name="chbxMaxPeakRanges_2">
+              <property name="text">
+               <string>Custom series</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
          </layout>
@@ -467,6 +552,33 @@
                </property>
               </widget>
              </item>
+             <item row="3" column="1">
+              <layout class="QVBoxLayout" name="verticalLayout_15">
+               <item>
+                <widget class="QLabel" name="label_9">
+                 <property name="text">
+                  <string>Moving Frequency</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="cmb_BoxMovFreq"/>
+               </item>
+              </layout>
+             </item>
+             <item row="2" column="1">
+              <spacer name="verticalSpacer_2">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
             </layout>
            </item>
            <item>
@@ -485,7 +597,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="ed_MaxPeakThr"/>
+                 <widget class="QLineEdit" name="ed_PeakThrMaxX"/>
                 </item>
                 <item>
                  <widget class="QLabel" name="label_4">
@@ -495,7 +607,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="ed_MaxPeakFreq"/>
+                 <widget class="QLineEdit" name="ed_PeakFregMaxY"/>
                 </item>
                </layout>
               </widget>
@@ -514,7 +626,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="ed_minPeakThr"/>
+                 <widget class="QLineEdit" name="ed_minPeakThrX"/>
                 </item>
                 <item>
                  <widget class="QLabel" name="label_13">
@@ -524,7 +636,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="ed_MinFreqThr"/>
+                 <widget class="QLineEdit" name="ed_MinPeakFreqrY"/>
                 </item>
                </layout>
               </widget>
@@ -534,31 +646,15 @@
           </layout>
          </widget>
         </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_6">
+          <property name="title">
+           <string>GroupBox</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
-     </item>
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout_15" stretch="1,4">
-       <item>
-        <widget class="QLabel" name="label_9">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>ATestGraph</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QGridLayout" name="gridLayout_2"/>
-       </item>
-      </layout>
      </item>
     </layout>
    </item>
@@ -707,8 +803,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>628</x>
-     <y>579</y>
+     <x>1491</x>
+     <y>1064</y>
     </hint>
     <hint type="destinationlabel">
      <x>667</x>
@@ -723,12 +819,108 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>720</x>
-     <y>579</y>
+     <x>1572</x>
+     <y>1064</y>
     </hint>
     <hint type="destinationlabel">
      <x>761</x>
      <y>451</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ed_xMIn</sender>
+   <signal>editingFinished()</signal>
+   <receiver>btn_update</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1455</x>
+     <y>230</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1478</x>
+     <y>352</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ed_xMax</sender>
+   <signal>editingFinished()</signal>
+   <receiver>btn_update</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1410</x>
+     <y>264</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1453</x>
+     <y>359</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ed_Ymin</sender>
+   <signal>editingFinished()</signal>
+   <receiver>btn_update</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1406</x>
+     <y>288</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1420</x>
+     <y>361</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ed_YMax</sender>
+   <signal>editingFinished()</signal>
+   <receiver>btn_update</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1383</x>
+     <y>315</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1426</x>
+     <y>363</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spin_xTicks</sender>
+   <signal>editingFinished()</signal>
+   <receiver>btn_update</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1231</x>
+     <y>353</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1397</x>
+     <y>363</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spin_yTicks</sender>
+   <signal>editingFinished()</signal>
+   <receiver>btn_redraw</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1229</x>
+     <y>398</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1484</x>
+     <y>400</y>
     </hint>
    </hints>
   </connection>

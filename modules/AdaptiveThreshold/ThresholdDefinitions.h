@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <QString>
+#include <stdexcept>
 
 namespace threshold_defs {
 
@@ -62,10 +63,28 @@ namespace threshold_defs {
 		double maxX;
 
 		QString toString() {
-			QString res = QString("minx%1 maxX%2 minY%3 maxY%4").arg(minX).arg(maxX).arg(minThresholdY).arg(maxThresholdY);
+			QString res = QString("Min %1 \t %2 Max %3 \t %4").arg(minX).arg(minThresholdY).arg(maxX).arg(maxThresholdY);
 			return res; 
 
 		}
+	};
+
+	class MovingFreqs {
+	public:
+		inline	void addSequence(std::vector<double>& values) {
+			m_sequences.push_back(values);
+		};
+
+		const  std::vector<double> &getFrequency(uint index) const {
+			if (index >= m_sequences.size()) {
+				throw std::invalid_argument("not in index list");
+			}
+
+			else return m_sequences.at(index);
+		}
+
+		std::vector<std::vector<double>> m_sequences; 
+
 	};
 
 

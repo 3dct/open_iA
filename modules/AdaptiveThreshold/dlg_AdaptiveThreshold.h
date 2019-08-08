@@ -46,7 +46,7 @@ public:
 	
 	//void prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals, QString *grText, bool updateCoords);
 	void prepareDataSeries(QXYSeries* aSeries, const std::vector<double>& x_vals, const std::vector<double>& y_vals, QString* grText, bool useDefaultValues, bool updateCoords);
-	void addSeries(QXYSeries* aSeries);
+	void addSeries(QXYSeries* aSeries, bool disableMarker);
 	//TBA
 
 	inline void clearSeries(QXYSeries *series) {
@@ -66,7 +66,7 @@ private slots:
 		void calculateMovingAverage();
 		void buttonSelectRangesClicked(); 
 
-		void createVisulisation(threshold_defs::ParametersRanges paramRanges);
+		void createVisualisation(threshold_defs::ParametersRanges paramRanges, threshold_defs::ThresMinMax thrPeaks);
 
 		void buttonMinMaxClicked();
 		void redrawPlots();
@@ -90,7 +90,7 @@ private:
 	void setOutputText(const QString& Text); 
 	void setInputData(const std::vector<double> &thres_binInX, const std::vector<double> &freqValsInY);
 	//TODO Refactoring
-	void addAllSeries(std::vector<QXYSeries*> allSeries);
+	void addAllSeries(std::vector<QXYSeries*> allSeries, bool disableMarker);
 
 	void setDefaultMinMax(double xMIn, double xMax, double yMin, double yMax); 
 
@@ -119,9 +119,13 @@ private:
 		
 private: 
 	
+	
+
+
 	const double minXDefault = 0; const double maxXDefault = 65535; 
 	const double minYDefault = 0; const double maxYDefault = 40000; 
 	int m_average = 0; 
+	int m_colCounter = 0; 
 
 	const int m_defautTickCountsX = 10;
 	const int m_defaultTickCountsY = 10; 
