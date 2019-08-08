@@ -44,8 +44,9 @@ public:
 	//init Axis in x and y, also with ticks
 	void initAxes(double xmin, double xmax, double ymin, double yMax, bool setDefaultAxis); 	
 	
-	void prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals, QString *grText, bool updateCoords);
-	void addSeries(QXYSeries *aSeries); 
+	//void prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals, QString *grText, bool updateCoords);
+	void prepareDataSeries(QXYSeries* aSeries, const std::vector<double>& x_vals, const std::vector<double>& y_vals, QString* grText, bool useDefaultValues, bool updateCoords);
+	void addSeries(QXYSeries* aSeries);
 	//TBA
 
 	inline void clearSeries(QXYSeries *series) {
@@ -57,9 +58,9 @@ public:
 	
 private slots:
 		void UpdateChartClicked();
-		void buttonLoadDataClicked(); 
+		void buttonLoadDataClicked();
 		void buttonLoadHistDataClicked(); 
-		void createSampleSeries();
+		//void createSampleSeries();
 		void clear(); 
 		void resetGraphToDefault(); 
 		void calculateMovingAverage();
@@ -82,6 +83,7 @@ private slots:
 		}
 
 private:
+	void DetermineRange();
 	void prepareAxis(QValueAxis *axis, const QString &title, double min, double max, uint ticks, axisMode mode);
 	void generateSampleData(bool addserries);
 	void determineMinMax(const std::vector<double> &xVal, const std::vector<double> &yVal); 
