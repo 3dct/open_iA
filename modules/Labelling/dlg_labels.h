@@ -24,13 +24,14 @@
 
 #include "ui_labels.h"
 
+#include <iASlicerMode.h>
+
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
 #include <QList>
 
-enum iASlicerMode;
 class iAColorTheme;
 class MdiChild;
 
