@@ -32,6 +32,7 @@
 //#include <iARenderer.h>
 #include <iASlicer.h>
 #include <iAToolsVTK.h>
+#include <iAvec3.h>
 #include <iAVtkDraw.h>
 #include <io/iAFileUtils.h>
 #include <mdichild.h>
@@ -134,6 +135,7 @@ bool seedAlreadyExists(QStandardItem* labelItem, int x, int y, int z)
 
 void dlg_labels::addSeed(int cx, int cy, int cz, iASlicerMode mode)
 {
+	iAVec3i center(cx, cy, cz);
 	if (!cbEnableEditing->isChecked())
 	{
 		return;
@@ -147,44 +149,30 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicerMode mode)
 
 	int radius = spinBox->value() - 1; // -1 because the center voxel shouldn't count
 	auto extent = m_labelOverlayImg->GetExtent();
-	int minx = cx;
-	int maxx = cx;
-	int miny = cy;
-	int maxy = cy;
-	int minz = cz;
-	int maxz = cz;
-	if (mode != iASlicerMode::XY)
-	{
-		minz = vtkMath::Max(cz - radius, extent[4]);
-		maxz = vtkMath::Min(cz + radius, extent[5]);
-	}
-	if (mode != iASlicerMode::XZ)
-	{
-		miny = vtkMath::Max(cy - radius, extent[2]);
-		maxy = vtkMath::Min(cy + radius, extent[3]);
-	}
-	if (mode != iASlicerMode::YZ)
-	{
-		minx = vtkMath::Max(cx - radius, extent[0]);
-		maxx = vtkMath::Min(cx + radius, extent[1]);
-	}
+	
+	int xAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::X),
+		yAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::Y),
+		minSlicerX = vtkMath::Max(center[xAxis] - radius, extent[xAxis * 2]),
+		maxSlicerX = vtkMath::Min(center[xAxis] + radius, extent[xAxis * 2 + 1]),
+		minSlicerY = vtkMath::Max(center[yAxis] - radius, extent[yAxis * 2]),
+		maxSlicerY = vtkMath::Min(center[yAxis] + radius, extent[yAxis * 2 + 1]);
 
 	QList<QStandardItem*> items;
-	for (int x = minx; x <= maxx; x++)
+	iAVec3i coord(center);
+	// compute radius^2, then we don't have to take square root every loop iteration:
+	double squareRadius = std::pow(radius, 2);
+	for (coord[xAxis] = minSlicerX; coord[xAxis] <= maxSlicerX; ++coord[xAxis])
 	{
-		for (int y = miny; y <= maxy; y++)
+		for (coord[yAxis] = minSlicerY; coord[yAxis] <= maxSlicerY; ++coord[yAxis])
 		{
-			for (int z = minz; z <= maxz; z++)
+			int dx = coord[xAxis] - center[xAxis];
+			int dy = coord[yAxis] - center[yAxis];
+			double squareDis = dx*dx + dy*dy;
+			if (squareDis <= squareRadius)
 			{
-				int dx = x - cx;
-				int dy = y - cy;
-				double dis = sqrt(dx*dx + dy*dy);
-				if (dis <= radius)
-				{
-					auto item = addSeedItem(labelRow, x, y, z);
-					if (item)
-						items.append(item);
-				}
+				auto item = addSeedItem(labelRow, coord[0], coord[1], coord[2]);
+				if (item)
+					items.append(item);
 			}
 		}
 	}
