@@ -26,6 +26,7 @@
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
+#define CL_TARGET_OPENCL_VERSION 220
 #include <itkGPUImage.h>
 #include <itkGPUKernelManager.h>
 #include <itkGPUContextManager.h>
