@@ -76,11 +76,11 @@ public slots:
 	QString const & fileName();
 	void opacityChanged(int newValue);
 private:
-	void addSingleSeed(int, int, int, int);
 	void addSeed(int, int, int, iASlicerMode);
 	void removeSeed(QStandardItem* item, int x, int y, int z);
-	void addSeedItem(int label, int x, int y, int z);
+	QStandardItem* addSeedItem(int label, int x, int y, int z);
 	int addLabelItem(QString const & labelText);
+	void appendSeeds(int label, QList<QStandardItem*> const & items);
 	void reInitChannelTF();
 	void recolorItems();
 	void updateChannel();

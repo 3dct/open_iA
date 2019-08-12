@@ -169,6 +169,7 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicerMode mode)
 		maxx = vtkMath::Min(cx + radius, extent[1]);
 	}
 
+	QList<QStandardItem*> items;
 	for (int x = minx; x <= maxx; x++)
 	{
 		for (int y = miny; y <= maxy; y++)
@@ -180,17 +181,16 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicerMode mode)
 				double dis = sqrt(dx*dx + dy*dy);
 				if (dis <= radius)
 				{
-					addSeedItem(labelRow, x, y, z);
+					auto item = addSeedItem(labelRow, x, y, z);
+					if (item)
+						items.append(item);
 				}
 			}
 		}
 	}
-	updateChannel();
-}
-
-void dlg_labels::addSingleSeed(int x, int y, int z, int labelRow)
-{
-	addSeedItem(labelRow, x, y, z);
+	if (items.size() == 0)
+		return;
+	appendSeeds(labelRow, items);
 	updateChannel();
 }
 
@@ -218,7 +218,7 @@ void dlg_labels::slicerRightClicked(int x, int y, int z, iASlicerMode mode)
 	}
 }
 
-void dlg_labels::addSeedItem(int labelRow, int x, int y, int z)
+QStandardItem* dlg_labels::addSeedItem(int labelRow, int x, int y, int z)
 {
 	// make sure we're not adding the same seed twice:
 	for (int l = 0; l < m_itemModel->rowCount(); ++l)
@@ -228,18 +228,21 @@ void dlg_labels::addSeedItem(int labelRow, int x, int y, int z)
 		if (childIdx != -1)
 		{
 			if (l == labelRow)
-				return; // seed already exists with same label, nothing to do
+				return nullptr; // seed already exists with same label, nothing to do
 			else
 				// seed already exists with different label; need to remove other
+				// TODO: do that removal somehow "in batch" too?
 				removeSeed(item->child(childIdx), x, y, z);
 		}
 	}
-	m_itemModel->item(labelRow, 1)->setText(QString::number(m_itemModel->item(labelRow, 1)->text().toInt() + 1));
-	m_itemModel->item(labelRow)->setChild(
-		m_itemModel->item(labelRow)->rowCount(),
-		createCoordinateItem(x, y, z)
-	);
-	drawPixel<LabelPixelType>(m_labelOverlayImg, x, y, z, labelRow+1);
+	drawPixel<LabelPixelType>(m_labelOverlayImg, x, y, z, labelRow + 1);
+	return createCoordinateItem(x, y, z);
+}
+
+void dlg_labels::appendSeeds(int label, QList<QStandardItem*> const & items)
+{
+	m_itemModel->item(label)->appendRows(items);
+	m_itemModel->item(label, 1)->setText(QString::number(m_itemModel->item(label)->rowCount()));
 }
 
 int dlg_labels::addLabelItem(QString const & labelText)
@@ -402,6 +405,7 @@ bool dlg_labels::load(QString const & filename)
 	int curLabelRow = -1;
 	
 	bool enableStoreBtn = false;
+	QList<QStandardItem*> items;
 	while (!stream.atEnd())
 	{
 		if (stream.isStartElement())
@@ -412,10 +416,21 @@ bool dlg_labels::load(QString const & filename)
 			}
 			else if (stream.name() == "Label")
 			{
+				if (items.size() > 0)
+				{
+					if (curLabelRow == -1)
+					{
+						DEBUG_LOG(QString("Error loading seed file '%1': Current label not set!")
+							.arg(filename));
+					}
+					appendSeeds(curLabelRow, items);
+				}
+
 				enableStoreBtn = true;
 				QString id = stream.attributes().value("id").toString();
 				QString name = stream.attributes().value("name").toString();
 				curLabelRow = addLabelItem(name);
+				items.clear();
 				if (m_itemModel->rowCount()-1 != id.toInt())
 				{
 					DEBUG_LOG(QString("Inserting row: rowCount %1 <-> label id %2 mismatch!")
@@ -434,7 +449,12 @@ bool dlg_labels::load(QString const & filename)
 				int x = stream.attributes().value("x").toInt();
 				int y = stream.attributes().value("y").toInt();
 				int z = stream.attributes().value("z").toInt();
-				addSeedItem(curLabelRow, x, y, z);
+				auto item = addSeedItem(curLabelRow, x, y, z);
+				if (item)
+					items.append(item);
+				else
+					DEBUG_LOG(QString("Item %1, %2, %3, label %4 already exists!")
+						.arg(x).arg(y).arg(z).arg(curLabelRow));
 			}
 		}
 		stream.readNext();
@@ -670,6 +690,7 @@ void dlg_labels::sample()
 	std::uniform_int_distribution<> zDist(0, img->GetDimensions()[2] - 1);
 
 	QVector<int> label2SeedCount(labelCount, 0);
+	QVector<QList<QStandardItem*> > items(labelCount);
 	while (!haveAllSeeds(label2SeedCount, numOfSeedsPerLabel))
 	{
 		int x = xDist(gen);
@@ -680,9 +701,17 @@ void dlg_labels::sample()
 		if (label2SeedCount[label] < numOfSeedsPerLabel[label] && !seedAlreadyExists(m_itemModel->item(label), x, y, z))
 		{
 			// m_itemModel->item(label)->appendRow(GetCoordinateItem(x, y, z));
-			addSeedItem(label, x, y, z);
-			label2SeedCount[label]++;
+			auto item = addSeedItem(label, x, y, z);
+			if (item)
+			{
+				label2SeedCount[label]++;
+				items[label].append(item);
+			}
 		}
+	}
+	for (int l = 0; l < labelCount; ++l)
+	{
+		appendSeeds(l, items[l]);
 	}
 	reInitChannelTF();
 	updateChannel();
