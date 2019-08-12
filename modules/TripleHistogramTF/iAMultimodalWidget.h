@@ -141,6 +141,7 @@ private:
 	QLabel *m_disabledLabel;
 	QCheckBox *m_checkBox_syncedCamera;
 	// }
+	virtual void modalitiesChanged() =0;
 
 	QTimer *m_timer_updateVisualizations;
 	int m_timerWait_updateVisualizations;
@@ -205,6 +206,7 @@ private slots:
 	void checkBoxWeightByOpacityChanged();
 	void checkBoxSyncedCameraChanged();
 
+	void modalitiesChangedSlot(bool, double const *);
 
 	void onMainXYScrollBarPress();
 	void onMainXZScrollBarPress();

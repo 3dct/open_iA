@@ -280,11 +280,7 @@ std::vector<size_t> dlg_FeatureScout::getPCSelection()
 {
 	std::vector<size_t> selectedIndices;
 	auto pcSelection = pcChart->GetPlot(0)->GetSelection();
-#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
 	int countSelection = pcSelection->GetNumberOfValues();
-#else
-	int countSelection = pcSelection->GetNumberOfTuples();
-#endif
 	for (int idx = 0; idx < countSelection; idx++)
 	{
 		size_t objID = pcSelection->GetVariantValue(idx).ToUnsignedLongLong();
@@ -1114,11 +1110,7 @@ void dlg_FeatureScout::RenderMeanObject()
 			cubeAxesActor->SetFlyModeToOuterEdges();
 			cubeAxesActor->SetTickLocationToOutside();
 			cubeAxesActor->SetScreenSize( 10.0 );	//changes axes font size
-#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
 			cubeAxesActor->SetGridLineLocation( vtkCubeAxesActor::VTK_GRID_LINES_FURTHEST );
-#else
-			cubeAxesActor->SetGridLineLocation( VTK_GRID_LINES_FURTHEST );
-#endif
 			cubeAxesActor->DrawXGridlinesOn();  cubeAxesActor->DrawYGridlinesOn(); 	cubeAxesActor->DrawZGridlinesOn();
 			cubeAxesActor->GetTitleTextProperty( 0 )->SetColor( 1.0, 0.0, 0.0 );
 			cubeAxesActor->GetLabelTextProperty( 0 )->SetColor( 1.0, 0.0, 0.0 );
@@ -1360,11 +1352,7 @@ void dlg_FeatureScout::RenderOrientation()
 			unsigned char color[3];
 			for ( unsigned int j = 0; j < 3; j++ )
 				color[j] = static_cast<unsigned char>( 255.0 * p[j] );
-#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
 			colors->InsertNextTypedTuple( color );
-#else
-			colors->InsertNextTupleValue(color);
-#endif
 		}
 	}
 
@@ -3249,11 +3237,7 @@ void dlg_FeatureScout::updatePolarPlotView( vtkTable *it )
 			for ( unsigned int j = 0; j < 3; j++ )
 				color[j] = static_cast<unsigned char>( 255.0 * dcolor[j] );
 
-#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
 			colors->InsertNextTypedTuple( color );
-#else
-			colors->InsertNextTupleValue( color );
-#endif
 		}
 	}
 

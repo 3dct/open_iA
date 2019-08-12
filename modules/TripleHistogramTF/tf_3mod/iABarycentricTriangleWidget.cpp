@@ -373,9 +373,13 @@ void iABarycentricTriangleWidget::setTriangleRenderer(iABarycentricContextRender
 	}
 }
 
-void iABarycentricTriangleWidget::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, QString const name[3])
+void iABarycentricTriangleWidget::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3)
 {
 	m_triangleRenderer->setModalities(d1, d2, d3, m_triangle);
+}
+
+void iABarycentricTriangleWidget::updateModalityNames(QString const name[3])
+{
 	for (int i = 0; i < 3; ++i)
 		m_spinBoxes[i]->setPrefix(QString("%1: ").arg(name[i]));
 }

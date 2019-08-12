@@ -31,31 +31,31 @@
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkPolyLine.h>
 #include <vtkTable.h>
 
 iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color,
-	std::map<size_t, std::vector<iAVec3f> > curvedFiberData):
-	iA3DColoredPolyObjectVis(ren, objectTable, columnMapping, color, 2),
-	m_curvedFiberData(curvedFiberData)
+	std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData):
+	iA3DColoredPolyObjectVis(ren, objectTable, columnMapping, color),
+	m_points(vtkSmartPointer<vtkPoints>::New()),
+	m_linePolyData(vtkSmartPointer<vtkPolyData>::New())
 {
-	m_points = vtkSmartPointer<vtkPoints>::New();
-	m_linePolyData = vtkSmartPointer<vtkPolyData>::New();
 	auto lines = vtkSmartPointer<vtkCellArray>::New();
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
 	{
-		m_fiberPointMap.push_back(m_points->GetNumberOfPoints());
 		auto it = curvedFiberData.find(row);
+		m_objectPointMap.push_back(std::make_pair(static_cast<size_t>(m_points->GetNumberOfPoints()),
+			it != curvedFiberData.end() ? it->second.size() : 2));
 		if (it != curvedFiberData.end())
 		{
-			m_points->InsertNextPoint(it->second[0].data());
-			for (int i = 1; i < it->second.size(); ++i)
+			auto line = vtkSmartPointer<vtkPolyLine>::New();
+			line->GetPointIds()->SetNumberOfIds(it->second.size());
+			for (int i = 0; i < it->second.size(); ++i)
 			{
 				m_points->InsertNextPoint(it->second[i].data());
-				auto line = vtkSmartPointer<vtkLine>::New();
-				line->GetPointIds()->SetId(0, m_points->GetNumberOfPoints() - 2);
-				line->GetPointIds()->SetId(1, m_points->GetNumberOfPoints() - 1);
-				lines->InsertNextCell(line);
+				line->GetPointIds()->SetId(i, m_points->GetNumberOfPoints()-1);
 			}
+			lines->InsertNextCell(line);
 		}
 		else
 		{
@@ -75,6 +75,7 @@ iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QS
 	}
 	m_linePolyData->SetPoints(m_points);
 	m_linePolyData->SetLines(lines);
+	setupColors();
 	m_linePolyData->GetPointData()->AddArray(m_colors);
 	setupBoundingBox();
 	setupOriginalIds();
@@ -97,4 +98,14 @@ void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & v
 vtkPolyData* iA3DLineObjectVis::getPolyData()
 {
 	return m_linePolyData;
+}
+
+int iA3DLineObjectVis::objectStartPointIdx(int objIdx) const
+{
+	return m_objectPointMap[objIdx].first;
+}
+
+int iA3DLineObjectVis::objectPointCount(int objIdx) const
+{
+	return m_objectPointMap[objIdx].second;
 }

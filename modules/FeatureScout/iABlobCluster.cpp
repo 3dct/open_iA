@@ -244,10 +244,8 @@ void iABlobCluster::SetDefaultProperties( void )
 	m_captionActor->GetCaptionTextProperty()->ShadowOff();
 	m_captionActor->GetCaptionTextProperty()->SetBackgroundOpacity(0.7);
 	m_captionActor->GetCaptionTextProperty()->SetColor(0.0, 0.0, 0.0);
-#if (VTK_MAJOR_VERSION >= 8)
 	m_captionActor->GetCaptionTextProperty()->FrameOff();
 	m_captionActor->GetCaptionTextProperty()->UseTightBoundingBoxOn();
-#endif
 }
 
 void iABlobCluster::AddClippingPlane( vtkPlane* plane )

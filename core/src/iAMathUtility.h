@@ -28,30 +28,26 @@
 #include <limits>  // for std::numeric_limits
 #include <vector>
 
-/**
- * make sure the given value is inside the given interval
- * @param min the minimum value which should be returned
- * @param max the maximum value which should be returned
- * @param val the value to check
- * @return min if the given value smaller than min, max if
- *         given value bigger than max, value if it is in
- *         between min and max
- */
+//! Make sure the given value is inside the given range.
+//! @param min the minimum value which should be returned
+//! @param max the maximum value which should be returned
+//! @param value the value to check
+//! @return min if the given value is smaller or equal to min,
+//!         max if the given value is bigger or equal to max,
+//!         or the value itself if it is in between min and max
 template <typename T>
-T clamp(T const min, T const max, T const val)
+T clamp(T const min, T const max, T const value)
 {
-	return (val < min) ? min : ((val > max) ? max : val);
+	return (value < min) ? min : ((value > max) ? max : value);
 }
 
-/**
- * map value from given interval to "norm" interval [0..1]
- * if min is bigger than max, a reverse mapping is applied
- * @param minSrcVal minimum value of source interval
- * @param maxSrcVal maximum value of source interval
- * @param value a value in source interval
- * @return if norm was in interval [minSrcVal..maxSrcVal], the
- *     corresponding mapped value in interval [0..1]
- */
+//! Map value from given range to "normalized" range [0..1].
+//! if min is bigger than max, a reverse mapping is applied
+//! @param minSrcVal minimum value of source range
+//! @param maxSrcVal maximum value of source range
+//! @param value     the value to be mapped from the source range to the normalized range
+//! @return the mapped value; in case the given value is outside given min/max,
+//!         the value will still be clamped to the range [0..1]
 template <typename SrcType>
 double mapToNorm(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value)
 {
@@ -66,7 +62,7 @@ double mapToNorm(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const
 	return clamp(0.0, 1.0, returnVal);
 }
 
-
+/*
 template <typename T>
 inline T get_t(const T& v, const T& rangeStart, const T& rangeLen)
 {
@@ -74,21 +70,26 @@ inline T get_t(const T& v, const T& rangeStart, const T& rangeLen)
 		return rangeStart;
 	return (v - rangeStart) / rangeLen;
 }
+*/
 
+//! Map values from a given range to the "normalized" range [0..1].
+//! if min is bigger than max, a reverse mapping is applied
+//! @param range an array of size 2 with minimum and maximum value of the source range
+//! @param value the value to be mapped from the source range to the destination range
+//! @return the mapped value; in case the given value is outside given min/max,
+//!         the value will still be clamped to the range [0..1]
 template <typename T>
-inline T mapToNorm(const T * range, const T v)
+inline T mapToNorm(const T * range, const T value)
 {
-	return mapToNorm(range[0], range[1], v);
+	return mapToNorm(range[0], range[1], value);
 }
 
-/**
- * map value from "norm" interval [0..1] to the given interval
- * @param minDstVal minimum value of destination interval
- * @param maxDstVal maximum value of destination interval
- * @param norm a value in interval [0..1]
- * @return if norm was in [0..1], the corresponding mapped value
- *     in interval [minDstVal..maxDstVal]
- */
+//! Map value from "norm" range [0..1] to the given range.
+//! @param minDstVal minimum value of destination range
+//! @param maxDstVal maximum value of destination range
+//! @param norm a value in range [0..1]
+//! @return if norm was in [0..1], the corresponding mapped value
+//!     in range [minDstVal..maxDstVal]
 template <typename DstType>
 DstType mapNormTo(DstType minDstVal, DstType maxDstVal, double norm)
 {
@@ -112,51 +113,56 @@ DstType mapNormTo(DstType minDstVal, DstType maxDstVal, double norm)
 	return returnVal;
 }
 
-/**
-  * map value from one interval to another
-  * @param minSrcVal minimum value of source interval
-  * @param maxSrcVal maximum value of source interval
-  * @param minDstVal minimum value of destination interval
-  * @param maxDstVal maximum value of destination interval
-  * @param value a value in source interval
-  * @return if value was in interval [minSrcVal..maxSrcVal], the
-  *     corresponding mapped value in interval [minDstVal..maxDstVal]
-  */
+ //! Map value from one range to another.
+ //! @param minSrcVal minimum value of source range
+ //! @param maxSrcVal maximum value of source range
+ //! @param minDstVal minimum value of destination range
+ //! @param maxDstVal maximum value of destination range
+ //! @param value the value to be mapped from the source range to the destination range
+ //! @return if value was in range [minSrcVal..maxSrcVal], the
+ //!     corresponding mapped value in range [minDstVal..maxDstVal]
 template <typename SrcType, typename DstType>
 DstType mapValue(SrcType minSrcVal, SrcType maxSrcVal, DstType minDstVal, DstType maxDstVal, SrcType value)
 {
 	return mapNormTo(minDstVal, maxDstVal, mapToNorm(minSrcVal, maxSrcVal, value));
 }
 
+//! Map value from one range to another.
+//! @param rangeSrc an array of size 2 with minimum and maximum value of the source range
+//! @param rangeDst  an array of size 2 with minimum and maximum value of the destination range
+//! @param value the value to be mapped from the source range to the destination range
+//! @return if value was in range [minSrcVal..maxSrcVal], the
+//!     corresponding mapped value in range [minDstVal..maxDstVal]
 template <typename T>
 inline T mapValue(T const * rangeSrc, T const * rangeDst, T const val)
 {
 	return mapValue(rangeSrc[0], rangeSrc[1], rangeDst[0], rangeDst[1], val);
 }
 
+//! Invert value in a given range.
+//! Example: invertValue(range=[0, 1], value=0.2) = 0.8; invertValue(range=[1,2], value=1.3) = 1.7
+//! @param range an array of size 2 with minimum and maximum value of the range
+//! @param value the value to be inverted.
+//! @return the inverted value
 template <typename T>
-T invertValue(T const * range, T const val)
+T invertValue(T const * range, T const value)
 {
-	return range[1] + range[0] - val;
+	return range[1] + range[0] - value;
 }
 
-/**
-  * round a number to the nearest integer representation (by "round half away from zero" method)
-  * @param number the number to round
-  * @return the rounded number
-  */
+//! Round a number to the nearest integer representation (by "round half away from zero" method).
+//! @param number the number to round
+//! @return the rounded number
 template <typename T>
 T round(T const & number)
 {
 	return number < 0.0 ? std::ceil(number - 0.5) : std::floor(number + 0.5);
 }
 
-/**
-  * linear interpolation in a given range
-  * @param a minimum of the interpolation range
-  * @param b maximum of the interpolation range
-  * @param t a value from the interval [0..1] specifying the interpolation position
-  */
+//! Linear interpolation in a given range.
+//! @param a minimum of the interpolation range
+//! @param b maximum of the interpolation range
+//! @param t a value from the range [0..1] specifying the interpolation position
 template <typename T>
 inline T linterp(const T a, const T b, const T t)
 {
@@ -165,36 +171,36 @@ inline T linterp(const T a, const T b, const T t)
 
 typedef std::vector<double> FuncType;
 
-//! compute Gaussian function for the given value x and parameter sigma (mean = 0)
+//! Compute Gaussian function for the given value x and parameter sigma (mean = 0).
 open_iA_Core_API double gaussian(double x, double sigma);
 
-//! compute a gaussian kernel with the given sigma (mean = 0)
+//! Compute a gaussian kernel with the given sigma (mean = 0).
 open_iA_Core_API FuncType gaussianKernel(double kernelSigma, size_t kernelSteps);
 
-//! convolutes the given function with a Gaussian kernel with the given sigma and steps
+//! Convolutes the given function with a Gaussian kernel with the given sigma and steps.
 //! TODO: number of steps could be calculated from sigma (cut off kernel when factor gets very small)
 open_iA_Core_API FuncType gaussianSmoothing(FuncType const & data, double kernelSigma, int kernelSteps);
 
-//! calculate first derivative of a given function
+//! Calculate first derivative of a given function.
 open_iA_Core_API FuncType derivative(FuncType const & func);
 
-//! compute the mean of a function
+//! Compute the mean of a function.
 open_iA_Core_API double mean(FuncType const & func);
 
-//! compute the variation of a function. mean can be given (to improve speed)
+//! Compute the variation of a function. If known, mean can be given (to improve speed).
 open_iA_Core_API double variance(FuncType const & func, double meanVal = std::numeric_limits<double>::infinity(), bool correctDF = true);
 
-//! compute the standard deviation of a function. mean can be given (to improve speed)
+//! Compute the standard deviation of a function. mean can be given (to improve speed).
 open_iA_Core_API double standardDeviation(FuncType const & func, double meanVal = std::numeric_limits<double>::infinity(), bool correctDF = true);
 
-//! compute covariance between two functions
+//! Compute covariance between two functions.
 open_iA_Core_API double covariance(FuncType const & func1, FuncType const & func2,
 	double mean1 = std::numeric_limits<double>::infinity(), double mean2 = std::numeric_limits<double>::infinity(), bool correctDF = true);
 
-//! calculate the Pearson's correlation coefficient between two functions
+//! Calculate the Pearson's correlation coefficient between two functions.
 open_iA_Core_API double pearsonsCorrelationCoefficient(FuncType const & func1, FuncType const & func2);
 
-//! checks whether two boolean values are equal, given a certain tolerance:
+//! Checks whether two real values are equal, given a certain tolerance.
 //! inspired by https://stackoverflow.com/a/41405501/671366
 template <typename RealType>
 bool dblApproxEqual(RealType a, RealType b, RealType tolerance = std::numeric_limits<RealType>::epsilon())

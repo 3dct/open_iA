@@ -46,12 +46,11 @@ iAHistogramStack::iAHistogramStack(QWidget* parent, iATripleModalityWidget *trip
 
 void iAHistogramStack::initialize(QString const names[3])
 {
-	QVector<QLabel*> labels;
 	for (int i = 0; i < 3; i++) {
 		auto l = new QLabel(names[i]);
 		l->setStyleSheet("font-weight: bold; font-size: 10pt;");
 		l->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-		labels.push_back(l);
+		m_labels.push_back(l);
 	}
 
 	QVector<iADiagramFctWidget*> histograms;
@@ -77,7 +76,7 @@ void iAHistogramStack::initialize(QString const names[3])
 	optionsContainerLayout->addWidget(m_tmw->w_slicerModeLabel());
 	optionsContainerLayout->addWidget(m_tmw->w_sliceNumberLabel());
 	
-	m_grid = new iAHistogramStackGrid(this, histograms, slicers, labels);
+	m_grid = new iAHistogramStackGrid(this, histograms, slicers, m_labels);
 
 	QWidget *leftWidget = new QWidget();
 	QVBoxLayout *leftWidgetLayout = new QVBoxLayout(leftWidget);
@@ -95,4 +94,10 @@ void iAHistogramStack::initialize(QString const names[3])
 	parentLayout->addWidget(m_splitter);
 
 	m_grid->adjustStretch();
+}
+
+void iAHistogramStack::updateModalityNames(QString const names[3])
+{
+	for (int i = 0; i < m_labels.size(); i++)
+		m_labels[i]->setText(names[i]);
 }

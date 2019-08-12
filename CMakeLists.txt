@@ -52,12 +52,11 @@ IF (MSVC)
 	# Set up debugging/running environments	in Visual Studio to point to the correct dll files:
 	STRING(REGEX REPLACE "/" "\\\\" VTK_WIN_DIR ${VTK_DIR})
 	STRING(REGEX REPLACE "/" "\\\\" ITK_WIN_DIR ${ITK_DIR})
-	STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_WIN_DIR ${Qt5_DIR})
-	STRING(REGEX REPLACE "/" "\\\\" Qt5_WIN_DIR ${Qt5_WIN_DIR})
-	SET (RelWithDebInfoLibraryPaths "${VTK_WIN_DIR}\\bin\\RelWithDebInfo;${ITK_WIN_DIR}\\bin\\RelWithDebInfo;${Qt5_WIN_DIR}\\bin")
-	SET (ReleaseLibraryPaths "${VTK_WIN_DIR}\\bin\\Release;${ITK_WIN_DIR}\\bin\\Release;${Qt5_WIN_DIR}\\bin")
-	SET (DebugLibraryPaths "${VTK_WIN_DIR}\\bin\\Debug;${ITK_WIN_DIR}\\bin\\Debug;${Qt5_WIN_DIR}\\bin")
-	SET (MinSizeRelLibraryPaths "${VTK_WIN_DIR}\\bin\\MinSizeRel;${ITK_WIN_DIR}\\bin\\MinSizeRel;${Qt5_WIN_DIR}\\bin")
+	STRING(REGEX REPLACE "/" "\\\\" Qt5_WIN_DIR ${QT_LIB_DIR})
+	SET (RelWithDebInfoLibraryPaths "${VTK_WIN_DIR}\\bin\\RelWithDebInfo;${ITK_WIN_DIR}\\bin\\RelWithDebInfo;${Qt5_WIN_DIR}")
+	SET (ReleaseLibraryPaths "${VTK_WIN_DIR}\\bin\\Release;${ITK_WIN_DIR}\\bin\\Release;${Qt5_WIN_DIR}")
+	SET (DebugLibraryPaths "${VTK_WIN_DIR}\\bin\\Debug;${ITK_WIN_DIR}\\bin\\Debug;${Qt5_WIN_DIR}")
+	SET (MinSizeRelLibraryPaths "${VTK_WIN_DIR}\\bin\\MinSizeRel;${ITK_WIN_DIR}\\bin\\MinSizeRel;${Qt5_WIN_DIR}")
 
 	IF (OPENCL_FOUND)
 		IF (EXISTS "${OPENCL_DLL}")
@@ -158,18 +157,6 @@ ADD_SUBDIRECTORY(gui)
 ADD_SUBDIRECTORY(cmd)
 
 ADD_SUBDIRECTORY(xinst)
-
-
-#-------------------------
-# Testing
-#-------------------------
-# Configure the default TESTING_DATA_ROOT for the location of Data.
-set(TESTING_DATA_OUTPUT ${PROJECT_SOURCE_DIR}/Test_files/TestITK/Output)
-#ITK testing
-option (openiA_TEST_ITK "When enabled, creates a special ITK test project. Default: disabled." OFF)
-IF (openiA_TEST_ITK)
-	add_subdirectory("${PROJECT_SOURCE_DIR}/Test_files/TestITK")
-ENDIF ()
 
 #-------------------------
 # Installation

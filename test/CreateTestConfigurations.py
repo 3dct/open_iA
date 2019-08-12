@@ -23,8 +23,8 @@ BuildNameBase = sys.argv[5]
 
 # Constants:
 ModuleDirList = ModuleDirs.split("+")
-RunnerScriptLinux = SrcDir + '/Test_files/TestRunner.sh'
-RunnerScriptWindows = SrcDir + '/Test_files/TestRunner.bat'
+RunnerScriptLinux = SrcDir + '/test/TestRunner.sh'
+RunnerScriptWindows = SrcDir + '/test/TestRunner.bat'
 
 AllModulesOnScript = 'all_flags.cmake'
 AllModulesOffScript = 'no_flags.cmake'

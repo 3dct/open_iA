@@ -186,7 +186,6 @@ void iALabel3D::AttachActorsToRenderers( vtkRenderer * ren, vtkRenderer * labelR
 	follower->SetCamera(cam);
 	labelRen->AddViewProp(follower);//ren->AddActor(follower);
 
-
 	vtkSmartPointer<vtkCaptionActor2D> captionActor = vtkSmartPointer<vtkCaptionActor2D>::New();
 	captionActor->SetCaption("Test");
 	captionActor->SetAttachmentPoint(m_labeledPnt[0], m_labeledPnt[1], m_labeledPnt[2]);
@@ -199,31 +198,27 @@ void iALabel3D::AttachActorsToRenderers( vtkRenderer * ren, vtkRenderer * labelR
 	captionActor->GetCaptionTextProperty()->SetBackgroundColor(0.0, 0.0, 0.0);
 	captionActor->GetCaptionTextProperty()->SetBackgroundOpacity(0.3);
 	captionActor->GetCaptionTextProperty()->SetColor(1.0, 0.0, 0.0);
-#if (VTK_MAJOR_VERSION >= 8)
 	captionActor->GetCaptionTextProperty()->FrameOff();
 	captionActor->GetCaptionTextProperty()->UseTightBoundingBoxOn();
-#endif
 	ren->AddViewProp(captionActor);
 
 	// Create the actor
-	   vtkSmartPointer<vtkLegendBoxActor> actor = vtkSmartPointer<vtkLegendBoxActor>::New();
-	   actor->SetNumberOfEntries(1);
-	   actor->SetUseBackground(1);
-	   actor->SetBackgroundColor(0.5, 0.5, 0.5);
-	   actor->SetBackgroundOpacity(1.0);
-	
-	   actor->GetPositionCoordinate()->SetCoordinateSystemToView();
+	vtkSmartPointer<vtkLegendBoxActor> actor = vtkSmartPointer<vtkLegendBoxActor>::New();
+	actor->SetNumberOfEntries(1);
+	actor->SetUseBackground(1);
+	actor->SetBackgroundColor(0.5, 0.5, 0.5);
+	actor->SetBackgroundOpacity(1.0);
+	actor->GetPositionCoordinate()->SetCoordinateSystemToView();
 	actor->GetPositionCoordinate()->SetValue(-0.7, -0.8);
+	actor->GetPosition2Coordinate()->SetCoordinateSystemToView();
+	actor->GetPosition2Coordinate()->SetValue(0.7, 0.8);
+	double textColor[3] = { 1.0, 0.0, 0.0 };
 	
-	   actor->GetPosition2Coordinate()->SetCoordinateSystemToView();
-	   actor->GetPosition2Coordinate()->SetValue(0.7, 0.8);
-	   double textColor[3] = { 1.0, 0.0, 0.0 };
-	  vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
-	      sphere->SetRadius(10.0);
-	      sphere->Update();
+	vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
+	sphere->SetRadius(10.0);
+	sphere->Update();
 	actor->SetEntry(1, sphere->GetOutput(), "tetst", textColor);
 	ren->AddViewProp(captionActor);
-
 }
 
 void iALabel3D::SetVisible( bool isVisible )

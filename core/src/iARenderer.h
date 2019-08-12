@@ -120,7 +120,7 @@ public:
 	vtkPlane* plane1();
 	vtkPlane* plane2();
 	vtkPlane* plane3();
-	void setSlicePlane(int planeID, double originX, double originY, double originZ);
+	void setSlicePlanePos(int planeID, double originX, double originY, double originZ);
 	vtkRenderWindowInteractor* interactor();
 	vtkRenderWindow* renderWindow();
 	vtkOpenGLRenderer * renderer();

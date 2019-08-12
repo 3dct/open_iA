@@ -117,7 +117,7 @@ QFileInfoList GetLibraryList(QString const & rootPath)
 	return root.entryInfoList(nameFilter, QDir::Files);
 }
 
-MODULE_HANDLE LoadModule(QFileInfo fileInfo, iALogger* logger)
+MODULE_HANDLE LoadModule(QFileInfo fileInfo, QStringList & errorMessages)
 {
 #ifdef _MSC_VER
 	QString dllWinName(fileInfo.absoluteFilePath());
@@ -130,14 +130,14 @@ MODULE_HANDLE LoadModule(QFileInfo fileInfo, iALogger* logger)
 	SetErrorMode(prevErrorMode);
 	if (!hGetProcIDDLL)
 	{
-		logger->log(QString("Could not load plugin %1: %2").arg(fileInfo.fileName()).arg(GetLastErrorAsString()));
+		errorMessages << QString("Could not load plugin %1: %2").arg(fileInfo.fileName()).arg(GetLastErrorAsString());
 	}
 	return hGetProcIDDLL;
 #else
 	auto handle = dlopen(fileInfo.absoluteFilePath().toStdString().c_str(), RTLD_NOW);
 	if (!handle)
 	{
-		logger->log(QString("Could not load plugin %1: %2").arg(fileInfo.fileName()).arg(dlerror()));
+		errorMessages << QString("Could not load plugin %1: %2").arg(fileInfo.fileName()).arg(dlerror());
 	}
 	return handle;
 #endif
@@ -171,9 +171,9 @@ void iAModuleDispatcher::InitializeModuleInterface(iAModuleInterface* m)
 	m->Initialize();
 }
 
-iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, iALogger* logger)
+iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, QStringList & errorMessages)
 {
-	MODULE_HANDLE handle = LoadModule(fi, logger);
+	MODULE_HANDLE handle = LoadModule(fi, errorMessages);
 	if (!handle)
 	{
 		return nullptr;
@@ -181,7 +181,7 @@ iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, iALo
 	iAModuleInterface * m = LoadModuleInterface(handle);
 	if (!m)
 	{
-		logger->log(QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath()));
+		errorMessages << QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath());
 		return nullptr;
 	}
 	InitializeModuleInterface(m);
@@ -194,16 +194,20 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 	QFileInfoList fList = GetLibraryList(m_rootPath);
 	QFileInfoList failed;
 	bool someNewLoaded = true;
+	QStringList loadErrorMessages;
 	do
 	{
+		loadErrorMessages.clear();
 		for (QFileInfo fi : fList)
 		{
-			if (!LoadModuleAndInterface(fi, logger))
+			if (!LoadModuleAndInterface(fi, loadErrorMessages))
 				failed.push_back(fi);
 		}
 		someNewLoaded = failed.size() < fList.size();
 		fList = failed;
 	} while (fList.size() != 0 && someNewLoaded);
+	for (auto msg : loadErrorMessages)
+		logger->log(msg);
 	if (!m_mainWnd)	// all non-GUI related stuff already done
 	{
 		return;

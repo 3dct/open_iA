@@ -93,7 +93,7 @@ private:
 	QVector < iALoadedModule > m_loadedModules;
 	QVector< QSharedPointer<iAFilterRunnerGUI> > m_runningFilters;
 	QString m_rootPath;
-	iAModuleInterface* LoadModuleAndInterface(QFileInfo fi, iALogger* logger);
+	iAModuleInterface* LoadModuleAndInterface(QFileInfo fi, QStringList & errorMessages);
 	void InitializeModuleInterface(iAModuleInterface* m);
 	void RunFilter(int filterID);
 };
