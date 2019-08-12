@@ -30,6 +30,7 @@
 #include <iAModality.h>
 #include <iAModalityList.h>
 //#include <iARenderer.h>
+#include <iAPerformanceHelper.h>
 #include <iASlicer.h>
 #include <iAToolsVTK.h>
 #include <iAvec3.h>
@@ -148,6 +149,7 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicerMode mode)
 	}
 
 	int radius = spinBox->value() - 1; // -1 because the center voxel shouldn't count
+	iATimeGuard timer(QString("Drawing circle of radius %1").arg(radius).toStdString());
 	auto extent = m_labelOverlayImg->GetExtent();
 	
 	int xAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::X),
