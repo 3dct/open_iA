@@ -316,6 +316,7 @@ LIST (APPEND BUNDLE_DIRS "${CUDA_LIB_DIR}")
 # OpenCL
 FIND_PACKAGE(OpenCL)
 IF (OPENCL_FOUND)
+	MESSAGE(STATUS "OpenCL: include=${OPENCL_INCLUDE_DIRS}, libraries=${OPENCL_LIBRARIES}.")
 	IF (WIN32)
 		# OPENCL_LIBRARIES is set fixed to the OpenCL.lib file, but we need the dll
 		# at least for AMD APP SDK, the dll is located in a similar location, just "bin" instead of "lib":
@@ -418,6 +419,9 @@ ENDIF()
 # open_iA Version number
 include(GetGitRevisionDescription)
 git_describe(openiA_VERSION --tags)
+IF ("${VTK_RENDERING_BACKEND}" EQUAL "OpenGL")
+	SET (openiA_VERSION "${openiA_VERSION}-oldOpenGL")
+ENDIF ()
 MESSAGE(STATUS "Build version: ${openiA_VERSION}")
 configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version.h" @ONLY)
 
