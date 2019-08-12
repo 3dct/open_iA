@@ -419,7 +419,7 @@ ENDIF()
 # open_iA Version number
 include(GetGitRevisionDescription)
 git_describe(openiA_VERSION --tags)
-IF ("${VTK_RENDERING_BACKEND}" EQUAL "OpenGL")
+IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL")
 	SET (openiA_VERSION "${openiA_VERSION}-oldOpenGL")
 ENDIF ()
 MESSAGE(STATUS "Build version: ${openiA_VERSION}")
