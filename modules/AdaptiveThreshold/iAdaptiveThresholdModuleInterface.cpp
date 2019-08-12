@@ -26,11 +26,6 @@ void iAdaptiveThresholdModuleInterface::Initialize()
 
 void iAdaptiveThresholdModuleInterface::determineThreshold()
 {
-	/*
-	QSharedPointer<iAPlotData> data;
-	data->binStart(0);
-	data->minX();*/
-
 	AdaptiveThreshold dlg_thres;
 		
 	if (!m_mainWnd->activeMdiChild())

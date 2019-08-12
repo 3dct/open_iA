@@ -51,6 +51,8 @@ public:
 	threshold_defs::ThresIndx testFindIndex(double value);
 	void testSpecifyRange(const std::vector<double>& v_inRange, const std::vector<double>& v_elements, threshold_defs::ParametersRanges& outputRanges);
 	
+	QString testPrintVector(); 
+
 	void performCalculation(std::vector<double> inputRange, double xmin, double xmax); 
 
 

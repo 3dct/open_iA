@@ -83,7 +83,7 @@ private slots:
 		}
 
 private:
-	void DetermineRange();
+	void DetermineGraphRange();
 	void prepareAxis(QValueAxis *axis, const QString &title, double min, double max, uint ticks, axisMode mode);
 	void generateSampleData(bool addserries);
 	void determineMinMax(const std::vector<double> &xVal, const std::vector<double> &yVal); 
@@ -119,7 +119,7 @@ private:
 		
 private: 
 	
-	
+	threshold_defs::MovingFreqs allMovingfreqs; 
 
 
 	const double minXDefault = 0; const double maxXDefault = 65535; 

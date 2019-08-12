@@ -58,9 +58,20 @@ void ThesholdCalculator::testSpecifyRange(const std::vector<double> &v_inRange,
 	this->specifyRange(v_inRange, v_elements, outputRanges, x_min, x_max);
 	DEBUG_LOG(QString("Limits(min, max) %1 %2").arg(x_min).arg(x_max)); 
 	DEBUG_LOG("input vector");
-	m_dbgHelper.debugVector(v_elements); 
+	m_dbgHelper.printVector(v_elements,nullptr); 
 
 	DEBUG_LOG("output vector");
+}
+
+QString ThesholdCalculator::testPrintVector()
+{
+	uint min = 4; 
+	uint max = 7; 
+	std::vector<double> vals = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+	QString out = QString("min %1").arg(min);
+	out += QString("max %1 \n").arg(max);
+	out += m_dbgHelper.debugVector(vals, min, max); 
+	return out; 
 }
 
 void ThesholdCalculator::performCalculation(std::vector<double> inputRange, double xmin, double xmax)

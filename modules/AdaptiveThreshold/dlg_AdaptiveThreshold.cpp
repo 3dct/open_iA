@@ -168,7 +168,7 @@ void AdaptiveThreshold::setHistData (QSharedPointer<iAPlotData> &data)
 void AdaptiveThreshold::resetGraphToDefault()
 {
 	DEBUG_LOG("reset to default"); 
-	this->initAxes(m_xMinRef/*minXDefault*/, m_xMaxRef, m_yMinRef, m_yMaxRef, false);
+	this->initAxes(m_xMinRef, m_xMaxRef, m_yMinRef, m_yMaxRef, false);
 	this->ed_xMIn->setText(QString("%1").arg(m_xMinRef));
 	this->ed_xMax->setText(QString("%1").arg(m_xMaxRef));
 	this->ed_Ymin->setText(QString("%1").arg(m_yMinRef));
@@ -194,6 +194,8 @@ void AdaptiveThreshold::calculateMovingAverage()
 	m_thresCalculator.calculateMovingAverage(m_frequencies, m_movingFrequencies, averageCount);	
 	this->cmb_BoxMovFreq->addItem(text); 
 	
+	allMovingfreqs.addSequence(m_movingFrequencies);
+
 	QLineSeries *newSeries = new QLineSeries;
 	this->prepareDataSeries(newSeries, m_greyThresholds, m_movingFrequencies, &text, false,false);
 	
@@ -215,9 +217,15 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 			return;
 		}
 
+		//get option from textbvo 
+		//value from the combobox
+
+
 		//input grauwerte und moving freqs, output is paramRanges
 		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies/*m_frequencies*/, paramRanges, x_min, x_max);
 		auto thrPeaks = m_thresCalculator.calcMinMax(paramRanges);
+		thrPeaks.fminHalf = thrPeaks.maxThresholdY / 2.0f; 
+
 		this->ed_PeakThrMaxX->setText(QString("%1").arg(thrPeaks.maxX));
 		this->ed_PeakFregMaxY->setText(QString("%1").arg(thrPeaks.maxThresholdY));
 		this->ed_minPeakThrX->setText(QString("%1").arg(thrPeaks.minX));
@@ -240,7 +248,7 @@ void AdaptiveThreshold::createVisualisation(threshold_defs::ParametersRanges par
 	try {
 		QLineSeries* rangedSeries = nullptr;
 		rangedSeries = ChartVisHelper::createLineSeries(paramRanges);
-		QPointF p1 = ChartVisHelper::createPoint(thrPeaks.maxX, thrPeaks.maxThresholdY);
+		QPointF lokalPeakMax = ChartVisHelper::createPoint(thrPeaks.maxX, thrPeaks.maxThresholdY);
 		QPointF p2 = ChartVisHelper::createPoint(thrPeaks.minX, thrPeaks.minThresholdY);
 		
 		if (!rangedSeries)
@@ -256,13 +264,20 @@ void AdaptiveThreshold::createVisualisation(threshold_defs::ParametersRanges par
 
 		QColor basis = QColor(0, 0, m_colCounter);		
 		std::vector<QXYSeries*> data; 
-		auto SeriesTwoPoints = ChartVisHelper::createLineSeries(p1, p1, LineVisOption::vertically);
-		auto SeriesTwoPointsb = ChartVisHelper::createLineSeries(p1, p1, LineVisOption::horizontally);
+		auto SeriesTwoPoints = ChartVisHelper::createLineSeries(lokalPeakMax, lokalPeakMax, LineVisOption::vertically);
+		auto SeriesTwoPointsb = ChartVisHelper::createLineSeries(lokalPeakMax, lokalPeakMax, LineVisOption::horizontally);
 		SeriesTwoPointsb->setColor(basis);
 		SeriesTwoPoints->setColor(basis);
 		
+
 		data.push_back(SeriesTwoPoints);
 		data.push_back(SeriesTwoPointsb);
+
+		QPointF lokalFMax_2 = ChartVisHelper::createPoint(thrPeaks.maxX, thrPeaks.fminHalf);
+		auto seriesFMaxHalf = ChartVisHelper::createLineSeries(lokalFMax_2, lokalFMax_2, LineVisOption::vertically);
+		seriesFMaxHalf->setName("FMaxHalv"); 
+		this->addSeries(seriesFMaxHalf, true); 
+
 
 		auto series_p2 = ChartVisHelper::createLineSeries(p2, p2, LineVisOption::horizontally);
 		auto series_p2_b = ChartVisHelper::createLineSeries(p2, p2, LineVisOption::vertically);
@@ -381,12 +396,15 @@ void AdaptiveThreshold::aTestAction_2()
 {
 	DEBUG_LOG("TestAction_2 is fired"); 
 	//double val = 
-	double val = ed_testText->text().toDouble(); 
-	//	std::vector<double> data{ 6.1, 8.0, 9.0, 14.1, 10.0,14.3, 12.1, 14.4 };
-	auto res = 	m_thresCalculator.testFindIndex(val);
-	QString tmp = QString("ind %1 val %2").arg(res.thrIndx).arg(res.value);
+	//double val = ed_testText->text().toDouble(); 
+	////	std::vector<double> data{ 6.1, 8.0, 9.0, 14.1, 10.0,14.3, 12.1, 14.4 };
+	//auto res = 	m_thresCalculator.testFindIndex(val);
+	//QString tmp = QString("ind %1 val %2").arg(res.thrIndx).arg(res.value);
 
-	this->textEdit->append(tmp); 
+	//this->textEdit->append(tmp); 
+	this->textEdit->append(m_thresCalculator.testPrintVector());
+
+
 }
 
 void AdaptiveThreshold::aTestAction()
@@ -489,7 +507,7 @@ void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries,
 	if (!useDefaultValues)
 		determineMinMax(x_vals, y_vals);
 	else{
-		this->DetermineRange(); 
+		this->DetermineGraphRange(); 
 	}
 	
 	DEBUG_LOG(QString("xmin xmax ymin ymax %1 %2 %3 %4").arg(m_xMinRef).arg(m_yMaxRef).
@@ -548,7 +566,7 @@ void AdaptiveThreshold::UpdateChartClicked()
 	DEBUG_LOG("rescale graph"); 
 	this->m_chart->setTitle("Grey value distribution"); 
 
-	DetermineRange();
+	DetermineGraphRange();
 	
 	QString xTicks, yTicks;
 	xTicks = this->spin_xTicks->text();
@@ -565,7 +583,7 @@ void AdaptiveThreshold::UpdateChartClicked()
 	this->m_chartView->update();
 }
 
-void AdaptiveThreshold::DetermineRange()
+void AdaptiveThreshold::DetermineGraphRange()
 {
 	QString xmin, xMax, yMIn, yMax;
 	double xmin_val, xmax_val, ymin_val, ymax_val;

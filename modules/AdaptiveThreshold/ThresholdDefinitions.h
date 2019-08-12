@@ -58,6 +58,7 @@ namespace threshold_defs {
 
 		double minThresholdY;
 		double minX;
+		double fminHalf; 
 
 		double maxThresholdY;
 		double maxX;
@@ -69,19 +70,30 @@ namespace threshold_defs {
 		}
 	};
 
+
+	/*
+	*Storing averages of a histogram
+	*/
 	class MovingFreqs {
 	public:
 		inline	void addSequence(std::vector<double>& values) {
 			m_sequences.push_back(values);
 		};
 
-		const  std::vector<double> &getFrequency(uint index) const {
+		const std::vector<double> &getFrequencyByInd(uint index) const {
 			if (index >= m_sequences.size()) {
 				throw std::invalid_argument("not in index list");
 			}
 
 			else return m_sequences.at(index);
 		}
+
+		inline const std::vector < std::vector<double>> getAll(){
+			return m_sequences;
+		}
+
+	private:
+		
 
 		std::vector<std::vector<double>> m_sequences; 
 

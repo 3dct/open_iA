@@ -477,6 +477,19 @@
                 </layout>
                </item>
                <item>
+                <spacer name="verticalSpacer_3">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
                 <widget class="QPushButton" name="btn_selectRange">
                  <property name="text">
                   <string>SelectRanges</string>
@@ -500,14 +513,14 @@
             <item>
              <widget class="QCheckBox" name="chckbx_CustomMinMax">
               <property name="text">
-               <string>Custom Min Max</string>
+               <string>Use custom Min Max</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QCheckBox" name="chbxMaxPeakRanges_2">
               <property name="text">
-               <string>Custom series</string>
+               <string>Specify series</string>
               </property>
              </widget>
             </item>
