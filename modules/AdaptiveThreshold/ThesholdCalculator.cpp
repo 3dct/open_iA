@@ -89,6 +89,11 @@ void ThesholdCalculator::performCalculation(std::vector<double> inputRange, doub
 
 
 
+void ThesholdCalculator::determinIso50(const threshold_defs::ParametersRanges& inRanges, threshold_defs::ThresMinMax& inVals)
+{
+	m_calcHelper.determinIso50(inRanges, inVals); 
+}
+
 void ThesholdCalculator::doubleTestSum()
 {
 	std::vector<double> vals = { 1, 2, 3, 4, 5, 6, 7, 8, 9 }; 

@@ -60,13 +60,15 @@ private slots:
 		void UpdateChartClicked();
 		void buttonLoadDataClicked();
 		void buttonLoadHistDataClicked(); 
-		//void createSampleSeries();
+		
 		void clear(); 
 		void resetGraphToDefault(); 
 		void calculateMovingAverage();
 		void buttonSelectRangesClicked(); 
 
 		void createVisualisation(threshold_defs::ParametersRanges paramRanges, threshold_defs::ThresMinMax thrPeaks);
+		void visualizeSeries(threshold_defs::ParametersRanges ParamRanges, QColor color, QString *seriesName); 
+
 
 		void buttonMinMaxClicked();
 		void redrawPlots();
@@ -94,7 +96,7 @@ private:
 
 	void setDefaultMinMax(double xMIn, double xMax, double yMin, double yMax); 
 
-	void assignValuesFromField(double& x_min, double& x_max);
+	void assignValuesFromField(threshold_defs::PeakRanges &Ranges);
 
 	inline void writeText(const QString& Text) {
 		if (Text.isNull() || Text.isEmpty()) return; 
@@ -120,6 +122,8 @@ private:
 private: 
 	
 	threshold_defs::MovingFreqs allMovingfreqs; 
+	ThesholdCalculator m_thresCalculator; 
+	Loader m_seriesLoader; 
 
 
 	const double minXDefault = 0; const double maxXDefault = 65535; 
@@ -132,8 +136,6 @@ private:
 
 	const int maxSeriesNumbers = 10; 
 	double m_xMinRef, m_xMaxRef, m_yMinRef, m_yMaxRef; 
-	ThesholdCalculator m_thresCalculator; 
-	Loader m_seriesLoader; 
 
 	std::vector<double> m_greyThresholds; 
 	std::vector<double> m_frequencies; 
@@ -141,7 +143,6 @@ private:
 	QLineSeries *m_refSeries; 
 	std::vector<QLineSeries*> series_vec;
 	double resThreshold; 
-
 
 	QChartView* m_chartView;
 	QChart* m_chart;

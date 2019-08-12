@@ -72,15 +72,12 @@ public:
 		return this->m_freqValsY; 
 	}
 
-
+	void determinIso50(const threshold_defs::ParametersRanges& inRanges, 
+		threshold_defs::ThresMinMax& inVals);
 
 
 private:
-
-	//delete series
-	//void redrawPlot(); 
-
-
+		
 	QSharedPointer<iAPlotData> m_data;
 	DebugHelper m_dbgHelper; 
 	ThresholdCalcHelper m_calcHelper; 

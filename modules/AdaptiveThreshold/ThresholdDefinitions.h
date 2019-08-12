@@ -56,20 +56,31 @@ namespace threshold_defs {
 
 	struct ThresMinMax {
 
-		double minThresholdY;
-		double minX;
+		double freqPeakMinY;
+		double peakMinXThreshold;
 		double fminHalf; 
 
-		double maxThresholdY;
-		double maxX;
+		double iso50ValueThr; 
+		double iso50ValueFreq; 
+
+		double freqPeakLokalMaxY;
+		double lokalMaxPeakThreshold_X;
 
 		QString toString() {
-			QString res = QString("Min %1 \t %2 Max %3 \t %4").arg(minX).arg(minThresholdY).arg(maxX).arg(maxThresholdY);
+			QString res = QString("Min %1 \t %2 Max %3 \t %4").arg(peakMinXThreshold).arg(freqPeakMinY).arg(lokalMaxPeakThreshold_X).arg(freqPeakLokalMaxY);
 			return res; 
 
 		}
 	};
 
+	struct PeakRanges {
+		double XRangeMIn;
+		double XRangeMax; 
+
+		double HighPeakXmin;
+		double HighPeakXMax;
+		
+	};
 
 	/*
 	*Storing averages of a histogram
@@ -93,8 +104,6 @@ namespace threshold_defs {
 		}
 
 	private:
-		
-
 		std::vector<std::vector<double>> m_sequences; 
 
 	};

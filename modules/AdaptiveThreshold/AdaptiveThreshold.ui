@@ -477,17 +477,58 @@
                 </layout>
                </item>
                <item>
-                <spacer name="verticalSpacer_3">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
+                <layout class="QHBoxLayout" name="horizontalLayout_17">
+                 <item>
+                  <widget class="QLineEdit" name="ed_MaxPeakXRangeMIn"/>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label">
+                   <property name="text">
+                    <string>HighPeakMinThrs</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_15">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_18">
+                 <item>
+                  <widget class="QLineEdit" name="ed_MaxPeakXRangeMax"/>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_2">
+                   <property name="text">
+                    <string>HighPeakMaxThr</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_16">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
                </item>
                <item>
                 <widget class="QPushButton" name="btn_selectRange">
@@ -500,31 +541,6 @@
              </item>
             </layout>
            </widget>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_11">
-            <item>
-             <widget class="QCheckBox" name="chbxMaxPeakRanges">
-              <property name="text">
-               <string>Spefiy max Peak ranges</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="chckbx_CustomMinMax">
-              <property name="text">
-               <string>Use custom Min Max</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="chbxMaxPeakRanges_2">
-              <property name="text">
-               <string>Specify series</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
           </item>
          </layout>
         </item>
@@ -544,28 +560,70 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_14">
            <item>
-            <layout class="QFormLayout" name="formLayout">
-             <item row="0" column="0">
-              <widget class="QLineEdit" name="ed_MaxPeakThr_2"/>
+            <layout class="QHBoxLayout" name="horizontalLayout_19">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_15">
+               <item>
+                <widget class="QGroupBox" name="groupBox_2">
+                 <property name="title">
+                  <string>First Maximum Peak (x,y)</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_10">
+                  <item>
+                   <widget class="QLabel" name="label_3">
+                    <property name="text">
+                     <string>MaxThr</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="ed_PeakThrMaxX"/>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_4">
+                    <property name="text">
+                     <string>MaxFreq</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="ed_PeakFregMaxY"/>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="groupBox_3">
+                 <property name="title">
+                  <string>Specify Minimum Peak (x,y)</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_13">
+                  <item>
+                   <widget class="QLabel" name="label_12">
+                    <property name="text">
+                     <string>MinThr</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="ed_minPeakThrX"/>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_13">
+                    <property name="text">
+                     <string>MaxFreq</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="ed_MinPeakFreqrY"/>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
              </item>
-             <item row="0" column="1">
-              <widget class="QLabel" name="label">
-               <property name="text">
-                <string>HighPeakMinThrs</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLineEdit" name="ed_MaxPeak_MaxThr"/>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLabel" name="label_2">
-               <property name="text">
-                <string>HighPeakMaxThr</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="1">
+             <item>
               <layout class="QVBoxLayout" name="verticalLayout_15">
                <item>
                 <widget class="QLabel" name="label_9">
@@ -579,79 +637,29 @@
                </item>
               </layout>
              </item>
-             <item row="2" column="1">
-              <spacer name="verticalSpacer_2">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
             </layout>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_15">
+            <layout class="QVBoxLayout" name="verticalLayout_11">
              <item>
-              <widget class="QGroupBox" name="groupBox_2">
-               <property name="title">
-                <string>First Maximum Peak (x,y)</string>
+              <widget class="QCheckBox" name="chbxMaxPeakRanges">
+               <property name="text">
+                <string>Spefiy High Peak ranges</string>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_10">
-                <item>
-                 <widget class="QLabel" name="label_3">
-                  <property name="text">
-                   <string>MaxThr</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="ed_PeakThrMaxX"/>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_4">
-                  <property name="text">
-                   <string>MaxFreq</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="ed_PeakFregMaxY"/>
-                </item>
-               </layout>
               </widget>
              </item>
              <item>
-              <widget class="QGroupBox" name="groupBox_3">
-               <property name="title">
-                <string>Specify Minimum Peak (x,y)</string>
+              <widget class="QCheckBox" name="chckbx_CustomMinMax">
+               <property name="text">
+                <string>Specify values for Lokal Min / Max Peak</string>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_13">
-                <item>
-                 <widget class="QLabel" name="label_12">
-                  <property name="text">
-                   <string>MinThr</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="ed_minPeakThrX"/>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_13">
-                  <property name="text">
-                   <string>MaxFreq</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="ed_MinPeakFreqrY"/>
-                </item>
-               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="chbxMaxPeakRanges_2">
+               <property name="text">
+                <string>Specify moving frequiency series</string>
+               </property>
               </widget>
              </item>
             </layout>

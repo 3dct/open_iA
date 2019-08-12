@@ -95,9 +95,31 @@ threshold_defs::ThresMinMax ThresholdCalcHelper::calculateMinMax(const threshold
 	
 	threshold_defs::ThresMinMax thrMinMax;
 	
-	thrMinMax.maxThresholdY = y_max;
-	thrMinMax.minThresholdY = y_min;
-	thrMinMax.minX = x_min;
-	thrMinMax.maxX = x_max;
+	thrMinMax.freqPeakLokalMaxY = y_max;
+	thrMinMax.freqPeakMinY = y_min;
+	thrMinMax.peakMinXThreshold = x_min;
+	thrMinMax.lokalMaxPeakThreshold_X = x_max;
 	return thrMinMax; 
+}
+
+void ThresholdCalcHelper::determinIso50(const threshold_defs::ParametersRanges& inRanges, threshold_defs::ThresMinMax &inVals)
+{
+	//min_Maxofa Range
+	//detect peak max
+	//iso 50 is between air and material peak - grauwert
+
+	try{
+		std::vector<double> freqRangesY = inRanges.getYRange();
+		double maxRange = this->findMaxPeak(freqRangesY); //maximum 
+
+
+		threshold_defs::ThresIndx indMinMax = findIndex(inRanges.getYRange(), maxRange);
+		double Iso50Val = (inRanges.getXRange()[indMinMax.thrIndx] + inVals.lokalMaxPeakThreshold_X) * 0.5f;
+		auto indIso50 = findIndex(inRanges.getXRange(), Iso50Val);
+		inVals.iso50ValueThr = Iso50Val;
+	}
+	catch (std::invalid_argument& iae) {
+		throw; 
+	}
+
 }
