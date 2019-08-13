@@ -70,6 +70,7 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_selectRange, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClicked()));
 	connect(this->btn_MinMax, SIGNAL(clicked()), this, SLOT(buttonMinMaxClicked())); 
 	connect(this->btn_redraw, SIGNAL(clicked()), this, SLOT(redrawPlots())); 
+	connect(this->btn_VisPoints, SIGNAL(clicked()), this, SLOT(buttonVisualizePointsClicked())); 
 
 }
 
@@ -223,15 +224,11 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 			this->textEdit->append("moving average not yet created, create average sequence before");
 			return;
 		}
-
-		//get option from textbvo 
-		//value from the combobox
-		
+				
 		//input grauwerte und moving freqs, output is paramRanges
-		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies/*m_frequencies*/, paramRanges, ranges.XRangeMIn, ranges.XRangeMax/*x_min, x_max*/);
+		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, paramRanges, ranges.XRangeMIn, ranges.XRangeMax/*x_min, x_max*/);
 		auto thrPeaks = m_thresCalculator.calcMinMax(paramRanges);
-		thrPeaks.fminHalf = thrPeaks.freqPeakLokalMaxY / 2.0f; //fmin_half; //lokal max
-
+		thrPeaks.fPeakHalf = thrPeaks.freqPeakLokalMaxY / 2.0f; //f_air/2.0;
 		threshold_defs::ParametersRanges maxPeakRanges;
 
 		//determine HighPeakRanges
@@ -241,28 +238,29 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		//iso 50 as grey threshold		
 		m_thresCalculator.determinIso50(maxPeakRanges, thrPeaks);
 
-		QPointF f1 = QPointF(thrPeaks.iso50ValueThr, 10000);
+		QPointF f1 = QPointF(thrPeaks.iso50ValueThr, 200);
 		QPointF f2 = QPointF(thrPeaks.iso50ValueThr, 0); 
-		QLineSeries* iso50 = nullptr; 
-		iso50 = ChartVisHelper::createLineSeries(f2, f1,LineVisOption::horizontally);
+		std::vector<QPointF> testVec; 
+		testVec.push_back(f1); 
+
+		QScatterSeries* iso50 = nullptr; 
+		double size = 7.0f; 
+		iso50 = ChartVisHelper::createScatterSeries(testVec, &size);
+		//iso50 = ChartVisHelper::createLineSeries(f2, f1,LineVisOption::horizontally);
+		//iso50->setPointLabelsClipping(); 
+
 		QColor cl_blue = QColor(0, 0, 255); 
 		iso50->setColor(cl_blue);
 		iso50->setName("iso 50"); 
 		this->addSeries(iso50, false); 
-		/*visualizeSeries(iso50, cl_blue, "Iso50"); */
 		
-
 		QColor cl_green = QColor(255, 0, 0);
 		QString sr_text = "Max Peak Range";
 
 		visualizeSeries(maxPeakRanges, cl_green, &sr_text); 
-
-		this->ed_PeakThrMaxX->setText(QString("%1").arg(thrPeaks.lokalMaxPeakThreshold_X));
-		this->ed_PeakFregMaxY->setText(QString("%1").arg(thrPeaks.freqPeakLokalMaxY));
-		this->ed_minPeakThrX->setText(QString("%1").arg(thrPeaks.peakMinXThreshold));
-		this->ed_MinPeakFreqrY->setText(QString("%1").arg(thrPeaks.freqPeakMinY));
 		createVisualisation(paramRanges, thrPeaks);
-	
+		assignValuesToField(thrPeaks);
+			
 	}catch (std::bad_alloc& ba){
 			this->textEdit->append("not enough memory available"); 
 
@@ -271,6 +269,14 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		QString outputMessg = ia.what();
 		this->textEdit->append(outputMessg);
 	}
+}
+
+void AdaptiveThreshold::assignValuesToField(threshold_defs::ThresMinMax& thrPeaks)
+{
+	this->ed_PeakThrMaxX->setText(QString("%1").arg(thrPeaks.lokalMaxPeakThreshold_X));
+	this->ed_PeakFregMaxY->setText(QString("%1").arg(thrPeaks.freqPeakLokalMaxY));
+	this->ed_minPeakThrX->setText(QString("%1").arg(thrPeaks.peakMinXThreshold));
+	this->ed_MinPeakFreqrY->setText(QString("%1").arg(thrPeaks.freqPeakMinY));
 }
 
 void AdaptiveThreshold::createVisualisation(threshold_defs::ParametersRanges paramRanges, threshold_defs::ThresMinMax thrPeaks)
@@ -303,12 +309,17 @@ void AdaptiveThreshold::createVisualisation(threshold_defs::ParametersRanges par
 		data.push_back(SeriesTwoPoints);
 		data.push_back(SeriesTwoPointsb);
 
-		QPointF lokalFMax_2 = ChartVisHelper::createPoint(thrPeaks.lokalMaxPeakThreshold_X, thrPeaks.fminHalf);
+		QPointF lokalFMax_2 = ChartVisHelper::createPoint(thrPeaks.lokalMaxPeakThreshold_X, thrPeaks.fPeakHalf);
 		auto seriesFMaxHalf = ChartVisHelper::createLineSeries(lokalFMax_2, lokalFMax_2, LineVisOption::vertically);
 		auto seriesFMaxHalf_2 = ChartVisHelper::createLineSeries(lokalFMax_2, lokalFMax_2, LineVisOption::horizontally);
-				
+		
+		QPointF lokalFmaxEnd = QPointF(65000.0f, lokalFMax_2.y()); 
+		auto seriesFMaxHal_3 = ChartVisHelper::createLineSeries(lokalFMax_2, lokalFmaxEnd, LineVisOption::horizontal_xy);
+
+
 		this->addSeries(seriesFMaxHalf, true); 
 		this->addSeries(seriesFMaxHalf_2, true); 
+		this->addSeries(seriesFMaxHal_3, true); 
 
 
 		auto series_p2 = ChartVisHelper::createLineSeries(p2, p2, LineVisOption::horizontally);
@@ -352,13 +363,43 @@ void AdaptiveThreshold::visualizeSeries(threshold_defs::ParametersRanges ParamRa
 	m_chartView->update(); 
 }
 
+void AdaptiveThreshold::buttonVisualizePointsClicked()
+{
+	double xmin, xmax; 
+	xmin = this->ed_ptXmin->text().toDouble(); 
+	xmax = this->ed_pt_xMax->text().toDouble(); 
+
+	if ((xmin > 0) && (xmax > 0) && (xmax > xmin)) {
+		if (m_greyThresholds.size() > 0)
+		{
+
+			if (m_movingFrequencies.size() == 0) {
+				this->textEdit->append("\nMoving Frequencies not created");
+				return;
+			}
+
+			threshold_defs::ParametersRanges ranges;
+			m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, ranges, xmin, xmax);
+
+
+
+			auto* aSeries = ChartVisHelper::createScatterSeries(ranges);
+			aSeries->setMarkerSize(7);
+			//aSeries->setPointLabelsVisible(true);
+			this->addSeries(aSeries, false);
+			m_chart->update();
+			m_chartView->update();
+		}
+	}
+}
+
 void AdaptiveThreshold::assignValuesFromField(threshold_defs::PeakRanges &Ranges/*double& x_min, double& x_max*/)
 {
 	bool* x_OK = new bool; bool* x2_OK = new bool;
 	bool* x3_oK = new bool; bool *x4_ok = new bool; 
 
 	Ranges.XRangeMIn = this->ed_minRange->text().toDouble(x_OK);
-	Ranges.XRangeMax/*x_max*/ = this->ed_maxRange->text().toDouble(x2_OK);
+	Ranges.XRangeMax = this->ed_maxRange->text().toDouble(x2_OK);
 
 	Ranges.HighPeakXMax = this->ed_MaxPeakXRangeMax->text().toDouble(x3_oK);
 	Ranges.HighPeakXmin = this->ed_MaxPeakXRangeMIn->text().toDouble(x4_ok); 

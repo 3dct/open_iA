@@ -28,7 +28,7 @@ public:
 	static QScatterSeries* createScatterSeries(const std::vector<double>& vec_x,
 		const std::vector<double>& vec_y); 
 
-	static QScatterSeries *createScatterSeries(const std::vector<QPointF> pts); 
+	static QScatterSeries *createScatterSeries(const std::vector<QPointF> pts, double *pt_size); 
 	static QLineSeries* createLineSeries(const std::vector<double>& vec_x, 
 		const std::vector<double>& vec_y);
 	

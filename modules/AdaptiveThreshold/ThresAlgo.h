@@ -14,4 +14,10 @@ namespace algorithm {
 		return fabs(a - b) < epsilon;
 	}
 
+
+	//checks whether a double is within a certian range
+	static bool compareDouble(double a, double b, double toleranceVal) {
+		return fabs(a - b) < toleranceVal; 
+	}
+
 }

@@ -66,10 +66,12 @@ private slots:
 		void calculateMovingAverage();
 		void buttonSelectRangesClicked(); 
 
+		void assignValuesToField(threshold_defs::ThresMinMax& thrPeaks);
+
 		void createVisualisation(threshold_defs::ParametersRanges paramRanges, threshold_defs::ThresMinMax thrPeaks);
 		void visualizeSeries(threshold_defs::ParametersRanges ParamRanges, QColor color, QString *seriesName); 
 
-
+		void buttonVisualizePointsClicked(); 
 		void buttonMinMaxClicked();
 		void redrawPlots();
 

@@ -70,7 +70,7 @@ QScatterSeries* ChartVisHelper::createScatterSeries(const threshold_defs::Parame
 
 }
 
-QT_CHARTS_NAMESPACE::QScatterSeries* ChartVisHelper::createScatterSeries(const std::vector<QPointF> pts)
+QT_CHARTS_NAMESPACE::QScatterSeries* ChartVisHelper::createScatterSeries(const std::vector<QPointF> pts, double* pt_size)
 {
 	QScatterSeries* series = new QScatterSeries;
 	if (pts.empty()) {
@@ -82,6 +82,15 @@ QT_CHARTS_NAMESPACE::QScatterSeries* ChartVisHelper::createScatterSeries(const s
 	
 	}
 	
+	if (pt_size) {
+		if (*pt_size > 0){
+
+			series->setMarkerSize(*pt_size);
+		}
+	}
+
+	
+
 	return series;
 
 }

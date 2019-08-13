@@ -6,6 +6,7 @@
 
 #include "ThresAlgo.h"
 #include "iAConsole.h"
+#include "QLine"
 
 double ThresholdCalcHelper::findMaxPeak(std::vector<double>& v_ind) const
 {
@@ -44,6 +45,11 @@ double ThresholdCalcHelper::vectorSum(const std::vector<double>& vec, size_t sta
 
 	return tmp;
 }
+
+//QPointF ThresholdCalcHelper::calculateIntersection(const threshold_defs::ParametersRanges& ranges, const QPointF& pt_1, const QPointF& pt2)
+//{
+//	/*QLine tmp(; */
+//}
 
 threshold_defs::ThresIndx ThresholdCalcHelper::findIndex(const std::vector<double>& vec, double cmpVal) const
 {
@@ -111,8 +117,7 @@ void ThresholdCalcHelper::determinIso50(const threshold_defs::ParametersRanges& 
 	try{
 		std::vector<double> freqRangesY = inRanges.getYRange();
 		double maxRange = this->findMaxPeak(freqRangesY); //maximum 
-
-
+		
 		threshold_defs::ThresIndx indMinMax = findIndex(inRanges.getYRange(), maxRange);
 		double Iso50Val = (inRanges.getXRange()[indMinMax.thrIndx] + inVals.lokalMaxPeakThreshold_X) * 0.5f;
 		auto indIso50 = findIndex(inRanges.getXRange(), Iso50Val);

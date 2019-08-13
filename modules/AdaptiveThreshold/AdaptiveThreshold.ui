@@ -423,7 +423,7 @@
                 </spacer>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,2,2">
                  <item>
                   <widget class="QLineEdit" name="ed_minRange"/>
                  </item>
@@ -439,9 +439,12 @@
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
                    </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                   </property>
                    <property name="sizeHint" stdset="0">
                     <size>
-                     <width>40</width>
+                     <width>60</width>
                      <height>20</height>
                     </size>
                    </property>
@@ -450,7 +453,7 @@
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_4">
+                <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,2,2">
                  <item>
                   <widget class="QLineEdit" name="ed_maxRange"/>
                  </item>
@@ -477,7 +480,7 @@
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_17">
+                <layout class="QHBoxLayout" name="horizontalLayout_17" stretch="0,2,2">
                  <item>
                   <widget class="QLineEdit" name="ed_MaxPeakXRangeMIn"/>
                  </item>
@@ -504,7 +507,7 @@
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_18">
+                <layout class="QHBoxLayout" name="horizontalLayout_18" stretch="0,2,2">
                  <item>
                   <widget class="QLineEdit" name="ed_MaxPeakXRangeMax"/>
                  </item>
@@ -624,18 +627,7 @@
               </layout>
              </item>
              <item>
-              <layout class="QVBoxLayout" name="verticalLayout_15">
-               <item>
-                <widget class="QLabel" name="label_9">
-                 <property name="text">
-                  <string>Moving Frequency</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QComboBox" name="cmb_BoxMovFreq"/>
-               </item>
-              </layout>
+              <layout class="QVBoxLayout" name="verticalLayout_15"/>
              </item>
             </layout>
            </item>
@@ -662,6 +654,33 @@
                </property>
               </widget>
              </item>
+             <item>
+              <spacer name="verticalSpacer_2">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_18">
+               <item>
+                <widget class="QLabel" name="label_9">
+                 <property name="text">
+                  <string>Moving Frequency #</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="cmb_BoxMovFreq"/>
+               </item>
+              </layout>
+             </item>
             </layout>
            </item>
           </layout>
@@ -670,8 +689,80 @@
         <item>
          <widget class="QGroupBox" name="groupBox_6">
           <property name="title">
-           <string>GroupBox</string>
+           <string>Output</string>
           </property>
+          <widget class="QTextEdit" name="txt_output">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>30</y>
+             <width>281</width>
+             <height>151</height>
+            </rect>
+           </property>
+          </widget>
+          <widget class="QPushButton" name="btn_VisPoints">
+           <property name="geometry">
+            <rect>
+             <x>20</x>
+             <y>210</y>
+             <width>75</width>
+             <height>23</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>VisualizePoints</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="ed_ptXmin">
+           <property name="geometry">
+            <rect>
+             <x>100</x>
+             <y>210</y>
+             <width>216</width>
+             <height>20</height>
+            </rect>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_15">
+           <property name="geometry">
+            <rect>
+             <x>320</x>
+             <y>210</y>
+             <width>216</width>
+             <height>13</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Xmin</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="ed_pt_xMax">
+           <property name="geometry">
+            <rect>
+             <x>100</x>
+             <y>240</y>
+             <width>216</width>
+             <height>20</height>
+            </rect>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_16">
+           <property name="geometry">
+            <rect>
+             <x>320</x>
+             <y>240</y>
+             <width>216</width>
+             <height>13</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>XMax</string>
+           </property>
+          </widget>
          </widget>
         </item>
        </layout>
@@ -856,12 +947,12 @@
    <slot>click()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1455</x>
-     <y>230</y>
+     <x>1385</x>
+     <y>183</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1478</x>
-     <y>352</y>
+     <x>1542</x>
+     <y>295</y>
     </hint>
    </hints>
   </connection>
@@ -872,12 +963,12 @@
    <slot>click()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1410</x>
-     <y>264</y>
+     <x>1340</x>
+     <y>217</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1453</x>
-     <y>359</y>
+     <x>1517</x>
+     <y>302</y>
     </hint>
    </hints>
   </connection>
@@ -888,12 +979,12 @@
    <slot>click()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1406</x>
-     <y>288</y>
+     <x>1336</x>
+     <y>241</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1420</x>
-     <y>361</y>
+     <x>1484</x>
+     <y>304</y>
     </hint>
    </hints>
   </connection>
@@ -904,12 +995,12 @@
    <slot>click()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1383</x>
-     <y>315</y>
+     <x>1313</x>
+     <y>268</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1426</x>
-     <y>363</y>
+     <x>1490</x>
+     <y>306</y>
     </hint>
    </hints>
   </connection>
@@ -921,27 +1012,27 @@
    <hints>
     <hint type="sourcelabel">
      <x>1231</x>
-     <y>353</y>
+     <y>298</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1397</x>
-     <y>363</y>
+     <x>1461</x>
+     <y>306</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>spin_yTicks</sender>
    <signal>editingFinished()</signal>
-   <receiver>btn_redraw</receiver>
+   <receiver>btn_update</receiver>
    <slot>click()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1229</x>
-     <y>398</y>
+     <x>1220</x>
+     <y>337</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1484</x>
-     <y>400</y>
+     <x>1536</x>
+     <y>290</y>
     </hint>
    </hints>
   </connection>

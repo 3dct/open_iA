@@ -58,7 +58,7 @@ namespace threshold_defs {
 
 		double freqPeakMinY;
 		double peakMinXThreshold;
-		double fminHalf; 
+		double fPeakHalf; 
 
 		double iso50ValueThr; 
 		double iso50ValueFreq; 
