@@ -14,6 +14,11 @@ namespace threshold_defs {
 			y_vals.reserve(1000);
 		}
 
+		ParametersRanges(const std::vector<double> &xVals, const std::vector<double> &yVals)
+			:x_vals(xVals), y_vals(yVals) {
+
+		}
+
 		void insertElem(double x, double y) {
 			x_vals.push_back(x);
 			y_vals.push_back(y);
@@ -26,6 +31,7 @@ namespace threshold_defs {
 		const std::vector<double>& getYRange() const {
 			return y_vals;
 		}
+
 
 		QString toString() {
 			QString res = "";

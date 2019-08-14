@@ -8,6 +8,7 @@
 #include <QFileDialog>
 #include "ChartVisHelper.h"
 #include "ThresholdDefinitions.h"
+#include <IntersectionDefinition.h>
 
 
 
@@ -238,15 +239,18 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		//iso 50 as grey threshold		
 		m_thresCalculator.determinIso50(maxPeakRanges, thrPeaks);
 
-		QPointF f1 = QPointF(thrPeaks.iso50ValueThr, 200);
+		QPointF f1 = QPointF(thrPeaks.iso50ValueThr, 10000000);
 		QPointF f2 = QPointF(thrPeaks.iso50ValueThr, 0); 
 		std::vector<QPointF> testVec; 
 		testVec.push_back(f1); 
 
-		QScatterSeries* iso50 = nullptr; 
+		//QScatterSeries* iso50 = nullptr; 
+		QLineSeries *iso50 = nullptr;
 		double size = 7.0f; 
-		iso50 = ChartVisHelper::createScatterSeries(testVec, &size);
-		//iso50 = ChartVisHelper::createLineSeries(f2, f1,LineVisOption::horizontally);
+
+		
+		//iso50 = ChartVisHelper::createScatterSeries(testVec, &size);
+		iso50 = ChartVisHelper::createLineSeries(f2, f1,LineVisOption::horizontally);
 		//iso50->setPointLabelsClipping(); 
 
 		QColor cl_blue = QColor(0, 0, 255); 
@@ -380,12 +384,8 @@ void AdaptiveThreshold::buttonVisualizePointsClicked()
 
 			threshold_defs::ParametersRanges ranges;
 			m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, ranges, xmin, xmax);
-
-
-
 			auto* aSeries = ChartVisHelper::createScatterSeries(ranges);
 			aSeries->setMarkerSize(7);
-			//aSeries->setPointLabelsVisible(true);
 			this->addSeries(aSeries, false);
 			m_chart->update();
 			m_chartView->update();
@@ -489,8 +489,73 @@ void AdaptiveThreshold::myAction()
 void AdaptiveThreshold::aTestAction_2()
 {
 	DEBUG_LOG("TestAction_2 is fired"); 
-	this->textEdit->append(m_thresCalculator.testPrintVector());
+	//this->textEdit->append(m_thresCalculator.testPrintVector());
+	/*intersection::XYLine aLine(-2.72, 2.04, 2.2, 4.66);
+	intersection::XYLine bLine(-0.72, 3.76, 3.44, -1.68);*/
 
+	/*intersection::XYLine aLine(2, 2, 6, 2);
+	intersection::XYLine bLine(4, 3, 6.72, -0.1);
+	intersection::XYLine cLine(2.92, 3.2, 4.8, -2.34);
+	intersection::XYLine dLine(4.78, 5.02, 10.7, 2.78);*/
+
+	/*QVector<intersection::XYLine> lines; 
+	lines.push_back(bLine);
+	lines.push_back(cLine);
+	lines.push_back(dLine);
+	*/
+	
+	/*
+	*
+
+	C= (12.96,-5.64)
+	D= (14,-5)
+	E= (14.9,-4.46)
+	F= (15.38,-2.94)
+	G= (17.18,-3.54)
+	H= (18,-3)
+	I= (19.2,-2.68)
+	J= (19.64,-1.66)
+	*/
+	
+	/*std::vector<double> xvals = { 12.96 ,14.0,14.9,15.38, 17.18, 18,19.2,19.64 };
+	std::vector<double> yvals = { -5.64,-5,-4.46, -2.94, -3.54,-3,-2.68,-1.66 };*/
+
+
+	/*std::vector<double> xvals{ 14.9,15.38,17.18 };
+	std::vector<double> yvals{ -4.46 ,-2.94 ,-3.54 };
+
+
+	DEBUG_LOG(QString("size x, size y %1 %2").arg(xvals.size()).arg(yvals.size())); 
+	threshold_defs::ParametersRanges rangesPar(xvals, yvals);*/
+	//A= (8.32,-6.36)
+	//B = (28.88, 1.28)
+
+	//F = (15.38, -2.94)
+	//G = (17.18, -3.54)
+	
+
+	std::vector<double> xvals ={ 15.38 , 17.18, 14.9, 15.38 };
+	std::vector<double>yvals = { -2.94 ,-3.54,-4.46, -2.94 };
+
+	threshold_defs::ParametersRanges rangesPar(xvals, yvals);
+
+	intersection::XYLine bLine(15.38, -2.94, 17.18, -3.54); //kurve l FG
+	intersection::XYLine aLIne(8.32, -6.36,28.88,1.28); //kurve k EF
+	intersection::XYLine cLine(14.9, -4.46, 14.9, -2.94);
+
+
+	QPointF tmp;
+	//aLIne.calulateInterSection(cLine, &tmp); //OK //ok cline
+
+	auto points = aLIne.intersectionLineWithRange(rangesPar);
+//	aLine.intersectWithLines(lines);*/
+	///auto points = aLine.intersectionPoints();
+	for(const QPointF &tmp : points){
+		if (!tmp.isNull()) textEdit->append(QString("intersection %1 %2").arg(tmp.x()).arg(tmp.y()));
+		else textEdit->append("No intersection");
+	
+	}
+	
 
 }
 

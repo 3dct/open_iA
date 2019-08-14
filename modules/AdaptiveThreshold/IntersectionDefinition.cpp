@@ -4,19 +4,25 @@
 
 namespace intersection{
 
-	void intersection::XYLine::calulateInterSection(const XYLine& other, QPointF* pt) const
+	QLineF::IntersectType intersection::XYLine::calulateILinenterSectionI(const XYLine& other, QPointF* pt) const
 	{
-		this->intersect(other, pt);
+		return this->intersect(other, pt);
 	}
 
+
 	void intersection::XYLine::intersectWithLines(const QVector<XYLine>& allLines)
-	{		for (const XYLine& line : allLines) {
+	{
+		
+		for (const XYLine& line : allLines) {
+			
 			QPointF pt_Intersect;
 
-			this->intersect(line, &pt_Intersect);
-			if (!pt_Intersect.isNull())
+			auto interSectFlag = this->intersect(line, &pt_Intersect);
+			if ((!pt_Intersect.isNull()) && ( !(interSectFlag == QLineF::UnboundedIntersection)))
 				m_intersectPoints.push_back(pt_Intersect);
-			}
+
+		}
+		
 	}
 
 	void LineCreator::createLineSegments(const threshold_defs::ParametersRanges& lineRange, QVector<XYLine>& xyLines)
@@ -26,24 +32,39 @@ namespace intersection{
 		 
 		if (x_vals.empty() || y_vals.empty()) return;
 		if (x_vals.size() != y_vals.size()) return; 
-		double x1, x2, y1, y2; 
+		float x1, x2, y1, y2; 
 
-		for (size_t start = 0; start < x_vals.size() - 1; start){
-			x1 = x_vals[start]; x2 = x_vals[start + 1];
-			y1 = y_vals[start]; y2 = y_vals[start + 1];
+		for (size_t start = 0; start < x_vals.size()-1; start++){
+						
+			x1 =(float) x_vals[start];
+			x2 = (float) x_vals[start + 1];
+			y1 = (float) y_vals[start]; 
+			y2 = (float) y_vals[start + 1];
+
+			DEBUG_LOG(QString("segment %1 %2 %3 %4").arg(x1).arg(y1).arg(x2).arg(y2)); 
+
 			XYLine line(x1, y1, x2, y2);
 			xyLines.push_back(line);
 		}
 
 	}
 
-	void XYLine::intersectionFromRange(const threshold_defs::ParametersRanges& aRange)
+	const QVector<QPointF>& XYLine::intersectionFromRange(const threshold_defs::ParametersRanges& aRange)
 	{
 		QVector<XYLine> Lines;		
 		LineCreator::createLineSegments(aRange, Lines);
 		DEBUG_LOG(QString("Line size %1").arg(Lines.size())); 
 		XYLine aLine = Lines.takeFirst();
 		aLine.intersectWithLines(Lines); 
+		return this->m_intersectPoints;
+	}
+
+	const QVector<QPointF>& XYLine::intersectionLineWithRange(const threshold_defs::ParametersRanges& aRange)
+	{
+		QVector<XYLine> Lines;
+		LineCreator::createLineSegments(aRange, Lines);
+		this->intersectWithLines(Lines);
+		return this->m_intersectPoints;
 	}
 
 }
