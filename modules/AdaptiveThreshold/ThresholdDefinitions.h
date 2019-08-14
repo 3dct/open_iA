@@ -2,6 +2,7 @@
 #include <vector>
 #include <QString>
 #include <stdexcept>
+#include <QPointF>
 
 namespace threshold_defs {
 
@@ -67,10 +68,15 @@ namespace threshold_defs {
 		double fPeakHalf; 
 
 		double iso50ValueThr; 
-		double iso50ValueFreq; 
+		/*double iso50ValueFreq; */
 
 		double freqPeakLokalMaxY;
 		double lokalMaxPeakThreshold_X;
+
+		QPointF createLokalMaxHalfPoint(){
+			return QPointF((float)lokalMaxPeakThreshold_X, (float)fPeakHalf);
+		}
+
 
 		QString toString() {
 			QString res = QString("Min %1 \t %2 Max %3 \t %4").arg(peakMinXThreshold).arg(freqPeakMinY).arg(lokalMaxPeakThreshold_X).arg(freqPeakLokalMaxY);

@@ -4,7 +4,7 @@
 
 namespace intersection{
 
-	QLineF::IntersectType intersection::XYLine::calulateILinenterSectionI(const XYLine& other, QPointF* pt) const
+	QLineF::IntersectType intersection::XYLine::calulateILineInterSection(const XYLine& other, QPointF* pt) const
 	{
 		return this->intersect(other, pt);
 	}

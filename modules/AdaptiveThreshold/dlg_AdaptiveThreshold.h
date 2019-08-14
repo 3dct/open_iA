@@ -78,6 +78,8 @@ private slots:
 		//TBa remove test actions below
 		void myAction();
 		void aTestAction_2(); 
+		void sortTestAction(); 
+
 		void aTestAction(); 
 
 		void AnotherAction(); 

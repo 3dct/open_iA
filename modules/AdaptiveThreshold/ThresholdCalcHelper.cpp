@@ -128,3 +128,49 @@ void ThresholdCalcHelper::determinIso50(const threshold_defs::ParametersRanges& 
 	}
 
 }
+
+
+void ThresholdCalcHelper::getFirstElemInRange(const QVector <QPointF>& in, float xmin, float xmax, QPointF* result)
+{
+	if (!result) throw std::invalid_argument("null argument QPointF"); 
+	if (in.empty()) { result = nullptr; return; }
+
+	
+	try 
+	{
+	
+		QVector<QPointF> ranges = in;
+		sortPointsByX(ranges);
+		bool contained = false;
+		QPointF pt_tmp;
+
+		for (const QPointF& pt : ranges)
+		{
+			if (this->checkInRange(pt, xmin, xmax))
+			{
+				contained = true;
+				pt_tmp = pt;
+				break;
+			}
+		}
+
+		if (contained)
+		{
+			result->setX(pt_tmp.x());
+			result->setY(pt_tmp.y());
+
+		}
+		else
+		{
+			result = nullptr;
+		}
+	}
+	catch (std::invalid_argument& ia) {
+		throw; 
+	}
+	catch (std::bad_alloc& ba) {
+		DEBUG_LOG("error calculation elem by ranges faild in memory");
+		throw; 
+	}
+	
+}

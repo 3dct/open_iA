@@ -17,9 +17,7 @@ namespace intersection {
 		XYLine(const QLineF &line):QLineF(line) {};
 
 		//can be also null if no intersection
-		//void LineIntersection(const XYLine &other, QPointF *pt) const;
-
-		QLineF::IntersectType intersection::XYLine::calulateILinenterSectionI(const XYLine& other, QPointF* pt) const;
+		QLineF::IntersectType intersection::XYLine::calulateILineInterSection(const XYLine& other, QPointF* pt) const;
 		
 		//calculates the intersection with of line segments with a current line; 
 		void intersectWithLines(const QVector<XYLine> &QVector);
@@ -44,8 +42,6 @@ namespace intersection {
 		};
 
 	private:
-	    
-		
 		XYLine() = delete;
 		QVector<QPointF> m_intersectPoints; 
 	};
@@ -53,9 +49,8 @@ namespace intersection {
 
 	class LineCreator {
 	public:
-		//const QVector<XYLine>& createLineSegments(const ParametersRanges& lineRange);
-	  	///*static*/ const QVector<intersection::XYLine> createLineSegments(const threshold_defs::ParametersRanges& lineRange);
-		static void createLineSegments(const threshold_defs::ParametersRanges& lineRange, QVector<XYLine> &xyLines);
+		
+	  	static void createLineSegments(const threshold_defs::ParametersRanges& lineRange, QVector<XYLine> &xyLines);
 	private:
 		LineCreator() = delete;
 	};

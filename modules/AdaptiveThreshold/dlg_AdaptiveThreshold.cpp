@@ -67,7 +67,7 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(calculateMovingAverage()));
 	connect(this->btn_loadHistData, SIGNAL(clicked()), this, SLOT(buttonLoadHistDataClicked())); 
 	connect(this->btn_clear, SIGNAL(clicked()), this, SLOT(clearEditField()));
-	connect(this->btn_aTestAction, SIGNAL(clicked()), this, SLOT(aTestAction_2()));
+	connect(this->btn_aTestAction, SIGNAL(clicked()), this, SLOT(sortTestAction()));
 	connect(this->btn_selectRange, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClicked()));
 	connect(this->btn_MinMax, SIGNAL(clicked()), this, SLOT(buttonMinMaxClicked())); 
 	connect(this->btn_redraw, SIGNAL(clicked()), this, SLOT(redrawPlots())); 
@@ -239,10 +239,15 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		//iso 50 as grey threshold		
 		m_thresCalculator.determinIso50(maxPeakRanges, thrPeaks);
 
+		//here calculations are finished
+
+		m_thresCalculator.setThresMinMax(thrPeaks);
+
+
 		QPointF f1 = QPointF(thrPeaks.iso50ValueThr, 10000000);
 		QPointF f2 = QPointF(thrPeaks.iso50ValueThr, 0); 
-		std::vector<QPointF> testVec; 
-		testVec.push_back(f1); 
+		/*std::vector<QPointF> testVec;
+		testVec.push_back(f1)*/;
 
 		//QScatterSeries* iso50 = nullptr; 
 		QLineSeries *iso50 = nullptr;
@@ -251,7 +256,7 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		
 		//iso50 = ChartVisHelper::createScatterSeries(testVec, &size);
 		iso50 = ChartVisHelper::createLineSeries(f2, f1,LineVisOption::horizontally);
-		//iso50->setPointLabelsClipping(); 
+	
 
 		QColor cl_blue = QColor(0, 0, 255); 
 		iso50->setColor(cl_blue);
@@ -381,19 +386,35 @@ void AdaptiveThreshold::buttonVisualizePointsClicked()
 				this->textEdit->append("\nMoving Frequencies not created");
 				return;
 			}
+			
+			QPointF lokalMaxHalf =  m_thresCalculator.getPointAirPeakHalf(); 
+			QString peakHalf = QString("fmin /2 %1 &2").arg(lokalMaxHalf.x()).arg(lokalMaxHalf.y()); 
+			QPointF LokalMaxHalfEnd(lokalMaxHalf.x(), 65535);
+			intersection::XYLine LinePeakHalf(lokalMaxHalf, LokalMaxHalfEnd);
 
-			threshold_defs::ParametersRanges ranges;
-			m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, ranges, xmin, xmax);
-			auto* aSeries = ChartVisHelper::createScatterSeries(ranges);
+			threshold_defs::ParametersRanges Intersectranges;
+			m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, Intersectranges, xmin, xmax);
+			auto intersectionPoints =  LinePeakHalf.intersectionLineWithRange(Intersectranges);
+
+
+			
+
+
+			auto* aSeries = ChartVisHelper::createScatterSeries(Intersectranges);
+
+
 			aSeries->setMarkerSize(7);
 			this->addSeries(aSeries, false);
 			m_chart->update();
 			m_chartView->update();
 		}
+		else {
+			this->textEdit->append("Workflow: \n1 Please load histogram data first\n 2 create Moving average\n 3 Specify Ranges of Peaks \n4  Calculate Intersection "); 
+		}
 	}
 }
 
-void AdaptiveThreshold::assignValuesFromField(threshold_defs::PeakRanges &Ranges/*double& x_min, double& x_max*/)
+void AdaptiveThreshold::assignValuesFromField(threshold_defs::PeakRanges &Ranges)
 {
 	bool* x_OK = new bool; bool* x2_OK = new bool;
 	bool* x3_oK = new bool; bool *x4_ok = new bool; 
@@ -557,6 +578,11 @@ void AdaptiveThreshold::aTestAction_2()
 	}
 	
 
+}
+
+void AdaptiveThreshold::sortTestAction()
+{
+	m_thresCalculator.testSort(); 
 }
 
 void AdaptiveThreshold::aTestAction()

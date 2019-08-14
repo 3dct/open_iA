@@ -7,8 +7,6 @@
 #include <QTCharts>
 #include <QtCharts/qlineseries.h>
 
-//#include "ThresholdDefinitions.h"
-
 class ParametersRanges; 
 
 
@@ -33,7 +31,7 @@ public:
 	ThesholdCalculator();
 	~ThesholdCalculator();
 
-	//ouble vectorSum(const std::vector<double>& vec, size_t startInd, size_t endInd);
+	
 	void calculateMovingAverage(const std::vector<double>& v_in, std::vector<double>& v_out, unsigned int count);
 	void doubleTestSum();	
 	void calculateFrequencies(size_t m_start, size_t m_end);
@@ -75,9 +73,25 @@ public:
 	void determinIso50(const threshold_defs::ParametersRanges& inRanges, 
 		threshold_defs::ThresMinMax& inVals);
 
+	inline void setThresMinMax(const threshold_defs::ThresMinMax& results) {
+		m_thresResults = results; 
+	}
+
+
+	inline void testSort() {
+
+		m_calcHelper.testSortPointsByIdx(); 
+	}
+
+
+	QPointF getPointAirPeakHalf() {
+		return m_thresResults.createLokalMaxHalfPoint();
+	}
 
 private:
-		
+	threshold_defs::ThresMinMax m_thresResults; 
+
+
 	QSharedPointer<iAPlotData> m_data;
 	DebugHelper m_dbgHelper; 
 	ThresholdCalcHelper m_calcHelper; 

@@ -2,8 +2,27 @@
 
 #include <vector>
 #include "ThresholdDefinitions.h"
+#include <algorithm>
+#include <QVector>
+#include <stdexcept>
+#include "ThresAlgo.h"
 //class threshold_defs::ThresIndx;
-class QPointF; 
+class QPointF;
+
+/*
+bool operator<(QPointF const& p1, QPointF const& p2)
+{
+	return p1.x() < p2.x();
+}
+*/
+
+class ComparablePointFX
+{
+public:
+	bool operator()(const QPointF& p1, const QPointF& p2) {
+		return p1.x() < p2.x();
+	}
+};
 
 class ThresholdCalcHelper
 {
@@ -30,5 +49,58 @@ public:
 	*/
 	void determinIso50(const threshold_defs::ParametersRanges& inRanges, threshold_defs::ThresMinMax &inVals);
 
-};
+	//void checkPointsInRange(const QVector <QPointF> &in, QPointF * result); 
+	void getFirstElemInRange(const QVector <QPointF>& in, float xmin, float xmax, QPointF* result);
 
+
+	inline void testSortPointsByIdx() {
+		QVector<QPointF> vec; 
+		QPointF pt1(0.0f, 1.0f);
+		QPointF pt2(4.1f, -3.4f); 
+		QPointF pt3(10.0f, 14.3f);
+		QPointF pt4(-10.0f, 2.0f);
+		QPointF pt5(3.0f, -19.0f);
+		QPointF pt6(-101.0f, 201.0f); 
+		vec.push_back(pt1);
+		vec.push_back(pt2);
+		vec.push_back(pt3);
+		vec.push_back(pt4);
+		vec.push_back(pt5);
+		vec.push_back(pt6); 
+
+		//this->sortPointsByX(vec); 
+
+		QPointF tmp(-99, -99); 
+		this->getFirstElemInRange(vec, 2.0f, 11.0f, &tmp);
+
+	}
+	
+	inline void sortPointsByX(QVector<QPointF>& vec) {
+		//std::sort(vec.begin(), vec.end()/*, &greaterThan/ *<QPointF>()*/);
+		std::sort(vec.begin(), vec.end(), ComparablePointFX());
+	}
+
+
+private: 
+	inline bool checkInRange(const QPointF& pt, float min, float max) {
+		float xval = (float)  pt.x(); 
+		bool isInRangeMin = false; 
+		bool isInRangeMax = false; 
+		
+		if (!(min < max))
+			throw std::invalid_argument("error comparing values");
+
+		isInRangeMin = (algorithm::compareDouble(min, xval)) || (min < xval) ;
+		isInRangeMax = (algorithm::compareDouble(max, xval)) || (xval < max) ;
+		
+		return (isInRangeMax && isInRangeMin); 
+
+		/*if ( min < pt.x  compareDouble(m))*/
+
+	}
+
+	/*template<class T>*/
+	/*bool greaterThan(const QPointF &p1, const QPointF &p2) {
+		return p1.x()< p2.x();
+	}*/
+};

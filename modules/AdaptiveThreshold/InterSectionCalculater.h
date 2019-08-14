@@ -6,7 +6,7 @@ class InterSectionCalculater
 {
 public:
 
-	QPointF *calculateIntersection(const QPointF pt1, const QPointF pt2);
+	/*QPointF *calculateIntersection(const QPointF pt1, const QPointF pt2);*/
 	
 
 };
