@@ -80,21 +80,32 @@ dlg_labels::dlg_labels(MdiChild* mdiChild):
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
 	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	lvLabels->setModel(m_itemModel);
+}
 
-	//connect(mdiChild->renderer(), &iARenderer::clicked, this, &dlg_labels::rendererClicked);
+void dlg_labels::addSlicer(QSharedPointer<iASlicer> slicerPtr)
+{
+	if (!m_slicers.contains(slicerPtr)) {
+		m_slicers.append(slicerPtr);
+		auto slicer = slicerPtr.data();
+		SlicerConnections conns;
+		conns.c[0] = connect(slicer, &iASlicer::leftClicked, this, [this, slicerPtr](int x, int y, int z) { slicerClicked(x, y, z, slicerPtr); });
+		conns.c[1] = connect(slicer, &iASlicer::leftDragged, this, [this, slicerPtr](int x, int y, int z) { slicerDragged(x, y, z, slicerPtr); });
+		conns.c[2] = connect(slicer, &iASlicer::rightClicked, this, [this, slicerPtr](int x, int y, int z) { slicerRightClicked(x, y, z, slicerPtr); });
+		m_connections.append(conns);
+	}
+}
 
-	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
-	{
-		//connect(mdiChild->slicer(i), &iASlicer::leftClicked, this, &dlg_labels::slicerClicked);
-		//connect(mdiChild->slicer(i), &iASlicer::leftDragged, this, &dlg_labels::slicerDragged);
-		//connect(mdiChild->slicer(i), &iASlicer::rightClicked, this, &dlg_labels::slicerRightClicked);
-
-		auto slicer = mdiChild->slicer(i);
-		auto mode = slicer->mode();
-
-		connect(slicer, &iASlicer::leftClicked,  this, [this, mode] (int x, int y, int z) { slicerClicked(x, y, z, mode); });
-		connect(slicer, &iASlicer::leftDragged,  this, [this, mode] (int x, int y, int z) { slicerDragged(x, y, z, mode); });
-		connect(slicer, &iASlicer::rightClicked, this, [this, mode] (int x, int y, int z) { slicerRightClicked(x, y, z, mode); });
+void dlg_labels::removeSlicer(QSharedPointer<iASlicer> slicerPtr)
+{
+	int i = m_slicers.indexOf(slicerPtr);
+	if (i != -1) {
+		m_slicers.removeAt(i);
+		auto slicer = slicerPtr.data();
+		SlicerConnections conns = m_connections[i];
+		disconnect(conns.c[0]);
+		disconnect(conns.c[1]);
+		disconnect(conns.c[2]);
+		m_connections.removeAt(i);
 	}
 }
 
@@ -110,9 +121,9 @@ namespace
 	}
 }
 
-void dlg_labels::rendererClicked(int x, int y, int z, iASlicerMode mode)
+void dlg_labels::rendererClicked(int x, int y, int z, QSharedPointer<iASlicer> slicer)
 {
-	addSeed(x, y, z, mode);
+	addSeed(x, y, z, slicer);
 }
 
 int findSeed(QStandardItem* labelItem, int x, int y, int z)
@@ -134,7 +145,7 @@ bool seedAlreadyExists(QStandardItem* labelItem, int x, int y, int z)
 	return findSeed(labelItem, x, y, z) != -1;
 }
 
-void dlg_labels::addSeed(int cx, int cy, int cz, iASlicerMode mode)
+void dlg_labels::addSeed(int cx, int cy, int cz, QSharedPointer<iASlicer> slicer)
 {
 	iAVec3i center(cx, cy, cz);
 	if (!cbEnableEditing->isChecked())
@@ -151,6 +162,8 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicerMode mode)
 	int radius = spinBox->value() - 1; // -1 because the center voxel shouldn't count
 	iATimeGuard timer(QString("Drawing circle of radius %1").arg(radius).toStdString());
 	auto extent = m_labelOverlayImg->GetExtent();
+
+	auto mode = slicer->mode();
 	
 	int xAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::X),
 		yAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::Y),
@@ -184,17 +197,17 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicerMode mode)
 	updateChannel();
 }
 
-void dlg_labels::slicerClicked(int x, int y, int z, iASlicerMode mode)
+void dlg_labels::slicerClicked(int x, int y, int z, QSharedPointer<iASlicer> slicer)
 {
-	addSeed(x, y, z, mode);
+	addSeed(x, y, z, slicer);
 }
 
-void dlg_labels::slicerDragged(int x, int y, int z, iASlicerMode mode)
+void dlg_labels::slicerDragged(int x, int y, int z, QSharedPointer<iASlicer> slicer)
 {
-	addSeed(x, y, z, mode);
+	addSeed(x, y, z, slicer);
 }
 
-void dlg_labels::slicerRightClicked(int x, int y, int z, iASlicerMode mode)
+void dlg_labels::slicerRightClicked(int x, int y, int z, QSharedPointer<iASlicer> slicer)
 {
 	for (int l = 0; l < m_itemModel->rowCount(); ++l)
 	{

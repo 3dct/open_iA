@@ -28,6 +28,7 @@
 
 class iAModality;
 class iASlicer;
+class dlg_labels;
 class MdiChild;
 
 class vtkVolume;
@@ -70,7 +71,9 @@ private:
 	MdiChild *m_mdiChild;
 
 	void _initialize();
-	iASlicer* _initializeSlicer(QSharedPointer<iAModality> modality);
+	QSharedPointer<iASlicer> _initializeSlicer(QSharedPointer<iAModality> modality);
+	void _initializeCombinedVol();
+	void _initializeMainSlicers();
 	bool _checkModalities(QList<QSharedPointer<iAModality>> modalities);
 	bool _matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2);
 	QList<QSharedPointer<iAModality>> m_modalities;
@@ -84,13 +87,13 @@ private:
 	void applyVolumeSettings();
 
 	// Internal widgets
-	QList<iASlicer*> m_slicers;
+	QList<QSharedPointer<iASlicer>> m_slicers;
 
 	// Labeling widgets
 
 
 	// MdiChild widgets
-
+	dlg_labels *m_dlg_labels;
 
 signals:
 	void allSlicersInitialized();

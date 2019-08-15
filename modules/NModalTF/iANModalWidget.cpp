@@ -74,15 +74,23 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 
 	//connect(m_mdiChild->modalitiesDockWidget(), &dlg_modalities::modalitiesChanged, this, &iANModalWidget::onModalitiesChanged);
 
+	auto list = m_mdiChild->modalities();
+	QList<QSharedPointer<iAModality>> modalities;
+	for (int i = 0; i < list->size(); i++) {
+		modalities.append(list->get(i));
+	}
+	modalities = m_c->cherryPickModalities(modalities);
+	m_c->setModalities(modalities);
 	m_c->initialize();
 }
 
 void iANModalWidget::onButtonRefreshModalitiesClicked() {
-	QList<QSharedPointer<iAModality>> modalities;
 	auto list = m_mdiChild->modalities();
+	QList<QSharedPointer<iAModality>> modalities;
 	for (int i = 0; i < list->size(); i++) {
 		modalities.append(list->get(i));
 	}
+	modalities = m_c->cherryPickModalities(modalities);
 	m_c->setModalities(modalities);
 	m_c->reinitialize();
 }
@@ -95,8 +103,7 @@ void iANModalWidget::onButtonClicked() {
 	QList<LabeledVoxel> voxels;
 
 	{
-		QObject *obj = m_mdiChild->findChild<QObject*>("labels");
-		dlg_labels* labeling = static_cast<dlg_labels*>(obj);
+		auto labeling = m_c->m_dlg_labels;
 
 		QStandardItemModel *items = labeling->m_itemModel;
 		for (int row = 0; row < items->rowCount(); row++) {
@@ -141,7 +148,7 @@ void iANModalWidget::onButtonClicked() {
 void iANModalWidget::onAllSlicersInitialized() {
 	for (int i = 0; i < m_c->m_slicers.size(); i++) {
 		auto slicer = m_c->m_slicers[i];
-		m_layoutSlicersGrid->addWidget(slicer, 0, i);
+		m_layoutSlicersGrid->addWidget(slicer.data(), 0, i);
 	}
 }
 

@@ -24,15 +24,16 @@
 
 #include "ui_labels.h"
 
-#include <iASlicerMode.h>
-
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
 #include <QList>
+#include <QSharedPointer>
 
+class iASlicer;
 class iAColorTheme;
+class iAModality;
 class MdiChild;
 
 class QStandardItem;
@@ -57,14 +58,17 @@ public:
 	bool load(QString const & filename);
 	bool store(QString const & filename, bool extendedFormat);
 
+	void addSlicer(QSharedPointer<iASlicer> slicer);
+	void removeSlicer(QSharedPointer<iASlicer> slicer);
+
 	// TEMPORARY
 	QStandardItemModel* m_itemModel; // TODO: make private
 
 public slots:
-	void rendererClicked(int, int, int, iASlicerMode);
-	void slicerClicked(int, int, int, iASlicerMode);
-	void slicerDragged(int, int, int, iASlicerMode);
-	void slicerRightClicked(int, int, int, iASlicerMode);
+	void rendererClicked(int, int, int, QSharedPointer<iASlicer>);
+	void slicerClicked(int, int, int, QSharedPointer<iASlicer>);
+	void slicerDragged(int, int, int, QSharedPointer<iASlicer>);
+	void slicerRightClicked(int, int, int, QSharedPointer<iASlicer>);
 	void add();
 	void remove();
 	void storeLabels();
@@ -76,7 +80,7 @@ public slots:
 	QString const & fileName();
 	void opacityChanged(int newValue);
 private:
-	void addSeed(int, int, int, iASlicerMode);
+	void addSeed(int, int, int, QSharedPointer<iASlicer>);
 	void removeSeed(QStandardItem* item, int x, int y, int z);
 	QStandardItem* addSeedItem(int label, int x, int y, int z);
 	int addLabelItem(QString const & labelText);
@@ -95,4 +99,13 @@ private:
 	MdiChild* m_mdiChild;
 	bool m_newOverlay;
 	uint m_labelChannelID;
+
+	
+	QList<QSharedPointer<iASlicer>> m_slicers;
+	QList<QSharedPointer<iAModality>> m_modalities;
+
+	struct SlicerConnections {
+		QMetaObject::Connection c[3];
+	};
+	QList<SlicerConnections> m_connections;
 };
