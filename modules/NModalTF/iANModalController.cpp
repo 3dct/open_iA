@@ -61,16 +61,15 @@ void iANModalController::reinitialize() {
 }
 
 void iANModalController::_initialize() {
-	m_modalities.clear();
-	auto modalities = m_mdiChild->modalities();
-	for (int i = 0; i < modalities->size(); i++) {
-		auto modality = modalities->get(i);
-		m_modalities.append(modality);
-	}
 
 	// TODO: cherry pick modalities
 
 	assert(countModalities() >= 1 && countModalities() < 4);
+
+
+
+	// TODO: remove
+	return;
 
 	m_slicers.clear();
 	m_channelIds.clear();
