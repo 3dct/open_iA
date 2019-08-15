@@ -42,18 +42,22 @@
 #include <vtkImageReslice.h>
 #include <vtkSmartPointer.h>
 
-iANModalController::iANModalController(MdiChild *mdiChild) {
+iANModalController::iANModalController(MdiChild *mdiChild) :
+	m_mdiChild(mdiChild)
+{
 
 }
 
 void iANModalController::initialize() {
 	assert(!m_initialized);
 	_initialize();
+	emit(allSlicersInitialized());
 }
 
 void iANModalController::reinitialize() {
 	assert(m_initialized);
 	_initialize();
+	emit(allSlicersReinitialized());
 }
 
 void iANModalController::_initialize() {
@@ -69,8 +73,20 @@ void iANModalController::_initialize() {
 	assert(countModalities() >= 1 && countModalities() < 4);
 
 	m_slicers.clear();
+	m_channelIds.clear();
 	for (int i = 0; i < m_modalities.size(); i++) {
-		_initializeModality(m_modalities[i]);
+		auto modality = m_modalities[i];
+
+		iASlicer *slicer = _initializeSlicer(modality);
+		m_slicers.append(slicer);
+
+		m_channelIds.push_back(m_mdiChild->createChannel());
+		auto chData = m_mdiChild->channelData(m_channelIds[i]);
+		auto imageData = modality->image();
+		auto ctf = modality->transfer()->colorTF();
+		auto otf = modality->transfer()->opacityTF();
+		chData->setData(imageData, ctf, otf);
+		m_mdiChild->initChannelRenderer(m_channelIds[i], false, true);
 	}
 
 	auto appendFilter = vtkSmartPointer<vtkImageAppendComponents>::New();
@@ -123,6 +139,7 @@ void iANModalController::_initialize() {
 
 	// Hard-coded 3? TODO: remove
 	for (int mainSlicerIndex = 0; mainSlicerIndex < 3; mainSlicerIndex++) {
+
 		auto reslicer = slicerArray[mainSlicerIndex]->channel(m_channelIds[0])->reslicer();
 
 		int const *dims = reslicer->GetOutput()->GetDimensions();
@@ -149,19 +166,22 @@ void iANModalController::_initialize() {
 	m_initialized = true;
 }
 
-void iANModalController::_initializeModality(QSharedPointer<iAModality> modality) {
+iASlicer* iANModalController::_initializeSlicer(QSharedPointer<iAModality> modality) {
+	auto slicerMode = iASlicerMode::XY;
+	int sliceNumber = m_mdiChild->slicer(slicerMode)->sliceNumber();
 	// Hide everything except the slice itself
-	auto slicerXY = new iASlicer(nullptr, iASlicerMode::XY, /*bool decorations = */false);
-	auto slicerXZ = new iASlicer(nullptr, iASlicerMode::XZ, /*bool decorations = */false);
-	auto slicerYZ = new iASlicer(nullptr, iASlicerMode::YZ, /*bool decorations = */false);
-	iASlicer *slicers[3] = {
-		new iASlicer(nullptr, iASlicerMode::XY, /*bool decorations = */false),
-		new iASlicer(nullptr, iASlicerMode::XZ, /*bool decorations = */false),
-		new iASlicer(nullptr, iASlicerMode::YZ, /*bool decorations = */false)
-	};
+	auto slicer = new iASlicer(nullptr, slicerMode, /*bool decorations = */false);
+	slicer->setSliceNumber(sliceNumber);
 
 	vtkImageData *image = modality->image().GetPointer();
-	vtkColorTransferFunction* colorTf = modality->transfer()->colorTF();
+
+	vtkColorTransferFunction* colorTf = vtkColorTransferFunction::New();
+	double range[2];
+	modality->image()->GetScalarRange(range);
+	double min = range[0];
+	double max = range[1];
+	colorTf->AddRGBPoint(min, 0.0, 0.0, 0.0);
+	colorTf->AddRGBPoint(max, 255.0, 255.0, 255.0);
 
 	double* origin = image->GetOrigin();
 	int* extent = image->GetExtent();
@@ -172,21 +192,17 @@ void iANModalController::_initializeModality(QSharedPointer<iAModality> modality
 	double xd = (extent[1] - extent[0] + 1)*spacing[0];
 	double yd = (extent[3] - extent[2] + 1)*spacing[1];
 
-	for (int i = 0; i < 3; i++) {
-		auto slicer = slicers[i];
+	slicer->setup(m_mdiChild->slicerSettings().SingleSlicer);
+	slicer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+	slicer->addChannel(0, iAChannelData(modality->name(), image, colorTf), true);
 
-		slicer->setup(m_mdiChild->slicerSettings().SingleSlicer);
-		slicer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-		slicer->addChannel(0, iAChannelData(modality->name(), image, colorTf), true);
+	vtkCamera* camera = slicer->camera();
+	double d = camera->GetDistance();
+	camera->SetParallelScale(0.5 * yd);
+	camera->SetFocalPoint(xc, yc, 0.0);
+	camera->SetPosition(xc, yc, +d);
 
-		vtkCamera *camera = slicer->camera();
-		double d = camera->GetDistance();
-		camera->SetParallelScale(0.5*yd);
-		camera->SetFocalPoint(xc, yc, 0.0);
-		camera->SetPosition(xc, yc, +d);
-
-		m_slicers.append(QSharedPointer<iASlicer>(slicer));
-	}
+	return slicer;
 }
 
 void iANModalController::applyVolumeSettings() {
@@ -221,13 +237,19 @@ int iANModalController::countModalities() {
 	return m_modalities.size();
 }
 
-QList<QSharedPointer<iAModality>> iANModalController::cherryPickModalities(QList<QSharedPointer<iAModality>> modalities) {
+QList<QSharedPointer<iAModality>> iANModalController::cherryPickModalities(QList<QSharedPointer<iAModality>>modalities) {
+
+	// TODO: pick "best" combination of modalities
+
 	QList<QSharedPointer<iAModality>> dummy;
+	for (auto modality : modalities) {
+		dummy.append(modality);
+	}
 	return dummy;
 }
 
 bool iANModalController::_checkModalities(QList<QSharedPointer<iAModality>> modalities) {
-	if (modalities.size() < 1 || modalities.size() > 4) {
+	if (modalities.size() < 1 || modalities.size() > 4) { // Bad: 4 hard-coded. TODO: improve
 		return false;
 	}
 
@@ -239,7 +261,6 @@ bool iANModalController::_checkModalities(QList<QSharedPointer<iAModality>> moda
 
 	return true;
 }
-
 
 bool iANModalController::_matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2) {
 	auto image1 = m1->image();

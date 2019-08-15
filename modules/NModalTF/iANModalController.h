@@ -49,7 +49,10 @@ struct LabeledVoxel {
 	}
 };
 
-class iANModalController {
+class iANModalController : public QObject {
+	Q_OBJECT
+
+	friend class iANModalWidget;
 
 public:
 	iANModalController(MdiChild *mdiChild);
@@ -60,8 +63,6 @@ public:
 	bool setModalities(QList<QSharedPointer<iAModality>> modalities);
 	void reinitialize();
 
-
-
 	// TEMPORARY STUFF
 	void adjustTf(QSharedPointer<iAModality> modality, QList<LabeledVoxel> voxels);
 
@@ -69,7 +70,7 @@ private:
 	MdiChild *m_mdiChild;
 
 	void _initialize();
-	void _initializeModality(QSharedPointer<iAModality> modality);
+	iASlicer* _initializeSlicer(QSharedPointer<iAModality> modality);
 	bool _checkModalities(QList<QSharedPointer<iAModality>> modalities);
 	bool _matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2);
 	QList<QSharedPointer<iAModality>> m_modalities;
@@ -83,11 +84,15 @@ private:
 	void applyVolumeSettings();
 
 	// Internal widgets
-	QList<QSharedPointer<iASlicer>> m_slicers;
+	QList<iASlicer*> m_slicers;
 
 	// Labeling widgets
 
 
 	// MdiChild widgets
 
+
+signals:
+	void allSlicersInitialized();
+	void allSlicersReinitialized();
 };

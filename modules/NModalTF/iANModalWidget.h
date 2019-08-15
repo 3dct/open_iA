@@ -26,6 +26,7 @@ class iANModalController;
 class MdiChild;
 
 class QLabel;
+class QGridLayout;
 
 class iANModalWidget : public QWidget {
 	Q_OBJECT
@@ -37,9 +38,17 @@ private:
 	iANModalController *m_c;
 	MdiChild *m_mdiChild;
 
-	QLabel *m_label;
+	QGridLayout *m_layoutSlicersGrid;
+
+	QLabel *m_labelModalityCount;
 
 private slots:
 	void onButtonClicked();
+	void onButtonRefreshModalitiesClicked();
+
+	void onAllSlicersInitialized();
+	void onAllSlicersReinitialized();
+
+	//void onModalitiesChanged();
 
 };
