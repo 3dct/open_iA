@@ -68,6 +68,7 @@ private slots:
 
 		void assignValuesToField(threshold_defs::ThresMinMax& thrPeaks);
 
+		void assignValuesToField(double min, double max, double y1, double y2);
 		void createVisualisation(threshold_defs::ParametersRanges paramRanges, threshold_defs::ThresMinMax thrPeaks);
 		void visualizeSeries(threshold_defs::ParametersRanges ParamRanges, QColor color, QString *seriesName); 
 

@@ -293,6 +293,16 @@ void AdaptiveThreshold::assignValuesToField(threshold_defs::ThresMinMax& thrPeak
 	this->ed_MinPeakFreqrY->setText(QString("%1").arg(thrPeaks.FreqPeakMinY()));
 }
 
+
+void AdaptiveThreshold::assignValuesToField(double min, double max, double y1, double y2)
+{
+	this->ed_PeakThrMaxX->setText(QString("%1").arg(min));
+	this->ed_PeakFregMaxY->setText(QString("%1").arg(max));
+	this->ed_minPeakThrX->setText(QString("%1").arg(y1));
+	this->ed_MinPeakFreqrY->setText(QString("%1").arg(y2));
+}
+
+
 void AdaptiveThreshold::createVisualisation(threshold_defs::ParametersRanges paramRanges, threshold_defs::ThresMinMax thrPeaks)
 {
 	try {
@@ -532,13 +542,22 @@ void AdaptiveThreshold::rescaleToMinMax()
 	double xmax_val = this->m_graphRange.getXMax();
 
 	double ymin_val = this->m_graphRange.getYMin();
-	double ymax_val = this->m_graphRange.getYMax(); 
+	double ymax_val = this->m_graphRange.getYMax(); 	
 	
-	axisX->setRange(xmin_val, xmax_val);
-	axisY->setRange(ymin_val, ymax_val);
+	if ((xmin_val < xmax_val) && (ymin_val < ymax_val))
+	{
+	
+		axisX->setRange(xmin_val, xmax_val);
+		axisY->setRange(ymin_val, ymax_val);
 
-	m_chart->update(); 
-	m_chartView->update(); 
+		this->ed_xMIn->setText(QString("%1").arg(xmin_val));
+		this->ed_xMax->setText(QString("%1").arg(xmax_val));
+		this->ed_Ymin->setText(QString("%1").arg(ymin_val));
+		this->ed_YMax->setText(QString("%1").arg(ymax_val));
+
+		m_chart->update();
+		m_chartView->update();
+	}
 }
 
 void AdaptiveThreshold::buttonMinMaxClicked()
