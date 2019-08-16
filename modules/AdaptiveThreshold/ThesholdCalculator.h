@@ -78,6 +78,11 @@ public:
 	}
 
 
+	inline void getFirstElemInRange(const QVector<QPointF>& pts, double xmin, double xmax, QPointF* pt) {
+		m_calcHelper.getFirstElemInRange(pts, xmin, xmax, pt); 
+		
+	}
+
 	inline void testSort() {
 
 		m_calcHelper.testSortPointsByIdx(); 

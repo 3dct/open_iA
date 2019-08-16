@@ -16,6 +16,7 @@ enum LineVisOption {
 
 
 class QPointF;
+class QColor; 
 
 
 //Factory for creating the scatter series
@@ -29,7 +30,10 @@ public:
 		const std::vector<double>& vec_y); 
 
 	static QScatterSeries *createScatterSeries(const std::vector<QPointF> pts, double *pt_size); 
-	static QLineSeries* createLineSeries(const std::vector<double>& vec_x, 
+//	static QScatterSeries* createScatterSeries(const QPointF &pt, double pt_size, const QColor &color); 
+
+	static QScatterSeries *createScatterSeries(const QPointF& pt, double pt_size, const QColor* color);
+	static QLineSeries* createLineSeries(const std::vector<double>& vec_x,
 		const std::vector<double>& vec_y);
 	
 	

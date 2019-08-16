@@ -6,7 +6,7 @@
 #include <QVector>
 #include <stdexcept>
 #include "ThresAlgo.h"
-//class threshold_defs::ThresIndx;
+
 class QPointF;
 
 /*
@@ -49,7 +49,7 @@ public:
 	*/
 	void determinIso50(const threshold_defs::ParametersRanges& inRanges, threshold_defs::ThresMinMax &inVals);
 
-	//void checkPointsInRange(const QVector <QPointF> &in, QPointF * result); 
+	
 	void getFirstElemInRange(const QVector <QPointF>& in, float xmin, float xmax, QPointF* result);
 
 
@@ -71,7 +71,7 @@ public:
 		//this->sortPointsByX(vec); 
 
 		QPointF tmp(-99, -99); 
-		this->getFirstElemInRange(vec, 2.0f, 11.0f, &tmp);
+		this->getFirstElemInRange(vec, 100, 200, &tmp);
 
 	}
 	
@@ -82,6 +82,8 @@ public:
 
 
 private: 
+
+	//checks if a point is between min and max
 	inline bool checkInRange(const QPointF& pt, float min, float max) {
 		float xval = (float)  pt.x(); 
 		bool isInRangeMin = false; 
@@ -94,13 +96,8 @@ private:
 		isInRangeMax = (algorithm::compareDouble(max, xval)) || (xval < max) ;
 		
 		return (isInRangeMax && isInRangeMin); 
-
-		/*if ( min < pt.x  compareDouble(m))*/
-
+		
 	}
 
-	/*template<class T>*/
-	/*bool greaterThan(const QPointF &p1, const QPointF &p2) {
-		return p1.x()< p2.x();
-	}*/
+	
 };

@@ -23,4 +23,8 @@ namespace algorithm {
 		return fabs(a - b) < toleranceVal; 
 	}
 
+	static bool compareDoube(float a, float b, float toleranceVal){
+		return fabs(a - b) < toleranceVal; 
+	}
+
 }

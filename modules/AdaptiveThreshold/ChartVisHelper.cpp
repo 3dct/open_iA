@@ -86,12 +86,29 @@ QT_CHARTS_NAMESPACE::QScatterSeries* ChartVisHelper::createScatterSeries(const s
 		if (*pt_size > 0){
 
 			series->setMarkerSize(*pt_size);
+			
+
 		}
 	}
 
 	
 
 	return series;
+
+}
+
+QScatterSeries* ChartVisHelper::createScatterSeries(const QPointF& pt, double pt_size, const QColor *color)
+{
+	QScatterSeries* series = nullptr; 
+	if (pt.isNull()) return series;
+	else series = new QScatterSeries; 
+	series->append(pt); 
+	series->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
+	if (color)
+		series->setColor(*color); 
+	
+	if (pt_size > 5.0) series->setMarkerSize(pt_size);
+	return series; 
 
 }
 

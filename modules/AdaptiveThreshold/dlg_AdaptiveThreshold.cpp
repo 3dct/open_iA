@@ -9,6 +9,7 @@
 #include "ChartVisHelper.h"
 #include "ThresholdDefinitions.h"
 #include <IntersectionDefinition.h>
+#include <limits>
 
 
 
@@ -389,21 +390,30 @@ void AdaptiveThreshold::buttonVisualizePointsClicked()
 			
 			QPointF lokalMaxHalf =  m_thresCalculator.getPointAirPeakHalf(); 
 			QString peakHalf = QString("fmin /2 %1 &2").arg(lokalMaxHalf.x()).arg(lokalMaxHalf.y()); 
-			QPointF LokalMaxHalfEnd(lokalMaxHalf.x(), 65535);
+			
+			//TODO REPLACE BY MAX limits
+			QPointF LokalMaxHalfEnd(65535, lokalMaxHalf.y());
 			intersection::XYLine LinePeakHalf(lokalMaxHalf, LokalMaxHalfEnd);
 
 			threshold_defs::ParametersRanges Intersectranges;
 			m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, Intersectranges, xmin, xmax);
+
 			auto intersectionPoints =  LinePeakHalf.intersectionLineWithRange(Intersectranges);
-
-
 			
+			QPointF ptIntersect(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()); 
+			m_thresCalculator.getFirstElemInRange(intersectionPoints, xmin, xmax, &ptIntersect); 
+
 
 
 			auto* aSeries = ChartVisHelper::createScatterSeries(Intersectranges);
+			aSeries->setObjectName("Intersection with fmin/2"); 
 
+			QColor col = QColor(255, 0, 0); 
+			auto *IntersectSeries = ChartVisHelper::createScatterSeries(ptIntersect,15.0, &col);
 
-			aSeries->setMarkerSize(7);
+			this->addSeries(IntersectSeries, false);
+
+			aSeries->setMarkerSize(5);
 			this->addSeries(aSeries, false);
 			m_chart->update();
 			m_chartView->update();
