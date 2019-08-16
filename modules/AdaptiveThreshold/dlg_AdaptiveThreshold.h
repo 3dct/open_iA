@@ -74,6 +74,8 @@ private slots:
 		void buttonVisualizePointsClicked(); 
 		void buttonMinMaxClicked();
 		void redrawPlots();
+		void rescaleToMinMax(); 
+
 
 		//TBa remove test actions below
 		void myAction();
@@ -127,6 +129,8 @@ private:
 	
 	threshold_defs::MovingFreqs allMovingfreqs; 
 	ThesholdCalculator m_thresCalculator; 
+	threshold_defs::GraphRange m_graphRange; 
+
 	Loader m_seriesLoader; 
 
 

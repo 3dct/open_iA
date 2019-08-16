@@ -1,4 +1,6 @@
 #pragma once
+#include <cmath>
+
 namespace algorithm {
 	static bool greaterThan(double u, double v) {
 		return u > v;
@@ -26,5 +28,19 @@ namespace algorithm {
 	static bool compareDoube(float a, float b, float toleranceVal){
 		return fabs(a - b) < toleranceVal; 
 	}
+
+
+	static bool isInfNegativeInf(float a) {
+		return a == -INFINITY;
+	}
+
+	static bool isInfNegativeInf(double a) {
+		return a == -INFINITY;
+	}
+
+
+	/*static bool validatePoints(const QPointF& pts) {
+		return  (isInfNegativeInf(pts.x()) )
+	}*/
 
 }

@@ -181,6 +181,8 @@ void ThesholdCalculator::specifyRange(const std::vector<double>& v_inRef, const 
 		throw std::invalid_argument("invalid parameter input");
 
 	}
+
+	//this is hardcoded
 	else if ((xmax > 65535) || (xmax <= xmin))
 	{
 		QString msg = QString("invalid range or out short %1").arg(xmax);

@@ -73,6 +73,7 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_MinMax, SIGNAL(clicked()), this, SLOT(buttonMinMaxClicked())); 
 	connect(this->btn_redraw, SIGNAL(clicked()), this, SLOT(redrawPlots())); 
 	connect(this->btn_VisPoints, SIGNAL(clicked()), this, SLOT(buttonVisualizePointsClicked())); 
+	connect(this->btn_rescaleToDefault, SIGNAL(clicked()), this, SLOT(rescaleToMinMax())); 
 
 }
 
@@ -137,6 +138,9 @@ void AdaptiveThreshold::determineMinMax(const std::vector<double> &xVal, const s
 	m_xMaxRef = *std::max_element(std::begin(xVal), std::end(xVal));
 	m_yMinRef = *std::min_element(std::begin(yVal), std::end(yVal));
 	m_yMaxRef = *std::max_element(std::begin(yVal), std::end(yVal));
+
+
+	this->m_graphRange.initRange(m_xMinRef, m_xMaxRef, m_yMinRef, m_yMaxRef);
 }
 
 void AdaptiveThreshold::setOutputText(const QString& Text)
@@ -230,7 +234,7 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		//input grauwerte und moving freqs, output is paramRanges
 		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, paramRanges, ranges.XRangeMIn, ranges.XRangeMax/*x_min, x_max*/);
 		auto thrPeaks = m_thresCalculator.calcMinMax(paramRanges);
-		thrPeaks.fPeakHalf = thrPeaks.freqPeakLokalMaxY / 2.0f; //f_air/2.0;
+		thrPeaks.PeakHalf(thrPeaks.FreqPeakLokalMaxY() / 2.0f); //f_air/2.0;
 		threshold_defs::ParametersRanges maxPeakRanges;
 
 		//determine HighPeakRanges
@@ -245,8 +249,8 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		m_thresCalculator.setThresMinMax(thrPeaks);
 
 
-		QPointF f1 = QPointF(thrPeaks.iso50ValueThr, 10000000);
-		QPointF f2 = QPointF(thrPeaks.iso50ValueThr, 0); 
+		QPointF f1 = QPointF(thrPeaks.Iso50ValueThr(), 10000000);
+		QPointF f2 = QPointF(thrPeaks.Iso50ValueThr(), 0); 
 		/*std::vector<QPointF> testVec;
 		testVec.push_back(f1)*/;
 
@@ -283,10 +287,10 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 
 void AdaptiveThreshold::assignValuesToField(threshold_defs::ThresMinMax& thrPeaks)
 {
-	this->ed_PeakThrMaxX->setText(QString("%1").arg(thrPeaks.lokalMaxPeakThreshold_X));
-	this->ed_PeakFregMaxY->setText(QString("%1").arg(thrPeaks.freqPeakLokalMaxY));
-	this->ed_minPeakThrX->setText(QString("%1").arg(thrPeaks.peakMinXThreshold));
-	this->ed_MinPeakFreqrY->setText(QString("%1").arg(thrPeaks.freqPeakMinY));
+	this->ed_PeakThrMaxX->setText(QString("%1").arg(thrPeaks.LokalMaxPeakThreshold_X()));
+	this->ed_PeakFregMaxY->setText(QString("%1").arg(thrPeaks.FreqPeakLokalMaxY()));
+	this->ed_minPeakThrX->setText(QString("%1").arg(thrPeaks.PeakMinXThreshold()));
+	this->ed_MinPeakFreqrY->setText(QString("%1").arg(thrPeaks.FreqPeakMinY()));
 }
 
 void AdaptiveThreshold::createVisualisation(threshold_defs::ParametersRanges paramRanges, threshold_defs::ThresMinMax thrPeaks)
@@ -294,8 +298,8 @@ void AdaptiveThreshold::createVisualisation(threshold_defs::ParametersRanges par
 	try {
 		QLineSeries* rangedSeries = nullptr;
 		rangedSeries = ChartVisHelper::createLineSeries(paramRanges);
-		QPointF lokalPeakMax = ChartVisHelper::createPoint(thrPeaks.lokalMaxPeakThreshold_X, thrPeaks.freqPeakLokalMaxY);
-		QPointF p2 = ChartVisHelper::createPoint(thrPeaks.peakMinXThreshold, thrPeaks.freqPeakMinY);
+		QPointF lokalPeakMax = ChartVisHelper::createPoint(thrPeaks.LokalMaxPeakThreshold_X(), thrPeaks.FreqPeakLokalMaxY());
+		QPointF p2 = ChartVisHelper::createPoint(thrPeaks.PeakMinXThreshold(), thrPeaks.FreqPeakMinY());
 		
 		if (!rangedSeries)
 		{
@@ -319,7 +323,7 @@ void AdaptiveThreshold::createVisualisation(threshold_defs::ParametersRanges par
 		data.push_back(SeriesTwoPoints);
 		data.push_back(SeriesTwoPointsb);
 
-		QPointF lokalFMax_2 = ChartVisHelper::createPoint(thrPeaks.lokalMaxPeakThreshold_X, thrPeaks.fPeakHalf);
+		QPointF lokalFMax_2 = ChartVisHelper::createPoint(thrPeaks.LokalMaxPeakThreshold_X(), thrPeaks.PeakHalf());
 		auto seriesFMaxHalf = ChartVisHelper::createLineSeries(lokalFMax_2, lokalFMax_2, LineVisOption::vertically);
 		auto seriesFMaxHalf_2 = ChartVisHelper::createLineSeries(lokalFMax_2, lokalFMax_2, LineVisOption::horizontally);
 		
@@ -375,6 +379,10 @@ void AdaptiveThreshold::visualizeSeries(threshold_defs::ParametersRanges ParamRa
 
 void AdaptiveThreshold::buttonVisualizePointsClicked()
 {
+	//workflow select range for choosing points
+	//calculate first intersection within the range
+	//visualiseIntersectionPoint
+
 	double xmin, xmax; 
 	xmin = this->ed_ptXmin->text().toDouble(); 
 	xmax = this->ed_pt_xMax->text().toDouble(); 
@@ -402,19 +410,30 @@ void AdaptiveThreshold::buttonVisualizePointsClicked()
 			
 			QPointF ptIntersect(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()); 
 			m_thresCalculator.getFirstElemInRange(intersectionPoints, xmin, xmax, &ptIntersect); 
-
-
+			
 
 			auto* aSeries = ChartVisHelper::createScatterSeries(Intersectranges);
-			aSeries->setObjectName("Intersection with fmin/2"); 
+			aSeries->setName("Intersection with fmin/2"); 
 
 			QColor col = QColor(255, 0, 0); 
-			auto *IntersectSeries = ChartVisHelper::createScatterSeries(ptIntersect,15.0, &col);
+			QPointF p1 = QPointF(ptIntersect.x(), 0);
+			QPointF p2 = QPointF(ptIntersect.x(), 1000000); 
+			
+			auto *IntersectSeries = ChartVisHelper::createLineSeries(p1, p2, LineVisOption::horizontally);
+			txt_output->append(QString("intersection point 1% %2").arg(ptIntersect.x()).arg(ptIntersect.y())); 
 
+			/*QColor cl_blue = QColor(0, 0, 255);*/
+			IntersectSeries->setColor(col/*cl_blue*/);
+			IntersectSeries->setName("iso 50");
+			
 			this->addSeries(IntersectSeries, false);
+			//this->txt_output
+			
+			/*auto *IntersectSeries = ChartVisHelper::createScatterSeries(ptIntersect,13.0, &col);
+			this->addSeries(IntersectSeries, false);*/
 
-			aSeries->setMarkerSize(5);
-			this->addSeries(aSeries, false);
+			/*	aSeries->setMarkerSize(5);
+				this->addSeries(aSeries, false);*/
 			m_chart->update();
 			m_chartView->update();
 		}
@@ -505,6 +524,21 @@ void AdaptiveThreshold::redrawPlots()
 	m_chart->update(); 
 	m_chartView->update(); 
 	this->mainLayout->addWidget(m_chartView);
+}
+
+void AdaptiveThreshold::rescaleToMinMax()
+{
+	double xmin_val = this->m_graphRange.getxmin(); 
+	double xmax_val = this->m_graphRange.getXMax();
+
+	double ymin_val = this->m_graphRange.getYMin();
+	double ymax_val = this->m_graphRange.getYMax(); 
+	
+	axisX->setRange(xmin_val, xmax_val);
+	axisY->setRange(ymin_val, ymax_val);
+
+	m_chart->update(); 
+	m_chartView->update(); 
 }
 
 void AdaptiveThreshold::buttonMinMaxClicked()

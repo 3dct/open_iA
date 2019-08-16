@@ -46,10 +46,6 @@ double ThresholdCalcHelper::vectorSum(const std::vector<double>& vec, size_t sta
 	return tmp;
 }
 
-//QPointF ThresholdCalcHelper::calculateIntersection(const threshold_defs::ParametersRanges& ranges, const QPointF& pt_1, const QPointF& pt2)
-//{
-//	/*QLine tmp(; */
-//}
 
 threshold_defs::ThresIndx ThresholdCalcHelper::findIndex(const std::vector<double>& vec, double cmpVal) const
 {
@@ -101,10 +97,10 @@ threshold_defs::ThresMinMax ThresholdCalcHelper::calculateMinMax(const threshold
 	
 	threshold_defs::ThresMinMax thrMinMax;
 	
-	thrMinMax.freqPeakLokalMaxY = y_max;
-	thrMinMax.freqPeakMinY = y_min;
-	thrMinMax.peakMinXThreshold = x_min;
-	thrMinMax.lokalMaxPeakThreshold_X = x_max;
+	thrMinMax.FreqPeakLokalMaxY(y_max);
+	thrMinMax.FreqPeakMinY(y_min);
+	thrMinMax.PeakMinXThreshold(x_min);
+	thrMinMax.LokalMaxPeakThreshold_X(x_max);
 	return thrMinMax; 
 }
 
@@ -119,9 +115,9 @@ void ThresholdCalcHelper::determinIso50(const threshold_defs::ParametersRanges& 
 		double maxRange = this->findMaxPeak(freqRangesY); //maximum 
 		
 		threshold_defs::ThresIndx indMinMax = findIndex(inRanges.getYRange(), maxRange);
-		double Iso50Val = (inRanges.getXRange()[indMinMax.thrIndx] + inVals.lokalMaxPeakThreshold_X) * 0.5f;
+		double Iso50Val = (inRanges.getXRange()[indMinMax.thrIndx] + inVals.LokalMaxPeakThreshold_X()) * 0.5f;
 		auto indIso50 = findIndex(inRanges.getXRange(), Iso50Val);
-		inVals.iso50ValueThr = Iso50Val;
+		inVals.Iso50ValueThr(Iso50Val);
 	}
 	catch (std::invalid_argument& iae) {
 		throw; 

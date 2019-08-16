@@ -6,6 +6,8 @@
 
 namespace threshold_defs {
 
+	const double dblInf_min = -std::numeric_limits<double>::infinity();
+	const double fltInf_min = -std::numeric_limits<float>::infinity();
 	//Ranges in XY direction
 	class ParametersRanges {
 
@@ -61,8 +63,61 @@ namespace threshold_defs {
 
 	};
 
-	struct ThresMinMax {
+	class ThresMinMax {
+	public:
+		ThresMinMax() 
+		{
+			FreqPeakMinY(dblInf_min);
+			PeakMinXThreshold(dblInf_min);
+			PeakHalf(dblInf_min);
 
+			Iso50ValueThr(dblInf_min);
+				/*double iso50ValueFreq; */
+
+			FreqPeakLokalMaxY(dblInf_min);
+			LokalMaxPeakThreshold_X(dblInf_min);
+
+			IntersectionPoint = QPointF(fltInf_min,fltInf_min);
+		}
+
+
+		QPointF createLokalMaxHalfPoint() {
+			return QPointF((float)LokalMaxPeakThreshold_X(), (float)PeakHalf());
+		}
+
+
+		QString toString() {
+			QString res = QString("Min %1 \t %2 Max %3 \t %4").arg(PeakMinXThreshold()).arg(FreqPeakMinY()).arg(LokalMaxPeakThreshold_X()).arg(FreqPeakLokalMaxY());
+			return res;
+
+		}
+
+
+		
+		double LokalMaxPeakThreshold_X() const { return lokalMaxPeakThreshold_X; }
+		void LokalMaxPeakThreshold_X(double val) { lokalMaxPeakThreshold_X = val; }
+	public:
+
+		double FreqPeakMinY() const { return freqPeakMinY; }
+		void FreqPeakMinY(double val) { freqPeakMinY = val; }
+		double PeakMinXThreshold() const { return peakMinXThreshold; }
+		void PeakMinXThreshold(double val) { peakMinXThreshold = val; }
+		double PeakHalf() const { return fPeakHalf; }
+		void PeakHalf(double val) { fPeakHalf = val; }
+		double Iso50ValueThr() const { return iso50ValueThr; }
+		void Iso50ValueThr(double val) { iso50ValueThr = val; }
+		double FreqPeakLokalMaxY() const { return freqPeakLokalMaxY; }
+		void FreqPeakLokalMaxY(double val) { freqPeakLokalMaxY = val; }
+		void setIntersectionPoint(const QPointF& pt) {
+			IntersectionPoint = pt; 
+		}
+
+		const QPointF& getIntersectionPoint(){
+			return IntersectionPoint; 
+		}
+
+
+	private:
 		double freqPeakMinY;
 		double peakMinXThreshold;
 		double fPeakHalf; 
@@ -73,16 +128,9 @@ namespace threshold_defs {
 		double freqPeakLokalMaxY;
 		double lokalMaxPeakThreshold_X;
 
-		QPointF createLokalMaxHalfPoint(){
-			return QPointF((float)lokalMaxPeakThreshold_X, (float)fPeakHalf);
-		}
+		QPointF IntersectionPoint;
 
-
-		QString toString() {
-			QString res = QString("Min %1 \t %2 Max %3 \t %4").arg(peakMinXThreshold).arg(freqPeakMinY).arg(lokalMaxPeakThreshold_X).arg(freqPeakLokalMaxY);
-			return res; 
-
-		}
+		
 	};
 
 	struct PeakRanges {
@@ -93,6 +141,42 @@ namespace threshold_defs {
 		double HighPeakXMax;
 		
 	};
+
+	class GraphRange {
+	public: 
+		GraphRange() {
+			m_xmin = fltInf_min;
+			m_xmax = fltInf_min;
+			m_ymin = fltInf_min;
+			m_ymax = fltInf_min; 
+		}
+
+		void initRange(double xmin, double xmax, double ymin, double ymax) {
+			this->m_xmin = xmin;
+			this->m_xmax = xmax; 
+			this->m_ymin = ymin;
+			this->m_ymax = ymax; 
+		}
+
+		const QString &toString() const {
+			QString output = "Range x1:x2, y1:y2 ";
+			return output += QString("%1, %2 %3, %4").arg(m_xmin).arg(m_xmax).arg(m_ymin).arg(m_ymax); 
+		}
+
+		double getYMin() { return m_ymin; }
+		double getYMax() { return m_ymax; }
+		double getXMax() { return m_xmax;  }
+		double getxmin() { return m_xmin;  }
+
+
+	private:
+		double m_xmin; 
+		double m_xmax; 
+		double m_ymin; 
+		double m_ymax; 
+	};
+
+
 
 	/*
 	*Storing averages of a histogram
