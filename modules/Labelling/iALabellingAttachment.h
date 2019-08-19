@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "Labelling_export.h"
+
 #include <iAModuleAttachmentToChild.h>
 
 class dlg_labels;

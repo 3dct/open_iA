@@ -71,7 +71,7 @@ private:
 	MdiChild *m_mdiChild;
 
 	void _initialize();
-	QSharedPointer<iASlicer> _initializeSlicer(QSharedPointer<iAModality> modality);
+	iASlicer* _initializeSlicer(QSharedPointer<iAModality> modality);
 	void _initializeCombinedVol();
 	void _initializeMainSlicers();
 	bool _checkModalities(QList<QSharedPointer<iAModality>> modalities);
@@ -87,7 +87,7 @@ private:
 	void applyVolumeSettings();
 
 	// Internal widgets
-	QList<QSharedPointer<iASlicer>> m_slicers;
+	QList<iASlicer*> m_slicers;
 
 	// Labeling widgets
 

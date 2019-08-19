@@ -148,7 +148,7 @@ void iANModalWidget::onButtonClicked() {
 void iANModalWidget::onAllSlicersInitialized() {
 	for (int i = 0; i < m_c->m_slicers.size(); i++) {
 		auto slicer = m_c->m_slicers[i];
-		m_layoutSlicersGrid->addWidget(slicer.data(), 0, i);
+		m_layoutSlicersGrid->addWidget(slicer, 0, i);
 	}
 }
 

@@ -51,24 +51,27 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
 class Labelling_API dlg_labels : public dlg_labelUI
 {
 	Q_OBJECT
+
 public:
-	dlg_labels(MdiChild* mdiChild);
+	dlg_labels(MdiChild* mdiChild, bool addMainSlicer = true);
 	int curLabelRow() const;
 	int seedCount(int labelIdx) const;
 	bool load(QString const & filename);
 	bool store(QString const & filename, bool extendedFormat);
 
-	void addSlicer(QSharedPointer<iASlicer> slicer);
-	void removeSlicer(QSharedPointer<iASlicer> slicer);
+	void addSlicer(iASlicer *slicer, QSharedPointer<iAModality> modality);
+	void removeSlicer(iASlicer *slicer);
+
+	//void disconnectMainSlicers();
 
 	// TEMPORARY
 	QStandardItemModel* m_itemModel; // TODO: make private
 
 public slots:
-	void rendererClicked(int, int, int, QSharedPointer<iASlicer>);
-	void slicerClicked(int, int, int, QSharedPointer<iASlicer>);
-	void slicerDragged(int, int, int, QSharedPointer<iASlicer>);
-	void slicerRightClicked(int, int, int, QSharedPointer<iASlicer>);
+	void rendererClicked(int, int, int, iASlicer*);
+	void slicerClicked(int, int, int, iASlicer*);
+	void slicerDragged(int, int, int, iASlicer*);
+	void slicerRightClicked(int, int, int, iASlicer*);
 	void add();
 	void remove();
 	void storeLabels();
@@ -79,30 +82,40 @@ public slots:
 	void colorThemeChanged(QString const & newThemeName);
 	QString const & fileName();
 	void opacityChanged(int newValue);
+
 private:
-	void addSeed(int, int, int, QSharedPointer<iASlicer>);
-	void removeSeed(QStandardItem* item, int x, int y, int z);
-	QStandardItem* addSeedItem(int label, int x, int y, int z);
+	void addSeed(int, int, int, iASlicer*);
+	void removeSeed(QStandardItem* item, int x, int y, int z, iASlicer* slicer);
+	QStandardItem* addSeedItem(int label, int x, int y, int z, iASlicer *slicer);
 	int addLabelItem(QString const & labelText);
 	void appendSeeds(int label, QList<QStandardItem*> const & items);
 	void reInitChannelTF();
 	void recolorItems();
-	void updateChannel();
+	void updateChannel(iASlicer* slicer);
 
 	iAColorTheme const * m_colorTheme;
 	QString m_fileName;
 
+	struct ModalityOverlayImage {
+		ModalityOverlayImage(QSharedPointer<iAModality> m, vtkSmartPointer<iAvtkImageData> o, iAChannelData cd) : modality(m), overlayImage(o), channelData(cd) {}
+		QSharedPointer<iAModality> modality;
+		vtkSmartPointer<iAvtkImageData> overlayImage;
+		iAChannelData channelData;
+		bool operator ==(ModalityOverlayImage moi) {
+			return moi.modality == modality;
+		}
+	};
+	QList<iASlicer*> m_slicers;
 	// for label overlay:
-	vtkSmartPointer<iAvtkImageData> m_labelOverlayImg;
+	QMap<iASlicer*, ModalityOverlayImage> m_slicersData;
+	//QList<uint> m_labelChannelIds;
 	vtkSmartPointer<vtkLookupTable> m_labelColorTF;
 	vtkSmartPointer<vtkPiecewiseFunction> m_labelOpacityTF;
 	MdiChild* m_mdiChild;
-	bool m_newOverlay;
-	uint m_labelChannelID;
 
-	
-	QList<QSharedPointer<iASlicer>> m_slicers;
-	QList<QSharedPointer<iAModality>> m_modalities;
+	//QList<QSharedPointer<iAModality>> m_modalities;
+	//uint m_nextChannelId = 0;
+	//uint nextChannelId();
 
 	struct SlicerConnections {
 		QMetaObject::Connection c[3];

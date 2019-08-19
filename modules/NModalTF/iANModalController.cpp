@@ -72,6 +72,10 @@ void iANModalController::_initialize() {
 		m_dlg_labels->removeSlicer(slicer);
 	}
 
+	for (auto channelId : m_channelIds) {
+		m_mdiChild->removeChannel(channelId);
+	}
+
 	m_slicers.clear();
 	m_channelIds.clear();
 	for (int i = 0; i < m_modalities.size(); i++) {
@@ -82,7 +86,7 @@ void iANModalController::_initialize() {
 		m_slicers.append(slicer);
 
 		// TODO: remove
-		continue;
+		//continue;
 
 		m_channelIds.push_back(m_mdiChild->createChannel());
 		auto chData = m_mdiChild->channelData(m_channelIds[i]);
@@ -99,7 +103,7 @@ void iANModalController::_initialize() {
 
 	if (!m_initialized) {
 		// TODO: uncomment
-		//_initializeMainSlicers();
+		_initializeMainSlicers();
 	}
 
 	//connectAcrossSlicers();
@@ -111,7 +115,7 @@ void iANModalController::_initialize() {
 	m_initialized = true;
 }
 
-inline QSharedPointer<iASlicer> iANModalController::_initializeSlicer(QSharedPointer<iAModality> modality) {
+inline iASlicer* iANModalController::_initializeSlicer(QSharedPointer<iAModality> modality) {
 	auto slicerMode = iASlicerMode::XY;
 	int sliceNumber = m_mdiChild->slicer(slicerMode)->sliceNumber();
 	// Hide everything except the slice itself
@@ -147,7 +151,7 @@ inline QSharedPointer<iASlicer> iANModalController::_initializeSlicer(QSharedPoi
 	camera->SetFocalPoint(xc, yc, 0.0);
 	camera->SetPosition(xc, yc, +d);
 
-	return QSharedPointer<iASlicer>(slicer);
+	return slicer;
 }
 
 inline void iANModalController::_initializeCombinedVol() {
