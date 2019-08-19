@@ -5,6 +5,7 @@
 
 #include <QMessageBox>
 
+
 void iAdaptiveThresholdModuleInterface::Initialize()
 {
 	if (!m_mainWnd)    // if m_mainWnd is not set, we are running in command line mode
@@ -44,6 +45,11 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 		auto data = hist->plots()[0]->data();
 		dlg_thres.initChart();
 		dlg_thres.setHistData(data);
+
+		//auto* test = m_mainWnd->activeMdiChild(); 
+		dlg_thres.setMDIChild(m_mainWnd->activeMdiChild());
+		//dgl_thres.setm_mainWnd->activeMdiChild()->imageData()
+
 		if (dlg_thres.exec() != QDialog::Accepted)
 			return;
 	}catch (std::invalid_argument& iaex) {

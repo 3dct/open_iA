@@ -105,10 +105,13 @@ public:
 		m_thresResults.setIntersectionPoint(pt); 
 	}
 
+	double ResultingThreshold() const { return m_resultingThreshold; }
+	void ResultingThreshold(double val) { m_resultingThreshold = val; }
 private:
 	threshold_defs::ThresMinMax m_thresResults; 
 	threshold_defs::ThresMinMaxHelper m_minMaxHelper;
   
+	double m_resultingThreshold; 
 
 	QSharedPointer<iAPlotData> m_data;
 	DebugHelper m_dbgHelper; 

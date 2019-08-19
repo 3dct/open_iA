@@ -10,6 +10,8 @@
 #include <QtCharts>
 #include <vector>
 #include <QtCharts/qlineseries.h>
+#include <vtkImageData.h>
+#include <mdichild.h>
 
 
 using namespace QtCharts;
@@ -48,7 +50,10 @@ public:
 	void prepareDataSeries(QXYSeries* aSeries, const std::vector<double>& x_vals, const std::vector<double>& y_vals, QString* grText, bool useDefaultValues, bool updateCoords);
 	void addSeries(QXYSeries* aSeries, bool disableMarker);
 	//TBA
+	void setMDIChild(MdiChild* aChild) {
+		m_childData = aChild;
 
+	}
 	inline void clearSeries(QXYSeries *series) {
 		//series->clear();
 
@@ -73,6 +78,9 @@ private slots:
 		void visualizeSeries(threshold_defs::ParametersRanges ParamRanges, QColor color, QString *seriesName); 
 
 		void buttonCreatePointsandVisualizseIntersection(); 
+
+		
+
 		void buttonMinMaxClicked();
 		void redrawPlots();
 		void rescaleToMinMax(); 
@@ -92,6 +100,7 @@ private slots:
 		}
 
 private:
+	void PerformSegmentation(double resThres);
 	void DetermineGraphRange();
 	void prepareAxis(QValueAxis *axis, const QString &title, double min, double max, uint ticks, axisMode mode);
 	void generateSampleData(bool addserries);
@@ -131,6 +140,8 @@ private:
 			m_chartView->update(); 
 		}
 	}
+
+	
 		
 private: 
 	
@@ -139,7 +150,10 @@ private:
 	threshold_defs::GraphRange m_graphRange; 
 
 	Loader m_seriesLoader; 
+	//vtkImageData *img = nullptr; 
+	MdiChild* m_childData = nullptr; 
 
+	vtkSmartPointer<vtkImageData> data;  
 
 	const double minXDefault = 0; const double maxXDefault = 65535; 
 	const double minYDefault = 0; const double maxYDefault = 40000; 
