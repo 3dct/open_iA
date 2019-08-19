@@ -94,6 +94,17 @@ void ThesholdCalculator::determinIso50(const threshold_defs::ParametersRanges& i
 	m_calcHelper.determinIso50(inRanges, inVals); 
 }
 
+//QPointF ThesholdCalculator::determineResultingThreshold()
+//{
+//	m_minMaxHelper.determineThresholdResultsPointXY();
+//
+//}
+
+QPointF ThesholdCalculator::determineResultingThreshold(const threshold_defs::ThresMinMax& results)
+{
+	return QPointF(0, 0); //TBA
+}
+
 void ThesholdCalculator::doubleTestSum()
 {
 	std::vector<double> vals = { 1, 2, 3, 4, 5, 6, 7, 8, 9 }; 

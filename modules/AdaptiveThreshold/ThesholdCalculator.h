@@ -4,6 +4,7 @@
 #include "ThresholdCalcHelper.h"
 #include <QSharedPointer>
 #include "DebugHelper.h"
+#include "ThresMinMaxHelper.h"
 #include <QTCharts>
 #include <QtCharts/qlineseries.h>
 
@@ -93,8 +94,16 @@ public:
 		return m_thresResults.createLokalMaxHalfPoint();
 	}
 
+
+	QPointF determineResultingThreshold(const threshold_defs::ThresMinMax &results);
+
+	const threshold_defs::ThresMinMax& getResults() const {
+		return this->m_thresResults; 
+	}
+
 private:
 	threshold_defs::ThresMinMax m_thresResults; 
+	threshold_defs::ThresMinMaxHelper m_minMaxHelper;
   
 
 	QSharedPointer<iAPlotData> m_data;

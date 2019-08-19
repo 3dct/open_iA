@@ -361,7 +361,7 @@ void AdaptiveThreshold::createVisualisation(threshold_defs::ParametersRanges par
 		this->addAllSeries(data, true);
 		m_chartView->update();
 				
-		this->writeText(thrPeaks.toString());
+		this->writeDebugText(thrPeaks.toString());
 	}
 	catch (std::invalid_argument iae) {
 		throw; 
@@ -420,10 +420,16 @@ void AdaptiveThreshold::buttonCreatePointsandVisualizseIntersection()
 			
 			QPointF ptIntersect(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()); 
 			m_thresCalculator.getFirstElemInRange(intersectionPoints, xmin, xmax, &ptIntersect); 
+			writeResultText("Determined threshold\n");
+
+
+
 			
-			//double lokalFMIn = ; 
 
 			//Intersection is created; 
+			QPointF calcThresPoint = m_thresCalculator.determineResultingThreshold(m_thresCalculator.getResults());
+			writeResultText(QString("P(x,y) %1 %2").arg(calcThresPoint.x()).arg(calcThresPoint.y())); 
+
 			//todo check for inf values
 
 			/*auto* aSeries = ChartVisHelper::createScatterSeries(Intersectranges);

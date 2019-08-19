@@ -105,19 +105,25 @@ private:
 
 	void assignValuesFromField(threshold_defs::PeakRanges &Ranges);
 
-	inline void writeText(const QString& Text) {
+	inline void writeDebugText(const QString& Text) {
 		if (Text.isNull() || Text.isEmpty()) return; 
 		
 		this->textEdit->append(Text);
 		
 	}
+
+	inline void writeResultText(const QString &Text){
+		if (!Text.isNull())
+			this->txt_output->append(Text);
+	}
+
 	inline void setTicks(uint xTicks, uint yTicks, bool update) {
 		if ((xTicks > 0) && (yTicks > 0)) {
 			axisX->setTickCount(xTicks);
 			axisY->setTickCount(yTicks); 
 		}
 		else {
-			writeText(QString("Please set a tick count greater 0")); 
+			writeDebugText(QString("Please set a tick count greater 0")); 
 		}
 
 		if (update) {
