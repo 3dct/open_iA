@@ -101,6 +101,10 @@ public:
 		return this->m_thresResults; 
 	}
 
+	void setIntersectionPoint(const QPointF& pt) {
+		m_thresResults.setIntersectionPoint(pt); 
+	}
+
 private:
 	threshold_defs::ThresMinMax m_thresResults; 
 	threshold_defs::ThresMinMaxHelper m_minMaxHelper;

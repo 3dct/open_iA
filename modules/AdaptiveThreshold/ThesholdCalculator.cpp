@@ -102,7 +102,7 @@ void ThesholdCalculator::determinIso50(const threshold_defs::ParametersRanges& i
 
 QPointF ThesholdCalculator::determineResultingThreshold(const threshold_defs::ThresMinMax& results)
 {
-	return QPointF(0, 0); //TBA
+	return m_minMaxHelper.determineThresholdResultsPointXY(results); //TBA
 }
 
 void ThesholdCalculator::doubleTestSum()

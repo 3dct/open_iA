@@ -407,7 +407,7 @@ void AdaptiveThreshold::buttonCreatePointsandVisualizseIntersection()
 			}
 			
 			QPointF lokalMaxHalf =  m_thresCalculator.getPointAirPeakHalf(); 
-			QString peakHalf = QString("fmin /2 %1 &2").arg(lokalMaxHalf.x()).arg(lokalMaxHalf.y()); 
+			QString peakHalf = QString("fmin/2 %1 %2").arg(lokalMaxHalf.x()).arg(lokalMaxHalf.y()); 
 			
 			//TODO REPLACE BY MAX limits
 			QPointF LokalMaxHalfEnd(65535, lokalMaxHalf.y());
@@ -418,22 +418,21 @@ void AdaptiveThreshold::buttonCreatePointsandVisualizseIntersection()
 
 			auto intersectionPoints =  LinePeakHalf.intersectionLineWithRange(Intersectranges);
 			
+			
+
 			QPointF ptIntersect(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()); 
 			m_thresCalculator.getFirstElemInRange(intersectionPoints, xmin, xmax, &ptIntersect); 
+			m_thresCalculator.setIntersectionPoint(ptIntersect);
+			
 			writeResultText("Determined threshold\n");
 
 
 
 			
 
-			//Intersection is created; 
-			QPointF calcThresPoint = m_thresCalculator.determineResultingThreshold(m_thresCalculator.getResults());
-			writeResultText(QString("P(x,y) %1 %2").arg(calcThresPoint.x()).arg(calcThresPoint.y())); 
+			
 
-			//todo check for inf values
-
-			/*auto* aSeries = ChartVisHelper::createScatterSeries(Intersectranges);
-			aSeries->setName("Intersection with fmin/2"); */
+			
 
 			QColor col = QColor(255, 0, 0); 
 			QPointF p1 = QPointF(ptIntersect.x(), 0);
@@ -441,6 +440,11 @@ void AdaptiveThreshold::buttonCreatePointsandVisualizseIntersection()
 			
 			auto *IntersectSeries = ChartVisHelper::createLineSeries(p1, p2, LineVisOption::horizontally);
 			txt_output->append(QString("intersection point 1% %2").arg(ptIntersect.x()).arg(ptIntersect.y())); 
+
+			//Intersection is created; 
+			QPointF calcThresPoint = m_thresCalculator.determineResultingThreshold(m_thresCalculator.getResults());
+			writeResultText(QString("P(x,y) %1 %2").arg(calcThresPoint.x()).arg(calcThresPoint.y()));
+			//todo check for inf values
 
 			/*QColor cl_blue = QColor(0, 0, 255);*/
 			IntersectSeries->setColor(col/*cl_blue*/);
