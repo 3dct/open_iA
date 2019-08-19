@@ -111,12 +111,19 @@ void ThresholdCalcHelper::determinIso50(const threshold_defs::ParametersRanges& 
 	//iso 50 is between air and material peak - grauwert
 
 	try{
+		//TODO use custom maximum
+		//double maxPeakThres = 0.0; 
+
 		std::vector<double> freqRangesY = inRanges.getYRange();
 		double maxRange = this->findMaxPeak(freqRangesY); //maximum 
 		
 		threshold_defs::ThresIndx indMinMax = findIndex(inRanges.getYRange(), maxRange);
-		double Iso50Val = (inRanges.getXRange()[indMinMax.thrIndx] + inVals.LokalMaxPeakThreshold_X()) * 0.5f;
-		auto indIso50 = findIndex(inRanges.getXRange(), Iso50Val);
+		double maxPeakThres = inRanges.getXRange()[indMinMax.thrIndx]; 
+
+		double Iso50Val = (maxPeakThres + inVals.LokalMaxPeakThreshold_X()) * 0.5f;
+		
+		//TBA
+		//auto indIso50 = findIndex(inRanges.getXRange(), Iso50Val);
 		inVals.Iso50ValueThr(Iso50Val);
 	}
 	catch (std::invalid_argument& iae) {

@@ -41,6 +41,13 @@ public:
 	threshold_defs::ThresIndx findIndex(const std::vector<double>& vec, double cmpVal) const;
 		
 
+
+	/*
+	thrMinMax.FreqPeakLokalMaxY(y_max);
+	thrMinMax.FreqPeakMinY(y_min);
+	thrMinMax.PeakMinXThreshold(x_min);
+	thrMinMax.LokalMaxPeakThreshold_X(x_max);
+	*/
 	threshold_defs::ThresMinMax calculateMinMax(const threshold_defs::ParametersRanges& inRanges) const;
 
 	//iso 50 gray value between material peak and air peak

@@ -223,25 +223,45 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 	calculate fmin_lokal (min peak between air and material)
 
 	determine iso50
-
-
-	*/
+	 */
 	threshold_defs::PeakRanges ranges; 
 	assignValuesFromField(ranges);
 		
 	try
 	{
-		threshold_defs::ParametersRanges paramRanges;
-
+		//load values from checkbox
+		
+		//
 		if (m_movingFrequencies.empty())
 		{
 			this->textEdit->append("moving average not yet created, create average sequence before");
 			return;
 		}
+
+		threshold_defs::ParametersRanges paramRanges;
+			
 				
 		//input grauwerte und moving freqs, output is paramRanges
 		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, paramRanges, ranges.XRangeMIn, ranges.XRangeMax/*x_min, x_max*/);
+		
+		bool selectedData = chckbx_LokalMinMax->isChecked(); 
+
 		auto thrPeaks = m_thresCalculator.calcMinMax(paramRanges);
+
+		if (selectedData) { 
+
+			//QString lokalMaxX_str()
+
+
+			double lokalMax_X = ed_PeakThrMaxX->text().toDouble();
+			double lokalMax_Y = ed_PeakFregMaxY->text().toDouble(); 
+			double lokalMin_X = ed_minPeakThrX->text().toDouble();
+			double lokalMin_y = ed_MinPeakFreqrY->text().toDouble(); 
+			thrPeaks.updateMinMaxPeaks(lokalMin_X, lokalMin_X, lokalMax_X, lokalMax_Y); 
+		}
+
+
+
 		thrPeaks.fAirPeakHalf(thrPeaks.FreqPeakLokalMaxY() / 2.0f); //f_air/2.0;
 		threshold_defs::ParametersRanges maxPeakRanges;
 
@@ -249,10 +269,11 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		m_thresCalculator.specifyRange(m_greyThresholds, 
 			m_movingFrequencies, maxPeakRanges, ranges.HighPeakXmin, ranges.HighPeakXMax);
 
+
+
 		//iso 50 as grey threshold		
 		m_thresCalculator.determinIso50(maxPeakRanges, thrPeaks);
-
-		//here calculations are finished
+			//here calculations are finished
 
 		m_thresCalculator.setThresMinMax(thrPeaks);
 
@@ -418,28 +439,22 @@ void AdaptiveThreshold::buttonCreatePointsandVisualizseIntersection()
 			QString peakHalf = QString("fmin/2 %1 %2").arg(lokalMaxHalf.x()).arg(lokalMaxHalf.y()); 
 			
 			//TODO REPLACE BY MAX limits
-			QPointF LokalMaxHalfEnd(65535, lokalMaxHalf.y());
+			
+			QPointF LokalMaxHalfEnd(m_graphRange.getXMax(), lokalMaxHalf.y());
 			intersection::XYLine LinePeakHalf(lokalMaxHalf, LokalMaxHalfEnd);
 
 			threshold_defs::ParametersRanges Intersectranges;
 			m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, Intersectranges, xmin, xmax);
 
 			auto intersectionPoints =  LinePeakHalf.intersectionLineWithRange(Intersectranges);
-			
-			
+						
 
 			QPointF ptIntersect(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()); 
 			m_thresCalculator.getFirstElemInRange(intersectionPoints, xmin, xmax, &ptIntersect); 
 			m_thresCalculator.setIntersectionPoint(ptIntersect);
 			
 			writeResultText("Determined threshold\n");
-
-
-
-			
-
-			
-
+			   		
 			
 
 			QColor col = QColor(255, 0, 0); 
@@ -511,7 +526,7 @@ void AdaptiveThreshold::PerformSegmentation(double resThres)
 	m_childData->displayResult("Adaptive thresholding segmentation", filter->output()[0]->vtkImage(), nullptr);
     m_childData->setImageData("Adaptive thresholding segmentation", m_childData->imagePointer());
 	
-	//m_childData->c(data);
+	//m_childData->create 
 	//createResultchild
 	m_childData->updateViews(); 
 }
