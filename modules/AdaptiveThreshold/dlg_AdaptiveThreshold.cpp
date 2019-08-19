@@ -72,7 +72,7 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_selectRange, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClicked()));
 	connect(this->btn_MinMax, SIGNAL(clicked()), this, SLOT(buttonMinMaxClicked())); 
 	connect(this->btn_redraw, SIGNAL(clicked()), this, SLOT(redrawPlots())); 
-	connect(this->btn_VisPoints, SIGNAL(clicked()), this, SLOT(buttonVisualizePointsClicked())); 
+	connect(this->btn_VisPoints, SIGNAL(clicked()), this, SLOT(buttonCreatePointsandVisualizseIntersection())); 
 	connect(this->btn_rescaleToDefault, SIGNAL(clicked()), this, SLOT(rescaleToMinMax())); 
 
 }
@@ -234,7 +234,7 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		//input grauwerte und moving freqs, output is paramRanges
 		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, paramRanges, ranges.XRangeMIn, ranges.XRangeMax/*x_min, x_max*/);
 		auto thrPeaks = m_thresCalculator.calcMinMax(paramRanges);
-		thrPeaks.PeakHalf(thrPeaks.FreqPeakLokalMaxY() / 2.0f); //f_air/2.0;
+		thrPeaks.fAirPeakHalf(thrPeaks.FreqPeakLokalMaxY() / 2.0f); //f_air/2.0;
 		threshold_defs::ParametersRanges maxPeakRanges;
 
 		//determine HighPeakRanges
@@ -333,7 +333,7 @@ void AdaptiveThreshold::createVisualisation(threshold_defs::ParametersRanges par
 		data.push_back(SeriesTwoPoints);
 		data.push_back(SeriesTwoPointsb);
 
-		QPointF lokalFMax_2 = ChartVisHelper::createPoint(thrPeaks.LokalMaxPeakThreshold_X(), thrPeaks.PeakHalf());
+		QPointF lokalFMax_2 = ChartVisHelper::createPoint(thrPeaks.LokalMaxPeakThreshold_X(), thrPeaks.fAirPeakHalf());
 		auto seriesFMaxHalf = ChartVisHelper::createLineSeries(lokalFMax_2, lokalFMax_2, LineVisOption::vertically);
 		auto seriesFMaxHalf_2 = ChartVisHelper::createLineSeries(lokalFMax_2, lokalFMax_2, LineVisOption::horizontally);
 		
@@ -387,7 +387,7 @@ void AdaptiveThreshold::visualizeSeries(threshold_defs::ParametersRanges ParamRa
 	m_chartView->update(); 
 }
 
-void AdaptiveThreshold::buttonVisualizePointsClicked()
+void AdaptiveThreshold::buttonCreatePointsandVisualizseIntersection()
 {
 	//workflow select range for choosing points
 	//calculate first intersection within the range
@@ -421,9 +421,13 @@ void AdaptiveThreshold::buttonVisualizePointsClicked()
 			QPointF ptIntersect(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()); 
 			m_thresCalculator.getFirstElemInRange(intersectionPoints, xmin, xmax, &ptIntersect); 
 			
+			//double lokalFMIn = ; 
 
-			auto* aSeries = ChartVisHelper::createScatterSeries(Intersectranges);
-			aSeries->setName("Intersection with fmin/2"); 
+			//Intersection is created; 
+			//todo check for inf values
+
+			/*auto* aSeries = ChartVisHelper::createScatterSeries(Intersectranges);
+			aSeries->setName("Intersection with fmin/2"); */
 
 			QColor col = QColor(255, 0, 0); 
 			QPointF p1 = QPointF(ptIntersect.x(), 0);
@@ -434,7 +438,7 @@ void AdaptiveThreshold::buttonVisualizePointsClicked()
 
 			/*QColor cl_blue = QColor(0, 0, 255);*/
 			IntersectSeries->setColor(col/*cl_blue*/);
-			IntersectSeries->setName("iso 50");
+			IntersectSeries->setName("Intersection with fmin/2");
 			
 			this->addSeries(IntersectSeries, false);
 			//this->txt_output
@@ -546,7 +550,6 @@ void AdaptiveThreshold::rescaleToMinMax()
 	
 	if ((xmin_val < xmax_val) && (ymin_val < ymax_val))
 	{
-	
 		axisX->setRange(xmin_val, xmax_val);
 		axisY->setRange(ymin_val, ymax_val);
 

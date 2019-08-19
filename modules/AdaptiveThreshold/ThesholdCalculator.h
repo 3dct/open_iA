@@ -95,7 +95,7 @@ public:
 
 private:
 	threshold_defs::ThresMinMax m_thresResults; 
-
+  
 
 	QSharedPointer<iAPlotData> m_data;
 	DebugHelper m_dbgHelper; 

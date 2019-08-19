@@ -69,7 +69,7 @@ namespace threshold_defs {
 		{
 			FreqPeakMinY(dblInf_min);
 			PeakMinXThreshold(dblInf_min);
-			PeakHalf(dblInf_min);
+			fAirPeakHalf(dblInf_min);
 
 			Iso50ValueThr(dblInf_min);
 				/*double iso50ValueFreq; */
@@ -82,7 +82,7 @@ namespace threshold_defs {
 
 
 		QPointF createLokalMaxHalfPoint() {
-			return QPointF((float)LokalMaxPeakThreshold_X(), (float)PeakHalf());
+			return QPointF((float)LokalMaxPeakThreshold_X(), (float)fAirPeakHalf());
 		}
 
 
@@ -102,8 +102,8 @@ namespace threshold_defs {
 		void FreqPeakMinY(double val) { freqPeakMinY = val; }
 		double PeakMinXThreshold() const { return peakMinXThreshold; }
 		void PeakMinXThreshold(double val) { peakMinXThreshold = val; }
-		double PeakHalf() const { return fPeakHalf; }
-		void PeakHalf(double val) { fPeakHalf = val; }
+		double fAirPeakHalf() const { return fPeakHalf; }
+		void fAirPeakHalf(double val) { fPeakHalf = val; }
 		double Iso50ValueThr() const { return iso50ValueThr; }
 		void Iso50ValueThr(double val) { iso50ValueThr = val; }
 		double FreqPeakLokalMaxY() const { return freqPeakLokalMaxY; }
@@ -112,7 +112,7 @@ namespace threshold_defs {
 			IntersectionPoint = pt; 
 		}
 
-		const QPointF& getIntersectionPoint(){
+		const QPointF& getIntersectionPoint() const {
 			return IntersectionPoint; 
 		}
 
