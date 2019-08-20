@@ -280,7 +280,9 @@ public:
 	QSharedPointer<iAModalityList> modalities();
 	QSharedPointer<iAModality> modality(int idx);
 	void storeProject();
-
+	iASlicer* getSlicer(uint i) {
+		return m_slicer[i];
+	}
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();
@@ -360,6 +362,9 @@ private slots:
 	void saveFinished();
 	void modalityAdded(int modalityIdx);
 	void resetCamera(bool spacingChanged, double const * newSpacing);
+
+
+	
 
 private:
 	void closeEvent(QCloseEvent *event) override;

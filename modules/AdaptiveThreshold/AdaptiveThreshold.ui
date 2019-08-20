@@ -439,7 +439,11 @@
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,2,2">
                  <item>
-                  <widget class="QLineEdit" name="ed_minRange"/>
+                  <widget class="QLineEdit" name="ed_minRange">
+                   <property name="text">
+                    <string>10000</string>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QLabel" name="label_6">
@@ -469,7 +473,11 @@
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,2,2">
                  <item>
-                  <widget class="QLineEdit" name="ed_maxRange"/>
+                  <widget class="QLineEdit" name="ed_maxRange">
+                   <property name="text">
+                    <string>18000</string>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QLabel" name="label_7">
@@ -496,7 +504,11 @@
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_17" stretch="0,2,2">
                  <item>
-                  <widget class="QLineEdit" name="ed_MaxPeakXRangeMIn"/>
+                  <widget class="QLineEdit" name="ed_MaxPeakXRangeMIn">
+                   <property name="text">
+                    <string>18000</string>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QLabel" name="label">
@@ -523,7 +535,11 @@
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_18" stretch="0,2,2">
                  <item>
-                  <widget class="QLineEdit" name="ed_MaxPeakXRangeMax"/>
+                  <widget class="QLineEdit" name="ed_MaxPeakXRangeMax">
+                   <property name="text">
+                    <string>22000</string>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QLabel" name="label_2">
@@ -722,7 +738,11 @@
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_20">
                    <item>
-                    <widget class="QLineEdit" name="ed_ptXmin"/>
+                    <widget class="QLineEdit" name="ed_ptXmin">
+                     <property name="text">
+                      <string>17000</string>
+                     </property>
+                    </widget>
                    </item>
                    <item>
                     <widget class="QLabel" name="label_15">
@@ -736,7 +756,11 @@
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_21">
                    <item>
-                    <widget class="QLineEdit" name="ed_pt_xMax"/>
+                    <widget class="QLineEdit" name="ed_pt_xMax">
+                     <property name="text">
+                      <string>19000</string>
+                     </property>
+                    </widget>
                    </item>
                    <item>
                     <widget class="QLabel" name="label_16">

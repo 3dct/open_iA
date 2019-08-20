@@ -7,9 +7,24 @@
 #include "iAFilterRegistry.h"
 #include "iAFilter.h"
 #include <vtkImageData.h>
+//#include "iARenderer.h"
+#include "iASlicer.h"
+#include <mdichild.h>
+#include "iAModality.h"
+#include "iAModalityTransfer.h"
+#include "iAChannelData.h"
+#include <QString>
+#include <vtkScalarsToColors.h>
+#include <vtkColorTransferFunction.h>
 
 void ImageProcessingHelper::performSegmentation(double greyThreshold)
 {
+	if (greyThreshold < 0) {
+		DEBUG_LOG(QString("Threshold not valid or negative, aborted segmentation %1").arg(0));
+			return; 
+
+	}
+
 	if (!m_childData) {
 		DEBUG_LOG("Child data is null, cannnot perform segmentation"); 
 		return;
@@ -33,12 +48,47 @@ void ImageProcessingHelper::performSegmentation(double greyThreshold)
 	vtkSmartPointer<vtkImageData> data = vtkSmartPointer<vtkImageData>::New();
 	data->DeepCopy(filter->output()[0]->vtkImage());
 	
-	//m_childData->displayResult("Adaptive thresholding segmentation", m_childData->imagePointer(), nullptr);
-	//m_childData->displayResult("Adaptive thresholding segmentation", filter->output()[0]->vtkImage(), nullptr);
-	m_childData->setImageData("Adaptive thresholding segmentation.mhd",false, data);
+	m_childData->displayResult("Adaptive thresholding segmentation", data, nullptr);
+	m_childData->setImageData("adaptivethres.mhd", false, data);
 
+	imageToReslicer();
+
+	   	
+	//the slicers are not updated
+	//m_childData->setImageData("Adaptive thresholding segmentation.mhd",false, data);
+	//m_childData->displayResult("Adaptive thresholding segmentation", filter->output()[0]->vtkImage(), nullptr);
 	//m_childData->create 
 	//createResultchild
-	m_childData->updateViews();
+	
+	m_childData->enableRenderWindows();
+	m_childData->updateViews();	
+	
 
+}
+
+void ImageProcessingHelper::imageToReslicer()
+{
+	auto mod_0 = m_childData->modality(0);
+
+	QSharedPointer<iAModalityTransfer> modTrans = mod_0->transfer();  //m_childData->modality(0)->transfer();
+
+
+	for (int s = 0; s < 3; ++s) {
+		m_childData->getSlicer(s)->removeChannel(0);
+	}
+
+	uint channelID = m_childData->createChannel();
+	assert(channelID == 0); // first modality we create, there shouldn't be another channel yet!
+
+	mod_0->setChannelID(channelID);
+
+	for (int s = 0; s < 3; ++s)
+	{
+		//m_childData->getSlicer(s)->removeChannel(0);
+		auto channeldata = iAChannelData(mod_0->name(), mod_0->image(), dynamic_cast<vtkScalarsToColors*> (modTrans->colorTF()), nullptr);
+		m_childData->getSlicer(s)->addChannel(0, channeldata, true);
+		m_childData->getSlicer(s)->resetCamera();
+		m_childData->getSlicer(s)->update();
+		//m_childData->getSlicer(s)->updateChannelMappers()
+	}
 }

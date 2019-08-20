@@ -9,8 +9,10 @@ public:
 		
 	void performSegmentation(double greyThreshold);
 
-
+	
 private:
+	void imageToReslicer();
+
 	ImageProcessingHelper(const ImageProcessingHelper& other) = delete; 
 	ImageProcessingHelper() = delete; 
 	MdiChild* m_childData = nullptr;
