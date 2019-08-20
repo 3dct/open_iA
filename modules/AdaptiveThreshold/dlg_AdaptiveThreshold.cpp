@@ -34,7 +34,7 @@ struct axisParams {
 AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/):QDialog(parent, f){
 	setupUi(this);
 	try {
-		data = vtkSmartPointer<vtkImageData>::New();
+		
 		m_chart = new QtCharts::QChart;
 		m_chartView = new QtCharts::QChartView(m_chart);
 		m_chartView->setRubberBand(QChartView::RectangleRubberBand);
@@ -238,8 +238,7 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 			return;
 		}
 
-		threshold_defs::ParametersRanges paramRanges;
-			
+		threshold_defs::ParametersRanges paramRanges;			
 				
 		//input grauwerte und moving freqs, output is paramRanges
 		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, paramRanges, ranges.XRangeMIn, ranges.XRangeMax/*x_min, x_max*/);
@@ -247,20 +246,7 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		bool selectedData = chckbx_LokalMinMax->isChecked(); 
 
 		auto thrPeaks = m_thresCalculator.calcMinMax(paramRanges);
-
-		if (selectedData) { 
-
-			//QString lokalMaxX_str()
-
-
-			double lokalMax_X = ed_PeakThrMaxX->text().toDouble();
-			double lokalMax_Y = ed_PeakFregMaxY->text().toDouble(); 
-			double lokalMin_X = ed_minPeakThrX->text().toDouble();
-			double lokalMin_y = ed_MinPeakFreqrY->text().toDouble(); 
-			thrPeaks.updateMinMaxPeaks(lokalMin_X, lokalMin_X, lokalMax_X, lokalMax_Y); 
-		}
-
-
+		updateThrPeaks(selectedData, thrPeaks); //TODO check this
 
 		thrPeaks.fAirPeakHalf(thrPeaks.FreqPeakLokalMaxY() / 2.0f); //f_air/2.0;
 		threshold_defs::ParametersRanges maxPeakRanges;
@@ -276,19 +262,14 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 			//here calculations are finished
 
 		m_thresCalculator.setThresMinMax(thrPeaks);
-
-
-		QPointF f1 = QPointF(thrPeaks.Iso50ValueThr(), 10000000);
-		QPointF f2 = QPointF(thrPeaks.Iso50ValueThr(), 0); 
-		/*std::vector<QPointF> testVec;
-		testVec.push_back(f1)*/;
-
-		//QScatterSeries* iso50 = nullptr; 
-		QLineSeries *iso50 = nullptr;
-		double size = 7.0f; 
-
 		
-		//iso50 = ChartVisHelper::createScatterSeries(testVec, &size);
+		QPointF f1 = QPointF(thrPeaks.Iso50ValueThr(), m_graphRange.getYMax());
+		QPointF f2 = QPointF(thrPeaks.Iso50ValueThr(), 0); 
+				
+		QLineSeries *iso50 = nullptr;
+		//double size = 7.0f; 
+				
+		
 		iso50 = ChartVisHelper::createLineSeries(f2, f1,LineVisOption::horizontally);
 	
 
@@ -312,6 +293,20 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		QString outputMessg = ia.what();
 		this->textEdit->append(outputMessg);
 	}
+}
+
+void AdaptiveThreshold::updateThrPeaks(bool selectedData, threshold_defs::ThresMinMax& thrPeaks)
+{
+	if (!selectedData) {
+		return;
+	}
+		
+
+	double lokalMax_X = ed_PeakThrMaxX->text().toDouble();
+	double lokalMax_Y = ed_PeakFregMaxY->text().toDouble();
+	double lokalMin_X = ed_minPeakThrX->text().toDouble();
+	double lokalMin_y = ed_MinPeakFreqrY->text().toDouble();
+	thrPeaks.updateMinMaxPeaks(lokalMin_X, lokalMin_X, lokalMax_X, lokalMax_Y);
 }
 
 void AdaptiveThreshold::assignValuesToField(threshold_defs::ThresMinMax& thrPeaks)
@@ -466,13 +461,13 @@ void AdaptiveThreshold::buttonCreatePointsandVisualizseIntersection()
 
 			//Intersection is created; 
 			QPointF calcThresPoint = m_thresCalculator.determineResultingThreshold(m_thresCalculator.getResults());
-			m_thresCalculator.ResultingThreshold(calcThresPoint.x()); 
+			m_thresCalculator.SetResultingThreshold(calcThresPoint.x()); 
 			writeResultText(QString("P(x,y) %1 %2").arg(calcThresPoint.x()).arg(calcThresPoint.y()));
 			//todo check for inf values
 
-			double resThres = m_thresCalculator.ResultingThreshold(); 
+			double resThres = m_thresCalculator.GetResultingThreshold(); 
 
-			PerformSegmentation(resThres);
+			//PerformSegmentation(resThres);
 
 			//m_m
 			//mdichild->setImage() //createResultchild
@@ -498,38 +493,38 @@ void AdaptiveThreshold::buttonCreatePointsandVisualizseIntersection()
 	}
 }
 
-void AdaptiveThreshold::PerformSegmentation(double resThres)
-{
-	if (!m_childData) {
-		DEBUG_LOG("mdichild is null-segmentation cannot be performed");
-		return; 
-	}
-
-	iAConnector con; //image reingeben
-	con.setImage(m_childData->imageData());
-	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
-	auto filter = iAFilterRegistry::filter("Binary Thresholding");
-	filter->setLogger(iAConsoleLogger::get());
-	filter->setProgress(pObserver.data());
-	filter->addInput(&con);
-	QMap<QString, QVariant> parameters;
-	parameters["Lower threshold"] = 0;
-	parameters["Upper threshold"] = resThres;
-	parameters["Inside value"] = 1;
-	parameters["Outside value"] = 0;
-	filter->run(parameters);
-
-	/*vtkSmartPointer<vtkImageData> data = vtkSmartPointer<vtkImageData>::New();
-	data->DeepCopy(filter->output()[0]->vtkImage());
-	*/
-	m_childData->displayResult("Adaptive thresholding segmentation", filter->output()[0]->vtkImage(), nullptr);
-    m_childData->setImageData("Adaptive thresholding segmentation", m_childData->imagePointer());
-	
-	//m_childData->create 
-	//createResultchild
-	m_childData->updateViews(); 
-}
+//void AdaptiveThreshold::PerformSegmentation(double resThres)
+//{
+//	if (!m_childData) {
+//		DEBUG_LOG("mdichild is null-segmentation cannot be performed");
+//		return; 
+//	}
+//
+//	iAConnector con; //image reingeben
+//	con.setImage(m_childData->imageData());
+//	QScopedPointer<iAProgress> pObserver(new iAProgress());
+//	connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
+//	auto filter = iAFilterRegistry::filter("Binary Thresholding");
+//	filter->setLogger(iAConsoleLogger::get());
+//	filter->setProgress(pObserver.data());
+//	filter->addInput(&con);
+//	QMap<QString, QVariant> parameters;
+//	parameters["Lower threshold"] = 0;
+//	parameters["Upper threshold"] = resThres;
+//	parameters["Inside value"] = 1;
+//	parameters["Outside value"] = 0;
+//	filter->run(parameters);
+//
+//	/*vtkSmartPointer<vtkImageData> data = vtkSmartPointer<vtkImageData>::New();
+//	data->DeepCopy(filter->output()[0]->vtkImage());
+//	*/
+//	m_childData->displayResult("Adaptive thresholding segmentation", filter->output()[0]->vtkImage(), nullptr);
+//    m_childData->setImageData("Adaptive thresholding segmentation", m_childData->imagePointer());
+//	
+//	//m_childData->create 
+//	//createResultchild
+//	m_childData->updateViews(); 
+//}
 
 void AdaptiveThreshold::assignValuesFromField(threshold_defs::PeakRanges &Ranges)
 {

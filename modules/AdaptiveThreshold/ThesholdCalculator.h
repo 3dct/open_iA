@@ -105,8 +105,8 @@ public:
 		m_thresResults.setIntersectionPoint(pt); 
 	}
 
-	double ResultingThreshold() const { return m_resultingThreshold; }
-	void ResultingThreshold(double val) { m_resultingThreshold = val; }
+	double GetResultingThreshold() const { return m_resultingThreshold; }
+	void SetResultingThreshold(double val) { m_resultingThreshold = val; }
 private:
 	threshold_defs::ThresMinMax m_thresResults; 
 	threshold_defs::ThresMinMaxHelper m_minMaxHelper;

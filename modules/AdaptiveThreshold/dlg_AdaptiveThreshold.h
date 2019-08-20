@@ -10,8 +10,8 @@
 #include <QtCharts>
 #include <vector>
 #include <QtCharts/qlineseries.h>
-#include <vtkImageData.h>
-#include <mdichild.h>
+//#include <vtkImageData.h>
+//#include <mdichild.h>
 
 
 using namespace QtCharts;
@@ -49,17 +49,18 @@ public:
 	//void prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals, QString *grText, bool updateCoords);
 	void prepareDataSeries(QXYSeries* aSeries, const std::vector<double>& x_vals, const std::vector<double>& y_vals, QString* grText, bool useDefaultValues, bool updateCoords);
 	void addSeries(QXYSeries* aSeries, bool disableMarker);
-	//TBA
-	void setMDIChild(MdiChild* aChild) {
-		m_childData = aChild;
-
-	}
+	
 	inline void clearSeries(QXYSeries *series) {
 		//series->clear();
 
 	}
 
 	void setHistData(/*const*/ QSharedPointer<iAPlotData>& data);
+
+
+	inline double getResultingThreshold() {
+		return m_thresCalculator.GetResultingThreshold();
+	}
 	
 private slots:
 		void UpdateChartClicked();
@@ -70,6 +71,8 @@ private slots:
 		void resetGraphToDefault(); 
 		void calculateMovingAverage();
 		void buttonSelectRangesClicked(); 
+
+		void updateThrPeaks(bool selectedData, threshold_defs::ThresMinMax& thrPeaks);
 
 		void assignValuesToField(threshold_defs::ThresMinMax& thrPeaks);
 
@@ -100,7 +103,7 @@ private slots:
 		}
 
 private:
-	void PerformSegmentation(double resThres);
+	//void PerformSegmentation(double resThres);
 	void DetermineGraphRange();
 	void prepareAxis(QValueAxis *axis, const QString &title, double min, double max, uint ticks, axisMode mode);
 	void generateSampleData(bool addserries);
@@ -151,9 +154,9 @@ private:
 
 	Loader m_seriesLoader; 
 	//vtkImageData *img = nullptr; 
-	MdiChild* m_childData = nullptr; 
+	/*MdiChild* m_childData = nullptr; 
 
-	vtkSmartPointer<vtkImageData> data;  
+	vtkSmartPointer<vtkImageData> data;  */
 
 	const double minXDefault = 0; const double maxXDefault = 65535; 
 	const double minYDefault = 0; const double maxYDefault = 40000; 

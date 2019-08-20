@@ -23,6 +23,7 @@ void iAdaptiveThresholdModuleInterface::Initialize()
 #include <charts/iAPlot.h>
 #include <charts/iAPlotData.h>
 #include <iAConsole.h>
+#include "ImageProcessingHelper.h"
 
 void iAdaptiveThresholdModuleInterface::determineThreshold()
 {
@@ -45,13 +46,15 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 		auto data = hist->plots()[0]->data();
 		dlg_thres.initChart();
 		dlg_thres.setHistData(data);
-
-		//auto* test = m_mainWnd->activeMdiChild(); 
-		dlg_thres.setMDIChild(m_mainWnd->activeMdiChild());
-		//dgl_thres.setm_mainWnd->activeMdiChild()->imageData()
+			
 
 		if (dlg_thres.exec() != QDialog::Accepted)
 			return;
+
+		ImageProcessingHelper imgSegmenter(m_mainWnd->activeMdiChild()); 
+		imgSegmenter.performSegmentation(dlg_thres.getResultingThreshold()); 
+
+
 	}catch (std::invalid_argument& iaex) {
 		DEBUG_LOG(iaex.what()); 
 		return; 
