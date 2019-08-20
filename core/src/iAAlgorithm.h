@@ -50,7 +50,7 @@ class open_iA_Core_API iAAlgorithm : public QThread
 {
 	Q_OBJECT
 public:
-	iAAlgorithm( QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l, QObject *parent = 0 );
+	iAAlgorithm( QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l, QObject *parent = nullptr );
 	virtual ~iAAlgorithm();
 
 	QDateTime Start(); //< Start counting the running time and set the start time
