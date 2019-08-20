@@ -11,14 +11,6 @@
 #include <IntersectionDefinition.h>
 #include <limits>
 #include <iAConnector.h>
-#include <iAFilter.h>
-
-
-#include "iAFilterRegistry.h"
-#include "QSharedPointer"
-#include "vtkSmartPointer.h"
-#include "iAProgress.h"
-
 
 
 struct axisParams {
@@ -461,13 +453,26 @@ void AdaptiveThreshold::buttonCreatePointsandVisualizseIntersection()
 
 			//Intersection is created; 
 			QPointF calcThresPoint = m_thresCalculator.determineResultingThreshold(m_thresCalculator.getResults());
+			//calcThresPoint.x(); 
+			if (ptIntersect.x() < 0 || (ptIntersect.x() > std::numeric_limits<float>::max())) {
+					writeResultText(QString("no intersection negative or inf, try again parametrisation"));
+					return;
+			}
+
+
+			
 			m_thresCalculator.SetResultingThreshold(calcThresPoint.x()); 
 			writeResultText(QString("P(x,y) %1 %2").arg(calcThresPoint.x()).arg(calcThresPoint.y()));
 			//todo check for inf values
 
 			double resThres = m_thresCalculator.GetResultingThreshold(); 
-
-			//PerformSegmentation(resThres);
+			
+			
+			if (resThres < 0) {
+				writeResultText(QString("resulting segmentation threshold either negative or inf, try again parametrisation"));
+				return; 
+			}
+			
 
 			//m_m
 			//mdichild->setImage() //createResultchild
@@ -493,38 +498,6 @@ void AdaptiveThreshold::buttonCreatePointsandVisualizseIntersection()
 	}
 }
 
-//void AdaptiveThreshold::PerformSegmentation(double resThres)
-//{
-//	if (!m_childData) {
-//		DEBUG_LOG("mdichild is null-segmentation cannot be performed");
-//		return; 
-//	}
-//
-//	iAConnector con; //image reingeben
-//	con.setImage(m_childData->imageData());
-//	QScopedPointer<iAProgress> pObserver(new iAProgress());
-//	connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
-//	auto filter = iAFilterRegistry::filter("Binary Thresholding");
-//	filter->setLogger(iAConsoleLogger::get());
-//	filter->setProgress(pObserver.data());
-//	filter->addInput(&con);
-//	QMap<QString, QVariant> parameters;
-//	parameters["Lower threshold"] = 0;
-//	parameters["Upper threshold"] = resThres;
-//	parameters["Inside value"] = 1;
-//	parameters["Outside value"] = 0;
-//	filter->run(parameters);
-//
-//	/*vtkSmartPointer<vtkImageData> data = vtkSmartPointer<vtkImageData>::New();
-//	data->DeepCopy(filter->output()[0]->vtkImage());
-//	*/
-//	m_childData->displayResult("Adaptive thresholding segmentation", filter->output()[0]->vtkImage(), nullptr);
-//    m_childData->setImageData("Adaptive thresholding segmentation", m_childData->imagePointer());
-//	
-//	//m_childData->create 
-//	//createResultchild
-//	m_childData->updateViews(); 
-//}
 
 void AdaptiveThreshold::assignValuesFromField(threshold_defs::PeakRanges &Ranges)
 {

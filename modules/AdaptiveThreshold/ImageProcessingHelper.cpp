@@ -20,9 +20,8 @@
 void ImageProcessingHelper::performSegmentation(double greyThreshold)
 {
 	if (greyThreshold < 0) {
-		DEBUG_LOG(QString("Threshold not valid or negative, aborted segmentation %1").arg(0));
+		DEBUG_LOG(QString("Threshold not valid %1 or negative, aborted segmentation ").arg(0));
 			return; 
-
 	}
 
 	if (!m_childData) {
@@ -30,6 +29,24 @@ void ImageProcessingHelper::performSegmentation(double greyThreshold)
 		return;
 	}
 
+	prepareFilter(greyThreshold);
+	imageToReslicer();
+	m_childData->enableRenderWindows();
+	m_childData->updateViews();
+
+	   	
+	//the slicers are not updated
+	//m_childData->setImageData("Adaptive thresholding segmentation.mhd",false, data);
+	//m_childData->displayResult("Adaptive thresholding segmentation", filter->output()[0]->vtkImage(), nullptr);
+	//TODO show result in new window
+	
+	
+	
+
+}
+
+void ImageProcessingHelper::prepareFilter(double greyThreshold)
+{
 	iAConnector con; //image reingeben
 	con.setImage(m_childData->imageData());
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
@@ -47,23 +64,8 @@ void ImageProcessingHelper::performSegmentation(double greyThreshold)
 
 	vtkSmartPointer<vtkImageData> data = vtkSmartPointer<vtkImageData>::New();
 	data->DeepCopy(filter->output()[0]->vtkImage());
-	
 	m_childData->displayResult("Adaptive thresholding segmentation", data, nullptr);
 	m_childData->setImageData("adaptivethres.mhd", false, data);
-
-	imageToReslicer();
-
-	   	
-	//the slicers are not updated
-	//m_childData->setImageData("Adaptive thresholding segmentation.mhd",false, data);
-	//m_childData->displayResult("Adaptive thresholding segmentation", filter->output()[0]->vtkImage(), nullptr);
-	//m_childData->create 
-	//createResultchild
-	
-	m_childData->enableRenderWindows();
-	m_childData->updateViews();	
-	
-
 }
 
 void ImageProcessingHelper::imageToReslicer()

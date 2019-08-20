@@ -9,6 +9,8 @@ public:
 		
 	void performSegmentation(double greyThreshold);
 
+	void prepareFilter(double greyThreshold);
+
 	
 private:
 	void imageToReslicer();
