@@ -105,8 +105,30 @@ public:
 		m_thresResults.setIntersectionPoint(pt); 
 	}
 
+
+	double getGreyThrPeakAir() {
+		return m_thresResults.getAirPeakThr(); 
+	}
+
+	double getMaterialsThr() {
+		return m_thresResults.getMaterialsThreshold(); 
+	}
+
+
 	double GetResultingThreshold() const { return m_resultingThreshold; }
 	void SetResultingThreshold(double val) { m_resultingThreshold = val; }
+
+
+	void performNormalisation(threshold_defs::ParametersRanges& ranges, double xMin, double xMax) {
+		m_calcHelper.PeakgreyThresholdNormalization(ranges, xMin, xMax);
+	}
+
+
+	double getMaxPeakofRange(std::vector<double>& vals) {
+		return m_calcHelper.findMaxPeak(vals);
+	
+	}
+
 private:
 	threshold_defs::ThresMinMax m_thresResults; 
 	threshold_defs::ThresMinMaxHelper m_minMaxHelper;

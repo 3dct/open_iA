@@ -72,7 +72,7 @@ private slots:
 		void calculateMovingAverage();
 		void buttonSelectRangesClicked(); 
 
-		void updateThrPeaks(bool selectedData, threshold_defs::ThresMinMax& thrPeaks);
+		void OptionallyUpdateThrPeaks(bool selectedData, threshold_defs::ThresMinMax& thrPeaks);
 
 		void assignValuesToField(threshold_defs::ThresMinMax& thrPeaks);
 
@@ -82,7 +82,7 @@ private slots:
 
 		void buttonCreatePointsandVisualizseIntersection(); 
 
-		
+		void buttonNormalizedClicked(); 
 
 		void buttonMinMaxClicked();
 		void redrawPlots();
@@ -144,20 +144,15 @@ private:
 		}
 	}
 
-	
-		
-private: 
+	void scaleGraphToMinMax(const threshold_defs::ParametersRanges& ranges);
+private:
 	
 	threshold_defs::MovingFreqs allMovingfreqs; 
 	ThesholdCalculator m_thresCalculator; 
-	threshold_defs::GraphRange m_graphRange; 
+	threshold_defs::GraphRange m_graphValuesScope; 
 
 	Loader m_seriesLoader; 
-	//vtkImageData *img = nullptr; 
-	/*MdiChild* m_childData = nullptr; 
-
-	vtkSmartPointer<vtkImageData> data;  */
-
+	
 	const double minXDefault = 0; const double maxXDefault = 65535; 
 	const double minYDefault = 0; const double maxYDefault = 40000; 
 	int m_average = 0; 

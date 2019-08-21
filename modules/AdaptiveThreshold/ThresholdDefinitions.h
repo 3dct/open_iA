@@ -46,7 +46,27 @@ namespace threshold_defs {
 			}
 		}
 
+		double getXMin() const {
+			double min = *std::min_element(std::begin(x_vals), std::end(x_vals));
+			return min; 
+		};
+
+		double getXMax()const {
+			double xmax = *std::max_element(std::begin(x_vals), std::end(x_vals));
+			return xmax; 
+		}
+
+
+		void setXVals(const std::vector<double> &vals) {
+			x_vals = vals;
+		}
+
+		bool isXEmpty() const  { return x_vals.empty(); }
+		bool isYEmpty() const  { return y_vals.empty();  }
+		//friend class thresCalcHelper; 
+
 	private:
+		
 		std::vector<double> x_vals;
 		std::vector<double> y_vals;
 	};
@@ -93,8 +113,8 @@ namespace threshold_defs {
 
 
 		
-		double LokalMaxPeakThreshold_X() const { return lokalMaxPeakThreshold_X; }
-		void LokalMaxPeakThreshold_X(double val) { lokalMaxPeakThreshold_X = val; }
+		double LokalMaxPeakThreshold_X() const { return lokalPeakAirThrX; }
+		void LokalMaxPeakThreshold_X(double val) { lokalPeakAirThrX = val; }
 	public:
 
 		//apply custom min max
@@ -102,7 +122,7 @@ namespace threshold_defs {
 			peakMinXThreshold = lokalMinX;
 			freqPeakMinY = lokalMinY;
 			freqPeakLokalMaxY = lokalMaxY;
-			lokalMaxPeakThreshold_X = lokalMaxX;
+			lokalPeakAirThrX = lokalMaxX;
 			m_custimizedMinMax = true;
 
 		}
@@ -120,6 +140,20 @@ namespace threshold_defs {
 		void FreqPeakLokalMaxY(double val) { freqPeakLokalMaxY = val; }
 		void setIntersectionPoint(const QPointF& pt) {
 			IntersectionPoint = pt; 
+		}
+
+
+		double getAirPeakThr() const  {
+			return lokalPeakAirThrX;
+		}
+
+
+		double getMaterialsThreshold()  const {
+			return MaterialPeakThrX;
+		}
+
+		void setMaterialsThreshold(double maxThr) {
+			MaterialPeakThrX = maxThr;
 		}
 
 		const QPointF& getIntersectionPoint() const {
@@ -140,7 +174,9 @@ namespace threshold_defs {
 		/*double iso50ValueFreq; */
 
 		double freqPeakLokalMaxY;
-		double lokalMaxPeakThreshold_X;
+		double lokalPeakAirThrX;
+
+		double MaterialPeakThrX; //Material value , at global maximum 
 
 		QPointF IntersectionPoint;
 

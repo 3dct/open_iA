@@ -7,6 +7,7 @@
 #include "ThresAlgo.h"
 #include "iAConsole.h"
 #include "QLine"
+#include "iAMathUtility.h"
 
 double ThresholdCalcHelper::findMaxPeak(std::vector<double>& v_ind) const
 {
@@ -175,5 +176,37 @@ void ThresholdCalcHelper::getFirstElemInRange(const QVector <QPointF>& in, float
 		DEBUG_LOG("error calculation elem by ranges faild in memory");
 		throw; 
 	}
+	
+}
+
+void ThresholdCalcHelper::PeakgreyThresholdNormalization(threshold_defs::ParametersRanges& ranges, double greyThrPeakAir, double greyThrPeakMax)
+{
+	if (greyThrPeakAir < std::numeric_limits<double>::min() || (greyThrPeakAir > std::numeric_limits<double>::max())) {
+		DEBUG_LOG(QString("grey value threshold invalid %1").arg(greyThrPeakAir));
+		return; 
+	}
+
+	if (greyThrPeakAir > greyThrPeakMax) {
+		DEBUG_LOG("grey value of air peak must be smaller than matierial peak, please change order");
+		return; 
+		
+	}
+
+
+
+	std::vector<double> tmp_ranges_x = ranges.getXRange();
+	if (tmp_ranges_x.empty()) {
+		return; 
+		
+	}
+
+
+	for (double& val: tmp_ranges_x) {
+		DEBUG_LOG(QString("before %1").arg(val));
+		val = minMaxNormalize(greyThrPeakAir, greyThrPeakMax, val);
+		DEBUG_LOG(QString("after %1").arg(val))
+	}
+
+	ranges.setXVals(tmp_ranges_x);
 	
 }

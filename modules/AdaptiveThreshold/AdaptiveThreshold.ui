@@ -424,6 +424,13 @@
                 </widget>
                </item>
                <item>
+                <widget class="QPushButton" name="btn_normalize">
+                 <property name="text">
+                  <string>Normalize</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
                 <spacer name="verticalSpacer">
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>

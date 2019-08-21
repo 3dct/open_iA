@@ -64,6 +64,14 @@ double minMaxNormalize(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType
 	return returnVal;
 }
 
+
+//template<typename SrcType>
+//double minMaxShift(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value) {
+//	
+//	double val = minMaxNormalize(minSrcVal, maxSrcVal, value); 
+//
+//}
+
 /**
  * map value from given interval to "norm" interval [0..1]
  * if min is bigger than max, a reverse mapping is applied

@@ -88,6 +88,8 @@ public:
 	}
 
 
+	void PeakgreyThresholdNormalization(threshold_defs::ParametersRanges& ranges, double greyThrPeakAir, double greyThrPeakMax); 
+
 private: 
 
 	//checks if a point is between min and max
