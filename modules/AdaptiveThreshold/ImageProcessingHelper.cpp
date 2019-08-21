@@ -33,16 +33,10 @@ void ImageProcessingHelper::performSegmentation(double greyThreshold)
 	imageToReslicer();
 	m_childData->enableRenderWindows();
 	m_childData->updateViews();
-
-	   	
-	//the slicers are not updated
-	//m_childData->setImageData("Adaptive thresholding segmentation.mhd",false, data);
-	//m_childData->displayResult("Adaptive thresholding segmentation", filter->output()[0]->vtkImage(), nullptr);
+		   	
+	
 	//TODO show result in new window
 	
-	
-	
-
 }
 
 void ImageProcessingHelper::prepareFilter(double greyThreshold)

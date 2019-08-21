@@ -44,6 +44,27 @@ T clamp(T const min, T const max, T const val)
 }
 
 /**
+ * apply minmax normalization
+ * if min is bigger than max, a reverse mapping is applied
+ * @param minSrcVal minimum value of source interval
+ * @param maxSrcVal maximum value of source interval
+ * @param value a value in source interval
+ * @return the corresponding mapped value = value - minSrcVal / (maxSrcVal - minSrcVal)
+ */
+template <typename SrcType>
+double minMaxNormalize(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value)
+{
+	//assert (value >= minSrcVal && value <= maxSrcVal);
+	SrcType range = maxSrcVal - minSrcVal;
+	if (range == 0)
+	{	// to prevent division by 0
+		return 0;
+	}
+	double returnVal = static_cast<double>(value - minSrcVal) / range;
+	return returnVal;
+}
+
+/**
  * map value from given interval to "norm" interval [0..1]
  * if min is bigger than max, a reverse mapping is applied
  * @param minSrcVal minimum value of source interval
@@ -55,17 +76,10 @@ T clamp(T const min, T const max, T const val)
 template <typename SrcType>
 double mapToNorm(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value)
 {
-	//assert (value >= minSrcVal && value <= maxSrcVal);
-	SrcType range = maxSrcVal - minSrcVal;
-	if (range == 0)
-	{	// to prevent division by 0
-		return 0;
-	}
-	double returnVal = static_cast<double>(value - minSrcVal) / range;
+	double returnVal = minMaxNormalize(minSrcVal, maxSrcVal, value);
 	//assert(returnVal >= 0 && returnVal <= 1);
 	return clamp(0.0, 1.0, returnVal);
 }
-
 
 template <typename T>
 inline T get_t(const T& v, const T& rangeStart, const T& rangeLen)
