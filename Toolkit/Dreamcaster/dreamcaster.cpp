@@ -121,6 +121,7 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	: QMainWindow(parent, flags), modelOpened(false), datasetOpened(false)
 {
 	Q_INIT_RESOURCE(dreamcaster);
+	ParseConfigFile(&stngs);
 	indices[0] = 0;
 	indices[1] = 2;
 	indices[2] = 3;
@@ -133,7 +134,6 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	
 	isStopped = false;
 	
-	ParseConfigFile(&stngs);
 	ui.setupUi(this);
 	connect(ui.openSTLFile,  SIGNAL(clicked()), this, SLOT(OpenModelSlot()));
 	///connect(ui.tb_openModel,  SIGNAL(clicked()), this, SLOT(OpenModelSlot()));
