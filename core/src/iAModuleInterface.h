@@ -66,11 +66,6 @@ protected:
 	void PrepareResultChild( int childInd, QString const & title );
 	//! Set the currently active child as "current".
 	void PrepareActiveChild();
-	//! Provides access to a second loaded mdi child, if such is available.
-	//! Will throw an error if none is available or more than two are loaded
-	//! @deprecated instead of this method, in filters, use the facilities
-	//!     provided in iAFilter (via the requiredInputs parameter to the constructor) to specify multiple inputs
-	MdiChild * GetSecondNonActiveChild() const;
 	//! Retrieve the menu with the given title (or creates it if it doesn't exist yet).
 	QMenu * getMenuWithTitle(QMenu * parentMenu, QString const & title, bool isDisablable = true);
 	//! Return true if attached to current mdi child.

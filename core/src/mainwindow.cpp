@@ -2104,7 +2104,27 @@ MdiChild* MainWindow::activeMdiChild()
 	int subWndCnt = mdiChildList().size();
 	if(subWndCnt>0)
 		return mdiChildList(QMdiArea::ActivationHistoryOrder).last();
-	return 0;
+	return nullptr;
+}
+
+MdiChild * MainWindow::secondNonActiveChild()
+{
+	QList<MdiChild *> mdiwindows = mdiChildList();
+	if (mdiwindows.size() > 2)
+	{
+		QMessageBox::warning(this, tr("Warning"),
+			tr("Only two datasets can be processed at a time! Please close %1 datasets")
+			.arg(mdiwindows.size() - 2));
+		return nullptr;
+	}
+	else if (mdiwindows.size() < 2)
+	{
+		QMessageBox::warning(this, tr("Warning"),
+			tr("Only one dataset available. Please load another one!"));
+		return nullptr;
+	}
+	return activeMdiChild() == mdiwindows.at(0) ?
+		mdiwindows.at(1) : mdiwindows.at(0);
 }
 
 MdiChild* MainWindow::findMdiChild(const QString &fileName)
