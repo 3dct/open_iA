@@ -36,6 +36,7 @@
 #include <QVector>
 
 class vtkImageData;
+class vtkPolyData;
 
 class iAAttributeDescriptor;
 class iAConnector;
@@ -142,19 +143,32 @@ public:
 	unsigned int firstInputChannels() const;
 	//! sets the first input channels
 	void setFirstInputChannels(unsigned int c);
-	//! adds an output value
-	void addOutputValue(QString const & name, QVariant value);
 	//! retrieve a list of output values
 	QVector<QPair<QString, QVariant> > const & outputValues() const;
-	//! retrieve a list of names of the output values that this filter can produce
+	//! Retrieve a list of names of the output values that this filter can produce
 	QVector<QString> const & outputValueNames() const;
-	//! adds an output value name
+	//! Adds an output value name.
+	//! Call this method in the constructor of derived classes,
+	//! to let the filter know which output values will later be added
+	//! via the addOutputValue method with two parameters
+	//! @param name the name of the output value
 	void addOutputValue(QString const & name);
-	//! Adds an output image
+	//! Adds an output value.
+	//! @param name the name of the output value
+	//! @param value the actual output value
+	void addOutputValue(QString const & name, QVariant value);
+	//! @{ Adds an output image
+	//! @param img output image from the filter
 	void addOutput(itk::ImageBase<3> * img);
 	void addOutput(vtkSmartPointer<vtkImageData> img);
+	//! @}
+	//! Sets the mesh output of this filter
+	void setPolyOutput(vtkSmartPointer<vtkPolyData> poly);
+	//! Retrieves output mesh if existing
+	vtkSmartPointer<vtkPolyData> polyOutput() const;
+
 	//! The planned number of outputs the filter will produce
-	int outputCount();
+	int outputCount() const;
 	//! Adds some message to the targeted output place for this filter
 	//! Typically this will go into the log window of the result MdiChild
 	//! @param msg the message to print
@@ -172,6 +186,7 @@ private:
 	//! variables required to run the filter:
 	QVector<iAConnector*> m_input;
 	QVector<iAConnector*> m_output;
+	vtkSmartPointer<vtkPolyData> m_outputMesh;
 	QVector<QPair<QString, QVariant> > m_outputValues;
 	//! The class that is watched for progress. Typically you will call
 	//! m_progress->observe(someItkFilter) to set up the progress observation

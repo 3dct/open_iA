@@ -117,12 +117,22 @@ void iAFilter::addOutput(vtkSmartPointer<vtkImageData> img)
 	m_output.push_back(con);
 }
 
+void iAFilter::setPolyOutput(vtkSmartPointer<vtkPolyData> mesh)
+{
+	m_outputMesh = mesh;
+}
+
+vtkSmartPointer<vtkPolyData> iAFilter::polyOutput() const
+{
+	return m_outputMesh;
+}
+
 QVector<iAConnector*> const & iAFilter::output()
 {
 	return m_output;
 }
 
-int iAFilter::outputCount()
+int iAFilter::outputCount() const
 {
 	return m_outputCount;
 }

@@ -68,7 +68,7 @@ public:
 	void setPath(QString p);
 	QString const & path();
 	void setCurrentFile(const QString &fileName);
-	QString const & currentFile();  //!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
+	QString const & currentFile();  //!< deprecated. Use a specific mdichilds, or even better, an mdichilds dlg_modalities methods instead!
 
 	void loadFile(QString const & fileName);
 	void loadFile(QString fileName, bool isStack);
@@ -98,10 +98,20 @@ public:
 	QMenu * toolsMenu();
 	//! get the Help menu (can be used by modules to append entries to it)
 	QMenu * helpMenu();
-	MdiChild *resultChild( QString const & title );
-	MdiChild *resultChild( int childInd, QString const & title );
-	MdiChild *resultChild( MdiChild* oldChild, QString const & title );
-	MdiChild *activeMdiChild();
+	//! @{ get access to result child with the given title
+	//! (depending on preferences, this will either open a new mdi child window, or reuse the currently active one)
+	MdiChild * resultChild( QString const & title );
+	MdiChild * resultChild( int childInd, QString const & title );
+	MdiChild * resultChild( MdiChild* oldChild, QString const & title );
+	//! @}
+	//! Provides access to the currently active mdi child, if such is available.
+	//! @return pointer to the currently active mdi child, or nullptr if no child is currently open
+	MdiChild * activeMdiChild();
+	//! Provides access to a second loaded mdi child, if such is available.
+	//! Will throw an error if none is available or more than two are loaded.
+	//! @deprecated instead of this method, in filters, use the facilities
+	//!     provided in iAFilter (via the requiredInputs parameter to the constructor) to specify multiple inputs
+	MdiChild * secondNonActiveChild();
 	QList<QString> mdiWindowTitles();
 	QList<MdiChild*> mdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
 	QMdiSubWindow* addSubWindow(QWidget * child);
