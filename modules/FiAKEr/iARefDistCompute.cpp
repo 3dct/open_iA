@@ -58,7 +58,7 @@ namespace
 				}
 			}
 			else
-			{ // compute overlap measures only for the best-matching fibers according to metric 2:
+			{ // compute overlap measures only for the best-matching fibers according to a simpler metric:
 				auto & otherMatches = bestMatches[iARefDistCompute::BestMeasureWithoutOverlap];
 				similarities.resize(otherMatches.size());
 				for (size_t bestMatchID = 0; bestMatchID < otherMatches.size(); ++bestMatchID)

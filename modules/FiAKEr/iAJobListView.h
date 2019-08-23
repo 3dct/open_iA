@@ -27,6 +27,7 @@ class iAProgress;
 
 class QThread;
 
+//! A simple widget showing a list of currently running jobs and their progress.
 class iAJobListView : public QWidget
 {
 	Q_OBJECT

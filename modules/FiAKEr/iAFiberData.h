@@ -37,6 +37,7 @@ enum {
 
 const int DefaultSamplePoints = 200;
 
+//! Characteristics of a single fiber
 struct iAFiberData
 {
 	double phi, theta, length, diameter;
@@ -47,6 +48,17 @@ struct iAFiberData
 	static iAFiberData getOrientationCorrected(iAFiberData const & source, iAFiberData const & other);
 };
 
+//! Samples points inside of the cylinder spanned by a single fiber
 void samplePoints(iAFiberData const & fiber, std::vector<Vec3D> & result, size_t numSamples=DefaultSamplePoints);
+
+//! Computes the similarity between two fibers according to a given measure
+//! @param fiber1raw data of the first fiber
+//! @param fiber2 data of the second fiber
+//! @param measureID the id of the measure (see implementation for short descriptions of each measure,
+//!     also see iARefDistCompute::getSimilarityMeasureNames for names of the measures,
+//!     for their mathematical definition see the FIAKER paper (doi: 10.1111/cgf.13688)
+//! @param diagonalLength length of the diagonal of the dataset (i.e. the maximum possible length of a fiber)
+//! @param maxLength the maximum length difference in the dataset, i.e. the length of the longest fiber
+//!     in the dataset minus the length of the shortest one
 double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	int measureID, double diagonalLength, double maxLength);
