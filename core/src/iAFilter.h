@@ -174,7 +174,7 @@ private:
 	QVector<iAConnector*> m_output;
 	QVector<QPair<QString, QVariant> > m_outputValues;
 	//! The class that is watched for progress. Typically you will call
-	//! m_progress->Observe(someItkFilter) to set up the progress observation
+	//! m_progress->observe(someItkFilter) to set up the progress observation
 	iAProgress* m_progress;
 	//! The logger
 	iALogger* m_log;

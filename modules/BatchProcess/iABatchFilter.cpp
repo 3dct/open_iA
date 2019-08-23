@@ -272,7 +272,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			if (!parameters["Continue on error"].toBool())
 				throw e;
 		}
-		progress()->EmitProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
+		progress()->emitProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
 	}
 
 	if (!outputFile.isEmpty())

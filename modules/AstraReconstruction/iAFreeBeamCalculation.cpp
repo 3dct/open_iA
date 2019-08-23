@@ -152,7 +152,7 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 			outputROISliceIt.GoToBegin();
 			inputROIIt.NextSlice();
 			++curSlice;
-			filter->progress()->EmitProgress(static_cast<int>((100.0 * curSlice) / roiSize[2]));
+			filter->progress()->emitProgress(static_cast<int>((100.0 * curSlice) / roiSize[2]));
 		}
 		roiFilter->ReleaseDataFlagOn();
 	}
@@ -181,7 +181,7 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 			++curVoxel;
 			if (curVoxel > (lastProgressReportVoxel + progressVoxelDist))
 			{
-				filter->progress()->EmitProgress(static_cast<int>((100.0 * curVoxel) / voxelCount));
+				filter->progress()->emitProgress(static_cast<int>((100.0 * curVoxel) / voxelCount));
 				lastProgressReportVoxel = curVoxel;
 			}
 		}

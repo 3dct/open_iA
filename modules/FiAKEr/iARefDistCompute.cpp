@@ -112,7 +112,7 @@ void iARefDistCompute::run()
 
 	for (size_t resultID = 0; resultID <  m_data->result.size(); ++resultID)
 	{
-		m_progress.EmitProgress(static_cast<int>(100.0 * resultID / m_data->result.size()));
+		m_progress.emitProgress(static_cast<int>(100.0 * resultID / m_data->result.size()));
 		auto & d = m_data->result[resultID];
 		if (resultID == m_referenceID)
 			continue;

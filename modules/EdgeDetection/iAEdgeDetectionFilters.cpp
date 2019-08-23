@@ -43,7 +43,7 @@ void canny_edge_detection(iAFilter* filter, QMap<QString, QVariant> const & para
 	canny->SetUpperThreshold(parameters["Upper threshold"].toDouble());
 	canny->SetLowerThreshold(parameters["Lower threshold"].toDouble());
 	canny->SetInput( toReal->GetOutput() );
-	filter->progress()->Observe( canny );
+	filter->progress()->observe( canny );
 	canny->Update();
 	filter->addOutput(canny->GetOutput());
 }

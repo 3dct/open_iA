@@ -90,7 +90,7 @@ template <typename T> void computeHistogram(iAFilter* filter, size_t binCount,
 	histogramFilter->SetAutoMinimumMaximum(false);
 	histogramFilter->SetHistogramSize(binCountMulti);
 	histogramFilter->Update();
-	filter->progress()->Observe(histogramFilter);
+	filter->progress()->observe(histogramFilter);
 	auto histogram = histogramFilter->GetOutput();
 	vecHist.clear();
 	for (auto it = histogram->Begin(); it != histogram->End(); ++it)

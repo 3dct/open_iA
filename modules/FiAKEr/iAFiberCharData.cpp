@@ -379,7 +379,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 			optimStepMax = thisResultTimeStepMax;
 		}
 		++resultID;
-		progress->EmitProgress(resultID / csvFileNames.size());
+		progress->emitProgress(resultID / csvFileNames.size());
 		result.push_back(curData);
 	}
 	if (result.size() == 0)

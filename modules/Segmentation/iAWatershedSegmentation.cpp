@@ -49,7 +49,7 @@ void watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	wsFilter->SetLevel ( parameters["Level"].toDouble() );
 	wsFilter->SetThreshold ( parameters["Threshold"].toDouble() );
 	wsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
-	filter->progress()->Observe( wsFilter );
+	filter->progress()->observe( wsFilter );
 	wsFilter->Update();
 	filter->addOutput( castImageTo<unsigned long>(wsFilter->GetOutput()) );
 }
@@ -90,7 +90,7 @@ void morph_watershed(iAFilter* filter, QMap<QString, QVariant> const & parameter
 	mWSFilter->SetFullyConnected(parameters["Fully Connected"].toBool());
 	mWSFilter->SetLevel( parameters["Level"].toDouble() );
 	mWSFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
-	filter->progress()->Observe( mWSFilter );
+	filter->progress()->observe( mWSFilter );
 	mWSFilter->Update();
 	filter->addOutput( castImageTo<unsigned long>(mWSFilter->GetOutput()) );
 }

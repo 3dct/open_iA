@@ -1180,14 +1180,14 @@ void dlg_FeatureScout::saveStl()
 	connect( &stlWriProgress, SIGNAL( progress( int ) ), this, SLOT( updateStlProgress( int ) ) );
 
 	auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
-	marCubProgress.Observe(moSurface);
+	marCubProgress.observe(moSurface);
 	moSurface->SetInputData( m_MOData.moImageDataList[iovMO->cb_Classes->currentIndex()] );
 	moSurface->ComputeNormalsOn();
 	moSurface->ComputeGradientsOn();
 	moSurface->SetValue( 0, iovMO->dsb_IsoValue->value() );
 
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
-	stlWriProgress.Observe(stlWriter);
+	stlWriProgress.observe(stlWriter);
 	stlWriter->SetFileName( getLocalEncodingFileName(iovMO->le_StlPath->text()).c_str() );
 	stlWriter->SetInputConnection( moSurface->GetOutputPort() );
 	stlWriter->Write();

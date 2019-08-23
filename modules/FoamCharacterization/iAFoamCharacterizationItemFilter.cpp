@@ -129,7 +129,7 @@ void iAFoamCharacterizationItemFilter::executeAnisotropic()
 	pFilter->SetTimeStep(m_dAnisotropicTimeStep);
 	
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	pObserver->Observe(pFilter);
+	pObserver->observe(pFilter);
 	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
 	
 	pFilter->Update();
@@ -157,7 +157,7 @@ void iAFoamCharacterizationItemFilter::executeGaussian()
 	pFilter->SetUseImageSpacing(m_bGaussianImageSpacing);
 
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	pObserver->Observe(pFilter);
+	pObserver->observe(pFilter);
 	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
 
 	pFilter->Update();
@@ -181,7 +181,7 @@ void iAFoamCharacterizationItemFilter::executeMedian()
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->itkImage()));
 	
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	pObserver->Observe(pFilter);
+	pObserver->observe(pFilter);
 	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
 
 	pFilter->Update();
@@ -447,7 +447,7 @@ void iAFoamCharacterizationItemFilter::executeNonLocalMeans()
 	pFilter->SetPatchRadius(m_uiNonLocalMeansRadius);
 
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	pObserver->Observe(pFilter);
+	pObserver->observe(pFilter);
 	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
 
 	pFilter->Update();

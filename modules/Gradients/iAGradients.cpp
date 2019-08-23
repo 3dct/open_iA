@@ -43,7 +43,7 @@ template<class T> void gradient_magnitude(iAFilter* filter, QMap<QString, QVaria
 	auto gmFilter = GMFType::New();
 	gmFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	gmFilter->SetUseImageSpacing(params["Use Image Spacing"].toBool());
-	filter->progress()->Observe(gmFilter);
+	filter->progress()->observe(gmFilter);
 	gmFilter->Update();
 	filter->addOutput(gmFilter->GetOutput());
 }
@@ -83,7 +83,7 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 	derFilter->SetOrder(params["Order"].toUInt());
 	derFilter->SetDirection(params["Direction"].toUInt());
 	derFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()) );
-	filter->progress()->Observe( derFilter );
+	filter->progress()->observe( derFilter );
 	derFilter->Update();
 	filter->addOutput(derFilter->GetOutput());
 }
@@ -122,7 +122,7 @@ void hoa_derivative(iAFilter* filter, QMap<QString, QVariant> const & parameters
 	hoaFilter->SetDirection(parameters["Direction"].toUInt());
 	hoaFilter->SetOrderOfAccuracy(parameters["Order of Accuracy"].toUInt());
 	hoaFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
-	filter->progress()->Observe(hoaFilter);
+	filter->progress()->observe(hoaFilter);
 	hoaFilter->Update();
 	filter->addOutput(hoaFilter->GetOutput());
 }

@@ -247,7 +247,7 @@ template<class T> void kmeansclustering(iAFilter* filter, QMap<QString, QVariant
 	{
 		kmeansFilter->AddClassWithInitialMean(mean.toDouble());
 	}
-	filter->progress()->Observe(kmeansFilter);
+	filter->progress()->observe(kmeansFilter);
 	kmeansFilter->Update();
 	filter->addOutput(kmeansFilter->GetOutput());
 }

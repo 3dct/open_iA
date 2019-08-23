@@ -105,7 +105,7 @@ void iAFoamCharacterizationItemWatershed::executeFloat(iAConnector* _pConnector)
 	pFilter->SetThreshold(m_dThreshold);
 	
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	pObserver->Observe(pFilter);
+	pObserver->observe(pFilter);
 	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
 	
 	pFilter->Update();
@@ -127,7 +127,7 @@ void iAFoamCharacterizationItemWatershed::executeUnsignedShort(iAConnector* _pCo
 	pFilter->SetThreshold(m_dThreshold);
 	
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	pObserver->Observe(pFilter);
+	pObserver->observe(pFilter);
 	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
 	
 	pFilter->Update();

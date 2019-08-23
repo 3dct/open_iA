@@ -118,7 +118,7 @@ void read_raw_image_template (unsigned long headerSize,
 	auto reader = ReaderType::New();
 	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	reader->SetImageIO(io);
-	progress->Observe( reader );
+	progress->observe( reader );
 	reader->Modified();
 	reader->Update();
 	image->setImage(reader->GetOutput());
@@ -133,7 +133,7 @@ void read_image_template(QString const & fileName, iAProgress* progress, iAConne
 	typedef itk::ImageFileReader<InputImageType> ReaderType;
 	auto reader = ReaderType::New();
 	reader->SetFileName( getLocalEncodingFileName(fileName) );
-	progress->Observe( reader );
+	progress->observe( reader );
 	reader->Update();
 	con->setImage(reader->GetOutput());
 	con->modified();
@@ -150,7 +150,7 @@ void write_image_template(bool compression, QString const & fileName,
 	writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	writer->SetInput( dynamic_cast< InputImageType * > ( image->itkImage() ) );
 	writer->SetUseCompression(compression);
-	progress->Observe( writer );
+	progress->observe( writer );
 	writer->Update();
 	writer->ReleaseDataFlagOn();
 }
@@ -982,7 +982,7 @@ void iAIO::readVolumeMHDStack()
 			m_fileNames_volstack->push_back(m_fileName);
 
 		int progress = (m_fileNameArray->GetMaxId() == 0) ? 100 : (m * 100) / m_fileNameArray->GetMaxId();
-		ProgressObserver()->EmitProgress(progress);
+		ProgressObserver()->emitProgress(progress);
 	}
 	addMsg(tr("Loading volume stack completed."));
 	storeIOSettings();
@@ -1001,7 +1001,7 @@ void iAIO::readVolumeStack()
 		if(m_fileNames_volstack)
 			m_fileNames_volstack->push_back(m_fileName);
 		int progress = (m * 100) / m_fileNameArray->GetMaxId();
-		ProgressObserver()->EmitProgress(progress);
+		ProgressObserver()->emitProgress(progress);
 	}
 	addMsg(tr("Loading volume stack completed."));
 	storeIOSettings();
@@ -1032,7 +1032,7 @@ void iAIO::writeVolumeStack()
 	{
 		writeMetaImage(m_volumes->at(m).GetPointer(), m_fileNameArray->GetValue(m).c_str());
 		int progress = (m * 100) / m_fileNameArray->GetMaxId();
-		ProgressObserver()->EmitProgress(progress);
+		ProgressObserver()->emitProgress(progress);
 	}
 }
 
@@ -1067,7 +1067,7 @@ void iAIO::readMetaImage( )
 void iAIO::readSTL( )
 {
 	auto stlReader = vtkSmartPointer<vtkSTLReader>::New();
-	ProgressObserver()->Observe(stlReader);
+	ProgressObserver()->observe(stlReader);
 	stlReader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
 	stlReader->SetOutput(getVtkPolyData());
 	stlReader->Update();
@@ -1463,7 +1463,7 @@ void iAIO::writeMetaImage( vtkSmartPointer<vtkImageData> imgToWrite, QString fil
 void iAIO::writeSTL( )
 {
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
-	ProgressObserver()->Observe(stlWriter);
+	ProgressObserver()->observe(stlWriter);
 	stlWriter->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
 	stlWriter->SetInputData(getVtkPolyData());
 	stlWriter->SetFileTypeToBinary();
@@ -1534,7 +1534,7 @@ void writeImageStack_template(QString const & fileName, iAProgress* p, iAConnect
 	writer->SetFileNames(nameGenerator->GetFileNames());
 	writer->SetInput(dynamic_cast< InputImageType * > (con->itkImage()));
 	writer->SetUseCompression(comp);
-	p->Observe(writer);
+	p->observe(writer);
 	writer->Update();
 }
 
@@ -1668,7 +1668,7 @@ void iAIO::readImageStack()
 		default: throw std::runtime_error("Invalid Image Stack IO id, aborting.");
 	}
 	imgReader->ReleaseDataFlagOn();
-	ProgressObserver()->Observe(imgReader);
+	ProgressObserver()->observe(imgReader);
 	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	imgReader->SetFileNames(m_fileNameArray);
 	imgReader->SetDataOrigin(m_origin);

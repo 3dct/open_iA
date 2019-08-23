@@ -68,7 +68,7 @@ template<class TPixelType> void flip(iAFilter* filter, QString const & axis)
 	flip[1] = (axis == "Y");
 	flip[2] = (axis == "Z");
 	flipFilter->SetFlipAxes(flip);
-	filter->progress()->Observe(flipFilter);
+	filter->progress()->observe(flipFilter);
 	flipFilter->Update();
 	ImageType * outImage = flipFilter->GetOutput();
 	outImage->SetOrigin(origin);
@@ -113,7 +113,7 @@ static void affine(iAFilter* filter, itk::AffineTransform<TPrecision, DIM> * tra
 	resample->SetOutputDirection(inpImage->GetDirection());
 	resample->SetInput(inpImage);
 	resample->SetTransform(transform);
-	filter->progress()->Observe(resample);
+	filter->progress()->observe(resample);
 	resample->Update();
 	filter->addOutput(resample->GetOutput());
 }
@@ -243,7 +243,7 @@ template<class TPixelType> void permute(iAFilter* filter, QString  const & order
 		order[k] = axes - QChar('X').toLatin1();
 	}
 	permFilter->SetOrder(order);
-	filter->progress()->Observe(permFilter);
+	filter->progress()->observe(permFilter);
 	permFilter->Update();
 	filter->addOutput(permFilter->GetOutput());
 }
