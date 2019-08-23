@@ -120,6 +120,12 @@ void iARefDistCompute::run()
 		d.refDiffFiber.resize(fiberCount);
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
+			/*
+			// TODO: Consider curved fibers
+			auto it = d.curveInfo.find(row);
+			if (it != d.curveInfo.end())
+			{ }
+			*/
 			// find the best-matching fibers in reference & compute difference:
 			iAFiberData fiber(d.table, fiberID, mapping);
 			getBestMatches(fiber, mapping, ref.table,
