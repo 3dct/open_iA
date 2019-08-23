@@ -42,8 +42,9 @@ struct iAFiberData
 {
 	double phi, theta, length, diameter;
 	Vec3D pts[3];
+	std::vector<iAVec3f> curvedPoints;
 	iAFiberData();
-	iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping);
+	iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping, std::vector<iAVec3f> curvedPts);
 	iAFiberData(std::vector<double> const & data);
 	static iAFiberData getOrientationCorrected(iAFiberData const & source, iAFiberData const & other);
 };

@@ -31,7 +31,8 @@
 #include <random>
 
 
-iAFiberData::iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping)
+iAFiberData::iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping, std::vector<iAVec3f> curvedPts):
+	curvedPoints(curvedPts)
 {
 	pts[PtStart] = Vec3D(
 		table->GetValue(fiberID, mapping[iACsvConfig::StartX]).ToDouble(),
@@ -161,6 +162,7 @@ namespace
 		Vec3D dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
 		double dist;
 		Vec3D ptOnLine = nearestPointOnLine(fiber.pts[PtStart], dir, point, dist);
+		// TODO: iterate over curved fiber segments
 		if (dist > 0 && dist < dir.length())  // check whether point is between start and end
 		{
 			double radius = fiber.diameter / 2.0;
@@ -178,7 +180,7 @@ namespace
 		// TODO: also map fiber volume (currently not mapped!
 		iAFiberData const & shorterFiber = (!shortFiberDet || fiber1Vol < fiber2Vol) ? fiber1 : fiber2;
 		iAFiberData const & longerFiber  = (!shortFiberDet || fiber1Vol < fiber2Vol) ? fiber2 : fiber1;
-		std::vector<Vec3D > sampledPoints;
+		std::vector<Vec3D> sampledPoints;
 		samplePoints(shorterFiber, sampledPoints, DefaultSamplePoints);
 		size_t containedPoints = 0;
 		for (Vec3D pt : sampledPoints)
@@ -235,6 +237,8 @@ void samplePoints(iAFiberData const & fiber, std::vector<Vec3D > & result, size_
 	.arg(perpDir2[0]).arg(perpDir2[1]).arg(perpDir2[2]));
 	*/
 	result.resize(numSamples);
+
+	// TODO: iterate over curved fiber segments
 
 	for (int i = 0; i < numSamples; ++i)
 	{
