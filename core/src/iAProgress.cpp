@@ -85,3 +85,8 @@ void iAProgress::emitProgress(int p)
 {
 	emit progress(p);
 }
+
+void iAProgress::setStatus(QString const & status)
+{
+	emit statusChanged(status);
+}
