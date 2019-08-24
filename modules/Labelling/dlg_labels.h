@@ -22,6 +22,7 @@
 
 #include "Labelling_export.h"
 
+#include "iAChannelData.h"
 #include "ui_labels.h"
 
 #include <qthelper/iAQTtoUIConnector.h>
@@ -35,6 +36,8 @@ class iASlicer;
 class iAColorTheme;
 class iAModality;
 class MdiChild;
+
+struct OverlayImage;
 
 class QStandardItem;
 class QStandardItemModel;
@@ -59,7 +62,8 @@ public:
 	bool load(QString const & filename);
 	bool store(QString const & filename, bool extendedFormat);
 
-	void addSlicer(iASlicer *slicer, QSharedPointer<iAModality> modality);
+	int addSlicer(iASlicer *slicer, QString name, int *extent, double *spacing, uint channelId=0);
+	void addSlicer(iASlicer *slicer, int imageId, uint channelId=0);
 	void removeSlicer(iASlicer *slicer);
 
 	//void disconnectMainSlicers();
@@ -85,40 +89,45 @@ public slots:
 
 private:
 	void addSeed(int, int, int, iASlicer*);
-	void removeSeed(QStandardItem* item, int x, int y, int z, iASlicer* slicer);
-	QStandardItem* addSeedItem(int label, int x, int y, int z, iASlicer *slicer);
+	void removeSeed(QStandardItem* item, int x, int y, int z, int imageId);
+	QStandardItem* addSeedItem(int label, int x, int y, int z, int imageId);
 	int addLabelItem(QString const & labelText);
 	void appendSeeds(int label, QList<QStandardItem*> const & items);
 	void reInitChannelTF();
 	void recolorItems();
-	void updateChannel(iASlicer* slicer);
+	void updateChannel(iASlicer*);
+	void updateChannels();
+
+	int chooseOverlayImage(QString title);
 
 	iAColorTheme const * m_colorTheme;
 	QString m_fileName;
 
-	struct ModalityOverlayImage {
-		ModalityOverlayImage(QSharedPointer<iAModality> m, vtkSmartPointer<iAvtkImageData> o, iAChannelData cd) : modality(m), overlayImage(o), channelData(cd) {}
-		QSharedPointer<iAModality> modality;
-		vtkSmartPointer<iAvtkImageData> overlayImage;
-		iAChannelData channelData;
-		bool operator ==(ModalityOverlayImage moi) {
-			return moi.modality == modality;
-		}
+	int m_nextId = 0;
+	int getNextId();
+	struct OverlayImage
+	{
+		OverlayImage(int _id, QString _name, vtkSmartPointer<iAvtkImageData> _image) : id(_id), name(_name), image(_image)
+		{}
+		int id;
+		QString name;
+		vtkSmartPointer<iAvtkImageData> image; // label overlay image
+		QList<iASlicer*> slicers;
 	};
-	QList<iASlicer*> m_slicers;
-	// for label overlay:
-	QMap<iASlicer*, ModalityOverlayImage> m_slicersData;
-	//QList<uint> m_labelChannelIds;
+	QMap<int, QSharedPointer<OverlayImage>> m_mapId2image;
+
+	struct SlicerData
+	{
+		SlicerData(iAChannelData _channelData, uint _channelId, QMetaObject::Connection c[3], int id) : channelData(_channelData), channelId(_channelId), overlayImageId(id)
+		{}
+		iAChannelData channelData;
+		int overlayImageId;
+		uint channelId;
+		QMetaObject::Connection connections[3];
+	};
+	QMap<iASlicer*, QSharedPointer<SlicerData>> m_mapSlicer2data;
+
 	vtkSmartPointer<vtkLookupTable> m_labelColorTF;
 	vtkSmartPointer<vtkPiecewiseFunction> m_labelOpacityTF;
 	MdiChild* m_mdiChild;
-
-	//QList<QSharedPointer<iAModality>> m_modalities;
-	//uint m_nextChannelId = 0;
-	//uint nextChannelId();
-
-	struct SlicerConnections {
-		QMetaObject::Connection c[3];
-	};
-	QList<SlicerConnections> m_connections;
 };

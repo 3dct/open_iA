@@ -82,13 +82,13 @@ void iANModalController::_initialize() {
 		auto modality = m_modalities[i];
 
 		auto slicer = _initializeSlicer(modality);
-		m_dlg_labels->addSlicer(slicer);
+		int id = m_dlg_labels->addSlicer(slicer, "noname", modality->image()->GetExtent(), modality->image()->GetSpacing());
 		m_slicers.append(slicer);
 
 		// TODO: remove
 		//continue;
 
-		m_channelIds.push_back(m_mdiChild->createChannel());
+		m_channelIds.push_back(m_mdiChild->createChannel()); // TODO: use own channel ids
 		auto chData = m_mdiChild->channelData(m_channelIds[i]);
 		auto imageData = modality->image();
 		auto ctf = modality->transfer()->colorTF();
