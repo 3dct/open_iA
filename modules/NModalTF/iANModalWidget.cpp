@@ -23,31 +23,76 @@
 
 #include "dlg_labels.h"
 #include "iAModality.h"
+#include "iAModalityList.h"
+#include "iASlicer.h"
+#include "dlg_modalities.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
 
 #include <QStandardItemModel>
+#include <QSizePolicy>
+#include <QGridLayout>
 
 iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 	m_mdiChild = mdiChild;
 	m_c = new iANModalController(mdiChild);
 
-	m_label = new QLabel("n-Modal Transfer Function");
+	// QWidgets
+	QWidget* widgetTop = new QWidget();
+	QWidget *widgetSlicersGrid = new QWidget();
 
-	QPushButton *button = new QPushButton("Click me!");
+	// Layouts
+	QVBoxLayout *layoutMain = new QVBoxLayout();
+	QHBoxLayout *layoutTop = new QHBoxLayout(widgetTop);
+	m_layoutSlicersGrid = new QGridLayout(widgetSlicersGrid);
+	setLayout(layoutMain);
 
-	QHBoxLayout *layout = new QHBoxLayout();
-	layout->addWidget(m_label);
-	layout->addWidget(button);
+	// Other widgets
+	QLabel *labelTitle = new QLabel("n-Modal Transfer Function");
+	
+	// Settings
+	//labelTitle->setSizePolicy(QSizePolicy::Minimum); // DOESN'T WORK!!! WHY???
 
-	setLayout(layout);
+	QPushButton *buttonRefreshModalities = new QPushButton("Refresh modalities");
+	QPushButton* buttonApplyLabels = new QPushButton("Apply labels");
+
+	layoutMain->addWidget(widgetTop);
+	layoutMain->addWidget(widgetSlicersGrid);
+
+	layoutTop->addWidget(labelTitle);
+	layoutTop->addWidget(buttonRefreshModalities);
+	layoutTop->addWidget(buttonApplyLabels);
 
 	// Connect
-	{
-		connect(button, SIGNAL(clicked()), this, SLOT(onButtonClicked()));
+	connect(buttonRefreshModalities, SIGNAL(clicked()), this, SLOT(onButtonRefreshModalitiesClicked()));
+	connect(buttonApplyLabels, SIGNAL(clicked()), this, SLOT(onButtonClicked()));
+
+	connect(m_c, SIGNAL(allSlicersInitialized()), this, SLOT(onAllSlicersInitialized()));
+	connect(m_c, SIGNAL(allSlicersReinitialized()), this, SLOT(onAllSlicersReinitialized()));
+
+	//connect(m_mdiChild->modalitiesDockWidget(), &dlg_modalities::modalitiesChanged, this, &iANModalWidget::onModalitiesChanged);
+
+	auto list = m_mdiChild->modalities();
+	QList<QSharedPointer<iAModality>> modalities;
+	for (int i = 0; i < list->size(); i++) {
+		modalities.append(list->get(i));
 	}
+	modalities = m_c->cherryPickModalities(modalities);
+	m_c->setModalities(modalities);
+	m_c->initialize();
+}
+
+void iANModalWidget::onButtonRefreshModalitiesClicked() {
+	auto list = m_mdiChild->modalities();
+	QList<QSharedPointer<iAModality>> modalities;
+	for (int i = 0; i < list->size(); i++) {
+		modalities.append(list->get(i));
+	}
+	modalities = m_c->cherryPickModalities(modalities);
+	m_c->setModalities(modalities);
+	m_c->reinitialize();
 }
 
 void iANModalWidget::onButtonClicked() {
@@ -58,8 +103,7 @@ void iANModalWidget::onButtonClicked() {
 	QList<LabeledVoxel> voxels;
 
 	{
-		QObject *obj = m_mdiChild->findChild<QObject*>("labels");
-		dlg_labels* labeling = static_cast<dlg_labels*>(obj);
+		auto labeling = m_c->m_dlg_labels;
 
 		QStandardItemModel *items = labeling->m_itemModel;
 		for (int row = 0; row < items->rowCount(); row++) {
@@ -99,4 +143,18 @@ void iANModalWidget::onButtonClicked() {
 	}
 
 	m_c->adjustTf(modality, voxels);
+}
+
+void iANModalWidget::onAllSlicersInitialized() {
+	for (int i = 0; i < m_c->m_slicers.size(); i++) {
+		auto slicer = m_c->m_slicers[i];
+		m_layoutSlicersGrid->addWidget(slicer, 0, i);
+	}
+}
+
+void iANModalWidget::onAllSlicersReinitialized() {
+	while (auto slicer = m_layoutSlicersGrid->takeAt(0)) {
+		delete slicer;
+	}
+	onAllSlicersInitialized();
 }

@@ -44,6 +44,7 @@
 #include <vtkPiecewiseFunction.h>
 
 #include <QFileDialog>
+#include <QInputDialog>
 #include <QListWidgetItem>
 #include <QMessageBox>
 #include <QStandardItemModel>
@@ -59,11 +60,10 @@ namespace
 	typedef int LabelPixelType;
 }
 
-dlg_labels::dlg_labels(MdiChild* mdiChild):
+dlg_labels::dlg_labels(MdiChild* mdiChild, bool addMainSlicers /* = true*/):
 	m_itemModel(new QStandardItemModel()),
 	m_colorTheme(iAColorThemeManager::instance().theme("Brewer Set3 (max. 12)")),
-	m_mdiChild(mdiChild),
-	m_labelChannelID(mdiChild->createChannel())
+	m_mdiChild(mdiChild)
 {
 	cbColorTheme->addItems(iAColorThemeManager::instance().availableThemes());
 	cbColorTheme->setCurrentText(m_colorTheme->name());
@@ -81,41 +81,122 @@ dlg_labels::dlg_labels(MdiChild* mdiChild):
 	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	lvLabels->setModel(m_itemModel);
 
-	//connect(mdiChild->renderer(), &iARenderer::clicked, this, &dlg_labels::rendererClicked);
-
-	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
-	{
-		//connect(mdiChild->slicer(i), &iASlicer::leftClicked, this, &dlg_labels::slicerClicked);
-		//connect(mdiChild->slicer(i), &iASlicer::leftDragged, this, &dlg_labels::slicerDragged);
-		//connect(mdiChild->slicer(i), &iASlicer::rightClicked, this, &dlg_labels::slicerRightClicked);
-
-		auto slicer = mdiChild->slicer(i);
-		auto mode = slicer->mode();
-
-		connect(slicer, &iASlicer::leftClicked,  this, [this, mode] (int x, int y, int z) { slicerClicked(x, y, z, mode); });
-		connect(slicer, &iASlicer::leftDragged,  this, [this, mode] (int x, int y, int z) { slicerDragged(x, y, z, mode); });
-		connect(slicer, &iASlicer::rightClicked, this, [this, mode] (int x, int y, int z) { slicerRightClicked(x, y, z, mode); });
+	if (addMainSlicers) {
+		uint channelId = m_mdiChild->createChannel();
+		auto ip = m_mdiChild->imagePointer();
+		int id = addSlicer(m_mdiChild->slicer(iASlicerMode::XY), "Main XY", ip->GetExtent(), ip->GetSpacing(), channelId);
+		addSlicer(m_mdiChild->slicer(iASlicerMode::XZ), id, channelId);
+		addSlicer(m_mdiChild->slicer(iASlicerMode::YZ), id, channelId);
 	}
+}
+
+int dlg_labels::getNextId() {
+	int id = m_nextId;
+	m_nextId++;
+	return id;
+}
+
+int dlg_labels::addSlicer(iASlicer* slicer, QString name, int* extent, double* spacing, uint channelId /* = 0 */)
+{
+	assert(!m_mapSlicer2data.contains(slicer));
+
+	int imageId = getNextId();
+
+	auto labelOverlayImg = vtkSmartPointer<iAvtkImageData>::New();
+	labelOverlayImg->SetExtent(extent);
+	labelOverlayImg->SetSpacing(spacing);
+	labelOverlayImg->AllocateScalars(VTK_INT, 1);
+	clearImage<LabelPixelType>(labelOverlayImg, 0);
+
+	OverlayImage *image = new OverlayImage(imageId, name, labelOverlayImg);
+	m_mapId2image.insert(imageId, QSharedPointer<OverlayImage>(image));
+
+	addSlicer(slicer, imageId, channelId);
+
+	return imageId;
+}
+
+void dlg_labels::addSlicer(iASlicer *slicer, int imageId, uint channelId /* = 0 */)
+{
+	QSharedPointer<OverlayImage> oi = m_mapId2image.value(imageId);
+	if (!oi) {
+		// TODO: throw error
+		assert(false);
+	}
+
+	oi->slicers.append(slicer);
+
+	QSharedPointer<SlicerData> data = m_mapSlicer2data.value(slicer);
+	if (data.isNull())
+	{
+		int id = oi->id;
+
+		QMetaObject::Connection c[3];
+		c[0] = connect(slicer, &iASlicer::leftClicked, this, [this, slicer](int x, int y, int z) { slicerClicked(x, y, z, slicer); });
+		c[1] = connect(slicer, &iASlicer::leftDragged, this, [this, slicer](int x, int y, int z) { slicerDragged(x, y, z, slicer); });
+		c[2] = connect(slicer, &iASlicer::rightClicked, this, [this, slicer](int x, int y, int z) { slicerRightClicked(x, y, z, slicer); });
+		
+		auto channelData = iAChannelData("name", oi->image, m_labelColorTF, m_labelOpacityTF);
+		slicer->addChannel(channelId, channelData, true);
+
+		auto data = new SlicerData(channelData, channelId, c, id);
+		m_mapSlicer2data.insert(slicer, QSharedPointer<SlicerData>(data));
+	}
+	else
+	{
+		if (!data->overlayImageId != imageId)
+		{
+			//TODO: throw error
+			assert(false);
+		}
+		// else: do nothing
+	}
+}
+
+void dlg_labels::removeSlicer(iASlicer* slicer)
+{
+	auto data = m_mapSlicer2data.value(slicer);
+	if (!data) {
+		return;
+	}
+
+	// WARNING
+	// Adding same slicer twice is not allowed (see assert in 'addSlicer(iASlicer*, QString, int*, double*)')
+	// So we can assume here that no slicer has been added twice
+
+	QSharedPointer<OverlayImage> oi = m_mapId2image.value(data->overlayImageId);
+	oi->slicers.removeOne(slicer);
+	if (oi->slicers.isEmpty()) {
+		m_mapId2image.remove(data->overlayImageId);
+	}
+
+	auto c = data->connections;
+	disconnect(c[0]);
+	disconnect(c[1]);
+	disconnect(c[2]);
+
+	m_mapSlicer2data.remove(slicer);
 }
 
 namespace
 {
-	QStandardItem* createCoordinateItem(int x, int y, int z)
+	QStandardItem* createCoordinateItem(int x, int y, int z, int overlayImageId)
 	{
 		QStandardItem* item = new QStandardItem("(" + QString::number(x) + ", " + QString::number(y) + ", " + QString::number(z) + ")");
 		item->setData(x, Qt::UserRole + 1);
 		item->setData(y, Qt::UserRole + 2);
 		item->setData(z, Qt::UserRole + 3);
+		item->setData(overlayImageId, Qt::UserRole + 4);
 		return item;
 	}
 }
 
-void dlg_labels::rendererClicked(int x, int y, int z, iASlicerMode mode)
+void dlg_labels::rendererClicked(int x, int y, int z, iASlicer *slicer)
 {
-	addSeed(x, y, z, mode);
+	addSeed(x, y, z, slicer);
 }
 
-int findSeed(QStandardItem* labelItem, int x, int y, int z)
+int findSeed(QStandardItem* labelItem, int x, int y, int z, int overlayImageId)
 {
 	for (int i = 0; i<labelItem->rowCount(); ++i)
 	{
@@ -123,18 +204,20 @@ int findSeed(QStandardItem* labelItem, int x, int y, int z)
 		int ix = coordItem->data(Qt::UserRole + 1).toInt();
 		int iy = coordItem->data(Qt::UserRole + 2).toInt();
 		int iz = coordItem->data(Qt::UserRole + 3).toInt();
-		if (x == ix && y == iy && z == iz)
+		int ioverlayImageId = coordItem->data(Qt::UserRole + 4).toInt();
+
+		if (x == ix && y == iy && z == iz && overlayImageId == ioverlayImageId)
 			return i;
 	}
 	return -1;
 }
 
-bool seedAlreadyExists(QStandardItem* labelItem, int x, int y, int z)
+bool seedAlreadyExists(QStandardItem* labelItem, int x, int y, int z, int imgId) // TODO
 {
-	return findSeed(labelItem, x, y, z) != -1;
+	return findSeed(labelItem, x, y, z, imgId) != -1;
 }
 
-void dlg_labels::addSeed(int cx, int cy, int cz, iASlicerMode mode)
+void dlg_labels::addSeed(int cx, int cy, int cz, iASlicer* slicer)
 {
 	iAVec3i center(cx, cy, cz);
 	if (!cbEnableEditing->isChecked())
@@ -150,8 +233,13 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicerMode mode)
 
 	int radius = spinBox->value() - 1; // -1 because the center voxel shouldn't count
 	iATimeGuard timer(QString("Drawing circle of radius %1").arg(radius).toStdString());
-	auto extent = m_labelOverlayImg->GetExtent();
-	
+
+	int imageId = m_mapSlicer2data.value(slicer)->overlayImageId;
+	QSharedPointer<OverlayImage> oi = m_mapId2image.value(imageId);
+
+	auto extent = oi->image->GetExtent();
+	auto mode = slicer->mode();
+
 	int xAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::X),
 		yAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::Y),
 		minSlicerX = vtkMath::Max(center[xAxis] - radius, extent[xAxis * 2]),
@@ -169,10 +257,11 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicerMode mode)
 		{
 			int dx = coord[xAxis] - center[xAxis];
 			int dy = coord[yAxis] - center[yAxis];
-			double squareDis = dx*dx + dy*dy;
+			double squareDis = dx * dx + dy * dy;
 			if (squareDis <= squareRadius)
 			{
-				auto item = addSeedItem(labelRow, coord[0], coord[1], coord[2]);
+				auto imageId = m_mapSlicer2data.value(slicer)->overlayImageId;
+				auto item = addSeedItem(labelRow, coord[0], coord[1], coord[2], imageId);
 				if (item)
 					items.append(item);
 			}
@@ -181,40 +270,42 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicerMode mode)
 	if (items.size() == 0)
 		return;
 	appendSeeds(labelRow, items);
-	updateChannel();
+	updateChannels(imageId);
 }
 
-void dlg_labels::slicerClicked(int x, int y, int z, iASlicerMode mode)
+void dlg_labels::slicerClicked(int x, int y, int z, iASlicer *slicer)
 {
-	addSeed(x, y, z, mode);
+	addSeed(x, y, z, slicer);
 }
 
-void dlg_labels::slicerDragged(int x, int y, int z, iASlicerMode mode)
+void dlg_labels::slicerDragged(int x, int y, int z, iASlicer *slicer)
 {
-	addSeed(x, y, z, mode);
+	addSeed(x, y, z, slicer);
 }
 
-void dlg_labels::slicerRightClicked(int x, int y, int z, iASlicerMode mode)
+void dlg_labels::slicerRightClicked(int x, int y, int z, iASlicer *slicer)
 {
+	auto data = m_mapSlicer2data.value(slicer);
 	for (int l = 0; l < m_itemModel->rowCount(); ++l)
 	{
-		int idx = findSeed(m_itemModel->item(l), x, y, z);
+		int idx = findSeed(m_itemModel->item(l), x, y, z, data->overlayImageId);
 		if (idx != -1)
 		{
-			removeSeed(m_itemModel->item(l)->child(idx), x, y, z);
-			updateChannel();
+			int overlayImageId = data->overlayImageId;
+			removeSeed(m_itemModel->item(l)->child(idx), x, y, z, overlayImageId);
+			updateChannels(overlayImageId);
 			break;
 		}
 	}
 }
 
-QStandardItem* dlg_labels::addSeedItem(int labelRow, int x, int y, int z)
+QStandardItem* dlg_labels::addSeedItem(int labelRow, int x, int y, int z, int imageId)
 {
 	// make sure we're not adding the same seed twice:
 	for (int l = 0; l < m_itemModel->rowCount(); ++l)
 	{
 		auto item = m_itemModel->item(l);
-		int childIdx = findSeed(item, x, y, z);
+		int childIdx = findSeed(item, x, y, z, imageId);
 		if (childIdx != -1)
 		{
 			if (l == labelRow)
@@ -222,11 +313,12 @@ QStandardItem* dlg_labels::addSeedItem(int labelRow, int x, int y, int z)
 			else
 				// seed already exists with different label; need to remove other
 				// TODO: do that removal somehow "in batch" too?
-				removeSeed(item->child(childIdx), x, y, z);
+				removeSeed(item->child(childIdx), x, y, z, imageId);
 		}
 	}
-	drawPixel<LabelPixelType>(m_labelOverlayImg, x, y, z, labelRow + 1);
-	return createCoordinateItem(x, y, z);
+	auto image = m_mapId2image.value(imageId)->image;
+	drawPixel<LabelPixelType>(image, x, y, z, labelRow + 1);
+	return createCoordinateItem(x, y, z, imageId);
 }
 
 void dlg_labels::appendSeeds(int label, QList<QStandardItem*> const & items)
@@ -237,14 +329,6 @@ void dlg_labels::appendSeeds(int label, QList<QStandardItem*> const & items)
 
 int dlg_labels::addLabelItem(QString const & labelText)
 {
-	if (!m_labelOverlayImg)
-	{
-		m_labelOverlayImg = vtkSmartPointer<iAvtkImageData>::New();
-		m_labelOverlayImg->SetExtent(m_mdiChild->imagePointer()->GetExtent());
-		m_labelOverlayImg->SetSpacing(m_mdiChild->imagePointer()->GetSpacing());
-		m_labelOverlayImg->AllocateScalars(VTK_INT, 1);
-		clearImage<LabelPixelType>(m_labelOverlayImg, 0);
-	}
 	QStandardItem* newItem = new QStandardItem(labelText);
 	QStandardItem* newItemCount = new QStandardItem("0");
 	newItem->setData(m_colorTheme->color(m_itemModel->rowCount()), Qt::DecorationRole);
@@ -274,12 +358,36 @@ void dlg_labels::recolorItems()
 		m_itemModel->item(row)->setData(m_colorTheme->color(row), Qt::DecorationRole);
 }
 
-void dlg_labels::updateChannel()
+void dlg_labels::updateChannels() {
+	for (auto slicer : m_mapSlicer2data.keys()) {
+		updateChannel(slicer);
+	}
+}
+
+void dlg_labels::updateChannels(int imageId)
 {
-	m_labelOverlayImg->Modified();
-	m_labelOverlayImg->SetScalarRange(0, m_itemModel->rowCount());
-	m_mdiChild->updateChannel(m_labelChannelID, m_labelOverlayImg, m_labelColorTF, m_labelOpacityTF, true);
-	m_mdiChild->updateViews();
+	for (auto slicer : m_mapId2image.value(imageId)->slicers)
+	{
+		updateChannel(slicer);
+	}
+}
+
+void dlg_labels::updateChannel(iASlicer *slicer)
+{
+	auto slicerData = m_mapSlicer2data.value(slicer);
+	auto imageId = slicerData->overlayImageId;
+	QSharedPointer<OverlayImage> oi = m_mapId2image.value(imageId);
+	auto img = oi->image;
+	img->Modified();
+	img->SetScalarRange(0, m_itemModel->rowCount());
+
+	auto channelData = slicerData->channelData;
+	channelData.setColorTF(m_labelColorTF);
+	channelData.setOpacityTF(m_labelOpacityTF);
+
+	slicer->updateChannel(slicerData->channelId, channelData);
+	//slicer->updateChannelMappers // TODO: call this on color pallet changed?
+	slicer->update();
 }
 
 void dlg_labels::remove()
@@ -313,7 +421,9 @@ void dlg_labels::remove()
 			int x = seed->data(Qt::UserRole + 1).toInt();
 			int y = seed->data(Qt::UserRole + 2).toInt();
 			int z = seed->data(Qt::UserRole + 3).toInt();
-			drawPixel<LabelPixelType>(m_labelOverlayImg, x, y, z, 0);
+			for (QSharedPointer<OverlayImage> oi : m_mapId2image.values()) {
+				drawPixel<LabelPixelType>(oi->image, x, y, z, 0);
+			}
 		}
 		m_itemModel->removeRow(curLabel);
 		for (int l = curLabel; l < m_itemModel->rowCount(); ++l)
@@ -326,7 +436,9 @@ void dlg_labels::remove()
 				int x = seed->data(Qt::UserRole + 1).toInt();
 				int y = seed->data(Qt::UserRole + 2).toInt();
 				int z = seed->data(Qt::UserRole + 3).toInt();
-				drawPixel<LabelPixelType>(m_labelOverlayImg, x, y, z, l+1);
+				for (QSharedPointer<OverlayImage> oi : m_mapId2image.values()) {
+					drawPixel<LabelPixelType>(oi->image, x, y, z, l + 1);
+				}
 			}
 		}
 		if (m_itemModel->rowCount() == 0)
@@ -334,21 +446,25 @@ void dlg_labels::remove()
 			pbStore->setEnabled(false);
 		}
 		recolorItems();
-		updateChannel();
+		updateChannels();
 	}
 	else
-	{							// remove a single seed
+	{	// remove a single seed
 		int x = item->data(Qt::UserRole + 1).toInt();
 		int y = item->data(Qt::UserRole + 2).toInt();
 		int z = item->data(Qt::UserRole + 3).toInt();
-		removeSeed(item, x, y, z);
-		updateChannel();
+		for (QSharedPointer<OverlayImage> oi : m_mapId2image.values()) {
+			int id = oi->id;
+			removeSeed(item, x, y, z, id);
+		}
+		updateChannels();
 	}
 }
 
-void dlg_labels::removeSeed(QStandardItem* item, int x, int y, int z)
+void dlg_labels::removeSeed(QStandardItem* item, int x, int y, int z, int imageId)
 {
-	drawPixel<LabelPixelType>(m_labelOverlayImg, x, y, z, 0);
+	QSharedPointer<OverlayImage> oi = m_mapId2image.value(imageId);
+	drawPixel<LabelPixelType>(oi->image, x, y, z, 0);
 	int labelRow = item->parent()->row();
 	item->parent()->removeRow(item->row());
 	m_itemModel->item(labelRow, 1)->setText(QString::number(m_itemModel->item(labelRow, 1)->text().toInt() - 1));
@@ -375,12 +491,46 @@ int dlg_labels::seedCount(int labelIdx) const
 	return labelItem->rowCount();
 }
 
+int dlg_labels::chooseOverlayImage(QString title)
+{
+	int size = m_mapId2image.size();
+	if (size == 0)
+	{
+		return -1;
+	}
+	else if (size == 1)
+	{
+		return m_mapId2image.first()->id;
+	}
+
+	QStringList items;
+	QMap<QString, int> map;
+	for (QSharedPointer<OverlayImage> oi : m_mapId2image.values()) {
+		QString name = oi->name;
+		items.append(name);
+		map.insert(name, oi->id);
+	}
+
+	bool ok;
+	QString selectedString = QInputDialog::getItem(this, title, "Images", items, 0, false, &ok);
+	if (!ok || selectedString.isEmpty()) {
+		return -1;
+	}
+
+	return map.value(selectedString);
+}
+
 bool dlg_labels::load(QString const & filename)
 {
-	if (m_labelOverlayImg)
+	int id = chooseOverlayImage("Choose an image to load onto");
+	if (id == -1)
 	{
-		clearImage<LabelPixelType>(m_labelOverlayImg, 0);
+		return false;
 	}
+	QSharedPointer<OverlayImage> oi = m_mapId2image.value(id);
+	
+	clearImage<LabelPixelType>(oi->image, 0);
+
 	m_itemModel->clear();
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
 	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
@@ -439,7 +589,7 @@ bool dlg_labels::load(QString const & filename)
 				int x = stream.attributes().value("x").toInt();
 				int y = stream.attributes().value("y").toInt();
 				int z = stream.attributes().value("z").toInt();
-				auto item = addSeedItem(curLabelRow, x, y, z);
+				auto item = addSeedItem(curLabelRow, x, y, z, oi->id);
 				if (item)
 					items.append(item);
 				else
@@ -470,12 +620,19 @@ bool dlg_labels::load(QString const & filename)
 	m_fileName = MakeAbsolute(fileInfo.absolutePath(), filename);
 	pbStore->setEnabled(enableStoreBtn);
 	reInitChannelTF();
-	updateChannel();
+	updateChannels();
 	return true;
 }
 
 bool dlg_labels::store(QString const & filename, bool extendedFormat)
 {
+	int id = chooseOverlayImage("Choose a label overlay image to store");
+	if (id == -1)
+	{
+		return false;
+	}
+	QSharedPointer<OverlayImage> oi = m_mapId2image.value(id);
+
 	QFile file(filename);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
 	{	
@@ -580,6 +737,14 @@ void dlg_labels::storeLabels()
 
 void dlg_labels::storeImage()
 {
+	int id = chooseOverlayImage("Choose image to store");
+	if (id == -1)
+	{
+		return;
+	}
+
+	auto labelOverlayImage = m_mapId2image.value(id)->image;
+
 	QString fileName = QFileDialog::getSaveFileName(
 		QApplication::activeWindow(),
 		tr("Save Seeds as Image"),
@@ -592,7 +757,7 @@ void dlg_labels::storeImage()
 	}
 	vtkMetaImageWriter *metaImageWriter = vtkMetaImageWriter::New();
 	metaImageWriter->SetFileName( getLocalEncodingFileName(fileName).c_str() );
-	metaImageWriter->SetInputData(m_labelOverlayImg);
+	metaImageWriter->SetInputData(labelOverlayImage);
 	metaImageWriter->SetCompression( false );
 	metaImageWriter->Write();
 	metaImageWriter->Delete();
@@ -612,6 +777,13 @@ bool haveAllSeeds(QVector<int> const & label2SeedCounts, std::vector<int> const 
 
 void dlg_labels::sample()
 {
+	int imageId = chooseOverlayImage("Choose an image to sample");
+	if (imageId == -1)
+	{
+		return;
+	}
+	QSharedPointer<OverlayImage> oi = m_mapId2image.value(imageId);
+
 	int gt = m_mdiChild->chooseModalityNr("Choose Ground Truth");
 	vtkSmartPointer<vtkImageData> img = m_mdiChild->modality(gt)->image();
 	int labelCount = img->GetScalarRange()[1]+1;
@@ -688,10 +860,10 @@ void dlg_labels::sample()
 		int z = zDist(gen);
 		int label = static_cast<int>(img->GetScalarComponentAsFloat(x, y, z, 0));
 
-		if (label2SeedCount[label] < numOfSeedsPerLabel[label] && !seedAlreadyExists(m_itemModel->item(label), x, y, z))
+		if (label2SeedCount[label] < numOfSeedsPerLabel[label] && !seedAlreadyExists(m_itemModel->item(label), x, y, z, imageId))
 		{
 			// m_itemModel->item(label)->appendRow(GetCoordinateItem(x, y, z));
-			auto item = addSeedItem(label, x, y, z);
+			auto item = addSeedItem(label, x, y, z, oi->id);
 			if (item)
 			{
 				label2SeedCount[label]++;
@@ -704,17 +876,20 @@ void dlg_labels::sample()
 		appendSeeds(l, items[l]);
 	}
 	reInitChannelTF();
-	updateChannel();
+	updateChannels();
 	pbStore->setEnabled(true);
 }
 
 void dlg_labels::clear()
 {
-	if (m_labelOverlayImg)
-	{
-		clearImage<LabelPixelType>(m_labelOverlayImg, 0);
-		updateChannel();
+	for (QSharedPointer<OverlayImage> oi : m_mapId2image.values()) {
+		auto img = oi->image;
+		if (img)
+		{
+			clearImage<LabelPixelType>(img, 0);
+		}
 	}
+	updateChannels();
 	m_itemModel->clear();
 }
 
@@ -728,12 +903,21 @@ void dlg_labels::colorThemeChanged(QString const & newThemeName)
 	m_colorTheme = iAColorThemeManager::instance().theme(newThemeName);
 	reInitChannelTF();
 	recolorItems();
-	if (m_labelOverlayImg)
-		updateChannel();
+	updateChannels();
 }
 
 void dlg_labels::opacityChanged(int newValue)
 {
 	double opacity = static_cast<double>(newValue) / slOpacity->maximum();
-	m_mdiChild->updateChannelOpacity(m_labelChannelID, opacity);
+	for (auto slicer : m_mapSlicer2data.keys())
+	{
+		auto data = m_mapSlicer2data.value(slicer);
+
+		auto channelData = &data->channelData;
+		channelData->setOpacity(opacity);
+
+		slicer->setChannelOpacity(data->channelId, opacity);
+
+		slicer->update();
+	}
 }
