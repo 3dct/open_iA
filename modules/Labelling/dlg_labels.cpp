@@ -149,6 +149,7 @@ void dlg_labels::addSlicer(iASlicer *slicer, int imageId, uint channelId /* = 0 
 			//TODO: throw error
 			assert(false);
 		}
+		// else: do nothing
 	}
 }
 
@@ -269,7 +270,7 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicer* slicer)
 	if (items.size() == 0)
 		return;
 	appendSeeds(labelRow, items);
-	updateChannel(slicer);
+	updateChannels(imageId);
 }
 
 void dlg_labels::slicerClicked(int x, int y, int z, iASlicer *slicer)
@@ -292,7 +293,7 @@ void dlg_labels::slicerRightClicked(int x, int y, int z, iASlicer *slicer)
 		{
 			int overlayImageId = data->overlayImageId;
 			removeSeed(m_itemModel->item(l)->child(idx), x, y, z, overlayImageId);
-			updateChannel(slicer);
+			updateChannels(overlayImageId);
 			break;
 		}
 	}
@@ -363,6 +364,14 @@ void dlg_labels::updateChannels() {
 	}
 }
 
+void dlg_labels::updateChannels(int imageId)
+{
+	for (auto slicer : m_mapId2image.value(imageId)->slicers)
+	{
+		updateChannel(slicer);
+	}
+}
+
 void dlg_labels::updateChannel(iASlicer *slicer)
 {
 	auto slicerData = m_mapSlicer2data.value(slicer);
@@ -372,7 +381,11 @@ void dlg_labels::updateChannel(iASlicer *slicer)
 	img->Modified();
 	img->SetScalarRange(0, m_itemModel->rowCount());
 
-	slicer->updateChannel(slicerData->channelId, slicerData->channelData);
+	auto channelData = slicerData->channelData;
+	channelData.setColorTF(m_labelColorTF);
+	channelData.setOpacityTF(m_labelOpacityTF);
+
+	slicer->updateChannel(slicerData->channelId, channelData);
 	//slicer->updateChannelMappers // TODO: call this on color pallet changed?
 	slicer->update();
 }

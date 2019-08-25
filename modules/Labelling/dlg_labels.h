@@ -95,8 +95,9 @@ private:
 	void appendSeeds(int label, QList<QStandardItem*> const & items);
 	void reInitChannelTF();
 	void recolorItems();
-	void updateChannel(iASlicer*);
 	void updateChannels();
+	void updateChannels(int imageId);
+	void updateChannel(iASlicer*);
 
 	int chooseOverlayImage(QString title);
 
