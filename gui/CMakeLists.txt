@@ -54,8 +54,10 @@ ENDIF (MSVC)
 
 IF (BUILD_TESTING)
 	IF (MSVC)
+		# use the created .bat which makes sure all required dll's are in the path:
 		SET (FileOpenTestBinary "${CMAKE_BINARY_DIR}/x64/open_iA_gui_Release.bat")
 	ELSE()
+		# when running under cron, it's not running in an X session - we need to emulate one with xvfb!
 		SET (FileOpenTestBinary "${CMAKE_SOURCE_DIR}/test/run_with_xserver.sh" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${EXECUTABLE_NAME}")
 	ENDIF()
 	ADD_TEST(NAME FileOpenTest COMMAND ${FileOpenTestBinary} ${CMAKE_SOURCE_DIR}/test/data/test2x2x2.mhd --quit 3000)
