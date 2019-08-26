@@ -46,7 +46,7 @@ public:
 	//init Axis in x and y, also with ticks
 	void initAxes(double xmin, double xmax, double ymin, double yMax, bool setDefaultAxis); 	
 	
-	//void prepareDataSeries(QXYSeries *aSeries, const std::vector<double> &x_vals, const std::vector<double> &y_vals, QString *grText, bool updateCoords);
+	
 	void prepareDataSeries(QXYSeries* aSeries, const std::vector<double>& x_vals, const std::vector<double>& y_vals, QString* grText, bool useDefaultValues, bool updateCoords);
 	void addSeries(QXYSeries* aSeries, bool disableMarker);
 	
