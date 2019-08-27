@@ -75,7 +75,7 @@ void iAVRModuleInterface::info()
 	char runtimePath[MaxRuntimePathLength];
 	vr::VR_GetRuntimePath(runtimePath, MaxRuntimePathLength, &actualLength);
 #else // OpenVR <= 1.3.22:
-	char const * runtimePath = vr::VR_RuntimePath(runtimePath, MaxRuntimePathLength, &actualLength);
+	char const * runtimePath = vr::VR_RuntimePath();
 #endif
 	DEBUG_LOG(QString("    OpenVR runtime path: %1").arg(runtimePath));
 	DEBUG_LOG(QString("    Head-mounted display present: %1").arg(vr::VR_IsHmdPresent() ? "yes" : "no"));
