@@ -77,6 +77,8 @@ MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
 :: del %TEST_Bin_DIR%\modules\moc_*
 ctest -D Experimental -C %BUILD_TYPE%
 
+del %TEST_BIN_DIR%\Testing\Temporary\*.mhd %TEST_BIN_DIR%\Testing\Temporary\*.raw
+
 :: iterate over module tests, run build&tests for each:
 FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
 	@echo(
@@ -89,6 +91,7 @@ FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
 	:: del %TEST_Bin_DIR%\core\moc_*
 	:: del %TEST_Bin_DIR%\modules\moc_*
 	ctest -D Experimental -C %BUILD_TYPE%
+	del %TEST_BIN_DIR%\Testing\Temporary\*.mhd %TEST_BIN_DIR%\Testing\Temporary\*.raw
 )
 
 :: CLEANUP:
