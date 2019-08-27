@@ -45,6 +45,7 @@ ENDIF()
 #-------------------------
 # Subdirectories
 #-------------------------
+SET (TEST_DATA_DIR "${CMAKE_SOURCE_DIR}/test/data")
 ADD_SUBDIRECTORY(core)
 
 SET (EXE_NAME "open_iA${CMAKE_EXECUTABLE_SUFFIX}")
