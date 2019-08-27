@@ -218,6 +218,17 @@ void ThesholdCalculator::specifyRange(const std::vector<double>& v_inRef, const 
 
 }
 
+
+void ThesholdCalculator::rangeFromParamRanges(const threshold_defs::ParametersRanges& ranges, threshold_defs::ParametersRanges& outValues, double min, double max) {
+	try {
+		this->specifyRange(ranges.getXRange(), ranges.getYRange(), outValues, min, max);
+	}
+	catch (std::invalid_argument& iave) {
+		throw; 
+	}
+}
+
+
 void ThesholdCalculator::calculateMovingAverage(const std::vector<double> &v_in, std::vector<double> &v_out, unsigned int count)
 {
 	DEBUG_LOG("Calculate average");	

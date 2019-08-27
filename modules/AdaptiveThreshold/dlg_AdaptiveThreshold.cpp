@@ -72,7 +72,7 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_selectRange, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClicked()));
 	connect(this->btn_MinMax, SIGNAL(clicked()), this, SLOT(buttonMinMaxClicked())); 
 	connect(this->btn_redraw, SIGNAL(clicked()), this, SLOT(redrawPlots())); 
-	connect(this->btn_VisPoints, SIGNAL(clicked()), this, SLOT(buttonCreatePointsandVisualizseIntersection())); 
+	connect(this->btn_VisPoints, SIGNAL(clicked()), this, SLOT(determineIntersection())); 
 	connect(this->btn_rescaleToDefault, SIGNAL(clicked()), this, SLOT(rescaleToMinMax())); 
 	connect(this->btn_normalize, SIGNAL(clicked()), this, SLOT(buttonNormalizedClicked())); 
 
@@ -233,14 +233,12 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 
 		
 
-		threshold_defs::ParametersRanges GlobalValueRangeXY; 
+		threshold_defs::ParametersRanges NormalizedGlobalValueRangeXY; 
 		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, 
-			GlobalValueRangeXY, m_graphValuesScope.getxmin(), m_graphValuesScope.getXMax()); 
+			NormalizedGlobalValueRangeXY, m_graphValuesScope.getxmin(), m_graphValuesScope.getXMax()); 
 
 		threshold_defs::ParametersRanges paramRanges;	
-		//m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, RangeToBeNormalized, /*m_thresCalculator->f*/)
-
-				
+						
 		//input grauwerte und moving freqs, output is paramRanges
 		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, paramRanges, ranges.XRangeMIn, ranges.XRangeMax/*x_min, x_max*/);
 		
@@ -249,9 +247,7 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		//calculate lokal peaks
 		auto resultingthrPeaks = m_thresCalculator.calcMinMax(paramRanges);
 		
-		//determinMaxPeak; 
-
-
+		//determinMaxPeak; 		
 		//when peaks not calculated define this manually
 		OptionallyUpdateThrPeaks(selectedData, resultingthrPeaks); //TODO check this
 
@@ -262,23 +258,24 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 
 		std::vector<double> tmp_Max = maxPeakMaterialRanges.getXRange();
 		double globalMax = m_thresCalculator.getMaxPeakofRange(tmp_Max); //passt 
-		double lokalMax = resultingthrPeaks.getAirPeakThr()/*m_thresCalculator.getGreyThrPeakAir()*/;
+		double lokalMax = resultingthrPeaks.getAirPeakThr();
 		 
-	
-		m_thresCalculator.performNormalisation(GlobalValueRangeXY, lokalMax, globalMax);
-		this->scaleGraphToMinMax(GlobalValueRangeXY);
+		//min max normalization
+		m_thresCalculator.performNormalisation(NormalizedGlobalValueRangeXY, lokalMax, globalMax);
+		m_thresCalculator.setNormalizedRange(NormalizedGlobalValueRangeXY); 
+		this->scaleGraphToMinMax(NormalizedGlobalValueRangeXY);
 		
+		this->ed_xMIn->setText(QString("%1").arg(NormalizedGlobalValueRangeXY.getXMin())); 
+		this->ed_xMax->setText(QString("%1").arg(NormalizedGlobalValueRangeXY.getXMax())); 
 
-		auto* GlobalRangeGraph = ChartVisHelper::createLineSeries(GlobalValueRangeXY);
+
+		auto* GlobalRangeGraph = ChartVisHelper::createLineSeries(NormalizedGlobalValueRangeXY);
 		GlobalRangeGraph->setColor(QColor(255, 0, 0));
 		GlobalRangeGraph->setName("Normalized Series"); 
 
 		this->addSeries(GlobalRangeGraph,false);
-		//m_
-		
-		//m_thresCalculator.
+				
 		//fair*0.5f; 
-
 		resultingthrPeaks.fAirPeakHalf(resultingthrPeaks.FreqPeakLokalMaxY() / 2.0f); //f_air/2.0;
 		
 		//iso 50 as grey threshold		
@@ -287,6 +284,9 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 
 		m_thresCalculator.setThresMinMax(resultingthrPeaks);
 		
+
+		this->writeResultText(resultingthrPeaks.resultsToString()); 
+
 		QPointF f1 = QPointF(resultingthrPeaks.Iso50ValueThr(), m_graphValuesScope.getYMax());
 		QPointF f2 = QPointF(resultingthrPeaks.Iso50ValueThr(), 0);
 				
@@ -304,6 +304,7 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		
 		QColor cl_green = QColor(255, 0, 0);
 		QString sr_text = "Max Peak Range";
+		
 		visualizeSeries(maxPeakMaterialRanges, cl_green, &sr_text); 
 		createVisualisation(paramRanges, resultingthrPeaks);
 		assignValuesToField(resultingthrPeaks);
@@ -408,7 +409,7 @@ void AdaptiveThreshold::createVisualisation(threshold_defs::ParametersRanges par
 		this->addAllSeries(data, true);
 		m_chartView->update();
 				
-		this->writeDebugText(thrPeaks.toString());
+		this->writeDebugText(thrPeaks.MinMaxToString());
 	}
 	catch (std::invalid_argument iae) {
 		throw; 
@@ -434,99 +435,105 @@ void AdaptiveThreshold::visualizeSeries(threshold_defs::ParametersRanges ParamRa
 	m_chartView->update(); 
 }
 
-void AdaptiveThreshold::buttonCreatePointsandVisualizseIntersection()
+void AdaptiveThreshold::determineIntersection()
 {
 	//workflow select range for choosing points
 	//calculate first intersection within the range
 	//visualiseIntersectionPoint
+	
+		double xmin, xmax;
+		xmin = this->ed_ptXmin->text().toDouble();
+		xmax = this->ed_pt_xMax->text().toDouble();
 
-	double xmin, xmax; 
-	xmin = this->ed_ptXmin->text().toDouble(); 
-	xmax = this->ed_pt_xMax->text().toDouble(); 
+		if ((xmin > 0) && (xmax > 0) && (xmax > xmin)) {
+			if (m_greyThresholds.size() > 0)
+			{
+				try
+				{
 
-	if ((xmin > 0) && (xmax > 0) && (xmax > xmin)) {
-		if (m_greyThresholds.size() > 0)
-		{
+				if (m_movingFrequencies.size() == 0) {
+					this->textEdit->append("\nMoving Frequencies not created");
+					return;
+				}
 
-			if (m_movingFrequencies.size() == 0) {
-				this->textEdit->append("\nMoving Frequencies not created");
-				return;
-			}
-			
-			QPointF lokalMaxHalf =  m_thresCalculator.getPointAirPeakHalf(); 
-			QString peakHalf = QString("fmin/2 %1 %2").arg(lokalMaxHalf.x()).arg(lokalMaxHalf.y()); 
-			
-			//TODO REPLACE BY MAX limits
-			
-			QPointF LokalMaxHalfEnd(m_graphValuesScope.getXMax(), lokalMaxHalf.y());
-			intersection::XYLine LinePeakHalf(lokalMaxHalf, LokalMaxHalfEnd);
+				QPointF lokalMaxHalf = m_thresCalculator.getPointAirPeakHalf();
+				QString peakHalf = QString("fmin/2 %1 %2").arg(lokalMaxHalf.x()).arg(lokalMaxHalf.y());
 
-			threshold_defs::ParametersRanges Intersectranges;
-			m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, Intersectranges, xmin, xmax);
+				//TODO REPLACE BY MAX limits
 
-			auto intersectionPoints =  LinePeakHalf.intersectionLineWithRange(Intersectranges);
-						
+				QPointF LokalMaxHalfEnd(m_graphValuesScope.getXMax(), lokalMaxHalf.y());
+				intersection::XYLine LinePeakHalf(lokalMaxHalf, LokalMaxHalfEnd);
 
-			QPointF ptIntersect(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()); 
-			m_thresCalculator.getFirstElemInRange(intersectionPoints, xmin, xmax, &ptIntersect); 
-			m_thresCalculator.setIntersectionPoint(ptIntersect);
-			
-			writeResultText("Determined threshold\n");
-			   		
-			
+				threshold_defs::ParametersRanges Intersectranges;
+				//m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, Intersectranges, xmin, xmax);
 
-			QColor col = QColor(255, 0, 0); 
-			QPointF p1 = QPointF(ptIntersect.x(), 0);
-			QPointF p2 = QPointF(ptIntersect.x(), 1000000); 
-			
-			auto *IntersectSeries = ChartVisHelper::createLineSeries(p1, p2, LineVisOption::horizontally);
-			txt_output->append(QString("intersection point 1% %2").arg(ptIntersect.x()).arg(ptIntersect.y())); 
+				writeDebugText(QString("ranges for intersection %1 %2").arg(xmin).arg(xmax)) ; 
+				m_thresCalculator.rangeFromParamRanges(m_thresCalculator.getNormalizedRangedValues(), Intersectranges, xmin, xmax);
+				//determine line intersection
 
-			//Intersection is created; 
-			QPointF calcThresPoint = m_thresCalculator.determineResultingThreshold(m_thresCalculator.getResults());
-			//calcThresPoint.x(); 
-			if (ptIntersect.x() < 0 || (ptIntersect.x() > std::numeric_limits<float>::max())) {
+				auto intersectionPoints = LinePeakHalf.intersectionLineWithRange(Intersectranges);
+
+
+				QPointF ptIntersect(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity());
+				m_thresCalculator.getFirstElemInRange(intersectionPoints, xmin, xmax, &ptIntersect);
+				m_thresCalculator.setIntersectionPoint(ptIntersect);
+
+				writeResultText("Determined threshold\n");
+
+
+
+				QColor col = QColor(255, 0, 0);
+				QPointF p1 = QPointF(ptIntersect.x(), 0);
+				QPointF p2 = QPointF(ptIntersect.x(), 1000000);
+
+				auto* IntersectSeries = ChartVisHelper::createLineSeries(p1, p2, LineVisOption::horizontally);
+				txt_output->append(QString("intersection point 1% %2").arg(ptIntersect.x()).arg(ptIntersect.y()));
+
+				//Intersection is created; 
+				QPointF calcThresPoint = m_thresCalculator.determineResultingThreshold(m_thresCalculator.getResults());
+				 
+				if (ptIntersect.x() < 0 || (ptIntersect.x() > std::numeric_limits<float>::max())) {
 					writeResultText(QString("no intersection negative or inf, try again parametrisation"));
 					return;
+				}
+
+
+
+				m_thresCalculator.SetResultingThreshold(calcThresPoint.x());
+				writeResultText(QString("P(x,y) %1 %2").arg(calcThresPoint.x()).arg(calcThresPoint.y()));
+				//todo check for inf values
+
+				double resThres = m_thresCalculator.GetResultingThreshold();
+
+
+				if (resThres < 0) {
+					writeResultText(QString("resulting segmentation threshold either negative or inf, try again parametrisation"));
+					return;
+				}
+
+
+				IntersectSeries->setColor(col);
+				IntersectSeries->setName("Intersection with fmin/2");
+
+				this->addSeries(IntersectSeries, false);
+				//this->txt_output
+
+				
+				m_chart->update();
+				m_chartView->update();
+
+				}catch (std::invalid_argument& iae) {
+					writeDebugText(iae.what()); 
+				}
+
+
+			}
+			else {
+				this->textEdit->append("Workflow: \n1 Please load histogram data first\n 2 create Moving average\n 3 Specify Ranges of Peaks \n4  Calculate Intersection ");
 			}
 
-
-			
-			m_thresCalculator.SetResultingThreshold(calcThresPoint.x()); 
-			writeResultText(QString("P(x,y) %1 %2").arg(calcThresPoint.x()).arg(calcThresPoint.y()));
-			//todo check for inf values
-
-			double resThres = m_thresCalculator.GetResultingThreshold(); 
-			
-			
-			if (resThres < 0) {
-				writeResultText(QString("resulting segmentation threshold either negative or inf, try again parametrisation"));
-				return; 
-			}
-			
-
-			//m_m
-			//mdichild->setImage() //createResultchild
-
-			/*QColor cl_blue = QColor(0, 0, 255);*/
-			IntersectSeries->setColor(col/*cl_blue*/);
-			IntersectSeries->setName("Intersection with fmin/2");
-			
-			this->addSeries(IntersectSeries, false);
-			//this->txt_output
-			
-			/*auto *IntersectSeries = ChartVisHelper::createScatterSeries(ptIntersect,13.0, &col);
-			this->addSeries(IntersectSeries, false);*/
-
-			/*	aSeries->setMarkerSize(5);
-				this->addSeries(aSeries, false);*/
-			m_chart->update();
-			m_chartView->update();
 		}
-		else {
-			this->textEdit->append("Workflow: \n1 Please load histogram data first\n 2 create Moving average\n 3 Specify Ranges of Peaks \n4  Calculate Intersection "); 
-		}
-	}
+	
 }
 
 
@@ -564,7 +571,7 @@ void AdaptiveThreshold::assignValuesFromField(threshold_defs::PeakRanges &Ranges
 
 void AdaptiveThreshold::scaleGraphToMinMax(const threshold_defs::ParametersRanges& ranges)
 {
-	if (ranges.isXEmpty() || ranges.isXEmpty()) {
+	if (ranges.isXEmpty() || ranges.isYEmpty()) {
 		throw std::invalid_argument("greyvalues or frequencies not set");
 	}
 

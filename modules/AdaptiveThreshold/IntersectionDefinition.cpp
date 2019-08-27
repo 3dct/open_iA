@@ -30,8 +30,8 @@ namespace intersection{
 		std::vector<double> x_vals = lineRange.getXRange();
 		std::vector<double> y_vals = lineRange.getYRange();
 		 
-		if (x_vals.empty() || y_vals.empty()) return;
-		if (x_vals.size() != y_vals.size()) return; 
+		if (x_vals.empty() || y_vals.empty()) throw std::invalid_argument("xrange for intersection empty") ;
+		if (x_vals.size() != y_vals.size()) throw std::invalid_argument("y_range for intersection empty") ; 
 		float x1, x2, y1, y2; 
 
 		for (size_t start = 0; start < x_vals.size()-1; start++){
@@ -61,10 +61,17 @@ namespace intersection{
 
 	const QVector<QPointF>& XYLine::intersectionLineWithRange(const threshold_defs::ParametersRanges& aRange)
 	{
-		QVector<XYLine> Lines;
-		LineCreator::createLineSegments(aRange, Lines);
-		this->intersectWithLines(Lines);
-		return this->m_intersectPoints;
+
+		try {
+			QVector<XYLine> Lines;
+			LineCreator::createLineSegments(aRange, Lines);
+			this->intersectWithLines(Lines);
+			return this->m_intersectPoints;
+		}
+		catch (std::invalid_argument& iar) {
+		
+			throw; 
+		}
 	}
 
 }

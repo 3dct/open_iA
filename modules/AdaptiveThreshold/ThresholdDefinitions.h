@@ -87,16 +87,23 @@ namespace threshold_defs {
 	public:
 		ThresMinMax() 
 		{
+ 			initValues();
+
+		}
+
+		void initValues()
+		{
 			FreqPeakMinY(dblInf_min);
 			PeakMinXThreshold(dblInf_min);
 			fAirPeakHalf(dblInf_min);
 
-			Iso50ValueThr(dblInf_min);				
+			Iso50ValueThr(dblInf_min);
 
 			FreqPeakLokalMaxY(dblInf_min);
 			LokalMaxPeakThreshold_X(dblInf_min);
+			DeterminedThreshold(dblInf_min);
 
-			IntersectionPoint = QPointF(fltInf_min,fltInf_min);
+			IntersectionPoint = QPointF(fltInf_min, fltInf_min);
 		}
 
 
@@ -105,7 +112,7 @@ namespace threshold_defs {
 		}
 
 
-		QString toString() {
+		QString MinMaxToString() {
 			QString res = QString("Min %1 \t %2 Max %3 \t %4").arg(PeakMinXThreshold()).arg(FreqPeakMinY()).arg(LokalMaxPeakThreshold_X()).arg(FreqPeakLokalMaxY());
 			return res;
 
@@ -115,6 +122,8 @@ namespace threshold_defs {
 		
 		double LokalMaxPeakThreshold_X() const { return lokalPeakAirThrX; }
 		void LokalMaxPeakThreshold_X(double val) { lokalPeakAirThrX = val; }
+		double DeterminedThreshold() const { return determinedThreshold; }
+		void DeterminedThreshold(double val) { determinedThreshold = val; }
 	public:
 
 		//apply custom min max
@@ -165,6 +174,17 @@ namespace threshold_defs {
 		}
 
 
+		QString resultsToString() {
+			QString resSt = QString("Min peak %1  %2\n").arg(peakMinXThreshold).arg(freqPeakMinY);
+			resSt += QString("Lokal Air Peak %1 %2\n").arg(lokalPeakAirThrX).arg(freqPeakLokalMaxY);
+			resSt += QString("Intersection point %1 %2\n").arg(IntersectionPoint.x()).arg(IntersectionPoint.y());
+			resSt += QString("iso 50 %1\n").arg(Iso50ValueThr()); 
+			resSt += QString("final resulting grey value %1").arg(DeterminedThreshold()); 
+			return resSt; 
+		}
+		
+		
+
 	private:
 		double freqPeakMinY;
 		double peakMinXThreshold;
@@ -176,9 +196,12 @@ namespace threshold_defs {
 		double freqPeakLokalMaxY;
 		double lokalPeakAirThrX;
 
-		double MaterialPeakThrX; //Material value , at global maximum 
+		double MaterialPeakThrX; //Material value, at global maximum 
 
 		QPointF IntersectionPoint;
+
+
+		double determinedThreshold; 
 
 		bool m_custimizedMinMax = false; 
 		

@@ -43,6 +43,7 @@ public:
 
 	//select values only in the range between min and max, output parameter ranges(x<double>, y<double>) 
 	void specifyRange(const std::vector<double>& v_in, const std::vector<double> &vals, threshold_defs::ParametersRanges &outRange, double xmin, double xmax);
+	void rangeFromParamRanges(const threshold_defs::ParametersRanges& ranges, threshold_defs::ParametersRanges& outValues, double min, double max);
 	void testPeakDetect();
 	
 
@@ -115,8 +116,8 @@ public:
 	}
 
 
-	double GetResultingThreshold() const { return m_resultingThreshold; }
-	void SetResultingThreshold(double val) { m_resultingThreshold = val; }
+	double GetResultingThreshold() const { return m_thresResults.DeterminedThreshold(); }
+	void SetResultingThreshold(double val) { m_thresResults.DeterminedThreshold(val) ;  }
 
 
 	void performNormalisation(threshold_defs::ParametersRanges& ranges, double xMin, double xMax) {
@@ -129,11 +130,23 @@ public:
 	
 	}
 
+
+	void setNormalizedRange(const threshold_defs::ParametersRanges& normRange) {
+		m_NormalizedRanges = normRange; 
+	}
+
+	const threshold_defs::ParametersRanges& getNormalizedRangedValues() const {
+		return m_NormalizedRanges; 
+	
+	}
+
 private:
 	threshold_defs::ThresMinMax m_thresResults; 
 	threshold_defs::ThresMinMaxHelper m_minMaxHelper;
+
+	threshold_defs::ParametersRanges m_NormalizedRanges; 
   
-	double m_resultingThreshold; 
+	//double m_resultingThreshold; 
 
 	QSharedPointer<iAPlotData> m_data;
 	DebugHelper m_dbgHelper; 

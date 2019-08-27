@@ -27,6 +27,8 @@ void iAdaptiveThresholdModuleInterface::Initialize()
 
 void iAdaptiveThresholdModuleInterface::determineThreshold()
 {
+	try
+	{
 	AdaptiveThreshold dlg_thres;
 		
 	if (!m_mainWnd->activeMdiChild())
@@ -41,8 +43,8 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 		return;
 	}
 
-	try
-	{
+	/*try
+	{*/
 		auto data = hist->plots()[0]->data();
 		dlg_thres.initChart();
 		dlg_thres.setHistData(data);
@@ -57,6 +59,11 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 
 	}catch (std::invalid_argument& iaex) {
 		DEBUG_LOG(iaex.what()); 
-		return; 
+		//return; 
 	}
+	catch (std::exception& other) {
+		DEBUG_LOG(other.what()); 
+
+	}
+
 }
