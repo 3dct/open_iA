@@ -22,12 +22,25 @@
 
 #include "open_iA_Core_export.h"
 
+#include "iAGenericFactory.h"
+
 #include <QSharedPointer>
 #include <QVector>
 
-class iAIFilterFactory;
-class iAIFilterRunnerGUIFactory;
 class iAFilter;
+class iAFilterRunnerGUI;
+
+//! For internal use in iAFilterRegistry and iAFilterFactory only.
+//! There should be no need to use this class directly; use REGISTER_FILTER or
+//! REGISTER_FILTER_WITH_RUNNER macros below instead!
+using iAIFilterFactory = iAGenericFactory<iAFilter>;
+template <typename iAFilterDerived> using iAFilterFactory = iASpecificFactory<iAFilterDerived, iAFilter>;
+
+//! For internal use in iAFilterRegistry and iAFilterFactory only.
+//! There should be no need to use this class directly; use REGISTER_FILTER or
+//! REGISTER_FILTER_WITH_RUNNER macros below instead!
+using iAIFilterRunnerGUIFactory = iAGenericFactory<iAFilterRunnerGUI>;
+template <typename FilterRunnerGUIType> using iAFilterRunnerGUIFactory = iASpecificFactory<FilterRunnerGUIType, iAFilterRunnerGUI>;
 
 //! Registry for image filters.
 //! Use REGISTER_FILTER and REGISTER_FILTER_WITH_RUNNER macros add a filter
@@ -62,58 +75,9 @@ public:
 	//! have a callback, nullptr is returned).
 	static QSharedPointer<iAIFilterRunnerGUIFactory> filterRunner(int filterID);
 private:
-	iAFilterRegistry();	//!< iAFilterRegistry is meant to be used as a singleton, thus prevent creation of objects
+	iAFilterRegistry() =delete;	//!< iAFilterRegistry is meant to be used statically only, thus prevent creation of objects
 	static QVector<QSharedPointer<iAIFilterFactory> > m_filters;
 	static QVector<QSharedPointer<iAIFilterRunnerGUIFactory> > m_runner;
-};
-
-class iAFilterRunnerGUI;
-
-//! Class for internal use in iAFilterRegistry and iAFilterFactory only.
-//! There should be no need to use this class directly; use REGISTER_FILTER or
-//! REGISTER_FILTER_WITH_RUNNER macros below instead!
-class open_iA_Core_API iAIFilterFactory
-{
-public:
-	virtual QSharedPointer<iAFilter> create() = 0;
-	virtual ~iAIFilterFactory();
-};
-
-//! Class for internal use in iAFilterRegistry and iAFilterFactory only.
-//! There should be no need to use this class directly; use REGISTER_FILTER or
-//! REGISTER_FILTER_WITH_RUNNER macros below instead!
-class open_iA_Core_API iAIFilterRunnerGUIFactory
-{
-public:
-	virtual QSharedPointer<iAFilterRunnerGUI> create() = 0;
-	virtual ~iAIFilterRunnerGUIFactory();
-};
-
-//! Factory for an iAFilter.
-//! There should be no need to use this class directly; use REGISTER_FILTER or
-//! REGISTER_FILTER_WITH_RUNNER macros below instead!
-template <typename FilterType>
-class iAFilterFactory: public iAIFilterFactory
-{
-public:
-	QSharedPointer<iAFilter> create() override
-	{
-		return FilterType::create();
-	}
-};
-
-
-//! Factory for an iAFilterRunnerGUI.
-//! There should be no need to use this class directly; use
-//! REGISTER_FILTER_WITH_RUNNER macro below instead!
-template <typename FilterRunnerGUIType>
-class iAFilterRunnerGUIFactory : public iAIFilterRunnerGUIFactory
-{
-public:
-	QSharedPointer<iAFilterRunnerGUI> create() override
-	{
-		return FilterRunnerGUIType::create();
-	}
 };
 
 //! Macro to register a class derived from iAFilter in the iAFilterRegistry, with

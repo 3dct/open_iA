@@ -29,6 +29,8 @@
 #include "ui_CsvInput.h"
 
 #include <iAConsole.h>
+#include <iAProjectBase.h>
+#include <iAProjectRegistry.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 
@@ -40,10 +42,28 @@
 #include <QMessageBox>
 #include <QTextStream>
 
+class iAFeatureScoutProject: public iAProjectBase
+{
+	virtual ~iAFeatureScoutProject() {}
+	void loadProject(QSettings const & projectFile) override;
+	void saveProject(QSettings const & projectFile) override;
+};
+
+void iAFeatureScoutProject::loadProject(QSettings const & projectFile)
+{
+
+}
+
+void iAFeatureScoutProject::saveProject(QSettings const & projectFile)
+{
+
+}
+
 void iAFeatureScoutModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
+	iAProjectRegistry::addProject<iAFeatureScoutProject>("FeatureScout");
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionFibreScout = new QAction( QObject::tr("FeatureScout"), nullptr );
 	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreScout, false );
@@ -208,7 +228,7 @@ void iAFeatureScoutModuleInterface::FeatureScout_Options()
 		DEBUG_LOG( "No FeatureScout attachment in current MdiChild!" );
 		return;
 	}
-	QString actionText = ((QAction *)sender())->text();
+	QString actionText = qobject_cast<QAction *>(sender())->text();
 	int idx = 0;
 	if ( actionText.toStdString() == "Length Distribution" ) idx = 7;
 	if ( actionText.toStdString() == "Mean Object" ) idx = 4;

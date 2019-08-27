@@ -18,54 +18,26 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFilterRegistry.h"
+#pragma once
 
-#include "iAConsole.h"
-#include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
+#include "open_iA_Core_export.h"
 
-void iAFilterRegistry::addFilterFactory(QSharedPointer<iAIFilterFactory> factory)
+#include "iAGenericFactory.h"
+
+#include <QMap>
+
+class iAProjectBase;
+
+//! For internal use in iAProjectRegistry only.
+//! There should be no need to use this class directly; use REGISTER_PROJECT below!
+using iAIProjectFactory = iAGenericFactory<iAProjectBase>;
+
+class open_iA_Core_API iAProjectRegistry
 {
-	m_filters.push_back(factory);
-	m_runner.push_back(QSharedPointer<iAIFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<iAFilterRunnerGUI>()));
-}
-
-void iAFilterRegistry::addFilterFactory(QSharedPointer<iAIFilterFactory> factory,
-	QSharedPointer<iAIFilterRunnerGUIFactory> runner)
-{
-	m_filters.push_back(factory);
-	m_runner.push_back(runner);
-}
-
-QVector<QSharedPointer<iAIFilterFactory>> const & iAFilterRegistry::filterFactories()
-{
-	return m_filters;
-}
-
-QSharedPointer<iAFilter> iAFilterRegistry::filter(QString const & name)
-{
-	int id = filterID(name);
-	return id == -1 ? QSharedPointer<iAFilter>() : m_filters[id]->create();
-}
-
-int iAFilterRegistry::filterID(QString const & name)
-{
-	int cur = 0;
-	for (auto filterFactory : m_filters)
-	{
-		auto filter = filterFactory->create();
-		if (filter->name() == name)
-			return cur;
-		++cur;
-	}
-	DEBUG_LOG(QString("Filter '%1' not found!").arg(name));
-	return -1;
-}
-
-QSharedPointer<iAIFilterRunnerGUIFactory> iAFilterRegistry::filterRunner(int filterID)
-{
-	return m_runner[filterID];
-}
-
-QVector<QSharedPointer<iAIFilterFactory> > iAFilterRegistry::m_filters;
-QVector<QSharedPointer<iAIFilterRunnerGUIFactory> > iAFilterRegistry::m_runner;
+public:
+    //! Adds a given project type to the registry.
+    template <typename ProjectType> static void addProject(QString const & projectIdentifier);
+private:
+    static QMap<QString, QSharedPointer<iAIProjectFactory> > m_projectTypes;
+    iAProjectRegistry() =delete;	//!< iAProjectRegistry is meant to be used statically only, thus prevent creation of objects
+};
