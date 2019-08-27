@@ -30,6 +30,13 @@ ENDMACRO()
 
 # Module stores its dependencies in Dependencies.txt file. Check if all the dependencies are enabled
 FUNCTION( MODULE_CHECK_DEPENDENCIES option_name module_full_path )
+	# reset entries:
+	SET (ADDITIONAL_MODULE_MODULES)
+	SET (ADDITIONAL_MODULE_LIBRARIES)
+	SET (ADDITIONAL_MODULE_LIBRARIES_DEBUG)
+	SET (ADDITIONAL_MODULE_LIBRARIES_RELEASE)
+	SET (ADDITIONAL_MODULE_INCLUDE_DIRS)
+	SET (ADDITIONAL_COMPILE_DEFINITIONS)
 	SET( dependencies_full_path ${module_full_path}/Dependencies.cmake)
 	IF( EXISTS ${dependencies_full_path} )
 		INCLUDE( ${dependencies_full_path} )
