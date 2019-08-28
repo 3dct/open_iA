@@ -26,6 +26,7 @@
 
 #include <QMap>
 
+class vtkCamera;
 class vtkImageData;
 
 class QString;
@@ -63,3 +64,17 @@ for (int z = 0; z < img->GetDimensions()[2]; ++z) \
 
 #define FOR_VTKIMG_PIXELS_IDX(img, idx) \
 for (size_t idx = 0; idx < img->GetDimensions()[0]*img->GetDimensions()[1]*img->GetDimensions()[2]; ++idx)
+
+
+enum iACameraPosition
+{
+	PX,
+	MX,
+	PY,
+	MY,
+	PZ,
+	MZ,
+	Iso
+};
+
+open_iA_Core_API void setCamPosition(vtkCamera* cam, iACameraPosition mode);

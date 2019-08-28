@@ -1414,39 +1414,11 @@ void MainWindow::toggleMagicLens( bool isChecked )
 		activeMdiChild()->toggleMagicLens(isChecked);
 }
 
-void MainWindow::raycasterCamPX()
+void MainWindow::rendererCamPosition()
 {
-	if (activeMdiChild()) activeMdiChild()->camPX();
-}
-
-void MainWindow::raycasterCamPY()
-{
-	if (activeMdiChild()) activeMdiChild()->camPY();
-}
-
-void MainWindow::raycasterCamPZ()
-{
-	if (activeMdiChild()) activeMdiChild()->camPZ();
-}
-
-void MainWindow::raycasterCamMX()
-{
-	if (activeMdiChild()) activeMdiChild()->camMX();
-}
-
-void MainWindow::raycasterCamMY()
-{
-	if (activeMdiChild()) activeMdiChild()->camMY();
-}
-
-void MainWindow::raycasterCamMZ()
-{
-	if (activeMdiChild()) activeMdiChild()->camMZ();
-}
-
-void MainWindow::raycasterCamIso()
-{
-	if (activeMdiChild()) activeMdiChild()->camIso();
+	int pos = sender()->property("camPosition").toInt();
+	if (activeChild<iAChangeableRendererCamera>())
+		activeChild<iAChangeableRendererCamera>()->setCamPosition(pos);
 }
 
 void MainWindow::raycasterAssignIso()
@@ -1644,13 +1616,15 @@ void MainWindow::updateMenus()
 	actionSaveTransferFunction->setEnabled(hasMdiChild);
 	actionSnakeSlicer->setEnabled(hasMdiChild);
 	actionMagicLens->setEnabled(hasMdiChild);
-	actionViewXDirectionInRaycaster->setEnabled(hasMdiChild);
-	actionViewmXDirectionInRaycaster->setEnabled(hasMdiChild);
-	actionViewYDirectionInRaycaster->setEnabled(hasMdiChild);
-	actionViewmYDirectionInRaycaster->setEnabled(hasMdiChild);
-	actionViewZDirectionInRaycaster->setEnabled(hasMdiChild);
-	actionViewmZDirectionInRaycaster->setEnabled(hasMdiChild);
-	actionIsometricViewInRaycaster->setEnabled(hasMdiChild);
+
+	bool hasChangeableRenderer = activeChild<iAChangeableRendererCamera>();
+	actionViewXDirectionInRaycaster->setEnabled(hasChangeableRenderer);
+	actionViewmXDirectionInRaycaster->setEnabled(hasChangeableRenderer);
+	actionViewYDirectionInRaycaster->setEnabled(hasChangeableRenderer);
+	actionViewmYDirectionInRaycaster->setEnabled(hasChangeableRenderer);
+	actionViewZDirectionInRaycaster->setEnabled(hasChangeableRenderer);
+	actionViewmZDirectionInRaycaster->setEnabled(hasChangeableRenderer);
+	actionIsometricViewInRaycaster->setEnabled(hasChangeableRenderer);
 	actionAssignView->setEnabled(hasMdiChild);
 	actionLoadCameraSettings->setEnabled(hasMdiChild);
 	actionSaveCameraSettings->setEnabled(hasMdiChild);
@@ -1820,13 +1794,20 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionAbout, &QAction::triggered, this, &MainWindow::about);
 
 	// Renderer toolbar:
-	connect(actionViewXDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::raycasterCamPX);
-	connect(actionViewmXDirectionInRaycaster, &QAction::triggered, this, &MainWindow::raycasterCamMX);
-	connect(actionViewYDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::raycasterCamPY);
-	connect(actionViewmYDirectionInRaycaster, &QAction::triggered, this, &MainWindow::raycasterCamMY);
-	connect(actionViewZDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::raycasterCamPZ);
-	connect(actionViewmZDirectionInRaycaster, &QAction::triggered, this, &MainWindow::raycasterCamMZ);
-	connect(actionIsometricViewInRaycaster,   &QAction::triggered, this, &MainWindow::raycasterCamIso);
+	connect(actionViewXDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::rendererCamPosition);
+	actionViewXDirectionInRaycaster->setProperty("camPosition", iACameraPosition::PX);
+	connect(actionViewmXDirectionInRaycaster, &QAction::triggered, this, &MainWindow::rendererCamPosition);
+	actionViewmXDirectionInRaycaster->setProperty("camPosition", iACameraPosition::MX);
+	connect(actionViewYDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::rendererCamPosition);
+	actionViewYDirectionInRaycaster->setProperty("camPosition", iACameraPosition::PY);
+	connect(actionViewmYDirectionInRaycaster, &QAction::triggered, this, &MainWindow::rendererCamPosition);
+	actionViewmYDirectionInRaycaster->setProperty("camPosition", iACameraPosition::MY);
+	connect(actionViewZDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::rendererCamPosition);
+	actionViewZDirectionInRaycaster->setProperty("camPosition", iACameraPosition::PZ);
+	connect(actionViewmZDirectionInRaycaster, &QAction::triggered, this, &MainWindow::rendererCamPosition);
+	actionViewmZDirectionInRaycaster->setProperty("camPosition", iACameraPosition::MZ);
+	connect(actionIsometricViewInRaycaster,   &QAction::triggered, this, &MainWindow::rendererCamPosition);
+	actionIsometricViewInRaycaster->setProperty("camPosition", iACameraPosition::Iso);
 
 	// Camera toolbar:
 	connect(actionAssignView, &QAction::triggered, this, &MainWindow::raycasterAssignIso);
@@ -2101,10 +2082,7 @@ void MainWindow::updateRecentFileActions()
 
 MdiChild* MainWindow::activeMdiChild()
 {
-	int subWndCnt = mdiChildList().size();
-	if(subWndCnt>0)
-		return mdiChildList(QMdiArea::ActivationHistoryOrder).last();
-	return nullptr;
+	return activeChild<MdiChild>();
 }
 
 MdiChild * MainWindow::secondNonActiveChild()
@@ -2134,7 +2112,7 @@ MdiChild* MainWindow::findMdiChild(const QString &fileName)
 	for (MdiChild* mdiChild: mdiChildList())
 		if (mdiChild->currentFile() == canonicalFilePath)
 			return mdiChild;
-	return 0;
+	return nullptr;
 }
 
 void MainWindow::setActiveSubWindow(QWidget *window)
@@ -2176,14 +2154,7 @@ void MainWindow::consoleVisibilityChanged(bool newVisibility)
 
 QList<MdiChild*> MainWindow::mdiChildList(QMdiArea::WindowOrder order)
 {
-	QList<MdiChild*> res;
-	foreach(QMdiSubWindow *window, mdiArea->subWindowList(order))
-	{
-		MdiChild * child = qobject_cast<MdiChild*>(window->widget());
-		if (child)
-			res.append(child);
-	}
-	return res;
+	return childList<MdiChild>(order);
 }
 
 void MainWindow::childActivatedSlot(QMdiSubWindow *wnd)

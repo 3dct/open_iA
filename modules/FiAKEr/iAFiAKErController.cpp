@@ -50,6 +50,7 @@
 #include "iAModuleDispatcher.h"
 #include "iARendererManager.h"
 #include "iAStringHelper.h"
+#include "iAToolsVTK.h"    // for setCamPos
 #include "iATransferFunction.h"
 #include "iAVolumeRenderer.h"
 #include "iAVtkWidget.h"
@@ -275,6 +276,7 @@ QWidget * iAFiAKErController::setupMain3DView()
 	m_mainRenderer = new iAVtkWidget();
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	m_ren = vtkSmartPointer<vtkRenderer>::New();
+	m_ren->SetUseFXAA(true);
 	m_ren->SetBackground(1.0, 1.0, 1.0);
 	renWin->SetAlphaBitPlanes(1);
 	m_ren->SetUseDepthPeeling(true);
@@ -1392,6 +1394,13 @@ void iAFiAKErController::getResultFiberIDFromSpmID(size_t spmID, size_t & result
 std::vector<std::vector<size_t> > & iAFiAKErController::selection()
 {
 	return m_selection;
+}
+
+void iAFiAKErController::setCamPosition(int pos)
+{
+	::setCamPosition(m_ren->GetActiveCamera(), static_cast<iACameraPosition>(pos));
+	m_ren->ResetCamera();
+	m_mainRenderer->GetRenderWindow()->GetInteractor()->Render();
 }
 
 void iAFiAKErController::clearSelection()

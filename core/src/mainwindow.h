@@ -90,13 +90,13 @@ public:
 	void loadRenderSettings(QDomNode &renderSettingsNode);
 	void saveSlicerSettings(QDomDocument &doc);
 	void loadSlicerSettings(QDomNode &slicerSettingsNode);
-	//! get the File menu (can be used by modules to append entries to it)
+	//! Get the File menu (can be used by modules to append entries to it).
 	QMenu * fileMenu();
-	//! get the Filters menu (can be used by modules to append entries to it)
+	//! Get the Filters menu (can be used by modules to append entries to it).
 	QMenu * filtersMenu();
-	//! get the Tools menu (can be used by modules to append entries to it)
+	//! Get the Tools menu (can be used by modules to append entries to it).
 	QMenu * toolsMenu();
-	//! get the Help menu (can be used by modules to append entries to it)
+	//! Get the Help menu (can be used by modules to append entries to it).
 	QMenu * helpMenu();
 	//! @{ get access to result child with the given title
 	//! (depending on preferences, this will either open a new mdi child window, or reuse the currently active one)
@@ -112,8 +112,12 @@ public:
 	//! @deprecated instead of this method, in filters, use the facilities
 	//!     provided in iAFilter (via the requiredInputs parameter to the constructor) to specify multiple inputs
 	MdiChild * secondNonActiveChild();
-	QList<QString> mdiWindowTitles();
+	//! Get the list of current MdiChild windows
 	QList<MdiChild*> mdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
+	//! Get the list of current child windows of type T
+	template <typename T> QList<T*> childList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
+	//! Get the active child window of type T
+	template <typename T> T * activeChild();
 	QMdiSubWindow* addSubWindow(QWidget * child);
 	void loadArguments(int argc, char** argv);
 	iAPreferences const & getDefaultPreferences() const;
@@ -163,13 +167,7 @@ private slots:
 	void resetTrf();
 	void toggleSnakeSlicer(bool isChecked);
 	void toggleMagicLens(bool isChecked);
-	void raycasterCamPX();
-	void raycasterCamPY();
-	void raycasterCamPZ();
-	void raycasterCamMX();
-	void raycasterCamMY();
-	void raycasterCamMZ();
-	void raycasterCamIso();
+	void rendererCamPosition();
 	void raycasterAssignIso();
 	void raycasterSaveCameraSettings();
 	void raycasterLoadCameraSettings();
@@ -251,3 +249,23 @@ private:
 	QStringList m_layoutNames;
 	QString m_gitVersion;
 };
+
+template <typename T> QList<T*> MainWindow::childList(QMdiArea::WindowOrder order)
+{
+	QList<T*> res;
+	foreach(QMdiSubWindow *window, mdiArea->subWindowList(order))
+	{
+		T * child = dynamic_cast<T*>(window->widget());
+		if (child)
+			res.append(child);
+	}
+	return res;
+}
+
+template <typename T> T * MainWindow::activeChild()
+{
+	int subWndCnt = childList<T>().size();
+	if (subWndCnt > 0)
+		return childList<T>(QMdiArea::ActivationHistoryOrder).last();
+	return nullptr;
+}
