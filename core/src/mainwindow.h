@@ -98,7 +98,7 @@ public:
 	QMenu * toolsMenu();
 	//! Get the Help menu (can be used by modules to append entries to it).
 	QMenu * helpMenu();
-	//! @{ get access to result child with the given title
+	//! @{ Get access to result child with the given title.
 	//! (depending on preferences, this will either open a new mdi child window, or reuse the currently active one)
 	MdiChild * resultChild( QString const & title );
 	MdiChild * resultChild( int childInd, QString const & title );
@@ -112,11 +112,13 @@ public:
 	//! @deprecated instead of this method, in filters, use the facilities
 	//!     provided in iAFilter (via the requiredInputs parameter to the constructor) to specify multiple inputs
 	MdiChild * secondNonActiveChild();
-	//! Get the list of current MdiChild windows
+	//! Get list of the titles of currently open MdiChild windows.
+	QList<QString> mdiWindowTitles();
+	//! Get the list of current MdiChild windows.
 	QList<MdiChild*> mdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
-	//! Get the list of current child windows of type T
+	//! Get the list of current child windows of type T.
 	template <typename T> QList<T*> childList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
-	//! Get the active child window of type T
+	//! Get the active child window of type T.
 	template <typename T> T * activeChild();
 	QMdiSubWindow* addSubWindow(QWidget * child);
 	void loadArguments(int argc, char** argv);

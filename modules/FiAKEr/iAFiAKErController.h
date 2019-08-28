@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAChangeableRendererCamera.h"
+#include "iAChangeableCameraWidget.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 #include "iAVtkWidgetFwd.h"
 
@@ -71,7 +71,7 @@ class QTreeView;
 class QVBoxLayout;
 //class QWebEngineView;
 
-class iAFiAKErController : public QMainWindow, public iASelectionProvider, public iAChangeableRendererCamera
+class iAFiAKErController : public QMainWindow, public iASelectionProvider, public iAChangeableCameraWidget
 {
 	Q_OBJECT
 public:

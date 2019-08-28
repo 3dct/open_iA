@@ -22,7 +22,7 @@
 
 //#include "defines.h"
 #include "qthelper/iAQTtoUIConnector.h"
-#include "iAChangeableRendererCamera.h"
+#include "iAChangeableCameraWidget.h"
 #include "iAPreferences.h"
 #include "iARenderSettings.h"
 #include "iASlicerSettings.h"
@@ -82,7 +82,7 @@ class MainWindow;
 typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>  dlg_renderer;
 typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
-class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild, public iAChangeableRendererCamera
+class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild, public iAChangeableCameraWidget
 {
 	Q_OBJECT
 public:

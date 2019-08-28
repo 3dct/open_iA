@@ -1417,8 +1417,8 @@ void MainWindow::toggleMagicLens( bool isChecked )
 void MainWindow::rendererCamPosition()
 {
 	int pos = sender()->property("camPosition").toInt();
-	if (activeChild<iAChangeableRendererCamera>())
-		activeChild<iAChangeableRendererCamera>()->setCamPosition(pos);
+	if (activeChild<iAChangeableCameraWidget>())
+		activeChild<iAChangeableCameraWidget>()->setCamPosition(pos);
 }
 
 void MainWindow::raycasterAssignIso()
@@ -1617,7 +1617,7 @@ void MainWindow::updateMenus()
 	actionSnakeSlicer->setEnabled(hasMdiChild);
 	actionMagicLens->setEnabled(hasMdiChild);
 
-	bool hasChangeableRenderer = activeChild<iAChangeableRendererCamera>();
+	bool hasChangeableRenderer = activeChild<iAChangeableCameraWidget>();
 	actionViewXDirectionInRaycaster->setEnabled(hasChangeableRenderer);
 	actionViewmXDirectionInRaycaster->setEnabled(hasChangeableRenderer);
 	actionViewYDirectionInRaycaster->setEnabled(hasChangeableRenderer);
