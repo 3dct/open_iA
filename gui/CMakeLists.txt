@@ -50,7 +50,7 @@ IF (MSVC)
 	ENDIF ()
 ENDIF (MSVC)
 
-IF (BUILD_TESTING)
+IF (openiA_TESTING_ENABLED)
 	IF (MSVC)
 		# use the created .bat which makes sure all required dll's are in the path:
 		SET (FileOpenTestBinary "${CMAKE_BINARY_DIR}/x64/open_iA_gui_Release.bat")

@@ -38,7 +38,7 @@ ENDIF (MSVC)
 
 # Test running filters from command line
 # TODO: check output (at the moment, it only whether the filters run without crashing)!
-IF (BUILD_TESTING)
+IF (openiA_TESTING_ENABLED)
 	IF (MSVC)
 		# use the created .bat which makes sure all required dll's are in the path:
 		SET (TEST_CMD_Binary "${CMAKE_BINARY_DIR}/x64/open_iA_cmd_Release.bat" PARENT_SCOPE)
