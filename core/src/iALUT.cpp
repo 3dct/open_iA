@@ -141,7 +141,7 @@ unsigned char jet_data_byte[][3] = {
 // SPDX-License-Identifier: Apache-2.0
 // Author: Anton Mikhailov
 // The look-up tables contains 256 entries. Each entry is a an sRGB triplet.
-float turbo_data[][3] = {
+double turbo_data[][3] = {
 	{0.18995, 0.07176, 0.23217},
 	{0.19483, 0.08339, 0.26149},
 	{0.19956, 0.09498, 0.29024},
@@ -415,7 +415,7 @@ float turbo_data[][3] = {
 // You should have received a copy of the CC0 legalcode along with this
 // work.  If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 
-float magma_data[][3] = {
+double magma_data[][3] = {
 	{0.001462, 0.000466, 0.013866},
 	{0.002258, 0.001295, 0.018331},
 	{0.003279, 0.002305, 0.023708},
@@ -674,7 +674,7 @@ float magma_data[][3] = {
 	{0.987053, 0.991438, 0.749504}
 };
 
-float inferno_data[][3] = {
+double inferno_data[][3] = {
 	{0.001462, 0.000466, 0.013866},
 	{0.002267, 0.001270, 0.018570},
 	{0.003299, 0.002249, 0.024239},
@@ -933,7 +933,7 @@ float inferno_data[][3] = {
 	{0.988362, 0.998364, 0.644924}
 };
 
-float plasma_data[][3] = {
+double plasma_data[][3] = {
 	{0.050383, 0.029803, 0.527975},
 	{0.063536, 0.028426, 0.533124},
 	{0.075353, 0.027206, 0.538007},
@@ -1192,7 +1192,7 @@ float plasma_data[][3] = {
 	{0.940015, 0.975158, 0.131326}
 };
 
-float viridis_data[][3] = {
+double viridis_data[][3] = {
 	{0.267004, 0.004874, 0.329415},
 	{0.268510, 0.009605, 0.335427},
 	{0.269944, 0.014625, 0.341379},
@@ -1455,15 +1455,15 @@ void addByteData(vtkSmartPointer<vtkColorTransferFunction> ctf, unsigned char co
 {
 	for (int i = 0; i < count; ++i)
 	{
-		ctf->AddRGBPoint(static_cast<float>(i) / count, data[i][0] / 255.0, data[i][1] / 255.0, data[i][2] / 255.0);
+		ctf->AddRGBPoint(static_cast<double>(i) / count, data[i][0] / 255.0, data[i][1] / 255.0, data[i][2] / 255.0);
 	}
 }
 
-void addData(vtkSmartPointer<vtkColorTransferFunction> ctf, float const data[][3], int count)
+void addData(vtkSmartPointer<vtkColorTransferFunction> ctf, double const data[][3], int count)
 {
 	for (int i = 0; i < count; ++i)
 	{
-		ctf->AddRGBPoint(static_cast<float>(i) / count, data[i][0], data[i][1], data[i][2]);
+		ctf->AddRGBPoint(static_cast<double>(i) / count, data[i][0], data[i][1], data[i][2]);
 	}
 }
 
@@ -1624,7 +1624,7 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRan
 		addData(ctf, viridis_data, 256);
 		break;
 	}
-#if VTK_MAJOR_VERSION < 8 || (VTK_MAJOR_VERSION == 8 && VTK_MINOR_VERSION == 0)
+#if (VTK_MAJOR_VERSION == 8 && VTK_MINOR_VERSION == 0)
 	double lutRangeNonConst[2];
 	std::copy(lutRange, lutRange + 2, lutRangeNonConst);
 	pLUT->SetRange(lutRangeNonConst);
