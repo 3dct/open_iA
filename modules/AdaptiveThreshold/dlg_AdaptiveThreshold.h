@@ -72,6 +72,8 @@ private slots:
 		void calculateMovingAverage();
 		void buttonSelectRangesClicked(); 
 
+		void computePeaksAndNormalize(threshold_defs::PeakRanges& ranges);
+
 		void OptionallyUpdateThrPeaks(bool selectedData, threshold_defs::ThresMinMax& thrPeaks);
 
 		void assignValuesToField(threshold_defs::ThresMinMax& thrPeaks);

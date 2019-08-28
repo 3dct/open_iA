@@ -64,18 +64,15 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_TestData, SIGNAL(clicked()), this, SLOT(createSampleSeries()));
 	connect(this->btn_clearChart, SIGNAL(clicked()), this, SLOT(clear()));
 	connect(this->btn_resetGraph, SIGNAL(clicked()), this, SLOT(resetGraphToDefault()));
-	connect(this->btn_myAction, SIGNAL(clicked()), this, SLOT(myAction()));
 	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(calculateMovingAverage()));
 	connect(this->btn_loadHistData, SIGNAL(clicked()), this, SLOT(buttonLoadHistDataClicked())); 
 	connect(this->btn_clear, SIGNAL(clicked()), this, SLOT(clearEditField()));
 	connect(this->btn_aTestAction, SIGNAL(clicked()), this, SLOT(sortTestAction()));
 	connect(this->btn_selectRange, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClicked()));
-	connect(this->btn_MinMax, SIGNAL(clicked()), this, SLOT(buttonMinMaxClicked())); 
 	connect(this->btn_redraw, SIGNAL(clicked()), this, SLOT(redrawPlots())); 
 	connect(this->btn_VisPoints, SIGNAL(clicked()), this, SLOT(determineIntersection())); 
 	connect(this->btn_rescaleToDefault, SIGNAL(clicked()), this, SLOT(rescaleToMinMax())); 
-	connect(this->btn_normalize, SIGNAL(clicked()), this, SLOT(buttonNormalizedClicked())); 
-
+	
 }
 
 AdaptiveThreshold::~AdaptiveThreshold()
@@ -225,89 +222,8 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		//load values from checkbox
 		
 		//
-		if (m_movingFrequencies.empty())
-		{
-			this->textEdit->append("moving average not yet created, create average sequence before");
-			return;
-		}
-
-		
-
-		threshold_defs::ParametersRanges NormalizedGlobalValueRangeXY; 
-		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, 
-			NormalizedGlobalValueRangeXY, m_graphValuesScope.getxmin(), m_graphValuesScope.getXMax()); 
-
-		threshold_defs::ParametersRanges paramRanges;	
-						
-		//input grauwerte und moving freqs, output is paramRanges
-		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, paramRanges, ranges.XRangeMIn, ranges.XRangeMax/*x_min, x_max*/);
-		
-		bool selectedData = chckbx_LokalMinMax->isChecked(); 
-
-		//calculate lokal peaks
-		auto resultingthrPeaks = m_thresCalculator.calcMinMax(paramRanges);
-		
-		//determinMaxPeak; 		
-		//when peaks not calculated define this manually
-		OptionallyUpdateThrPeaks(selectedData, resultingthrPeaks); //TODO check this
-
-		threshold_defs::ParametersRanges maxPeakMaterialRanges;
-
-		//determine global maximum HighPeakRanges in specified intervall
-		m_thresCalculator.specifyRange(m_greyThresholds,m_movingFrequencies, maxPeakMaterialRanges, ranges.HighPeakXmin, ranges.HighPeakXMax);
-
-		std::vector<double> tmp_Max = maxPeakMaterialRanges.getXRange();
-		double globalMax = m_thresCalculator.getMaxPeakofRange(tmp_Max); //passt 
-		double lokalMax = resultingthrPeaks.getAirPeakThr();
-		 
-		//min max normalization
-		m_thresCalculator.performNormalisation(NormalizedGlobalValueRangeXY, lokalMax, globalMax);
-		m_thresCalculator.setNormalizedRange(NormalizedGlobalValueRangeXY); 
-		this->scaleGraphToMinMax(NormalizedGlobalValueRangeXY);
-		
-		this->ed_xMIn->setText(QString("%1").arg(NormalizedGlobalValueRangeXY.getXMin())); 
-		this->ed_xMax->setText(QString("%1").arg(NormalizedGlobalValueRangeXY.getXMax())); 
-
-
-		auto* GlobalRangeGraph = ChartVisHelper::createLineSeries(NormalizedGlobalValueRangeXY);
-		GlobalRangeGraph->setColor(QColor(255, 0, 0));
-		GlobalRangeGraph->setName("Normalized Series"); 
-
-		this->addSeries(GlobalRangeGraph,false);
-				
-		//fair*0.5f; 
-		resultingthrPeaks.fAirPeakHalf(resultingthrPeaks.FreqPeakLokalMaxY() / 2.0f); //f_air/2.0;
-		
-		//iso 50 as grey threshold		
-		m_thresCalculator.determinIso50(maxPeakMaterialRanges, resultingthrPeaks);
-			//here calculations are finished
-
-		m_thresCalculator.setThresMinMax(resultingthrPeaks);
-		
-
-		this->writeResultText(resultingthrPeaks.resultsToString()); 
-
-		QPointF f1 = QPointF(resultingthrPeaks.Iso50ValueThr(), m_graphValuesScope.getYMax());
-		QPointF f2 = QPointF(resultingthrPeaks.Iso50ValueThr(), 0);
-				
-		QLineSeries *iso50 = nullptr;
-		//double size = 7.0f; 
-				
-		
-		iso50 = ChartVisHelper::createLineSeries(f2, f1,LineVisOption::horizontally);
-	
-
-		QColor cl_blue = QColor(0, 0, 255); 
-		iso50->setColor(cl_blue);
-		iso50->setName("iso 50"); 
-		this->addSeries(iso50, false); 
-		
-		QColor cl_green = QColor(255, 0, 0);
-		QString sr_text = "Max Peak Range";
-		
-		visualizeSeries(maxPeakMaterialRanges, cl_green, &sr_text); 
-		createVisualisation(paramRanges, resultingthrPeaks);
-		assignValuesToField(resultingthrPeaks);
+		computePeaksAndNormalize(ranges);
+		return;
 			
 	}catch (std::bad_alloc& ba){
 			this->textEdit->append("not enough memory available"); 
@@ -317,6 +233,121 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		QString outputMessg = ia.what();
 		this->textEdit->append(outputMessg);
 	}
+}
+
+void AdaptiveThreshold::computePeaksAndNormalize(threshold_defs::PeakRanges& ranges)
+{
+	if(m_movingFrequencies.empty())
+	{
+		this->textEdit->append("moving average not yet created, create average sequence before");
+		return;
+	}
+
+	try {
+
+		threshold_defs::ParametersRanges NormalizedGlobalValueRangeXY;
+		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies,
+			NormalizedGlobalValueRangeXY, m_graphValuesScope.getxmin(), m_graphValuesScope.getXMax());
+
+		threshold_defs::ParametersRanges paramRanges;
+
+		//input grauwerte und moving freqs, output is paramRanges
+		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, paramRanges, ranges.XRangeMIn, ranges.XRangeMax/*x_min, x_max*/);
+
+		bool selectedData = chckbx_LokalMinMax->isChecked();
+
+		//calculate lokal peaks
+		auto resultingthrPeaks = m_thresCalculator.calcMinMax(paramRanges);
+
+		//determinMaxPeak; 		
+		//when peaks not calculated define this manually
+		OptionallyUpdateThrPeaks(selectedData, resultingthrPeaks); //TODO check this
+
+		threshold_defs::ParametersRanges maxPeakMaterialRanges;
+
+		//determine global maximum HighPeakRanges in specified intervall
+		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, maxPeakMaterialRanges, ranges.HighPeakXmin, ranges.HighPeakXMax);
+
+		std::vector<double> tmp_Max = maxPeakMaterialRanges.getXRange();
+		double globalMax = m_thresCalculator.getMaxPeakofRange(tmp_Max); //passt 
+		double lokalMax = resultingthrPeaks.getAirPeakThr();
+
+		//min max normalization
+		m_thresCalculator.performNormalisation(NormalizedGlobalValueRangeXY, lokalMax, globalMax);
+		m_thresCalculator.setNormalizedRange(NormalizedGlobalValueRangeXY);
+		this->scaleGraphToMinMax(NormalizedGlobalValueRangeXY);
+
+		this->ed_xMIn->setText(QString("%1").arg(NormalizedGlobalValueRangeXY.getXMin()));
+		this->ed_xMax->setText(QString("%1").arg(NormalizedGlobalValueRangeXY.getXMax()));
+
+
+		auto* GlobalRangeGraph = ChartVisHelper::createLineSeries(NormalizedGlobalValueRangeXY);
+		GlobalRangeGraph->setColor(QColor(255, 0, 0));
+		GlobalRangeGraph->setName("Normalized Series");
+
+		this->addSeries(GlobalRangeGraph, false);
+
+		//fair*0.5f; 
+		resultingthrPeaks.fAirPeakHalf(resultingthrPeaks.FreqPeakLokalMaxY() / 2.0f); //f_air/2.0;
+
+		//iso 50 as grey threshold		
+		m_thresCalculator.determinIso50(maxPeakMaterialRanges, resultingthrPeaks);
+		//here calculations are finished
+		double xmin = resultingthrPeaks.getAirPeakThr();
+		double xmax = resultingthrPeaks.getMaterialsThreshold(); 
+
+		//then minmaxnormalize x values for later intersection calculation; 
+		this->writeResultText("Before Normalisation\n"); 
+		this->writeResultText(resultingthrPeaks.resultsToString()); 
+
+		resultingthrPeaks.normalizeXValues(xmin, xmax);
+
+		m_thresCalculator.setThresMinMax(resultingthrPeaks);
+
+		this->writeResultText("\nAfter Normalisation\n"); 
+		this->writeResultText(resultingthrPeaks.resultsToString());
+
+		this->writeResultText("Transform back"); 
+		//TODOS
+
+
+		//resultingthrPeaks.mapNormalizedBackToMinMax(xmin, xmax); 
+		this->writeResultText(resultingthrPeaks.resultsToString()); 
+		//m_thresCalculator.transfor
+
+		QPointF f1 = QPointF(resultingthrPeaks.Iso50ValueThr(), m_graphValuesScope.getYMax());
+		QPointF f2 = QPointF(resultingthrPeaks.Iso50ValueThr(), 0);
+
+
+
+
+		QLineSeries* iso50 = nullptr;
+
+
+		iso50 = ChartVisHelper::createLineSeries(f2, f1, LineVisOption::horizontally);
+
+
+		QColor cl_blue = QColor(0, 0, 255);
+		iso50->setColor(cl_blue);
+		iso50->setName("iso 50");
+		this->addSeries(iso50, false);
+
+		QColor cl_green = QColor(255, 0, 0);
+		QString sr_text = "Max Peak Range";
+
+		visualizeSeries(maxPeakMaterialRanges, cl_green, &sr_text);
+		createVisualisation(paramRanges, resultingthrPeaks);
+		assignValuesToField(resultingthrPeaks);
+	}
+	catch (std::invalid_argument &ia) {
+		throw; 
+	}
+	catch (std::bad_alloc& ba) {
+		DEBUG_LOG("error in memory allocation ");
+		throw; 
+	}
+
+
 }
 
 void AdaptiveThreshold::OptionallyUpdateThrPeaks(bool selectedData, threshold_defs::ThresMinMax& thrPeaks)
@@ -482,7 +513,7 @@ void AdaptiveThreshold::determineIntersection()
 
 
 
-				QColor col = QColor(255, 0, 0);
+				QColor col = QColor(0, 255, 0);
 				QPointF p1 = QPointF(ptIntersect.x(), 0);
 				QPointF p2 = QPointF(ptIntersect.x(), 1000000);
 

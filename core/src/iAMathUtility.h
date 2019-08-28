@@ -65,10 +65,10 @@ double minMaxNormalize(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType
 }
 
 
-//map back from min max tranformation 0 MIn , 1: min to original min max
+//map back from min max transformation 0 MIn , 1: min to original min max
 template<typename SrcType>
-double mapBack(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value) {
-	double res = static_cast<double> ((value * (max - min) + min));
+double normalizedToMinMax(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value) {
+	double res = static_cast<double> ((value * (maxSrcVal - minSrcVal) + minSrcVal));
 	return res; 
 }
 

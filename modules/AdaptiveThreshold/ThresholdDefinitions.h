@@ -3,6 +3,7 @@
 #include <QString>
 #include <stdexcept>
 #include <QPointF>
+#include "iAMathUtility.h"
 
 namespace threshold_defs {
 
@@ -102,6 +103,7 @@ namespace threshold_defs {
 			FreqPeakLokalMaxY(dblInf_min);
 			LokalMaxPeakThreshold_X(dblInf_min);
 			DeterminedThreshold(dblInf_min);
+			setSpecifiedMinMax(dblInf_min, dblInf_min); 
 
 			IntersectionPoint = QPointF(fltInf_min, fltInf_min);
 		}
@@ -126,6 +128,25 @@ namespace threshold_defs {
 		void DeterminedThreshold(double val) { determinedThreshold = val; }
 	public:
 
+		
+		void normalizeXValues(double min, double max)
+		{
+			peakMinXThreshold = minMaxNormalize(min, max, peakMinXThreshold);
+			iso50ValueThr = minMaxNormalize(min, max, iso50ValueThr); 
+			lokalPeakAirThrX = minMaxNormalize(min, max, lokalPeakAirThrX);
+			MaterialPeakThrX = minMaxNormalize(min, max, MaterialPeakThrX);
+		}
+
+
+		void mapNormalizedBackToMinMax(double min, double max) {
+
+			peakMinXThreshold = normalizedToMinMax(min, max, peakMinXThreshold);
+			iso50ValueThr = normalizedToMinMax(min, max, iso50ValueThr); 
+			lokalPeakAirThrX = normalizedToMinMax(min, max, lokalPeakAirThrX);
+			MaterialPeakThrX = normalizedToMinMax(min, max, MaterialPeakThrX);
+
+		}
+		
 		//apply custom min max
 		void updateMinMaxPeaks(double lokalMinX, double lokalMinY, double lokalMaxX, double lokalMaxY) {
 			peakMinXThreshold = lokalMinX;
@@ -179,11 +200,26 @@ namespace threshold_defs {
 			resSt += QString("Lokal Air Peak %1 %2\n").arg(lokalPeakAirThrX).arg(freqPeakLokalMaxY);
 			resSt += QString("Intersection point %1 %2\n").arg(IntersectionPoint.x()).arg(IntersectionPoint.y());
 			resSt += QString("iso 50 %1\n").arg(Iso50ValueThr()); 
+			resSt += QString("Maximum Peak %1\n").arg(MaterialPeakThrX); 
+			resSt += QString("Specified min max %1 %2").arg(specifiedMax).arg(specifiedMax); 
+
 			resSt += QString("final resulting grey value %1").arg(DeterminedThreshold()); 
 			return resSt; 
 		}
 		
-		
+		void setSpecifiedMinMax(double min, double max) {
+			specifiedMin = min; 
+			specifiedMax = max; 
+		}
+
+		double getSpecifiedMin() const {
+			return specifiedMin; 
+		}
+
+		double getSpecifiedMax() const {
+			return specifiedMax; 
+		}
+
 
 	private:
 		double freqPeakMinY;
@@ -204,8 +240,14 @@ namespace threshold_defs {
 		double determinedThreshold; 
 
 		bool m_custimizedMinMax = false; 
+
+
+		double specifiedMax;
+		double specifiedMin; 
 		
 	};
+
+	
 
 	struct PeakRanges {
 		double XRangeMIn;

@@ -54,7 +54,7 @@ public:
 	/*max peak detection
 	*air peak already detected 
 	*/
-	void determinIso50(const threshold_defs::ParametersRanges& inRanges, threshold_defs::ThresMinMax &inVals);
+	void determinIso50andGlobalMax(const threshold_defs::ParametersRanges& inRanges, threshold_defs::ThresMinMax &inVals);
 
 	
 	void getFirstElemInRange(const QVector <QPointF>& in, float xmin, float xmax, QPointF* result);

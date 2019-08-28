@@ -105,26 +105,25 @@ threshold_defs::ThresMinMax ThresholdCalcHelper::calculateMinMax(const threshold
 	return thrMinMax; 
 }
 
-void ThresholdCalcHelper::determinIso50(const threshold_defs::ParametersRanges& inRanges, threshold_defs::ThresMinMax &inVals)
+void ThresholdCalcHelper::determinIso50andGlobalMax(const threshold_defs::ParametersRanges& inRanges, threshold_defs::ThresMinMax &inVals)
 {
 	//min_Maxofa Range
 	//detect peak max
 	//iso 50 is between air and material peak - grauwert
 
 	try{
-		//TODO use custom maximum
-		//double maxPeakThres = 0.0; 
-
+			
 		std::vector<double> freqRangesY = inRanges.getYRange();
 		double maxRange = this->findMaxPeak(freqRangesY); //maximum 
 		
 		threshold_defs::ThresIndx indMinMax = findIndex(inRanges.getYRange(), maxRange);
-		double maxPeakThres = inRanges.getXRange()[indMinMax.thrIndx]; 
-
-		double Iso50Val = (maxPeakThres + inVals.LokalMaxPeakThreshold_X()) * 0.5f;
+		if (indMinMax.thrIndx < 0) {
+			return; 
+		}
 		
-		//TBA
-		//auto indIso50 = findIndex(inRanges.getXRange(), Iso50Val);
+		double maxPeakThres = inRanges.getXRange()[indMinMax.thrIndx]; 
+		double Iso50Val = (maxPeakThres + inVals.LokalMaxPeakThreshold_X()) * 0.5f;
+		inVals.setMaterialsThreshold(maxPeakThres); 				
 		inVals.Iso50ValueThr(Iso50Val);
 	}
 	catch (std::invalid_argument& iae) {
@@ -137,7 +136,11 @@ void ThresholdCalcHelper::determinIso50(const threshold_defs::ParametersRanges& 
 void ThresholdCalcHelper::getFirstElemInRange(const QVector <QPointF>& in, float xmin, float xmax, QPointF* result)
 {
 	if (!result) throw std::invalid_argument("null argument QPointF"); 
-	if (in.empty()) { result = nullptr; return; }
+	if (in.empty())
+	{ 
+		result = nullptr;
+		return;
+	}
 
 	
 	try 

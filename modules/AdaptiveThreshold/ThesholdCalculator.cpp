@@ -91,7 +91,17 @@ void ThesholdCalculator::performCalculation(std::vector<double> inputRange, doub
 
 void ThesholdCalculator::determinIso50(const threshold_defs::ParametersRanges& inRanges, threshold_defs::ThresMinMax& inVals)
 {
-	m_calcHelper.determinIso50(inRanges, inVals); 
+	try
+	{
+		m_calcHelper.determinIso50andGlobalMax(inRanges, inVals);
+	}
+	catch (std::invalid_argument &iaex) {
+	
+		throw; 
+	}
+	
+	
+	
 }
 
 //QPointF ThesholdCalculator::determineResultingThreshold()
