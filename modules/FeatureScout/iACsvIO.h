@@ -23,12 +23,17 @@
 #include "iAFeatureScoutObjectType.h"
 #include "iACsvConfig.h"
 
+#include <iAvec3.h>
+
 #include "FeatureScout_export.h"
 
 #include <QMap>
 #include <QSharedPointer>
 #include <QString>
 #include <QVector>
+
+#include <map>
+#include <vector>
 
 class QTextStream;
 
@@ -73,3 +78,6 @@ private:
 	//! determine the indices of the selected columns
 	QVector<int> computeSelectedColIdx();
 };
+
+//! read the curved fiber info file
+FeatureScout_API bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<iAVec3f> > & outMap);
