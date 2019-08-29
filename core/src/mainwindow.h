@@ -32,7 +32,6 @@
 #include <QMdiSubWindow>
 #include <QSharedPointer>
 
-QT_BEGIN_NAMESPACE
 class QAction;
 class QActionGroup;
 class QComboBox;
@@ -44,7 +43,6 @@ class QMdiArea;
 class QSignalMapper;
 class QLabel;
 class QSplashScreen;
-QT_END_NAMESPACE
 
 class vtkCamera;
 class vtkImageData;
