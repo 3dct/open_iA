@@ -75,7 +75,7 @@ public:
 	void determinIso50(const threshold_defs::ParametersRanges& inRanges, 
 		threshold_defs::ThresMinMax& inVals);
 
-	inline void setThresMinMax(const threshold_defs::ThresMinMax& results) {
+	inline void setCalculatedResults(const threshold_defs::ThresMinMax& results) {
 		m_thresResults = results; 
 	}
 
@@ -137,6 +137,11 @@ public:
 
 	const threshold_defs::ParametersRanges& getNormalizedRangedValues() const {
 		return m_NormalizedRanges; 
+	
+	}
+
+	inline threshold_defs::GreyThresholdPeaks const & getThrPeaksVals() const {
+		return m_thresResults.getGreyThresholdPeaks(); 
 	
 	}
 

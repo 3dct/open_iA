@@ -9,6 +9,36 @@ namespace threshold_defs {
 
 	const double dblInf_min = -std::numeric_limits<double>::infinity();
 	const double fltInf_min = -std::numeric_limits<float>::infinity();
+
+	//storing lokal and global maximum
+	class GreyThresholdPeaks
+	{
+	public: 
+		GreyThresholdPeaks():m_lokalMax(dblInf_min), m_globalMax(dblInf_min){}
+
+
+	void init(double minThr, double maxThr)
+	{
+		m_lokalMax = minThr;
+		m_globalMax = maxThr; 
+	}
+
+	double getLocalMax() const {
+		return m_lokalMax; 
+	}
+
+	double getGlobalMax() const {
+
+		return m_globalMax; 
+	}
+
+
+	private:
+
+		double m_lokalMax; //<!Air peak
+		double m_globalMax; 
+	};
+
 	//Ranges in XY direction
 	class ParametersRanges {
 
@@ -103,7 +133,7 @@ namespace threshold_defs {
 			FreqPeakLokalMaxY(dblInf_min);
 			LokalMaxPeakThreshold_X(dblInf_min);
 			DeterminedThreshold(dblInf_min);
-			setSpecifiedMinMax(dblInf_min, dblInf_min); 
+			//setSpecifiedMinMax(dblInf_min, dblInf_min); 
 
 			IntersectionPoint = QPointF(fltInf_min, fltInf_min);
 		}
@@ -207,7 +237,11 @@ namespace threshold_defs {
 			return resSt; 
 		}
 		
-		void setSpecifiedMinMax(double min, double max) {
+
+
+		//setting MinThreshold = Air Peak
+		//Max = Material Peak
+		/*void setSpecifiedMinMax(double min, double max) {
 			specifiedMin = min; 
 			specifiedMax = max; 
 		}
@@ -218,8 +252,26 @@ namespace threshold_defs {
 
 		double getSpecifiedMax() const {
 			return specifiedMax; 
+		}*/
+
+		void setPeaksMinMax(double minThrPeakAir, double maxThrPeakMaterials) {
+
+			m_peaks.init(minThrPeakAir, maxThrPeakMaterials); 
+
 		}
 
+	/*	double getLokalThrMin_Air() {
+			m_peaks.getLocalMax();
+		};
+		double getLokalThrMax_Materials(){
+			m_peaks.getGlobalMax(); 
+		}*/
+
+		GreyThresholdPeaks const& getGreyThresholdPeaks() const {
+			return m_peaks; 
+
+		}
+		
 
 	private:
 		double freqPeakMinY;
@@ -241,9 +293,12 @@ namespace threshold_defs {
 
 		bool m_custimizedMinMax = false; 
 
-
+		//todo is is this needed? 
 		double specifiedMax;
 		double specifiedMin; 
+
+
+		GreyThresholdPeaks m_peaks; 
 		
 	};
 

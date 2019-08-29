@@ -70,7 +70,7 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_aTestAction, SIGNAL(clicked()), this, SLOT(sortTestAction()));
 	connect(this->btn_selectRange, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClicked()));
 	connect(this->btn_redraw, SIGNAL(clicked()), this, SLOT(redrawPlots())); 
-	connect(this->btn_VisPoints, SIGNAL(clicked()), this, SLOT(determineIntersection())); 
+	connect(this->btn_VisPoints, SIGNAL(clicked()), this, SLOT(determineIntersectionAndFinalThreshold())); 
 	connect(this->btn_rescaleToDefault, SIGNAL(clicked()), this, SLOT(rescaleToMinMax())); 
 	
 }
@@ -259,6 +259,8 @@ void AdaptiveThreshold::computePeaksAndNormalize(threshold_defs::PeakRanges& ran
 		//calculate lokal peaks
 		auto resultingthrPeaks = m_thresCalculator.calcMinMax(paramRanges);
 
+
+
 		//determinMaxPeak; 		
 		//when peaks not calculated define this manually
 		OptionallyUpdateThrPeaks(selectedData, resultingthrPeaks); //TODO check this
@@ -293,16 +295,20 @@ void AdaptiveThreshold::computePeaksAndNormalize(threshold_defs::PeakRanges& ran
 		//iso 50 as grey threshold		
 		m_thresCalculator.determinIso50(maxPeakMaterialRanges, resultingthrPeaks);
 		//here calculations are finished
-		double xmin = resultingthrPeaks.getAirPeakThr();
-		double xmax = resultingthrPeaks.getMaterialsThreshold(); 
+		double xminThr = resultingthrPeaks.getAirPeakThr();
+		double xmaxThr = resultingthrPeaks.getMaterialsThreshold(); 
+
+		resultingthrPeaks.setPeaksMinMax(xminThr, xmaxThr);
+
+		//resultingthrPeaks.setSpecifiedMinMax()
 
 		//then minmaxnormalize x values for later intersection calculation; 
 		this->writeResultText("Before Normalisation\n"); 
 		this->writeResultText(resultingthrPeaks.resultsToString()); 
 
-		resultingthrPeaks.normalizeXValues(xmin, xmax);
+		resultingthrPeaks.normalizeXValues(xminThr, xmaxThr);
 
-		m_thresCalculator.setThresMinMax(resultingthrPeaks);
+		m_thresCalculator.setCalculatedResults(resultingthrPeaks);
 
 		this->writeResultText("\nAfter Normalisation\n"); 
 		this->writeResultText(resultingthrPeaks.resultsToString());
@@ -464,7 +470,7 @@ void AdaptiveThreshold::visualizeSeries(threshold_defs::ParametersRanges ParamRa
 	m_chartView->update(); 
 }
 
-void AdaptiveThreshold::determineIntersection()
+void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 {
 	//workflow select range for choosing points
 	//calculate first intersection within the range
@@ -529,14 +535,24 @@ void AdaptiveThreshold::determineIntersection()
 				//todo check for inf values
 
 				double resThres = m_thresCalculator.GetResultingThreshold();
+				auto peaks = m_thresCalculator.getThrPeaksVals();
+
+
+				
+				double convertedThr = normalizedToMinMax(peaks.getLocalMax(), peaks.getGlobalMax(),resThres); 
+				m_thresCalculator.SetResultingThreshold(convertedThr); 
+				
+				this->writeResultText(QString("finale converted grey value %1").arg(convertedThr)) ; 
+				
+				//convert back
+				//double convertedThres = normalizedToMinMax(m_thresCalculator.g)
 
 				auto* finalThres = ChartVisHelper::createLineSeries(QPoint(resThres, 0), QPoint(resThres,10000000), horizontal_xy);
 				finalThres->setColor(QColor(255, 255, 0)); 
 				finalThres->setName("Determined threshold"); 
 
 				this->addSeries(finalThres, false);
-				//auto *finalThres = chartVisHelper::createLineSeries(QPoint(resThres, 0), QPoint(resThres, 0)))
-				//auto *finalThres = ChartVisHelper::createLineSeries()
+				
 				
 				if (resThres < 0) {
 					writeResultText(QString("resulting segmentation threshold either negative or inf, try again parametrisation"));

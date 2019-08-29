@@ -29,6 +29,8 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 {
 	try
 	{
+
+	//TODO probably use shared pointer
 	AdaptiveThreshold dlg_thres;
 		
 	if (!m_mainWnd->activeMdiChild())

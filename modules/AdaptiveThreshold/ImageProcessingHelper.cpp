@@ -40,7 +40,7 @@ void ImageProcessingHelper::performSegmentation(double greyThreshold)
 	}
 
 	prepareFilter(greyThreshold);
-	imageToReslicer();
+	//imageToReslicer();
 	m_childData->enableRenderWindows();
 	m_childData->updateViews();
 		
@@ -68,7 +68,7 @@ void ImageProcessingHelper::prepareFilter(double greyThreshold)
 
 	vtkSmartPointer<vtkImageData> data = vtkSmartPointer<vtkImageData>::New();
 	data->DeepCopy(filter->output()[0]->vtkImage());
-	m_childData->displayResult("Adaptive thresholding segmentation", data, nullptr);
+	//m_childData->displayResult("Adaptive thresholding segmentation", data, nullptr);
 	m_childData->setImageData("adaptivethres.mhd", false, data);
 }
 

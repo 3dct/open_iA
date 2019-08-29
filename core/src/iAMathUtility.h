@@ -49,7 +49,7 @@ T clamp(T const min, T const max, T const val)
  * @param minSrcVal minimum value of source interval
  * @param maxSrcVal maximum value of source interval
  * @param value a value in source interval
- * @return the corresponding mapped value = value - minSrcVal / (maxSrcVal - minSrcVal)
+ * @return the corresponding mapped value = (value - minSrcVal) / (maxSrcVal - minSrcVal)
  */
 template <typename SrcType>
 double minMaxNormalize(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value)
