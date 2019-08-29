@@ -77,6 +77,8 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 	iACsvConfig csvConfig = dlg.getConfig();
 	if (csvConfig.visType != iACsvConfig::UseVolume)
 	{
+		csvConfig.curvedFiberFileName = QFileDialog::getOpenFileName(m_mainWnd, "Curved Fiber Info",
+			QFileInfo(csvConfig.fileName).absolutePath(), tr("Curved Fiber Information(*.csv);;"));
 		if (m_mainWnd->activeMdiChild() && QMessageBox::question(m_mainWnd, "FeatureScout",
 			"Load FeatureScout in currently active window (If you choose No, FeatureScout will be opened in a new window)?",
 			QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes)
@@ -187,7 +189,12 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		m_mdiChild->addMsg( "Error while attaching FeatureScout to mdi child window!" );
 		return false;
 	}
-	attach->init(csvConfig.objectType, csvConfig.fileName, creator.table(), csvConfig.visType, io.getOutputMapping());
+	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
+	if (!csvConfig.curvedFiberFileName.isEmpty())
+	{
+		readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo);
+	}
+	attach->init(csvConfig.objectType, csvConfig.fileName, creator.table(), csvConfig.visType, io.getOutputMapping(), curvedFiberInfo);
 	SetupToolbar();
 	m_mdiChild->addStatusMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
 	m_mdiChild->addMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
