@@ -271,25 +271,6 @@
              </layout>
             </item>
            </layout>
-           <zorder>ed_xMIn</zorder>
-           <zorder>lbl_xmax</zorder>
-           <zorder>ed_xMax</zorder>
-           <zorder>ed_xMIn</zorder>
-           <zorder>lbl_xmax</zorder>
-           <zorder>ed_xMax</zorder>
-           <zorder>lbl_xmax</zorder>
-           <zorder>lb_xmin</zorder>
-           <zorder>ed_Ymin</zorder>
-           <zorder>lbl_ymin</zorder>
-           <zorder>ed_YMax</zorder>
-           <zorder>lbl_yMax</zorder>
-           <zorder>spin_yTicks</zorder>
-           <zorder>label_11</zorder>
-           <zorder>spin_xTicks</zorder>
-           <zorder>label_10</zorder>
-           <zorder>btn_update</zorder>
-           <zorder>btn_rescaleToDefault</zorder>
-           <zorder>btn_redraw</zorder>
           </widget>
          </item>
         </layout>
@@ -337,7 +318,7 @@
                  <item>
                   <widget class="QLabel" name="label_14">
                    <property name="text">
-                    <string>TextLabel</string>
+                    <string>VaulesMovingAverage</string>
                    </property>
                   </widget>
                  </item>

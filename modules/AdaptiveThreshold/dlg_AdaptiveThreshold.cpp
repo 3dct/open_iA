@@ -307,7 +307,7 @@ void AdaptiveThreshold::computePeaksAndNormalize(threshold_defs::PeakRanges& ran
 		this->writeResultText("\nAfter Normalisation\n"); 
 		this->writeResultText(resultingthrPeaks.resultsToString());
 
-		this->writeResultText("Transform back"); 
+		//this->writeResultText("Transform back"); 
 		//TODOS
 
 
@@ -318,9 +318,7 @@ void AdaptiveThreshold::computePeaksAndNormalize(threshold_defs::PeakRanges& ran
 		QPointF f1 = QPointF(resultingthrPeaks.Iso50ValueThr(), m_graphValuesScope.getYMax());
 		QPointF f2 = QPointF(resultingthrPeaks.Iso50ValueThr(), 0);
 
-
-
-
+		
 		QLineSeries* iso50 = nullptr;
 
 
@@ -330,7 +328,7 @@ void AdaptiveThreshold::computePeaksAndNormalize(threshold_defs::PeakRanges& ran
 		QColor cl_blue = QColor(0, 0, 255);
 		iso50->setColor(cl_blue);
 		iso50->setName("iso 50");
-		this->addSeries(iso50, false);
+		//this->addSeries(iso50, false);
 
 		QColor cl_green = QColor(255, 0, 0);
 		QString sr_text = "Max Peak Range";
@@ -511,8 +509,6 @@ void AdaptiveThreshold::determineIntersection()
 
 				writeResultText("Determined threshold\n");
 
-
-
 				QColor col = QColor(0, 255, 0);
 				QPointF p1 = QPointF(ptIntersect.x(), 0);
 				QPointF p2 = QPointF(ptIntersect.x(), 1000000);
@@ -527,28 +523,34 @@ void AdaptiveThreshold::determineIntersection()
 					writeResultText(QString("no intersection negative or inf, try again parametrisation"));
 					return;
 				}
-
-
-
+				
 				m_thresCalculator.SetResultingThreshold(calcThresPoint.x());
 				writeResultText(QString("P(x,y) %1 %2").arg(calcThresPoint.x()).arg(calcThresPoint.y()));
 				//todo check for inf values
 
 				double resThres = m_thresCalculator.GetResultingThreshold();
 
+				auto* finalThres = ChartVisHelper::createLineSeries(QPoint(resThres, 0), QPoint(resThres,10000000), horizontal_xy);
+				finalThres->setColor(QColor(255, 255, 0)); 
+				finalThres->setName("Determined threshold"); 
 
+				this->addSeries(finalThres, false);
+				//auto *finalThres = chartVisHelper::createLineSeries(QPoint(resThres, 0), QPoint(resThres, 0)))
+				//auto *finalThres = ChartVisHelper::createLineSeries()
+				
 				if (resThres < 0) {
 					writeResultText(QString("resulting segmentation threshold either negative or inf, try again parametrisation"));
 					return;
 				}
 
 
+
+
 				IntersectSeries->setColor(col);
 				IntersectSeries->setName("Intersection with fmin/2");
 
 				this->addSeries(IntersectSeries, false);
-				//this->txt_output
-
+				
 				
 				m_chart->update();
 				m_chartView->update();
@@ -556,7 +558,6 @@ void AdaptiveThreshold::determineIntersection()
 				}catch (std::invalid_argument& iae) {
 					writeDebugText(iae.what()); 
 				}
-
 
 			}
 			else {

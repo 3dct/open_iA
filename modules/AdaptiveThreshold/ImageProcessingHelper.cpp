@@ -19,10 +19,18 @@
 
 void ImageProcessingHelper::performSegmentation(double greyThreshold)
 {
+	
+	DEBUG_LOG(QString("final threshold for segmentation is %1").arg(greyThreshold)); 
+
+
 	if ((greyThreshold < 0) || (greyThreshold == std::numeric_limits<double>::infinity())) {
 		DEBUG_LOG(QString("Threshold not valid %1 or negative, aborted segmentation ").arg(0));
 		throw std::invalid_argument("Threshold not valid %1 or negative, aborted segmentation ");
 		return; 
+	}
+	else if ((greyThreshold > 0) && (greyThreshold < 1)) {
+		DEBUG_LOG(
+			QString("grey threshold: %1 is close to zero, please check parametrisation, or normalized values are used").arg(greyThreshold)); 
 	}
 
 	if (!m_childData) {
