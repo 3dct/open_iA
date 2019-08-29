@@ -35,6 +35,7 @@
 #include "iARenderer.h"
 #include "iASlicer.h"
 #include "iAToolsVTK.h"
+#include "iAXmlSettings.h"
 #include "io/iAFileUtils.h"    // for fileNameOnly
 #include "io/iAIOProvider.h"
 #include "io/iATLGICTLoader.h"
@@ -381,50 +382,6 @@ void MainWindow::saveAs()
 		activeMdiChild()->saveAs();
 }
 
-QDomDocument MainWindow::loadSettingsFile(QString filename)
-{
-	QDomDocument doc;
-
-	QFile file(filename);
-	if (file.open(QIODevice::ReadOnly))
-	{
-		if (!doc.setContent(&file)) {
-			QMessageBox msgBox;
-			msgBox.setText("An error occurred during xml parsing!");
-			msgBox.exec();
-
-			return doc;
-		}
-
-		if (!doc.hasChildNodes() || doc.documentElement().tagName() != "settings")
-		{
-			QDomElement root = doc.createElement("settings");
-			doc.appendChild(root);
-		}
-
-	}
-	else
-	{
-		QDomElement root = doc.createElement("settings");
-		doc.appendChild(root);
-	}
-
-	file.deleteLater();
-	file.close();
-
-	return doc;
-}
-
-void MainWindow::saveSettingsFile(QDomDocument &doc, QString filename)
-{
-	QFile file(filename);
-	file.open(QIODevice::WriteOnly);
-	QTextStream ts(&file);
-	ts << doc.toString();
-
-	file.close();
-}
-
 bool MainWindow::saveSettings()
 {
 	QString filePath = activeMdiChild()->currentFile();
@@ -440,211 +397,170 @@ bool MainWindow::saveSettings()
 			<< tr("$Render Settings")
 			<< tr("$Slice Settings"));
 		QList<QVariant> inPara;
-		inPara << tr("%1").arg(m_spCamera ? tr("true") : tr("false"))
-			<< tr("%1").arg(m_spSliceViews ? tr("true") : tr("false"))
-			<< tr("%1").arg(m_spTransferFunction ? tr("true") : tr("false"))
-			<< tr("%1").arg(m_spProbabilityFunctions ? tr("true") : tr("false"))
-			<< tr("%1").arg(m_spPreferences ? tr("true") : tr("false"))
-			<< tr("%1").arg(m_spRenderSettings ? tr("true") : tr("false"))
-			<< tr("%1").arg(m_spSlicerSettings ? tr("true") : tr("false"));
+		inPara
+			<< m_spCamera
+			<< m_spSliceViews
+			<< m_spTransferFunction
+			<< m_spProbabilityFunctions
+			<< m_spPreferences
+			<< m_spRenderSettings
+			<< m_spSlicerSettings;
 
-		dlg_commoninput dlg(this, "Save Settings", inList, inPara, NULL);
+		dlg_commoninput dlg(this, "Save Settings", inList, inPara, nullptr);
 
 		if (dlg.exec() == QDialog::Accepted)
 		{
-			dlg.getCheckValue(0) == 0 ? m_spCamera = false               : m_spCamera = true;
-			dlg.getCheckValue(1) == 0 ? m_spSliceViews = false           : m_spSliceViews = true;
-			dlg.getCheckValue(2) == 0 ? m_spTransferFunction = false     : m_spTransferFunction = true;
-			dlg.getCheckValue(3) == 0 ? m_spProbabilityFunctions = false : m_spProbabilityFunctions = true;
-			dlg.getCheckValue(4) == 0 ? m_spPreferences = false          : m_spPreferences = true;
-			dlg.getCheckValue(5) == 0 ? m_spRenderSettings = false       : m_spRenderSettings = true;
-			dlg.getCheckValue(6) == 0 ? m_spSlicerSettings = false       : m_spSlicerSettings = true;
+			m_spCamera = dlg.getCheckValue(0) != 0;
+			m_spSliceViews = dlg.getCheckValue(1) != 0;
+			m_spTransferFunction = dlg.getCheckValue(2) != 0;
+			m_spProbabilityFunctions = dlg.getCheckValue(3) != 0;
+			m_spPreferences = dlg.getCheckValue(4) != 0;
+			m_spRenderSettings = dlg.getCheckValue(5) != 0;
+			m_spSlicerSettings = dlg.getCheckValue(6) != 0;
 
-			QDomDocument doc = loadSettingsFile(fileName);
+			iAXmlSettings xml;
 
-			if (m_spCamera) saveCamera(doc);
-			if (m_spSliceViews) saveSliceViews(doc);
-			if (m_spTransferFunction) saveTransferFunction(doc, (iAChartTransferFunction*)activeMdiChild()->functions()[0]);
-			if (m_spProbabilityFunctions) saveProbabilityFunctions(doc);
-			if (m_spPreferences) savePreferences(doc);
-			if (m_spRenderSettings) saveRenderSettings(doc);
-			if (m_spSlicerSettings) saveSlicerSettings(doc);
+			if (m_spCamera)
+				saveCamera(xml);
+			if (m_spSliceViews)
+				saveSliceViews(xml);
+			if (m_spTransferFunction && activeMdiChild()->histogram())
+				xml.saveTransferFunction((iAChartTransferFunction*)activeMdiChild()->functions()[0]);
+			if (m_spProbabilityFunctions && activeMdiChild()->histogram())
+				activeMdiChild()->histogram()->saveProbabilityFunctions(xml);
+			if (m_spPreferences)
+				savePreferences(xml);
+			if (m_spRenderSettings)
+				saveRenderSettings(xml);
+			if (m_spSlicerSettings)
+				saveSlicerSettings(xml);
 
-			saveSettingsFile(doc, fileName);
+			xml.save(fileName);
 		}
 	}
 	return true;
 }
 
-bool MainWindow::loadSettings()
+void MainWindow::loadSettings()
 {
 	QString filePath = activeMdiChild()->currentFile();
 	filePath.truncate(filePath.lastIndexOf('/'));
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
-	if (!fileName.isEmpty())
+	if (fileName.isEmpty())
 	{
-		QFile file(fileName);
-		file.open(QIODevice::ReadWrite);
-
-		QDomDocument doc;
-		if (!doc.setContent(&file)) {
-			QMessageBox msgBox;
-			msgBox.setText("An error occurred during xml parsing!");
-			msgBox.exec();
-
-			file.close();
-			return false;
-		}
-
-		file.close();
-
-		bool camera = false, sliceViews = false, transferFunction = false, probabilityFunctions = false;
-		bool preferences = false, renderSettings = false, slicerSettings = false;
-
-		QDomElement root = doc.documentElement();
-		QDomNodeList list = root.childNodes();
-		for (int n = 0; n < int(list.length()); n++)
-		{
-			QDomNode node = list.item(n);
-			QString nodeName = node.nodeName();
-			if (nodeName == "camera") camera = true;
-			else if (nodeName == "sliceViews") sliceViews = true;
-			else if (nodeName == "functions")
-			{
-				if (node.namedItem("transfer").isElement()) transferFunction = true;
-				if (node.namedItem("bezier").isElement() || node.namedItem("gaussian").isElement())	probabilityFunctions = true;
-			}
-			else if (nodeName == "preferences") preferences = true;
-			else if (nodeName == "renderSettings") renderSettings = true;
-			else if (nodeName == "slicerSettings") slicerSettings = true;
-		}
-
-		QStringList inList = QStringList();
-		QList<QVariant> inPara;
-		if (camera)               { inList << tr("$Camera");                inPara << tr("%1").arg(m_lpCamera ? tr("true") : tr("false")); }
-		if (sliceViews)           { inList << tr("$Slice Views");           inPara << tr("%1").arg(m_lpSliceViews ? tr("true") : tr("false")); }
-		if (transferFunction)     { inList << tr("$Transfer Function");     inPara << tr("%1").arg(m_lpTransferFunction ? tr("true") : tr("false")); }
-		if (probabilityFunctions) { inList << tr("$Probability Functions"); inPara << tr("%1").arg(m_lpProbabilityFunctions ? tr("true") : tr("false")); }
-		if (preferences)          { inList << tr("$Preferences");           inPara << tr("%1").arg(m_lpPreferences ? tr("true") : tr("false")); }
-		if (renderSettings)       { inList << tr("$Render Settings");       inPara << tr("%1").arg(m_lpRenderSettings ? tr("true") : tr("false")); }
-		if (slicerSettings)       { inList << tr("$Slice Settings");        inPara << tr("%1").arg(m_lpSlicerSettings ? tr("true") : tr("false")); }
-
-		dlg_commoninput dlg(this, "Load Settings", inList, inPara, NULL);
-
-		if (dlg.exec() == QDialog::Accepted)
-		{
-			int index = 0;
-			if (camera)               { dlg.getCheckValue(index++) == 0 ? m_lpCamera = false               : m_lpCamera = true; }
-			if (sliceViews)           { dlg.getCheckValue(index++) == 0 ? m_lpSliceViews = false           : m_lpSliceViews = true; }
-			if (transferFunction)     { dlg.getCheckValue(index++) == 0 ? m_lpTransferFunction = false     : m_lpTransferFunction = true; }
-			if (probabilityFunctions) { dlg.getCheckValue(index++) == 0 ? m_lpProbabilityFunctions = false : m_lpProbabilityFunctions = true; }
-			if (preferences)          { dlg.getCheckValue(index++) == 0 ? m_lpPreferences = false          : m_lpPreferences = true; }
-			if (renderSettings)       { dlg.getCheckValue(index++) == 0 ? m_lpRenderSettings = false       : m_lpRenderSettings = true; }
-			if (slicerSettings)       { dlg.getCheckValue(index++) == 0 ? m_lpSlicerSettings = false       : m_lpSlicerSettings = true; }
-
-			if (m_lpProbabilityFunctions)
-			{
-				std::vector<iAChartFunction*> &functions = activeMdiChild()->functions();
-				for (unsigned int i = 1; i < functions.size(); i++)
-				{
-					delete functions.back();
-					functions.pop_back();
-				}
-			}
-
-			QDomElement root = doc.documentElement();
-
-			QDomNodeList list = root.childNodes();
-			for (int n = 0; n < int(list.length()); n++)
-			{
-				QDomNode node = list.item(n);
-				if (node.nodeName() == "camera" && m_lpCamera) loadCamera(node);
-				if (node.nodeName() == "sliceViews" && m_lpSliceViews) loadSliceViews(node);
-				if (node.nodeName() == "functions" && m_lpTransferFunction)
-				{
-					activeMdiChild()->histogram()->loadTransferFunction(node);
-					activeMdiChild()->redrawHistogram();
-				}
-				if (node.nodeName() == "functions" && m_lpProbabilityFunctions) loadProbabilityFunctions(node);
-				if (node.nodeName() == "preferences" && m_lpPreferences) loadPreferences(node);
-				if (node.nodeName() == "renderSettings" && m_lpRenderSettings) loadRenderSettings(node);
-				if (node.nodeName() == "slicerSettings" && m_lpSlicerSettings) loadSlicerSettings(node);
-			}
-		}
+		return;
 	}
-	return true;
-}
-
-namespace
-{
-	void removeNode(QDomNode &rootNode, QString const & str)
+	iAXmlSettings xml;
+	if (!xml.read(fileName))
 	{
-		QDomNodeList list = rootNode.childNodes();
-		for (int n = 0; n < int(list.length()); n++)
-		{
-			QDomNode node = list.item(n);
-			if (node.nodeName() == str)
-			{
-				rootNode.removeChild(node);
-				break;
-			}
-		}
+		QMessageBox::warning(this, "Loading settings", "An error occurred during xml parsing!");
+		return;
 	}
-}
+	bool camera = false, sliceViews = false, transferFunction = false, probabilityFunctions = false;
+	bool preferences = false, renderSettings = false, slicerSettings = false;
 
-void MainWindow::saveCamera(QDomDocument &doc)
-{
-	vtkCamera *camera = activeMdiChild()->renderer()->renderer()->GetActiveCamera();
-	QDomNode node = doc.documentElement();
-	removeNode(node, "camera");
-	QDomElement cameraElement = doc.createElement("camera");
-	saveCamera(cameraElement, camera);
-	doc.documentElement().appendChild(cameraElement);
-}
-
-void MainWindow::loadCamera(QDomNode &cameraNode)
-{
-	vtkCamera *camera = activeMdiChild()->renderer()->renderer()->GetActiveCamera();
-	loadCamera(cameraNode, camera);
-
-	double allBounds[6];
-	activeMdiChild()->renderer()->renderer()->ComputeVisiblePropBounds( allBounds );
-	activeMdiChild()->renderer()->renderer()->ResetCameraClippingRange( allBounds );
-}
-
-void MainWindow::saveSliceViews(QDomDocument &doc)
-{
-	QDomNode sliceViewsNode;
-
-	// find slice view node
-	bool found = false;
-	QDomElement root = doc.documentElement();
+	QDomElement root = xml.documentElement();
 	QDomNodeList list = root.childNodes();
 	for (int n = 0; n < int(list.length()); n++)
 	{
 		QDomNode node = list.item(n);
-		if (node.nodeName() == "sliceViews")
+		QString nodeName = node.nodeName();
+		if (nodeName == "camera") camera = true;
+		else if (nodeName == "sliceViews") sliceViews = true;
+		else if (nodeName == "functions")
 		{
-			sliceViewsNode = node;
-			found = true;
-			break;
+			if (node.namedItem("transfer").isElement()) transferFunction = true;
+			if (node.namedItem("bezier").isElement() || node.namedItem("gaussian").isElement())	probabilityFunctions = true;
+		}
+		else if (nodeName == "preferences") preferences = true;
+		else if (nodeName == "renderSettings") renderSettings = true;
+		else if (nodeName == "slicerSettings") slicerSettings = true;
+	}
+
+	QStringList inList = QStringList();
+	QList<QVariant> inPara;
+	if (camera)               { inList << tr("$Camera");                inPara << tr("%1").arg(m_lpCamera ? tr("true") : tr("false")); }
+	if (sliceViews)           { inList << tr("$Slice Views");           inPara << tr("%1").arg(m_lpSliceViews ? tr("true") : tr("false")); }
+	if (transferFunction)     { inList << tr("$Transfer Function");     inPara << tr("%1").arg(m_lpTransferFunction ? tr("true") : tr("false")); }
+	if (probabilityFunctions) { inList << tr("$Probability Functions"); inPara << tr("%1").arg(m_lpProbabilityFunctions ? tr("true") : tr("false")); }
+	if (preferences)          { inList << tr("$Preferences");           inPara << tr("%1").arg(m_lpPreferences ? tr("true") : tr("false")); }
+	if (renderSettings)       { inList << tr("$Render Settings");       inPara << tr("%1").arg(m_lpRenderSettings ? tr("true") : tr("false")); }
+	if (slicerSettings)       { inList << tr("$Slice Settings");        inPara << tr("%1").arg(m_lpSlicerSettings ? tr("true") : tr("false")); }
+
+	dlg_commoninput dlg(this, "Load Settings", inList, inPara, NULL);
+
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	int index = 0;
+	if (camera)               { dlg.getCheckValue(index++) == 0 ? m_lpCamera = false               : m_lpCamera = true; }
+	if (sliceViews)           { dlg.getCheckValue(index++) == 0 ? m_lpSliceViews = false           : m_lpSliceViews = true; }
+	if (transferFunction)     { dlg.getCheckValue(index++) == 0 ? m_lpTransferFunction = false     : m_lpTransferFunction = true; }
+	if (probabilityFunctions) { dlg.getCheckValue(index++) == 0 ? m_lpProbabilityFunctions = false : m_lpProbabilityFunctions = true; }
+	if (preferences)          { dlg.getCheckValue(index++) == 0 ? m_lpPreferences = false          : m_lpPreferences = true; }
+	if (renderSettings)       { dlg.getCheckValue(index++) == 0 ? m_lpRenderSettings = false       : m_lpRenderSettings = true; }
+	if (slicerSettings)       { dlg.getCheckValue(index++) == 0 ? m_lpSlicerSettings = false       : m_lpSlicerSettings = true; }
+
+	if (m_lpProbabilityFunctions)
+	{
+		std::vector<iAChartFunction*> &functions = activeMdiChild()->functions();
+		for (unsigned int i = 1; i < functions.size(); i++)
+		{
+			delete functions.back();
+			functions.pop_back();
 		}
 	}
 
-	if (!found)
+	if (m_lpCamera)
+		loadCamera(xml);
+	if (m_lpSliceViews && xml.hasElement("sliceViews"))
+		loadSliceViews(xml.node("sliceViews"));
+	if (activeMdiChild()->histogram())
 	{
-		sliceViewsNode = doc.createElement("sliceViews");
-		root.appendChild(sliceViewsNode);
+		if (m_lpTransferFunction)
+			activeMdiChild()->histogram()->loadTransferFunction(xml.documentElement().namedItem("functions"));
+		if (m_lpProbabilityFunctions)
+			activeMdiChild()->histogram()->loadProbabilityFunctions(xml);
+		activeMdiChild()->redrawHistogram();
 	}
+	if (m_lpPreferences && xml.hasElement("preferences"))
+		loadPreferences(xml.node("preferences"));
+	if (m_lpRenderSettings && xml.hasElement("renderSettings"))
+		loadRenderSettings(xml.node("renderSettings"));
+	if (m_lpSlicerSettings && xml.hasElement("slicerSettings"))
+		loadSlicerSettings(xml.node("slicerSettings"));
+}
 
+void MainWindow::saveCamera(iAXmlSettings & xml)
+{
+	vtkCamera *camera = activeMdiChild()->renderer()->renderer()->GetActiveCamera();
+	QDomElement cameraElement = xml.createElement("camera");
+	saveCamera(cameraElement, camera);
+}
+
+bool MainWindow::loadCamera(iAXmlSettings & xml)
+{
+	vtkCamera *camera = activeMdiChild()->renderer()->renderer()->GetActiveCamera();
+	if (!xml.hasElement("camera"))
+		return false;
+	loadCamera(xml.node("camera"), camera);
+
+	double allBounds[6];
+	activeMdiChild()->renderer()->renderer()->ComputeVisiblePropBounds( allBounds );
+	activeMdiChild()->renderer()->renderer()->ResetCameraClippingRange( allBounds );
+	return true;
+}
+
+void MainWindow::saveSliceViews(iAXmlSettings & xml)
+{
+	QDomNode sliceViewsNode = xml.createElement("sliceViews");
 	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
-		saveSliceView(doc, sliceViewsNode, activeMdiChild()->slicer(i)->camera(), slicerModeString(i));
+		saveSliceView(xml.document(), sliceViewsNode, activeMdiChild()->slicer(i)->camera(), slicerModeString(i));
 }
 
 void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkCamera *cam, QString const & elemStr)
 {
-	// remove views node if there is one
-	removeNode(sliceViewsNode, elemStr);
 	// add new slice view node
 	QDomElement cameraElement = doc.createElement(elemStr);
 
@@ -708,7 +624,7 @@ void MainWindow::saveCamera(QDomElement &cameraElement, vtkCamera* camera)
 	}
 }
 
-void MainWindow::loadSliceViews(QDomNode &sliceViewsNode)
+void MainWindow::loadSliceViews(QDomNode sliceViewsNode)
 {
 	QDomNodeList list = sliceViewsNode.childNodes();
 	for (int n = 0; n < int(list.length()); n++)
@@ -732,9 +648,6 @@ void MainWindow::saveTransferFunction(QDomDocument &doc, iAChartTransferFunction
 		doc.documentElement().appendChild(functionsNode);
 	}
 
-	// remove function node if there is one
-	removeNode(functionsNode, "transfer");
-
 	// add new function node
 	QDomElement transferElement = doc.createElement("transfer");
 
@@ -757,127 +670,9 @@ void MainWindow::saveTransferFunction(QDomDocument &doc, iAChartTransferFunction
 	functionsNode.appendChild(transferElement);
 }
 
-void MainWindow::saveProbabilityFunctions(QDomDocument &doc)
+void MainWindow::savePreferences(iAXmlSettings &xml)
 {
-	// does functions node exist
-	QDomNode functionsNode = doc.documentElement().namedItem("functions");
-	if (!functionsNode.isElement())
-	{
-		functionsNode = doc.createElement("functions");
-		doc.documentElement().appendChild(functionsNode);
-	}
-
-	// remove existing function nodes except the transfer function
-	int n = 0;
-	while (n < functionsNode.childNodes().length())
-	{
-		QDomNode node = functionsNode.childNodes().item(n);
-		if (node.nodeName() == "bezier" || node.nodeName() == "gaussian")
-			functionsNode.removeChild(node);
-		else
-			n++;
-	}
-
-	// add new function nodes
-	std::vector<iAChartFunction*> const & functions = activeMdiChild()->functions();
-
-	for (unsigned int f = 1; f < functions.size(); f++)
-	{
-		switch(functions[f]->getType())
-		{
-		case iAChartFunction::BEZIER:
-			{
-				QDomElement bezierElement = doc.createElement("bezier");
-
-				std::vector<QPointF> points = ((iAChartFunctionBezier*)functions[f])->getPoints();
-
-				std::vector<QPointF>::iterator it = points.begin();
-				while(it != points.end())
-				{
-					QPointF point = *it;
-
-					QDomElement nodeElement = doc.createElement("node");
-					nodeElement.setAttribute("value", tr("%1").arg(point.x()));
-					nodeElement.setAttribute("fktValue", tr("%1").arg(point.y()));
-					bezierElement.appendChild(nodeElement);
-
-					functionsNode.appendChild(bezierElement);
-
-					++it;
-				}
-			}
-			break;
-		case iAChartFunction::GAUSSIAN:
-			{
-				QDomElement gaussianElement = doc.createElement("gaussian");
-
-				iAChartFunctionGaussian *gaussian = (iAChartFunctionGaussian*)functions[f];
-
-				gaussianElement.setAttribute("mean", tr("%1").arg(gaussian->getMean()));
-				gaussianElement.setAttribute("sigma", tr("%1").arg(gaussian->getSigma()));
-				gaussianElement.setAttribute("multiplier", tr("%1").arg(gaussian->getMultiplier()));
-
-				functionsNode.appendChild(gaussianElement);
-			}
-			break;
-		default:
-			// unknown function type, do nothing
-			break;
-		}
-	}
-}
-
-void MainWindow::loadProbabilityFunctions(QDomNode &functionsNode)
-{
-	double value, fktValue, sigma, mean, multiplier;
-
-	int colorIndex = 1;
-	QDomNodeList list = functionsNode.childNodes();
-	for (int n = 0; n < list.size(); n++)
-	{
-		QDomNode functionNode = list.item(n);
-		if (functionNode.nodeName() == "bezier")
-		{
-			iAChartFunctionBezier *bezier = new iAChartFunctionBezier(activeMdiChild()->histogram(), PredefinedColors()[colorIndex % 7], false);
-			QDomNodeList innerList = functionNode.childNodes();
-			for (int in = 0; in < innerList.length(); in++)
-			{
-				QDomNode node = innerList.item(in);
-				QDomNamedNodeMap attributes = node.attributes();
-
-				value = attributes.namedItem("value").nodeValue().toDouble();
-				fktValue = attributes.namedItem("fktValue").nodeValue().toDouble();
-
-				bezier->push_back(value, fktValue);
-			}
-			activeMdiChild()->functions().push_back(bezier);
-			colorIndex++;
-		}
-		else if (functionNode.nodeName() == "gaussian")
-		{
-			iAChartFunctionGaussian *gaussian = new iAChartFunctionGaussian(activeMdiChild()->histogram(), PredefinedColors()[colorIndex % 7], false);
-
-			mean = functionNode.attributes().namedItem("mean").nodeValue().toDouble();
-			sigma = functionNode.attributes().namedItem("sigma").nodeValue().toDouble();
-			multiplier = functionNode.attributes().namedItem("multiplier").nodeValue().toDouble();
-
-			gaussian->setMean(mean);
-			gaussian->setSigma(sigma);
-			gaussian->setMultiplier(multiplier);
-
-			activeMdiChild()->functions().push_back(gaussian);
-			colorIndex++;
-		}
-	}
-}
-
-void MainWindow::savePreferences(QDomDocument &doc)
-{
-	// remove preferences node if there is one
-	QDomNode node = doc.documentElement();
-	removeNode(node, "preferences");
-	// add new camera node
-	QDomElement preferencesElement = doc.createElement("preferences");
+	QDomElement preferencesElement = xml.createElement("preferences");
 	preferencesElement.setAttribute("histogramBins", tr("%1").arg(m_defaultPreferences.HistogramBins));
 	preferencesElement.setAttribute("statisticalExtent", tr("%1").arg(m_defaultPreferences.StatisticalExtent));
 	preferencesElement.setAttribute("compression", tr("%1").arg(m_defaultPreferences.Compression));
@@ -885,11 +680,9 @@ void MainWindow::savePreferences(QDomDocument &doc)
 	preferencesElement.setAttribute("magicLensSize", tr("%1").arg(m_defaultPreferences.MagicLensSize));
 	preferencesElement.setAttribute("magicLensFrameWidth", tr("%1").arg(m_defaultPreferences.MagicLensFrameWidth));
 	preferencesElement.setAttribute("logToFile", tr("%1").arg(iAConsole::instance()->isLogToFileOn()));
-
-	doc.documentElement().appendChild(preferencesElement);
 }
 
-void MainWindow::loadPreferences(QDomNode &preferencesNode)
+void MainWindow::loadPreferences(QDomNode preferencesNode)
 {
 	QDomNamedNodeMap attributes = preferencesNode.attributes();
 	m_defaultPreferences.HistogramBins = attributes.namedItem("histogramBins").nodeValue().toInt();
@@ -906,14 +699,9 @@ void MainWindow::loadPreferences(QDomNode &preferencesNode)
 	activeMdiChild()->editPrefs(m_defaultPreferences);
 }
 
-void MainWindow::saveRenderSettings(QDomDocument &doc)
+void MainWindow::saveRenderSettings(iAXmlSettings &xml)
 {
-	// remove renderSettings node if there is one
-	QDomNode node = doc.documentElement();
-	removeNode(node, "renderSettings");
-
-	// add new camera node
-	QDomElement renderSettingsElement = doc.createElement("renderSettings");
+	QDomElement renderSettingsElement = xml.createElement("renderSettings");
 	renderSettingsElement.setAttribute("showSlicers", m_defaultRenderSettings.ShowSlicers);
 	renderSettingsElement.setAttribute("showSlicePlanes", m_defaultRenderSettings.ShowSlicePlanes);
 	renderSettingsElement.setAttribute("showHelpers", m_defaultRenderSettings.ShowHelpers);
@@ -929,11 +717,9 @@ void MainWindow::saveRenderSettings(QDomDocument &doc)
 	renderSettingsElement.setAttribute("specularLighting", m_defaultVolumeSettings.SpecularLighting);
 	renderSettingsElement.setAttribute("specularPower", m_defaultVolumeSettings.SpecularPower);
 	renderSettingsElement.setAttribute("renderMode", m_defaultVolumeSettings.RenderMode);
-
-	doc.documentElement().appendChild(renderSettingsElement);
 }
 
-void MainWindow::loadRenderSettings(QDomNode &renderSettingsNode)
+void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
 {
 	QDomNamedNodeMap attributes = renderSettingsNode.attributes();
 
@@ -957,14 +743,9 @@ void MainWindow::loadRenderSettings(QDomNode &renderSettingsNode)
 	activeMdiChild()->editRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 }
 
-void MainWindow::saveSlicerSettings(QDomDocument &doc)
+void MainWindow::saveSlicerSettings(iAXmlSettings &xml)
 {
-	// remove slicerSettings node if there is one
-	QDomNode node = doc.documentElement();
-	removeNode(node, "slicerSettings");
-
-	// add new camera node
-	QDomElement slicerSettingsElement = doc.createElement("slicerSettings");
+	QDomElement slicerSettingsElement = xml.createElement("slicerSettings");
 	slicerSettingsElement.setAttribute("linkViews", m_defaultSlicerSettings.LinkViews);
 	slicerSettingsElement.setAttribute("showIsolines", m_defaultSlicerSettings.SingleSlicer.ShowIsoLines);
 	slicerSettingsElement.setAttribute("showPosition", m_defaultSlicerSettings.SingleSlicer.ShowPosition);
@@ -977,11 +758,9 @@ void MainWindow::saveSlicerSettings(QDomDocument &doc)
 	slicerSettingsElement.setAttribute("linkMDIs", m_defaultSlicerSettings.LinkMDIs);
 	slicerSettingsElement.setAttribute("cursorMode", m_defaultSlicerSettings.SingleSlicer.CursorMode);
 	slicerSettingsElement.setAttribute("toolTipFontSize", m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize);
-
-	doc.documentElement().appendChild(slicerSettingsElement);
 }
 
-void MainWindow::loadSlicerSettings(QDomNode &slicerSettingsNode)
+void MainWindow::loadSlicerSettings(QDomNode slicerSettingsNode)
 {
 	QDomNamedNodeMap attributes = slicerSettingsNode.attributes();
 
@@ -1445,12 +1224,13 @@ void MainWindow::raycasterSaveCameraSettings()
 	QString filePath = activeMdiChild()->currentFile();
 	filePath.truncate(filePath.lastIndexOf('/'));
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
-	if (!fileName.isEmpty())
+	if (fileName.isEmpty())
 	{
-		QDomDocument doc = loadSettingsFile(fileName);
-		saveCamera(doc);
-		saveSettingsFile(doc, fileName);
+		return;
 	}
+	iAXmlSettings xml;
+	saveCamera(xml);
+	xml.save(fileName);
 }
 
 void MainWindow::raycasterLoadCameraSettings()
@@ -1458,32 +1238,16 @@ void MainWindow::raycasterLoadCameraSettings()
 	// load camera settings
 	QString filePath = activeMdiChild()->currentFile();
 	filePath.truncate(filePath.lastIndexOf('/'));
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
-	if (!fileName.isEmpty())
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath, tr("XML (*.xml)"));
+	if (fileName.isEmpty())
 	{
-		QFile file(fileName);
-		file.open(QIODevice::ReadWrite);
-
-		QDomDocument doc;
-		if (!doc.setContent(&file))
-		{
-			QMessageBox msgBox;
-			msgBox.setText("An error occurred during xml parsing!");
-			msgBox.exec();
-
-			file.close();
-			return;
-		}
-
-		file.close();
-
-		QDomElement root = doc.documentElement();
-		QDomNodeList list = root.childNodes();
-		for (int n = 0; n < int(list.length()); n++)
-		{
-			QDomNode node = list.item(n);
-			if (node.nodeName() == "camera") loadCamera(node);
-		}
+		return;
+	}
+	iAXmlSettings xml;
+	if (!xml.read(fileName) ||
+		!loadCamera(xml))
+	{
+		return;
 	}
 
 	// apply this camera settings to all the MdiChild.
