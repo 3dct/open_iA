@@ -29,6 +29,7 @@
 #include "iAVolumeSettings.h"
 
 #include <QMainWindow>
+#include <QMdiSubWindow>
 #include <QSharedPointer>
 
 QT_BEGIN_NAMESPACE
@@ -40,7 +41,6 @@ class QDomElement;
 class QDomNode;
 class QMenu;
 class QMdiArea;
-class QMdiSubWindow;
 class QSignalMapper;
 class QLabel;
 class QSplashScreen;

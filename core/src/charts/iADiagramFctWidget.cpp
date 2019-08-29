@@ -504,7 +504,6 @@ bool iADiagramFctWidget::saveFunctions()
 	{
 		MdiChild* child = m_activeChild;
 		MainWindow *mw = (MainWindow*)child->window();
-
 		QDomDocument doc = mw->loadSettingsFile(fileName);
 		mw->saveProbabilityFunctions(doc);
 		mw->saveSettingsFile(doc, fileName);
