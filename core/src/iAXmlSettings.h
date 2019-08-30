@@ -26,16 +26,23 @@
 
 class iATransferFunction;
 
-//! Class for loading and storing transfer functions to/from XML documents
-class open_iA_Core_API iASettings
+//! Class for loading and storing settings to/from XML documents.
+//! transfer functions
+class open_iA_Core_API iAXmlSettings
 {
 private:
 	QDomDocument domDocument;
 public:
-	iASettings();
-	iASettings(QString const & filename);
+	iAXmlSettings();
+	bool read(QString const & filename);
 	void loadTransferFunction(iATransferFunction* transferFunction);
-	void storeTransferFunction(iATransferFunction* transferFunction);
+	void saveTransferFunction(iATransferFunction* transferFunction);
+	QDomNode node(QString const & nodeName);
+	bool hasElement(QString const & nodeName) const;
+	QDomElement createElement(QString const & elementName);
+	QDomElement createElement(QString const & elementName, QDomNode parent);
+	QDomElement documentElement();
+	QDomDocument & document();
 	static void loadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction);
 	void save(QString const & fileName);
 private:

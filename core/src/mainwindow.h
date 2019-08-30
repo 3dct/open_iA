@@ -50,6 +50,7 @@ class vtkImageData;
 class iAChartTransferFunction;
 class iAModalityList;
 class iAModuleDispatcher;
+class iAXmlSettings;
 class MdiChild;
 
 class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
@@ -72,22 +73,18 @@ public:
 	void loadFile(QString fileName, bool isStack);
 	void loadFiles(QStringList fileNames);
 
-	QDomDocument loadSettingsFile(QString filename);
-	void saveSettingsFile(QDomDocument &doc, QString filename);
-	void saveCamera(QDomDocument &doc);
-	void loadCamera(QDomNode &cameraNode);
-	void saveSliceViews(QDomDocument &doc);
+	void saveCamera(iAXmlSettings & xml);
+	bool loadCamera(iAXmlSettings & xml);
+	void saveSliceViews(iAXmlSettings & xml);
 	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkCamera *ren, QString const & elemStr);
-	void loadSliceViews(QDomNode &sliceViewsNode);
+	void loadSliceViews(QDomNode sliceViewsNode);
 	void saveTransferFunction(QDomDocument &doc, iAChartTransferFunction* transferFunction);
-	void saveProbabilityFunctions(QDomDocument &doc);
-	void loadProbabilityFunctions(QDomNode &functionsNode);
-	void savePreferences(QDomDocument &doc);
-	void loadPreferences(QDomNode &preferencesNode);
-	void saveRenderSettings(QDomDocument &doc);
-	void loadRenderSettings(QDomNode &renderSettingsNode);
-	void saveSlicerSettings(QDomDocument &doc);
-	void loadSlicerSettings(QDomNode &slicerSettingsNode);
+	void savePreferences(iAXmlSettings &xml);
+	void loadPreferences(QDomNode preferencesNode);
+	void saveRenderSettings(iAXmlSettings &xml);
+	void loadRenderSettings(QDomNode renderSettingsNode);
+	void saveSlicerSettings(iAXmlSettings &xml);
+	void loadSlicerSettings(QDomNode slicerSettingsNode);
 	//! Get the File menu (can be used by modules to append entries to it).
 	QMenu * fileMenu();
 	//! Get the Filters menu (can be used by modules to append entries to it).
@@ -142,7 +139,7 @@ private slots:
 	void openTLGICTData();
 	void save();
 	void saveAs();
-	bool loadSettings();
+	void loadSettings();
 	bool saveSettings();
 	void saveProject();
 	void maxXY();
