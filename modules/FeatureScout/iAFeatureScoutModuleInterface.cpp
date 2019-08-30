@@ -77,8 +77,6 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 	iACsvConfig csvConfig = dlg.getConfig();
 	if (csvConfig.visType != iACsvConfig::UseVolume)
 	{
-		csvConfig.curvedFiberFileName = QFileDialog::getOpenFileName(m_mainWnd, "Curved Fiber Info",
-			QFileInfo(csvConfig.fileName).absolutePath(), tr("Curved Fiber Information(*.csv);;"));
 		if (m_mainWnd->activeMdiChild() && QMessageBox::question(m_mainWnd, "FeatureScout",
 			"Load FeatureScout in currently active window (If you choose No, FeatureScout will be opened in a new window)?",
 			QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes)
@@ -194,7 +192,8 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 	{
 		readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo);
 	}
-	attach->init(csvConfig.objectType, csvConfig.fileName, creator.table(), csvConfig.visType, io.getOutputMapping(), curvedFiberInfo);
+	attach->init(csvConfig.objectType, csvConfig.fileName, creator.table(), csvConfig.visType, io.getOutputMapping(),
+		curvedFiberInfo, csvConfig.cylinderQuality, csvConfig.segmentSkip);
 	SetupToolbar();
 	m_mdiChild->addStatusMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
 	m_mdiChild->addMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
@@ -215,7 +214,7 @@ void iAFeatureScoutModuleInterface::FeatureScout_Options()
 		DEBUG_LOG( "No FeatureScout attachment in current MdiChild!" );
 		return;
 	}
-	QString actionText = ((QAction *)sender())->text();
+	QString actionText = qobject_cast<QAction *>(sender())->text();
 	int idx = 0;
 	if ( actionText.toStdString() == "Length Distribution" ) idx = 7;
 	if ( actionText.toStdString() == "Mean Object" ) idx = 4;

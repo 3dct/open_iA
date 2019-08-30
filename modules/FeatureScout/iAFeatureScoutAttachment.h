@@ -43,7 +43,8 @@ public:
 	iAFeatureScoutAttachment(MainWindow* mainWnd, MdiChild * child);
 	~iAFeatureScoutAttachment();
 	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, int visType,
-		QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t, std::vector<iAVec3f> > & curvedFiberInfo);
+		QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
+		std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip);
 	void enableBlobVisualization();
 	void disableBlobVisualization();
 	void FeatureScout_Options(int idx);
