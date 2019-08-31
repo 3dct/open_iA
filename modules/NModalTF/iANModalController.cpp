@@ -88,6 +88,7 @@ void iANModalController::_initialize() {
 	}
 
 	m_slicers.clear();
+	m_labelIds.clear();
 	for (int i = 0; i < m_modalities.size(); i++) {
 		auto modality = m_modalities[i];
 
@@ -99,11 +100,12 @@ void iANModalController::_initialize() {
 			modality->image()->GetSpacing(),
 			m_slicerChannel_label);
 		m_slicers.append(slicer);
+		m_labelIds.append(id);
 	}
 
 	if (countModalities() > 0) {
-		//_initializeCombinedVol();
 		_initializeMainSlicers();
+		_initializeCombinedVol();
 	}
 
 	m_initialized = true;
@@ -148,6 +150,53 @@ inline iASlicer* iANModalController::_initializeSlicer(QSharedPointer<iAModality
 	return slicer;
 }
 
+inline void iANModalController::_initializeMainSlicers() {
+	iASlicer* slicerArray[] = {
+		m_mdiChild->slicer(iASlicerMode::YZ),
+		m_mdiChild->slicer(iASlicerMode::XY),
+		m_mdiChild->slicer(iASlicerMode::XZ)
+	};
+
+	for (uint channelId : m_channelIds) {
+		m_mdiChild->removeChannel(channelId);
+	}
+	m_channelIds.clear();
+
+	for (int modalityIndex = 0; modalityIndex < countModalities(); modalityIndex++) {
+		uint channelId = m_mdiChild->createChannel();
+		m_channelIds.append(channelId);
+
+		auto modality = m_modalities[modalityIndex];
+
+		auto chData = m_mdiChild->channelData(channelId);
+		vtkImageData* imageData = modality->image();
+		vtkColorTransferFunction* ctf = modality->transfer()->colorTF();
+		vtkPiecewiseFunction* otf = modality->transfer()->opacityTF();
+		chData->setData(imageData, ctf, otf);
+
+		m_mdiChild->initChannelRenderer(channelId, false, true);
+	}
+
+	for (int mainSlicerIndex = 0; mainSlicerIndex < iASlicerMode::SlicerCount; mainSlicerIndex++) {
+
+		auto reslicer = slicerArray[mainSlicerIndex]->channel(m_channelIds[0])->reslicer();
+
+		int const* dims = reslicer->GetOutput()->GetDimensions();
+		// should be double const once VTK supports it:
+		double* spc = reslicer->GetOutput()->GetSpacing();
+
+		//data->GetImageActor()->SetOpacity(0.0);
+		//data->SetManualBackground(1.0, 1.0, 1.0);
+		//data->SetManualBackground(0.0, 0.0, 0.0);
+
+		auto imgOut = vtkSmartPointer<vtkImageData>::New();
+		imgOut->SetDimensions(dims);
+		imgOut->SetSpacing(spc);
+		imgOut->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
+		m_slicerImages[mainSlicerIndex] = imgOut;
+	}
+}
+
 inline void iANModalController::_initializeCombinedVol() {
 	auto appendFilter = vtkSmartPointer<vtkImageAppendComponents>::New();
 	appendFilter->SetInputData(m_modalities[0]->image());
@@ -188,42 +237,6 @@ inline void iANModalController::_initializeCombinedVol() {
 			renderer->remove();
 	}
 	m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);
-}
-
-inline void iANModalController::_initializeMainSlicers() {
-	iASlicer* slicerArray[] = {
-		m_mdiChild->slicer(iASlicerMode::YZ),
-		m_mdiChild->slicer(iASlicerMode::XY),
-		m_mdiChild->slicer(iASlicerMode::XZ)
-	};
-
-	auto modality = m_modalities[0];
-	m_mainSlicerChannel_nModal = m_mdiChild->createChannel();
-	auto chData = m_mdiChild->channelData(m_mainSlicerChannel_nModal);
-	auto imageData = modality->image();
-	auto ctf = modality->transfer()->colorTF();
-	auto otf = modality->transfer()->opacityTF();
-	chData->setData(imageData, ctf, otf);
-	m_mdiChild->initChannelRenderer(m_mainSlicerChannel_nModal, false, true);
-
-	for (int mainSlicerIndex = 0; mainSlicerIndex < iASlicerMode::SlicerCount; mainSlicerIndex++) {
-
-		auto reslicer = slicerArray[mainSlicerIndex]->channel(m_mainSlicerChannel_nModal)->reslicer();
-
-		int const* dims = reslicer->GetOutput()->GetDimensions();
-		// should be double const once VTK supports it:
-		double* spc = reslicer->GetOutput()->GetSpacing();
-
-		//data->GetImageActor()->SetOpacity(0.0);
-		//data->SetManualBackground(1.0, 1.0, 1.0);
-		//data->SetManualBackground(0.0, 0.0, 0.0);
-
-		auto imgOut = vtkSmartPointer<vtkImageData>::New();
-		imgOut->SetDimensions(dims);
-		imgOut->SetSpacing(spc);
-		imgOut->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
-		m_slicerImages[mainSlicerIndex] = imgOut;
-	}
 }
 
 inline void iANModalController::applyVolumeSettings() {

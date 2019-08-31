@@ -117,13 +117,12 @@ void iANModalWidget::onButtonClicked() {
 			QColor color = qvariant_cast<QColor>(item->data(Qt::DecorationRole));
 			int count = items->item(row, 1)->text().toInt();
 			for (int childRow = 0; childRow < item->rowCount(); childRow++) {
-				QString t = item->child(childRow, 0)->text();
-				QString nums = t.mid(1, t.size() - 2); // Remove parentheses
-				QString nospace = nums.replace(" ", ""); // Remove spaces
-				QStringList coords = nospace.split(","); // Separate by comma
-				int x = coords[0].toInt();
-				int y = coords[1].toInt();
-				int z = coords[2].toInt();
+				auto child = item->child(childRow, 0);
+
+				int x = child->data(Qt::UserRole + 1).toInt();
+				int y = child->data(Qt::UserRole + 2).toInt();
+				int z = child->data(Qt::UserRole + 3).toInt();
+				int id = child->data(Qt::UserRole + 4).toInt();
 
 				double scalar = image->GetScalarComponentAsDouble(x, y, z, 0);
 
@@ -131,6 +130,7 @@ void iANModalWidget::onButtonClicked() {
 				v.x = x;
 				v.y = y;
 				v.z = z;
+				v.id = id;
 				v.scalar = scalar;
 				v.r = color.redF();
 				v.g = color.greenF();

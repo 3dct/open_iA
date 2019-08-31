@@ -40,6 +40,7 @@ struct LabeledVoxel {
 	int x;
 	int y;
 	int z;
+	int id;
 	double scalar;
 	double r;
 	double g;
@@ -77,6 +78,7 @@ private:
 	bool _checkModalities(QList<QSharedPointer<iAModality>> modalities);
 	bool _matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2);
 	QList<QSharedPointer<iAModality>> m_modalities;
+	QList<uint> m_channelIds;
 	vtkSmartPointer<vtkVolume> m_combinedVol;
 	vtkSmartPointer<vtkSmartVolumeMapper> m_combinedVolMapper;
 	vtkSmartPointer<vtkRenderer> m_combinedVolRenderer;
@@ -91,6 +93,7 @@ private:
 
 	// Internal widgets
 	QList<iASlicer*> m_slicers;
+	QList<int> m_labelIds;
 
 	// Labeling widgets
 
