@@ -80,9 +80,12 @@ private:
 	vtkSmartPointer<vtkVolume> m_combinedVol;
 	vtkSmartPointer<vtkSmartVolumeMapper> m_combinedVolMapper;
 	vtkSmartPointer<vtkRenderer> m_combinedVolRenderer;
-	QList<uint> m_channelIds;
 	vtkSmartPointer<vtkImageData> m_slicerImages[3];
 	bool m_initialized = false;
+
+	uint m_slicerChannel_main = 0;
+	uint m_slicerChannel_label = 1;
+	uint m_mainSlicerChannel_nModal;
 
 	void applyVolumeSettings();
 

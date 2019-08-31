@@ -96,7 +96,7 @@ int dlg_labels::getNextId() {
 	return id;
 }
 
-int dlg_labels::addSlicer(iASlicer* slicer, QString name, int* extent, double* spacing, uint channelId /* = 0 */)
+int dlg_labels::addSlicer(iASlicer* slicer, QString name, int* extent, double* spacing, uint channelId)
 {
 	assert(!m_mapSlicer2data.contains(slicer));
 
@@ -116,7 +116,7 @@ int dlg_labels::addSlicer(iASlicer* slicer, QString name, int* extent, double* s
 	return imageId;
 }
 
-void dlg_labels::addSlicer(iASlicer *slicer, int imageId, uint channelId /* = 0 */)
+void dlg_labels::addSlicer(iASlicer *slicer, int imageId, uint channelId)
 {
 	QSharedPointer<OverlayImage> oi = m_mapId2image.value(imageId);
 	if (!oi) {
@@ -131,10 +131,10 @@ void dlg_labels::addSlicer(iASlicer *slicer, int imageId, uint channelId /* = 0 
 	{
 		int id = oi->id;
 
-		QMetaObject::Connection c[3];
-		c[0] = connect(slicer, &iASlicer::leftClicked, this, [this, slicer](int x, int y, int z) { slicerClicked(x, y, z, slicer); });
-		c[1] = connect(slicer, &iASlicer::leftDragged, this, [this, slicer](int x, int y, int z) { slicerDragged(x, y, z, slicer); });
-		c[2] = connect(slicer, &iASlicer::rightClicked, this, [this, slicer](int x, int y, int z) { slicerRightClicked(x, y, z, slicer); });
+		QList<QMetaObject::Connection> c;
+		c.append(connect(slicer, &iASlicer::leftClicked, this, [this, slicer](int x, int y, int z) { slicerClicked(x, y, z, slicer); }));
+		c.append(connect(slicer, &iASlicer::leftDragged, this, [this, slicer](int x, int y, int z) { slicerDragged(x, y, z, slicer); }));
+		c.append(connect(slicer, &iASlicer::rightClicked, this, [this, slicer](int x, int y, int z) { slicerRightClicked(x, y, z, slicer); }));
 		
 		auto channelData = iAChannelData("name", oi->image, m_labelColorTF, m_labelOpacityTF);
 		slicer->addChannel(channelId, channelData, true);
@@ -160,22 +160,23 @@ void dlg_labels::removeSlicer(iASlicer* slicer)
 		return;
 	}
 
-	// WARNING
+	slicer->removeChannel(data->channelId);
+
+	auto connections = data->connections;
+	for (auto c : connections) {
+		disconnect(c);
+	}
+
+	m_mapSlicer2data.remove(slicer);
+
+	// WARNING (26.08.2019)
 	// Adding same slicer twice is not allowed (see assert in 'addSlicer(iASlicer*, QString, int*, double*)')
 	// So we can assume here that no slicer has been added twice
-
 	QSharedPointer<OverlayImage> oi = m_mapId2image.value(data->overlayImageId);
 	oi->slicers.removeOne(slicer);
 	if (oi->slicers.isEmpty()) {
-		m_mapId2image.remove(data->overlayImageId);
+		auto removed = m_mapId2image.remove(data->overlayImageId);
 	}
-
-	auto c = data->connections;
-	disconnect(c[0]);
-	disconnect(c[1]);
-	disconnect(c[2]);
-
-	m_mapSlicer2data.remove(slicer);
 }
 
 namespace

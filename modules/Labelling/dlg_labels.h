@@ -62,11 +62,9 @@ public:
 	bool load(QString const & filename);
 	bool store(QString const & filename, bool extendedFormat);
 
-	int addSlicer(iASlicer *slicer, QString name, int *extent, double *spacing, uint channelId=0);
+	int addSlicer(iASlicer *slicer, QString name, int *extent, double *spacing, uint channelId);
 	void addSlicer(iASlicer *slicer, int imageId, uint channelId=0);
 	void removeSlicer(iASlicer *slicer);
-
-	//void disconnectMainSlicers();
 
 	// TEMPORARY
 	QStandardItemModel* m_itemModel; // TODO: make private
@@ -119,12 +117,12 @@ private:
 
 	struct SlicerData
 	{
-		SlicerData(iAChannelData _channelData, uint _channelId, QMetaObject::Connection c[3], int id) : channelData(_channelData), channelId(_channelId), overlayImageId(id)
+		SlicerData(iAChannelData _channelData, uint _channelId, QList<QMetaObject::Connection> c, int id) : channelData(_channelData), channelId(_channelId), connections(c), overlayImageId(id)
 		{}
 		iAChannelData channelData;
 		int overlayImageId;
 		uint channelId;
-		QMetaObject::Connection connections[3];
+		QList<QMetaObject::Connection> connections;
 	};
 	QMap<iASlicer*, QSharedPointer<SlicerData>> m_mapSlicer2data;
 

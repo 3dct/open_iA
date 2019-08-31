@@ -20,6 +20,9 @@
 * ************************************************************************************/
 #include "iANModalController.h"
 
+#include "iALabellingAttachment.h"
+#include "dlg_labels.h"
+
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAModalityTransfer.h"
@@ -28,7 +31,6 @@
 #include "iASlicer.h"
 #include "iAChannelSlicerData.h"
 #include "iAChannelData.h"
-#include "dlg_labels.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
@@ -47,7 +49,20 @@ iANModalController::iANModalController(MdiChild *mdiChild) :
 	m_mdiChild(mdiChild)
 {
 	QObject* obj = m_mdiChild->findChild<QObject*>("labels");
-	m_dlg_labels = static_cast<dlg_labels*>(obj);
+	if (obj)
+	{
+		m_dlg_labels = static_cast<dlg_labels*>(obj);
+		m_dlg_labels->removeSlicer(m_mdiChild->slicer(iASlicerMode::XY));
+		m_dlg_labels->removeSlicer(m_mdiChild->slicer(iASlicerMode::XZ));
+		m_dlg_labels->removeSlicer(m_mdiChild->slicer(iASlicerMode::YZ));
+	}
+	else
+	{
+		// TODO
+		//auto attachment = iALabellingAttachment::create(m_mdiChild->mainWnd(), m_mdiChild);
+		//m_dlg_labels = attachment->labelsDlg();
+		assert(false);
+	}
 }
 
 void iANModalController::initialize() {
@@ -66,51 +81,30 @@ void iANModalController::_initialize() {
 
 	// TODO: cherry pick modalities
 
-	assert(countModalities() < 4); // VTK limit
+	assert(countModalities() < 4); // VTK limit. TODO: don't hard-code
 
 	for (auto slicer : m_slicers) {
 		m_dlg_labels->removeSlicer(slicer);
 	}
 
-	for (auto channelId : m_channelIds) {
-		m_mdiChild->removeChannel(channelId);
-	}
-
 	m_slicers.clear();
-	m_channelIds.clear();
 	for (int i = 0; i < m_modalities.size(); i++) {
 		auto modality = m_modalities[i];
 
 		auto slicer = _initializeSlicer(modality);
-		int id = m_dlg_labels->addSlicer(slicer, "noname", modality->image()->GetExtent(), modality->image()->GetSpacing());
+		int id = m_dlg_labels->addSlicer(
+			slicer,
+			"noname",
+			modality->image()->GetExtent(),
+			modality->image()->GetSpacing(),
+			m_slicerChannel_label);
 		m_slicers.append(slicer);
-
-		// TODO: remove
-		//continue;
-
-		m_channelIds.push_back(m_mdiChild->createChannel()); // TODO: use own channel ids
-		auto chData = m_mdiChild->channelData(m_channelIds[i]);
-		auto imageData = modality->image();
-		auto ctf = modality->transfer()->colorTF();
-		auto otf = modality->transfer()->opacityTF();
-		chData->setData(imageData, ctf, otf);
-		m_mdiChild->initChannelRenderer(m_channelIds[i], false, true);
 	}
 
 	if (countModalities() > 0) {
-		_initializeCombinedVol();
-	}
-
-	if (!m_initialized) {
-		// TODO: uncomment
+		//_initializeCombinedVol();
 		_initializeMainSlicers();
 	}
-
-	//connectAcrossSlicers();
-	//setMainSlicerCamera();
-
-	//m_mainSlicersInitialized = true;
-	//updateVisualizationsNow();
 
 	m_initialized = true;
 }
@@ -120,17 +114,19 @@ inline iASlicer* iANModalController::_initializeSlicer(QSharedPointer<iAModality
 	int sliceNumber = m_mdiChild->slicer(slicerMode)->sliceNumber();
 	// Hide everything except the slice itself
 	auto slicer = new iASlicer(nullptr, slicerMode, /*bool decorations = */false);
-	slicer->setSliceNumber(sliceNumber);
+	slicer->setup(m_mdiChild->slicerSettings().SingleSlicer);
+	slicer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-	vtkImageData *image = modality->image().GetPointer();
+	auto image = modality->image();
 
 	vtkColorTransferFunction* colorTf = vtkColorTransferFunction::New();
 	double range[2];
-	modality->image()->GetScalarRange(range);
+	image->GetScalarRange(range);
 	double min = range[0];
 	double max = range[1];
 	colorTf->AddRGBPoint(min, 0.0, 0.0, 0.0);
 	colorTf->AddRGBPoint(max, 1.0, 1.0, 1.0);
+	slicer->addChannel(m_slicerChannel_main, iAChannelData(modality->name(), image, colorTf), true);
 
 	double* origin = image->GetOrigin();
 	int* extent = image->GetExtent();
@@ -141,15 +137,13 @@ inline iASlicer* iANModalController::_initializeSlicer(QSharedPointer<iAModality
 	double xd = (extent[1] - extent[0] + 1)*spacing[0];
 	double yd = (extent[3] - extent[2] + 1)*spacing[1];
 
-	slicer->setup(m_mdiChild->slicerSettings().SingleSlicer);
-	slicer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-	slicer->addChannel(0, iAChannelData(modality->name(), image, colorTf), true);
-
 	vtkCamera* camera = slicer->camera();
 	double d = camera->GetDistance();
 	camera->SetParallelScale(0.5 * yd);
 	camera->SetFocalPoint(xc, yc, 0.0);
 	camera->SetPosition(xc, yc, +d);
+
+	slicer->setSliceNumber(sliceNumber);
 
 	return slicer;
 }
@@ -202,9 +196,19 @@ inline void iANModalController::_initializeMainSlicers() {
 		m_mdiChild->slicer(iASlicerMode::XY),
 		m_mdiChild->slicer(iASlicerMode::XZ)
 	};
+
+	auto modality = m_modalities[0];
+	m_mainSlicerChannel_nModal = m_mdiChild->createChannel();
+	auto chData = m_mdiChild->channelData(m_mainSlicerChannel_nModal);
+	auto imageData = modality->image();
+	auto ctf = modality->transfer()->colorTF();
+	auto otf = modality->transfer()->opacityTF();
+	chData->setData(imageData, ctf, otf);
+	m_mdiChild->initChannelRenderer(m_mainSlicerChannel_nModal, false, true);
+
 	for (int mainSlicerIndex = 0; mainSlicerIndex < iASlicerMode::SlicerCount; mainSlicerIndex++) {
 
-		auto reslicer = slicerArray[mainSlicerIndex]->channel(m_channelIds[0])->reslicer();
+		auto reslicer = slicerArray[mainSlicerIndex]->channel(m_mainSlicerChannel_nModal)->reslicer();
 
 		int const* dims = reslicer->GetOutput()->GetDimensions();
 		// should be double const once VTK supports it:
@@ -258,15 +262,15 @@ QList<QSharedPointer<iAModality>> iANModalController::cherryPickModalities(QList
 
 	// TODO: pick "best" combination of modalities
 
-	QList<QSharedPointer<iAModality>> dummy;
+	QList<QSharedPointer<iAModality>> mods;
 	for (auto modality : modalities) {
-		dummy.append(modality);
+		mods.append(modality);
 	}
-	return dummy;
+	return mods;
 }
 
 bool iANModalController::_checkModalities(QList<QSharedPointer<iAModality>> modalities) {
-	if (modalities.size() < 1 || modalities.size() > 4) { // Bad: 4 hard-coded. TODO: improve
+	if (modalities.size() < 1 || modalities.size() > 4) { // Bad: '4' is hard-coded. TODO: improve
 		return false;
 	}
 
