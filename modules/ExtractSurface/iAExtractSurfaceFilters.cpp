@@ -43,7 +43,7 @@ void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 	if (parameters["Algorithm"].toString() == "Marching Cubes")
 	{
 		auto marchingCubes = vtkSmartPointer<vtkMarchingCubes>::New();
-		progress()->Observe(marchingCubes);
+		progress()->observe(marchingCubes);
 		marchingCubes->SetInputData(input()[0]->vtkImage().GetPointer());
 		marchingCubes->ComputeNormalsOn();
 		marchingCubes->ComputeGradientsOn();
@@ -54,7 +54,7 @@ void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 	else
 	{
 		auto flyingEdges = vtkSmartPointer<vtkFlyingEdges3D>::New();
-		progress()->Observe(flyingEdges);
+		progress()->observe(flyingEdges);
 		flyingEdges->SetInputData(input()[0]->vtkImage().GetPointer());
 		flyingEdges->SetNumberOfContours(1);
 		flyingEdges->SetValue(0, parameters["Iso value"].toDouble());
@@ -69,7 +69,7 @@ void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 	if (parameters["Simplification Algorithm"].toString() == "Decimate Pro")
 	{
 		auto decimatePro = vtkSmartPointer<vtkDecimatePro>::New();
-		progress()->Observe(decimatePro);
+		progress()->observe(decimatePro);
 		decimatePro->SetTargetReduction(parameters["Decimation Target"].toDouble());
 		decimatePro->SetPreserveTopology(parameters["Preserve Topology"].toBool());
 		decimatePro->SetSplitting(parameters["Splitting"].toBool());
@@ -80,7 +80,7 @@ void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 	else if (parameters["Simplification Algorithm"].toString() == "Quadric Clustering")
 	{
 		auto quadricClustering = vtkSmartPointer<vtkQuadricClustering>::New();
-		progress()->Observe(quadricClustering);
+		progress()->observe(quadricClustering);
 		quadricClustering->SetNumberOfXDivisions(parameters["Cluster divisions"].toUInt());
 		quadricClustering->SetNumberOfYDivisions(parameters["Cluster divisions"].toUInt());
 		quadricClustering->SetNumberOfZDivisions(parameters["Cluster divisions"].toUInt());
@@ -107,7 +107,7 @@ void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 	}
 	*/
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
-	progress()->Observe(stlWriter);
+	progress()->observe(stlWriter);
 	stlWriter->SetFileName( getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());
 	if (parameters["Simplification Algorithm"].toString() == "None")
 	{

@@ -134,9 +134,9 @@ DstType mapValue(SrcType minSrcVal, SrcType maxSrcVal, DstType minDstVal, DstTyp
 //! @return if value was in range [minSrcVal..maxSrcVal], the
 //!     corresponding mapped value in range [minDstVal..maxDstVal]
 template <typename T>
-inline T mapValue(T const * rangeSrc, T const * rangeDst, T const val)
+inline T mapValue(T const * rangeSrc, T const * rangeDst, T const value)
 {
-	return mapValue(rangeSrc[0], rangeSrc[1], rangeDst[0], rangeDst[1], val);
+	return mapValue(rangeSrc[0], rangeSrc[1], rangeDst[0], rangeDst[1], value);
 }
 
 //! Invert value in a given range.

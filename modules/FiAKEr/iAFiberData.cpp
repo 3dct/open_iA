@@ -246,7 +246,6 @@ void samplePoints(iAFiberData const & fiber, std::vector<Vec3D > & result, size_
 	}
 }
 
-// currently: L2 norm (euclidean distance). other measures?
 double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	int measureID, double diagonalLength, double maxLength)
 {
@@ -293,7 +292,7 @@ double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		);
 		break;
 	}
-	case 2: // start/end/center
+	case 2: // start/end/center distance
 	{
 		iAFiberData fiber1 = iAFiberData::getOrientationCorrected(fiber1raw, fiber2);
 		similarity =

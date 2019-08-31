@@ -200,7 +200,8 @@ ColormapFuncPtr colormapsIndex[] =
 const int dlg_FeatureScout::PCMinTicksCount = 2;
 
 dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
-	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping)
+	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping,
+	std::map<size_t, std::vector<iAVec3f> > & curvedFiberInfo)
 	: QDockWidget( parent ),
 	csvTable( csvtbl ),
 	m_renderer( parent->renderer() ),
@@ -248,7 +249,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupViews();
 	setupModel();
 	setupConnections();
-	m_3dvis = create3DObjectVis(vis, parent, csvtbl, m_columnMapping, m_colorList.at(0));
+	m_3dvis = create3DObjectVis(vis, parent, csvtbl, m_columnMapping, m_colorList.at(0), curvedFiberInfo);
 	if (vis != iACsvConfig::UseVolume)
 		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
 			.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
@@ -1180,14 +1181,14 @@ void dlg_FeatureScout::saveStl()
 	connect( &stlWriProgress, SIGNAL( progress( int ) ), this, SLOT( updateStlProgress( int ) ) );
 
 	auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
-	marCubProgress.Observe(moSurface);
+	marCubProgress.observe(moSurface);
 	moSurface->SetInputData( m_MOData.moImageDataList[iovMO->cb_Classes->currentIndex()] );
 	moSurface->ComputeNormalsOn();
 	moSurface->ComputeGradientsOn();
 	moSurface->SetValue( 0, iovMO->dsb_IsoValue->value() );
 
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
-	stlWriProgress.Observe(stlWriter);
+	stlWriProgress.observe(stlWriter);
 	stlWriter->SetFileName( getLocalEncodingFileName(iovMO->le_StlPath->text()).c_str() );
 	stlWriter->SetInputConnection( moSurface->GetOutputPort() );
 	stlWriter->Write();

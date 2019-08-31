@@ -50,7 +50,7 @@ template<class T> void convolution(iAFilter* filter)
 	}
 	convFilter->SetInput(img);
 	convFilter->SetKernelImage(kernelImg);
-	filter->progress()->Observe(convFilter);
+	filter->progress()->observe(convFilter);
 	convFilter->Update();
 	filter->addOutput(convFilter->GetOutput());
 }
@@ -90,7 +90,7 @@ template<class T> void fft_convolution(iAFilter* filter)
 	fftConvFilter->SetInput(dynamic_cast<ImageType *>(filter->input()[0]->itkImage()));
 	fftConvFilter->SetKernelImage(kernelImg);
 	fftConvFilter->SetNormalize(true);
-	filter->progress()->Observe(fftConvFilter);
+	filter->progress()->observe(fftConvFilter);
 	fftConvFilter->Update();
 	filter->addOutput(fftConvFilter->GetOutput());
 }
@@ -140,7 +140,7 @@ template<class T> void correlation(iAFilter* filter)
 	auto corrFilter = CorrelationFilterType::New();
 	corrFilter->SetInput(img);
 	corrFilter->SetTemplate(kernelOperator);
-	filter->progress()->Observe(corrFilter);
+	filter->progress()->observe(corrFilter);
 	corrFilter->Update();
 	filter->addOutput(corrFilter->GetOutput());
 }
@@ -187,7 +187,7 @@ template<class T> void fft_correlation(iAFilter* filter)
 	//filter->SetFixedImage(img);
 	corrFilter->SetMovingImage(templateImg);
 	corrFilter->Modified();
-	filter->progress()->Observe(corrFilter);
+	filter->progress()->observe(corrFilter);
 	corrFilter->Update();
 	filter->addOutput(corrFilter->GetOutput());
 }
@@ -243,7 +243,7 @@ template<class T> void streamed_fft_correlation(iAFilter* filter)
 	corrFilter->SetInput(streamer->GetOutput());
 	//filter->SetFixedImage(img);
 	corrFilter->SetMovingImage(templateImg);
-	filter->progress()->Observe(corrFilter);
+	filter->progress()->observe(corrFilter);
 	corrFilter->Update();
 	filter->addOutput(corrFilter->GetOutput());
 }

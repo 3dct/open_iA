@@ -43,7 +43,7 @@
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
-      <widget class="QFrame" name="frame_5">
+      <widget class="QFrame" name="topFrame">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -65,7 +65,7 @@
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
-          <widget class="QWidget" name="widget_3" native="true">
+          <widget class="QWidget" name="leftFrame" native="true">
            <layout class="QGridLayout" name="gridLayout_15">
             <property name="leftMargin">
              <number>0</number>
@@ -315,7 +315,7 @@
                  </layout>
                 </item>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_90">
+                 <layout class="QHBoxLayout" name="horizontalLayout_90" stretch="3,1">
                   <item>
                    <widget class="QFrame" name="RenderViewWidget">
                     <property name="sizePolicy">
@@ -569,7 +569,7 @@
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="widget_4" native="true">
+          <widget class="QWidget" name="rightFrame" native="true">
            <layout class="QGridLayout" name="gridLayout_17">
             <property name="topMargin">
              <number>0</number>
@@ -1276,7 +1276,7 @@
                    <attribute name="title">
                     <string>3D plot</string>
                    </attribute>
-                   <layout class="QGridLayout" name="gridLayout_4" />
+                   <layout class="QGridLayout" name="gridLayout_4"/>
                   </widget>
                   <widget class="QWidget" name="tab_13">
                    <attribute name="title">
@@ -3429,7 +3429,7 @@
                <attribute name="title">
                 <string>Weighting</string>
                </attribute>
-               <layout class="QGridLayout" name="gridLayout_1" />
+               <layout class="QGridLayout" name="gridLayout_1"/>
               </widget>
               <widget class="QWidget" name="tab_11">
                <attribute name="title">

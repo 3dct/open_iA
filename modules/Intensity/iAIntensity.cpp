@@ -56,7 +56,7 @@ template<class T> void invert_intensity(iAFilter* filter, QMap<QString, QVariant
 	{
 		invFilter->SetMaximum(parameters["Maximum"].toDouble());
 	}
-	filter->progress()->Observe(invFilter);
+	filter->progress()->observe(invFilter);
 	invFilter->Update();
 	filter->addOutput(invFilter->GetOutput());
 }
@@ -92,7 +92,7 @@ template<class T> void normalize(iAFilter* filter)
 	auto normalizeFilter = NormalizeFilterType::New();
 	normalizeFilter->SetInput(dynamic_cast< ImageType * >(filter->input()[0]->itkImage()));
 	normalizeFilter->Update();
-	filter->progress()->Observe(normalizeFilter);
+	filter->progress()->observe(normalizeFilter);
 	normalizeFilter->Update();
 	filter->addOutput(normalizeFilter->GetOutput());
 }
@@ -132,7 +132,7 @@ void intensity_windowing(iAFilter* filter, QMap<QString, QVariant> const & param
 	intensityWindowingFilter->SetOutputMinimum(parameters["Output Minimum"].toDouble());
 	intensityWindowingFilter->SetOutputMaximum(parameters["Output Maximum"].toDouble());
 	intensityWindowingFilter->Update();
-	filter->progress()->Observe(intensityWindowingFilter);
+	filter->progress()->observe(intensityWindowingFilter);
 	intensityWindowingFilter->Update();
 	filter->addOutput(intensityWindowingFilter->GetOutput());
 }
@@ -174,7 +174,7 @@ template<class T> void threshold(iAFilter* filter, QMap<QString, QVariant> const
 	thresholdFilter->ThresholdOutside( parameters["Lower threshold"].toDouble(),
 			parameters["Upper threshold"].toDouble());
 	thresholdFilter->SetInput( dynamic_cast< ImageType * >( filter->input()[0]->itkImage() ) );
-	filter->progress()->Observe( thresholdFilter );
+	filter->progress()->observe( thresholdFilter );
 	thresholdFilter->Update();
 	filter->addOutput(thresholdFilter->GetOutput());
 }
@@ -212,7 +212,7 @@ template<class T> void rescaleImage(iAFilter* filter, QMap<QString, QVariant> co
 	rescaleFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	rescaleFilter->SetOutputMinimum(parameters["Output Minimum"].toDouble());
 	rescaleFilter->SetOutputMaximum(parameters["Output Maximum"].toDouble());
-	filter->progress()->Observe(rescaleFilter);
+	filter->progress()->observe(rescaleFilter);
 	rescaleFilter->Update();
 	filter->addOutput(rescaleFilter->GetOutput());
 }
@@ -258,7 +258,7 @@ template<class T> void shiftScale(iAFilter* filter, QMap<QString, QVariant> cons
 	rescaleFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	rescaleFilter->SetShift(parameters["Shift"].toDouble());
 	rescaleFilter->SetScale(parameters["Scale"].toDouble());
-	filter->progress()->Observe(rescaleFilter);
+	filter->progress()->observe(rescaleFilter);
 	rescaleFilter->Update();
 	filter->addOutput(rescaleFilter->GetOutput());
 }
@@ -294,7 +294,7 @@ template<class T> void adaptiveHistogramEqualization(iAFilter* filter, QMap<QStr
 	adaptHistoEqualFilter->SetAlpha(params["Alpha"].toDouble());
 	adaptHistoEqualFilter->SetBeta(params["Beta"].toDouble());
 	adaptHistoEqualFilter->SetRadius(params["Radius"].toUInt());
-	filter->progress()->Observe(adaptHistoEqualFilter);
+	filter->progress()->observe(adaptHistoEqualFilter);
 	adaptHistoEqualFilter->Update();
 	filter->addOutput(adaptHistoEqualFilter->GetOutput());
 }
@@ -346,7 +346,7 @@ template<class T> void addImages(iAFilter* filter)
 	fusion->SetInput1(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
 	auto img2 = castImageTo<T>(filter->input()[1]->itkImage());
 	fusion->SetInput2(dynamic_cast<InputImageType *>(img2.GetPointer()));
-	filter->progress()->Observe(fusion);
+	filter->progress()->observe(fusion);
 	fusion->Update();
 	filter->addOutput(fusion->GetOutput());
 }
@@ -381,7 +381,7 @@ template<class T> void subtractImages(iAFilter* filter)
 	subFilter->SetInput1(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	auto img2 = castImageTo<T>(filter->input()[1]->itkImage());
 	subFilter->SetInput2(dynamic_cast<InputImageType *>(img2.GetPointer()));
-	filter->progress()->Observe(subFilter);
+	filter->progress()->observe(subFilter);
 	subFilter->Update();
 	filter->addOutput(subFilter->GetOutput());
 }
@@ -417,7 +417,7 @@ template<class T> void difference(iAFilter* filter, QMap<QString, QVariant> cons
 	diffFilter->SetInput(dynamic_cast< ImageType * >(filter->input()[0]->itkImage()));
 	auto img2 = castImageTo<T>(filter->input()[1]->itkImage());
 	diffFilter->SetInput(1, dynamic_cast<ImageType *>(img2.GetPointer()));
-	filter->progress()->Observe(diffFilter);
+	filter->progress()->observe(diffFilter);
 	diffFilter->Update();
 	filter->addOutput(diffFilter->GetOutput());
 }
@@ -455,7 +455,7 @@ template<class T> void mask(iAFilter* filter)
 	auto maskFilter = MaskFilterType::New();
 	maskFilter->SetInput(dynamic_cast< ImageType * >(filter->input()[0]->itkImage()));
 	maskFilter->SetMaskImage(dynamic_cast< ImageType * >(filter->input()[1]->itkImage()));
-	filter->progress()->Observe(maskFilter);
+	filter->progress()->observe(maskFilter);
 	maskFilter->Update();
 	filter->addOutput(maskFilter->GetOutput());
 }
@@ -505,7 +505,7 @@ void histomatch(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	{
 		matcher->ThresholdAtMeanIntensityOn();
 	}
-	filter->progress()->Observe( matcher );
+	filter->progress()->observe( matcher );
 	matcher->Update();
 	filter->addOutput( matcher->GetOutput() );
 }

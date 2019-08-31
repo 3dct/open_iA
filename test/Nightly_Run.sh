@@ -56,6 +56,7 @@ ctest -D $CTEST_MODE
 cmake -C $TEST_CONFIG_DIR/no_flags.cmake $TEST_SRC_DIR 2>&1
 $buildtool clean
 ctest -D Experimental
+rm ${TEST_BIN_DIR}/Testing/Temporary/*.mhd ${TEST_BIN_DIR}/Testing/Temporary/*.raw
 
 # iterate over module tests, run build&tests for each:
 for modulefile in $TEST_CONFIG_DIR/Module_*.cmake
@@ -67,6 +68,7 @@ do
 	cmake -C $modulefile $TEST_SRC_DIR 2>&1
 	$buildtool clean
 	ctest -D Experimental
+	rm ${TEST_BIN_DIR}/Testing/Temporary/*.mhd ${TEST_BIN_DIR}/Testing/Temporary/*.raw
 done
 
 # CLEANUP:

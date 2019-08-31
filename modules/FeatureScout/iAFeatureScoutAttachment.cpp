@@ -41,10 +41,10 @@ iAFeatureScoutAttachment::~iAFeatureScoutAttachment()
 {}
 
 void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, 
-	int visType, QSharedPointer<QMap<uint, uint> > columnMapping)
+	int visType, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t, std::vector<iAVec3f> > & curvedFiberInfo)
 {
 	imgFS = new dlg_FeatureScout(m_child, static_cast<iAFeatureScoutObjectType>(filterID),
-		fileName, m_child->renderer()->renderer(), csvtbl, visType, columnMapping);
+		fileName, m_child->renderer()->renderer(), csvtbl, visType, columnMapping, curvedFiberInfo);
 }
 
 void iAFeatureScoutAttachment::disableBlobVisualization()

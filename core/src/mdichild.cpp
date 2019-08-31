@@ -205,13 +205,20 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_dwRenderer->pushMaxRC, SIGNAL(clicked()), this, SLOT(maximizeRC()));
 	connect(m_dwRenderer->pushStopRC, SIGNAL(clicked()), this, SLOT(triggerInteractionRaycaster()));
 
-	connect(m_dwRenderer->pushPX, SIGNAL(clicked()), this, SLOT(camPX()));
-	connect(m_dwRenderer->pushPY, SIGNAL(clicked()), this, SLOT(camPY()));
-	connect(m_dwRenderer->pushPZ, SIGNAL(clicked()), this, SLOT(camPZ()));
-	connect(m_dwRenderer->pushMX, SIGNAL(clicked()), this, SLOT(camMX()));
-	connect(m_dwRenderer->pushMY, SIGNAL(clicked()), this, SLOT(camMY()));
-	connect(m_dwRenderer->pushMZ, SIGNAL(clicked()), this, SLOT(camMZ()));
-	connect(m_dwRenderer->pushIso, SIGNAL(clicked()), this, SLOT(camIso()));
+	connect(m_dwRenderer->pushPX, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
+	m_dwRenderer->pushPX->setProperty("camPosition", iACameraPosition::PX);
+	connect(m_dwRenderer->pushPY, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
+	m_dwRenderer->pushPY->setProperty("camPosition", iACameraPosition::PY);
+	connect(m_dwRenderer->pushPZ, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
+	m_dwRenderer->pushPZ->setProperty("camPosition", iACameraPosition::PZ);
+	connect(m_dwRenderer->pushMX, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
+	m_dwRenderer->pushMX->setProperty("camPosition", iACameraPosition::MX);
+	connect(m_dwRenderer->pushMY, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
+	m_dwRenderer->pushMY->setProperty("camPosition", iACameraPosition::MY);
+	connect(m_dwRenderer->pushMZ, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
+	m_dwRenderer->pushMZ->setProperty("camPosition", iACameraPosition::MZ);
+	connect(m_dwRenderer->pushIso, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
+	m_dwRenderer->pushIso->setProperty("camPosition", iACameraPosition::Iso);
 	connect(m_dwRenderer->pushSaveRC, SIGNAL(clicked()), this, SLOT(saveRC()));
 	connect(m_dwRenderer->pushMovRC, SIGNAL(clicked()), this, SLOT(saveMovRC()));
 
@@ -328,7 +335,7 @@ void MdiChild::enableRenderWindows()	// = image data available
 
 	if (!isVolumeDataLoaded())
 		return;
-	camIso();
+	setCamPosition(iACameraPosition::Iso);
 	vtkCamera* cam = m_renderer->camera();
 	modalities()->applyCameraSettings(cam);
 	
@@ -994,44 +1001,14 @@ void MdiChild::saveMovRC()
 	saveMovie(*m_renderer);
 }
 
-void MdiChild::camPX()
-{
-	m_renderer->setCamPosition( 0,0,1,		1,0,0 );
-}
-
-void MdiChild::camMX()
-{
-	m_renderer->setCamPosition(	0,0,1,		-1,0,0	);
-}
-
-void MdiChild::camPY()
-{
-	m_renderer->setCamPosition(	0,0,1,		0,1,0	);
-}
-
-void MdiChild::camMY()
-{
-	m_renderer->setCamPosition(	0,0,1,		0,-1,0	);
-}
-
-void MdiChild::camPZ()
-{
-	m_renderer->setCamPosition(	0,1,0,		0,0,1	);
-}
-
-void MdiChild::camMZ()
-{
-	m_renderer->setCamPosition(	0,1,0,		0,0,-1	);
-}
-
-void MdiChild::camIso()
-{
-	m_renderer->setCamPosition(	0,0,1,		1,1,1	);
-}
-
 void MdiChild::camPosition(double * camOptions)
 {
 	m_renderer->camPosition(camOptions);
+}
+
+void MdiChild::setCamPosition(int pos)
+{
+	m_renderer->setCamPosition(pos);
 }
 
 void MdiChild::setCamPosition(double * camOptions, bool rsParallelProjection)
@@ -2543,6 +2520,12 @@ void MdiChild::modalityAdded(int modalityIdx)
 		m_dwModalities->initDisplay(modality(modalityIdx));
 		applyVolumeSettings(false);
 	}
+}
+
+void MdiChild::rendererCamPos()
+{
+	int pos = sender()->property("camPosition").toInt();
+	m_renderer->setCamPosition(pos);
 }
 
 void MdiChild::histogramDataAvailable(int modalityIdx)

@@ -67,11 +67,9 @@
 #include <QWidget>
 #include <QStringList>
 
-QT_BEGIN_NAMESPACE
 class QDragEnterEvent;
 class QDropEvent;
 class QMouseEvent;
-QT_END_NAMESPACE
 
 class iADropPipelineWidget : public QWidget
 {

@@ -49,7 +49,7 @@ void GPU_gradient_anisotropic_diffusion(iAFilter* filter, QMap<QString, QVariant
 	gadFilter->SetTimeStep(params["Time Step"].toDouble());
 	gadFilter->SetConductanceParameter(params["Conductance"].toDouble());
 	gadFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
-	filter->progress()->Observe(gadFilter);
+	filter->progress()->observe(gadFilter);
 	gadFilter->Update();
 	if (params["Convert back to input type"].toBool())
 		filter->addOutput(castImageTo<T>(gadFilter->GetOutput()));

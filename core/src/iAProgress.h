@@ -39,18 +39,30 @@ public:
 	typedef itk::MemberCommand< iAProgress >  CommandType;
 	//! @{
 	//! Event handlers for ITK progress events
-	void ProcessEvent(itk::Object * caller, const itk::EventObject & event );
-	void ConstProcessEvent(const itk::Object * caller, const itk::EventObject & event );
+	void processEvent(itk::Object * caller, const itk::EventObject & event );
+	void constProcessEvent(const itk::Object * caller, const itk::EventObject & event );
 	//! @}
 	//! observe an ITK algorithm (and pass on its progress report)
-	void Observe( itk::Object *caller );
+	//! @param caller the ITK algorithm to observe
+	void observe( itk::Object *caller );
 	//! observe a VTK algorithm (and pass on its progress report)
-	void Observe( vtkAlgorithm* caller );
-	//! Used to trigger a progress event.
-	//! @param i the current percentage of progress (number between 0 and 100)
-	void EmitProgress(int i);
+	//! @param caller the VTK algorithm to observe
+	void observe( vtkAlgorithm* caller );
+	//! Trigger a progress event manually.
+	//! @param p the current percentage of progress (number between 0 and 100)
+	void emitProgress(int p);
+	//! Set additional status information.
+	//! @param status the new status to report to the user
+	void setStatus(QString const & status);
 Q_SIGNALS:
-	void progress(int i);
+	//! Signal emitted whenever the progress has changed.
+	//! Connect this to a method that updates the indication of the current progression to the user.
+	//! @param p the current percentage of progress (number between 0 and 100)
+	void progress(int p);
+	//! Signal emitted whenever the status has changed.
+	//! Connect this to a method that updates the output of the status to the user.
+	//! @param status the new status.
+	void statusChanged(QString const & status);
 private:
 	CommandType::Pointer m_itkCommand;
 	vtkSmartPointer<iAvtkCommand> m_vtkCommand;

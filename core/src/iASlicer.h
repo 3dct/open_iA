@@ -91,7 +91,7 @@ public:
 	};
 	//! Creates a new slicer widget.
 	//! @param parent the parent widget; can be nullptr for no current parent.
-	//! @param mode determines which axis-aligned slice-plane is used for slicing. @See iASlicerMode.
+	//! @param mode determines which axis-aligned slice-plane is used for slicing.
 	//! @param decorations whether to show the scalar bar widget, the measure bar, the logo and the tooltip.
 	//! @param magicLensAvailable whether a magic lens should be available.
 	//! @param transform the basic transform the reslicers inside the channels of this slicer (should probably be removed here).
@@ -152,9 +152,9 @@ public:
 	//! Access to the slicer's main renderer's camera.
 	vtkCamera * camera();
 
-	//! Get the slice mode (which axis-aligned slice-plane is used for slicing). @See iASlicerMode
+	//! Get the slice mode (which axis-aligned slice-plane is used for slicing).
 	iASlicerMode mode() const;
-	//! Sets the slice mode (which axis-aligned slice-plane to use for slicing). @See iASlicerMode
+	//! Sets the slice mode (which axis-aligned slice-plane to use for slicing).
 	void setMode(const iASlicerMode mode);
 
 	void setStatisticalExtent(int statExt);
@@ -162,7 +162,7 @@ public:
 	//! Set the camera for the slicer's main renderer.
 	//! Use this if you want share the camera between multiple views (i.e. synchronize their viewing parameters)
 	//! @param camera the new camera to assing
-	//! @param whether the slicer should assume ownership of the camera. If true, Delete() will be called on it in the destructor
+	//! @param camOwner whether the slicer should assume ownership of the camera. If true, Delete() will be called on it in the destructor
 	void setCamera(vtkCamera * camera, bool camOwner = true);
 	//! Resets the slicer's main renderer's camera such that all channels in it are visible.
 	void resetCamera();
@@ -309,7 +309,6 @@ protected:
 	void resizeEvent(QResizeEvent * event) override;
 	void wheelEvent(QWheelEvent*) override;
 
-	void updateResliceAxesDirectionCosines();
 	void updateBackground();
 	void printVoxelInformation();
 	void executeKeyPressEvent();

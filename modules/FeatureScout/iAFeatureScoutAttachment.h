@@ -23,8 +23,12 @@
 #include "iABlobManager.h"
 
 #include <iAModuleAttachmentToChild.h>
+#include <iAvec3.h>
 
 #include <QList>
+
+#include <map>
+#include <vector>
 
 class dlg_FeatureScout;
 class iABlobCluster;
@@ -38,7 +42,8 @@ class iAFeatureScoutAttachment : public iAModuleAttachmentToChild
 public:
 	iAFeatureScoutAttachment(MainWindow* mainWnd, MdiChild * child);
 	~iAFeatureScoutAttachment();
-	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, int visType, QSharedPointer<QMap<uint, uint> > columnMapping);
+	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, int visType,
+		QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t, std::vector<iAVec3f> > & curvedFiberInfo);
 	void enableBlobVisualization();
 	void disableBlobVisualization();
 	void FeatureScout_Options(int idx);

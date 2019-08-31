@@ -123,7 +123,7 @@ void fcm(iAFilter* filter, QMap<QString, QVariant> const & params)
 	QVector<double> centroids;
 	convertStringToCentroids(params["Centroids"].toString(), numberOfClasses, centroids);
 	auto classifier = TClassifierFCM::New();
-	filter->progress()->Observe(classifier);
+	filter->progress()->observe(classifier);
 	classifier->SetMaximumNumberOfIterations(params["Maximum Iterations"].toUInt());
 	classifier->SetMaximumError(params["Maximum Error"].toDouble());
 	classifier->SetM(params["M"].toDouble());
@@ -208,7 +208,7 @@ void kfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	typedef itk::FlatStructuringElement<DIM> StructuringElementType;
 
 	auto classifier = TClassifierKFCMS::New();
-	filter->progress()->Observe(classifier);
+	filter->progress()->observe(classifier);
 	classifier->SetMaximumNumberOfIterations(parameters["Maximum Iterations"].toUInt());
 	classifier->SetMaximumError(parameters["Maximum Error"].toDouble());
 	classifier->SetM(parameters["M"].toDouble());
@@ -291,7 +291,7 @@ void mskfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		parameters["StructRadius Z"].toUInt()
 	};
 	auto classifier = TClassifierMSKFCM::New();
-	filter->progress()->Observe(classifier);
+	filter->progress()->observe(classifier);
 	classifier->SetMaximumNumberOfIterations(parameters["Maximum Iterations"].toUInt());
 	classifier->SetMaximumError(parameters["Maximum Error"].toDouble());
 	classifier->SetM(parameters["M"].toDouble());

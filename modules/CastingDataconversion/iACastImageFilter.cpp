@@ -44,7 +44,7 @@ template <class InT, class OutT> void CastImage(iAFilter* filter)
 	typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
 	typename OTIFType::Pointer castFilter = OTIFType::New();
 	castFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
-	filter->progress()->Observe(castFilter);
+	filter->progress()->observe(castFilter);
 	castFilter->Update();
 	filter->addOutput(castFilter->GetOutput());
 }
@@ -135,7 +135,7 @@ void DataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parame
 		rescaleFilter->SetOutputMinimum(parameters["Output Min"].toDouble());
 		rescaleFilter->SetOutputMaximum(parameters["Output Max"].toDouble());
 	}
-	filter->progress()->Observe(rescaleFilter);
+	filter->progress()->observe(rescaleFilter);
 	rescaleFilter->Update();
 	filter->addOutput(rescaleFilter->GetOutput());
 }

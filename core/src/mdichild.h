@@ -22,6 +22,7 @@
 
 //#include "defines.h"
 #include "qthelper/iAQTtoUIConnector.h"
+#include "iAChangeableCameraWidget.h"
 #include "iAPreferences.h"
 #include "iARenderSettings.h"
 #include "iASlicerSettings.h"
@@ -81,7 +82,7 @@ class MainWindow;
 typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>  dlg_renderer;
 typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
-class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild
+class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild, public iAChangeableCameraWidget
 {
 	Q_OBJECT
 public:
@@ -317,18 +318,13 @@ public slots:
 	void setupProject(bool active = false);
 	bool updateVolumePlayerView(int updateIndex, bool isApplyForAll);
 	void removeFinishedAlgorithms();
-	void camPX();
-	void camPY();
-	void camPZ();
-	void camMX();
-	void camMY();
-	void camMZ();
-	void camIso();
 
-	//! Calls the getCamPosition function of iARenderer (described there in more detail).
+	//! Calls the camPosition function of iARenderer (described there in more detail).
 	//! @param camOptions All informations of the camera stored in a double array
 	void camPosition(double * camOptions);
-
+	//! Calls the setCamPosition function of iARenderer (described there in more detail).
+	//! @param pos set one of the predefined camera positions
+	void setCamPosition(int pos) override;
 	//! Calls the setCamPosition function of iARenderer (described there in more detail).
 	//! @param camOptions All informations of the camera stored in a double array
 	//! @param rsParallelProjection boolean variable to determine if parallel projection option on.
@@ -358,6 +354,7 @@ private slots:
 	void showModality(int modIdx);
 	void saveFinished();
 	void modalityAdded(int modalityIdx);
+	void rendererCamPos();
 	void resetCamera(bool spacingChanged, double const * newSpacing);
 
 private:

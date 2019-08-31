@@ -43,7 +43,6 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectT
 	tubeRadius->SetNumberOfTuples(m_points->GetNumberOfPoints());
 	for (vtkIdType row = 0; row < objectTable->GetNumberOfRows(); ++row)
 	{
-		auto it = curvedFiberData.find(row);
 		double diameter = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::Diameter)).ToDouble();
 		for (int p = 0; p < objectPointCount(row); ++p)
 			tubeRadius->SetTuple1(objectStartPointIdx(row)+p, diameter/2);

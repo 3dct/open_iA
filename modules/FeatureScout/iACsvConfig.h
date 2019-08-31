@@ -59,6 +59,7 @@ struct FeatureScout_API iACsvConfig
 	bool isValid(QString & errorMsg) const;
 
 	QString fileName;                       //!< filename, not stored in registrys
+	QString curvedFiberFileName;            //!< filename for curved fiber information, also not stored in registry
 	QString encoding;                       //!< text encoding of the csv file
 	bool containsHeader;                    //!< whether the file contains a header
 	size_t skipLinesStart, skipLinesEnd;    //!< how many lines to skip at start and end of the file

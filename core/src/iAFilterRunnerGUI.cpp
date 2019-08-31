@@ -33,6 +33,7 @@
 #include "mdichild.h"
 
 #include <vtkImageData.h>
+#include <vtkPolyData.h>
 
 #include <QMessageBox>
 #include <QSettings>
@@ -332,8 +333,10 @@ void iAFilterRunnerGUI::filterFinished()
 {
 	auto thread = qobject_cast<iAFilterRunnerGUIThread*>(sender());
 	// add additional output as additional modalities here
-	// "default" output 0 is handled elsewhere
+	// "default" output 0 is handled elsewhere (via obscure MdiChild::rendererDeactivated / iAAlgorithm::updateVtkImageData)
 	auto mdiChild = qobject_cast<MdiChild*>(thread->parent());
+	if (thread->filter()->polyOutput())
+		mdiChild->polyData()->DeepCopy(thread->filter()->polyOutput());
 	if (thread->filter()->output().size() > 1)
 	{
 		for (int p = 1; p < thread->filter()->output().size(); ++p)

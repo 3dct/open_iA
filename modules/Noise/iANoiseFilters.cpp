@@ -39,7 +39,7 @@ template<class T> void additiveGaussianNoise(iAFilter* filter, QMap<QString, QVa
 	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	noiseFilter->SetMean(parameters["Mean"].toDouble());
 	noiseFilter->SetStandardDeviation(parameters["Standard deviation"].toDouble());
-	filter->progress()->Observe( noiseFilter );
+	filter->progress()->observe( noiseFilter );
 	noiseFilter->Update();
 	filter->addOutput(noiseFilter->GetOutput());
 }
@@ -73,7 +73,7 @@ template<class T> void saltAndPepperNoise(iAFilter* filter, QMap<QString, QVaria
 	auto noiseFilter = NoiseFilterType::New();
 	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	noiseFilter->SetProbability(parameters["Probability"].toDouble());
-	filter->progress()->Observe( noiseFilter );
+	filter->progress()->observe( noiseFilter );
 	noiseFilter->Update();
 	filter->addOutput(noiseFilter->GetOutput());
 }
@@ -106,7 +106,7 @@ template<class T> void shotNoise(iAFilter* filter, QMap<QString, QVariant> const
 	auto noiseFilter = NoiseFilterType::New();
 	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	noiseFilter->SetScale(parameters["Scale"].toDouble());
-	filter->progress()->Observe( noiseFilter );
+	filter->progress()->observe( noiseFilter );
 	noiseFilter->Update();
 	filter->addOutput(noiseFilter->GetOutput());
 }
@@ -139,7 +139,7 @@ template<class T> void speckleNoise(iAFilter* filter, QMap<QString, QVariant> co
 	auto noiseFilter = NoiseFilterType::New();
 	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	noiseFilter->SetStandardDeviation(parameters["Standard deviation"].toDouble());
-	filter->progress()->Observe( noiseFilter );
+	filter->progress()->observe( noiseFilter );
 	noiseFilter->Update();
 	filter->addOutput(noiseFilter->GetOutput());
 }

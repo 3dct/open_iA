@@ -58,7 +58,7 @@ namespace
 				}
 			}
 			else
-			{ // compute overlap measures only for the best-matching fibers according to metric 2:
+			{ // compute overlap measures only for the best-matching fibers according to a simpler metric:
 				auto & otherMatches = bestMatches[iARefDistCompute::BestMeasureWithoutOverlap];
 				similarities.resize(otherMatches.size());
 				for (size_t bestMatchID = 0; bestMatchID < otherMatches.size(); ++bestMatchID)
@@ -99,7 +99,7 @@ QStringList iARefDistCompute::getSimilarityMeasureNames()
 
 void iARefDistCompute::run()
 {
-	// "register" other datasets to reference:
+	m_progress.setStatus("Computing the distance of fibers in all results to the fibers in reference and find best matching ones.");
 	auto & ref = m_data->result[m_referenceID];
 	auto const & mapping = *ref.mapping.data();
 	double const * cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
@@ -112,7 +112,7 @@ void iARefDistCompute::run()
 
 	for (size_t resultID = 0; resultID <  m_data->result.size(); ++resultID)
 	{
-		m_progress.EmitProgress(static_cast<int>(100.0 * resultID / m_data->result.size()));
+		m_progress.emitProgress(static_cast<int>(100.0 * resultID / m_data->result.size()));
 		auto & d = m_data->result[resultID];
 		if (resultID == m_referenceID)
 			continue;
@@ -120,6 +120,12 @@ void iARefDistCompute::run()
 		d.refDiffFiber.resize(fiberCount);
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
+			/*
+			// TODO: Consider curved fibers
+			auto it = d.curveInfo.find(row);
+			if (it != d.curveInfo.end())
+			{ }
+			*/
 			// find the best-matching fibers in reference & compute difference:
 			iAFiberData fiber(d.table, fiberID, mapping);
 			getBestMatches(fiber, mapping, ref.table,
@@ -134,6 +140,8 @@ void iARefDistCompute::run()
 		mapping[iACsvConfig::Length],
 		mapping[iACsvConfig::Diameter]
 	};
+
+	m_progress.setStatus("Computing the difference between consecutive time steps.");
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto& d = m_data->result[resultID];
@@ -173,6 +181,8 @@ void iARefDistCompute::run()
 			}
 		}
 	}
+
+	m_progress.setStatus("Updating tables with data computed so far.");
 	size_t spmID = 0;
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -203,6 +213,7 @@ void iARefDistCompute::run()
 		}
 	}
 
+	m_progress.setStatus("Summing up match quality (+ whether there is a match) for all reference fibers.");
 	std::vector<double> refDistSum(ref.fiberCount, 0.0);
 	std::vector<double> refMatchCount(ref.fiberCount, 0.0);
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
@@ -230,7 +241,7 @@ void iARefDistCompute::run()
 		//	.arg(fiberID).arg(refDistSum[fiberID]).arg(refMatchCount[fiberID]).arg(value));
 	}
 
-	// compute average differences/similarities:
+	m_progress.setStatus("Computing average differences/similarities for each result.");
 	size_t diffCount = iAFiberCharData::FiberValueCount+SimilarityMeasureCount;
 	m_data->maxAvgDifference.resize(diffCount, std::numeric_limits<double>::min());
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)

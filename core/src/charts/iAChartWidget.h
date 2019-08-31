@@ -46,7 +46,7 @@ public:
 	enum SelectionMode { SelectionDisabled, SelectPlot };
 	enum AxisMappingType { Linear, Logarithmic };
 	iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel);
-	virtual ~iAChartWidget();
+	~iAChartWidget() override;
 	double xZoom()  const { return m_xZoom;        }
 	double yZoom()  const { return m_yZoom;        }
 	int    xShift() const { return m_translationX; }

@@ -83,7 +83,7 @@ template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const 
 		auto dilateFilter = DilateImageFilterType::New();
 		dilateFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		dilateFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(dilateFilter);
+		filter->progress()->observe(dilateFilter);
 		dilateFilter->Update();
 		filter->addOutput(dilateFilter->GetOutput());
 	}
@@ -105,7 +105,7 @@ template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const 
 		auto dilateFilter = DilateImageFilterType::New();
 		dilateFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		dilateFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(dilateFilter);
+		filter->progress()->observe(dilateFilter);
 		dilateFilter->Update();
 		filter->addOutput(dilateFilter->GetOutput());
 	}
@@ -153,7 +153,7 @@ template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const &
 		auto erodeFilter = ErodeImageFilterType::New();
 		erodeFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		erodeFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(erodeFilter);
+		filter->progress()->observe(erodeFilter);
 		erodeFilter->Update();
 		filter->addOutput(erodeFilter->GetOutput());
 	}
@@ -176,7 +176,7 @@ template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const &
 		auto erodeFilter = ErodeImageFilterType::New();
 		erodeFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		erodeFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(erodeFilter);
+		filter->progress()->observe(erodeFilter);
 		erodeFilter->Update();
 		filter->addOutput(erodeFilter->GetOutput());
 	}
@@ -260,7 +260,7 @@ template<class T> void morphOpening(iAFilter* filter, QMap<QString, QVariant> co
 		auto morphOpeningFilter = MorphOpeningImageFilterType::New(); //::New();
 		morphOpeningFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		morphOpeningFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(morphOpeningFilter);
+		filter->progress()->observe(morphOpeningFilter);
 		morphOpeningFilter->Update();
 		filter->addOutput(morphOpeningFilter->GetOutput());
 	}
@@ -282,7 +282,7 @@ template<class T> void morphOpening(iAFilter* filter, QMap<QString, QVariant> co
 		auto morphOpeningFilter = MorphOpeningImageFilterType::New();
 		morphOpeningFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		morphOpeningFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(morphOpeningFilter);
+		filter->progress()->observe(morphOpeningFilter);
 		morphOpeningFilter->Update();
 		filter->addOutput(morphOpeningFilter->GetOutput());
 	}
@@ -328,7 +328,7 @@ template<class T> void morphClosing(iAFilter* filter, QMap<QString, QVariant> co
 		auto morphClosingFilter = MorphClosingImageFilterType::New();
 		morphClosingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		morphClosingFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(morphClosingFilter);
+		filter->progress()->observe(morphClosingFilter);
 		morphClosingFilter->Update();
 		filter->addOutput(morphClosingFilter->GetOutput());
 	}
@@ -350,7 +350,7 @@ template<class T> void morphClosing(iAFilter* filter, QMap<QString, QVariant> co
 		auto morphClosingFilter = MorphClosingImageFilterType::New();
 		morphClosingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		morphClosingFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(morphClosingFilter);
+		filter->progress()->observe(morphClosingFilter);
 		morphClosingFilter->Update();
 		filter->addOutput(morphClosingFilter->GetOutput());
 	}
@@ -389,7 +389,7 @@ template<class T> void fillHole(iAFilter* filter, QMap<QString, QVariant> const 
 	typename FillHoleImageFilterType::Pointer fillHoleFilter = FillHoleImageFilterType::New();
 	fillHoleFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 	fillHoleFilter->SetFullyConnected(params["Fully Connected"].toBool());
-	filter->progress()->Observe(fillHoleFilter);
+	filter->progress()->observe(fillHoleFilter);
 	fillHoleFilter->Update();
 	filter->addOutput(fillHoleFilter->GetOutput());
 }

@@ -51,7 +51,7 @@ template<class T> void medianFilter(iAFilter* filter, QMap<QString, QVariant> co
 	indexRadius[2] = params["Kernel radius Z"].toDouble();
 	medianFilter->SetRadius(indexRadius);
 	medianFilter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));
-	filter->progress()->Observe( medianFilter );
+	filter->progress()->observe( medianFilter );
 	medianFilter->Update();
 	if (params["Convert back to input type"].toBool())
 		filter->addOutput(castImageTo<T>(medianFilter->GetOutput()));
@@ -114,7 +114,7 @@ void recursiveGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
 	rgsfilterX->SetSigma(params["Sigma"].toDouble());
 	rgsfilterY->SetSigma(params["Sigma"].toDouble());
 	rgsfilterZ->SetSigma(params["Sigma"].toDouble());
-	filter->progress()->Observe(rgsfilterZ);
+	filter->progress()->observe(rgsfilterZ);
 	rgsfilterZ->Update();
 	if (params["Convert back to input type"].toBool())
 		filter->addOutput(castImageTo<T>(rgsfilterZ->GetOutput()));
@@ -155,7 +155,7 @@ void discreteGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
 	dgFilter->SetVariance(params["Variance"].toDouble());
 	dgFilter->SetMaximumError(params["Maximum error"].toDouble());
 	dgFilter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));
-	filter->progress()->Observe(dgFilter);
+	filter->progress()->observe(dgFilter);
 	dgFilter->Update();
 	if (params["Convert back to input type"].toBool())
 		filter->addOutput(castImageTo<T>(dgFilter->GetOutput()));
@@ -196,7 +196,7 @@ void patchBasedDenoising(iAFilter* filter, QMap<QString, QVariant> const & param
 	nlmFilter->SetNumberOfIterations(params["Number of iterations"].toDouble());
 	nlmFilter->SetKernelBandwidthEstimation(params["Kernel bandwidth estimation"].toBool());
 	nlmFilter->SetPatchRadius(params["Patch radius"].toDouble());
-	filter->progress()->Observe(nlmFilter);
+	filter->progress()->observe(nlmFilter);
 	nlmFilter->Update();
 	filter->addOutput(nlmFilter->GetOutput());
 }
@@ -257,7 +257,7 @@ void gradientAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> cons
 	gadFilter->SetTimeStep(params["Time step"].toDouble());
 	gadFilter->SetConductanceParameter(params["Conductance"].toDouble());
 	gadFilter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));
-	filter->progress()->Observe(gadFilter);
+	filter->progress()->observe(gadFilter);
 	gadFilter->Update();
 	if (params["Convert back to input type"].toBool())
 		filter->addOutput(castImageTo<T>(gadFilter->GetOutput()));
@@ -300,7 +300,7 @@ void curvatureAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> con
 	cadFilter->SetTimeStep(params["Time step"].toDouble());
 	cadFilter->SetConductanceParameter(params["Conductance"].toDouble());
 	cadFilter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));
-	filter->progress()->Observe(cadFilter);
+	filter->progress()->observe(cadFilter);
 	cadFilter->Update();
 	if (params["Convert back to input type"].toBool())
 		filter->addOutput(castImageTo<T>(cadFilter->GetOutput()));
@@ -342,7 +342,7 @@ void curvatureFlow(iAFilter* filter, QMap<QString, QVariant> const & params)
 	cfFfilter->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
 	cfFfilter->SetNumberOfIterations(params["Number of iterations"].toUInt());
 	cfFfilter->SetTimeStep(params["Time step"].toDouble());
-	filter->progress()->Observe(cfFfilter);
+	filter->progress()->observe(cfFfilter);
 	cfFfilter->Update();
 	if (params["Convert back to input type"].toBool())
 		filter->addOutput(castImageTo<T>(cfFfilter->GetOutput()));
@@ -382,7 +382,7 @@ void bilateralFilter(iAFilter* filter, QMap<QString, QVariant> const & params)
 	biFilter->SetRangeSigma(params["Range sigma"].toDouble());
 	biFilter->SetDomainSigma(params["Domain sigma"].toDouble());
 	biFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
-	filter->progress()->Observe(biFilter);
+	filter->progress()->observe(biFilter);
 	biFilter->Update();
 	if (params["Convert back to input type"].toBool())
 		filter->addOutput(castImageTo<T>(biFilter->GetOutput()));

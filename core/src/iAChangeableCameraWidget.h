@@ -22,22 +22,9 @@
 
 #include "open_iA_Core_export.h"
 
-#include <QDomDocument>
-
-class iATransferFunction;
-
-//! Class for loading and storing transfer functions to/from XML documents
-class open_iA_Core_API iASettings
+class open_iA_Core_API iAChangeableCameraWidget
 {
-private:
-	QDomDocument domDocument;
 public:
-	iASettings();
-	iASettings(QString const & filename);
-	void loadTransferFunction(iATransferFunction* transferFunction);
-	void storeTransferFunction(iATransferFunction* transferFunction);
-	static void loadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction);
-	void save(QString const & fileName);
-private:
-	void removeNode(QString const & str);
+	//! @param pos set one of the predefined camera positions
+	virtual void setCamPosition(int pos) =0;
 };

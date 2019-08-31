@@ -29,9 +29,9 @@
 #include "iAVolumeSettings.h"
 
 #include <QMainWindow>
+#include <QMdiSubWindow>
 #include <QSharedPointer>
 
-QT_BEGIN_NAMESPACE
 class QAction;
 class QActionGroup;
 class QComboBox;
@@ -40,11 +40,9 @@ class QDomElement;
 class QDomNode;
 class QMenu;
 class QMdiArea;
-class QMdiSubWindow;
 class QSignalMapper;
 class QLabel;
 class QSplashScreen;
-QT_END_NAMESPACE
 
 class vtkCamera;
 class vtkImageData;
@@ -52,6 +50,7 @@ class vtkImageData;
 class iAChartTransferFunction;
 class iAModalityList;
 class iAModuleDispatcher;
+class iAXmlSettings;
 class MdiChild;
 
 class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
@@ -68,42 +67,54 @@ public:
 	void setPath(QString p);
 	QString const & path();
 	void setCurrentFile(const QString &fileName);
-	QString const & currentFile();  //!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
+	QString const & currentFile();  //!< deprecated. Use a specific mdichilds, or even better, an mdichilds dlg_modalities methods instead!
 
 	void loadFile(QString const & fileName);
 	void loadFile(QString fileName, bool isStack);
 	void loadFiles(QStringList fileNames);
 
-	QDomDocument loadSettingsFile(QString filename);
-	void saveSettingsFile(QDomDocument &doc, QString filename);
-	void saveCamera(QDomDocument &doc);
-	void loadCamera(QDomNode &cameraNode);
-	void saveSliceViews(QDomDocument &doc);
+	void saveCamera(iAXmlSettings & xml);
+	bool loadCamera(iAXmlSettings & xml);
+	void saveSliceViews(iAXmlSettings & xml);
 	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkCamera *ren, QString const & elemStr);
-	void loadSliceViews(QDomNode &sliceViewsNode);
+	void loadSliceViews(QDomNode sliceViewsNode);
 	void saveTransferFunction(QDomDocument &doc, iAChartTransferFunction* transferFunction);
-	void saveProbabilityFunctions(QDomDocument &doc);
-	void loadProbabilityFunctions(QDomNode &functionsNode);
-	void savePreferences(QDomDocument &doc);
-	void loadPreferences(QDomNode &preferencesNode);
-	void saveRenderSettings(QDomDocument &doc);
-	void loadRenderSettings(QDomNode &renderSettingsNode);
-	void saveSlicerSettings(QDomDocument &doc);
-	void loadSlicerSettings(QDomNode &slicerSettingsNode);
-	//! get the File menu (can be used by modules to append entries to it)
+	void savePreferences(iAXmlSettings &xml);
+	void loadPreferences(QDomNode preferencesNode);
+	void saveRenderSettings(iAXmlSettings &xml);
+	void loadRenderSettings(QDomNode renderSettingsNode);
+	void saveSlicerSettings(iAXmlSettings &xml);
+	void loadSlicerSettings(QDomNode slicerSettingsNode);
+	//! Get the File menu (can be used by modules to append entries to it).
 	QMenu * fileMenu();
-	//! get the Filters menu (can be used by modules to append entries to it)
+	//! Get the Filters menu (can be used by modules to append entries to it).
 	QMenu * filtersMenu();
-	//! get the Tools menu (can be used by modules to append entries to it)
+	//! Get the Tools menu (can be used by modules to append entries to it).
 	QMenu * toolsMenu();
-	//! get the Help menu (can be used by modules to append entries to it)
+	//! Get the Help menu (can be used by modules to append entries to it).
 	QMenu * helpMenu();
-	MdiChild *resultChild( QString const & title );
-	MdiChild *resultChild( int childInd, QString const & title );
-	MdiChild *resultChild( MdiChild* oldChild, QString const & title );
-	MdiChild *activeMdiChild();
+	//! @{ Get access to result child with the given title.
+	//! (depending on preferences, this will either open a new mdi child window, or reuse the currently active one)
+	MdiChild * resultChild( QString const & title );
+	MdiChild * resultChild( int childInd, QString const & title );
+	MdiChild * resultChild( MdiChild* oldChild, QString const & title );
+	//! @}
+	//! Provides access to the currently active mdi child, if such is available.
+	//! @return pointer to the currently active mdi child, or nullptr if no child is currently open
+	MdiChild * activeMdiChild();
+	//! Provides access to a second loaded mdi child, if such is available.
+	//! Will throw an error if none is available or more than two are loaded.
+	//! @deprecated instead of this method, in filters, use the facilities
+	//!     provided in iAFilter (via the requiredInputs parameter to the constructor) to specify multiple inputs
+	MdiChild * secondNonActiveChild();
+	//! Get list of the titles of currently open MdiChild windows.
 	QList<QString> mdiWindowTitles();
+	//! Get the list of current MdiChild windows.
 	QList<MdiChild*> mdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
+	//! Get the list of current child windows of type T.
+	template <typename T> QList<T*> childList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
+	//! Get the active child window of type T.
+	template <typename T> T * activeChild();
 	QMdiSubWindow* addSubWindow(QWidget * child);
 	void loadArguments(int argc, char** argv);
 	iAPreferences const & defaultPreferences() const;
@@ -128,7 +139,7 @@ private slots:
 	void openTLGICTData();
 	void save();
 	void saveAs();
-	bool loadSettings();
+	void loadSettings();
 	bool saveSettings();
 	void saveProject();
 	void maxXY();
@@ -153,13 +164,7 @@ private slots:
 	void resetTrf();
 	void toggleSnakeSlicer(bool isChecked);
 	void toggleMagicLens(bool isChecked);
-	void raycasterCamPX();
-	void raycasterCamPY();
-	void raycasterCamPZ();
-	void raycasterCamMX();
-	void raycasterCamMY();
-	void raycasterCamMZ();
-	void raycasterCamIso();
+	void rendererCamPosition();
 	void raycasterAssignIso();
 	void raycasterSaveCameraSettings();
 	void raycasterLoadCameraSettings();
@@ -241,3 +246,23 @@ private:
 	QStringList m_layoutNames;
 	QString m_gitVersion;
 };
+
+template <typename T> QList<T*> MainWindow::childList(QMdiArea::WindowOrder order)
+{
+	QList<T*> res;
+	foreach(QMdiSubWindow *window, mdiArea->subWindowList(order))
+	{
+		T * child = dynamic_cast<T*>(window->widget());
+		if (child)
+			res.append(child);
+	}
+	return res;
+}
+
+template <typename T> T * MainWindow::activeChild()
+{
+	int subWndCnt = childList<T>().size();
+	if (subWndCnt > 0)
+		return childList<T>(QMdiArea::ActivationHistoryOrder).last();
+	return nullptr;
+}

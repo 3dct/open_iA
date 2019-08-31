@@ -78,7 +78,7 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 	pFilter->InputIsBinaryOn();
 	
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	pObserver->Observe(pFilter);
+	pObserver->observe(pFilter);
 	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
 	
 	pFilter->Update();

@@ -43,7 +43,7 @@ void connectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & 
 	ccFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()) );
 	ccFilter->SetBackgroundValue(0);
 	ccFilter->SetFullyConnected(parameters["Fully Connected"].toBool());
-	filter->progress()->Observe(ccFilter);
+	filter->progress()->observe(ccFilter);
 	ccFilter->Update();
 	filter->addOutput(ccFilter->GetOutput());
 }
@@ -77,7 +77,7 @@ void scalarConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> co
 	typename SCCIFType::Pointer sccFilter = SCCIFType::New();
 	sccFilter->SetInput( dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()) );
 	sccFilter->SetDistanceThreshold(parameters["Distance Threshold"].toDouble());
-	filter->progress()->Observe(sccFilter);
+	filter->progress()->observe(sccFilter);
 	sccFilter->Update();
 	filter->addOutput(sccFilter->GetOutput());
 }
@@ -110,7 +110,7 @@ void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const
 	typename RCIFType::Pointer rccFilter = RCIFType::New();
 	rccFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()) );
 	rccFilter->SetMinimumObjectSize(parameters["Minimum object size"].toInt());
-	filter->progress()->Observe(rccFilter);
+	filter->progress()->observe(rccFilter);
 	rccFilter->Update();
 	if (parameters["Write labels to file"].toBool())
 	{

@@ -1,6 +1,7 @@
-# TODO: use VC++ Redistributable installer instead?
-#     legally, it shouldn't be a problem though to include the runtime libraries, see e.g.
-#     https://stackoverflow.com/questions/35097193/can-i-bundle-the-visual-studio-2015-c-redistributable-dlls-with-my-applicatio
+# This file is for cpack configuration only.
+# It should only contain cpack-specific configuration instructions,
+# e.g. no install or fixup_bundle code (which would be written to cmake_install.cmake, which we don't want).
+# It also must be in the top project folder.
 set (CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ".")
 set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
 include (InstallRequiredSystemLibraries)
@@ -14,6 +15,7 @@ set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_NAME}-${openiA_VERSION}")
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${openiA_VERSION}")
+set(CPACK_PACKAGE_CHECKSUM "SHA512")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${openiA_VERSION}-source")
 #SET(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/logo.bmp")
 

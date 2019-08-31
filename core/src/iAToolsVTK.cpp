@@ -26,6 +26,7 @@
 #include "io/iAITKIO.h"
 
 #include <vtkBMPWriter.h>
+#include <vtkCamera.h>
 #include <vtkImageCast.h>
 #include <vtkImageData.h>
 #include <vtkImageWriter.h>
@@ -189,4 +190,26 @@ int mapRenderModeToEnum(QString const & modeName)
 			return key;
 
 	return vtkSmartVolumeMapper::DefaultRenderMode;
+}
+
+void setCamPosition(vtkCamera* cam, iACameraPosition pos)
+{
+	switch (pos)
+	{
+	case iACameraPosition::PX:
+		cam->SetViewUp(0, 0, 1); cam->SetPosition(1, 0, 0); break;
+	case iACameraPosition::MX:
+		cam->SetViewUp(0, 0, 1); cam->SetPosition(-1, 0, 0); break;
+	case iACameraPosition::PY:
+		cam->SetViewUp(0, 0, 1); cam->SetPosition(0, 1, 0); break;
+	case iACameraPosition::MY:
+		cam->SetViewUp(0, 0, 1); cam->SetPosition(0, -1, 0); break;
+	case iACameraPosition::PZ:
+		cam->SetViewUp(0, 1, 0); cam->SetPosition(0, 0, 1); break;
+	case iACameraPosition::MZ:
+		cam->SetViewUp(0, 1, 0); cam->SetPosition(0, 0, -1); break;
+	case iACameraPosition::Iso:
+		cam->SetViewUp(0, 0, 1); cam->SetPosition(1, 1, 1); break;
+	}
+	cam->SetFocalPoint(0, 0, 0);
 }

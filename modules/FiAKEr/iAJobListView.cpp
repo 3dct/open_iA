@@ -35,18 +35,26 @@ iAJobListView::iAJobListView(int margin)
 {
 	setLayout(new QVBoxLayout());
 	layout()->setContentsMargins(margin, margin, margin, margin);
+	layout()->setSpacing(margin);
 }
 
 void iAJobListView::addJob(QString name, iAProgress * p, QThread * t)
 {
 	auto jobWidget = new QWidget();
-	jobWidget->setLayout(new QHBoxLayout());
+	jobWidget->setLayout(new QVBoxLayout());
+	jobWidget->setStyleSheet("background-color:#EEE;");
 	auto progressBar = new QProgressBar();
 	progressBar->setRange(0, 100);
 	progressBar->setValue(0);
-	jobWidget->layout()->addWidget(new QLabel(name));
+	auto titleLabel = new QLabel(name);
+	titleLabel->setStyleSheet("font-weight: bold;");
+	jobWidget->layout()->addWidget(titleLabel);
+	auto statusLabel = new QLabel("");
+	jobWidget->layout()->addWidget(statusLabel);
 	jobWidget->layout()->addWidget(progressBar);
 	layout()->addWidget(jobWidget);
+	jobWidget->setMaximumHeight(100);
 	connect(p, &iAProgress::progress, progressBar, &QProgressBar::setValue);
+	connect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
 	connect(t, &QThread::finished, jobWidget, &QWidget::deleteLater);
 }
