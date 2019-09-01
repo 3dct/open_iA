@@ -41,16 +41,19 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 
 	// QWidgets
 	QWidget* widgetTop = new QWidget();
+	QWidget* widgetTop2 = new QWidget();
 	QWidget *widgetSlicersGrid = new QWidget();
 
 	// Layouts
 	QVBoxLayout *layoutMain = new QVBoxLayout();
 	QHBoxLayout *layoutTop = new QHBoxLayout(widgetTop);
+	QHBoxLayout *layoutTop2 = new QHBoxLayout(widgetTop2);
 	m_layoutSlicersGrid = new QGridLayout(widgetSlicersGrid);
 	setLayout(layoutMain);
 
 	// Other widgets
 	QLabel *labelTitle = new QLabel("n-Modal Transfer Function");
+
 	
 	// Settings
 	//labelTitle->setSizePolicy(QSizePolicy::Minimum); // DOESN'T WORK!!! WHY???

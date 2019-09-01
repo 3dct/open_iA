@@ -104,4 +104,7 @@ private:
 signals:
 	void allSlicersInitialized();
 	void allSlicersReinitialized();
+
+private slots:
+	void onHistogramAvailable();
 };

@@ -63,6 +63,8 @@ iANModalController::iANModalController(MdiChild *mdiChild) :
 		//m_dlg_labels = attachment->labelsDlg();
 		assert(false);
 	}
+
+	connect(mdiChild, SIGNAL(histogramAvailable()), this, SLOT(onHistogramAvailable()));
 }
 
 void iANModalController::initialize() {
@@ -197,6 +199,12 @@ inline void iANModalController::_initializeMainSlicers() {
 	}
 }
 
+void iANModalController::onHistogramAvailable() {
+	if (m_initialized && countModalities() > 0) {
+		_initializeCombinedVol();
+	}
+}
+
 inline void iANModalController::_initializeCombinedVol() {
 	auto appendFilter = vtkSmartPointer<vtkImageAppendComponents>::New();
 	appendFilter->SetInputData(m_modalities[0]->image());
@@ -236,7 +244,7 @@ inline void iANModalController::_initializeCombinedVol() {
 		if (renderer->isRendered())
 			renderer->remove();
 	}
-	m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);
+	//m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);
 }
 
 inline void iANModalController::applyVolumeSettings() {
@@ -343,4 +351,8 @@ void iANModalController::adjustTf(QSharedPointer<iAModality> modality, QList<Lab
 		tf->colorTF()->AddRGBPoint(v.scalar, v.r, v.g, v.b);
 		tf->opacityTF()->AddPoint(v.scalar, opacity);
 	}
+
+	m_mdiChild->renderer()->update();
+	for (int i = 0; i < 3; ++i)
+		m_mdiChild->slicer(i)->update();
 }
