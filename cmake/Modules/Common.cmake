@@ -440,7 +440,7 @@ IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL")
 	SET (openiA_VERSION "${openiA_VERSION}-oldOpenGL")
 ENDIF ()
 MESSAGE(STATUS "Build version: ${openiA_VERSION}")
-configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version.h" @ONLY)
+configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${open_iA_BINARY_DIR}/version.h" @ONLY)
 
 ADD_DEFINITIONS(-DUNICODE -D_UNICODE)    # Enable Unicode
 
