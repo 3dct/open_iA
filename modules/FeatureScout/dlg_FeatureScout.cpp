@@ -201,7 +201,7 @@ const int dlg_FeatureScout::PCMinTicksCount = 2;
 
 dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
 	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping,
-	std::map<size_t, std::vector<iAVec3f> > & curvedFiberInfo)
+	std::map<size_t, std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip)
 	: QDockWidget( parent ),
 	csvTable( csvtbl ),
 	m_renderer( parent->renderer() ),
@@ -249,7 +249,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupViews();
 	setupModel();
 	setupConnections();
-	m_3dvis = create3DObjectVis(vis, parent, csvtbl, m_columnMapping, m_colorList.at(0), curvedFiberInfo);
+	m_3dvis = create3DObjectVis(vis, parent, csvtbl, m_columnMapping, m_colorList.at(0), curvedFiberInfo, cylinderQuality, segmentSkip);
 	if (vis != iACsvConfig::UseVolume)
 		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
 			.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
