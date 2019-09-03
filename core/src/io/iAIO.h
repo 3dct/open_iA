@@ -23,6 +23,7 @@
 #include "iAAlgorithm.h"
 #include "defines.h"          // for iAIOType
 #include "open_iA_Core_export.h"
+#include "iARawFileParameters.h"
 
 #include <vtkSmartPointer.h>
 
@@ -79,14 +80,14 @@ protected:
 	void run() override;
 
 private:
-	bool setupRAWReader( QString f );
-	bool setupPARSReader( QString f );
-	bool setupVGIReader( QString f );
-	bool setupStackReader( QString f );
-	bool setupVolumeStackReader(QString f);
-	bool setupVolumeStackMHDReader(QString f);
-	bool setupVolumeStackVolstackReader(QString f);
-	bool setupVolumeStackVolStackWriter(QString f);
+	bool setupRAWReader( QString const & f );
+	bool setupPARSReader( QString const & f );
+	bool setupVGIReader( QString const & f );
+	bool setupStackReader( QString const & f );
+	bool setupVolumeStackReader(QString const & f);
+	bool setupVolumeStackMHDReader(QString const & f);
+	bool setupVolumeStackVolstackReader(QString const & f);
+	bool setupVolumeStackVolStackWriter(QString const & f);
 	void fillFileNameArray(int * indexRange, int digitsInIndex, int stepSize = 1);
 
 	void readImageStack();
@@ -125,18 +126,8 @@ private:
 	QString m_prefix;
 	QString m_fileNamesBase;
 	vtkStringArray* m_fileNameArray;
-	unsigned long m_headersize;
-	int m_scalarType;
-	int m_byteOrder;
-	int m_extent[6];
-	double m_spacing[3];
-	double m_origin[3];
 	bool m_compression;
-
-	int m_rawSizeX, m_rawSizeY, m_rawSizeZ;
-	double m_rawSpaceX, m_rawSpaceY, m_rawSpaceZ;
-	double m_rawOriginX, m_rawOriginY, m_rawOriginZ;
-	unsigned int m_rawHeaderSize, m_rawByteOrder, m_rawScalarType;
+	iARawFileParameters m_rawFileParams;
 
 	int m_ioID;
 	std::vector<vtkSmartPointer<vtkImageData> > * m_volumes;

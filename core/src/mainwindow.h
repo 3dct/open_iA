@@ -27,6 +27,7 @@
 #include "iARenderSettings.h"
 #include "iASlicerSettings.h"
 #include "iAVolumeSettings.h"
+#include "io/iARawFileParameters.h"
 
 #include <QMainWindow>
 #include <QMdiSubWindow>
@@ -225,14 +226,12 @@ private:
 	iAPreferences m_defaultPreferences;
 
 	//! @{ Open with DataType Conversion settings
-	int m_owdtcs,
-		m_owdtcx, m_owdtcy, m_owdtcz,
-		m_owdtcxori, m_owdtcyori, m_owdtczori,
+	unsigned int m_owdtcs;
+	int m_owdtcxori, m_owdtcyori, m_owdtczori,
 		m_owdtcxsize, m_owdtcysize, m_owdtczsize,
 		m_owdtcdov;
-	double m_owdtcsx, m_owdtcsy, m_owdtcsz,
-		m_owdtcoutmin, m_owdtcoutmax;
-	float m_owdtcmin, m_owdtcmax;
+	iARawFileParameters m_rawFileParams;
+	double m_owdtcoutmin, m_owdtcoutmax, m_owdtcmin, m_owdtcmax;
 	//! @}
 
 	bool m_lpCamera, m_lpSliceViews, m_lpTransferFunction, m_lpProbabilityFunctions, m_lpPreferences, m_lpRenderSettings, m_lpSlicerSettings;

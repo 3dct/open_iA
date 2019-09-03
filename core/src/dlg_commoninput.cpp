@@ -191,6 +191,11 @@ void  dlg_commoninput::setSourceMdi(MdiChild* child, MainWindow* mainWnd)
 	connect(child, SIGNAL(closed()), this, SLOT(SourceChildClosed()));
 }
 
+QVector<QWidget*> dlg_commoninput::widgetList()
+{
+	return m_widgetList;
+}
+
 void dlg_commoninput::SelectFilter()
 {
 	QPushButton* sender = qobject_cast<QPushButton*>(QObject::sender());
