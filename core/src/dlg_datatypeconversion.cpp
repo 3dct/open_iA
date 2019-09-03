@@ -329,8 +329,8 @@ QVBoxLayout* setupSliceWidget(iAVtkWidget* &widget, vtkSmartPointer<vtkPlaneSour
 	widget = new iAVtkWidget();
 	widget->setMinimumHeight(50);
 	widget->setWindowTitle(QString("%1 Plane").arg(name));
-	boxlayout->addWidget(label);
-	boxlayout->addWidget(widget);
+	auto window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	widget->SetRenderWindow(window);
 
 	auto color = vtkSmartPointer<vtkImageMapToColors>::New();
 	auto table = defaultColorTF(image->vtkImage()->GetScalarRange());
@@ -367,16 +367,14 @@ QVBoxLayout* setupSliceWidget(iAVtkWidget* &widget, vtkSmartPointer<vtkPlaneSour
 	roiRenderer->SetActiveCamera(imageRenderer->GetActiveCamera());
 	imageRenderer->ResetCamera();
 
-	auto window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	window->SetNumberOfLayers(2);
 	window->AddRenderer(imageRenderer);
 	window->AddRenderer(roiRenderer);
-	widget->SetRenderWindow(window);
 	auto imageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
 	window->GetInteractor()->SetInteractorStyle(imageStyle);
-	widget->update();
-	window->Render();
-	widget->show();
+
+	boxlayout->addWidget(label);
+	boxlayout->addWidget(widget);
 	return boxlayout;
 }
 
