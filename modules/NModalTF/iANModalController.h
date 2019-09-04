@@ -24,7 +24,11 @@
 
 #include <QString>
 #include <QList>
+#include <QColor>
 #include <QSharedPointer>
+
+struct iANModalLabel;
+struct iANModalVoxel;
 
 class iAModality;
 class iASlicer;
@@ -35,21 +39,6 @@ class vtkVolume;
 class vtkSmartVolumeMapper;
 class vtkRenderer;
 class vtkImageData;
-
-struct LabeledVoxel {
-	int x;
-	int y;
-	int z;
-	int id;
-	double scalar;
-	double r;
-	double g;
-	double b;
-	bool remover = false;
-	QString text() {
-		return QString::number(x) + "," + QString::number(y) + "," + QString::number(z) + "," + QString::number(scalar) + "," + QString::number(r) + "," + QString::number(g) + "," + QString::number(b);
-	}
-};
 
 class iANModalController : public QObject {
 	Q_OBJECT
@@ -66,7 +55,7 @@ public:
 	void reinitialize();
 
 	// TEMPORARY STUFF
-	void adjustTf(QSharedPointer<iAModality> modality, QList<LabeledVoxel> voxels);
+	void adjustTf(QList<QSharedPointer<iANModalLabel>> labels);
 
 private:
 	MdiChild *m_mdiChild;
@@ -78,6 +67,7 @@ private:
 	bool _checkModalities(QList<QSharedPointer<iAModality>> modalities);
 	bool _matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2);
 	QList<QSharedPointer<iAModality>> m_modalities;
+	QMap<int, QSharedPointer<iAModality>> m_mapOverlayImageId2modality;
 	QList<uint> m_channelIds;
 	vtkSmartPointer<vtkVolume> m_combinedVol;
 	vtkSmartPointer<vtkSmartVolumeMapper> m_combinedVolMapper;
@@ -93,7 +83,6 @@ private:
 
 	// Internal widgets
 	QList<iASlicer*> m_slicers;
-	QList<int> m_labelIds;
 
 	// Labeling widgets
 
@@ -107,4 +96,5 @@ signals:
 
 private slots:
 	void onHistogramAvailable();
+
 };

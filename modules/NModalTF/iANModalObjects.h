@@ -20,61 +20,33 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
-#include <QListWidget>
-#include <QMap>
-#include <QSharedPointer>
+#include <QString>
+#include <QColor>
+#include <QList>
 
-struct iANModalLabelAbstract;
+struct iANModalVoxel {
+	int x;
+	int y;
+	int z;
+	int overlayImageId;
+	double scalar;
+};
 
-class QGridLayout;
-class QLabel;
-class QSlider;
+struct iANModalLabelAbstract {
+	int id;
+	QString name;
+	QColor color;
+	float opacity;
+	bool remover = false;
+	virtual long getVoxelsCount() = 0;
+};
 
-class iANModalLabelControls : public QWidget {
-	Q_OBJECT
+struct iANModalLabelSimple : public iANModalLabelAbstract {
+	long voxelsCount;
+	long getVoxelsCount() override { return voxelsCount; }
+};
 
-public:
-	iANModalLabelControls(QWidget *parent = nullptr);
-
-	void updateTable(QList<QSharedPointer<iANModalLabelAbstract>>);
-	void insertLabel(int row, QSharedPointer<iANModalLabelAbstract>, float opacity);
-	void removeLabel(int row);
-	bool containsLabel(int row);
-
-	float opacity(int labelId);
-
-private:
-
-	enum Column {
-		NAME = 0,
-		COLOR = 1,
-		NUMBER = 2,
-		OPACITY = 3
-	};
-
-	struct Row {
-		Row() {}
-		Row(int _row, QLabel *_name, QLabel *_color, QLabel *_number, QSlider *_opacity) : 
-			row(_row), name(_name), color(_color), number(_number), opacity(_opacity)
-		{}
-		int row = -1;
-		QLabel *name = nullptr;
-		QLabel *color = nullptr;
-		QLabel *number = nullptr;
-		QSlider *opacity = nullptr;
-	};
-
-	QGridLayout *m_layout;
-	QVector<QSharedPointer<iANModalLabelAbstract>> m_labels;
-	QVector<Row> m_rows;
-
-	int m_nextId = 0;
-
-	void addRow(int row, QSharedPointer<iANModalLabelAbstract>, float opacity);
-	void updateRow(int row, QSharedPointer<iANModalLabelAbstract>);
-
-signals:
-	void labelOpacityChanged(int labelId);
-
+struct iANModalLabel : public iANModalLabelAbstract {
+	QList<iANModalVoxel> voxels;
+	long getVoxelsCount() override { return voxels.size(); }
 };

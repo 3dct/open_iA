@@ -272,6 +272,8 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicer* slicer)
 		return;
 	appendSeeds(labelRow, items);
 	updateChannels(imageId);
+
+	emit seedAdded(cx, cy, cz, slicer);
 }
 
 void dlg_labels::slicerClicked(int x, int y, int z, iASlicer *slicer)
@@ -337,6 +339,7 @@ int dlg_labels::addLabelItem(QString const & labelText)
 	newRow.append(newItem);
 	newRow.append(newItemCount);
 	m_itemModel->appendRow(newRow);
+	emit labelAdded();
 	return newItem->row();
 }
 
@@ -460,6 +463,7 @@ void dlg_labels::remove()
 		}
 		updateChannels();
 	}
+	emit labelRemoved();
 }
 
 void dlg_labels::removeSeed(QStandardItem* item, int x, int y, int z, int imageId)
@@ -490,6 +494,14 @@ int dlg_labels::seedCount(int labelIdx) const
 {
 	QStandardItem* labelItem = m_itemModel->item(labelIdx);
 	return labelItem->rowCount();
+}
+
+int dlg_labels::labelCount() {
+	return m_itemModel->rowCount();
+}
+
+int dlg_labels::overlayImageIdBySlicer(iASlicer* slicer) {
+	return m_mapSlicer2data.value(slicer)->overlayImageId;
 }
 
 int dlg_labels::chooseOverlayImage(QString title)

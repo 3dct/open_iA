@@ -21,8 +21,13 @@
 #pragma once
 
 #include <QWidget>
+#include <QList>
+
+struct iANModalLabelAbstract;
 
 class iANModalController;
+class iANModalLabelControls;
+class iASlicer;
 class MdiChild;
 
 class QLabel;
@@ -39,8 +44,11 @@ private:
 	MdiChild *m_mdiChild;
 
 	QGridLayout *m_layoutSlicersGrid;
+	iANModalLabelControls *m_labelControls;
 
 	QLabel *m_labelModalityCount;
+
+	QList<QSharedPointer<iANModalLabelAbstract>> labels();
 
 private slots:
 	void onButtonClicked();
@@ -51,4 +59,7 @@ private slots:
 
 	//void onModalitiesChanged();
 
+	void onSeedAdded(int x, int y, int z, iASlicer*);
+	void onLabelAdded();
+	void onLabelRemoved();
 };

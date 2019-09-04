@@ -66,8 +66,16 @@ public:
 	void addSlicer(iASlicer *slicer, int imageId, uint channelId=0);
 	void removeSlicer(iASlicer *slicer);
 
+	int labelCount();
+	int overlayImageIdBySlicer(iASlicer*);
+
 	// TEMPORARY
 	QStandardItemModel* m_itemModel; // TODO: make private
+
+signals:
+	void seedAdded(int x, int y, int z, iASlicer*);
+	void labelAdded();
+	void labelRemoved();
 
 public slots:
 	void rendererClicked(int, int, int, iASlicer*);

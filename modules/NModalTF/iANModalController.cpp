@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iANModalController.h"
 
+#include "iANModalObjects.h"
+
 #include "iALabellingAttachment.h"
 #include "dlg_labels.h"
 
@@ -58,10 +60,8 @@ iANModalController::iANModalController(MdiChild *mdiChild) :
 	}
 	else
 	{
-		// TODO
-		//auto attachment = iALabellingAttachment::create(m_mdiChild->mainWnd(), m_mdiChild);
-		//m_dlg_labels = attachment->labelsDlg();
-		assert(false);
+		m_dlg_labels = new dlg_labels(mdiChild, false);
+		mdiChild->splitDockWidget(mdiChild->logDockWidget(), m_dlg_labels, Qt::Vertical);
 	}
 
 	connect(mdiChild, SIGNAL(histogramAvailable()), this, SLOT(onHistogramAvailable()));
@@ -90,7 +90,7 @@ void iANModalController::_initialize() {
 	}
 
 	m_slicers.clear();
-	m_labelIds.clear();
+	m_mapOverlayImageId2modality.clear();
 	for (int i = 0; i < m_modalities.size(); i++) {
 		auto modality = m_modalities[i];
 
@@ -102,7 +102,7 @@ void iANModalController::_initialize() {
 			modality->image()->GetSpacing(),
 			m_slicerChannel_label);
 		m_slicers.append(slicer);
-		m_labelIds.append(id);
+		m_mapOverlayImageId2modality.insert(id, modality);
 	}
 
 	if (countModalities() > 0) {
@@ -244,7 +244,7 @@ inline void iANModalController::_initializeCombinedVol() {
 		if (renderer->isRendered())
 			renderer->remove();
 	}
-	//m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);
+	m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);
 }
 
 inline void iANModalController::applyVolumeSettings() {
@@ -326,30 +326,35 @@ bool iANModalController::setModalities(QList<QSharedPointer<iAModality>> modalit
 	return true;
 }
 
-void iANModalController::adjustTf(QSharedPointer<iAModality> modality, QList<LabeledVoxel> voxels) {
+void iANModalController::adjustTf(QList<QSharedPointer<iANModalLabel>> labels) {
+	for (auto modality : m_modalities) {
+		double range[2];
+		modality->image()->GetScalarRange(range);
+		double min = range[0];
+		double max = range[1];
 
-	double range[2];
-	modality->image()->GetScalarRange(range);
-	double min = range[0];
-	double max = range[1];
-
-	auto tf = modality->transfer();
+		auto tf = modality->transfer();
 	
-	tf->colorTF()->RemoveAllPoints();
-	tf->colorTF()->AddRGBPoint(min, 0.0, 0.0, 0.0);
-	tf->colorTF()->AddRGBPoint(max, 0.0, 0.0, 0.0);
+		tf->colorTF()->RemoveAllPoints();
+		tf->colorTF()->AddRGBPoint(min, 0.0, 0.0, 0.0);
+		tf->colorTF()->AddRGBPoint(max, 0.0, 0.0, 0.0);
 
-	tf->opacityTF()->RemoveAllPoints();
-	tf->opacityTF()->AddPoint(min, 0.0);
-	tf->opacityTF()->AddPoint(max, 0.0);
+		tf->opacityTF()->RemoveAllPoints();
+		tf->opacityTF()->AddPoint(min, 0.0);
+		tf->opacityTF()->AddPoint(max, 0.0);
+	}
 
-	for (int i = 0; i < voxels.size(); i++) {
-		LabeledVoxel v = voxels[i];
-
-		double opacity = v.remover ? 0.0 : 0.5;
-
-		tf->colorTF()->AddRGBPoint(v.scalar, v.r, v.g, v.b);
-		tf->opacityTF()->AddPoint(v.scalar, opacity);
+	for (auto label : labels) {
+		float r = label->color.redF();
+		float g = label->color.greenF();
+		float b = label->color.blueF();
+		float opacity = label->remover ? 0.0 : label->opacity;
+		for (auto v : label->voxels) {
+			auto modality = m_mapOverlayImageId2modality.value(v.overlayImageId);
+			auto tf = modality->transfer();
+			tf->colorTF()->AddRGBPoint(v.scalar, r, g, b);
+			tf->opacityTF()->AddPoint(v.scalar, opacity);
+		}
 	}
 
 	m_mdiChild->renderer()->update();
