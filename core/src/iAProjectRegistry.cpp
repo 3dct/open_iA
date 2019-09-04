@@ -24,11 +24,22 @@
 
 QMap<QString, QSharedPointer<iAIProjectFactory> > iAProjectRegistry::m_projectTypes;
 
+QList<QString> const iAProjectRegistry::projectKeys()
+{
+	return m_projectTypes.keys();
+}
+
+QSharedPointer<iAProjectBase> iAProjectRegistry::createProject(QString const & projectIdentifier)
+{
+	assert(m_projectTypes.contains(projectIdentifier));
+	return m_projectTypes[projectIdentifier]->create();
+}
+
 iAProjectBase::~iAProjectBase()
 {}
 
 
-void iAProjectBase::setMainWindow(MainWindow* mainWnd)
+void iAProjectBase::setChild(MdiChild* child)
 {
-	m_mainWnd = mainWnd;
+	m_mdiChild = child;
 }

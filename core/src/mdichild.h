@@ -74,6 +74,7 @@ class iAModalityList;
 class iAParametricSpline;
 class iAPlot;
 struct iAProfileProbe;
+class iAProjectBase;
 class iARenderer;
 class iASlicer;
 class iAVolumeStack;
@@ -280,6 +281,10 @@ public:
 	QSharedPointer<iAModalityList> modalities();
 	QSharedPointer<iAModality> modality(int idx);
 	void storeProject();
+
+	//! add project
+	void addProject(QString const & key, QSharedPointer<iAProjectBase> project);
+	QMap<QString, QSharedPointer<iAProjectBase> > const & projects();
 
 Q_SIGNALS:
 	void rendererDeactivated(int c);
@@ -488,4 +493,6 @@ private:
 	int m_currentHistogramModality;
 	bool m_initVolumeRenderers;
 	int m_storedModalityNr;		//!< modality nr being stored
+
+	QMap<QString, QSharedPointer<iAProjectBase>> m_projects;
 };

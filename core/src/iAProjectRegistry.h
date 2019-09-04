@@ -37,6 +37,8 @@ class open_iA_Core_API iAProjectRegistry
 public:
 	//! Adds a given project type to the registry.
 	template <typename ProjectType> static void addProject(QString const & projectIdentifier);
+	static QList<QString> const projectKeys();
+	static QSharedPointer<iAProjectBase> createProject(QString const & projectIdentifier);
 private:
 	static QMap<QString, QSharedPointer<iAIProjectFactory> > m_projectTypes;
 	iAProjectRegistry() =delete;	//!< iAProjectRegistry is meant to be used statically only, thus prevent creation of objects

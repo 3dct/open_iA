@@ -46,6 +46,7 @@
 #include "iAPreferences.h"
 #include "iAProfileProbe.h"
 #include "iAProgress.h"
+#include "iAProjectBase.h"
 #include "iARenderer.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
@@ -458,8 +459,8 @@ bool MdiChild::setupLoadIO(QString const & f, bool isStack)
 	if (QString::compare(m_fileInfo.suffix(), "STL", Qt::CaseInsensitive) == 0)
 	{
 		return m_ioThread->setupIO(STL_READER, f);
-	}else
-	if (QString::compare(m_fileInfo.suffix(), "VTK", Qt::CaseInsensitive) == 0)
+	}
+	else if (QString::compare(m_fileInfo.suffix(), "VTK", Qt::CaseInsensitive) == 0)
 	{
 		return m_ioThread->setupIO(VTK_READER, f);
 	}
@@ -790,6 +791,7 @@ bool MdiChild::saveAs(int modalityNr)
 	int componentNr = chooseComponentNr(modalityNr);
 	if (componentNr == -1)
 		return false;
+	// TODO: ask for filename first, then for modality (if only one modality can be saved in chosen format)
 	QString filePath = (modalities()->size() > 0) ? QFileInfo(modality(modalityNr)->fileName()).absolutePath() : m_path;
 	QString f = QFileDialog::getSaveFileName(
 		this,
@@ -2649,6 +2651,24 @@ void MdiChild::saveProject(QString const & fileName)
 
 void MdiChild::storeProject()
 {
+	QString projectFileName = QFileDialog::getSaveFileName(
+		QApplication::activeWindow(),
+		tr("Select Output File"),
+		m_path,
+		iAIOProvider::ProjectFileTypeFilter + iAIOProvider::NewProjectFileTypeFilter);
+	if (projectFileName.isEmpty())
+		return;
+	if (projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
+	{
+		QSettings projectFile(projectFileName, QSettings::IniFormat);
+		for (auto projectKey: m_projects.keys())
+		{
+			projectFile.beginGroup(projectKey);
+			m_projects[projectKey]->saveProject(projectFile);
+			projectFile.endGroup();
+		}
+		return;
+	}
 	QVector<int> unsavedModalities;
 	for (int i=0; i<modalities()->size(); ++i)
 	{
@@ -2665,14 +2685,17 @@ void MdiChild::storeProject()
 			if (!saveAs(modNr))
 				return;
 	}
-	QString modalitiesFileName = QFileDialog::getSaveFileName(
-		QApplication::activeWindow(),
-		tr("Select Output File"),
-		m_path,
-		iAIOProvider::ProjectFileTypeFilter);
-	if (modalitiesFileName.isEmpty())
-		return;
-	saveProject(modalitiesFileName);
+	saveProject(projectFileName);
+}
+
+void MdiChild::addProject(QString const & key, QSharedPointer<iAProjectBase> project)
+{
+	m_projects.insert(key, project);
+}
+
+QMap<QString, QSharedPointer<iAProjectBase>> const & MdiChild::projects()
+{
+	return m_projects;
 }
 
 MainWindow* MdiChild::mainWnd()

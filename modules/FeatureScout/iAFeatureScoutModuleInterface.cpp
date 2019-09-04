@@ -44,62 +44,65 @@
 #include <QSettings>
 #include <QTextStream>
 
+namespace
+{
+	const QString FeatureScoutProjectID("FeatureScout");
+}
+
 class iAFeatureScoutProject: public iAProjectBase
 {
 public:
 	iAFeatureScoutProject()
 	{}
-	virtual ~iAFeatureScoutProject()
+	virtual ~iAFeatureScoutProject() override
 	{}
-	void loadProject(QSettings const & projectFile) override;
-	void saveProject(QSettings const & projectFile) override;
+	void loadProject(QSettings & projectFile) override;
+	void saveProject(QSettings & projectFile) override;
 	static QSharedPointer<iAProjectBase> create()
 	{
 		return QSharedPointer<iAFeatureScoutProject>::create();
 	}
+	void setOptions(iACsvConfig config)
+	{
+		m_config = config;
+	}
+private:
+	iACsvConfig m_config;
 };
 
 
-void iAFeatureScoutProject::loadProject(QSettings const & projectFile)
+void iAFeatureScoutProject::loadProject(QSettings & projectFile)
 {
-	QString csvFormatName = projectFile.value("CSVFormatName").toString();
-	// TODO: store/load full csv config in project file!
-	if (csvFormatName.isEmpty())
-	{
-		DEBUG_LOG("Invalid FeatureScout project file: Empty or missing 'CSVFormatName'!");
-		return;
-	}
-	iACsvConfig cfg;
-	if (!dlg_CSVInput::loadFormatFromRegistry(csvFormatName, cfg))
-	{
-		DEBUG_LOG("Invalid FeatureScout project file: Could not find format specified under 'CSVFormatName'!");
-		return;
-	}
-	cfg.fileName = projectFile.value("CSVFileName").toString();
-	if (cfg.fileName.isEmpty())
+	m_config.load(projectFile, "CSVFormat");
+
+	m_config.fileName = projectFile.value("CSVFileName").toString();
+	if (m_config.fileName.isEmpty())
 	{
 		DEBUG_LOG("Invalid FeatureScout project file: Empty or missing 'CSVFileName'!");
 		return;
 	}
-	auto mdiChild = m_mainWnd->createMdiChild(false);
-	mdiChild->show();
-	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
-	featureScout->LoadFeatureScout(cfg, mdiChild);
+	m_config.curvedFiberFileName = projectFile.value("CurvedFileName").toString();
+	iAFeatureScoutModuleInterface * featureScout = m_mdiChild->mainWnd()->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
+	featureScout->LoadFeatureScout(m_config, m_mdiChild);
 	QString layoutName = projectFile.value("Layout").toString();
 	if (!layoutName.isEmpty())
-		mdiChild->loadLayout(layoutName);
+		m_mdiChild->loadLayout(layoutName);
 }
 
-void iAFeatureScoutProject::saveProject(QSettings const & projectFile)
+void iAFeatureScoutProject::saveProject(QSettings & projectFile)
 {
-
+	m_config.save(projectFile, "CSVFormat");
+	projectFile.setValue("CSVFileName", m_config.fileName);
+	projectFile.setValue("CurvedFileName", m_config.curvedFiberFileName);
+	if (m_mdiChild)
+		projectFile.setValue("Layout", m_mdiChild->layoutName());
 }
 
 void iAFeatureScoutModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
-	iAProjectRegistry::addProject<iAFeatureScoutProject>("FeatureScout");
+	iAProjectRegistry::addProject<iAFeatureScoutProject>(FeatureScoutProjectID);
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionFibreScout = new QAction( QObject::tr("FeatureScout"), nullptr );
 	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreScout, false );
@@ -148,6 +151,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 	}
 	else
 		m_mdiChild = m_mainWnd->activeMdiChild();
+
 	if (!startFeatureScout(csvConfig))
 	{
 		if (csvConfig.visType != iACsvConfig::UseVolume)
@@ -258,6 +262,10 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		setFeatureScoutRenderSettings();
 		m_mdiChild->addMsg("The render settings of the current child window have been adapted for the volume visualization of FeatureScout!");
 	}
+	auto project = QSharedPointer<iAFeatureScoutProject>::create();
+	project->setChild(m_mdiChild);
+	project->setOptions(csvConfig);
+	m_mdiChild->addProject(FeatureScoutProjectID, project);
 	return true;
 }
 

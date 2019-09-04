@@ -33,6 +33,8 @@
 #include "iALogger.h"
 #include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
+#include "iAProjectBase.h"
+#include "iAProjectRegistry.h"
 #include "iARenderer.h"
 #include "iASlicer.h"
 #include "iAToolsVTK.h"
@@ -312,7 +314,7 @@ void MainWindow::loadFile(QString const & fileName)
 	}
 	else
 	{
-		loadFile(fileName, fileName.endsWith(".volstack"));
+		loadFile(fileName, fileName.toLower().endsWith(".volstack"));
 	}
 }
 
@@ -349,6 +351,27 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 				}
 			}
 			return;
+		}
+	}
+	else if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
+	{
+		MdiChild *child = createMdiChild(false);
+		child->show();
+		// TODO: pass in mdichild?
+		QSettings projectFile(fileName, QSettings::IniFormat);
+		auto registeredProjects = iAProjectRegistry::projectKeys();
+		auto projectFileGroups = projectFile.childGroups();
+		for (auto projectKey: registeredProjects)
+		{
+			if (projectFileGroups.contains(projectKey))
+			{
+				auto project = iAProjectRegistry::createProject(projectKey);
+				project->setChild(child);
+				projectFile.beginGroup(projectKey);
+				project->loadProject(projectFile);
+				projectFile.endGroup();
+				child->addProject(projectKey, project);
+			}
 		}
 	}
 	// Todo: hook for plugins?
