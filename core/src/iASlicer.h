@@ -308,7 +308,6 @@ protected:
 	void resizeEvent(QResizeEvent * event) override;
 	void wheelEvent(QWheelEvent*) override;
 
-	void updateResliceAxesDirectionCosines();
 	void updateBackground();
 	void printVoxelInformation();
 	void executeKeyPressEvent();

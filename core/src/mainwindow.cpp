@@ -24,6 +24,7 @@
 #include "defines.h"
 #include "dlg_commoninput.h"
 #include "dlg_datatypeconversion.h"
+#include "dlg_openfile_sizecheck.h"
 #include "iAChartFunctionBezier.h"
 #include "iAChartFunctionGaussian.h"
 #include "iAChartFunctionTransfer.h"
@@ -35,6 +36,7 @@
 #include "iARenderer.h"
 #include "iASlicer.h"
 #include "iAToolsVTK.h"
+#include "iAXmlSettings.h"
 #include "io/iAFileUtils.h"    // for fileNameOnly
 #include "io/iAIOProvider.h"
 #include "io/iATLGICTLoader.h"
@@ -381,50 +383,6 @@ void MainWindow::saveAs()
 		activeMdiChild()->saveAs();
 }
 
-QDomDocument MainWindow::loadSettingsFile(QString filename)
-{
-	QDomDocument doc;
-
-	QFile file(filename);
-	if (file.open(QIODevice::ReadOnly))
-	{
-		if (!doc.setContent(&file)) {
-			QMessageBox msgBox;
-			msgBox.setText("An error occurred during xml parsing!");
-			msgBox.exec();
-
-			return doc;
-		}
-
-		if (!doc.hasChildNodes() || doc.documentElement().tagName() != "settings")
-		{
-			QDomElement root = doc.createElement("settings");
-			doc.appendChild(root);
-		}
-
-	}
-	else
-	{
-		QDomElement root = doc.createElement("settings");
-		doc.appendChild(root);
-	}
-
-	file.deleteLater();
-	file.close();
-
-	return doc;
-}
-
-void MainWindow::saveSettingsFile(QDomDocument &doc, QString filename)
-{
-	QFile file(filename);
-	file.open(QIODevice::WriteOnly);
-	QTextStream ts(&file);
-	ts << doc.toString();
-
-	file.close();
-}
-
 bool MainWindow::saveSettings()
 {
 	QString filePath = activeMdiChild()->currentFile();
@@ -440,211 +398,170 @@ bool MainWindow::saveSettings()
 			<< tr("$Render Settings")
 			<< tr("$Slice Settings"));
 		QList<QVariant> inPara;
-		inPara << tr("%1").arg(m_spCamera ? tr("true") : tr("false"))
-			<< tr("%1").arg(m_spSliceViews ? tr("true") : tr("false"))
-			<< tr("%1").arg(m_spTransferFunction ? tr("true") : tr("false"))
-			<< tr("%1").arg(m_spProbabilityFunctions ? tr("true") : tr("false"))
-			<< tr("%1").arg(m_spPreferences ? tr("true") : tr("false"))
-			<< tr("%1").arg(m_spRenderSettings ? tr("true") : tr("false"))
-			<< tr("%1").arg(m_spSlicerSettings ? tr("true") : tr("false"));
+		inPara
+			<< m_spCamera
+			<< m_spSliceViews
+			<< m_spTransferFunction
+			<< m_spProbabilityFunctions
+			<< m_spPreferences
+			<< m_spRenderSettings
+			<< m_spSlicerSettings;
 
-		dlg_commoninput dlg(this, "Save Settings", inList, inPara, NULL);
+		dlg_commoninput dlg(this, "Save Settings", inList, inPara, nullptr);
 
 		if (dlg.exec() == QDialog::Accepted)
 		{
-			dlg.getCheckValue(0) == 0 ? m_spCamera = false               : m_spCamera = true;
-			dlg.getCheckValue(1) == 0 ? m_spSliceViews = false           : m_spSliceViews = true;
-			dlg.getCheckValue(2) == 0 ? m_spTransferFunction = false     : m_spTransferFunction = true;
-			dlg.getCheckValue(3) == 0 ? m_spProbabilityFunctions = false : m_spProbabilityFunctions = true;
-			dlg.getCheckValue(4) == 0 ? m_spPreferences = false          : m_spPreferences = true;
-			dlg.getCheckValue(5) == 0 ? m_spRenderSettings = false       : m_spRenderSettings = true;
-			dlg.getCheckValue(6) == 0 ? m_spSlicerSettings = false       : m_spSlicerSettings = true;
+			m_spCamera = dlg.getCheckValue(0) != 0;
+			m_spSliceViews = dlg.getCheckValue(1) != 0;
+			m_spTransferFunction = dlg.getCheckValue(2) != 0;
+			m_spProbabilityFunctions = dlg.getCheckValue(3) != 0;
+			m_spPreferences = dlg.getCheckValue(4) != 0;
+			m_spRenderSettings = dlg.getCheckValue(5) != 0;
+			m_spSlicerSettings = dlg.getCheckValue(6) != 0;
 
-			QDomDocument doc = loadSettingsFile(fileName);
+			iAXmlSettings xml;
 
-			if (m_spCamera) saveCamera(doc);
-			if (m_spSliceViews) saveSliceViews(doc);
-			if (m_spTransferFunction) saveTransferFunction(doc, (iAChartTransferFunction*)activeMdiChild()->functions()[0]);
-			if (m_spProbabilityFunctions) saveProbabilityFunctions(doc);
-			if (m_spPreferences) savePreferences(doc);
-			if (m_spRenderSettings) saveRenderSettings(doc);
-			if (m_spSlicerSettings) saveSlicerSettings(doc);
+			if (m_spCamera)
+				saveCamera(xml);
+			if (m_spSliceViews)
+				saveSliceViews(xml);
+			if (m_spTransferFunction && activeMdiChild()->histogram())
+				xml.saveTransferFunction((iAChartTransferFunction*)activeMdiChild()->functions()[0]);
+			if (m_spProbabilityFunctions && activeMdiChild()->histogram())
+				activeMdiChild()->histogram()->saveProbabilityFunctions(xml);
+			if (m_spPreferences)
+				savePreferences(xml);
+			if (m_spRenderSettings)
+				saveRenderSettings(xml);
+			if (m_spSlicerSettings)
+				saveSlicerSettings(xml);
 
-			saveSettingsFile(doc, fileName);
+			xml.save(fileName);
 		}
 	}
 	return true;
 }
 
-bool MainWindow::loadSettings()
+void MainWindow::loadSettings()
 {
 	QString filePath = activeMdiChild()->currentFile();
 	filePath.truncate(filePath.lastIndexOf('/'));
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
-	if (!fileName.isEmpty())
+	if (fileName.isEmpty())
 	{
-		QFile file(fileName);
-		file.open(QIODevice::ReadWrite);
-
-		QDomDocument doc;
-		if (!doc.setContent(&file)) {
-			QMessageBox msgBox;
-			msgBox.setText("An error occurred during xml parsing!");
-			msgBox.exec();
-
-			file.close();
-			return false;
-		}
-
-		file.close();
-
-		bool camera = false, sliceViews = false, transferFunction = false, probabilityFunctions = false;
-		bool preferences = false, renderSettings = false, slicerSettings = false;
-
-		QDomElement root = doc.documentElement();
-		QDomNodeList list = root.childNodes();
-		for (int n = 0; n < int(list.length()); n++)
-		{
-			QDomNode node = list.item(n);
-			QString nodeName = node.nodeName();
-			if (nodeName == "camera") camera = true;
-			else if (nodeName == "sliceViews") sliceViews = true;
-			else if (nodeName == "functions")
-			{
-				if (node.namedItem("transfer").isElement()) transferFunction = true;
-				if (node.namedItem("bezier").isElement() || node.namedItem("gaussian").isElement())	probabilityFunctions = true;
-			}
-			else if (nodeName == "preferences") preferences = true;
-			else if (nodeName == "renderSettings") renderSettings = true;
-			else if (nodeName == "slicerSettings") slicerSettings = true;
-		}
-
-		QStringList inList = QStringList();
-		QList<QVariant> inPara;
-		if (camera)               { inList << tr("$Camera");                inPara << tr("%1").arg(m_lpCamera ? tr("true") : tr("false")); }
-		if (sliceViews)           { inList << tr("$Slice Views");           inPara << tr("%1").arg(m_lpSliceViews ? tr("true") : tr("false")); }
-		if (transferFunction)     { inList << tr("$Transfer Function");     inPara << tr("%1").arg(m_lpTransferFunction ? tr("true") : tr("false")); }
-		if (probabilityFunctions) { inList << tr("$Probability Functions"); inPara << tr("%1").arg(m_lpProbabilityFunctions ? tr("true") : tr("false")); }
-		if (preferences)          { inList << tr("$Preferences");           inPara << tr("%1").arg(m_lpPreferences ? tr("true") : tr("false")); }
-		if (renderSettings)       { inList << tr("$Render Settings");       inPara << tr("%1").arg(m_lpRenderSettings ? tr("true") : tr("false")); }
-		if (slicerSettings)       { inList << tr("$Slice Settings");        inPara << tr("%1").arg(m_lpSlicerSettings ? tr("true") : tr("false")); }
-
-		dlg_commoninput dlg(this, "Load Settings", inList, inPara, NULL);
-
-		if (dlg.exec() == QDialog::Accepted)
-		{
-			int index = 0;
-			if (camera)               { dlg.getCheckValue(index++) == 0 ? m_lpCamera = false               : m_lpCamera = true; }
-			if (sliceViews)           { dlg.getCheckValue(index++) == 0 ? m_lpSliceViews = false           : m_lpSliceViews = true; }
-			if (transferFunction)     { dlg.getCheckValue(index++) == 0 ? m_lpTransferFunction = false     : m_lpTransferFunction = true; }
-			if (probabilityFunctions) { dlg.getCheckValue(index++) == 0 ? m_lpProbabilityFunctions = false : m_lpProbabilityFunctions = true; }
-			if (preferences)          { dlg.getCheckValue(index++) == 0 ? m_lpPreferences = false          : m_lpPreferences = true; }
-			if (renderSettings)       { dlg.getCheckValue(index++) == 0 ? m_lpRenderSettings = false       : m_lpRenderSettings = true; }
-			if (slicerSettings)       { dlg.getCheckValue(index++) == 0 ? m_lpSlicerSettings = false       : m_lpSlicerSettings = true; }
-
-			if (m_lpProbabilityFunctions)
-			{
-				std::vector<iAChartFunction*> &functions = activeMdiChild()->functions();
-				for (unsigned int i = 1; i < functions.size(); i++)
-				{
-					delete functions.back();
-					functions.pop_back();
-				}
-			}
-
-			QDomElement root = doc.documentElement();
-
-			QDomNodeList list = root.childNodes();
-			for (int n = 0; n < int(list.length()); n++)
-			{
-				QDomNode node = list.item(n);
-				if (node.nodeName() == "camera" && m_lpCamera) loadCamera(node);
-				if (node.nodeName() == "sliceViews" && m_lpSliceViews) loadSliceViews(node);
-				if (node.nodeName() == "functions" && m_lpTransferFunction)
-				{
-					activeMdiChild()->histogram()->loadTransferFunction(node);
-					activeMdiChild()->redrawHistogram();
-				}
-				if (node.nodeName() == "functions" && m_lpProbabilityFunctions) loadProbabilityFunctions(node);
-				if (node.nodeName() == "preferences" && m_lpPreferences) loadPreferences(node);
-				if (node.nodeName() == "renderSettings" && m_lpRenderSettings) loadRenderSettings(node);
-				if (node.nodeName() == "slicerSettings" && m_lpSlicerSettings) loadSlicerSettings(node);
-			}
-		}
+		return;
 	}
-	return true;
-}
-
-namespace
-{
-	void removeNode(QDomNode &rootNode, QString const & str)
+	iAXmlSettings xml;
+	if (!xml.read(fileName))
 	{
-		QDomNodeList list = rootNode.childNodes();
-		for (int n = 0; n < int(list.length()); n++)
-		{
-			QDomNode node = list.item(n);
-			if (node.nodeName() == str)
-			{
-				rootNode.removeChild(node);
-				break;
-			}
-		}
+		QMessageBox::warning(this, "Loading settings", "An error occurred during xml parsing!");
+		return;
 	}
-}
+	bool camera = false, sliceViews = false, transferFunction = false, probabilityFunctions = false;
+	bool preferences = false, renderSettings = false, slicerSettings = false;
 
-void MainWindow::saveCamera(QDomDocument &doc)
-{
-	vtkCamera *camera = activeMdiChild()->renderer()->renderer()->GetActiveCamera();
-	QDomNode node = doc.documentElement();
-	removeNode(node, "camera");
-	QDomElement cameraElement = doc.createElement("camera");
-	saveCamera(cameraElement, camera);
-	doc.documentElement().appendChild(cameraElement);
-}
-
-void MainWindow::loadCamera(QDomNode &cameraNode)
-{
-	vtkCamera *camera = activeMdiChild()->renderer()->renderer()->GetActiveCamera();
-	loadCamera(cameraNode, camera);
-
-	double allBounds[6];
-	activeMdiChild()->renderer()->renderer()->ComputeVisiblePropBounds( allBounds );
-	activeMdiChild()->renderer()->renderer()->ResetCameraClippingRange( allBounds );
-}
-
-void MainWindow::saveSliceViews(QDomDocument &doc)
-{
-	QDomNode sliceViewsNode;
-
-	// find slice view node
-	bool found = false;
-	QDomElement root = doc.documentElement();
+	QDomElement root = xml.documentElement();
 	QDomNodeList list = root.childNodes();
 	for (int n = 0; n < int(list.length()); n++)
 	{
 		QDomNode node = list.item(n);
-		if (node.nodeName() == "sliceViews")
+		QString nodeName = node.nodeName();
+		if (nodeName == "camera") camera = true;
+		else if (nodeName == "sliceViews") sliceViews = true;
+		else if (nodeName == "functions")
 		{
-			sliceViewsNode = node;
-			found = true;
-			break;
+			if (node.namedItem("transfer").isElement()) transferFunction = true;
+			if (node.namedItem("bezier").isElement() || node.namedItem("gaussian").isElement())	probabilityFunctions = true;
+		}
+		else if (nodeName == "preferences") preferences = true;
+		else if (nodeName == "renderSettings") renderSettings = true;
+		else if (nodeName == "slicerSettings") slicerSettings = true;
+	}
+
+	QStringList inList = QStringList();
+	QList<QVariant> inPara;
+	if (camera)               { inList << tr("$Camera");                inPara << tr("%1").arg(m_lpCamera ? tr("true") : tr("false")); }
+	if (sliceViews)           { inList << tr("$Slice Views");           inPara << tr("%1").arg(m_lpSliceViews ? tr("true") : tr("false")); }
+	if (transferFunction)     { inList << tr("$Transfer Function");     inPara << tr("%1").arg(m_lpTransferFunction ? tr("true") : tr("false")); }
+	if (probabilityFunctions) { inList << tr("$Probability Functions"); inPara << tr("%1").arg(m_lpProbabilityFunctions ? tr("true") : tr("false")); }
+	if (preferences)          { inList << tr("$Preferences");           inPara << tr("%1").arg(m_lpPreferences ? tr("true") : tr("false")); }
+	if (renderSettings)       { inList << tr("$Render Settings");       inPara << tr("%1").arg(m_lpRenderSettings ? tr("true") : tr("false")); }
+	if (slicerSettings)       { inList << tr("$Slice Settings");        inPara << tr("%1").arg(m_lpSlicerSettings ? tr("true") : tr("false")); }
+
+	dlg_commoninput dlg(this, "Load Settings", inList, inPara, NULL);
+
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	int index = 0;
+	if (camera)               { dlg.getCheckValue(index++) == 0 ? m_lpCamera = false               : m_lpCamera = true; }
+	if (sliceViews)           { dlg.getCheckValue(index++) == 0 ? m_lpSliceViews = false           : m_lpSliceViews = true; }
+	if (transferFunction)     { dlg.getCheckValue(index++) == 0 ? m_lpTransferFunction = false     : m_lpTransferFunction = true; }
+	if (probabilityFunctions) { dlg.getCheckValue(index++) == 0 ? m_lpProbabilityFunctions = false : m_lpProbabilityFunctions = true; }
+	if (preferences)          { dlg.getCheckValue(index++) == 0 ? m_lpPreferences = false          : m_lpPreferences = true; }
+	if (renderSettings)       { dlg.getCheckValue(index++) == 0 ? m_lpRenderSettings = false       : m_lpRenderSettings = true; }
+	if (slicerSettings)       { dlg.getCheckValue(index++) == 0 ? m_lpSlicerSettings = false       : m_lpSlicerSettings = true; }
+
+	if (m_lpProbabilityFunctions)
+	{
+		std::vector<iAChartFunction*> &functions = activeMdiChild()->functions();
+		for (unsigned int i = 1; i < functions.size(); i++)
+		{
+			delete functions.back();
+			functions.pop_back();
 		}
 	}
 
-	if (!found)
+	if (m_lpCamera)
+		loadCamera(xml);
+	if (m_lpSliceViews && xml.hasElement("sliceViews"))
+		loadSliceViews(xml.node("sliceViews"));
+	if (activeMdiChild()->histogram())
 	{
-		sliceViewsNode = doc.createElement("sliceViews");
-		root.appendChild(sliceViewsNode);
+		if (m_lpTransferFunction)
+			activeMdiChild()->histogram()->loadTransferFunction(xml.documentElement().namedItem("functions"));
+		if (m_lpProbabilityFunctions)
+			activeMdiChild()->histogram()->loadProbabilityFunctions(xml);
+		activeMdiChild()->redrawHistogram();
 	}
+	if (m_lpPreferences && xml.hasElement("preferences"))
+		loadPreferences(xml.node("preferences"));
+	if (m_lpRenderSettings && xml.hasElement("renderSettings"))
+		loadRenderSettings(xml.node("renderSettings"));
+	if (m_lpSlicerSettings && xml.hasElement("slicerSettings"))
+		loadSlicerSettings(xml.node("slicerSettings"));
+}
 
+void MainWindow::saveCamera(iAXmlSettings & xml)
+{
+	vtkCamera *camera = activeMdiChild()->renderer()->renderer()->GetActiveCamera();
+	QDomElement cameraElement = xml.createElement("camera");
+	saveCamera(cameraElement, camera);
+}
+
+bool MainWindow::loadCamera(iAXmlSettings & xml)
+{
+	vtkCamera *camera = activeMdiChild()->renderer()->renderer()->GetActiveCamera();
+	if (!xml.hasElement("camera"))
+		return false;
+	loadCamera(xml.node("camera"), camera);
+
+	double allBounds[6];
+	activeMdiChild()->renderer()->renderer()->ComputeVisiblePropBounds( allBounds );
+	activeMdiChild()->renderer()->renderer()->ResetCameraClippingRange( allBounds );
+	return true;
+}
+
+void MainWindow::saveSliceViews(iAXmlSettings & xml)
+{
+	QDomNode sliceViewsNode = xml.createElement("sliceViews");
 	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
-		saveSliceView(doc, sliceViewsNode, activeMdiChild()->slicer(i)->camera(), slicerModeString(i));
+		saveSliceView(xml.document(), sliceViewsNode, activeMdiChild()->slicer(i)->camera(), slicerModeString(i));
 }
 
 void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkCamera *cam, QString const & elemStr)
 {
-	// remove views node if there is one
-	removeNode(sliceViewsNode, elemStr);
 	// add new slice view node
 	QDomElement cameraElement = doc.createElement(elemStr);
 
@@ -708,7 +625,7 @@ void MainWindow::saveCamera(QDomElement &cameraElement, vtkCamera* camera)
 	}
 }
 
-void MainWindow::loadSliceViews(QDomNode &sliceViewsNode)
+void MainWindow::loadSliceViews(QDomNode sliceViewsNode)
 {
 	QDomNodeList list = sliceViewsNode.childNodes();
 	for (int n = 0; n < int(list.length()); n++)
@@ -732,9 +649,6 @@ void MainWindow::saveTransferFunction(QDomDocument &doc, iAChartTransferFunction
 		doc.documentElement().appendChild(functionsNode);
 	}
 
-	// remove function node if there is one
-	removeNode(functionsNode, "transfer");
-
 	// add new function node
 	QDomElement transferElement = doc.createElement("transfer");
 
@@ -757,127 +671,9 @@ void MainWindow::saveTransferFunction(QDomDocument &doc, iAChartTransferFunction
 	functionsNode.appendChild(transferElement);
 }
 
-void MainWindow::saveProbabilityFunctions(QDomDocument &doc)
+void MainWindow::savePreferences(iAXmlSettings &xml)
 {
-	// does functions node exist
-	QDomNode functionsNode = doc.documentElement().namedItem("functions");
-	if (!functionsNode.isElement())
-	{
-		functionsNode = doc.createElement("functions");
-		doc.documentElement().appendChild(functionsNode);
-	}
-
-	// remove existing function nodes except the transfer function
-	int n = 0;
-	while (n < functionsNode.childNodes().length())
-	{
-		QDomNode node = functionsNode.childNodes().item(n);
-		if (node.nodeName() == "bezier" || node.nodeName() == "gaussian")
-			functionsNode.removeChild(node);
-		else
-			n++;
-	}
-
-	// add new function nodes
-	std::vector<iAChartFunction*> const & functions = activeMdiChild()->functions();
-
-	for (unsigned int f = 1; f < functions.size(); f++)
-	{
-		switch(functions[f]->getType())
-		{
-		case iAChartFunction::BEZIER:
-			{
-				QDomElement bezierElement = doc.createElement("bezier");
-
-				std::vector<QPointF> points = ((iAChartFunctionBezier*)functions[f])->getPoints();
-
-				std::vector<QPointF>::iterator it = points.begin();
-				while(it != points.end())
-				{
-					QPointF point = *it;
-
-					QDomElement nodeElement = doc.createElement("node");
-					nodeElement.setAttribute("value", tr("%1").arg(point.x()));
-					nodeElement.setAttribute("fktValue", tr("%1").arg(point.y()));
-					bezierElement.appendChild(nodeElement);
-
-					functionsNode.appendChild(bezierElement);
-
-					++it;
-				}
-			}
-			break;
-		case iAChartFunction::GAUSSIAN:
-			{
-				QDomElement gaussianElement = doc.createElement("gaussian");
-
-				iAChartFunctionGaussian *gaussian = (iAChartFunctionGaussian*)functions[f];
-
-				gaussianElement.setAttribute("mean", tr("%1").arg(gaussian->getMean()));
-				gaussianElement.setAttribute("sigma", tr("%1").arg(gaussian->getSigma()));
-				gaussianElement.setAttribute("multiplier", tr("%1").arg(gaussian->getMultiplier()));
-
-				functionsNode.appendChild(gaussianElement);
-			}
-			break;
-		default:
-			// unknown function type, do nothing
-			break;
-		}
-	}
-}
-
-void MainWindow::loadProbabilityFunctions(QDomNode &functionsNode)
-{
-	double value, fktValue, sigma, mean, multiplier;
-
-	int colorIndex = 1;
-	QDomNodeList list = functionsNode.childNodes();
-	for (int n = 0; n < list.size(); n++)
-	{
-		QDomNode functionNode = list.item(n);
-		if (functionNode.nodeName() == "bezier")
-		{
-			iAChartFunctionBezier *bezier = new iAChartFunctionBezier(activeMdiChild()->histogram(), PredefinedColors()[colorIndex % 7], false);
-			QDomNodeList innerList = functionNode.childNodes();
-			for (int in = 0; in < innerList.length(); in++)
-			{
-				QDomNode node = innerList.item(in);
-				QDomNamedNodeMap attributes = node.attributes();
-
-				value = attributes.namedItem("value").nodeValue().toDouble();
-				fktValue = attributes.namedItem("fktValue").nodeValue().toDouble();
-
-				bezier->push_back(value, fktValue);
-			}
-			activeMdiChild()->functions().push_back(bezier);
-			colorIndex++;
-		}
-		else if (functionNode.nodeName() == "gaussian")
-		{
-			iAChartFunctionGaussian *gaussian = new iAChartFunctionGaussian(activeMdiChild()->histogram(), PredefinedColors()[colorIndex % 7], false);
-
-			mean = functionNode.attributes().namedItem("mean").nodeValue().toDouble();
-			sigma = functionNode.attributes().namedItem("sigma").nodeValue().toDouble();
-			multiplier = functionNode.attributes().namedItem("multiplier").nodeValue().toDouble();
-
-			gaussian->setMean(mean);
-			gaussian->setSigma(sigma);
-			gaussian->setMultiplier(multiplier);
-
-			activeMdiChild()->functions().push_back(gaussian);
-			colorIndex++;
-		}
-	}
-}
-
-void MainWindow::savePreferences(QDomDocument &doc)
-{
-	// remove preferences node if there is one
-	QDomNode node = doc.documentElement();
-	removeNode(node, "preferences");
-	// add new camera node
-	QDomElement preferencesElement = doc.createElement("preferences");
+	QDomElement preferencesElement = xml.createElement("preferences");
 	preferencesElement.setAttribute("histogramBins", tr("%1").arg(m_defaultPreferences.HistogramBins));
 	preferencesElement.setAttribute("statisticalExtent", tr("%1").arg(m_defaultPreferences.StatisticalExtent));
 	preferencesElement.setAttribute("compression", tr("%1").arg(m_defaultPreferences.Compression));
@@ -885,11 +681,9 @@ void MainWindow::savePreferences(QDomDocument &doc)
 	preferencesElement.setAttribute("magicLensSize", tr("%1").arg(m_defaultPreferences.MagicLensSize));
 	preferencesElement.setAttribute("magicLensFrameWidth", tr("%1").arg(m_defaultPreferences.MagicLensFrameWidth));
 	preferencesElement.setAttribute("logToFile", tr("%1").arg(iAConsole::instance()->isLogToFileOn()));
-
-	doc.documentElement().appendChild(preferencesElement);
 }
 
-void MainWindow::loadPreferences(QDomNode &preferencesNode)
+void MainWindow::loadPreferences(QDomNode preferencesNode)
 {
 	QDomNamedNodeMap attributes = preferencesNode.attributes();
 	m_defaultPreferences.HistogramBins = attributes.namedItem("histogramBins").nodeValue().toInt();
@@ -906,14 +700,9 @@ void MainWindow::loadPreferences(QDomNode &preferencesNode)
 	activeMdiChild()->editPrefs(m_defaultPreferences);
 }
 
-void MainWindow::saveRenderSettings(QDomDocument &doc)
+void MainWindow::saveRenderSettings(iAXmlSettings &xml)
 {
-	// remove renderSettings node if there is one
-	QDomNode node = doc.documentElement();
-	removeNode(node, "renderSettings");
-
-	// add new camera node
-	QDomElement renderSettingsElement = doc.createElement("renderSettings");
+	QDomElement renderSettingsElement = xml.createElement("renderSettings");
 	renderSettingsElement.setAttribute("showSlicers", m_defaultRenderSettings.ShowSlicers);
 	renderSettingsElement.setAttribute("showSlicePlanes", m_defaultRenderSettings.ShowSlicePlanes);
 	renderSettingsElement.setAttribute("showHelpers", m_defaultRenderSettings.ShowHelpers);
@@ -929,11 +718,9 @@ void MainWindow::saveRenderSettings(QDomDocument &doc)
 	renderSettingsElement.setAttribute("specularLighting", m_defaultVolumeSettings.SpecularLighting);
 	renderSettingsElement.setAttribute("specularPower", m_defaultVolumeSettings.SpecularPower);
 	renderSettingsElement.setAttribute("renderMode", m_defaultVolumeSettings.RenderMode);
-
-	doc.documentElement().appendChild(renderSettingsElement);
 }
 
-void MainWindow::loadRenderSettings(QDomNode &renderSettingsNode)
+void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
 {
 	QDomNamedNodeMap attributes = renderSettingsNode.attributes();
 
@@ -957,14 +744,9 @@ void MainWindow::loadRenderSettings(QDomNode &renderSettingsNode)
 	activeMdiChild()->editRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 }
 
-void MainWindow::saveSlicerSettings(QDomDocument &doc)
+void MainWindow::saveSlicerSettings(iAXmlSettings &xml)
 {
-	// remove slicerSettings node if there is one
-	QDomNode node = doc.documentElement();
-	removeNode(node, "slicerSettings");
-
-	// add new camera node
-	QDomElement slicerSettingsElement = doc.createElement("slicerSettings");
+	QDomElement slicerSettingsElement = xml.createElement("slicerSettings");
 	slicerSettingsElement.setAttribute("linkViews", m_defaultSlicerSettings.LinkViews);
 	slicerSettingsElement.setAttribute("showIsolines", m_defaultSlicerSettings.SingleSlicer.ShowIsoLines);
 	slicerSettingsElement.setAttribute("showPosition", m_defaultSlicerSettings.SingleSlicer.ShowPosition);
@@ -977,11 +759,9 @@ void MainWindow::saveSlicerSettings(QDomDocument &doc)
 	slicerSettingsElement.setAttribute("linkMDIs", m_defaultSlicerSettings.LinkMDIs);
 	slicerSettingsElement.setAttribute("cursorMode", m_defaultSlicerSettings.SingleSlicer.CursorMode);
 	slicerSettingsElement.setAttribute("toolTipFontSize", m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize);
-
-	doc.documentElement().appendChild(slicerSettingsElement);
 }
 
-void MainWindow::loadSlicerSettings(QDomNode &slicerSettingsNode)
+void MainWindow::loadSlicerSettings(QDomNode slicerSettingsNode)
 {
 	QDomNamedNodeMap attributes = slicerSettingsNode.attributes();
 
@@ -1414,39 +1194,11 @@ void MainWindow::toggleMagicLens( bool isChecked )
 		activeMdiChild()->toggleMagicLens(isChecked);
 }
 
-void MainWindow::raycasterCamPX()
+void MainWindow::rendererCamPosition()
 {
-	if (activeMdiChild()) activeMdiChild()->camPX();
-}
-
-void MainWindow::raycasterCamPY()
-{
-	if (activeMdiChild()) activeMdiChild()->camPY();
-}
-
-void MainWindow::raycasterCamPZ()
-{
-	if (activeMdiChild()) activeMdiChild()->camPZ();
-}
-
-void MainWindow::raycasterCamMX()
-{
-	if (activeMdiChild()) activeMdiChild()->camMX();
-}
-
-void MainWindow::raycasterCamMY()
-{
-	if (activeMdiChild()) activeMdiChild()->camMY();
-}
-
-void MainWindow::raycasterCamMZ()
-{
-	if (activeMdiChild()) activeMdiChild()->camMZ();
-}
-
-void MainWindow::raycasterCamIso()
-{
-	if (activeMdiChild()) activeMdiChild()->camIso();
+	int pos = sender()->property("camPosition").toInt();
+	if (activeChild<iAChangeableCameraWidget>())
+		activeChild<iAChangeableCameraWidget>()->setCamPosition(pos);
 }
 
 void MainWindow::raycasterAssignIso()
@@ -1473,12 +1225,13 @@ void MainWindow::raycasterSaveCameraSettings()
 	QString filePath = activeMdiChild()->currentFile();
 	filePath.truncate(filePath.lastIndexOf('/'));
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
-	if (!fileName.isEmpty())
+	if (fileName.isEmpty())
 	{
-		QDomDocument doc = loadSettingsFile(fileName);
-		saveCamera(doc);
-		saveSettingsFile(doc, fileName);
+		return;
 	}
+	iAXmlSettings xml;
+	saveCamera(xml);
+	xml.save(fileName);
 }
 
 void MainWindow::raycasterLoadCameraSettings()
@@ -1486,32 +1239,16 @@ void MainWindow::raycasterLoadCameraSettings()
 	// load camera settings
 	QString filePath = activeMdiChild()->currentFile();
 	filePath.truncate(filePath.lastIndexOf('/'));
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
-	if (!fileName.isEmpty())
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath, tr("XML (*.xml)"));
+	if (fileName.isEmpty())
 	{
-		QFile file(fileName);
-		file.open(QIODevice::ReadWrite);
-
-		QDomDocument doc;
-		if (!doc.setContent(&file))
-		{
-			QMessageBox msgBox;
-			msgBox.setText("An error occurred during xml parsing!");
-			msgBox.exec();
-
-			file.close();
-			return;
-		}
-
-		file.close();
-
-		QDomElement root = doc.documentElement();
-		QDomNodeList list = root.childNodes();
-		for (int n = 0; n < int(list.length()); n++)
-		{
-			QDomNode node = list.item(n);
-			if (node.nodeName() == "camera") loadCamera(node);
-		}
+		return;
+	}
+	iAXmlSettings xml;
+	if (!xml.read(fileName) ||
+		!loadCamera(xml))
+	{
+		return;
 	}
 
 	// apply this camera settings to all the MdiChild.
@@ -1644,13 +1381,15 @@ void MainWindow::updateMenus()
 	actionSaveTransferFunction->setEnabled(hasMdiChild);
 	actionSnakeSlicer->setEnabled(hasMdiChild);
 	actionMagicLens->setEnabled(hasMdiChild);
-	actionViewXDirectionInRaycaster->setEnabled(hasMdiChild);
-	actionViewmXDirectionInRaycaster->setEnabled(hasMdiChild);
-	actionViewYDirectionInRaycaster->setEnabled(hasMdiChild);
-	actionViewmYDirectionInRaycaster->setEnabled(hasMdiChild);
-	actionViewZDirectionInRaycaster->setEnabled(hasMdiChild);
-	actionViewmZDirectionInRaycaster->setEnabled(hasMdiChild);
-	actionIsometricViewInRaycaster->setEnabled(hasMdiChild);
+
+	bool hasChangeableRenderer = activeChild<iAChangeableCameraWidget>();
+	actionViewXDirectionInRaycaster->setEnabled(hasChangeableRenderer);
+	actionViewmXDirectionInRaycaster->setEnabled(hasChangeableRenderer);
+	actionViewYDirectionInRaycaster->setEnabled(hasChangeableRenderer);
+	actionViewmYDirectionInRaycaster->setEnabled(hasChangeableRenderer);
+	actionViewZDirectionInRaycaster->setEnabled(hasChangeableRenderer);
+	actionViewmZDirectionInRaycaster->setEnabled(hasChangeableRenderer);
+	actionIsometricViewInRaycaster->setEnabled(hasChangeableRenderer);
 	actionAssignView->setEnabled(hasMdiChild);
 	actionLoadCameraSettings->setEnabled(hasMdiChild);
 	actionSaveCameraSettings->setEnabled(hasMdiChild);
@@ -1820,13 +1559,20 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionAbout, &QAction::triggered, this, &MainWindow::about);
 
 	// Renderer toolbar:
-	connect(actionViewXDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::raycasterCamPX);
-	connect(actionViewmXDirectionInRaycaster, &QAction::triggered, this, &MainWindow::raycasterCamMX);
-	connect(actionViewYDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::raycasterCamPY);
-	connect(actionViewmYDirectionInRaycaster, &QAction::triggered, this, &MainWindow::raycasterCamMY);
-	connect(actionViewZDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::raycasterCamPZ);
-	connect(actionViewmZDirectionInRaycaster, &QAction::triggered, this, &MainWindow::raycasterCamMZ);
-	connect(actionIsometricViewInRaycaster,   &QAction::triggered, this, &MainWindow::raycasterCamIso);
+	connect(actionViewXDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::rendererCamPosition);
+	actionViewXDirectionInRaycaster->setProperty("camPosition", iACameraPosition::PX);
+	connect(actionViewmXDirectionInRaycaster, &QAction::triggered, this, &MainWindow::rendererCamPosition);
+	actionViewmXDirectionInRaycaster->setProperty("camPosition", iACameraPosition::MX);
+	connect(actionViewYDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::rendererCamPosition);
+	actionViewYDirectionInRaycaster->setProperty("camPosition", iACameraPosition::PY);
+	connect(actionViewmYDirectionInRaycaster, &QAction::triggered, this, &MainWindow::rendererCamPosition);
+	actionViewmYDirectionInRaycaster->setProperty("camPosition", iACameraPosition::MY);
+	connect(actionViewZDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::rendererCamPosition);
+	actionViewZDirectionInRaycaster->setProperty("camPosition", iACameraPosition::PZ);
+	connect(actionViewmZDirectionInRaycaster, &QAction::triggered, this, &MainWindow::rendererCamPosition);
+	actionViewmZDirectionInRaycaster->setProperty("camPosition", iACameraPosition::MZ);
+	connect(actionIsometricViewInRaycaster,   &QAction::triggered, this, &MainWindow::rendererCamPosition);
+	actionIsometricViewInRaycaster->setProperty("camPosition", iACameraPosition::Iso);
 
 	// Camera toolbar:
 	connect(actionAssignView, &QAction::triggered, this, &MainWindow::raycasterAssignIso);
@@ -1920,13 +1666,13 @@ void MainWindow::readSettings()
 	m_spRenderSettings = settings.value("Parameters/spRenderSettings").toBool();
 	m_spSlicerSettings = settings.value("Parameters/spSlicerSettings").toBool();
 
-	m_owdtcs = settings.value("OpenWithDataTypeConversion/owdtcs").toInt();
-	m_owdtcx = settings.value("OpenWithDataTypeConversion/owdtcx").toInt();
-	m_owdtcy = settings.value("OpenWithDataTypeConversion/owdtcy").toInt();
-	m_owdtcz = settings.value("OpenWithDataTypeConversion/owdtcz").toInt();
-	m_owdtcsx = settings.value("OpenWithDataTypeConversion/owdtcsx").toDouble();
-	m_owdtcsy = settings.value("OpenWithDataTypeConversion/owdtcsy").toDouble();
-	m_owdtcsz = settings.value("OpenWithDataTypeConversion/owdtcsz").toDouble();
+	m_owdtcs = settings.value("OpenWithDataTypeConversion/owdtcs", 1).toInt();
+	m_rawFileParams.m_size[0] = settings.value("OpenWithDataTypeConversion/owdtcx", 1).toInt();
+	m_rawFileParams.m_size[1] = settings.value("OpenWithDataTypeConversion/owdtcy", 1).toInt();
+	m_rawFileParams.m_size[2] = settings.value("OpenWithDataTypeConversion/owdtcz", 1).toInt();
+	m_rawFileParams.m_spacing[0] = settings.value("OpenWithDataTypeConversion/owdtcsx", 1.0).toDouble();
+	m_rawFileParams.m_spacing[1] = settings.value("OpenWithDataTypeConversion/owdtcsy", 1.0).toDouble();
+	m_rawFileParams.m_spacing[2] = settings.value("OpenWithDataTypeConversion/owdtcsz", 1.0).toDouble();
 	m_owdtcmin = settings.value("OpenWithDataTypeConversion/owdtcmin").toDouble();
 	m_owdtcmax = settings.value("OpenWithDataTypeConversion/owdtcmax").toDouble();
 	m_owdtcoutmin = settings.value("OpenWithDataTypeConversion/owdtcoutmin").toDouble();
@@ -2016,12 +1762,12 @@ void MainWindow::writeSettings()
 	settings.setValue("Parameters/spSlicerSettings", m_spSlicerSettings);
 
 	settings.setValue("OpenWithDataTypeConversion/owdtcs", m_owdtcs);
-	settings.setValue("OpenWithDataTypeConversion/owdtcx", m_owdtcx);
-	settings.setValue("OpenWithDataTypeConversion/owdtcy", m_owdtcy);
-	settings.setValue("OpenWithDataTypeConversion/owdtcz", m_owdtcz);
-	settings.setValue("OpenWithDataTypeConversion/owdtcsx", m_owdtcsx);
-	settings.setValue("OpenWithDataTypeConversion/owdtcsy", m_owdtcsy);
-	settings.setValue("OpenWithDataTypeConversion/owdtcsz", m_owdtcsz);
+	settings.setValue("OpenWithDataTypeConversion/owdtcx", m_rawFileParams.m_size[0]);
+	settings.setValue("OpenWithDataTypeConversion/owdtcy", m_rawFileParams.m_size[1]);
+	settings.setValue("OpenWithDataTypeConversion/owdtcz", m_rawFileParams.m_size[2]);
+	settings.setValue("OpenWithDataTypeConversion/owdtcsx", m_rawFileParams.m_spacing[0]);
+	settings.setValue("OpenWithDataTypeConversion/owdtcsy", m_rawFileParams.m_spacing[1]);
+	settings.setValue("OpenWithDataTypeConversion/owdtcsz", m_rawFileParams.m_spacing[2]);
 	settings.setValue("OpenWithDataTypeConversion/owdtcmin", m_owdtcmin);
 	settings.setValue("OpenWithDataTypeConversion/owdtcmax", m_owdtcmax);
 	settings.setValue("OpenWithDataTypeConversion/owdtcoutmin", m_owdtcoutmin);
@@ -2101,10 +1847,7 @@ void MainWindow::updateRecentFileActions()
 
 MdiChild* MainWindow::activeMdiChild()
 {
-	int subWndCnt = mdiChildList().size();
-	if(subWndCnt>0)
-		return mdiChildList(QMdiArea::ActivationHistoryOrder).last();
-	return nullptr;
+	return activeChild<MdiChild>();
 }
 
 MdiChild * MainWindow::secondNonActiveChild()
@@ -2134,7 +1877,7 @@ MdiChild* MainWindow::findMdiChild(const QString &fileName)
 	for (MdiChild* mdiChild: mdiChildList())
 		if (mdiChild->currentFile() == canonicalFilePath)
 			return mdiChild;
-	return 0;
+	return nullptr;
 }
 
 void MainWindow::setActiveSubWindow(QWidget *window)
@@ -2176,14 +1919,7 @@ void MainWindow::consoleVisibilityChanged(bool newVisibility)
 
 QList<MdiChild*> MainWindow::mdiChildList(QMdiArea::WindowOrder order)
 {
-	QList<MdiChild*> res;
-	foreach(QMdiSubWindow *window, mdiArea->subWindowList(order))
-	{
-		MdiChild * child = qobject_cast<MdiChild*>(window->widget());
-		if (child)
-			res.append(child);
-	}
-	return res;
+	return childList<MdiChild>(order);
 }
 
 void MainWindow::childActivatedSlot(QMdiSubWindow *wnd)
@@ -2405,9 +2141,6 @@ iAModuleDispatcher & MainWindow::getModuleDispatcher() const
 
 void MainWindow::openWithDataTypeConversion()
 {
-	QString finalfilename;
-	QString testfinalfilename;
-
 	QString file = QFileDialog::getOpenFileName(this,
 		tr("Open File"),
 		m_path,
@@ -2416,33 +2149,15 @@ void MainWindow::openWithDataTypeConversion()
 	if (file.isEmpty())
 		return;
 
-	QStringList inList = (QStringList()
-		<< tr("+Data Type")
-		<< tr("#Slice sample rate")
-		<< tr("# Dim X")   << tr("# Dim Y")   << tr("# Dim Z")
-		<< tr("# Space X") << tr("# Space Y") << tr("# Space Z"));
-	QList<QVariant> inPara;
-	inPara << vtkDataTypeList()
-		<< tr("%1").arg(m_owdtcs)
-		<< tr("%1").arg(m_owdtcx) << tr("%1").arg(m_owdtcy) << tr("%1").arg(m_owdtcz)
-		<< tr("%1").arg(m_owdtcsx)<< tr("%1").arg(m_owdtcsy)<< tr("%1").arg(m_owdtcsz);
+	QStringList additionalLabels = (QStringList() << tr("#Slice sample rate"));
+	QList<QVariant> additionalValues = (QList<QVariant>() << tr("%1").arg(m_owdtcs));
 
-	dlg_commoninput dlg(this, "Open With DataType Conversion", inList, inPara, NULL);
-	if (dlg.exec() != QDialog::Accepted)
+	dlg_openfile_sizecheck dlg(false, file, this, "Open With DataType Conversion", additionalLabels, additionalValues, m_rawFileParams);
+	if (!dlg.accepted())
 	{
 		return;
 	}
-	m_owdtcs = dlg.getDblValue(1);
-	m_owdtcx = dlg.getDblValue(2);  m_owdtcy = dlg.getDblValue(3);  m_owdtcz = dlg.getDblValue(4);
-	m_owdtcsx = dlg.getDblValue(5); m_owdtcsy = dlg.getDblValue(6);	m_owdtcsz = dlg.getDblValue(7);
-
-	QString owdtcintype = dlg.getComboBoxValue(0);
-
-	double para[8];
-	para[0] = dlg.getDblValue(1);
-	para[1] = dlg.getDblValue(2); para[2] = dlg.getDblValue(3); para[3] = dlg.getDblValue(4);
-	para[4] = dlg.getDblValue(5); para[5] = dlg.getDblValue(6);	para[6] = dlg.getDblValue(7);
-	para[7] = m_defaultPreferences.HistogramBins;
+	m_owdtcs = clamp(1u, m_rawFileParams.m_size[2], static_cast<unsigned int>(dlg.inputDlg()->getIntValue(dlg.fixedParams())));
 
 	QSize qwinsize = this->size();
 	double winsize[2];
@@ -2453,37 +2168,38 @@ void MainWindow::openWithDataTypeConversion()
 	convPara[6] = m_owdtcxsize; convPara[7] = m_owdtcyori; convPara[8] = m_owdtcysize;  convPara[9] = m_owdtczori;   convPara[10] = m_owdtczsize;
 	try
 	{
-		dlg_datatypeconversion* conversionwidget = new dlg_datatypeconversion(this, file, mapVTKTypeStringToInt(owdtcintype), para, winsize, convPara);
-		if (conversionwidget->exec() != QDialog::Accepted)
+		dlg_datatypeconversion conversionwidget(this, file, m_rawFileParams,
+			m_owdtcs, m_defaultPreferences.HistogramBins, winsize, convPara);
+		if (conversionwidget.exec() != QDialog::Accepted)
 			return;
 
-		QString outDataType = conversionwidget->getDataType();
-		m_owdtcmin = conversionwidget->getRangeLower();   m_owdtcmax = conversionwidget->getRangeUpper();
-		m_owdtcoutmin = conversionwidget->getOutputMin(); m_owdtcoutmax = conversionwidget->getOutputMax();
-		m_owdtcdov = conversionwidget->getConvertROI();
-		m_owdtcxori = conversionwidget->getXOrigin(); m_owdtcxsize = conversionwidget->getXSize();
-		m_owdtcyori = conversionwidget->getYOrigin(); m_owdtcysize = conversionwidget->getYSize();
-		m_owdtczori = conversionwidget->getZOrigin(); m_owdtczsize = conversionwidget->getZSize();
+		QString outDataType = conversionwidget.getDataType();
+		m_owdtcmin = conversionwidget.getRangeLower();   m_owdtcmax = conversionwidget.getRangeUpper();
+		m_owdtcoutmin = conversionwidget.getOutputMin(); m_owdtcoutmax = conversionwidget.getOutputMax();
+		m_owdtcdov = conversionwidget.getConvertROI();
+		m_owdtcxori = conversionwidget.getXOrigin(); m_owdtcxsize = conversionwidget.getXSize();
+		m_owdtcyori = conversionwidget.getYOrigin(); m_owdtcysize = conversionwidget.getYSize();
+		m_owdtczori = conversionwidget.getZOrigin(); m_owdtczsize = conversionwidget.getZSize();
 
 		double roi[6];
 		roi[0] = m_owdtcxori; roi[1] = m_owdtcxsize;
 		roi[2] = m_owdtcyori; roi[3] = m_owdtcysize;
 		roi[4] = m_owdtczori; roi[5] = m_owdtczsize;
 
+		QString finalfilename;
 		if (m_owdtcdov == 0)
 		{
-			testfinalfilename = conversionwidget->coreconversionfunction(file, finalfilename, para,
-				mapVTKTypeStringToInt(owdtcintype),
+			finalfilename = conversionwidget.convert(file, m_rawFileParams,
 				mapVTKTypeStringToInt(outDataType),
 				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, m_owdtcdov);
 		}
 		else
 		{
-			testfinalfilename = conversionwidget->coreconversionfunctionforroi(file, finalfilename, para,
+			finalfilename = conversionwidget.convertROI(file, m_rawFileParams,
 				mapVTKTypeStringToInt(outDataType),
 				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, m_owdtcdov, roi);
 		}
-		loadFile(testfinalfilename, false);
+		loadFile(finalfilename, false);
 	}
 	catch (std::exception & e)
 	{

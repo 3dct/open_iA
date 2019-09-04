@@ -1023,7 +1023,7 @@
     <string>Show Menu</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Alt+M</string>
+    <string>Ctrl+Alt+N</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>

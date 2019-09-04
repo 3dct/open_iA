@@ -152,6 +152,7 @@ IF (MSVC)
 	STRING(REGEX REPLACE "/" "\\\\" CMAKE_BINARY_WIN_DIR ${CMAKE_BINARY_DIR})
 ENDIF ()
 
+SET (GUI_EXECUTABLE_NAME open_iA)
 ADD_SUBDIRECTORY(cmd)     # Sets CMD test runner, used in modules
 ADD_SUBDIRECTORY(modules)
 ADD_SUBDIRECTORY(Toolkit) # needs to know which modules are enabled; with openiA_BUILD_ALL_MODULES flag this is only determined in modules, so needs to be after that

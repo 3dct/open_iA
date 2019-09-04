@@ -32,7 +32,7 @@ class FeatureScout_API iA3DLineObjectVis: public iA3DColoredPolyObjectVis
 {
 public:
 	iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData );
+		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip );
 	void updateValues( std::vector<std::vector<double> > const & values );
 	vtkPolyData* getPolyData() override;
 protected:

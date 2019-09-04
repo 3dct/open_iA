@@ -83,8 +83,6 @@ FOREACH( indx RANGE ${len} )
 		set_target_properties(${module_name} PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
 	endif()
 	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${module_full_path} )
-	# workaround for ui_xyz.h files:
-	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/Toolkit)  # ui files in toolkit folder
 	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/modules ) # ui files in module folders
 	
 	# Module dependencies: new style - include directory and link dll:
@@ -167,6 +165,7 @@ FOREACH( indx RANGE ${len} )
 			execute_process(COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj)
 			SET (CACHED_${module_name}_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
 		ENDIF ()
+		add_dependencies(${module_name} ${GUI_EXECUTABLE_NAME})
 	ELSE()
 		IF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 			set_target_properties(${module_name} PROPERTIES

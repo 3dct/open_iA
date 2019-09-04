@@ -26,11 +26,13 @@
 #include "ui_FeatureScoutPolarPlot.h"
 #include "ui_FeatureScoutMeanObjectView.h"
 
+#include <iAvec3.h>
 #include <iAVtkWidgetFwd.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
+#include <map>
 #include <vector>
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_IOVPP;
@@ -98,7 +100,8 @@ class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 	Q_OBJECT
 public:
 	dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
-		vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping);
+		vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
+		std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip);
 	~dlg_FeatureScout();
 	void changeFeatureScout_Options(int idx);
 private slots:

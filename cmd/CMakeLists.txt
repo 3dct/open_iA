@@ -5,7 +5,7 @@ SET (MAIN_SOURCES "${open_iA_SOURCE_DIR}/cmd/main.cpp")
 ADD_EXECUTABLE( ${EXECUTABLE_NAME} ${MAIN_SOURCES} )
 
 TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} PRIVATE ${CORE_LIBRARY_NAME})
-TARGET_INCLUDE_DIRECTORIES(${EXECUTABLE_NAME} PRIVATE ${CMAKE_BINARY_DIR}) # for version.h
+TARGET_INCLUDE_DIRECTORIES(${EXECUTABLE_NAME} PRIVATE ${open_iA_BINARY_DIR}) # for version.h
 
 IF (openiA_USE_COTIRE)
 	cotire(${EXECUTABLE_NAME})
@@ -38,7 +38,7 @@ ENDIF (MSVC)
 
 # Test running filters from command line
 # TODO: check output (at the moment, it only whether the filters run without crashing)!
-IF (BUILD_TESTING)
+IF (openiA_TESTING_ENABLED)
 	IF (MSVC)
 		# use the created .bat which makes sure all required dll's are in the path:
 		SET (TEST_CMD_Binary "${CMAKE_BINARY_DIR}/x64/open_iA_cmd_Release.bat" PARENT_SCOPE)
@@ -54,7 +54,7 @@ ENDIF()
 
 # Installation
 IF (FLATPAK_BUILD)
-    INSTALL (TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION bin)
+	INSTALL (TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION bin)
 ELSE()
-    INSTALL (TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION .)
+	INSTALL (TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION .)
 ENDIF()
