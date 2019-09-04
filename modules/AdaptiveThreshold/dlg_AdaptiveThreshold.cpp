@@ -547,12 +547,27 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				//convert back
 				//double convertedThres = normalizedToMinMax(m_thresCalculator.g)
 
-				auto* finalThres = ChartVisHelper::createLineSeries(QPoint(resThres, 0), QPoint(resThres,10000000), horizontal_xy);
-				finalThres->setColor(QColor(255, 255, 0)); 
-				finalThres->setName("Determined threshold"); 
+				//auto p1 = QP
 
-				this->addSeries(finalThres, false);
+
+
+				IntersectSeries->setColor(col);
+				IntersectSeries->setName("Intersection Material with fmin/2");
+
+				this->addSeries(IntersectSeries, false);
+
+
+				auto* finalThresSeries = ChartVisHelper::createLineSeries(QPointF(resThres, 0), QPointF(resThres,10000000), horizontal_xy);
+				finalThresSeries->setColor(QColor(100, 0, 170));
+				finalThresSeries->setName("Determined segmentation threshold"); 
+
+				this->addSeries(finalThresSeries, false);
 				
+				auto pen = finalThresSeries->pen(); 
+				pen.setWidth(4);
+				pen.setStyle(Qt::DashDotDotLine); 
+				finalThresSeries->setPen(pen); 
+
 				
 				if (resThres < 0) {
 					writeResultText(QString("resulting segmentation threshold either negative or inf, try again parametrisation"));
@@ -562,11 +577,6 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 
 
 
-				IntersectSeries->setColor(col);
-				IntersectSeries->setName("Intersection with fmin/2");
-
-				this->addSeries(IntersectSeries, false);
-				
 				
 				m_chart->update();
 				m_chartView->update();

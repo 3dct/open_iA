@@ -38,16 +38,19 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="btn_TestData">
+          <widget class="QPushButton" name="btn_resetGraph">
            <property name="text">
-            <string>TestData</string>
+            <string>ResetGraph</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="btn_resetGraph">
+          <widget class="QPushButton" name="btn_TestData">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
-            <string>ResetGraph</string>
+            <string>TestData</string>
            </property>
           </widget>
          </item>
@@ -349,6 +352,9 @@
                </item>
                <item>
                 <widget class="QPushButton" name="btn_defaultSettings">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
                  <property name="text">
                   <string>SaveDefaultSettings</string>
                  </property>
@@ -368,7 +374,7 @@
                 </spacer>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,2,2">
+                <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,1,2">
                  <item>
                   <widget class="QLineEdit" name="ed_minRange">
                    <property name="text">
@@ -402,7 +408,7 @@
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,2,2">
+                <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,1,2">
                  <item>
                   <widget class="QLineEdit" name="ed_maxRange">
                    <property name="text">
@@ -433,7 +439,7 @@
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_17" stretch="0,2,2">
+                <layout class="QHBoxLayout" name="horizontalLayout_17" stretch="1,1,2">
                  <item>
                   <widget class="QLineEdit" name="ed_MaxPeakXRangeMIn">
                    <property name="text">
@@ -464,7 +470,7 @@
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_18" stretch="0,2,2">
+                <layout class="QHBoxLayout" name="horizontalLayout_18" stretch="1,1,2">
                  <item>
                   <widget class="QLineEdit" name="ed_MaxPeakXRangeMax">
                    <property name="text">
@@ -670,7 +676,7 @@
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_19">
                  <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_20">
+                  <layout class="QHBoxLayout" name="horizontalLayout_20" stretch="1,1,2">
                    <item>
                     <widget class="QLineEdit" name="ed_ptXmin">
                      <property name="text">
@@ -704,7 +710,7 @@
                   </layout>
                  </item>
                  <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_21">
+                  <layout class="QHBoxLayout" name="horizontalLayout_21" stretch="1,1,2">
                    <item>
                     <widget class="QLineEdit" name="ed_pt_xMax">
                      <property name="text">
