@@ -225,7 +225,7 @@ namespace threshold_defs {
 		}
 
 
-		QString resultsToString() {
+		QString resultsToString(bool printFinalResult) {
 			QString resSt = QString("Min peak %1  %2\n").arg(peakMinXThreshold).arg(freqPeakMinY);
 			resSt += QString("Lokal Air Peak %1 %2\n").arg(lokalPeakAirThrX).arg(freqPeakLokalMaxY);
 			resSt += QString("Intersection point %1 %2\n").arg(IntersectionPoint.x()).arg(IntersectionPoint.y());
@@ -233,7 +233,9 @@ namespace threshold_defs {
 			resSt += QString("Maximum Peak %1\n").arg(MaterialPeakThrX); 
 			resSt += QString("Specified min max %1 %2").arg(specifiedMax).arg(specifiedMax); 
 
-			resSt += QString("final resulting grey value %1").arg(DeterminedThreshold()); 
+			if (printFinalResult)
+				resSt += QString("final resulting grey value %1").arg(DeterminedThreshold()); 
+			
 			return resSt; 
 		}
 		

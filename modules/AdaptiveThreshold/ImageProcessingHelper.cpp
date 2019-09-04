@@ -23,10 +23,10 @@ void ImageProcessingHelper::performSegmentation(double greyThreshold)
 	DEBUG_LOG(QString("final threshold for segmentation is %1").arg(greyThreshold)); 
 
 
-	if ((greyThreshold < 0) || (greyThreshold == std::numeric_limits<double>::infinity())) {
+	if ((greyThreshold < 0) || (greyThreshold == std::numeric_limits<double>::infinity()) || (greyThreshold == -std::numeric_limits<double>::infinity())) {
 		DEBUG_LOG(QString("Threshold not valid %1 or negative, aborted segmentation ").arg(0));
 		throw std::invalid_argument("Threshold not valid %1 or negative, aborted segmentation ");
-		return; 
+		
 	}
 	else if ((greyThreshold > 0) && (greyThreshold < 1)) {
 		DEBUG_LOG(
@@ -40,7 +40,7 @@ void ImageProcessingHelper::performSegmentation(double greyThreshold)
 	}
 
 	prepareFilter(greyThreshold);
-	//imageToReslicer();
+	imageToReslicer();
 	m_childData->enableRenderWindows();
 	m_childData->updateViews();
 		

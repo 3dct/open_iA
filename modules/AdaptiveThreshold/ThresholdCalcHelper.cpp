@@ -107,7 +107,7 @@ threshold_defs::ThresMinMax ThresholdCalcHelper::calculateMinMax(const threshold
 
 void ThresholdCalcHelper::determinIso50andGlobalMax(const threshold_defs::ParametersRanges& inRanges, threshold_defs::ThresMinMax &inVals)
 {
-	//min_Maxofa Range
+	//min_Max of a Range
 	//detect peak max
 	//iso 50 is between air and material peak - grauwert
 
@@ -192,15 +192,12 @@ void ThresholdCalcHelper::PeakgreyThresholdNormalization(threshold_defs::Paramet
 	if (greyThrPeakAir > greyThrPeakMax) {
 		DEBUG_LOG("grey value of air peak must be smaller than matierial peak, please change order");
 		return; 
-		
 	}
-
 
 
 	std::vector<double> tmp_ranges_x = ranges.getXRange();
 	if (tmp_ranges_x.empty()) {
-		return; 
-		
+		return; 		
 	}
 
 

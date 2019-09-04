@@ -304,21 +304,21 @@ void AdaptiveThreshold::computePeaksAndNormalize(threshold_defs::PeakRanges& ran
 
 		//then minmaxnormalize x values for later intersection calculation; 
 		this->writeResultText("Before Normalisation\n"); 
-		this->writeResultText(resultingthrPeaks.resultsToString()); 
+		this->writeResultText(resultingthrPeaks.resultsToString(false)); 
 
 		resultingthrPeaks.normalizeXValues(xminThr, xmaxThr);
 
 		m_thresCalculator.setCalculatedResults(resultingthrPeaks);
 
 		this->writeResultText("\nAfter Normalisation\n"); 
-		this->writeResultText(resultingthrPeaks.resultsToString());
+		this->writeResultText(resultingthrPeaks.resultsToString(false));
 
 		//this->writeResultText("Transform back"); 
 		//TODOS
 
 
 		//resultingthrPeaks.mapNormalizedBackToMinMax(xmin, xmax); 
-		this->writeResultText(resultingthrPeaks.resultsToString()); 
+		//this->writeResultText(resultingthrPeaks.resultsToString()); 
 		//m_thresCalculator.transfor
 
 		QPointF f1 = QPointF(resultingthrPeaks.Iso50ValueThr(), m_graphValuesScope.getYMax());
@@ -542,7 +542,7 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				double convertedThr = normalizedToMinMax(peaks.getLocalMax(), peaks.getGlobalMax(),resThres); 
 				m_thresCalculator.SetResultingThreshold(convertedThr); 
 				
-				this->writeResultText(QString("finale converted grey value %1").arg(convertedThr)) ; 
+				this->writeResultText(QString("finale converted grey value %1, normalised %2").arg(convertedThr).arg(resThres)) ; 
 				
 				//convert back
 				//double convertedThres = normalizedToMinMax(m_thresCalculator.g)
