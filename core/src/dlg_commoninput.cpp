@@ -53,18 +53,27 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 	m_sourceMdiChildClosed(false),
 	m_widgetList(labels.size())
 {
+	setupUi(this);
 	if (title.isEmpty())
 	{
 		DEBUG_LOG("No window title entered. Please give a window title");
+		auto lbl = new QLabel("No window title entered. Please give a window title");
+		gridLayout->addWidget(lbl, 0, 0);
+		buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+		gridLayout->addWidget(buttonBox, 1, 0);
 		return;
 	}
 	if (labels.size() != values.size())
 	{
 		DEBUG_LOG("Implementation Error: The number of of parameter descriptions and the number of given values does not match. "
 			"Please report this message to the developers, along with the action you were trying to perform when it occured!");
+		auto lbl = new QLabel("Implementation Error: The number of of parameter descriptions and the number of given values does not match. "
+			"Please report this message to the developers, along with the action you were trying to perform when it occured!");
+		gridLayout->addWidget(lbl, 0, 0);
+		buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+		gridLayout->addWidget(buttonBox, 1, 0);
 		return;
 	}
-	setupUi(this);
 	this->setWindowTitle(title);
 
 	if (fDescr)
