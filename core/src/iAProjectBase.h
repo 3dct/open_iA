@@ -22,6 +22,8 @@
 
 #include "open_iA_Core_export.h"
 
+class MainWindow;
+
 class QSettings;
 
 class open_iA_Core_API iAProjectBase
@@ -31,4 +33,7 @@ public:
 	virtual ~iAProjectBase();
 	virtual void loadProject(QSettings const & projectFile) =0;
 	virtual void saveProject(QSettings const & projectFile) =0;
+	void setMainWindow(MainWindow* mainWnd);
+protected:
+	MainWindow* m_mainWnd;
 };

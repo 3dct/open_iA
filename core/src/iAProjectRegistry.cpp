@@ -26,3 +26,9 @@ QMap<QString, QSharedPointer<iAIProjectFactory> > iAProjectRegistry::m_projectTy
 
 iAProjectBase::~iAProjectBase()
 {}
+
+
+void iAProjectBase::setMainWindow(MainWindow* mainWnd)
+{
+	m_mainWnd = mainWnd;
+}

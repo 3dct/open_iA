@@ -711,12 +711,12 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName, iACsvConfi
 	{
 		if (formatName == iACsvConfig::LegacyFiberFormat)
 		{
-			m_confParams = iACsvConfig::getLegacyFiberFormat(m_confParams.fileName);
+			dest = iACsvConfig::getLegacyFiberFormat(dest.fileName);
 			return true;
 		}
 		else if (formatName == iACsvConfig::LegacyVoidFormat)
 		{
-			m_confParams = iACsvConfig::getLegacyPoreFormat(m_confParams.fileName);
+			dest = iACsvConfig::getLegacyPoreFormat(dest.fileName);
 			return true;
 		}
 		return false;

@@ -44,6 +44,8 @@ public:
 	void setFormat(QString const & formatName);
 	//! Retrieve the configuration currently set in the dialog
 	const iACsvConfig & getConfig() const;
+	//! Loads settings from registry for a given format name, into a given config object
+	static bool loadFormatFromRegistry(const QString & formatName, iACsvConfig & dest);
 private slots:
 	//! On button click for selecting CSV file 
 	void selectFileBtnClicked();
@@ -110,8 +112,6 @@ private:
 	void saveFormatToRegistry(const QString & formatName);
 	//! Loads settings from registry for a given format name, into default config object
 	bool loadFormatFromRegistry(const QString & formatName);
-	//! Loads settings from registry for a given format name, into a given config object
-	bool loadFormatFromRegistry(const QString & formatName, iACsvConfig & dest);
 	//! Deletes a format from the registry
 	void deleteFormatFromReg(QString const & formatName);
 	//! Shows configuration parameters in GUI
