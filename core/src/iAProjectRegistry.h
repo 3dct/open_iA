@@ -35,9 +35,17 @@ using iAIProjectFactory = iAGenericFactory<iAProjectBase>;
 class open_iA_Core_API iAProjectRegistry
 {
 public:
-    //! Adds a given project type to the registry.
-    template <typename ProjectType> static void addProject(QString const & projectIdentifier);
+	//! Adds a given project type to the registry.
+	template <typename ProjectType> static void addProject(QString const & projectIdentifier);
 private:
-    static QMap<QString, QSharedPointer<iAIProjectFactory> > m_projectTypes;
-    iAProjectRegistry() =delete;	//!< iAProjectRegistry is meant to be used statically only, thus prevent creation of objects
+	static QMap<QString, QSharedPointer<iAIProjectFactory> > m_projectTypes;
+	iAProjectRegistry() =delete;	//!< iAProjectRegistry is meant to be used statically only, thus prevent creation of objects
 };
+
+template <typename ProjectType> using iAProjectFactory = iASpecificFactory<ProjectType, iAProjectBase>;
+
+template <typename ProjectType>
+void iAProjectRegistry::addProject(QString const & projectIdentifier)
+{
+	m_projectTypes.insert(projectIdentifier, QSharedPointer<iAIProjectFactory>(new iAProjectFactory<ProjectType>()));
+}

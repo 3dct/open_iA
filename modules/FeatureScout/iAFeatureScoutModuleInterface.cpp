@@ -44,9 +44,14 @@
 
 class iAFeatureScoutProject: public iAProjectBase
 {
+public:
 	virtual ~iAFeatureScoutProject() {}
 	void loadProject(QSettings const & projectFile) override;
 	void saveProject(QSettings const & projectFile) override;
+	static QSharedPointer<iAProjectBase> create()
+	{
+		return QSharedPointer<iAFeatureScoutProject>::create();
+	}
 };
 
 void iAFeatureScoutProject::loadProject(QSettings const & projectFile)

@@ -20,11 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 class QSettings;
 
-class iAProjectBase
+class open_iA_Core_API iAProjectBase
 {
 public:
+	//! implementation (empty) in iAProjectRegistry.cpp
 	virtual ~iAProjectBase();
 	virtual void loadProject(QSettings const & projectFile) =0;
 	virtual void saveProject(QSettings const & projectFile) =0;
