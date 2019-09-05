@@ -334,6 +334,8 @@ void AdaptiveThreshold::computePeaksAndNormalize(threshold_defs::PeakRanges& ran
 		QColor cl_blue = QColor(0, 0, 255);
 		iso50->setColor(cl_blue);
 		iso50->setName("iso 50");
+
+
 		//this->addSeries(iso50, false);
 
 		QColor cl_green = QColor(255, 0, 0);
@@ -542,15 +544,8 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				double convertedThr = normalizedToMinMax(peaks.getLocalMax(), peaks.getGlobalMax(),resThres); 
 				m_thresCalculator.SetResultingThreshold(convertedThr); 
 				
-				this->writeResultText(QString("finale converted grey value %1, normalised %2").arg(convertedThr).arg(resThres)) ; 
+				this->writeResultText(QString("final converted grey value %1, normalised %2").arg(convertedThr).arg(resThres)) ; 
 				
-				//convert back
-				//double convertedThres = normalizedToMinMax(m_thresCalculator.g)
-
-				//auto p1 = QP
-
-
-
 				IntersectSeries->setColor(col);
 				IntersectSeries->setName("Intersection Material with fmin/2");
 
@@ -573,10 +568,7 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 					writeResultText(QString("resulting segmentation threshold either negative or inf, try again parametrisation"));
 					return;
 				}
-
-
-
-
+										   
 				
 				m_chart->update();
 				m_chartView->update();
