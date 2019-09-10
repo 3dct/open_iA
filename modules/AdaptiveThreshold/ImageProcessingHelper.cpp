@@ -17,20 +17,20 @@
 #include <vtkScalarsToColors.h>
 #include <vtkColorTransferFunction.h>
 
-void ImageProcessingHelper::performSegmentation(double greyThreshold)
+void ImageProcessingHelper::performSegmentation(double greyThresholdMin, double greyThresholdUpper)
 {
 	
-	DEBUG_LOG(QString("final threshold for segmentation is %1").arg(greyThreshold)); 
+	DEBUG_LOG(QString("final threshold for segmentation is %1").arg(greyThresholdUpper)); 
 
 
-	if ((greyThreshold < 0) || (greyThreshold == std::numeric_limits<double>::infinity()) || (greyThreshold == -std::numeric_limits<double>::infinity())) {
-		DEBUG_LOG(QString("Threshold not valid %1 or negative, aborted segmentation ").arg(0));
+	if ((greyThresholdUpper < 0) || (greyThresholdUpper == std::numeric_limits<double>::infinity()) || (greyThresholdUpper == -std::numeric_limits<double>::infinity())) {
+		DEBUG_LOG(QString("Threshold not valid %1 or negative, please report if negative values should be valid, aborted segmentation ").arg(0));
 		throw std::invalid_argument("Threshold not valid %1 or negative, aborted segmentation ");
 		
 	}
-	else if ((greyThreshold > 0) && (greyThreshold < 1)) {
+	else if ((greyThresholdUpper > 0) && (greyThresholdUpper < 1)) {
 		DEBUG_LOG(
-			QString("grey threshold: %1 is close to zero, please check parametrisation, or normalized values are used").arg(greyThreshold)); 
+			QString("grey threshold: %1 is close to zero, please check parametrisation, or normalized values are used").arg(greyThresholdUpper)); 
 	}
 
 	if (!m_childData) {
@@ -39,20 +39,34 @@ void ImageProcessingHelper::performSegmentation(double greyThreshold)
 		return;
 	}
 
-	prepareFilter(greyThreshold);
-	imageToReslicer();
-	m_childData->enableRenderWindows();
-	m_childData->updateViews();
-		
-	
+
+	try {
+		prepareFilter(greyThresholdMin, greyThresholdUpper);
+		//imageToReslicer();
+		m_childData->enableRenderWindows();
+		m_childData->updateViews();
+	}
+	catch (std::invalid_argument& iav)
+	{
+		DEBUG_LOG(iav.what()); 
+
+	}
 	//TODO show result in new window
 	
 }
 
-void ImageProcessingHelper::prepareFilter(double greyThreshold)
+void ImageProcessingHelper::prepareFilter(double greyThresholdLower, double greyThresholdUpper)
 {
+	if ( greyThresholdLower > greyThresholdUpper) {
+		throw std::invalid_argument("Change order of values");
+	}
+
 	iAConnector con; //image reingeben
+
 	con.setImage(m_childData->imageData());
+
+
+
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	//connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
 	auto filter = iAFilterRegistry::filter("Binary Thresholding");
@@ -60,8 +74,8 @@ void ImageProcessingHelper::prepareFilter(double greyThreshold)
 	filter->setProgress(pObserver.data());
 	filter->addInput(&con);
 	QMap<QString, QVariant> parameters;
-	parameters["Lower threshold"] = 0;
-	parameters["Upper threshold"] = greyThreshold;
+	parameters["Lower threshold"] = greyThresholdLower;
+	parameters["Upper threshold"] = greyThresholdUpper;
 	parameters["Inside value"] = 1;
 	parameters["Outside value"] = 0;
 	filter->run(parameters);

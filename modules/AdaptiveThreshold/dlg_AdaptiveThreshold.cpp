@@ -38,8 +38,10 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags 
 		this->ed_xMax->setText("");
 		this->ed_YMax->setText("");
 		this->ed_Ymin->setText("");
-
-		
+		QValidator* validator = new QDoubleValidator(0, 8000, 2, this); 
+		this->ed_minSegmRange->setValidator(validator); 
+		this->ed_minSegmRange->setText(QString("%1").arg(0)); 
+		this->ed_maxThresholdRange->setReadOnly(true); 
 		
 		Qt::WindowFlags flags = this->windowFlags();
 		flags |= Qt::Tool;
@@ -72,6 +74,7 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_redraw, SIGNAL(clicked()), this, SLOT(redrawPlots())); 
 	connect(this->btn_VisPoints, SIGNAL(clicked()), this, SLOT(determineIntersectionAndFinalThreshold())); 
 	connect(this->btn_rescaleToDefault, SIGNAL(clicked()), this, SLOT(rescaleToMinMax())); 
+	connect(this->checkBox_excludeThreshold, SIGNAL(clicked(bool)), this, SLOT(updateSegmentationRange(bool))); 
 	
 }
 
@@ -254,10 +257,45 @@ void AdaptiveThreshold::computePeaksAndNormalize(threshold_defs::PeakRanges& ran
 		//input grauwerte und moving freqs, output is paramRanges
 		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, paramRanges, ranges.XRangeMIn, ranges.XRangeMax/*x_min, x_max*/);
 
-		bool selectedData = chckbx_LokalMinMax->isChecked();
-
+		
 		//calculate lokal peaks
 		auto resultingthrPeaks = m_thresCalculator.calcMinMax(paramRanges);
+
+
+		bool selectedData = chckbx_LokalMinMax->isChecked();
+		//if (selectedData) {
+		//	QString tmp1_xmax = "";
+		//	QString tmp1_yMax = "";
+
+		//	QString tmp3_xmin = ""; 
+		//	QString tmp3_YMin = "";
+
+		//	double lokalXMax = 0; double lokalYMax = 0; 
+		//	double lokalXMin = 0; double lokalYMin = 0; 
+
+		//	tmp1_xmax = ed_PeakThrMaxX->text();
+		//	tmp1_yMax = ed_PeakFregMaxY->text();
+
+		//	tmp3_xmin = ed_minPeakThrX->text();
+		//	tmp3_YMin = ed_MinPeakFreqrY->text(); 
+
+
+		//	if (tmp1_xmax.isEmpty() || tmp1_yMax.isEmpty()) {
+		//		writeDebugText("Invalid or empty parametrisation of local max peak"); 
+		//		return; 
+		//	}
+
+		//	if (tmp3_xmin.isEmpty() || tmp3_YMin.isEmpty()) {
+		//		writeDebugText("invalid or empty param of local min peak"); 
+		//		return; 
+		//		
+		//	}
+
+		//	
+		//	/*double bool tmp_xmax = */
+		//	//tmp1_ymax = 
+
+		//}
 
 
 
@@ -344,6 +382,8 @@ void AdaptiveThreshold::computePeaksAndNormalize(threshold_defs::PeakRanges& ran
 		visualizeSeries(maxPeakMaterialRanges, cl_green, &sr_text);
 		createVisualisation(paramRanges, resultingthrPeaks);
 		assignValuesToField(resultingthrPeaks);
+
+		this->chckbx_LokalMinMax->setEnabled(true); 
 	}
 	catch (std::invalid_argument &ia) {
 		throw; 
@@ -542,6 +582,8 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 
 				
 				double convertedThr = normalizedToMinMax(peaks.getLocalMax(), peaks.getGlobalMax(),resThres); 
+
+				this->ed_maxThresholdRange->setText(QString("%1").arg(convertedThr));
 				m_thresCalculator.SetResultingThreshold(convertedThr); 
 				
 				this->writeResultText(QString("final converted grey value %1, normalised %2").arg(convertedThr).arg(resThres)) ; 
@@ -572,6 +614,7 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				
 				m_chart->update();
 				m_chartView->update();
+				this->ed_minSegmRange->setEnabled(true); 
 
 				}catch (std::invalid_argument& iae) {
 					writeDebugText(iae.what()); 
@@ -710,6 +753,22 @@ void AdaptiveThreshold::rescaleToMinMax()
 		m_chart->update();
 		m_chartView->update();
 	}
+}
+
+void AdaptiveThreshold::updateSegmentationRange(bool updateRange)
+{
+	if (!updateRange) {
+		this->SegmentationStartValue(0); 
+		return;
+	
+	}
+	
+	DEBUG_LOG("Signal update segmentation triggered"); 
+	
+
+	this->SegmentationStartValue(this->ed_minSegmRange->text().toDouble()); 
+
+
 }
 
 void AdaptiveThreshold::buttonMinMaxClicked()

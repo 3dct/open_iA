@@ -7,9 +7,9 @@ public:
 	{
 	}
 		
-	void performSegmentation(double greyThreshold);
+	void performSegmentation(double greyThresholdMin, double greyThreshold);
 
-	void prepareFilter(double greyThreshold);
+	void prepareFilter(double greyThresholdLower, double greyThresholdUpper);
 
 	
 private:

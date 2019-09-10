@@ -31,24 +31,22 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 	{
 
 	//TODO probably use shared pointer
-	AdaptiveThreshold dlg_thres;
+		AdaptiveThreshold dlg_thres;
 		
-	if (!m_mainWnd->activeMdiChild())
-	{
-		DEBUG_LOG("data not avaiable, please load a data set before");
-		return; 
-	}
+		if (!m_mainWnd->activeMdiChild())
+		{
+			DEBUG_LOG("data not avaiable, please load a data set before");
+			return; 
+		}
 
-	auto hist = m_mainWnd->activeMdiChild()->histogram();
-	if (!hist || hist->plots().empty()) {
-		DEBUG_LOG("Current data does not have a histogram or histogram not ready"); 
-		return;
-	}
+		auto hist = m_mainWnd->activeMdiChild()->histogram();
+		if (!hist || hist->plots().empty()) {
+			DEBUG_LOG("Current data does not have a histogram or histogram not ready"); 
+			return;
+		}
 
-	/*try
-	{*/
+		
 		auto data = hist->plots()[0]->data();
-		dlg_thres.initChart();
 		dlg_thres.setHistData(data);
 			
 
@@ -56,7 +54,7 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 			return;
 
 		ImageProcessingHelper imgSegmenter(m_mainWnd->activeMdiChild()); 
-		imgSegmenter.performSegmentation(dlg_thres.getResultingThreshold()); 
+		imgSegmenter.performSegmentation(dlg_thres.SegmentationStartValue(),dlg_thres.getResultingThreshold()); 
 
 
 	}catch (std::invalid_argument& iaex) {

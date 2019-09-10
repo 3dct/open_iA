@@ -62,6 +62,10 @@ public:
 		return m_thresCalculator.GetResultingThreshold();
 	}
 	
+	double SegmentationStartValue() const { return segmentationStartValue; }
+	
+	//double SegmentationStartValue() const { return segmentationStartValue; }
+	void SegmentationStartValue(double val) { segmentationStartValue = val; }
 private slots:
 		void UpdateChartClicked();
 		void buttonLoadDataClicked();
@@ -89,7 +93,7 @@ private slots:
 		void buttonMinMaxClicked();
 		void redrawPlots();
 		void rescaleToMinMax(); 
-
+		void updateSegmentationRange(bool updateRange);
 
 		//TBa remove test actions below
 		void myAction();
@@ -103,6 +107,8 @@ private slots:
 		inline void clearEditField() {
 			this->textEdit->clear();
 		}
+
+		
 
 private:
 	//void PerformSegmentation(double resThres);
@@ -147,6 +153,8 @@ private:
 	}
 
 	void scaleGraphToMinMax(const threshold_defs::ParametersRanges& ranges);
+
+	
 private:
 	
 	threshold_defs::MovingFreqs allMovingfreqs; 
@@ -154,6 +162,8 @@ private:
 	threshold_defs::GraphRange m_graphValuesScope; 
 
 	Loader m_seriesLoader; 
+
+	double segmentationStartValue = 0; 
 	
 	const double minXDefault = 0; const double maxXDefault = 65535; 
 	const double minYDefault = 0; const double maxYDefault = 40000; 

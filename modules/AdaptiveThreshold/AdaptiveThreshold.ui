@@ -33,7 +33,7 @@
          <item>
           <widget class="QPushButton" name="btn_loadHistData">
            <property name="text">
-            <string>LoadHistogram</string>
+            <string>LoadImageHistogram</string>
            </property>
           </widget>
          </item>
@@ -602,6 +602,9 @@
             <layout class="QVBoxLayout" name="verticalLayout_11">
              <item>
               <widget class="QCheckBox" name="chbxMaxPeakRanges">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Spefiy High Peak ranges</string>
                </property>
@@ -609,6 +612,9 @@
              </item>
              <item>
               <widget class="QCheckBox" name="chckbx_LokalMinMax">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Specify values for Lokal Min / Max Peak</string>
                </property>
@@ -616,8 +622,90 @@
              </item>
              <item>
               <widget class="QCheckBox" name="chbxMaxPeakRanges_2">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Specify moving frequiency series</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_19">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_20" stretch="1,1,2">
+                 <item>
+                  <widget class="QLineEdit" name="ed_ptXmin">
+                   <property name="text">
+                    <string>0.6</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_15">
+                   <property name="text">
+                    <string>IntersectionXmin</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_17">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>60</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_21" stretch="1,1,2">
+                 <item>
+                  <widget class="QLineEdit" name="ed_pt_xMax">
+                   <property name="text">
+                    <string>0.8</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_16">
+                   <property name="text">
+                    <string>IntersectionXMax</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_18">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Expanding</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>60</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_VisPoints">
+               <property name="text">
+                <string>DetermineIntersectionAndFinalThreshold</string>
                </property>
               </widget>
              </item>
@@ -658,105 +746,100 @@
           <property name="title">
            <string>Output</string>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_22">
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout_21">
-             <item>
-              <widget class="QTextEdit" name="txt_output">
-               <property name="enabled">
-                <bool>true</bool>
+          <widget class="QWidget" name="">
+           <property name="geometry">
+            <rect>
+             <x>11</x>
+             <y>40</y>
+             <width>501</width>
+             <height>194</height>
+            </rect>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,1">
+            <item>
+             <widget class="QTextEdit" name="txt_output">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_9">
+              <property name="title">
+               <string>Segmentation</string>
+              </property>
+              <widget class="QCheckBox" name="checkBox_excludeThreshold">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>110</y>
+                 <width>101</width>
+                 <height>17</height>
+                </rect>
                </property>
-               <property name="readOnly">
-                <bool>true</bool>
+               <property name="text">
+                <string>Exclude Range</string>
                </property>
               </widget>
-             </item>
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout_20">
-               <item>
-                <layout class="QVBoxLayout" name="verticalLayout_19">
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_20" stretch="1,1,2">
-                   <item>
-                    <widget class="QLineEdit" name="ed_ptXmin">
-                     <property name="text">
-                      <string>17000</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="label_15">
-                     <property name="text">
-                      <string>Xmin</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <spacer name="horizontalSpacer_17">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeType">
-                      <enum>QSizePolicy::Expanding</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>60</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_21" stretch="1,1,2">
-                   <item>
-                    <widget class="QLineEdit" name="ed_pt_xMax">
-                     <property name="text">
-                      <string>19000</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="label_16">
-                     <property name="text">
-                      <string>XMax</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <spacer name="horizontalSpacer_18">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeType">
-                      <enum>QSizePolicy::Expanding</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>60</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                  </layout>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <widget class="QPushButton" name="btn_VisPoints">
-                 <property name="text">
-                  <string>CalculateIntersection</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </item>
-          </layout>
+              <widget class="QWidget" name="">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>30</y>
+                 <width>188</width>
+                 <height>22</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_11">
+                <item>
+                 <widget class="QLineEdit" name="ed_minSegmRange">
+                  <property name="enabled">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_17">
+                  <property name="text">
+                   <string>MinRange</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>70</y>
+                 <width>192</width>
+                 <height>22</height>
+                </rect>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_13">
+                <item>
+                 <widget class="QLineEdit" name="ed_maxThresholdRange">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_18">
+                  <property name="text">
+                   <string>MaxRange</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </widget>
         </item>
        </layout>
@@ -780,7 +863,7 @@
          <item>
           <widget class="QPushButton" name="btn_aTestAction">
            <property name="enabled">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
            <property name="text">
             <string>ATestAction</string>
@@ -793,13 +876,20 @@
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
           <widget class="QLabel" name="label_8">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>TestAction</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ed_testText"/>
+          <widget class="QLineEdit" name="ed_testText">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -860,7 +950,7 @@
        <item>
         <widget class="QPushButton" name="pushButton">
          <property name="text">
-          <string>Confirm</string>
+          <string>PerfomSegmenation</string>
          </property>
         </widget>
        </item>
@@ -886,8 +976,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1491</x>
-     <y>1064</y>
+     <x>1578</x>
+     <y>1167</y>
     </hint>
     <hint type="destinationlabel">
      <x>667</x>
@@ -902,8 +992,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1572</x>
-     <y>1064</y>
+     <x>1659</x>
+     <y>1167</y>
     </hint>
     <hint type="destinationlabel">
      <x>761</x>
@@ -918,12 +1008,12 @@
    <slot>click()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1385</x>
-     <y>183</y>
+     <x>1335</x>
+     <y>203</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1542</x>
-     <y>295</y>
+     <x>1646</x>
+     <y>204</y>
     </hint>
    </hints>
   </connection>
@@ -934,12 +1024,12 @@
    <slot>click()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1340</x>
-     <y>217</y>
+     <x>1335</x>
+     <y>231</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1517</x>
-     <y>302</y>
+     <x>1646</x>
+     <y>204</y>
     </hint>
    </hints>
   </connection>
@@ -950,12 +1040,12 @@
    <slot>click()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1336</x>
-     <y>241</y>
+     <x>1335</x>
+     <y>259</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1484</x>
-     <y>304</y>
+     <x>1646</x>
+     <y>204</y>
     </hint>
    </hints>
   </connection>
@@ -970,8 +1060,8 @@
      <y>268</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1490</x>
-     <y>306</y>
+     <x>1646</x>
+     <y>204</y>
     </hint>
    </hints>
   </connection>
@@ -982,12 +1072,12 @@
    <slot>click()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1231</x>
-     <y>298</y>
+     <x>1335</x>
+     <y>391</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1461</x>
-     <y>306</y>
+     <x>1646</x>
+     <y>204</y>
     </hint>
    </hints>
   </connection>
@@ -998,12 +1088,12 @@
    <slot>click()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1220</x>
-     <y>337</y>
+     <x>1335</x>
+     <y>363</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1536</x>
-     <y>290</y>
+     <x>1646</x>
+     <y>204</y>
     </hint>
    </hints>
   </connection>
