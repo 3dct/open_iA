@@ -63,7 +63,8 @@ namespace
 dlg_labels::dlg_labels(MdiChild* mdiChild, bool addMainSlicers /* = true*/):
 	m_itemModel(new QStandardItemModel()),
 	m_colorTheme(iAColorThemeManager::instance().theme("Brewer Set3 (max. 12)")),
-	m_mdiChild(mdiChild)
+	m_mdiChild(mdiChild),
+	m_trackingSeeds(false)
 {
 	cbColorTheme->addItems(iAColorThemeManager::instance().availableThemes());
 	cbColorTheme->setCurrentText(m_colorTheme->name());
@@ -232,6 +233,11 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicer* slicer)
 		return;
 	}
 
+	QSharedPointer<QVector<iASeed>> addedSeeds;
+	if (m_trackingSeeds) {
+		addedSeeds = QSharedPointer<QVector<iASeed>>(new QVector<iASeed>());
+	}
+
 	int radius = spinBox->value() - 1; // -1 because the center voxel shouldn't count
 	iATimeGuard timer(QString("Drawing circle of radius %1").arg(radius).toStdString());
 
@@ -261,10 +267,16 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicer* slicer)
 			double squareDis = dx * dx + dy * dy;
 			if (squareDis <= squareRadius)
 			{
+				int x = coord[0];
+				int y = coord[1];
+				int z = coord[2];
 				auto imageId = m_mapSlicer2data.value(slicer)->overlayImageId;
 				auto item = addSeedItem(labelRow, coord[0], coord[1], coord[2], imageId);
 				if (item)
 					items.append(item);
+				if (m_trackingSeeds) {
+					addedSeeds->append(iASeed(x, y, z, imageId, m_labels[labelRow]));
+				}
 			}
 		}
 	}
@@ -273,7 +285,9 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicer* slicer)
 	appendSeeds(labelRow, items);
 	updateChannels(imageId);
 
-	emit seedAdded(cx, cy, cz, slicer);
+	if (m_trackingSeeds) {
+		emit seedsAdded(cx, cy, cz, slicer, addedSeeds);
+	}
 }
 
 void dlg_labels::slicerClicked(int x, int y, int z, iASlicer *slicer)
@@ -334,11 +348,13 @@ int dlg_labels::addLabelItem(QString const & labelText)
 {
 	QStandardItem* newItem = new QStandardItem(labelText);
 	QStandardItem* newItemCount = new QStandardItem("0");
-	newItem->setData(m_colorTheme->color(m_itemModel->rowCount()), Qt::DecorationRole);
+	QColor color = m_colorTheme->color(m_itemModel->rowCount());
+	newItem->setData(color, Qt::DecorationRole);
 	QList<QStandardItem* > newRow;
 	newRow.append(newItem);
 	newRow.append(newItemCount);
 	m_itemModel->appendRow(newRow);
+	m_labels.append(QSharedPointer<iALabel>(new iALabel(labelText, color)));
 	emit labelAdded();
 	return newItem->row();
 }
@@ -430,6 +446,7 @@ void dlg_labels::remove()
 			}
 		}
 		m_itemModel->removeRow(curLabel);
+		m_labels.removeAt(curLabel);
 		for (int l = curLabel; l < m_itemModel->rowCount(); ++l)
 		{
 			auto itemAfter = m_itemModel->item(l);
@@ -502,6 +519,10 @@ int dlg_labels::labelCount() {
 
 int dlg_labels::overlayImageIdBySlicer(iASlicer* slicer) {
 	return m_mapSlicer2data.value(slicer)->overlayImageId;
+}
+
+void dlg_labels::setSeedsTracking(bool enabled) {
+	m_trackingSeeds = enabled;
 }
 
 int dlg_labels::chooseOverlayImage(QString title)
