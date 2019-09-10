@@ -746,7 +746,7 @@
           <property name="title">
            <string>Output</string>
           </property>
-          <widget class="QWidget" name="">
+          <widget class="QWidget" name="layoutWidget">
            <property name="geometry">
             <rect>
              <x>11</x>
@@ -769,22 +769,22 @@
             <item>
              <widget class="QGroupBox" name="groupBox_9">
               <property name="title">
-               <string>Segmentation</string>
+               <string>Grey value range segmenation (unnormalised)</string>
               </property>
               <widget class="QCheckBox" name="checkBox_excludeThreshold">
                <property name="geometry">
                 <rect>
                  <x>0</x>
                  <y>110</y>
-                 <width>101</width>
+                 <width>131</width>
                  <height>17</height>
                 </rect>
                </property>
                <property name="text">
-                <string>Exclude Range</string>
+                <string>Specify Start Range</string>
                </property>
               </widget>
-              <widget class="QWidget" name="">
+              <widget class="QWidget" name="layoutWidget">
                <property name="geometry">
                 <rect>
                  <x>0</x>
@@ -810,7 +810,7 @@
                 </item>
                </layout>
               </widget>
-              <widget class="QWidget" name="">
+              <widget class="QWidget" name="layoutWidget">
                <property name="geometry">
                 <rect>
                  <x>0</x>

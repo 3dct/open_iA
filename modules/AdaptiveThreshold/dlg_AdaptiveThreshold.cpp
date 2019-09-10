@@ -374,7 +374,7 @@ void AdaptiveThreshold::computePeaksAndNormalize(threshold_defs::PeakRanges& ran
 		iso50->setName("iso 50");
 
 
-		//this->addSeries(iso50, false);
+		this->addSeries(iso50, false);
 
 		QColor cl_green = QColor(255, 0, 0);
 		QString sr_text = "Max Peak Range";
