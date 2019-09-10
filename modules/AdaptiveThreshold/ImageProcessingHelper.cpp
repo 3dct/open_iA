@@ -104,7 +104,7 @@ void ImageProcessingHelper::imageToReslicer()
 
 	for (int s = 0; s < 3; ++s)
 	{
-		//m_childData->getSlicer(s)->removeChannel(0);
+		
 		auto channeldata = iAChannelData(mod_0->name(), mod_0->image(), dynamic_cast<vtkScalarsToColors*> (modTrans->colorTF()), nullptr);
 		m_childData->getSlicer(s)->addChannel(0, channeldata, true);
 		m_childData->getSlicer(s)->resetCamera();
