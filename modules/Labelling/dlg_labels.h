@@ -22,6 +22,7 @@
 
 #include "Labelling_export.h"
 
+#include "iALabellingObjects.h"
 #include "iAChannelData.h"
 #include "ui_labels.h"
 
@@ -51,41 +52,6 @@ struct iAImageCoordinate;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
 
-struct iALabel
-{
-	iALabel() {};
-	iALabel(QString n, QColor c) :
-		name(n), color(c)
-	{}
-	QString name;
-	QColor color;
-};
-
-struct iASeed
-{
-	iASeed() {};
-	iASeed(int X, int Y, int Z, int oiid, QSharedPointer<iALabel> l) :
-		x(X), y(Y), z(Z), overlayImageId(oiid), label(l)
-	{}
-	int x;
-	int y;
-	int z;
-	int overlayImageId;
-	QSharedPointer<iALabel> label;
-};
-
-Q_DECLARE_METATYPE(QSharedPointer<iASeed>);
-
-inline bool operator==(const iASeed& i1, const iASeed& i2)
-{
-	return i1.x == i2.x && i1.y == i2.y && i1.z == i2.z && i1.overlayImageId == i2.overlayImageId;
-}
-
-inline uint qHash(const iASeed& key, uint seed)
-{
-	return qHash(key.x ^ key.y ^ key.z ^ key.overlayImageId, seed);
-}
-
 class Labelling_API dlg_labels : public dlg_labelUI
 {
 	Q_OBJECT
@@ -110,9 +76,11 @@ public:
 	QStandardItemModel* m_itemModel; // TODO: make private
 
 signals:
-	void seedsAdded(int x, int y, int z, iASlicer*, QSharedPointer<QVector<iASeed>>);
-	void labelAdded();
-	void labelRemoved();
+	void seedsAdded(QList<iASeed>);
+	void seedsRemoved(QList<iASeed>);
+	void labelAdded(iALabel);
+	void labelRemoved(iALabel);
+	void labelColorChanged(iALabel, QColor);
 
 public slots:
 	void rendererClicked(int, int, int, iASlicer*);
@@ -132,7 +100,8 @@ public slots:
 
 private:
 	void addSeed(int, int, int, iASlicer*);
-	void removeSeed(QStandardItem* item, int x, int y, int z, int imageId);
+	void removeSeed(int, int, int, iASlicer*);
+	void removeSeed(QStandardItem*);
 	QStandardItem* addSeedItem(int label, int x, int y, int z, int imageId);
 	int addLabelItem(QString const & labelText);
 	void appendSeeds(int label, QList<QStandardItem*> const & items);
@@ -149,6 +118,8 @@ private:
 	iAColorTheme const * m_colorTheme;
 	QString m_fileName;
 	QList<QSharedPointer<iALabel>> m_labels;
+	int m_nextLabelId = 0;
+	int getNextLabelId();
 
 	int m_nextId = 0;
 	int getNextId();

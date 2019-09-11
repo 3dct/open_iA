@@ -55,11 +55,11 @@ iANModalLabelControls::iANModalLabelControls(QWidget* parent) {
 	m_layout = new QGridLayout(this);
 }
 
-void iANModalLabelControls::updateTable(QList<QSharedPointer<iANModalLabelAbstract>> labels) {
+void iANModalLabelControls::updateTable(QList<iANModalLabel> labels) {
 	int i;
 	for (i = 0; i < labels.size(); i++) {
 		auto label = labels[i];
-		float opacity = containsLabel(i) ? getOpacity(m_rows[i].opacity) : label->opacity;
+		float opacity = containsLabel(i) ? getOpacity(m_rows[i].opacity) : label.opacity;
 		insertLabel(i, label, opacity);
 	}
 	int size = i;
@@ -70,7 +70,7 @@ void iANModalLabelControls::updateTable(QList<QSharedPointer<iANModalLabelAbstra
 	m_rows.resize(size);
 }
 
-void iANModalLabelControls::insertLabel(int rowIndex, QSharedPointer<iANModalLabelAbstract> label, float opacity) {
+void iANModalLabelControls::insertLabel(int rowIndex, iANModalLabel label, float opacity) {
 	if (rowIndex >= m_labels.size()) {
 		m_labels.resize(rowIndex + 1);
 		m_labels[rowIndex] = label;
@@ -87,7 +87,6 @@ void iANModalLabelControls::removeLabel(int rowIndex) {
 	if (row.row != -1) {
 		m_layout->removeWidget(row.name);
 		m_layout->removeWidget(row.color);
-		m_layout->removeWidget(row.number);
 		m_layout->removeWidget(row.opacity);
 	}
 }
@@ -101,35 +100,31 @@ float iANModalLabelControls::opacity(int row) {
 	return getOpacity(m_rows[row].opacity);
 }
 
-void iANModalLabelControls::addRow(int rowIndex, QSharedPointer<iANModalLabelAbstract> label, float opacity) {
+void iANModalLabelControls::addRow(int rowIndex, iANModalLabel label, float opacity) {
 	assert(rowIndex <= m_layout->rowCount());
 
-	QLabel *lName = new QLabel(label->name);
+	QLabel *lName = new QLabel(label.name);
 
 	QLabel *lColor = new QLabel();
-	setLabelColor(lColor, label->color);
-
-	QLabel *lNumber = new QLabel(QString::number(label->getVoxelsCount()));
+	setLabelColor(lColor, label.color);
 
 	QSlider *sOpacity = createSlider();
 	setOpacity(sOpacity, opacity);
 
 	m_layout->addWidget(lName, rowIndex, NAME);
 	m_layout->addWidget(lColor, rowIndex, COLOR);
-	m_layout->addWidget(lNumber, rowIndex, NUMBER);
 	m_layout->addWidget(sOpacity, rowIndex, OPACITY);
 
 	if (rowIndex >= m_rows.size()) {
 		m_rows.resize(rowIndex + 1);
 	}
-	m_rows[rowIndex] = Row(rowIndex, lName, lColor, lNumber, sOpacity);
+	m_rows[rowIndex] = Row(rowIndex, lName, lColor, sOpacity);
 }
 
-void iANModalLabelControls::updateRow(int rowIndex, QSharedPointer<iANModalLabelAbstract> label) {
+void iANModalLabelControls::updateRow(int rowIndex, iANModalLabel label) {
 	assert(containsLabel(rowIndex));
 	Row row = m_rows[rowIndex];
-	row.name->setText(label->name);
-	setLabelColor(row.color, label->color);
-	row.number->setText(QString::number(label->getVoxelsCount()));
-	//setOpacity(row.opacity, label->opacity);
+	row.name->setText(label.name);
+	setLabelColor(row.color, label.color);
+	//setOpacity(row.opacity, label.opacity);
 }

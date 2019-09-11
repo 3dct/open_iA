@@ -21,6 +21,7 @@
 #include "iANModalWidget.h"
 #include "iANModalController.h"
 
+#include "iALabellingObjects.h"
 #include "iANModalObjects.h"
 #include "iANModalLabelControls.h"
 
@@ -60,7 +61,6 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 	//labelTitle->setSizePolicy(QSizePolicy::Minimum); // DOESN'T WORK!!! WHY???
 
 	QPushButton *buttonRefreshModalities = new QPushButton("Refresh modalities");
-	QPushButton* buttonApplyLabels = new QPushButton("Apply labels");
 
 	layoutMain->addWidget(widgetTop);
 	layoutMain->addWidget(m_labelControls);
@@ -68,11 +68,9 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 
 	layoutTop->addWidget(labelTitle);
 	layoutTop->addWidget(buttonRefreshModalities);
-	layoutTop->addWidget(buttonApplyLabels);
 
 	// Connect
 	connect(buttonRefreshModalities, SIGNAL(clicked()), this, SLOT(onButtonRefreshModalitiesClicked()));
-	connect(buttonApplyLabels, SIGNAL(clicked()), this, SLOT(onButtonClicked()));
 
 	connect(m_c, SIGNAL(allSlicersInitialized()), this, SLOT(onAllSlicersInitialized()));
 	connect(m_c, SIGNAL(allSlicersReinitialized()), this, SLOT(onAllSlicersReinitialized()));
@@ -105,7 +103,7 @@ void iANModalWidget::onButtonRefreshModalitiesClicked() {
 }
 
 namespace {
-	inline void populateLabel(QSharedPointer<iANModalLabelAbstract> label, QStandardItem* item, iANModalLabelControls* labelControls, int row) {
+	inline void populateLabel(QSharedPointer<iANModalLabel> label, QStandardItem* item, iANModalLabelControls* labelControls, int row) {
 		label->id = row;
 		if (row == 0) {
 			label->remover = true;
@@ -122,54 +120,6 @@ namespace {
 	}
 }
 
-void iANModalWidget::onButtonClicked() {
-	QList<QSharedPointer<iANModalLabel>> labels;
-	QList<QSharedPointer<iANModalLabelAbstract>> labelsSimple;
-
-	{
-		auto labeling = m_c->m_dlg_labels;
-
-		QStandardItemModel *items = labeling->m_itemModel;
-		for (int row = 0; row < items->rowCount(); row++) {
-			QStandardItem *item = items->item(row, 0);
-
-			auto label = QSharedPointer<iANModalLabel>(new iANModalLabel);
-			populateLabel(label, item, m_labelControls, row);
-			int count = items->item(row, 1)->text().toInt();
-			for (int childRow = 0; childRow < item->rowCount(); childRow++) {
-				auto child = item->child(childRow, 0);
-
-				int x = child->data(Qt::UserRole + 1).toInt();
-				int y = child->data(Qt::UserRole + 2).toInt();
-				int z = child->data(Qt::UserRole + 3).toInt();
-				int overlayImageId = child->data(Qt::UserRole + 4).toInt();
-
-				auto modality = m_c->m_mapOverlayImageId2modality.value(overlayImageId);
-				double scalar = modality->image()->GetScalarComponentAsDouble(x, y, z, 0);
-
-				auto v = iANModalVoxel();
-				v.x = x;
-				v.y = y;
-				v.z = z;
-				v.overlayImageId = overlayImageId;
-				v.scalar = scalar;
-
-				label->voxels.append(v);
-			}
-			labels.append(label);
-
-
-			auto labelSimple = QSharedPointer<iANModalLabelSimple>(new iANModalLabelSimple());
-			populateLabel(labelSimple, item, m_labelControls, row);
-			labelSimple->voxelsCount = item->rowCount();
-			labelsSimple.append(labelSimple);
-		}
-	}
-
-	m_labelControls->updateTable(labelsSimple);
-	m_c->adjustTf(labels);
-}
-
 void iANModalWidget::onAllSlicersInitialized() {
 	for (int i = 0; i < m_c->m_slicers.size(); i++) {
 		auto slicer = m_c->m_slicers[i];
@@ -184,27 +134,38 @@ void iANModalWidget::onAllSlicersReinitialized() {
 	onAllSlicersInitialized();
 }
 
-QList<QSharedPointer<iANModalLabelAbstract>> iANModalWidget::labels() {
-	QList<QSharedPointer<iANModalLabelAbstract>> labels;
-	QStandardItemModel* items = m_c->m_dlg_labels->m_itemModel;
-	for (int row = 0; row < items->rowCount(); row++) {
-		QStandardItem* item = items->item(row, 0);
-		auto label = QSharedPointer<iANModalLabelSimple>(new iANModalLabelSimple());
-		populateLabel(label, item, m_labelControls, row);
-		label->voxelsCount = item->rowCount();
-		labels.append(label);
+void iANModalWidget::onSeedsAdded(QList<iASeed> seeds) {
+	QHash<int, QList<iANModalSeed>> nmSeeds;
+	for (auto seed : seeds) {
+		int id = seed.label->id;
+		if (!nmSeeds.contains(id)) {
+			nmSeeds.insert(id, QList<iANModalSeed>());
+		}
+		nmSeeds.find(id).value().append(iANModalSeed(seed.x, seed.y, seed.z, seed.overlayImageId));
 	}
-	return labels;
+	for (auto ite = nmSeeds.constBegin(); ite != nmSeeds.constEnd(); ite++) {
+		int id = ite.key();
+		if (m_labels.contains(id)) {
+			auto label = m_labels.value(id);
+			auto list = ite.value();
+			m_c->addSeeds(list, label);
+		}
+	}
 }
 
-void iANModalWidget::onSeedAdded(int x, int y, int z, iASlicer* slicer) {
-	m_labelControls->updateTable(labels());
+void iANModalWidget::onLabelAdded(iALabel label) {
+	m_labels.insert(label.id, iANModalLabel(label.id, label.name, label.color));
+	m_labelControls->updateTable(m_labels.values());
 }
 
-void iANModalWidget::onLabelAdded() {
-	m_labelControls->updateTable(labels());
+void iANModalWidget::onLabelRemoved(iALabel label) {
+	m_labels.remove(label.id);
+	m_labelControls->updateTable(m_labels.values());
 }
 
-void iANModalWidget::onLabelRemoved() {
-	m_labelControls->updateTable(labels());
+void iANModalWidget::onLabelColorChanged(iALabel label) {
+	auto ite = m_labels.find(label.id);
+	ite.value().color = label.color;
+	m_labelControls->updateTable(m_labels.values());
+
 }

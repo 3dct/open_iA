@@ -24,29 +24,36 @@
 #include <QColor>
 #include <QList>
 
-struct iANModalVoxel {
+struct iANModalSeed {
+	iANModalSeed(int X, int Y, int Z, int oiid)//, double s)
+		: x(X), y(Y), z(Z), overlayImageId(oiid)//, scalar(s)
+	{}
 	int x;
 	int y;
 	int z;
 	int overlayImageId;
-	double scalar;
 };
 
-struct iANModalLabelAbstract {
+inline bool operator==(const iANModalSeed& i1, const iANModalSeed& i2)
+{
+	return i1.x == i2.x && i1.y == i2.y && i1.z == i2.z && i1.overlayImageId == i2.overlayImageId;
+}
+
+inline uint qHash(const iANModalSeed& key, uint seed)
+{
+	return qHash(key.x ^ key.y ^ key.z ^ key.overlayImageId, seed);
+}
+
+struct iANModalLabel {
+	iANModalLabel() :
+		id(-1), opacity(0.0f), remover(false)
+	{}
+	iANModalLabel(int i, QString n, QColor c)
+		: id(i), name(n), color(c), opacity(1.0f), remover(false)
+	{}
 	int id;
 	QString name;
 	QColor color;
 	float opacity;
-	bool remover = false;
-	virtual long getVoxelsCount() = 0;
-};
-
-struct iANModalLabelSimple : public iANModalLabelAbstract {
-	long voxelsCount;
-	long getVoxelsCount() override { return voxelsCount; }
-};
-
-struct iANModalLabel : public iANModalLabelAbstract {
-	QList<iANModalVoxel> voxels;
-	long getVoxelsCount() override { return voxels.size(); }
+	bool remover;
 };

@@ -20,59 +20,42 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
-#include <QListWidget>
-#include <QMap>
+#include "Labelling_export.h"
+
+#include <QObject>
+#include <QColor>
 #include <QSharedPointer>
 
-struct iANModalLabel;
-
-class QGridLayout;
-class QLabel;
-class QSlider;
-
-class iANModalLabelControls : public QWidget {
-	Q_OBJECT
-
-public:
-	iANModalLabelControls(QWidget *parent = nullptr);
-
-	void updateTable(QList<iANModalLabel>);
-	void insertLabel(int row, iANModalLabel, float opacity);
-	void removeLabel(int row);
-	bool containsLabel(int row);
-
-	float opacity(int labelId);
-
-private:
-
-	enum Column {
-		NAME = 0,
-		COLOR = 1,
-		OPACITY = 2
-	};
-
-	struct Row {
-		Row() {}
-		Row(int _row, QLabel *_name, QLabel *_color, QSlider *_opacity) : 
-			row(_row), name(_name), color(_color), opacity(_opacity)
-		{}
-		int row = -1;
-		QLabel *name = nullptr;
-		QLabel *color = nullptr;
-		QSlider *opacity = nullptr;
-	};
-
-	QGridLayout *m_layout;
-	QVector<iANModalLabel> m_labels;
-	QVector<Row> m_rows;
-
-	int m_nextId = 0;
-
-	void addRow(int row, iANModalLabel, float opacity);
-	void updateRow(int row, iANModalLabel);
-
-signals:
-	void labelOpacityChanged(int labelId);
-
+struct iALabel
+{
+	iALabel() : id(-1) {};
+	iALabel(int i, QString n, QColor c) :
+		id(i), name(n), color(c)
+	{}
+	int id;
+	QString name;
+	QColor color;
 };
+
+struct iASeed
+{
+	iASeed() : x(-1), y(-1), z(-1), overlayImageId(-1) {};
+	iASeed(int X, int Y, int Z, int oiid, QSharedPointer<iALabel> l) :
+		x(X), y(Y), z(Z), overlayImageId(oiid), label(l)
+	{}
+	int x;
+	int y;
+	int z;
+	int overlayImageId;
+	QSharedPointer<iALabel> label;
+};
+
+inline bool operator==(const iASeed& i1, const iASeed& i2)
+{
+	return i1.x == i2.x && i1.y == i2.y && i1.z == i2.z && i1.overlayImageId == i2.overlayImageId;
+}
+
+inline uint qHash(const iASeed& key, uint seed)
+{
+	return qHash(key.x ^ key.y ^ key.z ^ key.overlayImageId, seed);
+}

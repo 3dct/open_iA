@@ -27,9 +27,8 @@
 #include <QColor>
 #include <QSharedPointer>
 
+struct iANModalSeed;
 struct iANModalLabel;
-struct iANModalVoxel;
-
 class iAModality;
 class iASlicer;
 class dlg_labels;
@@ -54,8 +53,9 @@ public:
 	bool setModalities(QList<QSharedPointer<iAModality>> modalities);
 	void reinitialize();
 
-	// TEMPORARY STUFF
-	void adjustTf(QList<QSharedPointer<iANModalLabel>> labels);
+	void addSeeds(QList<iANModalSeed> seeds, iANModalLabel label);
+
+	void update();
 
 private:
 	MdiChild *m_mdiChild;
@@ -78,6 +78,9 @@ private:
 	uint m_slicerChannel_main = 0;
 	uint m_slicerChannel_label = 1;
 	uint m_mainSlicerChannel_nModal;
+
+	QSet<iANModalSeed> m_seeds;
+	void resetTf();
 
 	void applyVolumeSettings();
 

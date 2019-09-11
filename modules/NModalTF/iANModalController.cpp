@@ -322,11 +322,7 @@ bool iANModalController::setModalities(QList<QSharedPointer<iAModality>> modalit
 	if (!_checkModalities(modalities)) {
 		return false;
 	}
-	m_modalities = modalities;
-	return true;
-}
 
-void iANModalController::adjustTf(QList<QSharedPointer<iANModalLabel>> labels) {
 	for (auto modality : m_modalities) {
 		double range[2];
 		modality->image()->GetScalarRange(range);
@@ -334,7 +330,7 @@ void iANModalController::adjustTf(QList<QSharedPointer<iANModalLabel>> labels) {
 		double max = range[1];
 
 		auto tf = modality->transfer();
-	
+
 		tf->colorTF()->RemoveAllPoints();
 		tf->colorTF()->AddRGBPoint(min, 0.0, 0.0, 0.0);
 		tf->colorTF()->AddRGBPoint(max, 0.0, 0.0, 0.0);
@@ -343,20 +339,37 @@ void iANModalController::adjustTf(QList<QSharedPointer<iANModalLabel>> labels) {
 		tf->opacityTF()->AddPoint(min, 0.0);
 		tf->opacityTF()->AddPoint(max, 0.0);
 	}
+	resetTf();
 
-	for (auto label : labels) {
-		float r = label->color.redF();
-		float g = label->color.greenF();
-		float b = label->color.blueF();
-		float opacity = label->remover ? 0.0 : label->opacity;
-		for (auto v : label->voxels) {
-			auto modality = m_mapOverlayImageId2modality.value(v.overlayImageId);
-			auto tf = modality->transfer();
-			tf->colorTF()->AddRGBPoint(v.scalar, r, g, b);
-			tf->opacityTF()->AddPoint(v.scalar, opacity);
+	m_modalities = modalities;
+	return true;
+}
+
+void iANModalController::resetTf() {
+
+}
+
+void iANModalController::addSeeds(QList<iANModalSeed> seeds, iANModalLabel label) {
+	for (auto seed : seeds) {
+		auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
+		auto colorTf = modality->transfer()->colorTF();
+		auto opacityTf = modality->transfer()->opacityTF();
+		double scalar = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
+
+		if (m_seeds.contains(seed)) {
+			colorTf->RemovePoint(scalar);
+			opacityTf->RemovePoint(scalar);
 		}
-	}
 
+		auto c = label.color;
+		colorTf->AddRGBPoint(scalar, c.redF(), c.greenF(), c.blueF());
+		opacityTf->AddPoint(scalar, label.opacity);
+
+		m_seeds.insert(seed);
+	}
+}
+
+void iANModalController::update() {
 	m_mdiChild->renderer()->update();
 	for (int i = 0; i < 3; ++i)
 		m_mdiChild->slicer(i)->update();
