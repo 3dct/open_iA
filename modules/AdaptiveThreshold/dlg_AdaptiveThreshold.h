@@ -76,17 +76,17 @@ private slots:
 		void calculateMovingAverage();
 		void buttonSelectRangesClicked(); 
 
-		void computePeaksAndNormalize(threshold_defs::PeakRanges& ranges);
+		void computeNormalizeAndComputeLokalPeaks(threshold_defs::PeakRanges& ranges);
 
 		void peakNormalization(threshold_defs::ParametersRanges& maxPeakMaterialRanges, threshold_defs::PeakRanges& ranges, threshold_defs::ThresMinMax& resultingthrPeaks);
 
 		void visualizeIntermediateResults(threshold_defs::ThresMinMax& resultingthrPeaks);
 
-		void calculateIntermediateResults(threshold_defs::ThresMinMax& resultingthrPeaks, threshold_defs::ParametersRanges maxPeakMaterialRanges);
+		void calculateIntermediateResults(threshold_defs::ThresMinMax& resultingthrPeaks, threshold_defs::ParametersRanges maxPeakMaterialRanges, bool updatePeaks);
 
 		threshold_defs::ThresMinMax determineLocalPeaks(threshold_defs::PeakRanges& ranges, threshold_defs::ThresMinMax resultingthrPeaks);
 
-		
+		void enableCheckBox(); 
 
 		void assignValuesToField(threshold_defs::ThresMinMax& thrPeaks);
 
@@ -171,8 +171,12 @@ private:
 	threshold_defs::GraphRange m_graphValuesScope; 
 
 	threshold_defs::ParametersRanges m_NormalizedGlobalValueRangeXY;
-	bool updateValuesChecked = false; 
+	threshold_defs::ParametersRanges m_paramRanges;
+	threshold_defs::ThresMinMax m_resultingthrPeaks;
+	threshold_defs::ParametersRanges m_maxPeakMaterialRanges;
 
+	bool updateValuesChecked = false; 
+	bool runOnFirstTime = true; 
 
 	Loader m_seriesLoader; 
 

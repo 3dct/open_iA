@@ -75,6 +75,7 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_VisPoints, SIGNAL(clicked()), this, SLOT(determineIntersectionAndFinalThreshold())); 
 	connect(this->btn_rescaleToDefault, SIGNAL(clicked()), this, SLOT(rescaleToMinMax())); 
 	connect(this->checkBox_excludeThreshold, SIGNAL(clicked(bool)), this, SLOT(updateSegmentationRange(bool))); 
+	connect(this->btn_selectRange, SIGNAL(clicked(bool)), this, SLOT(enableCheckBox())); 
 	
 }
 
@@ -225,7 +226,7 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 		//load values from checkbox
 		
 		//
-		computePeaksAndNormalize(ranges);
+		computeNormalizeAndComputeLokalPeaks(ranges);
 		return;
 			
 	}catch (std::bad_alloc& ba){
@@ -238,7 +239,7 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 	}
 }
 
-void AdaptiveThreshold::computePeaksAndNormalize(threshold_defs::PeakRanges& ranges)
+void AdaptiveThreshold::computeNormalizeAndComputeLokalPeaks(threshold_defs::PeakRanges& ranges)
 {
 	if(m_movingFrequencies.empty())
 	{
@@ -253,31 +254,41 @@ void AdaptiveThreshold::computePeaksAndNormalize(threshold_defs::PeakRanges& ran
 		*
 		*
 		*/
-		
-		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies,
-			m_NormalizedGlobalValueRangeXY, m_graphValuesScope.getxmin(), m_graphValuesScope.getXMax());
+		if (runOnFirstTime || this->chck_box_RecalcRange->isChecked()) {
+				m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies,
+					m_NormalizedGlobalValueRangeXY, m_graphValuesScope.getxmin(), m_graphValuesScope.getXMax());
 
-		threshold_defs::ThresMinMax resultingthrPeaks; 
-		resultingthrPeaks = determineLocalPeaks(ranges, resultingthrPeaks); //Peak Air (lokal Maxium) and Peak Min (lokal Min) are calculated
-		threshold_defs::ParametersRanges maxPeakMaterialRanges;
-		peakNormalization(maxPeakMaterialRanges, ranges, resultingthrPeaks);
+				//t/*hreshold_defs::ThresMinMax resultingthrPeaks;*/
+				m_resultingthrPeaks = determineLocalPeaks(ranges, m_resultingthrPeaks); //Peak Air (lokal Maxium) and Peak Min (lokal Min) are calculated
+				//m_ maxPeakMaterialRanges;
+				peakNormalization(m_maxPeakMaterialRanges, ranges, m_resultingthrPeaks);
+
+				//here maybe update first maximum
+				//mininum peak
+
+				//bool updateResults = this->chckbx_LokalMinMax->isChecked();
+
+
+				calculateIntermediateResults(m_resultingthrPeaks,m_maxPeakMaterialRanges, false);
+
+				QColor cl_green = QColor(255, 0, 0);
+				QString sr_text = "Max Peak Range";
+				visualizeSeries(m_maxPeakMaterialRanges, cl_green, &sr_text);
+				visualizeIntermediateResults(m_resultingthrPeaks);
+				createVisualisation(m_paramRanges, m_resultingthrPeaks);
+				assignValuesToField(m_resultingthrPeaks);
+				this->chckbx_LokalMinMax->setEnabled(true);
+				this->writeResultText("\nAfter Normalisation\n");
+				this->writeResultText(m_resultingthrPeaks.resultsToString(false));
 		
-		//here maybe update first maximum
-		//mininum peak
-		//OptionallyUpdateThrPeaks(this->chckbx_LokalMinMax->isChecked(), resultingthrPeaks); 
+			
+		}
+		else {
+			//OptionallyUpdateThrPeaks(this->chckbx_LokalMinMax->isChecked(), m_resultingthrPeaks);
+			calculateIntermediateResults(m_resultingthrPeaks, m_maxPeakMaterialRanges, this->chck_box_RecalcRange->isChecked());
 		
-		//fair*0.5f; 
-		calculateIntermediateResults(resultingthrPeaks, maxPeakMaterialRanges);
-		this->writeResultText("\nAfter Normalisation\n"); 
-		this->writeResultText(resultingthrPeaks.resultsToString(false));
+		}
 		
-		QColor cl_green = QColor(255, 0, 0);
-		QString sr_text = "Max Peak Range";
-		visualizeSeries(maxPeakMaterialRanges, cl_green, &sr_text);
-		visualizeIntermediateResults(resultingthrPeaks);
-		//createVisualisation(paramRanges, resultingthrPeaks);
-		assignValuesToField(resultingthrPeaks);
-		this->chckbx_LokalMinMax->setEnabled(true); 
 	}
 	catch (std::invalid_argument &ia) {
 		throw; 
@@ -336,8 +347,10 @@ void AdaptiveThreshold::visualizeIntermediateResults(threshold_defs::ThresMinMax
 	this->addSeries(iso50, false);
 }
 
-void AdaptiveThreshold::calculateIntermediateResults(threshold_defs::ThresMinMax& resultingthrPeaks, threshold_defs::ParametersRanges maxPeakMaterialRanges)
+void AdaptiveThreshold::calculateIntermediateResults(threshold_defs::ThresMinMax& resultingthrPeaks, threshold_defs::ParametersRanges maxPeakMaterialRanges, bool updatePeaks)
 {
+
+	OptionallyUpdateThrPeaks(updatePeaks, resultingthrPeaks);
 	resultingthrPeaks.fAirPeakHalf(resultingthrPeaks.FreqPeakLokalMaxY() / 2.0f); //f_air/2.0;
 
 	//iso 50 as grey threshold		
@@ -359,13 +372,18 @@ void AdaptiveThreshold::calculateIntermediateResults(threshold_defs::ThresMinMax
 
 threshold_defs::ThresMinMax AdaptiveThreshold::determineLocalPeaks(threshold_defs::PeakRanges& ranges, threshold_defs::ThresMinMax resultingthrPeaks)
 {
-	threshold_defs::ParametersRanges paramRanges;
+	
 	//input grauwerte und moving freqs, output is paramRanges
-	m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, paramRanges, ranges.XRangeMIn, ranges.XRangeMax/*x_min, x_max*/);
+	m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, m_paramRanges, ranges.XRangeMIn, ranges.XRangeMax/*x_min, x_max*/);
 
 	//calculate lokal peaks
-	resultingthrPeaks = m_thresCalculator.calcMinMax(paramRanges);	
+	resultingthrPeaks = m_thresCalculator.calcMinMax(m_paramRanges);	
 	return resultingthrPeaks;
+}
+
+void AdaptiveThreshold::enableCheckBox()
+{
+	this->chck_box_RecalcRange->setEnabled(true); 
 }
 
 void AdaptiveThreshold::OptionallyUpdateThrPeaks(bool selectedData, threshold_defs::ThresMinMax& thrPeaks)
