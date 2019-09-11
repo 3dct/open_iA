@@ -141,8 +141,7 @@ namespace threshold_defs {
 			FreqPeakLokalMaxY(dblInf_min);
 			LokalMaxPeakThreshold_X(dblInf_min);
 			DeterminedThreshold(dblInf_min);
-			//setSpecifiedMinMax(dblInf_min, dblInf_min); 
-
+		
 			IntersectionPoint = QPointF(fltInf_min, fltInf_min);
 		}
 
@@ -153,7 +152,7 @@ namespace threshold_defs {
 
 
 		QString MinMaxToString() {
-			QString res = QString("Min %1 \t %2 Max %3 \t %4").arg(PeakMinXThreshold()).arg(FreqPeakMinY()).arg(LokalMaxPeakThreshold_X()).arg(FreqPeakLokalMaxY());
+			QString res = QString("Min %1 \t %2\n Max %3 \t %4").arg(PeakMinXThreshold()).arg(FreqPeakMinY()).arg(LokalMaxPeakThreshold_X()).arg(FreqPeakLokalMaxY());
 			return res;
 
 		}
@@ -249,33 +248,11 @@ namespace threshold_defs {
 		
 
 
-		//setting MinThreshold = Air Peak
-		//Max = Material Peak
-		/*void setSpecifiedMinMax(double min, double max) {
-			specifiedMin = min; 
-			specifiedMax = max; 
-		}
-
-		double getSpecifiedMin() const {
-			return specifiedMin; 
-		}
-
-		double getSpecifiedMax() const {
-			return specifiedMax; 
-		}*/
-
 		void setPeaksMinMax(double minThrPeakAir, double maxThrPeakMaterials) {
 
 			m_peaks.init(minThrPeakAir, maxThrPeakMaterials); 
 
 		}
-
-	/*	double getLokalThrMin_Air() {
-			m_peaks.getLocalMax();
-		};
-		double getLokalThrMax_Materials(){
-			m_peaks.getGlobalMax(); 
-		}*/
 
 		GreyThresholdPeaks const& getGreyThresholdPeaks() const {
 			return m_peaks; 

@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_17" stretch="5,0,0,1,1">
+  <layout class="QVBoxLayout" name="verticalLayout_17" stretch="5,0,1">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="3,1">
      <item>
@@ -71,7 +71,7 @@
            </property>
            <layout class="QGridLayout" name="gridLayout" columnstretch="1">
             <item row="0" column="0">
-             <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="2,3">
+             <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="2,0">
               <item>
                <layout class="QVBoxLayout" name="verticalLayout_6">
                 <item>
@@ -151,88 +151,6 @@
                  </layout>
                 </item>
                 <item>
-                 <spacer name="verticalSpacer_5">
-                  <property name="orientation">
-                   <enum>Qt::Vertical</enum>
-                  </property>
-                  <property name="sizeType">
-                   <enum>QSizePolicy::Preferred</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>20</width>
-                    <height>40</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_5">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_7">
-                    <item>
-                     <widget class="QSpinBox" name="spin_yTicks">
-                      <property name="minimum">
-                       <number>4</number>
-                      </property>
-                      <property name="value">
-                       <number>8</number>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label_11">
-                      <property name="text">
-                       <string>YTicks</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_8">
-                    <item>
-                     <widget class="QSpinBox" name="spin_xTicks">
-                      <property name="minimum">
-                       <number>4</number>
-                      </property>
-                      <property name="maximum">
-                       <number>30</number>
-                      </property>
-                      <property name="value">
-                       <number>10</number>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label_10">
-                      <property name="text">
-                       <string>XTicks</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <spacer name="verticalSpacer_3">
-                  <property name="orientation">
-                   <enum>Qt::Vertical</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>20</width>
-                    <height>40</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_25">
-                <item>
                  <widget class="QPushButton" name="btn_update">
                   <property name="text">
                    <string>RescaleChart</string>
@@ -257,7 +175,69 @@
                  </widget>
                 </item>
                 <item>
-                 <spacer name="verticalSpacer_4">
+                 <spacer name="verticalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_5">
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_7">
+                  <item>
+                   <widget class="QSpinBox" name="spin_yTicks">
+                    <property name="minimum">
+                     <number>4</number>
+                    </property>
+                    <property name="value">
+                     <number>8</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_11">
+                    <property name="text">
+                     <string>YTicks</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_8">
+                  <item>
+                   <widget class="QSpinBox" name="spin_xTicks">
+                    <property name="minimum">
+                     <number>4</number>
+                    </property>
+                    <property name="maximum">
+                     <number>30</number>
+                    </property>
+                    <property name="value">
+                     <number>10</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_10">
+                    <property name="text">
+                     <string>XTicks</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <spacer name="verticalSpacer_6">
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>
                   </property>
@@ -374,137 +354,85 @@
                 </spacer>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,1,2">
+                <layout class="QHBoxLayout" name="horizontalLayout_17">
                  <item>
-                  <widget class="QLineEdit" name="ed_minRange">
-                   <property name="text">
-                    <string>10000</string>
+                  <widget class="QGroupBox" name="groupBox_10">
+                   <property name="title">
+                    <string>ThesholdRange1</string>
                    </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_21">
+                    <item>
+                     <widget class="QLabel" name="label_6">
+                      <property name="text">
+                       <string>ThresholdMIn</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="ed_minRange">
+                      <property name="text">
+                       <string>10000</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_7">
+                      <property name="text">
+                       <string>ThresholdMax</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="ed_maxRange">
+                      <property name="text">
+                       <string>18000</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="label_6">
-                   <property name="text">
-                    <string>ThresholdMIn</string>
+                  <widget class="QGroupBox" name="groupBox_11">
+                   <property name="title">
+                    <string>Threshold_peakMax</string>
                    </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_22">
+                    <item>
+                     <widget class="QLabel" name="label">
+                      <property name="text">
+                       <string>HighPeakMinThrs</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="ed_MaxPeakXRangeMIn">
+                      <property name="text">
+                       <string>18000</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_2">
+                      <property name="text">
+                       <string>HighPeakMaxThr</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="ed_MaxPeakXRangeMax">
+                      <property name="text">
+                       <string>22000</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_7">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeType">
-                    <enum>QSizePolicy::Expanding</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>60</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,1,2">
-                 <item>
-                  <widget class="QLineEdit" name="ed_maxRange">
-                   <property name="text">
-                    <string>18000</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_7">
-                   <property name="text">
-                    <string>ThresholdMax</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_8">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_17" stretch="1,1,2">
-                 <item>
-                  <widget class="QLineEdit" name="ed_MaxPeakXRangeMIn">
-                   <property name="text">
-                    <string>18000</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label">
-                   <property name="text">
-                    <string>HighPeakMinThrs</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_15">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_18" stretch="1,1,2">
-                 <item>
-                  <widget class="QLineEdit" name="ed_MaxPeakXRangeMax">
-                   <property name="text">
-                    <string>22000</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_2">
-                   <property name="text">
-                    <string>HighPeakMaxThr</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="horizontalSpacer_16">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
                  </item>
                 </layout>
                </item>
                <item>
                 <widget class="QCheckBox" name="chck_box_RecalcRange">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
                  <property name="text">
                   <string>Recalculate Range</string>
                  </property>
@@ -540,7 +468,7 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_14">
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_19">
+            <layout class="QHBoxLayout" name="horizontalLayout_19" stretch="1,2">
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_15">
                <item>
@@ -571,6 +499,22 @@
                   </item>
                  </layout>
                 </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_10">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeType">
+                  <enum>QSizePolicy::Preferred</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>10</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
                </item>
                <item>
                 <widget class="QGroupBox" name="groupBox_3">
@@ -779,68 +723,62 @@
             <item>
              <widget class="QGroupBox" name="groupBox_9">
               <property name="title">
-               <string>Grey value range segmenation (unnormalised)</string>
+               <string>Grey value range segmentation (unnormalised)</string>
               </property>
-              <widget class="QCheckBox" name="checkBox_excludeThreshold">
-               <property name="geometry">
-                <rect>
-                 <x>0</x>
-                 <y>110</y>
-                 <width>131</width>
-                 <height>17</height>
-                </rect>
-               </property>
-               <property name="text">
-                <string>Specify Start Range</string>
-               </property>
-              </widget>
-              <widget class="QWidget" name="layoutWidget">
+              <widget class="QWidget" name="">
                <property name="geometry">
                 <rect>
                  <x>0</x>
                  <y>30</y>
-                 <width>188</width>
-                 <height>22</height>
+                 <width>196</width>
+                 <height>77</height>
                 </rect>
                </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_11">
+               <layout class="QVBoxLayout" name="verticalLayout_20">
                 <item>
-                 <widget class="QLineEdit" name="ed_minSegmRange">
-                  <property name="enabled">
-                   <bool>false</bool>
-                  </property>
-                 </widget>
+                 <layout class="QVBoxLayout" name="verticalLayout_7">
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_11">
+                    <item>
+                     <widget class="QLineEdit" name="ed_minSegmRange">
+                      <property name="enabled">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_17">
+                      <property name="text">
+                       <string>MinRange</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_13">
+                    <item>
+                     <widget class="QLineEdit" name="ed_maxThresholdRange">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_18">
+                      <property name="text">
+                       <string>MaxRange</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
                 </item>
                 <item>
-                 <widget class="QLabel" name="label_17">
+                 <widget class="QCheckBox" name="checkBox_excludeThreshold">
                   <property name="text">
-                   <string>MinRange</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QWidget" name="layoutWidget">
-               <property name="geometry">
-                <rect>
-                 <x>0</x>
-                 <y>70</y>
-                 <width>192</width>
-                 <height>22</height>
-                </rect>
-               </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_13">
-                <item>
-                 <widget class="QLineEdit" name="ed_maxThresholdRange">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_18">
-                  <property name="text">
-                   <string>MaxRange</string>
+                   <string>Specify Start Range</string>
                   </property>
                  </widget>
                 </item>
@@ -854,56 +792,6 @@
         </item>
        </layout>
       </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_7">
-     <property name="title">
-      <string>GroupBox</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QVBoxLayout" name="verticalLayout_9">
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_6">
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <item>
-          <widget class="QPushButton" name="btn_aTestAction">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>ATestAction</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout_3">
-         <item>
-          <widget class="QLabel" name="label_8">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>TestAction</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="ed_testText">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
      </item>
     </layout>
    </item>

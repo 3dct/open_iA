@@ -97,21 +97,11 @@ private slots:
 		void determineIntersectionAndFinalThreshold(); 
 
 		void buttonNormalizedClicked(); 
-
-		void buttonMinMaxClicked();
+				
 		void redrawPlots();
 		void rescaleToMinMax(); 
 		void updateSegmentationRange(bool updateRange);
 
-		//TBa remove test actions below
-		void myAction();
-		void aTestAction_2(); 
-		void sortTestAction(); 
-
-		void aTestAction(); 
-
-		void AnotherAction(); 
-		//end tba
 		inline void clearEditField() {
 			this->textEdit->clear();
 		}

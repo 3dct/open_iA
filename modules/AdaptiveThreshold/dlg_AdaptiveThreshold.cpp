@@ -69,7 +69,6 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(calculateMovingAverage()));
 	connect(this->btn_loadHistData, SIGNAL(clicked()), this, SLOT(buttonLoadHistDataClicked())); 
 	connect(this->btn_clear, SIGNAL(clicked()), this, SLOT(clearEditField()));
-	connect(this->btn_aTestAction, SIGNAL(clicked()), this, SLOT(sortTestAction()));
 	connect(this->btn_selectRange, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClicked()));
 	connect(this->btn_redraw, SIGNAL(clicked()), this, SLOT(redrawPlots())); 
 	connect(this->btn_VisPoints, SIGNAL(clicked()), this, SLOT(determineIntersectionAndFinalThreshold())); 
@@ -267,8 +266,7 @@ void AdaptiveThreshold::computeNormalizeAndComputeLokalPeaks(threshold_defs::Pea
 				//mininum peak
 
 				//bool updateResults = this->chckbx_LokalMinMax->isChecked();
-
-
+				
 				calculateIntermediateResults(m_resultingthrPeaks,m_maxPeakMaterialRanges, false);
 
 				QColor cl_green = QColor(255, 0, 0);
@@ -280,13 +278,12 @@ void AdaptiveThreshold::computeNormalizeAndComputeLokalPeaks(threshold_defs::Pea
 				this->chckbx_LokalMinMax->setEnabled(true);
 				this->writeResultText("\nAfter Normalisation\n");
 				this->writeResultText(m_resultingthrPeaks.resultsToString(false));
-		
+				runOnFirstTime = false; 
 			
 		}
 		else {
-			//OptionallyUpdateThrPeaks(this->chckbx_LokalMinMax->isChecked(), m_resultingthrPeaks);
-			calculateIntermediateResults(m_resultingthrPeaks, m_maxPeakMaterialRanges, this->chck_box_RecalcRange->isChecked());
-		
+			calculateIntermediateResults(m_resultingthrPeaks, m_maxPeakMaterialRanges, this->chckbx_LokalMinMax->isChecked());
+			createVisualisation(m_paramRanges, m_resultingthrPeaks);
 		}
 		
 	}
@@ -761,120 +758,6 @@ void AdaptiveThreshold::updateSegmentationRange(bool updateRange)
 
 }
 
-void AdaptiveThreshold::buttonMinMaxClicked()
-{
-
-}
-
-void AdaptiveThreshold::myAction()
-{
-	m_thresCalculator.doubleTestSum();
-}
-
-void AdaptiveThreshold::aTestAction_2()
-{
-	DEBUG_LOG("TestAction_2 is fired"); 
-	//this->textEdit->append(m_thresCalculator.testPrintVector());
-	/*intersection::XYLine aLine(-2.72, 2.04, 2.2, 4.66);
-	intersection::XYLine bLine(-0.72, 3.76, 3.44, -1.68);*/
-
-	/*intersection::XYLine aLine(2, 2, 6, 2);
-	intersection::XYLine bLine(4, 3, 6.72, -0.1);
-	intersection::XYLine cLine(2.92, 3.2, 4.8, -2.34);
-	intersection::XYLine dLine(4.78, 5.02, 10.7, 2.78);*/
-
-	/*QVector<intersection::XYLine> lines; 
-	lines.push_back(bLine);
-	lines.push_back(cLine);
-	lines.push_back(dLine);
-	*/
-	
-	/*
-	*
-
-	C= (12.96,-5.64)
-	D= (14,-5)
-	E= (14.9,-4.46)
-	F= (15.38,-2.94)
-	G= (17.18,-3.54)
-	H= (18,-3)
-	I= (19.2,-2.68)
-	J= (19.64,-1.66)
-	*/
-	
-	/*std::vector<double> xvals = { 12.96 ,14.0,14.9,15.38, 17.18, 18,19.2,19.64 };
-	std::vector<double> yvals = { -5.64,-5,-4.46, -2.94, -3.54,-3,-2.68,-1.66 };*/
-
-
-	/*std::vector<double> xvals{ 14.9,15.38,17.18 };
-	std::vector<double> yvals{ -4.46 ,-2.94 ,-3.54 };
-
-
-	DEBUG_LOG(QString("size x, size y %1 %2").arg(xvals.size()).arg(yvals.size())); 
-	threshold_defs::ParametersRanges rangesPar(xvals, yvals);*/
-	//A= (8.32,-6.36)
-	//B = (28.88, 1.28)
-
-	//F = (15.38, -2.94)
-	//G = (17.18, -3.54)
-	
-
-	std::vector<double> xvals ={ 15.38 , 17.18, 14.9, 15.38 };
-	std::vector<double>yvals = { -2.94 ,-3.54,-4.46, -2.94 };
-
-	threshold_defs::ParametersRanges rangesPar(xvals, yvals);
-
-	intersection::XYLine bLine(15.38, -2.94, 17.18, -3.54); //kurve l FG
-	intersection::XYLine aLIne(8.32, -6.36,28.88,1.28); //kurve k EF
-	intersection::XYLine cLine(14.9, -4.46, 14.9, -2.94);
-
-
-	QPointF tmp;
-	//aLIne.calulateInterSection(cLine, &tmp); //OK //ok cline
-
-	auto points = aLIne.intersectionLineWithRange(rangesPar);
-//	aLine.intersectWithLines(lines);*/
-	///auto points = aLine.intersectionPoints();
-	for(const QPointF &tmp : points){
-		if (!tmp.isNull()) textEdit->append(QString("intersection %1 %2").arg(tmp.x()).arg(tmp.y()));
-		else textEdit->append("No intersection");
-	
-	}
-	
-
-}
-
-void AdaptiveThreshold::sortTestAction()
-{
-	m_thresCalculator.testSort(); 
-}
-
-void AdaptiveThreshold::aTestAction()
-{
-	DEBUG_LOG("ATestAction is controlled");
-
-	std::vector<double> v_inRange = { 2.005, 1,0.1,2.0001, 0, 0, 8 , 4, 10, 7, 12 };
-	//								1	2	3		4	5	6	7	8
-	std::vector<double> v_elements = { 0, 100, 200, 300, 400, 500, 600,700,800, 900, 1000 };
-	threshold_defs::ParametersRanges outputRanges;
-	m_thresCalculator.testSpecifyRange(v_inRange, v_elements,outputRanges);
-	QScatterSeries *testSeries = ChartVisHelper::createScatterSeries(outputRanges); 
-	this->addSeries(testSeries, false); 
-
-}
-
-void AdaptiveThreshold::AnotherAction()
-{
-	DEBUG_LOG("Another Action fired"); 
-
-	std::vector<double> vec_x = { 1, 2, 3, 4,8};
-	std::vector<double> vec_y = { 100, 117, 120, 110, 120 };
-	QLineSeries* mySeries = ChartVisHelper::createLineSeries(vec_x, vec_y); 
-	this->initAxes(0, 10, 90, 100, false);
-	this->addSeries(mySeries, false); 
-	QColor color = QColor(0, 255, 0); 
-	mySeries->setColor(color); 
-}
 
 void AdaptiveThreshold::setDefaultMinMax(double xMIn, double xMax, double yMin, double yMax)
 {
