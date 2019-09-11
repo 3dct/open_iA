@@ -48,7 +48,7 @@ public:
 	thrMinMax.PeakMinXThreshold(x_min);
 	thrMinMax.LokalMaxPeakThreshold_X(x_max);
 	*/
-	threshold_defs::ThresMinMax calculateMinMax(const threshold_defs::ParametersRanges& inRanges) const;
+	threshold_defs::ThresMinMax calculateLocalePeaks(const threshold_defs::ParametersRanges& inRanges) const;
 
 	//iso 50 gray value between material peak and air peak
 	/*max peak detection

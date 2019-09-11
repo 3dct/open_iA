@@ -72,6 +72,8 @@ public:
 		return this->m_freqValsY; 
 	}
 
+
+	//iso 50 - grey value between air peak and material peak
 	void determinIso50(const threshold_defs::ParametersRanges& inRanges, 
 		threshold_defs::ThresMinMax& inVals);
 
@@ -119,8 +121,8 @@ public:
 	double GetResultingThreshold() const { return m_thresResults.DeterminedThreshold(); }
 	void SetResultingThreshold(double val) { m_thresResults.DeterminedThreshold(val) ;  }
 
-
-	void performNormalisation(threshold_defs::ParametersRanges& ranges, double xMin, double xMax) {
+	//normalize grey values by min max (min = 0, max = 1)
+	void performGreyThresholdNormalisation(threshold_defs::ParametersRanges& ranges, double xMin, double xMax) {
 		m_calcHelper.PeakgreyThresholdNormalization(ranges, xMin, xMax);
 	}
 

@@ -29,7 +29,8 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 {
 	try
 	{
-
+		//perform determination of threshold from ui
+		//perform segmentation
 	//TODO probably use shared pointer
 		AdaptiveThreshold dlg_thres;
 		

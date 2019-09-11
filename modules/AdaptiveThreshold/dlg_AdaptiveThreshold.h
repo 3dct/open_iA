@@ -78,7 +78,15 @@ private slots:
 
 		void computePeaksAndNormalize(threshold_defs::PeakRanges& ranges);
 
-		void OptionallyUpdateThrPeaks(bool selectedData, threshold_defs::ThresMinMax& thrPeaks);
+		void peakNormalization(threshold_defs::ParametersRanges& maxPeakMaterialRanges, threshold_defs::PeakRanges& ranges, threshold_defs::ThresMinMax& resultingthrPeaks);
+
+		void visualizeIntermediateResults(threshold_defs::ThresMinMax& resultingthrPeaks);
+
+		void calculateIntermediateResults(threshold_defs::ThresMinMax& resultingthrPeaks, threshold_defs::ParametersRanges maxPeakMaterialRanges);
+
+		threshold_defs::ThresMinMax determineLocalPeaks(threshold_defs::PeakRanges& ranges, threshold_defs::ThresMinMax resultingthrPeaks);
+
+		
 
 		void assignValuesToField(threshold_defs::ThresMinMax& thrPeaks);
 
@@ -111,7 +119,8 @@ private slots:
 		
 
 private:
-	//void PerformSegmentation(double resThres);
+	void OptionallyUpdateThrPeaks(bool selectedData, threshold_defs::ThresMinMax& thrPeaks);
+	
 	void DetermineGraphRange();
 	void prepareAxis(QValueAxis *axis, const QString &title, double min, double max, uint ticks, axisMode mode);
 	void generateSampleData(bool addserries);
@@ -160,6 +169,10 @@ private:
 	threshold_defs::MovingFreqs allMovingfreqs; 
 	ThesholdCalculator m_thresCalculator; 
 	threshold_defs::GraphRange m_graphValuesScope; 
+
+	threshold_defs::ParametersRanges m_NormalizedGlobalValueRangeXY;
+	bool updateValuesChecked = false; 
+
 
 	Loader m_seriesLoader; 
 

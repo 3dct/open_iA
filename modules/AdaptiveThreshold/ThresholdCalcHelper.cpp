@@ -75,7 +75,7 @@ threshold_defs::ThresIndx ThresholdCalcHelper::findIndex(const std::vector<doubl
 
 }
 
-threshold_defs::ThresMinMax ThresholdCalcHelper::calculateMinMax(const threshold_defs::ParametersRanges& inRanges) const
+threshold_defs::ThresMinMax ThresholdCalcHelper::calculateLocalePeaks(const threshold_defs::ParametersRanges& inRanges) const
 {
 	double y_min = 0;
 	double y_max = 0;

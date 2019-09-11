@@ -59,6 +59,14 @@ namespace threshold_defs {
 		}
 
 
+		void clearElemems() {
+			x_vals.clear(); 
+			y_vals.clear(); 
+			x_vals.reserve(1000);
+			y_vals.reserve(1000); 
+		
+		}
+
 		const std::vector<double>& getXRange() const {
 			return x_vals;
 		}

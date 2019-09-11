@@ -61,6 +61,8 @@ void ImageProcessingHelper::prepareFilter(double greyThresholdLower, double grey
 		throw std::invalid_argument("Change order of values");
 	}
 
+	DEBUG_LOG(QString("Using values for segmentation %1 %2 ").arg(greyThresholdLower).arg(greyThresholdUpper));
+
 	iAConnector con; //image reingeben
 
 	con.setImage(m_childData->imageData());
