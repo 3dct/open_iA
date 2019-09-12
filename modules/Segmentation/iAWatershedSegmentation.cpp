@@ -93,6 +93,7 @@ void morph_watershed(iAFilter* filter, QMap<QString, QVariant> const & parameter
 	filter->progress()->observe( mWSFilter );
 	mWSFilter->Update();
 	filter->addOutput( castImageTo<unsigned long>(mWSFilter->GetOutput()) );
+
 }
 
 IAFILTER_CREATE(iAMorphologicalWatershed)
