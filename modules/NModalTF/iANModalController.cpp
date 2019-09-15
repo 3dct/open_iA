@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #include "iANModalController.h"
 
-#include "iANModalObjects.h"
-
 #include "iALabellingAttachment.h"
 #include "dlg_labels.h"
 
@@ -63,6 +61,7 @@ iANModalController::iANModalController(MdiChild *mdiChild) :
 		m_dlg_labels = new dlg_labels(mdiChild, false);
 		mdiChild->splitDockWidget(mdiChild->logDockWidget(), m_dlg_labels, Qt::Vertical);
 	}
+	m_dlg_labels->setSeedsTracking(true);
 
 	connect(mdiChild, SIGNAL(histogramAvailable()), this, SLOT(onHistogramAvailable()));
 }
@@ -349,23 +348,97 @@ void iANModalController::resetTf() {
 
 }
 
+void iANModalController::updateLabel(iANModalLabel label) {
+	auto list = QList<iANModalLabel>();
+	list.append(label);
+	updateLabels(list);
+}
+
+void iANModalController::updateLabels(QList<iANModalLabel> labelsList) {
+	auto labels = QVector<iANModalLabel>(m_maxLabelId + 1);
+	auto used = QVector<bool>(m_maxLabelId + 1);
+	used.fill(false);
+	for (auto label : labelsList) {
+		int id = label.id;
+		assert(id >= 0);
+		if (id <= m_maxLabelId) {
+			labels[id] = label;
+			used[id] = true;
+		}
+	}
+	for (auto seed : m_seeds) {
+		if (used[seed.labelId]) {
+			auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
+			auto colorTf = modality->transfer()->colorTF();
+			auto opacityTf = modality->transfer()->opacityTF();
+
+			auto label = labels[seed.labelId];
+			auto c = label.remover ? NMODAL_COLOR_REMOVER : label.color;
+			auto o = label.remover ? NMODAL_OPACITY_REMOVER : label.opacity;
+
+			colorTf->RemovePoint(seed.scalar);
+			colorTf->AddRGBPoint(seed.scalar, c.redF(), c.greenF(), c.blueF());
+
+			opacityTf->RemovePoint(seed.scalar);
+			opacityTf->AddPoint(seed.scalar, o);
+		}
+	}
+}
+
 void iANModalController::addSeeds(QList<iANModalSeed> seeds, iANModalLabel label) {
 	for (auto seed : seeds) {
 		auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
 		auto colorTf = modality->transfer()->colorTF();
 		auto opacityTf = modality->transfer()->opacityTF();
-		double scalar = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
-
-		if (m_seeds.contains(seed)) {
-			colorTf->RemovePoint(scalar);
-			opacityTf->RemovePoint(scalar);
+		
+		double scalar;
+		auto ite = m_seeds.constFind(seed);
+		if (ite != m_seeds.constEnd()) {
+			colorTf->RemovePoint(seed.scalar);
+			opacityTf->RemovePoint(seed.scalar);
+			scalar = ite->scalar;
+		} else {
+			scalar = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
 		}
 
-		auto c = label.color;
-		colorTf->AddRGBPoint(scalar, c.redF(), c.greenF(), c.blueF());
-		opacityTf->AddPoint(scalar, label.opacity);
+		seed.labelId = label.id;
+		seed.scalar = scalar;
+
+		auto c = label.remover ? NMODAL_COLOR_REMOVER : label.color;
+		auto o = label.remover ? NMODAL_OPACITY_REMOVER : label.opacity;
+		colorTf->AddRGBPoint(seed.scalar, c.redF(), c.greenF(), c.blueF());
+		opacityTf->AddPoint(seed.scalar, o);
 
 		m_seeds.insert(seed);
+	}
+	if (label.id > m_maxLabelId) {
+		m_maxLabelId = label.id;
+	}
+}
+
+void iANModalController::removeSeeds(QList<iANModalSeed> seeds) {
+	for (auto seed : seeds) {
+		if (m_seeds.remove(seed)) {
+			auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
+			auto colorTf = modality->transfer()->colorTF();
+			auto opacityTf = modality->transfer()->opacityTF();
+			//double scalar = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
+			colorTf->RemovePoint(seed.scalar);
+			opacityTf->RemovePoint(seed.scalar);
+		}
+	}
+}
+
+void iANModalController::removeSeeds(int labelId) {
+	for (auto seed : m_seeds) {
+		if (seed.labelId == labelId) {
+			auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
+			auto colorTf = modality->transfer()->colorTF();
+			auto opacityTf = modality->transfer()->opacityTF();
+			colorTf->RemovePoint(seed.scalar);
+			opacityTf->RemovePoint(seed.scalar);
+			m_seeds.remove(seed);
+		}
 	}
 }
 

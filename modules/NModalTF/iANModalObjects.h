@@ -24,14 +24,27 @@
 #include <QColor>
 #include <QList>
 
+static const QColor NMODAL_COLOR_REMOVER = QColor::fromRgb(0, 0, 0);
+static const float NMODAL_OPACITY_REMOVER = 0.0f;
+
 struct iANModalSeed {
-	iANModalSeed(int X, int Y, int Z, int oiid)//, double s)
-		: x(X), y(Y), z(Z), overlayImageId(oiid)//, scalar(s)
+
+	friend class iANModalController;
+
+	iANModalSeed(int X, int Y, int Z, int oiid)
+		: x(X), y(Y), z(Z), overlayImageId(oiid), labelId(-1), scalar(-1)
 	{}
+	//iANModalSeed(int X, int Y, int Z, int oiid, int lid, double s)
+	//	: x(X), y(Y), z(Z), overlayImageId(oiid), labelId(lid), scalar(s)
+	//{}
 	int x;
 	int y;
 	int z;
 	int overlayImageId;
+
+private:
+	int labelId;
+	double scalar;
 };
 
 inline bool operator==(const iANModalSeed& i1, const iANModalSeed& i2)
@@ -46,14 +59,24 @@ inline uint qHash(const iANModalSeed& key, uint seed)
 
 struct iANModalLabel {
 	iANModalLabel() :
-		id(-1), opacity(0.0f), remover(false)
+		id(-1), remover(false), opacity(0.0f)
 	{}
-	iANModalLabel(int i, QString n, QColor c)
-		: id(i), name(n), color(c), opacity(1.0f), remover(false)
+	iANModalLabel(int i, QString n, bool r, QColor c, float o)
+		: id(i), name(n), remover(r), color(c), opacity(o)
 	{}
 	int id;
 	QString name;
+	bool remover;
 	QColor color;
 	float opacity;
-	bool remover;
 };
+
+inline bool operator==(const iANModalLabel& i1, const iANModalLabel& i2)
+{
+	return i1.id == i2.id;
+}
+
+inline uint qHash(const iANModalLabel& key, uint seed)
+{
+	return qHash(key.id, seed);
+}

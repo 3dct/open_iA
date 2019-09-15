@@ -198,6 +198,15 @@ namespace
 		item->setData(overlayImageId, Qt::UserRole + 4);
 		return item;
 	}
+	inline QList<iALabel> createLabelsList(QList<QSharedPointer<iALabel>> labelPtrs)
+	{
+		auto labels = QList<iALabel>();
+		for (auto labelPtr : labelPtrs)
+		{
+			labels.append(*labelPtr.data());
+		}
+		return labels;
+	}
 }
 
 void dlg_labels::rendererClicked(int x, int y, int z, iASlicer *slicer)
@@ -351,6 +360,7 @@ int dlg_labels::addLabelItem(QString const & labelText)
 	m_itemModel->appendRow(newRow);
 	auto label = QSharedPointer<iALabel>(new iALabel(getNextLabelId(), labelText, color));
 	m_labels.append(label);
+	newItem->setData(m_labels.size() - 1, Qt::UserRole + 1); // index of label corresponding to this row
 	emit labelAdded(*label);
 	return newItem->row();
 }
@@ -372,9 +382,12 @@ void dlg_labels::recolorItems()
 {
 	for (int row = 0; row < m_itemModel->rowCount(); ++row) {
 		QColor color = m_colorTheme->color(row);
-		m_itemModel->item(row)->setData(color, Qt::DecorationRole);
-		emit labelColorChanged(*m_labels[row], color);
+		auto item = m_itemModel->item(row);
+		item->setData(color, Qt::DecorationRole);
+		int i = item->data(Qt::UserRole + 1).toInt();
+		m_labels[i]->color = color;
 	}
+	emit labelsColorChanged(createLabelsList(m_labels));
 }
 
 void dlg_labels::updateChannels() {
@@ -481,7 +494,11 @@ void dlg_labels::removeSeed(int x, int y, int z, iASlicer *slicer)
 {
 	int id = m_mapSlicer2data.value(slicer)->overlayImageId;
 	auto image = m_mapId2image.value(id)->image;
-	int labelRow = static_cast<int>(image->GetScalarComponentAsFloat(x, y, z, 0));
+	int labelRow = static_cast<int>(image->GetScalarComponentAsFloat(x, y, z, 0)) - 1;
+	if (labelRow < 0) {
+		return;
+	}
+
 	auto label = m_labels[labelRow];
 	
 	drawPixel<LabelPixelType>(image, x, y, z, 0);
@@ -943,6 +960,10 @@ void dlg_labels::clear()
 	}
 	updateChannels();
 	m_itemModel->clear();
+	for (auto label : m_labels) {
+		emit labelRemoved(*label);
+	}
+	m_labels.clear();
 }
 
 QString const & dlg_labels::fileName()

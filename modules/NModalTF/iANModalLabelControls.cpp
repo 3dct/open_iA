@@ -25,6 +25,7 @@
 #include <QLabel>
 #include <QPalette>
 #include <QSlider>
+#include <QCheckBox>
 #include <QGridLayout>
 
 namespace {
@@ -35,12 +36,6 @@ namespace {
 		label->setPalette(palette);
 	}
 	const static int SLIDER_MAX = 100;
-	inline QSlider* createSlider() {
-		QSlider* slider = new QSlider(Qt::Orientation::Horizontal);
-		slider->setMinimum(0);
-		slider->setMaximum(SLIDER_MAX);
-		return slider;
-	}
 	inline void setOpacity(QSlider* slider, float opacityF) {
 		int opacity = opacityF * SLIDER_MAX;
 		slider->setValue(opacity);
@@ -100,17 +95,30 @@ float iANModalLabelControls::opacity(int row) {
 	return getOpacity(m_rows[row].opacity);
 }
 
+bool iANModalLabelControls::remover(int row) {
+	assert(containsLabel(row));
+	return m_rows[row].remover->isChecked();
+}
+
 void iANModalLabelControls::addRow(int rowIndex, iANModalLabel label, float opacity) {
 	assert(rowIndex <= m_layout->rowCount());
+	int labelId = label.id;
+
+	QCheckBox* cbRemover = new QCheckBox("Exclude");
+	connect(cbRemover, &QCheckBox::stateChanged, this, [this, labelId]() { emit labelRemoverStateChanged(labelId); });
 
 	QLabel *lName = new QLabel(label.name);
 
 	QLabel *lColor = new QLabel();
 	setLabelColor(lColor, label.color);
 
-	QSlider *sOpacity = createSlider();
+	QSlider* sOpacity = new QSlider(Qt::Orientation::Horizontal);
+	sOpacity->setMinimum(0);
+	sOpacity->setMaximum(SLIDER_MAX);
 	setOpacity(sOpacity, opacity);
+	connect(sOpacity, &QSlider::valueChanged, this, [this, labelId]() { emit labelOpacityChanged(labelId); });
 
+	m_layout->addWidget(cbRemover, rowIndex, REMOVER);
 	m_layout->addWidget(lName, rowIndex, NAME);
 	m_layout->addWidget(lColor, rowIndex, COLOR);
 	m_layout->addWidget(sOpacity, rowIndex, OPACITY);
@@ -118,7 +126,7 @@ void iANModalLabelControls::addRow(int rowIndex, iANModalLabel label, float opac
 	if (rowIndex >= m_rows.size()) {
 		m_rows.resize(rowIndex + 1);
 	}
-	m_rows[rowIndex] = Row(rowIndex, lName, lColor, sOpacity);
+	m_rows[rowIndex] = Row(rowIndex, cbRemover, lName, lColor, sOpacity);
 }
 
 void iANModalLabelControls::updateRow(int rowIndex, iANModalLabel label) {
@@ -126,5 +134,6 @@ void iANModalLabelControls::updateRow(int rowIndex, iANModalLabel label) {
 	Row row = m_rows[rowIndex];
 	row.name->setText(label.name);
 	setLabelColor(row.color, label.color);
-	//setOpacity(row.opacity, label.opacity);
+	setOpacity(row.opacity, label.opacity);
+	row.remover->setChecked(label.remover);
 }

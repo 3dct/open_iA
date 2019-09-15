@@ -80,7 +80,7 @@ signals:
 	void seedsRemoved(QList<iASeed>);
 	void labelAdded(iALabel);
 	void labelRemoved(iALabel);
-	void labelColorChanged(iALabel, QColor);
+	void labelsColorChanged(QList<iALabel>);
 
 public slots:
 	void rendererClicked(int, int, int, iASlicer*);

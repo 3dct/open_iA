@@ -21,14 +21,11 @@
 #pragma once
 
 #include "iALabellingObjects.h"
+#include "iANModalObjects.h"
 
 #include <QWidget>
 #include <QList>
 
-struct iANModalLabel;
-
-class iANModalSeed;
-class iANModalLabel;
 class iANModalController;
 class iANModalLabelControls;
 class iASlicer;
@@ -52,7 +49,7 @@ private:
 
 	QLabel *m_labelModalityCount;
 
-	QHash<int, iANModalLabel> m_labels;
+	QMap<int, iANModalLabel> m_labels;
 
 private slots:
 	void onButtonRefreshModalitiesClicked();
@@ -63,7 +60,11 @@ private slots:
 	//void onModalitiesChanged();
 
 	void onSeedsAdded(QList<iASeed>);
+	void onSeedsRemoved(QList<iASeed>);
 	void onLabelAdded(iALabel);
 	void onLabelRemoved(iALabel);
-	void onLabelColorChanged(iALabel);
+	void onLabelsColorChanged(QList<iALabel>);
+
+	void onLabelOpacityChanged(int labelId);
+	void onLabelRemoverStateChanged(int labelId);
 };

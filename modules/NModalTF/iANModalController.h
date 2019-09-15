@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iANModalObjects.h"
+
 #include <vtkSmartPointer.h>
 
 #include <QString>
@@ -27,8 +29,6 @@
 #include <QColor>
 #include <QSharedPointer>
 
-struct iANModalSeed;
-struct iANModalLabel;
 class iAModality;
 class iASlicer;
 class dlg_labels;
@@ -53,7 +53,11 @@ public:
 	bool setModalities(QList<QSharedPointer<iAModality>> modalities);
 	void reinitialize();
 
-	void addSeeds(QList<iANModalSeed> seeds, iANModalLabel label);
+	void updateLabel(iANModalLabel);
+	void updateLabels(QList<iANModalLabel>);
+	void addSeeds(QList<iANModalSeed>, iANModalLabel);
+	void removeSeeds(QList<iANModalSeed>);
+	void removeSeeds(int labelId);
 
 	void update();
 
@@ -80,6 +84,8 @@ private:
 	uint m_mainSlicerChannel_nModal;
 
 	QSet<iANModalSeed> m_seeds;
+	int m_maxLabelId = -1;
+
 	void resetTf();
 
 	void applyVolumeSettings();

@@ -30,6 +30,7 @@ struct iANModalLabel;
 class QGridLayout;
 class QLabel;
 class QSlider;
+class QCheckBox;
 
 class iANModalLabelControls : public QWidget {
 	Q_OBJECT
@@ -43,21 +44,24 @@ public:
 	bool containsLabel(int row);
 
 	float opacity(int labelId);
+	bool remover(int labelId);
 
 private:
 
 	enum Column {
-		NAME = 0,
-		COLOR = 1,
-		OPACITY = 2
+		REMOVER = 0,
+		NAME = 1,
+		COLOR = 2,
+		OPACITY = 3
 	};
 
 	struct Row {
 		Row() {}
-		Row(int _row, QLabel *_name, QLabel *_color, QSlider *_opacity) : 
-			row(_row), name(_name), color(_color), opacity(_opacity)
+		Row(int _row, QCheckBox *_remover, QLabel *_name, QLabel *_color, QSlider *_opacity) : 
+			row(_row), remover(_remover), name(_name), color(_color), opacity(_opacity)
 		{}
 		int row = -1;
+		QCheckBox* remover = nullptr;
 		QLabel *name = nullptr;
 		QLabel *color = nullptr;
 		QSlider *opacity = nullptr;
@@ -74,5 +78,6 @@ private:
 
 signals:
 	void labelOpacityChanged(int labelId);
+	void labelRemoverStateChanged(int labelId);
 
 };
