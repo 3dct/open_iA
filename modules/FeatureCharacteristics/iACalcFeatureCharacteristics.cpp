@@ -28,11 +28,13 @@
 
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkLabelGeometryImageFilter.h>
+#include <itkLabelStatisticsImageFilter.h>
 
 #include <vtkImageData.h>
 #include <vtkMath.h>
 
-template<class T> void calcFeatureCharacteristics_template( iAConnector *image, iAProgress* progress, QString pathCSV, bool feretDiameter )
+template<class T> void calcFeatureCharacteristics_template( iAConnector *image, iAProgress* progress, QString pathCSV, bool feretDiameter, 
+	bool CalculateAdvancedChars, bool calculateRoundness )
 {
 	// Cast iamge to type long
 	typedef itk::Image< T, DIM > InputImageType;
@@ -85,8 +87,15 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 		<< "VoxDimY" << ','
 		<< "VoxDimZ" << ','
 		<< "MajorLength" << ','
-		<< "MinorLength" << ','
-		<< '\n';
+		<< "MinorLength" << ',';
+
+		if (CalculateAdvancedChars) {
+			fout << "Elongation" << ','
+				<< "Perimeter" << ','
+				<< "EquivalentSphericalRadius" << ','
+				<< "MiddleAxisLength" << ",";
+		}
+		fout << '\n';
 
 	// Initalisation of itk::LabelGeometryImageFilter for calculating pore parameters
 	typedef itk::LabelGeometryImageFilter<LongImageType> LabelGeometryImageFilterType;
@@ -107,7 +116,7 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 	typedef itk::LabelImageToShapeLabelMapFilter<LongImageType, LabelMapType> I2LType;
 	typename I2LType::Pointer i2l = I2LType::New();
 	i2l->SetInput( longImage );
-	i2l->SetComputePerimeter( false );
+	i2l->SetComputePerimeter(true /*false */);
 	i2l->SetComputeFeretDiameter( feretDiameter );
 	i2l->Update();
 
@@ -121,6 +130,8 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 		typename LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
 		if ( labelValue == 0 )	// label 0 = backround
 			continue;
+
+		
 
 		std::vector<double> eigenvalue( 3 );
 		std::vector<double> eigenvector( 3 );
@@ -208,10 +219,31 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 		The feret diameter is the diameter of circumscribing circle. So this measure has a maximum of 1.0 when the object is a perfect circle.
 		http://public.kitware.com/pipermail/insight-developers/2011-April/018466.html */
 		
-		if ( labelObject->GetFeretDiameter() == 0 )
-			labelObject->SetRoundness( 0.0 );
+		
+		double elongation = 0; 
+		double perimeter = 0; 
+		double equivSphericalRadius = 0; 
+		double secondAxisLengh = 0; 
+
+		if (CalculateAdvancedChars)
+		{
+
+			elongation = labelObject->GetElongation(); //largest axis / longest axis
+			perimeter = labelObject->GetPerimeter();
+			secondAxisLengh = 4 * sqrt(eigenvalue[1]); 
+			//labelObject->GetPerimeterOnBorderRatio()
+			//double equiVEllipsoidDiameter = labelObject->GetEquivalentEllipsoidDiameter();
+			equivSphericalRadius = labelObject->GetEquivalentSphericalRadius();
+
+		}
+
+		if (labelObject->GetFeretDiameter() == 0) {
+			if(!calculateRoundness)
+				labelObject->SetRoundness(0.0);
+		}
 		else
-			labelObject->SetRoundness( labelObject->GetEquivalentSphericalRadius() / ( labelObject->GetFeretDiameter() / 2.0 ) );
+			labelObject->SetRoundness( labelObject->GetEquivalentSphericalRadius() / ( labelObject->GetFeretDiameter() / 2.0 ) ); 
+
 
 		fout << labelValue << ','
 			<< x1 * spacing << ',' 	// unit = microns
@@ -235,7 +267,7 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 			<< ym * spacing << ',' 	// unit = microns
 			<< zm * spacing << ',' 	// unit = microns
 			//<< poresPtr->operator[]( it->first ).getShapeFactor() << ','	//no that correct -> see roundness
-			<< labelGeometryImageFilter->GetVolume( labelValue ) * pow( spacing, 3.0 ) << ','	// unit = microns^3
+			<< labelGeometryImageFilter->GetVolume(labelValue)* pow(spacing, 3.0) << ','	// unit = microns^3
 			<< labelObject->GetRoundness() << ','
 			<< labelObject->GetFeretDiameter() << ','	// unit = microns
 			<< labelObject->GetFlatness() << ','
@@ -243,11 +275,19 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 			<< dimY << ','		// unit = voxels
 			<< dimZ << ','		// unit = voxels
 			<< majorlength * spacing << ',' 	// unit = microns
-			<< minorlength * spacing << ',' 	// unit = microns
-			<< '\n';
+			<< minorlength * spacing << ','; 	// unit = microns
+			
+		if (CalculateAdvancedChars) {
+			fout << elongation<< ','
+				<< perimeter*spacing << ','
+				<< equivSphericalRadius*spacing << ','
+				<< secondAxisLengh*spacing << ",";
+		}
+		fout << '\n';
 
 		progress->emitProgress(static_cast<int>(labelValue * 100 / allLabels.size()));
 	}
+		
 	fout.close();
 }
 
@@ -267,6 +307,8 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics():
 {
 	addParameter("Output CSV filename", FileNameSave, "");
 	addParameter("Calculate Feret Diameter", Boolean, false);
+	addParameter("Calculate roundness", Boolean, false); 
+	addParameter("Calculate advanced void parameters", Boolean, false);
 }
 
 IAFILTER_CREATE(iACalcFeatureCharacteristics)
@@ -275,6 +317,6 @@ void iACalcFeatureCharacteristics::performWork(QMap<QString, QVariant> const & p
 {
 	QString pathCSV = parameters["Output CSV filename"].toString();
 	ITK_TYPED_CALL(calcFeatureCharacteristics_template, inputPixelType(), input()[0], progress(), pathCSV,
-		parameters["Calculate Feret Diameter"].toBool());
+		parameters["Calculate Feret Diameter"].toBool(), parameters["Calculate advanced void parameters"].toBool(), parameters["Calculate roundness"].toBool());
 	addMsg(QString("Feature csv file created in: %1").arg(pathCSV));
 }
