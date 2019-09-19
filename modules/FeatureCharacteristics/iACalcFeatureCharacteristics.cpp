@@ -284,7 +284,7 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 		if (CalculateAdvancedChars) {
 			double sphericity = std::pow(vtkMath::Pi(), 1.0 / 3.0) * std::pow(6.0 * labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0), 2.0 / 3.0) / perimeter;
 			double surface = 4.0 * vtkMath::Pi() *std::pow(equivSphericalRadius/**spacing*/,2.0); 
-			double sphericalRaduisManually =std::pow(labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0) / (4.0 / 3.0 * vtkMath::Pi()), 1.0/3.0); 
+			double sphericalRaduisManually =std::pow(labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0) / (4.0 / 3.0 * vtkMath::Pi()), 1.0/3.0);  // Vsphere =  4/3*pI*r^3 
 			double ratioLongestToMiddle = majorlength / secondAxisLengh; 
 			fout << elongation << ','
 				<< perimeter/**spacing*/ << ','
