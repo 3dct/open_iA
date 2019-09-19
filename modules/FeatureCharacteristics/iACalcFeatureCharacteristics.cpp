@@ -94,6 +94,10 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 				<< "Perimeter" << ','
 				<< "EquivalentSphericalRadius" << ','
 				<< "MiddleAxisLength" << ",";
+				/*<< "Sphericity" << ","
+				<< "Surface " << ","
+				<< "RadiusManually" << ","
+				<< "RatioAxisLongToAxisMiddle"<<",";*/
 		}
 		fout << '\n';
 
@@ -228,9 +232,9 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 		if (CalculateAdvancedChars)
 		{
 
-			elongation = labelObject->GetElongation(); //largest axis / longest axis
+			elongation = labelObject->GetElongation(); //Ratio: largest axis / smallest axis
 			perimeter = labelObject->GetPerimeter();
-			secondAxisLengh = 4 * sqrt(eigenvalue[1]); 
+			secondAxisLengh = 4 * sqrt(eigenvalue[1]); //second prinzipal axis
 			//labelObject->GetPerimeterOnBorderRatio()
 			//double equiVEllipsoidDiameter = labelObject->GetEquivalentEllipsoidDiameter();
 			equivSphericalRadius = labelObject->GetEquivalentSphericalRadius();
@@ -278,10 +282,19 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 			<< minorlength * spacing << ','; 	// unit = microns
 			
 		if (CalculateAdvancedChars) {
-			fout << elongation<< ','
-				<< perimeter*spacing << ','
-				<< equivSphericalRadius*spacing << ','
-				<< secondAxisLengh*spacing << ",";
+			double sphericity = std::pow(vtkMath::Pi(), 1.0 / 3.0) * std::pow(6.0 * labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0), 2.0 / 3.0) / perimeter;
+			double surface = 4.0 * vtkMath::Pi() *std::pow(equivSphericalRadius/**spacing*/,2.0); 
+			double sphericalRaduisManually =std::pow(labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0) / (4.0 / 3.0 * vtkMath::Pi()), 1.0/3.0); 
+			double ratioLongestToMiddle = majorlength / secondAxisLengh; 
+			fout << elongation << ','
+				<< perimeter/**spacing*/ << ','
+				<< equivSphericalRadius/**spacing */ << ','
+				<< secondAxisLengh * spacing << ",";
+				//<< sphericity << "," //new
+				//<< surface << ","
+				//<< sphericalRaduisManually << ","
+				//<< ratioLongestToMiddle << ",";
+				
 		}
 		fout << '\n';
 
