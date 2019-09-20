@@ -94,10 +94,11 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 				<< "Perimeter" << ','
 				<< "EquivalentSphericalRadius" << ','
 				<< "MiddleAxisLength" << ",";
-				/*<< "Sphericity" << ","
-				<< "Surface " << ","
+				//<< "Sphericity" << ",";
+				/*<< "Surface " << ","
 				<< "RadiusManually" << ","
-				<< "RatioAxisLongToAxisMiddle"<<",";*/
+				<< "RatioAxisLongToAxisMiddle" << ","
+				<< "RatioMiddleToSmallest" << ",";*/
 		}
 		fout << '\n';
 
@@ -284,16 +285,19 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 		if (CalculateAdvancedChars) {
 			double sphericity = std::pow(vtkMath::Pi(), 1.0 / 3.0) * std::pow(6.0 * labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0), 2.0 / 3.0) / perimeter;
 			double surface = 4.0 * vtkMath::Pi() *std::pow(equivSphericalRadius/**spacing*/,2.0); 
-			double sphericalRaduisManually =std::pow(labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0) / (4.0 / 3.0 * vtkMath::Pi()), 1.0/3.0);  // Vsphere =  4/3*pI*r^3 
+			double sphericalRadiusManually =std::pow(labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0) / (4.0 / 3.0 * vtkMath::Pi()), 1.0/3.0);  // Vsphere =  4/3*pI*r^3 
 			double ratioLongestToMiddle = majorlength / secondAxisLengh; 
+			double ratioMiddleToSmallest = secondAxisLengh / minorlength; 
+
 			fout << elongation << ','
 				<< perimeter/**spacing*/ << ','
 				<< equivSphericalRadius/**spacing */ << ','
 				<< secondAxisLengh * spacing << ",";
 				//<< sphericity << "," //new
 				//<< surface << ","
-				//<< sphericalRaduisManually << ","
-				//<< ratioLongestToMiddle << ",";
+				//<< sphericalRadiusManually << ","
+				//<< ratioLongestToMiddle << ","
+				//<< ratioMiddleToSmallest << ",";
 				
 		}
 		fout << '\n';
