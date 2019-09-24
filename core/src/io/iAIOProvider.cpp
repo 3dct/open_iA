@@ -47,7 +47,7 @@ QString iAIOProvider::GetSupportedLoadFormats()
 		"PARS files (*.pars);;"
 		"Dicom Series (*.dcm);;"
 //		"NRRD files (*.nrrd *.nhdr);;"	// currently not supported as it reads as a itk::VectorImage, which we cannot convert to vtkImageData at the moment
-		"NIFTI Images (*.nia *.nii *.nii.gz *.hdr *.hdr.gz *.img *.img.gz);;""
+		"NIFTI Images (*.nia *.nii *.nii.gz *.hdr *.hdr.gz *.img *.img.gz);;"
 		"Olympus FluoView (*.oif);;"
 		"AmiraMesh (*.am);;"
 #ifdef USE_HDF5
