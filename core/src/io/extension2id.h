@@ -33,6 +33,7 @@ static mapQString2int fill_extensionToId()
 	m[""] = UNKNOWN_READER;
 	m["MHD"] = MHD_READER;
 	m["MHA"] = MHD_READER;
+	m["NII"] = MHD_READER;
 	m["STL"] = STL_READER;
 	m["RAW"] = RAW_READER;
 	m["VOL"] = RAW_READER;
