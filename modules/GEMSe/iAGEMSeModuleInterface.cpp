@@ -27,12 +27,40 @@
 #include <iAConsole.h>
 #include <iAModality.h>
 #include <iAModuleDispatcher.h>
+#include <iAProjectBase.h>
+#include <iAProjectRegistry.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 
 #include <QFileDialog>
 
 #include <cassert>
+
+
+
+namespace
+{
+	const QString GEMSeProjectID("FeatureScout");
+}
+
+class iAGEMSeProject : public iAProjectBase
+{
+public:
+	iAGEMSeProject()
+	{}
+	virtual ~iAGEMSeProject() override
+	{}
+	void loadProject(QSettings & projectFile) override {}
+	void saveProject(QSettings & projectFile) override {}
+	static QSharedPointer<iAProjectBase> create()
+	{
+		return QSharedPointer<iAGEMSeProject>::create();
+	}
+	void setOptions()
+	{
+	}
+private:
+};
 
 iAGEMSeModuleInterface::iAGEMSeModuleInterface():
 	m_toolbar(0)
@@ -42,6 +70,8 @@ void iAGEMSeModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
+
+	iAProjectRegistry::addProject<iAGEMSeProject>(GEMSeProjectID);
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, tr( "Image Ensembles" ), false );
 	
@@ -60,6 +90,9 @@ void iAGEMSeModuleInterface::StartGEMSe()
 	if (!m_mdiChild)
 		return;
 	AttachToMdiChild(m_mdiChild);
+	auto project = QSharedPointer<iAGEMSeProject>::create();
+	project->setChild(m_mdiChild);
+	m_mdiChild->addProject(GEMSeProjectID, project);
 }
 
 iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)

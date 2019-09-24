@@ -24,17 +24,47 @@
 #include "iAFiberCharData.h"
 #include "iAFiAKErController.h"
 
-#include "dlg_commoninput.h"
-#include "mainwindow.h"
+#include <dlg_commoninput.h>
+#include <iAProjectBase.h>
+#include <iAProjectRegistry.h>
+#include <mainwindow.h>
 
 #include <QAction>
 #include <QFileDialog>
 #include <QMdiSubWindow>
 
+namespace
+{
+	const QString FIAKERProjectID("FIAKER");
+}
+
+
+class iAFIAKERProject : public iAProjectBase
+{
+public:
+	iAFIAKERProject()
+	{}
+	virtual ~iAFIAKERProject() override
+	{}
+	void loadProject(QSettings & projectFile) override {}
+	void saveProject(QSettings & projectFile) override {}
+	static QSharedPointer<iAProjectBase> create()
+	{
+		return QSharedPointer<iAFIAKERProject>::create();
+	}
+	void setOptions(iACsvConfig config)
+	{
+		m_config = config;
+	}
+private:
+	iACsvConfig m_config;
+};
+
 void iAFiAKErModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
+	iAProjectRegistry::addProject<iAFIAKERProject>(FIAKERProjectID);
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * fiakerMenu = getMenuWithTitle(toolsMenu, tr("FiAKEr"), false);
 	QAction * actionFiAKEr = new QAction( "Open Results Folder", nullptr );
@@ -74,6 +104,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	double stepShift = dlg.getDblValue(1);
 	//cmbbox_Format->addItems(formatEntries);
 	m_mainWnd->addSubWindow(explorer);
+	auto project = QSharedPointer<iAFIAKERProject>::create();
 	explorer->start(path, configName, stepShift);
 }
 

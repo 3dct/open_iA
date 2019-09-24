@@ -2660,6 +2660,9 @@ void MdiChild::storeProject()
 		return;
 	if (projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
+		// TODO:
+		//   - also store open modalities
+		//   - work in background
 		QSettings projectFile(projectFileName, QSettings::IniFormat);
 		for (auto projectKey: m_projects.keys())
 		{
