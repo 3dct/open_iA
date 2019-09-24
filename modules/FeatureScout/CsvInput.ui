@@ -291,7 +291,7 @@
         <item row="7" column="3" colspan="2">
          <widget class="QCheckBox" name="cb_ContainsHeader">
           <property name="text">
-           <string>Contains header</string>
+           <string>Use custom header</string>
           </property>
          </widget>
         </item>

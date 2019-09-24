@@ -50,6 +50,11 @@ static mapQString2int fill_extensionToId()
 	m["PNG"] = MHD_READER;
 	m["BMP"] = MHD_READER;
 	m["PNG"] = MHD_READER;
+	m["NIA"] = MHD_READER;
+	m["NII"] = MHD_READER;
+	m["GZ"]  = MHD_READER;   // actually, only nii.gz and img.gz...
+	m["HDR"] = MHD_READER;
+	m["IMG"] = MHD_READER;
 	m["OIF"] = OIF_READER;
 	m["AM"] = AM_READER;
 	m["VTI"] = VTI_READER;
