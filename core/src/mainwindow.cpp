@@ -380,6 +380,7 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 					child->addProject(projectKey, project);
 			}
 		}
+		return;
 	}
 	// Todo: hook for plugins?
 	MdiChild *child = createMdiChild(false);
