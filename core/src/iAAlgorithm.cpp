@@ -37,7 +37,6 @@
 iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALogger * logger, QObject *parent )
 	: QThread( parent ),
 	m_isRunning(false),
-	m_elapsed(0),
 	m_filterName(fn),
 	m_image(idata),
 	m_polyData(p),
@@ -60,6 +59,7 @@ iAAlgorithm::~iAAlgorithm()
 
 void iAAlgorithm::run()
 {
+	Start();
 	try
 	{
 		getConnector()->setImage(getVtkImageData());
@@ -100,22 +100,16 @@ void iAAlgorithm::setImageData(vtkImageData* imgData)
 	m_image = imgData;
 }
 
-QDateTime iAAlgorithm::Start()
+void iAAlgorithm::Start()
 {
-	m_elapsed = 0;
 	m_time.start();
 	m_isRunning = true;
-	return QDateTime::currentDateTime();
 }
 
 int iAAlgorithm::Stop()
 {
-	if (m_isRunning)
-	{
-		m_isRunning = false;
-		m_elapsed = m_time.elapsed();
-	}
-	return m_elapsed;
+	m_isRunning = false;
+	return m_time.elapsed();
 }
 
 void iAAlgorithm::setup(QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l)

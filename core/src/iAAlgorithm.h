@@ -53,8 +53,8 @@ public:
 	iAAlgorithm( QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l, QObject *parent = nullptr );
 	virtual ~iAAlgorithm();
 
-	QDateTime Start(); //< Start counting the running time and set the start time
-	int Stop();        //< Calculate and get the elapsed time
+	void Start(); //< Start counting the running time and set the start time
+	int Stop();   //< Get the elapsed time since Start call
 
 	void setup(QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l );
 	void addMsg(QString txt);
@@ -106,7 +106,6 @@ protected:
 private:
 	bool m_isRunning;
 	QTime m_time;
-	int m_elapsed;
 	QString m_filterName;
 	vtkImageData *m_image;
 	vtkPolyData *m_polyData;
