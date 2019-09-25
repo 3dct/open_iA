@@ -36,6 +36,7 @@
 #include "iAProjectBase.h"
 #include "iAProjectRegistry.h"
 #include "iARenderer.h"
+#include "iASavableProject.h"
 #include "iASlicer.h"
 #include "iAToolsVTK.h"
 #include "iAXmlSettings.h"
@@ -1374,12 +1375,12 @@ void MainWindow::createRecentFileActions()
 
 void MainWindow::updateMenus()
 {
-	bool hasMdiChild = (activeMdiChild() != 0);
+	bool hasMdiChild = activeMdiChild();
 
 	actionSave->setEnabled(hasMdiChild);
 	actionSaveAs->setEnabled(hasMdiChild);
 	actionSaveImageStack->setEnabled(hasMdiChild);
-	actionSaveProject->setEnabled(hasMdiChild);
+	actionSaveProject->setEnabled(activeChild<iASavableProject>());
 	actionLoadSettings->setEnabled(hasMdiChild);
 	actionSaveSettings->setEnabled(hasMdiChild);
 	actionClose->setEnabled(hasMdiChild);
@@ -2115,10 +2116,10 @@ void MainWindow::childClosed()
 
 void MainWindow::saveProject()
 {
-	MdiChild * activeChild = activeMdiChild();
-	if (!activeChild)
+	iASavableProject * child = activeChild<iASavableProject>();
+	if (!child)
 		return;
-	activeChild->storeProject();
+	child->saveProject();
 }
 
 void MainWindow::loadArguments(int argc, char** argv)

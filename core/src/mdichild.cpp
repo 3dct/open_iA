@@ -2649,7 +2649,7 @@ void MdiChild::saveProject(QString const & fileName)
 	setCurrentFile(fileName);
 }
 
-void MdiChild::storeProject()
+void MdiChild::doSaveProject()
 {
 	QString projectFileName = QFileDialog::getSaveFileName(
 		QApplication::activeWindow(),
