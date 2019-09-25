@@ -25,6 +25,7 @@
 #include "iAFiAKErController.h"
 
 #include <dlg_commoninput.h>
+#include <iAModuleDispatcher.h>
 #include <iAProjectBase.h>
 #include <iAProjectRegistry.h>
 #include <mainwindow.h>
@@ -41,8 +42,16 @@ public:
 	{}
 	virtual ~iAFIAKERProject() override
 	{}
-	void loadProject(QSettings & projectFile) override {}
-	void saveProject(QSettings & projectFile) override {}
+	void loadProject(QSettings & projectFile, QString const & fileName) override
+	{
+		iAFiAKErModuleInterface * fiaker = m_mainWindow->getModuleDispatcher().GetModule<iAFiAKErModuleInterface>();
+		fiaker->setupToolBar();
+		iAFiAKErController::loadProject(m_mainWindow, projectFile, fileName);
+	}
+	//! not required at the moment, since this is currently done by
+	//! iAFiAKErController::doSaveProject overwriting iASavableProject::doSaveProject
+	void saveProject(QSettings & projectFile) override
+	{}
 	static QSharedPointer<iAProjectBase> create()
 	{
 		return QSharedPointer<iAFIAKERProject>::create();

@@ -43,3 +43,8 @@ void iAProjectBase::setChild(MdiChild* child)
 {
 	m_mdiChild = child;
 }
+
+void iAProjectBase::setMainWindow(MainWindow* mainWindow)
+{
+	m_mainWindow = mainWindow;
+}

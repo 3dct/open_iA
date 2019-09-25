@@ -41,7 +41,7 @@ QString iAIOProvider::GetSupportedLoadFormats()
 #ifdef USE_HDF5
 		"*.hdf5 *.h5 *.he5 *.mat "
 #endif
-		"*.vti "+ImageFormatExtensions+" *"+ProjectFileExtension+");;"
+		"*.vti "+ImageFormatExtensions+" *"+ProjectFileExtension+" *"+NewProjectFileExtension+");;"
 		+ MetaImages + VTKFiles +
 		"STL files (*.stl);;"
 		"VG Studio Scenes (*.vgi);;"

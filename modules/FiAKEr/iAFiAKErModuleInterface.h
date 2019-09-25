@@ -32,12 +32,12 @@ class iAFiAKErModuleInterface : public iAModuleInterface
 	Q_OBJECT
 public:
 	void Initialize();
+	void setupToolBar();
 private slots:
 	void startFiAKEr();
 	void loadFiAKErProject();
 	void toggleDockWidgetTitleBars();
 	void toggleSettings();
 private:
-	void setupToolBar();
 	iAFiAKErToolBar* m_toolbar = nullptr;
 };

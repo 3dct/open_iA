@@ -2378,6 +2378,11 @@ void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folde
 		return;
 	QSettings projectFile(fileName, QSettings::IniFormat);
 	projectFile.setIniCodec("UTF-8");
+	loadProject(mainWnd, projectFile, fileName);
+}
+
+void iAFiAKErController::loadProject(MainWindow* mainWnd, QSettings const & projectFile, QString const & fileName)
+{
 	auto dataFolder  = MakeAbsolute(QFileInfo(fileName).absolutePath(), projectFile.value(ProjectFileFolder, "").toString());
 	auto configName  = projectFile.value(ProjectFileFormat, "").toString();
 	auto stepShift   = projectFile.value(ProjectFileStepShift, 0).toDouble();

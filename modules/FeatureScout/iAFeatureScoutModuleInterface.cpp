@@ -56,7 +56,7 @@ public:
 	{}
 	virtual ~iAFeatureScoutProject() override
 	{}
-	void loadProject(QSettings & projectFile) override;
+	void loadProject(QSettings & projectFile, QString const & fileName) override;
 	void saveProject(QSettings & projectFile) override;
 	static QSharedPointer<iAProjectBase> create()
 	{
@@ -71,7 +71,7 @@ private:
 };
 
 
-void iAFeatureScoutProject::loadProject(QSettings & projectFile)
+void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const & fileName)
 {
 	m_config.load(projectFile, "CSVFormat");
 
@@ -82,7 +82,7 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile)
 		return;
 	}
 	m_config.curvedFiberFileName = projectFile.value("CurvedFileName").toString();
-	iAFeatureScoutModuleInterface * featureScout = m_mdiChild->mainWnd()->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
+	iAFeatureScoutModuleInterface * featureScout = m_mainWindow->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
 	featureScout->LoadFeatureScout(m_config, m_mdiChild);
 	QString layoutName = projectFile.value("Layout").toString();
 	if (!layoutName.isEmpty())

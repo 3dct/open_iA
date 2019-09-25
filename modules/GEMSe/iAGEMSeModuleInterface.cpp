@@ -50,7 +50,7 @@ public:
 	{}
 	virtual ~iAGEMSeProject() override
 	{}
-	void loadProject(QSettings & projectFile) override {}
+	void loadProject(QSettings & projectFile, QString const & fileName) override {}
 	void saveProject(QSettings & projectFile) override {}
 	static QSharedPointer<iAProjectBase> create()
 	{

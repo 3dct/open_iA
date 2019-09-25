@@ -356,10 +356,14 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 	}
 	else if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
-		MdiChild *child = createMdiChild(false);
-		child->show();
-		// TODO: pass in mdichild?
 		QSettings projectFile(fileName, QSettings::IniFormat);
+		projectFile.setIniCodec("UTF-8");
+		MdiChild *child = nullptr;
+		if (projectFile.value("UseMdiChild", false).toBool())
+		{
+			MdiChild *child = createMdiChild(false);
+			child->show();
+		}
 		auto registeredProjects = iAProjectRegistry::projectKeys();
 		auto projectFileGroups = projectFile.childGroups();
 		for (auto projectKey: registeredProjects)
@@ -367,11 +371,13 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 			if (projectFileGroups.contains(projectKey))
 			{
 				auto project = iAProjectRegistry::createProject(projectKey);
+				project->setMainWindow(this);
 				project->setChild(child);
 				projectFile.beginGroup(projectKey);
-				project->loadProject(projectFile);
+				project->loadProject(projectFile, fileName);
 				projectFile.endGroup();
-				child->addProject(projectKey, project);
+				if (child)
+					child->addProject(projectKey, project);
 			}
 		}
 	}

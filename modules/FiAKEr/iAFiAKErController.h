@@ -85,6 +85,7 @@ public:
 	void setCamPosition(int pos) override;
 	void doSaveProject() override;
 	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
+	static void loadProject(MainWindow* mainWnd, QSettings const & projectFile, QString const & fileName);
 	void toggleDockWidgetTitleBars();
 	void toggleSettings();
 	static const QString FIAKERProjectID;
