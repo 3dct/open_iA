@@ -36,6 +36,8 @@ class iASelectionProvider
 {
 public:
 	virtual std::vector<std::vector<size_t> > & selection() =0;
+protected:
+	~iASelectionProvider();
 };
 
 

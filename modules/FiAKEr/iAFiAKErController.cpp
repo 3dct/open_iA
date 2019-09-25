@@ -54,6 +54,7 @@
 #include "iATransferFunction.h"
 #include "iAVolumeRenderer.h"
 #include "iAVtkWidget.h"
+#include "io/iAIOProvider.h"
 #include "io/iAITKIO.h"
 #include "io/iAFileChooserWidget.h"
 #include "io/iAFileUtils.h"
@@ -169,6 +170,8 @@ public:
 	//! index where the plots for this result start
 	size_t startPlotIdx;
 };
+
+const QString iAFiAKErController::FIAKERProjectID("FIAKER");
 
 iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
 	m_renderManager(new iARendererManager()),
@@ -2321,6 +2324,28 @@ QString iAFiAKErController::resultName(size_t resultID) const
 	return QFileInfo(m_data->result[resultID].fileName).baseName();
 }
 
+void iAFiAKErController::doSaveProject()
+{
+	// somehow move that part out into the core?
+	// { e.g. into iASavableProject ?
+	QString fileName = QFileDialog::getSaveFileName(
+	QApplication::activeWindow(),
+		tr("Select Output File"),
+		m_data->folder,
+		iAIOProvider::NewProjectFileTypeFilter);
+	if (fileName.isEmpty())
+		return;
+
+	QSettings projectFile(fileName, QSettings::IniFormat);
+	projectFile.setIniCodec("UTF-8");
+	projectFile.beginGroup(FIAKERProjectID);
+	// }
+	saveProject(projectFile, fileName);
+	projectFile.endGroup();
+
+	addInteraction(QString("Saved as Project '%1'.").arg(fileName));
+}
+
 void iAFiAKErController::saveAnalysisClick()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, ModuleSettingsKey, m_data->folder, "FIAKER Project file (*.fpf);;");
@@ -2329,6 +2354,11 @@ void iAFiAKErController::saveAnalysisClick()
 	addInteraction(QString("Save Analysis as '%1'").arg(fileName));
 	QSettings projectFile(fileName, QSettings::IniFormat);
 	projectFile.setIniCodec("UTF-8");
+	saveProject(projectFile, fileName);
+}
+
+void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & fileName)
+{
 	projectFile.setValue(ProjectFileFolder, MakeRelative(QFileInfo(fileName).absolutePath(), m_data->folder));
 	projectFile.setValue(ProjectFileFormat, m_configName);
 	if (m_referenceID != NoResult)

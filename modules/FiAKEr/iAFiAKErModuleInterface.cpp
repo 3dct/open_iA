@@ -33,11 +33,6 @@
 #include <QFileDialog>
 #include <QMdiSubWindow>
 
-namespace
-{
-	const QString FIAKERProjectID("FIAKER");
-}
-
 
 class iAFIAKERProject : public iAProjectBase
 {
@@ -64,7 +59,7 @@ void iAFiAKErModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
-	iAProjectRegistry::addProject<iAFIAKERProject>(FIAKERProjectID);
+	iAProjectRegistry::addProject<iAFIAKERProject>(iAFiAKErController::FIAKERProjectID);
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * fiakerMenu = getMenuWithTitle(toolsMenu, tr("FiAKEr"), false);
 	QAction * actionFiAKEr = new QAction( "Open Results Folder", nullptr );

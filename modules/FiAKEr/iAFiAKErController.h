@@ -21,6 +21,7 @@
 #pragma once
 
 #include "iAChangeableCameraWidget.h"
+#include "iASavableProject.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 #include "iAVtkWidgetFwd.h"
 
@@ -63,6 +64,7 @@ class QGridLayout;
 class QLabel;
 class QListView;
 class QModelIndex;
+class QSettings;
 class QSlider;
 class QSpinBox;
 class QStandardItemModel;
@@ -71,7 +73,7 @@ class QTreeView;
 class QVBoxLayout;
 //class QWebEngineView;
 
-class iAFiAKErController : public QMainWindow, public iASelectionProvider, public iAChangeableCameraWidget
+class iAFiAKErController : public QMainWindow, public iASelectionProvider, public iAChangeableCameraWidget, public iASavableProject
 {
 	Q_OBJECT
 public:
@@ -81,9 +83,11 @@ public:
 	~iAFiAKErController() override;
 	std::vector<std::vector<size_t> > & selection() override;
 	void setCamPosition(int pos) override;
+	void doSaveProject() override;
 	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
 	void toggleDockWidgetTitleBars();
 	void toggleSettings();
+	static const QString FIAKERProjectID;
 signals:
 	void setupFinished();
 public slots:
@@ -167,6 +171,7 @@ private:
 	void updateRefDistPlots();
 	bool matchQualityVisActive() const;
 	void updateFiberContext();
+	void saveProject(QSettings & projectFile, QString  const & fileName);
 
 	QWidget* setupMain3DView();
 	QWidget* setupSettingsView();
