@@ -2664,6 +2664,7 @@ void MdiChild::doSaveProject()
 		//   - also store open modalities
 		//   - work in background
 		QSettings projectFile(projectFileName, QSettings::IniFormat);
+		projectFile.setIniCodec("UTF-8");
 		for (auto projectKey: m_projects.keys())
 		{
 			projectFile.beginGroup(projectKey);
