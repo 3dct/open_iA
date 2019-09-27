@@ -2380,7 +2380,10 @@ bool MdiChild::isVolumeDataLoaded() const
 	QString suffix = fileInfo().suffix();
 	int * extent = m_imageData->GetExtent();
 	return QString::compare(suffix, "STL", Qt::CaseInsensitive) != 0 &&
-		QString::compare(suffix, "VTK", Qt::CaseInsensitive) != 0 &&
+		// need better way to check that! at this point, modalities not set up yet,
+		// but .vtk files can contain both polydata and volumes!
+		// Maybe extent check is enough?
+		// QString::compare(suffix, "VTK", Qt::CaseInsensitive) != 0 &&
 		QString::compare(suffix, "FEM", Qt::CaseInsensitive) != 0 &&
 		extent[1] >= 0 && extent[3] >= 0 && extent[5] >= 0;
 }
