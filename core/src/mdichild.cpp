@@ -331,7 +331,7 @@ void MdiChild::enableRenderWindows()	// = image data available
 	// unless explicitly set otherwise)
 	m_reInitializeRenderWindows = true;
 
-	m_renderer->reInitialize(modality(0)->image(), m_polyData);
+	m_renderer->reInitialize(modalities()->size() > 0 ? modality(0)->image(): nullptr, m_polyData);
 
 	if (!isVolumeDataLoaded())
 		return;
