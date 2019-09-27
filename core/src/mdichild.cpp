@@ -455,15 +455,6 @@ bool MdiChild::setupLoadIO(QString const & f, bool isStack)
 	m_polyData->ReleaseData();
 	// TODO: insert plugin mechanism.
 	// - iterate over file plugins; if one returns a match, use it
-	if (QString::compare(m_fileInfo.suffix(), "STL", Qt::CaseInsensitive) == 0)
-	{
-		return m_ioThread->setupIO(STL_READER, f);
-	}else
-	if (QString::compare(m_fileInfo.suffix(), "VTK", Qt::CaseInsensitive) == 0)
-	{
-		return m_ioThread->setupIO(VTK_READER, f);
-	}
-	//m_imageData->ReleaseData();
 	QString extension = m_fileInfo.suffix();
 	extension = extension.toUpper();
 	const mapQString2int * ext2id = &extensionToId;
