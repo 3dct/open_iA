@@ -146,18 +146,28 @@ int mapVTKTypeStringToInt(QString const & vtkTypeString)
 	return -1;
 }
 
-int mapVTKTypeStringToSize(QString const & vtkTypeString)
+size_t mapVTKTypeStringToSize(QString const & vtkTypeString)
 {
-	if (vtkTypeString == "VTK_UNSIGNED_CHAR")  return sizeof(unsigned char);
-	if (vtkTypeString == "VTK_UNSIGNED_SHORT") return sizeof(unsigned short);
-	if (vtkTypeString == "VTK_FLOAT")          return sizeof(float);
-	if (vtkTypeString == "VTK_UNSIGNED_CHAR")  return sizeof(unsigned char);
-	if (vtkTypeString == "VTK_CHAR")           return sizeof(char);
-	if (vtkTypeString == "VTK_SHORT")          return sizeof(short);
-	if (vtkTypeString == "VTK_UNSIGNED_INT")   return sizeof(unsigned int);
-	if (vtkTypeString == "VTK_INT")            return sizeof(int);
-	if (vtkTypeString == "VTK_DOUBLE")         return sizeof(double);
-	return -1;
+	return mapVTKTypeToSize(mapVTKTypeStringToInt(vtkTypeString));
+}
+
+size_t mapVTKTypeToSize(int vtkType)
+{
+	switch (vtkType)
+	{
+	case VTK_UNSIGNED_CHAR: return sizeof(unsigned char);
+	case VTK_SIGNED_CHAR:	// intentional fall-through
+	case VTK_CHAR:			return sizeof(char);
+	case VTK_UNSIGNED_SHORT:return sizeof(unsigned short);
+	case VTK_SHORT:			return sizeof(short);
+	case VTK_UNSIGNED_INT:	return sizeof(unsigned int);
+	case VTK_INT:			return sizeof(int);
+	case VTK_UNSIGNED_LONG:	return sizeof(unsigned long);
+	case VTK_LONG:          return sizeof(long);
+	case VTK_FLOAT:         return sizeof(float);
+	case VTK_DOUBLE:        return sizeof(double);
+	default:                return 0;
+	}	
 }
 
 QStringList const & vtkDataTypeList()

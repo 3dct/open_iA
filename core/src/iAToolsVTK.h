@@ -45,7 +45,9 @@ open_iA_Core_API void writeSingleSliceImage(QString const & filename, vtkImageDa
 
 open_iA_Core_API int mapVTKTypeStringToInt(QString const & vtkTypeName);
 
-open_iA_Core_API int mapVTKTypeStringToSize(QString const & vtkTypeString);
+open_iA_Core_API size_t mapVTKTypeStringToSize(QString const & vtkTypeString);
+
+open_iA_Core_API size_t mapVTKTypeToSize(int vtkType);
 
 open_iA_Core_API vtkSmartPointer<vtkImageData> castVTKImage(vtkSmartPointer<vtkImageData> img, int DestType);
 

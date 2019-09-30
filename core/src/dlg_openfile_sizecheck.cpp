@@ -135,6 +135,7 @@ void dlg_openfile_sizecheck::checkFileSize()
 		extentY= m_inputDlg->getDblValue(m_extentYIdx),
 		extentZ = m_inputDlg->getDblValue(m_extentZIdx),
 		voxelSize = mapVTKTypeStringToSize(m_inputDlg->getComboBoxValue(m_voxelSizeIdx));
+	assert(voxelSize != 0);
 	qint64 proposedSize = extentX*extentY*extentZ*voxelSize;
 	m_proposedSizeLabel->setText("Predicted file size: " + QString::number(proposedSize) + " bytes");
 	m_proposedSizeLabel->setStyleSheet(QString("QLabel { background-color : %1; }").arg(proposedSize == m_fileSize ? "#BFB" : "#FBB" ));

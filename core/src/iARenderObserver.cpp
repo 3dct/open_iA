@@ -97,6 +97,8 @@ void iARenderObserver::Execute(vtkObject * caller,
 	{
 		case vtkCommand::LeftButtonPressEvent:
 		{
+			if (!m_pImageData)
+				return;
 			PickWithWorldPicker();
 			double* pos = m_pWorldPicker->GetPickPosition();
 			double* spacing = m_pImageData->GetSpacing();
