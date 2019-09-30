@@ -20,24 +20,22 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
-
-#include <QDomDocument>
-
-class iATransferFunction;
-
-//! Class for loading and storing transfer functions to/from XML documents
-class open_iA_Core_API iASettings
+//! This data structure contains all metadata required to load a raw data file.
+struct iARawFileParameters
 {
-private:
-	QDomDocument domDocument;
-public:
-	iASettings();
-	iASettings(QString const & filename);
-	void loadTransferFunction(iATransferFunction* transferFunction);
-	void storeTransferFunction(iATransferFunction* transferFunction);
-	static void loadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction);
-	void save(QString const & fileName);
-private:
-	void removeNode(QString const & str);
+	iARawFileParameters()
+	{
+		std::fill(m_size, m_size+3, 1);
+		std::fill(m_spacing, m_spacing+3, 1.0);
+		std::fill(m_origin, m_origin+3, 0.0);
+		m_headersize = 0;
+		m_scalarType = 0;
+		m_byteOrder = 1;
+	}
+	unsigned int m_size[3];
+	double m_spacing[3];
+	double m_origin[3];
+	int  m_scalarType;
+	quint64 m_headersize;
+	int m_byteOrder;
 };

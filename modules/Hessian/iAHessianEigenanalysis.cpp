@@ -55,7 +55,7 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 	auto hessianFilter = HessianFilterType::New();
 	hessianFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	hessianFilter->SetSigma(parameters["Sigma"].toDouble());
-	filter->progress()->Observe(hessianFilter);
+	filter->progress()->observe(hessianFilter);
 	hessianFilter->Update();
 
 	// Compute eigen values, order them in ascending order

@@ -50,6 +50,7 @@
 #include "iAModuleDispatcher.h"
 #include "iARendererManager.h"
 #include "iAStringHelper.h"
+#include "iAToolsVTK.h"    // for setCamPos
 #include "iATransferFunction.h"
 #include "iAVolumeRenderer.h"
 #include "iAVtkWidget.h"
@@ -170,17 +171,17 @@ public:
 };
 
 iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
+	m_renderManager(new iARendererManager()),
 	m_resultColorTheme(iAColorThemeManager::instance().theme(DefaultResultColorTheme)),
 	m_mainWnd(mainWnd),
-	m_spm(new iAQSplom()),
 	m_referenceID(NoResult),
 	m_playTimer(new QTimer(this)),
 	m_refDistCompute(nullptr),
-	m_renderManager(new iARendererManager()),
 	m_colorByThemeName(iALUT::GetColorMapNames()[0]),
 	m_showFiberContext(false),
 	m_mergeContextBoxes(false),
-	m_contextSpacing(0.0)
+	m_contextSpacing(0.0),
+	m_spm(new iAQSplom())
 {
 	setDockOptions(AllowNestedDocks | AllowTabbedDocks);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
@@ -275,6 +276,7 @@ QWidget * iAFiAKErController::setupMain3DView()
 	m_mainRenderer = new iAVtkWidget();
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	m_ren = vtkSmartPointer<vtkRenderer>::New();
+	m_ren->SetUseFXAA(true);
 	m_ren->SetBackground(1.0, 1.0, 1.0);
 	renWin->SetAlphaBitPlanes(1);
 	m_ren->SetUseDepthPeeling(true);
@@ -1394,6 +1396,13 @@ std::vector<std::vector<size_t> > & iAFiAKErController::selection()
 	return m_selection;
 }
 
+void iAFiAKErController::setCamPosition(int pos)
+{
+	::setCamPosition(m_ren->GetActiveCamera(), static_cast<iACameraPosition>(pos));
+	m_ren->ResetCamera();
+	m_mainRenderer->GetRenderWindow()->GetInteractor()->Render();
+}
+
 void iAFiAKErController::clearSelection()
 {
 	for (size_t resultID=0; resultID<m_selection.size(); ++resultID)
@@ -2054,11 +2063,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	size_t colorCount = m_refVisTable->GetNumberOfRows() * 4;
 	for (size_t row = 0; row < colorCount; ++row)
 	{
-#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
-		m_colors->InsertNextTupleValue(c);
-#else
 		colors->InsertNextTypedTuple(c);
-#endif
 	}
 	auto points = vtkSmartPointer<vtkPoints>::New();
 	auto linePolyData = vtkSmartPointer<vtkPolyData>::New();
@@ -2216,11 +2221,7 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 	colors->SetName ("Colors");
 	unsigned char blue[3] = {0, 0, 255};
 	for (size_t s = 0; s < sampledPoints.size(); ++s)
-#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
-		colors->InsertNextTupleValue(blue);
-#else
 		colors->InsertNextTypedTuple(blue);
-#endif
 	polydata->GetPointData()->SetScalars(colors);
 
 	auto sampleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();

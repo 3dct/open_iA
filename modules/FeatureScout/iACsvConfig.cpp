@@ -84,6 +84,7 @@ iACsvConfig::VisualizationType MapStr2VisType(QString name)
 iACsvConfig::iACsvConfig() :
 	fileName(""),
 	encoding("System"),
+	containsHeader(true),
 	skipLinesStart(LegacyFormatStartSkipLines),
 	skipLinesEnd(0),
 	columnSeparator(";"),
@@ -97,8 +98,9 @@ iACsvConfig::iACsvConfig() :
 	computeTensors(false),
 	computeCenter(false),
 	computeStartEnd(false),
-	containsHeader(true),
 	visType(UseVolume),
+	cylinderQuality(12),
+	segmentSkip(1),
 	isDiameterFixed(false),
 	fixedDiameterValue(0.0)
 {

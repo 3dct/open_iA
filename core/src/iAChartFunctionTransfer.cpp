@@ -31,7 +31,6 @@
 
 #include <QColorDialog>
 #include <QDesktopWidget>
-#include <QtXml/QDomNode>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPen>
@@ -95,12 +94,16 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 	c = QColor(colorTFValue[1]*255.0, colorTFValue[2]*255.0, colorTFValue[3]*255.0, 150);
 	m_gradient.setColorAt((double)x1/gradientWidth, c );
 
+	int lastX = x1;
 	for ( int i = 1; i < m_opacityTF->GetSize(); i++)
 	{
 		m_opacityTF->GetNodeValue(i, opacityTFValue);
 		m_colorTF->GetNodeValue(i, colorTFValue);
 
 		int x2 = d2iX(opacityTFValue[0]);
+		if (x2 == lastX)
+			++x2;
+		lastX = x2;
 		int y2 = d2iY(opacityTFValue[1]);
 		painter.drawLine(x1, y1, x2, y2); // draw line
 		if (active)
@@ -243,12 +246,8 @@ int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 
 int iAChartTransferFunction::addPoint(int x, int y)
 {
-	if (y < 0)
-		y = 0;
-
 	double d[2] = { v2dX(x), v2dY(y) };
 	m_selectedPoint = m_opacityTF->AddPoint(d[0], d[1]);
-
 	return m_selectedPoint;
 }
 
@@ -357,26 +356,26 @@ void iAChartTransferFunction::changeColor(QMouseEvent *event)
 	if (event != NULL)
 		m_selectedPoint = selectPoint(event);
 
-	if (m_selectedPoint != -1)
-	{
-		double colorTFValue[6];
-		m_colorTF->GetNodeValue(m_selectedPoint, colorTFValue);
-		m_colorDlg->adjustSize();
-		m_colorDlg->setCurrentColor(QColor(colorTFValue[1]*255, colorTFValue[2]*255, colorTFValue[3]*255));
-		QRect scr = QApplication::desktop()->screenGeometry();
-		m_colorDlg->setGeometry(scr.width()/2 - m_colorDlg->width()/2,
-							scr.height()/2 - m_colorDlg->height()/2,
-			m_colorDlg->width(),
-			m_colorDlg->height());
-		if (m_colorDlg->exec() == QDialog::Accepted)
-		{
-			QColor col = m_colorDlg->selectedColor();
-			setColorPoint(m_selectedPoint, d2vX(colorTFValue[0]), (double)col.red()/255.0, (double)col.green()/255.0, (double)col.blue()/255.0 );
-			m_colorTF->Modified();
-			m_colorTF->Build();
-			triggerOnChange();
-		}
-	}
+	if (m_selectedPoint == -1)
+		return;
+
+	double colorTFValue[6];
+	m_colorTF->GetNodeValue(m_selectedPoint, colorTFValue);
+	m_colorDlg->adjustSize();
+	m_colorDlg->setCurrentColor(QColor(colorTFValue[1]*255, colorTFValue[2]*255, colorTFValue[3]*255));
+	QRect scr = QApplication::desktop()->screenGeometry();
+	m_colorDlg->setGeometry(scr.width()/2 - m_colorDlg->width()/2,
+						scr.height()/2 - m_colorDlg->height()/2,
+		m_colorDlg->width(),
+		m_colorDlg->height());
+	if (m_colorDlg->exec() != QDialog::Accepted)
+		return;
+
+	QColor col = m_colorDlg->selectedColor();
+	setColorPoint(m_selectedPoint, d2vX(colorTFValue[0]), (double)col.red()/255.0, (double)col.green()/255.0, (double)col.blue()/255.0 );
+	m_colorTF->Modified();
+	m_colorTF->Build();
+	triggerOnChange();
 }
 
 bool iAChartTransferFunction::isEndPoint(int index)
@@ -546,6 +545,11 @@ int iAChartTransferFunction::d2iY(double y)
 void iAChartTransferFunction::triggerOnChange()
 {
 	emit Changed();
+}
+
+int iAChartTransferFunction::numPoints() const
+{
+	return m_opacityTF->GetSize();
 }
 
 void iAChartTransferFunction::enableRangeSliderHandles( bool rangeSliderHandles )

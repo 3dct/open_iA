@@ -83,9 +83,12 @@ public:
 
 	void setPlaneNormals( vtkTransform *tr ) ;
 	void setCubeCenter( int x, int y, int z );
-	void setCamPosition ( int uvx, int uvy, int uvz, int px, int py, int pz );
 
-	//! Set viewup, position and focal point of a renderer from the information in a double array.
+	//! Sets one of the pre-defined camera positions
+	//! @param pos descriptor of the position, @see iACameraPosition
+	void setCamPosition(int pos);
+
+	//! Sets viewup, position and focal point of a renderer from the information in a double array.
 	//! @param camOptions All informations of the camera stored in a double array
 	//! @param rsParallelProjection boolean variable to determine if parallel projection option is on.
 	void setCamPosition( double * camOptions, bool rsParallelProjection  );
@@ -120,7 +123,7 @@ public:
 	vtkPlane* plane1();
 	vtkPlane* plane2();
 	vtkPlane* plane3();
-	void setSlicePlane(int planeID, double originX, double originY, double originZ);
+	void setSlicePlanePos(int planeID, double originX, double originY, double originZ);
 	vtkRenderWindowInteractor* interactor();
 	vtkRenderWindow* renderWindow();
 	vtkOpenGLRenderer * renderer();

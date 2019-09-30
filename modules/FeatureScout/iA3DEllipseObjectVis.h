@@ -37,4 +37,7 @@ public:
 	vtkPolyData* getPolyData() override;
 private:
 	vtkSmartPointer<vtkPolyData> m_fullPoly;
+	int m_pointsPerEllipse;
+	int objectStartPointIdx(int objIdx) const override;
+	int objectPointCount(int objIdx) const override;
 };

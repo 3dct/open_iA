@@ -26,6 +26,7 @@
 #include "io/iAITKIO.h"
 
 #include <vtkBMPWriter.h>
+#include <vtkCamera.h>
 #include <vtkImageCast.h>
 #include <vtkImageData.h>
 #include <vtkImageWriter.h>
@@ -145,18 +146,28 @@ int mapVTKTypeStringToInt(QString const & vtkTypeString)
 	return -1;
 }
 
-int mapVTKTypeStringToSize(QString const & vtkTypeString)
+size_t mapVTKTypeStringToSize(QString const & vtkTypeString)
 {
-	if (vtkTypeString == "VTK_UNSIGNED_CHAR")  return sizeof(unsigned char);
-	if (vtkTypeString == "VTK_UNSIGNED_SHORT") return sizeof(unsigned short);
-	if (vtkTypeString == "VTK_FLOAT")          return sizeof(float);
-	if (vtkTypeString == "VTK_UNSIGNED_CHAR")  return sizeof(unsigned char);
-	if (vtkTypeString == "VTK_CHAR")           return sizeof(char);
-	if (vtkTypeString == "VTK_SHORT")          return sizeof(short);
-	if (vtkTypeString == "VTK_UNSIGNED_INT")   return sizeof(unsigned int);
-	if (vtkTypeString == "VTK_INT")            return sizeof(int);
-	if (vtkTypeString == "VTK_DOUBLE")         return sizeof(double);
-	return -1;
+	return mapVTKTypeToSize(mapVTKTypeStringToInt(vtkTypeString));
+}
+
+size_t mapVTKTypeToSize(int vtkType)
+{
+	switch (vtkType)
+	{
+	case VTK_UNSIGNED_CHAR: return sizeof(unsigned char);
+	case VTK_SIGNED_CHAR:	// intentional fall-through
+	case VTK_CHAR:			return sizeof(char);
+	case VTK_UNSIGNED_SHORT:return sizeof(unsigned short);
+	case VTK_SHORT:			return sizeof(short);
+	case VTK_UNSIGNED_INT:	return sizeof(unsigned int);
+	case VTK_INT:			return sizeof(int);
+	case VTK_UNSIGNED_LONG:	return sizeof(unsigned long);
+	case VTK_LONG:          return sizeof(long);
+	case VTK_FLOAT:         return sizeof(float);
+	case VTK_DOUBLE:        return sizeof(double);
+	default:                return 0;
+	}	
 }
 
 QStringList const & vtkDataTypeList()
@@ -189,4 +200,26 @@ int mapRenderModeToEnum(QString const & modeName)
 			return key;
 
 	return vtkSmartVolumeMapper::DefaultRenderMode;
+}
+
+void setCamPosition(vtkCamera* cam, iACameraPosition pos)
+{
+	switch (pos)
+	{
+	case iACameraPosition::PX:
+		cam->SetViewUp(0, 0, 1); cam->SetPosition(1, 0, 0); break;
+	case iACameraPosition::MX:
+		cam->SetViewUp(0, 0, 1); cam->SetPosition(-1, 0, 0); break;
+	case iACameraPosition::PY:
+		cam->SetViewUp(0, 0, 1); cam->SetPosition(0, 1, 0); break;
+	case iACameraPosition::MY:
+		cam->SetViewUp(0, 0, 1); cam->SetPosition(0, -1, 0); break;
+	case iACameraPosition::PZ:
+		cam->SetViewUp(0, 1, 0); cam->SetPosition(0, 0, 1); break;
+	case iACameraPosition::MZ:
+		cam->SetViewUp(0, 1, 0); cam->SetPosition(0, 0, -1); break;
+	case iACameraPosition::Iso:
+		cam->SetViewUp(0, 0, 1); cam->SetPosition(1, 1, 1); break;
+	}
+	cam->SetFocalPoint(0, 0, 0);
 }

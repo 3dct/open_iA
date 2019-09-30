@@ -26,6 +26,7 @@
 
 #include <QMap>
 
+class vtkCamera;
 class vtkImageData;
 
 class QString;
@@ -44,7 +45,9 @@ open_iA_Core_API void writeSingleSliceImage(QString const & filename, vtkImageDa
 
 open_iA_Core_API int mapVTKTypeStringToInt(QString const & vtkTypeName);
 
-open_iA_Core_API int mapVTKTypeStringToSize(QString const & vtkTypeString);
+open_iA_Core_API size_t mapVTKTypeStringToSize(QString const & vtkTypeString);
+
+open_iA_Core_API size_t mapVTKTypeToSize(int vtkType);
 
 open_iA_Core_API vtkSmartPointer<vtkImageData> castVTKImage(vtkSmartPointer<vtkImageData> img, int DestType);
 
@@ -63,3 +66,17 @@ for (int z = 0; z < img->GetDimensions()[2]; ++z) \
 
 #define FOR_VTKIMG_PIXELS_IDX(img, idx) \
 for (size_t idx = 0; idx < img->GetDimensions()[0]*img->GetDimensions()[1]*img->GetDimensions()[2]; ++idx)
+
+
+enum iACameraPosition
+{
+	PX,
+	MX,
+	PY,
+	MY,
+	PZ,
+	MZ,
+	Iso
+};
+
+open_iA_Core_API void setCamPosition(vtkCamera* cam, iACameraPosition mode);

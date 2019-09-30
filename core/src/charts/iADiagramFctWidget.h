@@ -24,13 +24,13 @@
 #include "iAPlotData.h"
 #include "open_iA_Core_export.h"
 
+#include <QDomNode>
 #include <QSharedPointer>
 #include <QPoint>
 #include <QString>
 
 #include <vector>
 
-class QDomNode;
 class QMenu;
 class QPaintEvent;
 class QPainter;
@@ -39,6 +39,7 @@ class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 
 class iAChartFunction;
+class iAXmlSettings;
 class dlg_TFTable;
 class MdiChild;
 
@@ -90,6 +91,9 @@ public:
 	//! Add a Gaussian function with the given parameters.
 	void addGaussianFunction(double mean, double sigma, double multiplier);
 
+	bool loadProbabilityFunctions(iAXmlSettings & xml);
+	void saveProbabilityFunctions(iAXmlSettings &xml);
+
 protected:
 	//! @{ Events overrided from Qt.
 	void mousePressEvent(QMouseEvent *event) override;
@@ -124,17 +128,17 @@ signals:
 
 public slots:
 	int deletePoint();
-	void changeColor(QMouseEvent *event = NULL);
+	void changeColor(QMouseEvent *event = nullptr);
 	void resetTrf();
 	void updateTrf();
 	void loadTransferFunction();
-	void loadTransferFunction(QDomNode &functionsNode);
+	void loadTransferFunction(QDomNode functionsNode);
 	void saveTransferFunction();
 	void applyTransferFunctionForAll();
 	void addBezierFunction();
 	void addGaussianFunction();
-	bool loadFunctions();
-	bool saveFunctions();
+	void loadFunctions();
+	void saveFunctions();
 	void removeFunction();
 	void showTFTable();
 	void tfTableIsFinished();

@@ -42,7 +42,7 @@ bool iAXRFModuleInterface::XRF_Visualization()
 	return AttachToMdiChild( m_mdiChild );
 }
 
-iAModuleAttachmentToChild * iAXRFModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild * child )
+iAModuleAttachmentToChild * iAXRFModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
 {
 	return new iAXRFAttachment( mainWnd, child );
 }

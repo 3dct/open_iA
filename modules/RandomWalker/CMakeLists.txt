@@ -1,10 +1,10 @@
 SET( MODULE_DESCRIPTION_OUT
-	"Random Walker"
+	"Random Walker Segmentation"
 	PARENT_SCOPE
 )
 SET( MODULE_DEFAULT_OPTION_VALUE_OUT OFF  PARENT_SCOPE)
 
-IF (BUILD_TESTING AND Module_RandomWalker)
+IF (openiA_TESTING_ENABLED AND Module_RandomWalker)
 	get_filename_component(CoreSrcDir "../../core/src" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 	get_filename_component(CoreBinDir "../../core" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 	ADD_EXECUTABLE(ImageGraphTest iAImageGraphTest.cpp iAImageGraph.cpp ${CoreSrcDir}/iAImageCoordinate.cpp)
@@ -17,6 +17,11 @@ IF (BUILD_TESTING AND Module_RandomWalker)
 	TARGET_COMPILE_DEFINITIONS(DistanceMeasureTest PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME ImageGraphTest COMMAND ImageGraphTest)
 	ADD_TEST(NAME DistanceMeasureTest COMMAND DistanceMeasureTest)
+	IF (MSVC)
+		STRING(REGEX REPLACE "/" "\\\\" QT_WIN_DLL_DIR ${QT_LIB_DIR})
+		SET_TESTS_PROPERTIES(ImageGraphTest PROPERTIES ENVIRONMENT "PATH=${QT_WIN_DLL_DIR};$ENV{PATH}")
+		SET_TESTS_PROPERTIES(DistanceMeasureTest PROPERTIES ENVIRONMENT "PATH=${QT_WIN_DLL_DIR};$ENV{PATH}")
+	ENDIF()
 	
 	IF (openiA_USE_COTIRE)
 		cotire(ImageGraphTest)

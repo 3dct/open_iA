@@ -91,7 +91,7 @@ public:
 	};
 	//! Creates a new slicer widget.
 	//! @param parent the parent widget; can be nullptr for no current parent.
-	//! @param mode determines which axis-aligned slice-plane is used for slicing. @See iASlicerMode.
+	//! @param mode determines which axis-aligned slice-plane is used for slicing.
 	//! @param decorations whether to show the scalar bar widget, the measure bar, the logo and the tooltip.
 	//! @param magicLensAvailable whether a magic lens should be available.
 	//! @param transform the basic transform the reslicers inside the channels of this slicer (should probably be removed here).
@@ -152,9 +152,9 @@ public:
 	//! Access to the slicer's main renderer's camera.
 	vtkCamera * camera();
 
-	//! Get the slice mode (which axis-aligned slice-plane is used for slicing). @See iASlicerMode
+	//! Get the slice mode (which axis-aligned slice-plane is used for slicing).
 	iASlicerMode mode() const;
-	//! Sets the slice mode (which axis-aligned slice-plane to use for slicing). @See iASlicerMode
+	//! Sets the slice mode (which axis-aligned slice-plane to use for slicing).
 	void setMode(const iASlicerMode mode);
 
 	void setStatisticalExtent(int statExt);
@@ -162,7 +162,7 @@ public:
 	//! Set the camera for the slicer's main renderer.
 	//! Use this if you want share the camera between multiple views (i.e. synchronize their viewing parameters)
 	//! @param camera the new camera to assing
-	//! @param whether the slicer should assume ownership of the camera. If true, Delete() will be called on it in the destructor
+	//! @param camOwner whether the slicer should assume ownership of the camera. If true, Delete() will be called on it in the destructor
 	void setCamera(vtkCamera * camera, bool camOwner = true);
 	//! Resets the slicer's main renderer's camera such that all channels in it are visible.
 	void resetCamera();
@@ -212,9 +212,10 @@ public:
 	void setRightButtonDragZoomEnabled(bool enabled);
 
 	void setIndex(int x, int y, int z);
-
+	//! in case the "linked mdi" feature is used, use this to set the mdi child this slicer is linked to.
 	void setLinkedMdiChild(MdiChild* mdiChild);
-
+	//! call if the dimension of the input in direction of the slice axis has changed.
+	void triggerSliceRangeChange();
 public slots:
 	//! Save an image of the image viewer native resolution or the current view.
 	void saveAsImage();
@@ -284,7 +285,7 @@ signals:
 	//! @param mode slicer mode (=plane)
 	//! @param sliceNumber number of the slice that was switched to
 	void sliceNumberChanged(int mode, int sliceNumber);
-	void firstChannelAdded(int minIdx, int maxIdx);
+	void sliceRangeChanged(int minIdx, int maxIdx);
 
 protected:
 	QMenu *         m_contextMenuMagicLens;      //!< context menu for when magic lens is shown
@@ -307,7 +308,6 @@ protected:
 	void resizeEvent(QResizeEvent * event) override;
 	void wheelEvent(QWheelEvent*) override;
 
-	void updateResliceAxesDirectionCosines();
 	void updateBackground();
 	void printVoxelInformation();
 	void executeKeyPressEvent();

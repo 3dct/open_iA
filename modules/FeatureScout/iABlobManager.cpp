@@ -151,11 +151,7 @@ void iABlobManager::Update( void )
 			for ( int cellInd = 0; cellInd < blobs_pd[i]->GetNumberOfPoints(); ++cellInd )
 			{
 				val = i;
-#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
 				colIDs->InsertNextTypedTuple(&val);
-#else
-				colIDs->InsertNextTupleValue( &val );
-#endif
 			}
 			blobs_pd[i]->GetPointData()->SetScalars( colIDs );
 			m_appendedBlobsPD->AddInputData( blobs_pd[i] );

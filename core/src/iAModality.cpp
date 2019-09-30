@@ -21,9 +21,10 @@
 #include "iAModality.h"
 
 #include "defines.h"  // for NotExistingChannel
+#include "iAConsole.h"
 #include "iAImageCoordinate.h"
 #include "iAModalityTransfer.h"
-#include "iASettings.h"
+#include "iAXmlSettings.h"
 #include "iAStringHelper.h" // for Str2Vec3D
 #include "iATypedCallHelper.h"
 #include "iAVolumeRenderer.h"
@@ -182,7 +183,12 @@ int iAModality::renderFlags() const
 
 void iAModality::loadTransferFunction()
 {
-	iASettings s(m_tfFileName);
+	iAXmlSettings s;
+	if (!s.read(m_tfFileName))
+	{
+		DEBUG_LOG(QString("Failed to read transfer function from file %&1").arg(m_tfFileName));
+		return;
+	}
 	s.loadTransferFunction(transfer().data());
 }
 

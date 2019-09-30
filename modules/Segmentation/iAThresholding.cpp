@@ -64,7 +64,7 @@ void binary_threshold(iAFilter* filter, QMap<QString, QVariant> const & paramete
 	binThreshFilter->SetOutsideValue(T(parameters["Outside value"].toDouble()));
 	binThreshFilter->SetInsideValue(T(parameters["Inside value"].toDouble()));
 	binThreshFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
-	filter->progress()->Observe(binThreshFilter);
+	filter->progress()->observe(binThreshFilter);
 	binThreshFilter->Update();
 	filter->addOutput(binThreshFilter->GetOutput());
 }
@@ -105,7 +105,7 @@ void rats_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 	typedef itk::GradientMagnitudeImageFilter< InputImageType, GradientImageType > GMFType;
 	typename GMFType::Pointer gmfilter = GMFType::New();
 	gmfilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
-	filter->progress()->Observe( gmfilter );
+	filter->progress()->observe( gmfilter );
 	gmfilter->Update(); 
 	typedef typename itk::RobustAutomaticThresholdImageFilter < InputImageType, GradientImageType, OutputImageType > RATType;
 	auto ratsFilter = RATType::New();
@@ -114,7 +114,7 @@ void rats_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 	ratsFilter->SetOutsideValue( T(parameters["Outside value"].toDouble()) );
 	ratsFilter->SetInsideValue( T(parameters["Inside value"].toDouble()) );
 	ratsFilter->SetPow( parameters["Power"].toDouble() );
-	filter->progress()->Observe( ratsFilter );
+	filter->progress()->observe( ratsFilter );
 	ratsFilter->Update();
 	filter->addOutputValue("Rats threshold", (double)ratsFilter->GetThreshold());
 	filter->addOutput(ratsFilter->GetOutput());
@@ -160,7 +160,7 @@ void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 		otsuFilter->SetOutsideValue( T(parameters["Outside value"].toDouble()) );
 		otsuFilter->SetInsideValue( T(parameters["Inside value"].toDouble()) );
 		otsuFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
-		filter->progress()->Observe( otsuFilter );
+		filter->progress()->observe( otsuFilter );
 		otsuFilter->Update();
 		filter->addOutputValue("Otsu threshold", (double)otsuFilter->GetThreshold());
 		filter->addOutput(otsuFilter->GetOutput());
@@ -172,7 +172,7 @@ void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 		otsuFilter->SetOutsideValue( T(parameters["Outside value"].toDouble()) );
 		otsuFilter->SetInsideValue( T(parameters["Inside value"].toDouble()) );
 		otsuFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
-		filter->progress()->Observe( otsuFilter );
+		filter->progress()->observe( otsuFilter );
 		otsuFilter->Update();
 		filter->addOutputValue("Otsu threshold", (double)otsuFilter->GetThreshold());
 		filter->addOutput(otsuFilter->GetOutput());
@@ -223,7 +223,7 @@ void adaptive_otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & p
 	adotFilter->SetRadius(radius);
 	adotFilter->SetSplineOrder(parameters["Spline order"].toUInt());
 	adotFilter->Update();
-	filter->progress()->Observe(adotFilter);
+	filter->progress()->observe(adotFilter);
 	adotFilter->Update();
 	filter->addOutput(adotFilter->GetOutput());
 }
@@ -266,7 +266,7 @@ void otsu_multiple_threshold(iAFilter* filter, QMap<QString, QVariant> const & p
 	otsumultiFilter->SetNumberOfThresholds( T (parameters["Number of thresholds"].toDouble()) );
 	otsumultiFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	otsumultiFilter->SetValleyEmphasis( parameters["Valley emphasis"].toBool() );
-	filter->progress()->Observe( otsumultiFilter );
+	filter->progress()->observe( otsumultiFilter );
 	otsumultiFilter->Update();
 	for (int i = 0; i< otsumultiFilter->GetThresholds().size(); i++)
 		filter->addOutputValue(QString("Otsu multiple threshold %1").arg(i), otsumultiFilter->GetThresholds()[i]);
@@ -308,7 +308,7 @@ void maximum_distance(iAFilter* filter, QMap<QString, QVariant> const & paramete
 		maxFilter->SetCentre(parameters["Low intensity"].toDouble());
 	else
 		maxFilter->SetCentre(32767);
-	filter->progress()->Observe(maxFilter);
+	filter->progress()->observe(maxFilter);
 	maxFilter->Update();
 	filter->addOutput(maxFilter->GetOutput());
 	filter->addOutputValue("Maximum distance threshold", static_cast<double>(maxFilter->GetThreshold()));
@@ -453,7 +453,7 @@ void parameterless(iAFilter* filter, QMap<QString, QVariant> const & params)
 	plFilter->SetNumberOfHistogramBins(params["Number of histogram bins"].toUInt());
 	plFilter->SetOutsideValue(params["Outside value"].toDouble());
 	plFilter->SetInsideValue(params["Inside value"].toDouble());
-	filter->progress()->Observe(plFilter);
+	filter->progress()->observe(plFilter);
 	plFilter->Update();
 	filter->addOutput(plFilter->GetOutput());
 	filter->addOutputValue("Threshold", static_cast<double>(plFilter->GetThreshold()));

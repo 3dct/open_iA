@@ -39,7 +39,7 @@ class FeatureScout_API iA3DColoredPolyObjectVis : public iA3DObjectVis
 public:
 	static const int DefaultContextOpacity = 8;
 	static const int DefaultSelectionOpacity = 128;
-	iA3DColoredPolyObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor, size_t pointsPerObject );
+	iA3DColoredPolyObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor);
 	void show() override;
 	void hide();
 	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem) override;
@@ -65,7 +65,6 @@ protected:
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
 	vtkSmartPointer<vtkActor> m_actor;
-	size_t m_pointsPerObject;
 	bool m_visible;
 	int m_contextAlpha;
 	int m_selectionAlpha;
@@ -76,13 +75,28 @@ protected:
 	vtkSmartPointer<vtkActor> m_outlineActor;
 	std::vector<size_t> m_selection;
 
-	void setPolyPointColor(int ptIdx, QColor const & qcolor);
+	void setObjectColor(int objIdx, QColor const & qcolor);
 	void updatePolyMapper();
 	void setupBoundingBox();
 	void setupOriginalIds();
+	void setupColors();
+
+	//! Get the index of the first point of a given object.
+	//! @param objIdx the index of the object.
+	//! @return the index of the first point in the object.
+	virtual int objectStartPointIdx(int objIdx) const;
+	//! Get the number of points representing a given object.
+	//! @param objIdx the index of the object.
+	//! @return the number of points in the object.
+	virtual int objectPointCount(int objIdx) const;
+	//! Get the number of points in all objects.
+	//! @return the number of points in all objects, i.e. the sum of objectPointCount over all object indices.
+	size_t allPointCount() const;
 
 private:
 	QSharedPointer<iALookupTable> m_lut;
 	size_t m_colorParamIdx;
 	bool m_selectionActive;
+
+	const int DefaultPointsPerObject = 2;
 };

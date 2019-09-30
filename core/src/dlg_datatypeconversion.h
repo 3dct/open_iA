@@ -30,6 +30,7 @@
 #include <QString>
 
 class iAConnector;
+struct iARawFileParameters;
 
 class vtkImageData;
 class vtkPlaneSource;
@@ -43,17 +44,14 @@ class dlg_datatypeconversion : public QDialog, public Ui_DataTypeConversion
 	Q_OBJECT
 
 public:
-	dlg_datatypeconversion ( QWidget *parent, QString const & filename, int intype, double* b, double* c, double* inPara );
+	dlg_datatypeconversion ( QWidget *parent, QString const & filename, iARawFileParameters const & p,
+		unsigned int zSkip, size_t numBins, double* c, double* inPara );
 	~dlg_datatypeconversion();
 
-	void DataTypeConversion(QString const & filename, double* b);
-	void DataTypeConversionROI(QString const & filename, double* b, double *roi);
-	void createHistogram(iAPlotData::DataType* histbinlist, double minVal, double maxVal, int m_bins, double discretization);
-
-	QString coreconversionfunction(QString filename, QString & finalfilename, double* para, int indatatype, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check);
-	QString coreconversionfunctionforroi(QString filename, QString & finalfilename, double* para, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check, double* roi);
-	void updatevalues(double* inPara);
-	void updateROI( );
+	QString convert(QString const & filename, iARawFileParameters const & p, int outdatatype,
+		double minrange, double maxrange, double minout, double maxout, int check);
+	QString convertROI(QString const & filename, iARawFileParameters const & p, int outdatatype,
+		double minrange, double maxrange, double minout, double maxout, int check, double* roi);
 
 	double getRangeLower() const;
 	double getRangeUpper() const;
@@ -72,9 +70,12 @@ private slots:
 	void update(QString a);
 
 private:
-	double * m_bptr;
-	int m_intype;
-	double m_insizez;
+	void loadPreview(QString const & filename, iARawFileParameters const & p, unsigned int zSkip, size_t numBins);
+	void DataTypeConversionROI(QString const & filename, iARawFileParameters const & p, double *roi);
+	void createHistogram(iAPlotData::DataType* histbinlist, double minVal, double maxVal, int m_bins, double discretization);
+	void updatevalues(double* inPara);
+	void updateROI();
+
 	iAPlotData::DataType * m_histbinlist;
 	double m_min, m_max, m_dis;
 	vtkSmartPointer<vtkPlaneSource> m_xyroiSource, m_xzroiSource, m_yzroiSource;

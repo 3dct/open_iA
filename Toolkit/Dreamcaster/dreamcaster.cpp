@@ -121,6 +121,7 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	: QMainWindow(parent, flags), modelOpened(false), datasetOpened(false)
 {
 	Q_INIT_RESOURCE(dreamcaster);
+	ParseConfigFile(&stngs);
 	indices[0] = 0;
 	indices[1] = 2;
 	indices[2] = 3;
@@ -133,7 +134,6 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	
 	isStopped = false;
 	
-	ParseConfigFile(&stngs);
 	ui.setupUi(this);
 	connect(ui.openSTLFile,  SIGNAL(clicked()), this, SLOT(OpenModelSlot()));
 	///connect(ui.tb_openModel,  SIGNAL(clicked()), this, SLOT(OpenModelSlot()));
@@ -3624,40 +3624,58 @@ bool iADreamCaster::eventFilter(QObject *obj, QEvent *event)
 void iADreamCaster::maximize3DView()
 {
 	changeVisibility(isOneWidgetMaximized);
-	if(!isOneWidgetMaximized)
+	if (!isOneWidgetMaximized)
+	{
+		ui.topFrame->show();
+		ui.leftFrame->show();
 		ui.frame3DV->show();
+	}
 	isOneWidgetMaximized = !isOneWidgetMaximized;
 }
 
 void iADreamCaster::maximizeStability()
 {
 	changeVisibility(isOneWidgetMaximized);
-	if(!isOneWidgetMaximized)
+	if (!isOneWidgetMaximized)
+	{
+		ui.topFrame->show();
+		ui.rightFrame->show();
 		ui.frameStability->show();
+	}
 	isOneWidgetMaximized = !isOneWidgetMaximized;
 }
 
 void iADreamCaster::maximizeRC()
 {
 	changeVisibility(isOneWidgetMaximized);
-	if(!isOneWidgetMaximized)
+	if (!isOneWidgetMaximized)
+	{
+		ui.topFrame->show();
+		ui.leftFrame->show();
 		ui.frameRC->show();
+	}
 	isOneWidgetMaximized = !isOneWidgetMaximized;
 }
 
 void iADreamCaster::maximizePlacements()
 {
 	changeVisibility(isOneWidgetMaximized);
-	if(!isOneWidgetMaximized)
+	if (!isOneWidgetMaximized)
+	{
+		ui.topFrame->show();
+		ui.rightFrame->show();
 		ui.framePlacements->show();
+	}
 	isOneWidgetMaximized = !isOneWidgetMaximized;
 }
 
 void iADreamCaster::maximizeBottom()
 {
 	changeVisibility(isOneWidgetMaximized);
-	if(!isOneWidgetMaximized)
+	if (!isOneWidgetMaximized)
+	{
 		ui.bottomFrame->show();
+	}
 	isOneWidgetMaximized = !isOneWidgetMaximized;
 }
 
@@ -3670,6 +3688,9 @@ void iADreamCaster::changeVisibility( int isVisible )
 		ui.frameRC->show();
 		ui.bottomFrame->show();
 		ui.frame3DV->show();
+		ui.leftFrame->show();
+		ui.rightFrame->show();
+		ui.topFrame->show();
 	}
 	else
 	{
@@ -3678,6 +3699,9 @@ void iADreamCaster::changeVisibility( int isVisible )
 		ui.frameRC->hide();
 		ui.bottomFrame->hide();
 		ui.frame3DV->hide();
+		ui.leftFrame->hide();
+		ui.rightFrame->hide();
+		ui.topFrame->hide();
 	}
 }
 

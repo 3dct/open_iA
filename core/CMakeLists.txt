@@ -54,19 +54,32 @@ IF (openiA_USE_COTIRE)
 	cotire(${CORE_LIBRARY_NAME})
 ENDIF()
 
-IF (BUILD_TESTING)
+IF (openiA_TESTING_ENABLED)
+	# StringHelperTest
 	ADD_EXECUTABLE(StringHelperTest src/iAStringHelperTest.cpp src/iAStringHelper.cpp)
 	TARGET_INCLUDE_DIRECTORIES(StringHelperTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 	TARGET_LINK_LIBRARIES(StringHelperTest PRIVATE ${QT_LIBRARIES})
 	target_compile_definitions(StringHelperTest PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME StringHelperTest COMMAND StringHelperTest)
+	IF (MSVC)
+		STRING(REGEX REPLACE "/" "\\\\" QT_WIN_DLL_DIR ${QT_LIB_DIR})
+		SET_TESTS_PROPERTIES(StringHelperTest PROPERTIES ENVIRONMENT "PATH=${QT_WIN_DLL_DIR};$ENV{PATH}")
+	ENDIF()
+
+	# Vec3Test
+	ADD_EXECUTABLE(Vec3Test src/iAVec3Test.cpp)
+	TARGET_INCLUDE_DIRECTORIES(Vec3Test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
+	target_compile_definitions(Vec3Test PRIVATE NO_DLL_LINKAGE)
+	ADD_TEST(NAME Vec3Test COMMAND Vec3Test)
 	
 	IF (openiA_USE_IDE_FOLDERS)
 		SET_PROPERTY(TARGET StringHelperTest PROPERTY FOLDER "Tests")
+		SET_PROPERTY(TARGET Vec3Test PROPERTY FOLDER "Tests")
 	ENDIF()
 
 	IF (openiA_USE_COTIRE)
 		cotire(StringHelperTest)
+		cotire(Vec3Test)
 	ENDIF()
 ENDIF()
 

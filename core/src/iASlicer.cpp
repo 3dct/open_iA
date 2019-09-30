@@ -452,7 +452,8 @@ void iASlicer::toggleInteractorState()
 void iASlicer::setMode( const iASlicerMode mode )
 {
 	m_mode = mode;
-	updateResliceAxesDirectionCosines();
+	for (auto ch : m_channels)
+		ch->updateResliceAxesDirectionCosines(m_mode);
 	updateBackground();
 }
 
@@ -675,7 +676,6 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 	assert(!m_channels.contains(id));
 	bool updateSpacing = m_channels.empty();
 	auto chSlicerData = createChannel(id, chData);
-	int axis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
 	auto image = chData.image();
 	double const * imgSpc = image->GetSpacing();
 	if (updateSpacing && m_decorations)
@@ -697,15 +697,22 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 		m_axisTextActor[1]->SetPosition(-20.0, yHalf * 10 / unitSpacing, 0);
 		// TODO: fix snake spline with non-fixed slicer images
 		m_snakeSpline->initialize(m_ren, image->GetSpacing()[0]);
-		// TODO: firstChannelAdded is not the ideal solution, we should do some updates on other occasions too...
-		emit firstChannelAdded(imgExt[axis*2], imgExt[axis*2+1]);
+		triggerSliceRangeChange();
 	}
 	double origin[3];
 	image->GetOrigin(origin);
+	int axis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
 	origin[axis] += static_cast<double>(sliceNumber()) * imgSpc[axis];
 	setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2]);
 	if (enable)
 		enableChannel(id, true);
+}
+
+void iASlicer::triggerSliceRangeChange()
+{
+	int axis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	int const * ext = channel(0)->input()->GetExtent();
+	emit sliceRangeChanged(ext[axis * 2], ext[axis * 2 + 1]);
 }
 
 void iASlicer::updateMagicLensColors()
@@ -1094,12 +1101,6 @@ void iASlicer::setStatisticalExtent(int statExt)
 {
 	m_ext = statExt;
 	updatePositionMarkerExtent();
-}
-
-void iASlicer::updateResliceAxesDirectionCosines()
-{
-	for (auto ch : m_channels)
-		ch->updateResliceAxesDirectionCosines(m_mode);
 }
 
 void iASlicer::updateBackground()

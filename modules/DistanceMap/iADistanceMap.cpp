@@ -42,7 +42,7 @@ void signed_maurer_distancemap(iAFilter* filter, QMap<QString, QVariant> const &
 	distFilter->SetUseImageSpacing(parameters["Use image spacing"].toBool());
 	distFilter->SetSquaredDistance(parameters["Squared distance"].toBool());
 	distFilter->SetInsideIsPositive(parameters["Inside positive"].toBool());
-	filter->progress()->Observe(distFilter);
+	filter->progress()->observe(distFilter);
 	distFilter->Update();
 	auto distanceImage = distFilter->GetOutput();
 	if (parameters["Remove negative values"].toBool())
@@ -96,7 +96,7 @@ void danielsson_distancemap(iAFilter* filter, QMap<QString, QVariant> const & pa
 	auto distFilter = danielssonDistFilterType::New();
 	distFilter->SetInputIsBinary(parameters["Input binary"].toBool());
 	distFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage() ) );
-	filter->progress()->Observe(distFilter);
+	filter->progress()->observe(distFilter);
 	distFilter->Update();
 
 	if (!parameters["Rescale to unsigned char"].toBool())

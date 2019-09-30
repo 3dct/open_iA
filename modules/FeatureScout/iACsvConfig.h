@@ -59,6 +59,7 @@ struct FeatureScout_API iACsvConfig
 	bool isValid(QString & errorMsg) const;
 
 	QString fileName;                       //!< filename, not stored in registrys
+	QString curvedFiberFileName;            //!< filename for curved fiber information, also not stored in registry
 	QString encoding;                       //!< text encoding of the csv file
 	bool containsHeader;                    //!< whether the file contains a header
 	size_t skipLinesStart, skipLinesEnd;    //!< how many lines to skip at start and end of the file
@@ -72,6 +73,8 @@ struct FeatureScout_API iACsvConfig
 	QStringList selectedHeaders;            //!< names of the selected headers
 	bool computeLength, computeAngles, computeTensors, computeCenter, computeStartEnd;  //!< flags whether to compute additional columns
 	VisualizationType visType;              //! how to visualize the given objects
+	int cylinderQuality;                    //! how much sides are used for the cylinder visualization; the higher the number, the worse the quality (default=12)
+	size_t segmentSkip;                     //! curved fiber optimization: if 1, all points along the fiber will be used; if larger, points will be skipped
 	QMap<uint, uint> columnMapping;         //! map a specific value (denoted by an ID from MappedColumn) to the number of the column where it's stored
 	double offset[3];                       //! offset to apply to all coordinates (start, end, center)
 	bool isDiameterFixed;                   //! whether to insert a fixed diameter (given by fixedDiameterValue)

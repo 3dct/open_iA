@@ -75,26 +75,6 @@ void iAModuleInterface::PrepareActiveChild()
 	}
 }
 
-MdiChild * iAModuleInterface::GetSecondNonActiveChild() const
-{
-	QList<MdiChild *> mdiwindows = m_mainWnd->mdiChildList();
-	if( mdiwindows.size() > 2 )
-	{
-		QMessageBox::warning( m_mainWnd, tr( "Warning" ),
-			tr( "Only two datasets can be processed at a time! Please close %1 datasets" )
-			.arg( mdiwindows.size() - 2 ) );
-		return 0;
-	}
-	else if( mdiwindows.size() < 2 )
-	{
-		QMessageBox::warning( m_mainWnd, tr( "Warning" ),
-			tr( "Only one dataset available. Please load another one!" ) );
-		return 0;
-	}
-	return m_mainWnd->activeMdiChild() == mdiwindows.at(0) ?
-		mdiwindows.at(1) : mdiwindows.at(0);
-}
-
 QMenu * iAModuleInterface::getMenuWithTitle( QMenu * parentMenu, QString const & title, bool isDisablable /*= true*/  )
 {
 	return m_dispatcher->getMenuWithTitle(parentMenu, title, isDisablable);

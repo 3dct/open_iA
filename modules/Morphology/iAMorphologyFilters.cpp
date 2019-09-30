@@ -34,6 +34,8 @@
 #include <itkGrayscaleMorphologicalOpeningImageFilter.h>
 #include <itkHessian3DToVesselnessMeasureImageFilter.h>
 #include <itkHessianRecursiveGaussianImageFilter.h>
+#include <itkOpeningByReconstructionImageFilter.h>
+#include <itkClosingByReconstructionImageFilter.h>
 
 // NOTE: The 'binary' versions of the dilation (e.g., itkBinaryDilateImageFilter), erode, fill hole, opening,
 // and closing filters have been replaced by the 'grayscale' versions of these filters 
@@ -83,7 +85,7 @@ template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const 
 		auto dilateFilter = DilateImageFilterType::New();
 		dilateFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		dilateFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(dilateFilter);
+		filter->progress()->observe(dilateFilter);
 		dilateFilter->Update();
 		filter->addOutput(dilateFilter->GetOutput());
 	}
@@ -105,7 +107,7 @@ template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const 
 		auto dilateFilter = DilateImageFilterType::New();
 		dilateFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		dilateFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(dilateFilter);
+		filter->progress()->observe(dilateFilter);
 		dilateFilter->Update();
 		filter->addOutput(dilateFilter->GetOutput());
 	}
@@ -153,7 +155,7 @@ template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const &
 		auto erodeFilter = ErodeImageFilterType::New();
 		erodeFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		erodeFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(erodeFilter);
+		filter->progress()->observe(erodeFilter);
 		erodeFilter->Update();
 		filter->addOutput(erodeFilter->GetOutput());
 	}
@@ -176,7 +178,7 @@ template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const &
 		auto erodeFilter = ErodeImageFilterType::New();
 		erodeFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		erodeFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(erodeFilter);
+		filter->progress()->observe(erodeFilter);
 		erodeFilter->Update();
 		filter->addOutput(erodeFilter->GetOutput());
 	}
@@ -260,7 +262,7 @@ template<class T> void morphOpening(iAFilter* filter, QMap<QString, QVariant> co
 		auto morphOpeningFilter = MorphOpeningImageFilterType::New(); //::New();
 		morphOpeningFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		morphOpeningFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(morphOpeningFilter);
+		filter->progress()->observe(morphOpeningFilter);
 		morphOpeningFilter->Update();
 		filter->addOutput(morphOpeningFilter->GetOutput());
 	}
@@ -282,7 +284,7 @@ template<class T> void morphOpening(iAFilter* filter, QMap<QString, QVariant> co
 		auto morphOpeningFilter = MorphOpeningImageFilterType::New();
 		morphOpeningFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		morphOpeningFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(morphOpeningFilter);
+		filter->progress()->observe(morphOpeningFilter);
 		morphOpeningFilter->Update();
 		filter->addOutput(morphOpeningFilter->GetOutput());
 	}
@@ -328,7 +330,7 @@ template<class T> void morphClosing(iAFilter* filter, QMap<QString, QVariant> co
 		auto morphClosingFilter = MorphClosingImageFilterType::New();
 		morphClosingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		morphClosingFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(morphClosingFilter);
+		filter->progress()->observe(morphClosingFilter);
 		morphClosingFilter->Update();
 		filter->addOutput(morphClosingFilter->GetOutput());
 	}
@@ -350,7 +352,7 @@ template<class T> void morphClosing(iAFilter* filter, QMap<QString, QVariant> co
 		auto morphClosingFilter = MorphClosingImageFilterType::New();
 		morphClosingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 		morphClosingFilter->SetKernel(structuringElement);
-		filter->progress()->Observe(morphClosingFilter);
+		filter->progress()->observe(morphClosingFilter);
 		morphClosingFilter->Update();
 		filter->addOutput(morphClosingFilter->GetOutput());
 	}
@@ -389,7 +391,7 @@ template<class T> void fillHole(iAFilter* filter, QMap<QString, QVariant> const 
 	typename FillHoleImageFilterType::Pointer fillHoleFilter = FillHoleImageFilterType::New();
 	fillHoleFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
 	fillHoleFilter->SetFullyConnected(params["Fully Connected"].toBool());
-	filter->progress()->Observe(fillHoleFilter);
+	filter->progress()->observe(fillHoleFilter);
 	fillHoleFilter->Update();
 	filter->addOutput(fillHoleFilter->GetOutput());
 }
@@ -412,4 +414,151 @@ iAFillHole::iAFillHole() :
 		"GrayscaleFillholeImageFilter</a>")
 {
 	addParameter("Fully Connected", Boolean, false);
+}
+
+template<class T> void openingByReconstruction(iAFilter* filter, QMap<QString, QVariant> const& params)
+{
+	using namespace Morphology;
+	std::string str_Input = params[elem_type].toString().toStdString();
+	if (str_Input.compare("Ball") == 0)
+	{
+		typedef itk::OpeningByReconstructionImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>>
+			OpeningByReconstructionImageFilterFilterType;
+		BallElement<T> structuringElement;
+		structuringElement.SetRadius(params["Radius"].toUInt());
+		structuringElement.CreateStructuringElement();
+		auto OpeningByReconstruction = OpeningByReconstructionImageFilterFilterType::New();
+		OpeningByReconstruction->SetInput(dynamic_cast<InputImageType<T>*>(filter->input()[0]->itkImage()));
+		OpeningByReconstruction->SetKernel(structuringElement);
+		filter->progress()->observe(OpeningByReconstruction);
+		OpeningByReconstruction->Update();
+		filter->addOutput(OpeningByReconstruction->GetOutput());
+	}
+	else
+	{
+		typedef itk::OpeningByReconstructionImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>>
+			OpeningByReconstructionImageFilterType;
+
+		FlatElement <T> structuringElement;
+		typename FlatElement<T>::RadiusType elementRadius;
+		elementRadius.Fill(params["Radius"].toUInt());
+		if (str_Input.compare("Box") == 0)
+			structuringElement = FlatElement<T>::Box(elementRadius);
+		else if (str_Input.compare("Cross") == 0)
+			structuringElement = FlatElement<T>::Cross(elementRadius);
+		else
+			structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
+
+		auto OpeningByReconstruction = OpeningByReconstructionImageFilterType::New();
+		OpeningByReconstruction->SetInput(dynamic_cast<InputImageType<T>*>(filter->input()[0]->itkImage()));
+		OpeningByReconstruction->SetKernel(structuringElement);
+		filter->progress()->observe(OpeningByReconstruction);
+		OpeningByReconstruction->Update();
+		filter->addOutput(OpeningByReconstruction->GetOutput());
+	}
+}
+
+void iAOpeningByReconstruction::performWork(QMap<QString, QVariant> const& parameters)
+{
+	ITK_TYPED_CALL(openingByReconstruction, inputPixelType(), this, parameters);
+}
+
+IAFILTER_CREATE(iAOpeningByReconstruction)
+
+iAOpeningByReconstruction::iAOpeningByReconstruction() :
+	iAFilter("OpeningByReconstructionImageFilter", "Morphology",
+		"This filter preserves regions, in the foreground, that can completely contain the structuring element. <br/>"
+		"At the same time, this filter eliminates all other regions of foreground pixels. <br/>"
+		"Contrary to the morphological opening, the opening by reconstruction preserves the shape of <br/>"
+		"the components that are not removed by erosion. The opening by reconstruction of an image <f> is defined as:<br/>"
+		"OpeningByReconstruction(f) = DilationByRecontruction(f, Erosion(f)).<br/><br/> "
+
+		"Opening by reconstruction not only removes structures destroyed by the erosion,<br/> "
+		"but also levels down the contrast of the brightest regions.If PreserveIntensities is on, a <br/>"
+		"subsequent reconstruction by dilation using a marker image that is the original image for all unaffected pixels. <br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OpeningByReconstructionImageFilter.html\">"
+		"OpeningByReconstructionImageFilter </a>, the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryBallStructuringElement.html\">"
+		"Binary Ball Structuring Element</a>, as well as the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FlatStructuringElement.html\">"
+		"FlatStructuringElement (Box, Cross and Polygon)</a> "
+		"in the ITK documentation.")
+{
+	Morphology::morphEl morph_text;
+	addParameter("Radius", Discrete, 1, 1);
+	addParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
+}
+
+template<class T> void closingByReconstruction(iAFilter* filter, QMap<QString, QVariant> const& params)
+{
+	using namespace Morphology;
+	std::string str_Input = params[elem_type].toString().toStdString();
+	if (str_Input.compare("Ball") == 0)
+	{
+		typedef itk::ClosingByReconstructionImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>>
+			ClosingByReconstructionImageFilterType;
+		BallElement<T> structuringElement;
+		structuringElement.SetRadius(params["Radius"].toUInt());
+		structuringElement.CreateStructuringElement();
+		auto ClosingByReconstruction = ClosingByReconstructionImageFilterType::New();
+		ClosingByReconstruction->SetInput(dynamic_cast<InputImageType<T>*>(filter->input()[0]->itkImage()));
+		ClosingByReconstruction->SetKernel(structuringElement);
+		filter->progress()->observe(ClosingByReconstruction);
+		ClosingByReconstruction->Update();
+		filter->addOutput(ClosingByReconstruction->GetOutput());
+	}
+	else
+	{
+		typedef itk::ClosingByReconstructionImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>>
+			ClosingByReconstructionImageFilterType;
+
+		FlatElement <T> structuringElement;
+		typename FlatElement<T>::RadiusType elementRadius;
+		elementRadius.Fill(params["Radius"].toUInt());
+		if (str_Input.compare("Box") == 0)
+			structuringElement = FlatElement<T>::Box(elementRadius);
+		else if (str_Input.compare("Cross") == 0)
+			structuringElement = FlatElement<T>::Cross(elementRadius);
+		else
+			structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
+
+		auto ClosingByReconstruction = ClosingByReconstructionImageFilterType::New();
+		ClosingByReconstruction->SetInput(dynamic_cast<InputImageType<T>*>(filter->input()[0]->itkImage()));
+		ClosingByReconstruction->SetKernel(structuringElement);
+		filter->progress()->observe(ClosingByReconstruction);
+		ClosingByReconstruction->Update();
+		filter->addOutput(ClosingByReconstruction->GetOutput());
+	}
+}
+
+void iAClosingByReconstruction::performWork(QMap<QString, QVariant> const& parameters)
+{
+	ITK_TYPED_CALL(closingByReconstruction, inputPixelType(), this, parameters);
+}
+
+IAFILTER_CREATE(iAClosingByReconstruction)
+
+iAClosingByReconstruction::iAClosingByReconstruction() :
+	iAFilter("ClosingByReconstructionImageFilter", "Morphology",
+		"TThis filter is similar to the morphological closing, but contrary to the morphological closing, <br/>"
+		"the closing by reconstruction preserves the shape of the components. <br/>"
+		"The closing by reconstruction of an image <f> is defined as:"
+		"ClosingByReconstruction(f) = ErosionByReconstruction(f, Dilation(f)).<br/><br/> "
+
+		"losing by reconstruction not only preserves structures preserved by the dilation, <br/>" 
+		"but also levels raises the contrast of the darkest regions. If PreserveIntensities <br/>"
+		"is on, a subsequent reconstruction by dilation using a marker image that is the original image for all unaffected pixels<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OpeningByReconstructionImageFilter.html\">"
+		"ClosingByReconstructionImageFilter </a>, the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryBallStructuringElement.html\">"
+		"Binary Ball Structuring Element</a>, as well as the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FlatStructuringElement.html\">"
+		"FlatStructuringElement (Box, Cross and Polygon)</a> "
+		"in the ITK documentation.")
+{
+	Morphology::morphEl morph_text;
+	addParameter("Radius", Discrete, 1, 1);
+	addParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
 }

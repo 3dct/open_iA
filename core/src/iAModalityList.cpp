@@ -25,7 +25,7 @@
 #include "iAModality.h"
 #include "iAModalityTransfer.h"
 #include "iAProgress.h"
-#include "iASettings.h"
+#include "iAXmlSettings.h"
 #include "iAStringHelper.h"
 #include "iAToolsVTK.h"
 #include "iAVolumeRenderer.h"
@@ -199,8 +199,8 @@ void iAModalityList::store(QString const & filename, vtkCamera* camera)
 		}
 		QString tfFileName = MakeRelative(fi.absolutePath(), absoluteTFFileName);
 		settings.setValue(GetModalityKey(i, "TransferFunction"), tfFileName);
-		iASettings s;
-		s.storeTransferFunction(m_modalitiesActive[i]->transfer().data());
+		iAXmlSettings s;
+		s.saveTransferFunction(m_modalitiesActive[i]->transfer().data());
 		s.save(absoluteTFFileName);
 	}
 }
@@ -301,7 +301,7 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 			emit added(mod[0]);
 		}
 		++currIdx;
-		progress.EmitProgress((100 * currIdx) / maxIdx);
+		progress.emitProgress((100 * currIdx) / maxIdx);
 	}
 	m_fileName = filename;
 	return true;

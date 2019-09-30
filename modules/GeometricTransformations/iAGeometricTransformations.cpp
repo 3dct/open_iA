@@ -93,7 +93,7 @@ template<typename T> void resampler(iAFilter* filter, QMap<QString, QVariant> co
 	resampler->SetOutputSpacing( spacing );
 	resampler->SetSize( size );
 	resampler->SetDefaultPixelValue( 0 );
-	filter->progress()->Observe( resampler );
+	filter->progress()->observe( resampler );
 	resampler->Update( );
 	filter->addOutput( resampler->GetOutput() );
 }
@@ -164,7 +164,7 @@ void extractImage(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	auto extractFilter = EIFType::New();
 	extractFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	extractFilter->SetExtractionRegion(region);
-	filter->progress()->Observe(extractFilter);
+	filter->progress()->observe(extractFilter);
 	extractFilter->Update();
 
 	filter->addOutput(setIndexOffsetToZero<T>(extractFilter->GetOutput()));
@@ -237,7 +237,7 @@ template<typename T> void padImage(iAFilter* filter, QMap<QString, QVariant> con
 	padFilter->SetPadLowerBound(lowerPadSize);
 	padFilter->SetPadUpperBound(upperPadSize);
 	padFilter->SetConstant(parameters["Value"].toDouble());
-	filter->progress()->Observe(padFilter);
+	filter->progress()->observe(padFilter);
 	padFilter->Update();
 
 	filter->addOutput(setIndexOffsetToZero<T>(padFilter->GetOutput()));

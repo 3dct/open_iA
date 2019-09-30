@@ -9,8 +9,8 @@ CALL :dequote VS_PATH
 set COMPILER=MSVC
 if NOT [%6]==[] set COMPILER=%6
 
-set TEST_FILES_DIR=%TEST_SRC_DIR%/Test_files
-if NOT [%7]==[] set TEST_FILES_DIR=%7
+set TEST_DIR=%TEST_SRC_DIR%/test
+if NOT [%7]==[] set TEST_DIR=%7
 
 set MAIN_SOLUTION=open_iA.sln
 if NOT [%8]==[] set MAIN_SOLUTION=%8
@@ -61,7 +61,7 @@ cmake -C "%CONFIG_FILE%" %TEST_SRC_DIR% 2>&1
 
 :: Create test configurations:
 md %TEST_CONFIG_PATH%
-python %TEST_FILES_DIR%\CreateTestConfigurations.py %TEST_SRC_DIR% %GIT_BRANCH% %TEST_CONFIG_PATH% %MODULE_DIRS% %COMPILER%
+python %TEST_DIR%\CreateTestConfigurations.py %TEST_SRC_DIR% %GIT_BRANCH% %TEST_CONFIG_PATH% %MODULE_DIRS% %COMPILER%
 
 rem Run with all flags enabled:
 cmake -C %TEST_CONFIG_PATH%\all_flags.cmake %TEST_SRC_DIR% 2>&1
@@ -77,6 +77,8 @@ MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
 :: del %TEST_Bin_DIR%\modules\moc_*
 ctest -D Experimental -C %BUILD_TYPE%
 
+del %TEST_BIN_DIR%\Testing\Temporary\*.mhd %TEST_BIN_DIR%\Testing\Temporary\*.raw
+
 :: iterate over module tests, run build&tests for each:
 FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
 	@echo(
@@ -89,6 +91,7 @@ FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
 	:: del %TEST_Bin_DIR%\core\moc_*
 	:: del %TEST_Bin_DIR%\modules\moc_*
 	ctest -D Experimental -C %BUILD_TYPE%
+	del %TEST_BIN_DIR%\Testing\Temporary\*.mhd %TEST_BIN_DIR%\Testing\Temporary\*.raw
 )
 
 :: CLEANUP:

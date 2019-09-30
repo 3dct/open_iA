@@ -128,7 +128,7 @@ iAConnector::iAConnector() :
 {}
 
 
-void iAConnector::setImage( ImageBaseType * image )
+void iAConnector::setImage(ImageBaseType * image)
 {
 	m_isTypeInitialized = false;
 	if( this->m_ITKImage.GetPointer() == image )
@@ -187,13 +187,13 @@ iAConnector::ITKScalarPixelType iAConnector::itkScalarPixelType() const
 	return m_itkScalarType;
 }
 
-void iAConnector::updatePixelType()
+void iAConnector::updatePixelType() const
 {
 	m_isPixelTypeInitialized = true;
 	m_itkPixelType = ::itkPixelType( m_ITKImage );
 }
 
-iAConnector::ITKPixelType iAConnector::itkPixelType()
+iAConnector::ITKPixelType iAConnector::itkPixelType() const
 {
 	if ( !m_isPixelTypeInitialized )
 		updatePixelType();

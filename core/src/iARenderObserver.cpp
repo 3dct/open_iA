@@ -97,6 +97,8 @@ void iARenderObserver::Execute(vtkObject * caller,
 	{
 		case vtkCommand::LeftButtonPressEvent:
 		{
+			if (!m_pImageData)
+				return;
 			PickWithWorldPicker();
 			double* pos = m_pWorldPicker->GetPickPosition();
 			double* spacing = m_pImageData->GetSpacing();
@@ -118,11 +120,6 @@ void iARenderObserver::Execute(vtkObject * caller,
 
 			if (mode == 0)
 			{
-				int dims[3];
-				double spacing[3];
-				m_pImageData->GetDimensions(dims);
-				m_pImageData->GetSpacing(spacing);
-
 				if (!keySym || strlen(keySym) == 0)
 					return;
 				keyCode = keySym[0];
@@ -492,10 +489,12 @@ vtkRenderWindowInteractor* iARenderObserver::GetInteractor()
 {
 	return m_pIren;
 }
+
 vtkImageData* iARenderObserver::GetImageData()
 {
 	return m_pImageData;
 }
+
 vtkRenderer* iARenderObserver::GetLabelRenderer()
 {
 	return m_pLabelRen;

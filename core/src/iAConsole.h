@@ -59,11 +59,15 @@ public:
 	bool isLogToFileOn() const;
 	QString logFileName() const;
 	bool isFileLogError() const;
+	bool isVisible() const;
+	void setVisible(bool visible);
 // decouple logging methods from GUI logging (to allow logging from any thread):
 signals:
 	void logSignal(QString const & text);
+	void consoleVisibilityChanged(bool newVisibility);
 private slots:
 	void logSlot(QString const & text);
+	void consoleClosed();
 private:
 	iAConsole();
 	~iAConsole();
@@ -84,7 +88,7 @@ private:
 
 
 // Some default loggers:
-
+// check why we need separate class iAConsoleLogger
 class open_iA_Core_API iAConsoleLogger : public iALogger
 {
 public:

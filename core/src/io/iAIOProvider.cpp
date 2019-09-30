@@ -23,7 +23,7 @@
 #include <QObject>
 
 const QString iAIOProvider::ProjectFileExtension(".mod");
-const QString iAIOProvider::ProjectFileTypeFilter("open_iA project file (*"+ProjectFileExtension+");;All files (*.*)");
+const QString iAIOProvider::ProjectFileTypeFilter("open_iA project file (*"+ProjectFileExtension+");;");
 const QString iAIOProvider::MetaImages("Meta Images (*.mhd *.mha);;");
 const QString iAIOProvider::VTKFiles("VTK Files (*.vtk);;");
 
@@ -35,11 +35,11 @@ namespace
 QString iAIOProvider::GetSupportedLoadFormats()
 {
 	return QString(
-		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.oif *.am *.vtk "
+		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.nia *.nii *.nii.gz *.hdr *.hdr.gz *.img *.img.gz *.oif *.am *.vtk "
 #ifdef USE_HDF5
 		"*.hdf5 *.h5 *.he5 *.mat "
 #endif
-		"*.vti "+ImageFormatExtensions+");;"
+		"*.vti "+ImageFormatExtensions+" *"+ProjectFileExtension+");;"
 		+ MetaImages + VTKFiles +
 		"STL files (*.stl);;"
 		"VG Studio Scenes (*.vgi);;"
@@ -47,6 +47,7 @@ QString iAIOProvider::GetSupportedLoadFormats()
 		"PARS files (*.pars);;"
 		"Dicom Series (*.dcm);;"
 //		"NRRD files (*.nrrd *.nhdr);;"	// currently not supported as it reads as a itk::VectorImage, which we cannot convert to vtkImageData at the moment
+		"NIFTI Images (*.nia *.nii *.nii.gz *.hdr *.hdr.gz *.img *.img.gz);;"
 		"Olympus FluoView (*.oif);;"
 		"AmiraMesh (*.am);;"
 #ifdef USE_HDF5
@@ -55,7 +56,8 @@ QString iAIOProvider::GetSupportedLoadFormats()
 		"Network Common Data Format v4 (*.nc *.cdf);;"
 #endif
 		"Serial VTK image data (*.vti);;") +
-		GetSupportedImageFormats();
+		GetSupportedImageFormats() +
+		ProjectFileTypeFilter;
 }
 
 

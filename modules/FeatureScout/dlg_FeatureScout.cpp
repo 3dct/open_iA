@@ -200,7 +200,8 @@ ColormapFuncPtr colormapsIndex[] =
 const int dlg_FeatureScout::PCMinTicksCount = 2;
 
 dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
-	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping)
+	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping,
+	std::map<size_t, std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip)
 	: QDockWidget( parent ),
 	csvTable( csvtbl ),
 	m_renderer( parent->renderer() ),
@@ -248,7 +249,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupViews();
 	setupModel();
 	setupConnections();
-	m_3dvis = create3DObjectVis(vis, parent, csvtbl, m_columnMapping, m_colorList.at(0));
+	m_3dvis = create3DObjectVis(vis, parent, csvtbl, m_columnMapping, m_colorList.at(0), curvedFiberInfo, cylinderQuality, segmentSkip);
 	if (vis != iACsvConfig::UseVolume)
 		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
 			.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
@@ -280,11 +281,7 @@ std::vector<size_t> dlg_FeatureScout::getPCSelection()
 {
 	std::vector<size_t> selectedIndices;
 	auto pcSelection = pcChart->GetPlot(0)->GetSelection();
-#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
 	int countSelection = pcSelection->GetNumberOfValues();
-#else
-	int countSelection = pcSelection->GetNumberOfTuples();
-#endif
 	for (int idx = 0; idx < countSelection; idx++)
 	{
 		size_t objID = pcSelection->GetVariantValue(idx).ToUnsignedLongLong();
@@ -1114,11 +1111,7 @@ void dlg_FeatureScout::RenderMeanObject()
 			cubeAxesActor->SetFlyModeToOuterEdges();
 			cubeAxesActor->SetTickLocationToOutside();
 			cubeAxesActor->SetScreenSize( 10.0 );	//changes axes font size
-#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
 			cubeAxesActor->SetGridLineLocation( vtkCubeAxesActor::VTK_GRID_LINES_FURTHEST );
-#else
-			cubeAxesActor->SetGridLineLocation( VTK_GRID_LINES_FURTHEST );
-#endif
 			cubeAxesActor->DrawXGridlinesOn();  cubeAxesActor->DrawYGridlinesOn(); 	cubeAxesActor->DrawZGridlinesOn();
 			cubeAxesActor->GetTitleTextProperty( 0 )->SetColor( 1.0, 0.0, 0.0 );
 			cubeAxesActor->GetLabelTextProperty( 0 )->SetColor( 1.0, 0.0, 0.0 );
@@ -1188,14 +1181,14 @@ void dlg_FeatureScout::saveStl()
 	connect( &stlWriProgress, SIGNAL( progress( int ) ), this, SLOT( updateStlProgress( int ) ) );
 
 	auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
-	marCubProgress.Observe(moSurface);
+	marCubProgress.observe(moSurface);
 	moSurface->SetInputData( m_MOData.moImageDataList[iovMO->cb_Classes->currentIndex()] );
 	moSurface->ComputeNormalsOn();
 	moSurface->ComputeGradientsOn();
 	moSurface->SetValue( 0, iovMO->dsb_IsoValue->value() );
 
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
-	stlWriProgress.Observe(stlWriter);
+	stlWriProgress.observe(stlWriter);
 	stlWriter->SetFileName( getLocalEncodingFileName(iovMO->le_StlPath->text()).c_str() );
 	stlWriter->SetInputConnection( moSurface->GetOutputPort() );
 	stlWriter->Write();
@@ -1360,11 +1353,7 @@ void dlg_FeatureScout::RenderOrientation()
 			unsigned char color[3];
 			for ( unsigned int j = 0; j < 3; j++ )
 				color[j] = static_cast<unsigned char>( 255.0 * p[j] );
-#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
 			colors->InsertNextTypedTuple( color );
-#else
-			colors->InsertNextTupleValue(color);
-#endif
 		}
 	}
 
@@ -3249,11 +3238,7 @@ void dlg_FeatureScout::updatePolarPlotView( vtkTable *it )
 			for ( unsigned int j = 0; j < 3; j++ )
 				color[j] = static_cast<unsigned char>( 255.0 * dcolor[j] );
 
-#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
 			colors->InsertNextTypedTuple( color );
-#else
-			colors->InsertNextTupleValue( color );
-#endif
 		}
 	}
 

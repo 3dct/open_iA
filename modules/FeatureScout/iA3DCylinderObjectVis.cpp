@@ -32,23 +32,20 @@
 
 
 iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-	QColor const & color, std::map<size_t, std::vector<iAVec3f> > curvedFiberData, int numberOfCylinderSides):
-	iA3DLineObjectVis( ren, objectTable, columnMapping, color, curvedFiberData),
+	QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, int numberOfCylinderSides, size_t segmentSkip):
+	iA3DLineObjectVis( ren, objectTable, columnMapping, color, curvedFiberData, segmentSkip),
 	m_objectCount(objectTable->GetNumberOfRows()),
 	m_contextFactors(nullptr),
-	m_contextDiameterFactor(1.0),
-	m_curvedFiberData(curvedFiberData)
+	m_contextDiameterFactor(1.0)
 {
 	auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
 	tubeRadius->SetName("TubeRadius");
 	tubeRadius->SetNumberOfTuples(m_points->GetNumberOfPoints());
 	for (vtkIdType row = 0; row < objectTable->GetNumberOfRows(); ++row)
 	{
-		auto it = curvedFiberData.find(row);
-		int numPoints = (it != curvedFiberData.end()) ? it->second.size() : 2;
 		double diameter = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::Diameter)).ToDouble();
-		for (int p = 0; p < numPoints; ++p)
-			tubeRadius->SetTuple1(m_fiberPointMap[row]+p,   diameter/2);
+		for (int p = 0; p < objectPointCount(row); ++p)
+			tubeRadius->SetTuple1(objectStartPointIdx(row)+p, diameter/2);
 	}
 	m_linePolyData->GetPointData()->AddArray(tubeRadius);
 	m_linePolyData->GetPointData()->SetActiveScalars("TubeRadius");
@@ -84,7 +81,7 @@ void iA3DCylinderObjectVis::setContextDiameterFactor(double contextDiameterFacto
 	else
 	{
 		if (!m_contextFactors)
-			m_contextFactors = new float[2 * m_objectCount];
+			m_contextFactors = new float[m_points->GetNumberOfPoints()];
 		m_contextDiameterFactor = contextDiameterFactor;
 		size_t selIdx = 0;
 		for (vtkIdType row = 0; row < m_objectCount; ++row)
@@ -93,8 +90,8 @@ void iA3DCylinderObjectVis::setContextDiameterFactor(double contextDiameterFacto
 			if (isSelected)
 				++selIdx;
 			float diameter = (!isSelected) ? m_contextDiameterFactor : 1.0;
-			m_contextFactors[2 * row] = diameter;
-			m_contextFactors[2 * row + 1] = diameter;
+			for (int p = 0; p < objectPointCount(row); ++p)
+				m_contextFactors[objectStartPointIdx(row) + p] = diameter;
 		}
 	}
 	m_tubeFilter->SetIndividualFactors(m_contextFactors);

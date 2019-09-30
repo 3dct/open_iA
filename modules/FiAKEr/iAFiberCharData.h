@@ -69,7 +69,7 @@ public:
 	std::vector<std::vector<iAFiberSimilarity> > dist;
 };
 
-//! Data for a single fiber characterization result
+//! Data for the result of a single run of a fiber reconstructcion algorithm.
 class iAFiberCharData
 {
 public:
@@ -95,6 +95,7 @@ public:
 	std::vector<double> avgDifference;
 };
 
+//! A collection of multiple results from one or more fiber reconstruction algorithms.
 class iAFiberResultsCollection
 {
 public:
@@ -124,6 +125,7 @@ public:
 	bool loadData(QString const & path, QString const & configName, double stepShift, iAProgress * progress);
 };
 
+//! Loads a collection of results from a folder, in the background
 class iAFiberResultsLoader: public QThread
 {
 	Q_OBJECT
