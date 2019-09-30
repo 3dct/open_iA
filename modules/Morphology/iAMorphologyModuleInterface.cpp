@@ -33,5 +33,6 @@ void iAMorphologyModuleInterface::Initialize()
 	REGISTER_FILTER(iAMorphClosing);
 	REGISTER_FILTER(iAFillHole);
 	REGISTER_FILTER(iAOpeningByReconstruction)
+	REGISTER_FILTER(iAClosingByReconstruction)
 }
 

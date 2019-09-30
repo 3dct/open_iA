@@ -35,6 +35,7 @@
 #include <itkHessian3DToVesselnessMeasureImageFilter.h>
 #include <itkHessianRecursiveGaussianImageFilter.h>
 #include <itkOpeningByReconstructionImageFilter.h>
+#include <itkClosingByReconstructionImageFilter.h>
 
 // NOTE: The 'binary' versions of the dilation (e.g., itkBinaryDilateImageFilter), erode, fill hole, opening,
 // and closing filters have been replaced by the 'grayscale' versions of these filters 
@@ -478,6 +479,79 @@ iAOpeningByReconstruction::iAOpeningByReconstruction() :
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OpeningByReconstructionImageFilter.html\">"
 		"OpeningByReconstructionImageFilter </a>, the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryBallStructuringElement.html\">"
+		"Binary Ball Structuring Element</a>, as well as the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FlatStructuringElement.html\">"
+		"FlatStructuringElement (Box, Cross and Polygon)</a> "
+		"in the ITK documentation.")
+{
+	Morphology::morphEl morph_text;
+	addParameter("Radius", Discrete, 1, 1);
+	addParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
+}
+
+template<class T> void closingByReconstruction(iAFilter* filter, QMap<QString, QVariant> const& params)
+{
+	using namespace Morphology;
+	std::string str_Input = params[elem_type].toString().toStdString();
+	if (str_Input.compare("Ball") == 0)
+	{
+		typedef itk::ClosingByReconstructionImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>>
+			ClosingByReconstructionImageFilterType;
+		BallElement<T> structuringElement;
+		structuringElement.SetRadius(params["Radius"].toUInt());
+		structuringElement.CreateStructuringElement();
+		auto ClosingByReconstruction = ClosingByReconstructionImageFilterType::New();
+		ClosingByReconstruction->SetInput(dynamic_cast<InputImageType<T>*>(filter->input()[0]->itkImage()));
+		ClosingByReconstruction->SetKernel(structuringElement);
+		filter->progress()->observe(ClosingByReconstruction);
+		ClosingByReconstruction->Update();
+		filter->addOutput(ClosingByReconstruction->GetOutput());
+	}
+	else
+	{
+		typedef itk::ClosingByReconstructionImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>>
+			ClosingByReconstructionImageFilterType;
+
+		FlatElement <T> structuringElement;
+		typename FlatElement<T>::RadiusType elementRadius;
+		elementRadius.Fill(params["Radius"].toUInt());
+		if (str_Input.compare("Box") == 0)
+			structuringElement = FlatElement<T>::Box(elementRadius);
+		else if (str_Input.compare("Cross") == 0)
+			structuringElement = FlatElement<T>::Cross(elementRadius);
+		else
+			structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
+
+		auto ClosingByReconstruction = ClosingByReconstructionImageFilterType::New();
+		ClosingByReconstruction->SetInput(dynamic_cast<InputImageType<T>*>(filter->input()[0]->itkImage()));
+		ClosingByReconstruction->SetKernel(structuringElement);
+		filter->progress()->observe(ClosingByReconstruction);
+		ClosingByReconstruction->Update();
+		filter->addOutput(ClosingByReconstruction->GetOutput());
+	}
+}
+
+void iAClosingByReconstruction::performWork(QMap<QString, QVariant> const& parameters)
+{
+	ITK_TYPED_CALL(closingByReconstruction, inputPixelType(), this, parameters);
+}
+
+IAFILTER_CREATE(iAClosingByReconstruction)
+
+iAClosingByReconstruction::iAClosingByReconstruction() :
+	iAFilter("ClosingByReconstructionImageFilter", "Morphology",
+		"TThis filter is similar to the morphological closing, but contrary to the morphological closing, <br/>"
+		"the closing by reconstruction preserves the shape of the components. <br/>"
+		"The closing by reconstruction of an image <f> is defined as:"
+		"ClosingByReconstruction(f) = ErosionByReconstruction(f, Dilation(f)).<br/><br/> "
+
+		"losing by reconstruction not only preserves structures preserved by the dilation, <br/>" 
+		"but also levels raises the contrast of the darkest regions. If PreserveIntensities <br/>"
+		"is on, a subsequent reconstruction by dilation using a marker image that is the original image for all unaffected pixels<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OpeningByReconstructionImageFilter.html\">"
+		"ClosingByReconstructionImageFilter </a>, the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryBallStructuringElement.html\">"
 		"Binary Ball Structuring Element</a>, as well as the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FlatStructuringElement.html\">"
