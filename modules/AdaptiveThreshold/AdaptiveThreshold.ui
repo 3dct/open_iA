@@ -591,7 +591,7 @@
                  <item>
                   <widget class="QLineEdit" name="ed_ptXmin">
                    <property name="text">
-                    <string>0.6</string>
+                    <string>0.5</string>
                    </property>
                   </widget>
                  </item>
@@ -725,7 +725,7 @@
               <property name="title">
                <string>Grey value range segmentation (unnormalised)</string>
               </property>
-              <widget class="QWidget" name="">
+              <widget class="QWidget" name="layoutWidget">
                <property name="geometry">
                 <rect>
                  <x>0</x>

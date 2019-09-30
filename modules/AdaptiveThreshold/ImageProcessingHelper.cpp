@@ -18,6 +18,7 @@
 #include <vtkColorTransferFunction.h>
 
 #include <mainwindow.h>
+#include "iARenderer.h"
 
 void ImageProcessingHelper::performSegmentation(double greyThresholdMin, double greyThresholdUpper)
 {
@@ -87,11 +88,17 @@ void ImageProcessingHelper::prepareFilter(double greyThresholdLower, double grey
 	//create new result child
 	auto newChild = m_childData->mainWnd()->resultChild("adaptivethres.mhd");
 
+	
 	//newChild->
 	vtkSmartPointer<vtkImageData> data = vtkSmartPointer<vtkImageData>::New();
 	data->DeepCopy(filter->output()[0]->vtkImage());
+	newChild->resultInNewWindow();
+	newChild->displayResult("test", data); 
+	//newChild->setImageData("adive.mhd, false, data");
+	//newChild->displayResult("AdaptiveThresholdSegmentation", data);
+	newChild->renderer()->update(); 
 	//m_childData->displayResult("Adaptive thresholding segmentation", data, nullptr);
-	m_childData->setImageData("adaptivethres.mhd", false, data);
+	//m_childData->setImageData("adaptivethres.mhd", false, data);
 }
 
 void ImageProcessingHelper::imageToReslicer()
