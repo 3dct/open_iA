@@ -428,7 +428,7 @@ void iAIO::run()
 			case STL_READER:
 				readSTL(); break;
 			case VTK_READER:
-					readVTKFile(); break; 
+				readVTKFile(); break;
 			case RAW_READER:
 			case PARS_READER:
 			case VGI_READER:
@@ -917,42 +917,99 @@ void iAIO::loadMetaImageFile(QString const & fileName)
 void iAIO::readVTKFile()
 {
 	// Get all data from the file
-		vtkSmartPointer<vtkGenericDataObjectReader> reader =
-		vtkSmartPointer<vtkGenericDataObjectReader>::New();
-		reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
-		reader->Update();				
+	auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
+	reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
+	reader->Update();				
 		
-		// All of the standard data types can be checked and obtained like this:
-		if (reader->IsFilePolyData())
-		{
-			DEBUG_LOG("output is a polydata");
+	// All of the standard data types can be checked and obtained like this:
+	if (reader->IsFilePolyData())
+	{
+		DEBUG_LOG("output is a polydata");
 						
-			getVtkPolyData()->DeepCopy(reader->GetPolyDataOutput());
-			printSTLFileInfos();
-						
-		}if (reader->IsFileRectilinearGrid()) {
-			addMsg(tr("output is reclinearGrid, to be implemented later"));
-			
-			//stuff below is more or less experimental		
-			/*
-			getVtkImageData()->ReleaseData();
-			getVtkImageData()->Initialize();
-			auto data =  reader->GetRectilinearGridOutput(); 
-			auto scalars = data->GetPointData()->GetAbstractArray("POINT_DATA");
-
-			getVtkImageData()->ShallowCopy(data);
-			getVtkImageData()->CopyInformationFromPipeline(data->GetInformation());
-			*/
-
-		}
-		else {
-			addMsg("This type of vtk format is currently not supported"); 
-		}
-	/*	else {
-			vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New(); 
-			reader->getOut
-		}*/
+		getVtkPolyData()->DeepCopy(reader->GetPolyDataOutput());
+		printSTLFileInfos();
 		addMsg(tr("File loaded."));
+						
+	}
+	else if (reader->IsFileRectilinearGrid())
+	{
+		addMsg(tr("output is reclinearGrid"));
+
+		auto rectilinearGrid = reader->GetRectilinearGridOutput();
+		int * extent = rectilinearGrid->GetExtent();
+		vtkDataArray* coords[3] = {
+			rectilinearGrid->GetXCoordinates(),
+			rectilinearGrid->GetYCoordinates(),
+			rectilinearGrid->GetZCoordinates()
+		};
+
+		const int NumDimensions = 3;
+		double spacing[NumDimensions];
+		// determine spacing and make sure it is the same over all coordinates:
+		for (int i = 0; i < NumDimensions; ++i)
+		{
+			int numComp = coords[i]->GetNumberOfComponents();
+			int numValues = coords[i]->GetNumberOfValues();
+			int extentSize = extent[i * 2 + 1] - extent[i * 2] + 1;
+			assert(numComp == 1);
+			assert(numValues == extentSize);
+			if (numValues < 2)
+			{
+				DEBUG_LOG(QString("Dimension %1 has dimensions of less than 2, cannot compute proper spacing, using 1 instead!"));
+				spacing[i] = 1;
+			}
+			else
+			{
+				spacing[i] = coords[i]->GetComponent(1, 0) - coords[i]->GetComponent(0, 0);
+				for (int j = 2; j < numValues; ++j)
+				{
+					double actSpacing = coords[i]->GetComponent(j, 0) - coords[i]->GetComponent(j - 1, 0);
+					if (actSpacing != spacing[i])
+					{
+						DEBUG_LOG(QString("Spacing for cordinate %1 not the same as between 0..1 (%2) at index %3 (%4).")
+							.arg(i)
+							.arg(spacing[i])
+							.arg(j)
+							.arg(actSpacing));
+					}
+				}
+			}
+		}
+
+		auto numOfArrays = rectilinearGrid->GetPointData()->GetNumberOfArrays();
+		for (int i = 0; i < numOfArrays; ++i)
+		{
+			auto img = getVtkImageData();
+			img->ReleaseData();
+			img->Initialize();
+			auto arrayData = rectilinearGrid->GetPointData()->GetAbstractArray(rectilinearGrid->GetPointData()->GetArrayName(i));
+			int dataType = arrayData->GetDataType();
+
+			img->SetExtent(extent);
+			int size[3] = {
+				extent[1] - extent[0],
+				extent[3] - extent[2],
+				extent[5] - extent[4],
+			};
+			img->SetSpacing(spacing);
+			img->AllocateScalars(dataType, 1);
+			//arrayData->
+			// memcpy scalar pointer into img->GetScalarPointer ?
+			size_t byteSize = mapVTKTypeToSize(dataType) * size[0] * size[1] * size[2];
+
+			auto arrayPtr = arrayData->GetVoidPointer(0);
+			std::memcpy(img->GetScalarPointer(), arrayPtr, byteSize);
+			getConnector()->setImage(img);
+			getConnector()->modified();
+
+			break; // in the future, when iAIO is refactored, load all datasets as separate modalities...
+		}
+		addMsg(tr("File loaded."));
+	}
+	else
+	{
+		addMsg("This type of vtk format is currently not supported");
+	}
 }
 
 void iAIO::readVolumeMHDStack()

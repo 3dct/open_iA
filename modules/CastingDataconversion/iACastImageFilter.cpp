@@ -116,7 +116,7 @@ void DataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parame
 	if (parameters["Automatic Input Range"].toBool())
 	{
 		double minVal, maxVal;
-		getStatistics(filter->input()[0]->itkImage(), nullptr, nullptr, &minVal, &maxVal);
+		getStatistics(filter->input()[0]->itkImage(), &minVal, &maxVal);
 		rescaleFilter->SetInputMinimum(minVal);
 		rescaleFilter->SetInputMaximum(maxVal);
 	}

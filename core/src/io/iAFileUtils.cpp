@@ -24,6 +24,7 @@
 
 #include <QCollator>
 #include <QDir>
+#include <QDirIterator>
 #include <QString>
 
 QString MakeAbsolute(QString const & baseDir, QString const & fileName)
@@ -52,35 +53,24 @@ QString MakeRelative(QString const & baseDir,  QString const & fileName)
 	return fileName;
 }
 
-void FindFiles(QString const & directory, QStringList const & filters, bool recurse,
+void FindFiles(QString const & directory, QStringList const & nameFilters, bool recurse,
 	QStringList & filesOut, QFlags<FilesFolders> filesFolders)
 {
-	QDir dir(directory);
-	dir.setSorting(QDir::NoSort);
-	QDir::Filters flags = QDir::Files;
+	QDir::Filters filters = QDir::Files;
 	if (recurse || filesFolders.testFlag(Folders))
-		flags = QDir::Files | QDir::AllDirs;
-	QStringList entryList = dir.entryList(filters, flags);
-	QCollator collator;
-	collator.setNumericMode(true);	// natural sorting
-	std::sort(entryList.begin(), entryList.end(), collator);
-	for (QString fileName : entryList)
+		filters = QDir::Files | QDir::AllDirs;
+	QDirIterator::IteratorFlags flags = (recurse) ? QDirIterator::Subdirectories : QDirIterator::NoIteratorFlags;
+	QDirIterator it(directory, nameFilters, filters, flags);
+	// TODO:
+	//   - when folders are considered, they seem to be listed twice
+	//   - "natural" sort order
+	while (it.hasNext())
 	{
-		if (fileName == "." || fileName == "..")
+		QString fileName = it.next();
+		if (fileName == "." || fileName == ".." ||
+			(QFileInfo(fileName).isDir() && !filesFolders.testFlag(Folders)) )
 			continue;
-		QFileInfo fi(directory + "/" + fileName);
-		if (fi.isDir())
-		{
-			if (filesFolders.testFlag(Folders))
-				filesOut.append(fi.absoluteFilePath());
-			if (recurse)
-				FindFiles(fi.absoluteFilePath(), filters, recurse, filesOut, filesFolders);
-		}
-		else
-		{
-			if (filesFolders.testFlag(Files))
-				filesOut.append(fi.absoluteFilePath());
-		}
+		filesOut.append(fileName);
 	}
 }
 

@@ -332,7 +332,7 @@ void MdiChild::enableRenderWindows()	// = image data available
 	// unless explicitly set otherwise)
 	m_reInitializeRenderWindows = true;
 
-	m_renderer->reInitialize(modality(0)->image(), m_polyData);
+	m_renderer->reInitialize(modalities()->size() > 0 ? modality(0)->image(): nullptr, m_polyData);
 
 	if (!isVolumeDataLoaded())
 		return;
@@ -456,15 +456,6 @@ bool MdiChild::setupLoadIO(QString const & f, bool isStack)
 	m_polyData->ReleaseData();
 	// TODO: insert plugin mechanism.
 	// - iterate over file plugins; if one returns a match, use it
-	if (QString::compare(m_fileInfo.suffix(), "STL", Qt::CaseInsensitive) == 0)
-	{
-		return m_ioThread->setupIO(STL_READER, f);
-	}
-	else if (QString::compare(m_fileInfo.suffix(), "VTK", Qt::CaseInsensitive) == 0)
-	{
-		return m_ioThread->setupIO(VTK_READER, f);
-	}
-	//m_imageData->ReleaseData();
 	QString extension = m_fileInfo.suffix();
 	extension = extension.toUpper();
 	const mapQString2int * ext2id = &extensionToId;
@@ -2382,7 +2373,10 @@ bool MdiChild::isVolumeDataLoaded() const
 	QString suffix = fileInfo().suffix();
 	int * extent = m_imageData->GetExtent();
 	return QString::compare(suffix, "STL", Qt::CaseInsensitive) != 0 &&
-		QString::compare(suffix, "VTK", Qt::CaseInsensitive) != 0 &&
+		// need better way to check that! at this point, modalities not set up yet,
+		// but .vtk files can contain both polydata and volumes!
+		// Maybe extent check is enough?
+		// QString::compare(suffix, "VTK", Qt::CaseInsensitive) != 0 &&
 		QString::compare(suffix, "FEM", Qt::CaseInsensitive) != 0 &&
 		extent[1] >= 0 && extent[3] >= 0 && extent[5] >= 0;
 }

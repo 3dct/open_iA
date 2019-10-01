@@ -31,4 +31,5 @@ void iARandomWalkerModuleInterface::Initialize()
 	REGISTER_FILTER(iARandomWalker);
 	REGISTER_FILTER(iAExtendedRandomWalker);
 	REGISTER_FILTER(iAMaximumDecisionRule);
+	REGISTER_FILTER(iALabelImageToSeeds);
 }
