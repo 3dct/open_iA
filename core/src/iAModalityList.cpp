@@ -209,13 +209,13 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 {
 	if (filename.isEmpty())
 	{
-		DEBUG_LOG("No modality file given.");
+		DEBUG_LOG("No project file given.");
 		return false;
 	}
 	QFileInfo fi(filename);
 	if (!fi.exists())
 	{
-		DEBUG_LOG(QString("Given modality file '%1' does not exist.").arg(filename));
+		DEBUG_LOG(QString("Given project file '%1' does not exist.").arg(filename));
 		return false;
 	}
 	QSettings settings(filename, QSettings::IniFormat);
@@ -224,7 +224,7 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 	if (!settings.contains(FileVersionKey) ||
 		settings.value(FileVersionKey).toString() != ModFileVersion)
 	{
-		DEBUG_LOG(QString("Invalid modality file version (was %1, expected %2! Trying to parse anyway, but expect failures.")
+		DEBUG_LOG(QString("Invalid project file version (was %1, expected %2! Trying to parse anyway, but expect failures.")
 			.arg(settings.contains(FileVersionKey) ? settings.value(FileVersionKey).toString() : "not set")
 			.arg(ModFileVersion));
 		return false;

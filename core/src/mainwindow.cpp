@@ -354,33 +354,28 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 			return;
 		}
 	}
-	else if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
+	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
 		QSettings projectFile(fileName, QSettings::IniFormat);
 		projectFile.setIniCodec("UTF-8");
-		MdiChild *child = nullptr;
-		if (projectFile.value("UseMdiChild", false).toBool())
+		// TODO: asynchronous loading, merge with mdichild: loadFile project init parts
+		if (!projectFile.value("UseMdiChild", false).toBool())
 		{
-			MdiChild *child = createMdiChild(false);
-			child->show();
-		}
-		auto registeredProjects = iAProjectRegistry::projectKeys();
-		auto projectFileGroups = projectFile.childGroups();
-		for (auto projectKey: registeredProjects)
-		{
-			if (projectFileGroups.contains(projectKey))
+			auto registeredProjects = iAProjectRegistry::projectKeys();
+			auto projectFileGroups = projectFile.childGroups();
+			for (auto projectKey : registeredProjects)
 			{
-				auto project = iAProjectRegistry::createProject(projectKey);
-				project->setMainWindow(this);
-				project->setChild(child);
-				projectFile.beginGroup(projectKey);
-				project->loadProject(projectFile, fileName);
-				projectFile.endGroup();
-				if (child)
-					child->addProject(projectKey, project);
+				if (projectFileGroups.contains(projectKey))
+				{
+					auto project = iAProjectRegistry::createProject(projectKey);
+					project->setMainWindow(this);
+					projectFile.beginGroup(projectKey);
+					project->loadProject(projectFile, fileName);
+					projectFile.endGroup();
+				}
 			}
+			return;
 		}
-		return;
 	}
 	// Todo: hook for plugins?
 	MdiChild *child = createMdiChild(false);

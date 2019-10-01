@@ -47,6 +47,7 @@
 #include "iAProfileProbe.h"
 #include "iAProgress.h"
 #include "iAProjectBase.h"
+#include "iAProjectRegistry.h"
 #include "iARenderer.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
@@ -517,7 +518,8 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 	waitForPreviousIO();
 
 	m_ioThread = new iAIO(m_imageData, m_polyData, m_logger, this, m_volumeStack->volumes(), m_volumeStack->fileNames());
-	if (f.endsWith(iAIOProvider::ProjectFileExtension))
+	if (f.endsWith(iAIOProvider::ProjectFileExtension) ||
+		f.endsWith(iAIOProvider::ProjectFileExtension))
 	{
 		connect(m_ioThread, SIGNAL(done(bool)), this, SLOT(setupProject(bool)));
 	}
@@ -701,6 +703,27 @@ void MdiChild::setupView(bool active )
 void MdiChild::setupProject(bool active)
 {
 	setModalities(m_ioThread->modalities());
+	QString fileName = m_ioThread->fileName();
+	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
+	{
+		QSettings projectFile(fileName, QSettings::IniFormat);
+		projectFile.setIniCodec("UTF-8");
+		auto registeredProjects = iAProjectRegistry::projectKeys();
+		auto projectFileGroups = projectFile.childGroups();
+		for (auto projectKey : registeredProjects)
+		{
+			if (projectFileGroups.contains(projectKey))
+			{
+				auto project = iAProjectRegistry::createProject(projectKey);
+				project->setMainWindow(m_mainWnd);
+				project->setChild(this);
+				projectFile.beginGroup(projectKey);
+				project->loadProject(projectFile, fileName);
+				projectFile.endGroup();
+				addProject(projectKey, project);
+			}
+		}
+	}
 }
 
 int MdiChild::chooseModalityNr(QString const & caption)
@@ -2652,22 +2675,9 @@ void MdiChild::doSaveProject()
 		iAIOProvider::ProjectFileTypeFilter + iAIOProvider::NewProjectFileTypeFilter);
 	if (projectFileName.isEmpty())
 		return;
-	if (projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
-	{
-		// TODO:
-		//   - also store open modalities
-		//   - work in background
-		QSettings projectFile(projectFileName, QSettings::IniFormat);
-		projectFile.setIniCodec("UTF-8");
-		projectFile.setValue("UseMdiChild", true);
-		for (auto projectKey: m_projects.keys())
-		{
-			projectFile.beginGroup(projectKey);
-			m_projects[projectKey]->saveProject(projectFile);
-			projectFile.endGroup();
-		}
-		return;
-	}
+
+	// TODO:
+	//   - work in background
 	QVector<int> unsavedModalities;
 	for (int i=0; i<modalities()->size(); ++i)
 	{
@@ -2685,6 +2695,19 @@ void MdiChild::doSaveProject()
 				return;
 	}
 	saveProject(projectFileName);
+	if (projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
+	{
+		QSettings projectFile(projectFileName, QSettings::IniFormat);
+		projectFile.setIniCodec("UTF-8");
+		projectFile.setValue("UseMdiChild", true);
+		for (auto projectKey : m_projects.keys())
+		{
+			projectFile.beginGroup(projectKey);
+			m_projects[projectKey]->saveProject(projectFile);
+			projectFile.endGroup();
+		}
+		return;
+	}
 }
 
 void MdiChild::addProject(QString const & key, QSharedPointer<iAProjectBase> project)
