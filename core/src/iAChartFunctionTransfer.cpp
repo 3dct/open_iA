@@ -31,7 +31,6 @@
 
 #include <QColorDialog>
 #include <QDesktopWidget>
-#include <QtXml/QDomNode>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPen>

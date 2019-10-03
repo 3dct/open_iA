@@ -32,8 +32,8 @@
 
 
 iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-	QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, int numberOfCylinderSides):
-	iA3DLineObjectVis( ren, objectTable, columnMapping, color, curvedFiberData),
+	QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, int numberOfCylinderSides, size_t segmentSkip):
+	iA3DLineObjectVis( ren, objectTable, columnMapping, color, curvedFiberData, segmentSkip),
 	m_objectCount(objectTable->GetNumberOfRows()),
 	m_contextFactors(nullptr),
 	m_contextDiameterFactor(1.0)

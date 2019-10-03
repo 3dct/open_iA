@@ -18,31 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAXRFModuleInterface.h"
+#pragma once
 
-#include "iAXRFAttachment.h"
+#include "open_iA_Core_export.h"
 
-#include <mainwindow.h>
-#include <mdichild.h>
-
-void iAXRFModuleInterface::Initialize()
+class open_iA_Core_API iAChangeableCameraWidget
 {
-	if (!m_mainWnd)
-		return;
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QAction * actionXRF = new QAction( m_mainWnd );
-	actionXRF->setText( QApplication::translate( "MainWindow", "InSpectr", 0 ) );
-	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionXRF );
-	connect(actionXRF, SIGNAL(triggered()), this, SLOT(XRF_Visualization()));
-}
-
-bool iAXRFModuleInterface::XRF_Visualization()
-{
-	PrepareActiveChild();
-	return AttachToMdiChild( m_mdiChild );
-}
-
-iAModuleAttachmentToChild * iAXRFModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
-{
-	return new iAXRFAttachment( mainWnd, child );
-}
+public:
+	//! @param pos set one of the predefined camera positions
+	virtual void setCamPosition(int pos) =0;
+};

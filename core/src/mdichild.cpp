@@ -205,13 +205,20 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_dwRenderer->pushMaxRC, SIGNAL(clicked()), this, SLOT(maximizeRC()));
 	connect(m_dwRenderer->pushStopRC, SIGNAL(clicked()), this, SLOT(triggerInteractionRaycaster()));
 
-	connect(m_dwRenderer->pushPX, SIGNAL(clicked()), this, SLOT(camPX()));
-	connect(m_dwRenderer->pushPY, SIGNAL(clicked()), this, SLOT(camPY()));
-	connect(m_dwRenderer->pushPZ, SIGNAL(clicked()), this, SLOT(camPZ()));
-	connect(m_dwRenderer->pushMX, SIGNAL(clicked()), this, SLOT(camMX()));
-	connect(m_dwRenderer->pushMY, SIGNAL(clicked()), this, SLOT(camMY()));
-	connect(m_dwRenderer->pushMZ, SIGNAL(clicked()), this, SLOT(camMZ()));
-	connect(m_dwRenderer->pushIso, SIGNAL(clicked()), this, SLOT(camIso()));
+	connect(m_dwRenderer->pushPX, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
+	m_dwRenderer->pushPX->setProperty("camPosition", iACameraPosition::PX);
+	connect(m_dwRenderer->pushPY, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
+	m_dwRenderer->pushPY->setProperty("camPosition", iACameraPosition::PY);
+	connect(m_dwRenderer->pushPZ, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
+	m_dwRenderer->pushPZ->setProperty("camPosition", iACameraPosition::PZ);
+	connect(m_dwRenderer->pushMX, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
+	m_dwRenderer->pushMX->setProperty("camPosition", iACameraPosition::MX);
+	connect(m_dwRenderer->pushMY, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
+	m_dwRenderer->pushMY->setProperty("camPosition", iACameraPosition::MY);
+	connect(m_dwRenderer->pushMZ, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
+	m_dwRenderer->pushMZ->setProperty("camPosition", iACameraPosition::MZ);
+	connect(m_dwRenderer->pushIso, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
+	m_dwRenderer->pushIso->setProperty("camPosition", iACameraPosition::Iso);
 	connect(m_dwRenderer->pushSaveRC, SIGNAL(clicked()), this, SLOT(saveRC()));
 	connect(m_dwRenderer->pushMovRC, SIGNAL(clicked()), this, SLOT(saveMovRC()));
 
@@ -324,11 +331,11 @@ void MdiChild::enableRenderWindows()	// = image data available
 	// unless explicitly set otherwise)
 	m_reInitializeRenderWindows = true;
 
-	m_renderer->reInitialize(modality(0)->image(), m_polyData);
+	m_renderer->reInitialize(modalities()->size() > 0 ? modality(0)->image(): nullptr, m_polyData);
 
 	if (!isVolumeDataLoaded())
 		return;
-	camIso();
+	setCamPosition(iACameraPosition::Iso);
 	vtkCamera* cam = m_renderer->camera();
 	modalities()->applyCameraSettings(cam);
 	
@@ -448,15 +455,6 @@ bool MdiChild::setupLoadIO(QString const & f, bool isStack)
 	m_polyData->ReleaseData();
 	// TODO: insert plugin mechanism.
 	// - iterate over file plugins; if one returns a match, use it
-	if (QString::compare(m_fileInfo.suffix(), "STL", Qt::CaseInsensitive) == 0)
-	{
-		return m_ioThread->setupIO(STL_READER, f);
-	}else
-	if (QString::compare(m_fileInfo.suffix(), "VTK", Qt::CaseInsensitive) == 0)
-	{
-		return m_ioThread->setupIO(VTK_READER, f);
-	}
-	//m_imageData->ReleaseData();
 	QString extension = m_fileInfo.suffix();
 	extension = extension.toUpper();
 	const mapQString2int * ext2id = &extensionToId;
@@ -994,44 +992,14 @@ void MdiChild::saveMovRC()
 	saveMovie(*m_renderer);
 }
 
-void MdiChild::camPX()
-{
-	m_renderer->setCamPosition( 0,0,1,		1,0,0 );
-}
-
-void MdiChild::camMX()
-{
-	m_renderer->setCamPosition(	0,0,1,		-1,0,0	);
-}
-
-void MdiChild::camPY()
-{
-	m_renderer->setCamPosition(	0,0,1,		0,1,0	);
-}
-
-void MdiChild::camMY()
-{
-	m_renderer->setCamPosition(	0,0,1,		0,-1,0	);
-}
-
-void MdiChild::camPZ()
-{
-	m_renderer->setCamPosition(	0,1,0,		0,0,1	);
-}
-
-void MdiChild::camMZ()
-{
-	m_renderer->setCamPosition(	0,1,0,		0,0,-1	);
-}
-
-void MdiChild::camIso()
-{
-	m_renderer->setCamPosition(	0,0,1,		1,1,1	);
-}
-
 void MdiChild::camPosition(double * camOptions)
 {
 	m_renderer->camPosition(camOptions);
+}
+
+void MdiChild::setCamPosition(int pos)
+{
+	m_renderer->setCamPosition(pos);
 }
 
 void MdiChild::setCamPosition(double * camOptions, bool rsParallelProjection)
@@ -2403,7 +2371,10 @@ bool MdiChild::isVolumeDataLoaded() const
 	QString suffix = fileInfo().suffix();
 	int * extent = m_imageData->GetExtent();
 	return QString::compare(suffix, "STL", Qt::CaseInsensitive) != 0 &&
-		QString::compare(suffix, "VTK", Qt::CaseInsensitive) != 0 &&
+		// need better way to check that! at this point, modalities not set up yet,
+		// but .vtk files can contain both polydata and volumes!
+		// Maybe extent check is enough?
+		// QString::compare(suffix, "VTK", Qt::CaseInsensitive) != 0 &&
 		QString::compare(suffix, "FEM", Qt::CaseInsensitive) != 0 &&
 		extent[1] >= 0 && extent[3] >= 0 && extent[5] >= 0;
 }
@@ -2543,6 +2514,12 @@ void MdiChild::modalityAdded(int modalityIdx)
 		m_dwModalities->initDisplay(modality(modalityIdx));
 		applyVolumeSettings(false);
 	}
+}
+
+void MdiChild::rendererCamPos()
+{
+	int pos = sender()->property("camPosition").toInt();
+	m_renderer->setCamPosition(pos);
 }
 
 void MdiChild::histogramDataAvailable(int modalityIdx)

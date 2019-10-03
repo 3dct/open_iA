@@ -20,30 +20,40 @@
 * ************************************************************************************/
 #pragma once
 
-#include "dlg_commoninput.h"
+#include <QObject>
 
-class dlg_openfile_sizecheck : public dlg_commoninput
+class dlg_commoninput;
+struct iARawFileParameters;
+
+class QLabel;
+
+class dlg_openfile_sizecheck: public QObject
 {
 	Q_OBJECT
 
 public:
 	//! constructor
-	//! @param isVolumeStack   whether we are opening a volume stack (true) or a single file (false).
-	//! @param fileName        File name of the RAW file.
-	//! @param [in,out]	parent The parent widget.
-	//! @param title           The window title.
-	//! @param labels          List of input parameter labels (@see dlg_commoninput).
-	//! @param values          List of input parameter values (@see dlg_commoninput).
-	//! @param text            The description text shown in the top of the dialog (@see dlg_commoninput).
+	//! @param isVolumeStack    Whether we are opening a volume stack (true) or a single file (false).
+	//! @param fileName         File name of the RAW file.
+	//! @param [in,out]	parent  The parent widget.
+	//! @param title            The window title.
+	//! @param additionalLabels List of additional input parameter labels (@see dlg_commoninput).
+	//! @param values           List of additional input parameter values (@see dlg_commoninput).
 	dlg_openfile_sizecheck (bool isVolumeStack, QString const & fileName, QWidget *parent, QString const & title,
-		QStringList const & labels,	QList<QVariant> const & values, QTextDocument *text = nullptr);
-
+		QStringList const & additionalLabels, QList<QVariant> const & additionalValues, iARawFileParameters & rawFileParams);
+	~dlg_openfile_sizecheck();
+	bool accepted() const;
+	int fixedParams() const;
+	dlg_commoninput const * inputDlg() const;
 private:
 	qint64 m_fileSize;
 	QLabel * m_actualSizeLabel;
 	QLabel * m_proposedSizeLabel;
 	int m_extentXIdx, m_extentYIdx, m_extentZIdx, m_voxelSizeIdx;
-
+	double * dlg;
+	dlg_commoninput* m_inputDlg;
+	bool m_accepted;
+	int m_fixedParams;
 private slots:
 	//! update labels indicating whether current parameters fit the actual file size
 	void checkFileSize();

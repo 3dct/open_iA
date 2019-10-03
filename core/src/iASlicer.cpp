@@ -452,7 +452,8 @@ void iASlicer::toggleInteractorState()
 void iASlicer::setMode( const iASlicerMode mode )
 {
 	m_mode = mode;
-	updateResliceAxesDirectionCosines();
+	for (auto ch : m_channels)
+		ch->updateResliceAxesDirectionCosines(m_mode);
 	updateBackground();
 }
 
@@ -1100,12 +1101,6 @@ void iASlicer::setStatisticalExtent(int statExt)
 {
 	m_ext = statExt;
 	updatePositionMarkerExtent();
-}
-
-void iASlicer::updateResliceAxesDirectionCosines()
-{
-	for (auto ch : m_channels)
-		ch->updateResliceAxesDirectionCosines(m_mode);
 }
 
 void iASlicer::updateBackground()

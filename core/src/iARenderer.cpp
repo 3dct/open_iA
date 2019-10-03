@@ -27,6 +27,7 @@
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
 #include "iASlicerMode.h"
+#include "iAToolsVTK.h"    // for setCamPos
 #include "mdichild.h"
 
 #include <vtkActor.h>
@@ -349,7 +350,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 
 	m_labelRen->SetActiveCamera(m_cam);
 	m_ren->SetActiveCamera(m_cam);
-	setCamPosition( 0,0,1, 1,1,1 ); // +Z
+	setCamPosition( iACameraPosition::PZ );
 
 	m_profileLineMapper->SetInputConnection(m_profileLineSource->GetOutputPort());
 	m_profileLineActor->SetMapper(m_profileLineMapper);
@@ -611,11 +612,9 @@ void iARenderer::setCubeCenter( int x, int y, int z )
 	}
 };
 
-void iARenderer::setCamPosition( int uvx, int uvy, int uvz, int px, int py, int pz )
+void iARenderer::setCamPosition(int pos)
 {
-	m_cam->SetViewUp ( uvx, uvy, uvz );
-	m_cam->SetPosition ( px, py, pz );
-	m_cam->SetFocalPoint( 0,0,0 );
+	::setCamPosition(m_cam, static_cast<iACameraPosition>(pos));
 	m_ren->ResetCamera();
 	update();
 }

@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iASettings.h"
+#include "iAXmlSettings.h"
 
 #include "iAChartFunctionTransfer.h"
 #include "iAConsole.h"
@@ -30,49 +30,80 @@
 #include <QMessageBox>
 #include <QTextStream>
 
-iASettings::iASettings()
+iAXmlSettings::iAXmlSettings()
 {
 	QDomElement root = domDocument.createElement("settings");
 	domDocument.appendChild(root);
 }
 
-iASettings::iASettings(QString const & filename)
+bool iAXmlSettings::read(QString const & filename)
 {
 	QFile file(filename);
 	// TODO: better error handling!
-	if (file.open(QIODevice::ReadOnly))
+	if (!file.open(QIODevice::ReadOnly))
 	{
-		if (!domDocument.setContent(&file)) {
-			QMessageBox msgBox;
-			msgBox.setText("An error occurred during xml parsing!");
-			msgBox.exec();
-		}
-		if (!domDocument.hasChildNodes() ||
-			domDocument.documentElement().tagName() != "settings")
-		{
-			QDomElement root = domDocument.createElement("settings");
-			domDocument.appendChild(root);
-		}
+		return false;
 	}
-	else
+	if (!domDocument.setContent(&file))
 	{
-		QDomElement root = domDocument.createElement("settings");
-		domDocument.appendChild(root);
+		file.close();
+		return false;
 	}
 	file.close();
+	if (!domDocument.hasChildNodes() ||
+		domDocument.documentElement().tagName() != "settings")
+	{
+		//QDomElement root = domDocument.createElement("settings");
+		//domDocument.appendChild(root);
+		return false;
+	}
+	return true;
 }
 
-void iASettings::loadTransferFunction(iATransferFunction* transferFunction)
+void iAXmlSettings::loadTransferFunction(iATransferFunction* transferFunction)
 {
 	QDomElement root = domDocument.documentElement();
 	QDomNode functionsNode = root.namedItem("functions");
 	if (!functionsNode.isElement())
 		return;
-	iASettings::loadTransferFunction(functionsNode, transferFunction);
+	iAXmlSettings::loadTransferFunction(functionsNode, transferFunction);
 }
 
+QDomNode iAXmlSettings::node(QString const & nodeName)
+{
+	QDomElement root = domDocument.documentElement();
+	return root.namedItem(nodeName);
+}
 
-void iASettings::loadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction)
+bool iAXmlSettings::hasElement(QString const & nodeName) const
+{
+	QDomNode node = domDocument.documentElement().namedItem(nodeName);
+	return node.isElement();
+}
+
+QDomElement iAXmlSettings::createElement(QString const & elementName)
+{
+	return createElement(elementName, domDocument.documentElement());
+}
+
+QDomElement iAXmlSettings::createElement(QString const & elementName, QDomNode parent)
+{
+	auto element = domDocument.createElement(elementName);
+	parent.appendChild(element);
+	return element;
+}
+
+QDomElement iAXmlSettings::documentElement()
+{
+	return domDocument.documentElement();
+}
+
+QDomDocument & iAXmlSettings::document()
+{
+	return domDocument;
+}
+
+void iAXmlSettings::loadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction)
 {
 	QDomNode transferNode = functionsNode.namedItem("transfer");
 	if (!transferNode.isElement())
@@ -99,17 +130,13 @@ void iASettings::loadTransferFunction(QDomNode const & functionsNode, iATransfer
 	transferFunction->colorTF()->Build();
 }
 
-void iASettings::storeTransferFunction(iATransferFunction* transferFunction)
+void iAXmlSettings::saveTransferFunction(iATransferFunction* transferFunction)
 {
-	// does functions node exist
 	QDomNode functionsNode = domDocument.documentElement().namedItem("functions");
 	if (!functionsNode.isElement())
 	{
-		functionsNode = domDocument.createElement("functions");
-		domDocument.documentElement().appendChild(functionsNode);
+		functionsNode = createElement("functions");
 	}
-	removeNode("transfer");
-
 	QDomElement transferElement = domDocument.createElement("transfer");
 
 	for (int i = 0; i < transferFunction->opacityTF()->GetSize(); i++)
@@ -131,7 +158,7 @@ void iASettings::storeTransferFunction(iATransferFunction* transferFunction)
 	functionsNode.appendChild(transferElement);
 }
 
-void iASettings::save(QString const & filename)
+void iAXmlSettings::save(QString const & filename)
 {
 	QFile file(filename);
 	file.open(QIODevice::WriteOnly);
@@ -140,7 +167,7 @@ void iASettings::save(QString const & filename)
 	file.close();
 }
 
-void iASettings::removeNode(QString const & str)
+void iAXmlSettings::removeNode(QString const & str)
 {
 	QDomNode rootNode = domDocument.documentElement();
 	QDomNodeList list = rootNode.childNodes();

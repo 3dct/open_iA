@@ -133,9 +133,9 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	m_dlgGEMSe(dlgGEMSe),
 	m_labelCount(labelCount),
 	m_folder(folder),
-	m_dlgSamplings(dlgSamplings),
 	m_dlgProgress(nullptr),
-	m_comparisonWeightType(Equal)
+	m_comparisonWeightType(Equal),
+	m_dlgSamplings(dlgSamplings)
 {
 	QString defaultTheme("Brewer Paired (max. 12)");
 	m_colorTheme = iAColorThemeManager::instance().theme(defaultTheme);

@@ -70,6 +70,7 @@ public:
 	void showROI();
 	int exec() override;
 	void setSourceMdi(MdiChild* child, MainWindow* mainWnd);
+	QVector<QWidget*> widgetList();
 private:
 	QWidget * m_container;
 	int m_roi[6];
@@ -79,10 +80,9 @@ private:
 	bool m_sourceMdiChildClosed;
 	void updateValues(QList<QVariant>);
 	void UpdateROIPart(QString const & partName, QString const & value);
+	QVector<QWidget*> m_widgetList;
 private slots:
 	void ROIUpdated(QString text);
 	void SourceChildClosed();
 	void SelectFilter();
-protected:
-	QVector<QWidget*> m_widgetList;
 };

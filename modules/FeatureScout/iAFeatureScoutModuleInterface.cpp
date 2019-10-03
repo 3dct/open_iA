@@ -187,7 +187,13 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		m_mdiChild->addMsg( "Error while attaching FeatureScout to mdi child window!" );
 		return false;
 	}
-	attach->init(csvConfig.objectType, csvConfig.fileName, creator.table(), csvConfig.visType, io.getOutputMapping());
+	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
+	if (!csvConfig.curvedFiberFileName.isEmpty())
+	{
+		readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo);
+	}
+	attach->init(csvConfig.objectType, csvConfig.fileName, creator.table(), csvConfig.visType, io.getOutputMapping(),
+		curvedFiberInfo, csvConfig.cylinderQuality, csvConfig.segmentSkip);
 	SetupToolbar();
 	m_mdiChild->addStatusMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
 	m_mdiChild->addMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
@@ -208,7 +214,7 @@ void iAFeatureScoutModuleInterface::FeatureScout_Options()
 		DEBUG_LOG( "No FeatureScout attachment in current MdiChild!" );
 		return;
 	}
-	QString actionText = ((QAction *)sender())->text();
+	QString actionText = qobject_cast<QAction *>(sender())->text();
 	int idx = 0;
 	if ( actionText.toStdString() == "Length Distribution" ) idx = 7;
 	if ( actionText.toStdString() == "Mean Object" ) idx = 4;

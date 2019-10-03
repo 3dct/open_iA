@@ -24,10 +24,10 @@
 #include "iAChartFunctionBezier.h"
 #include "iAChartFunctionGaussian.h"
 #include "iAChartFunctionTransfer.h"
+#include "iAConsole.h"
 #include "iAPlotData.h"
 #include "iAMathUtility.h"
-#include "iASettings.h"
-#include "mainwindow.h"		// TODO: get rid of this inclusion!
+#include "iAXmlSettings.h"
 #include "mdichild.h"
 
 #include <vtkColorTransferFunction.h>
@@ -38,8 +38,6 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
-#include <QtXml/QDomDocument>
-#include <QXmlStreamWriter>
 
 #include <cassert>
 
@@ -396,17 +394,23 @@ void iADiagramFctWidget::loadTransferFunction()
 {
 	QString filePath = (m_activeChild) ? m_activeChild->filePath() : "";
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
-	if (!fileName.isEmpty())
+	if (fileName.isEmpty())
 	{
-		iASettings s(fileName);
-		s.loadTransferFunction((iAChartTransferFunction*)m_functions[0]);
-		newTransferFunction();
+		return;
 	}
+	iAXmlSettings s;
+	if (!s.read(fileName))
+	{
+		DEBUG_LOG(QString("Failed to read transfer function from file %&1").arg(fileName));
+		return;
+	}
+	s.loadTransferFunction((iAChartTransferFunction*)m_functions[0]);
+	newTransferFunction();
 }
 
-void iADiagramFctWidget::loadTransferFunction(QDomNode &functionsNode)
+void iADiagramFctWidget::loadTransferFunction(QDomNode functionsNode)
 {
-	iASettings::loadTransferFunction(functionsNode, (iAChartTransferFunction*)m_functions[0]);
+	iAXmlSettings::loadTransferFunction(functionsNode, (iAChartTransferFunction*)m_functions[0]);
 	newTransferFunction();
 }
 
@@ -417,8 +421,8 @@ void iADiagramFctWidget::saveTransferFunction()
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{
-		iASettings s;
-		s.storeTransferFunction(transferFunction);
+		iAXmlSettings s;
+		s.saveTransferFunction(transferFunction);
 		s.save(fileName);
 	}
 }
@@ -459,57 +463,151 @@ void iADiagramFctWidget::addGaussianFunction(double mean, double sigma, double m
 	emit updateViews();
 }
 
-bool iADiagramFctWidget::loadFunctions()
+void iADiagramFctWidget::loadFunctions()
 {
-	if (!m_activeChild)
-	{
-		return false;
-	}
-	QString filePath = m_activeChild->filePath();
+	QString filePath = m_activeChild ? m_activeChild->filePath(): "";
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
-	if (!fileName.isEmpty())
+	if (fileName.isEmpty())
 	{
-		MdiChild* child = m_activeChild;
-		MainWindow *mw = (MainWindow*)child->window();
-		QDomDocument doc = mw->loadSettingsFile(fileName);
-		QDomElement root = doc.documentElement();
-
-		for (unsigned int i = 1; i < m_functions.size(); i++)
-		{
-			delete m_functions.back();
-			m_functions.pop_back();
-		}
-
-		QDomNode functionsNode = root.namedItem("functions");
-		if (functionsNode.isElement())
-				mw->loadProbabilityFunctions(functionsNode);
-
-		emit noPointSelected();
-		emit updateViews();
-		update();
+		return;
 	}
+	for (unsigned int i = 1; i < m_functions.size(); i++)
+	{
+		delete m_functions.back();
+		m_functions.pop_back();
+	}
+	iAXmlSettings xml;
+	if (!xml.read(fileName))
+	{
+		DEBUG_LOG(QString("Failed to read xml for functions from file %&1").arg(fileName));
+		return;
+	}
+	if (!loadProbabilityFunctions(xml))
+	{
+		DEBUG_LOG(QString("Failed to load functions from file %&1").arg(fileName));
+		return;
+	}
+	emit noPointSelected();
+	emit updateViews();
+	update();
+}
 
+bool iADiagramFctWidget::loadProbabilityFunctions(iAXmlSettings & xml)
+{
+	if (!xml.hasElement("functions"))
+		return false;
+	QDomNode functionsNode = xml.node("functions");
+	int colorIndex = 1;
+	QDomNodeList list = functionsNode.childNodes();
+	for (int n = 0; n < list.size(); n++)
+	{
+		QDomNode functionNode = list.item(n);
+		if (functionNode.nodeName() == "bezier")
+		{
+			iAChartFunctionBezier *bezier = new iAChartFunctionBezier(this, PredefinedColors()[colorIndex % 7], false);
+			QDomNodeList innerList = functionNode.childNodes();
+			for (int in = 0; in < innerList.length(); in++)
+			{
+				QDomNode node = innerList.item(in);
+				QDomNamedNodeMap attributes = node.attributes();
+
+				double value = attributes.namedItem("value").nodeValue().toDouble();
+				double fktValue = attributes.namedItem("fktValue").nodeValue().toDouble();
+
+				bezier->push_back(value, fktValue);
+			}
+			m_functions.push_back(bezier);
+			++colorIndex;
+		}
+		else if (functionNode.nodeName() == "gaussian")
+		{
+			iAChartFunctionGaussian *gaussian = new iAChartFunctionGaussian(this, PredefinedColors()[colorIndex % 7], false);
+
+			double mean = functionNode.attributes().namedItem("mean").nodeValue().toDouble();
+			double sigma = functionNode.attributes().namedItem("sigma").nodeValue().toDouble();
+			double multiplier = functionNode.attributes().namedItem("multiplier").nodeValue().toDouble();
+
+			gaussian->setMean(mean);
+			gaussian->setSigma(sigma);
+			gaussian->setMultiplier(multiplier);
+
+			m_functions.push_back(gaussian);
+			++colorIndex;
+		}
+	}
 	return true;
 }
 
-bool iADiagramFctWidget::saveFunctions()
+void iADiagramFctWidget::saveProbabilityFunctions(iAXmlSettings &xml)
 {
-	if (!m_activeChild)
+	// does functions node exist
+	QDomNode functionsNode;
+	if (xml.hasElement("functions"))
 	{
-		return false;
+		functionsNode = xml.node("functions");
 	}
-	QString filePath = m_activeChild->filePath();
-	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
-	if (!fileName.isEmpty())
+	else
 	{
-		MdiChild* child = m_activeChild;
-		MainWindow *mw = (MainWindow*)child->window();
+		functionsNode = xml.createElement("functions");
+	}
 
-		QDomDocument doc = mw->loadSettingsFile(fileName);
-		mw->saveProbabilityFunctions(doc);
-		mw->saveSettingsFile(doc, fileName);
+	// remove existing function nodes except the transfer function
+	int n = 0;
+	while (n < functionsNode.childNodes().length())
+	{
+		QDomNode node = functionsNode.childNodes().item(n);
+		if (node.nodeName() == "bezier" || node.nodeName() == "gaussian")
+			functionsNode.removeChild(node);
+		else
+			n++;
 	}
-	return true;
+	// add new function nodes
+	for (unsigned int f = 1; f < m_functions.size(); f++)
+	{
+		switch (m_functions[f]->getType())
+		{
+			case iAChartFunction::BEZIER:
+			{
+				QDomElement bezierElement = xml.createElement("bezier", functionsNode);
+				std::vector<QPointF> points = ((iAChartFunctionBezier*)m_functions[f])->getPoints();
+				std::vector<QPointF>::iterator it = points.begin();
+				while (it != points.end())
+				{
+					QPointF point = *it;
+					QDomElement nodeElement = xml.createElement("node", bezierElement);
+					nodeElement.setAttribute("value", tr("%1").arg(point.x()));
+					nodeElement.setAttribute("fktValue", tr("%1").arg(point.y()));
+					++it;
+				}
+				break;
+			}
+			case iAChartFunction::GAUSSIAN:
+			{
+				QDomElement gaussianElement = xml.createElement("gaussian", functionsNode);
+				iAChartFunctionGaussian * gaussian = (iAChartFunctionGaussian*)m_functions[f];
+				gaussianElement.setAttribute("mean", tr("%1").arg(gaussian->getMean()));
+				gaussianElement.setAttribute("sigma", tr("%1").arg(gaussian->getSigma()));
+				gaussianElement.setAttribute("multiplier", tr("%1").arg(gaussian->getMultiplier()));
+				break;
+			}
+			default:
+			// unknown function type, do nothing
+				break;
+		}
+	}
+}
+
+void iADiagramFctWidget::saveFunctions()
+{
+	QString filePath = m_activeChild ? m_activeChild->filePath(): "";
+	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	iAXmlSettings xml;
+	saveProbabilityFunctions(xml);
+	xml.save(fileName);
 }
 
 void iADiagramFctWidget::removeFunction()

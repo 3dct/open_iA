@@ -56,6 +56,9 @@ typedef vnl_sparse_matrix<double> MatrixType;
 typedef vnl_vector<double> VectorType;
 
 #endif
+#include "iAToolsVTK.h"
+#include "QFile"
+#include "QTextStream"
 
 
 namespace
@@ -638,4 +641,41 @@ void iAMaximumDecisionRule::performWork(QMap<QString, QVariant> const & paramete
 	}
 	auto labelImg = CreateLabelImage(dim, spc, probImgs, input().size());
 	addOutput(labelImg);
+}
+
+
+iALabelImageToSeeds::iALabelImageToSeeds() :
+	iAFilter("Label Image to Seeds", "Segmentation",
+		"Create a text file containing position and label value for all non-zero voxels in a label image.<br/>"
+		"The input to this filter needs to be a label image (i.e., integer), "
+		"the output will be a text file containing entries like this: <br/>"
+		"x y z label<br/>"
+		"This text file can be used as input for segmentation algorithms such as"
+		"Random Walker or (Probabilistic) Support Vector Machines.")
+{
+	addParameter("File name", FileNameSave, "");
+}
+
+IAFILTER_CREATE(iALabelImageToSeeds)
+
+void iALabelImageToSeeds::performWork(QMap<QString, QVariant> const& parameters)
+{
+	QString const& fileName = parameters["File name"].toString();
+	QFile f(fileName);
+	if (!f.open(QIODevice::WriteOnly))
+	{
+		DEBUG_LOG(QString("Couldn't open file %1").arg(fileName));
+		return;
+	}
+	QTextStream out(&f);
+	auto img = input()[0]->vtkImage();
+	FOR_VTKIMG_PIXELS(img, x, y, z)
+	{
+		auto pixelValue = img->GetScalarComponentAsDouble(x, y, z, 0);
+		if (pixelValue != 0)
+		{
+			out << x << " " << y << " " << z << " " << pixelValue << endl;
+		}
+	}
+	f.close();
 }

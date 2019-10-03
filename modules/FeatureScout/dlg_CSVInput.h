@@ -45,8 +45,12 @@ public:
 	//! Retrieve the configuration currently set in the dialog
 	const iACsvConfig & getConfig() const;
 private slots:
-	//! updates preview (e.g. when Update Preview button called)
+	//! On button click for selecting CSV file 
 	void selectFileBtnClicked();
+	//! On button click for selecting curved CSV file 
+	void selectCurvedFileBtnClicked();
+	//! when checkbox for curved fiber info
+	void curvedFiberInfoChanged();
 	//! handles a click on the OK button
 	void okBtnClicked();
 	//! load format based on selected input format (ex. mavi/ vg, ...)
@@ -83,6 +87,8 @@ private slots:
 	void exportButtonClicked();
 	//! called when the export button is clicked
 	void importButtonClicked();
+	//! called when different visualization type was selected
+	void visualizationTypeChanged(int);
 private:
 	//! switch length mapping choice enabled based on whether to checkbox to automatically compute it is checked or not
 	void updateLengthEditEnabled();

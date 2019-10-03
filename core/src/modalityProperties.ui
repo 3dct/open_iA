@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>305</width>
-    <height>574</height>
+    <height>548</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -40,13 +40,6 @@
        <widget class="QLabel" name="label_7">
         <property name="text">
          <string>Spacing</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0" colspan="4">
-       <widget class="QCheckBox" name="cbMagicLens">
-        <property name="text">
-         <string>Show in Magic Lens</string>
         </property>
        </widget>
       </item>
@@ -125,6 +118,13 @@
         </property>
         <property name="alignment">
          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0" colspan="4">
+       <widget class="QCheckBox" name="cbMagicLens">
+        <property name="text">
+         <string>Show in Magic Lens</string>
         </property>
        </widget>
       </item>
@@ -293,6 +293,9 @@
      <property name="text">
       <string/>
      </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
    <item>
@@ -347,6 +350,28 @@
  <tabstops>
   <tabstop>edName</tabstop>
   <tabstop>edFilename</tabstop>
+  <tabstop>edChannel</tabstop>
+  <tabstop>edOrientationX</tabstop>
+  <tabstop>edOrientationY</tabstop>
+  <tabstop>edOrientationZ</tabstop>
+  <tabstop>edSpacingX</tabstop>
+  <tabstop>edSpacingY</tabstop>
+  <tabstop>edSpacingZ</tabstop>
+  <tabstop>edOriginX</tabstop>
+  <tabstop>edOriginY</tabstop>
+  <tabstop>edOriginZ</tabstop>
+  <tabstop>cbMagicLens</tabstop>
+  <tabstop>cbBoundingBox</tabstop>
+  <tabstop>cbShowInSlicer</tabstop>
+  <tabstop>cb_LinearInterpolation</tabstop>
+  <tabstop>cb_Shading</tabstop>
+  <tabstop>ed_SampleDistance</tabstop>
+  <tabstop>ed_AmbientLighting</tabstop>
+  <tabstop>ed_DiffuseLighting</tabstop>
+  <tabstop>ed_SpecularLighting</tabstop>
+  <tabstop>ed_SpecularPower</tabstop>
+  <tabstop>ed_ScalarOpacityUnitDistance</tabstop>
+  <tabstop>cb_RenderMode</tabstop>
   <tabstop>pbOK</tabstop>
   <tabstop>pbCancel</tabstop>
  </tabstops>
