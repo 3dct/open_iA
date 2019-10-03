@@ -30,7 +30,8 @@ public:
 		MagicLensSize,
 		MagicLensFrameWidth;
 	bool Compression,
-		ResultInNewWindow;
+		ResultInNewWindow,
+		PrintParameters;
 		//LogToFile;
 	iAPreferences():
 		HistogramBins(DefaultHistogramBins),
@@ -38,6 +39,7 @@ public:
 		MagicLensSize(DefaultMagicLensSize),
 		MagicLensFrameWidth(3),
 		Compression(true),
-		ResultInNewWindow(true)
+		ResultInNewWindow(true),
+		PrintParameters(true)
 	{}
 };
