@@ -380,6 +380,11 @@ ModalityCollection iAModalityList::load(QString const & filename, QString const 
 {
 	// TODO: unify this with mdichild::loadFile
 	ModalityCollection result;
+	if (!QFileInfo(filename).exists())
+	{
+		DEBUG_LOG(QString("Error: File %1 does not exist!").arg(filename));
+		return result;
+	}
 	QFileInfo fileInfo(filename);
 	vtkSmartPointer<vtkImageData> img = vtkSmartPointer<vtkImageData>::New();
 	std::vector<vtkSmartPointer<vtkImageData> > volumes;

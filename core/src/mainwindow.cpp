@@ -703,6 +703,7 @@ void MainWindow::savePreferences(iAXmlSettings &xml)
 	preferencesElement.setAttribute("histogramBins", tr("%1").arg(m_defaultPreferences.HistogramBins));
 	preferencesElement.setAttribute("statisticalExtent", tr("%1").arg(m_defaultPreferences.StatisticalExtent));
 	preferencesElement.setAttribute("compression", tr("%1").arg(m_defaultPreferences.Compression));
+	preferencesElement.setAttribute("printParameters", tr("%1").arg(m_defaultPreferences.PrintParameters));
 	preferencesElement.setAttribute("resultsInNewWindow", tr("%1").arg(m_defaultPreferences.ResultInNewWindow));
 	preferencesElement.setAttribute("magicLensSize", tr("%1").arg(m_defaultPreferences.MagicLensSize));
 	preferencesElement.setAttribute("magicLensFrameWidth", tr("%1").arg(m_defaultPreferences.MagicLensFrameWidth));
@@ -715,6 +716,7 @@ void MainWindow::loadPreferences(QDomNode preferencesNode)
 	m_defaultPreferences.HistogramBins = attributes.namedItem("histogramBins").nodeValue().toInt();
 	m_defaultPreferences.StatisticalExtent = attributes.namedItem("statisticalExtent").nodeValue().toDouble();
 	m_defaultPreferences.Compression = attributes.namedItem("compression").nodeValue() == "1";
+	m_defaultPreferences.PrintParameters = attributes.namedItem("printParameters").nodeValue() == "1";
 	m_defaultPreferences.ResultInNewWindow = attributes.namedItem("resultsInNewWindow").nodeValue() == "1";
 	m_defaultPreferences.MagicLensSize = attributes.namedItem("magicLensSize").nodeValue().toInt();
 	m_defaultPreferences.MagicLensFrameWidth = attributes.namedItem("magicLensFrameWidth").nodeValue().toInt();
@@ -913,7 +915,8 @@ void MainWindow::prefs()
 
 	QStringList inList = (QStringList() << tr("#Histogram Bins")
 		<< tr("#Statistical extent")
-		<< tr("$Compression")
+		<< tr("$Use Compression when storing .mhd files")
+		<< tr("$Print Parameters")
 		<< tr("$Results in new window")
 		<< tr("$Log to file")
 		<< tr("#Log File Name")
@@ -949,6 +952,7 @@ void MainWindow::prefs()
 	QList<QVariant> inPara; 	inPara << tr("%1").arg(p.HistogramBins)
 		<< tr("%1").arg(p.StatisticalExtent)
 		<< (p.Compression ? tr("true") : tr("false"))
+		<< (p.PrintParameters ? tr("true") : tr("false"))
 		<< (p.ResultInNewWindow ? tr("true") : tr("false"))
 		<< (iAConsole::instance()->isLogToFileOn() ? tr("true") : tr("false"))
 		<< iAConsole::instance()->logFileName()
@@ -963,10 +967,11 @@ void MainWindow::prefs()
 		m_defaultPreferences.HistogramBins = (int)dlg.getDblValue(0);
 		m_defaultPreferences.StatisticalExtent = (int)dlg.getDblValue(1);
 		m_defaultPreferences.Compression = dlg.getCheckValue(2) != 0;
-		m_defaultPreferences.ResultInNewWindow = dlg.getCheckValue(3) != 0;
-		bool logToFile = dlg.getCheckValue(4) != 0;
-		QString logFileName = dlg.getText(5);
-		QString looksStr = dlg.getComboBoxValue(6);
+		m_defaultPreferences.PrintParameters = dlg.getCheckValue(3) != 0;
+		m_defaultPreferences.ResultInNewWindow = dlg.getCheckValue(4) != 0;
+		bool logToFile = dlg.getCheckValue(5) != 0;
+		QString logFileName = dlg.getText(6);
+		QString looksStr = dlg.getComboBoxValue(7);
 		if (m_qssName != styleNames[looksStr])
 		{
 			m_qssName = styleNames[looksStr];
@@ -974,8 +979,8 @@ void MainWindow::prefs()
 		}
 
 		m_defaultPreferences.MagicLensSize = clamp(MinimumMagicLensSize, MaximumMagicLensSize,
-			static_cast<int>(dlg.getDblValue(7)));
-		m_defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getDblValue(8)));
+			static_cast<int>(dlg.getDblValue(8)));
+		m_defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getDblValue(9)));
 
 		if (activeMdiChild() && activeMdiChild()->editPrefs(m_defaultPreferences))
 			statusBar()->showMessage(tr("Edit preferences"), 5000);

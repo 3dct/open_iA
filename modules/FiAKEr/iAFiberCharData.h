@@ -135,6 +135,7 @@ public:
 	iAProgress* progress();
 signals:
 	void failed(QString const & path);
+	void success();
 private:
 	iAProgress m_progress;
 	QSharedPointer<iAFiberResultsCollection> m_results;

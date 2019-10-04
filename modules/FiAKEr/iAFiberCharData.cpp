@@ -181,7 +181,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 			for (auto key: result[0].mapping->keys())
 				if (curData.mapping->value(key) != result[0].mapping->value(key))
 				{
-					DEBUG_LOG(QString("Mapping does not match for result %1, column %2!"));
+					DEBUG_LOG(QString("Mapping does not match for result %1, column %2!").arg(csvFile).arg(curData.mapping->value(key)) );
 					return false;
 				}
 			// (though actually same mapping should be guaranteed by using same config)
@@ -413,6 +413,8 @@ void iAFiberResultsLoader::run()
 {
 	if (!m_results->loadData(m_path, m_configName, m_stepShift, &m_progress))
 		emit failed(m_path);
+	else
+		emit success();
 }
 
 iAProgress* iAFiberResultsLoader::progress()

@@ -216,8 +216,8 @@ void iAFiAKErController::start(QString const & path, QString const & configName,
 
 	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, configName, stepShift);
-	connect(resultsLoader, SIGNAL(finished()), this, SLOT(resultsLoaded()));
-	connect(resultsLoader, SIGNAL(failed(QString const &)), this, SLOT(resultsLoadFailed(QString const &)));
+	connect(resultsLoader, &iAFiberResultsLoader::success, this, &iAFiAKErController::resultsLoaded);
+	connect(resultsLoader, &iAFiberResultsLoader::failed,  this, &iAFiAKErController::resultsLoadFailed);
 	m_jobs->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
 	resultsLoader->start();
 }
@@ -225,7 +225,10 @@ void iAFiAKErController::start(QString const & path, QString const & configName,
 void iAFiAKErController::resultsLoadFailed(QString const & path)
 {
 	QMessageBox::warning(m_mainWnd, "Fiber Analytics",
-		QString("Could not load data in folder '%1'. Make sure it is in the right format!").arg(path));
+		QString("Could not load data in folder '%1'. Make sure it is in the right format. "
+			"Make sure to check the Debug Console window for further errors; "
+			"for checking the format of a specific csv file, "
+			"you can use the data loading dialog provided in the FeatureScout tool.").arg(path));
 	delete parent(); // deletes QMdiSubWindow which this widget is child of
 	return;
 }
