@@ -519,7 +519,7 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 
 	m_ioThread = new iAIO(m_imageData, m_polyData, m_logger, this, m_volumeStack->volumes(), m_volumeStack->fileNames());
 	if (f.endsWith(iAIOProvider::ProjectFileExtension) ||
-		f.endsWith(iAIOProvider::ProjectFileExtension))
+		f.endsWith(iAIOProvider::NewProjectFileExtension))
 	{
 		connect(m_ioThread, SIGNAL(done(bool)), this, SLOT(setupProject(bool)));
 	}
@@ -706,6 +706,7 @@ void MdiChild::setupProject(bool active)
 	QString fileName = m_ioThread->fileName();
 	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
+		// TODO: make asynchronous, put into iASavableProject?
 		QSettings projectFile(fileName, QSettings::IniFormat);
 		projectFile.setIniCodec("UTF-8");
 		auto registeredProjects = iAProjectRegistry::projectKeys();

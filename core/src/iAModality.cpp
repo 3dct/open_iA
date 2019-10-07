@@ -186,7 +186,7 @@ void iAModality::loadTransferFunction()
 	iAXmlSettings s;
 	if (!s.read(m_tfFileName))
 	{
-		DEBUG_LOG(QString("Failed to read transfer function from file %&1").arg(m_tfFileName));
+		DEBUG_LOG(QString("Failed to read transfer function from file %1").arg(m_tfFileName));
 		return;
 	}
 	s.loadTransferFunction(transfer().data());

@@ -401,7 +401,7 @@ void iADiagramFctWidget::loadTransferFunction()
 	iAXmlSettings s;
 	if (!s.read(fileName))
 	{
-		DEBUG_LOG(QString("Failed to read transfer function from file %&1").arg(fileName));
+		DEBUG_LOG(QString("Failed to read transfer function from file %1").arg(fileName));
 		return;
 	}
 	s.loadTransferFunction((iAChartTransferFunction*)m_functions[0]);
