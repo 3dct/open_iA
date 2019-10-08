@@ -293,11 +293,11 @@ void iAImageTreeView::UpdateRepresentative(QSharedPointer<iAImageTreeNode > node
 void iAImageTreeView::AddNode(QSharedPointer<iAImageTreeNode > node, bool shrinked)
 {
 	iAImageNodeWidget* nodeWidget = new iAImageNodeWidget(this, node, m_previewPool, shrinked, m_representativeType);
-	connect(nodeWidget, SIGNAL(Expand(bool)), this, SLOT(ExpandNode(bool)));
-	connect(nodeWidget, SIGNAL(clicked()), this, SLOT(NodeClicked()));
-	connect(nodeWidget, SIGNAL(ImageClicked()), this, SLOT(NodeImageClicked()));
-	connect(nodeWidget, SIGNAL(ImageRightClicked()), this, SLOT(NodeImageRightClicked()));
-	connect(nodeWidget, SIGNAL(updated()), this, SIGNAL(ViewUpdated()));
+	connect(nodeWidget, &iAImageNodeWidget::Expand, this, &iAImageTreeView::ExpandNodeSlot);
+	connect(nodeWidget, &iAImageNodeWidget::clicked, this, &iAImageTreeView::NodeClicked);
+	connect(nodeWidget, &iAImageNodeWidget::ImageClicked, this, &iAImageTreeView::NodeImageClicked);
+	connect(nodeWidget, &iAImageNodeWidget::ImageRightClicked, this, &iAImageTreeView::NodeImageRightClicked);
+	connect(nodeWidget, &iAImageNodeWidget::updated, this, &iAImageTreeView::ViewUpdated);
 	m_nodeWidgets.insert(node.data(), nodeWidget);
 	nodeWidget->show();
 }
@@ -336,7 +336,7 @@ void iAImageTreeView::CollapseNode(QSharedPointer<iAImageTreeNode > node, bool &
 }
 
 
-void iAImageTreeView::ExpandNode(bool expand)
+void iAImageTreeView::ExpandNodeSlot(bool expand)
 {
 	QObject* obj = sender();
 	iAImageNodeWidget* nodeWidget = dynamic_cast<iAImageNodeWidget*>(obj);
@@ -563,7 +563,7 @@ int  iAImageTreeView::GetRepresentativeType() const
 }
 
 
-void iAImageTreeView::FreeMemory(QSharedPointer<iAImageTreeNode> node, bool overrideFree)
+void iAImageTreeView::freeMemory(QSharedPointer<iAImageTreeNode> node, bool overrideFree)
 {
 	if (overrideFree ||
 		!m_nodeWidgets[node.data()] ||
@@ -574,7 +574,7 @@ void iAImageTreeView::FreeMemory(QSharedPointer<iAImageTreeNode> node, bool over
 	}
 	for (int i = 0; i<node->GetChildCount(); ++i)
 	{
-		FreeMemory(node->GetChild(i),
+		freeMemory(node->GetChild(i),
 			overrideFree ||
 			!m_nodeWidgets[node.data()] ||
 			!m_nodeWidgets[node.data()]->IsExpanded()

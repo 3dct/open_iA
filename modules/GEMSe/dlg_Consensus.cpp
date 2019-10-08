@@ -1006,20 +1006,19 @@ void dlg_Consensus::LoadConfig()
 
 void dlg_Consensus::StartNextSampler()
 {
-
 	m_currentSampler = m_queuedSamplers.takeFirst();
-	connect(m_currentSampler.data(), SIGNAL(finished()), this, SLOT(SamplerFinished()));
+	connect(m_currentSampler.data(), &iAImageSampler::finished, this, &dlg_Consensus::samplerFinished);
 
 	m_dlgProgress = new dlg_progress(this, m_currentSampler, m_currentSampler, "Sampling Progress");
-	connect(m_currentSampler.data(), SIGNAL(Progress(int)), m_dlgProgress, SLOT(SetProgress(int)));
-	connect(m_currentSampler.data(), SIGNAL(Status(QString const &)), m_dlgProgress, SLOT(SetStatus(QString const &)));
+	connect(m_currentSampler.data(), &iAImageSampler::Progress, m_dlgProgress, &dlg_progress::setProgress);
+	connect(m_currentSampler.data(), &iAImageSampler::Status, m_dlgProgress, &dlg_progress::setStatus);
 	m_mdiChild->tabifyDockWidget(this, m_dlgProgress);
 
 	m_currentSampler->start();
 }
 
 
-void dlg_Consensus::SamplerFinished()
+void dlg_Consensus::samplerFinished()
 {
 	delete m_dlgProgress;
 	m_dlgProgress = 0;
@@ -1027,7 +1026,7 @@ void dlg_Consensus::SamplerFinished()
 	iAImageSampler* sender = qobject_cast<iAImageSampler*> (QObject::sender());
 	if (!sender)
 	{
-		DEBUG_LOG("Invalid SamplingFinished: No iAImageSampler sender!");
+		DEBUG_LOG("Invalid samplingFinished: No iAImageSampler sender!");
 		return;
 	}
 	if (sender->IsAborted())

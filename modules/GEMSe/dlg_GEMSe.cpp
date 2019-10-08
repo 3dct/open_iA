@@ -404,9 +404,9 @@ void dlg_GEMSe::ResetFilters()
 }
 
 
-void dlg_GEMSe::SelectHistograms()
+void dlg_GEMSe::selectHistograms()
 {
-	m_histogramContainer->SelectHistograms();
+	m_histogramContainer->selectHistograms();
 	QVector<QSharedPointer<iAImageTreeNode> > const selection = m_treeView->CurrentSelection();
 	// order is important (to get the correct drawing order)
 	if (!m_chartFilter.MatchesAll())
@@ -776,14 +776,14 @@ QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > dlg_GEMSe::GetSampl
 	return m_samplings;
 }
 
-void dlg_GEMSe::SetMagicLensCount(int count)
+void dlg_GEMSe::setMagicLensCount(int count)
 {
-	m_detailView->SetMagicLensCount(count);
+	m_detailView->setMagicLensCount(count);
 }
 
-void dlg_GEMSe::FreeMemory()
+void dlg_GEMSe::freeMemory()
 {
-	m_treeView->FreeMemory(GetRoot(), false);
+	m_treeView->freeMemory(GetRoot(), false);
 }
 
 void dlg_GEMSe::SetProbabilityProbing(bool enabled)

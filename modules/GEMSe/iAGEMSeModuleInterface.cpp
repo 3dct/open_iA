@@ -53,7 +53,7 @@ void iAGEMSeModuleInterface::Initialize()
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionGEMSe, true);
 	connect(actionGEMSe, &QAction::triggered, this, &iAGEMSeModuleInterface::startGEMSe);
 
-	QAction * actionPreCalculated = new QAction( tr("Load Segmentation Ensemble in GEMSe"), nullptr );
+	QAction * actionPreCalculated = new QAction( tr("GEMSe - Load Ensemble (old)"), nullptr );
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionPreCalculated, false);
 	connect(actionPreCalculated, &QAction::triggered, this, &iAGEMSeModuleInterface::loadPreCalculatedData);
 }
@@ -84,10 +84,10 @@ void iAGEMSeModuleInterface::loadPreCalculatedData()
 		tr("GEMSe project (*.sea );;") );
 	if (fileName.isEmpty())
 		return;
-	loadGEMSe(fileName);
+	loadOldGEMSeProject(fileName);
 }
 
-void iAGEMSeModuleInterface::loadGEMSe(QString const & fileName)
+void iAGEMSeModuleInterface::loadOldGEMSeProject(QString const & fileName)
 {
 	if (m_seaFile)
 	{
@@ -102,7 +102,7 @@ void iAGEMSeModuleInterface::loadGEMSe(QString const & fileName)
 		return;
 	}
 	m_mdiChild = m_mainWnd->createMdiChild(false);
-	connect(m_mdiChild, SIGNAL(fileLoaded()), this, SLOT(loadGEMSe()));
+	connect(m_mdiChild, &MdiChild::fileLoaded, this, &iAGEMSeModuleInterface::loadGEMSe);
 	if (!m_mdiChild->loadFile(m_seaFile->modalityFileName(), false))
 	{
 		DEBUG_LOG(QString("Failed to load project '%1' referenced from precalculated GEMSe data file %2.")

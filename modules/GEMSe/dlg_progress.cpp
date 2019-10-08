@@ -32,11 +32,11 @@ dlg_progress::dlg_progress(QWidget *parentWidget,
 	m_durationEstimator(durationEstimator),
 	m_abortListener(abortListener)
 {
-	connect(pbAbort, SIGNAL(clicked()), this, SLOT(Abort()));
+	connect(pbAbort, &QPushButton::clicked, this, &dlg_progress::abort);
 	setWindowTitle(caption);
 }
 
-void dlg_progress::SetProgress(int progress)
+void dlg_progress::setProgress(int progress)
 {
 	progressBar->setValue(progress);
 
@@ -51,13 +51,13 @@ void dlg_progress::SetProgress(int progress)
 	}
 }
 
-void dlg_progress::SetStatus(QString const & status)
+void dlg_progress::setStatus(QString const & status)
 {
 	lbStatus->setText(QString("Status: ")+status);
 }
 
 
-void dlg_progress::Abort()
+void dlg_progress::abort()
 {
 	m_abortListener->abort();
 }

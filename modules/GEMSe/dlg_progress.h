@@ -29,6 +29,8 @@
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_progress> dlg_progressUI;
 
+//! Class to display progress of a task running in the background
+//! ToDo: Merge with iAJobListView in FIAKER!
 class dlg_progress : public dlg_progressUI
 {
 	Q_OBJECT
@@ -38,9 +40,9 @@ public:
 		QSharedPointer<iAAbortListener> abort,
 		QString const & caption);
 public slots:
-	void SetProgress(int progress);
-	void SetStatus(QString const & status);
-	void Abort();
+	void setProgress(int progress);
+	void setStatus(QString const & status);
+	void abort();
 private:
 	QSharedPointer<iADurationEstimator const> m_durationEstimator;
 	QSharedPointer<iAAbortListener> m_abortListener;

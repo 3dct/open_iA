@@ -71,7 +71,7 @@ private slots:
 	void MaxPixelEntropySlider(int);
 	void LabelVoters(int);
 	void CheckBoxStateChanged(int);
-	void SamplerFinished();
+	void samplerFinished();
 	void CalcSTAPLE();
 	void CalcMajorityVote();
 	void CalcProbRuleVote();

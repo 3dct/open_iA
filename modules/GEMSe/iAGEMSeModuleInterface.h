@@ -59,7 +59,7 @@ private slots:
 	//! @}
 	void loadGEMSe();
 private:
-	void loadGEMSe(QString const & fileName);
+	void loadOldGEMSeProject(QString const & fileName);
 	void setupToolbar();
 	
 	iAGEMSeToolbar* m_toolbar;

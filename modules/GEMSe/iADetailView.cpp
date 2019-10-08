@@ -556,7 +556,7 @@ void iADetailView::setImage()
 	}
 }
 
-void iADetailView::SetMagicLensCount(int count)
+void iADetailView::setMagicLensCount(int count)
 {
 	m_magicLensCount = count;
 	iASlicer* slicer = m_previewWidget->slicer();
