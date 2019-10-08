@@ -2704,7 +2704,7 @@ void MdiChild::doSaveProject()
 		for (auto projectKey : m_projects.keys())
 		{
 			projectFile.beginGroup(projectKey);
-			m_projects[projectKey]->saveProject(projectFile);
+			m_projects[projectKey]->saveProject(projectFile, projectFileName);
 			projectFile.endGroup();
 		}
 		return;

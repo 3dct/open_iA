@@ -25,13 +25,14 @@
 #include "iACsvVtkTableCreator.h"
 #include "iAFeatureScoutAttachment.h"
 #include "iAFeatureScoutToolbar.h"
-#include "iAModalityList.h"
-#include "iAModuleDispatcher.h" // TODO: Refactor, shouldn't be required to go via iAModuleDispatcher to retrieve one's own module...?
 #include "ui_CsvInput.h"
 
 #include <iAConsole.h>
+#include <iAModalityList.h>
+#include <iAModuleDispatcher.h> // TODO: Refactor; it shouldn't be required to go via iAModuleDispatcher to retrieve one's own module
 #include <iAProjectBase.h>
 #include <iAProjectRegistry.h>
+#include <io/iAFileUtils.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 
@@ -57,7 +58,7 @@ public:
 	virtual ~iAFeatureScoutProject() override
 	{}
 	void loadProject(QSettings & projectFile, QString const & fileName) override;
-	void saveProject(QSettings & projectFile) override;
+	void saveProject(QSettings & projectFile, QString const & fileName) override;
 	static QSharedPointer<iAProjectBase> create()
 	{
 		return QSharedPointer<iAFeatureScoutProject>::create();
@@ -75,13 +76,14 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 {
 	m_config.load(projectFile, "CSVFormat");
 
-	m_config.fileName = projectFile.value("CSVFileName").toString();
+	QString path(QFileInfo(fileName).absolutePath());
+	m_config.fileName = MakeAbsolute(path, projectFile.value("CSVFileName").toString());
 	if (m_config.fileName.isEmpty())
 	{
 		DEBUG_LOG("Invalid FeatureScout project file: Empty or missing 'CSVFileName'!");
 		return;
 	}
-	m_config.curvedFiberFileName = projectFile.value("CurvedFileName").toString();
+	m_config.curvedFiberFileName = MakeAbsolute(path, projectFile.value("CurvedFileName").toString());
 	iAFeatureScoutModuleInterface * featureScout = m_mainWindow->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
 	featureScout->LoadFeatureScout(m_config, m_mdiChild);
 	QString layoutName = projectFile.value("Layout").toString();
@@ -89,11 +91,12 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 		m_mdiChild->loadLayout(layoutName);
 }
 
-void iAFeatureScoutProject::saveProject(QSettings & projectFile)
+void iAFeatureScoutProject::saveProject(QSettings & projectFile, QString const & fileName)
 {
 	m_config.save(projectFile, "CSVFormat");
-	projectFile.setValue("CSVFileName", m_config.fileName);
-	projectFile.setValue("CurvedFileName", m_config.curvedFiberFileName);
+	QString path(QFileInfo(fileName).absolutePath());
+	projectFile.setValue("CSVFileName", MakeRelative(path, m_config.fileName));
+	projectFile.setValue("CurvedFileName", MakeRelative(path, m_config.curvedFiberFileName));
 	if (m_mdiChild)
 		projectFile.setValue("Layout", m_mdiChild->layoutName());
 }

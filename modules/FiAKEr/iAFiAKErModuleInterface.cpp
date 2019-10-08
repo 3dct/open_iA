@@ -50,7 +50,7 @@ public:
 	}
 	//! not required at the moment, since this is currently done by
 	//! iAFiAKErController::doSaveProject overwriting iASavableProject::doSaveProject
-	void saveProject(QSettings & projectFile) override
+	void saveProject(QSettings & projectFile, QString const & fileName) override
 	{}
 	static QSharedPointer<iAProjectBase> create()
 	{
