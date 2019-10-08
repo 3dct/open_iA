@@ -58,6 +58,7 @@ iAQSplom::Settings::Settings()
 	tickOffsets( 45, 45 ),
 	backgroundColor( Qt::white ),
 	maximizedLinked( false ),
+	flipAxes( false ),
 	popupBorderColor( QColor( 180, 180, 180, 220 )),
 	popupFillColor(QColor( 250, 250, 250, 200 )),
 	popupTextColor( QColor( 50, 50, 50 ) ),
@@ -206,6 +207,9 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	showHistogramAction = new QAction(tr("Show Histograms"), this);
 	showHistogramAction->setCheckable(true);
 	showHistogramAction->setChecked(settings.histogramVisible);
+	flipAxesAction = new QAction(tr("Flip Axes of max. Plot"), this);
+	flipAxesAction->setCheckable(true);
+	flipAxesAction->setChecked(settings.flipAxes);
 	quadraticPlotsAction = new QAction(tr("Quadratic Plots"), this);
 	quadraticPlotsAction->setCheckable(true);
 	quadraticPlotsAction->setChecked(settings.quadraticPlots);
@@ -223,12 +227,14 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	selectionModeRectangleAction->setActionGroup(selectionModeGroup);
 	QAction* showSettingsAction = new QAction(tr("Settings..."), this);
 	addContextMenuAction(showHistogramAction);
+	addContextMenuAction(flipAxesAction);
 	addContextMenuAction(quadraticPlotsAction);
 	addContextMenuAction(showPCCAction);
 	addContextMenuAction(selectionModeRectangleAction);
 	addContextMenuAction(selectionModePolygonAction);
 	addContextMenuAction(showSettingsAction);
 	connect(showHistogramAction, &QAction::toggled, this, &iAQSplom::setHistogramVisible);
+	connect(flipAxesAction, &QAction::toggled, this, &iAQSplom::toggleFlipAxes);
 	connect(quadraticPlotsAction, &QAction::toggled, this, &iAQSplom::setQuadraticPlots);
 	connect(showPCCAction, &QAction::toggled, this, &iAQSplom::setShowPCC);
 	connect(selectionModePolygonAction, SIGNAL(toggled(bool)), this, SLOT(selectionModePolygon()));
@@ -247,6 +253,7 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	connect(m_settingsDlg->cbQuadraticPlots, &QCheckBox::toggled, this, &iAQSplom::setQuadraticPlots);
 	connect(m_settingsDlg->cbShowCorrelationCoefficient, &QCheckBox::toggled, this, &iAQSplom::setShowPCC);
 	connect(m_settingsDlg->cbShowHistograms, &QCheckBox::toggled, this, &iAQSplom::setHistogramVisible);
+	connect(m_settingsDlg->cbFlipAxes, &QCheckBox::toggled, this, &iAQSplom::toggleFlipAxes);
 	connect(m_settingsDlg->sbHistogramBins, SIGNAL(valueChanged(int)), this, SLOT(setHistogramBins(int)));
 	connect(m_settingsDlg->cbColorTheme, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(setColorTheme(QString const &)));
 	m_settingsDlg->cbColorTheme->addItems(iALUT::GetColorMapNames());
@@ -743,6 +750,19 @@ void iAQSplom::setHistogramVisible(bool visible)
 	updateHistograms();
 }
 
+void iAQSplom::toggleFlipAxes(bool flip)
+{
+	settings.flipAxes = flip;
+	QSignalBlocker sb(m_settingsDlg->cbFlipAxes);
+	m_settingsDlg->cbFlipAxes->setChecked(flip);
+	if (m_maximizedPlot)
+	{
+		auto curSelected = m_previewPlot;
+		removeMaximizedPlot();
+		maximizeSelectedPlot(curSelected);
+	}
+}
+
 void iAQSplom::setHistogramBins(int bins)
 {
 	settings.histogramBins = bins;
@@ -778,6 +798,7 @@ void iAQSplom::setShowPCC(bool showPCC)
 void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 {
 	showHistogramAction->setChecked(settings.histogramVisible);
+	flipAxesAction->setChecked(settings.flipAxes);
 	quadraticPlotsAction->setChecked(settings.quadraticPlots);
 	{
 		QSignalBlocker sb1(selectionModeRectangleAction), sb2(selectionModePolygonAction);
@@ -827,7 +848,11 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 		connect(m_maximizedPlot, &iAScatterPlot::transformModified, this, &iAQSplom::transformUpdated);
 
 	const int * plotInds = selectedPlot->getIndices();
-	m_maximizedPlot->setData(plotInds[0], plotInds[1], m_splomData); //we want first plot in lower left corner of the SPLOM
+	int actualPlotInds[2] = {
+		plotInds[(settings.flipAxes) ? 1 : 0],
+		plotInds[(settings.flipAxes) ? 0 : 1]
+	};
+	m_maximizedPlot->setData(actualPlotInds[0], actualPlotInds[1], m_splomData);
 	m_maximizedPlot->setLookupTable(m_lut, m_colorLookupParam);
 	m_maximizedPlot->setSelectionColor(settings.selectionColor);
 	m_maximizedPlot->setPointRadius(settings.pointRadius);

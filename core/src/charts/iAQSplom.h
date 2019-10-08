@@ -149,6 +149,7 @@ public:
 	ColorScheme colorScheme() const;                                 //!< get current color scheme
 public slots:
 	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
+	void toggleFlipAxes(bool flip);                                  //!< set whether to flip parameters in large scatterplot
 	void setHistogramBins(int bins);                                 //!< set the number of histogram bins
 	void showSettings();                                             //!< Show the settings dialog
 	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
@@ -231,6 +232,7 @@ public:
 		QPoint tickOffsets;
 		QColor backgroundColor;
 		bool maximizedLinked;
+		bool flipAxes;
 
 		QColor popupBorderColor;
 		QColor popupFillColor;
@@ -285,7 +287,8 @@ protected:
 	QMenu* m_contextMenu;                        //!< the context menu (can be extended via addContextMenuAction)
 	QMenu* m_columnPickMenu;                     //!< sub-menu of the context menu for picking which columns are visible
 private:
-	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction, *quadraticPlotsAction, *showPCCAction;
+	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction, *quadraticPlotsAction,
+		*showPCCAction, *flipAxesAction;
 	QVector<iAChartWidget*> m_histograms;        //!< histograms of scatter plot matrix
 	iASPMSettings * m_settingsDlg;               //!< dialog with all the SPLOM settings (which params are visible, opacity of each dot, which column to use for coloring...
 };
