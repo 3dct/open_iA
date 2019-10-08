@@ -18,52 +18,34 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAGEMSeProject.h"
 
-#include "ui_GEMSeToolBar.h"
+#include "iAGEMSeModuleInterface.h"
 
-#include <iAModuleInterface.h>
-#include <qthelper/iAQTtoUIConnector.h>
+#include <iAModuleDispatcher.h> // TODO: Refactor; it shouldn't be required to go via iAModuleDispatcher to retrieve one's own module
+#include <mainwindow.h>
 
-#include <QToolBar>
+const QString iAGEMSeProject::ID("FeatureScout");
 
-class iASEAFile;
+iAGEMSeProject::iAGEMSeProject()
+{}
 
-class QSettings;
+iAGEMSeProject::~iAGEMSeProject()
+{}
 
-typedef iAQTtoUIConnector<QToolBar, Ui_GEMSeToolBar> iAGEMSeToolbar;
-
-class iAGEMSeModuleInterface : public iAModuleInterface
+void iAGEMSeProject::loadProject(QSettings & projectFile, QString const & fileName)
 {
-	Q_OBJECT
-public:
-	iAGEMSeModuleInterface();
-	void Initialize() override;
-	void loadProject(MdiChild* mdiChild, QSettings const & metaFile, QString const & fileName);
-	void saveProject(QSettings & metaFile, QString const & fileName);
-protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
-private slots:
-	//! @{ Menu entries:
-	void startGEMSe();
-	void loadPreCalculatedData();
-	//! @}
-	//! @{ Toolbar actions:
-	void resetFilter();
-	void toggleAutoShrink();
-	void toggleDockWidgetTitleBar();
-	void exportClusterIDs();
-	void exportAttributeRangeRanking();
-	void exportRankings();
-	void importRankings();
-	//! @}
-	void loadGEMSe();
-private:
-	void loadGEMSe(QString const & fileName);
-	void setupToolbar();
-	
-	iAGEMSeToolbar* m_toolbar;
+	iAGEMSeModuleInterface * gemseModule = m_mainWindow->getModuleDispatcher().GetModule<iAGEMSeModuleInterface>();
+	gemseModule->loadProject(m_mdiChild, projectFile, fileName);
+}
 
-	//! cache for precalculated data loading
-	QSharedPointer<iASEAFile> m_seaFile;
-};
+void iAGEMSeProject::saveProject(QSettings & projectFile, QString const & fileName)
+{
+	iAGEMSeModuleInterface * gemseModule = m_mainWindow->getModuleDispatcher().GetModule<iAGEMSeModuleInterface>();
+	gemseModule->saveProject(projectFile, fileName);
+}
+
+QSharedPointer<iAProjectBase> iAGEMSeProject::create()
+{
+	return QSharedPointer<iAGEMSeProject>::create();
+}

@@ -23,6 +23,8 @@
 #include <QString>
 #include <QMap>
 
+class QSettings;
+
 class iASEAFile
 {
 public:
@@ -46,30 +48,38 @@ public:
 		QString const & colorThemeName,
 		QString const & labelNames
 	);
-	void Store(QString const & seaFileName);
-	QString const & GetModalityFileName() const;
+	//! Takes given settings and reads GEMSe configuration from it.
+	//! Assumes that modalities are already loaded / not specified via single "Modalities" file name entry
+	iASEAFile(QSettings const & metaFile, QString const & fileName);
+	void save(QString const & seaFileName);
+	//! Store everything in given settings.
+	void save(QSettings & metaFile, QString const & fileName);
+	void load(QSettings const & metaFile, QString const & fileName, bool modalityRequired);
+	QString const & modalityFileName() const;
 	int labelCount() const;
-	QMap<int, QString> const & GetSamplings() const;
-	QString const & GetClusteringFileName() const;
-	QString const & GetLayoutName() const;
-	QString const & GetReferenceImage() const;
-	QString const & GetHiddenCharts() const;
-	QString const & GetLabelNames() const;
-	QString const & GetColorTheme() const;
+	QMap<int, QString> const & samplings() const;
+	QString const & clusteringFileName() const;
+	QString const & layoutName() const;
+	QString const & referenceImage() const;
+	QString const & hiddenCharts() const;
+	QString const & labelNames() const;
+	QString const & colorTheme() const;
 
 	bool good() const;
-	QString const & GetSEAFileName() const;
+	QString const & fileName() const;
 private:
-	QString m_ModalityFileName;
-	int m_LabelCount;
-	QMap<int, QString> m_Samplings;
-	QString m_ClusteringFileName;
-	QString m_LayoutName;
-	QString m_SEAFileName;
-	QString m_RefImg;
-	QString m_HiddenCharts;
-	QString m_ColorTheme;
-	QString m_LabelNames;
+	iASEAFile(iASEAFile const & other) = delete;
+	iASEAFile& operator=(iASEAFile const & other) = delete;
+	QString m_fileName;
+	QString m_modalityFileName;
+	int m_labelCount;
+	QMap<int, QString> m_samplings;
+	QString m_clusteringFileName;
+	QString m_layoutName;
+	QString m_refImg;
+	QString m_hiddenCharts;
+	QString m_colorTheme;
+	QString m_labelNames;
 
 	bool m_good;
 };

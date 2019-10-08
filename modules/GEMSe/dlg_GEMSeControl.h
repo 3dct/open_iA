@@ -46,6 +46,8 @@ class iASamplingResults;
 
 class vtkImageData;
 
+class QSettings;
+
 typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSeControl>   dlg_GEMSeControlUI;
 
 class dlg_GEMSeControl: public dlg_GEMSeControlUI
@@ -60,16 +62,17 @@ public:
 		dlg_samplings* dlgSamplings,
 		iAColorTheme const * colorTheme
 	);
-	bool LoadSampling(QString const & fileName, int labelCount, int datasetID);
-	bool LoadClustering(QString const & fileName);
-	bool LoadRefImg(QString const & refImgName);
-	void ExportAttributeRangeRanking();
-	void ExportRankings();
-	void ImportRankings();
-	void SetSerializedHiddenCharts(QString const & hiddenCharts);
-	void SetLabelInfo(QString const & colorTheme, QString const & labelNames);
-public slots:
-	void ExportIDs();
+	bool loadSampling(QString const & fileName, int labelCount, int datasetID);
+	bool loadClustering(QString const & fileName);
+	bool loadRefImg(QString const & refImgName);
+	//! Save the GEMSe project to the given settings file.
+	void saveProject(QSettings & metaFile, QString const & fileName);
+	void exportAttributeRangeRanking();
+	void exportRankings();
+	void importRankings();
+	void setSerializedHiddenCharts(QString const & hiddenCharts);
+	void setLabelInfo(QString const & colorTheme, QString const & labelNames);
+	void exportIDs();
 private slots:
 	void StartSampling();
 	void SamplingFinished();
@@ -77,25 +80,25 @@ private slots:
 	void LoadSampling();
 	void LoadClustering();
 	void CalculateClustering();
-	void StoreClustering();
-	void StoreAll();
+	void saveAll();
+	void saveClustering();
+	void saveDerivedOutputSlot();
 	void DataAvailable();
 	void ModalitySelected(int modalityIdx);
 	void SetIconSize(int newSize);
 	void setColorTheme(const QString &);
 	void SetRepresentative(const QString &);
 	void LoadRefImg();
-	void StoreDerivedOutput();
 	void SetMagicLensCount(int);
 	void FreeMemory();
 	void SetProbabilityProbing(int);
 	void SetCorrectnessUncertainty(int);
 	void DataTFChanged();
 private:
-	void StoreGEMSeProject(QString const & fileName, QString const & hiddenCharts);
+	void saveGEMSeProject(QString const & fileName, QString const & hiddenCharts);
 	void EnableClusteringDependantUI();
 	void EnableSamplingDependantUI();
-	void StoreDerivedOutput(
+	void saveDerivedOutput(
 		QString const & derivedOutputFileName,
 		QString const & attributeDescriptorOutputFileName,
 		QSharedPointer<iASamplingResults> results);

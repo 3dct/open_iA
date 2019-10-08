@@ -58,23 +58,19 @@ namespace
 		result.append(append);
 	}
 	
-	bool AddIfMissing(QSettings const & settings, QString & result, QString const & key)
+	void AddIfMissing(QSettings const & settings, QString & result, QString const & key)
 	{
 		if (!settings.contains(key))
 		{
 			AppendToString(result, key);
-			return true;
 		}
-		return false;
 	}
-	bool AddIfEmpty(QStringList const & stringlist, QString & result, QString const & key)
+	void AddIfEmpty(QStringList const & stringlist, QString & result, QString const & key)
 	{
 		if (stringlist.isEmpty())
 		{
 			AppendToString(result, key);
-			return true;
 		}
-		return false;
 	}
 }
 
@@ -88,38 +84,76 @@ iASEAFile::iASEAFile(QString const & fileName):
 	}
 	QSettings metaFile(fileName, QSettings::IniFormat );
 	metaFile.setIniCodec("UTF-8");
+	load(metaFile, fileName, true);
+}
+
+iASEAFile::iASEAFile(
+		QString const & modalityFile,
+		int labelCount,
+		QMap<int, QString> const & samplings,
+		QString const & clusterFile,
+		QString const & layout,
+		QString const & refImg,
+		QString const & hiddenCharts,
+		QString const & colorTheme,
+		QString const & labelNames):
+	m_modalityFileName(modalityFile),
+	m_labelCount(labelCount),
+	m_samplings(samplings),
+	m_clusteringFileName(clusterFile),
+	m_layoutName(layout),
+	m_refImg(refImg),
+	m_hiddenCharts(hiddenCharts),
+	m_colorTheme(colorTheme),
+	m_labelNames(labelNames),
+	m_good(true)
+{
+}
+
+iASEAFile::iASEAFile(QSettings const & metaFile, QString const & fileName)
+{
+	load(metaFile, fileName, false);
+}
+
+void iASEAFile::load(QSettings const & metaFile, QString const & fileName, bool modalityRequired)
+{
+	m_fileName = fileName;
 	if (metaFile.status() != QSettings::NoError)
 	{
-		DEBUG_LOG(QString("Load precalculated GEMSe data: Reading file '%1' failed!").arg(fileName));
+		DEBUG_LOG(QString("Loading GEMSe data from file '%1' failed!").arg(fileName));
 		return;
 	}
 	if (!metaFile.contains(FileVersionKey) || metaFile.value(FileVersionKey).toString() != FileVersionValue)
 	{
-		DEBUG_LOG(QString("Load precalculated GEMSe data: Precalculated data file (%1): Invalid or missing version descriptor ('%2' expected, '%3' found)!")
+		DEBUG_LOG(QString("Loading GEMSe data from file (%1) failed: Invalid or missing version descriptor ('%2' expected, '%3' found)!")
 			.arg(fileName)
 			.arg(FileVersionValue)
-			.arg((metaFile.contains(FileVersionKey) ? "'"+metaFile.value(FileVersionKey).toString()+"'" : "none")) );
+			.arg((metaFile.contains(FileVersionKey) ? "'" + metaFile.value(FileVersionKey).toString() + "'" : "none")));
 		return;
 	}
 	QStringList datasetKeys(metaFile.allKeys().filter(SamplingDataKey));
 	QString missingKeys;
-	if (AddIfMissing(metaFile, missingKeys, ModalitiesKey) ||
-		AddIfMissing(metaFile, missingKeys, LabelCountKey) ||
-		AddIfMissing(metaFile, missingKeys, ClusteringDataKey) ||
-		AddIfMissing(metaFile, missingKeys, LayoutKey) ||
-		AddIfEmpty(datasetKeys, missingKeys, SamplingDataKey))
+	if (modalityRequired)
+		AddIfMissing(metaFile, missingKeys, ModalitiesKey);
+	AddIfMissing(metaFile, missingKeys, LabelCountKey);
+	AddIfMissing(metaFile, missingKeys, ClusteringDataKey);
+	AddIfMissing(metaFile, missingKeys, LayoutKey);
+	AddIfEmpty(datasetKeys, missingKeys, SamplingDataKey);
+	if (missingKeys.size() > 0)
 	{
-		DEBUG_LOG(QString("Load precalculated GEMSe data: Required setting(s) %1 missing in file %2.").arg(missingKeys).arg(fileName));
+		DEBUG_LOG(QString("Loading GEMSe data from file (%1) failed: Required setting(s) %2 missing or empty!").arg(fileName).arg(missingKeys));
 		return;
 	}
-	m_SEAFileName = fileName;
 	QFileInfo fi(fileName);
-	m_ModalityFileName   = MakeAbsolute(fi.absolutePath(), metaFile.value(ModalitiesKey).toString());
+	if (modalityRequired)
+		m_modalityFileName = MakeAbsolute(fi.absolutePath(), metaFile.value(ModalitiesKey).toString());
+
 	bool labelCountOK;
-	m_LabelCount		 = metaFile.value(LabelCountKey).toString().toInt(&labelCountOK);
+	m_labelCount = metaFile.value(LabelCountKey).toString().toInt(&labelCountOK);
 	if (!labelCountOK)
 	{
-		DEBUG_LOG(QString("Load precalculated GEMSe data: Label Count invalid in file %1!").arg(fileName));
+		DEBUG_LOG(QString("Loading GEMSe data from file (%1) failed: Value '%2' is not a valid label count!")
+			.arg(fileName).arg(metaFile.value(LabelCountKey).toString()));
 		return;
 	}
 	for (QString keyStr : datasetKeys)
@@ -132,97 +166,77 @@ iASEAFile::iASEAFile(QString const & fileName):
 		}
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Load precalculated GEMSe data: Invalid Dataset identifier: %1 (maybe missing number, ID part: %2?) in file %3.")
-				.arg(keyStr).arg(key).arg(fileName));
+			DEBUG_LOG(QString("Loading GEMSe data from file (%1) failed: Invalid Dataset identifier: %2 (maybe missing number, ID part: %3?).")
+				.arg(fileName).arg(keyStr).arg(key));
 			return;
 		}
-		m_Samplings.insert(key, MakeAbsolute(fi.absolutePath(), metaFile.value(keyStr).toString()));
+		m_samplings.insert(key, MakeAbsolute(fi.absolutePath(), metaFile.value(keyStr).toString()));
 	}
-	QList<int> keys = m_Samplings.keys();
+	QList<int> keys = m_samplings.keys();
 	qSort(keys.begin(), keys.end());
 	if (keys[0] != 0 || keys[keys.size() - 1] != keys.size() - 1)
 	{
-		DEBUG_LOG(QString("Load precalculated GEMSe data: Incoherent sampling indices, or not starting at 0: [%1..%2] in file %3.")
-			.arg(keys[0]).arg(keys[keys.size() - 1]).arg(fileName));
+		DEBUG_LOG(QString("Loading GEMSe data from file (%1) failed: Incoherent sampling indices, or not starting at 0: [%1..%2].")
+			.arg(fileName).arg(keys[0]).arg(keys[keys.size() - 1]));
 		return;
 	}
-	m_ClusteringFileName = MakeAbsolute(fi.absolutePath(), metaFile.value(ClusteringDataKey).toString());
-	m_LayoutName         = metaFile.value(LayoutKey).toString();
+	m_clusteringFileName = MakeAbsolute(fi.absolutePath(), metaFile.value(ClusteringDataKey).toString());
+	m_layoutName = metaFile.value(LayoutKey).toString();
 	if (metaFile.contains(ReferenceImageKey))
 	{
-		m_RefImg = MakeAbsolute(fi.absolutePath(), metaFile.value(ReferenceImageKey).toString());
+		m_refImg = MakeAbsolute(fi.absolutePath(), metaFile.value(ReferenceImageKey).toString());
 	}
 	if (metaFile.contains(HiddenChartsKey))
 	{
-		m_HiddenCharts = metaFile.value(HiddenChartsKey).toString();
+		m_hiddenCharts = metaFile.value(HiddenChartsKey).toString();
 	}
 	if (metaFile.contains(ColorThemeKey))
 	{
-		m_ColorTheme = metaFile.value(ColorThemeKey).toString();
+		m_colorTheme = metaFile.value(ColorThemeKey).toString();
 	}
 	if (metaFile.contains(LabelNamesKey))
 	{
-		m_LabelNames = metaFile.value(LabelNamesKey).toString();
+		m_labelNames = metaFile.value(LabelNamesKey).toString();
 	}
 	m_good = true;
 }
 
-
-iASEAFile::iASEAFile(
-		QString const & modalityFile,
-		int labelCount,
-		QMap<int, QString> const & samplings,
-		QString const & clusterFile,
-		QString const & layout,
-		QString const & refImg,
-		QString const & hiddenCharts,
-		QString const & colorTheme,
-		QString const & labelNames):
-	m_ModalityFileName(modalityFile),
-	m_LabelCount(labelCount),
-	m_Samplings(samplings),
-	m_ClusteringFileName(clusterFile),
-	m_LayoutName(layout),
-	m_RefImg(refImg),
-	m_HiddenCharts(hiddenCharts),
-	m_ColorTheme(colorTheme),
-	m_LabelNames(labelNames),
-	m_good(true)
-{
-}
-
-void iASEAFile::Store(QString const & fileName)
+void iASEAFile::save(QString const & fileName)
 {
 	QSettings metaFile(fileName, QSettings::IniFormat);
 	metaFile.setIniCodec("UTF-8");
-	metaFile.setValue(FileVersionKey, FileVersionValue);
-	
-	m_SEAFileName = fileName;
+	metaFile.setValue(ModalitiesKey, MakeRelative(QFileInfo(fileName).absolutePath(), m_modalityFileName));
+	save(metaFile, fileName);
+}
+
+void iASEAFile::save(QSettings & metaFile, QString const & fileName)
+{
+	m_fileName = fileName;
 	QFileInfo fi(fileName);
 	QString path(fi.absolutePath());
-	metaFile.setValue(ModalitiesKey    , MakeRelative(path, m_ModalityFileName));
-	metaFile.setValue(LabelCountKey    , m_LabelCount);
-	for (int key : m_Samplings.keys())
+	metaFile.setValue(FileVersionKey, FileVersionValue);
+	metaFile.setValue(LabelCountKey, m_labelCount);
+	for (int key : m_samplings.keys())
 	{
-		metaFile.setValue(SamplingDataKey + QString::number(key), MakeRelative(path, m_Samplings[key]));
+		metaFile.setValue(SamplingDataKey + QString::number(key), MakeRelative(path, m_samplings[key]));
 	}
-	metaFile.setValue(ClusteringDataKey, MakeRelative(path, m_ClusteringFileName));
-	metaFile.setValue(LayoutKey        , m_LayoutName);
-	if (!m_RefImg.isEmpty())
+	metaFile.setValue(ClusteringDataKey, MakeRelative(path, m_clusteringFileName));
+	metaFile.setValue(LayoutKey, m_layoutName);
+	if (!m_refImg.isEmpty())
 	{
-		metaFile.setValue(ReferenceImageKey, MakeRelative(path, m_RefImg));
+		metaFile.setValue(ReferenceImageKey, MakeRelative(path, m_refImg));
 	}
-	if (!m_HiddenCharts.isEmpty())
+	if (!m_hiddenCharts.isEmpty())
 	{
-		metaFile.setValue(HiddenChartsKey, m_HiddenCharts);
+		metaFile.setValue(HiddenChartsKey, m_hiddenCharts);
 	}
-	metaFile.setValue(ColorThemeKey, m_ColorTheme);
-	metaFile.setValue(LabelNamesKey, m_LabelNames);
+	metaFile.setValue(ColorThemeKey, m_colorTheme);
+	metaFile.setValue(LabelNamesKey, m_labelNames);
 	
 	metaFile.sync();
 	if (metaFile.status() != QSettings::NoError)
 	{
-		DEBUG_LOG(QString("Storing precalculated GEMSe data: File '%1' couldn't be written.").arg(fileName));
+		DEBUG_LOG(QString("Storing GEMSe data: File '%1' couldn't be written.").arg(fileName));
 	}
 }
 
@@ -231,53 +245,52 @@ bool iASEAFile::good() const
 	return m_good;
 }
 
-
-QString const & iASEAFile::GetModalityFileName() const
+QString const & iASEAFile::modalityFileName() const
 {
-	return m_ModalityFileName;
+	return m_modalityFileName;
 }
 
 int iASEAFile::labelCount() const
 {
-	return m_LabelCount;
+	return m_labelCount;
 }
 
-QMap<int, QString> const & iASEAFile::GetSamplings() const
+QMap<int, QString> const & iASEAFile::samplings() const
 {
-	return m_Samplings;
+	return m_samplings;
 }
 
-QString const & iASEAFile::GetClusteringFileName() const
+QString const & iASEAFile::clusteringFileName() const
 {
-	return m_ClusteringFileName;
+	return m_clusteringFileName;
 }
 
-QString const & iASEAFile::GetLayoutName() const
+QString const & iASEAFile::layoutName() const
 {
-	return m_LayoutName;
+	return m_layoutName;
 }
 
-QString const & iASEAFile::GetReferenceImage() const
+QString const & iASEAFile::referenceImage() const
 {
-	return m_RefImg;
+	return m_refImg;
 }
 
-QString const & iASEAFile::GetHiddenCharts() const
+QString const & iASEAFile::hiddenCharts() const
 {
-	return m_HiddenCharts;
+	return m_hiddenCharts;
 }
 
-QString const & iASEAFile::GetLabelNames() const
+QString const & iASEAFile::labelNames() const
 {
-	return m_LabelNames;
+	return m_labelNames;
 }
 
-QString const & iASEAFile::GetColorTheme() const
+QString const & iASEAFile::colorTheme() const
 {
-	return m_ColorTheme;
+	return m_colorTheme;
 }
 
-QString const & iASEAFile::GetSEAFileName() const
+QString const & iASEAFile::fileName() const
 {
-	return m_SEAFileName;
+	return m_fileName;
 }
