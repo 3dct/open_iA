@@ -117,7 +117,8 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly))
 	{
-		errorMsg = QString("Unable to open file: %1!").arg(file.errorString());
+		errorMsg = QString("Unable to open file '%1': %2!")
+			.arg(fileName).arg(file.errorString());
 		return false;
 	}
 	file.close();

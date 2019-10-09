@@ -45,14 +45,10 @@
 #include <QSettings>
 #include <QTextStream>
 
-namespace
-{
-	const QString FeatureScoutProjectID("FeatureScout");
-}
-
 class iAFeatureScoutProject: public iAProjectBase
 {
 public:
+	static const QString ID;
 	iAFeatureScoutProject()
 	{}
 	virtual ~iAFeatureScoutProject() override
@@ -71,18 +67,21 @@ private:
 	iACsvConfig m_config;
 };
 
+const QString iAFeatureScoutProject::ID("FeatureScout");
+
 
 void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const & fileName)
 {
 	m_config.load(projectFile, "CSVFormat");
 
 	QString path(QFileInfo(fileName).absolutePath());
-	m_config.fileName = MakeAbsolute(path, projectFile.value("CSVFileName").toString());
-	if (m_config.fileName.isEmpty())
+	QString csvFileName = projectFile.value("CSVFileName").toString();
+	if (csvFileName.isEmpty())
 	{
-		DEBUG_LOG("Invalid FeatureScout project file: Empty or missing 'CSVFileName'!");
+		DEBUG_LOG(QString("Invalid FeatureScout project file '%1': Empty or missing 'CSVFileName'!").arg(fileName));
 		return;
 	}
+	m_config.fileName = MakeAbsolute(path, csvFileName);
 	m_config.curvedFiberFileName = MakeAbsolute(path, projectFile.value("CurvedFileName").toString());
 	iAFeatureScoutModuleInterface * featureScout = m_mainWindow->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
 	featureScout->LoadFeatureScout(m_config, m_mdiChild);
@@ -105,7 +104,7 @@ void iAFeatureScoutModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
-	iAProjectRegistry::addProject<iAFeatureScoutProject>(FeatureScoutProjectID);
+	iAProjectRegistry::addProject<iAFeatureScoutProject>(iAFeatureScoutProject::ID);
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionFibreScout = new QAction( QObject::tr("FeatureScout"), nullptr );
 	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreScout, false );
@@ -268,7 +267,7 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 	auto project = QSharedPointer<iAFeatureScoutProject>::create();
 	project->setChild(m_mdiChild);
 	project->setOptions(csvConfig);
-	m_mdiChild->addProject(FeatureScoutProjectID, project);
+	m_mdiChild->addProject(iAFeatureScoutProject::ID, project);
 	return true;
 }
 
