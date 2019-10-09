@@ -80,6 +80,12 @@ void iA3DColoredPolyObjectVis::hide()
 	m_visible = false;
 }
 
+void iA3DColoredPolyObjectVis::updateRenderer()
+{
+	if (m_visible)
+		iA3DObjectVis::updateRenderer();
+}
+
 void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & constClassColor, QStandardItem* activeClassItem)
 {
 	QColor BackColor(128, 128, 128, 0);

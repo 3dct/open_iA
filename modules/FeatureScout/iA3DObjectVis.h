@@ -42,8 +42,9 @@ class QStandardItem;
 
 //! Base class for 3D visualizations of objects (e.g. fibers or pores) defined in a table
 //! use the factory method create3DObjectVis to create a specific instance!
-class FeatureScout_API iA3DObjectVis
+class FeatureScout_API iA3DObjectVis: public QObject
 {
+	Q_OBJECT
 public:
 	static const QColor SelectedColor;
 	iA3DObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping );
@@ -55,10 +56,12 @@ public:
 	virtual void renderOrientationDistribution( vtkImageData* oi ) =0;
 	virtual void renderLengthDistribution( vtkColorTransferFunction* cTFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) =0;
 	virtual double const * bounds() =0;
+signals:
+	void updated();
 protected:
 	QColor getOrientationColor( vtkImageData* oi, size_t objID ) const;
 	QColor getLengthColor( vtkColorTransferFunction* ctFun, size_t objID ) const;
-	void updateRenderer();
+	virtual void updateRenderer();
 	vtkRenderer* m_ren;
 	vtkTable* m_objectTable;
 	QSharedPointer<QMap<uint, uint> > m_columnMapping;
