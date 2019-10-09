@@ -20,21 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAVtkWidget.h"
+
 #include "open_iA_Core_export.h"
 
-#include "iASignallingWidget.h"
-#include "iAVtkQtWidget.h"
-
-class iAColoredWidget;
-
-class open_iA_Core_API iAFixedAspectWidget: public iASignallingWidget
+class open_iA_Core_API iAVtkQtWidget : public iAVtkWidget
 {
-	Q_OBJECT
-public:
-	iAFixedAspectWidget(double aspect=1.0, Qt::Alignment verticalAlign = Qt::AlignVCenter);
-	iAVtkQtWidget* vtkWidget();
-	void setBackgroundColor(QColor const & color);
-private:
-	iAVtkQtWidget* m_widget;
-	iAColoredWidget* m_fill1, * m_fill2;
+Q_OBJECT
+public slots:
+	void updateAll();
 };

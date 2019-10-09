@@ -18,23 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
-
-#include "open_iA_Core_export.h"
-
-#include "iASignallingWidget.h"
 #include "iAVtkQtWidget.h"
 
-class iAColoredWidget;
-
-class open_iA_Core_API iAFixedAspectWidget: public iASignallingWidget
+void iAVtkQtWidget::updateAll()
 {
-	Q_OBJECT
-public:
-	iAFixedAspectWidget(double aspect=1.0, Qt::Alignment verticalAlign = Qt::AlignVCenter);
-	iAVtkQtWidget* vtkWidget();
-	void setBackgroundColor(QColor const & color);
-private:
-	iAVtkQtWidget* m_widget;
-	iAColoredWidget* m_fill1, * m_fill2;
-};
+	GetRenderWindow()->Render();
+	update();
+}
