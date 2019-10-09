@@ -74,6 +74,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	double stepShift = dlg.getDblValue(1);
 	//cmbbox_Format->addItems(formatEntries);
 	m_mainWnd->addSubWindow(explorer);
+	m_mainWnd->setPath(path);
 	explorer->start(path, configName, stepShift);
 }
 

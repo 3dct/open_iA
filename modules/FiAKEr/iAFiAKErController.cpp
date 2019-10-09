@@ -2364,6 +2364,7 @@ void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folde
 	auto stepShift   = projectFile.value(ProjectFileStepShift, 0).toDouble();
 	auto explorer = new iAFiAKErController(mainWnd);
 	explorer->m_projectReferenceID = projectFile.value(ProjectFileReference, static_cast<qulonglong>(NoResult)).toULongLong();
+	mainWnd->setPath(dataFolder);
 	mainWnd->addSubWindow(explorer);
 	if (explorer->m_projectReferenceID != NoResult)
 		connect(explorer, &iAFiAKErController::setupFinished, explorer, &iAFiAKErController::setProjectReference);
