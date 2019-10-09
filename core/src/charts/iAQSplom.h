@@ -42,6 +42,7 @@ class QGridLayout;
 class QListWidgetItem;
 class QMenu;
 class QPropertyAnimation;
+class QSettings;
 class QTableWidget;
 
 //! A scatter plot matrix (SPLOM) widget.
@@ -147,6 +148,8 @@ public:
 	size_t colorLookupParam() const;                                 //!< parameter currently used for color lookup
 	QSharedPointer<iALookupTable> lookupTable() const;               //!< get lookup table
 	ColorScheme colorScheme() const;                                 //!< get current color scheme
+	void saveSettings(QSettings & iniFile) const;                    //!< store current settings into given object
+	void loadSettings(QSettings const & iniFile);                    //!< load settings from given object
 public slots:
 	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
 	void toggleFlipAxes(bool flip);                                  //!< set whether to flip parameters in large scatterplot
@@ -219,6 +222,8 @@ private slots:
 	void pointOpacityChanged(int);                                   //!< Called from settings dialog when opacity slider changes
 	void colorSchemeChanged(int colorScheme);                        //!< Called from settings dialog when the color scheme is changed
 	void changePointColor();                                         //!< Called from settings dialog when the point color is clicked
+	void saveSettingsSlot();                                         //!< Called from settings dialog for storing settings
+	void loadSettingsSlot();                                         //!< Called from settings dialog for loading settings
 
 // Members:
 public:

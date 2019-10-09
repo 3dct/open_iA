@@ -36,9 +36,11 @@
 
 #include <QAbstractTextDocumentLayout>
 #include <QColorDialog>
+#include <QFileDialog>
 #include <QListWidgetItem>
 #include <QPainter>
 #include <QPropertyAnimation>
+#include <QSettings>
 #include <QTableWidget>
 #include <QWheelEvent>
 #include <QtMath>
@@ -249,6 +251,8 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	connect(m_settingsDlg->slPointSize, SIGNAL(valueChanged(int)), this, SLOT(pointRadiusChanged(int)));
 	connect(m_settingsDlg->pbPointColor, SIGNAL(clicked()), this, SLOT(changePointColor()));
 	connect(m_settingsDlg->pbRangeFromParameter, SIGNAL(clicked()), this, SLOT(rangeFromParameter()));
+	connect(m_settingsDlg->pbSaveSettings, &QPushButton::clicked, this, &iAQSplom::saveSettingsSlot);
+	connect(m_settingsDlg->pbLoadSettings, &QPushButton::clicked, this, &iAQSplom::loadSettingsSlot);
 	connect(m_settingsDlg->cbSelectionMode, SIGNAL(currentIndexChanged(int)), this, SLOT(setSelectionMode(int)));
 	connect(m_settingsDlg->cbQuadraticPlots, &QCheckBox::toggled, this, &iAQSplom::setQuadraticPlots);
 	connect(m_settingsDlg->cbShowCorrelationCoefficient, &QCheckBox::toggled, this, &iAQSplom::setShowPCC);
@@ -1510,6 +1514,82 @@ void iAQSplom::changePointColor()
 	QColor newColor = QColorDialog::getColor(settings.pointColor, this, "SPM Point color");
 	if (newColor.isValid())
 		setPointColor(newColor);
+}
+
+void iAQSplom::saveSettingsSlot()
+{
+	QString fileName = QFileDialog::getSaveFileName(this, "Save settings", "",
+		tr("Settings file (*.ini);;"));
+	if (fileName.isEmpty())
+		return;
+	QSettings settings(fileName, QSettings::IniFormat);
+	settings.setIniCodec("UTF-8");
+	saveSettings(settings);
+}
+
+void iAQSplom::loadSettingsSlot()
+{
+	QString fileName = QFileDialog::getOpenFileName(this, "Load settings", "",
+		tr("Settings file (*.ini);;"));
+	if (fileName.isEmpty())
+		return;
+	QSettings settings(fileName, QSettings::IniFormat);
+	settings.setIniCodec("UTF-8");
+	loadSettings(settings);
+}
+
+/*
+	// settable only by application:
+	bool selectionEnabled, enableColorSettings, maximizedLinked;
+	int separationMargin;
+	long plotsSpacing, tickLabelsOffset, maxRectExtraOffset;
+	QPoint tickOffsets;
+	QColor backgroundColor, popupBorderColor, popupFillColor, popupTextColor, selectionColor;
+	double popupTipDim[2];
+	double popupWidth;
+	bool isAnimated;
+	double animDuration;
+	double animStart;
+
+	// settable by user:
+	double pointRadius;
+	bool histogramVisible; int histogramBins;
+	int selectionMode;
+	bool flipAxes, quadraticPlots, showPCC;
+	ColorScheme colorScheme;  same color for all points, color-code by parameter value, custom (lut set by application)
+	QString colorThemeName;
+	QColor pointColor;
+
+	list of visible parameters
+	point opacity
+	index of parameter used for color coding if by parameter value
+	color coding min/max
+	};
+*/
+
+void iAQSplom::saveSettings(QSettings & iniFile) const
+{
+	iniFile.setValue("PointRadius", settings.pointRadius);
+	iniFile.setValue("HistogramVisible", settings.histogramVisible);
+	iniFile.setValue("HistogramBins", settings.histogramBins);
+	iniFile.setValue("SelectionMode", settings.selectionMode);
+	iniFile.setValue("FlipAxes", settings.flipAxes);
+	iniFile.setValue("QuadraticPlots", settings.quadraticPlots);
+	iniFile.setValue("ShowPCC", settings.showPCC);
+	iniFile.setValue("ColorScheme", settings.colorScheme);
+	iniFile.setValue("ColorThemeName", settings.colorThemeName);
+	iniFile.setValue("PointColor", settings.pointColor);
+	double pointOpacity = static_cast<double>(m_settingsDlg->slPointOpacity->value()) / m_settingsDlg->slPointOpacity->maximum();
+	iniFile.setValue("PointOpacity", pointOpacity);
+	double colorCodingMin = m_settingsDlg->sbMin->value();
+	double colorCodingMax = m_settingsDlg->sbMax->value();
+	iniFile.setValue("ColorCodingMin", colorCodingMin);
+	iniFile.setValue("ColorCodingMax", colorCodingMax);
+}
+
+void iAQSplom::loadSettings(QSettings const & iniFile)
+{
+
 }
 
 void iAQSplom::setPointColor(QColor const & newColor)
