@@ -69,6 +69,7 @@ QColor iA3DObjectVis::getLengthColor( vtkColorTransferFunction* cTFun, size_t ob
 void iA3DObjectVis::updateRenderer()
 {
 	m_ren->Render();
+	emit updated();
 }
 
 void iA3DObjectVis::show()

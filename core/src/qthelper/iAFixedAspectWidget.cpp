@@ -21,7 +21,7 @@
 #include "iAFixedAspectWidget.h"
 
 #include "iAConsole.h"
-#include "iAVtkWidget.h"
+#include "iAVtkQtWidget.h"
 
 #include <QVTKOpenGLWidget.h>
 
@@ -49,7 +49,7 @@ private:
 	QColor bgColor;
 };
 
-class iAFixedAspectWidgetInternal: public iAVtkWidget
+class iAFixedAspectWidgetInternal: public iAVtkQtWidget
 {
 public:
 	iAFixedAspectWidgetInternal(double aspect):
@@ -91,7 +91,7 @@ iAFixedAspectWidget::iAFixedAspectWidget(double aspect, Qt::Alignment verticalAl
 	}
 }
 
-iAVtkWidget* iAFixedAspectWidget::vtkWidget()
+iAVtkQtWidget* iAFixedAspectWidget::vtkWidget()
 {
 	return m_widget;
 }

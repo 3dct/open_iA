@@ -81,20 +81,10 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="2" column="0" colspan="2">
-       <widget class="QCheckBox" name="cbShowCorrelationCoefficient">
+      <item row="4" column="2">
+       <widget class="QLabel" name="label">
         <property name="text">
-         <string>Show Pearson's Correlation Coeefficient</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QCheckBox" name="cbShowHistograms">
-        <property name="text">
-         <string>Show Histograms with</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
+         <string>Bins</string>
         </property>
        </widget>
       </item>
@@ -111,6 +101,20 @@
         </property>
        </widget>
       </item>
+      <item row="3" column="1" colspan="2">
+       <widget class="QComboBox" name="cbSelectionMode">
+        <item>
+         <property name="text">
+          <string>Rectangle</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Polygon</string>
+         </property>
+        </item>
+       </widget>
+      </item>
       <item row="3" column="0">
        <widget class="QLabel" name="lbSelectionMode">
         <property name="text">
@@ -125,25 +129,28 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="2">
-       <widget class="QLabel" name="label">
+      <item row="4" column="0">
+       <widget class="QCheckBox" name="cbShowHistograms">
         <property name="text">
-         <string>Bins</string>
+         <string>Show Histograms with</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
-      <item row="3" column="1" colspan="2">
-       <widget class="QComboBox" name="cbSelectionMode">
-        <item>
-         <property name="text">
-          <string>Rectangle</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Polygon</string>
-         </property>
-        </item>
+      <item row="2" column="0" colspan="2">
+       <widget class="QCheckBox" name="cbShowCorrelationCoefficient">
+        <property name="text">
+         <string>Show Pearson's Correlation Coeefficient</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0" colspan="3">
+       <widget class="QCheckBox" name="cbFlipAxes">
+        <property name="text">
+         <string>Flip axes of maximized plot</string>
+        </property>
        </widget>
       </item>
      </layout>

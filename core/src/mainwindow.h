@@ -65,7 +65,7 @@ public:
 		QString const & splashPath, QString const & iconPath);
 	static void initResources();
 
-	void setPath(QString p);
+	void setPath(QString const & p);
 	QString const & path();
 	void setCurrentFile(const QString &fileName);
 	QString const & currentFile();  //!< deprecated. Use a specific mdichilds, or even better, an mdichilds dlg_modalities methods instead!

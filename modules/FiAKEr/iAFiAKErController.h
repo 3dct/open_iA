@@ -23,7 +23,8 @@
 #include "iAChangeableCameraWidget.h"
 #include "iASavableProject.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
-#include "iAVtkWidgetFwd.h"
+
+#include <qthelper/iAVtkQtWidget.h>
 
 #include <vtkSmartPointer.h>
 
@@ -210,7 +211,7 @@ private:
 		JobView, ResultListView, Main3DView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
 	};
 	// Main Renderer:
-	iAVtkWidget* m_mainRenderer;
+	iAVtkQtWidget* m_main3DWidget;
 	vtkSmartPointer<vtkRenderer> m_ren;
 	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel, *m_diameterFactorLabel, *m_contextDiameterFactorLabel;
 	QSlider* m_defaultOpacitySlider, *m_contextOpacitySlider;
