@@ -34,34 +34,34 @@
 #include "iAVectorPlotData.h"
 
 // Core:
-#include "charts/iAChartWidget.h"
-#include "charts/iAHistogramData.h"
-#include "charts/iAPlotTypes.h"
-#include "charts/iAScatterPlot.h" // for selection mode: iAScatterPlot::Rectangle
-#include "charts/iAQSplom.h"
-#include "charts/iASPLOMData.h"
-#include "iAColorTheme.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iALookupTable.h"
-#include "iALUT.h"
-#include "iAMapperImpl.h"
-#include "iAMathUtility.h"
-#include "iAModuleDispatcher.h"
-#include "iARendererManager.h"
-#include "iAStringHelper.h"
-#include "iAToolsVTK.h"    // for setCamPos
-#include "iATransferFunction.h"
-#include "iAVolumeRenderer.h"
-#include "iAVtkWidget.h"
-#include "io/iAITKIO.h"
-#include "io/iAFileChooserWidget.h"
-#include "io/iAFileUtils.h"
-#include "mainwindow.h"
-#include "mdichild.h"
-#include "qthelper/iADockWidgetWrapper.h"
-#include "qthelper/iAFixedAspectWidget.h"
-#include "qthelper/iASignallingWidget.h"
+#include <charts/iAChartWidget.h>
+#include <charts/iAHistogramData.h>
+#include <charts/iAPlotTypes.h>
+#include <charts/iAScatterPlot.h> // for selection mode: iAScatterPlot::Rectangle
+#include <charts/iAQSplom.h>
+#include <charts/iASPLOMData.h>
+#include <iAColorTheme.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iALookupTable.h>
+#include <iALUT.h>
+#include <iAMapperImpl.h>
+#include <iAMathUtility.h>
+#include <iAModuleDispatcher.h>
+#include <iARendererManager.h>
+#include <iAStringHelper.h>
+#include <iAToolsVTK.h>    // for setCamPos
+#include <iATransferFunction.h>
+#include <iAVolumeRenderer.h>
+#include <io/iAITKIO.h>
+#include <io/iAFileChooserWidget.h>
+#include <io/iAFileUtils.h>
+#include <mainwindow.h>
+#include <mdichild.h>
+#include <qthelper/iADockWidgetWrapper.h>
+#include <qthelper/iAFixedAspectWidget.h>
+#include <qthelper/iASignallingWidget.h>
+#include <qthelper/iAVtkQtWidget.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkCubeSource.h>
@@ -155,7 +155,7 @@ namespace
 class iAFiberCharUIData
 {
 public:
-	iAVtkWidget* vtkWidget;
+	iAVtkQtWidget* vtkWidget;
 	QSharedPointer<iA3DColoredPolyObjectVis> mini3DVis;
 	QSharedPointer<iA3DColoredPolyObjectVis> main3DVis;
 	QCheckBox* cbBoundingBox;
@@ -276,7 +276,7 @@ iAFiAKErController::~iAFiAKErController()
 
 QWidget * iAFiAKErController::setupMain3DView()
 {
-	m_mainRenderer = new iAVtkWidget();
+	m_main3DWidget = new iAVtkQtWidget();
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	m_ren = vtkSmartPointer<vtkRenderer>::New();
 	m_ren->SetUseFXAA(true);
@@ -285,7 +285,7 @@ QWidget * iAFiAKErController::setupMain3DView()
 	m_ren->SetUseDepthPeeling(true);
 	m_ren->SetMaximumNumberOfPeels(1000);
 	renWin->AddRenderer(m_ren);
-	m_mainRenderer->SetRenderWindow(renWin);
+	m_main3DWidget->SetRenderWindow(renWin);
 	m_renderManager->addToBundle(m_ren);
 	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
 	m_style->setSelectionProvider(this);
@@ -315,7 +315,7 @@ QWidget * iAFiAKErController::setupMain3DView()
 	QWidget* mainRendererContainer = new QWidget();
 	mainRendererContainer->setLayout(new QVBoxLayout());
 	mainRendererContainer->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
-	mainRendererContainer->layout()->addWidget(m_mainRenderer);
+	mainRendererContainer->layout()->addWidget(m_main3DWidget);
 	mainRendererContainer->layout()->addWidget(m_showReferenceWidget);
 	return mainRendererContainer;
 }
@@ -812,6 +812,14 @@ QWidget* iAFiAKErController::setupResultListView()
 		connect(uiData.vtkWidget, &iAVtkWidget::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
 		connect(uiData.cbShow, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
 		connect(uiData.cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
+
+		// connect changes to visualizations to an update of the 3D widget:
+		// {
+		connect(uiData.mini3DVis.data(), &iA3DObjectVis::updated, uiData.vtkWidget, &iAVtkQtWidget::updateAll);
+
+		// iA3DColoredObjectVis::updateRenderer makes sure this connection is only triggered if vis is currently shown:
+		connect(uiData.main3DVis.data(), &iA3DObjectVis::updated, m_main3DWidget, &iAVtkQtWidget::updateAll);
+		// }
 	}
 	resultList->setLayout(m_resultsListLayout);
 	addStackedBar(0);
@@ -1356,8 +1364,8 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
 			m_optimStepChart[c]->update();
 	changeReferenceDisplay();
-	m_mainRenderer->GetRenderWindow()->Render();
-	m_mainRenderer->update();
+	m_main3DWidget->GetRenderWindow()->Render();
+	m_main3DWidget->update();
 }
 
 void iAFiAKErController::toggleBoundingBox(int state)
@@ -1403,7 +1411,7 @@ void iAFiAKErController::setCamPosition(int pos)
 {
 	::setCamPosition(m_ren->GetActiveCamera(), static_cast<iACameraPosition>(pos));
 	m_ren->ResetCamera();
-	m_mainRenderer->GetRenderWindow()->GetInteractor()->Render();
+	m_main3DWidget->GetRenderWindow()->GetInteractor()->Render();
 }
 
 void iAFiAKErController::clearSelection()
@@ -1742,7 +1750,7 @@ namespace
 void iAFiAKErController::updateFiberContext()
 {
 	for (auto actor : m_contextActors)
-		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
+		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
 	m_contextActors.clear();
 	if (m_showFiberContext)
 	{
@@ -1778,7 +1786,7 @@ void iAFiAKErController::updateFiberContext()
 				if (!m_mergeContextBoxes)
 				{
 					auto actor = getCubeActor(minCoord, maxCoord);
-					m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+					m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
 					m_contextActors.push_back(actor);
 				}
 			}
@@ -1786,12 +1794,12 @@ void iAFiAKErController::updateFiberContext()
 		if (m_mergeContextBoxes)
 		{
 			auto actor = getCubeActor(minCoord, maxCoord);
-			m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+			m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
 			m_contextActors.push_back(actor);
 		}
 	}
-	m_mainRenderer->GetRenderWindow()->Render();
-	m_mainRenderer->update();
+	m_main3DWidget->GetRenderWindow()->Render();
+	m_main3DWidget->update();
 }
 
 namespace
@@ -1831,7 +1839,7 @@ void iAFiAKErController::setReference(size_t referenceID)
 	if (m_referenceID != NoResult)
 	{
 		auto & ui = m_resultUIs[m_referenceID];
-		setResultBackground(ui, m_mainRenderer->palette().color(QWidget::backgroundRole()));
+		setResultBackground(ui, m_main3DWidget->palette().color(QWidget::backgroundRole()));
 		ui.nameLabel->setText(ui.nameLabel->text().left(ui.nameLabel->text().length()-RefMarker.length()));
 	}
 	addInteraction(QString("Reference set to %1").arg(resultName(referenceID)));
@@ -1912,8 +1920,8 @@ void iAFiAKErController::showSpatialOverview()
 	ref3D->setLookupTable(lut, colID);
 	ref3D->updateColorSelectionRendering();
 	ref3D->show();
-	m_mainRenderer->GetRenderWindow()->Render();
-	m_mainRenderer->update();
+	m_main3DWidget->GetRenderWindow()->Render();
+	m_main3DWidget->update();
 }
 
 void iAFiAKErController::spmLookupTableChanged()
@@ -1975,11 +1983,11 @@ void iAFiAKErController::changeReferenceDisplay()
 	}
 
 	if (m_refLineActor)
-		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
+		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
 	if (!isAnythingSelected() || !showRef)
 	{
-		m_mainRenderer->GetRenderWindow()->Render();
-		m_mainRenderer->update();
+		m_main3DWidget->GetRenderWindow()->Render();
+		m_main3DWidget->update();
 		return;
 	}
 	if (m_referenceID == NoResult)
@@ -2145,9 +2153,9 @@ void iAFiAKErController::changeReferenceDisplay()
 	m_refLineActor = vtkSmartPointer<vtkActor>::New();
 	m_refLineActor->SetMapper(mapper);
 	m_refLineActor->GetProperty()->SetLineWidth(2);
-	m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_refLineActor);
-	m_mainRenderer->GetRenderWindow()->Render();
-	m_mainRenderer->update();
+	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_refLineActor);
+	m_main3DWidget->GetRenderWindow()->Render();
+	m_main3DWidget->update();
 }
 
 void iAFiAKErController::playPauseOptimSteps()
@@ -2233,9 +2241,9 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 	m_sampleActor->SetMapper(sampleMapper);
 	sampleMapper->Update();
 	m_sampleActor->GetProperty()->SetPointSize(2);
-	m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
-	m_mainRenderer->GetRenderWindow()->Render();
-	m_mainRenderer->update();
+	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
+	m_main3DWidget->GetRenderWindow()->Render();
+	m_main3DWidget->update();
 }
 
 void iAFiAKErController::hideSamplePoints()
@@ -2244,15 +2252,15 @@ void iAFiAKErController::hideSamplePoints()
 		return;
 	addInteraction("Hide cylinder sampling points");
 	hideSamplePointsPrivate();
-	m_mainRenderer->GetRenderWindow()->Render();
-	m_mainRenderer->update();
+	m_main3DWidget->GetRenderWindow()->Render();
+	m_main3DWidget->update();
 	m_sampleActor = nullptr;
 }
 
 void iAFiAKErController::hideSamplePointsPrivate()
 {
 	if (m_sampleActor)
-		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
+		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
 }
 
 void iAFiAKErController::optimDataToggled(int state)
@@ -2384,7 +2392,7 @@ void iAFiAKErController::loadVolume(QString const & fileName)
 		m_refOF.GetPointer()
 	);
 	m_refRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_refImg));
-	m_refRenderer->addTo(m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+	m_refRenderer->addTo(m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 }
 
 void iAFiAKErController::showReferenceInChartToggled()
