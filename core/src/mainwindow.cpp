@@ -1812,7 +1812,7 @@ QString const & MainWindow::currentFile()
 	return m_curFile;
 }
 
-void MainWindow::setPath(QString p)
+void MainWindow::setPath(QString const & p)
 {
 	m_path = p;
 }
