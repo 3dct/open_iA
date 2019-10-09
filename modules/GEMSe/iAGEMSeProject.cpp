@@ -25,7 +25,7 @@
 #include <iAModuleDispatcher.h> // TODO: Refactor; it shouldn't be required to go via iAModuleDispatcher to retrieve one's own module
 #include <mainwindow.h>
 
-const QString iAGEMSeProject::ID("FeatureScout");
+const QString iAGEMSeProject::ID("GEMSe");
 
 iAGEMSeProject::iAGEMSeProject()
 {}
