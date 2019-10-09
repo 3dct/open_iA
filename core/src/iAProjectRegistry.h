@@ -22,6 +22,7 @@
 
 #include "open_iA_Core_export.h"
 
+#include "iAConsole.h"
 #include "iAGenericFactory.h"
 
 #include <QMap>
@@ -49,5 +50,9 @@ template <typename ProjectType> using iAProjectFactory = iASpecificFactory<Proje
 template <typename ProjectType>
 void iAProjectRegistry::addProject(QString const & projectIdentifier)
 {
+	if (m_projectTypes.contains(projectIdentifier))
+	{
+		DEBUG_LOG(QString("WARNING: Trying to add already registered project type %1 again!").arg(projectIdentifier))
+	}
 	m_projectTypes.insert(projectIdentifier, QSharedPointer<iAIProjectFactory>(new iAProjectFactory<ProjectType>()));
 }
