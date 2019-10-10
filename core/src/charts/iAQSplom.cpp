@@ -1285,7 +1285,7 @@ int iAQSplom::getMaxTickLabelWidth(QList<QString> const & textX, QFontMetrics & 
 	int maxLength = 0;
 	for (long i = 0; i < textX.size(); ++i)
 	{
-		maxLength = std::max(fm.width(textX[i]), maxLength);
+		maxLength = std::max(fm.horizontalAdvance(textX[i]), maxLength);
 	}
 	return maxLength+2*TextPadding + fm.height() ;
 }

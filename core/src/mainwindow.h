@@ -41,7 +41,6 @@ class QDomElement;
 class QDomNode;
 class QMenu;
 class QMdiArea;
-class QSignalMapper;
 class QLabel;
 class QSplashScreen;
 
@@ -218,7 +217,6 @@ private:
 	QAction *m_separatorAct;
 	QAction *m_recentFileActs[MaxRecentFiles];
 	QActionGroup *m_slicerToolsGroup;
-	QSignalMapper *m_windowMapper;
 	QString m_qssName;
 	iAVolumeSettings m_defaultVolumeSettings;
 	iARenderSettings m_defaultRenderSettings;

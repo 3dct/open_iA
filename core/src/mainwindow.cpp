@@ -62,7 +62,6 @@
 #include <QMimeData>
 #include <QMdiSubWindow>
 #include <QSettings>
-#include <QSignalMapper>
 #include <QSplashScreen>
 #include <QTextDocument>
 #include <QTextStream>
@@ -107,8 +106,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	actionLinkMdis->setChecked(m_defaultSlicerSettings.LinkMDIs);
 	setCentralWidget(mdiArea);
 
-	m_windowMapper = new QSignalMapper(this);
-
 	createRecentFileActions();
 	connectSignalsToSlots();
 	updateMenus();
@@ -150,8 +147,6 @@ MainWindow::~MainWindow()
 	settings.setValue("state", saveState());
 
 	m_moduleDispatcher->SaveModulesSettings();
-	delete m_windowMapper;
-	m_windowMapper = nullptr;
 }
 
 void MainWindow::hideSplashSlot()
@@ -1485,8 +1480,7 @@ void MainWindow::updateWindowMenu()
 		QAction *action  = menuWindow->addAction(text);
 		action->setCheckable(true);
 		action->setChecked(child == activeMdiChild());
-		connect(action, SIGNAL(triggered()), m_windowMapper, SLOT(map()));
-		m_windowMapper->setMapping(action, windows.at(i));
+		connect(action, &QAction::triggered, [&] { setActiveSubWindow(windows.at(i)); });
 	}
 }
 
@@ -1623,7 +1617,6 @@ void MainWindow::connectSignalsToSlots()
 
 	connect(mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::childActivatedSlot);
 	connect(mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::updateMenus);
-	connect(m_windowMapper, SIGNAL(mapped(QWidget*)), this, SLOT(setActiveSubWindow(QWidget*)));
 
 	consoleVisibilityChanged(iAConsole::instance()->isVisible());
 	connect(iAConsole::instance(), &iAConsole::consoleVisibilityChanged, this, &MainWindow::consoleVisibilityChanged);
