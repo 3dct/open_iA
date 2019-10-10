@@ -288,7 +288,7 @@ public:
 	void addProject(QString const & key, QSharedPointer<iAProjectBase> project);
 	QMap<QString, QSharedPointer<iAProjectBase> > const & projects();
 
-Q_SIGNALS:
+signals:
 	void rendererDeactivated(int c);
 	void pointSelected();
 	void noPointSelected();
@@ -300,7 +300,6 @@ Q_SIGNALS:
 	void renderSettingsChanged();
 	void slicerSettingsChanged();
 	void preferencesChanged();
-	void viewInitialized();
 	void transferFunctionChanged();
 	void fileLoaded();
 	void histogramAvailable();
