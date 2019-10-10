@@ -80,6 +80,8 @@ public:
 	QSharedPointer<QMap<uint, uint> > mapping;
 	//! name of the csv file this result was loaded from
 	QString fileName;
+	//! name of the csv file the curved info for this file was loaded from
+	QString curvedFileName;
 	//! what kind of time data is available
 	enum TimeDataType { NoTimeData, SimpleTimeData, CurvedTimeData };
 	TimeDataType timeData;

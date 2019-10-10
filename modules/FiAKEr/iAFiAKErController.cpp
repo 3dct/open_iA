@@ -1599,12 +1599,22 @@ void iAFiAKErController::miniMouseEvent(QMouseEvent* ev)
 	{
 		int resultID = QObject::sender()->property("resultID").toInt();
 		addInteraction(QString("Started FiberScout for %1.").arg(resultName(resultID)));
-		iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
 		MdiChild* newChild = m_mainWnd->createMdiChild(false);
-		iACsvConfig config = getCsvConfig(m_data->result[resultID].fileName, m_configName);
-		featureScout->LoadFeatureScout(config, newChild);
-		newChild->loadLayout("FeatureScout");
+		newChild->show();
+		// wait a bit to make sure MdiChild is shown and all initialization is done
+		// TODO: Replace by connection to a signal which is emitted when MdiChild initialization done
+		QTimer::singleShot(1000, [=] { startFeatureScout(resultID, newChild); });
+		ev->accept();  // not sure if this helps, sometimes still the context menu seems to pop up
 	}
+}
+
+void iAFiAKErController::startFeatureScout(int resultID, MdiChild* newChild)
+{
+	iACsvConfig config = getCsvConfig(m_data->result[resultID].fileName, m_configName);
+	config.curvedFiberFileName = m_data->result[resultID].curvedFileName;
+	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
+	featureScout->LoadFeatureScout(config, newChild);
+	//newChild->loadLayout("FeatureScout");
 }
 
 void iAFiAKErController::optimStepSliderChanged(int optimStep)

@@ -51,6 +51,7 @@ class iARefDistCompute;
 class iASPLOMData;
 class iAVolumeRenderer;
 class MainWindow;
+class MdiChild;
 
 class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
@@ -174,6 +175,7 @@ private:
 	bool matchQualityVisActive() const;
 	void updateFiberContext();
 	void saveProject(QSettings & projectFile, QString  const & fileName);
+	void startFeatureScout(int resultID, MdiChild* newChild);
 
 	QWidget* setupMain3DView();
 	QWidget* setupSettingsView();

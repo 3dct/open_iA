@@ -332,7 +332,8 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 		}
 
 		QString curvedFileName(QFileInfo(csvFile).absolutePath() + "/curved/" + QFileInfo(csvFile).baseName() + "-CurvedFibrePoints.csv");
-		readCurvedFiberInfo(curvedFileName, curData.curveInfo);
+		if (readCurvedFiberInfo(curvedFileName, curData.curveInfo))
+			curData.curvedFileName = curvedFileName;
 
 		if (thisResultTimeStepMax > optimStepMax)
 		{
