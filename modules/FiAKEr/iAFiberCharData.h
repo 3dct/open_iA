@@ -80,6 +80,9 @@ public:
 	QSharedPointer<QMap<uint, uint> > mapping;
 	//! name of the csv file this result was loaded from
 	QString fileName;
+	//! what kind of time data is available
+	enum TimeDataType { NoTimeData, SimpleTimeData, CurvedTimeData };
+	TimeDataType timeData;
 	//! values for all timesteps, stored as: timestep, fiber, fibervalues
 	std::vector<std::vector<std::vector<double> > > timeValues;
 	//! information on curved fibers; fiber_id (size_t) maps to list of points along fiber
