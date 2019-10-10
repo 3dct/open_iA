@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAVtkQtWidget.h"
 
+#include <vtkGenericOpenGLRenderWindow.h>
+
 void iAVtkQtWidget::updateAll()
 {
 	GetRenderWindow()->Render();
