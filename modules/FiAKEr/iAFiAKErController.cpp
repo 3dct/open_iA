@@ -514,7 +514,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 	histoBinInputWidget->layout()->addWidget(histogramBinInput);
 
 	m_showReferenceInChart = new QCheckBox("Show Reference in Distribution Histograms");
-	m_showReferenceInChart->setChecked(true);
+	m_showReferenceInChart->setChecked(false);
 	connect(m_showReferenceInChart, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceInChartToggled);
 
 	m_distributionChartType = new QComboBox();
