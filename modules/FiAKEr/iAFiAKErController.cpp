@@ -298,6 +298,16 @@ QWidget * iAFiAKErController::setupMain3DView()
 	m_style->setRenderer(m_ren);
 	connect(m_style.GetPointer(), &iASelectionInteractorStyle::selectionChanged, this, &iAFiAKErController::selection3DChanged);
 
+	m_customBoundingBoxSource = vtkSmartPointer<vtkCubeSource>::New();
+	m_customBoundingBoxMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	m_customBoundingBoxActor = vtkSmartPointer<vtkActor>::New();
+
+	m_customBoundingBoxMapper->SetInputConnection(m_customBoundingBoxSource->GetOutputPort());
+	m_customBoundingBoxActor->GetProperty()->SetColor(0, 0, 0);
+	m_customBoundingBoxActor->GetProperty()->SetRepresentationToWireframe();
+	m_customBoundingBoxActor->PickableOff();
+	m_customBoundingBoxActor->SetMapper(m_customBoundingBoxMapper);
+
 	m_showReferenceWidget = new QWidget();
 	m_chkboxShowReference = new QCheckBox("Show ");
 	m_spnboxReferenceCount = new QSpinBox();
@@ -410,7 +420,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 	boundingBoxLayout->addWidget(cbShowBoundingBox, 0, 0, 1, 6);
 	for (int i = 0; i < 2; ++i)
 	{
-		QString capStart(i == 0 ? "Upper Left Front " : "Size ");
+		QString capStart(i == 0 ? "Corner 1 " : "Corner 2 ");
 		for (int j = 0; j < 3; ++j)
 		{
 			QString fullCap((j == 0 ? capStart : "") + ((j == 0) ? "X" : ((j == 1) ? "Y" : "Z")));
@@ -1773,7 +1783,23 @@ void iAFiAKErController::showWireFrameChanged(int newState)
 
 void iAFiAKErController::showBoundingBoxChanged(int newState)
 {
-
+	if (newState == Qt::Checked)
+	{
+		// TODO: move to function also called when edit fields change
+		double newBounds[6];
+		for (int i = 0; i < 3; ++i)
+		{                                             // todo: error checking
+			newBounds[i * 2] = m_teBoundingBox[i]->text().toInt();
+			newBounds[i * 2 + 1] = m_teBoundingBox[i + 3]->text().toInt();
+		}
+		m_customBoundingBoxSource->SetBounds(newBounds);
+		m_customBoundingBoxMapper->Update();
+		m_ren->AddActor(m_customBoundingBoxActor);
+	}
+	else
+		m_ren->RemoveActor(m_customBoundingBoxActor);
+	m_main3DWidget->GetRenderWindow()->Render();
+	m_main3DWidget->update();
 }
 
 void iAFiAKErController::contextSpacingChanged(double value)

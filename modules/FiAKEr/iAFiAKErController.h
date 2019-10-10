@@ -54,6 +54,7 @@ class MainWindow;
 class MdiChild;
 
 class vtkColorTransferFunction;
+class vtkCubeSource;
 class vtkPiecewiseFunction;
 class vtkImageData;
 class vtkTable;
@@ -230,6 +231,10 @@ private:
 	vtkSmartPointer<vtkImageData> m_refImg;
 	vtkSmartPointer<vtkColorTransferFunction> m_refCF;
 	vtkSmartPointer<vtkPiecewiseFunction> m_refOF;
+
+	vtkSmartPointer<vtkCubeSource> m_customBoundingBoxSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_customBoundingBoxMapper;
+	vtkSmartPointer<vtkActor> m_customBoundingBoxActor;
 
 	// Results List:
 	void addStackedBar(int index);
