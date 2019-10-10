@@ -88,6 +88,7 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QLineEdit>
 #include <QListView>
 #include <QMenu>
 #include <QMessageBox>
@@ -183,6 +184,7 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
 	m_colorByThemeName(iALUT::GetColorMapNames()[0]),
 	m_showFiberContext(false),
 	m_mergeContextBoxes(false),
+	m_showWireFrame(false),
 	m_contextSpacing(0.0),
 	m_spm(new iAQSplom())
 {
@@ -398,6 +400,30 @@ QWidget* iAFiAKErController::setupSettingsView()
 	fiberContextLayout->addWidget(fiberContextSpacingWidget);
 	connect(sbContextSpacing, SIGNAL(valueChanged(double)), this, SLOT(contextSpacingChanged(double)));
 
+	QWidget* boundingBoxWidget = new QWidget();
+	auto boundingBoxLayout = new QGridLayout();
+	boundingBoxWidget->setLayout(boundingBoxLayout);
+	boundingBoxLayout->setContentsMargins(0, 0, 0, 0);
+	boundingBoxLayout->setSpacing(SettingSpacing);
+	QCheckBox* cbShowBoundingBox = new QCheckBox("Show custom bounding box:");
+	connect(cbShowBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::showBoundingBoxChanged);
+	boundingBoxLayout->addWidget(cbShowBoundingBox, 0, 0, 1, 6);
+	for (int i = 0; i < 2; ++i)
+	{
+		QString capStart(i == 0 ? "Upper Left Front " : "Size ");
+		for (int j = 0; j < 3; ++j)
+		{
+			QString fullCap((j == 0 ? capStart : "") + ((j == 0) ? "X" : ((j == 1) ? "Y" : "Z")));
+			QLabel * lbl = new QLabel(fullCap);
+			m_teBoundingBox[i*3 + j] = new QLineEdit("0");
+			boundingBoxLayout->addWidget(lbl, i+1, j*2);
+			boundingBoxLayout->addWidget(m_teBoundingBox[i*3 + j], i+1, j * 2 + 1);
+		}
+	}
+
+	QCheckBox* cbShowWireFrame = new QCheckBox("Show wireframe");
+	cbShowWireFrame->setChecked(false);
+	connect(cbShowWireFrame, &QCheckBox::stateChanged, this, &iAFiAKErController::showWireFrameChanged);
 
 	QWidget* moreButtons = new QWidget();
 	moreButtons->setLayout(new QHBoxLayout());
@@ -443,6 +469,8 @@ QWidget* iAFiAKErController::setupSettingsView()
 	main3DViewSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
 	main3DViewSettings->layout()->setSpacing(SettingSpacing);
 	main3DViewSettings->layout()->addWidget(sliderWidget);
+	main3DViewSettings->layout()->addWidget(boundingBoxWidget);
+	main3DViewSettings->layout()->addWidget(cbShowWireFrame);
 	main3DViewSettings->layout()->addWidget(fiberContextWidget);
 	main3DViewSettings->layout()->addWidget(selectionModeWidget);
 	main3DViewSettings->layout()->addWidget(metricChoice);
@@ -1293,6 +1321,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 	{
 		ui.main3DVis->setSelectionOpacity(SelectionOpacity);
 		ui.main3DVis->setContextOpacity(ContextOpacity);
+		ui.main3DVis->setShowWireFrame(m_showWireFrame);
 		auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
 		if (vis)
 		{
@@ -1730,6 +1759,23 @@ void iAFiAKErController::mergeFiberContextBoxesChanged(int newState)
 	updateFiberContext();
 }
 
+void iAFiAKErController::showWireFrameChanged(int newState)
+{
+	m_showWireFrame = (newState == Qt::Checked);
+	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	{
+		auto & vis = m_resultUIs[resultID];
+		vis.mini3DVis->setShowWireFrame(m_showWireFrame);
+		if (vis.main3DVis->visible())
+			vis.main3DVis->setShowWireFrame(m_showWireFrame);
+	}
+}
+
+void iAFiAKErController::showBoundingBoxChanged(int newState)
+{
+
+}
+
 void iAFiAKErController::contextSpacingChanged(double value)
 {
 	m_contextSpacing = value;
@@ -1856,6 +1902,24 @@ void iAFiAKErController::setReference(size_t referenceID)
 		ui.nameLabel->setText(ui.nameLabel->text().left(ui.nameLabel->text().length()-RefMarker.length()));
 	}
 	addInteraction(QString("Reference set to %1").arg(resultName(referenceID)));
+	auto bounds = m_resultUIs[referenceID].mini3DVis->bounds();
+	bool setBB = true;
+	for (int i = 0; i < 6; ++i)
+	{
+		if (m_teBoundingBox[i]->text() != "0")
+		{
+			setBB = false;
+			break;
+		}
+	}
+	if (setBB)
+	{
+		for (int i = 0; i < 3; ++i)
+		{
+			m_teBoundingBox[i]->setText(QString::number(bounds[i * 2]));
+			m_teBoundingBox[i + 3]->setText(QString::number(bounds[i * 2 + 1]));
+		}
+	}
 	m_refDistCompute = new iARefDistCompute(m_data, referenceID);
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiAKErController::refDistAvailable);
 	m_views[JobView]->show();

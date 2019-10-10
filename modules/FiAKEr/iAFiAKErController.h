@@ -64,6 +64,7 @@ class QCheckBox;
 class QComboBox;
 class QGridLayout;
 class QLabel;
+class QLineEdit;
 class QListView;
 class QModelIndex;
 class QSettings;
@@ -139,6 +140,8 @@ private slots:
 	void contextSpacingChanged(double value);
 	void showFiberContextChanged(int);
 	void mergeFiberContextBoxesChanged(int);
+	void showWireFrameChanged(int);
+	void showBoundingBoxChanged(int);
 	// result view:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
@@ -204,7 +207,7 @@ private:
 	iARefDistCompute* m_refDistCompute;
 	QString m_colorByThemeName;
 
-	bool m_showFiberContext, m_mergeContextBoxes;
+	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame;
 	double m_contextSpacing;
 
 	// Elements of the different views:
@@ -215,12 +218,9 @@ private:
 	// Main Renderer:
 	iAVtkQtWidget* m_main3DWidget;
 	vtkSmartPointer<vtkRenderer> m_ren;
-	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel, *m_diameterFactorLabel, *m_contextDiameterFactorLabel;
-	QSlider* m_defaultOpacitySlider, *m_contextOpacitySlider;
 	QCheckBox* m_chkboxShowReference;
 	QCheckBox* m_chkboxShowLines;
 	QSpinBox* m_spnboxReferenceCount;
-	QComboBox* m_cmbboxSimilarityMeasure;
 	vtkSmartPointer<vtkActor> m_refLineActor;
 	QWidget* m_showReferenceWidget;
 	std::vector<vtkSmartPointer<vtkActor> > m_contextActors;
@@ -236,11 +236,22 @@ private:
 	void removeStackedBar(int index);
 	iAStackedBarChart* m_stackedBarsHeaders;
 	QGridLayout* m_resultsListLayout;
+
+	// Settings View:
+	// 3D view part
+	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel, *m_diameterFactorLabel, *m_contextDiameterFactorLabel;
+	QSlider* m_defaultOpacitySlider, *m_contextOpacitySlider;
+	QComboBox* m_cmbboxSimilarityMeasure;
+	QLineEdit* m_teBoundingBox[6];
+
+	// Result part
 	QCheckBox* m_colorByDistribution;
 	QComboBox* m_distributionChoice;
 	QCheckBox* m_showReferenceInChart;
 	QComboBox* m_distributionChartType;
 	QComboBox* m_resultColorThemeChoice;
+	// Optimization steps part
+	std::vector<QCheckBox*> m_chartCB;
 
 	// Scatter plot matrix:
 	void setSPMColorByResult();
@@ -251,7 +262,6 @@ private:
 	std::vector<iAChartWidget*> m_optimStepChart;
 	QSlider* m_optimStepSlider;
 	QVBoxLayout* m_optimChartLayout;
-	std::vector<QCheckBox*> m_chartCB;
 	size_t ChartCount;
 
 	// Jobs:
