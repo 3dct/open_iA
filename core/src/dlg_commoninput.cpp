@@ -76,6 +76,9 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 	}
 	this->setWindowTitle(title);
 
+	//Generates a scrollable container for the widgets with a grid layout
+	auto scrollArea = new QScrollArea(this);
+
 	if (!descr.isEmpty())
 	{
 		auto info = new QTextBrowser();
@@ -88,10 +91,10 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 		info->setReadOnly(true);
 		info->setOpenExternalLinks(true);
 		gridLayout->addWidget(info, 0, 0);
+		// make sure that description can be easily resized; parameters have scroll bar
+		scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	}
 
-	//Generates a scrollable container for the widgets with a grid layout
-	auto scrollArea = new QScrollArea(this);
 	scrollArea->setObjectName("scrollArea");
 	m_container = new QWidget(scrollArea);
 	m_container->setObjectName("container");
