@@ -445,7 +445,7 @@ bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<
 	{
 		++lineNr;
 		QString line = in.readLine();
-		if (lineNr <= 6)
+		if (lineNr <= 5 || line.isEmpty())
 			continue;
 		QStringList valueStrList = line.split(",", QString::SkipEmptyParts);
 		if (valueStrList.size() < 7 || ((valueStrList.size() - 1) % 3) != 0)
