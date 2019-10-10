@@ -174,7 +174,7 @@ void dlg_TFTable::updateHistogram()
 	{
 		double x = table->item( i, 0 )->data( Qt::DisplayRole ).toDouble();
 		double y = table->item( i, 1 )->data( Qt::DisplayRole ).toDouble();
-		QColor c = table->item( i, 2 )->backgroundColor();
+		QColor c = table->item( i, 2 )->background().color();
 		m_oTF->AddPoint( x, y );
 		m_cTF->AddRGBPoint( x, c.redF(), c.greenF(), c.blueF() );
 	}
