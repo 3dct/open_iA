@@ -41,6 +41,6 @@ private slots:
 	void toggleSettings();
 private:
 	iAFiAKErToolBar* m_toolbar = nullptr;
-	QString m_lastFormat;
+	QString m_lastPath, m_lastFormat;
 	double m_lastTimeStepOffset;
 };
