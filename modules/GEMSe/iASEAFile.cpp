@@ -173,7 +173,7 @@ void iASEAFile::load(QSettings const & metaFile, QString const & fileName, bool 
 		m_samplings.insert(key, MakeAbsolute(fi.absolutePath(), metaFile.value(keyStr).toString()));
 	}
 	QList<int> keys = m_samplings.keys();
-	qSort(keys.begin(), keys.end());
+	std::sort(keys.begin(), keys.end());
 	if (keys[0] != 0 || keys[keys.size() - 1] != keys.size() - 1)
 	{
 		DEBUG_LOG(QString("Loading GEMSe data from file (%1) failed: Incoherent sampling indices, or not starting at 0: [%1..%2].")

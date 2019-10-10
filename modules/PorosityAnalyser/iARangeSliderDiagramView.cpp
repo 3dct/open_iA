@@ -232,7 +232,7 @@ void iARangeSliderDiagramView::loadSelectionToSPMView()
 	}
 
 	QList<int> rsdSelectionList = rsdSelection.toList();
-	qSort( rsdSelectionList );
+	std::sort( rsdSelectionList.begin(), rsdSelectionList.end() );
 
 	vtkIdTypeArray *rdsIds = vtkIdTypeArray::New();
 	rdsIds->SetName( "rsdIds" );

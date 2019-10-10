@@ -363,11 +363,16 @@ void iAChartTransferFunction::changeColor(QMouseEvent *event)
 	m_colorTF->GetNodeValue(m_selectedPoint, colorTFValue);
 	m_colorDlg->adjustSize();
 	m_colorDlg->setCurrentColor(QColor(colorTFValue[1]*255, colorTFValue[2]*255, colorTFValue[3]*255));
+	/*
+	// QApplication::desktop()->screenGeometry() is deprecated;
+	// one should use QGuiApplication::screens() instead, but we'd have to know which screen to use if more than one...
 	QRect scr = QApplication::desktop()->screenGeometry();
+	// ... so avoid manual placement of color dialog altogether for now...
 	m_colorDlg->setGeometry(scr.width()/2 - m_colorDlg->width()/2,
 						scr.height()/2 - m_colorDlg->height()/2,
 		m_colorDlg->width(),
 		m_colorDlg->height());
+	*/
 	if (m_colorDlg->exec() != QDialog::Accepted)
 		return;
 
@@ -434,12 +439,17 @@ void iAChartTransferFunction::mouseReleaseEventAfterNewPoint(QMouseEvent *)
 	double colorTFValue[6];
 	m_colorTF->GetNodeValue(m_selectedPoint, colorTFValue);
 	m_colorDlg->setCurrentColor(QColor(colorTFValue[1]*255, colorTFValue[2]*255, colorTFValue[3]*255));
+	/*
+	// QApplication::desktop()->screenGeometry() is deprecated;
+	// one should use QGuiApplication::screens() instead, but we'd have to know which screen to use if more than one...
 	QRect scr = QApplication::desktop()->screenGeometry();
 	m_colorDlg->adjustSize();
+	// ... so avoid manual placement of color dialog altogether for now...
 	m_colorDlg->setGeometry(scr.width()/2 - m_colorDlg->width()/2,
 		scr.height()/2 - m_colorDlg->height()/2,
 		m_colorDlg->width(),
 		m_colorDlg->height());
+	*/
 	bool accepted = m_colorDlg->exec() == QDialog::Accepted;
 
 	if (accepted)

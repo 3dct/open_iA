@@ -55,9 +55,9 @@ QVector<double> iANonLinearAxisTicker::createSubTickVector(int subTickCount,
 {
 	Q_UNUSED(subTickCount)
 	QVector<double> result;
-	auto start = qLowerBound(m_tickVector.begin(), m_tickVector.end(), ticks.first());
+	auto start = std::lower_bound(m_tickVector.begin(), m_tickVector.end(), ticks.first());
 	int startIdx = start - m_tickVector.begin();
-	auto end = qLowerBound(m_tickVector.begin(), m_tickVector.end(), ticks.last());
+	auto end = std::lower_bound(m_tickVector.begin(), m_tickVector.end(), ticks.last());
 	int endIdx = end - m_tickVector.begin();
 	int indicesAfterLastMajorTick = 0;
 	
@@ -93,7 +93,7 @@ QVector<QString> iANonLinearAxisTicker::createLabelVector(const QVector<double> 
 			}
 		}
 		prev = 1;
-		auto start = qLowerBound(m_tickVector.begin(), m_tickVector.end(), ticks[i]);
+		auto start = std::lower_bound(m_tickVector.begin(), m_tickVector.end(), ticks[i]);
 		int startIdx = start - m_tickVector.begin();
 		result.append(QCPAxisTicker::getTickLabel(startIdx,	locale, formatChar, precision));
 	}

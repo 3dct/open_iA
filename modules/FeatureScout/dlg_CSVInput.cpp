@@ -610,7 +610,7 @@ void dlg_CSVInput::assignSelectedCols()
 	QVector<int> selectedColIDx;
 	for (auto selColModelIdx : selectedColModelIndices)
 		selectedColIDx.push_back(selColModelIdx.row());
-	qSort(selectedColIDx.begin(), selectedColIDx.end(), qLess<uint>());
+	std::sort(selectedColIDx.begin(), selectedColIDx.end(), std::less<uint>());
 	if (list_ColumnSelection->count() > 0)
 	{
 		m_confParams.currentHeaders.clear();

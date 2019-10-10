@@ -1381,11 +1381,11 @@ void dlg_Consensus::CheckBoxStateChanged(int state)
 			plots.push_back(plotID);
 		}
 		m_plotMap.insert(id, plots);
-		twSampleResults->item(id, 1)->setBackgroundColor(plotColor);
+		twSampleResults->item(id, 1)->setBackground(plotColor);
 	}
 	else
 	{
-		twSampleResults->item(id, 1)->setBackgroundColor(Qt::white);
+		twSampleResults->item(id, 1)->setBackground(Qt::white);
 		QVector<vtkIdType> plots = m_plotMap[id];
 		if (m_results[id]->GetNumberOfColumns() >= 3)
 		{

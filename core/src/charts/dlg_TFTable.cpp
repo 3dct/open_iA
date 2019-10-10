@@ -104,7 +104,7 @@ void dlg_TFTable::updateTable()
 		MyTableWidgetItem* colorItem = new MyTableWidgetItem;
 		xItem->setData( Qt::DisplayRole, QString::number( pointValue[0] ) );
 		yItem->setData( Qt::DisplayRole, QString::number( pointValue[1] ) );
-		colorItem->setBackgroundColor( c );
+		colorItem->setBackground( c );
 		if ( i == 0 || i == m_oTF->GetSize() - 1 )
 		{
 			xItem->setFlags( xItem->flags() & ~Qt::ItemIsEditable & ~Qt::ItemIsSelectable & ~Qt::ItemIsEnabled );
@@ -140,7 +140,7 @@ void dlg_TFTable::addPoint()
 	table->setSortingEnabled( false );
 	table->setItem( table->rowCount()-1, 0, newXItem );
 	table->setItem( table->rowCount()-1, 1, newYItem );
-	newColorItem->setBackgroundColor( m_newPointColor );
+	newColorItem->setBackground( m_newPointColor );
 	table->setItem( table->rowCount()-1, 2, newColorItem );
 	table->setSortingEnabled( true );
 	table->sortByColumn( 0, Qt::AscendingOrder );
@@ -161,7 +161,7 @@ void dlg_TFTable::removeSelectedPoint()
 			rowsToRemove.append( j );
 		}
 	}
-	qSort( rowsToRemove.begin(), rowsToRemove.end(), qGreater<int>() );
+	std::sort( rowsToRemove.begin(), rowsToRemove.end(), std::greater<int>() );
 	foreach( int row, rowsToRemove )
 		table->removeRow( row );
 }
@@ -187,7 +187,7 @@ void dlg_TFTable::itemClicked( QTableWidgetItem * item )
 	{
 		table->blockSignals( true );
 		QColor newItemColor = QColorDialog::getColor( Qt::gray, this, "Set Color", QColorDialog::ShowAlphaChannel );
-		item->setBackgroundColor( newItemColor );
+		item->setBackground( newItemColor );
 		table->blockSignals( false );
 	}
 	else
