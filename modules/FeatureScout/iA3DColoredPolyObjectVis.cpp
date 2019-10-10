@@ -198,6 +198,15 @@ void iA3DColoredPolyObjectVis::setContextOpacity(int contextAlpha)
 	m_contextAlpha = contextAlpha;
 }
 
+void iA3DColoredPolyObjectVis::setShowWireFrame(bool show)
+{
+	if (show)
+		m_actor->GetProperty()->SetRepresentationToWireframe();
+	else
+		m_actor->GetProperty()->SetRepresentationToSurface();
+	updatePolyMapper();
+}
+
 vtkSmartPointer<vtkActor> iA3DColoredPolyObjectVis::getActor()
 {
 	return m_actor;

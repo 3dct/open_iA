@@ -57,6 +57,7 @@ public:
 	void hideBoundingBox();
 	double const * bounds() override;
 	//! @}
+	void setShowWireFrame(bool show);
 	virtual void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive);
 	void setColor(QColor const & color);
 	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex);
