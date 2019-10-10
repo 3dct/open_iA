@@ -34,7 +34,6 @@
 #include <QFileDialog>
 #include <QMdiSubWindow>
 #include <QSettings>
-#include <QTextDocument>
 
 class iAFIAKERProject : public iAProjectBase
 {
@@ -129,8 +128,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	QList<QVariant> values;
 	values << m_lastPath << formatEntries << m_lastTimeStepOffset;
 	
-	QTextDocument desc;
-	desc.setHtml("Starts FIAKER, a comparison tool for results from fiber reconstruction algorithms.<br/>"
+	QString descr("Starts FIAKER, a comparison tool for results from fiber reconstruction algorithms.<br/>"
 		"Choose a <em>Result folder</em> containing two or more fiber reconstruction results in .csv format. "
 		"Under <em>CSV format</em>, select the format in which data is stored in your .csv files. "
 		"You can test / modify the format via Tools->FeatureScout (just select a single one of your .csv's there, "
@@ -143,7 +141,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 		"Jan De Beenhouwer, Jan Sijbers, Johann Kastner and Christoph Heinzl, "
 		"A Visual Tool for the Analysis of Algorithms for Tomographic Fiber Reconstruction in Materials Science, "
 		"2019, Computer Graphics Forum 38 (3), <a href=\"https://doi.org/10.1111/cgf.13688\">doi: 10.1111/cgf.13688</a>.");
-	dlg_commoninput dlg(m_mainWnd, "Start FIAKER", parameterNames, values, &desc);
+	dlg_commoninput dlg(m_mainWnd, "Start FIAKER", parameterNames, values, descr);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	if (dlg.getText(0).isEmpty())

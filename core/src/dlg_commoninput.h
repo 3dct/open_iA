@@ -34,7 +34,6 @@ class QLabel;
 class QScrollArea;
 class QString;
 class QStringList;
-class QTextDocument;
 
 //! Dialog asking the user for some given parameters.
 class open_iA_Core_API dlg_commoninput : public QDialog, public Ui_CommonInput
@@ -60,7 +59,7 @@ public:
 	//!    e.g. "*Name" gives you an (integer) spinbox with label "Name"
 	//! @param values starting values for all parameters.
 	//! @param fDescr an optional description text, displayed on top of the dialog
-	dlg_commoninput ( QWidget *parent, QString const & title, QStringList const & labels, QList<QVariant> const & values, QTextDocument *fDescr = nullptr);
+	dlg_commoninput ( QWidget *parent, QString const & title, QStringList const & labels, QList<QVariant> const & values, QString const & descr = QString());
 	int getCheckValue(int index) const;
 	QString getComboBoxValue(int index) const;
 	int getComboBoxIndex(int index) const;

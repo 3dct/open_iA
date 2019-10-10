@@ -90,7 +90,6 @@
 #include <QProgressBar>
 #include <QSettings>
 #include <QSpinBox>
-#include <QTextDocument>
 #include <QToolButton>
 #include <QtGlobal> // for QT_VERSION
 
@@ -1500,9 +1499,8 @@ void MdiChild::saveMovie(iARenderer& raycaster)
 	QStringList modes = (QStringList() <<  tr("Rotate Z") <<  tr("Rotate X") <<  tr("Rotate Y"));
 	QStringList inList = ( QStringList() << tr("+Rotation mode") );
 	QList<QVariant> inPara = ( QList<QVariant>() << modes );
-	QTextDocument descr;
-	descr.setHtml("Creates a movie by rotating the object around a user-defined axis in the 3D renderer.");
-	dlg_commoninput dlg(this, "Save movie options", inList, inPara, &descr);
+	dlg_commoninput dlg(this, "Save movie options", inList, inPara,
+		"Creates a movie by rotating the object around a user-defined axis in the 3D renderer.");
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 

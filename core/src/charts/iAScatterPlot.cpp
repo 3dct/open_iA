@@ -36,7 +36,6 @@
 #include <QPen>
 #include <QPolygon>
 #include <QPropertyAnimation>
-#include <QTextDocument>
 #include <QWheelEvent>
 
 namespace 

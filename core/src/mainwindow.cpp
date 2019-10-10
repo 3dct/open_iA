@@ -63,7 +63,6 @@
 #include <QMdiSubWindow>
 #include <QSettings>
 #include <QSplashScreen>
-#include <QTextDocument>
 #include <QTextStream>
 #include <QTimer>
 #include <QtXml/QDomDocument>
@@ -937,12 +936,11 @@ void MainWindow::prefs()
 		}
 	}
 	iAPreferences p = child ? child->preferences() : m_defaultPreferences;
-	QTextDocument *fDescr = nullptr;
+	QString descr;
 	if (iAConsole::instance()->isFileLogError())
 	{
-		fDescr = new QTextDocument();
-		fDescr->setHtml("Could not write to the specified logfile, logging to file was therefore disabled."
-			" Please check file permissions and/or whether the path to the file exists, before re-enabling the option!.");
+		descr = "Could not write to the specified logfile, logging to file was therefore disabled."
+			" Please check file permissions and/or whether the path to the file exists, before re-enabling the option!.";
 	}
 	QList<QVariant> inPara; 	inPara << tr("%1").arg(p.HistogramBins)
 		<< tr("%1").arg(p.StatisticalExtent)
@@ -955,7 +953,7 @@ void MainWindow::prefs()
 		<< tr("%1").arg(p.MagicLensSize)
 		<< tr("%1").arg(p.MagicLensFrameWidth);
 
-	dlg_commoninput dlg(this, "Preferences", inList, inPara, fDescr);
+	dlg_commoninput dlg(this, "Preferences", inList, inPara, descr);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
@@ -982,7 +980,6 @@ void MainWindow::prefs()
 
 		iAConsole::instance()->setLogToFile(logToFile, logFileName, true);
 	}
-	delete fDescr;
 }
 
 void MainWindow::renderSettings()

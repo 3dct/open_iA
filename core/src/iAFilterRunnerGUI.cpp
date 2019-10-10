@@ -39,7 +39,6 @@
 #include <QSettings>
 #include <QSharedPointer>
 #include <QString>
-#include <QTextDocument>
 #include <QVariant>
 
 class iAFilter;
@@ -200,9 +199,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 			dlgParamValues << mdiChildrenNames;
 		}
 	}
-	QTextDocument descr;
-	descr.setHtml(filter->description());
-	dlg_commoninput dlg(mainWnd, filter->name(), dlgParamNames, dlgParamValues, &descr);
+	dlg_commoninput dlg(mainWnd, filter->name(), dlgParamNames, dlgParamValues, filter->description());
 	dlg.setModal(false);
 	dlg.hide();	dlg.show(); // required to apply change in modality!
 	dlg.setSourceMdi(sourceMdi, mainWnd);
