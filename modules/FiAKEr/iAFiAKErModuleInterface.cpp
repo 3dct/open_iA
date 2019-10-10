@@ -33,7 +33,7 @@
 #include <QAction>
 #include <QFileDialog>
 #include <QMdiSubWindow>
-
+#include <QSettings>
 
 class iAFIAKERProject : public iAProjectBase
 {
@@ -64,6 +64,12 @@ private:
 	iACsvConfig m_config;
 };
 
+namespace
+{
+	const QString LastFormatKey("FIAKER/LastFormat");
+	const QString LastTimeStepOffsetKey("FIAKER/LastTimeStepOffsetKey");
+}
+
 void iAFiAKErModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
@@ -79,6 +85,20 @@ void iAFiAKErModuleInterface::Initialize()
 	actionFiAKErProject->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_P));
 	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKErProject, false);
 	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::loadFiAKErProject);
+
+	QSettings s;
+	m_lastFormat = s.value(LastFormatKey, "").toString();
+	bool ok;
+	m_lastTimeStepOffset = s.value(LastTimeStepOffsetKey, 0).toDouble(&ok);
+	if (!ok)
+		DEBUG_LOG("FIAKER start: Invalid m_lastTimeStepOffset stored in settings!");
+}
+
+void iAFiAKErModuleInterface::SaveSettings() const
+{
+	QSettings s;
+	s.setValue(LastFormatKey, m_lastFormat);
+	s.setValue(LastTimeStepOffsetKey, m_lastTimeStepOffset);
 }
 
 void iAFiAKErModuleInterface::startFiAKEr()
@@ -99,18 +119,22 @@ void iAFiAKErModuleInterface::startFiAKEr()
 		formatEntries.append(iACsvConfig::LegacyFiberFormat);
 	if (!formatEntries.contains(iACsvConfig::LegacyVoidFormat))
 		formatEntries.append(iACsvConfig::LegacyVoidFormat);
+	for (int i = 0; i < formatEntries.size(); ++i)
+		if (formatEntries[i] == m_lastFormat)
+			formatEntries[i] = "!" + formatEntries[i];
+		
 	QList<QVariant> values;
-	values << formatEntries << 0;
+	values << formatEntries << m_lastTimeStepOffset;
 	dlg_commoninput dlg(m_mainWnd, "Choose CSV Format", parameterNames, values);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
-	QString configName = dlg.getComboBoxValue(0);
-	double stepShift = dlg.getDblValue(1);
+	m_lastFormat = dlg.getComboBoxValue(0);
+	m_lastTimeStepOffset = dlg.getDblValue(1);
 	//cmbbox_Format->addItems(formatEntries);
 	m_mainWnd->addSubWindow(explorer);
 	m_mainWnd->setPath(path);
 	auto project = QSharedPointer<iAFIAKERProject>::create();
-	explorer->start(path, configName, stepShift);
+	explorer->start(path, m_lastFormat, m_lastTimeStepOffset);
 }
 
 void iAFiAKErModuleInterface::loadFiAKErProject()

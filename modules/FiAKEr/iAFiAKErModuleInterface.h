@@ -31,7 +31,8 @@ class iAFiAKErModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 public:
-	void Initialize();
+	void Initialize() override;
+	void SaveSettings() const override;
 	void setupToolBar();
 private slots:
 	void startFiAKEr();
@@ -40,4 +41,6 @@ private slots:
 	void toggleSettings();
 private:
 	iAFiAKErToolBar* m_toolbar = nullptr;
+	QString m_lastFormat;
+	double m_lastTimeStepOffset;
 };
