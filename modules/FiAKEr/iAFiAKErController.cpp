@@ -778,10 +778,10 @@ QWidget* iAFiAKErController::setupResultListView()
 	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result.at(resultID);
-		auto & uiData = m_resultUIs[resultID];
+		auto & ui = m_resultUIs[resultID];
 
-		uiData.previewWidget = new iAFixedAspectWidget();
-		uiData.vtkWidget = uiData.previewWidget->vtkWidget();
+		ui.previewWidget = new iAFixedAspectWidget();
+		ui.vtkWidget = ui.previewWidget->vtkWidget();
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 		renWin->SetAlphaBitPlanes(1);
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
@@ -790,76 +790,81 @@ QWidget* iAFiAKErController::setupResultListView()
 		ren->SetUseDepthPeeling(true);
 		ren->SetMaximumNumberOfPeels(10);
 		renWin->AddRenderer(ren);
-		uiData.vtkWidget->SetRenderWindow(renWin);
-		uiData.vtkWidget->setProperty("resultID", resultID);
+		ui.vtkWidget->SetRenderWindow(renWin);
+		ui.vtkWidget->setProperty("resultID", resultID);
 
-		uiData.cbShow = new QCheckBox("Show");
-		uiData.cbShow->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		uiData.cbShow->setProperty("resultID", resultID);
-		uiData.cbBoundingBox = new QCheckBox("Box");
-		uiData.cbBoundingBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		uiData.cbBoundingBox->setProperty("resultID", resultID);
+		ui.cbShow = new QCheckBox("Show");
+		ui.cbShow->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		ui.cbShow->setProperty("resultID", resultID);
+		ui.cbBoundingBox = new QCheckBox("Box");
+		ui.cbBoundingBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		ui.cbBoundingBox->setProperty("resultID", resultID);
 
 		QString name = QFileInfo(d.fileName).baseName();
 		name = name.mid(commonPrefixLength, name.size() - commonPrefixLength - commonSuffixLength);
 
-		uiData.nameActions = new iASignallingWidget();
-		uiData.nameActions->setAutoFillBackground(true);
-		uiData.nameActions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		uiData.nameActions->setLayout(new QVBoxLayout());
-		uiData.nameActions->layout()->setContentsMargins(0, 0, 0, 0);
-		uiData.nameActions->layout()->setSpacing(5);
-		uiData.nameLabel = new QLabel(name);
-		uiData.nameLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		uiData.topFiller = new QWidget();
-		uiData.topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		uiData.bottomFiller = new QWidget();
-		uiData.bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		uiData.nameActions->layout()->addWidget(uiData.topFiller);
-		uiData.nameActions->layout()->addWidget(uiData.nameLabel);
-		uiData.nameActions->layout()->addWidget(uiData.cbShow);
-		uiData.nameActions->layout()->addWidget(uiData.cbBoundingBox);
-		uiData.nameActions->layout()->addWidget(uiData.bottomFiller);
+		ui.nameActions = new iASignallingWidget();
+		ui.nameActions->setAutoFillBackground(true);
+		ui.nameActions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		ui.nameActions->setLayout(new QVBoxLayout());
+		ui.nameActions->layout()->setContentsMargins(0, 0, 0, 0);
+		ui.nameActions->layout()->setSpacing(5);
+		ui.nameLabel = new QLabel(name);
+		ui.nameLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		ui.topFiller = new QWidget();
+		ui.topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		ui.bottomFiller = new QWidget();
+		ui.bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		ui.nameActions->layout()->addWidget(ui.topFiller);
+		ui.nameActions->layout()->addWidget(ui.nameLabel);
+		ui.nameActions->layout()->addWidget(ui.cbShow);
+		ui.nameActions->layout()->addWidget(ui.cbBoundingBox);
+		ui.nameActions->layout()->addWidget(ui.bottomFiller);
 
-		uiData.stackedBars = new iAStackedBarChart(colorTheme);
-		uiData.stackedBars->setMinimumWidth(StackedBarMinWidth);
-		uiData.stackedBars->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		connect(m_stackedBarsHeaders, &iAStackedBarChart::weightsChanged, uiData.stackedBars, &iAStackedBarChart::setWeights);
+		ui.stackedBars = new iAStackedBarChart(colorTheme);
+		ui.stackedBars->setMinimumWidth(StackedBarMinWidth);
+		ui.stackedBars->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		connect(m_stackedBarsHeaders, &iAStackedBarChart::weightsChanged, ui.stackedBars, &iAStackedBarChart::setWeights);
 
-		uiData.histoChart = new iAChartWidget(resultList, "Fiber Length", "");
-		uiData.histoChart->setShowXAxisLabel(false);
-		uiData.histoChart->setMinimumWidth(HistogramMinWidth);
-		uiData.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		ui.histoChart = new iAChartWidget(resultList, "Fiber Length", "");
+		ui.histoChart->setShowXAxisLabel(false);
+		ui.histoChart->setMinimumWidth(HistogramMinWidth);
+		ui.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-		m_resultsListLayout->addWidget(uiData.nameActions, resultID + 1, NameActionColumn);
-		m_resultsListLayout->addWidget(uiData.previewWidget, resultID + 1, PreviewColumn);
-		m_resultsListLayout->addWidget(uiData.stackedBars, resultID + 1, StackedBarColumn);
-		m_resultsListLayout->addWidget(uiData.histoChart, resultID + 1, HistogramColumn);
+		m_resultsListLayout->addWidget(ui.nameActions, resultID + 1, NameActionColumn);
+		m_resultsListLayout->addWidget(ui.previewWidget, resultID + 1, PreviewColumn);
+		m_resultsListLayout->addWidget(ui.stackedBars, resultID + 1, StackedBarColumn);
+		m_resultsListLayout->addWidget(ui.histoChart, resultID + 1, HistogramColumn);
 
-		uiData.mini3DVis = create3DVis(ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType, d.curveInfo);
-		uiData.main3DVis = create3DVis(m_ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType, d.curveInfo);
-		uiData.mini3DVis->setColor(getResultColor(resultID));
-		uiData.mini3DVis->show();
+		ui.mini3DVis = create3DVis(ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType, d.curveInfo);
+		ui.main3DVis = create3DVis(m_ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType, d.curveInfo);
+		ui.mini3DVis->setColor(getResultColor(resultID));
+		ui.mini3DVis->show();
 		ren->ResetCamera();
 
-		uiData.previewWidget->setProperty("resultID", resultID);
-		uiData.stackedBars->setProperty("resultID", resultID);
-		uiData.histoChart->setProperty("resultID", resultID);
-		uiData.nameActions->setProperty("resultID", resultID);
-		connect(uiData.previewWidget, &iAFixedAspectWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
-		connect(uiData.stackedBars, &iAStackedBarChart::dblClicked, this, &iAFiAKErController::referenceToggled);
-		connect(uiData.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
-		connect(uiData.nameActions, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
-		connect(uiData.vtkWidget, &iAVtkWidget::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
-		connect(uiData.cbShow, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
-		connect(uiData.cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
+		const double * b = ui.main3DVis->bounds();
+		QString bbox = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
+			.arg(b[0]).arg(b[1]).arg(b[2]).arg(b[3]).arg(b[4]).arg(b[5]);
+		ui.nameActions->setToolTip(bbox + "\nVisualization details: " + ui.main3DVis->visualizationStatistics());
+
+		ui.previewWidget->setProperty("resultID", resultID);
+		ui.stackedBars->setProperty("resultID", resultID);
+		ui.histoChart->setProperty("resultID", resultID);
+		ui.nameActions->setProperty("resultID", resultID);
+		connect(ui.previewWidget, &iAFixedAspectWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
+		connect(ui.stackedBars, &iAStackedBarChart::dblClicked, this, &iAFiAKErController::referenceToggled);
+		connect(ui.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
+		connect(ui.nameActions, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
+		connect(ui.vtkWidget, &iAVtkWidget::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
+		connect(ui.cbShow, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
+		connect(ui.cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
 
 		// connect changes to visualizations to an update of the 3D widget:
 		// {
-		connect(uiData.mini3DVis.data(), &iA3DObjectVis::updated, uiData.vtkWidget, &iAVtkQtWidget::updateAll);
+		connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
 
 		// iA3DColoredObjectVis::updateRenderer makes sure this connection is only triggered if vis is currently shown:
-		connect(uiData.main3DVis.data(), &iA3DObjectVis::updated, m_main3DWidget, &iAVtkQtWidget::updateAll);
+		connect(ui.main3DVis.data(), &iA3DObjectVis::updated, m_main3DWidget, &iAVtkQtWidget::updateAll);
 		// }
 	}
 	resultList->setLayout(m_resultsListLayout);
@@ -1418,8 +1423,6 @@ void iAFiAKErController::toggleBoundingBox(int state)
 	auto & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
 	{
-		const double * b = ui.main3DVis->bounds();
-		DEBUG_LOG(QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)").arg(b[0]).arg(b[1]).arg(b[2]).arg(b[3]).arg(b[4]).arg(b[5]));
 		ui.main3DVis->showBoundingBox();
 	}
 	else
