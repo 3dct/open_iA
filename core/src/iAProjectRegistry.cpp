@@ -22,6 +22,8 @@
 
 #include "iAProjectBase.h"
 
+#include <cassert>
+
 QMap<QString, QSharedPointer<iAIProjectFactory> > iAProjectRegistry::m_projectTypes;
 
 QList<QString> const iAProjectRegistry::projectKeys()
