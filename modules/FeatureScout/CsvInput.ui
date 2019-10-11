@@ -592,7 +592,11 @@
           </widget>
          </item>
          <item row="8" column="5">
-          <widget class="QDoubleSpinBox" name="sb_OfsZ"/>
+          <widget class="QDoubleSpinBox" name="sb_OfsZ">
+           <property name="maximum">
+            <double>99999.000000000000000</double>
+           </property>
+          </widget>
          </item>
          <item row="6" column="2">
           <widget class="QLabel" name="lbl_col_length">
@@ -729,7 +733,11 @@
           </widget>
          </item>
          <item row="8" column="3">
-          <widget class="QDoubleSpinBox" name="sb_OfsY"/>
+          <widget class="QDoubleSpinBox" name="sb_OfsY">
+           <property name="maximum">
+            <double>99999.000000000000000</double>
+           </property>
+          </widget>
          </item>
          <item row="6" column="1">
           <widget class="QComboBox" name="cmbbox_col_PosEndY"/>
@@ -738,7 +746,11 @@
           <widget class="QComboBox" name="cmbbox_col_PosEndX"/>
          </item>
          <item row="8" column="1">
-          <widget class="QDoubleSpinBox" name="sb_OfsX"/>
+          <widget class="QDoubleSpinBox" name="sb_OfsX">
+           <property name="maximum">
+            <double>99999.000000000000000</double>
+           </property>
+          </widget>
          </item>
          <item row="0" column="4" colspan="2">
           <widget class="QCheckBox" name="cb_ComputeAngles">
