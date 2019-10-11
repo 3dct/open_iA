@@ -2488,6 +2488,7 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 {
 	projectFile.setValue(ProjectFileFolder, MakeRelative(QFileInfo(fileName).absolutePath(), m_data->folder));
 	projectFile.setValue(ProjectFileFormat, m_configName);
+	projectFile.setValue(ProjectFileStepShift, m_data->stepShift);
 	if (m_referenceID != NoResult)
 		projectFile.setValue(ProjectFileReference, static_cast<qulonglong>(m_referenceID));
 }

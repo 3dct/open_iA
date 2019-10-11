@@ -114,17 +114,21 @@ public:
 	QSharedPointer<iASPLOMData> spmData;
 	//! min and max of fiber count over all results
 	size_t minFiberCount, maxFiberCount;
+// { TODO: make private ?
 	//! maximum of optimization steps in all results
 	int optimStepMax;
 	//! results folder
 	QString folder;
+	//! shift applied to each step
+	double stepShift;
+	//! type of objects (typically fibers, see iACsvConfig::VisualizationType)
+	int objectType;
+// }
 // Comparison to reference:
 	//! for each fiber in the reference, the average match quality over all results (-1.. no match, otherwise 0..1 where 0 perfect match, 1..bad match)
 	std::vector<double> avgRefFiberMatch;
 	//! for each difference/similarity measure, the maximum value over all results:
 	std::vector<double> maxAvgDifference;
-	//! type of objects (typically fibers, see iACsvConfig::VisualizationType)
-	int objectType;
 
 // Methods:
 	bool loadData(QString const & path, QString const & configName, double stepShift, iAProgress * progress);

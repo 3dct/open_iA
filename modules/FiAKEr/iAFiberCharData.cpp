@@ -128,12 +128,14 @@ iAFiberResultsCollection::iAFiberResultsCollection():
 	spmData(new iASPLOMData()),
 	optimStepMax(1),
 	minFiberCount(std::numeric_limits<size_t>::max()),
-	maxFiberCount(0)
+	maxFiberCount(0),
+	stepShift(0)
 {}
 
 bool iAFiberResultsCollection::loadData(QString const & path, QString const & configName, double stepShift, iAProgress * progress)
 {
 	folder = path;
+	this->stepShift = stepShift;
 	QStringList filters;
 	filters << "*.csv";
 	QStringList csvFileNames;
