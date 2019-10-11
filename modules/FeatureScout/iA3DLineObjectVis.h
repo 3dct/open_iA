@@ -35,6 +35,7 @@ public:
 		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip );
 	void updateValues( std::vector<std::vector<double> > const & values );
 	vtkPolyData* getPolyData() override;
+	QString visualizationStatistics() const override;
 protected:
 	int objectStartPointIdx(int objIdx) const override;
 	int objectPointCount(int objIdx) const override;
@@ -43,5 +44,6 @@ protected:
 private:
 	//! maps the object ID to (first=) the first index in the points array that belongs to this object, and (second=) the number of points
 	std::vector<std::pair<size_t, size_t>> m_objectPointMap;
+	size_t m_totalNumOfSegments;
 };
 

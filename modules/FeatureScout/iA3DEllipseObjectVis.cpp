@@ -77,6 +77,13 @@ vtkPolyData* iA3DEllipseObjectVis::getPolyData()
 	return m_fullPoly;
 }
 
+QString iA3DEllipseObjectVis::visualizationStatistics() const
+{
+	return QString("Number of cells: %1; Number of points: %3")
+		.arg(m_fullPoly->GetNumberOfCells())
+		.arg(m_fullPoly->GetNumberOfPoints());
+}
+
 int iA3DEllipseObjectVis::objectStartPointIdx(int objIdx) const
 {
 	return objIdx * m_pointsPerEllipse;

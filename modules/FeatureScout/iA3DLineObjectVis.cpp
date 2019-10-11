@@ -38,10 +38,10 @@ iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QS
 	std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip):
 	iA3DColoredPolyObjectVis(ren, objectTable, columnMapping, color),
 	m_points(vtkSmartPointer<vtkPoints>::New()),
-	m_linePolyData(vtkSmartPointer<vtkPolyData>::New())
+	m_linePolyData(vtkSmartPointer<vtkPolyData>::New()),
+	m_totalNumOfSegments(0)
 {
 	auto lines = vtkSmartPointer<vtkCellArray>::New();
-	size_t totalNumOfSegments = 0;
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
 	{
 		auto it = curvedFiberData.find(row);
@@ -60,7 +60,7 @@ iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QS
 			{
 				m_points->InsertNextPoint(it->second[i].data());
 				line->GetPointIds()->SetId(curLineSeg++, m_points->GetNumberOfPoints() - 1);
-				++totalNumOfSegments;
+				++m_totalNumOfSegments;
 			}
 			// make sure last point of fiber is inserted:
 			i = it->second.size() - 1;
@@ -84,14 +84,12 @@ iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QS
 			line->GetPointIds()->SetId(0, m_points->GetNumberOfPoints()-2);
 			line->GetPointIds()->SetId(1, m_points->GetNumberOfPoints()-1);
 			lines->InsertNextCell(line);
-			++totalNumOfSegments;
+			++m_totalNumOfSegments;
 		}
 		m_objectPointMap.push_back(std::make_pair(totalNumOfPtsBefore, numberOfPts));
 	}
 	m_linePolyData->SetPoints(m_points);
 	m_linePolyData->SetLines(lines);
-	DEBUG_LOG(QString("Visualization statistics: number of lines: %1; number of line segments: %2; number of points: %3")
-		.arg(m_linePolyData->GetNumberOfCells()).arg(totalNumOfSegments).arg(m_points->GetNumberOfPoints()));
 	setupColors();
 	m_linePolyData->GetPointData()->AddArray(m_colors);
 	setupBoundingBox();
@@ -115,6 +113,13 @@ void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & v
 vtkPolyData* iA3DLineObjectVis::getPolyData()
 {
 	return m_linePolyData;
+}
+
+
+QString iA3DLineObjectVis::visualizationStatistics() const
+{
+	return QString("# lines: %1; # line segments: %2; # points: %3")
+		.arg(m_linePolyData->GetNumberOfCells()).arg(m_totalNumOfSegments).arg(m_points->GetNumberOfPoints());
 }
 
 int iA3DLineObjectVis::objectStartPointIdx(int objIdx) const
