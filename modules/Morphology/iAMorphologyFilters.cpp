@@ -39,7 +39,7 @@
 
 // NOTE: The 'binary' versions of the dilation (e.g., itkBinaryDilateImageFilter), erode, fill hole, opening,
 // and closing filters have been replaced by the 'grayscale' versions of these filters 
-// (e.g., itkGrayscaleDilateImageFilter), because of convince (data types) and performance (parallelization).
+// (e.g., itkGrayscaleDilateImageFilter), because of convenience (more data types supported) and performance (parallelization).
 
 namespace Morphology
 {
