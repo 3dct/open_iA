@@ -61,6 +61,7 @@
 #include <mdichild.h>
 #include <qthelper/iADockWidgetWrapper.h>
 #include <qthelper/iAFixedAspectWidget.h>
+#include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iASignallingWidget.h>
 #include <qthelper/iAVtkQtWidget.h>
 
@@ -106,6 +107,9 @@
 #include <QtGlobal> // for QT_VERSION
 
 #include <array>
+
+
+typedef iAQTtoUIConnector<QWidget, Ui_FIAKERSettings> iAFIAKERSettingsUI;
 
 namespace
 {
