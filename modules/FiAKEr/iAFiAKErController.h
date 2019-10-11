@@ -244,7 +244,6 @@ private:
 	// Settings View:
 	// 3D view part
 	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel, *m_diameterFactorLabel, *m_contextDiameterFactorLabel;
-	QSlider* m_defaultOpacitySlider, *m_contextOpacitySlider;
 	QComboBox* m_cmbboxSimilarityMeasure;
 	QLineEdit* m_teBoundingBox[6];
 

@@ -25,6 +25,7 @@
 #include "iAJobListView.h"
 #include "iARefDistCompute.h"
 #include "iAStackedBarChart.h"
+#include "ui_FiAKErSettings.h"
 
 // FeatureScout:
 #include "iA3DCylinderObjectVis.h"
@@ -109,7 +110,7 @@
 #include <array>
 
 
-typedef iAQTtoUIConnector<QWidget, Ui_FIAKERSettings> iAFIAKERSettingsUI;
+typedef iAQTtoUIConnector<QWidget, Ui_FIAKERSettings> iAFIAKERSettings;
 
 namespace
 {
@@ -341,177 +342,52 @@ QWidget * iAFiAKErController::setupMain3DView()
 
 QWidget* iAFiAKErController::setupSettingsView()
 {
-	m_defaultOpacitySlider = new QSlider(Qt::Horizontal);
-	m_defaultOpacitySlider->setMinimum(0);
-	m_defaultOpacitySlider->setMaximum(255);
-	m_defaultOpacitySlider->setValue(SelectionOpacity);
-	connect(m_defaultOpacitySlider, &QSlider::valueChanged, this, &iAFiAKErController::mainOpacityChanged);
-	m_defaultOpacityLabel = new QLabel(QString::number(SelectionOpacity, 'f', 2));
+	iAFIAKERSettings* settingsView = new iAFIAKERSettings();
 
-	m_contextOpacitySlider = new QSlider(Qt::Horizontal);
-	m_contextOpacitySlider->setMinimum(0);
-	m_contextOpacitySlider->setMaximum(255);
-	m_contextOpacitySlider->setValue(ContextOpacity);
-	connect(m_contextOpacitySlider, &QSlider::valueChanged, this, &iAFiAKErController::contextOpacityChanged);
-	m_contextOpacityLabel = new QLabel(QString::number(ContextOpacity, 'f', 2));
+	settingsView->slOpacityDefault->setValue(SelectionOpacity);
+	m_defaultOpacityLabel = settingsView->lbOpacityDefaultValue;
+	m_defaultOpacityLabel->setText(QString::number(SelectionOpacity, 'f', 2));
+
+	settingsView->slOpacityContext->setValue(ContextOpacity);
+	m_contextOpacityLabel = settingsView->lbOpacityContextValue;
+	m_contextOpacityLabel->setText(QString::number(ContextOpacity, 'f', 2));
 
 	m_diameterFactorMapper = new iALinearMapper(MinDiameterFactor, MaxDiameterFactor, MinFactorSliderVal, MaxFactorSliderVal);
-	auto diameterFactorSlider = new QSlider(Qt::Horizontal);
-	diameterFactorSlider->setMinimum(MinFactorSliderVal);
-	diameterFactorSlider->setMaximum(MaxFactorSliderVal);
+	settingsView->slDiameterFactorDefault->setMinimum(MinFactorSliderVal);
+	settingsView->slDiameterFactorDefault->setMaximum(MaxFactorSliderVal);
 	int factorSliderValue = static_cast<int>(m_diameterFactorMapper->srcToDst(DiameterFactor));
-	diameterFactorSlider->setValue(factorSliderValue);
-	connect(diameterFactorSlider, &QSlider::valueChanged, this, &iAFiAKErController::diameterFactorChanged);
-	m_diameterFactorLabel = new QLabel(QString::number(m_diameterFactorMapper->dstToSrc(factorSliderValue), 'f', 2));
+	settingsView->slDiameterFactorDefault->setValue(factorSliderValue);
+	m_diameterFactorLabel = settingsView->lbDiameterFactorDefaultValue;
+	m_diameterFactorLabel->setText(QString::number(m_diameterFactorMapper->dstToSrc(factorSliderValue), 'f', 2));
 	
-	auto contextDiameterFactorSlider = new QSlider(Qt::Horizontal);
-	contextDiameterFactorSlider->setMinimum(MinFactorSliderVal);
-	contextDiameterFactorSlider->setMaximum(MaxFactorSliderVal);
+	settingsView->slDiameterFactorContext->setMinimum(MinFactorSliderVal);
+	settingsView->slDiameterFactorContext->setMaximum(MaxFactorSliderVal);
 	int contextFactorSlider = static_cast<int>(m_diameterFactorMapper->srcToDst(ContextDiameterFactor));
-	contextDiameterFactorSlider->setValue(contextFactorSlider);
-	connect(contextDiameterFactorSlider, &QSlider::valueChanged, this, &iAFiAKErController::contextDiameterFactorChanged);
-	m_contextDiameterFactorLabel = new QLabel(QString::number(m_diameterFactorMapper->dstToSrc(contextFactorSlider), 'f', 2));
+	settingsView->slDiameterFactorContext->setValue(contextFactorSlider);
+	m_contextDiameterFactorLabel = settingsView->lbDiameterFactorContextValue;
+	m_contextDiameterFactorLabel->setText(QString::number(m_diameterFactorMapper->dstToSrc(contextFactorSlider), 'f', 2));
 
-	QWidget* sliderWidget = new QWidget();
-	auto sliderWidgetLayout = new QGridLayout();
-	sliderWidget->setLayout(sliderWidgetLayout);
-	sliderWidgetLayout->setContentsMargins(0, 0, 0, 0);
-	sliderWidgetLayout->setSpacing(SettingSpacing);
-	sliderWidgetLayout->addWidget(new QLabel("Main Opacity:"), 0, 0);
-	sliderWidgetLayout->addWidget(m_defaultOpacitySlider, 0, 1);
-	sliderWidgetLayout->addWidget(m_defaultOpacityLabel, 0, 2);
-	sliderWidgetLayout->addWidget(new QLabel("Context Opacity:"), 1, 0);
-	sliderWidgetLayout->addWidget(m_contextOpacitySlider, 1, 1);
-	sliderWidgetLayout->addWidget(m_contextOpacityLabel, 1, 2);
-	sliderWidgetLayout->addWidget(new QLabel("General diameter mod. factor:"), 2, 0);
-	sliderWidgetLayout->addWidget(diameterFactorSlider, 2, 1);
-	sliderWidgetLayout->addWidget(m_diameterFactorLabel, 2, 2);
-	sliderWidgetLayout->addWidget(new QLabel("Context diameter mod. factor:"), 3, 0);
-	sliderWidgetLayout->addWidget(contextDiameterFactorSlider, 3, 1);
-	sliderWidgetLayout->addWidget(m_contextDiameterFactorLabel, 3, 2);
+	m_teBoundingBox[0] = settingsView->leBoundingBoxC1X;
+	m_teBoundingBox[1] = settingsView->leBoundingBoxC1Y;
+	m_teBoundingBox[2] = settingsView->leBoundingBoxC1Z;
+	m_teBoundingBox[3] = settingsView->leBoundingBoxC2X;
+	m_teBoundingBox[4] = settingsView->leBoundingBoxC2Y;
+	m_teBoundingBox[5] = settingsView->leBoundingBoxC2Z;
 
-	QWidget* fiberContextWidget = new QWidget();
-	auto fiberContextLayout = new QVBoxLayout();
-	fiberContextWidget->setLayout(fiberContextLayout);
-	fiberContextLayout->setContentsMargins(0, 0, 0, 0);
-	fiberContextLayout->setSpacing(SettingSpacing);
-	QCheckBox* cbShowFiberContext = new QCheckBox("Show selected fiber context");
-	connect(cbShowFiberContext, &QCheckBox::stateChanged, this, &iAFiAKErController::showFiberContextChanged);
-	fiberContextLayout->addWidget(cbShowFiberContext);
-	QCheckBox* cbMergeFiberContextBoxes = new QCheckBox("Merge fiber context boxes");
-	connect(cbMergeFiberContextBoxes, &QCheckBox::stateChanged, this, &iAFiAKErController::mergeFiberContextBoxesChanged);
-	fiberContextLayout->addWidget(cbMergeFiberContextBoxes);
-	QWidget* fiberContextSpacingWidget = new QWidget();
-	auto fiberContextSpacingLayout = new QHBoxLayout();
-	fiberContextSpacingWidget->setLayout(fiberContextSpacingLayout);
-	fiberContextSpacingLayout->setContentsMargins(0, 0, 0, 0);
-	fiberContextSpacingLayout->setSpacing(SettingSpacing);
-	QDoubleSpinBox* sbContextSpacing = new QDoubleSpinBox();
-	sbContextSpacing->setRange(0.0, 1000.0);
-	sbContextSpacing->setValue(0.0);
-	fiberContextSpacingLayout->addWidget(new QLabel("Context Spacing"));
-	fiberContextSpacingLayout->addWidget(sbContextSpacing);
-	fiberContextLayout->addWidget(fiberContextSpacingWidget);
-	connect(sbContextSpacing, SIGNAL(valueChanged(double)), this, SLOT(contextSpacingChanged(double)));
+	settingsView->cbShowWireFrame->setChecked(false);
 
-	QWidget* boundingBoxWidget = new QWidget();
-	auto boundingBoxLayout = new QGridLayout();
-	boundingBoxWidget->setLayout(boundingBoxLayout);
-	boundingBoxLayout->setContentsMargins(0, 0, 0, 0);
-	boundingBoxLayout->setSpacing(SettingSpacing);
-	QCheckBox* cbShowBoundingBox = new QCheckBox("Show custom bounding box:");
-	connect(cbShowBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::showBoundingBoxChanged);
-	boundingBoxLayout->addWidget(cbShowBoundingBox, 0, 0, 1, 6);
-	for (int i = 0; i < 2; ++i)
-	{
-		QString capStart(i == 0 ? "Corner 1 " : "Corner 2 ");
-		for (int j = 0; j < 3; ++j)
-		{
-			QString fullCap((j == 0 ? capStart : "") + ((j == 0) ? "X" : ((j == 1) ? "Y" : "Z")));
-			QLabel * lbl = new QLabel(fullCap);
-			m_teBoundingBox[i*3 + j] = new QLineEdit("0");
-			boundingBoxLayout->addWidget(lbl, i+1, j*2);
-			boundingBoxLayout->addWidget(m_teBoundingBox[i*3 + j], i+1, j * 2 + 1);
-		}
-	}
 
-	QCheckBox* cbShowWireFrame = new QCheckBox("Show wireframe");
-	cbShowWireFrame->setChecked(false);
-	connect(cbShowWireFrame, &QCheckBox::stateChanged, this, &iAFiAKErController::showWireFrameChanged);
-
-	QWidget* moreButtons = new QWidget();
-	moreButtons->setLayout(new QHBoxLayout());
-	moreButtons->layout()->setContentsMargins(0, 0, 0, 0);
-	moreButtons->layout()->setSpacing(SettingSpacing);
-	auto showSampledCylinder = new QPushButton("Sample Fiber");
-	auto hideSampledCylinder = new QPushButton("Hide Sample Points");
-	auto spatialOverviewButton = new QPushButton("Spatial Overview");
-	connect(showSampledCylinder, &QPushButton::pressed, this, &iAFiAKErController::visualizeCylinderSamplePoints);
-	connect(hideSampledCylinder, &QPushButton::pressed, this, &iAFiAKErController::hideSamplePoints);
-	connect(spatialOverviewButton, &QPushButton::pressed, this, &iAFiAKErController::showSpatialOverviewButton);
-	moreButtons->layout()->addWidget(showSampledCylinder);
-	moreButtons->layout()->addWidget(hideSampledCylinder);
-	moreButtons->layout()->addWidget(spatialOverviewButton);
-
-	auto selectionModeChoice = new QComboBox();
-	selectionModeChoice->addItem("Rubberband Rectangle (Endpoints)");
-	selectionModeChoice->addItem("Single Fiber Click");
-	connect(selectionModeChoice, SIGNAL(currentIndexChanged(int)), this, SLOT(selectionModeChanged(int)));
-	auto selectionModeWidget = new QWidget();
-	selectionModeWidget->setLayout(new QHBoxLayout());
-	selectionModeWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	selectionModeWidget->layout()->setSpacing(SettingSpacing);
-	selectionModeWidget->layout()->addWidget(new QLabel("Selection Mode:"));
-	selectionModeWidget->layout()->addWidget(selectionModeChoice);
-
-	auto metricLabel = new QLabel("Metric:");
-	m_cmbboxSimilarityMeasure = new QComboBox();
+	m_cmbboxSimilarityMeasure = settingsView->cmbboxSimilarityMeasure;
 	auto similarityMeasures = iARefDistCompute::getSimilarityMeasureNames();
 	for (auto name: similarityMeasures)
 		m_cmbboxSimilarityMeasure->addItem(name);
 	m_cmbboxSimilarityMeasure->setCurrentIndex(iARefDistCompute::BestSimilarityMeasure);
-	connect(m_cmbboxSimilarityMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(showReferenceMeasureChanged(int)));
-	auto metricChoice = new QWidget();
-	metricChoice->setLayout(new QHBoxLayout());
-	metricChoice->layout()->setContentsMargins(0, 0, 0, 0);
-	metricChoice->layout()->setSpacing(SettingSpacing);
-	metricChoice->layout()->addWidget(metricLabel);
-	metricChoice->layout()->addWidget(m_cmbboxSimilarityMeasure);
 
-	QGroupBox* main3DViewSettings = new QGroupBox("Main 3D View");
-	main3DViewSettings->setLayout(new QVBoxLayout());
-	main3DViewSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
-	main3DViewSettings->layout()->setSpacing(SettingSpacing);
-	main3DViewSettings->layout()->addWidget(sliderWidget);
-	main3DViewSettings->layout()->addWidget(boundingBoxWidget);
-	main3DViewSettings->layout()->addWidget(cbShowWireFrame);
-	main3DViewSettings->layout()->addWidget(fiberContextWidget);
-	main3DViewSettings->layout()->addWidget(selectionModeWidget);
-	main3DViewSettings->layout()->addWidget(metricChoice);
-	main3DViewSettings->layout()->addWidget(moreButtons);
-
-	QWidget* playControls = new QWidget();
-	playControls->setLayout(new QHBoxLayout());
-	playControls->layout()->setContentsMargins(0, 0, 0, 0);
-	playControls->layout()->setSpacing(SettingSpacing);
-	QSpinBox* stepDelayInput = new QSpinBox();
-	stepDelayInput->setMinimum(100);
-	stepDelayInput->setMaximum(10000);
-	stepDelayInput->setSingleStep(100);
-	stepDelayInput->setValue(DefaultPlayDelay);
-	playControls->layout()->addWidget(new QLabel("Delay (ms)"));
-	playControls->layout()->addWidget(stepDelayInput);
+	settingsView->sbAnimationDelay->setValue(DefaultPlayDelay);
 	m_playTimer->setInterval(DefaultPlayDelay);
-	connect(m_playTimer, &QTimer::timeout, this, &iAFiAKErController::playTimer);
-	connect(stepDelayInput, SIGNAL(valueChanged(int)), this, SLOT(playDelayChanged(int)));
 
 	m_optimStepChart.resize(iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount + 1);
 
-	auto dataChooser = new QScrollArea();
-	dataChooser->setWidgetResizable(true);
-	auto comboBoxContainer = new QWidget();
-	dataChooser->setWidget(comboBoxContainer);
-	comboBoxContainer->setLayout(new QVBoxLayout());
 	ChartCount = iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount + 1;
 	m_chartCB.resize(ChartCount);
 	for (int chartID = 0; chartID < ChartCount; ++chartID)
@@ -521,7 +397,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 		m_chartCB[chartID]->setEnabled(chartID == ChartCount - 1);
 		m_chartCB[chartID]->setProperty("chartID", chartID);
 		connect(m_chartCB[chartID], &QCheckBox::stateChanged, this, &iAFiAKErController::optimDataToggled);
-		comboBoxContainer->layout()->addWidget(m_chartCB[chartID]);
+		settingsView->checkboxContainer->layout()->addWidget(m_chartCB[chartID]);
 	}
 	size_t curPlotStart = 0;
 	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
@@ -536,124 +412,52 @@ QWidget* iAFiAKErController::setupSettingsView()
 			m_resultUIs[resultID].startPlotIdx = NoPlotsIdx;
 	}
 
-	QGroupBox* optimStepSettings = new QGroupBox("Optimization Steps Animation");
-	optimStepSettings->setLayout(new QVBoxLayout());
-	optimStepSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
-	optimStepSettings->layout()->setSpacing(SettingSpacing);
-	optimStepSettings->layout()->addWidget(playControls);
-	optimStepSettings->layout()->addWidget(dataChooser);
+	settingsView->sbHistogramBins->setValue(HistogramBins);
 
-	auto histogramBinInput = new QSpinBox();
-	histogramBinInput->setMinimum(5);
-	histogramBinInput->setMaximum(1000);
-	histogramBinInput->setValue(HistogramBins);
-	connect(histogramBinInput, SIGNAL(valueChanged(int)), this, SLOT(histogramBinsChanged(int)));
-	auto histoBinInputWidget = new QWidget();
-	histoBinInputWidget->setLayout(new QHBoxLayout());
-	histoBinInputWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	histoBinInputWidget->layout()->setSpacing(SettingSpacing);
-	histoBinInputWidget->layout()->addWidget(new QLabel("Histogram Bins:"));
-	histoBinInputWidget->layout()->addWidget(histogramBinInput);
-
-	m_showReferenceInChart = new QCheckBox("Show Reference in Distribution Histograms");
+	m_showReferenceInChart = settingsView->cbShowReferenceDistribution;
 	m_showReferenceInChart->setChecked(false);
-	connect(m_showReferenceInChart, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceInChartToggled);
 
-	m_distributionChartType = new QComboBox();
-	m_distributionChartType->addItem("Bar Chart");
-	m_distributionChartType->addItem("Line Graph");
-	connect(m_distributionChartType, SIGNAL(currentIndexChanged(int)), this, SLOT(distributionChartTypeChanged(int)));
+	settingsView->cmbboxStackedBarChartColors->addItems(iAColorThemeManager::instance().availableThemes());
+	settingsView->cmbboxStackedBarChartColors->setCurrentText(DefaultStackedBarColorTheme);
 
-	auto distributionChartTypeWidget = new QWidget();
-	distributionChartTypeWidget->setLayout(new QHBoxLayout());
-	distributionChartTypeWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	distributionChartTypeWidget->layout()->setSpacing(SettingSpacing);
-	distributionChartTypeWidget->layout()->addWidget(new QLabel("Distribution Plot Type:"));
-	distributionChartTypeWidget->layout()->addWidget(m_distributionChartType);
+	settingsView->cmbboxDistributionColors->addItems(iALUT::GetColorMapNames());
+	settingsView->cmbboxDistributionColors->setCurrentIndex(0);
 
-	auto stackedBarColorThemeChoice = new QComboBox();
-	stackedBarColorThemeChoice->addItems(iAColorThemeManager::instance().availableThemes());
-	stackedBarColorThemeChoice->setCurrentText(DefaultStackedBarColorTheme);
-	connect(stackedBarColorThemeChoice, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(stackedBarColorThemeChanged(QString const &)));
-
-	auto stackedBarColorThemeWidget = new QWidget();
-	stackedBarColorThemeWidget->setLayout(new QHBoxLayout());
-	stackedBarColorThemeWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	stackedBarColorThemeWidget->layout()->setSpacing(SettingSpacing);
-	stackedBarColorThemeWidget->layout()->addWidget(new QLabel("Stacked Bar Colors:"));
-	stackedBarColorThemeWidget->layout()->addWidget(stackedBarColorThemeChoice);
-
-	QGroupBox* resultListSettings = new QGroupBox("Result List");
-	resultListSettings->setLayout(new QVBoxLayout());
-	resultListSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
-	resultListSettings->layout()->setSpacing(SettingSpacing);
-	resultListSettings->layout()->addWidget(histoBinInputWidget);
-	resultListSettings->layout()->addWidget(m_showReferenceInChart);
-	resultListSettings->layout()->addWidget(distributionChartTypeWidget);
-	resultListSettings->layout()->addWidget(stackedBarColorThemeWidget);
-
-	auto distrColorThemeChoice = new QComboBox();
-	distrColorThemeChoice->addItems(iALUT::GetColorMapNames());
-	distrColorThemeChoice->setCurrentIndex(0);
-	connect(distrColorThemeChoice, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(distributionColorThemeChanged(QString const &)));
-	auto distrColorThemeChoiceWidget = new QWidget();
-	distrColorThemeChoiceWidget->setLayout(new QHBoxLayout());
-	distrColorThemeChoiceWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	distrColorThemeChoiceWidget->layout()->setSpacing(SettingSpacing);
-	distrColorThemeChoiceWidget->layout()->addWidget(new QLabel("Distribution Colors:"));
-	distrColorThemeChoiceWidget->layout()->addWidget(distrColorThemeChoice);
-
-	auto resultColorThemeChoice = new QComboBox();
-	resultColorThemeChoice->addItems(iAColorThemeManager::instance().availableThemes());
-	resultColorThemeChoice->setCurrentText(DefaultResultColorTheme);
-	connect(resultColorThemeChoice, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(resultColorThemeChanged(QString const &)));
-	auto resultColorThemeChoiceWidget = new QWidget();
-	resultColorThemeChoiceWidget->setLayout(new QHBoxLayout());
-	resultColorThemeChoiceWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	resultColorThemeChoiceWidget->layout()->setSpacing(SettingSpacing);
-	resultColorThemeChoiceWidget->layout()->addWidget(new QLabel("Result Colors:"));
-	resultColorThemeChoiceWidget->layout()->addWidget(resultColorThemeChoice);
+	settingsView->cmbboxResultColors->addItems(iAColorThemeManager::instance().availableThemes());
+	settingsView->cmbboxResultColors->setCurrentText(DefaultResultColorTheme);
 
 	auto fileChooser = new iAFileChooserWidget(this, iAFileChooserWidget::FileNameOpen);
+	qobject_cast<QGridLayout*>(settingsView->gbGlobal->layout())->addWidget(fileChooser, 2, 1);
+
+	m_distributionChartType = settingsView->cmbboxDistributionPlotType;
+
+	connect(settingsView->slOpacityDefault, &QSlider::valueChanged, this, &iAFiAKErController::mainOpacityChanged);
+	connect(settingsView->slOpacityContext, &QSlider::valueChanged, this, &iAFiAKErController::contextOpacityChanged);
+	connect(settingsView->slDiameterFactorDefault, &QSlider::valueChanged, this, &iAFiAKErController::diameterFactorChanged);
+	connect(settingsView->slDiameterFactorContext, &QSlider::valueChanged, this, &iAFiAKErController::contextDiameterFactorChanged);
+	connect(settingsView->cbFiberContextShow, &QCheckBox::stateChanged, this, &iAFiAKErController::showFiberContextChanged);
+	connect(settingsView->cbFiberContextMerge, &QCheckBox::stateChanged, this, &iAFiAKErController::mergeFiberContextBoxesChanged);
+	connect(settingsView->sbFiberContextSpacing, SIGNAL(valueChanged(double)), this, SLOT(contextSpacingChanged(double)));
+	connect(settingsView->cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::showBoundingBoxChanged);
+	connect(settingsView->cbShowWireFrame, &QCheckBox::stateChanged, this, &iAFiAKErController::showWireFrameChanged);
+	connect(settingsView->pbSampleSelectedFiber, &QPushButton::pressed, this, &iAFiAKErController::visualizeCylinderSamplePoints);
+	connect(settingsView->pbHideSamplePoints, &QPushButton::pressed, this, &iAFiAKErController::hideSamplePoints);
+	connect(settingsView->pbSpatialOverview, &QPushButton::pressed, this, &iAFiAKErController::showSpatialOverviewButton);
+	connect(settingsView->cmbboxSelectionMode, SIGNAL(currentIndexChanged(int)), this, SLOT(selectionModeChanged(int)));
+	connect(m_cmbboxSimilarityMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(showReferenceMeasureChanged(int)));
+	connect(m_playTimer, &QTimer::timeout, this, &iAFiAKErController::playTimer);
+	connect(settingsView->sbAnimationDelay, SIGNAL(valueChanged(int)), this, SLOT(playDelayChanged(int)));
+	connect(settingsView->sbHistogramBins, SIGNAL(valueChanged(int)), this, SLOT(histogramBinsChanged(int)));
+	connect(m_showReferenceInChart, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceInChartToggled);
+	connect(settingsView->cmbboxDistributionPlotType, SIGNAL(currentIndexChanged(int)),
+		this, SLOT(distributionChartTypeChanged(int)));
+	connect(settingsView->cmbboxStackedBarChartColors, SIGNAL(currentIndexChanged(QString const &)),
+		this, SLOT(stackedBarColorThemeChanged(QString const &)));
+	connect(settingsView->cmbboxDistributionColors, SIGNAL(currentIndexChanged(QString const &)),
+		this, SLOT(distributionColorThemeChanged(QString const &)));
+	connect(settingsView->cmbboxResultColors, SIGNAL(currentIndexChanged(QString const &)),
+		this, SLOT(resultColorThemeChanged(QString const &)));
 	connect(fileChooser, &iAFileChooserWidget::fileNameChanged, this, &iAFiAKErController::loadVolume);
-	auto volumeDatasetWidget = new QWidget();
-	volumeDatasetWidget->setLayout(new QHBoxLayout());
-	volumeDatasetWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	volumeDatasetWidget->layout()->setSpacing(SettingSpacing);
-	volumeDatasetWidget->layout()->addWidget(new QLabel("Reference Volume:"));
-	volumeDatasetWidget->layout()->addWidget(fileChooser);
-
-	QWidget* saveLoadAnalysisWidget = new QWidget();
-	saveLoadAnalysisWidget->setLayout(new QHBoxLayout());
-	saveLoadAnalysisWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	saveLoadAnalysisWidget->layout()->setSpacing(SettingSpacing);
-	auto saveAnalysisButton = new QPushButton("Save Analysis");
-	connect(saveAnalysisButton, &QPushButton::pressed, this, &iAFiAKErController::saveAnalysisClick);
-	saveLoadAnalysisWidget->layout()->addWidget(saveAnalysisButton);
-
-	QGroupBox* globalSettings = new QGroupBox("Global Settings");
-	globalSettings->setLayout(new QVBoxLayout());
-	globalSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
-	globalSettings->layout()->setSpacing(SettingSpacing);
-	globalSettings->layout()->addWidget(resultColorThemeChoiceWidget);
-	globalSettings->layout()->addWidget(distrColorThemeChoiceWidget);
-	globalSettings->layout()->addWidget(volumeDatasetWidget);
-	globalSettings->layout()->addWidget(saveLoadAnalysisWidget);
-
-	QWidget* leftSettingsWidget = new QWidget();
-	leftSettingsWidget->setLayout(new QVBoxLayout());
-	leftSettingsWidget->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
-	leftSettingsWidget->layout()->setSpacing(SettingSpacing);
-	leftSettingsWidget->layout()->addWidget(main3DViewSettings);
-	leftSettingsWidget->layout()->addWidget(resultListSettings);
-	leftSettingsWidget->layout()->addWidget(globalSettings);
-
-	QWidget* settingsView = new QWidget();
-	settingsView->setLayout(new QHBoxLayout());
-	settingsView->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
-	settingsView->layout()->setSpacing(SettingSpacing);
-	settingsView->layout()->addWidget(leftSettingsWidget);
-	settingsView->layout()->addWidget(optimStepSettings);
 
 	return settingsView;
 }
