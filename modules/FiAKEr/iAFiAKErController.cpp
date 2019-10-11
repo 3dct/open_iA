@@ -1373,14 +1373,20 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		bool anythingSelected = isAnythingSelected();
 		if (anythingSelected)
 			ui.main3DVis->setSelection(m_selection[resultID], anythingSelected);
-		if (data.timeValues.size() > 0)
+		if (m_data->objectType == iACsvConfig::Cylinders //|| m_data->objectType == iACsvConfig::Lines
+		)
 		{
-			if (m_data->objectType == iACsvConfig::Cylinders)
+			if (data.timeData == iAFiberCharData::SimpleTimeData)
 			{
 				auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
 				vis->updateValues(data.timeValues[
 					std::min(data.timeValues.size() - 1, static_cast<size_t>(m_optimStepSlider->value()))]);
+			}/*
+			else if (data.timeData == iAFiberCharData::CurvedTimeData)
+			{
+				// visualization for curved time steps...
 			}
+			*/
 		}
 		ui.main3DVis->show();
 		m_style->addInput( resultID, ui.main3DVis->getPolyData(), ui.main3DVis->getActor() );
@@ -1679,13 +1685,20 @@ void iAFiAKErController::setOptimStep(int optimStep)
 		for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
 		{
 			auto main3DVis = m_resultUIs[resultID].main3DVis;
-			auto & timeValues = m_data->result[resultID].timeValues;
-			if (main3DVis->visible() && timeValues.size() > 0)
-				if (m_data->objectType == iACsvConfig::Cylinders)
+			if (main3DVis->visible() &&
+				m_data->objectType == iACsvConfig::Cylinders)
+			{
+				auto & timeValues = m_data->result[resultID].timeValues;
+				if (m_data->result[resultID].timeData == iAFiberCharData::SimpleTimeData)
 				{
 					auto vis = dynamic_cast<iA3DCylinderObjectVis*>(main3DVis.data());
 					vis->updateValues(timeValues[std::min(static_cast<size_t>(optimStep), timeValues.size() - 1)]);
+				} /* else if (m_data->result[resultID].timeData == iAFiberCharData::SimpleTimeData)
+				{
+					// visualization for curved time steps...
 				}
+				*/
+			}
 		}
 	}
 	changeReferenceDisplay();
@@ -2202,7 +2215,7 @@ void iAFiAKErController::changeReferenceDisplay()
 				size_t refFiberID = d.refDiffFiber[fiberID].dist[similarityMeasure][n].index;
 				for (int i = 0; i < 3; ++i)
 				{
-					if (d.timeValues.size() > 0)
+					if (d.timeData == iAFiberCharData::SimpleTimeData)
 						start1[i] = d.timeValues[std::min(timeStep, d.timeValues.size()-1)][fiberID][i];
 					else
 						start1[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
@@ -2210,7 +2223,7 @@ void iAFiAKErController::changeReferenceDisplay()
 				}
 				for (int i = 0; i < 3; ++i)
 				{
-					if (d.timeValues.size() > 0)
+					if (d.timeData == iAFiberCharData::SimpleTimeData)
 						start2[i] = d.timeValues[std::min(timeStep, d.timeValues.size()-1)][fiberID][3 + i];
 					else
 						start2[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
