@@ -625,10 +625,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 	saveLoadAnalysisWidget->layout()->setSpacing(SettingSpacing);
 	auto saveAnalysisButton = new QPushButton("Save Analysis");
 	connect(saveAnalysisButton, &QPushButton::pressed, this, &iAFiAKErController::saveAnalysisClick);
-	auto loadAnalysisButton = new QPushButton("Load Analysis");
-	connect(loadAnalysisButton, &QPushButton::pressed, this, &iAFiAKErController::loadAnalysisClick);
 	saveLoadAnalysisWidget->layout()->addWidget(saveAnalysisButton);
-	saveLoadAnalysisWidget->layout()->addWidget(loadAnalysisButton);
 
 	QGroupBox* globalSettings = new QGroupBox("Global Settings");
 	globalSettings->setLayout(new QVBoxLayout());
@@ -2491,12 +2488,6 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 	projectFile.setValue(ProjectFileStepShift, m_data->stepShift);
 	if (m_referenceID != NoResult)
 		projectFile.setValue(ProjectFileReference, static_cast<qulonglong>(m_referenceID));
-}
-
-void iAFiAKErController::loadAnalysisClick()
-{
-	addInteraction(QString("Loading Analysis (in new window!)"));
-	loadAnalysis(m_mainWnd, m_data->folder);
 }
 
 void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folder)
