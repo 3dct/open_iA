@@ -88,6 +88,34 @@
         </property>
        </widget>
       </item>
+      <item row="3" column="1" colspan="2">
+       <widget class="QComboBox" name="cbSelectionMode">
+        <item>
+         <property name="text">
+          <string>Rectangle</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Polygon</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="2">
+       <widget class="QCheckBox" name="cbQuadraticPlots">
+        <property name="text">
+         <string>Quadratic Plot Aspect Ratio</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0" colspan="3">
+       <widget class="QCheckBox" name="cbFlipAxes">
+        <property name="text">
+         <string>Flip axes of maximized plot</string>
+        </property>
+       </widget>
+      </item>
       <item row="4" column="0">
        <widget class="QCheckBox" name="cbShowHistograms">
         <property name="text">
@@ -95,6 +123,20 @@
         </property>
         <property name="checked">
          <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="lbSelectionMode">
+        <property name="text">
+         <string>Selection Mode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Bins</string>
         </property>
        </widget>
       </item>
@@ -111,39 +153,18 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="lbSelectionMode">
+      <item row="6" column="0">
+       <widget class="QPushButton" name="pbSaveSettings">
         <property name="text">
-         <string>Selection Mode</string>
+         <string>Save Settings</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="0" colspan="2">
-       <widget class="QCheckBox" name="cbQuadraticPlots">
+      <item row="6" column="1" colspan="2">
+       <widget class="QPushButton" name="pbLoadSettings">
         <property name="text">
-         <string>Quadratic Plot Aspect Ratio</string>
+         <string>Load Settings</string>
         </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Bins</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1" colspan="2">
-       <widget class="QComboBox" name="cbSelectionMode">
-        <item>
-         <property name="text">
-          <string>Rectangle</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Polygon</string>
-         </property>
-        </item>
        </widget>
       </item>
      </layout>

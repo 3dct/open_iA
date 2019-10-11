@@ -18,52 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAVtkQtWidget.h"
 
-#include "ui_GEMSeToolBar.h"
+#include <vtkGenericOpenGLRenderWindow.h>
 
-#include <iAModuleInterface.h>
-#include <qthelper/iAQTtoUIConnector.h>
-
-#include <QToolBar>
-
-class iASEAFile;
-
-class QSettings;
-
-typedef iAQTtoUIConnector<QToolBar, Ui_GEMSeToolBar> iAGEMSeToolbar;
-
-class iAGEMSeModuleInterface : public iAModuleInterface
+void iAVtkQtWidget::updateAll()
 {
-	Q_OBJECT
-public:
-	iAGEMSeModuleInterface();
-	void Initialize() override;
-	void loadProject(MdiChild* mdiChild, QSettings const & metaFile, QString const & fileName);
-	void saveProject(QSettings & metaFile, QString const & fileName);
-protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
-private slots:
-	//! @{ Menu entries:
-	void startGEMSe();
-	void loadPreCalculatedData();
-	//! @}
-	//! @{ Toolbar actions:
-	void resetFilter();
-	void toggleAutoShrink();
-	void toggleDockWidgetTitleBar();
-	void exportClusterIDs();
-	void exportAttributeRangeRanking();
-	void exportRankings();
-	void importRankings();
-	//! @}
-	void loadGEMSe();
-private:
-	void loadOldGEMSeProject(QString const & fileName);
-	void setupToolbar();
-	
-	iAGEMSeToolbar* m_toolbar;
-
-	//! cache for precalculated data loading
-	QSharedPointer<iASEAFile> m_seaFile;
-};
+	GetRenderWindow()->Render();
+	update();
+}

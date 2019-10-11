@@ -25,6 +25,7 @@
 #include "iAChangeableCameraWidget.h"
 #include "iAPreferences.h"
 #include "iARenderSettings.h"
+#include "iASavableProject.h"
 #include "iASlicerSettings.h"
 #include "iAVolumeSettings.h"
 #include "open_iA_Core_export.h"
@@ -74,6 +75,7 @@ class iAModalityList;
 class iAParametricSpline;
 class iAPlot;
 struct iAProfileProbe;
+class iAProjectBase;
 class iARenderer;
 class iASlicer;
 class iAVolumeStack;
@@ -82,7 +84,7 @@ class MainWindow;
 typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>  dlg_renderer;
 typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
-class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild, public iAChangeableCameraWidget
+class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild, public iAChangeableCameraWidget, public iASavableProject
 {
 	Q_OBJECT
 public:
@@ -260,28 +262,33 @@ public:
 
 	//! Checks whether the main image data is fully loaded.
 	bool isFullyLoaded() const;
-
+	//! Ask for a project file name and store in that project file:
+	//!    - loaded files and their transfer functions, when old project file (.mod) is chosen
+	//!    - configuration of opened tools (which support it), when new project file (.opf) is chosen
+	//!      (to be extended to modalities and TFs soon)
+	void doSaveProject() override;
 	//! Save all currently loaded files into a project with the given file name.
 	void saveProject(QString const & fileName);
-
 	//! Whether volume data is loaded (only checks filename and volume dimensions).
 	bool isVolumeDataLoaded() const;
-
 	//! Enable or disable linked slicers and 3D renderer.
 	void linkViews(bool l);
-	
 	//! Enable or disable linked MDI windows for this MDI child.
 	void linkMDIs(bool lm);
-
-	//! clear current histogram (i.e. don't show it anymore)
+	//! Clear current histogram (i.e. don't show it anymore)
 	void clearHistogram();
-
+	//! Set the list of modalities for this window.
 	void setModalities(QSharedPointer<iAModalityList> modList);
+	//! Retrieve the list of all currently loaded modalities.
 	QSharedPointer<iAModalityList> modalities();
+	//! Retrieve data for modality with given index.
 	QSharedPointer<iAModality> modality(int idx);
-	void storeProject();
 
-Q_SIGNALS:
+	//! add project
+	void addProject(QString const & key, QSharedPointer<iAProjectBase> project);
+	QMap<QString, QSharedPointer<iAProjectBase> > const & projects();
+
+signals:
 	void rendererDeactivated(int c);
 	void pointSelected();
 	void noPointSelected();
@@ -293,7 +300,6 @@ Q_SIGNALS:
 	void renderSettingsChanged();
 	void slicerSettingsChanged();
 	void preferencesChanged();
-	void viewInitialized();
 	void transferFunctionChanged();
 	void fileLoaded();
 	void histogramAvailable();
@@ -488,4 +494,6 @@ private:
 	int m_currentHistogramModality;
 	bool m_initVolumeRenderers;
 	int m_storedModalityNr;		//!< modality nr being stored
+
+	QMap<QString, QSharedPointer<iAProjectBase>> m_projects;
 };

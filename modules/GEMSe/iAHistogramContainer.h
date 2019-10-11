@@ -59,7 +59,7 @@ public:
 	void SetMarker(int chartID, double value);
 	void RemoveMarker(int chartID);
 	void SetSpanValues(int chartID, double min, double max);
-	void SelectHistograms();
+	void selectHistograms();
 	QString GetSerializedHiddenCharts() const;
 	void SetSerializedHiddenCharts(QString const & hiddenCharts);
 signals:

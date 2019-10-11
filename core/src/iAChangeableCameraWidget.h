@@ -25,6 +25,11 @@
 class open_iA_Core_API iAChangeableCameraWidget
 {
 public:
-	//! @param pos set one of the predefined camera positions
+	//! Set a predefined camera position to the 3D renderer(s) in this widget.
+	//! @param pos one of the predefined camera positions
 	virtual void setCamPosition(int pos) =0;
+protected:
+	//! Prevent destruction of the object through this interface.
+	//! (implemented empty in iASavableProject.cpp)
+	~iAChangeableCameraWidget();
 };

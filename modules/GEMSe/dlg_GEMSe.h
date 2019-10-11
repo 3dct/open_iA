@@ -90,14 +90,14 @@ public:
 	QString GetSerializedHiddenCharts() const;
 	void SetSerializedHiddenCharts(QString const & hiddenCharts);
 	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > GetSamplings();
-	void SetMagicLensCount(int count);
-	void FreeMemory();
+	void setMagicLensCount(int count);
+	void freeMemory();
 	void SetProbabilityProbing(bool enabled);
 	void DataTFChanged();
 	QString GetLabelNames() const;
 public slots:
 	void ResetFilters();
-	void SelectHistograms();
+	void selectHistograms();
 private slots:
 	void ClusterNodeClicked(QSharedPointer<iAImageTreeNode> node);
 	void ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode> node);

@@ -78,7 +78,7 @@ public:
 	bool IsShowingCluster() const;
 	void setSliceNumber(int sliceNr);
 	void SetMagicLensOpacity(double opacity);
-	void SetMagicLensCount(int count);
+	void setMagicLensCount(int count);
 	void UpdateMagicLensColors();
 	void SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme const * colorTheme);
 	void SetRepresentativeType(int representativeType);

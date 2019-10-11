@@ -610,7 +610,7 @@ void dlg_CSVInput::assignSelectedCols()
 	QVector<int> selectedColIDx;
 	for (auto selColModelIdx : selectedColModelIndices)
 		selectedColIDx.push_back(selColModelIdx.row());
-	qSort(selectedColIDx.begin(), selectedColIDx.end(), qLess<uint>());
+	std::sort(selectedColIDx.begin(), selectedColIDx.end(), std::less<uint>());
 	if (list_ColumnSelection->count() > 0)
 	{
 		m_confParams.currentHeaders.clear();
@@ -711,12 +711,12 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName, iACsvConfi
 	{
 		if (formatName == iACsvConfig::LegacyFiberFormat)
 		{
-			m_confParams = iACsvConfig::getLegacyFiberFormat(m_confParams.fileName);
+			dest = iACsvConfig::getLegacyFiberFormat(dest.fileName);
 			return true;
 		}
 		else if (formatName == iACsvConfig::LegacyVoidFormat)
 		{
-			m_confParams = iACsvConfig::getLegacyPoreFormat(m_confParams.fileName);
+			dest = iACsvConfig::getLegacyPoreFormat(dest.fileName);
 			return true;
 		}
 		return false;

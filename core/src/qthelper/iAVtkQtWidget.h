@@ -20,50 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_GEMSeToolBar.h"
+#include "iAVtkWidget.h"
 
-#include <iAModuleInterface.h>
-#include <qthelper/iAQTtoUIConnector.h>
+#include "open_iA_Core_export.h"
 
-#include <QToolBar>
-
-class iASEAFile;
-
-class QSettings;
-
-typedef iAQTtoUIConnector<QToolBar, Ui_GEMSeToolBar> iAGEMSeToolbar;
-
-class iAGEMSeModuleInterface : public iAModuleInterface
+class open_iA_Core_API iAVtkQtWidget : public iAVtkWidget
 {
-	Q_OBJECT
-public:
-	iAGEMSeModuleInterface();
-	void Initialize() override;
-	void loadProject(MdiChild* mdiChild, QSettings const & metaFile, QString const & fileName);
-	void saveProject(QSettings & metaFile, QString const & fileName);
-protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
-private slots:
-	//! @{ Menu entries:
-	void startGEMSe();
-	void loadPreCalculatedData();
-	//! @}
-	//! @{ Toolbar actions:
-	void resetFilter();
-	void toggleAutoShrink();
-	void toggleDockWidgetTitleBar();
-	void exportClusterIDs();
-	void exportAttributeRangeRanking();
-	void exportRankings();
-	void importRankings();
-	//! @}
-	void loadGEMSe();
-private:
-	void loadOldGEMSeProject(QString const & fileName);
-	void setupToolbar();
-	
-	iAGEMSeToolbar* m_toolbar;
-
-	//! cache for precalculated data loading
-	QSharedPointer<iASEAFile> m_seaFile;
+Q_OBJECT
+public slots:
+	void updateAll();
 };

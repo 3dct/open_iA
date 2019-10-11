@@ -638,7 +638,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 	for (int xBinNumber = 1; xBinNumber <= plotBinCnt; ++xBinNumber)
 	{
 		//TODO: refactoring -> move to helper class (also see sync functions above)
-		auto lower = qLowerBound(m_nonlinearMappingVec.begin(),
+		auto lower = std::lower_bound(m_nonlinearMappingVec.begin(),
 			m_nonlinearMappingVec.end(), (xBinNumber - 1)*m_stepSize);
 		int nonlinearLowerIdx = lower - m_nonlinearMappingVec.begin() - 1;
 		if (nonlinearLowerIdx < 0) nonlinearLowerIdx = 0.0;
@@ -647,7 +647,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 		double lowerDistToCurrPoint = (xBinNumber - 1)*m_stepSize -
 			m_nonlinearMappingVec[nonlinearLowerIdx];
 		if (lowerDistToCurrPoint < 0) lowerDistToCurrPoint = 0.0;
-		auto upper = qLowerBound(m_nonlinearMappingVec.begin(),
+		auto upper = std::lower_bound(m_nonlinearMappingVec.begin(),
 			m_nonlinearMappingVec.end(), xBinNumber*m_stepSize);
 		int nonlinearUpperIdx = upper - m_nonlinearMappingVec.begin();
 		double upperDistToNextPoint = 0.0, upperDistToCurrPoint = 0.0;
@@ -821,9 +821,9 @@ void dlg_DynamicVolumeLines::showBkgrdThrRanges(QCustomPlot* qcp)
 		}
 		else
 		{
-			auto start = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), it->lower);
+			auto start = std::lower_bound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), it->lower);
 			tlCoordX = start - m_nonlinearMappingVec.begin();
-			auto end = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), it->upper);
+			auto end = std::lower_bound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), it->upper);
 			brCoordX = end - m_nonlinearMappingVec.begin();
 		}
 
@@ -894,7 +894,7 @@ void dlg_DynamicVolumeLines::syncLinearXAxis(QCPRange nonlinearXRange)
 		m_nonlinearScaledPlot->xAxis->setRange(boundedRange);
 	}
 
-	auto lower = qLowerBound(m_nonlinearMappingVec.begin(),
+	auto lower = std::lower_bound(m_nonlinearMappingVec.begin(),
 		m_nonlinearMappingVec.end(), nonlinearXRange.lower);
 	int lowerIdx = lower - m_nonlinearMappingVec.begin() - 1;
 	if (lowerIdx < 0) lowerIdx = 0;
@@ -904,7 +904,7 @@ void dlg_DynamicVolumeLines::syncLinearXAxis(QCPRange nonlinearXRange)
 		m_nonlinearMappingVec[lowerIdx];
 	if (lowerDistToCurrPoint < 0) lowerDistToCurrPoint = 0;
 
-	auto upper = qLowerBound(m_nonlinearMappingVec.begin(),
+	auto upper = std::lower_bound(m_nonlinearMappingVec.begin(),
 		m_nonlinearMappingVec.end(), nonlinearXRange.upper);
 	int upperIdx = upper - m_nonlinearMappingVec.begin();
 	double upperDistToNextPoint = 0.0, upperDistToCurrPoint = 0.0;
@@ -1113,7 +1113,7 @@ void dlg_DynamicVolumeLines::mouseMove(QMouseEvent* e)
 		m_nonlinearDataPointInfo->position->setPixelPosition(
 			QPoint(e->pos().x() + 5, e->pos().y() - 15));
 
-		auto v = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), x);
+		auto v = std::lower_bound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), x);
 		int hilbertIdx = v - m_nonlinearMappingVec.begin() - 1;
 		if (v - m_nonlinearMappingVec.begin() == 0) hilbertIdx = 0;
 

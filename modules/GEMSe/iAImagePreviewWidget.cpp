@@ -93,8 +93,8 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 
 	connect(m_slicer, SIGNAL(clicked()), this, SIGNAL(clicked()));
 	connect(m_slicer, SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
-	connect(m_slicer, SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerHovered(int, int, int, int)));
-	connect(m_slicer, SIGNAL(userInteraction()), this, SIGNAL(updated()));
+	connect(m_slicer, &iASlicer::oslicerPos, this, &iAImagePreviewWidget::SlicerHovered);
+	connect(m_slicer, &iASlicer::userInteraction, this, &iAImagePreviewWidget::updated);
 	setLayout(new QHBoxLayout);
 	layout()->setSpacing(0);
 	layout()->addWidget(m_slicer);

@@ -41,5 +41,6 @@ public:
 	void setDiameterFactor(double diameterFactor);
 	void setContextDiameterFactor(double contextDiameterFactor);
 	void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive) override;
+	QString visualizationStatistics() const override;
 };
 

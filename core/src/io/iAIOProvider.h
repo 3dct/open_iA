@@ -44,6 +44,8 @@ public:
 
 	static const QString ProjectFileTypeFilter;
 	static const QString ProjectFileExtension;
+	static const QString NewProjectFileTypeFilter;
+	static const QString NewProjectFileExtension;
 	static const QString MetaImages;
 	static const QString VTKFiles; 
 };

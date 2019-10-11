@@ -20,50 +20,20 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_GEMSeToolBar.h"
+#include <iAProjectBase.h>
 
-#include <iAModuleInterface.h>
-#include <qthelper/iAQTtoUIConnector.h>
-
-#include <QToolBar>
-
-class iASEAFile;
+#include <QSharedPointer>
 
 class QSettings;
+class QString;
 
-typedef iAQTtoUIConnector<QToolBar, Ui_GEMSeToolBar> iAGEMSeToolbar;
-
-class iAGEMSeModuleInterface : public iAModuleInterface
+class iAGEMSeProject : public iAProjectBase
 {
-	Q_OBJECT
 public:
-	iAGEMSeModuleInterface();
-	void Initialize() override;
-	void loadProject(MdiChild* mdiChild, QSettings const & metaFile, QString const & fileName);
-	void saveProject(QSettings & metaFile, QString const & fileName);
-protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
-private slots:
-	//! @{ Menu entries:
-	void startGEMSe();
-	void loadPreCalculatedData();
-	//! @}
-	//! @{ Toolbar actions:
-	void resetFilter();
-	void toggleAutoShrink();
-	void toggleDockWidgetTitleBar();
-	void exportClusterIDs();
-	void exportAttributeRangeRanking();
-	void exportRankings();
-	void importRankings();
-	//! @}
-	void loadGEMSe();
-private:
-	void loadOldGEMSeProject(QString const & fileName);
-	void setupToolbar();
-	
-	iAGEMSeToolbar* m_toolbar;
-
-	//! cache for precalculated data loading
-	QSharedPointer<iASEAFile> m_seaFile;
+	iAGEMSeProject();
+	static const QString ID;
+	virtual ~iAGEMSeProject() override;
+	void loadProject(QSettings & projectFile, QString const & fileName) override;
+	void saveProject(QSettings & projectFile, QString const & fileName) override;
+	static QSharedPointer<iAProjectBase> create();
 };

@@ -29,6 +29,9 @@ then
 	MODULE_DIRS=$8
 fi
 
+curdatetime=$(date +"%Y%m%d_%H%M%S")
+echo "Automated build at $curdatetime, mode $CTEST_MODE"
+
 TEST_CONFIG_DIR=$(mktemp --tmpdir=/tmp -d ctestconfigs.XXXXXXXXXX)
 
 cd $TEST_SRC_DIR

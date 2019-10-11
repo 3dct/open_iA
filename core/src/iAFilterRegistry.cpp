@@ -24,9 +24,6 @@
 #include "iAFilter.h"
 #include "iAFilterRunnerGUI.h"
 
-iAIFilterFactory::~iAIFilterFactory() {}
-iAIFilterRunnerGUIFactory::~iAIFilterRunnerGUIFactory() {}
-
 void iAFilterRegistry::addFilterFactory(QSharedPointer<iAIFilterFactory> factory)
 {
 	m_filters.push_back(factory);

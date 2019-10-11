@@ -25,6 +25,14 @@ set MSBUILD_OPTS=/t:clean /m
 python --version >NUL 2>NUL
 IF %ERRORLEVEL% NEQ 0 GOTO PythonNotFound
 
+IF EXIST C:\cygwin64 (
+	SET CYGWIN_PATH=c:\cygwin64
+) ELSE (
+	SET CYGWIN_PATH=c:\cygwin
+)
+for /f %%i in ('%CYGWIN_PATH%\bin\date.exe +"%%Y%%m%%d_%%H%%M%%S"') do set CURDATETIME=%%i
+@echo Automated build at %CURDATETIME%, mode %CTEST_MODE%
+
 :: for security reasons (as we call deltree on it) we don't make that configurable
 :uniqTmpLoop
 set "TEST_CONFIG_PATH=%tmp%\ctest_config_%RANDOM%"

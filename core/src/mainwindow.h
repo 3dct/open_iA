@@ -41,7 +41,6 @@ class QDomElement;
 class QDomNode;
 class QMenu;
 class QMdiArea;
-class QSignalMapper;
 class QLabel;
 class QSplashScreen;
 
@@ -65,7 +64,7 @@ public:
 		QString const & splashPath, QString const & iconPath);
 	static void initResources();
 
-	void setPath(QString p);
+	void setPath(QString const & p);
 	QString const & path();
 	void setCurrentFile(const QString &fileName);
 	QString const & currentFile();  //!< deprecated. Use a specific mdichilds, or even better, an mdichilds dlg_modalities methods instead!
@@ -218,7 +217,6 @@ private:
 	QAction *m_separatorAct;
 	QAction *m_recentFileActs[MaxRecentFiles];
 	QActionGroup *m_slicerToolsGroup;
-	QSignalMapper *m_windowMapper;
 	QString m_qssName;
 	iAVolumeSettings m_defaultVolumeSettings;
 	iARenderSettings m_defaultRenderSettings;

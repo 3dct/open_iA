@@ -221,8 +221,8 @@ void dlg_volumePlayer::setChecked(int r, int c)
 {
 	for (int i=1; i<m_numberOfColumns;i++)
 	{
-		dataTable->item(m_old_r,i)->setBackgroundColor(Qt::white);
-		dataTable->item(r,i)->setBackgroundColor(Qt::lightGray);
+		dataTable->item(m_old_r,i)->setBackground(Qt::white);
+		dataTable->item(r,i)->setBackground(Qt::lightGray);
 	}
 	m_old_r=r;
 }

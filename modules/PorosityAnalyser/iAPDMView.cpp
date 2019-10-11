@@ -240,7 +240,7 @@ void iAPDMView::UpdateTableHistogram()
 			QVector<double> xGroundTruth; QVector<double> yGroundTruth;
 			QString datasetName = ( *m_datasets )[j];
 			xGroundTruth << ( *m_gtPorosityMap ).find( datasetName ).value();
-			qSort( valueData.begin(), valueData.end() );
+			std::sort( valueData.begin(), valueData.end() );
 			yGroundTruth << valueData.last();
 			QCPGraph * gtGraph = customPlot->addGraph();
 			gtGraph->setData( xGroundTruth, yGroundTruth );

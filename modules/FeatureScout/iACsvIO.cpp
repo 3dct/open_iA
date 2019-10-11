@@ -110,7 +110,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 	QFile file(m_csvConfig.fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Unable to open file: %1").arg(file.errorString()));
+		DEBUG_LOG(QString("Unable to open file '%1': %2").arg(m_csvConfig.fileName).arg(file.errorString()));
 		return false;
 	}
 	QTextStream in(&file);
@@ -445,7 +445,7 @@ bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<
 	{
 		++lineNr;
 		QString line = in.readLine();
-		if (lineNr <= 6)
+		if (lineNr <= 5 || line.isEmpty())
 			continue;
 		QStringList valueStrList = line.split(",", QString::SkipEmptyParts);
 		if (valueStrList.size() < 7 || ((valueStrList.size() - 1) % 3) != 0)

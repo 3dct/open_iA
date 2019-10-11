@@ -23,7 +23,9 @@
 #include <QObject>
 
 const QString iAIOProvider::ProjectFileExtension(".mod");
-const QString iAIOProvider::ProjectFileTypeFilter("open_iA project file (*"+ProjectFileExtension+");;");
+const QString iAIOProvider::ProjectFileTypeFilter("open_iA modality file (*"+ProjectFileExtension+");;");
+const QString iAIOProvider::NewProjectFileExtension(".opf");
+const QString iAIOProvider::NewProjectFileTypeFilter("open_iA project file (*"+NewProjectFileExtension+");;");
 const QString iAIOProvider::MetaImages("Meta Images (*.mhd *.mha);;");
 const QString iAIOProvider::VTKFiles("VTK Files (*.vtk);;");
 
@@ -39,7 +41,7 @@ QString iAIOProvider::GetSupportedLoadFormats()
 #ifdef USE_HDF5
 		"*.hdf5 *.h5 *.he5 *.mat "
 #endif
-		"*.vti "+ImageFormatExtensions+" *"+ProjectFileExtension+");;"
+		"*.vti "+ImageFormatExtensions+" *"+ProjectFileExtension+" *"+NewProjectFileExtension+");;"
 		+ MetaImages + VTKFiles +
 		"STL files (*.stl);;"
 		"VG Studio Scenes (*.vgi);;"
@@ -57,7 +59,8 @@ QString iAIOProvider::GetSupportedLoadFormats()
 #endif
 		"Serial VTK image data (*.vti);;") +
 		GetSupportedImageFormats() +
-		ProjectFileTypeFilter;
+		ProjectFileTypeFilter +
+		NewProjectFileTypeFilter;
 }
 
 

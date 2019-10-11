@@ -143,37 +143,44 @@ void iARefDistCompute::run()
 		if (resultID == m_referenceID)
 			continue;
 		size_t fiberCount = d.table->GetNumberOfRows();
-		d.refDiffFiber.resize(fiberCount);
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
-			size_t timeStepCount = d.timeValues.size();
-			auto & diffs = d.refDiffFiber[fiberID].diff;
-			diffs.resize(iAFiberCharData::FiberValueCount+SimilarityMeasureCount);
-			for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
+			if (d.timeData == iAFiberCharData::SimpleTimeData)
 			{
-				auto & timeStepDiffs = diffs[diffID].timestep;
-				timeStepDiffs.resize(timeStepCount);
-				for (size_t timeStep = 0; timeStep < timeStepCount; ++timeStep)
+				size_t timeStepCount = d.timeValues.size();
+				auto & diffs = d.refDiffFiber[fiberID].diff;
+				diffs.resize(iAFiberCharData::FiberValueCount+SimilarityMeasureCount);
+				for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 				{
-					// compute error (=difference - startx, starty, startz, endx, endy, endz, shiftx, shifty, shiftz, phi, theta, length, diameter)
-					size_t refFiberID = d.refDiffFiber[fiberID].dist[BestSimilarityMeasure][0].index;
-					timeStepDiffs[timeStep] = d.timeValues[timeStep][fiberID][diffID]
-						- ref.table->GetValue(refFiberID, diffCols[diffID]).ToDouble();
+					auto & timeStepDiffs = diffs[diffID].timestep;
+					timeStepDiffs.resize(timeStepCount);
+					for (size_t timeStep = 0; timeStep < timeStepCount; ++timeStep)
+					{
+						// compute error (=difference - startx, starty, startz, endx, endy, endz, shiftx, shifty, shiftz, phi, theta, length, diameter)
+						size_t refFiberID = d.refDiffFiber[fiberID].dist[BestSimilarityMeasure][0].index;
+						timeStepDiffs[timeStep] = d.timeValues[timeStep][fiberID][diffID]
+							- ref.table->GetValue(refFiberID, diffCols[diffID]).ToDouble();
+					}
 				}
-			}
-			for (size_t distID = 0; distID < SimilarityMeasureCount; ++distID)
+				for (size_t distID = 0; distID < SimilarityMeasureCount; ++distID)
+				{
+					auto & timeStepDiffs = diffs[iAFiberCharData::FiberValueCount + distID].timestep;
+					timeStepDiffs.resize(timeStepCount);
+					size_t refFiberID = d.refDiffFiber[fiberID].dist[distID][0].index;
+					iAFiberData refFiber(ref.table, refFiberID, mapping);
+					for (size_t timeStep = 0; timeStep < timeStepCount; ++timeStep)
+					{
+						iAFiberData fiber(d.timeValues[timeStep][fiberID]);
+						double dist = getSimilarity(fiber, refFiber, distID, diagLength, maxLength);
+						timeStepDiffs[timeStep] = dist;
+					}
+				}
+			}/*
+			else if (data.timeData == iAFiberCharData::CurvedTimeData)
 			{
-				auto & timeStepDiffs = diffs[iAFiberCharData::FiberValueCount + distID].timestep;
-				timeStepDiffs.resize(timeStepCount);
-				size_t refFiberID = d.refDiffFiber[fiberID].dist[distID][0].index;
-				iAFiberData refFiber(ref.table, refFiberID, mapping);
-				for (size_t timeStep = 0; timeStep < timeStepCount; ++timeStep)
-				{
-					iAFiberData fiber(d.timeValues[timeStep][fiberID]);
-					double dist = getSimilarity(fiber, refFiber, distID, diagLength, maxLength);
-					timeStepDiffs[timeStep] = dist;
-				}
+				// difference computation for curved time steps...
 			}
+			*/
 		}
 	}
 
@@ -192,8 +199,10 @@ void iARefDistCompute::run()
 			auto & diffData = d.refDiffFiber[fiberID];
 			for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 			{
-				size_t tableColumnID = m_data->spmData->numParams() - (iAFiberCharData::FiberValueCount + SimilarityMeasureCount + EndColumns) + diffID;
-				double lastValue = d.timeValues.size() > 0 ? diffData.diff[diffID].timestep[d.timeValues.size() - 1] : 0;
+				size_t tableColumnID = m_data->spmData->numParams() -
+					(iAFiberCharData::FiberValueCount + SimilarityMeasureCount + EndColumns) + diffID;
+				double lastValue = (d.timeData == iAFiberCharData::SimpleTimeData) ?
+						diffData.diff[diffID].timestep[d.timeValues.size() - 1] : 0;
 				m_data->spmData->data()[tableColumnID][spmID] = lastValue;
 				d.table->SetValue(fiberID, tableColumnID, lastValue); // required for coloring 3D view by these diffs + used below for average!
 			}

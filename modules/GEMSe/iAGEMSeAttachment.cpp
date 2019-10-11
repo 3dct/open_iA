@@ -24,6 +24,7 @@
 #include "dlg_GEMSe.h"
 #include "dlg_labels.h"
 #include "dlg_samplings.h"
+#include "iAGEMSeProject.h"
 
 #include <dlg_modalities.h>
 #include <iAConsole.h>
@@ -40,6 +41,10 @@ iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, MdiChild * child):
 	iAModuleAttachmentToChild(mainWnd, child),
 	m_dummyTitleWidget(new QWidget())
 {
+	auto project = QSharedPointer<iAGEMSeProject>::create();
+	project->setMainWindow(mainWnd);
+	project->setChild(child);
+	child->addProject(iAGEMSeProject::ID, project);
 }
 
 iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * child)
@@ -71,43 +76,43 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * ch
 	//connect(mdiChild->renderer(),     SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(RendererClicked(int, int, int)));
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
-		connect(child->slicer(i), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
-		connect(child->slicer(i), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
+		connect(child->slicer(i), SIGNAL(clicked(int, int int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int int)));
+		connect(child->slicer(i), SIGNAL(iASlicer::rightClicked(int, int int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int int)));
 	}
 	return newAttachment;
 }
 
-bool iAGEMSeAttachment::LoadSampling(QString const & smpFileName, int labelCount, int datasetID)
+bool iAGEMSeAttachment::loadSampling(QString const & smpFileName, int labelCount, int datasetID)
 {
-	return m_dlgGEMSeControl->LoadSampling(smpFileName, labelCount, datasetID);
+	return m_dlgGEMSeControl->loadSampling(smpFileName, labelCount, datasetID);
 }
 
-bool iAGEMSeAttachment::LoadClustering(QString const & fileName)
+bool iAGEMSeAttachment::loadClustering(QString const & fileName)
 {
-	return m_dlgGEMSeControl->LoadClustering(fileName);
+	return m_dlgGEMSeControl->loadClustering(fileName);
 }
 
-bool iAGEMSeAttachment::LoadRefImg(QString const & refImgName)
+bool iAGEMSeAttachment::loadRefImg(QString const & refImgName)
 {
-	return m_dlgGEMSeControl->LoadRefImg(refImgName);
+	return m_dlgGEMSeControl->loadRefImg(refImgName);
 }
 
-void iAGEMSeAttachment::SetSerializedHiddenCharts(QString const & hiddenCharts)
+void iAGEMSeAttachment::setSerializedHiddenCharts(QString const & hiddenCharts)
 {
-	return m_dlgGEMSeControl->SetSerializedHiddenCharts(hiddenCharts);
+	return m_dlgGEMSeControl->setSerializedHiddenCharts(hiddenCharts);
 }
 
-void iAGEMSeAttachment::ResetFilter()
+void iAGEMSeAttachment::resetFilter()
 {
 	m_dlgGEMSe->ResetFilters();
 }
 
-void iAGEMSeAttachment::ToggleAutoShrink()
+void iAGEMSeAttachment::toggleAutoShrink()
 {
 	m_dlgGEMSe->ToggleAutoShrink();
 }
 
-void iAGEMSeAttachment::ToggleDockWidgetTitleBar()
+void iAGEMSeAttachment::toggleDockWidgetTitleBar()
 {
 	QWidget* titleBar = m_dlgGEMSe->titleBarWidget();
 	if (titleBar == m_dummyTitleWidget)
@@ -120,29 +125,32 @@ void iAGEMSeAttachment::ToggleDockWidgetTitleBar()
 	}
 }
 
-
-void iAGEMSeAttachment::ExportClusterIDs()
+void iAGEMSeAttachment::exportClusterIDs()
 {
-	m_dlgGEMSeControl->ExportIDs();
+	m_dlgGEMSeControl->exportIDs();
 }
 
-
-void iAGEMSeAttachment::ExportAttributeRangeRanking()
+void iAGEMSeAttachment::exportAttributeRangeRanking()
 {
-	m_dlgGEMSeControl->ExportAttributeRangeRanking();
+	m_dlgGEMSeControl->exportAttributeRangeRanking();
 }
 
-void iAGEMSeAttachment::ExportRankings()
+void iAGEMSeAttachment::exportRankings()
 {
-	m_dlgGEMSeControl->ExportRankings();
+	m_dlgGEMSeControl->exportRankings();
 }
 
-void iAGEMSeAttachment::ImportRankings()
+void iAGEMSeAttachment::importRankings()
 {
-	m_dlgGEMSeControl->ImportRankings();
+	m_dlgGEMSeControl->importRankings();
 }
 
-void iAGEMSeAttachment::SetLabelInfo(QString const & colorTheme, QString const & labelNames)
+void iAGEMSeAttachment::setLabelInfo(QString const & colorTheme, QString const & labelNames)
 {
-	m_dlgGEMSeControl->SetLabelInfo(colorTheme, labelNames);
+	m_dlgGEMSeControl->setLabelInfo(colorTheme, labelNames);
+}
+
+void iAGEMSeAttachment::saveProject(QSettings & metaFile, QString const & fileName)
+{
+	m_dlgGEMSeControl->saveProject(metaFile, fileName);
 }

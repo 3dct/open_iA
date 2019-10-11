@@ -196,7 +196,7 @@ void iAImageSampler::run()
 		QSharedPointer<iAModality const> mod0 = m_modalities->get(0);
 		
 		m_runningComputation.insert(cmd, m_curLoop);
-		connect(cmd, SIGNAL(finished()), this, SLOT(computationFinished()) );
+		connect(cmd, &iACommandRunner::finished, this, &iAImageSampler::computationFinished );
 		
 		m_mutex.lock();
 		m_runningOperations++;
@@ -252,7 +252,7 @@ void iAImageSampler::computationFinished()
 		// TODO: use external programs to calculate derived output!
 		iADerivedOutputCalculator * newCharCalc = new iADerivedOutputCalculator(result, m_parameterCount, m_parameterCount + 1, m_labelCount);
 		m_runningDerivedOutput.insert(newCharCalc, result);
-		connect(newCharCalc, SIGNAL(finished()), this, SLOT(derivedOutputFinished()));
+		connect(newCharCalc, &iADerivedOutputCalculator::finished, this, &iAImageSampler::derivedOutputFinished);
 		newCharCalc->start();
 	}
 	else

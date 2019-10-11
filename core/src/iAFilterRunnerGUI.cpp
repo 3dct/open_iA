@@ -39,7 +39,6 @@
 #include <QSettings>
 #include <QSharedPointer>
 #include <QString>
-#include <QTextDocument>
 #include <QVariant>
 
 class iAFilter;
@@ -200,9 +199,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 			dlgParamValues << mdiChildrenNames;
 		}
 	}
-	QTextDocument descr;
-	descr.setHtml(filter->description());
-	dlg_commoninput dlg(mainWnd, filter->name(), dlgParamNames, dlgParamValues, &descr);
+	dlg_commoninput dlg(mainWnd, filter->name(), dlgParamNames, dlgParamValues, filter->description());
 	dlg.setModal(false);
 	dlg.hide();	dlg.show(); // required to apply change in modality!
 	dlg.setSourceMdi(sourceMdi, mainWnd);
@@ -307,15 +304,22 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 			.arg(filter->name()).arg(filter->requiredInputs()));
 		return;
 	}
-	mdiChild->addMsg(QString("Starting %1 filter with parameters:").arg(thread->filter()->name()));
-	for (int p = 0; p < thread->filter()->parameters().size(); ++p)
+	if (mdiChild->preferences().PrintParameters)
 	{
-		auto paramDescriptor = thread->filter()->parameters()[p];
-		QString paramName = paramDescriptor->name();
-		QString paramValue = paramDescriptor->valueType() == Boolean ?
-			(paramValues[paramName].toBool() ? "yes" : "no")
-			: paramValues[paramName].toString();
-		mdiChild->addMsg(QString("    %1 = %2").arg(paramName).arg(paramValue));
+		mdiChild->addMsg(QString("Starting %1 filter with parameters:").arg(thread->filter()->name()));
+		for (int p = 0; p < thread->filter()->parameters().size(); ++p)
+		{
+			auto paramDescriptor = thread->filter()->parameters()[p];
+			QString paramName = paramDescriptor->name();
+			QString paramValue = paramDescriptor->valueType() == Boolean ?
+				(paramValues[paramName].toBool() ? "yes" : "no")
+				: paramValues[paramName].toString();
+			mdiChild->addMsg(QString("    %1 = %2").arg(paramName).arg(paramValue));
+		}
+	}
+	else
+	{
+		mdiChild->addMsg(QString("Starting %1 filter.").arg(thread->filter()->name()));
 	}
 	connectThreadSignals(mdiChild, thread);
 	mdiChild->addStatusMsg(filter->name());

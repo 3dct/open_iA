@@ -47,7 +47,7 @@ enum ContainerSize {
 	WIDTH=530, HEIGHT=600
 };
 
-dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QStringList const & labels, QList<QVariant> const & values, QTextDocument *fDescr)
+dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QStringList const & labels, QList<QVariant> const & values, QString const & descr)
 	: QDialog(parent),
 	m_sourceMdiChild(nullptr),
 	m_sourceMdiChildClosed(false),
@@ -76,20 +76,25 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 	}
 	this->setWindowTitle(title);
 
-	if (fDescr)
+	//Generates a scrollable container for the widgets with a grid layout
+	auto scrollArea = new QScrollArea(this);
+
+	if (!descr.isEmpty())
 	{
 		auto info = new QTextBrowser();
 		QPalette p = info->palette();
 		p.setColor(QPalette::Base, QColor(240, 240, 255));
 		info->setPalette(p);
-		info->setDocument(fDescr);
+		QTextDocument *doc = new QTextDocument(info); // set info as parent so it will get deleted along with it
+		doc->setHtml(descr);
+		info->setDocument(doc);
 		info->setReadOnly(true);
 		info->setOpenExternalLinks(true);
 		gridLayout->addWidget(info, 0, 0);
+		// make sure that description can be easily resized; parameters have scroll bar
+		scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	}
 
-	//Generates a scrollable container for the widgets with a grid layout
-	auto scrollArea = new QScrollArea(this);
 	scrollArea->setObjectName("scrollArea");
 	m_container = new QWidget(scrollArea);
 	m_container->setObjectName("container");

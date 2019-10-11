@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. WeissenbÃ¶ck, B. FrÃ¶hler, M. Schiwarth       *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,26 +15,37 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
 #include "open_iA_Core_export.h"
 
-#include "iASignallingWidget.h"
-#include "iAVtkQtWidget.h"
-
-class iAColoredWidget;
-
-class open_iA_Core_API iAFixedAspectWidget: public iASignallingWidget
+//! Interface for anything that can be saved as a project.
+//! Necessary since not all current tools employ mdichild as container for their widgets.
+//! So every such container needs to implement this class and its doLoadProject method,
+//! in order to be called when the user selects to "Save Project".
+//!
+//! Refactoring ideas:
+//! - make this class the container for the open projects currently stored in 
+//!   MdiChild::m_projects,
+//!   and move MdiChild::doSaveProject into saveProject (or into default implementation of
+//!   doSaveProject, as MdiChild probably into the forseeable future needs to do things
+//!   differently to be able to load .mod files)
+//! - rename to iAOpenProjects or something?
+class open_iA_Core_API iASavableProject
 {
-	Q_OBJECT
 public:
-	iAFixedAspectWidget(double aspect=1.0, Qt::Alignment verticalAlign = Qt::AlignVCenter);
-	iAVtkQtWidget* vtkWidget();
-	void setBackgroundColor(QColor const & color);
+	//! Called from main window to save the project of the current window.
+	//! In case you're wondering why there are two methods in this class, this one
+	//! and the virtual "doLoadProject": This is because it follows the "Non-Virtual Interface
+	//! Idiom", see http://www.gotw.ca/publications/mill18.htm
+	void saveProject();
+protected:
+	//! Prevent destruction of the object through this interface.
+	virtual ~iASavableProject();
 private:
-	iAVtkQtWidget* m_widget;
-	iAColoredWidget* m_fill1, * m_fill2;
+	//! Override this method to implement the actual saving of the project
+	virtual void doSaveProject() = 0;
 };

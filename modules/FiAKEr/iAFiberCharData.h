@@ -80,6 +80,11 @@ public:
 	QSharedPointer<QMap<uint, uint> > mapping;
 	//! name of the csv file this result was loaded from
 	QString fileName;
+	//! name of the csv file the curved info for this file was loaded from
+	QString curvedFileName;
+	//! what kind of time data is available
+	enum TimeDataType { NoTimeData, SimpleTimeData, CurvedTimeData };
+	TimeDataType timeData;
 	//! values for all timesteps, stored as: timestep, fiber, fibervalues
 	std::vector<std::vector<std::vector<double> > > timeValues;
 	//! information on curved fibers; fiber_id (size_t) maps to list of points along fiber
@@ -109,17 +114,21 @@ public:
 	QSharedPointer<iASPLOMData> spmData;
 	//! min and max of fiber count over all results
 	size_t minFiberCount, maxFiberCount;
+// { TODO: make private ?
 	//! maximum of optimization steps in all results
 	int optimStepMax;
 	//! results folder
 	QString folder;
+	//! shift applied to each step
+	double stepShift;
+	//! type of objects (typically fibers, see iACsvConfig::VisualizationType)
+	int objectType;
+// }
 // Comparison to reference:
 	//! for each fiber in the reference, the average match quality over all results (-1.. no match, otherwise 0..1 where 0 perfect match, 1..bad match)
 	std::vector<double> avgRefFiberMatch;
 	//! for each difference/similarity measure, the maximum value over all results:
 	std::vector<double> maxAvgDifference;
-	//! type of objects (typically fibers, see iACsvConfig::VisualizationType)
-	int objectType;
 
 // Methods:
 	bool loadData(QString const & path, QString const & configName, double stepShift, iAProgress * progress);
@@ -135,6 +144,7 @@ public:
 	iAProgress* progress();
 signals:
 	void failed(QString const & path);
+	void success();
 private:
 	iAProgress m_progress;
 	QSharedPointer<iAFiberResultsCollection> m_results;

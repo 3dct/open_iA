@@ -42,6 +42,7 @@ class QGridLayout;
 class QListWidgetItem;
 class QMenu;
 class QPropertyAnimation;
+class QSettings;
 class QTableWidget;
 
 //! A scatter plot matrix (SPLOM) widget.
@@ -147,8 +148,11 @@ public:
 	size_t colorLookupParam() const;                                 //!< parameter currently used for color lookup
 	QSharedPointer<iALookupTable> lookupTable() const;               //!< get lookup table
 	ColorScheme colorScheme() const;                                 //!< get current color scheme
+	void saveSettings(QSettings & iniFile) const;                    //!< store current settings into given object
+	void loadSettings(QSettings const & iniFile);                    //!< load settings from given object
 public slots:
 	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
+	void toggleFlipAxes(bool flip);                                  //!< set whether to flip parameters in large scatterplot
 	void setHistogramBins(int bins);                                 //!< set the number of histogram bins
 	void showSettings();                                             //!< Show the settings dialog
 	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
@@ -218,6 +222,8 @@ private slots:
 	void pointOpacityChanged(int);                                   //!< Called from settings dialog when opacity slider changes
 	void colorSchemeChanged(int colorScheme);                        //!< Called from settings dialog when the color scheme is changed
 	void changePointColor();                                         //!< Called from settings dialog when the point color is clicked
+	void saveSettingsSlot();                                         //!< Called from settings dialog for storing settings
+	void loadSettingsSlot();                                         //!< Called from settings dialog for loading settings
 
 // Members:
 public:
@@ -231,6 +237,7 @@ public:
 		QPoint tickOffsets;
 		QColor backgroundColor;
 		bool maximizedLinked;
+		bool flipAxes;
 
 		QColor popupBorderColor;
 		QColor popupFillColor;
@@ -285,7 +292,8 @@ protected:
 	QMenu* m_contextMenu;                        //!< the context menu (can be extended via addContextMenuAction)
 	QMenu* m_columnPickMenu;                     //!< sub-menu of the context menu for picking which columns are visible
 private:
-	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction, *quadraticPlotsAction, *showPCCAction;
+	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction, *quadraticPlotsAction,
+		*showPCCAction, *flipAxesAction;
 	QVector<iAChartWidget*> m_histograms;        //!< histograms of scatter plot matrix
 	iASPMSettings * m_settingsDlg;               //!< dialog with all the SPLOM settings (which params are visible, opacity of each dot, which column to use for coloring...
 };

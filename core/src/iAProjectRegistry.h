@@ -20,50 +20,39 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_GEMSeToolBar.h"
+#include "open_iA_Core_export.h"
 
-#include <iAModuleInterface.h>
-#include <qthelper/iAQTtoUIConnector.h>
+#include "iAConsole.h"
+#include "iAGenericFactory.h"
 
-#include <QToolBar>
+#include <QMap>
 
-class iASEAFile;
+class iAProjectBase;
 
-class QSettings;
+//! For internal use in iAProjectRegistry only.
+//! There should be no need to use this class directly; use REGISTER_PROJECT below!
+using iAIProjectFactory = iAGenericFactory<iAProjectBase>;
 
-typedef iAQTtoUIConnector<QToolBar, Ui_GEMSeToolBar> iAGEMSeToolbar;
-
-class iAGEMSeModuleInterface : public iAModuleInterface
+class open_iA_Core_API iAProjectRegistry
 {
-	Q_OBJECT
 public:
-	iAGEMSeModuleInterface();
-	void Initialize() override;
-	void loadProject(MdiChild* mdiChild, QSettings const & metaFile, QString const & fileName);
-	void saveProject(QSettings & metaFile, QString const & fileName);
-protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
-private slots:
-	//! @{ Menu entries:
-	void startGEMSe();
-	void loadPreCalculatedData();
-	//! @}
-	//! @{ Toolbar actions:
-	void resetFilter();
-	void toggleAutoShrink();
-	void toggleDockWidgetTitleBar();
-	void exportClusterIDs();
-	void exportAttributeRangeRanking();
-	void exportRankings();
-	void importRankings();
-	//! @}
-	void loadGEMSe();
+	//! Adds a given project type to the registry.
+	template <typename ProjectType> static void addProject(QString const & projectIdentifier);
+	static QList<QString> const projectKeys();
+	static QSharedPointer<iAProjectBase> createProject(QString const & projectIdentifier);
 private:
-	void loadOldGEMSeProject(QString const & fileName);
-	void setupToolbar();
-	
-	iAGEMSeToolbar* m_toolbar;
-
-	//! cache for precalculated data loading
-	QSharedPointer<iASEAFile> m_seaFile;
+	static QMap<QString, QSharedPointer<iAIProjectFactory> > m_projectTypes;
+	iAProjectRegistry() =delete;	//!< iAProjectRegistry is meant to be used statically only, thus prevent creation of objects
 };
+
+template <typename ProjectType> using iAProjectFactory = iASpecificFactory<ProjectType, iAProjectBase>;
+
+template <typename ProjectType>
+void iAProjectRegistry::addProject(QString const & projectIdentifier)
+{
+	if (m_projectTypes.contains(projectIdentifier))
+	{
+		DEBUG_LOG(QString("WARNING: Trying to add already registered project type %1 again!").arg(projectIdentifier))
+	}
+	m_projectTypes.insert(projectIdentifier, QSharedPointer<iAIProjectFactory>(new iAProjectFactory<ProjectType>()));
+}

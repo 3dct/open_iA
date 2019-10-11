@@ -50,7 +50,6 @@
 
 #include <QFileDialog>
 #include <QSettings>
-#include <QTextDocument>
 
 #include <cassert>
 
@@ -121,11 +120,10 @@ void dlg_modalities::addClicked()
 		inList << tr("$Split Channels");
 		QList<QVariant> inPara;
 		inPara << tr("%1").arg(true);
-		QTextDocument descr;
-		descr.setHtml("Input file potentially has multiple channels. "
+		QString descr("Input file potentially has multiple channels. "
 			"Should they be split into separate datasets, "
 			"or kept as one dataset with multiple components ?");
-		dlg_commoninput splitInput(this, "Seed File Format", inList, inPara, &descr);
+		dlg_commoninput splitInput(this, "Seed File Format", inList, inPara, descr);
 		if (splitInput.exec() != QDialog::Accepted)
 		{
 			DEBUG_LOG("Aborted by user.");

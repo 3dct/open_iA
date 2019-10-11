@@ -109,7 +109,6 @@ public:
 	void setMagicLensFrameWidth(int newWidth);
 	void setMagicLensCount(int count);
 	void setMagicLensInput(uint id);
-	void addMagicLensInput(uint id);
 	uint magicLensInput() const;
 	void setMagicLensOpacity(double opacity);
 	double magicLensOpacity() const;

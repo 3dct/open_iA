@@ -31,13 +31,16 @@ class iAFiAKErModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 public:
-	void Initialize();
+	void Initialize() override;
+	void SaveSettings() const override;
+	void setupToolBar();
 private slots:
 	void startFiAKEr();
 	void loadFiAKErProject();
 	void toggleDockWidgetTitleBars();
 	void toggleSettings();
 private:
-	void setupToolBar();
 	iAFiAKErToolBar* m_toolbar = nullptr;
+	QString m_lastPath, m_lastFormat;
+	double m_lastTimeStepOffset;
 };

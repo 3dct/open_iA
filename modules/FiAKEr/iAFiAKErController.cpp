@@ -34,34 +34,35 @@
 #include "iAVectorPlotData.h"
 
 // Core:
-#include "charts/iAChartWidget.h"
-#include "charts/iAHistogramData.h"
-#include "charts/iAPlotTypes.h"
-#include "charts/iAScatterPlot.h" // for selection mode: iAScatterPlot::Rectangle
-#include "charts/iAQSplom.h"
-#include "charts/iASPLOMData.h"
-#include "iAColorTheme.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iALookupTable.h"
-#include "iALUT.h"
-#include "iAMapperImpl.h"
-#include "iAMathUtility.h"
-#include "iAModuleDispatcher.h"
-#include "iARendererManager.h"
-#include "iAStringHelper.h"
-#include "iAToolsVTK.h"    // for setCamPos
-#include "iATransferFunction.h"
-#include "iAVolumeRenderer.h"
-#include "iAVtkWidget.h"
-#include "io/iAITKIO.h"
-#include "io/iAFileChooserWidget.h"
-#include "io/iAFileUtils.h"
-#include "mainwindow.h"
-#include "mdichild.h"
-#include "qthelper/iADockWidgetWrapper.h"
-#include "qthelper/iAFixedAspectWidget.h"
-#include "qthelper/iASignallingWidget.h"
+#include <charts/iAChartWidget.h>
+#include <charts/iAHistogramData.h>
+#include <charts/iAPlotTypes.h>
+#include <charts/iAScatterPlot.h> // for selection mode: iAScatterPlot::Rectangle
+#include <charts/iAQSplom.h>
+#include <charts/iASPLOMData.h>
+#include <iAColorTheme.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iALookupTable.h>
+#include <iALUT.h>
+#include <iAMapperImpl.h>
+#include <iAMathUtility.h>
+#include <iAModuleDispatcher.h>
+#include <iARendererManager.h>
+#include <iAStringHelper.h>
+#include <iAToolsVTK.h>    // for setCamPos
+#include <iATransferFunction.h>
+#include <iAVolumeRenderer.h>
+#include <io/iAFileChooserWidget.h>
+#include <io/iAFileUtils.h>
+#include <io/iAIOProvider.h>
+#include <io/iAITKIO.h>
+#include <mainwindow.h>
+#include <mdichild.h>
+#include <qthelper/iADockWidgetWrapper.h>
+#include <qthelper/iAFixedAspectWidget.h>
+#include <qthelper/iASignallingWidget.h>
+#include <qthelper/iAVtkQtWidget.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkCubeSource.h>
@@ -87,6 +88,7 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QLineEdit>
 #include <QListView>
 #include <QMenu>
 #include <QMessageBox>
@@ -155,7 +157,7 @@ namespace
 class iAFiberCharUIData
 {
 public:
-	iAVtkWidget* vtkWidget;
+	iAVtkQtWidget* vtkWidget;
 	QSharedPointer<iA3DColoredPolyObjectVis> mini3DVis;
 	QSharedPointer<iA3DColoredPolyObjectVis> main3DVis;
 	QCheckBox* cbBoundingBox;
@@ -170,6 +172,8 @@ public:
 	size_t startPlotIdx;
 };
 
+const QString iAFiAKErController::FIAKERProjectID("FIAKER");
+
 iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
 	m_renderManager(new iARendererManager()),
 	m_resultColorTheme(iAColorThemeManager::instance().theme(DefaultResultColorTheme)),
@@ -180,6 +184,7 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
 	m_colorByThemeName(iALUT::GetColorMapNames()[0]),
 	m_showFiberContext(false),
 	m_mergeContextBoxes(false),
+	m_showWireFrame(false),
 	m_contextSpacing(0.0),
 	m_spm(new iAQSplom())
 {
@@ -213,8 +218,8 @@ void iAFiAKErController::start(QString const & path, QString const & configName,
 
 	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, configName, stepShift);
-	connect(resultsLoader, SIGNAL(finished()), this, SLOT(resultsLoaded()));
-	connect(resultsLoader, SIGNAL(failed(QString const &)), this, SLOT(resultsLoadFailed(QString const &)));
+	connect(resultsLoader, &iAFiberResultsLoader::success, this, &iAFiAKErController::resultsLoaded);
+	connect(resultsLoader, &iAFiberResultsLoader::failed,  this, &iAFiAKErController::resultsLoadFailed);
 	m_jobs->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
 	resultsLoader->start();
 }
@@ -222,7 +227,10 @@ void iAFiAKErController::start(QString const & path, QString const & configName,
 void iAFiAKErController::resultsLoadFailed(QString const & path)
 {
 	QMessageBox::warning(m_mainWnd, "Fiber Analytics",
-		QString("Could not load data in folder '%1'. Make sure it is in the right format!").arg(path));
+		QString("Could not load data in folder '%1'. Make sure it is in the right format. "
+			"Make sure to check the Debug Console window for further errors; "
+			"for checking the format of a specific csv file, "
+			"you can use the data loading dialog provided in the FeatureScout tool.").arg(path));
 	delete parent(); // deletes QMdiSubWindow which this widget is child of
 	return;
 }
@@ -273,7 +281,7 @@ iAFiAKErController::~iAFiAKErController()
 
 QWidget * iAFiAKErController::setupMain3DView()
 {
-	m_mainRenderer = new iAVtkWidget();
+	m_main3DWidget = new iAVtkQtWidget();
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	m_ren = vtkSmartPointer<vtkRenderer>::New();
 	m_ren->SetUseFXAA(true);
@@ -282,13 +290,23 @@ QWidget * iAFiAKErController::setupMain3DView()
 	m_ren->SetUseDepthPeeling(true);
 	m_ren->SetMaximumNumberOfPeels(1000);
 	renWin->AddRenderer(m_ren);
-	m_mainRenderer->SetRenderWindow(renWin);
+	m_main3DWidget->SetRenderWindow(renWin);
 	m_renderManager->addToBundle(m_ren);
 	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
 	m_style->setSelectionProvider(this);
 	m_style->assignToRenderWindow(renWin);
 	m_style->setRenderer(m_ren);
 	connect(m_style.GetPointer(), &iASelectionInteractorStyle::selectionChanged, this, &iAFiAKErController::selection3DChanged);
+
+	m_customBoundingBoxSource = vtkSmartPointer<vtkCubeSource>::New();
+	m_customBoundingBoxMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	m_customBoundingBoxActor = vtkSmartPointer<vtkActor>::New();
+
+	m_customBoundingBoxMapper->SetInputConnection(m_customBoundingBoxSource->GetOutputPort());
+	m_customBoundingBoxActor->GetProperty()->SetColor(0, 0, 0);
+	m_customBoundingBoxActor->GetProperty()->SetRepresentationToWireframe();
+	m_customBoundingBoxActor->PickableOff();
+	m_customBoundingBoxActor->SetMapper(m_customBoundingBoxMapper);
 
 	m_showReferenceWidget = new QWidget();
 	m_chkboxShowReference = new QCheckBox("Show ");
@@ -312,7 +330,7 @@ QWidget * iAFiAKErController::setupMain3DView()
 	QWidget* mainRendererContainer = new QWidget();
 	mainRendererContainer->setLayout(new QVBoxLayout());
 	mainRendererContainer->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
-	mainRendererContainer->layout()->addWidget(m_mainRenderer);
+	mainRendererContainer->layout()->addWidget(m_main3DWidget);
 	mainRendererContainer->layout()->addWidget(m_showReferenceWidget);
 	return mainRendererContainer;
 }
@@ -392,6 +410,30 @@ QWidget* iAFiAKErController::setupSettingsView()
 	fiberContextLayout->addWidget(fiberContextSpacingWidget);
 	connect(sbContextSpacing, SIGNAL(valueChanged(double)), this, SLOT(contextSpacingChanged(double)));
 
+	QWidget* boundingBoxWidget = new QWidget();
+	auto boundingBoxLayout = new QGridLayout();
+	boundingBoxWidget->setLayout(boundingBoxLayout);
+	boundingBoxLayout->setContentsMargins(0, 0, 0, 0);
+	boundingBoxLayout->setSpacing(SettingSpacing);
+	QCheckBox* cbShowBoundingBox = new QCheckBox("Show custom bounding box:");
+	connect(cbShowBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::showBoundingBoxChanged);
+	boundingBoxLayout->addWidget(cbShowBoundingBox, 0, 0, 1, 6);
+	for (int i = 0; i < 2; ++i)
+	{
+		QString capStart(i == 0 ? "Corner 1 " : "Corner 2 ");
+		for (int j = 0; j < 3; ++j)
+		{
+			QString fullCap((j == 0 ? capStart : "") + ((j == 0) ? "X" : ((j == 1) ? "Y" : "Z")));
+			QLabel * lbl = new QLabel(fullCap);
+			m_teBoundingBox[i*3 + j] = new QLineEdit("0");
+			boundingBoxLayout->addWidget(lbl, i+1, j*2);
+			boundingBoxLayout->addWidget(m_teBoundingBox[i*3 + j], i+1, j * 2 + 1);
+		}
+	}
+
+	QCheckBox* cbShowWireFrame = new QCheckBox("Show wireframe");
+	cbShowWireFrame->setChecked(false);
+	connect(cbShowWireFrame, &QCheckBox::stateChanged, this, &iAFiAKErController::showWireFrameChanged);
 
 	QWidget* moreButtons = new QWidget();
 	moreButtons->setLayout(new QHBoxLayout());
@@ -437,6 +479,8 @@ QWidget* iAFiAKErController::setupSettingsView()
 	main3DViewSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
 	main3DViewSettings->layout()->setSpacing(SettingSpacing);
 	main3DViewSettings->layout()->addWidget(sliderWidget);
+	main3DViewSettings->layout()->addWidget(boundingBoxWidget);
+	main3DViewSettings->layout()->addWidget(cbShowWireFrame);
 	main3DViewSettings->layout()->addWidget(fiberContextWidget);
 	main3DViewSettings->layout()->addWidget(selectionModeWidget);
 	main3DViewSettings->layout()->addWidget(metricChoice);
@@ -508,7 +552,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 	histoBinInputWidget->layout()->addWidget(histogramBinInput);
 
 	m_showReferenceInChart = new QCheckBox("Show Reference in Distribution Histograms");
-	m_showReferenceInChart->setChecked(true);
+	m_showReferenceInChart->setChecked(false);
 	connect(m_showReferenceInChart, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceInChartToggled);
 
 	m_distributionChartType = new QComboBox();
@@ -581,10 +625,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 	saveLoadAnalysisWidget->layout()->setSpacing(SettingSpacing);
 	auto saveAnalysisButton = new QPushButton("Save Analysis");
 	connect(saveAnalysisButton, &QPushButton::pressed, this, &iAFiAKErController::saveAnalysisClick);
-	auto loadAnalysisButton = new QPushButton("Load Analysis");
-	connect(loadAnalysisButton, &QPushButton::pressed, this, &iAFiAKErController::loadAnalysisClick);
 	saveLoadAnalysisWidget->layout()->addWidget(saveAnalysisButton);
-	saveLoadAnalysisWidget->layout()->addWidget(loadAnalysisButton);
 
 	QGroupBox* globalSettings = new QGroupBox("Global Settings");
 	globalSettings->setLayout(new QVBoxLayout());
@@ -734,10 +775,10 @@ QWidget* iAFiAKErController::setupResultListView()
 	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result.at(resultID);
-		auto & uiData = m_resultUIs[resultID];
+		auto & ui = m_resultUIs[resultID];
 
-		uiData.previewWidget = new iAFixedAspectWidget();
-		uiData.vtkWidget = uiData.previewWidget->vtkWidget();
+		ui.previewWidget = new iAFixedAspectWidget();
+		ui.vtkWidget = ui.previewWidget->vtkWidget();
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 		renWin->SetAlphaBitPlanes(1);
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
@@ -746,69 +787,82 @@ QWidget* iAFiAKErController::setupResultListView()
 		ren->SetUseDepthPeeling(true);
 		ren->SetMaximumNumberOfPeels(10);
 		renWin->AddRenderer(ren);
-		uiData.vtkWidget->SetRenderWindow(renWin);
-		uiData.vtkWidget->setProperty("resultID", resultID);
+		ui.vtkWidget->SetRenderWindow(renWin);
+		ui.vtkWidget->setProperty("resultID", resultID);
 
-		uiData.cbShow = new QCheckBox("Show");
-		uiData.cbShow->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		uiData.cbShow->setProperty("resultID", resultID);
-		uiData.cbBoundingBox = new QCheckBox("Box");
-		uiData.cbBoundingBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		uiData.cbBoundingBox->setProperty("resultID", resultID);
+		ui.cbShow = new QCheckBox("Show");
+		ui.cbShow->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		ui.cbShow->setProperty("resultID", resultID);
+		ui.cbBoundingBox = new QCheckBox("Box");
+		ui.cbBoundingBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		ui.cbBoundingBox->setProperty("resultID", resultID);
 
 		QString name = QFileInfo(d.fileName).baseName();
 		name = name.mid(commonPrefixLength, name.size() - commonPrefixLength - commonSuffixLength);
 
-		uiData.nameActions = new iASignallingWidget();
-		uiData.nameActions->setAutoFillBackground(true);
-		uiData.nameActions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		uiData.nameActions->setLayout(new QVBoxLayout());
-		uiData.nameActions->layout()->setContentsMargins(0, 0, 0, 0);
-		uiData.nameActions->layout()->setSpacing(5);
-		uiData.nameLabel = new QLabel(name);
-		uiData.nameLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		uiData.topFiller = new QWidget();
-		uiData.topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		uiData.bottomFiller = new QWidget();
-		uiData.bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		uiData.nameActions->layout()->addWidget(uiData.topFiller);
-		uiData.nameActions->layout()->addWidget(uiData.nameLabel);
-		uiData.nameActions->layout()->addWidget(uiData.cbShow);
-		uiData.nameActions->layout()->addWidget(uiData.cbBoundingBox);
-		uiData.nameActions->layout()->addWidget(uiData.bottomFiller);
+		ui.nameActions = new iASignallingWidget();
+		ui.nameActions->setAutoFillBackground(true);
+		ui.nameActions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		ui.nameActions->setLayout(new QVBoxLayout());
+		ui.nameActions->layout()->setContentsMargins(0, 0, 0, 0);
+		ui.nameActions->layout()->setSpacing(5);
+		ui.nameLabel = new QLabel(name);
+		ui.nameLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		ui.topFiller = new QWidget();
+		ui.topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		ui.bottomFiller = new QWidget();
+		ui.bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		ui.nameActions->layout()->addWidget(ui.topFiller);
+		ui.nameActions->layout()->addWidget(ui.nameLabel);
+		ui.nameActions->layout()->addWidget(ui.cbShow);
+		ui.nameActions->layout()->addWidget(ui.cbBoundingBox);
+		ui.nameActions->layout()->addWidget(ui.bottomFiller);
 
-		uiData.stackedBars = new iAStackedBarChart(colorTheme);
-		uiData.stackedBars->setMinimumWidth(StackedBarMinWidth);
-		uiData.stackedBars->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		connect(m_stackedBarsHeaders, &iAStackedBarChart::weightsChanged, uiData.stackedBars, &iAStackedBarChart::setWeights);
+		ui.stackedBars = new iAStackedBarChart(colorTheme);
+		ui.stackedBars->setMinimumWidth(StackedBarMinWidth);
+		ui.stackedBars->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		connect(m_stackedBarsHeaders, &iAStackedBarChart::weightsChanged, ui.stackedBars, &iAStackedBarChart::setWeights);
 
-		uiData.histoChart = new iAChartWidget(resultList, "Fiber Length", "");
-		uiData.histoChart->setShowXAxisLabel(false);
-		uiData.histoChart->setMinimumWidth(HistogramMinWidth);
-		uiData.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		ui.histoChart = new iAChartWidget(resultList, "Fiber Length", "");
+		ui.histoChart->setShowXAxisLabel(false);
+		ui.histoChart->setMinimumWidth(HistogramMinWidth);
+		ui.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-		m_resultsListLayout->addWidget(uiData.nameActions, resultID + 1, NameActionColumn);
-		m_resultsListLayout->addWidget(uiData.previewWidget, resultID + 1, PreviewColumn);
-		m_resultsListLayout->addWidget(uiData.stackedBars, resultID + 1, StackedBarColumn);
-		m_resultsListLayout->addWidget(uiData.histoChart, resultID + 1, HistogramColumn);
+		m_resultsListLayout->addWidget(ui.nameActions, resultID + 1, NameActionColumn);
+		m_resultsListLayout->addWidget(ui.previewWidget, resultID + 1, PreviewColumn);
+		m_resultsListLayout->addWidget(ui.stackedBars, resultID + 1, StackedBarColumn);
+		m_resultsListLayout->addWidget(ui.histoChart, resultID + 1, HistogramColumn);
 
-		uiData.mini3DVis = create3DVis(ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType, d.curveInfo);
-		uiData.main3DVis = create3DVis(m_ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType, d.curveInfo);
-		uiData.mini3DVis->setColor(getResultColor(resultID));
-		uiData.mini3DVis->show();
+		ui.mini3DVis = create3DVis(ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType, d.curveInfo);
+		ui.main3DVis = create3DVis(m_ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType, d.curveInfo);
+		ui.mini3DVis->setColor(getResultColor(resultID));
+		ui.mini3DVis->show();
 		ren->ResetCamera();
 
-		uiData.previewWidget->setProperty("resultID", resultID);
-		uiData.stackedBars->setProperty("resultID", resultID);
-		uiData.histoChart->setProperty("resultID", resultID);
-		uiData.nameActions->setProperty("resultID", resultID);
-		connect(uiData.previewWidget, &iAFixedAspectWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
-		connect(uiData.stackedBars, &iAStackedBarChart::dblClicked, this, &iAFiAKErController::referenceToggled);
-		connect(uiData.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
-		connect(uiData.nameActions, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
-		connect(uiData.vtkWidget, &iAVtkWidget::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
-		connect(uiData.cbShow, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
-		connect(uiData.cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
+		const double * b = ui.main3DVis->bounds();
+		QString bbox = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
+			.arg(b[0]).arg(b[1]).arg(b[2]).arg(b[3]).arg(b[4]).arg(b[5]);
+		ui.nameActions->setToolTip(bbox + "\nVisualization details: " + ui.main3DVis->visualizationStatistics());
+
+		ui.previewWidget->setProperty("resultID", resultID);
+		ui.stackedBars->setProperty("resultID", resultID);
+		ui.histoChart->setProperty("resultID", resultID);
+		ui.nameActions->setProperty("resultID", resultID);
+		connect(ui.previewWidget, &iAFixedAspectWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
+		connect(ui.stackedBars, &iAStackedBarChart::dblClicked, this, &iAFiAKErController::referenceToggled);
+		connect(ui.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
+		connect(ui.nameActions, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
+		connect(ui.vtkWidget, &iAVtkWidget::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
+		connect(ui.cbShow, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
+		connect(ui.cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
+
+		// connect changes to visualizations to an update of the 3D widget:
+		// {
+		connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
+
+		// iA3DColoredObjectVis::updateRenderer makes sure this connection is only triggered if vis is currently shown:
+		connect(ui.main3DVis.data(), &iA3DObjectVis::updated, m_main3DWidget, &iAVtkQtWidget::updateAll);
+		// }
 	}
 	resultList->setLayout(m_resultsListLayout);
 	addStackedBar(0);
@@ -1279,6 +1333,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 	{
 		ui.main3DVis->setSelectionOpacity(SelectionOpacity);
 		ui.main3DVis->setContextOpacity(ContextOpacity);
+		ui.main3DVis->setShowWireFrame(m_showWireFrame);
 		auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
 		if (vis)
 		{
@@ -1315,14 +1370,20 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		bool anythingSelected = isAnythingSelected();
 		if (anythingSelected)
 			ui.main3DVis->setSelection(m_selection[resultID], anythingSelected);
-		if (data.timeValues.size() > 0)
+		if (m_data->objectType == iACsvConfig::Cylinders //|| m_data->objectType == iACsvConfig::Lines
+		)
 		{
-			if (m_data->objectType == iACsvConfig::Cylinders)
+			if (data.timeData == iAFiberCharData::SimpleTimeData)
 			{
 				auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
 				vis->updateValues(data.timeValues[
 					std::min(data.timeValues.size() - 1, static_cast<size_t>(m_optimStepSlider->value()))]);
+			}/*
+			else if (data.timeData == iAFiberCharData::CurvedTimeData)
+			{
+				// visualization for curved time steps...
 			}
+			*/
 		}
 		ui.main3DVis->show();
 		m_style->addInput( resultID, ui.main3DVis->getPolyData(), ui.main3DVis->getActor() );
@@ -1353,8 +1414,8 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
 			m_optimStepChart[c]->update();
 	changeReferenceDisplay();
-	m_mainRenderer->GetRenderWindow()->Render();
-	m_mainRenderer->update();
+	m_main3DWidget->GetRenderWindow()->Render();
+	m_main3DWidget->update();
 }
 
 void iAFiAKErController::toggleBoundingBox(int state)
@@ -1365,8 +1426,6 @@ void iAFiAKErController::toggleBoundingBox(int state)
 	auto & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
 	{
-		const double * b = ui.main3DVis->bounds();
-		DEBUG_LOG(QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)").arg(b[0]).arg(b[1]).arg(b[2]).arg(b[3]).arg(b[4]).arg(b[5]));
 		ui.main3DVis->showBoundingBox();
 	}
 	else
@@ -1400,7 +1459,7 @@ void iAFiAKErController::setCamPosition(int pos)
 {
 	::setCamPosition(m_ren->GetActiveCamera(), static_cast<iACameraPosition>(pos));
 	m_ren->ResetCamera();
-	m_mainRenderer->GetRenderWindow()->GetInteractor()->Render();
+	m_main3DWidget->GetRenderWindow()->GetInteractor()->Render();
 }
 
 void iAFiAKErController::clearSelection()
@@ -1585,12 +1644,22 @@ void iAFiAKErController::miniMouseEvent(QMouseEvent* ev)
 	{
 		int resultID = QObject::sender()->property("resultID").toInt();
 		addInteraction(QString("Started FiberScout for %1.").arg(resultName(resultID)));
-		iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
 		MdiChild* newChild = m_mainWnd->createMdiChild(false);
-		iACsvConfig config = getCsvConfig(m_data->result[resultID].fileName, m_configName);
-		featureScout->LoadFeatureScout(config, newChild);
-		newChild->loadLayout("FeatureScout");
+		newChild->show();
+		// wait a bit to make sure MdiChild is shown and all initialization is done
+		// TODO: Replace by connection to a signal which is emitted when MdiChild initialization done
+		QTimer::singleShot(1000, [=] { startFeatureScout(resultID, newChild); });
+		ev->accept();  // not sure if this helps, sometimes still the context menu seems to pop up
 	}
+}
+
+void iAFiAKErController::startFeatureScout(int resultID, MdiChild* newChild)
+{
+	iACsvConfig config = getCsvConfig(m_data->result[resultID].fileName, m_configName);
+	config.curvedFiberFileName = m_data->result[resultID].curvedFileName;
+	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
+	featureScout->LoadFeatureScout(config, newChild);
+	//newChild->loadLayout("FeatureScout");
 }
 
 void iAFiAKErController::optimStepSliderChanged(int optimStep)
@@ -1613,13 +1682,20 @@ void iAFiAKErController::setOptimStep(int optimStep)
 		for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
 		{
 			auto main3DVis = m_resultUIs[resultID].main3DVis;
-			auto & timeValues = m_data->result[resultID].timeValues;
-			if (main3DVis->visible() && timeValues.size() > 0)
-				if (m_data->objectType == iACsvConfig::Cylinders)
+			if (main3DVis->visible() &&
+				m_data->objectType == iACsvConfig::Cylinders)
+			{
+				auto & timeValues = m_data->result[resultID].timeValues;
+				if (m_data->result[resultID].timeData == iAFiberCharData::SimpleTimeData)
 				{
 					auto vis = dynamic_cast<iA3DCylinderObjectVis*>(main3DVis.data());
 					vis->updateValues(timeValues[std::min(static_cast<size_t>(optimStep), timeValues.size() - 1)]);
+				} /* else if (m_data->result[resultID].timeData == iAFiberCharData::SimpleTimeData)
+				{
+					// visualization for curved time steps...
 				}
+				*/
+			}
 		}
 	}
 	changeReferenceDisplay();
@@ -1706,6 +1782,39 @@ void iAFiAKErController::mergeFiberContextBoxesChanged(int newState)
 	updateFiberContext();
 }
 
+void iAFiAKErController::showWireFrameChanged(int newState)
+{
+	m_showWireFrame = (newState == Qt::Checked);
+	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	{
+		auto & vis = m_resultUIs[resultID];
+		vis.mini3DVis->setShowWireFrame(m_showWireFrame);
+		if (vis.main3DVis->visible())
+			vis.main3DVis->setShowWireFrame(m_showWireFrame);
+	}
+}
+
+void iAFiAKErController::showBoundingBoxChanged(int newState)
+{
+	if (newState == Qt::Checked)
+	{
+		// TODO: move to function also called when edit fields change
+		double newBounds[6];
+		for (int i = 0; i < 3; ++i)
+		{                                             // todo: error checking
+			newBounds[i * 2] = m_teBoundingBox[i]->text().toInt();
+			newBounds[i * 2 + 1] = m_teBoundingBox[i + 3]->text().toInt();
+		}
+		m_customBoundingBoxSource->SetBounds(newBounds);
+		m_customBoundingBoxMapper->Update();
+		m_ren->AddActor(m_customBoundingBoxActor);
+	}
+	else
+		m_ren->RemoveActor(m_customBoundingBoxActor);
+	m_main3DWidget->GetRenderWindow()->Render();
+	m_main3DWidget->update();
+}
+
 void iAFiAKErController::contextSpacingChanged(double value)
 {
 	m_contextSpacing = value;
@@ -1739,7 +1848,7 @@ namespace
 void iAFiAKErController::updateFiberContext()
 {
 	for (auto actor : m_contextActors)
-		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
+		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
 	m_contextActors.clear();
 	if (m_showFiberContext)
 	{
@@ -1775,7 +1884,7 @@ void iAFiAKErController::updateFiberContext()
 				if (!m_mergeContextBoxes)
 				{
 					auto actor = getCubeActor(minCoord, maxCoord);
-					m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+					m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
 					m_contextActors.push_back(actor);
 				}
 			}
@@ -1783,12 +1892,12 @@ void iAFiAKErController::updateFiberContext()
 		if (m_mergeContextBoxes)
 		{
 			auto actor = getCubeActor(minCoord, maxCoord);
-			m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+			m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
 			m_contextActors.push_back(actor);
 		}
 	}
-	m_mainRenderer->GetRenderWindow()->Render();
-	m_mainRenderer->update();
+	m_main3DWidget->GetRenderWindow()->Render();
+	m_main3DWidget->update();
 }
 
 namespace
@@ -1828,10 +1937,28 @@ void iAFiAKErController::setReference(size_t referenceID)
 	if (m_referenceID != NoResult)
 	{
 		auto & ui = m_resultUIs[m_referenceID];
-		setResultBackground(ui, m_mainRenderer->palette().color(QWidget::backgroundRole()));
+		setResultBackground(ui, m_main3DWidget->palette().color(QWidget::backgroundRole()));
 		ui.nameLabel->setText(ui.nameLabel->text().left(ui.nameLabel->text().length()-RefMarker.length()));
 	}
 	addInteraction(QString("Reference set to %1").arg(resultName(referenceID)));
+	auto bounds = m_resultUIs[referenceID].mini3DVis->bounds();
+	bool setBB = true;
+	for (int i = 0; i < 6; ++i)
+	{
+		if (m_teBoundingBox[i]->text() != "0")
+		{
+			setBB = false;
+			break;
+		}
+	}
+	if (setBB)
+	{
+		for (int i = 0; i < 3; ++i)
+		{
+			m_teBoundingBox[i]->setText(QString::number(bounds[i * 2]));
+			m_teBoundingBox[i + 3]->setText(QString::number(bounds[i * 2 + 1]));
+		}
+	}
 	m_refDistCompute = new iARefDistCompute(m_data, referenceID);
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiAKErController::refDistAvailable);
 	m_views[JobView]->show();
@@ -1909,8 +2036,8 @@ void iAFiAKErController::showSpatialOverview()
 	ref3D->setLookupTable(lut, colID);
 	ref3D->updateColorSelectionRendering();
 	ref3D->show();
-	m_mainRenderer->GetRenderWindow()->Render();
-	m_mainRenderer->update();
+	m_main3DWidget->GetRenderWindow()->Render();
+	m_main3DWidget->update();
 }
 
 void iAFiAKErController::spmLookupTableChanged()
@@ -1972,11 +2099,11 @@ void iAFiAKErController::changeReferenceDisplay()
 	}
 
 	if (m_refLineActor)
-		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
+		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
 	if (!isAnythingSelected() || !showRef)
 	{
-		m_mainRenderer->GetRenderWindow()->Render();
-		m_mainRenderer->update();
+		m_main3DWidget->GetRenderWindow()->Render();
+		m_main3DWidget->update();
 		return;
 	}
 	if (m_referenceID == NoResult)
@@ -2085,7 +2212,7 @@ void iAFiAKErController::changeReferenceDisplay()
 				size_t refFiberID = d.refDiffFiber[fiberID].dist[similarityMeasure][n].index;
 				for (int i = 0; i < 3; ++i)
 				{
-					if (d.timeValues.size() > 0)
+					if (d.timeData == iAFiberCharData::SimpleTimeData)
 						start1[i] = d.timeValues[std::min(timeStep, d.timeValues.size()-1)][fiberID][i];
 					else
 						start1[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
@@ -2093,7 +2220,7 @@ void iAFiAKErController::changeReferenceDisplay()
 				}
 				for (int i = 0; i < 3; ++i)
 				{
-					if (d.timeValues.size() > 0)
+					if (d.timeData == iAFiberCharData::SimpleTimeData)
 						start2[i] = d.timeValues[std::min(timeStep, d.timeValues.size()-1)][fiberID][3 + i];
 					else
 						start2[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
@@ -2142,9 +2269,9 @@ void iAFiAKErController::changeReferenceDisplay()
 	m_refLineActor = vtkSmartPointer<vtkActor>::New();
 	m_refLineActor->SetMapper(mapper);
 	m_refLineActor->GetProperty()->SetLineWidth(2);
-	m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_refLineActor);
-	m_mainRenderer->GetRenderWindow()->Render();
-	m_mainRenderer->update();
+	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_refLineActor);
+	m_main3DWidget->GetRenderWindow()->Render();
+	m_main3DWidget->update();
 }
 
 void iAFiAKErController::playPauseOptimSteps()
@@ -2230,9 +2357,9 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 	m_sampleActor->SetMapper(sampleMapper);
 	sampleMapper->Update();
 	m_sampleActor->GetProperty()->SetPointSize(2);
-	m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
-	m_mainRenderer->GetRenderWindow()->Render();
-	m_mainRenderer->update();
+	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
+	m_main3DWidget->GetRenderWindow()->Render();
+	m_main3DWidget->update();
 }
 
 void iAFiAKErController::hideSamplePoints()
@@ -2241,15 +2368,15 @@ void iAFiAKErController::hideSamplePoints()
 		return;
 	addInteraction("Hide cylinder sampling points");
 	hideSamplePointsPrivate();
-	m_mainRenderer->GetRenderWindow()->Render();
-	m_mainRenderer->update();
+	m_main3DWidget->GetRenderWindow()->Render();
+	m_main3DWidget->update();
 	m_sampleActor = nullptr;
 }
 
 void iAFiAKErController::hideSamplePointsPrivate()
 {
 	if (m_sampleActor)
-		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
+		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
 }
 
 void iAFiAKErController::optimDataToggled(int state)
@@ -2321,6 +2448,28 @@ QString iAFiAKErController::resultName(size_t resultID) const
 	return QFileInfo(m_data->result[resultID].fileName).baseName();
 }
 
+void iAFiAKErController::doSaveProject()
+{
+	// somehow move that part out into the core?
+	// { e.g. into iASavableProject ?
+	QString fileName = QFileDialog::getSaveFileName(
+	QApplication::activeWindow(),
+		tr("Select Output File"),
+		m_data->folder,
+		iAIOProvider::NewProjectFileTypeFilter);
+	if (fileName.isEmpty())
+		return;
+
+	QSettings projectFile(fileName, QSettings::IniFormat);
+	projectFile.setIniCodec("UTF-8");
+	projectFile.beginGroup(FIAKERProjectID);
+	// }
+	saveProject(projectFile, fileName);
+	projectFile.endGroup();
+
+	addInteraction(QString("Saved as Project '%1'.").arg(fileName));
+}
+
 void iAFiAKErController::saveAnalysisClick()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, ModuleSettingsKey, m_data->folder, "FIAKER Project file (*.fpf);;");
@@ -2329,16 +2478,16 @@ void iAFiAKErController::saveAnalysisClick()
 	addInteraction(QString("Save Analysis as '%1'").arg(fileName));
 	QSettings projectFile(fileName, QSettings::IniFormat);
 	projectFile.setIniCodec("UTF-8");
-	projectFile.setValue(ProjectFileFolder, MakeRelative(QFileInfo(fileName).absolutePath(), m_data->folder));
-	projectFile.setValue(ProjectFileFormat, m_configName);
-	if (m_referenceID != NoResult)
-		projectFile.setValue(ProjectFileReference, static_cast<qulonglong>(m_referenceID));
+	saveProject(projectFile, fileName);
 }
 
-void iAFiAKErController::loadAnalysisClick()
+void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & fileName)
 {
-	addInteraction(QString("Loading Analysis (in new window!)"));
-	loadAnalysis(m_mainWnd, m_data->folder);
+	projectFile.setValue(ProjectFileFolder, MakeRelative(QFileInfo(fileName).absolutePath(), m_data->folder));
+	projectFile.setValue(ProjectFileFormat, m_configName);
+	projectFile.setValue(ProjectFileStepShift, m_data->stepShift);
+	if (m_referenceID != NoResult)
+		projectFile.setValue(ProjectFileReference, static_cast<qulonglong>(m_referenceID));
 }
 
 void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folder)
@@ -2348,11 +2497,17 @@ void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folde
 		return;
 	QSettings projectFile(fileName, QSettings::IniFormat);
 	projectFile.setIniCodec("UTF-8");
+	loadProject(mainWnd, projectFile, fileName);
+}
+
+void iAFiAKErController::loadProject(MainWindow* mainWnd, QSettings const & projectFile, QString const & fileName)
+{
 	auto dataFolder  = MakeAbsolute(QFileInfo(fileName).absolutePath(), projectFile.value(ProjectFileFolder, "").toString());
 	auto configName  = projectFile.value(ProjectFileFormat, "").toString();
 	auto stepShift   = projectFile.value(ProjectFileStepShift, 0).toDouble();
 	auto explorer = new iAFiAKErController(mainWnd);
 	explorer->m_projectReferenceID = projectFile.value(ProjectFileReference, static_cast<qulonglong>(NoResult)).toULongLong();
+	mainWnd->setPath(dataFolder);
 	mainWnd->addSubWindow(explorer);
 	if (explorer->m_projectReferenceID != NoResult)
 		connect(explorer, &iAFiAKErController::setupFinished, explorer, &iAFiAKErController::setProjectReference);
@@ -2381,7 +2536,7 @@ void iAFiAKErController::loadVolume(QString const & fileName)
 		m_refOF.GetPointer()
 	);
 	m_refRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_refImg));
-	m_refRenderer->addTo(m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+	m_refRenderer->addTo(m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 }
 
 void iAFiAKErController::showReferenceInChartToggled()

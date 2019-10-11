@@ -20,50 +20,24 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_GEMSeToolBar.h"
+#include "open_iA_Core_export.h"
 
-#include <iAModuleInterface.h>
-#include <qthelper/iAQTtoUIConnector.h>
-
-#include <QToolBar>
-
-class iASEAFile;
+class MainWindow;
+class MdiChild;
 
 class QSettings;
+class QString;
 
-typedef iAQTtoUIConnector<QToolBar, Ui_GEMSeToolBar> iAGEMSeToolbar;
-
-class iAGEMSeModuleInterface : public iAModuleInterface
+class open_iA_Core_API iAProjectBase
 {
-	Q_OBJECT
 public:
-	iAGEMSeModuleInterface();
-	void Initialize() override;
-	void loadProject(MdiChild* mdiChild, QSettings const & metaFile, QString const & fileName);
-	void saveProject(QSettings & metaFile, QString const & fileName);
+	//! implementation (empty) in iAProjectRegistry.cpp
+	virtual ~iAProjectBase();
+	virtual void loadProject(QSettings & projectFile, QString const & fileName) =0;
+	virtual void saveProject(QSettings & projectFile, QString const & fileName) =0;
+	void setMainWindow(MainWindow* mainWindow);
+	void setChild(MdiChild* mdiChild);
 protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
-private slots:
-	//! @{ Menu entries:
-	void startGEMSe();
-	void loadPreCalculatedData();
-	//! @}
-	//! @{ Toolbar actions:
-	void resetFilter();
-	void toggleAutoShrink();
-	void toggleDockWidgetTitleBar();
-	void exportClusterIDs();
-	void exportAttributeRangeRanking();
-	void exportRankings();
-	void importRankings();
-	//! @}
-	void loadGEMSe();
-private:
-	void loadOldGEMSeProject(QString const & fileName);
-	void setupToolbar();
-	
-	iAGEMSeToolbar* m_toolbar;
-
-	//! cache for precalculated data loading
-	QSharedPointer<iASEAFile> m_seaFile;
+	MdiChild* m_mdiChild;
+	MainWindow* m_mainWindow;
 };

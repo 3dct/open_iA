@@ -33,7 +33,10 @@
 #include "iALogger.h"
 #include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
+#include "iAProjectBase.h"
+#include "iAProjectRegistry.h"
 #include "iARenderer.h"
+#include "iASavableProject.h"
 #include "iASlicer.h"
 #include "iAToolsVTK.h"
 #include "iAXmlSettings.h"
@@ -59,9 +62,7 @@
 #include <QMimeData>
 #include <QMdiSubWindow>
 #include <QSettings>
-#include <QSignalMapper>
 #include <QSplashScreen>
-#include <QTextDocument>
 #include <QTextStream>
 #include <QTimer>
 #include <QtXml/QDomDocument>
@@ -104,8 +105,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	actionLinkMdis->setChecked(m_defaultSlicerSettings.LinkMDIs);
 	setCentralWidget(mdiArea);
 
-	m_windowMapper = new QSignalMapper(this);
-
 	createRecentFileActions();
 	connectSignalsToSlots();
 	updateMenus();
@@ -147,8 +146,6 @@ MainWindow::~MainWindow()
 	settings.setValue("state", saveState());
 
 	m_moduleDispatcher->SaveModulesSettings();
-	delete m_windowMapper;
-	m_windowMapper = nullptr;
 }
 
 void MainWindow::hideSplashSlot()
@@ -312,7 +309,7 @@ void MainWindow::loadFile(QString const & fileName)
 	}
 	else
 	{
-		loadFile(fileName, fileName.endsWith(".volstack"));
+		loadFile(fileName, fileName.toLower().endsWith(".volstack"));
 	}
 }
 
@@ -346,6 +343,29 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 				} else {
 					statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
 					child->close();
+				}
+			}
+			return;
+		}
+	}
+	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
+	{
+		QSettings projectFile(fileName, QSettings::IniFormat);
+		projectFile.setIniCodec("UTF-8");
+		// TODO: asynchronous loading, merge with mdichild: loadFile project init parts
+		if (!projectFile.value("UseMdiChild", false).toBool())
+		{
+			auto registeredProjects = iAProjectRegistry::projectKeys();
+			auto projectFileGroups = projectFile.childGroups();
+			for (auto projectKey : registeredProjects)
+			{
+				if (projectFileGroups.contains(projectKey))
+				{
+					auto project = iAProjectRegistry::createProject(projectKey);
+					project->setMainWindow(this);
+					projectFile.beginGroup(projectKey);
+					project->loadProject(projectFile, fileName);
+					projectFile.endGroup();
 				}
 			}
 			return;
@@ -677,6 +697,7 @@ void MainWindow::savePreferences(iAXmlSettings &xml)
 	preferencesElement.setAttribute("histogramBins", tr("%1").arg(m_defaultPreferences.HistogramBins));
 	preferencesElement.setAttribute("statisticalExtent", tr("%1").arg(m_defaultPreferences.StatisticalExtent));
 	preferencesElement.setAttribute("compression", tr("%1").arg(m_defaultPreferences.Compression));
+	preferencesElement.setAttribute("printParameters", tr("%1").arg(m_defaultPreferences.PrintParameters));
 	preferencesElement.setAttribute("resultsInNewWindow", tr("%1").arg(m_defaultPreferences.ResultInNewWindow));
 	preferencesElement.setAttribute("magicLensSize", tr("%1").arg(m_defaultPreferences.MagicLensSize));
 	preferencesElement.setAttribute("magicLensFrameWidth", tr("%1").arg(m_defaultPreferences.MagicLensFrameWidth));
@@ -689,6 +710,7 @@ void MainWindow::loadPreferences(QDomNode preferencesNode)
 	m_defaultPreferences.HistogramBins = attributes.namedItem("histogramBins").nodeValue().toInt();
 	m_defaultPreferences.StatisticalExtent = attributes.namedItem("statisticalExtent").nodeValue().toDouble();
 	m_defaultPreferences.Compression = attributes.namedItem("compression").nodeValue() == "1";
+	m_defaultPreferences.PrintParameters = attributes.namedItem("printParameters").nodeValue() == "1";
 	m_defaultPreferences.ResultInNewWindow = attributes.namedItem("resultsInNewWindow").nodeValue() == "1";
 	m_defaultPreferences.MagicLensSize = attributes.namedItem("magicLensSize").nodeValue().toInt();
 	m_defaultPreferences.MagicLensFrameWidth = attributes.namedItem("magicLensFrameWidth").nodeValue().toInt();
@@ -887,7 +909,8 @@ void MainWindow::prefs()
 
 	QStringList inList = (QStringList() << tr("#Histogram Bins")
 		<< tr("#Statistical extent")
-		<< tr("$Compression")
+		<< tr("$Use Compression when storing .mhd files")
+		<< tr("$Print Parameters")
 		<< tr("$Results in new window")
 		<< tr("$Log to file")
 		<< tr("#Log File Name")
@@ -913,16 +936,16 @@ void MainWindow::prefs()
 		}
 	}
 	iAPreferences p = child ? child->preferences() : m_defaultPreferences;
-	QTextDocument *fDescr = nullptr;
+	QString descr;
 	if (iAConsole::instance()->isFileLogError())
 	{
-		fDescr = new QTextDocument();
-		fDescr->setHtml("Could not write to the specified logfile, logging to file was therefore disabled."
-			" Please check file permissions and/or whether the path to the file exists, before re-enabling the option!.");
+		descr = "Could not write to the specified logfile, logging to file was therefore disabled."
+			" Please check file permissions and/or whether the path to the file exists, before re-enabling the option!.";
 	}
 	QList<QVariant> inPara; 	inPara << tr("%1").arg(p.HistogramBins)
 		<< tr("%1").arg(p.StatisticalExtent)
 		<< (p.Compression ? tr("true") : tr("false"))
+		<< (p.PrintParameters ? tr("true") : tr("false"))
 		<< (p.ResultInNewWindow ? tr("true") : tr("false"))
 		<< (iAConsole::instance()->isLogToFileOn() ? tr("true") : tr("false"))
 		<< iAConsole::instance()->logFileName()
@@ -930,17 +953,18 @@ void MainWindow::prefs()
 		<< tr("%1").arg(p.MagicLensSize)
 		<< tr("%1").arg(p.MagicLensFrameWidth);
 
-	dlg_commoninput dlg(this, "Preferences", inList, inPara, fDescr);
+	dlg_commoninput dlg(this, "Preferences", inList, inPara, descr);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
 		m_defaultPreferences.HistogramBins = (int)dlg.getDblValue(0);
 		m_defaultPreferences.StatisticalExtent = (int)dlg.getDblValue(1);
 		m_defaultPreferences.Compression = dlg.getCheckValue(2) != 0;
-		m_defaultPreferences.ResultInNewWindow = dlg.getCheckValue(3) != 0;
-		bool logToFile = dlg.getCheckValue(4) != 0;
-		QString logFileName = dlg.getText(5);
-		QString looksStr = dlg.getComboBoxValue(6);
+		m_defaultPreferences.PrintParameters = dlg.getCheckValue(3) != 0;
+		m_defaultPreferences.ResultInNewWindow = dlg.getCheckValue(4) != 0;
+		bool logToFile = dlg.getCheckValue(5) != 0;
+		QString logFileName = dlg.getText(6);
+		QString looksStr = dlg.getComboBoxValue(7);
 		if (m_qssName != styleNames[looksStr])
 		{
 			m_qssName = styleNames[looksStr];
@@ -948,15 +972,14 @@ void MainWindow::prefs()
 		}
 
 		m_defaultPreferences.MagicLensSize = clamp(MinimumMagicLensSize, MaximumMagicLensSize,
-			static_cast<int>(dlg.getDblValue(7)));
-		m_defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getDblValue(8)));
+			static_cast<int>(dlg.getDblValue(8)));
+		m_defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getDblValue(9)));
 
 		if (activeMdiChild() && activeMdiChild()->editPrefs(m_defaultPreferences))
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
 
 		iAConsole::instance()->setLogToFile(logToFile, logFileName, true);
 	}
-	delete fDescr;
 }
 
 void MainWindow::renderSettings()
@@ -1351,12 +1374,12 @@ void MainWindow::createRecentFileActions()
 
 void MainWindow::updateMenus()
 {
-	bool hasMdiChild = (activeMdiChild() != 0);
+	bool hasMdiChild = activeMdiChild();
 
 	actionSave->setEnabled(hasMdiChild);
 	actionSaveAs->setEnabled(hasMdiChild);
 	actionSaveImageStack->setEnabled(hasMdiChild);
-	actionSaveProject->setEnabled(hasMdiChild);
+	actionSaveProject->setEnabled(activeChild<iASavableProject>());
 	actionLoadSettings->setEnabled(hasMdiChild);
 	actionSaveSettings->setEnabled(hasMdiChild);
 	actionClose->setEnabled(hasMdiChild);
@@ -1454,8 +1477,7 @@ void MainWindow::updateWindowMenu()
 		QAction *action  = menuWindow->addAction(text);
 		action->setCheckable(true);
 		action->setChecked(child == activeMdiChild());
-		connect(action, SIGNAL(triggered()), m_windowMapper, SLOT(map()));
-		m_windowMapper->setMapping(action, windows.at(i));
+		connect(action, &QAction::triggered, [&] { setActiveSubWindow(windows.at(i)); });
 	}
 }
 
@@ -1592,7 +1614,6 @@ void MainWindow::connectSignalsToSlots()
 
 	connect(mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::childActivatedSlot);
 	connect(mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::updateMenus);
-	connect(m_windowMapper, SIGNAL(mapped(QWidget*)), this, SLOT(setActiveSubWindow(QWidget*)));
 
 	consoleVisibilityChanged(iAConsole::instance()->isVisible());
 	connect(iAConsole::instance(), &iAConsole::consoleVisibilityChanged, this, &MainWindow::consoleVisibilityChanged);
@@ -1807,7 +1828,7 @@ QString const & MainWindow::currentFile()
 	return m_curFile;
 }
 
-void MainWindow::setPath(QString p)
+void MainWindow::setPath(QString const & p)
 {
 	m_path = p;
 }
@@ -2092,10 +2113,10 @@ void MainWindow::childClosed()
 
 void MainWindow::saveProject()
 {
-	MdiChild * activeChild = activeMdiChild();
-	if (!activeChild)
+	iASavableProject * child = activeChild<iASavableProject>();
+	if (!child)
 		return;
-	activeChild->storeProject();
+	child->saveProject();
 }
 
 void MainWindow::loadArguments(int argc, char** argv)

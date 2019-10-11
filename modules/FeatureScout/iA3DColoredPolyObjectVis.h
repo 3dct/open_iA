@@ -57,10 +57,12 @@ public:
 	void hideBoundingBox();
 	double const * bounds() override;
 	//! @}
+	void setShowWireFrame(bool show);
 	virtual void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive);
 	void setColor(QColor const & color);
 	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex);
 	void updateColorSelectionRendering();
+	virtual QString visualizationStatistics() const =0;
 protected:
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
@@ -75,10 +77,17 @@ protected:
 	vtkSmartPointer<vtkActor> m_outlineActor;
 	std::vector<size_t> m_selection;
 
+	//! Set an object to a specified color.
+	//! @param objIdx index of the object.
+	//! @param qcolor new color of the object.
 	void setObjectColor(int objIdx, QColor const & qcolor);
+	//! Triggers an update of the color mapper and the renderer.
 	void updatePolyMapper();
+	//! Prepare the filters providing the bounding box.
 	void setupBoundingBox();
+	//! Set up the mapping from object parts to object IDs.
 	void setupOriginalIds();
+	//! Set up the array of colors for each object.
 	void setupColors();
 
 	//! Get the index of the first point of a given object.
@@ -93,7 +102,11 @@ protected:
 	//! @return the number of points in all objects, i.e. the sum of objectPointCount over all object indices.
 	size_t allPointCount() const;
 
+	//! Updates the renderer; but only if the own actor is actually shown.
+	void updateRenderer() override;
+
 private:
+
 	QSharedPointer<iALookupTable> m_lut;
 	size_t m_colorParamIdx;
 	bool m_selectionActive;

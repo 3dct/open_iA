@@ -2241,7 +2241,7 @@ void dlg_FeatureScout::ClassDeleteButton()
 	}
 	m_splom->classDeleted(deleteClassID);
 	// sort the new stamm list
-	qSort( list );
+	std::sort( list.begin(), list.end() );
 	// give the values from list to stammitem
 	stammItem->removeRows( 0, stammItem->rowCount() );
 	for ( int k = 0; k < list.size(); k++ )

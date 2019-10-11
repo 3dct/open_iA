@@ -105,3 +105,9 @@ void iA3DCylinderObjectVis::setSelection(std::vector<size_t> const & sortedSelIn
 	iA3DColoredPolyObjectVis::setSelection(sortedSelInds, selectionActive);
 	setContextDiameterFactor(m_contextDiameterFactor);
 }
+
+QString iA3DCylinderObjectVis::visualizationStatistics() const
+{
+	return iA3DLineObjectVis::visualizationStatistics() + "; # cylinder sides: " +
+		QString::number(m_tubeFilter->GetNumberOfSides());
+}

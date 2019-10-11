@@ -18,52 +18,35 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAProjectRegistry.h"
 
-#include "ui_GEMSeToolBar.h"
+#include "iAProjectBase.h"
 
-#include <iAModuleInterface.h>
-#include <qthelper/iAQTtoUIConnector.h>
+#include <cassert>
 
-#include <QToolBar>
+QMap<QString, QSharedPointer<iAIProjectFactory> > iAProjectRegistry::m_projectTypes;
 
-class iASEAFile;
-
-class QSettings;
-
-typedef iAQTtoUIConnector<QToolBar, Ui_GEMSeToolBar> iAGEMSeToolbar;
-
-class iAGEMSeModuleInterface : public iAModuleInterface
+QList<QString> const iAProjectRegistry::projectKeys()
 {
-	Q_OBJECT
-public:
-	iAGEMSeModuleInterface();
-	void Initialize() override;
-	void loadProject(MdiChild* mdiChild, QSettings const & metaFile, QString const & fileName);
-	void saveProject(QSettings & metaFile, QString const & fileName);
-protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
-private slots:
-	//! @{ Menu entries:
-	void startGEMSe();
-	void loadPreCalculatedData();
-	//! @}
-	//! @{ Toolbar actions:
-	void resetFilter();
-	void toggleAutoShrink();
-	void toggleDockWidgetTitleBar();
-	void exportClusterIDs();
-	void exportAttributeRangeRanking();
-	void exportRankings();
-	void importRankings();
-	//! @}
-	void loadGEMSe();
-private:
-	void loadOldGEMSeProject(QString const & fileName);
-	void setupToolbar();
-	
-	iAGEMSeToolbar* m_toolbar;
+	return m_projectTypes.keys();
+}
 
-	//! cache for precalculated data loading
-	QSharedPointer<iASEAFile> m_seaFile;
-};
+QSharedPointer<iAProjectBase> iAProjectRegistry::createProject(QString const & projectIdentifier)
+{
+	assert(m_projectTypes.contains(projectIdentifier));
+	return m_projectTypes[projectIdentifier]->create();
+}
+
+iAProjectBase::~iAProjectBase()
+{}
+
+
+void iAProjectBase::setChild(MdiChild* child)
+{
+	m_mdiChild = child;
+}
+
+void iAProjectBase::setMainWindow(MainWindow* mainWindow)
+{
+	m_mainWindow = mainWindow;
+}

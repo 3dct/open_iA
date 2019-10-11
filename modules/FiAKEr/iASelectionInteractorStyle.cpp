@@ -47,6 +47,9 @@ namespace
 	const char * SelectModeText = "Selection Mode";
 }
 
+iASelectionProvider::~iASelectionProvider()
+{}
+
 vtkStandardNewMacro(iASelectionInteractorStyle);
 
 iASelectionInteractorStyle::iASelectionInteractorStyle():

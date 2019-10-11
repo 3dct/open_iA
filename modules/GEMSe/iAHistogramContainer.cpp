@@ -477,7 +477,7 @@ void iAHistogramContainer::SetSerializedHiddenCharts(QString const & hiddenChart
 }
 
 
-void iAHistogramContainer::SelectHistograms()
+void iAHistogramContainer::selectHistograms()
 {
 	QDialog dlg(this);
 	QVBoxLayout* layout = new QVBoxLayout();

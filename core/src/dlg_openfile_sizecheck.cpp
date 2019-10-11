@@ -32,6 +32,8 @@
 #include <QLineEdit>
 #include <QPushButton>
 
+#include <cassert>
+
 namespace
 {
 	unsigned int mapVTKByteOrderToIdx(unsigned int vtkByteOrder)

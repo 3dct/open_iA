@@ -46,6 +46,8 @@
 #include "iAPreferences.h"
 #include "iAProfileProbe.h"
 #include "iAProgress.h"
+#include "iAProjectBase.h"
+#include "iAProjectRegistry.h"
 #include "iARenderer.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
@@ -88,7 +90,6 @@
 #include <QProgressBar>
 #include <QSettings>
 #include <QSpinBox>
-#include <QTextDocument>
 #include <QToolButton>
 #include <QtGlobal> // for QT_VERSION
 
@@ -516,7 +517,8 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 	waitForPreviousIO();
 
 	m_ioThread = new iAIO(m_imageData, m_polyData, m_logger, this, m_volumeStack->volumes(), m_volumeStack->fileNames());
-	if (f.endsWith(iAIOProvider::ProjectFileExtension))
+	if (f.endsWith(iAIOProvider::ProjectFileExtension) ||
+		f.endsWith(iAIOProvider::NewProjectFileExtension))
 	{
 		connect(m_ioThread, SIGNAL(done(bool)), this, SLOT(setupProject(bool)));
 	}
@@ -700,6 +702,28 @@ void MdiChild::setupView(bool active )
 void MdiChild::setupProject(bool active)
 {
 	setModalities(m_ioThread->modalities());
+	QString fileName = m_ioThread->fileName();
+	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
+	{
+		// TODO: make asynchronous, put into iASavableProject?
+		QSettings projectFile(fileName, QSettings::IniFormat);
+		projectFile.setIniCodec("UTF-8");
+		auto registeredProjects = iAProjectRegistry::projectKeys();
+		auto projectFileGroups = projectFile.childGroups();
+		for (auto projectKey : registeredProjects)
+		{
+			if (projectFileGroups.contains(projectKey))
+			{
+				auto project = iAProjectRegistry::createProject(projectKey);
+				project->setMainWindow(m_mainWnd);
+				project->setChild(this);
+				projectFile.beginGroup(projectKey);
+				project->loadProject(projectFile, fileName);
+				projectFile.endGroup();
+				addProject(projectKey, project);
+			}
+		}
+	}
 }
 
 int MdiChild::chooseModalityNr(QString const & caption)
@@ -781,6 +805,7 @@ bool MdiChild::saveAs(int modalityNr)
 	int componentNr = chooseComponentNr(modalityNr);
 	if (componentNr == -1)
 		return false;
+	// TODO: ask for filename first, then for modality (if only one modality can be saved in chosen format)
 	QString filePath = (modalities()->size() > 0) ? QFileInfo(modality(modalityNr)->fileName()).absolutePath() : m_path;
 	QString f = QFileDialog::getSaveFileName(
 		this,
@@ -1474,9 +1499,8 @@ void MdiChild::saveMovie(iARenderer& raycaster)
 	QStringList modes = (QStringList() <<  tr("Rotate Z") <<  tr("Rotate X") <<  tr("Rotate Y"));
 	QStringList inList = ( QStringList() << tr("+Rotation mode") );
 	QList<QVariant> inPara = ( QList<QVariant>() << modes );
-	QTextDocument descr;
-	descr.setHtml("Creates a movie by rotating the object around a user-defined axis in the 3D renderer.");
-	dlg_commoninput dlg(this, "Save movie options", inList, inPara, &descr);
+	dlg_commoninput dlg(this, "Save movie options", inList, inPara,
+		"Creates a movie by rotating the object around a user-defined axis in the 3D renderer.");
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
@@ -2641,8 +2665,18 @@ void MdiChild::saveProject(QString const & fileName)
 	setCurrentFile(fileName);
 }
 
-void MdiChild::storeProject()
+void MdiChild::doSaveProject()
 {
+	QString projectFileName = QFileDialog::getSaveFileName(
+		QApplication::activeWindow(),
+		tr("Select Output File"),
+		m_path,
+		iAIOProvider::ProjectFileTypeFilter + iAIOProvider::NewProjectFileTypeFilter);
+	if (projectFileName.isEmpty())
+		return;
+
+	// TODO:
+	//   - work in background
 	QVector<int> unsavedModalities;
 	for (int i=0; i<modalities()->size(); ++i)
 	{
@@ -2659,14 +2693,30 @@ void MdiChild::storeProject()
 			if (!saveAs(modNr))
 				return;
 	}
-	QString modalitiesFileName = QFileDialog::getSaveFileName(
-		QApplication::activeWindow(),
-		tr("Select Output File"),
-		m_path,
-		iAIOProvider::ProjectFileTypeFilter);
-	if (modalitiesFileName.isEmpty())
+	saveProject(projectFileName);
+	if (projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
+	{
+		QSettings projectFile(projectFileName, QSettings::IniFormat);
+		projectFile.setIniCodec("UTF-8");
+		projectFile.setValue("UseMdiChild", true);
+		for (auto projectKey : m_projects.keys())
+		{
+			projectFile.beginGroup(projectKey);
+			m_projects[projectKey]->saveProject(projectFile, projectFileName);
+			projectFile.endGroup();
+		}
 		return;
-	saveProject(modalitiesFileName);
+	}
+}
+
+void MdiChild::addProject(QString const & key, QSharedPointer<iAProjectBase> project)
+{
+	m_projects.insert(key, project);
+}
+
+QMap<QString, QSharedPointer<iAProjectBase>> const & MdiChild::projects()
+{
+	return m_projects;
 }
 
 MainWindow* MdiChild::mainWnd()

@@ -24,17 +24,58 @@
 #include "iAFiberCharData.h"
 #include "iAFiAKErController.h"
 
-#include "dlg_commoninput.h"
-#include "mainwindow.h"
+#include <dlg_commoninput.h>
+#include <iAModuleDispatcher.h>
+#include <iAProjectBase.h>
+#include <iAProjectRegistry.h>
+#include <mainwindow.h>
 
 #include <QAction>
 #include <QFileDialog>
 #include <QMdiSubWindow>
+#include <QSettings>
+
+class iAFIAKERProject : public iAProjectBase
+{
+public:
+	iAFIAKERProject()
+	{}
+	virtual ~iAFIAKERProject() override
+	{}
+	void loadProject(QSettings & projectFile, QString const & fileName) override
+	{
+		iAFiAKErModuleInterface * fiaker = m_mainWindow->getModuleDispatcher().GetModule<iAFiAKErModuleInterface>();
+		fiaker->setupToolBar();
+		iAFiAKErController::loadProject(m_mainWindow, projectFile, fileName);
+	}
+	//! not required at the moment, since this is currently done by
+	//! iAFiAKErController::doSaveProject overwriting iASavableProject::doSaveProject
+	void saveProject(QSettings & projectFile, QString const & fileName) override
+	{}
+	static QSharedPointer<iAProjectBase> create()
+	{
+		return QSharedPointer<iAFIAKERProject>::create();
+	}
+	void setOptions(iACsvConfig config)
+	{
+		m_config = config;
+	}
+private:
+	iACsvConfig m_config;
+};
+
+namespace
+{
+	const QString LastFormatKey("FIAKER/LastFormat");
+	const QString LastTimeStepOffsetKey("FIAKER/LastTimeStepOffsetKey");
+	const QString LastPathKey("FIAKER/LastPath");
+}
 
 void iAFiAKErModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
+	iAProjectRegistry::addProject<iAFIAKERProject>(iAFiAKErController::FIAKERProjectID);
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * fiakerMenu = getMenuWithTitle(toolsMenu, tr("FiAKEr"), false);
 	QAction * actionFiAKEr = new QAction( "Open Results Folder", nullptr );
@@ -45,17 +86,32 @@ void iAFiAKErModuleInterface::Initialize()
 	actionFiAKErProject->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_P));
 	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKErProject, false);
 	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::loadFiAKErProject);
+
+	QSettings s;
+	m_lastFormat = s.value(LastFormatKey, "").toString();
+	m_lastPath = s.value(LastPathKey, m_mainWnd->path()).toString();
+	bool ok;
+	m_lastTimeStepOffset = s.value(LastTimeStepOffsetKey, 0).toDouble(&ok);
+	if (!ok)
+		DEBUG_LOG("FIAKER start: Invalid m_lastTimeStepOffset stored in settings!");
+}
+
+void iAFiAKErModuleInterface::SaveSettings() const
+{
+	QSettings s;
+	s.setValue(LastFormatKey, m_lastFormat);
+	s.setValue(LastPathKey, m_lastPath);
+	s.setValue(LastTimeStepOffsetKey, m_lastTimeStepOffset);
 }
 
 void iAFiAKErModuleInterface::startFiAKEr()
 {
 	setupToolBar();
-	QString path = QFileDialog::getExistingDirectory(m_mainWnd, "Choose Folder containing Result csv", m_mainWnd->path());
-	if (path.isEmpty())
-		return;
-	
 	auto explorer = new iAFiAKErController(m_mainWnd);
-	QStringList parameterNames = QStringList() << "+CSV Format" << "#Step Coordinate Shift";
+	QStringList parameterNames = QStringList()
+		<< ";Result folder"
+		<< "+CSV cormat"
+		<< "#Step coordinate shift";
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
 	if (!formatEntries.contains(iAFiberResultsCollection::SimpleFormat))
 		formatEntries.append(iAFiberResultsCollection::SimpleFormat);
@@ -65,16 +121,39 @@ void iAFiAKErModuleInterface::startFiAKEr()
 		formatEntries.append(iACsvConfig::LegacyFiberFormat);
 	if (!formatEntries.contains(iACsvConfig::LegacyVoidFormat))
 		formatEntries.append(iACsvConfig::LegacyVoidFormat);
+	for (int i = 0; i < formatEntries.size(); ++i)
+		if (formatEntries[i] == m_lastFormat)
+			formatEntries[i] = "!" + formatEntries[i];
+		
 	QList<QVariant> values;
-	values << formatEntries << 0;
-	dlg_commoninput dlg(m_mainWnd, "Choose CSV Format", parameterNames, values);
+	values << m_lastPath << formatEntries << m_lastTimeStepOffset;
+	
+	QString descr("Starts FIAKER, a comparison tool for results from fiber reconstruction algorithms.<br/>"
+		"Choose a <em>Result folder</em> containing two or more fiber reconstruction results in .csv format. "
+		"Under <em>CSV format</em>, select the format in which data is stored in your .csv files. "
+		"You can test / modify the format via Tools->FeatureScout (just select a single one of your .csv's there, "
+		"and refine the format until it is shown properly, then store the format, then use it here. "
+		"<em>Step coordinate shift</em> defines a shift that is applied to all coordinates, in each dimension (x, y and z) "
+		"for the optimization step files. For the final results, "
+		"there is a similar setting available via the .csv format specification, see above.<br/>"
+		"For more information on FIAKER, see the corresponding publication: "
+		"Bernhard Fröhler, Tim Elberfeld, Torsten Möller, Hans-Christian Hege, Johannes Weissenböck, "
+		"Jan De Beenhouwer, Jan Sijbers, Johann Kastner and Christoph Heinzl, "
+		"A Visual Tool for the Analysis of Algorithms for Tomographic Fiber Reconstruction in Materials Science, "
+		"2019, Computer Graphics Forum 38 (3), <a href=\"https://doi.org/10.1111/cgf.13688\">doi: 10.1111/cgf.13688</a>.");
+	dlg_commoninput dlg(m_mainWnd, "Start FIAKER", parameterNames, values, descr);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
-	QString configName = dlg.getComboBoxValue(0);
-	double stepShift = dlg.getDblValue(1);
+	if (dlg.getText(0).isEmpty())
+		return;
+	m_lastPath = dlg.getText(0);
+	m_lastFormat = dlg.getComboBoxValue(1);
+	m_lastTimeStepOffset = dlg.getDblValue(2);
 	//cmbbox_Format->addItems(formatEntries);
 	m_mainWnd->addSubWindow(explorer);
-	explorer->start(path, configName, stepShift);
+	m_mainWnd->setPath(m_lastPath);
+	auto project = QSharedPointer<iAFIAKERProject>::create();
+	explorer->start(m_lastPath, m_lastFormat, m_lastTimeStepOffset);
 }
 
 void iAFiAKErModuleInterface::loadFiAKErProject()

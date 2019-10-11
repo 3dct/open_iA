@@ -60,7 +60,8 @@ iAValueType iAVectorPlotData::valueType() const
 }
 
 void iAVectorPlotData::setXDataType(iAValueType xDataType)
-{	m_xDataType = xDataType;
+{
+	m_xDataType = xDataType;
 }
 
 std::vector<double> & iAVectorPlotData::data()
