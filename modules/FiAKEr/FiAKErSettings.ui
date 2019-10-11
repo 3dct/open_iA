@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>670</width>
-    <height>328</height>
+    <width>439</width>
+    <height>288</height>
    </rect>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
@@ -530,8 +530,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>640</width>
-            <height>230</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -593,6 +593,37 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>cmbboxResultColors</tabstop>
+  <tabstop>cmbboxDistributionColors</tabstop>
+  <tabstop>cbShowReferenceDistribution</tabstop>
+  <tabstop>sbHistogramBins</tabstop>
+  <tabstop>cmbboxDistributionPlotType</tabstop>
+  <tabstop>cmbboxStackedBarChartColors</tabstop>
+  <tabstop>slOpacityDefault</tabstop>
+  <tabstop>slOpacityContext</tabstop>
+  <tabstop>slDiameterFactorDefault</tabstop>
+  <tabstop>slDiameterFactorContext</tabstop>
+  <tabstop>cbBoundingBox</tabstop>
+  <tabstop>leBoundingBoxC1X</tabstop>
+  <tabstop>leBoundingBoxC1Y</tabstop>
+  <tabstop>leBoundingBoxC1Z</tabstop>
+  <tabstop>leBoundingBoxC2X</tabstop>
+  <tabstop>leBoundingBoxC2Y</tabstop>
+  <tabstop>leBoundingBoxC2Z</tabstop>
+  <tabstop>cbShowWireFrame</tabstop>
+  <tabstop>cbFiberContextShow</tabstop>
+  <tabstop>cbFiberContextMerge</tabstop>
+  <tabstop>sbFiberContextSpacing</tabstop>
+  <tabstop>cmbboxSelectionMode</tabstop>
+  <tabstop>cmbboxSimilarityMeasure</tabstop>
+  <tabstop>pbSampleSelectedFiber</tabstop>
+  <tabstop>pbHideSamplePoints</tabstop>
+  <tabstop>pbSpatialOverview</tabstop>
+  <tabstop>sbAnimationDelay</tabstop>
+  <tabstop>saOptimizationStepChartSelection</tabstop>
+  <tabstop>tabWidget</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
