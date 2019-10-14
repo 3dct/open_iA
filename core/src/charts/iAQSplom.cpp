@@ -1574,42 +1574,42 @@ void iAQSplom::loadSettingsSlot()
 
 void iAQSplom::saveSettings(QSettings & iniFile) const
 {
-	iniFile.setValue("PointRadius", settings.pointRadius);
-	iniFile.setValue("HistogramVisible", settings.histogramVisible);
-	iniFile.setValue("HistogramBins", settings.histogramBins);
-	iniFile.setValue("SelectionMode", settings.selectionMode);
-	iniFile.setValue("FlipAxes", settings.flipAxes);
-	iniFile.setValue("QuadraticPlots", settings.quadraticPlots);
-	iniFile.setValue("ShowPCC", settings.showPCC);
-	iniFile.setValue("ColorScheme", settings.colorScheme);
-	iniFile.setValue("ColorThemeName", settings.colorThemeName);
-	iniFile.setValue("PointColor", settings.pointColor.rgba());
+	iniFile.setValue("SPM/PointRadius", settings.pointRadius);
+	iniFile.setValue("SPM/HistogramVisible", settings.histogramVisible);
+	iniFile.setValue("SPM/HistogramBins", settings.histogramBins);
+	iniFile.setValue("SPM/SelectionMode", settings.selectionMode);
+	iniFile.setValue("SPM/FlipAxes", settings.flipAxes);
+	iniFile.setValue("SPM/QuadraticPlots", settings.quadraticPlots);
+	iniFile.setValue("SPM/ShowPCC", settings.showPCC);
+	iniFile.setValue("SPM/ColorScheme", settings.colorScheme);
+	iniFile.setValue("SPM/ColorThemeName", settings.colorThemeName);
+	iniFile.setValue("SPM/PointColor", settings.pointColor.rgba());
 	double pointOpacity = static_cast<double>(m_settingsDlg->slPointOpacity->value()) / m_settingsDlg->slPointOpacity->maximum();
-	iniFile.setValue("PointOpacity", pointOpacity);
+	iniFile.setValue("SPM/PointOpacity", pointOpacity);
 	double colorCodingMin = m_settingsDlg->sbMin->value();
 	double colorCodingMax = m_settingsDlg->sbMax->value();
-	iniFile.setValue("ColorCodingMin", colorCodingMin);
-	iniFile.setValue("ColorCodingMax", colorCodingMax);
-	iniFile.setValue("ColorLookupParam", m_colorLookupParam);
-	iniFile.setValue("VisibleParameters", join(m_visibleIndices, ","));
+	iniFile.setValue("SPM/ColorCodingMin", colorCodingMin);
+	iniFile.setValue("SPM/ColorCodingMax", colorCodingMax);
+	iniFile.setValue("SPM/ColorLookupParam", m_colorLookupParam);
+	iniFile.setValue("SPM/VisibleParameters", join(m_visibleIndices, ","));
 }
 
 void iAQSplom::loadSettings(iASettings const & config)
 {
 	bool ok;
-	double newPointRadius = config.value("PointRadius", settings.pointRadius).toDouble(&ok);
+	double newPointRadius = config.value("SPM/PointRadius", settings.pointRadius).toDouble(&ok);
 	if (!ok)
 	{
 		DEBUG_LOG(QString("Invalid value for 'PointRadius' setting ('%1') in Scatter Plot Matrix settings")
-			.arg(config.value("PointRadius").toString()));
+			.arg(config.value("SPM/PointRadius").toString()));
 	}
 	if (settings.pointRadius != newPointRadius)
 	{
 		setPointRadius(newPointRadius);
 	}
 
-	int newHistogramBins = config.value("HistogramBins", settings.histogramBins).toInt();
-	bool newHistogramVisible = config.value("HistogramVisible", settings.histogramVisible).toBool();
+	int newHistogramBins = config.value("SPM/HistogramBins", settings.histogramBins).toInt();
+	bool newHistogramVisible = config.value("SPM/HistogramVisible", settings.histogramVisible).toBool();
 	if (settings.histogramVisible != newHistogramVisible || settings.histogramBins != newHistogramBins)
 	{
 		settings.histogramBins = newHistogramBins;
@@ -1618,23 +1618,23 @@ void iAQSplom::loadSettings(iASettings const & config)
 		setHistogramVisible(newHistogramVisible);
 	}
 	
-	int newSelectionMode = config.value("SelectionMode", settings.selectionMode).toInt();
+	int newSelectionMode = config.value("SPM/SelectionMode", settings.selectionMode).toInt();
 	if (settings.selectionMode != newSelectionMode)
 		setSelectionMode(newSelectionMode);
-	bool newFlipAxes = config.value("FlipAxes", settings.flipAxes).toBool();
+	bool newFlipAxes = config.value("SPM/FlipAxes", settings.flipAxes).toBool();
 	if (settings.flipAxes != newFlipAxes)
 		setFlipAxes(newFlipAxes);
-	bool newQuadraticPlots = config.value("QuadraticPlots", settings.quadraticPlots).toBool();
+	bool newQuadraticPlots = config.value("SPM/QuadraticPlots", settings.quadraticPlots).toBool();
 	if (settings.quadraticPlots != newQuadraticPlots)
 		setQuadraticPlots(newQuadraticPlots);
-	bool newShowPCC = config.value("ShowPCC", settings.showPCC).toBool();
+	bool newShowPCC = config.value("SPM/ShowPCC", settings.showPCC).toBool();
 	if (settings.showPCC != newShowPCC)
 		setShowPCC(newShowPCC);
 
 	// load visible parameters:
-	if (config.contains("VisibleParameters"))
+	if (config.contains("SPM/VisibleParameters"))
 	{
-		QStringList newVisibleIndices = config.value("VisibleParameters").toString().split(",");
+		QStringList newVisibleIndices = config.value("SPM/VisibleParameters").toString().split(",");
 		std::vector<char> newParamVis(m_paramVisibility.size(), 0);
 		int paramsSetVisible = 0;
 		for (QString idxStr : newVisibleIndices)
@@ -1662,30 +1662,30 @@ void iAQSplom::loadSettings(iASettings const & config)
 	
 	// write all settings directly to settings object / blocked GUI elements.
 	// Except for opacity, which triggers the required updateLookupTable to apply the settings
-	settings.colorScheme = static_cast<ColorScheme>(config.value("ColorScheme", settings.colorScheme).toInt());
+	settings.colorScheme = static_cast<ColorScheme>(config.value("SPM/ColorScheme", settings.colorScheme).toInt());
 	QSignalBlocker blockColorScheme(m_settingsDlg->cbColorScheme);
 	m_settingsDlg->cbColorScheme->setCurrentIndex(settings.colorScheme);
 
-	settings.colorThemeName = config.value("ColorThemeName", settings.colorThemeName).toString();
+	settings.colorThemeName = config.value("SPM/ColorThemeName", settings.colorThemeName).toString();
 	QSignalBlocker blockColorTheme(m_settingsDlg->cbColorTheme);
 	m_settingsDlg->cbColorTheme->setCurrentText(settings.colorThemeName);
 
-	QColor newPointColor(QColor::fromRgba(config.value("PointColor", settings.pointColor.rgba()).toUInt()));
+	QColor newPointColor(QColor::fromRgba(config.value("SPM/PointColor", settings.pointColor.rgba()).toUInt()));
 	m_settingsDlg->pbPointColor->setStyleSheet(QString("background-color:%1").arg(newPointColor.name()));
 
 	QSignalBlocker blockMin(m_settingsDlg->sbMin), blockMax(m_settingsDlg->sbMax);
 	double colorCodingMin = m_settingsDlg->sbMin->value();
 	double colorCodingMax = m_settingsDlg->sbMax->value();
-	m_settingsDlg->sbMin->setValue(config.value("ColorCodingMin", colorCodingMin).toDouble());
-	m_settingsDlg->sbMax->setValue(config.value("ColorCodingMax", colorCodingMax).toDouble());
+	m_settingsDlg->sbMin->setValue(config.value("SPM/ColorCodingMin", colorCodingMin).toDouble());
+	m_settingsDlg->sbMax->setValue(config.value("SPM/ColorCodingMax", colorCodingMax).toDouble());
 
-	m_colorLookupParam = config.value("ColorLookupParam", m_colorLookupParam).toInt();
+	m_colorLookupParam = config.value("SPM/ColorLookupParam", m_colorLookupParam).toInt();
 	QSignalBlocker blockColorParameter(m_settingsDlg->cbColorParameter);
 	m_settingsDlg->cbColorParameter->setCurrentIndex(m_colorLookupParam);
 
 	// setting value to slPointOpacity is not blocked, because this triggers the one updateLookupTable we want here
 	double opacity = static_cast<double>(m_settingsDlg->slPointOpacity->value()) / m_settingsDlg->slPointOpacity->maximum();
-	opacity = config.value("PointOpacity", opacity).toDouble();
+	opacity = config.value("SPM/PointOpacity", opacity).toDouble();
 	m_settingsDlg->slPointOpacity->setValue(opacity * m_settingsDlg->slPointOpacity->maximum());
 }
 
