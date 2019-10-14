@@ -59,7 +59,9 @@ call "%VS_PATH%\VC\Auxiliary\Build\vcvarsall.bat" amd64
 
 @echo on
 
-:: just in case it doesn't exist yet, create output directory:
+:: in case it exists, remove output directory:
+rd /s /q %TEST_BIN_DIR%
+:: create output directory:
 md %TEST_BIN_DIR%
 cd %TEST_BIN_DIR%
 if %ERRORLEVEL% GEQ 1 goto BinDirError
