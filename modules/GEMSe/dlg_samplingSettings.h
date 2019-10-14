@@ -104,12 +104,12 @@ public:
 	bool GetSeparateFolder() const;
 	bool GetCalcChar() const;
 private slots:
-	void ChooseOutputFolder();
-	void ChooseParameterDescriptor();
-	void ChooseExecutable();
-	void ParameterDescriptorChanged();
-	void SaveSettings();
-	void LoadSettings();
+	void chooseOutputFolder();
+	void chooseParameterDescriptor();
+	void chooseExecutable();
+	void parameterDescriptorChanged();
+	void saveSettings();
+	void loadSettings();
 private:
 	void setInputsFromMap(QMap<QString, QString> const & values);
 	void loadDescriptor(QString const & fileName);
