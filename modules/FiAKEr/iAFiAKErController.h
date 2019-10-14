@@ -24,6 +24,7 @@
 #include "iASavableProject.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 
+#include <iASettings.h>
 #include <qthelper/iAVtkQtWidget.h>
 
 #include <vtkSmartPointer.h>
@@ -82,17 +83,21 @@ class iAFiAKErController : public QMainWindow, public iASelectionProvider, publi
 	Q_OBJECT
 public:
 	typedef std::vector<std::vector<size_t> > SelectionType;
+	static const QString FIAKERProjectID;
 	iAFiAKErController(MainWindow* mainWnd);
-	void start(QString const & path, QString const & configName, double stepShift);
 	~iAFiAKErController() override;
+	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
+	static void loadProject(MainWindow* mainWnd, QSettings const & projectFile, QString const & fileName);
+
+	void start(QString const & path, QString const & configName, double stepShift);
 	std::vector<std::vector<size_t> > & selection() override;
 	void setCamPosition(int pos) override;
 	void doSaveProject() override;
-	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
-	static void loadProject(MainWindow* mainWnd, QSettings const & projectFile, QString const & fileName);
 	void toggleDockWidgetTitleBars();
 	void toggleSettings();
-	static const QString FIAKERProjectID;
+	//! Load given settings.
+	//! @param settings needs to be passed by value, as it's used in a lambda!
+	void loadSettings(iASettings settings);
 signals:
 	void setupFinished();
 public slots:
@@ -146,7 +151,6 @@ private slots:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
 	void colorByDistrToggled();
-	void setProjectReference();
 	void loadVolume(QString const & fileName);
 private:
 	void changeDistributionSource(int index);
@@ -224,7 +228,6 @@ private:
 	vtkSmartPointer<vtkActor> m_refLineActor;
 	QWidget* m_showReferenceWidget;
 	std::vector<vtkSmartPointer<vtkActor> > m_contextActors;
-	size_t m_projectReferenceID;
 	iAMapper* m_diameterFactorMapper;
 	QSharedPointer<iAVolumeRenderer> m_refRenderer;
 	vtkSmartPointer<vtkImageData> m_refImg;
