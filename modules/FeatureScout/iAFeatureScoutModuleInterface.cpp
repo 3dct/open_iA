@@ -72,6 +72,13 @@ const QString iAFeatureScoutProject::ID("FeatureScout");
 
 void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const & fileName)
 {
+	if (!m_mdiChild)
+	{
+		DEBUG_LOG(QString("Invalid FeatureScout project file '%1': FeatureScout requires an MdiChild, "
+			"but UseMdiChild was apparently not specified in this project, as no MdiChild available! "
+			"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
+		return;
+	}
 	m_config.load(projectFile, "CSVFormat");
 
 	QString path(QFileInfo(fileName).absolutePath());

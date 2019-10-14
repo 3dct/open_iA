@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. WeissenbÃ¶ck, B. FrÃ¶hler, M. Schiwarth       *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,44 +15,19 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAProjectRegistry.h"
+#include "iASettings.h"
 
-#include "iAProjectBase.h"
+#include <QSettings>
 
-#include <cassert>
-
-QMap<QString, QSharedPointer<iAIProjectFactory> > iAProjectRegistry::m_projectTypes;
-
-QList<QString> const iAProjectRegistry::projectKeys()
+iASettings mapFromQSettings(QSettings const & settings)
 {
-	return m_projectTypes.keys();
-}
-
-QSharedPointer<iAProjectBase> iAProjectRegistry::createProject(QString const & projectIdentifier)
-{
-	assert(m_projectTypes.contains(projectIdentifier));
-	return m_projectTypes[projectIdentifier]->create();
-}
-
-
-iAProjectBase::iAProjectBase():
-	m_mdiChild(nullptr),
-	m_mainWindow(nullptr)
-{}
-
-iAProjectBase::~iAProjectBase()
-{}
-
-
-void iAProjectBase::setChild(MdiChild* child)
-{
-	m_mdiChild = child;
-}
-
-void iAProjectBase::setMainWindow(MainWindow* mainWindow)
-{
-	m_mainWindow = mainWindow;
+	iASettings result;
+	for (QString key : settings.allKeys())
+	{
+		result[key] = settings.value(key);
+	}
+	return result;
 }

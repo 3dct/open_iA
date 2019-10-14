@@ -66,15 +66,15 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 
 	setInputsFromMap(values);
 
-	connect(leParamDescriptor, SIGNAL(editingFinished()), this, SLOT(ParameterDescriptorChanged()));
-	connect(pbChooseOutputFolder, SIGNAL(clicked()), this, SLOT(ChooseOutputFolder()));
-	connect(pbChooseParameterDescriptor, SIGNAL(clicked()), this, SLOT(ChooseParameterDescriptor()));
-	connect(pbChooseExecutable, SIGNAL(clicked()), this, SLOT(ChooseExecutable()));
-	connect(pbSaveSettings, SIGNAL(clicked()), this, SLOT(SaveSettings()));
-	connect(pbLoadSettings, SIGNAL(clicked()), this, SLOT(LoadSettings()));
+	connect(leParamDescriptor, &QLineEdit::editingFinished, this, &dlg_samplingSettings::parameterDescriptorChanged);
+	connect(pbChooseOutputFolder, &QPushButton::clicked, this, &dlg_samplingSettings::chooseOutputFolder);
+	connect(pbChooseParameterDescriptor, &QPushButton::clicked, this, &dlg_samplingSettings::chooseParameterDescriptor);
+	connect(pbChooseExecutable, &QPushButton::clicked, this, &dlg_samplingSettings::chooseExecutable);
+	connect(pbSaveSettings, &QPushButton::clicked, this, &dlg_samplingSettings::saveSettings);
+	connect(pbLoadSettings, &QPushButton::clicked, this, &dlg_samplingSettings::loadSettings);
 
-	connect (pbRun, SIGNAL(clicked()), this, SLOT(accept()));
-	connect (pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
+	connect (pbRun, &QPushButton::clicked, this, &dlg_samplingSettings::accept);
+	connect (pbCancel, &QPushButton::clicked, this, &dlg_samplingSettings::reject);
 };
 
 
@@ -292,7 +292,7 @@ void dlg_samplingSettings::setInputsFromMap(QMap<QString, QString> const & value
 
 	if (setTextValue(values, "ParameterDescriptor", leParamDescriptor))
 	{
-		ParameterDescriptorChanged();
+		parameterDescriptorChanged();
 		for (int i = 0; i < m_paramInputs.size(); ++i)
 		{
 			m_paramInputs[i]->changeInputValues(values);
@@ -329,7 +329,7 @@ namespace
 }
 
 
-void dlg_samplingSettings::SaveSettings()
+void dlg_samplingSettings::saveSettings()
 {
 	QString fileName = QFileDialog::getSaveFileName(
 		this,
@@ -355,7 +355,7 @@ void dlg_samplingSettings::SaveSettings()
 	}
 }
 
-void dlg_samplingSettings::LoadSettings()
+void dlg_samplingSettings::loadSettings()
 {
 	QString fileName = QFileDialog::getOpenFileName(
 		this,
@@ -396,7 +396,7 @@ QSharedPointer<iAParameterGenerator> dlg_samplingSettings::GetGenerator()
 }
 
 
-void dlg_samplingSettings::ChooseParameterDescriptor()
+void dlg_samplingSettings::chooseParameterDescriptor()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Parameter Descriptor"),
 		QString(), // TODO get directory of current file
@@ -409,7 +409,7 @@ void dlg_samplingSettings::ChooseParameterDescriptor()
 }
 
 
-void dlg_samplingSettings::ChooseExecutable()
+void dlg_samplingSettings::chooseExecutable()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Executable"),
 		QString(), // TODO get directory of current file
@@ -420,7 +420,7 @@ void dlg_samplingSettings::ChooseExecutable()
 	}
 }
 
-void dlg_samplingSettings::ParameterDescriptorChanged()
+void dlg_samplingSettings::parameterDescriptorChanged()
 {
 	// load parameter descriptor from file
 	loadDescriptor(leParamDescriptor->text());
@@ -543,7 +543,7 @@ QSharedPointer<iAAttributes> dlg_samplingSettings::GetAttributes()
 }
 
 
-void dlg_samplingSettings::ChooseOutputFolder()
+void dlg_samplingSettings::chooseOutputFolder()
 {
 	QFileDialog dialog;
 	dialog.setFileMode(QFileDialog::Directory);

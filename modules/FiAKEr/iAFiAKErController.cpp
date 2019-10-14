@@ -1774,6 +1774,16 @@ void iAFiAKErController::setReference(size_t referenceID)
 	m_refDistCompute->start();
 }
 
+void iAFiAKErController::loadSettings(iASettings settings)
+{
+	m_spm->loadSettings(settings);
+	size_t referenceID = settings.value(ProjectFileReference, static_cast<qulonglong>(NoResult)).toULongLong();
+	if (referenceID != NoResult)
+	{
+		setReference(referenceID);
+	}
+}
+
 void iAFiAKErController::refDistAvailable()
 {
 	size_t startIdx = m_data->spmData->numParams() - (iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount + iARefDistCompute::EndColumns);
@@ -2293,9 +2303,11 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 {
 	projectFile.setValue(ProjectFileFolder, MakeRelative(QFileInfo(fileName).absolutePath(), m_data->folder));
 	projectFile.setValue(ProjectFileFormat, m_configName);
+	// instead of config name, store full config...
 	projectFile.setValue(ProjectFileStepShift, m_data->stepShift);
 	if (m_referenceID != NoResult)
 		projectFile.setValue(ProjectFileReference, static_cast<qulonglong>(m_referenceID));
+	m_spm->saveSettings(projectFile);
 }
 
 void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folder)
@@ -2312,19 +2324,17 @@ void iAFiAKErController::loadProject(MainWindow* mainWnd, QSettings const & proj
 {
 	auto dataFolder  = MakeAbsolute(QFileInfo(fileName).absolutePath(), projectFile.value(ProjectFileFolder, "").toString());
 	auto configName  = projectFile.value(ProjectFileFormat, "").toString();
+	// if config name entry exists, load that, otherwise load full config...
 	auto stepShift   = projectFile.value(ProjectFileStepShift, 0).toDouble();
 	auto explorer = new iAFiAKErController(mainWnd);
-	explorer->m_projectReferenceID = projectFile.value(ProjectFileReference, static_cast<qulonglong>(NoResult)).toULongLong();
 	mainWnd->setPath(dataFolder);
 	mainWnd->addSubWindow(explorer);
-	if (explorer->m_projectReferenceID != NoResult)
-		connect(explorer, &iAFiAKErController::setupFinished, explorer, &iAFiAKErController::setProjectReference);
+	iASettings projectSettings = mapFromQSettings(projectFile);
+	connect(explorer, &iAFiAKErController::setupFinished, [explorer, projectSettings]
+	{
+		explorer->loadSettings(projectSettings);
+	});
 	explorer->start(dataFolder, configName, stepShift);
-}
-
-void iAFiAKErController::setProjectReference()
-{
-	setReference(m_projectReferenceID);
 }
 
 void iAFiAKErController::loadVolume(QString const & fileName)

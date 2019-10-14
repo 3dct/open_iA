@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. WeissenbÃ¶ck, B. FrÃ¶hler, M. Schiwarth       *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,44 +15,22 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAProjectRegistry.h"
+#pragma once
 
-#include "iAProjectBase.h"
+#include "open_iA_Core_export.h"
 
-#include <cassert>
+#include <QHash>
 
-QMap<QString, QSharedPointer<iAIProjectFactory> > iAProjectRegistry::m_projectTypes;
+class QSettings;
+class QVariant;
 
-QList<QString> const iAProjectRegistry::projectKeys()
-{
-	return m_projectTypes.keys();
-}
+typedef QHash<QString, QVariant> iASettings;
 
-QSharedPointer<iAProjectBase> iAProjectRegistry::createProject(QString const & projectIdentifier)
-{
-	assert(m_projectTypes.contains(projectIdentifier));
-	return m_projectTypes[projectIdentifier]->create();
-}
-
-
-iAProjectBase::iAProjectBase():
-	m_mdiChild(nullptr),
-	m_mainWindow(nullptr)
-{}
-
-iAProjectBase::~iAProjectBase()
-{}
-
-
-void iAProjectBase::setChild(MdiChild* child)
-{
-	m_mdiChild = child;
-}
-
-void iAProjectBase::setMainWindow(MainWindow* mainWindow)
-{
-	m_mainWindow = mainWindow;
-}
+//! Retrieve a map of all values in (the current group of) a given QSettings object.
+//! @param settings the QSettings object to load all settings from
+//! @param a map containing key->value pairs for all settings currently in
+//!     (current group of) the given QSettings object
+open_iA_Core_API iASettings mapFromQSettings(QSettings const & settings);

@@ -32,6 +32,7 @@ class open_iA_Core_API iAProjectBase
 {
 public:
 	//! implementation (empty) in iAProjectRegistry.cpp
+	iAProjectBase();
 	virtual ~iAProjectBase();
 	virtual void loadProject(QSettings & projectFile, QString const & fileName) =0;
 	virtual void saveProject(QSettings & projectFile, QString const & fileName) =0;
