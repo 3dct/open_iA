@@ -37,6 +37,12 @@ QSharedPointer<iAProjectBase> iAProjectRegistry::createProject(QString const & p
 	return m_projectTypes[projectIdentifier]->create();
 }
 
+
+iAProjectBase::iAProjectBase():
+	m_mdiChild(nullptr),
+	m_mainWindow(nullptr)
+{}
+
 iAProjectBase::~iAProjectBase()
 {}
 
