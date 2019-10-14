@@ -373,6 +373,10 @@ QWidget* iAFiAKErController::setupSettingsView()
 	m_teBoundingBox[3] = settingsView->leBoundingBoxC2X;
 	m_teBoundingBox[4] = settingsView->leBoundingBoxC2Y;
 	m_teBoundingBox[5] = settingsView->leBoundingBoxC2Z;
+	for (int i = 0; i < 6; ++i)
+	{
+		connect(m_teBoundingBox[i], &QLineEdit::editingFinished, this, &iAFiAKErController::updateBoundingBox);
+	}
 
 	settingsView->cbShowWireFrame->setChecked(false);
 
@@ -1606,19 +1610,36 @@ void iAFiAKErController::showBoundingBoxChanged(int newState)
 {
 	if (newState == Qt::Checked)
 	{
-		// TODO: move to function also called when edit fields change
-		double newBounds[6];
-		for (int i = 0; i < 3; ++i)
-		{                                             // todo: error checking
-			newBounds[i * 2] = m_teBoundingBox[i]->text().toInt();
-			newBounds[i * 2 + 1] = m_teBoundingBox[i + 3]->text().toInt();
-		}
-		m_customBoundingBoxSource->SetBounds(newBounds);
-		m_customBoundingBoxMapper->Update();
 		m_ren->AddActor(m_customBoundingBoxActor);
+		updateBoundingBox();
 	}
 	else
+	{
 		m_ren->RemoveActor(m_customBoundingBoxActor);
+		m_main3DWidget->GetRenderWindow()->Render();
+		m_main3DWidget->update();
+	}
+}
+
+void iAFiAKErController::updateBoundingBox()
+{
+	if (!m_ren->HasViewProp(m_customBoundingBoxActor))
+		return;
+	// TODO: move to function also called when edit fields change
+	double newBounds[6];
+	for (int i = 0; i < 3; ++i)
+	{                                             // todo: error checking
+		bool ok;
+		newBounds[i * 2] = m_teBoundingBox[i]->text().toDouble(&ok);
+		if (!ok)
+			DEBUG_LOG(QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+		newBounds[i * 2 + 1] = m_teBoundingBox[i + 3]->text().toDouble(&ok);
+		if (!ok)
+			DEBUG_LOG(QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+	}
+	m_customBoundingBoxSource->SetBounds(newBounds);
+	m_customBoundingBoxMapper->Update();
+
 	m_main3DWidget->GetRenderWindow()->Render();
 	m_main3DWidget->update();
 }

@@ -147,6 +147,7 @@ private slots:
 	void mergeFiberContextBoxesChanged(int);
 	void showWireFrameChanged(int);
 	void showBoundingBoxChanged(int);
+	void updateBoundingBox();
 	// result view:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
