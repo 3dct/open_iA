@@ -91,7 +91,7 @@ struct FeatureScout_API iACsvConfig
 	void save(QSettings & settings, const QString & formatName);
 
 	//! Load a given configuration name
-	bool load(QSettings & settings, const QString & formatName);
+	bool load(QSettings const & settings, const QString & formatName);
 };
 
 QString MapVisType2Str(iACsvConfig::VisualizationType visType);
