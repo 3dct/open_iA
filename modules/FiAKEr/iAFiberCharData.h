@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAProgress.h"
+#include "iACsvConfig.h"
 
+#include "iAProgress.h"
 #include "iAvec3.h"
 
 #include <vtkSmartPointer.h>
@@ -33,8 +34,6 @@
 #include <vector>
 
 class iASPLOMData;
-
-class iACsvConfig;
 
 class vtkTable;
 
@@ -131,7 +130,7 @@ public:
 	std::vector<double> maxAvgDifference;
 
 // Methods:
-	bool loadData(QString const & path, QString const & configName, double stepShift, iAProgress * progress);
+	bool loadData(QString const & path, iACsvConfig const & config, double stepShift, iAProgress * progress);
 };
 
 //! Loads a collection of results from a folder, in the background
@@ -139,7 +138,8 @@ class iAFiberResultsLoader: public QThread
 {
 	Q_OBJECT
 public:
-	iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results, QString const & path, QString const & configName, double stepShift);
+	iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results,
+		QString const & path, iACsvConfig const & config, double stepShift);
 	void run() override;
 	iAProgress* progress();
 signals:
@@ -149,10 +149,10 @@ private:
 	iAProgress m_progress;
 	QSharedPointer<iAFiberResultsCollection> m_results;
 	QString m_path;
-	QString m_configName;
+	iACsvConfig m_config;
 	double m_stepShift;
 };
 
 // helper functions:
 void addColumn(vtkSmartPointer<vtkTable> table, float value, char const * columnName, size_t numRows);
-iACsvConfig getCsvConfig(QString const & csvFile, QString const & formatName);
+iACsvConfig getCsvConfig(QString const & formatName);

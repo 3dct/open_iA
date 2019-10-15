@@ -20,10 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
+// FiAKEr:
 #include "iAChangeableCameraWidget.h"
 #include "iASavableProject.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 
+// FeatureScout:
+#include <iACsvConfig.h>
+
+// Core:
 #include <iASettings.h>
 #include <qthelper/iAVtkQtWidget.h>
 
@@ -89,7 +94,7 @@ public:
 	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
 	static void loadProject(MainWindow* mainWnd, QSettings const & projectFile, QString const & fileName);
 
-	void start(QString const & path, QString const & configName, double stepShift);
+	void start(QString const & path, iACsvConfig const & config, double stepShift);
 	std::vector<std::vector<size_t> > & selection() override;
 	void setCamPosition(int pos) override;
 	void doSaveProject() override;
@@ -207,7 +212,7 @@ private:
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 
 	vtkSmartPointer<vtkActor> m_sampleActor;
-	QString m_configName;
+	iACsvConfig m_config;
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
 	QString m_colorByThemeName;

@@ -94,16 +94,16 @@ namespace
 	}
 }
 
-iACsvConfig getCsvConfig(QString const & csvFile, QString const & formatName)
+iACsvConfig getCsvConfig(QString const & formatName)
 {
 	iACsvConfig result;
 	QSettings settings;
 	if (!result.load(settings, formatName))
 	{
 		if (formatName == iACsvConfig::LegacyFiberFormat)
-			result = iACsvConfig::getLegacyFiberFormat(csvFile);
+			result = iACsvConfig::getLegacyFiberFormat("");
 		else if (formatName == iACsvConfig::LegacyVoidFormat)
-			result = iACsvConfig::getLegacyPoreFormat(csvFile);
+			result = iACsvConfig::getLegacyPoreFormat("");
 		else if (formatName == iAFiberResultsCollection::LegacyFormat)
 			result = getLegacyConfig();
 		else if (formatName == iAFiberResultsCollection::SimpleFormat)
@@ -111,7 +111,6 @@ iACsvConfig getCsvConfig(QString const & csvFile, QString const & formatName)
 		else
 			DEBUG_LOG(QString("Invalid format %1!").arg(formatName));
 	}
-	result.fileName = csvFile;
 	return result;
 }
 
@@ -132,7 +131,7 @@ iAFiberResultsCollection::iAFiberResultsCollection():
 	stepShift(0)
 {}
 
-bool iAFiberResultsCollection::loadData(QString const & path, QString const & configName, double stepShift, iAProgress * progress)
+bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const & cfg, double stepShift, iAProgress * progress)
 {
 	folder = path;
 	this->stepShift = stepShift;
@@ -156,7 +155,8 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 	// load all datasets:
 	for (QString csvFile : csvFileNames)
 	{
-		iACsvConfig config = getCsvConfig(csvFile, configName);
+		iACsvConfig config(cfg);
+		config.fileName = csvFile;
 		objectType = config.visType;
 		iACsvIO io;
 		iACsvVtkTableCreator tableCreator;
@@ -503,16 +503,17 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 	return true;
 }
 
-iAFiberResultsLoader::iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results, QString const & path, QString const & configName, double stepShift):
+iAFiberResultsLoader::iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results,
+	QString const & path, iACsvConfig const & config, double stepShift):
 	m_results(results),
 	m_path(path),
-	m_configName(configName),
+	m_config(config),
 	m_stepShift(stepShift)
 {}
 
 void iAFiberResultsLoader::run()
 {
-	if (!m_results->loadData(m_path, m_configName, m_stepShift, &m_progress))
+	if (!m_results->loadData(m_path, m_config, m_stepShift, &m_progress))
 		emit failed(m_path);
 	else
 		emit success();

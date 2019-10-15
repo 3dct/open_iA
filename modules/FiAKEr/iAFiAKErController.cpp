@@ -135,9 +135,10 @@ namespace
 	const QString RefMarker(" (Reference)");
 
 	const QString ProjectFileFolder("Folder");
-	const QString ProjectFileFormat("Format");
+	const QString ProjectFileFormatName("Format");
 	const QString ProjectFileReference("Reference");
 	const QString ProjectFileStepShift("StepShift");
+	const QString ProjectFileSaveFormatName("CsvFormat");
 	
 	const QString DefaultResultColorTheme("Brewer Accent (max. 8)");
 	const QString DefaultStackedBarColorTheme("Material red (max. 10)");
@@ -213,16 +214,16 @@ void iAFiAKErController::toggleFullScreen()
 	mdiSubWin->show();
 }
 
-void iAFiAKErController::start(QString const & path, QString const & configName, double stepShift)
+void iAFiAKErController::start(QString const & path, iACsvConfig const & config, double stepShift)
 {
-	m_configName = configName;
+	m_config = config;
 	m_jobs = new iAJobListView(DockWidgetMargin);
 	m_views.resize(DockWidgetCount);
 	m_views[JobView] = new iADockWidgetWrapper(m_jobs, "Jobs", "foeJobs");
 	addDockWidget(Qt::BottomDockWidgetArea, m_views[JobView]);
 
 	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
-	auto resultsLoader = new iAFiberResultsLoader(m_data, path, configName, stepShift);
+	auto resultsLoader = new iAFiberResultsLoader(m_data, path, config, stepShift);
 	connect(resultsLoader, &iAFiberResultsLoader::success, this, &iAFiAKErController::resultsLoaded);
 	connect(resultsLoader, &iAFiberResultsLoader::failed,  this, &iAFiAKErController::resultsLoadFailed);
 	m_jobs->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
@@ -1467,7 +1468,8 @@ void iAFiAKErController::miniMouseEvent(QMouseEvent* ev)
 
 void iAFiAKErController::startFeatureScout(int resultID, MdiChild* newChild)
 {
-	iACsvConfig config = getCsvConfig(m_data->result[resultID].fileName, m_configName);
+	iACsvConfig config(m_config);
+	config.fileName = m_data->result[resultID].fileName;
 	config.curvedFiberFileName = m_data->result[resultID].curvedFileName;
 	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
 	featureScout->LoadFeatureScout(config, newChild);
@@ -2323,8 +2325,10 @@ void iAFiAKErController::saveAnalysisClick()
 void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & fileName)
 {
 	projectFile.setValue(ProjectFileFolder, MakeRelative(QFileInfo(fileName).absolutePath(), m_data->folder));
-	projectFile.setValue(ProjectFileFormat, m_configName);
+	//projectFile.setValue(ProjectFileFormat, m_configName);
 	// instead of config name, store full config...
+	//projectFile.setValue(ProjectFileFormatName)
+	m_config.save(projectFile, ProjectFileSaveFormatName);
 	projectFile.setValue(ProjectFileStepShift, m_data->stepShift);
 	if (m_referenceID != NoResult)
 		projectFile.setValue(ProjectFileReference, static_cast<qulonglong>(m_referenceID));
@@ -2344,7 +2348,20 @@ void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folde
 void iAFiAKErController::loadProject(MainWindow* mainWnd, QSettings const & projectFile, QString const & fileName)
 {
 	auto dataFolder  = MakeAbsolute(QFileInfo(fileName).absolutePath(), projectFile.value(ProjectFileFolder, "").toString());
-	auto configName  = projectFile.value(ProjectFileFormat, "").toString();
+	iACsvConfig config;
+	auto configName  = projectFile.value(ProjectFileFormatName, "").toString();
+	if (!configName.isEmpty())
+	{  // old format, load from given format name:
+		config = getCsvConfig(configName);
+	}
+	else
+	{  // load full format
+		if (!config.load(projectFile, ProjectFileSaveFormatName))
+		{
+			DEBUG_LOG("Could not load CSV format specification from project file!");
+			return;
+		}
+	}
 	// if config name entry exists, load that, otherwise load full config...
 	auto stepShift   = projectFile.value(ProjectFileStepShift, 0).toDouble();
 	auto explorer = new iAFiAKErController(mainWnd);
@@ -2355,7 +2372,7 @@ void iAFiAKErController::loadProject(MainWindow* mainWnd, QSettings const & proj
 	{
 		explorer->loadSettings(projectSettings);
 	});
-	explorer->start(dataFolder, configName, stepShift);
+	explorer->start(dataFolder, config, stepShift);
 }
 
 void iAFiAKErController::loadVolume(QString const & fileName)

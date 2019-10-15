@@ -153,7 +153,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	m_mainWnd->addSubWindow(explorer);
 	m_mainWnd->setPath(m_lastPath);
 	auto project = QSharedPointer<iAFIAKERProject>::create();
-	explorer->start(m_lastPath, m_lastFormat, m_lastTimeStepOffset);
+	explorer->start(m_lastPath, getCsvConfig(m_lastFormat), m_lastTimeStepOffset);
 }
 
 void iAFiAKErModuleInterface::loadFiAKErProject()

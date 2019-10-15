@@ -338,7 +338,7 @@ void iACsvConfig::save(QSettings & settings, QString const & formatName)
 
 bool iACsvConfig::load(QSettings const & settings, const QString & formatName)
 {
-	QString prefix(iACsvConfig::getFormatKey(formatName));
+	QString prefix(iACsvConfig::getFormatKey(formatName)+"/");
 	iACsvConfig defaultConfig;
 	skipLinesStart = settings.value(prefix+CfgKeySkipLinesStart, static_cast<qulonglong>(defaultConfig.skipLinesStart)).toULongLong();
 	skipLinesEnd = settings.value(prefix+CfgKeySkipLinesEnd, static_cast<qulonglong>(defaultConfig.skipLinesEnd)).toULongLong();
