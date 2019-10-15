@@ -52,6 +52,22 @@ namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:
 	const int TextPadding = 7;
 	const double PointRadiusFractions = 10.0;
+
+	const QString CfgKeyPointRadius("SPM/PointRadius");
+	const QString CfgKeyHistogramVisible("SPM/HistogramVisible");
+	const QString CfgKeyHistogramBins("SPM/HistogramBins");
+	const QString CfgKeySelectionMode("SPM/SelectionMode");
+	const QString CfgKeyFlipAxes("SPM/FlipAxes");
+	const QString CfgKeyQuadraticPlots("SPM/QuadraticPlots");
+	const QString CfgKeyShowPCC("SPM/ShowPCC");
+	const QString CfgKeyColorScheme("SPM/ColorScheme");
+	const QString CfgKeyColorThemeName("SPM/ColorThemeName");
+	const QString CfgKeyPointColor("SPM/PointColor");
+	const QString CfgKeyPointOpacity("SPM/PointOpacity");
+	const QString CfgKeyColorCodingMin("SPM/ColorCodingMin");
+	const QString CfgKeyColorCodingMax("SPM/ColorCodingMax");
+	const QString CfgKeyColorLookupParam("SPM/ColorLookupParam");
+	const QString CfgKeyVisibleParameters("SPM/VisibleParameters");
 }
 
 iAQSplom::Settings::Settings()
@@ -652,8 +668,8 @@ void iAQSplom::transformUpdated( double scale, QPointF deltaOffset )
 	if (m_maximizedPlot && settings.maximizedLinked)
 	{
 		m_maximizedPlot->setTransform(sender->getScale(),
-									  QPointF(sender->getOffset().x() / sender->getRect().width() * m_maximizedPlot->getRect().width(),
-											  sender->getOffset().y() / sender->getRect().height() * m_maximizedPlot->getRect().height()));
+			QPointF(sender->getOffset().x() / sender->getRect().width() * m_maximizedPlot->getRect().width(),
+					sender->getOffset().y() / sender->getRect().height() * m_maximizedPlot->getRect().height()));
 		if (sender == m_maximizedPlot)
 			deltaOffset = QPointF(deltaOffset.x() / m_maximizedPlot->getRect().width() * m_previewPlot->getRect().width(),
 								  deltaOffset.y() / m_maximizedPlot->getRect().height() * m_previewPlot->getRect().height());
@@ -1574,42 +1590,42 @@ void iAQSplom::loadSettingsSlot()
 
 void iAQSplom::saveSettings(QSettings & iniFile) const
 {
-	iniFile.setValue("SPM/PointRadius", settings.pointRadius);
-	iniFile.setValue("SPM/HistogramVisible", settings.histogramVisible);
-	iniFile.setValue("SPM/HistogramBins", settings.histogramBins);
-	iniFile.setValue("SPM/SelectionMode", settings.selectionMode);
-	iniFile.setValue("SPM/FlipAxes", settings.flipAxes);
-	iniFile.setValue("SPM/QuadraticPlots", settings.quadraticPlots);
-	iniFile.setValue("SPM/ShowPCC", settings.showPCC);
-	iniFile.setValue("SPM/ColorScheme", settings.colorScheme);
-	iniFile.setValue("SPM/ColorThemeName", settings.colorThemeName);
-	iniFile.setValue("SPM/PointColor", settings.pointColor.rgba());
 	double pointOpacity = static_cast<double>(m_settingsDlg->slPointOpacity->value()) / m_settingsDlg->slPointOpacity->maximum();
-	iniFile.setValue("SPM/PointOpacity", pointOpacity);
 	double colorCodingMin = m_settingsDlg->sbMin->value();
 	double colorCodingMax = m_settingsDlg->sbMax->value();
-	iniFile.setValue("SPM/ColorCodingMin", colorCodingMin);
-	iniFile.setValue("SPM/ColorCodingMax", colorCodingMax);
-	iniFile.setValue("SPM/ColorLookupParam", m_colorLookupParam);
-	iniFile.setValue("SPM/VisibleParameters", join(m_visibleIndices, ","));
+	iniFile.setValue(CfgKeyPointRadius, settings.pointRadius);
+	iniFile.setValue(CfgKeyHistogramVisible, settings.histogramVisible);
+	iniFile.setValue(CfgKeyHistogramBins, settings.histogramBins);
+	iniFile.setValue(CfgKeySelectionMode, settings.selectionMode);
+	iniFile.setValue(CfgKeyFlipAxes, settings.flipAxes);
+	iniFile.setValue(CfgKeyQuadraticPlots, settings.quadraticPlots);
+	iniFile.setValue(CfgKeyShowPCC, settings.showPCC);
+	iniFile.setValue(CfgKeyColorScheme, settings.colorScheme);
+	iniFile.setValue(CfgKeyColorThemeName, settings.colorThemeName);
+	iniFile.setValue(CfgKeyPointColor, settings.pointColor.rgba());
+	iniFile.setValue(CfgKeyPointOpacity, pointOpacity);
+	iniFile.setValue(CfgKeyColorCodingMin, colorCodingMin);
+	iniFile.setValue(CfgKeyColorCodingMax, colorCodingMax);
+	iniFile.setValue(CfgKeyColorLookupParam, static_cast<qulonglong>(m_colorLookupParam));
+	iniFile.setValue(CfgKeyVisibleParameters, join(m_visibleIndices, ","));
 }
 
 void iAQSplom::loadSettings(iASettings const & config)
 {
 	bool ok;
-	double newPointRadius = config.value("SPM/PointRadius", settings.pointRadius).toDouble(&ok);
+	double newPointRadius = config.value(CfgKeyPointRadius, settings.pointRadius).toDouble(&ok);
 	if (!ok)
 	{
 		DEBUG_LOG(QString("Invalid value for 'PointRadius' setting ('%1') in Scatter Plot Matrix settings")
-			.arg(config.value("SPM/PointRadius").toString()));
+			.arg(config.value(CfgKeyPointRadius).toString()));
 	}
 	if (settings.pointRadius != newPointRadius)
 	{
 		setPointRadius(newPointRadius);
 	}
 
-	int newHistogramBins = config.value("SPM/HistogramBins", settings.histogramBins).toInt();
-	bool newHistogramVisible = config.value("SPM/HistogramVisible", settings.histogramVisible).toBool();
+	int newHistogramBins = config.value(CfgKeyHistogramBins, settings.histogramBins).toInt();
+	bool newHistogramVisible = config.value(CfgKeyHistogramVisible, settings.histogramVisible).toBool();
 	if (settings.histogramVisible != newHistogramVisible || settings.histogramBins != newHistogramBins)
 	{
 		settings.histogramBins = newHistogramBins;
@@ -1618,23 +1634,23 @@ void iAQSplom::loadSettings(iASettings const & config)
 		setHistogramVisible(newHistogramVisible);
 	}
 	
-	int newSelectionMode = config.value("SPM/SelectionMode", settings.selectionMode).toInt();
+	int newSelectionMode = config.value(CfgKeySelectionMode, settings.selectionMode).toInt();
 	if (settings.selectionMode != newSelectionMode)
 		setSelectionMode(newSelectionMode);
-	bool newFlipAxes = config.value("SPM/FlipAxes", settings.flipAxes).toBool();
+	bool newFlipAxes = config.value(CfgKeyFlipAxes, settings.flipAxes).toBool();
 	if (settings.flipAxes != newFlipAxes)
 		setFlipAxes(newFlipAxes);
-	bool newQuadraticPlots = config.value("SPM/QuadraticPlots", settings.quadraticPlots).toBool();
+	bool newQuadraticPlots = config.value(CfgKeyQuadraticPlots, settings.quadraticPlots).toBool();
 	if (settings.quadraticPlots != newQuadraticPlots)
 		setQuadraticPlots(newQuadraticPlots);
-	bool newShowPCC = config.value("SPM/ShowPCC", settings.showPCC).toBool();
+	bool newShowPCC = config.value(CfgKeyShowPCC, settings.showPCC).toBool();
 	if (settings.showPCC != newShowPCC)
 		setShowPCC(newShowPCC);
 
 	// load visible parameters:
-	if (config.contains("SPM/VisibleParameters"))
+	if (config.contains(CfgKeyVisibleParameters))
 	{
-		QStringList newVisibleIndices = config.value("SPM/VisibleParameters").toString().split(",");
+		QStringList newVisibleIndices = config.value(CfgKeyVisibleParameters).toString().split(",");
 		std::vector<char> newParamVis(m_paramVisibility.size(), 0);
 		int paramsSetVisible = 0;
 		for (QString idxStr : newVisibleIndices)
@@ -1662,30 +1678,30 @@ void iAQSplom::loadSettings(iASettings const & config)
 	
 	// write all settings directly to settings object / blocked GUI elements.
 	// Except for opacity, which triggers the required updateLookupTable to apply the settings
-	settings.colorScheme = static_cast<ColorScheme>(config.value("SPM/ColorScheme", settings.colorScheme).toInt());
+	settings.colorScheme = static_cast<ColorScheme>(config.value(CfgKeyColorScheme, settings.colorScheme).toInt());
 	QSignalBlocker blockColorScheme(m_settingsDlg->cbColorScheme);
 	m_settingsDlg->cbColorScheme->setCurrentIndex(settings.colorScheme);
 
-	settings.colorThemeName = config.value("SPM/ColorThemeName", settings.colorThemeName).toString();
+	settings.colorThemeName = config.value(CfgKeyColorThemeName, settings.colorThemeName).toString();
 	QSignalBlocker blockColorTheme(m_settingsDlg->cbColorTheme);
 	m_settingsDlg->cbColorTheme->setCurrentText(settings.colorThemeName);
 
-	QColor newPointColor(QColor::fromRgba(config.value("SPM/PointColor", settings.pointColor.rgba()).toUInt()));
+	QColor newPointColor(QColor::fromRgba(config.value(CfgKeyPointColor, settings.pointColor.rgba()).toUInt()));
 	m_settingsDlg->pbPointColor->setStyleSheet(QString("background-color:%1").arg(newPointColor.name()));
 
 	QSignalBlocker blockMin(m_settingsDlg->sbMin), blockMax(m_settingsDlg->sbMax);
 	double colorCodingMin = m_settingsDlg->sbMin->value();
 	double colorCodingMax = m_settingsDlg->sbMax->value();
-	m_settingsDlg->sbMin->setValue(config.value("SPM/ColorCodingMin", colorCodingMin).toDouble());
-	m_settingsDlg->sbMax->setValue(config.value("SPM/ColorCodingMax", colorCodingMax).toDouble());
+	m_settingsDlg->sbMin->setValue(config.value(CfgKeyColorCodingMin, colorCodingMin).toDouble());
+	m_settingsDlg->sbMax->setValue(config.value(CfgKeyColorCodingMax, colorCodingMax).toDouble());
 
-	m_colorLookupParam = config.value("SPM/ColorLookupParam", m_colorLookupParam).toInt();
+	m_colorLookupParam = config.value(CfgKeyColorLookupParam, static_cast<qulonglong>(m_colorLookupParam)).toULongLong();
 	QSignalBlocker blockColorParameter(m_settingsDlg->cbColorParameter);
 	m_settingsDlg->cbColorParameter->setCurrentIndex(m_colorLookupParam);
 
 	// setting value to slPointOpacity is not blocked, because this triggers the one updateLookupTable we want here
 	double opacity = static_cast<double>(m_settingsDlg->slPointOpacity->value()) / m_settingsDlg->slPointOpacity->maximum();
-	opacity = config.value("SPM/PointOpacity", opacity).toDouble();
+	opacity = config.value(CfgKeyPointOpacity, opacity).toDouble();
 	m_settingsDlg->slPointOpacity->setValue(opacity * m_settingsDlg->slPointOpacity->maximum());
 }
 
