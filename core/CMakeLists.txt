@@ -54,6 +54,148 @@ IF (openiA_USE_COTIRE)
 	cotire(${CORE_LIBRARY_NAME})
 ENDIF()
 
+
+IF (openiA_PRECOMPILE)
+	IF (CMAKE_MAJOR_VERSION GREATER 4 OR
+	(CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 15))
+		target_precompile_headers(${CORE_LIBRARY_NAME} PRIVATE
+			<charts/iAChartWidget.h>
+			<charts/iADiagramFctWidget.h>
+			<charts/iAPlotData.h>
+			<charts/iAScatterPlot.h>
+			<charts/iASPLOMData.h>
+			<defines.h>
+			<dlg_commoninput.h>
+			<iAAlgorithm.h>
+			<iAAttributeDescriptor.h>
+			<iAChannelData.h>
+			<iAChannelSlicerData.h>
+			<iAChartFunctionTransfer.h>
+			<iAConnector.h>
+			<iAConsole.h>
+			<iAFilter.h>
+			<iAFilterRunnerGUI.h>
+			<iALogger.h>
+			<iALookupTable.h>
+			<iAMapper.h>
+			<iAMathUtility.h>
+			<iAModality.h>
+			<iAModalityList.h>
+			<iAModalityTransfer.h>
+			<iAModuleDispatcher.h>
+			<iAMovieHelper.h>
+			<iAProgress.h>
+			<iARenderer.h>
+			<iARenderSettings.h>
+			<iASlicer.h>
+			<iASlicerMode.h>
+			<iASlicerSettings.h>
+			<iAStringHelper.h>
+			<iAToolsITK.h>
+			<iAToolsVTK.h>
+			<iATransferFunction.h>
+			<iATypedCallHelper.h>
+			<iAValueType.h>
+			<iAVolumeRenderer.h>
+			<iAVolumeSettings.h>
+			<iAVolumeStack.h>
+			<iAVtkWidget.h>
+			<iAXmlSettings.h>
+			<io/iAFileUtils.h>
+			<io/iAIOProvider.h>
+			<io/iAITKIO.h>
+			<mainwindow.h>
+			<mdichild.h>
+			<qthelper/iAQGLWidget.h>
+			<qthelper/iAQTtoUIConnector.h>
+
+			<itkImage.h>
+			<itkImageBase.h>
+			<itkImageFileReader.h>
+			<itkImageIOBase.h>
+
+			<vtkActor.h>
+			<vtkActor2D.h>
+			<vtkCamera.h>
+			<vtkCellArray.h>
+			<vtkColorTransferFunction.h>
+			<vtkCommand.h>
+			<vtkDiskSource.h>
+			<vtkGenericOpenGLRenderWindow.h>
+			<vtkImageActor.h>
+			<vtkImageCast.h>
+			<vtkImageData.h>
+			<vtkImageMapper3D.h>
+			<vtkImageMapToColors.h>
+			<vtkImageReslice.h>
+			<vtkLineSource.h>
+			<vtkLookupTable.h>
+			<vtkMath.h>
+			<vtkObjectFactory.h>
+			<vtkOpenGLRenderer.h>
+			<vtkPiecewiseFunction.h>
+			<vtkPointData.h>
+			<vtkPoints.h>
+			<vtkPolyData.h>
+			<vtkPolyDataMapper.h>
+			<vtkPolyDataMapper2D.h>
+			<vtkPolyLine.h>
+			<vtkProperty.h>
+			<vtkRenderer.h>
+			<vtkRendererCollection.h>
+			<vtkRenderWindow.h>
+			<vtkRenderWindowInteractor.h>
+			<vtkSmartPointer.h>
+			<vtkTextProperty.h>
+			<vtkTransform.h>
+			<vtkVersion.h>
+			<vtkVolume.h>
+			<vtkWindowToImageFilter.h>
+
+			<QColor>
+			<QComboBox>
+			<QDateTime>
+			<QDir>
+			<QDockWidget>
+			<QFile>
+			<QFileDialog>
+			<QFileInfo>
+			<QImage>
+			<QLineEdit>
+			<QList>
+			<QMap>
+			<QMenu>
+			<QMessageBox>
+			<QMouseEvent>
+			<QObject>
+			<QPainter>
+			<QPen>
+			<QSettings>
+			<QSharedPointer>
+			<QString>
+			<QStringList>
+			<QTableWidget>
+			<QTextStream>
+			<QtGlobal>
+			<QThread>
+			<QVariant>
+			<QVector>
+			<QVTKInteractor.h>
+			<QWidget>
+
+			<algorithm>
+			<cassert>
+			<cmath>
+			<cstddef>
+			<iostream>
+			<limits>
+			<string>
+			<vector>
+		)
+	ENDIF()
+ENDIF()
+
+
 IF (openiA_TESTING_ENABLED)
 	# StringHelperTest
 	ADD_EXECUTABLE(StringHelperTest src/iAStringHelperTest.cpp src/iAStringHelper.cpp)

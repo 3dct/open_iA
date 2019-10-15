@@ -17,6 +17,8 @@ IF (openiA_USE_COTIRE)
 	INCLUDE(Cotire)
 ENDIF()
 
+option (openiA_PRECOMPILE  "Whether to use precompiled headers to speed up build. Default: disabled." OFF)
+
 SET (Toolkit_DIR "${PROJECT_SOURCE_DIR}/Toolkit")
 
 # Prepare empty BUNDLE vars:

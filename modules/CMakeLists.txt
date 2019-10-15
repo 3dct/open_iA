@@ -84,6 +84,17 @@ FOREACH( indx RANGE ${len} )
 	endif()
 	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${module_full_path} )
 	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/modules ) # ui files in module folders
+
+	IF (openiA_PRECOMPILE)
+		IF (CMAKE_MAJOR_VERSION GREATER 4 OR
+		(CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 15))
+			IF (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${module_name}/precompile.cmake")
+				INCLUDE(${module_name}/precompile.cmake)
+				MESSAGE(STATUS "    Creating precompiled headers for module ${module_name}: ${${module_name}_PRECOMPILE_INCLUDES}")
+				target_precompile_headers(${module_name} PRIVATE ${${module_name}_PRECOMPILE_INCLUDES} )
+			ENDIF()
+		ENDIF()
+	ENDIF()
 	
 	# Module dependencies: new style - include directory and link dll:
 	FOREACH( d ${ADDITIONAL_MODULE_MODULES} )
