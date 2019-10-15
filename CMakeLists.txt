@@ -17,7 +17,10 @@ IF (openiA_USE_COTIRE)
 	INCLUDE(Cotire)
 ENDIF()
 
-option (openiA_PRECOMPILE  "Whether to use precompiled headers to speed up build. Default: disabled." OFF)
+IF (CMAKE_MAJOR_VERSION GREATER 4 OR
+	(CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 15))
+	option (openiA_PRECOMPILE  "Whether to use precompiled headers to speed up build. Default: disabled." OFF)
+ENDIF()
 
 SET (Toolkit_DIR "${PROJECT_SOURCE_DIR}/Toolkit")
 
