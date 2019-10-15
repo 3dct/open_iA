@@ -1,0 +1,629 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FIAKERSettings</class>
+ <widget class="QWidget" name="FIAKERSettings">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>439</width>
+    <height>288</height>
+   </rect>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>2</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <property name="rightMargin">
+    <number>2</number>
+   </property>
+   <property name="bottomMargin">
+    <number>2</number>
+   </property>
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="tabGeneral">
+      <attribute name="title">
+       <string>General</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <property name="bottomMargin">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="gbGlobal">
+         <property name="title">
+          <string>Global Settings</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <property name="leftMargin">
+           <number>4</number>
+          </property>
+          <property name="topMargin">
+           <number>4</number>
+          </property>
+          <property name="rightMargin">
+           <number>4</number>
+          </property>
+          <property name="bottomMargin">
+           <number>4</number>
+          </property>
+          <item row="2" column="0">
+           <widget class="QLabel" name="lbReferenceVolume">
+            <property name="text">
+             <string>Reference Volume</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lbDistributionColors">
+            <property name="text">
+             <string>Distribution Colors</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="lbResultColors">
+            <property name="text">
+             <string>Result Colors:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="cmbboxDistributionColors"/>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="cmbboxResultColors"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="gbResultList">
+         <property name="title">
+          <string>Result List</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <property name="leftMargin">
+           <number>4</number>
+          </property>
+          <property name="topMargin">
+           <number>4</number>
+          </property>
+          <property name="rightMargin">
+           <number>4</number>
+          </property>
+          <property name="bottomMargin">
+           <number>4</number>
+          </property>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lbHistogramShow">
+            <property name="text">
+             <string>Histogram Bins:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="cbShowReferenceDistribution">
+            <property name="text">
+             <string>Show Reference in Distribution Histograms</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="sbHistogramBins">
+            <property name="minimum">
+             <number>5</number>
+            </property>
+            <property name="maximum">
+             <number>1000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="lbDistributionPlotType">
+            <property name="text">
+             <string>Distribution Plot Types</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="cmbboxDistributionPlotType">
+            <item>
+             <property name="text">
+              <string>Bar Chart</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Line Graph</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="lbStackedBarColors">
+            <property name="text">
+             <string>Stacked Bar Chart Colors</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QComboBox" name="cmbboxStackedBarChartColors"/>
+          </item>
+          <item row="4" column="0" colspan="2">
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab3DView">
+      <attribute name="title">
+       <string>3D View</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout">
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <property name="bottomMargin">
+        <number>4</number>
+       </property>
+       <item row="0" column="1">
+        <widget class="QLabel" name="lbOpacityDefault">
+         <property name="text">
+          <string>Default</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="5">
+        <widget class="QSlider" name="slDiameterFactorContext">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="lbDiameterFactorDefault">
+         <property name="text">
+          <string>Default</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="4">
+        <widget class="QLabel" name="lbFiberContextSpacing">
+         <property name="text">
+          <string>Spacing</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QLabel" name="lbDiameterFactorDefaultValue">
+         <property name="text">
+          <string>1.0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2" colspan="5">
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="leBoundingBoxC1X">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="4">
+          <widget class="QLabel" name="lbCorner1Z">
+           <property name="text">
+            <string>Z</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="5">
+          <widget class="QLineEdit" name="leBoundingBoxC1Z">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="lbCorner1X">
+           <property name="text">
+            <string>Corner 1 X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QLineEdit" name="leBoundingBoxC1Y">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLabel" name="lbCorner1Y">
+           <property name="text">
+            <string>Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QLineEdit" name="leBoundingBoxC2Y">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="lbCorner2X">
+           <property name="text">
+            <string>Corner 2 X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="5">
+          <widget class="QLineEdit" name="leBoundingBoxC2Z">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="4">
+          <widget class="QLabel" name="lbCorner2Z">
+           <property name="text">
+            <string>Z</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLabel" name="lbCorner2Y">
+           <property name="text">
+            <string>Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="leBoundingBoxC2X">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="7" column="5" colspan="2">
+        <widget class="QDoubleSpinBox" name="sbFiberContextSpacing">
+         <property name="maximum">
+          <double>1000.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="0" colspan="7">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QPushButton" name="pbSampleSelectedFiber">
+           <property name="text">
+            <string>Sample Selected Fiber</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pbHideSamplePoints">
+           <property name="text">
+            <string>Hide Sample Points</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pbSpatialOverview">
+           <property name="text">
+            <string>Spatial Overview</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="1" column="2">
+        <widget class="QSlider" name="slDiameterFactorDefault">
+         <property name="maximum">
+          <number>100</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="6">
+        <widget class="QLabel" name="lbDiameterFactorContextValue">
+         <property name="text">
+          <string>1.0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="lbDiameterFactor">
+         <property name="text">
+          <string>Diameter Factor:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="5">
+        <widget class="QSlider" name="slOpacityContext">
+         <property name="maximum">
+          <number>255</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="4">
+        <widget class="QLabel" name="lbDiameterFactorContext">
+         <property name="text">
+          <string>Context</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="6">
+        <widget class="QLabel" name="lbOpacityContextValue">
+         <property name="text">
+          <string>8.0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="4">
+        <widget class="QLabel" name="lbOpacityContext">
+         <property name="text">
+          <string>Context</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLabel" name="lbOpacityDefaultValue">
+         <property name="text">
+          <string>128.0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QSlider" name="slOpacityDefault">
+         <property name="maximum">
+          <number>255</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="2" colspan="5">
+        <widget class="QComboBox" name="cmbboxSelectionMode">
+         <item>
+          <property name="text">
+           <string>Rubberband Rectangle (Endpoints)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Single Fiber Click</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="lbOpacity">
+         <property name="text">
+          <string>Opacity:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0" colspan="4">
+        <widget class="QCheckBox" name="cbShowWireFrame">
+         <property name="text">
+          <string>Show wireframe</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="2" colspan="5">
+        <widget class="QComboBox" name="cmbboxSimilarityMeasure"/>
+       </item>
+       <item row="13" column="0" colspan="7">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="7" column="0" colspan="2">
+        <widget class="QCheckBox" name="cbFiberContextShow">
+         <property name="text">
+          <string>Fiber context:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0" colspan="2">
+        <widget class="QLabel" name="lbSelectionMode">
+         <property name="text">
+          <string>Selection Mode:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="0" colspan="2">
+        <widget class="QLabel" name="lbReferenceMatchMetric">
+         <property name="text">
+          <string>Ref. Match Metric</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0" colspan="2">
+        <widget class="QCheckBox" name="cbBoundingBox">
+         <property name="text">
+          <string>Bounding box:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="2" colspan="2">
+        <widget class="QCheckBox" name="cbFiberContextMerge">
+         <property name="text">
+          <string>Merge contexts</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabOptimizationSteps">
+      <attribute name="title">
+       <string>Optimization Steps</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_5">
+       <item row="2" column="0" colspan="2">
+        <widget class="QScrollArea" name="saOptimizationStepChartSelection">
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="scrollAreaWidgetContents">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>98</width>
+            <height>28</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <widget class="QWidget" name="checkboxContainer" native="true">
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <property name="spacing">
+               <number>4</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="lbAnimationDelay">
+         <property name="text">
+          <string>Delay (ms)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QSpinBox" name="sbAnimationDelay">
+         <property name="minimum">
+          <number>100</number>
+         </property>
+         <property name="maximum">
+          <number>10000</number>
+         </property>
+         <property name="singleStep">
+          <number>100</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" colspan="2">
+        <widget class="QLabel" name="lbOptimizationStepChartSelection">
+         <property name="text">
+          <string>Show chart for optimization steps vs. change of:</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>cmbboxResultColors</tabstop>
+  <tabstop>cmbboxDistributionColors</tabstop>
+  <tabstop>cbShowReferenceDistribution</tabstop>
+  <tabstop>sbHistogramBins</tabstop>
+  <tabstop>cmbboxDistributionPlotType</tabstop>
+  <tabstop>cmbboxStackedBarChartColors</tabstop>
+  <tabstop>slOpacityDefault</tabstop>
+  <tabstop>slOpacityContext</tabstop>
+  <tabstop>slDiameterFactorDefault</tabstop>
+  <tabstop>slDiameterFactorContext</tabstop>
+  <tabstop>cbBoundingBox</tabstop>
+  <tabstop>leBoundingBoxC1X</tabstop>
+  <tabstop>leBoundingBoxC1Y</tabstop>
+  <tabstop>leBoundingBoxC1Z</tabstop>
+  <tabstop>leBoundingBoxC2X</tabstop>
+  <tabstop>leBoundingBoxC2Y</tabstop>
+  <tabstop>leBoundingBoxC2Z</tabstop>
+  <tabstop>cbShowWireFrame</tabstop>
+  <tabstop>cbFiberContextShow</tabstop>
+  <tabstop>cbFiberContextMerge</tabstop>
+  <tabstop>sbFiberContextSpacing</tabstop>
+  <tabstop>cmbboxSelectionMode</tabstop>
+  <tabstop>cmbboxSimilarityMeasure</tabstop>
+  <tabstop>pbSampleSelectedFiber</tabstop>
+  <tabstop>pbHideSamplePoints</tabstop>
+  <tabstop>pbSpatialOverview</tabstop>
+  <tabstop>sbAnimationDelay</tabstop>
+  <tabstop>saOptimizationStepChartSelection</tabstop>
+  <tabstop>tabWidget</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

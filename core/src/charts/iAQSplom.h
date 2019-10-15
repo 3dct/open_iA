@@ -22,8 +22,9 @@
 
 #include "open_iA_Core_export.h"
 
-#include "qthelper/iAQGLWidget.h"
 #include "iAScatterPlotSelectionHandler.h"
+#include "iASettings.h"
+#include "qthelper/iAQGLWidget.h"
 
 #include <QList>
 
@@ -149,10 +150,10 @@ public:
 	QSharedPointer<iALookupTable> lookupTable() const;               //!< get lookup table
 	ColorScheme colorScheme() const;                                 //!< get current color scheme
 	void saveSettings(QSettings & iniFile) const;                    //!< store current settings into given object
-	void loadSettings(QSettings const & iniFile);                    //!< load settings from given object
+	void loadSettings(iASettings const & iniFile);                   //!< load settings from given object
 public slots:
 	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
-	void toggleFlipAxes(bool flip);                                  //!< set whether to flip parameters in large scatterplot
+	void setFlipAxes(bool flip);                                     //!< set whether to flip parameters in large scatterplot
 	void setHistogramBins(int bins);                                 //!< set the number of histogram bins
 	void showSettings();                                             //!< Show the settings dialog
 	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode

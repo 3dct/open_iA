@@ -20,10 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
+// FiAKEr:
 #include "iAChangeableCameraWidget.h"
 #include "iASavableProject.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 
+// FeatureScout:
+#include <iACsvConfig.h>
+
+// Core:
+#include <iASettings.h>
 #include <qthelper/iAVtkQtWidget.h>
 
 #include <vtkSmartPointer.h>
@@ -82,17 +88,21 @@ class iAFiAKErController : public QMainWindow, public iASelectionProvider, publi
 	Q_OBJECT
 public:
 	typedef std::vector<std::vector<size_t> > SelectionType;
+	static const QString FIAKERProjectID;
 	iAFiAKErController(MainWindow* mainWnd);
-	void start(QString const & path, QString const & configName, double stepShift);
 	~iAFiAKErController() override;
+	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
+	static void loadProject(MainWindow* mainWnd, QSettings const & projectFile, QString const & fileName);
+
+	void start(QString const & path, iACsvConfig const & config, double stepShift);
 	std::vector<std::vector<size_t> > & selection() override;
 	void setCamPosition(int pos) override;
 	void doSaveProject() override;
-	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
-	static void loadProject(MainWindow* mainWnd, QSettings const & projectFile, QString const & fileName);
 	void toggleDockWidgetTitleBars();
 	void toggleSettings();
-	static const QString FIAKERProjectID;
+	//! Load given settings.
+	//! @param settings needs to be passed by value, as it's used in a lambda!
+	void loadSettings(iASettings settings);
 signals:
 	void setupFinished();
 public slots:
@@ -142,11 +152,11 @@ private slots:
 	void mergeFiberContextBoxesChanged(int);
 	void showWireFrameChanged(int);
 	void showBoundingBoxChanged(int);
+	void updateBoundingBox();
 	// result view:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
 	void colorByDistrToggled();
-	void setProjectReference();
 	void loadVolume(QString const & fileName);
 private:
 	void changeDistributionSource(int index);
@@ -202,7 +212,7 @@ private:
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 
 	vtkSmartPointer<vtkActor> m_sampleActor;
-	QString m_configName;
+	iACsvConfig m_config;
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
 	QString m_colorByThemeName;
@@ -224,7 +234,6 @@ private:
 	vtkSmartPointer<vtkActor> m_refLineActor;
 	QWidget* m_showReferenceWidget;
 	std::vector<vtkSmartPointer<vtkActor> > m_contextActors;
-	size_t m_projectReferenceID;
 	iAMapper* m_diameterFactorMapper;
 	QSharedPointer<iAVolumeRenderer> m_refRenderer;
 	vtkSmartPointer<vtkImageData> m_refImg;
@@ -244,7 +253,6 @@ private:
 	// Settings View:
 	// 3D view part
 	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel, *m_diameterFactorLabel, *m_contextDiameterFactorLabel;
-	QSlider* m_defaultOpacitySlider, *m_contextOpacitySlider;
 	QComboBox* m_cmbboxSimilarityMeasure;
 	QLineEdit* m_teBoundingBox[6];
 

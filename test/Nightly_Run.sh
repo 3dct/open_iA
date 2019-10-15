@@ -38,7 +38,9 @@ cd $TEST_SRC_DIR
 GIT_BRANCH=$(git symbolic-ref --short HEAD)
 # git pull origin master # done automatically by CTest!
 
-# just in case it doesn't exist yet, create output directory:
+# in case it exists, remove output directory:
+rm -rf $TEST_BIN_DIR
+# create output directory:
 mkdir -p $TEST_BIN_DIR
 cd $TEST_BIN_DIR
 
