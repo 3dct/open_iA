@@ -1,16 +1,15 @@
-SET (Uncertainty_PRECOMPILE_INCLUDES <iAAttributeDescriptor.h>
-<iAAttributes.h>
+SET (Uncertainty_PRECOMPILE_INCLUDES
 <iAConnector.h>
 <iAConsole.h>
-<iAEnsemble.h>
-<iAEnsembleDescriptorFile.h>
-<iAMember.h>
-<iASamplingResults.h>
-<iAUncertaintyColors.h>
-<iAUncertaintyImages.h>
 <io/iAFileUtils.h>
 <io/iAITKIO.h>
 <mdichild.h>
+
+<vtkColorTransferFunction.h>
+<vtkImageData.h>
+<vtkLookupTable.h>
+<vtkSmartPointer.h>
+
 <QFile>
 <QFileInfo>
 <QHBoxLayout>
@@ -18,8 +17,4 @@ SET (Uncertainty_PRECOMPILE_INCLUDES <iAAttributeDescriptor.h>
 <QString>
 <QTextStream>
 <QVector>
-<QWidget>
-<vtkColorTransferFunction.h>
-<vtkImageData.h>
-<vtkLookupTable.h>
-<vtkSmartPointer.h>)
+<QWidget>)

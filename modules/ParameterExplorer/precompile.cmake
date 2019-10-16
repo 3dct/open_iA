@@ -1,10 +1,11 @@
-SET (ParameterExplorer_PRECOMPILE_INCLUDES <iAConsole.h>
-<iAParamSpatialView.h>
-<iAParamTableView.h>
+SET (ParameterExplorer_PRECOMPILE_INCLUDES
+<iAConsole.h>
+
+<vtkImageData.h>
+<vtkSmartPointer.h>
+
 <QHBoxLayout>
 <QSettings>
 <QTableWidget>
 <QVBoxLayout>
-<QWidget>
-<vtkImageData.h>
-<vtkSmartPointer.h>)
+<QWidget>)

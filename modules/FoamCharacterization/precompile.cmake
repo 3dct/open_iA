@@ -1,12 +1,9 @@
-SET (FoamCharacterization_PRECOMPILE_INCLUDES <iAConnector.h>
-<iAFoamCharacterizationDialog.h>
-<iAFoamCharacterizationItem.h>
-<iAFoamCharacterizationItemBinarization.h>
-<iAFoamCharacterizationItemDistanceTransform.h>
-<iAFoamCharacterizationItemFilter.h>
-<iAFoamCharacterizationItemWatershed.h>
-<iAFoamCharacterizationTable.h>
+SET (FoamCharacterization_PRECOMPILE_INCLUDES
+<iAConnector.h>
 <iAProgress.h>
+
+<vtkImageData.h>
+
 <QApplication>
 <QCheckBox>
 <QComboBox>
@@ -16,5 +13,4 @@ SET (FoamCharacterization_PRECOMPILE_INCLUDES <iAConnector.h>
 <QGroupBox>
 <QLabel>
 <QPushButton>
-<QTime>
-<vtkImageData.h>)
+<QTime>)

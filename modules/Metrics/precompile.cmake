@@ -1,3 +1,4 @@
-SET (Metrics_PRECOMPILE_INCLUDES <iAConnector.h>
+SET (Metrics_PRECOMPILE_INCLUDES
+<iAConnector.h>
 <iAFilter.h>
 <iATypedCallHelper.h>)
