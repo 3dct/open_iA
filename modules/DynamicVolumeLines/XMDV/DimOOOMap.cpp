@@ -7,7 +7,7 @@
 
 #include "DimOOOMap.h"
 #include <vector>
-#include <assert.h>
+#include <cassert>
 
 DimOOOMap::DimOOOMap() {
 	map_in_to_out.clear();

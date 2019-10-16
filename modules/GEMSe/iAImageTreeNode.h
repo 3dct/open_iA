@@ -42,13 +42,13 @@ typedef int ClusterIDType;
 typedef float ClusterDistanceType;
 
 // TODO: Replace with some other definition / template?
-const int DIM = 3;
+const int Dimensions = 3;
 typedef int LabelPixelType;
-typedef itk::Image<LabelPixelType, DIM> LabelImageType;
+typedef itk::Image<LabelPixelType, Dimensions> LabelImageType;
 typedef LabelImageType::Pointer LabelImagePointer;
 
 typedef double ProbabilityPixel;
-typedef itk::Image<ProbabilityPixel, DIM> ProbabilityImageType;
+typedef itk::Image<ProbabilityPixel, Dimensions> ProbabilityImageType;
 typedef ProbabilityImageType::Pointer ProbabilityImagePointer;
 
 typedef iAITKIO::ImagePointer ClusterImageType;

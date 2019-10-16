@@ -9,12 +9,12 @@
 //#include "data/storage/CardStorage.h"
 #include "util/exception/ReadOkcException.h"
 
-#include <stdio.h>//remove
+#include <cstdio>//remove
 #include <sys/stat.h>// get file info
-#include <time.h>
+#include <ctime>
 #include <iostream>
 #include <string>
-#include <assert.h>
+#include <cassert>
 using namespace std;
 
 

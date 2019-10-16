@@ -27,7 +27,7 @@
 #include <Hilbert/GetBits.hpp>
 #include <Hilbert/SetBits.hpp>
 #include <Hilbert/GrayCodeRank.hpp>
-#include <string.h>
+#include <cstring>
 
 
 // Templated Hilbert functions.

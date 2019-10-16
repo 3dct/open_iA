@@ -118,9 +118,9 @@
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 
-#include "QtCore/qmath.h"
-#include <QtCore/QXmlStreamReader>
-#include <QtCore/QXmlStreamWriter>
+#include <QtMath>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 #include <QDockWidget>
 #include <QFileDialog>
 #include <QFileInfo>

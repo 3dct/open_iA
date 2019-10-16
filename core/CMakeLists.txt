@@ -54,6 +54,16 @@ IF (openiA_USE_COTIRE)
 	cotire(${CORE_LIBRARY_NAME})
 ENDIF()
 
+
+IF (openiA_PRECOMPILE)
+	IF (CMAKE_MAJOR_VERSION GREATER 4 OR
+	(CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 15))
+		INCLUDE(precompile.cmake)
+		target_precompile_headers(${CORE_LIBRARY_NAME} PRIVATE ${OPENIA_PRECOMPILE_HEADERS})
+	ENDIF()
+ENDIF()
+
+
 IF (openiA_TESTING_ENABLED)
 	# StringHelperTest
 	ADD_EXECUTABLE(StringHelperTest src/iAStringHelperTest.cpp src/iAStringHelper.cpp)

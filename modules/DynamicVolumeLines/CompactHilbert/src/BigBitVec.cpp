@@ -17,7 +17,7 @@
  */
 
 #include <Hilbert/BigBitVec.hpp>
-#include <string.h>
+#include <cstring>
 
 
 EBitVecType

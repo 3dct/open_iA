@@ -19,7 +19,7 @@
 #include "../OkcDataModifier.h"
 #include "../OkcDataModifierDimOOO.h"
 #include <map>
-#include <assert.h>
+#include <cassert>
 using namespace std;
 
 class OkcDataModifier;

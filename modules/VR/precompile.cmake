@@ -1,0 +1,2 @@
+SET (VR_PRECOMPILE_INCLUDES
+<vtkSmartPointer.h>)

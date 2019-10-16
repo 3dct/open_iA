@@ -37,7 +37,7 @@
 //#include <vtkSMPTools.h>
 
 #include <math.h>
-#include <assert.h>
+#include <cassert>
 
 static const int TIMER_T_MS_DEFAULT = 250; // in milliseconds
 

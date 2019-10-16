@@ -41,7 +41,7 @@
 #include <vtkPiecewiseFunction.h>
 
 #include <QFileDialog>
-#include <qmath.h>
+#include <QtMath>
 
 iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ), 
 	dlgPeriodicTable(0), dlgXRF(0), dlgSimilarityMap(0), ioThread(0),

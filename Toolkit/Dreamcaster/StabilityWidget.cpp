@@ -22,7 +22,7 @@
 
 #include "raycast/include/common.h"
 
-#include <qmath.h>
+#include <QtMath>
 #include <QMouseEvent>
 #include <QPainter>
 

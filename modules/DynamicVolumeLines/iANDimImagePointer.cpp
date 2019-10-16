@@ -1,6 +1,6 @@
 #include "iANDimImagePointer.h"
 
-#include "assert.h"
+#include <cassert>
 
 iANDimImagePointer::iANDimImagePointer(unsigned int dimensionCount, unsigned int* dimSize, std::vector<std::vector<double>> &values) :
 	_dimensionCount{dimensionCount},

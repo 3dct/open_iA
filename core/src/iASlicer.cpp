@@ -98,7 +98,7 @@
 #include <QFileDialog>
 #include <QIcon>
 #include <QKeyEvent>
-#include <qmath.h>
+#include <QtMath>
 #include <QMenu>
 #include <QMessageBox>
 #include <QMouseEvent>
