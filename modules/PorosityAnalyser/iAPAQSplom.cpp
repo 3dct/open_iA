@@ -375,7 +375,7 @@ void iAPAQSplom::sendToFeatureScout()
 	if (!this->m_mdiChild)
 		return;
 	this->m_mdiChild->show();
-	connect(m_mdiChild, SIGNAL(histogramAvailable()), this, SLOT(StartFeatureScout()));
+	connect(m_mdiChild, SIGNAL(histogramAvailable()), this, SLOT(startFeatureScout()));
 	if (!m_mdiChild->loadFile(mhdName, false))
 	{
 		DEBUG_LOG(QString("File '%1' could not be loaded!").arg(mhdName));
@@ -395,13 +395,13 @@ void iAPAQSplom::getFilesLabeledFromPoint(QString &fileName, QString &mhdName)
 	m_csvName = dataPath + "/" + fileName + ".mhd.csv";
 }
 
-void iAPAQSplom::StartFeatureScout()
+void iAPAQSplom::startFeatureScout()
 {
 	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
 	if (!featureScout)
 		return;
 	featureScout->LoadFeatureScoutWithParams(m_csvName, m_mdiChild);
-	disconnect(m_mdiChild, SIGNAL(histogramAvailable()), this, SLOT(StartFeatureScout()));
+	disconnect(m_mdiChild, SIGNAL(histogramAvailable()), this, SLOT(startFeatureScout()));
 }
 
 void iAPAQSplom::removeFixedPoint()
