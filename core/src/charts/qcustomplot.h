@@ -69,7 +69,7 @@
 #include <QtCore/QStack>
 #include <QtCore/QCache>
 #include <QtCore/QMargins>
-#include <qmath.h>
+#include <QtMath>
 #include <limits>
 #include <algorithm>
 #ifdef QCP_OPENGL_FBO

@@ -23,7 +23,7 @@
 #include "iAmat4.h"
 
 #include <vector>
-#include <qmath.h>
+#include <QtMath>
 
 #define max_macro(a,b)  (((a) > (b)) ? (a) : (b))
 #define min_macro(a,b)  (((a) < (b)) ? (a) : (b))

@@ -31,7 +31,7 @@
 #include <QAbstractTextDocumentLayout>
 #include <QColor>
 #include <QDebug>
-#include <qmath.h>
+#include <QtMath>
 #include <QPainter>
 #include <QPen>
 #include <QPolygon>

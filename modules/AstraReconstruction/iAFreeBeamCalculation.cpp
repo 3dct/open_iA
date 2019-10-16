@@ -33,7 +33,7 @@
 #include <itkImageSliceIteratorWithIndex.h>
 #include <itkStatisticsImageFilter.h>
 
-#include <qmath.h>
+#include <QtMath>
 
 template<class InPixelType, class OutPixelType>
 void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filter )

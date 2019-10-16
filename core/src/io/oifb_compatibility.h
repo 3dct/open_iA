@@ -68,7 +68,7 @@ DEALINGS IN THE SOFTWARE.
 #define NOMINMAX
 #include <windows.h>
 #include <ole2.h>
-#include <time.h>
+#include <ctime>
 #include <sys/types.h>
 #include <ctype.h>
 #include <direct.h>
