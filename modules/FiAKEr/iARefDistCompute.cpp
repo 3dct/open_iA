@@ -120,11 +120,16 @@ void iARefDistCompute::run()
 		d.refDiffFiber.resize(fiberCount);
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
+			/*
+			// TODO: Consider curved fibers
 			auto it = d.curveInfo.find(row);
+			if (it != d.curveInfo.end())
+			{ }
+			*/
 			// find the best-matching fibers in reference & compute difference:
-			iAFiberData fiber(d.table, fiberID, mapping, it != d.curveInfo.end()? it.second : std::vector<iAVec3f>() );
+			iAFiberData fiber(d.table, fiberID, mapping/*, it != d.curveInfo.end()? it.second : std::vector<iAVec3f>() */);
 			getBestMatches(fiber, mapping, ref.table,
-				d.refDiffFiber[fiberID].dist, diagLength, maxLength);
+				d.refDiffFiber[fiberID].dist, diagLength, maxLength/*, d.curveInfo*/);
 		}
 	}
 	std::array<size_t, iAFiberCharData::FiberValueCount> diffCols = {
