@@ -2671,7 +2671,7 @@ void MdiChild::doSaveProject()
 		QApplication::activeWindow(),
 		tr("Select Output File"),
 		m_path,
-		iAIOProvider::ProjectFileTypeFilter + iAIOProvider::NewProjectFileTypeFilter);
+		iAIOProvider::NewProjectFileTypeFilter + iAIOProvider::ProjectFileTypeFilter);
 	if (projectFileName.isEmpty())
 		return;
 

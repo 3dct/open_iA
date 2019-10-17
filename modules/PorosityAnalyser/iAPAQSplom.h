@@ -58,7 +58,7 @@ signals:
 
 public slots:
 	void removeFixedPoint();
-	void StartFeatureScout();
+	void startFeatureScout();
 
 private slots:
 	void currentPointUpdated( size_t index ) override;

@@ -201,6 +201,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		if (timeInfo.exists() && timeInfo.isDir())
 		{
 			curData.timeData = iAFiberCharData::SimpleTimeData;
+			DEBUG_LOG("Looking for optimization step info in old format...");
 			// read projection error info:
 			QFile projErrorFile(timeInfo.absoluteFilePath() + "/projection_error.csv");
 			if (!projErrorFile.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -318,8 +319,8 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 
 			if (curData.timeData == iAFiberCharData::NoTimeData)
 			{
+				DEBUG_LOG("Looking for optimization step info in new (curved) format...");
 				// check if we can load new, curved timestep data:
-				std::vector<std::vector<std::vector<double> > > fiberTimeValues;
 				curData.projectionError.resize(curData.fiberCount);
 				curData.timeData = iAFiberCharData::CurvedTimeData;
 				for (int curFiber = 0; curFiber < curData.fiberCount; ++curFiber)
@@ -388,13 +389,26 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			// TODO: make sure all datasets have the same max timestep count!
 			if (curData.timeData != iAFiberCharData::NoTimeData)
 			{
-				curData.timeValues.resize(thisResultTimeStepMax);
-				for (int t = 0; t < thisResultTimeStepMax; ++t)
+				if (fiberTimeValues.size() < curData.fiberCount)
 				{
-					curData.timeValues[t].resize(curData.fiberCount);
-					for (int f = 0; f < curData.fiberCount; ++f)
+					DEBUG_LOG(QString("Invalid timestep info: "
+						"Expected information on all %1 fibers, but only got %2!")
+						.arg(curData.fiberCount).arg(fiberTimeValues.size()));
+					curData.timeData = iAFiberCharData::NoTimeData;
+					noCurvedFiberFiles.append(csvFile);
+				}
+				else
+				{
+					curData.timeValues.resize(thisResultTimeStepMax);
+					for (int t = 0; t < thisResultTimeStepMax; ++t)
 					{
-						curData.timeValues[t][f] = (t < fiberTimeValues[f].size()) ? fiberTimeValues[f][t] : fiberTimeValues[f][fiberTimeValues[f].size() - 1];
+						curData.timeValues[t].resize(curData.fiberCount);
+						for (int f = 0; f < curData.fiberCount; ++f)
+						{
+							curData.timeValues[t][f] = (t < fiberTimeValues[f].size()) ?
+								fiberTimeValues[f][t] :
+								fiberTimeValues[f][fiberTimeValues[f].size() - 1];
+						}
 					}
 				}
 			}
