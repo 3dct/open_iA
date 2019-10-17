@@ -1016,8 +1016,13 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 		painter.drawRect(colorBarRect);
 		QString minStr = QString::number(minVal, 'g', 2);
 		QString maxStr = QString::number(maxVal, 'g', 2);
+#if QT_VERSION >= 0x051100
+		int textWidth = std::max(fm.horizontalAdvance(minStr), fm.horizontalAdvance(maxStr));
+#else
+		int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
+#endif
 		QFontMetrics fm(painter.font());
-		int textX = topLeft.x() - (fm.horizontalAdvance(minStr) - settings.plotsSpacing);
+		int textX = topLeft.x() - (textWidth + settings.plotsSpacing);
 		painter.drawText(textX, topLeft.y() + fm.height(), minStr);
 		painter.drawText(textX, height() - settings.plotsSpacing, maxStr);
 	}
