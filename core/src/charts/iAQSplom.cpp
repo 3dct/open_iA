@@ -981,51 +981,48 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	drawPopup( painter );
 
 	// maybe reuse code from iALinearColorGradientBar (DynamicVolumeLines)
-	if (settings.colorScheme != Custom)
-	{
-		long visParamCnt = getVisibleParametersCount();
-		QRect topLeftPlot = getPlotRectByIndex(0, visParamCnt - 1);
-		QRect bottomRightPlot = getPlotRectByIndex(visParamCnt - 1, 0);
-		// default top left for max plot is in the middle of the chart area:
-		QPoint topLeft(topLeftPlot.left() + (bottomRightPlot.right() - topLeftPlot.left() + settings.plotsSpacing) / 2,
-			topLeftPlot.top() + (bottomRightPlot.bottom() - topLeftPlot.top() + settings.plotsSpacing) / 2);
-		// make sure there is enough space for the labels:
-		double xofs = std::max(0, settings.tickOffsets.x() - ((visParamCnt % 2) ? m_scatPlotSize.x() / 2 : m_scatPlotSize.x()));
-		double yofs = std::max(0, settings.tickOffsets.y() - ((visParamCnt % 2) ? m_scatPlotSize.y() / 2 : m_scatPlotSize.y()));
-		topLeft += QPoint(xofs, yofs);
-		if (settings.histogramVisible)
-			topLeft += QPoint(m_scatPlotSize.x() / 2, m_scatPlotSize.y() / 2);
-		topLeft += QPoint(- m_scatPlotSize.x() / 2 + settings.plotsSpacing, m_scatPlotSize.y() / 2);
+	long visParamCnt = getVisibleParametersCount();
+	QRect topLeftPlot = getPlotRectByIndex(0, visParamCnt - 1);
+	QRect bottomRightPlot = getPlotRectByIndex(visParamCnt - 1, 0);
+	// default top left for max plot is in the middle of the chart area:
+	QPoint topLeft(topLeftPlot.left() + (bottomRightPlot.right() - topLeftPlot.left() + settings.plotsSpacing) / 2,
+		topLeftPlot.top() + (bottomRightPlot.bottom() - topLeftPlot.top() + settings.plotsSpacing) / 2);
+	// make sure there is enough space for the labels:
+	double xofs = std::max(0, settings.tickOffsets.x() - ((visParamCnt % 2) ? m_scatPlotSize.x() / 2 : m_scatPlotSize.x()));
+	double yofs = std::max(0, settings.tickOffsets.y() - ((visParamCnt % 2) ? m_scatPlotSize.y() / 2 : m_scatPlotSize.y()));
+	topLeft += QPoint(xofs, yofs);
+	if (settings.histogramVisible)
+		topLeft += QPoint(m_scatPlotSize.x() / 2, m_scatPlotSize.y() / 2);
+	topLeft += QPoint(- (m_scatPlotSize.x() / 2 + settings.plotsSpacing + settings.tickOffsets.x()),
+		m_scatPlotSize.y() / 2 + settings.plotsSpacing);
 		
-		double minVal = m_settingsDlg->sbMin->value();
-		double maxVal = m_settingsDlg->sbMax->value();
-		QRect colorBarRect(topLeft.x(), topLeft.y(),
-			m_scatPlotSize.x() / 6 - settings.plotsSpacing, height() - topLeft.y() - settings.plotsSpacing);
-		QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y()+colorBarRect.height() );
-		QMap<double, QColor>::iterator it;
-		for (size_t i = 0; i < m_lut->numberOfValues(); ++i)
-		{
-			double key = static_cast<double>(i) / m_lut->numberOfValues();
-			double rgba[4];
-			m_lut->getTableValue(i, rgba);
-			QColor color(rgba[0] * 255, rgba[1] * 255, rgba[2] * 255, rgba[3] * 255);
-			grad.setColorAt(key, color);
-		}
-		painter.setPen(QColor(0, 0, 0));
-		painter.fillRect(colorBarRect, grad);
-		painter.drawRect(colorBarRect);
-		QString minStr = QString::number(minVal, 'g', 2);
-		QString maxStr = QString::number(maxVal, 'g', 2);
-#if QT_VERSION >= 0x051100
-		int textWidth = std::max(fm.horizontalAdvance(minStr), fm.horizontalAdvance(maxStr));
-#else
-		int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
-#endif
-		QFontMetrics fm(painter.font());
-		int textX = topLeft.x() - (textWidth + settings.plotsSpacing);
-		painter.drawText(textX, topLeft.y() + fm.height(), minStr);
-		painter.drawText(textX, height() - settings.plotsSpacing, maxStr);
+	double minVal = m_settingsDlg->sbMin->value();
+	double maxVal = m_settingsDlg->sbMax->value();
+	QRect colorBarRect(topLeft.x(), topLeft.y(),
+		std::max(5, m_scatPlotSize.x() / 6) - settings.plotsSpacing, height() - topLeft.y() - settings.plotsSpacing);
+	QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y()+colorBarRect.height() );
+	QMap<double, QColor>::iterator it;
+	for (size_t i = 0; i < m_lut->numberOfValues(); ++i)
+	{
+		double rgba[4];
+		m_lut->getTableValue(i, rgba);
+		QColor color(rgba[0] * 255, rgba[1] * 255, rgba[2] * 255, rgba[3] * 255);
+		double key = 1 - (static_cast<double>(i) / m_lut->numberOfValues());
+		grad.setColorAt(key, color);
 	}
+	painter.setPen(QColor(0, 0, 0));
+	painter.fillRect(colorBarRect, grad);
+	painter.drawRect(colorBarRect);
+	QString minStr = dblToStringWithUnits(minVal);
+	QString maxStr = dblToStringWithUnits(maxVal);
+#if QT_VERSION >= 0x051100
+	int textWidth = std::max(fm.horizontalAdvance(minStr), fm.horizontalAdvance(maxStr));
+#else
+	int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
+#endif
+	int colorBarTextX = topLeft.x() - (textWidth + settings.plotsSpacing);
+	painter.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
+	painter.drawText(colorBarTextX, height() - settings.plotsSpacing, minStr);
 }
 
 bool iAQSplom::drawPopup( QPainter& painter )
