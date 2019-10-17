@@ -1,15 +1,15 @@
-SET (FiAKEr_PRECOMPILE_INCLUDES
-<charts/iASPLOMData.h>
+SET (FiAKEr_PRECOMPILE_INCLUDES <charts/iASPLOMData.h>
 <iAConsole.h>
+<iACsvConfig.h>
+<iAFiberCharData.h>
+<iAFiberData.h>
 <iAProgress.h>
+<iARefDistCompute.h>
 <iAvec3.h>
-
-<vtkSmartPointer.h>
-<vtkTable.h>
-
 <QMap>
 <QSettings>
 <QSharedPointer>
 <QThread>
-
-<vector>)
+<vector>
+<vtkSmartPointer.h>
+<vtkTable.h>)
