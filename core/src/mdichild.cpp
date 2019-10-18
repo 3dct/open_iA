@@ -55,7 +55,6 @@
 #include "iAToolsVTK.h"
 #include "iATransferFunction.h"
 #include "iAVolumeStack.h"
-#include "qthelper/iAWidgetAddHelper.h"
 #include "io/extension2id.h"
 #include "io/iAFileUtils.h"    // for fileNameOnly
 #include "io/iAIO.h"

@@ -35,7 +35,6 @@
 #include <iASlicer.h>
 #include <mdichild.h>
 #include <mainwindow.h>
-#include <qthelper/iAWidgetAddHelper.h>
 
 iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, MdiChild * child):
 	iAModuleAttachmentToChild(mainWnd, child),
@@ -50,8 +49,6 @@ iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, MdiChild * child):
 iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * child)
 {
 	iAGEMSeAttachment * newAttachment = new iAGEMSeAttachment(mainWnd, child);
-
-	newAttachment->m_widgetAddHelper = QSharedPointer<iAWidgetAddHelper>(new iAWidgetAddHelper(child, child->logDockWidget()));
 	
 	QString defaultThemeName("Brewer Set3 (max. 12)");
 	iAColorTheme const * colorTheme = iAColorThemeManager::instance().theme(defaultThemeName);
