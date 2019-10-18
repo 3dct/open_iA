@@ -22,6 +22,7 @@
 
 #include <QSharedPointer>
 
+//! Abstract base class for a mapping from a source- into a destination range.
 class iAMapper
 {
 public:

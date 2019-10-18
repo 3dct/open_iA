@@ -46,6 +46,7 @@ class vtkDoubleArray;
 class vtkDataArray;
 class vtkLineSource;
 
+//! Shows a text label attached to a point in 3D.
 struct open_iA_Core_API iALabel3D
 {
 //methods

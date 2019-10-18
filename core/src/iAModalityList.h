@@ -33,7 +33,7 @@ class vtkCamera;
 
 typedef QVector<QSharedPointer<iAModality> > ModalityCollection;
 
-
+//! Holds a list of datasets, and provides methods to save and load such lists.
 class open_iA_Core_API iAModalityList : public QObject
 {
 	Q_OBJECT

@@ -23,6 +23,7 @@
 #include "iAPlotData.h"
 #include "open_iA_Core_export.h"
 
+//! Holds copy of given data and maps it from specified source to target range.
 class open_iA_Core_API iAMappingDiagramData: public iAPlotData
 {
 public:

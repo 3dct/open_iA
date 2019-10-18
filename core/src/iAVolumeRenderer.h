@@ -40,6 +40,9 @@ class vtkSmartVolumeMapper;
 class vtkVolume;
 class vtkVolumeProperty;
 
+//! Collects all vtk classes required for rendering a volume.
+//! Provides convenience functionality for adding it to a render window,
+//! as well as for showing its bounding box
 class open_iA_Core_API iAVolumeRenderer
 {
 public:

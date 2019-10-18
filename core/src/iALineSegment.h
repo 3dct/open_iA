@@ -27,6 +27,7 @@ class vtkLineSource;
 
 #include <vtkSmartPointer.h>
 
+//! Collection of vtk classes required for displaying a line segment.
 struct iALineSegment
 {
 	iALineSegment();

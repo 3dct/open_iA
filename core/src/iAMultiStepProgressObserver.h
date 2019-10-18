@@ -24,6 +24,8 @@
 
 #include <QObject>
 
+//! Enables Observing the progress of multiple vtk algorithms executed sequentially via signals.
+// TODO: should be merged/consolidated with iAProgress!
 class iAMultiStepProgressObserver : public QObject, public vtkCommand
 {
 	Q_OBJECT

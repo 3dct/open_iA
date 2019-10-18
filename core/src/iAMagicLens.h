@@ -45,6 +45,8 @@ class vtkWindowToImageFilter;
 
 class iALensData;
 
+//! Provides magic lens functionality for a given vtk render window,
+//! which can have up to eight lenses into other datasets.
 class open_iA_Core_API iAMagicLens
 {
 public:

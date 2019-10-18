@@ -63,7 +63,7 @@ class vtkTextActor;
 class vtkTransform;
 class vtkUnstructuredGrid;
 
-
+//! Displays several helper widgets for a 3D vtk rendering window.
 class open_iA_Core_API iARenderer: public QObject
 {
 	Q_OBJECT

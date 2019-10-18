@@ -26,6 +26,7 @@
 
 #include <cmath>
 
+//! Maps linearly from source to destination range.
 class open_iA_Core_API iALinearMapper : public iAMapper
 {
 public:
@@ -39,7 +40,7 @@ private:
 	double m_srcMin, m_dstMin, m_scaleFactor;
 };
 
-
+//! Maps logarithmically from source to destination range.
 class open_iA_Core_API iALogarithmicMapper : public iAMapper
 {
 public:

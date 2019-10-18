@@ -24,6 +24,7 @@
 
 class QString;
 
+//! Abstract interface for mapping each index from a given range [0..size()-1] to names.
 class open_iA_Core_API iANameMapper
 {
 public:

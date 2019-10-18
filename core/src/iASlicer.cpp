@@ -107,7 +107,7 @@
 
 #include <cassert>
 
-
+//! Custom interactor style for slicers, for disabling certain vtk interactions we do differently.
 class iAInteractorStyleImage : public vtkInteractorStyleImage
 {
 public:

@@ -31,6 +31,7 @@ class vtkImageData;
 
 class iAImageInfo;
 
+//! Computes and stores histogram data, which can be used in plots.
 class open_iA_Core_API iAHistogramData: public iAPlotData
 {
 public:

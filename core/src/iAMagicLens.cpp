@@ -70,6 +70,7 @@ namespace
 
 
 // rewrite utilizing iAChannelSlicerData - that has a vtkImageMapToColors and a vtkImageActor already!
+//! Information about a single lens window of an iAMagicLens.
 class iALensData
 {
 public:
