@@ -29,7 +29,7 @@
 #include <iAVolumeStack.h>
 #include <mdichild.h>
 #include <qthelper/iAQTtoUIConnector.h>
-#include <QVTKWidgetMouseReleaseWorkaround.h>
+#include <iAQVTKWidgetMouseReleaseWorkaround.h>
 
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
@@ -50,12 +50,12 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 
 	// add widgets to window
 	int numOfVolumes = m_volumeStack->numberOfVolumes();
-	m_vtkWidgets = new QVTKWidgetMouseReleaseWorkaround*[numOfVolumes];
+	m_vtkWidgets = new iAQVTKWidgetMouseReleaseWorkaround*[numOfVolumes];
 	m_renderers = new iARenderer*[numOfVolumes];
 	m_volumeRenderer = new iAVolumeRenderer*[numOfVolumes];
 	for(int i = 0; i < numOfVolumes; i++)
 	{
-		m_vtkWidgets[i] = new QVTKWidgetMouseReleaseWorkaround(this);
+		m_vtkWidgets[i] = new iAQVTKWidgetMouseReleaseWorkaround(this);
 		m_renderers[i] = new iARenderer(this);
 		// TODO: VOLUME: check if this is working!
 		iASimpleTransferFunction transferFunction(

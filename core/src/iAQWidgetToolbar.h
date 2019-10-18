@@ -27,12 +27,12 @@
 #include <QWidget>
 #include <QStyleOption>
 
-//! QWidgetToolbar has different looks.
-class open_iA_Core_API QWidgetToolbar : public QWidget
+//! iAQWidgetToolbar has different looks.
+class open_iA_Core_API iAQWidgetToolbar : public QWidget
 {
 	Q_OBJECT
 public:
-	explicit QWidgetToolbar(QWidget* parent = 0, Qt::WindowFlags f = 0) : QWidget(parent, f) {};
+	explicit iAQWidgetToolbar(QWidget* parent = 0, Qt::WindowFlags f = 0) : QWidget(parent, f) {};
 protected:
 
 	void paintEvent(QPaintEvent *)//needed so that stylesheet can be applied

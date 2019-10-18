@@ -18,23 +18,29 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "QVTKWidgetMouseReleaseWorkaround.h"
+#pragma once
 
-QVTKWidgetMouseReleaseWorkaround::QVTKWidgetMouseReleaseWorkaround(QWidget* parent, Qt::WindowFlags f)
-	: iAVtkOldWidget(parent, f)
-{}
+#include "open_iA_Core_export.h"
 
-void QVTKWidgetMouseReleaseWorkaround::mouseReleaseEvent( QMouseEvent * event )
+#include "iAVtkWidget.h"
+
+#include <QMouseEvent>
+
+/**
+ * \brief	Qvtk widget which emits signals when button released.
+ *
+ * Solution for a "non-bug" in VTK http://www.vtk.org/pipermail/vtkusers/2013-December/082291.html
+ * which will not get fixed.
+ */
+class open_iA_Core_API iAQVTKWidgetMouseReleaseWorkaround : public iAVtkOldWidget
 {
-	if ( Qt::RightButton == event->button() )
-		emit rightButtonReleasedSignal();
-	else if ( Qt::LeftButton == event->button() )
-		emit leftButtonReleasedSignal();
-	iAVtkOldWidget::mouseReleaseEvent(event);
-}
-
-void QVTKWidgetMouseReleaseWorkaround::resizeEvent( QResizeEvent * event )
-{
-	repaint();//less flickering, but resize is less responsive
-	iAVtkOldWidget::resizeEvent(event);
-}
+	Q_OBJECT
+public:
+	iAQVTKWidgetMouseReleaseWorkaround(QWidget* parent = NULL, Qt::WindowFlags f = 0);
+protected:
+	virtual void mouseReleaseEvent ( QMouseEvent * event );
+	virtual void resizeEvent ( QResizeEvent * event );
+Q_SIGNALS:
+	void rightButtonReleasedSignal();
+	void leftButtonReleasedSignal();
+};
