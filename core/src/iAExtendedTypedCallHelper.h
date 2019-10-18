@@ -72,6 +72,12 @@
 			case itk::ImageIOBase::ULONG:									\
 				function<unsigned long>( __VA_ARGS__ );						\
 				break;														\
+			case itk::ImageIOBase::LONGLONG:								\
+				function<long long>( __VA_ARGS__ );							\
+				break;														\
+			case itk::ImageIOBase::ULONGLONG:								\
+				function<unsigned long long>( __VA_ARGS__ );				\
+				break;														\
 			case itk::ImageIOBase::FLOAT:									\
 				function<float>( __VA_ARGS__ );								\
 				break;														\
@@ -111,6 +117,12 @@
 				break;														\
 			case itk::ImageIOBase::ULONG:									\
 				function<itk::RGBPixel<unsigned long>>( __VA_ARGS__ );		\
+				break;														\
+			case itk::ImageIOBase::LONGLONG:								\
+				function<itk::RGBPixel<long long>>( __VA_ARGS__ );			\
+				break;														\
+			case itk::ImageIOBase::ULONGLONG:								\
+				function<itk::RGBPixel<unsigned long long>>( __VA_ARGS__ );	\
 				break;														\
 			case itk::ImageIOBase::FLOAT:									\
 				function<itk::RGBPixel<float>>( __VA_ARGS__ );				\
@@ -152,6 +164,12 @@
 				break;														\
 			case itk::ImageIOBase::ULONG:									\
 				function<itk::RGBAPixel<unsigned long>>( __VA_ARGS__ );		\
+				break;														\
+			case itk::ImageIOBase::LONGLONG:								\
+				function<itk::RGBAPixel<long long>>( __VA_ARGS__ );			\
+				break;														\
+			case itk::ImageIOBase::ULONGLONG:								\
+				function<itk::RGBAPixel<unsigned long long>>( __VA_ARGS__ );\
 				break;														\
 			case itk::ImageIOBase::FLOAT:									\
 				function<itk::RGBAPixel<float>>( __VA_ARGS__ );				\

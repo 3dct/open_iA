@@ -180,9 +180,14 @@ iAITKIO::ImagePointer castImageTo(iAITKIO::ImagePointer img)
 			return internalCastImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img);
 		case itk::ImageIOBase::ULONG:
 			return internalCastImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::LONGLONG:
+			return internalCastImageTo<itk::Image<long long, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::ULONGLONG:
+			return internalCastImageTo<itk::Image<unsigned long long, 3>, itk::Image<ResultPixelType, 3> >(img);
 		case itk::ImageIOBase::FLOAT:
 			return internalCastImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img);
 		default:
+			DEBUG_LOG("ERROR: Invalid/Unknown itk pixel datatype in rescale!");
 		case itk::ImageIOBase::DOUBLE:
 			return internalCastImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img);
 	}
@@ -222,9 +227,14 @@ iAITKIO::ImagePointer rescaleImageTo(iAITKIO::ImagePointer img, double min, doub
 		return internalRescaleImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	case itk::ImageIOBase::ULONG:
 		return internalRescaleImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::LONGLONG:
+		return internalRescaleImageTo<itk::Image<long long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::ULONGLONG:
+		return internalRescaleImageTo<itk::Image<unsigned long long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	case itk::ImageIOBase::FLOAT:
 		return internalRescaleImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	default:
+		DEBUG_LOG("ERROR: Invalid/Unknown itk pixel datatype in rescale!");
 	case itk::ImageIOBase::DOUBLE:
 		return internalRescaleImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	}

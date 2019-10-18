@@ -71,6 +71,12 @@
 	case itk::ImageIOBase::ULONG:							\
 		function<unsigned long>(__VA_ARGS__);				\
 		break;												\
+	case itk::ImageIOBase::LONGLONG:						\
+		function<long>(__VA_ARGS__);						\
+		break;												\
+	case itk::ImageIOBase::ULONGLONG:						\
+		function<unsigned long>(__VA_ARGS__);				\
+		break;												\
 	case itk::ImageIOBase::FLOAT:							\
 		function<float>(__VA_ARGS__);						\
 		break;												\

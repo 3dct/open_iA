@@ -51,6 +51,7 @@ void watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	wsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	filter->progress()->observe( wsFilter );
 	wsFilter->Update();
+	// return is unsigned long long, but vtk can't handle that, so convert to ulong:
 	filter->addOutput( castImageTo<unsigned long>(wsFilter->GetOutput()) );
 }
 
@@ -92,7 +93,7 @@ void morph_watershed(iAFilter* filter, QMap<QString, QVariant> const & parameter
 	mWSFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	filter->progress()->observe( mWSFilter );
 	mWSFilter->Update();
-	filter->addOutput( castImageTo<unsigned long>(mWSFilter->GetOutput()) );
+	filter->addOutput( mWSFilter->GetOutput() );
 }
 
 IAFILTER_CREATE(iAMorphologicalWatershed)
