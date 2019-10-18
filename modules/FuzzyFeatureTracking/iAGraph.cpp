@@ -18,43 +18,34 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAGraph.h"
 
-#include "open_iA_Core_export.h"
-#include "graph.h"
-#include "graphstat.h"
+iAGraph::iAGraph()
+	: m_curInd{0}
+{ }
 
-#include <vector>
+iAGraph::idType iAGraph::addVertex(Vertex vert) {
+	idType id = getNewID();
+	m_vetices[id] = vert;
+	return id;
+}
 
-class open_iA_Core_API GraphDrawer
+iAGraph::idType iAGraph::addEdge(idType v1, idType v2) {
+	idType id = getNewID();
+	m_edges[id] = Edge(v1, v2);
+	return id;
+}
+
+iAGraph::idType iAGraph::getNewID() {
+	return m_curInd++;
+}
+
+iAGraph::VerticesMap* iAGraph::getVertices()
 {
-public:
-							GraphDrawer();
-							~GraphDrawer();
+	return &m_vetices;
+}
 
-	void					setNumberOfIterations(int n);
-	void					setNumRanks();
-	void					setGraph(Graph* g);
-	void					start();
-
-private:
-	typedef std::vector<std::vector<Graph::idType>> OrderType;
-
-	void					initialOrder(OrderType& order);
-	void					addVerticesToOrder(Graph::idType headerVert, OrderType& order);
-
-	void					wmedian(OrderType& order, bool forwardTraversal);
-	float					medianValue(Graph::idType vert, OrderType& order, bool forwardTraversal);
-	std::vector<int>		getAdjacentPositions(Graph::idType vert, OrderType& order, bool forwardTraversal);
-	void					transpose(OrderType& order, bool forwardTraversal);
-	int						numberOfCrossing(OrderType& order);
-	int						numberOfCrossing(OrderType& order, int rank, int pos1, int pos2, bool forwardTraversal);
-
-
-	int						m_maxIteration;
-	OrderType				m_order;
-	Graph*					m_graph;
-	GraphStat				m_graphStat;
-	int						m_ranks;
-};
-
+iAGraph::EdgesMap* iAGraph::getEdges()
+{
+	return &m_edges;
+}

@@ -49,9 +49,6 @@
 #include <QVariant>
 #include <QVBoxLayout>
 
-#define VTK_CREATE(type, name) \
-	vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
-
 iAScatterPlotView::iAScatterPlotView():
 	m_scatterPlotWidget(nullptr),
 	m_scatterPlotContainer(new QWidget())

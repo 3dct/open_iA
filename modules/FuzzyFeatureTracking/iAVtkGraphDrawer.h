@@ -20,9 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <open_iA_Core_export.h>
-
-#include <graphdrawer.h>
+#include <iAGraphDrawer.h>
 
 #include <vtkMutableDirectedGraph.h>
 
@@ -30,17 +28,18 @@
 
 class vtkPoints;
 
-class open_iA_Core_API iAVtkGraphDrawer {
+class iAVtkGraphDrawer
+{
 public:
-	void	createLayout(vtkPoints* points, vtkMutableDirectedGraph* graph, int* windowsSize, size_t numRanks);
+	void createLayout(vtkPoints* points, vtkMutableDirectedGraph* graph, int* windowsSize, size_t numRanks);
 
 private:
-	void	fillGraph(vtkMutableDirectedGraph* graph);
-	void	locatePoints(vtkPoints* points, int* windowsSize, size_t numRanks);
+	void fillGraph(vtkMutableDirectedGraph* graph);
+	void locatePoints(vtkPoints* points, int* windowsSize, size_t numRanks);
 
-	std::map<vtkIdType, Graph::idType> m_vertMapFromVtk;
-	std::map<Graph::idType, vtkIdType> m_vertMapToVtk;
-	GraphDrawer						m_graphDrawer;
-	Graph							m_graph;
+	std::map<vtkIdType, iAGraph::idType> m_vertMapFromVtk;
+	std::map<iAGraph::idType, vtkIdType> m_vertMapToVtk;
+	iAGraphDrawer m_graphDrawer;
+	iAGraph m_graph;
 };
 

@@ -18,23 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "graphstat.h"
+#include "iAGraphStat.h"
 
-GraphStat::GraphStat()
+iAGraphStat::iAGraphStat()
 { }
 
-GraphStat::GraphStat(Graph* g)
+iAGraphStat::iAGraphStat(iAGraph* g)
 	: m_graph{g}
 { }
 
-void GraphStat::setGraph(Graph* g)
+void iAGraphStat::setGraph(iAGraph* g)
 {
 	m_graph = g;
 }
 
-bool GraphStat::isHeaderVertix(Graph::idType v)
+bool iAGraphStat::isHeaderVertix(iAGraph::idType v)
 {
-	//const Graph::EdgesMap* edges = m_graph->getEdges();
+	//const iAGraph::EdgesMap* edges = m_graph->getEdges();
 	//for (EdgesIterator edgeIt = edges->begin(); edgeIt != edges->end(); edgeIt++) {
 	//	if (edgeIt->second.vertTo == v) return false;
 	//}
@@ -42,9 +42,10 @@ bool GraphStat::isHeaderVertix(Graph::idType v)
 	return m_isHeaderVertex[v];
 }
 
-GraphStat::VerticesIDs GraphStat::getParentVertices(Graph::idType v) {
+iAGraphStat::VerticesIDs iAGraphStat::getParentVertices(iAGraph::idType v)
+{
 	//VerticesIDs parents;
-	//const Graph::EdgesMap* edges = m_graph->getEdges();
+	//const iAGraph::EdgesMap* edges = m_graph->getEdges();
 	//for (EdgesIterator edgeIt = edges->begin(); edgeIt != edges->end(); edgeIt++) {
 	//	if (edgeIt->second.vertTo == v)
 	//		parents.push_back(edgeIt->second.vertFrom);
@@ -53,9 +54,10 @@ GraphStat::VerticesIDs GraphStat::getParentVertices(Graph::idType v) {
 	return m_parentVertices[v];
 }
 
-GraphStat::VerticesIDs GraphStat::getChildVertices(Graph::idType v) {
+iAGraphStat::VerticesIDs iAGraphStat::getChildVertices(iAGraph::idType v)
+{
 	//VerticesIDs childs;
-	//const Graph::EdgesMap* edges = m_graph->getEdges();
+	//const iAGraph::EdgesMap* edges = m_graph->getEdges();
 	//for (EdgesIterator edgeIt = edges->begin(); edgeIt != edges->end(); edgeIt++) {
 	//	if (edgeIt->second.vertFrom == v)
 	//		childs.push_back(edgeIt->second.vertTo);
@@ -64,27 +66,28 @@ GraphStat::VerticesIDs GraphStat::getChildVertices(Graph::idType v) {
 	return m_childVertices[v];
 }
 
-int GraphStat::getMaxRank() {
+int iAGraphStat::getMaxRank()
+{
 	return m_maxRank;
 }
 
-void GraphStat::update()
+void iAGraphStat::update()
 {
 	m_maxRank = 0;
-	const Graph::VerticesMap* vertices = m_graph->getVertices();
+	const iAGraph::VerticesMap* vertices = m_graph->getVertices();
 	for (VerticesIterator vertIt = vertices->begin(); vertIt != vertices->end(); vertIt++) {
 		int rank = vertIt->second.rank;
 		if(rank > m_maxRank) m_maxRank = rank;
 	}
 	m_numVertices = std::vector<int>(m_maxRank+1, 0);
 	for (VerticesIterator vertIt = vertices->begin(); vertIt != vertices->end(); vertIt++) {
-		Graph::idType id = vertIt->first;
+		iAGraph::idType id = vertIt->first;
 		int rank = vertIt->second.rank;
 		m_numVertices[rank]++;
 
 		m_isHeaderVertex[id] = true;
 		VerticesIDs parents, childs;
-		const Graph::EdgesMap* edges = m_graph->getEdges();
+		const iAGraph::EdgesMap* edges = m_graph->getEdges();
 		for(EdgesIterator edgeIt = edges->begin(); edgeIt != edges->end(); edgeIt++) {
 			if(edgeIt->second.vertTo == id)
 				parents.push_back(edgeIt->second.vertTo);
@@ -97,6 +100,7 @@ void GraphStat::update()
 	}
 }
 
-int GraphStat::getNumVerticesInRank(int rank) {
+int iAGraphStat::getNumVerticesInRank(int rank)
+{
 	return m_numVertices[rank];
 }

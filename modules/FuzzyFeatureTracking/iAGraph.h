@@ -18,34 +18,61 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "graph.h"
+#pragma once
 
-Graph::Graph()
-	: m_curInd{0}
-{ }
+#include <map>
 
-Graph::idType Graph::addVertex(Vertex vert) {
-	idType id = getNewID();
-	m_vetices[id] = vert;
-	return id;
-}
-
-Graph::idType Graph::addEdge(idType v1, idType v2) {
-	idType id = getNewID();
-	m_edges[id] = Edge(v1, v2);
-	return id;
-}
-
-Graph::idType Graph::getNewID() {
-	return m_curInd++;
-}
-
-Graph::VerticesMap* Graph::getVertices()
+class iAGraph
 {
-	return &m_vetices;
-}
+public:
+	typedef long	idType;
 
-Graph::EdgesMap* Graph::getEdges()
-{
-	return &m_edges;
-}
+	struct Vertex {
+		Vertex()
+			: id{0}
+			, rank{0}
+		{ }
+		Vertex(int rank, float posX, float posY)
+			: id{0}
+			, rank{rank}
+			, posX{posX}
+			, posY{posY}
+		{ }
+
+		idType	id;
+		int		rank;
+		float	posX;
+		float	posY;
+	};
+
+	struct Edge
+	{
+		Edge()
+			: vertFrom{0}
+			, vertTo{0}
+		{ }
+		Edge(idType vertFrom, idType vertTo)
+			: vertFrom{vertFrom}
+			, vertTo{vertTo}
+		{ }
+		// edge has a direction from vertex 1 to vertex 2
+		idType vertFrom, vertTo;
+	};
+
+	typedef std::map<idType, Vertex> VerticesMap;
+	typedef std::map<idType, Edge> EdgesMap;
+
+	iAGraph();
+	idType addVertex(Vertex vert);
+	idType addEdge(idType v1, idType v2);
+	VerticesMap* getVertices();
+	EdgesMap* getEdges();
+
+private:
+	VerticesMap m_vetices;
+	EdgesMap m_edges;
+	idType m_curInd;
+
+	idType getNewID();
+};
+

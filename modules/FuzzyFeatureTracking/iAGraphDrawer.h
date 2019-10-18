@@ -20,36 +20,36 @@
 * ************************************************************************************/
 #pragma once
 
-#include "graph.h"
+#include "iAGraph.h"
+#include "iAGraphStat.h"
 
 #include <vector>
-#include <unordered_map>
 
-class GraphStat
+class iAGraphDrawer
 {
 public:
-	typedef std::vector<Graph::idType>	VerticesIDs;
-
-						GraphStat();
-						GraphStat(Graph* g);
-	void				setGraph(Graph* g);
-	void				update();
-	bool				isHeaderVertix(Graph::idType v);
-	VerticesIDs			getParentVertices(Graph::idType v);
-	VerticesIDs			getChildVertices(Graph::idType v);
-	int					getMaxRank();
-	int					getNumVerticesInRank(int rank);
-
+	iAGraphDrawer();
+	~iAGraphDrawer();
+	void setNumberOfIterations(int n);
+	void setGraph(iAGraph* g);
+	void start();
 
 private:
-	typedef Graph::EdgesMap::const_iterator		EdgesIterator;
-	typedef Graph::VerticesMap::const_iterator	VerticesIterator;
+	typedef std::vector<std::vector<iAGraph::idType>> OrderType;
 
-	Graph*	m_graph;
-	int		m_maxRank;
-	std::unordered_map<Graph::idType, VerticesIDs>	m_parentVertices;
-	std::unordered_map<Graph::idType, VerticesIDs>	m_childVertices;
-	std::unordered_map<Graph::idType, bool>			m_isHeaderVertex;
-	std::vector<int>								m_numVertices;
+	void initialOrder(OrderType& order);
+	void addVerticesToOrder(iAGraph::idType headerVert, OrderType& order);
+	void wmedian(OrderType& order, bool forwardTraversal);
+	float medianValue(iAGraph::idType vert, OrderType& order, bool forwardTraversal);
+	std::vector<int> getAdjacentPositions(iAGraph::idType vert, OrderType& order, bool forwardTraversal);
+	void transpose(OrderType& order, bool forwardTraversal);
+	int numberOfCrossing(OrderType& order);
+	int numberOfCrossing(OrderType& order, int rank, int pos1, int pos2, bool forwardTraversal);
+
+	int m_maxIteration;
+	OrderType m_order;
+	iAGraph* m_graph;
+	iAGraphStat m_graphStat;
+	int m_ranks;
 };
 

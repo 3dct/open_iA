@@ -20,60 +20,35 @@
 * ************************************************************************************/
 #pragma once
 
-#include <open_iA_Core_export.h>
-#include <map>
+#include "iAGraph.h"
 
-class open_iA_Core_API Graph
+#include <vector>
+#include <unordered_map>
+
+class iAGraphStat
 {
 public:
-	typedef long	idType;
+	typedef std::vector<iAGraph::idType>	VerticesIDs;
 
-	struct Vertex {
-		Vertex()
-			: id{0}
-			, rank{0}
-		{ }
-		Vertex(int rank, float posX, float posY)
-			: id{0}
-			, rank{rank}
-			, posX{posX}
-			, posY{posY}
-		{ }
-
-		idType	id;
-		int		rank;
-		float	posX;
-		float	posY;
-	};
-
-	struct Edge {
-		Edge()
-			: vertFrom{0}
-			, vertTo{0}
-		{ }
-		Edge(idType vertFrom, idType vertTo)
-			: vertFrom{vertFrom}
-			, vertTo{vertTo}
-		{ }
-		// edge has a direction from vertex 1 to vertex 2
-		idType vertFrom, vertTo;
-	};
-
-	typedef std::map<idType, Vertex>	VerticesMap;
-	typedef std::map<idType, Edge>		EdgesMap;
-
-						Graph();
-
-	idType				addVertex(Vertex vert);
-	idType				addEdge(idType v1, idType v2);
-	VerticesMap*		getVertices();
-	EdgesMap*			getEdges();
+	iAGraphStat();
+	iAGraphStat(iAGraph* g);
+	void setGraph(iAGraph* g);
+	void update();
+	bool isHeaderVertix(iAGraph::idType v);
+	VerticesIDs getParentVertices(iAGraph::idType v);
+	VerticesIDs getChildVertices(iAGraph::idType v);
+	int getMaxRank();
+	int getNumVerticesInRank(int rank);
 
 private:
-	VerticesMap		m_vetices;
-	EdgesMap		m_edges;
-	idType			m_curInd;
+	typedef iAGraph::EdgesMap::const_iterator    EdgesIterator;
+	typedef iAGraph::VerticesMap::const_iterator VerticesIterator;
 
-	idType			getNewID();
+	iAGraph* m_graph;
+	int m_maxRank;
+	std::unordered_map<iAGraph::idType, VerticesIDs> m_parentVertices;
+	std::unordered_map<iAGraph::idType, VerticesIDs> m_childVertices;
+	std::unordered_map<iAGraph::idType, bool> m_isHeaderVertex;
+	std::vector<int> m_numVertices;
 };
 
