@@ -22,11 +22,6 @@ IF (openiA_TESTING_ENABLED AND Module_RandomWalker)
 		SET_TESTS_PROPERTIES(ImageGraphTest PROPERTIES ENVIRONMENT "PATH=${QT_WIN_DLL_DIR};$ENV{PATH}")
 		SET_TESTS_PROPERTIES(DistanceMeasureTest PROPERTIES ENVIRONMENT "PATH=${QT_WIN_DLL_DIR};$ENV{PATH}")
 	ENDIF()
-	
-	IF (openiA_USE_COTIRE)
-		cotire(ImageGraphTest)
-		cotire(DistanceMeasureTest)
-	ENDIF()
 
 	IF (openiA_USE_IDE_FOLDERS)
 		SET_PROPERTY(TARGET ImageGraphTest PROPERTY FOLDER "Tests")

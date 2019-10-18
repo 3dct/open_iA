@@ -15,10 +15,6 @@ ENDIF (WIN32)
 
 TARGET_INCLUDE_DIRECTORIES(${GUI_EXECUTABLE_NAME} PRIVATE ${open_iA_BINARY_DIR}) # for version.h
 
-IF (openiA_USE_COTIRE)
-	cotire(${GUI_EXECUTABLE_NAME})
-ENDIF()
-
 # Windows-specific configuration
 IF (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")

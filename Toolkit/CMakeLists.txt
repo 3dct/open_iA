@@ -67,8 +67,4 @@ IF(Module_GPU_DreamcasterTool)
 		SET_PROPERTY(TARGET Dreamcaster PROPERTY FOLDER "Libraries")
 	ENDIF()
 
-	IF (openiA_USE_COTIRE)
-		cotire(Dreamcaster)
-	ENDIF()
-
 ENDIF(Module_GPU_DreamcasterTool)

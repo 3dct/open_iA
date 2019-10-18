@@ -12,11 +12,6 @@ ENDIF()
 
 SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
 
-option (openiA_USE_COTIRE "Whether to use cotire to speed up build. Default: disabled." OFF)
-IF (openiA_USE_COTIRE)
-	INCLUDE(Cotire)
-ENDIF()
-
 IF (CMAKE_MAJOR_VERSION GREATER 4 OR
 	(CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 15))
 	option (openiA_PRECOMPILE  "Whether to use precompiled headers to speed up build. Default: disabled." OFF)

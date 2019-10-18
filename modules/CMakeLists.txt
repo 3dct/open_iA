@@ -147,10 +147,6 @@ FOREACH( indx RANGE ${len} )
 		TARGET_COMPILE_DEFINITIONS(${module_name} PRIVATE ${ADDITIONAL_COMPILE_DEFINITIONS})
 	ENDIF()
 
-	IF (openiA_USE_COTIRE)
-		cotire(${module_name})
-	ENDIF()
-
 	IF (openiA_USE_IDE_FOLDERS)
 		SET_PROPERTY(TARGET ${module_name} PROPERTY FOLDER "Modules")
 	ENDIF()
