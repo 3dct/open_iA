@@ -23,7 +23,6 @@
 #include "iACSVToQTableWidgetConverter.h"
 #include "iAPorosityAnalyserModuleInterface.h"
 
-#include <CPUID.h>
 #include <defines.h>
 #include <iATypedCallHelper.h>
 #include <io/iAITKIO.h>
