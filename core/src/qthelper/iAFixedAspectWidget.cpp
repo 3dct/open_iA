@@ -28,6 +28,7 @@
 #include <QPainter>
 #include <QVBoxLayout>
 
+//! Widget with a fixed colored background color.
 class iAColoredWidget: public QWidget
 {
 public:
@@ -49,6 +50,7 @@ private:
 	QColor bgColor;
 };
 
+//! The internal iAVtkQtWidget of an iAFixedAspectWidget which actually keeps its aspect ratio.
 class iAFixedAspectWidgetInternal: public iAVtkQtWidget
 {
 public:

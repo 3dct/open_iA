@@ -27,6 +27,8 @@
 
 class iAColoredWidget;
 
+//! Keeps the aspect ratio of a contained iAVtkQtWidget fixed
+//! by placing two other resizable widgets around it as padding.
 class open_iA_Core_API iAFixedAspectWidget: public iASignallingWidget
 {
 	Q_OBJECT

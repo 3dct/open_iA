@@ -23,14 +23,11 @@
 #include <cassert>
 #include <map>
 
+//! Class representing a generic (single-parameter) function,
+//! which can be passed into the functional boxplot calculation.
 template <typename ArgType, typename ValType>
 class iAFunction : public std::map<ArgType, ValType> {};
 
-
-/**
- * Class representing a generic (single-parameter) function as can be passed into
- * the functional boxplot calculation
- */
 /*
 template <typename ArgType, typename ValType>
 class iAFunction

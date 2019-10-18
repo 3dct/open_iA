@@ -31,8 +31,8 @@ class iAMapper;
 class QColor;
 class QPainter;
 
-/** Interface for a function which is drawable in a diagram
- *	encapsulates both the data of the function and the drawing method */
+//! Interface for a function which is drawable in a chart.
+//! Encapsulates both the data of the function and the drawing method
 class open_iA_Core_API iAPlot: public iAColorable
 {
 public:

@@ -32,6 +32,7 @@ class iAPlotData;
 
 class QPolygon;
 
+//! Plot highlighting a single bin in a histogram plot.
 class open_iA_Core_API iASelectedBinPlot : public iAPlot
 {
 public:
@@ -42,6 +43,9 @@ private:
 	int m_position;
 };
 
+//! Plots the given data as a line.
+//! Well-suited for (pseudo-)continuous data.
+//! For filling the area under the curve, see the iAFilledLinePlot.
 class open_iA_Core_API iALinePlot: public iAPlot
 {
 public:
@@ -52,6 +56,8 @@ private:
 	void draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const override;
 };
 
+//! Plots each data point as a rectangular bar, all the bars are horizontally connected via a line.
+//! Well suited for binned, e.g. histogram data.
 class open_iA_Core_API iAStepFunctionPlot : public iAPlot
 {
 public:
@@ -61,6 +67,9 @@ private:
 	QColor getFillColor() const;
 };
 
+//! Plots the given data as a line and fills the area below the line.
+//! Well-suited for (pseudo-)continuous data.
+//! For a plot without filling the area under the curve, see the iALinePlot.
 class open_iA_Core_API iAFilledLinePlot : public iAPlot
 {
 public:
@@ -70,6 +79,8 @@ private:
 	QColor getFillColor() const;
 };
 
+//! Plots the given data points as single bars, horizontally separated by the given margin.
+//! Well-suited for discrete or binned data.
 class open_iA_Core_API iABarGraphPlot: public iAPlot
 {
 public:
@@ -79,9 +90,9 @@ public:
 private:
 	QSharedPointer<iALookupTable> m_lut;
 	int m_margin;
-
 };
 
+//! Collects multiple plots and makes them act as a single plot.
 class open_iA_Core_API iAPlotCollection: public iAPlot
 {
 public:
