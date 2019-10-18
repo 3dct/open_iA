@@ -42,8 +42,10 @@ namespace
 
 #include <cassert>
 
+//! Class for converting a variable of the type QString to the templated type.
+//! Can be overloaded for any desired conversion.
 template <typename T>
-struct Converter
+struct iAConverter
 {
 	static T convert(QString str, bool * ok)
 	{
@@ -54,7 +56,7 @@ struct Converter
 };
 
 template <>
-struct Converter<int>
+struct iAConverter<int>
 {
 	static int convert(QString str, bool * ok)
 	{
@@ -63,7 +65,7 @@ struct Converter<int>
 };
 
 template <>
-struct Converter<double>
+struct iAConverter<double>
 {
 	static double convert(QString str, bool * ok)
 	{
@@ -127,8 +129,8 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 		{
 			result->m_logarithmic = false;
 			bool minOk = true, maxOk = true;
-			result->m_min = Converter<double>::convert(defTokens[3], &minOk);
-			result->m_max = Converter<double>::convert(defTokens[4], &maxOk);
+			result->m_min = iAConverter<double>::convert(defTokens[3], &minOk);
+			result->m_max = iAConverter<double>::convert(defTokens[4], &maxOk);
 			if (!minOk || !maxOk)
 			{
 				DEBUG_LOG(QString("Minimum or maximum of attribute couldn't be parsed in line %1\n").arg(def));

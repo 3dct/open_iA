@@ -2254,7 +2254,7 @@ void MainWindow::loadTLGICTData(QString const & baseDirectory)
 #include <QDate>
 #include <QProxyStyle>
 
-class MyProxyStyle : public QProxyStyle
+class iAProxyStyle : public QProxyStyle
 {
 public:
 	using QProxyStyle::QProxyStyle;
@@ -2311,7 +2311,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	mainWin.loadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
-	qApp->setStyle(new MyProxyStyle(qApp->style()));
+	qApp->setStyle(new iAProxyStyle(qApp->style()));
 	mainWin.setWindowIcon(QIcon(QPixmap(iconPath)));
 	if (QDate::currentDate().dayOfYear() >= 350)
 	{

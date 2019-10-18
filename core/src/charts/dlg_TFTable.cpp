@@ -34,7 +34,8 @@
 const QStringList columnNames = QStringList()\
 << "X" << "Y" << "Color";
 
-class MyTableWidgetItem : public QTableWidgetItem
+// override operator < for search ... TODO: maybe this could be done via a standalone operator?
+class iATableWidgetItem : public QTableWidgetItem
 {
 public:
 	bool operator <( const QTableWidgetItem &other ) const
@@ -99,9 +100,9 @@ void dlg_TFTable::updateTable()
 		m_oTF->GetNodeValue( i, pointValue );
 		m_cTF->GetIndexedColor( i, color );
 		QColor c; c.setRgbF( color[0], color[1], color[2], color[3] );
-		MyTableWidgetItem* xItem = new MyTableWidgetItem;
-		MyTableWidgetItem* yItem = new MyTableWidgetItem;
-		MyTableWidgetItem* colorItem = new MyTableWidgetItem;
+		iATableWidgetItem* xItem = new iATableWidgetItem;
+		iATableWidgetItem* yItem = new iATableWidgetItem;
+		iATableWidgetItem* colorItem = new iATableWidgetItem;
 		xItem->setData( Qt::DisplayRole, QString::number( pointValue[0] ) );
 		yItem->setData( Qt::DisplayRole, QString::number( pointValue[1] ) );
 		colorItem->setBackground( c );
@@ -132,9 +133,9 @@ void dlg_TFTable::addPoint()
 		return;
 	table->insertRow( table->rowCount() );
 	table->blockSignals( true );
-	MyTableWidgetItem* newXItem = new MyTableWidgetItem;
-	MyTableWidgetItem* newYItem = new MyTableWidgetItem;
-	MyTableWidgetItem* newColorItem = new MyTableWidgetItem;
+	iATableWidgetItem* newXItem = new iATableWidgetItem;
+	iATableWidgetItem* newYItem = new iATableWidgetItem;
+	iATableWidgetItem* newColorItem = new iATableWidgetItem;
 	newXItem->setData( Qt::DisplayRole, QString::number( (double) dsbNewPointX->value() ) );
 	newYItem->setData( Qt::DisplayRole, QString::number( (double) dsbNewPointY->value() ) );
 	table->setSortingEnabled( false );

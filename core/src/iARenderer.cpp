@@ -85,10 +85,10 @@
 static void GetCellCenter(vtkUnstructuredGrid* imageData, const unsigned int cellId,
 	double center[3], double spacing[3]);
 
-class MouseInteractorStyle : public vtkInteractorStyleRubberBandPick
+class iAMouseInteractorStyle : public vtkInteractorStyleRubberBandPick
 {
 public:
-	static MouseInteractorStyle* New();
+	static iAMouseInteractorStyle* New();
 	
 	virtual void OnChar()
 	{
@@ -125,7 +125,7 @@ public:
 		}
 	}
 };
-vtkStandardNewMacro(MouseInteractorStyle);
+vtkStandardNewMacro(iAMouseInteractorStyle);
 
 void KeyPressCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	void* clientData, void* vtkNotUsed(callData))
@@ -420,7 +420,7 @@ void iARenderer::setAreaPicker()
 {
 	auto areaPicker = vtkSmartPointer<vtkAreaPicker>::New();
 	m_interactor->SetPicker(areaPicker);
-	auto style = vtkSmartPointer<MouseInteractorStyle>::New();
+	auto style = vtkSmartPointer<iAMouseInteractorStyle>::New();
 	m_interactor->SetInteractorStyle(style);
 
 	auto keyPressCallback = vtkSmartPointer<vtkCallbackCommand>::New();
