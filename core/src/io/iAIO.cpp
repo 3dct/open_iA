@@ -761,11 +761,9 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 				H5Fclose(file_id);
 				return true;
 			}
-			OpenHDF5Dlg dlg;
-			dlg.setWindowTitle(QString("Open HDF5").arg(m_fileName));
+
 			QStandardItemModel* model = new QStandardItemModel();
 			model->setHorizontalHeaderLabels(QStringList() << "HDF5 Structure");
-			dlg.tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
 			QStandardItem* rootItem = new QStandardItem(QFileInfo(m_fileName).fileName() + "/");
 			rootItem->setData(GROUP, Qt::UserRole + 1);
 			rootItem->setData(m_fileName, Qt::UserRole + 2);
@@ -781,13 +779,51 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 			H5Literate(file_id, H5_INDEX_NAME, H5_ITER_NATIVE, NULL, op_func, (void *)&od);
 			H5Fclose(file_id);
 
-			dlg.tree->setModel(model);
-			if (dlg.exec() != QDialog::Accepted)
+			// check if maybe only one dataset is contained in the file anyway:
+			QStandardItem* curItem = rootItem;
+			while (curItem)
 			{
-				addMsg("Dataset selection aborted.");
-				return false;
+				if (curItem->rowCount() > 1)
+				{
+					curItem = nullptr;
+					break;
+				}
+				curItem = curItem->child(0);
+				assert(curItem);
+				if (curItem->data(Qt::UserRole + 1) == DATASET)
+					break;
 			}
-			QModelIndex idx = dlg.tree->currentIndex();
+			QModelIndex idx;
+			if (curItem && curItem->data(Qt::UserRole + 1) == DATASET)
+			{
+				DEBUG_LOG("File only contains one dataset, loading that with default spacing of 1,1,1!");
+				idx = curItem->index();
+				m_hdf5Spacing[0] = 1;
+				m_hdf5Spacing[1] = 1;
+				m_hdf5Spacing[2] = 1;
+			}
+			else
+			{
+				OpenHDF5Dlg dlg;
+				dlg.setWindowTitle(QString("Open HDF5").arg(m_fileName));
+				dlg.tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
+				dlg.tree->setModel(model);
+				if (dlg.exec() != QDialog::Accepted)
+				{
+					addMsg("Dataset selection aborted.");
+					return false;
+				}
+				idx = dlg.tree->currentIndex();
+				bool okX, okY, okZ;
+				m_hdf5Spacing[0] = dlg.edSpacingX->text().toDouble(&okX);
+				m_hdf5Spacing[1] = dlg.edSpacingY->text().toDouble(&okY);
+				m_hdf5Spacing[2] = dlg.edSpacingZ->text().toDouble(&okZ);
+				if (!(okX && okY && okZ))
+				{
+					addMsg("Invalid spacing (has to be a valid floating point number)!");
+					return false;
+				}
+			}
 			if (idx.data(Qt::UserRole + 1) != DATASET)
 			{
 				addMsg("You have to select a dataset!");
@@ -816,15 +852,6 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 			if (m_hdf5Path.size() < 2)
 			{
 				addMsg("Invalid selection!");
-				return false;
-			}
-			bool okX, okY, okZ;
-			m_hdf5Spacing[0] = dlg.edSpacingX->text().toDouble(&okX);
-			m_hdf5Spacing[1] = dlg.edSpacingY->text().toDouble(&okY);
-			m_hdf5Spacing[2] = dlg.edSpacingZ->text().toDouble(&okZ);
-			if (!(okX && okY && okZ))
-			{
-				addMsg("Invalid spacing (has to be a valid floating point number)!");
 				return false;
 			}
 			return true;
