@@ -69,7 +69,7 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QString const
 {
 	QFileInfo info1(fileName);
 	m_fileSize = info1.size();
-	m_extentXIdx = 0; m_extentYIdx = 1; m_extentZIdx = 2; m_voxelSizeIdx = 10;
+	m_extentXIdx = 0; m_extentYIdx = 1; m_extentZIdx = 2; m_headerSizeIdx = 9; m_voxelSizeIdx = 10;
 
 	QStringList datatype(vtkDataTypeList());
 	datatype[mapVTKTypeToIdx(rawFileParams.m_scalarType)] = "!" + datatype[mapVTKTypeToIdx(rawFileParams.m_scalarType)];
@@ -109,6 +109,7 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QString const
 	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_extentXIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
 	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_extentYIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
 	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_extentZIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_headerSizeIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
 	connect(qobject_cast<QComboBox*>(m_inputDlg->widgetList()[m_voxelSizeIdx]), SIGNAL(currentIndexChanged(int)), this, SLOT(checkFileSize()));
 
 	checkFileSize();
@@ -136,9 +137,10 @@ void dlg_openfile_sizecheck::checkFileSize()
 	qint64 extentX = m_inputDlg->getDblValue(m_extentXIdx),
 		extentY= m_inputDlg->getDblValue(m_extentYIdx),
 		extentZ = m_inputDlg->getDblValue(m_extentZIdx),
+		headerSize = m_inputDlg->getDblValue(m_headerSizeIdx),
 		voxelSize = mapVTKTypeStringToSize(m_inputDlg->getComboBoxValue(m_voxelSizeIdx));
 	assert(voxelSize != 0);
-	qint64 proposedSize = extentX*extentY*extentZ*voxelSize;
+	qint64 proposedSize = extentX*extentY*extentZ*voxelSize + headerSize;
 	m_proposedSizeLabel->setText("Predicted file size: " + QString::number(proposedSize) + " bytes");
 	m_proposedSizeLabel->setStyleSheet(QString("QLabel { background-color : %1; }").arg(proposedSize == m_fileSize ? "#BFB" : "#FBB" ));
 	m_inputDlg->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(proposedSize == m_fileSize);

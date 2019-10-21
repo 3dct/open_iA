@@ -49,7 +49,7 @@ private:
 	qint64 m_fileSize;
 	QLabel * m_actualSizeLabel;
 	QLabel * m_proposedSizeLabel;
-	int m_extentXIdx, m_extentYIdx, m_extentZIdx, m_voxelSizeIdx;
+	int m_extentXIdx, m_extentYIdx, m_extentZIdx, m_voxelSizeIdx, m_headerSizeIdx;
 	double * dlg;
 	dlg_commoninput* m_inputDlg;
 	bool m_accepted;
