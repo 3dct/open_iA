@@ -252,7 +252,7 @@ void dlg_XRF::InitCommonGUI(iAWidgetAddHelper & widgetAddHelper)
 
 
 	// load reference spectra & characteristic energy lines:
-	QString rootDir("C:/refSpectra/");
+	QString rootDir(QCoreApplication::applicationDirPath() + "/refSpectra/");
 	m_refSpectraLib = QSharedPointer<iAReferenceSpectraLibrary>(new iAReferenceSpectraLibrary(
 		rootDir + "elementSpectra/reference_library.reflib"));
 	m_refSpectra->getSpectraList()->setModel(m_refSpectraLib->getItemModel().data());
