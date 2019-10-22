@@ -2211,13 +2211,13 @@ void MainWindow::openWithDataTypeConversion()
 		if (m_owdtcdov == 0)
 		{
 			finalfilename = conversionwidget.convert(file, m_rawFileParams,
-				mapVTKTypeStringToInt(outDataType),
+				mapReadableDataTypeToVTKType(outDataType),
 				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, m_owdtcdov);
 		}
 		else
 		{
 			finalfilename = conversionwidget.convertROI(file, m_rawFileParams,
-				mapVTKTypeStringToInt(outDataType),
+				mapReadableDataTypeToVTKType(outDataType),
 				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, m_owdtcdov, roi);
 		}
 		loadFile(finalfilename, false);
