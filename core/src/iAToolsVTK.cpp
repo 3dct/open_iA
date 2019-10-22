@@ -163,8 +163,8 @@ namespace
 			{VTK_INT               , "32 bit signed integer (-2,147,483,648 to 2,147,483,64, int)"},
 			{VTK_UNSIGNED_LONG_LONG, "64 bit unsigned integer (0 to (2^64)-1, unsigned long long)"},
 			{VTK_LONG_LONG         , "64 bit signed integer (-2^63 to (2^63)-1, long long)"},
-			{VTK_FLOAT             , "32 bit floating point number (3.4E±38 (7 digits), float)"},
-			{VTK_DOUBLE            , "64 bit floating point number (1.7E±308 (15 digits), double)"}
+			{VTK_FLOAT             , "32 bit floating point number (7 digits, float)"},
+			{VTK_DOUBLE            , "64 bit floating point number (15 digits, double)"}
 		};
 		return nameVTKTypeMap;
 	}
