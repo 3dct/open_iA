@@ -181,9 +181,9 @@ inline void cl_init(cl::Device			& device_out,
 			{
 				cl_uint CU = 0, Clock = 0;
                 char buf[128];
-                itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_VENDOR, 128, buf, NULL) );
-				itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &CU,	 NULL) );
-				itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_MAX_CLOCK_FREQUENCY, sizeof(cl_uint), &Clock, NULL) );
+                itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_VENDOR, 128, buf, nullptr) );
+				itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &CU,	 nullptr) );
+				itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_MAX_CLOCK_FREQUENCY, sizeof(cl_uint), &Clock, nullptr) );
                 QString deviceVendor( buf );
                 if( devType == CL_DEVICE_TYPE_GPU && deviceVendor.contains("Intel", Qt::CaseInsensitive) ) //skip intel's gpu
                     continue;

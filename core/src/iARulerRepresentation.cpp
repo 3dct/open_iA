@@ -35,7 +35,7 @@ vtkStandardNewMacro(iARulerRepresentation);
 
 iARulerRepresentation::iARulerRepresentation()
 {
-	this->RulerActor = NULL;
+	this->RulerActor = nullptr;
 	iARulerActor *actor = iARulerActor::New();
 	this->SetScalarBarActor(actor);
 	actor->Delete();
@@ -47,7 +47,7 @@ iARulerRepresentation::iARulerRepresentation()
 
 iARulerRepresentation::~iARulerRepresentation()
 {
-	this->SetScalarBarActor(NULL);
+	this->SetScalarBarActor(nullptr);
 }
 
 

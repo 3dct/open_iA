@@ -34,7 +34,7 @@
 iARendererManager::iARendererManager()
 {
 	m_isRedrawn = false;
-	m_commonCamera = NULL;
+	m_commonCamera = nullptr;
 }
 
 void iARendererManager::addToBundle(vtkRenderer* renderer)
@@ -65,7 +65,7 @@ bool iARendererManager::removeFromBundle(vtkRenderer* renderer)
 
 void iARendererManager::removeAll()
 {
-	m_commonCamera = NULL;
+	m_commonCamera = nullptr;
 	for(vtkRenderer * r: m_renderers)
 	{
 		removeFromBundle( r );

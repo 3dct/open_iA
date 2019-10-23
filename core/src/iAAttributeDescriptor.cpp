@@ -182,7 +182,7 @@ QString iAAttributeDescriptor::toString() const
 		case iAValueType::Categorical:	{
 			if (!m_nameMapper)
 			{
-				DEBUG_LOG("nameMapper NULL for categorical attribute!\n");
+				DEBUG_LOG("nameMapper nullptr for categorical attribute!\n");
 				for (int i = min(); i <= max(); ++i)
 				{
 					result += QString::number(i);

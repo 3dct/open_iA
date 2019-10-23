@@ -33,7 +33,7 @@ template<class TInputImage>
 RemovePeaksOtsuThresholdImageCalculator<TInputImage>
 ::RemovePeaksOtsuThresholdImageCalculator()
 {
-  m_Image = NULL;
+  m_Image = nullptr;
   m_Threshold = NumericTraits<PixelType>::Zero;
   m_NumberOfHistogramBins = 128;
   m_RegionSetByUser = false;

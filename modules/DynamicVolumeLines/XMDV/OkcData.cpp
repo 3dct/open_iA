@@ -197,7 +197,7 @@ char* OkcData::fgetcsvline(vector<string> &csv_databuf, FILE *fhead) {
     string stringbuf;
     ret_stat = fgets( data_buf, 1024, fhead );
 
-    if (ret_stat != NULL) {
+    if (ret_stat != nullptr) {
         int len = strstr_cnt(data_buf,",");
         if (len > 0){
             int pos = substring_index(data_buf,",",0);
@@ -233,7 +233,7 @@ char* OkcData::fgetcsvline(vector<string> &csv_databuf, FILE *fhead) {
 bool OkcData::readCSV(const char *fname){
 	char str_temp[500];
 	FILE *fp = fopen(fname, "r");
-	if (fp == NULL) {
+	if (fp == nullptr) {
 		sprintf(str_temp, "Data file %s doesn't exist\n", fname);
 		throw ReadOkcException(str_temp);
 	}
@@ -282,7 +282,7 @@ bool OkcData::readCSV(const char *fname){
 	int loop = 2;
 	csv_data.clear();
 	ret_stat = fgetcsvline(csv_data, fp);
-	while (ret_stat != NULL && strlen(ret_stat)!=0) {
+	while (ret_stat != nullptr && strlen(ret_stat)!=0) {
 		index+=dims;
 		for (i = 0; i < dims; i++) {
 			sValue =  csv_data[i];
@@ -386,7 +386,7 @@ bool OkcData::createOKC(const char *fname){
 	struct stat okc_buf, csv_buf;
 	FILE *okc_fp = fopen(okc_filename, "r");
 
-	if (okc_fp == NULL) {
+	if (okc_fp == nullptr) {
 		// doesn't exist the corresponding okc file create one here and write
 		writeOKC(okc_filename);
 	}else{
@@ -510,7 +510,7 @@ OkcData::ReadOkcResult OkcData::readOKC(const char *fname)
 
 	char str_temp[500];
 	FILE *fp = fopen(fname, "r");
-	if (fp == NULL) {
+	if (fp == nullptr) {
 		sprintf(str_temp, "Data file %s doesn't exist\n", fname);
 		throw ReadOkcException(str_temp);
 	}

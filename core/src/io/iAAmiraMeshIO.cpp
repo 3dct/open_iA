@@ -140,7 +140,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	//	.arg(xmin).arg(xmax).arg(ymin).arg(ymax).arg(zmin).arg(zmax));
 
 	//Is it a uniform grid? We need this only for the sanity check below.
-	const bool bIsUniform = (strstr(buffer, "CoordType \"uniform\"") != NULL);
+	const bool bIsUniform = (strstr(buffer, "CoordType \"uniform\"") != nullptr);
 	//DEBUG_LOG(QString("GridType: %1").arg(bIsUniform ? "uniform" : "UNKNOWN"));
 
 	//Type of the field: scalar, vector

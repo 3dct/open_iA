@@ -462,11 +462,11 @@ void iAvtkInteractStyleActor::translatePolydata(vtkSmartPointer<vtkTransform> &p
 void iAvtkInteractStyleActor::rotatePolydata(vtkSmartPointer<vtkTransform> &polTransform, vtkSmartPointer<vtkActor> &polyActor, const double *center, double angle, transformationMode mode)
 {
 	if (!polTransform) {
-		DEBUG_LOG("TRANSFORM IS NULL");
+		DEBUG_LOG("TRANSFORM IS nullptr");
 		return; 
 	}
 	if (!polyActor) {
-		DEBUG_LOG("Actor IS NULL");
+		DEBUG_LOG("Actor IS nullptr");
 		return;
 	}
 

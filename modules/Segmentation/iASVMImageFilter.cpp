@@ -84,8 +84,8 @@ void iASVMImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 	param.p = 0.1;
 	param.shrinking = 0;
 	param.nr_weight = 0;
-	param.weight_label = NULL;
-	param.weight = NULL;
+	param.weight_label = nullptr;
+	param.weight = nullptr;
 
 	svm_problem problem;
 	typedef svm_node* p_svm_node;

@@ -48,7 +48,7 @@ public:
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
 	void drawOnTop(QPainter&) override {}
-	int selectPoint(QMouseEvent *event, int *x = NULL) override;
+	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
 	int getSelectedPoint() override { return selectedPoint; }
 	int addPoint(int x, int y) override;
 	void addColorPoint(int, double, double, double) override {}

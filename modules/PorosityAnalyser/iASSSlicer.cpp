@@ -96,7 +96,7 @@ void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & im
 	reader->Update();
 	imgData = reader->GetOutput();
 	if (!imgData)
-		DEBUG_LOG("Image data is NULL!");
+		DEBUG_LOG("Image data is nullptr!");
 }
 
 namespace

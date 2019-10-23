@@ -126,7 +126,7 @@ void iA4DCTModuleInterface::saveProj( )
 {
 	QMdiSubWindow* subWnd = m_mainWnd->mdiArea->currentSubWindow( );
 	iA4DCTMainWin* stackView = qobject_cast<iA4DCTMainWin*>( subWnd->widget( ) );
-	if( stackView != NULL ) {
+	if( stackView != nullptr ) {
 		stackView->save( );
 	}
 }

@@ -298,7 +298,7 @@ herr_t errorfunc(unsigned n, const H5E_error2_t *err, void *client_data)
 void printHDF5ErrorsToConsole()
 {
 	hid_t err_stack = H5Eget_current_stack();
-	herr_t walkresult = H5Ewalk(err_stack, H5E_WALK_UPWARD, errorfunc, NULL);
+	herr_t walkresult = H5Ewalk(err_stack, H5E_WALK_UPWARD, errorfunc, nullptr);
 }
 
 #include <vtkImageImport.h>
@@ -640,7 +640,7 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
 			nextod.prev = od;
 			nextod.addr = infobuf.addr;
 			return_val = H5Literate_by_name(loc_id, name, H5_INDEX_NAME,
-				H5_ITER_NATIVE, NULL, op_func, (void *)&nextod,
+				H5_ITER_NATIVE, nullptr, op_func, (void *)&nextod,
 				H5P_DEFAULT);
 		}
 		newItem->setData(GROUP, Qt::UserRole + 1);
@@ -774,9 +774,9 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 			struct opdata   od;
 			od.item = rootItem;
 			od.recurs = 0;
-			od.prev = NULL;
+			od.prev = nullptr;
 			od.addr = infobuf.addr;
-			H5Literate(file_id, H5_INDEX_NAME, H5_ITER_NATIVE, NULL, op_func, (void *)&od);
+			H5Literate(file_id, H5_INDEX_NAME, H5_ITER_NATIVE, nullptr, op_func, (void *)&od);
 			H5Fclose(file_id);
 
 			// check if maybe only one dataset is contained in the file anyway:
@@ -1165,7 +1165,7 @@ bool iAIO::setupVolumeStackMHDReader(QString const & f)
 		<< tr("%1").arg(digitsInIndex)
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1]) );
 
-	dlg_commoninput dlg(m_parent, "Set file parameters", inList, inPara, NULL);
+	dlg_commoninput dlg(m_parent, "Set file parameters", inList, inPara, nullptr);
 
 	if (dlg.exec() != QDialog::Accepted)
 		return false;

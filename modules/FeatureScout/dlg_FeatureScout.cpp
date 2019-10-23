@@ -1720,7 +1720,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		return;
 	}
 
-	dlg_commoninput dlg( this, "DistributionViewCSVSaveDialog", inList, inPara, NULL );
+	dlg_commoninput dlg( this, "DistributionViewCSVSaveDialog", inList, inPara, nullptr );
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
@@ -1993,7 +1993,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector & con, const QString
 	QStringList modes = (QStringList() << tr(mode1.toStdString().c_str()) << tr(mode2.toStdString().c_str()));
 	QStringList inList = (QStringList() << tr("+Classification"));
 	QList<QVariant> inPara = (QList<QVariant>() << modes);
-	dlg_commoninput dlg(this, "Save classification options", inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Save classification options", inList, inPara, nullptr);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	QString mode = dlg.getComboBoxValue(0);
@@ -2845,7 +2845,7 @@ void dlg_FeatureScout::EnableBlobRendering()
 	if ( !OpenBlobVisDialog() )
 		return;
 	
-	iABlobCluster* blob = NULL;
+	iABlobCluster* blob = nullptr;
 	// check if that class is already visualized; if yes, update the existing blob:
 	if ( blobMap.contains( this->activeClassItem->text() ) )
 	{
@@ -3306,7 +3306,7 @@ bool dlg_FeatureScout::OpenBlobVisDialog()
 						   << tr( "*Dimension Z" )
 						   );
 	QList<QVariant> inPara;
-	iABlobCluster* blob = NULL;
+	iABlobCluster* blob = nullptr;
 	if ( blobMap.contains( this->activeClassItem->text() ) )
 		blob = blobMap[this->activeClassItem->text()];
 
@@ -3326,7 +3326,7 @@ bool dlg_FeatureScout::OpenBlobVisDialog()
 		<< tr( "%1" ).arg( blob ? blob->GetDimensions()[0] : blobManager->GetDimensions()[0] )
 		<< tr( "%1" ).arg( blob ? blob->GetDimensions()[1] : blobManager->GetDimensions()[1] )
 		<< tr( "%1" ).arg( blob ? blob->GetDimensions()[2] : blobManager->GetDimensions()[2] );
-	dlg_commoninput dlg( this, "Blob rendering preferences", inList, inPara, NULL );
+	dlg_commoninput dlg( this, "Blob rendering preferences", inList, inPara, nullptr );
 	if ( dlg.exec() != QDialog::Accepted )
 		return false;
 	int i = 0;
@@ -3362,7 +3362,7 @@ void dlg_FeatureScout::SaveBlobMovie()
 	QStringList modes = ( QStringList() << tr( "No rotation" ) << tr( "Rotate Z" ) << tr( "Rotate X" ) << tr( "Rotate Y" ) );
 	QStringList inList = ( QStringList() << tr( "+Rotation mode" ) );
 	QList<QVariant> inPara = ( QList<QVariant>() << modes );
-	dlg_commoninput dlg( this, "Save movie options", inList, inPara, NULL );
+	dlg_commoninput dlg( this, "Save movie options", inList, inPara, nullptr );
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 	QString mode = dlg.getComboBoxValue(0);
@@ -3402,7 +3402,7 @@ void dlg_FeatureScout::SaveBlobMovie()
 		<< tr( "%1" ).arg( blobManager->GetDimensions()[0] ) << tr( "%1" ).arg( blobManager->GetDimensions()[0] )
 		<< tr( "%1" ).arg( blobManager->GetDimensions()[1] ) << tr( "%1" ).arg( blobManager->GetDimensions()[1] )
 		<< tr( "%1" ).arg( blobManager->GetDimensions()[2] ) << tr( "%1" ).arg( blobManager->GetDimensions()[2] );
-	dlg_commoninput dlg2( this, "Blob rendering preferences", inList, inPara, NULL );
+	dlg_commoninput dlg2( this, "Blob rendering preferences", inList, inPara, nullptr );
 	if ( dlg2.exec() != QDialog::Accepted )
 		return;
 	
