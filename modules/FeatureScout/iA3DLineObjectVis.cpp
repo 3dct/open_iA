@@ -99,12 +99,38 @@ iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QS
 	m_actor->SetMapper(m_mapper);
 }
 
-void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & values)
+void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & values, int straightOrCurved)
 {
 	for (int f = 0; f < values.size(); ++f)
 	{
-		m_points->SetPoint(2 * f, values[f].data());
-		m_points->SetPoint(2 * f + 1, values[f].data() + 3);
+		// "magic numbers" 1 and 2 need to match values in FIAKER - iAFiberCharData::StepDataType:
+		if (straightOrCurved == 1) // SimpleStepData
+		{
+			m_points->SetPoint(2 * f, values[f].data());
+			m_points->SetPoint(2 * f + 1, values[f].data() + 3);
+		}
+		else if (straightOrCurved == 2) // CurvedStepData
+		{
+			if (f == 0 && (values[f].size()) / 3 != m_objectPointMap[f].second)
+			{
+				DEBUG_LOG(QString("For fiber %1, number of points given "
+					"doesn't match number of existing points; expected %2, got %3. "
+					"The visualization will probably contain errors as some old points "
+					"might be continued to show, or some new points might not be shown!")
+					.arg(f)
+					.arg(m_objectPointMap[f].second)
+					.arg(values[f].size()/3));
+			}
+			int pointCount = std::min( (values[f].size()) / 3, m_objectPointMap[f].second);
+			for (int p = 0; p < pointCount; ++p)
+			{
+				m_points->SetPoint(m_objectPointMap[f].first + p, values[f].data() + p * 3);
+			}
+		}
+		else
+		{
+			DEBUG_LOG(QString("Invalid straightOrCurved value (%1) in updateValues, expected 1 or 2").arg(straightOrCurved));
+		}
 	}
 	m_points->Modified();
 	updatePolyMapper();
