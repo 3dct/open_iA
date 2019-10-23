@@ -26,30 +26,8 @@
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
-#include <itkCastImageFilter.h>
-#include <itkImageFileWriter.h>
 #include <itkMorphologicalWatershedImageFilter.h>
-#include <itkScalarToRGBPixelFunctor.h>
-#include <itkUnaryFunctorImageFilter.h>
 #include <itkWatershedImageFilter.h>
-
-
-
-#include <vtkImageData.h>
-
-#include <QLocale>
-
-#include "itkLaplacianSegmentationLevelSetImageFilter.h"
-#include "itkGradientAnisotropicDiffusionImageFilter.h"
-// Software Guide : EndCodeSnippet
-
-#include "itkFastMarchingImageFilter.h"
-#include "itkBinaryThresholdImageFilter.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkZeroCrossingImageFilter.h"
-#include <itkGrayscaleMorphologicalOpeningImageFilter.h>
-#include "itkFlatStructuringElement.h"
 
 
 // Watershed segmentation 
@@ -57,55 +35,7 @@
 template<class T> 
 void watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
-	typedef itk::Image< float, DIM >   InternalImageType;
-	using LaplacianSegmentationLevelSetImageFilterType =
-		itk::LaplacianSegmentationLevelSetImageFilter<InternalImageType, InternalImageType>;
-	
-	using OutputPixelType = unsigned char;
-	using OutputImageType = itk::Image<OutputPixelType, DIM>;
-	
-	
-	using ThresholdingFilterType =
-		itk::BinaryThresholdImageFilter<InternalImageType, OutputImageType>;
-
-	ThresholdingFilterType::Pointer thresholder = ThresholdingFilterType::New();
-
-
-	using StructuringElementType = itk::FlatStructuringElement<DIM>;
-	StructuringElementType::RadiusType radius;
-	radius.Fill(3);
-	StructuringElementType structuringElement = StructuringElementType::Ball(radius);
-
-	using GrayscaleOImageFilterType = itk::GrayscaleMorphologicalOpeningImageFilter<InternalImageType, InternalImageType, StructuringElementType>;
-
-	GrayscaleOImageFilterType::Pointer dilateFilter = GrayscaleOImageFilterType::New();
-	dilateFilter->SetInput(dynamic_cast<InternalImageType*>(filter->input()[0]->itkImage()));
-	dilateFilter->SetKernel(structuringElement);
-
-
-	thresholder->SetUpperThreshold(10.0);
-	thresholder->SetLowerThreshold(0.0);
-
-	thresholder->SetOutsideValue(0);
-	thresholder->SetInsideValue(255);
-	LaplacianSegmentationLevelSetImageFilterType::Pointer laplacianSegmentation =
-		LaplacianSegmentationLevelSetImageFilterType::New();
-	laplacianSegmentation->SetInput(dynamic_cast<InternalImageType*>(filter->input()[0]->itkImage()));
-	laplacianSegmentation->SetMaximumRMSError(0.002);
-	laplacianSegmentation->SetAdvectionScaling(1);
-	laplacianSegmentation->SetCurvatureScaling(1); 
-	laplacianSegmentation->SetPropagationScaling(50);
-	laplacianSegmentation->SetNumberOfIterations(100);
-	laplacianSegmentation->SetIsoSurfaceValue(0.5); 
-	laplacianSegmentation->SetFeatureImage(dilateFilter->GetOutput());
-	filter->progress()->observe(laplacianSegmentation);
-	thresholder->SetInput(laplacianSegmentation->GetOutput());
-	//laplacianSegmentation->update();
-	filter->addOutput(castImageTo<unsigned long>(thresholder->GetOutput())); 
-	
-	//laplacianSegmentation->
-
-	/*typedef itk::Image< T, DIM >   InputImageType;
+	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::WatershedImageFilter < InputImageType > WIFType;
 	auto wsFilter = WIFType::New();
 	wsFilter->SetLevel ( parameters["Level"].toDouble() );
@@ -113,7 +43,7 @@ void watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	wsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	filter->progress()->observe( wsFilter );
 	wsFilter->Update();
-	filter->addOutput( castImageTo<unsigned long>(wsFilter->GetOutput()) );*/
+	filter->addOutput( castImageTo<unsigned long>(wsFilter->GetOutput()) );
 }
 
 IAFILTER_CREATE(iAWatershed)
@@ -155,7 +85,6 @@ void morph_watershed(iAFilter* filter, QMap<QString, QVariant> const & parameter
 	filter->progress()->observe( mWSFilter );
 	mWSFilter->Update();
 	filter->addOutput( castImageTo<unsigned long>(mWSFilter->GetOutput()) );
-
 }
 
 IAFILTER_CREATE(iAMorphologicalWatershed)
