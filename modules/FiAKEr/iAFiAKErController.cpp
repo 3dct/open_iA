@@ -258,7 +258,7 @@ void iAFiAKErController::resultsLoaded()
 	m_views.resize(DockWidgetCount);
 	m_views[ResultListView] = new iADockWidgetWrapper(resultListView, "Result list", "foeResultList");
 	m_views[Main3DView]     = new iADockWidgetWrapper(main3DView, "3D view", "foe3DView");
-	m_views[OptimStepChart] = new iADockWidgetWrapper(optimStepsView, "Optimization Steps", "foeTimeSteps");
+	m_views[OptimStepChart] = new iADockWidgetWrapper(optimStepsView, "Optimization Steps", "foeSteps");
 	m_views[SPMView]        = new iADockWidgetWrapper(m_spm, "Scatter Plot Matrix", "foeSPM");
 	m_views[ProtocolView]   = new iADockWidgetWrapper(protocolView, "Interactions", "foeInteractions");
 	m_views[SelectionView]  = new iADockWidgetWrapper(selectionView, "Selections", "foeSelections");
@@ -1103,7 +1103,7 @@ void iAFiAKErController::toggleOptimStepChart(int chartID, bool visible)
 			{
 				QSharedPointer<iAVectorPlotData> plotData;
 				if (chartID < ChartCount-1)
-					plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.refDiffFiber[fiberID].diff[chartID].timestep));
+					plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.refDiffFiber[fiberID].diff[chartID].step));
 				else
 					plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.projectionError[fiberID]));
 				plotData->setXDataType(Discrete);
@@ -1187,20 +1187,13 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		bool anythingSelected = isAnythingSelected();
 		if (anythingSelected)
 			ui.main3DVis->setSelection(m_selection[resultID], anythingSelected);
-		if (m_data->objectType == iACsvConfig::Cylinders //|| m_data->objectType == iACsvConfig::Lines
-		)
+		if ((m_data->objectType == iACsvConfig::Cylinders || m_data->objectType == iACsvConfig::Lines) &&
+			data.stepData != iAFiberCharData::NoStepData)
 		{
-			if (data.timeData == iAFiberCharData::SimpleTimeData)
-			{
-				auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
-				vis->updateValues(data.timeValues[
-					std::min(data.timeValues.size() - 1, static_cast<size_t>(m_optimStepSlider->value()))]);
-			}/*
-			else if (data.timeData == iAFiberCharData::CurvedTimeData)
-			{
-				// visualization for curved time steps...
-			}
-			*/
+			auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
+			vis->updateValues(data.stepValues[
+				std::min(data.stepValues.size() - 1, static_cast<size_t>(m_optimStepSlider->value()))],
+				data.stepData);
 		}
 		ui.main3DVis->show();
 		m_style->addInput( resultID, ui.main3DVis->getPolyData(), ui.main3DVis->getActor() );
@@ -1501,18 +1494,13 @@ void iAFiAKErController::setOptimStep(int optimStep)
 		{
 			auto main3DVis = m_resultUIs[resultID].main3DVis;
 			if (main3DVis->visible() &&
-				m_data->objectType == iACsvConfig::Cylinders)
+				m_data->objectType == iACsvConfig::Cylinders &&
+				m_data->result[resultID].stepData != iAFiberCharData::NoStepData)
 			{
-				auto & timeValues = m_data->result[resultID].timeValues;
-				if (m_data->result[resultID].timeData == iAFiberCharData::SimpleTimeData)
-				{
-					auto vis = dynamic_cast<iA3DCylinderObjectVis*>(main3DVis.data());
-					vis->updateValues(timeValues[std::min(static_cast<size_t>(optimStep), timeValues.size() - 1)]);
-				} /* else if (m_data->result[resultID].timeData == iAFiberCharData::SimpleTimeData)
-				{
-					// visualization for curved time steps...
-				}
-				*/
+				auto & stepValues = m_data->result[resultID].stepValues;
+				auto vis = dynamic_cast<iA3DCylinderObjectVis*>(main3DVis.data());
+				vis->updateValues(stepValues[std::min(static_cast<size_t>(optimStep), stepValues.size() - 1)],
+					m_data->result[resultID].stepData);
 			}
 		}
 	}
@@ -2049,7 +2037,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	auto lines = vtkSmartPointer<vtkCellArray>::New();
 	size_t curFiber = 0;
 	auto & ref = m_data->result[m_referenceID];
-	size_t timeStep = static_cast<size_t>(m_optimStepSlider->value());
+	size_t step = static_cast<size_t>(m_optimStepSlider->value());
 	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
 	{
 		auto & d = m_data->result[resultID];
@@ -2064,16 +2052,16 @@ void iAFiAKErController::changeReferenceDisplay()
 				size_t refFiberID = d.refDiffFiber[fiberID].dist[similarityMeasure][n].index;
 				for (int i = 0; i < 3; ++i)
 				{
-					if (d.timeData == iAFiberCharData::SimpleTimeData)
-						start1[i] = d.timeValues[std::min(timeStep, d.timeValues.size()-1)][fiberID][i];
+					if (d.stepData == iAFiberCharData::SimpleStepData)
+						start1[i] = d.stepValues[std::min(step, d.stepValues.size()-1)][fiberID][i];
 					else
 						start1[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
 					end1[i] = ref.table->GetValue(refFiberID, ref.mapping->value(iACsvConfig::StartX + i)).ToFloat();
 				}
 				for (int i = 0; i < 3; ++i)
 				{
-					if (d.timeData == iAFiberCharData::SimpleTimeData)
-						start2[i] = d.timeValues[std::min(timeStep, d.timeValues.size()-1)][fiberID][3 + i];
+					if (d.stepData == iAFiberCharData::SimpleStepData)
+						start2[i] = d.stepValues[std::min(step, d.stepValues.size()-1)][fiberID][3 + i];
 					else
 						start2[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
 					end2[i] = ref.table->GetValue(refFiberID, ref.mapping->value(iACsvConfig::EndX + i)).ToFloat();

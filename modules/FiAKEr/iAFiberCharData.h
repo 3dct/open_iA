@@ -50,12 +50,12 @@ public:
 	friend bool operator<(iAFiberSimilarity const & a, iAFiberSimilarity const & b);
 };
 
-//! Comparison data to reference for a single result/fiber, for all time steps
-class iARefDiffFiberTimeData
+//! Comparison data to reference for a single result/fiber, for all steps
+class iARefDiffFiberStepData
 {
 public:
 	//! diff of fibervalues (+similarity measures)
-	std::vector<double> timestep;
+	std::vector<double> step;
 };
 
 //! Comparison data to reference for a single fiber in a result
@@ -63,7 +63,7 @@ class iARefDiffFiberData
 {
 public:
 	//! differences to reference fiber, one per diff/similarity measure
-	std::vector<iARefDiffFiberTimeData> diff;
+	std::vector<iARefDiffFiberStepData> diff;
 	//! dist to ref fibers: for each similarity measure, in order of ascending difference
 	std::vector<std::vector<iAFiberSimilarity> > dist;
 };
@@ -81,14 +81,14 @@ public:
 	QString fileName;
 	//! name of the csv file the curved info for this file was loaded from
 	QString curvedFileName;
-	//! what kind of time data is available
-	enum TimeDataType { NoTimeData, SimpleTimeData, CurvedTimeData };
-	TimeDataType timeData;
-	//! values for all timesteps, stored as: timestep, fiber, fibervalues
-	std::vector<std::vector<std::vector<double> > > timeValues;
+	//! what kind of step data is available
+	enum StepDataType { NoStepData=0, SimpleStepData=1, CurvedStepData=2 };
+	StepDataType stepData;
+	//! values for all steps, stored as: step, fiber, fibervalues
+	std::vector<std::vector<std::vector<double> > > stepValues;
 	//! information on curved fibers; fiber_id (size_t) maps to list of points along fiber
 	std::map<size_t, std::vector<iAVec3f> > curveInfo;
-	//! projection error stored as fiber, timestep, global projection error
+	//! projection error stored as fiber, step, global projection error
 	std::vector<std::vector<double > > projectionError;
 	//! number of fibers in the dataset:
 	size_t fiberCount;
