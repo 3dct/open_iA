@@ -1991,8 +1991,10 @@ void iAFiAKErController::changeReferenceDisplay()
 		return;
 
 	m_refVisTable->SetNumberOfRows(referenceIDsToShow.size());
+	std::map<size_t, std::vector<iAVec3f> > refCurvedFiberInfo;
 
 	auto refTable = m_data->result[m_referenceID].table;
+	auto refCurveInfo = m_data->result[m_referenceID].curveInfo;
 	for (size_t fiberIdx=0; fiberIdx<referenceIDsToShow.size(); ++fiberIdx)
 	{
 		size_t refFiberID = referenceIDsToShow[fiberIdx].index;
@@ -2003,10 +2005,14 @@ void iAFiAKErController::changeReferenceDisplay()
 		}
 		// set projection error value to similarity...
 		m_refVisTable->SetValue(fiberIdx, refTable->GetNumberOfColumns()-2, similarity);
+
+		auto it = refCurveInfo.find(refFiberID);
+		if (it != refCurveInfo.end())
+			refCurvedFiberInfo.insert(std::make_pair(fiberIdx, it->second));
 	}
 
 	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_ren, m_refVisTable,
-		m_data->result[m_referenceID].mapping, QColor(0,0,0), std::map<size_t, std::vector<iAVec3f> >()) );
+		m_data->result[m_referenceID].mapping, QColor(0,0,0), refCurvedFiberInfo) );
 	/*
 	QSharedPointer<iALookupTable> lut(new iALookupTable);
 	*lut.data() = iALUT::Build(m_data->spmData->paramRange(m_data->spmData->numParams()-iARefDistCompute::EndColumns-iARefDistCompute::SimilarityMeasureCount+similarityMeasure),
@@ -2018,6 +2024,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	// ... and set up color coding by it!
 	//m_nearestReferenceVis->setLookupTable(lut, refTable->GetNumberOfColumns()-2);
 	// TODO: show similarity color map somewhere!!!
+
 
 	// Lines from Fiber points to reference:
 	if (!m_chkboxShowLines->isChecked())
