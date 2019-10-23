@@ -47,7 +47,7 @@ namespace Statistics
  * \sa PolynomialKernelInducedDistanceMetric
  */
 template< class TVector >
-class ITK_EXPORT GRBFKernelInducedDistanceMetric :
+class GRBFKernelInducedDistanceMetric :
     public KernelInducedDistanceMetric< TVector >
 {
 

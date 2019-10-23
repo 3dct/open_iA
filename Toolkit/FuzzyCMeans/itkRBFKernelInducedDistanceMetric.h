@@ -47,7 +47,7 @@ namespace Statistics
  * \sa PolynomialKernelInducedDistanceMetric
  */
 template< class TVector >
-class ITK_EXPORT RBFKernelInducedDistanceMetric :
+class RBFKernelInducedDistanceMetric :
     public KernelInducedDistanceMetric< TVector >
 {
 

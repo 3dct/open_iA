@@ -81,7 +81,7 @@ namespace itk
  */
 template< class TInputImage, class TProbabilityPrecision = double,
           class TCentroidValuePrecision = double >
-class ITK_EXPORT MSKFCMClassifierInitializationImageFilter :
+class MSKFCMClassifierInitializationImageFilter :
     public FuzzyClassifierInitializationImageFilter< TInputImage,
                                                      TProbabilityPrecision,
                                                      TCentroidValuePrecision >

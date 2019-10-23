@@ -19,7 +19,7 @@ namespace itk
  */
 template <class TInputImage1, class TInputImage2,
           class TOutputImage >
-class ITK_EXPORT ThresholdImageFusionFilter :
+class ThresholdImageFusionFilter :
     public InPlaceImageFilter<TInputImage1,TOutputImage> 
 {
 public:

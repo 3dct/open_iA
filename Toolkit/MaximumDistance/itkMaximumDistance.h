@@ -34,7 +34,7 @@
 namespace itk {
 
 	template <class TImageType>
-	class ITK_EXPORT MaximumDistance :
+	class MaximumDistance :
 		public ImageToImageFilter<TImageType, TImageType>
 	{
 	public:

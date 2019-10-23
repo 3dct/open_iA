@@ -76,7 +76,7 @@ namespace itk
  * \ingroup ClassificationFilters
 */
 template< class TInputVectorImage, class TLabel = unsigned char >
-class ITK_EXPORT FuzzyClassifierImageFilter :
+class FuzzyClassifierImageFilter :
     public ImageToImageFilter<
                TInputVectorImage,
                Image< TLabel,
