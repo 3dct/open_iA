@@ -151,7 +151,8 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	int resultID = 0;
 	std::vector<QString> paramNames;
 
-	QStringList noCurvedFiberFiles;
+	QStringList noStepFiberFiles;
+	QString stepInfoErrorMsgs;
 	// load all datasets:
 	for (QString csvFile : csvFileNames)
 	{
@@ -201,12 +202,12 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		if (timeInfo.exists() && timeInfo.isDir())
 		{
 			curData.timeData = iAFiberCharData::SimpleTimeData;
-			DEBUG_LOG("Looking for optimization step info in old format...");
+			// DEBUG_LOG("Looking for optimization step info in old format...");
 			// read projection error info:
 			QFile projErrorFile(timeInfo.absoluteFilePath() + "/projection_error.csv");
 			if (!projErrorFile.open(QIODevice::ReadOnly | QIODevice::Text))
 			{
-				//DEBUG_LOG(QString("Unable to open projection error file: %1").arg(projErrorFile.errorString()));
+				stepInfoErrorMsgs += QString("Unable to open projection error file: %1").arg(projErrorFile.errorString());
 				curData.timeData = iAFiberCharData::NoTimeData;
 			}
 			else
@@ -247,7 +248,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 				QFileInfo fiberTimeCsvInfo(timeInfo.absoluteFilePath() + "/" + fiberTimeCsv);
 				if (!fiberTimeCsvInfo.exists())
 				{
-					DEBUG_LOG(QString("File '%1' does not exist!").arg(fiberTimeCsv));
+					stepInfoErrorMsgs += QString("File '%1' does not exist!").arg(fiberTimeCsv);
 					curData.timeData = iAFiberCharData::NoTimeData;
 					break;
 				}
@@ -255,9 +256,9 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 				QFile file(fiberTimeCsvInfo.absoluteFilePath());
 				if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 				{
-					DEBUG_LOG(QString("Unable to open file '%1': %2")
+					stepInfoErrorMsgs += QString("Unable to open file '%1': %2")
 						.arg(fiberTimeCsv)
-						.arg(file.errorString()));
+						.arg(file.errorString());
 					curData.timeData = iAFiberCharData::NoTimeData;
 					break;
 				}
@@ -319,7 +320,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 
 			if (curData.timeData == iAFiberCharData::NoTimeData)
 			{
-				DEBUG_LOG("Looking for optimization step info in new (curved) format...");
+				//DEBUG_LOG("Looking for optimization step info in new (curved) format...");
 				// check if we can load new, curved timestep data:
 				curData.projectionError.resize(curData.fiberCount);
 				curData.timeData = iAFiberCharData::CurvedTimeData;
@@ -395,7 +396,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						"Expected information on all %1 fibers, but only got %2!")
 						.arg(curData.fiberCount).arg(fiberTimeValues.size()));
 					curData.timeData = iAFiberCharData::NoTimeData;
-					noCurvedFiberFiles.append(csvFile);
+					noStepFiberFiles.append(csvFile);
 				}
 				else
 				{
@@ -414,7 +415,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			}
 			else
 			{
-				noCurvedFiberFiles.append(csvFile);
+				noStepFiberFiles.append(csvFile);
 			}
 		}
 
@@ -441,10 +442,11 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		DEBUG_LOG(QString("The specified folder %1 does not contain any valid csv files!").arg(path));
 		return false;
 	}
-	if (noCurvedFiberFiles.size() > 0)
+	if (noStepFiberFiles.size() > 0)
 	{
 		DEBUG_LOG(QString("\nThere seems to be curved fiber data available, "
-			"but for files (%1) I could not find usable information; please check potential previous messages.\n"
+			"but for files (%1) I could not find usable information. "
+			"Maybe this debug output is helpful: '%2'.\n"
 			"FIAKER expects:\n"
 			"Either a \"projection_error.csv\" and one \"fiberNNN_paramlog.csv\" per fiber "
 			"(with NNN being a 3-digit identifier of the fiber ID, with leading zeros);\n"
@@ -452,7 +454,9 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			"(with NNN being a 4-digit identifier of the fiber ID, with leading zeros). "
 			"In this format, each line specifies a time step, with values: "
 			"projection error, firstX, firstY, firstZ, secondX, secondY, secondZ, ...")
-			.arg(noCurvedFiberFiles.join(",")));
+			.arg(noStepFiberFiles.join(","))
+			.arg(stepInfoErrorMsgs)
+		);
 	}
 
 	// create SPM data:
