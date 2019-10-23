@@ -201,6 +201,7 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
 	setMinimumSize(600, 400);
 	setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
+	setWindowTitle("FIAKER");
 	connect(mainWnd, &MainWindow::fullScreenToggled, this, &iAFiAKErController::toggleFullScreen);
 }
 
@@ -243,6 +244,7 @@ void iAFiAKErController::resultsLoadFailed(QString const & path)
 
 void iAFiAKErController::resultsLoaded()
 {
+	setWindowTitle(QString("FIAKER (%1)").arg(m_data->folder));
 	m_resultUIs.resize(m_data->result.size());
 	m_selection.resize(m_data->result.size());
 
@@ -655,7 +657,9 @@ QWidget* iAFiAKErController::setupResultListView()
 		const double * b = ui.main3DVis->bounds();
 		QString bbox = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
 			.arg(b[0]).arg(b[1]).arg(b[2]).arg(b[3]).arg(b[4]).arg(b[5]);
-		ui.nameActions->setToolTip(bbox + "\nVisualization details: " + ui.main3DVis->visualizationStatistics());
+		ui.nameActions->setToolTip(bbox + "\n"
+			"Filename: " + d.fileName + "\n"
+			"Visualization details: " + ui.main3DVis->visualizationStatistics());
 
 		ui.previewWidget->setProperty("resultID", resultID);
 		ui.stackedBars->setProperty("resultID", resultID);
