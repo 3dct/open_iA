@@ -22,7 +22,8 @@ if NOT [%9]==[] set MODULE_DIRS=%9
 
 :: other variables not changeable via arguments
 set BUILD_TYPE=Release
-set MSBUILD_OPTS=/t:clean /m
+set MSBUILD_CLEANOPTS=/t:clean /m
+set MSBUILD_BUILDOPTS=/t:build Release /m
 set NIGHTLY_BUILD_DIR=D:\Releases\nightly
 
 
@@ -47,9 +48,6 @@ if exist "%TEST_CONFIG_PATH%" goto :uniqTmpLoop
 :: Get name of current branch
 cd %TEST_SRC_DIR%
 FOR /F "tokens=1 delims=" %%A in ('git symbolic-ref --short HEAD') do SET GIT_BRANCH=%%A
-:: Create a tag so that the nightly build gets a proper version name
-for /f %%i in ('%CYGWIN_PATH%\bin\date.exe +"%%Y.%%m.%%d"') do set CURDATE=%%i
-git tag %CURDATE%-nightly
 
 :: Set up Visual Studio Environment for cleaning build
 :: amd64 is the target architecture (see http://msdn.microsoft.com/en-us/library/x4d2c09s%28v=vs.80%29.aspx)
@@ -88,20 +86,31 @@ python %TEST_DIR%\CreateTestConfigurations.py %TEST_SRC_DIR% %GIT_BRANCH% %TEST_
 
 :: Run with all flags enabled:
 cmake -C %TEST_CONFIG_PATH%\all_flags.cmake %TEST_SRC_DIR% 2>&1
-MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
+MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_CLEANOPTS%
 :: del %TEST_Bin_DIR%\core\moc_*
 :: del %TEST_Bin_DIR%\modules\moc_*
 ctest -D %CTEST_MODE% -C %BUILD_TYPE%
 if %ERRORLEVEL% GEQ 1 goto GoPastNightlyRelease
 
 :: Create nightly build:
+:: Create a tag so that the nightly build gets a proper version name
+for /f %%i in ('%CYGWIN_PATH%\bin\date.exe +"%%Y.%%m.%%d"') do set CURDATE=%%i
+cd %TEST_SRC_DIR%
+git tag %CURDATE%-nightly
+cd %TEST_BIN_DIR%
+:: Re-run CMake and build to apply tag:
+cmake %TEST_SRC_DIR%
+MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_BUILDOPTS%
+:: Pack release:
 cpack
+:: Move into release directory:
 move *.exe %NIGHTLY_BUILD_DIR%
+:: ToDo: Upload (github? git.3dct.at?)
 : GoPastNightlyRelease
 
 :: Run with no flags enabled:
 cmake -C %TEST_CONFIG_PATH%\no_flags.cmake %TEST_SRC_DIR% 2>&1
-MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
+MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_CLEANOPTS%
 :: del %TEST_Bin_DIR%\core\moc_*
 :: del %TEST_Bin_DIR%\modules\moc_*
 ctest -D Experimental -C %BUILD_TYPE%
@@ -116,7 +125,7 @@ FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
 	@echo ================================================================================
 	cmake -C %TEST_CONFIG_PATH%\no_flags.cmake %TEST_SRC_DIR% 2>&1
 	cmake -C %%m %TEST_SRC_DIR% 2>&1
-	MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
+	MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_CLEANOPTS%
 	:: del %TEST_Bin_DIR%\core\moc_*
 	:: del %TEST_Bin_DIR%\modules\moc_*
 	ctest -D Experimental -C %BUILD_TYPE%
