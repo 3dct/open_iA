@@ -22,8 +22,8 @@
 
 #include <QThread>
 
-#include "common.h"
-#include "DataFormat.h"
+#include "iADreamCasterCommon.h"
+#include "iADataFormat.h"
 
 #include "cl_common.h"
 

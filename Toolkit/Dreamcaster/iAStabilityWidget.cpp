@@ -18,9 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "StabilityWidget.h"
+#include "iAStabilityWidget.h"
 
-#include "raycast/include/common.h"
+#include "raycast/include/iADreamCasterCommon.h"
 
 #include <QtMath>
 #include <QMouseEvent>

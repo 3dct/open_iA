@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAGPU_DreamcasterToolModuleInterface.h"
 
-#include "dreamcaster.h"
+#include "iADreamCaster.h"
 
 #include <mainwindow.h>
 #include <mdichild.h>

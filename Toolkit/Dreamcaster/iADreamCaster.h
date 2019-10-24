@@ -27,7 +27,7 @@
 #include "ui_results_dialog.h"
 #include "ui_settings.h"
 
-#include "raycast/include/common.h"
+#include "raycast/include/iADreamCasterCommon.h"
 
 #include "iAVtkWidgetFwd.h"
 

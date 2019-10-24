@@ -18,18 +18,30 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "../include/iADreamCasterCommon.h"
+#include "../include/iAScreenBuffer.h"
 
-#include "../include/common.h"
+//namespace Raytracer {
 
-#include <vector>
+iAScreenBuffer::iAScreenBuffer( int a_Width, int a_Height ) :
+	m_Width( a_Width ),
+	m_Height( a_Height )
+{
+	m_Buffer = new unsigned int[a_Width * a_Height];
+	m_buffSize = m_Width * m_Height * sizeof(m_Buffer[0]);
+	clear();
+	//memset(m_Buffer, 0, a_Width * a_Height);
+}
 
-class QString;
+iAScreenBuffer::~iAScreenBuffer()
+{
+	if(m_Buffer)
+		delete [] m_Buffer;
+}
 
-//! Load mesh from stl file by its file name.
-//! @param filename file name of stl file
-//! @param stlMesh the triangles of the mesh
-//! @param vertices the vertices of the mesh
-//! @param box the bounding box of the mesh
-//! @return 0 if reading succeeded, otherwise an error code
-int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, std::vector<iAVec3f*> & vertices, iAaabb & box);
+void iAScreenBuffer::clear()
+{
+	memset(m_Buffer, 0, m_buffSize);
+}
+
+//}; // namespace Raytracer

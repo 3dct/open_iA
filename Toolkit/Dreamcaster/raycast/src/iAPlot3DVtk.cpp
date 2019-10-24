@@ -18,8 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "../include/Plot3DVtk.h"
-#include "../include/common.h"
+#include "../include/iAPlot3DVtk.h"
+#include "../include/iADreamCasterCommon.h"
 //VTK
 #include <vtkObject.h>
 #include <vtkCamera.h>

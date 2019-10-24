@@ -20,25 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
-#include "common.h"
+#include "iADreamCasterCommon.h"
 
-//! ScreenBuffer, representing screen surface. Contains image's pixel buffer and size data.	
-class iAScreenBuffer
-{
-public:
-	iAScreenBuffer( int width, int height );
-	~iAScreenBuffer();
-	//! Get pixel buffer.
-	unsigned int* buffer() { return m_Buffer; }
-	//! Clear pixel buffer with black color.
-	void clear();
-private:
-	//! Get screen's width.
-	int width() { return m_Width; }
-	//! Get screen's height.
-	int height() { return m_Height; }
-	// Attributes
-	unsigned int* m_Buffer;
-	int m_Width, m_Height;
-	int m_buffSize;
-};
+#include <vector>
+
+class QString;
+
+//! Load mesh from stl file by its file name.
+//! @param filename file name of stl file
+//! @param stlMesh the triangles of the mesh
+//! @param vertices the vertices of the mesh
+//! @param box the bounding box of the mesh
+//! @return 0 if reading succeeded, otherwise an error code
+int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, std::vector<iAVec3f*> & vertices, iAaabb & box);

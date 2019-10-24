@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "scene.h"
-#include "../../dreamcaster.h"
+#include "iAScene.h"
+#include "../../iADreamCaster.h"
 
 #include <io/iAFileUtils.h>
 

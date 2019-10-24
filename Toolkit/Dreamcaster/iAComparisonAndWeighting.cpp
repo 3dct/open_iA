@@ -18,10 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "ComparisonAndWeighting.h"
+#include "iAComparisonAndWeighting.h"
 
-#include "raycast/include/common.h"
-#include "PaintWidget.h"
+#include "raycast/include/iADreamCasterCommon.h"
+#include "iAPaintWidget.h"
 
 #include <QWidget>
 #include <QPixmap>

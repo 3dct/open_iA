@@ -18,30 +18,27 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "../include/common.h"
-#include "../include/ScreenBuffer.h"
+#pragma once
 
-//namespace Raytracer {
+#include "iADreamCasterCommon.h"
 
-iAScreenBuffer::iAScreenBuffer( int a_Width, int a_Height ) :
-	m_Width( a_Width ),
-	m_Height( a_Height )
+//! ScreenBuffer, representing screen surface. Contains image's pixel buffer and size data.	
+class iAScreenBuffer
 {
-	m_Buffer = new unsigned int[a_Width * a_Height];
-	m_buffSize = m_Width * m_Height * sizeof(m_Buffer[0]);
-	clear();
-	//memset(m_Buffer, 0, a_Width * a_Height);
-}
-
-iAScreenBuffer::~iAScreenBuffer()
-{
-	if(m_Buffer)
-		delete [] m_Buffer;
-}
-
-void iAScreenBuffer::clear()
-{
-	memset(m_Buffer, 0, m_buffSize);
-}
-
-//}; // namespace Raytracer
+public:
+	iAScreenBuffer( int width, int height );
+	~iAScreenBuffer();
+	//! Get pixel buffer.
+	unsigned int* buffer() { return m_Buffer; }
+	//! Clear pixel buffer with black color.
+	void clear();
+private:
+	//! Get screen's width.
+	int width() { return m_Width; }
+	//! Get screen's height.
+	int height() { return m_Height; }
+	// Attributes
+	unsigned int* m_Buffer;
+	int m_Width, m_Height;
+	int m_buffSize;
+};

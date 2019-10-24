@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "raytracer.h"
+#include "iARaytracer.h"
 
 // Intersection method return values
 #define HIT		 1		// Ray hit primitive

@@ -18,20 +18,20 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dreamcaster.h"
+#include "iADreamCaster.h"
 
-#include "ComparisonAndWeighting.h"
+#include "iAComparisonAndWeighting.h"
 #include "dlg_histogram_simple.h"
-#include "raycast/include/CutFigList.h"
-#include "raycast/include/raytracer.h"
-#include "raycast/include/scene.h"
-#include "raycast/include/ScreenBuffer.h"
-#include "raycast/include/STLLoader.h"
-#include "raycast/include/DataFormat.h"
-#include "raycast/include/BSPTree.h"
-#include "raycast/include/Plot3DVtk.h"
-#include "PaintWidget.h"
-#include "StabilityWidget.h"
+#include "raycast/include/iACutFigList.h"
+#include "raycast/include/iARaytracer.h"
+#include "raycast/include/iAScene.h"
+#include "raycast/include/iAScreenBuffer.h"
+#include "raycast/include/iASTLLoader.h"
+#include "raycast/include/iADataFormat.h"
+#include "raycast/include/iABSPTree.h"
+#include "raycast/include/iAPlot3DVtk.h"
+#include "iAPaintWidget.h"
+#include "iAStabilityWidget.h"
 
 #include <iAVtkWidget.h>
 #include <io/iAFileUtils.h>
