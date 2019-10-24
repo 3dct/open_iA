@@ -22,90 +22,93 @@
 
 #include <itkImageToImageFilter.h>
 
-enum VotingRule
-{
-	SumRule,
-	MaxRule,
-	MinRule,
-	MedianRule,
-	MajorityVoteRule		// includes weighted voting, use SetWeights
-};
-
 template< typename TInputImage, typename TOutputImage = TInputImage >
-class ProbabilisticVotingImageFilter :
+class iAUndecidedPixelClassifierImageFilter :
 	public itk::ImageToImageFilter< TInputImage, TOutputImage >
 {
 public:
-	typedef ProbabilisticVotingImageFilter                       Self;
+	typedef iAUndecidedPixelClassifierImageFilter                  Self;
 	typedef itk::ImageToImageFilter< TInputImage, TOutputImage > Superclass;
 	typedef itk::SmartPointer< Self >                            Pointer;
 	typedef itk::SmartPointer< const Self >                      ConstPointer;
 	itkNewMacro(Self);
-	itkTypeMacro(ProbabilisticVotingImageFilter, ImageToImageFilter);
+	itkTypeMacro(iAUndecidedPixelClassifierImageFilter, ImageToImageFilter);
 	typedef typename TOutputImage::PixelType OutputPixelType;
 	typedef typename TInputImage::PixelType  InputPixelType;
 	itkStaticConstMacro(InputImageDimension, int, TInputImage::ImageDimension);
 	itkStaticConstMacro(ImageDimension, int, TOutputImage::ImageDimension);
+
 	typedef TInputImage                           InputImageType;
 	typedef TOutputImage                          OutputImageType;
 	typedef typename InputImageType::ConstPointer InputImagePointer;
 	typedef typename OutputImageType::Pointer     OutputImagePointer;
+	typedef unsigned long                         LabelCountType;
 	typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 	typedef itk::Image<double, 3>                 DoubleImg;
 	typedef itk::ImageRegionConstIterator<DoubleImg> ConstDblIt;
+
+	void SetUndecidedPixelLabel(const OutputPixelType l)
+	{
+		m_hasUndecidedPixelLabel = true;
+		m_undecidedPixelLabel = l;
+		this->Modified();
+	}
+
+	OutputPixelType GetUndecidedPixelLabel() const
+	{
+		return m_undecidedPixelLabel;
+	}
+
+	void SetRadius(itk::Size<TInputImage::ImageDimension> radius)
+	{
+		m_radius = radius;
+	}
 
 	void SetProbabilityImages(int inputIdx, std::vector<DoubleImg::Pointer> const & probImgs)
 	{
 		m_probImgs.insert(std::make_pair(inputIdx, probImgs));
 	}
 
-	void SetVotingRule(VotingRule rule)
+	void SetUncertaintyAsTieSolver(bool uncertaintyTieSolver)
 	{
-		m_votingRule = rule;
-	}
-
-	void SetUndecidedUncertaintyThreshold(double uncertainty)
-	{
-		m_undecidedUncertaintyThresh = uncertainty;
-	}
-
-	void SetWeights(std::vector<double> weights)
-	{
-		m_weights = weights;
-	}
-
-	double GetUndecided() const
-	{
-		return m_undecidedPixels;
+		m_uncertaintyTieSolver = uncertaintyTieSolver;
 	}
 
 #ifdef ITK_USE_CONCEPT_CHECKING
+	itkConceptMacro(InputConvertibleToOutputCheck, (itk::Concept::Convertible< InputPixelType, OutputPixelType >));
+	itkConceptMacro(IntConvertibleToInputCheck, (itk::Concept::Convertible< int, InputPixelType >));
+	itkConceptMacro(SameDimensionCheck, (itk::Concept::SameDimension< InputImageDimension, ImageDimension >));
+	itkConceptMacro(InputIntCheck,(itk::Concept::IsInteger< InputPixelType >));
 	itkConceptMacro(IntConvertibleToOutputPixelType, (itk::Concept::Convertible< int, OutputPixelType >));
+	itkConceptMacro(InputPlusIntCheck, (itk::Concept::AdditiveOperators< InputPixelType, int >));
+	itkConceptMacro(InputIncrementDecrementOperatorsCheck, (itk::Concept::IncrementDecrementOperators< InputPixelType >));
 	itkConceptMacro(OutputOStreamWritableCheck, (itk::Concept::OStreamWritable< OutputPixelType >));
 #endif
 
 protected:
-	ProbabilisticVotingImageFilter();
-	virtual ~ProbabilisticVotingImageFilter() {}
+	iAUndecidedPixelClassifierImageFilter();
+	virtual ~iAUndecidedPixelClassifierImageFilter() {}
 	void BeforeThreadedGenerateData() override;
+
 	void ThreadedGenerateData
 		(const OutputImageRegionType & outputRegionForThread, itk::ThreadIdType threadId) override;
 
 	void PrintSelf(std::ostream &, itk::Indent) const override;
 
+	InputPixelType ComputeMaximumInputValue();
+
 private:
-	ProbabilisticVotingImageFilter(const Self &) =delete;
+	iAUndecidedPixelClassifierImageFilter(const Self &) =delete;
 	void operator=(const Self &) =delete;
 
-	std::map<int, std::vector<DoubleImg::Pointer> > m_probImgs;
-	std::vector<double> m_weights;
-	VotingRule m_votingRule;
+	OutputPixelType m_undecidedPixelLabel;
+	bool m_hasUndecidedPixelLabel;
 	size_t m_labelCount;
-	size_t m_numberOfClassifiers;
-	double m_undecidedUncertaintyThresh;
-	double m_undecidedPixels;
+	itk::Size<TInputImage::ImageDimension> m_radius;
+	std::map<int, std::vector<DoubleImg::Pointer> > m_probImgs;
+	bool m_uncertaintyTieSolver;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "ProbabilisticVotingImageFilter.hxx"
+#include "iAUndecidedPixelClassifierImageFilter.hxx"
 #endif

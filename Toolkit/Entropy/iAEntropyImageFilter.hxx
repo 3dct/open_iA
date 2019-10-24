@@ -20,26 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
-#include "EntropyImageFilter.h"
+#include "iAEntropyImageFilter.h"
 
-#include "itkImageRegionIterator.h"
-#include "itkProgressReporter.h"
-
-#include "itkMath.h"
+#include <itkImageRegionIterator.h>
+#include <itkMath.h>
+#include <itkProgressReporter.h>
 
 #include "iAMathUtility.h"
 
-namespace fhw
-{
 
 template< typename TInputImage, typename TOutputImage >
-EntropyImageFilter< TInputImage, TOutputImage >::EntropyImageFilter():
+iAEntropyImageFilter< TInputImage, TOutputImage >::iAEntropyImageFilter():
 	m_normalize(false)
 {
 }
 
 template< typename TInputImage, typename TOutputImage >
-void EntropyImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, itk::Indent indent) const
+void iAEntropyImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, itk::Indent indent) const
 {
 	Superclass::PrintSelf(os, indent);
 }
@@ -64,7 +61,7 @@ typename TOutputImage::Pointer CreateImage(typename itk::SmartPointer<const TInp
 
 template< typename TInputImage, typename TOutputImage >
 void
-EntropyImageFilter< TInputImage, TOutputImage >
+iAEntropyImageFilter< TInputImage, TOutputImage >
 ::BeforeThreadedGenerateData()
 {
 	Superclass::BeforeThreadedGenerateData();
@@ -75,7 +72,7 @@ EntropyImageFilter< TInputImage, TOutputImage >
 }
 
 template< typename TInputImage, typename TOutputImage >
-void EntropyImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, itk::ThreadIdType threadId)
+void iAEntropyImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, itk::ThreadIdType threadId)
 {
 	itk::ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
 
@@ -123,6 +120,4 @@ void EntropyImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(const O
 	}
 
 	delete[] it;
-}
-
 }

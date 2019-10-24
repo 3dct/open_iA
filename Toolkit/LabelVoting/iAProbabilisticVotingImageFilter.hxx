@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ProbabilisticVotingImageFilter.h"
+#include "iAProbabilisticVotingImageFilter.h"
 
 #include <itkImageRegionIterator.h>
 #include <itkMath.h>
@@ -30,7 +30,7 @@
 #include "iAMathUtility.h"
 
 template< typename TInputImage, typename TOutputImage >
-ProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ProbabilisticVotingImageFilter():
+iAProbabilisticVotingImageFilter<TInputImage, TOutputImage>::iAProbabilisticVotingImageFilter():
 	m_votingRule(MajorityVoteRule),
 	m_labelCount(0),
 	m_numberOfClassifiers(0),
@@ -41,12 +41,12 @@ ProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ProbabilisticVotingIm
 }
 
 template< typename TInputImage, typename TOutputImage >
-void ProbabilisticVotingImageFilter< TInputImage, TOutputImage >
+void iAProbabilisticVotingImageFilter< TInputImage, TOutputImage >
 ::PrintSelf(std::ostream & os, itk::Indent indent) const
 {}
 
 template< typename TInputImage, typename TOutputImage >
-void ProbabilisticVotingImageFilter< TInputImage, TOutputImage >
+void iAProbabilisticVotingImageFilter< TInputImage, TOutputImage >
 ::BeforeThreadedGenerateData()
 {
 	Superclass::BeforeThreadedGenerateData();
@@ -66,7 +66,7 @@ void ProbabilisticVotingImageFilter< TInputImage, TOutputImage >
 }
 
 template< typename TInputImage, typename TOutputImage >
-void ProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
+void iAProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
 	itk::ThreadIdType threadId)
 {
 	itk::ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());

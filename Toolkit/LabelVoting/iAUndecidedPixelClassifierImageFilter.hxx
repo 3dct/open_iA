@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "UndecidedPixelClassifierImageFilter.h"
+#include "iAUndecidedPixelClassifierImageFilter.h"
 
 #include <itkImageRegionIterator.h>
 #include <itkConstNeighborhoodIterator.h>
@@ -34,8 +34,8 @@
 #include <QString>
 
 template< typename TInputImage, typename TOutputImage >
-UndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
-::UndecidedPixelClassifierImageFilter():
+iAUndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
+::iAUndecidedPixelClassifierImageFilter():
 	m_undecidedPixelLabel(0),
 	m_labelCount(0),
 	m_uncertaintyTieSolver(true),
@@ -46,7 +46,7 @@ UndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
 
 template< typename TInputImage, typename TOutputImage >
 void
-UndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
+iAUndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
 ::PrintSelf(std::ostream & os, itk::Indent indent) const
 {
 	Superclass::PrintSelf(os, indent);
@@ -54,8 +54,8 @@ UndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
 }
 
 template< typename TInputImage, typename TOutputImage >
-typename UndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >::InputPixelType
-UndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
+typename iAUndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >::InputPixelType
+iAUndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
 ::ComputeMaximumInputValue()
 {
 	InputPixelType maxLabel = 0;
@@ -72,7 +72,7 @@ UndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
 
 template< typename TInputImage, typename TOutputImage >
 void
-UndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
+iAUndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
 ::BeforeThreadedGenerateData()
 {
 	Superclass::BeforeThreadedGenerateData();
@@ -87,7 +87,7 @@ UndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
 }
 
 template< typename TInputImage, typename TOutputImage >
-void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
+void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
 	itk::ThreadIdType threadId)
 {
 	const size_t numberOfClassifiers = m_probImgs.size();

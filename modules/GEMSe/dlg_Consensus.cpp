@@ -27,10 +27,10 @@
 #include "iASingleResult.h"
 
 // LabelVoting:
-#include <MaskingLabelOverlapMeasuresImageFilter.h>
-#include <ParametrizableLabelVotingImageFilter.h>
-#include <ProbabilisticVotingImageFilter.h>
-#include <UndecidedPixelClassifierImageFilter.h>
+#include <iAMaskingLabelOverlapMeasuresImageFilter.h>
+#include <iAParametrizableLabelVotingImageFilter.h>
+#include <iAProbabilisticVotingImageFilter.h>
+#include <iAUndecidedPixelClassifierImageFilter.h>
 
 #include <dlg_commoninput.h>
 #include <iAColorTheme.h>
@@ -286,7 +286,7 @@ void dlg_Consensus::SelectionUncertaintyDice(
 }
 
 
-typedef ParametrizableLabelVotingImageFilter<LabelImageType> LabelVotingType;
+typedef iAParametrizableLabelVotingImageFilter<LabelImageType> LabelVotingType;
 
 LabelVotingType::Pointer GetLabelVotingFilter(
 	QVector<QSharedPointer<iASingleResult> > selection,
@@ -393,7 +393,7 @@ iAITKIO::ImagePointer GetVotingImage(QVector<QSharedPointer<iASingleResult> > se
 	iAITKIO::ImagePointer result;
 	if (undecidedPixels)
 	{
-		auto undec = UndecidedPixelClassifierImageFilter<LabelImageType>::New();
+		auto undec = iAUndecidedPixelClassifierImageFilter<LabelImageType>::New();
 		typedef LabelVotingType::DoubleImg DblImg;
 		typedef DblImg::Pointer DblImgPtr;
 		for (unsigned int i = 0; i < static_cast<unsigned int>(selection.size()); ++i)
@@ -431,7 +431,7 @@ iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> 
 		DEBUG_LOG("Please select a cluster from the tree!");
 		return iAITKIO::ImagePointer();
 	}
-	auto filter = ProbabilisticVotingImageFilter<LabelImageType>::New();
+	auto filter = iAProbabilisticVotingImageFilter<LabelImageType>::New();
 	filter->SetVotingRule(rule);
 	filter->SetUndecidedUncertaintyThreshold(threshold);
 	// set one "alibi" input to automatically create output:
@@ -456,7 +456,7 @@ iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> 
 	undecided = filter->GetUndecided();
 
 	// calculate dice for those voxels decided by the Prob. Vote:
-	auto pvdicefilter = fhw::MaskingLabelOverlapMeasuresImageFilter<LabelImageType>::New() ;
+	auto pvdicefilter = iAMaskingLabelOverlapMeasuresImageFilter<LabelImageType>::New() ;
 	pvdicefilter->SetSourceImage(groundTruth);
 	pvdicefilter->SetTargetImage(labelResult);
 	pvdicefilter->SetIgnoredLabel(labelCount);
@@ -473,7 +473,7 @@ iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> 
 	iAITKIO::ImagePointer result;
 	if (undecidedPixels)
 	{
-		auto undec = UndecidedPixelClassifierImageFilter<LabelImageType>::New();
+		auto undec = iAUndecidedPixelClassifierImageFilter<LabelImageType>::New();
 		typedef LabelVotingType::DoubleImg DblImg;
 		typedef DblImg::Pointer DblImgPtr;
 		for (unsigned int i = 0; i < static_cast<unsigned int>(selection.size()); ++i)
@@ -494,7 +494,7 @@ iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> 
 		result = dynamic_cast<iAITKIO::ImageBaseType *>(undecResult.GetPointer());
 		
 		// calculate dice for undecided pixels:
-		auto undicefilter = fhw::MaskingLabelOverlapMeasuresImageFilter<LabelImageType>::New();
+		auto undicefilter = iAMaskingLabelOverlapMeasuresImageFilter<LabelImageType>::New();
 		undicefilter->SetSourceImage(groundTruth);
 		undicefilter->SetTargetImage(undecResult);
 		undicefilter->SetIgnoredIndices(undecidedPixelIndices);

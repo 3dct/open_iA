@@ -45,7 +45,7 @@
  *=========================================================================*/
 #pragma once
 
-#include "ParametrizableLabelVotingImageFilter.h"
+#include "iAParametrizableLabelVotingImageFilter.h"
 
 #include "iAConsole.h"
 #include "iAMathUtility.h"
@@ -56,8 +56,8 @@
 #include <itkStatisticsImageFilter.h>
 
 template< typename TInputImage, typename TOutputImage >
-ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
-::ParametrizableLabelVotingImageFilter():
+iAParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
+::iAParametrizableLabelVotingImageFilter():
 	m_AbsMinPercentage(-1),
 	m_MinDiffPercentage(-1),
 	m_MinRatio(-1),
@@ -72,7 +72,7 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 
 template< typename TInputImage, typename TOutputImage >
 void
-ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
+iAParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 ::PrintSelf(std::ostream & os, itk::Indent indent) const
 {
 	Superclass::PrintSelf(os, indent);
@@ -83,8 +83,8 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 }
 
 template< typename TInputImage, typename TOutputImage >
-typename ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >::InputPixelType
-ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
+typename iAParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >::InputPixelType
+iAParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 ::ComputeMaximumInputValue()
 {
 	InputPixelType maxLabel = 0;
@@ -122,7 +122,7 @@ typename TOutputImage::Pointer CreateImage(typename itk::SmartPointer<const TInp
 
 template< typename TInputImage, typename TOutputImage >
 void
-ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
+iAParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 ::BeforeThreadedGenerateData()
 {
 	Superclass::BeforeThreadedGenerateData();
@@ -171,7 +171,7 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 }
 
 template< typename TInputImage, typename TOutputImage >
-void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
+void iAParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
 	itk::ThreadIdType threadId)
 {
 	itk::ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());

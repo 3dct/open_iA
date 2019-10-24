@@ -22,7 +22,7 @@
 
 #include <itkImageToImageFilter.h>
 
- /** \class EntropyImageFilter
+ /** \class iAEntropyImageFilter
   *
   * \brief Calculates the pixelwise entropy out of a collection of input images
   *
@@ -44,20 +44,16 @@
   * [0..1]
   *
   * \author Bernhard Froehler, FH Wels
-  *
-  * \ ingroup ???
   */
 
-namespace fhw
-{
 
 template< typename TInputImage, typename TOutputImage = TInputImage >
-class EntropyImageFilter :
+class iAEntropyImageFilter :
 	public itk::ImageToImageFilter< TInputImage, TOutputImage >
 {
 public:
 	/** Standard class typedefs. */
-	typedef EntropyImageFilter                          Self;
+	typedef iAEntropyImageFilter                                 Self;
 	typedef itk::ImageToImageFilter< TInputImage, TOutputImage > Superclass;
 	typedef itk::SmartPointer< Self >                            Pointer;
 	typedef itk::SmartPointer< const Self >                      ConstPointer;
@@ -66,7 +62,7 @@ public:
 	itkNewMacro(Self);
 
 	/** Run-time type information (and related methods) */
-	itkTypeMacro(EntropyImageFilter, ImageToImageFilter);
+	itkTypeMacro(iAEntropyImageFilter, ImageToImageFilter);
 
 	/** Extract some information from the image types.  Dimensionality
 	 * of the two images is assumed to be the same. */
@@ -106,8 +102,8 @@ public:
 #endif
 
 protected:
-	EntropyImageFilter();
-	virtual ~EntropyImageFilter() {}
+	iAEntropyImageFilter();
+	virtual ~iAEntropyImageFilter() {}
 
 	/** Determine maximum label value in all input images and initialize
 	 * global data. */
@@ -118,14 +114,12 @@ protected:
 
 	void PrintSelf(std::ostream &, itk::Indent) const override;
 private:
-	EntropyImageFilter(const Self &) =delete;
+	iAEntropyImageFilter(const Self &) =delete;
 	void operator=(const Self &) =delete;
 
 	bool m_normalize;
 };
 
-}
-
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "EntropyImageFilter.hxx"
+#include "iAEntropyImageFilter.hxx"
 #endif

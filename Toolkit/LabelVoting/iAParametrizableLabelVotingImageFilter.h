@@ -47,7 +47,7 @@
 
 #include <itkImageToImageFilter.h>
 
- /** \class ParametrizableLabelVotingImageFilter
+ /** \class iAParametrizableLabelVotingImageFilter
   *
   * \brief This filter performs pixelwise voting among an arbitrary number
   * of input images, where each of them represents a segmentation of the same
@@ -116,12 +116,12 @@ enum WeightType
 };
 
 template< typename TInputImage, typename TOutputImage = TInputImage >
-class ParametrizableLabelVotingImageFilter :
+class iAParametrizableLabelVotingImageFilter :
 	public itk::ImageToImageFilter< TInputImage, TOutputImage >
 {
 public:
 	/** Standard class typedefs. */
-	typedef ParametrizableLabelVotingImageFilter                          Self;
+	typedef iAParametrizableLabelVotingImageFilter                          Self;
 	typedef itk::ImageToImageFilter< TInputImage, TOutputImage > Superclass;
 	typedef itk::SmartPointer< Self >                            Pointer;
 	typedef itk::SmartPointer< const Self >                      ConstPointer;
@@ -130,7 +130,7 @@ public:
 	itkNewMacro(Self);
 
 	/** Run-time type information (and related methods) */
-	itkTypeMacro(ParametrizableLabelVotingImageFilter, ImageToImageFilter);
+	itkTypeMacro(iAParametrizableLabelVotingImageFilter, ImageToImageFilter);
 
 	/** Extract some information from the image types.  Dimensionality
 	 * of the two images is assumed to be the same. */
@@ -281,8 +281,8 @@ public:
 #endif
 
 protected:
-	ParametrizableLabelVotingImageFilter();
-	virtual ~ParametrizableLabelVotingImageFilter() {}
+	iAParametrizableLabelVotingImageFilter();
+	virtual ~iAParametrizableLabelVotingImageFilter() {}
 
 	/** Determine maximum label value in all input images and initialize
 	 * global data. */
@@ -297,7 +297,7 @@ protected:
 	InputPixelType ComputeMaximumInputValue();
 
 private:
-	ParametrizableLabelVotingImageFilter(const Self &) =delete;
+	iAParametrizableLabelVotingImageFilter(const Self &) =delete;
 	void operator=(const Self &) =delete;
 
 	OutputPixelType m_LabelForUndecidedPixels;
@@ -322,5 +322,5 @@ private:
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "ParametrizableLabelVotingImageFilter.hxx"
+#include "iAParametrizableLabelVotingImageFilter.hxx"
 #endif
