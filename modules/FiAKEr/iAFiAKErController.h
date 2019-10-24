@@ -94,7 +94,7 @@ public:
 	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
 	static void loadProject(MainWindow* mainWnd, QSettings const & projectFile, QString const & fileName);
 
-	void start(QString const & path, iACsvConfig const & config, double stepShift);
+	void start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData);
 	std::vector<std::vector<size_t> > & selection() override;
 	void setCamPosition(int pos) override;
 	void doSaveProject() override;
@@ -216,6 +216,7 @@ private:
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
 	QString m_colorByThemeName;
+	bool m_useStepData;
 
 	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame;
 	double m_contextSpacing;

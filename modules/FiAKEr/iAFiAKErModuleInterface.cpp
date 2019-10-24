@@ -69,6 +69,7 @@ namespace
 	const QString LastFormatKey("FIAKER/LastFormat");
 	const QString LastTimeStepOffsetKey("FIAKER/LastTimeStepOffsetKey");
 	const QString LastPathKey("FIAKER/LastPath");
+	const QString LastUseStepData("FIAKER/LastUseStepData");
 }
 
 void iAFiAKErModuleInterface::Initialize()
@@ -90,6 +91,7 @@ void iAFiAKErModuleInterface::Initialize()
 	QSettings s;
 	m_lastFormat = s.value(LastFormatKey, "").toString();
 	m_lastPath = s.value(LastPathKey, m_mainWnd->path()).toString();
+	m_lastUseStepData = s.value(LastUseStepData, true).toBool();
 	bool ok;
 	m_lastTimeStepOffset = s.value(LastTimeStepOffsetKey, 0).toDouble(&ok);
 	if (!ok)
@@ -102,6 +104,7 @@ void iAFiAKErModuleInterface::SaveSettings() const
 	s.setValue(LastFormatKey, m_lastFormat);
 	s.setValue(LastPathKey, m_lastPath);
 	s.setValue(LastTimeStepOffsetKey, m_lastTimeStepOffset);
+	s.setValue(LastUseStepData, m_lastUseStepData);
 }
 
 void iAFiAKErModuleInterface::startFiAKEr()
@@ -111,7 +114,8 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	QStringList parameterNames = QStringList()
 		<< ";Result folder"
 		<< "+CSV cormat"
-		<< "#Step coordinate shift";
+		<< "#Step coordinate shift"
+		<< "$Use step data";
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
 	if (!formatEntries.contains(iAFiberResultsCollection::SimpleFormat))
 		formatEntries.append(iAFiberResultsCollection::SimpleFormat);
@@ -126,7 +130,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 			formatEntries[i] = "!" + formatEntries[i];
 		
 	QList<QVariant> values;
-	values << m_lastPath << formatEntries << m_lastTimeStepOffset;
+	values << m_lastPath << formatEntries << m_lastTimeStepOffset << m_lastUseStepData;
 	
 	QString descr("Starts FIAKER, a comparison tool for results from fiber reconstruction algorithms.<br/>"
 		"Choose a <em>Result folder</em> containing two or more fiber reconstruction results in .csv format. "
@@ -135,7 +139,9 @@ void iAFiAKErModuleInterface::startFiAKEr()
 		"and refine the format until it is shown properly, then store the format, then use it here. "
 		"<em>Step coordinate shift</em> defines a shift that is applied to all coordinates, in each dimension (x, y and z) "
 		"for the optimization step files. For the final results, "
-		"there is a similar setting available via the .csv format specification, see above.<br/>"
+		"there is a similar setting available via the .csv format specification, see above. "
+		"<em>Use step data</em> determines whether FIAKER immediately uses information on curved files from the last step; "
+		"if unchecked, FIAKER will initially show the separate curved representation for the final result.<br/>"
 		"For more information on FIAKER, see the corresponding publication: "
 		"Bernhard Fröhler, Tim Elberfeld, Torsten Möller, Hans-Christian Hege, Johannes Weissenböck, "
 		"Jan De Beenhouwer, Jan Sijbers, Johann Kastner and Christoph Heinzl, "
@@ -149,11 +155,12 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	m_lastPath = dlg.getText(0);
 	m_lastFormat = dlg.getComboBoxValue(1);
 	m_lastTimeStepOffset = dlg.getDblValue(2);
+	m_lastUseStepData = dlg.getCheckValue(3);
 	//cmbbox_Format->addItems(formatEntries);
 	m_mainWnd->addSubWindow(explorer);
 	m_mainWnd->setPath(m_lastPath);
 	auto project = QSharedPointer<iAFIAKERProject>::create();
-	explorer->start(m_lastPath, getCsvConfig(m_lastFormat), m_lastTimeStepOffset);
+	explorer->start(m_lastPath, getCsvConfig(m_lastFormat), m_lastTimeStepOffset, m_lastUseStepData);
 }
 
 void iAFiAKErModuleInterface::loadFiAKErProject()

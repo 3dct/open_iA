@@ -139,6 +139,7 @@ namespace
 	const QString ProjectFileReference("Reference");
 	const QString ProjectFileStepShift("StepShift");
 	const QString ProjectFileSaveFormatName("CsvFormat");
+	const QString ProjectUseStepData("UseStepData");
 	
 	const QString DefaultResultColorTheme("Brewer Accent (max. 8)");
 	const QString DefaultStackedBarColorTheme("Material red (max. 10)");
@@ -215,9 +216,10 @@ void iAFiAKErController::toggleFullScreen()
 	mdiSubWin->show();
 }
 
-void iAFiAKErController::start(QString const & path, iACsvConfig const & config, double stepShift)
+void iAFiAKErController::start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData)
 {
 	m_config = config;
+	m_useStepData = useStepData;
 	m_jobs = new iAJobListView(DockWidgetMargin);
 	m_views.resize(DockWidgetCount);
 	m_views[JobView] = new iADockWidgetWrapper(m_jobs, "Jobs", "foeJobs");
@@ -504,7 +506,7 @@ namespace
 {
 	QSharedPointer<iA3DColoredPolyObjectVis> create3DVis(vtkRenderer* renderer,
 		vtkSmartPointer<vtkTable> table, QSharedPointer<QMap<uint, uint> > mapping, QColor const & color, int objectType,
-		std::map<size_t, std::vector<iAVec3f> > & curvedFiberData)
+		std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData)
 	{
 		switch (objectType)
 		{
@@ -647,10 +649,38 @@ QWidget* iAFiAKErController::setupResultListView()
 		m_resultsListLayout->addWidget(ui.previewWidget, resultID + 1, PreviewColumn);
 		m_resultsListLayout->addWidget(ui.stackedBars, resultID + 1, StackedBarColumn);
 		m_resultsListLayout->addWidget(ui.histoChart, resultID + 1, HistogramColumn);
+		
+		std::map<size_t, std::vector<iAVec3f> > curvedStepInfo;
+		if (m_useStepData && d.stepData == iAFiberCharData::CurvedStepData)
+		{   // get last step:
+			auto & lastStepValues = d.stepValues[d.stepValues.size() - 1];
+			//              fibers,      point values (each coordinate is 3 values)
+			// convert from std::vector<std::vector<double>> to    (as in lastStepValues)
+			//                       fiberid, coordinate
+			//              std::map<size_t,  std::vector<iAVec3f>
+			for (size_t f = 0; f < d.fiberCount; ++f)
+			{
+				size_t const numPts = lastStepValues[f].size() / 3;
+				std::vector<iAVec3f> fiberCurvePoints(numPts);
+				for (size_t p = 0; p < numPts; ++p)
+				{
+					fiberCurvePoints[p] = iAVec3f(
+						lastStepValues[f][p * 3],
+						lastStepValues[f][p * 3 + 1],
+						lastStepValues[f][p * 3 + 2]);
+				}
+				curvedStepInfo.insert(std::make_pair(f, fiberCurvePoints));
+			}
+		}
 
-		ui.mini3DVis = create3DVis(ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType, d.curveInfo);
-		ui.main3DVis = create3DVis(m_ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType, d.curveInfo);
-		ui.mini3DVis->setColor(getResultColor(resultID));
+		std::map<size_t, std::vector<iAVec3f> > const & curveInfo =
+			(m_useStepData && d.stepData == iAFiberCharData::CurvedStepData) ?
+			curvedStepInfo : d.curveInfo;
+		QColor resultColor(getResultColor(resultID));
+
+		ui.mini3DVis = create3DVis(  ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
+		ui.main3DVis = create3DVis(m_ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
+		ui.mini3DVis->setColor(resultColor);
 		ui.mini3DVis->show();
 		ren->ResetCamera();
 
@@ -1188,7 +1218,8 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		if (anythingSelected)
 			ui.main3DVis->setSelection(m_selection[resultID], anythingSelected);
 		if ((m_data->objectType == iACsvConfig::Cylinders || m_data->objectType == iACsvConfig::Lines) &&
-			data.stepData != iAFiberCharData::NoStepData)
+			data.stepData != iAFiberCharData::NoStepData &&
+			m_useStepData)
 		{
 			auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
 			vis->updateValues(data.stepValues[
@@ -2332,6 +2363,7 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 	if (m_referenceID != NoResult)
 		projectFile.setValue(ProjectFileReference, static_cast<qulonglong>(m_referenceID));
 	m_spm->saveSettings(projectFile);
+	projectFile.setValue(ProjectUseStepData, m_useStepData);
 }
 
 void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folder)
@@ -2363,6 +2395,7 @@ void iAFiAKErController::loadProject(MainWindow* mainWnd, QSettings const & proj
 	}
 	// if config name entry exists, load that, otherwise load full config...
 	auto stepShift   = projectFile.value(ProjectFileStepShift, 0).toDouble();
+	auto useStepData = projectFile.value(ProjectUseStepData, true).toBool();
 	auto explorer = new iAFiAKErController(mainWnd);
 	mainWnd->setPath(dataFolder);
 	mainWnd->addSubWindow(explorer);
@@ -2371,7 +2404,7 @@ void iAFiAKErController::loadProject(MainWindow* mainWnd, QSettings const & proj
 	{
 		explorer->loadSettings(projectSettings);
 	});
-	explorer->start(dataFolder, config, stepShift);
+	explorer->start(dataFolder, config, stepShift, useStepData);
 }
 
 void iAFiAKErController::loadVolume(QString const & fileName)
