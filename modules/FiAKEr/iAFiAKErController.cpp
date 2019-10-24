@@ -25,7 +25,6 @@
 #include "iAJobListView.h"
 #include "iARefDistCompute.h"
 #include "iAStackedBarChart.h"
-#include "ui_FiAKErSettings.h"
 
 // FeatureScout:
 #include "iA3DCylinderObjectVis.h"
@@ -62,7 +61,6 @@
 #include <mdichild.h>
 #include <qthelper/iADockWidgetWrapper.h>
 #include <qthelper/iAFixedAspectWidget.h>
-#include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iASignallingWidget.h>
 #include <qthelper/iAVtkQtWidget.h>
 
@@ -108,9 +106,6 @@
 #include <QtGlobal> // for QT_VERSION
 
 #include <array>
-
-
-typedef iAQTtoUIConnector<QWidget, Ui_FIAKERSettings> iAFIAKERSettings;
 
 namespace
 {
@@ -251,7 +246,7 @@ void iAFiAKErController::resultsLoaded()
 	m_selection.resize(m_data->result.size());
 
 	auto main3DView = setupMain3DView();
-	auto settingsView = setupSettingsView();
+	setupSettingsView();
 	auto optimStepsView = setupOptimStepView();
 	auto resultListView = setupResultListView();
 	auto protocolView = setupProtocolView();
@@ -264,7 +259,7 @@ void iAFiAKErController::resultsLoaded()
 	m_views[SPMView]        = new iADockWidgetWrapper(m_spm, "Scatter Plot Matrix", "foeSPM");
 	m_views[ProtocolView]   = new iADockWidgetWrapper(protocolView, "Interactions", "foeInteractions");
 	m_views[SelectionView]  = new iADockWidgetWrapper(selectionView, "Selections", "foeSelections");
-	m_views[SettingsView]   = new iADockWidgetWrapper(settingsView, "Settings", "foeSettings");
+	m_views[SettingsView]   = new iADockWidgetWrapper(m_settingsView, "Settings", "foeSettings");
 
 	splitDockWidget(m_views[JobView], m_views[ResultListView], Qt::Vertical);
 	splitDockWidget(m_views[ResultListView], m_views[Main3DView], Qt::Horizontal);
@@ -347,52 +342,47 @@ QWidget * iAFiAKErController::setupMain3DView()
 
 QWidget* iAFiAKErController::setupSettingsView()
 {
-	iAFIAKERSettings* settingsView = new iAFIAKERSettings();
+	m_settingsView = new iAFIAKERSettingsWidget();
 
-	settingsView->slOpacityDefault->setValue(SelectionOpacity);
-	m_defaultOpacityLabel = settingsView->lbOpacityDefaultValue;
-	m_defaultOpacityLabel->setText(QString::number(SelectionOpacity, 'f', 2));
+	m_settingsView->slOpacityDefault->setValue(SelectionOpacity);
+	m_settingsView->lbOpacityDefaultValue->setText(QString::number(SelectionOpacity, 'f', 2));
 
-	settingsView->slOpacityContext->setValue(ContextOpacity);
-	m_contextOpacityLabel = settingsView->lbOpacityContextValue;
-	m_contextOpacityLabel->setText(QString::number(ContextOpacity, 'f', 2));
+	m_settingsView->slOpacityContext->setValue(ContextOpacity);
+	m_settingsView->lbOpacityContextValue->setText(QString::number(ContextOpacity, 'f', 2));
 
 	m_diameterFactorMapper = new iALinearMapper(MinDiameterFactor, MaxDiameterFactor, MinFactorSliderVal, MaxFactorSliderVal);
-	settingsView->slDiameterFactorDefault->setMinimum(MinFactorSliderVal);
-	settingsView->slDiameterFactorDefault->setMaximum(MaxFactorSliderVal);
+	m_settingsView->slDiameterFactorDefault->setMinimum(MinFactorSliderVal);
+	m_settingsView->slDiameterFactorDefault->setMaximum(MaxFactorSliderVal);
 	int factorSliderValue = static_cast<int>(m_diameterFactorMapper->srcToDst(DiameterFactor));
-	settingsView->slDiameterFactorDefault->setValue(factorSliderValue);
-	m_diameterFactorLabel = settingsView->lbDiameterFactorDefaultValue;
-	m_diameterFactorLabel->setText(QString::number(m_diameterFactorMapper->dstToSrc(factorSliderValue), 'f', 2));
+	m_settingsView->slDiameterFactorDefault->setValue(factorSliderValue);
+	m_settingsView->lbDiameterFactorDefaultValue->setText(QString::number(m_diameterFactorMapper->dstToSrc(factorSliderValue), 'f', 2));
 	
-	settingsView->slDiameterFactorContext->setMinimum(MinFactorSliderVal);
-	settingsView->slDiameterFactorContext->setMaximum(MaxFactorSliderVal);
+	m_settingsView->slDiameterFactorContext->setMinimum(MinFactorSliderVal);
+	m_settingsView->slDiameterFactorContext->setMaximum(MaxFactorSliderVal);
 	int contextFactorSlider = static_cast<int>(m_diameterFactorMapper->srcToDst(ContextDiameterFactor));
-	settingsView->slDiameterFactorContext->setValue(contextFactorSlider);
-	m_contextDiameterFactorLabel = settingsView->lbDiameterFactorContextValue;
-	m_contextDiameterFactorLabel->setText(QString::number(m_diameterFactorMapper->dstToSrc(contextFactorSlider), 'f', 2));
+	m_settingsView->slDiameterFactorContext->setValue(contextFactorSlider);
+	m_settingsView->lbDiameterFactorContextValue->setText(QString::number(m_diameterFactorMapper->dstToSrc(contextFactorSlider), 'f', 2));
 
-	m_teBoundingBox[0] = settingsView->leBoundingBoxC1X;
-	m_teBoundingBox[1] = settingsView->leBoundingBoxC1Y;
-	m_teBoundingBox[2] = settingsView->leBoundingBoxC1Z;
-	m_teBoundingBox[3] = settingsView->leBoundingBoxC2X;
-	m_teBoundingBox[4] = settingsView->leBoundingBoxC2Y;
-	m_teBoundingBox[5] = settingsView->leBoundingBoxC2Z;
+	m_teBoundingBox[0] = m_settingsView->leBoundingBoxC1X;
+	m_teBoundingBox[1] = m_settingsView->leBoundingBoxC1Y;
+	m_teBoundingBox[2] = m_settingsView->leBoundingBoxC1Z;
+	m_teBoundingBox[3] = m_settingsView->leBoundingBoxC2X;
+	m_teBoundingBox[4] = m_settingsView->leBoundingBoxC2Y;
+	m_teBoundingBox[5] = m_settingsView->leBoundingBoxC2Z;
 	for (int i = 0; i < 6; ++i)
 	{
 		connect(m_teBoundingBox[i], &QLineEdit::editingFinished, this, &iAFiAKErController::updateBoundingBox);
 	}
 
-	settingsView->cbShowWireFrame->setChecked(false);
+	m_settingsView->cbShowWireFrame->setChecked(false);
 
 
-	m_cmbboxSimilarityMeasure = settingsView->cmbboxSimilarityMeasure;
 	auto similarityMeasures = iARefDistCompute::getSimilarityMeasureNames();
 	for (auto name: similarityMeasures)
-		m_cmbboxSimilarityMeasure->addItem(name);
-	m_cmbboxSimilarityMeasure->setCurrentIndex(iARefDistCompute::BestSimilarityMeasure);
+		m_settingsView->cmbboxSimilarityMeasure->addItem(name);
+	m_settingsView->cmbboxSimilarityMeasure->setCurrentIndex(iARefDistCompute::BestSimilarityMeasure);
 
-	settingsView->sbAnimationDelay->setValue(DefaultPlayDelay);
+	m_settingsView->sbAnimationDelay->setValue(DefaultPlayDelay);
 	m_playTimer->setInterval(DefaultPlayDelay);
 
 	m_optimStepChart.resize(iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount + 1);
@@ -406,7 +396,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 		m_chartCB[chartID]->setEnabled(chartID == ChartCount - 1);
 		m_chartCB[chartID]->setProperty("chartID", chartID);
 		connect(m_chartCB[chartID], &QCheckBox::stateChanged, this, &iAFiAKErController::optimDataToggled);
-		settingsView->checkboxContainer->layout()->addWidget(m_chartCB[chartID]);
+		m_settingsView->checkboxContainer->layout()->addWidget(m_chartCB[chartID]);
 	}
 	size_t curPlotStart = 0;
 	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
@@ -421,54 +411,51 @@ QWidget* iAFiAKErController::setupSettingsView()
 			m_resultUIs[resultID].startPlotIdx = NoPlotsIdx;
 	}
 
-	settingsView->sbHistogramBins->setValue(HistogramBins);
+	m_settingsView->sbHistogramBins->setValue(HistogramBins);
 
-	m_showReferenceInChart = settingsView->cbShowReferenceDistribution;
-	m_showReferenceInChart->setChecked(false);
+	m_settingsView->cbShowReferenceDistribution->setChecked(false);
 
-	settingsView->cmbboxStackedBarChartColors->addItems(iAColorThemeManager::instance().availableThemes());
-	settingsView->cmbboxStackedBarChartColors->setCurrentText(DefaultStackedBarColorTheme);
+	m_settingsView->cmbboxStackedBarChartColors->addItems(iAColorThemeManager::instance().availableThemes());
+	m_settingsView->cmbboxStackedBarChartColors->setCurrentText(DefaultStackedBarColorTheme);
 
-	settingsView->cmbboxDistributionColors->addItems(iALUT::GetColorMapNames());
-	settingsView->cmbboxDistributionColors->setCurrentIndex(0);
+	m_settingsView->cmbboxDistributionColors->addItems(iALUT::GetColorMapNames());
+	m_settingsView->cmbboxDistributionColors->setCurrentIndex(0);
 
-	settingsView->cmbboxResultColors->addItems(iAColorThemeManager::instance().availableThemes());
-	settingsView->cmbboxResultColors->setCurrentText(DefaultResultColorTheme);
+	m_settingsView->cmbboxResultColors->addItems(iAColorThemeManager::instance().availableThemes());
+	m_settingsView->cmbboxResultColors->setCurrentText(DefaultResultColorTheme);
 
-	auto fileChooser = new iAFileChooserWidget(this, iAFileChooserWidget::FileNameOpen);
-	qobject_cast<QGridLayout*>(settingsView->gbGlobal->layout())->addWidget(fileChooser, 2, 1);
+	m_fileChooser = new iAFileChooserWidget(this, iAFileChooserWidget::FileNameOpen);
+	qobject_cast<QGridLayout*>(m_settingsView->gbGlobal->layout())->addWidget(m_fileChooser, 2, 1);
 
-	m_distributionChartType = settingsView->cmbboxDistributionPlotType;
-
-	connect(settingsView->slOpacityDefault, &QSlider::valueChanged, this, &iAFiAKErController::mainOpacityChanged);
-	connect(settingsView->slOpacityContext, &QSlider::valueChanged, this, &iAFiAKErController::contextOpacityChanged);
-	connect(settingsView->slDiameterFactorDefault, &QSlider::valueChanged, this, &iAFiAKErController::diameterFactorChanged);
-	connect(settingsView->slDiameterFactorContext, &QSlider::valueChanged, this, &iAFiAKErController::contextDiameterFactorChanged);
-	connect(settingsView->cbFiberContextShow, &QCheckBox::stateChanged, this, &iAFiAKErController::showFiberContextChanged);
-	connect(settingsView->cbFiberContextMerge, &QCheckBox::stateChanged, this, &iAFiAKErController::mergeFiberContextBoxesChanged);
-	connect(settingsView->sbFiberContextSpacing, SIGNAL(valueChanged(double)), this, SLOT(contextSpacingChanged(double)));
-	connect(settingsView->cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::showBoundingBoxChanged);
-	connect(settingsView->cbShowWireFrame, &QCheckBox::stateChanged, this, &iAFiAKErController::showWireFrameChanged);
-	connect(settingsView->pbSampleSelectedFiber, &QPushButton::pressed, this, &iAFiAKErController::visualizeCylinderSamplePoints);
-	connect(settingsView->pbHideSamplePoints, &QPushButton::pressed, this, &iAFiAKErController::hideSamplePoints);
-	connect(settingsView->pbSpatialOverview, &QPushButton::pressed, this, &iAFiAKErController::showSpatialOverviewButton);
-	connect(settingsView->cmbboxSelectionMode, SIGNAL(currentIndexChanged(int)), this, SLOT(selectionModeChanged(int)));
-	connect(m_cmbboxSimilarityMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(showReferenceMeasureChanged(int)));
+	connect(m_settingsView->slOpacityDefault, &QSlider::valueChanged, this, &iAFiAKErController::mainOpacityChanged);
+	connect(m_settingsView->slOpacityContext, &QSlider::valueChanged, this, &iAFiAKErController::contextOpacityChanged);
+	connect(m_settingsView->slDiameterFactorDefault, &QSlider::valueChanged, this, &iAFiAKErController::diameterFactorChanged);
+	connect(m_settingsView->slDiameterFactorContext, &QSlider::valueChanged, this, &iAFiAKErController::contextDiameterFactorChanged);
+	connect(m_settingsView->cbFiberContextShow, &QCheckBox::stateChanged, this, &iAFiAKErController::showFiberContextChanged);
+	connect(m_settingsView->cbFiberContextMerge, &QCheckBox::stateChanged, this, &iAFiAKErController::mergeFiberContextBoxesChanged);
+	connect(m_settingsView->sbFiberContextSpacing, SIGNAL(valueChanged(double)), this, SLOT(contextSpacingChanged(double)));
+	connect(m_settingsView->cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::showBoundingBoxChanged);
+	connect(m_settingsView->cbShowWireFrame, &QCheckBox::stateChanged, this, &iAFiAKErController::showWireFrameChanged);
+	connect(m_settingsView->pbSampleSelectedFiber, &QPushButton::pressed, this, &iAFiAKErController::visualizeCylinderSamplePoints);
+	connect(m_settingsView->pbHideSamplePoints, &QPushButton::pressed, this, &iAFiAKErController::hideSamplePoints);
+	connect(m_settingsView->pbSpatialOverview, &QPushButton::pressed, this, &iAFiAKErController::showSpatialOverviewButton);
+	connect(m_settingsView->cmbboxSelectionMode, SIGNAL(currentIndexChanged(int)), this, SLOT(selectionModeChanged(int)));
+	connect(m_settingsView->cmbboxSimilarityMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(showReferenceMeasureChanged(int)));
 	connect(m_playTimer, &QTimer::timeout, this, &iAFiAKErController::playTimer);
-	connect(settingsView->sbAnimationDelay, SIGNAL(valueChanged(int)), this, SLOT(playDelayChanged(int)));
-	connect(settingsView->sbHistogramBins, SIGNAL(valueChanged(int)), this, SLOT(histogramBinsChanged(int)));
-	connect(m_showReferenceInChart, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceInChartToggled);
-	connect(settingsView->cmbboxDistributionPlotType, SIGNAL(currentIndexChanged(int)),
+	connect(m_settingsView->sbAnimationDelay, SIGNAL(valueChanged(int)), this, SLOT(playDelayChanged(int)));
+	connect(m_settingsView->sbHistogramBins, SIGNAL(valueChanged(int)), this, SLOT(histogramBinsChanged(int)));
+	connect(m_settingsView->cbShowReferenceDistribution, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceInChartToggled);
+	connect(m_settingsView->cmbboxDistributionPlotType, SIGNAL(currentIndexChanged(int)),
 		this, SLOT(distributionChartTypeChanged(int)));
-	connect(settingsView->cmbboxStackedBarChartColors, SIGNAL(currentIndexChanged(QString const &)),
+	connect(m_settingsView->cmbboxStackedBarChartColors, SIGNAL(currentIndexChanged(QString const &)),
 		this, SLOT(stackedBarColorThemeChanged(QString const &)));
-	connect(settingsView->cmbboxDistributionColors, SIGNAL(currentIndexChanged(QString const &)),
+	connect(m_settingsView->cmbboxDistributionColors, SIGNAL(currentIndexChanged(QString const &)),
 		this, SLOT(distributionColorThemeChanged(QString const &)));
-	connect(settingsView->cmbboxResultColors, SIGNAL(currentIndexChanged(QString const &)),
+	connect(m_settingsView->cmbboxResultColors, SIGNAL(currentIndexChanged(QString const &)),
 		this, SLOT(resultColorThemeChanged(QString const &)));
-	connect(fileChooser, &iAFileChooserWidget::fileNameChanged, this, &iAFiAKErController::loadVolume);
+	connect(m_fileChooser, &iAFileChooserWidget::fileNameChanged, this, &iAFiAKErController::loadVolume);
 
-	return settingsView;
+	return m_settingsView;
 }
 
 QWidget* iAFiAKErController::setupOptimStepView()
@@ -969,7 +956,7 @@ void iAFiAKErController::changeDistributionSource(int index)
 					: d.table->GetValue(fiberID, index).ToDouble();
 		auto histogramData = iAHistogramData::create(fiberData, HistogramBins, Continuous, range[0], range[1]);
 		QSharedPointer<iAPlot> histogramPlot =
-			(m_distributionChartType->currentIndex() == 0) ?
+			(m_settingsView->cmbboxDistributionPlotType->currentIndex() == 0) ?
 			QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, m_resultColorTheme->color(resultID)))
 			: QSharedPointer<iAPlot>(new iALinePlot(histogramData, m_resultColorTheme->color(resultID)));
 		chart->addPlot(histogramPlot);
@@ -1015,13 +1002,13 @@ void iAFiAKErController::updateRefDistPlots()
 		auto & chart = m_resultUIs[resultID].histoChart;
 		if (chart->plots().size() > 1)
 			chart->removePlot(chart->plots()[1]);
-		if (m_referenceID != NoResult && resultID != m_referenceID && !matchQualityVisActive() && m_showReferenceInChart->isChecked())
+		if (m_referenceID != NoResult && resultID != m_referenceID && !matchQualityVisActive() && m_settingsView->cbShowReferenceDistribution->isChecked())
 		{
 			QColor refColor = m_resultColorTheme->color(m_referenceID);
 			refColor.setAlpha(DistributionRefAlpha);
 			QSharedPointer<iAPlotData> refPlotData = m_resultUIs[m_referenceID].histoChart->plots()[0]->data();
 			QSharedPointer<iAPlot> refPlot =
-				(m_distributionChartType->currentIndex() == 0) ?
+				(m_settingsView->cmbboxDistributionPlotType->currentIndex() == 0) ?
 				QSharedPointer<iAPlot>(new iABarGraphPlot(refPlotData, refColor))
 				: QSharedPointer<iAPlot>(new iALinePlot(refPlotData, refColor));
 			chart->addPlot(refPlot);
@@ -1541,7 +1528,7 @@ void iAFiAKErController::setOptimStep(int optimStep)
 void iAFiAKErController::mainOpacityChanged(int opacity)
 {
 	addInteraction(QString("Set main opacity to %1.").arg(opacity));
-	m_defaultOpacityLabel->setText(QString::number(opacity, 'f', 2));
+	m_settingsView->lbOpacityDefaultValue->setText(QString::number(opacity, 'f', 2));
 	SelectionOpacity = opacity;
 	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
@@ -1559,7 +1546,7 @@ void iAFiAKErController::mainOpacityChanged(int opacity)
 void iAFiAKErController::contextOpacityChanged(int opacity)
 {
 	addInteraction(QString("Set context opacity to %1.").arg(opacity));
-	m_contextOpacityLabel->setText(QString::number(opacity, 'f', 2));
+	m_settingsView->lbOpacityContextValue->setText(QString::number(opacity, 'f', 2));
 	ContextOpacity = opacity;
 	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
@@ -1581,7 +1568,7 @@ void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 		return;
 	DiameterFactor = m_diameterFactorMapper->dstToSrc(diameterFactorInt);
 	addInteraction(QString("Set diameter modification factor to %1.").arg(DiameterFactor));
-	m_diameterFactorLabel->setText(QString::number(DiameterFactor, 'f', 2));
+	m_settingsView->lbDiameterFactorDefaultValue->setText(QString::number(DiameterFactor, 'f', 2));
 	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto & vis = m_resultUIs[resultID];
@@ -1597,7 +1584,7 @@ void iAFiAKErController::contextDiameterFactorChanged(int contextDiameterFactorI
 		return;
 	ContextDiameterFactor = m_diameterFactorMapper->dstToSrc(contextDiameterFactorInt);
 	addInteraction(QString("Set context diameter modification factor to %1.").arg(ContextDiameterFactor));
-	m_contextDiameterFactorLabel->setText(QString::number(ContextDiameterFactor, 'f', 2));
+	m_settingsView->lbDiameterFactorContextValue->setText(QString::number(ContextDiameterFactor, 'f', 2));
 	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto & vis = m_resultUIs[resultID];
@@ -1820,6 +1807,48 @@ void iAFiAKErController::setReference(size_t referenceID)
 	m_refDistCompute->start();
 }
 
+namespace
+{
+	// General:
+	const QString ProjectResultColors("ResultColors");
+	const QString ProjectDistributionColors("DistributionColors");
+	const QString ProjectReferenceVolume("ReferenceVolume");
+
+	// 3D View:
+	const QString ProjectDefaultOpacity("DefaultOpacity");
+	const QString ProjectContextOpacity("ContextOpacity");
+	const QString ProjectDefaultDiameterFactor("DefaultDiameterFactor");
+	const QString ProjectContextDiameterFactor("ContextDiameterFactor");
+	const QString ProjectShowBoundingBox("ShowBoundingBox");
+	const QString ProjectBoundingBoxBorders("BoundingBoxBorders");
+	const QString ProjectShowFiberContext("ShowFiberContext");
+	const QString ProjectMergeFiberContexts("MergeFiberContexts");
+	const QString ProjectContextSpacing("ContextSpacing");
+	const QString ProjectSelectionMode("SelectionMode");
+	const QString ProjectRefMatchMetric("ReferenceMatchMetric");
+
+	const QString ProjectShowMatchingReferenceFibers("ShowMatchingReferenceFibers");
+	const QString ProjectNumberOfMatchingReferenceFibers("NumberOfMatchingReferenceFibers");
+	const QString ProjectConnectMatchingReferenceFibers("ConnectMatchingReferenceFibers");
+
+	// Result List:
+	const QString ProjectShowRefInDistribution("ShowReferenceInDistribution");
+	const QString ProjectDistributionHistogramBins("DistributionHistogramBins");
+	const QString ProjectDistributionPlotTypes("DistributionPlotTypes");
+	const QString ProjectStackedBarChartColors("StackedBarChartColors");
+
+	const QString ProjectDoColorBy("DoColorBy");
+	const QString ProjectColorBySelection("ColorBySelection");
+	const QString ProjectVisibleResults("VisibleResults");
+	const QString ProjectVisibleBoundingBoxes("VisibleBoundingBoxes");
+
+	// Step Charts:
+	const QString ProjectAnimationDelay("AnimationDelay");
+	const QString ProjectVisibleStepCharts("VisibleStepCharts");
+
+	const QString ProjectCurrentStep("CurrentStep");
+}
+
 void iAFiAKErController::loadSettings(iASettings settings)
 {
 	m_spm->loadSettings(settings);
@@ -1828,6 +1857,55 @@ void iAFiAKErController::loadSettings(iASettings settings)
 	{
 		setReference(referenceID);
 	}
+}
+
+void iAFiAKErController::saveSettings(QSettings & settings)
+{
+	settings.setValue(ProjectResultColors, m_settingsView->cmbboxResultColors->currentText());
+	settings.setValue(ProjectDistributionColors, m_settingsView->cmbboxDistributionColors->currentText());
+	settings.setValue(ProjectReferenceVolume, m_fileChooser->text());
+	settings.setValue(ProjectDefaultOpacity, m_settingsView->slOpacityDefault->value());
+	settings.setValue(ProjectContextOpacity, m_settingsView->slOpacityContext->value());
+	settings.setValue(ProjectDefaultDiameterFactor, m_settingsView->slDiameterFactorDefault->value());
+	settings.setValue(ProjectContextDiameterFactor, m_settingsView->slDiameterFactorContext->value());
+	settings.setValue(ProjectShowBoundingBox, m_settingsView->cbBoundingBox->isChecked());
+	QStringList boundingBoxValues;
+	for (int i = 0; i < 6; ++i)
+		boundingBoxValues << m_teBoundingBox[i]->text();
+	settings.setValue(ProjectBoundingBoxBorders, boundingBoxValues.join(","));
+	settings.setValue(ProjectShowFiberContext, m_settingsView->cbFiberContextShow->isChecked());
+	settings.setValue(ProjectMergeFiberContexts, m_settingsView->cbFiberContextMerge->isChecked());
+	settings.setValue(ProjectContextSpacing, m_settingsView->sbFiberContextSpacing->value());
+	settings.setValue(ProjectSelectionMode, m_settingsView->cmbboxSelectionMode->currentIndex());
+	settings.setValue(ProjectRefMatchMetric, m_settingsView->cmbboxSimilarityMeasure->currentText());
+	settings.setValue(ProjectShowMatchingReferenceFibers, m_chkboxShowReference->isChecked());
+	settings.setValue(ProjectNumberOfMatchingReferenceFibers, m_spnboxReferenceCount->value());
+	settings.setValue(ProjectConnectMatchingReferenceFibers, m_chkboxShowLines->isChecked());
+	settings.setValue(ProjectShowRefInDistribution, m_settingsView->cbShowReferenceDistribution->isChecked());
+	settings.setValue(ProjectDistributionHistogramBins, m_settingsView->sbHistogramBins->value());
+	settings.setValue(ProjectDistributionPlotTypes, m_settingsView->cmbboxDistributionPlotType->currentText());
+	settings.setValue(ProjectStackedBarChartColors, m_settingsView->cmbboxStackedBarChartColors->currentText());
+	settings.setValue(ProjectDoColorBy, m_colorByDistribution->isChecked());
+	settings.setValue(ProjectColorBySelection, m_distributionChoice->currentText());
+	QList<size_t> visibleResults, visibleBoxes;
+	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	{
+		if (m_resultUIs[resultID].cbShow->isChecked())
+			visibleResults << resultID;
+		if (m_resultUIs[resultID].cbBoundingBox->isChecked())
+			visibleBoxes << resultID;
+	}
+	settings.setValue(ProjectVisibleResults, join(visibleResults, ","));
+	settings.setValue(ProjectVisibleBoundingBoxes, join(visibleBoxes, ","));
+	settings.setValue(ProjectAnimationDelay, m_settingsView->sbAnimationDelay->value());
+	QList<size_t > visibleCharts;
+	for (size_t i = 0; i < m_chartCB.size(); ++i)
+	{
+		if (m_chartCB[i]->isChecked())
+			visibleCharts << i;
+	}
+	settings.setValue(ProjectVisibleStepCharts, join(visibleCharts, ","));
+	settings.setValue(ProjectCurrentStep, m_optimStepSlider->value());
 }
 
 void iAFiAKErController::refDistAvailable()
@@ -1952,7 +2030,7 @@ void iAFiAKErController::showReferenceLinesToggled()
 
 void iAFiAKErController::changeReferenceDisplay()
 {
-	size_t similarityMeasure = clamp(0, iARefDistCompute::SimilarityMeasureCount, m_cmbboxSimilarityMeasure->currentIndex());
+	size_t similarityMeasure = clamp(0, iARefDistCompute::SimilarityMeasureCount, m_settingsView->cmbboxSimilarityMeasure->currentIndex());
 	bool showRef = m_chkboxShowReference->isChecked();
 	int refCount = std::min(iARefDistCompute::MaxNumberOfCloseFibers, static_cast<size_t>(m_spnboxReferenceCount->value()));
 
@@ -2364,6 +2442,7 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 		projectFile.setValue(ProjectFileReference, static_cast<qulonglong>(m_referenceID));
 	m_spm->saveSettings(projectFile);
 	projectFile.setValue(ProjectUseStepData, m_useStepData);
+	saveSettings(projectFile);
 }
 
 void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folder)
@@ -2430,14 +2509,14 @@ void iAFiAKErController::loadVolume(QString const & fileName)
 void iAFiAKErController::showReferenceInChartToggled()
 {
 	addInteraction(QString("Toggled showing of reference in distribution charts in result list to %1")
-		.arg(m_showReferenceInChart->isChecked()?"on":"off"));
+		.arg(m_settingsView->cbShowReferenceDistribution->isChecked()?"on":"off"));
 	updateRefDistPlots();
 }
 
 void iAFiAKErController::distributionChartTypeChanged(int idx)
 {
 	addInteraction(QString("Distribution chart plot type switched to %1")
-		.arg(m_distributionChartType->itemText(idx)));
+		.arg(m_settingsView->cmbboxDistributionPlotType->itemText(idx)));
 	changeDistributionSource(m_distributionChoice->currentIndex());
 }
 
