@@ -781,7 +781,7 @@ QWidget * iAFiAKErController::setupProtocolView()
 	m_interactionProtocol->setHeaderHidden(true);
 	m_interactionProtocolModel = new QStandardItemModel();
 	m_interactionProtocol->setModel(m_interactionProtocolModel);
-	m_interactionProtocol->setEditTriggers(QAbstractItemView.NoEditTriggers);
+	m_interactionProtocol->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	QWidget* protocolView = new QWidget();
 	protocolView->setLayout(new QHBoxLayout());
 	protocolView->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
