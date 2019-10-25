@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "../include/iABSPTree.h"
 #include "../include/iADreamCasterCommon.h"
-#include "../include/iARaytracer.h"
+#include "../include/iARayTracer.h"
 #include "../include/iAScene.h"
 #include "../include/iASTLLoader.h"
 

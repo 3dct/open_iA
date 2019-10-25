@@ -23,7 +23,7 @@
 #include "iAComparisonAndWeighting.h"
 #include "dlg_histogram_simple.h"
 #include "raycast/include/iACutFigList.h"
-#include "raycast/include/iARaytracer.h"
+#include "raycast/include/iARayTracer.h"
 #include "raycast/include/iAScene.h"
 #include "raycast/include/iAScreenBuffer.h"
 #include "raycast/include/iASTLLoader.h"

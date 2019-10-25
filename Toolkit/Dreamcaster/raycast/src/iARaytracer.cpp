@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "../include/iARaytracer.h"
+#include "../include/iARayTracer.h"
 #include "../include/iAScene.h"
 #include "../include/iADreamCasterCommon.h"
 #include "../include/iABSPTree.h"
