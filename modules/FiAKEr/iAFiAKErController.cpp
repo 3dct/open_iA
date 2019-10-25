@@ -64,6 +64,7 @@
 #include <qthelper/iASignallingWidget.h>
 #include <qthelper/iAVtkQtWidget.h>
 
+#include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkCubeSource.h>
 #include <vtkGenericOpenGLRenderWindow.h>
@@ -126,15 +127,8 @@ namespace
 	double ContextDiameterFactor = 1.0;
 	const size_t NoPlotsIdx = std::numeric_limits<size_t>::max();
 	const size_t NoResult = NoPlotsIdx;
-	const QString ModuleSettingsKey("FIAKER");
 	const QString RefMarker(" (Reference)");
 
-	const QString ProjectFileFolder("Folder");
-	const QString ProjectFileFormatName("Format");
-	const QString ProjectFileReference("Reference");
-	const QString ProjectFileStepShift("StepShift");
-	const QString ProjectFileSaveFormatName("CsvFormat");
-	const QString ProjectUseStepData("UseStepData");
 	
 	const QString DefaultResultColorTheme("Brewer Accent (max. 8)");
 	const QString DefaultStackedBarColorTheme("Material red (max. 10)");
@@ -153,6 +147,55 @@ namespace
 		HistogramColumn
 	};
 
+	const QString ModuleSettingsKey("FIAKER");
+	// { SETTING NAMES:
+	const QString ProjectFileFolder("Folder");
+	const QString ProjectFileFormatName("Format");
+	const QString ProjectFileReference("Reference");
+	const QString ProjectFileStepShift("StepShift");
+	const QString ProjectFileSaveFormatName("CsvFormat");
+	const QString ProjectUseStepData("UseStepData");
+	const QString CameraPosition("CameraPosition");
+	const QString CameraViewUp("CameraViewUp");
+	const QString CameraFocalPoint("CameraFocalPoint");
+	const QString WindowMaximized("WindowMaximized");
+	const QString WindowGeometry("WindowGeometry");
+	const QString WindowState("WindowState");
+
+	// General:
+	const QString ProjectResultColors("ResultColors");
+	const QString ProjectDistributionColors("DistributionColors");
+	const QString ProjectReferenceVolume("ReferenceVolume");
+
+	// 3D View:
+	const QString ProjectDefaultOpacity("DefaultOpacity");
+	const QString ProjectContextOpacity("ContextOpacity");
+	const QString ProjectDefaultDiameterFactor("DefaultDiameterFactor");
+	const QString ProjectContextDiameterFactor("ContextDiameterFactor");
+	const QString ProjectShowBoundingBox("ShowBoundingBox");
+	const QString ProjectBoundingBoxBorders("BoundingBoxBorders");
+	const QString ProjectShowFiberContext("ShowFiberContext");
+	const QString ProjectMergeFiberContexts("MergeFiberContexts");
+	const QString ProjectContextSpacing("ContextSpacing");
+	const QString ProjectSelectionMode("SelectionMode");
+	const QString ProjectRefMatchMetric("ReferenceMatchMetric");
+	const QString ProjectShowMatchingReferenceFibers("ShowMatchingReferenceFibers");
+	const QString ProjectNumberOfMatchingReferenceFibers("NumberOfMatchingReferenceFibers");
+	const QString ProjectConnectMatchingReferenceFibers("ConnectMatchingReferenceFibers");
+	// Result List:
+	const QString ProjectShowRefInDistribution("ShowReferenceInDistribution");
+	const QString ProjectDistributionHistogramBins("DistributionHistogramBins");
+	const QString ProjectDistributionPlotTypes("DistributionPlotTypes");
+	const QString ProjectStackedBarChartColors("StackedBarChartColors");
+	const QString ProjectDoColorBy("DoColorBy");
+	const QString ProjectColorBySelection("ColorBySelection");
+	const QString ProjectVisibleResults("VisibleResults");
+	const QString ProjectVisibleBoundingBoxes("VisibleBoundingBoxes");
+	// Step Charts:
+	const QString ProjectAnimationDelay("AnimationDelay");
+	const QString ProjectVisibleStepCharts("VisibleStepCharts");
+	const QString ProjectCurrentStep("CurrentStep");
+	// }
 }
 
 //! UI elements for each result
@@ -162,8 +205,6 @@ public:
 	iAVtkQtWidget* vtkWidget;
 	QSharedPointer<iA3DColoredPolyObjectVis> mini3DVis;
 	QSharedPointer<iA3DColoredPolyObjectVis> main3DVis;
-	QCheckBox* cbBoundingBox;
-	QCheckBox* cbShow;
 	iAChartWidget* histoChart;
 	iAStackedBarChart* stackedBars;
 	iAFixedAspectWidget* previewWidget;
@@ -269,6 +310,35 @@ void iAFiAKErController::resultsLoaded()
 	splitDockWidget(m_views[Main3DView], m_views[SelectionView], Qt::Vertical);
 	splitDockWidget(m_views[Main3DView], m_views[SettingsView], Qt::Vertical);
 
+	m_settingsWidgetMap.insert(ProjectResultColors, m_settingsView->cmbboxResultColors);
+	m_settingsWidgetMap.insert(ProjectDistributionColors, m_settingsView->cmbboxDistributionColors);
+	m_settingsWidgetMap.insert(ProjectReferenceVolume, m_fileChooser);
+	m_settingsWidgetMap.insert(ProjectDefaultOpacity, m_settingsView->slOpacityDefault);
+	m_settingsWidgetMap.insert(ProjectContextOpacity, m_settingsView->slOpacityContext);
+	m_settingsWidgetMap.insert(ProjectDefaultDiameterFactor, m_settingsView->slDiameterFactorDefault);
+	m_settingsWidgetMap.insert(ProjectContextDiameterFactor, m_settingsView->slDiameterFactorContext);
+	m_settingsWidgetMap.insert(ProjectShowBoundingBox, m_settingsView->cbBoundingBox);
+	m_settingsWidgetMap.insert(ProjectBoundingBoxBorders, &m_teBoundingBox);
+	m_settingsWidgetMap.insert(ProjectShowFiberContext, m_settingsView->cbFiberContextShow);
+	m_settingsWidgetMap.insert(ProjectMergeFiberContexts, m_settingsView->cbFiberContextMerge);
+	m_settingsWidgetMap.insert(ProjectContextSpacing, m_settingsView->sbFiberContextSpacing);
+	m_settingsWidgetMap.insert(ProjectSelectionMode, m_settingsView->cmbboxSelectionMode);
+	m_settingsWidgetMap.insert(ProjectRefMatchMetric, m_settingsView->cmbboxSimilarityMeasure);
+	m_settingsWidgetMap.insert(ProjectShowMatchingReferenceFibers, m_chkboxShowReference);
+	m_settingsWidgetMap.insert(ProjectNumberOfMatchingReferenceFibers, m_spnboxReferenceCount);
+	m_settingsWidgetMap.insert(ProjectConnectMatchingReferenceFibers, m_chkboxShowLines);
+	m_settingsWidgetMap.insert(ProjectShowRefInDistribution, m_settingsView->cbShowReferenceDistribution);
+	m_settingsWidgetMap.insert(ProjectDistributionHistogramBins, m_settingsView->sbHistogramBins);
+	m_settingsWidgetMap.insert(ProjectDistributionPlotTypes, m_settingsView->cmbboxDistributionPlotType);
+	m_settingsWidgetMap.insert(ProjectStackedBarChartColors, m_settingsView->cmbboxStackedBarChartColors);
+	m_settingsWidgetMap.insert(ProjectDoColorBy, m_colorByDistribution);
+	m_settingsWidgetMap.insert(ProjectColorBySelection, m_distributionChoice);
+	m_settingsWidgetMap.insert(ProjectVisibleResults, &m_showResultVis);
+	m_settingsWidgetMap.insert(ProjectVisibleBoundingBoxes, &m_showResultBox);
+	m_settingsWidgetMap.insert(ProjectAnimationDelay, m_settingsView->sbAnimationDelay);
+	m_settingsWidgetMap.insert(ProjectVisibleStepCharts, &m_chartCB);
+	m_settingsWidgetMap.insert(ProjectCurrentStep, m_optimStepSlider);
+
 	loadStateAndShow();
 }
 
@@ -277,10 +347,8 @@ iAFiAKErController::~iAFiAKErController()
 	if (parent())
 	{
 		QSettings settings;
-		settings.setValue(ModuleSettingsKey + "/maximized", isMaximized());
-		if (!isMaximized())
-			settings.setValue(ModuleSettingsKey + "/geometry", qobject_cast<QWidget*>(parent())->geometry());
-		settings.setValue(ModuleSettingsKey + "/state", saveState());
+		settings.beginGroup(ModuleSettingsKey);
+		saveWindowSettings(settings);
 	}
 }
 
@@ -363,6 +431,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 	m_settingsView->slDiameterFactorContext->setValue(contextFactorSlider);
 	m_settingsView->lbDiameterFactorContextValue->setText(QString::number(m_diameterFactorMapper->dstToSrc(contextFactorSlider), 'f', 2));
 
+	m_teBoundingBox.resize(6);
 	m_teBoundingBox[0] = m_settingsView->leBoundingBoxC1X;
 	m_teBoundingBox[1] = m_settingsView->leBoundingBoxC1Y;
 	m_teBoundingBox[2] = m_settingsView->leBoundingBoxC1Z;
@@ -576,6 +645,8 @@ QWidget* iAFiAKErController::setupResultListView()
 	m_resultsListLayout->addWidget(m_stackedBarsHeaders, 0, StackedBarColumn);
 	m_resultsListLayout->addWidget(histHeader, 0, HistogramColumn);
 
+	m_showResultVis.resize(m_data->result.size());
+	m_showResultBox.resize(m_data->result.size());
 	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result.at(resultID);
@@ -594,12 +665,12 @@ QWidget* iAFiAKErController::setupResultListView()
 		ui.vtkWidget->SetRenderWindow(renWin);
 		ui.vtkWidget->setProperty("resultID", resultID);
 
-		ui.cbShow = new QCheckBox("Show");
-		ui.cbShow->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		ui.cbShow->setProperty("resultID", resultID);
-		ui.cbBoundingBox = new QCheckBox("Box");
-		ui.cbBoundingBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		ui.cbBoundingBox->setProperty("resultID", resultID);
+		m_showResultVis[resultID] = new QCheckBox("Show");
+		m_showResultVis[resultID]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		m_showResultVis[resultID]->setProperty("resultID", resultID);
+		m_showResultBox[resultID] = new QCheckBox("Box");
+		m_showResultBox[resultID]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		m_showResultBox[resultID]->setProperty("resultID", resultID);
 
 		QString name = QFileInfo(d.fileName).baseName();
 		name = name.mid(commonPrefixLength, name.size() - commonPrefixLength - commonSuffixLength);
@@ -618,8 +689,8 @@ QWidget* iAFiAKErController::setupResultListView()
 		ui.bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		ui.nameActions->layout()->addWidget(ui.topFiller);
 		ui.nameActions->layout()->addWidget(ui.nameLabel);
-		ui.nameActions->layout()->addWidget(ui.cbShow);
-		ui.nameActions->layout()->addWidget(ui.cbBoundingBox);
+		ui.nameActions->layout()->addWidget(m_showResultVis[resultID]);
+		ui.nameActions->layout()->addWidget(m_showResultBox[resultID]);
 		ui.nameActions->layout()->addWidget(ui.bottomFiller);
 
 		ui.stackedBars = new iAStackedBarChart(colorTheme);
@@ -687,8 +758,8 @@ QWidget* iAFiAKErController::setupResultListView()
 		connect(ui.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(ui.nameActions, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(ui.vtkWidget, &iAVtkWidget::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
-		connect(ui.cbShow, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
-		connect(ui.cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
+		connect(m_showResultVis[resultID], &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
+		connect(m_showResultBox[resultID], &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
 
 		// connect changes to visualizations to an update of the 3D widget:
 		// {
@@ -744,22 +815,38 @@ QWidget * iAFiAKErController::setupSelectionView()
 	return selectionView;
 }
 
+
+void iAFiAKErController::saveWindowSettings(QSettings & settings)
+{
+	settings.setValue( WindowMaximized, isMaximized());
+	if (!isMaximized())
+		settings.setValue( WindowGeometry, qobject_cast<QWidget*>(parent())->geometry());
+	settings.setValue(WindowState, saveState());
+}
+
+void iAFiAKErController::loadWindowSettings(iASettings const & settings)
+{
+	if (settings.value(WindowMaximized, true).toBool())
+		showMaximized();
+	else
+	{
+		QRect newGeometry = settings.value(WindowGeometry, geometry()).value<QRect>();
+		show();
+		qobject_cast<QWidget*>(parent())->setGeometry(newGeometry);
+	}
+	toggleOptimStepChart(ChartCount - 1, true);
+
+	if (settings.contains(WindowState))
+		restoreState(settings.value(WindowState).toByteArray());
+}
+
 void iAFiAKErController::loadStateAndShow()
 {
 	addInteraction(QString("Loaded %1 results in folder %2").arg(m_data->result.size()).arg(m_data->folder));
 	QSettings settings;
-	if (settings.value(ModuleSettingsKey + "/maximized", true).toBool())
-		showMaximized();
-	else
-	{
-		QRect newGeometry = settings.value(ModuleSettingsKey + "/geometry", geometry()).value<QRect>();
-		show();
-		qobject_cast<QWidget*>(parent())->setGeometry(newGeometry);
-	}
-	toggleOptimStepChart(ChartCount-1, true);
-
-	if (settings.contains(ModuleSettingsKey + "/state"))
-		restoreState(settings.value(ModuleSettingsKey + "/state").toByteArray());
+	settings.beginGroup(ModuleSettingsKey);
+	iASettings iaset = mapFromQSettings(settings);
+	loadWindowSettings(iaset);
 
 	// SPM needs an active OpenGL Context (it must be visible when setData is called):
 	m_spm->setMinimumWidth(200);
@@ -1809,103 +1896,226 @@ void iAFiAKErController::setReference(size_t referenceID)
 
 namespace
 {
-	// General:
-	const QString ProjectResultColors("ResultColors");
-	const QString ProjectDistributionColors("DistributionColors");
-	const QString ProjectReferenceVolume("ReferenceVolume");
+	void loadSettings(iASettings const & settings, QMap<QString, QObject*> const & settingsWidgetMap)
+	{
+		for (QString key : settingsWidgetMap.keys())
+		{
+			if (settings.contains(key))
+			{
+				QObject* w = settingsWidgetMap[key];
+				if (qobject_cast<QComboBox*>(w))
+				{
+					if (qobject_cast<QComboBox*>(w)->findText(settings.value(key).toString()) != -1)
+						qobject_cast<QComboBox*>(w)->setCurrentText(settings.value(key).toString());
+				}
+				else if (qobject_cast<QCheckBox*>(w))
+				{
+					qobject_cast<QCheckBox*>(w)->setChecked(settings.value(key).toBool());
+				}
+				else if (qobject_cast<QSlider*>(w))
+				{
+					qobject_cast<QSlider*>(w)->setValue(settings.value(key).toInt());
+				}
+				else if (qobject_cast<QDoubleSpinBox*>(w))
+				{
+					qobject_cast<QDoubleSpinBox*>(w)->setValue(settings.value(key).toDouble());
+				}
+				else if (qobject_cast<QSpinBox*>(w))
+				{
+					qobject_cast<QSpinBox*>(w)->setValue(settings.value(key).toInt());
+				}
+				else if (qobject_cast<QLineEdit*>(w))
+				{
+					qobject_cast<QLineEdit*>(w)->setText(settings[key].toString());
+				}
+				else if (qobject_cast<iAFileChooserWidget*>(w))
+				{
+					qobject_cast<iAFileChooserWidget*>(w)->setText(settings[key].toString());
+				}
+				else if (dynamic_cast<iAQLineEditVector*>(w))
+				{
+					auto & lineEditVector = *dynamic_cast<iAQLineEditVector*>(w);
+					QStringList values = settings.value(key).toString().split(",");
+					if (values.size() != lineEditVector.size())
+						DEBUG_LOG(QString("Invalid value '%1' for key=%2 - should be able to split that into %3 values, but encountered %4")
+							.arg(settings.value(key).toString())
+							.arg(key)
+							.arg(lineEditVector.size())
+							.arg(values.size()));
+					for (int i = 0; i < lineEditVector.size() && i < values.size(); ++i)
+						lineEditVector[i]->setText(values[i]);
+				}
+				else if (dynamic_cast<iAQCheckBoxVector*>(w))
+				{
+					auto & checkBoxVector = *dynamic_cast<iAQCheckBoxVector*>(w);
+					QStringList values = settings.value(key).toString().split(",");
+					// first uncheck all entries:
+					for (auto checkbox: checkBoxVector)
+						checkbox->setChecked(false);
+					QString fullStr = settings.value(key).toString();
+					if (fullStr.isEmpty())
+						continue;
+					// then check those mentioned in settings:
+					for (QString v : values)
+					{
+						bool ok;
+						int idx = v.toInt(&ok);
+						if (!ok || idx < 0 || idx > checkBoxVector.size())
+						{
+							DEBUG_LOG(QString("Invalid value '%1' for key=%2; entry %3 is either not convertible to int or outside of valid range 0..%4.")
+								.arg(settings.value(key).toString())
+								.arg(key)
+								.arg(idx)
+								.arg(checkBoxVector.size()));
+						}
+						else
+						{
+							checkBoxVector[idx]->setChecked(true);
+						}
+					}
+				}
+				else
+				{
+					DEBUG_LOG(QString("Widget type for key=%1 unknown!").arg(key));
+				}
+			}
+			else
+			{
+				DEBUG_LOG(QString("No value found for key=%1 in settings.").arg(key));
+			}
+		}
+	}
 
-	// 3D View:
-	const QString ProjectDefaultOpacity("DefaultOpacity");
-	const QString ProjectContextOpacity("ContextOpacity");
-	const QString ProjectDefaultDiameterFactor("DefaultDiameterFactor");
-	const QString ProjectContextDiameterFactor("ContextDiameterFactor");
-	const QString ProjectShowBoundingBox("ShowBoundingBox");
-	const QString ProjectBoundingBoxBorders("BoundingBoxBorders");
-	const QString ProjectShowFiberContext("ShowFiberContext");
-	const QString ProjectMergeFiberContexts("MergeFiberContexts");
-	const QString ProjectContextSpacing("ContextSpacing");
-	const QString ProjectSelectionMode("SelectionMode");
-	const QString ProjectRefMatchMetric("ReferenceMatchMetric");
+	void saveSettings(QSettings & settings, QMap<QString, QObject*> const & settingsWidgetMap)
+	{
+		for (QString key : settingsWidgetMap.keys())
+		{
+			QObject* w = settingsWidgetMap[key];
+			if (qobject_cast<QComboBox*>(w))
+			{
+				settings.setValue(key, qobject_cast<QComboBox*>(w)->currentText());
+			}
+			else if (qobject_cast<QCheckBox*>(w))
+			{
+				settings.setValue(key, qobject_cast<QCheckBox*>(w)->isChecked());
+			}
+			else if (qobject_cast<QSlider*>(w))
+			{
+				settings.setValue(key, qobject_cast<QSlider*>(w)->value());
+			}
+			else if (qobject_cast<QDoubleSpinBox*>(w))
+			{
+				settings.setValue(key, qobject_cast<QDoubleSpinBox*>(w)->value());
+			}
+			else if (qobject_cast<QSpinBox*>(w))
+			{
+				settings.setValue(key, qobject_cast<QSpinBox*>(w)->value());
+			}
+			else if (qobject_cast<QLineEdit*>(w))
+			{
+				settings.setValue(key, qobject_cast<QLineEdit*>(w)->text());
+			}
+			else if (qobject_cast<iAFileChooserWidget*>(w))
+			{
+				settings.setValue(key, qobject_cast<iAFileChooserWidget*>(w)->text());
+			}
+			else if (dynamic_cast<iAQLineEditVector*>(w))
+			{
+				QStringList values;
+				auto & list = *dynamic_cast<iAQLineEditVector*>(w);
+				for (auto edit: list)
+					values << edit->text();
+				settings.setValue(key, values.join(","));
+			}
+			else if (dynamic_cast<iAQCheckBoxVector*>(w))
+			{
+				auto & list = *dynamic_cast<iAQCheckBoxVector*>(w);
+				QStringList values;
+				for (int i = 0; i < list.size(); ++i)
+				{
+					if (list[i]->isChecked())
+					{
+						values << QString::number(i);
+					}
+				}
+				settings.setValue(key, values.join(","));
+			}
+			else
+			{
+				DEBUG_LOG(QString("Widget type for key=%1 unknown!").arg(key));
+			}
+		}
+	}
+}
 
-	const QString ProjectShowMatchingReferenceFibers("ShowMatchingReferenceFibers");
-	const QString ProjectNumberOfMatchingReferenceFibers("NumberOfMatchingReferenceFibers");
-	const QString ProjectConnectMatchingReferenceFibers("ConnectMatchingReferenceFibers");
+void iAFiAKErController::loadReference(iASettings settings)
+{
+	size_t referenceID = settings.value(ProjectFileReference, static_cast<qulonglong>(NoResult)).toULongLong();
+	if (referenceID != NoResult)
+	{
+		connect(this, &iAFiAKErController::referenceComputed, [this, settings]
+		{   // defer loading the rest of the settings until reference is computed
+			loadSettings(settings);
+		});
+		setReference(referenceID);
+	}
+	else
+	{   // if no reference set, load settings directly
+		loadSettings(settings);
+	}
+}
 
-	// Result List:
-	const QString ProjectShowRefInDistribution("ShowReferenceInDistribution");
-	const QString ProjectDistributionHistogramBins("DistributionHistogramBins");
-	const QString ProjectDistributionPlotTypes("DistributionPlotTypes");
-	const QString ProjectStackedBarChartColors("StackedBarChartColors");
 
-	const QString ProjectDoColorBy("DoColorBy");
-	const QString ProjectColorBySelection("ColorBySelection");
-	const QString ProjectVisibleResults("VisibleResults");
-	const QString ProjectVisibleBoundingBoxes("VisibleBoundingBoxes");
-
-	// Step Charts:
-	const QString ProjectAnimationDelay("AnimationDelay");
-	const QString ProjectVisibleStepCharts("VisibleStepCharts");
-
-	const QString ProjectCurrentStep("CurrentStep");
+namespace
+{
+	typedef void (vtkCamera::*SetMethod)(double const[3]);
+	
+	void setCameraParameter(iASettings const & settings, QString const & key, vtkCamera* cam, SetMethod method)
+	{
+		if (!settings.contains(key))
+		{
+			return;
+		}
+		double values[3];
+		if (stringToArray<double>(settings.value(key).toString(), values, 3, ","))
+		{
+			(cam->*method)(values);
+		}
+		else
+		{
+			DEBUG_LOG(QString("Invalid value %1 for key=%2 couldn't be parsed as double array of size 3!")
+				.arg(settings.value(key).toString())
+				.arg(key));
+		}
+	}
 }
 
 void iAFiAKErController::loadSettings(iASettings settings)
 {
 	m_spm->loadSettings(settings);
-	size_t referenceID = settings.value(ProjectFileReference, static_cast<qulonglong>(NoResult)).toULongLong();
-	if (referenceID != NoResult)
-	{
-		setReference(referenceID);
-	}
+	::loadSettings(settings, m_settingsWidgetMap);
+
+	auto cam = m_ren->GetActiveCamera();
+	setCameraParameter(settings, CameraPosition, cam, &vtkCamera::SetPosition);
+	setCameraParameter(settings, CameraViewUp, cam, &vtkCamera::SetViewUp);
+	setCameraParameter(settings, CameraFocalPoint, cam, &vtkCamera::SetFocalPoint);
+
+	loadWindowSettings(settings);
 }
 
 void iAFiAKErController::saveSettings(QSettings & settings)
 {
-	settings.setValue(ProjectResultColors, m_settingsView->cmbboxResultColors->currentText());
-	settings.setValue(ProjectDistributionColors, m_settingsView->cmbboxDistributionColors->currentText());
-	settings.setValue(ProjectReferenceVolume, m_fileChooser->text());
-	settings.setValue(ProjectDefaultOpacity, m_settingsView->slOpacityDefault->value());
-	settings.setValue(ProjectContextOpacity, m_settingsView->slOpacityContext->value());
-	settings.setValue(ProjectDefaultDiameterFactor, m_settingsView->slDiameterFactorDefault->value());
-	settings.setValue(ProjectContextDiameterFactor, m_settingsView->slDiameterFactorContext->value());
-	settings.setValue(ProjectShowBoundingBox, m_settingsView->cbBoundingBox->isChecked());
-	QStringList boundingBoxValues;
-	for (int i = 0; i < 6; ++i)
-		boundingBoxValues << m_teBoundingBox[i]->text();
-	settings.setValue(ProjectBoundingBoxBorders, boundingBoxValues.join(","));
-	settings.setValue(ProjectShowFiberContext, m_settingsView->cbFiberContextShow->isChecked());
-	settings.setValue(ProjectMergeFiberContexts, m_settingsView->cbFiberContextMerge->isChecked());
-	settings.setValue(ProjectContextSpacing, m_settingsView->sbFiberContextSpacing->value());
-	settings.setValue(ProjectSelectionMode, m_settingsView->cmbboxSelectionMode->currentIndex());
-	settings.setValue(ProjectRefMatchMetric, m_settingsView->cmbboxSimilarityMeasure->currentText());
-	settings.setValue(ProjectShowMatchingReferenceFibers, m_chkboxShowReference->isChecked());
-	settings.setValue(ProjectNumberOfMatchingReferenceFibers, m_spnboxReferenceCount->value());
-	settings.setValue(ProjectConnectMatchingReferenceFibers, m_chkboxShowLines->isChecked());
-	settings.setValue(ProjectShowRefInDistribution, m_settingsView->cbShowReferenceDistribution->isChecked());
-	settings.setValue(ProjectDistributionHistogramBins, m_settingsView->sbHistogramBins->value());
-	settings.setValue(ProjectDistributionPlotTypes, m_settingsView->cmbboxDistributionPlotType->currentText());
-	settings.setValue(ProjectStackedBarChartColors, m_settingsView->cmbboxStackedBarChartColors->currentText());
-	settings.setValue(ProjectDoColorBy, m_colorByDistribution->isChecked());
-	settings.setValue(ProjectColorBySelection, m_distributionChoice->currentText());
-	QList<size_t> visibleResults, visibleBoxes;
-	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
-	{
-		if (m_resultUIs[resultID].cbShow->isChecked())
-			visibleResults << resultID;
-		if (m_resultUIs[resultID].cbBoundingBox->isChecked())
-			visibleBoxes << resultID;
-	}
-	settings.setValue(ProjectVisibleResults, join(visibleResults, ","));
-	settings.setValue(ProjectVisibleBoundingBoxes, join(visibleBoxes, ","));
-	settings.setValue(ProjectAnimationDelay, m_settingsView->sbAnimationDelay->value());
-	QList<size_t > visibleCharts;
-	for (size_t i = 0; i < m_chartCB.size(); ++i)
-	{
-		if (m_chartCB[i]->isChecked())
-			visibleCharts << i;
-	}
-	settings.setValue(ProjectVisibleStepCharts, join(visibleCharts, ","));
-	settings.setValue(ProjectCurrentStep, m_optimStepSlider->value());
+	if (m_referenceID != NoResult)
+		settings.setValue(ProjectFileReference, static_cast<qulonglong>(m_referenceID));
+	m_spm->saveSettings(settings);
+	::saveSettings(settings, m_settingsWidgetMap);
+
+	auto cam = m_ren->GetActiveCamera();
+	settings.setValue(CameraPosition, arrayToString(cam->GetPosition(), 3, ","));
+	settings.setValue(CameraViewUp, arrayToString(cam->GetViewUp(), 3, ","));
+	settings.setValue(CameraFocalPoint, arrayToString(cam->GetFocalPoint(), 3, ","));
+
+	saveWindowSettings(settings);
 }
 
 void iAFiAKErController::refDistAvailable()
@@ -1951,6 +2161,8 @@ void iAFiAKErController::refDistAvailable()
 	changeDistributionSource(m_data->spmData->numParams() - 1);
 
 	m_views[JobView]->hide();
+
+	emit referenceComputed();
 }
 
 void iAFiAKErController::showSpatialOverviewButton()
@@ -1972,8 +2184,8 @@ void iAFiAKErController::showSpatialOverview()
 	QSharedPointer<iALookupTable> lut(new iALookupTable());
 	*lut = iALUT::Build(range, m_colorByThemeName, 255, SelectionOpacity);
 	auto ref3D = m_resultUIs[m_referenceID].main3DVis;
-	QSignalBlocker cbBlock(m_resultUIs[m_referenceID].cbShow);
-	m_resultUIs[m_referenceID].cbShow->setChecked(true);
+	QSignalBlocker cbBlock(m_showResultVis[m_referenceID]);
+	m_showResultVis[m_referenceID]->setChecked(true);
 	size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns()-1;
 	ref3D->setLookupTable(lut, colID);
 	ref3D->updateColorSelectionRendering();
@@ -2438,9 +2650,6 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 	//projectFile.setValue(ProjectFileFormatName)
 	m_config.save(projectFile, ProjectFileSaveFormatName);
 	projectFile.setValue(ProjectFileStepShift, m_data->stepShift);
-	if (m_referenceID != NoResult)
-		projectFile.setValue(ProjectFileReference, static_cast<qulonglong>(m_referenceID));
-	m_spm->saveSettings(projectFile);
 	projectFile.setValue(ProjectUseStepData, m_useStepData);
 	saveSettings(projectFile);
 }
@@ -2481,7 +2690,7 @@ void iAFiAKErController::loadProject(MainWindow* mainWnd, QSettings const & proj
 	iASettings projectSettings = mapFromQSettings(projectFile);
 	connect(explorer, &iAFiAKErController::setupFinished, [explorer, projectSettings]
 	{
-		explorer->loadSettings(projectSettings);
+		explorer->loadReference(projectSettings);
 	});
 	explorer->start(dataFolder, config, stepShift, useStepData);
 }

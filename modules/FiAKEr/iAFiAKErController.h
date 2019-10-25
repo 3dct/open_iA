@@ -86,6 +86,10 @@ class QTreeView;
 class QVBoxLayout;
 //class QWebEngineView;
 
+// To be able to put non-QObject derived class in settingsWidgetMap
+class iAQCheckBoxVector: public QObject, public QVector<QCheckBox*> { };
+class iAQLineEditVector: public QObject, public QVector<QLineEdit*> { };
+
 class iAFiAKErController : public QMainWindow, public iASelectionProvider, public iAChangeableCameraWidget, public iASavableProject
 {
 	Q_OBJECT
@@ -110,6 +114,7 @@ public:
 	void saveSettings(QSettings & settings);
 signals:
 	void setupFinished();
+	void referenceComputed();
 public slots:
 	void toggleFullScreen();
 private slots:
@@ -164,6 +169,9 @@ private slots:
 	void colorByDistrToggled();
 	void loadVolume(QString const & fileName);
 private:
+	//! Load potential reference.
+	//! @param settings needs to be passed by value, as it's used in a lambda!
+	void loadReference(iASettings settings);
 	void changeDistributionSource(int index);
 	void updateHistogramColors();
 	QColor getResultColor(int resultID);
@@ -194,6 +202,8 @@ private:
 	void updateFiberContext();
 	void saveProject(QSettings & projectFile, QString  const & fileName);
 	void startFeatureScout(int resultID, MdiChild* newChild);
+	void loadWindowSettings(iASettings const & settings);
+	void saveWindowSettings(QSettings & settings);
 
 	QWidget* setupMain3DView();
 	QWidget* setupSettingsView();
@@ -222,6 +232,7 @@ private:
 	iARefDistCompute* m_refDistCompute;
 	QString m_colorByThemeName;
 	bool m_useStepData;
+	QMap<QString, QObject*> m_settingsWidgetMap;
 
 	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame;
 	double m_contextSpacing;
@@ -257,13 +268,15 @@ private:
 	QGridLayout* m_resultsListLayout;
 	QCheckBox* m_colorByDistribution;
 	QComboBox* m_distributionChoice;
+	iAQCheckBoxVector m_showResultVis;
+	iAQCheckBoxVector m_showResultBox;
 
 	// Settings View:
 	iAFIAKERSettingsWidget* m_settingsView;
 	// 3D view part
-	QLineEdit* m_teBoundingBox[6];
+	iAQLineEditVector m_teBoundingBox;
 	// Optimization steps part
-	std::vector<QCheckBox*> m_chartCB;
+	iAQCheckBoxVector m_chartCB;
 	iAFileChooserWidget* m_fileChooser;
 
 	// Scatter plot matrix:
