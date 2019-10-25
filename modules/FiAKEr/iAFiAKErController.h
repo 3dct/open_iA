@@ -152,7 +152,6 @@ private slots:
 	void distributionColorThemeChanged(QString const & colorThemeName);
 	void resultColorThemeChanged(QString const & colorThemeName);
 	void stackedBarColorThemeChanged(QString const & colorThemeName);
-	void saveAnalysisClick();
 	void showReferenceInChartToggled();
 	void distributionChartTypeChanged(int);
 	void diameterFactorChanged(int);

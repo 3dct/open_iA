@@ -1762,11 +1762,6 @@ namespace
 		mapper->SetInputConnection(cube->GetOutputPort());
 		auto actor = vtkSmartPointer<vtkActor>::New();
 		auto pos = (start + end) / 2;
-		DEBUG_LOG(QString("Bounding box (x: %1..%2, y: %3..%4, z: %5..%6), center: (%7, %8, %9)")
-			.arg(start[0]).arg(end[0])
-			.arg(start[1]).arg(end[1])
-			.arg(start[2]).arg(end[2])
-			.arg(pos[0]).arg(pos[1]).arg(pos[2]));
 		actor->SetPosition( pos.data() );
 		actor->GetProperty()->SetRepresentationToWireframe();
 		actor->SetMapper(mapper);
@@ -2441,13 +2436,13 @@ void iAFiAKErController::playPauseOptimSteps()
 	QPushButton* btn = qobject_cast<QPushButton*>(sender());
 	if (m_playTimer->isActive())
 	{
-		addInteraction(QString("Stopped optimization step animation"));
+		addInteraction(QString("Stopped optimization step animation."));
 		m_playTimer->stop();
 		btn->setText("Play");
 	}
 	else
 	{
-		addInteraction(QString("Started optimization step animation"));
+		addInteraction(QString("Started optimization step animation."));
 		m_playTimer->start();
 		btn->setText("Pause");
 	}
@@ -2463,7 +2458,7 @@ void iAFiAKErController::playTimer()
 
 void iAFiAKErController::playDelayChanged(int newInterval)
 {
-	addInteraction(QString("Changed optimization step animation delay to %1").arg(newInterval));
+	addInteraction(QString("Changed optimization step animation delay to %1.").arg(newInterval));
 	m_playTimer->setInterval(newInterval);
 }
 
@@ -2478,7 +2473,7 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 			break;
 		}
 	}
-	addInteraction(QString("Visualized cylinder sampling for fiber %1 in %2").arg(fiberID).arg(resultName(resultID)));
+	addInteraction(QString("Visualized cylinder sampling for fiber %1 in %2.").arg(fiberID).arg(resultName(resultID)));
 	if (fiberID == NoPlotsIdx)
 		return;
 	hideSamplePointsPrivate();
@@ -2528,7 +2523,7 @@ void iAFiAKErController::hideSamplePoints()
 {
 	if (!m_sampleActor)
 		return;
-	addInteraction("Hide cylinder sampling points");
+	addInteraction("Hide cylinder sampling points.");
 	hideSamplePointsPrivate();
 	m_main3DWidget->GetRenderWindow()->Render();
 	m_main3DWidget->update();
@@ -2552,7 +2547,7 @@ void iAFiAKErController::selectionFromListActivated(QModelIndex const & index)
 {
 	auto item = m_selectionListModel->itemFromIndex(index);
 	int row = item->row();
-	addInteraction(QString("Switched to selection %1").arg(row));
+	addInteraction(QString("Switched to selection %1.").arg(row));
 	m_selection = m_selections[row];
 	showSelectionDetail();
 	showSelectionIn3DViews();
@@ -2588,7 +2583,7 @@ void iAFiAKErController::selectionDetailsItemClicked(QModelIndex const & index)
 	{   // item text can be changed by users, so use internal data!
 		size_t resultID = item->parent()->data(Qt::UserRole).toULongLong();
 		size_t fiberID  = item->data(Qt::UserRole).toULongLong();
-		addInteraction(QString("Focus on fiber %1 in %2").arg(fiberID).arg(resultName(resultID)));
+		addInteraction(QString("Focus on fiber %1 in %2.").arg(fiberID).arg(resultName(resultID)));
 		clearSelection();
 		m_selection[resultID].push_back(fiberID);
 		showSelectionIn3DViews();
@@ -2632,23 +2627,9 @@ void iAFiAKErController::doSaveProject()
 	addInteraction(QString("Saved as Project '%1'.").arg(fileName));
 }
 
-void iAFiAKErController::saveAnalysisClick()
-{
-	QString fileName = QFileDialog::getSaveFileName(this, ModuleSettingsKey, m_data->folder, "FIAKER Project file (*.fpf);;");
-	if (fileName.isEmpty())
-		return;
-	addInteraction(QString("Save Analysis as '%1'").arg(fileName));
-	QSettings projectFile(fileName, QSettings::IniFormat);
-	projectFile.setIniCodec("UTF-8");
-	saveProject(projectFile, fileName);
-}
-
 void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & fileName)
 {
 	projectFile.setValue(ProjectFileFolder, MakeRelative(QFileInfo(fileName).absolutePath(), m_data->folder));
-	//projectFile.setValue(ProjectFileFormat, m_configName);
-	// instead of config name, store full config...
-	//projectFile.setValue(ProjectFileFormatName)
 	m_config.save(projectFile, ProjectFileSaveFormatName);
 	projectFile.setValue(ProjectFileStepShift, m_data->stepShift);
 	projectFile.setValue(ProjectUseStepData, m_useStepData);
