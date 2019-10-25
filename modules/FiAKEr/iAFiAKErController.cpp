@@ -843,7 +843,7 @@ void iAFiAKErController::loadWindowSettings(iASettings const & settings)
 
 void iAFiAKErController::loadStateAndShow()
 {
-	addInteraction(QString("Loaded %1 results in folder %2").arg(m_data->result.size()).arg(m_data->folder));
+	addInteraction(QString("Loaded %1 results in folder %2.").arg(m_data->result.size()).arg(m_data->folder));
 	QSettings settings;
 	settings.beginGroup(ModuleSettingsKey);
 	iASettings iaset = mapFromQSettings(settings);
@@ -928,12 +928,12 @@ void iAFiAKErController::stackedColSelect()
 	QString title = stackedBarColName(colID);
 	if (source->isChecked())
 	{
-		addInteraction(QString("Added %1 to stacked bar chart").arg(title));
+		addInteraction(QString("Added %1 to stacked bar chart.").arg(title));
 		addStackedBar(colID);
 	}
 	else
 	{
-		addInteraction(QString("Removed %1 from stacked bar chart").arg(title));
+		addInteraction(QString("Removed %1 from stacked bar chart.").arg(title));
 		removeStackedBar(colID);
 	}
 }
@@ -952,7 +952,7 @@ void iAFiAKErController::distributionChoiceChanged(int index)
 
 void iAFiAKErController::histogramBinsChanged(int value)
 {
-	addInteraction(QString("Changed histogram bins to %1.").arg(value));
+	addInteraction(QString("Changed number of histogram bins to %1.").arg(value));
 	HistogramBins = value;
 	changeDistributionSource(m_distributionChoice->currentIndex());
 }
@@ -1173,7 +1173,7 @@ void iAFiAKErController::toggleOptimStepChart(int chartID, bool visible)
 	{
 		if (!m_optimStepChart[chartID])
 		{
-			DEBUG_LOG(QString("Optim Step chart %1 toggled invisible, but not created yet.").arg(chartID));
+			DEBUG_LOG(QString("Step chart %1 toggled invisible, but not created yet.").arg(chartID));
 			return;
 		}
 		m_optimStepChart[chartID]->setVisible(false);
@@ -1243,7 +1243,7 @@ void iAFiAKErController::addInteraction(QString const & interaction)
 void iAFiAKErController::toggleVis(int state)
 {
 	int resultID = QObject::sender()->property("resultID").toInt();
-	addInteraction(QString("Toggle visibility of %1").arg(resultName(resultID)));
+	addInteraction(QString("Toggle visibility of %1 to %2.").arg(resultName(resultID)).arg(state?"on":"off"));
 	showMainVis(resultID, state);
 }
 
@@ -1337,8 +1337,8 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 void iAFiAKErController::toggleBoundingBox(int state)
 {
 	int resultID = QObject::sender()->property("resultID").toInt();
-	addInteraction(QString("Toggle bounding box of result %1.")
-		.arg(resultName(resultID)));
+	addInteraction(QString("Toggle bounding box of result %1 to %2.")
+		.arg(resultName(resultID)).arg(state ? "on" : "off"));
 	auto & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
 	{
@@ -1869,7 +1869,7 @@ void iAFiAKErController::setReference(size_t referenceID)
 		setResultBackground(ui, m_main3DWidget->palette().color(QWidget::backgroundRole()));
 		ui.nameLabel->setText(ui.nameLabel->text().left(ui.nameLabel->text().length()-RefMarker.length()));
 	}
-	addInteraction(QString("Reference set to %1").arg(resultName(referenceID)));
+	addInteraction(QString("Reference set to %1.").arg(resultName(referenceID)));
 	auto bounds = m_resultUIs[referenceID].mini3DVis->bounds();
 	bool setBB = true;
 	for (int i = 0; i < 6; ++i)
@@ -2168,7 +2168,7 @@ void iAFiAKErController::refDistAvailable()
 
 void iAFiAKErController::showSpatialOverviewButton()
 {
-	addInteraction("Showing Spatial Overview");
+	addInteraction("Showing Spatial Overview.");
 	showSpatialOverview();
 }
 
@@ -2218,26 +2218,26 @@ void iAFiAKErController::spmLookupTableChanged()
 void iAFiAKErController::showReferenceToggled()
 {
 	bool showRef = m_chkboxShowReference->isChecked();
-	addInteraction(QString("Show reference fibers toggled to %1").arg(showRef?"on":"off"));
+	addInteraction(QString("Show reference fibers toggled to %1.").arg(showRef?"on":"off"));
 	changeReferenceDisplay();
 }
 
 void iAFiAKErController::showReferenceCountChanged(int count)
 {
-	addInteraction(QString("Reference fibers count changed to %1").arg(count));
+	addInteraction(QString("Reference fibers count changed to %1.").arg(count));
 	changeReferenceDisplay();
 }
 
 void iAFiAKErController::showReferenceMeasureChanged(int index)
 {
-	addInteraction(QString("Selected reference match measure #%1").arg(index));
+	addInteraction(QString("Selected reference match measure #%1.").arg(index));
 	changeReferenceDisplay();
 }
 
 void iAFiAKErController::showReferenceLinesToggled()
 {
 	bool showLines = m_chkboxShowLines->isChecked();
-	addInteraction(QString("Show lines to reference fibers toggled to %1").arg(showLines ? "on" : "off"));
+	addInteraction(QString("Show lines to reference fibers toggled to %1.").arg(showLines ? "on" : "off"));
 	changeReferenceDisplay();
 }
 
@@ -2544,7 +2544,7 @@ void iAFiAKErController::hideSamplePointsPrivate()
 void iAFiAKErController::optimDataToggled(int state)
 {
 	int chartID = QObject::sender()->property("chartID").toInt();
-	addInteraction(QString("Toggled visibility of %1 vs. optimization step chart.").arg(diffName(chartID)));
+	addInteraction(QString("Toggled visibility of %1 vs. optimization step chart to %2.").arg(diffName(chartID)).arg(state ? "on" : "off"));
 	toggleOptimStepChart(chartID, state == Qt::Checked);
 }
 
@@ -2725,7 +2725,7 @@ void iAFiAKErController::showReferenceInChartToggled()
 
 void iAFiAKErController::distributionChartTypeChanged(int idx)
 {
-	addInteraction(QString("Distribution chart plot type switched to %1")
+	addInteraction(QString("Distribution chart plot type switched to %1.")
 		.arg(m_settingsView->cmbboxDistributionPlotType->itemText(idx)));
 	changeDistributionSource(m_distributionChoice->currentIndex());
 }
