@@ -216,7 +216,7 @@ void dlg_commoninput::SelectFilter()
 	dlg_FilterSelection dlg(this, sender->text());
 	if (dlg.exec())
 	{
-		QString filterName = dlg.SelectedFilterName();
+		QString filterName = dlg.selectedFilterName();
 		int idx = m_widgetList.indexOf(sender);
 		if (idx < m_widgetList.size() - 1 && m_filterWithParameters.indexOf(idx) != -1 &&
 			m_sourceMdiChild)	// TODO: if possible, get rid of sourceMdi?

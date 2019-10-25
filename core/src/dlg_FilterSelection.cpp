@@ -43,7 +43,7 @@ dlg_FilterSelection::dlg_FilterSelection(QWidget * parent, QString const & prese
 	}
 }
 
-void dlg_FilterSelection::FilterChanged(QString const & filter)
+void dlg_FilterSelection::filterChanged(QString const & filter)
 {
 	for (int row=0; row < lwFilterList->count(); ++row)
 		lwFilterList->item(row)->setHidden(true);
@@ -55,21 +55,21 @@ void dlg_FilterSelection::FilterChanged(QString const & filter)
 		if (matches.size() == 1)
 			lwFilterList->setCurrentItem(item);
 	}
-	EnableOKButton();
+	enableOKButton();
 }
 
-void dlg_FilterSelection::EnableOKButton()
+void dlg_FilterSelection::enableOKButton()
 {
 	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(m_curMatches == 1 ||
 		(lwFilterList->currentItem() != nullptr && !lwFilterList->currentItem()->isHidden()));
 }
 
-void dlg_FilterSelection::ListSelectionChanged(QListWidgetItem *current, QListWidgetItem *previous)
+void dlg_FilterSelection::listSelectionChanged(QListWidgetItem *current, QListWidgetItem *previous)
 {
-	EnableOKButton();
+	enableOKButton();
 }
 
-QString dlg_FilterSelection::SelectedFilterName() const
+QString dlg_FilterSelection::selectedFilterName() const
 {
 	return lwFilterList->currentItem() == nullptr ? QString() : lwFilterList->currentItem()->text();
 }

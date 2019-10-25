@@ -251,7 +251,7 @@ void iAModuleDispatcher::SelectAndRunFilter()
 {
 	dlg_FilterSelection filterSelection(m_mainWnd);
 	if (filterSelection.exec() == QDialog::Accepted)
-		RunFilter(iAFilterRegistry::filterID(filterSelection.SelectedFilterName()));
+		RunFilter(iAFilterRegistry::filterID(filterSelection.selectedFilterName()));
 }
 
 void iAModuleDispatcher::RunFilter(int filterID)
