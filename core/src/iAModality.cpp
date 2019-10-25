@@ -25,7 +25,7 @@
 #include "iAImageCoordinate.h"
 #include "iAModalityTransfer.h"
 #include "iAXmlSettings.h"
-#include "iAStringHelper.h" // for Str2Vec3D
+#include "iAStringHelper.h"   // for arrayToString, stringToArray
 #include "iATypedCallHelper.h"
 #include "iAVolumeRenderer.h"
 
@@ -207,8 +207,8 @@ void iAModality::setRenderer(QSharedPointer<iAVolumeRenderer> renderer)
 	}
 	double position[3];
 	double orientation[3];
-	if (!str2Vec3D(m_orientationSettings, orientation) ||
-		!str2Vec3D(m_positionSettings, position))
+	if (!stringToArray<double>(m_orientationSettings, orientation, 3) ||
+		!stringToArray<double>(m_positionSettings, position, 3))
 	{
 		return;
 	}
@@ -255,12 +255,12 @@ void iAModality::setStringSettings(QString const & pos, QString const & ori, QSt
 
 QString iAModality::orientationString()
 {
-	return m_renderer ? vec3D2String(m_renderer->orientation()) : QString();
+	return m_renderer ? arrayToString(m_renderer->orientation(), 3) : QString();
 }
 
 QString iAModality::positionString()
 {
-	return m_renderer ? vec3D2String(m_renderer->position()) : QString();
+	return m_renderer ? arrayToString(m_renderer->position(), 3) : QString();
 }
 
 void iAModality::computeHistogramData(size_t numBin)

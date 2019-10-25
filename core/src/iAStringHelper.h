@@ -38,11 +38,34 @@ open_iA_Core_API QStringList splitPossiblyQuotedString(QString const & str);
 
 open_iA_Core_API QString quoteString(QString const & str);
 
-//! Convert a given string representation to a double vector with three elements
-open_iA_Core_API bool str2Vec3D(QString const & str, double vec[3]);
+//! Convert a given string representation to an array of given type with given number of elements
+template <typename T>
+bool stringToArray(QString const & str, T * arr, size_t size, QString const & sep = " ")
+{
+	QStringList list = str.split(sep);
+	for (size_t i = 0; i < size && i < list.size(); ++i)
+	{
+		bool ok;
+		arr[i] = iAConverter<T>::toT(list[i], &ok);
+		if (!ok)
+			return false;
+	}
+	return (list.size() == size);
+}
 
-//! Convert a given double vector with three elements to a string representation
-open_iA_Core_API QString vec3D2String(double const * vec);
+//! Convert a given array with specified number of elements to a string representation
+template <typename T>
+QString arrayToString(T const * arr, size_t size, QString const & sep = " ")
+{
+	QString result;
+	for (size_t i = 0; i < size; ++i)
+	{
+		result += iAConverter<T>::toString(arr[i]);
+		if (i < size - 1)
+			result += sep;
+	}
+	return result;
+}
 
 //! Pads or truncates the given string to the given size.
 //!
@@ -83,6 +106,55 @@ QString join(Container<Element> const & vec, QString const & joinStr)
 	}
 	return result;
 }
+
+
+#include <cassert>
+
+//! Class for converting a variable of the type QString to the templated type.
+//! Can be overloaded for any desired conversion.
+template <typename T>
+struct iAConverter
+{
+	static T toT(QString str, bool * ok)
+	{
+		DEBUG_LOG("Unspecialized Converter::toT called! This should not happen!");
+		assert(false);
+		return std::numeric_limits<T>::signaling_NaN();
+	}
+	static QString toString(T t)
+	{
+		DEBUG_LOG("Unspecialized Converter::toString called! This should not happen!");
+		assert(false);
+		return "";
+	}
+};
+
+template <>
+struct iAConverter<int>
+{
+	static int toT(QString str, bool * ok)
+	{
+		return str.toInt(ok);
+	}
+	static QString toString(int n)
+	{
+		return QString::number(n);
+	}
+};
+
+template <>
+struct iAConverter<double>
+{
+	static double toT(QString str, bool * ok)
+	{
+		return str.toDouble(ok);
+	}
+	static QString toString(double n)
+	{
+		return QString::number(n);
+	}
+};
+
 
 //! Find the (length of the) greatest common prefix of the two given strings.
 //! example: str1 ="BaseMethod", str2="BaseMember" => result: "BaseMe"
