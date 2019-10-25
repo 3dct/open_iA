@@ -34,7 +34,7 @@ IF(Module_GPU_DreamcasterTool)
 		Dreamcaster/raycast/include/iADreamCasterCommon.h
 		Dreamcaster/raycast/include/iACutFigList.h
 		Dreamcaster/raycast/include/iADataFormat.h
-		Dreamcaster/raycast/include/iARaytracer.h
+		Dreamcaster/raycast/include/iARayTracer.h
 		Dreamcaster/raycast/include/iAScene.h
 		Dreamcaster/raycast/include/iASTLLoader.h
 		Dreamcaster/raycast/include/iAScreenBuffer.h
