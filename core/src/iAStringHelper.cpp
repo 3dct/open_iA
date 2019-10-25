@@ -21,7 +21,6 @@
 #include "iAStringHelper.h"
 
 #include <QRegularExpression>
-#include <QStringList>
 
 
 QStringList splitPossiblyQuotedString(QString const & str)
