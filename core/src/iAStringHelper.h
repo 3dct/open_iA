@@ -36,14 +36,12 @@ struct iAConverter
 {
 	static T toT(QString str, bool * ok)
 	{
-		DEBUG_LOG("Unspecialized Converter::toT called! This should not happen!");
-		assert(false);
+		assert(false && "Unspecialized Converter::toT called! This should not happen!");
 		return std::numeric_limits<T>::signaling_NaN();
 	}
 	static QString toString(T t)
 	{
-		DEBUG_LOG("Unspecialized Converter::toString called! This should not happen!");
-		assert(false);
+		assert(false && "Unspecialized Converter::toString called! This should not happen!");
 		return "";
 	}
 };
