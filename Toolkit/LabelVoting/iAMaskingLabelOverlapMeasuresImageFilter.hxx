@@ -19,6 +19,7 @@
 
 #include "iAMaskingLabelOverlapMeasuresImageFilter.h"
 
+#include <itkConfigure.h>    // for ITK_VERSION...
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
 #include <itkProgressReporter.h>
@@ -57,7 +58,11 @@ void
 	iAMaskingLabelOverlapMeasuresImageFilter<TLabelImage>
 	::BeforeThreadedGenerateData()
 {
+#if ITK_VERSION_MAJOR < 5
 	itk::ThreadIdType numberOfThreads = this->GetNumberOfThreads();
+#else
+	itk::ThreadIdType numberOfThreads = this->GetNumberOfWorkUnits();
+#endif
 
 	// Resize the thread temporaries
 	this->m_LabelSetMeasuresPerThread.resize(numberOfThreads);
@@ -78,7 +83,11 @@ void
 	::AfterThreadedGenerateData()
 {
 	// Run through the map for each thread and accumulate the set measures.
+#if ITK_VERSION_MAJOR < 5
 	for (itk::ThreadIdType n = 0; n < this->GetNumberOfThreads(); n++)
+#else
+	for (itk::ThreadIdType n = 0; n < this->GetNumberOfWorkUnits(); n++)
+#endif
 	{
 		// iterate over the map for this thread
 		for (MapConstIterator threadIt = this->m_LabelSetMeasuresPerThread[n].begin();

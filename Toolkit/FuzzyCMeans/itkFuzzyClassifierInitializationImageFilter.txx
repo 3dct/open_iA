@@ -20,6 +20,8 @@
 
 #include "itkFuzzyClassifierInitializationImageFilter.h"
 
+#include <itkConfigure.h>    // for ITK_VERSION...
+
 namespace itk
 {
 
@@ -90,7 +92,11 @@ FuzzyClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
   ThreadStruct str;
   str.Filter = this;
 
+#if ITK_VERSION_MAJOR < 5
   this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
+#else
+  this->GetMultiThreader()->SetNumberOfWorkUnits(this->GetNumberOfWorkUnits());
+#endif
   this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallback, &str);
 
   this->Initialize();

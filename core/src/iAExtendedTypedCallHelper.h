@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include <itkConfigure.h>    // for ITK_VERSION...
+
 #include <QString>
 // Requirements:
 // |function| return type must be void

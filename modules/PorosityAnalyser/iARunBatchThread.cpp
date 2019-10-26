@@ -981,9 +981,7 @@ void computeFhwThreshold( ImagePointer & image, PorosityFilterID filterId, RunIn
 	typename FilterType::Pointer otsuMultiFilter = FilterType::New();
 	otsuMultiFilter->SetInput( duplicator->GetOutput() );
 	otsuMultiFilter->SetNumberOfThresholds( 1 );
-#if (ITK_MAJOR_VERSION > 4 || ITK_MINOR_VERSION > 5)
 	otsuMultiFilter->ValleyEmphasisOn();
-#endif
 	otsuMultiFilter->Update(); 
 	typename FilterType::ThresholdVectorType thresholds = otsuMultiFilter->GetThresholds();
 	omThr = thresholds[0];

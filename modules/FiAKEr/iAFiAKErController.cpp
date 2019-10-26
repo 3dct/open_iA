@@ -1564,7 +1564,7 @@ void iAFiAKErController::miniMouseEvent(QMouseEvent* ev)
 		newChild->show();
 		// wait a bit to make sure MdiChild is shown and all initialization is done
 		// TODO: Replace by connection to a signal which is emitted when MdiChild initialization done
-		QTimer::singleShot(1000, [=] { startFeatureScout(resultID, newChild); });
+		QTimer::singleShot(1000, [this, resultID, newChild] { startFeatureScout(resultID, newChild); });
 		ev->accept();  // not sure if this helps, sometimes still the context menu seems to pop up
 	}
 }

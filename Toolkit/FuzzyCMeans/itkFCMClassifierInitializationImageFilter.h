@@ -28,10 +28,10 @@
 #include "itkEuclideanDistanceMetric.h"
 
 
-#if ITK_VERSION_MAJOR >= 5
-#include <mutex>
-#else
+#if ITK_VERSION_MAJOR < 5
 #include "itkFastMutexLock.h"
+#else
+#include <mutex>
 #endif
 
 
@@ -119,26 +119,17 @@ public:
     MembershipValueNumericTraitsType;
 
   /** Distance metric measure typdefs. */
-#if ITK_VERSION_MAJOR < 4
-#ifdef ITK_USE_REVIEW_STATISTICS
   typedef Statistics::EuclideanDistanceMetric< CentroidType >
     DistanceMetricType;
-#else
-  typedef Statistics::EuclideanDistance< CentroidType > DistanceMetricType;
-#endif
-#else
-  typedef Statistics::EuclideanDistanceMetric< CentroidType >
-    DistanceMetricType;
-#endif
   typedef typename DistanceMetricType::Pointer DistanceMetricPointer;
 
   /** Type definitions for mutex lock. Mutex lock allows the locking of
    * variables which are accessed through different threads. */
 
-#if ITK_VERSION_MAJOR >= 5
-  typedef std::mutex MutexLockType;
-#else
+#if ITK_VERSION_MAJOR < 5
   typedef FastMutexLock MutexLockType;
+#else
+  typedef std::mutex MutexLockType;
 #endif
 
 
@@ -189,10 +180,6 @@ protected:
    * perform some calulations used later to update the centroids.
    *
    * \sa FuzzyClassifierInitializationImageFilter::GenerateData() */
-  /** Support for ITK 3.20 */
-#if ITK_VERSION_MAJOR < 4
-  typedef int ThreadIdType;
-#endif
   void ThreadedGenerateData( const OutputImageRegionType& outputRegionForThread,
                              ThreadIdType threadId ) override;
 
@@ -211,10 +198,10 @@ protected:
   /** Mutex lock used to protect the modification of attributes wich are
    * accessed through different threads. */
 
-#if ITK_VERSION_MAJOR >= 5
-  MutexLockType m_CentroidsModificationAttributesLock;
-#else
+#if ITK_VERSION_MAJOR < 5
   MutexLockType::Pointer m_CentroidsModificationAttributesLock;
+#else
+  MutexLockType m_CentroidsModificationAttributesLock;
 #endif
 
 

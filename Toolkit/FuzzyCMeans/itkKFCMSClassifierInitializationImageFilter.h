@@ -27,10 +27,10 @@
 #include "itkArray.h"
 #include "itkConstShapedNeighborhoodIterator.h"
 #include "itkNumericTraits.h"
-#if ITK_VERSION_MAJOR >= 5
-#include <mutex>
-#else
+#if ITK_VERSION_MAJOR < 5
 #include "itkFastMutexLock.h"
+#else
+#include <mutex>
 #endif
 #include <vector>
 
@@ -143,10 +143,10 @@ public:
 
   /** Type definitions for mutex lock. Mutex lock allows the locking of
    * variables which are accessed through different threads. */
-#if ITK_VERSION_MAJOR >= 5
-  typedef std::mutex MutexLockType;
-#else
+#if ITK_VERSION_MAJOR < 5
   typedef FastMutexLock MutexLockType;
+#else
+  typedef std::mutex MutexLockType;
 #endif
 
   /** Method for creation through the object factory. */
@@ -222,10 +222,6 @@ protected:
    * perform some calulations used later to update the centroids.
    *
    * \sa FuzzyClassifierInitializationImageFilter::GenerateData() */
-  /** Support for ITK 3.20 */
-#if ITK_VERSION_MAJOR < 4
-  typedef int ThreadIdType;
-#endif
   void
     ThreadedGenerateData( const OutputImageRegionType& outputRegionForThread,
                              ThreadIdType threadId ) override;
