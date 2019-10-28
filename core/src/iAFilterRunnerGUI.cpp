@@ -304,7 +304,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 			.arg(filter->name()).arg(filter->requiredInputs()));
 		return;
 	}
-	if (mdiChild->preferences().PrintParameters)
+	if (mdiChild->preferences().PrintParameters && !filter->parameters().isEmpty())
 	{
 		mdiChild->addMsg(QString("Starting %1 filter with parameters:").arg(thread->filter()->name()));
 		for (int p = 0; p < thread->filter()->parameters().size(); ++p)
