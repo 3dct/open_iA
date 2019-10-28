@@ -24,8 +24,8 @@ if NOT [%9]==[] set MODULE_DIRS=%9
 set BUILD_TYPE=Release
 set MSBUILD_CLEANOPTS=/t:clean /m
 set MSBUILD_BUILDOPTS=/t:build Release /m
-set NIGHTLY_BUILD_DIR=D:\Releases\nightly
-
+set NIGHTLY_BUILD_DIR=Q:\#Common\iAnalyse\nightly
+:: D:\Releases\nightly
 
 :: SETUP AND PRELIMINARY CHECKS:
 
@@ -40,7 +40,6 @@ IF EXIST C:\cygwin64 (
 for /f %%i in ('%CYGWIN_PATH%\bin\date.exe +"%%Y%%m%%d_%%H%%M%%S"') do set CURDATETIME=%%i
 @echo Automated build at %CURDATETIME%, mode %CTEST_MODE%
 
-:: for security reasons (as we call deltree on it) we don't make that configurable
 :uniqTmpLoop
 set "TEST_CONFIG_PATH=%tmp%\ctest_config_%RANDOM%"
 if exist "%TEST_CONFIG_PATH%" goto :uniqTmpLoop
@@ -105,6 +104,7 @@ MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_BUILDOPTS%
 cpack
 :: Move into release directory:
 move *.exe %NIGHTLY_BUILD_DIR%
+move *.sha512 %NIGHTLY_BUILD_DIR%
 :: ToDo: Upload (github? git.3dct.at?)
 : GoPastNightlyRelease
 

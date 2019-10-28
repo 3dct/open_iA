@@ -33,6 +33,7 @@ curdatetime=$(date +"%Y%m%d_%H%M%S")
 echo "Automated build at $curdatetime, mode $CTEST_MODE"
 
 TEST_CONFIG_DIR=$(mktemp --tmpdir=/tmp -d ctestconfigs.XXXXXXXXXX)
+set NIGHTLY_BUILD_DIR=/mnt/sf_Testdata/Releases/nightly
 
 cd $TEST_SRC_DIR
 GIT_BRANCH=$(git symbolic-ref --short HEAD)
@@ -56,6 +57,25 @@ python $TEST_DIR/CreateTestConfigurations.py $TEST_SRC_DIR $GIT_BRANCH $TEST_CON
 cmake -C $TEST_CONFIG_DIR/all_flags.cmake $TEST_SRC_DIR 2>&1
 $buildtool clean
 ctest -D $CTEST_MODE
+
+if [ "$?" -eq "0" ]
+then
+	# Create nightly build:
+	# Create a tag so that the nightly build gets a proper version name
+	curdate = $(date.exe +"%Y.%m.%d")
+	cd $TEST_SRC_DIR
+	git tag $curdate-nightly
+	cd $TEST_BIN_DIR
+	# Re-run CMake and build to apply tag:
+	cmake $TEST_SRC_DIR
+	$buildtool
+	# Pack release:
+	cpack
+	# Move into release directory:
+	mv *.sh $NIGHTLY_BUILD_DIR
+	mv *.sha512 $NIGHTLY_BUILD_DIR
+	# ToDo: Upload (github? git.3dct.at?)
+fi
 
 # Run with no flags enabled:
 cmake -C $TEST_CONFIG_DIR/no_flags.cmake $TEST_SRC_DIR 2>&1
