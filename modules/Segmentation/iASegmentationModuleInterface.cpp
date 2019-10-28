@@ -30,7 +30,7 @@
 
 void iASegmentationModuleInterface::Initialize()
 {
-	REGISTER_FILTER(iANoOp);
+	REGISTER_FILTER(iACopy);
 
 	REGISTER_FILTER(iABinaryThreshold);
 	REGISTER_FILTER(iAOtsuThreshold);

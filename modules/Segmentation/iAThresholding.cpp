@@ -52,17 +52,17 @@
 
 // No operation (simply pass-through image)
 
-IAFILTER_CREATE(iANoOp)
+IAFILTER_CREATE(iACopy)
 
-void iANoOp::performWork(QMap<QString, QVariant> const & parameters)
+void iACopy::performWork(QMap<QString, QVariant> const & parameters)
 {
 	addOutput(input()[0]->itkImage());
 }
 
-iANoOp::iANoOp() :
-	iAFilter("Passthrough", "",
-		"Passes the input image through as output."
-		"That is, it simply directly returns the input, without any modifications.")
+iACopy::iACopy() :
+	iAFilter("Copy", "",
+		"Copy the input image to output."
+		"That is, this filter simply directly returns the input, without any modifications.")
 {
 }
 
