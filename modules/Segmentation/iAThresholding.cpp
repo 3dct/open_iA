@@ -50,6 +50,22 @@
 
 #include <QLocale>
 
+// No operation (simply pass-through image)
+
+IAFILTER_CREATE(iANoOp)
+
+void iANoOp::performWork(QMap<QString, QVariant> const & parameters)
+{
+	addOutput(input()[0]->itkImage());
+}
+
+iANoOp::iANoOp() :
+	iAFilter("Passthrough", "",
+		"Passes the input image through as output."
+		"That is, it simply directly returns the input, without any modifications.")
+{
+}
+
 // Binary Threshold
 
 template<class T>
