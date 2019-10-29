@@ -58,7 +58,7 @@ public:
 	//! A DreamCaster consturctor.
 	//! @param parent parent widget pointer. Default is 0.
 	//! @param flags window flags
-	iADreamCaster(QWidget *parent = 0, Qt::WindowFlags flags = 0);
+	iADreamCaster(QWidget *parent = nullptr, Qt::WindowFlags flags = 0);
 	~iADreamCaster();
 	//! Loging function. Adds string to log window.
 	//! @param text string containing logging message.
@@ -73,7 +73,7 @@ public:
 	//! Find triangles that are belong to selected features
 	int findSelectedTriangles();
 	//! Handler of child-widgets events
-	bool eventFilter(QObject *obj, QEvent *event);
+	bool eventFilter(QObject *obj, QEvent *event) override;
 	//! Set values to the rotation range scroll boxes
 	void setRangeSB(float minX, float maxX, float minZ, float maxZ);
 	//! Open .STL model by specified file name. Used to be called from outside.
