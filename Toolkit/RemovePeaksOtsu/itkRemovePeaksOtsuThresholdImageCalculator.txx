@@ -114,7 +114,7 @@ RemovePeaksOtsuThresholdImageCalculator<TInputImage>
     // apply median filter to histogram
 	double a, b, c;
 	std::vector<double> temp;
-	for ( int j = 0; j < m_NumberOfHistogramBins; j = j++ ) 
+	for ( int j = 0; j < m_NumberOfHistogramBins; ++j )
 	{	
 		(j == 0) ? a = 0 : a = relativeFrequency[j-1];
 		b = relativeFrequency[j];
@@ -129,7 +129,7 @@ RemovePeaksOtsuThresholdImageCalculator<TInputImage>
 	}
 	
 	double totalPixels = 0;
-	for ( int j = 0; j < m_NumberOfHistogramBins; j = j++ )
+	for ( int j = 0; j < m_NumberOfHistogramBins; ++j )
 	{
 		relativeFrequency[j] = temp[j];
 		totalPixels += temp[j];

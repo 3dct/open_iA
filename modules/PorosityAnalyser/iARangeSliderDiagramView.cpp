@@ -225,10 +225,16 @@ void iARangeSliderDiagramView::loadSelectionToSPMView()
 	for ( int i = 1; i < m_widgetList.size(); ++i )
 	{
 		if ( m_widgetList[i]->getSelectedRawTableRows().size() != 0 )
+		{
 			if ( rsdSelection.count() )
+			{
 				rsdSelection.intersect( m_widgetList[i]->getSelectedRawTableRows().toSet() );
+			}
 			else
+			{
 				rsdSelection.unite( m_widgetList[i]->getSelectedRawTableRows().toSet() );
+			}
+		}
 	}
 
 	QList<int> rsdSelectionList = rsdSelection.toList();
