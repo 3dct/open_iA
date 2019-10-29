@@ -26,6 +26,7 @@ class vtkActor;
 
 #include <vtkSmartPointer.h>
 
+//! Collection of vtk classes required for displaying a disk.
 struct iADiskData
 {
 	iADiskData();

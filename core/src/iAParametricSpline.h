@@ -22,6 +22,7 @@
 
 #include "vtkParametricSpline.h"
 
+//! Wrapper for vtkParametricSpline to be able to retrieve protected length property.
 class iAParametricSpline : public vtkParametricSpline
 {
 public:

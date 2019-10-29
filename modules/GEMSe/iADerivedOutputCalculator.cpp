@@ -25,7 +25,7 @@
 #include "iASingleResult.h"
 
 // Toolkit/Entropy
-#include <EntropyImageFilter.h>
+#include <iAEntropyImageFilter.h>
 
 #include <iAConsole.h>
 #include <iAToolsITK.h>
@@ -80,7 +80,7 @@ void iADerivedOutputCalculator::run()
 		if (m_result->ProbabilityAvailable())
 		{
 			typedef itk::ImageRegionConstIterator<ProbabilityImageType> ConstDblIt;
-			typedef fhw::EntropyImageFilter<ProbabilityImageType, ProbabilityImageType> EntropyFilter;
+			typedef iAEntropyImageFilter<ProbabilityImageType, ProbabilityImageType> EntropyFilter;
 			auto entropyFilter = EntropyFilter::New();
 			for (int i = 0; i < m_labelCount; ++i)
 			{

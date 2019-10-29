@@ -22,6 +22,7 @@
 
 #include "iAConsole.h"
 #include "iAListNameMapper.h"
+#include "iAStringHelper.h"
 
 const QString iAAttributeDescriptor::ValueSplitString(",");
 
@@ -39,37 +40,6 @@ namespace
 
 	const QString UnknownStr("Unknown");
 }
-
-#include <cassert>
-
-template <typename T>
-struct Converter
-{
-	static T convert(QString str, bool * ok)
-	{
-		DEBUG_LOG("Unspecialized Converter called! This should not happen!\n");
-		assert(false);
-		return std::numeric_limits<T>::signaling_NaN();
-	}
-};
-
-template <>
-struct Converter<int>
-{
-	static int convert(QString str, bool * ok)
-	{
-		return str.toInt(ok);
-	}
-};
-
-template <>
-struct Converter<double>
-{
-	static double convert(QString str, bool * ok)
-	{
-		return str.toDouble(ok);
-	}
-};
 
 
 iAAttributeDescriptor::iAAttributeType Str2AttribType(QString const & str)
@@ -127,8 +97,8 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 		{
 			result->m_logarithmic = false;
 			bool minOk = true, maxOk = true;
-			result->m_min = Converter<double>::convert(defTokens[3], &minOk);
-			result->m_max = Converter<double>::convert(defTokens[4], &maxOk);
+			result->m_min = iAConverter<double>::toT(defTokens[3], &minOk);
+			result->m_max = iAConverter<double>::toT(defTokens[4], &maxOk);
 			if (!minOk || !maxOk)
 			{
 				DEBUG_LOG(QString("Minimum or maximum of attribute couldn't be parsed in line %1\n").arg(def));
@@ -180,7 +150,7 @@ QString iAAttributeDescriptor::toString() const
 		case iAValueType::Categorical:	{
 			if (!m_nameMapper)
 			{
-				DEBUG_LOG("nameMapper NULL for categorical attribute!\n");
+				DEBUG_LOG("nameMapper nullptr for categorical attribute!\n");
 				for (int i = min(); i <= max(); ++i)
 				{
 					result += QString::number(i);

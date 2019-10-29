@@ -133,7 +133,7 @@ inline double STOD(const char * s) { return atof(s); }
 
 inline time_t TIME(time_t* n) { return _time32((__time32_t*)n); }
 
-inline int CREATE_DIR(const wchar_t *f) { return CreateDirectory(f,NULL); }
+inline int CREATE_DIR(const wchar_t *f) { return CreateDirectory(f,nullptr); }
 
 inline uint32_t GET_TICK_COUNT() { return GetTickCount(); }
 
@@ -299,10 +299,10 @@ inline void FIND_FILES(std::wstring m_path_name,
 	  regex_min = regex;
    DIR* dir;
    struct dirent *ent;
-   if ((dir = opendir(ws2s(search_path).c_str())) != NULL) {
+   if ((dir = opendir(ws2s(search_path).c_str())) != nullptr) {
 	  int cnt = 0;
 	  m_batch_list.clear();
-	  while((ent = readdir(dir)) != NULL) {
+	  while((ent = readdir(dir)) != nullptr) {
 		 std::string file(ent->d_name);
 		 std::wstring wfile = s2ws(file);
 		 //check if it contains the string.
@@ -337,7 +337,7 @@ inline FILE* FOPEN(FILE ** fp, const char* filename, const char* mode) {
 
 inline uint32_t GET_TICK_COUNT() {
    struct timeval ts;
-   gettimeofday(&ts, NULL);
+   gettimeofday(&ts, nullptr);
    return ts.tv_sec * 1000 + ts.tv_usec / 1000;
 }
 

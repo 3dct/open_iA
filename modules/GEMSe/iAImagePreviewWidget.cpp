@@ -203,7 +203,7 @@ void iAImagePreviewWidget::setImage(iAITKIO::ImagePointer const img, bool empty,
 {
 	if (!img)
 	{
-		DEBUG_LOG("iAImagePreviewWidget::setImage called with NULL image!\n");
+		DEBUG_LOG("iAImagePreviewWidget::setImage called with nullptr image!\n");
 		return;
 	}
 	if (!m_conn)

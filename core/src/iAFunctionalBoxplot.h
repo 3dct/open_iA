@@ -28,24 +28,20 @@
 
 #include "iAFunction.h"
 
-/**
- * Class for storing a "function band", i.e. a min-max range
- */
-template <typename ArgType, typename ValType>
+//! Class for storing a "function band", i.e. a min-max range, for creating an iAFunctionalBoxplot.
+ template <typename ArgType, typename ValType>
 class iAFunctionBand
 {
 public:
-	/**
-	 * merge the given function so that it also lies inside the band
-	 */
+	//! merge the given function so that it also lies inside the band
 	void merge(iAFunction<ArgType, ValType> const & f, size_t functionIdx);
 
-	/** @{ getters/setters */
+	//! @{ getters/setters
 	ValType getMin(ArgType a) const;
 	ValType getMax(ArgType a) const;
 	void setMin(ArgType a, ValType v);
 	void setMax(ArgType a, ValType v);
-	/** @} */
+	//! @}
 
 	bool contains(ArgType idx, ValType value) const;
 	bool contains(iAFunction<ArgType, ValType> const & func) const;
@@ -57,9 +53,7 @@ private:
 };
 
 
-/**
- * base for classes calculating the depth measure for a single function and band combination
- */
+//! Abstract Base for depth measures for a single function and band combination.
 template <typename ArgType, typename ValType>
 class iADepthMeasure
 {
@@ -70,14 +64,12 @@ public:
 };
 
 
-/**
- * Class for calculating and providing functional boxplot data for arbitrary functions
- * For details on the calculation, see
- * Lopez-Pintado, S.; Romo, J. (2009). "On the Concept of Depth for Functional
-   Data". Journal of the American Statistical Association 104 (486): 718-734.
- * Sun, Y.; Genton, M. G. (2011). "Functional boxplots". Journal of
-   Computational and Graphical Statistics 20: 316-334.
- */
+//! Class for calculating and providing functional boxplot data for arbitrary functions
+//! For details on the calculation, see
+//! Lopez-Pintado, S.; Romo, J. (2009). "On the Concept of Depth for Functional
+//! Data". Journal of the American Statistical Association 104 (486): 718-734.
+//! Sun, Y.; Genton, M. G. (2011). "Functional boxplots". Journal of
+//! Computational and Graphical Statistics 20: 316-334.
 template <typename ArgType, typename ValType>
 class iAFunctionalBoxplot {
 public:
@@ -89,14 +81,12 @@ public:
 		LOWER,
 		UPPER
 	};
-	/**
-	 * Construction & calculation of functional boxplot data
-	 * @param functions functions for which to calculate band depth
-	 * @param measure the measure to use to compute the depth (see SimpleDepthMeasure and ModifiedDepthMeasure)
-	 * @param maxBandSize the maximum band size to consider for band depth calculation (i.e. how
-	 *    many functions at most should be combined to bands). Band depth will be calculated
-	 *    as a combination of all band sizes from 2 to maxBandSize
-	 */
+	//! Construction & calculation of functional boxplot data
+	//! @param functions functions for which to calculate band depth
+	//! @param measure the measure to use to compute the depth (see SimpleDepthMeasure and ModifiedDepthMeasure)
+	//! @param maxBandSize the maximum band size to consider for band depth calculation (i.e. how
+	//!    many functions at most should be combined to bands). Band depth will be calculated
+	//!    as a combination of all band sizes from 2 to maxBandSize
 	iAFunctionalBoxplot(std::vector<iAFunction<ArgType, ValType> *> & functions,
 		iADepthMeasure<ArgType, ValType>* measure,
 		size_t maxBandSize = 2);
@@ -219,6 +209,7 @@ void createFunctionBands(
 	}
 }
 
+//! For comparing functions by the chosen depth measure value in an iAFunctionalBoxplot.
 struct iADepthComparator
 {
 	bool operator()(std::pair<double, size_t> const & first, std::pair<double, size_t> const & second)
@@ -227,6 +218,8 @@ struct iADepthComparator
 	}
 };
 
+//! Simple depth measure, just counts the number of bands of other function pairs which the function is fully contained in.
+//! For details, see paper linked in iAFunctionalBoxplot documentation.
 template <typename ArgType, typename ValType>
 class iASimpleDepthMeasure: public iADepthMeasure<ArgType, ValType>
 {
@@ -248,6 +241,8 @@ public:
 	}
 };
 
+//! Modified depth measure, sums up the percentages to which the function is contained in each band of other function pairs.
+//! For details, see paper linked in iAFunctionalBoxplot documentation.
 template <typename ArgType, typename ValType>
 class iAModifiedDepthMeasure: public iADepthMeasure<ArgType, ValType>
 {

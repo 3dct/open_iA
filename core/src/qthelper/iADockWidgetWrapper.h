@@ -26,6 +26,7 @@
 
 class QString;
 
+//! Show any arbitrary widget inside of a QDockWidget.
 class open_iA_Core_API iADockWidgetWrapper: public QDockWidget
 {
 public:

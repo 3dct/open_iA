@@ -615,15 +615,6 @@ bool iABlobManager::GetShowBlob() const
 	return m_isBlobBodyEnabled;
 }
 
-inline double lerp( double a, double b, double t )
-{
-	return a + ( b - a ) * t;
-}
-inline int lerp( int a, int b, double t )
-{
-	double ad = a, bd = b;
-	return (int) ( ad + ( bd - ad ) * t );
-}
 void iABlobManager::SaveMovie( QWidget *activeChild,
 							   iARenderer * raycaster,
 							   vtkCamera * cam,
@@ -706,12 +697,12 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 	for ( size_t i = 0; i < numberOfFrames; ++i )
 	{
 		//double t = (double)i / (numberOfFrames-1);
-		//SetRange ( lerp(range[0], range[1], t) );
-		//SetBlobOpacity ( lerp(blobOpacity[0], blobOpacity[1], t) );
-		//SetSilhouetteOpacity ( lerp(silhouetteOpacity[0], silhouetteOpacity[1], t) );
-		//SetOverlapThreshold ( lerp(overlapThreshold[0], overlapThreshold[1], t) );
-		//SetGaussianBlurVariance ( lerp(gaussianBlurVariance[0], gaussianBlurVariance[1], t) );
-		//int dims[3] = {lerp(dimX[0], dimX[1], t), lerp(dimY[0], dimY[1], t), lerp(dimZ[0], dimZ[1], t)};
+		//SetRange ( std::lerp(range[0], range[1], t) );
+		//SetBlobOpacity ( std::lerp(blobOpacity[0], blobOpacity[1], t) );
+		//SetSilhouetteOpacity ( std::lerp(silhouetteOpacity[0], silhouetteOpacity[1], t) );
+		//SetOverlapThreshold ( std::lerp(overlapThreshold[0], overlapThreshold[1], t) );
+		//SetGaussianBlurVariance ( std::lerp(gaussianBlurVariance[0], gaussianBlurVariance[1], t) );
+		//int dims[3] = {std::lerp(dimX[0], dimX[1], t), std::lerp(dimY[0], dimY[1], t), std::lerp(dimZ[0], dimZ[1], t)};
 		//SetDimensions(dims);
 
 		//Update();

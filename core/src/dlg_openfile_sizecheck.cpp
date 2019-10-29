@@ -22,7 +22,7 @@
 
 #include "dlg_commoninput.h"
 #include "io/iARawFileParameters.h"
-#include "iAToolsVTK.h"    // for mapVTKTypeStringToSize
+#include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
 
 #include <vtkImageReader.h>  // for VTK_FILE_BYTE_ORDER_... constants
 
@@ -45,22 +45,6 @@ namespace
 		case VTK_FILE_BYTE_ORDER_BIG_ENDIAN: return 1;
 		}
 	}
-
-	unsigned int mapVTKTypeToIdx(unsigned int vtkScalarType)
-	{
-		switch (vtkScalarType)
-		{
-		case VTK_UNSIGNED_CHAR: return 0;
-		case VTK_CHAR: return 1;
-		default:
-		case VTK_UNSIGNED_SHORT: return 2;
-		case VTK_SHORT: return 3;
-		case VTK_UNSIGNED_INT: return 4;
-		case VTK_INT: return 5;
-		case VTK_FLOAT: return 6;
-		case VTK_DOUBLE: return 7;
-		}
-	}
 }
 
 dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QString const & fileName, QWidget *parent, QString const & title,
@@ -69,10 +53,13 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QString const
 {
 	QFileInfo info1(fileName);
 	m_fileSize = info1.size();
-	m_extentXIdx = 0; m_extentYIdx = 1; m_extentZIdx = 2; m_voxelSizeIdx = 10;
+	m_sizeXIdx = 0; m_sizeYIdx = 1; m_sizeZIdx = 2; m_headerSizeIdx = 9; m_voxelSizeIdx = 10;
 
-	QStringList datatype(vtkDataTypeList());
-	datatype[mapVTKTypeToIdx(rawFileParams.m_scalarType)] = "!" + datatype[mapVTKTypeToIdx(rawFileParams.m_scalarType)];
+	QStringList datatype(readableDataTypeList(false));
+	QString selectedType = mapVTKTypeToReadableDataType(rawFileParams.m_scalarType);
+	int selectedIdx = datatype.indexOf(selectedType);
+	if (selectedIdx != -1)
+		datatype[selectedIdx] = "!" + datatype[selectedIdx];
 	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
 	byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)];
 	QStringList labels = (QStringList()
@@ -106,9 +93,10 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QString const
 
 	m_inputDlg->gridLayout->addWidget(m_inputDlg->buttonBox, labels.size() + 2, 0, 1, 1);
 
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_extentXIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_extentYIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_extentZIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeXIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeYIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeZIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_headerSizeIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
 	connect(qobject_cast<QComboBox*>(m_inputDlg->widgetList()[m_voxelSizeIdx]), SIGNAL(currentIndexChanged(int)), this, SLOT(checkFileSize()));
 
 	checkFileSize();
@@ -123,7 +111,7 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QString const
 		rawFileParams.m_origin[i] = m_inputDlg->getDblValue(6 + i);
 	}
 	rawFileParams.m_headersize = m_inputDlg->getDblValue(9);
-	rawFileParams.m_scalarType = mapVTKTypeStringToInt(m_inputDlg->getComboBoxValue(10));
+	rawFileParams.m_scalarType = mapReadableDataTypeToVTKType(m_inputDlg->getComboBoxValue(10));
 	if (m_inputDlg->getComboBoxValue(11) == "Little Endian")
 		rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
 	else if (m_inputDlg->getComboBoxValue(11) == "Big Endian")
@@ -133,13 +121,20 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QString const
 
 void dlg_openfile_sizecheck::checkFileSize()
 {
-	qint64 extentX = m_inputDlg->getDblValue(m_extentXIdx),
-		extentY= m_inputDlg->getDblValue(m_extentYIdx),
-		extentZ = m_inputDlg->getDblValue(m_extentZIdx),
-		voxelSize = mapVTKTypeStringToSize(m_inputDlg->getComboBoxValue(m_voxelSizeIdx));
-	assert(voxelSize != 0);
-	qint64 proposedSize = extentX*extentY*extentZ*voxelSize;
-	m_proposedSizeLabel->setText("Predicted file size: " + QString::number(proposedSize) + " bytes");
+	qint64 sizeX = m_inputDlg->getDblValue(m_sizeXIdx),
+		sizeY= m_inputDlg->getDblValue(m_sizeYIdx),
+		sizeZ = m_inputDlg->getDblValue(m_sizeZIdx),
+		voxelSize = mapVTKTypeToSize(mapReadableDataTypeToVTKType(m_inputDlg->getComboBoxValue(m_voxelSizeIdx))),
+		headerSize = m_inputDlg->getDblValue(m_headerSizeIdx);
+	qint64 proposedSize = sizeX * sizeY * sizeZ * voxelSize + headerSize;
+	if (sizeX <= 0 || sizeY <= 0 || sizeZ <= 0 || voxelSize <= 0 || headerSize < 0)
+	{
+		m_proposedSizeLabel->setText("Invalid numbers in size, data type or header size (too large/negative)?");
+	}
+	else
+	{
+		m_proposedSizeLabel->setText("Predicted file size: " + QString::number(proposedSize) + " bytes");
+	}
 	m_proposedSizeLabel->setStyleSheet(QString("QLabel { background-color : %1; }").arg(proposedSize == m_fileSize ? "#BFB" : "#FBB" ));
 	m_inputDlg->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(proposedSize == m_fileSize);
 }

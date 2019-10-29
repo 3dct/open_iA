@@ -84,6 +84,8 @@ class MainWindow;
 typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>  dlg_renderer;
 typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
+//! Child window of MainWindow's mdi area for showing a volume or mesh dataset.
+//! Some tools in the modules attach to MdiChild's to enhance their functionality.
 class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild, public iAChangeableCameraWidget, public iASavableProject
 {
 	Q_OBJECT

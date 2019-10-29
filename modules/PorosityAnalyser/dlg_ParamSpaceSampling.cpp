@@ -221,17 +221,17 @@ void dlg_ParamSpaceSampling::updateValues( QList<QVariant> inPara )
 	for ( int i = 0; i < children.size(); i++ )
 	{
 		QLineEdit *lineEdit = dynamic_cast<QLineEdit*>( children.at( i ) );
-		if ( lineEdit != NULL )
+		if ( lineEdit != nullptr )
 			lineEdit->setText( inPara[paramIdx++].toString() );
 
 		QComboBox *comboBox = dynamic_cast<QComboBox*>( children.at( i ) );
 
-		if ( comboBox != NULL )
+		if ( comboBox != nullptr )
 		{
 			comboBox->addItems( inPara[paramIdx++].toStringList() );
 		}
 		QCheckBox *checkBox = dynamic_cast<QCheckBox*>( children.at( i ) );
-		if ( checkBox != NULL )
+		if ( checkBox != nullptr )
 		{
 			if ( inPara[paramIdx] == tr( "true" ) )
 				checkBox->setChecked( true );
@@ -244,11 +244,11 @@ void dlg_ParamSpaceSampling::updateValues( QList<QVariant> inPara )
 		}
 
 		QSpinBox *spinBox = dynamic_cast<QSpinBox*>( children.at( i ) );
-		if ( spinBox != NULL )
+		if ( spinBox != nullptr )
 			spinBox->setValue( inPara[paramIdx++].toDouble() );
 
 		QDoubleSpinBox *doubleSpinBox = dynamic_cast<QDoubleSpinBox*>( children.at( i ) );
-		if ( doubleSpinBox != NULL )
+		if ( doubleSpinBox != nullptr )
 			doubleSpinBox->setValue( inPara[paramIdx++].toDouble() );
 	}
 }
@@ -456,7 +456,7 @@ void dlg_ParamSpaceSampling::addUnits()
 		for ( int i = 0; i < children.size(); i++ )
 		{
 			QLabel *label = dynamic_cast<QLabel*>( children.at( i ) );
-			if ( label != NULL )
+			if ( label != nullptr )
 			{
 				if ( label->objectName().startsWith( "IsoX Start" ) ||
 					 label->objectName().startsWith( "IsoX End" ) )
@@ -476,7 +476,7 @@ void dlg_ParamSpaceSampling::addUnits()
 		for ( int i = 0; i < children.size(); i++ )
 		{
 			QLineEdit *lineEdit = dynamic_cast<QLineEdit*>( children.at( i ) );
-			if ( lineEdit != NULL )
+			if ( lineEdit != nullptr )
 			{
 				if ( lineEdit->objectName().startsWith( "Iso50" ) )
 				{
@@ -487,7 +487,7 @@ void dlg_ParamSpaceSampling::addUnits()
 			}
 
 			QLabel *label = dynamic_cast<QLabel*>( children.at( i ) );
-			if ( label != NULL )
+			if ( label != nullptr )
 			{
 				if ( label->objectName().startsWith( "FhwWeight Start" ) ||
 					 label->objectName().startsWith( "FhwWeight End" ) ||

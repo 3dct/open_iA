@@ -270,7 +270,7 @@ ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type,
 		// fine, this just means that all images were filtered out!
 		if (!m_filteredRepresentative[type])
 		{
-		DEBUG_LOG("Filtered representative is NULL!");
+		DEBUG_LOG("Filtered representative is nullptr!");
 		}
 		*/
 		return m_filteredRepresentative[type];
@@ -295,7 +295,7 @@ ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type,
 	}
 	if (!m_representative[type])
 	{
-		//DEBUG_LOG("Representative is NULL!");
+		//DEBUG_LOG("Representative is nullptr!");
 	}
 	return m_representative[type];
 }

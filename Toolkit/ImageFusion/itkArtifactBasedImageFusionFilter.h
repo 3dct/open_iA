@@ -16,7 +16,7 @@ namespace itk
  */
 template <class TInputImage1, class TInputImage2, class TInputImage3,
 		  class TOutputImage >
-class ITK_EXPORT ArtifactBasedImageFusionFilter :
+class ArtifactBasedImageFusionFilter :
 	public InPlaceImageFilter<TInputImage1, TOutputImage>
 {
 public:

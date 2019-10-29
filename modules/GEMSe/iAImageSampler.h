@@ -60,7 +60,7 @@ public:
 		bool calculateChar,
 		int samplingID);
 	QSharedPointer<iASamplingResults> GetResults();
-	void run();
+	void run() override;
 	double elapsed() const override;
 	double estimatedTimeRemaining() const override;
 	void abort() override;

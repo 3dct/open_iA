@@ -136,7 +136,7 @@ void iASSView::updateSettings()
 void iASSView::BuildDefaultTF( vtkSmartPointer<vtkImageData> & imgData, vtkSmartPointer<vtkColorTransferFunction> & tf, QColor color )
 {
 	if (!imgData)
-		DEBUG_LOG("Image data is NULL!");
+		DEBUG_LOG("Image data is nullptr!");
 	tf->RemoveAllPoints();
 	tf->AddRGBPoint( imgData->GetScalarRange()[0], 0.0, 0.0, 0.0 );
 	tf->AddRGBPoint( imgData->GetScalarRange()[1], color.redF(), color.greenF(), color.blueF() );

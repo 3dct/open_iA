@@ -24,6 +24,7 @@
 #include "iAChangeableCameraWidget.h"
 #include "iASavableProject.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
+#include "ui_FiAKErSettings.h"
 
 // FeatureScout:
 #include <iACsvConfig.h>
@@ -31,6 +32,7 @@
 // Core:
 #include <iASettings.h>
 #include <qthelper/iAVtkQtWidget.h>
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
@@ -50,6 +52,7 @@ class iA3DCylinderObjectVis;
 class iAChartWidget;
 class iAColorTheme;
 class iADockWidgetWrapper;
+class iAFileChooserWidget;
 class iAMapper;
 class iAQSplom;
 class iARendererManager;
@@ -83,10 +86,15 @@ class QTreeView;
 class QVBoxLayout;
 //class QWebEngineView;
 
+// To be able to put non-QObject derived class in settingsWidgetMap
+class iAQCheckBoxVector: public QObject, public QVector<QCheckBox*> { };
+class iAQLineEditVector: public QObject, public QVector<QLineEdit*> { };
+
 class iAFiAKErController : public QMainWindow, public iASelectionProvider, public iAChangeableCameraWidget, public iASavableProject
 {
 	Q_OBJECT
 public:
+	typedef iAQTtoUIConnector<QWidget, Ui_FIAKERSettings> iAFIAKERSettingsWidget;
 	typedef std::vector<std::vector<size_t> > SelectionType;
 	static const QString FIAKERProjectID;
 	iAFiAKErController(MainWindow* mainWnd);
@@ -94,7 +102,7 @@ public:
 	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
 	static void loadProject(MainWindow* mainWnd, QSettings const & projectFile, QString const & fileName);
 
-	void start(QString const & path, iACsvConfig const & config, double stepShift);
+	void start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData);
 	std::vector<std::vector<size_t> > & selection() override;
 	void setCamPosition(int pos) override;
 	void doSaveProject() override;
@@ -103,8 +111,10 @@ public:
 	//! Load given settings.
 	//! @param settings needs to be passed by value, as it's used in a lambda!
 	void loadSettings(iASettings settings);
+	void saveSettings(QSettings & settings);
 signals:
 	void setupFinished();
+	void referenceComputed();
 public slots:
 	void toggleFullScreen();
 private slots:
@@ -142,7 +152,6 @@ private slots:
 	void distributionColorThemeChanged(QString const & colorThemeName);
 	void resultColorThemeChanged(QString const & colorThemeName);
 	void stackedBarColorThemeChanged(QString const & colorThemeName);
-	void saveAnalysisClick();
 	void showReferenceInChartToggled();
 	void distributionChartTypeChanged(int);
 	void diameterFactorChanged(int);
@@ -159,6 +168,9 @@ private slots:
 	void colorByDistrToggled();
 	void loadVolume(QString const & fileName);
 private:
+	//! Load potential reference.
+	//! @param settings needs to be passed by value, as it's used in a lambda!
+	void loadReference(iASettings settings);
 	void changeDistributionSource(int index);
 	void updateHistogramColors();
 	QColor getResultColor(int resultID);
@@ -189,6 +201,8 @@ private:
 	void updateFiberContext();
 	void saveProject(QSettings & projectFile, QString  const & fileName);
 	void startFeatureScout(int resultID, MdiChild* newChild);
+	void loadWindowSettings(iASettings const & settings);
+	void saveWindowSettings(QSettings & settings);
 
 	QWidget* setupMain3DView();
 	QWidget* setupSettingsView();
@@ -216,16 +230,18 @@ private:
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
 	QString m_colorByThemeName;
+	bool m_useStepData;
+	QMap<QString, QObject*> m_settingsWidgetMap;
 
 	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame;
 	double m_contextSpacing;
 
-	// Elements of the different views:
+	// The different views and their elements:
 	std::vector<iADockWidgetWrapper*> m_views;
 	enum {
 		JobView, ResultListView, Main3DView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
 	};
-	// Main Renderer:
+	// 3D View:
 	iAVtkQtWidget* m_main3DWidget;
 	vtkSmartPointer<vtkRenderer> m_ren;
 	QCheckBox* m_chkboxShowReference;
@@ -249,21 +265,18 @@ private:
 	void removeStackedBar(int index);
 	iAStackedBarChart* m_stackedBarsHeaders;
 	QGridLayout* m_resultsListLayout;
-
-	// Settings View:
-	// 3D view part
-	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel, *m_diameterFactorLabel, *m_contextDiameterFactorLabel;
-	QComboBox* m_cmbboxSimilarityMeasure;
-	QLineEdit* m_teBoundingBox[6];
-
-	// Result part
 	QCheckBox* m_colorByDistribution;
 	QComboBox* m_distributionChoice;
-	QCheckBox* m_showReferenceInChart;
-	QComboBox* m_distributionChartType;
-	QComboBox* m_resultColorThemeChoice;
+	iAQCheckBoxVector m_showResultVis;
+	iAQCheckBoxVector m_showResultBox;
+
+	// Settings View:
+	iAFIAKERSettingsWidget* m_settingsView;
+	// 3D view part
+	iAQLineEditVector m_teBoundingBox;
 	// Optimization steps part
-	std::vector<QCheckBox*> m_chartCB;
+	iAQCheckBoxVector m_chartCB;
+	iAFileChooserWidget* m_fileChooser;
 
 	// Scatter plot matrix:
 	void setSPMColorByResult();

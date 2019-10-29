@@ -298,7 +298,7 @@ herr_t errorfunc(unsigned n, const H5E_error2_t *err, void *client_data)
 void printHDF5ErrorsToConsole()
 {
 	hid_t err_stack = H5Eget_current_stack();
-	herr_t walkresult = H5Ewalk(err_stack, H5E_WALK_UPWARD, errorfunc, NULL);
+	herr_t walkresult = H5Ewalk(err_stack, H5E_WALK_UPWARD, errorfunc, nullptr);
 }
 
 #include <vtkImageImport.h>
@@ -640,7 +640,7 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
 			nextod.prev = od;
 			nextod.addr = infobuf.addr;
 			return_val = H5Literate_by_name(loc_id, name, H5_INDEX_NAME,
-				H5_ITER_NATIVE, NULL, op_func, (void *)&nextod,
+				H5_ITER_NATIVE, nullptr, op_func, (void *)&nextod,
 				H5P_DEFAULT);
 		}
 		newItem->setData(GROUP, Qt::UserRole + 1);
@@ -761,11 +761,9 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 				H5Fclose(file_id);
 				return true;
 			}
-			OpenHDF5Dlg dlg;
-			dlg.setWindowTitle(QString("Open HDF5").arg(m_fileName));
+
 			QStandardItemModel* model = new QStandardItemModel();
 			model->setHorizontalHeaderLabels(QStringList() << "HDF5 Structure");
-			dlg.tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
 			QStandardItem* rootItem = new QStandardItem(QFileInfo(m_fileName).fileName() + "/");
 			rootItem->setData(GROUP, Qt::UserRole + 1);
 			rootItem->setData(m_fileName, Qt::UserRole + 2);
@@ -776,18 +774,56 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 			struct opdata   od;
 			od.item = rootItem;
 			od.recurs = 0;
-			od.prev = NULL;
+			od.prev = nullptr;
 			od.addr = infobuf.addr;
-			H5Literate(file_id, H5_INDEX_NAME, H5_ITER_NATIVE, NULL, op_func, (void *)&od);
+			H5Literate(file_id, H5_INDEX_NAME, H5_ITER_NATIVE, nullptr, op_func, (void *)&od);
 			H5Fclose(file_id);
 
-			dlg.tree->setModel(model);
-			if (dlg.exec() != QDialog::Accepted)
+			// check if maybe only one dataset is contained in the file anyway:
+			QStandardItem* curItem = rootItem;
+			while (curItem)
 			{
-				addMsg("Dataset selection aborted.");
-				return false;
+				if (curItem->rowCount() > 1)
+				{
+					curItem = nullptr;
+					break;
+				}
+				curItem = curItem->child(0);
+				assert(curItem);
+				if (curItem->data(Qt::UserRole + 1) == DATASET)
+					break;
 			}
-			QModelIndex idx = dlg.tree->currentIndex();
+			QModelIndex idx;
+			if (curItem && curItem->data(Qt::UserRole + 1) == DATASET)
+			{
+				DEBUG_LOG("File only contains one dataset, loading that with default spacing of 1,1,1!");
+				idx = curItem->index();
+				m_hdf5Spacing[0] = 1;
+				m_hdf5Spacing[1] = 1;
+				m_hdf5Spacing[2] = 1;
+			}
+			else
+			{
+				OpenHDF5Dlg dlg;
+				dlg.setWindowTitle(QString("Open HDF5").arg(m_fileName));
+				dlg.tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
+				dlg.tree->setModel(model);
+				if (dlg.exec() != QDialog::Accepted)
+				{
+					addMsg("Dataset selection aborted.");
+					return false;
+				}
+				idx = dlg.tree->currentIndex();
+				bool okX, okY, okZ;
+				m_hdf5Spacing[0] = dlg.edSpacingX->text().toDouble(&okX);
+				m_hdf5Spacing[1] = dlg.edSpacingY->text().toDouble(&okY);
+				m_hdf5Spacing[2] = dlg.edSpacingZ->text().toDouble(&okZ);
+				if (!(okX && okY && okZ))
+				{
+					addMsg("Invalid spacing (has to be a valid floating point number)!");
+					return false;
+				}
+			}
 			if (idx.data(Qt::UserRole + 1) != DATASET)
 			{
 				addMsg("You have to select a dataset!");
@@ -816,15 +852,6 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 			if (m_hdf5Path.size() < 2)
 			{
 				addMsg("Invalid selection!");
-				return false;
-			}
-			bool okX, okY, okZ;
-			m_hdf5Spacing[0] = dlg.edSpacingX->text().toDouble(&okX);
-			m_hdf5Spacing[1] = dlg.edSpacingY->text().toDouble(&okY);
-			m_hdf5Spacing[2] = dlg.edSpacingZ->text().toDouble(&okZ);
-			if (!(okX && okY && okZ))
-			{
-				addMsg("Invalid spacing (has to be a valid floating point number)!");
 				return false;
 			}
 			return true;
@@ -1138,7 +1165,7 @@ bool iAIO::setupVolumeStackMHDReader(QString const & f)
 		<< tr("%1").arg(digitsInIndex)
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1]) );
 
-	dlg_commoninput dlg(m_parent, "Set file parameters", inList, inPara, NULL);
+	dlg_commoninput dlg(m_parent, "Set file parameters", inList, inPara, nullptr);
 
 	if (dlg.exec() != QDialog::Accepted)
 		return false;

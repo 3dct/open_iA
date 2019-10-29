@@ -418,10 +418,9 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	//data entry
 	QLabel *label5 = new QLabel("Output Datatype", this);
 	label5->setMinimumWidth(50);
-	QStringList datatypecon = (QStringList() <<  tr("VTK_SIGNED_CHAR") <<  tr("VTK_UNSIGNED_CHAR") <<  tr("VTK_SHORT")
-		<<  tr("VTK_UNSIGNED_SHORT") <<  tr("VTK_INT") <<  tr("VTK_UNSIGNED_INT") <<  tr("VTK_FLOAT") <<  tr("VTK_DOUBLE") );
+	QStringList dataTypes(readableDataTypeList(false));
 	cbDataType = new QComboBox(this);
-	cbDataType->insertItems(0,datatypecon);
+	cbDataType->insertItems(0, dataTypes);
 
 	chConvertROI = new QCheckBox(" Data Conversion of ROI ", this);
 	//chUseMaxDatatypeRange = new QCheckBox(" Use Maximum Datatype Range ", this);

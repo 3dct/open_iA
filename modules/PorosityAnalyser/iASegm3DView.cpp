@@ -64,7 +64,7 @@ void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPo
 {
 	for (auto i: imgData)
 		if (!i)
-			DEBUG_LOG("Image data is NULL!");
+			DEBUG_LOG("Image data is nullptr!");
 	m_range = 0.0;
 	m_renMgr->removeAll();
 	foreach( iASegm3DViewData* sd, m_data )
@@ -227,7 +227,7 @@ void iASegm3DViewData::removeObserver()
 void iASegm3DViewData::SetDataToVisualize( vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
 {
 	if (!imgData)
-		DEBUG_LOG("Image data is NULL!");
+		DEBUG_LOG("Image data is nullptr!");
 	iASimpleTransferFunction tf(ctf, otf);
 	if( !m_rendInitialized )
 	{

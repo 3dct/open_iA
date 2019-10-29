@@ -37,7 +37,7 @@
 #include <itkStatisticsImageFilter.h>
 
 
-template <class InT, class OutT> void CastImage(iAFilter* filter)
+template <class InT, class OutT> void castImage(iAFilter* filter)
 {
 	typedef itk::Image<InT, DIM > InputImageType;
 	typedef itk::Image<OutT, DIM> OutputImageType;
@@ -49,64 +49,32 @@ template <class InT, class OutT> void CastImage(iAFilter* filter)
 	filter->addOutput(castFilter->GetOutput());
 }
 
-template<class T> void CastImage(iAFilter* filter, std::string datatype)
+
+
+template<class T> void castImage(iAFilter* filter, int vtkType)
 {
-	if (datatype.compare("VTK_CHAR") == 0 ||  datatype.compare( "VTK_SIGNED_CHAR" ) == 0)
+	switch (vtkType)
 	{
-		CastImage<T, char>(filter);
-	}
-	else if (datatype.compare( "VTK_UNSIGNED_CHAR" ) == 0)
-	{
-		CastImage<T, unsigned char>(filter);
-	}
-	else if (datatype.compare( "VTK_SHORT" ) == 0)
-	{
-		CastImage<T, short>(filter);
-	}
-	else if (datatype.compare( "VTK_UNSIGNED_SHORT" ) == 0)
-	{
-		CastImage<T, unsigned short>(filter);
-	}
-	else if (datatype.compare( "VTK_INT" ) == 0)
-	{
-		CastImage<T, int>(filter);
-	}
-	else if (datatype.compare( "VTK_UNSIGNED_INT" ) == 0)
-	{
-		CastImage<T, unsigned int>(filter);
-	}
-	else if (datatype.compare( "VTK_LONG" ) == 0)
-	{
-		CastImage<T, long>(filter);
-	}
-	else if (datatype.compare( "VTK_UNSIGNED_LONG" ) == 0)
-	{
-		CastImage<T, unsigned long>(filter);
-	}
-	else if (datatype.compare("VTK_LONG_LONG") == 0 || datatype.compare("VTK__INT64") == 0)
-	{
-		CastImage<T, long long>(filter);
-	}
-	else if (datatype.compare("VTK_UNSIGNED_LONG_LONG") == 0 || datatype.compare("VTK_UNSIGNED__INT64") == 0)
-	{
-		CastImage<T, unsigned long long>(filter);
-	}
-	else if (datatype.compare( "VTK_FLOAT" ) == 0)
-	{
-		CastImage<T, float>(filter);
-	}
-	else if (datatype.compare( "VTK_DOUBLE" ) == 0)
-	{
-		CastImage<T, double>(filter);
-	}
-	else
-	{
-		throw std::runtime_error("Invalid datatype for casting!");
+	case VTK_UNSIGNED_CHAR:      castImage<T, unsigned char>(filter);  break;
+	case VTK_CHAR:
+	case VTK_SIGNED_CHAR:        castImage<T, char>(filter);           break;
+	case VTK_SHORT:              castImage<T, short>(filter);          break;
+	case VTK_UNSIGNED_SHORT:     castImage<T, unsigned short>(filter); break;
+	case VTK_INT:                castImage<T, int>(filter);            break;
+	case VTK_UNSIGNED_INT:       castImage<T, unsigned int>(filter);   break;
+	case VTK_LONG:               castImage<T, long>(filter);           break;
+	case VTK_UNSIGNED_LONG:      castImage<T, unsigned long>(filter);  break;
+	case VTK_LONG_LONG:          castImage<T, long long>(filter);      break;
+	case VTK_UNSIGNED_LONG_LONG: castImage<T, unsigned long long>(filter); break;
+	case VTK_FLOAT:              castImage<T, float>(filter);          break;
+	case VTK_DOUBLE:             castImage<T, double>(filter);         break;
+	default:
+		throw std::runtime_error("Invalid datatype in data type conversion!");
 	}
 }
 
 template <class InT, class OutT>
-void DataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void dataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<InT, DIM>   InputImageType;
 	typedef itk::Image<OutT, DIM> OutputImageType;
@@ -141,65 +109,31 @@ void DataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parame
 }
 
 template<class T>
-void DataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void dataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
-	std::string datatype = parameters["Data Type"].toString().toStdString();
-	if (datatype.compare("VTK_UNSIGNED_CHAR") == 0)
+	int vtkDataType = mapReadableDataTypeToVTKType(parameters["Data Type"].toString());
+	switch (vtkDataType)
 	{
-		DataTypeConversion<T, unsigned char>(filter, parameters);
-	}
-	else if (datatype.compare("VTK_CHAR") == 0 || datatype.compare("VTK_SIGNED_CHAR") == 0)
-	{
-		DataTypeConversion<T, char>(filter, parameters);
-	}
-	else if (datatype.compare("VTK_SHORT") == 0)
-	{
-		DataTypeConversion<T, short>(filter, parameters);
-	}
-	else if (datatype.compare("VTK_UNSIGNED_SHORT") == 0)
-	{
-		DataTypeConversion<T, unsigned short>(filter, parameters);
-	}
-	else if (datatype.compare("VTK_INT") == 0)
-	{
-		DataTypeConversion<T, int>(filter, parameters);
-	}
-	else if (datatype.compare("VTK_UNSIGNED_INT") == 0)
-	{
-		DataTypeConversion<T, unsigned int>(filter, parameters);
-	}
-	else if (datatype.compare("VTK_LONG") == 0)
-	{
-		DataTypeConversion<T, long>(filter, parameters);
-	}
-	else if (datatype.compare("VTK_UNSIGNED_LONG") == 0)
-	{
-		DataTypeConversion<T, unsigned long>(filter, parameters);
-	}
-	else if (datatype.compare("VTK_LONG_LONG") == 0 || datatype.compare("VTK__INT64") == 0)
-	{
-		DataTypeConversion<T, long long>(filter, parameters);
-	}
-	else if (datatype.compare("VTK_UNSIGNED_LONG_LONG") == 0 || datatype.compare("VTK_UNSIGNED__INT64") == 0)
-	{
-		DataTypeConversion<T, unsigned long long>(filter, parameters);
-	}
-	else if (datatype.compare("VTK_FLOAT") == 0)
-	{
-		DataTypeConversion<T, float>(filter, parameters);
-	}
-	else if (datatype.compare("VTK_DOUBLE") == 0)
-	{
-		DataTypeConversion<T, double>(filter, parameters);
-	}
-	else
-	{
-		throw std::runtime_error("Invalid datatype for rescale!");
+		case VTK_UNSIGNED_CHAR:  dataTypeConversion<T, unsigned char>(filter, parameters);  break;
+		case VTK_CHAR:
+		case VTK_SIGNED_CHAR:    dataTypeConversion<T, char>(filter, parameters);           break;
+		case VTK_SHORT:          dataTypeConversion<T, short>(filter, parameters);          break;
+		case VTK_UNSIGNED_SHORT: dataTypeConversion<T, unsigned short>(filter, parameters); break;
+		case VTK_INT:            dataTypeConversion<T, int>(filter, parameters);            break;
+		case VTK_UNSIGNED_INT:   dataTypeConversion<T, unsigned int>(filter, parameters);   break;
+		case VTK_LONG:           dataTypeConversion<T, long>(filter, parameters);           break;
+		case VTK_UNSIGNED_LONG:  dataTypeConversion<T, unsigned long>(filter, parameters);  break;
+		case VTK_LONG_LONG:      dataTypeConversion<T, long long>(filter, parameters);      break;
+		case VTK_UNSIGNED_LONG_LONG: dataTypeConversion<T, unsigned long long>(filter, parameters); break;
+		case VTK_FLOAT:          dataTypeConversion<T, float>(filter, parameters);          break;
+		case VTK_DOUBLE:         dataTypeConversion<T, double>(filter, parameters);         break;
+		default:
+			throw std::runtime_error("Invalid datatype in data type conversion!");
 	}
 }
 
 template<class T>
-void ConvertToRGB(iAFilter * filter)
+void convertToRGB(iAFilter * filter)
 {
 	iAITKIO::ImagePointer input = filter->input()[0]->itkImage();
 	if (filter->inputPixelType() != itk::ImageIOBase::ULONG)
@@ -243,15 +177,16 @@ void iACastImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
 	if (parameters["Data Type"].toString() == "Label image to color-coded RGBA image")
 	{
-		ITK_TYPED_CALL(ConvertToRGB, inputPixelType(), this);
+		ITK_TYPED_CALL(convertToRGB, inputPixelType(), this);
 	}
 	else if (parameters["Rescale Range"].toBool())
 	{
-		ITK_TYPED_CALL(DataTypeConversion, inputPixelType(), this, parameters);
+		ITK_TYPED_CALL(dataTypeConversion, inputPixelType(), this, parameters);
 	}
 	else
 	{
-		ITK_TYPED_CALL(CastImage, inputPixelType(), this, parameters["Data Type"].toString().toStdString());
+		ITK_TYPED_CALL(castImage, inputPixelType(), this,
+			mapReadableDataTypeToVTKType(parameters["Data Type"].toString()));
 	}
 }
 
@@ -271,15 +206,8 @@ iACastImageFilter::iACastImageFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RescaleIntensityImageFilter.html\">"
 		"Rescale Image Filter</a> in the ITK documentation.")
 {
-	QStringList datatypes = vtkDataTypeList();
-	datatypes
-		/*	// not yet currently supported by ITK and VTK!
-		<< QString("VTK_LONG_LONG")
-		<< QString("VTK_UNSIGNED_LONG_LONG")
-		<< QString("VTK__INT64")
-		<< QString("VTK_UNSIGNED__INT64")
-		*/
-		<< ("Label image to color-coded RGBA image");
+	QStringList datatypes = readableDataTypeList(false);
+	datatypes << ("Label image to color-coded RGBA image");
 	addParameter("Data Type", Categorical, datatypes);
 	addParameter("Rescale Range", Boolean, false);
 	addParameter("Automatic Input Range", Boolean, false);

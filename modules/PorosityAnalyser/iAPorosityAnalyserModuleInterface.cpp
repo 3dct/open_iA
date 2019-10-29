@@ -29,7 +29,7 @@
 #include "iAPorosityAnalyser.h"
 #include "iARunBatchThread.h"
 
-#include <CPUID.h>
+#include <iACPUID.h>
 #include <defines.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <mainwindow.h>
@@ -107,8 +107,8 @@ void iAPorosityAnalyserModuleInterface::Initialize()
 	setupTableWidgetContextMenu();
 
 	//Get CPU info
-	m_cpuVendor = CPUID::GetCPUVendor().toLocal8Bit().data();
-	m_cpuBrand = CPUID::GetCPUBrand().toLocal8Bit().data();
+	m_cpuVendor = iACPUID::cpuVendor().toLocal8Bit().data();
+	m_cpuBrand = iACPUID::cpuBrand().toLocal8Bit().data();
 }
 
 void iAPorosityAnalyserModuleInterface::computeParameterSpace()

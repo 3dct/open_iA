@@ -37,8 +37,8 @@ class vtkPiecewiseFunction;
 
 class QString;
 
-//! class uniting a color transfer function, an opacity transfer function
-//! and GUI classes used for viewing a histogram of the data and for editing the transfer functions
+//! Unite a color transfer function, an opacity transfer function
+//! and GUI classes used for viewing a histogram of the data and for editing the transfer functions.
 class open_iA_Core_API iAModalityTransfer : public iATransferFunction
 {
 public:

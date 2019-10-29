@@ -169,7 +169,7 @@ void iAFractureVisModule::setData( vtkPoints* points, vtkCellArray* polys, vtkUn
 	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New( );
 	polyData->SetPoints( points );
 	polyData->SetPolys( polys );
-	if( colors != NULL ) {
+	if( colors != nullptr ) {
 		polyData->GetPointData( )->SetScalars( colors );
 		m_surfMapper->SetScalarVisibility( 1 );
 	}

@@ -29,7 +29,7 @@ RunnerScriptWindows = SrcDir + '/test/TestRunner.bat'
 AllModulesOnScript = 'all_flags.cmake'
 AllModulesOffScript = 'no_flags.cmake'
 
-print("script for creating open_iA module compilation cmake scripts")
+print("Creating open_iA module compilation cmake scripts...")
 
 moduleNamesByDir = dict()
 moduleNames = []

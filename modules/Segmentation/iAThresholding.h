@@ -22,6 +22,8 @@
 
 #include <iAFilter.h>
 
+IAFILTER_DEFAULT_CLASS(iACopy)
+
 IAFILTER_DEFAULT_CLASS(iABinaryThreshold)
 IAFILTER_DEFAULT_CLASS(iARatsThreshold)
 IAFILTER_DEFAULT_CLASS(iAOtsuThreshold)

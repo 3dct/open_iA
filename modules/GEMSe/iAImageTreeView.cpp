@@ -231,7 +231,7 @@ int iAImageTreeView::LayoutNode(QSharedPointer<iAImageTreeNode > node, int nodeN
 	}
 	iAImageNodeWidget* nodeWidget = m_nodeWidgets[node.data()];
 	if (!nodeWidget) {
-		DEBUG_LOG("ERROR in LayoutNode: widget for current child node is NULL.");
+		DEBUG_LOG("ERROR in LayoutNode: widget for current child node is nullptr.");
 		return nodeNumber;
 	}
 	nodeWidget->UpdateShrinkStatus(m_refImg);
@@ -273,7 +273,7 @@ void iAImageTreeView::UpdateRepresentative(QSharedPointer<iAImageTreeNode > node
 	iAImageNodeWidget* nodeWidget = m_nodeWidgets[node.data()];
 	if (!nodeWidget)
 	{
-		DEBUG_LOG("ERROR in UpdateRepresentative: widget for current child node is NULL.");
+		DEBUG_LOG("ERROR in UpdateRepresentative: widget for current child node is nullptr.");
 		return;
 	}
 	if (!nodeWidget->IsShrinked())

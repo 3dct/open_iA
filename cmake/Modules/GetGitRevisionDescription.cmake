@@ -57,7 +57,7 @@ function(get_git_head_revision _refspecvar _hashvar)
 	if(NOT EXISTS "${GIT_DATA}")
 		file(MAKE_DIRECTORY "${GIT_DATA}")
 	endif()
-	IF (NOT IS_DIRECTORY "${GIT_DIR}")	# special treatment for submodules
+	IF (NOT IS_DIRECTORY "${GIT_DIR}")	# special treatment for submodules / worktrees
 		FILE(READ "${GIT_DIR}" NEW_GIT_DIR OFFSET 8)
 		STRING(REGEX REPLACE "\n$" "" NEW_GIT_DIR "${NEW_GIT_DIR}")
 		get_filename_component(GIT_DIR "${NEW_GIT_DIR}"
@@ -92,16 +92,6 @@ function(git_describe _var)
 		return()
 	endif()
 
-	# TODO sanitize
-	#if((${ARGN}" MATCHES "&&") OR
-	#	(ARGN MATCHES "||") OR
-	#	(ARGN MATCHES "\\;"))
-	#	message("Please report the following error to the project!")
-	#	message(FATAL_ERROR "Looks like someone's doing something nefarious with git_describe! Passed arguments ${ARGN}")
-	#endif()
-
-	#message(STATUS "Arguments to execute_process: ${ARGN}")
-
 	execute_process(COMMAND
 		"${GIT_EXECUTABLE}" describe ${hash} ${ARGN}
 		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
@@ -109,7 +99,6 @@ function(git_describe _var)
 		OUTPUT_VARIABLE	out
 		ERROR_QUIET
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
-		
 	if(NOT res EQUAL 0)
 		set(out "${out}-${res}-NOTFOUND")
 	endif()

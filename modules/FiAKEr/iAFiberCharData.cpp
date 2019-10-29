@@ -151,7 +151,8 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	int resultID = 0;
 	std::vector<QString> paramNames;
 
-	QStringList noCurvedFiberFiles;
+	QStringList noStepFiberFiles;
+	QString stepInfoErrorMsgs;
 	// load all datasets:
 	for (QString csvFile : csvFileNames)
 	{
@@ -191,23 +192,28 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			// (though actually same mapping should be guaranteed by using same config)
 		}
 
-		QString timeInfoPath(QFileInfo(csvFile).absolutePath() + "/" + QFileInfo(csvFile).baseName());
-		QFileInfo timeInfo(timeInfoPath);
+		QString stepInfoPath(QFileInfo(csvFile).absolutePath() + "/" + QFileInfo(csvFile).baseName());
+		QFileInfo stepInfo(stepInfoPath);
 
 		// TODO: in case reading gets inefficient, look at pre-reserving the required amount of fields
 		//       and using std::vector::swap to assign the sub-vectors!
 
-		size_t thisResultTimeStepMax = 1;
-		if (timeInfo.exists() && timeInfo.isDir())
+		size_t thisResultStepMax = 1;
+		curData.stepData = iAFiberCharData::NoStepData;
+		if (stepInfo.exists() && stepInfo.isDir())
 		{
-			curData.timeData = iAFiberCharData::SimpleTimeData;
-			DEBUG_LOG("Looking for optimization step info in old format...");
+			// DEBUG_LOG("Looking for optimization step info in old format...");
 			// read projection error info:
-			QFile projErrorFile(timeInfo.absoluteFilePath() + "/projection_error.csv");
+			QFile projErrorFile(stepInfo.absoluteFilePath() + "/projection_error.csv");
+
+			// fiber, step, value
+			std::vector<std::vector<std::vector<double> > > fiberStepValues;
+
 			if (!projErrorFile.open(QIODevice::ReadOnly | QIODevice::Text))
 			{
-				//DEBUG_LOG(QString("Unable to open projection error file: %1").arg(projErrorFile.errorString()));
-				curData.timeData = iAFiberCharData::NoTimeData;
+				stepInfoErrorMsgs += QString("Unable to open projection error file '%1': %2.\n")
+					.arg(stepInfo.absoluteFilePath() + "/projection_error.csv")
+					.arg(projErrorFile.errorString());
 			}
 			else
 			{
@@ -222,7 +228,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						continue;
 					if (fiberID >= curData.fiberCount)
 					{
-						DEBUG_LOG(QString("Discrepancy: More lines in %1 file than there were fibers in the fiber description csv (%2)")
+						DEBUG_LOG(QString("Discrepancy: More lines in %1 file than there were fibers in the fiber description csv (%2).\n")
 								  .arg(projErrorFile.fileName()).arg(curData.fiberCount));
 						break;
 					}
@@ -237,109 +243,118 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						projErrFib[i] -= projErrFib[projErrFib.size()-1];
 					++fiberID;
 				}
+
+				for (int curFiber=0; curFiber<curData.fiberCount; ++curFiber)
+				{
+					QString fiberStepCsv = QString("fiber%1_paramlog.csv").arg(curFiber, 3, 10, QChar('0'));
+					QFileInfo fiberStepCsvInfo(stepInfo.absoluteFilePath() + "/" + fiberStepCsv);
+					if (!fiberStepCsvInfo.exists())
+					{
+						stepInfoErrorMsgs += QString("File '%1' does not exist.\n")
+							.arg(fiberStepCsvInfo.absoluteFilePath());
+						break;
+					}
+					std::vector<std::vector<double> > singleFiberValues;
+					QFile file(fiberStepCsvInfo.absoluteFilePath());
+					if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+					{
+						stepInfoErrorMsgs += QString("Unable to open file '%1': %2\n")
+							.arg(fiberStepCsvInfo.absoluteFilePath())
+							.arg(file.errorString());
+						break;
+					}
+					QTextStream in(&file);
+					in.readLine(); // skip header line
+					size_t lineNr = 1;
+					while (!in.atEnd())
+					{
+						lineNr++;
+						QString line = in.readLine();
+						QStringList values = line.split(",");
+						if (values.size() != 6)
+						{
+							DEBUG_LOG(QString("Invalid line %1 in file %2, there should be 6 entries but there are %3 (line: %4).\n")
+								.arg(lineNr)
+								.arg(fiberStepCsvInfo.fileName())
+								.arg(values.size())
+								.arg(line));
+							continue;
+						}
+						double middlePoint[3];
+						for (int i = 0; i < 3; ++i)
+							middlePoint[i] = values[i].toDouble() + stepShift; // middle point positions are shifted!
+						double theta = values[4].toDouble();
+						if (theta < 0)  // theta is encoded in -Pi, Pi instead of 0..Pi as we expect
+							theta = 2*vtkMath::Pi() + theta;
+						double phi = values[3].toDouble();
+						double radius = values[5].toDouble() * 0.5;
+
+						std::vector<double> stepValues(iAFiberCharData::FiberValueCount);
+						// convert spherical to cartesian coordinates:
+						double dir[3];
+						dir[0] = radius * std::sin(phi) * std::cos(theta);
+						dir[1] = radius * std::sin(phi) * std::sin(theta);
+						dir[2] = radius * std::cos(phi);
+						for (int i = 0; i<3; ++i)
+						{
+							stepValues[i] = middlePoint[i] + dir[i];
+							stepValues[i+3] = middlePoint[i] - dir[i];
+							stepValues[i+6] = middlePoint[i];
+						}
+						stepValues[9] = phi;
+						stepValues[10] = theta;
+						stepValues[11] = values[5].toDouble();
+						stepValues[12] = curData.table->GetValue(curFiber, (*curData.mapping)[iACsvConfig::Diameter]).ToDouble();
+						/*
+						DEBUG_LOG(QString("Fiber %1, step %2: Start (%3, %4, %5) - End (%6, %7, %8)")
+							.arg(curFiber)
+							.arg(singleFiberValues.size())
+							.arg(stepValues[0]).arg(stepValues[1]).arg(stepValues[2])
+							.arg(stepValues[3]).arg(stepValues[4]).arg(stepValues[5]));
+						*/
+						singleFiberValues.push_back(stepValues);
+					}
+					assert(singleFiberValues.size() > 0);
+					if (singleFiberValues.size() > thisResultStepMax)
+					{
+						thisResultStepMax = singleFiberValues.size();
+					}
+					fiberStepValues.push_back(singleFiberValues);
+				}
+				if (fiberStepValues.size() == curData.fiberCount)
+				{
+					curData.stepData = iAFiberCharData::SimpleStepData;
+				}
+				else
+				{
+					stepInfoErrorMsgs += QString("OLD format loader: Expected to load steps for %1 fibers, but only got information for %2.\n")
+						.arg(curData.fiberCount)
+						.arg(fiberStepValues.size());
+				}
 			}
 
-			// fiber, timestep, value
-			std::vector<std::vector<std::vector<double> > > fiberTimeValues;
-			for (int curFiber=0; curFiber<curData.fiberCount; ++curFiber)
+			if (curData.stepData == iAFiberCharData::NoStepData)
 			{
-				QString fiberTimeCsv = QString("fiber%1_paramlog.csv").arg(curFiber, 3, 10, QChar('0'));
-				QFileInfo fiberTimeCsvInfo(timeInfo.absoluteFilePath() + "/" + fiberTimeCsv);
-				if (!fiberTimeCsvInfo.exists())
-				{
-					DEBUG_LOG(QString("File '%1' does not exist!").arg(fiberTimeCsv));
-					curData.timeData = iAFiberCharData::NoTimeData;
-					break;
-				}
-				std::vector<std::vector<double> > singleFiberValues;
-				QFile file(fiberTimeCsvInfo.absoluteFilePath());
-				if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-				{
-					DEBUG_LOG(QString("Unable to open file '%1': %2")
-						.arg(fiberTimeCsv)
-						.arg(file.errorString()));
-					curData.timeData = iAFiberCharData::NoTimeData;
-					break;
-				}
-				QTextStream in(&file);
-				in.readLine(); // skip header line
-				size_t lineNr = 1;
-				while (!in.atEnd())
-				{
-					lineNr++;
-					QString line = in.readLine();
-					QStringList values = line.split(",");
-					if (values.size() != 6)
-					{
-						DEBUG_LOG(QString("Invalid line %1 in file %2, there should be 6 entries but there are %3 (line: %4)")
-							.arg(lineNr).arg(fiberTimeCsvInfo.fileName()).arg(values.size()).arg(line));
-						continue;
-					}
-					double middlePoint[3];
-					for (int i = 0; i < 3; ++i)
-						middlePoint[i] = values[i].toDouble() + stepShift; // middle point positions are shifted!
-					double theta = values[4].toDouble();
-					if (theta < 0)  // theta is encoded in -Pi, Pi instead of 0..Pi as we expect
-						theta = 2*vtkMath::Pi() + theta;
-					double phi = values[3].toDouble();
-					double radius = values[5].toDouble() * 0.5;
-
-					std::vector<double> timeStepValues(iAFiberCharData::FiberValueCount);
-					// convert spherical to cartesian coordinates:
-					double dir[3];
-					dir[0] = radius * std::sin(phi) * std::cos(theta);
-					dir[1] = radius * std::sin(phi) * std::sin(theta);
-					dir[2] = radius * std::cos(phi);
-					for (int i = 0; i<3; ++i)
-					{
-						timeStepValues[i] = middlePoint[i] + dir[i];
-						timeStepValues[i+3] = middlePoint[i] - dir[i];
-						timeStepValues[i+6] = middlePoint[i];
-					}
-					timeStepValues[9] = phi;
-					timeStepValues[10] = theta;
-					timeStepValues[11] = values[5].toDouble();
-					timeStepValues[12] = curData.table->GetValue(curFiber, (*curData.mapping)[iACsvConfig::Diameter]).ToDouble();
-					/*
-					DEBUG_LOG(QString("Fiber %1, step %2: Start (%3, %4, %5) - End (%6, %7, %8)")
-						.arg(curFiber)
-						.arg(singleFiberValues.size())
-						.arg(timeStepValues[0]).arg(timeStepValues[1]).arg(timeStepValues[2])
-						.arg(timeStepValues[3]).arg(timeStepValues[4]).arg(timeStepValues[5]));
-					*/
-					singleFiberValues.push_back(timeStepValues);
-				}
-				assert(singleFiberValues.size() > 0);
-				if (singleFiberValues.size() > thisResultTimeStepMax)
-				{
-					thisResultTimeStepMax = singleFiberValues.size();
-				}
-				fiberTimeValues.push_back(singleFiberValues);
-			}
-
-			if (curData.timeData == iAFiberCharData::NoTimeData)
-			{
-				DEBUG_LOG("Looking for optimization step info in new (curved) format...");
-				// check if we can load new, curved timestep data:
+				//DEBUG_LOG("Looking for optimization step info in new (curved) format...");
+				// check if we can load new, curved step data:
 				curData.projectionError.resize(curData.fiberCount);
-				curData.timeData = iAFiberCharData::CurvedTimeData;
 				for (int curFiber = 0; curFiber < curData.fiberCount; ++curFiber)
 				{
-					QString fiberTimeCsv = QString("fiber_%1.csv").arg(curFiber, 4, 10, QChar('0'));
-					QFileInfo fiberTimeCsvInfo(timeInfo.absoluteFilePath() + "/" + fiberTimeCsv);
-					if (!fiberTimeCsvInfo.exists())
+					QString fiberStepCsv = QString("fiber_%1.csv").arg(curFiber, 4, 10, QChar('0'));
+					QFileInfo fiberStepCsvInfo(stepInfo.absoluteFilePath() + "/" + fiberStepCsv);
+					if (!fiberStepCsvInfo.exists())
 					{
-						DEBUG_LOG(QString("File '%1' does not exist!").arg(fiberTimeCsv));
-						curData.timeData = iAFiberCharData::NoTimeData;
+						stepInfoErrorMsgs += QString("File '%1' does not exist.\n").arg(fiberStepCsv);
 						break;
 					}
 					auto & projErrFib = curData.projectionError[curFiber]; //.resize(valueStrList.size());
 					std::vector<std::vector<double> > singleFiberValues;
-					QFile file(fiberTimeCsvInfo.absoluteFilePath());
+					QFile file(fiberStepCsvInfo.absoluteFilePath());
 					if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 					{
-						DEBUG_LOG(QString("Unable to open file: %1").arg(file.errorString()));
-						curData.timeData = iAFiberCharData::NoTimeData;
+						stepInfoErrorMsgs += QString("Unable to open file '%1': %2.\n")
+							.arg(fiberStepCsvInfo.absoluteFilePath())
+							.arg(file.errorString());
 						break;
 					}
 					QTextStream in(&file);
@@ -351,17 +366,16 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						QStringList values = line.split(",");
 						if ((values.size()-1) %3 != 0)
 						{
-							DEBUG_LOG(QString("Invalid line %1 in file %2: The number of entries should be divisible by 3, but it's %3 (line: %4)")
-								.arg(lineNr).arg(fiberTimeCsvInfo.fileName()).arg(values.size()).arg(line));
-							continue;
+							DEBUG_LOG(QString("Invalid line %1 in file %2: The number of entries should be divisible by 3, but it's %3 (line: %4).")
+								.arg(lineNr).arg(fiberStepCsvInfo.fileName()).arg(values.size()).arg(line));
 						}
-						std::vector<double> timeStepValues;
+						std::vector<double> stepValues;
 						bool ok;
 						double projError = values[0].toDouble(&ok);
 						if (!ok)
 						{
 							DEBUG_LOG(QString("Invalid line %1 in file %2: projection error value %3 is not double!")
-								.arg(lineNr).arg(fiberTimeCsvInfo.fileName()).arg(values[0]));
+								.arg(lineNr).arg(fiberStepCsvInfo.fileName()).arg(values[0]));
 						}
 						projErrFib.push_back(projError);
 
@@ -371,50 +385,49 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 							if (!ok)
 							{
 								DEBUG_LOG(QString("Invalid line %1 in file %2: coordinate value %3 (%4th in line) is not double!")
-									.arg(lineNr).arg(fiberTimeCsvInfo.fileName()).arg(values[j]).arg(j));
+									.arg(lineNr).arg(fiberStepCsvInfo.fileName()).arg(values[j]).arg(j));
 							}
-							timeStepValues.push_back(curCoord);
+							stepValues.push_back(curCoord);
 						}
-						singleFiberValues.push_back(timeStepValues);
+						singleFiberValues.push_back(stepValues);
 					}
 					assert(singleFiberValues.size() > 0);
-					if (singleFiberValues.size() > thisResultTimeStepMax)
+					if (singleFiberValues.size() > thisResultStepMax)
 					{
-						thisResultTimeStepMax = singleFiberValues.size();
+						thisResultStepMax = singleFiberValues.size();
 					}
-					fiberTimeValues.push_back(singleFiberValues);
+					fiberStepValues.push_back(singleFiberValues);
 				}
-			}
-			// transform from [fiber, timestep, value] to [timestep, fiber, value] indexing
-			// TODO: make sure all datasets have the same max timestep count!
-			if (curData.timeData != iAFiberCharData::NoTimeData)
-			{
-				if (fiberTimeValues.size() < curData.fiberCount)
+				if (fiberStepValues.size() == curData.fiberCount)
 				{
-					DEBUG_LOG(QString("Invalid timestep info: "
-						"Expected information on all %1 fibers, but only got %2!")
-						.arg(curData.fiberCount).arg(fiberTimeValues.size()));
-					curData.timeData = iAFiberCharData::NoTimeData;
-					noCurvedFiberFiles.append(csvFile);
+					curData.stepData = iAFiberCharData::CurvedStepData;
 				}
 				else
 				{
-					curData.timeValues.resize(thisResultTimeStepMax);
-					for (int t = 0; t < thisResultTimeStepMax; ++t)
+					stepInfoErrorMsgs += QString("NEW format (curved step info) loader: Expected to load steps for %1 fibers, but only got information for %2.\n")
+						.arg(curData.fiberCount)
+						.arg(fiberStepValues.size());
+				}
+			}
+			// transform from [fiber, step, value] to [step, fiber, value] indexing
+			// TODO: make sure all datasets have the same max step count!
+			if (curData.stepData != iAFiberCharData::NoStepData)
+			{
+				curData.stepValues.resize(thisResultStepMax);
+				for (int t = 0; t < thisResultStepMax; ++t)
+				{
+					curData.stepValues[t].resize(curData.fiberCount);
+					for (int f = 0; f < curData.fiberCount; ++f)
 					{
-						curData.timeValues[t].resize(curData.fiberCount);
-						for (int f = 0; f < curData.fiberCount; ++f)
-						{
-							curData.timeValues[t][f] = (t < fiberTimeValues[f].size()) ?
-								fiberTimeValues[f][t] :
-								fiberTimeValues[f][fiberTimeValues[f].size() - 1];
-						}
+						curData.stepValues[t][f] = (t < fiberStepValues[f].size()) ?
+							fiberStepValues[f][t] :
+							fiberStepValues[f][fiberStepValues[f].size() - 1];
 					}
 				}
 			}
 			else
 			{
-				noCurvedFiberFiles.append(csvFile);
+				noStepFiberFiles.append(csvFile);
 			}
 		}
 
@@ -422,14 +435,14 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		if (readCurvedFiberInfo(curvedFileName, curData.curveInfo))
 			curData.curvedFileName = curvedFileName;
 
-		if (thisResultTimeStepMax > optimStepMax)
+		if (thisResultStepMax > optimStepMax)
 		{
 			if (optimStepMax > 1)
 			{
-				DEBUG_LOG(QString("In result %1, the maximum number of timesteps changes from %2 to %3! This shouldn't be a problem, but support for it is currently untested.")
-					.arg(resultID).arg(optimStepMax).arg(thisResultTimeStepMax));
+				DEBUG_LOG(QString("In result %1, the maximum number of steps changes from %2 to %3! This shouldn't be a problem, but support for it is currently untested.")
+					.arg(resultID).arg(optimStepMax).arg(thisResultStepMax));
 			}
-			optimStepMax = thisResultTimeStepMax;
+			optimStepMax = thisResultStepMax;
 		}
 		++resultID;
 		progress->emitProgress(resultID / csvFileNames.size());
@@ -441,18 +454,21 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		DEBUG_LOG(QString("The specified folder %1 does not contain any valid csv files!").arg(path));
 		return false;
 	}
-	if (noCurvedFiberFiles.size() > 0)
+	if (noStepFiberFiles.size() > 0)
 	{
-		DEBUG_LOG(QString("\nThere seems to be curved fiber data available, "
-			"but for files (%1) I could not find usable information; please check potential previous messages.\n"
+		DEBUG_LOG(QString("\nThere seems to be fiber data available for optimization/iteration steps, "
+			"but for files (%1) I could not find usable information. "
+			"Maybe this debug output is helpful: '%2'.\n"
 			"FIAKER expects:\n"
 			"Either a \"projection_error.csv\" and one \"fiberNNN_paramlog.csv\" per fiber "
 			"(with NNN being a 3-digit identifier of the fiber ID, with leading zeros);\n"
-			"OR a \"fiber_NNNN.csv\" per fiber for curved fiber timesteps "
+			"OR a \"fiber_NNNN.csv\" per fiber for curved fiber steps "
 			"(with NNN being a 4-digit identifier of the fiber ID, with leading zeros). "
-			"In this format, each line specifies a time step, with values: "
+			"In this format, each line specifies a step, with values: "
 			"projection error, firstX, firstY, firstZ, secondX, secondY, secondZ, ...")
-			.arg(noCurvedFiberFiles.join(",")));
+			.arg(noStepFiberFiles.join(","))
+			.arg(stepInfoErrorMsgs)
+		);
 	}
 
 	// create SPM data:

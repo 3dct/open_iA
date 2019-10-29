@@ -21,6 +21,7 @@
 #include "iASegmentationModuleInterface.h"
 
 #include "iAFuzzyCMeans.h"
+#include "iALevelSet.h"
 #include "iASVMImageFilter.h"
 #include "iAThresholding.h"
 #include "iAWatershedSegmentation.h"
@@ -29,6 +30,8 @@
 
 void iASegmentationModuleInterface::Initialize()
 {
+	REGISTER_FILTER(iACopy);
+
 	REGISTER_FILTER(iABinaryThreshold);
 	REGISTER_FILTER(iAOtsuThreshold);
 	REGISTER_FILTER(iAOtsuMultipleThreshold);
@@ -43,6 +46,10 @@ void iASegmentationModuleInterface::Initialize()
 	REGISTER_FILTER(iAFCMFilter);
 	REGISTER_FILTER(iAKFCMFilter);
 	REGISTER_FILTER(iAMSKFCMFilter);
+
+	REGISTER_FILTER(iACannySegmentationLevelSet);
+	REGISTER_FILTER(iALaplacianSegmentationLevelSet);
+	REGISTER_FILTER(iAZeroCrossing);
 
 	REGISTER_FILTER(iASVMImageFilter);
 	REGISTER_FILTER(iAKMeans);

@@ -57,7 +57,7 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QWidgetToolbar" name="slicerToolBar" native="true">
+       <widget class="iAQWidgetToolbar" name="slicerToolBar" native="true">
         <layout class="QHBoxLayout" name="horizontalLayout">
          <property name="spacing">
           <number>1</number>
@@ -502,9 +502,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QWidgetToolbar</class>
+   <class>iAQWidgetToolbar</class>
    <extends>QWidget</extends>
-   <header>QWidgetToolbar.h</header>
+   <header>iAQWidgetToolbar.h</header>
   </customwidget>
  </customwidgets>
  <resources>

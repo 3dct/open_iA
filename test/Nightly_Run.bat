@@ -1,3 +1,5 @@
+:: READ ARGUMENTS:
+
 set TEST_SRC_DIR=%1
 set TEST_BIN_DIR=%2
 set CONFIG_FILE=%3
@@ -18,9 +20,14 @@ if NOT [%8]==[] set MAIN_SOLUTION=%8
 set MODULE_DIRS=%TEST_SRC_DIR%/modules
 if NOT [%9]==[] set MODULE_DIRS=%9
 
-:: other variables not changeable via parameters
+:: other variables not changeable via arguments
 set BUILD_TYPE=Release
-set MSBUILD_OPTS=/t:clean /m
+set MSBUILD_CLEANOPTS=/t:clean /m
+set MSBUILD_BUILDOPTS=/t:build Release /m
+set NIGHTLY_BUILD_DIR=Q:\#Common\iAnalyse\nightly
+:: D:\Releases\nightly
+
+:: SETUP AND PRELIMINARY CHECKS:
 
 python --version >NUL 2>NUL
 IF %ERRORLEVEL% NEQ 0 GOTO PythonNotFound
@@ -33,18 +40,13 @@ IF EXIST C:\cygwin64 (
 for /f %%i in ('%CYGWIN_PATH%\bin\date.exe +"%%Y%%m%%d_%%H%%M%%S"') do set CURDATETIME=%%i
 @echo Automated build at %CURDATETIME%, mode %CTEST_MODE%
 
-:: for security reasons (as we call deltree on it) we don't make that configurable
 :uniqTmpLoop
 set "TEST_CONFIG_PATH=%tmp%\ctest_config_%RANDOM%"
 if exist "%TEST_CONFIG_PATH%" goto :uniqTmpLoop
 
-::TO PAUSE SYSTEM
-:: ping -n 10 127.0.0.1 > null
+:: Get name of current branch
 cd %TEST_SRC_DIR%
 FOR /F "tokens=1 delims=" %%A in ('git symbolic-ref --short HEAD') do SET GIT_BRANCH=%%A
-rem echo %GIT_BRANCH%
-
-:: git pull origin master
 
 :: Set up Visual Studio Environment for cleaning build
 :: amd64 is the target architecture (see http://msdn.microsoft.com/en-us/library/x4d2c09s%28v=vs.80%29.aspx)
@@ -60,11 +62,19 @@ call "%VS_PATH%\VC\Auxiliary\Build\vcvarsall.bat" amd64
 @echo on
 
 :: in case it exists, remove output directory:
+IF NOT EXIST %TEST_BIN_DIR% goto CreateOutputDirectory
 rd /s /q %TEST_BIN_DIR%
-:: create output directory:
+:: wait for 10 seconds:
+ping 127.0.0.1 -n 11 > nul
+
+:CreateOutputDirectory:
+
 md %TEST_BIN_DIR%
 cd %TEST_BIN_DIR%
 if %ERRORLEVEL% GEQ 1 goto BinDirError
+
+
+:: BUILD AND TEST RUNS:
 
 :: Set up basic build environment
 cmake -C "%CONFIG_FILE%" %TEST_SRC_DIR% 2>&1
@@ -73,16 +83,34 @@ cmake -C "%CONFIG_FILE%" %TEST_SRC_DIR% 2>&1
 md %TEST_CONFIG_PATH%
 python %TEST_DIR%\CreateTestConfigurations.py %TEST_SRC_DIR% %GIT_BRANCH% %TEST_CONFIG_PATH% %MODULE_DIRS% %COMPILER%
 
-rem Run with all flags enabled:
+:: Run with all flags enabled:
 cmake -C %TEST_CONFIG_PATH%\all_flags.cmake %TEST_SRC_DIR% 2>&1
-MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
+MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_CLEANOPTS%
 :: del %TEST_Bin_DIR%\core\moc_*
 :: del %TEST_Bin_DIR%\modules\moc_*
 ctest -D %CTEST_MODE% -C %BUILD_TYPE%
+if %ERRORLEVEL% GEQ 1 goto GoPastNightlyRelease
 
-rem Run with no flags enabled:
+:: Create nightly build:
+:: Create a tag so that the nightly build gets a proper version name
+for /f %%i in ('%CYGWIN_PATH%\bin\date.exe +"%%Y.%%m.%%d"') do set CURDATE=%%i
+cd %TEST_SRC_DIR%
+git tag %CURDATE%-nightly
+cd %TEST_BIN_DIR%
+:: Re-run CMake and build to apply tag:
+cmake %TEST_SRC_DIR%
+MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_BUILDOPTS%
+:: Pack release:
+cpack
+:: Move into release directory:
+move *.exe %NIGHTLY_BUILD_DIR%
+move *.sha512 %NIGHTLY_BUILD_DIR%
+:: ToDo: Upload (github? git.3dct.at?)
+: GoPastNightlyRelease
+
+:: Run with no flags enabled:
 cmake -C %TEST_CONFIG_PATH%\no_flags.cmake %TEST_SRC_DIR% 2>&1
-MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
+MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_CLEANOPTS%
 :: del %TEST_Bin_DIR%\core\moc_*
 :: del %TEST_Bin_DIR%\modules\moc_*
 ctest -D Experimental -C %BUILD_TYPE%
@@ -97,26 +125,29 @@ FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
 	@echo ================================================================================
 	cmake -C %TEST_CONFIG_PATH%\no_flags.cmake %TEST_SRC_DIR% 2>&1
 	cmake -C %%m %TEST_SRC_DIR% 2>&1
-	MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
+	MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_CLEANOPTS%
 	:: del %TEST_Bin_DIR%\core\moc_*
 	:: del %TEST_Bin_DIR%\modules\moc_*
 	ctest -D Experimental -C %BUILD_TYPE%
 	del %TEST_BIN_DIR%\Testing\Temporary\*.mhd %TEST_BIN_DIR%\Testing\Temporary\*.raw
 )
 
+
 :: CLEANUP:
+
 :: move out of %TEST_BIN_DIR%
 cd ..
-
 :: remove test configurations:
 rd /s /q %TEST_CONFIG_PATH%
-
-:: wait for 10 seconds before deleting:
-ping 127.0.0.1 -n 11 -w > nul
+:: wait for 10 seconds before deleting bin directory:
+ping 127.0.0.1 -n 11 > nul
 :: remove binary directory to start from scratch next time:
 rd /s /q %TEST_BIN_DIR%
 
 goto end
+
+
+:: ERROR HANDLING:
 
 :DeQuote
 for /f "delims=" %%A in ('echo %%%1%%') do set %1=%%~A
@@ -129,5 +160,6 @@ goto end
 :BinDirError
 echo Could not create or enter binary directory, exiting!
 goto end
+
 
 :end

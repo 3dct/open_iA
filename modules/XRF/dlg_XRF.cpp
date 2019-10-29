@@ -96,8 +96,8 @@ dlg_XRF::dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg
 	m_initialized(false),
 	m_ctfChanged(true),
 	m_decompositionLoaded(false),
-	m_spectrumDiagram(NULL),
-	m_accumulatedGridLayout(NULL),
+	m_spectrumDiagram(nullptr),
+	m_accumulatedGridLayout(nullptr),
 	m_oTF(vtkSmartPointer<vtkPiecewiseFunction>::New()),
 	m_cTF(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_xrfData(new iAXRFData),
@@ -252,7 +252,7 @@ void dlg_XRF::InitCommonGUI(iAWidgetAddHelper & widgetAddHelper)
 
 
 	// load reference spectra & characteristic energy lines:
-	QString rootDir("C:/refSpectra/");
+	QString rootDir(QCoreApplication::applicationDirPath() + "/refSpectra/");
 	m_refSpectraLib = QSharedPointer<iAReferenceSpectraLibrary>(new iAReferenceSpectraLibrary(
 		rootDir + "elementSpectra/reference_library.reflib"));
 	m_refSpectra->getSpectraList()->setModel(m_refSpectraLib->getItemModel().data());

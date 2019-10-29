@@ -29,23 +29,4 @@ void iABatchProcessModuleInterface::Initialize()
 {
 	REGISTER_FILTER(iABatchFilter);
 	REGISTER_FILTER(iAStackReaderFilter);
-	if (!m_mainWnd)
-		return;
-	/*
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
-	QAction * actionSample = new QAction( m_mainWnd );
-	actionSample->setText(QApplication::translate("MainWindow", "Sample...", 0));
-	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionSample, true);
-	connect(actionSample, SIGNAL(triggered()), this, SLOT(ShowSampleDialog()));
-	*/
 }
-
-/*
-void iABatchProcessModuleInterface::ShowSampleDialog()
-{
-	PrepareActiveChild();
-	if (!m_mdiChild)
-		return;
-}
-*/

@@ -25,7 +25,7 @@
 #include <vtkImageData.h>
 
 iAEnergySpectrumDiagramData::iAEnergySpectrumDiagramData(iAXRFData * xrfData, iAPlotData* other):
-	m_energyFunction(NULL),
+	m_energyFunction(nullptr),
 	m_xrfData_ext(xrfData),
 	m_other(other)
 {}

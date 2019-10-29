@@ -21,7 +21,7 @@
 #include "iARangeSliderDiagramData.h"
 
 iARangeSliderDiagramData::iARangeSliderDiagramData( QList<double> m_rangeSliderData, double min, double max ) :
-	m_rangeSliderFunction( NULL ),
+	m_rangeSliderFunction( nullptr ),
 	m_rangeSliderData( m_rangeSliderData )
 {
 	m_xBounds[0] = min;

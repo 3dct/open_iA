@@ -27,13 +27,13 @@
 #include <itkArray.h>
 #include <itkConstShapedNeighborhoodIterator.h>
 #include <itkNumericTraits.h>
-#if ITK_VERSION_MAJOR >= 5
-#include <itkMultiThreaderBase.h>
-#include <mutex>
-#else
+#if ITK_VERSION_MAJOR < 5
 #include <itkFastMutexLock.h>
 #include <itkBarrier.h>
 #include <itkMultiThreader.h>
+#else
+#include <itkMultiThreaderBase.h>
+#include <mutex>
 #endif
 #include <vector>
 
@@ -81,7 +81,7 @@ namespace itk
  */
 template< class TInputImage, class TProbabilityPrecision = double,
           class TCentroidValuePrecision = double >
-class ITK_EXPORT MSKFCMClassifierInitializationImageFilter :
+class MSKFCMClassifierInitializationImageFilter :
     public FuzzyClassifierInitializationImageFilter< TInputImage,
                                                      TProbabilityPrecision,
                                                      TCentroidValuePrecision >
@@ -156,9 +156,7 @@ public:
   typedef typename itk::Vector< unsigned int,
     itkGetStaticConstMacro(InputImageDimension) > NeighborhoodRadiusType;
 
-#if ITK_VERSION_MAJOR >= 5
-  typedef std::mutex MutexLockType;
-#else
+#if ITK_VERSION_MAJOR < 5
   /** Type definitions for mutex lock. Mutex lock allows the locking of
    * variables which are accessed through different threads. */
   typedef itk::FastMutexLock MutexLockType;
@@ -166,6 +164,8 @@ public:
   /** Type definitions for barrier class used to synchronize threaded
    * execution. */
   typedef itk::Barrier BarrierType;
+#else
+  typedef std::mutex MutexLockType;
 #endif
 
 
@@ -261,9 +261,6 @@ protected:
    * perform some calulations used later to update the centroids.
    *
    * \sa FuzzyClassifierInitializationImageFilter::GenerateData() */
-#if ITK_VERSION_MAJOR < 4
-  typedef int ThreadIdType;
-#endif
   void ThreadedGenerateData( const OutputImageRegionType& outputRegionForThread,
                              ThreadIdType threadId ) override;
 

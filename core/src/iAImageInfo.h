@@ -22,6 +22,7 @@
 
 #include <cstddef>    // for size_t (in linux)
 
+//! Statistical information on an image: min/max, mean, standard deviation.
 class iAImageInfo
 {
 public:

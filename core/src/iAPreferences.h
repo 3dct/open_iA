@@ -22,6 +22,7 @@
 
 #include "defines.h"
 
+//! Collection of generic open_iA program preferences.
 class iAPreferences
 {
 public:

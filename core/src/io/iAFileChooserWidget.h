@@ -28,6 +28,7 @@
 #include <QPushButton>
 #include <QWidget>
 
+//! A widget for selection of input/output file(s), or folder, combining a text input and a browse button.
 class open_iA_Core_API iAFileChooserWidget : public QWidget
 {
 	Q_OBJECT

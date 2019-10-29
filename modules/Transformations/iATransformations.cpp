@@ -45,9 +45,9 @@ static typename TImageType::PointType image_center(TImageType * image)
 }
 
 template < class TImageType >
-static typename TImageType::PointType center_image(TImageType * image, typename TImageType::PointType * oldOrigin = NULL)
+static typename TImageType::PointType center_image(TImageType * image, typename TImageType::PointType * oldOrigin = nullptr)
 {
-	if (oldOrigin != NULL)
+	if (oldOrigin != nullptr)
 		*oldOrigin = image->GetOrigin();
 	typename TImageType::PointType center = image_center<TImageType>(image);
 	image->SetOrigin(center);

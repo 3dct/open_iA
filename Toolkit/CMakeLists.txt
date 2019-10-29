@@ -11,30 +11,34 @@ IF(Module_GPU_DreamcasterTool)
 
 	#.cpp sources
 	SET( DREAMCASTER_SRCS
-		Dreamcaster/dreamcaster.cpp
-		Dreamcaster/PaintWidget.cpp
-		Dreamcaster/StabilityWidget.cpp
-		Dreamcaster/ComparisonAndWeighting.cpp
+		Dreamcaster/iADreamCaster.cpp
+		Dreamcaster/iAPaintWidget.cpp
+		Dreamcaster/iAStabilityWidget.cpp
+		Dreamcaster/iAComparisonAndWeighting.cpp
 		Dreamcaster/dlg_histogram_simple.cpp
 
-		Dreamcaster/raycast/src/common.cpp
-		Dreamcaster/raycast/src/raytracer.cpp
-		Dreamcaster/raycast/src/scene.cpp
-		Dreamcaster/raycast/src/STLLoader.cpp
-		Dreamcaster/raycast/src/ScreenBuffer.cpp
-		Dreamcaster/raycast/src/Plot3DVtk.cpp
+		Dreamcaster/iADreamCaster.h
+		Dreamcaster/iAPaintWidget.h
+		Dreamcaster/iAStabilityWidget.h
+		Dreamcaster/iAComparisonAndWeighting.h
+		Dreamcaster/dlg_histogram_simple.h
 
-		Dreamcaster/dreamcaster.h
+		Dreamcaster/raycast/src/iADreamCasterCommon.cpp
+		Dreamcaster/raycast/src/iARaytracer.cpp
+		Dreamcaster/raycast/src/iAScene.cpp
+		Dreamcaster/raycast/src/iASTLLoader.cpp
+		Dreamcaster/raycast/src/iAScreenBuffer.cpp
+		Dreamcaster/raycast/src/iAPlot3DVtk.cpp
 
-		Dreamcaster/raycast/include/BSPTree.h
-		Dreamcaster/raycast/include/common.h
-		Dreamcaster/raycast/include/CutFigList.h
-		Dreamcaster/raycast/include/DataFormat.h
-		Dreamcaster/raycast/include/raytracer.h
-		Dreamcaster/raycast/include/scene.h
-		Dreamcaster/raycast/include/STLLoader.h
-		Dreamcaster/raycast/include/ScreenBuffer.h
-		Dreamcaster/raycast/include/Plot3DVtk.h
+		Dreamcaster/raycast/include/iABSPTree.h
+		Dreamcaster/raycast/include/iADreamCasterCommon.h
+		Dreamcaster/raycast/include/iACutFigList.h
+		Dreamcaster/raycast/include/iADataFormat.h
+		Dreamcaster/raycast/include/iARayTracer.h
+		Dreamcaster/raycast/include/iAScene.h
+		Dreamcaster/raycast/include/iASTLLoader.h
+		Dreamcaster/raycast/include/iAScreenBuffer.h
+		Dreamcaster/raycast/include/iAPlot3DVtk.h
 	 )
 	# *.ui files
 	SET( DREAMCASTER_UI
@@ -65,10 +69,6 @@ IF(Module_GPU_DreamcasterTool)
 	
 	IF (openiA_USE_IDE_FOLDERS)
 		SET_PROPERTY(TARGET Dreamcaster PROPERTY FOLDER "Libraries")
-	ENDIF()
-
-	IF (openiA_USE_COTIRE)
-		cotire(Dreamcaster)
 	ENDIF()
 
 ENDIF(Module_GPU_DreamcasterTool)

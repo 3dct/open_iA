@@ -31,11 +31,11 @@ class dlg_FilterSelection : public dlg_FilterSelectionConnector
 Q_OBJECT
 public:
 	dlg_FilterSelection(QWidget * parent, QString const & preselectedFilter = "");
-	QString SelectedFilterName() const;
+	QString selectedFilterName() const;
 public slots:
-	void FilterChanged(QString const &);
-	void ListSelectionChanged(QListWidgetItem *, QListWidgetItem *);
+	void filterChanged(QString const &);
+	void listSelectionChanged(QListWidgetItem *, QListWidgetItem *);
 private:
-	void EnableOKButton();
+	void enableOKButton();
 	int m_curMatches;
 };

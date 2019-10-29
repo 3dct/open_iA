@@ -53,6 +53,7 @@ class iAModuleDispatcher;
 class iAXmlSettings;
 class MdiChild;
 
+//! Application main window, provides access to all global graphical user interface elements.
 class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
 {
 	Q_OBJECT

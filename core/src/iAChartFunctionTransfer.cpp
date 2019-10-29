@@ -41,7 +41,7 @@ iAChartTransferFunction::iAChartTransferFunction(iADiagramFctWidget *chart, QCol
 	m_color(color),
 	m_colorDlg(new QColorDialog(chart)),
 	m_opacityTF(nullptr),
-	m_colorTF(NULL),
+	m_colorTF(nullptr),
 	m_selectedPoint(-1)
 {
 	m_gradient.setSpread(QGradient::PadSpread);
@@ -230,7 +230,7 @@ int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 			}
 		}
 
-		if (x != NULL)
+		if (x != nullptr)
 		{
 			if (*x == viewX)
 				*x = lx+1;
@@ -353,7 +353,7 @@ void iAChartTransferFunction::moveSelectedPoint(int x, int y)
 
 void iAChartTransferFunction::changeColor(QMouseEvent *event)
 {
-	if (event != NULL)
+	if (event != nullptr)
 		m_selectedPoint = selectPoint(event);
 
 	if (m_selectedPoint == -1)

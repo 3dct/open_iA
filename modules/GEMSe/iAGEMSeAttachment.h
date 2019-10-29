@@ -31,7 +31,6 @@ class dlg_GEMSeControl;
 class dlg_labels;
 class dlg_priors;
 class dlg_samplings;
-class iAWidgetAddHelper;
 
 class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
@@ -65,5 +64,4 @@ private:
 	QWidget*                          m_dummyTitleWidget;
 	dlg_GEMSe*                        m_dlgGEMSe;
 	dlg_samplings*                    m_dlgSamplings;
-	QSharedPointer<iAWidgetAddHelper> m_widgetAddHelper;
 };

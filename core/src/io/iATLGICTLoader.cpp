@@ -85,7 +85,7 @@ bool iATLGICTLoader::setup(QString const & baseDirectory, QWidget* parent)
 	inPara << tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
 		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]);
 
-	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, NULL);
+	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, nullptr);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;

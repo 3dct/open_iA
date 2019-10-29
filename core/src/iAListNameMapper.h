@@ -25,6 +25,7 @@
 
 #include <QStringList>
 
+//! Maps numbers to names via a given list.
 class open_iA_Core_API iAListNameMapper : public iANameMapper
 {
 public:

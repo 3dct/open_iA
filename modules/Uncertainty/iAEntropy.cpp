@@ -21,7 +21,7 @@
 #include "iAEntropy.h"
 
 // in Toolkit/Ensemble
-#include <EntropyImageFilter.h>
+#include <iAEntropyImageFilter.h>
 
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
@@ -52,7 +52,7 @@ template <typename PixelType>
 void entropy(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<PixelType, DIM> InputImageType;
-	typedef fhw::EntropyImageFilter<InputImageType, InputImageType> EntropyFilter;
+	typedef iAEntropyImageFilter<InputImageType, InputImageType> EntropyFilter;
 	auto entropyFilter = EntropyFilter::New();
 	for (int i = 0; i < filter->input().size(); ++i)
 	{

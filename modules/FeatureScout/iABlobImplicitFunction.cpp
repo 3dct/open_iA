@@ -32,7 +32,7 @@ iABlobImplicitFunction::iABlobImplicitFunction()
 {
 	m_blobManager = 0;
 
-	mb = NULL;
+	mb = nullptr;
 	mbSize = 0;
 	mbCount = 0;
 	mbExt = 1000;
@@ -52,7 +52,7 @@ void iABlobImplicitFunction::Allocate (const vtkIdType sz,
 	if (mb)
 	{
 		delete mb;
-		mb = NULL;
+		mb = nullptr;
 	}
 	mbCount = 0;
 	mbSize = 0;
@@ -145,7 +145,7 @@ double iABlobImplicitFunction::EvaluateFunction (double x[3])
 {
 	double value = JustEvaluateFunction (x);
 
-	if (m_blobManager != NULL)
+	if (m_blobManager != nullptr)
 	{
 		QList<iABlobCluster*>* list = m_blobManager->GetListObBlobClusters();
 		double otherVal;

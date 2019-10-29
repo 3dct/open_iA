@@ -22,6 +22,7 @@
 
 #include <QString>
 
+//! Settings applicable to a single slicer window.
 class iASingleSlicerSettings
 {
 public:
@@ -49,6 +50,7 @@ public:
 	{}
 };
 
+//! Settings for slicer windows and their interaction among each other and with other windows.
 class iASlicerSettings
 {
 public:

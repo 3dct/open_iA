@@ -43,4 +43,5 @@ private:
 	iAFiAKErToolBar* m_toolbar = nullptr;
 	QString m_lastPath, m_lastFormat;
 	double m_lastTimeStepOffset;
+	bool m_lastUseStepData;
 };

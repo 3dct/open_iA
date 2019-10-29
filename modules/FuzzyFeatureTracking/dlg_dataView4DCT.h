@@ -39,7 +39,7 @@ class iARenderer;
 class iAVolumeRenderer;
 class iAVolumeStack;
 class MdiChild;
-class QVTKWidgetMouseReleaseWorkaround;
+class iAQVTKWidgetMouseReleaseWorkaround;
 
 class dlg_dataView4DCT : public dlg_dataView4DCTContainer
 {
@@ -51,7 +51,7 @@ public:
 
 private:
 	iAVolumeStack*						m_volumeStack;
-	QVTKWidgetMouseReleaseWorkaround**	m_vtkWidgets;
+	iAQVTKWidgetMouseReleaseWorkaround** m_vtkWidgets;
 	iARenderer**						m_renderers;
 	iAVolumeRenderer**					m_volumeRenderer;
 	vtkSmartPointer<vtkTransform>		m_axesTransform;

@@ -27,6 +27,9 @@
 class MainWindow;
 class MdiChild;
 
+//! Base class for data from a module that needs to be "attached" to a single MdiChild window.
+//! Should only be created through iAModuleInterface::CreateAttachment, as this takes care
+//! of attaching it to the MdiChild properly.
 class open_iA_Core_API iAModuleAttachmentToChild : public QObject
 {
 	Q_OBJECT

@@ -107,7 +107,7 @@ private:
  * RealType. Before assigning the computed value to the output pixel.
  */
 template< typename  TInputImage, typename  TOutputImage = TInputImage >
-class ITK_EXPORT FHWRescaleIntensityImageFilter:
+class FHWRescaleIntensityImageFilter:
   public
   UnaryFunctorImageFilter< TInputImage, TOutputImage,
                            Functor::FHWIntensityLinearTransform<

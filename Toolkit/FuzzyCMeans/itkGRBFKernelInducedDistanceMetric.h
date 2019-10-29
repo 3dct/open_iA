@@ -47,7 +47,7 @@ namespace Statistics
  * \sa PolynomialKernelInducedDistanceMetric
  */
 template< class TVector >
-class ITK_EXPORT GRBFKernelInducedDistanceMetric :
+class GRBFKernelInducedDistanceMetric :
     public KernelInducedDistanceMetric< TVector >
 {
 
@@ -72,20 +72,9 @@ public:
   /** Type of the origin. */
   typedef typename Superclass::OriginType OriginType;
 
-#if ITK_VERSION_MAJOR < 4
-#ifdef ITK_USE_REVIEW_STATISTICS
   /** Vector information. */
   typedef typename itk::Statistics::MeasurementVectorTraits
       MeasurementVectorTraitsType;
-#else
-  /** Vector information. */
-  typedef typename itk::MeasurementVectorTraits MeasurementVectorTraitsType;
-#endif
-#else
-  /** Vector information. */
-  typedef typename itk::Statistics::MeasurementVectorTraits
-      MeasurementVectorTraitsType;
-#endif
 
   /** Run-time type information (and related methods). */
   itkTypeMacro(GRBFKernelInducedDistanceMetric, KernelInducedDistanceMetric);

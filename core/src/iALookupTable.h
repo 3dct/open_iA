@@ -28,11 +28,10 @@
 class QColor;
 class vtkLookupTable;
 
-//! Class representing lookup table for color coding used in scatter plot matrix (SPLOM).
-/*!
-	Has methods for importing existing VTK lookup table
-	and mapping scalar values to a corresponding QColor.
-*/
+//! Class representing a lookup table for color coding.
+//! Used for example in the scatter plot matrix iAQSplom.
+//! Has methods for importing an existing VTK lookup table,
+//! and for mapping scalar values to a corresponding QColor.
 class open_iA_Core_API iALookupTable
 {
 public:
