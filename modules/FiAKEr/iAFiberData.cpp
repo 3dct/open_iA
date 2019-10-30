@@ -280,6 +280,78 @@ namespace
 			//DEBUG_LOG(QString("    Sampled point: (%1, %2, %3)").arg(result[i][0]).arg(result[i][1]).arg(result[i][2]));
 		}
 	}
+
+	double getPtToSegDistance(iAFiberData const & f1, iAFiberData const & f2, int measure)
+	{
+		double sumVal = 0;
+		double minVal = std::numeric_limits<double>::max();
+		double maxVal = 0;
+		// TODO: Unify - make everyting of same iAVec type!
+		if (f1.curvedPoints.empty())
+		{
+			for (int pt=PtStart; pt <= PtEnd; ++pt)
+			{
+				double curDist;
+				if (f2.curvedPoints.empty())
+				{
+					curDist = distanceToLineSegment(f1.pts[pt], f2.pts[PtStart], f2.pts[PtEnd]);
+				}
+				else
+				{
+					// find segment with minimal distance to this point:
+					curDist = std::numeric_limits<double>::max();
+					for (size_t j=0; j<f2.curvedPoints.size()-1; ++j)
+					{
+						double dist = distanceToLineSegment(f1.pts[pt], f2.curvedPoints[j], f2.curvedPoints[j+1]);
+						if (dist < curDist)
+							curDist = dist;
+					}
+				}
+				sumVal += curDist;
+				if (curDist < minVal)
+					minVal = curDist;
+				if (curDist > maxVal)
+					maxVal = curDist;
+			}
+		}
+		else
+		{
+			for (size_t i=0; i<f1.curvedPoints.size(); ++i)
+			{
+				double curDist;
+				if (f2.curvedPoints.empty())
+				{
+					curDist = distanceToLineSegment(f1.curvedPoints[i], f2.pts[PtStart], f2.pts[PtEnd]);
+				}
+				else
+				{
+					// find segment with minimal distance to this point:
+					curDist = std::numeric_limits<double>::max();
+					for (size_t j=0; j<f2.curvedPoints.size()-1; ++j)
+					{
+						double dist = distanceToLineSegment(f1.curvedPoints[i], f2.curvedPoints[j], f2.curvedPoints[j+1]);
+						if (dist < curDist)
+							curDist = dist;
+					}
+				}
+				sumVal += curDist;
+				if (curDist < minVal)
+					minVal = curDist;
+				if (curDist > maxVal)
+					maxVal = curDist;
+			}
+		}
+		double avgVal = sumVal / f1.curvedPoints.size();
+		// which one to use?
+		switch (measure)
+		{
+		case 0: return minVal;
+		case 1: return maxVal;
+		case 2: return sumVal;
+		case 3: return avgVal;
+		default: return 0;
+		}
+	}
 }
 
 void samplePoints(iAFiberData const & fiber, std::vector<Vec3D > & result, size_t numSamples)
@@ -408,6 +480,32 @@ double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		break;
 	case 7:
 		similarity = 1 - getOverlap(fiber1raw, fiber2, true, false);
+		break;
+
+	// measure in both directions and take minimum?
+	case 8:
+		similarity = getPtToSegDistance(fiber1raw, fiber2, 0);
+		break;
+	case 9:
+		similarity = getPtToSegDistance(fiber1raw, fiber2, 1);
+		break;
+	case 10:
+		similarity = getPtToSegDistance(fiber1raw, fiber2, 2);
+		break;
+	case 11:
+		similarity = getPtToSegDistance(fiber1raw, fiber2, 3);
+		break;
+	case 12:
+		similarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 0), getPtToSegDistance(fiber2, fiber1raw, 0));
+		break;
+	case 13:
+		similarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 1), getPtToSegDistance(fiber2, fiber1raw, 1));
+		break;
+	case 14:
+		similarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 2), getPtToSegDistance(fiber2, fiber1raw, 2));
+		break;
+	case 15:
+		similarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 3), getPtToSegDistance(fiber2, fiber1raw, 3));
 		break;
 	}
 	if (std::isinf(similarity))
