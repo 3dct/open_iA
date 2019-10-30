@@ -286,60 +286,32 @@ namespace
 		double sumVal = 0;
 		double minVal = std::numeric_limits<double>::max();
 		double maxVal = 0;
-		// TODO: Unify - make everyting of same iAVec type!
-		if (f1.curvedPoints.empty())
+		
+		std::vector<iAVec3f> const & f1pts = (f1.curvedPoints.empty()) ? f1.pts : f1.curvedPoints;
+
+		for (iAVec3f const & f1pt: f1pts)
 		{
-			for (int pt=PtStart; pt <= PtEnd; ++pt)
+			double curDist;
+			if (f2.curvedPoints.empty())
 			{
-				double curDist;
-				if (f2.curvedPoints.empty())
-				{
-					curDist = distanceToLineSegment(f1.pts[pt], f2.pts[PtStart], f2.pts[PtEnd]);
-				}
-				else
-				{
-					// find segment with minimal distance to this point:
-					curDist = std::numeric_limits<double>::max();
-					for (size_t j=0; j<f2.curvedPoints.size()-1; ++j)
-					{
-						double dist = distanceToLineSegment(f1.pts[pt], f2.curvedPoints[j], f2.curvedPoints[j+1]);
-						if (dist < curDist)
-							curDist = dist;
-					}
-				}
-				sumVal += curDist;
-				if (curDist < minVal)
-					minVal = curDist;
-				if (curDist > maxVal)
-					maxVal = curDist;
+				curDist = distanceToLineSegment(f1pt, f2.pts[PtStart], f2.pts[PtEnd]);
 			}
-		}
-		else
-		{
-			for (size_t i=0; i<f1.curvedPoints.size(); ++i)
+			else
 			{
-				double curDist;
-				if (f2.curvedPoints.empty())
+				// find segment with minimal distance to this point:
+				curDist = std::numeric_limits<double>::max();
+				for (size_t j=0; j<f2.curvedPoints.size()-1; ++j)
 				{
-					curDist = distanceToLineSegment(f1.curvedPoints[i], f2.pts[PtStart], f2.pts[PtEnd]);
+					double dist = distanceToLineSegment(f1pt, f2.curvedPoints[j], f2.curvedPoints[j+1]);
+					if (dist < curDist)
+						curDist = dist;
 				}
-				else
-				{
-					// find segment with minimal distance to this point:
-					curDist = std::numeric_limits<double>::max();
-					for (size_t j=0; j<f2.curvedPoints.size()-1; ++j)
-					{
-						double dist = distanceToLineSegment(f1.curvedPoints[i], f2.curvedPoints[j], f2.curvedPoints[j+1]);
-						if (dist < curDist)
-							curDist = dist;
-					}
-				}
-				sumVal += curDist;
-				if (curDist < minVal)
-					minVal = curDist;
-				if (curDist > maxVal)
-					maxVal = curDist;
 			}
+			sumVal += curDist;
+			if (curDist < minVal)
+				minVal = curDist;
+			if (curDist > maxVal)
+				maxVal = curDist;
 		}
 		double avgVal = sumVal / f1.curvedPoints.size();
 		// which one to use?
