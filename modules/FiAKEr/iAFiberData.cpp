@@ -32,6 +32,7 @@
 
 
 iAFiberData::iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping, std::vector<iAVec3f> curvedPts):
+	pts(3),
 	curvedPoints(curvedPts)
 {
 	pts[PtStart] = iAVec3f(
@@ -51,7 +52,9 @@ iAFiberData::iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const
 	length = table->GetValue(fiberID, mapping[iACsvConfig::Length]).ToDouble();
 	diameter = table->GetValue(fiberID, mapping[iACsvConfig::Diameter]).ToDouble();
 }
-iAFiberData::iAFiberData(std::vector<double> const & data)
+
+iAFiberData::iAFiberData(std::vector<double> const & data) :
+	pts(3)
 {
 	pts[PtStart] = iAVec3f(data[0], data[1], data[2]);
 	pts[PtEnd] = iAVec3f(data[3], data[4], data[5]);
@@ -61,6 +64,7 @@ iAFiberData::iAFiberData(std::vector<double> const & data)
 	length = data[11];
 	diameter = data[12];
 }
+
 iAFiberData::iAFiberData()
 {}
 

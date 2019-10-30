@@ -40,7 +40,7 @@ const int DefaultSamplePoints = 200;
 struct iAFiberData
 {
 	double phi, theta, length, diameter;
-	iAVec3f pts[3];
+	std::vector<iAVec3f> pts;
 	std::vector<iAVec3f> curvedPoints;
 	iAFiberData();
 	iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping, std::vector<iAVec3f> curvedPts /*= std::vector<iAVec3f>()*/);
