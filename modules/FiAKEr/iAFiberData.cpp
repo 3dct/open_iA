@@ -65,7 +65,8 @@ iAFiberData::iAFiberData(std::vector<double> const & data) :
 	diameter = data[12];
 }
 
-iAFiberData::iAFiberData()
+iAFiberData::iAFiberData() :
+	pts(3)
 {}
 
 iAFiberData iAFiberData::getOrientationCorrected(iAFiberData const & source, iAFiberData const & other)
