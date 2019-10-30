@@ -22,7 +22,7 @@
 
 #include <iAModuleInterface.h>
 
-class iASmoothingModuleInterface : public iAModuleInterface
+class iACommonImageFiltersModuleInterface : public iAModuleInterface
 {
 public:
 	void Initialize() override;
