@@ -38,7 +38,8 @@
 namespace
 {
 	void getBestMatches(iAFiberData const & fiber, QMap<uint, uint> const & mapping, vtkTable* refTable,
-		std::vector<std::vector<iAFiberSimilarity> > & bestMatches, double diagonalLength, double maxLength)
+		std::vector<std::vector<iAFiberSimilarity> > & bestMatches, double diagonalLength, double maxLength,
+		std::map<size_t, std::vector<iAVec3f> > const & refCurveInfo)
 	{
 		size_t refFiberCount = refTable->GetNumberOfRows();
 		bestMatches.resize(iARefDistCompute::SimilarityMeasureCount);
@@ -51,7 +52,8 @@ namespace
 				similarities.resize(refFiberCount);
 				for (size_t refFiberID = 0; refFiberID < refFiberCount; ++refFiberID)
 				{
-					iAFiberData refFiber(refTable, refFiberID, mapping);
+					auto it = refCurveInfo.find(refFiberID);
+					iAFiberData refFiber(refTable, refFiberID, mapping, (it != refCurveInfo.end())? it->second: std::vector<iAVec3f>());
 					similarities[refFiberID].index = refFiberID;
 					double curSimilarity = getSimilarity(fiber, refFiber, d, diagonalLength, maxLength);
 					similarities[refFiberID].similarity = curSimilarity;
@@ -64,7 +66,8 @@ namespace
 				for (size_t bestMatchID = 0; bestMatchID < otherMatches.size(); ++bestMatchID)
 				{
 					size_t refFiberID = otherMatches[bestMatchID].index;
-					iAFiberData refFiber(refTable, refFiberID, mapping);
+					auto it = refCurveInfo.find(refFiberID);
+					iAFiberData refFiber(refTable, refFiberID, mapping, (it != refCurveInfo.end())? it->second: std::vector<iAVec3f>());
 					similarities[bestMatchID].index = refFiberID;
 					double curSimilarity = getSimilarity(fiber, refFiber, d, diagonalLength, maxLength);
 					similarities[bestMatchID].similarity = curSimilarity;
@@ -120,16 +123,11 @@ void iARefDistCompute::run()
 		d.refDiffFiber.resize(fiberCount);
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
-			/*
-			// TODO: Consider curved fibers
-			auto it = d.curveInfo.find(row);
-			if (it != d.curveInfo.end())
-			{ }
-			*/
+			auto it = d.curveInfo.find(fiberID);
 			// find the best-matching fibers in reference & compute difference:
-			iAFiberData fiber(d.table, fiberID, mapping/*, it != d.curveInfo.end()? it.second : std::vector<iAVec3f>() */);
+			iAFiberData fiber(d.table, fiberID, mapping, (it != d.curveInfo.end())? it->second : std::vector<iAVec3f>());
 			getBestMatches(fiber, mapping, ref.table,
-				d.refDiffFiber[fiberID].dist, diagLength, maxLength/*, d.curveInfo*/);
+				d.refDiffFiber[fiberID].dist, diagLength, maxLength, ref.curveInfo);
 		}
 	}
 	std::array<size_t, iAFiberCharData::FiberValueCount> diffCols = {
@@ -172,7 +170,8 @@ void iARefDistCompute::run()
 					auto & stepDiffs = diffs[iAFiberCharData::FiberValueCount + distID].step;
 					stepDiffs.resize(stepCount);
 					size_t refFiberID = d.refDiffFiber[fiberID].dist[distID][0].index;
-					iAFiberData refFiber(ref.table, refFiberID, mapping);
+
+					iAFiberData refFiber(ref.table, refFiberID, mapping, std::vector<iAVec3f>());
 					for (size_t step = 0; step < stepCount; ++step)
 					{
 						iAFiberData fiber(d.stepValues[step][fiberID]);
@@ -201,6 +200,7 @@ void iARefDistCompute::run()
 		}
 		for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 		{
+			//if (d.stepData == iAFiberCharData::SimpleStepData) ???
 			auto & diffData = d.refDiffFiber[fiberID];
 			for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 			{

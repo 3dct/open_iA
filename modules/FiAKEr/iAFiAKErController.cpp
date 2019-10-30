@@ -2481,7 +2481,8 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 	auto & d = m_data->result[resultID];
 	auto const & mapping = *d.mapping.data();
 	std::vector<Vec3D> sampledPoints;
-	iAFiberData sampleFiber(d.table, fiberID, mapping);
+	auto it = d.curveInfo.find(fiberID);
+	iAFiberData sampleFiber(d.table, fiberID, mapping, it != d.curveInfo.end() ? it->second : std::vector<iAVec3f>());
 	samplePoints(sampleFiber, sampledPoints);
 	auto sampleData = vtkSmartPointer<vtkPolyData>::New();
 	auto points = vtkSmartPointer<vtkPoints>::New();

@@ -45,7 +45,7 @@ struct iAFiberData
 	Vec3D pts[3];
 	std::vector<iAVec3f> curvedPoints;
 	iAFiberData();
-	iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping, std::vector<iAVec3f> curvedPts = std::vector<iAVec3f>());
+	iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping, std::vector<iAVec3f> curvedPts /*= std::vector<iAVec3f>()*/);
 	iAFiberData(std::vector<double> const & data);
 	static iAFiberData getOrientationCorrected(iAFiberData const & source, iAFiberData const & other);
 };

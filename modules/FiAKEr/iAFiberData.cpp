@@ -157,19 +157,56 @@ namespace
 		return linePoint + normLineDir * dist;
 	}
 
-	bool pointContainedInFiber(Vec3D const & point, iAFiberData const & fiber)
+	bool pointContainedInLineSegment(Vec3D const & start, Vec3D const & dir, double radius, Vec3D const & point)
 	{
-		Vec3D dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
+
 		double dist;
-		Vec3D ptOnLine = nearestPointOnLine(fiber.pts[PtStart], dir, point, dist);
-		// TODO: iterate over curved fiber segments
+		Vec3D ptOnLine = nearestPointOnLine(start, dir, point, dist);
 		if (dist > 0 && dist < dir.length())  // check whether point is between start and end
 		{
-			double radius = fiber.diameter / 2.0;
 			double distance = (ptOnLine - point).length();
 			return distance < radius;
 		}
 		return false;
+	}
+
+	bool pointContainedInFiber(Vec3D const & point, iAFiberData const & fiber)
+	{
+		if (fiber.curvedPoints.empty())
+		{
+			Vec3D dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
+			return pointContainedInLineSegment(fiber.pts[PtStart], dir, fiber.diameter / 2.0, point);
+		}
+		else
+		{
+			for (size_t i=0; i<fiber.curvedPoints.size()-1; ++i)
+			{
+				Vec3D dir = (fiber.curvedPoints[i+1] - fiber.curvedPoints[i]);
+				Vec3D start(fiber.curvedPoints[i]);
+				if (pointContainedInLineSegment(start, dir, fiber.diameter / 2.0, point))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
+	//! determine the distance from the given point to the closest point on the given line segment
+	//! @param
+	double distanceToLineSegment(Vec3D const & point, Vec3D const & lineStart, Vec3D const & lineEnd)
+	{
+		double dist;
+		Vec3D lineDir = lineEnd-lineStart;
+		Vec3D closestPointOnLine = nearestPointOnLine(lineStart, lineDir, point, dist);
+		if (dist > 0 && dist < lineDir.length())
+		{
+			return (point - closestPointOnLine).length();
+		}
+		else
+		{
+			return std::min( (point-lineStart).length(), (point-lineEnd).length() );
+		}
 	}
 
 	double getOverlap(iAFiberData const & fiber1, iAFiberData const & fiber2, bool volRelation, bool shortFiberDet)
@@ -177,7 +214,7 @@ namespace
 		// leave out pi in volume, as we only need relation of the volumes!
 		double fiber1Vol = fiber1.length + std::pow(fiber1.diameter / 2, 2);
 		double fiber2Vol = fiber2.length + std::pow(fiber2.diameter / 2, 2);
-		// TODO: also map fiber volume (currently not mapped!
+		// TODO: also map pre-computed fiber volume (currently not mapped)!
 		iAFiberData const & shorterFiber = (!shortFiberDet || fiber1Vol < fiber2Vol) ? fiber1 : fiber2;
 		iAFiberData const & longerFiber  = (!shortFiberDet || fiber1Vol < fiber2Vol) ? fiber2 : fiber1;
 		std::vector<Vec3D> sampledPoints;
@@ -202,51 +239,74 @@ namespace
 			sqdiffsum += std::pow(vec2 - vec1, 2);
 		return sqrt(sqdiffsum);
 	}
+
+	void sampleSegmentPoints(Vec3D const & start, Vec3D const & dir, double radius, std::vector<Vec3D> & result, int numSamples)
+	{
+		std::random_device r;
+		std::default_random_engine generator(r());
+		std::uniform_real_distribution<double> radiusRnd(0, 1);
+		std::uniform_real_distribution<double> posRnd(0, 1);
+		/*
+		DEBUG_LOG(QString("Sampling fiber (%1, %2, %3) - (%4, %5, %6), radius = %7")
+		.arg(fiberStart[0]).arg(fiberStart[1]).arg(fiberStart[2])
+		.arg(fiberEnd[0]).arg(fiberEnd[1]).arg(fiberEnd[2]).arg(fiberRadius));
+		*/
+
+		Vec3D perpDir = perpendicularVector(dir).normalized();
+		Vec3D perpDir2 = crossProduct(dir, perpDir).normalized();
+		std::vector<Vec3D> perpDirs;
+		perpDirs.push_back(Vec3D(perpDir));
+		perpDirs.push_back(Vec3D(perpDir2));
+		perpDirs.push_back(-Vec3D(perpDir));
+		perpDirs.push_back(-Vec3D(perpDir2));
+		for (size_t a = 0; a < 4; ++a)
+		{
+			perpDirs.push_back((perpDirs[a] + perpDirs[(a + 1) % 4]).normalized());
+		}
+
+		std::uniform_int_distribution<size_t> angleRnd(0, perpDirs.size() - 1);
+		/*
+		DEBUG_LOG(QString("Normal Vectors: (%1, %2, %3), (%4, %5, %6)")
+		.arg(perpDir[0]).arg(perpDir[1]).arg(perpDir[2])
+		.arg(perpDir2[0]).arg(perpDir2[1]).arg(perpDir2[2]));
+		*/
+
+		for (int i = 0; i < numSamples; ++i)
+		{
+			size_t angleIdx = angleRnd(generator);
+			double newRadius = radius * std::sqrt(radiusRnd(generator));
+			double t = posRnd(generator);
+			result.push_back(start + dir * t + perpDirs[angleIdx] * newRadius);
+			//DEBUG_LOG(QString("    Sampled point: (%1, %2, %3)").arg(result[i][0]).arg(result[i][1]).arg(result[i][2]));
+		}
+	}
 }
 
 void samplePoints(iAFiberData const & fiber, std::vector<Vec3D > & result, size_t numSamples)
 {
-	std::default_random_engine generator; // deterministic, will always produce the same "random" numbers; might be exchanged for another generator to check the spread we still get
-	std::uniform_real_distribution<double> radiusRnd(0, 1);
-	std::uniform_real_distribution<double> posRnd(0, 1);
-
-	Vec3D fiberDir = fiber.pts[PtEnd] - fiber.pts[PtStart];
-	double fiberRadius = fiber.diameter / 2;
-	/*
-	DEBUG_LOG(QString("Sampling fiber (%1, %2, %3) - (%4, %5, %6), radius = %7")
-	.arg(fiberStart[0]).arg(fiberStart[1]).arg(fiberStart[2])
-	.arg(fiberEnd[0]).arg(fiberEnd[1]).arg(fiberEnd[2]).arg(fiberRadius));
-	*/
-
-	Vec3D perpDir = perpendicularVector(fiberDir).normalized();
-	Vec3D perpDir2 = crossProduct(fiberDir, perpDir).normalized();
-	std::vector<Vec3D> perpDirs;
-	perpDirs.push_back(Vec3D(perpDir));
-	perpDirs.push_back(Vec3D(perpDir2));
-	perpDirs.push_back(-Vec3D(perpDir));
-	perpDirs.push_back(-Vec3D(perpDir2));
-	for (size_t a = 0; a < 4; ++a)
-	{
-		perpDirs.push_back((perpDirs[a] + perpDirs[(a + 1) % 4]).normalized());
-	}
-
-	std::uniform_int_distribution<int> angleRnd(0, perpDirs.size() - 1);
-	/*
-	DEBUG_LOG(QString("Normal Vectors: (%1, %2, %3), (%4, %5, %6)")
-	.arg(perpDir[0]).arg(perpDir[1]).arg(perpDir[2])
-	.arg(perpDir2[0]).arg(perpDir2[1]).arg(perpDir2[2]));
-	*/
-	result.resize(numSamples);
+	result.reserve(numSamples);
 
 	// TODO: iterate over curved fiber segments
-
-	for (int i = 0; i < numSamples; ++i)
+	if (fiber.curvedPoints.empty())
 	{
-		int angleIdx = angleRnd(generator);
-		double radius = fiberRadius * std::sqrt(radiusRnd(generator));
-		double t = posRnd(generator);
-		result[i] = fiber.pts[PtStart] + fiberDir * t + perpDirs[angleIdx] * radius;
-		//DEBUG_LOG(QString("    Sampled point: (%1, %2, %3)").arg(result[i][0]).arg(result[i][1]).arg(result[i][2]));
+		Vec3D dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
+		sampleSegmentPoints(fiber.pts[PtStart], dir, fiber.diameter / 2.0, result, numSamples );
+	}
+	else
+	{
+		double curvedLength = 0;
+		for (size_t i=0; i<fiber.curvedPoints.size()-1; ++i)
+		{
+			curvedLength += (fiber.curvedPoints[i+1] - fiber.curvedPoints[i]).length();
+		}
+		for (size_t i=0; i<fiber.curvedPoints.size()-1; ++i)
+		{
+			Vec3D dir = (fiber.curvedPoints[i+1] - fiber.curvedPoints[i]);
+			Vec3D start(fiber.curvedPoints[i]);
+			sampleSegmentPoints(start, dir, fiber.diameter / 2.0, result,
+				// spread number of samples according to length ratio
+				numSamples * dir.length() / curvedLength);
+		}
 	}
 }
 
