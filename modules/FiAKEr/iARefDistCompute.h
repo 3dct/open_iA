@@ -33,7 +33,7 @@ class iARefDistCompute : public QThread
 {
 	Q_OBJECT
 public:
-	static const int SimilarityMeasureCount = 16;
+	static const int SimilarityMeasureCount = 20;
 	static const int BestSimilarityMeasure = 7;
 	static const int OverlapMeasureCount = 3;
 	static const int OverlapMeasureStart = SimilarityMeasureCount-OverlapMeasureCount;

@@ -507,6 +507,18 @@ double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	case 15:
 		similarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 3), getPtToSegDistance(fiber2, fiber1raw, 3));
 		break;
+	case 16:
+		similarity = std::max(getPtToSegDistance(fiber1raw, fiber2, 0), getPtToSegDistance(fiber2, fiber1raw, 0));
+		break;
+	case 17:
+		similarity = std::max(getPtToSegDistance(fiber1raw, fiber2, 1), getPtToSegDistance(fiber2, fiber1raw, 1));
+		break;
+	case 18:
+		similarity = std::max(getPtToSegDistance(fiber1raw, fiber2, 2), getPtToSegDistance(fiber2, fiber1raw, 2));
+		break;
+	case 19:
+		similarity = std::max(getPtToSegDistance(fiber1raw, fiber2, 3), getPtToSegDistance(fiber2, fiber1raw, 3));
+		break;
 	}
 	if (std::isinf(similarity))
 		similarity = 0;

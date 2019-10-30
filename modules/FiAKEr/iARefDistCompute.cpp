@@ -105,6 +105,10 @@ QStringList iARefDistCompute::getSimilarityMeasureNames()
 	result.push_back("dminmax");
 	result.push_back("dminsum");
 	result.push_back("dminavg");
+	result.push_back("dmaxmin");
+	result.push_back("dmaxmax");
+	result.push_back("dmaxsum");
+	result.push_back("dmaxavg");
 	assert(result.size() == SimilarityMeasureCount);
 	return result;
 }
