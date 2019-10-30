@@ -26,8 +26,6 @@
 
 #include <vector>
 
-typedef iAVec3T<double> Vec3D;
-
 class vtkTable;
 
 enum {
@@ -42,7 +40,7 @@ const int DefaultSamplePoints = 200;
 struct iAFiberData
 {
 	double phi, theta, length, diameter;
-	Vec3D pts[3];
+	iAVec3f pts[3];
 	std::vector<iAVec3f> curvedPoints;
 	iAFiberData();
 	iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping, std::vector<iAVec3f> curvedPts /*= std::vector<iAVec3f>()*/);
@@ -51,7 +49,7 @@ struct iAFiberData
 };
 
 //! Samples points inside of the cylinder spanned by a single fiber
-void samplePoints(iAFiberData const & fiber, std::vector<Vec3D> & result, size_t numSamples=DefaultSamplePoints);
+void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size_t numSamples=DefaultSamplePoints);
 
 //! Computes the similarity between two fibers according to a given measure
 //! @param fiber1raw data of the first fiber

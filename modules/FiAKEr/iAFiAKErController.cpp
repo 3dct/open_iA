@@ -2480,7 +2480,7 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 
 	auto & d = m_data->result[resultID];
 	auto const & mapping = *d.mapping.data();
-	std::vector<Vec3D> sampledPoints;
+	std::vector<iAVec3f> sampledPoints;
 	auto it = d.curveInfo.find(fiberID);
 	iAFiberData sampleFiber(d.table, fiberID, mapping, it != d.curveInfo.end() ? it->second : std::vector<iAVec3f>());
 	samplePoints(sampleFiber, sampledPoints);

@@ -34,15 +34,15 @@
 iAFiberData::iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping, std::vector<iAVec3f> curvedPts):
 	curvedPoints(curvedPts)
 {
-	pts[PtStart] = Vec3D(
+	pts[PtStart] = iAVec3f(
 		table->GetValue(fiberID, mapping[iACsvConfig::StartX]).ToDouble(),
 		table->GetValue(fiberID, mapping[iACsvConfig::StartY]).ToDouble(),
 		table->GetValue(fiberID, mapping[iACsvConfig::StartZ]).ToDouble());
-	pts[PtCenter] = Vec3D(
+	pts[PtCenter] = iAVec3f(
 		table->GetValue(fiberID, mapping[iACsvConfig::CenterX]).ToDouble(),
 		table->GetValue(fiberID, mapping[iACsvConfig::CenterY]).ToDouble(),
 		table->GetValue(fiberID, mapping[iACsvConfig::CenterZ]).ToDouble());
-	pts[PtEnd] = Vec3D(
+	pts[PtEnd] = iAVec3f(
 		table->GetValue(fiberID, mapping[iACsvConfig::EndX]).ToDouble(),
 		table->GetValue(fiberID, mapping[iACsvConfig::EndY]).ToDouble(),
 		table->GetValue(fiberID, mapping[iACsvConfig::EndZ]).ToDouble());
@@ -53,9 +53,9 @@ iAFiberData::iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const
 }
 iAFiberData::iAFiberData(std::vector<double> const & data)
 {
-	pts[PtStart] = Vec3D(data[0], data[1], data[2]);
-	pts[PtEnd] = Vec3D(data[3], data[4], data[5]);
-	pts[PtCenter] = Vec3D(data[6], data[7], data[8]);
+	pts[PtStart] = iAVec3f(data[0], data[1], data[2]);
+	pts[PtEnd] = iAVec3f(data[3], data[4], data[5]);
+	pts[PtCenter] = iAVec3f(data[6], data[7], data[8]);
 	phi = data[9];
 	theta = data[10];
 	length = data[11];
@@ -79,7 +79,7 @@ iAFiberData iAFiberData::getOrientationCorrected(iAFiberData const & source, iAF
 		result.pts[PtEnd] = source.pts[PtStart];
 		result.diameter = source.diameter;
 		result.length = source.length;
-		Vec3D dir = result.pts[PtStart] - source.pts[PtEnd];
+		iAVec3f dir = result.pts[PtStart] - source.pts[PtEnd];
 		if (dir.z() < 0)
 		dir = result.pts[PtEnd] - source.pts[PtStart];
 		if (dir.x() == 0 && dir.y() == 0)
@@ -130,17 +130,17 @@ namespace
 		return false;
 	}
 
-	Vec3D perpendicularVector(Vec3D const & vectorIn)
+	iAVec3f perpendicularVector(iAVec3f const & vectorIn)
 	{
 		if (!isApproxEqual(vectorIn[0], 0.0) && !isApproxEqual(-vectorIn[0], vectorIn[1]))
-			return Vec3D(vectorIn[2], vectorIn[2], -vectorIn[0] - vectorIn[1]);
+			return iAVec3f(vectorIn[2], vectorIn[2], -vectorIn[0] - vectorIn[1]);
 		else
-			return Vec3D(-vectorIn[1] - vectorIn[2], vectorIn[0], vectorIn[0]);
+			return iAVec3f(-vectorIn[1] - vectorIn[2], vectorIn[0], vectorIn[0]);
 	}
 
-	Vec3D fromSpherical(double phi, double theta, double radius)
+	iAVec3f fromSpherical(double phi, double theta, double radius)
 	{
-		return Vec3D(
+		return iAVec3f(
 			radius * std::sin(vtkMath::RadiansFromDegrees(phi)) * std::cos(vtkMath::RadiansFromDegrees(theta)),
 			radius * std::sin(vtkMath::RadiansFromDegrees(phi)) * std::sin(vtkMath::RadiansFromDegrees(theta)),
 			radius * std::cos(vtkMath::RadiansFromDegrees(phi)));
@@ -149,7 +149,7 @@ namespace
 	//linePnt - point the line passes through
 	//lineDir - unit vector in direction of line, either direction works
 	//pnt - the point to find nearest on line for
-	Vec3D nearestPointOnLine(Vec3D const & linePoint, Vec3D const & lineDir, Vec3D const & point, double & dist)
+	iAVec3f nearestPointOnLine(iAVec3f const & linePoint, iAVec3f const & lineDir, iAVec3f const & point, double & dist)
 	{
 		auto normLineDir = lineDir.normalized();
 		auto vecToPoint = point - linePoint;
@@ -157,11 +157,11 @@ namespace
 		return linePoint + normLineDir * dist;
 	}
 
-	bool pointContainedInLineSegment(Vec3D const & start, Vec3D const & dir, double radius, Vec3D const & point)
+	bool pointContainedInLineSegment(iAVec3f const & start, iAVec3f const & dir, double radius, iAVec3f const & point)
 	{
 
 		double dist;
-		Vec3D ptOnLine = nearestPointOnLine(start, dir, point, dist);
+		iAVec3f ptOnLine = nearestPointOnLine(start, dir, point, dist);
 		if (dist > 0 && dist < dir.length())  // check whether point is between start and end
 		{
 			double distance = (ptOnLine - point).length();
@@ -170,19 +170,19 @@ namespace
 		return false;
 	}
 
-	bool pointContainedInFiber(Vec3D const & point, iAFiberData const & fiber)
+	bool pointContainedInFiber(iAVec3f const & point, iAFiberData const & fiber)
 	{
 		if (fiber.curvedPoints.empty())
 		{
-			Vec3D dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
+			iAVec3f dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
 			return pointContainedInLineSegment(fiber.pts[PtStart], dir, fiber.diameter / 2.0, point);
 		}
 		else
 		{
 			for (size_t i=0; i<fiber.curvedPoints.size()-1; ++i)
 			{
-				Vec3D dir = (fiber.curvedPoints[i+1] - fiber.curvedPoints[i]);
-				Vec3D start(fiber.curvedPoints[i]);
+				iAVec3f dir = (fiber.curvedPoints[i+1] - fiber.curvedPoints[i]);
+				iAVec3f start(fiber.curvedPoints[i]);
 				if (pointContainedInLineSegment(start, dir, fiber.diameter / 2.0, point))
 				{
 					return true;
@@ -194,11 +194,11 @@ namespace
 
 	//! determine the distance from the given point to the closest point on the given line segment
 	//! @param
-	double distanceToLineSegment(Vec3D const & point, Vec3D const & lineStart, Vec3D const & lineEnd)
+	double distanceToLineSegment(iAVec3f const & point, iAVec3f const & lineStart, iAVec3f const & lineEnd)
 	{
 		double dist;
-		Vec3D lineDir = lineEnd-lineStart;
-		Vec3D closestPointOnLine = nearestPointOnLine(lineStart, lineDir, point, dist);
+		iAVec3f lineDir = lineEnd-lineStart;
+		iAVec3f closestPointOnLine = nearestPointOnLine(lineStart, lineDir, point, dist);
 		if (dist > 0 && dist < lineDir.length())
 		{
 			return (point - closestPointOnLine).length();
@@ -217,10 +217,10 @@ namespace
 		// TODO: also map pre-computed fiber volume (currently not mapped)!
 		iAFiberData const & shorterFiber = (!shortFiberDet || fiber1Vol < fiber2Vol) ? fiber1 : fiber2;
 		iAFiberData const & longerFiber  = (!shortFiberDet || fiber1Vol < fiber2Vol) ? fiber2 : fiber1;
-		std::vector<Vec3D> sampledPoints;
+		std::vector<iAVec3f> sampledPoints;
 		samplePoints(shorterFiber, sampledPoints, DefaultSamplePoints);
 		size_t containedPoints = 0;
-		for (Vec3D pt : sampledPoints)
+		for (iAVec3f pt : sampledPoints)
 		{
 			if (pointContainedInFiber(pt, longerFiber))
 				++containedPoints;
@@ -240,7 +240,7 @@ namespace
 		return sqrt(sqdiffsum);
 	}
 
-	void sampleSegmentPoints(Vec3D const & start, Vec3D const & dir, double radius, std::vector<Vec3D> & result, int numSamples)
+	void sampleSegmentPoints(iAVec3f const & start, iAVec3f const & dir, double radius, std::vector<iAVec3f> & result, int numSamples)
 	{
 		std::random_device r;
 		std::default_random_engine generator(r());
@@ -252,13 +252,13 @@ namespace
 		.arg(fiberEnd[0]).arg(fiberEnd[1]).arg(fiberEnd[2]).arg(fiberRadius));
 		*/
 
-		Vec3D perpDir = perpendicularVector(dir).normalized();
-		Vec3D perpDir2 = crossProduct(dir, perpDir).normalized();
-		std::vector<Vec3D> perpDirs;
-		perpDirs.push_back(Vec3D(perpDir));
-		perpDirs.push_back(Vec3D(perpDir2));
-		perpDirs.push_back(-Vec3D(perpDir));
-		perpDirs.push_back(-Vec3D(perpDir2));
+		iAVec3f perpDir = perpendicularVector(dir).normalized();
+		iAVec3f perpDir2 = crossProduct(dir, perpDir).normalized();
+		std::vector<iAVec3f> perpDirs;
+		perpDirs.push_back(iAVec3f(perpDir));
+		perpDirs.push_back(iAVec3f(perpDir2));
+		perpDirs.push_back(-iAVec3f(perpDir));
+		perpDirs.push_back(-iAVec3f(perpDir2));
 		for (size_t a = 0; a < 4; ++a)
 		{
 			perpDirs.push_back((perpDirs[a] + perpDirs[(a + 1) % 4]).normalized());
@@ -354,14 +354,14 @@ namespace
 	}
 }
 
-void samplePoints(iAFiberData const & fiber, std::vector<Vec3D > & result, size_t numSamples)
+void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size_t numSamples)
 {
 	result.reserve(numSamples);
 
 	// TODO: iterate over curved fiber segments
 	if (fiber.curvedPoints.empty())
 	{
-		Vec3D dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
+		iAVec3f dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
 		sampleSegmentPoints(fiber.pts[PtStart], dir, fiber.diameter / 2.0, result, numSamples );
 	}
 	else
@@ -373,8 +373,8 @@ void samplePoints(iAFiberData const & fiber, std::vector<Vec3D > & result, size_
 		}
 		for (size_t i=0; i<fiber.curvedPoints.size()-1; ++i)
 		{
-			Vec3D dir = (fiber.curvedPoints[i+1] - fiber.curvedPoints[i]);
-			Vec3D start(fiber.curvedPoints[i]);
+			iAVec3f dir = (fiber.curvedPoints[i+1] - fiber.curvedPoints[i]);
+			iAVec3f start(fiber.curvedPoints[i]);
 			sampleSegmentPoints(start, dir, fiber.diameter / 2.0, result,
 				// spread number of samples according to length ratio
 				numSamples * dir.length() / curvedLength);
@@ -411,8 +411,8 @@ double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	{
 		iAFiberData fiber1 = iAFiberData::getOrientationCorrected(fiber1raw, fiber2);
 		/*
-		Vec3D dir1 = fromSpherical(fiber1.phi, fiber1.theta, 1);
-		Vec3D dir2 = fromSpherical(fiber2.phi, fiber2.theta, 1);
+		iAVec3f dir1 = fromSpherical(fiber1.phi, fiber1.theta, 1);
+		iAVec3f dir2 = fromSpherical(fiber2.phi, fiber2.theta, 1);
 		double fiberAngle = angle(dir1, dir2);
 		if (fiberAngle > vtkMath::Pi() / 2) // still larger than 90° ? Then my calculations are wrong!
 		{
