@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAGradients.h"
 
-#include "itkHigerOrderAccurateGradient/itkHigherOrderAccurateDerivativeImageFilter.h"
+#include <itkHigherOrderAccurateDerivativeImageFilter.h>
 
 #include <defines.h> // for DIM
 #include <iAConnector.h>
