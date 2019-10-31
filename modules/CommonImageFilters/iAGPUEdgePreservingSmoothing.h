@@ -20,10 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#ifndef ITKNOGPU
+#include <iAFilter.h>
 
-class iAGradientsModuleInterface : public iAModuleInterface
-{
-public:
-	void Initialize() override;
-};
+IAFILTER_DEFAULT_CLASS(iAGPUEdgePreservingSmoothing)
+#endif

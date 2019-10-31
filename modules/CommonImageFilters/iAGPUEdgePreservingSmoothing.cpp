@@ -18,6 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#ifndef ITKNOGPU
 #include "iAGPUEdgePreservingSmoothing.h"
 
 #include <defines.h>          // for DIM
@@ -76,3 +77,4 @@ iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing() :
 	addParameter("Conductance", Continuous, 1);
 	addParameter("Convert back to input type", Boolean, false);
 }
+#endif

@@ -26,6 +26,8 @@
 #include "iADistanceMap.h"
 #include "iAEdgeDetectionFilters.h"
 #include "iAGeometricTransformations.h"
+#include "iAGradients.h"
+#include "iAGPUEdgePreservingSmoothing.h"
 #include "iAHessianEigenanalysis.h"
 #include "iAIntensity.h"
 #include "iAMorphologyFilters.h"
@@ -63,6 +65,11 @@ void iACommonImageFiltersModuleInterface::Initialize()
 	REGISTER_FILTER_WITH_RUNNER(iAResampleFilter, iAResampleFilterRunner);
 	REGISTER_FILTER_WITH_RUNNER(iAExtractImageFilter, iAExtractImageFilterRunner);
 	REGISTER_FILTER(iAPadImageFilter);
+
+	// Gradient filters:
+	REGISTER_FILTER(iADerivative);
+	REGISTER_FILTER(iAGradientMagnitude);
+	REGISTER_FILTER(iAHigherOrderAccurateDerivative);
 
 	// Hessian eigen-analysis / Laplacian
 	REGISTER_FILTER(iAHessianEigenanalysis);
@@ -109,6 +116,9 @@ void iACommonImageFiltersModuleInterface::Initialize()
 	REGISTER_FILTER(iACurvatureAnisotropicDiffusion);
 	REGISTER_FILTER(iACurvatureFlow);
 	REGISTER_FILTER(iABilateral);
+#ifndef ITKNOGPU
+	REGISTER_FILTER(iAGPUEdgePreservingSmoothing);
+#endif
 
 	// Transformations
 	REGISTER_FILTER(iARotate);
