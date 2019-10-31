@@ -18,13 +18,17 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAPatchFilterModuleInterface.h"
+#include "iAMetaFiltersModuleInterface.h"
 
+#include "iABatchFilter.h"
 #include "iAPatchFilter.h"
+#include "iAStackReaderFilter.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
-void iAPatchFilterModuleInterface::Initialize()
+void iAMetaFiltersModuleInterface::Initialize()
 {
+	REGISTER_FILTER(iABatchFilter);
 	REGISTER_FILTER(iAPatchFilter);
+	REGISTER_FILTER(iAStackReaderFilter);
 }

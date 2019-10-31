@@ -22,7 +22,7 @@
 
 #include <iAModuleInterface.h>
 
-class iAPatchFilterModuleInterface : public iAModuleInterface
+class iAMetaFiltersModuleInterface : public iAModuleInterface
 {
 public:
 	void Initialize() override;
