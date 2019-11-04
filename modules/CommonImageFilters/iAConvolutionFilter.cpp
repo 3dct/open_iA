@@ -66,13 +66,15 @@ iAConvolution::iAConvolution() :
 	iAFilter("Convolution", "Convolution",
 		"Convolve a given image with an arbitrary (float) image kernel.<br/>"
 		"This filter operates by centering the flipped kernel image "
-		"(the additional input) at each pixel "
+		"at each pixel "
 		"in the image and computing the inner product between pixel values "
 		"in the image and pixel values in the kernel.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ConvolutionImageFilter.html\">"
 		"Convolution Filter</a> in the ITK documentation.", 2)
-{}
+{
+	setInputName(1, "Kernel image");
+}
 
 // FFT-based convolution instead of spatial domain convolution
 template<class T> void fft_convolution(iAFilter* filter)
@@ -105,15 +107,16 @@ IAFILTER_CREATE(iAFFTConvolution)
 iAFFTConvolution::iAFFTConvolution() :
 	iAFilter("FFT Convolution", "Convolution",
 		"Convolve a given image with a kernel using multiplication in the Fourier domain.<br/>"
-		"The first input (=active mdi child) is convolved with the selected "
-		"kernel image (the additional input)."
+		"The first input (=active mdi child) is convolved with the selected kernel image."
 		"This filter produces output equivalent to the output of the Convolution Filter. "
 		"However, it takes advantage of the convolution theorem to accelerate the convolution "
 		"computation when the kernel is large.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FFTConvolutionImageFilter.html\">"
 		"FFT Convolution Filter</a> in the ITK documentation.", 2)
-{}
+{
+	setInputName(1, "Kernel image");
+}
 
 template<class T> void correlation(iAFilter* filter)
 {
@@ -156,13 +159,15 @@ iACorrelation::iACorrelation() :
 	iAFilter("Correlation", "Convolution",
 		"Computes the normalized correlation of an image and a template.<br/>"
 		"This filter calculates the normalized correlation between an image "
-		"(the first input / the active mdi child) and the template (the "
-		"additional input. Normalized correlation is frequently use in feature "
+		"(the first input / the active mdi child) and the template. "
+		"Normalized correlation is frequently use in feature "
 		"detection because it is invariant to local changes in contrast.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1NormalizedCorrelationImageFilter.html\">"
 		"Normalized Correlation Filter</a> in the ITK documentation.", 2)
-{}
+{
+	setInputName(1, "Template image");
+}
 
 //NCC calculation using fft
 template<class T> void fft_correlation(iAFilter* filter)
@@ -208,8 +213,10 @@ iAFFTCorrelation::iAFFTCorrelation() :
 		"elements.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FFTNormalizedCorrelationImageFilter.html\">"
-		"FFT Normalized Correlation Filter</a> in the ITK documentation.", 2)
-{}
+		"FFT Normalized Correlation Filter</a> in the ITK documentation.")
+{
+	setInputName(1, "Template image");
+}
 
 template<class T> void streamed_fft_correlation(iAFilter* filter)
 {
@@ -268,4 +275,6 @@ iAStreamedFFTCorrelation::iAStreamedFFTCorrelation() :
 		"FFT Normalized Correlation Filter</a> and"
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1StreamingImageFilter.html\">"
 		"Streaming Filters</a> in the ITK documentation.", 2)
-{}
+{
+	setInputName(1, "Template image");
+}
