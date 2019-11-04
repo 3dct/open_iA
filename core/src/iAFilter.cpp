@@ -300,6 +300,19 @@ iALogger* iAFilter::logger()
 	return m_log;
 }
 
+QString iAFilter::inputName(int i) const
+{
+	if (m_inputNames.contains(i))
+		return m_inputNames[i];
+	else
+		return QString("Input %1").arg(i);
+}
+
+void iAFilter::setInputName(int i, QString const & name)
+{
+	m_inputNames.insert(i, name);
+}
+
 void iAFilter::addParameter(QString const & name, iAValueType valueType,
 	QVariant defaultValue, double min, double max)
 {

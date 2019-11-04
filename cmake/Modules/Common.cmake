@@ -63,6 +63,7 @@ IF(ITK_VERSION_MAJOR LESS 4 OR (ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR 
 	MESSAGE(FATAL_ERROR "Your ITK version is too old. Please use ITK >= 4.10")
 ENDIF()
 SET (ITK_COMPONENTS
+	HigherOrderAccurateGradient
 	ITKConvolution
 	ITKDenoising
 	ITKDistanceMap

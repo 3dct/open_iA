@@ -112,7 +112,7 @@ class iAInteractorStyleImage : public vtkInteractorStyleImage
 {
 public:
 	static iAInteractorStyleImage *New();
-	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage);
+	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage)
 
 	//! Disable "window-level" and rotation interaction (anything but shift-dragging)
 	void OnLeftButtonDown() override
@@ -164,7 +164,6 @@ public:
 	*/
 private:
 	bool m_rightButtonDragZoomEnabled = true;
-	bool m_rotionEnabled = false;
 };
 
 vtkStandardNewMacro(iAInteractorStyleImage);
@@ -683,7 +682,6 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 		setScalarBarTF(chData.colorTF());
 		updatePositionMarkerExtent();
 		// TODO: update required for new channels other than to export? export all channels?
-		int const * imgExt = image->GetExtent();
 		double unitSpacing = std::max(std::max(imgSpc[0], imgSpc[1]), imgSpc[2]);
 		double const * spc = m_channels[id]->output()->GetSpacing();
 		int    const * dim = m_channels[id]->output()->GetDimensions();
@@ -1128,7 +1126,7 @@ void iASlicer::setBackground(double r, double g, double b)
 	updateBackground();
 }
 
-void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callData)
+void iASlicer::execute(vtkObject * /*caller*/, unsigned long eventId, void * /*callData*/)
 {
 	if (m_channels.empty())
 		return;
