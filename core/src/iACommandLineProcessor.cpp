@@ -144,6 +144,18 @@ namespace
 			}
 			std::cout << std::endl;
 		}
+		if (filter->requiredInputs() == 0)
+		{
+			std::cout << "No input images." << std::endl;
+		}
+		else
+		{
+			std::cout << "Input images:" << std::endl;
+			for (int i = 0; i < filter->requiredInputs(); ++i)
+			{
+				std::cout << "    " << filter->inputName(i).toStdString() << std::endl;
+			}
+		}
 	}
 
 	void PrintParameterDescriptor(QString filterName)
