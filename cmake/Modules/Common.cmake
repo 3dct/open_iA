@@ -126,7 +126,10 @@ IF (SCIFIO_LOADED)
 	INSTALL(FILES "${SCIFIO_PATH}/bioformats_package.jar" DESTINATION scifio_jars)
 	INSTALL(FILES "${SCIFIO_PATH}/scifio-itk-bridge.jar" DESTINATION scifio_jars)
 ENDIF(SCIFIO_LOADED)
-
+IF ("${ITKGPUCommon_LIBRARY_DIRS}" STREQUAL "")
+	ADD_DEFINITIONS(-DITKNOGPU)
+	MESSAGE(WARNING "ITK is built without GPU support (flag ITK_USE_GPU disabled). Some GPU-optimized functionality might not be available!")
+ENDIF()
 
 # VTK
 FIND_PACKAGE(VTK REQUIRED)
