@@ -99,6 +99,15 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 				/*<< "RadiusManually" << ","*/
 				<< "RatioAxisLongToAxisMiddle" << ","
 				<< "RatioMiddleToSmallest" << ",";
+
+				/*
+				fout << p_x1 << "," << p_y1 << "," << p_z1 << ","
+				<< p_x2 << "," << p_y2 << "," << p_z2 << ",";
+
+				*/
+			fout << "Dir2_X1" << "," << "Dir2_Y1" << "," << "Dir2_Z1" << ","
+				<< "Dir2_X2" << "," << "Dir_Y2" << "," << "Dir2_Z2" << ",";
+
 		}
 		fout << '\n';
 
@@ -146,9 +155,15 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 			majorlength, minorlength, half_length, dx, dy, dz;
 
 		// Calculating start and and point of the pores's major principal axis
+		//the eigenvalues are already sorted lamba1 < lamda2 < lambda 3
 		eigenvalue = labelGeometryImageFilter->GetEigenvalues( labelValue );
 		auto maxEigenvalue = std::max_element( std::begin( eigenvalue ), std::end( eigenvalue ) );
 		int maxEigenvaluePos = std::distance( std::begin( eigenvalue ), maxEigenvalue );
+
+		//x, y, z component of the eigenvector
+		
+
+		//auto test = labelGeometryImageFilter->GetEigenvectors(labelValue);
 
 		eigenvector[0] = labelGeometryImageFilter->GetEigenvectors( labelValue )[0][maxEigenvaluePos];
 		eigenvector[1] = labelGeometryImageFilter->GetEigenvectors( labelValue )[1][maxEigenvaluePos];
@@ -228,6 +243,8 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 		double elongation = 0; 
 		double perimeter = 0; 
 		double equivSphericalRadius = 0; 
+
+		//given by second eigenvalue
 		double secondAxisLengh = 0; 
 
 		if (CalculateAdvancedChars)
@@ -288,6 +305,25 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 			double ratioLongestToMiddle = majorlength / secondAxisLengh; 
 			double ratioMiddleToSmallest = secondAxisLengh / minorlength; 
 
+			std::vector<double> eigenvector_middle(3);
+			double p_x1 = 0; double  p_y1 = 0; double p_z1 = 0;
+			double p_x2 = 0; double p_y2 = 0; double p_z2 = 0; 
+			int EWPos = 1; //should be lambda2, lambda1 < lambda2 < lambda3
+			
+			eigenvector_middle[0] = labelGeometryImageFilter->GetEigenvectors(labelValue)[0][EWPos];
+			eigenvector_middle[1] = labelGeometryImageFilter->GetEigenvectors(labelValue)[1][EWPos];
+			eigenvector_middle[2] = labelGeometryImageFilter->GetEigenvectors(labelValue)[2][EWPos];
+
+			double half_axis2 = secondAxisLengh / 2.0;
+
+			p_x1 = centroid[0] + half_axis2 * eigenvector_middle[0];
+			p_y1 = centroid[1] + half_axis2 * eigenvector_middle[1];
+			p_z1 = centroid[2] + half_axis2 * eigenvector_middle[2];
+			p_x2 = centroid[0] - half_axis2 * eigenvector_middle[0];
+			p_y2 = centroid[1] - half_axis2 * eigenvector_middle[1];
+			p_z2 = centroid[2] - half_axis2 * eigenvector_middle[2];
+
+
 
 			fout << elongation << ','
 				<< perimeter/**spacing*/ << ','
@@ -299,6 +335,10 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 				//<< sphericalRadiusManually << ","
 				<< ratioLongestToMiddle << ","
 				<< ratioMiddleToSmallest << ",";
+			fout << p_x1 << "," << p_y1 << "," << p_z1 << ","
+				<< p_x2 << "," << p_y2 << "," << p_z2 << ",";
+
+
 				
 		}
 		fout << '\n';
