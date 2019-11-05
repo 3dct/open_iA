@@ -93,12 +93,12 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 			fout << "Elongation" << ','
 				<< "Perimeter" << ','
 				<< "EquivalentSphericalRadius" << ','
-				<< "MiddleAxisLength" << ",";
+				<< "MiddleAxisLength" << ","//;
 				//<< "Sphericity" << ","
 				//<< "Surface " << ",";
-				/*<< "RadiusManually" << ","
+				/*<< "RadiusManually" << ","*/
 				<< "RatioAxisLongToAxisMiddle" << ","
-				<< "RatioMiddleToSmallest" << ",";*/
+				<< "RatioMiddleToSmallest" << ",";
 		}
 		fout << '\n';
 
@@ -282,8 +282,8 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 			
 		if (CalculateAdvancedChars) {
 			double sphericity = std::pow(vtkMath::Pi(), 1.0 / 3.0) * std::pow(6.0 * labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0), 2.0 / 3.0) / perimeter;
-			double surface = 4.0 * vtkMath::Pi() *std::pow(equivSphericalRadius/**spacing*/,2.0); 
-			double sphericalRadiusManually = std::pow((6.0 / vtkMath::Pi() * labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0)), 1 / 3); 
+			//double surface = 4.0 * vtkMath::Pi() *std::pow(equivSphericalRadius/**spacing*/,2.0); 
+			//double sphericalRadiusManually = std::pow((6.0 / vtkMath::Pi() * labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0)), 1 / 3); 
 				//std::pow(labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0) / (4.0 / 3.0 * vtkMath::Pi()), 1.0/3.0);  // Vsphere =  4/3*pI*r^3 
 			double ratioLongestToMiddle = majorlength / secondAxisLengh; 
 			double ratioMiddleToSmallest = secondAxisLengh / minorlength; 
@@ -292,13 +292,13 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 			fout << elongation << ','
 				<< perimeter/**spacing*/ << ','
 				<< equivSphericalRadius/**spacing */ << ','
-				<< secondAxisLengh * spacing << ",";
+				<< secondAxisLengh * spacing << ","
 				//<< sphericity << ",";  //new
 
 				//<< surface << ",";
 				//<< sphericalRadiusManually << ","
-				//<< ratioLongestToMiddle << ","
-				//<< ratioMiddleToSmallest << ",";
+				<< ratioLongestToMiddle << ","
+				<< ratioMiddleToSmallest << ",";
 				
 		}
 		fout << '\n';
