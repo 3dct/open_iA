@@ -176,6 +176,13 @@ public:
 	//! Retrieve the progress reporting object for this filter
 	iAProgress* progress();
 	iALogger* logger();
+
+	//! Retrieve the name of the input image with index i
+	QString inputName(int i) const;
+protected:
+	//! Set the name of the input with the given index
+	void setInputName(int i, QString const & name);
+
 private:
 	//! The actual implementation of the filter
 	//! @param parameters the map of parameters to use in this specific filter run
@@ -193,9 +200,12 @@ private:
 	iAProgress* m_progress;
 	//! The logger
 	iALogger* m_log;
-	//! variables describing the algorithm and its parameters and output values
+	//! Describes the parameters of the algorithm
 	QVector<pParameter> m_parameters;
+	//! Names for the output values of the algorithm
 	QVector<QString> m_outputValueNames;
+	//! Names for the input images of the algorithm
+	QMap<int, QString> m_inputNames;
 	QString m_name, m_category, m_description;
 	unsigned int m_requiredInputs, m_outputCount, m_firstInputChannels;
 };

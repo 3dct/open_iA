@@ -952,7 +952,7 @@ void iARenderer::updateSlicePlanes(double const * newSpacing)
 {
 	if (!newSpacing)
 	{
-		DEBUG_LOG("Spacing is NULL");
+		DEBUG_LOG("Spacing is nullptr");
 		return;
 	}
 	double const * spc = newSpacing;

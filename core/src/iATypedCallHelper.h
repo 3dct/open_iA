@@ -45,137 +45,143 @@
 //
 
 #if ITK_VERSION_MAJOR > 4 || (ITK_VERSION_MAJOR == 4 && ITK_VERSION_MINOR > 12)
-#define ITK_TYPED_CALL(function, itk_scalar_type, ...)		\
-{															\
-	switch (itk_scalar_type)								\
-	{														\
-	case itk::ImageIOBase::UCHAR:							\
-		function<unsigned char>(__VA_ARGS__);				\
-		break;												\
-	case itk::ImageIOBase::CHAR:							\
-		function<char>(__VA_ARGS__);						\
-		break;												\
-	case itk::ImageIOBase::SHORT:							\
-		function<short>(__VA_ARGS__);						\
-		break;												\
-	case itk::ImageIOBase::USHORT:							\
-		function<unsigned short>(__VA_ARGS__);				\
-		break;												\
-	case itk::ImageIOBase::INT:								\
-		function<int>(__VA_ARGS__);							\
-		break;												\
-	case itk::ImageIOBase::UINT:							\
-		function<unsigned int>(__VA_ARGS__);				\
-		break;												\
-	case itk::ImageIOBase::LONG:							\
-		function<long>(__VA_ARGS__);						\
-		break;												\
-	case itk::ImageIOBase::ULONG:							\
-		function<unsigned long>(__VA_ARGS__);				\
-		break;												\
-	case itk::ImageIOBase::LONGLONG:						\
-		function<long long>(__VA_ARGS__);					\
-		break;												\
-	case itk::ImageIOBase::ULONGLONG:						\
-		function<unsigned long>(__VA_ARGS__);				\
-		break;												\
-	case itk::ImageIOBase::FLOAT:							\
-		function<float>(__VA_ARGS__);						\
-		break;												\
-	case itk::ImageIOBase::DOUBLE:							\
-		function<double>(__VA_ARGS__);						\
-		break;												\
-	default:												\
-		throw itk::ExceptionObject(__FILE__, __LINE__,		\
-			"Typed Call: Unknown component type.");			\
-		break;												\
-	}														\
+#define ITK_TYPED_CALL(function, itk_scalar_type, ...)      \
+{                                                           \
+	switch (itk_scalar_type)                                \
+	{                                                       \
+	case itk::ImageIOBase::UCHAR:                           \
+		function<unsigned char>(__VA_ARGS__);               \
+		break;                                              \
+	case itk::ImageIOBase::CHAR:                            \
+		function<char>(__VA_ARGS__);                        \
+		break;                                              \
+	case itk::ImageIOBase::SHORT:                           \
+		function<short>(__VA_ARGS__);                       \
+		break;                                              \
+	case itk::ImageIOBase::USHORT:                          \
+		function<unsigned short>(__VA_ARGS__);              \
+		break;                                              \
+	case itk::ImageIOBase::INT:                             \
+		function<int>(__VA_ARGS__);                         \
+		break;                                              \
+	case itk::ImageIOBase::UINT:                            \
+		function<unsigned int>(__VA_ARGS__);                \
+		break;                                              \
+	case itk::ImageIOBase::LONG:                            \
+		function<long>(__VA_ARGS__);                        \
+		break;                                              \
+	case itk::ImageIOBase::ULONG:                           \
+		function<unsigned long>(__VA_ARGS__);               \
+		break;                                              \
+	case itk::ImageIOBase::LONGLONG:                        \
+		function<long long>(__VA_ARGS__);                   \
+		break;                                              \
+	case itk::ImageIOBase::ULONGLONG:                       \
+		function<unsigned long long>(__VA_ARGS__);          \
+		break;                                              \
+	case itk::ImageIOBase::FLOAT:                           \
+		function<float>(__VA_ARGS__);                       \
+		break;                                              \
+	case itk::ImageIOBase::DOUBLE:                          \
+		function<double>(__VA_ARGS__);                      \
+		break;                                              \
+	default:                                                \
+		throw itk::ExceptionObject(__FILE__, __LINE__,      \
+			"Typed Call: Unknown component type.");         \
+		break;                                              \
+	}                                                       \
 }
 #else
 // Since we cannot have an #if inside the macro definition,
 // we need to specify the macro two times, one time with the
 // long long types, one time without...
-#define ITK_TYPED_CALL(function, itk_scalar_type, ...)		\
-{															\
-	switch (itk_scalar_type)								\
-	{														\
-	case itk::ImageIOBase::UCHAR:							\
-		function<unsigned char>(__VA_ARGS__);				\
-		break;												\
-	case itk::ImageIOBase::CHAR:							\
-		function<char>(__VA_ARGS__);						\
-		break;												\
-	case itk::ImageIOBase::SHORT:							\
-		function<short>(__VA_ARGS__);						\
-		break;												\
-	case itk::ImageIOBase::USHORT:							\
-		function<unsigned short>(__VA_ARGS__);				\
-		break;												\
-	case itk::ImageIOBase::INT:								\
-		function<int>(__VA_ARGS__);							\
-		break;												\
-	case itk::ImageIOBase::UINT:							\
-		function<unsigned int>(__VA_ARGS__);				\
-		break;												\
-	case itk::ImageIOBase::LONG:							\
-		function<long>(__VA_ARGS__);						\
-		break;												\
-	case itk::ImageIOBase::ULONG:							\
-		function<unsigned long>(__VA_ARGS__);				\
-		break;												\
-	case itk::ImageIOBase::FLOAT:							\
-		function<float>(__VA_ARGS__);						\
-		break;												\
-	case itk::ImageIOBase::DOUBLE:							\
-		function<double>(__VA_ARGS__);						\
-		break;												\
-	default:												\
-		throw itk::ExceptionObject(__FILE__, __LINE__,		\
-			"Typed Call: Unknown component type.");			\
-		break;												\
-	}														\
+#define ITK_TYPED_CALL(function, itk_scalar_type, ...)      \
+{                                                           \
+	switch (itk_scalar_type)                                \
+	{                                                       \
+	case itk::ImageIOBase::UCHAR:                           \
+		function<unsigned char>(__VA_ARGS__);               \
+		break;                                              \
+	case itk::ImageIOBase::CHAR:                            \
+		function<char>(__VA_ARGS__);                        \
+		break;                                              \
+	case itk::ImageIOBase::SHORT:                           \
+		function<short>(__VA_ARGS__);                       \
+		break;                                              \
+	case itk::ImageIOBase::USHORT:                          \
+		function<unsigned short>(__VA_ARGS__);              \
+		break;                                              \
+	case itk::ImageIOBase::INT:                             \
+		function<int>(__VA_ARGS__);                         \
+		break;                                              \
+	case itk::ImageIOBase::UINT:                            \
+		function<unsigned int>(__VA_ARGS__);                \
+		break;                                              \
+	case itk::ImageIOBase::LONG:                            \
+		function<long>(__VA_ARGS__);                        \
+		break;                                              \
+	case itk::ImageIOBase::ULONG:                           \
+		function<unsigned long>(__VA_ARGS__);               \
+		break;                                              \
+	case itk::ImageIOBase::FLOAT:                           \
+		function<float>(__VA_ARGS__);                       \
+		break;                                              \
+	case itk::ImageIOBase::DOUBLE:                          \
+		function<double>(__VA_ARGS__);                      \
+		break;                                              \
+	default:                                                \
+		throw itk::ExceptionObject(__FILE__, __LINE__,      \
+			"Typed Call: Unknown component type.");         \
+		break;                                              \
+	}                                                       \
 }
 #endif
 
-#define VTK_TYPED_CALL(function, vtk_scalar_type, ...)		\
-{															\
-	switch (vtk_scalar_type)								\
-	{														\
-	case VTK_UNSIGNED_CHAR:									\
-		function<unsigned char>(__VA_ARGS__);				\
-		break;												\
-	case VTK_SIGNED_CHAR:									\
-	case VTK_CHAR:											\
-		function<char>(__VA_ARGS__);						\
-		break;												\
-	case VTK_SHORT:											\
-		function<short>(__VA_ARGS__);						\
-		break;												\
-	case VTK_UNSIGNED_SHORT:								\
-		function<unsigned short>(__VA_ARGS__);				\
-		break;												\
-	case VTK_INT:											\
-		function<int>(__VA_ARGS__);							\
-		break;												\
-	case VTK_UNSIGNED_INT:									\
-		function<unsigned int>(__VA_ARGS__);				\
-		break;												\
-	case VTK_LONG:											\
-		function<long>(__VA_ARGS__);						\
-		break;												\
-	case VTK_UNSIGNED_LONG:									\
-		function<unsigned long>(__VA_ARGS__);				\
-		break;												\
-	case VTK_FLOAT:											\
-		function<float>(__VA_ARGS__);						\
-		break;												\
-	case VTK_DOUBLE:										\
-		function<double>(__VA_ARGS__);						\
-		break;												\
-	default:												\
-	throw std::runtime_error(QString(						\
-		"Typed Call: Unknown component type. File: %1:%2")	\
+#define VTK_TYPED_CALL(function, vtk_scalar_type, ...)      \
+{                                                           \
+	switch (vtk_scalar_type)                                \
+	{                                                       \
+	case VTK_UNSIGNED_CHAR:                                 \
+		function<unsigned char>(__VA_ARGS__);               \
+		break;                                              \
+	case VTK_SIGNED_CHAR:                                   \
+	case VTK_CHAR:                                          \
+		function<char>(__VA_ARGS__);                        \
+		break;                                              \
+	case VTK_SHORT:                                         \
+		function<short>(__VA_ARGS__);                       \
+		break;                                              \
+	case VTK_UNSIGNED_SHORT:                                \
+		function<unsigned short>(__VA_ARGS__);              \
+		break;                                              \
+	case VTK_INT:                                           \
+		function<int>(__VA_ARGS__);                         \
+		break;                                              \
+	case VTK_UNSIGNED_INT:                                  \
+		function<unsigned int>(__VA_ARGS__);                \
+		break;                                              \
+	case VTK_LONG:                                          \
+		function<long>(__VA_ARGS__);                        \
+		break;                                              \
+	case VTK_UNSIGNED_LONG:                                 \
+		function<unsigned long>(__VA_ARGS__);               \
+		break;                                              \
+	case VTK_LONG_LONG:                                     \
+		function<long long>(__VA_ARGS__);                   \
+		break;                                              \
+	case VTK_UNSIGNED_LONG_LONG:                            \
+		function<unsigned long long>(__VA_ARGS__);          \
+		break;                                              \
+	case VTK_FLOAT:                                         \
+		function<float>(__VA_ARGS__);                       \
+		break;                                              \
+	case VTK_DOUBLE:                                        \
+		function<double>(__VA_ARGS__);                      \
+		break;                                              \
+	default:                                                \
+	throw std::runtime_error(QString(                       \
+		"Typed Call: Unknown component type. File: %1:%2")  \
 		.arg(__FILE__).arg(__LINE__).toStdString().c_str());\
-	break;													\
-	}														\
+	break;                                                  \
+	}                                                       \
 }

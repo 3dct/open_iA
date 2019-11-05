@@ -21,6 +21,7 @@
 #include "dlg_imageproperty.h"
 
 #include "iAImageInfo.h"
+#include "iAToolsVTK.h"
 
 #include <vtkImageData.h>
 
@@ -65,7 +66,7 @@ void dlg_imageproperty::AddInfo(vtkImageData* src, iAImageInfo const & info, QSt
 
 	EnterMsg( QString("    %1: %2")
 		.arg(tr("Datatype"))
-		.arg(src->GetScalarTypeAsString()) );
+		.arg(mapVTKTypeToReadableDataType(src->GetScalarType()) ) );
 
 	QString componentStr;
 	if (src->GetNumberOfScalarComponents() > 1 && channelCount > 1)

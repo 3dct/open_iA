@@ -48,7 +48,7 @@ namespace itk
  *
  */
 template <class TInputVectorImage>
-class ITK_EXPORT VectorImageDuplicator : public Object
+class VectorImageDuplicator : public Object
 {
 public:
   /** Standard class typedefs. */

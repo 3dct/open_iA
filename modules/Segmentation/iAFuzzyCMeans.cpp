@@ -27,6 +27,7 @@
 #include <iATypedCallHelper.h>
 #include <io/iAITKIO.h>
 
+#include <itkConfigure.h>    // for ITK_VERSION...
 #include <itkFCMClassifierInitializationImageFilter.h>
 #include <itkFuzzyClassifierImageFilter.h>
 #include <itkKFCMSClassifierInitializationImageFilter.h>
@@ -127,7 +128,11 @@ void fcm(iAFilter* filter, QMap<QString, QVariant> const & params)
 	classifier->SetMaximumNumberOfIterations(params["Maximum Iterations"].toUInt());
 	classifier->SetMaximumError(params["Maximum Error"].toDouble());
 	classifier->SetM(params["M"].toDouble());
+#if ITK_VERSION_MAJOR < 5
 	classifier->SetNumberOfThreads(params["Number of Threads"].toUInt());
+#else
+	classifier->SetNumberOfWorkUnits(params["Number of Threads"].toUInt());
+#endif
 	classifier->SetNumberOfClasses(numberOfClasses);
 	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
 	for (int i = 0; i < numberOfClasses; i++)
@@ -213,7 +218,11 @@ void kfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	classifier->SetMaximumError(parameters["Maximum Error"].toDouble());
 	classifier->SetM(parameters["M"].toDouble());
 	classifier->SetAlpha(parameters["Alpha"].toDouble());
+#if ITK_VERSION_MAJOR < 5
 	classifier->SetNumberOfThreads(parameters["Number of Threads"].toUInt());
+#else
+	classifier->SetNumberOfWorkUnits(parameters["Number of Threads"].toUInt());
+#endif
 	classifier->SetNumberOfClasses(numberOfClasses);
 	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
 	for (int i = 0; i < numberOfClasses; i++)
@@ -298,7 +307,11 @@ void mskfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	//classifier->SetAlpha(parameters["Alpha"].toDouble());
 	classifier->SetP(parameters["P"].toDouble());
 	classifier->SetQ(parameters["Q"].toDouble());
+#if ITK_VERSION_MAJOR < 5
 	classifier->SetNumberOfThreads(parameters["Number of Threads"].toUInt());
+#else
+	classifier->SetNumberOfWorkUnits(parameters["Number of Threads"].toUInt());
+#endif
 	classifier->SetNumberOfClasses(numberOfClasses);
 	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
 	for (int i = 0; i < numberOfClasses; i++)

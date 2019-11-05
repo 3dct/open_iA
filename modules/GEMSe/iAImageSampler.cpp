@@ -219,7 +219,7 @@ void iAImageSampler::computationFinished()
 	iACommandRunner* cmd = dynamic_cast<iACommandRunner*>(QObject::sender());
 	if (!cmd)
 	{
-		DEBUG_LOG("Invalid state: NULL sender in computationFinished!");
+		DEBUG_LOG("Invalid state: nullptr sender in computationFinished!");
 		return;
 	}
 	int id = m_runningComputation[cmd];

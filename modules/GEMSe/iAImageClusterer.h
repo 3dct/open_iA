@@ -51,7 +51,7 @@ signals:
 	void Progress(int);
 	void Status(QString const &);
 private:
-	void run();
+	void run() override;
 	QVector<QSharedPointer<iAImageTreeNode> > m_images;
 	QSharedPointer<iAImageTree> m_tree;
 	int m_labelCount;

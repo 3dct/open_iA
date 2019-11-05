@@ -33,7 +33,7 @@ namespace itk
  */
 template <class TInputImage1, class TInputImage2, class TInputImage3, class TInputImage4,
           class TOutputImage/*, class TFunction*/  >
-class ITK_EXPORT FHWImageFusionFilter :
+class FHWImageFusionFilter :
     public InPlaceImageFilter<TInputImage1,TOutputImage> 
 {
 public:

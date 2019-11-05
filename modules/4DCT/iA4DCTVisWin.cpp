@@ -558,7 +558,7 @@ void iA4DCTVisWin::setOrientationWidgetEnabled( bool enabled )
 		if( !m_orientWidget ) return;
 
 		m_orientWidget->SetEnabled( false );
-		m_orientWidget = NULL;
+		m_orientWidget = nullptr;
 	}
 }
 

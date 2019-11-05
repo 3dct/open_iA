@@ -508,7 +508,7 @@ void MainWindow::loadSettings()
 	if (renderSettings)       { inList << tr("$Render Settings");       inPara << tr("%1").arg(m_lpRenderSettings ? tr("true") : tr("false")); }
 	if (slicerSettings)       { inList << tr("$Slice Settings");        inPara << tr("%1").arg(m_lpSlicerSettings ? tr("true") : tr("false")); }
 
-	dlg_commoninput dlg(this, "Load Settings", inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Load Settings", inList, inPara, nullptr);
 
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -1035,7 +1035,7 @@ void MainWindow::renderSettings()
 		<< renderTypes
 		<< tr("%1").arg(renderSettings.PlaneOpacity);
 
-	dlg_commoninput dlg(this, "Renderer settings", inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Renderer settings", inList, inPara, nullptr);
 
 	if (dlg.exec() != QDialog::Accepted)
 		return;
@@ -1127,7 +1127,7 @@ void MainWindow::slicerSettings()
 		<< QString("%1").arg(slicerSettings.SingleSlicer.ToolTipFontSize)
 		<< (slicerSettings.SingleSlicer.ShowTooltip ? tr("true") : tr("false"));
 
-	dlg_commoninput dlg(this, "Slicer settings", inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Slicer settings", inList, inPara, nullptr);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
@@ -1982,7 +1982,7 @@ void MainWindow::saveLayout()
 		QStringList inList = (QStringList() << tr("#Layout Name:") );
 		QList<QVariant> inPara;
 		inPara << tr("%1").arg(layoutName);
-		dlg_commoninput dlg(this, "Layout Name", inList, inPara, NULL);
+		dlg_commoninput dlg(this, "Layout Name", inList, inPara, nullptr);
 		if (dlg.exec() == QDialog::Accepted)
 		{
 			layoutName =  dlg.getText(0);
@@ -2211,13 +2211,13 @@ void MainWindow::openWithDataTypeConversion()
 		if (m_owdtcdov == 0)
 		{
 			finalfilename = conversionwidget.convert(file, m_rawFileParams,
-				mapVTKTypeStringToInt(outDataType),
+				mapReadableDataTypeToVTKType(outDataType),
 				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, m_owdtcdov);
 		}
 		else
 		{
 			finalfilename = conversionwidget.convertROI(file, m_rawFileParams,
-				mapVTKTypeStringToInt(outDataType),
+				mapReadableDataTypeToVTKType(outDataType),
 				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, m_owdtcdov, roi);
 		}
 		loadFile(finalfilename, false);

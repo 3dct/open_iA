@@ -141,7 +141,7 @@ void iARefDistCompute::run()
 		mapping[iACsvConfig::Diameter]
 	};
 
-	m_progress.setStatus("Computing the difference between consecutive time steps.");
+	m_progress.setStatus("Computing the difference between consecutive steps.");
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto& d = m_data->result[resultID];
@@ -150,40 +150,40 @@ void iARefDistCompute::run()
 		size_t fiberCount = d.table->GetNumberOfRows();
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
-			if (d.timeData == iAFiberCharData::SimpleTimeData)
+			if (d.stepData == iAFiberCharData::SimpleStepData)
 			{
-				size_t timeStepCount = d.timeValues.size();
+				size_t stepCount = d.stepValues.size();
 				auto & diffs = d.refDiffFiber[fiberID].diff;
 				diffs.resize(iAFiberCharData::FiberValueCount+SimilarityMeasureCount);
 				for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 				{
-					auto & timeStepDiffs = diffs[diffID].timestep;
-					timeStepDiffs.resize(timeStepCount);
-					for (size_t timeStep = 0; timeStep < timeStepCount; ++timeStep)
+					auto & stepDiffs = diffs[diffID].step;
+					stepDiffs.resize(stepCount);
+					for (size_t step = 0; step < stepCount; ++step)
 					{
 						// compute error (=difference - startx, starty, startz, endx, endy, endz, shiftx, shifty, shiftz, phi, theta, length, diameter)
 						size_t refFiberID = d.refDiffFiber[fiberID].dist[BestSimilarityMeasure][0].index;
-						timeStepDiffs[timeStep] = d.timeValues[timeStep][fiberID][diffID]
+						stepDiffs[step] = d.stepValues[step][fiberID][diffID]
 							- ref.table->GetValue(refFiberID, diffCols[diffID]).ToDouble();
 					}
 				}
 				for (size_t distID = 0; distID < SimilarityMeasureCount; ++distID)
 				{
-					auto & timeStepDiffs = diffs[iAFiberCharData::FiberValueCount + distID].timestep;
-					timeStepDiffs.resize(timeStepCount);
+					auto & stepDiffs = diffs[iAFiberCharData::FiberValueCount + distID].step;
+					stepDiffs.resize(stepCount);
 					size_t refFiberID = d.refDiffFiber[fiberID].dist[distID][0].index;
 					iAFiberData refFiber(ref.table, refFiberID, mapping);
-					for (size_t timeStep = 0; timeStep < timeStepCount; ++timeStep)
+					for (size_t step = 0; step < stepCount; ++step)
 					{
-						iAFiberData fiber(d.timeValues[timeStep][fiberID]);
+						iAFiberData fiber(d.stepValues[step][fiberID]);
 						double dist = getSimilarity(fiber, refFiber, distID, diagLength, maxLength);
-						timeStepDiffs[timeStep] = dist;
+						stepDiffs[step] = dist;
 					}
 				}
 			}/*
-			else if (data.timeData == iAFiberCharData::CurvedTimeData)
+			else if (data.stepData == iAFiberCharData::CurvedStepData)
 			{
-				// difference computation for curved time steps...
+				// difference computation for curved step data ...
 			}
 			*/
 		}
@@ -206,8 +206,8 @@ void iARefDistCompute::run()
 			{
 				size_t tableColumnID = m_data->spmData->numParams() -
 					(iAFiberCharData::FiberValueCount + SimilarityMeasureCount + EndColumns) + diffID;
-				double lastValue = (d.timeData == iAFiberCharData::SimpleTimeData) ?
-						diffData.diff[diffID].timestep[d.timeValues.size() - 1] : 0;
+				double lastValue = (d.stepData == iAFiberCharData::SimpleStepData) ?
+						diffData.diff[diffID].step[d.stepValues.size() - 1] : 0;
 				m_data->spmData->data()[tableColumnID][spmID] = lastValue;
 				d.table->SetValue(fiberID, tableColumnID, lastValue); // required for coloring 3D view by these diffs + used below for average!
 			}

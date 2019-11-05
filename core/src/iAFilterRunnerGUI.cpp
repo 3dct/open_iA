@@ -193,9 +193,9 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		{
 			mdiChildrenNames << mdi->windowTitle().replace("[*]", "");
 		}
-		for (int i = 0; i < filter->requiredInputs()-1; ++i)
+		for (int i = 1; i < filter->requiredInputs(); ++i)
 		{
-			dlgParamNames << QString("+Additional Input %1").arg(i+1);
+			dlgParamNames << QString("+%1").arg(filter->inputName(i));
 			dlgParamValues << mdiChildrenNames;
 		}
 	}
@@ -304,7 +304,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 			.arg(filter->name()).arg(filter->requiredInputs()));
 		return;
 	}
-	if (mdiChild->preferences().PrintParameters)
+	if (mdiChild->preferences().PrintParameters && !filter->parameters().isEmpty())
 	{
 		mdiChild->addMsg(QString("Starting %1 filter with parameters:").arg(thread->filter()->name()));
 		for (int p = 0; p < thread->filter()->parameters().size(); ++p)

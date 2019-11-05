@@ -238,10 +238,10 @@ void iAXRFAttachment::xrfLoadingFailed()
 	delete dlgPeriodicTable;
 	delete dlgRefSpectra;
 	delete dlgSimilarityMap;
-	dlgXRF = NULL;
-	dlgPeriodicTable = NULL;
-	dlgRefSpectra = NULL;
-	dlgSimilarityMap = NULL;
+	dlgXRF = nullptr;
+	dlgPeriodicTable = nullptr;
+	dlgRefSpectra = nullptr;
+	dlgSimilarityMap = nullptr;
 	emit detach();
 }
 

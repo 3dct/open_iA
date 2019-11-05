@@ -27,7 +27,7 @@
 #include <iATypedCallHelper.h>
 
 // from Toolkit/MaximumDistance
-#include <itkMaximumDistance.h>
+#include <iAMaximumDistanceFilter.h>
 
 #include <itkAdaptiveOtsuThresholdImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
@@ -49,6 +49,22 @@
 #include <itkYenThresholdImageFilter.h>
 
 #include <QLocale>
+
+// No operation (simply pass-through image)
+
+IAFILTER_CREATE(iACopy)
+
+void iACopy::performWork(QMap<QString, QVariant> const & parameters)
+{
+	addOutput(input()[0]->itkImage());
+}
+
+iACopy::iACopy() :
+	iAFilter("Copy", "",
+		"Copy the input image to output."
+		"That is, this filter simply directly returns the input, without any modifications.")
+{
+}
 
 // Binary Threshold
 
@@ -300,7 +316,7 @@ void maximum_distance(iAFilter* filter, QMap<QString, QVariant> const & paramete
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< T, 3 >   OutputImageType;
-	typedef itk::MaximumDistance< InputImageType > MaximumDistanceType;
+	typedef iAMaximumDistanceFilter< InputImageType > MaximumDistanceType;
 	auto maxFilter = MaximumDistanceType::New();
 	maxFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	maxFilter->SetBins(parameters["Number of histogram bins"].toDouble());

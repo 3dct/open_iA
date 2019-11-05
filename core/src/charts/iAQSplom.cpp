@@ -981,25 +981,17 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	drawPopup( painter );
 
 	// maybe reuse code from iALinearColorGradientBar (DynamicVolumeLines)
-	long visParamCnt = getVisibleParametersCount();
-	QRect topLeftPlot = getPlotRectByIndex(0, visParamCnt - 1);
-	QRect bottomRightPlot = getPlotRectByIndex(visParamCnt - 1, 0);
-	// default top left for max plot is in the middle of the chart area:
-	QPoint topLeft(topLeftPlot.left() + (bottomRightPlot.right() - topLeftPlot.left() + settings.plotsSpacing) / 2,
-		topLeftPlot.top() + (bottomRightPlot.bottom() - topLeftPlot.top() + settings.plotsSpacing) / 2);
-	// make sure there is enough space for the labels:
-	double xofs = std::max(0, settings.tickOffsets.x() - ((visParamCnt % 2) ? m_scatPlotSize.x() / 2 : m_scatPlotSize.x()));
-	double yofs = std::max(0, settings.tickOffsets.y() - ((visParamCnt % 2) ? m_scatPlotSize.y() / 2 : m_scatPlotSize.y()));
-	topLeft += QPoint(xofs, yofs);
-	if (settings.histogramVisible)
-		topLeft += QPoint(m_scatPlotSize.x() / 2, m_scatPlotSize.y() / 2);
-	topLeft += QPoint(- (m_scatPlotSize.x() / 2 + settings.plotsSpacing + settings.tickOffsets.x()),
-		m_scatPlotSize.y() / 2 + settings.plotsSpacing);
+	QPoint topLeft = getMaxRect().topLeft();
+	int barWidth = clamp(5, 10, m_scatPlotSize.x() / 10);
+	topLeft += QPoint(- (barWidth + 2*settings.plotsSpacing + settings.tickOffsets.x()),
+		settings.plotsSpacing
+		+ m_scatPlotSize.y() / ((((getVisibleParametersCount() + (settings.histogramVisible ? 1 : 0)) % 2) == 1) ? 2 : 1)
+	);
 		
-	double minVal = m_settingsDlg->sbMin->value();
-	double maxVal = m_settingsDlg->sbMax->value();
+	double minVal = m_lut->getRange()[0];
+	double maxVal = m_lut->getRange()[1];
 	QRect colorBarRect(topLeft.x(), topLeft.y(),
-		std::max(5, m_scatPlotSize.x() / 6) - settings.plotsSpacing, height() - topLeft.y() - settings.plotsSpacing);
+		barWidth, height() - topLeft.y() - settings.plotsSpacing);
 	QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y()+colorBarRect.height() );
 	QMap<double, QColor>::iterator it;
 	for (size_t i = 0; i < m_lut->numberOfValues(); ++i)
@@ -1010,7 +1002,7 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 		double key = 1 - (static_cast<double>(i) / m_lut->numberOfValues());
 		grad.setColorAt(key, color);
 	}
-	painter.setPen(QColor(0, 0, 0));
+	painter.setPen(QPen(QColor(0, 0, 0), 0.5));
 	painter.fillRect(colorBarRect, grad);
 	painter.drawRect(colorBarRect);
 	QString minStr = dblToStringWithUnits(minVal);
@@ -1163,10 +1155,8 @@ QRect iAQSplom::getPlotRectByIndex( int x, int y )
 	return res;
 }
 
-void iAQSplom::updateMaxPlotRect()
+QRect iAQSplom::getMaxRect()
 {
-	if( !m_maximizedPlot )
-		return;
 	long visParamCnt = getVisibleParametersCount();
 	QRect topLeftPlot = getPlotRectByIndex(0, visParamCnt - 1);
 	QRect bottomRightPlot = getPlotRectByIndex(visParamCnt - 1, 0);
@@ -1176,10 +1166,17 @@ void iAQSplom::updateMaxPlotRect()
 	// make sure there is enough space for the labels:
 	double xofs = std::max(0, settings.tickOffsets.x() - ((visParamCnt % 2) ? m_scatPlotSize.x() / 2 : m_scatPlotSize.x()));
 	double yofs = std::max(0, settings.tickOffsets.y() - ((visParamCnt % 2) ? m_scatPlotSize.y() / 2 : m_scatPlotSize.y()));
-	topLeft += QPoint(xofs,yofs);
+	topLeft += QPoint(xofs, yofs);
 	if (settings.histogramVisible)
-		topLeft += QPoint(m_scatPlotSize.x()/2, m_scatPlotSize.y()/2);
-	m_maximizedPlot->setRect( QRect(topLeft, bottomRightPlot.bottomRight()) );
+		topLeft += QPoint(m_scatPlotSize.x() / 2, m_scatPlotSize.y() / 2);
+	return QRect(QRect(topLeft, bottomRightPlot.bottomRight()));
+}
+
+void iAQSplom::updateMaxPlotRect()
+{
+	if( !m_maximizedPlot )
+		return;
+	m_maximizedPlot->setRect( getMaxRect() );
 }
 
 void iAQSplom::updateSPLOMLayout()

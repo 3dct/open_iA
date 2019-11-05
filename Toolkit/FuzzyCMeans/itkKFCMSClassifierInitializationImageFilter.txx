@@ -196,11 +196,7 @@ KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
   typename StructuringElementType::ConstIterator nit;
   StructuringElementRadiusType radiusStructEl;
 
-#if ITK_VERSION_MAJOR > 3
   typename StructuringElementType::NeighborIndexType idx;
-#else
-  unsigned int idx;
-#endif
 
   idx =0;
   radiusStructEl = m_StructuringElement.GetRadius();

@@ -82,13 +82,13 @@ void iA4DCTListView::openFile( )
 		return;
 	}
 
-	if( win != NULL ) {
+	if( win != nullptr ) {
 		win->loadFile( m_data->at( indexes[0].row( ) ).Path, false );
 	}
 }
 
 void iA4DCTListView::addFile( )
 {
-	if( m_stageView != NULL )
+	if( m_stageView != nullptr )
 		m_stageView->addFile( );
 }

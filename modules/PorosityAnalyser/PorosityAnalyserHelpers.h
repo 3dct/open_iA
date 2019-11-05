@@ -466,7 +466,7 @@ struct ParameterInfo : public IParameterInfo
 	}
 	inline virtual void randomInRange()
 	{
-		double randVal = qrand() / (double)RAND_MAX;
+		double randVal = qrand() / static_cast<double>(RAND_MAX);
 		randVal = range[0] + (range[1] - range[0]) * randVal;
 		val = randVal;
 	}
@@ -557,7 +557,7 @@ inline IParameterInfo * getParameterInfo( const ParamNameType & paramNameType, Q
 			break;
 		default:
 			throw itk::ExceptionObject( __FILE__, __LINE__, "Error: wrong parameter type is used in getParameterInfoType!" );
-			return 0;
+			return nullptr;
 			break;
 	}
 }

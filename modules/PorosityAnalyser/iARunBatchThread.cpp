@@ -28,7 +28,7 @@
 #include <io/iAITKIO.h>
 
 // from Maximum Distance Toolkit
-#include <itkMaximumDistance.h>
+#include <iAMaximumDistanceFilter.h>
 
 #include <itkAndImageFilter.h>
 #include <itkBilateralImageFilter.h>
@@ -967,7 +967,7 @@ void computeFhwThreshold( ImagePointer & image, PorosityFilterID filterId, RunIn
 	duplicator->Update();
 
 	// Calculate Maximum Distance Threshold
-	typedef itk::MaximumDistance< InputImageType >   MaximumDistanceType;
+	typedef iAMaximumDistanceFilter< InputImageType >   MaximumDistanceType;
 	typename MaximumDistanceType::Pointer maxDistFilter = MaximumDistanceType::New();
 	maxDistFilter->SetInput( duplicator->GetOutput() );
 	maxDistFilter->SetBins( 10 );
@@ -981,9 +981,7 @@ void computeFhwThreshold( ImagePointer & image, PorosityFilterID filterId, RunIn
 	typename FilterType::Pointer otsuMultiFilter = FilterType::New();
 	otsuMultiFilter->SetInput( duplicator->GetOutput() );
 	otsuMultiFilter->SetNumberOfThresholds( 1 );
-#if (ITK_MAJOR_VERSION > 4 || ITK_MINOR_VERSION > 5)
 	otsuMultiFilter->ValleyEmphasisOn();
-#endif
 	otsuMultiFilter->Update(); 
 	typename FilterType::ThresholdVectorType thresholds = otsuMultiFilter->GetThresholds();
 	omThr = thresholds[0];

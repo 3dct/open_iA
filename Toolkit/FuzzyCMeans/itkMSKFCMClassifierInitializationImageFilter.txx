@@ -182,17 +182,19 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     }
   m_CentroidsDenominator.Fill(CentroidValueNumericTraitsType::Zero);
 
-  ThreadIdType numThreads = this->GetNumberOfThreads();
 #if ITK_VERSION_MAJOR < 5
+  ThreadIdType numThreads = this->GetNumberOfThreads();
   if( itk::MultiThreader::GetGlobalMaximumNumberOfThreads() != 0 )
 #else
+  ThreadIdType numThreads = this->GetNumberOfWorkUnits();
   if( itk::MultiThreaderBase::GetGlobalMaximumNumberOfThreads() != 0 )
 #endif
-    {
-    numThreads =  std::min( this->GetNumberOfThreads(),
+	{
 #if ITK_VERSION_MAJOR < 5
+	numThreads =  std::min( this->GetNumberOfThreads(),
         itk::MultiThreader::GetGlobalMaximumNumberOfThreads() );
 #else
+	numThreads =  std::min( this->GetNumberOfWorkUnits(),
         itk::MultiThreaderBase::GetGlobalMaximumNumberOfThreads() );
 #endif
     }
@@ -329,11 +331,7 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
   typename StructuringElementType::ConstIterator nit;
   StructuringElementRadiusType radiusStructEl;
 
-#if ITK_VERSION_MAJOR > 3
   typename StructuringElementType::NeighborIndexType idx;
-#else
-  unsigned int idx;
-#endif
 
   idx =0;
   radiusStructEl = m_StructuringElement.GetRadius();

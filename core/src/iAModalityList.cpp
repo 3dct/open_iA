@@ -143,9 +143,9 @@ void iAModalityList::store(QString const & filename, vtkCamera* camera)
 	settings.setValue(FileVersionKey, ModFileVersion);
 	if (camera)
 	{
-		settings.setValue(CameraPositionKey, vec3D2String(camera->GetPosition()));
-		settings.setValue(CameraFocalPointKey, vec3D2String(camera->GetFocalPoint()));
-		settings.setValue(CameraViewUpKey, vec3D2String(camera->GetViewUp()));
+		settings.setValue(CameraPositionKey, arrayToString(camera->GetPosition(), 3));
+		settings.setValue(CameraFocalPointKey, arrayToString(camera->GetFocalPoint(), 3));
+		settings.setValue(CameraViewUpKey, arrayToString(camera->GetViewUp(), 3));
 	}
 	for (int i = 0; i<m_modalitiesActive.size(); ++i)
 	{
@@ -229,9 +229,9 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 			.arg(ModFileVersion));
 		return false;
 	}
-	if (!str2Vec3D(settings.value(CameraPositionKey).toString(), m_camPosition) ||
-		!str2Vec3D(settings.value(CameraFocalPointKey).toString(), m_camFocalPoint) ||
-		!str2Vec3D(settings.value(CameraViewUpKey).toString(), m_camViewUp))
+	if (!stringToArray<double>(settings.value(CameraPositionKey).toString(), m_camPosition, 3) ||
+		!stringToArray<double>(settings.value(CameraFocalPointKey).toString(), m_camFocalPoint, 3) ||
+		!stringToArray<double>(settings.value(CameraViewUpKey).toString(), m_camViewUp, 3))
 	{
 		//DEBUG_LOG(QString("Invalid or missing camera information."));
 	}

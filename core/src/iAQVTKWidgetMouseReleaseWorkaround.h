@@ -36,7 +36,7 @@ class open_iA_Core_API iAQVTKWidgetMouseReleaseWorkaround : public iAVtkOldWidge
 {
 	Q_OBJECT
 public:
-	iAQVTKWidgetMouseReleaseWorkaround(QWidget* parent = NULL, Qt::WindowFlags f = 0);
+	iAQVTKWidgetMouseReleaseWorkaround(QWidget* parent = nullptr, Qt::WindowFlags f = 0);
 protected:
 	virtual void mouseReleaseEvent ( QMouseEvent * event );
 	virtual void resizeEvent ( QResizeEvent * event );

@@ -644,7 +644,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 {
 	if (!refImg)
 	{
-		DEBUG_LOG("Reference image comparison calculate: NULL reference image (maybe wrong image type?)!");
+		DEBUG_LOG("Reference image comparison calculate: nullptr reference image (maybe wrong image type?)!");
 		return;
 	}
 	if (!m_treeView)

@@ -26,16 +26,8 @@
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
-#include <itkCastImageFilter.h>
-#include <itkImageFileWriter.h>
 #include <itkMorphologicalWatershedImageFilter.h>
-#include <itkScalarToRGBPixelFunctor.h>
-#include <itkUnaryFunctorImageFilter.h>
 #include <itkWatershedImageFilter.h>
-
-#include <vtkImageData.h>
-
-#include <QLocale>
 
 
 // Watershed segmentation 

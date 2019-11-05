@@ -37,6 +37,7 @@
 #include <vtkSmartVolumeMapper.h>
 
 #include <QFileInfo>
+#include <QRegularExpression>
 #include <QStringList>
 
 // declared in iAVtkDraw.h
@@ -120,35 +121,12 @@ void writeSingleSliceImage(QString const & filename, vtkImageData* imageData)
 
 bool isVtkIntegerType(int type)
 {
-	return type == VTK_CHAR || type == VTK_UNSIGNED_CHAR ||
-		type == VTK_SHORT || type == VTK_UNSIGNED_SHORT ||
-		type == VTK_INT || type == VTK_UNSIGNED_INT ||
-		type == VTK_LONG || type == VTK_UNSIGNED_LONG ||
-		type == VTK_LONG_LONG || type == VTK_UNSIGNED_LONG_LONG;
-}
-
-int mapVTKTypeStringToInt(QString const & vtkTypeString)
-{
-	if (vtkTypeString == "VTK_VOID")           return VTK_VOID;
-	if (vtkTypeString == "VTK_BIT")            return VTK_BIT;
-	if (vtkTypeString == "VTK_UNSIGNED_CHAR")  return VTK_UNSIGNED_CHAR;
-	if (vtkTypeString == "VTK_SIGNED_CHAR")    return VTK_SIGNED_CHAR;
-	if (vtkTypeString == "VTK_CHAR")           return VTK_CHAR;
-	if (vtkTypeString == "VTK_UNSIGNED_SHORT") return VTK_UNSIGNED_SHORT;
-	if (vtkTypeString == "VTK_SHORT")          return VTK_SHORT;
-	if (vtkTypeString == "VTK_UNSIGNED_INT")   return VTK_UNSIGNED_INT;
-	if (vtkTypeString == "VTK_INT")            return VTK_INT;
-	if (vtkTypeString == "VTK_UNSIGNED_LONG")  return VTK_UNSIGNED_LONG;
-	if (vtkTypeString == "VTK_LONG")           return VTK_LONG;
-	if (vtkTypeString == "VTK_FLOAT")          return VTK_FLOAT;
-	if (vtkTypeString == "VTK_DOUBLE")         return VTK_DOUBLE;
-	if (vtkTypeString == "VTK_ID_TYPE")        return VTK_ID_TYPE;
-	return -1;
-}
-
-size_t mapVTKTypeStringToSize(QString const & vtkTypeString)
-{
-	return mapVTKTypeToSize(mapVTKTypeStringToInt(vtkTypeString));
+	return
+		type == VTK_UNSIGNED_CHAR      || type == VTK_SIGNED_CHAR || type == VTK_CHAR ||
+		type == VTK_UNSIGNED_SHORT     || type == VTK_SHORT       ||
+		type == VTK_UNSIGNED_INT       || type == VTK_INT         ||
+		type == VTK_UNSIGNED_LONG      || type == VTK_LONG        ||
+		type == VTK_UNSIGNED_LONG_LONG || type == VTK_LONG_LONG;
 }
 
 size_t mapVTKTypeToSize(int vtkType)
@@ -164,21 +142,55 @@ size_t mapVTKTypeToSize(int vtkType)
 	case VTK_INT:			return sizeof(int);
 	case VTK_UNSIGNED_LONG:	return sizeof(unsigned long);
 	case VTK_LONG:          return sizeof(long);
+	case VTK_UNSIGNED_LONG_LONG:return sizeof(unsigned long long);
+	case VTK_LONG_LONG:     return sizeof(long long);
 	case VTK_FLOAT:         return sizeof(float);
 	case VTK_DOUBLE:        return sizeof(double);
 	default:                return 0;
 	}	
 }
 
-QStringList const & vtkDataTypeList()
+namespace
 {
-	static QStringList datatypeList = (QStringList()
-		<< "VTK_UNSIGNED_CHAR"  << "VTK_CHAR"
-		<< "VTK_UNSIGNED_SHORT" << "VTK_SHORT"
-		<< "VTK_UNSIGNED_INT"   << "VTK_INT"
-		<< "VTK_UNSIGNED_LONG"  << "VTK_LONG"
-		<< "VTK_FLOAT" << "VTK_DOUBLE");
-	return datatypeList;
+	QMap<int, QString> const & readableDataTypeMap()
+	{
+		static QMap<int, QString> nameVTKTypeMap{
+			{VTK_UNSIGNED_CHAR     , "8 bit unsigned integer (0 to 255, unsigned char)"},
+			{VTK_CHAR              , "8 bit signed integer (-128 to 127, char)"},
+			{VTK_UNSIGNED_SHORT    , "16 bit unsigned integer (0 to 65,535, unsigned short)"},
+			{VTK_SHORT             , "16 bit signed integer (-32,768 to 32,767, short)"},
+			{VTK_UNSIGNED_INT      , "32 bit unsigned integer (0 to 4,294,967,295, unsigned int)"},
+			{VTK_INT               , "32 bit signed integer (-2,147,483,648 to 2,147,483,64, int)"},
+			{VTK_UNSIGNED_LONG_LONG, "64 bit unsigned integer (0 to (2^64)-1, unsigned long long)"},
+			{VTK_LONG_LONG         , "64 bit signed integer (-2^63 to (2^63)-1, long long)"},
+			{VTK_FLOAT             , "32 bit floating point number (7 digits, float)"},
+			{VTK_DOUBLE            , "64 bit floating point number (15 digits, double)"}
+		};
+		return nameVTKTypeMap;
+	}
+}
+
+QStringList const & readableDataTypeList(bool withLongLongTypes)
+{
+	static QStringList longlongDataTypeList(readableDataTypeMap().values());
+	// exclude all lines matching "long long" from the datatypeList
+	static QStringList datatypeList(longlongDataTypeList.filter(QRegularExpression("^((?!long long).)*$")));
+	return withLongLongTypes? longlongDataTypeList : datatypeList;
+}
+
+open_iA_Core_API int mapReadableDataTypeToVTKType(QString const & dataTypeName)
+{
+	return readableDataTypeMap().key(dataTypeName, -1);
+}
+
+open_iA_Core_API QString mapVTKTypeToReadableDataType(int vtkType)
+{
+	// map aliases to the values contained in the map:
+	if (vtkType == VTK_SIGNED_CHAR)   vtkType = VTK_CHAR;
+	if (vtkType == VTK_LONG)          vtkType = VTK_INT;
+	if (vtkType == VTK_UNSIGNED_LONG) vtkType = VTK_UNSIGNED_INT;
+	// look up type in map:
+	return readableDataTypeMap().value(vtkType, "");
 }
 
 QMap<int, QString> const & RenderModeMap()

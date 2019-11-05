@@ -176,6 +176,7 @@ protected:
 	void drawTicks( QPainter & painter, QList<double> const & ticksX, QList<double> const & ticksY, QList<QString> const & textX,
 	    QList<QString> const & textY);                               //!< Draw ticks for X and Y axes of all plots in the SPLOM.
 	void updateMaxPlotRect();                                        //!< Updates the rectangle of the maximized scatter plot.
+	QRect getMaxRect();
 	void updateSPLOMLayout();                                        //!< Updates SPLOM layout: every plot in the matrix + maximized plot (if exists).
 	void updatePlotGridParams();                                     //!< Updates some parameters used for the matrix grid layout calculations.
 	void updateVisiblePlots();                                       //!< Updates matrix using only plots that are currently visible.

@@ -69,7 +69,7 @@ bool iAFavoriteWidget::ToggleLike(iAImageTreeNode * node)
 {
 	if (!node)
 	{
-		DEBUG_LOG("ERROR in favorites: ToggleLike called for NULL node.\n");
+		DEBUG_LOG("ERROR in favorites: ToggleLike called for nullptr node.\n");
 		return false;
 	}
 	if (node->GetAttitude() == iAImageTreeNode::Liked)
@@ -90,7 +90,7 @@ bool iAFavoriteWidget::ToggleHate(iAImageTreeNode * node)
 {
 	if (!node)
 	{
-		DEBUG_LOG("ERROR in favorites: ToggleHate called for NULL node.\n");
+		DEBUG_LOG("ERROR in favorites: ToggleHate called for nullptr node.\n");
 		return false;
 	}
 	if (node->GetAttitude() == iAImageTreeNode::Hated)
@@ -149,7 +149,7 @@ void iAFavoriteWidget::Remove(iAImageTreeNode const * node)
 {
 	if (!node)
 	{
-		DEBUG_LOG("ERROR in favorites: remove called for NULL node\n");
+		DEBUG_LOG("ERROR in favorites: remove called for nullptr node\n");
 		return;
 	}
 	int idx = GetIndexForNode(node);

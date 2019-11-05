@@ -211,7 +211,7 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 			break;
 		}
 
-		if (x != NULL)
+		if (x != nullptr)
 		{
 			if (*x == viewX)
 				*x = lx+1;
