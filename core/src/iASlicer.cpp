@@ -1263,6 +1263,21 @@ namespace
 	double fisheyeMinInnerRadius(double radius) { return std::max(1, static_cast<int>((radius - 1) * 0.7)); }
 }
 
+#if QT_VERSION < 0x051000
+bool operator==(QCursor const & a, QCursor const & b)
+{
+	if (a.shape() != Qt::BitmapCursor)
+		return a.shape() == b.shape();
+	return b.shape() == Qt::BitmapCursor &&
+		a.hotSpot() == b.hotSpot() &&
+		(a.pixmap() == b.pixmap() || (a.bitmap() == b.bitmap() && a.mask() == b.mask()));
+}
+bool operator!=(QCursor const & a, QCursor const & b)
+{
+	return !operator==(a, b);
+}
+#endif
+
 void iASlicer::printVoxelInformation()
 {
 	if (!m_decorations)
