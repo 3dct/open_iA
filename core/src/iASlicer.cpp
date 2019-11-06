@@ -1263,7 +1263,8 @@ namespace
 	double fisheyeMinInnerRadius(double radius) { return std::max(1, static_cast<int>((radius - 1) * 0.7)); }
 }
 
-#if QT_VERSION < 0x051000
+// Qt versions before 5.10 don't have these operators yet:
+#if QT_VERSION < 0x050A00
 bool operator==(QCursor const & a, QCursor const & b)
 {
 	if (a.shape() != Qt::BitmapCursor)
