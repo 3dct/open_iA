@@ -12,9 +12,3 @@ IF (openiA_TESTING_ENABLED AND Module_CommonImageFilters)
 	ADD_TEST(NAME CMD_Invert COMMAND ${TEST_CMD_Binary} -r "Invert" -i ${TEST_DATA_DIR}/test2x2x2.mhd -o ${CMAKE_BINARY_DIR}/Testing/Temporary/test_invert.mhd -p true 1 -q -f)
 	# TODO: check output?
 ENDIF()
-
-
-IF (Module_CommonImageFilters AND "${ITKGPUCommon_LIBRARY_DIRS}" STREQUAL "")
-	ADD_DEFINITIONS(-DITKNOGPU)
-	MESSAGE(WARNING "ITK is built without GPU support (flag ITK_USE_GPU disabled). The GPU version of the Gradient Anisotropic Filter will not be available!")
-ENDIF()

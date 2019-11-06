@@ -39,14 +39,14 @@
 #include <QColorDialog>
 #include <QFileDialog>
 #include <QListWidgetItem>
+#include <QMenu>
+#include <QMessageBox>
 #include <QPainter>
 #include <QPropertyAnimation>
 #include <QSettings>
 #include <QTableWidget>
 #include <QWheelEvent>
 #include <QtMath>
-#include <QMenu>
-#include <QMessageBox>
 
 namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:
