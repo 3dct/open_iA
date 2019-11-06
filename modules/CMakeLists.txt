@@ -174,17 +174,8 @@ FOREACH( indx RANGE ${len} )
 		ENDIF ()
 		add_dependencies(${module_name} ${GUI_EXECUTABLE_NAME})
 	ELSE()
-		IF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-			set_target_properties(${module_name} PROPERTIES
-				LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/Debug/plugins"
-				LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/Release/plugins"
-				LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/RelWithDebInfo/plugins"
-				LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/MinSizeRel/plugins"
-		)
-		ELSE()
-			set_target_properties(${module_name} PROPERTIES
-				LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/plugins")
-		ENDIF()
+		set_target_properties(${module_name} PROPERTIES
+			LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/plugins")
 		IF (FLATPAK_BUILD)
 			INSTALL (TARGETS ${module_name} LIBRARY DESTINATION bin/plugins)
 		ELSE()
