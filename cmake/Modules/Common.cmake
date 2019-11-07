@@ -100,10 +100,10 @@ LIST (APPEND BUNDLE_DIRS "${ITK_LIB_DIR}")
 IF (SCIFIO_LOADED)
 	ADD_DEFINITIONS(-DUSE_SCIFIO)
 	MESSAGE(STATUS "    SCIFIO support enabled!\n\
-      Notice that in order to run a build with this library on another machine\n\
-      than the one you built it, the environment variable SCIFIO_PATH\n\
-      has to be set to the path containing the SCIFIO jar files!\n\
-      Otherwise loading images will fail!")
+       Notice that in order to run a build with this library on another machine\n\
+       than the one you built it, the environment variable SCIFIO_PATH\n\
+       has to be set to the path containing the SCIFIO jar files!\n\
+       Otherwise loading images will fail!")
 	SET (SCIFIO_PATH "${ITK_DIR}/lib/jars")
 	IF (MSVC)
 		# variable will be set to the debugging environment instead of copying (see gui/CMakeLists.txt)
