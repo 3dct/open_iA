@@ -1,6 +1,7 @@
 #pragma once
 #include "iAModuleInterface.h"
 #include "iAPolygonPrimitivesModuleInterface.h"
+#include <mdichild.h>
 
 void iAPolygonPrimitivesModuleInterface::Initialize()
 {
@@ -15,5 +16,6 @@ void iAPolygonPrimitivesModuleInterface::Initialize()
 
 void iAPolygonPrimitivesModuleInterface::TestAction()
 {
+	auto child = m_mainWnd->activeMdiChild();
 	QMessageBox::information(m_mainWnd, "Test Module", "This is the Test Module!");
 }
