@@ -1,1 +1,11 @@
-#include "dlg_PolygonPrimites.h"
+#include "dlg_PolygonPrimitives.h"
+
+PolygonPrimitives::PolygonPrimitives(QWidget* parent, Qt::WindowFlags f) :QDialog(parent, f) {
+	setupUi(this); 
+
+}
+
+PolygonPrimitives::~PolygonPrimitives()
+{
+
+}
