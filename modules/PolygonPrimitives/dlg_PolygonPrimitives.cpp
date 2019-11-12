@@ -7,5 +7,5 @@ PolygonPrimitives::PolygonPrimitives(QWidget* parent, Qt::WindowFlags f) :QDialo
 
 PolygonPrimitives::~PolygonPrimitives()
 {
-
+	this->m_child = nullptr; 
 }

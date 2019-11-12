@@ -18,9 +18,18 @@ void iAPolygonPrimitivesModuleInterface::Initialize()
 
 void iAPolygonPrimitivesModuleInterface::TestAction()
 {
-	auto child = m_mainWnd->activeMdiChild();
-	if (!child) DEBUG_LOG("current child is null"); return;
+	/*auto child = m_mainWnd->activeMdiChild();
+	if (!child) {
+		DEBUG_LOG("current child is null");
+		return;
+	}*/
 
+	PolygonPrimitives dlg_primitives; 
+
+	if (dlg_primitives.exec() != QDialog::Accepted) {
+	
+		return; 
+	}
 
 
 
