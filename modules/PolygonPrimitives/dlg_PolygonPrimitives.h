@@ -12,10 +12,16 @@ public:
 	PolygonPrimitives(QWidget* parent = 0, Qt::WindowFlags f = 0);
 	~PolygonPrimitives();
 
+	void performConnections();
+
 	inline void setMDIChild(MdiChild* child)
 	{
 		m_child = child;
 	}
+
+
+private slots:
+	void createObject(); 
 
 
 private:
