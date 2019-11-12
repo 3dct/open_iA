@@ -68,6 +68,7 @@ namespace
 	const QString CfgKeyColorCodingMax("SPM/ColorCodingMax");
 	const QString CfgKeyColorLookupParam("SPM/ColorLookupParam");
 	const QString CfgKeyVisibleParameters("SPM/VisibleParameters");
+	const QString CfgKeyMaximizedPlot("SPM/MaximizedPlot");
 }
 
 iAQSplom::Settings::Settings()
@@ -1649,6 +1650,10 @@ void iAQSplom::saveSettings(QSettings & iniFile) const
 	iniFile.setValue(CfgKeyColorCodingMax, colorCodingMax);
 	iniFile.setValue(CfgKeyColorLookupParam, static_cast<qulonglong>(m_colorLookupParam));
 	iniFile.setValue(CfgKeyVisibleParameters, join(m_visibleIndices, ","));
+	if (m_maximizedPlot)
+	{
+		iniFile.setValue(CfgKeyMaximizedPlot, QString("%1,%2").arg(m_maximizedPlot->getIndices()[0]).arg(m_maximizedPlot->getIndices()[1]));
+	}
 }
 
 void iAQSplom::loadSettings(iASettings const & config)
@@ -1697,11 +1702,11 @@ void iAQSplom::loadSettings(iASettings const & config)
 		for (QString idxStr : newVisibleIndices)
 		{
 			int idx = idxStr.toInt(&ok);
-				if (!ok || idx < 0)
-				{
-					DEBUG_LOG(QString("Invalid index %1 in VisibleParameter Scatter Plot Matrix setting.").arg(idxStr));
-						continue;
-				}
+			if (!ok || idx < 0)
+			{
+				DEBUG_LOG(QString("Invalid index %1 in VisibleParameter Scatter Plot Matrix setting.").arg(idxStr));
+				continue;
+			}
 			if (idx >= newParamVis.size())
 			{
 				DEBUG_LOG(QString("Index %1 in VisibleParameter settings is larger than currently available number of parameter; "
@@ -1744,6 +1749,48 @@ void iAQSplom::loadSettings(iASettings const & config)
 	double opacity = static_cast<double>(m_settingsDlg->slPointOpacity->value()) / m_settingsDlg->slPointOpacity->maximum();
 	opacity = config.value(CfgKeyPointOpacity, opacity).toDouble();
 	m_settingsDlg->slPointOpacity->setValue(opacity * m_settingsDlg->slPointOpacity->maximum());
+
+	if (config.contains(CfgKeyMaximizedPlot))
+	{
+		QStringList strInds = config[CfgKeyMaximizedPlot].toString().split(",");
+		if (strInds.size() != 2)
+		{
+			DEBUG_LOG(QString("Expected two indices separated by comma in %1 setting, but got %2")
+				.arg(CfgKeyMaximizedPlot)
+				.arg(config[CfgKeyMaximizedPlot].toString()));
+		}
+		else
+		{
+			bool ok1, ok2;
+			int idx1 = strInds[0].toInt(&ok1);
+			int idx2 = strInds[1].toInt(&ok2);
+			if (!ok1 || !ok2 || idx1 < 0 || idx2 < 0 || idx1 >= m_splomData->numParams() || idx2 >= m_splomData->numParams())
+			{
+				DEBUG_LOG(QString("Cannot create maximized plot from setting %1, invalid or out-of-range indices: %2")
+					.arg(CfgKeyMaximizedPlot)
+					.arg(config[CfgKeyMaximizedPlot].toString()));
+			}
+			else
+			{
+				auto idx1VisIt = std::find(m_visibleIndices.begin(), m_visibleIndices.end(), idx1);
+				auto idx2VisIt = std::find(m_visibleIndices.begin(), m_visibleIndices.end(), idx2);
+				if (idx1VisIt == m_visibleIndices.end() || idx1VisIt == m_visibleIndices.end())
+				{
+					DEBUG_LOG(QString("Cannot create maximized plot from setting %1, given parameter indices %2, %3 were not among visible plots!")
+						.arg(CfgKeyMaximizedPlot)
+						.arg(idx1)
+						.arg(idx2));
+				}
+				else
+				{
+					size_t visIdx1 = std::distance(m_visibleIndices.begin(), idx1VisIt);
+					size_t visIdx2 = std::distance(m_visibleIndices.begin(), idx2VisIt);
+					iAScatterPlot* s = m_visiblePlots[visIdx2][visIdx1];
+					maximizeSelectedPlot(s);
+				}
+			}
+		}
+	}
 }
 
 void iAQSplom::setPointColor(QColor const & newColor)
