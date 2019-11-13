@@ -981,6 +981,7 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 		m_maximizedPlot->paintOnParent( painter );
 	drawPopup( painter );
 
+	// Draw scalar bar:
 	// maybe reuse code from iALinearColorGradientBar (DynamicVolumeLines)
 	QPoint topLeft = getMaxRect().topLeft();
 	int barWidth = clamp(5, 10, m_scatPlotSize.x() / 10);
@@ -1013,7 +1014,7 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 #else
 	int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
 #endif
-	// print scheme / name of parameter used for coloring
+	// Draw scheme / name of parameter used for coloring
 	int colorBarTextX = topLeft.x() - (textWidth + settings.plotsSpacing);
 	painter.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
 	painter.drawText(colorBarTextX, height() - settings.plotsSpacing, minStr);
@@ -1027,7 +1028,6 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	case ByParameter  : scalarBarCaption = m_splomData->parameterName(m_colorLookupParam); break;
 	default:            scalarBarCaption = "Unknown"; break;
 	}
-	//painter.fillRect(textRect, QColor("#FFFF00"));
 	painter.save();
 	painter.translate(colorBarTextX - settings.plotsSpacing, topLeft.y() + fm.height() + settings.plotsSpacing + textHeight);
 	painter.rotate(-90);
@@ -1407,6 +1407,12 @@ void iAQSplom::drawPlotLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPai
 
 	for (int axisIdx = 0; axisIdx < loopLength; axisIdx++)
 	{
+		if (!settings.histogramVisible &&
+			((!switchTO_YRow && axisIdx == loopLength - 1) ||
+			(  switchTO_YRow && axisIdx == 0)))
+		{
+			continue;
+		}
 		ulong currIdx = ind_Elements[axisIdx];
 		QString currentParamName = m_splomData->parameterName(currIdx);
 		if (switchTO_YRow) 
