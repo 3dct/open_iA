@@ -702,6 +702,8 @@ void MdiChild::setupProject(bool active)
 {
 	setModalities(m_ioThread->modalities());
 	QString fileName = m_ioThread->fileName();
+	setCurrentFile(fileName);
+	m_mainWnd->setCurrentFile(fileName);
 	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
 		// TODO: make asynchronous, put into iASavableProject?
