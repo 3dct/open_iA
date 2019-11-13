@@ -984,7 +984,7 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	// maybe reuse code from iALinearColorGradientBar (DynamicVolumeLines)
 	QPoint topLeft = getMaxRect().topLeft();
 	int barWidth = clamp(5, 10, m_scatPlotSize.x() / 10);
-	topLeft += QPoint(- (barWidth + 2*settings.plotsSpacing + settings.tickOffsets.x()),
+	topLeft += QPoint(- (barWidth + 3*settings.plotsSpacing + settings.tickOffsets.x()),
 		settings.plotsSpacing
 		+ m_scatPlotSize.y() / ((((getVisibleParametersCount() + (settings.histogramVisible ? 1 : 0)) % 2) == 1) ? 2 : 1)
 	);
