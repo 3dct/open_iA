@@ -1001,7 +1001,7 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 		double rgba[4];
 		m_lut->getTableValue(i, rgba);
 		QColor color(rgba[0] * 255, rgba[1] * 255, rgba[2] * 255, rgba[3] * 255);
-		double key = 1 - (static_cast<double>(i) / m_lut->numberOfValues());
+		double key = 1 - (static_cast<double>(i) / (m_lut->numberOfValues()-1) );
 		grad.setColorAt(key, color);
 	}
 	painter.setPen(QPen(QColor(0, 0, 0), 0.5));
