@@ -989,8 +989,8 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 		+ m_scatPlotSize.y() / ((((getVisibleParametersCount() + (settings.histogramVisible ? 1 : 0)) % 2) == 1) ? 2 : 1)
 	);
 		
-	double minVal = m_lut->getRange()[0];
-	double maxVal = m_lut->getRange()[1];
+	double minVal = settings.colorScheme == AllPointsSame ? 0 : m_lut->getRange()[0];
+	double maxVal = settings.colorScheme == AllPointsSame ? 0 : m_lut->getRange()[1];
 	QRect colorBarRect(topLeft.x(), topLeft.y(),
 		barWidth, height() - topLeft.y() - settings.plotsSpacing);
 	QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y()+colorBarRect.height() );
@@ -1013,9 +1013,26 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 #else
 	int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
 #endif
+	// print scheme / name of parameter used for coloring
 	int colorBarTextX = topLeft.x() - (textWidth + settings.plotsSpacing);
 	painter.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
 	painter.drawText(colorBarTextX, height() - settings.plotsSpacing, minStr);
+	int textHeight = height() - (topLeft.y() + 2 * fm.height() + 2*settings.plotsSpacing);
+	textWidth = std::max(textWidth, fm.height()); // guarantee that label has at least text height
+	QString scalarBarCaption;
+	switch (settings.colorScheme)
+	{
+	case AllPointsSame: scalarBarCaption = "Uniform"; break;
+	case Custom:        // intentional fall-through:
+	case ByParameter  : scalarBarCaption = m_splomData->parameterName(m_colorLookupParam); break;
+	default:            scalarBarCaption = "Unknown"; break;
+	}
+	//painter.fillRect(textRect, QColor("#FFFF00"));
+	painter.save();
+	painter.translate(colorBarTextX - settings.plotsSpacing, topLeft.y() + fm.height() + settings.plotsSpacing + textHeight);
+	painter.rotate(-90);
+	painter.drawText(QRect(0, 0, textHeight, textWidth), Qt::AlignHCenter | Qt::AlignBottom, scalarBarCaption);
+	painter.restore();
 }
 
 bool iAQSplom::drawPopup( QPainter& painter )

@@ -274,10 +274,10 @@ protected:
 	std::vector<char> m_paramVisibility;         //!< array of individual parameter visibility
 	std::vector<int> m_visibleIndices;           //!< stores mapping from visible plot index to parameter index
 	QSharedPointer<iALookupTable> m_lut;         //!< lookup table, shared with individual scatter plots
-	size_t m_colorLookupParam;                   //!< index of the column to use for color lookup
+	size_t m_colorLookupParam;                   //!< index of the column to use for color lookup (TODO: Move to settings?)
 	QPoint m_scatPlotSize;                       //!< size of one scatter plot in the layout
 	iAScatterPlot * m_activePlot;                //!< scatter plot that user currently interacts with
-	splom_mode m_mode;                           //!< SPLOM current state: all plots or upper triangle with maximized plot
+	splom_mode m_mode;                           //!< SPLOM current state: all plots or upper triangle with maximized plot (TODO: Move to settings?)
 	QSharedPointer<iASPLOMData> m_splomData;     //!< contains raw data points used in SPLOM
 	iAScatterPlot * m_previewPlot;               //!< plot currently being previewed (shown in maximized plot)
 	iAScatterPlot * m_maximizedPlot;             //!< pointer to the maximized plot
