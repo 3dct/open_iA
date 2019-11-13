@@ -1207,10 +1207,22 @@ void iAFiAKErController::toggleOptimStepChart(int chartID, bool visible)
 			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 			{
 				QSharedPointer<iAVectorPlotData> plotData;
-				if (chartID < ChartCount-1)
-					plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.refDiffFiber[fiberID].diff[chartID].step));
+				if (chartID < ChartCount - 1)
+				{
+					if (chartID < d.refDiffFiber[fiberID].diff.size())
+					{
+						plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.refDiffFiber[fiberID].diff[chartID].step));
+					}
+					else
+					{
+						DEBUG_LOG("Differences for this measure not computed (yet).");
+						return;
+					}
+				}
 				else
+				{
 					plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.projectionError[fiberID]));
+				}
 				plotData->setXDataType(Discrete);
 				m_optimStepChart[chartID]->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
 			}
@@ -1228,8 +1240,18 @@ void iAFiAKErController::toggleOptimStepChart(int chartID, bool visible)
 		if (m_resultUIs[resultID].startPlotIdx == NoPlotsIdx)
 			continue;
 		for (size_t p = 0; p < m_data->result[resultID].fiberCount; ++p)
-			m_optimStepChart[chartID]->plots()[m_resultUIs[resultID].startPlotIdx+p]
+		{
+			if (p < m_optimStepChart[chartID]->plots().size())
+			{
+				m_optimStepChart[chartID]->plots()[m_resultUIs[resultID].startPlotIdx + p]
 					->setVisible(allVisible || resultSelected(m_resultUIs, resultID));
+			}
+			else
+			{
+				DEBUG_LOG("Tried to show/hide unavailable plot.");
+				return;
+			}
+		}
 	}
 	m_optimStepChart[chartID]->update();
 	showSelectionInPlot(chartID);
@@ -1434,6 +1456,10 @@ void iAFiAKErController::showSelectionInPlot(int chartID)
 				color.setAlpha(ContextOpacity);
 			for (size_t fiberID=0; fiberID < m_data->result[resultID].fiberCount; ++fiberID)
 			{
+				if (m_resultUIs[resultID].startPlotIdx + fiberID > chart->plots().size())
+				{
+					break;
+				}
 				auto plot = dynamic_cast<iALinePlot*>(chart->plots()[m_resultUIs[resultID].startPlotIdx + fiberID].data());
 				if (curSelIdx < m_selection[resultID].size() && fiberID == m_selection[resultID][curSelIdx])
 				{
