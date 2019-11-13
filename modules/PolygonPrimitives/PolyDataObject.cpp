@@ -11,10 +11,11 @@ PolyDataObject::PolyDataObject()
 
 void PolyDataObject::addToRenderer(vtkOpenGLRenderer* render)
 {
+	if (!objMapper || (!objActor) || (!objPoly)) return; 
+
 	objMapper->SetInputConnection(objPoly->GetOutputPort()); 
 	objActor->SetMapper(objMapper);
 	render->AddActor(objActor); 
-
 }
 
 void PolyDataObject::initPointers()
