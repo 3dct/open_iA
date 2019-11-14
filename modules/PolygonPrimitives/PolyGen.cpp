@@ -46,14 +46,11 @@ void PolyGen::createAndRenderObject(vtkOpenGLRenderer* renderer, double x1, doub
 	case color::red: lineProp->SetColor(1, 0, 0); break;
 	case color::blue: lineProp->SetColor(0, 1, 0); break;
 	case color::green: lineProp->SetColor(0, 0, 1); break;
-
 	default: lineProp->SetColor(1, 0, 0); break;
-	
-	
+		
 	}
 
 	actor->SetMapper(mapper);
-
 	renderer->AddActor(actor);
 	
 
