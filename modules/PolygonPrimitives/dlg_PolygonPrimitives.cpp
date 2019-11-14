@@ -31,3 +31,8 @@ void PolygonPrimitives::createObject()
 	msgBox.setText("just an action.");
 	msgBox.exec();
 }
+
+void PolygonPrimitives::readData()
+{
+
+}

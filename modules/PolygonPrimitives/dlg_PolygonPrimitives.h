@@ -25,6 +25,10 @@ private slots:
 
 
 private:
+	void readData(); 
+
+
+
 	MdiChild *m_child; 
 
 };
