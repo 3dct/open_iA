@@ -268,13 +268,13 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>380</x>
-     <y>20</y>
-     <width>142</width>
-     <height>44</height>
+     <x>340</x>
+     <y>290</y>
+     <width>77</width>
+     <height>25</height>
     </rect>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_7">
+   <layout class="QVBoxLayout" name="verticalLayout_7">
     <item>
      <widget class="QPushButton" name="btn_addObj">
       <property name="text">
@@ -287,14 +287,14 @@
   <widget class="QGroupBox" name="groupBox_5">
    <property name="geometry">
     <rect>
-     <x>370</x>
-     <y>140</y>
+     <x>340</x>
+     <y>160</y>
      <width>201</width>
      <height>131</height>
     </rect>
    </property>
    <property name="title">
-    <string>Select Object</string>
+    <string>Choose Object</string>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_6">
     <item>
@@ -314,6 +314,32 @@
         <property name="text">
          <string>Line</string>
         </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Color</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cmbBox_col">
+        <item>
+         <property name="text">
+          <string>Red</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Green</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Blue</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>
