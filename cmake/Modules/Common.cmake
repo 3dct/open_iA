@@ -2,11 +2,11 @@
 # Disable In-Source Build
 #-------------------------
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
-if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+IF ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 	message(FATAL_ERROR "In-source builds in ${CMAKE_BINARY_DIR} are disabled to avoid "
 		"cluttering the source repository. Please delete ./CMakeCache.txt and ./CMakeFiles/, "
 		"and run cmake with a newly created build directory.")
-endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+ENDIF()
 
 #-------------------------
 # CTest
@@ -26,7 +26,7 @@ ENDIF()
 #-------------------------
 # Output Directories
 #-------------------------
-IF(MSVC)
+IF (MSVC)
 	MESSAGE(STATUS "Compiler: Visual C++")
 	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/x64/Debug")
 	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/x64/Release")
@@ -53,7 +53,7 @@ ENDIF()
 SET(SAVED_CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}")
 FIND_PACKAGE(ITK REQUIRED)
 MESSAGE(STATUS "ITK: ${ITK_VERSION} in ${ITK_DIR}.")
-IF(ITK_VERSION_MAJOR LESS 4 OR (ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR LESS 10))
+IF (ITK_VERSION_MAJOR LESS 4 OR (ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR LESS 10))
 	MESSAGE(FATAL_ERROR "Your ITK version is too old. Please use ITK >= 4.10")
 ENDIF()
 SET (ITK_COMPONENTS
@@ -107,15 +107,16 @@ IF (SCIFIO_LOADED)
 	SET (SCIFIO_PATH "${ITK_DIR}/lib/jars")
 	IF (MSVC)
 		# variable will be set to the debugging environment instead of copying (see gui/CMakeLists.txt)
-	ELSE(MSVC)
+	ELSE()
 		SET (DESTDIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scifio_jars")
 		MESSAGE(STATUS "Copying SCIFIO jars from ${SCIFIO_PATH} to ${DESTDIR}")
 		configure_file("${SCIFIO_PATH}/bioformats_package.jar" "${DESTDIR}/bioformats_package.jar" COPYONLY)
 		configure_file("${SCIFIO_PATH}/scifio-itk-bridge.jar" "${DESTDIR}/scifio-itk-bridge.jar" COPYONLY)
-	ENDIF(MSVC)
+	ENDIF()
 	INSTALL(FILES "${SCIFIO_PATH}/bioformats_package.jar" DESTINATION scifio_jars)
 	INSTALL(FILES "${SCIFIO_PATH}/scifio-itk-bridge.jar" DESTINATION scifio_jars)
-ENDIF(SCIFIO_LOADED)
+ENDIF()
+
 IF ("${ITKGPUCommon_LIBRARY_DIRS}" STREQUAL "")
 	ADD_DEFINITIONS(-DITKNOGPU)
 	MESSAGE(WARNING "ITK is built without GPU support (flag ITK_USE_GPU disabled). Some GPU-optimized functionality might not be available!")
@@ -125,7 +126,7 @@ ENDIF()
 FIND_PACKAGE(VTK REQUIRED)
 MESSAGE(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}.")
 MESSAGE(STATUS "    Rendering Backend: ${VTK_RENDERING_BACKEND}")
-IF(VTK_VERSION_MAJOR LESS 8)
+IF (VTK_VERSION_MAJOR LESS 8)
 	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 8.0")
 ENDIF()
 SET (VTK_COMPONENTS
@@ -216,11 +217,11 @@ SET(QT_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Xml_LIBRARIES} ${Qt5OpenGL_LIBRARIES}
 
 STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
 STRING(REGEX REPLACE "/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_BASEDIR})	# on linux, lib is omitted if installed from package repos
-IF(WIN32)
+IF (WIN32)
 	SET (QT_LIB_DIR "${Qt5_BASEDIR}/bin")
 	# use imported targets for windows plugin:
 	INSTALL (FILES "$<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>" DESTINATION platforms)
-ENDIF(WIN32)
+ENDIF()
 IF (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
 	IF (EXISTS "${Qt5_BASEDIR}/lib")
 		SET (QT_LIB_DIR "${Qt5_BASEDIR}/lib")
@@ -263,11 +264,11 @@ LIST (APPEND BUNDLE_DIRS "${QT_LIB_DIR}")
 
 # Eigen
 FIND_PACKAGE(Eigen3)
-IF(EIGEN3_FOUND)
+IF (EIGEN3_FOUND)
 	ADD_DEFINITIONS(-DUSE_EIGEN)
 	INCLUDE_DIRECTORIES( ${EIGEN3_INCLUDE_DIR} )
 	MESSAGE(STATUS "Eigen: ${EIGEN3_VERSION} in ${EIGEN3_INCLUDE_DIR}")
-ENDIF(EIGEN3_FOUND)
+ENDIF()
 
 
 # HDF5
@@ -276,15 +277,15 @@ ENDIF(EIGEN3_FOUND)
 FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C NO_MODULE QUIET)
 
 IF (HDF5_FOUND)
-	if (WIN32)
+	IF (WIN32)
 		SET (HDF5_CORE_LIB_NAME libhdf5.lib)
 		SET (HDF5_Z_LIB_NAME libzlib.lib)
 		SET (HDF5_SZIP_LIB_NAME libszip.lib)
-	else()
+	ELSE()
 		SET (HDF5_CORE_LIB_NAME libhdf5.a)
 		SET (HDF5_Z_LIB_NAME libz.a)
 		SET (HDF5_SZIP_LIB_NAME libszip.a)
-	endif()
+	ENDIF()
 	FIND_PATH(HDF5_INCLUDE_OVERWRITE_DIR hdf5.h PATHS "${HDF5_DIR}/../../include" "${HDF5_DIR}/../../../include")
 	SET(HDF5_INCLUDE_DIR "${HDF5_INCLUDE_OVERWRITE_DIR}" CACHE PATH "" FORCE)
 	UNSET(HDF5_INCLUDE_OVERWRITE_DIR CACHE)
@@ -334,7 +335,7 @@ IF (CUDA_FOUND)
 			MESSAGE(STATUS "CudaRT / CuFFT libs in different folders!")
 			LIST (APPEND BUNDLE_DIRS "${CUFFT_LIB_DIR}")
 		ENDIF()
-	ENDIF ()
+	ENDIF()
 	LIST (APPEND BUNDLE_DIRS "${CUDA_LIB_DIR}")
 ENDIF()
 
@@ -372,26 +373,28 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 #-------------------------
 # Compiler Flags
 #-------------------------
-IF (WIN32)
-	ADD_DEFINITIONS(-DCL_COMP) # TODO: check if that really is used for something!
-ENDIF (WIN32)
+#IF (WIN32)
+#	ADD_DEFINITIONS(-DCL_COMP) # TODO: check if that really is used for something!
+#ENDIF (WIN32)
 IF (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /EHsc")  # multi-processor compilation and common exception handling strategy
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 	ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
-ENDIF (MSVC)
-IF (CMAKE_COMPILER_IS_GNUCXX)
-	IF (CMAKE_VERSION VERSION_LESS "3.8")
-		MESSAGE(STATUS "Aiming for C++14 support.")
-		SET(CMAKE_CXX_STANDARD 14)
-	ELSEIF (CMAKE_VERSION VERSION_LESS "3.11")
-		MESSAGE(STATUS "Aiming for C++17 support.")
-		SET(CMAKE_CXX_STANDARD 17)
-	ELSE()
-		MESSAGE(STATUS "Aiming for C++20 support.")
-		SET(CMAKE_CXX_STANDARD 20)
-	ENDIF()
-	SET(CMAKE_CXX_EXTENSIONS OFF)
+ENDIF()
+	
+IF (CMAKE_VERSION VERSION_LESS "3.8")
+	MESSAGE(STATUS "Aiming for C++14 support.")
+	SET(CMAKE_CXX_STANDARD 14)
+ELSEIF (CMAKE_VERSION VERSION_LESS "3.11")
+	MESSAGE(STATUS "Aiming for C++17 support.")
+	SET(CMAKE_CXX_STANDARD 17)
+ELSE()
+	MESSAGE(STATUS "Aiming for C++20 support.")
+	SET(CMAKE_CXX_STANDARD 20)
+ENDIF()
+SET(CMAKE_CXX_EXTENSIONS OFF)
+
+IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	# Make sure at least C++ 0x is supported:
 	INCLUDE (CheckCXXCompilerFlag)
 	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
@@ -399,27 +402,14 @@ IF (CMAKE_COMPILER_IS_GNUCXX)
 		MESSAGE(WARN "The used compiler ${CMAKE_CXX_COMPILER} has no C++0x/11 support. Please use a newer C++ compiler.")
 	ENDIF()
 
-	execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpfullversion -dumpversion OUTPUT_VARIABLE GCC_VERSION)
-	string(REGEX MATCHALL "[0-9]+" GCC_VERSION_COMPONENTS ${GCC_VERSION})
-	list(GET GCC_VERSION_COMPONENTS 0 GCC_MAJOR)
-	list(GET GCC_VERSION_COMPONENTS 1 GCC_MINOR)
+	set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -msse4.1 -fpermissive -lgomp -march=core2 -O2")
+	set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -msse4.1 -lgomp -march=core2 -O2")
+ENDIF()
 
-	IF (GCC_MAJOR GREATER 3)
-		IF (GCC_MINOR GREATER 2)
-			set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -msse4.1 -fpermissive -lgomp -march=core2 -O2")
-			set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -msse4.1 -lgomp -march=core2 -O2")
-		ENDIF ()
-	ELSE ()
-		set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -fpermissive -lgomp")
-	ENDIF ()
-
-	IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		# Mac OS X specific code
-		MESSAGE (WARNING "You are using MacOS - note that we do not regularly build on Mac OS, expect there to be some errors.")
-	ENDIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-ENDIF (CMAKE_COMPILER_IS_GNUCXX)
-
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	# Mac OS X specific code
+	MESSAGE (WARNING "You are using MacOS - note that we do not regularly build on Mac OS, expect there to be some errors.")
+ENDIF()
 
 #-------------------------
 # Common Settings
@@ -438,7 +428,7 @@ include(GetGitRevisionDescription)
 git_describe(openiA_VERSION --tags)
 IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL")
 	SET (openiA_VERSION "${openiA_VERSION}-oldOpenGL")
-ENDIF ()
+ENDIF()
 MESSAGE(STATUS "Build version: ${openiA_VERSION}")
 configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${open_iA_BINARY_DIR}/version.h" @ONLY)
 
@@ -449,4 +439,4 @@ IF (UNIX)
     #IF (CMAKE_MAJOR_VERSION GREATER 3 OR (CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 13))
     #    SET (CMAKE_BUILD_RPATH_USE_ORIGIN ON)
     #ENDIF ()
-ENDIF ()
+ENDIF()
