@@ -143,15 +143,12 @@ public:
 
 
 #ifdef ITK_USE_CONCEPT_CHECKING
-  /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck1,
     (Concept::SameDimension<itkGetStaticConstMacro(InputImage1Dimension),
                             itkGetStaticConstMacro(OutputImageDimension)>));
   itkConceptMacro(SameDimensionCheck2,
     (Concept::SameDimension<itkGetStaticConstMacro(InputImage1Dimension),
                             itkGetStaticConstMacro(InputImage2Dimension)>));
-
-  /** End concept checking */
 #endif
 
 protected:
@@ -169,7 +166,7 @@ protected:
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData()  */
   void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                            itk::ThreadIdType threadId );
+                            itk::ThreadIdType threadId ) override;
 
 private:
   DualViewImageFusionFilter(const Self&); //purposely not implemented
