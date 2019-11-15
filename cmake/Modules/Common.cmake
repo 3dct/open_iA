@@ -373,9 +373,6 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 #-------------------------
 # Compiler Flags
 #-------------------------
-#IF (WIN32)
-#	ADD_DEFINITIONS(-DCL_COMP) # TODO: check if that really is used for something!
-#ENDIF (WIN32)
 IF (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /EHsc")  # multi-processor compilation and common exception handling strategy
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
