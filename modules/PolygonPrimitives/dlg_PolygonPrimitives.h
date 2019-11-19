@@ -34,6 +34,8 @@ private slots:
 private:
 	
 	void readData(iARenderer* renderer);
+	void readSphereData(iARenderer* renderer);
+	
 	inline bool checkNullempty(const QString& val) {
 		bool res = false; 
 		return res = val.isNull() || val.isEmpty();

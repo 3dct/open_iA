@@ -29,6 +29,9 @@ void PolygonPrimitives::createObject()
 	if (lineChecked) {
 		readData(renderer);
 	}
+	else {
+		readSphereData(renderer);
+	}
 	
 
 	DEBUG_LOG("Action is triggered");
@@ -81,9 +84,52 @@ void PolygonPrimitives::readData(iARenderer *renderer)
 	auto oglRenderer = renderer->renderer(); 
 	if (!oglRenderer) return; 
 
-	visualiser.createAndRenderObject(oglRenderer, x1, y1, z1, x2, y2, z2, color::green);
+	visualiser.createAndRenderLine(oglRenderer, x1, y1, z1, x2, y2, z2, color::green);
 
 	renderer->update();
 	DEBUG_LOG("Starting action");
+	
+}
+
+void PolygonPrimitives::readSphereData(iARenderer* renderer)
+{
+	if (!renderer) return; 
+	double xm, ym, zm; 
+	double raduis = 0; 
+	auto oglRenderer = renderer->renderer();
+	if (!oglRenderer) return; 
+
+
+	QString str_xm, str_ym, str_zm, str_raduis;
+	bool check_xm, check_ym, check_zm, checkRaduis;
+
+
+	str_xm = this->ed_SphereXm->text();
+	str_ym = this->ed_SphereYm->text();
+	str_zm = this->ed_SphereZm->text();
+	str_raduis = this->ed_SphereCentRaduis->text();
+
+	check_xm = this->checkNullempty(str_xm);
+	check_ym = this->checkNullempty(str_ym);
+
+	check_zm = this->checkNullempty(str_zm);
+	checkRaduis = this->checkNullempty(str_raduis);
+
+	if (check_xm || check_ym || check_zm || checkRaduis) {
+		QMessageBox msgBox;
+		msgBox.setText("Please Enter coordinates for every element.");
+		msgBox.exec();
+		return;
+	
+	}
+
+	xm = str_xm.toDouble();
+	ym = str_ym.toDouble();
+	zm = str_zm.toDouble();
+	raduis = str_raduis.toDouble();
+
+	visualiser.createAndRenderSphere(oglRenderer, xm, ym, zm, raduis, color::green);
+	renderer->update(); 
+
 	
 }

@@ -170,7 +170,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="ed_SphereCentX"/>
+              <widget class="QLineEdit" name="ed_SphereXm"/>
              </item>
             </layout>
            </item>
@@ -204,7 +204,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QLineEdit" name="ed_SphereCentY"/>
+            <widget class="QLineEdit" name="ed_SphereYm"/>
            </item>
           </layout>
          </item>
@@ -238,7 +238,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QLineEdit" name="ed_SphereCentZ"/>
+            <widget class="QLineEdit" name="ed_SphereZm"/>
            </item>
           </layout>
          </item>
