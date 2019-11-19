@@ -86,7 +86,9 @@ void PolygonPrimitives::readData(iARenderer *renderer, color aColor)
 	auto oglRenderer = renderer->renderer(); 
 	if (!oglRenderer) return; 
 
-	visualiser.createAndRenderLine(oglRenderer, x1, y1, z1, x2, y2, z2, aColor);
+
+	double thickness = this->ed_Thickness->text().toDouble(); 
+	visualiser.createAndRenderLine(oglRenderer, x1, y1, z1, x2, y2, z2, thickness,aColor);
 
 	renderer->update();
 	DEBUG_LOG("Starting action");
@@ -109,7 +111,7 @@ void PolygonPrimitives::readSphereData(iARenderer* renderer, color aColor)
 	str_xm = ed_SphereXm->text();
 	str_ym = ed_SphereYm->text();
 	str_zm = ed_SphereZm->text();
-	str_raduis = ed_SphereCentRaduis->text();
+	str_raduis = ed_Thickness->text();
 
 	check_xm = checkNullempty(str_xm);
 	check_ym = checkNullempty(str_ym);

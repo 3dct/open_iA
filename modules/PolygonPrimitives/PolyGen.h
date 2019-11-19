@@ -49,7 +49,8 @@ public:
 	vtkSmartPointer<vtkSphereSource> createObject(double x, double y, double z, double radius); 
 	vtkSmartPointer<vtkLineSource> createObject(double x1, double y1, double z1, double x2, double y2, double z2 );
 	
-	 void createAndRenderLine(vtkOpenGLRenderer* renderer, double x1, double y1, double z1, double x2, double y2, double z2, color acolor);
+	// void createAndRenderLine(vtkOpenGLRenderer* renderer, double x1, double y1, double z1, double x2, double y2, double z2, color acolor);
+	 void createAndRenderLine(vtkOpenGLRenderer* renderer, double x1, double y1, double z1, double x2, double y2, double z2, double lnWithd, color acolor);
 	 void createAndRenderSphere(vtkOpenGLRenderer* renderer, double xm, double ym, double zm, double radius, color acolor);
 
 };

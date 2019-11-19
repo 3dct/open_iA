@@ -29,17 +29,24 @@ vtkSmartPointer<vtkSphereSource> PolyGen::createObject(double x, double y, doubl
 
 }
 
-void PolyGen::createAndRenderLine(vtkOpenGLRenderer* renderer, double x1, double y1, double z1, double x2, double y2, double z2, color acolor)
+void PolyGen::createAndRenderLine(vtkOpenGLRenderer* renderer, double x1, double y1, double z1, double x2, double y2, double z2, double lnWithd, color acolor)
 {
+	if (lnWithd < 0) return ;
 	vtkSmartPointer<vtkLineSource> aLine = nullptr;
 	aLine = this->createObject(x1, y1, z1, x2, y2, z2);
 
 	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New(); 
 	if (!aLine) throw (std::invalid_argument("values cannot be generated"));
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New(); 
+	actor->SetOrigin(0, 0, 0);
+	actor->SetDragable(false);
+	actor->SetPickable(false); 
 	
+	
+	actor->SetOrientation(0, 0, 0);
+
 	auto lineProp = actor->GetProperty(); 
-	lineProp->SetLineWidth(100.0); 
+	lineProp->SetLineWidth(lnWithd);
 
 	switch(acolor)
 	{
@@ -70,6 +77,9 @@ void PolyGen::createAndRenderSphere(vtkOpenGLRenderer* renderer, double xm, doub
 
 	auto sphereProp = actor->GetProperty();
 	sphereProp->SetLineWidth(100.0);
+	actor->SetDragable(false);
+	actor->SetPickable(false);
+
 
 	switch (acolor)
 	{
@@ -83,6 +93,8 @@ void PolyGen::createAndRenderSphere(vtkOpenGLRenderer* renderer, double xm, doub
 
 	mapper->SetInputConnection(aSphere->GetOutputPort());
 	actor->SetMapper(mapper);
+
+	
 	renderer->AddActor(actor);
 
 }

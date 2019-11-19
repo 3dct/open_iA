@@ -35,7 +35,7 @@
      <x>10</x>
      <y>20</y>
      <width>302</width>
-     <height>385</height>
+     <height>432</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -177,18 +177,7 @@
           </layout>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_16">
-           <item>
-            <widget class="QLabel" name="label_8">
-             <property name="text">
-              <string>Raduis</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="ed_SphereCentRaduis"/>
-           </item>
-          </layout>
+          <layout class="QVBoxLayout" name="verticalLayout_16"/>
          </item>
         </layout>
        </item>
@@ -345,6 +334,29 @@
      </layout>
     </item>
    </layout>
+  </widget>
+  <widget class="QLineEdit" name="ed_Thickness">
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>40</y>
+     <width>133</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_8">
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>8</y>
+     <width>133</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Raduis / LineWith</string>
+   </property>
   </widget>
  </widget>
  <resources/>
