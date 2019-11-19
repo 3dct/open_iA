@@ -33,9 +33,13 @@ private slots:
 
 private:
 	
-	void readData(iARenderer* renderer);
-	void readSphereData(iARenderer* renderer);
 	
+	void readData(iARenderer* renderer, color aColor);
+	
+	void readSphereData(iARenderer* renderer, color aColor);
+	color getColor() const;
+
+
 	inline bool checkNullempty(const QString& val) {
 		bool res = false; 
 		return res = val.isNull() || val.isEmpty();
@@ -46,6 +50,6 @@ private:
 	PolyGen visualiser;
 
 	MdiChild *m_child; 
-
+	color m_Color; 
 };
 

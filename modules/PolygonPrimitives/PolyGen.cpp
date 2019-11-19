@@ -45,8 +45,8 @@ void PolyGen::createAndRenderLine(vtkOpenGLRenderer* renderer, double x1, double
 	{
 	
 	case color::red: lineProp->SetColor(1, 0, 0); break;
-	case color::blue: lineProp->SetColor(0, 1, 0); break;
-	case color::green: lineProp->SetColor(0, 0, 1); break;
+	case color::blue: lineProp->SetColor(0, 0, 1); break;
+	case color::green: lineProp->SetColor(0, 1, 0); break;
 	default: lineProp->SetColor(1, 0, 0); break;
 		
 	}
@@ -75,8 +75,8 @@ void PolyGen::createAndRenderSphere(vtkOpenGLRenderer* renderer, double xm, doub
 	{
 
 	case color::red: sphereProp->SetColor(1, 0, 0); break;
-	case color::blue: sphereProp->SetColor(0, 1, 0); break;
-	case color::green: sphereProp->SetColor(0, 0, 1); break;
+	case color::blue: sphereProp->SetColor(0, 0, 1); break;
+	case color::green: sphereProp->SetColor(0, 1, 0); break;
 	default: sphereProp->SetColor(1, 0, 0); break;
 
 	}

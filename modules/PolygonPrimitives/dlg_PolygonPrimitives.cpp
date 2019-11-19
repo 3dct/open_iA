@@ -26,11 +26,13 @@ void PolygonPrimitives::createObject()
 	if (!m_child) return; 
 	auto renderer = m_child->renderer();
 	bool lineChecked = this->rdBtn_Line->isChecked();
+	m_Color = this->getColor(); 
+	
 	if (lineChecked) {
-		readData(renderer);
+		readData(renderer, m_Color);
 	}
 	else {
-		readSphereData(renderer);
+		readSphereData(renderer, m_Color);
 	}
 	
 
@@ -38,7 +40,7 @@ void PolygonPrimitives::createObject()
 
 }
 
-void PolygonPrimitives::readData(iARenderer *renderer)
+void PolygonPrimitives::readData(iARenderer *renderer, color aColor)
 {
 	double x1, x2;
 	double y1, y2; 
@@ -84,14 +86,14 @@ void PolygonPrimitives::readData(iARenderer *renderer)
 	auto oglRenderer = renderer->renderer(); 
 	if (!oglRenderer) return; 
 
-	visualiser.createAndRenderLine(oglRenderer, x1, y1, z1, x2, y2, z2, color::green);
+	visualiser.createAndRenderLine(oglRenderer, x1, y1, z1, x2, y2, z2, aColor);
 
 	renderer->update();
 	DEBUG_LOG("Starting action");
 	
 }
 
-void PolygonPrimitives::readSphereData(iARenderer* renderer)
+void PolygonPrimitives::readSphereData(iARenderer* renderer, color aColor)
 {
 	if (!renderer) return; 
 	double xm, ym, zm; 
@@ -104,16 +106,16 @@ void PolygonPrimitives::readSphereData(iARenderer* renderer)
 	bool check_xm, check_ym, check_zm, checkRaduis;
 
 
-	str_xm = this->ed_SphereXm->text();
-	str_ym = this->ed_SphereYm->text();
-	str_zm = this->ed_SphereZm->text();
-	str_raduis = this->ed_SphereCentRaduis->text();
+	str_xm = ed_SphereXm->text();
+	str_ym = ed_SphereYm->text();
+	str_zm = ed_SphereZm->text();
+	str_raduis = ed_SphereCentRaduis->text();
 
-	check_xm = this->checkNullempty(str_xm);
-	check_ym = this->checkNullempty(str_ym);
+	check_xm = checkNullempty(str_xm);
+	check_ym = checkNullempty(str_ym);
 
-	check_zm = this->checkNullempty(str_zm);
-	checkRaduis = this->checkNullempty(str_raduis);
+	check_zm = checkNullempty(str_zm);
+	checkRaduis = checkNullempty(str_raduis);
 
 	if (check_xm || check_ym || check_zm || checkRaduis) {
 		QMessageBox msgBox;
@@ -128,8 +130,26 @@ void PolygonPrimitives::readSphereData(iARenderer* renderer)
 	zm = str_zm.toDouble();
 	raduis = str_raduis.toDouble();
 
-	visualiser.createAndRenderSphere(oglRenderer, xm, ym, zm, raduis, color::green);
+	visualiser.createAndRenderSphere(oglRenderer, xm, ym, zm, raduis, aColor);
 	renderer->update(); 
 
 	
+}
+
+color PolygonPrimitives::getColor() const
+{
+	auto text = this->cmbBox_col->currentText();
+	color aColor;
+	if (text == "Red")
+		aColor = color::red;
+	else if (text == "Blue")
+	{
+		aColor = color::blue;
+	}else {
+		aColor = color::green;
+	}
+
+	return aColor;
+
+
 }
