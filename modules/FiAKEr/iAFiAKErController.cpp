@@ -228,6 +228,7 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
 	m_showFiberContext(false),
 	m_mergeContextBoxes(false),
 	m_showWireFrame(false),
+	m_showLines(false),
 	m_contextSpacing(0.0),
 	m_spm(new iAQSplom())
 {
@@ -505,6 +506,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 	connect(m_settingsView->sbFiberContextSpacing, SIGNAL(valueChanged(double)), this, SLOT(contextSpacingChanged(double)));
 	connect(m_settingsView->cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::showBoundingBoxChanged);
 	connect(m_settingsView->cbShowWireFrame, &QCheckBox::stateChanged, this, &iAFiAKErController::showWireFrameChanged);
+	connect(m_settingsView->cbShowLines, &QCheckBox::stateChanged, this, &iAFiAKErController::showLinesChanged);
 	connect(m_settingsView->pbSampleSelectedFiber, &QPushButton::pressed, this, &iAFiAKErController::visualizeCylinderSamplePoints);
 	connect(m_settingsView->pbHideSamplePoints, &QPushButton::pressed, this, &iAFiAKErController::hideSamplePoints);
 	connect(m_settingsView->pbSpatialOverview, &QPushButton::pressed, this, &iAFiAKErController::showSpatialOverviewButton);
@@ -1278,6 +1280,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		ui.main3DVis->setSelectionOpacity(SelectionOpacity);
 		ui.main3DVis->setContextOpacity(ContextOpacity);
 		ui.main3DVis->setShowWireFrame(m_showWireFrame);
+		ui.main3DVis->setShowLines(m_showLines);
 		auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
 		if (vis)
 		{
@@ -1729,6 +1732,18 @@ void iAFiAKErController::showWireFrameChanged(int newState)
 		vis.mini3DVis->setShowWireFrame(m_showWireFrame);
 		if (vis.main3DVis->visible())
 			vis.main3DVis->setShowWireFrame(m_showWireFrame);
+	}
+}
+
+void iAFiAKErController::showLinesChanged(int newState)
+{
+	m_showLines = (newState == Qt::Checked);
+	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	{
+		auto & vis = m_resultUIs[resultID];
+		vis.mini3DVis->setShowLines(m_showLines);
+		if (vis.main3DVis->visible())
+			vis.main3DVis->setShowLines(m_showLines);
 	}
 }
 

@@ -160,6 +160,7 @@ private slots:
 	void showFiberContextChanged(int);
 	void mergeFiberContextBoxesChanged(int);
 	void showWireFrameChanged(int);
+	void showLinesChanged(int);
 	void showBoundingBoxChanged(int);
 	void updateBoundingBox();
 	// result view:
@@ -233,7 +234,7 @@ private:
 	bool m_useStepData;
 	QMap<QString, QObject*> m_settingsWidgetMap;
 
-	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame;
+	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame, m_showLines;
 	double m_contextSpacing;
 
 	// The different views and their elements:
