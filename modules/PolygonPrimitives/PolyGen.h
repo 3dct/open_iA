@@ -45,11 +45,11 @@ private:
 
 class PolyGen
 {
-
+public:
 	vtkSmartPointer<vtkSphereSource> createObject(double x, double y, double z, double radius); 
 	vtkSmartPointer<vtkLineSource> createObject(double x1, double y1, double z1, double x2, double y2, double z2 );
 	
-	void createAndRenderObject(vtkOpenGLRenderer* renderer, double x1, double y1, double z1, double x2, double y2, double z2, color acolor);
+	 void createAndRenderObject(vtkOpenGLRenderer* renderer, double x1, double y1, double z1, double x2, double y2, double z2, color acolor);
 
 
 };

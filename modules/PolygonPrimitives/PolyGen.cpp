@@ -38,7 +38,7 @@ void PolyGen::createAndRenderObject(vtkOpenGLRenderer* renderer, double x1, doub
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New(); 
 	
 	auto lineProp = actor->GetProperty(); 
-	lineProp->SetLineWidth(5.0); 
+	lineProp->SetLineWidth(100.0); 
 
 	switch(acolor)
 	{
@@ -50,8 +50,10 @@ void PolyGen::createAndRenderObject(vtkOpenGLRenderer* renderer, double x1, doub
 		
 	}
 
+	mapper->SetInputConnection(aLine->GetOutputPort()); 
 	actor->SetMapper(mapper);
 	renderer->AddActor(actor);
+
 	
 
 	

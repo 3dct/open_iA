@@ -3,6 +3,10 @@
 #include <QDialog>
 #include "mdichild.h"
 #include "ui_PolygonPrimitives.h"
+#include "PolyGen.h"
+
+class QString; 
+class iARenderer;
 
 class PolygonPrimitives : public QDialog, Ui_PolygonPrimitives
 {
@@ -20,16 +24,24 @@ public:
 	}
 
 
+
+	//void checkInput()
+
 private slots:
 	void createObject(); 
 
 
 private:
-	void readData(); 
-
+	
+	void readData(iARenderer* renderer);
+	inline bool checkNullempty(const QString& val) {
+		bool res = false; 
+		return res = val.isNull() || val.isEmpty();
+	
+	}
 	
 
-
+	PolyGen visualiser;
 
 	MdiChild *m_child; 
 

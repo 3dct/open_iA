@@ -61,7 +61,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="ed_xStartLn"/>
+             <widget class="QLineEdit" name="ed_x1"/>
             </item>
            </layout>
           </item>
@@ -75,7 +75,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="ed_YStartLn"/>
+             <widget class="QLineEdit" name="ed_Y1"/>
             </item>
            </layout>
           </item>
@@ -89,7 +89,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="ed_ZStartLn"/>
+             <widget class="QLineEdit" name="ed_Z1"/>
             </item>
            </layout>
           </item>
@@ -112,7 +112,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="ed_XEndLn"/>
+             <widget class="QLineEdit" name="ed_X2"/>
             </item>
            </layout>
           </item>
@@ -126,7 +126,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="ed_YEndLn"/>
+             <widget class="QLineEdit" name="ed_Y2"/>
             </item>
            </layout>
           </item>
@@ -140,7 +140,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="ed_ZEndLn"/>
+             <widget class="QLineEdit" name="ed_Z2"/>
             </item>
            </layout>
           </item>
