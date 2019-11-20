@@ -1009,7 +1009,7 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	painter.drawRect(colorBarRect);
 	QString minStr = dblToStringWithUnits(minVal);
 	QString maxStr = dblToStringWithUnits(maxVal);
-#if QT_VERSION >= 0x051100
+#if QT_VERSION >= 0x050B00
 	int textWidth = std::max(fm.horizontalAdvance(minStr), fm.horizontalAdvance(maxStr));
 #else
 	int textWidth = std::max(fm.width(minStr), fm.width(maxStr));

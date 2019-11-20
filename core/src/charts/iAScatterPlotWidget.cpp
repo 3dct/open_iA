@@ -110,10 +110,17 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * event)
 {
 	QPainter painter(this);
 	QFontMetrics fm = painter.fontMetrics();
+#if QT_VERSION >= 0x050B00
+	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.horizontalAdvance("0.99"))
+	{
+		m_fontHeight = fm.height();
+		m_maxTickLabelWidth = fm.horizontalAdvance("0.99");
+#else
 	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.width("0.99"))
 	{
 		m_fontHeight = fm.height();
 		m_maxTickLabelWidth = fm.width("0.99");
+#endif
 	}
 	painter.setRenderHint(QPainter::Antialiasing);
 	painter.setRenderHint(QPainter::HighQualityAntialiasing);
