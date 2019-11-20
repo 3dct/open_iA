@@ -315,7 +315,7 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 			eigenvector_middle[1] = labelGeometryImageFilter->GetEigenvectors(labelValue)[1][EWPos];
 			eigenvector_middle[2] = labelGeometryImageFilter->GetEigenvectors(labelValue)[2][EWPos];
 
-			double half_axis2 = minorlength/*secondAxisLengh*/ / 2.0;
+			double half_axis2 =/* minorlength*/ secondAxisLengh / 2.0;
 
 			p_x1 = centroid[0] + half_axis2 * eigenvector_middle[0];
 			p_y1 = centroid[1] + half_axis2 * eigenvector_middle[1];
