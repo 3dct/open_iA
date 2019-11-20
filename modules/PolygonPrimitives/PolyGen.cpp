@@ -1,6 +1,7 @@
 #include "PolyGen.h"
 #include <vtkLineSource.h>
 #include <vtkSphereSource.h>
+#include <vtkCubeSource.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
 #include <vtkOpenGLRenderer.h>
@@ -27,6 +28,23 @@ vtkSmartPointer<vtkSphereSource> PolyGen::createObject(double x, double y, doubl
 	return sphereSource; 
 
 
+}
+
+vtkSmartPointer<vtkCubeSource> PolyGen::createCube(double x1, double y1, double z1, double x2, double y2, double z2)
+{
+	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+	cubeSource->SetBounds(x1, y2, z1, x2, y2, z2);
+	return cubeSource; 
+}
+
+
+vtkSmartPointer<vtkCubeSource> PolyGen::createCube(double center[3], double xdim, double ydim, double zdim) {
+	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+	cubeSource->SetCenter(center[0], center[1], center[2]);
+	cubeSource->SetXLength(xdim);
+	cubeSource->SetYLength(ydim);
+	cubeSource->SetZLength(zdim); 
+	return cubeSource;
 }
 
 void PolyGen::createAndRenderLine(vtkOpenGLRenderer* renderer, double x1, double y1, double z1, double x2, double y2, double z2, double lnWithd, color acolor)
