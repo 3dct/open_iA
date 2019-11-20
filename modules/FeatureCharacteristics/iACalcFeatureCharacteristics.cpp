@@ -336,8 +336,8 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 				//<< sphericalRadiusManually << ","
 				<< ratioLongestToMiddle << ","
 				<< ratioMiddleToSmallest << ",";
-			fout << p_x1 << "," << p_y1 << "," << p_z1 << ","
-				<< p_x2 << "," << p_y2 << "," << p_z2 << ",";
+			fout << p_x1*spacing << "," << p_y1*spacing << "," << p_z1*spacing << ","
+				 << p_x2*spacing << "," << p_y2*spacing << "," << p_z2*spacing << ",";
 
 
 				
