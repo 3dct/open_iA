@@ -308,9 +308,9 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 			std::vector<double> eigenvector_middle(3);
 			double p_x1 = 0; double  p_y1 = 0; double p_z1 = 0;
 			double p_x2 = 0; double p_y2 = 0; double p_z2 = 0; 
-			int EWPos = 0; //should be lambda2, lambda1 < lambda2 < lambda3
+			int EWPos = 1; //should be lambda2, lambda1 < lambda2 < lambda3
 			
-			/*rename*/
+			
 			eigenvector_middle[0] = labelGeometryImageFilter->GetEigenvectors(labelValue)[0][EWPos];
 			eigenvector_middle[1] = labelGeometryImageFilter->GetEigenvectors(labelValue)[1][EWPos];
 			eigenvector_middle[2] = labelGeometryImageFilter->GetEigenvectors(labelValue)[2][EWPos];
