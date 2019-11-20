@@ -381,10 +381,17 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 					break;
 				QString text = xAxisTickMarkLabel(value, stepWidth);
 				int markerX = markerPos(m_xMapper->srcToDst(value), i, stepCount);
+#if QT_VERSION >= 0x050B00
+				int textX = textPos(markerX, i, stepCount, fm.horizontalAdvance(text));
+				int nextMarkerX = markerPos(m_xMapper->srcToDst(nextValue), i + 1, stepCount);
+				int nextTextX = textPos(nextMarkerX, i + 1, stepCount, fm.horizontalAdvance(text));
+				int textWidth = fm.horizontalAdvance(text+"M");
+#else
 				int textX = textPos(markerX, i, stepCount, fm.width(text));
 				int nextMarkerX = markerPos(m_xMapper->srcToDst(nextValue), i + 1, stepCount);
 				int nextTextX = textPos(nextMarkerX, i + 1, stepCount, fm.width(text));
-				int textWidth = fm.width(text) + fm.width("M");
+				int textWidth = fm.width(text + "M");
+#endif
 				overlap = (textX + textWidth) >= nextTextX;
 			}
 			if (overlap)
@@ -411,7 +418,11 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 		QString text = xAxisTickMarkLabel(value, stepWidth);
 		int markerX = markerPos(m_xMapper->srcToDst(value), i, stepCount);
 		painter.drawLine(markerX, TickWidth, markerX, -1);
+#if QT_VERSION >= 0x050B00
+		int textX = textPos(markerX, i, stepCount, fm.horizontalAdvance(text));
+#else
 		int textX = textPos(markerX, i, stepCount, fm.width(text));
+#endif
 		int textY = fm.height() + TextAxisDistance;
 		painter.translate(textX, textY);
 		painter.drawText(0, 0, text);
@@ -429,7 +440,11 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 		//write the x axis label
 		QPointF textPos(
 			m_captionPosition.testFlag(Qt::AlignCenter) ?
+#if QT_VERSION >= 0x050B00
+				/* Center */ (int)(activeWidth() * 0.5 - m_translationX - (0.5*fm.horizontalAdvance(m_xCaption)))
+#else
 				/* Center */ (int)(activeWidth() * 0.5 - m_translationX - (0.5*fm.width(m_xCaption)))
+#endif
 				/* Left   */ : 0 ,
 			m_captionPosition.testFlag(Qt::AlignBottom) ?
 				/* Bottom */ bottomMargin() - fm.descent() - 1 :
@@ -464,7 +479,11 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 		double yValue = m_yMapper->dstToSrc(-y-1);
 		QString text = dblToStringWithUnits(yValue);
 		painter.drawLine(static_cast<int>(-TickWidth), y, 0, y);	// indicator line
+#if QT_VERSION >= 0x050B00
+		painter.drawText( - ( fm.horizontalAdvance(text) + TickWidth),
+#else
 		painter.drawText( - ( fm.width(text) + TickWidth),
+#endif
 			(i == stepNumber) ? y + 0.75*m_fontHeight // write the text top aligned to the indicator line
 			: y + 0.25*m_fontHeight                   // write the text centered to the indicator line
 			, text);
@@ -474,7 +493,11 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 	painter.save();
 	painter.rotate(-90);
 	QPointF textPos(
+#if QT_VERSION >= 0x050B00
+		aheight*0.5 - 0.5*fm.horizontalAdvance(m_yCaption),
+#else
 		aheight*0.5 - 0.5*fm.width(m_yCaption),
+#endif
 		-leftMargin() + m_fontHeight - 5);
 	painter.drawText(textPos, m_yCaption);
 	painter.restore();
@@ -993,7 +1016,11 @@ void iAChartWidget::drawAll(QPainter & painter)
 	m_yMapper->update(m_yMappingMode == Logarithmic && m_yBounds[0] <= 0 ? 1 : m_yBounds[0], m_yBounds[1], 0, m_yZoom*(activeHeight()-1));
 	QFontMetrics fm = painter.fontMetrics();
 	m_fontHeight = fm.height();
+#if QT_VERSION >= 0x050B00
+	m_yMaxTickLabelWidth = fm.horizontalAdvance("4.44M");
+#else
 	m_yMaxTickLabelWidth = fm.width("4.44M");
+#endif
 	painter.translate(m_translationX + leftMargin(), -bottomMargin());
 	drawImageOverlays(painter);
 	//change the origin of the window to left bottom

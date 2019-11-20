@@ -59,10 +59,10 @@ protected:
 	}
 	~iARegularPolygonSourceEx() {}
 
-	virtual int RequestData(
+	int RequestData(
 		vtkInformation *vtkNotUsed(request),
 		vtkInformationVector **vtkNotUsed(inputVector),
-		vtkInformationVector *outputVector)
+		vtkInformationVector *outputVector) override
 	{
 		// Get the info object
 		vtkInformation *outInfo = outputVector->GetInformationObject(0);
@@ -148,6 +148,6 @@ private:
 	iARegularPolygonSourceEx(const iARegularPolygonSourceEx&);  // Not implemented.
 	void operator=(const iARegularPolygonSourceEx&);  // Not implemented.
 protected:
-		double Point1[3], Point2[3];
+	double Point1[3], Point2[3];
 };
 vtkStandardNewMacro(iARegularPolygonSourceEx);

@@ -101,8 +101,12 @@ void iAPieChartWidget::paintEvent(QPaintEvent * e)
 		
 		QFont myFont;
 		QFontMetrics fm(myFont);
-		int width=fm.width(it->name);
-		int height=fm.height();
+#if QT_VERSION >= 0x050B00
+		int width = fm.horizontalAdvance(it->name);
+#else
+		int width = fm.width(it->name);
+#endif
+		int height = fm.height();
 		QRect textRect(textX-width/2, textY-height/2, width, height);
 
 		QRect textBorder(textRect);

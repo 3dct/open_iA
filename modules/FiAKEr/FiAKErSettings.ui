@@ -513,6 +513,13 @@
          </property>
         </widget>
        </item>
+       <item row="6" column="5">
+        <widget class="QCheckBox" name="cbShowLines">
+         <property name="text">
+          <string>Show Lines</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tabOptimizationSteps">
@@ -530,8 +537,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>98</width>
-            <height>28</height>
+            <width>409</width>
+            <height>190</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">

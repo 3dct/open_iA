@@ -266,7 +266,7 @@ public:
 	bool isFullyLoaded() const;
 	//! Ask for a project file name and store in that project file:
 	//!    - loaded files and their transfer functions, when old project file (.mod) is chosen
-	//!    - configuration of opened tools (which support it), when new project file (.opf) is chosen
+	//!    - configuration of opened tools (which support it), when new project file (.iaproj) is chosen
 	//!      (to be extended to modalities and TFs soon)
 	void doSaveProject() override;
 	//! Save all currently loaded files into a project with the given file name.

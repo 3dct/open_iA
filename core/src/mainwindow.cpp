@@ -368,6 +368,7 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 					projectFile.endGroup();
 				}
 			}
+			setCurrentFile(fileName);
 			return;
 		}
 	}
