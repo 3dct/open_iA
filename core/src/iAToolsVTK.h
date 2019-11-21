@@ -41,7 +41,7 @@ open_iA_Core_API vtkSmartPointer<vtkImageData> allocateImage(vtkSmartPointer<vtk
 
 //! Create a VTK image with the given properties.
 //! @param vtkType the VTK type identifier (VTK_INT, VTK_UNSIGNED_CHAR, ...) for the voxel data type to use in the new image
-//! @param dimension the size of the image in the 3 dimensions.
+//! @param dimensions the size of the image in the 3 dimensions.
 //! @param spacing the spacing (distance of voxels) in each of the 3 dimension directions.
 //! @return an image with a single component and the type, size and spacing as the given parameters,
 //!         with allocated but uninitialized pixel data.
