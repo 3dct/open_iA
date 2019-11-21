@@ -46,61 +46,129 @@ public:
 	enum SelectionMode { SelectionDisabled, SelectPlot };
 	enum AxisMappingType { Linear, Logarithmic };
 	iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel);
-	~iAChartWidget() override;
+	~iAChartWidget();
+	//! @{ Get x/y zoom and shift.
 	double xZoom()  const { return m_xZoom;        }
 	double yZoom()  const { return m_yZoom;        }
 	int    xShift() const { return m_translationX; }
 	int    yShift() const { return m_translationY; }
+	//! @}
+	//! Retrieve bottom margin (in pixels).
 	virtual int bottomMargin() const;
+	//! Retrieve left margin (in pixels).
 	virtual int leftMargin() const;
+	//! Retrieve width of active region of chart, i.e. of region
+	//! where plots are drawn, without space for axes (in pixels).
 	virtual int activeWidth()  const;
+	//! Retrieve height of active region of chart, i.e. of region
+	//! where plots are drawn, without space for axes (in pixels).
 	virtual int activeHeight() const;
+	//! @{ Retrieve minimum/maximum y data value.
 	iAPlotData::DataType minYDataValue(size_t startPlot = 0) const;
 	iAPlotData::DataType maxYDataValue(size_t startPlot = 0) const;
+	//! @}
+	//! @{ Get mapper for x/y coordinates
 	iAMapper const & xMapper() const;
 	iAMapper const & yMapper() const;
+	//! @}
+	//! @{ Get x/y bounds as array of size 2 (minimum, maximum)
 	virtual iAPlotData::DataType const * yBounds() const;
 	virtual double const * xBounds() const;
+	//! @}
+	//! Whether the axis of this chart is categorical type (as determined by the first plot).
 	bool categoricalAxis() const;
+	//! Get the range in x direction (i.e. maximum - minimum of x bounds)
 	double xRange() const;
+	//! Get the maximum zoom factor in x direction that can be in use.
 	double maxXZoom() const;
+	//! Convert an x screen coordinate to a bin space index;
+	//! Note that there are three different spaces to consider: <ol>
+	//! <li>the data space (i.e., a coordinate between the minimum/maximum specified by the x bounds),</li>
+	//! <li>the bin space (i.e., an index in the data bin array)</li>
+	//! <li>the screen space (i.e., a pixel x coordinate on the screen)</li></ol>
+	//! @param x the x screen coordinate to convert
+	//! @return the bin index for the given x coordinate.
 	long screenX2DataBin(int x) const;
+	//! Convert a bin number to a screen coordinate.
+	//! @param x the bin space index; see screenX2DataBin for details
+	//! @return the screen space coordinate for the given bin space index
 	int  dataBin2ScreenX(long x) const;
+	//! Check whether currently a context menu is shown.
 	bool isContextMenuVisible() const;
+	//! Check whether currently tooltips are enabled.
 	bool isTooltipShown() const;
+	//! Get the position where the context menu was last shown.
 	QPoint contextMenuPos() const;
+	//! Set custom x bounds (the interval the x axis covers).
 	void setXBounds(double minVal, double maxVal);
+	//! Set custom y bounds (the interval the y axis covers).
 	void setYBounds(iAPlotData::DataType minVal, iAPlotData::DataType maxVal);
+	//! Reset y bounds to the range specified by the current plots.
 	void resetYBounds();
+	//! Set the caption shown along the x axis.
 	void setXCaption(QString const & caption);
+	//! Set the caption shown along the y axis.
 	void setYCaption(QString const & caption);
+	//! Set either linear or logarithmic mapping mode.
 	void setYMappingMode(AxisMappingType drawMode);
+	//! Set position of x axis caption (Center/Left, Bottom/Top, via Qt::Align... flags).
 	void setCaptionPosition(QFlags<Qt::AlignmentFlag>);
+	//! Set whether x axis caption should be shown or not.
 	void setShowXAxisLabel(bool show);
+	//! Add a plot to the chart.
 	void addPlot(QSharedPointer<iAPlot> plot);
+	//! Remove a plot from the chart.
 	void removePlot(QSharedPointer<iAPlot> plot);
+	//! Remove all plots from the chart.
 	void clearPlots();
+	//! Retrieve all plots currently in the chart.
 	std::vector< QSharedPointer< iAPlot > > const & plots();
+	//! Check whether all plots currently in the chart have discrete
+	//! (categorical also counts as discrete for this purpose). If a single
+	//! plot is continuous, it will report false.
 	bool isDrawnDiscrete() const;
+	//! Add an image overlay to the chart.
 	void addImageOverlay(QSharedPointer<QImage> imgOverlay);
+	//! Remove an image overlay from the chart.
 	void removeImageOverlay(QImage * imgOverlay);
+	//! Determine how a selection works; see SelectionMode: either disable selection,
+	//! or allow selection of single plots.
 	void setSelectionMode(SelectionMode mode);
+	//! Adds a marker at a specific x position (in data space, see screenX2DataBin
+	//! for details) in the given color
 	void addXMarker(double xPos, QColor const & color);
+	//! Remove the marker at the given x position (in data space, see screenX2DataBin
+	//! for details).
 	void removeXMarker(double xPos);
+	//! Remove all markers.
 	void clearMarkers();
+	//! Update all bounds such that all current plots are in the visible area of the chart.
 	void updateBounds(size_t startPlot = 0);
+	//! Update x bounds of the chart such that the x bounds of all current plots are in the visible area of the chart.
 	void updateXBounds(size_t startPlot = 0);
+	//! Update y bounds of the chart such that the y bounds of all current plots are in the visible area of the chart.
 	void updateYBounds(size_t startPlot = 0);
+	//! Draws the chart off screen and returns an image of the result.
 	QImage drawOffscreen();
+	//! Sets the background color of the whole chart.
 	void setBackgroundColor(QColor const & color);
 
 public slots:
+	//! Reset view (zoom and shift in x and y direction) such that all plots are fully visible.
 	void resetView();
+	//! Determines whether the x axis is drawn at location of zero in the data, or at the bottom of the chart region
+	//! @param enable if true, the x axis is drawn where the value 0 is on the y axis;
+	//!     if false, it is drawn at the bottom of the chart region.
 	void setDrawXAxisAtZero(bool enable);
 
 signals:
+	//! Fires whenever the displayed x axis has changed
+	//! (i.e. if it has been shifted, zoomed, or reset).
 	void xAxisChanged();
+	//! Fires whenever one or more plots are selected.
+	//! @param plotIDs the IDs of the selected plots
 	void plotsSelected(std::vector<size_t> const & plotIDs);
+	//! Fires whenever the user double-clicks on the chart.
 	void dblClicked();
 
 protected:
@@ -129,6 +197,7 @@ protected:
 	virtual void showDataTooltip(QHelpEvent *event);
 	virtual void drawBackground(QPainter &painter);
 
+	//! @{ Overriden Qt events.
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
@@ -139,6 +208,7 @@ protected:
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	void keyReleaseEvent(QKeyEvent *event) override;
 	bool event(QEvent *event) override;
+	//! @}
 
 private slots:
 	void showTooltip(bool toggled);

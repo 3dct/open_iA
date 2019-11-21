@@ -105,7 +105,7 @@ template <typename T> bool operator== (const iAVec3T<T>& u, const iAVec3T<T>& v)
 template <typename T> bool operator!= (const iAVec3T<T>& u, const iAVec3T<T>& v);
 template <typename T> bool operator<  (const iAVec3T<T>& u, const iAVec3T<T>& v);
 template <typename T> bool operator>  (const iAVec3T<T>& u, const iAVec3T<T>& v);
-//! @
+//! @}
 
 //! @{
 //! basic arithmetical operations on two vectors / a vector and a value

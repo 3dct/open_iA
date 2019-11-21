@@ -390,7 +390,7 @@ private:
 	int m_slabThickness;       //! current slab thickness (default = 1, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
 	int m_slabCompositeMode;   //! current slab mode (how to combine the voxels of the current slab into a single pixel); TODO: move to iASingleslicerSettings?
 
-	//! @ for indicating current measurement ('m' key)
+	//! {@ for indicating current measurement ('m' key)
 	vtkSmartPointer<vtkLineSource> m_lineSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_lineMapper;
 	vtkSmartPointer<vtkActor> m_lineActor;

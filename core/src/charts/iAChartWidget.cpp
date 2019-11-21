@@ -617,7 +617,6 @@ int iAChartWidget::dataBin2ScreenX(long x) const
 	screenX = clamp(0.0, activeWidth()*m_xZoom, screenX);
 	return static_cast<int>(round(screenX));
 }
-//! @}
 
 bool iAChartWidget::isContextMenuVisible() const
 {
