@@ -81,15 +81,7 @@ namespace
 	
 }
 
-namespace polyTransform {
-	enum vismod
-	{
-		x, y, z
-	};
-}
-
-
-	vtkStandardNewMacro(iAvtkInteractStyleActor);
+vtkStandardNewMacro(iAvtkInteractStyleActor);
 
 iAvtkInteractStyleActor::iAvtkInteractStyleActor():
 	m_mdiChild(nullptr),
