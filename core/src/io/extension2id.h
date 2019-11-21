@@ -60,7 +60,7 @@ static mapQString2int fill_extensionToId()
 	m["VTI"] = VTI_READER;
 	m["VTK"] = VTK_READER;
 	m["MOD"] = PROJECT_READER;
-	m["OPF"] = PROJECT_READER;
+	m["IAPROJ"] = PROJECT_READER;
 #ifdef USE_HDF5
 	m["HDF5"] = HDF5_READER;
 	m["H5"] = HDF5_READER;
