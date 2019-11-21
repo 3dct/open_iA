@@ -57,11 +57,11 @@ public:
 	virtual int bottomMargin() const;
 	//! Retrieve left margin (in pixels).
 	virtual int leftMargin() const;
-	//! Retrieve width of active region of chart, i.e. of region
-	//! where plots are drawn, without space for axes (in pixels).
+	//! Retrieve width of active region of the chart.
+	//! The active region is where plots are drawn, without space for axes (in pixels).
 	virtual int activeWidth()  const;
-	//! Retrieve height of active region of chart, i.e. of region
-	//! where plots are drawn, without space for axes (in pixels).
+	//! Retrieve height of active region of the chart.
+	//! The active region is where plots are drawn, without space for axes (in pixels).
 	virtual int activeHeight() const;
 	//! @{ Retrieve minimum/maximum y data value.
 	iAPlotData::DataType minYDataValue(size_t startPlot = 0) const;
