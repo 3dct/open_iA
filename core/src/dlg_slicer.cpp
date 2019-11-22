@@ -76,15 +76,12 @@ void dlg_slicer::showBorder(bool show)
 
 void dlg_slicer::setSliceSpinBox(int s)
 {
-	QSignalBlocker block(verticalScrollBar);
-	verticalScrollBar->setValue(s);
+
 	m_slicer->setSliceNumber(s);
 }
 
 void dlg_slicer::setSliceScrollBar(int s)
 {
-	QSignalBlocker block(sbSlice);
-	sbSlice->setValue(s);
 	m_slicer->setSliceNumber(s);
 }
 

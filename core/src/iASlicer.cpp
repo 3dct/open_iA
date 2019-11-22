@@ -117,29 +117,42 @@ public:
 	//! Disable "window-level" and rotation interaction (anything but shift-dragging)
 	void OnLeftButtonDown() override
 	{
-		if (!this->Interactor->GetShiftKey())
+		if (!this->Interactor->GetShiftKey()) {
 			return;
+		}
 		vtkInteractorStyleImage::OnLeftButtonDown();
 	}
 	//! @{ shift and control + mousewheel are used differently - don't use them for zooming!
 	void OnMouseWheelForward() override
 	{
-		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
+		if (this->Interactor->GetControlKey() && this->Interactor->GetShiftKey()) {
+			m_pointerAiSlicer->setSliceNumber(m_pointerAiSlicer->sliceNumber() - 1);
 			return;
+		}
+		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey()) {
+			return;
+		}
 		vtkInteractorStyleImage::OnMouseWheelForward();
 	}
 	void OnMouseWheelBackward() override
 	{
-		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
+		if (this->Interactor->GetControlKey() && this->Interactor->GetShiftKey()) {
+			m_pointerAiSlicer->setSliceNumber(m_pointerAiSlicer->sliceNumber() + 1);
 			return;
+		}
+		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey()) {
+			return;
+		}
+
 		vtkInteractorStyleImage::OnMouseWheelBackward();
 	}
 	//! @}
 	//! @{ Conditionally disable zooming via right button dragging
 	void OnRightButtonDown() override
 	{
-		if (!m_rightButtonDragZoomEnabled)
+		if (!m_rightButtonDragZoomEnabled) {
 			return;
+		}
 		vtkInteractorStyleImage::OnRightButtonDown();
 	}
 	void SetRightButtonDragZoomEnabled(bool enabled)
@@ -162,8 +175,14 @@ public:
 		}
 	}
 	*/
+
+	void setiAslicer(iASlicer * pointerAiSlicer) {
+		m_pointerAiSlicer = pointerAiSlicer;
+	}
+
 private:
 	bool m_rightButtonDragZoomEnabled = true;
+	iASlicer * m_pointerAiSlicer;
 };
 
 vtkStandardNewMacro(iAInteractorStyleImage);
@@ -237,6 +256,9 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_interactor->SetPicker(m_pointPicker);
 	m_interactor->Initialize();
 	m_interactorStyle->SetDefaultRenderer(m_ren);
+
+	// Set Slicer for scrolling with Mousewheel 
+	m_interactorStyle->setiAslicer(this);
 
 	iAObserverRedirect* redirect(new iAObserverRedirect(this));
 	m_interactor->AddObserver(vtkCommand::LeftButtonPressEvent, redirect);
