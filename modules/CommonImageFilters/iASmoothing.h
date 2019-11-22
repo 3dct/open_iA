@@ -33,3 +33,6 @@ IAFILTER_DEFAULT_CLASS(iAGradientAnisotropicDiffusion);
 IAFILTER_DEFAULT_CLASS(iACurvatureAnisotropicDiffusion);
 IAFILTER_DEFAULT_CLASS(iACurvatureFlow);
 IAFILTER_DEFAULT_CLASS(iABilateral);
+#ifndef ITKNOGPU
+IAFILTER_DEFAULT_CLASS(iAGPUEdgePreservingSmoothing)
+#endif
