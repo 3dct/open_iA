@@ -125,10 +125,6 @@ public:
 	//! @{ shift and control + mousewheel are used differently - don't use them for zooming!
 	void OnMouseWheelForward() override
 	{
-		if (this->Interactor->GetControlKey() && this->Interactor->GetShiftKey()) {
-			m_pointerAiSlicer->setSliceNumber(m_pointerAiSlicer->sliceNumber() - 1);
-			return;
-		}
 		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey()) {
 			return;
 		}
@@ -136,10 +132,6 @@ public:
 	}
 	void OnMouseWheelBackward() override
 	{
-		if (this->Interactor->GetControlKey() && this->Interactor->GetShiftKey()) {
-			m_pointerAiSlicer->setSliceNumber(m_pointerAiSlicer->sliceNumber() + 1);
-			return;
-		}
 		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey()) {
 			return;
 		}
@@ -2215,7 +2207,11 @@ void iASlicer::resizeEvent(QResizeEvent * event)
 void iASlicer::wheelEvent(QWheelEvent* event)
 {
 	event->accept();
-	if (event->modifiers().testFlag(Qt::ControlModifier) && receivers(SIGNAL(ctrlMouseWheel(int))) > 0)
+	if (event->modifiers().testFlag(Qt::ControlModifier) && event->modifiers().testFlag(Qt::ShiftModifier) && receivers(SIGNAL(altMouseWheel(int))) > 0)
+	{
+		this->setSliceNumber(event->angleDelta().y() / 120.0 + this->sliceNumber());
+	}
+	else if (event->modifiers().testFlag(Qt::ControlModifier) && receivers(SIGNAL(ctrlMouseWheel(int))) > 0)
 	{
 		emit ctrlMouseWheel(event->angleDelta().y() / 120.0);
 	}
@@ -2226,6 +2222,10 @@ void iASlicer::wheelEvent(QWheelEvent* event)
 	else if (event->modifiers().testFlag(Qt::AltModifier) && receivers(SIGNAL(altMouseWheel(int))) > 0)
 	{
 		emit altMouseWheel(event->angleDelta().x() / 120);
+	}
+	else if (event->angleDelta().x() != 0 && receivers(SIGNAL(altMouseWheel(int))) > 0)
+	{
+		this->setSliceNumber(event->angleDelta().x() / 120.0 + this->sliceNumber());
 	}
 	else
 	{
