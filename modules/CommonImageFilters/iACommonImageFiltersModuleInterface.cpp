@@ -27,7 +27,6 @@
 #include "iAEdgeDetectionFilters.h"
 #include "iAGeometricTransformations.h"
 #include "iAGradients.h"
-#include "iAGPUEdgePreservingSmoothing.h"
 #include "iAHessianEigenanalysis.h"
 #include "iAIntensity.h"
 #include "iAMorphologyFilters.h"

@@ -20,10 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "oif_reader.h"
-
-#include <itkImageBase.h>
-
 #include <vtkSmartPointer.h>
 
 class iAConnector;
@@ -32,16 +28,6 @@ class vtkImageData;
 
 class QString;
 
-namespace IO
-{
-	namespace OIF
-	{
-		class Reader
-		{
-		public:
-			Reader();
-			void read(QString const & filename, iAConnector* con, int channel,
-				std::vector<vtkSmartPointer<vtkImageData> > * volumes);
-		};
-	}
-}
+//! Reads an .oif file
+void readOIF(QString const & filename, iAConnector* con, int channel,
+		std::vector<vtkSmartPointer<vtkImageData> > * volumes);
