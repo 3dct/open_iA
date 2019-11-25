@@ -22,6 +22,8 @@
 
 #include <vtkSmartPointer.h>
 
+#include <vector>
+
 class iAConnector;
 
 class vtkImageData;

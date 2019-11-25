@@ -25,6 +25,8 @@
 #include "io/iAFileUtils.h"
 
 #include <itkImage.h>
+#include <itkImageFileReader.h>
+#include <itkImageIOFactory.h>
 
 #include <vtkImageData.h>
 
