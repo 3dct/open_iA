@@ -47,7 +47,7 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 	typedef	itk::SymmetricEigenAnalysisImageFilter< HessianImageType, EigenValueImageType > EigenAnalysisFilterType;
 
 	typedef	float EigenValuePixelType;
-	typedef itk::ImageAdaptor<  EigenValueImageType, EigenValueAccessor< EigenValueArrayType > > ImageAdaptorType;
+	typedef itk::ImageAdaptor<  EigenValueImageType, iAEigenValueAccessor< EigenValueArrayType > > ImageAdaptorType;
 	typedef itk::Image< EigenValuePixelType, DIM > EachEigenValueImageType;
 	typedef itk::CastImageFilter< ImageAdaptorType, EachEigenValueImageType >  CastImageFilterType;
 
@@ -72,19 +72,19 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 
 	// Create an adaptor and plug the output to the parametric space
 	auto eigenAdaptor1 = ImageAdaptorType::New();
-	EigenValueAccessor< EigenValueArrayType > accessor1;
+	iAEigenValueAccessor< EigenValueArrayType > accessor1;
 	accessor1.SetEigenIdx( 0 );
 	eigenAdaptor1->SetImage( eigenFilter->GetOutput() );
 	eigenAdaptor1->SetPixelAccessor( accessor1 );
 
 	auto eigenAdaptor2 = ImageAdaptorType::New();
-	EigenValueAccessor< EigenValueArrayType > accessor2;
+	iAEigenValueAccessor< EigenValueArrayType > accessor2;
 	accessor2.SetEigenIdx( 1 );
 	eigenAdaptor2->SetImage( eigenFilter->GetOutput() );
 	eigenAdaptor2->SetPixelAccessor( accessor2 );
 
 	auto eigenAdaptor3 = ImageAdaptorType::New();
-	EigenValueAccessor< EigenValueArrayType > accessor3;
+	iAEigenValueAccessor< EigenValueArrayType > accessor3;
 	accessor3.SetEigenIdx( 2 );
 	eigenAdaptor3->SetImage( eigenFilter->GetOutput() );
 	eigenAdaptor3->SetPixelAccessor( accessor3 );

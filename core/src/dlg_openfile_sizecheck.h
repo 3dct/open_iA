@@ -32,18 +32,28 @@ class dlg_openfile_sizecheck: public QObject
 	Q_OBJECT
 
 public:
-	//! constructor
+	//! Constructor.
 	//! @param isVolumeStack    Whether we are opening a volume stack (true) or a single file (false).
 	//! @param fileName         File name of the RAW file.
-	//! @param [in,out]	parent  The parent widget.
+	//! @param parent           The parent widget.
 	//! @param title            The window title.
 	//! @param additionalLabels List of additional input parameter labels (@see dlg_commoninput).
-	//! @param values           List of additional input parameter values (@see dlg_commoninput).
+	//! @param additionalValues List of additional input parameter values (@see dlg_commoninput).
+	//! @param [out] rawFileParams The parameters of the raw file that were set by the user.
 	dlg_openfile_sizecheck (bool isVolumeStack, QString const & fileName, QWidget *parent, QString const & title,
 		QStringList const & additionalLabels, QList<QVariant> const & additionalValues, iARawFileParameters & rawFileParams);
 	~dlg_openfile_sizecheck();
+	//! Checks whether or not the user has accepted the input dialog.
+	//! @return true if the user accepted (i.e. clicked "OK"), false if he cancelled.
 	bool accepted() const;
+	//! The number of fixed parameters which the dialog creates itself.
+	//! Use this to determine where the first user-specified parameters
+	//! (additionalLabels/additionalValues parameter in constructor) started.
+	//! @return the number of fixed parameters used by the dialog itself;
+	//!     this is also the index of the first user-specified parameter.
 	int fixedParams() const;
+	//! access to the underlying common input dialog, mainly for accessing values entered by user.
+	//! @return the common input dialog.
 	dlg_commoninput const * inputDlg() const;
 private:
 	qint64 m_fileSize;

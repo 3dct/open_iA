@@ -702,6 +702,8 @@ void MdiChild::setupProject(bool active)
 {
 	setModalities(m_ioThread->modalities());
 	QString fileName = m_ioThread->fileName();
+	setCurrentFile(fileName);
+	m_mainWnd->setCurrentFile(fileName);
 	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
 		// TODO: make asynchronous, put into iASavableProject?
@@ -1051,6 +1053,16 @@ void MdiChild::setSlice(int mode, int s)
 	}
 	else
 	{
+		//Update Slicer if changed
+		if (m_dwSlicer[mode]->sbSlice->value() != s ) {
+			QSignalBlocker block(m_dwSlicer[mode]->sbSlice);
+			m_dwSlicer[mode]->sbSlice->setValue(s);
+		}
+		if (m_dwSlicer[mode]->verticalScrollBar->value() != s) {
+			QSignalBlocker block(m_dwSlicer[mode]->verticalScrollBar);
+			m_dwSlicer[mode]->verticalScrollBar->setValue(s);
+		}
+
 		m_position[mode] = s;
 		if (m_renderSettings.ShowSlicers || m_renderSettings.ShowSlicePlanes)
 		{

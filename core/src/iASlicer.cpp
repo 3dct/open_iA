@@ -117,29 +117,34 @@ public:
 	//! Disable "window-level" and rotation interaction (anything but shift-dragging)
 	void OnLeftButtonDown() override
 	{
-		if (!this->Interactor->GetShiftKey())
+		if (!this->Interactor->GetShiftKey()) {
 			return;
+		}
 		vtkInteractorStyleImage::OnLeftButtonDown();
 	}
 	//! @{ shift and control + mousewheel are used differently - don't use them for zooming!
 	void OnMouseWheelForward() override
 	{
-		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
+		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey()) {
 			return;
+		}
 		vtkInteractorStyleImage::OnMouseWheelForward();
 	}
 	void OnMouseWheelBackward() override
 	{
-		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
+		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey()) {
 			return;
+		}
+
 		vtkInteractorStyleImage::OnMouseWheelBackward();
 	}
 	//! @}
 	//! @{ Conditionally disable zooming via right button dragging
 	void OnRightButtonDown() override
 	{
-		if (!m_rightButtonDragZoomEnabled)
+		if (!m_rightButtonDragZoomEnabled) {
 			return;
+		}
 		vtkInteractorStyleImage::OnRightButtonDown();
 	}
 	void SetRightButtonDragZoomEnabled(bool enabled)
@@ -162,8 +167,14 @@ public:
 		}
 	}
 	*/
+
+	void setiAslicer(iASlicer * pointerAiSlicer) {
+		m_pointerAiSlicer = pointerAiSlicer;
+	}
+
 private:
 	bool m_rightButtonDragZoomEnabled = true;
+	iASlicer * m_pointerAiSlicer;
 };
 
 vtkStandardNewMacro(iAInteractorStyleImage);
@@ -237,6 +248,9 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_interactor->SetPicker(m_pointPicker);
 	m_interactor->Initialize();
 	m_interactorStyle->SetDefaultRenderer(m_ren);
+
+	// Set Slicer for scrolling with Mousewheel 
+	m_interactorStyle->setiAslicer(this);
 
 	iAObserverRedirect* redirect(new iAObserverRedirect(this));
 	m_interactor->AddObserver(vtkCommand::LeftButtonPressEvent, redirect);
@@ -1263,6 +1277,22 @@ namespace
 	double fisheyeMinInnerRadius(double radius) { return std::max(1, static_cast<int>((radius - 1) * 0.7)); }
 }
 
+// Qt versions before 5.10 don't have these operators yet:
+#if QT_VERSION < 0x050A00
+bool operator==(QCursor const & a, QCursor const & b)
+{
+	if (a.shape() != Qt::BitmapCursor)
+		return a.shape() == b.shape();
+	return b.shape() == Qt::BitmapCursor &&
+		a.hotSpot() == b.hotSpot() &&
+		(a.pixmap() == b.pixmap() || (a.bitmap() == b.bitmap() && a.mask() == b.mask()));
+}
+bool operator!=(QCursor const & a, QCursor const & b)
+{
+	return !operator==(a, b);
+}
+#endif
+
 void iASlicer::printVoxelInformation()
 {
 	if (!m_decorations)
@@ -2177,7 +2207,11 @@ void iASlicer::resizeEvent(QResizeEvent * event)
 void iASlicer::wheelEvent(QWheelEvent* event)
 {
 	event->accept();
-	if (event->modifiers().testFlag(Qt::ControlModifier) && receivers(SIGNAL(ctrlMouseWheel(int))) > 0)
+	if (event->modifiers().testFlag(Qt::ControlModifier) && event->modifiers().testFlag(Qt::ShiftModifier) && receivers(SIGNAL(altMouseWheel(int))) > 0)
+	{
+		this->setSliceNumber(event->angleDelta().y() / 120.0 + this->sliceNumber());
+	}
+	else if (event->modifiers().testFlag(Qt::ControlModifier) && receivers(SIGNAL(ctrlMouseWheel(int))) > 0)
 	{
 		emit ctrlMouseWheel(event->angleDelta().y() / 120.0);
 	}
@@ -2188,6 +2222,10 @@ void iASlicer::wheelEvent(QWheelEvent* event)
 	else if (event->modifiers().testFlag(Qt::AltModifier) && receivers(SIGNAL(altMouseWheel(int))) > 0)
 	{
 		emit altMouseWheel(event->angleDelta().x() / 120);
+	}
+	else if (event->angleDelta().x() != 0 && receivers(SIGNAL(altMouseWheel(int))) > 0)
+	{
+		this->setSliceNumber(event->angleDelta().x() / 120.0 + this->sliceNumber());
 	}
 	else
 	{

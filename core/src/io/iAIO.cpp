@@ -447,8 +447,7 @@ void iAIO::run()
 			//case NRRD_READER:
 			//	readNRRD(); break;
 			case OIF_READER: {
-				IO::OIF::Reader r;
-				r.read(fileName(), getConnector(), m_channel, m_volumes);
+				readOIF(fileName(), getConnector(), m_channel, m_volumes);
 				//if (!m_volumes)
 				{
 					postImageReadActions();

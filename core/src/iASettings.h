@@ -31,6 +31,6 @@ typedef QHash<QString, QVariant> iASettings;
 
 //! Retrieve a map of all values in (the current group of) a given QSettings object.
 //! @param settings the QSettings object to load all settings from
-//! @param a map containing key->value pairs for all settings currently in
+//! @return a map containing key->value pairs for all settings currently in
 //!     (current group of) the given QSettings object
 open_iA_Core_API iASettings mapFromQSettings(QSettings const & settings);

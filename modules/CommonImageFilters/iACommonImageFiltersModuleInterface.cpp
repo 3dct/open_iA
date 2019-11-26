@@ -27,7 +27,6 @@
 #include "iAEdgeDetectionFilters.h"
 #include "iAGeometricTransformations.h"
 #include "iAGradients.h"
-#include "iAGPUEdgePreservingSmoothing.h"
 #include "iAHessianEigenanalysis.h"
 #include "iAIntensity.h"
 #include "iAMorphologyFilters.h"
@@ -69,6 +68,7 @@ void iACommonImageFiltersModuleInterface::Initialize()
 	// Gradient filters:
 	REGISTER_FILTER(iADerivative);
 	REGISTER_FILTER(iAGradientMagnitude);
+	REGISTER_FILTER(iAGradientMagnitudeRecursiveGaussian);
 	REGISTER_FILTER(iAHigherOrderAccurateDerivative);
 
 	// Hessian eigen-analysis / Laplacian
