@@ -38,12 +38,11 @@ SET (LIB_TYPE SHARED)
 get_filename_component(OpeniASrcDir "../" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 get_filename_component(OpeniABinDir "../" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
+
+
 FOREACH( indx RANGE ${len} )
 	LIST( GET MODULE_NAMES ${indx} module_name)
 	# Read and print module description
-	IF (openiA_DEPENDENCY_INFO)
-		MESSAGE(STATUS "${module_name}:")
-	ENDIF()
 	GET_MODULE_FULL_PATH ( ${module_name} module_full_path )
 	# Add an option for the module
 	SET(module_option ${option_prefix}${module_name})
@@ -70,6 +69,9 @@ FOREACH( indx RANGE ${len} )
 		CONTINUE()
 	ENDIF()
 
+	IF (openiA_DEPENDENCY_INFO)
+		MESSAGE(STATUS "${module_name}:")
+	ENDIF()
 	# clean module name for use as identifier (if leading number, then add "_" prefix)
 	string(REGEX REPLACE "^([0123456789])" "_\\1" ident_module_name ${module_name})
 	# Generate module export header

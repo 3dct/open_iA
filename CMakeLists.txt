@@ -148,6 +148,13 @@ IF (MSVC)
 		SET (DebugLibraryPaths "${OPENVR_LIB_PATH};${DebugLibraryPaths}")
 		SET (MinSizeRelLibraryPaths "${OPENVR_LIB_PATH};${MinSizeRelLibraryPaths}")
 	ENDIF()
+	
+	IF (ELASTIX_LIBRARY_DIRS)
+		SET (RelWithDebInfoLibraryPaths "${ELASTIX_LIBRARY_DIRS}/RelWithDebInfo;${RelWithDebInfoLibraryPaths}")
+		SET (ReleaseLibraryPaths "${ELASTIX_LIBRARY_DIRS}/Release;${ReleaseLibraryPaths}")
+		SET (DebugLibraryPaths "${ELASTIX_LIBRARY_DIRS}/Debug;${DebugLibraryPaths}")
+		SET (MinSizeRelLibraryPaths "${ELASTIX_LIBRARY_DIRS}/MinSizeRel;${MinSizeRelLibraryPaths}")
+	ENDIF()
 
 	STRING(REGEX REPLACE "/" "\\\\" CMAKE_BINARY_WIN_DIR ${CMAKE_BINARY_DIR})
 ENDIF ()
