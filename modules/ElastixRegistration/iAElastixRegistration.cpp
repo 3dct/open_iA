@@ -18,17 +18,31 @@
 
 
 template <class InPixelType>
-void extractChannels(typename itk::VectorImage<InPixelType, DIM>::Pointer vectorImg, iAFilter* filter)
+void extractChannels(typename itk::VectorImage<InPixelType, DIM>::Pointer vectorImg, iAFilter* filter, QString dir)
 {
 	typedef itk::VectorImage<InPixelType, DIM> VectorImageType;
 	typedef itk::Image<InPixelType, DIM> OutImageType;
 	typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, OutImageType> IndexSelectionType;
+
+	typedef itk::Image<float, DIM> OutputImageType;
+	typedef  itk::ImageFileWriter< OutputImageType  > WriterType;
+
+	char dimensionText[] = "XYZ";
+
 	for (int p = 0; p < vectorImg->GetVectorLength(); ++p)
 	{
 		auto indexSelectionFilter = IndexSelectionType::New();
 		indexSelectionFilter->SetIndex(p);
 		indexSelectionFilter->SetInput(vectorImg);
 		indexSelectionFilter->Update();
+
+		QString path = dir + "/deformation_" + dimensionText[p] + ".mhd";
+
+		WriterType::Pointer imageWriter = WriterType::New();
+		imageWriter->SetFileName(path.toStdString());
+		imageWriter->SetInput(dynamic_cast<OutputImageType *>(indexSelectionFilter->GetOutput()));
+		imageWriter->Update();
+
 		filter->addOutput(indexSelectionFilter->GetOutput());
 	}
 }
@@ -64,7 +78,7 @@ void createOutput(iAFilter* filter, QString dirname) {
 	deformationImage->SetFileName(deformationImagePath.toStdString());
 	deformationImage->Update();
 
-	extractChannels<float>(deformationImage->GetOutput(), filter);
+	extractChannels<float>(deformationImage->GetOutput(), filter, dirname);
 }
 
 
@@ -136,16 +150,25 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 
 	QString pathElastix = params["PathElastix"].toString();
-
+	QString dirname;
 
 	QTemporaryDir dir;
-	if (dir.isValid()) {
-		// dir.path() returns the unique directory path
+
+	if (params["Outputdir"].toString() == "") {
+		if (dir.isValid()) {
+			dirname = dir.path();
+			dir.setAutoRemove(true);
+		}
+	}
+	else {
+		dirname = params["Outputdir"].toString();
+
 	}
 
-	dir.setAutoRemove(true);
 
-	QString dirname = dir.path();;
+	
+
+	
 
 	QString fixedImagePath = dirname + "/fixed.mhd";
 	QString movingImagePath = dirname + "/moving.mhd";
@@ -207,5 +230,6 @@ iAElastixRegistration::iAElastixRegistration() :
 {
 	addParameter("ParameterFile", FileNameOpen);
 	addParameter("PathElastix", Folder);
+	addParameter("Outputdir", Folder,"");
 	addParameter("Timeout[sec]", Discrete, 300);
 }
