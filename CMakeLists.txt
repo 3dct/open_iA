@@ -15,6 +15,9 @@ SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
 IF (CMAKE_MAJOR_VERSION GREATER 4 OR
 	(CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 15))
 	option (openiA_PRECOMPILE  "Whether to use precompiled headers to speed up build. Default: disabled." OFF)
+	IF (openiA_PRECOMPILE)
+		MESSAGE(STATUS "openiA_PRECOMPILE enabled.")
+	ENDIF()
 ENDIF()
 
 SET (Toolkit_DIR "${PROJECT_SOURCE_DIR}/Toolkit")
