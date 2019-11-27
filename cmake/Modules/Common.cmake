@@ -8,11 +8,14 @@ IF ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 		"and run cmake with a newly created build directory.")
 ENDIF()
 
+MESSAGE(STATUS "CMake: ${CMAKE_VERSION}")
+
 #-------------------------
 # CTest
 #-------------------------
 option (openiA_TESTING_ENABLED "Whether to enable testing. This allows to run CTest/ CDash builds. Default: disabled." OFF)
 IF (openiA_TESTING_ENABLED)
+	MESSAGE(STATUS "Testing enabled.")
 	INCLUDE (CTest)
 	enable_testing()
 	IF (openiA_USE_IDE_FOLDERS)
