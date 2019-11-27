@@ -348,11 +348,8 @@ FIND_PACKAGE(OpenCL)
 IF (OPENCL_FOUND)
 	MESSAGE(STATUS "OpenCL: include=${OPENCL_INCLUDE_DIRS}, libraries=${OPENCL_LIBRARIES}.")
 	IF (WIN32)
-				# Find path of OpenCL.dll to include in release:
+		# Find path of OpenCL.dll to include in release:
 		get_filename_component(OPENCL_LIB_DIR "${OPENCL_LIBRARIES}" DIRECTORY)
-		message(STATUS "get_filename_component(OPENCL_LIB_BASENAME ${OPENCL_LIBRARIES} NAME_WLE)")
-		# NAME_WLE only introduced in CMake 3.14
-		# get_filename_component(OPENCL_LIB_BASENAME "${OPENCL_LIBRARIES}" NAME_WLE)
 		get_filename_component(OPENCL_LIB_BASENAME "${OPENCL_LIBRARIES}" NAME_WE)
 		STRING(REGEX REPLACE "lib" "bin" OPENCL_DLL_DIR "${OPENCL_LIB_DIR}")
 		IF (NOT EXISTS "${OPENCL_DLL_DIR}/${OPENCL_LIB_BASENAME}.dll")
