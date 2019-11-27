@@ -6,130 +6,184 @@
 #include "iATypedCallHelper.h"
 #include <itkDerivativeImageFilter.h>
 
-#include "elastixlib.h"
-#include "transformixlib.h"
+
 #include "itkParameterFileParser.h"
 #include "itkImage.h"
+#include <itkImageFileWriter.h>
+#include <itkImageFileReader.h>
+#include <itkVectorIndexSelectionCastImageFilter.h>
+#include <itkVectorImage.h>
+
+#include<qtemporarydir.h>
 
 
+template <class InPixelType>
+void extractChannels(typename itk::VectorImage<InPixelType, DIM>::Pointer vectorImg, iAFilter* filter)
+{
+	typedef itk::VectorImage<InPixelType, DIM> VectorImageType;
+	typedef itk::Image<InPixelType, DIM> OutImageType;
+	typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, OutImageType> IndexSelectionType;
+	for (int p = 0; p < vectorImg->GetVectorLength(); ++p)
+	{
+		auto indexSelectionFilter = IndexSelectionType::New();
+		indexSelectionFilter->SetIndex(p);
+		indexSelectionFilter->SetInput(vectorImg);
+		indexSelectionFilter->Update();
+		filter->addOutput(indexSelectionFilter->GetOutput());
+	}
+}
+
+
+
+void createOutput(iAFilter* filter, QString dirname) {
+	typedef itk::Image<float, DIM> InputImageType;
+	typedef itk::ImageFileReader<InputImageType> ReaderType;
+
+
+	QString resulImagePath = dirname + "/result.0.mhd";
+	QString jacobianImagePath = dirname + "/spatialJacobian.mhd";
+	QString deformationImagePath = dirname + "/deformationField.mhd";
+
+
+
+	ReaderType::Pointer resulImage = ReaderType::New();
+	resulImage->SetFileName(resulImagePath.toStdString());
+	resulImage->Update();
+	filter->addOutput(resulImage->GetOutput());
+
+	ReaderType::Pointer jacobianImage = ReaderType::New();
+	jacobianImage->SetFileName(jacobianImagePath.toStdString());
+	jacobianImage->Update();
+	filter->addOutput(jacobianImage->GetOutput());
+
+
+	typedef itk::VectorImage<float, DIM> deformationInputImageType;
+	typedef itk::ImageFileReader<deformationInputImageType> deformationReaderType;
+
+	auto deformationImage = deformationReaderType::New();
+	deformationImage->SetFileName(deformationImagePath.toStdString());
+	deformationImage->Update();
+
+	extractChannels<float>(deformationImage->GetOutput(), filter);
+}
+
+
+void runElastix(QString dirname, QString fixedImagePath, QString movingImagePath, QString parameterPath, QString executablePath, int timeout=300000) {
+	QStringList argumentsElastix;
+
+	argumentsElastix.append("-f");
+	argumentsElastix.append(fixedImagePath);
+
+	argumentsElastix.append("-m");
+	argumentsElastix.append(movingImagePath);
+
+	argumentsElastix.append("-p");
+	argumentsElastix.append(parameterPath);
+
+	argumentsElastix.append("-out");
+	argumentsElastix.append(dirname);
+
+
+
+	QProcess elastix;
+	elastix.setProgram(executablePath + "/elastix.exe");
+	elastix.setArguments(argumentsElastix);
+	elastix.setProcessChannelMode(QProcess::MergedChannels);
+	elastix.start();
+
+	if (!elastix.waitForStarted()) {
+		throw "Error Start Elastix";
+	}
+
+	if (!elastix.waitForFinished(timeout)) {
+		throw "Error Execute Finish";
+	}
+}
+
+
+void runTransformix(QString dirname, QString executablePath, int timeout = 300000) {
+	QString pathParameterfile = dirname + "/TransformParameters.0.txt";
+
+	QStringList argumentsTransformix;
+
+	argumentsTransformix.append("-jac");
+	argumentsTransformix.append("all");
+
+	argumentsTransformix.append("-def");
+	argumentsTransformix.append("all");
+
+	argumentsTransformix.append("-out");
+	argumentsTransformix.append(dirname);
+
+	argumentsTransformix.append("-tp");
+	argumentsTransformix.append(pathParameterfile);
+
+	QProcess tranformix;
+	tranformix.setProgram(executablePath + "/transformix.exe");
+	tranformix.setArguments(argumentsTransformix);
+	tranformix.setProcessChannelMode(QProcess::MergedChannels);
+	tranformix.start();
+
+	if (!tranformix.waitForStarted())
+		throw "Error Start Transformix";
+
+	if (!tranformix.waitForFinished(timeout))
+		throw "Error execute Transformix";
+}
 
 template<class T> 
 void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-	//typedef itk::Image<T, DIM> InputImageType;
-	//typedef itk::Image<float, DIM> RealImageType;
-	//typedef itk::DerivativeImageFilter< InputImageType, RealImageType > DIFType;
 
-	//auto derFilter = DIFType::New();
-	//derFilter->SetOrder(params["Order"].toUInt());
-	//derFilter->SetDirection(params["Direction"].toUInt());
-	//derFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()) );
-	//filter->progress()->observe( derFilter );
-	//derFilter->Update();
-	//filter->addOutput(derFilter->GetOutput());
+	QString pathElastix = params["PathElastix"].toString();
 
 
-	using namespace elastix;
-	typedef ELASTIX::ParameterMapType RegistrationParametersType;
-	typedef itk::ParameterFileParser ParserType;
+	QTemporaryDir dir;
+	if (dir.isValid()) {
+		// dir.path() returns the unique directory path
+	}
 
+	dir.setAutoRemove(true);
 
-	// Create parser for transform parameters text file.
-	ParserType::Pointer file_parser = ParserType::New();
-	// Try parsing transform parameters text file.
-	file_parser->SetParameterFileName(params["ParameterFile"].toString().toStdString());
+	QString dirname = dir.path();;
+
+	QString fixedImagePath = dirname + "/fixed.mhd";
+	QString movingImagePath = dirname + "/moving.mhd";
+
+	typedef itk::Image<T, DIM> OutputImageType;
+	typedef  itk::ImageFileWriter< OutputImageType  > WriterType;
+	WriterType::Pointer fixedWriter = WriterType::New();
+	fixedWriter->SetFileName(fixedImagePath.toStdString());
+	fixedWriter->SetInput(dynamic_cast<OutputImageType *>(filter->input()[0]->itkImage()));
+
+	WriterType::Pointer movingWriter = WriterType::New();
+	movingWriter->SetFileName(movingImagePath.toStdString());
+	movingWriter->SetInput(dynamic_cast<OutputImageType *>(filter->input()[1]->itkImage()));
+
 	try
 	{
-		file_parser->ReadParameterFile();
+		fixedWriter->Update();
+		movingWriter->Update();
 	}
-	catch (itk::ExceptionObject & e)
+	catch (itk::ExceptionObject & err)
 	{
-		std::cout << e.what() << std::endl;
-		// Do some error handling!
-	}
-	// Retrieve parameter settings as map.
-	RegistrationParametersType parameters = file_parser->GetParameterMap();
+		throw "Exception saveing files. Details:" + err.GetDescription + std::endl;
 
-
-
-	typedef itk::Image<T, DIM> ITKImageType;
-	typedef std::vector<RegistrationParametersType> RegistrationParametersContainerType;
-
-	ELASTIX* elastix = new ELASTIX();
-	int error = 0;
-	try
-	{
-		error = elastix->RegisterImages(
-			dynamic_cast<ITKImageType*>(filter->input()[0]->itkImage()),
-			dynamic_cast<ITKImageType*>(filter->input()[1]->itkImage()),
-			parameters, // Parameter map read in previous code
-			"C:\\temp\\LOG", // Directory where output is written, if enabled
-			TRUE, // Enable/disable writing of elastix.log
-			TRUE, // Enable/disable output to console
-			nullptr, // Provide fixed image mask (optional, 0 = no mask)
-			nullptr // Provide moving image mask (optional, 0 = no mask)
-		);
-	}
-	catch (itk::ExceptionObject &err)
-	{
-		// Do some error handling.
 	}
 
+	int timeoutSec = params["Timeout[sec]"].toInt() * 1000;
 
-	ITKImageType * output_image;
-	RegistrationParametersContainerType transform_parameters;
+	runElastix(dirname, fixedImagePath, movingImagePath, params["ParameterFile"].toString(), pathElastix, timeoutSec);
 
 
-	if (error == 0)
-	{
-		if (elastix->GetResultImage().IsNotNull())
-		{
-			// Typedef the ITKImageType first...
-			output_image = static_cast<ITKImageType *>(
-				elastix->GetResultImage().GetPointer());
-			filter->addOutput(output_image);
-		}
-		else
-		{
-			// Registration failure. Do some error handling.
-		}
-		// Get transform parameters of all registration steps.
-		transform_parameters = elastix->GetTransformParameterMapList();
-		// Clean up memory.
-		delete elastix;
-	}
+	runTransformix(dirname,pathElastix, timeoutSec);
 
-	using namespace transformix;
-	TRANSFORMIX* transformix = new TRANSFORMIX();
-	//int error = 0;
-	try
-	{
-		error = transformix->TransformImage(
-			static_cast<typename itk::DataObject::Pointer>(output_image),
-			transform_parameters, // Parameters resulting from elastix run
-			"C:\\temp\\LOG", // Enable/disable writing of transformix.log
-			TRUE,TRUE); // Enable/disable output to console
-	}
-	catch (itk::ExceptionObject &err)
-	{
-			// Do some error handling.
-	}
-	if (error == 0)
-	{
-		// Typedef the ITKImageType first...
-		ITKImageType * output_image = static_cast<ITKImageType *>(
-			transformix->GetResultImage().GetPointer());
-		filter->addOutput(output_image);
-	}
-	else
-	{
-		// Do some error handling.
-	}
-	// Clean up memory.
-	delete transformix;
-
+	createOutput(filter, dirname);
 
 }
+
+
+
 
 void iAElastixRegistration::performWork(QMap<QString, QVariant> const & parameters)
 {
@@ -140,12 +194,17 @@ IAFILTER_CREATE(iAElastixRegistration)
 
 iAElastixRegistration::iAElastixRegistration() :
 	iAFilter("Elastix Registration", "Registration",
-		"Computes the directional derivative for each image element.<br/>"
-		"The <em>order</em> of the derivative can be specified, as well as the desired <em>direction</em> (0=x, 1=y, 2=z).<br/>"
-		"For more information, see the "
-		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1DerivativeImageFilter.html\">"
-		"Elastix Registration</a> in the ITK documentation.",2,1)
+		"Makes a registration of two images and computes the deformation matrix and the spatial jacobion <br/>"
+		"Outputs"
+		"<ul>"
+		"<ol>Registration of both images</ol>"
+		"<ol>Spatial Jacobian</ol>"
+		"<ol>Deformation X</ol>"
+		"<ol>Deformation Y</ol>"
+		"<ol>Deformation Z</ol>"
+		"< / ul>",2,2)
 {
 	addParameter("ParameterFile", FileNameOpen);
-	addParameter("Direction", Discrete, 0, 0, DIM-1);
+	addParameter("PathElastix", Folder);
+	addParameter("Timeout[sec]", Discrete, 300);
 }
