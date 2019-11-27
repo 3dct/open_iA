@@ -167,7 +167,8 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 	}
 	catch (itk::ExceptionObject & err)
 	{
-		throw "Exception saveing files. Details:" + err.GetDescription + std::endl;
+		
+		throw "Exception save temp files in directory" + dirname;
 
 	}
 
