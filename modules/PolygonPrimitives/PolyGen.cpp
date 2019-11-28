@@ -116,3 +116,34 @@ void PolyGen::createAndRenderSphere(vtkOpenGLRenderer* renderer, double xm, doub
 	renderer->AddActor(actor);
 
 }
+
+void PolyGen::createAndRenderCube(vtkOpenGLRenderer* renderer, double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, color acolor)
+{
+	vtkSmartPointer<vtkCubeSource> aCube = vtkSmartPointer<vtkCubeSource>::New();
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+
+	aCube = this->createCube(xmin, ymin, zmin, xmax, ymax, zmax); 
+	auto CubeProp = actor->GetProperty();
+	/*sphereProp->SetLineWidth(100.0);*/
+	actor->SetDragable(false);
+	actor->SetPickable(false);
+
+
+	switch (acolor)
+	{
+
+	case color::red: CubeProp->SetColor(1, 0, 0); break;
+	case color::blue: CubeProp->SetColor(0, 0, 1); break;
+	case color::green: CubeProp->SetColor(0, 1, 0); break;
+	default: CubeProp->SetColor(1, 0, 0); break;
+
+	}
+
+	mapper->SetInputConnection(aCube->GetOutputPort());
+	actor->SetMapper(mapper);
+
+
+	renderer->AddActor(actor);
+
+}

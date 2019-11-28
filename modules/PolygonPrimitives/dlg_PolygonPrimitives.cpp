@@ -25,15 +25,21 @@ void PolygonPrimitives::createObject()
 {
 	if (!m_child) return; 
 	auto renderer = m_child->renderer();
+	bool sphereChecked = this->rdBtn_Sphere->isChecked(); 
 	bool lineChecked = this->rdBtn_Line->isChecked();
+	bool cubeChecked = this->rdBtn_Cube->isChecked();
+
+	//bool cubechecked = this
 	m_Color = this->getColor(); 
 	
 	if (lineChecked) {
 		readData(renderer, m_Color);
 	}
-	else {
-		readSphereData(renderer, m_Color);
-	}
+	else if (sphereChecked)
+			readSphereData(renderer, m_Color);
+	
+	else
+		readCubeData(renderer, m_Color); 
 	
 
 	DEBUG_LOG("Action is triggered");
@@ -136,6 +142,60 @@ void PolygonPrimitives::readSphereData(iARenderer* renderer, color aColor)
 	renderer->update(); 
 
 	
+}
+
+void PolygonPrimitives::readCubeData(iARenderer* renderer, color aColor) {
+	if (!renderer) return; 
+
+
+	double xmax, xmin; 
+	double ymin, ymax; 
+	double zmax, zmin; 
+
+	bool check_xmax, check_xmin, check_ymin;
+	bool check_ymax, check_zmax, check_zmin; 
+	QString str_xmax, str_xmin;
+	QString str_ymin, str_ymax;
+	QString str_zmin, str_zMax; 
+
+	str_xmin = this->ed_cubeXmin->text(); 
+	str_xmax = this->ed_cubeXmax->text(); 
+
+	str_ymin = this->ed_cubeYMin->text(); 
+	str_ymax = this->ed_cubeXmax->text();
+
+	str_zmin = this->ed_cubeZMin->text();
+	str_zMax = this->ed_cubeXmax->text(); 
+
+	check_xmax = checkNullempty(str_xmax);
+	check_xmin = checkNullempty(str_xmin);
+
+	check_ymin = checkNullempty(str_ymin);
+	check_ymax = checkNullempty(str_ymax);
+
+	check_zmin = checkNullempty(str_zmin);
+	check_zmax = checkNullempty(str_zMax); 
+
+	if (check_xmax || check_xmin || check_ymin || check_ymax || check_zmin || check_zmax) {
+		QMessageBox msgBox;
+		msgBox.setText("Please Enter coordinates for every element.");
+		msgBox.exec();
+		return;
+	}
+
+	xmax = str_xmax.toDouble();
+	xmin = str_xmin.toDouble();
+
+	ymin = str_ymin.toDouble();
+	ymax = str_ymax.toDouble();
+
+	zmax = str_zMax.toDouble();
+	zmin = str_zmin.toDouble(); 
+
+	visualiser.createAndRenderCube(renderer->renderer(),xmin, ymin, zmin, xmax, ymax, zmax, aColor);
+	renderer->update(); 
+
+
 }
 
 color PolygonPrimitives::getColor() const

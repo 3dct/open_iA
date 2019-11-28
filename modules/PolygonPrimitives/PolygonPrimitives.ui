@@ -356,7 +356,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="ed_cubYMin"/>
+         <widget class="QLineEdit" name="ed_cubeYMin"/>
         </item>
        </layout>
       </item>
@@ -414,7 +414,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>340</x>
@@ -486,9 +486,9 @@
           </widget>
          </item>
          <item>
-          <widget class="QRadioButton" name="radioButton">
+          <widget class="QRadioButton" name="rdBtn_Cube">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="text">
             <string>Cube</string>

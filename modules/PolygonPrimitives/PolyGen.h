@@ -57,5 +57,7 @@ public:
 	 void createAndRenderLine(vtkOpenGLRenderer* renderer, double x1, double y1, double z1, double x2, double y2, double z2, double lnWithd, color acolor);
 	 void createAndRenderSphere(vtkOpenGLRenderer* renderer, double xm, double ym, double zm, double radius, color acolor);
 
+	 //void createAndRenderCube(vtkOpenGLRenderer* renderer, double xm, double ym, double zm, double radius, color acolor);
+	 void createAndRenderCube(vtkOpenGLRenderer* renderer, double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, color acolor);
 };
 

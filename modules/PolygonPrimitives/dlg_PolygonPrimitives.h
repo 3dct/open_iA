@@ -37,6 +37,7 @@ private:
 	void readData(iARenderer* renderer, color aColor);
 	
 	void readSphereData(iARenderer* renderer, color aColor);
+	void readCubeData(iARenderer* renderer, color aColor);
 	color getColor() const;
 
 
