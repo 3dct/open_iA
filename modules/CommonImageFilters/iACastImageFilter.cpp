@@ -163,6 +163,7 @@ void convertToRGB(iAFilter * filter)
 	itk::ImageRegionIterator< RGBAImageType >     it(rgbaImage, region);
 	for (cit.GoToBegin(), it.GoToBegin(); !it.IsAtEnd(); ++cit, ++it)
 	{
+		//the following 3 lines are probably not necessary
 		it.Value().SetRed(cit.Value().GetRed());
 		it.Value().SetBlue(cit.Value().GetBlue());
 		it.Value().SetGreen(cit.Value().GetGreen());
