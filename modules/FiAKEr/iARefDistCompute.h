@@ -29,6 +29,8 @@
 
 class iAFiberResultsCollection;
 
+class QFile;
+
 class iARefDistCompute : public QThread
 {
 	Q_OBJECT
@@ -46,6 +48,9 @@ public:
 	size_t referenceID() const;
 	static QStringList getSimilarityMeasureNames();
 private:
+	bool readFromCache(QFile& cacheFile);
+	void writeToCache(QFile& cacheFile);
+
 	iAProgress m_progress;
 	QSharedPointer<iAFiberResultsCollection> m_data;
 	int m_referenceID;
