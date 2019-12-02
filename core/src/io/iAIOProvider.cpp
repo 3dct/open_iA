@@ -24,7 +24,7 @@
 
 const QString iAIOProvider::ProjectFileExtension(".mod");
 const QString iAIOProvider::ProjectFileTypeFilter("open_iA modality file (*"+ProjectFileExtension+");;");
-const QString iAIOProvider::NewProjectFileExtension(".opf");
+const QString iAIOProvider::NewProjectFileExtension(".iaproj");
 const QString iAIOProvider::NewProjectFileTypeFilter("open_iA project file (*"+NewProjectFileExtension+");;");
 const QString iAIOProvider::MetaImages("Meta Images (*.mhd *.mha);;");
 const QString iAIOProvider::VTKFiles("VTK Files (*.vtk);;");

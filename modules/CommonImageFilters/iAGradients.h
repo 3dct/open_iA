@@ -24,4 +24,5 @@
 
 IAFILTER_DEFAULT_CLASS(iADerivative);
 IAFILTER_DEFAULT_CLASS(iAGradientMagnitude);
+IAFILTER_DEFAULT_CLASS(iAGradientMagnitudeRecursiveGaussian);
 IAFILTER_DEFAULT_CLASS(iAHigherOrderAccurateDerivative);

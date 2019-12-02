@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAGradients.h"
 
-#include <itkHigherOrderAccurateDerivativeImageFilter.h>
 
 #include <defines.h> // for DIM
 #include <iAConnector.h>
@@ -29,12 +28,14 @@
 
 #include <itkCastImageFilter.h>
 #include <itkDerivativeImageFilter.h>
+#include <itkHigherOrderAccurateDerivativeImageFilter.h>       // HigherOrderAccurateGradient ITK Module
 #include <itkGradientMagnitudeImageFilter.h>
+#include <itkGradientMagnitudeRecursiveGaussianImageFilter.h>
 #include <itkImageIOBase.h>
 
 // iAGradientMagnitude
 
-template<class T> void gradient_magnitude(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class T> void gradientMagnitude(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< float, 3 >   RealImageType;
@@ -50,7 +51,7 @@ template<class T> void gradient_magnitude(iAFilter* filter, QMap<QString, QVaria
 
 void iAGradientMagnitude::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(gradient_magnitude, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(gradientMagnitude, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAGradientMagnitude)
@@ -65,6 +66,43 @@ iAGradientMagnitude::iAGradientMagnitude() :
 		"Gradient Magnitude Filter</a> in the ITK documentation.")
 {
 	addParameter("Use Image Spacing", Boolean, true);
+}
+
+// iAGradientMagnitudeRecursiveGaussian
+
+template<class T> void gradientMagnitudeRecursiveGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
+{
+	typedef itk::Image< T, 3 >   InputImageType;
+	typedef itk::Image< float, 3 >   RealImageType;
+	typedef itk::GradientMagnitudeRecursiveGaussianImageFilter< InputImageType, InputImageType > GMFType;
+
+	auto gmFilter = GMFType::New();
+	gmFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	gmFilter->SetNormalizeAcrossScale(params["Normalize across scale"].toBool());
+	gmFilter->SetSigma(params["Sigma"].toDouble());
+	filter->progress()->observe(gmFilter);
+	gmFilter->Update();
+	filter->addOutput(gmFilter->GetOutput());
+}
+
+void iAGradientMagnitudeRecursiveGaussian::performWork(QMap<QString, QVariant> const & parameters)
+{
+	ITK_TYPED_CALL(gradientMagnitudeRecursiveGaussian, inputPixelType(), this, parameters);
+}
+
+IAFILTER_CREATE(iAGradientMagnitudeRecursiveGaussian)
+
+iAGradientMagnitudeRecursiveGaussian::iAGradientMagnitudeRecursiveGaussian() :
+	iAFilter("Gradient Magnitude RecursiveGaussian", "Gradients",
+		"Computes the gradient magnitude at each image element.<br/>"
+		"If <em>Use Image Spacing</em> is enabled, the gradient is calculated in the physical space; "
+		"if it not enabled, the gradient is calculated in pixel space.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GradientMagnitudeRecursiveGaussianImageFilter.html\">"
+		"Gradient Magnitude Recursive Gaussian Filter</a> in the ITK documentation.")
+{
+	addParameter("Normalize across scale", Boolean, true);
+	addParameter("Sigma", Continuous, 1.0);
 }
 
 // iADerivative:
@@ -111,7 +149,7 @@ iADerivative::iADerivative() :
 // iAHigherOrderAccurateGradient
 
 template<class T>
-void hoa_derivative(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void hoaDerivative(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::Image<double, DIM> OutputImageType;
@@ -129,7 +167,7 @@ void hoa_derivative(iAFilter* filter, QMap<QString, QVariant> const & parameters
 		
 void iAHigherOrderAccurateDerivative::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(hoa_derivative, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(hoaDerivative, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAHigherOrderAccurateDerivative)

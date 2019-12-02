@@ -114,7 +114,7 @@ iACsvConfig getCsvConfig(QString const & formatName)
 	return result;
 }
 
-void addColumn(vtkSmartPointer<vtkTable> table, float value, char const * columnName, size_t numRows)
+void addColumn(vtkSmartPointer<vtkTable> table, double value, char const * columnName, size_t numRows)
 {
 	vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
 	arrX->SetName(columnName);
@@ -125,9 +125,9 @@ void addColumn(vtkSmartPointer<vtkTable> table, float value, char const * column
 
 iAFiberResultsCollection::iAFiberResultsCollection():
 	spmData(new iASPLOMData()),
-	optimStepMax(1),
 	minFiberCount(std::numeric_limits<size_t>::max()),
 	maxFiberCount(0),
+	optimStepMax(1),
 	stepShift(0)
 {}
 

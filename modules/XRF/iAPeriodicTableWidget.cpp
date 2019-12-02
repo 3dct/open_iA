@@ -66,7 +66,11 @@ void iAPeriodicTableWidget::drawElement(QPainter& painter, QPoint const & upperL
 
 	QFont myFont;
 	QFontMetrics fm(myFont);
-	int textWidth  = fm.width(PeriodicTable::elements[elemIdx].shortname.c_str());
+#if QT_VERSION >= 0x050B00
+	int textWidth  = fm.horizontalAdvance(PeriodicTable::elements[elemIdx].shortname.c_str());
+#else
+	int textWidth = fm.width(PeriodicTable::elements[elemIdx].shortname.c_str());
+#endif
 	int textHeight = fm.height();
 			
 	QRect textRect(middlePoint.x()-textWidth/2, middlePoint.y()-textHeight/2, textWidth, textHeight);

@@ -36,7 +36,8 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectT
 	iA3DLineObjectVis( ren, objectTable, columnMapping, color, curvedFiberData, segmentSkip),
 	m_objectCount(objectTable->GetNumberOfRows()),
 	m_contextFactors(nullptr),
-	m_contextDiameterFactor(1.0)
+	m_contextDiameterFactor(1.0),
+	m_lines(false)
 {
 	auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
 	tubeRadius->SetName("TubeRadius");
@@ -110,4 +111,17 @@ QString iA3DCylinderObjectVis::visualizationStatistics() const
 {
 	return iA3DLineObjectVis::visualizationStatistics() + "; # cylinder sides: " +
 		QString::number(m_tubeFilter->GetNumberOfSides());
+}
+
+void iA3DCylinderObjectVis::setShowLines(bool lines)
+{
+	m_lines = lines;
+	if (m_lines)
+	{
+		m_mapper->SetInputData(m_linePolyData);
+	}
+	else
+	{
+		m_mapper->SetInputConnection(m_tubeFilter->GetOutputPort());
+	}
 }

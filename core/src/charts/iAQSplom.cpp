@@ -39,14 +39,14 @@
 #include <QColorDialog>
 #include <QFileDialog>
 #include <QListWidgetItem>
+#include <QMenu>
+#include <QMessageBox>
 #include <QPainter>
 #include <QPropertyAnimation>
 #include <QSettings>
 #include <QTableWidget>
 #include <QWheelEvent>
 #include <QtMath>
-#include <QMenu>
-#include <QMessageBox>
 
 namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:
@@ -68,6 +68,7 @@ namespace
 	const QString CfgKeyColorCodingMax("SPM/ColorCodingMax");
 	const QString CfgKeyColorLookupParam("SPM/ColorLookupParam");
 	const QString CfgKeyVisibleParameters("SPM/VisibleParameters");
+	const QString CfgKeyMaximizedPlot("SPM/MaximizedPlot");
 }
 
 iAQSplom::Settings::Settings()
@@ -980,16 +981,17 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 		m_maximizedPlot->paintOnParent( painter );
 	drawPopup( painter );
 
+	// Draw scalar bar:
 	// maybe reuse code from iALinearColorGradientBar (DynamicVolumeLines)
 	QPoint topLeft = getMaxRect().topLeft();
 	int barWidth = clamp(5, 10, m_scatPlotSize.x() / 10);
-	topLeft += QPoint(- (barWidth + 2*settings.plotsSpacing + settings.tickOffsets.x()),
+	topLeft += QPoint(- (barWidth + 3*settings.plotsSpacing + settings.tickOffsets.x()),
 		settings.plotsSpacing
 		+ m_scatPlotSize.y() / ((((getVisibleParametersCount() + (settings.histogramVisible ? 1 : 0)) % 2) == 1) ? 2 : 1)
 	);
 		
-	double minVal = m_lut->getRange()[0];
-	double maxVal = m_lut->getRange()[1];
+	double minVal = settings.colorScheme == AllPointsSame ? 0 : m_lut->getRange()[0];
+	double maxVal = settings.colorScheme == AllPointsSame ? 0 : m_lut->getRange()[1];
 	QRect colorBarRect(topLeft.x(), topLeft.y(),
 		barWidth, height() - topLeft.y() - settings.plotsSpacing);
 	QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y()+colorBarRect.height() );
@@ -999,7 +1001,7 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 		double rgba[4];
 		m_lut->getTableValue(i, rgba);
 		QColor color(rgba[0] * 255, rgba[1] * 255, rgba[2] * 255, rgba[3] * 255);
-		double key = 1 - (static_cast<double>(i) / m_lut->numberOfValues());
+		double key = 1 - (static_cast<double>(i) / (m_lut->numberOfValues()-1) );
 		grad.setColorAt(key, color);
 	}
 	painter.setPen(QPen(QColor(0, 0, 0), 0.5));
@@ -1007,14 +1009,30 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	painter.drawRect(colorBarRect);
 	QString minStr = dblToStringWithUnits(minVal);
 	QString maxStr = dblToStringWithUnits(maxVal);
-#if QT_VERSION >= 0x051100
+#if QT_VERSION >= 0x050B00
 	int textWidth = std::max(fm.horizontalAdvance(minStr), fm.horizontalAdvance(maxStr));
 #else
 	int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
 #endif
+	// Draw scheme / name of parameter used for coloring
 	int colorBarTextX = topLeft.x() - (textWidth + settings.plotsSpacing);
 	painter.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
 	painter.drawText(colorBarTextX, height() - settings.plotsSpacing, minStr);
+	int textHeight = height() - (topLeft.y() + 2 * fm.height() + 2*settings.plotsSpacing);
+	textWidth = std::max(textWidth, fm.height()); // guarantee that label has at least text height
+	QString scalarBarCaption;
+	switch (settings.colorScheme)
+	{
+	case AllPointsSame: scalarBarCaption = "Uniform"; break;
+	case Custom:        // intentional fall-through:
+	case ByParameter  : scalarBarCaption = m_splomData->parameterName(m_colorLookupParam); break;
+	default:            scalarBarCaption = "Unknown"; break;
+	}
+	painter.save();
+	painter.translate(colorBarTextX - settings.plotsSpacing, topLeft.y() + fm.height() + settings.plotsSpacing + textHeight);
+	painter.rotate(-90);
+	painter.drawText(QRect(0, 0, textHeight, textWidth), Qt::AlignHCenter | Qt::AlignBottom, scalarBarCaption);
+	painter.restore();
 }
 
 bool iAQSplom::drawPopup( QPainter& painter )
@@ -1389,6 +1407,12 @@ void iAQSplom::drawPlotLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPai
 
 	for (int axisIdx = 0; axisIdx < loopLength; axisIdx++)
 	{
+		if (!settings.histogramVisible &&
+			((!switchTO_YRow && axisIdx == loopLength - 1) ||
+			(  switchTO_YRow && axisIdx == 0)))
+		{
+			continue;
+		}
 		ulong currIdx = ind_Elements[axisIdx];
 		QString currentParamName = m_splomData->parameterName(currIdx);
 		if (switchTO_YRow) 
@@ -1649,6 +1673,10 @@ void iAQSplom::saveSettings(QSettings & iniFile) const
 	iniFile.setValue(CfgKeyColorCodingMax, colorCodingMax);
 	iniFile.setValue(CfgKeyColorLookupParam, static_cast<qulonglong>(m_colorLookupParam));
 	iniFile.setValue(CfgKeyVisibleParameters, join(m_visibleIndices, ","));
+	if (m_maximizedPlot)
+	{
+		iniFile.setValue(CfgKeyMaximizedPlot, QString("%1,%2").arg(m_maximizedPlot->getIndices()[0]).arg(m_maximizedPlot->getIndices()[1]));
+	}
 }
 
 void iAQSplom::loadSettings(iASettings const & config)
@@ -1697,11 +1725,11 @@ void iAQSplom::loadSettings(iASettings const & config)
 		for (QString idxStr : newVisibleIndices)
 		{
 			int idx = idxStr.toInt(&ok);
-				if (!ok || idx < 0)
-				{
-					DEBUG_LOG(QString("Invalid index %1 in VisibleParameter Scatter Plot Matrix setting.").arg(idxStr));
-						continue;
-				}
+			if (!ok || idx < 0)
+			{
+				DEBUG_LOG(QString("Invalid index %1 in VisibleParameter Scatter Plot Matrix setting.").arg(idxStr));
+				continue;
+			}
 			if (idx >= newParamVis.size())
 			{
 				DEBUG_LOG(QString("Index %1 in VisibleParameter settings is larger than currently available number of parameter; "
@@ -1744,6 +1772,48 @@ void iAQSplom::loadSettings(iASettings const & config)
 	double opacity = static_cast<double>(m_settingsDlg->slPointOpacity->value()) / m_settingsDlg->slPointOpacity->maximum();
 	opacity = config.value(CfgKeyPointOpacity, opacity).toDouble();
 	m_settingsDlg->slPointOpacity->setValue(opacity * m_settingsDlg->slPointOpacity->maximum());
+
+	if (config.contains(CfgKeyMaximizedPlot))
+	{
+		QStringList strInds = config[CfgKeyMaximizedPlot].toString().split(",");
+		if (strInds.size() != 2)
+		{
+			DEBUG_LOG(QString("Expected two indices separated by comma in %1 setting, but got %2")
+				.arg(CfgKeyMaximizedPlot)
+				.arg(config[CfgKeyMaximizedPlot].toString()));
+		}
+		else
+		{
+			bool ok1, ok2;
+			int idx1 = strInds[0].toInt(&ok1);
+			int idx2 = strInds[1].toInt(&ok2);
+			if (!ok1 || !ok2 || idx1 < 0 || idx2 < 0 || idx1 >= m_splomData->numParams() || idx2 >= m_splomData->numParams())
+			{
+				DEBUG_LOG(QString("Cannot create maximized plot from setting %1, invalid or out-of-range indices: %2")
+					.arg(CfgKeyMaximizedPlot)
+					.arg(config[CfgKeyMaximizedPlot].toString()));
+			}
+			else
+			{
+				auto idx1VisIt = std::find(m_visibleIndices.begin(), m_visibleIndices.end(), idx1);
+				auto idx2VisIt = std::find(m_visibleIndices.begin(), m_visibleIndices.end(), idx2);
+				if (idx1VisIt == m_visibleIndices.end() || idx1VisIt == m_visibleIndices.end())
+				{
+					DEBUG_LOG(QString("Cannot create maximized plot from setting %1, given parameter indices %2, %3 were not among visible plots!")
+						.arg(CfgKeyMaximizedPlot)
+						.arg(idx1)
+						.arg(idx2));
+				}
+				else
+				{
+					size_t visIdx1 = std::distance(m_visibleIndices.begin(), idx1VisIt);
+					size_t visIdx2 = std::distance(m_visibleIndices.begin(), idx2VisIt);
+					iAScatterPlot* s = m_visiblePlots[visIdx2][visIdx1];
+					maximizeSelectedPlot(s);
+				}
+			}
+		}
+	}
 }
 
 void iAQSplom::setPointColor(QColor const & newColor)

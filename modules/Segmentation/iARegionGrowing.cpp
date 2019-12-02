@@ -29,11 +29,10 @@
 #include <itkConfidenceConnectedImageFilter.h>
 #include <itkConnectedThresholdImageFilter.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
-#include <itkIsolatedConnectedImageFilter.h>
-#include <itkKLMRegionGrowImageFilter.h>
+//#include <itkIsolatedConnectedImageFilter.h>
+//#include <itkKLMRegionGrowImageFilter.h>
 #include <itkNeighborhoodConnectedImageFilter.h>
-#include <itkRegionGrowImageFilter.h>
-#include <itkVectorConfidenceConnectedImageFilter.h>
+//#include <itkVectorConfidenceConnectedImageFilter.h>
 
 
 // Common functionality for adding seeds from a given mask image:

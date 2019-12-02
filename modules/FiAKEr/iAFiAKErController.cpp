@@ -228,6 +228,7 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
 	m_showFiberContext(false),
 	m_mergeContextBoxes(false),
 	m_showWireFrame(false),
+	m_showLines(false),
 	m_contextSpacing(0.0),
 	m_spm(new iAQSplom())
 {
@@ -505,6 +506,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 	connect(m_settingsView->sbFiberContextSpacing, SIGNAL(valueChanged(double)), this, SLOT(contextSpacingChanged(double)));
 	connect(m_settingsView->cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::showBoundingBoxChanged);
 	connect(m_settingsView->cbShowWireFrame, &QCheckBox::stateChanged, this, &iAFiAKErController::showWireFrameChanged);
+	connect(m_settingsView->cbShowLines, &QCheckBox::stateChanged, this, &iAFiAKErController::showLinesChanged);
 	connect(m_settingsView->pbSampleSelectedFiber, &QPushButton::pressed, this, &iAFiAKErController::visualizeCylinderSamplePoints);
 	connect(m_settingsView->pbHideSamplePoints, &QPushButton::pressed, this, &iAFiAKErController::hideSamplePoints);
 	connect(m_settingsView->pbSpatialOverview, &QPushButton::pressed, this, &iAFiAKErController::showSpatialOverviewButton);
@@ -1207,10 +1209,22 @@ void iAFiAKErController::toggleOptimStepChart(int chartID, bool visible)
 			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 			{
 				QSharedPointer<iAVectorPlotData> plotData;
-				if (chartID < ChartCount-1)
-					plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.refDiffFiber[fiberID].diff[chartID].step));
+				if (chartID < ChartCount - 1)
+				{
+					if (chartID < d.refDiffFiber[fiberID].diff.size())
+					{
+						plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.refDiffFiber[fiberID].diff[chartID].step));
+					}
+					else
+					{
+						DEBUG_LOG("Differences for this measure not computed (yet).");
+						return;
+					}
+				}
 				else
+				{
 					plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.projectionError[fiberID]));
+				}
 				plotData->setXDataType(Discrete);
 				m_optimStepChart[chartID]->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
 			}
@@ -1228,8 +1242,18 @@ void iAFiAKErController::toggleOptimStepChart(int chartID, bool visible)
 		if (m_resultUIs[resultID].startPlotIdx == NoPlotsIdx)
 			continue;
 		for (size_t p = 0; p < m_data->result[resultID].fiberCount; ++p)
-			m_optimStepChart[chartID]->plots()[m_resultUIs[resultID].startPlotIdx+p]
+		{
+			if (p < m_optimStepChart[chartID]->plots().size())
+			{
+				m_optimStepChart[chartID]->plots()[m_resultUIs[resultID].startPlotIdx + p]
 					->setVisible(allVisible || resultSelected(m_resultUIs, resultID));
+			}
+			else
+			{
+				DEBUG_LOG("Tried to show/hide unavailable plot.");
+				return;
+			}
+		}
 	}
 	m_optimStepChart[chartID]->update();
 	showSelectionInPlot(chartID);
@@ -1256,6 +1280,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		ui.main3DVis->setSelectionOpacity(SelectionOpacity);
 		ui.main3DVis->setContextOpacity(ContextOpacity);
 		ui.main3DVis->setShowWireFrame(m_showWireFrame);
+		ui.main3DVis->setShowLines(m_showLines);
 		auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
 		if (vis)
 		{
@@ -1434,6 +1459,10 @@ void iAFiAKErController::showSelectionInPlot(int chartID)
 				color.setAlpha(ContextOpacity);
 			for (size_t fiberID=0; fiberID < m_data->result[resultID].fiberCount; ++fiberID)
 			{
+				if (m_resultUIs[resultID].startPlotIdx + fiberID > chart->plots().size())
+				{
+					break;
+				}
 				auto plot = dynamic_cast<iALinePlot*>(chart->plots()[m_resultUIs[resultID].startPlotIdx + fiberID].data());
 				if (curSelIdx < m_selection[resultID].size() && fiberID == m_selection[resultID][curSelIdx])
 				{
@@ -1703,6 +1732,18 @@ void iAFiAKErController::showWireFrameChanged(int newState)
 		vis.mini3DVis->setShowWireFrame(m_showWireFrame);
 		if (vis.main3DVis->visible())
 			vis.main3DVis->setShowWireFrame(m_showWireFrame);
+	}
+}
+
+void iAFiAKErController::showLinesChanged(int newState)
+{
+	m_showLines = (newState == Qt::Checked);
+	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	{
+		auto & vis = m_resultUIs[resultID];
+		vis.mini3DVis->setShowLines(m_showLines);
+		if (vis.main3DVis->visible())
+			vis.main3DVis->setShowLines(m_showLines);
 	}
 }
 
@@ -2480,8 +2521,9 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 
 	auto & d = m_data->result[resultID];
 	auto const & mapping = *d.mapping.data();
-	std::vector<Vec3D> sampledPoints;
-	iAFiberData sampleFiber(d.table, fiberID, mapping);
+	std::vector<iAVec3f> sampledPoints;
+	auto it = d.curveInfo.find(fiberID);
+	iAFiberData sampleFiber(d.table, fiberID, mapping, it != d.curveInfo.end() ? it->second : std::vector<iAVec3f>());
 	samplePoints(sampleFiber, sampledPoints);
 	auto sampleData = vtkSmartPointer<vtkPolyData>::New();
 	auto points = vtkSmartPointer<vtkPoints>::New();

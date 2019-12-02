@@ -154,5 +154,5 @@ private:
 };
 
 // helper functions:
-void addColumn(vtkSmartPointer<vtkTable> table, float value, char const * columnName, size_t numRows);
+void addColumn(vtkSmartPointer<vtkTable> table, double value, char const * columnName, size_t numRows);
 iACsvConfig getCsvConfig(QString const & formatName);

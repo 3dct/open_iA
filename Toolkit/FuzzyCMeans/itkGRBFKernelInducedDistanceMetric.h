@@ -50,90 +50,83 @@ template< class TVector >
 class GRBFKernelInducedDistanceMetric :
     public KernelInducedDistanceMetric< TVector >
 {
-
 public:
-
-  /** Standard class typedefs. */
   typedef GRBFKernelInducedDistanceMetric         Self;
   typedef KernelInducedDistanceMetric< TVector >  Superclass;
   typedef SmartPointer< Self >                    Pointer;
   typedef SmartPointer< const Self >              ConstPointer;
 
-  /** Typedef for the type of vector. */
+  //! Typedef for the type of vector.
   typedef typename Superclass::MeasurementVectorType MeasurementVectorType;
 
-  /** Type of the component of a vector */
+  //! Type of the component of a vector
   typedef typename Superclass::ValueType ValueType;
 
-  /** Typedef for the length of each measurement vector. */
+  //! Typedef for the length of each measurement vector.
   typedef typename Superclass::MeasurementVectorSizeType
       MeasurementVectorSizeType;
 
-  /** Type of the origin. */
+  //! Type of the origin.
   typedef typename Superclass::OriginType OriginType;
 
-  /** Vector information. */
+  //! Vector information.
   typedef typename itk::Statistics::MeasurementVectorTraits
       MeasurementVectorTraitsType;
 
-  /** Run-time type information (and related methods). */
+  //! Run-time type information (and related methods).
   itkTypeMacro(GRBFKernelInducedDistanceMetric, KernelInducedDistanceMetric);
 
-  /** Method for creation through the object factory. */
+  //! Method for creation through the object factory.
   itkNewMacro(Self);
 
-  /** Get the a value. */
+  //! Get the a value.
   itkGetConstMacro(A, double);
 
-  /** Get the b value. */
+  //! Get the b value.
   itkGetConstMacro(B, double);
 
-  /** Get the sigma value. */
+  //! Get the sigma value.
   itkGetConstMacro(Sigma, double);
 
-  /** Set the a value. This value must be greater than 0. */
+  //! Set the a value. This value must be greater than 0.
   itkSetClampMacro(A, double, 0.0, itk::NumericTraits< double >::max());
 
-  /** Set the b value. This value is constrained between 1 and 2. */
+  //! Set the b value. This value is constrained between 1 and 2.
   itkSetClampMacro(B, double, 1.0, 2.0);
 
-  /** Set the sigma value. */
+  //! Set the sigma value.
   itkSetMacro(Sigma, double);
 
-  /** Gets the distance between the origin and x */
+  //! Gets the distance between the origin and x.
   double Evaluate(const MeasurementVectorType &x) const;
 
-  /** Gets the distance between x1 and x2 */
+  //! Gets the distance between x1 and x2.
   double Evaluate( const MeasurementVectorType &x1,
                    const MeasurementVectorType &x2 ) const;
 
-  /** Gets the coordinate distance between a and b. NOTE: a and b should be
-   * type of component. */
+  //! Gets the coordinate distance between a and b. NOTE: a and b should be type of component.
   double Evaluate(const ValueType &a, const ValueType &b) const;
 
 
 protected:
 
-  /* Constructor. */
   GRBFKernelInducedDistanceMetric(void);
-
-  /* Destructor. */
   virtual ~GRBFKernelInducedDistanceMetric(void) {}
 
-  /** Write the name-value pairs of the class data members to the supplied
-   * output stream. */
-  void PrintSelf(std::ostream &os, itk::Indent indent) const;
+  //! Write the name-value pairs of the class data members to the supplied
+  //! output stream.
+  void PrintSelf(std::ostream &os, itk::Indent indent) const override;
 
 
 private:
 
-  /** Radius of the GRBF function. */
+  //! Radius of the GRBF function.
   double m_Sigma;
 
-  /** Exponent of the GRBF function. */
+  //! Exponent of the GRBF function.
   double m_A;
 
-  /** Exponent of the GRBF function. */
+  //! Exponent of the GRBF function.
   double m_B;
 
 };

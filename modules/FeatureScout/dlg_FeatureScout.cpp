@@ -1494,7 +1494,7 @@ void dlg_FeatureScout::ClassAddButton()
 		QMessageBox::warning(this, "FeatureScout", "No object was selected!");
 		return;
 	}
-	if (CountObject == activeClassItem->rowCount())
+	if (CountObject == activeClassItem->rowCount() && this->activeClassItem->index().row() != 0)
 	{
 		QMessageBox::warning(this, "FeatureScout", "All items in current class are selected. There is no need to create a new class out of them. Please select only a subset of items!");
 		return;

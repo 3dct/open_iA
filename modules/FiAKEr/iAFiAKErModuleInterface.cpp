@@ -83,7 +83,7 @@ void iAFiAKErModuleInterface::Initialize()
 	actionFiAKEr->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_O));
 	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKEr, false );
 	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::startFiAKEr );
-	QAction * actionFiAKErProject = new QAction("Load Project (for .fpf; for .opf use File->Open)", nullptr);
+	QAction * actionFiAKErProject = new QAction("Load Project (for .fpf; for .iaproj use File->Open)", nullptr);
 	actionFiAKErProject->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_P));
 	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKErProject, false);
 	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::loadFiAKErProject);
