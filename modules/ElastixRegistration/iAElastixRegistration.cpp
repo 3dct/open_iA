@@ -18,7 +18,7 @@
 
 
 template <class InPixelType>
-void extractChannels(typename itk::VectorImage<InPixelType, DIM>::Pointer vectorImg, iAFilter* filter, QString dir)
+void extractChannels(typename itk::VectorImage<InPixelType, DIM>::Pointer vectorImg, iAFilter* filter, QString dir, QString Name, QStringList Dimension)
 {
 	typedef itk::VectorImage<InPixelType, DIM> VectorImageType;
 	typedef itk::Image<InPixelType, DIM> OutImageType;
@@ -27,7 +27,6 @@ void extractChannels(typename itk::VectorImage<InPixelType, DIM>::Pointer vector
 	typedef itk::Image<float, DIM> OutputImageType;
 	typedef  itk::ImageFileWriter< OutputImageType  > WriterType;
 
-	char dimensionText[] = "XYZ";
 
 	for (int p = 0; p < vectorImg->GetVectorLength(); ++p)
 	{
@@ -36,18 +35,48 @@ void extractChannels(typename itk::VectorImage<InPixelType, DIM>::Pointer vector
 		indexSelectionFilter->SetInput(vectorImg);
 		indexSelectionFilter->Update();
 
-		QString path = dir + "/deformation_" + dimensionText[p] + ".mhd";
+		QString path = dir + "/"+ Name + "_" + Dimension[p] + ".mhd";
 
 		WriterType::Pointer imageWriter = WriterType::New();
 		imageWriter->SetFileName(path.toStdString());
 		imageWriter->SetInput(dynamic_cast<OutputImageType *>(indexSelectionFilter->GetOutput()));
 		imageWriter->Update();
 
-		filter->addOutput(indexSelectionFilter->GetOutput());
+		//filter->addOutput(indexSelectionFilter->GetOutput());
 	}
 }
 
+void writeDeformationImage(iAFilter* filter, QString dirname) {
 
+	QString deformationImagePath = dirname + "/deformationField.mhd";
+	typedef itk::VectorImage<float, DIM> deformationInputImageType;
+	typedef itk::ImageFileReader<deformationInputImageType> deformationReaderType;
+
+	//split deformation
+
+	auto deformationImage = deformationReaderType::New();
+	deformationImage->SetFileName(deformationImagePath.toStdString());
+	deformationImage->Update();
+
+
+
+	extractChannels<float>(deformationImage->GetOutput(), filter, dirname, "Deformationfield", { "X", "y", "Z" });
+}
+
+void writeFullJacobian(iAFilter* filter, QString dirname) {
+	
+	QString fullJacobianImagePath = dirname + "/fullSpatialJacobian.mhd";
+	//Split jacobian
+
+	typedef itk::VectorImage<float, DIM> deformationInputImageType;
+	typedef itk::ImageFileReader<deformationInputImageType> deformationReaderType;
+
+	auto fullJacobianImage = deformationReaderType::New();
+	fullJacobianImage->SetFileName(fullJacobianImagePath.toStdString());
+	fullJacobianImage->Update();
+
+	extractChannels<float>(fullJacobianImage->GetOutput(), filter, dirname, "Jacobian", { "11", "12", "13", "21", "22", "23", "31", "32", "33" });
+}
 
 void createOutput(iAFilter* filter, QString dirname) {
 	typedef itk::Image<float, DIM> InputImageType;
@@ -56,7 +85,8 @@ void createOutput(iAFilter* filter, QString dirname) {
 
 	QString resulImagePath = dirname + "/result.0.mhd";
 	QString jacobianImagePath = dirname + "/spatialJacobian.mhd";
-	QString deformationImagePath = dirname + "/deformationField.mhd";
+	
+	
 
 
 
@@ -71,14 +101,12 @@ void createOutput(iAFilter* filter, QString dirname) {
 	filter->addOutput(jacobianImage->GetOutput());
 
 
-	typedef itk::VectorImage<float, DIM> deformationInputImageType;
-	typedef itk::ImageFileReader<deformationInputImageType> deformationReaderType;
+	writeDeformationImage(filter, dirname);
 
-	auto deformationImage = deformationReaderType::New();
-	deformationImage->SetFileName(deformationImagePath.toStdString());
-	deformationImage->Update();
+	writeFullJacobian(filter, dirname);
 
-	extractChannels<float>(deformationImage->GetOutput(), filter, dirname);
+
+
 }
 
 
@@ -121,6 +149,9 @@ void runTransformix(QString dirname, QString executablePath, int timeout = 30000
 	QStringList argumentsTransformix;
 
 	argumentsTransformix.append("-jac");
+	argumentsTransformix.append("all");
+
+	argumentsTransformix.append("-jacmat");
 	argumentsTransformix.append("all");
 
 	argumentsTransformix.append("-def");
@@ -232,4 +263,5 @@ iAElastixRegistration::iAElastixRegistration() :
 	addParameter("PathElastix", Folder);
 	addParameter("Outputdir", Folder,"");
 	addParameter("Timeout[sec]", Discrete, 300);
+	setInputName(1, "Moving Image");
 }
