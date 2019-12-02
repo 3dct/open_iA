@@ -156,3 +156,46 @@ iAMarchingCubes::iAMarchingCubes() :
 	//addParameter("Smooth poly", Boolean, false);
 	//addParameter("Poly iterations", Discrete, 1);
 }
+
+void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
+
+
+}
+
+
+IAFILTER_CREATE(iATriangulation);
+
+iATriangulation::iATriangulation() :
+	iAFilter("Surface triangulation", "Extract Surface",
+		"Extracts a surface along the specified iso value.<br/>"
+		"A surface is extracted at the given Iso value, either using marching cubes or "
+		"flying edges algorithm. The mesh is subsequently simplified using either "
+		"a quadric clustering or the DecimatePro algorithm.<br/>"
+		"For more information, see the "
+		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkMarchingCubes.html\">"
+		"Marching Cubes Filter</a>, the "
+		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkFlyingEdges3D.html\">"
+		"Flying Edges 3D Filter</a>, the "
+		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkDecimatePro.html\">"
+		"Decimate Pro Filter</a>, and the "
+		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkQuadricClustering.html\">"
+		"Quadric Clustering Filter</a> in the VTK documentation.")
+{
+	QStringList AlgorithmNames;
+	AlgorithmNames << "Marching Cubes" << "Flying Edges";
+	addParameter("Extraction Algorithm", Categorical, AlgorithmNames);
+	addParameter("Iso value", Continuous, 1);
+	addParameter("STL output filename", String, "");
+	QStringList SimplificationAlgorithms;
+	SimplificationAlgorithms << "Quadric Clustering" << "Decimate Pro" << "None";
+	addParameter("Simplification Algorithm", Categorical, SimplificationAlgorithms);
+	addParameter("Preserve Topology", Boolean, true);
+	addParameter("Splitting", Boolean, true);
+	addParameter("Boundary Vertex Deletion", Boolean, true);
+	addParameter("Decimation Target", Continuous, 0.9);
+	addParameter("Cluster divisions", Discrete, 128);
+	//addParameter("Smooth windowed sync", Boolean, false);
+	//addParameter("Sinc iterations", Discrete, 1);
+	//addParameter("Smooth poly", Boolean, false);
+	//addParameter("Poly iterations", Discrete, 1);
+}
