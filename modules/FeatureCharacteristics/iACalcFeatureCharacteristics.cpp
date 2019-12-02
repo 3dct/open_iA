@@ -324,8 +324,6 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 			p_y2 = centroid[1] - half_axis2 * eigenvector_middle[1];
 			p_z2 = centroid[2] - half_axis2 * eigenvector_middle[2];
 
-
-
 			fout << elongation << ','
 				<< perimeter/**spacing*/ << ','
 				<< equivSphericalRadius/**spacing */ << ','
