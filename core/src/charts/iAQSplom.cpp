@@ -839,6 +839,7 @@ void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 	flipAxesAction->setChecked(settings.flipAxes);
 	quadraticPlotsAction->setChecked(settings.quadraticPlots);
 	showColorLegendAction->setChecked(settings.showColorLegend);
+	showColorLegendAction->setVisible(settings.enableColorSettings);
 	{
 		QSignalBlocker sb1(selectionModeRectangleAction), sb2(selectionModePolygonAction);
 		selectionModeRectangleAction->setChecked(settings.selectionMode == iAScatterPlot::Rectangle);
@@ -998,7 +999,7 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 		m_maximizedPlot->paintOnParent( painter );
 	drawPopup( painter );
 
-	if (m_mode == ALL_PLOTS || !settings.showColorLegend)
+	if (!settings.enableColorSettings || m_mode == ALL_PLOTS || !settings.showColorLegend)
 		return;
 	// Draw scalar bar:
 	// maybe reuse code from iALinearColorGradientBar (DynamicVolumeLines)
@@ -1492,7 +1493,8 @@ void iAQSplom::drawTicks( QPainter & painter, QList<double> const & ticksX, QLis
 
 void iAQSplom::showSettings()
 {
-	m_settingsDlg->gbColorCoding->setEnabled(settings.enableColorSettings);
+	m_settingsDlg->gbColorCoding->setVisible(settings.enableColorSettings);
+	m_settingsDlg->cbShowColorLegend->setVisible(settings.enableColorSettings);
 	m_settingsDlg->show();
 }
 
