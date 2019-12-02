@@ -35,12 +35,23 @@
 #include <vtkSmoothPolyDataFilter.h>
 #include <vtkSTLWriter.h>
 #include <vtkWindowedSincPolyDataFilter.h>
+#include "TriangulationFilter.h"
+#include "iAConsole.h"
 
 void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 {
-	vtkSmartPointer<vtkPolyDataAlgorithm> surfaceFilter;
+	vtkSmartPointer<vtkPolyDataAlgorithm> surfaceFilter = vtkSmartPointer<vtkPolyDataAlgorithm>::New();
 
-	if (parameters["Algorithm"].toString() == "Marching Cubes")
+	TriangulationFilter surfaceGenFilter; 
+	surfaceFilter = surfaceGenFilter.surfaceFilterParametrisation
+	(parameters, input()[0]->vtkImage(), progress()); 
+	
+	if (!surfaceFilter) { 
+		DEBUG_LOG("Generated surface filter is null");
+		return; 
+	}
+
+	/*if (parameters["Algorithm"].toString() == "Marching Cubes")
 	{
 		auto marchingCubes = vtkSmartPointer<vtkMarchingCubes>::New();
 		progress()->observe(marchingCubes);
@@ -64,7 +75,7 @@ void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 		flyingEdges->SetArrayComponent(0);
 		surfaceFilter = flyingEdges;
 	}
-
+*/
 	vtkSmartPointer<vtkPolyDataAlgorithm> simplifyFilter;
 	if (parameters["Simplification Algorithm"].toString() == "Decimate Pro")
 	{

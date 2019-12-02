@@ -52,15 +52,10 @@ vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::surfaceFilterParametr
 	if (!imgData) {
 		DEBUG_LOG("input Image is null");
 		return nullptr; 
-	
-		
-
 	}
 
+	if (parameters["Algorithm"].toString() == "Marching Cubes")
 	{
-
-		if (parameters["Algorithm"].toString() == "Marching Cubes")
-		{
 			auto marchingCubes = vtkSmartPointer<vtkMarchingCubes>::New();
 			Progress->observe(marchingCubes);
 			
@@ -70,9 +65,9 @@ vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::surfaceFilterParametr
 			marchingCubes->ComputeScalarsOn();
 			marchingCubes->SetValue(0, parameters["Iso value"].toDouble());
 			return marchingCubes;
-		}
-		else
-		{
+	}
+	else
+	{
 			auto flyingEdges = vtkSmartPointer<vtkFlyingEdges3D>::New();
 			Progress->observe(flyingEdges);
 			flyingEdges->SetInputData(imgData/*.GetPointer()*/);
@@ -83,9 +78,9 @@ vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::surfaceFilterParametr
 			flyingEdges->ComputeScalarsOn();
 			flyingEdges->SetArrayComponent(0);
 			return flyingEdges;
-		}
 	}
+	
 
 
-	return vtkSmartPointer<vtkPolyDataAlgorithm>();
+	//return vtkSmartPointer<vtkPolyDataAlgorithm>();
 }
