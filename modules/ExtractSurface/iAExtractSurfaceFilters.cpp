@@ -171,6 +171,9 @@ iATriangulation::iATriangulation() :
 		"A surface is extracted at the given Iso value, either using marching cubes or "
 		"flying edges algorithm. The mesh is subsequently simplified using either "
 		"a quadric clustering or the DecimatePro algorithm.<br/>"
+		"Based on the thing the surface will be triangulated by means of the Delaunay3D-Algorithm"
+		"<a href=\"https://vtk.org/doc/nightly/html/classvtkDelaunay3D.html\"> "
+		"cf. Delaunay3D </a>"
 		"For more information, see the "
 		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkMarchingCubes.html\">"
 		"Marching Cubes Filter</a>, the "
@@ -180,6 +183,7 @@ iATriangulation::iATriangulation() :
 		"Decimate Pro Filter</a>, and the "
 		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkQuadricClustering.html\">"
 		"Quadric Clustering Filter</a> in the VTK documentation.")
+
 {
 	QStringList AlgorithmNames;
 	AlgorithmNames << "Marching Cubes" << "Flying Edges";
