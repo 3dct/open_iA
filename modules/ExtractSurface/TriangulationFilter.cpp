@@ -20,6 +20,9 @@ TriangulationFilter::TriangulationFilter()
 vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::pointsDecimation(QMap<QString, QVariant> const& parameters, vtkSmartPointer<vtkPolyDataAlgorithm> surfaceFilter,
 	iAProgress* Progress) 
 {
+	if (!surfaceFilter) { DEBUG_LOG("Surface filter is null") return nullptr; }
+
+
 	if (parameters["Simplification Algorithm"].toString() == "Decimate Pro")
 	{
 		auto decimatePro = vtkSmartPointer<vtkDecimatePro>::New();

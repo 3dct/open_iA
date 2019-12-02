@@ -41,15 +41,26 @@
 void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 {
 	vtkSmartPointer<vtkPolyDataAlgorithm> surfaceFilter = vtkSmartPointer<vtkPolyDataAlgorithm>::New();
-
 	TriangulationFilter surfaceGenFilter; 
+
+
+
 	surfaceFilter = surfaceGenFilter.surfaceFilterParametrisation
 	(parameters, input()[0]->vtkImage(), progress()); 
 	
+	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
+	progress()->observe(stlWriter);
+	stlWriter->SetFileName(getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());
+
 	if (!surfaceFilter) { 
 		DEBUG_LOG("Generated surface filter is null");
 		return; 
 	}
+
+
+	progress()->observe(stlWriter);
+	stlWriter->SetFileName(getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());
+
 
 	/*if (parameters["Algorithm"].toString() == "Marching Cubes")
 	{
@@ -76,8 +87,20 @@ void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 		surfaceFilter = flyingEdges;
 	}
 */
-	vtkSmartPointer<vtkPolyDataAlgorithm> simplifyFilter;
-	if (parameters["Simplification Algorithm"].toString() == "Decimate Pro")
+	vtkSmartPointer<vtkPolyDataAlgorithm> simplifyFilter = vtkSmartPointer<vtkPolyDataAlgorithm>::New();
+
+	//if ()
+
+	if (parameters["Simplification Algorithm"].toString() == "None")
+	{
+		stlWriter->SetInputConnection(surfaceFilter->GetOutputPort());
+	}
+	else {
+
+		simplifyFilter = surfaceGenFilter.pointsDecimation(parameters, surfaceFilter, progress());
+		stlWriter->SetInputConnection(simplifyFilter->GetOutputPort());
+	}
+	/*if (parameters["Simplification Algorithm"].toString() == "Decimate Pro")
 	{
 		auto decimatePro = vtkSmartPointer<vtkDecimatePro>::New();
 		progress()->observe(decimatePro);
@@ -97,7 +120,8 @@ void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 		quadricClustering->SetNumberOfZDivisions(parameters["Cluster divisions"].toUInt());
 		quadricClustering->SetInputConnection(surfaceFilter->GetOutputPort());
 		simplifyFilter = quadricClustering;
-	}
+	}*/
+
 	/*
 	// smoothing?
 	vtkSmartPointer<vtkWindowedSincPolyDataFilter> sincFilter;
@@ -117,7 +141,7 @@ void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 		output = sincFilter->GetOutputPort();
 	}
 	*/
-	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
+	/*auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 	progress()->observe(stlWriter);
 	stlWriter->SetFileName( getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());
 	if (parameters["Simplification Algorithm"].toString() == "None")
@@ -127,7 +151,7 @@ void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 	else
 	{
 		stlWriter->SetInputConnection(simplifyFilter->GetOutputPort());
-	}
+	}*/
 	stlWriter->Write();
 }
 
