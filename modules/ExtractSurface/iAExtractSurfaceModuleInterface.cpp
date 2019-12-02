@@ -27,5 +27,6 @@
 void iAExtractSurfaceModuleInterface::Initialize()
 {
 	REGISTER_FILTER(iAMarchingCubes);
+	REGISTER_FILTER(iATriangulation);
 	//REGISTER_FILTER(iAFlyingEdges);
 }

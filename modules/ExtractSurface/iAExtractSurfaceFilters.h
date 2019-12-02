@@ -23,4 +23,5 @@
 #include <iAFilter.h>
 
 IAFILTER_DEFAULT_CLASS(iAMarchingCubes);
+IAFILTER_DEFAULT_CLASS(iATriangulation);
 //IAFILTER_DEFAULT_CLASS(iAFlyingEdges);
