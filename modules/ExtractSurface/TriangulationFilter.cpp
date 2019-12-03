@@ -121,9 +121,10 @@ vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::performDelaunay(QMap<
 
 vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::Smoothing(vtkSmartPointer<vtkPolyDataAlgorithm> algo)
 {
-	//vtkSmartPointer<vtkButterflySubdivisionFilter > filter = vtkSmartPointer<vtkButterflySubdivisionFilter >::New();
-	//filter->SetInputConnection(algo->GetOutputPort());
-	//filter->Update();
+	/*vtkSmartPointer<vtkButterflySubdivisionFilter > filter = vtkSmartPointer<vtkButterflySubdivisionFilter >::New();
+	filter->SetInputConnection(algo->GetOutputPort());
+	filter->SetNumberOfSubdivisions(3);
+	filter->Update();*/
 
 	vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter =
 		vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
