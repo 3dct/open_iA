@@ -7,6 +7,9 @@ find_package(Qt5Charts REQUIRED)
 SET (DEPENDENCIES_LIBRARIES
 	Qt5::Charts
 )
+SET (DEPENDENCIES_MODULES_NEW
+	Segmentation
+)
 #SET(
 #	Charts_INC_DIR "
 #)

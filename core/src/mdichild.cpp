@@ -554,16 +554,6 @@ void MdiChild::setImageData(QString const & filename, vtkSmartPointer<vtkImageDa
 	enableRenderWindows();
 }
 
-void MdiChild::setImageData(QString const& filename, bool dummy, vtkSmartPointer<vtkImageData> imgData)
-{
-	m_imageData = imgData;
-	modality(0)->setData(m_imageData);
-	m_mainWnd->setCurrentFile(filename);
-	setupView(false);
-	enableRenderWindows();
-}
-
-
 vtkImageData*                 MdiChild::imageData()    { return m_imageData; }
 vtkSmartPointer<vtkImageData> MdiChild::imagePointer() { return m_imageData; }
 

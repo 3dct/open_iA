@@ -46,7 +46,7 @@ void ImageProcessingHelper::performSegmentation(double greyThresholdMin, double 
 	try {
 		prepareFilter(greyThresholdMin, greyThresholdUpper);
 		//imageToReslicer();
-		m_childData->enableRenderWindows();
+		//m_childData->enableRenderWindows();
 		m_childData->updateViews();
 	}
 	catch (std::invalid_argument& iav)
@@ -75,6 +75,10 @@ void ImageProcessingHelper::prepareFilter(double greyThresholdLower, double grey
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	//connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
 	auto filter = iAFilterRegistry::filter("Binary Thresholding");
+	if (!filter)
+	{
+		throw std::invalid_argument("Could not retrieve Binary Thresholding filter. Make sure Segmentation plugin was loaded correctly!");
+	}
 	filter->setLogger(iAConsoleLogger::get());
 	filter->setProgress(pObserver.data());
 	filter->addInput(&con);
@@ -85,20 +89,10 @@ void ImageProcessingHelper::prepareFilter(double greyThresholdLower, double grey
 	parameters["Outside value"] = 0;
 	filter->run(parameters);
 
-	//create new result child
-	auto newChild = m_childData->mainWnd()->resultChild("adaptivethres.mhd");
-
-	
-	//newChild->
-	vtkSmartPointer<vtkImageData> data = vtkSmartPointer<vtkImageData>::New();
-	data->DeepCopy(filter->output()[0]->vtkImage());
-	newChild->resultInNewWindow();
-	newChild->displayResult("test", data); 
-	//newChild->setImageData("adive.mhd, false, data");
-	//newChild->displayResult("AdaptiveThresholdSegmentation", data);
-	newChild->renderer()->update(); 
-	//m_childData->displayResult("Adaptive thresholding segmentation", data, nullptr);
-	//m_childData->setImageData("adaptivethres.mhd", false, data);
+	MdiChild* newChild = m_childData->mainWnd()->createMdiChild(true);
+	newChild->show();
+	newChild->displayResult("Adaptive Thresholding", filter->output()[0]->vtkImage());
+	newChild->enableRenderWindows();
 }
 
 void ImageProcessingHelper::imageToReslicer()

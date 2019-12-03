@@ -152,7 +152,6 @@ public:
 	void setImageData(vtkImageData * iData);
 	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...) or channels (createChannel/updateChannel)
 	void setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData);
-	void setImageData(QString const& filename, bool dummy, vtkSmartPointer<vtkImageData> imgData);
 	//! Access to "main" polydata object (if any)
 	// TODO: move out of mdi child, into something like an iAModality
 	vtkPolyData* polyData();
