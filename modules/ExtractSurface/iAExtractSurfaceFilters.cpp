@@ -24,7 +24,7 @@
 
 #include <iAConnector.h>
 #include <iAProgress.h>
-
+#include <vtkCleanPolyData.h>
 #include <vtkDecimatePro.h>
 #include <vtkFlyingEdges3D.h>
 #include <vtkImageData.h>
@@ -35,6 +35,7 @@
 #include <vtkSmoothPolyDataFilter.h>
 #include <vtkSTLWriter.h>
 #include <vtkWindowedSincPolyDataFilter.h>
+#include <vtkFillHolesFilter.h>
 #include "TriangulationFilter.h"
 #include "iAConsole.h"
 
@@ -194,7 +195,76 @@ iAMarchingCubes::iAMarchingCubes() :
 
 void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
 
+	vtkSmartPointer<vtkPolyDataAlgorithm> surfaceFilter = vtkSmartPointer<vtkPolyDataAlgorithm>::New();
+	TriangulationFilter surfaceGenFilter;
 
+
+
+	surfaceFilter = surfaceGenFilter.surfaceFilterParametrisation
+	(parameters, input()[0]->vtkImage(), progress());
+
+	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
+
+	progress()->observe(stlWriter);
+	stlWriter->SetFileName(getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());
+
+	if (!surfaceFilter) {
+		DEBUG_LOG("Generated surface filter is null");
+		return;
+	}
+
+
+	/*progress()->observe(stlWriter);
+	stlWriter->SetFileName(getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());*/
+	
+
+	vtkSmartPointer<vtkPolyDataAlgorithm> simplifyFilter = vtkSmartPointer<vtkPolyDataAlgorithm>::New();
+	vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+	//if ()
+
+	if (parameters["Simplification Algorithm"].toString() == "None")
+	{
+		cleaner->SetInputConnection(surfaceFilter->GetOutputPort());
+		//stlWriter->SetInputConnection(surfaceFilter->GetOutputPort());
+	}
+	else {
+
+		simplifyFilter = surfaceGenFilter.pointsDecimation(parameters, surfaceFilter, progress());
+		//stlWriter->SetInputConnection(simplifyFilter->GetOutputPort());
+		cleaner->SetInputConnection(simplifyFilter->GetOutputPort());
+
+	}
+
+	auto cleanTol = parameters["CleanTolerance"].toDouble();
+	cleaner->SetTolerance(cleanTol);
+	//clean duplicated points
+	cleaner->Update(); 
+	DEBUG_LOG("perfom delauy3d"); 
+	double alpha = parameters["Alpha"].toDouble();
+	double offset = parameters["Offset"].toDouble(); 
+	double tolerance = parameters["Tolerance"].toDouble();
+
+	DEBUG_LOG(QString("%1").arg(alpha)); 
+
+	auto delaunyFilter = surfaceGenFilter.performDelaunay(parameters, cleaner, alpha,offset,tolerance, progress());
+	/*auto fillHoles = vtkSmartPointer<vtkFillHolesFilter>::New();
+	fillHoles->SetInputConnection(delaunyFilter->GetOutputPort());
+	fillHoles->Update();*/
+	//auto polydata = fillHoles->GetOutput();
+
+	//if (!polydata) {
+	//	"Debug log returned polydata is null"; 
+	//	return;
+	//}
+
+	auto smoothing = surfaceGenFilter.Smoothing(delaunyFilter);
+
+	stlWriter->SetInputData(smoothing->GetOutput());
+	stlWriter->Write(); 
+	//stlWriter->SetInputConnection(surfaceFilter->GetOutputPort());
+	//	TriangulationFilter.performDelaunay()
+	
+	
 }
 
 
@@ -233,6 +303,10 @@ iATriangulation::iATriangulation() :
 	addParameter("Boundary Vertex Deletion", Boolean, true);
 	addParameter("Decimation Target", Continuous, 0.9);
 	addParameter("Cluster divisions", Discrete, 128);
+	addParameter("Alpha", Continuous, 0); 
+	addParameter("Offset", Continuous, 0); 
+	addParameter("Tolerance", Continuous, 0.001);
+	addParameter("CleanTolerance", Continuous, 0);
 	//addParameter("Smooth windowed sync", Boolean, false);
 	//addParameter("Sinc iterations", Discrete, 1);
 	//addParameter("Smooth poly", Boolean, false);
