@@ -7,7 +7,7 @@
 #include <itkDerivativeImageFilter.h>
 
 
-#include "itkParameterFileParser.h"
+//#include "itkParameterFileParser.h"
 #include "itkImage.h"
 #include <itkImageFileWriter.h>
 #include <itkImageFileReader.h>
@@ -42,7 +42,7 @@ void extractChannels(typename itk::VectorImage<InPixelType, DIM>::Pointer vector
 		imageWriter->SetInput(dynamic_cast<OutputImageType *>(indexSelectionFilter->GetOutput()));
 		imageWriter->Update();
 
-		//filter->addOutput(indexSelectionFilter->GetOutput());
+		filter->addOutput(indexSelectionFilter->GetOutput());
 	}
 }
 
@@ -94,6 +94,8 @@ void createOutput(iAFilter* filter, QString dirname) {
 	resulImage->SetFileName(resulImagePath.toStdString());
 	resulImage->Update();
 	filter->addOutput(resulImage->GetOutput());
+	
+	
 
 	ReaderType::Pointer jacobianImage = ReaderType::New();
 	jacobianImage->SetFileName(jacobianImagePath.toStdString());
@@ -263,5 +265,23 @@ iAElastixRegistration::iAElastixRegistration() :
 	addParameter("PathElastix", Folder);
 	addParameter("Outputdir", Folder,"");
 	addParameter("Timeout[sec]", Discrete, 300);
+
+
 	setInputName(1, "Moving Image");
+
+	setOutputName(0, "Registration of both images");
+	setOutputName(1, "Spatial Jacobian");
+	setOutputName(2, "Deformation X");
+	setOutputName(3, "Deformation Y");
+	setOutputName(4, "Deformation Z");
+
+	setOutputName(5, "Jacobian 11");
+	setOutputName(6, "Jacobian 12");
+	setOutputName(7, "Jacobian 13");
+	setOutputName(8, "Jacobian 21");
+	setOutputName(9, "Jacobian 22");
+	setOutputName(10, "Jacobian 23");
+	setOutputName(11, "Jacobian 31");
+	setOutputName(12, "Jacobian 32");
+	setOutputName(13, "Jacobian 33");
 }
