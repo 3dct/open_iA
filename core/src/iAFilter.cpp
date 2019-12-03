@@ -313,6 +313,19 @@ void iAFilter::setInputName(int i, QString const & name)
 	m_inputNames.insert(i, name);
 }
 
+QString iAFilter::outputName(int i) const
+{
+	if (m_outputNames.contains(i))
+		return m_outputNames[i];
+	else
+		return QString("Extra Out %1").arg(i);
+}
+
+void iAFilter::setOutputName(int i, QString const & name)
+{
+	m_outputNames.insert(i, name);
+}
+
 void iAFilter::addParameter(QString const & name, iAValueType valueType,
 	QVariant defaultValue, double min, double max)
 {

@@ -8,11 +8,14 @@ IF ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 		"and run cmake with a newly created build directory.")
 ENDIF()
 
+MESSAGE(STATUS "CMake: ${CMAKE_VERSION}")
+
 #-------------------------
 # CTest
 #-------------------------
 option (openiA_TESTING_ENABLED "Whether to enable testing. This allows to run CTest/ CDash builds. Default: disabled." OFF)
 IF (openiA_TESTING_ENABLED)
+	MESSAGE(STATUS "Testing enabled.")
 	INCLUDE (CTest)
 	enable_testing()
 	IF (openiA_USE_IDE_FOLDERS)
@@ -347,7 +350,7 @@ IF (OPENCL_FOUND)
 	IF (WIN32)
 		# Find path of OpenCL.dll to include in release:
 		get_filename_component(OPENCL_LIB_DIR "${OPENCL_LIBRARIES}" DIRECTORY)
-		get_filename_component(OPENCL_LIB_BASENAME "${OPENCL_LIBRARIES}" NAME_WLE)
+		get_filename_component(OPENCL_LIB_BASENAME "${OPENCL_LIBRARIES}" NAME_WE)
 		STRING(REGEX REPLACE "lib" "bin" OPENCL_DLL_DIR "${OPENCL_LIB_DIR}")
 		IF (NOT EXISTS "${OPENCL_DLL_DIR}/${OPENCL_LIB_BASENAME}.dll")
 			MESSAGE(STATUS "Directory containing ${OPENCL_LIB_BASENAME}.dll was not found. You can continue building, but the program might not run (or it might fail to run when installed/cpacked).")

@@ -58,6 +58,7 @@ namespace
 	const QString CfgKeyHistogramBins("SPM/HistogramBins");
 	const QString CfgKeySelectionMode("SPM/SelectionMode");
 	const QString CfgKeyFlipAxes("SPM/FlipAxes");
+	const QString CfgKeyShowColorLegend("SPM/ShowColorLegend");
 	const QString CfgKeyQuadraticPlots("SPM/QuadraticPlots");
 	const QString CfgKeyShowPCC("SPM/ShowPCC");
 	const QString CfgKeyColorScheme("SPM/ColorScheme");
@@ -93,6 +94,7 @@ iAQSplom::Settings::Settings()
 	selectionMode(iAScatterPlot::Polygon),
 	selectionEnabled(true),
 	histogramVisible(true),
+	showColorLegend(true),
 	quadraticPlots(false),
 	showPCC(false),
 	enableColorSettings(false),
@@ -230,6 +232,9 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	flipAxesAction = new QAction(tr("Flip Axes of max. Plot"), this);
 	flipAxesAction->setCheckable(true);
 	flipAxesAction->setChecked(settings.flipAxes);
+	showColorLegendAction = new QAction(tr("Show Color Legend"), this);
+	showColorLegendAction->setCheckable(true);
+	showColorLegendAction->setChecked(settings.showColorLegend);
 	quadraticPlotsAction = new QAction(tr("Quadratic Plots"), this);
 	quadraticPlotsAction->setCheckable(true);
 	quadraticPlotsAction->setChecked(settings.quadraticPlots);
@@ -246,14 +251,16 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	selectionModeRectangleAction->setCheckable(true);
 	selectionModeRectangleAction->setActionGroup(selectionModeGroup);
 	QAction* showSettingsAction = new QAction(tr("Settings..."), this);
-	addContextMenuAction(showHistogramAction);
-	addContextMenuAction(flipAxesAction);
 	addContextMenuAction(quadraticPlotsAction);
 	addContextMenuAction(showPCCAction);
 	addContextMenuAction(selectionModeRectangleAction);
 	addContextMenuAction(selectionModePolygonAction);
+	addContextMenuAction(showHistogramAction);
+	addContextMenuAction(flipAxesAction);
+	addContextMenuAction(showColorLegendAction);
 	addContextMenuAction(showSettingsAction);
 	connect(showHistogramAction, &QAction::toggled, this, &iAQSplom::setHistogramVisible);
+	connect(showColorLegendAction, &QAction::toggled, this, &iAQSplom::setShowColorLegend);
 	connect(flipAxesAction, &QAction::toggled, this, &iAQSplom::setFlipAxes);
 	connect(quadraticPlotsAction, &QAction::toggled, this, &iAQSplom::setQuadraticPlots);
 	connect(showPCCAction, &QAction::toggled, this, &iAQSplom::setShowPCC);
@@ -275,8 +282,9 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	connect(m_settingsDlg->cbQuadraticPlots, &QCheckBox::toggled, this, &iAQSplom::setQuadraticPlots);
 	connect(m_settingsDlg->cbShowCorrelationCoefficient, &QCheckBox::toggled, this, &iAQSplom::setShowPCC);
 	connect(m_settingsDlg->cbShowHistograms, &QCheckBox::toggled, this, &iAQSplom::setHistogramVisible);
-	connect(m_settingsDlg->cbFlipAxes, &QCheckBox::toggled, this, &iAQSplom::setFlipAxes);
 	connect(m_settingsDlg->sbHistogramBins, SIGNAL(valueChanged(int)), this, SLOT(setHistogramBins(int)));
+	connect(m_settingsDlg->cbFlipAxes, &QCheckBox::toggled, this, &iAQSplom::setFlipAxes);
+	connect(m_settingsDlg->cbShowColorLegend, &QCheckBox::toggled, this, &iAQSplom::setShowColorLegend);
 	connect(m_settingsDlg->cbColorTheme, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(setColorTheme(QString const &)));
 	m_settingsDlg->cbColorTheme->addItems(iALUT::GetColorMapNames());
 	m_columnPickMenu = m_contextMenu->addMenu("Columns");
@@ -772,6 +780,14 @@ void iAQSplom::setHistogramVisible(bool visible)
 	updateHistograms();
 }
 
+void iAQSplom::setShowColorLegend(bool visible)
+{
+	settings.showColorLegend = visible;
+	QSignalBlocker sb(m_settingsDlg->cbShowColorLegend);
+	m_settingsDlg->cbShowColorLegend->setChecked(visible);
+	update();
+}
+
 void iAQSplom::setFlipAxes(bool flip)
 {
 	settings.flipAxes = flip;
@@ -822,6 +838,8 @@ void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 	showHistogramAction->setChecked(settings.histogramVisible);
 	flipAxesAction->setChecked(settings.flipAxes);
 	quadraticPlotsAction->setChecked(settings.quadraticPlots);
+	showColorLegendAction->setChecked(settings.showColorLegend);
+	showColorLegendAction->setVisible(settings.enableColorSettings);
 	{
 		QSignalBlocker sb1(selectionModeRectangleAction), sb2(selectionModePolygonAction);
 		selectionModeRectangleAction->setChecked(settings.selectionMode == iAScatterPlot::Rectangle);
@@ -981,6 +999,8 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 		m_maximizedPlot->paintOnParent( painter );
 	drawPopup( painter );
 
+	if (!settings.enableColorSettings || m_mode == ALL_PLOTS || !settings.showColorLegend)
+		return;
 	// Draw scalar bar:
 	// maybe reuse code from iALinearColorGradientBar (DynamicVolumeLines)
 	QPoint topLeft = getMaxRect().topLeft();
@@ -1473,7 +1493,8 @@ void iAQSplom::drawTicks( QPainter & painter, QList<double> const & ticksX, QLis
 
 void iAQSplom::showSettings()
 {
-	m_settingsDlg->gbColorCoding->setEnabled(settings.enableColorSettings);
+	m_settingsDlg->gbColorCoding->setVisible(settings.enableColorSettings);
+	m_settingsDlg->cbShowColorLegend->setVisible(settings.enableColorSettings);
 	m_settingsDlg->show();
 }
 
@@ -1663,6 +1684,7 @@ void iAQSplom::saveSettings(QSettings & iniFile) const
 	iniFile.setValue(CfgKeyHistogramBins, settings.histogramBins);
 	iniFile.setValue(CfgKeySelectionMode, settings.selectionMode);
 	iniFile.setValue(CfgKeyFlipAxes, settings.flipAxes);
+	iniFile.setValue(CfgKeyShowColorLegend, settings.showColorLegend);
 	iniFile.setValue(CfgKeyQuadraticPlots, settings.quadraticPlots);
 	iniFile.setValue(CfgKeyShowPCC, settings.showPCC);
 	iniFile.setValue(CfgKeyColorScheme, settings.colorScheme);
@@ -1709,6 +1731,9 @@ void iAQSplom::loadSettings(iASettings const & config)
 	bool newFlipAxes = config.value(CfgKeyFlipAxes, settings.flipAxes).toBool();
 	if (settings.flipAxes != newFlipAxes)
 		setFlipAxes(newFlipAxes);
+	bool newShowColorLegend = config.value(CfgKeyShowColorLegend, settings.showColorLegend).toBool();
+	if (settings.showColorLegend != newShowColorLegend)
+		setShowColorLegend(newShowColorLegend);
 	bool newQuadraticPlots = config.value(CfgKeyQuadraticPlots, settings.quadraticPlots).toBool();
 	if (settings.quadraticPlots != newQuadraticPlots)
 		setQuadraticPlots(newQuadraticPlots);

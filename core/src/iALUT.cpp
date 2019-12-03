@@ -27,6 +27,7 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>
+#include <vtkVersion.h>
 
 const QStringList colormaps = QStringList()
 	<< "Diverging blue-gray-red"
