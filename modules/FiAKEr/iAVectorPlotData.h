@@ -24,7 +24,7 @@
 
 #include <QSharedPointer>
 
-#include <vector>
+#include <QVector>
 
 class iAVectorPlotData : public iAPlotData
 {
