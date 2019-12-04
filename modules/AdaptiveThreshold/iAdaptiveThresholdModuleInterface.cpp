@@ -59,8 +59,9 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 
 
 	}catch (std::invalid_argument& iaex) {
+		
 		DEBUG_LOG(iaex.what()); 
-		//return; 
+		
 	}
 	catch (std::exception& other) {
 		DEBUG_LOG(other.what()); 
