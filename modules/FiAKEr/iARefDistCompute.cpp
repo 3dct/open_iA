@@ -33,12 +33,15 @@
 #include <vtkTable.h>
 #include <vtkVariant.h>
 
+#include <QDataStream>
+#include <QDir>
+
 #include <array>
 
 namespace
 {
 	void getBestMatches(iAFiberData const & fiber, QMap<uint, uint> const & mapping, vtkTable* refTable,
-		std::vector<std::vector<iAFiberSimilarity> > & bestMatches, double diagonalLength, double maxLength,
+		QVector<QVector<iAFiberSimilarity> > & bestMatches, double diagonalLength, double maxLength,
 		std::map<size_t, std::vector<iAVec3f> > const & refCurveInfo)
 	{
 		size_t refFiberCount = refTable->GetNumberOfRows();
@@ -46,7 +49,7 @@ namespace
 		size_t maxNumberOfCloseFibers = std::min(iARefDistCompute::MaxNumberOfCloseFibers, refFiberCount);
 		for (int d = 0; d<iARefDistCompute::SimilarityMeasureCount; ++d)
 		{
-			std::vector<iAFiberSimilarity> similarities;
+			QVector<iAFiberSimilarity> similarities;
 			if (d < iARefDistCompute::OverlapMeasureStart)
 			{
 				similarities.resize(refFiberCount);
@@ -77,6 +80,12 @@ namespace
 			std::copy(similarities.begin(), similarities.begin() + maxNumberOfCloseFibers, std::back_inserter(bestMatches[d]));
 		}
 	}
+
+	QString CacheFileIdentifier("FIAKERCacheFile");
+	QDataStream::Version CacheFileQtDataStreamVersion(QDataStream::Qt_5_6);
+	//QString CacheFileClosestFibers("ClosestFibers");
+	//QString CacheFileResultPattern("Result%1");
+	quint32 CacheFileVersion(1);
 }
 
 size_t iARefDistCompute::MaxNumberOfCloseFibers = 25;
@@ -115,8 +124,18 @@ QStringList iARefDistCompute::getSimilarityMeasureNames()
 
 void iARefDistCompute::run()
 {
+	QString cachePath(m_data->folder + "/cache/");
+	QDir().mkdir(cachePath);
+	QString fullCacheFileName(cachePath + QString("/refDist_%1").arg(m_referenceID));
+	QFile cacheFile(fullCacheFileName);
+	// check if ref data is cached on disk:
+	if (readFromCache(cacheFile))
+		return;
+	// if not cached, run computation:
 	m_progress.setStatus("Computing the distance of fibers in all results to the fibers in reference and find best matching ones.");
 	auto & ref = m_data->result[m_referenceID];
+
+	// get values for normalization:
 	auto const & mapping = *ref.mapping.data();
 	double const * cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
 		*cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
@@ -265,13 +284,17 @@ void iARefDistCompute::run()
 
 	m_progress.setStatus("Computing average differences/similarities for each result.");
 	size_t diffCount = iAFiberCharData::FiberValueCount+SimilarityMeasureCount;
-	m_data->maxAvgDifference.resize(diffCount, std::numeric_limits<double>::min());
+	// std::vector resize has an additional optional argument for default value for new entries,
+	// in QVector, the same can be achieved via fill method (but argument order is reversed!)
+	//m_data->maxAvgDifference.resize(diffCount, std::numeric_limits<double>::min());
+	m_data->maxAvgDifference.fill(std::numeric_limits<double>::min(), diffCount);
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		if (resultID == m_referenceID)
 			continue;
 		auto & d = m_data->result[resultID];
-		d.avgDifference.resize(diffCount, 0.0);
+		//d.avgDifference.resize(diffCount, 0.0);
+		d.avgDifference.fill(0.0, diffCount);
 		for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 		{
 			for (size_t diffID = 0; diffID < diffCount; ++diffID)
@@ -288,7 +311,80 @@ void iARefDistCompute::run()
 				m_data->maxAvgDifference[diffID] = d.avgDifference[diffID];
 		}
 	}
+	writeToCache(cacheFile);
 }
+
+
+bool iARefDistCompute::readFromCache(QFile& cacheFile)
+{
+	if (!cacheFile.exists())
+	{
+		return false;
+	}
+	if (!cacheFile.open(QFile::ReadOnly))
+	{
+		DEBUG_LOG(QString("Couldn't open file %1 for reading!").arg(cacheFile.fileName()));
+		return false;
+	}
+	QDataStream in(&cacheFile);
+	in.setVersion(CacheFileQtDataStreamVersion);
+	QString identifier;
+	in >> identifier;
+	if (identifier != CacheFileIdentifier)
+	{
+		DEBUG_LOG(QString("FIAKER Cache: Unknown cache file - found identifier %1 does not match expected identifier %2.")
+			.arg(identifier).arg(CacheFileIdentifier));
+		return false;
+	}
+	quint32 version;
+	in >> version;
+	if (version > CacheFileVersion)
+	{
+		DEBUG_LOG(QString("FIAKER Cache: Invalid or too high version number (%1), expected %2 or less.")
+			.arg(version).arg(CacheFileVersion));
+		return false;
+	}
+
+	// write data:
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+	{
+		if (resultID == m_referenceID)
+			continue;
+		auto & d = m_data->result[resultID];
+		in >> d.refDiffFiber;
+		in >> d.avgDifference;
+	}
+	in >> m_data->avgRefFiberMatch;
+	in >> m_data->maxAvgDifference;
+	return true;
+}
+
+void iARefDistCompute::writeToCache(QFile& cacheFile)
+{
+	if (!cacheFile.open(QFile::WriteOnly))
+	{
+		DEBUG_LOG(QString("Couldn't open file %1 for writing!").arg(cacheFile.fileName()));
+		return;
+	}
+	QDataStream out(&cacheFile);
+	out.setVersion(CacheFileQtDataStreamVersion);
+	// write header:
+	out << CacheFileIdentifier;
+	out << CacheFileVersion;
+	// write data:
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+	{
+		if (resultID == m_referenceID)
+			continue;
+		auto & d = m_data->result[resultID];
+		out << d.refDiffFiber;
+		out << d.avgDifference;
+	}
+	out << m_data->avgRefFiberMatch;
+	out << m_data->maxAvgDifference;
+	cacheFile.close();
+}
+
 
 iAProgress* iARefDistCompute::progress()
 {

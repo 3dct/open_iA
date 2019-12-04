@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAVectorPlotData.h"
 
-iAVectorPlotData::iAVectorPlotData(std::vector<double> const & data):
+iAVectorPlotData::iAVectorPlotData(QVector<double> const & data):
 	m_data(data)
 {
 	m_xBounds[0] = 0;
@@ -64,7 +64,7 @@ void iAVectorPlotData::setXDataType(iAValueType xDataType)
 	m_xDataType = xDataType;
 }
 
-std::vector<double> & iAVectorPlotData::data()
+QVector<double> & iAVectorPlotData::data()
 {
 	return m_data;
 }

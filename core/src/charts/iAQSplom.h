@@ -214,6 +214,7 @@ private slots:
 	void transformUpdated( double scale, QPointF deltaOffset );      //!< When transform of scatter plots is modified.
 	void setQuadraticPlots(bool quadratic);                          //!< set whether plots are restricted to quadratic size
 	void setShowPCC(bool showPCC);                                   //!< set whether the correlation coefficient is shown in each plot
+	void setShowColorLegend(bool showColorLegend);                   //!< set whether the color legend is shown left of the maximized plot
 	void selectionModePolygon();                                     //!< set selection mode to polygon
 	void selectionModeRectangle();                                   //!< set selection mode to rectangle
 	void parameterVisibilityToggled(bool enabled);                   //!< called when parameter visibility is adapted through the context menu
@@ -255,13 +256,14 @@ public:
 		double animStart;
 
 		int separationMargin;
-		int histogramBins;
-		bool histogramVisible;
+		int histogramBins;                       //!< The number of bins used in the histogram
+		bool histogramVisible;                   //!< Whether the histogram is shown in the diagonal
 
 		int selectionMode;                       //!< The selection mode of all scatter plots
 		bool selectionEnabled;                   //!< Whether selection is enabled in the SPLOM
 		bool quadraticPlots;                     //!< Whether the scatter plots are constrained to quadratic sizes
 		bool showPCC;                            //!< Whether to show the Pearson's correlation coefficient
+		bool showColorLegend;                    //!< Whether the color legend is shown
 		ColorScheme colorScheme;                 //!< Scheme to use for coloring the matrix dots
 		QString colorThemeName;                  //!< Name of a color theme for when points are colored by a parameter (from iALUT)
 		QColor pointColor;                       //!< Color for each point if color scheme is uniform
@@ -295,7 +297,7 @@ protected:
 	QMenu* m_columnPickMenu;                     //!< sub-menu of the context menu for picking which columns are visible
 private:
 	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction, *quadraticPlotsAction,
-		*showPCCAction, *flipAxesAction;
+		*showPCCAction, *flipAxesAction, *showColorLegendAction;
 	QVector<iAChartWidget*> m_histograms;        //!< histograms of scatter plot matrix
 	iASPMSettings * m_settingsDlg;               //!< dialog with all the SPLOM settings (which params are visible, opacity of each dot, which column to use for coloring...
 };

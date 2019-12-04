@@ -45,28 +45,37 @@ class QCheckBox;
 class iAFiberSimilarity
 {
 public:
-	size_t index;
+	quint64 index;
 	double similarity;
 	friend bool operator<(iAFiberSimilarity const & a, iAFiberSimilarity const & b);
 };
+
+QDataStream &operator<<(QDataStream &out, const iAFiberSimilarity &s);
+QDataStream &operator>>(QDataStream &in, iAFiberSimilarity &s);
 
 //! Comparison data to reference for a single result/fiber, for all steps
 class iARefDiffFiberStepData
 {
 public:
 	//! diff of fibervalues (+similarity measures)
-	std::vector<double> step;
+	QVector<double> step;
 };
+
+QDataStream &operator<<(QDataStream &out, const iARefDiffFiberStepData &s);
+QDataStream &operator>>(QDataStream &in, iARefDiffFiberStepData &s);
 
 //! Comparison data to reference for a single fiber in a result
 class iARefDiffFiberData
 {
 public:
 	//! differences to reference fiber, one per diff/similarity measure
-	std::vector<iARefDiffFiberStepData> diff;
+	QVector<iARefDiffFiberStepData> diff;
 	//! dist to ref fibers: for each similarity measure, in order of ascending difference
-	std::vector<std::vector<iAFiberSimilarity> > dist;
+	QVector<QVector<iAFiberSimilarity> > dist;
 };
+
+QDataStream &operator<<(QDataStream &out, const iARefDiffFiberData &s);
+QDataStream &operator>>(QDataStream &in, iARefDiffFiberData &s);
 
 //! Data for the result of a single run of a fiber reconstructcion algorithm.
 class iAFiberCharData
@@ -89,14 +98,14 @@ public:
 	//! information on curved fibers; fiber_id (size_t) maps to list of points along fiber
 	std::map<size_t, std::vector<iAVec3f> > curveInfo;
 	//! projection error stored as fiber, step, global projection error
-	std::vector<std::vector<double > > projectionError;
+	std::vector<QVector<double > > projectionError;
 	//! number of fibers in the dataset:
 	size_t fiberCount;
 // Comparison to reference:
 	//! comparison data to reference for each fiber
-	std::vector<iARefDiffFiberData> refDiffFiber;
+	QVector<iARefDiffFiberData> refDiffFiber;
 	//! for each similarity measure, the average over all fibers
-	std::vector<double> avgDifference;
+	QVector<double> avgDifference;
 };
 
 //! A collection of multiple results from one or more fiber reconstruction algorithms.
@@ -125,9 +134,9 @@ public:
 // }
 // Comparison to reference:
 	//! for each fiber in the reference, the average match quality over all results (-1.. no match, otherwise 0..1 where 0 perfect match, 1..bad match)
-	std::vector<double> avgRefFiberMatch;
+	QVector<double> avgRefFiberMatch;
 	//! for each difference/similarity measure, the maximum value over all results:
-	std::vector<double> maxAvgDifference;
+	QVector<double> maxAvgDifference;
 
 // Methods:
 	bool loadData(QString const & path, iACsvConfig const & config, double stepShift, iAProgress * progress);

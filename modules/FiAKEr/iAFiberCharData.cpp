@@ -32,6 +32,7 @@
 #include <vtkFloatArray.h>
 #include <vtkTable.h>
 
+#include <QDataStream>
 #include <QFileInfo>
 #include <QSettings>
 #include <QTextStream>
@@ -41,6 +42,46 @@
 bool operator<(iAFiberSimilarity const & a, iAFiberSimilarity const & b)
 {
 	return a.similarity < b.similarity;
+}
+
+QDataStream &operator<<(QDataStream &out, const iAFiberSimilarity &s)
+{
+	out << s.index;
+	out << s.similarity;
+	return out;
+}
+
+QDataStream &operator>>(QDataStream &in, iAFiberSimilarity &s)
+{
+	in >> s.index;
+	in >> s.similarity;
+	return in;
+}
+
+QDataStream &operator<<(QDataStream &out, const iARefDiffFiberStepData &s)
+{
+	out << s.step;
+	return out;
+}
+
+QDataStream &operator>>(QDataStream &in, iARefDiffFiberStepData &s)
+{
+	in >> s.step;
+	return in;
+}
+
+QDataStream &operator<<(QDataStream &out, const iARefDiffFiberData &s)
+{
+	out << s.diff;
+	out << s.dist;
+	return out;
+}
+
+QDataStream &operator>>(QDataStream &in, iARefDiffFiberData &s)
+{
+	in >> s.diff;
+	in >> s.dist;
+	return in;
 }
 
 const QString iAFiberResultsCollection::LegacyFormat("FIAKER Legacy Format");

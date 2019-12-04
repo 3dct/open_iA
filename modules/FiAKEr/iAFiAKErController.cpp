@@ -1288,7 +1288,9 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 			vis->setContextDiameterFactor(ContextDiameterFactor);
 		}
 		if (matchQualityVisActive())
+		{
 			showSpatialOverview();
+		}
 		else if (m_spm->colorScheme() == iAQSplom::ByParameter)
 		{
 			if (vis)
@@ -1304,14 +1306,28 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		if (ui.startPlotIdx != NoPlotsIdx)
 		{
 			if (!anyOtherResultSelected(m_resultUIs, resultID))
-				for (size_t c= 0; c < ChartCount; ++c)
+			{
+				for (size_t c = 0; c < ChartCount; ++c)
+				{
 					if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
+					{
 						for (size_t p = 0; p < m_optimStepChart[c]->plots().size(); ++p)
+						{
 							m_optimStepChart[c]->plots()[p]->setVisible(false);
-			for (size_t c= 0; c < ChartCount; ++c)
+						}
+					}
+				}
+			}
+			for (size_t c = 0; c < ChartCount; ++c)
+			{
 				if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
+				{
 					for (size_t p = 0; p < data.fiberCount; ++p)
+					{
 						m_optimStepChart[c]->plots()[ui.startPlotIdx + p]->setVisible(true);
+					}
+				}
+			}
 		}
 
 		bool anythingSelected = isAnythingSelected();
@@ -1336,24 +1352,51 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		{
 			if (anyOtherResultSelected(m_resultUIs, resultID))
 			{
-				for (size_t c=0; c<ChartCount; ++c)
+				for (size_t c = 0; c < ChartCount; ++c)
+				{
 					if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
+					{
 						for (size_t p = 0; p < data.fiberCount; ++p)
-							m_optimStepChart[c]->plots()[ui.startPlotIdx + p]->setVisible(false);
+						{
+							if (ui.startPlotIdx + p >= m_optimStepChart[c]->plots().size())
+							{
+								DEBUG_LOG(QString("Invalid chart access: access to plot %1, but only has %2")
+									.arg(ui.startPlotIdx + p)
+									.arg(m_optimStepChart[c]->plots().size()));
+							}
+							else
+							{
+								m_optimStepChart[c]->plots()[ui.startPlotIdx + p]->setVisible(false);
+							}
+						}
+					}
+				}
 			}
 			else // nothing selected, show everything
-				for (size_t c=0; c<ChartCount; ++c)
+			{
+				for (size_t c = 0; c < ChartCount; ++c)
+				{
 					if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
+					{
 						for (size_t p = 0; p < m_optimStepChart[c]->plots().size(); ++p)
+						{
 							m_optimStepChart[c]->plots()[p]->setVisible(true);
+						}
+					}
+				}
+			}
 		}
 		ui.main3DVis->hide();
 		m_style->removeInput(resultID);
 		m_spm->removeFilter(m_data->spmData->numParams()-1, resultID);
 	}
-	for (size_t c=0; c<ChartCount; ++c)
+	for (size_t c = 0; c < ChartCount; ++c)
+	{
 		if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
+		{
 			m_optimStepChart[c]->update();
+		}
+	}
 	changeReferenceDisplay();
 	m_main3DWidget->GetRenderWindow()->Render();
 	m_main3DWidget->update();
@@ -1942,8 +1985,9 @@ namespace
 				QObject* w = settingsWidgetMap[key];
 				if (qobject_cast<QComboBox*>(w))
 				{
-					if (qobject_cast<QComboBox*>(w)->findText(settings.value(key).toString()) != -1)
-						qobject_cast<QComboBox*>(w)->setCurrentText(settings.value(key).toString());
+					int idx = qobject_cast<QComboBox*>(w)->findText(settings.value(key).toString());
+					if (idx != -1)
+						qobject_cast<QComboBox*>(w)->setCurrentIndex(idx);
 				}
 				else if (qobject_cast<QCheckBox*>(w))
 				{
@@ -2514,9 +2558,12 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 			break;
 		}
 	}
-	addInteraction(QString("Visualized cylinder sampling for fiber %1 in %2.").arg(fiberID).arg(resultName(resultID)));
 	if (fiberID == NoPlotsIdx)
+	{
+		DEBUG_LOG("No fiber selected!");
 		return;
+	}
+	addInteraction(QString("Visualized cylinder sampling for fiber %1 in %2.").arg(fiberID).arg(resultName(resultID)));
 	hideSamplePointsPrivate();
 
 	auto & d = m_data->result[resultID];
