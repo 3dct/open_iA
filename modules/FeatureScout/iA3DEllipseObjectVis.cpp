@@ -22,8 +22,6 @@
 
 #include "iACsvConfig.h"
 
-#include "iAConsole.h"
-
 #include <vtkActor.h>
 #include <vtkAppendPolyData.h>
 #include <vtkEllipsoidSource.h>

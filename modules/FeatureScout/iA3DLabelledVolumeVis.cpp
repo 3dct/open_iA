@@ -23,8 +23,6 @@
 #include "iACsvConfig.h"
 #include "iAFeatureScoutObjectType.h"
 
-#include "mdichild.h"
-
 #include <vtkColorTransferFunction.h>
 #include <vtkFloatArray.h>
 #include <vtkPiecewiseFunction.h>

@@ -23,8 +23,6 @@
 #include "iACsvConfig.h"
 
 #include <iAConsole.h>
-#include <iARenderer.h>
-#include <mdichild.h>
 
 #include <vtkActor.h>
 #include <vtkLine.h>
