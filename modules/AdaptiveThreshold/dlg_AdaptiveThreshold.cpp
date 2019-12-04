@@ -67,6 +67,8 @@ void AdaptiveThreshold::enableComponents(bool setCompsVisible)
 	this->btn_loadData->setVisible(setCompsVisible);
 	this->btn_clearChart->setVisible(setCompsVisible);
 	this->btn_defaultSettings->setVisible(setCompsVisible);
+	this->cmb_BoxMovFreq->setVisible(setCompsVisible);
+	this->lbl_MovingFreq->setVisible(setCompsVisible);
 }
 
 void AdaptiveThreshold::setupUIActions()
