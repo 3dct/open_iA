@@ -254,7 +254,7 @@ bool iABlobManager::SmartOverlapping( void )
 					for ( int i = 0; i < size; ++i )
 					{
 						d1 = d1_out = m_blobsList[i]->GetImageData()->GetScalarComponentAsDouble( x, y, z, MAX_VALUE_COMPONENT );
-						for ( int j = 0; j < size, i != j; ++j )
+						for ( int j = 0; j < size && i != j; ++j )
 						{
 							d2 = d2_out = m_blobsList[j]->GetImageData()->GetScalarComponentAsDouble( x, y, z, MAX_VALUE_COMPONENT );
 							delta = fabs( d1 - d2 );

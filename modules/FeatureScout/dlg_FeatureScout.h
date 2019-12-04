@@ -35,8 +35,8 @@
 #include <map>
 #include <vector>
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_IOVPP;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_IOVMO;
+typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_PolarPlot;
+typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_MeanObject;
 
 class iA3DObjectVis;
 class iABlobCluster;
@@ -265,9 +265,9 @@ private:
 
 	int mousePressedPos [2];
 
-	iADockWidgetWrapper * iovPC, *iovDV, *iovSPM;
-	dlg_IOVPP * iovPP;
-	dlg_IOVMO * iovMO;
+	iADockWidgetWrapper * dwPC, *dwDV, *dwSPM;
+	dlg_PolarPlot * dwPP;
+	dlg_MeanObject * dwMO;
 
 	//Mean Object Rendering
 	iAMeanObjectTFView* m_motfView;

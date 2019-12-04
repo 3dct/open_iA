@@ -207,11 +207,11 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	m_renderer( parent->renderer() ),
 	elementTableModel(nullptr),
 	classTreeModel(new QStandardItemModel()),
-	iovSPM(nullptr),
-	iovPP(nullptr),
-	iovPC(nullptr),
-	iovDV(nullptr),
-	iovMO(nullptr),
+	dwSPM(nullptr),
+	dwPP(nullptr),
+	dwPC(nullptr),
+	dwDV(nullptr),
+	dwMO(nullptr),
 	m_splom(new iAFeatureScoutSPLOM()),
 	m_sourcePath( parent->filePath() ),
 	m_columnMapping(columnMapping),
@@ -241,8 +241,8 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	CREATE_OLDVTKWIDGET(m_polarPlotWidget);
 	CREATE_OLDVTKWIDGET(m_lengthDistrWidget);
 	m_lengthDistrWidget->hide();
-	iovPC->setWidget(pcWidget);
-	iovPP->legendLayout->addWidget(m_polarPlotWidget);
+	dwPC->setWidget(pcWidget);
+	dwPP->legendLayout->addWidget(m_polarPlotWidget);
 
 	// Initialize the models for QtViews
 	initColumnVisibility();
@@ -1029,45 +1029,37 @@ void dlg_FeatureScout::RenderMeanObject()
 	}
 
 	// Setup Mean Object view
-	if ( !iovMO )
+	if ( !dwMO )
 	{
-		iovMO = new dlg_IOVMO( this );
-		connect( iovMO->pb_ModTF, SIGNAL( clicked() ), this, SLOT( modifyMeanObjectTF() ) );
-		connect( iovMO->tb_OpenDataFolder, SIGNAL( clicked() ), this, SLOT( browseFolderDialog() ) );
-		connect( iovMO->tb_SaveStl, SIGNAL( clicked() ), this, SLOT( saveStl() ) );
+		dwMO = new dlg_MeanObject( this );
+		connect( dwMO->pb_ModTF, SIGNAL( clicked() ), this, SLOT( modifyMeanObjectTF() ) );
+		connect( dwMO->tb_OpenDataFolder, SIGNAL( clicked() ), this, SLOT( browseFolderDialog() ) );
+		connect( dwMO->tb_SaveStl, SIGNAL( clicked() ), this, SLOT( saveStl() ) );
 
 		// Create a render window and an interactor for all the MObjects
 		CREATE_OLDVTKWIDGET(meanObjectWidget);
 
-		iovMO->verticalLayout->addWidget( meanObjectWidget );
+		dwMO->verticalLayout->addWidget( meanObjectWidget );
 		auto renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 		renderWindowInteractor->SetRenderWindow( meanObjectWidget->GetRenderWindow() );
 		auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
 		renderWindowInteractor->SetInteractorStyle( style );
 
-		iovMO->setWindowTitle( QString( "%1 Mean Object View" ).arg(MapObjectTypeToString(filterID)) );
+		dwMO->setWindowTitle( QString( "%1 Mean Object View" ).arg(MapObjectTypeToString(filterID)) );
 
-		activeChild->addDockWidget( Qt::RightDockWidgetArea, iovMO );
-		iovMO->show();
+		activeChild->addDockWidget( Qt::RightDockWidgetArea, dwMO );
+		dwMO->show();
 	}
 
 	// Update MOClass comboBox
-	iovMO->cb_Classes->clear();
-	for ( int i = 1; i < classCount; ++i )
-		iovMO->cb_Classes->addItem( classTreeModel->invisibleRootItem()->child( i, 0 )->text() );
-
-	if ( iovSPM )
+	dwMO->cb_Classes->clear();
+	for (int i = 1; i < classCount; ++i)
 	{
-		activeChild->tabifyDockWidget(iovSPM, iovMO );
-		iovMO->show();
-		iovMO->raise();
+		dwMO->cb_Classes->addItem(classTreeModel->invisibleRootItem()->child(i, 0)->text());
 	}
-	else if ( iovDV )
-	{
-		activeChild->tabifyDockWidget( iovDV, iovMO );
-		iovMO->show();
-		iovMO->raise();
-	}
+	activeChild->tabifyDockWidget(dwSPM? dwSPM : (dwDV? dwDV : dwPC), dwMO );
+	dwMO->show();
+	dwMO->raise();
 
 	// Remove old renderers
 	meanObjectWidget->GetRenderWindow()->GetRenderers()->RemoveAllItems();
@@ -1144,7 +1136,7 @@ void dlg_FeatureScout::modifyMeanObjectTF()
 {
 	m_motfView = new iAMeanObjectTFView( this );
 	m_motfView->setWindowTitle( QString("%1 %2 Mean Object Transfer Function")
-		.arg(iovMO->cb_Classes->itemText(iovMO->cb_Classes->currentIndex()))
+		.arg(dwMO->cb_Classes->itemText(dwMO->cb_Classes->currentIndex()))
 		.arg(MapObjectTypeToString(filterID)) );
 	iADiagramFctWidget* histogram = activeChild->histogram();
 	connect( histogram, SIGNAL( updateViews() ), this, SLOT( updateMOView() ) );
@@ -1163,12 +1155,12 @@ void dlg_FeatureScout::browseFolderDialog()
 	QString filename = QFileDialog::getSaveFileName( this, tr( "Save STL File" ), m_sourcePath, tr( "STL Files (*.stl)" ) );
 	if ( filename.isEmpty() )
 		return;
-	iovMO->le_StlPath->setText( filename );
+	dwMO->le_StlPath->setText( filename );
 }
 
 void dlg_FeatureScout::saveStl()
 {
-	if ( iovMO->le_StlPath->text().isEmpty() )
+	if ( dwMO->le_StlPath->text().isEmpty() )
 	{
 		QMessageBox::warning(this, "FeatureScout", "No save file destination specified." );
 		return;
@@ -1182,14 +1174,14 @@ void dlg_FeatureScout::saveStl()
 
 	auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
 	marCubProgress.observe(moSurface);
-	moSurface->SetInputData( m_MOData.moImageDataList[iovMO->cb_Classes->currentIndex()] );
+	moSurface->SetInputData( m_MOData.moImageDataList[dwMO->cb_Classes->currentIndex()] );
 	moSurface->ComputeNormalsOn();
 	moSurface->ComputeGradientsOn();
-	moSurface->SetValue( 0, iovMO->dsb_IsoValue->value() );
+	moSurface->SetValue( 0, dwMO->dsb_IsoValue->value() );
 
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 	stlWriProgress.observe(stlWriter);
-	stlWriter->SetFileName( getLocalEncodingFileName(iovMO->le_StlPath->text()).c_str() );
+	stlWriter->SetFileName( getLocalEncodingFileName(dwMO->le_StlPath->text()).c_str() );
 	stlWriter->SetInputConnection( moSurface->GetOutputPort() );
 	stlWriter->Write();
 }
@@ -1307,7 +1299,7 @@ void dlg_FeatureScout::RenderOrientation()
 	m_splom->enableSelection(false);
 	m_splom->setFilter(-1);
 	showLengthDistribution(false);
-	iovPP->setWindowTitle( "Orientation Distribution Color Map" );
+	dwPP->setWindowTitle( "Orientation Distribution Color Map" );
 
 	// define color coding using hsv -> create color palette
 	auto oi = vtkSmartPointer<vtkImageData>::New();
@@ -1325,7 +1317,7 @@ void dlg_FeatureScout::RenderOrientation()
 				cos( theta_rad ) };
 			double *p = static_cast<double *>( oi->GetScalarPointer( theta, phi, 0 ) );
 			vtkMath::Normalize( recCoord );
-			colormapsIndex[iovPP->orientationColorMap->currentIndex()]( recCoord, p );
+			colormapsIndex[dwPP->orientationColorMap->currentIndex()]( recCoord, p );
 		}
 	}
 
@@ -1381,7 +1373,7 @@ void dlg_FeatureScout::RenderOrientation()
 	this->drawAnnotations( renderer );
 
 	activeChild->updateViews();
-	iovPP->colorMapSelection->show();
+	dwPP->colorMapSelection->show();
 	renW->Render();
 }
 
@@ -1395,7 +1387,7 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	double range[2] = { 0.0, 0.0 };
 	auto length = vtkDataArray::SafeDownCast(this->csvTable->GetColumn(m_columnMapping->value(iACsvConfig::Length)));
 	QString title = QString("%1 Frequency Distribution").arg(csvTable->GetColumnName(m_columnMapping->value(iACsvConfig::Length)));
-	iovPP->setWindowTitle(title);
+	dwPP->setWindowTitle(title);
 	int numberOfBins = (this->filterID == iAFeatureScoutObjectType::Fibers) ? 8 : 3;  // TODO: setting?
 
 	length->GetRange( range );
@@ -1462,7 +1454,7 @@ void dlg_FeatureScout::RenderLengthDistribution()
 
 	m_3dvis->renderLengthDistribution( cTFun, extents, halfInc, filterID, range );
 
-	iovPP->colorMapSelection->hide();
+	dwPP->colorMapSelection->hide();
 	showLengthDistribution(true, cTFun);
 	m_renderer->update();
 
@@ -1479,8 +1471,8 @@ void dlg_FeatureScout::RenderLengthDistribution()
 
 	m_lengthDistrWidget->GetRenderWindow()->Render();
 	m_lengthDistrWidget->update();
-	iovPP->legendLayout->removeWidget(m_polarPlotWidget);
-	iovPP->legendLayout->addWidget(m_lengthDistrWidget);
+	dwPP->legendLayout->removeWidget(m_polarPlotWidget);
+	dwPP->legendLayout->addWidget(m_lengthDistrWidget);
 	m_polarPlotWidget->hide();
 	m_lengthDistrWidget->show();
 }
@@ -1886,31 +1878,21 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	//Renders the distributionMatrix in a new dockWidget
 	if ( showHistogram )
 	{
-		if ( !iovDV )
+		if ( !dwDV )
 		{
-			iovDV = new iADockWidgetWrapper("Distribution View", "FeatureScoutDV");
+			dwDV = new iADockWidgetWrapper("Distribution View", "FeatureScoutDV");
 
 			iAVtkOldWidget* dvqvtkWidget;
 			CREATE_OLDVTKWIDGET(dvqvtkWidget);
-			iovDV->setWidget(dvqvtkWidget);
+			dwDV->setWidget(dvqvtkWidget);
 			m_dvContextView->SetRenderWindow( dvqvtkWidget->GetRenderWindow() );
 			m_dvContextView->SetInteractor( dvqvtkWidget->GetInteractor() );
-			activeChild->addDockWidget( Qt::RightDockWidgetArea, iovDV );
-			iovDV->show();
+			activeChild->addDockWidget( Qt::RightDockWidgetArea, dwDV );
+			dwDV->show();
 		}
-
-		if ( iovSPM && !iovMO || ( iovSPM && iovMO ) )
-		{
-			activeChild->tabifyDockWidget( iovSPM, iovDV );
-			iovDV->show();
-			iovDV->raise();
-		}
-		else if ( !iovSPM && iovMO )
-		{
-			activeChild->tabifyDockWidget( iovMO, iovDV );
-			iovDV->show();
-			iovDV->raise();
-		}
+		activeChild->tabifyDockWidget(dwSPM ? dwSPM : (dwMO ? (QDockWidget*)dwMO : dwPC), dwDV);
+		dwDV->show();
+		dwDV->raise();
 		this->m_dvContextView->GetScene()->AddItem( distributionChartMatrix.GetPointer() );
 		this->m_dvContextView->GetRenderWindow()->Render();
 	}
@@ -2304,24 +2286,15 @@ void dlg_FeatureScout::ClassDeleteButton()
 
 void dlg_FeatureScout::showScatterPlot()
 {
-	if (iovSPM)
+	if (dwSPM)
 		return;
-	iovSPM = new iADockWidgetWrapper("Scatter Plot Matrix", "FeatureScoutSPM");
-	activeChild->addDockWidget(Qt::RightDockWidgetArea, iovSPM);
-	iovSPM->show();
-	if (iovDV && !iovMO || (iovDV && iovMO))
-	{
-		activeChild->tabifyDockWidget(iovDV, iovSPM);
-		iovSPM->show();
-		iovSPM->raise();
-	}
-	else if (!iovDV && iovMO)
-	{
-		activeChild->tabifyDockWidget(iovMO, iovSPM);
-		iovSPM->show();
-		iovSPM->raise();
-	}
-	m_splom->initScatterPlot(iovSPM, csvTable, columnVisibility);
+	dwSPM = new iADockWidgetWrapper("Scatter Plot Matrix", "FeatureScoutSPM");
+	activeChild->addDockWidget(Qt::RightDockWidgetArea, dwSPM);
+	dwSPM->show();
+	activeChild->tabifyDockWidget(dwDV? dwDV : (dwMO? (QDockWidget*)dwMO: dwPC), dwSPM);
+	dwSPM->show();
+	dwSPM->raise();
+	m_splom->initScatterPlot(dwSPM, csvTable, columnVisibility);
 	if (m_renderMode == rmMultiClass)
 		m_splom->multiClassRendering(m_colorList);
 	else
@@ -2402,7 +2375,7 @@ void dlg_FeatureScout::spPopupSelection( QAction *selection )
 	if ( selection->text() == "Suggest Classification" )
 	{
 		bool ok;
-		int i = QInputDialog::getInt( iovSPM, tr( "kMeans-Classification" ), tr( "Number of Classes" ), 3, 1, 7, 1, &ok );
+		int i = QInputDialog::getInt( dwSPM, tr( "kMeans-Classification" ), tr( "Number of Classes" ), 3, 1, 7, 1, &ok );
 
 		if ( ok )
 		{
@@ -2580,12 +2553,12 @@ void dlg_FeatureScout::showLengthDistribution(bool show, vtkScalarsToColors* lut
 	}
 	if (!show && m_lengthDistrWidget->isVisible())
 	{
-		iovPP->legendLayout->removeWidget(m_lengthDistrWidget);
-		iovPP->legendLayout->addWidget(m_polarPlotWidget);
+		dwPP->legendLayout->removeWidget(m_lengthDistrWidget);
+		dwPP->legendLayout->addWidget(m_polarPlotWidget);
 		m_lengthDistrWidget->hide();
 		m_polarPlotWidget->show();
 	}
-	iovPP->colorMapSelection->hide();
+	dwPP->colorMapSelection->hide();
 }
 
 void dlg_FeatureScout::classClicked( const QModelIndex &index )
@@ -3187,7 +3160,7 @@ void dlg_FeatureScout::updatePolarPlotView( vtkTable *it )
 		DEBUG_LOG("It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot view.");
 		return;
 	}
-	iovPP->setWindowTitle( "Orientation Distribution" );
+	dwPP->setWindowTitle( "Orientation Distribution" );
 
 	// calculate object probability and save it to a table
 	auto table = vtkSmartPointer<vtkTable>::New();
@@ -3460,15 +3433,15 @@ void dlg_FeatureScout::SaveBlobMovie()
 
 void dlg_FeatureScout::initFeatureScoutUI()
 {
-	iovPC = new iADockWidgetWrapper("Parallel Coordinates",  "FeatureScoutPC");
-	iovPP = new dlg_IOVPP( this );
+	dwPC = new iADockWidgetWrapper("Parallel Coordinates",  "FeatureScoutPC");
+	dwPP = new dlg_PolarPlot( this );
 	activeChild->addDockWidget( Qt::RightDockWidgetArea, this );
-	activeChild->addDockWidget( Qt::RightDockWidgetArea, iovPC );
-	activeChild->addDockWidget( Qt::RightDockWidgetArea, iovPP );
-	iovPP->colorMapSelection->hide();
+	activeChild->addDockWidget( Qt::RightDockWidgetArea, dwPC );
+	activeChild->addDockWidget( Qt::RightDockWidgetArea, dwPP );
+	dwPP->colorMapSelection->hide();
 	if (this->filterID == iAFeatureScoutObjectType::Voids)
-		iovPP->hide();
-	connect(iovPP->orientationColorMap, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderOrientation()));
+		dwPP->hide();
+	connect(dwPP->orientationColorMap, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderOrientation()));
 
 	if (visualization == iACsvConfig::UseVolume)
 		activeChild->imagePropertyDockWidget()->hide();
@@ -3496,7 +3469,7 @@ void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 	case 7: RenderLengthDistribution(); break;
 
 	case 6:			// plot scatterplot matrix
-		if (iovSPM)
+		if (dwSPM)
 		{
 			QMessageBox::information(this, "FeatureScout", "Scatterplot Matrix already created.");
 			return;
