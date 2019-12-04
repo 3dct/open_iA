@@ -23,7 +23,7 @@ struct axisParams {
 };
 
 
-AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/):QDialog(parent, f){
+AdaptiveThreshold::AdaptiveThreshold(QWidget * parent, Qt::WindowFlags f):QDialog(parent, f){
 	setupUi(this);
 	try {
 		
@@ -66,6 +66,7 @@ void AdaptiveThreshold::enableComponents(bool setCompsVisible)
 {
 	this->btn_loadData->setVisible(setCompsVisible);
 	this->btn_clearChart->setVisible(setCompsVisible);
+	this->btn_defaultSettings->setVisible(setCompsVisible);
 }
 
 void AdaptiveThreshold::setupUIActions()
