@@ -69,10 +69,13 @@ public:
 	
 	
 	void SegmentationStartValue(double val) { segmentationStartValue = val; }
+public slots:
+	void buttonLoadHistDataClicked();
+
 private slots:
 		void UpdateChartClicked();
 		void buttonLoadDataClicked();
-		void buttonLoadHistDataClicked(); 
+		
 		
 		void clear(); 
 		void resetGraphToDefault(); 

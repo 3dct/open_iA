@@ -31,7 +31,7 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 	{
 		//perform determination of threshold from ui
 		//perform segmentation
-	//TODO probably use shared pointer
+	
 		AdaptiveThreshold dlg_thres;
 		
 		if (!m_mainWnd->activeMdiChild())
@@ -49,7 +49,8 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 		
 		auto data = hist->plots()[0]->data();
 		dlg_thres.setHistData(data);
-			
+		dlg_thres.buttonLoadHistDataClicked(); 
+		
 
 		if (dlg_thres.exec() != QDialog::Accepted)
 			return;

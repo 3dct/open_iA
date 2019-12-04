@@ -29,9 +29,12 @@
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Description Adaptive Thresholding &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The Adaptive Thresholding for improved segmentation of voids based on the grey value histogram of an image. This Algorithm calculates the segmentation threshold based on lokal maximum, minum and global maximum of the grey value histogram. As a first step the histogram is smoothed by moving average. Based on the moving average the histogram peaks are calculated. The data is then normalised and&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;the final grey threshold is determined.  To segment the image binary thresholding then grey threshold range is performed. The resulting segmentation is shown. Visualisation chart can be scaled as well&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt; &lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The Adaptive Thresholding for improved segmentation of voids based on the grey value histogram of an image. This Algorithm calculates the segmentation threshold based on lokal maximum, minum and global maximum of the grey value histogram. As a first step the histogram is smoothed by moving average. Based on the moving average the histogram peaks are calculated. The data is then normalised and the final grey threshold is determined.  To segment the image binary thresholding then grey threshold range is performed. The resulting segmentation is shown. Visualisation chart can be scaled as well&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Calibri'; font-size:8pt; color:#000000;&quot;&gt;Determine &lt;/span&gt;&lt;span style=&quot; font-family:'Calibri'; font-size:8pt; font-weight:600; color:#000000;&quot;&gt;first minimum &lt;/span&gt;&lt;span style=&quot; font-family:'Calibri'; font-size:8pt; color:#000000;&quot;&gt;above air &lt;/span&gt;&lt;span style=&quot; font-family:'Calibri'; font-size:8pt; font-weight:600; color:#000000;&quot;&gt;(gmin, fmin),&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Wingdings'; font-size:8pt;&quot;&gt;Ø&lt;/span&gt;&lt;span style=&quot; font-family:'Times New Roman'; font-size:8pt; color:#000000;&quot;&gt;If fmin &amp;gt; fair/2, the &lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-size:8pt; color:#000000;&quot;&gt;fi&lt;/span&gt;&lt;span style=&quot; font-family:'Times New Roman'; font-size:8pt; color:#000000;&quot;&gt;rst minimum (gmin,fmin) is taken as the grey-level threshold&lt;/span&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Wingdings'; font-size:8pt;&quot;&gt;Ø&lt;/span&gt;&lt;span style=&quot; font-family:'Times New Roman'; font-size:8pt; color:#000000;&quot;&gt;If fmin &amp;lt; fair/2, the next crossing of fair/2 is taken as the grey-level threshold, or 50% whichever is lowest&lt;/span&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;https://doi.org/10.1016/j.compositesa.2019.04.029&quot;&gt;&lt;span style=&quot; font-size:8pt; text-decoration: underline; color:#0000ff;&quot;&gt;Citation&lt;/span&gt;&lt;/a&gt; &lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Workflow &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;1: Specify value of Moving average (eg. 17 - take average of 17 values)&lt;/p&gt;
@@ -69,224 +72,247 @@ p, li { white-space: pre-wrap; }
             <number>9</number>
            </property>
            <item>
-            <widget class="QPushButton" name="btn_resetGraph">
-             <property name="text">
-              <string>Reset Graph</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="btn_loadHistData">
-             <property name="text">
-              <string>Load Histogram</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="btn_loadData">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Load Data</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="btn_clearChart">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>ClearChart</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QGroupBox" name="groupBox_8">
              <property name="title">
               <string>Chart Scaling</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_9">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_3">
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_23" stretch="1,1,1,1">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="1,1">
-                    <item>
-                     <widget class="QLineEdit" name="ed_xMIn">
-                      <property name="text">
-                       <string>0</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="lb_xmin">
-                      <property name="text">
-                       <string>Xmin</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_22" stretch="1,1">
-                    <item>
-                     <widget class="QLineEdit" name="ed_xMax">
-                      <property name="text">
-                       <string>0</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="lbl_xmax">
-                      <property name="text">
-                       <string>XMax</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_23" stretch="1,1">
-                    <item>
-                     <widget class="QLineEdit" name="ed_Ymin">
-                      <property name="text">
-                       <string>0</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="lbl_ymin">
-                      <property name="text">
-                       <string>YMin</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_24" stretch="1,1">
-                    <item>
-                     <widget class="QLineEdit" name="ed_YMax">
-                      <property name="text">
-                       <string>0</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="lbl_yMax">
-                      <property name="text">
-                       <string>Ymax</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_5">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_7">
-                    <item>
-                     <widget class="QSpinBox" name="spin_yTicks">
-                      <property name="minimum">
-                       <number>4</number>
-                      </property>
-                      <property name="value">
-                       <number>8</number>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label_11">
-                      <property name="text">
-                       <string>YTicks</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_8">
-                    <item>
-                     <widget class="QSpinBox" name="spin_xTicks">
-                      <property name="minimum">
-                       <number>4</number>
-                      </property>
-                      <property name="maximum">
-                       <number>30</number>
-                      </property>
-                      <property name="value">
-                       <number>10</number>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label_10">
-                      <property name="text">
-                       <string>XTicks</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <spacer name="verticalSpacer_6">
-                    <property name="orientation">
-                     <enum>Qt::Vertical</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>40</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <widget class="QPushButton" name="btn_update">
-                <property name="text">
-                 <string>RescaleChart</string>
-                </property>
-                <property name="default">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="btn_rescaleToDefault">
-                <property name="text">
-                 <string>ResetDefaultMinMax</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="btn_redraw">
-                <property name="text">
-                 <string>Redraw</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             <widget class="QPushButton" name="btn_resetGraph">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>190</y>
+                <width>335</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Reset Graph</string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="btn_loadData">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>210</y>
+                <width>335</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Load Data</string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="btn_clearChart">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>240</y>
+                <width>335</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>ClearChart</string>
+              </property>
+             </widget>
+             <widget class="QWidget" name="">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>30</y>
+                <width>278</width>
+                <height>43</height>
+               </rect>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_3">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_3">
+                 <item>
+                  <widget class="QLabel" name="lb_xmin">
+                   <property name="text">
+                    <string>Xmin</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="ed_xMIn">
+                   <property name="text">
+                    <string>0</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_8">
+                 <item>
+                  <widget class="QLabel" name="lbl_ymin">
+                   <property name="text">
+                    <string>YMin</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="ed_Ymin">
+                   <property name="text">
+                    <string>0</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>80</y>
+                <width>278</width>
+                <height>43</height>
+               </rect>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_4">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_4">
+                 <item>
+                  <widget class="QLabel" name="lbl_xmax">
+                   <property name="text">
+                    <string>XMax</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="ed_xMax">
+                   <property name="text">
+                    <string>0</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_9">
+                 <item>
+                  <widget class="QLabel" name="lbl_yMax">
+                   <property name="text">
+                    <string>Ymax</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="ed_YMax">
+                   <property name="text">
+                    <string>0</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="">
+              <layout class="QHBoxLayout" name="horizontalLayout_8">
+               <item>
+                <widget class="QSpinBox" name="spin_xTicks">
+                 <property name="minimum">
+                  <number>4</number>
+                 </property>
+                 <property name="maximum">
+                  <number>30</number>
+                 </property>
+                 <property name="value">
+                  <number>10</number>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_10">
+                 <property name="text">
+                  <string>XTicks</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QPushButton" name="btn_redraw">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>270</y>
+                <width>75</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Redraw</string>
+              </property>
+             </widget>
+             <widget class="QWidget" name="">
+              <layout class="QHBoxLayout" name="horizontalLayout_7">
+               <item>
+                <widget class="QSpinBox" name="spin_yTicks">
+                 <property name="minimum">
+                  <number>4</number>
+                 </property>
+                 <property name="value">
+                  <number>8</number>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_11">
+                 <property name="text">
+                  <string>YTicks</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="">
+              <property name="geometry">
+               <rect>
+                <x>120</x>
+                <y>130</y>
+                <width>127</width>
+                <height>54</height>
+               </rect>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_5">
+               <item>
+                <widget class="QPushButton" name="btn_update">
+                 <property name="text">
+                  <string>Rescale Chart</string>
+                 </property>
+                 <property name="default">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btn_rescaleToDefault">
+                 <property name="text">
+                  <string>Reset to default MinMax</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+             <zorder>ed_xMax</zorder>
+             <zorder>lbl_ymin</zorder>
+             <zorder>lbl_xmax</zorder>
+             <zorder>lbl_ymin</zorder>
+             <zorder>lbl_yMax</zorder>
+             <zorder></zorder>
+             <zorder>btn_resetGraph</zorder>
+             <zorder>btn_loadData</zorder>
+             <zorder>btn_clearChart</zorder>
             </widget>
            </item>
           </layout>
@@ -693,19 +719,6 @@ p, li { white-space: pre-wrap; }
                   <bool>false</bool>
                  </property>
                 </widget>
-               </item>
-               <item>
-                <spacer name="verticalSpacer_2">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
                </item>
               </layout>
              </item>

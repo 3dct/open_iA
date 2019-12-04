@@ -77,7 +77,7 @@ void AdaptiveThreshold::setupUIActions()
 	connect(this->btn_clearChart, SIGNAL(clicked()), this, SLOT(clear()));
 	connect(this->btn_resetGraph, SIGNAL(clicked()), this, SLOT(resetGraphToDefault()));
 	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(calculateMovingAverage()));
-	connect(this->btn_loadHistData, SIGNAL(clicked()), this, SLOT(buttonLoadHistDataClicked())); 
+	
 	connect(this->btn_clear, SIGNAL(clicked()), this, SLOT(clearEditField()));
 	connect(this->btn_selectRange, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClicked()));
 	connect(this->btn_redraw, SIGNAL(clicked()), this, SLOT(redrawPlots())); 
