@@ -24,17 +24,10 @@
 
 #include <QFileInfo>
 #include <QStringList>
-#include <QTextStream>
 
 #define LINES_IN_HEADER 11
 
-/**
- * \class	iAElementSpectralInfo
- *
- * \brief	Loads the spectral function and info from the correspondingly formatted txt file
- *
- */
-
+//! Loads the spectral function and info from the correspondingly formatted txt file
 class iAElementSpectralInfo
 {
 public:
@@ -67,47 +60,40 @@ public:
 		}
 	}
 
-	/**
-	* Get energies in keV of the spectrum
-	*/
+	//! Get energies in keV of the spectrum
 	const QVector<float> & GetEnergyData() const
 	{
 		return m_energyData;
 	}
 
-	/**
-	* Get counts of the spectrum
-	*/
+	//! Get counts of the spectrum
 	const iAEnergySpectrum & GetCountsData() const
 	{
 		return m_countsData;
 	}
 
-	/**
-	* Get count uncertainties of the spectrum
-	*/
+	//! Get count uncertainties of the spectrum
 	const QVector<float> & GetUncertData() const
 	{
 		return m_uncertData;
 	}
 
-	/**
-	* Get name of the chemical element
-	*/
+	//! Get name of the chemical element
 	const QString & name() const
 	{
 		return m_name;
 	}
 
+	//! Get symbol (abbreviation) for this chemical element
 	const QString & GetSymbol() const
 	{
 		return m_symbol;
 	}
 
 private:
-	QString						m_name;		///< name of the chemical element
-	QString						m_symbol;	///< the symbol for this element
-	QVector<float>			m_energyData;	///< energies in keV for measured spectrum points
-	iAEnergySpectrum		m_countsData;	///< number of counted photons for measured spectrum points
-	QVector<float>			m_uncertData;	///< uncertainty of the measured number of counts
+	QString          m_name;       //!< name of the chemical element
+	QString          m_symbol;     //!< the symbol for this element
+	QVector<float>   m_energyData; //!< energies in keV for measured spectrum points
+	iAEnergySpectrum m_countsData; //!< number of counted photons for measured spectrum points
+	QVector<float>   m_uncertData; //!< uncertainty of the measured number of counts
 };

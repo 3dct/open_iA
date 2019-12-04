@@ -274,7 +274,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	QString oldTitle(sourceMdi->windowTitle());
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
 	auto mdiChild = filter->outputCount() > 0 ?
-		mainWnd->resultChild(sourceMdi, filter->name() + " " + oldTitle) :
+		mainWnd->resultChild(sourceMdi, filter->outputName(0, filter->name() + " " + oldTitle)) :
 		sourceMdi;
 	if (!mdiChild)
 	{
@@ -350,7 +350,7 @@ void iAFilterRunnerGUI::filterFinished()
 			// (disregarding that a smart pointer still points to it...)
 			// so let's copy it to be on the safe side!
 			img->DeepCopy(thread->filter()->output()[p]->vtkImage());
-			QSharedPointer<iAModality> mod(new iAModality(thread->filter()->outputName(p), "", -1, img, 0));
+			QSharedPointer<iAModality> mod(new iAModality(thread->filter()->outputName(p, QString("Extra Out %1").arg(p)), "", -1, img, 0));
 			mdiChild->modalities()->add(mod);
 			// signal to add it to list automatically is created to late to be effective here, we have to add it to list ourselves:
 			mdiChild->modalitiesDockWidget()->modalityAdded(mod);

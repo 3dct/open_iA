@@ -181,7 +181,7 @@ public:
 	QString inputName(int i) const;
 
 	//! Retrieve the name of the output image with index i
-	QString outputName(int i) const;
+	QString outputName(int i, QString defaultName) const;
 protected:
 	//! Set the name of the input with the given index
 	void setInputName(int i, QString const & name);
