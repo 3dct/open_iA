@@ -28,7 +28,6 @@
 #include <QMap>
 #include <QSharedPointer>
 
-#include <map>
 #include <vector>
 
 class vtkColorTransferFunction;
@@ -66,9 +65,3 @@ protected:
 	vtkTable* m_objectTable;
 	QSharedPointer<QMap<uint, uint> > m_columnMapping;
 };
-
-class MdiChild;
-
-QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, MdiChild* mdi, vtkTable* table,
-	QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor,
-	std::map<size_t, std::vector<iAVec3f> > & curvedFiberInfo, int numberOfCylinderSides, size_t segmentSkip);

@@ -22,7 +22,11 @@
 
 #include "dlg_blobVisualization.h"
 #include "dlg_editPCClass.h"
+#include "iA3DLabelledVolumeVis.h"
 #include "iA3DLineObjectVis.h"
+#include "iA3DCylinderObjectVis.h"
+#include "iA3DNoVis.h"
+#include "iA3DEllipseObjectVis.h"
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
 #include "iACsvIO.h"
@@ -179,6 +183,50 @@ namespace
 		rmLengthDistribution,
 		rmMeanObject
 	};
+
+	//! returns the color for a given class id
+	//! TODO: use iAColorTheme?
+	QColor getClassColor(int cid)
+	{
+		// automatically select a predefined color
+		// (from the list of colors defined in the list of SVG
+		// color keyword names provided by the World Wide Web Consortium).
+		//http://www.w3.org/TR/SVG/types.html#ColorKeywords
+		if (cid > 7) { cid = 1; }
+		switch (cid)
+		{
+		default:
+		case 1: return QColor("cornflowerblue");
+		case 2: return QColor("darkorange");
+		case 3: return QColor("chartreuse");
+		case 4: return QColor("yellow");
+		case 5: return QColor("mediumvioletred");
+		case 6: return QColor("blue");
+		case 7: return QColor("green");
+		}
+	}
+
+	QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, MdiChild* mdi, vtkTable* table,
+		QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color,
+		std::map<size_t, std::vector<iAVec3f> > & curvedFiberInfo, int numberOfCylinderSides, size_t segmentSkip)
+	{
+		switch (visualization)
+		{
+		default:
+		case iACsvConfig::UseVolume:
+			return QSharedPointer<iA3DObjectVis>(new iA3DLabelledVolumeVis(mdi->renderer()->renderer(), mdi->colorTF(),
+				mdi->opacityTF(), table, columnMapping, mdi->imagePointer()->GetBounds()));
+		case iACsvConfig::Lines:
+			return QSharedPointer<iA3DObjectVis>(new iA3DLineObjectVis(mdi->renderer()->renderer(), table, columnMapping, color, curvedFiberInfo, segmentSkip));
+		case iACsvConfig::Cylinders:
+			return QSharedPointer<iA3DObjectVis>(new iA3DCylinderObjectVis(mdi->renderer()->renderer(), table, columnMapping, color, curvedFiberInfo, numberOfCylinderSides, segmentSkip));
+		case iACsvConfig::Ellipses:
+			return QSharedPointer<iA3DObjectVis>(new iA3DEllipseObjectVis(mdi->renderer()->renderer(), table, columnMapping, color));
+		case iACsvConfig::NoVis:
+			return QSharedPointer<iA3DObjectVis>(new iA3DNoVis());
+		}
+	}
+
 }
 
 typedef void( *ColormapFuncPtr )( const double normal[3], double color_out[3] );
