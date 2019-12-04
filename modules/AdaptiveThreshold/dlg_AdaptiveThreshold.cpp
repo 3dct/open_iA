@@ -58,7 +58,7 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent, Qt::WindowFlags f):QDialo
 		this->mainLayout->addWidget(m_chartView);
 	}
 	catch (std::bad_alloc &ba) {
-		DEBUG_LOG("Not enough memory to create objects"); 
+		DEBUG_LOG("We dont Not enough memory to create objects"); 
 	}
 }
 

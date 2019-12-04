@@ -7,17 +7,30 @@
     <x>0</x>
     <y>0</y>
     <width>1442</width>
-    <height>1025</height>
+    <height>1201</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_17" stretch="4,0,1">
+  <layout class="QVBoxLayout" name="verticalLayout_17" stretch="2,1,2">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="3,1">
+    <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="2,0,1">
      <item>
       <layout class="QVBoxLayout" name="mainLayout"/>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -33,13 +46,13 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Calibri'; font-size:8pt; color:#000000;&quot;&gt;Determine &lt;/span&gt;&lt;span style=&quot; font-family:'Calibri'; font-size:8pt; font-weight:600; color:#000000;&quot;&gt;first minimum &lt;/span&gt;&lt;span style=&quot; font-family:'Calibri'; font-size:8pt; color:#000000;&quot;&gt;above air &lt;/span&gt;&lt;span style=&quot; font-family:'Calibri'; font-size:8pt; font-weight:600; color:#000000;&quot;&gt;(gmin, fmin),&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Wingdings'; font-size:8pt;&quot;&gt;Ø&lt;/span&gt;&lt;span style=&quot; font-family:'Times New Roman'; font-size:8pt; color:#000000;&quot;&gt;If fmin &amp;gt; fair/2, the &lt;/span&gt;&lt;span style=&quot; font-family:'Arial'; font-size:8pt; color:#000000;&quot;&gt;fi&lt;/span&gt;&lt;span style=&quot; font-family:'Times New Roman'; font-size:8pt; color:#000000;&quot;&gt;rst minimum (gmin,fmin) is taken as the grey-level threshold&lt;/span&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Wingdings'; font-size:8pt;&quot;&gt;Ø&lt;/span&gt;&lt;span style=&quot; font-family:'Times New Roman'; font-size:8pt; color:#000000;&quot;&gt;If fmin &amp;lt; fair/2, the next crossing of fair/2 is taken as the grey-level threshold, or 50% whichever is lowest&lt;/span&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Wingdings'; font-size:8pt;&quot;&gt;Ø&lt;/span&gt;&lt;span style=&quot; font-family:'Times New Roman'; font-size:8pt; color:#000000;&quot;&gt;If fmin &amp;lt; fair/2, the next crossing of fair/2 (fair_half) is taken as the grey-level threshold, or 50% whichever is lowest&lt;/span&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt; &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;https://doi.org/10.1016/j.compositesa.2019.04.029&quot;&gt;&lt;span style=&quot; font-size:8pt; text-decoration: underline; color:#0000ff;&quot;&gt;Citation&lt;/span&gt;&lt;/a&gt; &lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Workflow &lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;1: Specify value of Moving average (eg. 17 - take average of 17 values)&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;2: Specify Threshold of Lokal Maxinum and Lokal Minimum&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;3: Specify interval for intersection of fair_half &lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;3: Specify interval for first intersection of fair_half and global maximum peak&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;4. Final segmentation is shown, perform segmentation with starting range (default 0)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
@@ -223,7 +236,7 @@ p, li { white-space: pre-wrap; }
                   <item>
                    <widget class="QPushButton" name="btn_rescaleToDefault">
                     <property name="text">
-                     <string>Reset to default MinMax</string>
+                     <string>Reset Default MinMax</string>
                     </property>
                    </widget>
                   </item>
@@ -503,7 +516,7 @@ p, li { white-space: pre-wrap; }
            <string>AText</string>
           </property>
           <property name="title">
-           <string>3. Manually define peaks</string>
+           <string>3. Manually define peaks (normalized coordinates)</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_14">
            <item>
@@ -615,68 +628,65 @@ p, li { white-space: pre-wrap; }
                <property name="title">
                 <string>Intersection</string>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_24">
+               <layout class="QVBoxLayout" name="verticalLayout_25">
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_12">
+                 <layout class="QHBoxLayout" name="horizontalLayout_9">
                   <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_10">
-                    <item>
-                     <widget class="QLineEdit" name="ed_pt_xMax">
-                      <property name="text">
-                       <string>0.8</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label_16">
-                      <property name="text">
-                       <string>XMax</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
+                   <widget class="QPushButton" name="btn_VisPoints">
+                    <property name="text">
+                     <string>Determine final threshold</string>
+                    </property>
+                   </widget>
                   </item>
                   <item>
-                   <spacer name="horizontalSpacer_2">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_9">
+                   <layout class="QVBoxLayout" name="verticalLayout_24">
                     <item>
-                     <widget class="QLineEdit" name="ed_ptXmin">
-                      <property name="text">
-                       <string>0.5</string>
-                      </property>
-                     </widget>
+                     <layout class="QVBoxLayout" name="verticalLayout_19">
+                      <item>
+                       <widget class="QLabel" name="label_15">
+                        <property name="text">
+                         <string>Xmin</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLineEdit" name="ed_ptXmin">
+                        <property name="text">
+                         <string>0.5</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
                     </item>
                     <item>
-                     <widget class="QLabel" name="label_15">
-                      <property name="text">
-                       <string>Xmin</string>
-                      </property>
-                     </widget>
+                     <layout class="QVBoxLayout" name="verticalLayout_18">
+                      <item>
+                       <widget class="QLabel" name="label_16">
+                        <property name="text">
+                         <string>XMax</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLineEdit" name="ed_pt_xMax">
+                        <property name="text">
+                         <string>0.8</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
                     </item>
                    </layout>
                   </item>
                  </layout>
                 </item>
-                <item>
-                 <widget class="QPushButton" name="btn_VisPoints">
-                  <property name="text">
-                   <string>Determine final threshold</string>
-                  </property>
-                 </widget>
-                </item>
                </layout>
+               <zorder>ed_ptXmin</zorder>
+               <zorder>label_15</zorder>
+               <zorder>ed_pt_xMax</zorder>
+               <zorder>label_16</zorder>
+               <zorder>btn_VisPoints</zorder>
+               <zorder>btn_VisPoints</zorder>
               </widget>
              </item>
             </layout>
