@@ -37,6 +37,9 @@ Q_OBJECT
 public:
 	//! Create a new dialog, all parameters are optional
 	AdaptiveThreshold(QWidget * parent = 0, Qt::WindowFlags f = 0);
+
+	void enableComponents(bool setCompsVisible);
+
 	~AdaptiveThreshold();
 
 	void setupUIActions();
@@ -64,7 +67,7 @@ public:
 	
 	double SegmentationStartValue() const { return segmentationStartValue; }
 	
-	//double SegmentationStartValue() const { return segmentationStartValue; }
+	
 	void SegmentationStartValue(double val) { segmentationStartValue = val; }
 private slots:
 		void UpdateChartClicked();
@@ -129,11 +132,6 @@ private:
 		
 		this->textEdit->append(Text);
 		
-	}
-
-	inline void writeResultText(const QString &Text){
-		if (!Text.isNull())
-			this->txt_output->append(Text);
 	}
 
 	inline void setTicks(uint xTicks, uint yTicks, bool update) {

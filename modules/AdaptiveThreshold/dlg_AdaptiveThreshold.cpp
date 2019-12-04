@@ -42,6 +42,9 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags 
 		this->ed_minSegmRange->setValidator(validator); 
 		this->ed_minSegmRange->setText(QString("%1").arg(0)); 
 		this->ed_maxThresholdRange->setReadOnly(true); 
+		bool setCompsVisible = false; 
+		enableComponents(setCompsVisible);
+
 		
 		Qt::WindowFlags flags = this->windowFlags();
 		flags |= Qt::Tool;
@@ -59,11 +62,17 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent/* = 0,*/, Qt::WindowFlags 
 	}
 }
 
+void AdaptiveThreshold::enableComponents(bool setCompsVisible)
+{
+	this->btn_loadData->setVisible(setCompsVisible);
+	this->btn_clearChart->setVisible(setCompsVisible);
+}
+
 void AdaptiveThreshold::setupUIActions()
 {
 	connect(this->btn_update, SIGNAL(clicked()), this, SLOT(UpdateChartClicked()));
 	connect(this->btn_loadData, SIGNAL(clicked()), this, SLOT(buttonLoadDataClicked()));
-	connect(this->btn_TestData, SIGNAL(clicked()), this, SLOT(createSampleSeries()));
+	/*connect(this->btn_TestData, SIGNAL(clicked()), this, SLOT(createSampleSeries()));*/
 	connect(this->btn_clearChart, SIGNAL(clicked()), this, SLOT(clear()));
 	connect(this->btn_resetGraph, SIGNAL(clicked()), this, SLOT(resetGraphToDefault()));
 	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(calculateMovingAverage()));
@@ -223,8 +232,6 @@ void AdaptiveThreshold::buttonSelectRangesClicked()
 	try
 	{
 		//load values from checkbox
-		
-		//
 		computeNormalizeAndComputeLokalPeaks(ranges);
 		return;
 			
@@ -257,7 +264,7 @@ void AdaptiveThreshold::computeNormalizeAndComputeLokalPeaks(threshold_defs::Pea
 				m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies,
 					m_NormalizedGlobalValueRangeXY, m_graphValuesScope.getxmin(), m_graphValuesScope.getXMax());
 
-				//t/*hreshold_defs::ThresMinMax resultingthrPeaks;*/
+				
 				m_resultingthrPeaks = determineLocalPeaks(ranges, m_resultingthrPeaks); //Peak Air (lokal Maxium) and Peak Min (lokal Min) are calculated
 				//m_ maxPeakMaterialRanges;
 				peakNormalization(m_maxPeakMaterialRanges, ranges, m_resultingthrPeaks);
@@ -265,8 +272,7 @@ void AdaptiveThreshold::computeNormalizeAndComputeLokalPeaks(threshold_defs::Pea
 				//here maybe update first maximum
 				//mininum peak
 
-				//bool updateResults = this->chckbx_LokalMinMax->isChecked();
-				
+								
 				calculateIntermediateResults(m_resultingthrPeaks,m_maxPeakMaterialRanges, false);
 
 				QColor cl_green = QColor(255, 0, 0);
@@ -276,8 +282,8 @@ void AdaptiveThreshold::computeNormalizeAndComputeLokalPeaks(threshold_defs::Pea
 				createVisualisation(m_paramRanges, m_resultingthrPeaks);
 				assignValuesToField(m_resultingthrPeaks);
 				this->chckbx_LokalMinMax->setEnabled(true);
-				this->writeResultText("\nAfter Normalisation\n");
-				this->writeResultText(m_resultingthrPeaks.resultsToString(false));
+				this->writeDebugText("\nAfter Normalisation\n");
+				this->writeDebugText(m_resultingthrPeaks.resultsToString(false));
 				runOnFirstTime = false; 
 			
 		}
@@ -360,8 +366,8 @@ void AdaptiveThreshold::calculateIntermediateResults(threshold_defs::ThresMinMax
 
 
 	//then minmaxnormalize x values for later intersection calculation; 
-	this->writeResultText("Before Normalisation\n");
-	this->writeResultText(resultingthrPeaks.resultsToString(false));
+	this->writeDebugText("Before Normalisation\n");
+	this->writeDebugText(resultingthrPeaks.resultsToString(false));
 
 	resultingthrPeaks.normalizeXValues(xminThr, xmaxThr);
 	m_thresCalculator.setCalculatedResults(resultingthrPeaks);
@@ -541,25 +547,26 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				m_thresCalculator.getFirstElemInRange(intersectionPoints, xmin, xmax, &ptIntersect);
 				m_thresCalculator.setIntersectionPoint(ptIntersect);
 
-				writeResultText("Determined threshold\n");
+				writeDebugText("Determined threshold\n");
 
 				QColor col = QColor(0, 255, 0);
 				QPointF p1 = QPointF(ptIntersect.x(), 0);
 				QPointF p2 = QPointF(ptIntersect.x(), 1000000);
 
 				auto* IntersectSeries = ChartVisHelper::createLineSeries(p1, p2, LineVisOption::horizontally);
-				txt_output->append(QString("intersection point 1% %2").arg(ptIntersect.x()).arg(ptIntersect.y()));
+				writeDebugText(QString("intersection point 1% %2").arg(ptIntersect.x()).arg(ptIntersect.y()));
+				/*txt_output->append(QString("intersection point 1% %2").arg(ptIntersect.x()).arg(ptIntersect.y()));*/
 
 				//Intersection is created; 
 				QPointF calcThresPoint = m_thresCalculator.determineResultingThreshold(m_thresCalculator.getResults());
 				 
 				if (ptIntersect.x() < 0 || (ptIntersect.x() > std::numeric_limits<float>::max())) {
-					writeResultText(QString("no intersection negative or inf, try again parametrisation"));
+					writeDebugText(QString("no intersection negative or inf, try again parametrisation"));
 					return;
 				}
 				
 				m_thresCalculator.SetResultingThreshold(calcThresPoint.x());
-				writeResultText(QString("P(x,y) %1 %2").arg(calcThresPoint.x()).arg(calcThresPoint.y()));
+				writeDebugText(QString("P(x,y) %1 %2").arg(calcThresPoint.x()).arg(calcThresPoint.y()));
 				//todo check for inf values
 
 				double resThres = m_thresCalculator.GetResultingThreshold();
@@ -571,7 +578,7 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				this->ed_maxThresholdRange->setText(QString("%1").arg(convertedThr));
 				m_thresCalculator.SetResultingThreshold(convertedThr); 
 				
-				this->writeResultText(QString("final converted grey value %1, normalised %2").arg(convertedThr).arg(resThres)) ; 
+				this->writeDebugText(QString("final converted grey value %1, normalised %2").arg(convertedThr).arg(resThres)) ; 
 				
 				IntersectSeries->setColor(col);
 				IntersectSeries->setName("Intersection Material with fmin/2");
@@ -592,7 +599,7 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 
 				
 				if (resThres < 0) {
-					writeResultText(QString("resulting segmentation threshold either negative or inf, try again parametrisation"));
+					writeDebugText(QString("resulting segmentation threshold either negative or inf, try again parametrisation"));
 					return;
 				}
 										   
@@ -951,7 +958,7 @@ void AdaptiveThreshold::buttonLoadHistDataClicked()
 	//retrieve thresholds and frequencies
 	//visualize it
 	this->textEdit->append("Loading histogram data\n");
-	QString text = "Histogram data";
+	QString text = "Grey value histogram data";
 	m_thresCalculator.retrieveHistData(); 
 	this->setInputData(m_thresCalculator.getThresBins(), m_thresCalculator.getFreqValsY()); 
 	this->prepareDataSeries(m_refSeries, m_greyThresholds, 
