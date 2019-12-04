@@ -326,7 +326,7 @@
                <item>
                 <widget class="QPushButton" name="btn_movingAverage">
                  <property name="text">
-                  <string>VisualizeMovingAverage</string>
+                  <string>Calculate Average</string>
                  </property>
                 </widget>
                </item>
@@ -358,7 +358,7 @@
                  <item>
                   <widget class="QGroupBox" name="groupBox_10">
                    <property name="title">
-                    <string>ThesholdRange1</string>
+                    <string>Range Lokal Maximum</string>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_21">
                     <item>
@@ -395,7 +395,7 @@
                  <item>
                   <widget class="QGroupBox" name="groupBox_11">
                    <property name="title">
-                    <string>Threshold_peakMax</string>
+                    <string>Range Global Maxiumum</string>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_22">
                     <item>
@@ -441,7 +441,7 @@
                <item>
                 <widget class="QPushButton" name="btn_selectRange">
                  <property name="text">
-                  <string>SelectRanges</string>
+                  <string>Select Ranges</string>
                  </property>
                 </widget>
                </item>
@@ -464,7 +464,7 @@
            <string>AText</string>
           </property>
           <property name="title">
-           <string>Optional Parameters</string>
+           <string>Manually define peaks</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_14">
            <item>
@@ -519,7 +519,7 @@
                <item>
                 <widget class="QGroupBox" name="groupBox_3">
                  <property name="title">
-                  <string>Specify Minimum Peak (x,y)</string>
+                  <string>Minimum Peak (x,y)</string>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_13">
                   <item>
@@ -548,32 +548,33 @@
               </layout>
              </item>
              <item>
-              <layout class="QVBoxLayout" name="verticalLayout_15"/>
+              <layout class="QVBoxLayout" name="verticalLayout_15">
+               <item>
+                <widget class="QCheckBox" name="chbxMaxPeakRanges">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="text">
+                  <string>Spefiy High Peak ranges</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="chckbx_LokalMinMax">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="text">
+                  <string>Specify values for Lokal Min / Max Peak</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
             </layout>
            </item>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_11">
-             <item>
-              <widget class="QCheckBox" name="chbxMaxPeakRanges">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="text">
-                <string>Spefiy High Peak ranges</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="chckbx_LokalMinMax">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="text">
-                <string>Specify values for Lokal Min / Max Peak</string>
-               </property>
-              </widget>
-             </item>
              <item>
               <widget class="QCheckBox" name="chbxMaxPeakRanges_2">
                <property name="enabled">
@@ -659,7 +660,7 @@
              <item>
               <widget class="QPushButton" name="btn_VisPoints">
                <property name="text">
-                <string>DetermineIntersectionAndFinalThreshold</string>
+                <string>Determine final threshold</string>
                </property>
               </widget>
              </item>
@@ -700,94 +701,97 @@
           <property name="title">
            <string>Output</string>
           </property>
-          <widget class="QWidget" name="layoutWidget">
-           <property name="geometry">
-            <rect>
-             <x>11</x>
-             <y>40</y>
-             <width>501</width>
-             <height>194</height>
-            </rect>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,1">
-            <item>
-             <widget class="QTextEdit" name="txt_output">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="groupBox_9">
-              <property name="title">
-               <string>Grey value range segmentation (unnormalised)</string>
-              </property>
-              <widget class="QWidget" name="layoutWidget">
-               <property name="geometry">
-                <rect>
-                 <x>0</x>
-                 <y>30</y>
-                 <width>196</width>
-                 <height>77</height>
-                </rect>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,0">
+             <item>
+              <widget class="QTextEdit" name="txt_output">
+               <property name="enabled">
+                <bool>true</bool>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_20">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="groupBox_9">
+               <property name="title">
+                <string>Grey value range segmentation (unnormalised)</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_3">
                 <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_7">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_11">
-                    <item>
-                     <widget class="QLineEdit" name="ed_minSegmRange">
-                      <property name="enabled">
-                       <bool>false</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label_17">
-                      <property name="text">
-                       <string>MinRange</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_13">
-                    <item>
-                     <widget class="QLineEdit" name="ed_maxThresholdRange">
-                      <property name="enabled">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label_18">
-                      <property name="text">
-                       <string>MaxRange</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <widget class="QCheckBox" name="checkBox_excludeThreshold">
-                  <property name="text">
-                   <string>Specify Start Range</string>
+                 <widget class="QGroupBox" name="groupBox_7">
+                  <property name="title">
+                   <string>Final segmentation interval (Threshold)</string>
                   </property>
+                  <widget class="QWidget" name="layoutWidget">
+                   <property name="geometry">
+                    <rect>
+                     <x>10</x>
+                     <y>20</y>
+                     <width>196</width>
+                     <height>77</height>
+                    </rect>
+                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_20">
+                    <item>
+                     <layout class="QVBoxLayout" name="verticalLayout_7">
+                      <item>
+                       <layout class="QHBoxLayout" name="horizontalLayout_11">
+                        <item>
+                         <widget class="QLineEdit" name="ed_minSegmRange">
+                          <property name="enabled">
+                           <bool>false</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="label_17">
+                          <property name="text">
+                           <string>Start</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                      <item>
+                       <layout class="QHBoxLayout" name="horizontalLayout_13">
+                        <item>
+                         <widget class="QLineEdit" name="ed_maxThresholdRange">
+                          <property name="enabled">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="label_18">
+                          <property name="text">
+                           <string>End</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_excludeThreshold">
+                      <property name="text">
+                       <string>Specify Start Range</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
                  </widget>
                 </item>
                </layout>
               </widget>
-             </widget>
-            </item>
-           </layout>
-          </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>
@@ -851,7 +855,7 @@
           <bool>false</bool>
          </property>
          <property name="text">
-          <string>PerfomSegmenation</string>
+          <string>Perfom Segmenation</string>
          </property>
         </widget>
        </item>
