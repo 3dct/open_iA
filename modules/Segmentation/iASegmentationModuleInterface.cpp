@@ -50,7 +50,10 @@ void iASegmentationModuleInterface::Initialize()
 
 	REGISTER_FILTER(iAFCMFilter);
 	REGISTER_FILTER(iAKFCMFilter);
+#if ITK_VERSION_MAJOR < 5
+// MSKFCM filter is implemented with the help of itk Barriers, which got removed with ITK 5
 	REGISTER_FILTER(iAMSKFCMFilter);
+#endif
 
 	REGISTER_FILTER(iACannySegmentationLevelSet);
 	REGISTER_FILTER(iALaplacianSegmentationLevelSet);

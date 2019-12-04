@@ -22,6 +22,8 @@
 
 #include <iAFilter.h>
 
+#include <itkConfigure.h>    // for ITK_VERSION_MAJOR
+
 typedef iAAttributeDescriptor ParamDesc;
 
 class iAFCMFilter : public iAFilter
@@ -44,6 +46,7 @@ private:
 	iAKFCMFilter();
 };
 
+#if ITK_VERSION_MAJOR < 5
 class iAMSKFCMFilter : public iAFilter
 {
 public:
@@ -53,3 +56,4 @@ public:
 private:
 	iAMSKFCMFilter();
 };
+#endif

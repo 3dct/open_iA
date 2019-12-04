@@ -18,6 +18,9 @@
 #ifndef __itkMSKFCMClassifierInitializationImageFilter_h
 #define __itkMSKFCMClassifierInitializationImageFilter_h
 
+#include <itkConfigure.h>    // for ITK_VERSION_MAJOR
+#if ITK_VERSION_MAJOR < 5
+
 #include "itkFuzzyClassifierInitializationImageFilter.h"
 #include "itkRBFKernelInducedDistanceMetric.h"
 #include "itkFlatStructuringElement.h"
@@ -27,14 +30,10 @@
 #include <itkArray.h>
 #include <itkConstShapedNeighborhoodIterator.h>
 #include <itkNumericTraits.h>
-#if ITK_VERSION_MAJOR < 5
 #include <itkFastMutexLock.h>
 #include <itkBarrier.h>
 #include <itkMultiThreader.h>
-#else
-#include <itkMultiThreaderBase.h>
-#include <mutex>
-#endif
+
 #include <vector>
 
 namespace itk
@@ -156,7 +155,6 @@ public:
   typedef typename itk::Vector< unsigned int,
     itkGetStaticConstMacro(InputImageDimension) > NeighborhoodRadiusType;
 
-#if ITK_VERSION_MAJOR < 5
   /** Type definitions for mutex lock. Mutex lock allows the locking of
    * variables which are accessed through different threads. */
   typedef itk::FastMutexLock MutexLockType;
@@ -164,10 +162,6 @@ public:
   /** Type definitions for barrier class used to synchronize threaded
    * execution. */
   typedef itk::Barrier BarrierType;
-#else
-  typedef std::mutex MutexLockType;
-#endif
-
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -286,16 +280,12 @@ protected:
   /** Pointer to the kernel distance metric to be used. */
   KernelDistanceMetricPointer m_KernelDistanceMetric;
 
-#if ITK_VERSION_MAJOR < 5
   /** Mutex lock used to protect the modification of attributes wich are
    * accessed through different threads. */
   MutexLockType::Pointer m_CentroidsModificationAttributesLock;
 
   /** Standard barrier for synchronizing the execution of threads. */
   BarrierType::Pointer m_Barrier;
-#else
-  MutexLockType m_CentroidsModificationAttributesLock;
-#endif
 
   /** Structuring element of the shaped neighborhood iterator*/
   StructuringElementType m_StructuringElement;
@@ -331,5 +321,7 @@ private:
 #ifndef ITK_MANUAL_INSTANTIATION
 #include "itkMSKFCMClassifierInitializationImageFilter.txx"
 #endif
+
+#endif  // ITK_VERSION_MAJOR < 5
 
 #endif // __itkMSKFCMClassifierInitializationImageFilter_h

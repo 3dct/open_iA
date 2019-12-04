@@ -31,7 +31,10 @@
 #include <itkFCMClassifierInitializationImageFilter.h>
 #include <itkFuzzyClassifierImageFilter.h>
 #include <itkKFCMSClassifierInitializationImageFilter.h>
+#if ITK_VERSION_MAJOR < 5
+// MSKFCM filter is implemented with the help of itk Barriers, which got removed with ITK 5
 #include <itkMSKFCMClassifierInitializationImageFilter.h>
+#endif
 #include <itkVectorImage.h>
 #include <itkVectorIndexSelectionCastImageFilter.h>
 
@@ -262,6 +265,7 @@ void iAKFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
 
 // MSKFCM
 
+#if ITK_VERSION_MAJOR < 5
 IAFILTER_CREATE(iAMSKFCMFilter)
 
 iAMSKFCMFilter::iAMSKFCMFilter() :
@@ -352,3 +356,4 @@ void iAMSKFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(mskfcm, inputPixelType(), this, parameters);
 }
+#endif
