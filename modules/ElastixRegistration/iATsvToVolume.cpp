@@ -18,7 +18,7 @@
 QList<float> process_line(QStringList line) {
 
 	QList<float> data;
-	for each (QString value in line)
+	for(QString value : line)
 	{
 		std::string::size_type sz;
 		data.append(std::stof(value.toStdString(), &sz));
@@ -30,7 +30,7 @@ QList<float> getMax(QList<QList<float>> image) {
 
 	QList<float> data;
 	float x=0, y=0, z=0;
-	for each (QList<float> values in image)
+	for(QList<float> values : image)
 	{
 		x = x < values[1] ? values[1] : x;
 		y = y < values[2] ? values[2] : y;
