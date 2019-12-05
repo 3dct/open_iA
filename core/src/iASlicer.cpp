@@ -1925,7 +1925,7 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 		{   // toggle between interaction modes:
 			case Normal   : switchInteractionMode(SnakeEdit); break;
 			case SnakeEdit: switchInteractionMode(/*SnakeShow*/Normal); break;
-//			case SnakeShow: switchInteractionMode(Normal);    break;
+			case SnakeShow: switchInteractionMode(Normal);    break;
 		}
 		// let other slice views know that interaction mode changed
 		emit switchedMode(m_interactionMode);
