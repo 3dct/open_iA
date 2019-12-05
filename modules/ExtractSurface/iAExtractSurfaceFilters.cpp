@@ -24,7 +24,7 @@
 
 #include <iAConnector.h>
 #include <iAProgress.h>
-
+#include <vtkCleanPolyData.h>
 #include <vtkDecimatePro.h>
 #include <vtkFlyingEdges3D.h>
 #include <vtkImageData.h>
@@ -35,12 +35,35 @@
 #include <vtkSmoothPolyDataFilter.h>
 #include <vtkSTLWriter.h>
 #include <vtkWindowedSincPolyDataFilter.h>
+#include <vtkFillHolesFilter.h>
+#include "TriangulationFilter.h"
+#include "iAConsole.h"
 
 void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 {
-	vtkSmartPointer<vtkPolyDataAlgorithm> surfaceFilter;
+	vtkSmartPointer<vtkPolyDataAlgorithm> surfaceFilter = vtkSmartPointer<vtkPolyDataAlgorithm>::New();
+	TriangulationFilter surfaceGenFilter; 
 
-	if (parameters["Algorithm"].toString() == "Marching Cubes")
+
+
+	surfaceFilter = surfaceGenFilter.surfaceFilterParametrisation
+	(parameters, input()[0]->vtkImage(), progress()); 
+	
+	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
+	progress()->observe(stlWriter);
+	stlWriter->SetFileName(getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());
+
+	if (!surfaceFilter) { 
+		DEBUG_LOG("Generated surface filter is null");
+		return; 
+	}
+
+
+	progress()->observe(stlWriter);
+	stlWriter->SetFileName(getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());
+
+
+	/*if (parameters["Algorithm"].toString() == "Marching Cubes")
 	{
 		auto marchingCubes = vtkSmartPointer<vtkMarchingCubes>::New();
 		progress()->observe(marchingCubes);
@@ -64,9 +87,21 @@ void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 		flyingEdges->SetArrayComponent(0);
 		surfaceFilter = flyingEdges;
 	}
+*/
+	vtkSmartPointer<vtkPolyDataAlgorithm> simplifyFilter = vtkSmartPointer<vtkPolyDataAlgorithm>::New();
 
-	vtkSmartPointer<vtkPolyDataAlgorithm> simplifyFilter;
-	if (parameters["Simplification Algorithm"].toString() == "Decimate Pro")
+	//if ()
+
+	if (parameters["Simplification Algorithm"].toString() == "None")
+	{
+		stlWriter->SetInputConnection(surfaceFilter->GetOutputPort());
+	}
+	else {
+
+		simplifyFilter = surfaceGenFilter.pointsDecimation(parameters, surfaceFilter, progress());
+		stlWriter->SetInputConnection(simplifyFilter->GetOutputPort());
+	}
+	/*if (parameters["Simplification Algorithm"].toString() == "Decimate Pro")
 	{
 		auto decimatePro = vtkSmartPointer<vtkDecimatePro>::New();
 		progress()->observe(decimatePro);
@@ -86,7 +121,8 @@ void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 		quadricClustering->SetNumberOfZDivisions(parameters["Cluster divisions"].toUInt());
 		quadricClustering->SetInputConnection(surfaceFilter->GetOutputPort());
 		simplifyFilter = quadricClustering;
-	}
+	}*/
+
 	/*
 	// smoothing?
 	vtkSmartPointer<vtkWindowedSincPolyDataFilter> sincFilter;
@@ -106,7 +142,7 @@ void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 		output = sincFilter->GetOutputPort();
 	}
 	*/
-	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
+	/*auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 	progress()->observe(stlWriter);
 	stlWriter->SetFileName( getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());
 	if (parameters["Simplification Algorithm"].toString() == "None")
@@ -116,7 +152,7 @@ void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 	else
 	{
 		stlWriter->SetInputConnection(simplifyFilter->GetOutputPort());
-	}
+	}*/
 	stlWriter->Write();
 }
 
@@ -151,6 +187,126 @@ iAMarchingCubes::iAMarchingCubes() :
 	addParameter("Boundary Vertex Deletion", Boolean, true);
 	addParameter("Decimation Target", Continuous, 0.9);
 	addParameter("Cluster divisions", Discrete, 128);
+	//addParameter("Smooth windowed sync", Boolean, false);
+	//addParameter("Sinc iterations", Discrete, 1);
+	//addParameter("Smooth poly", Boolean, false);
+	//addParameter("Poly iterations", Discrete, 1);
+}
+
+void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
+
+	vtkSmartPointer<vtkPolyDataAlgorithm> surfaceFilter = vtkSmartPointer<vtkPolyDataAlgorithm>::New();
+	TriangulationFilter surfaceGenFilter;
+
+
+
+	surfaceFilter = surfaceGenFilter.surfaceFilterParametrisation
+	(parameters, input()[0]->vtkImage(), progress());
+
+	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
+
+	progress()->observe(stlWriter);
+	stlWriter->SetFileName(getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());
+
+	if (!surfaceFilter) {
+		DEBUG_LOG("Generated surface filter is null");
+		return;
+	}
+
+
+	/*progress()->observe(stlWriter);
+	stlWriter->SetFileName(getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());*/
+	
+
+	vtkSmartPointer<vtkPolyDataAlgorithm> simplifyFilter = vtkSmartPointer<vtkPolyDataAlgorithm>::New();
+	vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+	//if ()
+
+	if (parameters["Simplification Algorithm"].toString() == "None")
+	{
+		cleaner->SetInputConnection(surfaceFilter->GetOutputPort());
+		//stlWriter->SetInputConnection(surfaceFilter->GetOutputPort());
+	}
+	else {
+
+		simplifyFilter = surfaceGenFilter.pointsDecimation(parameters, surfaceFilter, progress());
+		//stlWriter->SetInputConnection(simplifyFilter->GetOutputPort());
+		cleaner->SetInputConnection(simplifyFilter->GetOutputPort());
+
+	}
+
+	auto cleanTol = parameters["CleanTolerance"].toDouble();
+	cleaner->SetTolerance(cleanTol);
+	//clean duplicated points
+	cleaner->Update(); 
+	DEBUG_LOG("perfom delauy3d"); 
+	double alpha = parameters["Alpha"].toDouble();
+	double offset = parameters["Offset"].toDouble(); 
+	double tolerance = parameters["Tolerance"].toDouble();
+
+	DEBUG_LOG(QString("%1").arg(alpha)); 
+
+	auto delaunyFilter = surfaceGenFilter.performDelaunay(parameters, cleaner, alpha,offset,tolerance, progress());
+	/*auto fillHoles = vtkSmartPointer<vtkFillHolesFilter>::New();
+	fillHoles->SetInputConnection(delaunyFilter->GetOutputPort());
+	fillHoles->Update();*/
+	//auto polydata = fillHoles->GetOutput();
+
+	//if (!polydata) {
+	//	"Debug log returned polydata is null"; 
+	//	return;
+	//}
+
+	auto smoothing = surfaceGenFilter.Smoothing(delaunyFilter);
+
+	stlWriter->SetInputData(smoothing->GetOutput());
+	stlWriter->Write(); 
+	//stlWriter->SetInputConnection(surfaceFilter->GetOutputPort());
+	//	TriangulationFilter.performDelaunay()
+	
+	
+}
+
+
+IAFILTER_CREATE(iATriangulation);
+
+iATriangulation::iATriangulation() :
+	iAFilter("Surface triangulation", "Extract Surface",
+		"Extracts a surface along the specified iso value.<br/>"
+		"A surface is extracted at the given Iso value, either using marching cubes or "
+		"flying edges algorithm. The mesh is subsequently simplified using either "
+		"a quadric clustering or the DecimatePro algorithm.<br/>"
+		"Based on the thing the surface will be triangulated by means of the Delaunay3D-Algorithm"
+		"<a href=\"https://vtk.org/doc/nightly/html/classvtkDelaunay3D.html\"> "
+		"cf. Delaunay3D </a>"
+		"For more information, see the "
+		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkMarchingCubes.html\">"
+		"Marching Cubes Filter</a>, the "
+		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkFlyingEdges3D.html\">"
+		"Flying Edges 3D Filter</a>, the "
+		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkDecimatePro.html\">"
+		"Decimate Pro Filter</a>, and the "
+		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkQuadricClustering.html\">"
+		"Quadric Clustering Filter</a> in the VTK documentation.")
+
+{
+	QStringList AlgorithmNames;
+	AlgorithmNames << "Marching Cubes" << "Flying Edges";
+	addParameter("Extraction Algorithm", Categorical, AlgorithmNames);
+	addParameter("Iso value", Continuous, 1);
+	addParameter("STL output filename", String, "");
+	QStringList SimplificationAlgorithms;
+	SimplificationAlgorithms << "Quadric Clustering" << "Decimate Pro" << "None";
+	addParameter("Simplification Algorithm", Categorical, SimplificationAlgorithms);
+	addParameter("Preserve Topology", Boolean, true);
+	addParameter("Splitting", Boolean, true);
+	addParameter("Boundary Vertex Deletion", Boolean, true);
+	addParameter("Decimation Target", Continuous, 0.9);
+	addParameter("Cluster divisions", Discrete, 128);
+	addParameter("Alpha", Continuous, 0); 
+	addParameter("Offset", Continuous, 0); 
+	addParameter("Tolerance", Continuous, 0.001);
+	addParameter("CleanTolerance", Continuous, 0);
 	//addParameter("Smooth windowed sync", Boolean, false);
 	//addParameter("Sinc iterations", Discrete, 1);
 	//addParameter("Smooth poly", Boolean, false);
