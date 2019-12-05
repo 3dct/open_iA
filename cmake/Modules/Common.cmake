@@ -154,6 +154,9 @@ ELSE()
 	ENDIF()
 	LIST (APPEND VTK_COMPONENTS vtkGUISupportQtOpenGL)    # for QVTKWidget2
 ENDIF()
+IF ("${vtkRenderingOSPRay_LOADED}")
+	ADD_DEFINITIONS(-DVTK_OSPRAY_AVAILABLE)
+ENDIF()
 
 FUNCTION (ExtractVersion filename identifier output_varname)
 	FILE (STRINGS "${filename}" MYLINE REGEX "${identifier}")

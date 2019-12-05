@@ -72,6 +72,11 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 	ed_SpecularLighting->setText(QString::number(vs.SpecularLighting));
 	ed_SpecularPower->setText(QString::number(vs.SpecularPower));
 	ed_ScalarOpacityUnitDistance->setText(QString::number(vs.ScalarOpacityUnitDistance));
+
+	for (QString item: RenderModeMap().values())
+	{
+		cb_RenderMode->addItem(item);
+	}
 	cb_RenderMode->setCurrentText(RenderModeMap().value(vs.RenderMode));
 
 	connect(pbOK, SIGNAL(clicked()), this, SLOT(OKButtonClicked()));

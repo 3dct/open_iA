@@ -258,23 +258,7 @@
          </widget>
         </item>
         <item row="8" column="1">
-         <widget class="QComboBox" name="cb_RenderMode">
-          <item>
-           <property name="text">
-            <string>DefaultRenderMode</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>RayCastRenderMode</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>GPURenderMode</string>
-           </property>
-          </item>
-         </widget>
+         <widget class="QComboBox" name="cb_RenderMode"/>
         </item>
         <item row="8" column="0">
          <widget class="QLabel" name="label_4">
