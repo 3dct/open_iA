@@ -48,7 +48,6 @@
 #include "mdichild.h"
 
 #include <vtkActor.h>
-//#include <vtkAlgorithmOutput.h>
 #include <vtkAxisActor2D.h>
 #include <vtkCamera.h>
 #include <vtkCommand.h>
@@ -66,7 +65,6 @@
 #include <vtkImageResample.h>
 #include <vtkImageReslice.h>
 #include <vtkInteractorStyleImage.h>
-//#include <vtkInteractorStyleTrackballActor.h>
 #include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
@@ -135,7 +133,6 @@ public:
 		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey()) {
 			return;
 		}
-
 		vtkInteractorStyleImage::OnMouseWheelBackward();
 	}
 	//! @}
@@ -168,13 +165,8 @@ public:
 	}
 	*/
 
-	void setiAslicer(iASlicer * pointerAiSlicer) {
-		m_pointerAiSlicer = pointerAiSlicer;
-	}
-
 private:
 	bool m_rightButtonDragZoomEnabled = true;
-	iASlicer * m_pointerAiSlicer;
 };
 
 vtkStandardNewMacro(iAInteractorStyleImage);
@@ -248,9 +240,6 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_interactor->SetPicker(m_pointPicker);
 	m_interactor->Initialize();
 	m_interactorStyle->SetDefaultRenderer(m_ren);
-
-	// Set Slicer for scrolling with Mousewheel 
-	m_interactorStyle->setiAslicer(this);
 
 	iAObserverRedirect* redirect(new iAObserverRedirect(this));
 	m_interactor->AddObserver(vtkCommand::LeftButtonPressEvent, redirect);
