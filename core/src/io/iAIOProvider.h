@@ -24,14 +24,7 @@
 
 class QString;
 
-/**
-* class which (at some point in the future)
-* provides simple access to asynchronous,
-* pluggable IO operations.
-*
-* For the moment, collection of helper methods
-* around IO.
-*/
+//! Class which provides helper methods around IO.
 class open_iA_Core_API iAIOProvider
 {
 public:

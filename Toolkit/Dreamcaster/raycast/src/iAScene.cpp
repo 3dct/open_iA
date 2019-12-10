@@ -235,7 +235,7 @@ int iAScene::initScene(iAModelData & mdata, iADreamCasterSettings * s, QString c
 	{
 		pr = new iATriPrim(mdata.stlMesh[i], i);
 		m_tris.push_back(pr);
-	}/**/
+	}
 	m_bsp = new iABSPTree;
 	if (filename.isEmpty())
 	{

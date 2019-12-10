@@ -547,11 +547,9 @@ const int DATASET = 0;
 const int GROUP = 1;
 const int OTHER = 2;
 
-/**
-This function recursively searches the linked list of
-opdata structures for one whose address matches
-target_addr.  Returns 1 if a match is found, and 0
-otherwise. */
+//! This function recursively searches the linked list of opdata structures
+//! for one whose address matches target_addr.  Returns 1 if a match is
+//! found, and 0 otherwise.
 int group_check(struct opdata *od, haddr_t target_addr)
 {
 	if (od->addr == target_addr)

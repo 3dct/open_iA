@@ -90,24 +90,22 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 
 namespace
 {
-	/**
-	 * Calculate an entropy image out of a given collection of images.
-	 *
-	 * For each voxel, the given collection is interpreted as separate probability distribution
-	 * @param distribution the collection of images considered as probability distribution
-	 * @param normalize whether to normalize the entropy to the range [0..1]
-	 *        the maximum entropy appears when there is equal distribution among all alternatives
-	 *        (i.e. if distribution has N elements, then the entropy is maximum for a voxel if all
-	 *        values of the distribution for that voxel have the value 1/N)
-	 * @param probFactor factor to apply to the elements of distribution before calculating the entropy
-	 *        from it. This is useful if the given distribution does not contain probabilities, but
-	 *        e.g. a "histogram", that is, a number of occurences of that particular value among the
-	 *        set for which the entropy should be calculated. In that case, specify 1/(size of set)
-	 *        as factor
-	 * @return the entropy for each voxel in form of an image with pixel type double
-	 *        in case that the given distribution was empty, an empty smart ptr will be returned
-	 *        (equivalent of null).
-	 */
+	//! Calculate an entropy image out of a given collection of images.
+	//!
+	//! For each voxel, the given collection is interpreted as separate probability distribution
+	//! @param distribution the collection of images considered as probability distribution
+	//! @param normalize whether to normalize the entropy to the range [0..1]
+	//!        the maximum entropy appears when there is equal distribution among all alternatives
+	//!        (i.e. if distribution has N elements, then the entropy is maximum for a voxel if all
+	//!        values of the distribution for that voxel have the value 1/N)
+	//! @param probFactor factor to apply to the elements of distribution before calculating the entropy
+	//!        from it. This is useful if the given distribution does not contain probabilities, but
+	//!        e.g. a "histogram", that is, a number of occurences of that particular value among the
+	//!        set for which the entropy should be calculated. In that case, specify 1/(size of set)
+	//!        as factor
+	//! @return the entropy for each voxel in form of an image with pixel type double
+	//!        in case that the given distribution was empty, an empty smart ptr will be returned
+	//!        (equivalent of null).
 	template <typename TImage>
 	DoubleImage::Pointer CalculateEntropyImage(QVector<typename TImage::Pointer> distribution, bool normalize = true, double probFactor = 1.0)
 	{

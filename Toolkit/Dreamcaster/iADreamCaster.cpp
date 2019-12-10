@@ -1251,7 +1251,7 @@ void iADreamCaster::UpdateHistogramSlot()
 		app->processEvents();
 	}
 	hist->initialize(&values[0], numIntervals, dataRange);
-	hist->drawHistogram();/**/
+	hist->drawHistogram();
 	// DumpUnfreed();
 	// SetMemLeakCheckActive(false);
 }

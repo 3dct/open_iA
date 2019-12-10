@@ -34,12 +34,11 @@ public:
 };
 
 
-/**
- * builds a graph for an image with the given dimensions, where each pixel/voxel is
- * representing a vertex, and neighbouring pixels / voxels are connected via edges
- * (where neighbouring is at the moment defined as von-Neumann-neighbourhood, i.e.
- * those pixels with a Manhattan distance of 1)
- */
+//! Builds a graph for an image.
+//! The image is specified via the given dimensions, where each pixel/voxel is
+//! representing a vertex, and neighbouring pixels / voxels are connected via edges
+//! (where neighbouring is at the moment defined as von-Neumann-neighbourhood, i.e.
+//! those pixels with a Manhattan distance of 1).
 class iAImageGraph
 {
 public:

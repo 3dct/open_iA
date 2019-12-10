@@ -25,7 +25,9 @@
 
 #include "open_iA_Core_export.h"
 
-
+//! An image which allows the user to specify min/max of scalar range.
+//! Required e.g. in situations where the scalar range of the raw image data
+//! is modified behind VTK's back (e.g. by settings pixels via drawPixel method)
 class open_iA_Core_API iAvtkImageData : public vtkImageData
 {
 public:
@@ -39,27 +41,20 @@ public:
 	}
 };
 
-/**
- * change a single pixel in the image
- * don't forget to call Modified() on the image,
- * and if the scalar range changed, to update the scalar range!
- * (unfortunately that seems to require a dirty hack at the moment,
- * see iAvtkImageData above)
- */
+//! Change a single pixel in the given image.
+//! Don't forget to call Modified() on the image, and if the scalar range
+//! changed, to update the scalar range (unfortunately that seems to require a
+//! "dirty hack" at the moment, see iAvtkImageData above).
 template <typename T>
 void drawPixel(vtkImageData* img, int x, int y, int z, T c);
 
-/**
- * draw a line in the image
- * see the notes for drawPixel
- */
+//! Draw a line in the given image.
+//! See the notes for drawPixel regarding Modified().
 template <typename T>
 void drawLine(vtkImageData* img, int x1, int y1, int x2, int y2, T c);
 
-/**
-* set all pixels in the image to the given value
-* see the notes for drawPixel
-*/
+//! Set all pixels in the given image to the given value
+//! See the notes for drawPixel regarding Modified().
 template <typename T>
 void clearImage(vtkImageData* img, T c);
 

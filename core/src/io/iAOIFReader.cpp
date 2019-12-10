@@ -68,12 +68,11 @@ DEALINGS IN THE SOFTWARE.
 */
 
 // BEGIN COMPATIBILITY
-/**
- * This file is used for compatibility across windows and mac/linux platforms.
- * This is specific to FLuoRender Code.
- * @author Brig Bagley
- * @version 4 March 2014
- */
+
+// some code for compatibility across windows and mac/linux platforms.
+// This is specific to FLuoRender Code.
+// @author Brig Bagley
+// @version 4 March 2014
 #ifdef _WIN32 //WINDOWS ONLY
 #include <cstdlib>
 #include <cstdio>

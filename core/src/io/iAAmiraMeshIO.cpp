@@ -42,11 +42,10 @@
 const int VTKLabelType = VTK_UNSIGNED_CHAR;
 typedef unsigned char LabelType;
 
-/** Find a string in the given buffer and return a pointer
-to the contents directly behind the SearchString.
-If not found, return the buffer. A subsequent sscanf()
-will fail then, but at least we return a decent pointer.
-*/
+//! Find a string in the given buffer and return a pointer to the contents
+//! directly behind the SearchString.
+//! If not found, return the buffer. A subsequent sscanf()
+//! will fail then, but at least we return a decent pointer.
 const char* FindAndJump(const char* buffer, const char* SearchString)
 {
 	const char* FoundLoc = strstr(buffer, SearchString);
