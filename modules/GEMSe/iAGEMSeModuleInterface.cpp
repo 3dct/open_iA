@@ -20,8 +20,12 @@
 * ************************************************************************************/
 #include "iAGEMSeModuleInterface.h"
 
+#include "iAConnector.h"
+#include "iAFilter.h"
+#include "iAFilterRegistry.h"
 #include "iAGEMSeAttachment.h"
 #include "iAGEMSeProject.h"
+#include "iARepresentative.h"
 #include "iASEAFile.h"
 
 #include <dlg_modalities.h>
@@ -35,6 +39,27 @@
 
 #include <cassert>
 
+IAFILTER_DEFAULT_CLASS(iADifferenceMarker);
+
+IAFILTER_CREATE(iADifferenceMarker);
+
+iADifferenceMarker::iADifferenceMarker():
+	iAFilter("Difference marker", "Intensity", "Computes an image where differences are marked with the given marker value.<br/>"
+		"<em>Difference marker value</em> specifies the intensity value that should be used to mark regions"
+		"where the two given images deviate. Where the images are the same, "
+		"this same value will be used in the output image as well.", 2)
+{
+	addParameter("Difference marker value", Continuous);
+}
+
+void iADifferenceMarker::performWork(QMap<QString, QVariant> const & params)
+{
+	QVector<iAITKIO::ImagePointer> imgs;
+	imgs.push_back(input()[0]->itkImage());
+	imgs.push_back(input()[1]->itkImage());
+	auto out = CalculateDifferenceMarkers(imgs, params["Difference marker value"].toDouble());
+	addOutput(out);
+}
 
 iAGEMSeModuleInterface::iAGEMSeModuleInterface():
 	m_toolbar(0)
@@ -42,6 +67,8 @@ iAGEMSeModuleInterface::iAGEMSeModuleInterface():
 
 void iAGEMSeModuleInterface::Initialize()
 {
+	REGISTER_FILTER(iADifferenceMarker);
+
 	if (!m_mainWnd)
 		return;
 
