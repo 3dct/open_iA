@@ -45,6 +45,8 @@ IAFILTER_CREATE(iADifferenceMarker);
 
 iADifferenceMarker::iADifferenceMarker():
 	iAFilter("Difference marker", "Intensity", "Computes an image where differences are marked with the given marker value.<br/>"
+		"The filter is meant for labelled images; both input images are required to have the same data type. "
+		"It also works for any other voxel data types, but for "
 		"<em>Difference marker value</em> specifies the intensity value that should be used to mark regions"
 		"where the two given images deviate. Where the images are the same, "
 		"this same value will be used in the output image as well.", 2)
@@ -58,7 +60,14 @@ void iADifferenceMarker::performWork(QMap<QString, QVariant> const & params)
 	imgs.push_back(input()[0]->itkImage());
 	imgs.push_back(input()[1]->itkImage());
 	auto out = CalculateDifferenceMarkers(imgs, params["Difference marker value"].toDouble());
-	addOutput(out);
+	if (!out)
+	{
+		addMsg("No output generated, check additional messages in debug log.");
+	}
+	else
+	{
+		addOutput(out);
+	}
 }
 
 iAGEMSeModuleInterface::iAGEMSeModuleInterface():

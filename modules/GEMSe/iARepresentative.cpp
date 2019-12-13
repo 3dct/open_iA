@@ -31,7 +31,13 @@ void diff_marker_tmpl(QVector<iAITKIO::ImagePointer> imgsBase, double difference
 	QVector<ImgType*> imgs;
 	for (int i = 0; i < imgsBase.size(); ++i)
 	{
-		imgs.push_back(dynamic_cast<ImgType*>(imgsBase[i].GetPointer()));
+		auto ptr = dynamic_cast<ImgType*>(imgsBase[i].GetPointer());
+		if (!ptr)
+		{
+			DEBUG_LOG("Differnce Marker: Invalid type conversion - images must have same type!");
+			return;
+		}
+		imgs.push_back(ptr);
 	}
 	typename ImgType::Pointer out = createImage<ImgType>(imgs[0]);
 	typename iAITKIO::ImageBaseType::RegionType reg = imgs[0]->GetLargestPossibleRegion();
