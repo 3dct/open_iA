@@ -459,7 +459,7 @@ double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		similarity = 1 - getOverlap(fiber1raw, fiber2, true, false);
 		break;
 
-	// measure in both directions and take minimum?
+	// one-sided distance:
 	case 8:
 		similarity = getPtToSegDistance(fiber1raw, fiber2, 0);
 		break;
@@ -472,6 +472,8 @@ double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	case 11:
 		similarity = getPtToSegDistance(fiber1raw, fiber2, 3);
 		break;
+
+	// measure in both directions and take minimum:
 	case 12:
 		similarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 0), getPtToSegDistance(fiber2, fiber1raw, 0));
 		break;
@@ -484,6 +486,8 @@ double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	case 15:
 		similarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 3), getPtToSegDistance(fiber2, fiber1raw, 3));
 		break;
+
+	// measure in both directions and take maximum:
 	case 16:
 		similarity = std::max(getPtToSegDistance(fiber1raw, fiber2, 0), getPtToSegDistance(fiber2, fiber1raw, 0));
 		break;
