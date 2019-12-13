@@ -75,9 +75,6 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 	auto interpolator = InterpolatorType::New();
 	interpolator->SetInputImage(img);
 	typename TransformType::ParametersType params(transform->GetNumberOfParameters());
-	filter->addMsg(QString("ROI[Origin_XYZ; SIZE_XYZ] = [%1, %2, %3; %4, %5, %6]")
-		.arg(index[0]).arg(index[1]).arg(index[2])
-		.arg(size[0]).arg(size[1]).arg(size[2]));
 	double range = 0, imgMean = 0, imgVar = 0, refMean = 0, refVar = 0, mse = 0;
 	if (parameters["Peak Signal-to-Noise Ratio"].toBool() ||
 		parameters["Structural Similarity Index"].toBool() ||
