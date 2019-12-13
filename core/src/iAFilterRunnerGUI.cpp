@@ -276,6 +276,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	auto mdiChild = filter->outputCount() > 0 ?
 		mainWnd->resultChild(sourceMdi, filter->outputName(0, filter->name() + " " + oldTitle)) :
 		sourceMdi;
+	filter->setLogger(mdiChild->logger());
 	if (!mdiChild)
 	{
 		mainWnd->statusBar()->showMessage("Cannot create result child!", 5000);
