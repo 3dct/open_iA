@@ -380,6 +380,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 # Compiler Flags
 #-------------------------
 IF (MSVC)
+	ADD_COMPILE_OPTIONS(/arch:AVX)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /EHsc")  # multi-processor compilation and common exception handling strategy
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 	ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
@@ -407,8 +408,8 @@ IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 		MESSAGE(WARNING "The used compiler ${CMAKE_CXX_COMPILER} has no C++0x/11 support. Please use a newer C++ compiler.")
 	ENDIF()
 
-	set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -msse4.1 -fpermissive -fopenmp -march=core2 -O2")
-	set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -msse4.1 -fopenmp -march=core2 -O2")
+	set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -fpermissive -fopenmp -march=core2 -O2 -msse4.2 -mavx")
+	set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -fopenmp -march=core2 -O2 -msse4.2 -mavx")
 ENDIF()
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
