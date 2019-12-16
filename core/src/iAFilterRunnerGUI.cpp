@@ -48,13 +48,11 @@ class vtkImageData;
 
 // iAFilterRunnerGUIThread
 
-
 iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild) :
 	iAAlgorithm(filter->name(), mdiChild->imagePointer(), mdiChild->polyData(), mdiChild->logger(), mdiChild),
 	m_filter(filter),
 	m_paramValues(paramValues)
 {}
-
 
 void iAFilterRunnerGUIThread::performWork()
 {
@@ -72,7 +70,6 @@ void iAFilterRunnerGUIThread::performWork()
 		Connectors()[i]->setImage(m_filter->output()[i]->itkImage());
 	}
 }
-
 
 QSharedPointer<iAFilter> iAFilterRunnerGUIThread::filter()
 {
@@ -119,7 +116,6 @@ QSharedPointer<iAFilterRunnerGUI> iAFilterRunnerGUI::create()
 	return QSharedPointer<iAFilterRunnerGUI>(new iAFilterRunnerGUI());
 }
 
-
 QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
 {
 	auto params = filter->parameters();
@@ -133,7 +129,6 @@ QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilte
 	return result;
 }
 
-
 void iAFilterRunnerGUI::StoreParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues)
 {
 	auto params = filter->parameters();
@@ -144,20 +139,23 @@ void iAFilterRunnerGUI::StoreParameters(QSharedPointer<iAFilter> filter, QMap<QS
 	}
 }
 
-
 bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
 	MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput)
 {
 	auto params = filter->parameters();
 	if (filter->requiredInputs() == 1 && params.empty())
+	{
 		return true;
+	}
 	QStringList dlgParamNames;
 	QList<QVariant> dlgParamValues;
 	QVector<MdiChild*> otherMdis;
 	for (auto mdi : mainWnd->mdiChildList())
 	{
 		if (mdi != sourceMdi)
+		{
 			otherMdis.push_back(mdi);
+		}
 	}
 	if (askForAdditionalInput && filter->requiredInputs() > (otherMdis.size()+1) )
 	{
@@ -171,7 +169,9 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	{
 		dlgParamNames << (ValueTypePrefix(param->valueType()) + param->name());
 		if (param->name() == "Index X")	// TODO: find better way to check this?
+		{
 			showROI = true;
+		}
 		if (param->valueType() == Categorical)
 		{
 			QStringList comboValues = param->defaultValue().toStringList();
@@ -204,9 +204,13 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	dlg.hide();	dlg.show(); // required to apply change in modality!
 	dlg.setSourceMdi(sourceMdi, mainWnd);
 	if (showROI)
+	{
 		dlg.showROI();
+	}
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return false;
+	}
 
 	int idx = 0;
 	for (auto param : params)
@@ -264,12 +268,16 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	QMap<QString, QVariant> paramValues = loadParameters(filter, sourceMdi);
 
 	if (!askForParameters(filter, paramValues, sourceMdi, mainWnd, true))
+	{
 		return;
+	}
 	StoreParameters(filter, paramValues);
 
 	//! TODO: find way to check parameters already in dlg_commoninput (before closing)
 	if (!filter->checkParameters(paramValues))
+	{
 		return;
+	}
 
 	QString oldTitle(sourceMdi->windowTitle());
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
@@ -341,7 +349,9 @@ void iAFilterRunnerGUI::filterFinished()
 	// "default" output 0 is handled elsewhere (via obscure MdiChild::rendererDeactivated / iAAlgorithm::updateVtkImageData)
 	auto mdiChild = qobject_cast<MdiChild*>(thread->parent());
 	if (thread->filter()->polyOutput())
+	{
 		mdiChild->polyData()->DeepCopy(thread->filter()->polyOutput());
+	}
 	if (thread->filter()->output().size() > 1)
 	{
 		for (int p = 1; p < thread->filter()->output().size(); ++p)
@@ -358,7 +368,9 @@ void iAFilterRunnerGUI::filterFinished()
 		}
 	}
 	for (auto outputValue : thread->filter()->outputValues())
+	{
 		mdiChild->addMsg(QString("%1: %2").arg(outputValue.first).arg(outputValue.second.toString()));
+	}
 
 	emit finished();
 }

@@ -96,8 +96,10 @@ QVector<QPair<QString, QVariant> > const & iAFilter::outputValues() const
 
 void iAFilter::clearOutput()
 {
-	for (iAConnector* con: m_output)
+	for (iAConnector* con : m_output)
+	{
 		delete con;
+	}
 	m_output.clear();
 }
 
@@ -303,9 +305,13 @@ iALogger* iAFilter::logger()
 QString iAFilter::inputName(int i) const
 {
 	if (m_inputNames.contains(i))
+	{
 		return m_inputNames[i];
+	}
 	else
+	{
 		return QString("Input %1").arg(i);
+	}
 }
 
 void iAFilter::setInputName(int i, QString const & name)
@@ -315,14 +321,18 @@ void iAFilter::setInputName(int i, QString const & name)
 
 QString iAFilter::outputName(int i, QString defaultName=NULL) const
 {
-	if (m_outputNames.contains(i)) {
+	if (m_outputNames.contains(i))
+	{
 		return m_outputNames[i];
 	}
-	else {
-		if (defaultName != NULL) {
+	else
+	{
+		if (defaultName != NULL)
+		{
 			return defaultName;
 		}
-		else {
+		else
+		{
 			return QString("Out %1").arg(i);
 		}
 	}

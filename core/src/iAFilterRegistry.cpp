@@ -55,7 +55,9 @@ int iAFilterRegistry::filterID(QString const & name)
 	{
 		auto filter = filterFactory->create();
 		if (filter->name() == name)
+		{
 			return cur;
+		}
 		++cur;
 	}
 	DEBUG_LOG(QString("Filter '%1' not found!").arg(name));
