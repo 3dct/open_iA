@@ -601,6 +601,7 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 
 				this->addSeries(IntersectSeries, false);
 
+				//visualize Final threshold by a Streight Line
 
 				visualizeFinalThreshold(resThres);
 
