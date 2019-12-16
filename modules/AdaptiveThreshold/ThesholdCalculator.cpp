@@ -74,20 +74,6 @@ QString ThesholdCalculator::testPrintVector()
 	return out; 
 }
 
-void ThesholdCalculator::performCalculation(std::vector<double> inputRange, double xmin, double xmax)
-{
-	//double xmin = 0;
-	//double xmax = 0; 
-	/*std::vector<double> vals_out; 
-	specifyRange(m_thresBinsX, m_movingFreqs, vals_out, xmin, xmax);
-
-	double min = this->findMinPeak(vals_out);
-	double max = this->findMaxPeak(vals_out);*/
-	//this->calcalulateMinMax(vals_out, 10);
-
-}
-
-
 
 void ThesholdCalculator::determinIso50(const threshold_defs::ParametersRanges& inRanges, threshold_defs::ThresMinMax& inVals)
 {
@@ -105,10 +91,10 @@ void ThesholdCalculator::determinIso50(const threshold_defs::ParametersRanges& i
 }
 
 
-QPointF ThesholdCalculator::determineResultingThreshold(const threshold_defs::ThresMinMax& results, QTextEdit *elem)
+QPointF ThesholdCalculator::determineResultingThresholdBasedOnDecisionRule(const threshold_defs::ThresMinMax& results, QTextEdit *elem)
 {	
 
-	return m_minMaxHelper.determineThresholdResultsPointXY(results, elem); //TBA
+	return m_minMaxHelper.determineThresholdResultsPointXY(results, elem);
 }
 
 void ThesholdCalculator::doubleTestSum()
@@ -124,27 +110,7 @@ void ThesholdCalculator::doubleTestSum()
 
 }
 
-void ThesholdCalculator::calculateFrequencies(size_t m_start, size_t m_end)
-{
-	//for (size_t m_i = (m_start + 1); m_i < (m_end - 1); m_i++)
-	//{
-	//	if (m_VolumeCount[m_i] > m_high_freq)
-	//	{
-	//		m_high_freq = (int) m_VolumeCount[m_i];
-	//		m_high_intensity = m_i;
-	//	}
-	//}
 
-	////find the low intensity peak
-	//for (m_i = (m_start + 1); m_i < m_centre; m_i++)
-	//{
-	//	if (m_VolumeCount[m_i] > m_low_freq)
-	//	{
-	//		m_low_freq = m_VolumeCount[m_i];
-	//		m_low_intensity = m_i;
-	//	}
-	//}
-}
 
 
 

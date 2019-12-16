@@ -36,7 +36,7 @@ public:
 	
 	void calculateMovingAverage(const std::vector<double>& v_in, std::vector<double>& v_out, unsigned int count);
 	void doubleTestSum();	
-	void calculateFrequencies(size_t m_start, size_t m_end);
+	
 	threshold_defs::ThresMinMax calcMinMax(const threshold_defs::ParametersRanges &ranges); 
 
 	void retrieveHistData(); 
@@ -54,9 +54,7 @@ public:
 	
 	QString testPrintVector(); 
 
-	void performCalculation(std::vector<double> inputRange, double xmin, double xmax); 
-
-
+	
 	void setData(QSharedPointer<iAPlotData>& data) {
 		m_data = data; 
 	}
@@ -99,10 +97,7 @@ public:
 	}
 
 
-	//QPointF determineResultingThreshold(const threshold_defs::ThresMinMax &results);
-
-	//QPointF determineResultingThreshold(const threshold_defs::ThresMinMax& results, QLineEdit* elem);
-	QPointF determineResultingThreshold(const threshold_defs::ThresMinMax& results, QTextEdit* elem);
+	QPointF determineResultingThresholdBasedOnDecisionRule(const threshold_defs::ThresMinMax& results, QTextEdit* elem);
 	const threshold_defs::ThresMinMax& getResults() const {
 		return this->m_thresResults; 
 	}

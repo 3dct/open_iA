@@ -49,13 +49,29 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 		
 		auto data = hist->plots()[0]->data();
 		dlg_thres.setHistData(data);
+		
+		//load histogram data
 		dlg_thres.buttonLoadHistDataClicked(); 
 		
 
+		/*
+		*Major Actions in dlg_AdaptiveThreshold.cpp: 
+		*1: Moving Average: calculateMovingAverage
+		*2: Select Peak Ranges: buttonSelectRangesClickedAndComputePeaks
+		*3: Determine final threshold- go for decision rule proposed in paper: determineIntersectionAndFinalThreshold 
+		*4 perform Segmentation see beloww
+		*
+		*/
+		//determineIntersectionAndFinalThreshold 
 		if (dlg_thres.exec() != QDialog::Accepted)
 			return;
 
 		ImageProcessingHelper imgSegmenter(m_mainWnd->activeMdiChild()); 
+		/*
+		*resulting threshold: lower and upper limit to obtain for segmentation
+		*
+		*/
+
 		imgSegmenter.performSegmentation(dlg_thres.SegmentationStartValue(),dlg_thres.getResultingThreshold()); 
 
 

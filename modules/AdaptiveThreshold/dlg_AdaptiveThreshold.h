@@ -79,8 +79,8 @@ private slots:
 		
 		void clear(); 
 		void resetGraphToDefault(); 
-		void calculateMovingAverage();
-		void buttonSelectRangesClicked(); 
+		void calculateMovingAndVisualizeAverage();
+		void buttonSelectRangesClickedAndComputePeaks(); 
 
 		void computeNormalizeAndComputeLokalPeaks(threshold_defs::PeakRanges& ranges);
 

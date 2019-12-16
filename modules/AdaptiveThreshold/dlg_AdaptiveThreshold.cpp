@@ -78,10 +78,10 @@ void AdaptiveThreshold::setupUIActions()
 	/*connect(this->btn_TestData, SIGNAL(clicked()), this, SLOT(createSampleSeries()));*/
 	connect(this->btn_clearChart, SIGNAL(clicked()), this, SLOT(clear()));
 	connect(this->btn_resetGraph, SIGNAL(clicked()), this, SLOT(resetGraphToDefault()));
-	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(calculateMovingAverage()));
+	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(calculateMovingAndVisualizeAverage()));
 	
 	connect(this->btn_clear, SIGNAL(clicked()), this, SLOT(clearEditField()));
-	connect(this->btn_selectRange, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClicked()));
+	connect(this->btn_selectRange, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClickedAndComputePeaks()));
 	connect(this->btn_redraw, SIGNAL(clicked()), this, SLOT(redrawPlots())); 
 	connect(this->btn_VisPoints, SIGNAL(clicked()), this, SLOT(determineIntersectionAndFinalThreshold())); 
 	connect(this->btn_rescaleToDefault, SIGNAL(clicked()), this, SLOT(rescaleToMinMax())); 
@@ -195,7 +195,7 @@ void AdaptiveThreshold::resetGraphToDefault()
 	m_chartView->update(); 
 }
 
-void AdaptiveThreshold::calculateMovingAverage()
+void AdaptiveThreshold::calculateMovingAndVisualizeAverage()
 {
 	DEBUG_LOG("Moving Average");
 	uint averageCount = this->spinBox_average->text().toUInt();
@@ -213,12 +213,14 @@ void AdaptiveThreshold::calculateMovingAverage()
 	
 	allMovingfreqs.addSequence(m_movingFrequencies);
 
+
+	/*prepare visualisation*/
 	QLineSeries *newSeries = new QLineSeries;
 	this->prepareDataSeries(newSeries, m_greyThresholds, m_movingFrequencies, &text, false,false);
 	
 }
 
-void AdaptiveThreshold::buttonSelectRangesClicked()
+void AdaptiveThreshold::buttonSelectRangesClickedAndComputePeaks()
 {
 
 	/*
@@ -529,39 +531,49 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 					return;
 				}
 
+				//calculate fair/2
 				QPointF lokalMaxHalf = m_thresCalculator.getPointAirPeakHalf();
 				QString peakHalf = QString("fmin/2 %1 %2").arg(lokalMaxHalf.x()).arg(lokalMaxHalf.y());
 
 				//TODO REPLACE BY MAX limits
 
 				QPointF LokalMaxHalfEnd(m_graphValuesScope.getXMax(), lokalMaxHalf.y());
+
+				//prepare line for intersection with fpeak half
 				intersection::XYLine LinePeakHalf(lokalMaxHalf, LokalMaxHalfEnd);
 
 				threshold_defs::ParametersRanges Intersectranges;
-				//m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, Intersectranges, xmin, xmax);
-
+				
 				writeDebugText(QString("ranges for intersection %1 %2").arg(xmin).arg(xmax)) ; 
+
+				//outvalues intersectranges:
 				m_thresCalculator.rangeFromParamRanges(m_thresCalculator.getNormalizedRangedValues(), Intersectranges, xmin, xmax);
 				//determine line intersection
-
+				//create points for intersection
 				auto intersectionPoints = LinePeakHalf.intersectionLineWithRange(Intersectranges);
 
 				QPointF ptIntersect(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity());
+
+				//find first point ptIntersect in the intersection intervall xmin, xmax 
 				m_thresCalculator.getFirstElemInRange(intersectionPoints, xmin, xmax, &ptIntersect);
+				
 				m_thresCalculator.setIntersectionPoint(ptIntersect);
 
 				writeDebugText("Determined threshold\n");
 
+
+				/*
+				*visualize intersections
+				*/
 				QColor col = QColor(0, 255, 0);
 				QPointF p1 = QPointF(ptIntersect.x(), 0);
 				QPointF p2 = QPointF(ptIntersect.x(), 1000000);
 
 				auto* IntersectSeries = ChartVisHelper::createLineSeries(p1, p2, LineVisOption::horizontally);
 				writeDebugText(QString("intersection point 1% %2").arg(ptIntersect.x()).arg(ptIntersect.y()));
-				/*txt_output->append(QString("intersection point 1% %2").arg(ptIntersect.x()).arg(ptIntersect.y()));*/
-
+				
 				//Intersection is created; 
-				QPointF calcThresPoint = m_thresCalculator.determineResultingThreshold(m_thresCalculator.getResults(), this->textEdit);
+				QPointF calcThresPoint = m_thresCalculator.determineResultingThresholdBasedOnDecisionRule(m_thresCalculator.getResults(), this->textEdit);
 				 
 				if (ptIntersect.x() < 0 || (ptIntersect.x() > std::numeric_limits<float>::max())) {
 					writeDebugText(QString("no intersection negative or inf, try again parametrisation"));
@@ -572,6 +584,8 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				writeDebugText(QString("P(x,y) %1 %2").arg(calcThresPoint.x()).arg(calcThresPoint.y()));
 				//todo check for inf values
 
+
+				/*convert threshold back to min max*/
 				double resThres = m_thresCalculator.GetResultingThreshold();
 				auto peaks = m_thresCalculator.getThrPeaksVals();
 				double convertedThr = normalizedToMinMax(peaks.getLocalMax(), peaks.getGlobalMax(),resThres); 

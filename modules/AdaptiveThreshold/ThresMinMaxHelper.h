@@ -19,8 +19,10 @@ namespace threshold_defs {
 	{
 	public:
 
-
-		//if fmin > fair/2 take first minimum (gmin, fmin) as greythreshold, else take the next crossing of fair/2 or 50 %, whichever is lowest
+		/*
+		*compare fmin with fair/2
+		if fmin > fair/2 take first minimum (gmin, fmin) as greythreshold, else take the next crossing of fair/2 or 50 %, whichever is lowest
+		*/
 		QPointF determineThresholdResultsPointXY(const ThresMinMax& results, QTextEdit *elem);
 
 	private:
