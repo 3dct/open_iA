@@ -221,17 +221,28 @@ void convertToRGB(iAFilter * filter, QMap<QString, QVariant> const & params)
 	rgbaImage->SetSpacing(labelToRGBFilter->GetOutput()->GetSpacing());
 	rgbaImage->Allocate();
 
-	itk::ImageRegionConstIterator< RGBImageType > cit(labelToRGBFilter->GetOutput(), region);
-	itk::ImageRegionIterator< RGBAImageType >     it(rgbaImage, region);
-	for (cit.GoToBegin(), it.GoToBegin(); !it.IsAtEnd(); ++cit, ++it)
+	auto rgbImage = labelToRGBFilter->GetOutput();
+#if ITK_VERSION_MAJOR >= 5
+	itk::MultiThreaderBase::Pointer mt = itk::MultiThreaderBase::New();
+	mt->ParallelizeImageRegion<3>(
+		rgbImage->GetBufferedRegion(),
+		[rgbImage, rgbaImage, &params](const RGBImageType::RegionType & region)
 	{
-		it.Value().SetRed(cit.Value().GetRed());
-		it.Value().SetBlue(cit.Value().GetBlue());
-		it.Value().SetGreen(cit.Value().GetGreen());
-		double alpha = (cit.Value() == params["Background value"].toUInt()) ?
-			params["Background opacity"].toUInt() : params["Object opacity"].toUInt();
-		it.Value().SetAlpha(alpha);
-	}
+#endif
+		itk::ImageRegionConstIterator<RGBImageType> iIt(rgbImage,  region);
+		itk::ImageRegionIterator<RGBAImageType>     oIt(rgbaImage, region);
+		for (; !iIt.IsAtEnd(); ++iIt, ++oIt)
+		{
+			oIt.Value().SetRed  (iIt.Value().GetRed());
+			oIt.Value().SetBlue (iIt.Value().GetBlue());
+			oIt.Value().SetGreen(iIt.Value().GetGreen());
+			unsigned char alpha = (iIt.Value() == params["Background value"].toUInt()) ?
+				params["Background opacity"].toUInt() : params["Object opacity"].toUInt();
+			oIt.Value().SetAlpha(alpha);
+		}
+#if ITK_VERSION_MAJOR >= 5
+	}, nullptr);
+#endif
 	filter->addOutput(rgbaImage);
 }
 
