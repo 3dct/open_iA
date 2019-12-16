@@ -53,7 +53,9 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;1: Specify value of Moving average (eg. 17 - take average of 17 values)&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;2: Specify Threshold of Lokal Maxinum and Lokal Minimum&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;3: Specify interval for first intersection of fair_half and global maximum peak&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;4. Final segmentation is shown, perform segmentation with starting range (default 0)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;4. Final segmentation is shown, perform segmentation with starting range (default 0)&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Orange line visualization of fair_half&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
@@ -279,11 +281,7 @@ p, li { white-space: pre-wrap; }
                </widget>
               </item>
              </layout>
-             <zorder>ed_xMax</zorder>
-             <zorder>lbl_ymin</zorder>
-             <zorder>lbl_xmax</zorder>
-             <zorder>lbl_ymin</zorder>
-             <zorder>lbl_yMax</zorder>
+             <zorder>btn_redraw</zorder>
              <zorder></zorder>
              <zorder>btn_resetGraph</zorder>
              <zorder>btn_loadData</zorder>
@@ -681,12 +679,6 @@ p, li { white-space: pre-wrap; }
                  </layout>
                 </item>
                </layout>
-               <zorder>ed_ptXmin</zorder>
-               <zorder>label_15</zorder>
-               <zorder>ed_pt_xMax</zorder>
-               <zorder>label_16</zorder>
-               <zorder>btn_VisPoints</zorder>
-               <zorder>btn_VisPoints</zorder>
               </widget>
              </item>
             </layout>
