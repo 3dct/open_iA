@@ -81,7 +81,8 @@ void iAVolumeRenderer::setImage(iATransferFunction * transfer, vtkSmartPointer<v
 	if ( imgData->GetNumberOfScalarComponents() > 1 )
 	{
 		m_volMapper->SetBlendModeToComposite();
-		m_volProp->SetIndependentComponents( 0 );
+		m_volProp->IndependentComponentsOff();
+		m_volProp->SetScalarOpacity(0, transfer->opacityTF());
 	}
 	else
 	{

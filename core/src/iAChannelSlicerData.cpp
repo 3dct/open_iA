@@ -18,9 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAChannelSlicerData.h"
+
 #include "iAChannelData.h"
+#include "iAConsole.h"
 #include "iASlicerMode.h"
 
 #include <vtkActor.h>
@@ -88,14 +89,33 @@ void iAChannelSlicerData::assign(vtkSmartPointer<vtkImageData> imageData)
 
 void iAChannelSlicerData::setupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
 {
-	m_cTF = ctf;
-	m_oTF = otf;
-	updateLUT();
-	m_colormapper->SetLookupTable( m_oTF ? m_lut : m_cTF);
-	m_colormapper->PassAlphaToOutputOn();
+	if (input()->GetNumberOfScalarComponents() == 1)
+	{
+		m_cTF = ctf;
+		m_oTF = otf;
+		updateLUT();
+		m_colormapper->SetLookupTable(m_oTF ? m_lut : m_cTF);
+		m_colormapper->PassAlphaToOutputOn();
+	}
+	else
+	{
+		m_colormapper->SetLookupTable(nullptr);
+		if (input()->GetNumberOfScalarComponents() == 3)
+		{
+			m_colormapper->SetOutputFormatToRGB();
+		}
+		else if (input()->GetNumberOfScalarComponents() == 4)
+		{
+			m_colormapper->SetOutputFormatToRGBA();
+		}
+		else
+		{
+			DEBUG_LOG(QString("Unsupported number of components (%1)!").arg(input()->GetNumberOfScalarComponents()));
+		}
+	}
 	m_colormapper->SetInputConnection(m_reslicer->GetOutputPort());
 	m_colormapper->Update();
-	m_imageActor->SetInputData(m_colormapper->GetOutput());  // TODO: check why we don't use port/connection here?
+	m_imageActor->SetInputData(m_colormapper->GetOutput());
 }
 
 void iAChannelSlicerData::updateLUT()
