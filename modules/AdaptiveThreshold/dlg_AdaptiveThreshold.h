@@ -102,6 +102,8 @@ private slots:
 
 		void determineIntersectionAndFinalThreshold(); 
 
+	
+
 		void buttonNormalizedClicked(); 
 				
 		void redrawPlots();
@@ -115,6 +117,7 @@ private slots:
 		
 
 private:
+	void visualizeFinalThreshold(double resThres);
 	void OptionallyUpdateThrPeaks(bool selectedData, threshold_defs::ThresMinMax& thrPeaks);
 	
 	void DetermineGraphRange();

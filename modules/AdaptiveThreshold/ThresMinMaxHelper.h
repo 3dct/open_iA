@@ -1,5 +1,6 @@
 #pragma once
 #include "ThresholdDefinitions.h"
+class QTextEdit;
 //algoritm description see paper::: 
 /*
 based on precalculated values:
@@ -20,7 +21,7 @@ namespace threshold_defs {
 
 
 		//if fmin > fair/2 take first minimum (gmin, fmin) as greythreshold, else take the next crossing of fair/2 or 50 %, whichever is lowest
-		QPointF	determineThresholdResultsPointXY(const ThresMinMax& results);
+		QPointF determineThresholdResultsPointXY(const ThresMinMax& results, QTextEdit *elem);
 
 	private:
 		QPointF getIntersectionPoint(const ThresMinMax& results);

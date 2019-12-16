@@ -105,9 +105,10 @@ void ThesholdCalculator::determinIso50(const threshold_defs::ParametersRanges& i
 }
 
 
-QPointF ThesholdCalculator::determineResultingThreshold(const threshold_defs::ThresMinMax& results)
-{
-	return m_minMaxHelper.determineThresholdResultsPointXY(results); //TBA
+QPointF ThesholdCalculator::determineResultingThreshold(const threshold_defs::ThresMinMax& results, QTextEdit *elem)
+{	
+
+	return m_minMaxHelper.determineThresholdResultsPointXY(results, elem); //TBA
 }
 
 void ThesholdCalculator::doubleTestSum()

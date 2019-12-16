@@ -561,7 +561,7 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				/*txt_output->append(QString("intersection point 1% %2").arg(ptIntersect.x()).arg(ptIntersect.y()));*/
 
 				//Intersection is created; 
-				QPointF calcThresPoint = m_thresCalculator.determineResultingThreshold(m_thresCalculator.getResults());
+				QPointF calcThresPoint = m_thresCalculator.determineResultingThreshold(m_thresCalculator.getResults(), this->textEdit);
 				 
 				if (ptIntersect.x() < 0 || (ptIntersect.x() > std::numeric_limits<float>::max())) {
 					writeDebugText(QString("no intersection negative or inf, try again parametrisation"));
@@ -576,8 +576,7 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				auto peaks = m_thresCalculator.getThrPeaksVals();
 				double convertedThr = normalizedToMinMax(peaks.getLocalMax(), peaks.getGlobalMax(),resThres); 
 
-
-
+				
 				this->ed_maxThresholdRange->setText(QString("%1").arg(convertedThr));
 				m_thresCalculator.SetResultingThreshold(convertedThr); 
 				
@@ -589,16 +588,8 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				this->addSeries(IntersectSeries, false);
 
 
-				auto* finalThresSeries = ChartVisHelper::createLineSeries(QPointF(resThres, 0), QPointF(resThres,10000000), horizontal_xy);
-				finalThresSeries->setColor(QColor(100, 0, 170));
-				finalThresSeries->setName("Determined segmentation threshold"); 
+				visualizeFinalThreshold(resThres);
 
-				this->addSeries(finalThresSeries, false);
-				
-				auto pen = finalThresSeries->pen(); 
-				pen.setWidth(4);
-				pen.setStyle(Qt::DashDotDotLine); 
-				finalThresSeries->setPen(pen); 
 
 				
 				if (resThres < 0) {
@@ -611,7 +602,7 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				m_chartView->update();
 				this->ed_minSegmRange->setEnabled(true); 
 				this->pushButton->setEnabled(true); 
-				writeDebugText("To process data set after segmentation, please save and reload the segmented data!- Otherwise program crashes -WIP");
+				
 
 				}catch (std::invalid_argument& iae) {
 					writeDebugText(iae.what()); 
@@ -626,6 +617,20 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 	
 }
 
+
+void AdaptiveThreshold::visualizeFinalThreshold(double resThres)
+{
+	auto* finalThresSeries = ChartVisHelper::createLineSeries(QPointF(resThres, 0), QPointF(resThres, 10000000), horizontal_xy);
+	finalThresSeries->setColor(QColor(100, 0, 170));
+	finalThresSeries->setName("Determined segmentation threshold");
+
+	this->addSeries(finalThresSeries, false);
+
+	auto pen = finalThresSeries->pen();
+	pen.setWidth(4);
+	pen.setStyle(Qt::DashDotDotLine);
+	finalThresSeries->setPen(pen);
+}
 
 void AdaptiveThreshold::buttonNormalizedClicked()
 {

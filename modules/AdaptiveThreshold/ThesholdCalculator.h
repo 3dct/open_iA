@@ -9,6 +9,7 @@
 #include <QtCharts/qlineseries.h>
 
 class ParametersRanges; 
+class QTextEdit; 
 
 
 struct HistMinMax{
@@ -98,8 +99,10 @@ public:
 	}
 
 
-	QPointF determineResultingThreshold(const threshold_defs::ThresMinMax &results);
+	//QPointF determineResultingThreshold(const threshold_defs::ThresMinMax &results);
 
+	//QPointF determineResultingThreshold(const threshold_defs::ThresMinMax& results, QLineEdit* elem);
+	QPointF determineResultingThreshold(const threshold_defs::ThresMinMax& results, QTextEdit* elem);
 	const threshold_defs::ThresMinMax& getResults() const {
 		return this->m_thresResults; 
 	}
