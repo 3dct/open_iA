@@ -287,7 +287,9 @@ bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
 					"please either give a color name (e.g. blue, green, ...) "
 					"or a hexadecimal RGB specifier, like #RGB, #RRGGBB!")
 					.arg(param->name()).arg(parameters[param->name()].toString()));
+				return false;
 			}
+			break;
 		}
 		case Invalid:
 			addMsg(QString("Parameter '%1': Invalid parameter type (please contact developers!)!").arg(param->name()));
