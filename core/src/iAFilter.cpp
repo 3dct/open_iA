@@ -25,6 +25,7 @@
 #include "iAConsole.h"
 #include "iAStringHelper.h"
 
+#include <QColor>
 #include <QFileInfo>
 
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
@@ -276,6 +277,17 @@ bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
 				return false;
 			}
 			break;
+		}
+		case Color:
+		{
+			QColor color(parameters[param->name()].toString());
+			if (!color.isValid())
+			{
+				addMsg(QString("Parameter '%1': '%2' is not a valid color value; "
+					"please either give a color name (e.g. blue, green, ...) "
+					"or a hexadecimal RGB specifier, like #RGB, #RRGGBB!")
+					.arg(param->name()).arg(parameters[param->name()].toString()));
+			}
 		}
 		case Invalid:
 			addMsg(QString("Parameter '%1': Invalid parameter type (please contact developers!)!").arg(param->name()));
