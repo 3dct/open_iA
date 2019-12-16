@@ -23,3 +23,4 @@
 #include <iAFilter.h>
 
 IAFILTER_DEFAULT_CLASS(iACastImageFilter);
+IAFILTER_DEFAULT_CLASS(iAConvertToRGBAFilter);

@@ -43,6 +43,7 @@ void iACommonImageFiltersModuleInterface::Initialize()
 
 	// Casting / Datatype conversion:
 	REGISTER_FILTER(iACastImageFilter);
+	REGISTER_FILTER(iAConvertToRGBAFilter);
 
 	// Connected component / relabeling:
 	REGISTER_FILTER(iAConnectedComponents);
