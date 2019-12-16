@@ -2749,6 +2749,7 @@ void MdiChild::saveFinished()
 {
 	if (m_storedModalityNr < modalities()->size() && m_ioThread->ioID() != STL_WRITER)
 		m_dwModalities->setFileName(m_storedModalityNr, m_ioThread->fileName());
+	m_mainWnd->setCurrentFile(m_ioThread->fileName());
 	setWindowModified(modalities()->hasUnsavedModality());
 }
 
