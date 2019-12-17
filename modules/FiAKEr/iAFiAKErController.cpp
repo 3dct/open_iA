@@ -1142,7 +1142,7 @@ void iAFiAKErController::colorByDistrToggled()
 
 QColor iAFiAKErController::getResultColor(int resultID)
 {
-	QColor color = m_resultColorTheme->color(resultID);
+	QColor color = m_resultColorTheme->color( resultID % m_resultColorTheme->size() );
 	color.setAlpha(SelectionOpacity);
 	return color;
 }
