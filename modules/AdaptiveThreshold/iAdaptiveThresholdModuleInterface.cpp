@@ -59,7 +59,7 @@ void iAdaptiveThresholdModuleInterface::determineThreshold()
 		*1: Moving Average: calculateMovingAverage
 		*2: Select Peak Ranges: buttonSelectRangesClickedAndComputePeaks
 		*3: Determine final threshold- go for decision rule proposed in paper: determineIntersectionAndFinalThreshold 
-		*4 perform Segmentation see beloww
+		*4 perform Segmentation see below
 		*
 		*/
 		//determineIntersectionAndFinalThreshold 

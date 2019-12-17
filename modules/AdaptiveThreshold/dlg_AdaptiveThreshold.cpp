@@ -211,6 +211,7 @@ void AdaptiveThreshold::calculateMovingAndVisualizeAverage()
 	m_thresCalculator.calculateMovingAverage(m_frequencies, m_movingFrequencies, averageCount);	
 	this->cmb_BoxMovFreq->addItem(text); 
 	
+	//for saving moving average
 	allMovingfreqs.addSequence(m_movingFrequencies);
 
 
@@ -284,7 +285,7 @@ void AdaptiveThreshold::computeNormalizeAndComputeLokalPeaks(threshold_defs::Pea
 				QString sr_text = "Max Peak Range";
 				visualizeSeries(m_maxPeakMaterialRanges, cl_green, &sr_text);
 				visualizeIntermediateResults(m_resultingthrPeaks);
-				createVisualisation(m_paramRanges, m_resultingthrPeaks);
+				createVisualisation(m_paramRanges, m_resultingthrPeaks); //lines in histogram
 				assignValuesToField(m_resultingthrPeaks);
 				this->chckbx_LokalMinMax->setEnabled(true);
 				this->writeDebugText("\nAfter Normalisation\n");
@@ -293,6 +294,7 @@ void AdaptiveThreshold::computeNormalizeAndComputeLokalPeaks(threshold_defs::Pea
 			
 		}
 		else {
+			//if values are changes
 			calculateIntermediateResults(m_resultingthrPeaks, m_maxPeakMaterialRanges, this->chckbx_LokalMinMax->isChecked());
 			createVisualisation(m_paramRanges, m_resultingthrPeaks);
 		}
@@ -536,15 +538,16 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				QString peakHalf = QString("fmin/2 %1 %2").arg(lokalMaxHalf.x()).arg(lokalMaxHalf.y());
 
 				//TODO REPLACE BY MAX limits
-
+				//fair_half end point for visualisation only 
 				QPointF LokalMaxHalfEnd(m_graphValuesScope.getXMax(), lokalMaxHalf.y());
 
 				//prepare line for intersection with fpeak half
 				intersection::XYLine LinePeakHalf(lokalMaxHalf, LokalMaxHalfEnd);
 
+				//points for intersection x,y - Werte of normalized Hist for Line Intersections
 				threshold_defs::ParametersRanges Intersectranges;
 				
-				writeDebugText(QString("ranges for intersection %1 %2").arg(xmin).arg(xmax)) ; 
+				writeDebugText(QString("ranges for crossing of fair_half with Hist (xmin) (xmax) %1 %2").arg(xmin).arg(xmax)) ; 
 
 				//outvalues intersectranges:
 				m_thresCalculator.rangeFromParamRanges(m_thresCalculator.getNormalizedRangedValues(), Intersectranges, xmin, xmax);
@@ -573,6 +576,7 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				writeDebugText(QString("intersection point 1% %2").arg(ptIntersect.x()).arg(ptIntersect.y()));
 				
 				//Intersection is created; 
+				writeDebugText(QString("\nApplying decision rule"));
 				QPointF calcThresPoint = m_thresCalculator.determineResultingThresholdBasedOnDecisionRule(m_thresCalculator.getResults(), this->textEdit);
 				 
 				if (ptIntersect.x() < 0 || (ptIntersect.x() > std::numeric_limits<float>::max())) {
@@ -594,7 +598,7 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				this->ed_maxThresholdRange->setText(QString("%1").arg(convertedThr));
 				m_thresCalculator.SetResultingThreshold(convertedThr); 
 				
-				this->writeDebugText(QString("final converted grey value %1, normalised %2").arg(convertedThr).arg(resThres)) ; 
+				this->writeDebugText(QString("\nResult final segmentation:\n grey value %1, normalised %2").arg(convertedThr).arg(resThres)) ; 
 				
 				IntersectSeries->setColor(col);
 				IntersectSeries->setName("Intersection Material with fmin/2");

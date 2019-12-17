@@ -25,15 +25,18 @@ namespace threshold_defs {
 		}
 		else
 		{
-			elem->append(QString("fmin < fair/2")); 
+			elem->append(QString("fmin is smaller than fair/2")); 
 			
 			//take the next crossing of fair/2 -> intersection point or 50 %
 			double Iso50GreyValue = results.Iso50ValueThr();
 			elem->append(QString("Iso 50 is: %1").arg(Iso50GreyValue));
+
+			
 			QPointF intersectionPoint = getIntersectionPoint(results);
+			elem->append(QString("comparing iso 50 (%1) with intersection : (%2)").arg(Iso50GreyValue).arg(intersectionPoint.x()));
 			QPointF resultingPoint(0, 0);
 			if (Iso50GreyValue < intersectionPoint.x()) {
-				elem->append(QString("iso 50 is lowest iso50: comparing iso 50 (%1) with intersection: (%2)").arg(Iso50GreyValue).arg(intersectionPoint.x()));
+				elem->append(QString("iso 50 is lowest"));
 				elem->append(QString("resultingPoint is the iso 50 value").arg(Iso50GreyValue));
 				resultingPoint.setX(Iso50GreyValue);
 			}
