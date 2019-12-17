@@ -48,8 +48,10 @@ public:
 	size_t referenceID() const;
 	static QStringList getSimilarityMeasureNames();
 private:
-	bool readFromCache(QFile& cacheFile);
-	void writeToCache(QFile& cacheFile);
+	bool readResultRefComparison(QFile& file, size_t resultID);
+	void writeResultRefComparison(QFile& cacheFile, size_t resultID);
+	bool readAverageMeasures(QFile& cacheFile);
+	void writeAverageMeasures(QFile& cacheFile);
 
 	iAProgress m_progress;
 	QSharedPointer<iAFiberResultsCollection> m_data;
