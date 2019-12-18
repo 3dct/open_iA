@@ -341,11 +341,11 @@ void iARefDistCompute::run()
 
 bool iARefDistCompute::readResultRefComparison(QFile & cacheFile, size_t resultID)
 {
-	DEBUG_LOG(QString("Reading FIAKER cache file '%1'...").arg(cacheFile.fileName()));
 	if (!verifyOpenCacheFile(cacheFile))
 	{
 		return false;
 	}
+	DEBUG_LOG(QString("Reading FIAKER cache file '%1'...").arg(cacheFile.fileName()));
 	QDataStream in(&cacheFile);
 	in.setVersion(CacheFileQtDataStreamVersion);
 	QString identifier;
@@ -418,11 +418,11 @@ void iARefDistCompute::writeAverageMeasures(QFile& cacheFile)
 
 bool iARefDistCompute::readAverageMeasures(QFile& cacheFile)
 {
-	DEBUG_LOG(QString("Reading FIAKER cache file '%1'...").arg(cacheFile.fileName()));
 	if (!verifyOpenCacheFile(cacheFile))
 	{
 		return false;
 	}
+	DEBUG_LOG(QString("Reading FIAKER cache file '%1'...").arg(cacheFile.fileName()));
 	QDataStream in(&cacheFile);
 	in.setVersion(CacheFileQtDataStreamVersion);
 	QString identifier;
