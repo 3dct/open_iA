@@ -1,7 +1,7 @@
 #pragma once
 #include "iAModuleInterface.h"
 
-class iAdaptiveThresholdModuleInterface : public iAModuleInterface
+class iAAdaptiveThresholdModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 public:
