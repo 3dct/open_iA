@@ -1,14 +1,10 @@
 #pragma once
 
 #include "ChartDefinitions.h"
-#include <QTCharts/qchartview.h>
-#include <QTCharts/QChart.h>
-#include <QTCharts>
-//#include "QTCharts/QChartView"
+#include <QtCharts/QChartView>
+#include <QtCharts/QChart>
+#include <QtCharts>
 
-
-class QtCharts::QXYSeries;
-class QtCharts::QAbstractSeries; 
 class QString; 
 
 using namespace QtCharts;

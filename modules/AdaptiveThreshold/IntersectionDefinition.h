@@ -17,7 +17,7 @@ namespace intersection {
 		XYLine(const QLineF &line):QLineF(line) {};
 
 		//can be also null if no intersection
-		QLineF::IntersectType intersection::XYLine::calulateILineInterSection(const XYLine& other, QPointF* pt) const;
+		QLineF::IntersectType calulateILineInterSection(const XYLine& other, QPointF* pt) const;
 		
 		//calculates the intersection with of line segments with a current line; 
 		void intersectWithLines(const QVector<XYLine> &QVector);

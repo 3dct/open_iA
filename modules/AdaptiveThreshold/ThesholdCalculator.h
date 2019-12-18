@@ -1,12 +1,15 @@
 #pragma once
-#include <vector>
-#include "charts/iAPlotData.h"
 #include "ThresholdCalcHelper.h"
-#include <QSharedPointer>
 #include "DebugHelper.h"
 #include "ThresMinMaxHelper.h"
-#include <QTCharts>
+
+#include "charts/iAPlotData.h"
+
+#include <QSharedPointer>
+#include <QtCharts>
 #include <QtCharts/qlineseries.h>
+
+#include <vector>
 
 class ParametersRanges; 
 class QTextEdit; 

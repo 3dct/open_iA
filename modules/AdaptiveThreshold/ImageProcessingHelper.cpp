@@ -1,24 +1,26 @@
-#include "iAConsole.h"
 #include "ImageProcessingHelper.h"
-#include "iAConnector.h"
-#include "QScopedPointer"
-#include <Qsharedpointer>
-#include "iAProgress.h"
-#include "iAFilterRegistry.h"
-#include "iAFilter.h"
-#include <vtkImageData.h>
-//#include "iARenderer.h"
-#include "iASlicer.h"
-#include <mdichild.h>
-#include "iAModality.h"
-#include "iAModalityTransfer.h"
-#include "iAChannelData.h"
-#include <QString>
-#include <vtkScalarsToColors.h>
-#include <vtkColorTransferFunction.h>
 
+#include <iAChannelData.h>
+#include <iAConsole.h>
+#include <iAConnector.h>
+#include <iAFilterRegistry.h>
+#include <iAFilter.h>
+#include <iAModality.h>
+#include <iAModalityTransfer.h>
+#include <iAProgress.h>
+#include <iARenderer.h>
+#include <iASlicer.h>
+#include <mdichild.h>
 #include <mainwindow.h>
-#include "iARenderer.h"
+
+#include <QScopedPointer>
+#include <QSharedPointer>
+#include <QString>
+
+#include <vtkImageData.h>
+
+#include <vtkColorTransferFunction.h>
+#include <vtkScalarsToColors.h>
 
 void ImageProcessingHelper::performSegmentation(double greyThresholdMin, double greyThresholdUpper)
 {

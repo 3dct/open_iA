@@ -3,20 +3,17 @@
 #include "ui_AdaptiveThreshold.h"
 #include "Loader.h"
 #include "ThesholdCalculator.h"
-#include "charts/iAPlotData.h"
+
+#include <charts/iAPlotData.h>
 
 #include <QSharedPointer>
 #include <QDialog>
 #include <QtCharts>
-#include <vector>
-#include <QtCharts/qlineseries.h>
-//#include <vtkImageData.h>
-//#include <mdichild.h>
+#include <QtCharts/QLineSeries>
 
+#include <vector>
 
 using namespace QtCharts;
-
-class QtCharts::QXYSeries; 
 
 enum axisMode {
 	x,

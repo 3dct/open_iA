@@ -5,15 +5,11 @@
 
 using namespace QtCharts;
 
-class QtCharts::QXYSeries;
- //class ParametersRanges; 
 enum LineVisOption {
 	horizontally,
 	vertically,
 	horizontal_xy
 };
-
-
 
 class QPointF;
 class QColor; 
