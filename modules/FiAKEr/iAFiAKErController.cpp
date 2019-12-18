@@ -2217,7 +2217,7 @@ void iAFiAKErController::loadSettings(iASettings settings)
 void iAFiAKErController::saveSettings(QSettings & settings)
 {
 	if (m_referenceID != NoResult)
-		settings.setValue(ProjectFileReference, m_data->result[m_referenceID].fileName);
+		settings.setValue(ProjectFileReference, QFileInfo(m_data->result[m_referenceID].fileName).completeBaseName());
 	m_spm->saveSettings(settings);
 	::saveSettings(settings, m_settingsWidgetMap);
 
