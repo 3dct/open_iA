@@ -285,7 +285,9 @@ public:
 	QSharedPointer<iAModalityList> modalities();
 	//! Retrieve data for modality with given index.
 	QSharedPointer<iAModality> modality(int idx);
-
+	iASlicer* getSlicer(uint i) {
+		return m_slicer[i];
+	}
 	//! add project
 	void addProject(QString const & key, QSharedPointer<iAProjectBase> project);
 	QMap<QString, QSharedPointer<iAProjectBase> > const & projects();
@@ -364,6 +366,9 @@ private slots:
 	void modalityAdded(int modalityIdx);
 	void rendererCamPos();
 	void resetCamera(bool spacingChanged, double const * newSpacing);
+
+
+	
 
 private:
 	void closeEvent(QCloseEvent *event) override;
