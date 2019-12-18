@@ -341,6 +341,7 @@ void iARefDistCompute::run()
 
 bool iARefDistCompute::readResultRefComparison(QFile & cacheFile, size_t resultID)
 {
+	DEBUG_LOG(QString("Reading FIAKER cache file '%1'...").arg(cacheFile.fileName()));
 	if (!verifyOpenCacheFile(cacheFile))
 	{
 		return false;
@@ -371,6 +372,7 @@ bool iARefDistCompute::readResultRefComparison(QFile & cacheFile, size_t resultI
 
 void iARefDistCompute::writeResultRefComparison(QFile& cacheFile, size_t resultID)
 {
+	DEBUG_LOG(QString("Writing FIAKER cache file '%1'...").arg(cacheFile.fileName()));
 	if (!cacheFile.open(QFile::WriteOnly))
 	{
 		DEBUG_LOG(QString("Couldn't open file %1 for writing!").arg(cacheFile.fileName()));
@@ -397,6 +399,7 @@ void iARefDistCompute::writeResultRefComparison(QFile& cacheFile, size_t resultI
 
 void iARefDistCompute::writeAverageMeasures(QFile& cacheFile)
 {
+	DEBUG_LOG(QString("Writing FIAKER cache file '%1'...").arg(cacheFile.fileName()));
 	if (!cacheFile.open(QFile::WriteOnly))
 	{
 		DEBUG_LOG(QString("Couldn't open file %1 for writing!").arg(cacheFile.fileName()));
@@ -415,6 +418,7 @@ void iARefDistCompute::writeAverageMeasures(QFile& cacheFile)
 
 bool iARefDistCompute::readAverageMeasures(QFile& cacheFile)
 {
+	DEBUG_LOG(QString("Reading FIAKER cache file '%1'...").arg(cacheFile.fileName()));
 	if (!verifyOpenCacheFile(cacheFile))
 	{
 		return false;
@@ -449,7 +453,6 @@ bool iARefDistCompute::readAverageMeasures(QFile& cacheFile)
 	in >> m_data->maxAvgDifference;
 	return true;
 }
-
 
 iAProgress* iARefDistCompute::progress()
 {
