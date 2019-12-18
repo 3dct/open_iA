@@ -2140,7 +2140,7 @@ bool iAFiAKErController::loadReferenceInternal(iASettings settings)
 	{
 		if (QFileInfo(m_data->result[resultID].fileName).completeBaseName() == refIDStr)
 		{
-			DEBUG_LOG(QString("Result %1, number=%1 will be used as reference!").arg(refIDStr).arg(resultID));
+			DEBUG_LOG(QString("Result %1, number=%2 will be used as reference!").arg(refIDStr).arg(resultID));
 			referenceID = resultID;
 			break;
 		}
