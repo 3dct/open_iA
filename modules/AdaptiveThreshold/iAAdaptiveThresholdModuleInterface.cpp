@@ -1,12 +1,20 @@
-#include "iAdaptiveThresholdModuleInterface.h"
+#include "iAAdaptiveThresholdModuleInterface.h"
+
 #include "dlg_AdaptiveThreshold.h"
-#include "vtkImageData.h"
-#include "mainwindow.h"
+#include "ImageProcessingHelper.h"
+
+#include <charts/iADiagramFctWidget.h>
+#include <charts/iAPlot.h>
+#include <charts/iAPlotData.h>
+#include <iAConsole.h>
+#include <mainwindow.h>
+#include <mdichild.h>
+
+#include <vtkImageData.h>
 
 #include <QMessageBox>
 
-
-void iAdaptiveThresholdModuleInterface::Initialize()
+void iAAdaptiveThresholdModuleInterface::Initialize()
 {
 	if (!m_mainWnd)    // if m_mainWnd is not set, we are running in command line mode
 	    return;        // in that case, we do not do anything as we can not add a menu entry there
@@ -18,14 +26,7 @@ void iAdaptiveThresholdModuleInterface::Initialize()
 }
 
 
-#include <mdichild.h>
-#include <charts/iADiagramFctWidget.h>
-#include <charts/iAPlot.h>
-#include <charts/iAPlotData.h>
-#include <iAConsole.h>
-#include "ImageProcessingHelper.h"
-
-void iAdaptiveThresholdModuleInterface::determineThreshold()
+void iAAdaptiveThresholdModuleInterface::determineThreshold()
 {
 	try
 	{
