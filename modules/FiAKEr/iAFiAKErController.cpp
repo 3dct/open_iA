@@ -2129,18 +2129,49 @@ namespace
 	}
 }
 
+bool iAFiAKErController::loadReferenceInternal(iASettings settings)
+{
+	QString refIDStr = settings.value(ProjectFileReference, "").toString();
+	if (refIDStr.isEmpty())
+	{
+		return false;
+	}
+	size_t referenceID = NoResult;
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+	{
+		if (QFileInfo(m_data->result[resultID].fileName).completeBaseName() == refIDStr)
+		{
+			DEBUG_LOG(QString("Result %1, number=%1 will be used as reference!").arg(refIDStr).arg(resultID));
+			referenceID = resultID;
+			break;
+		}
+	}
+	if (referenceID == NoResult)
+	{
+		bool ok;
+		referenceID = refIDStr.toULongLong(&ok);
+		if (!ok || referenceID >= m_data->result.size())
+		{
+			DEBUG_LOG(QString("Invalid reference specification '%1' in project file! "
+				"Expected either a file name (new format) or a result number (old format)").arg(refIDStr));
+			return false;
+		}
+		else
+		{
+			DEBUG_LOG(QString("Old style project file: result number %1 will be used as reference!").arg(referenceID));
+		}
+	}
+	connect(this, &iAFiAKErController::referenceComputed, [this, settings]
+	{   // defer loading the rest of the settings until reference is computed
+		loadSettings(settings);
+	});
+	setReference(referenceID);
+	return true;
+}
+
 void iAFiAKErController::loadReference(iASettings settings)
 {
-	size_t referenceID = settings.value(ProjectFileReference, static_cast<qulonglong>(NoResult)).toULongLong();
-	if (referenceID != NoResult)
-	{
-		connect(this, &iAFiAKErController::referenceComputed, [this, settings]
-		{   // defer loading the rest of the settings until reference is computed
-			loadSettings(settings);
-		});
-		setReference(referenceID);
-	}
-	else
+	if (!loadReferenceInternal(settings))
 	{   // if no reference set, load settings directly
 		loadSettings(settings);
 	}
@@ -2187,7 +2218,7 @@ void iAFiAKErController::loadSettings(iASettings settings)
 void iAFiAKErController::saveSettings(QSettings & settings)
 {
 	if (m_referenceID != NoResult)
-		settings.setValue(ProjectFileReference, static_cast<qulonglong>(m_referenceID));
+		settings.setValue(ProjectFileReference, m_data->result[m_referenceID].fileName);
 	m_spm->saveSettings(settings);
 	::saveSettings(settings, m_settingsWidgetMap);
 
