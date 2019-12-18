@@ -168,7 +168,7 @@ void iARefDistCompute::run()
 	{
 		QString cachePath(m_data->folder + "/cache/");
 		QString resultName(QFileInfo(m_data->result[resultID].fileName).completeBaseName());
-		QString resultCacheFileName(cachePath + QString("/refDist_%1_%2.cache").arg(referenceName).arg(resultName));
+		QString resultCacheFileName(cachePath + QString("refDist_%1_%2.cache").arg(referenceName).arg(resultName));
 		QFile cacheFile(resultCacheFileName);
 		bool skip = (resultID == m_referenceID) || readResultRefComparison(cacheFile, resultID);
 
@@ -268,7 +268,7 @@ void iARefDistCompute::run()
 	}
 
 	// Computing reference differences:
-	QString avgCacheFileName(cachePath + QString("/refAvg_%1.cache").arg(referenceName));
+	QString avgCacheFileName(cachePath + QString("refAvg_%1.cache").arg(referenceName));
 	QFile avgCacheFile(avgCacheFileName);
 	if (recomputeAverages // if any of the results was not loaded from cache
 		|| !readAverageMeasures(avgCacheFile))  // or cache file not found / number of results cached previously is not the same as currently loaded
