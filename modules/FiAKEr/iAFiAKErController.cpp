@@ -2744,6 +2744,7 @@ void iAFiAKErController::doSaveProject()
 	projectFile.endGroup();
 
 	addInteraction(QString("Saved as Project '%1'.").arg(fileName));
+	m_mainWnd->setCurrentFile(fileName);
 }
 
 void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & fileName)
