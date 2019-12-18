@@ -182,6 +182,13 @@
             </property>
            </spacer>
           </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QCheckBox" name="cbLinkPreviews">
+            <property name="text">
+             <string>Link preview cameras to main 3D view</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>

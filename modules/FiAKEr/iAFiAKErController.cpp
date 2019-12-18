@@ -184,6 +184,7 @@ namespace
 	const QString ProjectConnectMatchingReferenceFibers("ConnectMatchingReferenceFibers");
 	// Result List:
 	const QString ProjectShowRefInDistribution("ShowReferenceInDistribution");
+	const QString ProjectLinkPreviews("LinkPreviews");
 	const QString ProjectDistributionHistogramBins("DistributionHistogramBins");
 	const QString ProjectDistributionPlotTypes("DistributionPlotTypes");
 	const QString ProjectStackedBarChartColors("StackedBarChartColors");
@@ -329,6 +330,7 @@ void iAFiAKErController::resultsLoaded()
 	m_settingsWidgetMap.insert(ProjectNumberOfMatchingReferenceFibers, m_spnboxReferenceCount);
 	m_settingsWidgetMap.insert(ProjectConnectMatchingReferenceFibers, m_chkboxShowLines);
 	m_settingsWidgetMap.insert(ProjectShowRefInDistribution, m_settingsView->cbShowReferenceDistribution);
+	m_settingsWidgetMap.insert(ProjectLinkPreviews, m_settingsView->cbLinkPreviews);
 	m_settingsWidgetMap.insert(ProjectDistributionHistogramBins, m_settingsView->sbHistogramBins);
 	m_settingsWidgetMap.insert(ProjectDistributionPlotTypes, m_settingsView->cmbboxDistributionPlotType);
 	m_settingsWidgetMap.insert(ProjectStackedBarChartColors, m_settingsView->cmbboxStackedBarChartColors);
@@ -483,8 +485,6 @@ QWidget* iAFiAKErController::setupSettingsView()
 
 	m_settingsView->sbHistogramBins->setValue(HistogramBins);
 
-	m_settingsView->cbShowReferenceDistribution->setChecked(false);
-
 	m_settingsView->cmbboxStackedBarChartColors->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsView->cmbboxStackedBarChartColors->setCurrentText(DefaultStackedBarColorTheme);
 
@@ -516,6 +516,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 	connect(m_settingsView->sbAnimationDelay, SIGNAL(valueChanged(int)), this, SLOT(playDelayChanged(int)));
 	connect(m_settingsView->sbHistogramBins, SIGNAL(valueChanged(int)), this, SLOT(histogramBinsChanged(int)));
 	connect(m_settingsView->cbShowReferenceDistribution, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceInChartToggled);
+	connect(m_settingsView->cbLinkPreviews, &QCheckBox::stateChanged, this, &iAFiAKErController::linkPreviewsToggled);
 	connect(m_settingsView->cmbboxDistributionPlotType, SIGNAL(currentIndexChanged(int)),
 		this, SLOT(distributionChartTypeChanged(int)));
 	connect(m_settingsView->cmbboxStackedBarChartColors, SIGNAL(currentIndexChanged(QString const &)),
@@ -653,13 +654,11 @@ QWidget* iAFiAKErController::setupResultListView()
 	{
 		auto & d = m_data->result.at(resultID);
 		auto & ui = m_resultUIs[resultID];
-
 		ui.previewWidget = new iAFixedAspectWidget();
 		ui.vtkWidget = ui.previewWidget->vtkWidget();
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 		renWin->SetAlphaBitPlanes(1);
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
-		m_renderManager->addToBundle(ren);
 		ren->SetBackground(1.0, 1.0, 1.0);
 		ren->SetUseDepthPeeling(true);
 		ren->SetMaximumNumberOfPeels(10);
@@ -2822,6 +2821,24 @@ void iAFiAKErController::showReferenceInChartToggled()
 	addInteraction(QString("Toggled showing of reference in distribution charts in result list to %1")
 		.arg(m_settingsView->cbShowReferenceDistribution->isChecked()?"on":"off"));
 	updateRefDistPlots();
+}
+
+void iAFiAKErController::linkPreviewsToggled()
+{
+	bool link = m_settingsView->cbLinkPreviews->isChecked();
+	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
+	{
+		auto & ui = m_resultUIs[resultID];
+		auto ren = ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer();
+		if (link)
+		{
+			m_renderManager->addToBundle(ren);
+		}
+		else
+		{
+			m_renderManager->removeFromBundle(ren);
+		}
+	}
 }
 
 void iAFiAKErController::distributionChartTypeChanged(int idx)
