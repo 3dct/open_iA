@@ -2734,17 +2734,17 @@ void iAFiAKErController::doSaveProject()
 		m_data->folder,
 		iAIOProvider::NewProjectFileTypeFilter);
 	if (fileName.isEmpty())
+	{
 		return;
-
+	}
 	QSettings projectFile(fileName, QSettings::IniFormat);
 	projectFile.setIniCodec("UTF-8");
 	projectFile.beginGroup(FIAKERProjectID);
-	// }
 	saveProject(projectFile, fileName);
 	projectFile.endGroup();
-
+	projectFile.sync(); // make sure file is written here...
+	m_mainWnd->setCurrentFile(fileName); // ...because otherwise it won't get added to recent list here
 	addInteraction(QString("Saved as Project '%1'.").arg(fileName));
-	m_mainWnd->setCurrentFile(fileName);
 }
 
 void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & fileName)
@@ -2827,6 +2827,8 @@ void iAFiAKErController::showReferenceInChartToggled()
 void iAFiAKErController::linkPreviewsToggled()
 {
 	bool link = m_settingsView->cbLinkPreviews->isChecked();
+	addInteraction(QString("Toggled linking preview and main 3D view to %1")
+		.arg(link ? "on" : "off"));
 	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & ui = m_resultUIs[resultID];
