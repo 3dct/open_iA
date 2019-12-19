@@ -412,7 +412,7 @@ ELSE()
 	# SET (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 	# enable all warnings:
-	ADD_COMPILE_OPTIONS(-Wall -Wextra -Wpedantic)
+	ADD_COMPILE_OPTIONS(-Wall -Wextra) # with -Wpedantic, lots of warnings about extra ';' in VTK/ITK code...
 ENDIF()
 
 IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
