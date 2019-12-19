@@ -918,7 +918,7 @@ void iAFiAKErController::setSPMColorByResult()
 	lut.setRange(0, numOfResults - 1);
 	lut.allocate(numOfResults);
 	for (size_t i = 0; i < numOfResults; i++)
-		lut.setColor(i, m_resultColorTheme->color(i));
+		lut.setColor(i, getResultColor(i));
 	m_spm->setLookupTable(lut, m_data->spmData->numParams() - 1);
 }
 
@@ -1046,8 +1046,8 @@ void iAFiAKErController::changeDistributionSource(int index)
 		auto histogramData = iAHistogramData::create(fiberData, HistogramBins, Continuous, range[0], range[1]);
 		QSharedPointer<iAPlot> histogramPlot =
 			(m_settingsView->cmbboxDistributionPlotType->currentIndex() == 0) ?
-			QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, m_resultColorTheme->color(resultID)))
-			: QSharedPointer<iAPlot>(new iALinePlot(histogramData, m_resultColorTheme->color(resultID)));
+			QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, getResultColor(resultID)))
+			: QSharedPointer<iAPlot>(new iALinePlot(histogramData, getResultColor(resultID)));
 		chart->addPlot(histogramPlot);
 		if (histogramData->yBounds()[1] > yMax)
 			yMax = histogramData->yBounds()[1];
@@ -1093,7 +1093,7 @@ void iAFiAKErController::updateRefDistPlots()
 			chart->removePlot(chart->plots()[1]);
 		if (m_referenceID != NoResult && resultID != m_referenceID && !matchQualityVisActive() && m_settingsView->cbShowReferenceDistribution->isChecked())
 		{
-			QColor refColor = m_resultColorTheme->color(m_referenceID);
+			QColor refColor = getResultColor(m_referenceID);
 			refColor.setAlpha(DistributionRefAlpha);
 			QSharedPointer<iAPlotData> refPlotData = m_resultUIs[m_referenceID].histoChart->plots()[0]->data();
 			QSharedPointer<iAPlot> refPlot =
