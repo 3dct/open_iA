@@ -12,6 +12,7 @@ namespace intersection {
 	class XYLine : protected QLineF
 	{
 	public: 
+		XYLine(): QLineF() {}
 		XYLine(const QPointF& pt1, const QPointF& pt2):QLineF(pt1, pt2) {};
 		XYLine(float x1, float y1, float x2, float y2):QLineF(x1, y1, x2, y2) {};
 		XYLine(const QLineF &line):QLineF(line) {};
@@ -42,7 +43,6 @@ namespace intersection {
 		};
 
 	private:
-		XYLine() = delete;
 		QVector<QPointF> m_intersectPoints; 
 	};
 
