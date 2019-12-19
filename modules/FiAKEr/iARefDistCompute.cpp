@@ -38,6 +38,13 @@
 
 #include <array>
 
+// OpenMP
+#ifndef __APPLE__
+#ifndef __MACOSX
+#include <omp.h>
+#endif
+#endif
+
 namespace
 {
 	void getBestMatches(iAFiberData const & fiber, QMap<uint, uint> const & mapping, vtkTable* refTable,
@@ -179,7 +186,7 @@ void iARefDistCompute::run()
 		}
 		recomputeAverages = true; // if any result is not loaded from cache, we have to recompute averages
 		auto & d = m_data->result[resultID];
-		size_t fiberCount = d.table->GetNumberOfRows();
+		qint64 const fiberCount = d.table->GetNumberOfRows();
 		d.refDiffFiber.resize(fiberCount);
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
@@ -190,7 +197,9 @@ void iARefDistCompute::run()
 				d.refDiffFiber[fiberID].dist, diagLength, maxLength, ref.curveInfo);
 		}
 		// Computing the difference between consecutive steps.
-		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
+// OpenMP parallalelization - somehow not working on Windows...
+#pragma omp parallel for
+		for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
 			if (d.stepData == iAFiberCharData::SimpleStepData)
 			{
