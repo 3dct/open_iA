@@ -247,8 +247,7 @@ void iAAlgorithm::itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* poly
 	while ( cellIt != cells->End() )
 	{
 		CellType *nextCell = cellIt->Value();
-		CellType::PointIdIterator pointIt = nextCell->PointIdsBegin() ;
-		MeshPointType  p;
+		CellType::PointIdIterator pointIt = nextCell->PointIdsBegin();
 		int i;
 
 		switch (nextCell->GetType())

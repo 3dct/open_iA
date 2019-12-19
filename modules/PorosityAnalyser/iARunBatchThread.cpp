@@ -1328,12 +1328,12 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 			if ( m_datasetGTs[dsFN] != "" )
 			{
 				MaskImageType::RegionType reg = mask->GetLargestPossibleRegion();
-				size_t size = static_cast<size_t>(reg.GetSize()[0]) * reg.GetSize()[1] * reg.GetSize()[2];
+				long long size = static_cast<long long>(reg.GetSize()[0]) * reg.GetSize()[1] * reg.GetSize()[2];
 				size_t tp = 0, fn = 0, fp = 0, tn = 0;
 				MaskImageType::PixelType gt, m;
 
 #pragma omp parallel for reduction(+:tp,fn,fp,tn)
-				for ( size_t i = 0; i < size; ++i )
+				for (long long i = 0; i < size; ++i )
 				{
 					gt = gtImage->GetBufferPointer()[i];
 					m = mask->GetBufferPointer()[i];
