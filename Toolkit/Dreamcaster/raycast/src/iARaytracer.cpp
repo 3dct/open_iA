@@ -112,7 +112,7 @@ bool intersectionCompare(iAintersection *e1, iAintersection *e2 )
 	return e1->dist < e2->dist;
 }
 
-int iAEngine::DepthRaytrace(iARay& a_Ray, iAVec3f & a_Acc, int a_Depth, float a_RIndex, float& a_Dist, iARayPenetration * ray_p, std::vector<iAIntersection*> &vecIntersections, iATraverseStack * stack, bool dipAsColor )
+int iAEngine::DepthRaytrace(iARay& a_Ray, iAVec3f & a_Acc, int a_Depth, float /*a_RIndex*/, float& a_Dist, iARayPenetration * ray_p, std::vector<iAIntersection*> &vecIntersections, iATraverseStack * stack, bool dipAsColor )
 {
 	if (a_Depth > s->TRACEDEPTH) return 0;
 	// trace primary ray

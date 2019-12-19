@@ -117,7 +117,7 @@ bool PlaneBoxOverlap( iAVec3f & a_Normal, iAVec3f & a_Vert, iAVec3f & a_MaxBox )
 	if (( a_Normal&vmax) >= 0.0f) return true;
 	return false;
 }
-int iATriPrim::Intersect(iAaabb &a_aabb, iAVec3f & a_BoxCentre, iAVec3f & a_BoxHalfsize) const
+int iATriPrim::Intersect(iAaabb &/*a_aabb*/, iAVec3f & a_BoxCentre, iAVec3f & a_BoxHalfsize) const
 {
 	iAVec3f * a_V0 = m_Tri.vertices[0];
 	iAVec3f * a_V1 = m_Tri.vertices[1];

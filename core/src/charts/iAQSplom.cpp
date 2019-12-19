@@ -1412,7 +1412,7 @@ void iAQSplom::drawVisibleParameters(QPainter &painter)
 	drawPlotLabels(ind_Vis, ind_Vis.length(), painter, true);
 }
 
-void iAQSplom::drawPlotLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPainter & painter, bool switchTO_YRow)
+void iAQSplom::drawPlotLabels(QVector<ulong> &ind_Elements, int /*axisOffSet*/, QPainter & painter, bool switchTO_YRow)
 {
 	QRect currentRect;
 

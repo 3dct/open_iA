@@ -591,7 +591,7 @@ void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, MainWindow* mainW
 }
 
 bool iAASTRAFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & parameters,
-	MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput)
+	MdiChild* sourceMdi, MainWindow* mainWnd, bool /*askForAdditionalInput*/)
 {
 	dlg_ProjectionParameters dlg;
 	dlg.setWindowTitle(filter->name());
