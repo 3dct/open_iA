@@ -83,10 +83,10 @@
 std::vector<iAwald_tri> wald;
 std::vector<iABSPNode> nodes;
 
-//openMP
+// OpenMP
 #ifndef __APPLE__
 #ifndef __MACOSX
-	#include <omp.h>///TODO: gcc include omp //omp.h works with gcc 4.6
+	#include <omp.h>
 #endif
 #endif
 

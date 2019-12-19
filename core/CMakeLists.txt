@@ -11,11 +11,6 @@ QT5_ADD_RESOURCES( open_iA_core_SRCS ${open_iA_core_QRC} )
 
 SET (LIB_TYPE SHARED)
 
-#get_cmake_property(_variableNames VARIABLES)
-#foreach (_variableName ${_variableNames})
-#    message(STATUS "${_variableName}=${${_variableName}}")
-#endforeach()
-
 # Generate core dll file / shared object:
 add_library(${CORE_LIBRARY_NAME} ${LIB_TYPE} ${open_iA_core_SRCS} ${open_iA_core_QRC} )
 TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${QT_LIBRARIES} ${VTK_LIBRARIES} ${ITK_LIBRARIES})
@@ -31,6 +26,9 @@ IF (WIN32)
 	# apparently required for VS 2015, and doesn't hurt for VS2013:
 	TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC Opengl32)
 ENDIF (WIN32)
+if(OpenMP_CXX_FOUND)
+	TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC OpenMP::OpenMP_CXX)
+endif()
 
 IF(APPLE)
 	INCLUDE_DIRECTORIES( /System/Library/Frameworks )
@@ -85,9 +83,6 @@ IF (openiA_TESTING_ENABLED)
 ENDIF()
 
 # Compiler Flags
-IF (MSVC)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
-ENDIF ()
 IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	# see Ulrich Drepper - How to write Shared Libraries
 	#   - fPIC vs. fpic
