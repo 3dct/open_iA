@@ -76,8 +76,7 @@
 #include <QDateTime>
 #include <QImage>
 #include <QLocale>
-#include <QApplication>
-#include <QImage>
+#include <QtGlobal> // for QT_VERSION
 
 #define VTKISRBP_ORIENT 0
 #define VTKISRBP_SELECT 1
@@ -264,7 +263,7 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 {
 	m_ren->SetLayer(0);
 	m_ren->UseDepthPeelingOn();
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
 	m_ren->UseDepthPeelingForVolumesOn();
 #endif
 	m_labelRen->SetLayer(1);

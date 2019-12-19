@@ -102,6 +102,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QString>
+#include <QtGlobal> // for QT_VERSION
 
 #include <cassert>
 
@@ -1267,7 +1268,7 @@ namespace
 }
 
 // Qt versions before 5.10 don't have these operators yet:
-#if QT_VERSION < 0x050A00
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
 bool operator==(QCursor const & a, QCursor const & b)
 {
 	if (a.shape() != Qt::BitmapCursor)
