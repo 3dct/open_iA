@@ -384,16 +384,8 @@ void iARefDistCompute::writeResultRefComparison(QFile& cacheFile, size_t resultI
 	out << ResultCacheFileIdentifier;
 	out << CacheFileVersion;
 	// write data:
-	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
-	{
-		if (resultID == m_referenceID)
-		{
-			continue;
-		}
-		auto & d = m_data->result[resultID];
-		out << d.refDiffFiber;
-		out << d.avgDifference;
-	}
+	out << m_data->result[resultID].refDiffFiber;
+	out << m_data->result[resultID].avgDifference;
 	cacheFile.close();
 }
 
@@ -414,6 +406,7 @@ void iARefDistCompute::writeAverageMeasures(QFile& cacheFile)
 	out << static_cast<quint32>(m_data->result.size());
 	out << m_data->avgRefFiberMatch;
 	out << m_data->maxAvgDifference;
+	cacheFile.close();
 }
 
 bool iARefDistCompute::readAverageMeasures(QFile& cacheFile)
