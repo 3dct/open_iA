@@ -393,6 +393,9 @@ IF (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")  # enable multi-processor compilation
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 	ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
+	
+	# enable all warnings:
+	ADD_COMPILE_OPTIONS(/W4)
 ELSE()
 	# on MSVC, setting CMAKE_CXX_STANDARD leads to RTK not to compile currently
 	# due to random_shuffle being used (deprecated in C++14, apparently removed in 17 or 20)
@@ -407,6 +410,9 @@ ELSE()
 	# use CMAKE_CXX_STANDARD_REQUIRED? e.g.:
 	# SET (CMAKE_CXX_STANDARD 11)
 	# SET (CMAKE_CXX_STANDARD_REQUIRED ON)
+
+	# enable all warnings:
+	ADD_COMPILE_OPTIONS(-Wall -Wextra -Wpedantic)
 ENDIF()
 
 IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
