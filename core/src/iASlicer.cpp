@@ -1337,8 +1337,8 @@ void iASlicer::printVoxelInformation()
 
 			double * const tmpSpacing = tmpChild->imagePointer()->GetSpacing();
 			int tmpCoord[3];
-			for (int i = 0; i < 3; ++i)
-				tmpCoord[i] = static_cast<int>(m_globalPt[0] / tmpSpacing[0]);
+			for (int c = 0; c < 3; ++c)
+				tmpCoord[c] = static_cast<int>(m_globalPt[c] / tmpSpacing[c]);
 			int slicerXAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::X),
 				slicerYAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y),
 				slicerZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
