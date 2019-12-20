@@ -68,7 +68,7 @@ iASingleColorTheme::iASingleColorTheme(QString const & name, QColor  const & col
 	iAColorTheme(name), m_color(color)
 {}
 
-QColor const & iASingleColorTheme::color(int idx) const
+QColor const & iASingleColorTheme::color(int /*idx*/) const
 {
 	return m_color;
 }

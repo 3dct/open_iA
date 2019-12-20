@@ -228,8 +228,6 @@ public:
 
 	void SetFile(std::string &file);
 	void SetFile(std::wstring &file);
-	void SetSliceSeq(bool ss);
-	bool GetSliceSeq();
 	void SetTimeId(std::wstring &id);
 	std::wstring GetTimeId();
 	void Preprocess();
@@ -480,16 +478,6 @@ void iAOIFReaderHelper::ReadSequenceOif()
 		for (size_t f = 0; f < list.size(); f++)
 			ReadTifSequence(list.at(f), i);
 	}
-}
-
-void iAOIFReaderHelper::SetSliceSeq(bool ss)
-{
-	//do nothing
-}
-
-bool iAOIFReaderHelper::GetSliceSeq()
-{
-	return false;
 }
 
 void iAOIFReaderHelper::SetTimeId(std::wstring &id)
@@ -946,7 +934,7 @@ iAOIFReaderHelper::TiffImgPtr iAOIFReaderHelper::ReadTiffImage(QString const & f
 	return iAOIFReaderHelper::TiffImgPtr();
 }
 
-void iAOIFReaderHelper::Read(int t, int c, bool get_max)
+void iAOIFReaderHelper::Read(int t, int c, bool /*get_max*/)
 {
 	ResultImgType::IndexType origin;
 	origin.Fill(0);
@@ -1027,7 +1015,6 @@ void readOIF(QString const & filename, iAConnector* con, int channel,
 	iAOIFReaderHelper reader;
 	auto wfn = filename.toStdWString();
 	reader.SetFile(wfn);
-	reader.SetSliceSeq(false);
 	std::wstring timeId(L"_T");
 	reader.SetTimeId(timeId);
 	reader.Preprocess();
@@ -1039,9 +1026,9 @@ void readOIF(QString const & filename, iAConnector* con, int channel,
 		for (int i = 0; i < reader.GetChanNum(); ++i)
 		{
 			vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
-			iAConnector con;
-			con.setImage(reader.GetResult(i));
-			image->DeepCopy(con.vtkImage());
+			iAConnector con2;
+			con2.setImage(reader.GetResult(i));
+			image->DeepCopy(con2.vtkImage());
 			volumes->push_back(image);
 		}
 	}

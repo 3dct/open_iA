@@ -885,11 +885,10 @@ void iAvtkInteractStyleActor::rotate2D()
 	transformationMode rotationDir;
 	switch (m_currentSliceMode)
 	{
-	case 0: rotationDir = transformationMode::x; break; //xy 
-	case 1: rotationDir = transformationMode::y; relativeAngle *= -1.0;  break;
-	case 2: rotationDir = transformationMode::z;  break;
-	default:
-		break;
+	default: DEBUG_LOG("Invalid slicer mode"); // intentional fall-through - C++ 17: [[fallthrough]]
+	case iASlicerMode::YZ: rotationDir = transformationMode::x; break;
+	case iASlicerMode::XZ: rotationDir = transformationMode::y; relativeAngle *= -1.0;  break;
+	case iASlicerMode::XY: rotationDir = transformationMode::z; break;
 	}
 	
 	this->ReslicerRotate(m_ReslicerTransform[m_currentSliceMode], m_slicerChannel[m_currentSliceMode]->reslicer(),

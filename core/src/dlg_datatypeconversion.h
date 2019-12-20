@@ -49,9 +49,9 @@ public:
 	~dlg_datatypeconversion();
 
 	QString convert(QString const & filename, iARawFileParameters const & p, int outdatatype,
-		double minrange, double maxrange, double minout, double maxout, int check);
+		double minrange, double maxrange, double minout, double maxout);
 	QString convertROI(QString const & filename, iARawFileParameters const & p, int outdatatype,
-		double minrange, double maxrange, double minout, double maxout, int check, double* roi);
+		double minrange, double maxrange, double minout, double maxout, double* roi);
 
 	double getRangeLower() const;
 	double getRangeUpper() const;

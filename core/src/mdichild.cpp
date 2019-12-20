@@ -546,7 +546,7 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 	return true;
 }
 
-void MdiChild::setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData)
+void MdiChild::setImageData(QString const & /*filename*/, vtkSmartPointer<vtkImageData> imgData)
 {
 	m_imageData = imgData;
 	modality(0)->setData(m_imageData);
@@ -698,7 +698,7 @@ void MdiChild::setupView(bool active )
 	check2DMode();
 }
 
-void MdiChild::setupProject(bool active)
+void MdiChild::setupProject(bool /*active*/)
 {
 	setModalities(m_ioThread->modalities());
 	QString fileName = m_ioThread->fileName();
@@ -2213,7 +2213,7 @@ void MdiChild::maximizeDockWidget( QDockWidget * dw )
 	m_isSmthMaximized = true;
 }
 
-void MdiChild::demaximizeDockWidget( QDockWidget * dw )
+void MdiChild::demaximizeDockWidget( QDockWidget * /*dw*/ )
 {
 	this->restoreState(m_beforeMaximizeState);
 	m_isSmthMaximized = false;

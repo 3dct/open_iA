@@ -271,7 +271,7 @@ hid_t GetHDF5ReadType(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
 }
 
 // typedef herr_t(*H5E_walk2_t)(unsigned n, const H5E_error2_t *err_desc, void *client_data)
-herr_t errorfunc(unsigned n, const H5E_error2_t *err, void *client_data)
+herr_t errorfunc(unsigned /*n*/, const H5E_error2_t *err, void * /*client_data*/)
 {
 	/*
 	hid_t       cls_id;     class ID
@@ -298,7 +298,7 @@ herr_t errorfunc(unsigned n, const H5E_error2_t *err, void *client_data)
 void printHDF5ErrorsToConsole()
 {
 	hid_t err_stack = H5Eget_current_stack();
-	herr_t walkresult = H5Ewalk(err_stack, H5E_WALK_UPWARD, errorfunc, nullptr);
+	/*herr_t walkresult = */ H5Ewalk(err_stack, H5E_WALK_UPWARD, errorfunc, nullptr);
 }
 
 #include <vtkImageImport.h>
@@ -327,7 +327,7 @@ void iAIO::readHDF5File()
 	hsize_t * hdf5Dims = new hsize_t[rank];
 	hsize_t * maxdims = new hsize_t[rank];
 	int status = H5Sget_simple_extent_dims(space, hdf5Dims, maxdims);
-	H5S_class_t hdf5Class = H5Sget_simple_extent_type(space);
+	//H5S_class_t hdf5Class = H5Sget_simple_extent_type(space);
 	hid_t type_id = H5Dget_type(dataset_id);
 	H5T_class_t hdf5Type = H5Tget_class(type_id);
 	size_t numBytes = H5Tget_size(type_id);
@@ -561,7 +561,7 @@ int group_check(struct opdata *od, haddr_t target_addr)
 	/* Recursively examine the next node */
 }
 
-herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
+herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t * /*info*/,
 	void *operator_data)
 {
 	herr_t          status, return_val = 0;
@@ -588,8 +588,8 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
 		rank = H5Sget_simple_extent_ndims(space);
 		hsize_t * dims = new hsize_t[rank];
 		hsize_t * maxdims = new hsize_t[rank];
-		int status = H5Sget_simple_extent_dims(space, dims, maxdims);
-		H5S_class_t hdf5Class = H5Sget_simple_extent_type(space);
+		status = H5Sget_simple_extent_dims(space, dims, maxdims);
+		//H5S_class_t hdf5Class = H5Sget_simple_extent_type(space);
 		hid_t type_id = H5Dget_type(dset);
 		H5T_class_t hdf5Type = H5Tget_class(type_id);
 		size_t numBytes = H5Tget_size(type_id);
@@ -1292,7 +1292,7 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 		<< tr("%1").arg(indexRange[0])
 		<< tr("%1").arg(indexRange[1]));
 
-	dlg_openfile_sizecheck dlg(true, f, m_parent, "RAW file specs", additionalLabels, additionalValues, m_rawFileParams);
+	dlg_openfile_sizecheck dlg(f, m_parent, "RAW file specs", additionalLabels, additionalValues, m_rawFileParams);
 	if (!dlg.accepted())
 		return false;
 
@@ -1308,7 +1308,7 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 bool iAIO::setupRAWReader( QString const & f )
 {
 	m_fileName = f;
-	dlg_openfile_sizecheck dlg(false, f, m_parent, "RAW file specs", QStringList(), QVariantList(), m_rawFileParams);
+	dlg_openfile_sizecheck dlg(f, m_parent, "RAW file specs", QStringList(), QVariantList(), m_rawFileParams);
 	return dlg.accepted();
 }
 
@@ -1542,7 +1542,7 @@ bool iAIO::setupStackReader( QString const & f )
 		QString suffix = imgFileInfo.suffix();
 		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
 		bool ok;
-		int myNum = lastDigit.toInt(&ok);
+		/*int myNum =*/ lastDigit.toInt(&ok);
 		if (!ok)
 		{
 			DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));
@@ -1567,7 +1567,7 @@ bool iAIO::setupStackReader( QString const & f )
 		QString suffix = imgFileInfo.suffix();
 		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
 		bool ok;
-		int myNum = lastDigit.toInt(&ok);
+		/*int myNum =*/ lastDigit.toInt(&ok);
 		if (!ok)
 		{
 			//DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));

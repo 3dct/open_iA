@@ -29,7 +29,7 @@
 
 iAMapper::~iAMapper() {}
 
-bool iAMapper::equals(iAMapper const & other) const
+bool iAMapper::equals(iAMapper const & /*other*/) const
 {
 	return false;
 }

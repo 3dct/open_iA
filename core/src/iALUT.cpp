@@ -1651,7 +1651,7 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, dou
 	return BuildLUT( pLUT, lutRange, colorMap, numCols);
 }
 
-iALookupTable open_iA_Core_API iALUT::Build(double const * lutRange, QString colorMap, int numCols, double alpha)
+iALookupTable open_iA_Core_API iALUT::Build(double const * lutRange, QString colorMap, int numCols, double /*alpha*/)
 {
 	vtkSmartPointer<vtkLookupTable> vtkLUT(vtkSmartPointer<vtkLookupTable>::New());
 	BuildLUT(vtkLUT, lutRange, colorMap, numCols);

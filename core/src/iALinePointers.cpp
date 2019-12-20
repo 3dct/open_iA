@@ -30,7 +30,6 @@
 iALinePointers::iALinePointers():
 	points(vtkSmartPointer<vtkPoints>::New())
 {
-	double height = ConeHeight;
 	points->Allocate(2);
 	for (vtkIdType i = 0; i < 2; i++)
 	{

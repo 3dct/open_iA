@@ -106,7 +106,7 @@ void iAScatterPlotWidget::SetPlotColor(QColor const & c, double rangeMin, double
 	m_scatterplot->setLookupTable(lut, 0);
 }
 
-void iAScatterPlotWidget::paintEvent(QPaintEvent * event)
+void iAScatterPlotWidget::paintEvent(QPaintEvent * /*event*/)
 {
 	QPainter painter(this);
 	QFontMetrics fm = painter.fontMetrics();

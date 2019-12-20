@@ -22,7 +22,7 @@
 
 #include <QPainter>
 
-void iASignallingWidget::mouseDoubleClickEvent(QMouseEvent* ev)
+void iASignallingWidget::mouseDoubleClickEvent(QMouseEvent* /*ev*/)
 {
 	emit dblClicked();
 }
@@ -33,7 +33,7 @@ void iASignallingWidget::setBackgroundColor(QColor const & color)
 	update();
 }
 
-void iASignallingWidget::paintEvent(QPaintEvent* ev)
+void iASignallingWidget::paintEvent(QPaintEvent* /*ev*/)
 {
 	QPainter painter(this);
 	if (!m_bgColor.isValid())

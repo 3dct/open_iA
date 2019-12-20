@@ -82,7 +82,7 @@ QMenu * iAModuleInterface::getMenuWithTitle( QMenu * parentMenu, QString const &
 
 void iAModuleInterface::SaveSettings() const {}
 
-void iAModuleInterface::ChildCreated(MdiChild* child)
+void iAModuleInterface::ChildCreated(MdiChild * /*child*/)
 {
 }
 
@@ -137,7 +137,7 @@ void iAModuleInterface::AddActionToMenuAlphabeticallySorted( QMenu * menu, QActi
 	m_dispatcher->AddActionToMenuAlphabeticallySorted(menu, action, isDisablable);
 }
 
-iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild * child )
+iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow * /*mainWnd*/, MdiChild * /*child*/ )
 {
 	return nullptr;
 }

@@ -126,7 +126,7 @@ public:
 };
 vtkStandardNewMacro(iAMouseInteractorStyle);
 
-void KeyPressCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
+void KeyPressCallbackFunction(vtkObject* /*caller*/, long unsigned int /*eventId*/,
 	void* clientData, void* vtkNotUsed(callData))
 {
 	iARenderer *ren = static_cast<iARenderer*>(clientData);
@@ -215,7 +215,6 @@ void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double 
 	double pcoords[DIM] = { 0,0,0 };
 	double *weights = new double[data->GetMaxCellSize()];
 	vtkCell* cell = data->GetCell(cellId);
-	int np = cell->GetPoints()->GetNumberOfPoints();
 	int subId = cell->GetParametricCenter(pcoords);
 	cell->EvaluateLocation(subId, pcoords, center, weights);
 	for (int i = 0; i < DIM; ++i)

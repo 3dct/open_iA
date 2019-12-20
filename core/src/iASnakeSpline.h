@@ -79,7 +79,7 @@ public:
 		if (static_cast<int>(selectedPntInd) < m_spline.GetNumberOfPoints())
 		{
 			// get current position of point and only move in two directions depending on slice view
-			double * currentPos = m_snakeDisks[selectedPntInd]->actor->GetPosition();
+			//double * currentPos = m_snakeDisks[selectedPntInd]->actor->GetPosition();
 			m_snakeDisks[selectedPntInd]->actor->SetPosition(x, y, ZCoord);
 			m_spline.SetPoint(selectedPntInd, x, y, ZCoord);
 		}

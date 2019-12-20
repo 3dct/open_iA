@@ -64,7 +64,7 @@ iAImageCoordinate iAImageCoordConverter::coordinatesFromIndex(
 		iAVoxelIndexType index,
 		iAVoxelIndexType width,
 		iAVoxelIndexType height,
-		iAVoxelIndexType depth,
+		iAVoxelIndexType /*depth*/,
 		iAImageCoordinate::iAIndexOrdering ordering)
 {
 	iAImageCoordinate result;

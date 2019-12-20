@@ -154,7 +154,7 @@ void iATLGICTLoader::run()
 			QString completeSuffix = imgFileInfo.completeSuffix();
 			QString lastDigit = imgFileName.mid(imgFileName.length() - (completeSuffix.length() + 2), 1);
 			bool ok;
-			int myNum = lastDigit.toInt(&ok);
+			/*int myNum =*/ lastDigit.toInt(&ok);
 			if (!ok)
 			{
 				//DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));

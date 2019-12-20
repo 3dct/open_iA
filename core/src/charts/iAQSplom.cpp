@@ -928,7 +928,7 @@ int iAQSplom::invert( int val ) const
 	return ( getVisibleParametersCount() - val - 1 );
 }
 
-void iAQSplom::paintEvent( QPaintEvent * event )
+void iAQSplom::paintEvent(QPaintEvent * /*event*/)
 {
 	QPainter painter( this );
 	painter.setRenderHint(QPainter::Antialiasing);
@@ -1416,9 +1416,6 @@ void iAQSplom::drawVisibleParameters(QPainter &painter)
 void iAQSplom::drawPlotLabels(QVector<ulong> &ind_Elements, int /*axisOffSet*/, QPainter & painter, bool switchTO_YRow)
 {
 	QRect currentRect;
-
-	int width;
-	int height = 0;
 	int top = 0;
 	int loopLength = 0;
 	int textwidth = 0;

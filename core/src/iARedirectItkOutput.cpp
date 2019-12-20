@@ -59,7 +59,7 @@ void iARedirectItkOutput::DisplayWarningText(const char *t)
 	DEBUG_LOG(QString("ITK %1").arg(t));
 }
 
-void iARedirectItkOutput::SetPromptUser(bool _arg)
+void iARedirectItkOutput::SetPromptUser(bool /*arg*/)
 {}
 
 bool iARedirectItkOutput::GetPromptUser() const

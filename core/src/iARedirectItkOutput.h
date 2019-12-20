@@ -36,7 +36,7 @@ public:
 	void DisplayGenericOutputText(const char *t) override;
 	void DisplayText(const char *) override;
 	void DisplayWarningText(const char *t) override;
-	void SetPromptUser(bool _arg) override;
+	void SetPromptUser(bool arg) override;
 	bool GetPromptUser() const override;
 	void PromptUserOn() override;
 	void PromptUserOff() override;

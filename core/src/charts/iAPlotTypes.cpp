@@ -59,7 +59,7 @@ iASelectedBinPlot::iASelectedBinPlot(QSharedPointer<iAPlotData> proxyData, int p
 : iAPlot(proxyData, color ), m_position( position )
 {}
 
-void iASelectedBinPlot::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
+void iASelectedBinPlot::draw(QPainter& painter, double binWidth, size_t /*startBin*/, size_t /*endBin*/, iAMapper const & xMapper, iAMapper const & /*yMapper*/) const
 {
 	int x = xMapper.srcToDst(m_position) - ((m_data->valueType() == Discrete) ? binWidth/2 : 0);
 	int h = painter.device()->height();
@@ -101,7 +101,7 @@ void iALinePlot::setLineWidth(int width)
 	m_lineWidth = width;
 }
 
-void iALinePlot::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
+void iALinePlot::draw(QPainter& painter, double /*binWidth*/, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
 	QPolygon poly;
 	if (!buildLinePolygon(poly, m_data->rawData(), startBin, endBin, xMapper, yMapper))
@@ -125,7 +125,7 @@ QColor iAFilledLinePlot::getFillColor() const
 	return fillColor;
 }
 
-void iAFilledLinePlot::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
+void iAFilledLinePlot::draw(QPainter& painter, double /*binWidth*/, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
 	QPolygon poly;
 	if (!buildLinePolygon(poly, m_data->rawData(), startBin, endBin, xMapper, yMapper))
@@ -150,7 +150,7 @@ QColor iAStepFunctionPlot::getFillColor() const
 	return fillColor;
 }
 
-void iAStepFunctionPlot::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
+void iAStepFunctionPlot::draw(QPainter& painter, double /*binWidth*/, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
 	QPainterPath tmpPath;
 	iAPlotData::DataType const * rawData = m_data->rawData();

@@ -311,7 +311,7 @@ void iAChartWidget::drawImageOverlays(QPainter& painter)
 	}
 }
 
-void iAChartWidget::drawAfterPlots(QPainter& painter)
+void iAChartWidget::drawAfterPlots(QPainter& /*painter*/)
 {}
 
 QString iAChartWidget::xAxisTickMarkLabel(double value, double stepWidth)
@@ -471,7 +471,6 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 	int stepNumber = std::min(AxisTicksYMax, static_cast<int>(aheight / (m_fontHeight*1.1)));
 	stepNumber = std::max(1, stepNumber);	// make sure there's at least 2 steps
 	const double step = 1.0 / (stepNumber * m_yZoom);
-	double logMax = LogFunc(static_cast<double>(m_yBounds[1]));
 
 	for (int i = 0; i <= stepNumber; ++i)
 	{
@@ -873,7 +872,7 @@ void iAChartWidget::mouseReleaseEvent(QMouseEvent *event)
 	this->m_mode = NO_MODE;
 }
 
-void iAChartWidget::mouseDoubleClickEvent(QMouseEvent *event)
+void iAChartWidget::mouseDoubleClickEvent(QMouseEvent * /*event*/)
 {
 	emit dblClicked();
 }
@@ -1070,7 +1069,7 @@ void iAChartWidget::keyReleaseEvent(QKeyEvent *event)
 		m_contextMenuVisible = false;
 }
 
-void iAChartWidget::addContextMenuEntries(QMenu* contextMenu)
+void iAChartWidget::addContextMenuEntries(QMenu* /*contextMenu*/)
 {}
 
 void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)

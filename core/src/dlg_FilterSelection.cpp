@@ -26,6 +26,7 @@
 #include <QPushButton>
 
 dlg_FilterSelection::dlg_FilterSelection(QWidget * parent, QString const & preselectedFilter):
+	dlg_FilterSelectionConnector(parent),
 	m_curMatches(0)
 {
 	connect(leFilterSearch, SIGNAL(textEdited(QString const &)), this, SLOT(FilterChanged(QString const &)));
@@ -64,7 +65,7 @@ void dlg_FilterSelection::enableOKButton()
 		(lwFilterList->currentItem() != nullptr && !lwFilterList->currentItem()->isHidden()));
 }
 
-void dlg_FilterSelection::listSelectionChanged(QListWidgetItem *current, QListWidgetItem *previous)
+void dlg_FilterSelection::listSelectionChanged(QListWidgetItem * /*current*/, QListWidgetItem * /*previous*/)
 {
 	enableOKButton();
 }

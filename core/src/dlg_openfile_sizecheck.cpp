@@ -47,7 +47,7 @@ namespace
 	}
 }
 
-dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QString const & fileName, QWidget *parent, QString const & title,
+dlg_openfile_sizecheck::dlg_openfile_sizecheck(QString const & fileName, QWidget *parent, QString const & title,
 	QStringList const & additionalLabels, QList<QVariant> const & additionalValues, iARawFileParameters & rawFileParams):
 	m_accepted(false)
 {
@@ -81,7 +81,7 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QString const
 		<< byteOrderStr
 		<< additionalValues);
 
-	m_inputDlg = new dlg_commoninput(parent, "RAW file specs", labels, values);
+	m_inputDlg = new dlg_commoninput(parent, title, labels, values);
 
 	m_actualSizeLabel = new QLabel("Actual file size: " + QString::number(m_fileSize) + " bytes");
 	m_actualSizeLabel->setAlignment(Qt::AlignRight);

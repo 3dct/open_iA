@@ -34,7 +34,7 @@ class iAColoredWidget: public QWidget
 public:
 	iAColoredWidget()
 	{}
-	void paintEvent(QPaintEvent* ev)
+	void paintEvent(QPaintEvent* /*ev*/) override
 	{
 		QPainter p(this);
 		if (!bgColor.isValid())
