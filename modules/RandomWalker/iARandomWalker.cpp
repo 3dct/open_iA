@@ -626,7 +626,7 @@ iAMaximumDecisionRule::iAMaximumDecisionRule() :
 
 IAFILTER_CREATE(iAMaximumDecisionRule)
 
-void iAMaximumDecisionRule::performWork(QMap<QString, QVariant> const & parameters)
+void iAMaximumDecisionRule::performWork(QMap<QString, QVariant> const & /*parameters*/)
 {
 	if (input().size() <= 1)
 	{

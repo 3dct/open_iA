@@ -47,7 +47,7 @@ namespace
 }
 
 
-iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> originalData, int labelCount, CameraLayout layout):
+iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> originalData, int labelCount, CameraLayout /*layout*/):
 	QWidget(parent),
 	m_slicerMode(InitialSlicerMode)
 {

@@ -154,7 +154,7 @@ void iAParamSpatialView::setImage(size_t id)
 	}
 }
 
-void iAParamSpatialView::SlicerModeButtonClicked(bool checked)
+void iAParamSpatialView::SlicerModeButtonClicked(bool /*checked*/)
 {
 	int modeIdx = slicerModeButton.indexOf(qobject_cast<QToolButton*>(sender()));
 	if (!m_imageWidget || m_curMode == modeIdx || modeIdx == -1)

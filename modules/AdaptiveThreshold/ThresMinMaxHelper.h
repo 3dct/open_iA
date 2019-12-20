@@ -29,7 +29,7 @@ namespace threshold_defs {
 		QPointF getIntersectionPoint(const ThresMinMax& results);
 
 		//fmin > fair /2
-		bool compareFminWithAirPeak(const double fmin, const ThresMinMax& results);
+		bool compareFminWithAirPeak(const ThresMinMax& results);
 		QPointF getLokalMininum(const ThresMinMax& results);
 
 	};

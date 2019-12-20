@@ -78,7 +78,7 @@ namespace Hilbert
 	void
 	setBits(
 		CFixBitVec &h,
-		int n,
+		int /*n*/,
 		int i,
 		const CFixBitVec &w
 		)

@@ -54,7 +54,7 @@ void iAImageTreeLeaf::GetExampleImages(QVector<iAImageTreeLeaf *> & result, int 
 }
 
 
-ClusterImageType const iAImageTreeLeaf::GetRepresentativeImage(int type, LabelImagePointer refImg) const
+ClusterImageType const iAImageTreeLeaf::GetRepresentativeImage(int /*type*/, LabelImagePointer refImg) const
 {
 	if (m_filtered)
 	{
@@ -70,7 +70,7 @@ void iAImageTreeLeaf::DiscardDetails() const
 }
 
 
-QSharedPointer<iAImageTreeNode > iAImageTreeLeaf::GetChild(int idx) const
+QSharedPointer<iAImageTreeNode > iAImageTreeLeaf::GetChild(int /*idx*/) const
 {
 	// leaf node, no children -> null pointer
 	return QSharedPointer<iAImageTreeNode >();

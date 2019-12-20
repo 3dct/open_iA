@@ -126,7 +126,7 @@ void ThresholdCalcHelper::determinIso50andGlobalMax(const threshold_defs::Parame
 		inVals.setMaterialsThreshold(maxPeakThres); 				
 		inVals.Iso50ValueThr(Iso50Val);
 	}
-	catch (std::invalid_argument& iae) {
+	catch (std::invalid_argument& /*iae*/) {
 		throw; 
 	}
 
@@ -172,10 +172,10 @@ void ThresholdCalcHelper::getFirstElemInRange(const QVector <QPointF>& in, float
 			result = nullptr;
 		}
 	}
-	catch (std::invalid_argument& ia) {
+	catch (std::invalid_argument& /*ia*/) {
 		throw; 
 	}
-	catch (std::bad_alloc& ba) {
+	catch (std::bad_alloc& /*ba*/) {
 		DEBUG_LOG("error calculation elem by ranges faild in memory");
 		throw; 
 	}

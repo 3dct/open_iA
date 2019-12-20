@@ -281,7 +281,7 @@ void iAScene::recalculateD( iAVec3f *translate )
 	}
 }
 
-int IntersectCyl(const iARay & ray, const iAaabb& box, float &tmin, float&tmax, int ind)
+int IntersectCyl(const iARay & ray, const iAaabb & box, float & /*tmin*/, float & /*tmax*/, int /*ind*/)
 {
 	iAVec3f ro = ray.GetOrigin();
 	iAVec3f rd = ray.GetDirection();

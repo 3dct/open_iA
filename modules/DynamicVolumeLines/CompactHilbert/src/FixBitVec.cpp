@@ -41,7 +41,7 @@ CFixBitVec::type()
 // is completely ignored, but accepted in order
 // to look and feel the same as a BigBitVec.
 CFixBitVec::CFixBitVec(
-	int iBits
+	int /*iBits*/
 	)
 {
 	return;
@@ -66,7 +66,7 @@ CFixBitVec::getSize()
 // function just for BigBitVec compatibility.
 CFixBitVec &
 CFixBitVec::setSize(
-	int iBits
+	int /*iBits*/
 	)
 {
 	return (*this);

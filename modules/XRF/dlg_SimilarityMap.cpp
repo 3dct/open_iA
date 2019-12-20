@@ -52,7 +52,7 @@ void dlg_SimilarityMap::connectSignalsToSlots()
 	connect( cbShowMarkersInSpectrum, SIGNAL( toggled(bool) ), this, SLOT( showMarkers(bool) ) );
 }
 
-void dlg_SimilarityMap::windowingChanged( int val )
+void dlg_SimilarityMap::windowingChanged( int /*val*/ )
 {
 	double lowerRange = ( (double)horizontalSlider_WindowLower->value() ) / horizontalSlider_WindowLower->maximum();
 	double upperRange = ( (double)horizontalSlider_WindowUpper->value() ) / horizontalSlider_WindowUpper->maximum();

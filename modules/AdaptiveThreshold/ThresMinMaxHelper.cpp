@@ -17,7 +17,7 @@ namespace threshold_defs {
 		double fmin = results.FreqPeakMinY();
 		elem->append(QString("fmin: %1").arg(fmin));
 		//if fmin > fair/2 return first minimum gmin / fmin 
-		if (compareFminWithAirPeak(fmin, results)) {
+		if (compareFminWithAirPeak(results)) {
 			
 			elem->append(QString("fmin: %1 is greater than fair/2: %2").arg(fmin).arg(results.fAirPeakHalf()));
 			
@@ -52,7 +52,7 @@ namespace threshold_defs {
 		}
 	}
 
-	bool ThresMinMaxHelper::compareFminWithAirPeak(const double fmin, const ThresMinMax& results)
+	bool ThresMinMaxHelper::compareFminWithAirPeak(const ThresMinMax& results)
 	{
 		return (results.FreqPeakMinY() > results.fAirPeakHalf());
 	}

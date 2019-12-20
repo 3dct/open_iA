@@ -31,7 +31,7 @@ iATriangleButton::iATriangleButton():
 	setStyleSheet("background-color: transparent;");
 }
 
-void iATriangleButton::paintEvent(QPaintEvent* ev)
+void iATriangleButton::paintEvent(QPaintEvent* /*ev*/)
 {
 	QPainter p(this);
 	p.setRenderHint(QPainter::Antialiasing);

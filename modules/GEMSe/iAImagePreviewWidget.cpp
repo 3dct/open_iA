@@ -106,12 +106,12 @@ iAImagePreviewWidget::~iAImagePreviewWidget()
 	delete m_conn;
 }
 
-void iAImagePreviewWidget::SlicerRightClicked(int x, int y, int z)
+void iAImagePreviewWidget::SlicerRightClicked(int /*x*/, int /*y*/, int /*z*/)
 {
 	emit rightClicked();
 }
 
-void iAImagePreviewWidget::SlicerHovered(int x, int y, int z, int mode)
+void iAImagePreviewWidget::SlicerHovered(int /*x*/, int /*y*/, int /*z*/, int /*mode*/)
 {
 	emit mouseHover();
 }
@@ -307,7 +307,7 @@ namespace
 	const int Tolerance = 0;
 }
 
-void iAImagePreviewWidget::resizeEvent(QResizeEvent * event)
+void iAImagePreviewWidget::resizeEvent(QResizeEvent * /*event*/)
 {
 	/*
 	QSize newSize = event->size();

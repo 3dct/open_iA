@@ -253,7 +253,7 @@ void dlg_histogram_simple::keyPressEvent(QKeyEvent *event)
 		changeWheelMode(HIST_ZOOM_WHEEL_MODE);
 }
 
-void dlg_histogram_simple::keyReleaseEvent(QKeyEvent *event)
+void dlg_histogram_simple::keyReleaseEvent(QKeyEvent * /*event*/)
 {
 	changeWheelMode(ZOOM_WHEEL_MODE);
 }

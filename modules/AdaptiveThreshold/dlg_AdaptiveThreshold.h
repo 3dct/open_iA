@@ -50,7 +50,7 @@ public:
 	void prepareDataSeries(QXYSeries* aSeries, const std::vector<double>& x_vals, const std::vector<double>& y_vals, QString* grText, bool useDefaultValues, bool updateCoords);
 	void addSeries(QXYSeries* aSeries, bool disableMarker);
 	
-	inline void clearSeries(QXYSeries *series) {
+	inline void clearSeries(QXYSeries * /*series*/) {
 		//series->clear();
 
 	}

@@ -57,7 +57,7 @@ AdaptiveThreshold::AdaptiveThreshold(QWidget * parent, Qt::WindowFlags f):QDialo
 		setupUIActions();
 		this->mainLayout->addWidget(m_chartView);
 	}
-	catch (std::bad_alloc &ba) {
+	catch (std::bad_alloc & /*ba*/) {
 		DEBUG_LOG("We dont Not enough memory to create objects"); 
 	}
 }
@@ -241,7 +241,7 @@ void AdaptiveThreshold::buttonSelectRangesClickedAndComputePeaks()
 		computeNormalizeAndComputeLokalPeaks(ranges);
 		return;
 			
-	}catch (std::bad_alloc& ba){
+	}catch (std::bad_alloc& /*ba*/){
 			this->textEdit->append("not enough memory available"); 
 
 	}catch (std::invalid_argument& ia)
@@ -300,10 +300,10 @@ void AdaptiveThreshold::computeNormalizeAndComputeLokalPeaks(threshold_defs::Pea
 		}
 		
 	}
-	catch (std::invalid_argument &ia) {
+	catch (std::invalid_argument & /*ia*/) {
 		throw; 
 	}
-	catch (std::bad_alloc& ba) {
+	catch (std::bad_alloc& /*ba*/) {
 		DEBUG_LOG("error in memory allocation ");
 		throw; 
 	}
@@ -488,11 +488,11 @@ void AdaptiveThreshold::createVisualisation(threshold_defs::ParametersRanges par
 				
 		this->writeDebugText(thrPeaks.MinMaxToString());
 	}
-	catch (std::invalid_argument iae) {
+	catch (std::invalid_argument /*iae*/) {
 		throw; 
 	
 	}
-	catch (std::bad_alloc& ba) {
+	catch (std::bad_alloc& /*ba*/) {
 		throw; 
 	}
 }

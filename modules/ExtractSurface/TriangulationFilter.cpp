@@ -99,9 +99,14 @@ vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::surfaceFilterParametr
 
 
 
-vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::performDelaunay(QMap<QString, QVariant> const& parameters, vtkSmartPointer<vtkCleanPolyData> aSurfaceFilter,double alpha, double offset, double tolererance, iAProgress* progress)
+vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::performDelaunay(
+	QMap<QString, QVariant> const& /*parameters*/, vtkSmartPointer<vtkCleanPolyData> aSurfaceFilter,
+	double alpha, double offset, double tolererance, iAProgress* progress)
 {
-	if (!aSurfaceFilter) return nullptr; 
+	if (!aSurfaceFilter)
+	{
+		return nullptr;
+	}
 
 	auto delaunay3D = vtkSmartPointer<vtkDelaunay3D>::New();
 	delaunay3D->SetInputConnection(aSurfaceFilter->GetOutputPort());
@@ -110,10 +115,12 @@ vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::performDelaunay(QMap<
 	delaunay3D->SetTolerance(tolererance); 
 	delaunay3D->SetAlphaTris(true); 
 	delaunay3D->Update();
+	progress->observe(delaunay3D);
 
 	auto datasetSurfaceFilter = vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
 	datasetSurfaceFilter->SetInputConnection(delaunay3D->GetOutputPort());//delaunay3D->GetOutput());
 	datasetSurfaceFilter->Update();
+	progress->observe(datasetSurfaceFilter);
 
 	return datasetSurfaceFilter; 
 

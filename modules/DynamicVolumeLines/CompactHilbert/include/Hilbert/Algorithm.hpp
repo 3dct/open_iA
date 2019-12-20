@@ -122,7 +122,7 @@ namespace Hilbert
 	update2(
 		const I &l,
 		const I &t,
-		const I &w,
+		const I & /*w*/,
 		int n,
 		I &e,
 		int &d

@@ -60,7 +60,6 @@ public:
 	QList<iABlobCluster*>*	GetListObBlobClusters ();
 	void	SetOverlapThreshold (double overlapThreshold);
 	double	GetOverlapThreshold ();
-	void	SetBlobResolution (int resolution);
 	void	SetGaussianBlurVariance (double variance);
 	double	GetGaussianBlurVariance ();
 	void	SetOverlappingEnabled (bool isEnable);

@@ -55,7 +55,7 @@ template<class T> void convolution(iAFilter* filter)
 	filter->addOutput(convFilter->GetOutput());
 }
 
-void iAConvolution::performWork(QMap<QString, QVariant> const & parameters)
+void iAConvolution::performWork(QMap<QString, QVariant> const & /*parameters*/)
 {
 	ITK_TYPED_CALL(convolution, inputPixelType(), this);
 }
@@ -97,7 +97,7 @@ template<class T> void fft_convolution(iAFilter* filter)
 	filter->addOutput(fftConvFilter->GetOutput());
 }
 
-void iAFFTConvolution::performWork(QMap<QString, QVariant> const & parameters)
+void iAFFTConvolution::performWork(QMap<QString, QVariant> const & /*parameters*/)
 {
 	ITK_TYPED_CALL(fft_convolution, inputPixelType(), this);
 }
@@ -148,7 +148,7 @@ template<class T> void correlation(iAFilter* filter)
 	filter->addOutput(corrFilter->GetOutput());
 }
 
-void iACorrelation::performWork(QMap<QString, QVariant> const & parameters)
+void iACorrelation::performWork(QMap<QString, QVariant> const & /*parameters*/)
 {
 	ITK_TYPED_CALL(correlation, inputPixelType(), this);
 }
@@ -197,7 +197,7 @@ template<class T> void fft_correlation(iAFilter* filter)
 	filter->addOutput(corrFilter->GetOutput());
 }
 
-void iAFFTCorrelation::performWork(QMap<QString, QVariant> const & parameters)
+void iAFFTCorrelation::performWork(QMap<QString, QVariant> const & /*parameters*/)
 {
 	ITK_TYPED_CALL(fft_correlation, inputPixelType(), this);
 }
@@ -255,7 +255,7 @@ template<class T> void streamed_fft_correlation(iAFilter* filter)
 	filter->addOutput(corrFilter->GetOutput());
 }
 
-void iAStreamedFFTCorrelation::performWork(QMap<QString, QVariant> const & parameters)
+void iAStreamedFFTCorrelation::performWork(QMap<QString, QVariant> const & /*parameters*/)
 {
 	ITK_TYPED_CALL(streamed_fft_correlation, inputPixelType(), this);
 }

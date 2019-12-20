@@ -325,7 +325,7 @@ ClusterIDType iAImageTreeInternalNode::GetID() const
 }
 
 
-double iAImageTreeInternalNode::GetAttribute(int id) const
+double iAImageTreeInternalNode::GetAttribute(int /*id*/) const
 {
 	assert(false);
 	return 0.0;

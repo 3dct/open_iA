@@ -61,7 +61,7 @@ iAStabilityWidget::~iAStabilityWidget()
 		delete[] m_colsZ;
 }
 
-void iAStabilityWidget::paintEvent(QPaintEvent *event)
+void iAStabilityWidget::paintEvent(QPaintEvent * /*event*/)
 {
 	m_pix_size = min_macro(m_parent->geometry().width(), m_parent->geometry().height());
 	m_pix_size *= SCALE;

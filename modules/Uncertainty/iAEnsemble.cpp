@@ -46,7 +46,7 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 	QMap<int, QString> const & samplings = ensembleFile->Samplings();
 	for (int key : samplings.keys())
 	{
-		if (!result->LoadSampling(samplings[key], ensembleFile->LabelCount(), key))
+		if (!result->LoadSampling(samplings[key], key))
 		{
 			DEBUG_LOG(QString("Ensemble: Could not load sampling '%1'!").arg(samplings[key]));
 			return QSharedPointer<iAEnsemble>();
@@ -668,7 +668,7 @@ QString iAEnsemble::GetSourceName(int sourceIdx) const
 }
 
 
-bool iAEnsemble::LoadSampling(QString const & fileName, int labelCount, int id)
+bool iAEnsemble::LoadSampling(QString const & fileName, int id)
 {
 	if (fileName.isEmpty())
 	{

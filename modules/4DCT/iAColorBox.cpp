@@ -48,7 +48,7 @@ void iAColorBox::paintEvent( QPaintEvent * )
 	painter.drawRect( 0, 0, this->width( ) - 1, this->height( ) - 1 );
 }
 
-void iAColorBox::mouseDoubleClickEvent( QMouseEvent * event )
+void iAColorBox::mouseDoubleClickEvent( QMouseEvent * /*event*/ )
 {
 	m_dialog.open( );
 }

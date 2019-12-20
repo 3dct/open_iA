@@ -34,7 +34,7 @@ extern iADreamCaster * dcast;
 #define BINARY_FILE 0
 #define ASCII_FILE 1
 
-inline void computeBBox(std::vector<iAtriangle*> & stlMesh, std::vector<iAVec3f*> & vertices, iAaabb & box, float & scale_coef, float * translate3f)
+inline void computeBBox(std::vector<iAtriangle*> & /*stlMesh*/, std::vector<iAVec3f*> & vertices, iAaabb & box, float & scale_coef, float * translate3f)
 {
 	float x1=vertices[0]->operator[](0), x2=vertices[0]->operator[](0),\
 		  y1=vertices[0]->operator[](1), y2=vertices[0]->operator[](1),\

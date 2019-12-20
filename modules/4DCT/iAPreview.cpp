@@ -51,7 +51,7 @@ void iAPreview::mousePressEvent( QMouseEvent* event )
 	}
 }
 
-void iAPreview::mouseReleaseEvent( QMouseEvent* event )
+void iAPreview::mouseReleaseEvent( QMouseEvent* /*event*/ )
 {
 	if( !m_bigPreview->isHidden( ) ) {
 		m_bigPreview->hide( );

@@ -119,7 +119,7 @@ void iAProbingWidget::SetSelectedNode(iAImageTreeNode const * node)
 	m_selectedNode = node;
 }
 
-void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
+void iAProbingWidget::ProbeUpdate(int x, int y, int z, int /*mode*/)
 {
 	// entropy chart:
 	m_entropyChartData->reset();

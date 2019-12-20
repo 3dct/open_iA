@@ -2385,7 +2385,7 @@ void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
 	pcView->Render();
 }
 
-void dlg_FeatureScout::spBigChartMouseButtonPressed( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
+void dlg_FeatureScout::spBigChartMouseButtonPressed( vtkObject * obj, unsigned long, void * /*client_data*/, void *, vtkCommand * /*command*/ )
 {
 	// Gets the right mouse button press event for scatter plot matrix.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast( obj );

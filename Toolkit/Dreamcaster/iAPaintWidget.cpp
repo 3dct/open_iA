@@ -42,7 +42,7 @@ iAPaintWidget::~iAPaintWidget()
 		delete [] m_highlightY;
 }
 
-void iAPaintWidget::paintEvent(QPaintEvent *event)
+void iAPaintWidget::paintEvent(QPaintEvent * /*event*/)
 {
 	QPainter painter;
 	QPointF highlightPts[4];

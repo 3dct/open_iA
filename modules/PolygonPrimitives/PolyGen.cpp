@@ -33,7 +33,7 @@ vtkSmartPointer<vtkSphereSource> PolyGen::createObject(double x, double y, doubl
 vtkSmartPointer<vtkCubeSource> PolyGen::createCube(double x1, double y1, double z1, double x2, double y2, double z2)
 {
 	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
-	cubeSource->SetBounds(x1, y2, z1, x2, y2, z2);
+	cubeSource->SetBounds(x1, y1, z1, x2, y2, z2);
 	return cubeSource; 
 }
 

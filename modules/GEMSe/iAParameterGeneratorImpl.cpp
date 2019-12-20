@@ -424,7 +424,7 @@ iASelectionParameterGenerator::iASelectionParameterGenerator(QString const & nam
 
 }
 
-ParameterSetsPointer iASelectionParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
+ParameterSetsPointer iASelectionParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int /*sampleCount*/)
 {
 	return m_parameterSets;
 }

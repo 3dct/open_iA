@@ -80,7 +80,7 @@ iASegmentationMetrics::iASegmentationMetrics() :
 		"Label Overlap Measures Filter</a> in the ITK documentation.", 2, 0)
 {}
 
-void iASegmentationMetrics::performWork(QMap<QString, QVariant> const & parameters)
+void iASegmentationMetrics::performWork(QMap<QString, QVariant> const & /*parameters*/)
 {
 	switch (inputPixelType())
 	{	// only int types, so ITK_TYPED_CALL won't work

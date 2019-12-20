@@ -87,7 +87,7 @@ int iA3DEllipseObjectVis::objectStartPointIdx(int objIdx) const
 	return objIdx * m_pointsPerEllipse;
 }
 
-int iA3DEllipseObjectVis::objectPointCount(int objIdx) const
+int iA3DEllipseObjectVis::objectPointCount(int /*objIdx*/) const
 {
 	return m_pointsPerEllipse;
 }

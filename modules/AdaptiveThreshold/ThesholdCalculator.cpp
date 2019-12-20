@@ -81,7 +81,7 @@ void ThesholdCalculator::determinIso50(const threshold_defs::ParametersRanges& i
 	{
 		m_calcHelper.determinIso50andGlobalMax(inRanges, inVals);
 	}
-	catch (std::invalid_argument &iaex) {
+	catch (std::invalid_argument & /*iaex*/) {
 	
 		throw; 
 	}
@@ -195,7 +195,7 @@ void ThesholdCalculator::rangeFromParamRanges(const threshold_defs::ParametersRa
 	try {
 		this->specifyRange(ranges.getXRange(), ranges.getYRange(), outValues, min, max);
 	}
-	catch (std::invalid_argument& iave) {
+	catch (std::invalid_argument& /*iave*/) {
 		throw; 
 	}
 }

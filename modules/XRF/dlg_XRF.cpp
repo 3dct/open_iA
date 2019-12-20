@@ -832,18 +832,18 @@ void dlg_XRF::recomputeSpectraHistograms()
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::spectraHistSensitivityChanged( int newVal )
+void dlg_XRF::spectraHistSensitivityChanged( int /*newVal*/ )
 {
 	sl_specHistSensitivity->repaint();
 	recomputeSpectraHistograms();
 }
 
-void dlg_XRF::smoothOpacityFadeChecked( int checked )
+void dlg_XRF::smoothOpacityFadeChecked( int /*checked*/ )
 {
 	recomputeSpectraHistograms();
 }
 
-void dlg_XRF::spectraOpacityThresholdChanged( int newVal )
+void dlg_XRF::spectraOpacityThresholdChanged( int /*newVal*/ )
 {
 	sl_specHistOpacThreshold->repaint();
 	recomputeSpectraHistograms();
@@ -872,7 +872,7 @@ void dlg_XRF::OnSelectionUpdate(QVector<iASpectrumFilter> const & filter)
 	updateSelection();
 }
 
-void dlg_XRF::updateSelectionMode(int modeIdx)
+void dlg_XRF::updateSelectionMode(int /*modeIdx*/)
 {
 	updateSelection();
 }
@@ -1382,7 +1382,7 @@ void dlg_XRF::showPieGlyphsSettings(bool isChecked)
 		gb_pieGlyphsSettings->hide();
 }
 
-void dlg_XRF::updatePieGlyphParameters(int newVal)
+void dlg_XRF::updatePieGlyphParameters(int /*newVal*/)
 {
 	updatePieGlyphParamsInternal();
 	updateAllPieGlyphs();

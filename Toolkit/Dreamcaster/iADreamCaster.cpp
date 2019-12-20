@@ -1450,7 +1450,7 @@ void iADreamCaster::readRenderFromBinaryFile(unsigned int x, unsigned int y, uns
 	fclose(fptr);
 }
 
-void iADreamCaster::closeEvent ( QCloseEvent * event )
+void iADreamCaster::closeEvent ( QCloseEvent * /*event*/ )
 {
 	//hist.close();
 	//logs.close();

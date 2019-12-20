@@ -68,7 +68,7 @@ namespace intersection{
 			this->intersectWithLines(Lines);
 			return this->m_intersectPoints;
 		}
-		catch (std::invalid_argument& iar) {
+		catch (std::invalid_argument& /*iar*/) {
 		
 			throw; 
 		}

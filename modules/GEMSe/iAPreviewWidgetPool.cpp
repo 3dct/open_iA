@@ -42,7 +42,7 @@ iAPreviewWidgetPool::iAPreviewWidgetPool(int maxWidgets, vtkCamera* camera, iASl
 	std::fill(m_sliceNumber, m_sliceNumber+SlicerCount, iAImagePreviewWidget::SliceNumberNotSet);
 }
 
-iAImagePreviewWidget* iAPreviewWidgetPool::getWidget(QWidget* parent, bool magicLens)
+iAImagePreviewWidget* iAPreviewWidgetPool::getWidget(QWidget* parent, bool /*magicLens*/)
 {
 	if (m_pool.size() == 0)
 	{

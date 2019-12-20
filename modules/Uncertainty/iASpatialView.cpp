@@ -222,7 +222,7 @@ void iASpatialView::StyleChanged()
 }
 
 
-void iASpatialView::SlicerModeButtonClicked(bool checked)
+void iASpatialView::SlicerModeButtonClicked(bool /*checked*/)
 {
 	int modeIdx = slicerModeButton.indexOf(qobject_cast<QToolButton*>(sender()));
 	if (m_curMode == modeIdx)

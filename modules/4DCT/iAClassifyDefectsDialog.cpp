@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAClassifyDefectsDialog.h"
 
-iAClassifyDefectsDialog::iAClassifyDefectsDialog(QWidget* parent/*= 0*/)
+iAClassifyDefectsDialog::iAClassifyDefectsDialog()
 {
 	ui.setupUi(this);
 	ui.Fibers->setOptions(iASetPathWidget::Mode::openFile, tr("Open Image"), tr("Extracted fibers (*.csv)"), tr("1JURVXF8HZ5K0NE1QYJ9"));

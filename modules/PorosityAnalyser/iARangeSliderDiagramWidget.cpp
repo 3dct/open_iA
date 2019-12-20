@@ -67,7 +67,7 @@ void iARangeSliderDiagramWidget::drawFunctions( QPainter &painter )
 	}
 }
 
-void iARangeSliderDiagramWidget::mouseDoubleClickEvent( QMouseEvent *event )
+void iARangeSliderDiagramWidget::mouseDoubleClickEvent( QMouseEvent * /*event*/ )
 {
 	return;
 }
@@ -267,7 +267,7 @@ void iARangeSliderDiagramWidget::mouseMoveEvent( QMouseEvent *event )
 	}
 }
 
-void iARangeSliderDiagramWidget::contextMenuEvent( QContextMenuEvent *event )
+void iARangeSliderDiagramWidget::contextMenuEvent( QContextMenuEvent * /*event*/ )
 {
 
 }

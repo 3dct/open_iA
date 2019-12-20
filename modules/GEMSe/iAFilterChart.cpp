@@ -174,7 +174,7 @@ QString iAFilterChart::xAxisTickMarkLabel(double value, double stepWidth)
 	return iAChartWidget::xAxisTickMarkLabel(value, stepWidth);
 }
 
-void iAFilterChart::contextMenuEvent(QContextMenuEvent *event)
+void iAFilterChart::contextMenuEvent(QContextMenuEvent * /*event*/)
 {
 	// disable context menu
 }

@@ -290,7 +290,7 @@ void iADetailView::changeMagicLensOpacity(int chg)
 }
 
 
-void iADetailView::setSliceNumber(int sliceNr)
+void iADetailView::setSliceNumber(int /*sliceNr*/)
 {
 	iASlicer* slicer = m_previewWidget->slicer();
 	slicer->update();
@@ -624,13 +624,13 @@ void iADetailView::TriggerResultFilterUpdate()
 }
 
 
-void iADetailView::SlicerReleased(int x, int y, int z)
+void iADetailView::SlicerReleased(int /*x*/, int /*y*/, int /*z*/)
 {
 	m_MouseButtonDown = false;
 }
 
 
-void iADetailView::SlicerMouseMove(int x, int y, int z, int c)
+void iADetailView::SlicerMouseMove(int x, int y, int z, int /*c*/)
 {
 	if (m_MouseButtonDown)
 	{

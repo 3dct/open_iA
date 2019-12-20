@@ -67,7 +67,7 @@ public:
 	QSharedPointer<iAEnsembleDescriptorFile> EnsembleFile();
 	void WriteFullDataFile(QString const & filename, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties, QSharedPointer<iAModalityList> modalities);
 private:
-	bool LoadSampling(QString const & fileName, int labelCount, int id);
+	bool LoadSampling(QString const & fileName, int id);
 	void CreateUncertaintyImages();
 	//! constructor; use static Create methods instead!
 	iAEnsemble(int entropyBinCount);

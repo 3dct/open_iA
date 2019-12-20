@@ -532,7 +532,7 @@ void computeNeighbConn( ImagePointer & inputImage, ImagePointer & seedImage, Run
 }
 
 template<class T>
-void computeMultiOtsu( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int NbOfThr, int ValleyEmphasis, bool releaseData = false )
+void computeMultiOtsu( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int NbOfThr, int ValleyEmphasis, bool releaseData = false )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
@@ -571,7 +571,7 @@ void computeMultiOtsu( ImagePointer & image, PorosityFilterID filterId, RunInfo 
 }
 
 template<class T>
-void computeCreateSurrounding( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, float upSurrThr, bool releaseData = false )
+void computeCreateSurrounding( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, float upSurrThr, bool releaseData = false )
 {
 	// Use this filter together with computeRemoveSurrounding
 	typedef itk::Image< T, DIM >   InputImageType;
@@ -656,7 +656,7 @@ void computeCreateSurrounding( ImagePointer & image, PorosityFilterID filterId, 
 }
 
 template<class T>
-void computeRemoveSurrounding( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, bool releaseData = false )
+void computeRemoveSurrounding( ImagePointer & /*image*/, PorosityFilterID /*filterId*/, RunInfo & results, bool releaseData = false )
 {
 	// Use this filter together with computeCreateSurrounding
 	MaskImageType * surMask = dynamic_cast<MaskImageType*>( results.surroundingMaskImage.GetPointer() );
@@ -690,7 +690,7 @@ void computeRemoveSurrounding( ImagePointer & image, PorosityFilterID filterId, 
 }
 
 template<class T>
-void computeGradAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
+void computeGradAnisoDiffSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   GADSFImageType;
@@ -726,7 +726,7 @@ void computeGradAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId
 }
 
 template<class T>
-void computeCurvAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
+void computeCurvAnisoDiffSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   CADSFImageType;
@@ -762,7 +762,7 @@ void computeCurvAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId
 }
 
 template<class T>
-void computeRecursiveGaussSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, float sigma, bool releaseData = false )
+void computeRecursiveGaussSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, float sigma, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   RGSFImageType;
@@ -814,7 +814,7 @@ void computeRecursiveGaussSmooth( ImagePointer & image, PorosityFilterID filterI
 }
 
 template<class T>
-void computeBilateralSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, float domainSigma, float rangeSigma, bool releaseData = false )
+void computeBilateralSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, float domainSigma, float rangeSigma, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   BSFImageType;
@@ -854,7 +854,7 @@ void computeBilateralSmooth( ImagePointer & image, PorosityFilterID filterId, Ru
 }
 
 template<class T>
-void computeCurvFlowSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int nbOfIt, float timeStep, bool releaseData = false )
+void computeCurvFlowSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int nbOfIt, float timeStep, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   CFSFImageType;
@@ -889,7 +889,7 @@ void computeCurvFlowSmooth( ImagePointer & image, PorosityFilterID filterId, Run
 }
 
 template<class T>
-void computeMedianSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int radius, bool releaseData = false )
+void computeMedianSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int radius, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   MSFImageType;
@@ -927,7 +927,7 @@ void computeMedianSmooth( ImagePointer & image, PorosityFilterID filterId, RunIn
 }
 
 template<class T>
-void computeIsoXThreshold( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int isoX, bool releaseData = false )
+void computeIsoXThreshold( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int isoX, bool releaseData = false )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::BinaryThresholdImageFilter <InputImageType, MaskImageType> BinaryThresholdImageFilterType;
@@ -955,7 +955,7 @@ void computeIsoXThreshold( ImagePointer & image, PorosityFilterID filterId, RunI
 }
 
 template<class T>
-void computeFhwThreshold( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int airporeGV, int fhwWeight, bool releaseData = false )
+void computeFhwThreshold( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int airporeGV, int fhwWeight, bool releaseData = false )
 {
 	int mdThr, omThr, fhwThr;
 	typedef itk::Image< T, DIM >   InputImageType;

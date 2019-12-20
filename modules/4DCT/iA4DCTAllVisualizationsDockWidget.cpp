@@ -111,7 +111,7 @@ void iA4DCTAllVisualizationsDockWidget::itemChanged( QStandardItem * item )
 	emit updateVisualizations( );
 }
 
-void iA4DCTAllVisualizationsDockWidget::selectionChanged( const QItemSelection & selected, const QItemSelection & deselected )
+void iA4DCTAllVisualizationsDockWidget::selectionChanged( const QItemSelection & selected, const QItemSelection & /*deselected*/ )
 {
 	if( selected.size( ) == 0 ) {
 		emit selectedVisModule( nullptr );

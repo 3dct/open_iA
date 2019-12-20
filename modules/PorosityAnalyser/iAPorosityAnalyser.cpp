@@ -369,7 +369,7 @@ void iAPorosityAnalyser::selectionLoaded( iASelection * sel )
 	m_spmView->setSelection( sel );
 }
 
-void iAPorosityAnalyser::tabChanged( int index )
+void iAPorosityAnalyser::tabChanged( int /*index*/ )
 {
 	//emit loadTreeDataToViews(); 
 }
