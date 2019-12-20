@@ -74,7 +74,7 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTranslucentPass.h>
 
-#include <QTime>
+#include <QElapsedTimer>
 #include <QFileDialog>
 
 #define DEG_IN_PI  180
@@ -686,7 +686,7 @@ void iADreamCaster::RenderViewsSlot()
 	}
 	//
 	int totalTime=0;
-	QTime totalQTime;
+	QElapsedTimer totalQTime;
 	totalQTime.start();
 	//int totalStart = GetTickCount();
 	//float max_param=-1000;
@@ -847,7 +847,7 @@ void iADreamCaster::RenderViewsSlot()
 			batch_counter++;
 			if(batch_counter == stngs.BATCH_SIZE || (s1_x == cntX-1 && s1_y == cntY-1 && s1_z == cntZ-1))
 			{
-				QTime localTime;
+				QElapsedTimer localTime;
 				localTime.start();//int fstart = GetTickCount();
 				try
 				{
@@ -985,7 +985,7 @@ void iADreamCaster::RenderViewsSlot()
 					{
 						placementsParams[x][z].badAreaPercentage = RandonSpaceAnalysis();
 					}
-					QTime localTime;
+					QElapsedTimer localTime;
 					localTime.start();//int fstart = GetTickCount();
 					//while (!tracer->Render()) UpdateSlot();
 					Render(vp_corners, vp_delta, &o, true);
@@ -1283,7 +1283,7 @@ void iADreamCaster::RenderSingleViewSlot()
 	state.dy = tracer->vp_delta[1];*/
 	//unsigned int tri_cnt = tracer->scene()->GetNrPrimitives();
 	long ftime;//,fstart
-	QTime time;
+	QElapsedTimer time;
 	time.start();
 	//fstart = GetTickCount();
 	if(ui.cudaEnabled->isChecked())
@@ -2701,7 +2701,7 @@ void iADreamCaster::UpdateView()
 	InitRender(vp_corners, vp_delta, &o);
 	//unsigned int tri_cnt = tracer->scene()->GetNrPrimitives();
 	long ftime;//fstart,
-	QTime time;
+	QElapsedTimer time;
 	time.start();
 	//fstart = GetTickCount();
 	tracer->SetCutAABBList(&cutFigList->aabbs);

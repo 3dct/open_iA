@@ -76,6 +76,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
+#include <QElapsedTimer>
 #include <QMessageBox>
 #include <QTime>
 
@@ -1015,7 +1016,7 @@ void runBatch( const QList<PorosityFilterID> & filterIds, ImagePointer & image, 
 	int pind = 0;
 	foreach( PorosityFilterID fid, filterIds )
 	{
-		QTime t;
+		QElapsedTimer t;
 		t.start();
 		bool releaseData = (fid != filterIds.last());
 		switch( fid )
