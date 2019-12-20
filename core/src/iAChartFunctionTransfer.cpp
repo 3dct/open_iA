@@ -557,7 +557,7 @@ void iAChartTransferFunction::triggerOnChange()
 	emit Changed();
 }
 
-int iAChartTransferFunction::numPoints() const
+size_t iAChartTransferFunction::numPoints() const
 {
 	return m_opacityTF->GetSize();
 }

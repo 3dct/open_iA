@@ -307,7 +307,7 @@ void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
 			{
 				if (y < 0)
 					y = 0;
-				int numPointsBefore = func->numPoints();
+				size_t numPointsBefore = func->numPoints();
 				// if point's x is the same as for an existing point, that point will be selected, instead of a new one created:
 				selectedPoint = func->addPoint(x, y);
 				// to know whether really a point was added, we need to check whether the number of points has increased:

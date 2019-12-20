@@ -432,7 +432,7 @@ void iAQSplom::dataChanged(std::vector<char> visibleParams)
 	clear();
 	m_paramVisibility = visibleParams;
 	m_columnPickMenu->clear();
-	unsigned long numParams = m_splomData->numParams();
+	size_t numParams = m_splomData->numParams();
 
 	// cleanup old histograms (if any)
 	for (auto histo : m_histograms)
@@ -444,10 +444,10 @@ void iAQSplom::dataChanged(std::vector<char> visibleParams)
 	m_settingsDlg->parametersList->clear();
 	m_settingsDlg->cbColorParameter->clear();
 	m_matrix.resize(numParams);
-	for( unsigned long y = 0; y < numParams; ++y )
+	for(size_t y = 0; y < numParams; ++y )
 	{
 		m_matrix[y].resize(numParams, nullptr);
-		for (unsigned long x = 0; x < numParams; ++x)
+		for (size_t x = 0; x < numParams; ++x)
 			createScatterPlot(y, x, true);
 
 		m_histograms.push_back(new iAChartWidget(this, m_splomData->parameterName(y), ""));
@@ -536,14 +536,14 @@ void iAQSplom::setParameterVisibility(std::vector<char> const & visibility)
 void iAQSplom::setParameterInverted( size_t paramIndex, bool isInverted )
 {
 	m_splomData->setInverted(paramIndex, isInverted);
-	unsigned long numParams = m_splomData->numParams();
-	for (unsigned long row = 0; row < numParams; ++row)
+	size_t numParams = m_splomData->numParams();
+	for (size_t row = 0; row < numParams; ++row)
 	{
 		auto s = m_matrix[row][paramIndex];
 		if (s)
 			s->updatePoints();
 	}
-	for (unsigned long col = 0; col < numParams; ++col)
+	for (size_t col = 0; col < numParams; ++col)
 	{  // avoid double updated of row==col plot
 		auto s = m_matrix[paramIndex][col];
 		if (s && col != paramIndex)

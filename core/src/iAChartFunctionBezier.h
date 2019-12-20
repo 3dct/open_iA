@@ -58,7 +58,7 @@ public:
 	bool isEndPoint(int index) override;
 	bool isDeletable(int index) override;
 	void reset() override;
-	int numPoints() const override;
+	size_t numPoints() const override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
 
 	void push_back(double x, double y);

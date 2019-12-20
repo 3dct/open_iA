@@ -56,8 +56,8 @@ void iAChartFunctionBezier::draw(QPainter &painter, QColor penColor, int lineWid
 
 	painter.setPen(pen);
 
-	int length = (int)realPoints.size();
-	for(int l = 0; l < length-1; l+=3)
+	int pointNumber = (int)realPoints.size();
+	for(int l = 0; l < pointNumber-1; l+=3)
 	{
 		double X1 = realPoints[l].x();
 		double Y1 = realPoints[l].y();
@@ -97,17 +97,17 @@ void iAChartFunctionBezier::draw(QPainter &painter, QColor penColor, int lineWid
 	if (functionActive)
 	{
 		int hue, sat, val, alpha;
-		QColor penColor = color;
-		penColor.getHsv(&hue, &sat, &val, &alpha);
+		QColor newPenColor = penColor;
+		newPenColor.getHsv(&hue, &sat, &val, &alpha);
 		val >>= 1;
-		penColor.setHsv(hue, sat, val, alpha);
+		newPenColor.setHsv(hue, sat, val, alpha);
 
-		pen.setColor(penColor);
+		pen.setColor(newPenColor);
 		pen.setWidth(1);
 
 		painter.setPen(pen);
 
-		for(int l = 0; l < length; l+=3)
+		for(int l = 0; l < pointNumber; l+=3)
 		{
 			int x, y;
 			x = d2iX(realPoints[l].x());
@@ -122,7 +122,7 @@ void iAChartFunctionBezier::draw(QPainter &painter, QColor penColor, int lineWid
 				painter.drawLine(x, y, x1, y1);
 			}
 
-			if (l+1 < length)
+			if (l+1 < pointNumber)
 			{
 				int x1, y1;
 				x1 = d2iX(realPoints[l+1].x());
@@ -136,10 +136,10 @@ void iAChartFunctionBezier::draw(QPainter &painter, QColor penColor, int lineWid
 
 		QColor currentColor;
 		QColor redColor = QColor(255, 0, 0, 255);
-		painter.setBrush(QBrush(color));
+		painter.setBrush(QBrush(penColor));
 		painter.setPen(pen);
 
-		for(int l = 0; l < length; l++)
+		for(int l = 0; l < pointNumber; l++)
 		{
 			int x, y;
 			x = d2iX(realPoints[l].x());
@@ -158,7 +158,7 @@ void iAChartFunctionBezier::draw(QPainter &painter, QColor penColor, int lineWid
 			}
 			else
 			{
-				currentColor = color;
+				currentColor = penColor;
 				radius = iADiagramFctWidget::SELECTED_POINT_RADIUS;
 				size  = iADiagramFctWidget::SELECTED_POINT_SIZE;
 			}
@@ -388,7 +388,7 @@ void iAChartFunctionBezier::reset()
 	selectedPoint = -1;
 }
 
-int iAChartFunctionBezier::numPoints() const
+size_t iAChartFunctionBezier::numPoints() const
 {
 	return realPoints.size();
 }
@@ -506,9 +506,9 @@ void iAChartFunctionBezier::setOppositeViewPoint(int selectedPoint)
 		oppositePoint.setY(d2vY(oppositePoint.y()));
 
 
-		double length = sqrt(pow(point.x() -functionPoint.x(), 2) +pow(point.y() -functionPoint.y(), 2));
-		double dx = -(point.x() -functionPoint.x()) /length;
-		double dy = -(point.y() -functionPoint.y()) /length;
+		double curLength = sqrt(pow(point.x() -functionPoint.x(), 2) +pow(point.y() -functionPoint.y(), 2));
+		double dx = -(point.x() -functionPoint.x()) / curLength;
+		double dy = -(point.y() -functionPoint.y()) / curLength;
 
 		realPoints[oppositePointIndex].setX(v2dX(functionPoint.x() +dx*oppositeLength));
 		realPoints[oppositePointIndex].setY(v2dY(functionPoint.y() +dy*oppositeLength));
