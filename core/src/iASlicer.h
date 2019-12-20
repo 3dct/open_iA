@@ -178,7 +178,7 @@ public:
 	void setDefaultInteractor();
 
 	//! Blend two images. Should probably be implemented in terms of two channels?
-	void blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range);
+	void blend(vtkAlgorithmOutput *data1, vtkAlgorithmOutput *data2, double opacity, double * range);
 
 	//! Get current slice number
 	int sliceNumber() const;

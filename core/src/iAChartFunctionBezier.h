@@ -34,7 +34,6 @@ class open_iA_Core_API iAChartFunctionBezier : public iAChartFunction
 	QColor color;
 
 	unsigned int selectedPoint;
-	bool   active;
 	double controlDist;
 	double length;
 	double oppositeLength;
@@ -46,7 +45,7 @@ public:
 
 	int getType() override { return BEZIER; }
 	void draw(QPainter &painter) override;
-	void draw(QPainter &painter, QColor color, int lineWidth) override;
+	void draw(QPainter &painter, QColor penColor, int lineWidth) override;
 	void drawOnTop(QPainter&) override {}
 	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
 	int getSelectedPoint() override { return selectedPoint; }

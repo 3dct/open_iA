@@ -798,14 +798,13 @@ void iAChartWidget::showDataTooltip(QHelpEvent *event)
 	int curTooltipDataCount = 1;
 	for (auto plot : m_plots)
 	{
-		auto data = plot->data();
-		if (!data || !data->rawData())
+		if (!plot->data() || !plot->data()->rawData())
 			continue;
 		if (more)
 			toolTip += ", ";
 		else
 			more = true;
-		toolTip += QString::number(data->rawData()[nthBin], 'g', 15);
+		toolTip += QString::number(plot->data()->rawData()[nthBin], 'g', 15);
 		++curTooltipDataCount;
 		if (curTooltipDataCount > MaxToolTipDataCount)
 		{

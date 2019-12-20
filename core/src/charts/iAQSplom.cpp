@@ -1627,9 +1627,9 @@ void iAQSplom::saveSettingsSlot()
 		tr("Settings file (*.ini);;"));
 	if (fileName.isEmpty())
 		return;
-	QSettings settings(fileName, QSettings::IniFormat);
-	settings.setIniCodec("UTF-8");
-	saveSettings(settings);
+	QSettings iniFile(fileName, QSettings::IniFormat);
+	iniFile.setIniCodec("UTF-8");
+	saveSettings(iniFile);
 }
 
 void iAQSplom::loadSettingsSlot()
@@ -1638,9 +1638,9 @@ void iAQSplom::loadSettingsSlot()
 		tr("Settings file (*.ini);;"));
 	if (fileName.isEmpty())
 		return;
-	QSettings settings(fileName, QSettings::IniFormat);
-	settings.setIniCodec("UTF-8");
-	loadSettings(mapFromQSettings(settings));
+	QSettings iniFile(fileName, QSettings::IniFormat);
+	iniFile.setIniCodec("UTF-8");
+	loadSettings(mapFromQSettings(iniFile));
 }
 
 /*

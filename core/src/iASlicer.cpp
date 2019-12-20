@@ -624,12 +624,12 @@ void iASlicer::setMagicLensInput(uint id)
 		DEBUG_LOG("SetMagicLensInput called on slicer which doesn't have a magic lens!");
 		return;
 	}
-	iAChannelSlicerData * data = channel(id);
-	assert(data);
-	if (!data)
+	iAChannelSlicerData * d = channel(id);
+	assert(d);
+	if (!d)
 		return;
 	m_magicLensInput = id;
-	m_magicLens->addInput(data->reslicer(), data->colorTF(), data->name());
+	m_magicLens->addInput(d->reslicer(), d->colorTF(), d->name());
 	update();
 }
 
@@ -746,7 +746,7 @@ void iASlicer::removeImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 	m_ren->RemoveActor(imgActor);
 }
 
-void iASlicer::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
+void iASlicer::blend(vtkAlgorithmOutput *data1, vtkAlgorithmOutput *data2,
 	double opacity, double * range)
 {
 	if (!hasChannel(0))
@@ -762,7 +762,7 @@ void iASlicer::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
 	vtkSmartPointer<vtkImageBlend> imgBlender = vtkSmartPointer<vtkImageBlend>::New();
 	imgBlender->SetOpacity( 0, opacity );
 	imgBlender->SetOpacity( 1, 1.0-opacity );
-	imgBlender->AddInputConnection(data);
+	imgBlender->AddInputConnection(data1);
 	imgBlender->AddInputConnection(data2);
 	imgBlender->UpdateInformation();
 	imgBlender->Update();

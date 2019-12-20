@@ -623,9 +623,9 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 			for ( int indx = m_pointsGrid[binInd].size() - 1; indx >= 0; --indx )//foreach( int i, m_pointsGrid[binInd] )
 			{
 				size_t ptIdx = m_pointsGrid[binInd][indx];
-				double x = p2x( m_splomData->paramData( m_paramIndices[0] )[ptIdx] );
-				double y = p2y( m_splomData->paramData( m_paramIndices[1] )[ptIdx] );
-				double dist = pow( x - mpos.x(), 2 ) + pow( y - mpos.y(), 2 );
+				double pixelX = p2x( m_splomData->paramData( m_paramIndices[0] )[ptIdx] );
+				double pixelY = p2y( m_splomData->paramData( m_paramIndices[1] )[ptIdx] );
+				double dist = pow(pixelX - mpos.x(), 2) + pow(pixelY - mpos.y(), 2);
 				if ( dist < minDist && m_splomData->matchesFilter(ptIdx) )
 				{
 					minDist = dist;

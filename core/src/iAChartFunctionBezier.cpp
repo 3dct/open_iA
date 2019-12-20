@@ -34,7 +34,6 @@ iAChartFunctionBezier::iAChartFunctionBezier(iADiagramFctWidget *chart, QColor &
 	: iAChartFunction(chart)
 {
 	this->color = color;
-	active = false;
 	controlDist = chart->xRange() / 8;
 	if (res)
 		reset();
@@ -46,13 +45,13 @@ void iAChartFunctionBezier::draw(QPainter &painter)
 	draw(painter, color, 3);
 }
 
-void iAChartFunctionBezier::draw(QPainter &painter, QColor color, int lineWidth)
+void iAChartFunctionBezier::draw(QPainter &painter, QColor penColor, int lineWidth)
 {
-	bool active = (chart->selectedFunction() == this);
+	bool functionActive = (chart->selectedFunction() == this);
 
 	// draw line
 	QPen pen = painter.pen();
-	pen.setColor(color);
+	pen.setColor(penColor);
 	pen.setWidth(lineWidth);
 
 	painter.setPen(pen);
@@ -95,7 +94,7 @@ void iAChartFunctionBezier::draw(QPainter &painter, QColor color, int lineWidth)
 
 
 	// draw point lines
-	if (active)
+	if (functionActive)
 	{
 		int hue, sat, val, alpha;
 		QColor penColor = color;

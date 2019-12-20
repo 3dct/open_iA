@@ -395,7 +395,10 @@ IF (MSVC)
 	ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
 	
 	# enable all warnings:
-	ADD_COMPILE_OPTIONS(/W4)
+	ADD_COMPILE_OPTIONS(/W4 /wd4127 /wd4251 /wd4515)
+	# disabled: C4127 - caused by QVector
+	#           C4251 - "class requires dll interface"
+	#           C4515 - "namespace uses itself" - caused by ITK/gdcm
 ELSE()
 	# on MSVC, setting CMAKE_CXX_STANDARD leads to RTK not to compile currently
 	# due to random_shuffle being used (deprecated in C++14, apparently removed in 17 or 20)
