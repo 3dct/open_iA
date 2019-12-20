@@ -162,8 +162,8 @@ void iASVMImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 			node[m].index = m;
 			node[m].value = input()[m]->vtkImage()->GetScalarComponentAsDouble(x, y, z, 0);
 		}
-		double label = svm_predict_probability(model, node, prob_estimates);
-		double label2 = svm_predict(model, node);
+		/*double label =*/ svm_predict_probability(model, node, prob_estimates);
+		/*double label2 =*/ svm_predict(model, node);
 		double probSum = 0;
 		for (int l = 0; l < labelCount; ++l)
 		{

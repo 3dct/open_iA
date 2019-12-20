@@ -128,7 +128,6 @@ static void rotate(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 	auto transform = TransformType::New();
 	typename ImageType::PointType center;
-	typename TransformType::OutputVectorType rotation;
 	typename TransformType::OutputVectorType translation1;
 	typename TransformType::OutputVectorType translation2;
 	typename TransformType::OutputVectorType rotationAxis;

@@ -233,7 +233,7 @@ void iAImageTreeInternalNode::GetExampleImages(QVector<iAImageTreeLeaf *> & resu
 			if (curAmount == 0)
 				continue;
 			GetChild(i)->GetExampleImages(result, curAmount);
-			int imagesReturned = result.size() - sizeBefore;
+			//int imagesReturned = result.size() - sizeBefore;
 			amountLeft -= curAmount;
 		}
 	}

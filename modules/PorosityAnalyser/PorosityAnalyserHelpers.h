@@ -475,7 +475,6 @@ struct ParameterInfo : public IParameterInfo
 		if( sameType<T, int>::value )
 			return val;
 		throw itk::ExceptionObject( __FILE__, __LINE__, "Error: wrong parameter type is used!" );
-		return 0;
 	}
 	inline virtual float asFloat() const
 	{
@@ -557,8 +556,6 @@ inline IParameterInfo * getParameterInfo( const ParamNameType & paramNameType, Q
 			break;
 		default:
 			throw itk::ExceptionObject( __FILE__, __LINE__, "Error: wrong parameter type is used in getParameterInfoType!" );
-			return nullptr;
-			break;
 	}
 }
 

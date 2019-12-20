@@ -350,7 +350,7 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 
 	// calculate actual sample count (have to adhere to grid structure / powers):
 	// maybe get sample count per parameter?
-	int actualSampleCount = std::pow(samplesPerParameter, parameter->size());
+	//int actualSampleCount = std::pow(samplesPerParameter, parameter->size());
 
 	/*
 	DEBUG_LOG(QString("parameter count: %1, sample count: %2 samplesPerParameter: %3")

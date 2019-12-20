@@ -46,7 +46,7 @@ double computeEqualPixelRate(typename ImageType::Pointer img, typename ImageType
 {
 	typename ImageType::RegionType reg = ref->GetLargestPossibleRegion();
 	int size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
-	double sumEqual = 0.0f, dice = 0.0f;
+	double sumEqual = 0.0f;
 #pragma omp parallel for reduction(+:sumEqual)
 	for (int i = 0; i < size; ++i)
 	{

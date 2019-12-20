@@ -338,7 +338,6 @@ DoubleImage::Pointer NeighbourhoodEntropyImage(IntImage::Pointer intImage, int l
 	outIt.GoToBegin();
 	while (!it.IsAtEnd() && !outIt.IsAtEnd())
 	{
-		double sum = 0;
 		std::fill(labelHistogram, labelHistogram + labelCount, 0);
 		int valueCount = 0;
 		for (int i = 0; i < neighbourhoodSize; ++i)
@@ -730,7 +729,6 @@ size_t iAEnsemble::MemberCount() const
 
 QSharedPointer<iAMember> const iAEnsemble::Member(size_t memberIdx) const
 {
-	int s = 0;
 	for (int s=0; s<m_samplings.size(); ++s)
 	{
 		if (memberIdx < m_samplings[s]->Size())

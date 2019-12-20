@@ -108,7 +108,6 @@ QMap<QString, QList<double> > iARangeSliderDiagramView::prepareData( const QTabl
 void iARangeSliderDiagramView::updateDiagrams()
 {
 	QListIterator<iARangeSliderDiagramWidget *> widgetIt( m_widgetList );
-	int index = 0;
 	widgetIt.next();
 	while ( widgetIt.hasNext() )
 	{

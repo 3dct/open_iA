@@ -27,7 +27,7 @@ void PolygonPrimitives::createObject()
 	auto renderer = m_child->renderer();
 	bool sphereChecked = this->rdBtn_Sphere->isChecked(); 
 	bool lineChecked = this->rdBtn_Line->isChecked();
-	bool cubeChecked = this->rdBtn_Cube->isChecked();
+	//bool cubeChecked = this->rdBtn_Cube->isChecked();
 
 	//bool cubechecked = this
 	m_Color = this->getColor(); 

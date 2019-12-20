@@ -12,8 +12,6 @@ iANDimImagePointer::iANDimImagePointer(unsigned int dimensionCount, unsigned int
 	for (int i = 0; i < _values.size(); i++) {
 		std::vector<double> record = _values[i];
 
-		bool allIn = true;
-
 		itk::IndexValueType * index = new itk::IndexValueType[dimensionCount];
 		for (int j = 0; j < record.size(); j++) {
 

@@ -543,7 +543,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 	//}
 
 	IndexMap fullMap;
-	for(iAVertexIndexType vertexIdx=0, newIdx=0;
+	for(iAVertexIndexType vertexIdx=0;
 	vertexIdx < vertexCount; ++vertexIdx)
 	{
 		fullMap.insert(vertexIdx, vertexIdx);

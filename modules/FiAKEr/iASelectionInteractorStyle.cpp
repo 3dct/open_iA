@@ -281,7 +281,7 @@ void iASelectionInteractorStyle::OnLeftButtonDown()
 		auto picker = vtkSmartPointer<vtkCellPicker>::New();
 		picker->SetTolerance(0.0005);
 		picker->Pick(pos[0], pos[1], 0, m_cellRenderer);
-		double* worldPosition = picker->GetPickPosition();
+		//double* worldPosition = picker->GetPickPosition();
 
 		if (picker->GetCellId() != -1)
 		{

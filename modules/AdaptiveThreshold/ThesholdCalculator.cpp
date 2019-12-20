@@ -211,7 +211,6 @@ void ThesholdCalculator::calculateMovingAverage(const std::vector<double> &v_in,
 		return; 
 	}
 
-	double value = 0.0f;
 	double sum = 0.0f;
 	const double moving = 3.0f;
 	double maxLen = v_lengh - 1;

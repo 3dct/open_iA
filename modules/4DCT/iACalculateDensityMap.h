@@ -36,7 +36,7 @@ public:
 template<class TPrecision, class TScalar>
 std::vector<std::vector<std::vector<TPrecision>>> CalculateDensityMap<TPrecision, TScalar>::Calculate(vtkImageData* mask, int* gridSize, double* cellSize)
 {
-	TScalar* buffer = (TScalar*)mask->GetScalarPointer();
+	//TScalar* buffer = (TScalar*)mask->GetScalarPointer();
 	int extent[6];
 	mask->GetExtent(extent);
 	int size[3];

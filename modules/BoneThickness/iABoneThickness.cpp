@@ -129,11 +129,7 @@ void iABoneThickness::calculate()
 		// length of the normal vector for intersection test
 		const double dLength(0.5 * m_dRangeMax);
 
-		// dummy id variable for intersected cells
-		int subId (0);
-
 		// Go through each Landmark
-
 		for (vtkIdType id (0); id < idPoints; ++id)
 		{
 			// Get landmark position
@@ -143,8 +139,6 @@ void iABoneThickness::calculate()
 			// normal vector computed with PC3 of vertex cloud within certain radius around landmark
 			double pNormal[3];
 			getNormalInPoint(pPointLocator, pPoint, pNormal);
-
-			double dThickness(0.0);
 
 			// Allocate intersection variable
 			vtkSmartPointer<vtkPoints> intersectPoints1 = vtkSmartPointer<vtkPoints>::New();	// Intersection of positive normal vector

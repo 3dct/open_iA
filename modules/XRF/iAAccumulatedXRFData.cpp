@@ -215,7 +215,7 @@ void iAAccumulatedXRFData::createSpectrumFunctions()
 			}
 		}
 	}
-	size_t numSpectra = (extent[1] - extent[0] + 1) * (extent[3] - extent[2] + 1) * (extent[5] - extent[4] + 1);
+	//size_t numSpectra = (extent[1] - extent[0] + 1) * (extent[3] - extent[2] + 1) * (extent[5] - extent[4] + 1);
 }
 
 std::vector<iAFunction<size_t, unsigned int> *> const & iAAccumulatedXRFData::spectrumFunctions()

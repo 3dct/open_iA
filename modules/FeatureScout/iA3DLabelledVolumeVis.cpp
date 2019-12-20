@@ -338,7 +338,6 @@ void iA3DLabelledVolumeVis::multiClassRendering( QList<QColor> const & classColo
 	double red = 0.0;
 	double green = 0.0;
 	double blue = 0.0;
-	int CID = 0;
 
 	// clear existing points
 	oTF->RemoveAllPoints();

@@ -41,8 +41,8 @@ iAClusterAttribChart::iAClusterAttribChart(
 	m_oldMin(-1),
 	m_oldMax(-1)
 {
-	double dr0= data->xBounds()[0];
-	double dr1= data->xBounds()[1];
+	//double dr0= data->xBounds()[0];
+	//double dr1= data->xBounds()[1];
 
 	QVBoxLayout* mainLayout = new QVBoxLayout();
 	mainLayout->setMargin(0);

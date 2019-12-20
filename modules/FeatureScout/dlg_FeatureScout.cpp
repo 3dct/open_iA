@@ -2014,7 +2014,6 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector & con, const QString
 	typedef int ClassIDType;
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<ClassIDType, DIM>   OutputImageType;
-	OutputImageType::SizeType OutputImageSize;
 
 	QMap<size_t, ClassIDType> currentEntries;
 

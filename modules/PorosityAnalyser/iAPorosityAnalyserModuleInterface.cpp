@@ -320,7 +320,7 @@ void iAPorosityAnalyserModuleInterface::displayPipelineInSlots( QTableWidgetItem
 
 			iADragFilterWidget* ddw = uiComputeSegm.dragWidget->findChild<iADragFilterWidget*>( "dragDatasetWidget" );
 			QString dataset = QString( "dataset_" + tw->item( selRow, 1 )->text() );
-			QLabel* datsetLabel = ddw->getLabel( dataset );
+			//QLabel* datsetLabel = ddw->getLabel( dataset );
 		}
 	}
 }

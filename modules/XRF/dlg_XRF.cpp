@@ -789,7 +789,7 @@ void dlg_XRF::combinedElementMaps(int show)
 		m_channelColors.resize(m_enabledChannels + 1);
 		if (m_channelIDs.size() <= m_enabledChannels)
 			m_channelIDs.push_back(mdiChild->createChannel());
-		auto chData = mdiChild->channelData(m_channelIDs[m_enabledChannels]);
+		//auto chData = mdiChild->channelData(m_channelIDs[m_enabledChannels]);
 		vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(m_decomposeSelectedElements.indexOf(i));
 		QColor color = m_refSpectraLib->getElementColor(i);
 		m_channelColors[m_enabledChannels] = color;

@@ -298,7 +298,7 @@ void iARefDistCompute::run()
 				refMatchCount[refFiberID] += 1;
 			}
 		}
-		size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns();
+		//size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns();
 		addColumn(m_data->result[m_referenceID].table, 0, "AvgSimilarity", ref.fiberCount);
 		m_data->avgRefFiberMatch.resize(ref.fiberCount);
 		for (size_t fiberID = 0; fiberID < ref.fiberCount; ++fiberID)

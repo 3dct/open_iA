@@ -771,7 +771,6 @@ void iADetailView::UpdateComparisonNumbers()
 			.arg(rightDims[0]).arg(rightDims[1]).arg(rightDims[2]));
 		return;
 	}
-	long matching = 0;
 	long leftUndecided = 0;
 	long leftOnlyUndecided = 0;
 	long rightUndecided = 0;

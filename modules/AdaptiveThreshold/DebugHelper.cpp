@@ -7,7 +7,6 @@ void DebugHelper::printVector(const std::vector<double> vec, unsigned int*count)
 	if (vec.empty()) return; 
 	DEBUG_LOG("Begin vector");
 	
-	uint indx = 0; 
 	if (count){
 		for (int i = 0; i < *count; i++) {
 			if (i > ((*count)-1)) break;

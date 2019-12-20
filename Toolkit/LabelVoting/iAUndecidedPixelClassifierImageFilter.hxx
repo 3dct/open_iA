@@ -259,7 +259,6 @@ void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedG
 			//     AND has the lowest average uncertainty		-> ignore at the moment
 			int maxFSNCount = 0; int maxFSNLabel = -1;
 			int maxFNCount = 0;  int maxFNLabel = -1;
-			double minUncertainty = 1;
 			for (int l : candidateLabels)
 			{
 				int fsnCount = fbgLabelFreq[l] + sbgLabelFreq[l] + neiLabelFreq[l];

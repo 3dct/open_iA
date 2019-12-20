@@ -406,8 +406,8 @@ void AdaptiveThreshold::OptionallyUpdateThrPeaks(bool selectedData, threshold_de
 	double lokalMax_X = ed_PeakThrMaxX->text().toDouble();
 	double lokalMax_Y = ed_PeakFregMaxY->text().toDouble();
 	double lokalMin_X = ed_minPeakThrX->text().toDouble();
-	double lokalMin_y = ed_MinPeakFreqrY->text().toDouble();
-	thrPeaks.updateMinMaxPeaks(lokalMin_X, lokalMin_X, lokalMax_X, lokalMax_Y);
+	double lokalMin_Y = ed_MinPeakFreqrY->text().toDouble();
+	thrPeaks.updateMinMaxPeaks(lokalMin_X, lokalMin_Y, lokalMax_X, lokalMax_Y);
 }
 
 void AdaptiveThreshold::assignValuesToField(threshold_defs::ThresMinMax& thrPeaks)
@@ -688,9 +688,6 @@ void AdaptiveThreshold::scaleGraphToMinMax(const threshold_defs::ParametersRange
 	if (ranges.isXEmpty() || ranges.isYEmpty()) {
 		throw std::invalid_argument("greyvalues or frequencies not set");
 	}
-
-	auto tmp = ranges.getXMin();
-	auto tmp2 = ranges.getXMax(); 
 
 	axisX->setRange(ranges.getXMin(), ranges.getXMax()); 
 	m_chart->update();

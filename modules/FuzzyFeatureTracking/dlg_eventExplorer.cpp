@@ -1318,7 +1318,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 		if (layer > 0)
 		{
 			iAFeatureTracking *ftB = m_trackedFeaturesBackwards.at(layer);
-			iAFeatureTracking *ftF = m_trackedFeaturesForwards.at(layer - 1);
+			//iAFeatureTracking *ftF = m_trackedFeaturesForwards.at(layer - 1);
 			int newVertexId;
 
 			std::vector<iAFeatureTrackingCorrespondence> correspondences;
@@ -1387,7 +1387,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 		// search forwards
 		if (layer < m_numberOfCharts - 1)
 		{
-			iAFeatureTracking *ftB = m_trackedFeaturesBackwards.at(layer + 1);
+			//iAFeatureTracking *ftB = m_trackedFeaturesBackwards.at(layer + 1);
 			iAFeatureTracking *ftF = m_trackedFeaturesForwards.at(layer + 1);
 			int newVertexId;
 
