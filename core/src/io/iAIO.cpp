@@ -974,8 +974,12 @@ void iAIO::readVTKFile()
 			int numComp = coords[i]->GetNumberOfComponents();
 			int numValues = coords[i]->GetNumberOfValues();
 			int extentSize = extent[i * 2 + 1] - extent[i * 2] + 1;
-			assert(numComp == 1);
-			assert(numValues == extentSize);
+			if (numComp != 1 || numValues != extentSize)
+			{
+				DEBUG_LOG(QString("Don't know how to handle situation where number of components is %1 "
+					"and number of values=%2 not equal to extentSize=%3")
+					.arg(numComp).arg(numValues).arg(extentSize))
+			}
 			if (numValues < 2)
 			{
 				DEBUG_LOG(QString("Dimension %1 has dimensions of less than 2, cannot compute proper spacing, using 1 instead!"));

@@ -70,7 +70,7 @@ QVector<pParameter> const & iAFilter::parameters() const
 	return m_parameters;
 }
 
-unsigned int iAFilter::requiredInputs() const
+int iAFilter::requiredInputs() const
 {
 	return m_requiredInputs;
 }
@@ -174,7 +174,8 @@ bool iAFilter::run(QMap<QString, QVariant> const & parameters)
 {
 	if (m_input.size() < m_requiredInputs)
 	{
-		addMsg(QString("Not enough inputs specified. Filter %1 requires %2 input images, but only %3 given!").arg(m_name).arg(m_requiredInputs).arg(m_input.size()));
+		addMsg(QString("Not enough inputs specified. Filter %1 requires %2 input images, but only %3 given!")
+			.arg(m_name).arg(m_requiredInputs).arg(m_input.size()));
 		return false;
 	}
 	clearOutput();

@@ -932,7 +932,6 @@ void iAQSplom::paintEvent(QPaintEvent * /*event*/)
 {
 	QPainter painter( this );
 	painter.setRenderHint(QPainter::Antialiasing);
-	painter.setRenderHint(QPainter::HighQualityAntialiasing);
 	painter.beginNativePainting();
 	glClearColor(settings.backgroundColor.redF(), settings.backgroundColor.greenF(), settings.backgroundColor.blueF(), settings.backgroundColor.alphaF());
 	glClear(GL_COLOR_BUFFER_BIT);

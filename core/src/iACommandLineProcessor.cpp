@@ -151,7 +151,7 @@ namespace
 		else
 		{
 			std::cout << "Input images:" << std::endl;
-			for (unsigned int i = 0; i < filter->requiredInputs(); ++i)
+			for (int i = 0; i < filter->requiredInputs(); ++i)
 			{
 				std::cout << "    " << filter->inputName(i).toStdString() << std::endl;
 			}

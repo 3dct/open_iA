@@ -940,7 +940,11 @@ void iAScatterPlot::createVBO()
 		return;
 	}
 	bool res = m_pointsBuffer->bind();
-	assert(res);
+	if (!res)
+	{
+		DEBUG_LOG("Binding points buffer failed!");
+		return;
+	}
 	m_pointsBuffer->setUsagePattern(iAQGLBuffer::DynamicDraw);
 	m_pointsBuffer->allocate((CordDim + ColChan) * m_splomData->numPoints() * sizeof(GLfloat));
 	m_pointsBuffer->release();
@@ -954,7 +958,11 @@ void iAScatterPlot::fillVBO()
 
 	int elSz = CordDim + ColChan;
 	bool res = m_pointsBuffer->bind();
-	assert(res);
+	if (!res)
+	{
+		DEBUG_LOG("Binding points buffer failed!");
+		return;
+	}
 
 	GLfloat * buffer = static_cast<GLfloat *>(m_pointsBuffer->map(iAQGLBuffer::ReadWrite));
 
@@ -982,7 +990,11 @@ void iAScatterPlot::fillVBO()
 		++m_curVisiblePts;
 	}
 	bool res2 = m_pointsBuffer->unmap();
-	assert(res2);
+	if (!res2)
+	{
+		DEBUG_LOG("Unbinding points buffer failed!");
+		return;
+	}
 	m_pointsBuffer->release();
 	m_pointsOutdated = false;
 }

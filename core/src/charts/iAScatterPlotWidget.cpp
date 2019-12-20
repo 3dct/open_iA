@@ -123,7 +123,6 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * /*event*/)
 #endif
 	}
 	painter.setRenderHint(QPainter::Antialiasing);
-	painter.setRenderHint(QPainter::HighQualityAntialiasing);
 	painter.beginNativePainting();
 	QColor bgColor(QWidget::palette().color(QWidget::backgroundRole()));
 	QColor fg(QWidget::palette().color(QPalette::Text));

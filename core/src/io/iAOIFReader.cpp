@@ -383,7 +383,7 @@ void iAOIFReaderHelper::Preprocess()
 	std::wstring name = m_path_name.substr(pos + 1);
 	//extract time sequence string
 	int64_t begin = name.find(m_time_id);
-	size_t end = -1;
+	size_t end; // not read anywhere?
 	size_t id_len = m_time_id.size();
 	if (begin != -1)
 	{

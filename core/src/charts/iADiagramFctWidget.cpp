@@ -87,7 +87,7 @@ void iADiagramFctWidget::drawAfterPlots(QPainter & painter)
 
 void iADiagramFctWidget::drawFunctions(QPainter &painter)
 {
-	int counter = 0;
+	size_t counter = 0;
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	while (it != m_functions.end())
 	{
@@ -235,7 +235,7 @@ void iADiagramFctWidget::keyPressEvent(QKeyEvent *event)
 		if (m_selectedFunction > 0)
 			m_selectedFunction--;
 		else
-			m_selectedFunction = (int)(m_functions.size()-1);
+			m_selectedFunction = m_functions.size()-1;
 
 		update();
 	}
@@ -436,7 +436,7 @@ void iADiagramFctWidget::addBezierFunction()
 {
 	iAChartFunctionBezier *bezier = new iAChartFunctionBezier(this, PredefinedColors()[m_functions.size() % 7]);
 	bezier->addPoint(contextMenuPos().x(), activeHeight()- contextMenuPos().y());
-	m_selectedFunction = (unsigned int)m_functions.size();
+	m_selectedFunction = m_functions.size();
 	m_functions.push_back(bezier);
 
 	update();
@@ -455,7 +455,7 @@ void iADiagramFctWidget::addGaussianFunction(double mean, double sigma, double m
 	gaussian->setMean(mean);
 	gaussian->setSigma(sigma);
 	gaussian->setMultiplier(multiplier);
-	m_selectedFunction = (unsigned int)m_functions.size();
+	m_selectedFunction = m_functions.size();
 	m_functions.push_back(gaussian);
 
 	update();

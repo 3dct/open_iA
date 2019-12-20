@@ -114,7 +114,7 @@ protected:
 
 	MdiChild* m_activeChild;
 	std::vector<iAChartFunction*> m_functions;
-	unsigned int m_selectedFunction;
+	size_t m_selectedFunction;
 	bool m_showFunctions;
 
 signals:

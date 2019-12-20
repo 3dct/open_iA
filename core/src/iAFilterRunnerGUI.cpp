@@ -193,7 +193,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		{
 			mdiChildrenNames << mdi->windowTitle().replace("[*]", "");
 		}
-		for (unsigned int i = 1; i < filter->requiredInputs(); ++i)
+		for (int i = 1; i < filter->requiredInputs(); ++i)
 		{
 			dlgParamNames << QString("+%1").arg(filter->inputName(i));
 			dlgParamValues << mdiChildrenNames;
@@ -237,7 +237,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	}
 	if (askForAdditionalInput && filter->requiredInputs() > 1)
 	{
-		for (unsigned int i = 0; i < filter->requiredInputs()-1; ++i)
+		for (int i = 0; i < filter->requiredInputs()-1; ++i)
 		{
 			int mdiIdx = dlg.getComboBoxIndex(idx);
 			for (int m = 0; m < otherMdis[mdiIdx]->modalities()->size(); ++m)

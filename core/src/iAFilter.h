@@ -133,7 +133,7 @@ public:
 	//! Returns the number of image inputs required by this filter.
 	//! for typical image filters, this returns 1.
 	//! @return the number of images required as input
-	unsigned int requiredInputs() const;
+	int requiredInputs() const;
 	//! input/output connectors
 	QVector<iAConnector*> const & input();
 	QVector<iAConnector*> const & output();
@@ -214,7 +214,7 @@ private:
 	QMap<int, QString> m_inputNames;
 	QMap<int, QString> m_outputNames;
 	QString m_name, m_category, m_description;
-	unsigned int m_requiredInputs, m_outputCount, m_firstInputChannels;
+	int m_requiredInputs, m_outputCount, m_firstInputChannels;
 };
 
 //! Convenience Macro for creating the static Create method for your filter

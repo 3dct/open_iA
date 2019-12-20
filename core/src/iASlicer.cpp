@@ -1987,7 +1987,7 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	// only do something in spline drawing mode and if a point is selected
-	if (m_decorations && m_interactionMode == SnakeEdit && m_snakeSpline->selectedPointIndex() != -1)
+	if (m_decorations && m_interactionMode == SnakeEdit && m_snakeSpline->selectedPointIndex() != iASnakeSpline::NoPointSelected)
 	{
 		// Move world and slice view points
 		double const * point = m_worldSnakePoints->GetPoint(m_snakeSpline->selectedPointIndex());
@@ -2134,7 +2134,7 @@ void iASlicer::movePoint(size_t selectedPointIndex, double xPos, double yPos, do
 	double y = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
 
 	// move only if a point is selected
-	if (selectedPointIndex != -1)
+	if (selectedPointIndex != iASnakeSpline::NoPointSelected)
 	{
 		// move only if a point is selected
 		m_snakeSpline->movePoint(selectedPointIndex, x, y);

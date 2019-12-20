@@ -26,10 +26,10 @@
 
 #include <vtkSmartPointer.h>
 
+#include <QElapsedTimer>
 #include <QMutex>
 #include <QThread>
 #include <QWaitCondition>
-#include <QTime>
 #include <QVector>
 
 class vtkActor;
@@ -105,7 +105,7 @@ protected:
 
 private:
 	bool m_isRunning;
-	QTime m_time;
+	QElapsedTimer m_time;
 	QString m_filterName;
 	vtkImageData *m_image;
 	vtkPolyData *m_polyData;
