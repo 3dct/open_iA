@@ -407,8 +407,8 @@ void iAEnsemble::CreateUncertaintyImages()
 			return;
 		}
 		itk::Index<3> idx;
-		itk::Size<3> size;
-		itk::Vector<double, 3> spacing;
+		itk::Size<3> size;               size   .Fill(0);
+		itk::Vector<double, 3> spacing;  spacing.Fill(1);
 
 		// also calculate neighbourhood uncertainty here?
 		size_t count = 0;
