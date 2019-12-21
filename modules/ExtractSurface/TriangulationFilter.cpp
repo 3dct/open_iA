@@ -26,10 +26,13 @@ TriangulationFilter::TriangulationFilter()
 vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::pointsDecimation(QMap<QString, QVariant> const& parameters, vtkSmartPointer<vtkPolyDataAlgorithm> surfaceFilter,
 	iAProgress* Progress) 
 {
-	if (!surfaceFilter) { DEBUG_LOG("Surface filter is null") return nullptr; }
+	if (!surfaceFilter)
+	{
+		DEBUG_LOG("Surface filter is null") return nullptr;
+	}
 
-
-	if (parameters["Simplification Algorithm"].toString() == "Decimate Pro")
+	QString simplifyAlgoName = parameters["Simplification Algorithm"].toString();
+	if (simplifyAlgoName == "Decimate Pro")
 	{
 		auto decimatePro = vtkSmartPointer<vtkDecimatePro>::New();
 		Progress->observe(decimatePro);
@@ -44,7 +47,7 @@ vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::pointsDecimation(QMap
 
 		return decimatePro;
 	}
-	else if (parameters["Simplification Algorithm"].toString() == "Quadric Clustering")
+	else if (simplifyAlgoName == "Quadric Clustering")
 	{
 		auto quadricClustering = vtkSmartPointer<vtkQuadricClustering>::New();
 		Progress->observe(quadricClustering);
@@ -54,9 +57,9 @@ vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::pointsDecimation(QMap
 		quadricClustering->SetInputConnection(surfaceFilter->GetOutputPort());
 
 		return quadricClustering;
-
 	}
-
+	DEBUG_LOG(QString("Unknown simplification algorithm '%1'").arg(simplifyAlgoName));
+	return nullptr;
 }
 
 vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::surfaceFilterParametrisation(QMap<QString, QVariant> const& parameters, vtkSmartPointer<vtkImageData> imgData, iAProgress* Progress)
