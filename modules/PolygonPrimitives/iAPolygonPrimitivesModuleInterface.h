@@ -1,9 +1,7 @@
 #pragma once
 #include "iAModuleInterface.h"
-#include "mainwindow.h"
 
-#include <QMessageBox>
-
+class iAGeometricObjectsDialog;
 
 class iAPolygonPrimitivesModuleInterface : public iAModuleInterface
 {
@@ -11,5 +9,7 @@ class iAPolygonPrimitivesModuleInterface : public iAModuleInterface
 public:
 	void Initialize();
 private slots:
-	void TestAction();
+	void addPolygonObject();
+private:
+	iAGeometricObjectsDialog* m_dlg;
 };

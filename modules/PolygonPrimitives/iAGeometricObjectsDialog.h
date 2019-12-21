@@ -19,43 +19,34 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
-#include "iAPolygonPrimitivesModuleInterface.h"
 
-#include "iAGeometricObjectsDialog.h"
+#include <QDialog>
 
-#include <iAConsole.h>
-#include <mainwindow.h>
+#include "ui_PolygonPrimitives.h"
 
-#include <QMessageBox>
+class MdiChild;
 
-namespace
+class vtkOpenGLRenderer;
+
+class QColor;
+class QString;
+
+class iAGeometricObjectsDialog : public QDialog, Ui_PolygonPrimitives
 {
-	const QString Title("Add Polygon Object");
-}
+Q_OBJECT
 
-void iAPolygonPrimitivesModuleInterface::Initialize()
-{
-	if (!m_mainWnd)    // if m_mainWnd is not set, we are running in command line mode
-		return;        // in that case, we do not do anything as we can not add a menu entry there
-	QMenu* filtersMenu = m_mainWnd->toolsMenu();  // alternatively, you can use getToolsMenu() here if you want to add a tool
-	QAction* actionTest = new QAction(Title, nullptr);
-	AddActionToMenuAlphabeticallySorted(filtersMenu, actionTest);
-	connect(actionTest, SIGNAL(triggered()), this, SLOT(addPolygonObject()));
-}
+public:
+	iAGeometricObjectsDialog(QWidget* parent = 0, Qt::WindowFlags f = 0);
+	void setMDIChild(MdiChild* child);
 
-void iAPolygonPrimitivesModuleInterface::addPolygonObject()
-{
-	auto child = m_mainWnd->activeMdiChild();
-	if (!child)
-	{
-		QMessageBox::information(m_mainWnd, Title, "Requires an opened dataset.");
-		return;
-	}
-	if (!m_dlg)
-	{
-		m_dlg = new iAGeometricObjectsDialog();
-		m_dlg->setModal(false);
-	}
-	m_dlg->setMDIChild(child);
-	m_dlg->show();
-}
+private slots:
+	void createObject();
+
+private:
+	void readLineData  (vtkOpenGLRenderer* oglrenderer, QColor const & color);
+	void readSphereData(vtkOpenGLRenderer* oglrenderer, QColor const & color);
+	void readCubeData  (vtkOpenGLRenderer* oglrenderer, QColor const & color);
+
+	MdiChild *m_child;
+};
+
