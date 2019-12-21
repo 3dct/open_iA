@@ -29,7 +29,7 @@
 
 class Fiber;
 typedef std::vector<Fiber> FibersData;
-class iAFeature;
+struct iAFeature;
 
 class iADefectClassifier
 {

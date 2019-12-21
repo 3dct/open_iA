@@ -175,7 +175,7 @@ void iASimilarityMapWidget::drawPeak()
 		return;
 	}
 	QPainter painter( this );
-	painter.setRenderHint(QPainter::HighQualityAntialiasing);
+	painter.setRenderHint(QPainter::Antialiasing);
 	QPen pen( QColor( 200, 0, 0, 200 ) ); pen.setWidthF( 2 );
 	painter.setPen( pen );
 	int cpos[2]; posFromBins( m_peakPos, cpos );

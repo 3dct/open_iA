@@ -119,7 +119,7 @@ void iAPlaneVisModule::setSlice( int slice )
 
 	vtkSmartPointer<vtkMatrix4x4> resliceAxes = vtkSmartPointer<vtkMatrix4x4>::New( );
 
-	double sliceNum;
+	double sliceNum = 0;
 	switch( settings.Dir ) {
 	case iAPlaneVisSettings::Direction::XY:
 		settings.Slice[0] = slice;

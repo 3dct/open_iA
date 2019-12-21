@@ -757,7 +757,7 @@ QCPPainter *QCPPaintBufferGlPbuffer::startPainting()
   }
   
   QCPPainter *result = new QCPPainter(mGlPBuffer);
-  result->setRenderHint(QPainter::HighQualityAntialiasing);
+  result->setRenderHint(QPainter::Antialiasing);
   return result;
 }
 
