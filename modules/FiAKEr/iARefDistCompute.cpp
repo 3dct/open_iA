@@ -187,7 +187,8 @@ void iARefDistCompute::run()
 		auto & d = m_data->result[resultID];
 		qint64 const fiberCount = d.table->GetNumberOfRows();
 		d.refDiffFiber.resize(fiberCount);
-		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
+#pragma omp parallel for
+		for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
 			auto it = d.curveInfo.find(fiberID);
 			// find the best-matching fibers in reference & compute difference:
