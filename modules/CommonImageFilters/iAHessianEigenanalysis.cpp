@@ -62,7 +62,7 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 	auto eigenFilter = EigenAnalysisFilterType::New();
 	eigenFilter->SetDimension( HessianPixelType::Dimension );
 	eigenFilter->SetInput( hessianFilter->GetOutput() );
-	auto hessianImage = hessianFilter->GetOutput();
+	//auto hessianImage = hessianFilter->GetOutput();
 	eigenFilter->OrderEigenValuesBy( EigenAnalysisFilterType::FunctorType::OrderByValue );
 
 	// Eigen analysis
