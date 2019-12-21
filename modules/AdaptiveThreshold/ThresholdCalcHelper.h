@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <QVector>
 #include <stdexcept>
-#include "ThresAlgo.h"
 
 class QPointF;
 
@@ -86,20 +85,5 @@ public:
 private: 
 
 	//checks if a point is between min and max
-	inline bool checkInRange(const QPointF& pt, float min, float max) {
-		float xval = (float)  pt.x(); 
-		bool isInRangeMin = false; 
-		bool isInRangeMax = false; 
-		
-		if (!(min < max))
-			throw std::invalid_argument("error comparing values");
-
-		isInRangeMin = (algorithm::compareDouble(min, xval)) || (min < xval) ;
-		isInRangeMax = (algorithm::compareDouble(max, xval)) || (xval < max) ;
-		
-		return (isInRangeMax && isInRangeMin); 
-		
-	}
-
-	
+	bool checkInRange(const QPointF& pt, float min, float max);
 };

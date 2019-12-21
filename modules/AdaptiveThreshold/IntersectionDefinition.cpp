@@ -6,7 +6,11 @@ namespace intersection{
 
 	QLineF::IntersectType intersection::XYLine::calulateILineInterSection(const XYLine& other, QPointF* pt) const
 	{
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+		return this->intersects(other, pt);
+#else
 		return this->intersect(other, pt);
+#endif
 	}
 
 
@@ -17,7 +21,11 @@ namespace intersection{
 			
 			QPointF pt_Intersect;
 
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+			auto interSectFlag = this->intersects(line, &pt_Intersect);
+#else
 			auto interSectFlag = this->intersect(line, &pt_Intersect);
+#endif
 			if ((!pt_Intersect.isNull()) && ( !(interSectFlag == QLineF::UnboundedIntersection)))
 				m_intersectPoints.push_back(pt_Intersect);
 

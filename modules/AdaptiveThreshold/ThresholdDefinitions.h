@@ -1,11 +1,16 @@
 #pragma once
-#include <vector>
-#include <QString>
-#include <stdexcept>
-#include <QPointF>
-#include "iAMathUtility.h"
 
-namespace threshold_defs {
+#include <iAMathUtility.h>
+
+#include <QPointF>
+
+#include <QString>
+
+#include <stdexcept>
+#include <vector>
+
+namespace threshold_defs
+{
 
 	const double dblInf_min = -std::numeric_limits<double>::infinity();
 	const double fltInf_min = -std::numeric_limits<float>::infinity();

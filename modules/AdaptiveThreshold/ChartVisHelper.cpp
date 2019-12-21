@@ -1,14 +1,21 @@
 #include "ChartVisHelper.h"
 #include "ThresholdDefinitions.h"
+
+#include <iAConsole.h>
+
+#include <QLineSeries>
+#include <QScatterSeries>
+
 #include <vector>
 
-QLineSeries* ChartVisHelper::createLineSeries(const threshold_defs::ParametersRanges& ranges)
+QtCharts::QLineSeries* ChartVisHelper::createLineSeries(const threshold_defs::ParametersRanges& ranges)
 {
-	QLineSeries * series = new QLineSeries;
+	QtCharts::QLineSeries * series = new QtCharts::QLineSeries;
 	const std::vector<double> x_series = ranges.getXRange(); 
 	const std::vector<double> y_series = ranges.getYRange();
 	
-	if (x_series.empty() || y_series.empty()) {
+	if (x_series.empty() || y_series.empty())
+	{
 		delete series; 
 		throw std::invalid_argument("data is empty"); 
 	}
@@ -17,7 +24,7 @@ QLineSeries* ChartVisHelper::createLineSeries(const threshold_defs::ParametersRa
 	return series; 
 }
 
-QLineSeries* ChartVisHelper::createLineSeries(const QPointF& pt_1, const QPointF& pt_2, LineVisOption option)
+QtCharts::QLineSeries* ChartVisHelper::createLineSeries(const QPointF& pt_1, const QPointF& pt_2, LineVisOption option)
 {
 	double x_1 = pt_1.x();
 	double y_1 = pt_1.y();
@@ -25,7 +32,7 @@ QLineSeries* ChartVisHelper::createLineSeries(const QPointF& pt_1, const QPointF
 	double y_2 = pt_2.y();
 
 	//horizontal xy use xy coordinates
-	QLineSeries* series = new QLineSeries;
+	QtCharts::QLineSeries* series = new QtCharts::QLineSeries;
 	switch (option) {
 	case horizontally: y_1 = 0; /*y_2 = 0*/;break;
 	case vertically: /*x_1 = 0*/; x_2 = 0; break;
@@ -43,28 +50,29 @@ QLineSeries* ChartVisHelper::createLineSeries(const QPointF& pt_1, const QPointF
 
 
 
-QScatterSeries* ChartVisHelper::createScatterSeries(const std::vector<double>& vec_x, const std::vector<double>& vec_y)
+QtCharts::QScatterSeries* ChartVisHelper::createScatterSeries(const std::vector<double>& vec_x, const std::vector<double>& vec_y)
 {
-	QScatterSeries* series = nullptr; 
-	if (!((vec_x.size() > 0) &&
-		(vec_x.size() == vec_y.size())))
-		return series;
-	series = new QScatterSeries;
+	if (!((vec_x.size() > 0) && (vec_x.size() == vec_y.size())))
+	{
+		return nullptr;
+	}
+	auto series = new QtCharts::QScatterSeries;
 	fillSeries(series, vec_x, vec_y);
 	return series;
 
 }
 
-QScatterSeries* ChartVisHelper::createScatterSeries(const threshold_defs::ParametersRanges& ranges)
+QtCharts::QScatterSeries* ChartVisHelper::createScatterSeries(const threshold_defs::ParametersRanges& ranges)
 {
-	QScatterSeries* series = new QScatterSeries;
 	const std::vector<double> x_series = ranges.getXRange();
 	const std::vector<double> y_series = ranges.getYRange();
 
-	if (x_series.empty() || y_series.empty()) {
-		return series = nullptr;
+	if (x_series.empty() || y_series.empty())
+	{
+		return nullptr;
 	}
 
+	auto series = new QtCharts::QScatterSeries;
 	fillSeries(series, x_series, y_series);
 	return series;
 
@@ -72,71 +80,67 @@ QScatterSeries* ChartVisHelper::createScatterSeries(const threshold_defs::Parame
 
 QT_CHARTS_NAMESPACE::QScatterSeries* ChartVisHelper::createScatterSeries(const std::vector<QPointF> pts, double* pt_size)
 {
-	QScatterSeries* series = new QScatterSeries;
-	if (pts.empty()) {
-		delete series; series = nullptr; 
+	if (pts.empty())
+	{
+		DEBUG_LOG("createScatterSeries: Empty points given!")
+		return nullptr; 
 	}
-
-	for (const QPointF& el : pts) {
+	
+	auto series = new QtCharts::QScatterSeries;
+	for (const QPointF& el : pts)
+	{
 		series->append(el);
-	
 	}
-	
-	if (pt_size) {
-		if (*pt_size > 0){
-
+	if (pt_size)
+	{
+		if (*pt_size > 0)
+		{
 			series->setMarkerSize(*pt_size);
-			
-
 		}
 	}
-
-	
-
 	return series;
-
 }
 
-QScatterSeries* ChartVisHelper::createScatterSeries(const QPointF& pt, double pt_size, const QColor *color)
+QtCharts::QScatterSeries* ChartVisHelper::createScatterSeries(const QPointF& pt, double pt_size, const QColor *color)
 {
-	QScatterSeries* series = nullptr; 
-	if (pt.isNull()) return series;
-	else series = new QScatterSeries; 
+	if (pt.isNull())
+	{
+		DEBUG_LOG("createScatterSeries: null pt given!")
+		return nullptr;
+	}
+	auto series = new QtCharts::QScatterSeries;
 	series->append(pt); 
-	series->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
+	series->setMarkerShape(QtCharts::QScatterSeries::MarkerShapeRectangle);
 	if (color)
-		series->setColor(*color); 
+	{
+		series->setColor(*color);
+	}
 	
 	if (pt_size > 5.0) series->setMarkerSize(pt_size);
 	return series; 
 
 }
 
-QLineSeries *ChartVisHelper::createLineSeries(const std::vector<double> &vec_x, const std::vector<double> &vec_y)
+QtCharts::QLineSeries *ChartVisHelper::createLineSeries(const std::vector<double> &vec_x, const std::vector<double> &vec_y)
 {
-	QLineSeries *series = nullptr;
-	if (!((vec_x.size() > 0) &&
-		(vec_x.size() == vec_y.size())))
-		return series;
-
-	series = new QLineSeries; 
+	if (!((vec_x.size() > 0) && (vec_x.size() == vec_y.size())))
+	{
+		return nullptr;
+	}
+	auto series = new QtCharts::QLineSeries;
 	fillSeries(series, vec_x, vec_y); 
 	return series;
 }
 
-void ChartVisHelper::fillSeries(QXYSeries* aSeries, const std::vector<double> &vec_x, const std::vector<double> &vec_y)
+void ChartVisHelper::fillSeries(QtCharts::QXYSeries* aSeries, const std::vector<double> &vec_x, const std::vector<double> &vec_y)
 {
 	if (!aSeries)
-		return; 
-
-	double x = 0;
-	double y = 0;
-
-	for (size_t ind = 0; ind < vec_x.size(); ++ind) {
-		x = vec_x[ind];
-		y = vec_y[ind];
-		aSeries->append(x, y);
+	{
+		DEBUG_LOG("fillSeries: Empty series given!")
+		return;
 	}
-
-
+	for (size_t ind = 0; ind < vec_x.size(); ++ind)
+	{
+		aSeries->append(vec_x[ind], vec_y[ind]);
+	}
 }

@@ -8,12 +8,8 @@
 
 #include <QSharedPointer>
 #include <QDialog>
-#include <QtCharts>
-#include <QtCharts/QLineSeries>
 
 #include <vector>
-
-using namespace QtCharts;
 
 enum axisMode {
 	x,
@@ -26,6 +22,14 @@ enum plotMode
 	lines
 };
 
+namespace QtCharts
+{
+	class QChart;
+	class QChartView;
+	class QLineSeries;
+	class QValueAxis;
+}
+
 class  AdaptiveThreshold : public QDialog, Ui_AdaptiveThreshold
 
 {
@@ -36,8 +40,6 @@ public:
 	AdaptiveThreshold(QWidget * parent = 0, Qt::WindowFlags f = 0);
 
 	void enableComponents(bool setCompsVisible);
-
-	~AdaptiveThreshold();
 
 	void setupUIActions();
 	void initChart();
@@ -187,13 +189,13 @@ private:
 	std::vector<double> m_greyThresholds; 
 	std::vector<double> m_frequencies; 
 	std::vector<double> m_movingFrequencies; 	
-	QLineSeries *m_refSeries; 
-	std::vector<QLineSeries*> series_vec;
+	QtCharts::QLineSeries *m_refSeries;
+	std::vector<QtCharts::QLineSeries*> series_vec;
 	double resThreshold; 
 
-	QChartView* m_chartView;
-	QChart* m_chart;
-	QValueAxis* axisX;
-	QValueAxis* axisY;
+	QtCharts::QChartView* m_chartView;
+	QtCharts::QChart* m_chart;
+	QtCharts::QValueAxis* axisX;
+	QtCharts::QValueAxis* axisY;
 };
 

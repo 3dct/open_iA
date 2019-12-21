@@ -1,19 +1,24 @@
 #include "dlg_AdaptiveThreshold.h"
-#include <algorithm>
-#include <qsharedpointer.h>
-#include <QtCharts/qlineseries.h>
-#include "iAConsole.h"
+
+#include "ChartVisHelper.h"
+#include "ThresholdDefinitions.h"
+#include "IntersectionDefinition.h"
+
+#include <iAConnector.h>
+#include <iAConsole.h>
+
 #include <QColor>
 #include <QPoint>
 #include <QFileDialog>
-#include "ChartVisHelper.h"
-#include "ThresholdDefinitions.h"
-#include <IntersectionDefinition.h>
+#include <QtCharts>
+#include <QtCharts/QLineSeries>
+
+#include <algorithm>
 #include <limits>
-#include <iAConnector.h>
 
 
-struct axisParams {
+struct axisParams
+{
 	double xmin; 
 	double xmax; 
 	double ymin;
@@ -23,43 +28,39 @@ struct axisParams {
 };
 
 
-AdaptiveThreshold::AdaptiveThreshold(QWidget * parent, Qt::WindowFlags f):QDialog(parent, f){
+AdaptiveThreshold::AdaptiveThreshold(QWidget * parent, Qt::WindowFlags f)
+	: QDialog(parent, f)
+{
 	setupUi(this);
-	try {
+	m_chart = new QtCharts::QChart;
+	m_chartView = new QtCharts::QChartView(m_chart);
+	m_chartView->setRubberBand(QChartView::RectangleRubberBand);
+	axisX = new QValueAxis; 
+	axisY = new QValueAxis; 
+	m_refSeries = new QLineSeries();
+	series_vec.reserve(maxSeriesNumbers); 
+	this->ed_xMIn->setText("");
+	this->ed_xMax->setText("");
+	this->ed_YMax->setText("");
+	this->ed_Ymin->setText("");
+	QValidator* validator = new QDoubleValidator(0, 8000, 2, this); 
+	this->ed_minSegmRange->setValidator(validator); 
+	this->ed_minSegmRange->setText(QString("%1").arg(0)); 
+	this->ed_maxThresholdRange->setReadOnly(true); 
+	bool setCompsVisible = false; 
+	enableComponents(setCompsVisible);
 		
-		m_chart = new QtCharts::QChart;
-		m_chartView = new QtCharts::QChartView(m_chart);
-		m_chartView->setRubberBand(QChartView::RectangleRubberBand);
-		axisX = new QValueAxis; 
-		axisY = new QValueAxis; 
-		m_refSeries = new QLineSeries();
-		series_vec.reserve(maxSeriesNumbers); 
-		this->ed_xMIn->setText("");
-		this->ed_xMax->setText("");
-		this->ed_YMax->setText("");
-		this->ed_Ymin->setText("");
-		QValidator* validator = new QDoubleValidator(0, 8000, 2, this); 
-		this->ed_minSegmRange->setValidator(validator); 
-		this->ed_minSegmRange->setText(QString("%1").arg(0)); 
-		this->ed_maxThresholdRange->setReadOnly(true); 
-		bool setCompsVisible = false; 
-		enableComponents(setCompsVisible);
+	Qt::WindowFlags flags = this->windowFlags();
+	flags |= Qt::Tool;
+	this->setWindowFlags(flags);
 
-		
-		Qt::WindowFlags flags = this->windowFlags();
-		flags |= Qt::Tool;
-		this->setWindowFlags(flags);
-
-		for (auto series: series_vec) {
-			series = new QLineSeries(); 
-		}
-
-		setupUIActions();
-		this->mainLayout->addWidget(m_chartView);
+	for (auto series: series_vec)
+	{
+		series = new QLineSeries(); 
 	}
-	catch (std::bad_alloc & /*ba*/) {
-		DEBUG_LOG("We dont Not enough memory to create objects"); 
-	}
+
+	setupUIActions();
+	this->mainLayout->addWidget(m_chartView);
 }
 
 void AdaptiveThreshold::enableComponents(bool setCompsVisible)
@@ -90,20 +91,10 @@ void AdaptiveThreshold::setupUIActions()
 	
 }
 
-AdaptiveThreshold::~AdaptiveThreshold()
-{
-			
-}
-
-
-
 void AdaptiveThreshold::initChart()
 {
 	initAxes(0, 20, 2, 20, false); 
 }
-
-
-
 
 void AdaptiveThreshold::generateSampleData(bool addserries)
 {
@@ -136,7 +127,8 @@ void AdaptiveThreshold::generateSampleData(bool addserries)
 
 void AdaptiveThreshold::determineMinMax(const std::vector<double> &xVal, const std::vector<double> &yVal)
 {
-	if ((xVal.size() == 0) || (yVal.size() == 0)) {
+	if ((xVal.size() == 0) || (yVal.size() == 0))
+	{
 		DEBUG_LOG("could not determine min and maximum of input range"); 
 		return;
 	}
@@ -169,17 +161,20 @@ void AdaptiveThreshold::setInputData(const std::vector<double> &thres_binInX,con
 
 void AdaptiveThreshold::addAllSeries(std::vector<QXYSeries*> allSeries, bool disableMarker)
 {
-	for (QXYSeries* el : allSeries) {
+	for (QXYSeries* el : allSeries)
+	{
 		this->addSeries(el, disableMarker);
 	}
 }
 
-void AdaptiveThreshold::setHistData (QSharedPointer<iAPlotData> &data)
+void AdaptiveThreshold::setHistData (QSharedPointer<iAPlotData> &newData)
 {
-	if (!data) 
+	if (!newData)
+	{
 		throw std::invalid_argument("data empty");
+	}
 
-	m_thresCalculator.setData(data); 
+	m_thresCalculator.setData(newData);
 }
 
 void AdaptiveThreshold::resetGraphToDefault()
@@ -199,13 +194,18 @@ void AdaptiveThreshold::calculateMovingAndVisualizeAverage()
 {
 	DEBUG_LOG("Moving Average");
 	uint averageCount = this->spinBox_average->text().toUInt();
-	if (averageCount <= 2) return; 	
+	if (averageCount <= 2)
+	{
+		return;
+	}
 
 	DEBUG_LOG(QString("Freq size%1").arg(m_frequencies.size())); 
 
 	//reset the frequency
 	if (m_movingFrequencies.size() > 0)
+	{
 		m_movingFrequencies.clear();
+	}
 
 	QString text = QString("Moving average %1").arg(averageCount);
 	m_thresCalculator.calculateMovingAverage(m_frequencies, m_movingFrequencies, averageCount);	
@@ -213,7 +213,6 @@ void AdaptiveThreshold::calculateMovingAndVisualizeAverage()
 	
 	//for saving moving average
 	allMovingfreqs.addSequence(m_movingFrequencies);
-
 
 	/*prepare visualisation*/
 	QLineSeries *newSeries = new QLineSeries;
@@ -223,7 +222,6 @@ void AdaptiveThreshold::calculateMovingAndVisualizeAverage()
 
 void AdaptiveThreshold::buttonSelectRangesClickedAndComputePeaks()
 {
-
 	/*
 	determine ranges for lokal peak
 	determine range for maxPeak
@@ -239,75 +237,55 @@ void AdaptiveThreshold::buttonSelectRangesClickedAndComputePeaks()
 	{
 		//load values from checkbox
 		computeNormalizeAndComputeLokalPeaks(ranges);
-		return;
-			
-	}catch (std::bad_alloc& /*ba*/){
-			this->textEdit->append("not enough memory available"); 
-
-	}catch (std::invalid_argument& ia)
+	}
+	catch (std::invalid_argument& ia)
 	{
-		QString outputMessg = ia.what();
-		this->textEdit->append(outputMessg);
+		this->textEdit->append(ia.what());
 	}
 }
 
 void AdaptiveThreshold::computeNormalizeAndComputeLokalPeaks(threshold_defs::PeakRanges& ranges)
 {
-	if(m_movingFrequencies.empty())
+	if (m_movingFrequencies.empty())
 	{
 		this->textEdit->append("moving average not yet created, create average sequence before");
 		return;
 	}
 
-	try {
-
-		/*
-		*first take moving current moving frequencies
-		*
-		*
-		*/
-		if (runOnFirstTime || this->chck_box_RecalcRange->isChecked()) {
-				m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies,
-					m_NormalizedGlobalValueRangeXY, m_graphValuesScope.getxmin(), m_graphValuesScope.getXMax());
+	// first take moving current moving frequencies
+	if (runOnFirstTime || this->chck_box_RecalcRange->isChecked()) {
+			m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies,
+				m_NormalizedGlobalValueRangeXY, m_graphValuesScope.getxmin(), m_graphValuesScope.getXMax());
 
 				
-				m_resultingthrPeaks = determineLocalPeaks(ranges, m_resultingthrPeaks); //Peak Air (lokal Maxium) and Peak Min (lokal Min) are calculated
-				//m_ maxPeakMaterialRanges;
-				peakNormalization(m_maxPeakMaterialRanges, ranges, m_resultingthrPeaks);
+			m_resultingthrPeaks = determineLocalPeaks(ranges, m_resultingthrPeaks); //Peak Air (lokal Maxium) and Peak Min (lokal Min) are calculated
+			//m_ maxPeakMaterialRanges;
+			peakNormalization(m_maxPeakMaterialRanges, ranges, m_resultingthrPeaks);
 
-				//here maybe update first maximum
-				//mininum peak
+			//here maybe update first maximum
+			//mininum peak
 
 								
-				calculateIntermediateResults(m_resultingthrPeaks,m_maxPeakMaterialRanges, false);
+			calculateIntermediateResults(m_resultingthrPeaks,m_maxPeakMaterialRanges, false);
 
-				QColor cl_green = QColor(255, 0, 0);
-				QString sr_text = "Max Peak Range";
-				visualizeSeries(m_maxPeakMaterialRanges, cl_green, &sr_text);
-				visualizeIntermediateResults(m_resultingthrPeaks);
-				createVisualisation(m_paramRanges, m_resultingthrPeaks); //lines in histogram
-				assignValuesToField(m_resultingthrPeaks);
-				this->chckbx_LokalMinMax->setEnabled(true);
-				this->writeDebugText("\nAfter Normalisation\n");
-				this->writeDebugText(m_resultingthrPeaks.resultsToString(false));
-				runOnFirstTime = false; 
+			QColor cl_green = QColor(255, 0, 0);
+			QString sr_text = "Max Peak Range";
+			visualizeSeries(m_maxPeakMaterialRanges, cl_green, &sr_text);
+			visualizeIntermediateResults(m_resultingthrPeaks);
+			createVisualisation(m_paramRanges, m_resultingthrPeaks); //lines in histogram
+			assignValuesToField(m_resultingthrPeaks);
+			this->chckbx_LokalMinMax->setEnabled(true);
+			this->writeDebugText("\nAfter Normalisation\n");
+			this->writeDebugText(m_resultingthrPeaks.resultsToString(false));
+			runOnFirstTime = false; 
 			
-		}
-		else {
-			//if values are changes
-			calculateIntermediateResults(m_resultingthrPeaks, m_maxPeakMaterialRanges, this->chckbx_LokalMinMax->isChecked());
-			createVisualisation(m_paramRanges, m_resultingthrPeaks);
-		}
-		
 	}
-	catch (std::invalid_argument & /*ia*/) {
-		throw; 
+	else
+	{
+		//if values are changes
+		calculateIntermediateResults(m_resultingthrPeaks, m_maxPeakMaterialRanges, this->chckbx_LokalMinMax->isChecked());
+		createVisualisation(m_paramRanges, m_resultingthrPeaks);
 	}
-	catch (std::bad_alloc& /*ba*/) {
-		DEBUG_LOG("error in memory allocation ");
-		throw; 
-	}
-
 
 }
 
@@ -338,28 +316,22 @@ void AdaptiveThreshold::visualizeIntermediateResults(threshold_defs::ThresMinMax
 
 	this->addSeries(GlobalRangeGraph, false);
 
-
 	QPointF f1 = QPointF(resultingthrPeaks.Iso50ValueThr(), m_graphValuesScope.getYMax());
 	QPointF f2 = QPointF(resultingthrPeaks.Iso50ValueThr(), 0);
 
-
 	QLineSeries* iso50 = nullptr;
 
-
 	iso50 = ChartVisHelper::createLineSeries(f2, f1, LineVisOption::horizontally);
-
 
 	QColor cl_blue = QColor(0, 0, 255);
 	iso50->setColor(cl_blue);
 	iso50->setName("iso 50");
-
 
 	this->addSeries(iso50, false);
 }
 
 void AdaptiveThreshold::calculateIntermediateResults(threshold_defs::ThresMinMax& resultingthrPeaks, threshold_defs::ParametersRanges maxPeakMaterialRanges, bool updatePeaks)
 {
-
 	OptionallyUpdateThrPeaks(updatePeaks, resultingthrPeaks);
 	resultingthrPeaks.fAirPeakHalf(resultingthrPeaks.FreqPeakLokalMaxY() / 2.0f); //f_air/2.0;
 
@@ -371,7 +343,6 @@ void AdaptiveThreshold::calculateIntermediateResults(threshold_defs::ThresMinMax
 
 	resultingthrPeaks.setPeaksMinMax(xminThr, xmaxThr);
 
-
 	//then minmaxnormalize x values for later intersection calculation; 
 	this->writeDebugText("Before Normalisation\n");
 	this->writeDebugText(resultingthrPeaks.resultsToString(false));
@@ -382,7 +353,6 @@ void AdaptiveThreshold::calculateIntermediateResults(threshold_defs::ThresMinMax
 
 threshold_defs::ThresMinMax AdaptiveThreshold::determineLocalPeaks(threshold_defs::PeakRanges& ranges, threshold_defs::ThresMinMax resultingthrPeaks)
 {
-	
 	//input grauwerte und moving freqs, output is paramRanges
 	m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, m_paramRanges, ranges.XRangeMIn, ranges.XRangeMax/*x_min, x_max*/);
 
@@ -398,10 +368,10 @@ void AdaptiveThreshold::enableCheckBox()
 
 void AdaptiveThreshold::OptionallyUpdateThrPeaks(bool selectedData, threshold_defs::ThresMinMax& thrPeaks)
 {
-	if (!selectedData) {
+	if (!selectedData)
+	{
 		return;
 	}
-		
 
 	double lokalMax_X = ed_PeakThrMaxX->text().toDouble();
 	double lokalMax_Y = ed_PeakFregMaxY->text().toDouble();
@@ -430,71 +400,63 @@ void AdaptiveThreshold::assignValuesToField(double min, double max, double y1, d
 
 void AdaptiveThreshold::createVisualisation(threshold_defs::ParametersRanges paramRanges, threshold_defs::ThresMinMax thrPeaks)
 {
-	try {
-		QLineSeries* rangedSeries = nullptr;
-		rangedSeries = ChartVisHelper::createLineSeries(paramRanges);
-		QPointF lokalPeakMax = ChartVisHelper::createPoint(thrPeaks.LokalMaxPeakThreshold_X(), thrPeaks.FreqPeakLokalMaxY());
-		QPointF p2 = ChartVisHelper::createPoint(thrPeaks.PeakMinXThreshold(), thrPeaks.FreqPeakMinY());
+	QLineSeries* rangedSeries = nullptr;
+	rangedSeries = ChartVisHelper::createLineSeries(paramRanges);
+	QPointF lokalPeakMax = ChartVisHelper::createPoint(thrPeaks.LokalMaxPeakThreshold_X(), thrPeaks.FreqPeakLokalMaxY());
+	QPointF p2 = ChartVisHelper::createPoint(thrPeaks.PeakMinXThreshold(), thrPeaks.FreqPeakMinY());
 		
-		if (!rangedSeries)
-		{
-			DEBUG_LOG("Range series not created");
-			return;
-		}
+	if (!rangedSeries)
+	{
+		DEBUG_LOG("Range series not created");
+		return;
+	}
 
-		m_colCounter += 20; 
-		if (m_colCounter > 255) {
-			m_colCounter = 0; 
-		}
+	m_colCounter += 20; 
+	if (m_colCounter > 255)
+	{
+		m_colCounter = 0; 
+	}
 
-		QColor basis = QColor(0, 0, m_colCounter);		
-		std::vector<QXYSeries*> data; 
-		auto SeriesTwoPoints = ChartVisHelper::createLineSeries(lokalPeakMax, lokalPeakMax, LineVisOption::vertically);
-		auto SeriesTwoPointsb = ChartVisHelper::createLineSeries(lokalPeakMax, lokalPeakMax, LineVisOption::horizontally);
-		SeriesTwoPointsb->setColor(basis);
-		SeriesTwoPoints->setColor(basis);
+	QColor basis = QColor(0, 0, m_colCounter);		
+	std::vector<QXYSeries*> newData; 
+	auto SeriesTwoPoints = ChartVisHelper::createLineSeries(lokalPeakMax, lokalPeakMax, LineVisOption::vertically);
+	auto SeriesTwoPointsb = ChartVisHelper::createLineSeries(lokalPeakMax, lokalPeakMax, LineVisOption::horizontally);
+	SeriesTwoPointsb->setColor(basis);
+	SeriesTwoPoints->setColor(basis);
 		
 
-		data.push_back(SeriesTwoPoints);
-		data.push_back(SeriesTwoPointsb);
+	newData.push_back(SeriesTwoPoints);
+	newData.push_back(SeriesTwoPointsb);
 
-		QPointF lokalFMax_2 = ChartVisHelper::createPoint(thrPeaks.LokalMaxPeakThreshold_X(), thrPeaks.fAirPeakHalf());
-		auto seriesFMaxHalf = ChartVisHelper::createLineSeries(lokalFMax_2, lokalFMax_2, LineVisOption::vertically);
-		auto seriesFMaxHalf_2 = ChartVisHelper::createLineSeries(lokalFMax_2, lokalFMax_2, LineVisOption::horizontally);
+	QPointF lokalFMax_2 = ChartVisHelper::createPoint(thrPeaks.LokalMaxPeakThreshold_X(), thrPeaks.fAirPeakHalf());
+	auto seriesFMaxHalf = ChartVisHelper::createLineSeries(lokalFMax_2, lokalFMax_2, LineVisOption::vertically);
+	auto seriesFMaxHalf_2 = ChartVisHelper::createLineSeries(lokalFMax_2, lokalFMax_2, LineVisOption::horizontally);
 		
-		QPointF lokalFmaxEnd = QPointF(65000.0f, lokalFMax_2.y()); 
-		auto seriesFMaxHal_3 = ChartVisHelper::createLineSeries(lokalFMax_2, lokalFmaxEnd, LineVisOption::horizontal_xy);
+	QPointF lokalFmaxEnd = QPointF(65000.0f, lokalFMax_2.y()); 
+	auto seriesFMaxHal_3 = ChartVisHelper::createLineSeries(lokalFMax_2, lokalFmaxEnd, LineVisOption::horizontal_xy);
 
 
-		this->addSeries(seriesFMaxHalf, true); 
-		this->addSeries(seriesFMaxHalf_2, true); 
-		this->addSeries(seriesFMaxHal_3, true); 
+	this->addSeries(seriesFMaxHalf, true); 
+	this->addSeries(seriesFMaxHalf_2, true); 
+	this->addSeries(seriesFMaxHal_3, true); 
 
 
-		auto series_p2 = ChartVisHelper::createLineSeries(p2, p2, LineVisOption::horizontally);
-		auto series_p2_b = ChartVisHelper::createLineSeries(p2, p2, LineVisOption::vertically);
+	auto series_p2 = ChartVisHelper::createLineSeries(p2, p2, LineVisOption::horizontally);
+	auto series_p2_b = ChartVisHelper::createLineSeries(p2, p2, LineVisOption::vertically);
 
-		series_p2_b->setColor(QColor(basis));
-		series_p2->setColor(QColor(basis));
-		QColor color = QColor(255, 0, 0);
-		rangedSeries->setColor(color);
-		data.push_back(rangedSeries);
-		data.push_back(series_p2);
-		data.push_back(series_p2); 	
+	series_p2_b->setColor(QColor(basis));
+	series_p2->setColor(QColor(basis));
+	QColor color = QColor(255, 0, 0);
+	rangedSeries->setColor(color);
+	newData.push_back(rangedSeries);
+	newData.push_back(series_p2);
+	newData.push_back(series_p2);
 
-		this->addSeries(series_p2, true);
-		this->addAllSeries(data, true);
-		m_chartView->update();
+	this->addSeries(series_p2, true);
+	this->addAllSeries(newData, true);
+	m_chartView->update();
 				
-		this->writeDebugText(thrPeaks.MinMaxToString());
-	}
-	catch (std::invalid_argument /*iae*/) {
-		throw; 
-	
-	}
-	catch (std::bad_alloc& /*ba*/) {
-		throw; 
-	}
+	this->writeDebugText(thrPeaks.MinMaxToString());
 }
 
 void AdaptiveThreshold::visualizeSeries(threshold_defs::ParametersRanges ParamRanges, QColor color, QString *seriesName)
@@ -502,7 +464,8 @@ void AdaptiveThreshold::visualizeSeries(threshold_defs::ParametersRanges ParamRa
 	QLineSeries* rangedSeries = nullptr; 
 	rangedSeries = ChartVisHelper::createLineSeries(ParamRanges);
 	rangedSeries->setColor(color); 
-	if (seriesName) {
+	if (seriesName)
+	{
 		rangedSeries->setName(*seriesName); 
 	}
 
@@ -517,16 +480,17 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 	//workflow select range for choosing points
 	//calculate first intersection within the range
 	//visualiseIntersectionPoint
-	
-		double xmin, xmax;
-		xmin = this->ed_ptXmin->text().toDouble();
-		xmax = this->ed_pt_xMax->text().toDouble();
 
-		if ((xmin > 0) && (xmax > 0) && (xmax > xmin)) {
-			if (m_greyThresholds.size() > 0)
+	double xmin, xmax;
+	xmin = this->ed_ptXmin->text().toDouble();
+	xmax = this->ed_pt_xMax->text().toDouble();
+
+	if ((xmin > 0) && (xmax > 0) && (xmax > xmin))
+	{
+		if (m_greyThresholds.size() > 0)
+		{
+			try
 			{
-				try
-				{
 
 				if (m_movingFrequencies.size() == 0) {
 					this->textEdit->append("\nMoving Frequencies not created");
@@ -565,9 +529,7 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				writeDebugText("Determined threshold\n");
 
 
-				/*
-				*visualize intersections
-				*/
+				// visualize intersections
 				QColor col = QColor(0, 255, 0);
 				QPointF p1 = QPointF(ptIntersect.x(), 0);
 				QPointF p2 = QPointF(ptIntersect.x(), 1000000);
@@ -575,11 +537,12 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				auto* IntersectSeries = ChartVisHelper::createLineSeries(p1, p2, LineVisOption::horizontally);
 				writeDebugText(QString("intersection point 1% %2").arg(ptIntersect.x()).arg(ptIntersect.y()));
 				
-				//Intersection is created; 
+				// Intersection is created; 
 				writeDebugText(QString("\nApplying decision rule"));
 				QPointF calcThresPoint = m_thresCalculator.determineResultingThresholdBasedOnDecisionRule(m_thresCalculator.getResults(), this->textEdit);
 				 
-				if (ptIntersect.x() < 0 || (ptIntersect.x() > std::numeric_limits<float>::max())) {
+				if (ptIntersect.x() < 0 || (ptIntersect.x() > std::numeric_limits<float>::max()))
+				{
 					writeDebugText(QString("no intersection negative or inf, try again parametrisation"));
 					return;
 				}
@@ -589,7 +552,7 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 				//todo check for inf values
 
 
-				/*convert threshold back to min max*/
+				// convert threshold back to min max
 				double resThres = m_thresCalculator.GetResultingThreshold();
 				auto peaks = m_thresCalculator.getThrPeaksVals();
 				double convertedThr = normalizedToMinMax(peaks.getLocalMax(), peaks.getGlobalMax(),resThres); 
@@ -605,35 +568,33 @@ void AdaptiveThreshold::determineIntersectionAndFinalThreshold()
 
 				this->addSeries(IntersectSeries, false);
 
-				//visualize Final threshold by a Streight Line
+				//visualize Final threshold by a straight Line
 
 				visualizeFinalThreshold(resThres);
 
-
-				
-				if (resThres < 0) {
+				if (resThres < 0)
+				{
 					writeDebugText(QString("resulting segmentation threshold either negative or inf, try again parametrisation"));
 					return;
 				}
-										   
-				
+
 				m_chart->update();
 				m_chartView->update();
 				this->ed_minSegmRange->setEnabled(true); 
 				this->pushButton->setEnabled(true); 
 				
 
-				}catch (std::invalid_argument& iae) {
-					writeDebugText(iae.what()); 
-				}
-
 			}
-			else {
-				writeDebugText("Workflow: \n1 Please load histogram data first\n 2 create Moving average\n 3 Specify Ranges of Peaks \n4  Calculate Intersection ");
+			catch (std::invalid_argument& iae)
+			{
+				writeDebugText(iae.what()); 
 			}
-
 		}
-	
+		else
+		{
+			writeDebugText("Workflow: \n1 Please load histogram data first\n 2 create Moving average\n 3 Specify Ranges of Peaks \n4  Calculate Intersection ");
+		}
+	}
 }
 
 
@@ -668,11 +629,13 @@ void AdaptiveThreshold::assignValuesFromField(threshold_defs::PeakRanges &Ranges
 	Ranges.HighPeakXmin = this->ed_MaxPeakXRangeMIn->text().toDouble(x4_ok); 
 
 
-	if ((!x_OK) || (!x2_OK) || (!x3_oK) || (!x4_ok) )  {
+	if ((!x_OK) || (!x2_OK) || (!x3_oK) || (!x4_ok) )
+	{
 		this->textEdit->setText("invalid input");
 		return;
 	}
-	else if ((Ranges.XRangeMIn < 0) || (Ranges.XRangeMax <= 0)) {
+	else if ((Ranges.XRangeMIn < 0) || (Ranges.XRangeMax <= 0))
+	{
 		this->textEdit->setText("please again check input parameters");
 		return;
 	}
@@ -685,7 +648,8 @@ void AdaptiveThreshold::assignValuesFromField(threshold_defs::PeakRanges &Ranges
 
 void AdaptiveThreshold::scaleGraphToMinMax(const threshold_defs::ParametersRanges& ranges)
 {
-	if (ranges.isXEmpty() || ranges.isYEmpty()) {
+	if (ranges.isXEmpty() || ranges.isYEmpty())
+	{
 		throw std::invalid_argument("greyvalues or frequencies not set");
 	}
 
@@ -704,13 +668,16 @@ void AdaptiveThreshold::redrawPlots()
 	//redraw histogram
 	//redraw moving averages
 
-	if (m_chart) {
-		if (m_chartView) {
+	if (m_chart)
+	{
+		if (m_chartView)
+		{
 			DEBUG_LOG("Delete viewer");
 			auto sList = m_chart->series();
 
 			QListIterator<QAbstractSeries*> iter(sList);
-			while (iter.hasNext()) {
+			while (iter.hasNext())
+			{
 				auto* oldseries = iter.next();
 				oldseries->detachAxis(axisX);
 				oldseries->detachAxis(axisY);
@@ -734,7 +701,8 @@ void AdaptiveThreshold::redrawPlots()
 	
 	//loading original data
 
-	if (this->m_refSeries) {
+	if (this->m_refSeries)
+	{
 		delete m_refSeries;
 	}
 	m_refSeries = new QLineSeries; 
@@ -775,18 +743,13 @@ void AdaptiveThreshold::rescaleToMinMax()
 
 void AdaptiveThreshold::updateSegmentationRange(bool updateRange)
 {
-	if (!updateRange) {
-		this->SegmentationStartValue(0); 
+	if (!updateRange)
+	{
+		this->SegmentationStartValue(0);
 		return;
-	
 	}
-	
 	DEBUG_LOG("Signal update segmentation triggered"); 
-	
-
-	this->SegmentationStartValue(this->ed_minSegmRange->text().toDouble()); 
-
-
+	this->SegmentationStartValue(this->ed_minSegmRange->text().toDouble());
 }
 
 
@@ -802,9 +765,10 @@ void AdaptiveThreshold::initAxes(double xmin, double xmax, double ymin, double y
 {
 	QString titleX = "xGreyThreshold";
 	QString titleY = "YFrequencies"; 
-	
+
 	//TODO welchen sinn hat das 
-	if (setDefaultAxis) {
+	if (setDefaultAxis)
+	{
 		return;
 	}
 
@@ -830,8 +794,6 @@ void AdaptiveThreshold::prepareAxis(QValueAxis *axis, const QString &title, doub
 	default:
 		break;
 	}
-	
-	
 }
 
 void AdaptiveThreshold::clear()
@@ -845,7 +807,8 @@ void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries,
 	const std::vector<double> &x_vals, const std::vector<double> &y_vals, 
 	QString *grText, bool useDefaultValues, bool updateCoords)
 {
-	if (!aSeries) {
+	if (!aSeries)
+	{
 		DEBUG_LOG("series is null"); 
 		return;
 	}
@@ -861,8 +824,11 @@ void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries,
 		return;
 	}
 	if (!useDefaultValues)
+	{
 		determineMinMax(x_vals, y_vals);
-	else{
+	}
+	else
+	{
 		this->DetermineGraphRange(); 
 	}
 	
@@ -874,37 +840,38 @@ void AdaptiveThreshold::prepareDataSeries(QXYSeries *aSeries,
 		this->resetGraphToDefault(); 
 	}
 	
-
 	size_t lenght = x_vals.size();
 
-	for (size_t i = 0; i < lenght; ++i) {
+	for (size_t i = 0; i < lenght; ++i)
+	{
 		double tmp_x = 0; double tmp_y = 0; 
 		tmp_x = x_vals[i];
 		tmp_y = y_vals[i];
 		*aSeries << QPointF(tmp_x, tmp_y); 
 	}
-
-	
 	
 	this->addSeries(aSeries, false); 
-	if (grText) {
+	if (grText)
+	{
 		QString stext = *grText;
-			aSeries->setName(stext);
+		aSeries->setName(stext);
 	}
 	this->m_chart->update();
-	this->m_chartView->update(); 
-
+	this->m_chartView->update();
 }
 
 
 void AdaptiveThreshold::addSeries(QXYSeries* aSeries, bool disableMarker)
 {
-	if (!aSeries) 
-		return; 
+	if (!aSeries)
+	{
+		return;
+	}
 	
 	this->m_chart->addSeries(aSeries);
 
-	if (disableMarker){
+	if (disableMarker)
+	{
 		m_chart->legend()->markers(aSeries)[0]->setVisible(false);
 	}
 
@@ -915,8 +882,7 @@ void AdaptiveThreshold::addSeries(QXYSeries* aSeries, bool disableMarker)
 
 }
 
-
-//rescale 
+//rescale
 void AdaptiveThreshold::UpdateChartClicked()
 {
 	DEBUG_LOG("rescale graph"); 
@@ -931,7 +897,8 @@ void AdaptiveThreshold::UpdateChartClicked()
 	uint xTickcount = xTicks.toUInt();
 	uint yTickcount = yTicks.toUInt(); 
 
-	if ((!yTicks.isEmpty()) && (!xTicks.isEmpty())) {
+	if ((!yTicks.isEmpty()) && (!xTicks.isEmpty()))
+	{
 		this->setTicks(xTickcount, yTickcount, false);
 	}
 		
@@ -949,7 +916,8 @@ void AdaptiveThreshold::DetermineGraphRange()
 	yMIn = this->ed_Ymin->text();
 	yMax = this->ed_YMax->text();
 
-	if (xmin.isEmpty() && xMax.isEmpty() && yMIn.isEmpty() && yMax.isEmpty()) {
+	if (xmin.isEmpty() && xMax.isEmpty() && yMIn.isEmpty() && yMax.isEmpty())
+	{
 		return;
 	}
 
@@ -968,7 +936,8 @@ void AdaptiveThreshold::buttonLoadDataClicked()
 		"/home",
 		("Files (*.csv *.txt)"));
 	DEBUG_LOG(fName); 
-	if (!m_seriesLoader.loadCSV(fName)) {
+	if (!m_seriesLoader.loadCSV(fName))
+	{
 		return;
 	}
 

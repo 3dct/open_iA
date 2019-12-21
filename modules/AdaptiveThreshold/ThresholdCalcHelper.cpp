@@ -4,10 +4,64 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include "ThresAlgo.h"
 #include "iAConsole.h"
 #include "QLine"
 #include "iAMathUtility.h"
+
+#include <cmath>
+
+namespace algorithm
+{
+	bool greaterThan(double u, double v)
+	{
+		return u > v;
+	}
+
+	bool smallerThan(double u, double v) {
+		return u < v;
+	}
+
+	const double epsilon = 0.0000000001;
+
+	bool compareDouble(double a, double b)
+	{
+		return fabs(a - b) < epsilon;
+	}
+
+	bool compareDouble(float a, float b)
+	{
+		return fabs(a - b) < (float)epsilon;
+	}
+
+	//checks whether a double is within a certian range
+	bool compareDouble(double a, double b, double toleranceVal)
+	{
+		return fabs(a - b) < toleranceVal;
+	}
+
+	bool compareDoube(float a, float b, float toleranceVal)
+	{
+		return fabs(a - b) < toleranceVal;
+	}
+
+
+	bool isInfNegativeInf(float a)
+	{
+		return a == -INFINITY;
+	}
+
+	bool isInfNegativeInf(double a)
+	{
+		return a == -INFINITY;
+	}
+
+
+	/*bool validatePoints(const QPointF& pts)
+	{
+		return  (isInfNegativeInf(pts.x()) )
+	}*/
+
+}
 
 double ThresholdCalcHelper::findMaxPeak(std::vector<double>& v_ind) const
 {
@@ -209,4 +263,22 @@ void ThresholdCalcHelper::PeakgreyThresholdNormalization(threshold_defs::Paramet
 
 	ranges.setXVals(tmp_ranges_x);
 	
+}
+
+bool ThresholdCalcHelper::checkInRange(const QPointF& pt, float min, float max)
+{
+	float xval = (float)pt.x();
+	bool isInRangeMin = false;
+	bool isInRangeMax = false;
+
+	if (!(min < max))
+	{
+		throw std::invalid_argument("error comparing values");
+	}
+
+	isInRangeMin = (algorithm::compareDouble(min, xval)) || (min < xval);
+	isInRangeMax = (algorithm::compareDouble(max, xval)) || (xval < max);
+
+	return (isInRangeMax && isInRangeMin);
+
 }

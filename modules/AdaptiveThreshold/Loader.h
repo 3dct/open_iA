@@ -37,8 +37,6 @@ class QString;
 class Loader
 {
 public:
-	Loader();
-	~Loader();
 
 	bool loadCSV(const QString &Fname);
 

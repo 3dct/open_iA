@@ -16,9 +16,11 @@
 
 void iAAdaptiveThresholdModuleInterface::Initialize()
 {
-	if (!m_mainWnd)    // if m_mainWnd is not set, we are running in command line mode
-	    return;        // in that case, we do not do anything as we can not add a menu entry there
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();  // alternatively, you can use getToolsMenu() here if you want to add a tool
+	if (!m_mainWnd)
+	{
+		return;
+	}
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * determineThreshold = new QAction( m_mainWnd );
 	determineThreshold->setText( QApplication::translate( "MainWindow", "AdaptiveThresholding", 0 ) );
 	AddActionToMenuAlphabeticallySorted(toolsMenu,  determineThreshold, false );
@@ -42,18 +44,17 @@ void iAAdaptiveThresholdModuleInterface::determineThreshold()
 		}
 
 		auto hist = m_mainWnd->activeMdiChild()->histogram();
-		if (!hist || hist->plots().empty()) {
+		if (!hist || hist->plots().empty())
+		{
 			DEBUG_LOG("Current data does not have a histogram or histogram not ready"); 
 			return;
 		}
-
 		
 		auto data = hist->plots()[0]->data();
 		dlg_thres.setHistData(data);
 		
 		//load histogram data
 		dlg_thres.buttonLoadHistDataClicked(); 
-		
 
 		/*
 		*Major Actions in dlg_AdaptiveThreshold.cpp: 
@@ -65,25 +66,17 @@ void iAAdaptiveThresholdModuleInterface::determineThreshold()
 		*/
 		//determineIntersectionAndFinalThreshold 
 		if (dlg_thres.exec() != QDialog::Accepted)
+		{
 			return;
+		}
 
 		ImageProcessingHelper imgSegmenter(m_mainWnd->activeMdiChild()); 
-		/*
-		*resulting threshold: lower and upper limit to obtain for segmentation
-		*
-		*/
+		// resulting threshold: lower and upper limit to obtain for segmentation
 
 		imgSegmenter.performSegmentation(dlg_thres.SegmentationStartValue(),dlg_thres.getResultingThreshold()); 
-
-
-	}catch (std::invalid_argument& iaex) {
-		
-		DEBUG_LOG(iaex.what()); 
-		
 	}
-	catch (std::exception& other) {
-		DEBUG_LOG(other.what()); 
-
+	catch (std::exception& ex)
+	{
+		DEBUG_LOG(ex.what());
 	}
-
 }

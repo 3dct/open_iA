@@ -1,6 +1,5 @@
 #pragma once
 #include "ThresholdCalcHelper.h"
-#include "DebugHelper.h"
 #include "ThresMinMaxHelper.h"
 
 #include "charts/iAPlotData.h"
@@ -34,8 +33,6 @@ class ThesholdCalculator
 {
 public:
 	ThesholdCalculator();
-	~ThesholdCalculator();
-
 	
 	void calculateMovingAverage(const std::vector<double>& v_in, std::vector<double>& v_out, unsigned int count);
 	void doubleTestSum();	
@@ -54,9 +51,6 @@ public:
 	//searches array for a double value and returns index and value
 	threshold_defs::ThresIndx testFindIndex(double value);
 	void testSpecifyRange(const std::vector<double>& v_inRange, const std::vector<double>& v_elements, threshold_defs::ParametersRanges& outputRanges);
-	
-	QString testPrintVector(); 
-
 	
 	void setData(QSharedPointer<iAPlotData>& data) {
 		m_data = data; 
@@ -157,7 +151,6 @@ private:
 	//double m_resultingThreshold; 
 
 	QSharedPointer<iAPlotData> m_data;
-	DebugHelper m_dbgHelper; 
 	ThresholdCalcHelper m_calcHelper; 
 
 	std::vector<double> m_thresBinsX; 

@@ -5,15 +5,6 @@
 #include <fstream>
 
 
-Loader::Loader()
-{
-}
-
-
-Loader::~Loader()
-{
-}
-
 bool Loader::loadCSV(const QString &Fname)
 {
 	if (Fname.isNull() || Fname.isEmpty()) 
