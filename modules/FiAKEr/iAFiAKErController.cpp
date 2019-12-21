@@ -582,7 +582,7 @@ QWidget* iAFiAKErController::setupResultListView()
 	QString baseName0;
 	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
-		QString baseName = QFileInfo(m_data->result[resultID].fileName).baseName();
+		QString baseName = QFileInfo(m_data->result[resultID].fileName).completeBaseName();
 		if (resultID > 0)
 		{
 			commonPrefixLength = std::min(commonPrefixLength, static_cast<size_t>(greatestCommonPrefixLength(baseName, baseName0)));
@@ -673,7 +673,7 @@ QWidget* iAFiAKErController::setupResultListView()
 		m_showResultBox[resultID]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		m_showResultBox[resultID]->setProperty("resultID", resultID);
 
-		QString name = QFileInfo(d.fileName).baseName();
+		QString name = QFileInfo(d.fileName).completeBaseName();
 		name = name.mid(commonPrefixLength, name.size() - commonPrefixLength - commonSuffixLength);
 
 		ui.nameActions = new iASignallingWidget();

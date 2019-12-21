@@ -182,7 +182,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 
 	FindFiles(path, filters, false, csvFileNames, Files);
 
-	const int MaxDatasetCount = 100;
+	const int MaxDatasetCount = 200;
 	if (csvFileNames.size() > MaxDatasetCount)
 	{
 		DEBUG_LOG(QString("The specified folder %1 contains %2 datasets; currently we only support loading up to %3 datasets!")
