@@ -39,9 +39,9 @@ iAStageView::~iAStageView( )
 
 }
 
-void iAStageView::setData( iA4DCTStageData * data )
+void iAStageView::setData( iA4DCTStageData * newData )
 {
-	m_data = data;
+	m_data = newData;
 }
 
 iA4DCTStageData* iAStageView::getData( )
@@ -54,9 +54,10 @@ void iAStageView::updateWidgets( )
 	//this->lForce->setText( QString::number( m_data->Force ) );
 	this->lForce->setValue( m_data->Force );
 
-	QString thumb;
-	if( m_data->getFilePath( S_4DCT_THUMB_NAME, thumb ) ) {
-		QPixmap pixmap( thumb );
+	QString thumbNail;
+	if( m_data->getFilePath( S_4DCT_THUMB_NAME, thumbNail ) )
+	{
+		QPixmap pixmap( thumbNail );
 		pixmap = pixmap.scaled( 600, 600, Qt::KeepAspectRatio );
 		this->thumb->getBigPreview( )->setPixmap( pixmap );
 		pixmap = pixmap.scaled( 200, 200, Qt::KeepAspectRatio );

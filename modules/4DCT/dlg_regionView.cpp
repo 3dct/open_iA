@@ -39,9 +39,9 @@ void dlg_regionView::onSelectButtonClicked( )
 	lFilename->setText( m_file.Name );
 }
 
-void dlg_regionView::setData( iA4DCTData * data )
+void dlg_regionView::setData( iA4DCTData * newData )
 {
-	m_data = data;
+	m_data = newData;
 }
 
 QString dlg_regionView::getImagePath( )
