@@ -88,7 +88,7 @@ namespace
 		double xmax, double ymax, double zmax, QColor const& color)
 	{
 		auto cubeSource = vtkSmartPointer<vtkCubeSource>::New();
-		cubeSource->SetBounds(xmin, ymin, zmin, xmax, ymax, zmax);
+		cubeSource->SetBounds(xmin, xmax, ymin, ymax, zmin, zmax);
 		auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		mapper->SetInputConnection(cubeSource->GetOutputPort());
 		auto actor = createActor();
