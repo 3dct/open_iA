@@ -1004,7 +1004,10 @@ void iAIO::readVTKFile()
 		}
 
 		auto numOfArrays = rectilinearGrid->GetPointData()->GetNumberOfArrays();
-		for (int i = 0; i < numOfArrays; ++i)
+
+//		for (
+			int i = 0; // i < numOfArrays; ++i)
+		if (numOfArrays > 0) //< remove this if enabling for loop
 		{
 			auto img = getVtkImageData();
 			img->ReleaseData();
@@ -1029,7 +1032,7 @@ void iAIO::readVTKFile()
 			getConnector()->setImage(img);
 			getConnector()->modified();
 
-			break; // in the future, when iAIO is refactored, load all datasets as separate modalities...
+//			break; // in the future, when iAIO is refactored, load all datasets as separate modalities...
 		}
 		addMsg(tr("File loaded."));
 	}

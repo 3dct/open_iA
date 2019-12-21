@@ -25,6 +25,8 @@
 
 #include "qcustomplot.h"
 
+#pragma warning (disable : 4996 ) // to disable warnings regarding QWeakPointer.
+// ToDo: find proper fix for this warning!
 
 /* including file 'src/vector2d.cpp', size 7340                              */
 /* commit ce344b3f96a62e5f652585e55f1ae7c7883cd45b 2018-06-25 01:03:39 +0200 */
