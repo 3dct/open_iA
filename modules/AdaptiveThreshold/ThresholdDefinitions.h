@@ -131,7 +131,7 @@ namespace threshold_defs
 	public:
 		ThresMinMax() 
 		{
- 			initValues();
+			initValues();
 
 		}
 
