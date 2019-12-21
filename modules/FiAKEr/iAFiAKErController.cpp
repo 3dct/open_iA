@@ -1272,7 +1272,7 @@ void iAFiAKErController::toggleVis(int state)
 
 void iAFiAKErController::showMainVis(size_t resultID, int state)
 {
-	auto & data = m_data->result[resultID];
+	auto & d = m_data->result[resultID];
 	auto & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
 	{
@@ -1321,7 +1321,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 			{
 				if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
 				{
-					for (size_t p = 0; p < data.fiberCount; ++p)
+					for (size_t p = 0; p < d.fiberCount; ++p)
 					{
 						m_optimStepChart[c]->plots()[ui.startPlotIdx + p]->setVisible(true);
 					}
@@ -1333,13 +1333,12 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		if (anythingSelected)
 			ui.main3DVis->setSelection(m_selection[resultID], anythingSelected);
 		if ((m_data->objectType == iACsvConfig::Cylinders || m_data->objectType == iACsvConfig::Lines) &&
-			data.stepData != iAFiberCharData::NoStepData &&
+			d.stepData != iAFiberCharData::NoStepData &&
 			m_useStepData)
 		{
-			auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
-			vis->updateValues(data.stepValues[
-				std::min(data.stepValues.size() - 1, static_cast<size_t>(m_optimStepSlider->value()))],
-				data.stepData);
+			vis->updateValues(d.stepValues[
+				std::min(d.stepValues.size() - 1, static_cast<size_t>(m_optimStepSlider->value()))],
+				d.stepData);
 		}
 		ui.main3DVis->show();
 		m_style->addInput( resultID, ui.main3DVis->getPolyData(), ui.main3DVis->getActor() );
@@ -1355,7 +1354,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 				{
 					if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
 					{
-						for (size_t p = 0; p < data.fiberCount; ++p)
+						for (size_t p = 0; p < d.fiberCount; ++p)
 						{
 							if (ui.startPlotIdx + p >= m_optimStepChart[c]->plots().size())
 							{

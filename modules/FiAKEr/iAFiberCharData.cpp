@@ -259,11 +259,11 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			else
 			{
 				curData.projectionError.resize(curData.fiberCount);
-				QTextStream in(&projErrorFile);
+				QTextStream inProjError(&projErrorFile);
 				size_t fiberID = 0;
-				while (!in.atEnd())
+				while (!inProjError.atEnd())
 				{
-					QString line = in.readLine();
+					QString line = inProjError.readLine();
 					QStringList valueStrList = line.split(",");
 					if (valueStrList.size() < 2)
 						continue;
@@ -296,21 +296,21 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						break;
 					}
 					std::vector<std::vector<double> > singleFiberValues;
-					QFile file(fiberStepCsvInfo.absoluteFilePath());
-					if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+					QFile fileFiberStepCsv(fiberStepCsvInfo.absoluteFilePath());
+					if (!fileFiberStepCsv.open(QIODevice::ReadOnly | QIODevice::Text))
 					{
 						stepInfoErrorMsgs += QString("Unable to open file '%1': %2\n")
 							.arg(fiberStepCsvInfo.absoluteFilePath())
-							.arg(file.errorString());
+							.arg(fileFiberStepCsv.errorString());
 						break;
 					}
-					QTextStream in(&file);
-					in.readLine(); // skip header line
+					QTextStream inFiberStepCsv(&fileFiberStepCsv);
+					inFiberStepCsv.readLine(); // skip header line
 					size_t lineNr = 1;
-					while (!in.atEnd())
+					while (!inFiberStepCsv.atEnd())
 					{
 						lineNr++;
-						QString line = in.readLine();
+						QString line = inFiberStepCsv.readLine();
 						QStringList values = line.split(",");
 						if (values.size() != 6)
 						{

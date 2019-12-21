@@ -173,7 +173,6 @@ void iARefDistCompute::run()
 	bool recomputeAverages = false;
 	for (size_t resultID = 0; resultID <  m_data->result.size(); ++resultID)
 	{
-		QString cachePath(m_data->folder + "/cache/");
 		QString resultName(QFileInfo(m_data->result[resultID].fileName).completeBaseName());
 		QString resultCacheFileName(cachePath + QString("refDist_%1_%2.cache").arg(referenceName).arg(resultName));
 		QFile cacheFile(resultCacheFileName);
