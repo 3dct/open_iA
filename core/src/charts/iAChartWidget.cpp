@@ -69,17 +69,17 @@ namespace
 			1 : std::floor(std::log10(std::abs(value))) + 1;
 	}
 
-	int markerPos(int x, int step, int stepCount)
+	int markerPos(int x, size_t step, size_t stepCount)
 	{
 		if (step == stepCount) --x;
 		return x;
 	}
 
-	int textPos(int markerX, int step, int stepNr, int textWidth)
+	int textPos(int markerX, size_t step, size_t stepCount, int textWidth)
 	{
 		return (step == 0)
 			? markerX					// right aligned to indicator line
-			: (step < stepNr)
+			: (step < stepCount)
 			? markerX - textWidth / 2	// centered to the indicator line
 			: markerX - textWidth;	// left aligned to the indicator line
 	}
@@ -409,7 +409,7 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 	}
 
 	stepCount = std::max(static_cast<size_t>(1), stepCount); // at least one step
-	for (int i = 0; i <= stepCount; ++i)
+	for (size_t i = 0; i <= stepCount; ++i)
 	{
 		double value = m_xTickBounds[0] + static_cast<double>(i) * stepWidth;
 		if (value < startXVal)

@@ -636,10 +636,10 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 	return res;
 }
 
-QPointF iAScatterPlot::getPositionFromPointIndex( int ind ) const
+QPointF iAScatterPlot::getPositionFromPointIndex( size_t idx ) const
 {
-	double x = p2x( m_splomData->paramData( m_paramIndices[0] )[ind] );
-	double y = p2y( m_splomData->paramData( m_paramIndices[1] )[ind] );
+	double x = p2x( m_splomData->paramData( m_paramIndices[0] )[idx] );
+	double y = p2y( m_splomData->paramData( m_paramIndices[1] )[idx] );
 	return QPointF( x, y );
 }
 

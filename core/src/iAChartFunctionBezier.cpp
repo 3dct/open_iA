@@ -192,7 +192,7 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 	int ly = chart->geometry().height() - event->y() - chart->bottomMargin();
 	int index = -1;
 
-	for (size_t pointIndex = 0; pointIndex < viewPoints.size(); pointIndex++)
+	for (int pointIndex = 0; pointIndex < viewPoints.size(); pointIndex++)
 	{
 
 		int viewX, viewY;
