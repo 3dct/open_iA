@@ -564,10 +564,10 @@ void iADreamCaster::log(QString text, bool appendToPrev)
 
 void iADreamCaster::OpenModelSlot()
 {
-	QString res = QFileDialog::getOpenFileName();
-	if(res == "")
+	QString newModelFileName = QFileDialog::getOpenFileName();
+	if (newModelFileName.isEmpty())
 		return;
-	modelFileName = res;
+	modelFileName = newModelFileName;
 	log("Opening new model:");
 	log(modelFileName, true);
 	initRaycast();
@@ -594,10 +594,10 @@ void iADreamCaster::OpenModelSlot()
 
 void iADreamCaster::NewSetSlot()
 {
-	QString res = QFileDialog::getSaveFileName(nullptr, "Choose Set Filename", QFileInfo(setFileName).absolutePath());
-	if(res=="")
+	QString newSetFileName = QFileDialog::getSaveFileName(nullptr, "Choose Set Filename", QFileInfo(setFileName).absolutePath());
+	if (newSetFileName.isEmpty())
 		return;
-	setFileName = res;
+	setFileName = newSetFileName;
 	ui.l_setName->setText(setFileName);
 	log("Created new set:");
 	log(setFileName, true);
@@ -605,9 +605,9 @@ void iADreamCaster::NewSetSlot()
 
 void iADreamCaster::OpenSetSlot()
 {
-	QString res = QFileDialog::getOpenFileName(nullptr, "Open existing set", QFileInfo(setFileName).absolutePath());
-	if (!res.isEmpty())
-		OpenSetFile(res);
+	QString setFileName = QFileDialog::getOpenFileName(nullptr, "Open existing set", QFileInfo(setFileName).absolutePath());
+	if (!setFileName.isEmpty())
+		OpenSetFile(setFileName);
 }
 
 void iADreamCaster::OpenSetFile(QString const & fileName)
@@ -2452,7 +2452,6 @@ void iADreamCaster::SensitivityChangedSlot()
 int iADreamCaster::UpdateStabilityWidget()
 {
 	if(!datasetOpened) return 0;
-	unsigned int j=0;
 	float minVal = 255, maxVal = 0, delta;
 	for (int i=-(int)stabilityView->countX(); i<=(int)stabilityView->countX(); i++, j++)
 	{
@@ -2480,9 +2479,8 @@ int iADreamCaster::UpdateStabilityWidget()
 	//stabilityView->colArrowX = QColor(	minr+delta*(maxr - minr), 
 	//									ming+delta*(maxg - ming),
 	//									minb+delta*(maxb - minb));
-	j=0;
 	minVal = 255; maxVal = 0;
-	for (int i=-(int)stabilityView->countY(); i<=(int)stabilityView->countY(); i++, j++)
+	for (int i=-(int)stabilityView->countY(), j=0; i<=(int)stabilityView->countY(); i++, j++)
 	{
 		int indx = (int)curIndZ+i;
 		if(indx<0)
@@ -2502,8 +2500,8 @@ int iADreamCaster::UpdateStabilityWidget()
 	}
 	delta = (maxVal-minVal)/255.0;
 	{
-	int colComponent = (int)((1-delta)*255);
-	stabilityView->m_colArrowY = QColor( colComponent, colComponent, colComponent);
+		int colComponent = (int)((1-delta)*255);
+		stabilityView->m_colArrowY = QColor( colComponent, colComponent, colComponent);
 	}
 	//////////////////////////////////////////////////////////////////////////
 	for (int i=-(int)stabilityView->countX(), j=0; i<=(int)stabilityView->countX(); i++, j++)
@@ -2766,7 +2764,7 @@ void iADreamCaster::ViewsReset()
 
 void iADreamCaster::TopPlacementsChangedSlot()
 {
-	float curParam;
+	float curParam = 0;;
 	double max_param=-1000;
 	double min_param=100000;
 	for (int x=0; x<cntX; x++)
@@ -2861,7 +2859,7 @@ void iADreamCaster::fillParamBuffer( unsigned int* dest, int paramInd)
 	double scalec = max_param-min_param;
 	if(scalec==0) scalec=1;
 	
-	double curParam;
+	double curParam = 0;
 	for (int x=0; x<cntX; x++)
 	{
 		for (int z=0; z<cntZ; z++)

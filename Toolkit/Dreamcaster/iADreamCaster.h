@@ -96,11 +96,11 @@ private:
 	dlg_histogram_simple * hist;
 	QWidget settings;                   //!< Qt widget for settings window GUI
 	QDialog res;                        //!< Qt dialog for results dialog GUI
-	iAPaintWidget *RenderFrame;           //!< Widget for raycasted image  visualization
-	iAPaintWidget *ViewsFrame;            //!< Widget for colormap visualization
-	iAParametersView *comparisonTab;      //!< Class containing widgets for all of parameters user for comparison
+	iAPaintWidget *RenderFrame;         //!< Widget for raycasted image  visualization
+	iAPaintWidget *ViewsFrame;          //!< Widget for colormap visualization
+	iAParametersView *comparisonTab;    //!< Class containing widgets for all of parameters user for comparison
 	iACombinedParametersView* weightingTab;//!< Class containing widgets for all of parameters user for weighting
-	iAStabilityWidget *stabilityView;     //!< Widget representing stability of current specimen orientation
+	iAStabilityWidget *stabilityView;   //!< Widget representing stability of current specimen orientation
 	QString modelFileName;              //!< filename of .stl file containing object
 	QString setFileName;                //!< filename of file containing current set of renderings
 
@@ -113,8 +113,8 @@ private:
 	iACutFigList * cutFigList;
 	float set_pos[3];
 	iArotation_t ***rotations;
-	iAparameters_t *** rotationsParams;   //!< Data about av. parameter of every rendering
-	iAparameters_t ** placementsParams;   //!< Data about av. parameter of every object's placement(sum of all elements in column)
+	iAparameters_t *** rotationsParams; //!< Data about av. parameter of every rendering
+	iAparameters_t ** placementsParams; //!< Data about av. parameter of every object's placement(sum of all elements in column)
 	double ** weightedParams;           //!< Data about weighted parameter of every object's placement(sum of all elements in column)
 	int cntX;                           //!< number of renderings by X axis
 	int cntY;                           //!< number of renderings by Y axis
@@ -132,7 +132,7 @@ private:
 	iAScreenBuffer * scrBuffer;
 	float * cuda_avpl_buff;             //!< float buffer used by cuda to store the results
 	float * cuda_dipang_buff;           //!< float buffer used by cuda to store the results
-	iAEngine* tracer;                     //!< The device ptr of the nodes and triangles
+	iAEngine* tracer;                   //!< The device ptr of the nodes and triangles
 	bool CutFigParametersChangedOFF;
 	iAModelData mdata;
 	iAPlot3DVtk * plot3d;
