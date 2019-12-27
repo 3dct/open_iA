@@ -83,9 +83,9 @@ void iASpectraHistograms::computeHistograms( )
 		vtkSmartPointer<vtkImageData> curImg = *it;
 		// just checks: begin
 		assert (curImg->GetNumberOfScalarComponents() == 1);
-		int extent[6];
-		curImg->GetExtent(extent);
-		assert( ((extent[1]-extent[0]+1) * (extent[3]-extent[2]+1) * (extent[5]-extent[4]+1)) == count );
+		int curImgExtent[6];
+		curImg->GetExtent(curImgExtent);
+		assert( ((curImgExtent[1]- curImgExtent[0]+1) * (curImgExtent[3]- curImgExtent[2]+1) * (curImgExtent[5]- curImgExtent[4]+1)) == count );
 		// end checks
 		int type = curImg->GetScalarType();
 		VTK_TYPED_CALL(computeHistogram, type, curImg->GetScalarPointer(), count, m_binWidth, curHistPtr, m_countRange);

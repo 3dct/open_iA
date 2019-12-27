@@ -1725,7 +1725,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 {
 	//Gets the selected rows out of elementTable
 	QModelIndexList indexes = elementTableView->selectionModel()->selection().indexes();
-	QList<ushort> rowList;
+	QList<ushort> characteristicsList;
 	QStringList inList;
 	QList<QVariant> inPara;
 
@@ -1738,23 +1738,23 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	for ( int i = 0; i < indexes.count(); ++i )
 	{
 		//Ensures that indices are unique
-		if ( rowList.contains( indexes.at( i ).row() ) )
+		if (characteristicsList.contains( indexes.at( i ).row() ) )
 			continue;
-		rowList.append( indexes.at( i ).row() );
+		characteristicsList.append( indexes.at( i ).row() );
 
-		QString columnName( this->elementTable->GetColumn( 0 )->GetVariantValue( rowList.at( i ) ).ToString().c_str() );
+		QString columnName( this->elementTable->GetColumn( 0 )->GetVariantValue(characteristicsList.at( i ) ).ToString().c_str() );
 		columnName.remove( "Â" );
 
 		inList.append( QString( "#HistoMin for %1" ).arg( columnName ) );
 		inList.append( QString( "#HistoMax for %1" ).arg( columnName ) );
 		inList.append( QString( "#HistoBinNbr for %1" ).arg( columnName ) );
 
-		inPara.append( this->elementTable->GetColumn( 1 )->GetVariantValue( rowList.at( i ) ).ToFloat() );
-		inPara.append( this->elementTable->GetColumn( 2 )->GetVariantValue( rowList.at( i ) ).ToFloat() );
+		inPara.append( this->elementTable->GetColumn( 1 )->GetVariantValue(characteristicsList.at( i ) ).ToFloat() );
+		inPara.append( this->elementTable->GetColumn( 2 )->GetVariantValue(characteristicsList.at( i ) ).ToFloat() );
 		inPara.append( 100 );
 	}
 
-	if ( rowList.count() == 0 )
+	if (characteristicsList.count() == 0 )
 	{
 		QMessageBox::information(this, "FeatureScout", "No characteristic specified in the element explorer." );
 		return;
@@ -1784,23 +1784,24 @@ void dlg_FeatureScout::CsvDVSaveButton()
 
 	//Sets up a chart matrix for the feature distribution charts
 	vtkNew<vtkChartMatrix> distributionChartMatrix;
-	distributionChartMatrix->SetSize( vtkVector2i( rowList.count() < 3 ? rowList.count() % 3 : 3, ceil( rowList.count() / 3.0 ) ) );
+	distributionChartMatrix->SetSize( vtkVector2i( characteristicsList.count() < 3 ?
+		characteristicsList.count() % 3 : 3, ceil(characteristicsList.count() / 3.0 ) ) );
 	distributionChartMatrix->SetGutter( vtkVector2f( 70.0, 70.0 ) );
 
 	//Calculates histogram for each selected characteristic
-	for ( int row = 0; row < rowList.count(); ++row )
+	for ( int characteristicIdx = 0; characteristicIdx < characteristicsList.count(); ++characteristicIdx)
 	{
 		double range[2] = { 0.0, 0.0 };
 		vtkDataArray *length = vtkDataArray::SafeDownCast(
-			this->tableList[this->activeClassItem->index().row()]->GetColumn( rowList.at( row ) ) );
-		range[0] = dlg.getDblValue(3 * row + 2);
-		range[1] = dlg.getDblValue(3 * row + 3);
+			this->tableList[this->activeClassItem->index().row()]->GetColumn( characteristicsList.at(characteristicIdx) ) );
+		range[0] = dlg.getDblValue(3 * characteristicIdx + 2);
+		range[1] = dlg.getDblValue(3 * characteristicIdx + 3);
 		//length->GetRange(range);
 
 		if ( range[0] == range[1] )
 			range[1] = range[0] + 1.0;
 
-		int numberOfBins = dlg.getDblValue(3 * row + 4);
+		int numberOfBins = dlg.getDblValue(3 * characteristicIdx + 4);
 		//int numberOfBins = dlg.getDblValue(row+2);
 		//double inc = (range[1] - range[0]) / (numberOfBins) * 1.001; //test
 		double inc = ( range[1] - range[0] ) / ( numberOfBins );
@@ -1878,7 +1879,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 				tRowNb = disTable->GetNumberOfRows();
 
 				file << QString( "%1 Distribution of '%2'" )
-					.arg( this->csvTable->GetColumnName( rowList.at( row ) ) )
+					.arg( this->csvTable->GetColumnName(characteristicsList.at( characteristicIdx) ) )
 					.arg( this->activeClassItem->text() ).toStdString()
 					<< endl;
 
@@ -1909,12 +1910,12 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		if ( showHistogram )
 		{
 			vtkChartXY* chart = vtkChartXY::SafeDownCast( distributionChartMatrix
-															->GetChart( vtkVector2i( row % ( rowList.count() < 3 ? rowList.count() % 3 : 3 ), row / 3 ) ) );
+															->GetChart( vtkVector2i(characteristicIdx % (characteristicsList.count() < 3 ? characteristicsList.count() % 3 : 3 ), characteristicIdx / 3 ) ) );
 			//chart->SetBarWidthFraction(0.95);
 			chart->GetTitleProperties()->SetFontSize( 18 );
 			vtkPlot *plot = chart->AddPlot( vtkChartXY::BAR );
 			plot->SetInputData( disTable, 0, 1 );
-			plot->GetXAxis()->SetTitle( this->csvTable->GetColumnName( rowList.at( row ) ) );
+			plot->GetXAxis()->SetTitle( this->csvTable->GetColumnName(characteristicsList.at(characteristicIdx) ) );
 			plot->GetYAxis()->SetTitle( "Frequency" );
 			plot->GetXAxis()->GetLabelProperties()->SetFontSize( 19 );
 			plot->GetYAxis()->GetLabelProperties()->SetFontSize( 19 );
@@ -2409,16 +2410,20 @@ void dlg_FeatureScout::spPopup( vtkObject * obj, unsigned long, void * client_da
 	}
 	else
 	{
+		// semi-automatic classification not ported to new SPM yet
+		/*
 		QMenu* popupMenu = static_cast<QMenu*>( client_data );     // Reset to original SPM popup
 		if ( popupMenu->actions().count() > 1 )                    // Check if SPM or PC popups
 			popupMenu->actions().at( 1 )->setText( "Suggest Classification" );
+		*/
 	}
 }
 
 void dlg_FeatureScout::spPopupSelection( QAction *selection )
 {
 	if (selection->text() == "Add class") { ClassAddButton(); }
-	// TODO SPM
+	// semi-automatic classification not ported to new SPM yet
+	/*
 	if ( selection->text() == "Suggest Classification" )
 	{
 		bool ok;
@@ -2436,8 +2441,11 @@ void dlg_FeatureScout::spPopupSelection( QAction *selection )
 		//autoAddClass( matrix->GetkMeansClusterCount() );
 		selection->setText( "Suggest Classification" );
 	}
+	*/
 }
 
+/*
+	// semi-automatic classification not ported to new SPM yet
 void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 {
 	QStandardItem *motherClassItem = this->activeClassItem;
@@ -2445,7 +2453,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 	for ( int i = 1; i <= NbOfClusters; ++i )
 	{
 		// recieve the current selections from annotationlink
-		// TODO SPM
+		// semi-automatic classification not ported to new SPM yet
 		//vtkAbstractArray *SelArr = matrix->GetkMeansCluster( i )->GetNode( 0 )->GetSelectionList();
 		int CountObject = 0; //  SelArr->GetNumberOfTuples();
 		/*
@@ -2490,7 +2498,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 			QMessageBox::warning(this, "FeatureScout", "No object was selected!" );
 			// return; (?)
 		}
-		*/
+		* /
 	}
 
 	//  Mother Class is empty after kMeans auto class added, therefore rows are removed
@@ -2522,6 +2530,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 	//matrix->SetClass2Plot( this->activeClassItem->index().row() );
 	//matrix->UpdateLayout();
 }
+*/
 
 void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 {
@@ -2821,9 +2830,9 @@ void dlg_FeatureScout::recalculateChartTable( QStandardItem *item )
 	for ( int j = 0; j < oCount; j++ )
 	{
 		csvID = item->child( j )->text().toInt();
-		auto arr = vtkSmartPointer<vtkVariantArray>::New();
-		csvTable->GetRow( csvID - 1, arr );
-		table->SetRow( j, arr );
+		auto arrRow = vtkSmartPointer<vtkVariantArray>::New();
+		csvTable->GetRow( csvID - 1, arrRow );
+		table->SetRow( j, arrRow );
 	}
 
 	// if item already exists

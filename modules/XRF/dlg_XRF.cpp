@@ -1307,13 +1307,13 @@ void dlg_XRF::AddReferenceSpectrum(int modelIdx)
 		RemoveReferenceSpectrum(modelIdx);
 	}
 	QVector<float> const & energies = m_refSpectraLib->spectra[modelIdx].GetEnergyData();
-	QSharedPointer<iAMappingDiagramData> data(new iAMappingDiagramData(
+	QSharedPointer<iAMappingDiagramData> plotData(new iAMappingDiagramData(
 		&m_refSpectraLib->spectra[modelIdx].GetCountsData()[0],
 		energies.size(), energies[0], energies[energies.size()-1],
 		m_xrfData->size(), m_xrfData->GetMinEnergy(), m_xrfData->GetMaxEnergy(),
 		m_accumulatedXRF->yBounds()[1]));
 	QColor color = m_refSpectraLib->getElementColor(modelIdx);
-	QSharedPointer<iAStepFunctionPlot> drawable(new iAStepFunctionPlot(data, color));
+	QSharedPointer<iAStepFunctionPlot> drawable(new iAStepFunctionPlot(plotData, color));
 	m_refSpectraDrawers.insert(modelIdx, drawable);
 	m_spectrumDiagram->addPlot(drawable);
 	m_spectrumDiagram->update();

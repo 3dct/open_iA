@@ -432,7 +432,7 @@ int dlg_volumePlayer::sliderIndexToVolumeIndex(int slicerIndex)
 }
 
 void dlg_volumePlayer::showVolume(int volumeIndex)
-{
+{	// since mask is short, this only works for up to 16 volumes?
 	m_mask = m_mask|(1<<volumeIndex);
 }
 

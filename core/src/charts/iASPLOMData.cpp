@@ -55,7 +55,9 @@ void iASPLOMData::import(const QTableWidget * tw)
 		m_dataPoints.push_back(std::vector<double>());
 		std::vector<double> * paramData = &m_dataPoints[c];
 		for (size_t r = 1; r < numPoints + 1; ++r)
+		{
 			paramData->push_back(tw->item(r, c)->text().toDouble());
+		}
 		m_inverted.push_back(false);
 	}
 	updateRanges();

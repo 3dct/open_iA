@@ -39,7 +39,7 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	m_axesTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_observedRenderer(0),
 	m_tag(0),
-	m_indexInReferenceLib(-1)
+	m_indexInReferenceLib(std::numeric_limits<size_t>::max())
 {
 	renContainer->SetRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_renderer->renderWindow()));
 	m_renderer->renderer()->InteractiveOff();

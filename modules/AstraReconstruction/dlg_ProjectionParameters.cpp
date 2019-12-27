@@ -122,7 +122,7 @@ int dlg_ProjectionParameters::exec()
 }
 
 
-void dlg_ProjectionParameters::checkCenterOfRotationCorrection(int algoIdx, bool centerOfRotCorr)
+void dlg_ProjectionParameters::checkCenterOfRotationCorrection(int /*algoIdx*/, bool /*centerOfRotCorr*/)
 {
 	/*
 	bool invalidState = algoIdx < 2 && centerOfRotCorr;

@@ -87,9 +87,8 @@ void iAStabilityWidget::paintEvent(QPaintEvent * /*event*/)
 	//fill background
 	painter.fillRect(this->geometry(),QColor(150,150,150));
 	//draw field
-		QBrush brush(Qt::SolidPattern);
-	unsigned int j=0, l=0;
-	for (int i=-(int)m_countX; i<=(int)m_countX; i++, j++)
+	QBrush brush(Qt::SolidPattern);
+	for (int i=-(int)m_countX, j=0; i<=(int)m_countX; i++, j++)
 	{
 		for (int k=-(int)m_countY, l=0; k<=(int)m_countY; k++, l++)
 		{
@@ -107,8 +106,7 @@ void iAStabilityWidget::paintEvent(QPaintEvent * /*event*/)
 			}
 		}
 	}
-	j=0; l=0;
-	for (int i=-(int)m_countX; i<=(int)m_countX; i++, j++)
+	for (int i=-(int)m_countX, j=0; i<=(int)m_countX; i++, j++)
 	{
 		for (int k=-(int)m_countY, l=0; k<=(int)m_countY; k++, l++)
 		{
@@ -125,8 +123,7 @@ void iAStabilityWidget::paintEvent(QPaintEvent * /*event*/)
 		}
 	}
 	/*//axis cells
-	j=0;
-	for (int i=-m_countX; i<=(int)m_countX; i++, j++)
+	for (int i=-m_countX, j=0; i<=(int)m_countX; i++, j++)
 	{
 		pen.setColor(QColor(0,0,0));
 		painter.setPen(pen);
@@ -134,7 +131,6 @@ void iAStabilityWidget::paintEvent(QPaintEvent * /*event*/)
 		painter.setBrush(brush);
 		painter.drawRect(shiftedCenterX+stepPixSize*i, shiftedCenterY, stepPixSize, stepPixSize);
 	}
-	l=0;
 	for (int k=-m_countY, l=0; k<=(int)m_countY; k++, l++)
 	{
 		pen.setColor(QColor(0,0,0));

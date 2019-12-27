@@ -94,32 +94,36 @@
 
 
 MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsavedChanges) :
+	m_mainWnd(mainWnd),
+	m_preferences(prefs),
 	m_isSmthMaximized(false),
-	m_isMagicLensEnabled(false),
-	m_reInitializeRenderWindows(true),
-	m_initVolumeRenderers(false),
 	m_isUntitled(true),
-	m_snakeSlicer(false),
 	m_isSliceProfileEnabled(false),
 	m_isArbProfileEnabled(false),
+	m_isMagicLensEnabled(false),
+	m_reInitializeRenderWindows(true),
 	m_raycasterInitialized(false),
-	m_mainWnd(mainWnd),
+	m_snakeSlicer(false),
+	m_worldProfilePoints(vtkPoints::New()),
+	m_worldSnakePoints(vtkPoints::New()),
+	m_parametricSpline(iAParametricSpline::New()),
+	m_imageData(vtkSmartPointer<vtkImageData>::New()),
+	m_polyData(vtkPolyData::New()),
+	m_axesTransform(vtkTransform::New()),
+	m_slicerTransform(vtkTransform::New()),
 	m_volumeStack(new iAVolumeStack),
 	m_ioThread(nullptr),
-	m_dwImgProperty(nullptr),
-	m_dwProfile(nullptr),
-	m_logger(new iAMdiChildLogger(this)),
 	m_histogram(new iADiagramFctWidget(nullptr, this, " Histogram", "Frequency")),
 	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
-	m_preferences(prefs),
+	m_dwImgProperty(nullptr),
+	m_dwProfile(nullptr),
+	m_nextChannelID(0),
+	m_magicLensChannel(NotExistingChannel),
+	m_logger(new iAMdiChildLogger(this)),
 	m_currentModality(0),
 	m_currentComponent(0),
 	m_currentHistogramModality(-1),
-	m_magicLensChannel(NotExistingChannel),
-	m_nextChannelID(0),
-	m_slicerTransform(vtkTransform::New()),
-	m_worldSnakePoints(vtkPoints::New()),
-	m_worldProfilePoints(vtkPoints::New())
+	m_initVolumeRenderers(false)
 {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
@@ -157,11 +161,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	m_visibility = MULTI;
 	std::fill(m_position, m_position + 3, 0);
 
-	m_imageData = vtkSmartPointer<vtkImageData>::New();
-	m_polyData = vtkPolyData::New();
-
-	m_axesTransform = vtkTransform::New();
-	m_parametricSpline = iAParametricSpline::New();
 	m_parametricSpline->SetPoints(m_worldSnakePoints);
 	
 	m_renderer = new iARenderer(this);

@@ -488,7 +488,6 @@ private:
 	uint m_nextChannelID;
 	uint m_magicLensChannel;
 
-	int m_numberOfVolumes;
 	int m_previousIndexOfVolume;
 
 	iALogger* m_logger;

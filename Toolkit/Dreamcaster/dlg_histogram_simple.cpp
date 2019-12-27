@@ -382,16 +382,16 @@ void dlg_histogram_simple::drawAxes(QPainter &painter)
 	painter.drawText( QPointF((int)(width * 0.45 ), bottomMargin-2), "Penetration length");
 }
 
-void dlg_histogram_simple::changeMode(Mode mode, QMouseEvent *event)
+void dlg_histogram_simple::changeMode(Mode newMode, QMouseEvent *event)
 {
-	if(mode == MOVE_VIEW_MODE)
+	if (newMode == MOVE_VIEW_MODE)
 			dragStartPosX = event->x();
-	this->mode = mode;
+	mode = newMode;
 }
 
-void dlg_histogram_simple::changeWheelMode(WheelMode mode)
+void dlg_histogram_simple::changeWheelMode(WheelMode newWheelMode)
 {
-	this->wheelMode = mode;
+	wheelMode = newWheelMode;
 }
 
 void dlg_histogram_simple::zoomHistogramView(double value, int x, bool deltaMode)
