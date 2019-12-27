@@ -82,6 +82,7 @@
 // TODO: VOLUME: check all places using modality(0)->transfer() !
 
 #include <QByteArray>
+#include <QDateTime>
 #include <QFile>
 #include <QFileDialog>
 #include <QMainWindow>
