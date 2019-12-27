@@ -575,12 +575,11 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 	m_volumeStack->opacityTF(m_previousIndexOfVolume)->DeepCopy(piecewiseFunction);
 	m_previousIndexOfVolume = updateIndex;
 
-	int numberOfVolumes = m_volumeStack->numberOfVolumes();
 	m_imageData->DeepCopy(m_volumeStack->volume(updateIndex));
 
 	if(isApplyForAll)
 	{
-		for (int i=0; i<numberOfVolumes;i++)
+		for (size_t i=0; i< m_volumeStack->numberOfVolumes(); ++i)
 		{
 			if (i != updateIndex)
 			{
@@ -615,9 +614,7 @@ void MdiChild::setupStackView(bool active)
 	// TODO: check!
 	m_previousIndexOfVolume = 0;
 
-	int numberOfVolumes = m_volumeStack->numberOfVolumes();
-
-	if (numberOfVolumes == 0)
+	if (m_volumeStack->numberOfVolumes() == 0)
 	{
 		DEBUG_LOG("Invalid call to setupStackView: No Volumes loaded!");
 		return;
@@ -627,7 +624,8 @@ void MdiChild::setupStackView(bool active)
 
 	m_imageData->DeepCopy(m_volumeStack->volume(currentIndexOfVolume));
 	setupViewInternal(active);
-	for (int i=0; i<numberOfVolumes; i++) {
+	for (int i=0; i< m_volumeStack->numberOfVolumes(); ++i)
+	{
 		vtkSmartPointer<vtkColorTransferFunction> cTF = defaultColorTF(m_imageData->GetScalarRange());
 		vtkSmartPointer<vtkPiecewiseFunction> pWF = defaultOpacityTF(m_imageData->GetScalarRange(), m_imageData->GetNumberOfScalarComponents() == 1);
 		m_volumeStack->addColorTransferFunction(cTF);
@@ -635,10 +633,8 @@ void MdiChild::setupStackView(bool active)
 	}
 
 	QSharedPointer<iAModalityTransfer> modTrans = modality(0)->transfer();
-	if (numberOfVolumes > 0) {
-		modTrans->colorTF()->DeepCopy(m_volumeStack->colorTF(0));
-		modTrans->opacityTF()->DeepCopy(m_volumeStack->opacityTF(0));
-	}
+	modTrans->colorTF()->DeepCopy(m_volumeStack->colorTF(0));
+	modTrans->opacityTF()->DeepCopy(m_volumeStack->opacityTF(0));
 	addVolumePlayer();
 
 	m_renderer->reInitialize(m_imageData, m_polyData);
@@ -1867,7 +1863,8 @@ bool MdiChild::addVolumePlayer()
 {
 	m_dwVolumePlayer = new dlg_volumePlayer(this, m_volumeStack.data());
 	tabifyDockWidget(m_dwLog, m_dwVolumePlayer);
-	for (int id=0; id<m_volumeStack->numberOfVolumes(); id++) {
+	for (size_t id=0; id<m_volumeStack->numberOfVolumes(); ++id)
+	{
 		m_checkedList.append(0);
 	}
 	connect(m_histogram, SIGNAL(applyTFForAll()), m_dwVolumePlayer, SLOT(applyForAll()));
@@ -2001,7 +1998,7 @@ void MdiChild::hideVolumeWidgets()
 
 void MdiChild::setVisibility(QList<QWidget*> widgets, bool show)
 {
-	for (int i = 0; i < widgets.size(); i++)
+	for (int i = 0; i < widgets.size(); ++i)
 		show ? widgets[i]->show() : widgets[i]->hide();
 }
 
@@ -2134,7 +2131,7 @@ void MdiChild::removeFinishedAlgorithms()
 void MdiChild::cleanWorkingAlgorithms()
 {
 	unsigned int workingAlgorithmsSize = m_workingAlgorithms.size();
-	for (unsigned int i=0; i<workingAlgorithmsSize; i++)
+	for (unsigned int i=0; i<workingAlgorithmsSize; ++i)
 	{
 		if(m_workingAlgorithms[i]->isRunning())
 		{
@@ -2153,8 +2150,10 @@ void MdiChild::addProfile()
 	int const * const dim = m_imageData->GetDimensions();
 	double const * const spacing = m_imageData->GetSpacing();
 	double end[3];
-	for (int i = 0; i<3; i++)
+	for (int i = 0; i < 3; ++i)
+	{
 		end[i] = start[i] + (dim[i] - 1) * spacing[i];
+	}
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicer[s]->setArbitraryProfile(0, start);
