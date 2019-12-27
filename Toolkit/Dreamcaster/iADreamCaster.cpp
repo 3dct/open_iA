@@ -2453,7 +2453,7 @@ int iADreamCaster::UpdateStabilityWidget()
 {
 	if(!datasetOpened) return 0;
 	float minVal = 255, maxVal = 0, delta;
-	for (int i=-(int)stabilityView->countX(); i<=(int)stabilityView->countX(); i++, j++)
+	for (int i=-(int)stabilityView->countX(), j=0; i<=(int)stabilityView->countX(); i++, j++)
 	{
 		int indx = (int)curIndX+i;
 		if(indx<0)
