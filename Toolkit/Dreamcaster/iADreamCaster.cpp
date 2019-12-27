@@ -605,9 +605,9 @@ void iADreamCaster::NewSetSlot()
 
 void iADreamCaster::OpenSetSlot()
 {
-	QString setFileName = QFileDialog::getOpenFileName(nullptr, "Open existing set", QFileInfo(setFileName).absolutePath());
-	if (!setFileName.isEmpty())
-		OpenSetFile(setFileName);
+	QString newSetFileName = QFileDialog::getOpenFileName(nullptr, "Open existing set", QFileInfo(setFileName).absolutePath());
+	if (!newSetFileName.isEmpty())
+		OpenSetFile(newSetFileName);
 }
 
 void iADreamCaster::OpenSetFile(QString const & fileName)
