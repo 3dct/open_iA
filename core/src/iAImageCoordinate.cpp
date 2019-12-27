@@ -89,8 +89,9 @@ iAVoxelIndexType iAImageCoordConverter::indexFromCoordinates(
 		iAVoxelIndexType height,
 		iAVoxelIndexType
 #ifndef NDEBUG // to silence compiler warning about unused parameter
-			depth,
+			depth
 #endif
+		,
 		iAImageCoordinate::iAIndexOrdering ordering)
 {
 	assert(coords.x >= 0 && coords.x < width &&
