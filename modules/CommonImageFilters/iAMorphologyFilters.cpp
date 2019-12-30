@@ -50,35 +50,14 @@ namespace
 
 	const QString StructuringElementParamName = "Structuring Element";
 
-	//template definitions;
-	template<class T>
-	using InputImageType = itk::Image< T, DIM>;
-
-	//alias for ball BallStructingElement
-	template<class T>
-	using BallElement = itk::BinaryBallStructuringElement<typename InputImageType<T>::PixelType, DIM>;
-
-	//alias for Flat Structing element;
-	template<class T>
-	using FlatElement = itk::FlatStructuringElement<DIM>;
+	template<class T> using InputImage = itk::Image<T, DIM>;
+	template<class T> using BallElement = itk::BinaryBallStructuringElement<typename InputImage<T>::PixelType, DIM>;
+	template<class T> using FlatElement = itk::FlatStructuringElement<DIM>;
 
 	const unsigned int PolyLines = 7; // default for polygon
 }
 
-template<class MorphOp, class T> void morphOpBall(iAFilter* filter, QMap<QString, QVariant> const & params)
-{
-	BallElement<T> structuringElement;
-	structuringElement.SetRadius(params["Radius"].toUInt());
-	structuringElement.CreateStructuringElement();
-	auto morphOpFilter = MorphOp::New();
-	morphOpFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
-	morphOpFilter->SetKernel(structuringElement);
-	filter->progress()->observe(morphOpFilter);
-	morphOpFilter->Update();
-	filter->addOutput(morphOpFilter->GetOutput());
-}
-
-template<class MorphOp, class T> void morphOpFlat(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class MorphOp, class T> void morphOp(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	QString strElemName = params[StructuringElementParamName].toString();
 	FlatElement<T> structuringElement;
@@ -92,13 +71,17 @@ template<class MorphOp, class T> void morphOpFlat(iAFilter* filter, QMap<QString
 	{
 		structuringElement = FlatElement<T>::Cross(elementRadius);
 	}
+	else if (strElemName == "Ball")
+	{
+		structuringElement = FlatElement<T>::Ball(elementRadius);
+	}
 	else // Polygon
 	{
 		structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
 	}
 
 	auto morphOpFilter = MorphOp::New();
-	morphOpFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
+	morphOpFilter->SetInput(dynamic_cast<InputImage<T> *>(filter->input()[0]->itkImage()));
 	morphOpFilter->SetKernel(structuringElement);
 	filter->progress()->observe(morphOpFilter);
 	morphOpFilter->Update();
@@ -108,16 +91,8 @@ template<class MorphOp, class T> void morphOpFlat(iAFilter* filter, QMap<QString
 
 template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-	if (params[StructuringElementParamName].toString() == "Ball")
-	{
-		typedef itk::GrayscaleDilateImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>> MorphOpType;
-		morphOpBall<MorphOpType, T>(filter, params);
-	}
-	else
-	{
-		typedef itk::GrayscaleDilateImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>> MorphOpType;
-		morphOpFlat<MorphOpType, T>(filter, params);
-	}
+	typedef itk::GrayscaleDilateImageFilter<InputImage<T>, InputImage<T>, FlatElement<T>> MorphOpType;
+	morphOp<MorphOpType, T>(filter, params);
 }
 
 void iADilation::performWork(QMap<QString, QVariant> const & parameters)
@@ -149,16 +124,8 @@ iADilation::iADilation() :
 
 template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-	if (params[StructuringElementParamName].toString() == "Ball")
-	{
-		typedef itk::GrayscaleErodeImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>> MorphOpType;
-		morphOpBall<MorphOpType, T>(filter, params);
-	}
-	else
-	{
-		typedef itk::GrayscaleErodeImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>> MorphOpType;
-		morphOpFlat<MorphOpType, T>(filter, params);
-	}
+	typedef itk::GrayscaleErodeImageFilter<InputImage<T>, InputImage<T>, FlatElement<T>> MorphOpType;
+	morphOp<MorphOpType, T>(filter, params);
 }
 
 void iAErosion::performWork(QMap<QString, QVariant> const & parameters)
@@ -190,16 +157,8 @@ iAErosion::iAErosion() :
 
 template<class T> void morphOpening(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-	if (params[StructuringElementParamName].toString() == "Ball")
-	{
-		typedef itk::GrayscaleMorphologicalOpeningImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>> MorphOpType;
-		morphOpBall<MorphOpType, T>(filter, params);
-	}
-	else
-	{
-		typedef itk::GrayscaleMorphologicalOpeningImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>> MorphOpType;
-		morphOpFlat<MorphOpType, T>(filter, params);
-	}
+	typedef itk::GrayscaleMorphologicalOpeningImageFilter<InputImage<T>, InputImage<T>, FlatElement<T>> MorphOpType;
+	morphOp<MorphOpType, T>(filter, params);
 }
 
 void iAMorphOpening::performWork(QMap<QString, QVariant> const & parameters)
@@ -210,7 +169,7 @@ void iAMorphOpening::performWork(QMap<QString, QVariant> const & parameters)
 IAFILTER_CREATE(iAMorphOpening)
 
 iAMorphOpening::iAMorphOpening():
-	iAFilter("Morphological Opening", "Morphology",
+	iAFilter("Opening", "Morphology",
 		"The morphological opening of an image 'f' is defined as: Opening(f) = Dilatation(Erosion(f)).<br/>"
 		"The structuring element is assumed to be composed of binary values (zero or one). Only elements of the "
 		"structuring element having values > 0 are candidates for affecting the center pixel.<br/>"
@@ -231,16 +190,8 @@ iAMorphOpening::iAMorphOpening():
 
 template<class T> void morphClosing(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-	if (params[StructuringElementParamName].toString() == "Ball")
-	{
-		typedef itk::GrayscaleMorphologicalClosingImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>> MorphOpType;
-		morphOpBall<MorphOpType, T>(filter, params);
-	}
-	else
-	{
-		typedef itk::GrayscaleMorphologicalClosingImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>> MorphOpType;
-		morphOpFlat<MorphOpType, T>(filter, params);
-	}
+	typedef itk::GrayscaleMorphologicalClosingImageFilter<InputImage<T>, InputImage<T>, FlatElement<T>> MorphOpType;
+	morphOp<MorphOpType, T>(filter, params);
 }
 
 void iAMorphClosing::performWork(QMap<QString, QVariant> const & parameters)
@@ -251,7 +202,7 @@ void iAMorphClosing::performWork(QMap<QString, QVariant> const & parameters)
 IAFILTER_CREATE(iAMorphClosing)
 
 iAMorphClosing::iAMorphClosing() :
-	iAFilter("Morphological Closing", "Morphology",
+	iAFilter("Closing", "Morphology",
 		"The morphological closing of an image 'f' is defined as: Closing(f) = Erosion(Dilation(f)).<br/>"
 		"The structuring element is assumed to be composed of binary values (zero or one). Only elements of the "
 		"structuring element having values > 0 are candidates for affecting the center pixel.<br/>"
@@ -272,16 +223,8 @@ iAMorphClosing::iAMorphClosing() :
 
 template<class T> void openingByReconstruction(iAFilter* filter, QMap<QString, QVariant> const& params)
 {
-	if (params[StructuringElementParamName].toString() == "Ball")
-	{
-		typedef itk::OpeningByReconstructionImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>> MorphOpType;
-		morphOpBall<MorphOpType, T>(filter, params);
-	}
-	else
-	{
-		typedef itk::OpeningByReconstructionImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>> MorphOpType;
-		morphOpFlat<MorphOpType, T>(filter, params);
-	}
+	typedef itk::OpeningByReconstructionImageFilter<InputImage<T>, InputImage<T>, FlatElement<T>> MorphOpType;
+	morphOp<MorphOpType, T>(filter, params);
 }
 
 void iAOpeningByReconstruction::performWork(QMap<QString, QVariant> const& parameters)
@@ -292,7 +235,7 @@ void iAOpeningByReconstruction::performWork(QMap<QString, QVariant> const& param
 IAFILTER_CREATE(iAOpeningByReconstruction)
 
 iAOpeningByReconstruction::iAOpeningByReconstruction() :
-	iAFilter("OpeningByReconstructionImageFilter", "Morphology",
+	iAFilter("Opening by Reconstruction", "Morphology",
 		"This filter preserves regions, in the foreground, that can completely contain the structuring element. <br/>"
 		"At the same time, this filter eliminates all other regions of foreground pixels. <br/>"
 		"Contrary to the morphological opening, the opening by reconstruction preserves the shape of <br/>"
@@ -319,16 +262,8 @@ iAOpeningByReconstruction::iAOpeningByReconstruction() :
 
 template<class T> void closingByReconstruction(iAFilter* filter, QMap<QString, QVariant> const& params)
 {
-	if (params[StructuringElementParamName].toString() == "Ball")
-	{
-		typedef itk::ClosingByReconstructionImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>> MorphOpType;
-		morphOpBall<MorphOpType, T>(filter, params);
-	}
-	else
-	{
-		typedef itk::ClosingByReconstructionImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>> MorphOpType;
-		morphOpFlat<MorphOpType, T>(filter, params);
-	}
+	typedef itk::ClosingByReconstructionImageFilter<InputImage<T>, InputImage<T>, FlatElement<T>> MorphOpType;
+	morphOp<MorphOpType, T>(filter, params);
 }
 
 void iAClosingByReconstruction::performWork(QMap<QString, QVariant> const& parameters)
@@ -339,7 +274,7 @@ void iAClosingByReconstruction::performWork(QMap<QString, QVariant> const& param
 IAFILTER_CREATE(iAClosingByReconstruction)
 
 iAClosingByReconstruction::iAClosingByReconstruction() :
-	iAFilter("ClosingByReconstructionImageFilter", "Morphology",
+	iAFilter("Closing by Reconstruction", "Morphology",
 		"TThis filter is similar to the morphological closing, but contrary to the morphological closing, <br/>"
 		"the closing by reconstruction preserves the shape of the components. <br/>"
 		"The closing by reconstruction of an image <f> is defined as:"
@@ -365,9 +300,9 @@ iAClosingByReconstruction::iAClosingByReconstruction() :
 
 template<class T> void fillHole(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-	typedef itk::GrayscaleFillholeImageFilter <InputImageType<T>, InputImageType<T>> FillHoleImageFilterType;
+	typedef itk::GrayscaleFillholeImageFilter <InputImage<T>, InputImage<T>> FillHoleImageFilterType;
 	typename FillHoleImageFilterType::Pointer fillHoleFilter = FillHoleImageFilterType::New();
-	fillHoleFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->input()[0]->itkImage()));
+	fillHoleFilter->SetInput(dynamic_cast<InputImage<T> *>(filter->input()[0]->itkImage()));
 	fillHoleFilter->SetFullyConnected(params["Fully Connected"].toBool());
 	filter->progress()->observe(fillHoleFilter);
 	fillHoleFilter->Update();
@@ -398,12 +333,11 @@ iAFillHole::iAFillHole() :
 
 template<class T> void vesselEnhancement(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Hessian3DToVesselnessMeasureImageFilter<typename InputImageType::PixelType> EnhancementFilter;
-	typedef itk::HessianRecursiveGaussianImageFilter<InputImageType> HRGIFType;
+	typedef itk::Hessian3DToVesselnessMeasureImageFilter<typename InputImage<T>::PixelType> EnhancementFilter;
+	typedef itk::HessianRecursiveGaussianImageFilter<InputImage<T>> HRGIFType;
 
 	auto hessfilter = HRGIFType::New();
-	hessfilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	hessfilter->SetInput(dynamic_cast<InputImage<T> *>(filter->input()[0]->itkImage()));
 	hessfilter->SetSigma(params["Sigma"].toDouble());
 	hessfilter->Update();
 	auto vesselness = EnhancementFilter::New();
