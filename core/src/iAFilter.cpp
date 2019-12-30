@@ -145,6 +145,9 @@ void iAFilter::clearInput()
 	m_input.clear();
 }
 
+// TODO: Allow to check type of input files (e.g. to check if input images are
+// of a specific type, or all of the same type), e.g. in addInput or
+// checkParameters.
 void iAFilter::addInput(iAConnector* con)
 {
 	m_input.push_back(con);
@@ -334,7 +337,7 @@ void iAFilter::setInputName(int i, QString const & name)
 	m_inputNames.insert(i, name);
 }
 
-QString iAFilter::outputName(int i, QString defaultName=NULL) const
+QString iAFilter::outputName(int i, QString defaultName) const
 {
 	if (m_outputNames.contains(i))
 	{
@@ -342,7 +345,7 @@ QString iAFilter::outputName(int i, QString defaultName=NULL) const
 	}
 	else
 	{
-		if (defaultName != NULL)
+		if (!defaultName.isEmpty())
 		{
 			return defaultName;
 		}

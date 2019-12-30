@@ -111,9 +111,7 @@ public:
 	//! Call this in case you are re-using a filter already called before,
 	//! and you want to call it with new input images
 	void clearInput();
-	//! TODO: also allow to check input files here (e.g. for AddImage to check
-	//!     if input images are all of the same type!
-	//! Adds an image as input
+	//! Adds an image as input.
 	void addInput(iAConnector* con);
 	//! Initialize and run the filter
 	//! @param parameters the map of parameters to use in this specific filter run
@@ -181,7 +179,7 @@ public:
 	QString inputName(int i) const;
 
 	//! Retrieve the name of the output image with index i
-	QString outputName(int i, QString defaultName) const;
+	QString outputName(int i, QString defaultName=QString()) const;
 protected:
 	//! Set the name of the input with the given index
 	void setInputName(int i, QString const & name);
