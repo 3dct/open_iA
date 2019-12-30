@@ -18,15 +18,35 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iADreamCasterModuleInterface.h"
 
-#include <iAModuleInterface.h>
+#include "iADreamCaster.h"
 
-class iAGPU_DreamcasterToolModuleInterface : public iAModuleInterface
+#include <mainwindow.h>
+#include <mdichild.h>
+
+#include <QFileDialog>
+
+void iADreamCasterModuleInterface::Initialize()
 {
-	Q_OBJECT
-public:
-	void Initialize() override;
-private slots:
-	void dreamcasterOpenFile();
-};
+	if (!m_mainWnd)
+		return;
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
+	QAction * actionDreamcaster_Open_file = new QAction( m_mainWnd );
+	actionDreamcaster_Open_file->setText( QApplication::translate( "MainWindow", "DreamCaster", 0 ) );
+	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionDreamcaster_Open_file, false );
+	connect( actionDreamcaster_Open_file, SIGNAL( triggered() ), this, SLOT( dreamcasterOpenFile() ) );
+}
+
+void iADreamCasterModuleInterface::dreamcasterOpenFile()
+{
+	QString fileName = QFileDialog::getOpenFileName( m_mainWnd, tr( "Open File" ), m_mainWnd->path(), tr( "STL files (*.stl)" ) );
+	if( (QFileInfo( fileName ).suffix() == "stl") || (QFileInfo( fileName ).suffix() == "STL") )
+	{
+		iADreamCaster *child = new iADreamCaster( m_mainWnd );
+		m_mainWnd->addSubWindow( child );
+		child->loadFile( fileName );
+		m_mainWnd->statusBar()->showMessage( tr( "File loaded" ), 5000 );
+		child->show();
+	}
+}
