@@ -1,4 +1,4 @@
-IF(Module_GPU_DreamcasterTool)
+IF(Module_DreamCaster)
 	IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic")
 	ENDIF()
@@ -68,5 +68,4 @@ IF(Module_GPU_DreamcasterTool)
 	IF (openiA_USE_IDE_FOLDERS)
 		SET_PROPERTY(TARGET Dreamcaster PROPERTY FOLDER "Libraries")
 	ENDIF()
-
-ENDIF(Module_GPU_DreamcasterTool)
+ENDIF(Module_DreamCaster)
