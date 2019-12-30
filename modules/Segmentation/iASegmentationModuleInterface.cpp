@@ -22,6 +22,8 @@
 
 #include "iAFuzzyCMeans.h"
 #include "iALevelSet.h"
+#include "iAPCA.h"
+#include "iARandomWalker.h"
 #include "iARegionGrowing.h"
 #include "iASVMImageFilter.h"
 #include "iAThresholding.h"
@@ -61,4 +63,10 @@ void iASegmentationModuleInterface::Initialize()
 
 	REGISTER_FILTER(iASVMImageFilter);
 	REGISTER_FILTER(iAKMeans);
+
+	REGISTER_FILTER(iAPCA);
+	REGISTER_FILTER(iARandomWalker);
+	REGISTER_FILTER(iAExtendedRandomWalker);
+	REGISTER_FILTER(iAMaximumDecisionRule);
+	REGISTER_FILTER(iALabelImageToSeeds);
 }
