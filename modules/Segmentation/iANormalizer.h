@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iADistanceType.h"
+typedef double iADistanceType;
 
 class iANormalizer
 {

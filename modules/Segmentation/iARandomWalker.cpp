@@ -146,7 +146,7 @@ namespace
 		iAImageGraph & imageGraph,
 		QSharedPointer<iAGraphWeights const> finalWeight,
 		QVector<double> const & vertexWeightSum,
-		int vertexCount,
+		iAVertexIndexType vertexCount,
 		bool noSameIndices = false)
 	{
 #ifdef USE_EIGEN
