@@ -149,7 +149,7 @@ namespace Hilbert
 		int m,
 		int n,
 		H &h,
-		int *ds = NULL // #HACK
+		int *ds = nullptr // #HACK
 		)
 	{
 		I e(n), l(n), t(n), w(n);
