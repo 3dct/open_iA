@@ -173,6 +173,10 @@ bool iAFCMFilter::checkParameters(QMap<QString, QVariant> & parameters)
 
 void iAFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
+	for (int i = 0; i < parameters["Number of Classes"].toUInt(); ++i)
+	{
+		setOutputName(i + 1, QString("Probability image label %1").arg(i));
+	}
 	ITK_TYPED_CALL(fcm, inputPixelType(), this, parameters);
 }
 
@@ -259,6 +263,10 @@ void kfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 void iAKFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
+	for (int i = 0; i < parameters["Number of Classes"].toUInt(); ++i)
+	{
+		setOutputName(i + 1, QString("Probability image label %1").arg(i));
+	}
 	ITK_TYPED_CALL(kfcm, inputPixelType(), this, parameters);
 }
 
@@ -354,6 +362,10 @@ void mskfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 void iAMSKFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
+	for (int i = 0; i < parameters["Number of Classes"].toUInt(); ++i)
+	{
+		setOutputName(i + 1, QString("Probability image label %1").arg(i));
+	}
 	ITK_TYPED_CALL(mskfcm, inputPixelType(), this, parameters);
 }
 #endif
