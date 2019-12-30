@@ -37,8 +37,8 @@
 #include "iAToolsVTK.h"
 #include "iATypedCallHelper.h"
 
-#include <itkExceptionObject.h>
 #include <itkBMPImageIO.h>
+#include <itkMacro.h>    // for itkExceptionObject, which (starting with ITK 5.1), may not be included directly
 #include <itkGDCMImageIO.h>
 #include <itkGDCMSeriesFileNames.h>
 #include <itkImage.h>

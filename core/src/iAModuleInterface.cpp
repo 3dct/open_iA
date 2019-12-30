@@ -25,7 +25,7 @@
 #include "mainwindow.h"
 #include "mdichild.h"
 
-#include <itkMacro.h>  // for itk::ExceptionObject
+#include <itkMacro.h>    // for itk::ExceptionObject
 
 #include <QMessageBox>
 

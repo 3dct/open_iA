@@ -36,7 +36,7 @@
 #include <iAVtkWidget.h>
 #include <io/iAFileUtils.h>
 
-#include <itkMacro.h>
+#include <itkMacro.h>    // for itk::ExceptionObject
 
 #include <vtkActor.h>
 #include <vtkAppendPolyData.h>
