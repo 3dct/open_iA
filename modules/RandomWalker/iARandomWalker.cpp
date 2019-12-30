@@ -413,8 +413,12 @@ void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 	}
 	auto labelImg = CreateLabelImage(dim, spc, probImgs, labelCount);
 	addOutput(labelImg);
-	for (int i=0; i<labelCount; ++i)
+	setOutputName(0, "Label Image");
+	for (int i = 0; i < labelCount; ++i)
+	{
 		addOutput(probImgs[i]);
+		setOutputName(1+i, QString("Probability image label %1").arg(i));
+	}
 }
 
 
@@ -611,8 +615,12 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 	// create labelled image (as value at k = arg l max(p_l^k) for each pixel k)
 	auto labelImg = CreateLabelImage(dim, spc, probImgs, labelCount);
 	addOutput(labelImg);
-	for (int i=0; i<labelCount; ++i)
+	setOutputName(0, "Label Image");
+	for (int i = 0; i < labelCount; ++i)
+	{
 		addOutput(probImgs[i]);
+		setOutputName(1 + i, QString("Probability image label %1").arg(i));
+	}
 }
 
 
