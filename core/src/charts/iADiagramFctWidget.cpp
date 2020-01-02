@@ -44,12 +44,12 @@
 iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
 	QString const & xLabel, QString const & yLabel) :
 	iAChartWidget(parent, xLabel, yLabel),
-	m_TFTable(nullptr),
+	m_activeChild(mdiChild),
+	m_selectedFunction(0),
+	m_showFunctions(false),
 	m_allowTrfReset(true),
 	m_enableAdditionalFunctions(true),
-	m_showFunctions(false),
-	m_selectedFunction(0),
-	m_activeChild(mdiChild)
+	m_TFTable(nullptr)
 {
 	iAChartTransferFunction *transferFunction = new iAChartTransferFunction(this, QColor(0, 0, 0, 255));
 	m_functions.push_back(transferFunction);
