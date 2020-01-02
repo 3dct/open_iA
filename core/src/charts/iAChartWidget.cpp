@@ -357,7 +357,6 @@ double iAChartWidget::visibleXEnd() const
 void iAChartWidget::drawXAxis(QPainter &painter)
 {
 	painter.setPen(QWidget::palette().color(QPalette::Text));
-	const int MINIMUM_MARGIN = 8;
 	const int TextAxisDistance = 2;
 	QFontMetrics fm = painter.fontMetrics();
 	size_t stepCount = m_maxXAxisSteps;
@@ -780,8 +779,8 @@ void iAChartWidget::showDataTooltip(QHelpEvent *event)
 	size_t numBin = m_plots[0]->data()->numBin();
 	assert(numBin > 0);
 	int xPos = clamp(0, geometry().width() - 1, event->x());
-	int nthBin = static_cast<int>((((xPos - m_translationX - leftMargin()) * numBin) / (activeWidth())) / m_xZoom);
-	nthBin = clamp(0, static_cast<int>(numBin), nthBin);
+	size_t nthBin = (((xPos - m_translationX - leftMargin()) * numBin) / (activeWidth())) / m_xZoom;
+	nthBin = clamp(static_cast<size_t>(0), numBin, nthBin);
 	if (xPos == geometry().width() - 1)
 		nthBin = static_cast<int>(numBin) - 1;
 	QString toolTip;
@@ -850,7 +849,7 @@ void iAChartWidget::mouseReleaseEvent(QMouseEvent *event)
 				diagramRect.setBottom(yBounds()[1]);
 			m_selectedPlots.clear();
 			double yMin = diagramRect.top(), yMax = diagramRect.bottom();
-			for (int plotIdx=0; plotIdx<m_plots.size(); ++plotIdx)
+			for (size_t plotIdx=0; plotIdx<m_plots.size(); ++plotIdx)
 			{
 				if (!m_plots[plotIdx]->visible())
 					continue;
@@ -1105,12 +1104,12 @@ void iAChartWidget::exportData()
 	}
 	std::ofstream out( getLocalEncodingFileName(fileName));
 	out << tr("Start of Bin").toStdString();
-	for (int p = 0; p < m_plots.size(); ++p)
+	for (size_t p = 0; p < m_plots.size(); ++p)
 	{
 		out << "," << QString("%1%2").arg(m_yCaption).arg(p).toStdString();
 	}
 	out << std::endl;
-	for (int b = 0; b < m_plots[0]->data()->numBin(); ++b)
+	for (size_t b = 0; b < m_plots[0]->data()->numBin(); ++b)
 	{
 		out << QString::number(m_plots[0]->data()->binStart(b), 'g', 15).toStdString();
 		for (int p = 0; p < m_plots.size(); ++p)

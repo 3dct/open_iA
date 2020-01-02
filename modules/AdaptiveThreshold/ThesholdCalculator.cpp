@@ -92,7 +92,7 @@ void ThesholdCalculator::retrieveHistData()
 
 	//goes over all bins;
 
-	for (int b = 0; b < m_data->numBin(); ++b) {
+	for (size_t b = 0; b < m_data->numBin(); ++b) {
 		binVals_X = m_data->binStart(b);
 		freq_valsY = m_data->rawData()[b];
 		m_thresBinsX.push_back(binVals_X);

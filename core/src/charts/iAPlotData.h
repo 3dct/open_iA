@@ -41,7 +41,7 @@ public:
 	virtual double const * xBounds() const = 0;
 	virtual DataType const * yBounds() const = 0;
 
-	virtual double binStart(int binNr) const		// default: assume constant (i.e. linear) spacing
+	virtual double binStart(size_t binNr) const		// default: assume constant (i.e. linear) spacing
 	{
 		return spacing() * binNr + xBounds()[0];
 	}

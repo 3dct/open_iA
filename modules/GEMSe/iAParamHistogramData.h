@@ -62,7 +62,7 @@ public:
 	double spacing() const override;
 	double const * xBounds() const override;
 	DataType const * yBounds() const override;
-	double binStart(int binNr) const override;
+	double binStart(size_t binNr) const override;
 	double mapValueToBin(double value) const;
 	double mapBinToValue(double bin) const;
 	iAValueType valueType() const override;

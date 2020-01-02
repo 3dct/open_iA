@@ -74,12 +74,12 @@ int iAModality::channel() const
 	return m_channel;
 }
 
-int iAModality::componentCount() const
+size_t iAModality::componentCount() const
 {
 	return m_imgs.size();
 }
 
-vtkSmartPointer<vtkImageData> iAModality::component(int componentIdx) const
+vtkSmartPointer<vtkImageData> iAModality::component(size_t componentIdx) const
 {
 	return m_imgs[componentIdx];
 }

@@ -404,7 +404,7 @@ bool dlg_labels::store(QString const & filename, bool extendedFormat)
 				for (int m = 0; m < modalities->size(); ++m)
 				{
 					auto mod = modalities->get(m);
-					for (int c = 0; c < mod->componentCount(); ++c)
+					for (size_t c = 0; c < mod->componentCount(); ++c)
 					{
 						double value = mod->component(c)->GetScalarComponentAsDouble(x, y, z, 0);
 						stream.writeStartElement("Value");
