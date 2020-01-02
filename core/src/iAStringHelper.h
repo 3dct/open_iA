@@ -37,7 +37,10 @@ struct iAConverter
 	static T toT(QString /*string*/, bool * ok)
 	{
 		assert(false && "Unspecialized Converter::toT called! This should not happen!");
-		ok = false;
+		if (ok)
+		{
+			*ok = false;
+		}
 		return std::numeric_limits<T>::signaling_NaN();
 	}
 	static QString toString(T /*number*/)
