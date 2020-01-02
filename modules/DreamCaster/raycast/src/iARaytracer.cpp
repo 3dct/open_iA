@@ -462,7 +462,7 @@ bool iAEngine::RenderGPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, c
 	return true;
 }
 
-bool iAEngine::RenderBatchGPU( unsigned int batchSize, iAVec3f *os, iAVec3f * corns, iAVec3f * deltaxs, iAVec3f * deltays, float * rotsX, float * rotsY, float * rotsZ, bool rememberData /*= true*/, bool dipAsColor /*= false*/)
+bool iAEngine::RenderBatchGPU( unsigned int batchSize, iAVec3f * a_o, iAVec3f * corns, iAVec3f * deltaxs, iAVec3f * deltays, float * rotsX, float * rotsY, float * rotsZ, bool rememberData /*= true*/, bool dipAsColor /*= false*/)
 {
 	for (unsigned int batch=0; batch<batchSize; batch++)
 	{
@@ -478,15 +478,15 @@ bool iAEngine::RenderBatchGPU( unsigned int batchSize, iAVec3f *os, iAVec3f * co
 	}
 
 	raycast_batch(
-		&(scene()->getBSPTree()->m_aabb), 
-		os, 
-		corns, 
-		deltaxs, deltays, 
-		s->RFRAME_W, s->RFRAME_H,  
-		batchSize, 
-		m_cut_AABBs, 
+		&(scene()->getBSPTree()->m_aabb),
+		a_o,
+		corns,
+		deltaxs, deltays,
+		s->RFRAME_W, s->RFRAME_H,
+		batchSize,
+		m_cut_AABBs,
 		m_cutAABBListSize,
-		cuda_avpl_buff, 
+		cuda_avpl_buff,
 		cuda_dipang_buff);
 	unsigned int col;
 	unsigned int* buffer=getBuffer();
