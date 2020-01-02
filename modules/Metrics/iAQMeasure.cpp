@@ -406,7 +406,7 @@ void iAQMeasure::setupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
 
 IAFILTER_RUNNER_CREATE(iAQMeasureRunner);
 
-void iAQMeasureRunner::filterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd)
+void iAQMeasureRunner::filterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* /*mainWnd*/)
 {
 	iAChartWidget * chart = new iAChartWidget(mdiChild, "Intensity", "Frequency");
 	iADockWidgetWrapper* wrapper = new iADockWidgetWrapper(chart, "TestHistogram", "TestHistogram");

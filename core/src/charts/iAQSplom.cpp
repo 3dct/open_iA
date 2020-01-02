@@ -46,6 +46,7 @@
 #include <QSettings>
 #include <QTableWidget>
 #include <QWheelEvent>
+#include <QtGlobal> // for QT_VERSION
 #include <QtMath>
 
 namespace
@@ -431,7 +432,7 @@ void iAQSplom::dataChanged(std::vector<char> visibleParams)
 	clear();
 	m_paramVisibility = visibleParams;
 	m_columnPickMenu->clear();
-	unsigned long numParams = m_splomData->numParams();
+	size_t numParams = m_splomData->numParams();
 
 	// cleanup old histograms (if any)
 	for (auto histo : m_histograms)
@@ -443,10 +444,10 @@ void iAQSplom::dataChanged(std::vector<char> visibleParams)
 	m_settingsDlg->parametersList->clear();
 	m_settingsDlg->cbColorParameter->clear();
 	m_matrix.resize(numParams);
-	for( unsigned long y = 0; y < numParams; ++y )
+	for(size_t y = 0; y < numParams; ++y )
 	{
 		m_matrix[y].resize(numParams, nullptr);
-		for (unsigned long x = 0; x < numParams; ++x)
+		for (size_t x = 0; x < numParams; ++x)
 			createScatterPlot(y, x, true);
 
 		m_histograms.push_back(new iAChartWidget(this, m_splomData->parameterName(y), ""));
@@ -535,14 +536,14 @@ void iAQSplom::setParameterVisibility(std::vector<char> const & visibility)
 void iAQSplom::setParameterInverted( size_t paramIndex, bool isInverted )
 {
 	m_splomData->setInverted(paramIndex, isInverted);
-	unsigned long numParams = m_splomData->numParams();
-	for (unsigned long row = 0; row < numParams; ++row)
+	size_t numParams = m_splomData->numParams();
+	for (size_t row = 0; row < numParams; ++row)
 	{
 		auto s = m_matrix[row][paramIndex];
 		if (s)
 			s->updatePoints();
 	}
-	for (unsigned long col = 0; col < numParams; ++col)
+	for (size_t col = 0; col < numParams; ++col)
 	{  // avoid double updated of row==col plot
 		auto s = m_matrix[paramIndex][col];
 		if (s && col != paramIndex)
@@ -927,11 +928,10 @@ int iAQSplom::invert( int val ) const
 	return ( getVisibleParametersCount() - val - 1 );
 }
 
-void iAQSplom::paintEvent( QPaintEvent * event )
+void iAQSplom::paintEvent(QPaintEvent * /*event*/)
 {
 	QPainter painter( this );
 	painter.setRenderHint(QPainter::Antialiasing);
-	painter.setRenderHint(QPainter::HighQualityAntialiasing);
 	painter.beginNativePainting();
 	glClearColor(settings.backgroundColor.redF(), settings.backgroundColor.greenF(), settings.backgroundColor.blueF(), settings.backgroundColor.alphaF());
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -1029,7 +1029,7 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	painter.drawRect(colorBarRect);
 	QString minStr = dblToStringWithUnits(minVal);
 	QString maxStr = dblToStringWithUnits(maxVal);
-#if QT_VERSION >= 0x050B00
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 	int textWidth = std::max(fm.horizontalAdvance(minStr), fm.horizontalAdvance(maxStr));
 #else
 	int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
@@ -1381,7 +1381,7 @@ int iAQSplom::getMaxTickLabelWidth(QList<QString> const & textX, QFontMetrics & 
 	int maxLength = 0;
 	for (long i = 0; i < textX.size(); ++i)
 	{
-#if QT_VERSION >= 0x051100
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		maxLength = std::max(fm.horizontalAdvance(textX[i]), maxLength);
 #else
 		maxLength = std::max(fm.width(textX[i]), maxLength);
@@ -1412,12 +1412,9 @@ void iAQSplom::drawVisibleParameters(QPainter &painter)
 	drawPlotLabels(ind_Vis, ind_Vis.length(), painter, true);
 }
 
-void iAQSplom::drawPlotLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPainter & painter, bool switchTO_YRow)
+void iAQSplom::drawPlotLabels(QVector<ulong> &ind_Elements, int /*axisOffSet*/, QPainter & painter, bool switchTO_YRow)
 {
 	QRect currentRect;
-
-	int width;
-	int height = 0;
 	int top = 0;
 	int loopLength = 0;
 	int textwidth = 0;
@@ -1629,9 +1626,9 @@ void iAQSplom::saveSettingsSlot()
 		tr("Settings file (*.ini);;"));
 	if (fileName.isEmpty())
 		return;
-	QSettings settings(fileName, QSettings::IniFormat);
-	settings.setIniCodec("UTF-8");
-	saveSettings(settings);
+	QSettings iniFile(fileName, QSettings::IniFormat);
+	iniFile.setIniCodec("UTF-8");
+	saveSettings(iniFile);
 }
 
 void iAQSplom::loadSettingsSlot()
@@ -1640,9 +1637,9 @@ void iAQSplom::loadSettingsSlot()
 		tr("Settings file (*.ini);;"));
 	if (fileName.isEmpty())
 		return;
-	QSettings settings(fileName, QSettings::IniFormat);
-	settings.setIniCodec("UTF-8");
-	loadSettings(mapFromQSettings(settings));
+	QSettings iniFile(fileName, QSettings::IniFormat);
+	iniFile.setIniCodec("UTF-8");
+	loadSettings(mapFromQSettings(iniFile));
 }
 
 /*

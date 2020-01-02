@@ -86,7 +86,7 @@ void iA3DColoredPolyObjectVis::updateRenderer()
 		iA3DObjectVis::updateRenderer();
 }
 
-void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & constClassColor, QStandardItem* activeClassItem)
+void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & constClassColor, QStandardItem* /*activeClassItem*/)
 {
 	QColor BackColor(128, 128, 128, 0);
 	int currentObjectIndexInSelection = 0;
@@ -120,7 +120,7 @@ void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sorte
 	updatePolyMapper();
 }
 
-void iA3DColoredPolyObjectVis::renderSingle(int labelID, int classID, QColor const & constClassColor, QStandardItem* activeClassItem)
+void iA3DColoredPolyObjectVis::renderSingle(int labelID, int classID, QColor const & constClassColor, QStandardItem* /*activeClassItem*/)
 {
 	QColor classColor(constClassColor);
 	QColor nonClassColor = QColor(0, 0, 0, 0);
@@ -134,7 +134,7 @@ void iA3DColoredPolyObjectVis::renderSingle(int labelID, int classID, QColor con
 	updatePolyMapper();
 }
 
-void iA3DColoredPolyObjectVis::multiClassRendering(QList<QColor> const & classColors, QStandardItem* rootItem, double alpha)
+void iA3DColoredPolyObjectVis::multiClassRendering(QList<QColor> const & classColors, QStandardItem* /*rootItem*/, double /*alpha*/)
 {
 	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
 	{
@@ -154,7 +154,7 @@ void iA3DColoredPolyObjectVis::renderOrientationDistribution(vtkImageData* oi)
 	updatePolyMapper();
 }
 
-void iA3DColoredPolyObjectVis::renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range)
+void iA3DColoredPolyObjectVis::renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* /*extents*/, double /*halfInc*/, int /*filterID*/, double const * /*range*/)
 {
 	for (int objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
 	{
@@ -317,7 +317,7 @@ void iA3DColoredPolyObjectVis::updateColorSelectionRendering()
 	updatePolyMapper();
 }
 
-int iA3DColoredPolyObjectVis::objectPointCount(int ptIdx) const
+int iA3DColoredPolyObjectVis::objectPointCount(int /*ptIdx*/) const
 {
 	return DefaultPointsPerObject;
 }

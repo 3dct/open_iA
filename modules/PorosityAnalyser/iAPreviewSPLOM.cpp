@@ -77,7 +77,6 @@ void iAPreviewSPLOM::paintGL( )
 {
 	QPainter painter( this );
 	painter.setRenderHint( QPainter::Antialiasing );
-	painter.setRenderHint( QPainter::HighQualityAntialiasing );
 	painter.fillRect( rect(), bgrCol );
 	if( !m_pxmp )
 		return;

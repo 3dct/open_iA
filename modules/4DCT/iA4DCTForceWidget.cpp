@@ -39,7 +39,7 @@ int iA4DCTForceWidget::getValue( )
 	return m_value;
 }
 
-void iA4DCTForceWidget::mouseDoubleClickEvent( QMouseEvent * event )
+void iA4DCTForceWidget::mouseDoubleClickEvent(QMouseEvent * /*event*/)
 {
 	QDialog * dialog = new QDialog( this );
 	Ui::ForceDialog dialogUi;

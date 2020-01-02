@@ -34,10 +34,10 @@ public:
 		return new iAExceptionThrowingErrorObserver;
 	}
 	virtual void Execute(vtkObject *vtkNotUsed(caller),
-		unsigned long event,
+		unsigned long /*event*/,
 		void *calldata)
 	{
-		assert(event == vtkCommand::ErrorEvent);
+		//assert(event == vtkCommand::ErrorEvent);
 		throw std::runtime_error(static_cast<char *>(calldata));
 	}
 };

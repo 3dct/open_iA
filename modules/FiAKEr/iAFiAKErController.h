@@ -153,6 +153,7 @@ private slots:
 	void resultColorThemeChanged(QString const & colorThemeName);
 	void stackedBarColorThemeChanged(QString const & colorThemeName);
 	void showReferenceInChartToggled();
+	void linkPreviewsToggled();
 	void distributionChartTypeChanged(int);
 	void diameterFactorChanged(int);
 	void contextDiameterFactorChanged(int);
@@ -172,6 +173,7 @@ private:
 	//! Load potential reference.
 	//! @param settings needs to be passed by value, as it's used in a lambda!
 	void loadReference(iASettings settings);
+	bool loadReferenceInternal(iASettings settings);
 	void changeDistributionSource(int index);
 	void updateHistogramColors();
 	QColor getResultColor(int resultID);

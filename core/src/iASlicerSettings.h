@@ -41,12 +41,12 @@ public:
 		ShowIsoLines(false),
 		ShowPosition(false),
 		ShowAxesCaption(false),
+		ShowTooltip(true),
 		MinIsoValue(20000),
 		MaxIsoValue(40000),
 		NumberOfIsoLines(5),
 		ToolTipFontSize(12),
-		CursorMode(QString("Crosshair default")),
-		ShowTooltip(true)
+		CursorMode(QString("Crosshair default"))
 	{}
 };
 

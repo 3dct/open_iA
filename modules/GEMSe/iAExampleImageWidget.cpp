@@ -48,7 +48,7 @@ public:
 	QVector<iAImagePreviewWidget*> m_previews;
 	int m_selectedIndex;
 protected:
-	virtual void paintEvent(QPaintEvent * e)
+	virtual void paintEvent(QPaintEvent * /*e*/)
 	{
 		if (m_selectedIndex != NoImageSelected)
 		{

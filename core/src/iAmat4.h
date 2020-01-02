@@ -25,7 +25,7 @@
 
 #include <memory.h>    // for memcpy
 
-/** Class representing 4x4 float matrix. */
+//! Class representing a 4x4 float matrix.
 class open_iA_Core_API iAMat4
 {
 public:

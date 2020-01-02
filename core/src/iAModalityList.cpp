@@ -188,13 +188,13 @@ void iAModalityList::store(QString const & filename, vtkCamera* camera)
 		if (absoluteTFFileName.isEmpty())
 		{
 			absoluteTFFileName = MakeAbsolute(fi.absolutePath(), modFileInfo.fileName() + "_tf.xml");
-			QFileInfo fi(absoluteTFFileName);
-			int i = 1;
-			while (fi.exists())
+			QFileInfo uniqueNameSearchFileInfo(absoluteTFFileName);
+			int suffix = 1;
+			while (uniqueNameSearchFileInfo.exists())
 			{
-				absoluteTFFileName = MakeAbsolute(fi.absolutePath(), modFileInfo.fileName() + "_tf-" + QString::number(i) + ".xml");
-				fi.setFile(absoluteTFFileName);
-				++i;
+				absoluteTFFileName = MakeAbsolute(uniqueNameSearchFileInfo.absolutePath(), modFileInfo.fileName() + "_tf-" + QString::number(suffix) + ".xml");
+				uniqueNameSearchFileInfo.setFile(absoluteTFFileName);
+				++suffix;
 			}
 		}
 		QString tfFileName = MakeRelative(fi.absolutePath(), absoluteTFFileName);

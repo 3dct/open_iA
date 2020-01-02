@@ -789,7 +789,7 @@ void dlg_XRF::combinedElementMaps(int show)
 		m_channelColors.resize(m_enabledChannels + 1);
 		if (m_channelIDs.size() <= m_enabledChannels)
 			m_channelIDs.push_back(mdiChild->createChannel());
-		auto chData = mdiChild->channelData(m_channelIDs[m_enabledChannels]);
+		//auto chData = mdiChild->channelData(m_channelIDs[m_enabledChannels]);
 		vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(m_decomposeSelectedElements.indexOf(i));
 		QColor color = m_refSpectraLib->getElementColor(i);
 		m_channelColors[m_enabledChannels] = color;
@@ -832,18 +832,18 @@ void dlg_XRF::recomputeSpectraHistograms()
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::spectraHistSensitivityChanged( int newVal )
+void dlg_XRF::spectraHistSensitivityChanged( int /*newVal*/ )
 {
 	sl_specHistSensitivity->repaint();
 	recomputeSpectraHistograms();
 }
 
-void dlg_XRF::smoothOpacityFadeChecked( int checked )
+void dlg_XRF::smoothOpacityFadeChecked( int /*checked*/ )
 {
 	recomputeSpectraHistograms();
 }
 
-void dlg_XRF::spectraOpacityThresholdChanged( int newVal )
+void dlg_XRF::spectraOpacityThresholdChanged( int /*newVal*/ )
 {
 	sl_specHistOpacThreshold->repaint();
 	recomputeSpectraHistograms();
@@ -872,7 +872,7 @@ void dlg_XRF::OnSelectionUpdate(QVector<iASpectrumFilter> const & filter)
 	updateSelection();
 }
 
-void dlg_XRF::updateSelectionMode(int modeIdx)
+void dlg_XRF::updateSelectionMode(int /*modeIdx*/)
 {
 	updateSelection();
 }
@@ -1307,13 +1307,13 @@ void dlg_XRF::AddReferenceSpectrum(int modelIdx)
 		RemoveReferenceSpectrum(modelIdx);
 	}
 	QVector<float> const & energies = m_refSpectraLib->spectra[modelIdx].GetEnergyData();
-	QSharedPointer<iAMappingDiagramData> data(new iAMappingDiagramData(
+	QSharedPointer<iAMappingDiagramData> plotData(new iAMappingDiagramData(
 		&m_refSpectraLib->spectra[modelIdx].GetCountsData()[0],
 		energies.size(), energies[0], energies[energies.size()-1],
 		m_xrfData->size(), m_xrfData->GetMinEnergy(), m_xrfData->GetMaxEnergy(),
 		m_accumulatedXRF->yBounds()[1]));
 	QColor color = m_refSpectraLib->getElementColor(modelIdx);
-	QSharedPointer<iAStepFunctionPlot> drawable(new iAStepFunctionPlot(data, color));
+	QSharedPointer<iAStepFunctionPlot> drawable(new iAStepFunctionPlot(plotData, color));
 	m_refSpectraDrawers.insert(modelIdx, drawable);
 	m_spectrumDiagram->addPlot(drawable);
 	m_spectrumDiagram->update();
@@ -1382,7 +1382,7 @@ void dlg_XRF::showPieGlyphsSettings(bool isChecked)
 		gb_pieGlyphsSettings->hide();
 }
 
-void dlg_XRF::updatePieGlyphParameters(int newVal)
+void dlg_XRF::updatePieGlyphParameters(int /*newVal*/)
 {
 	updatePieGlyphParamsInternal();
 	updateAllPieGlyphs();

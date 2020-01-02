@@ -146,7 +146,7 @@ namespace
 		iAImageGraph & imageGraph,
 		QSharedPointer<iAGraphWeights const> finalWeight,
 		QVector<double> const & vertexWeightSum,
-		int vertexCount,
+		iAVertexIndexType vertexCount,
 		bool noSameIndices = false)
 	{
 #ifdef USE_EIGEN
@@ -413,8 +413,12 @@ void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 	}
 	auto labelImg = CreateLabelImage(dim, spc, probImgs, labelCount);
 	addOutput(labelImg);
-	for (int i=0; i<labelCount; ++i)
+	setOutputName(0, "Label Image");
+	for (int i = 0; i < labelCount; ++i)
+	{
 		addOutput(probImgs[i]);
+		setOutputName(1+i, QString("Probability image label %1").arg(i));
+	}
 }
 
 
@@ -543,7 +547,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 	//}
 
 	IndexMap fullMap;
-	for(iAVertexIndexType vertexIdx=0, newIdx=0;
+	for(iAVertexIndexType vertexIdx=0;
 	vertexIdx < vertexCount; ++vertexIdx)
 	{
 		fullMap.insert(vertexIdx, vertexIdx);
@@ -611,8 +615,12 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 	// create labelled image (as value at k = arg l max(p_l^k) for each pixel k)
 	auto labelImg = CreateLabelImage(dim, spc, probImgs, labelCount);
 	addOutput(labelImg);
-	for (int i=0; i<labelCount; ++i)
+	setOutputName(0, "Label Image");
+	for (int i = 0; i < labelCount; ++i)
+	{
 		addOutput(probImgs[i]);
+		setOutputName(1 + i, QString("Probability image label %1").arg(i));
+	}
 }
 
 
@@ -626,7 +634,7 @@ iAMaximumDecisionRule::iAMaximumDecisionRule() :
 
 IAFILTER_CREATE(iAMaximumDecisionRule)
 
-void iAMaximumDecisionRule::performWork(QMap<QString, QVariant> const & parameters)
+void iAMaximumDecisionRule::performWork(QMap<QString, QVariant> const & /*parameters*/)
 {
 	if (input().size() <= 1)
 	{

@@ -149,7 +149,6 @@ QToolButton* iASpatialView::AddImage(QString const & caption, vtkImagePointer im
 	button->setAutoExclusive(false);
 	m_imageBar->layout()->addWidget(button);
 	connect(button, SIGNAL( clicked() ), this, SLOT( ImageButtonClicked() ) );
-	iAImageWidget* imgW = nullptr;
 	m_images.insert(newImgID, ImageData(caption, img));
 	button->setProperty("imageID", newImgID);
 	++newImgID;
@@ -222,7 +221,7 @@ void iASpatialView::StyleChanged()
 }
 
 
-void iASpatialView::SlicerModeButtonClicked(bool checked)
+void iASpatialView::SlicerModeButtonClicked(bool /*checked*/)
 {
 	int modeIdx = slicerModeButton.indexOf(qobject_cast<QToolButton*>(sender()));
 	if (m_curMode == modeIdx)

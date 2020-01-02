@@ -34,7 +34,6 @@
 #include <QApplication>
 #include <QGridLayout>
 #include <QStyle>
-#include <QTime>
 #include <QPushButton>
 #include <QStandardItemModel>
 #include <QtMath>

@@ -42,11 +42,10 @@
 const int VTKLabelType = VTK_UNSIGNED_CHAR;
 typedef unsigned char LabelType;
 
-/** Find a string in the given buffer and return a pointer
-to the contents directly behind the SearchString.
-If not found, return the buffer. A subsequent sscanf()
-will fail then, but at least we return a decent pointer.
-*/
+//! Find a string in the given buffer and return a pointer to the contents
+//! directly behind the SearchString.
+//! If not found, return the buffer. A subsequent sscanf()
+//! will fail then, but at least we return a decent pointer.
 const char* FindAndJump(const char* buffer, const char* SearchString)
 {
 	const char* FoundLoc = strstr(buffer, SearchString);
@@ -187,7 +186,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 			DEBUG_LOG(QString("Expected at least 6 tokens in lattice line, only found %1.").arg(latticeTokens.size()));
 		}
 		int pos = latticeTokens[5].indexOf(RLEMarker);
-		int latticeLength = latticeTokens[5].length();
+		//int latticeLength = latticeTokens[5].length();
 		int sizePos = pos + RLEMarker.length() + 1;
 		int sizeLen = latticeTokens[5].length() - pos - RLEMarker.length() - 2;
 		QString dataLenStr = latticeTokens[5].mid(sizePos, sizeLen);
@@ -364,8 +363,6 @@ void iAAmiraMeshIO::Write(QString const & filename, vtkImageData* img)
 	stream << "# Data section follows\n";
 	stream << "@1\n";
 	stream.flush();
-
-	const char* data = static_cast<const char*>(img->GetScalarPointer());
 
 	int dataTypeSize = 0;
 	switch(vtkType)

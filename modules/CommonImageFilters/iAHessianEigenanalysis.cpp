@@ -36,7 +36,7 @@
 template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Vector<double, 3> VectorPixelType;
-	VectorPixelType eigenTempVector;
+	//VectorPixelType eigenTempVector;
 	typedef itk::Image< T, 3 > InputImageType;
 	typedef	itk::HessianRecursiveGaussianImageFilter<InputImageType >	HessianFilterType;
 	typedef	typename HessianFilterType::OutputImageType	HessianImageType;
@@ -62,7 +62,7 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 	auto eigenFilter = EigenAnalysisFilterType::New();
 	eigenFilter->SetDimension( HessianPixelType::Dimension );
 	eigenFilter->SetInput( hessianFilter->GetOutput() );
-	auto hessianImage = hessianFilter->GetOutput();
+	//auto hessianImage = hessianFilter->GetOutput();
 	eigenFilter->OrderEigenValuesBy( EigenAnalysisFilterType::FunctorType::OrderByValue );
 
 	// Eigen analysis

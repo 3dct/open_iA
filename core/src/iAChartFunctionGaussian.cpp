@@ -195,7 +195,7 @@ void iAChartFunctionGaussian::moveSelectedPoint(int x, int y)
 void iAChartFunctionGaussian::reset()
 {}
 
-int iAChartFunctionGaussian::numPoints() const
+size_t iAChartFunctionGaussian::numPoints() const
 {
 	return 3;
 }

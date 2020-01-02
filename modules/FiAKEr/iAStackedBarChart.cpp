@@ -107,7 +107,7 @@ void iAStackedBarChart::switchStackMode()
 	emit switchedStackMode(sender->isChecked());
 }
 
-void iAStackedBarChart::paintEvent(QPaintEvent* ev)
+void iAStackedBarChart::paintEvent(QPaintEvent* /*ev*/)
 {
 	m_dividers.clear();
 	QPainter painter(this);
@@ -223,7 +223,7 @@ void iAStackedBarChart::mousePressEvent(QMouseEvent* ev)
 	}
 }
 
-void iAStackedBarChart::mouseReleaseEvent(QMouseEvent* ev)
+void iAStackedBarChart::mouseReleaseEvent(QMouseEvent* /*ev*/)
 {
 	if (m_resizeBar != -1)
 	{

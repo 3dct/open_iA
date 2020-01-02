@@ -114,7 +114,6 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		return;
 	}
 	QString batchDir = parameters["Image folder"].toString();
-	iAConnector* con = new iAConnector();
 	QVector<iAConnector*> inputImages;
 	QStringList additionalInput = splitPossiblyQuotedString(parameters["Additional Input"].toString());
 	for (QString fileName : additionalInput)

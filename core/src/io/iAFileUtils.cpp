@@ -42,15 +42,10 @@ QString MakeAbsolute(QString const & baseDir, QString const & fileName)
 	return dir.absoluteFilePath(fileName);
 }
 
-QString MakeRelative(QString const & baseDir,  QString const & fileName)
+QString MakeRelative(QString const & baseDir, QString const & fileName)
 {
 	QDir dir(baseDir);
-	return  dir.relativeFilePath(fileName);
-	if (fileName.startsWith(baseDir))
-	{                                                               // for '/'
-		return fileName.right(fileName.length() - baseDir.length() - 1);
-	}
-	return fileName;
+	return dir.relativeFilePath(fileName);
 }
 
 void FindFiles(QString const & directory, QStringList const & nameFilters, bool recurse,

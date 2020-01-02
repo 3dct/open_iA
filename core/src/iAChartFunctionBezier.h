@@ -31,10 +31,9 @@ class QPointF;
 
 class open_iA_Core_API iAChartFunctionBezier : public iAChartFunction
 {
-	QColor color;
+	QColor m_color;
 
-	unsigned int selectedPoint;
-	bool   active;
+	int m_selectedPoint;
 	double controlDist;
 	double length;
 	double oppositeLength;
@@ -46,10 +45,10 @@ public:
 
 	int getType() override { return BEZIER; }
 	void draw(QPainter &painter) override;
-	void draw(QPainter &painter, QColor color, int lineWidth) override;
+	void draw(QPainter &painter, QColor penColor, int lineWidth) override;
 	void drawOnTop(QPainter&) override {}
 	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
-	int getSelectedPoint() override { return selectedPoint; }
+	int getSelectedPoint() override { return m_selectedPoint; }
 	int addPoint(int x, int y) override;
 	void addColorPoint(int, double, double, double) override {}
 	void removePoint(int index) override;
@@ -59,7 +58,7 @@ public:
 	bool isEndPoint(int index) override;
 	bool isDeletable(int index) override;
 	void reset() override;
-	int numPoints() const override;
+	size_t numPoints() const override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
 
 	void push_back(double x, double y);

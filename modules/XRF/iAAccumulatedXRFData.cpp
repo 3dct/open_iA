@@ -168,10 +168,10 @@ void iAAccumulatedXRFData::calculateStatistics()
 		vtkSmartPointer<vtkImageData> img1 = *it;
 		// just checks: begin
 		assert (img1->GetNumberOfScalarComponents() == 1);
-		int extent[6];
-		img1->GetExtent(extent);
-		double * range = img1->GetScalarRange();
-		assert( ((extent[1]-extent[0]+1) * (extent[3]-extent[2]+1) * (extent[5]-extent[4]+1)) == count );
+		int extentImg1[6];
+		img1->GetExtent(extentImg1);
+		//double * range = img1->GetScalarRange();
+		assert( ((extentImg1[1]- extentImg1[0]+1) * (extentImg1[3]- extentImg1[2]+1) * (extentImg1[5]- extentImg1[4]+1)) == count );
 		// end checks
 		int type = img1->GetScalarType();
 		double avg = 0.0;
@@ -215,7 +215,7 @@ void iAAccumulatedXRFData::createSpectrumFunctions()
 			}
 		}
 	}
-	size_t numSpectra = (extent[1] - extent[0] + 1) * (extent[3] - extent[2] + 1) * (extent[5] - extent[4] + 1);
+	//size_t numSpectra = (extent[1] - extent[0] + 1) * (extent[3] - extent[2] + 1) * (extent[5] - extent[4] + 1);
 }
 
 std::vector<iAFunction<size_t, unsigned int> *> const & iAAccumulatedXRFData::spectrumFunctions()

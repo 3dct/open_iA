@@ -151,7 +151,7 @@ QThread* iAXRFAttachment::recalculateXRF()
 	return dlgXRF->UpdateForVisualization();
 }
 
-void iAXRFAttachment::updateXRFVoxelEnergy( int x, int y, int z, int mode )
+void iAXRFAttachment::updateXRFVoxelEnergy( int x, int y, int z, int /*mode*/ )
 {
 	if( !dlgXRF )
 	{
@@ -251,7 +251,7 @@ void iAXRFAttachment::updateSlicerXRFOpacity()
 	m_child->updateChannelOpacity(m_xrfChannelID, opacity );
 }
 
-void iAXRFAttachment::updateXRFOpacity( int value )
+void iAXRFAttachment::updateXRFOpacity( int /*value*/ )
 {
 	iAChannelData * data = m_child->channelData(m_xrfChannelID);
 	if( data && data->isEnabled() )
@@ -317,7 +317,7 @@ void iAXRFAttachment::updateXRF()
 	connect( calcThread, &QThread::finished, calcThread, &QThread::deleteLater);
 }
 
-void iAXRFAttachment::magicLensToggled( bool isOn )
+void iAXRFAttachment::magicLensToggled( bool /*isOn*/ )
 {
 	if( dlgXRF && !m_child->channelData(m_xrfChannelID) )
 	{

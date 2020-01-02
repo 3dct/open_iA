@@ -754,7 +754,7 @@ void dlg_eventExplorer::updateOpacityGrid(int v)
 	}
 }
 
-void dlg_eventExplorer::updateCheckBoxCreation(int c)
+void dlg_eventExplorer::updateCheckBoxCreation(int /*c*/)
 {
 	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
@@ -804,7 +804,7 @@ void dlg_eventExplorer::updateCheckBoxCreation(int c)
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
-void dlg_eventExplorer::updateCheckBoxContinuation(int c)
+void dlg_eventExplorer::updateCheckBoxContinuation(int /*c*/)
 {
 	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
@@ -852,7 +852,7 @@ void dlg_eventExplorer::updateCheckBoxContinuation(int c)
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
-void dlg_eventExplorer::updateCheckBoxSplit(int c)
+void dlg_eventExplorer::updateCheckBoxSplit(int /*c*/)
 {
 	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
@@ -900,7 +900,7 @@ void dlg_eventExplorer::updateCheckBoxSplit(int c)
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
-void dlg_eventExplorer::updateCheckBoxMerge(int c)
+void dlg_eventExplorer::updateCheckBoxMerge(int /*c*/)
 {
 	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
@@ -948,7 +948,7 @@ void dlg_eventExplorer::updateCheckBoxMerge(int c)
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
-void dlg_eventExplorer::updateCheckBoxDissipation(int c)
+void dlg_eventExplorer::updateCheckBoxDissipation(int /*c*/)
 {
 	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
@@ -996,7 +996,7 @@ void dlg_eventExplorer::updateCheckBoxDissipation(int c)
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
-void dlg_eventExplorer::updateCheckBoxLogX(int c)
+void dlg_eventExplorer::updateCheckBoxLogX(int /*c*/)
 {
 	if (!logXCheckBox->isChecked())
 	{
@@ -1014,7 +1014,7 @@ void dlg_eventExplorer::updateCheckBoxLogX(int c)
 	}
 }
 
-void dlg_eventExplorer::updateCheckBoxLogY(int c)
+void dlg_eventExplorer::updateCheckBoxLogY(int /*c*/)
 {
 	if (!logYCheckBox->isChecked())
 	{
@@ -1146,7 +1146,7 @@ void dlg_eventExplorer::comboBoxYSelectionChanged(int s)
 	}
 }
 
-void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
+void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * /*obj*/)
 {
 	//clear graph TODO
 	m_graph = vtkMutableDirectedGraph::New();
@@ -1318,7 +1318,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 		if (layer > 0)
 		{
 			iAFeatureTracking *ftB = m_trackedFeaturesBackwards.at(layer);
-			iAFeatureTracking *ftF = m_trackedFeaturesForwards.at(layer - 1);
+			//iAFeatureTracking *ftF = m_trackedFeaturesForwards.at(layer - 1);
 			int newVertexId;
 
 			std::vector<iAFeatureTrackingCorrespondence> correspondences;
@@ -1387,7 +1387,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 		// search forwards
 		if (layer < m_numberOfCharts - 1)
 		{
-			iAFeatureTracking *ftB = m_trackedFeaturesBackwards.at(layer + 1);
+			//iAFeatureTracking *ftB = m_trackedFeaturesBackwards.at(layer + 1);
 			iAFeatureTracking *ftF = m_trackedFeaturesForwards.at(layer + 1);
 			int newVertexId;
 

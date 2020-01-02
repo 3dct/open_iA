@@ -57,26 +57,26 @@ template<typename T> void resampler(iAFilter* filter, QMap<QString, QVariant> co
 	spacing[0] = parameters["Spacing X"].toDouble(); spacing[1] = parameters["Spacing Y"].toDouble(); spacing[2] = parameters["Spacing Z"].toDouble();
 	typename ResampleFilterType::SizeType size;
 	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
-	QString interpolator = parameters["Interpolator"].toString();
-	if (interpolator == InterpLinear)
+	QString interpolatorName = parameters["Interpolator"].toString();
+	if (interpolatorName == InterpLinear)
 	{
 		typedef itk::LinearInterpolateImageFunction<InputImageType, double> InterpolatorType;
 		auto interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
-	else if (interpolator == InterpNearestNeighbour)
+	else if (interpolatorName == InterpNearestNeighbour)
 	{
 		typedef itk::NearestNeighborInterpolateImageFunction<InputImageType, double> InterpolatorType;
 		auto interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
-	else if (interpolator == InterpBSpline)
+	else if (interpolatorName == InterpBSpline)
 	{
 		typedef itk::BSplineInterpolateImageFunction<InputImageType, double> InterpolatorType;
 		auto interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
-	else if (interpolator == InterpWindowedSinc)
+	else if (interpolatorName == InterpWindowedSinc)
 	{
 		typedef itk::Function::HammingWindowFunction<3> WindowFunctionType;
 		typedef itk::ZeroFluxNeumannBoundaryCondition<InputImageType> ConditionType;
@@ -202,11 +202,11 @@ QMap<QString, QVariant> iAExtractImageFilterRunner::loadParameters(QSharedPointe
 {
 	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
 	int const * dim = sourceMdi->imagePointer()->GetDimensions();
-	if (params["Index X"].toUInt() >= dim[0])
+	if (params["Index X"].toUInt() >= static_cast<unsigned int>(dim[0]))
 		params["Index X"] = 0;
-	if (params["Index Y"].toUInt() >= dim[1])
+	if (params["Index Y"].toUInt() >= static_cast<unsigned int>(dim[1]))
 		params["Index Y"] = 0;
-	if (params["Index Z"].toUInt() >= dim[2])
+	if (params["Index Z"].toUInt() >= static_cast<unsigned int>(dim[2]))
 		params["Index Z"] = 0;
 	params["Size X"] = std::min(params["Size X"].toUInt(), dim[0] - params["Index X"].toUInt());
 	params["Size Y"] = std::min(params["Size Y"].toUInt(), dim[1] - params["Index Y"].toUInt());

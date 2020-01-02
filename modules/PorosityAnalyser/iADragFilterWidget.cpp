@@ -22,8 +22,9 @@
 
 #include "PorosityAnalyserHelpers.h"
 
-#include <QtWidgets>
 #include <QStringList>
+#include <QtGlobal> // for QT_VERSION
+#include <QtWidgets>
 
 const QStringList customMimeType = QStringList()\
 << "application/x-dnditemdatafilter"\
@@ -504,7 +505,7 @@ QPixmap iADragFilterWidget::mergeOnTop( const QPixmap& pix, QString txt )
 	txt.truncate( 7 );
 	txt.append( "..." );
 	QPainter p;
-#if QT_VERSION >= 0x050B00
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 	int strWidth = p.fontMetrics().horizontalAdvance( txt );
 #else
 	int strWidth = p.fontMetrics().width( txt );

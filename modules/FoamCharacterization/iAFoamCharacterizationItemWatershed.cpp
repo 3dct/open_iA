@@ -33,8 +33,8 @@
 #include <vtkImageData.h>
 
 #include <QApplication>
+#include <QElapsedTimer>
 #include <QFile>
-#include <QTime>
 
 iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed
 																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
@@ -65,7 +65,7 @@ void iAFoamCharacterizationItemWatershed::execute()
 {
 	setExecuting(true);
 
-	QTime t;
+	QElapsedTimer t;
 	t.start();
 
 	QScopedPointer<iAConnector> pConnector(new iAConnector());

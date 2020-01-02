@@ -77,9 +77,9 @@ void iA4DCTFractureVisDockWidget::onColorizeButtonClicked( )
 	emit updateRenderWindow( );
 }
 
-void iA4DCTFractureVisDockWidget::setData( iA4DCTData * data )
+void iA4DCTFractureVisDockWidget::setData( iA4DCTData * newData )
 {
-	m_data = data;
+	m_data = newData;
 }
 
 void iA4DCTFractureVisDockWidget::onLowIntensityColorChanged( const QColor & color )

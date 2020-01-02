@@ -233,7 +233,7 @@ void iAImageTreeInternalNode::GetExampleImages(QVector<iAImageTreeLeaf *> & resu
 			if (curAmount == 0)
 				continue;
 			GetChild(i)->GetExampleImages(result, curAmount);
-			int imagesReturned = result.size() - sizeBefore;
+			//int imagesReturned = result.size() - sizeBefore;
 			amountLeft -= curAmount;
 		}
 	}
@@ -325,7 +325,7 @@ ClusterIDType iAImageTreeInternalNode::GetID() const
 }
 
 
-double iAImageTreeInternalNode::GetAttribute(int id) const
+double iAImageTreeInternalNode::GetAttribute(int /*id*/) const
 {
 	assert(false);
 	return 0.0;

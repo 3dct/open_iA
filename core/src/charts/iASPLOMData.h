@@ -37,9 +37,9 @@ class open_iA_Core_API iASPLOMData: public QObject
 	Q_OBJECT
 public:
 	iASPLOMData();
-	explicit iASPLOMData(const QTableWidget * tw);    //!< Create data from a QTableWidget
+	explicit iASPLOMData(const QTableWidget * tw);    //!< Create data from a QTableWidget. @deprecated should be removed, will be replaced by a utility function that does this (to remove direct dependency on QTableWidget here)
 	void clear();                                     //!< Free all the data.
-	void import(const QTableWidget * tw);             //!< Imports data from a QTableWidget and stores it in a list of double-lists.
+	void import(const QTableWidget * tw);             //!< Imports data from a QTableWidget and stores it in a list of double-lists. @deprecated should be removed  (to remove direct dependency on QTableWidget here), see constructor.
 	std::vector<std::vector<double>> & data();        //!< Get the table values
 	std::vector<QString> & paramNames();              //!< Get the names of the columns/parameters
 	const std::vector<std::vector<double>> & data() const; //!< Get constant ref. to the lists containing raw data points.

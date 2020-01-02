@@ -24,13 +24,7 @@
 
 #include <QStandardItemModel>
 
-/**
- * \class	iAReferenceSpectraLibrary
- *
- * \brief	Loads the reference spectra library from the .reflib file
- *
- */
-
+//! Loads the reference spectra library from the .reflib file
 class iAReferenceSpectraLibrary
 {
 public:

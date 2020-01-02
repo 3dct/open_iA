@@ -176,7 +176,7 @@ private:
 	QList<QStandardItem *> prepareRow(const QString &first, const QString &second, const QString &third);
 	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item);
 	void writeWisetex(QXmlStreamWriter *writer);
-	void autoAddClass(int NbOfClasses);
+	//void autoAddClass(int NbOfClasses);
 	bool OpenBlobVisDialog();
 	//! @{ 3D-rendering-related methods:
 	void SingleRendering(int idx = -10000);               //!< render a single fiber or a single class

@@ -159,7 +159,7 @@ void
 KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
                                           TCentroidValuePrecision >
 ::ThreadedGenerateData( const OutputImageRegionType& outputRegionForThread,
-                        ThreadIdType threadId )
+                        ThreadIdType /*threadId*/ )
 {
   itkDebugMacro("Starting ThreadedGenerateData()");
 

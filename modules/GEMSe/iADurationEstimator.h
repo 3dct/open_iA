@@ -20,18 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
+//! Interface for operations providing elapsed time and estimated remaining duration.
 class iADurationEstimator
 {
 public:
-	/**
-	* returns the time that has elapsed since start of the operation
-	* @return elapsed time in seconds
-	*/
+	//! Get the time that has elapsed since start of the operation.
+	//! @return elapsed time in seconds
 	virtual double elapsed() const =0;
-	/**
-	* returns the estimated, still required time to finish the operation
-	* @return the estimated remaining time in seconds
-	*         -1 if remaining time still unknown
-	*/
+	//! Get the estimated, still required time to finish the operation.
+	//! @return the estimated remaining time in seconds
+	//!         -1 if remaining time still unknown
 	virtual double estimatedTimeRemaining() const =0;
 };

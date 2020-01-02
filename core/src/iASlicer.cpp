@@ -48,7 +48,6 @@
 #include "mdichild.h"
 
 #include <vtkActor.h>
-//#include <vtkAlgorithmOutput.h>
 #include <vtkAxisActor2D.h>
 #include <vtkCamera.h>
 #include <vtkCommand.h>
@@ -66,7 +65,6 @@
 #include <vtkImageResample.h>
 #include <vtkImageReslice.h>
 #include <vtkInteractorStyleImage.h>
-//#include <vtkInteractorStyleTrackballActor.h>
 #include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
@@ -104,6 +102,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QString>
+#include <QtGlobal> // for QT_VERSION
 
 #include <cassert>
 
@@ -135,7 +134,6 @@ public:
 		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey()) {
 			return;
 		}
-
 		vtkInteractorStyleImage::OnMouseWheelBackward();
 	}
 	//! @}
@@ -168,13 +166,8 @@ public:
 	}
 	*/
 
-	void setiAslicer(iASlicer * pointerAiSlicer) {
-		m_pointerAiSlicer = pointerAiSlicer;
-	}
-
 private:
 	bool m_rightButtonDragZoomEnabled = true;
-	iASlicer * m_pointerAiSlicer;
 };
 
 vtkStandardNewMacro(iAInteractorStyleImage);
@@ -248,9 +241,6 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_interactor->SetPicker(m_pointPicker);
 	m_interactor->Initialize();
 	m_interactorStyle->SetDefaultRenderer(m_ren);
-
-	// Set Slicer for scrolling with Mousewheel 
-	m_interactorStyle->setiAslicer(this);
 
 	iAObserverRedirect* redirect(new iAObserverRedirect(this));
 	m_interactor->AddObserver(vtkCommand::LeftButtonPressEvent, redirect);
@@ -634,12 +624,12 @@ void iASlicer::setMagicLensInput(uint id)
 		DEBUG_LOG("SetMagicLensInput called on slicer which doesn't have a magic lens!");
 		return;
 	}
-	iAChannelSlicerData * data = channel(id);
-	assert(data);
-	if (!data)
+	iAChannelSlicerData * d = channel(id);
+	assert(d);
+	if (!d)
 		return;
 	m_magicLensInput = id;
-	m_magicLens->addInput(data->reslicer(), data->colorTF(), data->name());
+	m_magicLens->addInput(d->reslicer(), d->colorTF(), d->name());
 	update();
 }
 
@@ -756,7 +746,7 @@ void iASlicer::removeImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 	m_ren->RemoveActor(imgActor);
 }
 
-void iASlicer::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
+void iASlicer::blend(vtkAlgorithmOutput *data1, vtkAlgorithmOutput *data2,
 	double opacity, double * range)
 {
 	if (!hasChannel(0))
@@ -772,7 +762,7 @@ void iASlicer::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
 	vtkSmartPointer<vtkImageBlend> imgBlender = vtkSmartPointer<vtkImageBlend>::New();
 	imgBlender->SetOpacity( 0, opacity );
 	imgBlender->SetOpacity( 1, 1.0-opacity );
-	imgBlender->AddInputConnection(data);
+	imgBlender->AddInputConnection(data1);
 	imgBlender->AddInputConnection(data2);
 	imgBlender->UpdateInformation();
 	imgBlender->Update();
@@ -1278,7 +1268,7 @@ namespace
 }
 
 // Qt versions before 5.10 don't have these operators yet:
-#if QT_VERSION < 0x050A00
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
 bool operator==(QCursor const & a, QCursor const & b)
 {
 	if (a.shape() != Qt::BitmapCursor)
@@ -1347,8 +1337,8 @@ void iASlicer::printVoxelInformation()
 
 			double * const tmpSpacing = tmpChild->imagePointer()->GetSpacing();
 			int tmpCoord[3];
-			for (int i = 0; i < 3; ++i)
-				tmpCoord[i] = static_cast<int>(m_globalPt[0] / tmpSpacing[0]);
+			for (int c = 0; c < 3; ++c)
+				tmpCoord[c] = static_cast<int>(m_globalPt[c] / tmpSpacing[c]);
 			int slicerXAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::X),
 				slicerYAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y),
 				slicerZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
@@ -1997,7 +1987,7 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	// only do something in spline drawing mode and if a point is selected
-	if (m_decorations && m_interactionMode == SnakeEdit && m_snakeSpline->selectedPointIndex() != -1)
+	if (m_decorations && m_interactionMode == SnakeEdit && m_snakeSpline->selectedPointIndex() != iASnakeSpline::NoPointSelected)
 	{
 		// Move world and slice view points
 		double const * point = m_worldSnakePoints->GetPoint(m_snakeSpline->selectedPointIndex());
@@ -2144,7 +2134,7 @@ void iASlicer::movePoint(size_t selectedPointIndex, double xPos, double yPos, do
 	double y = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
 
 	// move only if a point is selected
-	if (selectedPointIndex != -1)
+	if (selectedPointIndex != iASnakeSpline::NoPointSelected)
 	{
 		// move only if a point is selected
 		m_snakeSpline->movePoint(selectedPointIndex, x, y);

@@ -76,8 +76,7 @@
 #include <QDateTime>
 #include <QImage>
 #include <QLocale>
-#include <QApplication>
-#include <QImage>
+#include <QtGlobal> // for QT_VERSION
 
 #define VTKISRBP_ORIENT 0
 #define VTKISRBP_SELECT 1
@@ -127,7 +126,7 @@ public:
 };
 vtkStandardNewMacro(iAMouseInteractorStyle);
 
-void KeyPressCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
+void KeyPressCallbackFunction(vtkObject* /*caller*/, long unsigned int /*eventId*/,
 	void* clientData, void* vtkNotUsed(callData))
 {
 	iARenderer *ren = static_cast<iARenderer*>(clientData);
@@ -216,7 +215,6 @@ void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double 
 	double pcoords[DIM] = { 0,0,0 };
 	double *weights = new double[data->GetMaxCellSize()];
 	vtkCell* cell = data->GetCell(cellId);
-	int np = cell->GetPoints()->GetNumberOfPoints();
 	int subId = cell->GetParametricCenter(pcoords);
 	cell->EvaluateLocation(subId, pcoords, center, weights);
 	for (int i = 0; i < DIM; ++i)
@@ -264,7 +262,7 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 {
 	m_ren->SetLayer(0);
 	m_ren->UseDepthPeelingOn();
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
 	m_ren->UseDepthPeelingForVolumesOn();
 #endif
 	m_labelRen->SetLayer(1);

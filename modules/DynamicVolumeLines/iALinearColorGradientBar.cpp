@@ -79,7 +79,7 @@ bool iALinearColorGradientBar::event(QEvent *event)
 	return QWidget::event(event);
 }
 
-void iALinearColorGradientBar::mouseDoubleClickEvent(QMouseEvent * event)
+void iALinearColorGradientBar::mouseDoubleClickEvent(QMouseEvent * /*event*/)
 {
 	if (!m_modifiable)
 		return;

@@ -66,7 +66,7 @@ void iAPeriodicTableWidget::drawElement(QPainter& painter, QPoint const & upperL
 
 	QFont myFont;
 	QFontMetrics fm(myFont);
-#if QT_VERSION >= 0x050B00
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 	int textWidth  = fm.horizontalAdvance(PeriodicTable::elements[elemIdx].shortname.c_str());
 #else
 	int textWidth = fm.width(PeriodicTable::elements[elemIdx].shortname.c_str());

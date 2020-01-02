@@ -21,6 +21,7 @@
 #include "iACastImageFilter.h"
 
 #include <defines.h>          // for DIM
+#include <iAColorTheme.h>
 #include <iAConnector.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>    // for castImageTo
@@ -36,6 +37,7 @@
 #include <itkRGBAPixel.h>
 #include <itkStatisticsImageFilter.h>
 
+#include <QStringList>
 
 template <class InT, class OutT> void castImage(iAFilter* filter)
 {
@@ -132,55 +134,11 @@ void dataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parame
 	}
 }
 
-template<class T>
-void convertToRGB(iAFilter * filter)
-{
-	iAITKIO::ImagePointer input = filter->input()[0]->itkImage();
-	if (filter->inputPixelType() != itk::ImageIOBase::ULONG)
-		input = castImageTo<unsigned long>(input);
-
-	typedef itk::Image< unsigned long, DIM > LongImageType;
-	typedef itk::RGBPixel< unsigned char > RGBPixelType;
-	typedef itk::Image< RGBPixelType, DIM > RGBImageType;
-	typedef itk::RGBAPixel< unsigned char > RGBAPixelType;
-	typedef itk::Image< RGBAPixelType, DIM>  RGBAImageType;
-
-	typedef itk::LabelToRGBImageFilter<LongImageType, RGBImageType> RGBFilterType;
-	RGBFilterType::Pointer labelToRGBFilter = RGBFilterType::New();
-	labelToRGBFilter->SetInput(dynamic_cast<LongImageType *>(input.GetPointer()));
-	labelToRGBFilter->Update();
-
-	RGBImageType::RegionType region;
-	region.SetSize(labelToRGBFilter->GetOutput()->GetLargestPossibleRegion().GetSize());
-	region.SetIndex(labelToRGBFilter->GetOutput()->GetLargestPossibleRegion().GetIndex());
-
-	RGBAImageType::Pointer rgbaImage = RGBAImageType::New();
-	rgbaImage->SetRegions(region);
-	rgbaImage->SetSpacing(labelToRGBFilter->GetOutput()->GetSpacing());
-	rgbaImage->Allocate();
-
-	itk::ImageRegionConstIterator< RGBImageType > cit(labelToRGBFilter->GetOutput(), region);
-	itk::ImageRegionIterator< RGBAImageType >     it(rgbaImage, region);
-	for (cit.GoToBegin(), it.GoToBegin(); !it.IsAtEnd(); ++cit, ++it)
-	{
-		//the following 3 lines are probably not necessary
-		it.Value().SetRed(cit.Value().GetRed());
-		it.Value().SetBlue(cit.Value().GetBlue());
-		it.Value().SetGreen(cit.Value().GetGreen());
-		it.Value().SetAlpha(255);
-	}
-	filter->addOutput(rgbaImage);
-}
-
 IAFILTER_CREATE(iACastImageFilter)
 
 void iACastImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	if (parameters["Data Type"].toString() == "Label image to color-coded RGBA image")
-	{
-		ITK_TYPED_CALL(convertToRGB, inputPixelType(), this);
-	}
-	else if (parameters["Rescale Range"].toBool())
+	if (parameters["Rescale Range"].toBool())
 	{
 		ITK_TYPED_CALL(dataTypeConversion, inputPixelType(), this, parameters);
 	}
@@ -208,7 +166,6 @@ iACastImageFilter::iACastImageFilter() :
 		"Rescale Image Filter</a> in the ITK documentation.")
 {
 	QStringList datatypes = readableDataTypeList(false);
-	datatypes << ("Label image to color-coded RGBA image");
 	addParameter("Data Type", Categorical, datatypes);
 	addParameter("Rescale Range", Boolean, false);
 	addParameter("Automatic Input Range", Boolean, false);
@@ -217,4 +174,106 @@ iACastImageFilter::iACastImageFilter() :
 	addParameter("Use Full Output Range", Boolean, true);
 	addParameter("Output Min", Continuous, 0);
 	addParameter("Output Max", Continuous, 1);
+}
+
+
+
+template<class T>
+void convertToRGB(iAFilter * filter, QMap<QString, QVariant> const & params)
+{
+	iAITKIO::ImagePointer input = filter->input()[0]->itkImage();
+	if (filter->inputPixelType() != itk::ImageIOBase::ULONG)
+		input = castImageTo<unsigned long>(input);
+
+	typedef itk::Image< unsigned long, DIM > LongImageType;
+	typedef itk::RGBPixel< unsigned char > RGBPixelType;
+	typedef itk::Image< RGBPixelType, DIM > RGBImageType;
+	typedef itk::RGBAPixel< unsigned char > RGBAPixelType;
+	typedef itk::Image< RGBAPixelType, DIM>  RGBAImageType;
+
+	typedef itk::LabelToRGBImageFilter<LongImageType, RGBImageType> RGBFilterType;
+	RGBFilterType::Pointer labelToRGBFilter = RGBFilterType::New();
+	labelToRGBFilter->SetInput(dynamic_cast<LongImageType *>(input.GetPointer()));
+	RGBPixelType bgPixel;
+	QColor bgColor(params["Background color"].toString());
+	bgPixel[0] = bgColor.red();
+	bgPixel[1] = bgColor.green();
+	bgPixel[2] = bgColor.blue();
+	labelToRGBFilter->SetBackgroundColor(bgPixel);
+	labelToRGBFilter->SetBackgroundValue(params["Background value"].toUInt());
+	if (params["Color scheme"].toString() != "Default")
+	{
+		iAColorTheme const * theme = iAColorThemeManager::instance().theme(params["Color scheme"].toString());
+		labelToRGBFilter->ResetColors();
+		for (int c = 0; c < theme->size(); ++c)
+		{
+			labelToRGBFilter->AddColor(theme->color(c).red(), theme->color(c).green(), theme->color(c).blue());
+		}
+	}
+	labelToRGBFilter->Update();
+
+	RGBImageType::RegionType region;
+	region.SetSize(labelToRGBFilter->GetOutput()->GetLargestPossibleRegion().GetSize());
+	region.SetIndex(labelToRGBFilter->GetOutput()->GetLargestPossibleRegion().GetIndex());
+
+	RGBAImageType::Pointer rgbaImage = RGBAImageType::New();
+	rgbaImage->SetRegions(region);
+	rgbaImage->SetSpacing(labelToRGBFilter->GetOutput()->GetSpacing());
+	rgbaImage->Allocate();
+
+	auto rgbImage = labelToRGBFilter->GetOutput();
+#if ITK_VERSION_MAJOR >= 5
+	itk::MultiThreaderBase::Pointer mt = itk::MultiThreaderBase::New();
+	mt->ParallelizeImageRegion<3>(
+		rgbImage->GetBufferedRegion(),
+		[rgbImage, rgbaImage, &params](const RGBImageType::RegionType & region)
+	{
+#endif
+		itk::ImageRegionConstIterator<RGBImageType> iIt(rgbImage,  region);
+		itk::ImageRegionIterator<RGBAImageType>     oIt(rgbaImage, region);
+		for (; !iIt.IsAtEnd(); ++iIt, ++oIt)
+		{
+			oIt.Value().SetRed  (iIt.Value().GetRed());
+			oIt.Value().SetBlue (iIt.Value().GetBlue());
+			oIt.Value().SetGreen(iIt.Value().GetGreen());
+			unsigned char alpha = (iIt.Value() == params["Background value"].toUInt()) ?
+				params["Background opacity"].toUInt() : params["Object opacity"].toUInt();
+			oIt.Value().SetAlpha(alpha);
+		}
+#if ITK_VERSION_MAJOR >= 5
+	}, nullptr);
+#endif
+	filter->addOutput(rgbaImage);
+}
+
+iAConvertToRGBAFilter::iAConvertToRGBAFilter() :
+	iAFilter("Label image to color-coded RGBA image", "",
+		"Converts a labeled image (i.e. an image where all voxels of an object "
+		"have the object ID as value) to an RGBA image.<br/>"
+		"Each separately labeled component gets assigned a color from the chosen color lookup table. "
+		"<em>Background value</em> specifies the label assigned to background voxels (default: 0). "
+		"<em>Background value</em> specifies the color assigned to voxels with the  background value. "
+		"With <em>Background opacity</em> and <em>Object opacity</em> you can determine the opacity of background and objects; "
+		"e.g. set them to 0 and 255 respectively to make the background transparent and objects fully opaque. "
+		"<em>Color scheme</em> determines the list of colors that are used for the objects. "
+		"If there are more objects than there are colors in the scheme, multiple objects will be assigned the same color. "
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/itkLabelToRGBImageFilter_8h_source.html\">"
+		"Label To RGB Image Filter</a> in the ITK documentation.")
+{
+	QStringList colorSchemes;
+	colorSchemes << "Default";
+	colorSchemes.append(iAColorThemeManager::instance().availableThemes());
+	addParameter("Background color", Color, "#000000");
+	addParameter("Background value", Discrete, 0);
+	addParameter("Background opacity", Discrete, 0, 0, 255);
+	addParameter("Object opacity", Discrete, 255, 0, 255);
+	addParameter("Color scheme", Categorical, colorSchemes);
+}
+
+IAFILTER_CREATE(iAConvertToRGBAFilter)
+
+void iAConvertToRGBAFilter::performWork(QMap<QString, QVariant> const & params)
+{
+	ITK_TYPED_CALL(convertToRGB, inputPixelType(), this, params);
 }

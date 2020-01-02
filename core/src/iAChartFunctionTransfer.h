@@ -56,7 +56,7 @@ public:
 	bool isEndPoint(int index) override;
 	bool isDeletable(int index) override;
 	void reset() override;
-	int numPoints() const override;
+	size_t numPoints() const override;
 
 	vtkPiecewiseFunction* opacityTF() override { return m_opacityTF; }
 	vtkColorTransferFunction* colorTF() override { return m_colorTF; }

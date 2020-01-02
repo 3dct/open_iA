@@ -35,7 +35,7 @@ iAQtCaptionWidget::iAQtCaptionWidget(QWidget* parent, QString const & name):
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	setFixedHeight(m_height);
 }
-void iAQtCaptionWidget::paintEvent(QPaintEvent* ev)
+void iAQtCaptionWidget::paintEvent(QPaintEvent* /*ev*/)
 {
 	QPainter painter(this);
 	QRect r(geometry());

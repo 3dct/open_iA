@@ -93,7 +93,7 @@ bool stringToArray(QString const & str, T * arr, size_t size, QString const & se
 	for (size_t i = 0; i < size && i < list.size(); ++i)
 	{
 		bool ok;
-		arr[i] = iAConverter<T>::toT(list[i], &ok);
+		arr[i] = iAConverter<T>::toT(list[static_cast<int>(i)], &ok);
 		if (!ok)
 			return false;
 	}

@@ -39,6 +39,24 @@
 
 #include <vtkImageData.h>
 
+//! Custom image similarity metric - "equal pixel rate", i.e.
+//!     number of equal pixels / number of total pixels
+template<class ImageType>
+double computeEqualPixelRate(typename ImageType::Pointer img, typename ImageType::Pointer ref)
+{
+	typename ImageType::RegionType reg = ref->GetLargestPossibleRegion();
+	int size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
+	double sumEqual = 0.0f;
+#pragma omp parallel for reduction(+:sumEqual)
+	for (int i = 0; i < size; ++i)
+	{
+		if (img->GetBufferPointer()[i] != 0 &&
+			img->GetBufferPointer()[i] == ref->GetBufferPointer()[i])
+			++sumEqual;
+	}
+	return sumEqual / size;
+}
+
 template<class T>
 void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
@@ -57,9 +75,6 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 	auto interpolator = InterpolatorType::New();
 	interpolator->SetInputImage(img);
 	typename TransformType::ParametersType params(transform->GetNumberOfParameters());
-	filter->addMsg(QString("ROI[Origin_XYZ; SIZE_XYZ] = [%1, %2, %3; %4, %5, %6]")
-		.arg(index[0]).arg(index[1]).arg(index[2])
-		.arg(size[0]).arg(size[1]).arg(size[2]));
 	double range = 0, imgMean = 0, imgVar = 0, refMean = 0, refVar = 0, mse = 0;
 	if (parameters["Peak Signal-to-Noise Ratio"].toBool() ||
 		parameters["Structural Similarity Index"].toBool() ||
@@ -240,6 +255,10 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 			((imgMean * imgMean + refMean * refMean + c1) * (imgVar + refVar + c2));
 		filter->addOutputValue("Structural Similarity Index", ssim);
 	}
+	if (parameters["Equal pixel rate"].toBool())
+	{
+		filter->addOutputValue("Equal pixel rate", computeEqualPixelRate<ImageType>(img, ref));
+	}
 }
 
 iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
@@ -268,7 +287,8 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 	"The <em>Structural Similarity Index</em> Metric (SSIM) is a metric calculated from mean, variance and covariance "
 	"of the two compared images. For more details see e.g. the "
 	"<a href=\"https://en.wikipedia.org/wiki/Structural_similarity\">Structural Similarity index article in wikipedia</a>, "
-	"the two parameters k1 and k2 are used exactly as defined there.",
+	"the two parameters k1 and k2 are used exactly as defined there. "
+	"<em>Equal pixel rate</em> computes the ratio between voxels with same value and the total voxel count.",
 	2, 0)
 {
 	addParameter("Index X", Discrete, 0);
@@ -288,6 +308,7 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 	addParameter("Structural Similarity Index", Boolean, true);
 	addParameter("Structural Similarity k1", Continuous, 0.01);
 	addParameter("Structural Similarity k2", Continuous, 0.03);
+	addParameter("Equal pixel rate", Boolean, false);
 }
 
 IAFILTER_CREATE(iASimilarity)

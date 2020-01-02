@@ -65,7 +65,7 @@ vtkColor4ub iATrackingGraphItem::VertexColor(vtkIdType vertex)
 	return DEFAULT_COLOR;
 }
 
-float iATrackingGraphItem::VertexSize(vtkIdType vertex)
+float iATrackingGraphItem::VertexSize(vtkIdType /*vertex*/)
 {
 	return VERTEX_SIZE;
 }
@@ -117,7 +117,7 @@ bool iATrackingGraphItem::MouseButtonPressEvent(const vtkContextMouseEvent &even
 }
 
 //----------------------------------------------------------------------------
-bool iATrackingGraphItem::MouseMoveEvent(const vtkContextMouseEvent &event)
+bool iATrackingGraphItem::MouseMoveEvent(const vtkContextMouseEvent &/*event*/)
 {
 	/*this->Superclass::MouseButtonPressEvent(event);
 	focusedVertex = this->HitVertex(event.GetPos());

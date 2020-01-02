@@ -36,7 +36,7 @@
 #include <iAVtkWidget.h>
 #include <io/iAFileUtils.h>
 
-#include <itkMacro.h>
+#include <itkMacro.h>    // for itk::ExceptionObject
 
 #include <vtkActor.h>
 #include <vtkAppendPolyData.h>
@@ -74,7 +74,7 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTranslucentPass.h>
 
-#include <QTime>
+#include <QElapsedTimer>
 #include <QFileDialog>
 
 #define DEG_IN_PI  180
@@ -83,10 +83,10 @@
 std::vector<iAwald_tri> wald;
 std::vector<iABSPNode> nodes;
 
-//openMP
+// OpenMP
 #ifndef __APPLE__
 #ifndef __MACOSX
-	#include <omp.h>///TODO: gcc include omp //omp.h works with gcc 4.6
+	#include <omp.h>
 #endif
 #endif
 
@@ -564,10 +564,10 @@ void iADreamCaster::log(QString text, bool appendToPrev)
 
 void iADreamCaster::OpenModelSlot()
 {
-	QString res = QFileDialog::getOpenFileName();
-	if(res == "")
+	QString newModelFileName = QFileDialog::getOpenFileName();
+	if (newModelFileName.isEmpty())
 		return;
-	modelFileName = res;
+	modelFileName = newModelFileName;
 	log("Opening new model:");
 	log(modelFileName, true);
 	initRaycast();
@@ -594,10 +594,10 @@ void iADreamCaster::OpenModelSlot()
 
 void iADreamCaster::NewSetSlot()
 {
-	QString res = QFileDialog::getSaveFileName(nullptr, "Choose Set Filename", QFileInfo(setFileName).absolutePath());
-	if(res=="")
+	QString newSetFileName = QFileDialog::getSaveFileName(nullptr, "Choose Set Filename", QFileInfo(setFileName).absolutePath());
+	if (newSetFileName.isEmpty())
 		return;
-	setFileName = res;
+	setFileName = newSetFileName;
 	ui.l_setName->setText(setFileName);
 	log("Created new set:");
 	log(setFileName, true);
@@ -605,9 +605,9 @@ void iADreamCaster::NewSetSlot()
 
 void iADreamCaster::OpenSetSlot()
 {
-	QString res = QFileDialog::getOpenFileName(nullptr, "Open existing set", QFileInfo(setFileName).absolutePath());
-	if (!res.isEmpty())
-		OpenSetFile(res);
+	QString newSetFileName = QFileDialog::getOpenFileName(nullptr, "Open existing set", QFileInfo(setFileName).absolutePath());
+	if (!newSetFileName.isEmpty())
+		OpenSetFile(newSetFileName);
 }
 
 void iADreamCaster::OpenSetFile(QString const & fileName)
@@ -686,7 +686,7 @@ void iADreamCaster::RenderViewsSlot()
 	}
 	//
 	int totalTime=0;
-	QTime totalQTime;
+	QElapsedTimer totalQTime;
 	totalQTime.start();
 	//int totalStart = GetTickCount();
 	//float max_param=-1000;
@@ -847,7 +847,7 @@ void iADreamCaster::RenderViewsSlot()
 			batch_counter++;
 			if(batch_counter == stngs.BATCH_SIZE || (s1_x == cntX-1 && s1_y == cntY-1 && s1_z == cntZ-1))
 			{
-				QTime localTime;
+				QElapsedTimer localTime;
 				localTime.start();//int fstart = GetTickCount();
 				try
 				{
@@ -985,7 +985,7 @@ void iADreamCaster::RenderViewsSlot()
 					{
 						placementsParams[x][z].badAreaPercentage = RandonSpaceAnalysis();
 					}
-					QTime localTime;
+					QElapsedTimer localTime;
 					localTime.start();//int fstart = GetTickCount();
 					//while (!tracer->Render()) UpdateSlot();
 					Render(vp_corners, vp_delta, &o, true);
@@ -1251,7 +1251,7 @@ void iADreamCaster::UpdateHistogramSlot()
 		app->processEvents();
 	}
 	hist->initialize(&values[0], numIntervals, dataRange);
-	hist->drawHistogram();/**/
+	hist->drawHistogram();
 	// DumpUnfreed();
 	// SetMemLeakCheckActive(false);
 }
@@ -1283,7 +1283,7 @@ void iADreamCaster::RenderSingleViewSlot()
 	state.dy = tracer->vp_delta[1];*/
 	//unsigned int tri_cnt = tracer->scene()->GetNrPrimitives();
 	long ftime;//,fstart
-	QTime time;
+	QElapsedTimer time;
 	time.start();
 	//fstart = GetTickCount();
 	if(ui.cudaEnabled->isChecked())
@@ -1450,7 +1450,7 @@ void iADreamCaster::readRenderFromBinaryFile(unsigned int x, unsigned int y, uns
 	fclose(fptr);
 }
 
-void iADreamCaster::closeEvent ( QCloseEvent * event )
+void iADreamCaster::closeEvent ( QCloseEvent * /*event*/ )
 {
 	//hist.close();
 	//logs.close();
@@ -2452,9 +2452,8 @@ void iADreamCaster::SensitivityChangedSlot()
 int iADreamCaster::UpdateStabilityWidget()
 {
 	if(!datasetOpened) return 0;
-	unsigned int j=0;
 	float minVal = 255, maxVal = 0, delta;
-	for (int i=-(int)stabilityView->countX(); i<=(int)stabilityView->countX(); i++, j++)
+	for (int i=-(int)stabilityView->countX(), j=0; i<=(int)stabilityView->countX(); i++, j++)
 	{
 		int indx = (int)curIndX+i;
 		if(indx<0)
@@ -2480,9 +2479,8 @@ int iADreamCaster::UpdateStabilityWidget()
 	//stabilityView->colArrowX = QColor(	minr+delta*(maxr - minr), 
 	//									ming+delta*(maxg - ming),
 	//									minb+delta*(maxb - minb));
-	j=0;
 	minVal = 255; maxVal = 0;
-	for (int i=-(int)stabilityView->countY(); i<=(int)stabilityView->countY(); i++, j++)
+	for (int i=-(int)stabilityView->countY(), j=0; i<=(int)stabilityView->countY(); i++, j++)
 	{
 		int indx = (int)curIndZ+i;
 		if(indx<0)
@@ -2502,8 +2500,8 @@ int iADreamCaster::UpdateStabilityWidget()
 	}
 	delta = (maxVal-minVal)/255.0;
 	{
-	int colComponent = (int)((1-delta)*255);
-	stabilityView->m_colArrowY = QColor( colComponent, colComponent, colComponent);
+		int colComponent = (int)((1-delta)*255);
+		stabilityView->m_colArrowY = QColor( colComponent, colComponent, colComponent);
 	}
 	//////////////////////////////////////////////////////////////////////////
 	for (int i=-(int)stabilityView->countX(), j=0; i<=(int)stabilityView->countX(); i++, j++)
@@ -2701,7 +2699,7 @@ void iADreamCaster::UpdateView()
 	InitRender(vp_corners, vp_delta, &o);
 	//unsigned int tri_cnt = tracer->scene()->GetNrPrimitives();
 	long ftime;//fstart,
-	QTime time;
+	QElapsedTimer time;
 	time.start();
 	//fstart = GetTickCount();
 	tracer->SetCutAABBList(&cutFigList->aabbs);
@@ -2766,7 +2764,7 @@ void iADreamCaster::ViewsReset()
 
 void iADreamCaster::TopPlacementsChangedSlot()
 {
-	float curParam;
+	float curParam = 0;;
 	double max_param=-1000;
 	double min_param=100000;
 	for (int x=0; x<cntX; x++)
@@ -2861,7 +2859,7 @@ void iADreamCaster::fillParamBuffer( unsigned int* dest, int paramInd)
 	double scalec = max_param-min_param;
 	if(scalec==0) scalec=1;
 	
-	double curParam;
+	double curParam = 0;
 	for (int x=0; x<cntX; x++)
 	{
 		for (int z=0; z<cntZ; z++)

@@ -18,18 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iARandomWalkerModuleInterface.h"
+#pragma once
 
-#include "iAPCA.h"
-#include "iARandomWalker.h"
+#include <iAModuleInterface.h>
 
-#include <iAFilterRegistry.h>
-
-void iARandomWalkerModuleInterface::Initialize()
+class iADreamCasterModuleInterface : public iAModuleInterface
 {
-	REGISTER_FILTER(iAPCA);
-	REGISTER_FILTER(iARandomWalker);
-	REGISTER_FILTER(iAExtendedRandomWalker);
-	REGISTER_FILTER(iAMaximumDecisionRule);
-	REGISTER_FILTER(iALabelImageToSeeds);
-}
+	Q_OBJECT
+public:
+	void Initialize() override;
+private slots:
+	void dreamcasterOpenFile();
+};

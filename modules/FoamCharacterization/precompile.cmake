@@ -11,10 +11,10 @@ SET (FoamCharacterization_PRECOMPILE_INCLUDES <iAConnector.h>
 <QCheckBox>
 <QComboBox>
 <QDoubleSpinBox>
+<QElapsedTimer>
 <QFile>
 <QGridLayout>
 <QGroupBox>
 <QLabel>
 <QPushButton>
-<QTime>
 <vtkImageData.h>)

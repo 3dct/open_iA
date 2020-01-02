@@ -78,7 +78,7 @@ iAModuleDispatcher::iAModuleDispatcher(QString const & rootPath): m_mainWnd(null
 	m_rootPath = rootPath;
 }
 
-void CloseLibrary(iALoadedModule & module)
+void CloseLibrary(iALoadedModule & /*module*/)
 {
 #ifdef _MSC_VER
 /*

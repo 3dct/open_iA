@@ -63,7 +63,7 @@ public:
 	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex);
 	void updateColorSelectionRendering();
 	virtual QString visualizationStatistics() const =0;
-	virtual void setShowLines(bool lines) {} // not ideal, should not be here
+	virtual void setShowLines(bool /*lines*/) {} // not ideal, should not be here
 protected:
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;

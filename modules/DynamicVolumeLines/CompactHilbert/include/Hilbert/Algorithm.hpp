@@ -122,7 +122,7 @@ namespace Hilbert
 	update2(
 		const I &l,
 		const I &t,
-		const I &w,
+		const I & /*w*/,
 		int n,
 		I &e,
 		int &d
@@ -149,7 +149,7 @@ namespace Hilbert
 		int m,
 		int n,
 		H &h,
-		int *ds = NULL // #HACK
+		int *ds = nullptr // #HACK
 		)
 	{
 		I e(n), l(n), t(n), w(n);

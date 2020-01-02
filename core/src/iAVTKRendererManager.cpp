@@ -62,7 +62,7 @@ void iAVTKRendererManager::removeAll()
 	m_renderers.clear();
 }
 
-void iAVTKRendererManager::redrawOtherRenderers( vtkObject* caller, long unsigned int eventId, void* callData )
+void iAVTKRendererManager::redrawOtherRenderers( vtkObject* /*caller*/, long unsigned int /*eventId*/, void* callData )
 {
 	if( !m_isRedrawn )
 	{

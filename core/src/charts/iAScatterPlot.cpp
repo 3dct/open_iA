@@ -623,9 +623,9 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 			for ( int indx = m_pointsGrid[binInd].size() - 1; indx >= 0; --indx )//foreach( int i, m_pointsGrid[binInd] )
 			{
 				size_t ptIdx = m_pointsGrid[binInd][indx];
-				double x = p2x( m_splomData->paramData( m_paramIndices[0] )[ptIdx] );
-				double y = p2y( m_splomData->paramData( m_paramIndices[1] )[ptIdx] );
-				double dist = pow( x - mpos.x(), 2 ) + pow( y - mpos.y(), 2 );
+				double pixelX = p2x( m_splomData->paramData( m_paramIndices[0] )[ptIdx] );
+				double pixelY = p2y( m_splomData->paramData( m_paramIndices[1] )[ptIdx] );
+				double dist = pow(pixelX - mpos.x(), 2) + pow(pixelY - mpos.y(), 2);
 				if ( dist < minDist && m_splomData->matchesFilter(ptIdx) )
 				{
 					minDist = dist;
@@ -636,10 +636,10 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 	return res;
 }
 
-QPointF iAScatterPlot::getPositionFromPointIndex( int ind ) const
+QPointF iAScatterPlot::getPositionFromPointIndex( size_t idx ) const
 {
-	double x = p2x( m_splomData->paramData( m_paramIndices[0] )[ind] );
-	double y = p2y( m_splomData->paramData( m_paramIndices[1] )[ind] );
+	double x = p2x( m_splomData->paramData( m_paramIndices[0] )[idx] );
+	double y = p2y( m_splomData->paramData( m_paramIndices[1] )[idx] );
 	return QPointF( x, y );
 }
 
@@ -940,7 +940,11 @@ void iAScatterPlot::createVBO()
 		return;
 	}
 	bool res = m_pointsBuffer->bind();
-	assert(res);
+	if (!res)
+	{
+		DEBUG_LOG("Binding points buffer failed!");
+		return;
+	}
 	m_pointsBuffer->setUsagePattern(iAQGLBuffer::DynamicDraw);
 	m_pointsBuffer->allocate((CordDim + ColChan) * m_splomData->numPoints() * sizeof(GLfloat));
 	m_pointsBuffer->release();
@@ -954,7 +958,11 @@ void iAScatterPlot::fillVBO()
 
 	int elSz = CordDim + ColChan;
 	bool res = m_pointsBuffer->bind();
-	assert(res);
+	if (!res)
+	{
+		DEBUG_LOG("Binding points buffer failed!");
+		return;
+	}
 
 	GLfloat * buffer = static_cast<GLfloat *>(m_pointsBuffer->map(iAQGLBuffer::ReadWrite));
 
@@ -982,7 +990,11 @@ void iAScatterPlot::fillVBO()
 		++m_curVisiblePts;
 	}
 	bool res2 = m_pointsBuffer->unmap();
-	assert(res2);
+	if (!res2)
+	{
+		DEBUG_LOG("Unbinding points buffer failed!");
+		return;
+	}
 	m_pointsBuffer->release();
 	m_pointsOutdated = false;
 }

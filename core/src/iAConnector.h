@@ -30,9 +30,7 @@ class vtkImageData;
 class vtkImageExport;
 class vtkImageImport;
 
-/**
-* \brief This class is needed for converting VTK images to ITK and vice versa. It is written to replace the ImageConverter of VTKEdge.
-*/
+//! Converts VTK images to ITK and vice versa. It is written to replace the ImageConverter of VTKEdge.
 class open_iA_Core_API iAConnector
 {
 public:

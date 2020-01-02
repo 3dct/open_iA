@@ -30,7 +30,7 @@ class iAClassifyDefectsDialog : public QDialog
 	Q_OBJECT
 
 public:
-	iAClassifyDefectsDialog(QWidget* parent = 0);
+	iAClassifyDefectsDialog();
 	~iAClassifyDefectsDialog();
 	Ui::ClassifyDefects ui;
 };

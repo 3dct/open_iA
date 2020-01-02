@@ -55,7 +55,7 @@ void iAStackReaderFilter::performWork(QMap<QString, QVariant> const & parameters
 		QString suffix = imgFileInfo.suffix();
 		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
 		bool ok;
-		int myNum = lastDigit.toInt(&ok);
+		/*int myNum =*/ lastDigit.toInt(&ok);
 		if (!ok)
 		{
 			DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));
@@ -80,7 +80,7 @@ void iAStackReaderFilter::performWork(QMap<QString, QVariant> const & parameters
 		QString suffix = imgFileInfo.suffix();
 		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
 		bool ok;
-		int myNum = lastDigit.toInt(&ok);
+		/*int myNum =*/ lastDigit.toInt(&ok);
 		if (!ok)
 		{
 			//DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));

@@ -27,6 +27,7 @@
 
 #include <QMouseEvent>
 #include <QPainter>
+#include <QtGlobal> // for QT_VERSION
 
 iABoneThicknessChartBar::iABoneThicknessChartBar(QWidget* _pParent) : QWidget(_pParent)
 {
@@ -72,7 +73,7 @@ void iABoneThicknessChartBar::draw()
 	int iAxisW(0);
 	for (auto& pAxisYString : vAxisYString)
 	{
-#if QT_VERSION >= 0x050B00
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		iAxisW = qMax(iAxisW, fomAxis.horizontalAdvance(pAxisYString));
 #else
 		iAxisW = qMax(iAxisW, fomAxis.width(pAxisYString));

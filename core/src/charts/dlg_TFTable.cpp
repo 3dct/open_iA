@@ -45,10 +45,10 @@ public:
 };
 
 dlg_TFTable::dlg_TFTable( iADiagramFctWidget * parent, iAChartFunction* func ) : dlg_TFTableWidgetConnector( parent ),
-	m_parent(parent),
 	m_oTF( dynamic_cast<iAChartTransferFunction*>( func )->opacityTF() ),
 	m_cTF( dynamic_cast<iAChartTransferFunction*>( func )->colorTF() ),
-	m_newPointColor( Qt::gray )
+	m_newPointColor( Qt::gray ),
+	m_parent(parent)
 {
 	Init();
 	updateTable();

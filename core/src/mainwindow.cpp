@@ -2174,7 +2174,7 @@ void MainWindow::openWithDataTypeConversion()
 	QStringList additionalLabels = (QStringList() << tr("#Slice sample rate"));
 	QList<QVariant> additionalValues = (QList<QVariant>() << tr("%1").arg(m_owdtcs));
 
-	dlg_openfile_sizecheck dlg(false, file, this, "Open With DataType Conversion", additionalLabels, additionalValues, m_rawFileParams);
+	dlg_openfile_sizecheck dlg(file, this, "Open With DataType Conversion", additionalLabels, additionalValues, m_rawFileParams);
 	if (!dlg.accepted())
 	{
 		return;
@@ -2213,13 +2213,13 @@ void MainWindow::openWithDataTypeConversion()
 		{
 			finalfilename = conversionwidget.convert(file, m_rawFileParams,
 				mapReadableDataTypeToVTKType(outDataType),
-				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, m_owdtcdov);
+				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax);
 		}
 		else
 		{
 			finalfilename = conversionwidget.convertROI(file, m_rawFileParams,
 				mapReadableDataTypeToVTKType(outDataType),
-				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, m_owdtcdov, roi);
+				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, roi);
 		}
 		loadFile(finalfilename, false);
 	}

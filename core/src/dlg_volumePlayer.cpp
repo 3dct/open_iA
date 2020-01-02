@@ -197,7 +197,7 @@ void dlg_volumePlayer::setSpeed()
 	this->speedValue->setText(QString::number(speed, 'f', 2));
 }
 
-void dlg_volumePlayer::updateView(int r, int c)
+void dlg_volumePlayer::updateView(int r, int /*c*/)
 {
 	emit update(r);
 }
@@ -217,7 +217,7 @@ void dlg_volumePlayer::editMaxSpeed()
 	}
 }
 
-void dlg_volumePlayer::setChecked(int r, int c)
+void dlg_volumePlayer::setChecked(int r, int /*c*/)
 {
 	for (int i=1; i<m_numberOfColumns;i++)
 	{
@@ -392,7 +392,6 @@ void dlg_volumePlayer::enableVolume(int state)
 	}
 
 	// setup slider
-	int oldVal = volumeSlider->value();
 	if(m_isBlendingOn)
 	{
 		volumeSlider->setMaximum((getNumberOfCheckedVolumes() - 1) * DIVISIONS_PER_VOLUME);
@@ -433,7 +432,7 @@ int dlg_volumePlayer::sliderIndexToVolumeIndex(int slicerIndex)
 }
 
 void dlg_volumePlayer::showVolume(int volumeIndex)
-{
+{	// since mask is short, this only works for up to 16 volumes?
 	m_mask = m_mask|(1<<volumeIndex);
 }
 

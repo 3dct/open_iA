@@ -113,7 +113,7 @@ dlg_ParamSpaceSampling::dlg_ParamSpaceSampling( QWidget *parent, QString winTitl
 			label->setText( tStr );
 			containerLayout->addWidget( label, i, 0, 1, 1 );
 
-			QWidget *newWidget;
+			QWidget *newWidget = nullptr;
 
 			tempStr = tStr;
 			switch ( inList[i].at( 0 ).toLatin1() )

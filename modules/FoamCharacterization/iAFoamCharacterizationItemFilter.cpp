@@ -34,9 +34,9 @@
 #include <vtkImageData.h>
 
 #include <QApplication>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QThreadPool>
-#include <QTime>
 #include <QtMath>
 
 iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter
@@ -89,7 +89,7 @@ void iAFoamCharacterizationItemFilter::execute()
 {
 	setExecuting(true);
 
-	QTime t;
+	QElapsedTimer t;
 	t.start();
 
 	switch (m_eItemFilterType)

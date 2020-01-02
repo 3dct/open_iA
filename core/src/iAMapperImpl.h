@@ -60,7 +60,7 @@ namespace
 	const double LogBase = 2.0;
 }
 
-/** Logarithmic convenience function for axes, using base above */
+//! Logarithmic convenience function for axes, using base above.
 template <typename T>
 T LogFunc(T value)
 {

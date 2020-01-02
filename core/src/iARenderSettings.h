@@ -41,9 +41,9 @@ public:
 		ShowHelpers(true),
 		ShowRPosition(true),
 		ParallelProjection(false),
+		UseFXAA(true),
 		BackgroundTop("#7FAAFF"),
 		BackgroundBottom("#FFFFFF"),
-		UseFXAA(true),
 		PlaneOpacity(0.8f)
 	{}
 };

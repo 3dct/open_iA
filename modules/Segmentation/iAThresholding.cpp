@@ -54,7 +54,7 @@
 
 IAFILTER_CREATE(iACopy)
 
-void iACopy::performWork(QMap<QString, QVariant> const & parameters)
+void iACopy::performWork(QMap<QString, QVariant> const & /*parameters*/)
 {
 	addOutput(input()[0]->itkImage());
 }

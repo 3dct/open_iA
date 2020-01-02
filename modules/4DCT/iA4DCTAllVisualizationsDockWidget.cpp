@@ -77,8 +77,12 @@ void iA4DCTAllVisualizationsDockWidget::setCurrentStage( int currentStage )
 void iA4DCTAllVisualizationsDockWidget::onDeleteButtonClicked( )
 {
 	iAVisModuleItem * moduleItem = getSelectedModule( );
-	if( moduleItem == nullptr ) return;
-	if( moduleItem->stages.size( ) > 0 ) {
+	if (moduleItem == nullptr)
+	{
+		return;
+	}
+	if (moduleItem->stages.size( ) > 0 )
+	{
 		QMessageBox::warning( this, "Can't remove the module", "The visualization module is used. Please first delete it from all stages." );
 		return;
 	}
@@ -89,10 +93,11 @@ void iA4DCTAllVisualizationsDockWidget::onDeleteButtonClicked( )
 iAVisModuleItem * iA4DCTAllVisualizationsDockWidget::getSelectedModule( )
 {
 	QModelIndexList indexList = lvVisModules->selectionModel( )->selectedIndexes( );
-	for( auto index : indexList ) {
-		return m_collection->getModules( ).at( index.row( ) );
+	if (!indexList.isEmpty())
+	{
+		return nullptr;
 	}
-	return nullptr;
+	return m_collection->getModules().at( indexList[0].row() );
 }
 
 void iA4DCTAllVisualizationsDockWidget::itemChanged( QStandardItem * item )
@@ -111,7 +116,7 @@ void iA4DCTAllVisualizationsDockWidget::itemChanged( QStandardItem * item )
 	emit updateVisualizations( );
 }
 
-void iA4DCTAllVisualizationsDockWidget::selectionChanged( const QItemSelection & selected, const QItemSelection & deselected )
+void iA4DCTAllVisualizationsDockWidget::selectionChanged( const QItemSelection & selected, const QItemSelection & /*deselected*/ )
 {
 	if( selected.size( ) == 0 ) {
 		emit selectedVisModule( nullptr );

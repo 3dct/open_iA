@@ -477,11 +477,6 @@ int* iABlobManager::GetDimensions()
 	return m_dimension;
 }
 
-void iABlobManager::SetBlobResolution( int resolution )
-{
-
-}
-
 void iABlobManager::SetSmoothing( bool isOn )
 {
 	m_isSmoothingEnabled = isOn;
@@ -618,15 +613,15 @@ bool iABlobManager::GetShowBlob() const
 void iABlobManager::SaveMovie( QWidget *activeChild,
 							   iARenderer * raycaster,
 							   vtkCamera * cam,
-							   vtkRenderWindowInteractor * interactor,
+							   vtkRenderWindowInteractor * /*interactor*/,
 							   vtkRenderWindow * renWin,
 							   size_t numberOfFrames,
-							   const double range[2],
-							   const double blobOpacity[2],
-							   const double silhouetteOpacity[2],
-							   const double overlapThreshold[2],
-							   const double gaussianBlurVariance[2],
-							   const int dimX[2], const int dimY[2], const int dimZ[2],
+							   const double /*range*/[2],
+							   const double /*blobOpacity*/[2],
+							   const double /*silhouetteOpacity*/[2],
+							   const double /*overlapThreshold*/[2],
+							   const double /*gaussianBlurVariance*/[2],
+							   const int /*dimX*/[2], const int /*dimY*/[2], const int /*dimZ*/[2],
 							   const QString& fileName, int mode, int qual )
 {
 	if ( numberOfFrames <= 1 )

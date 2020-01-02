@@ -171,7 +171,7 @@ void adjustMinMax(QSharedPointer<iAAttributeDescriptor> desc, QString valueText)
 	if (desc->valueType() == Categorical ||
 		desc->valueType() == Discrete)
 	{
-		int value = valueText.toInt(&ok);
+		/*int value =*/ valueText.toInt(&ok);
 	}
 	if (!ok)
 	{

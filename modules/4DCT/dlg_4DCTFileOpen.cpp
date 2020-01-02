@@ -30,9 +30,9 @@ dlg_4DCTFileOpen::dlg_4DCTFileOpen( QWidget * parent )
 	connect( twFiles, SIGNAL( doubleClicked( QModelIndex ) ), this, SLOT( onTreeViewDoubleClicked( QModelIndex ) ) );
 }
 
-void dlg_4DCTFileOpen::setData( iA4DCTData * data )
+void dlg_4DCTFileOpen::setData( iA4DCTData * newData )
 {
-	m_data = data;
+	m_data = newData;
 
 	QStandardItem * rootNode = m_model.invisibleRootItem( );
 	for( auto stageData : *m_data ) {

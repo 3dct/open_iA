@@ -76,14 +76,14 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 
 	QVector<double> ticks;
 	QVector<QString> labels;
-	QVector<double> data;
+	QVector<double> meanData;
 
 	size_t cnt = 0;
 	for (double idx : m_sortedIndices)
 	{
 		ticks << cnt;
 		labels << QString::number(static_cast<int>(ensemble->Member(idx)->ID()));
-		data << ensemble->MemberAttribute(iAEnsemble::UncertaintyMean)[idx];
+		meanData << ensemble->MemberAttribute(iAEnsemble::UncertaintyMean)[idx];
 		++cnt;
 	}
 
@@ -96,7 +96,7 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 	m_plot->yAxis->setRange(0, 1);
 	m_plot->axisRect()->setRangeDrag(Qt::Horizontal); // ... but allow dragging
 	m_plot->axisRect()->setRangeZoom(Qt::Horizontal); // and zooming in horizontal direction
-	mean->setData(ticks, data);
+	mean->setData(ticks, meanData);
 
 	connect(mean, SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(SelectionChanged(QCPDataSelection const &)));
 	connect(m_plot->xAxis, SIGNAL(rangeChanged(const QCPRange &)), this, SLOT(ChangedRange(QCPRange const &)));
@@ -165,7 +165,7 @@ QVector<int > iAMemberView::SelectedMemberIDs() const
 
 void iAMemberView::StyleChanged()
 {
-	QColor bg(QWidget::palette().color(QPalette::Background));
+	QColor bg(QWidget::palette().color(QPalette::Window));
 	QColor fg(QWidget::palette().color(QPalette::Text));
 	m_plot->setBackground(bg);
 	m_plot->axisRect()->setBackground(bg);

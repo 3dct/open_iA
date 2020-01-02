@@ -94,9 +94,8 @@ void PrivateTestEqualFloatingPoint(T const & expected, T const & actual, char co
 #define TestEqualFloatingPoint(expected, actual) \
 	PrivateTestEqualFloatingPoint(expected, actual, #expected, #actual)
 
-
 #define BEGIN_TEST \
-int main(int argc, char** argv) {
+int main(int /*argCount*/, char** /*argValues*/) {
 
 #define END_TEST \
 	std::cout << "Passed " << simpleTesterTestsPassed << " of " << (simpleTesterTestsPassed+simpleTesterTestsFailed) << " tests." << std::endl; \

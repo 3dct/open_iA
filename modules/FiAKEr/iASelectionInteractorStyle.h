@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkInteractorStyleRubberBandPick.h>
+#include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkSmartPointer.h>
 
 #include <QMap>
@@ -31,6 +31,7 @@
 class vtkPolyData;
 class vtkRenderWindow;
 class vtkTextActor;
+class vtkUnsignedCharArray;
 
 class iASelectionProvider
 {
@@ -41,10 +42,15 @@ protected:
 };
 
 
-class iASelectionInteractorStyle : public QObject, public vtkInteractorStyleRubberBandPick
+class iASelectionInteractorStyle : public QObject, public vtkInteractorStyleTrackballCamera
 {
 	Q_OBJECT
 public:
+	enum InteractionMode
+	{
+		imNavigate,
+		imSelect
+	};
 	enum SelectionMode
 	{
 		smDrag,
@@ -52,10 +58,13 @@ public:
 	};
 	iASelectionInteractorStyle();
 	static iASelectionInteractorStyle* New();
-	vtkTypeMacro(iASelectionInteractorStyle, vtkInteractorStyleRubberBandPick);
-	void Pick() override;
+	vtkTypeMacro(iASelectionInteractorStyle, vtkInteractorStyleTrackballCamera);
+
 	void OnChar() override;
 	void OnLeftButtonDown() override;
+	void OnMouseMove() override;
+	void OnLeftButtonUp() override;
+
 	void setSelectionProvider(iASelectionProvider * selectionProvider);
 	void addInput(size_t resultID, vtkSmartPointer<vtkPolyData> points, vtkSmartPointer<vtkActor> actor);
 	void removeInput(size_t resultID);
@@ -65,10 +74,19 @@ public:
 signals:
 	void selectionChanged();
 private:
+	void pick();
+	void redrawRubberBand();
+
 	QMap<int, std::pair<vtkSmartPointer<vtkPolyData>, vtkSmartPointer<vtkActor> > > m_input;
 	iASelectionProvider * m_selectionProvider;
 	vtkSmartPointer<vtkTextActor> m_showModeActor;
 	vtkSmartPointer<vtkRenderWindow> m_renWin;
+	InteractionMode m_interactionMode;
 	SelectionMode m_selectionMode;
 	vtkRenderer* m_cellRenderer;
+
+	int m_startPos[2];
+	int m_endPos[2];
+	bool m_moving;
+	vtkSmartPointer<vtkUnsignedCharArray> m_pixelArray;
 };

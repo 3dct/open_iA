@@ -34,7 +34,8 @@ enum iAValueType
 	Folder,
 	FileNameOpen,
 	FileNamesOpen,
-	FileNameSave
+	FileNameSave,
+	Color
 };
 
 class QString;

@@ -46,7 +46,7 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 	QMap<int, QString> const & samplings = ensembleFile->Samplings();
 	for (int key : samplings.keys())
 	{
-		if (!result->LoadSampling(samplings[key], ensembleFile->LabelCount(), key))
+		if (!result->LoadSampling(samplings[key], key))
 		{
 			DEBUG_LOG(QString("Ensemble: Could not load sampling '%1'!").arg(samplings[key]));
 			return QSharedPointer<iAEnsemble>();
@@ -90,24 +90,22 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 
 namespace
 {
-	/**
-	 * Calculate an entropy image out of a given collection of images.
-	 *
-	 * For each voxel, the given collection is interpreted as separate probability distribution
-	 * @param distribution the collection of images considered as probability distribution
-	 * @param normalize whether to normalize the entropy to the range [0..1]
-	 *        the maximum entropy appears when there is equal distribution among all alternatives
-	 *        (i.e. if distribution has N elements, then the entropy is maximum for a voxel if all
-	 *        values of the distribution for that voxel have the value 1/N)
-	 * @param probFactor factor to apply to the elements of distribution before calculating the entropy
-	 *        from it. This is useful if the given distribution does not contain probabilities, but
-	 *        e.g. a "histogram", that is, a number of occurences of that particular value among the
-	 *        set for which the entropy should be calculated. In that case, specify 1/(size of set)
-	 *        as factor
-	 * @return the entropy for each voxel in form of an image with pixel type double
-	 *        in case that the given distribution was empty, an empty smart ptr will be returned
-	 *        (equivalent of null).
-	 */
+	//! Calculate an entropy image out of a given collection of images.
+	//!
+	//! For each voxel, the given collection is interpreted as separate probability distribution
+	//! @param distribution the collection of images considered as probability distribution
+	//! @param normalize whether to normalize the entropy to the range [0..1]
+	//!        the maximum entropy appears when there is equal distribution among all alternatives
+	//!        (i.e. if distribution has N elements, then the entropy is maximum for a voxel if all
+	//!        values of the distribution for that voxel have the value 1/N)
+	//! @param probFactor factor to apply to the elements of distribution before calculating the entropy
+	//!        from it. This is useful if the given distribution does not contain probabilities, but
+	//!        e.g. a "histogram", that is, a number of occurences of that particular value among the
+	//!        set for which the entropy should be calculated. In that case, specify 1/(size of set)
+	//!        as factor
+	//! @return the entropy for each voxel in form of an image with pixel type double
+	//!        in case that the given distribution was empty, an empty smart ptr will be returned
+	//!        (equivalent of null).
 	template <typename TImage>
 	DoubleImage::Pointer CalculateEntropyImage(QVector<typename TImage::Pointer> distribution, bool normalize = true, double probFactor = 1.0)
 	{
@@ -340,7 +338,6 @@ DoubleImage::Pointer NeighbourhoodEntropyImage(IntImage::Pointer intImage, int l
 	outIt.GoToBegin();
 	while (!it.IsAtEnd() && !outIt.IsAtEnd())
 	{
-		double sum = 0;
 		std::fill(labelHistogram, labelHistogram + labelCount, 0);
 		int valueCount = 0;
 		for (int i = 0; i < neighbourhoodSize; ++i)
@@ -410,8 +407,8 @@ void iAEnsemble::CreateUncertaintyImages()
 			return;
 		}
 		itk::Index<3> idx;
-		itk::Size<3> size;
-		itk::Vector<double, 3> spacing;
+		itk::Size<3> size;               size   .Fill(0);
+		itk::Vector<double, 3> spacing;  spacing.Fill(1);
 
 		// also calculate neighbourhood uncertainty here?
 		size_t count = 0;
@@ -670,7 +667,7 @@ QString iAEnsemble::GetSourceName(int sourceIdx) const
 }
 
 
-bool iAEnsemble::LoadSampling(QString const & fileName, int labelCount, int id)
+bool iAEnsemble::LoadSampling(QString const & fileName, int id)
 {
 	if (fileName.isEmpty())
 	{
@@ -732,7 +729,6 @@ size_t iAEnsemble::MemberCount() const
 
 QSharedPointer<iAMember> const iAEnsemble::Member(size_t memberIdx) const
 {
-	int s = 0;
 	for (int s=0; s<m_samplings.size(); ++s)
 	{
 		if (memberIdx < m_samplings[s]->Size())

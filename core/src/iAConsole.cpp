@@ -40,6 +40,7 @@ void iAGlobalLogger::setLogger(iALogger* logger)
 }
 
 iALogger* iAGlobalLogger::get()
+
 {
 	return m_globalLogger;
 }

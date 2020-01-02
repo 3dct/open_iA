@@ -25,13 +25,19 @@
 #include <QVector>
 
 template <class T>
-void diff_marker_tmpl(QVector<iAITKIO::ImagePointer> imgsBase, int differenceMarkerValue, iAITKIO::ImagePointer & result)
+void diff_marker_tmpl(QVector<iAITKIO::ImagePointer> imgsBase, double differenceMarkerValue, iAITKIO::ImagePointer & result)
 {
 	typedef itk::Image<T, iAITKIO::m_DIM > ImgType;
 	QVector<ImgType*> imgs;
 	for (int i = 0; i < imgsBase.size(); ++i)
 	{
-		imgs.push_back(dynamic_cast<ImgType*>(imgsBase[i].GetPointer()));
+		auto ptr = dynamic_cast<ImgType*>(imgsBase[i].GetPointer());
+		if (!ptr)
+		{
+			DEBUG_LOG("Differnce Marker: Invalid type conversion - images must have same type!");
+			return;
+		}
+		imgs.push_back(ptr);
 	}
 	typename ImgType::Pointer out = createImage<ImgType>(imgs[0]);
 	typename iAITKIO::ImageBaseType::RegionType reg = imgs[0]->GetLargestPossibleRegion();
@@ -58,7 +64,7 @@ void diff_marker_tmpl(QVector<iAITKIO::ImagePointer> imgsBase, int differenceMar
 	result = out;
 }
 
-iAITKIO::ImagePointer CalculateDifferenceMarkers(QVector<iAITKIO::ImagePointer> imgs, int differenceMarkerValue)
+iAITKIO::ImagePointer CalculateDifferenceMarkers(QVector<iAITKIO::ImagePointer> imgs, double differenceMarkerValue)
 {
 	if (imgs.size() == 0) // all child images filtered out
 	{

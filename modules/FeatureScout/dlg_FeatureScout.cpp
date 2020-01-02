@@ -330,7 +330,7 @@ std::vector<size_t> dlg_FeatureScout::getPCSelection()
 	std::vector<size_t> selectedIndices;
 	auto pcSelection = pcChart->GetPlot(0)->GetSelection();
 	int countSelection = pcSelection->GetNumberOfValues();
-	for (int idx = 0; idx < countSelection; idx++)
+	for (int idx = 0; idx < countSelection; ++idx)
 	{
 		size_t objID = pcSelection->GetVariantValue(idx).ToUnsignedLongLong();
 		selectedIndices.push_back(objID);
@@ -401,7 +401,7 @@ void dlg_FeatureScout::renderLUTChanges(QSharedPointer<iALookupTable> lut, int c
 
 void dlg_FeatureScout::updatePCColumnVisibility()
 {
-	for ( int j = 0; j < elementsCount; j++ )
+	for ( int j = 0; j < elementsCount; ++j )
 	{
 		pcChart->SetColumnVisibility( csvTable->GetColumnName( j ), columnVisibility[j]);
 	}
@@ -442,7 +442,7 @@ void dlg_FeatureScout::setupModel()
 	elementTableModel->setHeaderData( 3, Qt::Horizontal, tr( "Average" ) );
 
 	// initialize checkboxes for the first column
-	for ( int i = 0; i < elementsCount-1; i++ )
+	for ( int i = 0; i < elementsCount-1; ++i )
 	{
 		Qt::CheckState checkState = (columnVisibility[i]) ? Qt::Checked : Qt::Unchecked;
 		elementTableModel->setData(elementTableModel->index(i, 0, QModelIndex()), checkState, Qt::CheckStateRole);
@@ -540,7 +540,7 @@ void dlg_FeatureScout::calculateElementTable()
 	v2Arr->SetValue( 0, chartTable->GetColumn( 0 )->GetVariantValue( chartTable->GetNumberOfRows() - 1 ).ToFloat() );
 	v3Arr->SetValue( 0, 0 );
 
-	for ( int i = 1; i < elementsCount; i++ )
+	for ( int i = 1; i < elementsCount; ++i )
 	{
 		nameArr->SetValue( i, csvTable->GetColumnName( i ) );
 		vtkDataArray *mmr = vtkDataArray::SafeDownCast( chartTable->GetColumn( i ) );
@@ -567,9 +567,9 @@ void dlg_FeatureScout::initElementTableModel( int idx )
 		elementTableView->showColumn( 2 );
 		elementTableView->showColumn( 3 );
 
-		for ( int i = 0; i < elementsCount-1; i++ ) // number of rows
+		for ( int i = 0; i < elementsCount-1; ++i ) // number of rows
 		{
-			for ( int j = 0; j < 4; j++ )
+			for ( int j = 0; j < 4; ++j )
 			{
 				vtkVariant v = elementTable->GetValue( i, j );
 				QString str;
@@ -599,7 +599,7 @@ void dlg_FeatureScout::initElementTableModel( int idx )
 		elementTableView->hideColumn( 2 );
 		elementTableView->hideColumn( 3 );
 
-		for ( int i = 0; i < elementsCount-1; i++ )
+		for ( int i = 0; i < elementsCount-1; ++i )
 		{
 			vtkVariant v = chartTable->GetValue( idx, i );
 			QString str = QString::number( v.ToDouble(), 'f', 2 );
@@ -652,15 +652,15 @@ void dlg_FeatureScout::PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, c
 	spCol = anyTable->GetNumberOfColumns();
 	spRow = anyTable->GetNumberOfRows();
 
-	for (int i = 0; i < spCol.ToInt(); i++)
+	for (int i = 0; i < spCol.ToInt(); ++i)
 	{
 		spCN = anyTable->GetColumnName(i);
 		debugfile << spCN.ToString() << separator;
 	}
 	debugfile << "\n";	
-	for (int row = 0; row < spRow.ToInt(); row++)
+	for (int row = 0; row < spRow.ToInt(); ++row)
 	{
-		for (int col = 0; col < spCol.ToInt(); col++)
+		for (int col = 0; col < spCol.ToInt(); ++col)
 		{
 			spVal = anyTable->GetValue(row, col);
 			debugfile << spVal.ToString() << separator; //TODO cast debug to double
@@ -689,7 +689,7 @@ void dlg_FeatureScout::PrintTableList(const QList<vtkSmartPointer<vtkTable>> &Ou
 	
 	if (OutTableList.count() > 1)
 	{	
-		for (int i = 0; i < tableList.count(); i++)
+		for (int i = 0; i < tableList.count(); ++i)
 		{
 			fID = QString(i);
 			auto outputTable = OutTableList[i];
@@ -707,7 +707,7 @@ float dlg_FeatureScout::calculateAverage( vtkDataArray *arr )
 	double av = 0.0;
 	double sum = 0.0;
 
-	for ( int i = 0; i < arr->GetNumberOfTuples(); i++ )
+	for ( int i = 0; i < arr->GetNumberOfTuples(); ++i )
 		sum = sum + arr->GetVariantValue( i ).ToDouble();
 
 	av = sum / arr->GetNumberOfTuples();
@@ -825,7 +825,7 @@ void dlg_FeatureScout::RenderMeanObject()
 	activeChild->initProgressBar();
 
 	// Delete old mean object data lists
-	for ( int i = 0; i < m_MOData.moHistogramList.size(); i++ )
+	for ( int i = 0; i < m_MOData.moHistogramList.size(); ++i )
 		delete m_MOData.moHistogramList[i];
 	m_MOData.moVolumesList.clear();
 	m_MOData.moHistogramList.clear();
@@ -900,7 +900,7 @@ void dlg_FeatureScout::RenderMeanObject()
 	const MObjectImageType::SpacingType& out_spacing = itkImageData->GetSpacing();
 	const MObjectImageType::PointType& inputOrigin = itkImageData->GetOrigin();
 	double outputOrigin[DIM];
-	for ( unsigned int i = 0; i < DIM; i++ )
+	for ( unsigned int i = 0; i < DIM; ++i )
 		outputOrigin[i] = inputOrigin[i];
 	mObjectITKImage->SetSpacing( out_spacing );
 	mObjectITKImage->SetOrigin( outputOrigin );
@@ -919,7 +919,7 @@ void dlg_FeatureScout::RenderMeanObject()
 	const addImageType::SpacingType& addout_spacing = itkImageData->GetSpacing();
 	const addImageType::PointType& addinputOrigin = itkImageData->GetOrigin();
 	double addoutputOrigin[DIM];
-	for ( unsigned int i = 0; i < DIM; i++ )
+	for ( unsigned int i = 0; i < DIM; ++i )
 		addoutputOrigin[i] = addinputOrigin[i];
 	addImage->SetSpacing( addout_spacing );
 	addImage->SetOrigin( addoutputOrigin );
@@ -975,7 +975,7 @@ void dlg_FeatureScout::RenderMeanObject()
 									   ( progress + 1.0 ) * ( 100.0 / ( classCount - 1 ) ) / meanObjectIds->size() );
 			activeChild->updateProgressBar( percentage );
 			QCoreApplication::processEvents();
-			progress++;
+			++progress;
 		}
 
 		// Normalize voxels values to 1
@@ -1354,9 +1354,9 @@ void dlg_FeatureScout::RenderOrientation()
 	oi->SetExtent( 0, 90, 0, 360, 0, 0 );
 	oi->AllocateScalars( VTK_DOUBLE, 3 );
 
-	for ( int theta = 0; theta < 91; theta++ )//theta
+	for ( int theta = 0; theta < 91; ++theta )//theta
 	{
-		for ( int phi = 0; phi < 361; phi++ )//phi
+		for ( int phi = 0; phi < 361; ++phi )//phi
 		{
 			double phi_rad = vtkMath::RadiansFromDegrees( (double) phi ),
 				theta_rad = vtkMath::RadiansFromDegrees( (double) theta );
@@ -1381,9 +1381,9 @@ void dlg_FeatureScout::RenderOrientation()
 	colors->SetNumberOfComponents( 3 );
 	colors->SetName( "Colors" );
 
-	for ( int phi = 0; phi < 360; phi++ )
+	for ( int phi = 0; phi < 360; ++phi )
 	{
-		for ( int theta = 0; theta < 91; theta++ )
+		for ( int theta = 0; theta < 91; ++theta )
 		{
 			angle = phi * M_PI / 180.0;
 			xx = theta * cos( angle );
@@ -1391,7 +1391,7 @@ void dlg_FeatureScout::RenderOrientation()
 			points->InsertNextPoint( xx, yy, 0.0 );
 			double *p = static_cast<double *>( oi->GetScalarPointer( theta, phi, 0 ) );
 			unsigned char color[3];
-			for ( unsigned int j = 0; j < 3; j++ )
+			for ( unsigned int j = 0; j < 3; ++j )
 				color[j] = static_cast<unsigned char>( 255.0 * p[j] );
 			colors->InsertNextTypedTuple( color );
 		}
@@ -1572,7 +1572,7 @@ void dlg_FeatureScout::ClassAddButton()
 	QList<int> kIdx; // list to regist the selected index of object IDs in activeClassItem
 
 	// add new class
-	for ( int i = 0; i < CountObject; i++ )
+	for ( int i = 0; i < CountObject; ++i )
 	{
 		// get objID from item->text()
 		vtkVariant v = pcSelection->GetVariantValue( i );
@@ -1614,7 +1614,7 @@ void dlg_FeatureScout::ClassAddButton()
 	rootItem->appendRow( firstLevelItem );
 
 	// remove items from activeClassItem from table button to top, otherwise you would make a wrong delete
-	for ( int i = 0; i < CountObject; i++ )
+	for ( int i = 0; i < CountObject; ++i )
 		this->activeClassItem->removeRow( kIdx.value( i ) );
 
 	updateClassStatistics( this->activeClassItem );
@@ -1642,7 +1642,7 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter *writer)
 		{
 			writer->writeStartElement( "FibreClasses" ); //start FibreClasses tag
 
-			for ( int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); i++ )
+			for ( int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); ++i )
 			{
 				//Gets the fibre class
 				QStandardItem* fc = classTreeModel->invisibleRootItem()->child( i, 1 );
@@ -1685,7 +1685,7 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter *writer)
 		{
 			writer->writeStartElement( "VoidClasses" ); //start FibreClasses tag
 
-			for ( int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); i++ )
+			for ( int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); ++i )
 			{
 				//Gets the fibre class
 				QStandardItem* fc = classTreeModel->invisibleRootItem()->child( i, 1 );
@@ -1725,7 +1725,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 {
 	//Gets the selected rows out of elementTable
 	QModelIndexList indexes = elementTableView->selectionModel()->selection().indexes();
-	QList<ushort> rowList;
+	QList<ushort> characteristicsList;
 	QStringList inList;
 	QList<QVariant> inPara;
 
@@ -1738,23 +1738,23 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	for ( int i = 0; i < indexes.count(); ++i )
 	{
 		//Ensures that indices are unique
-		if ( rowList.contains( indexes.at( i ).row() ) )
+		if (characteristicsList.contains( indexes.at( i ).row() ) )
 			continue;
-		rowList.append( indexes.at( i ).row() );
+		characteristicsList.append( indexes.at( i ).row() );
 
-		QString columnName( this->elementTable->GetColumn( 0 )->GetVariantValue( rowList.at( i ) ).ToString().c_str() );
+		QString columnName( this->elementTable->GetColumn( 0 )->GetVariantValue(characteristicsList.at( i ) ).ToString().c_str() );
 		columnName.remove( "Â" );
 
 		inList.append( QString( "#HistoMin for %1" ).arg( columnName ) );
 		inList.append( QString( "#HistoMax for %1" ).arg( columnName ) );
 		inList.append( QString( "#HistoBinNbr for %1" ).arg( columnName ) );
 
-		inPara.append( this->elementTable->GetColumn( 1 )->GetVariantValue( rowList.at( i ) ).ToFloat() );
-		inPara.append( this->elementTable->GetColumn( 2 )->GetVariantValue( rowList.at( i ) ).ToFloat() );
+		inPara.append( this->elementTable->GetColumn( 1 )->GetVariantValue(characteristicsList.at( i ) ).ToFloat() );
+		inPara.append( this->elementTable->GetColumn( 2 )->GetVariantValue(characteristicsList.at( i ) ).ToFloat() );
 		inPara.append( 100 );
 	}
 
-	if ( rowList.count() == 0 )
+	if (characteristicsList.count() == 0 )
 	{
 		QMessageBox::information(this, "FeatureScout", "No characteristic specified in the element explorer." );
 		return;
@@ -1784,23 +1784,24 @@ void dlg_FeatureScout::CsvDVSaveButton()
 
 	//Sets up a chart matrix for the feature distribution charts
 	vtkNew<vtkChartMatrix> distributionChartMatrix;
-	distributionChartMatrix->SetSize( vtkVector2i( rowList.count() < 3 ? rowList.count() % 3 : 3, ceil( rowList.count() / 3.0 ) ) );
+	distributionChartMatrix->SetSize( vtkVector2i( characteristicsList.count() < 3 ?
+		characteristicsList.count() % 3 : 3, ceil(characteristicsList.count() / 3.0 ) ) );
 	distributionChartMatrix->SetGutter( vtkVector2f( 70.0, 70.0 ) );
 
 	//Calculates histogram for each selected characteristic
-	for ( int row = 0; row < rowList.count(); ++row )
+	for ( int characteristicIdx = 0; characteristicIdx < characteristicsList.count(); ++characteristicIdx)
 	{
 		double range[2] = { 0.0, 0.0 };
 		vtkDataArray *length = vtkDataArray::SafeDownCast(
-			this->tableList[this->activeClassItem->index().row()]->GetColumn( rowList.at( row ) ) );
-		range[0] = dlg.getDblValue(3 * row + 2);
-		range[1] = dlg.getDblValue(3 * row + 3);
+			this->tableList[this->activeClassItem->index().row()]->GetColumn( characteristicsList.at(characteristicIdx) ) );
+		range[0] = dlg.getDblValue(3 * characteristicIdx + 2);
+		range[1] = dlg.getDblValue(3 * characteristicIdx + 3);
 		//length->GetRange(range);
 
 		if ( range[0] == range[1] )
 			range[1] = range[0] + 1.0;
 
-		int numberOfBins = dlg.getDblValue(3 * row + 4);
+		int numberOfBins = dlg.getDblValue(3 * characteristicIdx + 4);
 		//int numberOfBins = dlg.getDblValue(row+2);
 		//double inc = (range[1] - range[0]) / (numberOfBins) * 1.001; //test
 		double inc = ( range[1] - range[0] ) / ( numberOfBins );
@@ -1814,16 +1815,20 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		//double min = range[0] - 0.0005*inc + halfInc;	//test
 		double min = range[0] + halfInc;
 
-		for ( int j = 0; j < numberOfBins; ++j )
-			extents->SetValue( j, min + j * inc );;
+		for (int j = 0; j < numberOfBins; ++j)
+		{
+			extents->SetValue(j, min + j * inc);
+		}
 
 		auto populations = vtkSmartPointer<vtkIntArray>::New();
 		populations->SetName( "Probability" );
 		populations->SetNumberOfTuples( numberOfBins );
 		int *pops = static_cast<int *>( populations->GetVoidPointer( 0 ) );
 
-		for ( int k = 0; k < numberOfBins; ++k )
+		for (int k = 0; k < numberOfBins; ++k)
+		{
 			pops[k] = 0;
+		}
 
 		for ( vtkIdType j = 0; j < length->GetNumberOfTuples(); ++j )
 		{
@@ -1878,7 +1883,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 				tRowNb = disTable->GetNumberOfRows();
 
 				file << QString( "%1 Distribution of '%2'" )
-					.arg( this->csvTable->GetColumnName( rowList.at( row ) ) )
+					.arg( this->csvTable->GetColumnName(characteristicsList.at( characteristicIdx) ) )
 					.arg( this->activeClassItem->text() ).toStdString()
 					<< endl;
 
@@ -1909,12 +1914,12 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		if ( showHistogram )
 		{
 			vtkChartXY* chart = vtkChartXY::SafeDownCast( distributionChartMatrix
-															->GetChart( vtkVector2i( row % ( rowList.count() < 3 ? rowList.count() % 3 : 3 ), row / 3 ) ) );
+															->GetChart( vtkVector2i(characteristicIdx % (characteristicsList.count() < 3 ? characteristicsList.count() % 3 : 3 ), characteristicIdx / 3 ) ) );
 			//chart->SetBarWidthFraction(0.95);
 			chart->GetTitleProperties()->SetFontSize( 18 );
 			vtkPlot *plot = chart->AddPlot( vtkChartXY::BAR );
 			plot->SetInputData( disTable, 0, 1 );
-			plot->GetXAxis()->SetTitle( this->csvTable->GetColumnName( rowList.at( row ) ) );
+			plot->GetXAxis()->SetTitle( this->csvTable->GetColumnName(characteristicsList.at(characteristicIdx) ) );
 			plot->GetYAxis()->SetTitle( "Frequency" );
 			plot->GetXAxis()->GetLabelProperties()->SetFontSize( 19 );
 			plot->GetYAxis()->GetLabelProperties()->SetFontSize( 19 );
@@ -2014,7 +2019,6 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector & con, const QString
 	typedef int ClassIDType;
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<ClassIDType, DIM>   OutputImageType;
-	OutputImageType::SizeType OutputImageSize;
 
 	QMap<size_t, ClassIDType> currentEntries;
 
@@ -2037,7 +2041,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector & con, const QString
 			continue;
 		
 		QStandardItem *item = classTreeModel->invisibleRootItem()->child(i);
-		for (int j = 0; j < item->rowCount(); j++)
+		for (int j = 0; j < item->rowCount(); ++j)
 		{
 			size_t labelID = item->child(j)->text().toULongLong();
 			currentEntries.insert(labelID, i);
@@ -2116,7 +2120,7 @@ void dlg_FeatureScout::ClassSaveButton()
 	stream.writeAttribute( CountAllAttribute, QString( "%1" ).arg( objectsCount ) );
 	stream.writeAttribute( IDColumnAttribute, csvTable->GetColumnName(0) ); // store name of ID  -> TODO: ID mapping!
 
-	for ( int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); i++ )
+	for ( int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); ++i )
 	{
 		writeClassesAndChildren( &stream, classTreeModel->invisibleRootItem()->child( i ) );
 	}
@@ -2218,7 +2222,7 @@ void dlg_FeatureScout::ClassLoadButton()
 				m_colorList.append( QColor( color ) );
 				rootItem->appendRow( stammItem );
 				activeItem = rootItem->child( idxClass );
-				idxClass++;
+				++idxClass;
 			}
 		}
 	}
@@ -2229,7 +2233,7 @@ void dlg_FeatureScout::ClassLoadButton()
 	//upadate TableList
 	if ( rootItem->rowCount() == idxClass )
 	{
-		for ( int i = 0; i < idxClass; i++ )
+		for ( int i = 0; i < idxClass; ++i )
 			this->recalculateChartTable( rootItem->child( i ) );
 		this->setActiveClassItem( rootItem->child( 0 ), 0 );
 		MultiClassRendering();
@@ -2259,9 +2263,9 @@ void dlg_FeatureScout::ClassDeleteButton()
 	int countActive = this->activeClassItem->rowCount();
 
 	// append stamm item values to list
-	for ( int i = 0; i < stammItem->rowCount(); i++ )
+	for ( int i = 0; i < stammItem->rowCount(); ++i )
 		list.append( stammItem->child( i )->text().toInt() );
-	for ( int j = 0; j < countActive; j++ )
+	for ( int j = 0; j < countActive; ++j )
 	{
 		int labelID = this->activeClassItem->child( j )->text().toInt();
 		// update Class_ID column, prepare values for LookupTable
@@ -2274,7 +2278,7 @@ void dlg_FeatureScout::ClassDeleteButton()
 	std::sort( list.begin(), list.end() );
 	// give the values from list to stammitem
 	stammItem->removeRows( 0, stammItem->rowCount() );
-	for ( int k = 0; k < list.size(); k++ )
+	for ( int k = 0; k < list.size(); ++k )
 	{
 		QStandardItem *item = new QStandardItem( QString( "%1" ).arg( list.at( k ) ) );
 		stammItem->appendRow( item );
@@ -2297,7 +2301,7 @@ void dlg_FeatureScout::ClassDeleteButton()
 
 			//go for each element in the class and reset id
 			//element number = number of colums
-			for (int j = 0; j < item->rowCount(); j++)
+			for (int j = 0; j < item->rowCount(); ++j)
 			{
 				int labelID = item->child(j, 0)->text().toInt();
 				this->csvTable->SetValue(labelID - 1, elementsCount - 1, classID);
@@ -2385,7 +2389,7 @@ void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
 	pcView->Render();
 }
 
-void dlg_FeatureScout::spBigChartMouseButtonPressed( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
+void dlg_FeatureScout::spBigChartMouseButtonPressed( vtkObject * obj, unsigned long, void * /*client_data*/, void *, vtkCommand * /*command*/ )
 {
 	// Gets the right mouse button press event for scatter plot matrix.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast( obj );
@@ -2410,16 +2414,20 @@ void dlg_FeatureScout::spPopup( vtkObject * obj, unsigned long, void * client_da
 	}
 	else
 	{
+		// semi-automatic classification not ported to new SPM yet
+		/*
 		QMenu* popupMenu = static_cast<QMenu*>( client_data );     // Reset to original SPM popup
 		if ( popupMenu->actions().count() > 1 )                    // Check if SPM or PC popups
 			popupMenu->actions().at( 1 )->setText( "Suggest Classification" );
+		*/
 	}
 }
 
 void dlg_FeatureScout::spPopupSelection( QAction *selection )
 {
 	if (selection->text() == "Add class") { ClassAddButton(); }
-	// TODO SPM
+	// semi-automatic classification not ported to new SPM yet
+	/*
 	if ( selection->text() == "Suggest Classification" )
 	{
 		bool ok;
@@ -2437,8 +2445,11 @@ void dlg_FeatureScout::spPopupSelection( QAction *selection )
 		//autoAddClass( matrix->GetkMeansClusterCount() );
 		selection->setText( "Suggest Classification" );
 	}
+	*/
 }
 
+/*
+	// semi-automatic classification not ported to new SPM yet
 void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 {
 	QStandardItem *motherClassItem = this->activeClassItem;
@@ -2446,7 +2457,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 	for ( int i = 1; i <= NbOfClusters; ++i )
 	{
 		// recieve the current selections from annotationlink
-		// TODO SPM
+		// semi-automatic classification not ported to new SPM yet
 		//vtkAbstractArray *SelArr = matrix->GetkMeansCluster( i )->GetNode( 0 )->GetSelectionList();
 		int CountObject = 0; //  SelArr->GetNumberOfTuples();
 		/*
@@ -2491,7 +2502,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 			QMessageBox::warning(this, "FeatureScout", "No object was selected!" );
 			// return; (?)
 		}
-		*/
+		* /
 	}
 
 	//  Mother Class is empty after kMeans auto class added, therefore rows are removed
@@ -2523,6 +2534,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 	//matrix->SetClass2Plot( this->activeClassItem->index().row() );
 	//matrix->UpdateLayout();
 }
+*/
 
 void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 {
@@ -2746,10 +2758,10 @@ void dlg_FeatureScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStand
 		writer->writeAttribute( ColorAttribute, color );
 		writer->writeAttribute( CountAttribute, classTreeModel->invisibleRootItem()->child( item->index().row(), 1 )->text() );
 		writer->writeAttribute( PercentAttribute, classTreeModel->invisibleRootItem()->child( item->index().row(), 2 )->text() );
-		for ( int i = 0; i < item->rowCount(); i++ )
+		for ( int i = 0; i < item->rowCount(); ++i )
 		{
 			writer->writeStartElement( ObjectTag );
-			for ( int j = 0; j < elementsCount; j++ )
+			for ( int j = 0; j < elementsCount; ++j )
 			{
 				vtkVariant v = csvTable->GetValue( item->child( i )->text().toInt() - 1, j );
 				QString str = QString::fromUtf8( v.ToUnicodeString().utf8_str() ).trimmed();
@@ -2805,7 +2817,7 @@ void dlg_FeatureScout::recalculateChartTable( QStandardItem *item )
 	auto arr = vtkSmartPointer<vtkIntArray>::New();
 	arr->SetName( chartTable->GetColumnName( 0 ) );
 	table->AddColumn( arr );
-	for ( int i = 1; i < elementsCount - 1; i++ )
+	for ( int i = 1; i < elementsCount - 1; ++i )
 	{
 		auto arrX = vtkSmartPointer<vtkFloatArray>::New();
 		arrX->SetName( chartTable->GetColumnName( i ) );
@@ -2819,12 +2831,12 @@ void dlg_FeatureScout::recalculateChartTable( QStandardItem *item )
 	table->SetNumberOfRows( oCount );
 
 	int csvID = 0;
-	for ( int j = 0; j < oCount; j++ )
+	for ( int j = 0; j < oCount; ++j )
 	{
 		csvID = item->child( j )->text().toInt();
-		auto arr = vtkSmartPointer<vtkVariantArray>::New();
-		csvTable->GetRow( csvID - 1, arr );
-		table->SetRow( j, arr );
+		auto arrRow = vtkSmartPointer<vtkVariantArray>::New();
+		csvTable->GetRow( csvID - 1, arrRow );
+		table->SetRow( j, arrRow );
 	}
 
 	// if item already exists
@@ -2849,7 +2861,7 @@ void dlg_FeatureScout::updateLookupTable( double alpha )
 {
 	int lutNum = m_colorList.size();
 	m_multiClassLUT->SetNumberOfTableValues( lutNum );
-	for ( int i = 0; i < lutNum; i++ )
+	for ( int i = 0; i < lutNum; ++i )
 		m_multiClassLUT->SetTableValue( i,
 			m_colorList.at( i ).red() / 255.0,
 			m_colorList.at( i ).green() / 255.0,
@@ -2882,7 +2894,7 @@ void dlg_FeatureScout::EnableBlobRendering()
 	blobManager->UpdateBlobSettings( blob );
 
 	QVector<FeatureInfo> objects;
-	for ( int i = 0; i < chartTable->GetNumberOfRows(); i++ )
+	for ( int i = 0; i < chartTable->GetNumberOfRows(); ++i )
 	{
 		FeatureInfo fi;
 		//int index = chartTable->GetValue( i, 0 ).ToInt();
@@ -2990,7 +3002,7 @@ void dlg_FeatureScout::deleteObject()
 			int i = 0;
 			while ( oID > sItem->child( i )->text().toInt() )
 			{
-				i++;
+				++i;
 			}
 			sItem->insertRow( i, newItem );
 		}
@@ -3039,18 +3051,18 @@ int dlg_FeatureScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
 	double fp, ft;
 	int ip, it, tt, length;
 
-	for ( int i = 0; i < gThe; i++ )
+	for ( int i = 0; i < gThe; ++i )
 	{
 		auto arr = vtkSmartPointer<vtkIntArray>::New();
 		arr->SetNumberOfValues( gPhi );
 		ot->AddColumn( arr );
-		for ( int j = 0; j < gPhi; j++ )
+		for ( int j = 0; j < gPhi; ++j )
 			ot->SetValue( j, i, 0 );
 	}
 
 	length = t->GetNumberOfRows();
 
-	for ( int k = 0; k < length; k++ )
+	for ( int k = 0; k < length; ++k )
 	{
 		fp = t->GetValue( k, m_columnMapping->value(iACsvConfig::Phi)).ToDouble() / PolarPlotPhiResolution;
 		ft = t->GetValue( k, m_columnMapping->value(iACsvConfig::Theta)).ToDouble() / PolarPlotThetaResolution;
@@ -3086,7 +3098,7 @@ void dlg_FeatureScout::drawAnnotations( vtkRenderer *renderer )
 	pts->SetNumberOfPoints( numPoints );
 	double x[3];
 
-	for ( vtkIdType i = 0; i < 12; i++ )
+	for ( vtkIdType i = 0; i < 12; ++i )
 	{
 		double phi = i * re * M_PI / 180.0;
 		double rx = 100.0;
@@ -3104,7 +3116,7 @@ void dlg_FeatureScout::drawAnnotations( vtkRenderer *renderer )
 	}
 
 	// annotation for theta
-	for ( vtkIdType i = 12; i < numPoints; i++ )
+	for ( vtkIdType i = 12; i < numPoints; ++i )
 	{
 		double phi = 270.0 * M_PI / 180.0;
 		double rx = ( numPoints - i ) * 15.0;
@@ -3148,11 +3160,11 @@ void dlg_FeatureScout::drawPolarPlotMesh( vtkRenderer *renderer )
 	auto points = vtkSmartPointer<vtkPoints>::New();
 	points->Allocate( anzP );
 
-	for ( int i = 0; i < ap; i++ )
+	for ( int i = 0; i < ap; ++i )
 	{
 		double phi = i*re*M_PI / 180.0;
 
-		for ( int j = 0; j < at; j++ )
+		for ( int j = 0; j < at; ++j )
 		{
 			double rx = j*re;
 			xx = rx*cos( phi );
@@ -3235,11 +3247,11 @@ void dlg_FeatureScout::updatePolarPlotView( vtkTable *it )
 	colors->SetName( "Colors" );
 
 	auto points = vtkSmartPointer<vtkPoints>::New();
-	for ( int x = 0; x < gThe; x++ )
+	for ( int x = 0; x < gThe; ++x )
 	{
 		double rx = x*PolarPlotThetaResolution;
 
-		for ( int y = 0; y < gPhi; y++ )
+		for ( int y = 0; y < gPhi; ++y )
 		{
 			double phi = y*PolarPlotPhiResolution*M_PI / 180.0;
 			double xx = rx*cos( phi );
@@ -3256,7 +3268,7 @@ void dlg_FeatureScout::updatePolarPlotView( vtkTable *it )
 			cTFun->GetColor( zz, dcolor );
 			unsigned char color[3];
 
-			for ( unsigned int j = 0; j < 3; j++ )
+			for ( unsigned int j = 0; j < 3; ++j )
 				color[j] = static_cast<unsigned char>( 255.0 * dcolor[j] );
 
 			colors->InsertNextTypedTuple( color );

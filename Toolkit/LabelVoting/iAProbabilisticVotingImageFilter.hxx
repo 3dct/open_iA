@@ -42,7 +42,7 @@ iAProbabilisticVotingImageFilter<TInputImage, TOutputImage>::iAProbabilisticVoti
 
 template< typename TInputImage, typename TOutputImage >
 void iAProbabilisticVotingImageFilter< TInputImage, TOutputImage >
-::PrintSelf(std::ostream & os, itk::Indent indent) const
+::PrintSelf(std::ostream & /*os*/, itk::Indent /*indent*/) const
 {}
 
 template< typename TInputImage, typename TOutputImage >

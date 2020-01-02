@@ -39,7 +39,7 @@ RightBorderLayout::~RightBorderLayout()
 	delete m_borderItem;
 }
 
-void RightBorderLayout::addItem(QLayoutItem *item)
+void RightBorderLayout::addItem(QLayoutItem * /*item*/)
 {
 	// Do nothing
 }

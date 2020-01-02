@@ -28,8 +28,10 @@ typedef std::vector<iADiskData*> disc_vector;
 class iASnakeSpline
 {
 public:
+	static const disc_vector::size_type NoPointSelected = std::numeric_limits<disc_vector::size_type>::max();
+
 	iASnakeSpline()
-	  : m_selectedPntInd(-1), m_ren(0), m_radius(RADIUS)
+	  : m_selectedPntInd(NoPointSelected), m_ren(0), m_radius(RADIUS)
 	{}
 
 	void initialize(vtkRenderer * ren, double imageSpacing)
@@ -79,7 +81,7 @@ public:
 		if (static_cast<int>(selectedPntInd) < m_spline.GetNumberOfPoints())
 		{
 			// get current position of point and only move in two directions depending on slice view
-			double * currentPos = m_snakeDisks[selectedPntInd]->actor->GetPosition();
+			//double * currentPos = m_snakeDisks[selectedPntInd]->actor->GetPosition();
 			m_snakeDisks[selectedPntInd]->actor->SetPosition(x, y, ZCoord);
 			m_spline.SetPoint(selectedPntInd, x, y, ZCoord);
 		}
@@ -90,7 +92,7 @@ public:
 
 	disc_vector::size_type CalculateSelectedPoint(double x, double y)
 	{
-		m_selectedPntInd = -1;
+		m_selectedPntInd = NoPointSelected;
 		for(disc_vector::size_type i = 0; i != m_snakeDisks.size(); i++)
 		{
 			double *handlePos = m_snakeDisks[i]->actor->GetPosition();
@@ -99,7 +101,7 @@ public:
 				 y >= handlePos[1] - m_radius &&  y <= handlePos[1] + m_radius )
 				m_selectedPntInd = i;
 
-			if (m_selectedPntInd != -1)
+			if (m_selectedPntInd != NoPointSelected)
 				break;
 		}
 		return m_selectedPntInd;
@@ -138,7 +140,7 @@ public:
 
 	void deselectPoint()
 	{
-		m_selectedPntInd = -1;
+		m_selectedPntInd = NoPointSelected;
 	}
 
 	static const int RADIUS = 5;

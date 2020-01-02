@@ -12,13 +12,16 @@ struct Key
 
 	bool operator==(const Key &other) const
 	{
-		if (other._size != _size) {
+		if (other._size != _size)
+		{
 			return false;
 		}
 
 		bool _equal = true;
-		for (int j = 0; j < _size; j++) {
-			if (indizes[j] != other.indizes[j]) {
+		for (int j = 0; j < _size; j++)
+		{
+			if (indizes[j] != other.indizes[j])
+			{
 				return false;
 			}
 		}

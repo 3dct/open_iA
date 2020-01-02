@@ -20,10 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+typedef double iADistanceType;
 
-class iARandomWalkerModuleInterface : public iAModuleInterface
+class iANormalizer
 {
 public:
-	void Initialize() override;
+	virtual iADistanceType Normalize(iADistanceType d) const =0;
+	virtual void SetMaxValue(iADistanceType maxValue) =0;
+	virtual char const * const name() const =0;
 };

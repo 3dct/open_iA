@@ -82,6 +82,7 @@
 // TODO: VOLUME: check all places using modality(0)->transfer() !
 
 #include <QByteArray>
+#include <QDateTime>
 #include <QFile>
 #include <QFileDialog>
 #include <QMainWindow>
@@ -94,32 +95,36 @@
 
 
 MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsavedChanges) :
+	m_mainWnd(mainWnd),
+	m_preferences(prefs),
 	m_isSmthMaximized(false),
-	m_isMagicLensEnabled(false),
-	m_reInitializeRenderWindows(true),
-	m_initVolumeRenderers(false),
 	m_isUntitled(true),
-	m_snakeSlicer(false),
 	m_isSliceProfileEnabled(false),
 	m_isArbProfileEnabled(false),
+	m_isMagicLensEnabled(false),
+	m_reInitializeRenderWindows(true),
 	m_raycasterInitialized(false),
-	m_mainWnd(mainWnd),
+	m_snakeSlicer(false),
+	m_worldProfilePoints(vtkPoints::New()),
+	m_worldSnakePoints(vtkPoints::New()),
+	m_parametricSpline(iAParametricSpline::New()),
+	m_imageData(vtkSmartPointer<vtkImageData>::New()),
+	m_polyData(vtkPolyData::New()),
+	m_axesTransform(vtkTransform::New()),
+	m_slicerTransform(vtkTransform::New()),
 	m_volumeStack(new iAVolumeStack),
 	m_ioThread(nullptr),
-	m_dwImgProperty(nullptr),
-	m_dwProfile(nullptr),
-	m_logger(new iAMdiChildLogger(this)),
 	m_histogram(new iADiagramFctWidget(nullptr, this, " Histogram", "Frequency")),
 	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
-	m_preferences(prefs),
+	m_dwImgProperty(nullptr),
+	m_dwProfile(nullptr),
+	m_nextChannelID(0),
+	m_magicLensChannel(NotExistingChannel),
+	m_logger(new iAMdiChildLogger(this)),
 	m_currentModality(0),
 	m_currentComponent(0),
 	m_currentHistogramModality(-1),
-	m_magicLensChannel(NotExistingChannel),
-	m_nextChannelID(0),
-	m_slicerTransform(vtkTransform::New()),
-	m_worldSnakePoints(vtkPoints::New()),
-	m_worldProfilePoints(vtkPoints::New())
+	m_initVolumeRenderers(false)
 {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
@@ -157,11 +162,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	m_visibility = MULTI;
 	std::fill(m_position, m_position + 3, 0);
 
-	m_imageData = vtkSmartPointer<vtkImageData>::New();
-	m_polyData = vtkPolyData::New();
-
-	m_axesTransform = vtkTransform::New();
-	m_parametricSpline = iAParametricSpline::New();
 	m_parametricSpline->SetPoints(m_worldSnakePoints);
 	
 	m_renderer = new iARenderer(this);
@@ -546,7 +546,7 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 	return true;
 }
 
-void MdiChild::setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData)
+void MdiChild::setImageData(QString const & /*filename*/, vtkSmartPointer<vtkImageData> imgData)
 {
 	m_imageData = imgData;
 	modality(0)->setData(m_imageData);
@@ -575,12 +575,11 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 	m_volumeStack->opacityTF(m_previousIndexOfVolume)->DeepCopy(piecewiseFunction);
 	m_previousIndexOfVolume = updateIndex;
 
-	int numberOfVolumes = m_volumeStack->numberOfVolumes();
 	m_imageData->DeepCopy(m_volumeStack->volume(updateIndex));
 
 	if(isApplyForAll)
 	{
-		for (int i=0; i<numberOfVolumes;i++)
+		for (size_t i=0; i< m_volumeStack->numberOfVolumes(); ++i)
 		{
 			if (i != updateIndex)
 			{
@@ -615,9 +614,7 @@ void MdiChild::setupStackView(bool active)
 	// TODO: check!
 	m_previousIndexOfVolume = 0;
 
-	int numberOfVolumes = m_volumeStack->numberOfVolumes();
-
-	if (numberOfVolumes == 0)
+	if (m_volumeStack->numberOfVolumes() == 0)
 	{
 		DEBUG_LOG("Invalid call to setupStackView: No Volumes loaded!");
 		return;
@@ -627,7 +624,8 @@ void MdiChild::setupStackView(bool active)
 
 	m_imageData->DeepCopy(m_volumeStack->volume(currentIndexOfVolume));
 	setupViewInternal(active);
-	for (int i=0; i<numberOfVolumes; i++) {
+	for (int i=0; i< m_volumeStack->numberOfVolumes(); ++i)
+	{
 		vtkSmartPointer<vtkColorTransferFunction> cTF = defaultColorTF(m_imageData->GetScalarRange());
 		vtkSmartPointer<vtkPiecewiseFunction> pWF = defaultOpacityTF(m_imageData->GetScalarRange(), m_imageData->GetNumberOfScalarComponents() == 1);
 		m_volumeStack->addColorTransferFunction(cTF);
@@ -635,10 +633,8 @@ void MdiChild::setupStackView(bool active)
 	}
 
 	QSharedPointer<iAModalityTransfer> modTrans = modality(0)->transfer();
-	if (numberOfVolumes > 0) {
-		modTrans->colorTF()->DeepCopy(m_volumeStack->colorTF(0));
-		modTrans->opacityTF()->DeepCopy(m_volumeStack->opacityTF(0));
-	}
+	modTrans->colorTF()->DeepCopy(m_volumeStack->colorTF(0));
+	modTrans->opacityTF()->DeepCopy(m_volumeStack->opacityTF(0));
 	addVolumePlayer();
 
 	m_renderer->reInitialize(m_imageData, m_polyData);
@@ -698,7 +694,7 @@ void MdiChild::setupView(bool active )
 	check2DMode();
 }
 
-void MdiChild::setupProject(bool active)
+void MdiChild::setupProject(bool /*active*/)
 {
 	setModalities(m_ioThread->modalities());
 	QString fileName = m_ioThread->fileName();
@@ -1867,7 +1863,8 @@ bool MdiChild::addVolumePlayer()
 {
 	m_dwVolumePlayer = new dlg_volumePlayer(this, m_volumeStack.data());
 	tabifyDockWidget(m_dwLog, m_dwVolumePlayer);
-	for (int id=0; id<m_volumeStack->numberOfVolumes(); id++) {
+	for (size_t id=0; id<m_volumeStack->numberOfVolumes(); ++id)
+	{
 		m_checkedList.append(0);
 	}
 	connect(m_histogram, SIGNAL(applyTFForAll()), m_dwVolumePlayer, SLOT(applyForAll()));
@@ -2001,7 +1998,7 @@ void MdiChild::hideVolumeWidgets()
 
 void MdiChild::setVisibility(QList<QWidget*> widgets, bool show)
 {
-	for (int i = 0; i < widgets.size(); i++)
+	for (int i = 0; i < widgets.size(); ++i)
 		show ? widgets[i]->show() : widgets[i]->hide();
 }
 
@@ -2134,7 +2131,7 @@ void MdiChild::removeFinishedAlgorithms()
 void MdiChild::cleanWorkingAlgorithms()
 {
 	unsigned int workingAlgorithmsSize = m_workingAlgorithms.size();
-	for (unsigned int i=0; i<workingAlgorithmsSize; i++)
+	for (unsigned int i=0; i<workingAlgorithmsSize; ++i)
 	{
 		if(m_workingAlgorithms[i]->isRunning())
 		{
@@ -2153,8 +2150,10 @@ void MdiChild::addProfile()
 	int const * const dim = m_imageData->GetDimensions();
 	double const * const spacing = m_imageData->GetSpacing();
 	double end[3];
-	for (int i = 0; i<3; i++)
+	for (int i = 0; i < 3; ++i)
+	{
 		end[i] = start[i] + (dim[i] - 1) * spacing[i];
+	}
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicer[s]->setArbitraryProfile(0, start);
@@ -2213,7 +2212,7 @@ void MdiChild::maximizeDockWidget( QDockWidget * dw )
 	m_isSmthMaximized = true;
 }
 
-void MdiChild::demaximizeDockWidget( QDockWidget * dw )
+void MdiChild::demaximizeDockWidget( QDockWidget * /*dw*/ )
 {
 	this->restoreState(m_beforeMaximizeState);
 	m_isSmthMaximized = false;
@@ -2749,6 +2748,7 @@ void MdiChild::saveFinished()
 {
 	if (m_storedModalityNr < modalities()->size() && m_ioThread->ioID() != STL_WRITER)
 		m_dwModalities->setFileName(m_storedModalityNr, m_ioThread->fileName());
+	m_mainWnd->setCurrentFile(m_ioThread->fileName());
 	setWindowModified(modalities()->hasUnsavedModality());
 }
 

@@ -28,7 +28,7 @@
 #include <iAVolumeStack.h>
 #include <mdichild.h>
 
-#include <itkMacro.h>
+#include <itkMacro.h>    // for itk::ExceptionObject
 
 const int FOURDCT_MIN_NUMBER_OF_VOLUMES = 1;
 

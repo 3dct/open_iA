@@ -70,7 +70,7 @@ QSharedPointer<iAGraphWeights> CalculateGraphWeights(
 	iAVectorDistance const & distanceFunc)
 {
 	QSharedPointer<iAGraphWeights> result(new iAGraphWeights(graph.edgeCount()));
-	for (int i=0; i<graph.edgeCount(); ++i)
+	for (iAEdgeIndexType i=0; i<graph.edgeCount(); ++i)
 	{
 		iAEdgeType edge = graph.edge(i);
 		iADistanceType dist = distanceFunc.GetDistance(voxelData.get(edge.first), voxelData.get(edge.second));

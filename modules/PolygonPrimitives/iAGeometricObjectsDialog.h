@@ -20,4 +20,33 @@
 * ************************************************************************************/
 #pragma once
 
-typedef double iADistanceType;
+#include <QDialog>
+
+#include "ui_PolygonPrimitives.h"
+
+class MdiChild;
+
+class vtkOpenGLRenderer;
+
+class QColor;
+class QString;
+
+class iAGeometricObjectsDialog : public QDialog, Ui_PolygonPrimitives
+{
+Q_OBJECT
+
+public:
+	iAGeometricObjectsDialog(QWidget* parent = 0, Qt::WindowFlags f = 0);
+	void setMDIChild(MdiChild* child);
+
+private slots:
+	void createObject();
+
+private:
+	void readLineData  (vtkOpenGLRenderer* oglrenderer, QColor const & color);
+	void readSphereData(vtkOpenGLRenderer* oglrenderer, QColor const & color);
+	void readCubeData  (vtkOpenGLRenderer* oglrenderer, QColor const & color);
+
+	MdiChild *m_child;
+};
+

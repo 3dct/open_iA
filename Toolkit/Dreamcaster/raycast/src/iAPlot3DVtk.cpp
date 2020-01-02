@@ -240,7 +240,7 @@ void iAPlot3DVtk::SetOpacity( double opacity )
 	m_wireActor->GetProperty()->SetOpacity(opacity);
 }
 
-void iAPlot3DVtk::RenderWthCorrectTransparency( int correctTransparency )
+void iAPlot3DVtk::RenderWthCorrectTransparency( int /*correctTransparency*/ )
 {
 	/*if(m_correctTransparency==correctTransparency)
 		return;

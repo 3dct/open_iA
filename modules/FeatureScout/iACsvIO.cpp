@@ -132,7 +132,6 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		m_fileHeaders = m_csvConfig.currentHeaders;
 	auto selectedColIdx = computeSelectedColIdx();
 	determineOutputHeaders(selectedColIdx);
-	int colCount = m_outputHeaders.size();
 
 	dstTbl.initialize(m_outputHeaders, effectiveRowCount);
 

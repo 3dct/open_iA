@@ -38,6 +38,13 @@
 
 #include <array>
 
+// OpenMP
+#ifndef __APPLE__
+#ifndef __MACOSX
+#include <omp.h>
+#endif
+#endif
+
 namespace
 {
 	void getBestMatches(iAFiberData const & fiber, QMap<uint, uint> const & mapping, vtkTable* refTable,
@@ -81,11 +88,26 @@ namespace
 		}
 	}
 
-	QString CacheFileIdentifier("FIAKERCacheFile");
+	QString ResultCacheFileIdentifier("FIAKERResultCacheFile");
+	QString AverageCacheFileIdentifier("FIAKERAverageCacheFile");
 	QDataStream::Version CacheFileQtDataStreamVersion(QDataStream::Qt_5_6);
 	//QString CacheFileClosestFibers("ClosestFibers");
 	//QString CacheFileResultPattern("Result%1");
 	quint32 CacheFileVersion(1);
+
+	bool verifyOpenCacheFile(QFile & cacheFile)
+	{
+		if (!cacheFile.exists())
+		{
+			return false;
+		}
+		if (!cacheFile.open(QFile::ReadOnly))
+		{
+			DEBUG_LOG(QString("Couldn't open file %1 for reading!").arg(cacheFile.fileName()));
+			return false;
+		}
+		return true;
+	}
 }
 
 size_t iARefDistCompute::MaxNumberOfCloseFibers = 25;
@@ -126,42 +148,12 @@ void iARefDistCompute::run()
 {
 	QString cachePath(m_data->folder + "/cache/");
 	QDir().mkdir(cachePath);
-	QString fullCacheFileName(cachePath + QString("/refDist_%1").arg(m_referenceID));
-	QFile cacheFile(fullCacheFileName);
-	// check if ref data is cached on disk:
-	if (readFromCache(cacheFile))
-		return;
-	// if not cached, run computation:
-	m_progress.setStatus("Computing the distance of fibers in all results to the fibers in reference and find best matching ones.");
+	QString referenceName(QFileInfo(m_data->result[m_referenceID].fileName).completeBaseName());
+	m_progress.setStatus("Computing the distance of fibers in all results to the fibers in reference and find best matching ones, "
+		"and the difference between consecutive steps.");
 	auto & ref = m_data->result[m_referenceID];
 
-	// get values for normalization:
 	auto const & mapping = *ref.mapping.data();
-	double const * cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
-		*cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
-		*czr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterZ]);
-	double a = cxr[1] - cxr[0], b = cyr[1] - cyr[0], c = czr[1] - czr[0];
-	double diagLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
-	double const * lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
-	double maxLength = lengthRange[1] - lengthRange[0];
-
-	for (size_t resultID = 0; resultID <  m_data->result.size(); ++resultID)
-	{
-		m_progress.emitProgress(static_cast<int>(100.0 * resultID / m_data->result.size()));
-		auto & d = m_data->result[resultID];
-		if (resultID == m_referenceID)
-			continue;
-		size_t fiberCount = d.table->GetNumberOfRows();
-		d.refDiffFiber.resize(fiberCount);
-		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
-		{
-			auto it = d.curveInfo.find(fiberID);
-			// find the best-matching fibers in reference & compute difference:
-			iAFiberData fiber(d.table, fiberID, mapping, (it != d.curveInfo.end())? it->second : std::vector<iAVec3f>());
-			getBestMatches(fiber, mapping, ref.table,
-				d.refDiffFiber[fiberID].dist, diagLength, maxLength, ref.curveInfo);
-		}
-	}
 	std::array<size_t, iAFiberCharData::FiberValueCount> diffCols = {
 		mapping[iACsvConfig::StartX],  mapping[iACsvConfig::StartY],  mapping[iACsvConfig::StartZ],
 		mapping[iACsvConfig::EndX],    mapping[iACsvConfig::EndY],    mapping[iACsvConfig::EndZ],
@@ -170,15 +162,44 @@ void iARefDistCompute::run()
 		mapping[iACsvConfig::Length],
 		mapping[iACsvConfig::Diameter]
 	};
-
-	m_progress.setStatus("Computing the difference between consecutive steps.");
-	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+	// get values for normalization:
+	double const * cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
+		*cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
+		*czr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterZ]);
+	double a = cxr[1] - cxr[0], b = cyr[1] - cyr[0], c = czr[1] - czr[0];
+	double diagLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
+	double const * lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
+	double maxLength = lengthRange[1] - lengthRange[0];
+	bool recomputeAverages = false;
+	for (size_t resultID = 0; resultID <  m_data->result.size(); ++resultID)
 	{
-		auto& d = m_data->result[resultID];
-		if (resultID == m_referenceID)
+		QString resultName(QFileInfo(m_data->result[resultID].fileName).completeBaseName());
+		QString resultCacheFileName(cachePath + QString("refDist_%1_%2.cache").arg(referenceName).arg(resultName));
+		QFile cacheFile(resultCacheFileName);
+		bool skip = (resultID == m_referenceID) || readResultRefComparison(cacheFile, resultID);
+
+		m_progress.emitProgress(static_cast<int>(100.0 * resultID / m_data->result.size()));
+		if (skip)
+		{
 			continue;
-		size_t fiberCount = d.table->GetNumberOfRows();
-		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
+		}
+		recomputeAverages = true; // if any result is not loaded from cache, we have to recompute averages
+		auto & d = m_data->result[resultID];
+		qint64 const fiberCount = d.table->GetNumberOfRows();
+		d.refDiffFiber.resize(fiberCount);
+#pragma omp parallel for
+		for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
+		{
+			auto it = d.curveInfo.find(fiberID);
+			// find the best-matching fibers in reference & compute difference:
+			iAFiberData fiber(d.table, fiberID, mapping, (it != d.curveInfo.end())? it->second : std::vector<iAVec3f>());
+			getBestMatches(fiber, mapping, ref.table,
+				d.refDiffFiber[fiberID].dist, diagLength, maxLength, ref.curveInfo);
+		}
+		// Computing the difference between consecutive steps.
+// OpenMP parallalelization - somehow not working on Windows...
+#pragma omp parallel for
+		for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
 			if (d.stepData == iAFiberCharData::SimpleStepData)
 			{
@@ -218,6 +239,7 @@ void iARefDistCompute::run()
 			}
 			*/
 		}
+		writeResultRefComparison(cacheFile, resultID);
 	}
 
 	m_progress.setStatus("Updating tables with data computed so far.");
@@ -254,113 +276,112 @@ void iARefDistCompute::run()
 		}
 	}
 
-	m_progress.setStatus("Summing up match quality (+ whether there is a match) for all reference fibers.");
-	std::vector<double> refDistSum(ref.fiberCount, 0.0);
-	std::vector<double> refMatchCount(ref.fiberCount, 0.0);
-	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+	// Computing reference differences:
+	QString avgCacheFileName(cachePath + QString("refAvg_%1.cache").arg(referenceName));
+	QFile avgCacheFile(avgCacheFileName);
+	if (recomputeAverages // if any of the results was not loaded from cache
+		|| !readAverageMeasures(avgCacheFile))  // or cache file not found / number of results cached previously is not the same as currently loaded
 	{
-		if (resultID == m_referenceID)
-			continue;
-		auto & d = m_data->result[resultID];
-		for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
+		m_progress.setStatus("Summing up match quality (+ whether there is a match) for all reference fibers.");
+		std::vector<double> refDistSum(ref.fiberCount, 0.0);
+		std::vector<double> refMatchCount(ref.fiberCount, 0.0);
+		for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 		{
-			auto & bestFiberBestDist = d.refDiffFiber[fiberID].dist[BestSimilarityMeasure][0];
-			size_t refFiberID = bestFiberBestDist.index;
-			refDistSum[refFiberID] += bestFiberBestDist.similarity;
-			refMatchCount[refFiberID] += 1;
+			if (resultID == m_referenceID)
+				continue;
+			auto & d = m_data->result[resultID];
+			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
+			{
+				auto & bestFiberBestDist = d.refDiffFiber[fiberID].dist[BestSimilarityMeasure][0];
+				size_t refFiberID = bestFiberBestDist.index;
+				refDistSum[refFiberID] += bestFiberBestDist.similarity;
+				refMatchCount[refFiberID] += 1;
+			}
 		}
+		//size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns();
+		addColumn(m_data->result[m_referenceID].table, 0, "AvgSimilarity", ref.fiberCount);
+		m_data->avgRefFiberMatch.resize(ref.fiberCount);
+		for (size_t fiberID = 0; fiberID < ref.fiberCount; ++fiberID)
+		{
+			double value = (refMatchCount[fiberID] == 0) ? -1 : refDistSum[fiberID] / refMatchCount[fiberID];
+			m_data->avgRefFiberMatch[fiberID] = value;
+		}
+		m_progress.setStatus("Computing average differences/similarities for each result.");
+		size_t diffCount = iAFiberCharData::FiberValueCount + SimilarityMeasureCount;
+		// std::vector resize has an additional optional argument for default value for new entries,
+		// in QVector, the same can be achieved via fill method (but argument order is reversed!)
+		//m_data->maxAvgDifference.resize(diffCount, std::numeric_limits<double>::min());
+		m_data->maxAvgDifference.fill(std::numeric_limits<double>::min(), diffCount);
+		for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+		{
+			if (resultID == m_referenceID)
+				continue;
+			auto & d = m_data->result[resultID];
+			//d.avgDifference.resize(diffCount, 0.0);
+			d.avgDifference.fill(0.0, diffCount);
+			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
+			{
+				for (size_t diffID = 0; diffID < diffCount; ++diffID)
+				{
+					size_t tableColumnID = m_data->spmData->numParams() - (iAFiberCharData::FiberValueCount + SimilarityMeasureCount + EndColumns) + diffID;
+					double value = std::abs(d.table->GetValue(fiberID, tableColumnID).ToDouble());
+					d.avgDifference[diffID] += value;
+				}
+			}
+			for (size_t diffID = 0; diffID < diffCount; ++diffID)
+			{
+				d.avgDifference[diffID] /= d.fiberCount;
+				if (d.avgDifference[diffID] > m_data->maxAvgDifference[diffID])
+					m_data->maxAvgDifference[diffID] = d.avgDifference[diffID];
+			}
+		}
+		writeAverageMeasures(avgCacheFile);
 	}
-	size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns();
-	addColumn(m_data->result[m_referenceID].table, 0, "AvgSimilarity", ref.fiberCount);
-	m_data->avgRefFiberMatch.resize(ref.fiberCount);
+	
+	size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns() -1 ;
 	for (size_t fiberID = 0; fiberID < ref.fiberCount; ++fiberID)
 	{
-		double value = (refMatchCount[fiberID] == 0) ? -1 : refDistSum[fiberID] / refMatchCount[fiberID];
-		m_data->avgRefFiberMatch[fiberID] = value;
-		m_data->result[m_referenceID].table->SetValue(fiberID, colID, value);
+		
+		m_data->result[m_referenceID].table->SetValue(fiberID, colID, m_data->avgRefFiberMatch[fiberID]);
 		//DEBUG_LOG(QString("Fiber %1: matches=%2, similarity sum=%3, average=%4")
 		//	.arg(fiberID).arg(refDistSum[fiberID]).arg(refMatchCount[fiberID]).arg(value));
 	}
-
-	m_progress.setStatus("Computing average differences/similarities for each result.");
-	size_t diffCount = iAFiberCharData::FiberValueCount+SimilarityMeasureCount;
-	// std::vector resize has an additional optional argument for default value for new entries,
-	// in QVector, the same can be achieved via fill method (but argument order is reversed!)
-	//m_data->maxAvgDifference.resize(diffCount, std::numeric_limits<double>::min());
-	m_data->maxAvgDifference.fill(std::numeric_limits<double>::min(), diffCount);
-	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
-	{
-		if (resultID == m_referenceID)
-			continue;
-		auto & d = m_data->result[resultID];
-		//d.avgDifference.resize(diffCount, 0.0);
-		d.avgDifference.fill(0.0, diffCount);
-		for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
-		{
-			for (size_t diffID = 0; diffID < diffCount; ++diffID)
-			{
-				size_t tableColumnID = m_data->spmData->numParams() - (iAFiberCharData::FiberValueCount + SimilarityMeasureCount + EndColumns) + diffID;
-				double value = std::abs(d.table->GetValue(fiberID, tableColumnID).ToDouble());
-				d.avgDifference[diffID] += value;
-			}
-		}
-		for (size_t diffID = 0; diffID < diffCount; ++diffID)
-		{
-			d.avgDifference[diffID] /= d.fiberCount;
-			if (d.avgDifference[diffID] > m_data->maxAvgDifference[diffID])
-				m_data->maxAvgDifference[diffID] = d.avgDifference[diffID];
-		}
-	}
-	writeToCache(cacheFile);
 }
 
-
-bool iARefDistCompute::readFromCache(QFile& cacheFile)
+bool iARefDistCompute::readResultRefComparison(QFile & cacheFile, size_t resultID)
 {
-	if (!cacheFile.exists())
+	if (!verifyOpenCacheFile(cacheFile))
 	{
 		return false;
 	}
-	if (!cacheFile.open(QFile::ReadOnly))
-	{
-		DEBUG_LOG(QString("Couldn't open file %1 for reading!").arg(cacheFile.fileName()));
-		return false;
-	}
+	DEBUG_LOG(QString("Reading FIAKER cache file '%1'...").arg(cacheFile.fileName()));
 	QDataStream in(&cacheFile);
 	in.setVersion(CacheFileQtDataStreamVersion);
 	QString identifier;
 	in >> identifier;
-	if (identifier != CacheFileIdentifier)
+	if (identifier != ResultCacheFileIdentifier)
 	{
-		DEBUG_LOG(QString("FIAKER Cache: Unknown cache file - found identifier %1 does not match expected identifier %2.")
-			.arg(identifier).arg(CacheFileIdentifier));
+		DEBUG_LOG(QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
+			.arg(identifier).arg(ResultCacheFileIdentifier));
 		return false;
 	}
 	quint32 version;
 	in >> version;
 	if (version > CacheFileVersion)
 	{
-		DEBUG_LOG(QString("FIAKER Cache: Invalid or too high version number (%1), expected %2 or less.")
+		DEBUG_LOG(QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
 			.arg(version).arg(CacheFileVersion));
 		return false;
 	}
-
-	// write data:
-	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
-	{
-		if (resultID == m_referenceID)
-			continue;
-		auto & d = m_data->result[resultID];
-		in >> d.refDiffFiber;
-		in >> d.avgDifference;
-	}
-	in >> m_data->avgRefFiberMatch;
-	in >> m_data->maxAvgDifference;
+	auto & d = m_data->result[resultID];
+	in >> d.refDiffFiber;
+	in >> d.avgDifference;
 	return true;
 }
 
-void iARefDistCompute::writeToCache(QFile& cacheFile)
+void iARefDistCompute::writeResultRefComparison(QFile& cacheFile, size_t resultID)
 {
+	DEBUG_LOG(QString("Writing FIAKER cache file '%1'...").arg(cacheFile.fileName()));
 	if (!cacheFile.open(QFile::WriteOnly))
 	{
 		DEBUG_LOG(QString("Couldn't open file %1 for writing!").arg(cacheFile.fileName()));
@@ -369,22 +390,71 @@ void iARefDistCompute::writeToCache(QFile& cacheFile)
 	QDataStream out(&cacheFile);
 	out.setVersion(CacheFileQtDataStreamVersion);
 	// write header:
-	out << CacheFileIdentifier;
+	out << ResultCacheFileIdentifier;
 	out << CacheFileVersion;
 	// write data:
-	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+	out << m_data->result[resultID].refDiffFiber;
+	out << m_data->result[resultID].avgDifference;
+	cacheFile.close();
+}
+
+void iARefDistCompute::writeAverageMeasures(QFile& cacheFile)
+{
+	DEBUG_LOG(QString("Writing FIAKER cache file '%1'...").arg(cacheFile.fileName()));
+	if (!cacheFile.open(QFile::WriteOnly))
 	{
-		if (resultID == m_referenceID)
-			continue;
-		auto & d = m_data->result[resultID];
-		out << d.refDiffFiber;
-		out << d.avgDifference;
+		DEBUG_LOG(QString("Couldn't open file %1 for writing!").arg(cacheFile.fileName()));
+		return;
 	}
+	QDataStream out(&cacheFile);
+	out.setVersion(CacheFileQtDataStreamVersion);
+	// write header:
+	out << AverageCacheFileIdentifier;
+	out << CacheFileVersion;
+	// write data:
+	out << static_cast<quint32>(m_data->result.size());
 	out << m_data->avgRefFiberMatch;
 	out << m_data->maxAvgDifference;
 	cacheFile.close();
 }
 
+bool iARefDistCompute::readAverageMeasures(QFile& cacheFile)
+{
+	if (!verifyOpenCacheFile(cacheFile))
+	{
+		return false;
+	}
+	DEBUG_LOG(QString("Reading FIAKER cache file '%1'...").arg(cacheFile.fileName()));
+	QDataStream in(&cacheFile);
+	in.setVersion(CacheFileQtDataStreamVersion);
+	QString identifier;
+	in >> identifier;
+	if (identifier != AverageCacheFileIdentifier)
+	{
+		DEBUG_LOG(QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
+			.arg(cacheFile.fileName()).arg(identifier).arg(AverageCacheFileIdentifier));
+		return false;
+	}
+	quint32 version;
+	in >> version;
+	if (version > CacheFileVersion)
+	{
+		DEBUG_LOG(QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
+			.arg(cacheFile.fileName()).arg(version).arg(CacheFileVersion));
+		return false;
+	}
+	quint32 numberOfResults;
+	in >> numberOfResults;
+	if (numberOfResults != m_data->result.size())
+	{
+		DEBUG_LOG(QString("FIAKER cache file '%1': Number of results stored there (%2) is not the same as currently loaded (%3)!")
+			.arg(cacheFile.fileName()).arg(numberOfResults).arg(m_data->result.size()));
+		return false;
+	}
+	in >> m_data->avgRefFiberMatch;
+	in >> m_data->maxAvgDifference;
+	return true;
+}
 
 iAProgress* iARefDistCompute::progress()
 {

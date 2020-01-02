@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAGPU_DreamcasterToolModuleInterface.h"
+#include "iADreamCasterModuleInterface.h"
 
 #include "iADreamCaster.h"
 
@@ -27,18 +27,18 @@
 
 #include <QFileDialog>
 
-void iAGPU_DreamcasterToolModuleInterface::Initialize()
+void iADreamCasterModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionDreamcaster_Open_file = new QAction( m_mainWnd );
-	actionDreamcaster_Open_file->setText( QApplication::translate( "MainWindow", "Dreamcaster", 0 ) );
+	actionDreamcaster_Open_file->setText( QApplication::translate( "MainWindow", "DreamCaster", 0 ) );
 	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionDreamcaster_Open_file, false );
 	connect( actionDreamcaster_Open_file, SIGNAL( triggered() ), this, SLOT( dreamcasterOpenFile() ) );
 }
 
-void iAGPU_DreamcasterToolModuleInterface::dreamcasterOpenFile()
+void iADreamCasterModuleInterface::dreamcasterOpenFile()
 {
 	QString fileName = QFileDialog::getOpenFileName( m_mainWnd, tr( "Open File" ), m_mainWnd->path(), tr( "STL files (*.stl)" ) );
 	if( (QFileInfo( fileName ).suffix() == "stl") || (QFileInfo( fileName ).suffix() == "STL") )

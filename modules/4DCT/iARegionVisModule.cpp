@@ -256,7 +256,7 @@ void iARegionVisModule::setDensityMapDimension( int * dim )
 	setDensityMapDimension( dim[0], dim[1], dim[2] );
 }
 
-void iARegionVisModule::calculateDensityMap( QString fileName, iARegionVisModule* visModule )
+void iARegionVisModule::calculateDensityMap( QString fileName, iARegionVisModule* /*visModule*/ )
 {
 	typedef itk::Image<double, 3> DoubleImageType;
 	// read image

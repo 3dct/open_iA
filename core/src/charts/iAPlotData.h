@@ -36,7 +36,7 @@ public:
 	virtual DataType const * rawData() const =0;
 	virtual size_t numBin() const =0;
 	virtual double minX() const { return 0; }
-	virtual double maxX() const { return numBin(); }
+	virtual double maxX() const { return static_cast<double>(numBin()); }
 	virtual double spacing() const = 0;
 	virtual double const * xBounds() const = 0;
 	virtual DataType const * yBounds() const = 0;
