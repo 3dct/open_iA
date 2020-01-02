@@ -162,7 +162,7 @@ public:
 				intersections[i]->write2BinaryFile(fptr);
 		}
 	}
-	static const int getSkipedSizeInFile()
+	static int getSkipedSizeInFile()
 	{
 		return sizeof(float)*10;//skip rotx, roty, rotz, avpenlen, avdipangle, maxpenlen, badAreaPercentage, position//20+4*3
 	}

@@ -64,7 +64,7 @@ public:
 	}
 	iAaabb box; //!< bounds of 3D box
 	int slidersValues[6];//!< corresponding values of sliders
-	static const int getSkipedSizeInFile()
+	static int getSkipedSizeInFile()
 	{
 		return (sizeof(iAaabb)+sizeof(int[6])); // box+slidersValues
 	}
