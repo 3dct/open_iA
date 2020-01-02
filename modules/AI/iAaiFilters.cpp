@@ -27,7 +27,7 @@
 #include "iATypedCallHelper.h"
 
 
-#include "onnxruntime/core/session/onnxruntime_cxx_api.h"
+#include "onnxruntime_cxx_api.h"
 
 void iAai::performWork(QMap<QString, QVariant> const & parameters)
 {
@@ -58,7 +58,7 @@ void iAai::performWork(QMap<QString, QVariant> const & parameters)
 	// using squeezenet version 1.3
 	// URL = https://github.com/onnx/models/tree/master/squeezenet
 #ifdef _WIN32
-	const wchar_t* model_path = L"squeezenet.onnx";
+	const wchar_t* model_path = L"C:\\Users\\p41877\\Downloads\\squeezenet\\model.onnx";
 #else
 	const char* model_path = "squeezenet.onnx";
 #endif
@@ -158,20 +158,10 @@ void iAai::performWork(QMap<QString, QVariant> const & parameters)
 IAFILTER_CREATE(iAai)
 
 iAai::iAai() :
-	iAFilter("Extract Surface", "Extract Surface",
-		"Extracts a surface along the specified iso value.<br/>"
-		"A surface is extracted at the given Iso value, either using marching cubes or "
-		"flying edges algorithm. The mesh is subsequently simplified using either "
-		"a quadric clustering or the DecimatePro algorithm.<br/>"
-		"For more information, see the "
-		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkMarchingCubes.html\">"
-		"Marching Cubes Filter</a>, the "
-		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkFlyingEdges3D.html\">"
-		"Flying Edges 3D Filter</a>, the "
-		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkDecimatePro.html\">"
-		"Decimate Pro Filter</a>, and the "
-		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkQuadricClustering.html\">"
-		"Quadric Clustering Filter</a> in the VTK documentation.")
+	iAFilter("AI", "Segmentation",
+		"Uses deep learning model for segmentation<br/>"
+		"ONNX Runtime is used for execution of the net"
+		"<a href=\"https://github.com/microsoft/onnxruntime\">")
 {
 
 	addParameter("OnnxFile", FileNameOpen);

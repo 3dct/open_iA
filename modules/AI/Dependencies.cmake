@@ -1,1 +1,25 @@
-# No dependencies
+
+set(ONNX_RUNTIME_DIR
+	"${ONNX_RUNTIME_DIR}"
+	CACHE
+	PATH
+	"Path to search for the ONNX Runtime"
+)
+
+find_library(ONNX_RUNTIME_LIBRARIES onnxruntime
+	PATHS
+		${ONNX_RUNTIME_DIR}/lib
+)
+
+find_path(ONNX_RUNTIME_INCLUDE_DIR onnxruntime_cxx_api.h
+	PATHS
+		${ONNX_RUNTIME_DIR}/include
+)
+
+SET( DEPENDENCIES_LIBRARIES
+	${ONNX_RUNTIME_LIBRARIES}
+)
+
+SET( DEPENDENCIES_INCLUDE_DIRS
+	${ONNX_RUNTIME_INCLUDE_DIR}
+)
