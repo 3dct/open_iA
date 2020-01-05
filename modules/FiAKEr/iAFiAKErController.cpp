@@ -210,7 +210,6 @@ public:
 	iAStackedBarChart* stackedBars;
 	iAFixedAspectWidget* previewWidget;
 	iASignallingWidget* nameActions;
-	QLabel* nameLabel;
 	QWidget* topFiller, * bottomFiller;
 	//! index where the plots for this result start
 	size_t startPlotIdx;
@@ -676,15 +675,15 @@ QWidget* iAFiAKErController::setupResultListView()
 		ui.vtkWidget->SetRenderWindow(renWin);
 		ui.vtkWidget->setProperty("resultID", resultID);
 
-		m_showResultVis[resultID] = new QCheckBox("Show");
+		QString name = QFileInfo(d.fileName).completeBaseName();
+		name = name.mid(commonPrefixLength, name.size() - commonPrefixLength - commonSuffixLength);
+
+		m_showResultVis[resultID] = new QCheckBox(name);
 		m_showResultVis[resultID]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		m_showResultVis[resultID]->setProperty("resultID", resultID);
 		m_showResultBox[resultID] = new QCheckBox("Box");
 		m_showResultBox[resultID]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		m_showResultBox[resultID]->setProperty("resultID", resultID);
-
-		QString name = QFileInfo(d.fileName).completeBaseName();
-		name = name.mid(commonPrefixLength, name.size() - commonPrefixLength - commonSuffixLength);
 
 		ui.nameActions = new iASignallingWidget();
 		ui.nameActions->setAutoFillBackground(true);
@@ -692,14 +691,11 @@ QWidget* iAFiAKErController::setupResultListView()
 		ui.nameActions->setLayout(new QVBoxLayout());
 		ui.nameActions->layout()->setContentsMargins(0, 0, 0, 0);
 		ui.nameActions->layout()->setSpacing(5);
-		ui.nameLabel = new QLabel(name);
-		ui.nameLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		ui.topFiller = new QWidget();
 		ui.topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		ui.bottomFiller = new QWidget();
 		ui.bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		ui.nameActions->layout()->addWidget(ui.topFiller);
-		ui.nameActions->layout()->addWidget(ui.nameLabel);
 		ui.nameActions->layout()->addWidget(m_showResultVis[resultID]);
 		ui.nameActions->layout()->addWidget(m_showResultBox[resultID]);
 		ui.nameActions->layout()->addWidget(ui.bottomFiller);
@@ -2072,9 +2068,10 @@ void iAFiAKErController::setReference(size_t referenceID)
 	}
 	if (m_referenceID != NoResult)
 	{
+		DEBUG_LOG("Changing the reference is currently not well-tested. Please consider starting a fresh FIAKER window and setting the reference there!");
 		auto & ui = m_resultUIs[m_referenceID];
 		setResultBackground(ui, m_main3DWidget->palette().color(QWidget::backgroundRole()));
-		ui.nameLabel->setText(ui.nameLabel->text().left(ui.nameLabel->text().length()-RefMarker.length()));
+		m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text().left(m_showResultVis[m_referenceID]->text().length()-RefMarker.length()));
 	}
 	addInteraction(QString("Reference set to %1.").arg(resultName(referenceID)));
 	auto bounds = m_resultUIs[referenceID].mini3DVis->bounds();
@@ -2378,7 +2375,7 @@ void iAFiAKErController::refDistAvailable()
 
 	auto & ui = m_resultUIs[m_referenceID];
 	setResultBackground(ui, ReferenceColor);
-	ui.nameLabel->setText(ui.nameLabel->text() + RefMarker);
+	m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text() + RefMarker);
 
 	for (size_t chartID = 0; chartID < ChartCount - 1; ++chartID)
 	{
