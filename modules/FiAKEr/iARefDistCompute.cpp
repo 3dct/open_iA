@@ -171,20 +171,22 @@ void iARefDistCompute::run()
 	double const * lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
 	double maxLength = lengthRange[1] - lengthRange[0];
 	bool recomputeAverages = false;
-	for (size_t resultID = 0; resultID <  m_data->result.size(); ++resultID)
+	std::vector<bool> writeResultCache(m_data->result.size(), false);
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		QString resultName(QFileInfo(m_data->result[resultID].fileName).completeBaseName());
 		QString resultCacheFileName(cachePath + QString("refDist_%1_%2.cache").arg(referenceName).arg(resultName));
 		QFile cacheFile(resultCacheFileName);
 		bool skip = (resultID == m_referenceID) || readResultRefComparison(cacheFile, resultID);
-
+		auto& d = m_data->result[resultID];
+		writeResultCache[resultID] = (resultID != m_referenceID && d.avgDifference.size() == 0);  // workaround to fix cache files where avgDifference was written with size 0
 		m_progress.emitProgress(static_cast<int>(100.0 * resultID / m_data->result.size()));
 		if (skip)
 		{
 			continue;
 		}
+		writeResultCache[resultID] = true;
 		recomputeAverages = true; // if any result is not loaded from cache, we have to recompute averages
-		auto & d = m_data->result[resultID];
 		qint64 const fiberCount = d.table->GetNumberOfRows();
 		d.refDiffFiber.resize(fiberCount);
 #pragma omp parallel for
@@ -239,9 +241,7 @@ void iARefDistCompute::run()
 			}
 			*/
 		}
-		writeResultRefComparison(cacheFile, resultID);
 	}
-
 	m_progress.setStatus("Updating tables with data computed so far.");
 	size_t spmID = 0;
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
@@ -337,7 +337,18 @@ void iARefDistCompute::run()
 		}
 		writeAverageMeasures(avgCacheFile);
 	}
-	
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+	{
+		if (!writeResultCache[resultID])
+		{
+			continue;
+		}
+		QString resultName(QFileInfo(m_data->result[resultID].fileName).completeBaseName());
+		QString resultCacheFileName(cachePath + QString("refDist_%1_%2.cache").arg(referenceName).arg(resultName));
+		QFile cacheFile(resultCacheFileName);
+		writeResultRefComparison(cacheFile, resultID);
+	}
+
 	size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns() -1 ;
 	for (size_t fiberID = 0; fiberID < ref.fiberCount; ++fiberID)
 	{
