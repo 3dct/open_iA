@@ -172,10 +172,10 @@ iAFiberResultsCollection::iAFiberResultsCollection():
 	stepShift(0)
 {}
 
-bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const & cfg, double stepShift, iAProgress * progress)
+bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const & cfg, double newStepShift, iAProgress * progress)
 {
 	folder = path;
-	this->stepShift = stepShift;
+	stepShift = newStepShift;
 	QStringList filters;
 	filters << "*.csv";
 	QStringList csvFileNames;

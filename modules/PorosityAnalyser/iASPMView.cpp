@@ -124,9 +124,9 @@ void iASPMView::initScalarBar()
 iASPMView::~iASPMView()
 {}
 
-void iASPMView::setData( const QTableWidget * data )
+void iASPMView::setData( const QTableWidget * newData )
 {
-	m_splom->setData( data );
+	m_splom->setData( newData );
 	m_splom->setSelectionColor(QColor(Qt::black));
 	m_splom->setPointRadius(2.5);
 	m_splom->setColorParam(defaultColorParam);

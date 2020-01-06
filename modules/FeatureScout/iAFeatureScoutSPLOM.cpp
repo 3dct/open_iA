@@ -91,8 +91,8 @@ void iAFeatureScoutSPLOM::multiClassRendering(QList<QColor> const & colors)
 	iALookupTable lookupTable;
 	lookupTable.allocate(colors.size());
 	lookupTable.setRange(0, colors.size() - 1);
-	for (size_t c = 0; c < colors.size(); ++c)
-		lookupTable.setColor(c, colors.at(c));
+	for (int c = 0; c < colors.size(); ++c)
+		lookupTable.setColor(static_cast<size_t>(c), colors.at(c));
 	matrix->setLookupTable(lookupTable, matrix->data()->numParams()-1 );
 }
 

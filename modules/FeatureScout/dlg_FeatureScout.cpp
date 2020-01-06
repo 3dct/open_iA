@@ -390,7 +390,7 @@ void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enab
 	// itemChanged signal from elementTableModel takes care about updating PC (see updatePCColumnValues slot)
 }
 
-void dlg_FeatureScout::renderLUTChanges(QSharedPointer<iALookupTable> lut, int colInd)
+void dlg_FeatureScout::renderLUTChanges(QSharedPointer<iALookupTable> lut, size_t colInd)
 {
 	iA3DLineObjectVis *lov = dynamic_cast<iA3DLineObjectVis *>(m_3dvis.data());
 	if (lov)
