@@ -49,6 +49,7 @@ public:
 		double min = std::numeric_limits<double>::lowest(),
 		double max = std::numeric_limits<double>::max());
 	iAAttributeDescriptor(QString const & name, iAAttributeType attribType, iAValueType valueType);
+	virtual ~iAAttributeDescriptor();
 	iAAttributeType attribType() const;
 	iAValueType valueType() const;
 	QVariant defaultValue() const;

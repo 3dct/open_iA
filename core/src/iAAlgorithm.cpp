@@ -40,8 +40,8 @@ iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALog
 	m_filterName(fn),
 	m_image(idata),
 	m_polyData(p),
-	m_logger(logger),
-	m_progressObserver(new iAProgress)
+	m_progressObserver(new iAProgress),
+	m_logger(logger)
 {
 	m_connectors.push_back(new iAConnector());
 	if (parent)

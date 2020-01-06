@@ -174,13 +174,16 @@ QString iAAttributeDescriptor::toString() const
 
 iAAttributeDescriptor::iAAttributeDescriptor(
 		QString const & name, iAAttributeType attribType, iAValueType valueType) :
-	m_name(name),
 	m_attribType(attribType),
 	m_valueType(valueType),
-	m_logarithmic(false)
+	m_logarithmic(false),
+	m_name(name)
 {
 	resetMinMax();	// TODO: check why we set it in constructor when it's reset again here anyway; maybe move this to where it's actually needed?
 }
+
+iAAttributeDescriptor::~iAAttributeDescriptor()
+{}
 
 iAAttributeDescriptor::iAAttributeType iAAttributeDescriptor::attribType() const
 {

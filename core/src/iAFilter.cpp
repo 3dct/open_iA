@@ -30,10 +30,10 @@
 
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
 	unsigned int requiredInputs, unsigned int outputCount) :
+	m_log(iAStdOutLogger::get()),
 	m_name(name),
 	m_category(category),
 	m_description(description),
-	m_log(iAStdOutLogger::get()),
 	m_requiredInputs(requiredInputs),
 	m_outputCount(outputCount),
 	m_firstInputChannels(1)

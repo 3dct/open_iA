@@ -41,17 +41,17 @@
 #include <QThread>
 
 iAChannelSlicerData::iAChannelSlicerData(iAChannelData const & chData, int mode):
+	m_imageActor(vtkSmartPointer<vtkImageActor>::New()),
 	m_reslicer(vtkSmartPointer<vtkImageReslice>::New()),
 	m_colormapper(vtkSmartPointer<vtkImageMapToColors>::New()),
-	m_imageActor(vtkSmartPointer<vtkImageActor>::New()),
 	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
-	m_name(chData.name()),
 	m_cTF(nullptr),
 	m_oTF(nullptr),
+	m_name(chData.name()),
+	m_enabled(false),
 	m_contourFilter(vtkSmartPointer<vtkMarchingContourFilter>::New()),
 	m_contourMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_contourActor(vtkSmartPointer<vtkActor>::New()),
-	m_enabled(false)
+	m_contourActor(vtkSmartPointer<vtkActor>::New())
 {
 	m_reslicer->SetOutputDimensionality(2);
 	m_reslicer->SetInterpolationModeToCubic();
