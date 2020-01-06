@@ -76,19 +76,19 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAQGLWidget 
 	QObject(parent),
 	settings(),
 	m_parentWidget(parent),
+	m_pointsBuffer(nullptr),
 	m_splom( splom ),
+	m_colInd(0),
 	m_lut( new iALookupTable() ),
 	m_scale( 1.0 ),
 	m_offset( 0.0, 0.0 ),
 	m_numTicks( numTicks ),
 	m_isPlotActive( false ),
+	m_prevPtInd(NoPointIndex),
+	m_prevInd(NoPointIndex),
 	m_curInd( NoPointIndex ),
-	m_prevInd( NoPointIndex ),
-	m_prevPtInd( NoPointIndex ),
-	m_pointsBuffer( nullptr ),
 	m_isMaximizedPlot( isMaximizedPlot ),
 	m_isPreviewPlot( false ),
-	m_colInd( 0 ),
 	m_pcc( 0 ),
 	m_curVisiblePts ( 0 ),
 	m_dragging(false),
@@ -280,10 +280,8 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 
 void iAScatterPlot::SPLOMWheelEvent( QWheelEvent * event )
 {
-	QPoint numPixels = event->pixelDelta();
 	QPoint numDegrees = event->angleDelta() / 8;
 
-	// 	if( !numPixels.isNull() ) {} else //TODO: implement for smooth zooming;
 	if ( !numDegrees.isNull() )
 	{
 		double d = 0.1 / 15.0;
@@ -740,7 +738,6 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	double ptRad = getPointRadius();
 	double ptSize =2 * ptRad;
 	painter.beginNativePainting();
-	QPoint tl = m_globRect.topLeft(), br = m_globRect.bottomRight();
 	int y = pheight - m_globRect.bottom() - 1; //Qt and OpenGL have inverted Y axes
 
 	glMatrixMode( GL_PROJECTION );

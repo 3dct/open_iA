@@ -32,12 +32,13 @@ static inline double Round(double val)
 #endif
 
 iAMappingDiagramData::iAMappingDiagramData(DataType const * data,
-	int srcNumBin, double srcMinX, double srcMaxX,
+	size_t srcNumBin, double srcMinX, double srcMaxX,
 	size_t targetNumBin, double targetMinX, double targetMaxX,
 	DataType const maxValue):
 	m_numBin(targetNumBin),
 	m_data(new DataType[m_numBin])
 {
+	assert(srcNumBin > 1 && targetNumBin > 1);
 	double srcSpacing = (srcMaxX - srcMinX) / (srcNumBin-1);
 	m_spacing = (targetMaxX - targetMinX) / (targetNumBin-1);
 	m_xBounds[0] = targetMinX;
@@ -46,13 +47,13 @@ iAMappingDiagramData::iAMappingDiagramData(DataType const * data,
 	m_yBounds[1] = maxValue;
 	// get scale factor from all source data
 	DataType myMax = 0;
-	for (int i=0; i<srcNumBin; ++i)
+	for (size_t i=0; i<srcNumBin; ++i)
 		if (data[i] > myMax)
 			myMax = data[i];
 	double scaleFactor = static_cast<double>(maxValue) / myMax;
 
 	// map source data to target indices:
-	for (int i=0; i<targetNumBin; ++i)
+	for (size_t i=0; i<targetNumBin; ++i)
 	{
 		double sourceIdxDbl = ((i * m_spacing) + targetMinX - srcMinX) / srcSpacing ;
 		int sourceIdx = static_cast<int>(Round(sourceIdxDbl));

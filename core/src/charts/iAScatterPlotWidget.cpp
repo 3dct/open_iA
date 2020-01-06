@@ -31,6 +31,9 @@
 #include <QMouseEvent>
 #include <QPainter>
 
+iAScatterPlotSelectionHandler::~iAScatterPlotSelectionHandler()
+{}
+
 class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
 {
 public:

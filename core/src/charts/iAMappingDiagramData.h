@@ -28,7 +28,7 @@ class open_iA_Core_API iAMappingDiagramData: public iAPlotData
 {
 public:
 	iAMappingDiagramData(DataType const * data,
-		int srcNumBin, double srcMinX, double srcMaxX,
+		size_t srcNumBin, double srcMinX, double srcMaxX,
 		size_t targetNumBin, double targetMinX, double targetMaxX,
 		DataType const maxValue);
 	~iAMappingDiagramData();

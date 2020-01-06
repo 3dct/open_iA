@@ -97,7 +97,7 @@ iASimpleHistogramData::iASimpleHistogramData(DataType minX, DataType maxX, size_
 	m_xBounds[1] = maxX;
 	m_yBounds[0] = std::numeric_limits<double>::max();
 	m_yBounds[1] = std::numeric_limits<double>::lowest();
-	for (int i = 0; i < numBin; ++i)
+	for (size_t i = 0; i < numBin; ++i)
 	{
 		if (data[i] < m_yBounds[0])
 		{

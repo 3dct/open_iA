@@ -142,8 +142,8 @@ public:
 	iAColorTheme const * getBackgroundColorTheme();                  //!< retrieve the theme for background colors for the separated regions
 	void showAllPlots(const bool enableAllPlotsVisible);             //!< switch between showing all plots or only upper half
 	void showDefaultMaxizimedPlot();                                 //!< maximize plot in upper left corner
-	void addFilter(int paramIndex, double value);                    //!< set filter on data to be shown; only data points where given parameter contains given value will be shown
-	void removeFilter(int paramIndex, double value);                 //!< remove a specific filter
+	void addFilter(size_t paramIndex, double value);                 //!< set filter on data to be shown; only data points where given parameter contains given value will be shown
+	void removeFilter(size_t paramIndex, double value);              //!< remove a specific filter
 	void resetFilter();                                              //!< reset filter on data; after calling this method, all data points will be shown again
 	void addContextMenuAction(QAction* action);                      //!< add an additional option to the context menu
 	size_t colorLookupParam() const;                                 //!< parameter currently used for color lookup
@@ -219,7 +219,7 @@ private slots:
 	void selectionModeRectangle();                                   //!< set selection mode to rectangle
 	void parameterVisibilityToggled(bool enabled);                   //!< called when parameter visibility is adapted through the context menu
 	void changeParamVisibility(QListWidgetItem * item);              //!< Show/hide a parameter in SPLOM when list widget item is clicked
-	void setParameterToColorCode(int paramIndex);                    //!< Apply color coding based on the parameter index
+	void setParameterToColorCode(size_t paramIndex);                 //!< Apply color coding based on the parameter index
 	void updateLookupTable();                                        //!< Update lookup table sensitivity
 	void pointRadiusChanged(int);                                    //!< Called from settings dialog when point size slider changes
 	void pointOpacityChanged(int);                                   //!< Called from settings dialog when opacity slider changes

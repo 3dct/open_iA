@@ -135,7 +135,7 @@ bool iASPLOMData::matchesFilter(size_t ind) const
 	return false;
 }
 
-void iASPLOMData::addFilter(int paramIndex, double value)
+void iASPLOMData::addFilter(size_t paramIndex, double value)
 {
 	if (paramIndex < -1 || paramIndex >= numParams())
 	{
@@ -145,7 +145,7 @@ void iASPLOMData::addFilter(int paramIndex, double value)
 	m_filters.push_back(std::make_pair(paramIndex, value));
 }
 
-void iASPLOMData::removeFilter(int paramIndex, double value)
+void iASPLOMData::removeFilter(size_t paramIndex, double value)
 {
 	auto searchedPair = std::make_pair(paramIndex, value);
 	auto it = std::find(m_filters.begin(), m_filters.end(), searchedPair);

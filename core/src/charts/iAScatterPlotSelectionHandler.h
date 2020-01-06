@@ -29,6 +29,7 @@
 class iAScatterPlotSelectionHandler
 {
 public:
+	virtual ~iAScatterPlotSelectionHandler();
 	typedef std::vector<size_t> SelectionType;
 	virtual SelectionType & getSelection() = 0;
 	virtual SelectionType const & getSelection() const = 0;

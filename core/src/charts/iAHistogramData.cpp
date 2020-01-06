@@ -175,7 +175,7 @@ void iAHistogramData::setMaxFreq()
 	if (!m_rawData)
 		return;
 	m_yBounds[1] = 1;
-	for ( int i = 0; i < numBin(); i++ )
+	for (size_t i = 0; i < numBin(); i++ )
 		if (m_rawData[i] > m_yBounds[1])
 			m_yBounds[1] = m_rawData[i];
 }

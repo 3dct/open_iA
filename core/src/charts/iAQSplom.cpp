@@ -326,13 +326,13 @@ void iAQSplom::updateHistograms()
 	}
 }
 
-void iAQSplom::addFilter(int paramIndex, double value)
+void iAQSplom::addFilter(size_t paramIndex, double value)
 {
 	m_splomData->addFilter(paramIndex, value);
 	updateFilter();
 }
 
-void iAQSplom::removeFilter(int paramIndex, double value)
+void iAQSplom::removeFilter(size_t paramIndex, double value)
 {
 	m_splomData->removeFilter(paramIndex, value);
 	updateFilter();
@@ -1500,10 +1500,14 @@ void iAQSplom::changeParamVisibility(QListWidgetItem * item)
 	setParameterVisibility(item->text(), item->checkState());
 }
 
-void iAQSplom::setParameterToColorCode(int paramIndex)
+void iAQSplom::setParameterToColorCode(size_t paramIndex)
 {
-	if (paramIndex != -1)
-		m_colorLookupParam = paramIndex;
+	if (paramIndex >= m_splomData->numParams())
+	{
+		DEBUG_LOG(QString("setParameterToColorCode: Invalid paramIndex (%1) given!").arg(paramIndex));
+		return;
+	}
+	m_colorLookupParam = paramIndex;
 	updateLookupTable();
 }
 

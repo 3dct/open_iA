@@ -55,7 +55,6 @@ namespace
 	const double ZoomYMax = 32768;
 	const double ZoomXStep = 1.5;
 	const double ZoomYStep = 1.5;
-	const int CategoricalTextRotation = 15;
 	const int CategoricalFontSize = 7;
 	const int MarginLeft = 5;
 	const int MarginBottom = 5;
