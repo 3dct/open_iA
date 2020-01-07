@@ -41,20 +41,20 @@
 
 bool operator<(iAFiberSimilarity const & a, iAFiberSimilarity const & b)
 {
-	return a.similarity < b.similarity;
+	return a.dissimilarity < b.dissimilarity;
 }
 
 QDataStream &operator<<(QDataStream &out, const iAFiberSimilarity &s)
 {
 	out << s.index;
-	out << s.similarity;
+	out << s.dissimilarity;
 	return out;
 }
 
 QDataStream &operator>>(QDataStream &in, iAFiberSimilarity &s)
 {
 	in >> s.index;
-	in >> s.similarity;
+	in >> s.dissimilarity;
 	return in;
 }
 
@@ -537,7 +537,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	paramNames.push_back("LengthDiff");
 	paramNames.push_back("DiameterDiff");
 
-	auto similarityMeasures = iARefDistCompute::getSimilarityMeasureNames();
+	auto similarityMeasures = iARefDistCompute::getDissimilarityMeasureNames();
 	for (auto name: similarityMeasures)
 		paramNames.push_back(name);
 

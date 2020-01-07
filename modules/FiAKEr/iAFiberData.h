@@ -60,5 +60,5 @@ void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size
 //! @param diagonalLength length of the diagonal of the dataset (i.e. the maximum possible length of a fiber)
 //! @param maxLength the maximum length difference in the dataset, i.e. the length of the longest fiber
 //!     in the dataset minus the length of the shortest one
-double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
+double getDissimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	int measureID, double diagonalLength, double maxLength);

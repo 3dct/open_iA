@@ -46,7 +46,7 @@ class iAFiberSimilarity
 {
 public:
 	quint64 index;
-	double similarity;
+	double dissimilarity;
 	friend bool operator<(iAFiberSimilarity const & a, iAFiberSimilarity const & b);
 };
 

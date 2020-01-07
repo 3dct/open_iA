@@ -452,8 +452,8 @@ QWidget* iAFiAKErController::setupSettingsView()
 	m_settingsView->cbShowWireFrame->setChecked(false);
 
 
-	auto similarityMeasures = iARefDistCompute::getSimilarityMeasureNames();
-	for (auto name : similarityMeasures)
+	auto dissimilarityMeasures = iARefDistCompute::getDissimilarityMeasureNames();
+	for (auto name : dissimilarityMeasures)
 	{
 		m_settingsView->cmbboxSimilarityMeasure->addItem(name);
 	}
@@ -2558,13 +2558,13 @@ void iAFiAKErController::changeReferenceDisplay()
 	for (size_t fiberIdx=0; fiberIdx<referenceIDsToShow.size(); ++fiberIdx)
 	{
 		size_t refFiberID = referenceIDsToShow[fiberIdx].index;
-		double similarity = referenceIDsToShow[fiberIdx].similarity;
+		double dissimilarity = referenceIDsToShow[fiberIdx].dissimilarity;
 		for (int colIdx = 0; colIdx < refTable->GetNumberOfColumns(); ++colIdx)
 		{
 			m_refVisTable->SetValue(fiberIdx, colIdx, refTable->GetValue(refFiberID, colIdx));
 		}
-		// set projection error value to similarity...
-		m_refVisTable->SetValue(fiberIdx, refTable->GetNumberOfColumns()-2, similarity);
+		// set projection error value to dissimilarity...
+		m_refVisTable->SetValue(fiberIdx, refTable->GetNumberOfColumns()-2, dissimilarity);
 
 		auto it = refCurveInfo.find(refFiberID);
 		if (it != refCurveInfo.end())

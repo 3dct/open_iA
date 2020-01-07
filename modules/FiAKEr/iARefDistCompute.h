@@ -47,7 +47,7 @@ public:
 	void run() override;
 	iAProgress* progress();
 	size_t referenceID() const;
-	static QStringList getSimilarityMeasureNames();
+	static QStringList getDissimilarityMeasureNames();
 private:
 	bool readResultRefComparison(QFile& file, size_t resultID);
 	void writeResultRefComparison(QFile& cacheFile, size_t resultID);

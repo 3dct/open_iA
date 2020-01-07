@@ -66,8 +66,12 @@ namespace
 					auto it = refCurveInfo.find(refFiberID);
 					iAFiberData refFiber(refTable, refFiberID, mapping, (it != refCurveInfo.end())? it->second: std::vector<iAVec3f>());
 					similarities[refFiberID].index = refFiberID;
-					double curSimilarity = getSimilarity(fiber, refFiber, d, diagonalLength, maxLength);
-					similarities[refFiberID].similarity = curSimilarity;
+					double curDissimilarity = getDissimilarity(fiber, refFiber, d, diagonalLength, maxLength);
+					if (std::isnan(curDissimilarity))
+					{
+						curDissimilarity = 0;
+					}
+					similarities[refFiberID].dissimilarity = curDissimilarity;
 				}
 			}
 			else
@@ -80,8 +84,12 @@ namespace
 					auto it = refCurveInfo.find(refFiberID);
 					iAFiberData refFiber(refTable, refFiberID, mapping, (it != refCurveInfo.end())? it->second: std::vector<iAVec3f>());
 					similarities[bestMatchID].index = refFiberID;
-					double curSimilarity = getSimilarity(fiber, refFiber, d, diagonalLength, maxLength);
-					similarities[bestMatchID].similarity = curSimilarity;
+					double curDissimilarity = getDissimilarity(fiber, refFiber, d, diagonalLength, maxLength);
+					if (std::isnan(curDissimilarity))
+					{
+						curDissimilarity = 0;
+					}
+					similarities[bestMatchID].dissimilarity = curDissimilarity;
 				}
 			}
 			std::sort(similarities.begin(), similarities.end());
@@ -118,7 +126,7 @@ iARefDistCompute::iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data
 	m_referenceID(referenceID)
 {}
 
-QStringList iARefDistCompute::getSimilarityMeasureNames()
+QStringList iARefDistCompute::getDissimilarityMeasureNames()
 {
 	QStringList result;
 	result.push_back("dc₁");
@@ -231,7 +239,7 @@ void iARefDistCompute::run()
 					for (iARefDistCompute::ContainerSizeType step = 0; step < stepCount; ++step)
 					{
 						iAFiberData fiber(d.stepValues[step][fiberID]);
-						double dist = getSimilarity(fiber, refFiber, distID, diagLength, maxLength);
+						double dist = getDissimilarity(fiber, refFiber, distID, diagLength, maxLength);
 						stepDiffs[step] = dist;
 					}
 				}
@@ -263,15 +271,23 @@ void iARefDistCompute::run()
 					(iAFiberCharData::FiberValueCount + SimilarityMeasureCount + EndColumns) + diffID;
 				double lastValue = (d.stepData == iAFiberCharData::SimpleStepData) ?
 						diffData.diff[diffID].step[d.stepValues.size() - 1] : 0;
+				if (std::isnan(lastValue))
+				{
+					lastValue = 0;
+				}
 				m_data->spmData->data()[tableColumnID][spmID] = lastValue;
 				d.table->SetValue(fiberID, tableColumnID, lastValue); // required for coloring 3D view by these diffs + used below for average!
 			}
 			for (iARefDistCompute::ContainerSizeType distID = 0; distID < SimilarityMeasureCount; ++distID)
 			{
-				double similarity = diffData.dist[distID][0].similarity;
+				double dissimilarity = diffData.dist[distID][0].dissimilarity;
+				if (std::isnan(dissimilarity))
+				{   // TODO: Find out under which circumstances this happens
+					dissimilarity = 0;
+				}
 				size_t tableColumnID = m_data->spmData->numParams() - (SimilarityMeasureCount + EndColumns) + distID;
-				m_data->spmData->data()[tableColumnID][spmID] = similarity;
-				d.table->SetValue(fiberID, tableColumnID, similarity); // required for coloring 3D view by these similarities + used below for average!
+				m_data->spmData->data()[tableColumnID][spmID] = dissimilarity;
+				d.table->SetValue(fiberID, tableColumnID, dissimilarity); // required for coloring 3D view by these similarities + used below for average!
 			}
 			++spmID;
 		}
@@ -295,7 +311,7 @@ void iARefDistCompute::run()
 			{
 				auto & bestFiberBestDist = d.refDiffFiber[fiberID].dist[BestSimilarityMeasure][0];
 				size_t refFiberID = bestFiberBestDist.index;
-				refDistSum[refFiberID] += bestFiberBestDist.similarity;
+				refDistSum[refFiberID] += bestFiberBestDist.dissimilarity;
 				refMatchCount[refFiberID] += 1;
 			}
 		}
