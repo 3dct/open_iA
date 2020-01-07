@@ -22,9 +22,11 @@
 
 #include <charts/iAQSplom.h>
 #include <iAChannelData.h>
+#include <iAConsole.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAPerformanceHelper.h>
+#include <charts/iASPLOMData.h>
 #include <mdichild.h>
 
 #include <vtkColorTransferFunction.h>
@@ -33,13 +35,12 @@
 #include <vtkPiecewiseFunction.h>
 
 #include <QHBoxLayout>
-#include <QTableWidget>
 
 #include <functional>
 
 dlg_modalitySPLOM::dlg_modalitySPLOM():
 	m_splom(new iAQSplom(this)),
-	m_voxelData(new QTableWidget()),
+	m_data(new iASPLOMData()),
 	m_selection_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
 	m_SPLOMSelectionChannelID(NotExistingChannel)
@@ -54,7 +55,6 @@ dlg_modalitySPLOM::dlg_modalitySPLOM():
 	setObjectName("ModalityCorrelationWidget");
 
 	QHBoxLayout* lay = new QHBoxLayout();
-	//lay->addWidget(m_voxelData);
 	lay->addWidget(m_splom);
 	
 	QWidget* content = new QWidget();
@@ -71,7 +71,7 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 	result->SetOrigin(m_origin);
 	result->SetSpacing(m_spacing);
 	result->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-	
+
 	// fill with 0:
 	for (int x=m_extent[0]; x<=m_extent[1]; ++x)
 	{
@@ -86,9 +86,9 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 	// set 1 for selection:
 	for (auto idx: selInds)
 	{
-		int x = m_voxelData->item(idx, 0)->text().toInt();
-		int y = m_voxelData->item(idx, 1)->text().toInt();
-		int z = m_voxelData->item(idx, 2)->text().toInt();
+		int x = static_cast<double>(m_data->data()[0][idx]);
+		int y = static_cast<double>(m_data->data()[1][idx]);
+		int z = static_cast<double>(m_data->data()[2][idx]);
 		result->SetScalarComponentFromFloat(x, y, z, 0, 1);
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
@@ -112,7 +112,6 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 
 dlg_modalitySPLOM::~dlg_modalitySPLOM()
 {
-	delete m_voxelData;
 }
 
 typedef unsigned short VoxelValueType;
@@ -139,32 +138,11 @@ void IteratePixels(vtkSmartPointer<vtkImageData> img, const int step[3], std::fu
 
 void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 {
-	m_lut = vtkSmartPointer<vtkLookupTable>::New();
-	double lutRange[2] = { 0, 1 };
-	m_lut->SetRange( lutRange );
-	m_lut->Build();
-	vtkIdType lutColCnt = m_lut->GetNumberOfTableValues();
-	double alpha = 0.005;
-	for( vtkIdType i = 0; i < lutColCnt; i++ )
-	{
-		double rgba[4]; m_lut->GetTableValue( i, rgba );
-		rgba[3] = alpha;
-		m_lut->SetTableValue( i, rgba );
-	}
-	m_lut->Build();
-
-
-	iATimeGuard timer("QTableWidget Conversion", false);
-	// fill QTableWidget
-	// TODO: implement sampling - full calculation takes too long for larger datasets!
-	m_voxelData->clear();
-	m_voxelData->setColumnCount(3 + modalities->size()); // x,y,z coordinate + one value per modality
-
+	iATimeGuard timer("Fill iASPLOMData", false);
 	modalities->get(0)->image()->GetExtent(m_extent);
 	modalities->get(0)->image()->GetSpacing(m_spacing);
 	modalities->get(0)->image()->GetOrigin(m_origin);
 
-	
 	// TODO: improve this very crude regular sampling. maybe random sampling is better?
 	const int maxNumSteps = 50;
 	const int step[3] = {
@@ -172,49 +150,40 @@ void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 		(m_extent[3]-m_extent[2]+1) / std::min(m_extent[3]-m_extent[2]+1, maxNumSteps),
 		(m_extent[5]-m_extent[4]+1) / std::min(m_extent[5]-m_extent[4]+1, maxNumSteps)
 	};
-	int tableSize = (int)(((m_extent[1]-m_extent[0]+1) / step[0]) + 1) *
-	                (int)(((m_extent[3]-m_extent[2]+1) / step[1]) + 1) *
-	                (int)(((m_extent[5]-m_extent[4]+1) / step[2]) + 1);
-	
-	//std::cout << "Steps: " << step[0] << ", " << step[1] << ", " << step[2] << "; tableSize: " << tableSize;
-	
-	iATimeAdder adder;
-	adder.resume();
-	m_voxelData->setRowCount(1 + tableSize);
-	adder.pause();
-	m_voxelData->setItem(0, 0, new QTableWidgetItem("x"));
-	m_voxelData->setItem(0, 1, new QTableWidgetItem("y"));
-	m_voxelData->setItem(0, 2, new QTableWidgetItem("z"));
-
-	int voxelIdx;
-	for (int imgIdx=0; imgIdx<modalities->size(); ++imgIdx)
+	std::vector<QString> paramNames;
+	std::vector<char> paramVisibility;
+	paramNames.push_back("x"); paramVisibility.push_back(false);
+	paramNames.push_back("y"); paramVisibility.push_back(false);
+	paramNames.push_back("z"); paramVisibility.push_back(false);
+	for (int imgIdx = 0; imgIdx < modalities->size(); ++imgIdx)
 	{
-		m_voxelData->setItem(0, 3+imgIdx, new QTableWidgetItem(QString("Mod")+QString::number(imgIdx)));
-		voxelIdx = 1;
-		vtkSmartPointer<vtkImageData> img = modalities->get(imgIdx)->image();
-		std::function<void (int[3], VoxelValueType)> pixelVisitor = [this, &imgIdx, &voxelIdx, &adder, &tableSize](int coord[3], VoxelValueType modalityValue)
+		if (modalities->get(imgIdx)->image()->GetScalarType() != VTK_UNSIGNED_SHORT)
 		{
-			assert (voxelIdx < tableSize);
-			adder.resume();
+			DEBUG_LOG(QString("Modality %1 is not of type unsigned short (which is "
+				"currently the only supported type for Modality SPLOM)!")
+				.arg(modalities->get(imgIdx)->name()));
+			return;
+		}
+		paramNames.push_back(modalities->get(imgIdx)->name());
+		paramVisibility.push_back(true);
+	}
+	m_data->setParameterNames(paramNames);
+
+	for (int imgIdx = 0; imgIdx < modalities->size(); ++imgIdx)
+	{
+		vtkSmartPointer<vtkImageData> img = modalities->get(imgIdx)->image();
+		std::function<void (int[3], VoxelValueType)> pixelVisitor = [this, &imgIdx](int coord[3], VoxelValueType modalityValue)
+		{
 			if (imgIdx == 0)
 			{
-				m_voxelData->setItem(voxelIdx, 0, new QTableWidgetItem(QString::number(coord[0])));
-				m_voxelData->setItem(voxelIdx, 1, new QTableWidgetItem(QString::number(coord[1])));
-				m_voxelData->setItem(voxelIdx, 2, new QTableWidgetItem(QString::number(coord[2])));
+				m_data->data()[0].push_back(coord[0]);
+				m_data->data()[1].push_back(coord[1]);
+				m_data->data()[2].push_back(coord[2]);
 			}
-			m_voxelData->setItem(voxelIdx, 3+imgIdx, new QTableWidgetItem(QString::number(modalityValue)));
-			adder.pause();
-			voxelIdx++;
+			m_data->data()[3+imgIdx].push_back(modalityValue);
 		};
 		IteratePixels(img, step, pixelVisitor);
 	}
-	m_voxelData->setRowCount(voxelIdx);
-	// pass to scatter plot matrix:
-	m_splom->setData(m_voxelData);
-	m_splom->setLookupTable(m_lut, QString("Mod0"));
-	m_splom->setParameterVisibility("x", false);
-	m_splom->setParameterVisibility("y", false);
-	m_splom->setParameterVisibility("z", false);
-
-	//std::cout << "Elapsed for adding to QTableWidget: " << adder.elapsed() << " seconds" << std::endl;
+	m_data->updateRanges();
+	m_splom->setData(m_data, paramVisibility);
 }

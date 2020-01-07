@@ -29,6 +29,7 @@
 
 class iAModalityList;
 class iAQSplom;
+class iASPLOMData;
 class QTableWidget;
 
 class vtkColorTransferFunction;
@@ -47,8 +48,7 @@ private slots:
 	void SplomSelection(std::vector<size_t> const &);
 private:
 	iAQSplom* m_splom;
-	QTableWidget* m_voxelData;
-	vtkSmartPointer<vtkLookupTable> m_lut;
+	QSharedPointer<iASPLOMData> m_data;
 	int m_extent[6];
 	double m_spacing[3];
 	double m_origin[3];
