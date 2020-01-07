@@ -490,7 +490,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		{
 			if (optimStepMax > 1)
 			{
-				DEBUG_LOG(QString("In result %1, the maximum number of steps changes from %2 to %3! This shouldn't be a problem, but support for it is currently untested.")
+				DEBUG_LOG(QString("Result %1 has a new maximum number of steps %2 (was %3).")
 					.arg(resultID).arg(optimStepMax).arg(thisResultStepMax));
 			}
 			optimStepMax = thisResultStepMax;

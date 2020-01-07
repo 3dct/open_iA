@@ -241,7 +241,7 @@ namespace
 	{
 		double sqdiffsum = 0;
 		for (size_t cur=0; cur<cnt; ++cur)
-			sqdiffsum += std::pow(vec2 - vec1, 2);
+			sqdiffsum += std::pow(vec2[cur] - vec1[cur], 2);
 		return sqrt(sqdiffsum);
 	}
 
@@ -373,7 +373,7 @@ double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		for (int i=0; i<3; ++i)
 		{
 			vec1[i] = fiber1.pts[PtCenter].data()[i];
-			vec2[i] = fiber1.pts[PtCenter].data()[i];
+			vec2[i] = fiber2.pts[PtCenter].data()[i];
 		}
 		vec1[3] = fiber1.length;
 		vec2[3] = fiber2.length;
