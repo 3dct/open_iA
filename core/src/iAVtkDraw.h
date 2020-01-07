@@ -45,16 +45,19 @@ public:
 //! Don't forget to call Modified() on the image, and if the scalar range
 //! changed, to update the scalar range (unfortunately that seems to require a
 //! "dirty hack" at the moment, see iAvtkImageData above).
+//! WARNING: Only use for INT type at the moment!
 template <typename T>
 void drawPixel(vtkImageData* img, int x, int y, int z, T c);
 
 //! Draw a line in the given image.
 //! See the notes for drawPixel regarding Modified().
+//! WARNING: Only use for INT type at the moment!
 template <typename T>
 void drawLine(vtkImageData* img, int x1, int y1, int x2, int y2, T c);
 
 //! Set all pixels in the given image to the given value
 //! See the notes for drawPixel regarding Modified().
+//! WARNING: Only use for INT type at the moment!
 template <typename T>
 void clearImage(vtkImageData* img, T c);
 
