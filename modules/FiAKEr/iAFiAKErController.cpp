@@ -126,7 +126,7 @@ namespace
 	double DiameterFactor = 1.0;
 	double ContextDiameterFactor = 1.0;
 	const size_t NoPlotsIdx = std::numeric_limits<size_t>::max();
-	const size_t NoResult = NoPlotsIdx;
+	const size_t NoResult = std::numeric_limits<size_t>::max();
 	const QString RefMarker(" (Reference)");
 
 	
@@ -2365,13 +2365,6 @@ void iAFiAKErController::refDistAvailable()
 	{
 		size_t columnID = startIdx + paramID;
 		changedSpmColumns.push_back(columnID);
-	}
-	if (m_data->result[m_referenceID].fiberCount > std::numeric_limits<int>::max())
-	{
-		DEBUG_LOG(QString("Current implementation cannot handle more than %1 fibers, but reference has %2!")
-			.arg(std::numeric_limits<int>::max())
-			.arg(m_data->result[m_referenceID].fiberCount));
-		return;
 	}
 	m_referenceID = m_refDistCompute->referenceID();
 	m_spnboxReferenceCount->setMaximum(std::min(iARefDistCompute::MaxNumberOfCloseFibers, static_cast<int>(m_data->result[m_referenceID].fiberCount)));
