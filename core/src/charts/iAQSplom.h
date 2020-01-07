@@ -298,6 +298,6 @@ protected:
 private:
 	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction, *quadraticPlotsAction,
 		*showPCCAction, *flipAxesAction, *showColorLegendAction;
-	QVector<iAChartWidget*> m_histograms;        //!< histograms of scatter plot matrix
+	std::vector<iAChartWidget*> m_histograms;    //!< histograms of scatter plot matrix
 	iASPMSettings * m_settingsDlg;               //!< dialog with all the SPLOM settings (which params are visible, opacity of each dot, which column to use for coloring...
 };

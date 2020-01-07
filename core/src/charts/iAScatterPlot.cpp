@@ -109,7 +109,7 @@ iAScatterPlot::~iAScatterPlot()
 	}
 }
 
-void iAScatterPlot::setData( int x, int y, QSharedPointer<iASPLOMData> &splomData )
+void iAScatterPlot::setData( size_t x, size_t y, QSharedPointer<iASPLOMData> &splomData )
 {
 	if (m_splomData)
 		return;
@@ -137,7 +137,7 @@ void iAScatterPlot::updatePoints()
 	m_pointsOutdated = true;
 }
 
-void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, int colInd )
+void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, size_t colInd )
 {
 	m_colInd = colInd;
 	m_lut = lut;
@@ -305,7 +305,7 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 
 	if ( !( event->buttons()&Qt::RightButton ) && !( event->buttons()&Qt::LeftButton ) )
 	{
-		int newInd = getPointIndexAtPosition( locPos );
+		size_t newInd = getPointIndexAtPosition( locPos );
 		if ( m_curInd != newInd )
 		{
 			setCurrentPoint( newInd );
@@ -767,7 +767,8 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	glVertexPointer( 3, GL_FLOAT, 7 * sizeof( GLfloat ), (const void *) ( 0 ) );
 	glEnableClientState( GL_COLOR_ARRAY );
 	glColorPointer( 4, GL_FLOAT, 7 * sizeof( GLfloat ), (const void *) ( 3 * sizeof( GLfloat ) ) );
-	glDrawArrays( GL_POINTS, 0, m_curVisiblePts );//glDrawElements( GL_POINTS, m_pointsBuffer->size(), GL_UNSIGNED_INT, 0 );
+	assert(m_curVisiblePts < std::numeric_limits<GLsizei>::max());
+	glDrawArrays( GL_POINTS, 0, static_cast<GLsizei>(m_curVisiblePts) );//glDrawElements( GL_POINTS, m_pointsBuffer->size(), GL_UNSIGNED_INT, 0 );
 	glDisableClientState( GL_COLOR_ARRAY );
 	glColor3f( settings.selectionColor.red() / 255.0, settings.selectionColor.green() / 255.0, settings.selectionColor.blue() / 255.0 );
 
@@ -777,9 +778,9 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	//       but unfortunately, there is no GL_UNSIGNED_LONG_LONG (yet)
 	std::vector<uint> uintSelInds;
 	for (size_t idx : selInds)
-		uintSelInds.push_back(idx);
+		uintSelInds.push_back(static_cast<uint>(idx));
 	// copy doesn't work as it would require explicit conversion from size_t to uint
-	glDrawElements(GL_POINTS, selInds.size(), GL_UNSIGNED_INT, uintSelInds.data());
+	glDrawElements(GL_POINTS, static_cast<GLsizei>(selInds.size()), GL_UNSIGNED_INT, uintSelInds.data());
 	glDisableClientState( GL_VERTEX_ARRAY );
 	m_pointsBuffer->release();
 
@@ -943,7 +944,7 @@ void iAScatterPlot::createVBO()
 		return;
 	}
 	m_pointsBuffer->setUsagePattern(iAQGLBuffer::DynamicDraw);
-	m_pointsBuffer->allocate((CordDim + ColChan) * m_splomData->numPoints() * sizeof(GLfloat));
+	m_pointsBuffer->allocate(static_cast<int>((CordDim + ColChan) * m_splomData->numPoints() * sizeof(GLfloat)));
 	m_pointsBuffer->release();
 }
 

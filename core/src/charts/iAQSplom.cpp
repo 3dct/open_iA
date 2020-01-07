@@ -408,6 +408,12 @@ void iAQSplom::setData( const QTableWidget * data )
 
 void iAQSplom::setData( QSharedPointer<iASPLOMData> data, std::vector<char> const & visibility )
 {
+	if (data->numPoints() > std::numeric_limits<int>::max())
+	{
+		DEBUG_LOG(QString("Number of points (%1) larger than supported (%2)")
+			.arg(data->numPoints())
+			.arg(std::numeric_limits<int>::max()));
+	}
 	m_splomData = data;
 	dataChanged(visibility);
 }
@@ -752,7 +758,7 @@ void iAQSplom::transformUpdated( double scale, QPointF deltaOffset )
 		}
 	}
 
-	const int* ind = sender->getIndices();
+	const size_t* ind = sender->getIndices();
 	for (auto& row : m_matrix)
 	{
 		for (auto s : row)
@@ -989,8 +995,8 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 		connect(m_maximizedPlot, &iAScatterPlot::transformModified, this, &iAQSplom::transformUpdated);
 	}
 
-	const int * plotInds = selectedPlot->getIndices();
-	int actualPlotInds[2] = {
+	const size_t * plotInds = selectedPlot->getIndices();
+	size_t actualPlotInds[2] = {
 		plotInds[(settings.flipAxes) ? 1 : 0],
 		plotInds[(settings.flipAxes) ? 0 : 1]
 	};
@@ -1188,7 +1194,7 @@ bool iAQSplom::drawPopup( QPainter& painter )
 	{
 		anim = m_animIn;
 	}
-	const int * pInds = m_activePlot->getIndices();
+	const size_t * pInds = m_activePlot->getIndices();
 
 	painter.save();
 	QPointF popupPos = m_activePlot->getPointPosition( curInd );
@@ -1353,7 +1359,7 @@ void iAQSplom::updateMaxPlotRect()
 
 void iAQSplom::updateSPLOMLayout()
 {
-	long visParamCnt = getVisibleParametersCount();
+	int visParamCnt = getVisibleParametersCount();
 	if( !visParamCnt )
 	{
 		return;
@@ -1419,7 +1425,7 @@ void iAQSplom::removeMaxPlotIfHidden()
 {
 	if (m_maximizedPlot)
 	{
-		const int* inds = m_maximizedPlot->getIndices();
+		const size_t* inds = m_maximizedPlot->getIndices();
 		if (!m_paramVisibility[inds[0]] || !m_paramVisibility[inds[1]] || (getVisibleParametersCount() <= 1))
 		{
 			removeMaximizedPlot();

@@ -56,11 +56,11 @@ public:
 	iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAQGLWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
 	~iAScatterPlot();
 
-	void setData( int x, int y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
+	void setData(size_t x, size_t y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
 	bool hasData() const;                                            //!< Check if data is already set to the plot
 	//! Set color lookup table and the name of a color-coded parameter
-	void setLookupTable( QSharedPointer<iALookupTable> &lut, int colInd );
-	const int * getIndices() const { return m_paramIndices; }        //!< Get indices of X and Y parameters
+	void setLookupTable( QSharedPointer<iALookupTable> &lut, size_t colInd );
+	const size_t* getIndices() const { return m_paramIndices; }      //!< Get indices of X and Y parameters
 	void setTransform( double scale, QPointF newOffset );            //!< Set new transform: new scale and new offset
 	void setTransformDelta( double scale, QPointF deltaOffset );     //!< Set new transform: new scale and change in the offset (delta)
 	QRect getRect() const { return m_globRect; }                     //!< Get rectangle where scatter plot contents are displayed
@@ -177,9 +177,9 @@ protected:
 	QRect m_globRect;                                                //!< plot's rectangle
 	QRectF m_locRect;                                                //!< plot's local drawing rectangle
 	QSharedPointer<iASPLOMData> m_splomData;                         //!< pointer to SPLOM-parent's data
-	int m_paramIndices[2];                                           //!< indices of plot X, Y parameters
+	size_t m_paramIndices[2];                                        //!< indices of plot X, Y parameters
 	double m_prX[2], m_prY[2];                                       //!< range of x and y parameter
-	int m_colInd;                                                    //!< index of color-coded parameter
+	size_t m_colInd;                                                 //!< index of color-coded parameter
 	QSharedPointer<iALookupTable> m_lut;                             //!< pointer to SPLOM-parent's lookup table
 	QRectF m_maxBtnRect;                                             //!< rectangle of maximized button
 	// zooming, translating

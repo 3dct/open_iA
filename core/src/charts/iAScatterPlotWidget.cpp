@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAScatterPlotWidget.h"
 
+#include "iAConsole.h"
 #include "iALookupTable.h"
 #include "iAScatterPlot.h"
 #include "iAScatterPlotSelectionHandler.h"
@@ -95,6 +96,12 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), this);
 	m_scatterplot->settings.selectionEnabled = true;
 	data->updateRanges();
+	if (data->numPoints() > std::numeric_limits<int>::max())
+	{
+		DEBUG_LOG(QString("Number of points (%1) larger than supported (%2)")
+			.arg(data->numPoints())
+			.arg(std::numeric_limits<int>::max()));
+	}
 	m_scatterplot->setData(0, 1, data);
 }
 
