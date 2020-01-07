@@ -24,8 +24,8 @@
 
 typedef int iAVoxelIndexType;
 
-//! Helper struct for storing 3D image coordinates.
-struct open_iA_Core_API iAImageCoordinate
+//! Helper for storing 3D image coordinates.
+class open_iA_Core_API iAImageCoordinate
 {
 public:
 	enum iAIndexOrdering

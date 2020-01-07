@@ -26,7 +26,7 @@
 #include <QString>
 #include <QVector>
 
-struct iAImageCoordinate;
+class iAImageCoordinate;
 
 typedef std::pair<iAImageCoordinate, int> iASeedType;
 typedef QVector<iASeedType> iASeedVector;

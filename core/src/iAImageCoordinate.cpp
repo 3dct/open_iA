@@ -22,7 +22,8 @@
 
 #include <cassert>
 
-iAImageCoordinate::iAImageCoordinate()
+iAImageCoordinate::iAImageCoordinate():
+	x(0), y(0), z(0)
 {}
 
 iAImageCoordinate::iAImageCoordinate(iAVoxelIndexType x, iAVoxelIndexType y, iAVoxelIndexType z) : x(x), y(y), z(z)

@@ -52,7 +52,7 @@ void iAVectorColorTheme::addColor(QColor const & color)
 	m_colors.push_back(color);
 }
 
-QColor const & iAVectorColorTheme::color(int idx) const
+QColor const & iAVectorColorTheme::color(size_t idx) const
 {
 	if (idx >= m_colors.size())
 	{
@@ -68,7 +68,7 @@ iASingleColorTheme::iASingleColorTheme(QString const & name, QColor  const & col
 	iAColorTheme(name), m_color(color)
 {}
 
-QColor const & iASingleColorTheme::color(int /*idx*/) const
+QColor const & iASingleColorTheme::color(size_t /*idx*/) const
 {
 	return m_color;
 }

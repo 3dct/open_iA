@@ -40,7 +40,7 @@ public:
 	//! returns the number of colors in this theme
 	virtual size_t size() const =0;
 	//! returns the color with the given index in this theme
-	virtual QColor const & color(int idx) const =0;
+	virtual QColor const & color(size_t idx) const =0;
 	//! get the name of the color theme
 	QString const & name() const;
 private:
@@ -52,7 +52,7 @@ class open_iA_Core_API iAVectorColorTheme: public iAColorTheme
 public:
 	iAVectorColorTheme(QString const &  name);
 	size_t size() const override;
-	QColor const & color(int idx) const override;
+	QColor const & color(size_t idx) const override;
 	//! add a color to the theme (typically only necessary for theme creators)
 	void addColor(QColor const &);
 private:
@@ -65,7 +65,7 @@ class open_iA_Core_API iASingleColorTheme : public iAColorTheme
 public:
 	iASingleColorTheme(QString const & name, QColor const & color);
 	size_t size() const override;
-	QColor const & color(int idx) const override;
+	QColor const & color(size_t idx) const override;
 private:
 	QColor m_color;
 };
