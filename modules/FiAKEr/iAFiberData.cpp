@@ -230,7 +230,7 @@ namespace
 			if (pointContainedInFiber(pt, longerFiber))
 				++containedPoints;
 		}
-		double similarity = static_cast<double>(containedPoints) / DefaultSamplePoints;
+		double similarity = static_cast<double>(containedPoints) / sampledPoints.size();
 		if (volRelation)
 			similarity *= (fiber1Vol < fiber2Vol) ? fiber1Vol / fiber2Vol : fiber2Vol / fiber1Vol;
 		return similarity;
