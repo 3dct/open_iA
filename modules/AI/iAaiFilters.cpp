@@ -25,12 +25,31 @@
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
+#include "itkImage.h"
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+#include "itkImageRegionIterator.h"
 
 
 #include "onnxruntime_cxx_api.h"
 
+
+
+typedef float                                 				PixelType;
+const unsigned int Dimension = 3;
+typedef itk::Image<PixelType, Dimension>      				ImageType;
+typedef itk::ImageFileReader<ImageType>       				ReaderType;
+typedef itk::ImageRegionIterator<ImageType> 			    IteratorType;
+
+
 void iAai::performWork(QMap<QString, QVariant> const & parameters)
 {
+
+
+	if (input()[0]->itkScalarPixelType() != itk::ImageIOBase::FLOAT) {
+		return;
+	}
+
 
 	// initialize  enviroment...one enviroment per process
 // enviroment maintains thread pools and other state info
@@ -58,12 +77,14 @@ void iAai::performWork(QMap<QString, QVariant> const & parameters)
 	// using squeezenet version 1.3
 	// URL = https://github.com/onnx/models/tree/master/squeezenet
 #ifdef _WIN32
-	const wchar_t* model_path = L"C:\\Users\\p41877\\Downloads\\squeezenet\\model.onnx";
+	 wchar_t* model_path = L"C:\\Users\\p41877\\Downloads\\squeezenet\\model.onnx";
 #else
 	const char* model_path = "squeezenet.onnx";
 #endif
 
 
+
+	parameters["OnnxFile"].toString().toWCharArray(model_path);
 
 	printf("Using Onnxruntime C++ API\n");
 	Ort::Session session(env, model_path, session_options);
@@ -167,4 +188,64 @@ iAai::iAai() :
 	addParameter("OnnxFile", FileNameOpen);
 	addParameter("STL output filename", String, "");
 
+}
+
+
+
+bool itk2tensor(ImageType::Pointer itk_img, std::vector<float> &tensor_img) {
+
+	typename ImageType::RegionType region = itk_img->GetLargestPossibleRegion();
+	const typename ImageType::SizeType size = region.GetSize();
+
+
+	tensor_img.resize(size[0] * size[1] * size[2]);
+	int count = 0;
+	IteratorType iter(itk_img, itk_img->GetRequestedRegion());
+
+	// convert itk to array
+	for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter) {
+		tensor_img[count] = iter.Get();
+		count++;
+	}
+
+
+
+	return true;
+}
+
+
+bool tensor2itk(std::vector<float> &tensor_img, ImageType::Pointer itk_img, int x, int y, int z) {
+
+
+
+	ImageType::IndexType start;
+	start[0] = 0;  // first index on X
+	start[1] = 0;  // first index on Y
+	start[2] = 0;  // first index on Z
+
+	ImageType::SizeType  size;
+	size[0] = x;
+	size[1] = y;
+	size[2] = z;
+
+	ImageType::RegionType region;
+	region.SetSize(size);
+	region.SetIndex(start);
+
+	itk_img->SetRegions(region);
+	itk_img->Allocate();
+
+	int len = size[0] * size[1] * size[2];
+
+	IteratorType iter(itk_img, itk_img->GetRequestedRegion());
+	int count = 0;
+	// convert array to itk
+
+	for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter) {
+		iter.Set(tensor_img[count]);
+		count++;
+	}
+
+
+	return true;
 }
