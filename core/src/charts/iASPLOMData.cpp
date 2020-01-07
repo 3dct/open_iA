@@ -137,7 +137,7 @@ bool iASPLOMData::matchesFilter(size_t ind) const
 
 void iASPLOMData::addFilter(size_t paramIndex, double value)
 {
-	if (paramIndex < -1 || paramIndex >= numParams())
+	if (paramIndex >= numParams())
 	{
 		DEBUG_LOG(QString("Invalid filter column ID %1!").arg(paramIndex));
 		return;
