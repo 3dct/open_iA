@@ -198,10 +198,14 @@ void iASelectionInteractorStyle::pick()
 		auto& resultSel = m_selectionProvider->selection()[resultID];
 
 		if (!GetInteractor()->GetAltKey() && !GetInteractor()->GetShiftKey())
+		{
 			resultSel.clear();
+		}
 
 		if (!m_input.contains(resultID))
+		{
 			continue;
+		}
 
 		vtkSmartPointer<vtkExtractGeometry> extractGeometry = vtkSmartPointer<vtkExtractGeometry>::New();
 		extractGeometry->SetImplicitFunction(frustum);

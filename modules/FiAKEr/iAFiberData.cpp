@@ -245,7 +245,7 @@ namespace
 		return sqrt(sqdiffsum);
 	}
 
-	void sampleSegmentPoints(iAVec3f const & start, iAVec3f const & dir, double radius, std::vector<iAVec3f> & result, int numSamples)
+	void sampleSegmentPoints(iAVec3f const & start, iAVec3f const & dir, double radius, std::vector<iAVec3f> & result, size_t numSamples)
 	{
 		std::random_device r;
 		std::default_random_engine generator(r());
@@ -276,7 +276,7 @@ namespace
 		.arg(perpDir2[0]).arg(perpDir2[1]).arg(perpDir2[2]));
 		*/
 
-		for (int i = 0; i < numSamples; ++i)
+		for (size_t i = 0; i < numSamples; ++i)
 		{
 			size_t angleIdx = angleRnd(generator);
 			double newRadius = radius * std::sqrt(radiusRnd(generator));

@@ -47,20 +47,21 @@
 
 namespace
 {
+
 	void getBestMatches(iAFiberData const & fiber, QMap<uint, uint> const & mapping, vtkTable* refTable,
 		QVector<QVector<iAFiberSimilarity> > & bestMatches, double diagonalLength, double maxLength,
 		std::map<size_t, std::vector<iAVec3f> > const & refCurveInfo)
 	{
-		size_t refFiberCount = refTable->GetNumberOfRows();
+		iARefDistCompute::ContainerSizeType refFiberCount = refTable->GetNumberOfRows();
 		bestMatches.resize(iARefDistCompute::SimilarityMeasureCount);
-		size_t maxNumberOfCloseFibers = std::min(iARefDistCompute::MaxNumberOfCloseFibers, refFiberCount);
+		auto maxNumberOfCloseFibers = std::min(iARefDistCompute::MaxNumberOfCloseFibers, refFiberCount);
 		for (int d = 0; d<iARefDistCompute::SimilarityMeasureCount; ++d)
 		{
 			QVector<iAFiberSimilarity> similarities;
 			if (d < iARefDistCompute::OverlapMeasureStart)
 			{
 				similarities.resize(refFiberCount);
-				for (size_t refFiberID = 0; refFiberID < refFiberCount; ++refFiberID)
+				for (iARefDistCompute::ContainerSizeType refFiberID = 0; refFiberID < refFiberCount; ++refFiberID)
 				{
 					auto it = refCurveInfo.find(refFiberID);
 					iAFiberData refFiber(refTable, refFiberID, mapping, (it != refCurveInfo.end())? it->second: std::vector<iAVec3f>());
@@ -73,7 +74,7 @@ namespace
 			{ // compute overlap measures only for the best-matching fibers according to a simpler metric:
 				auto & otherMatches = bestMatches[iARefDistCompute::BestMeasureWithoutOverlap];
 				similarities.resize(otherMatches.size());
-				for (size_t bestMatchID = 0; bestMatchID < otherMatches.size(); ++bestMatchID)
+				for (iARefDistCompute::ContainerSizeType bestMatchID = 0; bestMatchID < otherMatches.size(); ++bestMatchID)
 				{
 					size_t refFiberID = otherMatches[bestMatchID].index;
 					auto it = refCurveInfo.find(refFiberID);
@@ -110,7 +111,7 @@ namespace
 	}
 }
 
-size_t iARefDistCompute::MaxNumberOfCloseFibers = 25;
+iARefDistCompute::ContainerSizeType iARefDistCompute::MaxNumberOfCloseFibers = 25;
 
 iARefDistCompute::iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, int referenceID):
 	m_data(data),
@@ -205,14 +206,14 @@ void iARefDistCompute::run()
 		{
 			if (d.stepData == iAFiberCharData::SimpleStepData)
 			{
-				size_t stepCount = d.stepValues.size();
+				iARefDistCompute::ContainerSizeType stepCount = d.stepValues.size();
 				auto & diffs = d.refDiffFiber[fiberID].diff;
 				diffs.resize(iAFiberCharData::FiberValueCount+SimilarityMeasureCount);
-				for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
+				for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 				{
 					auto & stepDiffs = diffs[diffID].step;
 					stepDiffs.resize(stepCount);
-					for (size_t step = 0; step < stepCount; ++step)
+					for (iARefDistCompute::ContainerSizeType step = 0; step < stepCount; ++step)
 					{
 						// compute error (=difference - startx, starty, startz, endx, endy, endz, shiftx, shifty, shiftz, phi, theta, length, diameter)
 						size_t refFiberID = d.refDiffFiber[fiberID].dist[BestSimilarityMeasure][0].index;
@@ -220,14 +221,14 @@ void iARefDistCompute::run()
 							- ref.table->GetValue(refFiberID, diffCols[diffID]).ToDouble();
 					}
 				}
-				for (size_t distID = 0; distID < SimilarityMeasureCount; ++distID)
+				for (iARefDistCompute::ContainerSizeType distID = 0; distID < SimilarityMeasureCount; ++distID)
 				{
 					auto & stepDiffs = diffs[iAFiberCharData::FiberValueCount + distID].step;
 					stepDiffs.resize(stepCount);
 					size_t refFiberID = d.refDiffFiber[fiberID].dist[distID][0].index;
 
 					iAFiberData refFiber(ref.table, refFiberID, mapping, std::vector<iAVec3f>());
-					for (size_t step = 0; step < stepCount; ++step)
+					for (iARefDistCompute::ContainerSizeType step = 0; step < stepCount; ++step)
 					{
 						iAFiberData fiber(d.stepValues[step][fiberID]);
 						double dist = getSimilarity(fiber, refFiber, distID, diagLength, maxLength);
@@ -252,11 +253,11 @@ void iARefDistCompute::run()
 			spmID += d.fiberCount;
 			continue;
 		}
-		for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
+		for (iARefDistCompute::ContainerSizeType fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 		{
 			//if (d.stepData == iAFiberCharData::SimpleStepData) ???
 			auto & diffData = d.refDiffFiber[fiberID];
-			for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
+			for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 			{
 				size_t tableColumnID = m_data->spmData->numParams() -
 					(iAFiberCharData::FiberValueCount + SimilarityMeasureCount + EndColumns) + diffID;
@@ -265,7 +266,7 @@ void iARefDistCompute::run()
 				m_data->spmData->data()[tableColumnID][spmID] = lastValue;
 				d.table->SetValue(fiberID, tableColumnID, lastValue); // required for coloring 3D view by these diffs + used below for average!
 			}
-			for (size_t distID = 0; distID < SimilarityMeasureCount; ++distID)
+			for (iARefDistCompute::ContainerSizeType distID = 0; distID < SimilarityMeasureCount; ++distID)
 			{
 				double similarity = diffData.dist[distID][0].similarity;
 				size_t tableColumnID = m_data->spmData->numParams() - (SimilarityMeasureCount + EndColumns) + distID;
@@ -290,7 +291,7 @@ void iARefDistCompute::run()
 			if (resultID == m_referenceID)
 				continue;
 			auto & d = m_data->result[resultID];
-			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
+			for (iARefDistCompute::ContainerSizeType fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 			{
 				auto & bestFiberBestDist = d.refDiffFiber[fiberID].dist[BestSimilarityMeasure][0];
 				size_t refFiberID = bestFiberBestDist.index;
@@ -307,7 +308,7 @@ void iARefDistCompute::run()
 			m_data->avgRefFiberMatch[fiberID] = value;
 		}
 		m_progress.setStatus("Computing average differences/similarities for each result.");
-		size_t diffCount = iAFiberCharData::FiberValueCount + SimilarityMeasureCount;
+		iARefDistCompute::ContainerSizeType diffCount = iAFiberCharData::FiberValueCount + SimilarityMeasureCount;
 		// std::vector resize has an additional optional argument for default value for new entries,
 		// in QVector, the same can be achieved via fill method (but argument order is reversed!)
 		//m_data->maxAvgDifference.resize(diffCount, std::numeric_limits<double>::min());
@@ -321,14 +322,14 @@ void iARefDistCompute::run()
 			d.avgDifference.fill(0.0, diffCount);
 			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 			{
-				for (size_t diffID = 0; diffID < diffCount; ++diffID)
+				for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < diffCount; ++diffID)
 				{
 					size_t tableColumnID = m_data->spmData->numParams() - (iAFiberCharData::FiberValueCount + SimilarityMeasureCount + EndColumns) + diffID;
 					double value = std::abs(d.table->GetValue(fiberID, tableColumnID).ToDouble());
 					d.avgDifference[diffID] += value;
 				}
 			}
-			for (size_t diffID = 0; diffID < diffCount; ++diffID)
+			for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < diffCount; ++diffID)
 			{
 				d.avgDifference[diffID] /= d.fiberCount;
 				if (d.avgDifference[diffID] > m_data->maxAvgDifference[diffID])

@@ -30,10 +30,14 @@
 #include <QPainter>
 #include <QToolTip>
 
+#include <limits>
+
 namespace
 {
 	double MinimumWeight = 0.001;
 	int MinimumPixelBarWidth = 1;
+	const int DividerRange = 2;
+	size_t NoBar = std::numeric_limits<size_t>::max();
 }
 
 iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header):
@@ -41,8 +45,9 @@ iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header):
 	m_contextMenu(new QMenu(this)),
 	m_header(header),
 	m_stack(true),
-	m_resizeBar(-1),
-	m_resizeStartX(0)
+	m_resizeBar(NoBar),
+	m_resizeStartX(0),
+	m_resizeWidth(0)
 {
 	setMouseTracking(true);
 	setContextMenuPolicy(Qt::DefaultContextMenu);
@@ -65,7 +70,9 @@ void iAStackedBarChart::removeBar(QString const & name)
 	auto it = std::find_if(m_bars.begin(), m_bars.end(),
 		[name](iABarData const & d){ return d.name == name; });
 	if (it != m_bars.end())
+	{
 		m_bars.erase(it);
+	}
 	normalizeWeights();
 	update();
 }
@@ -116,7 +123,9 @@ void iAStackedBarChart::paintEvent(QPaintEvent* /*ev*/)
 	int barHeight = std::min(geometry().height(), MaxBarHeight);
 	int topY = geometry().height() / 2 - barHeight / 2;
 	if (!m_bgColor.isValid())
+	{
 		m_bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	}
 	painter.fillRect(rect(), QBrush(m_bgColor));
 	for (size_t barID = 0; barID < m_bars.size(); ++barID)
 	{
@@ -129,31 +138,41 @@ void iAStackedBarChart::paintEvent(QPaintEvent* /*ev*/)
 		painter.drawText(barRect, Qt::AlignVCenter,
 			(m_header ? bar.name : QString::number(bar.value)));
 		m_dividers.push_back(accumulatedWidth + bWidth);
-		accumulatedWidth += m_stack ? bWidth : geometry().width() / m_bars.size();
+		accumulatedWidth += m_stack ? bWidth : static_cast<int>(geometry().width() / m_bars.size());
 	}
 }
 
 void iAStackedBarChart::contextMenuEvent(QContextMenuEvent *ev)
 {
 	if (m_header)
+	{
 		m_contextMenu->exec(ev->globalPos());
+	}
 }
 
-int iAStackedBarChart::dividerWithinRange(int x) const
+size_t iAStackedBarChart::dividerWithinRange(int x) const
 {
 	for (size_t divID = 0; divID < m_dividers.size(); ++divID)
+	{
 		if (abs(m_dividers[divID] - x) < DividerRange)
+		{
 			return divID;
-	return -1;
+		}
+	}
+	return NoBar;
 }
 
 void iAStackedBarChart::normalizeWeights()
 {
 	double weightSum = 0;
-	for (auto & bar : m_bars)
+	for (auto& bar : m_bars)
+	{
 		weightSum += bar.weight;
-	for (auto & bar : m_bars)
-		bar.weight = std::max(MinimumWeight, bar.weight/weightSum);
+	}
+	for (auto& bar : m_bars)
+	{
+		bar.weight = std::max(MinimumWeight, bar.weight / weightSum);
+	}
 }
 
 int iAStackedBarChart::barWidth(iABarData const & bar) const
@@ -165,12 +184,12 @@ void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
 {
 	if (m_header)
 	{
-		if (m_resizeBar != -1)
+		if (m_resizeBar != NoBar)
 		{
 			if (!(ev->buttons() & Qt::LeftButton))  // left button was released without being in the window?
 			{
 				DEBUG_LOG("iAStackedBarChart: resizedBar set but left button not pressed! Resetting...");
-				m_resizeBar = -1;
+				m_resizeBar = NoBar;
 			}
 			else
 			{
@@ -191,15 +210,17 @@ void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
 		}
 		else
 		{
-			int barID = dividerWithinRange(ev->x());
-			this->setCursor(barID >= 0 ? Qt::SizeHorCursor : Qt::ArrowCursor);
+			size_t barID = dividerWithinRange(ev->x());
+			this->setCursor(barID != NoBar ? Qt::SizeHorCursor : Qt::ArrowCursor);
 		}
 	}
 	else
 	{
-		int curBar = 0;
+		size_t curBar = 0;
 		while (curBar < m_dividers.size() && ev->x() > m_dividers[curBar])
+		{
 			++curBar;
+		}
 		if (curBar < m_bars.size())
 		{
 			auto & b = m_bars[curBar];
@@ -212,8 +233,8 @@ void iAStackedBarChart::mousePressEvent(QMouseEvent* ev)
 {
 	if (m_header && (ev->button() & Qt::LeftButton))
 	{
-		int barID = dividerWithinRange(ev->x());
-		if (barID != -1)
+		size_t barID = dividerWithinRange(ev->x());
+		if (barID != NoBar)
 		{
 			m_resizeBar = barID;
 			m_resizeStartX = ev->x();
@@ -225,12 +246,14 @@ void iAStackedBarChart::mousePressEvent(QMouseEvent* ev)
 
 void iAStackedBarChart::mouseReleaseEvent(QMouseEvent* /*ev*/)
 {
-	if (m_resizeBar != -1)
+	if (m_resizeBar != NoBar)
 	{
-		m_resizeBar = -1;
+		m_resizeBar = NoBar;
 		std::vector<double> weights(m_bars.size());
 		for (size_t b = 0; b < m_bars.size(); ++b)
+		{
 			weights[b] = m_bars[b].weight;
+		}
 		emit weightsChanged(weights);
 	}
 }
@@ -238,6 +261,8 @@ void iAStackedBarChart::mouseReleaseEvent(QMouseEvent* /*ev*/)
 void iAStackedBarChart::setWeights(std::vector<double> const & weights)
 {
 	for (size_t b = 0; b < m_bars.size(); ++b)
+	{
 		m_bars[b].weight = weights[b];
+	}
 	update();
 }

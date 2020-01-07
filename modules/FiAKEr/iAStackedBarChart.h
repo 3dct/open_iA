@@ -67,9 +67,8 @@ private:
 	void mouseReleaseEvent(QMouseEvent* ev) override;
 	void mouseMoveEvent(QMouseEvent* ev) override;
 	//! @}
-	const int DividerRange = 2;
 
-	int dividerWithinRange(int x) const;
+	size_t dividerWithinRange(int x) const;
 	int barWidth(iABarData const & bar) const;
 	void normalizeWeights();
 
@@ -78,9 +77,9 @@ private:
 	iAColorTheme const * m_theme;
 	QMenu* m_contextMenu;
 	bool m_header, m_stack;
-	int m_resizeBar;
+	size_t m_resizeBar;
 	int m_resizeStartX;
-	double m_resizeWidth, m_resizeFullWidth;
+	double m_resizeWidth;
 	std::vector<iABarData> m_resizeBars;
 	QColor m_bgColor;
 };

@@ -545,10 +545,10 @@ QWidget* iAFiAKErController::setupOptimStepView()
 	chartContainer->setSizeIncrement(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	m_optimStepSlider = new QSlider(Qt::Horizontal);
 	m_optimStepSlider->setMinimum(0);
-	m_optimStepSlider->setMaximum(m_data->optimStepMax - 1);
-	m_optimStepSlider->setValue(m_data->optimStepMax - 1);
+	m_optimStepSlider->setMaximum(static_cast<int>(m_data->optimStepMax) - 1);
+	m_optimStepSlider->setValue(static_cast<int>(m_data->optimStepMax) - 1);
 	m_currentOptimStepLabel = new QLabel("");
-	m_currentOptimStepLabel->setText(QString::number(m_data->optimStepMax - 1));
+	m_currentOptimStepLabel->setText(QString::number(static_cast<int>(m_data->optimStepMax) - 1));
 	connect(m_optimStepSlider, &QSlider::valueChanged, this, &iAFiAKErController::optimStepSliderChanged);
 	QPushButton* playPauseButton = new QPushButton("Play");
 	connect(playPauseButton, &QPushButton::pressed, this, &iAFiAKErController::playPauseOptimSteps);
@@ -2366,8 +2366,15 @@ void iAFiAKErController::refDistAvailable()
 		size_t columnID = startIdx + paramID;
 		changedSpmColumns.push_back(columnID);
 	}
+	if (m_data->result[m_referenceID].fiberCount > std::numeric_limits<int>::max())
+	{
+		DEBUG_LOG(QString("Current implementation cannot handle more than %1 fibers, but reference has %2!")
+			.arg(std::numeric_limits<int>::max())
+			.arg(m_data->result[m_referenceID].fiberCount));
+		return;
+	}
 	m_referenceID = m_refDistCompute->referenceID();
-	m_spnboxReferenceCount->setMaximum(std::min(iARefDistCompute::MaxNumberOfCloseFibers, m_data->result[m_referenceID].fiberCount));
+	m_spnboxReferenceCount->setMaximum(std::min(iARefDistCompute::MaxNumberOfCloseFibers, static_cast<int>(m_data->result[m_referenceID].fiberCount)));
 	m_data->spmData->updateRanges(changedSpmColumns);
 	m_spm->update();
 	delete m_refDistCompute;
@@ -2489,7 +2496,7 @@ void iAFiAKErController::changeReferenceDisplay()
 {
 	size_t similarityMeasure = clamp(0, iARefDistCompute::SimilarityMeasureCount, m_settingsView->cmbboxSimilarityMeasure->currentIndex());
 	bool showRef = m_chkboxShowReference->isChecked();
-	int refCount = std::min(iARefDistCompute::MaxNumberOfCloseFibers, static_cast<size_t>(m_spnboxReferenceCount->value()));
+	int refCount = std::min(iARefDistCompute::MaxNumberOfCloseFibers, m_spnboxReferenceCount->value());
 
 	if (m_nearestReferenceVis)
 	{

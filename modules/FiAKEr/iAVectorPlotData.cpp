@@ -24,7 +24,7 @@ iAVectorPlotData::iAVectorPlotData(QVector<double> const & data):
 	m_data(data)
 {
 	m_xBounds[0] = 0;
-	m_xBounds[1] = m_data.size()-1;
+	m_xBounds[1] = static_cast<double>(m_data.size())-1;
 
 	updateBounds();
 }
@@ -73,7 +73,7 @@ void iAVectorPlotData::updateBounds()
 {
 	m_yBounds[0] = std::numeric_limits<double>::max();
 	m_yBounds[1] = std::numeric_limits<double>::lowest();
-	for (size_t i = 0; i < m_data.size(); ++i)
+	for (int i = 0; i < m_data.size(); ++i)
 	{
 		if (m_data[i] < m_yBounds[0])
 			m_yBounds[0] = m_data[i];

@@ -77,7 +77,7 @@ private:
 	void pick();
 	void redrawRubberBand();
 
-	QMap<int, std::pair<vtkSmartPointer<vtkPolyData>, vtkSmartPointer<vtkActor> > > m_input;
+	QMap<size_t, std::pair<vtkSmartPointer<vtkPolyData>, vtkSmartPointer<vtkActor> > > m_input;
 	iASelectionProvider * m_selectionProvider;
 	vtkSmartPointer<vtkTextActor> m_showModeActor;
 	vtkSmartPointer<vtkRenderWindow> m_renWin;

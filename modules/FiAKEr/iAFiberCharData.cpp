@@ -214,22 +214,32 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		curData.mapping = io.getOutputMapping();
 		curData.fileName = csvFile;
 		if (curData.fiberCount < minFiberCount)
+		{
 			minFiberCount = curData.fiberCount;
+		}
 		if (curData.fiberCount > maxFiberCount)
+		{
 			maxFiberCount = curData.fiberCount;
+		}
 
 		if (result.empty())
-			for (size_t h=0; h<io.getOutputHeaders().size(); ++h)
+		{
+			for (int h = 0; h < io.getOutputHeaders().size(); ++h)
+			{
 				paramNames.push_back(io.getOutputHeaders()[h]);
+			}
+		}
 		else
 		{
 			// Check if output mapping is the same (it must be)!
-			for (auto key: result[0].mapping->keys())
+			for (auto key : result[0].mapping->keys())
+			{
 				if (curData.mapping->value(key) != result[0].mapping->value(key))
 				{
-					DEBUG_LOG(QString("Mapping does not match for result %1, column %2!").arg(csvFile).arg(curData.mapping->value(key)) );
+					DEBUG_LOG(QString("Mapping does not match for result %1, column %2!").arg(csvFile).arg(curData.mapping->value(key)));
 					return false;
 				}
+			}
 			// (though actually same mapping should be guaranteed by using same config)
 		}
 
@@ -455,10 +465,10 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			if (curData.stepData != iAFiberCharData::NoStepData)
 			{
 				curData.stepValues.resize(thisResultStepMax);
-				for (int t = 0; t < thisResultStepMax; ++t)
+				for (size_t t = 0; t < thisResultStepMax; ++t)
 				{
 					curData.stepValues[t].resize(curData.fiberCount);
-					for (int f = 0; f < curData.fiberCount; ++f)
+					for (size_t f = 0; f < curData.fiberCount; ++f)
 					{
 						curData.stepValues[t][f] = (t < fiberStepValues[f].size()) ?
 							fiberStepValues[f][t] :
@@ -539,7 +549,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	for (resultID=0; resultID<result.size(); ++resultID)
 	{
 		auto & curData = result[resultID];
-		size_t numTableColumns = curData.table->GetNumberOfColumns();
+		vtkIdType numTableColumns = curData.table->GetNumberOfColumns();
 		for (int i = (iARefDistCompute::SimilarityMeasureCount+iAFiberCharData::FiberValueCount+iARefDistCompute::EndColumns); i >= iARefDistCompute::EndColumns; --i)
 		{
 			spmData->data()[numParams - i].resize(spmData->data()[numParams - i].size() + curData.fiberCount, 0);

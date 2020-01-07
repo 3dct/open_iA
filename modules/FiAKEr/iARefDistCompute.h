@@ -35,13 +35,14 @@ class iARefDistCompute : public QThread
 {
 	Q_OBJECT
 public:
+	typedef int ContainerSizeType;
 	static const int SimilarityMeasureCount = 20;
 	static const int BestSimilarityMeasure = 7;
 	static const int OverlapMeasureCount = 3;
 	static const int OverlapMeasureStart = SimilarityMeasureCount-OverlapMeasureCount;
 	static const int EndColumns = 2;
 	static const int BestMeasureWithoutOverlap = 2;
-	static size_t MaxNumberOfCloseFibers;
+	static ContainerSizeType MaxNumberOfCloseFibers;
 	iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, int referenceID);
 	void run() override;
 	iAProgress* progress();

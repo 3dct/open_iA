@@ -124,7 +124,7 @@ public:
 	size_t minFiberCount, maxFiberCount;
 // { TODO: make private ?
 	//! maximum of optimization steps in all results
-	int optimStepMax;
+	size_t optimStepMax;
 	//! results folder
 	QString folder;
 	//! shift applied to each step
