@@ -73,12 +73,12 @@ double iAFilterChart::mapValueToBin(double value) const
 	return m_data->mapValueToBin(value);
 }
 
-QSharedPointer<iAPlot> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color)
+QSharedPointer<iAPlot> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramData> newData, QColor color)
 {
-	return (data->valueType() == Categorical ||
-		(data->valueType() == Discrete && ((data->xBounds()[1]-data->xBounds()[0])  <= data->numBin())))
-		? QSharedPointer<iAPlot>(new iABarGraphPlot(data, color, 2))
-		: QSharedPointer<iAPlot>(new iAFilledLinePlot(data, color));
+	return (newData->valueType() == Categorical ||
+		(newData->valueType() == Discrete && ((newData->xBounds()[1]- newData->xBounds()[0])  <= newData->numBin())))
+		? QSharedPointer<iAPlot>(new iABarGraphPlot(newData, color, 2))
+		: QSharedPointer<iAPlot>(new iAFilledLinePlot(newData, color));
 }
 
 void iAFilterChart::drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush)

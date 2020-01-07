@@ -43,7 +43,7 @@ class vtkPiecewiseFunction;
 
 class iALabelOverlayThread;
 
-struct iAImageCoordinate;
+class iAImageCoordinate;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
 
