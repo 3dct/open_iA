@@ -169,6 +169,8 @@ private slots:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
 	void colorByDistrToggled();
+	void exportAverageDissimilarities();
+	// settings view:
 	void loadVolume(QString const & fileName);
 private:
 	//! Load potential reference.

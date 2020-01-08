@@ -101,6 +101,7 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QStandardItemModel>
+#include <QTextStream>
 #include <QTimer>
 #include <QTreeView>
 
@@ -620,6 +621,10 @@ QWidget* iAFiAKErController::setupResultListView()
 	auto colorTheme = iAColorThemeManager::instance().theme(DefaultStackedBarColorTheme);
 	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
 	m_stackedBarsHeaders->setMinimumWidth(StackedBarMinWidth);
+
+	QAction* exportDissimilarities = new QAction("Export Average Dissimilarities", nullptr);
+	connect(exportDissimilarities, &QAction::triggered, this, &iAFiAKErController::exportAverageDissimilarities);
+	m_stackedBarsHeaders->contextMenu()->addAction(exportDissimilarities);
 	auto headerFiberCountAction = new QAction("Fiber Count", nullptr);
 	headerFiberCountAction->setProperty("colID", 0);
 	headerFiberCountAction->setCheckable(true);
@@ -1187,6 +1192,39 @@ void iAFiAKErController::colorByDistrToggled()
 		setSPMColorByResult();
 	}
 	updateHistogramColors();
+}
+
+void iAFiAKErController::exportAverageDissimilarities()
+{
+	QString fileName = QFileDialog::getSaveFileName(m_mainWnd, ModuleSettingsKey, m_data->folder, "Comma-Separated Values (*.csv);;");
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	QFile outFile(fileName);
+	if (!outFile.open(QIODevice::WriteOnly))
+	{
+		DEBUG_LOG(QString("Cannot open file %1 for writing!").arg(fileName));
+		return;
+	}
+	QTextStream out(&outFile);
+	out << "ResultID";
+	for (size_t measureID = 0; measureID < iARefDistCompute::SimilarityMeasureCount; ++measureID)
+	{
+		out << "," << iARefDistCompute::getDissimilarityMeasureNames()[measureID];
+	}
+	out << endl;
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+	{
+		out << resultID;
+		auto& avgMeasure = m_data->result[resultID].avgDifference;
+		for (size_t measureID = avgMeasure.size() - iARefDistCompute::SimilarityMeasureCount - 1; measureID < avgMeasure.size(); ++measureID)
+		{
+			out << "," << avgMeasure[measureID];
+		}
+		out << endl;
+	}
+	outFile.close();
 }
 
 QColor iAFiAKErController::getResultColor(int resultID)
@@ -1845,7 +1883,7 @@ void iAFiAKErController::mergeFiberContextBoxesChanged(int newState)
 
 void iAFiAKErController::visitAllVisibleVis(std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, size_t)> func)
 {
-	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto& vis = m_resultUIs[resultID];
 		func(vis.mini3DVis, resultID);
