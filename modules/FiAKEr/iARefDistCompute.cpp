@@ -102,7 +102,8 @@ namespace
 	QDataStream::Version CacheFileQtDataStreamVersion(QDataStream::Qt_5_6);
 	//QString CacheFileClosestFibers("ClosestFibers");
 	//QString CacheFileResultPattern("Result%1");
-	quint32 CacheFileVersion(1);
+	quint32 AverageCacheFileVersion(1);
+	quint32 ResultRefCacheFileVersion(2);
 
 	bool verifyOpenCacheFile(QFile & cacheFile)
 	{
@@ -390,15 +391,23 @@ bool iARefDistCompute::readResultRefComparison(QFile & cacheFile, size_t resultI
 	if (identifier != ResultCacheFileIdentifier)
 	{
 		DEBUG_LOG(QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
+			.arg(cacheFile.fileName())
 			.arg(identifier).arg(ResultCacheFileIdentifier));
 		return false;
 	}
 	quint32 version;
 	in >> version;
-	if (version > CacheFileVersion)
+	if (version == 1)
+	{
+		DEBUG_LOG(QString("FIAKER cache file '%1': Found file of version 1 which is known to have wrong dc1 and do3 computations. "
+			"If you want to recompute with correct values, please delete the 'cache' subfolder!")
+			.arg(cacheFile.fileName()));
+	}
+	if (version > ResultRefCacheFileVersion)
 	{
 		DEBUG_LOG(QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
-			.arg(version).arg(CacheFileVersion));
+			.arg(cacheFile.fileName())
+			.arg(version).arg(ResultRefCacheFileVersion));
 		return false;
 	}
 	auto & d = m_data->result[resultID];
@@ -419,7 +428,7 @@ void iARefDistCompute::writeResultRefComparison(QFile& cacheFile, size_t resultI
 	out.setVersion(CacheFileQtDataStreamVersion);
 	// write header:
 	out << ResultCacheFileIdentifier;
-	out << CacheFileVersion;
+	out << ResultRefCacheFileVersion;
 	// write data:
 	out << m_data->result[resultID].refDiffFiber;
 	out << m_data->result[resultID].avgDifference;
@@ -438,7 +447,7 @@ void iARefDistCompute::writeAverageMeasures(QFile& cacheFile)
 	out.setVersion(CacheFileQtDataStreamVersion);
 	// write header:
 	out << AverageCacheFileIdentifier;
-	out << CacheFileVersion;
+	out << AverageCacheFileVersion;
 	// write data:
 	out << static_cast<quint32>(m_data->result.size());
 	out << m_data->avgRefFiberMatch;
@@ -465,17 +474,17 @@ bool iARefDistCompute::readAverageMeasures(QFile& cacheFile)
 	}
 	quint32 version;
 	in >> version;
-	if (version > CacheFileVersion)
+	if (version > AverageCacheFileVersion)
 	{
 		DEBUG_LOG(QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
-			.arg(cacheFile.fileName()).arg(version).arg(CacheFileVersion));
+			.arg(cacheFile.fileName()).arg(version).arg(AverageCacheFileVersion));
 		return false;
 	}
 	quint32 numberOfResults;
 	in >> numberOfResults;
 	if (numberOfResults != m_data->result.size())
 	{
-		DEBUG_LOG(QString("FIAKER cache file '%1': Number of results stored there (%2) is not the same as currently loaded (%3)!")
+		DEBUG_LOG(QString("FIAKER cache file '%1': Number of results stored there (%2) is not the same as currently loaded (%3)! Recomputing all averages")
 			.arg(cacheFile.fileName()).arg(numberOfResults).arg(m_data->result.size()));
 		return false;
 	}
