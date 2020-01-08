@@ -467,7 +467,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 
 	ChartCount = iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount + 1;
 	m_chartCB.resize(ChartCount);
-	for (int chartID = 0; chartID < ChartCount; ++chartID)
+	for (size_t chartID = 0; chartID < ChartCount; ++chartID)
 	{
 		m_chartCB[chartID] = new QCheckBox(diffName(chartID));
 		m_chartCB[chartID]->setChecked(chartID == ChartCount - 1);
@@ -477,7 +477,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 		m_settingsView->checkboxContainer->layout()->addWidget(m_chartCB[chartID]);
 	}
 	size_t curPlotStart = 0;
-	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result[resultID];
 		if (!d.projectionError.empty())
@@ -586,15 +586,15 @@ namespace
 
 QWidget* iAFiAKErController::setupResultListView()
 {
-	size_t commonPrefixLength = 0, commonSuffixLength = 0;
+	int commonPrefixLength = 0, commonSuffixLength = 0;
 	QString baseName0;
-	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		QString baseName = QFileInfo(m_data->result[resultID].fileName).completeBaseName();
 		if (resultID > 0)
 		{
-			commonPrefixLength = std::min(commonPrefixLength, static_cast<size_t>(greatestCommonPrefixLength(baseName, baseName0)));
-			commonSuffixLength = std::min(commonSuffixLength, static_cast<size_t>(greatestCommonSuffixLength(baseName, baseName0)));
+			commonPrefixLength = std::min(commonPrefixLength, greatestCommonPrefixLength(baseName, baseName0));
+			commonSuffixLength = std::min(commonSuffixLength, greatestCommonSuffixLength(baseName, baseName0));
 		}
 		else
 		{
@@ -639,7 +639,7 @@ QWidget* iAFiAKErController::setupResultListView()
 	previewLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	m_distributionChoice = new QComboBox();
 	QStringList paramNames;
-	for (int curIdx = 0; curIdx < m_data->spmData->numParams() - 1; ++curIdx)
+	for (size_t curIdx = 0; curIdx < m_data->spmData->numParams() - 1; ++curIdx)
 	{
 		paramNames.push_back(QString("%1 Distribution").arg(m_data->spmData->parameterName(curIdx)));
 	}
@@ -664,7 +664,7 @@ QWidget* iAFiAKErController::setupResultListView()
 
 	m_showResultVis.resize(m_data->result.size());
 	m_showResultBox.resize(m_data->result.size());
-	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result.at(resultID);
 		auto & ui = m_resultUIs[resultID];
@@ -933,7 +933,7 @@ void iAFiAKErController::removeStackedBar(int index)
 void iAFiAKErController::setSPMColorByResult()
 {
 	iALookupTable lut;
-	int numOfResults = m_data->result.size();
+	size_t numOfResults = m_data->result.size();
 	lut.setRange(0, numOfResults - 1);
 	lut.allocate(numOfResults);
 	for (size_t i = 0; i < numOfResults; i++)
@@ -1166,7 +1166,7 @@ void iAFiAKErController::colorByDistrToggled()
 		if (matchQualityVisActive())
 		{
 			// set all currently shown main visualizations back to their result color
-			for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+			for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 			{
 				if (resultID == m_referenceID)
 				{
@@ -1218,7 +1218,8 @@ void iAFiAKErController::exportAverageDissimilarities()
 	{
 		out << resultID;
 		auto& avgMeasure = m_data->result[resultID].avgDifference;
-		for (size_t measureID = avgMeasure.size() - iARefDistCompute::SimilarityMeasureCount - 1; measureID < avgMeasure.size(); ++measureID)
+		for (int measureID = avgMeasure.size() - iARefDistCompute::SimilarityMeasureCount;
+			measureID >= 0 && measureID < avgMeasure.size(); ++measureID)
 		{
 			out << "," << avgMeasure[measureID];
 		}
@@ -1227,7 +1228,7 @@ void iAFiAKErController::exportAverageDissimilarities()
 	outFile.close();
 }
 
-QColor iAFiAKErController::getResultColor(int resultID)
+QColor iAFiAKErController::getResultColor(size_t resultID)
 {
 	QColor color = m_resultColorTheme->color( resultID % m_resultColorTheme->size() );
 	color.setAlpha(SelectionOpacity);
@@ -1236,13 +1237,13 @@ QColor iAFiAKErController::getResultColor(int resultID)
 
 namespace
 {
-	bool resultSelected(std::vector<iAFiberCharUIData> const & uiCollection, int resultID)
+	bool resultSelected(std::vector<iAFiberCharUIData> const & uiCollection, size_t resultID)
 	{
 		return (uiCollection[resultID].main3DVis->visible());
 	}
 	bool noResultSelected(std::vector<iAFiberCharUIData> const & uiCollection)
 	{
-		for (int i = 0; i < uiCollection.size(); ++i)
+		for (size_t i = 0; i < uiCollection.size(); ++i)
 		{
 			if (resultSelected(uiCollection, i))
 			{
@@ -1251,9 +1252,9 @@ namespace
 		}
 		return true;
 	}
-	bool anyOtherResultSelected(std::vector<iAFiberCharUIData> const & uiCollection, int resultID)
+	bool anyOtherResultSelected(std::vector<iAFiberCharUIData> const & uiCollection, size_t resultID)
 	{
-		for (int i = 0; i < uiCollection.size(); ++i)
+		for (size_t i = 0; i < uiCollection.size(); ++i)
 		{
 			if (resultSelected(uiCollection, i) && resultID != i)
 			{
@@ -1298,7 +1299,7 @@ void iAFiAKErController::toggleOptimStepChart(int chartID, bool visible)
 		m_optimStepChart[chartID]->setMinimumHeight(100);
 		m_optimStepChart[chartID]->setSelectionMode(iAChartWidget::SelectPlot);
 		m_optimStepChart[chartID]->addXMarker(m_data->optimStepMax -1, OptimStepMarkerColor);
-		for (int resultID=0; resultID<m_data->result.size(); ++resultID)
+		for (size_t resultID=0; resultID<m_data->result.size(); ++resultID)
 		{
 			auto & d = m_data->result[resultID];
 			if (m_resultUIs[resultID].startPlotIdx == NoPlotsIdx)
@@ -1674,7 +1675,7 @@ void iAFiAKErController::showSelectionInSPM()
 	size_t spmIDStart = 0;
 	for (size_t resultID = 0; resultID<m_data->result.size(); ++resultID)
 	{
-		for (int fiberID = 0; fiberID < m_selection[resultID].size(); ++fiberID)
+		for (size_t fiberID = 0; fiberID < m_selection[resultID].size(); ++fiberID)
 		{
 			size_t spmID = spmIDStart + m_selection[resultID][fiberID];
 			spmSelection.push_back(spmID);
@@ -1797,7 +1798,7 @@ void iAFiAKErController::setOptimStep(int optimStep)
 		chart->clearMarkers();
 		chart->addXMarker(optimStep, OptimStepMarkerColor);
 		chart->update();
-		for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
+		for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 		{
 			auto main3DVis = m_resultUIs[resultID].main3DVis;
 			if (main3DVis->visible() &&
@@ -2540,9 +2541,6 @@ void iAFiAKErController::changeReferenceDisplay()
 
 	std::vector<iAFiberSimilarity> referenceIDsToShow;
 
-	double range[2];
-	range[0] = std::numeric_limits<double>::max();
-	range[1] = std::numeric_limits<double>::lowest();
 	//DEBUG_LOG("Showing reference fibers:");
 	for (size_t resultID=0; resultID < m_selection.size(); ++resultID)
 	{
@@ -3007,7 +3005,7 @@ void iAFiAKErController::linkPreviewsToggled()
 	bool link = m_settingsView->cbLinkPreviews->isChecked();
 	addInteraction(QString("Toggled linking preview and main 3D view to %1")
 		.arg(link ? "on" : "off"));
-	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & ui = m_resultUIs[resultID];
 		auto ren = ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer();

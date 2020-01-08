@@ -179,7 +179,7 @@ private:
 	bool loadReferenceInternal(iASettings settings);
 	void changeDistributionSource(int index);
 	void updateHistogramColors();
-	QColor getResultColor(int resultID);
+	QColor getResultColor(size_t resultID);
 	void getResultFiberIDFromSpmID(size_t spmID, size_t & resultID, size_t & fiberID);
 	void clearSelection();
 	void newSelection(QString const & source);
