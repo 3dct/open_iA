@@ -47,6 +47,7 @@ class iAFiberCharUIData;
 class iAJobListView;
 class iAStackedBarChart;
 
+class iA3DColoredPolyObjectVis;
 class iA3DCylinderObjectVis;
 
 class iAChartWidget;
