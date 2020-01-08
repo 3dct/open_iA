@@ -206,6 +206,7 @@ private:
 	void startFeatureScout(int resultID, MdiChild* newChild);
 	void loadWindowSettings(iASettings const & settings);
 	void saveWindowSettings(QSettings & settings);
+	void visitAllVisibleVis(std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, size_t resultID)> func);
 
 	QWidget* setupMain3DView();
 	QWidget* setupSettingsView();

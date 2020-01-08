@@ -1622,15 +1622,10 @@ void iAFiAKErController::showSelectionIn3DViews()
 {
 	bool anythingSelected = isAnythingSelected();
 	m_showReferenceWidget->setVisible(anythingSelected);
-	for (size_t resultID = 0; resultID<m_resultUIs.size(); ++resultID)
+	visitAllVisibleVis( [this, anythingSelected](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t resultID)
 	{
-		auto & ui = m_resultUIs[resultID];
-		ui.mini3DVis->setSelection(m_selection[resultID], anythingSelected);
-		if (ui.main3DVis->visible())
-		{
-			ui.main3DVis->setSelection(m_selection[resultID], anythingSelected);
-		}
-	}
+		vis->setSelection(m_selection[resultID], anythingSelected);
+	});
 	// TODO: prevent multiple render window / widget updates?
 }
 
@@ -1786,17 +1781,11 @@ void iAFiAKErController::mainOpacityChanged(int opacity)
 	addInteraction(QString("Set main opacity to %1.").arg(opacity));
 	m_settingsView->lbOpacityDefaultValue->setText(QString::number(opacity, 'f', 2));
 	SelectionOpacity = opacity;
-	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t resultID)
 	{
-		auto & vis = m_resultUIs[resultID];
-		vis.mini3DVis->setSelectionOpacity(SelectionOpacity);
-		vis.mini3DVis->updateColorSelectionRendering();
-		if (vis.main3DVis->visible())
-		{
-			vis.main3DVis->setSelectionOpacity(SelectionOpacity);
-			vis.main3DVis->updateColorSelectionRendering();
-		}
-	}
+		vis->setSelectionOpacity(SelectionOpacity);
+		vis->updateColorSelectionRendering();
+	});
 }
 
 void iAFiAKErController::contextOpacityChanged(int opacity)
@@ -1804,17 +1793,11 @@ void iAFiAKErController::contextOpacityChanged(int opacity)
 	addInteraction(QString("Set context opacity to %1.").arg(opacity));
 	m_settingsView->lbOpacityContextValue->setText(QString::number(opacity, 'f', 2));
 	ContextOpacity = opacity;
-	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t resultID)
 	{
-		auto & vis = m_resultUIs[resultID];
-		vis.mini3DVis->setContextOpacity(ContextOpacity);
-		vis.mini3DVis->updateColorSelectionRendering();
-		if (vis.main3DVis->visible())
-		{
-			vis.main3DVis->setContextOpacity(ContextOpacity);
-			vis.main3DVis->updateColorSelectionRendering();
-		}
-	}
+		vis->setContextOpacity(ContextOpacity);
+		vis->updateColorSelectionRendering();
+	});
 	showSelectionInPlots();
 }
 
@@ -1827,15 +1810,10 @@ void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 	DiameterFactor = m_diameterFactorMapper->dstToSrc(diameterFactorInt);
 	addInteraction(QString("Set diameter modification factor to %1.").arg(DiameterFactor));
 	m_settingsView->lbDiameterFactorDefaultValue->setText(QString::number(DiameterFactor, 'f', 2));
-	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t resultID)
 	{
-		auto & vis = m_resultUIs[resultID];
-		(dynamic_cast<iA3DCylinderObjectVis*>(vis.mini3DVis.data()))->setDiameterFactor(DiameterFactor);
-		if (vis.main3DVis->visible())
-		{
-			(dynamic_cast<iA3DCylinderObjectVis*>(vis.main3DVis.data()))->setDiameterFactor(DiameterFactor);
-		}
-	}
+		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setDiameterFactor(DiameterFactor);
+	});
 }
 
 void iAFiAKErController::contextDiameterFactorChanged(int contextDiameterFactorInt)
@@ -1847,15 +1825,10 @@ void iAFiAKErController::contextDiameterFactorChanged(int contextDiameterFactorI
 	ContextDiameterFactor = m_diameterFactorMapper->dstToSrc(contextDiameterFactorInt);
 	addInteraction(QString("Set context diameter modification factor to %1.").arg(ContextDiameterFactor));
 	m_settingsView->lbDiameterFactorContextValue->setText(QString::number(ContextDiameterFactor, 'f', 2));
-	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t resultID)
 	{
-		auto & vis = m_resultUIs[resultID];
-		(dynamic_cast<iA3DCylinderObjectVis*>(vis.mini3DVis.data()))->setContextDiameterFactor(ContextDiameterFactor);
-		if (vis.main3DVis->visible())
-		{
-			(dynamic_cast<iA3DCylinderObjectVis*>(vis.main3DVis.data()))->setContextDiameterFactor(ContextDiameterFactor);
-		}
-	}
+		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setContextDiameterFactor(ContextDiameterFactor);
+	});
 }
 
 void iAFiAKErController::showFiberContextChanged(int newState)
@@ -1870,32 +1843,35 @@ void iAFiAKErController::mergeFiberContextBoxesChanged(int newState)
 	updateFiberContext();
 }
 
+void iAFiAKErController::visitAllVisibleVis(std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, size_t)> func)
+{
+	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	{
+		auto& vis = m_resultUIs[resultID];
+		func(vis.mini3DVis, resultID);
+		if (vis.main3DVis->visible())
+		{
+			func(vis.main3DVis, resultID);
+		}
+	}
+}
+
 void iAFiAKErController::showWireFrameChanged(int newState)
 {
 	m_showWireFrame = (newState == Qt::Checked);
-	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t resultID)
 	{
-		auto & vis = m_resultUIs[resultID];
-		vis.mini3DVis->setShowWireFrame(m_showWireFrame);
-		if (vis.main3DVis->visible())
-		{
-			vis.main3DVis->setShowWireFrame(m_showWireFrame);
-		}
-	}
+		vis->setShowWireFrame(m_showWireFrame);
+	});
 }
 
 void iAFiAKErController::showLinesChanged(int newState)
 {
 	m_showLines = (newState == Qt::Checked);
-	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t resultID)
 	{
-		auto & vis = m_resultUIs[resultID];
-		vis.mini3DVis->setShowLines(m_showLines);
-		if (vis.main3DVis->visible())
-		{
-			vis.main3DVis->setShowLines(m_showLines);
-		}
-	}
+		vis->setShowLines(m_showLines);
+	});
 }
 
 void iAFiAKErController::showBoundingBoxChanged(int newState)
