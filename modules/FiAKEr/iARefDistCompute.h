@@ -43,7 +43,7 @@ public:
 	static const int EndColumns = 2;
 	static const int BestMeasureWithoutOverlap = 2;
 	static ContainerSizeType MaxNumberOfCloseFibers;
-	iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, int referenceID);
+	iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, size_t referenceID);
 	void run() override;
 	iAProgress* progress();
 	size_t referenceID() const;
@@ -56,5 +56,5 @@ private:
 
 	iAProgress m_progress;
 	QSharedPointer<iAFiberResultsCollection> m_data;
-	int m_referenceID;
+	size_t m_referenceID;
 };
