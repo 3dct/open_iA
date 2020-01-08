@@ -189,7 +189,14 @@ void iARefDistCompute::run()
 		QFile cacheFile(resultCacheFileName);
 		bool skip = (resultID == m_referenceID) || readResultRefComparison(cacheFile, resultID);
 		auto& d = m_data->result[resultID];
-		writeResultCache[resultID] = (resultID != m_referenceID && d.avgDifference.size() == 0);  // workaround to fix cache files where avgDifference was written with size 0
+		if (resultID != m_referenceID && d.avgDifference.size() == 0) // workaround to fix cache files where avgDifference was written with size 0
+		{
+			DEBUG_LOG(QString("The average differences in cache file %1 have size 0, probably due to a previous bug in FIAKER."
+				" Triggering re-computation to fix this; to fix this permanently, please delete the 'cache' subfolder!")
+				.arg(resultCacheFileName)
+			);
+			recomputeAverages = true;
+		}
 		m_progress.emitProgress(static_cast<int>(100.0 * resultID / m_data->result.size()));
 		if (skip)
 		{
