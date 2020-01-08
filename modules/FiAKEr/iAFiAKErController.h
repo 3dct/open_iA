@@ -192,8 +192,8 @@ private:
 	bool isAnythingSelected() const;
 	void loadStateAndShow();
 	void addInteraction(QString const & interaction);
-	void toggleOptimStepChart(int index, bool visible);
-	QString diffName(int chartID) const;
+	void toggleOptimStepChart(size_t index, bool visible);
+	QString diffName(size_t chartID) const;
 	QString resultName(size_t resultID) const;
 	QString stackedBarColName(int index) const;
 	void setOptimStep(int optimStep);

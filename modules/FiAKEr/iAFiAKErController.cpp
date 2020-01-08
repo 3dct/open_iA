@@ -472,7 +472,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 		m_chartCB[chartID] = new QCheckBox(diffName(chartID));
 		m_chartCB[chartID]->setChecked(chartID == ChartCount - 1);
 		m_chartCB[chartID]->setEnabled(chartID == ChartCount - 1);
-		m_chartCB[chartID]->setProperty("chartID", chartID);
+		m_chartCB[chartID]->setProperty("chartID", static_cast<qulonglong>(chartID));
 		connect(m_chartCB[chartID], &QCheckBox::stateChanged, this, &iAFiAKErController::optimDataToggled);
 		m_settingsView->checkboxContainer->layout()->addWidget(m_chartCB[chartID]);
 	}
@@ -678,17 +678,17 @@ QWidget* iAFiAKErController::setupResultListView()
 		ren->SetMaximumNumberOfPeels(10);
 		renWin->AddRenderer(ren);
 		ui.vtkWidget->SetRenderWindow(renWin);
-		ui.vtkWidget->setProperty("resultID", resultID);
+		ui.vtkWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
 
 		QString name = QFileInfo(d.fileName).completeBaseName();
 		name = name.mid(commonPrefixLength, name.size() - commonPrefixLength - commonSuffixLength);
 
 		m_showResultVis[resultID] = new QCheckBox(name);
 		m_showResultVis[resultID]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		m_showResultVis[resultID]->setProperty("resultID", resultID);
+		m_showResultVis[resultID]->setProperty("resultID", static_cast<qulonglong>(resultID));
 		m_showResultBox[resultID] = new QCheckBox("Box");
 		m_showResultBox[resultID]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		m_showResultBox[resultID]->setProperty("resultID", resultID);
+		m_showResultBox[resultID]->setProperty("resultID", static_cast<qulonglong>(resultID));
 
 		ui.nameActions = new iASignallingWidget();
 		ui.nameActions->setAutoFillBackground(true);
@@ -761,10 +761,10 @@ QWidget* iAFiAKErController::setupResultListView()
 			"Filename: " + d.fileName + "\n"
 			"Visualization details: " + ui.main3DVis->visualizationStatistics());
 
-		ui.previewWidget->setProperty("resultID", resultID);
-		ui.stackedBars->setProperty("resultID", resultID);
-		ui.histoChart->setProperty("resultID", resultID);
-		ui.nameActions->setProperty("resultID", resultID);
+		ui.previewWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
+		ui.stackedBars->setProperty("resultID", static_cast<qulonglong>(resultID));
+		ui.histoChart->setProperty("resultID", static_cast<qulonglong>(resultID));
+		ui.nameActions->setProperty("resultID", static_cast<qulonglong>(resultID));
 		connect(ui.previewWidget, &iAFixedAspectWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(ui.stackedBars, &iAStackedBarChart::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(ui.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
@@ -1265,7 +1265,7 @@ namespace
 	}
 }
 
-void iAFiAKErController::toggleOptimStepChart(int chartID, bool visible)
+void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 {
 	if (!visible)
 	{
@@ -1311,7 +1311,7 @@ void iAFiAKErController::toggleOptimStepChart(int chartID, bool visible)
 				QSharedPointer<iAVectorPlotData> plotData;
 				if (chartID < ChartCount - 1)
 				{
-					if (chartID < d.refDiffFiber[fiberID].diff.size())
+					if (chartID < static_cast<size_t>(d.refDiffFiber[fiberID].diff.size()))
 					{
 						plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.refDiffFiber[fiberID].diff[chartID].step));
 					}
@@ -1368,7 +1368,7 @@ void iAFiAKErController::addInteraction(QString const & interaction)
 
 void iAFiAKErController::toggleVis(int state)
 {
-	int resultID = QObject::sender()->property("resultID").toInt();
+	size_t resultID = QObject::sender()->property("resultID").toULongLong();
 	addInteraction(QString("Toggle visibility of %1 to %2.").arg(resultName(resultID)).arg(state?"on":"off"));
 	showMainVis(resultID, state);
 }
@@ -1507,7 +1507,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 
 void iAFiAKErController::toggleBoundingBox(int state)
 {
-	int resultID = QObject::sender()->property("resultID").toInt();
+	size_t resultID = QObject::sender()->property("resultID").toULongLong();
 	addInteraction(QString("Toggle bounding box of result %1 to %2.")
 		.arg(resultName(resultID)).arg(state ? "on" : "off"));
 	auto & ui = m_resultUIs[resultID];
@@ -1758,7 +1758,7 @@ void iAFiAKErController::miniMouseEvent(QMouseEvent* ev)
 {
 	if (ev->buttons() == Qt::RightButton && ev->type() == QEvent::MouseButtonPress)
 	{
-		int resultID = QObject::sender()->property("resultID").toInt();
+		size_t resultID = QObject::sender()->property("resultID").toULongLong();
 		addInteraction(QString("Started FiberScout for %1.").arg(resultName(resultID)));
 		MdiChild* newChild = m_mainWnd->createMdiChild(false);
 		newChild->show();
@@ -1995,7 +1995,7 @@ void iAFiAKErController::updateFiberContext()
 		for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 		{
 			auto & d = m_data->result[resultID];
-			for (int selectionID = 0; selectionID < m_selection[resultID].size(); ++selectionID)
+			for (size_t selectionID = 0; selectionID < m_selection[resultID].size(); ++selectionID)
 			{
 				size_t fiberID = m_selection[resultID][selectionID];
 				double diameter = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::Diameter)).ToFloat();
@@ -2829,7 +2829,7 @@ void iAFiAKErController::hideSamplePointsPrivate()
 
 void iAFiAKErController::optimDataToggled(int state)
 {
-	int chartID = QObject::sender()->property("chartID").toInt();
+	size_t chartID = QObject::sender()->property("chartID").toULongLong();
 	addInteraction(QString("Toggled visibility of %1 vs. optimization step chart to %2.").arg(diffName(chartID)).arg(state ? "on" : "off"));
 	toggleOptimStepChart(chartID, state == Qt::Checked);
 }
@@ -2886,7 +2886,7 @@ void iAFiAKErController::selectionDetailsItemClicked(QModelIndex const & index)
 	}
 }
 
-QString iAFiAKErController::diffName(int chartID) const
+QString iAFiAKErController::diffName(size_t chartID) const
 {
 	size_t spmCol = m_data->spmData->numParams() -
 		(iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount + iARefDistCompute::EndColumns) + chartID;
