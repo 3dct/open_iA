@@ -20,16 +20,19 @@
 * ************************************************************************************/
 #include "iAaiFilters.h"
 
-
 #include "defines.h" // for DIM
+
 #include "iAConnector.h"
+#include "iAConsole.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
+
+#include "itkCastImageFilter.h"
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkNormalizeImageFilter.h"
 #include "itkImageRegionIterator.h"
-
 
 #include "onnxruntime_cxx_api.h"
 
@@ -42,14 +45,24 @@ typedef itk::ImageFileReader<ImageType>       				ReaderType;
 typedef itk::ImageRegionIterator<ImageType> 			    IteratorType;
 
 
-void iAai::performWork(QMap<QString, QVariant> const & parameters)
+template<class T>
+void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 
+	std::vector<float> tensor_img;
 
-	if (input()[0]->itkScalarPixelType() != itk::ImageIOBase::FLOAT) {
-		return;
+	typedef itk::Image<T, DIM> InputImageType;
+	if (filter->input()[0]->itkScalarPixelType() != itk::ImageIOBase::FLOAT) {
+		using FilterType = itk::CastImageFilter<InputImageType, ImageType>;
+		FilterType::Pointer castFilter = FilterType::New();
+		castFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+		castFilter->Update();
+		itk2tensor(dynamic_cast<ImageType *>(castFilter->GetOutput()), tensor_img);
+		
 	}
-
+	else {
+		itk2tensor(dynamic_cast<ImageType *>(filter->input()[0]->itkImage()), tensor_img);
+	}
 
 	// initialize  enviroment...one enviroment per process
 // enviroment maintains thread pools and other state info
@@ -76,17 +89,19 @@ void iAai::performWork(QMap<QString, QVariant> const & parameters)
 	// create session and load model into memory
 	// using squeezenet version 1.3
 	// URL = https://github.com/onnx/models/tree/master/squeezenet
-#ifdef _WIN32
-	 wchar_t* model_path = L"C:\\Users\\p41877\\Downloads\\squeezenet\\model.onnx";
-#else
-	const char* model_path = "squeezenet.onnx";
-#endif
+//#ifdef _WIN32
+//	 wchar_t* model_path = L"C:\\Users\\p41877\\Downloads\\squeezenet\\model.onnx";
+//#else
+//	const char* model_path = "squeezenet.onnx";
+//#endif
+//
+//
 
-
+	wchar_t model_path[128];
 
 	parameters["OnnxFile"].toString().toWCharArray(model_path);
-
-	printf("Using Onnxruntime C++ API\n");
+	model_path[parameters["OnnxFile"].toString().length()] = L'\0';
+	DEBUG_LOG(QString("Using Onnxruntime C++ API"));
 	Ort::Session session(env, model_path, session_options);
 
 	//*************************************************************************
@@ -99,13 +114,13 @@ void iAai::performWork(QMap<QString, QVariant> const & parameters)
 	std::vector<int64_t> input_node_dims;  // simplify... this model has only 1 input node {1, 3, 224, 224}.
 										   // Otherwise need vector<vector<>>
 
-	printf("Number of inputs = %zu\n", num_input_nodes);
+	DEBUG_LOG(QString("Number of inputs = %1").arg(num_input_nodes));
 
 	// iterate over all input nodes
 	for (int i = 0; i < num_input_nodes; i++) {
 		// print input node names
 		char* input_name = session.GetInputName(i, allocator);
-		printf("Input %d : name=%s\n", i, input_name);
+		DEBUG_LOG(QString("Input %1 : name=%2").arg(i).arg(input_name));
 		input_node_names[i] = input_name;
 
 		// print input node types
@@ -113,13 +128,19 @@ void iAai::performWork(QMap<QString, QVariant> const & parameters)
 		auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
 
 		ONNXTensorElementDataType type = tensor_info.GetElementType();
-		printf("Input %d : type=%d\n", i, type);
+		DEBUG_LOG(QString("Input %1 : type=%2").arg(i).arg(type));
 
 		// print input shapes/dims
 		input_node_dims = tensor_info.GetShape();
-		printf("Input %d : num_dims=%zu\n", i, input_node_dims.size());
-		for (int j = 0; j < input_node_dims.size(); j++)
-			printf("Input %d : dim %d=%jd\n", i, j, input_node_dims[j]);
+		DEBUG_LOG(QString("Input %1 : num_dims=%2").arg(i).arg(input_node_dims.size()));
+		for (int j = 0; j < input_node_dims.size(); j++) {
+			DEBUG_LOG(QString("Input %1 : dim %2=%3").arg(i).arg(j).arg(input_node_dims[j]));
+			if (input_node_dims[j] == -1) {
+				input_node_dims[j] = 1;
+			}
+		}
+
+
 	}
 
 	// Results should be...
@@ -140,43 +161,37 @@ void iAai::performWork(QMap<QString, QVariant> const & parameters)
 	//*************************************************************************
 	// Score the model using sample data, and inspect values
 
-	size_t input_tensor_size = 224 * 224 * 3;  // simplify ... using known dim values to calculate size
+	size_t input_tensor_size = 128 * 128 * 128*1;  // simplify ... using known dim values to calculate size
 											   // use OrtGetTensorShapeElementCount() to get official size!
 
-	std::vector<float> input_tensor_values(input_tensor_size);
-	std::vector<const char*> output_node_names = { "softmaxout_1" };
+	std::vector<const char*> output_node_names = { "conv3d_24" };
 
-	// initialize input data with values in [0.0, 1.0]
-	for (unsigned int i = 0; i < input_tensor_size; i++)
-		input_tensor_values[i] = (float)i / (input_tensor_size + 1);
+
 
 	// create input tensor object from data values
 	auto memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
-	Ort::Value input_tensor = Ort::Value::CreateTensor<float>(memory_info, input_tensor_values.data(), input_tensor_size, input_node_dims.data(), 4);
+	Ort::Value input_tensor = Ort::Value::CreateTensor<float>(memory_info, tensor_img.data(), input_tensor_size, input_node_dims.data(), 5);
 	assert(input_tensor.IsTensor());
 
 	// score model & input tensor, get back output tensor
-	auto output_tensors = session.Run(Ort::RunOptions{ nullptr }, input_node_names.data(), &input_tensor, 1, output_node_names.data(), 1);
-	assert(output_tensors.size() == 1 && output_tensors.front().IsTensor());
+	auto result = session.Run(Ort::RunOptions{ nullptr }, input_node_names.data(), &input_tensor, 1, output_node_names.data(), 1);
+	assert(result.size() == 1 && result.front().IsTensor());
 
-	// Get pointer to output tensor float values
-	float* floatarr = output_tensors.front().GetTensorMutableData<float>();
-	assert(abs(floatarr[0] - 0.000045) < 1e-6);
 
-	// score the model, and print scores for first 5 classes
-	for (int i = 0; i < 5; i++)
-		printf("Score for class [%d] =  %f\n", i, floatarr[i]);
+	ImageType::Pointer outputImage = ImageType::New();
+	
+	tensor2itk(result, outputImage, 128, 128, 128);
 
-	// Results should be as below...
-	// Score for class[0] = 0.000045
-	// Score for class[1] = 0.003846
-	// Score for class[2] = 0.000125
-	// Score for class[3] = 0.001180
-	// Score for class[4] = 0.001317
-	printf("Done!\n");
+	filter->addOutput(outputImage);
+
+
 }
 
 IAFILTER_CREATE(iAai)
+
+void iAai::performWork(QMap<QString, QVariant> const & parameters) {
+	ITK_TYPED_CALL(executeDNN, input()[0]->itkScalarPixelType(), this, parameters);
+}
 
 iAai::iAai() :
 	iAFilter("AI", "Segmentation",
@@ -190,9 +205,21 @@ iAai::iAai() :
 
 }
 
+ImageType::Pointer Normamalize(ImageType::Pointer itk_img) {
 
+	typedef itk::NormalizeImageFilter< ImageType, ImageType > NormalizeFilterType;
+
+	auto normalizeFilter = NormalizeFilterType::New();
+	normalizeFilter->SetInput(itk_img);
+
+	normalizeFilter->Update();
+
+	return normalizeFilter->GetOutput();
+}
 
 bool itk2tensor(ImageType::Pointer itk_img, std::vector<float> &tensor_img) {
+
+	itk_img = Normamalize(itk_img);
 
 	typename ImageType::RegionType region = itk_img->GetLargestPossibleRegion();
 	const typename ImageType::SizeType size = region.GetSize();
@@ -214,7 +241,7 @@ bool itk2tensor(ImageType::Pointer itk_img, std::vector<float> &tensor_img) {
 }
 
 
-bool tensor2itk(std::vector<float> &tensor_img, ImageType::Pointer itk_img, int x, int y, int z) {
+bool tensor2itk(std::vector<Ort::Value> &tensor_img, ImageType::Pointer itk_img, int x, int y, int z) {
 
 
 
@@ -241,8 +268,10 @@ bool tensor2itk(std::vector<float> &tensor_img, ImageType::Pointer itk_img, int 
 	int count = 0;
 	// convert array to itk
 
+	float* floatarr = tensor_img.front().GetTensorMutableData<float>();
+
 	for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter) {
-		iter.Set(tensor_img[count]);
+		iter.Set(floatarr[count]);
 		count++;
 	}
 
