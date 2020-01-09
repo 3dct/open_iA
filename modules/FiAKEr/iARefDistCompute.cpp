@@ -191,7 +191,7 @@ void iARefDistCompute::run()
 		auto& d = m_data->result[resultID];
 		if (resultID != m_referenceID && d.avgDifference.size() == 0) // workaround to fix cache files where avgDifference was written with size 0
 		{
-			DEBUG_LOG(QString("The average differences in cache file %1 have size 0, probably due to a previous bug in FIAKER."
+			DEBUG_LOG(QString("FIAKER cache file %1: The average differences have size 0, probably due to a previous bug in FIAKER."
 				" Triggering re-computation to fix this; to fix this permanently, please delete the 'cache' subfolder!")
 				.arg(resultCacheFileName)
 			);
@@ -216,7 +216,6 @@ void iARefDistCompute::run()
 				d.refDiffFiber[fiberID].dist, diagLength, maxLength, ref.curveInfo);
 		}
 		// Computing the difference between consecutive steps.
-// OpenMP parallalelization - somehow not working on Windows...
 #pragma omp parallel for
 		for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
