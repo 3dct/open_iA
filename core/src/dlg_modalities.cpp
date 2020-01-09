@@ -72,6 +72,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	connect(pbEdit,   &QPushButton::clicked, this, &dlg_modalities::editClicked);
 	connect(cbManualRegistration, &QCheckBox::clicked, this, &dlg_modalities::manualRegistration);
 	connect(cbShowMagicLens, &QCheckBox::clicked, this, &dlg_modalities::magicLens);
+	connect(tbMeshActive, &QToolButton::toggled, this, &dlg_modalities::meshActive);
 
 	connect(lwModalities, SIGNAL(itemClicked(QListWidgetItem*)),
 		this, SLOT(listClicked(QListWidgetItem*)));
@@ -375,6 +376,13 @@ void dlg_modalities::manualRegistration()
 	{
 		DEBUG_LOG(ivae.what()); 
 	}
+}
+
+void dlg_modalities::meshActive()
+{
+	bool active = tbMeshActive->isChecked();
+	m_mdiChild->renderer()->polyActor()->SetPickable(active);
+	m_mdiChild->renderer()->polyActor()->SetDragable(active);
 }
 
 void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editModality)

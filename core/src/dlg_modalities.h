@@ -87,6 +87,7 @@ private slots:
 
 	//! toggle manual movement / registration of one object to another
 	void manualRegistration();
+	void meshActive();
 
 	void magicLens();
 	//void CuttingPlane();

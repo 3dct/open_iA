@@ -532,6 +532,8 @@ void iARenderer::setupRenderer()
 	m_polyMapper->SelectColorArray("Colors");
 	m_polyMapper->SetScalarModeToUsePointFieldData();
 	m_polyActor->SetMapper(m_polyMapper);
+	m_polyActor->SetPickable(false);
+	m_polyActor->SetDragable(false);
 
 	m_ren->GradientBackgroundOn();
 	m_ren->AddActor2D(m_txtActor);
