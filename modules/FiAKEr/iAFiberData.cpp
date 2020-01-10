@@ -366,6 +366,12 @@ void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size
 	}
 	else
 	{
+		// TODO: make sure the implementation delivers exactly numSamples points;
+		//       different sampling altogether:
+		//           - measure segment lengths
+		//           - for each point:
+		//               - first determine position along center line (random between 0 and full curved length)
+		//               - determine final point from going randomly 0 to radius in arbitrary direction from this position
 		double curvedLength = 0;
 		for (size_t i=0; i<fiber.curvedPoints.size()-1; ++i)
 		{
@@ -376,8 +382,8 @@ void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size
 			iAVec3f dir = (fiber.curvedPoints[i+1] - fiber.curvedPoints[i]);
 			iAVec3f start(fiber.curvedPoints[i]);
 			sampleSegmentPoints(start, dir, fiber.diameter / 2.0, result,
-				// spread number of samples according to length ratio
-				numSamples * dir.length() / curvedLength);
+				// spread number of samples according to length ratio, make sure 1 point per segment
+				std::max(static_cast<size_t>(1), static_cast<size_t>(numSamples * dir.length() / curvedLength)));
 		}
 	}
 }
