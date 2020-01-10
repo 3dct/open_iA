@@ -170,6 +170,7 @@ private slots:
 	void switchStackMode(bool mode);
 	void colorByDistrToggled();
 	void exportAverageDissimilarities();
+	void sortByCurrentWeighting();
 	// settings view:
 	void loadVolume(QString const & fileName);
 private:
@@ -270,12 +271,14 @@ private:
 	// Results List:
 	void addStackedBar(int index);
 	void removeStackedBar(int index);
+	void updateResultList();
 	iAStackedBarChart* m_stackedBarsHeaders;
 	QGridLayout* m_resultsListLayout;
 	QCheckBox* m_colorByDistribution;
 	QComboBox* m_distributionChoice;
 	iAQCheckBoxVector m_showResultVis;
 	iAQCheckBoxVector m_showResultBox;
+	QMap<size_t, int> m_resultListSorting;
 
 	// Settings View:
 	iAFIAKERSettingsWidget* m_settingsView;

@@ -108,6 +108,7 @@
 #include <QtGlobal> // for QT_VERSION
 
 #include <array>
+#include <utility>    // for pair
 
 namespace
 {
@@ -633,6 +634,7 @@ QWidget* iAFiAKErController::setupResultListView()
 	connect(headerFiberCountAction, &QAction::triggered, this, &iAFiAKErController::stackedColSelect);
 	m_stackedBarsHeaders->contextMenu()->addAction(headerFiberCountAction);
 	connect(m_stackedBarsHeaders, &iAStackedBarChart::switchedStackMode, this, &iAFiAKErController::switchStackMode);
+	connect(m_stackedBarsHeaders, &iAStackedBarChart::doubleClicked, this, &iAFiAKErController::sortByCurrentWeighting);
 
 	auto nameActionsLabel = new QLabel("Name/Actions");
 	nameActionsLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -665,6 +667,7 @@ QWidget* iAFiAKErController::setupResultListView()
 
 	m_showResultVis.resize(m_data->result.size());
 	m_showResultBox.resize(m_data->result.size());
+	m_resultListSorting.clear();
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result.at(resultID);
@@ -715,11 +718,8 @@ QWidget* iAFiAKErController::setupResultListView()
 		ui.histoChart->setShowXAxisLabel(false);
 		ui.histoChart->setMinimumWidth(HistogramMinWidth);
 		ui.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-		m_resultsListLayout->addWidget(ui.nameActions, resultID + 1, NameActionColumn);
-		m_resultsListLayout->addWidget(ui.previewWidget, resultID + 1, PreviewColumn);
-		m_resultsListLayout->addWidget(ui.stackedBars, resultID + 1, StackedBarColumn);
-		m_resultsListLayout->addWidget(ui.histoChart, resultID + 1, HistogramColumn);
+		
+		m_resultListSorting.insert(resultID, static_cast<int>(resultID));
 		
 		std::map<size_t, std::vector<iAVec3f> > curvedStepInfo;
 		if (m_useStepData && d.stepData == iAFiberCharData::CurvedStepData)
@@ -782,6 +782,9 @@ QWidget* iAFiAKErController::setupResultListView()
 		connect(ui.main3DVis.data(), &iA3DObjectVis::updated, m_main3DWidget, &iAVtkQtWidget::updateAll);
 		// }
 	}
+
+	updateResultList();
+
 	resultList->setLayout(m_resultsListLayout);
 	addStackedBar(0);
 	changeDistributionSource((*m_data->result[0].mapping)[iACsvConfig::Length]);
@@ -912,7 +915,7 @@ void iAFiAKErController::addStackedBar(int index)
 		else
 		{
 			value = m_data->result[resultID].avgDifference.size() > 0 ?
-						m_data->result[resultID].avgDifference[index-1] : 0;
+			        m_data->result[resultID].avgDifference[index-1] : 0;
 			maxValue = m_data->maxAvgDifference[index-1];
 		}
 		m_resultUIs[resultID].stackedBars->addBar(title, value, maxValue);
@@ -929,6 +932,22 @@ void iAFiAKErController::removeStackedBar(int index)
 		m_resultUIs[resultID].stackedBars->removeBar(title);
 	}
 	m_resultsListLayout->setColumnStretch(StackedBarColumn, m_stackedBarsHeaders->numberOfBars()*m_data->result.size());
+}
+
+void iAFiAKErController::updateResultList()
+{
+	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	{
+		auto& ui = m_resultUIs[resultID];
+		m_resultsListLayout->removeWidget(ui.nameActions);
+		m_resultsListLayout->removeWidget(ui.previewWidget);
+		m_resultsListLayout->removeWidget(ui.stackedBars);
+		m_resultsListLayout->removeWidget(ui.histoChart);
+		m_resultsListLayout->addWidget(ui.nameActions, m_resultListSorting[resultID] + 1, NameActionColumn);
+		m_resultsListLayout->addWidget(ui.previewWidget, m_resultListSorting[resultID] + 1, PreviewColumn);
+		m_resultsListLayout->addWidget(ui.stackedBars, m_resultListSorting[resultID] + 1, StackedBarColumn);
+		m_resultsListLayout->addWidget(ui.histoChart, m_resultListSorting[resultID] + 1, HistogramColumn);
+	}
 }
 
 void iAFiAKErController::setSPMColorByResult()
@@ -1227,6 +1246,27 @@ void iAFiAKErController::exportAverageDissimilarities()
 		out << endl;
 	}
 	outFile.close();
+}
+
+void iAFiAKErController::sortByCurrentWeighting()
+{
+	std::vector<std::pair<size_t, double>> resultWeights;
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+	{
+		auto& ui = m_resultUIs[resultID];
+		resultWeights.push_back(std::make_pair(resultID, ui.stackedBars->weightedSum()));
+	}
+	std::sort(resultWeights.begin(), resultWeights.end(),
+		[](std::pair<size_t, double> const& a, std::pair<size_t, double> const& b)
+		{
+			return a.second < b.second;
+		});
+	m_resultListSorting.clear();
+	for (size_t itemNumber = 0; itemNumber < resultWeights.size(); ++itemNumber)
+	{
+		m_resultListSorting.insert(resultWeights[itemNumber].first, static_cast<int>(itemNumber));
+	}
+	updateResultList();
 }
 
 QColor iAFiAKErController::getResultColor(size_t resultID)
