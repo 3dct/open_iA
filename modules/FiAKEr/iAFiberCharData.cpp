@@ -243,7 +243,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			// (though actually same mapping should be guaranteed by using same config)
 		}
 
-		QString stepInfoPath(QFileInfo(csvFile).absolutePath() + "/" + QFileInfo(csvFile).baseName());
+		QString stepInfoPath(QFileInfo(csvFile).absolutePath() + "/" + QFileInfo(csvFile).completeBaseName());
 		QFileInfo stepInfo(stepInfoPath);
 
 		// TODO: in case reading gets inefficient, look at pre-reserving the required amount of fields
@@ -276,7 +276,9 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 					QString line = inProjError.readLine();
 					QStringList valueStrList = line.split(",");
 					if (valueStrList.size() < 2)
+					{
 						continue;
+					}
 					if (fiberID >= curData.fiberCount)
 					{
 						DEBUG_LOG(QString("Discrepancy: More lines in %1 file than there were fibers in the fiber description csv (%2).\n")
@@ -287,11 +289,15 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 					for (int i = 0; i < valueStrList.size(); ++i)
 					{
 						if (valueStrList[i] == "nan")
+						{
 							break;
+						}
 						projErrFib.push_back(valueStrList[i].toDouble());
 					}
 					for (int i = 0; i < projErrFib.size(); ++i)
-						projErrFib[i] -= projErrFib[projErrFib.size()-1];
+					{
+						projErrFib[i] -= projErrFib[projErrFib.size() - 1];
+					}
 					++fiberID;
 				}
 
@@ -333,10 +339,14 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						}
 						double middlePoint[3];
 						for (int i = 0; i < 3; ++i)
+						{
 							middlePoint[i] = values[i].toDouble() + stepShift; // middle point positions are shifted!
+						}
 						double theta = values[4].toDouble();
 						if (theta < 0)  // theta is encoded in -Pi, Pi instead of 0..Pi as we expect
-							theta = 2*vtkMath::Pi() + theta;
+						{
+							theta = 2 * vtkMath::Pi() + theta;
+						}
 						double phi = values[3].toDouble();
 						double radius = values[5].toDouble() * 0.5;
 
@@ -482,9 +492,11 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			}
 		}
 
-		QString curvedFileName(QFileInfo(csvFile).absolutePath() + "/curved/" + QFileInfo(csvFile).baseName() + "-CurvedFibrePoints.csv");
+		QString curvedFileName(QFileInfo(csvFile).absolutePath() + "/curved/" + QFileInfo(csvFile).completeBaseName() + "-CurvedFibrePoints.csv");
 		if (readCurvedFiberInfo(curvedFileName, curData.curveInfo))
+		{
 			curData.curvedFileName = curvedFileName;
+		}
 
 		if (thisResultStepMax > optimStepMax)
 		{
@@ -595,9 +607,13 @@ iAFiberResultsLoader::iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollecti
 void iAFiberResultsLoader::run()
 {
 	if (!m_results->loadData(m_path, m_config, m_stepShift, &m_progress))
+	{
 		emit failed(m_path);
+	}
 	else
+	{
 		emit success();
+	}
 }
 
 iAProgress* iAFiberResultsLoader::progress()

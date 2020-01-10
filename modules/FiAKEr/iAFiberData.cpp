@@ -86,7 +86,9 @@ iAFiberData iAFiberData::getOrientationCorrected(iAFiberData const & source, iAF
 		result.length = source.length;
 		iAVec3f dir = result.pts[PtStart] - source.pts[PtEnd];
 		if (dir.z() < 0)
-		dir = result.pts[PtEnd] - source.pts[PtStart];
+		{
+			dir = result.pts[PtEnd] - source.pts[PtStart];
+		}
 		if (dir.x() == 0 && dir.y() == 0)
 		{
 			result.phi = 0.0;
@@ -113,7 +115,9 @@ iAFiberData iAFiberData::getOrientationCorrected(iAFiberData const & source, iAF
 		return result;
 	}
 	else
+	{
 		return source;
+	}
 }
 
 
@@ -127,10 +131,14 @@ namespace
 	{
 		T1 diff = std::fabs(a - b);
 		if (diff <= tolerance)
+		{
 			return true;
+		}
 
 		if (diff < std::fmax(std::fabs(a), std::fabs(b)) * tolerance)
+		{
 			return true;
+		}
 
 		return false;
 	}
@@ -138,9 +146,13 @@ namespace
 	iAVec3f perpendicularVector(iAVec3f const & vectorIn)
 	{
 		if (!isApproxEqual(vectorIn[0], 0.0) && !isApproxEqual(-vectorIn[0], vectorIn[1]))
+		{
 			return iAVec3f(vectorIn[2], vectorIn[2], -vectorIn[0] - vectorIn[1]);
+		}
 		else
+		{
 			return iAVec3f(-vectorIn[1] - vectorIn[2], vectorIn[0], vectorIn[0]);
+		}
 	}
 
 	iAVec3f fromSpherical(double phi, double theta, double radius)
@@ -233,7 +245,9 @@ namespace
 		}
 		double similarity = static_cast<double>(containedPoints) / sampledPoints.size();
 		if (volRelation)
+		{
 			similarity *= (fiber1Vol < fiber2Vol) ? fiber1Vol / fiber2Vol : fiber2Vol / fiber1Vol;
+		}
 		return similarity;
 	}
 
@@ -241,8 +255,10 @@ namespace
 	double dist(double* vec1, double* vec2, size_t cnt)
 	{
 		double sqdiffsum = 0;
-		for (size_t cur=0; cur<cnt; ++cur)
+		for (size_t cur = 0; cur < cnt; ++cur)
+		{
 			sqdiffsum += std::pow(vec2[cur] - vec1[cur], 2);
+		}
 		return sqrt(sqdiffsum);
 	}
 
@@ -310,14 +326,20 @@ namespace
 				{
 					double dist = distanceToLineSegment(f1pt, f2.curvedPoints[j], f2.curvedPoints[j+1]);
 					if (dist < curDist)
+					{
 						curDist = dist;
+					}
 				}
 			}
 			sumVal += curDist;
 			if (curDist < minVal)
+			{
 				minVal = curDist;
+			}
 			if (curDist > maxVal)
+			{
 				maxVal = curDist;
+			}
 		}
 		double avgVal = sumVal / f1.curvedPoints.size();
 		// which one to use?
@@ -420,8 +442,12 @@ double getDissimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber
 	case 3: // distances between all 9 pairs of the 3 points of each fiber:
 	{
 		for (int i = 0; i < 3; ++i)
+		{
 			for (int j = 0; j < 3; ++j)
+			{
 				dissimilarity += (fiber2.pts[j] - fiber1raw.pts[i]).length();
+			}
+		}
 		dissimilarity /= (fiber1raw.length != 0.0) ? fiber1raw.length : 1;
 		break;
 	}

@@ -429,6 +429,7 @@ bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<
 	QFileInfo curvedInfo(fileName);
 	if (!curvedInfo.exists() || !curvedInfo.isFile())
 	{
+		DEBUG_LOG(QString("No curved fibre file named %1 exists.").arg(fileName));
 		return false;
 	}
 	QFile curvedFiberPoints(curvedInfo.absoluteFilePath());

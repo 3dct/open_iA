@@ -187,9 +187,10 @@ void iARefDistCompute::run()
 		QString resultName(QFileInfo(m_data->result[resultID].fileName).completeBaseName());
 		QString resultCacheFileName(cachePath + QString("refDist_%1_%2.cache").arg(referenceName).arg(resultName));
 		QFile cacheFile(resultCacheFileName);
-		bool skip = (resultID == m_referenceID) || readResultRefComparison(cacheFile, resultID);
+		bool readCacheResult = readResultRefComparison(cacheFile, resultID);
+		bool skip = (resultID == m_referenceID) || readCacheResult;
 		auto& d = m_data->result[resultID];
-		if (resultID != m_referenceID && d.avgDifference.size() == 0) // workaround to fix cache files where avgDifference was written with size 0
+		if (resultID != m_referenceID && readCacheResult && d.avgDifference.size() == 0)
 		{
 			DEBUG_LOG(QString("FIAKER cache file %1: The average differences have size 0, probably due to a previous bug in FIAKER."
 				" Triggering re-computation to fix this; to fix this permanently, please delete the 'cache' subfolder!")
