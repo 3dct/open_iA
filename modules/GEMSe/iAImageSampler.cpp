@@ -140,6 +140,8 @@ void iAImageSampler::run()
 		m_pipelineName,
 		m_samplingID));
 
+	int numDigits = std::floor(std::log10(std::abs(m_parameterSets->size()))) + 1;  // number of required digits for number >= 1
+
 	for (m_curLoop=0; !m_aborted && m_curLoop<m_parameterSets->size(); ++m_curLoop)
 	{
 		ParameterSet const & paramSet = m_parameterSets->at(m_curLoop);
@@ -164,7 +166,7 @@ void iAImageSampler::run()
 		QFileInfo fi(m_imageBaseName);
 		QString outputFile = outputDirectory + "/" + (m_separateOutputDir ?
 			m_imageBaseName :
-			QString("%1%2.%3").arg(fi.baseName()).arg(m_curLoop).arg(fi.completeSuffix()));
+			QString("%1%2.%3").arg(fi.baseName()).arg(m_curLoop, numDigits, 10, QChar('0')).arg(fi.completeSuffix()));
 		QStringList argumentList;
 		argumentList << additionalArgumentList;
 		argumentList << outputFile;
