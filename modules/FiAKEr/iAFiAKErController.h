@@ -281,6 +281,7 @@ private:
 	iAFIAKERSettingsWidget* m_settingsView;
 	// 3D view part
 	iAQLineEditVector m_teBoundingBox;
+	bool m_cameraInitialized;
 	// Optimization steps part
 	iAQCheckBoxVector m_chartCB;
 	iAFileChooserWidget* m_fileChooser;

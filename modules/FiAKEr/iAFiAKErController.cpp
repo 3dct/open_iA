@@ -231,6 +231,7 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
 	m_showWireFrame(false),
 	m_showLines(false),
 	m_contextSpacing(0.0),
+	m_cameraInitialized(false),
 	m_spm(new iAQSplom())
 {
 	setDockOptions(AllowNestedDocks | AllowTabbedDocks);
@@ -1446,6 +1447,11 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 				d.stepData);
 		}
 		ui.main3DVis->show();
+		if (!m_cameraInitialized)
+		{
+			m_ren->ResetCamera();
+			m_cameraInitialized = true;
+		}
 		m_style->addInput( resultID, ui.main3DVis->getPolyData(), ui.main3DVis->getActor() );
 		m_spm->addFilter(m_data->spmData->numParams()-1, resultID);
 	}
@@ -1514,6 +1520,11 @@ void iAFiAKErController::toggleBoundingBox(int state)
 	if (state == Qt::Checked)
 	{
 		ui.main3DVis->showBoundingBox();
+		if (!m_cameraInitialized)
+		{
+			m_ren->ResetCamera();
+			m_cameraInitialized = true;
+		}
 	}
 	else
 	{
@@ -2450,6 +2461,11 @@ void iAFiAKErController::showSpatialOverview()
 	ref3D->show();
 	m_main3DWidget->GetRenderWindow()->Render();
 	m_main3DWidget->update();
+	if (!m_cameraInitialized)
+	{
+		m_ren->ResetCamera();
+		m_cameraInitialized = true;
+	}
 }
 
 void iAFiAKErController::spmLookupTableChanged()
