@@ -99,6 +99,16 @@ size_t iAStackedBarChart::numberOfBars() const
 	return m_bars.size();
 }
 
+double iAStackedBarChart::weightedSum() const
+{
+	double result = 0;
+	for (size_t i = 0; i < m_bars.size(); ++i)
+	{
+		result += m_bars[i].value/m_bars[i].maxValue * m_bars[i].weight;
+	}
+	return result;
+}
+
 void iAStackedBarChart::setBackgroundColor(QColor const & color)
 {
 	m_bgColor = color;
@@ -256,6 +266,11 @@ void iAStackedBarChart::mouseReleaseEvent(QMouseEvent* /*ev*/)
 		}
 		emit weightsChanged(weights);
 	}
+}
+
+void iAStackedBarChart::mouseDoubleClickEvent(QMouseEvent*)
+{
+	emit doubleClicked();
 }
 
 void iAStackedBarChart::setWeights(std::vector<double> const & weights)

@@ -52,9 +52,11 @@ public:
 	void setDoStack(bool doStack);
 	size_t numberOfBars() const;
 	void setBackgroundColor(QColor const & color);
+	double weightedSum() const;
 signals:
 	void switchedStackMode(bool mode);
 	void weightsChanged(std::vector<double> const & weights);
+	void doubleClicked();
 public slots:
 	void setWeights(std::vector<double> const & weights);
 private slots:
@@ -66,6 +68,7 @@ private:
 	void mousePressEvent(QMouseEvent* ev) override;
 	void mouseReleaseEvent(QMouseEvent* ev) override;
 	void mouseMoveEvent(QMouseEvent* ev) override;
+	void mouseDoubleClickEvent(QMouseEvent* e) override;
 	//! @}
 
 	size_t dividerWithinRange(int x) const;
