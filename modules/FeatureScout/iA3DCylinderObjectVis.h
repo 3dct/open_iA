@@ -39,6 +39,7 @@ public:
 	iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData,
 		int numberOfCylinderSides = DefaultNumberOfCylinderSides, size_t segmentSkip = 1);
+	virtual ~iA3DCylinderObjectVis();
 	void setDiameterFactor(double diameterFactor);
 	void setContextDiameterFactor(double contextDiameterFactor);
 	void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive) override;

@@ -63,6 +63,11 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectT
 	m_outlineFilter->SetInputConnection(m_tubeFilter->GetOutputPort());
 }
 
+iA3DCylinderObjectVis::~iA3DCylinderObjectVis()
+{
+	delete [] m_contextFactors;
+}
+
 void iA3DCylinderObjectVis::setDiameterFactor(double diameterFactor)
 {
 	m_tubeFilter->SetRadiusFactor(diameterFactor);
@@ -76,23 +81,35 @@ void iA3DCylinderObjectVis::setContextDiameterFactor(double contextDiameterFacto
 	if (contextDiameterFactor == 1.0)
 	{
 		if (m_contextFactors)
+		{
 			delete m_contextFactors;
-		m_contextFactors = nullptr;
+			m_contextFactors = nullptr;
+		}
+		else
+		{
+			return;
+		}
 	}
 	else
 	{
 		if (!m_contextFactors)
+		{
 			m_contextFactors = new float[m_points->GetNumberOfPoints()];
+		}
 		m_contextDiameterFactor = contextDiameterFactor;
 		size_t selIdx = 0;
 		for (vtkIdType row = 0; row < m_objectCount; ++row)
 		{
 			bool isSelected = selIdx < m_selection.size() && (m_selection[selIdx] == row);
 			if (isSelected)
+			{
 				++selIdx;
+			}
 			float diameter = (!isSelected) ? m_contextDiameterFactor : 1.0;
 			for (int p = 0; p < objectPointCount(row); ++p)
+			{
 				m_contextFactors[objectStartPointIdx(row) + p] = diameter;
+			}
 		}
 	}
 	m_tubeFilter->SetIndividualFactors(m_contextFactors);
