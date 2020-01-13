@@ -27,7 +27,7 @@
 #include <QMap>
 #include <QWidget>
 
-class iADiagramFctWidget;
+class iAChartWithFunctionsWidget;
 class iAParamTableView;
 class iAHistogramCreator;
 class iAHistogramData;
@@ -43,7 +43,7 @@ class iAParamSpatialView: public QWidget
 {
 	Q_OBJECT
 public:
-	iAParamSpatialView(iAParamTableView* table, QString const & basePath, iADiagramFctWidget* chartWidget, int binCount);
+	iAParamSpatialView(iAParamTableView* table, QString const & basePath, iAChartWithFunctionsWidget* chartWidget, int binCount);
 	void setImage(size_t id);
 	void ToggleSettings(bool visible);
 private slots:
@@ -64,7 +64,7 @@ private:
 	QWidget* m_settings;
 	QWidget* m_imageContainer;
 	bool m_sliceNrInitialized;
-	iADiagramFctWidget* m_chartWidget;
+	iAChartWithFunctionsWidget* m_chartWidget;
 	QSharedPointer<iAPlot> m_curHistogramPlot;
 	QVector<QSharedPointer<iAHistogramCreator> > m_histogramCreaters;
 	QMap<int, QSharedPointer<iAHistogramData>> m_histogramCache;

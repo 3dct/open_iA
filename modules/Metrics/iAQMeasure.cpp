@@ -20,8 +20,7 @@
 * ************************************************************************************/
 #include "iAQMeasure.h"
 
-#include <charts/iAChartWidget.h>
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 #include <charts/iASimpleHistogramData.h>
 #include <charts/iAPlotTypes.h>
 #include <defines.h>    // for DIM

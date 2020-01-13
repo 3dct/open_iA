@@ -20,14 +20,14 @@
 * ************************************************************************************/
 #include "mainwindow.h"
 
-#include "charts/iADiagramFctWidget.h"
+#include "charts/iAChartFunctionBezier.h"
+#include "charts/iAChartFunctionGaussian.h"
+#include "charts/iAChartFunctionTransfer.h"
+#include "charts/iAChartWithFunctionsWidget.h"
 #include "defines.h"
 #include "dlg_commoninput.h"
 #include "dlg_datatypeconversion.h"
 #include "dlg_openfile_sizecheck.h"
-#include "iAChartFunctionBezier.h"
-#include "iAChartFunctionGaussian.h"
-#include "iAChartFunctionTransfer.h"
 #include "iACheckOpenGL.h"
 #include "iAConsole.h"
 #include "iALogger.h"

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "dlg_TFTable.h"
 
-#include "charts/iADiagramFctWidget.h"
+#include "charts/iAChartWithFunctionsWidget.h"
 #include "iAChartFunctionTransfer.h"
 
 #include <vtkSmartPointer.h>
@@ -44,7 +44,7 @@ public:
 	}
 };
 
-dlg_TFTable::dlg_TFTable( iADiagramFctWidget * parent, iAChartFunction* func ) : dlg_TFTableWidgetConnector( parent ),
+dlg_TFTable::dlg_TFTable( iAChartWithFunctionsWidget * parent, iAChartFunction* func ) : dlg_TFTableWidgetConnector( parent ),
 	m_oTF( dynamic_cast<iAChartTransferFunction*>( func )->opacityTF() ),
 	m_cTF( dynamic_cast<iAChartTransferFunction*>( func )->colorTF() ),
 	m_newPointColor( Qt::gray ),

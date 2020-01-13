@@ -21,7 +21,8 @@
 #include "mdichild.h"
 
 #include "charts/iAHistogramData.h"
-#include "charts/iADiagramFctWidget.h"
+#include "charts/iAChartFunctionTransfer.h"
+#include "charts/iAChartWithFunctionsWidget.h"
 #include "charts/iAPlotTypes.h"
 #include "charts/iAProfileWidget.h"
 #include "dlg_commoninput.h"
@@ -33,7 +34,6 @@
 #include "iAAlgorithm.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
-#include "iAChartFunctionTransfer.h"
 #include "iAConsole.h"
 #include "qthelper/iADockWidgetWrapper.h"
 #include "iALogger.h"
@@ -114,7 +114,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	m_slicerTransform(vtkTransform::New()),
 	m_volumeStack(new iAVolumeStack),
 	m_ioThread(nullptr),
-	m_histogram(new iADiagramFctWidget(nullptr, this, " Histogram", "Frequency")),
+	m_histogram(new iAChartWithFunctionsWidget(nullptr, this, " Histogram", "Frequency")),
 	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
 	m_dwImgProperty(nullptr),
 	m_dwProfile(nullptr),
@@ -1482,7 +1482,7 @@ std::vector<iAChartFunction*> & MdiChild::functions()
 	return m_histogram->functions();
 }
 
-iADiagramFctWidget* MdiChild::histogram()
+iAChartWithFunctionsWidget* MdiChild::histogram()
 {
 	return m_histogram;
 }

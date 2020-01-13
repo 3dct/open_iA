@@ -32,7 +32,7 @@
 class iABarycentricTriangleWidget;
 class iABarycentricContextRenderer;
 
-class iADiagramFctWidget;
+class iAChartWithFunctionsWidget;
 class iAModality;
 class iATransferFunction;
 class MdiChild;

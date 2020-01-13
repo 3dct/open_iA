@@ -25,7 +25,7 @@
 #include "iATripleModalityWidget.h"
 #include "iASimpleSlicerWidget.h"
 
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 #include <iASlicer.h>
 
 #include <QPoint>
@@ -214,7 +214,7 @@ void iAHistogramTriangle::forwardWheelEvent(QWheelEvent *e)
 void iAHistogramTriangle::forwardContextMenuEvent(QContextMenuEvent *e)
 {
 	QPoint transformed;
-	iADiagramFctWidget *target = onHistogram(e->pos(), transformed).data();
+	iAChartWithFunctionsWidget *target = onHistogram(e->pos(), transformed).data();
 	if (target) {
 		QContextMenuEvent *newE = new QContextMenuEvent(e->reason(), transformed, e->globalPos());
 		QApplication::sendEvent(target, newE);
@@ -224,7 +224,7 @@ void iAHistogramTriangle::forwardContextMenuEvent(QContextMenuEvent *e)
 	}
 }
 
-QSharedPointer<iADiagramFctWidget> iAHistogramTriangle::onHistogram(QPoint p, QPoint &transformed)
+QSharedPointer<iAChartWithFunctionsWidget> iAHistogramTriangle::onHistogram(QPoint p, QPoint &transformed)
 {
 	for (int i = 0; i < 3; i++) {
 		transformed = m_transformHistograms[i].inverted().map(p);

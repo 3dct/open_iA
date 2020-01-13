@@ -53,7 +53,7 @@ iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent, MdiChild *mdiChi
 		vtkColorTransferFunction* cTF,
 		iASpectrumFilterListener* filterListener,
 		QString const & xLabel)
-	: iADiagramFctWidget(parent, mdiChild, xLabel, "Count"),
+	: iAChartWithFunctionsWidget(parent, mdiChild, xLabel, "Count"),
 	m_data(data),
 	selectionRubberBand(new QRubberBand(QRubberBand::Rectangle, this)),
 	filterListener(filterListener)
@@ -90,7 +90,7 @@ void iAEnergySpectrumWidget::mousePressEvent(QMouseEvent *event)
 				event->buttons(),
 				event->modifiers()
 			);
-			iADiagramFctWidget::mousePressEvent(&eventCopy); //if any modifiers, or click is on the bottom panel: process in base class
+			iAChartWithFunctionsWidget::mousePressEvent(&eventCopy); //if any modifiers, or click is on the bottom panel: process in base class
 		}
 	}
 }
@@ -104,7 +104,7 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 		event->buttons(),
 		event->modifiers()
 	);
-	iADiagramFctWidget::mouseReleaseEvent(&eventCopy);
+	iAChartWithFunctionsWidget::mouseReleaseEvent(&eventCopy);
 	if (selectionRubberBand->isVisible())
 	{
 		selectionRubberBand->hide();
@@ -145,7 +145,7 @@ void iAEnergySpectrumWidget::mouseMoveEvent(QMouseEvent *event)
 		event->buttons(),
 		event->modifiers()
 	);
-	iADiagramFctWidget::mouseMoveEvent(&eventCopy);
+	iAChartWithFunctionsWidget::mouseMoveEvent(&eventCopy);
 	if (!selectionRubberBand->isVisible())
 	{
 		return;
@@ -212,7 +212,7 @@ void iAEnergySpectrumWidget::drawAfterPlots(QPainter& painter)
 			}
 		}
 	}
-	iADiagramFctWidget::drawAfterPlots(painter);
+	iAChartWithFunctionsWidget::drawAfterPlots(painter);
 }
 
 void iAEnergySpectrumWidget::NotifySelectionUpdateListener()

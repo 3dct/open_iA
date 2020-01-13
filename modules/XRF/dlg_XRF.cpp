@@ -38,11 +38,11 @@
 #include "iAXRFData.h"
 #include "iAXRFOverlay.h"
 
+#include <charts/iAChartFunctionTransfer.h>
 #include <charts/iAPlotTypes.h>
 #include <charts/iAMappingDiagramData.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
-#include <iAChartFunctionTransfer.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
 #include <iAFunctionalBoxplot.h>

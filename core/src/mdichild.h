@@ -66,7 +66,7 @@ class dlg_slicer;
 class dlg_volumePlayer;
 class iAAlgorithm;
 class iAChannelData;
-class iADiagramFctWidget;
+class iAChartWithFunctionsWidget;
 class iADockWidgetWrapper;
 class iAIO;
 class iALogger;
@@ -188,7 +188,7 @@ public:
 	bool linkedViews() const;   //!< Whether this child has the linked views feature enabled
 	std::vector<iAChartFunction*> &functions();
 	void redrawHistogram();
-	iADiagramFctWidget* histogram();
+	iAChartWithFunctionsWidget* histogram();
 
 	int selectedFuncPoint();
 	int isFuncEndPoint(int index);
@@ -466,7 +466,7 @@ private:
 	QList<int> m_checkedList;
 	iAIO* m_ioThread;
 
-	iADiagramFctWidget * m_histogram;
+	iAChartWithFunctionsWidget * m_histogram;
 	QSharedPointer<iAPlot> m_histogramPlot;
 
 	//! @{ dock widgets

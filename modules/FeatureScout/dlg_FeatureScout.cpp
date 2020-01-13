@@ -34,7 +34,7 @@
 #include "iAFeatureScoutObjectType.h"
 #include "iAMeanObjectTFView.h"
 
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 #include <dlg_commoninput.h>
 #include <dlg_imageproperty.h>
 #include <dlg_modalities.h>
@@ -1186,7 +1186,7 @@ void dlg_FeatureScout::modifyMeanObjectTF()
 	m_motfView->setWindowTitle( QString("%1 %2 Mean Object Transfer Function")
 		.arg(dwMO->cb_Classes->itemText(dwMO->cb_Classes->currentIndex()))
 		.arg(MapObjectTypeToString(filterID)) );
-	iADiagramFctWidget* histogram = activeChild->histogram();
+	iAChartWithFunctionsWidget* histogram = activeChild->histogram();
 	connect( histogram, SIGNAL( updateViews() ), this, SLOT( updateMOView() ) );
 	m_motfView->horizontalLayout->addWidget( histogram );
 	histogram->show();

@@ -25,7 +25,7 @@
 #include "iAOrientationWidget.h"
 #include "iASegmentTree.h"
 
-#include "charts/iADiagramFctWidget.h"
+#include "charts/iAChartWithFunctionsWidget.h"
 #include "iAColorTheme.h"
 #include "iAFunction.h"
 #include "iAFunctionalBoxplot.h"

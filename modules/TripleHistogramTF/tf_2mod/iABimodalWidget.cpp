@@ -48,7 +48,7 @@ void iABimodalWidget::modalitiesLoaded_beforeUpdateSlot()
 
 void iABimodalWidget::initialize()
 {
-	QVector<iADiagramFctWidget*> histograms;
+	QVector<iAChartWithFunctionsWidget*> histograms;
 	QVector<iASimpleSlicerWidget*> slicers;
 	m_labels.clear();
 

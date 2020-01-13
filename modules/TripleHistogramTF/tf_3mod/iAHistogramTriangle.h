@@ -28,7 +28,7 @@
 #include <QRect>
 
 class iASlicer;
-class iADiagramFctWidget;
+class iAChartWithFunctionsWidget;
 
 class QPoint;
 class QMouseEvent;
@@ -80,7 +80,7 @@ private:
 	void forwardMouseEvent(QMouseEvent *event, MouseEventType type);
 	void forwardWheelEvent(QWheelEvent *event);
 	void forwardContextMenuEvent(QContextMenuEvent *event);
-	QSharedPointer<iADiagramFctWidget> onHistogram(QPoint p, QPoint &transformed);
+	QSharedPointer<iAChartWithFunctionsWidget> onHistogram(QPoint p, QPoint &transformed);
 	bool onTriangle(QPoint p);
 	iASlicer* onSlicer(QPoint p, QPoint &transformed);
 

@@ -24,7 +24,7 @@
 
 #include "iASimpleSlicerWidget.h"
 
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 #include <iATransferFunction.h>
 
 #include <vtkSmartPointer.h>
@@ -66,7 +66,7 @@ private:
 public:
 	iAMultimodalWidget(QWidget *parent, MdiChild* mdiChild, NumOfMod num);
 
-	QSharedPointer<iADiagramFctWidget> w_histogram(int i) {
+	QSharedPointer<iAChartWithFunctionsWidget> w_histogram(int i) {
 		return m_histograms[i];
 	}
 
@@ -133,7 +133,7 @@ protected:
 private:
 	// User interface {
 	void updateDisabledLabel();
-	QVector<QSharedPointer<iADiagramFctWidget>> m_histograms;
+	QVector<QSharedPointer<iAChartWithFunctionsWidget>> m_histograms;
 	QVector<QSharedPointer<iASimpleSlicerWidget>> m_slicerWidgets;
 	QVector<uint> m_channelID;
 	QStackedLayout *m_stackedLayout;

@@ -25,7 +25,7 @@
 #include "iAHistogramCreator.h"
 #include "iAImageWidget.h"
 
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 #include <charts/iAPlotTypes.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
@@ -41,7 +41,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & basePath, iADiagramFctWidget* chartWidget, int binCount) :
+iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & basePath, iAChartWithFunctionsWidget* chartWidget, int binCount) :
 	m_table(table),
 	m_basePath(basePath),
 	m_imageWidget(nullptr),

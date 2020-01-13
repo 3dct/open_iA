@@ -22,7 +22,7 @@
 
 #include "iARangeSliderDiagramData.h"
 
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 #include <charts/iAPlotTypes.h>
 
 #include <vtkPiecewiseFunction.h>
@@ -76,7 +76,7 @@ private:
 };
 
 
-class iARangeSliderDiagramWidget : public iADiagramFctWidget
+class iARangeSliderDiagramWidget : public iAChartWithFunctionsWidget
 {
 	Q_OBJECT
 

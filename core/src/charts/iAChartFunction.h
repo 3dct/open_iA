@@ -29,7 +29,7 @@
 class QColor;
 class QMouseEvent;
 class QPainter;
-class iADiagramFctWidget;
+class iAChartWithFunctionsWidget;
 
 class open_iA_Core_API iAChartFunction: public QObject
 {
@@ -39,7 +39,7 @@ public:
 	static const int GAUSSIAN = 1;
 	static const int BEZIER   = 2;
 
-	iAChartFunction(iADiagramFctWidget* chart) : chart(chart) { }
+	iAChartFunction(iAChartWithFunctionsWidget* chart) : chart(chart) { }
 
 	virtual int getType() = 0;
 
@@ -64,5 +64,5 @@ public:
 	virtual void mouseReleaseEvent(QMouseEvent *) {}
 	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *) {}
 
-	iADiagramFctWidget *chart;
+	iAChartWithFunctionsWidget *chart;
 };

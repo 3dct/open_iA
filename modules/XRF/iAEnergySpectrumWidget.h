@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 
 #include <QMap>
 
@@ -31,7 +31,7 @@ class iASpectrumFilterListener;
 
 class QRubberBand;
 
-class iAEnergySpectrumWidget: public iADiagramFctWidget
+class iAEnergySpectrumWidget: public iAChartWithFunctionsWidget
 {
 public:
 	iAEnergySpectrumWidget(QWidget *parent, MdiChild *mdiChild,

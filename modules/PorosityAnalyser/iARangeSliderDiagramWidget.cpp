@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iARangeSliderDiagramWidget.h"
 
-#include <iAChartFunctionTransfer.h>
+#include <charts/iAChartFunctionTransfer.h>
 #include <iACSVToQTableWidgetConverter.h>
 
 iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent, MdiChild *mdiChild,
@@ -31,7 +31,7 @@ iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent, MdiChil
 							const QTableWidget *rawTable,
 							QString const & xlabel,
 							QString const & yLabel)
-							: iADiagramFctWidget( parent, mdiChild, xlabel, yLabel ),
+							: iAChartWithFunctionsWidget( parent, mdiChild, xlabel, yLabel ),
 							m_data( data ),
 							m_selectionOrigin( QPoint( 0, 0 ) ),
 							m_selectionRubberBand( new QRubberBand( QRubberBand::Rectangle, this ) ),
@@ -155,7 +155,7 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 	}
 	else if ( event->button() == Qt::LeftButton )
 	{
-		iADiagramFctWidget::mouseReleaseEvent( event );
+		iAChartWithFunctionsWidget::mouseReleaseEvent( event );
 
 		if ( m_selectionRubberBand->isVisible() )
 		{

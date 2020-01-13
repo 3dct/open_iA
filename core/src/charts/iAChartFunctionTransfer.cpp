@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAChartFunctionTransfer.h"
 
-#include "charts/iADiagramFctWidget.h"
+#include "charts/iAChartWithFunctionsWidget.h"
 #include "iAConsole.h"
 #include "iAMathUtility.h"
 #include "mdichild.h"
@@ -35,7 +35,7 @@
 #include <QPainter>
 #include <QPen>
 
-iAChartTransferFunction::iAChartTransferFunction(iADiagramFctWidget *chart, QColor color):
+iAChartTransferFunction::iAChartTransferFunction(iAChartWithFunctionsWidget *chart, QColor color):
 	iAChartFunction(chart),
 	m_rangeSliderHandles(false),
 	m_color(color),
@@ -114,15 +114,15 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 				{
 					painter.setPen(redPen);
 					painter.setBrush(QBrush(c));
-					painter.drawEllipse(x1 - iADiagramFctWidget::SELECTED_POINT_RADIUS, y1 - iADiagramFctWidget::SELECTED_POINT_RADIUS,
-						iADiagramFctWidget::SELECTED_POINT_SIZE, iADiagramFctWidget::SELECTED_POINT_SIZE);
+					painter.drawEllipse(x1 - iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS, y1 - iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS,
+						iAChartWithFunctionsWidget::SELECTED_POINT_SIZE, iAChartWithFunctionsWidget::SELECTED_POINT_SIZE);
 				}
 				else
 				{
 					painter.setPen(pen1);
 					painter.setBrush(QBrush(c));
-					painter.drawEllipse(x1 - iADiagramFctWidget::POINT_RADIUS, y1 - iADiagramFctWidget::POINT_RADIUS,
-						iADiagramFctWidget::POINT_SIZE, iADiagramFctWidget::POINT_SIZE);
+					painter.drawEllipse(x1 - iAChartWithFunctionsWidget::POINT_RADIUS, y1 - iAChartWithFunctionsWidget::POINT_RADIUS,
+						iAChartWithFunctionsWidget::POINT_SIZE, iAChartWithFunctionsWidget::POINT_SIZE);
 				}
 			}
 			else
@@ -131,16 +131,16 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 				{
 					painter.setPen( redPen );
 					painter.setBrush( QBrush( QColor( 254, 153, 41, 150 ) ) );
-					QRectF rectangle( x1 - iADiagramFctWidget::SELECTED_PIE_RADIUS, y1 - iADiagramFctWidget::SELECTED_PIE_RADIUS,
-										iADiagramFctWidget::SELECTED_PIE_SIZE, iADiagramFctWidget::SELECTED_PIE_SIZE );
+					QRectF rectangle( x1 - SELECTED_PIE_RADIUS, y1 - SELECTED_PIE_RADIUS,
+										SELECTED_PIE_SIZE, SELECTED_PIE_SIZE );
 					painter.drawPie( rectangle, 60 * 16, 60 * 16 );
 				}
 				else if ( i - 1 > 0 )
 				{
 					painter.setPen( redPen );
 					painter.setBrush( QBrush( QColor( 254, 153, 41, 150 ) ) );
-					QRectF rectangle( x1 - iADiagramFctWidget::PIE_RADIUS, y1 - iADiagramFctWidget::PIE_RADIUS,
-										iADiagramFctWidget::PIE_SIZE, iADiagramFctWidget::PIE_SIZE );
+					QRectF rectangle( x1 - PIE_RADIUS, y1 - PIE_RADIUS,
+										PIE_SIZE, PIE_SIZE );
 					painter.drawPie( rectangle, 60 * 16, 60 * 16 );
 				}
 			}
@@ -158,15 +158,15 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 		{
 			painter.setPen(redPen);
 			painter.setBrush(QBrush(c));
-			painter.drawEllipse(x1-iADiagramFctWidget::SELECTED_POINT_RADIUS, y1-iADiagramFctWidget::SELECTED_POINT_RADIUS,
-				iADiagramFctWidget::SELECTED_POINT_SIZE, iADiagramFctWidget::SELECTED_POINT_SIZE);
+			painter.drawEllipse(x1-iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS, y1-iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS,
+				iAChartWithFunctionsWidget::SELECTED_POINT_SIZE, iAChartWithFunctionsWidget::SELECTED_POINT_SIZE);
 		}
 		else
 		{
 			painter.setPen(pen1);
 			painter.setBrush(QBrush(c));
-			painter.drawEllipse(x1-iADiagramFctWidget::POINT_RADIUS, y1-iADiagramFctWidget::POINT_RADIUS,
-				iADiagramFctWidget::POINT_SIZE, iADiagramFctWidget::POINT_SIZE);
+			painter.drawEllipse(x1-iAChartWithFunctionsWidget::POINT_RADIUS, y1-iAChartWithFunctionsWidget::POINT_RADIUS,
+				iAChartWithFunctionsWidget::POINT_SIZE, iAChartWithFunctionsWidget::POINT_SIZE);
 		}
 	}
 }
@@ -204,10 +204,10 @@ int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 		if ( !m_rangeSliderHandles )
 		{
 			if ( ( pointIndex == m_selectedPoint &&
-				lx >= viewX - iADiagramFctWidget::SELECTED_POINT_RADIUS && lx <= viewX + iADiagramFctWidget::SELECTED_POINT_RADIUS &&
-				ly >= viewY - iADiagramFctWidget::SELECTED_POINT_RADIUS && ly <= viewY + iADiagramFctWidget::SELECTED_POINT_RADIUS ) ||
-				( lx >= viewX - iADiagramFctWidget::POINT_RADIUS && lx <= viewX + iADiagramFctWidget::POINT_RADIUS &&
-				ly >= viewY - iADiagramFctWidget::POINT_RADIUS && ly <= viewY + iADiagramFctWidget::POINT_RADIUS ) )
+				lx >= viewX - iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS && lx <= viewX + iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS &&
+				ly >= viewY - iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS && ly <= viewY + iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS ) ||
+				( lx >= viewX - iAChartWithFunctionsWidget::POINT_RADIUS && lx <= viewX + iAChartWithFunctionsWidget::POINT_RADIUS &&
+				ly >= viewY - iAChartWithFunctionsWidget::POINT_RADIUS && ly <= viewY + iAChartWithFunctionsWidget::POINT_RADIUS ) )
 
 			{
 				index = pointIndex;
@@ -216,10 +216,10 @@ int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 		}
 		else
 		{
-			if ( ( lx >= viewX - iADiagramFctWidget::SELECTED_PIE_RADIUS && lx <= viewX + iADiagramFctWidget::SELECTED_PIE_RADIUS
-				&& ly >= viewY - iADiagramFctWidget::SELECTED_PIE_RADIUS && ly <= viewY )
-				|| ( lx >= viewX - iADiagramFctWidget::PIE_RADIUS && lx <= viewX + iADiagramFctWidget::PIE_RADIUS
-				&& ly >= viewY - iADiagramFctWidget::PIE_RADIUS && ly <= viewY ) )
+			if ( ( lx >= viewX - SELECTED_PIE_RADIUS && lx <= viewX + SELECTED_PIE_RADIUS
+				&& ly >= viewY - SELECTED_PIE_RADIUS && ly <= viewY )
+				|| ( lx >= viewX - PIE_RADIUS && lx <= viewX + PIE_RADIUS
+				&& ly >= viewY - PIE_RADIUS && ly <= viewY ) )
 			{
 				// PorosityAnalyser: range slider widget; only handles can get selected (no end points)
 				if ( this->isEndPoint( pointIndex ) )

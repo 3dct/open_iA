@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iADiagramFctWidget.h"
+#include "iAChartWithFunctionsWidget.h"
 
 #include "dlg_TFTable.h"
 #include "iAChartFunctionBezier.h"
@@ -41,7 +41,7 @@
 
 #include <cassert>
 
-iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
+iAChartWithFunctionsWidget::iAChartWithFunctionsWidget(QWidget *parent, MdiChild *mdiChild,
 	QString const & xLabel, QString const & yLabel) :
 	iAChartWidget(parent, xLabel, yLabel),
 	m_activeChild(mdiChild),
@@ -55,13 +55,13 @@ iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
 	m_functions.push_back(transferFunction);
 }
 
-iADiagramFctWidget::~iADiagramFctWidget()
+iAChartWithFunctionsWidget::~iAChartWithFunctionsWidget()
 {
 	for (auto fct: m_functions)
 		delete fct;
 }
 
-int iADiagramFctWidget::selectedFuncPoint() const
+int iAChartWithFunctionsWidget::selectedFuncPoint() const
 {
 	auto it = m_functions.begin();
 	if (it == m_functions.end())
@@ -70,7 +70,7 @@ int iADiagramFctWidget::selectedFuncPoint() const
 	return func->getSelectedPoint();
 }
 
-bool iADiagramFctWidget::isFuncEndPoint(int index) const
+bool iAChartWithFunctionsWidget::isFuncEndPoint(int index) const
 {
 	auto it = m_functions.begin();
 	if (it == m_functions.end())
@@ -79,13 +79,13 @@ bool iADiagramFctWidget::isFuncEndPoint(int index) const
 	return func->isEndPoint(index);
 }
 
-void iADiagramFctWidget::drawAfterPlots(QPainter & painter)
+void iAChartWithFunctionsWidget::drawAfterPlots(QPainter & painter)
 {
 	if (m_showFunctions)
 		drawFunctions(painter);
 }
 
-void iADiagramFctWidget::drawFunctions(QPainter &painter)
+void iAChartWithFunctionsWidget::drawFunctions(QPainter &painter)
 {
 	size_t counter = 0;
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
@@ -114,7 +114,7 @@ void iADiagramFctWidget::drawFunctions(QPainter &painter)
 	}
 }
 
-void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)
+void iAChartWithFunctionsWidget::mousePressEvent(QMouseEvent *event)
 {
 	switch(event->button())
 	{
@@ -160,7 +160,7 @@ void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)
 	}
 }
 
-void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)
+void iAChartWithFunctionsWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	if (!m_showFunctions)
 	{
@@ -182,7 +182,7 @@ void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)
 	func->mouseReleaseEvent(event);
 }
 
-void iADiagramFctWidget::mouseDoubleClickEvent(QMouseEvent *event)
+void iAChartWithFunctionsWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
 	if (event->button() == Qt::LeftButton)
 	{
@@ -191,7 +191,7 @@ void iADiagramFctWidget::mouseDoubleClickEvent(QMouseEvent *event)
 	iAChartWidget::mouseDoubleClickEvent(event);
 }
 
-void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)
+void iAChartWithFunctionsWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	switch (m_mode)
 	{
@@ -215,12 +215,12 @@ void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)
 	}
 }
 
-void iADiagramFctWidget::enterEvent(QEvent*)
+void iAChartWithFunctionsWidget::enterEvent(QEvent*)
 {
 	emit active();
 }
 
-void iADiagramFctWidget::keyPressEvent(QKeyEvent *event)
+void iAChartWithFunctionsWidget::keyPressEvent(QKeyEvent *event)
 {
 	if (event->key() == Qt::Key_Down)
 	{
@@ -241,7 +241,7 @@ void iADiagramFctWidget::keyPressEvent(QKeyEvent *event)
 	}
 }
 
-void iADiagramFctWidget::addContextMenuEntries(QMenu* contextMenu)
+void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 {
 	if (m_showFunctions)
 	{
@@ -282,7 +282,7 @@ void iADiagramFctWidget::addContextMenuEntries(QMenu* contextMenu)
 	}
 }
 
-void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
+void iAChartWithFunctionsWidget::changeMode(int newMode, QMouseEvent *event)
 {
 	switch(newMode)
 	{
@@ -336,7 +336,7 @@ void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
 	}
 }
 
-int iADiagramFctWidget::deletePoint()
+int iAChartWithFunctionsWidget::deletePoint()
 {
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	iAChartFunction *func = *(it + m_selectedFunction);
@@ -350,7 +350,7 @@ int iADiagramFctWidget::deletePoint()
 	return selectedPoint;
 }
 
-void iADiagramFctWidget::changeColor(QMouseEvent *event)
+void iAChartWithFunctionsWidget::changeColor(QMouseEvent *event)
 {
 	if (!m_showFunctions)
 		return;
@@ -364,7 +364,7 @@ void iADiagramFctWidget::changeColor(QMouseEvent *event)
 	emit updateViews();
 }
 
-void iADiagramFctWidget::resetTrf()
+void iAChartWithFunctionsWidget::resetTrf()
 {
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	iAChartFunction *func = *(it + m_selectedFunction);
@@ -375,13 +375,13 @@ void iADiagramFctWidget::resetTrf()
 	emit updateViews();
 }
 
-void iADiagramFctWidget::updateTrf()
+void iAChartWithFunctionsWidget::updateTrf()
 {
 	((iAChartTransferFunction*)m_functions[0])->TranslateToNewRange(xBounds());
 	update();
 }
 
-void iADiagramFctWidget::newTransferFunction()
+void iAChartWithFunctionsWidget::newTransferFunction()
 {
 	update();
 	emit noPointSelected();
@@ -390,7 +390,7 @@ void iADiagramFctWidget::newTransferFunction()
 	emit updateViews();
 }
 
-void iADiagramFctWidget::loadTransferFunction()
+void iAChartWithFunctionsWidget::loadTransferFunction()
 {
 	QString filePath = (m_activeChild) ? m_activeChild->filePath() : "";
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
@@ -408,13 +408,13 @@ void iADiagramFctWidget::loadTransferFunction()
 	newTransferFunction();
 }
 
-void iADiagramFctWidget::loadTransferFunction(QDomNode functionsNode)
+void iAChartWithFunctionsWidget::loadTransferFunction(QDomNode functionsNode)
 {
 	iAXmlSettings::loadTransferFunction(functionsNode, (iAChartTransferFunction*)m_functions[0]);
 	newTransferFunction();
 }
 
-void iADiagramFctWidget::saveTransferFunction()
+void iAChartWithFunctionsWidget::saveTransferFunction()
 {
 	iAChartTransferFunction *transferFunction = (iAChartTransferFunction*)m_functions[0];
 	QString filePath = (m_activeChild) ? m_activeChild->filePath() : "";
@@ -427,12 +427,12 @@ void iADiagramFctWidget::saveTransferFunction()
 	}
 }
 
-void iADiagramFctWidget::applyTransferFunctionForAll()
+void iAChartWithFunctionsWidget::applyTransferFunctionForAll()
 {
 	emit applyTFForAll();
 }
 
-void iADiagramFctWidget::addBezierFunction()
+void iAChartWithFunctionsWidget::addBezierFunction()
 {
 	iAChartFunctionBezier *bezier = new iAChartFunctionBezier(this, PredefinedColors()[m_functions.size() % 7]);
 	bezier->addPoint(contextMenuPos().x(), activeHeight()- contextMenuPos().y());
@@ -444,12 +444,12 @@ void iADiagramFctWidget::addBezierFunction()
 	emit updateViews();
 }
 
-void iADiagramFctWidget::addGaussianFunction()
+void iAChartWithFunctionsWidget::addGaussianFunction()
 {
 	addGaussianFunction(contextMenuPos().x(), geometry().width() / 6, (int)((activeHeight() - contextMenuPos().y())*yZoom()));
 }
 
-void iADiagramFctWidget::addGaussianFunction(double mean, double sigma, double multiplier)
+void iAChartWithFunctionsWidget::addGaussianFunction(double mean, double sigma, double multiplier)
 {
 	iAChartFunctionGaussian *gaussian = new iAChartFunctionGaussian(this, PredefinedColors()[m_functions.size() % 7]);
 	gaussian->setMean(mean);
@@ -463,7 +463,7 @@ void iADiagramFctWidget::addGaussianFunction(double mean, double sigma, double m
 	emit updateViews();
 }
 
-void iADiagramFctWidget::loadFunctions()
+void iAChartWithFunctionsWidget::loadFunctions()
 {
 	QString filePath = m_activeChild ? m_activeChild->filePath(): "";
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
@@ -492,7 +492,7 @@ void iADiagramFctWidget::loadFunctions()
 	update();
 }
 
-bool iADiagramFctWidget::loadProbabilityFunctions(iAXmlSettings & xml)
+bool iAChartWithFunctionsWidget::loadProbabilityFunctions(iAXmlSettings & xml)
 {
 	if (!xml.hasElement("functions"))
 		return false;
@@ -538,7 +538,7 @@ bool iADiagramFctWidget::loadProbabilityFunctions(iAXmlSettings & xml)
 	return true;
 }
 
-void iADiagramFctWidget::saveProbabilityFunctions(iAXmlSettings &xml)
+void iAChartWithFunctionsWidget::saveProbabilityFunctions(iAXmlSettings &xml)
 {
 	// does functions node exist
 	QDomNode functionsNode;
@@ -597,7 +597,7 @@ void iADiagramFctWidget::saveProbabilityFunctions(iAXmlSettings &xml)
 	}
 }
 
-void iADiagramFctWidget::saveFunctions()
+void iAChartWithFunctionsWidget::saveFunctions()
 {
 	QString filePath = m_activeChild ? m_activeChild->filePath(): "";
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
@@ -610,7 +610,7 @@ void iADiagramFctWidget::saveFunctions()
 	xml.save(fileName);
 }
 
-void iADiagramFctWidget::removeFunction()
+void iAChartWithFunctionsWidget::removeFunction()
 {
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin()+ m_selectedFunction;
 	iAChartFunction *function = *it;
@@ -621,7 +621,7 @@ void iADiagramFctWidget::removeFunction()
 	emit updateViews();
 }
 
-void iADiagramFctWidget::setTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf)
+void iAChartWithFunctionsWidget::setTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf)
 {
 	m_showFunctions = ctf && pwf;
 	if (!m_showFunctions)
@@ -631,32 +631,32 @@ void iADiagramFctWidget::setTransferFunctions(vtkColorTransferFunction* ctf, vtk
 	newTransferFunction();
 }
 
-iAChartFunction *iADiagramFctWidget::selectedFunction()
+iAChartFunction *iAChartWithFunctionsWidget::selectedFunction()
 {
 	return m_functions[m_selectedFunction];
 }
 
-int iADiagramFctWidget::chartHeight() const
+int iAChartWithFunctionsWidget::chartHeight() const
 {
 	return geometry().height() - bottomMargin();
 }
 
-std::vector<iAChartFunction*> &iADiagramFctWidget::functions()
+std::vector<iAChartFunction*> &iAChartWithFunctionsWidget::functions()
 {
 	return m_functions;
 }
 
-void iADiagramFctWidget::setAllowTrfReset(bool allow)
+void iAChartWithFunctionsWidget::setAllowTrfReset(bool allow)
 {
 	m_allowTrfReset = allow;
 }
 
-void iADiagramFctWidget::setEnableAdditionalFunctions(bool enable)
+void iAChartWithFunctionsWidget::setEnableAdditionalFunctions(bool enable)
 {
 	m_enableAdditionalFunctions = enable;
 }
 
-void iADiagramFctWidget::showTFTable()
+void iAChartWithFunctionsWidget::showTFTable()
 {
 	if ( !m_TFTable )
 	{
@@ -674,29 +674,29 @@ void iADiagramFctWidget::showTFTable()
 	}
 }
 
-QPoint iADiagramFctWidget::getTFTablePos() const
+QPoint iAChartWithFunctionsWidget::getTFTablePos() const
 {
 	return m_TFTable->pos();
 }
 
-void iADiagramFctWidget::setTFTablePos( QPoint pos )
+void iAChartWithFunctionsWidget::setTFTablePos( QPoint pos )
 {
 	m_TFTable->move( pos );
 }
 
-bool iADiagramFctWidget::isTFTableCreated() const
+bool iAChartWithFunctionsWidget::isTFTableCreated() const
 {
 	bool created;
 	m_TFTable ? created = true : created = false;
 	return created;
 }
 
-void iADiagramFctWidget::closeTFTable()
+void iAChartWithFunctionsWidget::closeTFTable()
 {
 	m_TFTable->close();
 }
 
-void iADiagramFctWidget::tfTableIsFinished()
+void iAChartWithFunctionsWidget::tfTableIsFinished()
 {
 	m_TFTable = nullptr;
 }

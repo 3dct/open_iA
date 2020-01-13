@@ -21,69 +21,86 @@
 #pragma once
 
 #include "iAChartFunction.h"
+#include "iATransferFunction.h"
 #include "open_iA_Core_export.h"
 
-#include <QColor>
+#include <QLinearGradient>
 
-#include <vector>
+class QColorDialog;
+class QDomNode;
 
-class QPointF;
+class vtkPiecewiseFunction;
+class vtkColorTransferFunction;
 
-class open_iA_Core_API iAChartFunctionBezier : public iAChartFunction
+class open_iA_Core_API iAChartTransferFunction : public iAChartFunction, public iATransferFunction
 {
-	QColor m_color;
-
-	int m_selectedPoint;
-	double controlDist;
-	double length;
-	double oppositeLength;
-	std::vector<QPointF> viewPoints;
-	std::vector<QPointF> realPoints;
+Q_OBJECT
 
 public:
-	iAChartFunctionBezier(iADiagramFctWidget *chart, QColor &color, bool reset = true);
+	iAChartTransferFunction(iAChartWithFunctionsWidget *histogram, QColor color);
+	~iAChartTransferFunction();
 
-	int getType() override { return BEZIER; }
+	int getType() override { return TRANSFER; }
 	void draw(QPainter &painter) override;
-	void draw(QPainter &painter, QColor penColor, int lineWidth) override;
-	void drawOnTop(QPainter&) override {}
+	void draw(QPainter &painter, QColor color, int lineWidth) override;
+	void drawOnTop(QPainter &painter) override;
 	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
 	int getSelectedPoint() override { return m_selectedPoint; }
 	int addPoint(int x, int y) override;
-	void addColorPoint(int, double, double, double) override {}
+	void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) override;
 	void removePoint(int index) override;
 	void moveSelectedPoint(int x, int y) override;
-	void changeColor(QMouseEvent *) override{}
-	bool isColored() override { return false; }
+	void changeColor(QMouseEvent *event) override;
+	void mouseReleaseEventAfterNewPoint(QMouseEvent *event) override;
+	bool isColored() override { return true; }
 	bool isEndPoint(int index) override;
 	bool isDeletable(int index) override;
 	void reset() override;
 	size_t numPoints() const override;
-	void mouseReleaseEvent(QMouseEvent *event) override;
 
-	void push_back(double x, double y);
-	std::vector<QPointF> &getPoints() { return realPoints; }
+	vtkPiecewiseFunction* opacityTF() override { return m_opacityTF; }
+	vtkColorTransferFunction* colorTF() override { return m_colorTF; }
+
+	void TranslateToNewRange(double const oldDataRange[2]);
+	void enableRangeSliderHandles( bool rangeSliderHandles );
+	void setOpacityFunction(vtkPiecewiseFunction *opacityTF) { m_opacityTF = opacityTF; }
+	void setColorFunction(vtkColorTransferFunction *colorTF) { m_colorTF = colorTF; }
+	void triggerOnChange();
+signals:
+	void Changed();
 private:
-	bool isFunctionPoint(int point);
-	bool isControlPoint(int point);
-
-	void insert(unsigned int index, unsigned int x, unsigned int y);
-
-	void setViewPoint(int selectedPoint);
-	void setOppositeViewPoint(int selectedPoint);
-
-	int getFunctionPointIndex(int index);
-	double getLength(QPointF start, QPointF end);
+	void setColorPoint(int selectedPoint, double x, double red, double green, double blue);
+	void setColorPoint(int selectedPoint, int x, double red, double green, double blue);
+	void setColorPoint(int selectedPoint, int x);
+	void setPoint(int selectedPoint, int x, int y);
+	void setPointX(int selectedPoint, int x);
+	void setPointY(int selectedPoint, int y);
 
 	// convert view to data
 	double v2dX(int x);
 	double v2dY(int y);
 
-	// convert data to view
-	int d2vX(double x);
+	// conver data to view
+	int d2vX(double x, double oldDataRange0 = -1, double oldDataRange1 = -1);
 	int d2vY(double y);
 
-	// convert data to image
+	//convert data to image
 	int d2iX(double x);
 	int d2iY(double y);
+
+	bool m_rangeSliderHandles;
+	int m_selectedPoint;
+
+	QColor          m_color;
+	QColorDialog    *m_colorDlg;
+	QLinearGradient m_gradient;
+
+	vtkPiecewiseFunction     *m_opacityTF;
+	vtkColorTransferFunction *m_colorTF;
+
+	static const int PIE_RADIUS = 16;
+	static const int PIE_SIZE = 2 * PIE_RADIUS;
+
+	static const int SELECTED_PIE_RADIUS = 16;
+	static const int SELECTED_PIE_SIZE = 2 * SELECTED_PIE_RADIUS;
 };

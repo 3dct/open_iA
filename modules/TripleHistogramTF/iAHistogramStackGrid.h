@@ -25,7 +25,7 @@
 #include <QVector>
 #include <QSharedPointer>
 
-class iADiagramFctWidget;
+class iAChartWithFunctionsWidget;
 class iASimpleSlicerWidget;
 
 class QLabel;
@@ -37,7 +37,7 @@ class iAHistogramStackGrid : public QWidget
 public:
 	iAHistogramStackGrid(
 		QWidget *parent,
-		QVector<iADiagramFctWidget*> const & histograms,
+		QVector<iAChartWithFunctionsWidget*> const & histograms,
 		QVector<iASimpleSlicerWidget*> const & slicers,
 		QVector<QLabel*> const & labels,
 		Qt::WindowFlags f = 0);

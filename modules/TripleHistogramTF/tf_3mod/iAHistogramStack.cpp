@@ -27,7 +27,7 @@
 #include "iAHistogramStackGrid.h"
 
 #include <iATransferFunction.h>
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 
 #include <QComboBox>
 #include <QHBoxLayout>
@@ -53,7 +53,7 @@ void iAHistogramStack::initialize(QString const names[3])
 		m_labels.push_back(l);
 	}
 
-	QVector<iADiagramFctWidget*> histograms;
+	QVector<iAChartWithFunctionsWidget*> histograms;
 	histograms.push_back(m_tmw->w_histogram(0).data());
 	histograms.push_back(m_tmw->w_histogram(1).data());
 	histograms.push_back(m_tmw->w_histogram(2).data());

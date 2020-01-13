@@ -3,7 +3,7 @@
 #include "dlg_AdaptiveThreshold.h"
 #include "ImageProcessingHelper.h"
 
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 #include <charts/iAPlot.h>
 #include <charts/iAPlotData.h>
 #include <iAConsole.h>

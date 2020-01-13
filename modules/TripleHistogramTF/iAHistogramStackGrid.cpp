@@ -21,7 +21,7 @@
 
 #include "iAHistogramStackGrid.h"
 
-#include "charts/iADiagramFctWidget.h"
+#include "charts/iAChartWithFunctionsWidget.h"
 #include "iASimpleSlicerWidget.h"
 
 #include <QGridLayout>
@@ -30,7 +30,7 @@
 
 iAHistogramStackGrid::iAHistogramStackGrid(
 	QWidget *parent,
-	QVector<iADiagramFctWidget*> const & histograms,
+	QVector<iAChartWithFunctionsWidget*> const & histograms,
 	QVector<iASimpleSlicerWidget*> const & slicers,
 	QVector<QLabel*> const & labels,
 	Qt::WindowFlags f)

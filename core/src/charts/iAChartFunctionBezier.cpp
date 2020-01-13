@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAChartFunctionBezier.h"
 
-#include "charts/iADiagramFctWidget.h"
+#include "charts/iAChartWithFunctionsWidget.h"
 #include "iAMapper.h"
 #include "iAMathUtility.h"
 
@@ -30,7 +30,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 
-iAChartFunctionBezier::iAChartFunctionBezier(iADiagramFctWidget *chart, QColor &color, bool res)
+iAChartFunctionBezier::iAChartFunctionBezier(iAChartWithFunctionsWidget *chart, QColor &color, bool res)
 	: iAChartFunction(chart),
 	m_selectedPoint(-1),
 	m_color(color)
@@ -153,14 +153,14 @@ void iAChartFunctionBezier::draw(QPainter &painter, QColor penColor, int lineWid
 				(mod == 2 && (l == m_selectedPoint || l == m_selectedPoint +1 || l == m_selectedPoint +2)))
 			{
 				currentColor = redColor;
-				radius = iADiagramFctWidget::POINT_RADIUS;
-				size = iADiagramFctWidget::POINT_SIZE;
+				radius = iAChartWithFunctionsWidget::POINT_RADIUS;
+				size = iAChartWithFunctionsWidget::POINT_SIZE;
 			}
 			else
 			{
 				currentColor = penColor;
-				radius = iADiagramFctWidget::SELECTED_POINT_RADIUS;
-				size  = iADiagramFctWidget::SELECTED_POINT_SIZE;
+				radius = iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS;
+				size  = iAChartWithFunctionsWidget::SELECTED_POINT_SIZE;
 			}
 
 			// is function point?
@@ -200,10 +200,10 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 		viewX = d2vX(viewPoints[pointIndex].x());
 		viewY = d2vY(viewPoints[pointIndex].y());
 
-		if ((pointIndex % 3 == 0 && lx >= viewX-iADiagramFctWidget::POINT_RADIUS && lx <= viewX+iADiagramFctWidget::POINT_RADIUS &&
-			ly >= viewY-iADiagramFctWidget::POINT_RADIUS && ly <= viewY+iADiagramFctWidget::POINT_RADIUS) ||
-			(lx >= viewX-iADiagramFctWidget::POINT_RADIUS/2 && lx <= viewX+iADiagramFctWidget::POINT_RADIUS/2 &&
-			ly >= viewY-iADiagramFctWidget::POINT_RADIUS/2 && ly <= viewY+iADiagramFctWidget::POINT_RADIUS/2))
+		if ((pointIndex % 3 == 0 && lx >= viewX-iAChartWithFunctionsWidget::POINT_RADIUS && lx <= viewX+iAChartWithFunctionsWidget::POINT_RADIUS &&
+			ly >= viewY-iAChartWithFunctionsWidget::POINT_RADIUS && ly <= viewY+iAChartWithFunctionsWidget::POINT_RADIUS) ||
+			(lx >= viewX-iAChartWithFunctionsWidget::POINT_RADIUS/2 && lx <= viewX+iAChartWithFunctionsWidget::POINT_RADIUS/2 &&
+			ly >= viewY-iAChartWithFunctionsWidget::POINT_RADIUS/2 && ly <= viewY+iAChartWithFunctionsWidget::POINT_RADIUS/2))
 
 		{
 			index = pointIndex;

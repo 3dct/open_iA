@@ -26,7 +26,7 @@
 #include <vtkSmartPointer.h>
 
 class iAChartFunction;
-class iADiagramFctWidget;
+class iAChartWithFunctionsWidget;
 
 class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
@@ -38,7 +38,7 @@ class dlg_TFTable : public dlg_TFTableWidgetConnector
 	Q_OBJECT
 
 public:
-	dlg_TFTable( iADiagramFctWidget * parent, iAChartFunction* func );
+	dlg_TFTable( iAChartWithFunctionsWidget * parent, iAChartFunction* func );
 
 public slots:
 	void changeColor();
@@ -58,5 +58,5 @@ private:
 	QColor m_newPointColor;
 	double m_xRange[2];
 	double m_oldItemValue;
-	iADiagramFctWidget* m_parent;
+	iAChartWithFunctionsWidget* m_parent;
 };

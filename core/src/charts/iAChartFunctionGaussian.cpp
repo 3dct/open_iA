@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAChartFunctionGaussian.h"
 
-#include "charts/iADiagramFctWidget.h"
+#include "charts/iAChartWithFunctionsWidget.h"
 #include "iAMapper.h"
 #include "iAMathUtility.h"
 
@@ -30,7 +30,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 
-iAChartFunctionGaussian::iAChartFunctionGaussian(iADiagramFctWidget *chart, QColor &color, bool res):
+iAChartFunctionGaussian::iAChartFunctionGaussian(iAChartWithFunctionsWidget *chart, QColor &color, bool res):
 	iAChartFunction(chart),
 	m_color(color),
 	m_sigma(0.0),
@@ -122,8 +122,8 @@ void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidt
 		painter.setBrush(QBrush(color));
 		painter.setPen(pen);
 
-		int radius = iADiagramFctWidget::POINT_RADIUS;
-		int size = iADiagramFctWidget::POINT_SIZE;
+		int radius = iAChartWithFunctionsWidget::POINT_RADIUS;
+		int size = iAChartWithFunctionsWidget::POINT_SIZE;
 
 		pen.setWidth(3);
 		pen.setColor(redColor);
@@ -150,14 +150,14 @@ int iAChartFunctionGaussian::selectPoint(QMouseEvent *event, int*)
 	int viewXLeftSigmaPoint  = d2vX(m_mean-m_sigma);
 	int viewXRightSigmaPoint = d2vX(m_mean+m_sigma);
 
-	if (lx >= viewXLeftSigmaPoint-iADiagramFctWidget::POINT_RADIUS/2 && lx <= viewXLeftSigmaPoint+iADiagramFctWidget::POINT_RADIUS/2 &&
-		ly >= viewYPoint-iADiagramFctWidget::POINT_RADIUS/2 && ly <= viewYPoint+iADiagramFctWidget::POINT_RADIUS/2)
+	if (lx >= viewXLeftSigmaPoint-iAChartWithFunctionsWidget::POINT_RADIUS/2 && lx <= viewXLeftSigmaPoint+iAChartWithFunctionsWidget::POINT_RADIUS/2 &&
+		ly >= viewYPoint-iAChartWithFunctionsWidget::POINT_RADIUS/2 && ly <= viewYPoint+iAChartWithFunctionsWidget::POINT_RADIUS/2)
 		m_selectedPoint = 1;
-	else if (lx >= viewXRightSigmaPoint-iADiagramFctWidget::POINT_RADIUS/2 && lx <= viewXRightSigmaPoint+iADiagramFctWidget::POINT_RADIUS/2 &&
-			ly >= viewYPoint-iADiagramFctWidget::POINT_RADIUS/2 && ly <= viewYPoint+iADiagramFctWidget::POINT_RADIUS/2)
+	else if (lx >= viewXRightSigmaPoint-iAChartWithFunctionsWidget::POINT_RADIUS/2 && lx <= viewXRightSigmaPoint+iAChartWithFunctionsWidget::POINT_RADIUS/2 &&
+			ly >= viewYPoint-iAChartWithFunctionsWidget::POINT_RADIUS/2 && ly <= viewYPoint+iAChartWithFunctionsWidget::POINT_RADIUS/2)
 		m_selectedPoint = 2;
-	else if (lx >= viewXPoint-iADiagramFctWidget::POINT_RADIUS && lx <= viewXPoint+iADiagramFctWidget::POINT_RADIUS &&
-			ly >= viewYPoint-iADiagramFctWidget::POINT_RADIUS && ly <= viewYPoint+iADiagramFctWidget::POINT_RADIUS)
+	else if (lx >= viewXPoint-iAChartWithFunctionsWidget::POINT_RADIUS && lx <= viewXPoint+iAChartWithFunctionsWidget::POINT_RADIUS &&
+			ly >= viewYPoint-iAChartWithFunctionsWidget::POINT_RADIUS && ly <= viewYPoint+iAChartWithFunctionsWidget::POINT_RADIUS)
 		m_selectedPoint = 0;
 
 	else

@@ -44,7 +44,7 @@ class dlg_TFTable;
 class MdiChild;
 
 //! A chart widget that can also show functions overlaid over the chart area (transfer function, Gaussian and Bezier curves)
-class open_iA_Core_API iADiagramFctWidget : public iAChartWidget
+class open_iA_Core_API iAChartWithFunctionsWidget : public iAChartWidget
 {
 	Q_OBJECT
 
@@ -56,14 +56,9 @@ public:
 	static const int POINT_RADIUS = 6/*4*/; //looks better
 	static const int POINT_SIZE = 2*POINT_RADIUS;
 
-	static const int SELECTED_PIE_RADIUS = 16;
-	static const int SELECTED_PIE_SIZE = 2 * SELECTED_PIE_RADIUS;
-	static const int PIE_RADIUS = 16;
-	static const int PIE_SIZE = 2 * PIE_RADIUS;
-
-	iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
+	iAChartWithFunctionsWidget(QWidget *parent, MdiChild *mdiChild,
 		QString const & label = "Greyvalue", QString const & yLabel = "");
-	virtual ~iADiagramFctWidget();
+	virtual ~iAChartWithFunctionsWidget();
 
 	//! Get the index of the selected point in the selected function.
 	int selectedFuncPoint() const;
