@@ -336,7 +336,7 @@ QMenu * iAModuleDispatcher::getMenuWithTitle(QMenu * parentMenu, QString const &
 void  iAModuleDispatcher::AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable)
 {
 	AddModuleAction(action, isDisablable);
-	foreach(QAction * curAct, menu->actions())
+	for(QAction * curAct: menu->actions())
 	{
 		if (curAct->text() > action->text())
 		{

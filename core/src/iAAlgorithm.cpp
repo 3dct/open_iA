@@ -51,8 +51,10 @@ iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALog
 
 iAAlgorithm::~iAAlgorithm()
 {
-	foreach(iAConnector* c, m_connectors)
+	for (iAConnector* c : m_connectors)
+	{
 		delete c;
+	}
 	m_connectors.clear();
 	delete m_progressObserver;
 }

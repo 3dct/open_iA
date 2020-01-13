@@ -83,9 +83,11 @@ void iAPreviewSPLOMView::LoadDatasets()
 {
 	clear();
 	//parse some info
-	if( m_datasets.isEmpty() )
+	if (m_datasets.isEmpty())
+	{
 		return;
-	foreach( const QString & d, m_datasets )
+	}
+	for (const QString & d: m_datasets)
 	{
 		QString datasetFolder = m_datasetsDir + "/" + d;
 		QString fileName = getSliceFilename( datasetFolder, 0 );
@@ -100,8 +102,10 @@ void iAPreviewSPLOMView::LoadDatasets()
 	emit sliceNumbersChanged( m_sliceNumberLst );
 
 	QSignalBlocker blockcbDatasetsSignals(cbDatasets);
-	foreach( const QString & d, m_datasets )
-		cbDatasets->addItem( d );
+	for (const QString& d : m_datasets)
+	{
+		cbDatasets->addItem(d);
+	}
 	UpdatePixmap();
 
 	m_preview->ResetROI();

@@ -76,12 +76,13 @@ void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList
 				}
 			}
 			
-			for (unsigned int h = 0; h < coordList.size(); ++h)
+			for (int h = 0; h < coordList.size(); ++h)
 			{
 				typename InputImageType::IndexType c;
 				for (int i = 0; i < DIM; i++)
+				{
 					c[i] = coordList[h][i];
-				
+				}
 				icData data(input->GetPixel(c), c);
 				intensityList.append(data);
 			}

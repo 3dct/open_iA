@@ -198,12 +198,12 @@ QPointF iAScatterPlot::getPointPosition( size_t index ) const
 
 void iAScatterPlot::printTicksInfo( QList<double> * posX, QList<double> * posY, QList<QString> * textX, QList<QString> * textY ) const
 {
-	foreach( double t, m_ticksX )
+	for (double t : m_ticksX)
 	{
 		posX->push_back( p2x( t ) + m_globRect.x() );
 		textX->push_back( QString::number( t ) );
 	}
-	foreach( double t, m_ticksY )
+	for (double t : m_ticksY)
 	{
 		posY->push_back( p2y( t ) + m_globRect.y() );
 		textY->push_back( QString::number( t ) );
@@ -614,23 +614,25 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 
 	double minDist = pow( pPtMag * ptRad, 2 );
 	size_t res = NoPointIndex;
-	for ( int x = xrange[0]; x < xrange[1]; ++x )
-		for ( int y = yrange[0]; y < yrange[1]; ++y )
+	for (int x = xrange[0]; x < xrange[1]; ++x)
+	{
+		for (int y = yrange[0]; y < yrange[1]; ++y)
 		{
-			binInd = getBinIndex( x, y );
-			for ( int indx = m_pointsGrid[binInd].size() - 1; indx >= 0; --indx )//foreach( int i, m_pointsGrid[binInd] )
+			binInd = getBinIndex(x, y);
+			for (int indx = m_pointsGrid[binInd].size() - 1; indx >= 0; --indx)
 			{
 				size_t ptIdx = m_pointsGrid[binInd][indx];
-				double pixelX = p2x( m_splomData->paramData( m_paramIndices[0] )[ptIdx] );
-				double pixelY = p2y( m_splomData->paramData( m_paramIndices[1] )[ptIdx] );
+				double pixelX = p2x(m_splomData->paramData(m_paramIndices[0])[ptIdx]);
+				double pixelY = p2y(m_splomData->paramData(m_paramIndices[1])[ptIdx]);
 				double dist = pow(pixelX - mpos.x(), 2) + pow(pixelY - mpos.y(), 2);
-				if ( dist < minDist && m_splomData->matchesFilter(ptIdx) )
+				if (dist < minDist && m_splomData->matchesFilter(ptIdx))
 				{
 					minDist = dist;
 					res = ptIdx;
 				}
 			}
 		}
+	}
 	return res;
 }
 
@@ -875,20 +877,22 @@ void iAScatterPlot::drawTicks( QPainter &painter )
 {
 	painter.save();
 	QPen p;	p.setColor( settings.tickLineColor ); p.setStyle( Qt::DotLine ); painter.setPen( p );
-	foreach( double t, m_ticksX )
+	for (double t: m_ticksX)
 	{
 		double loc_t = p2x( t );
 		painter.drawLine( QPointF( loc_t, m_locRect.top() ), QPointF( loc_t, m_locRect.bottom() ) );
 	}
-	foreach( double t, m_ticksY )
+	for (double t : m_ticksY)
 	{
 		double loc_t = p2y( t );
 		painter.drawLine( QPointF( m_locRect.left(), loc_t ), QPointF( m_locRect.right(), loc_t ) );
 	}
 
 	//if maximized plot also draw tick labels
-	if ( m_isMaximizedPlot )
-		drawMaximizedLabels( painter );
+	if (m_isMaximizedPlot)
+	{
+		drawMaximizedLabels(painter);
+	}
 
 	painter.restore();
 }
@@ -904,11 +908,15 @@ void iAScatterPlot::drawMaximizedLabels( QPainter &painter )
 		tRH = settings.textRectHeight;
 	painter.setPen( settings.tickLabelColor );
 
-	foreach( double t, m_ticksY )
-		painter.drawText( QRectF( -tO, p2y( t ) - tO, tO - tS, 2 * tO ), Qt::AlignRight | Qt::AlignVCenter, QString::number( t ) );
+	for (double t : m_ticksY)
+	{
+		painter.drawText(QRectF(-tO, p2y(t) - tO, tO - tS, 2 * tO), Qt::AlignRight | Qt::AlignVCenter, QString::number(t));
+	}
 	painter.rotate( -90 );
-	foreach( double t, m_ticksX )
-		painter.drawText( QRectF( tS, p2x( t ) - tO, tO - tS, 2 * tO ), Qt::AlignLeft | Qt::AlignVCenter, QString::number( t ) );
+	for (double t : m_ticksX)
+	{
+		painter.drawText(QRectF(tS, p2x(t) - tO, tO - tS, 2 * tO), Qt::AlignLeft | Qt::AlignVCenter, QString::number(t));
+	}
 
 	//parameter names
 	QFont font = painter.font(); font.setBold( true ); painter.setFont( font );

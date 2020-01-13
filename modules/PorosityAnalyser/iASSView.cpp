@@ -113,8 +113,10 @@ iASSView::iASSView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 
 iASSView::~iASSView()
 {
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		delete s;
+	}
 	updateSettings();
 }
 
@@ -215,7 +217,7 @@ void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * data 
 void iASSView::SetData( const QTableWidget * data, QString selText )
 {
 	m_sliceMgr->removeAll();
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
 	{
 		m_slicerViewsLayout->removeWidget( s->container );
 		delete s;
@@ -236,7 +238,7 @@ void iASSView::SetData( const QTableWidget * data, QString selText )
 void iASSView::SetCompareData( const QList< QPair<QTableWidget *, QString> > * dataList )
 {
 	m_sliceMgr->removeAll();
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
 	{
 		m_slicerViewsLayout->removeWidget( s->container );
 		delete s;
@@ -255,23 +257,29 @@ void iASSView::SetCompareData( const QList< QPair<QTableWidget *, QString> > * d
 	}
 
 	SetDataTo3D();
-	
-	foreach( iASSSlicer *sv, m_slicerViews )
-		m_sliceMgr->addToBundle( sv->slicer->renderer() );
+
+	for (iASSSlicer* s : m_slicerViews)
+	{
+		m_sliceMgr->addToBundle( s->slicer->renderer() );
+	}
 }
 
 void iASSView::setSlicerDirection( int cbIndex )
 {
 	m_modeInd = cbIndex;
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->changeMode( mode[m_modeInd] );
+	}
 	InitializeGUI();
 }
 
 void iASSView::setSliceSpinBox( int sn )
 {
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->slicer->setSliceNumber( sn );
+	}
 	QSignalBlocker block( verticalScrollBar );
 	verticalScrollBar->setValue( sn );
 }
@@ -280,8 +288,10 @@ void iASSView::setSliceScrollBar( int sn )
 {
 	sbNum->repaint();
 	verticalScrollBar->repaint();
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->slicer->setSliceNumber( sn );
+	}
 	QSignalBlocker block( sbNum );
 	sbNum->setValue( sn );
 }
@@ -289,29 +299,37 @@ void iASSView::setSliceScrollBar( int sn )
 void iASSView::setShowMasks( int state )
 {
 	bool visible = state;
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->enableMasksChannel( visible );
+	}
 }
 
 void iASSView::setMasksOpacity( int sliderVal )
 {
 	double opacity = (double)sliderVal / ( m_SSViewSettings->sMasksOpacity->maximum() - m_SSViewSettings->sMasksOpacity->minimum() );
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->setMasksOpacity( opacity );
+	}
 }
 
 void iASSView::setShowGT( int state )
 {
 	bool visible = state;
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->enableGTChannel( visible );
+	}
 }
 
 void iASSView::setGTOpacity( int sliderVal )
 {
 	double opacity = (double)sliderVal / (m_SSViewSettings->sGTOpacity->maximum() - m_SSViewSettings->sGTOpacity->minimum());
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->setGTOpacity( opacity );
+	}
 }
 
 void iASSView::showSettings()
@@ -322,8 +340,10 @@ void iASSView::showSettings()
 void iASSView::setShowContours( int state )
 {
 	bool visible = state;
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->enableContours( visible );
+	}
 }
 
 void iASSView::attachSegm3DView( iASegm3DView * m_segm3DView )
@@ -339,14 +359,18 @@ void iASSView::SetDataTo3D()
 	QList<vtkPiecewiseFunction*> otf;
 	QList<vtkColorTransferFunction*> ctf;
 	QStringList slicerNames;
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
 	{
 		imgData.push_back( s->masksChan->imgData );
 		vtkPolyData * pd = 0;
-		if( NeedsDistances() )
-			pd = s->GetDeviationPolyData( m_deviationMode );
-		else if( NeedsPolyData() )
+		if (NeedsDistances())
+		{
+			pd = s->GetDeviationPolyData(m_deviationMode);
+		}
+		else if (NeedsPolyData())
+		{
 			pd = s->GetMedPolyData();
+		}
 		polyData.push_back( pd );
 		otf.push_back( s->masksChan->vol_otf );
 		ctf.push_back( s->masksChan->tf );
@@ -384,13 +408,17 @@ void iASSView::setDeviationMode( int mode )
 void iASSView::UpdatePolyData()
 {
 	QList<vtkPolyData*> polyData;
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
 	{
 		vtkPolyData * pd = 0;
-		if( NeedsDistances() )
-			pd = s->GetDeviationPolyData( m_deviationMode );
-		else if( NeedsPolyData() )
+		if (NeedsDistances())
+		{
+			pd = s->GetDeviationPolyData(m_deviationMode);
+		}
+		else if (NeedsPolyData())
+		{
 			pd = s->GetMedPolyData();
+		}
 		polyData.push_back( pd );
 	}
 	m_segm3DViewExtrnl->SetPolyData( polyData );

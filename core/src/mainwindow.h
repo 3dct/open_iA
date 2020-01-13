@@ -248,11 +248,13 @@ private:
 template <typename T> QList<T*> MainWindow::childList(QMdiArea::WindowOrder order)
 {
 	QList<T*> res;
-	foreach(QMdiSubWindow *window, mdiArea->subWindowList(order))
+	for (QMdiSubWindow *window: mdiArea->subWindowList(order))
 	{
 		T * child = dynamic_cast<T*>(window->widget());
 		if (child)
+		{
 			res.append(child);
+		}
 	}
 	return res;
 }
@@ -261,6 +263,8 @@ template <typename T> T * MainWindow::activeChild()
 {
 	int subWndCnt = childList<T>().size();
 	if (subWndCnt > 0)
+	{
 		return childList<T>(QMdiArea::ActivationHistoryOrder).last();
+	}
 	return nullptr;
 }

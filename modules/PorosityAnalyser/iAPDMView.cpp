@@ -378,7 +378,7 @@ void iAPDMView::addWidgetToTable( int r, int c, QWidget * plot )
 void iAPDMView::setSelection( QModelIndexList selInds )
 {
 	m_selectedIndices = selInds;
-	foreach( QModelIndex i, selInds )
+	for (QModelIndex i: selInds )
 	{	
 		QWidget * w = (QWidget*)m_indices.key( i )->parent();
 		SetWidgetSelectionStyle( w, true );

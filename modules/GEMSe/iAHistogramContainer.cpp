@@ -182,7 +182,7 @@ void iAHistogramContainer::UpdateClusterChartData(QVector<QSharedPointer<iAImage
 			continue;
 		}
 		m_charts[chartID]->ClearClusterData();
-		foreach(QSharedPointer<iAImageTreeNode> const node, selection)
+		for(QSharedPointer<iAImageTreeNode> const node: selection)
 		{
 			QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
 			m_charts[chartID]->AddClusterData(iAParamHistogramData::create(

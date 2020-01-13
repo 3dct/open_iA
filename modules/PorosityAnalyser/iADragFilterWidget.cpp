@@ -644,8 +644,10 @@ QString iADragFilterWidget::generateDatasetTooltip( QString dataset )
 
 void iADragFilterWidget::updateDatasetTooltip( QStringList filesToUpdateList )
 {
-	foreach( QString s, filesToUpdateList )
-		this->findChild<QLabel*>( QString("dataset_").append(s) )->setToolTip(generateDatasetTooltip( s ) );
+	for (QString s : filesToUpdateList)
+	{
+		this->findChild<QLabel*>(QString("dataset_").append(s))->setToolTip(generateDatasetTooltip(s));
+	}
 }
 
 QLabel* iADragFilterWidget::getLabel( QString name )

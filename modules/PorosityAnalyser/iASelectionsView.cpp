@@ -71,14 +71,20 @@ void iASelectionsView::saveCurrentSelection()
 void iASelectionsView::loadSelection()
 {
 	int row = listWidget->currentRow();
-	if( row < 0 ) return;
+	if (row < 0)
+	{
+		return;
+	}
 	emit loadedSelection( m_selections[row] );
 }
 
 void iASelectionsView::deleteSelection()
 {
 	int row = listWidget->currentRow();
-	if( row < 0 ) return;
+	if (row < 0)
+	{
+		return;
+	}
 	listWidget->takeItem( row );
 	delete m_selections[row];
 	m_selections.removeAt( row );
@@ -87,7 +93,10 @@ void iASelectionsView::deleteSelection()
 void iASelectionsView::visualizeSelectionSlot()
 {
 	int row = listWidget->currentRow();
-	if( row < 0 ) return;
+	if (row < 0)
+	{
+		return;
+	}
 	QString selText = listWidget->item( row )->text();
 	m_selections[row]->selText = selText;
 	emit visualizeSelection( m_selections[row] );
@@ -98,13 +107,17 @@ void iASelectionsView::compareSelectionsSlot()
 	QList<int> checkedRows;
 	for( int i = 0; i < listWidget->count(); ++i )
 	{
-		if( listWidget->item( i )->checkState() )
-			checkedRows.append( i ) ;
+		if (listWidget->item(i)->checkState())
+		{
+			checkedRows.append(i);
+		}
 	}
-	if( checkedRows.size() <= 1 )
+	if (checkedRows.size() <= 1)
+	{
 		return;
+	}
 	QList<iASelection*> sels;
-	foreach( int row, checkedRows )
+	for (int row: checkedRows)
 	{
 		QString selText = listWidget->item( row )->text();
 		m_selections[row]->selText = selText;
@@ -112,5 +125,3 @@ void iASelectionsView::compareSelectionsSlot()
 	}
 	emit compareSelections( sels );
 }
-
-

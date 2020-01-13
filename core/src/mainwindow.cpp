@@ -1111,8 +1111,10 @@ void MainWindow::slicerSettings()
 
 	iASlicerSettings const & slicerSettings = child->slicerSettings();
 	QStringList mouseCursorTypes;
-	foreach( QString mode, mouseCursorModes )
-		mouseCursorTypes << ( ( mode == slicerSettings.SingleSlicer.CursorMode ) ? QString( "!" ) : QString() ) + mode;
+	for (QString mode : mouseCursorModes)
+	{
+		mouseCursorTypes << ((mode == slicerSettings.SingleSlicer.CursorMode) ? QString("!") : QString()) + mode;
+	}
 
 	QList<QVariant> inPara; 	inPara  << (slicerSettings.LinkViews ? tr("true") : tr("false"))
 		<< (slicerSettings.SingleSlicer.ShowPosition ? tr("true") : tr("false"))

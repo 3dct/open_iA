@@ -1014,7 +1014,7 @@ void runBatch( const QList<PorosityFilterID> & filterIds, ImagePointer & image, 
 	ImagePointer curImage = image;
 	results.startTime = QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat );
 	int pind = 0;
-	foreach( PorosityFilterID fid, filterIds )
+	for (PorosityFilterID fid: filterIds)
 	{
 		QElapsedTimer t;
 		t.start();
@@ -1167,10 +1167,14 @@ void iARunBatchThread::initRunsCSVFile( QTableWidget & runsCSV, QString batchDir
 		//Insert a header
 		runsCSV.setRowCount( 1 );
 		runsCSV.setColumnCount( runsCSVHeader.size() + paramNames.size() );
-		foreach( const QString l, runsCSVHeader )
-			runsCSV.setItem( 0, col++, new QTableWidgetItem( l ) );
-		foreach( const ParamNameType pnt, paramNames )
-			runsCSV.setItem( 0, col++, new QTableWidgetItem( pnt.name() ) );
+		for (const QString l : runsCSVHeader)
+		{
+			runsCSV.setItem(0, col++, new QTableWidgetItem(l));
+		}
+		for (const ParamNameType pnt : paramNames)
+		{
+			runsCSV.setItem(0, col++, new QTableWidgetItem(pnt.name()));
+		}
 	}
 	iACSVToQTableWidgetConverter::saveToCSVFile( runsCSV, runsCSVFile.fileName() );
 }
@@ -1250,8 +1254,10 @@ void iARunBatchThread::saveResultsToRunsCSV( RunInfo & results, QString masksDir
 void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, QString datasetName, QString batchDir, QTableWidget * settingsCSV, int row )
 {
 	QList<ParamNameType> paramsNameType;
-	foreach( PorosityFilterID fid, filterIds )
-		paramsNameType.append( FilterIdToParamList[fid] );
+	for (PorosityFilterID fid: filterIds)
+	{
+		paramsNameType.append(FilterIdToParamList[fid]);
+	}
 	int numParams = paramsNameType.size();
 
 	QString masksDir = "masks";
@@ -1261,8 +1267,10 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 	bool randSampling = isRandomSampling( settingsCSV, row );
 
 	QList<IParameterInfo*> params;
-	for( int i = 0; i < numParams; i++ )
-		params.push_back( getParameterInfo( paramsNameType.at( i ), settingsCSV, row, 3 + i ) );
+	for (int i = 0; i < numParams; i++)
+	{
+		params.push_back(getParameterInfo(paramsNameType.at(i), settingsCSV, row, 3 + i));
+	}
 
 	double totalNumSamples = 1.0;
 	if( randSampling )
@@ -1272,8 +1280,10 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 	}
 	else
 	{
-		for( int i = 0; i < numParams; ++i )
+		for (int i = 0; i < numParams; ++i)
+		{
 			totalNumSamples *= params[i]->numSamples;
+		}
 	}
 
 	// initialize runsCSV data
@@ -1403,8 +1413,10 @@ void iARunBatchThread::updateComputerCSVFile( QTableWidget & settingsCSV )
 		//Insert a header
 		m_computerCSVData.setRowCount( 1 );
 		m_computerCSVData.setColumnCount( computerCSVHeader.size() );
-		foreach( const QString l, computerCSVHeader )
-			m_computerCSVData.setItem( 0, col++, new QTableWidgetItem( l ) );
+		for (const QString l : computerCSVHeader)
+		{
+			m_computerCSVData.setItem(0, col++, new QTableWidgetItem(l));
+		}
 	}
 
 	//Update computer CSV with new entries

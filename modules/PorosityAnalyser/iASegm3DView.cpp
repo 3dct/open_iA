@@ -62,19 +62,23 @@ iASegm3DView::iASegm3DView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */
 
 void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPolyData*> polyData, QList<vtkPiecewiseFunction*> otf, QList<vtkColorTransferFunction*> ctf, QStringList slicerNames )
 {
-	for (auto i: imgData)
+	for (auto i : imgData)
+	{
 		if (!i)
+		{
 			DEBUG_LOG("Image data is nullptr!");
+		}
+	}
 	m_range = 0.0;
 	m_renMgr->removeAll();
-	foreach( iASegm3DViewData* sd, m_data )
+	for (iASegm3DViewData* sd: m_data)
 	{
 		m_layout->removeWidget( sd->GetWidget() );
 		delete sd;
 	}
 	m_data.clear();
 
-	foreach( QWidget* c, m_containerList )
+	for (QWidget* c: m_containerList)
 	{
 		m_layout->removeWidget( c );
 		delete c;
@@ -104,8 +108,10 @@ void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPo
 
 		m_layout->addWidget( container );
 	}
-	foreach( iASegm3DViewData* sd, m_data )
+	for (iASegm3DViewData* sd: m_data)
+	{
 		sd->UpdateRange();
+	}
 }
 
 void iASegm3DView::SetPolyData( QList<vtkPolyData*> polyData )
@@ -117,41 +123,55 @@ void iASegm3DView::SetPolyData( QList<vtkPolyData*> polyData )
 		iASegm3DViewData * sd = m_data[i];
 		sd->SetPolyData( polyData[i] );
 	}
-	foreach( iASegm3DViewData* sd, m_data )
+	for (iASegm3DViewData* sd : m_data)
+	{
 		sd->UpdateRange();
+	}
 }
 
 iASegm3DView::~iASegm3DView()
 {
-	foreach( iASegm3DViewData* sd, m_data )
+	for (iASegm3DViewData* sd : m_data)
+	{
 		delete sd;
+	}
 }
 
 void iASegm3DView::ShowVolume( bool visible )
 {
-	foreach( iASegm3DViewData* sd, m_data )
+	for (iASegm3DViewData* sd : m_data)
+	{
 		sd->ShowVolume( visible );
+	}
 }
 
 void iASegm3DView::ShowSurface( bool visible )
 {
-	foreach( iASegm3DViewData* sd, m_data )
-		sd->ShowSurface( visible );
+	for (iASegm3DViewData* sd : m_data)
+	{
+		sd->ShowSurface(visible);
+	}
 }
 
 void iASegm3DView::SetSensitivity( double sensitivity )
 {
 	m_range = 0.0;
-	foreach( iASegm3DViewData* sd, m_data )
+	for (iASegm3DViewData* sd : m_data)
+	{
 		sd->SetSensitivity( sensitivity );
-	foreach( iASegm3DViewData* sd, m_data )
+	}
+	for (iASegm3DViewData* sd: m_data)
+	{
 		sd->UpdateRange();
+	}
 }
 
 void iASegm3DView::ShowWireframe( bool visible )
 {
-	foreach( iASegm3DViewData* sd, m_data )
+	for (iASegm3DViewData* sd : m_data)
+	{
 		sd->ShowWireframe( visible );
+	}
 }
 
 

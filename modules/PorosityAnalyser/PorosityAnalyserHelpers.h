@@ -516,8 +516,10 @@ inline bool incrementParameterSet( QList<IParameterInfo*> & parameters )
 
 inline void randomlySampleParameters( QList<IParameterInfo*> & parameters )
 {
-	foreach( IParameterInfo * p, parameters )
+	for (IParameterInfo* p : parameters)
+	{
 		p->randomInRange();
+	}
 }
 
 template<typename T>
@@ -528,15 +530,23 @@ inline ParameterInfo<T> * getParameterInfoType( QString paramName, QTableWidget 
 	paramInfo->name = paramName;
 	for( int i = 0; i < 2; ++i )
 	{
-		if( sameType<T, int>::value )
-			paramInfo->range[i] = thrStr.section( ' ', i, i ).toInt();
-		if( sameType<T, float>::value )
-			paramInfo->range[i] = thrStr.section( ' ', i, i ).toFloat();
-		if( sameType<T, double>::value )
-			paramInfo->range[i] = thrStr.section( ' ', i, i ).toDouble();
+		if (sameType<T, int>::value)
+		{
+			paramInfo->range[i] = thrStr.section(' ', i, i).toInt();
+		}
+		if (sameType<T, float>::value)
+		{
+			paramInfo->range[i] = thrStr.section(' ', i, i).toFloat();
+		}
+		if (sameType<T, double>::value)
+		{
+			paramInfo->range[i] = thrStr.section(' ', i, i).toDouble();
+		}
 	}
-	if( thrStr.count( ' ' ) == 2 )
-		paramInfo->numSamples = thrStr.section( ' ', -1 ).toInt();	//last Parameter = numSamples (no algo specific param)
+	if (thrStr.count(' ') == 2)
+	{
+		paramInfo->numSamples = thrStr.section(' ', -1).toInt();	//last Parameter = numSamples (no algo specific param)
+	}
 	paramInfo->reset();
 	return paramInfo;
 }
@@ -579,8 +589,10 @@ inline QList<PorosityFilterID> parseFiltersFromString( QString algName )
 {
 	QStringList algs = algName.split( "_" );
 	QList<PorosityFilterID> filterIds;
-	foreach( QString a, algs )
-		filterIds.append( FilterNameToId[a] );
+	for (QString a : algs)
+	{
+		filterIds.append(FilterNameToId[a]);
+	}
 	return filterIds;
 }
 

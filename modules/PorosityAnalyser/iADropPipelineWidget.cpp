@@ -208,8 +208,10 @@ void iADropPipelineWidget::mousePressEvent( QMouseEvent *event )
 
 		QList<PorosityFilterID> filterIds = parseFiltersFromString( pieceName[found] );
 		QList<ParamNameType> paramsNameType;
-		foreach( PorosityFilterID fid, filterIds )
-			paramsNameType.append( FilterIdToParamList[fid] );
+		for (PorosityFilterID fid: filterIds)
+		{
+			paramsNameType.append(FilterIdToParamList[fid]);
+		}
 
 		QSettings settings( organisationName, applicationName );
 		QString filterName = pieceName[found],

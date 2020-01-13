@@ -163,8 +163,10 @@ void dlg_TFTable::removeSelectedPoint()
 		}
 	}
 	std::sort( rowsToRemove.begin(), rowsToRemove.end(), std::greater<int>() );
-	foreach( int row, rowsToRemove )
-		table->removeRow( row );
+	for (int row : rowsToRemove)
+	{
+		table->removeRow(row);
+	}
 }
 
 void dlg_TFTable::updateHistogram()

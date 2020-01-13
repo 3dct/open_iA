@@ -332,20 +332,20 @@ void dlg_DynamicVolumeLines::visualizePath()
 	double *spacing = m_imgDataList[0]->GetSpacing();
 	auto pts = vtkSmartPointer<vtkPoints>::New();
 	auto pathSteps = m_DatasetIntensityMap.at(0).second.size();
-	QList<icData>  data = m_DatasetIntensityMap.at(0).second;
+	QList<icData>  pathData = m_DatasetIntensityMap.at(0).second;
 	double point[3];
-	for (unsigned int i = 0; i < pathSteps; ++i)
+	for (int i = 0; i < pathSteps; ++i)
 	{
-		point[0] = data[i].x * spacing[0];
-		point[1] = data[i].y * spacing[1];
-		point[2] = data[i].z * spacing[2];
+		point[0] = pathData[i].x * spacing[0];
+		point[1] = pathData[i].y * spacing[1];
+		point[2] = pathData[i].z * spacing[2];
 		pts->InsertNextPoint(point);
 	}
 
 	auto linesPolyData = vtkSmartPointer<vtkPolyData>::New();
 	linesPolyData->SetPoints(pts);
 	auto lines = vtkSmartPointer<vtkCellArray>::New();
-	for (unsigned int i = 0; i < pathSteps - 1; ++i)
+	for (int i = 0; i < pathSteps - 1; ++i)
 	{
 		auto line = vtkSmartPointer<vtkLine>::New();
 		line->GetPointIds()->SetId(0, i);
@@ -397,7 +397,7 @@ void dlg_DynamicVolumeLines::visualize()
 			m_linearScaledPlot->graph()->selectionDecorator()->setPen(p);
 			QSharedPointer<QCPGraphDataContainer> linearScaledPlotData(new QCPGraphDataContainer);
 			auto * funct = new iAFunction<double, double>();
-			for (unsigned int i = 0; i < it->second.size(); ++i)
+			for (int i = 0; i < it->second.size(); ++i)
 			{
 				linearScaledPlotData->add(QCPGraphData(double(i), it->second[i].intensity));
 				funct->insert(std::make_pair(i, it->second[i].intensity));
@@ -1497,41 +1497,45 @@ void setVoxelIntensity(
 void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGraphList)
 {
 	auto datasetsList = m_datasetsDir.entryList();
-	for (unsigned int i = 0; i < visSelGraphList.size(); ++i)
+	for (int i = 0; i < visSelGraphList.size(); ++i)
 	{
 		int datasetIdx = datasetsList.indexOf(visSelGraphList[i]->name());
 		auto selHilbertIndices = visSelGraphList[i]->selection().dataRanges();
 		auto pathSteps = m_DatasetIntensityMap[datasetIdx].second.size();
-		auto data = m_DatasetIntensityMap[datasetIdx].second;
+		auto pathData = m_DatasetIntensityMap[datasetIdx].second;
 		int scalarType = m_imgDataList[datasetIdx]->GetScalarType();
 
 		if (selHilbertIndices.size() < 1)
 		{
-			for (unsigned int hIdx = 0; hIdx < pathSteps; ++hIdx)
+			for (int hIdx = 0; hIdx < pathSteps; ++hIdx)
+			{
 				VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[datasetIdx],
-					data[hIdx].x, data[hIdx].y, data[hIdx].z, data[hIdx].intensity);
+					pathData[hIdx].x, pathData[hIdx].y, pathData[hIdx].z, pathData[hIdx].intensity);
+			}
 			m_nonlinearDataPointInfo->setVisible(false);
 		}
 		else
 		{
 			double const *r = m_mdiChild->histogram()->xBounds();
-			for (unsigned int hIdx = 0; hIdx < pathSteps; ++hIdx)
+			for (int hIdx = 0; hIdx < pathSteps; ++hIdx)
 			{
 				bool showVoxel = false;
-				for (unsigned int j = 0; j < selHilbertIndices.size(); ++j)
+				for (int j = 0; j < selHilbertIndices.size(); ++j)
 				{
 					if (hIdx >= selHilbertIndices.at(j).begin() && hIdx < selHilbertIndices.at(j).end())
 					{
 						VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[datasetIdx],
-							data[hIdx].x, data[hIdx].y, data[hIdx].z, data[hIdx].intensity);
+							pathData[hIdx].x, pathData[hIdx].y, pathData[hIdx].z, pathData[hIdx].intensity);
 						//qDebug() << "M3DRV shows voxel at Pos: " << data[hIdx].x << data[hIdx].y << data[hIdx].z << " Hidx: " << hIdx;
 						showVoxel = true;
 						break;
 					}
 				}
 				if (!showVoxel)
+				{
 					VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[datasetIdx],
-						data[hIdx].x, data[hIdx].y, data[hIdx].z, r[0]);
+						pathData[hIdx].x, pathData[hIdx].y, pathData[hIdx].z, r[0]);
+				}
 			}
 		}
 
@@ -1610,7 +1614,7 @@ void dlg_DynamicVolumeLines::setSelectionForPlots(vtkPoints *selCellPoints)
 	// TODO: a single index idx is presented as a line (from idx to idx+1) in the plots,
 	// just paint a point in the plots for single indices (performance?)
 	auto pathSteps = m_DatasetIntensityMap.at(0).second.size();
-	auto data = m_DatasetIntensityMap.at(0).second;
+	auto pathData = m_DatasetIntensityMap.at(0).second;
 	QList<bool> selHilbertIdxList;
 	for (int i = 0; i < pathSteps; ++i)
 	{
@@ -1618,7 +1622,7 @@ void dlg_DynamicVolumeLines::setSelectionForPlots(vtkPoints *selCellPoints)
 		for (int j = 0; j < selCellPoints->GetNumberOfPoints(); ++j)
 		{
 			double *pt = selCellPoints->GetPoint(j);
-			if (data[i].x == pt[0] && data[i].y == pt[1] && data[i].z == pt[2])
+			if (pathData[i].x == pt[0] && pathData[i].y == pt[1] && pathData[i].z == pt[2])
 			{
 				//qDebug() << j << ".selCellPoints :" << pt[0] << pt[1] << pt[2] << "at Hidx: " << i;
 				found = true;

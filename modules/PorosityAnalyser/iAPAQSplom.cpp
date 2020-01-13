@@ -118,8 +118,10 @@ void iAPAQSplom::setSliceCounts( QList<int> sliceCnts )
 {
 	m_sliceCntLst = sliceCnts;
 	m_sliceNumPopupLst.clear();
-	foreach( const int & sc, m_sliceCntLst )
-		m_sliceNumPopupLst.push_back( sc*0.5 );
+	for (const int& sc : m_sliceCntLst)
+	{
+		m_sliceNumPopupLst.push_back(sc * 0.5);
+	}
 }
 
 void iAPAQSplom::setDatasetsDir( QString datsetsDir )
@@ -131,8 +133,10 @@ void iAPAQSplom::setDatasetsByIndices( QStringList selDatasets, QList<int> indic
 {
 	m_dsIndices = indices;
 	m_datasets.clear();
-	foreach( const QString & d, selDatasets )
-		m_datasets.push_back( m_datasetsDir + "/" + QFileInfo( d ).baseName() );
+	for (const QString& d: selDatasets)
+	{
+		m_datasets.push_back(m_datasetsDir + "/" + QFileInfo(d).baseName());
+	}
 }
 
 void iAPAQSplom::reemitFixedPixmap()
@@ -142,8 +146,10 @@ void iAPAQSplom::reemitFixedPixmap()
 		int dsInd = getDatasetIndexFromPointIndex( m_fixedPointInd );
 		QString sliceFilename = getSliceFilename( m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd] );
 		QImage fixedMaskImg;
-		if( !fixedMaskImg.load( sliceFilename, "PNG" ) )
+		if (!fixedMaskImg.load(sliceFilename, "PNG"))
+		{
 			return;
+		}
 		fixedMaskImg.setColor( 0, qRgba( 0, 0, 0, 0 ) );
 		fixedMaskImg.setColor( 1, qRgba( 0, 255, 0, maskOpacity ) );
 
@@ -151,7 +157,9 @@ void iAPAQSplom::reemitFixedPixmap()
 		emit maskHovered( &m_maskPxmp, dsInd );
 	}
 	else
-		emit maskHovered( nullptr, -1 );
+	{
+		emit maskHovered(nullptr, -1);
+	}
 }
 
 int iAPAQSplom::getDatasetIndexFromPointIndex(size_t pointIndex)

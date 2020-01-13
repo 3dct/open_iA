@@ -597,8 +597,10 @@ void dlg_ParamSpaceSampling::createHistoPlot()
 	// Get highest frequency from original histogram data
 	Q_ASSERT( m_valueData.size() > 0 );
 	m_highestFreq = std::numeric_limits<double>::min(); // everything is >= this
-	foreach( double v, m_valueData )
-		m_highestFreq = qMax( m_highestFreq, v );
+	for (double v : m_valueData)
+	{
+		m_highestFreq = qMax(m_highestFreq, v);
+	}
 
 	// Create histogram plot
 	m_histoPlot = new QCustomPlot( this );

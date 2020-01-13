@@ -57,8 +57,10 @@ bool iAVTKRendererManager::removeFromBundle( vtkRenderer* renderer )
 void iAVTKRendererManager::removeAll()
 {
 	m_commonCamera = 0;
-	foreach( vtkRenderer * r, m_renderers )
-		removeFromBundle( r );
+	for (vtkRenderer* r : m_renderers)
+	{
+		removeFromBundle(r);
+	}
 	m_renderers.clear();
 }
 
@@ -69,8 +71,10 @@ void iAVTKRendererManager::redrawOtherRenderers( vtkObject* /*caller*/, long uns
 		m_isRedrawn = true;
 		for( int i = 0; i < m_renderers.count(); i++ )
 		{
-			if( m_renderers[i]->GetRenderWindow() != callData )
+			if (m_renderers[i]->GetRenderWindow() != callData)
+			{
 				m_renderers[i]->GetRenderWindow()->Render();
+			}
 		}
 		m_isRedrawn = false;
 	}

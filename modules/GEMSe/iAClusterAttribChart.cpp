@@ -85,7 +85,7 @@ void iAClusterAttribChart::SetFilteredData(QSharedPointer<iAParamHistogramData> 
 void iAClusterAttribChart::ClearClusterData()
 {
 	m_charts->RemoveMarker();
-	foreach (QSharedPointer<iAPlot> drawer, m_clusterDrawer)
+	for (QSharedPointer<iAPlot> drawer: m_clusterDrawer)
 	{
 		m_charts->removePlot(drawer);
 	}

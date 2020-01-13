@@ -109,7 +109,7 @@ iAModalityList::iAModalityList() :
 
 bool iAModalityList::modalityExists(QString const & filename, int channel) const
 {
-	foreach(QSharedPointer<iAModality> mod, m_modalitiesActive)
+	for (QSharedPointer<iAModality> mod: m_modalitiesActive)
 	{
 		if (mod->fileName() == filename && mod->channel() == channel)
 		{
