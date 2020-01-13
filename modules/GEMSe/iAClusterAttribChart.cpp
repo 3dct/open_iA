@@ -77,9 +77,9 @@ void iAClusterAttribChart::SetAdditionalDrawer(QSharedPointer<iAPlot>& drawer, Q
 	m_charts->update();
 }
 
-void iAClusterAttribChart::SetFilteredData(QSharedPointer<iAParamHistogramData> data)
+void iAClusterAttribChart::SetFilteredData(QSharedPointer<iAParamHistogramData> newData)
 {
-	SetAdditionalDrawer(m_filteredDrawer, m_charts->GetDrawer(data, DefaultColors::FilteredChartColor));
+	SetAdditionalDrawer(m_filteredDrawer, m_charts->GetDrawer(newData, DefaultColors::FilteredChartColor));
 }
 
 void iAClusterAttribChart::ClearClusterData()
@@ -117,15 +117,15 @@ QColor iAClusterAttribChart::GetClusterColor(int nr) const
 	return DefaultColors::ClusterChartColor[nr];
 }
 
-void iAClusterAttribChart::AddClusterData(QSharedPointer<iAParamHistogramData> data)
+void iAClusterAttribChart::AddClusterData(QSharedPointer<iAParamHistogramData> newData)
 {
-	m_clusterDrawer.push_back(m_charts->GetDrawer(data, GetClusterColor(m_clusterDrawer.size())));
+	m_clusterDrawer.push_back(m_charts->GetDrawer(newData, GetClusterColor(m_clusterDrawer.size())));
 	m_charts->addPlot(m_clusterDrawer[m_clusterDrawer.size()-1]);
 }
 
-void iAClusterAttribChart::SetFilteredClusterData(QSharedPointer<iAParamHistogramData> data)
+void iAClusterAttribChart::SetFilteredClusterData(QSharedPointer<iAParamHistogramData> filteredData)
 {
-	SetAdditionalDrawer(m_filteredClusterDrawer, m_charts->GetDrawer(data, DefaultColors::FilteredClusterChartColor));
+	SetAdditionalDrawer(m_filteredClusterDrawer, m_charts->GetDrawer(filteredData, DefaultColors::FilteredClusterChartColor));
 }
 
 void iAClusterAttribChart::SetSpanValues(double minValue, double maxValue)
