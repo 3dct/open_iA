@@ -43,8 +43,8 @@
 #include <numeric>
 
 const int imgDim = 3;
-typedef itk::ImageBase< imgDim > ImageBaseType;
-typedef ImageBaseType::Pointer ImagePointer;
+typedef itk::ImageBase< imgDim > PAImageBaseType;
+typedef PAImageBaseType::Pointer ImagePointer;
 typedef itk::Image< char, imgDim >   MaskImageType;
 typedef MaskImageType::Pointer   MaskImagePointer;
 typedef itk::ImageIOBase::IOComponentType ScalarPixelType;

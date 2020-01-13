@@ -312,11 +312,21 @@ void iARangeSliderDiagramWidget::selectSlot()
 	for ( int i = f; i <= l; ++i )
 	{
 		QList<double> tmp = map.find( i ).value();
-		if ( tmp.size() )
+		if (tmp.size())
+		{
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+			set.unite(QSet<double>(tmp.begin(), tmp.end()));
+#else
 			set.unite(tmp.toSet());
+#endif
+		}
 	}
 
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+	QList<double> rawTableRows(set.values());
+#else
 	QList<double> rawTableRows = set.toList();
+#endif
 	
 	if ( m_histogramDrawerList.size() )
 	{

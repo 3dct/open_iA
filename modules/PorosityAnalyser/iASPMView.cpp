@@ -165,7 +165,9 @@ void iASPMView::selectionUpdated( std::vector<size_t> const & selInds )
 void iASPMView::updateLUT()
 {
 	if (m_splom->lookupTable()->numberOfValues() < m_lut->GetNumberOfTableValues())
+	{
 		return;
+	}
 	double rgba[4];
 	vtkIdType lutColCnt = m_lut->GetNumberOfTableValues();
 #if (VTK_MAJOR_VERSION > 8 || (VTK_MAJOR_VERSION == 8 && VTK_MINOR_VERSION > 0))

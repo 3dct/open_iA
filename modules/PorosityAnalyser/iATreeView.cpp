@@ -70,9 +70,9 @@ iATreeView::~iATreeView()
     delete m_selectedRunsData;
 }
 
-void iATreeView::SetData( QTableWidget * const data, const QMap<QString, double> * gtPorosityMap, int runsOffset )
+void iATreeView::SetData( QTableWidget * const dataTable, const QMap<QString, double> * gtPorosityMap, int runsOffset )
 {
-	m_dataExternal = data;
+	m_dataExternal = dataTable;
 	m_gtPorosityMap = gtPorosityMap;
 	m_runsOffset = runsOffset;
 	treeWidget->setColumnCount( m_dataExternal->columnCount() );

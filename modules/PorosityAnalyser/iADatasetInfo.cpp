@@ -236,9 +236,15 @@ void iADatasetInfo::calculateInfo()
 	{
 		QDir newfilesInfoDir( datasetPath );
 		newfilesInfoDir.setNameFilters( QStringList( "*.mhd.info" ) );
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+		QSet<QString> old_fl(fl.begin(), fl.end());
+		QSet<QString> new_fl(newfilesInfoDir.entryList().begin(), newfilesInfoDir.entryList().end());
+		m_newGeneratedInfoFilesList = new_fl.subtract(old_fl).values();
+#else
 		QSet<QString> old_fl = fl.toSet();
 		QSet<QString> new_fl = newfilesInfoDir.entryList().toSet();
 		m_newGeneratedInfoFilesList = new_fl.subtract( old_fl ).toList();
+#endif
 		m_pmi->log( "Dataset previews successfully created." );
 	}
 }

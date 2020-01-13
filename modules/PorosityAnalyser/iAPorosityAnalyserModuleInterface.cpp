@@ -318,8 +318,8 @@ void iAPorosityAnalyserModuleInterface::displayPipelineInSlots( QTableWidgetItem
 			for ( int i = 0; i < algoList.length(); ++i )
 				algoLabelList.append( dfw->getLabel( algoList[i] ) );
 
-			iADragFilterWidget* ddw = uiComputeSegm.dragWidget->findChild<iADragFilterWidget*>( "dragDatasetWidget" );
-			QString dataset = QString( "dataset_" + tw->item( selRow, 1 )->text() );
+			//iADragFilterWidget* ddw = uiComputeSegm.dragWidget->findChild<iADragFilterWidget*>( "dragDatasetWidget" );
+			//QString dataset = QString( "dataset_" + tw->item( selRow, 1 )->text() );
 			//QLabel* datsetLabel = ddw->getLabel( dataset );
 		}
 	}

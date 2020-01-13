@@ -38,13 +38,16 @@
 #include <QSettings>
 #include <QTableWidget>
 
-typedef itk::ImageBase< DIM > ImageBaseType;
-typedef ImageBaseType::Pointer ImagePointer;
-typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
-typedef itk::Image<char, DIM>  InputImageType;
-typedef itk::Image<long, DIM>  LabeledImageType;
-typedef itk::ConnectedComponentImageFilter<InputImageType, LabeledImageType> ConnectedComponentImageFilterType;
-typedef itk::LabelGeometryImageFilter< LabeledImageType > LabelGeometryImageFilterType;
+namespace
+{
+	typedef itk::ImageBase< DIM > PAImageBaseType;
+	typedef PAImageBaseType::Pointer ImagePointer;
+	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
+	typedef itk::Image<char, DIM>  CharInputImageType;
+	typedef itk::Image<long, DIM>  LabeledImageType;
+	typedef itk::ConnectedComponentImageFilter<CharInputImageType, LabeledImageType> ConnectedComponentImageFilterType;
+	typedef itk::LabelGeometryImageFilter< LabeledImageType > LabelGeometryImageFilterType;
+}
 
 iACalculatePoreProperties::iACalculatePoreProperties( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) : PorePropertiesConnector( parent, f )
 {
@@ -143,7 +146,7 @@ void iACalculatePorePropertiesThread::run()
 
 			ScalarPixelType pixelType;
 			ImagePointer image = iAITKIO::readFile( masksName, pixelType, true );
-			InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
+			CharInputImageType* input = dynamic_cast<CharInputImageType*>( image.GetPointer() );
 	
 			//label image
 			ConnectedComponentImageFilterType::Pointer connectedComponents = ConnectedComponentImageFilterType::New();

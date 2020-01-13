@@ -56,11 +56,11 @@ iAPCView::iAPCView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 iAPCView::~iAPCView()
 {}
 
-void iAPCView::SetData( const QTableWidget * data )
+void iAPCView::SetData( const QTableWidget * newData )
 {
 	//Init PC
 	vtkSmartPointer<vtkTable> matrixInputTable = vtkSmartPointer<vtkTable>::New();
-	matrixInputTable->DeepCopy( convertQTableWidgetToVTKTable( data ) );
+	matrixInputTable->DeepCopy( convertQTableWidgetToVTKTable(newData) );
 	m_chart->GetPlot( 0 )->SetInputData( matrixInputTable );
 	ChartModified();
 }

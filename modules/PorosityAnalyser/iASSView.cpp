@@ -162,18 +162,20 @@ void iASSView::InitializeGUI()
 	setShowContours( m_SSViewSettings->cbShowContours->isChecked() );
 }
 
-void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * data )
+void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * dataTable )
 {
 	//data itself
-	m_datasetFile = m_datasetFolder + "/" + data->item( 0, datasetColInd )->text();
+	m_datasetFile = m_datasetFolder + "/" + dataTable->item( 0, datasetColInd )->text();
 	loadImageData( m_datasetFile, m_imgData );
 	BuildDefaultTF( m_imgData, m_slicerTF );
 	slicer->initialize( m_imgData, m_slicerTF );
 
 	//masks channel
 	QStringList masks;
-	for( int i = 0; i < data->rowCount(); ++i )
-		masks << data->item( i, m_runsOffset + maskOffsetInRuns )->text();
+	for (int i = 0; i < dataTable->rowCount(); ++i)
+	{
+		masks << dataTable->item(i, m_runsOffset + maskOffsetInRuns)->text();
+	}
 
 	slicer->initializeMasks( masks );
 
@@ -181,18 +183,22 @@ void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * data 
 	QTableWidget dsDescr;
 	iACSVToQTableWidgetConverter::loadCSVFile( m_resultsFolder + "/DatasetDescription.csv", &dsDescr );
 	QMap<QString, QString> datasetGTs;
-	for( int i = 1; i < dsDescr.rowCount(); i++ )
-		datasetGTs[dsDescr.item( i, gtDatasetColInd )->text()] = dsDescr.item( i, gtGTSegmColumnIndex )->text();
-	if( datasetGTs[data->item( 0, datasetColInd )->text()] != "" )
+	for (int i = 1; i < dsDescr.rowCount(); i++)
 	{
-		QString gtSegmFile = m_datasetFolder + "/" + datasetGTs[data->item( 0, datasetColInd )->text()];
+		datasetGTs[dsDescr.item(i, gtDatasetColInd)->text()] = dsDescr.item(i, gtGTSegmColumnIndex)->text();
+	}
+	if( datasetGTs[dataTable->item( 0, datasetColInd )->text()] != "" )
+	{
+		QString gtSegmFile = m_datasetFolder + "/" + datasetGTs[dataTable->item( 0, datasetColInd )->text()];
 		slicer->initializeGT( gtSegmFile );
 	}
 
 	//contours
 	QVector<double> porosities;
-	for( int i = 0; i < data->rowCount(); ++i )
-		porosities << data->item( i, m_runsOffset + porosityOffsetInRuns )->text().toDouble();
+	for (int i = 0; i < dataTable->rowCount(); ++i)
+	{
+		porosities << dataTable->item(i, m_runsOffset + porosityOffsetInRuns)->text().toDouble();
+	}
 	iABoxPlotData bpd;
 	bpd.CalculateBoxPlot( porosities.data(), porosities.size() );
 	int inds[3] = { 0, 0, 0 };
@@ -201,12 +207,14 @@ void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * data 
 	{
 		double p = porosities[i];
 		double curDeltas[3] = { fabs( p - bpd.min ), fabs( p - bpd.med ), fabs( p - bpd.max ) };
-		for( int j = 0; j < 3; j++ )
-			if( curDeltas[j] < deltas[j] )
+		for (int j = 0; j < 3; j++)
+		{
+			if (curDeltas[j] < deltas[j])
 			{
 				deltas[j] = curDeltas[j];
 				inds[j] = i;
 			}
+		}
 	}
 	slicer->initBPDChans( masks[inds[0]], masks[inds[1]], masks[inds[2]] );
 
@@ -214,7 +222,7 @@ void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * data 
 	InitializeGUI();
 }
 
-void iASSView::SetData( const QTableWidget * data, QString selText )
+void iASSView::SetData( const QTableWidget * dataTable, QString selText )
 {
 	m_sliceMgr->removeAll();
 	for (iASSSlicer* s : m_slicerViews)
@@ -231,7 +239,7 @@ void iASSView::SetData( const QTableWidget * data, QString selText )
 	connect( pushMov, SIGNAL( clicked() ), view->slicer, SLOT( saveMovie() ) );
 	m_slicerViews.push_back( view );
 	
-	LoadDataToSlicer( view, data );
+	LoadDataToSlicer(view, dataTable);
 	SetDataTo3D();
 }
 
@@ -399,9 +407,9 @@ void iASSView::setShowWireframe( int state )
 	m_segm3DViewExtrnl->ShowWireframe( visible );
 }
 
-void iASSView::setDeviationMode( int mode )
+void iASSView::setDeviationMode( int deviationMode )
 {
-	m_deviationMode = mode;
+	m_deviationMode = deviationMode;
 	UpdatePolyData();
 }
 
