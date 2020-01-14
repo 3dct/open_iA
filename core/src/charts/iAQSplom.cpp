@@ -286,14 +286,14 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	connect(selectionModeRectangleAction, SIGNAL(toggled(bool)), this, SLOT(selectionModeRectangle()));
 	connect(showSettingsAction, SIGNAL(triggered()), this, SLOT(showSettings()));
 	connect(m_settingsDlg->parametersList, SIGNAL(itemChanged(QListWidgetItem *)), this, SLOT(changeParamVisibility(QListWidgetItem *)));
-	connect(m_settingsDlg->cbColorParameter, SIGNAL(currentIndexChanged(int)), this, SLOT(setParameterToColorCode(size_t)));
+	connect(m_settingsDlg->cbColorParameter, SIGNAL(currentIndexChanged(int)), this, SLOT(setParameterToColorCode(int)));
 	connect(m_settingsDlg->cbColorScheme, SIGNAL(currentIndexChanged(int)), this, SLOT(colorSchemeChanged(int)) );
 	connect(m_settingsDlg->sbMin, SIGNAL(valueChanged(double)), this, SLOT(updateLookupTable()));
 	connect(m_settingsDlg->sbMax, SIGNAL(valueChanged(double)), this, SLOT(updateLookupTable()));
 	connect(m_settingsDlg->slPointOpacity, SIGNAL(valueChanged(int)), this, SLOT(pointOpacityChanged(int)));
 	connect(m_settingsDlg->slPointSize, SIGNAL(valueChanged(int)), this, SLOT(pointRadiusChanged(int)));
-	connect(m_settingsDlg->pbPointColor, SIGNAL(clicked()), this, SLOT(changePointColor()));
-	connect(m_settingsDlg->pbRangeFromParameter, SIGNAL(clicked()), this, SLOT(rangeFromParameter()));
+	connect(m_settingsDlg->pbPointColor, &QPushButton::clicked, this, &iAQSplom::changePointColor);
+	connect(m_settingsDlg->pbRangeFromParameter, &QPushButton::clicked, this, &iAQSplom::rangeFromParameter);
 	connect(m_settingsDlg->pbSaveSettings, &QPushButton::clicked, this, &iAQSplom::saveSettingsSlot);
 	connect(m_settingsDlg->pbLoadSettings, &QPushButton::clicked, this, &iAQSplom::loadSettingsSlot);
 	connect(m_settingsDlg->cbSelectionMode, SIGNAL(currentIndexChanged(int)), this, SLOT(setSelectionMode(int)));
