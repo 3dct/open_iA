@@ -94,7 +94,9 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 	featureScout->LoadFeatureScout(m_config, m_mdiChild);
 	QString layoutName = projectFile.value("Layout").toString();
 	if (!layoutName.isEmpty())
+	{
 		m_mdiChild->loadLayout(layoutName);
+	}
 }
 
 void iAFeatureScoutProject::saveProject(QSettings & projectFile, QString const & fileName)
@@ -104,13 +106,17 @@ void iAFeatureScoutProject::saveProject(QSettings & projectFile, QString const &
 	projectFile.setValue("CSVFileName", MakeRelative(path, m_config.fileName));
 	projectFile.setValue("CurvedFileName", MakeRelative(path, m_config.curvedFiberFileName));
 	if (m_mdiChild)
+	{
 		projectFile.setValue("Layout", m_mdiChild->layoutName());
+	}
 }
 
 void iAFeatureScoutModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
+	{
 		return;
+	}
 	iAProjectRegistry::addProject<iAFeatureScoutProject>(iAFeatureScoutProject::ID);
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionFibreScout = new QAction( QObject::tr("FeatureScout"), nullptr );
@@ -136,14 +142,21 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 			dlg.setFileName(testCSVFileName);
 			auto type = guessFeatureType(testCSVFileName);
 			if (type != InvalidObjectType)
+			{
 				dlg.setFormat(type == Voids ? iACsvConfig::LegacyVoidFormat : iACsvConfig::LegacyFiberFormat);
+			}
 		}
 		else
+		{
 			dlg.setPath(mdi->filePath());
+		}
 	}
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 	iACsvConfig csvConfig = dlg.getConfig();
+	bool createdMdi = false;
 	if (csvConfig.visType != iACsvConfig::UseVolume)
 	{
 		if (m_mainWnd->activeMdiChild() && QMessageBox::question(m_mainWnd, "FeatureScout",
@@ -154,21 +167,20 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 		}
 		else
 		{
+			createdMdi = true;
 			m_mdiChild = m_mainWnd->createMdiChild(false);
 			m_mdiChild->show();
 		}
 	}
 	else
-		m_mdiChild = m_mainWnd->activeMdiChild();
-
-	if (!startFeatureScout(csvConfig))
 	{
-		if (csvConfig.visType != iACsvConfig::UseVolume)
-		{
-			m_mainWnd->closeMdiChild(m_mdiChild);
-			m_mdiChild = nullptr;
-			QMessageBox::warning(m_mainWnd, "FeatureScout", "Starting FeatureScout failed! Please check console for detailed error messages!");
-		}
+		m_mdiChild = m_mainWnd->activeMdiChild();
+	}
+	if (!startFeatureScout(csvConfig) && createdMdi)
+	{
+		m_mainWnd->closeMdiChild(m_mdiChild);
+		m_mdiChild = nullptr;
+		QMessageBox::warning(m_mainWnd, "FeatureScout", "Starting FeatureScout failed! Please check console for detailed error messages!");
 	}
 }
 
@@ -191,8 +203,10 @@ iAFeatureScoutObjectType iAFeatureScoutModuleInterface::guessFeatureType(QString
 
 void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(QString const & csvFileName, MdiChild* mdiChild)
 {
-	if ( csvFileName.isEmpty() )
+	if (csvFileName.isEmpty())
+	{
 		return;
+	}
 	m_mdiChild = mdiChild;
 	auto type = guessFeatureType(csvFileName);
 	if (type == InvalidObjectType)
@@ -208,8 +222,10 @@ void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(QString const & c
 
 void iAFeatureScoutModuleInterface::SetupToolbar()
 {
-	if ( tlbFeatureScout )
+	if (tlbFeatureScout)
+	{
 		return;
+	}
 	tlbFeatureScout = new iAFeatureScoutToolbar( m_mainWnd );
 	m_mainWnd->addToolBar( Qt::BottomToolBarArea, tlbFeatureScout );
 	connect( tlbFeatureScout->actionLength_Distribution, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
@@ -247,7 +263,9 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 	iACsvVtkTableCreator creator;
 	iACsvIO io;
 	if (!io.loadCSV(creator, csvConfig))
+	{
 		return false;
+	}
 	AttachToMdiChild(m_mdiChild);
 	connect(m_mdiChild, SIGNAL(closed()), this, SLOT(onChildClose()));
 	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
@@ -272,7 +290,6 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		m_mdiChild->addMsg("The render settings of the current child window have been adapted for the volume visualization of FeatureScout!");
 	}
 	auto project = QSharedPointer<iAFeatureScoutProject>::create();
-	project->setChild(m_mdiChild);
 	project->setOptions(csvConfig);
 	m_mdiChild->addProject(iAFeatureScoutProject::ID, project);
 	return true;
@@ -309,7 +326,9 @@ void iAFeatureScoutModuleInterface::onChildClose()
 		m_mdiChild = mdi;
 		iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
 		if (attach)
+		{
 			return;
+		}
 	}
 	m_mainWnd->removeToolBar( tlbFeatureScout );
 	delete tlbFeatureScout;
