@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #include "iAXmlSettings.h"
 
-#include "iAChartFunctionTransfer.h"
 #include "iAConsole.h"
+#include "iATransferFunction.h"
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
