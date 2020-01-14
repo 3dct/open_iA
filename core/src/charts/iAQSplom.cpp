@@ -1679,14 +1679,15 @@ void iAQSplom::changeParamVisibility(QListWidgetItem * item)
 	setParameterVisibility(item->text(), item->checkState());
 }
 
-void iAQSplom::setParameterToColorCode(size_t paramIndex)
+void iAQSplom::setParameterToColorCode(int paramIndex)
 {
-	if (paramIndex >= m_splomData->numParams())
+	size_t unsignedParamIndex = static_cast<size_t>(paramIndex);
+	if (paramIndex < 0 || unsignedParamIndex >= m_splomData->numParams())
 	{
 		DEBUG_LOG(QString("setParameterToColorCode: Invalid paramIndex (%1) given!").arg(paramIndex));
 		return;
 	}
-	m_colorLookupParam = paramIndex;
+	m_colorLookupParam = unsignedParamIndex;
 	updateLookupTable();
 }
 

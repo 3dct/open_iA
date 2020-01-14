@@ -219,7 +219,7 @@ private slots:
 	void selectionModeRectangle();                                   //!< set selection mode to rectangle
 	void parameterVisibilityToggled(bool enabled);                   //!< called when parameter visibility is adapted through the context menu
 	void changeParamVisibility(QListWidgetItem * item);              //!< Show/hide a parameter in SPLOM when list widget item is clicked
-	void setParameterToColorCode(size_t paramIndex);                 //!< Apply color coding based on the parameter index
+	void setParameterToColorCode(int paramIndex);                    //!< Apply color coding based on the parameter index
 	void updateLookupTable();                                        //!< Update lookup table sensitivity
 	void pointRadiusChanged(int);                                    //!< Called from settings dialog when point size slider changes
 	void pointOpacityChanged(int);                                   //!< Called from settings dialog when opacity slider changes
