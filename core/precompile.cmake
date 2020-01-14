@@ -1,4 +1,5 @@
 SET (OPENIA_PRECOMPILE_HEADERS
+	<charts/iAChartFunctionTransfer.h>
 	<charts/iAChartWidget.h>
 	<charts/iAChartWithFunctionsWidget.h>
 	<charts/iAPlotData.h>
@@ -10,7 +11,6 @@ SET (OPENIA_PRECOMPILE_HEADERS
 	<iAAttributeDescriptor.h>
 	<iAChannelData.h>
 	<iAChannelSlicerData.h>
-	<iAChartFunctionTransfer.h>
 	<iAConnector.h>
 	<iAConsole.h>
 	<iAFilter.h>
