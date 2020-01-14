@@ -189,8 +189,10 @@ void iASPMView::updateLUT()
 void iASPMView::setSPLOMSelection( vtkIdTypeArray * ids )
 {
 	iAQSplom::SelectionType selInds;
-	for( vtkIdType i = 0; i < ids->GetDataSize(); ++i )
-		selInds.push_back( ids->GetValue( i ) );
+	for (vtkIdType i = 0; i < ids->GetDataSize(); ++i)
+	{
+		selInds.push_back(ids->GetValue(i));
+	}
 	m_splom->setSelection( selInds );
 }
 

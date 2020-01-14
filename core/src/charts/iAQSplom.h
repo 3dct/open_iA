@@ -172,7 +172,7 @@ protected:
 	iAScatterPlot * getScatterplotAt( QPoint pos );                  //!< Get a scatter plot at mouse position.
 	void changeActivePlot( iAScatterPlot * s);
 	void drawVisibleParameters(QPainter & painter);                  //!< draws label for the whole scatter plot matrix
-	void drawPlotLabels(QVector<ulong> &ind_VisX, int axisOffSet, QPainter & painter, bool switchXY);
+	void drawPlotLabels(QPainter & painter, bool switchXY);
 	void drawTicks( QPainter & painter, QList<double> const & ticksX, QList<double> const & ticksY, QList<QString> const & textX,
 	    QList<QString> const & textY);                               //!< Draw ticks for X and Y axes of all plots in the SPLOM.
 	void updateMaxPlotRect();                                        //!< Updates the rectangle of the maximized scatter plot.
@@ -274,7 +274,7 @@ protected:
 	std::vector<std::vector<iAScatterPlot*> > m_matrix; //!< cache for all scatter plots
 	std::vector<std::vector<iAScatterPlot*> > m_visiblePlots; //!< matrix of visible scatter plots
 	std::vector<char> m_paramVisibility;         //!< array of individual parameter visibility
-	std::vector<int> m_visibleIndices;           //!< stores mapping from visible plot index to parameter index
+	std::vector<size_t> m_visibleIndices;        //!< stores mapping from visible plot index to parameter index
 	QSharedPointer<iALookupTable> m_lut;         //!< lookup table, shared with individual scatter plots
 	size_t m_colorLookupParam;                   //!< index of the column to use for color lookup (TODO: Move to settings?)
 	QPoint m_scatPlotSize;                       //!< size of one scatter plot in the layout

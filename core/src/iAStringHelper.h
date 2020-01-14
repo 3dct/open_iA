@@ -99,7 +99,9 @@ bool stringToArray(QString const & str, T * arr, int expectedSize, QString const
 		bool ok;
 		arr[i] = iAConverter<T>::toT(list[i], &ok);
 		if (!ok)
+		{
 			return false;
+		}
 	}
 	return (list.size() == expectedSize);
 }
@@ -113,7 +115,9 @@ QString arrayToString(T const * arr, size_t size, QString const & sep = " ")
 	{
 		result += iAConverter<T>::toString(arr[i]);
 		if (i < size - 1)
+		{
 			result += sep;
+		}
 	}
 	return result;
 }
@@ -143,16 +147,20 @@ open_iA_Core_API QString dblToStringWithUnits(double value);
 //! @param joinStr the string to be used in between the elements of the string
 //! @return a string joining all elements of the given collection together
 template <template <typename...> class Container, typename Element>
-QString join(Container<Element> const & vec, QString const & joinStr)
+QString joinAsString(Container<Element> const & vec, QString const & joinStr)
 {
 	QString result;
 	bool first = true;
 	for (Element elem : vec)
 	{
 		if (!first)
+		{
 			result += joinStr;
+		}
 		else
+		{
 			first = false;
+		}
 		result += QString::number(elem);
 	}
 	return result;

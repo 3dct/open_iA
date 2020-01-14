@@ -48,7 +48,13 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 	setupUi(this);
 	m_isBlendingOn = blending->isChecked();
 	m_mdiChild = dynamic_cast<MdiChild*>(parent);
-	m_numberOfVolumes=m_volumeStack->numberOfVolumes();
+	if (m_volumeStack->numberOfVolumes() > std::numeric_limits<int>::max())
+	{
+		DEBUG_LOG(QString("WARNING: More Volumes (%1) in volume player than supported (%2)!")
+			.arg(m_volumeStack->numberOfVolumes())
+			.arg(std::numeric_limits<int>::max()));
+	}
+	m_numberOfVolumes = static_cast<int>(m_volumeStack->numberOfVolumes());
 	for (int i = 0; i < m_numberOfVolumes; i++)
 	{
 		showVolume(i);

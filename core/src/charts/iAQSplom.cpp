@@ -410,8 +410,14 @@ void iAQSplom::setData( QSharedPointer<iASPLOMData> data, std::vector<char> cons
 {
 	if (data->numPoints() > std::numeric_limits<int>::max())
 	{
-		DEBUG_LOG(QString("Number of points (%1) larger than supported (%2)")
+		DEBUG_LOG(QString("Number of points (%1) larger than currently supported (%2).")
 			.arg(data->numPoints())
+			.arg(std::numeric_limits<int>::max()));
+	}
+	if (data->numParams() > std::numeric_limits<int>::max())
+	{
+		DEBUG_LOG(QString("Number of parameters (%1) larger than currently supported (%2).")
+			.arg(data->numParams())
 			.arg(std::numeric_limits<int>::max()));
 	}
 	m_splomData = data;
@@ -701,14 +707,14 @@ void iAQSplom::getActivePlotIndices( int * inds_out )
 	}
 	else
 	{
-		inds_out[0] = m_activePlot->getIndices()[0];
-		inds_out[1] = m_activePlot->getIndices()[1];
+		inds_out[0] = static_cast<int>(m_activePlot->getIndices()[0]);
+		inds_out[1] = static_cast<int>(m_activePlot->getIndices()[1]);
 	}
 }
 
 int iAQSplom::getVisibleParametersCount() const
 {
-	return m_visiblePlots.size();
+	return static_cast<int>(m_visiblePlots.size());
 }
 
 void iAQSplom::clear()
@@ -1398,7 +1404,7 @@ void iAQSplom::updateVisiblePlots()
 	for( size_t y = 0; y < m_splomData->numParams(); ++y )
 	{
 		m_histograms[y]->setVisible(settings.histogramVisible && m_paramVisibility[y]);
-		m_settingsDlg->parametersList->item(y)->setCheckState(m_paramVisibility[y] ? Qt::Checked : Qt::Unchecked);
+		m_settingsDlg->parametersList->item(static_cast<int>(y))->setCheckState(m_paramVisibility[y] ? Qt::Checked : Qt::Unchecked);
 
 		if( !m_paramVisibility[y] )
 		{
@@ -1567,39 +1573,18 @@ int iAQSplom::getMaxTickLabelWidth(QList<QString> const & textX, QFontMetrics & 
 	return maxLength+2*TextPadding + fm.height() ;
 }
 
-
-//should be performed in the paint event of qslpom
 void iAQSplom::drawVisibleParameters(QPainter &painter)
 {
-	//save indezes of all visible plots
-	unsigned long numParams = m_splomData->numParams();
-
-	//QVector<ulong> ind_VisY;
-	QVector<ulong> ind_Vis;
-
-	//save visibilitys of axis
-	for (unsigned long y = 0; y < numParams; ++y)
-	{
-		if (m_paramVisibility[y])
-		{
-			ind_Vis.push_back(y);
-		}
-	}
-
 	//getting x positions
-	drawPlotLabels(ind_Vis, ind_Vis.length(), painter, false);
-	drawPlotLabels(ind_Vis, ind_Vis.length(), painter, true);
+	drawPlotLabels(painter, false);
+	drawPlotLabels(painter, true);
 }
 
-void iAQSplom::drawPlotLabels(QVector<ulong> &ind_Elements, int /*axisOffSet*/, QPainter & painter, bool switchTO_YRow)
+void iAQSplom::drawPlotLabels(QPainter & painter, bool switchTO_YRow)
 {
 	QRect currentRect;
-	int top = 0;
-	int loopLength = 0;
-	int textwidth = 0;
 	int textHeight = painter.fontMetrics().height();
-
-	loopLength = ind_Elements.length();
+	int loopLength = static_cast<int>(m_visibleIndices.size());
 
 	for (int axisIdx = 0; axisIdx < loopLength; axisIdx++)
 	{
@@ -1609,25 +1594,12 @@ void iAQSplom::drawPlotLabels(QVector<ulong> &ind_Elements, int /*axisOffSet*/, 
 		{
 			continue;
 		}
-		ulong currIdx = ind_Elements[axisIdx];
-		QString currentParamName = m_splomData->parameterName(currIdx);
+		QString currentParamName = m_splomData->parameterName(m_visibleIndices[axisIdx]);
 		if (switchTO_YRow) 
 		{
 			currentRect = getPlotRectByIndex(0, axisIdx);
 			//top = TextPadding;
-		}
-		else
-		{
-			//get rectangles of current plot
-			currentRect = getPlotRectByIndex(/*ind_VisX[*/axisIdx/*]*/, 0/*axisOffSet - 1*/);
-			top = 0 + TextPadding;
-			currentRect.setTop(top);
-			currentRect.setHeight(painter.fontMetrics().height());
-		}
-
-		if (switchTO_YRow) 
-		{
-			textwidth = currentRect.height();
+			int textwidth = currentRect.height();
 			QPoint pos_center;
 			pos_center.setX(currentRect.top() + textwidth / 2);
 			pos_center.setY(-(TextPadding + textHeight / 2));
@@ -1642,6 +1614,10 @@ void iAQSplom::drawPlotLabels(QVector<ulong> &ind_Elements, int /*axisOffSet*/, 
 		}
 		else
 		{
+			//get rectangles of current plot
+			currentRect = getPlotRectByIndex(/*ind_VisX[*/axisIdx/*]*/, 0/*axisOffSet - 1*/);
+			currentRect.setTop(TextPadding);
+			currentRect.setHeight(painter.fontMetrics().height());
 			painter.drawText(currentRect, Qt::AlignHCenter, currentParamName);
 		}
 	}
@@ -1724,7 +1700,7 @@ void iAQSplom::updateLookupTable()
 void iAQSplom::applyLookupTable()
 {
 	QSignalBlocker colorChoiceBlock(m_settingsDlg->cbColorParameter);
-	m_settingsDlg->cbColorParameter->setCurrentIndex(m_colorLookupParam);
+	m_settingsDlg->cbColorParameter->setCurrentIndex(static_cast<int>(m_colorLookupParam));
 	for (auto& row : m_matrix)
 	{
 		for (auto s : row)
@@ -1898,7 +1874,7 @@ void iAQSplom::saveSettings(QSettings & iniFile) const
 	iniFile.setValue(CfgKeyColorCodingMin, colorCodingMin);
 	iniFile.setValue(CfgKeyColorCodingMax, colorCodingMax);
 	iniFile.setValue(CfgKeyColorLookupParam, static_cast<qulonglong>(m_colorLookupParam));
-	iniFile.setValue(CfgKeyVisibleParameters, join(m_visibleIndices, ","));
+	iniFile.setValue(CfgKeyVisibleParameters, joinAsString(m_visibleIndices, ","));
 	if (m_maximizedPlot)
 	{
 		iniFile.setValue(CfgKeyMaximizedPlot, QString("%1,%2").arg(m_maximizedPlot->getIndices()[0]).arg(m_maximizedPlot->getIndices()[1]));
@@ -2007,7 +1983,7 @@ void iAQSplom::loadSettings(iASettings const & config)
 
 	m_colorLookupParam = config.value(CfgKeyColorLookupParam, static_cast<qulonglong>(m_colorLookupParam)).toULongLong();
 	QSignalBlocker blockColorParameter(m_settingsDlg->cbColorParameter);
-	m_settingsDlg->cbColorParameter->setCurrentIndex(m_colorLookupParam);
+	m_settingsDlg->cbColorParameter->setCurrentIndex(static_cast<int>(m_colorLookupParam));
 
 	// setting value to slPointOpacity is not blocked, because this triggers the one updateLookupTable we want here
 	double opacity = static_cast<double>(m_settingsDlg->slPointOpacity->value()) / m_settingsDlg->slPointOpacity->maximum();
