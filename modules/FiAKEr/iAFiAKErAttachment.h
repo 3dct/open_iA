@@ -20,73 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkInteractorStyleTrackballCamera.h>
-#include <vtkSmartPointer.h>
+#include <iAModuleAttachmentToChild.h>
 
-#include <QMap>
-#include <QObject>
+class iAFiAKErController;
 
-#include <vector>
-
-class vtkPolyData;
-class vtkRenderWindow;
-class vtkTextActor;
-class vtkUnsignedCharArray;
-
-class iASelectionProvider
-{
-public:
-	virtual std::vector<std::vector<size_t> > & selection() =0;
-protected:
-	virtual ~iASelectionProvider();
-};
-
-
-class iASelectionInteractorStyle : public QObject, public vtkInteractorStyleTrackballCamera
+class iAFiAKErAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	enum InteractionMode
-	{
-		imNavigate,
-		imSelect
-	};
-	enum SelectionMode
-	{
-		smDrag,
-		smClick
-	};
-	iASelectionInteractorStyle();
-	static iASelectionInteractorStyle* New();
-	vtkTypeMacro(iASelectionInteractorStyle, vtkInteractorStyleTrackballCamera);
-
-	void OnChar() override;
-	void OnLeftButtonDown() override;
-	void OnMouseMove() override;
-	void OnLeftButtonUp() override;
-
-	void setSelectionProvider(iASelectionProvider * selectionProvider);
-	void addInput(size_t resultID, vtkSmartPointer<vtkPolyData> points, vtkSmartPointer<vtkActor> actor);
-	void removeInput(size_t resultID);
-	void assignToRenderWindow(vtkSmartPointer<vtkRenderWindow> renWin);
-	void setSelectionMode(SelectionMode mode);
-	void setRenderer(vtkRenderer* renderer);
-signals:
-	void selectionChanged();
+	iAFiAKErAttachment(MainWindow* mainWnd, MdiChild* child);
+	virtual ~iAFiAKErAttachment();
+	iAFiAKErController* controller();
 private:
-	void pick();
-	void redrawRubberBand();
-
-	QMap<size_t, std::pair<vtkSmartPointer<vtkPolyData>, vtkSmartPointer<vtkActor> > > m_input;
-	iASelectionProvider * m_selectionProvider;
-	vtkSmartPointer<vtkTextActor> m_showModeActor;
-	vtkSmartPointer<vtkRenderWindow> m_renWin;
-	InteractionMode m_interactionMode;
-	SelectionMode m_selectionMode;
-	vtkRenderer* m_cellRenderer;
-
-	int m_startPos[2];
-	int m_endPos[2];
-	bool m_moving;
-	vtkSmartPointer<vtkUnsignedCharArray> m_pixelArray;
+	iAFiAKErController* m_controller;
 };

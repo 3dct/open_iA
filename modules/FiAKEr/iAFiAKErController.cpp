@@ -54,7 +54,6 @@
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 #include <io/iAFileChooserWidget.h>
-#include <io/iAFileUtils.h>
 #include <io/iAIOProvider.h>
 #include <io/iAITKIO.h>
 #include <mainwindow.h>
@@ -149,7 +148,6 @@ namespace
 		HistogramColumn
 	};
 
-	const QString ModuleSettingsKey("FIAKER");
 	// { SETTING NAMES:
 	const QString ProjectFileFolder("Folder");
 	const QString ProjectFileFormatName("Format");
@@ -219,12 +217,13 @@ public:
 
 const QString iAFiAKErController::FIAKERProjectID("FIAKER");
 
-iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
+iAFiAKErController::iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild) :
 	m_renderManager(new iARendererManager()),
 	m_resultColorTheme(iAColorThemeManager::instance().theme(DefaultResultColorTheme)),
 	m_mainWnd(mainWnd),
+	m_mdiChild(mdiChild),
 	m_referenceID(NoResult),
-	m_playTimer(new QTimer(this)),
+	m_playTimer(new QTimer(mainWnd)),
 	m_refDistCompute(nullptr),
 	m_colorByThemeName(iALUT::GetColorMapNames()[0]),
 	m_showFiberContext(false),
@@ -234,30 +233,29 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
 	m_contextSpacing(0.0),
 	m_cameraInitialized(false),
 	m_spm(new iAQSplom())
-{
-	setDockOptions(AllowNestedDocks | AllowTabbedDocks);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
-#endif
-	setMinimumSize(600, 400);
-	setCentralWidget(nullptr);
-	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
-	setWindowTitle("FIAKER");
-	connect(mainWnd, &MainWindow::fullScreenToggled, this, &iAFiAKErController::toggleFullScreen);
-}
+{}
 
-void iAFiAKErController::toggleFullScreen()
+void iAFiAKErController::loadProject(QSettings const& projectFile, QString const& fileName)
 {
-	QWidget* mdiSubWin = qobject_cast<QWidget*>(parent());
-	if (m_mainWnd->isFullScreen())
-	{
-		mdiSubWin->setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
+	auto dataFolder = MakeAbsolute(QFileInfo(fileName).absolutePath(), projectFile.value(ProjectFileFolder, "").toString());
+	iACsvConfig config;
+	auto configName = projectFile.value(ProjectFileFormatName, "").toString();
+	if (!configName.isEmpty())
+	{  // old format, load from given format name:
+		config = getCsvConfig(configName);
 	}
 	else
-	{
-		mdiSubWin->setWindowFlags(windowFlags() & ~Qt::FramelessWindowHint);
+	{  // load full format
+		if (!config.load(projectFile, ProjectFileSaveFormatName))
+		{
+			DEBUG_LOG("Could not load CSV format specification from project file!");
+			return;
+		}
 	}
-	mdiSubWin->show();
+	// if config name entry exists, load that, otherwise load full config...
+	auto stepShift = projectFile.value(ProjectFileStepShift, 0).toDouble();
+	auto useStepData = projectFile.value(ProjectUseStepData, true).toBool();
+	start(dataFolder, config, stepShift, useStepData);
 }
 
 void iAFiAKErController::start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData)
@@ -267,7 +265,7 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 	m_jobs = new iAJobListView(DockWidgetMargin);
 	m_views.resize(DockWidgetCount);
 	m_views[JobView] = new iADockWidgetWrapper(m_jobs, "Jobs", "foeJobs");
-	addDockWidget(Qt::BottomDockWidgetArea, m_views[JobView]);
+	m_mdiChild->addDockWidget(Qt::BottomDockWidgetArea, m_views[JobView]);
 
 	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, config, stepShift);
@@ -290,11 +288,11 @@ void iAFiAKErController::resultsLoadFailed(QString const & path)
 
 void iAFiAKErController::resultsLoaded()
 {
-	setWindowTitle(QString("FIAKER (%1)").arg(m_data->folder));
+	m_mdiChild->setWindowTitle(QString("FIAKER (%1)").arg(m_data->folder));
 	m_resultUIs.resize(m_data->result.size());
 	m_selection.resize(m_data->result.size());
 
-	auto main3DView = setupMain3DView();
+	setupMain3DView();
 	setupSettingsView();
 	auto optimStepsView = setupOptimStepView();
 	auto resultListView = setupResultListView();
@@ -303,20 +301,19 @@ void iAFiAKErController::resultsLoaded()
 
 	m_views.resize(DockWidgetCount);
 	m_views[ResultListView] = new iADockWidgetWrapper(resultListView, "Result list", "foeResultList");
-	m_views[Main3DView]     = new iADockWidgetWrapper(main3DView, "3D view", "foe3DView");
+	//m_views[Main3DView]     = 
 	m_views[OptimStepChart] = new iADockWidgetWrapper(optimStepsView, "Optimization Steps", "foeSteps");
 	m_views[SPMView]        = new iADockWidgetWrapper(m_spm, "Scatter Plot Matrix", "foeSPM");
 	m_views[ProtocolView]   = new iADockWidgetWrapper(protocolView, "Interactions", "foeInteractions");
 	m_views[SelectionView]  = new iADockWidgetWrapper(selectionView, "Selections", "foeSelections");
 	m_views[SettingsView]   = new iADockWidgetWrapper(m_settingsView, "Settings", "foeSettings");
 
-	splitDockWidget(m_views[JobView], m_views[ResultListView], Qt::Vertical);
-	splitDockWidget(m_views[ResultListView], m_views[Main3DView], Qt::Horizontal);
-	splitDockWidget(m_views[ResultListView], m_views[OptimStepChart], Qt::Vertical);
-	splitDockWidget(m_views[Main3DView], m_views[SPMView], Qt::Horizontal);
-	splitDockWidget(m_views[ResultListView], m_views[ProtocolView], Qt::Vertical);
-	splitDockWidget(m_views[Main3DView], m_views[SelectionView], Qt::Vertical);
-	splitDockWidget(m_views[Main3DView], m_views[SettingsView], Qt::Vertical);
+	m_mdiChild->splitDockWidget(m_views[JobView], m_views[ResultListView], Qt::Vertical);
+	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[OptimStepChart], Qt::Vertical);
+	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[SPMView], Qt::Horizontal);
+	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[ProtocolView], Qt::Vertical);
+	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[SelectionView], Qt::Vertical);
+	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[SettingsView], Qt::Vertical);
 
 	m_settingsWidgetMap.insert(ProjectResultColors, m_settingsView->cmbboxResultColors);
 	m_settingsWidgetMap.insert(ProjectDistributionColors, m_settingsView->cmbboxDistributionColors);
@@ -353,17 +350,19 @@ void iAFiAKErController::resultsLoaded()
 
 iAFiAKErController::~iAFiAKErController()
 {
+	/*
 	if (parent())
 	{
 		QSettings settings;
 		settings.beginGroup(ModuleSettingsKey);
 		saveWindowSettings(settings);
 	}
+	*/
 }
 
-QWidget * iAFiAKErController::setupMain3DView()
+void iAFiAKErController::setupMain3DView()
 {
-	m_main3DWidget = new iAVtkQtWidget();
+	m_main3DWidget = m_mdiChild->renderDockWidget()->vtkWidgetRC;
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	m_ren = vtkSmartPointer<vtkRenderer>::New();
 	m_ren->SetUseFXAA(true);
@@ -390,34 +389,16 @@ QWidget * iAFiAKErController::setupMain3DView()
 	m_customBoundingBoxActor->PickableOff();
 	m_customBoundingBoxActor->SetMapper(m_customBoundingBoxMapper);
 
-	m_showReferenceWidget = new QWidget();
-	m_chkboxShowReference = new QCheckBox("Show ");
-	m_spnboxReferenceCount = new QSpinBox();
-	m_spnboxReferenceCount->setValue(1);
-	m_spnboxReferenceCount->setMinimum(1);
-	m_spnboxReferenceCount->setMaximum(1);
-	m_showReferenceWidget->setLayout(new QHBoxLayout());
-	m_showReferenceWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	m_showReferenceWidget->layout()->setSpacing(SettingSpacing);
-	m_chkboxShowLines = new QCheckBox("Connect");
-	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceToggled);
-	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(showReferenceCountChanged(int)));
-	connect(m_chkboxShowLines, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceLinesToggled);
-	m_showReferenceWidget->layout()->addWidget(m_chkboxShowReference);
-	m_showReferenceWidget->layout()->addWidget(m_spnboxReferenceCount);
-	m_showReferenceWidget->layout()->addWidget(new QLabel("nearest ref. fibers"));
-	m_showReferenceWidget->layout()->addWidget(m_chkboxShowLines);
-	m_showReferenceWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
+	/*
 	QWidget* mainRendererContainer = new QWidget();
 	mainRendererContainer->setLayout(new QVBoxLayout());
 	mainRendererContainer->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
 	mainRendererContainer->layout()->addWidget(m_main3DWidget);
-	mainRendererContainer->layout()->addWidget(m_showReferenceWidget);
-	return mainRendererContainer;
+	*/
+	//return mainRendererContainer;
 }
 
-QWidget* iAFiAKErController::setupSettingsView()
+void iAFiAKErController::setupSettingsView()
 {
 	m_settingsView = new iAFIAKERSettingsWidget();
 
@@ -493,6 +474,27 @@ QWidget* iAFiAKErController::setupSettingsView()
 		}
 	}
 
+	m_showReferenceWidget = new QWidget();
+	m_chkboxShowReference = new QCheckBox("Show ");
+	m_spnboxReferenceCount = new QSpinBox();
+	m_spnboxReferenceCount->setValue(1);
+	m_spnboxReferenceCount->setMinimum(1);
+	m_spnboxReferenceCount->setMaximum(1);
+	m_showReferenceWidget->setLayout(new QHBoxLayout());
+	m_showReferenceWidget->layout()->setContentsMargins(0, 0, 0, 0);
+	m_showReferenceWidget->layout()->setSpacing(SettingSpacing);
+	m_chkboxShowLines = new QCheckBox("Connect");
+	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceToggled);
+	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(showReferenceCountChanged(int)));
+	connect(m_chkboxShowLines, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceLinesToggled);
+	m_showReferenceWidget->layout()->addWidget(m_chkboxShowReference);
+	m_showReferenceWidget->layout()->addWidget(m_spnboxReferenceCount);
+	m_showReferenceWidget->layout()->addWidget(new QLabel("nearest ref. fibers"));
+	m_showReferenceWidget->layout()->addWidget(m_chkboxShowLines);
+	m_showReferenceWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	auto grid = static_cast<QGridLayout*>(m_settingsView->tab3DView->layout());
+	grid->addWidget(m_showReferenceWidget, grid->rowCount(), 0, 1, 7);
+
 	m_settingsView->sbHistogramBins->setValue(HistogramBins);
 
 	m_settingsView->cmbboxStackedBarChartColors->addItems(iAColorThemeManager::instance().availableThemes());
@@ -504,7 +506,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 	m_settingsView->cmbboxResultColors->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsView->cmbboxResultColors->setCurrentText(DefaultResultColorTheme);
 
-	m_fileChooser = new iAFileChooserWidget(this, iAFileChooserWidget::FileNameOpen);
+	m_fileChooser = new iAFileChooserWidget(m_settingsView, iAFileChooserWidget::FileNameOpen);
 	qobject_cast<QGridLayout*>(m_settingsView->gbGlobal->layout())->addWidget(m_fileChooser, 2, 1);
 
 	connect(m_settingsView->slOpacityDefault, &QSlider::valueChanged, this, &iAFiAKErController::mainOpacityChanged);
@@ -536,8 +538,6 @@ QWidget* iAFiAKErController::setupSettingsView()
 	connect(m_settingsView->cmbboxResultColors, SIGNAL(currentIndexChanged(QString const &)),
 		this, SLOT(resultColorThemeChanged(QString const &)));
 	connect(m_fileChooser, &iAFileChooserWidget::fileNameChanged, this, &iAFiAKErController::loadVolume);
-
-	return m_settingsView;
 }
 
 QWidget* iAFiAKErController::setupOptimStepView()
@@ -779,7 +779,7 @@ QWidget* iAFiAKErController::setupResultListView()
 		connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
 
 		// iA3DColoredObjectVis::updateRenderer makes sure this connection is only triggered if vis is currently shown:
-		connect(ui.main3DVis.data(), &iA3DObjectVis::updated, m_main3DWidget, &iAVtkQtWidget::updateAll);
+		connect(ui.main3DVis.data(), &iA3DObjectVis::updated, this, &iAFiAKErController::update3D);
 		// }
 	}
 
@@ -832,7 +832,7 @@ QWidget * iAFiAKErController::setupSelectionView()
 	return selectionView;
 }
 
-
+/*
 void iAFiAKErController::saveWindowSettings(QSettings & settings)
 {
 	settings.setValue( WindowMaximized, isMaximized());
@@ -862,14 +862,15 @@ void iAFiAKErController::loadWindowSettings(iASettings const & settings)
 		restoreState(settings.value(WindowState).toByteArray());
 	}
 }
+*/
 
 void iAFiAKErController::loadStateAndShow()
 {
 	addInteraction(QString("Loaded %1 results in folder %2.").arg(m_data->result.size()).arg(m_data->folder));
-	QSettings settings;
-	settings.beginGroup(ModuleSettingsKey);
-	iASettings iaset = mapFromQSettings(settings);
-	loadWindowSettings(iaset);
+	//QSettings settings;
+	//settings.beginGroup(ModuleSettingsKey);
+	//iASettings iaset = mapFromQSettings(settings);
+	//loadWindowSettings(iaset);
 
 	// SPM needs an active OpenGL Context (it must be visible when setData is called):
 	m_spm->setMinimumWidth(200);
@@ -1216,7 +1217,7 @@ void iAFiAKErController::colorByDistrToggled()
 
 void iAFiAKErController::exportAverageDissimilarities()
 {
-	QString fileName = QFileDialog::getSaveFileName(m_mainWnd, ModuleSettingsKey, m_data->folder, "Comma-Separated Values (*.csv);;");
+	QString fileName = QFileDialog::getSaveFileName(m_mainWnd, iAFiAKErController::FIAKERProjectID, m_data->folder, "Comma-Separated Values (*.csv);;");
 	if (fileName.isEmpty())
 	{
 		return;
@@ -1595,12 +1596,14 @@ std::vector<std::vector<size_t> > & iAFiAKErController::selection()
 	return m_selection;
 }
 
+/*
 void iAFiAKErController::setCamPosition(int pos)
 {
 	::setCamPosition(m_ren->GetActiveCamera(), static_cast<iACameraPosition>(pos));
 	m_ren->ResetCamera();
 	m_main3DWidget->GetRenderWindow()->GetInteractor()->Render();
 }
+*/
 
 void iAFiAKErController::clearSelection()
 {
@@ -2136,7 +2139,7 @@ void iAFiAKErController::setReference(size_t referenceID)
 	{
 		DEBUG_LOG("Changing the reference is currently not well-tested. Please consider starting a fresh FIAKER window and setting the reference there!");
 		auto & ui = m_resultUIs[m_referenceID];
-		setResultBackground(ui, m_main3DWidget->palette().color(QWidget::backgroundRole()));
+		setResultBackground(ui, m_main3DWidget->palette().color(ui.nameActions->backgroundRole()));
 		m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text().left(m_showResultVis[m_referenceID]->text().length()-RefMarker.length()));
 	}
 	addInteraction(QString("Reference set to %1.").arg(resultName(referenceID)));
@@ -2403,7 +2406,7 @@ void iAFiAKErController::loadSettings(iASettings settings)
 	setCameraParameter(settings, CameraViewUp, cam, &vtkCamera::SetViewUp);
 	setCameraParameter(settings, CameraFocalPoint, cam, &vtkCamera::SetFocalPoint);
 
-	loadWindowSettings(settings);
+	//loadWindowSettings(settings);
 }
 
 void iAFiAKErController::saveSettings(QSettings & settings)
@@ -2420,7 +2423,7 @@ void iAFiAKErController::saveSettings(QSettings & settings)
 	settings.setValue(CameraViewUp, arrayToString(cam->GetViewUp(), 3, ","));
 	settings.setValue(CameraFocalPoint, arrayToString(cam->GetFocalPoint(), 3, ","));
 
-	saveWindowSettings(settings);
+	//saveWindowSettings(settings);
 }
 
 void iAFiAKErController::refDistAvailable()
@@ -2954,6 +2957,7 @@ QString iAFiAKErController::resultName(size_t resultID) const
 	return QFileInfo(m_data->result[resultID].fileName).baseName();
 }
 
+/*
 void iAFiAKErController::doSaveProject()
 {
 	// somehow move that part out into the core?
@@ -2976,6 +2980,7 @@ void iAFiAKErController::doSaveProject()
 	m_mainWnd->setCurrentFile(fileName); // ...because otherwise it won't get added to recent list here
 	addInteraction(QString("Saved as Project '%1'.").arg(fileName));
 }
+*/
 
 void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & fileName)
 {
@@ -2984,49 +2989,6 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 	projectFile.setValue(ProjectFileStepShift, m_data->stepShift);
 	projectFile.setValue(ProjectUseStepData, m_useStepData);
 	saveSettings(projectFile);
-}
-
-void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folder)
-{
-	QString fileName = QFileDialog::getOpenFileName(mainWnd, ModuleSettingsKey, folder, "FIAKER Project file (*.fpf);;");
-	if (fileName.isEmpty())
-	{
-		return;
-	}
-	QSettings projectFile(fileName, QSettings::IniFormat);
-	projectFile.setIniCodec("UTF-8");
-	loadProject(mainWnd, projectFile, fileName);
-}
-
-void iAFiAKErController::loadProject(MainWindow* mainWnd, QSettings const & projectFile, QString const & fileName)
-{
-	auto dataFolder  = MakeAbsolute(QFileInfo(fileName).absolutePath(), projectFile.value(ProjectFileFolder, "").toString());
-	iACsvConfig config;
-	auto configName  = projectFile.value(ProjectFileFormatName, "").toString();
-	if (!configName.isEmpty())
-	{  // old format, load from given format name:
-		config = getCsvConfig(configName);
-	}
-	else
-	{  // load full format
-		if (!config.load(projectFile, ProjectFileSaveFormatName))
-		{
-			DEBUG_LOG("Could not load CSV format specification from project file!");
-			return;
-		}
-	}
-	// if config name entry exists, load that, otherwise load full config...
-	auto stepShift   = projectFile.value(ProjectFileStepShift, 0).toDouble();
-	auto useStepData = projectFile.value(ProjectUseStepData, true).toBool();
-	auto explorer = new iAFiAKErController(mainWnd);
-	mainWnd->setPath(dataFolder);
-	mainWnd->addSubWindow(explorer);
-	iASettings projectSettings = mapFromQSettings(projectFile);
-	connect(explorer, &iAFiAKErController::setupFinished, [explorer, projectSettings]
-	{
-		explorer->loadReference(projectSettings);
-	});
-	explorer->start(dataFolder, config, stepShift, useStepData);
 }
 
 void iAFiAKErController::loadVolume(QString const & fileName)
@@ -3047,6 +3009,13 @@ void iAFiAKErController::loadVolume(QString const & fileName)
 	);
 	m_refRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_refImg));
 	m_refRenderer->addTo(m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+}
+
+
+void iAFiAKErController::update3D()
+{
+	m_main3DWidget->GetRenderWindow()->Render();
+	m_main3DWidget->update();
 }
 
 void iAFiAKErController::showReferenceInChartToggled()

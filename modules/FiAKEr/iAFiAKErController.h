@@ -31,7 +31,7 @@
 
 // Core:
 #include <iASettings.h>
-#include <qthelper/iAVtkQtWidget.h>
+#include <iAVtkWidget.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
@@ -91,33 +91,35 @@ class QVBoxLayout;
 class iAQCheckBoxVector: public QObject, public QVector<QCheckBox*> { };
 class iAQLineEditVector: public QObject, public QVector<QLineEdit*> { };
 
-class iAFiAKErController : public QMainWindow, public iASelectionProvider, public iAChangeableCameraWidget, public iASavableProject
+class iAFiAKErController: public QObject, public iASelectionProvider
 {
 	Q_OBJECT
 public:
 	typedef iAQTtoUIConnector<QWidget, Ui_FIAKERSettings> iAFIAKERSettingsWidget;
 	typedef std::vector<std::vector<size_t> > SelectionType;
 	static const QString FIAKERProjectID;
-	iAFiAKErController(MainWindow* mainWnd);
-	~iAFiAKErController() override;
-	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
-	static void loadProject(MainWindow* mainWnd, QSettings const & projectFile, QString const & fileName);
 
+	iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild);
+	~iAFiAKErController() override;
+
+	void loadProject(QSettings const & projectFile, QString const & fileName);
 	void start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData);
 	std::vector<std::vector<size_t> > & selection() override;
-	void setCamPosition(int pos) override;
-	void doSaveProject() override;
 	void toggleDockWidgetTitleBars();
 	void toggleSettings();
 	//! Load given settings.
 	//! @param settings needs to be passed by value, as it's used in a lambda!
 	void loadSettings(iASettings settings);
 	void saveSettings(QSettings & settings);
+	//! Load potential reference.
+	//! @param settings needs to be passed by value, as it's used in a lambda!
+	void loadReference(iASettings settings);
+	void saveProject(QSettings& projectFile, QString  const& fileName);
 signals:
 	void setupFinished();
 	void referenceComputed();
-public slots:
-	void toggleFullScreen();
+//public slots:
+//	void toggleFullScreen();
 private slots:
 	void toggleVis(int);
 	void toggleBoundingBox(int);
@@ -173,10 +175,8 @@ private slots:
 	void sortByCurrentWeighting();
 	// settings view:
 	void loadVolume(QString const & fileName);
+	void update3D();
 private:
-	//! Load potential reference.
-	//! @param settings needs to be passed by value, as it's used in a lambda!
-	void loadReference(iASettings settings);
 	bool loadReferenceInternal(iASettings settings);
 	void changeDistributionSource(int index);
 	void updateHistogramColors();
@@ -206,14 +206,13 @@ private:
 	void updateRefDistPlots();
 	bool matchQualityVisActive() const;
 	void updateFiberContext();
-	void saveProject(QSettings & projectFile, QString  const & fileName);
 	void startFeatureScout(int resultID, MdiChild* newChild);
-	void loadWindowSettings(iASettings const & settings);
-	void saveWindowSettings(QSettings & settings);
+	//void loadWindowSettings(iASettings const & settings);
+	//void saveWindowSettings(QSettings & settings);
 	void visitAllVisibleVis(std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, size_t resultID)> func);
 
-	QWidget* setupMain3DView();
-	QWidget* setupSettingsView();
+	void setupMain3DView();
+	void setupSettingsView();
 	QWidget* setupOptimStepView();
 	QWidget* setupResultListView();
 	QWidget* setupProtocolView();
@@ -227,6 +226,7 @@ private:
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
 	iAColorTheme const * m_resultColorTheme;
 	MainWindow* m_mainWnd;
+	MdiChild* m_mdiChild;
 	size_t m_referenceID;
 	SelectionType m_selection;
 	vtkSmartPointer<vtkTable> m_refVisTable;
@@ -247,10 +247,10 @@ private:
 	// The different views and their elements:
 	std::vector<iADockWidgetWrapper*> m_views;
 	enum {
-		JobView, ResultListView, Main3DView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
+		JobView, ResultListView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
 	};
 	// 3D View:
-	iAVtkQtWidget* m_main3DWidget;
+	iAVtkWidget* m_main3DWidget;
 	vtkSmartPointer<vtkRenderer> m_ren;
 	QCheckBox* m_chkboxShowReference;
 	QCheckBox* m_chkboxShowLines;

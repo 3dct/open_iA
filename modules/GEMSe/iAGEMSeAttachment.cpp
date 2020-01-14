@@ -42,7 +42,6 @@ iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, MdiChild * child):
 {
 	auto project = QSharedPointer<iAGEMSeProject>::create();
 	project->setMainWindow(mainWnd);
-	project->setChild(child);
 	child->addProject(iAGEMSeProject::ID, project);
 }
 
