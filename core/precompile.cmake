@@ -1,6 +1,6 @@
 SET (OPENIA_PRECOMPILE_HEADERS
 	<charts/iAChartWidget.h>
-	<charts/iADiagramFctWidget.h>
+	<charts/iAChartWithFunctionsWidget.h>
 	<charts/iAPlotData.h>
 	<charts/iAScatterPlot.h>
 	<charts/iASPLOMData.h>
