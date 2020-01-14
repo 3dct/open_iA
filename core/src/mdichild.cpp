@@ -177,6 +177,23 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	m_pbar->setValue(100);
 
 	m_worldProfilePoints->Allocate(2);
+	connect(mainWnd, &MainWindow::fullScreenToggled, this, &MdiChild::toggleFullScreen);
+}
+
+void MdiChild::toggleFullScreen()
+{
+	/*
+	QWidget* mdiSubWin = qobject_cast<QWidget*>(parent());
+	if (m_mainWnd->isFullScreen())
+	{
+		mdiSubWin->setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
+	}
+	else
+	{
+		mdiSubWin->setWindowFlags(windowFlags() & ~Qt::FramelessWindowHint);
+	}
+	mdiSubWin->show();
+	*/
 }
 
 MdiChild::~MdiChild()
@@ -2721,6 +2738,7 @@ void MdiChild::doSaveProject()
 
 void MdiChild::addProject(QString const & key, QSharedPointer<iAProjectBase> project)
 {
+	project->setChild(this);
 	m_projects.insert(key, project);
 }
 

@@ -366,9 +366,7 @@ private slots:
 	void modalityAdded(int modalityIdx);
 	void rendererCamPos();
 	void resetCamera(bool spacingChanged, double const * newSpacing);
-
-
-	
+	void toggleFullScreen();
 
 private:
 	void closeEvent(QCloseEvent *event) override;

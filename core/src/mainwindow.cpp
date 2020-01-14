@@ -316,7 +316,9 @@ void MainWindow::loadFile(QString const & fileName)
 void MainWindow::loadFile(QString fileName, bool isStack)
 {
 	if (fileName.isEmpty())
+	{
 		return;
+	}
 	statusBar()->showMessage(tr("Loading data..."), 5000);
 	QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
 	m_path = t;
@@ -338,7 +340,8 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 			else if (ret == QMessageBox::No)
 			{
 				MdiChild *child = createMdiChild(false);
-				if (child->loadFile(fileName, false)) {
+				if (child->loadFile(fileName, false))
+				{
 					child->show();
 				} else {
 					statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
@@ -348,6 +351,7 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 			return;
 		}
 	}
+	/*
 	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
 		QSettings projectFile(fileName, QSettings::IniFormat);
@@ -372,9 +376,11 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 			return;
 		}
 	}
+	*/
 	// Todo: hook for plugins?
 	MdiChild *child = createMdiChild(false);
-	if (child->loadFile(fileName, isStack)) {
+	if (child->loadFile(fileName, isStack))
+	{
 		child->show();
 	}
 	else
@@ -395,13 +401,17 @@ void MainWindow::loadFiles(QStringList fileNames)
 void MainWindow::save()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->save();
+	}
 }
 
 void MainWindow::saveAs()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->saveAs();
+	}
 }
 
 bool MainWindow::saveSettings()
