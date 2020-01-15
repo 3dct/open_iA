@@ -141,8 +141,8 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	setupToolBar();
 	MdiChild* mdiChild(nullptr);
 	bool createdMdi = false;
-	if (m_mainWnd->activeMdiChild() && QMessageBox::question(m_mainWnd, "FeatureScout",
-		"Load FeatureScout in currently active window (If you choose No, FeatureScout will be opened in a new window)?",
+	if (m_mainWnd->activeMdiChild() && QMessageBox::question(m_mainWnd, "FIAKER",
+		"Load FIAKER in currently active window (If you choose No, FIAKER will be opened in a new window)?",
 		QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes)
 	{
 		mdiChild = m_mainWnd->activeMdiChild();

@@ -85,7 +85,6 @@ class QStandardItemModel;
 class QTimer;
 class QTreeView;
 class QVBoxLayout;
-//class QWebEngineView;
 
 // To be able to put non-QObject derived class in settingsWidgetMap
 class iAQCheckBoxVector: public QObject, public QVector<QCheckBox*> { };
@@ -118,8 +117,6 @@ public:
 signals:
 	void setupFinished();
 	void referenceComputed();
-//public slots:
-//	void toggleFullScreen();
 private slots:
 	void toggleVis(int);
 	void toggleBoundingBox(int);
@@ -207,8 +204,6 @@ private:
 	bool matchQualityVisActive() const;
 	void updateFiberContext();
 	void startFeatureScout(int resultID, MdiChild* newChild);
-	//void loadWindowSettings(iASettings const & settings);
-	//void saveWindowSettings(QSettings & settings);
 	void visitAllVisibleVis(std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, size_t resultID)> func);
 
 	void setupMain3DView();

@@ -300,7 +300,6 @@ void iAFiAKErController::resultsLoaded()
 
 	m_views.resize(DockWidgetCount);
 	m_views[ResultListView] = new iADockWidgetWrapper(resultListView, "Result list", "foeResultList");
-	//m_views[Main3DView]     = 
 	m_views[OptimStepChart] = new iADockWidgetWrapper(optimStepsView, "Optimization Steps", "foeSteps");
 	m_views[SPMView]        = new iADockWidgetWrapper(m_spm, "Scatter Plot Matrix", "foeSPM");
 	m_views[ProtocolView]   = new iADockWidgetWrapper(protocolView, "Interactions", "foeInteractions");
@@ -349,28 +348,18 @@ void iAFiAKErController::resultsLoaded()
 
 iAFiAKErController::~iAFiAKErController()
 {
-	/*
-	if (parent())
-	{
-		QSettings settings;
-		settings.beginGroup(ModuleSettingsKey);
-		saveWindowSettings(settings);
-	}
-	*/
 }
 
 void iAFiAKErController::setupMain3DView()
 {
 	m_main3DWidget = m_mdiChild->renderDockWidget()->vtkWidgetRC;
-	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	auto renWin = m_main3DWidget->GetRenderWindow();
 	m_ren = vtkSmartPointer<vtkRenderer>::New();
 	m_ren->SetUseFXAA(true);
 	m_ren->SetBackground(1.0, 1.0, 1.0);
-	renWin->SetAlphaBitPlanes(1);
 	m_ren->SetUseDepthPeeling(true);
 	m_ren->SetMaximumNumberOfPeels(1000);
 	renWin->AddRenderer(m_ren);
-	m_main3DWidget->SetRenderWindow(renWin);
 	m_renderManager->addToBundle(m_ren);
 	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
 	m_style->setSelectionProvider(this);
@@ -387,14 +376,6 @@ void iAFiAKErController::setupMain3DView()
 	m_customBoundingBoxActor->GetProperty()->SetRepresentationToWireframe();
 	m_customBoundingBoxActor->PickableOff();
 	m_customBoundingBoxActor->SetMapper(m_customBoundingBoxMapper);
-
-	/*
-	QWidget* mainRendererContainer = new QWidget();
-	mainRendererContainer->setLayout(new QVBoxLayout());
-	mainRendererContainer->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
-	mainRendererContainer->layout()->addWidget(m_main3DWidget);
-	*/
-	//return mainRendererContainer;
 }
 
 void iAFiAKErController::setupSettingsView()
@@ -831,45 +812,9 @@ QWidget * iAFiAKErController::setupSelectionView()
 	return selectionView;
 }
 
-/*
-void iAFiAKErController::saveWindowSettings(QSettings & settings)
-{
-	settings.setValue( WindowMaximized, isMaximized());
-	if (!isMaximized())
-	{
-		settings.setValue(WindowGeometry, qobject_cast<QWidget*>(parent())->geometry());
-	}
-	settings.setValue(WindowState, saveState());
-}
-
-void iAFiAKErController::loadWindowSettings(iASettings const & settings)
-{
-	if (settings.value(WindowMaximized, true).toBool())
-	{
-		showMaximized();
-	}
-	else
-	{
-		QRect newGeometry = settings.value(WindowGeometry, geometry()).value<QRect>();
-		show();
-		qobject_cast<QWidget*>(parent())->setGeometry(newGeometry);
-	}
-	toggleOptimStepChart(ChartCount - 1, true);
-
-	if (settings.contains(WindowState))
-	{
-		restoreState(settings.value(WindowState).toByteArray());
-	}
-}
-*/
-
 void iAFiAKErController::loadStateAndShow()
 {
 	addInteraction(QString("Loaded %1 results in folder %2.").arg(m_data->result.size()).arg(m_data->folder));
-	//QSettings settings;
-	//settings.beginGroup(ModuleSettingsKey);
-	//iASettings iaset = mapFromQSettings(settings);
-	//loadWindowSettings(iaset);
 
 	// SPM needs an active OpenGL Context (it must be visible when setData is called):
 	m_spm->setMinimumWidth(200);
@@ -1594,15 +1539,6 @@ std::vector<std::vector<size_t> > & iAFiAKErController::selection()
 {
 	return m_selection;
 }
-
-/*
-void iAFiAKErController::setCamPosition(int pos)
-{
-	::setCamPosition(m_ren->GetActiveCamera(), static_cast<iACameraPosition>(pos));
-	m_ren->ResetCamera();
-	m_main3DWidget->GetRenderWindow()->GetInteractor()->Render();
-}
-*/
 
 void iAFiAKErController::clearSelection()
 {
@@ -2374,7 +2310,6 @@ void iAFiAKErController::loadReference(iASettings settings)
 	}
 }
 
-
 namespace
 {
 	typedef void (vtkCamera::*SetMethod)(double const[3]);
@@ -2409,6 +2344,8 @@ void iAFiAKErController::loadSettings(iASettings settings)
 	setCameraParameter(settings, CameraViewUp, cam, &vtkCamera::SetViewUp);
 	setCameraParameter(settings, CameraFocalPoint, cam, &vtkCamera::SetFocalPoint);
 
+	QByteArray state = settings.value(WindowState).value<QByteArray>();
+	m_mdiChild->restoreState(state, 0);
 	//loadWindowSettings(settings);
 }
 
@@ -2425,7 +2362,7 @@ void iAFiAKErController::saveSettings(QSettings & settings)
 	settings.setValue(CameraPosition, arrayToString(cam->GetPosition(), 3, ","));
 	settings.setValue(CameraViewUp, arrayToString(cam->GetViewUp(), 3, ","));
 	settings.setValue(CameraFocalPoint, arrayToString(cam->GetFocalPoint(), 3, ","));
-
+	settings.setValue(WindowState, m_mdiChild->saveState(0));
 	//saveWindowSettings(settings);
 }
 
