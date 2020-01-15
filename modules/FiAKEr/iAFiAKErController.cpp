@@ -288,7 +288,6 @@ void iAFiAKErController::resultsLoadFailed(QString const & path)
 
 void iAFiAKErController::resultsLoaded()
 {
-	m_mdiChild->setWindowTitle(QString("FIAKER (%1)").arg(m_data->folder));
 	m_resultUIs.resize(m_data->result.size());
 	m_selection.resize(m_data->result.size());
 

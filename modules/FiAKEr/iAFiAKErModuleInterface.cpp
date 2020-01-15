@@ -140,6 +140,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 {
 	setupToolBar();
 	MdiChild* mdiChild(nullptr);
+	bool createdMdi = false;
 	if (m_mainWnd->activeMdiChild() && QMessageBox::question(m_mainWnd, "FeatureScout",
 		"Load FeatureScout in currently active window (If you choose No, FeatureScout will be opened in a new window)?",
 		QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes)
@@ -148,6 +149,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	}
 	else
 	{
+		createdMdi = true;
 		mdiChild = m_mainWnd->createMdiChild(false);
 		mdiChild->show();
 	}
@@ -202,6 +204,10 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	dlg_commoninput dlg(m_mainWnd, "Start FIAKER", parameterNames, values, descr);
 	if (dlg.exec() != QDialog::Accepted || dlg.getText(0).isEmpty())
 	{
+		if (createdMdi)
+		{
+			m_mainWnd->closeMdiChild(mdiChild);
+		}
 		return;
 	}
 	m_lastPath = dlg.getText(0);
@@ -213,6 +219,10 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	AttachToMdiChild(mdiChild);
 	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>();
 	m_mainWnd->setPath(m_lastPath);
+	if (createdMdi)
+	{
+		mdiChild->setWindowTitle(QString("FIAKER (%1)").arg(m_lastPath));
+	}
 	auto project = QSharedPointer<iAFIAKERProject>::create();
 	project->setController(attach->controller());
 	mdiChild->addProject(iAFiAKErController::FIAKERProjectID, project);
