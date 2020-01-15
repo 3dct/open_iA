@@ -62,8 +62,10 @@ namespace
 	const QString CfgKeyShowColorLegend("SPM/ShowColorLegend");
 	const QString CfgKeyQuadraticPlots("SPM/QuadraticPlots");
 	const QString CfgKeyShowPCC("SPM/ShowPCC");
-	const QString CfgKeyColorScheme("SPM/ColorScheme");
+	const QString CfgKeyColorMode("SPM/ColorScheme"); // mismatch between setting name is a legacy issue; don't change otherwise old settings aren't readable anymore...
 	const QString CfgKeyColorThemeName("SPM/ColorThemeName");
+	const QString CfgKeyColorThemeQualName("SPM/ColorThemeQualName");
+	const QString CfgKeyColorParameterMode("SPM/ColorParameterMode");
 	const QString CfgKeyPointColor("SPM/PointColor");
 	const QString CfgKeyPointOpacity("SPM/PointOpacity");
 	const QString CfgKeyColorCodingMin("SPM/ColorCodingMin");
@@ -99,8 +101,9 @@ iAQSplom::Settings::Settings():
 	quadraticPlots(false),
 	showPCC(false),
 	showColorLegend(true),
-	colorScheme(AllPointsSame),
+	colorMode(AllPointsSame),
 	colorThemeName("Diverging blue-gray-red"),
+	colorThemeQualName("Brewer Set3 (max. 12)"),
 	pointColor(QColor(128, 128, 128)),
 	enableColorSettings(false)
 {
@@ -287,7 +290,7 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	connect(showSettingsAction, SIGNAL(triggered()), this, SLOT(showSettings()));
 	connect(m_settingsDlg->parametersList, SIGNAL(itemChanged(QListWidgetItem *)), this, SLOT(changeParamVisibility(QListWidgetItem *)));
 	connect(m_settingsDlg->cbColorParameter, SIGNAL(currentIndexChanged(int)), this, SLOT(setParameterToColorCode(int)));
-	connect(m_settingsDlg->cbColorScheme, SIGNAL(currentIndexChanged(int)), this, SLOT(colorSchemeChanged(int)) );
+	connect(m_settingsDlg->cbColorMode, SIGNAL(currentIndexChanged(int)), this, SLOT(colorModeChanged(int)) );
 	connect(m_settingsDlg->sbMin, SIGNAL(valueChanged(double)), this, SLOT(updateLookupTable()));
 	connect(m_settingsDlg->sbMax, SIGNAL(valueChanged(double)), this, SLOT(updateLookupTable()));
 	connect(m_settingsDlg->slPointOpacity, SIGNAL(valueChanged(int)), this, SLOT(pointOpacityChanged(int)));
@@ -304,7 +307,11 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	connect(m_settingsDlg->cbFlipAxes, &QCheckBox::toggled, this, &iAQSplom::setFlipAxes);
 	connect(m_settingsDlg->cbShowColorLegend, &QCheckBox::toggled, this, &iAQSplom::setShowColorLegend);
 	connect(m_settingsDlg->cbColorTheme, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(setColorTheme(QString const &)));
+	connect(m_settingsDlg->cbColorThemeQual, SIGNAL(currentIndexChanged(QString const&)), this, SLOT(setColorThemeQual(QString const&)));
+	connect(m_settingsDlg->rbContinuous, &QRadioButton::toggled, this, &iAQSplom::setContinousParamMode);
+	connect(m_settingsDlg->rbQualitative, &QRadioButton::toggled, this, &iAQSplom::setQualitativeParamMode);
 	m_settingsDlg->cbColorTheme->addItems(iALUT::GetColorMapNames());
+	m_settingsDlg->cbColorThemeQual->addItems(iAColorThemeManager::instance().availableThemes());
 	m_columnPickMenu = m_contextMenu->addMenu("Columns");
 }
 
@@ -529,7 +536,7 @@ void iAQSplom::setLookupTable( vtkLookupTable * lut, const QString & paramName )
 	}
 	m_lut->copyFromVTK( lut );
 	m_colorLookupParam = colorLookupCol;
-	setColorScheme(Custom);
+	setColorMode(Custom);
 }
 
 void iAQSplom::setLookupTable( iALookupTable &lut, size_t columnIndex)
@@ -540,7 +547,7 @@ void iAQSplom::setLookupTable( iALookupTable &lut, size_t columnIndex)
 	}
 	*m_lut = lut;
 	m_colorLookupParam = columnIndex;
-	setColorScheme(Custom);
+	setColorMode(Custom);
 }
 
 void iAQSplom::parameterVisibilityToggled(bool isVisible)
@@ -1134,8 +1141,8 @@ void iAQSplom::paintEvent(QPaintEvent * /*event*/)
 		+ m_scatPlotSize.y() / ((((getVisibleParametersCount() + (settings.histogramVisible ? 1 : 0)) % 2) == 1) ? 2 : 1)
 	);
 		
-	double minVal = settings.colorScheme == AllPointsSame ? 0 : m_lut->getRange()[0];
-	double maxVal = settings.colorScheme == AllPointsSame ? 0 : m_lut->getRange()[1];
+	double minVal = settings.colorMode == AllPointsSame ? 0 : m_lut->getRange()[0];
+	double maxVal = settings.colorMode == AllPointsSame ? 0 : m_lut->getRange()[1];
 	QRect colorBarRect(topLeft.x(), topLeft.y(),
 		barWidth, height() - topLeft.y() - settings.plotsSpacing);
 	QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y()+colorBarRect.height() );
@@ -1158,14 +1165,14 @@ void iAQSplom::paintEvent(QPaintEvent * /*event*/)
 #else
 	int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
 #endif
-	// Draw scheme / name of parameter used for coloring
+	// Draw color bar / name of parameter used for coloring
 	int colorBarTextX = topLeft.x() - (textWidth + settings.plotsSpacing);
 	painter.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
 	painter.drawText(colorBarTextX, height() - settings.plotsSpacing, minStr);
 	int textHeight = height() - (topLeft.y() + 2 * fm.height() + 2*settings.plotsSpacing);
 	textWidth = std::max(textWidth, fm.height()); // guarantee that label has at least text height
 	QString scalarBarCaption;
-	switch (settings.colorScheme)
+	switch (settings.colorMode)
 	{
 	case AllPointsSame: scalarBarCaption = "Uniform"; break;
 	case Custom:        // intentional fall-through:
@@ -1676,7 +1683,7 @@ void iAQSplom::updateLookupTable()
 	double lutRange[2] = { m_settingsDlg->sbMin->value(), m_settingsDlg->sbMax->value() };
 	double alpha = static_cast<double>(m_settingsDlg->slPointOpacity->value()) / m_settingsDlg->slPointOpacity->maximum();
 	settings.pointColor.setAlpha(alpha*255);
-	switch (settings.colorScheme)
+	switch (settings.colorMode)
 	{
 		default:
 		case AllPointsSame:
@@ -1688,7 +1695,26 @@ void iAQSplom::updateLookupTable()
 			break;
 		}
 		case ByParameter:
-			*m_lut.data() = iALUT::Build(lutRange, settings.colorThemeName, 256, alpha);
+			if (m_settingsDlg->rbContinuous->isChecked())
+			{
+				*m_lut.data() = iALUT::Build(lutRange, settings.colorThemeName, 256, alpha);
+			}
+			else if (m_settingsDlg->rbQualitative->isChecked())
+			{
+				double const * range = m_splomData->paramRange(m_colorLookupParam);
+				m_lut->setRange(range);
+				m_lut->allocate(range[1] - range[0]);
+				m_settingsDlg->lbQualitativeRange->setText(QString("%1 - %2").arg(range[0]).arg(range[1]));
+				auto theme = iAColorThemeManager::instance().theme(settings.colorThemeQualName);
+				for (size_t colorIdx = 0; colorIdx < range[1] - range[0]; ++colorIdx)
+				{
+					m_lut->setColor(colorIdx, theme->color(colorIdx % theme->size()));
+				}
+			}
+			else
+			{
+				DEBUG_LOG("Invalid color state!");
+			}
 			// intentional fall-through!
 		case Custom:
 			m_lut->setOpacity(alpha);
@@ -1769,9 +1795,9 @@ QSharedPointer<iALookupTable> iAQSplom::lookupTable() const
 	return m_lut;
 }
 
-iAQSplom::ColorScheme iAQSplom::colorScheme() const
+iAQSplom::ColorMode iAQSplom::colorMode() const
 {
-	return settings.colorScheme;
+	return settings.colorMode;
 }
 
 void iAQSplom::setColorParam(const QString & paramName)
@@ -1787,7 +1813,7 @@ void iAQSplom::setColorParam(size_t colorLookupParam)
 		return;
 	}
 	m_colorLookupParam = colorLookupParam;
-	setColorScheme(ByParameter);
+	setColorMode(ByParameter);
 }
 
 void iAQSplom::changePointColor()
@@ -1843,8 +1869,9 @@ void iAQSplom::loadSettingsSlot()
 	bool histogramVisible; int histogramBins;
 	int selectionMode;
 	bool flipAxes, quadraticPlots, showPCC;
-	ColorScheme colorScheme;  same color for all points, color-code by parameter value, custom (lut set by application)
+	ColorMode colorMode;  same color for all points, color-code by parameter value, custom (lut set by application)
 	QString colorThemeName;
+	QString colorThemeNameQual;
 	QColor pointColor;
 
 	list of visible parameters
@@ -1867,8 +1894,10 @@ void iAQSplom::saveSettings(QSettings & iniFile) const
 	iniFile.setValue(CfgKeyShowColorLegend, settings.showColorLegend);
 	iniFile.setValue(CfgKeyQuadraticPlots, settings.quadraticPlots);
 	iniFile.setValue(CfgKeyShowPCC, settings.showPCC);
-	iniFile.setValue(CfgKeyColorScheme, settings.colorScheme);
+	iniFile.setValue(CfgKeyColorMode, settings.colorMode);
 	iniFile.setValue(CfgKeyColorThemeName, settings.colorThemeName);
+	iniFile.setValue(CfgKeyColorThemeQualName, settings.colorThemeQualName);
+	iniFile.setValue(CfgKeyColorParameterMode, settings.parameterMode);
 	iniFile.setValue(CfgKeyPointColor, settings.pointColor.rgba());
 	iniFile.setValue(CfgKeyPointOpacity, pointOpacity);
 	iniFile.setValue(CfgKeyColorCodingMin, colorCodingMin);
@@ -1964,13 +1993,22 @@ void iAQSplom::loadSettings(iASettings const & config)
 	
 	// write all settings directly to settings object / blocked GUI elements.
 	// Except for opacity, which triggers the required updateLookupTable to apply the settings
-	settings.colorScheme = static_cast<ColorScheme>(config.value(CfgKeyColorScheme, settings.colorScheme).toInt());
-	QSignalBlocker blockColorScheme(m_settingsDlg->cbColorScheme);
-	m_settingsDlg->cbColorScheme->setCurrentIndex(settings.colorScheme);
+	settings.colorMode = static_cast<ColorMode>(config.value(CfgKeyColorMode, settings.colorMode).toInt());
+	QSignalBlocker blockColorMode(m_settingsDlg->cbColorMode);
+	m_settingsDlg->cbColorMode->setCurrentIndex(settings.colorMode);
+
+	settings.parameterMode = static_cast<ParameterColorMode>(config.value(CfgKeyColorParameterMode, settings.parameterMode).toInt());
+	QSignalBlocker blockRBContinuous(m_settingsDlg->rbContinuous), blockRBQualitative(m_settingsDlg->rbQualitative);
+	m_settingsDlg->rbContinuous->setChecked(settings.parameterMode == Continuous);
+	m_settingsDlg->rbQualitative->setChecked(settings.parameterMode == Qualitative);
 
 	settings.colorThemeName = config.value(CfgKeyColorThemeName, settings.colorThemeName).toString();
 	QSignalBlocker blockColorTheme(m_settingsDlg->cbColorTheme);
 	m_settingsDlg->cbColorTheme->setCurrentText(settings.colorThemeName);
+
+	settings.colorThemeQualName = config.value(CfgKeyColorThemeQualName, settings.colorThemeQualName).toString();
+	QSignalBlocker blockColorThemeQual(m_settingsDlg->cbColorThemeQual);
+	m_settingsDlg->cbColorThemeQual->setCurrentText(settings.colorThemeQualName);
 
 	QColor newPointColor(QColor::fromRgba(config.value(CfgKeyPointColor, settings.pointColor.rgba()).toUInt()));
 	m_settingsDlg->pbPointColor->setStyleSheet(QString("background-color:%1").arg(newPointColor.name()));
@@ -2041,41 +2079,66 @@ void iAQSplom::setPointColor(QColor const & newColor)
 	}
 	settings.pointColor = newColor;
 	m_settingsDlg->pbPointColor->setStyleSheet(QString("background-color:%1").arg(newColor.name()));
-	setColorScheme(AllPointsSame);
+	setColorMode(AllPointsSame);
 }
 
-void iAQSplom::colorSchemeChanged(int colorScheme)
+void iAQSplom::colorModeChanged(int colorMode)
 {
 	if (!settings.enableColorSettings)
 	{
-		DEBUG_LOG("setColorScheme called despite enableColorSettings being false!");
+		DEBUG_LOG("setColorMode called despite enableColorSettings being false!");
 		return;
 	}
-	if (colorScheme == Custom)
+	if (colorMode == Custom)
 	{
-		QMessageBox::warning(this, "SPM settings", "Custom color scheme can not be used from the settings dialog");
+		QMessageBox::warning(this, "SPM settings", "Custom color mode can not be used from the settings dialog");
 		return;
 	}
-	setColorScheme(static_cast<ColorScheme>(colorScheme));
+	setColorMode(static_cast<ColorMode>(colorMode));
 }
 
-void iAQSplom::setColorScheme(ColorScheme colorScheme)
+void iAQSplom::setColorMode(ColorMode colorMode)
 {
-	settings.colorScheme = colorScheme;
-	QSignalBlocker cbColorBlock(m_settingsDlg->cbColorScheme);
-	m_settingsDlg->cbColorScheme->setCurrentIndex(colorScheme);
-	m_settingsDlg->pbPointColor->setEnabled(colorScheme == AllPointsSame);
-	m_settingsDlg->lbPointColor->setEnabled(colorScheme == AllPointsSame);
-	m_settingsDlg->cbColorParameter->setEnabled(colorScheme == ByParameter);
-	m_settingsDlg->lbColorParameter->setEnabled(colorScheme == ByParameter);
-	m_settingsDlg->lbRange->setEnabled(colorScheme == ByParameter);
-	m_settingsDlg->lbRangeMin->setEnabled(colorScheme == ByParameter);
-	m_settingsDlg->lbRangeMax->setEnabled(colorScheme == ByParameter);
-	m_settingsDlg->sbMin->setEnabled(colorScheme == ByParameter);
-	m_settingsDlg->sbMax->setEnabled(colorScheme == ByParameter);
-	m_settingsDlg->pbRangeFromParameter->setEnabled(colorScheme == ByParameter);
-	m_settingsDlg->lbColorTheme->setEnabled(colorScheme == ByParameter);
-	m_settingsDlg->cbColorTheme->setEnabled(colorScheme == ByParameter);
+	settings.colorMode = colorMode;
+	updateColorControls();
+}
+
+void iAQSplom::setColorParameterMode(ParameterColorMode paramMode)
+{
+	settings.parameterMode = paramMode;
+	updateColorControls();
+}
+
+void iAQSplom::setContinousParamMode()
+{
+	settings.parameterMode = Continuous;
+}
+
+void iAQSplom::setQualitativeParamMode()
+{
+	settings.parameterMode = Qualitative;
+}
+
+void iAQSplom::updateColorControls()
+{
+	QSignalBlocker cbColorBlock(m_settingsDlg->cbColorMode);
+	m_settingsDlg->cbColorMode->setCurrentIndex(settings.colorMode);
+	m_settingsDlg->pbPointColor->setEnabled(settings.colorMode == AllPointsSame);
+	m_settingsDlg->lbPointColor->setEnabled(settings.colorMode == AllPointsSame);
+	m_settingsDlg->cbColorParameter->setEnabled(settings.colorMode == ByParameter);
+	m_settingsDlg->lbColorParameter->setEnabled(settings.colorMode == ByParameter);
+	m_settingsDlg->lbRange->setEnabled(settings.colorMode == ByParameter);
+	m_settingsDlg->lbRangeMin->setEnabled(settings.colorMode == ByParameter && settings.parameterMode == Continuous);
+	m_settingsDlg->lbRangeMax->setEnabled(settings.colorMode == ByParameter && settings.parameterMode == Continuous);
+	m_settingsDlg->sbMin->setEnabled(settings.colorMode == ByParameter && settings.parameterMode == Continuous);
+	m_settingsDlg->sbMax->setEnabled(settings.colorMode == ByParameter && settings.parameterMode == Continuous);
+	m_settingsDlg->pbRangeFromParameter->setEnabled(settings.colorMode == ByParameter && settings.parameterMode == Continuous);
+	m_settingsDlg->lbColorTheme->setEnabled(settings.colorMode == ByParameter);
+	m_settingsDlg->cbColorTheme->setEnabled(settings.colorMode == ByParameter && settings.parameterMode == Continuous);
+	m_settingsDlg->cbColorThemeQual->setEnabled(settings.colorMode == ByParameter && settings.parameterMode == Qualitative);
+	m_settingsDlg->lbQualitativeRange->setEnabled(settings.colorMode == ByParameter && settings.parameterMode == Qualitative);
+	m_settingsDlg->rbQualitative->setEnabled(settings.colorMode == ByParameter);
+	m_settingsDlg->rbContinuous->setEnabled(settings.colorMode == ByParameter);
 	updateLookupTable();
 }
 
@@ -2087,7 +2150,21 @@ void iAQSplom::setColorTheme(QString const & themeName)
 		QSignalBlocker sb(m_settingsDlg->cbColorTheme);
 		m_settingsDlg->cbColorTheme->setCurrentText(themeName);
 	}
-	if (settings.colorScheme == ByParameter)
+	if (settings.colorMode == ByParameter && settings.parameterMode == Continuous)
+	{
+		updateLookupTable();
+	}
+}
+
+void iAQSplom::setColorThemeQual(QString const& themeName)
+{
+	settings.colorThemeQualName = themeName;
+	if (m_settingsDlg->cbColorThemeQual->currentText() != themeName)
+	{
+		QSignalBlocker sb(m_settingsDlg->cbColorThemeQual);
+		m_settingsDlg->cbColorThemeQual->setCurrentText(themeName);
+	}
+	if (settings.colorMode == ByParameter && settings.parameterMode == Qualitative)
 	{
 		updateLookupTable();
 	}

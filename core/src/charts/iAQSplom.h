@@ -89,8 +89,8 @@ class QTableWidget;
 class open_iA_Core_API iAQSplom : public iAQGLWidget, public iAScatterPlotSelectionHandler
 {
 	Q_OBJECT
-	Q_PROPERTY( double m_animIn READ getAnimIn WRITE setAnimIn )
-	Q_PROPERTY( double m_animOut READ getAnimOut WRITE setAnimOut )
+	Q_PROPERTY(double m_animIn READ getAnimIn WRITE setAnimIn)
+	Q_PROPERTY(double m_animOut READ getAnimOut WRITE setAnimOut)
 
 	enum splom_mode    //!< two possible states of SPLOM: upper triangle with maximized plot or all possible combinations of scatter plots
 	{
@@ -98,11 +98,16 @@ class open_iA_Core_API iAQSplom : public iAQGLWidget, public iAScatterPlotSelect
 		ALL_PLOTS
 	};
 public:
-	enum ColorScheme   //!< what color scheme to use for coloring the dots
+	enum ColorMode     //!< in what way the the dots should be colored
 	{
 		AllPointsSame, //!< all points have the same color
 		ByParameter,   //!< points are colored by a specific parameter, using a diverging, perceptually uniform lookup table
 		Custom         //!< points are colored
+	};
+	enum ParameterColorMode  //!< how parameter colors should be applied
+	{
+		Continuous,          //!< lookup table from min to max, applied continously
+		Qualitative          //!< lookup table applied discretely, i.e. parameter assumed to have integer values and each point gets a distinctive color
 	};
 // Methods
 	iAQSplom( QWidget * parent = 0, Qt::WindowFlags f = 0 );
@@ -148,7 +153,7 @@ public:
 	void addContextMenuAction(QAction* action);                      //!< add an additional option to the context menu
 	size_t colorLookupParam() const;                                 //!< parameter currently used for color lookup
 	QSharedPointer<iALookupTable> lookupTable() const;               //!< get lookup table
-	ColorScheme colorScheme() const;                                 //!< get current color scheme
+	ColorMode colorMode() const;                                     //!< get current coloring mode
 	void saveSettings(QSettings & iniFile) const;                    //!< store current settings into given object
 	void loadSettings(iASettings const & iniFile);                   //!< load settings from given object
 public slots:
@@ -157,7 +162,8 @@ public slots:
 	void setHistogramBins(int bins);                                 //!< set the number of histogram bins
 	void showSettings();                                             //!< Show the settings dialog
 	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
-	void setColorTheme(QString const & themeName);                   //!< Call to adapt color theme used for coloring by a parameter
+	void setColorTheme(QString const& themeName);                    //!< Call to adapt color theme used for coloring by a continuous parameter
+	void setColorThemeQual(QString const& themeName);                //!< Call to adapt color theme used for coloring by a qualitative parameter
 	void rangeFromParameter();                                       //!< Call when color range should be determined from parameter
 signals:
 	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
@@ -206,9 +212,11 @@ private:
 	void updateFilter();                                             //!< update filter in internal scatter plots
 	void updateHistograms();                                         //!< Updates all histograms when data or filter changes
 	void updateHistogram(size_t paramIndex);                         //!< Updates the histogram of the given parameter
-	void setColorScheme(ColorScheme colorScheme);                    //!< Set color scheme (method how points are colored)
+	void setColorMode(ColorMode colorMode);                          //!< Set color mode (method how points are colored)
+	void setColorParameterMode(ParameterColorMode paramMode);        //!< Set mode how colors are applied from parameter
 	void applyLookupTable();                                         //!< Apply lookup table to all the scatter plots.
 	void createScatterPlot(size_t y, size_t x, bool initial);        //!< Creates a single scatter plot at location y, y
+	void updateColorControls();                                      //!< Update color controls and color coding of points
 private slots:
 	void selectionUpdated();                                         //!< When selection of data points is modified.
 	void transformUpdated( double scale, QPointF deltaOffset );      //!< When transform of scatter plots is modified.
@@ -223,10 +231,12 @@ private slots:
 	void updateLookupTable();                                        //!< Update lookup table sensitivity
 	void pointRadiusChanged(int);                                    //!< Called from settings dialog when point size slider changes
 	void pointOpacityChanged(int);                                   //!< Called from settings dialog when opacity slider changes
-	void colorSchemeChanged(int colorScheme);                        //!< Called from settings dialog when the color scheme is changed
+	void colorModeChanged(int colorMode);                            //!< Called from settings dialog when the color scheme is changed
 	void changePointColor();                                         //!< Called from settings dialog when the point color is clicked
 	void saveSettingsSlot();                                         //!< Called from settings dialog for storing settings
 	void loadSettingsSlot();                                         //!< Called from settings dialog for loading settings
+	void setContinousParamMode();
+	void setQualitativeParamMode();
 
 // Members:
 public:
@@ -264,8 +274,11 @@ public:
 		bool quadraticPlots;                     //!< Whether the scatter plots are constrained to quadratic sizes
 		bool showPCC;                            //!< Whether to show the Pearson's correlation coefficient
 		bool showColorLegend;                    //!< Whether the color legend is shown
-		ColorScheme colorScheme;                 //!< Scheme to use for coloring the matrix dots
+		ColorMode colorMode;                     //!< How the matrix dots are colored
+		ParameterColorMode parameterMode;        //!< How parameters are translated to colors
 		QString colorThemeName;                  //!< Name of a color theme for when points are colored by a parameter (from iALUT)
+		QString colorThemeQualName;              //!< Name of a color theme (iAColorTheme) when points are colored qualitatively by parameter
+
 		QColor pointColor;                       //!< Color for each point if color scheme is uniform
 		bool enableColorSettings;                //!< Whether color coding settings are accessible
 	};
