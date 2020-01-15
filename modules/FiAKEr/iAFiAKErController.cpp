@@ -359,6 +359,8 @@ void iAFiAKErController::setupMain3DView()
 	m_ren->SetBackground(1.0, 1.0, 1.0);
 	m_ren->SetUseDepthPeeling(true);
 	m_ren->SetMaximumNumberOfPeels(1000);
+	m_ren->SetLayer(0);
+	m_renderManager->addToBundle(renWin->GetRenderers()->GetFirstRenderer());
 	renWin->AddRenderer(m_ren);
 	m_renderManager->addToBundle(m_ren);
 	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
