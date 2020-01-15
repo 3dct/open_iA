@@ -1714,10 +1714,14 @@ void iAFiAKErController::showSelectionIn3DViews()
 {
 	bool anythingSelected = isAnythingSelected();
 	m_showReferenceWidget->setVisible(anythingSelected);
-	visitAllVisibleVis( [this, anythingSelected](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t resultID)
+	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
-		vis->setSelection(m_selection[resultID], anythingSelected);
-	});
+		auto& vis = m_resultUIs[resultID];
+		if (vis.main3DVis->visible())
+		{
+			vis.main3DVis->setSelection(m_selection[resultID], anythingSelected);
+		}
+	}
 	// TODO: prevent multiple render window / widget updates?
 }
 
