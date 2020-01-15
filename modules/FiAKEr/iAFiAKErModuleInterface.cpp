@@ -42,7 +42,8 @@
 class iAFIAKERProject : public iAProjectBase
 {
 public:
-	iAFIAKERProject()
+	iAFIAKERProject():
+		m_controller(nullptr)
 	{}
 	virtual ~iAFIAKERProject() override
 	{}
@@ -68,7 +69,7 @@ public:
 		}
 		iAFiAKErModuleInterface * fiaker = m_mainWindow->getModuleDispatcher().GetModule<iAFiAKErModuleInterface>();
 		fiaker->setupToolBar();
-		fiaker->loadProject(m_mdiChild, projectFile, fileName);
+		fiaker->loadProject(m_mdiChild, projectFile, fileName, this);
 	}
 	//! not required at the moment, since this is currently done by
 	//! iAFiAKErController::doSaveProject overwriting iASavableProject::doSaveProject
@@ -231,17 +232,19 @@ void iAFiAKErModuleInterface::loadFiAKErProject()
 	newChild->show();
 	QSettings projectFile(fileName, QSettings::IniFormat);
 	projectFile.setIniCodec("UTF-8");
-	loadProject(newChild, projectFile, fileName);
+	auto project = QSharedPointer<iAFIAKERProject>::create();
+	project->setMainWindow(m_mainWnd);
+	project->setChild(newChild);
+	loadProject(newChild, projectFile, fileName, project.data());
+	newChild->addProject(iAFiAKErController::FIAKERProjectID, project);
 }
 
-void iAFiAKErModuleInterface::loadProject(MdiChild* mdiChild, QSettings const& projectFile, QString const& fileName)
+void iAFiAKErModuleInterface::loadProject(MdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERProject* project)
 {
 	AttachToMdiChild(mdiChild);
 	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>();
-	auto project = QSharedPointer<iAFIAKERProject>::create();
 	auto controller = attach->controller();
 	project->setController(controller);
-	mdiChild->addProject(iAFiAKErController::FIAKERProjectID, project);
 	m_mainWnd->setPath(m_lastPath);
 	iASettings projectSettings = mapFromQSettings(projectFile);
 	connect(controller, &iAFiAKErController::setupFinished, [controller, projectSettings]
