@@ -393,7 +393,6 @@ private:
 	void connectSignalsToSlots();
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void snakeNormal(int index, double point[3], double normal[3]);
-	//void updateReslicer(double point[3], double normal[3], int mode);
 
 	//! sets up the IO thread for saving the correct file type for the given filename.
 	//! \return	true if it succeeds, false if it fails.
