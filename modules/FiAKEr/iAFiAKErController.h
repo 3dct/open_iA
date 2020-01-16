@@ -173,6 +173,7 @@ private slots:
 	// settings view:
 	void loadVolume(QString const & fileName);
 	void update3D();
+	void applyRenderSettings();
 private:
 	bool loadReferenceInternal(iASettings settings);
 	void changeDistributionSource(int index);
@@ -205,6 +206,7 @@ private:
 	void updateFiberContext();
 	void startFeatureScout(int resultID, MdiChild* newChild);
 	void visitAllVisibleVis(std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, size_t resultID)> func);
+	void setClippingPlanes(QSharedPointer<iA3DColoredPolyObjectVis> vis);
 
 	void setupMain3DView();
 	void setupSettingsView();

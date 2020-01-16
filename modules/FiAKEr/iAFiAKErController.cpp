@@ -48,6 +48,7 @@
 #include <iAMapperImpl.h>
 #include <iAMathUtility.h>
 #include <iAModuleDispatcher.h>
+#include <iARenderer.h>
 #include <iARendererManager.h>
 #include <iAStringHelper.h>
 #include <iAToolsVTK.h>    // for setCamPos
@@ -266,6 +267,7 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 	m_views.resize(DockWidgetCount);
 	m_views[JobView] = new iADockWidgetWrapper(m_jobs, "Jobs", "foeJobs");
 	m_mdiChild->addDockWidget(Qt::BottomDockWidgetArea, m_views[JobView]);
+	connect(m_mdiChild, &MdiChild::renderSettingsChanged, this, &iAFiAKErController::applyRenderSettings);
 
 	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, config, stepShift);
@@ -343,6 +345,7 @@ void iAFiAKErController::resultsLoaded()
 	m_settingsWidgetMap.insert(ProjectVisibleStepCharts, &m_chartCB);
 	m_settingsWidgetMap.insert(ProjectCurrentStep, m_optimStepSlider);
 
+	applyRenderSettings();
 	loadStateAndShow();
 }
 
@@ -355,14 +358,7 @@ void iAFiAKErController::setupMain3DView()
 	m_main3DWidget = m_mdiChild->renderDockWidget()->vtkWidgetRC;
 	auto renWin = m_main3DWidget->GetRenderWindow();
 	m_ren = renWin->GetRenderers()->GetFirstRenderer();
-	//m_ren = vtkSmartPointer<vtkRenderer>::New();
-	//m_ren->SetUseFXAA(true);
-	//m_ren->SetBackground(1.0, 1.0, 1.0);
-	//m_ren->SetUseDepthPeeling(true);
 	m_ren->SetMaximumNumberOfPeels(1000);
-	//m_ren->SetLayer(0);
-	//m_renderManager->addToBundle();
-	//renWin->AddRenderer(m_ren);
 	m_renderManager->addToBundle(m_ren);
 	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
 	m_style->setSelectionProvider(this);
@@ -1372,6 +1368,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		ui.main3DVis->setContextOpacity(ContextOpacity);
 		ui.main3DVis->setShowWireFrame(m_showWireFrame);
 		ui.main3DVis->setShowLines(m_showLines);
+		setClippingPlanes(ui.main3DVis);
 		auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
 		if (vis)
 		{
@@ -2444,6 +2441,7 @@ void iAFiAKErController::showSpatialOverview()
 	size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns()-1;
 	ref3D->setLookupTable(lut, colID);
 	ref3D->updateColorSelectionRendering();
+	setClippingPlanes(ref3D);
 	ref3D->show();
 	m_main3DWidget->GetRenderWindow()->Render();
 	m_main3DWidget->update();
@@ -2954,11 +2952,36 @@ void iAFiAKErController::loadVolume(QString const & fileName)
 	m_refRenderer->addTo(m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 }
 
-
 void iAFiAKErController::update3D()
 {
 	m_main3DWidget->GetRenderWindow()->Render();
 	m_main3DWidget->update();
+}
+
+void iAFiAKErController::setClippingPlanes(QSharedPointer<iA3DColoredPolyObjectVis> vis)
+{
+	if (m_mdiChild->renderSettings().ShowSlicers)
+	{
+		auto iaren = m_mdiChild->renderer();
+		vtkPlane* planes[3] = { iaren->plane1(), iaren->plane2(), iaren->plane3() };
+		vis->setClippingPlanes(planes);
+	}
+	else
+	{
+		vis->removeClippingPlanes();
+	}
+}
+
+void iAFiAKErController::applyRenderSettings()
+{
+	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	{
+		auto mainVis = m_resultUIs[resultID].main3DVis;
+		if (mainVis->visible())
+		{
+			setClippingPlanes(mainVis);
+		}
+	}
 }
 
 void iAFiAKErController::showReferenceInChartToggled()
