@@ -39,11 +39,14 @@ iARendererManager::iARendererManager()
 
 void iARendererManager::addToBundle(vtkRenderer* renderer)
 {
-	if(!m_commonCamera)
+	if (!m_commonCamera)
+	{
 		m_commonCamera = renderer->GetActiveCamera();
+	}
 	else
+	{
 		renderer->SetActiveCamera(m_commonCamera);
-
+	}
 	m_renderers.append(renderer);
 	renderer->AddObserver(vtkCommand::EndEvent, this, &iARendererManager::redrawOtherRenderers);
 }
