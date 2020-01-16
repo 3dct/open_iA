@@ -2072,7 +2072,14 @@ void iAFiAKErController::setReference(size_t referenceID)
 	}
 	if (m_referenceID != NoResult)
 	{
-		DEBUG_LOG("Changing the reference is currently not well-tested. Please consider starting a fresh FIAKER window and setting the reference there!");
+		if (QMessageBox::question(m_mainWnd, "FIAKER",
+			"Changing the reference is currently not well-tested. "
+			"Please consider starting a fresh FIAKER window and setting the reference there. "
+			"Are you sure you want to continue?",
+			QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
+		{
+			return;
+		}
 		auto & ui = m_resultUIs[m_referenceID];
 		setResultBackground(ui, m_main3DWidget->palette().color(ui.nameActions->backgroundRole()));
 		m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text().left(m_showResultVis[m_referenceID]->text().length()-RefMarker.length()));
