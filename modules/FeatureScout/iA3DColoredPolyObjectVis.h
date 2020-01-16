@@ -80,6 +80,7 @@ protected:
 	vtkSmartPointer<vtkPolyDataMapper> m_outlineMapper;
 	vtkSmartPointer<vtkActor> m_outlineActor;
 	std::vector<size_t> m_selection;
+	bool m_clippingPlanesEnabled;
 
 	//! Set an object to a specified color.
 	//! @param objIdx index of the object.
