@@ -1492,8 +1492,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		}
 	}
 	changeReferenceDisplay();
-	m_main3DWidget->GetRenderWindow()->Render();
-	m_main3DWidget->update();
+	update3D();
 }
 
 void iAFiAKErController::toggleBoundingBox(int state)
@@ -1916,8 +1915,7 @@ void iAFiAKErController::showBoundingBoxChanged(int newState)
 	else
 	{
 		m_ren->RemoveActor(m_customBoundingBoxActor);
-		m_main3DWidget->GetRenderWindow()->Render();
-		m_main3DWidget->update();
+		update3D();
 	}
 }
 
@@ -1946,8 +1944,7 @@ void iAFiAKErController::updateBoundingBox()
 	m_customBoundingBoxSource->SetBounds(newBounds);
 	m_customBoundingBoxMapper->Update();
 
-	m_main3DWidget->GetRenderWindow()->Render();
-	m_main3DWidget->update();
+	update3D();
 }
 
 void iAFiAKErController::contextSpacingChanged(double value)
@@ -2036,8 +2033,7 @@ void iAFiAKErController::updateFiberContext()
 			m_contextActors.push_back(actor);
 		}
 	}
-	m_main3DWidget->GetRenderWindow()->Render();
-	m_main3DWidget->update();
+	update3D();
 }
 
 namespace
@@ -2443,8 +2439,7 @@ void iAFiAKErController::showSpatialOverview()
 	ref3D->updateColorSelectionRendering();
 	setClippingPlanes(ref3D);
 	ref3D->show();
-	m_main3DWidget->GetRenderWindow()->Render();
-	m_main3DWidget->update();
+	update3D();
 	if (!m_cameraInitialized)
 	{
 		m_ren->ResetCamera();
@@ -2518,8 +2513,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	}
 	if (!isAnythingSelected() || !showRef)
 	{
-		m_main3DWidget->GetRenderWindow()->Render();
-		m_main3DWidget->update();
+		update3D();
 		return;
 	}
 	if (m_referenceID == NoResult)
@@ -2708,8 +2702,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	m_refLineActor->SetMapper(mapper);
 	m_refLineActor->GetProperty()->SetLineWidth(2);
 	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_refLineActor);
-	m_main3DWidget->GetRenderWindow()->Render();
-	m_main3DWidget->update();
+	update3D();
 }
 
 void iAFiAKErController::playPauseOptimSteps()
@@ -2802,8 +2795,7 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 	sampleMapper->Update();
 	m_sampleActor->GetProperty()->SetPointSize(2);
 	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
-	m_main3DWidget->GetRenderWindow()->Render();
-	m_main3DWidget->update();
+	update3D();
 }
 
 void iAFiAKErController::hideSamplePoints()
@@ -2814,8 +2806,7 @@ void iAFiAKErController::hideSamplePoints()
 	}
 	addInteraction("Hide cylinder sampling points.");
 	hideSamplePointsPrivate();
-	m_main3DWidget->GetRenderWindow()->Render();
-	m_main3DWidget->update();
+	update3D();
 	m_sampleActor = nullptr;
 }
 
