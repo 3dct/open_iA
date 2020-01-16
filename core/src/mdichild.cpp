@@ -182,7 +182,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 
 void MdiChild::toggleFullScreen()
 {
-	/*
 	QWidget* mdiSubWin = qobject_cast<QWidget*>(parent());
 	if (m_mainWnd->isFullScreen())
 	{
@@ -193,7 +192,6 @@ void MdiChild::toggleFullScreen()
 		mdiSubWin->setWindowFlags(windowFlags() & ~Qt::FramelessWindowHint);
 	}
 	mdiSubWin->show();
-	*/
 }
 
 MdiChild::~MdiChild()
