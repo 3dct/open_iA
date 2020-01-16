@@ -30,6 +30,7 @@ class iALookupTable;
 
 class vtkActor;
 class vtkOutlineFilter;
+class vtkPlane;
 class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkUnsignedCharArray;
@@ -64,6 +65,8 @@ public:
 	void updateColorSelectionRendering();
 	virtual QString visualizationStatistics() const =0;
 	virtual void setShowLines(bool /*lines*/) {} // not ideal, should not be here
+	void setClippingPlanes(vtkPlane* planes[3]);
+	void removeClippingPlanes();
 protected:
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;

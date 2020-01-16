@@ -317,6 +317,19 @@ void iA3DColoredPolyObjectVis::updateColorSelectionRendering()
 	updatePolyMapper();
 }
 
+void iA3DColoredPolyObjectVis::setClippingPlanes(vtkPlane* planes[3])
+{
+	for (int i = 0; i < 3; ++i)
+	{
+		m_mapper->AddClippingPlane(planes[i]);
+	}
+}
+
+void iA3DColoredPolyObjectVis::removeClippingPlanes()
+{
+	m_mapper->RemoveAllClippingPlanes();
+}
+
 int iA3DColoredPolyObjectVis::objectPointCount(int /*ptIdx*/) const
 {
 	return DefaultPointsPerObject;
