@@ -224,7 +224,7 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 	if (!settings.contains(FileVersionKey) ||
 		settings.value(FileVersionKey).toString() != ModFileVersion)
 	{
-		DEBUG_LOG(QString("Invalid project file version (was %1, expected %2! Trying to parse anyway, but expect failures.")
+		DEBUG_LOG(QString("Invalid project file version (was %1, expected %2)! Trying to parse anyway, but expect failures.")
 			.arg(settings.contains(FileVersionKey) ? settings.value(FileVersionKey).toString() : "not set")
 			.arg(ModFileVersion));
 		return false;

@@ -258,17 +258,17 @@ void MdiChild::connectSignalsToSlots()
 		connect(m_slicer[s], &iASlicer::progress, this, &MdiChild::updateProgressBar);
 	}
 
-	connect(m_histogram, SIGNAL(updateViews()), this, SLOT(updateViews()));
-	connect(m_histogram, SIGNAL(pointSelected()), this, SIGNAL(pointSelected()));
-	connect(m_histogram, SIGNAL(noPointSelected()), this, SIGNAL(noPointSelected()));
-	connect(m_histogram, SIGNAL(endPointSelected()), this, SIGNAL(endPointSelected()));
-	connect(m_histogram, SIGNAL(active()), this, SIGNAL(active()));
-	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), SIGNAL(Changed()), this, SLOT(modalityTFChanged()));
+	connect(m_histogram, &iAChartWithFunctionsWidget::updateViews, this, &MdiChild::updateViews);
+	connect(m_histogram, &iAChartWithFunctionsWidget::pointSelected, this, &MdiChild::pointSelected);
+	connect(m_histogram, &iAChartWithFunctionsWidget::noPointSelected, this, &MdiChild::noPointSelected);
+	connect(m_histogram, &iAChartWithFunctionsWidget::endPointSelected, this, &MdiChild::endPointSelected);
+	connect(m_histogram, &iAChartWithFunctionsWidget::active, this, &MdiChild::active);
+	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), &iAChartTransferFunction::Changed, this, &MdiChild::modalityTFChanged);
 
-	connect(m_dwModalities, SIGNAL(modalitiesChanged(bool, double const*)), this, SLOT(updateImageProperties()));
-	connect(m_dwModalities, SIGNAL(modalitiesChanged(bool, double const*)), this, SLOT(updateViews()));
-	connect(m_dwModalities, SIGNAL(modalitySelected(int)), this, SLOT(showModality(int)));
-	connect(m_dwModalities, SIGNAL(modalitiesChanged(bool, double const*)), this, SLOT(resetCamera(bool, double const*)));
+	connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateImageProperties);
+	connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateViews);
+	connect(m_dwModalities, &dlg_modalities::modalitySelected , this, &MdiChild::showModality);
+	connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::resetCamera);
 }
 
 void MdiChild::connectThreadSignalsToChildSlots(iAAlgorithm* thread)
