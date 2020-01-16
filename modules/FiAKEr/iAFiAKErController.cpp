@@ -299,12 +299,12 @@ void iAFiAKErController::resultsLoaded()
 	auto selectionView = setupSelectionView();
 
 	m_views.resize(DockWidgetCount);
-	m_views[ResultListView] = new iADockWidgetWrapper(resultListView, "Result list", "foeResultList");
-	m_views[OptimStepChart] = new iADockWidgetWrapper(optimStepsView, "Optimization Steps", "foeSteps");
-	m_views[SPMView]        = new iADockWidgetWrapper(m_spm, "Scatter Plot Matrix", "foeSPM");
-	m_views[ProtocolView]   = new iADockWidgetWrapper(protocolView, "Interactions", "foeInteractions");
-	m_views[SelectionView]  = new iADockWidgetWrapper(selectionView, "Selections", "foeSelections");
-	m_views[SettingsView]   = new iADockWidgetWrapper(m_settingsView, "Settings", "foeSettings");
+	m_views[ResultListView] = new iADockWidgetWrapper(resultListView, "FIAKER Result list", "foeResultList");
+	m_views[OptimStepChart] = new iADockWidgetWrapper(optimStepsView, "FIAKER Steps", "foeSteps");
+	m_views[SPMView]        = new iADockWidgetWrapper(m_spm, "FIAKER Scatterplot Matrix", "foeSPM");
+	m_views[ProtocolView]   = new iADockWidgetWrapper(protocolView, "FIAKER Interactions", "foeInteractions");
+	m_views[SelectionView]  = new iADockWidgetWrapper(selectionView, "FIAKER Selections", "foeSelections");
+	m_views[SettingsView]   = new iADockWidgetWrapper(m_settingsView, "FIAKER Settings", "foeSettings");
 
 	m_mdiChild->splitDockWidget(m_views[JobView], m_views[ResultListView], Qt::Vertical);
 	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[OptimStepChart], Qt::Vertical);
@@ -354,14 +354,15 @@ void iAFiAKErController::setupMain3DView()
 {
 	m_main3DWidget = m_mdiChild->renderDockWidget()->vtkWidgetRC;
 	auto renWin = m_main3DWidget->GetRenderWindow();
-	m_ren = vtkSmartPointer<vtkRenderer>::New();
-	m_ren->SetUseFXAA(true);
-	m_ren->SetBackground(1.0, 1.0, 1.0);
-	m_ren->SetUseDepthPeeling(true);
+	m_ren = renWin->GetRenderers()->GetFirstRenderer();
+	//m_ren = vtkSmartPointer<vtkRenderer>::New();
+	//m_ren->SetUseFXAA(true);
+	//m_ren->SetBackground(1.0, 1.0, 1.0);
+	//m_ren->SetUseDepthPeeling(true);
 	m_ren->SetMaximumNumberOfPeels(1000);
-	m_ren->SetLayer(0);
-	m_renderManager->addToBundle(renWin->GetRenderers()->GetFirstRenderer());
-	renWin->AddRenderer(m_ren);
+	//m_ren->SetLayer(0);
+	//m_renderManager->addToBundle();
+	//renWin->AddRenderer(m_ren);
 	m_renderManager->addToBundle(m_ren);
 	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
 	m_style->setSelectionProvider(this);
