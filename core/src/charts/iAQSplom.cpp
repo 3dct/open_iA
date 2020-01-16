@@ -2112,11 +2112,13 @@ void iAQSplom::setColorParameterMode(ParameterColorMode paramMode)
 void iAQSplom::setContinousParamMode()
 {
 	settings.parameterMode = Continuous;
+	updateColorControls();
 }
 
 void iAQSplom::setQualitativeParamMode()
 {
 	settings.parameterMode = Qualitative;
+	updateColorControls();
 }
 
 void iAQSplom::updateColorControls()
