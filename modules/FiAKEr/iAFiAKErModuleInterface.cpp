@@ -281,31 +281,24 @@ void iAFiAKErModuleInterface::setupToolBar()
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 }
 
-namespace
-{
-	iAFiAKErController* getActiveFiAKEr(MainWindow* mainWnd)
-	{
-		auto curWnd = mainWnd->mdiArea->currentSubWindow();
-		return (curWnd) ? qobject_cast<iAFiAKErController*>(curWnd->widget()) : nullptr;
-	}
-}
-
 void iAFiAKErModuleInterface::toggleDockWidgetTitleBars()
 {
-	auto fiakerController = getActiveFiAKEr(m_mainWnd);
-	if (!fiakerController)
+	m_mdiChild = m_mainWnd->activeMdiChild();
+	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>();
+	if (!attach)
 	{
 		return;
 	}
-	fiakerController->toggleDockWidgetTitleBars();
+	attach->controller()->toggleDockWidgetTitleBars();
 }
 
 void iAFiAKErModuleInterface::toggleSettings()
 {
-	auto fiakerController = getActiveFiAKEr(m_mainWnd);
-	if (!fiakerController)
+	m_mdiChild = m_mainWnd->activeMdiChild();
+	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>();
+	if (!attach)
 	{
 		return;
 	}
-	fiakerController->toggleSettings();
+	attach->controller()->toggleSettings();
 }
