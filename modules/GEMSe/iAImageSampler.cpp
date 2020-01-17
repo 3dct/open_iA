@@ -109,6 +109,8 @@ void iAImageSampler::run()
 		DEBUG_LOG("Algorithm has no parameters, nothing to sample!");
 		return;
 	}
+	DEBUG_LOG("");
+	DEBUG_LOG("---------- SAMPLING STARTED ----------");
 	StatusMsg("Generating sampling parameter sets...");
 	m_parameterSets = m_sampleGenerator->GetParameterSets(m_parameters, m_sampleCount);
 	if (!m_parameterSets)
@@ -168,7 +170,9 @@ void iAImageSampler::run()
 		QFileInfo fi(m_imageBaseName);
 		QString outputFile = outputDirectory + "/" + (m_separateOutputDir ?
 			m_imageBaseName :
-			QString("%1%2.%3").arg(fi.baseName()).arg(m_curLoop, numDigits, 10, QChar('0')).arg(fi.completeSuffix()));
+			QString("%1%2%3").arg(fi.baseName()).arg(m_curLoop, numDigits, 10, QChar('0')).arg(
+				fi.completeSuffix().size() > 0 ? QString(".%1").arg(fi.completeSuffix()) : QString("") )
+		);
 		QStringList argumentList;
 		argumentList << additionalArgumentList;
 		argumentList << outputFile;
@@ -216,6 +220,7 @@ void iAImageSampler::run()
 	{
 		msleep(100);
 	}
+	DEBUG_LOG("---------- SAMPLING FINISHED! ----------");
 }
 
 void iAImageSampler::computationFinished()

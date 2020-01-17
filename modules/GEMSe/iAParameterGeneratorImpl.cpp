@@ -25,6 +25,7 @@
 #include <iAAttributeDescriptor.h>
 #include <iAConsole.h>
 #include <iAMathUtility.h>
+#include <iAStringHelper.h>
 
 #include <cmath>
 #include <random>
@@ -343,22 +344,21 @@ QString iACartesianGridParameterGenerator::name() const
 
 ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
 {
-	DEBUG_LOG("Cartesian grid sampling broken at the moment!");
 	ParameterSetsPointer result(new ParameterSets);
 	int samplesPerParameter = static_cast<int>(std::pow(10, std::log10(sampleCount) / parameter->size()));
 	samplesPerParameter = std::max(2, samplesPerParameter); // at least 2 sample values per parameter
 
 	// calculate actual sample count (have to adhere to grid structure / powers):
 	// maybe get sample count per parameter?
-	//int actualSampleCount = std::pow(samplesPerParameter, parameter->size());
-
-	/*
-	DEBUG_LOG(QString("parameter count: %1, sample count: %2 samplesPerParameter: %3")
-		.arg(paramCount)
-		.arg(parameterRange->sampleCount)
+	int actualSampleCount = std::pow(samplesPerParameter, parameter->size());
+/*
+	DEBUG_LOG(QString("param. count: %1, samples/param.: %2, targeted samples: %3, actual samples: %4")
+		.arg(parameter->size())
 		.arg(samplesPerParameter)
+		.arg(sampleCount)
+		.arg(actualSampleCount)
 	);
-	*/
+*/
 	
 	QVector<QSharedPointer<MyRange>> ranges;
 	for (int p = 0; p < parameter->size(); ++p)
@@ -376,7 +376,7 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 	// to keep track of which grid index for which parameter we are currently using
 	QVector<int> parameterRangeIdx(parameter->size(), 0);
 
-	for (int sampleIdx = 0; sampleIdx< sampleCount; ++sampleIdx)
+	for (int sampleIdx = 0; sampleIdx < actualSampleCount; ++sampleIdx)
 	{
 		ParameterSet set;
 		for (int p = 0; p < parameter->size(); ++p)
@@ -390,15 +390,19 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 			set.push_back(value);
 		}
 		result->append(set);
+		//DEBUG_LOG(QString("%1: %2").arg(joinAsString(parameterRangeIdx, ",")).arg(joinAsString(result->at(result->size() - 1), ",")));
 
 		// increase indices into the parameter range:
 		++parameterRangeIdx[0];
 		int curIdx = 0;
-		while (parameterRangeIdx[curIdx] >= samplesPerParameter)
+		while (curIdx < parameter->size() && parameterRangeIdx[curIdx] >= samplesPerParameter)
 		{
 			parameterRangeIdx[curIdx] = 0;
 			++curIdx;
-			parameterRangeIdx[curIdx]++;
+			if (curIdx < parameter->size())
+			{
+				parameterRangeIdx[curIdx]++;
+			}
 		}
 	}
 	return result;
@@ -411,7 +415,7 @@ QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators()
 	{
 		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iARandomParameterGenerator()));
 		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iALatinHypercubeParameterGenerator()));
-		//parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iACartesianGridParameterGenerator()));
+		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iACartesianGridParameterGenerator()));
 	}
 	return parameterGenerators;
 }

@@ -101,7 +101,7 @@ private:
 	iAPerformanceTimer::DurationType m_derivedOutputDuration;
 	//! @}
 
-	// intention: running several extended random walker's in parallel
+	// intention: running several sampled algorithms in parallel
 	// downside: seems to slow down rather than speed up overall process
 	QMap<iACommandRunner*, int > m_runningComputation;
 	QMap<iADerivedOutputCalculator*, QSharedPointer<iASingleResult> > m_runningDerivedOutput;
