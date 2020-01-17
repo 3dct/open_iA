@@ -195,8 +195,10 @@ void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventI
 				}
 			}
 			if (addCell)
+			{
 				newfinalSel->InsertNextCell(ren->finalSelection()->GetCell(i)->GetCellType(),
 					ren->finalSelection()->GetCell(i)->GetPointIds());
+			}
 		}		
 		ren->finalSelection()->ShallowCopy(newfinalSel);
 	}
@@ -218,7 +220,9 @@ void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double 
 	int subId = cell->GetParametricCenter(pcoords);
 	cell->EvaluateLocation(subId, pcoords, center, weights);
 	for (int i = 0; i < DIM; ++i)
+	{
 		center[i] = floor(center[i] / spacing[i]);
+	}
 }
 
 iARenderer::iARenderer(QObject *par)  :  QObject( par ),
@@ -262,6 +266,7 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 {
 	m_ren->SetLayer(0);
 	m_ren->UseDepthPeelingOn();
+	m_ren->SetMaximumNumberOfPeels(1000);
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
 	m_ren->UseDepthPeelingForVolumesOn();
 #endif
@@ -306,7 +311,10 @@ iARenderer::~iARenderer(void)
 {
 	m_ren->RemoveAllObservers();
 	m_renWin->RemoveAllObservers();
-	if (m_renderObserver) m_renderObserver->Delete();
+	if (m_renderObserver)
+	{
+		m_renderObserver->Delete();
+	}
 }
 
 void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
@@ -551,7 +559,9 @@ void iARenderer::setupRenderer()
 void iARenderer::update()
 {
 	if (m_polyData)
+	{
 		m_polyMapper->Update();
+	}
 	m_ren->Render();
 	m_renWin->Render();
 	m_renWin->GetInteractor()->Render();
@@ -575,9 +585,13 @@ void iARenderer::showSlicePlanes(bool show)
 	for (int s = 0; s < 3; ++s)
 	{
 		if (show)
+		{
 			m_ren->AddActor(m_slicePlaneActor[s]);
+		}
 		else
+		{
 			m_ren->RemoveActor(m_slicePlaneActor[s]);
+		}
 		m_slicePlaneActor[s]->GetProperty()->SetOpacity(m_slicePlaneOpacity);
 	}
 }
@@ -604,7 +618,8 @@ void iARenderer::setPlaneNormals( vtkTransform *tr )
 
 void iARenderer::setCubeCenter( int x, int y, int z )
 {
-	if (m_interactor->GetEnabled()) {
+	if (m_interactor->GetEnabled())
+	{
 		m_cSource->SetCenter( x * m_imageData->GetSpacing()[0],
 			y * m_imageData->GetSpacing()[1],
 			z * m_imageData->GetSpacing()[2] );
@@ -651,9 +666,10 @@ void iARenderer::setCamPosition( double * camOptions, bool rsParallelProjection 
 	m_cam->SetPosition ( camOptions[3], camOptions[4], camOptions[5] );
 	m_cam->SetFocalPoint( camOptions[6], camOptions[7], camOptions[8] );
 
-	if(rsParallelProjection)
-		m_cam->SetParallelScale( camOptions[9] );
-
+	if (rsParallelProjection)
+	{
+		m_cam->SetParallelScale(camOptions[9]);
+	}
 	update();
 }
 
@@ -679,7 +695,9 @@ void iARenderer::setStatExt(int s)
 void iARenderer::updatePositionMarkerExtent()
 {
 	if (!m_imageData)
+	{
 		return;
+	}
 	double const * spacing = m_imageData->GetSpacing();
 	m_cSource->SetXLength(m_ext * spacing[0]);
 	m_cSource->SetYLength(m_ext * spacing[1]);
@@ -702,8 +720,9 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	auto movieWriter = GetMovieWriter(fileName, qual);
 
 	if (movieWriter.GetPointer() == nullptr)
+	{
 		return;
-
+	}
 	// save current state and disable interaction:
 	m_interactor->Disable();
 	auto oldCam = vtkSmartPointer<vtkCamera>::New();
@@ -712,8 +731,14 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	// set up movie export pipeline:
 	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
 	int* rws = m_renWin->GetSize();
-	if (rws[0] % 2 != 0) rws[0]++;
-	if (rws[1] % 2 != 0) rws[1]++;
+	if (rws[0] % 2 != 0)
+	{
+		rws[0]++;
+	}
+	if (rws[1] % 2 != 0)
+	{
+		rws[1]++;
+	}
 	m_renWin->SetSize(rws);
 	m_renWin->Render();
 	windowToImage->SetInput(m_renWin);
@@ -784,22 +809,30 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	m_interactor->Enable();
 
 	if (movieWriter->GetError())
+	{
 		emit msg(tr("Movie export failed."));
+	}
 	else
+	{
 		emit msg(tr("Movie export completed."));
+	}
 }
 
 void iARenderer::mouseRightButtonReleasedSlot()
 {
 	if (!m_interactor)
+	{
 		return;
+	}
 	m_interactor->InvokeEvent(vtkCommand::RightButtonReleaseEvent);
 }
 
 void iARenderer::mouseLeftButtonReleasedSlot()
 {
 	if (!m_interactor)
+	{
 		return;
+	}
 	m_interactor->InvokeEvent(vtkCommand::LeftButtonReleaseEvent);
 }
 
@@ -846,11 +879,15 @@ void iARenderer::setPolyData(vtkPolyData* pd)
 {
 	m_polyData = pd;
 	if (!m_polyData)
+	{
 		return;
+	}
 	m_polyMapper->SetInputData(m_polyData);
 	m_cellLocator->SetDataSet(m_polyData);
 	if (m_polyData->GetNumberOfCells())
+	{
 		m_cellLocator->BuildLocator();
+	}
 }
 
 void iARenderer::addRenderer(vtkRenderer* renderer)
@@ -960,7 +997,9 @@ void iARenderer::updateSlicePlanes(double const * newSpacing)
 	double center[3], origin[3];
 	const int * dim = m_imageData->GetDimensions();
 	if (dim[0] == 0 || dim[1] == 0 || dim[2] == 0)
+	{
 		return;
+	}
 	for (int i = 0; i < 3; ++i)
 	{
 		center[i] = dim[i] * spc[i] / 2;
