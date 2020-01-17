@@ -171,7 +171,6 @@ private slots:
 	void exportAverageDissimilarities();
 	void sortByCurrentWeighting();
 	// settings view:
-	void loadVolume(QString const & fileName);
 	void update3D();
 	void applyRenderSettings();
 private:
@@ -256,10 +255,6 @@ private:
 	QWidget* m_showReferenceWidget;
 	std::vector<vtkSmartPointer<vtkActor> > m_contextActors;
 	iAMapper* m_diameterFactorMapper;
-	QSharedPointer<iAVolumeRenderer> m_refRenderer;
-	vtkSmartPointer<vtkImageData> m_refImg;
-	vtkSmartPointer<vtkColorTransferFunction> m_refCF;
-	vtkSmartPointer<vtkPiecewiseFunction> m_refOF;
 
 	vtkSmartPointer<vtkCubeSource> m_customBoundingBoxSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_customBoundingBoxMapper;
@@ -282,9 +277,9 @@ private:
 	// 3D view part
 	iAQLineEditVector m_teBoundingBox;
 	bool m_cameraInitialized;
+
 	// Optimization steps part
 	iAQCheckBoxVector m_chartCB;
-	iAFileChooserWidget* m_fileChooser;
 
 	// Scatter plot matrix:
 	void setSPMColorByResult();

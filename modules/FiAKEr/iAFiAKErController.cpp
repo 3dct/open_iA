@@ -317,7 +317,6 @@ void iAFiAKErController::resultsLoaded()
 
 	m_settingsWidgetMap.insert(ProjectResultColors, m_settingsView->cmbboxResultColors);
 	m_settingsWidgetMap.insert(ProjectDistributionColors, m_settingsView->cmbboxDistributionColors);
-	m_settingsWidgetMap.insert(ProjectReferenceVolume, m_fileChooser);
 	m_settingsWidgetMap.insert(ProjectDefaultOpacity, m_settingsView->slOpacityDefault);
 	m_settingsWidgetMap.insert(ProjectContextOpacity, m_settingsView->slOpacityContext);
 	m_settingsWidgetMap.insert(ProjectDefaultDiameterFactor, m_settingsView->slDiameterFactorDefault);
@@ -484,9 +483,6 @@ void iAFiAKErController::setupSettingsView()
 	m_settingsView->cmbboxResultColors->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsView->cmbboxResultColors->setCurrentText(DefaultResultColorTheme);
 
-	m_fileChooser = new iAFileChooserWidget(m_settingsView, iAFileChooserWidget::FileNameOpen);
-	qobject_cast<QGridLayout*>(m_settingsView->gbGlobal->layout())->addWidget(m_fileChooser, 2, 1);
-
 	connect(m_settingsView->slOpacityDefault, &QSlider::valueChanged, this, &iAFiAKErController::mainOpacityChanged);
 	connect(m_settingsView->slOpacityContext, &QSlider::valueChanged, this, &iAFiAKErController::contextOpacityChanged);
 	connect(m_settingsView->slDiameterFactorDefault, &QSlider::valueChanged, this, &iAFiAKErController::diameterFactorChanged);
@@ -515,7 +511,6 @@ void iAFiAKErController::setupSettingsView()
 		this, SLOT(distributionColorThemeChanged(QString const &)));
 	connect(m_settingsView->cmbboxResultColors, SIGNAL(currentIndexChanged(QString const &)),
 		this, SLOT(resultColorThemeChanged(QString const &)));
-	connect(m_fileChooser, &iAFileChooserWidget::fileNameChanged, this, &iAFiAKErController::loadVolume);
 }
 
 QWidget* iAFiAKErController::setupOptimStepView()
@@ -2927,26 +2922,6 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 	projectFile.setValue(ProjectFileStepShift, m_data->stepShift);
 	projectFile.setValue(ProjectUseStepData, m_useStepData);
 	saveSettings(projectFile);
-}
-
-void iAFiAKErController::loadVolume(QString const & fileName)
-{
-	addInteraction(QString("Loading reference volume '%1'").arg(fileName));
-	iAConnector con;
-	iAITKIO::ScalarPixelType pixelType;
-	iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-	con.setImage(img);
-	m_refImg = vtkSmartPointer<vtkImageData>::New();
-	m_refImg->DeepCopy(con.vtkImage());
-	double rng[2]; m_refImg->GetScalarRange(rng);
-	m_refCF = defaultColorTF(rng);
-	m_refOF = defaultOpacityTF(rng, true);
-	iASimpleTransferFunction tf(
-		m_refCF.GetPointer(),
-		m_refOF.GetPointer()
-	);
-	m_refRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_refImg));
-	m_refRenderer->addTo(m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 }
 
 void iAFiAKErController::update3D()
