@@ -67,10 +67,10 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	// entropy chart:
 	m_entropyChartData = CreateEmptyProbData(Continuous, 0, 1);
 	m_charts.push_back(new iAChartWidget(this, "Algorithmic Uncertainty", "Frequency (Members)"));
-	auto plot = QSharedPointer<iAPlot>(
+	auto algoUncertaintyPlot = QSharedPointer<iAPlot>(
 		new iABarGraphPlot(m_entropyChartData,
 			QColor(117, 112, 179), BarMargin));
-	m_charts[0]->addPlot(plot);
+	m_charts[0]->addPlot(algoUncertaintyPlot);
 
 	// label distribution chart:
 	for (int label = 0; label < m_labelInfo->count(); ++label)

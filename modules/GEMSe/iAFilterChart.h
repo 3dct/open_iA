@@ -62,7 +62,7 @@ private:
 	QSharedPointer<iAParamHistogramData> m_data;
 	QSharedPointer<iANameMapper> m_nameMapper;
 	double m_markedLocation;
-	QVector<QColor> m_binColors;
+	std::vector<QColor> m_binColors;
 	double m_minSliderPos, m_maxSliderPos;
 	int m_selectedHandle;
 	int m_selectionOffset;

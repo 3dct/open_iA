@@ -41,13 +41,13 @@ iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
 	int representativeType)
 :
 	QWidget(parent),
-	m_cluster(treeNode),
 	m_shrinkedAuto(shrinkAuto),
 	m_shrinkStatus(shrinkAuto || treeNode->GetFilteredSize() == 0),
+	m_cluster(treeNode),
+	m_imageView(nullptr),
+	m_expandButton(nullptr),
 	m_infoLabel(new QLabel(this)),
-	m_expandButton(0),
 	m_previewPool(previewPool),
-	m_imageView(0),
 	m_representativeType(representativeType)
 {
 	setStyleSheet("background-color: transparent;");

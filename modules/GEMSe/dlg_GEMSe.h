@@ -145,10 +145,10 @@ private:
 	iAExampleImageWidget * m_exampleView;
 	iACameraWidget* m_cameraWidget;
 	iAFavoriteWidget* m_favoriteWidget;
-	iAColorTheme const * m_colorTheme;
 	iAHistogramContainer * m_histogramContainer;
 	iAGEMSeScatterplot * m_scatterplot;
 	iAProbingWidget * m_probingWidget;
+	iAColorTheme const* m_colorTheme;
 	iALogger* m_logger;
 	iAPreviewWidgetPool* m_previewWidgetPool;
 	ClusterImageType m_nullImage;

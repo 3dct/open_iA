@@ -47,19 +47,19 @@ iAHistogramContainer::iAHistogramContainer(
 	iAChartAttributeMapper const & chartAttributeMapper,
 	iAImageTreeNode const * root,
 	QStringList const & pipelineNames):
+	m_paramChartWidget(new QWidget()),
+	m_derivedOutputChartWidget(new QWidget()),
+	m_paramChartContainer(new QWidget()),
+	m_derivedOutputChartContainer(new QWidget()),
+	m_paramChartLayout(nullptr),
+	m_chartContainer(new QSplitter()),
 	m_chartAttributes(chartAttributes),
 	m_chartAttributeMapper(chartAttributeMapper),
 	m_root(root),
-	m_paramChartLayout(0),
 	m_pipelineNames(pipelineNames)
 {
-	m_paramChartContainer = new QWidget();
-	m_paramChartWidget = new QWidget();
 	CreateGridLayout();
 	SetCaptionedContent(m_paramChartContainer, "Input Parameters", m_paramChartWidget);
-	m_chartContainer = new QSplitter();
-	m_derivedOutputChartContainer = new QWidget();
-	m_derivedOutputChartWidget = new QWidget();
 	m_derivedOutputChartWidget->setLayout(new QHBoxLayout());
 	m_derivedOutputChartWidget->layout()->setSpacing(ChartSpacing);
 	m_derivedOutputChartWidget->layout()->setMargin(0);
@@ -87,9 +87,9 @@ void iAHistogramContainer::CreateCharts()
 	int curMinDatasetID = 0;
 	int paramChartRow = 0;
 	int paramChartCol = 1;
-	QLabel* label = new QLabel(m_pipelineNames[paramChartRow]);
-	m_labels.push_back(label);
-	m_paramChartLayout->addWidget(label, paramChartRow, 0);
+	QLabel* lbPipelineName = new QLabel(m_pipelineNames[paramChartRow]);
+	m_labels.push_back(lbPipelineName);
+	m_paramChartLayout->addWidget(lbPipelineName, paramChartRow, 0);
 	int paramChartMaxCols = 0;
 	int derivedOutMaxCols = 0;
 	double maxValue = -1;
@@ -109,7 +109,7 @@ void iAHistogramContainer::CreateCharts()
 			(attrib->valueType() == iAValueType::Discrete || attrib->valueType() == iAValueType::Categorical) ?
 			std::min(static_cast<size_t>(attrib->max() - attrib->min() + 1), maxBin) :
 			maxBin;
-		QSharedPointer<iAParamHistogramData> data = iAParamHistogramData::create(
+		QSharedPointer<iAParamHistogramData> paramData = iAParamHistogramData::create(
 			m_root,
 			chartID,
 			attrib->valueType(),
@@ -118,7 +118,7 @@ void iAHistogramContainer::CreateCharts()
 			attrib->isLogScale(),
 			m_chartAttributeMapper,
 			numBin);
-		if (!data)
+		if (!paramData)
 		{
 			DEBUG_LOG(QString("ERROR: Creating chart #%1 data for attribute %2 failed!").arg(chartID)
 				.arg(attrib->name()));
@@ -126,9 +126,9 @@ void iAHistogramContainer::CreateCharts()
 		}
 		if (attrib->attribType() == iAAttributeDescriptor::Parameter)
 		{
-			maxValue = std::max(data->yBounds()[1], maxValue);
+			maxValue = std::max(paramData->yBounds()[1], maxValue);
 		}
-		m_charts.insert(chartID, new iAClusterAttribChart(attrib->name(), chartID, data,
+		m_charts.insert(chartID, new iAClusterAttribChart(attrib->name(), chartID, paramData,
 			attrib->nameMapper()));
 
 		connect(m_charts[chartID], SIGNAL(Toggled(bool)), this, SLOT(ChartSelected(bool)));

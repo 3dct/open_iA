@@ -737,10 +737,10 @@ void dlg_Consensus::StoreConfig()
 	}
 	QFileInfo fi(fileName);
 	QString basePath(fi.absolutePath());
-	QSettings s(fileName, QSettings::IniFormat);
-	s.setIniCodec("UTF-8");
-	s.setValue(FileFormatKey, FileVersion);
-	s.setValue(LabelsKey, m_labelCount);
+	QSettings settings(fileName, QSettings::IniFormat);
+	settings.setIniCodec("UTF-8");
+	settings.setValue(FileFormatKey, FileVersion);
+	settings.setValue(LabelsKey, m_labelCount);
 
 	// fetch best n results by dice
 	auto samplings = m_dlgGEMSe->GetSamplings();
@@ -750,7 +750,7 @@ void dlg_Consensus::StoreConfig()
 	for (int d = 0; d < samplings->size(); ++d)
 	{
 		auto sampling = samplings->at(d);
-		s.setValue(QString("SamplingData%1").arg(d), MakeRelative(basePath, sampling->GetFileName()) );
+		settings.setValue(QString("SamplingData%1").arg(d), MakeRelative(basePath, sampling->GetFileName()) );
 		for (int s = 0; s < sampling->size(); ++s)
 		{
 			auto r = sampling->Get(s);
@@ -770,8 +770,8 @@ void dlg_Consensus::StoreConfig()
 		bestParameterSets.append(QString::number(std::get<0>(runs[b])) + "-" + QString::number(std::get<1>(runs[b])));
 		bestDice.append(QString::number(std::get<2>(runs[b])));
 	}
-	s.setValue("BestSingle/ParameterSets", bestParameterSets.join(","));
-	s.setValue(QString("BestSingle/%1").arg(DerivedOutputName), bestDice.join(","));
+	settings.setValue("BestSingle/ParameterSets", bestParameterSets.join(","));
+	settings.setValue(QString("BestSingle/%1").arg(DerivedOutputName), bestDice.join(","));
 
 	// fetch config for (last?) consensus (sampling?)
 	QVector<QSharedPointer<iASingleResult> > selection;
@@ -787,8 +787,8 @@ void dlg_Consensus::StoreConfig()
 		parameterSets.append(QString::number(selection[i]->GetDatasetID()) + "-"+QString::number(selection[i]->GetID()));
 	}
 	int weightType = GetWeightType();
-	s.setValue("Voting/ParameterSets", parameterSets.join(","));
-	s.setValue("Voting/WeightType", GetWeightName(weightType));
+	settings.setValue("Voting/ParameterSets", parameterSets.join(","));
+	settings.setValue("Voting/WeightType", GetWeightName(weightType));
 	if (weightType == LabelBased)
 	{
 		for (int l = 0; l < m_labelCount; ++l)
@@ -805,7 +805,7 @@ void dlg_Consensus::StoreConfig()
 				double labelDice = selection[m]->GetAttribute(attributeID);
 				inputWeights.append(QString::number(labelDice));
 			}
-			s.setValue(QString("Voting/InputWeightLabel%1").arg(l), inputWeights.join(","));
+			settings.setValue(QString("Voting/InputWeightLabel%1").arg(l), inputWeights.join(","));
 		}
 	}
 }
@@ -814,8 +814,8 @@ namespace
 {
 	void AddParameterSets(QVector<QSet<int> > & ids, QStringList const & fullIDStrList)
 	{
-		bool sizeOK, conv1ok, conv2ok;
-		int datasetID, parameterSetID;
+		bool sizeOK, conv1ok = false, conv2ok = false;
+		int datasetID = -1, parameterSetID;
 		for (QString fullID: fullIDStrList)
 		{
 			QStringList spl = fullID.split("-");
@@ -861,40 +861,40 @@ void dlg_Consensus::LoadConfig()
 		return;
 	}
 	QFileInfo fi(fileName);
-	QSettings s(fileName, QSettings::IniFormat);
-	s.setIniCodec("UTF-8");
-	if (s.value(FileFormatKey) != FileVersion)
+	QSettings settings(fileName, QSettings::IniFormat);
+	settings.setIniCodec("UTF-8");
+	if (settings.value(FileFormatKey) != FileVersion)
 	{
 		QMessageBox::warning(this, "GEMSe",
 			QString("Loaded File has the wrong file format, expected %1, got %2 as format identifier!")
-			.arg(FileVersion).arg(s.value(FileFormatKey).toString()));
+			.arg(FileVersion).arg(settings.value(FileFormatKey).toString()));
 		return;
 	}
 	/*
 	// only applicable if weight set by label
-	if (s.value(LabelsKey).toInt() != m_labelCount)
+	if (settings.value(LabelsKey).toInt() != m_labelCount)
 	{
 		QMessageBox::warning(this, "GEMSe",
 			QString("Label count does not match: expected %1, got %2 as number of labels!")
-			.arg(m_labelCount).arg(s.value(LabelsKey).toInt()));
+			.arg(m_labelCount).arg(settings.value(LabelsKey).toInt()));
 		return;
 	}
 	*/
 	// load datasets:
 	QStringList samplings;
 	int curSamplingIdx = 0;
-	while (s.contains(QString("SamplingData%1").arg(curSamplingIdx)))
+	while (settings.contains(QString("SamplingData%1").arg(curSamplingIdx)))
 	{
 		samplings.push_back(
 			MakeAbsolute(fi.absolutePath(),
-			s.value(QString("SamplingData%1").arg(curSamplingIdx)).toString()
+				settings.value(QString("SamplingData%1").arg(curSamplingIdx)).toString()
 		));
 		++curSamplingIdx;
 	}
-	QStringList bestParameterSetsList = s.value("BestSingle/ParameterSets").toString().split(",");
-	QStringList derivedOuts = s.value(QString("BestSingle/%1").arg(DerivedOutputName)).toString().split(",");
-	QStringList mvParamSetsList = s.value("Voting/ParameterSets").toString().split(",");
-	m_comparisonWeightType = ::GetWeightType(s.value("Voting/WeightType").toString());
+	QStringList bestParameterSetsList = settings.value("BestSingle/ParameterSets").toString().split(",");
+	QStringList derivedOuts = settings.value(QString("BestSingle/%1").arg(DerivedOutputName)).toString().split(",");
+	QStringList mvParamSetsList = settings.value("Voting/ParameterSets").toString().split(",");
+	m_comparisonWeightType = ::GetWeightType(settings.value("Voting/WeightType").toString());
 	m_queuedSamplers.clear();
 	std::map<std::pair<int, int>, double> inputLabelWeightMap;
 	if (m_comparisonWeightType == LabelBased)
@@ -902,7 +902,7 @@ void dlg_Consensus::LoadConfig()
 		bool ok;
 		for (int l = 0; l < m_labelCount; ++l)
 		{
-			QStringList inputWeights = s.value(QString("Voting/InputWeightLabel%1").arg(l)).toString().split(",");
+			QStringList inputWeights = settings.value(QString("Voting/InputWeightLabel%1").arg(l)).toString().split(",");
 			for (int m = 0; m < mvParamSetsList.size(); ++m)
 			{
 				double labelWeight = inputWeights[m].toDouble(&ok);

@@ -57,18 +57,17 @@ dlg_GEMSe::dlg_GEMSe(
 	iALogger * logger,
 	iAColorTheme const * colorTheme)
 :
+	m_selectedLeaf(nullptr),
 	dlg_GEMSeUI(parent),
-	m_selectedCluster(0),
-	m_treeView(0),
-	m_detailView(0),
-	m_logger(logger),
-	m_cameraWidget(0),
-	m_exampleView(0),
-	m_favoriteWidget(0),
-	m_probingWidget(0),
-	m_selectedLeaf(0),
-	m_previewWidgetPool(0),
+	m_treeView(nullptr),
+	m_detailView(nullptr),
+	m_exampleView(nullptr),
+	m_cameraWidget(nullptr),
+	m_favoriteWidget(nullptr),
+	m_probingWidget(nullptr),
 	m_colorTheme(colorTheme),
+	m_logger(logger),
+	m_previewWidgetPool(nullptr),
 	m_representativeType(iARepresentativeType::Difference)
 {
 }

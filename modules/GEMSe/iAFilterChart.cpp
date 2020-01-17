@@ -48,16 +48,17 @@ iAFilterChart::iAFilterChart(QWidget* parent,
 :
 	iAChartWidget(parent, caption, ""),
 	m_data(data),
-	m_markedLocation(InvalidMarker),
 	m_nameMapper(nameMapper),
-	m_selectedHandle(-1)
+	m_markedLocation(InvalidMarker),
+	m_selectedHandle(-1),
+	m_selectionOffset(0)
 {
 	addPlot(GetDrawer(m_data, DefaultColors::AllDataChartColor));
 	m_minSliderPos = m_data->mapBinToValue(0);
 	m_maxSliderPos = m_data->mapBinToValue(m_data->numBin());
 	setCaptionPosition(Qt::AlignLeft | Qt::AlignTop);
 	setShowXAxisLabel(showCaption);
-	for (int i = 0; i < m_data->numBin(); ++i)
+	for (size_t i = 0; i < m_data->numBin(); ++i)
 	{
 		m_binColors.push_back(QColor(0, 0, 0, 0));
 	}
@@ -107,8 +108,8 @@ void iAFilterChart::drawAxes(QPainter& painter)
 	{
 		double y1 =  0;
 		double y2 =  ChartColoringHeight;
-		int binWidth = std::ceil(mapValue(0.0, static_cast<double>(m_data->numBin()), 0.0, activeWidth()*m_xZoom, static_cast<double>(1)));
-		for (int b = 0; b < m_data->numBin(); ++b)
+		int binWidth = static_cast<int>(std::ceil(mapValue(0.0, static_cast<double>(m_data->numBin()), 0.0, activeWidth()*m_xZoom, static_cast<double>(1))));
+		for (size_t b = 0; b < m_data->numBin(); ++b)
 		{
 			if (m_binColors[b].alpha() == 0)
 			{

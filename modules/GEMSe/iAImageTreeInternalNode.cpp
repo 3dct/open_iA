@@ -229,9 +229,11 @@ void iAImageTreeInternalNode::GetExampleImages(QVector<iAImageTreeLeaf *> & resu
 					(GetFilteredSize() == GetChild(i)->GetFilteredSize()) ? amount : amount - 1
 				),
 				curAmount);
-			int sizeBefore = result.size();
+			//int sizeBefore = result.size();
 			if (curAmount == 0)
+			{
 				continue;
+			}
 			GetChild(i)->GetExampleImages(result, curAmount);
 			//int imagesReturned = result.size() - sizeBefore;
 			amountLeft -= curAmount;
@@ -383,8 +385,8 @@ LabelPixelHistPtr iAImageTreeInternalNode::UpdateLabelDistribution() const
 	LabelPixelHistPtr childResult1 = GetChild(0)->UpdateLabelDistribution();
 	LabelPixelHistPtr childResult2 = GetChild(1)->UpdateLabelDistribution();
 
-	LabelImagePointer img = childResult1->hist.at(0);
-	LabelImageType::SizeType size = img->GetLargestPossibleRegion().GetSize();
+	LabelImagePointer child1Img = childResult1->hist.at(0);
+	LabelImageType::SizeType size = child1Img->GetLargestPossibleRegion().GetSize();
 	for (int l = 0; l < m_differenceMarkerValue; ++l)
 	{
 		typedef itk::AddImageFilter<LabelImageType> AddImgFilterType;
@@ -398,18 +400,18 @@ LabelPixelHistPtr iAImageTreeInternalNode::UpdateLabelDistribution() const
 
 	ProbabilityImagePointer labelEntropy = createImage<ProbabilityImageType>(
 		size,
-		img->GetSpacing()
+		child1Img->GetSpacing()
 		);
 	LabelImageType::IndexType idx;
 
 	double limit = -std::log(1.0 / m_differenceMarkerValue);
 	double normalizeFactor = 1 / limit;
 
-	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
-	{
-		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+	for (idx[0] = 0; idx[0] >= 0 && static_cast<uint64_t>(idx[0]) < size[0]; ++idx[0])
+	{	// >= 0 checks to prevent signed int overflow!
+		for (idx[1] = 0; idx[1] >= 0 && static_cast<uint64_t>(idx[1]) < size[1]; ++idx[1])
 		{
-			for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+			for (idx[2] = 0; idx[2] >= 0 && static_cast<uint64_t>(idx[2]) < size[2]; ++idx[2])
 			{
 				double entropy = 0;
 				for (int l = 0; l < m_differenceMarkerValue; ++l)
@@ -450,8 +452,8 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 		return result;
 	}
 
-	ProbabilityImagePointer img = childResult1->prob.at(0);
-	ProbabilityImageType::SizeType size = img->GetLargestPossibleRegion().GetSize();
+	ProbabilityImagePointer child1Img = childResult1->prob.at(0);
+	ProbabilityImageType::SizeType size = child1Img->GetLargestPossibleRegion().GetSize();
 	for (int l = 0; l < m_differenceMarkerValue; ++l)
 	{
 		if (childResult1->prob.at(l) && childResult2->prob.at(l))
@@ -474,23 +476,23 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 
 	ProbabilityImagePointer averageEntropy = createImage<ProbabilityImageType>(
 		size,
-		img->GetSpacing()
+		child1Img->GetSpacing()
 		);
 	ProbabilityImageType::IndexType idx;
 
 	LabelImagePointer averageLabel = createImage<LabelImageType>(
 		size,
-		img->GetSpacing()
+		child1Img->GetSpacing()
 		);
 
 	double limit = -std::log(1.0 / m_differenceMarkerValue);
 	double normalizeFactor = 1 / limit;
 
-	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
-	{
-		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+	for (idx[0] = 0; idx[0] >= 0 && static_cast<uint64_t>(idx[0]) < size[0]; ++idx[0])
+	{	// >= 0 checks to prevent signed int overflow!
+		for (idx[1] = 0; idx[1] >= 0 && static_cast<uint64_t>(idx[1]) < size[1]; ++idx[1])
 		{
-			for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+			for (idx[2] = 0; idx[2] >= 0 && static_cast<uint64_t>(idx[2]) < size[2]; ++idx[2])
 			{
 				double entropy = 0;
 				double probMax = -1;

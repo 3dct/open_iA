@@ -41,8 +41,8 @@
 #include <QWidget>
 
 iAGEMSeScatterplot::iAGEMSeScatterplot(QWidget* parent):
-	m_singlePlot(0),
-	m_clusterPlot(0),
+	m_clusterPlot(nullptr),
+	m_singlePlot(nullptr),
 	m_parent(parent),
 	m_chart1ID(-1),
 	m_chart2ID(-1)

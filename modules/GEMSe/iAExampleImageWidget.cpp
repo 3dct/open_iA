@@ -64,10 +64,10 @@ protected:
 
 iAExampleImageWidget::iAExampleImageWidget(double aspectRatio, iAPreviewWidgetPool * previewPool, ClusterImageType nullImage):
 	m_layout(new QGridLayout()),
-	m_aspectRatio(aspectRatio),
-	m_previewPool(previewPool),
 	m_width(-1),
 	m_height(1),
+	m_aspectRatio(aspectRatio),
+	m_previewPool(previewPool),
 	m_gridWidget(new ExampleGrid),
 	m_nullImage(nullImage)
 {

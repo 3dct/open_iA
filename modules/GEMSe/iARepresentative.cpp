@@ -43,11 +43,11 @@ void diff_marker_tmpl(QVector<iAITKIO::ImagePointer> imgsBase, double difference
 	typename iAITKIO::ImageBaseType::RegionType reg = imgs[0]->GetLargestPossibleRegion();
 	typename iAITKIO::ImageBaseType::SizeType size = reg.GetSize();
 	typename iAITKIO::ImageBaseType::IndexType idx;
-	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
-	{
-		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+	for (idx[0] = 0; idx[0] >= 0 && static_cast<uint64_t>(idx[0]) < size[0]; ++idx[0])
+	{	// >= 0 checks to prevent signed int overflow!
+		for (idx[1] = 0; idx[1] >= 0 && static_cast<uint64_t>(idx[1]) < size[1]; ++idx[1])
 		{
-			for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+			for (idx[2] = 0; idx[2] >= 0 && static_cast<uint64_t>(idx[2]) < size[2]; ++idx[2])
 			{
 				double pixel = imgs[0]->GetPixel(idx);
 				for (int i = 1; i < imgs.size(); ++i)

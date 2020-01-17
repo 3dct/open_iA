@@ -125,13 +125,13 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	iAColorTheme const * colorTheme
 ):
 	dlg_GEMSeControlUI(parentWidget),
-	m_dlgSamplingSettings(0),
-	m_dlgProgress(0),
-	m_dlgConsensus(0),
-	m_dlgGEMSe(dlgGEMSe),
 	m_dlgModalities(dlgModalities),
+	m_dlgSamplingSettings(nullptr),
+	m_dlgProgress(nullptr),
+	m_dlgGEMSe(dlgGEMSe),
 	m_dlgLabels(dlgLabels),
 	m_dlgSamplings(dlgSamplings),
+	m_dlgConsensus(nullptr),
 	m_simpleLabelInfo(new iASimpleLabelInfo())
 
 {
