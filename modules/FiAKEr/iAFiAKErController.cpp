@@ -358,7 +358,6 @@ void iAFiAKErController::setupMain3DView()
 	m_main3DWidget = m_mdiChild->renderDockWidget()->vtkWidgetRC;
 	auto renWin = m_main3DWidget->GetRenderWindow();
 	m_ren = renWin->GetRenderers()->GetFirstRenderer();
-	m_ren->SetMaximumNumberOfPeels(1000);
 	m_renderManager->addToBundle(m_ren);
 	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
 	m_style->setSelectionProvider(this);
