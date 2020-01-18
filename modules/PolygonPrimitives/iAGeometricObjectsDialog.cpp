@@ -38,20 +38,11 @@
 
 namespace
 {
-	vtkSmartPointer<vtkActor> createActor()
-	{
-		auto actor = vtkSmartPointer<vtkActor>::New();
-		actor->SetDragable(false);
-		actor->SetPickable(false);
-		return actor;
-	}
-
 	/*
 	class iAPolyObject
 	{
 		vtkSmartPointer<vtkPolyDataAlgorithm> createObject()
 	};
-
 
 	iAPolyObject* createObject(int type)
 	{
@@ -59,54 +50,27 @@ namespace
 	}
 	*/
 
-	void createAndRenderLine(vtkOpenGLRenderer* renderer, iAVec3d & pt1, iAVec3d & pt2, float lineWidth, QColor const& color)
+	vtkSmartPointer<vtkPolyDataAlgorithm> createLine(iAVec3d & pt1, iAVec3d & pt2)
 	{
-		if (lineWidth <= 0)
-		{
-			DEBUG_LOG("Line width must be bigger than 0!");
-			return;
-		}
 		auto lineSource = vtkSmartPointer<vtkLineSource>::New();
 		lineSource->SetPoint1(pt1.data()); // VTK problem: should take const data!
 		lineSource->SetPoint2(pt2.data());
-		auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		mapper->SetInputConnection(lineSource->GetOutputPort());
-		auto actor = createActor();
-		actor->SetOrigin(0, 0, 0);
-		actor->SetOrientation(0, 0, 0);
-		auto lineProp = actor->GetProperty();
-		lineProp->SetLineWidth(lineWidth);
-		lineProp->SetColor(color.redF(), color.greenF(), color.blueF());
-		actor->SetMapper(mapper);
-		renderer->AddActor(actor);
+		return lineSource;
 	}
 
-	void createAndRenderSphere(vtkOpenGLRenderer* renderer, iAVec3d & center, double radius,
-		QColor const& color)
+	vtkSmartPointer<vtkPolyDataAlgorithm> createSphere(iAVec3d & center, double radius)
 	{
 		auto sphereSource = vtkSmartPointer<vtkSphereSource>::New();
 		sphereSource->SetCenter(center.data());
 		sphereSource->SetRadius(radius);
-		auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		mapper->SetInputConnection(sphereSource->GetOutputPort());
-		auto actor = createActor();
-		auto sphereProp = actor->GetProperty();
-		sphereProp->SetColor(color.redF(), color.greenF(), color.blueF());
-		actor->SetMapper(mapper);
-		renderer->AddActor(actor);
+		return sphereSource;
 	}
 
-	void createAndRenderCube(vtkOpenGLRenderer* renderer, iAVec3d & ptmin, iAVec3d & ptmax, QColor const& color)
+	vtkSmartPointer<vtkPolyDataAlgorithm> createCube(iAVec3d & ptmin, iAVec3d & ptmax)
 	{
 		auto cubeSource = vtkSmartPointer<vtkCubeSource>::New();
 		cubeSource->SetBounds(ptmin.x(), ptmax.x(), ptmin.y(), ptmax.y(), ptmin.z(), ptmax.z());
-		auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		mapper->SetInputConnection(cubeSource->GetOutputPort());
-		auto actor = createActor();
-		auto cubeProp = actor->GetProperty();
-		cubeProp->SetColor(color.redF(), color.greenF(), color.blueF());
-		actor->SetMapper(mapper);
-		renderer->AddActor(actor);
+		return cubeSource;
 	}
 
 	bool readPointData(iAVec3d & pt, QString coords[3])
@@ -156,23 +120,52 @@ void iAGeometricObjectsDialog::createObject()
 
 	auto colorStr = cbColor->currentText();
 	QColor color(colorStr);
-
+	float lineWidth = 0;
+	if (cbWireframe->isChecked() || lineChecked)
+	{
+		bool check_width;
+		lineWidth = edLineWidth->text().toFloat(&check_width);
+		if (lineWidth <= 0)
+		{
+			QMessageBox::warning(this, "Polygon Object", "Line width must be bigger than 0!");
+			return;
+		}
+	}
+	double opacity = slOpacity->value() / 10.0;
+	vtkSmartPointer<vtkPolyDataAlgorithm> source;
 	if (lineChecked)
 	{
-		readLineData(oglRenderer, color);
+		source = createLineSource();
 	}
 	else if (sphereChecked)
 	{
-		readSphereData(oglRenderer, color);
+		source = createSphereSource();
 	}
 	else if (cubeChecked)
 	{
-		readCubeData(oglRenderer, color);
+		source = createCubeSource();
 	}
-	else
+	if (!source)
 	{
-		DEBUG_LOG("Invalid state!");
+		return;
 	}
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputConnection(source->GetOutputPort());
+	auto actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetDragable(false);
+	actor->SetPickable(false);
+	actor->SetOrigin(0, 0, 0);
+	actor->SetOrientation(0, 0, 0);
+	auto prop = actor->GetProperty();
+	if (cbWireframe->isChecked() || lineChecked)
+	{
+		prop->SetLineWidth(lineWidth);
+		prop->SetRepresentationToWireframe();
+	}
+	prop->SetColor(color.redF(), color.greenF(), color.blueF());
+	prop->SetOpacity(opacity);
+	actor->SetMapper(mapper);
+	oglRenderer->AddActor(actor);
 	renderer->update();
 }
 
@@ -216,39 +209,7 @@ void iAGeometricObjectsDialog::opacityChanged(int newValue)
 	lbOpacityValue->setText(QString("%1").arg(newValue/10.0, 0, 'f', 1) );
 }
 
-void iAGeometricObjectsDialog::readLineData(vtkOpenGLRenderer* oglRenderer, QColor const & color)
-{
-	bool check_width;
-	iAVec3d pt1, pt2;
-	QString pt1str[3] = {edPt1x->text(), edPt1y->text(), edPt1z->text()};
-	QString pt2str[3] = {edPt2x->text(), edPt2y->text(), edPt2z->text()};
-	bool pt1OK = readPointData(pt1, pt1str);
-	bool pt2OK = readPointData(pt2, pt2str);
-	float width = edLineWidth->text().toFloat(&check_width);
-	if (!pt1OK || !pt2OK || !check_width)
-	{
-		QMessageBox::warning(this, "Polygon Object", "Please enter valid coordinates for every element.");
-		return;
-	}
-	createAndRenderLine(oglRenderer, pt1, pt2, width, color);
-}
-
-void iAGeometricObjectsDialog::readSphereData(vtkOpenGLRenderer* oglRenderer, QColor const & color)
-{
-	bool check_radius;
-	iAVec3d pt1;
-	QString pt1str[3] = {edPt1x->text(), edPt1y->text(), edPt1z->text()};
-	bool pt1OK = readPointData(pt1, pt1str);
-	double radius = edRadius->text().toDouble(&check_radius);
-	if (!pt1OK || !check_radius)
-	{
-		QMessageBox::warning(this, "Polygon Object", "Please enter valid coordinates for every element.");
-		return;
-	}
-	createAndRenderSphere(oglRenderer, pt1, radius, color);
-}
-
-void iAGeometricObjectsDialog::readCubeData(vtkOpenGLRenderer* oglRenderer, QColor const& color)
+vtkSmartPointer<vtkPolyDataAlgorithm> iAGeometricObjectsDialog::createLineSource()
 {
 	iAVec3d pt1, pt2;
 	QString pt1str[3] = {edPt1x->text(), edPt1y->text(), edPt1z->text()};
@@ -258,7 +219,37 @@ void iAGeometricObjectsDialog::readCubeData(vtkOpenGLRenderer* oglRenderer, QCol
 	if (!pt1OK || !pt2OK)
 	{
 		QMessageBox::warning(this, "Polygon Object", "Please enter valid coordinates for every element.");
-		return;
+		return vtkSmartPointer<vtkPolyDataAlgorithm>();
 	}
-	createAndRenderCube(oglRenderer, pt1, pt2, color);
+	return createLine(pt1, pt2);
+}
+
+vtkSmartPointer<vtkPolyDataAlgorithm> iAGeometricObjectsDialog::createSphereSource()
+{
+	bool check_radius;
+	iAVec3d pt1;
+	QString pt1str[3] = {edPt1x->text(), edPt1y->text(), edPt1z->text()};
+	bool pt1OK = readPointData(pt1, pt1str);
+	double radius = edRadius->text().toDouble(&check_radius);
+	if (!pt1OK || !check_radius)
+	{
+		QMessageBox::warning(this, "Polygon Object", "Please enter valid coordinates for every element.");
+		return vtkSmartPointer<vtkPolyDataAlgorithm>();
+	}
+	return createSphere(pt1, radius);
+}
+
+vtkSmartPointer<vtkPolyDataAlgorithm> iAGeometricObjectsDialog::createCubeSource()
+{
+	iAVec3d pt1, pt2;
+	QString pt1str[3] = {edPt1x->text(), edPt1y->text(), edPt1z->text()};
+	QString pt2str[3] = {edPt2x->text(), edPt2y->text(), edPt2z->text()};
+	bool pt1OK = readPointData(pt1, pt1str);
+	bool pt2OK = readPointData(pt2, pt2str);
+	if (!pt1OK || !pt2OK)
+	{
+		QMessageBox::warning(this, "Polygon Object", "Please enter valid coordinates for every element.");
+		return vtkSmartPointer<vtkPolyDataAlgorithm>();
+	}
+	return createCube(pt1, pt2);
 }

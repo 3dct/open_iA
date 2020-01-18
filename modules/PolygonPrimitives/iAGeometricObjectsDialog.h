@@ -31,12 +31,16 @@ class vtkOpenGLRenderer;
 class QColor;
 class QString;
 
+#include <vtkSmartPointer.h>
+
+class vtkPolyDataAlgorithm;
+
 class iAGeometricObjectsDialog : public QDialog, Ui_PolygonPrimitives
 {
 Q_OBJECT
 
 public:
-	iAGeometricObjectsDialog(QWidget* parent = 0, Qt::WindowFlags f = 0);
+	iAGeometricObjectsDialog(QWidget* parent = nullptr, Qt::WindowFlags f = 0);
 	void setMDIChild(MdiChild* child);
 
 private slots:
@@ -45,9 +49,9 @@ private slots:
 	void opacityChanged(int newValue);
 
 private:
-	void readLineData  (vtkOpenGLRenderer* oglrenderer, QColor const & color);
-	void readSphereData(vtkOpenGLRenderer* oglrenderer, QColor const & color);
-	void readCubeData  (vtkOpenGLRenderer* oglrenderer, QColor const & color);
+	vtkSmartPointer<vtkPolyDataAlgorithm> createLineSource ();
+	vtkSmartPointer<vtkPolyDataAlgorithm> createSphereSource();
+	vtkSmartPointer<vtkPolyDataAlgorithm> createCubeSource ();
 
 	MdiChild *m_child;
 };
