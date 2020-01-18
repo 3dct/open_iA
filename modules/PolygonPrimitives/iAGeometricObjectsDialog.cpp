@@ -91,6 +91,7 @@ iAGeometricObjectsDialog::iAGeometricObjectsDialog(QWidget* parent, Qt::WindowFl
 	connect(rbSphere, &QRadioButton::toggled, this, &iAGeometricObjectsDialog::updateControls);
 	connect(rbLine, &QRadioButton::toggled, this, &iAGeometricObjectsDialog::updateControls);
 	connect(rbCube, &QRadioButton::toggled, this, &iAGeometricObjectsDialog::updateControls);
+	connect(cbWireframe, &QCheckBox::toggled, this, &iAGeometricObjectsDialog::updateControls);
 	connect(slOpacity, &QSlider::valueChanged, this, &iAGeometricObjectsDialog::opacityChanged);
 	connect(pbClose, &QPushButton::clicked, this, &iAGeometricObjectsDialog::accept);
 	updateControls();
@@ -127,7 +128,7 @@ void iAGeometricObjectsDialog::createObject()
 		lineWidth = edLineWidth->text().toFloat(&check_width);
 		if (lineWidth <= 0)
 		{
-			QMessageBox::warning(this, "Polygon Object", "Line width must be bigger than 0!");
+			QMessageBox::warning(this, "Object", "Line width must be bigger than 0!");
 			return;
 		}
 	}
@@ -218,7 +219,7 @@ vtkSmartPointer<vtkPolyDataAlgorithm> iAGeometricObjectsDialog::createLineSource
 	bool pt2OK = readPointData(pt2, pt2str);
 	if (!pt1OK || !pt2OK)
 	{
-		QMessageBox::warning(this, "Polygon Object", "Please enter valid coordinates for every element.");
+		QMessageBox::warning(this, "Object", "Please enter valid coordinates for every element.");
 		return vtkSmartPointer<vtkPolyDataAlgorithm>();
 	}
 	return createLine(pt1, pt2);
@@ -233,7 +234,7 @@ vtkSmartPointer<vtkPolyDataAlgorithm> iAGeometricObjectsDialog::createSphereSour
 	double radius = edRadius->text().toDouble(&check_radius);
 	if (!pt1OK || !check_radius)
 	{
-		QMessageBox::warning(this, "Polygon Object", "Please enter valid coordinates for every element.");
+		QMessageBox::warning(this, "Object", "Please enter valid coordinates for every element.");
 		return vtkSmartPointer<vtkPolyDataAlgorithm>();
 	}
 	return createSphere(pt1, radius);
@@ -248,7 +249,7 @@ vtkSmartPointer<vtkPolyDataAlgorithm> iAGeometricObjectsDialog::createCubeSource
 	bool pt2OK = readPointData(pt2, pt2str);
 	if (!pt1OK || !pt2OK)
 	{
-		QMessageBox::warning(this, "Polygon Object", "Please enter valid coordinates for every element.");
+		QMessageBox::warning(this, "Object", "Please enter valid coordinates for every element.");
 		return vtkSmartPointer<vtkPolyDataAlgorithm>();
 	}
 	return createCube(pt1, pt2);
