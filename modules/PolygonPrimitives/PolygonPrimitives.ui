@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>738</width>
-    <height>734</height>
+    <width>421</width>
+    <height>276</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,333 +20,342 @@
       <number>0</number>
      </property>
      <property name="rightMargin">
-      <number>10</number>
+      <number>0</number>
      </property>
      <item>
-      <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_19">
-         <property name="text">
-          <string>Object Type</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>Opacity</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <layout class="QVBoxLayout" name="verticalLayout_8">
-         <item>
-          <widget class="QRadioButton" name="rdBtn_Line">
-           <property name="text">
-            <string>Line</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="rdBtn_Sphere">
-           <property name="text">
-            <string>Sphere</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="rdBtn_Cube">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="text">
-            <string>Cube</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QStackedWidget" name="stackedWidget">
-           <property name="currentIndex">
-            <number>2</number>
-           </property>
-           <widget class="QWidget" name="pgLine">
-            <layout class="QVBoxLayout" name="verticalLayout">
-             <item>
-              <widget class="QGroupBox" name="groupBox">
-               <property name="title">
-                <string>Line</string>
-               </property>
-               <layout class="QGridLayout" name="gridLayout_2">
-                <property name="leftMargin">
-                 <number>4</number>
-                </property>
-                <property name="topMargin">
-                 <number>4</number>
-                </property>
-                <property name="rightMargin">
-                 <number>4</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>4</number>
-                </property>
-                <item row="5" column="0" colspan="3">
-                 <spacer name="verticalSpacer_2">
-                  <property name="orientation">
-                   <enum>Qt::Vertical</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>20</width>
-                    <height>40</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item row="4" column="1">
-                 <widget class="QLineEdit" name="ed_x2"/>
-                </item>
-                <item row="4" column="2">
-                 <widget class="QLineEdit" name="ed_y2"/>
-                </item>
-                <item row="4" column="3">
-                 <widget class="QLineEdit" name="ed_z2"/>
-                </item>
-                <item row="4" column="0">
-                 <widget class="QLabel" name="label_21">
-                  <property name="text">
-                   <string>End</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="3">
-                 <widget class="QLabel" name="label_3">
-                  <property name="text">
-                   <string>Z</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <widget class="QLabel" name="label_2">
-                  <property name="text">
-                   <string>Y</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="0">
-                 <widget class="QLabel" name="label_20">
-                  <property name="text">
-                   <string>Start</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="3">
-                 <widget class="QLineEdit" name="ed_z1"/>
-                </item>
-                <item row="3" column="2">
-                 <widget class="QLineEdit" name="ed_y1"/>
-                </item>
-                <item row="3" column="1">
-                 <widget class="QLineEdit" name="edPt1x"/>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QLabel" name="label">
-                  <property name="text">
-                   <string>X</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-           <widget class="QWidget" name="pgSphere">
-            <layout class="QVBoxLayout" name="verticalLayout_2"/>
-           </widget>
-           <widget class="QWidget" name="pgCube">
-            <layout class="QVBoxLayout" name="verticalLayout_3">
-             <item>
-              <widget class="QGroupBox" name="groupBox_6">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="title">
-                <string>Cube</string>
-               </property>
-               <layout class="QGridLayout" name="gridLayout_3">
-                <property name="leftMargin">
-                 <number>4</number>
-                </property>
-                <property name="topMargin">
-                 <number>4</number>
-                </property>
-                <property name="rightMargin">
-                 <number>4</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>4</number>
-                </property>
-                <item row="4" column="1">
-                 <widget class="QLineEdit" name="ed_cubeZmin"/>
-                </item>
-                <item row="3" column="2">
-                 <widget class="QLineEdit" name="ed_cubeYmax"/>
-                </item>
-                <item row="1" column="2">
-                 <widget class="QLineEdit" name="ed_cubeXmax"/>
-                </item>
-                <item row="0" column="2">
-                 <widget class="QLabel" name="label_18">
-                  <property name="text">
-                   <string>max</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="1">
-                 <widget class="QLineEdit" name="ed_cubeXmin"/>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QLabel" name="label_22">
-                  <property name="text">
-                   <string>min</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="4" column="0">
-                 <widget class="QLabel" name="label_6">
-                  <property name="text">
-                   <string>Z</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="4" column="2">
-                 <widget class="QLineEdit" name="ed_cubeZmax">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QLabel" name="label_17">
-                  <property name="text">
-                   <string>X</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="0">
-                 <widget class="QLabel" name="label_15">
-                  <property name="text">
-                   <string>Y</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="1">
-                 <widget class="QLineEdit" name="ed_cubeYmin"/>
-                </item>
-                <item row="5" column="0" colspan="3">
-                 <spacer name="verticalSpacer_4">
-                  <property name="orientation">
-                   <enum>Qt::Vertical</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>20</width>
-                    <height>40</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="6" column="0" colspan="2">
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="cmbBox_col">
-         <item>
+      <widget class="QGroupBox" name="gbGeneral">
+       <property name="title">
+        <string>General</string>
+       </property>
+       <layout class="QGridLayout" name="layGeneral">
+        <property name="leftMargin">
+         <number>4</number>
+        </property>
+        <property name="topMargin">
+         <number>4</number>
+        </property>
+        <property name="rightMargin">
+         <number>4</number>
+        </property>
+        <property name="bottomMargin">
+         <number>4</number>
+        </property>
+        <item row="3" column="2">
+         <widget class="QLabel" name="lbOpacityValue">
           <property name="text">
-           <string>Red</string>
+           <string>1.0</string>
           </property>
-         </item>
-         <item>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="lbColor">
           <property name="text">
-           <string>Green</string>
+           <string>Color</string>
           </property>
-         </item>
-         <item>
+         </widget>
+        </item>
+        <item row="2" column="1" colspan="2">
+         <widget class="QComboBox" name="cbColor">
+          <property name="toolTip">
+           <string>Enter color; either by name (black, cyan, ...) or by RGB hex code (#rrggbb, e.g. #FF0000 for red, #CCCCCC for light gray, ...)</string>
+          </property>
+          <property name="editable">
+           <bool>true</bool>
+          </property>
+          <item>
+           <property name="text">
+            <string>Red</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Green</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Blue</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="4" column="0" colspan="3">
+         <widget class="QCheckBox" name="cbWireframe">
           <property name="text">
-           <string>Blue</string>
+           <string>Wireframe</string>
           </property>
-         </item>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLineEdit" name="ed_opacity">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Color</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="label_8">
-         <property name="text">
-          <string>Radius</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QLineEdit" name="ed_Thickness">
-         <property name="text">
-          <string>1.0</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QSlider" name="slOpacity">
+          <property name="maximum">
+           <number>10</number>
+          </property>
+          <property name="value">
+           <number>10</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="lbObjectType">
+          <property name="text">
+           <string>Object Type</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0" colspan="2">
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="lbOpacity">
+          <property name="text">
+           <string>Opacity</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" colspan="2">
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <property name="spacing">
+           <number>4</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QRadioButton" name="rbLine">
+            <property name="text">
+             <string>Line</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="rbCube">
+            <property name="text">
+             <string>Cube</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="rbSphere">
+            <property name="text">
+             <string>Sphere</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="gbParamerers">
+       <property name="title">
+        <string>Parameters</string>
+       </property>
+       <layout class="QGridLayout" name="layParameters">
+        <property name="leftMargin">
+         <number>4</number>
+        </property>
+        <property name="topMargin">
+         <number>4</number>
+        </property>
+        <property name="rightMargin">
+         <number>4</number>
+        </property>
+        <property name="bottomMargin">
+         <number>4</number>
+        </property>
+        <item row="7" column="1">
+         <widget class="QLineEdit" name="edPt3x"/>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLineEdit" name="edPt1x"/>
+        </item>
+        <item row="6" column="1">
+         <widget class="QLineEdit" name="edPt2x"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="lbLineWidth">
+          <property name="text">
+           <string>Line Width</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="lbPt3">
+          <property name="text">
+           <string>Other</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <widget class="QLabel" name="lbY">
+          <property name="text">
+           <string>Y</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="3">
+         <widget class="QLineEdit" name="edPt1z"/>
+        </item>
+        <item row="7" column="3">
+         <widget class="QLineEdit" name="edPt3z"/>
+        </item>
+        <item row="7" column="2">
+         <widget class="QLineEdit" name="edPt3y"/>
+        </item>
+        <item row="6" column="3">
+         <widget class="QLineEdit" name="edPt2z"/>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="lbZ">
+          <property name="text">
+           <string>Z</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="2">
+         <widget class="QLineEdit" name="edPt2y"/>
+        </item>
+        <item row="5" column="2">
+         <widget class="QLineEdit" name="edPt1y"/>
+        </item>
+        <item row="8" column="0" colspan="4">
+         <spacer name="verticalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="1" column="1" colspan="3">
+         <widget class="QLineEdit" name="edLineWidth">
+          <property name="text">
+           <string>1.0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLabel" name="lbX">
+          <property name="text">
+           <string>X</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="lbPt2">
+          <property name="text">
+           <string>End</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="lbPt1">
+          <property name="text">
+           <string>Start</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="lbRadius">
+          <property name="text">
+           <string>Radius</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" colspan="3">
+         <widget class="QLineEdit" name="edRadius">
+          <property name="text">
+           <string>1.0</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </item>
     </layout>
    </item>
    <item>
-    <widget class="QPushButton" name="btn_addObj">
-     <property name="text">
-      <string>AddObject</string>
+    <layout class="QHBoxLayout" name="layButtonBox">
+     <property name="topMargin">
+      <number>0</number>
      </property>
-    </widget>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pbClose">
+       <property name="text">
+        <string>Close</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pbAddObject">
+       <property name="text">
+        <string>Add Object</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>rbLine</tabstop>
+  <tabstop>rbCube</tabstop>
+  <tabstop>rbSphere</tabstop>
+  <tabstop>cbColor</tabstop>
+  <tabstop>slOpacity</tabstop>
+  <tabstop>cbWireframe</tabstop>
+  <tabstop>edRadius</tabstop>
+  <tabstop>edLineWidth</tabstop>
+  <tabstop>edPt1x</tabstop>
+  <tabstop>edPt1y</tabstop>
+  <tabstop>edPt1z</tabstop>
+  <tabstop>edPt2x</tabstop>
+  <tabstop>edPt2y</tabstop>
+  <tabstop>edPt2z</tabstop>
+  <tabstop>edPt3x</tabstop>
+  <tabstop>edPt3y</tabstop>
+  <tabstop>edPt3z</tabstop>
+  <tabstop>pbClose</tabstop>
+  <tabstop>pbAddObject</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

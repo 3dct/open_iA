@@ -41,6 +41,8 @@ public:
 
 private slots:
 	void createObject();
+	void updateControls();
+	void opacityChanged(int newValue);
 
 private:
 	void readLineData  (vtkOpenGLRenderer* oglrenderer, QColor const & color);
