@@ -91,25 +91,28 @@ class open_iA_Core_API iAQSplom : public iAQGLWidget, public iAScatterPlotSelect
 	Q_OBJECT
 	Q_PROPERTY(double m_animIn READ getAnimIn WRITE setAnimIn)
 	Q_PROPERTY(double m_animOut READ getAnimOut WRITE setAnimOut)
-
-	enum splom_mode    //!< two possible states of SPLOM: upper triangle with maximized plot or all possible combinations of scatter plots
-	{
-		UPPER_HALF,
-		ALL_PLOTS
-	};
 public:
-	enum ColorMode     //!< in what way the the dots should be colored
+	enum SPMMode            //!< two possible states of SPLOM: upper triangle with maximized plot or all possible combinations of scatter plots
 	{
-		AllPointsSame, //!< all points have the same color
-		ByParameter,   //!< points are colored by a specific parameter, using a diverging, perceptually uniform lookup table
-		Custom         //!< points are colored
+		smUpperHalf,        //!< only show upper left diagonal
+		smAllPlots          //!< show both sides of diagonal (symmetrically mirrored)
 	};
-	enum ParameterColorMode  //!< how parameter colors should be applied
+	enum ColorMode          //!< in what way the the dots should be colored. Order must match labels in m_settingsDlg->cbColorMode!
 	{
-		Continuous,          //!< lookup table from min to max, applied continously
-		Qualitative          //!< lookup table applied discretely, i.e. parameter assumed to have integer values and each point gets a distinctive color
+		cmAllPointsSame,    //!< all points have the same color
+		cmByParameter,      //!< points are colored by a specific parameter, using a diverging, perceptually uniform lookup table
+		cmCustom            //!< points are colored
 	};
-// Methods
+	enum ColorParameterMode //!< How parameter colors should be applied.
+	{
+		pmContinuous,       //!< lookup table from min to max, applied continously
+		pmQualitative       //!< lookup table applied discretely, i.e. parameter assumed to have integer values and each point gets a distinctive color
+	};
+	enum ColorRangeMode     //!< How parameter range is determined if points are colored by parameter. Order must match labels in m_settingsDlg->cbColorRangeMode!
+	{
+		rmAutomatic,       //!< Range is automatically determined from chosen parameter
+		rmManual           //!< Range is manually set via minimum and maximum inputs
+	};
 	iAQSplom( QWidget * parent = 0, Qt::WindowFlags f = 0 );
 	~iAQSplom();
 
@@ -213,7 +216,8 @@ private:
 	void updateHistograms();                                         //!< Updates all histograms when data or filter changes
 	void updateHistogram(size_t paramIndex);                         //!< Updates the histogram of the given parameter
 	void setColorMode(ColorMode colorMode);                          //!< Set color mode (method how points are colored)
-	void setColorParameterMode(ParameterColorMode paramMode);        //!< Set mode how colors are applied from parameter
+	void setColorParameterMode(ColorParameterMode paramMode);        //!< Set mode how colors are applied from parameter
+	void setColorRangeMode(ColorRangeMode rangeMode);                //!< Set how parameter range is determined if points colored by parameter
 	void applyLookupTable();                                         //!< Apply lookup table to all the scatter plots.
 	void createScatterPlot(size_t y, size_t x, bool initial);        //!< Creates a single scatter plot at location y, y
 	void updateColorControls();                                      //!< Update color controls and color coding of points
@@ -237,6 +241,7 @@ private slots:
 	void loadSettingsSlot();                                         //!< Called from settings dialog for loading settings
 	void setContinousParamMode();
 	void setQualitativeParamMode();
+	void colorRangeModeChanged();
 
 // Members:
 public:
@@ -275,7 +280,8 @@ public:
 		bool showPCC;                            //!< Whether to show the Pearson's correlation coefficient
 		bool showColorLegend;                    //!< Whether the color legend is shown
 		ColorMode colorMode;                     //!< How the matrix dots are colored
-		ParameterColorMode parameterMode;        //!< How parameters are translated to colors
+		ColorParameterMode colorParameterMode;   //!< How parameters are translated to colors if colored by parameter
+		ColorRangeMode colorRangeMode;           //!< How parameter range is determined if colored by parameter
 		QString colorThemeName;                  //!< Name of a color theme for when points are colored by a parameter (from iALUT)
 		QString colorThemeQualName;              //!< Name of a color theme (iAColorTheme) when points are colored qualitatively by parameter
 
@@ -292,7 +298,7 @@ protected:
 	size_t m_colorLookupParam;                   //!< index of the column to use for color lookup (TODO: Move to settings?)
 	QPoint m_scatPlotSize;                       //!< size of one scatter plot in the layout
 	iAScatterPlot * m_activePlot;                //!< scatter plot that user currently interacts with
-	splom_mode m_mode;                           //!< SPLOM current state: all plots or upper triangle with maximized plot (TODO: Move to settings?)
+	SPMMode m_mode;                              //!< SPLOM current state: all plots or upper triangle with maximized plot (TODO: Move to settings?)
 	QSharedPointer<iASPLOMData> m_splomData;     //!< contains raw data points used in SPLOM
 	iAScatterPlot * m_previewPlot;               //!< plot currently being previewed (shown in maximized plot)
 	iAScatterPlot * m_maximizedPlot;             //!< pointer to the maximized plot

@@ -985,7 +985,7 @@ void iAFiAKErController::resultColorThemeChanged(QString const & colorThemeName)
 	}
 
 	updateHistogramColors();
-	if (m_spm->colorMode() == iAQSplom::ByParameter)
+	if (m_spm->colorMode() == iAQSplom::cmByParameter)
 	{
 		return;
 	}
@@ -1373,7 +1373,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		{
 			showSpatialOverview();
 		}
-		else if (m_spm->colorMode() == iAQSplom::ByParameter)
+		else if (m_spm->colorMode() == iAQSplom::cmByParameter)
 		{
 			if (vis)
 			{
