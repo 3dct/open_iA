@@ -334,6 +334,7 @@ int vtkEllipsoidSource::RequestData(
   //this ellipsoid assumes that its major axis is aligned with the Z axis
 
   //create the transform
+  this->EllipsoidTransform->Identity();
   this->EllipsoidTransform->Scale(this->XRadius,
                                   this->YRadius,
                                   this->ZRadius);
