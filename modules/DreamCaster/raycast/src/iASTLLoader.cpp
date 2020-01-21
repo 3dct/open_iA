@@ -121,14 +121,14 @@ int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, st
 	for (unsigned int i=0; i<vertices.size(); i++)
 	{
 		iAVec3f* vert = vertices[i];
-		if(vert) 
+		if(vert)
 			delete vert;
 	}
 	vertices.clear();
 	for (unsigned int i=0; i<stlMesh.size(); i++)
 	{
 		iAtriangle* tri = stlMesh[i];
-		if(tri) 
+		if(tri)
 			delete tri;
 	}
 	stlMesh.clear();
@@ -140,12 +140,12 @@ int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, st
 		dcast->log("Error! Cannot open .STL file, no file name given.");
 		return 1;
 	}
-		
+
 	// safety check to ensure that the file pointer opened is valid
 	if (!reader.is_open())
 	{
 		dcast->log(QString("Error! Opening .STL file %1 failed.").arg(filename));
-		return 2; 
+		return 2;
 	}
 
 	// just blindly read in the entire file till eof in to a vector
@@ -176,7 +176,7 @@ int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, st
 			VERTEX X2 Y2 Z2
 			VERTEX X3 Y3 Z3
 		ENDLOOP
-	ENDFACET 
+	ENDFACET
 	* ***************************************/
 
 	// a total of 4 sets of SbVec3f's 1 for the each of the vertices
@@ -202,7 +202,7 @@ int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, st
 	}
 	// text file
 	if (type == ASCII_FILE)
-	{	
+	{
 		iAVec3f helper_vec3;
 		for(unsigned int i = 0; i < Word.size(); i++)
 		{
@@ -245,7 +245,7 @@ int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, st
 		computeBBox(stlMesh, vertices, box, scale_coef, translate3f);
 		return 0;
 	}
-	// HERE FOR THE BINARY VERSION 
+	// HERE FOR THE BINARY VERSION
 	else
 	{
 		iATri item;
@@ -283,7 +283,7 @@ int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, st
 			iAVec3f helper_vec3(item.vertex1X, item.vertex1Y, item.vertex1Z );
 			copy->vertices[0] = new iAVec3f(helper_vec3);
 			vertices.push_back(copy->vertices[0]);
-			
+
 			helper_vec3 = iAVec3f(item.vertex2X, item.vertex2Y, item.vertex2Z );
 			copy->vertices[1] = new iAVec3f(helper_vec3);
 			vertices.push_back(copy->vertices[1]);
@@ -291,7 +291,7 @@ int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, st
 			helper_vec3 = iAVec3f(item.vertex3X, item.vertex3Y, item.vertex3Z );
 			copy->vertices[2] = new iAVec3f(helper_vec3);
 			vertices.push_back(copy->vertices[2]);
-			
+
 			// RESETTING THE NORMAL HERE
 			copy->N =  (*copy->vertices[2]-*copy->vertices[1])
 						^(*copy->vertices[0]-*copy->vertices[2]);

@@ -480,7 +480,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		// Surrounding
 		QLabel *createSurrounding = new QLabel( this );
 		createSurrounding->setObjectName( "Create Surrounding" );
-		createSurrounding->setPixmap( QPixmap( ":/images/createSurrounding.png" ) );	
+		createSurrounding->setPixmap( QPixmap( ":/images/createSurrounding.png" ) );
 		createSurrounding->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
 		createSurrounding->setToolTip( "" );
 		createSurrounding->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
@@ -490,7 +490,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 
 		QLabel *removeSurrounding = new QLabel( this );
 		removeSurrounding->setObjectName( "Remove Surrounding" );
-		removeSurrounding->setPixmap( QPixmap( ":/images/removeSurrounding.png" ) );	
+		removeSurrounding->setPixmap( QPixmap( ":/images/removeSurrounding.png" ) );
 		removeSurrounding->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
 		removeSurrounding->setToolTip( "" );
 		removeSurrounding->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
@@ -501,7 +501,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 }
 
 QPixmap iADragFilterWidget::mergeOnTop( const QPixmap& pix, QString txt )
-{	
+{
 	txt.truncate( 7 );
 	txt.append( "..." );
 	QPainter p;

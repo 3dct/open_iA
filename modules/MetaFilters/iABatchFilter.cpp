@@ -147,7 +147,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 	filter->setLogger(logger());
 
 	QStringList filters = parameters["File mask"].toString().split(";");
-	
+
 	if (!QFileInfo(batchDir).exists() || !QFileInfo(batchDir).isDir())
 	{
 		addMsg("Path given as 'Image folder' either does not exist or is not a folder!");

@@ -28,7 +28,7 @@ class QPainter;
 
 const double MAX_ZOOM = 1000;
 const double MIN_ZOOM = 1;
-const int OFFSET_FROM_TOP = 10; 
+const int OFFSET_FROM_TOP = 10;
 class dlg_histogram_simple : public QWidget//, private Ui_Histogram
 {
 	//Q_OBJECT
@@ -64,7 +64,7 @@ protected:
 private:
 	QImage        image;
 	QWidget       *activeChild;
-			
+
 	Mode mode;
 	WheelMode wheelMode;
 
@@ -119,7 +119,7 @@ private:
 	//! \param dataX X value of the transfer function data
 	//! \param dataY Y value of the transfer function data
 	void data2view(int *viewX, int *viewY, double dataX, double dataY);
-	
+
 	void drawBackground(QPainter &painter);
 	void drawHistogram(QPainter &painter);
 	void drawAxes(QPainter &painter);

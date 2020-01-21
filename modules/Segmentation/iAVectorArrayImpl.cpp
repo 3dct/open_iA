@@ -32,7 +32,7 @@ iAvtkPixelVectorArray::iAvtkPixelVectorArray(size_t width, size_t height, size_t
 	m_coordConv(width, height, depth)
 {
 }
-	
+
 void iAvtkPixelVectorArray::AddImage(vtkSmartPointer<vtkImageData> img)
 {
 	int extent[6];

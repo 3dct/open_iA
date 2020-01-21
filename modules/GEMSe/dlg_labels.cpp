@@ -296,14 +296,14 @@ bool dlg_labels::load(QString const & filename)
 	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-	{	
+	{
 		DEBUG_LOG(QString("Seed file loading: Failed to open file '%1'!").arg(filename));
 		return false;
 	}
 	QXmlStreamReader stream(&file);
 	stream.readNext();
 	int curLabelRow = -1;
-	
+
 	bool enableStoreBtn = false;
 	while (!stream.atEnd())
 	{
@@ -371,7 +371,7 @@ bool dlg_labels::store(QString const & filename, bool extendedFormat)
 {
 	QFile file(filename);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-	{	
+	{
 		QMessageBox::warning(this, "GEMSe", "Seed file storing: Failed to open file '" + filename + "'!");
 		return false;
 	}
@@ -565,7 +565,7 @@ void dlg_labels::Sample()
 			numOfSeedsPerLabel[i] = minNumOfSeeds;
 		}
 	}
-	
+
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> xDist(0, img->GetDimensions()[0] - 1);

@@ -38,7 +38,7 @@
 #include <itkClosingByReconstructionImageFilter.h>
 
 // NOTE: The 'binary' versions of the dilation (e.g., itkBinaryDilateImageFilter), erode, fill hole, opening,
-// and closing filters have been replaced by the 'grayscale' versions of these filters 
+// and closing filters have been replaced by the 'grayscale' versions of these filters
 // (e.g., itkGrayscaleDilateImageFilter), because of convenience (more data types supported) and performance (parallelization).
 
 namespace
@@ -280,7 +280,7 @@ iAClosingByReconstruction::iAClosingByReconstruction() :
 		"The closing by reconstruction of an image <f> is defined as:"
 		"ClosingByReconstruction(f) = ErosionByReconstruction(f, Dilation(f)).<br/><br/> "
 
-		"losing by reconstruction not only preserves structures preserved by the dilation, <br/>" 
+		"losing by reconstruction not only preserves structures preserved by the dilation, <br/>"
 		"but also levels raises the contrast of the darkest regions. If PreserveIntensities <br/>"
 		"is on, a subsequent reconstruction by dilation using a marker image that is the original image for all unaffected pixels<br/>"
 		"For more information, see the "

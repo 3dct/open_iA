@@ -51,7 +51,7 @@ class vtkTable;
 class iAPAQSplom;
 struct iASelection;
 class iASPMSettings;
-class MainWindow; 
+class MainWindow;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_SPMView>  PorosityAnalyzerSPMConnector;
 
@@ -88,7 +88,7 @@ protected:
 	vtkVector2i getActivePlotIndices();
 
 protected slots:
-	
+
 	/** Apply lookup table to all the plots in the SPM */
 	void applyLookupTable();
 

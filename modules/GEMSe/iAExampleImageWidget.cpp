@@ -84,7 +84,7 @@ iAExampleImageWidget::iAExampleImageWidget(double aspectRatio, iAPreviewWidgetPo
 	container->setLayout(new QHBoxLayout());
 	container->layout()->addWidget(m_gridWidget);
 	container->layout()->addWidget(refreshButton);
-	
+
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	SetCaptionedContent(this, "Examples", container);
 

@@ -33,7 +33,7 @@ public:
 		UseFXAA;
 	QString BackgroundTop,
 		BackgroundBottom;
-	float PlaneOpacity; 
+	float PlaneOpacity;
 
 	iARenderSettings() :
 		ShowSlicers(false),

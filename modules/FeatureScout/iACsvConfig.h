@@ -53,7 +53,7 @@ struct FeatureScout_API iACsvConfig
 		Ellipses,
 		NoVis,
 		VisTypeCount //must be last element
-	}; //!< what visualization to use for the objects. Should match the entries of VisualizationTypeName iACsvConfig.cpp 
+	}; //!< what visualization to use for the objects. Should match the entries of VisualizationTypeName iACsvConfig.cpp
 	static const int LegacyFormatStartSkipLines = 5;
 	iACsvConfig();
 	bool isValid(QString & errorMsg) const;
@@ -81,7 +81,7 @@ struct FeatureScout_API iACsvConfig
 	double fixedDiameterValue;              //! value to use as diameter for all objects
 	static iACsvConfig const & getLegacyFiberFormat(QString const & fileName);
 	static iACsvConfig const & getLegacyPoreFormat(QString const & fileName);
-	
+
 	//! Return base key for a given format
 	static QString getFormatKey(QString const & formatName);
 	//! Return list of all csv configs stored in registry, list is empty if no format definitions exist

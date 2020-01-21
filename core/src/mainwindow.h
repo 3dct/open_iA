@@ -119,7 +119,7 @@ public:
 	QMdiSubWindow* addSubWindow(QWidget * child);
 	void loadArguments(int argc, char** argv);
 	iAPreferences const & getDefaultPreferences() const;
-	iAModuleDispatcher& getModuleDispatcher() const; 
+	iAModuleDispatcher& getModuleDispatcher() const;
 	MdiChild *createMdiChild(bool unsavedChanges);
 	void closeMdiChild(MdiChild* child);
 	void closeAllSubWindows();

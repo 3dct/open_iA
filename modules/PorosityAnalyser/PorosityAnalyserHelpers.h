@@ -622,7 +622,7 @@ inline QMap<double, QList<double> > calculateHistogram( QList<double> data, doub
 
 	if ( minmax[0] == minmax[1] )
 			minmax[1] = minmax[0] + 1.0;
-	
+
 	double inc = ( minmax[1] - minmax[0] ) / (NumberOfBins) * 1.001;
 	double halfInc = inc / 2.0;
 
@@ -710,7 +710,7 @@ inline QStringList getDatasetInfo( QString datasetDir, QString datasetName )
 		}
 		mhdFile.close();	// done with *.mhd file
 	}
-		
+
 	// Read *.mhd.info file
 	QFile infoFile( datasetDir + "/" + datasetName + ".info" );
 	if ( !infoFile.open( QIODevice::ReadOnly | QIODevice::Text ) )

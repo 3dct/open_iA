@@ -96,7 +96,7 @@ private:
 	//! collapse a node and all its subclusters:
 	void CollapseNode(QSharedPointer<iAImageTreeNode > node, bool & selectionChanged);
 
-	int getNodeWithIdx(QSharedPointer<iAImageTreeNode > node, int currentNr, 
+	int getNodeWithIdx(QSharedPointer<iAImageTreeNode > node, int currentNr,
 		int level, int searchedFor, QSharedPointer<iAImageTreeNode > &result);
 
 	void InsertNodeHighlight(iAImageTreeNode* node, QColor const & color);

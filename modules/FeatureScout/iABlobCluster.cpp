@@ -104,7 +104,7 @@ void iABlobCluster::ResetRenderers( void )
 		m_blobRenderer->RemoveActor( m_contourActor );
 		m_blobRenderer->RemoveActor( m_silhouetteActor );
 	}
-	
+
 	if ( m_labelRenderer )
 	{
 		m_labelRenderer->RemoveViewProp(m_captionActor);
@@ -117,7 +117,7 @@ void iABlobCluster::UpdateRenderer( void )
 
 	if ( !m_blobRenderer )
 		return;
-	
+
 	if ( m_renderIndividually )
 	{
 		if ( m_blobIsOn )
@@ -125,7 +125,7 @@ void iABlobCluster::UpdateRenderer( void )
 		if ( m_silhouetteIsOn )
 			m_blobRenderer->AddActor( m_silhouetteActor );
 	}
-	
+
 	if (m_labelIsOn)
 	{
 		double centerPnt[3];
@@ -196,7 +196,7 @@ void iABlobCluster::SetCluster( QVector<FeatureInfo> objects ) const
 
 	for ( int i = 0; i < objects.size(); i++ )
 	{
-		m_implicitFunction->AddObjectInfo( 
+		m_implicitFunction->AddObjectInfo(
 			objects[i].x1, objects[i].y1, objects[i].z1,
 			objects[i].x2, objects[i].y2, objects[i].z2,
 			objects[i].diameter );
@@ -269,14 +269,14 @@ void iABlobCluster::SetName( QString name )
 void iABlobCluster::SetBlobColor(QColor blobColor)
 {
 	m_blobColor = blobColor;
-	
+
 	GetSurfaceProperty()->SetColor(
 		m_blobColor.redF(),
 		m_blobColor.greenF(),
 		m_blobColor.blueF());
 
 	m_captionActor->GetCaptionTextProperty()->SetBackgroundColor(
-		m_blobColor.redF(), 
+		m_blobColor.redF(),
 		m_blobColor.greenF(),
 		m_blobColor.blueF());
 }

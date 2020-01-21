@@ -29,7 +29,7 @@
 
 class iATriPrim;
 
-//! Structure representing intersection data, contains data about primitives.	
+//! Structure representing intersection data, contains data about primitives.
 struct iAintersection
 {
 	iATriPrim* tri;

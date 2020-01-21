@@ -55,7 +55,7 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	m_startLine = gridLay->rowCount()-2;
 
 	gridLay->addWidget(wdButtonBar, m_startLine+1, 0, 1, 4);
-	
+
 	cbSamplingMethod->clear();
 	auto & paramGens = GetParameterGenerators();
 	for (QSharedPointer<iAParameterGenerator> paramGen : paramGens)
@@ -274,7 +274,7 @@ QSharedPointer<iAAttributeDescriptor> iACategoryParameterInputs::currentDescript
 	desc->adjustMinMax(0);
 	desc->adjustMinMax(names.size()-1);
 	return desc;
-	
+
 }
 
 void dlg_samplingSettings::setInputsFromMap(QMap<QString, QString> const & values)

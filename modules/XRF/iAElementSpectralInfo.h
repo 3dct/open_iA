@@ -41,11 +41,11 @@ public:
 			QFile file(fileName);
 			if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 				return;
-			
+
 			//skip the header
 			for(int i=0; i<LINES_IN_HEADER; ++i)
 				file.readLine();
-			
+
 			//read the data
 			QStringList stringList;
 			QRegExp splitter("\\s+");

@@ -101,7 +101,7 @@ void iAVolumeRenderer::setImage(iATransferFunction * transfer, vtkSmartPointer<v
 
 void iAVolumeRenderer::setImage(vtkImageData * imgData)
 {
-	DEBUG_LOG("update image"); 
+	DEBUG_LOG("update image");
 	vtkSmartPointer<vtkColorTransferFunction>volumeColor =
 		vtkSmartPointer<vtkColorTransferFunction>::New();
 

@@ -49,8 +49,8 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-	
-	//intensity statistics 
+
+	//intensity statistics
 	double minIntensity, maxIntensity, mean, sigma, variance;
 	getStatistics(duplicator->GetOutput(), &minIntensity, &maxIntensity, &mean, &sigma, &variance);
 
@@ -71,7 +71,7 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 	imageToHistogramFilter->SetHistogramSize( h_size );
 	imageToHistogramFilter->Update();
 	typename ImageToHistogramFilterType::HistogramType* histogram = imageToHistogramFilter->GetOutput();
-	
+
 	//Write info to dataset info file
 	ofstream fout( getLocalEncodingFileName( datasetPath + "/" + datasetName + ".info" ).c_str(), std::ofstream::out );
 	fout << "Datasetname:" << QString( datasetName ).toStdString() << '\n'
@@ -176,7 +176,7 @@ void iADatasetInfo::calculateInfo()
 	int totalFInfoNbToCreate = dl.size() - fl.size();
 	int currentFInfoNb = 0;
 	bool success = false;
-	
+
 	for ( int i = 0; i < dl.size(); ++i ) //iterate over datasets
 	{
 		QString datasetName = dl[i];

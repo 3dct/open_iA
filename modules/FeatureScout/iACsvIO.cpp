@@ -115,7 +115,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 	}
 	QTextStream in(&file);
 	in.setCodec(m_csvConfig.encoding.toStdString().c_str());
-	size_t effectiveRowCount = std::min(rowCount, 
+	size_t effectiveRowCount = std::min(rowCount,
 		calcRowCount(in, m_csvConfig.skipLinesStart + (cnfg_params.containsHeader ? 1 : 0), m_csvConfig.skipLinesEnd));
 	if (effectiveRowCount <= 0)
 	{

@@ -147,7 +147,7 @@ size_t mapVTKTypeToSize(int vtkType)
 	case VTK_FLOAT:         return sizeof(float);
 	case VTK_DOUBLE:        return sizeof(double);
 	default:                return 0;
-	}	
+	}
 }
 
 namespace

@@ -307,7 +307,7 @@ void iASegm3DViewData::LoadAndApplySettings()
 	renderSettings.ShowHelpers = settings.value("Renderer/rsShowHelpers", true).toBool();
 	renderSettings.ShowRPosition = settings.value("Renderer/rsShowRPosition", false).toBool();
 	renderSettings.ParallelProjection = true;
-	renderSettings.BackgroundTop = "#8f8f8f"; //"#FFFFFF" 
+	renderSettings.BackgroundTop = "#8f8f8f"; //"#FFFFFF"
 	renderSettings.BackgroundBottom = "#8f8f8f";
 
 	volumeSettings.LinearInterpolation = settings.value("Renderer/rsLinearInterpolation", true).toBool();
@@ -331,7 +331,7 @@ void iASegm3DViewData::LoadAndApplySettings()
 
 	m_renderer->polyActor()->SetVisibility( settings.value( "PorosityAnalyser/GUI/ShowSurface", false ).toBool() );
 	m_wireActor->SetVisibility( settings.value( "PorosityAnalyser/GUI/ShowWireframe", false ).toBool() );
-	
+
 	m_renderer->polyActor()->GetProperty()->SetSpecular( 0 );
 	m_renderer->polyActor()->GetProperty()->SetDiffuse( 0 );
 	m_renderer->polyActor()->GetProperty()->SetAmbient( 1 );

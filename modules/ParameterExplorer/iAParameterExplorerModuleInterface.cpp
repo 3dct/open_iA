@@ -41,7 +41,7 @@ void iAParameterExplorerModuleInterface::Initialize()
 	actionExplore->setText(QApplication::translate("MainWindow", "Parameter Explorer", 0));
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionExplore, true);
 	connect(actionExplore, SIGNAL(triggered()), this, SLOT(StartParameterExplorer()));
-	
+
 	QAction * actionLoad = new QAction(m_mainWnd);
 	actionLoad->setText(QApplication::translate("MainWindow", "Load Parameter Explorer State", 0));
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionLoad, false);

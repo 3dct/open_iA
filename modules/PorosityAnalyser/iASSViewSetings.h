@@ -30,7 +30,7 @@ class iASSViewSettings : public SSSettingsConnector
 {
 	Q_OBJECT
 public:
-	iASSViewSettings( QWidget * parent = 0, Qt::WindowFlags f = 0 ) 
+	iASSViewSettings( QWidget * parent = 0, Qt::WindowFlags f = 0 )
 		: SSSettingsConnector( parent, f )
 	{}
 	~iASSViewSettings() {}

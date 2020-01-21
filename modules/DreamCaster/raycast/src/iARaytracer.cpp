@@ -39,12 +39,12 @@ static const char * clDreamcaster_Source[] = {
 //namespace Raytracer {
 
 iARay::iARay( iAVec3f & a_Origin, iAVec3f & a_Dir ) :
-	m_Origin( a_Origin ), 
+	m_Origin( a_Origin ),
 	m_Direction( a_Dir )
 {}
 
 iARay::iARay(const iAVec3f * a_Origin, iAVec3f & a_Dir ) :
-	m_Origin( *a_Origin ), 
+	m_Origin( *a_Origin ),
 	m_Direction( a_Dir )
 {}
 
@@ -123,7 +123,7 @@ int iAEngine::DepthRaytrace(iARay& a_Ray, iAVec3f & a_Acc, int a_Depth, float /*
 	unsigned int cutAABBListSize;
 	if(m_cutAABBList)
 		cutAABBListSize = m_cutAABBListSize;
-	else 
+	else
 		cutAABBListSize = 0;
 	if(cutAABBListSize)
 	{
@@ -131,8 +131,8 @@ int iAEngine::DepthRaytrace(iARay& a_Ray, iAVec3f & a_Acc, int a_Depth, float /*
 		for (unsigned int i=0; i<cutAABBListSize; i++)
 		{
 			float a,b;
-			//if(IntersectCyl(a_Ray, *((*m_cutAABBList)[i]), a, b, 1)) 
-			if(IntersectAABB(a_Ray, *((*m_cutAABBList)[i]), a, b)) 
+			//if(IntersectCyl(a_Ray, *((*m_cutAABBList)[i]), a, b, 1))
+			if(IntersectAABB(a_Ray, *((*m_cutAABBList)[i]), a, b))
 			{
 				intersects = true;
 				break;
@@ -149,14 +149,14 @@ int iAEngine::DepthRaytrace(iARay& a_Ray, iAVec3f & a_Acc, int a_Depth, float /*
 	//it happens when ray hits common edge of 2 neighboring triangles
 	ray_p->penetrationsSize=0;
 	ray_p->avDipAng=0;
-	for (int i=0; i<(int)intersections.size()-1; ) 
+	for (int i=0; i<(int)intersections.size()-1; )
 	{
 		/*if( intersections[i+1]->dist == intersections[i]->dist )
 		{
 			delete intersections[i]; // Remove the object
 			intersections[i]=0;
 			intersections.erase(intersections.begin() + i);
-		} 
+		}
 		else */
 		//TODO: no triangles repeated?
 		if( intersections[i+1]->tri->GetIndex() == intersections[i]->tri->GetIndex() )
@@ -164,8 +164,8 @@ int iAEngine::DepthRaytrace(iARay& a_Ray, iAVec3f & a_Acc, int a_Depth, float /*
 			delete intersections[i]; // Remove the object
 			intersections[i]=0;
 			intersections.erase(intersections.begin() + i);
-		} 
-		else 
+		}
+		else
 			++i;
 	}
 	//
@@ -178,7 +178,7 @@ int iAEngine::DepthRaytrace(iARay& a_Ray, iAVec3f & a_Acc, int a_Depth, float /*
 		if(i%2==1)
 		{
 			float dist = intersections[i]->dist - intersections[i-1]->dist;
-			penetrationDepth += dist; 
+			penetrationDepth += dist;
 			//ray_p->penetrations[ray_p->penetrationsSize] = dist;
 			ray_p->penetrationsSize++;
 			ray_p->totalPenetrLen += dist;
@@ -212,7 +212,7 @@ int iAEngine::DepthRaytrace(iARay& a_Ray, iAVec3f & a_Acc, int a_Depth, float /*
 void iAEngine::InitRender(iAVec3f * vp_corners, iAVec3f * vp_delta, iAVec3f * o)
 {
 	//!@note rotations and translations are inversed, because we rotating plane and origin instead of object
-	float 
+	float
 		irotX = -rotX,
 		irotY = -rotY,
 		irotZ = -rotZ;
@@ -257,7 +257,7 @@ bool iAEngine::RenderCPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, c
 	for (int x=0; x<s->THREAD_GRID_X; x++)
 		for (int y=0; y<s->THREAD_GRID_Y; y++)
 		{
-			int tIndex = y*s->THREAD_GRID_X+x; 
+			int tIndex = y*s->THREAD_GRID_X+x;
 			threads[tIndex].setEngine(this);
 			threads[tIndex].setPlaneAndOrigin(vp_corners, vp_delta, o);
 			threads[tIndex].dipAsColor=dipAsColor;
@@ -367,15 +367,15 @@ bool iAEngine::RenderGPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, c
 	}
 	else
 		raycast_single(
-				&(scene()->getBSPTree()->m_aabb), 
-				o, 
-				vp_corners, 
-				&vp_delta[0], 
-				&vp_delta[1], 
-				s->RFRAME_W, s->RFRAME_H, 
-				m_cut_AABBs, 
+				&(scene()->getBSPTree()->m_aabb),
+				o,
+				vp_corners,
+				&vp_delta[0],
+				&vp_delta[1],
+				s->RFRAME_W, s->RFRAME_H,
+				m_cut_AABBs,
 				m_cutAABBListSize,
-				cuda_avpl_buff, 
+				cuda_avpl_buff,
 				cuda_dipang_buff);
 	unsigned int col;
 	unsigned int* buffer=getBuffer();
@@ -391,7 +391,7 @@ bool iAEngine::RenderGPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, c
 			{
 				*buffer++ = (
 					((unsigned int)(s->COL_RANGE_MIN_R+s->COL_RANGE_DR*(1-cuda_dipang_buff[i])) << 16) +
-					((unsigned int)(s->COL_RANGE_MIN_G+s->COL_RANGE_DG*(1-cuda_dipang_buff[i])) << 8) + 
+					((unsigned int)(s->COL_RANGE_MIN_G+s->COL_RANGE_DG*(1-cuda_dipang_buff[i])) << 8) +
 					(unsigned int)(s->COL_RANGE_MIN_B+s->COL_RANGE_DB*(1-cuda_dipang_buff[i]))
 					);
 			}
@@ -438,7 +438,7 @@ bool iAEngine::RenderGPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, c
 				if(cuda_dipang_buff[i]<0)
 					cuda_dipang_buff[i]=cuda_dipang_buff[i];
 			}
-			raysCount++;		
+			raysCount++;
 		}
 	}
 	curRender.raysSize = (unsigned int) curRender.rays.size();
@@ -505,7 +505,7 @@ bool iAEngine::RenderBatchGPU( unsigned int batchSize, iAVec3f * a_o, iAVec3f * 
 			{
 				*buffer++ = (
 					((unsigned int)(s->COL_RANGE_MIN_R+s->COL_RANGE_DR*(1-cuda_dipang_buff[i])) << 16) +
-					((unsigned int)(s->COL_RANGE_MIN_G+s->COL_RANGE_DG*(1-cuda_dipang_buff[i])) << 8) + 
+					((unsigned int)(s->COL_RANGE_MIN_G+s->COL_RANGE_DG*(1-cuda_dipang_buff[i])) << 8) +
 					(unsigned int)(s->COL_RANGE_MIN_B+s->COL_RANGE_DB*(1-cuda_dipang_buff[i]))
 					);
 			}
@@ -554,7 +554,7 @@ bool iAEngine::RenderBatchGPU( unsigned int batchSize, iAVec3f * a_o, iAVec3f * 
 					//if(cuda_dipang_buff[ioffset]<0)
 					//	cuda_dipang_buff[ioffset]=cuda_dipang_buff[ioffset];
 				}
-				raysCount++;		
+				raysCount++;
 			}
 		}
 		curBatchRenders[batch].raysSize = (unsigned int) curBatchRenders[batch].rays.size();
@@ -582,7 +582,7 @@ bool iAEngine::RenderBatchGPU( unsigned int batchSize, iAVec3f * a_o, iAVec3f * 
 void iAEngine::Transform( iAVec3f * vec )
 {
 	//!@note rotations and translations are inversed, because we rotating plane and origin instead of object
-	float 
+	float
 		irotX = -rotX,
 		irotY = -rotY,
 		irotZ = -rotZ;
@@ -606,7 +606,7 @@ void iAEngine::InitOpenCL()
 	cl_int error;
 	std::vector<cl::Device>	devices; devices.push_back(m_device);
 	error = clDCProg.build(devices);//, clOptions);
-	if (error != CL_SUCCESS) 
+	if (error != CL_SUCCESS)
 	{
 		cl_int error2;
 		std::string str = clDCProg.getBuildInfo<CL_PROGRAM_BUILD_LOG>(m_device, &error2);
@@ -628,7 +628,7 @@ void iAEngine::AllocateOpenCLBuffers()
 
 	const size_t batchSize = s->BATCH_SIZE;
 	const size_t out_size = s->RFRAME_W * s->RFRAME_H * s->BATCH_SIZE;
-	
+
 	cl_int error;
 	nodes = cl::Buffer( m_context, CL_MEM_READ_ONLY, nodes_count*sizeof(iABSPNode), 0, &error );
 	itk_clSafeCall( error );
@@ -651,10 +651,10 @@ void iAEngine::AllocateOpenCLBuffers()
 	itk_clSafeCall( error );
 
 	//out
-	device_out_data = cl::Buffer(m_context, CL_MEM_READ_WRITE, 
+	device_out_data = cl::Buffer(m_context, CL_MEM_READ_WRITE,
 		out_size*sizeof(float), 0, &error );
 	itk_clSafeCall( error );
-	device_out_dip = cl::Buffer(m_context, CL_MEM_READ_WRITE, 
+	device_out_dip = cl::Buffer(m_context, CL_MEM_READ_WRITE,
 		out_size*sizeof(float), 0, &error );
 	itk_clSafeCall( error );
 }
@@ -665,7 +665,7 @@ void iAEngine::setup_nodes( void * data )
 	itk_clSafeCall(
 		m_queue.enqueueWriteBuffer(	nodes, cl_bool(true), 0, size * sizeof(iABSPNode), data )
 	);
-	itk_clSafeCall( m_queue.finish() );	
+	itk_clSafeCall( m_queue.finish() );
 }
 
 void iAEngine::setup_tris( void * data )
@@ -674,43 +674,43 @@ void iAEngine::setup_tris( void * data )
 	itk_clSafeCall(
 		m_queue.enqueueWriteBuffer(	tris, cl_bool(true), 0, size*sizeof(iAwald_tri),	data )
 	);
-	itk_clSafeCall( m_queue.finish() );	
+	itk_clSafeCall( m_queue.finish() );
 }
 
 void iAEngine::setup_ids( void * data )
 {
 	const size_t size = m_Scene->getBSPTree()->tri_ind.size();
 	itk_clSafeCall(
-		m_queue.enqueueWriteBuffer(	ids, cl_bool(true), 0, size*sizeof(unsigned int), data )  
+		m_queue.enqueueWriteBuffer(	ids, cl_bool(true), 0, size*sizeof(unsigned int), data )
 	);
-	itk_clSafeCall( m_queue.finish() );	
+	itk_clSafeCall( m_queue.finish() );
 }
 
 void iAEngine::raycast_batch(
-	const void *a_aabb, 
-	const void * a_o, const void * a_c, 
-	const void * a_dx, const void * a_dy, 
-	const int w, const int h, 
-	const unsigned int batchSize, 
-	const void * a_cut_aabbs, 
+	const void *a_aabb,
+	const void * a_o, const void * a_c,
+	const void * a_dx, const void * a_dy,
+	const int w, const int h,
+	const unsigned int batchSize,
+	const void * a_cut_aabbs,
 	const unsigned int a_cut_aabbs_count,
-	float * out_res, 
+	float * out_res,
 	float * out_dip_res )
 {
  	cl_int error;
  	size_t out_size = w*h*batchSize;
 	//in
 	itk_clSafeCall(
-		m_queue.enqueueWriteBuffer(	os, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), (void*)a_o )  
+		m_queue.enqueueWriteBuffer(	os, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), (void*)a_o )
 	);
 	itk_clSafeCall(
-		m_queue.enqueueWriteBuffer(	cs, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), (void*)a_c )  
+		m_queue.enqueueWriteBuffer(	cs, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), (void*)a_c )
 	);
 	itk_clSafeCall(
-		m_queue.enqueueWriteBuffer(	dxs, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), (void*)a_dx )  
+		m_queue.enqueueWriteBuffer(	dxs, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), (void*)a_dx )
 	);
 	itk_clSafeCall(
-		m_queue.enqueueWriteBuffer(	dys, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), (void*)a_dy )  
+		m_queue.enqueueWriteBuffer(	dys, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), (void*)a_dy )
 	);
 	itk_clSafeCall(
 		m_queue.enqueueWriteBuffer(	cl_aabb, cl_bool(true), 0, sizeof(iAaabb), (void*)a_aabb )
@@ -723,7 +723,7 @@ void iAEngine::raycast_batch(
 			m_queue.enqueueWriteBuffer(	cut_aabbs, cl_bool(true), 0, a_cut_aabbs_count*sizeof(iAaabb), (void*)a_cut_aabbs )
 			);
 	}
-	itk_clSafeCall( m_queue.finish() );	
+	itk_clSafeCall( m_queue.finish() );
 
 	//setup and run kernel
 	cl_uint idx = 0;
@@ -747,8 +747,8 @@ void iAEngine::raycast_batch(
 
 	error = m_queue.enqueueNDRangeKernel(
 		K_raycast_batch,
-		cl::NullRange, 
-		cl::NDRange(global), 
+		cl::NullRange,
+		cl::NDRange(global),
 		cl::NDRange(local) );
 	itk_clSafeCall( error );
 	itk_clSafeCall( m_queue.finish() );
@@ -757,27 +757,27 @@ void iAEngine::raycast_batch(
 	itk_clSafeCall(
 		m_queue.enqueueReadBuffer(	device_out_data,
 		cl_bool(true),
-		0, 
+		0,
 		out_size*sizeof(float),
 		out_res )  );
 	itk_clSafeCall( m_queue.finish() );
 	itk_clSafeCall(
 		m_queue.enqueueReadBuffer(	device_out_dip,
 		cl_bool(true),
-		0, 
+		0,
 		out_size*sizeof(float),
 		out_dip_res )  );
 	itk_clSafeCall( m_queue.finish() );
 }
 
 void iAEngine::raycast_single(
-	const void *a_aabb, 
-	const void * a_o, const void * a_c, 
-	const void * a_dx, const void * a_dy, 
-	const int w, const int h, 
-	const void * a_cut_aabbs, 
-	const unsigned int a_cut_aabbs_count, 
-	float * out_res, 
+	const void *a_aabb,
+	const void * a_o, const void * a_c,
+	const void * a_dx, const void * a_dy,
+	const int w, const int h,
+	const void * a_cut_aabbs,
+	const unsigned int a_cut_aabbs_count,
+	float * out_res,
 	float * out_dip_res	)
 {
 	this->raycast_batch(a_aabb, a_o, a_c, a_dx, a_dy, w, h, 1, a_cut_aabbs, a_cut_aabbs_count, out_res, out_dip_res);

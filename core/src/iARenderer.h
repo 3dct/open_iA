@@ -143,14 +143,14 @@ public:
 
 	//sets bounds of the slicing volume, using the spacing of image
 	void setSlicingBounds(const int roi[6], const double *spacing);
-	
+
 	void setCubeVisible(bool visible); //Visibility of the slice cube
-	
+
 	void saveMovie(const QString& fileName, int mode, int qual = 2);	//!< move out of here
 	iARenderObserver * getRenderObserver();
 	void addRenderer(vtkRenderer* renderer);
 	void applySettings(iARenderSettings const & settings);
-	
+
 	void emitSelectedCells(vtkUnstructuredGrid* selectedCells);
 	void emitNoSelectedCells();
 
@@ -219,7 +219,7 @@ private:
 	vtkTransform* m_moveableAxesTransform;
 	vtkSmartPointer<vtkAxesActor> m_moveableAxesActor;
 	//! @}
-	
+
 	//! @{ Line profile
 	vtkSmartPointer<vtkLineSource>     m_profileLineSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_profileLineMapper;

@@ -40,7 +40,7 @@ public:
 
 bool operator==(iAImageCoordinate const & a, iAImageCoordinate const & b);
 
-//! Utility class for converting (2D/)3D indices to a flat (1D) index 
+//! Utility class for converting (2D/)3D indices to a flat (1D) index
 class open_iA_Core_API iAImageCoordConverter
 {
 public:

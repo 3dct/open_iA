@@ -65,7 +65,7 @@ open_iA_Core_API void storeImage(vtkSmartPointer<vtkImageData> image, QString co
 //! Read an image from disk into a VTK image.
 //! @param filename the name of the file to read.
 //! @param releaseFlag whether the ITK release flag should be set on the ITK image reader
-//! @return the vtk image as read from the given file 
+//! @return the vtk image as read from the given file
 open_iA_Core_API vtkSmartPointer<vtkImageData> readImage(QString const & filename, bool releaseFlag);
 
 //! Write a single slice image to a common 2D picture format

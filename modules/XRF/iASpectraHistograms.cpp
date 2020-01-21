@@ -36,7 +36,7 @@ iASpectraHistograms::iASpectraHistograms(QSharedPointer<iAXRFData> xrfData, long
 {
 	m_countRange[0] = minCount; m_countRange[1] = maxCount;
 	m_numHistograms = m_xrfData->size();
-	size_t count = m_numHistograms*m_numBins; 
+	size_t count = m_numHistograms*m_numBins;
 	m_histData = new CountType[count];
 	std::fill_n(m_histData, count, CountTypeNull);
 	m_binWidth = (m_countRange[1] - m_countRange[0]) / m_numBins;
@@ -91,7 +91,7 @@ void iASpectraHistograms::computeHistograms( )
 		VTK_TYPED_CALL(computeHistogram, type, curImg->GetScalarPointer(), count, m_binWidth, curHistPtr, m_countRange);
 		curHistPtr += m_numBins;
 		++it;
-		++i;	
+		++i;
 	}
 	computeMaximumVal();
 }

@@ -227,7 +227,7 @@ namespace
 iARandomWalker::iARandomWalker() :
 	iAFilter("Random Walker", "Segmentation/Graph-based",
 		"Computes the Random Walker segmentation.<br/>" +
-		CommonRWParameterDescription + 
+		CommonRWParameterDescription +
 		"As <em>Seeds</em>, specify text with one seed point per line in the following format:"
 		"<pre>x y z label</pre>"
 		"where x, y and z are the coordinates (set z = 0 for 2D images) and label is the index of the label "

@@ -42,20 +42,20 @@
 void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 {
 	vtkSmartPointer<vtkPolyDataAlgorithm> surfaceFilter = vtkSmartPointer<vtkPolyDataAlgorithm>::New();
-	TriangulationFilter surfaceGenFilter; 
+	TriangulationFilter surfaceGenFilter;
 
 
 
 	surfaceFilter = surfaceGenFilter.surfaceFilterParametrisation
-	(parameters, input()[0]->vtkImage(), progress()); 
-	
+	(parameters, input()[0]->vtkImage(), progress());
+
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 	progress()->observe(stlWriter);
 	stlWriter->SetFileName(getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());
 
-	if (!surfaceFilter) { 
+	if (!surfaceFilter) {
 		DEBUG_LOG("Generated surface filter is null");
-		return; 
+		return;
 	}
 
 
@@ -216,7 +216,7 @@ void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
 
 	/*progress()->observe(stlWriter);
 	stlWriter->SetFileName(getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());*/
-	
+
 
 	vtkSmartPointer<vtkPolyDataAlgorithm> simplifyFilter = vtkSmartPointer<vtkPolyDataAlgorithm>::New();
 	vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
@@ -238,13 +238,13 @@ void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
 	auto cleanTol = parameters["CleanTolerance"].toDouble();
 	cleaner->SetTolerance(cleanTol);
 	//clean duplicated points
-	cleaner->Update(); 
-	DEBUG_LOG("perfom delauy3d"); 
+	cleaner->Update();
+	DEBUG_LOG("perfom delauy3d");
 	double alpha = parameters["Alpha"].toDouble();
-	double offset = parameters["Offset"].toDouble(); 
+	double offset = parameters["Offset"].toDouble();
 	double tolerance = parameters["Tolerance"].toDouble();
 
-	DEBUG_LOG(QString("%1").arg(alpha)); 
+	DEBUG_LOG(QString("%1").arg(alpha));
 
 	auto delaunyFilter = surfaceGenFilter.performDelaunay(parameters, cleaner, alpha,offset,tolerance, progress());
 	/*auto fillHoles = vtkSmartPointer<vtkFillHolesFilter>::New();
@@ -253,18 +253,18 @@ void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
 	//auto polydata = fillHoles->GetOutput();
 
 	//if (!polydata) {
-	//	"Debug log returned polydata is null"; 
+	//	"Debug log returned polydata is null";
 	//	return;
 	//}
 
 	auto smoothing = surfaceGenFilter.Smoothing(delaunyFilter);
 
 	stlWriter->SetInputData(smoothing->GetOutput());
-	stlWriter->Write(); 
+	stlWriter->Write();
 	//stlWriter->SetInputConnection(surfaceFilter->GetOutputPort());
 	//	TriangulationFilter.performDelaunay()
-	
-	
+
+
 }
 
 
@@ -303,8 +303,8 @@ iATriangulation::iATriangulation() :
 	addParameter("Boundary Vertex Deletion", Boolean, true);
 	addParameter("Decimation Target", Continuous, 0.9);
 	addParameter("Cluster divisions", Discrete, 128);
-	addParameter("Alpha", Continuous, 0); 
-	addParameter("Offset", Continuous, 0); 
+	addParameter("Alpha", Continuous, 0);
+	addParameter("Offset", Continuous, 0);
 	addParameter("Tolerance", Continuous, 0.001);
 	addParameter("CleanTolerance", Continuous, 0);
 	//addParameter("Smooth windowed sync", Boolean, false);

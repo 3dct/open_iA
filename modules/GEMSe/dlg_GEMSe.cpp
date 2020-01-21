@@ -197,7 +197,7 @@ void dlg_GEMSe::CreateMapper()
 		{
 			int chartID = -1;
 			QSharedPointer<iAAttributeDescriptor> attribute = attributes->at(attributeID);
-			
+
 			// check if previous datasets have an attribute with the same name
 			if (samplingIdx > 0 &&
 				attribute->attribType() ==

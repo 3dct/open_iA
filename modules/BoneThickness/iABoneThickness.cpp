@@ -192,7 +192,7 @@ void iABoneThickness::calculate()
 					// if landmark is outside of the STL
 					if (flag1 == 1) {
 
-						// the closest of both intersections will be starting point of thickness calculation 
+						// the closest of both intersections will be starting point of thickness calculation
 						if (distance1 < distance2) {
 							intersectPoints1->GetPoint(0, x1);
 							intersectPoints1->GetPoint(1, x2);
@@ -243,7 +243,7 @@ void iABoneThickness::calculate()
 			else {
 				setResults(id, sqrt(vtkMath::Distance2BetweenPoints(x1, x2)), sqrt(vtkMath::Distance2BetweenPoints(pStart, x1)));
 			}
-			
+
 			// Store coordinates in order to draw thickness and projection lines
 			// Projection lines = green
 			// Thickness line = blue
@@ -264,7 +264,7 @@ void iABoneThickness::calculate()
 
 		// Calculate STD of thickness
 		m_dThicknessSTD = 0.0;
-		
+
 		for (int i = 0; i < m_daThickness->GetNumberOfTuples(); ++i) {
 			m_dThicknessSTD += (m_daThickness->GetValue(i) - m_dThicknessMean) * (m_daThickness->GetValue(i) - m_dThicknessMean);
 		}
@@ -281,7 +281,7 @@ void iABoneThickness::calculate()
 
 		// Calculate STD of surface distance
 		m_dSurfaceDistanceSTD = 0.0;
-		
+
 		for (int i = 0; i < m_daDistance->GetNumberOfTuples(); ++i) {
 			m_dSurfaceDistanceSTD += (m_daDistance->GetValue(i) - m_dSurfaceDistanceMean) * (m_daDistance->GetValue(i) - m_dSurfaceDistanceMean);
 		}
@@ -639,7 +639,7 @@ void iABoneThickness::setResults(const int& _iPoint, const double& _dThickness, 
 		m_daThickness->SetTuple1(_iPoint, 0.0);
 		m_daDistance->SetTuple1(_iPoint, 0.0);
 	}
-	
+
 }
 
 

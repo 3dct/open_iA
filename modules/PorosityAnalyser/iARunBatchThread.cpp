@@ -89,15 +89,15 @@
 
 struct RunInfo
 {
-	RunInfo() : 
-		startTime( "" ), 
-		elapsedTime( 0 ), 
-		maskImage(), 
+	RunInfo() :
+		startTime( "" ),
+		elapsedTime( 0 ),
+		maskImage(),
 		surroundingMaskImage(),
-		porosity( -1.0 ), 
-		threshold( -1 ), 
-		surroundingVoxels( 0 ), 
-		falseNegativeRate( -1.0 ), 
+		porosity( -1.0 ),
+		threshold( -1 ),
+		surroundingVoxels( 0 ),
+		falseNegativeRate( -1.0 ),
 		falsePositiveRate( -1.0 ),
 		dice(-1.0),
 		featureCnt(-1),
@@ -396,7 +396,7 @@ void computeParamFree( ImagePointer & image, PorosityFilterID filterId, RunInfo 
 
 	filter->SetInput( duplicator->GetOutput() );
 	filter->Update();
-	
+
 	// Binary Threshold (fixes the no slice png image issue)
 	typedef itk::BinaryThresholdImageFilter <MaskImageType, MaskImageType> BinaryThresholdImageFilterType;
 	typename BinaryThresholdImageFilterType::Pointer binaryThresholdFilter = BinaryThresholdImageFilterType::New();
@@ -614,7 +614,7 @@ void computeCreateSurrounding( ImagePointer & image, PorosityFilterID /*filterId
 		}
 	}
 
-	// White surface border 
+	// White surface border
 	typedef itk::InvertIntensityImageFilter <MaskImageType> InvertIntensityImageFilterType;
 	typename InvertIntensityImageFilterType::Pointer surfaceBorderMask = InvertIntensityImageFilterType::New();
 	surfaceBorderMask->SetInput( dummyImage );
@@ -676,7 +676,7 @@ void computeRemoveSurrounding( ImagePointer & /*image*/, PorosityFilterID /*filt
 	typename DuplicatorType::Pointer resMaskDup = DuplicatorType::New();
 	resMaskDup->SetInputImage( resMask );
 	resMaskDup->Update();
-	
+
 	typedef itk::AndImageFilter <MaskImageType> AndImageFilterType;
 	typename AndImageFilterType::Pointer andFilter = AndImageFilterType::New();
 	andFilter->SetInput( 0, invertedIntensityMask->GetOutput() );
@@ -694,14 +694,14 @@ void computeGradAnisoDiffSmooth( ImagePointer & image, PorosityFilterID /*filter
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   GADSFImageType;
-	
+
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
-	
+
 	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-	
+
 	typedef itk::GradientAnisotropicDiffusionImageFilter< InputImageType, GADSFImageType > GADSFType;
 	typename GADSFType::Pointer gadsfilter = GADSFType::New();
 	gadsfilter->SetInput( duplicator->GetOutput() );
@@ -829,11 +829,11 @@ void computeBilateralSmooth( ImagePointer & image, PorosityFilterID /*filterId*/
 	typedef itk::BilateralImageFilter<InputImageType, BSFImageType > BSFType;
 	typename BSFType::Pointer bsfilter = BSFType::New();
 	bsfilter->SetInput( duplicator->GetOutput() );
-	
+
 	double domainSigmas[DIM];
 	for ( unsigned int i = 0; i < DIM; i++ )
 		domainSigmas[i] = domainSigma;
-	
+
 	bsfilter->SetDomainSigma( domainSigmas );
 	bsfilter->SetRangeSigma( rangeSigma );
 	bsfilter->Update();
@@ -941,7 +941,7 @@ void computeIsoXThreshold( ImagePointer & image, PorosityFilterID /*filterId*/, 
 	duplicator->Update();
 
 	binaryThresholdFilter->SetLowerThreshold( 0 );
-	binaryThresholdFilter->SetUpperThreshold( isoX );	
+	binaryThresholdFilter->SetUpperThreshold( isoX );
 	binaryThresholdFilter->SetInsideValue( 1 );
 	binaryThresholdFilter->SetOutsideValue( 0 );
 	binaryThresholdFilter->SetInput( duplicator->GetOutput() );
@@ -983,7 +983,7 @@ void computeFhwThreshold( ImagePointer & image, PorosityFilterID /*filterId*/, R
 	otsuMultiFilter->SetInput( duplicator->GetOutput() );
 	otsuMultiFilter->SetNumberOfThresholds( 1 );
 	otsuMultiFilter->ValleyEmphasisOn();
-	otsuMultiFilter->Update(); 
+	otsuMultiFilter->Update();
 	typename FilterType::ThresholdVectorType thresholds = otsuMultiFilter->GetThresholds();
 	omThr = thresholds[0];
 	otsuMultiFilter->ReleaseDataFlagOn();
@@ -1100,7 +1100,7 @@ void runBatch( const QList<PorosityFilterID> & filterIds, ImagePointer & image, 
 	}
 }
 
-void iARunBatchThread::Init(iAPorosityAnalyserModuleInterface * pmi, QString datasetFolder, 
+void iARunBatchThread::Init(iAPorosityAnalyserModuleInterface * pmi, QString datasetFolder,
 	bool rbNewPipelineDataNoPores, bool rbNewPipelineData)
 {
 	m_pmi = pmi;
@@ -1209,7 +1209,7 @@ void iARunBatchThread::saveResultsToRunsCSV( RunInfo & results, QString masksDir
 
 	iAITKIO::writeFile( maskFilename, results.maskImage, itk::ImageIOBase::CHAR, true );
 
-	//Write mask image preview (png) 
+	//Write mask image preview (png)
 	try
 	{
 		MaskImageType * mask = dynamic_cast<MaskImageType*>( results.maskImage.GetPointer() );
@@ -1319,7 +1319,7 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 		}
 
 		bool success = true;
-		results.elapsedTime = 0;	// reset elapsed time 
+		results.elapsedTime = 0;	// reset elapsed time
 
 		try
 		{
@@ -1328,13 +1328,13 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 			MaskImageType * mask = dynamic_cast<MaskImageType*>(results.maskImage.GetPointer());
 			MaskImageType * gtImage = dynamic_cast<MaskImageType*>(gtMask.GetPointer());
 			results.porosity = calcPorosity( mask, results.surroundingVoxels );
-			
+
 			if (m_rbNewPipelineData)
 			{
 				QString currMaskFilePath = masksDir + "/mask" + QString::number(sampleNo + 1) + ".mhd";
 				calcFeatureCharsForMask(results, currMaskFilePath);
 			}
-			
+
 			//Dice metric, false positve error, false negative error
 			if ( m_datasetGTs[dsFN] != "" )
 			{
@@ -1545,7 +1545,7 @@ void iARunBatchThread::run()
 void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMaskFilePath)
 {
 	MaskImageType * mask = dynamic_cast<MaskImageType*>(results.maskImage.GetPointer());
-	
+
 	// Label image
 	typedef itk::Image<long, DIM>  LabeledImageType;
 	typedef itk::ConnectedComponentImageFilter<MaskImageType, LabeledImageType> ConnectedComponentImageFilterType;
@@ -1559,7 +1559,7 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 	labeledMaskName.insert(currMaskFilePath.lastIndexOf("."), "_labeled");
 	iAITKIO::writeFile(labeledMaskName, connectedComponents->GetOutput(), itk::ImageIOBase::LONG, true);
 
-	// Save features characteristics in csv file 
+	// Save features characteristics in csv file
 	double spacing = mask->GetSpacing()[0];
 	double totalFeatureVol = 0, totalPhi = 0, totalTheta = 0, totalRoundness = 0, totalLength = 0;
 	ofstream fout( getLocalEncodingFileName(currMaskFilePath.append(".csv")).c_str(), std::ofstream::out);
@@ -1622,7 +1622,7 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 	LabelGeometryImageFilterType::LabelsType allLabels = labelGeometryImageFilter->GetLabels();
 	LabelGeometryImageFilterType::LabelsType::iterator allLabelsIt;
 
-	// Pore Characteristics calculation 
+	// Pore Characteristics calculation
 	for (allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++)
 	{
 		LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
@@ -1706,8 +1706,8 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 		dimY = abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[2] - labelGeometryImageFilter->GetBoundingBox(labelValue)[3]) + 1;
 		dimZ = abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[4] - labelGeometryImageFilter->GetBoundingBox(labelValue)[5]) + 1;
 
-		// Calculation of other pore characteristics and writing the csv file 
-		ShapeLabelObjectType *labelObject = labelMap->GetNthLabelObject(labelValue - 1); // debug -1 delated	// labelMap index contaions first pore at 0 
+		// Calculation of other pore characteristics and writing the csv file
+		ShapeLabelObjectType *labelObject = labelMap->GetNthLabelObject(labelValue - 1); // debug -1 delated	// labelMap index contaions first pore at 0
 
 		/* The equivalent radius is a radius of a circle with the same area as the object.
 		The feret diameter is the diameter of circumscribing circle. So this measure has a maximum of 1.0 when the object is a perfect circle.

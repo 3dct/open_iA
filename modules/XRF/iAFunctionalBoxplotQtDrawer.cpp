@@ -62,7 +62,7 @@ QSharedPointer<QImage> drawFunctionalBoxplot(FunctionalBoxPlot const * fbp, int 
 	QPolygon centralRegion;
 	QPolygon envelope;
 
-		
+
 	for (size_t a = 0; a<width; ++a)
 	{
 		centralRegion.append(img(a, fbp->getCentralRegion().getMin(a) ) );

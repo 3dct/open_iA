@@ -94,7 +94,7 @@ void iAParametersView::Update()
 	QPainter painter;
 	for (unsigned int i=0; i<3; i++)
 	{
-		QImage img = QImage((uchar*)paramWidgets[i].buffer, paramWidgets[i].bufferWidth, paramWidgets[i].bufferHeight, QImage::Format_RGB32); 
+		QImage img = QImage((uchar*)paramWidgets[i].buffer, paramWidgets[i].bufferWidth, paramWidgets[i].bufferHeight, QImage::Format_RGB32);
 		painter.begin(paramWidgets[i].pxmp);
 		painter.drawImage(QRect(0, 0, paramWidgets[i].pxmp->width(), paramWidgets[i].pxmp->height()), img, QRect(0, 0, paramWidgets[i].bufferWidth, paramWidgets[i].bufferHeight));
 		painter.end();
@@ -111,7 +111,7 @@ iACombinedParametersView::iACombinedParametersView(QWidget *resultsWidget, int w
 void iACombinedParametersView::Update()
 {
 	QPainter painter;
-	QImage img = QImage((uchar*)results.buffer, results.bufferWidth, results.bufferHeight, QImage::Format_RGB32); 
+	QImage img = QImage((uchar*)results.buffer, results.bufferWidth, results.bufferHeight, QImage::Format_RGB32);
 	painter.begin(results.pxmp);
 	painter.drawImage(QRect(0, 0, results.pxmp->width(), results.pxmp->height()), img, QRect(0, 0, results.bufferWidth, results.bufferHeight));
 	painter.end();

@@ -75,7 +75,7 @@ void iAHistogramStack::initialize(QString const names[3])
 	optionsContainerLayout->addStretch();
 	optionsContainerLayout->addWidget(m_tmw->w_slicerModeLabel());
 	optionsContainerLayout->addWidget(m_tmw->w_sliceNumberLabel());
-	
+
 	m_grid = new iAHistogramStackGrid(this, histograms, slicers, m_labels);
 
 	QWidget *leftWidget = new QWidget();

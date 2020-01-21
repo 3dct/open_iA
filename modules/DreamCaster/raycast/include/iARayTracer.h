@@ -47,7 +47,7 @@ class iAScene;
 class iARaycastingThread;
 struct iATraverseStack;
 
-//! Class in charge of the raycasting process; it is used to init the render system, start the rendering process and contains all scene data.	
+//! Class in charge of the raycasting process; it is used to init the render system, start the rendering process and contains all scene data.
 class iAEngine
 {
 	friend class iARaycastingThread;
@@ -172,46 +172,46 @@ public://TODO: qndh
 private:
 	// Raycast batch GPU
 	void raycast_batch(
-		const void *a_aabb, 
-		const void * a_o, 
-		const void * a_c, 
-		const void * a_dx, 
-		const void * a_dy, 
-		const int w, const int h, 
-		const unsigned int batchSize, 
-		const void * a_cut_aabbs, 
+		const void *a_aabb,
+		const void * a_o,
+		const void * a_c,
+		const void * a_dx,
+		const void * a_dy,
+		const int w, const int h,
+		const unsigned int batchSize,
+		const void * a_cut_aabbs,
 		const unsigned int a_cut_aabbs_count,
-		float* out_res, 
+		float* out_res,
 		float * out_dip_res );
 
 	// Raycast GPU
 	void raycast_single(
-		const void *a_aabb, 
-		const void * a_o, 
-		const void * a_c, 
-		const void * a_dx, 
-		const void * a_dy, 
-		const int w, const int h, 
-		const void * a_cut_aabbs, 
+		const void *a_aabb,
+		const void * a_o,
+		const void * a_c,
+		const void * a_dx,
+		const void * a_dy,
+		const int w, const int h,
+		const void * a_cut_aabbs,
 		const unsigned int a_cut_aabbs_count,
-		float* out_res, 
+		float* out_res,
 		float * out_dip_res );
 };
 
 //! Class in charge of raycasting process. Executes raycastring on tile prescribed by X,Y screen coordinates ranges(in pixels).
 //! Used directly for rendering process. Has a pointer on parent Engine class, which is used to obtain scene data and to store some results.
 class iARaycastingThread : public QThread
-{ 
-public: 
+{
+public:
 	iARaycastingThread(iAEngine* a_engine){
 		e = a_engine;
-	}; 
+	};
 	iARaycastingThread(){
 		e = 0;
 		rays = 0;
-	}; 
+	};
 	~iARaycastingThread(){
-	}; 
+	};
 	//! Sets parent Engine pointer.
 	inline void setEngine(iAEngine* a_e)
 	{
@@ -251,12 +251,12 @@ public:
 	int x1,x2,y1,y2;
 	int rayCount;    //!< number of casted rays
 	bool dipAsColor; //!< image colored corresponding to dip angles
-private: 
+private:
 	const iAVec3f *m_o;                       //!< rays' origin point
 	const iAVec3f *m_vp_corners;              //!< plane's corners in 3d
 	const iAVec3f *m_vp_delta;                //!< plane's x and y axes' directions in 3D
 	iAEngine* e;                                //!< parent Engine
 	iARayPenetration * rays;                    //!< rays' penetrations data
 	std::vector<iAIntersection*> intersections; //!< intersections data
-	volatile bool stopped; 
+	volatile bool stopped;
 };

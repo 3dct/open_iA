@@ -43,11 +43,11 @@ private:
 private:
 	long	m_numBins;			///< number of bins in a histogram
 	size_t	m_numHistograms;	///< number of energy bins is the number of histograms
-	double	m_countRange[2];	///< range of XRF 
+	double	m_countRange[2];	///< range of XRF
 
 	double			m_binWidth;			///< width of a histogram bin
 	CountType	*	m_histData;			///< raw data containing a 2D array, first dimension - histograms, second - bins
-	
+
 	QSharedPointer<iAXRFData> m_xrfData;	///< pointer to the input xrf data set
 	CountType	m_maxValue;			///< maximum value of all histograms' bins
 };

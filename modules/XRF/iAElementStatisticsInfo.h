@@ -41,7 +41,7 @@ class iALabelStatisticsInfo
 public:
 	typedef QVector<iAElementStatisticsInfo> ContainerType;
 	typedef ContainerType::const_iterator const_iterator;
-	
+
 	iALabelStatisticsInfo():
 		count(0)
 	{}

@@ -30,7 +30,7 @@ public:
 	iARangeSliderDiagramData( QList<double> m_rangeSliderData, double min, double max );
 	~iARangeSliderDiagramData();
 	void updateRangeSliderFunction();
-	
+
 	DataType const * rawData() const override;
 	size_t numBin() const override;
 
@@ -38,7 +38,7 @@ public:
 	{
 		if ( numBin() <= 1 )
 			return 0.0;
-		
+
 		return ( m_xBounds[1] - m_xBounds[0] ) / (numBin() - 1.0);
 	}
 

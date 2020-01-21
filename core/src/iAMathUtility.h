@@ -67,14 +67,14 @@ double minMaxNormalize(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType
 template<typename SrcType>
 double normalizedToMinMax(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value) {
 	double res = static_cast<double> ((value * (maxSrcVal - minSrcVal) + minSrcVal));
-	return res; 
+	return res;
 }
 
 
 //template<typename SrcType>
 //double minMaxShift(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value) {
-//	
-//	double val = minMaxNormalize(minSrcVal, maxSrcVal, value); 
+//
+//	double val = minMaxNormalize(minSrcVal, maxSrcVal, value);
 //
 //}
 

@@ -37,7 +37,7 @@ dlg_histogram_simple::dlg_histogram_simple(QWidget *parent) : QWidget (parent)
 	zoom = 1.0;
 	tmpZoom = 1.0;
 	histZoom = 1.0;
-	tmpHistZoom = 1.0;	 
+	tmpHistZoom = 1.0;
 	activeChild = parent;
 	accSpacing = 1.0;
 }
@@ -52,10 +52,10 @@ void dlg_histogram_simple::initialize(unsigned int* histData, int numberOfBeans,
 	//initialise variables
 	mode = NO_MODE;
 	wheelMode = ZOOM_WHEEL_MODE;
-	
+
 	draw = false;
 	updateAutomatically = true;
-	
+
 	width = this->geometry().width();
 	height = this->geometry().height();
 	numBin = numberOfBeans;
@@ -107,20 +107,20 @@ void dlg_histogram_simple::paintEvent(QPaintEvent * )
 }
 
 void dlg_histogram_simple::drawHistogram()
-{	
+{
 	//initialise a painter
 	QPainter painter(&image);
 	painter.setRenderHint(QPainter::Antialiasing);
 	if(painter.isActive() == false)
 			return;
 	drawBackground(painter);
-	
+
 	//change the origin of the window to left bottom
 	painter.translate(tmpTranslation, height - bottomMargin);
 	painter.scale(1, -1);
-	
+
 	if(histoPtr.size() > 0)
-		drawHistogram(painter);	
+		drawHistogram(painter);
 	painter.scale(1, -1);
 
 	drawAxes(painter);
@@ -136,7 +136,7 @@ void dlg_histogram_simple::redraw()
 	update();
 }
 
-void dlg_histogram_simple::mousePressEvent(QMouseEvent *event)  
+void dlg_histogram_simple::mousePressEvent(QMouseEvent *event)
 {
 	if (event->button() == Qt::LeftButton)
 	{
@@ -162,7 +162,7 @@ void dlg_histogram_simple::mousePressEvent(QMouseEvent *event)
 	}
 }
 
-void dlg_histogram_simple::mouseReleaseEvent(QMouseEvent *event)  
+void dlg_histogram_simple::mouseReleaseEvent(QMouseEvent *event)
 {
 	if (event->button() == Qt::LeftButton)
 	{
@@ -214,13 +214,13 @@ void dlg_histogram_simple::mouseMoveEvent(QMouseEvent *event)
 		case NO_MODE:
 		break;
 	}
-	
+
 	if (histoPtr.size() > 0)
 	{
 		xPos = event->x();
 		if (xPos < 0.0) xPos = 0.0;
 		if (xPos >= width) xPos = width-1;
-			
+
 		//calculate the nth bin located at a given pixel, actual formula is (i/100 * width) * (numBin / width)
 		int nthBin = (((xPos-tmpTranslation) * numBin) / width) / tmpZoom;
 		if (nthBin >= numBin || xPos == width-1) nthBin = numBin-1;
@@ -243,7 +243,7 @@ void dlg_histogram_simple::wheelEvent(QWheelEvent *event)
 		zoomHistogram(event->delta(), true);
 	else
 		zoomHistogramView(event->delta(), event->x(), true);
-	
+
 	redraw();
 }
 
@@ -304,7 +304,7 @@ void dlg_histogram_simple::drawBackground(QPainter &painter)
 	bg.setSpread(QGradient::PadSpread);
 	bg.setColorAt( 0.0, QColor(128,170,255) );
 	bg.setColorAt( 1.0, QColor(255,255,255) );
-	
+
 	//apply the linear gradient to the brush
 	painter.fillRect( image.rect(), bg );
 }
@@ -312,7 +312,7 @@ void dlg_histogram_simple::drawBackground(QPainter &painter)
 void dlg_histogram_simple::drawHistogram(QPainter &painter)
 {
 	double binWidth = (double)width / numBin *tmpZoom;
-	
+
 	int intBinWidth = (int)binWidth;
 
 	if (intBinWidth < binWidth)
@@ -320,19 +320,19 @@ void dlg_histogram_simple::drawHistogram(QPainter &painter)
 
 	//change the pen color to blue
 	painter.setPen(Qt::blue);
-	
+
 	if (histoPtr.size() > 0)
 	{
 		int x, h;
-		
+
 		//draw the histogram using the painter on the image
-		for ( int j = 0; j < numBin; j++ ) 
-		{		 
+		for ( int j = 0; j < numBin; j++ )
+		{
 			x = (int)(j * binWidth);
 			h = (double)histoPtr[j] / maxFreq * (height - bottomMargin - OFFSET_FROM_TOP) * tmpHistZoom;
 			//if (h < histoPtr[j] * (double)(height) / maxFreq-1.0) //overflow
 			//	h = height;
-			painter.fillRect(QRect(x, 0, intBinWidth, h), Qt::blue); // draw line 
+			painter.fillRect(QRect(x, 0, intBinWidth, h), Qt::blue); // draw line
 		}
 	}
 }
@@ -376,7 +376,7 @@ void dlg_histogram_simple::drawAxes(QPainter &painter)
 	painter.setPen(Qt::black);
 	//draw the x axis
 	painter.drawLine(0, 0, width*tmpZoom, 0);
-	
+
 
 	//write the x axis label
 	painter.drawText( QPointF((int)(width * 0.45 ), bottomMargin-2), "Penetration length");
@@ -403,7 +403,7 @@ void dlg_histogram_simple::zoomHistogramView(double value, int x, bool deltaMode
 	if (deltaMode)
 	{
 		delta = value;
-	
+
 		if (delta > 0)
 		{
 			int absoluteX = x-tmpTranslation;
@@ -431,7 +431,7 @@ void dlg_histogram_simple::zoomHistogramView(double value, int x, bool deltaMode
 	{
 		int absoluteX = x-tmpTranslation;
 		double absoluteXRatio = (double)absoluteX/(width*tmpZoom);
-		
+
 		tmpZoom = value;
 		if (tmpZoom < MIN_ZOOM)
 			tmpZoom = MIN_ZOOM;

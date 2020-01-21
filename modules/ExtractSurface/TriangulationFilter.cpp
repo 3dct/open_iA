@@ -24,7 +24,7 @@ TriangulationFilter::TriangulationFilter()
 }
 
 vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::pointsDecimation(QMap<QString, QVariant> const& parameters, vtkSmartPointer<vtkPolyDataAlgorithm> surfaceFilter,
-	iAProgress* Progress) 
+	iAProgress* Progress)
 {
 	if (!surfaceFilter)
 	{
@@ -66,14 +66,14 @@ vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::surfaceFilterParametr
 {
 	if (!imgData) {
 		DEBUG_LOG("input Image is null");
-		return nullptr; 
+		return nullptr;
 	}
 
 	if (parameters["Algorithm"].toString() == "Marching Cubes")
 	{
 			auto marchingCubes = vtkSmartPointer<vtkMarchingCubes>::New();
 			Progress->observe(marchingCubes);
-			
+
 			marchingCubes->SetInputData(imgData/*->GetPointer()*/);
 			marchingCubes->ComputeNormalsOn();
 			marchingCubes->ComputeGradientsOn();
@@ -94,7 +94,7 @@ vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::surfaceFilterParametr
 			flyingEdges->SetArrayComponent(0);
 			return flyingEdges;
 	}
-	
+
 
 
 	//return vtkSmartPointer<vtkPolyDataAlgorithm>();
@@ -113,10 +113,10 @@ vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::performDelaunay(
 
 	auto delaunay3D = vtkSmartPointer<vtkDelaunay3D>::New();
 	delaunay3D->SetInputConnection(aSurfaceFilter->GetOutputPort());
-	delaunay3D->SetAlpha(alpha); 
-	delaunay3D->SetOffset(offset); 
-	delaunay3D->SetTolerance(tolererance); 
-	delaunay3D->SetAlphaTris(true); 
+	delaunay3D->SetAlpha(alpha);
+	delaunay3D->SetOffset(offset);
+	delaunay3D->SetTolerance(tolererance);
+	delaunay3D->SetAlphaTris(true);
 	delaunay3D->Update();
 	progress->observe(delaunay3D);
 
@@ -125,7 +125,7 @@ vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::performDelaunay(
 	datasetSurfaceFilter->Update();
 	progress->observe(datasetSurfaceFilter);
 
-	return datasetSurfaceFilter; 
+	return datasetSurfaceFilter;
 
 }
 
@@ -152,7 +152,7 @@ vtkSmartPointer<vtkPolyDataAlgorithm> TriangulationFilter::Smoothing(vtkSmartPoi
 	normalGenerator->ComputeCellNormalsOn();
 	normalGenerator->SetFeatureAngle(30);
 	normalGenerator->SplittingOn();
-	normalGenerator->FlipNormalsOn(); 
+	normalGenerator->FlipNormalsOn();
 	normalGenerator->Update();
 
 	/*vtkSmartPointer<vtkLoopSubdivisionFilter> filter = vtkSmartPointer<vtkLoopSubdivisionFilter>::New();

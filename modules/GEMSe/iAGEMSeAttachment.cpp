@@ -48,12 +48,12 @@ iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, MdiChild * child):
 iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * child)
 {
 	iAGEMSeAttachment * newAttachment = new iAGEMSeAttachment(mainWnd, child);
-	
+
 	QString defaultThemeName("Brewer Set3 (max. 12)");
 	iAColorTheme const * colorTheme = iAColorThemeManager::instance().theme(defaultThemeName);
-	
+
 	newAttachment->m_dlgGEMSe = new dlg_GEMSe(child, child->logger(), colorTheme);
-	
+
 	newAttachment->m_dlgLabels = new dlg_labels(child, colorTheme);
 	newAttachment->m_dlgSamplings = new dlg_samplings();
 	newAttachment->m_dlgGEMSeControl = new dlg_GEMSeControl(

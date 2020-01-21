@@ -37,8 +37,8 @@ class iABSPNode
 public:
 	iABSPNode()
 	{
-		internal1=0; 
-		internal2=0; 
+		internal1=0;
+		internal2=0;
 		masked_vars=0;
 	}
 	~iABSPNode()
@@ -79,7 +79,7 @@ public:
 		set_splitCoord(bound);
 		return 1;
 	}
-	//! Splits current node's AABB. Creates two child-nodes with derived AABBs and distributes primitives from 
+	//! Splits current node's AABB. Creates two child-nodes with derived AABBs and distributes primitives from
 	//! current node primitives vector among two child-nodes. Recursively called for child-nodes. Stops if
 	//! maximum level is reached. If current node does not have any primitives, recursion is stopped.
 	//! @param level level of current node.
@@ -138,7 +138,7 @@ public:
 			if(parent_tris[i]->Intersect( r_aabb, center, h_size))
 			{
 				r_tris.push_back(parent_tris[i]);
-			}	
+			}
 		}
 		int nxtLvl = level+1;
 
@@ -189,7 +189,7 @@ public:
 		}
 		return 1;
 	}
-	
+
 	int DistributePrimsSAH(int &level, int &max_level, iAaabb &m_aabb, std::vector<iABSPNode*> &nodes,
 		std::vector<unsigned int> &tri_ind,
 		std::vector<iATriPrim*> &parent_tris, unsigned int tri_start_ind)
@@ -262,7 +262,7 @@ public:
 
 		unsigned int l_tri_start_ind = (unsigned int) tri_ind.size();
 		unsigned int r_tri_start_ind = (unsigned int) tri_ind.size();
-		
+
 		std::vector<iATriPrim*> l_tris, r_tris;
 		int cntr;
 		iAVec3f center = m_aabb.center(), h_size = m_aabb.half_size();
@@ -393,7 +393,7 @@ struct iATraverseStack
 	}
 	iATrace& pop()
 	{
-		index--; 
+		index--;
 		assert(index<size);
 		assert(index>=0);
 		return t[index];
@@ -487,7 +487,7 @@ public:
 				for (unsigned int i=0; i<cur_node->tri_count(); i++)
 				{
 					float a_Dist = 1000000.0f;
-					if ((*m_triangles)[tri_ind[cur_node->tri_start()+i]]->Intersect( ray, a_Dist )) 
+					if ((*m_triangles)[tri_ind[cur_node->tri_start()+i]]->Intersect( ray, a_Dist ))
 					{
 						intersections.push_back(new iAintersection((*m_triangles)[tri_ind[cur_node->tri_start()+i]], a_Dist));
 					}
@@ -569,15 +569,15 @@ public:
 		fwrite(&a_size, sizeof(unsigned int), 1, fptr);
 		for(unsigned int i=0; i<a_size; i++)
 		{
-			fwrite(&nodes[i]->internal1, sizeof(unsigned int), 1, fptr);	
-			fwrite(&nodes[i]->internal2, sizeof(unsigned int), 1, fptr);	
-			fwrite(&nodes[i]->masked_vars, sizeof(unsigned int), 1, fptr);	
+			fwrite(&nodes[i]->internal1, sizeof(unsigned int), 1, fptr);
+			fwrite(&nodes[i]->internal2, sizeof(unsigned int), 1, fptr);
+			fwrite(&nodes[i]->masked_vars, sizeof(unsigned int), 1, fptr);
 		}
 		a_size = (unsigned int) tri_ind.size();
 		fwrite(&a_size, sizeof(unsigned int), 1, fptr);
 		for(unsigned int i=0; i<a_size; i++)
 		{
-			fwrite(&tri_ind[i], sizeof(unsigned int), 1, fptr);	
+			fwrite(&tri_ind[i], sizeof(unsigned int), 1, fptr);
 		}
 		fclose(fptr);
 		dcast->log("Tree saved under filename:"+QString(filename));

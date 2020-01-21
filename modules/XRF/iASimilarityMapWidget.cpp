@@ -53,7 +53,7 @@ int steepestGradientPos( int x, int y, int dx, int dy, iASimilarityMapWidget::Im
 	int curPos[2] = { x, y };
 	int nextPos[2] = { curPos[0], curPos[1] };
 	int iterCount = 0;
-	do 
+	do
 	{
 		if( iterCount > 100 )
 			break;

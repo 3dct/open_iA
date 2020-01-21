@@ -75,13 +75,13 @@ void iASegmentTree::sum_build()
 }
 
 void iASegmentTree::min_build()
-{  
+{
 	for (int i = m_inputElemCnt - 1; i > 0; --i)
 		m_min[i] = std::min(m_min[i << 1], m_min[i << 1 | 1]);
 }
 
 void iASegmentTree::max_build()
-{ 
+{
 	for (int i = m_inputElemCnt - 1; i > 0; --i)
 		m_max[i] = std::max(m_max[i << 1], m_max[i << 1 | 1]);
 }
@@ -127,7 +127,7 @@ double iASegmentTree::avg_query(int l, int r)
 }
 
 int iASegmentTree::min_query(int l, int r)
-{ 
+{
 	int minVal = INT_MAX;
 	for (l += m_inputElemCnt, r += m_inputElemCnt; l < r; l >>= 1, r >>= 1)
 	{
@@ -140,7 +140,7 @@ int iASegmentTree::min_query(int l, int r)
 }
 
 int iASegmentTree::max_query(int l, int r)
-{  
+{
 	int maxVal = INT_MIN;
 	for (l += m_inputElemCnt, r += m_inputElemCnt; l < r; l >>= 1, r >>= 1)
 	{

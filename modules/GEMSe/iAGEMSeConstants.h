@@ -28,7 +28,7 @@
 
 // COMMON
 
-//! maximum number of preview widgets allowed at one time 
+//! maximum number of preview widgets allowed at one time
 const int MaxPreviewWidgets = 24;
 
 const int FontSize = 10;
@@ -65,7 +65,7 @@ const int TreePreviewSize        =  75;
 
 const int TreeInfoRegionWidth    =  40;
 //! @{
-//! size of expand button 
+//! size of expand button
 const int TreeButtonWidth  =  15;
 const int TreeButtonHeight =  20;
 //! @}

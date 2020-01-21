@@ -34,13 +34,13 @@ const double iACharacteristicEnergy::NotAvailable = -1;
 iACharacteristicEnergy EnergyLoader::ConstructElement(QString line)
 {
 	iACharacteristicEnergy element;
-	
+
 	QRegExp splitter("\\s+");
 	QStringList stringList = line.split(splitter);
 	assert(stringList.size() > 2);
 	if (stringList.size() < 2)
 		return element;
-	
+
 	element.symbol = stringList[1];
 	for (int i=2; i<stringList.size(); ++i)
 	{

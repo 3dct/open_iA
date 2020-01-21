@@ -30,7 +30,7 @@
 iADataFolderDialog::iADataFolderDialog( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) : QDialog( parent, f )
 {
 	setupUi( this );
-	
+
 	QSettings settings( organisationName, applicationName );
 	dataFolder->setText( settings.value( "PorosityAnalyser/GUI/resultsFolder", "" ).toString() );
 	datasetsFolder->setText( settings.value( "PorosityAnalyser/GUI/datasetsFolder", "" ).toString() );

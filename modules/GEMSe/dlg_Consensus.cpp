@@ -492,7 +492,7 @@ iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> 
 		undec->Update();
 		LabelImagePointer undecResult = undec->GetOutput();
 		result = dynamic_cast<iAITKIO::ImageBaseType *>(undecResult.GetPointer());
-		
+
 		// calculate dice for undecided pixels:
 		auto undicefilter = iAMaskingLabelOverlapMeasuresImageFilter<LabelImageType>::New();
 		undicefilter->SetSourceImage(groundTruth);
@@ -1045,7 +1045,7 @@ void dlg_Consensus::samplerFinished()
 			return;
 		}
 	}
-	
+
 	DEBUG_LOG("Measures for loaded configuration:");
 	m_comparisonMVSelection.clear();
 	m_comparisonBestSelection.clear();
@@ -1262,7 +1262,7 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 		auto region = m_groundTruthImage->GetLargestPossibleRegion();
 		auto size = region.GetSize();
 		double pixelCount = size[0] * size[1] * size[2];
-		
+
 		// DEBUG_LOG("Measures for SAMPLING:");
 
 		// TODO:

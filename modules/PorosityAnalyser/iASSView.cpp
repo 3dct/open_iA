@@ -107,7 +107,7 @@ iASSView::iASSView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	connect( m_SSViewSettings->cbShowWireframe, SIGNAL( stateChanged( int ) ), this, SLOT( updateSettings() ) );
 	connect( m_SSViewSettings->cbDeviation, SIGNAL( currentIndexChanged( int ) ), this, SLOT( updateSettings() ) );
 	connect( m_SSViewSettings->sSensitivity, SIGNAL( valueChanged( int ) ), this, SLOT( updateSettings() ) );
-	
+
 	connect( tbSettings, SIGNAL( clicked() ), this, SLOT( showSettings() ) );
 }
 
@@ -238,7 +238,7 @@ void iASSView::SetData( const QTableWidget * dataTable, QString selText )
 	connect( pushSave, SIGNAL( clicked() ), view->slicer, SLOT( saveAsImage() ) );
 	connect( pushMov, SIGNAL( clicked() ), view->slicer, SLOT( saveMovie() ) );
 	m_slicerViews.push_back( view );
-	
+
 	LoadDataToSlicer(view, dataTable);
 	SetDataTo3D();
 }

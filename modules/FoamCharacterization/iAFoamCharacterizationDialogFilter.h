@@ -40,7 +40,7 @@ private:
 	iAFoamCharacterizationItemFilter* m_pItemFilter = nullptr;
 
 	QComboBox* m_pComboBox2 = nullptr;
-		
+
 	QWidget* m_pWidgetAnisotropic = nullptr;
 	QWidget* m_pWidgetGauss = nullptr;
 	QWidget* m_pWidgetMedian = nullptr;

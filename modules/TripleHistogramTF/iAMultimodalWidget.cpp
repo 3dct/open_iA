@@ -148,7 +148,7 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 }
 
 // ----------------------------------------------------------------------------------
-// 
+//
 // ----------------------------------------------------------------------------------
 
 void iAMultimodalWidget::setSlicerMode(iASlicerMode slicerMode) {

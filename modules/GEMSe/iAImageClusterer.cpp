@@ -348,7 +348,7 @@ void iAImageClusterer::run()
 #ifdef CLUSTER_DEBUGGING
 		distFile << distFileLine.str() << std::endl;
 #endif
-		emit Progress(SplitFactorDistanceCalc * 
+		emit Progress(SplitFactorDistanceCalc *
 			(static_cast<double>(sumUpToDiff(m_images.size(), m_currImage))/ sumUpTo(m_images.size())) );
 	}
 	//distances.prettyPrint();
@@ -412,9 +412,9 @@ void iAImageClusterer::run()
 		m_images[idx.second]->SetParent(lastNode);
 		m_images[idx.first ]->DiscardDetails();
 		m_images[idx.second]->DiscardDetails();
-		
+
 		m_images.push_back(lastNode);
-		
+
 		// recalculate distances:
 		int newItemIdx = m_images.size()-1;
 #ifdef CLUSTER_DEBUGGING

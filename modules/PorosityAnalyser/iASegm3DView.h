@@ -85,7 +85,7 @@ class iASegm3DView : public Segm3DViewContainer
 public:
 	iASegm3DView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
 	~iASegm3DView();
-	void SetDataToVisualize( QList<vtkImageData*> imgData, 
+	void SetDataToVisualize( QList<vtkImageData*> imgData,
 		QList<vtkPolyData*> polyData,
 		QList<vtkPiecewiseFunction*> otf,
 		QList<vtkColorTransferFunction*> ctf,

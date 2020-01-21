@@ -57,7 +57,7 @@
 #include <vtkRendererCollection.h>
 #include <vtkScalarBarActor.h>
 #include <vtkTextActor.h>
-#include <vtkTextProperty.h> 
+#include <vtkTextProperty.h>
 #include <vtkVolumeProperty.h>
 
 const double impInitValue = 0.025;
@@ -92,7 +92,7 @@ dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget *parent /*= 0*/, QDir dat
 {
 	connect(&m_iMProgress, SIGNAL(progress(int)), this, SLOT(updateIntensityMapperProgress(int)));
 	m_mdiChild->renderer()->setAreaPicker();
-	
+
 	m_nonlinearScaledPlot->setObjectName("nonlinear");
 	m_linearScaledPlot->setObjectName("linear");
 
@@ -276,7 +276,7 @@ void dlg_DynamicVolumeLines::changePlotVisibility()
 {
 	QToolButton *tb = qobject_cast<QToolButton*>(QObject::sender());
 	tb->objectName().contains("nonlinear") ?
-		setPlotVisibility(tb, m_nonlinearScaledPlot) : 
+		setPlotVisibility(tb, m_nonlinearScaledPlot) :
 		setPlotVisibility(tb, m_linearScaledPlot);
 }
 
@@ -287,7 +287,7 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	m_mrvTxtAct->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
 	m_mrvTxtAct->GetTextProperty()->SetJustificationToCentered();
 	m_mrvTxtAct->GetTextProperty()->SetVerticalJustificationToCentered();
-	
+
 	auto mrvWinModCallback = vtkSmartPointer<vtkCallbackCommand>::New();
 	mrvWinModCallback->SetCallback(winModCallback);
 	m_mrvBGRen->AddObserver(vtkCommand::ModifiedEvent, mrvWinModCallback);
@@ -295,7 +295,7 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	m_mrvBGRen->InteractiveOff();
 	m_mrvBGRen->SetBackground(1.0, 1.0, 1.0);
 	m_mrvBGRen->AddActor2D(m_mrvTxtAct);
-	
+
 	CREATE_OLDVTKWIDGET(wgtContainer);
 	auto mrvRenWin = wgtContainer->GetRenderWindow();
 	mrvRenWin->SetNumberOfLayers(2);
@@ -371,11 +371,11 @@ void dlg_DynamicVolumeLines::visualize()
 	m_nonlinearScaledPlot->clearItems();
 	m_linearScaledPlot->clearItems();
 	//m_debugPlot->clearGraphs();	// Debug
-	
+
 	calcNonLinearMapping();
 	generateSegmentTree();
 	//showDebugPlot();		// Debug
-	
+
 	if (m_linearScaledPlot->graphCount() < 1)
 	{
 		std::vector<iAFunction<double, double> *> linearFCPFunctions;
@@ -453,7 +453,7 @@ void dlg_DynamicVolumeLines::visualize()
 		QPen p = m_nonlinearScaledPlot->graph()->selectionDecorator()->pen();
 		p.setWidth(5);
 		p.setColor(QColor(255, 0, 0));  // Selection color: red
-		m_nonlinearScaledPlot->graph()->selectionDecorator()->setPen(p);  
+		m_nonlinearScaledPlot->graph()->selectionDecorator()->setPen(p);
 		QSharedPointer<QCPGraphDataContainer> nonlinearScaledPlotData(new QCPGraphDataContainer);
 		auto * funct = new iAFunction<double, double>();
 		for (int i = 0; i < m_nonlinearMappingVec.size(); ++i)
@@ -468,7 +468,7 @@ void dlg_DynamicVolumeLines::visualize()
 	iAModifiedDepthMeasure<double, double> nl_measure;
 	auto nonlinearFBPData = new iAFunctionalBoxplot<double, double>(nonlinearFCPFunctions, &nl_measure, 2);
 	setupFBPGraphs(m_nonlinearScaledPlot, nonlinearFBPData);
-	
+
 	m_nonlinearTicker = QSharedPointer<iANonLinearAxisTicker>(new iANonLinearAxisTicker);
 	m_nonlinearTicker->setTickData(m_nonlinearMappingVec);
 	m_nonlinearTicker->setAxis(m_nonlinearScaledPlot->xAxis);
@@ -569,7 +569,7 @@ void dlg_DynamicVolumeLines::calcNonLinearMapping()
 		if (maxInnerEnsableDist < innerEnsembleDist)
 			maxInnerEnsableDist = innerEnsembleDist;
 	}
-	
+
 	double sectionStart = -1.0;
 	m_nonlinearMappingVec.clear();
 	m_bkgrdThrRangeList.clear();
@@ -600,7 +600,7 @@ void dlg_DynamicVolumeLines::calcNonLinearMapping()
 		{
 			sectionStart = m_nonlinearMappingVec[i];
 		}
-		else if (innerEnsembleDistList[i] == -1.0 && 
+		else if (innerEnsembleDistList[i] == -1.0 &&
 			sectionStart >= 0.0 && i == innerEnsembleDistList.size()-1)
 		{
 			m_bkgrdThrRangeList.append(QCPRange(sectionStart, m_nonlinearMappingVec[i]));
@@ -611,7 +611,7 @@ void dlg_DynamicVolumeLines::calcNonLinearMapping()
 
 void dlg_DynamicVolumeLines::generateSegmentTree()
 {
-	// TODO: draw after BkgdRanges + draw only the histograms without the BkgdRanes 
+	// TODO: draw after BkgdRanges + draw only the histograms without the BkgdRanes
 	int subhistBinCnt = sb_subHistBinCnt->value(), lowerBnd = 0, upperBnd = 65535,
 		plotBinWidth = sb_histBinWidth->value(),
 		plotWidth = m_linearScaledPlot->axisRect()->rect().width(),
@@ -624,7 +624,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 	if (m_segmTreeList.isEmpty() | m_subHistBinCntChanged)
 	{
 		m_segmTreeList.clear();
-		m_subHistBinCntChanged = false; 
+		m_subHistBinCntChanged = false;
 		for (int datsetNumber = 0; datsetNumber < m_DatasetIntensityMap.size(); ++datsetNumber)
 		{
 			std::vector<int> intensityVec;
@@ -662,7 +662,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 			upperDistToNextPoint = 1.0;
 			upperDistToCurrPoint = 1.0;
 		}
-		
+
 		double linearLowerDbl = nonlinearLowerIdx + lowerDistToCurrPoint / lowerDistToNextPoint;
 		double linearUpperDbl = nonlinearUpperIdx - 1 + upperDistToCurrPoint / upperDistToNextPoint;
 		int linearLowerIdx = floor(linearLowerDbl);
@@ -692,7 +692,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 			nonlin_histRectItem->setPen(QPen(Qt::NoPen));
 			//nonlin_histRectItem->setPen(QPen(QColor(Qt::yellow)));	// Debug
 			nonlin_histRectItem->setClipToAxisRect(true);
-			// TODO: problem with 256 subhistBinCnt color gradient badly visible 
+			// TODO: problem with 256 subhistBinCnt color gradient badly visible
 			// -> scale to other max value (local histogram maximum)
 			m_histLUT->GetColor((double)nonlinear_sum / (nonlinearUpperIdx - nonlinearLowerIdx + 1), rgb);
 			c.setRgbF(rgb[0], rgb[1], rgb[2]);
@@ -1177,7 +1177,7 @@ void dlg_DynamicVolumeLines::mouseMove(QMouseEvent* e)
 			m_nonlinearScaledPlot->yAxis->pixelToCoord(e->pos().y() - 15));
 		m_nonlinearDataPointInfo->setText(QString("HilbertIdx: %1\nIntensity: %2").arg(int(x)).arg((int)y));
 
-		m_scalingWidget->setCursorPos(e->pos().x(), 
+		m_scalingWidget->setCursorPos(e->pos().x(),
 			m_nonlinearScaledPlot->xAxis->coordToPixel(nonlinearXCoord));
 	}
 	m_nonlinearScaledPlot->layer("cursor")->replot();
@@ -1203,7 +1203,7 @@ void dlg_DynamicVolumeLines::mouseWheel(QWheelEvent* e)
 
 void dlg_DynamicVolumeLines::selectionChangedByUser()
 {
-	// TODO: change transfer function for "hidden" values; should be HistogramRangeMinimum-1 
+	// TODO: change transfer function for "hidden" values; should be HistogramRangeMinimum-1
 	wgtContainer->GetRenderWindow()->GetRenderers()->RemoveAllItems();
 	wgtContainer->GetRenderWindow()->AddRenderer(m_mrvBGRen);
 
@@ -1345,7 +1345,7 @@ void dlg_DynamicVolumeLines::showFBPGraphs()
 			else if (m_selGraphList.contains(m_nonlinearScaledPlot->graph(i)))
 			{
 				showGraphandAddToLegend(m_nonlinearScaledPlot, m_linearScaledPlot, i);
-				
+
 			}
 			else
 			{
@@ -1606,7 +1606,7 @@ void dlg_DynamicVolumeLines::setNoSelectionForPlots()
 	m_scalingWidget->update();
 
 	m_nonlinearScaledPlot->replot();
-	m_linearScaledPlot->replot(); 
+	m_linearScaledPlot->replot();
 }
 
 void dlg_DynamicVolumeLines::setSelectionForPlots(vtkPoints *selCellPoints)
@@ -1639,7 +1639,7 @@ void dlg_DynamicVolumeLines::setSelectionForPlots(vtkPoints *selCellPoints)
 
 	for (int i = 0; i < selHilbertIdxList.size(); ++i)
 	{
-		if (selRange.begin() > -1) 
+		if (selRange.begin() > -1)
 		{
 			if (selHilbertIdxList[i])
 				continue;
@@ -1657,7 +1657,7 @@ void dlg_DynamicVolumeLines::setSelectionForPlots(vtkPoints *selCellPoints)
 				selRange.setBegin(i);
 		}
 	}
-	
+
 
 	QList<QString> visibleGraphsNameList;
 	for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)

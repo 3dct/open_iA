@@ -406,7 +406,7 @@ void dlg_FeatureScout::updatePCColumnVisibility()
 		pcChart->SetColumnVisibility( csvTable->GetColumnName( j ), columnVisibility[j]);
 	}
 	updateAxisProperties();
-	pcView->Update(); 
+	pcView->Update();
 	pcView->ResetCamera();
 	pcView->Render();
 }
@@ -657,7 +657,7 @@ void dlg_FeatureScout::PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, c
 		spCN = anyTable->GetColumnName(i);
 		debugfile << spCN.ToString() << separator;
 	}
-	debugfile << "\n";	
+	debugfile << "\n";
 	for (int row = 0; row < spRow.ToInt(); ++row)
 	{
 		for (int col = 0; col < spCol.ToInt(); ++col)
@@ -672,7 +672,7 @@ void dlg_FeatureScout::PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, c
 
 void dlg_FeatureScout::PrintChartTable(const QString &outputPath)
 {
-	QString fileName = "chartTable"; 
+	QString fileName = "chartTable";
 	PrintVTKTable(this->chartTable, true, outputPath, &fileName);
 }
 
@@ -686,9 +686,9 @@ void dlg_FeatureScout::PrintTableList(const QList<vtkSmartPointer<vtkTable>> &Ou
 	QString FileName ="TableClass";
 	QString fID = "";
 	QString outputFile = "";
-	
+
 	if (OutTableList.count() > 1)
-	{	
+	{
 		for (int i = 0; i < tableList.count(); ++i)
 		{
 			fID = QString(i);
@@ -2036,10 +2036,10 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector & con, const QString
 	// Skip first, as classes start with 1, 0 is the uncategorized class
 	for (int i = 1; i < classTreeModel->invisibleRootItem()->rowCount(); i++)
 	{
-	
+
 		if (!exportAllClassified && i != activeClassItem->row())
 			continue;
-		
+
 		QStandardItem *item = classTreeModel->invisibleRootItem()->child(i);
 		for (int j = 0; j < item->rowCount(); ++j)
 		{
@@ -2292,7 +2292,7 @@ void dlg_FeatureScout::ClassDeleteButton()
 	// Update class ID for all remaining classes elements
 	int classCount = rootItem->rowCount();
 
-	//set new class ID, iterate 
+	//set new class ID, iterate
 	if (classCount > 0)
 	{
 		for (int classID = deleteClassID; classID < classCount; ++classID)
@@ -2877,7 +2877,7 @@ void dlg_FeatureScout::EnableBlobRendering()
 {
 	if ( !OpenBlobVisDialog() )
 		return;
-	
+
 	iABlobCluster* blob = nullptr;
 	// check if that class is already visualized; if yes, update the existing blob:
 	if ( blobMap.contains( this->activeClassItem->text() ) )
@@ -2890,7 +2890,7 @@ void dlg_FeatureScout::EnableBlobRendering()
 		blobManager->AddBlob( blob );
 		blobMap.insert( this->activeClassItem->text(), blob );
 	}
-	
+
 	blobManager->UpdateBlobSettings( blob );
 
 	QVector<FeatureInfo> objects;
@@ -2907,14 +2907,14 @@ void dlg_FeatureScout::EnableBlobRendering()
 		fi.diameter = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::Diameter)).ToDouble();
 		objects.append( fi );
 	}
-	
+
 	QColor color = m_colorList.at( activeClassItem->index().row() );
 	const double count = activeClassItem->rowCount();
 	const double percentage = 100.0*count / objectsCount;
 	blob->SetObjectType(MapObjectTypeToString(filterID));
 	blob->SetCluster(objects);
 	blob->SetName(activeClassItem->text());
-	blob->SetBlobColor(color);	
+	blob->SetBlobColor(color);
 	blob->SetStats( count, percentage );
 	blobManager->Update();
 }
@@ -3438,7 +3438,7 @@ void dlg_FeatureScout::SaveBlobMovie()
 	dlg_commoninput dlg2( this, "Blob rendering preferences", inList, inPara, nullptr );
 	if ( dlg2.exec() != QDialog::Accepted )
 		return;
-	
+
 	int i = 0;
 	double range[2];
 	double blobOpacity[2];

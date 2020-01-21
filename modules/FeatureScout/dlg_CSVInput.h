@@ -47,9 +47,9 @@ public:
 	//! Loads settings from registry for a given format name, into a given config object
 	static bool loadFormatFromRegistry(const QString & formatName, iACsvConfig & dest);
 private slots:
-	//! On button click for selecting CSV file 
+	//! On button click for selecting CSV file
 	void selectFileBtnClicked();
-	//! On button click for selecting curved CSV file 
+	//! On button click for selecting curved CSV file
 	void selectCurvedFileBtnClicked();
 	//! when checkbox for curved fiber info
 	void curvedFiberInfoChanged();

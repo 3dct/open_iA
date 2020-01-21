@@ -38,7 +38,7 @@ namespace
 {
 	const QString FileVersionKey   = "FileVersion";
 	const QString FileVersionValue = "1.6.1";
-	
+
 	const QString ModalitiesKey = "Modalities";
 	const QString LabelCountKey = "LabelCount";
 	const QString SamplingDataKey = "SamplingData";
@@ -57,7 +57,7 @@ namespace
 		}
 		result.append(append);
 	}
-	
+
 	bool AddIfMissing(QSettings const & settings, QString & result, QString const & key)
 	{
 		if (!settings.contains(key))
@@ -185,7 +185,7 @@ iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(QString const & fileName):
 		}
 		AddSubEnsemble(key, memberIDs);
 	}
-	
+
 	m_good = true;
 }
 
@@ -215,7 +215,7 @@ void iAEnsembleDescriptorFile::Store(QString const & fileName)
 {
 	QSettings metaFile(fileName, QSettings::IniFormat);
 	metaFile.setValue(FileVersionKey, FileVersionValue);
-	
+
 	m_fileName = fileName;
 	QFileInfo fi(fileName);
 	QString path(fi.absolutePath());
@@ -247,7 +247,7 @@ void iAEnsembleDescriptorFile::Store(QString const & fileName)
 	{
 		metaFile.setValue(SubEnsembleKey + QString::number(m_subEnsembleID[i]), joinAsString(m_subEnsembles[i], ","));
 	}
-	
+
 	metaFile.sync();
 	if (metaFile.status() != QSettings::NoError)
 	{

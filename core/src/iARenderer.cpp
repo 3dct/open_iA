@@ -88,7 +88,7 @@ class iAMouseInteractorStyle : public vtkInteractorStyleRubberBandPick
 {
 public:
 	static iAMouseInteractorStyle* New();
-	
+
 	virtual void OnChar()
 	{
 		switch (this->Interactor->GetKeyCode())
@@ -156,7 +156,7 @@ void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventI
 		ren->emitNoSelectedCells();
 		return;
 	}
-	
+
 	if (ren->interactor()->GetControlKey() &&
 		!ren->interactor()->GetShiftKey())
 	{
@@ -170,7 +170,7 @@ void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventI
 	else if (ren->interactor()->GetControlKey() &&
 		ren->interactor()->GetShiftKey())
 	{
-		// Removes cells from selection 
+		// Removes cells from selection
 		auto newfinalSel = vtkSmartPointer<vtkUnstructuredGrid>::New();
 		newfinalSel->Allocate(1, 1);
 		newfinalSel->SetPoints(ren->finalSelection()->GetPoints());
@@ -199,7 +199,7 @@ void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventI
 				newfinalSel->InsertNextCell(ren->finalSelection()->GetCell(i)->GetCellType(),
 					ren->finalSelection()->GetCell(i)->GetPointIds());
 			}
-		}		
+		}
 		ren->finalSelection()->ShallowCopy(newfinalSel);
 	}
 	else
@@ -324,7 +324,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 	double spacing[3];	ds->GetSpacing(spacing);
 
 	m_interactor = m_renWin->GetInteractor();
-	setPointPicker();	
+	setPointPicker();
 	initObserver();
 
 	QImage img;
@@ -387,7 +387,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 	m_sliceCubeActor->SetMapper(m_sliceCubeMapper);
 	m_sliceCubeActor->GetProperty()->SetColor(1.0, 0, 0);
 	m_sliceCubeActor->GetProperty()->SetRepresentationToWireframe();
-	m_sliceCubeActor->GetProperty()->SetOpacity(1); 
+	m_sliceCubeActor->GetProperty()->SetOpacity(1);
 	m_sliceCubeActor->GetProperty()->SetLineWidth(2.3);
 	m_sliceCubeActor->GetProperty()->SetAmbient(1.0);
 	m_sliceCubeActor->GetProperty()->SetDiffuse(0.0);
@@ -552,7 +552,7 @@ void iARenderer::setupRenderer()
 	m_ren->AddActor(m_profileLineActor);
 	m_ren->AddActor(m_profileLineStartPointActor);
 	m_ren->AddActor(m_profileLineEndPointActor);
-	m_ren->AddActor(m_sliceCubeActor); 
+	m_ren->AddActor(m_sliceCubeActor);
 	emit onSetupRenderer();
 }
 
@@ -956,7 +956,7 @@ void iARenderer::applySettings(iARenderSettings const & settings)
 	m_cam->SetParallelProjection(settings.ParallelProjection);
 	QColor bgTop(settings.BackgroundTop);
 	QColor bgBottom(settings.BackgroundBottom);
-	
+
 	setSlicePlaneOpacity(settings.PlaneOpacity);
 
 	m_ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());

@@ -61,7 +61,7 @@ iASelectionInteractorStyle::iASelectionInteractorStyle():
 	m_pixelArray(vtkSmartPointer<vtkUnsignedCharArray>::New())
 {
 	m_startPos[0] = m_startPos[1] = m_endPos[0] = m_endPos[1] = 0;
-	
+
 	m_showModeActor->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
 	m_showModeActor->GetTextProperty()->SetBackgroundColor(1.0, 1.0, 1.0);
 	m_showModeActor->GetTextProperty()->SetBackgroundOpacity(0.5);

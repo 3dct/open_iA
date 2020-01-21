@@ -72,7 +72,7 @@ void iAPeriodicTableWidget::drawElement(QPainter& painter, QPoint const & upperL
 	int textWidth = fm.width(PeriodicTable::elements[elemIdx].shortname.c_str());
 #endif
 	int textHeight = fm.height();
-			
+
 	QRect textRect(middlePoint.x()-textWidth/2, middlePoint.y()-textHeight/2, textWidth, textHeight);
 	QTextOption o;
 	o.setAlignment(Qt::AlignCenter);
@@ -105,7 +105,7 @@ void iAPeriodicTableWidget::paintEvent(QPaintEvent * e)
 	for (int line=0; line<PeriodicTable::LineCount; ++line)
 	{
 		int colCount = std::min(PeriodicTable::ElementsPerLine[line], PeriodicTable::MaxElementsPerLine);
-		
+
 		for (int elem=0; elem < colCount; ++elem)
 		{
 			QPoint upperLeft(0, upperMargin+(line*m_elementHeight));
@@ -116,14 +116,14 @@ void iAPeriodicTableWidget::paintEvent(QPaintEvent * e)
 			else
 			{
 				int offsetFromRight = std::min(PeriodicTable::ElementsPerLine[line], PeriodicTable::MaxElementsPerLine) -  elem;
-				
+
 				upperLeft.setX(width - rightMargin - (offsetFromRight * m_elementWidth));
 			}
-			
-			int elemIdx = lineStartElemIdx + 
+
+			int elemIdx = lineStartElemIdx +
 				(elem < PeriodicTable::ElementsOnLeftSide[line]
 					? elem
-					: PeriodicTable::ElementsPerLine[line] - 
+					: PeriodicTable::ElementsPerLine[line] -
 						(std::min(PeriodicTable::ElementsPerLine[line], PeriodicTable::MaxElementsPerLine) - elem));
 
 			drawElement(painter, upperLeft, m_elementWidth, m_elementHeight, elemIdx);
@@ -135,7 +135,7 @@ void iAPeriodicTableWidget::paintEvent(QPaintEvent * e)
 				i < PeriodicTable::ElementsPerLine[line] - PeriodicTable::MaxElementsPerLine;
 				++i)
 			{
-				int elemIdx = lineStartElemIdx + 
+				int elemIdx = lineStartElemIdx +
 					PeriodicTable::ElementsOnLeftSide[line] + i;
 
 				QPoint upperLeft(leftMargin + (2+i)*m_elementWidth,

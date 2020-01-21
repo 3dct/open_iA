@@ -31,7 +31,7 @@ public:
 protected:
 	iATrackingGraphItem();
 	~iATrackingGraphItem();
-	
+
 	vtkIdType focusedVertex;
 
 	vtkColor4ub VertexColor(vtkIdType vertex) override;

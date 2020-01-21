@@ -72,7 +72,7 @@ iAPorosityAnalyser::iAPorosityAnalyser(MainWindow *mWnd, const QString & resDir,
 	m_visanMW->setParent( mainArea );
 
 	QVBoxLayout * visanLayout = new QVBoxLayout();
-	visanLayout->setMargin( 0 );	
+	visanLayout->setMargin( 0 );
 	visanLayout->setSpacing( 0 );
 	visanLayout->addWidget( m_visanMW );
 	mainArea->setLayout( visanLayout );
@@ -121,7 +121,7 @@ iAPorosityAnalyser::iAPorosityAnalyser(MainWindow *mWnd, const QString & resDir,
 	m_visanMW->splitDockWidget( m_prvSplomView, m_ssView, Qt::Vertical );
 	m_visanMW->tabifyDockWidget( m_ssView, m_segm3DView );
 	m_ssView->attachSegm3DView( m_segm3DView );
-	
+
 	m_rangeSliderDiagramView->raise();
 	//m_rangeSliderDiagramView->hide();
 
@@ -202,7 +202,7 @@ void iAPorosityAnalyser::LoadData()
 	iACSVToQTableWidgetConverter::loadCSVFile( m_dataDir + "/DatasetDescription.csv", &m_referenceData );
 	for( int i = 1; i < m_referenceData.rowCount(); i++ )
 		m_gtPorosityMap[m_referenceData.item( i, gtDatasetColInd )->text()] = m_referenceData.item( i, gtPorosityColInd )->text().toDouble();
-		
+
 	m_data.clear();
 	QDir dataRootDir( m_dataDir );
 	dataRootDir.setFilter( QDir::Dirs );
@@ -401,7 +401,7 @@ void iAPorosityAnalyser::selectionLoaded( iASelection * sel )
 
 void iAPorosityAnalyser::tabChanged( int /*index*/ )
 {
-	//emit loadTreeDataToViews(); 
+	//emit loadTreeDataToViews();
 }
 
 void iAPorosityAnalyser::message( QString text )

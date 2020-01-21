@@ -299,7 +299,7 @@ dlg_ParamSpaceSampling::dlg_ParamSpaceSampling( QWidget *parent, QString winTitl
 			scrollArea->setMinimumWidth(containerLayout->minimumSize().width());
 		}
 
-		// Add the container to the scrollarea 
+		// Add the container to the scrollarea
 		scrollArea->setWidget(m_container);
 
 		// Make scrollArea widgets backround transparent
@@ -313,7 +313,7 @@ dlg_ParamSpaceSampling::dlg_ParamSpaceSampling( QWidget *parent, QString winTitl
 		// Adds units to linedit labels and spinbox
 		addUnits();
 
-		// Sets init line edit values 
+		// Sets init line edit values
 		updateLineEdits();
 
 		// Sets init line edit values
@@ -496,7 +496,7 @@ void dlg_ParamSpaceSampling::createDescription()
 	separator->setFrameShadow( QFrame::Sunken );
 	gridLayout->addWidget( separator, 3, 0, 1, 2 );
 
-	// Generates the description in the CommonInput dialog 
+	// Generates the description in the CommonInput dialog
 	if ( m_description )
 	{
 		auto info = new QTextEdit();
@@ -540,7 +540,7 @@ void dlg_ParamSpaceSampling::updateLineEdits()
 {
 	if ( m_filterName == "IsoXThreshold" )
 	{
-		// Set init line edit values  
+		// Set init line edit values
 		m_inPara[1] = m_isoXGrayValue;
 		m_inPara[2] = m_isoXGrayValue;
 		m_inPara[3] = 1;
@@ -558,7 +558,7 @@ void dlg_ParamSpaceSampling::updateLineEdits()
 							   "border-right: 5px solid none; border-top: 5px solid rgb(150, 150, 150); width: 0px; height: 0px; } " );
 		m_sbIsoX->setEnabled(false);
 
-		// Set init line edit values 
+		// Set init line edit values
 		m_inPara[1] = m_airPoreGrayValue;
 		m_inPara[2] = m_airPoreGrayValue;
 		m_inPara[3] = 1;
@@ -571,7 +571,7 @@ void dlg_ParamSpaceSampling::updateLineEdits()
 void dlg_ParamSpaceSampling::addUnits()
 {
 	m_sbIsoX->setSuffix( "%" );
-	
+
 	if ( m_filterName == "IsoXThreshold" )
 	{
 		m_sbIsoX->setSuffix( "%" );
@@ -687,11 +687,11 @@ void dlg_ParamSpaceSampling::computeSmoothHisto()
 	int idx = -1;
 	for ( image1DIt.GoToBegin(); !image1DIt.IsAtEnd(); ++image1DIt )
 		image1DIt.Set( m_valueData[++idx] );
-	
+
 	// RecursiveGaussianImageFilter produced huge peak at the start and
 	// enf of the data range, which caused problems for the peak detection
 	// DiscreteGaussianImageFilter, works but the delta parameter is hard
-	// to set then, therefore median filter 
+	// to set then, therefore median filter
 
 	typedef itk::MedianImageFilter< ImageType1D, ImageType1D >  SmoothingFilterType;
 	SmoothingFilterType::Pointer smoothingFilter = SmoothingFilterType::New();
@@ -784,7 +784,7 @@ void dlg_ParamSpaceSampling::createHistoPeaks()
 		textLabel->setFont( QFont( font().family(), 9 ) );
 		textLabel->setPen( QPen( Qt::black ) );
 		textLabel->setBrush( QBrush( QColor( 255, 255, 255, 180 ), Qt::BrushStyle::SolidPattern ) );
-		
+
 		if ( i == 0 )
 		{
 			m_airPoreGrayValue = pX[0];
@@ -804,7 +804,7 @@ void dlg_ParamSpaceSampling::createHistoPeaks()
 		m_isoXGrayValue =
 			floor( m_data[0][peak_middle[0]] +
 			abs( m_data[0][peak_middle[1]] - m_data[0][peak_middle[0]] ) *
-			( m_isoX / 100.0 ) );	
+			( m_isoX / 100.0 ) );
 
 		QVector<double> pX, pY;
 		pX << m_isoXGrayValue;

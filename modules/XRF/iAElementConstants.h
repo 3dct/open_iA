@@ -63,7 +63,7 @@ struct iAElement
 
 const int ElementCount = 118;
 
-const iAElement elements[] = 
+const iAElement elements[] =
 {
 	iAElement(1, "H", "Hydrogen"),
 	iAElement(2, "He", "Helium"),

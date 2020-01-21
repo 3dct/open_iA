@@ -40,7 +40,7 @@ void iATriangleButton::paintEvent(QPaintEvent* /*ev*/)
 
 	int partX = g.width()/4;
 	int partY = partX*2;
-	
+
 	p.translate(g.width()/2, g.height()/2);
 	if (m_expanded)
 	{
@@ -51,7 +51,7 @@ void iATriangleButton::paintEvent(QPaintEvent* /*ev*/)
 	poly<< QPoint(-partX, -partY)
 		<< QPoint(partX, 0)
 		<< QPoint(-partX,  partY);
-	
+
 	if (m_expanded)
 	{
 		QPainterPath path;

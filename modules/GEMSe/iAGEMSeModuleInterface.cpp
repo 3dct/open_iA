@@ -85,7 +85,7 @@ void iAGEMSeModuleInterface::Initialize()
 	iAProjectRegistry::addProject<iAGEMSeProject>(iAGEMSeProject::ID);
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, tr( "Image Ensembles" ), false );
-	
+
 	QAction * actionGEMSe = new QAction( tr("GEMSe"), nullptr);
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionGEMSe, true);
 	connect(actionGEMSe, &QAction::triggered, this, &iAGEMSeModuleInterface::startGEMSe);

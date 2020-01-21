@@ -200,12 +200,12 @@ void iAImageSampler::run()
 			argumentList << value;
 		}
 		iACommandRunner* cmd = new iACommandRunner(m_executable, argumentList);
-		
+
 		QSharedPointer<iAModality const> mod0 = m_modalities->get(0);
-		
+
 		m_runningComputation.insert(cmd, m_curLoop);
 		connect(cmd, &iACommandRunner::finished, this, &iAImageSampler::computationFinished );
-		
+
 		m_mutex.lock();
 		m_runningOperations++;
 		m_mutex.unlock();
@@ -252,7 +252,7 @@ void iAImageSampler::computationFinished()
 
 	QSharedPointer<iASingleResult> result = iASingleResult::Create(id, *m_results.data(), param,
 		m_outputBaseDir + "/sample" + QString::number(id) + +"/label.mhd");
-	
+
 	result->SetAttribute(m_parameterCount+2, computationTime);
 	m_results->GetAttributes()->at(m_parameterCount+2)->adjustMinMax(computationTime);
 
@@ -327,7 +327,7 @@ double iAImageSampler::elapsed() const
 
 double iAImageSampler::estimatedTimeRemaining() const
 {
-	return 
+	return
 		(m_overallTimer.elapsed()/(m_curLoop+1)) // average duration of one cycle
 		* static_cast<double>(m_parameterSets->size()-m_curLoop-1) // remaining cycles
 	;

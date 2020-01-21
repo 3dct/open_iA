@@ -66,7 +66,7 @@ int ParseConfigFile(iADreamCasterSettings * s)
 	s->PLANE_Z   /= s->SCALE_COEF;
 	s->PLANE_H_W /= s->SCALE_COEF;
 	s->PLANE_H_H /= s->SCALE_COEF;
-		
+
 	s->COL_RANGE_DR = s->COL_RANGE_MAX_R - s->COL_RANGE_MIN_R;
 	s->COL_RANGE_DG = s->COL_RANGE_MAX_G - s->COL_RANGE_MIN_G;
 	s->COL_RANGE_DB = s->COL_RANGE_MAX_B - s->COL_RANGE_MIN_B;
@@ -85,7 +85,7 @@ iAMat4 ScaleAndCentreBBox(iAaabb &box, float *scale_coef_out, float* translate3f
 		{
 			translate3f_out[i] = -box.center()[i];
 		}
-			
+
 	return scale(iAVec3f(scale_coeff,scale_coeff,scale_coeff))*translate(-box.center());
 }
 

@@ -86,7 +86,7 @@ public:
 								vtkColorTransferFunction* cTF,
 								QSharedPointer<iARangeSliderDiagramData> data,
 								QMap<double, QList<double> > *,
-								const QTableWidget * rawTable, 
+								const QTableWidget * rawTable,
 								QString const & xlabel = "Greyvalue",
 								QString const & yLabel = "Frequency" );
 
@@ -103,7 +103,7 @@ signals:
 	void selected();
 	void deselected();
 	void selectionRelesedSignal();
-	
+
 public slots:
 	void selectSlot();
 	void deleteSlot();

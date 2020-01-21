@@ -33,7 +33,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-template<class T> 
+template<class T>
 void connectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
@@ -68,7 +68,7 @@ iAConnectedComponents::iAConnectedComponents() :
 }
 
 
-template<class T> 
+template<class T>
 void scalarConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
@@ -101,7 +101,7 @@ iAScalarConnectedComponents::iAScalarConnectedComponents() :
 }
 
 
-template<class T> 
+template<class T>
 void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;

@@ -942,17 +942,17 @@ void iAIO::readVTKFile()
 	// Get all data from the file
 	auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
 	reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
-	reader->Update();				
-		
+	reader->Update();
+
 	// All of the standard data types can be checked and obtained like this:
 	if (reader->IsFilePolyData())
 	{
 		DEBUG_LOG("output is a polydata");
-						
+
 		getVtkPolyData()->DeepCopy(reader->GetPolyDataOutput());
 		printSTLFileInfos();
 		addMsg(tr("File loaded."));
-						
+
 	}
 	else if (reader->IsFileRectilinearGrid())
 	{

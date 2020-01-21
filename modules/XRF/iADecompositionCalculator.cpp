@@ -76,7 +76,7 @@ void iADecompositionCalculator::run()
 	double origin[3];
 	img->GetOrigin(origin);
 	img->GetSpacing(spacing);
-	
+
 	m_data->initImages(m_elements.size(), extent, spacing, origin);
 
 	iAElementConcentrations::VoxelConcentrationType concentration;

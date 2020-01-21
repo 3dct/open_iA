@@ -377,7 +377,7 @@ void iARefDistCompute::run()
 	size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns() -1 ;
 	for (size_t fiberID = 0; fiberID < ref.fiberCount; ++fiberID)
 	{
-		
+
 		m_data->result[m_referenceID].table->SetValue(fiberID, colID, m_data->avgRefFiberMatch[fiberID]);
 		//DEBUG_LOG(QString("Fiber %1: matches=%2, similarity sum=%3, average=%4")
 		//	.arg(fiberID).arg(refDistSum[fiberID]).arg(refMatchCount[fiberID]).arg(value));

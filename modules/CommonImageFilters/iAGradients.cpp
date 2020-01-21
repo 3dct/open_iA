@@ -107,7 +107,7 @@ iAGradientMagnitudeRecursiveGaussian::iAGradientMagnitudeRecursiveGaussian() :
 
 // iADerivative:
 
-template<class T> 
+template<class T>
 void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
@@ -164,7 +164,7 @@ void hoaDerivative(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	hoaFilter->Update();
 	filter->addOutput(hoaFilter->GetOutput());
 }
-		
+
 void iAHigherOrderAccurateDerivative::performWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(hoaDerivative, inputPixelType(), this, parameters);

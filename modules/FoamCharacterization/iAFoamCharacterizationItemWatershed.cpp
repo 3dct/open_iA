@@ -103,11 +103,11 @@ void iAFoamCharacterizationItemWatershed::executeFloat(iAConnector* _pConnector)
 	pFilter->SetInput(dynamic_cast<itk::Image<float, 3>*> (_pConnector->itkImage()));
 	pFilter->SetLevel(m_dLevel);
 	pFilter->SetThreshold(m_dThreshold);
-	
+
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->observe(pFilter);
 	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
-	
+
 	pFilter->Update();
 
 	typedef itk::Image<itkWatershed::OutputImagePixelType, 3> IntImageType;
@@ -125,11 +125,11 @@ void iAFoamCharacterizationItemWatershed::executeUnsignedShort(iAConnector* _pCo
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (_pConnector->itkImage()));
 	pFilter->SetLevel(m_dLevel);
 	pFilter->SetThreshold(m_dThreshold);
-	
+
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->observe(pFilter);
 	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
-	
+
 	pFilter->Update();
 
 	_pConnector->setImage(pFilter->GetOutput());

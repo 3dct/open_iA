@@ -54,7 +54,7 @@ public:
 		// Remove UseMdiChild setting altogether, always open MdiChild?
 		if (projectFile.contains("UseMdiChild") && projectFile.value("UseMdiChild").toBool() == false)
 		{
-			
+
 			QMessageBox::warning(nullptr, "FiAKEr", "Old project file detected (%1). "
 				"Due to an implementation change, this file cannot be loaded directly; "
 				"please open it in a text editor and remove the ")
@@ -183,10 +183,10 @@ void iAFiAKErModuleInterface::startFiAKEr()
 			formatEntries[i] = "!" + formatEntries[i];
 		}
 	}
-		
+
 	QList<QVariant> values;
 	values << m_lastPath << formatEntries << m_lastTimeStepOffset << m_lastUseStepData;
-	
+
 	QString descr("Starts FIAKER, a comparison tool for results from fiber reconstruction algorithms.<br/>"
 		"Choose a <em>Result folder</em> containing two or more fiber reconstruction results in .csv format. "
 		"Under <em>CSV format</em>, select the format in which data is stored in your .csv files. "

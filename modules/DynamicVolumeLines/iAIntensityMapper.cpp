@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "iAIntensityMapper.h"
 #include "io/iAITKIO.h"
 #include "iATypedCallHelper.h"
@@ -30,8 +30,8 @@
 
 
 template<class T>
-void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList<icData> &intensityList, 
-	QList<vtkSmartPointer<vtkImageData>> &m_imgDataList, QList<double> &minEnsembleIntensityList, 
+void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList<icData> &intensityList,
+	QList<vtkSmartPointer<vtkImageData>> &m_imgDataList, QList<double> &minEnsembleIntensityList,
 	QList<double> &maxEnsembleIntensityList, QList<QVector<unsigned int>> &coordList)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
@@ -60,22 +60,22 @@ void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList
 					nbOfBitsPerDim[i] = ceil(sqrt((size[i] - 1)));
 
 				for (unsigned int h = 0; h < HilbertCnt; ++h)
-				{					
+				{
 					CFixBitVec *coordPtr = new CFixBitVec[HilbertCnt];
 					CFixBitVec compHilbertIdx;
 					compHilbertIdx = (FBV_UINT)h;
-					Hilbert::compactIndexToCoords(coordPtr, 
+					Hilbert::compactIndexToCoords(coordPtr,
 						nbOfBitsPerDim, DIM, compHilbertIdx);
 
 					for (int i = 0; i < DIM; i++)
 						coord[i] = coordPtr[i].rack();
-				
+
 					delete[] coordPtr;
 					coordList.append(coord);
 					imp.emitProgress((h + 1) * 100 / HilbertCnt);
 				}
 			}
-			
+
 			for (int h = 0; h < coordList.size(); ++h)
 			{
 				typename InputImageType::IndexType c;

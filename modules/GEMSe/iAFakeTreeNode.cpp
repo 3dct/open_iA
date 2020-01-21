@@ -112,5 +112,5 @@ ClusterImageType const iAFakeTreeNode::GetLargeImage() const
 }
  void iAFakeTreeNode::GetSelection(QVector<QSharedPointer<iASingleResult> > & /*result*/) const
 {
-	
+
 }

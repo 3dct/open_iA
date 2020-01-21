@@ -127,11 +127,11 @@ void iAFoamCharacterizationItemFilter::executeAnisotropic()
 	pFilter->SetConductanceParameter(m_dAnisotropicConductance);
 	pFilter->SetNumberOfIterations(m_uiAnisotropicIteration);
 	pFilter->SetTimeStep(m_dAnisotropicTimeStep);
-	
+
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->observe(pFilter);
 	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
-	
+
 	pFilter->Update();
 
 	typedef itk::Image<typename itkFilter::OutputImagePixelType, 3> IntImageType;
@@ -179,7 +179,7 @@ void iAFoamCharacterizationItemFilter::executeMedian()
 	radius.Fill(m_uiMedianRadius);
 	pFilter->SetRadius(radius);
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->itkImage()));
-	
+
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->observe(pFilter);
 	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));

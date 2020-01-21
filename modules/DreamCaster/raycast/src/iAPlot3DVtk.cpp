@@ -218,7 +218,7 @@ void iAPlot3DVtk::SetUserScalarRange( double Smin, double Smax )
 	Smin-=eps; Smax+=eps;*/
 	m_Smin = Smin;
 	m_Smax = Smax;
-	
+
 	m_lookupTable->SetTableRange(Smin, Smax);
 	m_mapper->SetLookupTable(m_lookupTable);
 	m_mapper->SetScalarRange(Smin, Smax);
@@ -287,7 +287,7 @@ void iAPlot3DVtk::Pick( double xpos, double ypos)
 
 void iAPlot3DVtk::SetPalette( int count, double *colors )
 {
-	if (m_lookupTable!=0) 
+	if (m_lookupTable!=0)
 	{
 		m_lookupTable->Delete();
 		m_lookupTable=0;
@@ -312,23 +312,23 @@ void iAPlot3DVtk::SetPalette( int count, double *colors )
 void iAPlot3DVtk::SetPalette( int count, unsigned int r1, unsigned int g1, unsigned int b1, unsigned int r2, unsigned int g2, unsigned int b2 )
 {
 	//m_lookupTable->SetRampToLinear();
-	if (m_lookupTable!=0) 
+	if (m_lookupTable!=0)
 	{
 		m_lookupTable->Delete();
 		m_lookupTable=0;
 	}
 	if (m_lookupTable==0) m_lookupTable = vtkLookupTable::New();
-	m_lookupTable->SetNumberOfTableValues(count);//     
+	m_lookupTable->SetNumberOfTableValues(count);//
 	double dr = (double)r2-(double)r1;
 	double dg = (double)g2-(double)g1;
 	double db = (double)b2-(double)b1;
 	for( int i = 0; i < count; i++)//
 	{
 		m_lookupTable->SetTableValue(i,
-			((double)r1+dr*i/count)/255, 
+			((double)r1+dr*i/count)/255,
 			((double)g1+dg*i/count)/255,
 			((double)b1+db*i/count)/255);
-	}	
+	}
 	m_lookupTable->Build();
 }
 
@@ -371,7 +371,7 @@ void iAPlot3DVtk::loadFromData( double * plotData, double * scalars, int cntX, i
 	if (m_points!=0) m_points->Delete();
 	m_points = vtkPoints::New();
 	float offs = -1.0;
-	if (m_cellScalars!=0) 
+	if (m_cellScalars!=0)
 		m_cellScalars->Delete();
 	m_cellScalars = vtkFloatArray::New();
 	m_cellScalars->SetNumberOfComponents(1);

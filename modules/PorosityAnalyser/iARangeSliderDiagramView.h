@@ -72,7 +72,7 @@ private:
 	QList<vtkSmartPointer<vtkPiecewiseFunction> >		m_oTFList;
 	QList<vtkSmartPointer<vtkColorTransferFunction> >	m_cTFList;
 	QList<iARangeSliderDiagramWidget *>					m_widgetList;
-	
+
 	QWidget							*m_mainContainer;
 	QWidget							*m_comboBoxContainer;
 	QWidget							*m_histoContainer;

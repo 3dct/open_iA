@@ -57,11 +57,11 @@ iAPAQSplom::iAPAQSplom( MainWindow *mWnd, QWidget * parent, Qt::WindowFlags f /*
 	setWindowFlags(f);
 	m_fixAction = m_contextMenu->addAction( "Fix Point", this, SLOT( fixPoint() ) );
 	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, SLOT( removeFixedPoint() ) );
-	
+
 	//sent to FeatureScout
 	m_detailsToFeatureScoutAction = m_contextMenu->addAction("Detailed View...", this, SLOT(sendToFeatureScout()));
 	m_detailsToFeatureScoutAction->setVisible(false);
-	
+
 	m_fixAction->setVisible( false );
 	m_removeFixedAction->setVisible( false );
 	setHistogramVisible(false);
@@ -79,7 +79,7 @@ void iAPAQSplom::setData( const QTableWidget * data )
 	{
 		newData.setUpdatesEnabled( false );  //for faster processing of large lists
 		int datasetIndexCol = -1;
-		for( int c = 0; c < maskCol; ++c ) //header		
+		for( int c = 0; c < maskCol; ++c ) //header
 		{
 			QString s = data->item( 0, c )->text();
 			if( s == "Dataset Index" )
@@ -199,8 +199,8 @@ bool iAPAQSplom::drawPopup( QPainter& painter )
 	double ptRad = m_activePlot->getPointRadius();
 	popupPos.setY( popupPos.y() - pPM * ptRad );
 	painter.translate( popupPos );
-	
-	
+
+
 	int dsInd = getDatasetIndexFromPointIndex( curInd );
 	const QRectF & roi = m_roiLst[dsInd];
 	double scaledH = settings.popupWidth / roi.width() * roi.height();
@@ -275,7 +275,7 @@ void iAPAQSplom::updatePreviewPixmap()
 	{
 		emit maskHovered( 0, -1 );
 		return;
-	}	
+	}
 
 	QImage fixedMaskImg;
 	int dsInd = -1;
@@ -376,8 +376,8 @@ void iAPAQSplom::sendToFeatureScout()
 {
 	if (!m_activePlot)
 		return;
-	QString fileName = ""; 
-	QString mhdName = ""; 
+	QString fileName = "";
+	QString mhdName = "";
 	getFilesLabeledFromPoint(fileName, mhdName);
 	this->m_mdiChild = m_mainWnd->createMdiChild(false);
 	if (!this->m_mdiChild)

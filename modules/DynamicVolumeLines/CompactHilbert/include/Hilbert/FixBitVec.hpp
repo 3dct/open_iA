@@ -59,16 +59,16 @@ class CFixBitVec
 	CFixBitVec(
 		int iBits = FBV_BITS
 		);
-	
+
 	// Copy constructor.
 	CFixBitVec(
 		const CFixBitVec &cFBV
 		);
-	
+
 	// Returns the current size in bits.
 	int
 	getSize();
-	
+
 	// Sets the size.  This is a dummy
 	// function just for BigBitVec compatibility.
 	CFixBitVec &
@@ -123,7 +123,7 @@ class CFixBitVec
 	operator&=(
 		const CFixBitVec &cFBV
 		);
-	
+
 	CFixBitVec &
 	operator&=(
 		FBV_UINT i
@@ -138,7 +138,7 @@ class CFixBitVec
 	operator&(
 		FBV_UINT i
 		);
-	
+
 	// OR operation in place.
 	CFixBitVec &
 	operator|=(
@@ -190,7 +190,7 @@ class CFixBitVec
 	operator<<(
 		int iBits
 		) const;
-	
+
 	// Shift right operation, in place.
 	CFixBitVec &
 	operator>>=(
@@ -242,7 +242,7 @@ class CFixBitVec
 	// Returns the index of the most significant bit
 	int
 	msb() const;
-                
+
 	// Returns the index of the first set bit, numbered from
 	// 1 to n.  0 means there were no set bits.
 	int
@@ -282,7 +282,7 @@ class CFixBitVec
 	rackCount();
 
   private:
-	
+
 	static
 	void
 	compileTimeAssertions();

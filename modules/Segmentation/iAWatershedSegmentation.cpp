@@ -30,9 +30,9 @@
 #include <itkWatershedImageFilter.h>
 
 
-// Watershed segmentation 
+// Watershed segmentation
 
-template<class T> 
+template<class T>
 void watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM >   InputImageType;

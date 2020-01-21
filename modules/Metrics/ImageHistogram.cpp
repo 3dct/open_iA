@@ -61,7 +61,7 @@ namespace
 
 /** \fn int cImageHistogram::CreateHist(float* fImage, unsigned int nPixelH, unsigned int nPixelW, unsigned int nPixelD, int n, float min, float max, bool ConsiderRecoFillZeroes, unsigned long long nCutL, unsigned long long nCutH)
  *	\brief Calculate the histogram of the float image with n bins in the range of min to max. If truncation values >0, the initial histogramm is used to calculate a new min/max range. The final histogramm is calculated using the new truncated min/max range. If (nCutL+nCutH) is greater or equal datasize the truncation is disabled.
- *	\param fImage a float pointer to the source image. 
+ *	\param fImage a float pointer to the source image.
  *	\param nPixelH a unsigned int. The image height in pixel.
  *	\param nPixelW a unsigned int. The image width in pixel.
  *	\param nPixelD a unsigned int. The image depth in pixel.
@@ -79,7 +79,7 @@ int cImageHistogram::CreateHist(float* fImage, unsigned int nPixelH, unsigned in
 	unsigned long long datasize = (unsigned long long)nPixelH*nPixelW*nPixelD;
 	float curX, StepPerBin;
 	std::vector<unsigned long long> trunc_idx; trunc_idx.push_back(0); trunc_idx.push_back(n-1);
-	
+
 	// Two iterations are only needed if several counts should be cuted from beginning and end of the first iterations histogram
 	int runs=1;
 	if( ((nCutL>0) || (nCutH>0)) && (nCutL+nCutH)<datasize)
@@ -116,7 +116,7 @@ int cImageHistogram::CreateHist(float* fImage, unsigned int nPixelH, unsigned in
 			else
 				hist_y[(int)curX]++;
 		}
-		
+
 		// Calculate new min/max values with truncation
 		if(r==0 && runs==2)
 		{
@@ -184,7 +184,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 	if(dknl_sz<1)
 		dknl_sz = 1;                 // y' via gauss': [1.184 0 -1.184] ~= diff: [1 -1]
 	float gauss_sigma = (float)dknl_sz/4;
-	
+
 	double sum=0.0, value;
 	for(int i=-dknl_sz; i<=dknl_sz; i++)
 	{
@@ -200,7 +200,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 	for(int i=0; i<dknl_sz*2; i++)
 		dgauss_knl.push_back(gauss_knl[i+1]-gauss_knl[i]);
 
-	// Derivate histogram by convoluting with an derivated gauss 
+	// Derivate histogram by convoluting with an derivated gauss
 	// =========================================================================
 	dghist_y = Conv1D(hist_y,dgauss_knl,1);
 	dghist_x = hist_x;
@@ -264,7 +264,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 			if(knl_sz<1)
 				knl_sz = 1;                 // y' via gauss': [1.184 0 -1.184] ~= diff: [1 -1]
 			float gauss_sigma = (float)knl_sz/4;
-			
+
 			sum = 0.0;
 			for(int i=-knl_sz; i<=knl_sz; i++)
 			{
@@ -345,13 +345,13 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 			CStart = thrsh_IDX[t-1];
 			CEnd = thrsh_IDX[t];
 		}
-		
+
 		// mean
 		count=0,sum=0,nval=0;
 		for(int i=CStart; i<CEnd; i++)
 		{
 			count+=hist_y[i];
-			sum+=hist_y[i]*hist_x[i]; 
+			sum+=hist_y[i]*hist_x[i];
 			nval+=hist_y[i];
 		}
 		val.mean=(float)(sum/nval);
@@ -365,7 +365,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 
 		//probability
 		val.probability = (float)(count/counttotal);
-		
+
 		if(t>0 && val.probability>maxprobability)
 		{
 			maxprobability = val.probability;
@@ -467,7 +467,7 @@ std::vector<double> cImageHistogram::Conv1D(std::vector<unsigned long long> in, 
 		hlpsize = ((int)knl.size()-1)/2;
 	else
 		hlpsize = (int)knl.size()/2-1;
-		
+
 	// Zero padding
 	for(i=0; i<extsize; i++)
 	{
@@ -477,11 +477,11 @@ std::vector<double> cImageHistogram::Conv1D(std::vector<unsigned long long> in, 
 
 	// Full convolution
 	for(i=0, iext=hlpsize; i<fullsize; i++, iext++)
-    {
+	{
 		out.push_back(0.0f);
-        for(k=(int)knl.size()-1, kext=-hlpsize; k>=0; k--, kext++)
-            out[i] += knl[k] * in[iext+kext];
-    }
+		for(k=(int)knl.size()-1, kext=-hlpsize; k>=0; k--, kext++)
+			out[i] += knl[k] * in[iext+kext];
+	}
 
 	if(mode==1)
 	{
@@ -514,7 +514,7 @@ void cImageHistogram::Conv1D_test()
 	std::vector<double> out_A7_KNL4_full = Conv1D(in,knl,0);
 	std::vector<double> out_A7_KNL4_same = Conv1D(in,knl,1);
 	std::vector<double> out_A7_KNL4_valid= Conv1D(in,knl,2);
-	
+
 	in.clear(); in.push_back(0);in.push_back(0);in.push_back(0);in.push_back(5);in.push_back(0);in.push_back(0);in.push_back(0);
 	knl.clear(); knl.push_back(0.9);knl.push_back(0.8);knl.push_back(0.7);knl.push_back(0.6);knl.push_back(0.5);
 	std::vector<double> out_A7_KNL5_full = Conv1D(in,knl,0);
@@ -526,7 +526,7 @@ void cImageHistogram::Conv1D_test()
 	std::vector<double> out_A8_KNL4_full = Conv1D(in,knl,0);
 	std::vector<double> out_A8_KNL4_same = Conv1D(in,knl,1);
 	std::vector<double> out_A8_KNL4_valid= Conv1D(in,knl,2);
-	
+
 	in.clear(); in.push_back(0);in.push_back(0);in.push_back(0);in.push_back(5);in.push_back(5);in.push_back(0);in.push_back(0);in.push_back(0);
 	knl.clear(); knl.push_back(0.9);knl.push_back(0.8);knl.push_back(0.7);knl.push_back(0.6);knl.push_back(0.5);
 	std::vector<double> out_A8_KNL5_full = Conv1D(in,knl,0);

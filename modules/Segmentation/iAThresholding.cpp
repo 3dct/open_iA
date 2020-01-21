@@ -112,7 +112,7 @@ iABinaryThreshold::iABinaryThreshold() :
 
 // Robust Automatic Threshold (RAT)
 
-template<class T> 
+template<class T>
 void rats_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;
@@ -122,7 +122,7 @@ void rats_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 	typename GMFType::Pointer gmfilter = GMFType::New();
 	gmfilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	filter->progress()->observe( gmfilter );
-	gmfilter->Update(); 
+	gmfilter->Update();
 	typedef typename itk::RobustAutomaticThresholdImageFilter < InputImageType, GradientImageType, OutputImageType > RATType;
 	auto ratsFilter = RATType::New();
 	ratsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
@@ -161,7 +161,7 @@ iARatsThreshold::iARatsThreshold() :
 
 // Otsu's Threshold
 
-template<class T> 
+template<class T>
 void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;

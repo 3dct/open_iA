@@ -71,7 +71,7 @@ protected:
 	void updateFromGUI() const;
 	void setupTableWidgetContextMenu();
 	void createTableWidgetActions();
-	
+
 protected:
 	QWidget * m_compSegmWidget;
 	Ui::ComputeSegmentations uiComputeSegm;
@@ -80,7 +80,7 @@ protected:
 	mutable QString m_datasetsFolder;
 	mutable QString m_csvFile;
 	QString m_cpuVendor;
-	QString m_cpuBrand;	
+	QString m_cpuBrand;
 	iAPorosityAnalyser * m_porosityAnalyser;
 	QAction *removeRowAction;
 	QAction *saveTableToCSVAction;

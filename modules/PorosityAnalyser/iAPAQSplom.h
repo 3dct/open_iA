@@ -90,9 +90,9 @@ protected:
 	QString m_currPrevDatasetName;
 	QString m_currPrevPipelineName;
 
-private: 
+private:
 	MainWindow * m_mainWnd;
 	MdiChild * m_mdiChild;
-	QString m_csvName; 
+	QString m_csvName;
 
 };

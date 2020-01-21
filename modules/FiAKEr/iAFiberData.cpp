@@ -308,7 +308,7 @@ namespace
 		double sumVal = 0;
 		double minVal = std::numeric_limits<double>::max();
 		double maxVal = 0;
-		
+
 		std::vector<iAVec3f> const & f1pts = (f1.curvedPoints.empty()) ? f1.pts : f1.curvedPoints;
 
 		for (iAVec3f const & f1pt: f1pts)

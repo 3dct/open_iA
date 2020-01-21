@@ -43,4 +43,4 @@ private:
 	iAPerformanceTimer::DurationType m_duration;
 	QString m_output;
 	bool m_success;
-}; 
+};

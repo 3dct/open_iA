@@ -571,7 +571,7 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 		{
 			auto itkImg = m->LabelImage();
 			memberImageCache.push_back(itkImg);
-			
+
 			auto prob = m->ProbabilityImgs(LabelCount());
 			memberProbImageCache.push_back(prob);
 		}

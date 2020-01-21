@@ -56,7 +56,7 @@ public:
 protected slots:
 	void totalProgressSlot( int progress );
 	void browseCSV();
-	
+
 protected:
 	void LoadSettings();
 	void SaveSettings();

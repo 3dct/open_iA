@@ -30,7 +30,7 @@
 #include <itkSignedMaurerDistanceMapImageFilter.h>
 
 
-template<class T> 
+template<class T>
 void signed_maurer_distancemap(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, 3 > InputImageType;

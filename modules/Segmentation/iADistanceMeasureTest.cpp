@@ -96,12 +96,12 @@ BEGIN_TEST
 	TestEqualFloatingPoint( 3.0,        l2. GetDistance(fct3.get(0), fct3.get(1)) );
 	TestEqualFloatingPoint( 2.0,        lid.GetDistance(fct3.get(0), fct3.get(1)) );
 	TestEqualFloatingPoint( 0.80178372573727319,    sad.GetDistance(fct3.get(0), fct3.get(1)) );
-	
+
 	TestEqualFloatingPoint( 0.69314718, kld.GetDistance(fct3.get(0), fct3.get(1)) );
 	TestEqualFloatingPoint( 0.41627731, jsd.GetDistance(fct3.get(0), fct3.get(1)) );
 	TestEqualFloatingPoint( 0.33333333, csd.GetDistance(fct3.get(0), fct3.get(1)) );
 	TestEqualFloatingPoint( 0.5,        emd.GetDistance(fct3.get(0), fct3.get(1)) );
-	
+
 
 	TestEqualFloatingPoint( 5.0,        l1. GetDistance(fct3.get(1), fct3.get(0)) );
 	TestEqualFloatingPoint( 3.0,        l2. GetDistance(fct3.get(1), fct3.get(0)) );
@@ -124,7 +124,7 @@ BEGIN_TEST
 	TestEqualFloatingPoint( 0.09175449,        jsd.GetDistance(fct4.get(0), fct4.get(1)) );
 	TestEqualFloatingPoint( 0.004196113731758, csd.GetDistance(fct4.get(0), fct4.get(1)) );
 	TestEqualFloatingPoint( 0.140929535232384, emd.GetDistance(fct4.get(0), fct4.get(1)) );
-	
+
 	TestEqualFloatingPoint( 6.0,               l1. GetDistance(fct4.get(1), fct4.get(0)) );
 	TestEqualFloatingPoint( 3.74166,           l2. GetDistance(fct4.get(1), fct4.get(0)) );
 	TestEqualFloatingPoint( 3.0,               lid.GetDistance(fct4.get(1), fct4.get(0)) );

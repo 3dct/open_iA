@@ -22,7 +22,7 @@
 
 #include "iADreamCasterCommon.h"
 
-//! ScreenBuffer, representing screen surface. Contains image's pixel buffer and size data.	
+//! ScreenBuffer, representing screen surface. Contains image's pixel buffer and size data.
 class iAScreenBuffer
 {
 public:

@@ -81,7 +81,7 @@ void iAFoamCharacterizationItemBinarization::execute()
 		break;
 
 		default:
-		executeOtzu(); 
+		executeOtzu();
 		break;
 	}
 
@@ -179,7 +179,7 @@ void iAFoamCharacterizationItemBinarization::open(QFile* _pFileOpen)
 	_pFileOpen->read((char*)&m_usUpperThreshold, sizeof(m_usUpperThreshold));
 	_pFileOpen->read((char*)&m_uiOtzuHistogramBins, sizeof(m_uiOtzuHistogramBins));
 	_pFileOpen->read((char*)&m_bIsMask, sizeof(m_bIsMask));
-	
+
 	setItemText();
 }
 

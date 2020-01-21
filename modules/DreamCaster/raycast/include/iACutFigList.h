@@ -41,7 +41,7 @@ public:
 		//m_sizeInFile = sizeof(aabb) + sizeof(slidersValues);
 	};
 	QString name() {return m_name;}
-	inline QString GetDimString() 
+	inline QString GetDimString()
 	{
 		return "("+QString::number(box.x1)+", "+QString::number(box.x2)+", "
 		+QString::number(box.y1)+", "+QString::number(box.y2)+", "
@@ -58,7 +58,7 @@ public:
 	}
 	//! Write aabb data in file
 	inline void Write2File(FILE *fptr)
-	{	
+	{
 		fwrite(&box, sizeof(iAaabb), 1, fptr);
 		fwrite(slidersValues, sizeof(slidersValues), 1, fptr);
 	}
@@ -102,7 +102,7 @@ public:
 	}
 	inline int add(iACutAAB* item)
 	{
-		list.push_back(item); 
+		list.push_back(item);
 		aabbs.push_back(&item->box);
 		return (int)(list.size()-1);
 	}

@@ -29,7 +29,7 @@ class vtkObject;
 class vtkCamera;
 
 //! Class synchronizing the camera between multiple renderers
-//! 
+//!
 class open_iA_Core_API iARendererManager
 {
 public:

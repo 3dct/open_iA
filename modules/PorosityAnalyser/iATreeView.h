@@ -100,7 +100,7 @@ public slots:
 	void loadSelectionsToSS( QList<iASelection*>  sels );
 	void loadSelectionToPC();
 	void loadSelectionToPDM();
-	
+
 	void forwardRSDSelection();
 	void loadFilteredDataToOverview();
 	void loadOverviewSelectionToSPM( QModelIndexList indices );

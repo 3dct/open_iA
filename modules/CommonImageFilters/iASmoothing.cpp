@@ -158,7 +158,7 @@ iARecursiveGaussian::iARecursiveGaussian() :
 
 
 
-template<class T> 
+template<class T>
 void discreteGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;

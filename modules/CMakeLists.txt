@@ -106,7 +106,7 @@ FOREACH( indx RANGE ${len} )
 			ENDIF()
 		ENDIF()
 	ENDIF()
-	
+
 	# Module dependencies: new style - include directory and link dll:
 	IF (ADDITIONAL_MODULE_MODULES AND openiA_DEPENDENCY_INFO)
 		MESSAGE(STATUS "    modules: ${ADDITIONAL_MODULE_MODULES}")
@@ -193,7 +193,7 @@ FOREACH( indx RANGE ${len} )
 			INSTALL (TARGETS ${module_name} LIBRARY DESTINATION plugins)
 		ENDIF()
 	ENDIF()
-	
+
 	IF (FLATPAK_BUILD)
 		LIST (APPEND BUNDLE_LIBS "\${CMAKE_INSTALL_PREFIX}/bin/plugins/${CMAKE_SHARED_LIBRARY_PREFIX}${module_name}${CMAKE_SHARED_LIBRARY_SUFFIX}")
 	ELSE()

@@ -33,26 +33,26 @@
 #include <QTreeWidget>
 #include <QPair>
 
-iATreeView::iATreeView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) 
-    : TreeViewConnector( parent, f ),
-    m_contextMenu( new QMenu( this ) ),
-    m_selectedRunsData( new QTableWidget() ),
-    m_selectedPCData( new QTableWidget() ),
-    m_selectedRSDData( new QTableWidget() ),
-    m_selectedSSData( new QTableWidget() ),
-    m_dataExternal( 0 )
+iATreeView::iATreeView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
+	: TreeViewConnector( parent, f ),
+	m_contextMenu( new QMenu( this ) ),
+	m_selectedRunsData( new QTableWidget() ),
+	m_selectedPCData( new QTableWidget() ),
+	m_selectedRSDData( new QTableWidget() ),
+	m_selectedSSData( new QTableWidget() ),
+	m_dataExternal( 0 )
 {
-    treeWidget->setSelectionMode( QAbstractItemView::ExtendedSelection );
-    treeWidget->viewport()->installEventFilter( this );
-    m_contextMenu->setStyleSheet( contextMenuStyle );
-    m_contextMenu->addAction( "=> Scatter Plot Matrix", this, SLOT( loadSelectionToSPM() ) );
-    m_contextMenu->addAction( "=> Parallel Coordinates", this, SLOT( loadSelectionToPC() ) );
-    m_contextMenu->addAction( "=> Pipeline/Dataset Matrix", this, SLOT( loadSelectionToPDM() ) );
-    m_contextMenu->addAction( "=> Range Slider Diagram", this, SLOT( forwardRSDSelection() ) );
-    m_contextMenu->addAction( "=> Slice Segmentation View", this, SLOT( loadSelectionToSS() ) );
-    connect( treeWidget, SIGNAL( itemCollapsed( QTreeWidgetItem* ) ), this, SLOT( adjustTreeWidgetColumnWidths() ) );
-    connect( treeWidget, SIGNAL( itemExpanded( QTreeWidgetItem* ) ), this, SLOT( adjustTreeWidgetColumnWidths() ) );
-	
+	treeWidget->setSelectionMode( QAbstractItemView::ExtendedSelection );
+	treeWidget->viewport()->installEventFilter( this );
+	m_contextMenu->setStyleSheet( contextMenuStyle );
+	m_contextMenu->addAction( "=> Scatter Plot Matrix", this, SLOT( loadSelectionToSPM() ) );
+	m_contextMenu->addAction( "=> Parallel Coordinates", this, SLOT( loadSelectionToPC() ) );
+	m_contextMenu->addAction( "=> Pipeline/Dataset Matrix", this, SLOT( loadSelectionToPDM() ) );
+	m_contextMenu->addAction( "=> Range Slider Diagram", this, SLOT( forwardRSDSelection() ) );
+	m_contextMenu->addAction( "=> Slice Segmentation View", this, SLOT( loadSelectionToSS() ) );
+	connect( treeWidget, SIGNAL( itemCollapsed( QTreeWidgetItem* ) ), this, SLOT( adjustTreeWidgetColumnWidths() ) );
+	connect( treeWidget, SIGNAL( itemExpanded( QTreeWidgetItem* ) ), this, SLOT( adjustTreeWidgetColumnWidths() ) );
+
 	filterWidget->hide();
 	lwFiltDataset->setSelectionMode( QAbstractItemView::ExtendedSelection );
 	lwFiltPipeline->setSelectionMode( QAbstractItemView::ExtendedSelection );
@@ -66,8 +66,8 @@ iATreeView::iATreeView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 
 iATreeView::~iATreeView()
 {
-    delete m_selectedPCData;
-    delete m_selectedRunsData;
+	delete m_selectedPCData;
+	delete m_selectedRunsData;
 }
 
 void iATreeView::SetData( QTableWidget * const dataTable, const QMap<QString, double> * gtPorosityMap, int runsOffset )
@@ -77,22 +77,22 @@ void iATreeView::SetData( QTableWidget * const dataTable, const QMap<QString, do
 	m_runsOffset = runsOffset;
 	treeWidget->setColumnCount( m_dataExternal->columnCount() );
 
-    QList<QString> listAlg_DS;
-    QList<int> indicesAlg_DS;
-    listAlg_DS << m_dataExternal->item( 0, groupColInd )->text();
-    for( int i = 0; i < m_dataExternal->rowCount(); ++i )
-    {
-        int indexOf = listAlg_DS.indexOf( m_dataExternal->item( i, groupColInd )->text() );
-        if( indexOf == -1 )
-        {
-            listAlg_DS << m_dataExternal->item( i, groupColInd )->text();
-            indicesAlg_DS.push_back( listAlg_DS.size() - 1 );
-        }
+	QList<QString> listAlg_DS;
+	QList<int> indicesAlg_DS;
+	listAlg_DS << m_dataExternal->item( 0, groupColInd )->text();
+	for( int i = 0; i < m_dataExternal->rowCount(); ++i )
+	{
+		int indexOf = listAlg_DS.indexOf( m_dataExternal->item( i, groupColInd )->text() );
+		if( indexOf == -1 )
+		{
+			listAlg_DS << m_dataExternal->item( i, groupColInd )->text();
+			indicesAlg_DS.push_back( listAlg_DS.size() - 1 );
+		}
 		else
 		{
 			indicesAlg_DS.push_back(indexOf);
 		}
-    }
+	}
 
 	m_pipeDsetItems.clear();
 	m_runItems.clear();
@@ -161,7 +161,7 @@ bool iATreeView::calculatedSelectedRunsData( QList<QTreeWidgetItem*> selectedIte
 	//	}
 	//	DEBUG_LOG(QString(s));
 	//}
-	
+
 	//insert header
 	m_selectedRunsData->clear();
 	m_selectedRunsData->setColumnCount( inParCnt + outputSPMParamNum + outParCnt + 2 + 3 + 6 + 1);//+deviation from rererence+dataset index +3dice errors + 6avg feature outputs + mask path
@@ -197,8 +197,8 @@ bool iATreeView::calculatedSelectedRunsData( QList<QTreeWidgetItem*> selectedIte
 	for (const QTreeWidgetItem * item: finalItems)
 	{
 		double porosity, devRefPorosity;
-		QString datasetName = getDatasetName( item );	
-		if( !m_selectedDatasets.contains( datasetName ) )			
+		QString datasetName = getDatasetName( item );
+		if( !m_selectedDatasets.contains( datasetName ) )
 		{
 			m_selectedDatasets.push_back( datasetName );
 			m_selDatasetsInds.push_back( m_datasets.indexOf( datasetName ) );
@@ -231,7 +231,7 @@ bool iATreeView::calculatedSelectedRunsData( QList<QTreeWidgetItem*> selectedIte
 		m_selectedRunsData->setItem( lastRow, paramOffset++, new QTableWidgetItem( item->text( errorInd++ ) ) );
 		m_selectedRunsData->setItem( lastRow, paramOffset++, new QTableWidgetItem( item->text( errorInd++) ) );
 		m_selectedRunsData->setItem( lastRow, paramOffset++, new QTableWidgetItem( item->text( errorInd++ ) ) );
-		
+
 		//Parse average feature outputs (FeatureCount, AvgFeatureVol, AvgFeaturePhi, AvgFeatureTheta, AvgFeatureRoundness, AvgFeatureLength)
 		m_selectedRunsData->setItem(lastRow, paramOffset++, new QTableWidgetItem(item->text(errorInd++)));
 		m_selectedRunsData->setItem(lastRow, paramOffset++, new QTableWidgetItem(item->text(errorInd++)));
@@ -259,27 +259,27 @@ bool iATreeView::updateSelectedSSData( QList<QTreeWidgetItem*> items )
 		return false;
 	}
 
-    //aggregate all runs
+	//aggregate all runs
 	QList<QTreeWidgetItem *> finalItems = aggregateRuns( items );
 
-    //insert header
-    m_selectedSSData->clear();
-    int colCnt = finalItems.first()->columnCount();
-    m_selectedSSData->setColumnCount( colCnt );
-    m_selectedSSData->setRowCount( 0 );
-    
-    //go through items and parse them
-    for (const QTreeWidgetItem * item: finalItems)
-    {
-        int lastRow = m_selectedSSData->rowCount();
-        m_selectedSSData->insertRow( lastRow );
-        //parse input parameter values
+	//insert header
+	m_selectedSSData->clear();
+	int colCnt = finalItems.first()->columnCount();
+	m_selectedSSData->setColumnCount( colCnt );
+	m_selectedSSData->setRowCount( 0 );
+
+	//go through items and parse them
+	for (const QTreeWidgetItem * item: finalItems)
+	{
+		int lastRow = m_selectedSSData->rowCount();
+		m_selectedSSData->insertRow( lastRow );
+		//parse input parameter values
 		for (int i = 0; i < colCnt; ++i)
 		{
 			m_selectedSSData->setItem(lastRow, i, new QTableWidgetItem(item->text(i)));
 		}
-    }
-    return true;
+	}
+	return true;
 }
 
 void iATreeView::loadSelectionToSPM()
@@ -288,7 +288,7 @@ void iATreeView::loadSelectionToSPM()
 	{
 		return;
 	}
-    emit loadSelectionToSPMSignal( m_selectedRunsData );
+	emit loadSelectionToSPMSignal( m_selectedRunsData );
 	emit loadDatasetsToPreviewSignal( m_selectedDatasets );
 	emit loadAllDatasetsByIndicesSignal( m_selectedDatasets, m_selDatasetsInds );
 	emit selectionModified( &m_lastSelectedItems );
@@ -310,7 +310,7 @@ void iATreeView::loadSelectionToSS()
 	{
 		return;
 	}
-    emit loadSelectionToSSSignal( m_selectedSSData, "" );
+	emit loadSelectionToSSSignal( m_selectedSSData, "" );
 	emit selectionModified( &m_lastSelectedItems );
 }
 
@@ -376,7 +376,7 @@ void iATreeView::loadSelectionsToSS( QList<iASelection*> sels )
 				//QString text = m_selectedSSData->item( ind, j )->text();
 				tw->setItem( lastRow, j, new QTableWidgetItem( *m_selectedSSData->item( ind, j ) ) );
 			}
-		}		
+		}
 		m_compareSSData.push_back( qMakePair( tw, s->selText ) );
 	}
 	emit loadSelectionsToSSSignal( &m_compareSSData );
@@ -385,42 +385,42 @@ void iATreeView::loadSelectionsToSS( QList<iASelection*> sels )
 
 bool iATreeView::updateSelectedPCData()
 {
-    m_lastSelectedItems = treeWidget->selectedItems();
+	m_lastSelectedItems = treeWidget->selectedItems();
 	if (!m_lastSelectedItems.size())
 	{
 		return false;
 	}
 
-    //aggregate all runs
+	//aggregate all runs
 	QList<QTreeWidgetItem *> finalItems = aggregateRuns( m_lastSelectedItems );
 
-    //get list of datasets
-    QStringList datasets = getAllDatasets( finalItems );
+	//get list of datasets
+	QStringList datasets = getAllDatasets( finalItems );
 
-    m_selectedPCData->clear();
-    m_selectedPCData->setColumnCount( datasets.size() );
-    m_selectedPCData->setRowCount( 1 );
+	m_selectedPCData->clear();
+	m_selectedPCData->setColumnCount( datasets.size() );
+	m_selectedPCData->setRowCount( 1 );
 
-    QList<int> offsets;
-    for( int i = 0; i < datasets.size(); ++i )
-    {
-        m_selectedPCData->setItem( 0, i, new QTableWidgetItem( datasets[i] ) );
-        offsets.push_back( 1 ); //because of header
-    }
-    //go through items and parse them
-    for (const QTreeWidgetItem * item: finalItems)
-    {
-        int column = datasets.indexOf( item->text( datasetColInd ) );
-        int offset = offsets[column];
-        if( offset == m_selectedPCData->rowCount() )
-        {
-            int lastRow = m_selectedPCData->rowCount();
-            m_selectedPCData->insertRow( lastRow );
-        }
-        m_selectedPCData->setItem( offset, column, new QTableWidgetItem( item->text( m_runsOffset + 2 ) ) );
-        offsets[column] = offset + 1;
-    }
-    return true;
+	QList<int> offsets;
+	for( int i = 0; i < datasets.size(); ++i )
+	{
+		m_selectedPCData->setItem( 0, i, new QTableWidgetItem( datasets[i] ) );
+		offsets.push_back( 1 ); //because of header
+	}
+	//go through items and parse them
+	for (const QTreeWidgetItem * item: finalItems)
+	{
+		int column = datasets.indexOf( item->text( datasetColInd ) );
+		int offset = offsets[column];
+		if( offset == m_selectedPCData->rowCount() )
+		{
+			int lastRow = m_selectedPCData->rowCount();
+			m_selectedPCData->insertRow( lastRow );
+		}
+		m_selectedPCData->setItem( offset, column, new QTableWidgetItem( item->text( m_runsOffset + 2 ) ) );
+		offsets[column] = offset + 1;
+	}
+	return true;
 }
 
 void iATreeView::loadSelectionToPC()
@@ -429,55 +429,55 @@ void iATreeView::loadSelectionToPC()
 	{
 		return;
 	}
-    emit loadSelectionToPCSignal( m_selectedPCData );
+	emit loadSelectionToPCSignal( m_selectedPCData );
 	emit selectionModified( &m_lastSelectedItems );
 }
 
 bool iATreeView::updateSelectedBPMData()
 {
 	m_selectedBPMData.clear();
-    //aggregate all runs
-    m_lastSelectedItems = treeWidget->selectedItems();
+	//aggregate all runs
+	m_lastSelectedItems = treeWidget->selectedItems();
 	if (!m_lastSelectedItems.size())
 	{
 		return false;
 	}
 	QList<QTreeWidgetItem *> finalItems = aggregateRuns( m_lastSelectedItems );
 
-    //prepare structures
-    m_selectedBPMData.datasets = getAllDatasets( finalItems );
-    m_selectedBPMData.filters = getAllFilterNames( finalItems );
+	//prepare structures
+	m_selectedBPMData.datasets = getAllDatasets( finalItems );
+	m_selectedBPMData.filters = getAllFilterNames( finalItems );
 
-    for( int i = 0; i < m_selectedBPMData.filters.size(); ++i )
-    {
-        QList< iABoxPlotData > sublist;
+	for( int i = 0; i < m_selectedBPMData.filters.size(); ++i )
+	{
+		QList< iABoxPlotData > sublist;
 		for (int j = 0; j < m_selectedBPMData.datasets.size(); ++j)
 		{
 			sublist.push_back(iABoxPlotData());
 		}
-        m_selectedBPMData.boxPlots.push_back( sublist );
-    }
+		m_selectedBPMData.boxPlots.push_back( sublist );
+	}
 
-    QList< QList< QVector<double> > > bpData;
-    for( int i = 0; i < m_selectedBPMData.filters.size(); ++i )
-    {
-        QList< QVector<double> > sublist;
+	QList< QList< QVector<double> > > bpData;
+	for( int i = 0; i < m_selectedBPMData.filters.size(); ++i )
+	{
+		QList< QVector<double> > sublist;
 		for (int j = 0; j < m_selectedBPMData.datasets.size(); ++j)
 		{
 			sublist.push_back(QVector<double>());
 		}
-        bpData.push_back( sublist );
-    }
+		bpData.push_back( sublist );
+	}
 
-    //go through items and fetch porosities
+	//go through items and fetch porosities
 	for (const QTreeWidgetItem* item : finalItems)
-    {
-        int dsInd = m_selectedBPMData.datasets.indexOf( getDatasetName( item ) );
-        int filtInd = m_selectedBPMData.filters.indexOf( getFilterName( item ) );
+	{
+		int dsInd = m_selectedBPMData.datasets.indexOf( getDatasetName( item ) );
+		int filtInd = m_selectedBPMData.filters.indexOf( getFilterName( item ) );
 
-        double porosity = item->text( m_runsOffset + 2 ).toDouble();
-        bpData[filtInd][dsInd].push_back( porosity );
-    }
+		double porosity = item->text( m_runsOffset + 2 ).toDouble();
+		bpData[filtInd][dsInd].push_back( porosity );
+	}
 
 	//calculate box plots
 	for (int i = 0; i < m_selectedBPMData.filters.size(); ++i)
@@ -488,7 +488,7 @@ bool iATreeView::updateSelectedBPMData()
 		}
 	}
 
-    return true;
+	return true;
 }
 
 void iATreeView::forwardRSDSelection()
@@ -508,131 +508,131 @@ void iATreeView::loadSelectionToRSD( QList<QTreeWidgetItem*> selectedItems )
 	{
 		return;
 	}
-    //Currently only one algo + one dataset
-    if ( m_lastSelectedItems.size() > 1 )
-    {
+	//Currently only one algo + one dataset
+	if ( m_lastSelectedItems.size() > 1 )
+	{
 		emit displayMessage( "'Parameter Range Slider' only can show one pipeline/dataset combination at the same time." );
 		emit clearOldRSDViewSignal();
-        return;
-    }
+		return;
+	}
 
-    //get algorithms info
+	//get algorithms info
 	QList<PorosityFilterID> filterIds = getAlgorithmsInfo( m_lastSelectedItems );
 
-    //fill in header and numbers of parameters
-    QStringList header;
-    QStringList outParamNames;
-    processParameters( filterIds, header, outParamNames );
+	//fill in header and numbers of parameters
+	QStringList header;
+	QStringList outParamNames;
+	processParameters( filterIds, header, outParamNames );
 
-    //Parameter-free algorithms in Parameter Range Slider View makes no sense
-    if ( header.size() < 1 )
-    {
+	//Parameter-free algorithms in Parameter Range Slider View makes no sense
+	if ( header.size() < 1 )
+	{
 		emit displayMessage( "A parameter-free algorithm can not be shown in the Parameter Range Slider View." );
-        return;
-    }
-        
-    //aggregate all runs
+		return;
+	}
+
+	//aggregate all runs
 	QList<QTreeWidgetItem *> finalItems = aggregateRuns( m_lastSelectedItems );
 
-    //insert header
-    m_selectedRSDData->clear();
-    m_selectedRSDData->setColumnCount( header.size() + 4 );
-    m_selectedRSDData->setRowCount( 1 );
+	//insert header
+	m_selectedRSDData->clear();
+	m_selectedRSDData->setColumnCount( header.size() + 4 );
+	m_selectedRSDData->setRowCount( 1 );
 	for (int i = 0; i < header.size(); ++i)
 	{
 		m_selectedRSDData->setItem(0, i, new QTableWidgetItem(header[i]));
 	}
-    int headerOffset = header.size();
-    m_selectedRSDData->setItem( 0, headerOffset++, new QTableWidgetItem( "Porosity" ) );
-    m_selectedRSDData->setItem( 0, headerOffset++, new QTableWidgetItem( "Deviation" ) );
-    m_selectedRSDData->setItem( 0, headerOffset++, new QTableWidgetItem( "Dataset" ) );
-    m_selectedRSDData->setItem( 0, headerOffset++, new QTableWidgetItem( "Algorithm" ) );
+	int headerOffset = header.size();
+	m_selectedRSDData->setItem( 0, headerOffset++, new QTableWidgetItem( "Porosity" ) );
+	m_selectedRSDData->setItem( 0, headerOffset++, new QTableWidgetItem( "Deviation" ) );
+	m_selectedRSDData->setItem( 0, headerOffset++, new QTableWidgetItem( "Dataset" ) );
+	m_selectedRSDData->setItem( 0, headerOffset++, new QTableWidgetItem( "Algorithm" ) );
 
-    //go through items and parse them
+	//go through items and parse them
 	for (const QTreeWidgetItem* item : finalItems)
-    {
-        double porosity, devRefPorosity;
-        QString datasetName = getDatasetName( item );
-        QString filterName = getFilterName( item );
-        int paramOffset = 0;
-        int lastRow = m_selectedRSDData->rowCount();
-        m_selectedRSDData->insertRow( lastRow );
-        //parse input parameter values
+	{
+		double porosity, devRefPorosity;
+		QString datasetName = getDatasetName( item );
+		QString filterName = getFilterName( item );
+		int paramOffset = 0;
+		int lastRow = m_selectedRSDData->rowCount();
+		m_selectedRSDData->insertRow( lastRow );
+		//parse input parameter values
 		for (int i = 0; i < header.size(); ++i)
 		{
 			m_selectedRSDData->setItem(lastRow, paramOffset++, new QTableWidgetItem(item->text(m_runsOffset + paramsOffsetInRunsCSV + i)));
 		}
-        //insert porosity
-        int itemOffset = m_runsOffset + 2;
-        porosity = item->text( itemOffset ).toDouble();
-        m_selectedRSDData->setItem( lastRow, paramOffset++, new QTableWidgetItem( item->text( itemOffset++ ) ) );
-        //insert deviation from the reference porosity
-        devRefPorosity = porosity - ( *m_gtPorosityMap )[datasetName];
-        m_selectedRSDData->setItem( lastRow, paramOffset++, new QTableWidgetItem( QString::number( devRefPorosity ) ) );
-        //insert dataset name
-        m_selectedRSDData->setItem( lastRow, paramOffset++, new QTableWidgetItem( datasetName ) );
-        //insert algorithm name
-        m_selectedRSDData->setItem( lastRow, paramOffset++, new QTableWidgetItem( filterName) );
-    }
-    emit loadSelectionToRSDSignal( m_selectedRSDData );
+		//insert porosity
+		int itemOffset = m_runsOffset + 2;
+		porosity = item->text( itemOffset ).toDouble();
+		m_selectedRSDData->setItem( lastRow, paramOffset++, new QTableWidgetItem( item->text( itemOffset++ ) ) );
+		//insert deviation from the reference porosity
+		devRefPorosity = porosity - ( *m_gtPorosityMap )[datasetName];
+		m_selectedRSDData->setItem( lastRow, paramOffset++, new QTableWidgetItem( QString::number( devRefPorosity ) ) );
+		//insert dataset name
+		m_selectedRSDData->setItem( lastRow, paramOffset++, new QTableWidgetItem( datasetName ) );
+		//insert algorithm name
+		m_selectedRSDData->setItem( lastRow, paramOffset++, new QTableWidgetItem( filterName) );
+	}
+	emit loadSelectionToRSDSignal( m_selectedRSDData );
 	emit selectionModified( &m_lastSelectedItems );
 }
 
 bool iATreeView::updateSelectedHMData()
 {
 	m_selectedHMData.clear();
-    //aggregate all runs
-    m_lastSelectedItems = treeWidget->selectedItems();
+	//aggregate all runs
+	m_lastSelectedItems = treeWidget->selectedItems();
 	if (!m_lastSelectedItems.size())
 	{
 		return false;
 	}
 	QList<QTreeWidgetItem *> finalItems = aggregateRuns( m_lastSelectedItems );
 
-    //prepare structures
-    m_selectedHMData.datasets = getAllDatasets( finalItems );
-    m_selectedHMData.filters = getAllFilterNames( finalItems );
+	//prepare structures
+	m_selectedHMData.datasets = getAllDatasets( finalItems );
+	m_selectedHMData.filters = getAllFilterNames( finalItems );
 
-    for ( int i = 0; i < m_selectedHMData.datasets.size(); ++i )
-    {
-        QString datasetName = m_selectedHMData.datasets.at( i );
-        double gtPorosity = ( *m_gtPorosityMap )[m_selectedHMData.datasets.at( i )];
+	for ( int i = 0; i < m_selectedHMData.datasets.size(); ++i )
+	{
+		QString datasetName = m_selectedHMData.datasets.at( i );
+		double gtPorosity = ( *m_gtPorosityMap )[m_selectedHMData.datasets.at( i )];
 
-        m_selectedHMData.gtPorosityMap.insertMulti( datasetName, gtPorosity );
-    }
-    
-    for ( int i = 0; i < m_selectedHMData.filters.size(); ++i )
-    {
-        QList< iAHistogramPlotData > sublist;
+		m_selectedHMData.gtPorosityMap.insertMulti( datasetName, gtPorosity );
+	}
+
+	for ( int i = 0; i < m_selectedHMData.filters.size(); ++i )
+	{
+		QList< iAHistogramPlotData > sublist;
 		for (int j = 0; j < m_selectedHMData.datasets.size(); ++j)
 		{
 			sublist.push_back(iAHistogramPlotData());
 		}
-        m_selectedHMData.histogramPlots.push_back( sublist );
-    }
+		m_selectedHMData.histogramPlots.push_back( sublist );
+	}
 
-    QList< QList< QVector<double> > > hpData;
-    for ( int i = 0; i < m_selectedHMData.filters.size(); ++i )
-    {
-        QList< QVector<double> > sublist;
+	QList< QList< QVector<double> > > hpData;
+	for ( int i = 0; i < m_selectedHMData.filters.size(); ++i )
+	{
+		QList< QVector<double> > sublist;
 		for (int j = 0; j < m_selectedHMData.datasets.size(); ++j)
 		{
 			sublist.push_back(QVector<double>());
 		}
-        hpData.push_back( sublist );
-    }
-    
-    //go through items and fetch porosities
+		hpData.push_back( sublist );
+	}
+
+	//go through items and fetch porosities
 	for (const QTreeWidgetItem* item : finalItems)
-    {
-        int dsInd = m_selectedHMData.datasets.indexOf( getDatasetName( item ) );
-        int filtInd = m_selectedHMData.filters.indexOf( getFilterName( item ) );
+	{
+		int dsInd = m_selectedHMData.datasets.indexOf( getDatasetName( item ) );
+		int filtInd = m_selectedHMData.filters.indexOf( getFilterName( item ) );
 
-        double porosity = item->text( m_runsOffset + 2 ).toDouble();
-        hpData[filtInd][dsInd].push_back( porosity );
-    }
+		double porosity = item->text( m_runsOffset + 2 ).toDouble();
+		hpData[filtInd][dsInd].push_back( porosity );
+	}
 
-    //calculate box plots
+	//calculate box plots
 	for (int i = 0; i < m_selectedHMData.filters.size(); ++i)
 	{
 		for (int j = 0; j < m_selectedHMData.datasets.size(); ++j)
@@ -641,43 +641,43 @@ bool iATreeView::updateSelectedHMData()
 		}
 	}
 
-    return true;
+	return true;
 }
 
 bool iATreeView::eventFilter( QObject *obj, QEvent *event )
 {
-    if( event->type() == QEvent::MouseButtonRelease )
-    {
-        QMouseEvent * me = (QMouseEvent*)event;
+	if( event->type() == QEvent::MouseButtonRelease )
+	{
+		QMouseEvent * me = (QMouseEvent*)event;
 		if (me->button() == Qt::RightButton)
 		{
 			m_contextMenu->exec(me->globalPos());
 		}
-    }
+	}
 
-    return TreeViewConnector::eventFilter( obj, event );
+	return TreeViewConnector::eventFilter( obj, event );
 }
 
 QList<PorosityFilterID> iATreeView::getAlgorithmsInfo( const QList<QTreeWidgetItem *> & selectedItems ) const
 {
-    QTreeWidgetItem * firstItem = selectedItems[0];
+	QTreeWidgetItem * firstItem = selectedItems[0];
 	if (selectedItems[0]->childCount())
 	{
 		firstItem = selectedItems[0]->child(0);
 	}
-    QString algName = firstItem->text( algNameColInd );
-    QList<PorosityFilterID> filterIds = parseFiltersFromString( algName );
-    return filterIds;
+	QString algName = firstItem->text( algNameColInd );
+	QList<PorosityFilterID> filterIds = parseFiltersFromString( algName );
+	return filterIds;
 }
 
 QString iATreeView::getDatasetName( const QTreeWidgetItem * item ) const
 {
-    return item->text( datasetColInd );
+	return item->text( datasetColInd );
 }
 
 QString iATreeView::getFilterName( const QTreeWidgetItem * item ) const
 {
-    return item->text( algNameColInd );
+	return item->text( algNameColInd );
 }
 
 QList<QTreeWidgetItem *> iATreeView::aggregateRuns( const QList<QTreeWidgetItem *> & selectedItems ) const
@@ -705,73 +705,73 @@ void iATreeView::processItem( QTreeWidgetItem * item, QList<QTreeWidgetItem *> *
 
 QList<int> iATreeView::getSelectedIndices( const QList<QTreeWidgetItem *> & selectedItems )
 {
-    QList<int> selectedIndices;
-    QList<QTreeWidgetItem *> finalItems = aggregateRuns( selectedItems );
-    for (QTreeWidgetItem * item: finalItems)
-    {
-        QTreeWidgetItem * parentItem = item->parent();
-        QPair<int, int> treeInds = qMakePair
-        ( 
-            treeWidget->indexOfTopLevelItem( parentItem ), 
-            parentItem->indexOfChild( const_cast<QTreeWidgetItem*>(item) ) 
-        );
-        selectedIndices.push_back( m_treeIdToTableId[treeInds] );
-    }
-    return selectedIndices;
+	QList<int> selectedIndices;
+	QList<QTreeWidgetItem *> finalItems = aggregateRuns( selectedItems );
+	for (QTreeWidgetItem * item: finalItems)
+	{
+		QTreeWidgetItem * parentItem = item->parent();
+		QPair<int, int> treeInds = qMakePair
+		(
+			treeWidget->indexOfTopLevelItem( parentItem ),
+			parentItem->indexOfChild( const_cast<QTreeWidgetItem*>(item) )
+		);
+		selectedIndices.push_back( m_treeIdToTableId[treeInds] );
+	}
+	return selectedIndices;
 }
 
 void iATreeView::processParameters( const QList<PorosityFilterID> & filterIds, QStringList & header, QStringList & outParamNames ) const
 {
-    for (const PorosityFilterID fid: filterIds)
-    {
-        QList<ParamNameType> params = FilterIdToParamList[fid];
+	for (const PorosityFilterID fid: filterIds)
+	{
+		QList<ParamNameType> params = FilterIdToParamList[fid];
 		for (const ParamNameType pnt: params)
 		{
 			header << pnt.name();
 		}
 
-        QList<ParamNameType> outParams = FilterIdToOutputParamList[fid];
+		QList<ParamNameType> outParams = FilterIdToOutputParamList[fid];
 		for (const ParamNameType pnt: outParams)
 		{
 			outParamNames << pnt.name();
 		}
-    }
+	}
 }
 
 void iATreeView::adjustTreeWidgetColumnWidths()
 {
-    bool wasEnabled = treeWidget->updatesEnabled();
-    treeWidget->setUpdatesEnabled( false );
+	bool wasEnabled = treeWidget->updatesEnabled();
+	treeWidget->setUpdatesEnabled( false );
 	for (int i = 0; i < treeWidget->columnCount(); i++)
 	{
 		treeWidget->resizeColumnToContents(i);
 	}
-    treeWidget->setUpdatesEnabled( wasEnabled );
+	treeWidget->setUpdatesEnabled( wasEnabled );
 }
 
 QStringList iATreeView::getAllUniqueEntries( const QList<QTreeWidgetItem *> & items, int col ) const
 {
-    QStringList res;
-    res << items[0]->text( col );
-    for( const QTreeWidgetItem * item: items)
-    {
+	QStringList res;
+	res << items[0]->text( col );
+	for( const QTreeWidgetItem * item: items)
+	{
 		if (res.contains(item->text(col)))
 		{
 			continue;
 		}
-        res << item->text( col );
-    }
-    return res;
+		res << item->text( col );
+	}
+	return res;
 }
 
 QStringList iATreeView::getAllDatasets( const QList<QTreeWidgetItem *> & items ) const
 {
-    return getAllUniqueEntries( items, datasetColInd );
+	return getAllUniqueEntries( items, datasetColInd );
 }
 
 QStringList iATreeView::getAllFilterNames( const QList<QTreeWidgetItem *> & items ) const
 {
-    return getAllUniqueEntries( items, algNameColInd );
+	return getAllUniqueEntries( items, algNameColInd );
 }
 
 void iATreeView::filteringShow( bool show /*= false */ )
@@ -1028,7 +1028,7 @@ bool iATreeView::filteredItemsForSelection( QModelIndexList & selIds )
 		}
 	}
 
-	//updateFilteredItems( filtPipes, filtDsets ); <-pipeline selection error 
+	//updateFilteredItems( filtPipes, filtDsets ); <-pipeline selection error
 	//Below: pipeline selection error fix, TODO: refactoring
 	m_filteredPipeDsetItems.clear();
 	m_filteredDsets.clear();

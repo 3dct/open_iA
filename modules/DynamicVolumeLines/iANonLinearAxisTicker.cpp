@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "iANonLinearAxisTicker.h"
 
 iANonLinearAxisTicker::iANonLinearAxisTicker() :
@@ -60,10 +60,10 @@ QVector<double> iANonLinearAxisTicker::createSubTickVector(int subTickCount,
 	auto end = std::lower_bound(m_tickVector.begin(), m_tickVector.end(), ticks.last());
 	int endIdx = end - m_tickVector.begin();
 	int indicesAfterLastMajorTick = 0;
-	
+
 	if ((endIdx + m_tickStep) > m_tickVector.size() - 1)
 		indicesAfterLastMajorTick = m_tickVector.size() - 1 - endIdx;
-	
+
 	for (int i = startIdx; i <= endIdx + indicesAfterLastMajorTick; ++i)
 		if ((i % m_tickStep) != 0)
 			result.append(m_tickVector[i]);

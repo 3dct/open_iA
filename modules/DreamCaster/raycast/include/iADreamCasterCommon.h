@@ -157,14 +157,14 @@ float distLineToLine( iAVec3f & o1, iAVec3f & d1, iAVec3f & o2, iAVec3f & d2 );
 struct iAparameters_t
 {
 	iAparameters_t(double a_av_pen_len, double a_av_dip_ang, double a_max_pen_len, double a_badSurfPrcnt) :
-		avPenLen(a_av_pen_len), 
-		avDipAng(a_av_dip_ang), 
+		avPenLen(a_av_pen_len),
+		avDipAng(a_av_dip_ang),
 		maxPenLen(a_max_pen_len),
 		badAreaPercentage(a_badSurfPrcnt)
 	{}
 	iAparameters_t() :
-		avPenLen(0.0), 
-		avDipAng(0.0), 
+		avPenLen(0.0),
+		avDipAng(0.0),
 		maxPenLen(0.0),
 		badAreaPercentage(0.0)
 	{}
@@ -194,7 +194,7 @@ struct iAparameters_t
 	}
 	double avPenLen;
 	double avDipAng;
-	double maxPenLen;	
+	double maxPenLen;
 	double badAreaPercentage;
 };
 
@@ -207,7 +207,7 @@ struct iArotation_t
 };
 
 //! Structure representing axis aligned bounding box.
-//! Has ranges of each of 3 axes values, center coordinates, half-dimensions, index of maximum dimension.	
+//! Has ranges of each of 3 axes values, center coordinates, half-dimensions, index of maximum dimension.
 struct iAaabb
 {
 	iAaabb();
@@ -279,9 +279,9 @@ struct iAwald_tri
 	iAVec3f m_N;
 	iAVec3f m_A;
 	float nu, nv, nd;
-	unsigned int k;	
+	unsigned int k;
 	float bnu, bnv;
-	float cnu, cnv;	
+	float cnu, cnv;
 };
 struct iAct_state{
 	iAVec3f o;  //!< rays origin

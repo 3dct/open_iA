@@ -53,7 +53,7 @@ QSharedPointer<QImage> CalculateSpectraHistogramImage(
 {
 	CountType * histData = 0;
 	CountType maxHistVal;
-	size_t numHist;	
+	size_t numHist;
 	accData->retrieveHistData(numBin, histData, numHist, maxHistVal);
 	initSpectraColormap(colormapLUT, accData, sensVal, sensMax, spectraHistogramColormap);
 

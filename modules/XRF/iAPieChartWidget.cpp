@@ -98,7 +98,7 @@ void iAPieChartWidget::paintEvent(QPaintEvent * e)
 		painter.setBrush(brushColor);
 
 		painter.drawPie(pieCenterX-radius, pieCenterY-radius, diameter, diameter, curStartAngle * 16, (it->percentage*3.6) * 16);
-		
+
 		QFont myFont;
 		QFontMetrics fm(myFont);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)

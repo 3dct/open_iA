@@ -39,7 +39,7 @@ public:
 	static iA4DCTFileManager&	getInstance( );
 	vtkImageData*				getImage( iA4DCTFileData file );
 	vtkAlgorithmOutput*			getOutputPort( iA4DCTFileData file );
-	
+
 private:
 			iA4DCTFileManager( ) { }
 			~iA4DCTFileManager( ) { }

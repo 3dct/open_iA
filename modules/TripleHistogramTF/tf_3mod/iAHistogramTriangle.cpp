@@ -282,10 +282,10 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		boxRight = boxLeft + width + TRIANGLE_LEFT + TRIANGLE_RIGHT;
 		boxBottom = boxTop + height + TRIANGLE_TOP + TRIANGLE_BOTTOM;
 
-		//        /\ 
+		//        /\
 		//       /  \    BIG TRIANGLE
 		//      /    \   bounding box: left, top, right, bottom (, centerX)
-		//     /______\ 
+		//     /______\
 		left = boxLeft + TRIANGLE_LEFT;
 		top = boxTop + TRIANGLE_TOP;
 		right = left + width;

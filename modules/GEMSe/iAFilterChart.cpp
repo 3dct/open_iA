@@ -192,7 +192,7 @@ void iAFilterChart::mousePressEvent( QMouseEvent *event )
 			iAChartWidget::changeMode( MOVE_VIEW_MODE, event );
 			return;
 		}
-		
+
 		if ( event->y() > geometry().height() - bottomMargin() - m_translationY
 			  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
 		{
@@ -234,7 +234,7 @@ void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 {
 	if (	( event->buttons() == Qt::LeftButton ) &&
 			( event->y() > geometry().height() - bottomMargin() - m_translationY			// mouse event below X-axis
-			  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) ) &&	
+			  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) ) &&
 			  m_selectedHandle != -1)
 	{
 		int x = event->x() - leftMargin() + m_selectionOffset;

@@ -103,7 +103,7 @@ private:
 		QString const & attributeDescriptorOutputFileName,
 		QSharedPointer<iASamplingResults> results);
 
-	
+
 	dlg_modalities*                      m_dlgModalities;
 	dlg_samplingSettings*                m_dlgSamplingSettings;
 	dlg_progress*						 m_dlgProgress;
@@ -116,7 +116,7 @@ private:
 	QSharedPointer<iAImageClusterer>     m_clusterer;
 
 	QString								 m_outputFolder;
-	
+
 	QString                              m_cltFile;
 	QString                              m_m_metaFileName;
 	QSharedPointer<iASimpleLabelInfo>    m_simpleLabelInfo;

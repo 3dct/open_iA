@@ -43,7 +43,7 @@
 #include <QFileDialog>
 #include <QtMath>
 
-iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ), 
+iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ),
 	dlgPeriodicTable(0), dlgXRF(0), dlgSimilarityMap(0), ioThread(0),
 	m_xrfChannelID(NotExistingChannel)
 {
@@ -70,7 +70,7 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAM
 	dlgRefSpectra = new dlg_RefSpectra( m_child );
 	m_child->splitDockWidget(m_child->slicerDockWidget(iASlicerMode::XY), dlgPeriodicTable, Qt::Horizontal);
 	m_child->splitDockWidget(m_child->slicerDockWidget(iASlicerMode::XY), dlgRefSpectra, Qt::Horizontal);
-	
+
 	dlgXRF = new dlg_XRF( m_child, dlgPeriodicTable, dlgRefSpectra );
 
 	ioThread = new iAIO( m_child->logger(), m_child, dlgXRF->GetXRFData()->GetDataPtr() );
@@ -100,7 +100,7 @@ iAXRFAttachment::~iAXRFAttachment()
 
 
 void iAXRFAttachment::reInitXRF()
-{	
+{
 	vtkSmartPointer<vtkImageData> img = dlgXRF->GetCombinedVolume();
 	if (m_child->isMagicLensToggled())
 		m_child->reInitMagicLens(m_xrfChannelID, "Spectral Color Image", img, dlgXRF->GetColorTransferFunction());

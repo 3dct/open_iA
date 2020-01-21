@@ -38,7 +38,7 @@ iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent, MdiChil
 							m_firstSelectedBin( -1 ),
 							m_lastSelectedBin( -1 ),
 							m_selectionColor( qRgb( 255, 0, 127 ) ),
-							m_histogramMap( histogramMap ), 
+							m_histogramMap( histogramMap ),
 							m_rawTable(rawTable),
 							m_xLabel( xlabel ),
 							m_yLabel( yLabel )
@@ -183,7 +183,7 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 
 				if ( m_firstSelectedBin > m_lastSelectedBin )
 					std::swap( m_firstSelectedBin, m_lastSelectedBin );
-				
+
 				setupSelectionDrawer();
 
 				//Handle snap
@@ -239,7 +239,7 @@ void iARangeSliderDiagramWidget::mouseMoveEvent( QMouseEvent *event )
 			{
 				return;
 			}
-			else if ( selectedPoint == 1 || selectedPoint == 2 )	// update and draw selection of added handles 
+			else if ( selectedPoint == 1 || selectedPoint == 2 )	// update and draw selection of added handles
 			{
 				func->moveSelectedPoint( x, 0 );
 
@@ -302,12 +302,12 @@ void iARangeSliderDiagramWidget::selectSlot()
 	iARangeSliderDiagramWidget* diagram = static_cast<iARangeSliderDiagramWidget*>( QObject::sender() );
 	int f = diagram->m_firstSelectedBin;
 	int l = diagram->m_lastSelectedBin;
-	
+
 	if ( f == -1 && l == -1 )
 		return;
 
 	QMap<double, QList<double> > map = *m_histogramMap;
-	
+
 	QSet<double> set;
 	for ( int i = f; i <= l; ++i )
 	{
@@ -327,7 +327,7 @@ void iARangeSliderDiagramWidget::selectSlot()
 #else
 	QList<double> rawTableRows = set.toList();
 #endif
-	
+
 	if ( m_histogramDrawerList.size() )
 	{
 		QListIterator<QSharedPointer<iAStepFunctionPlot> > it( m_histogramDrawerList );
@@ -374,7 +374,7 @@ void iARangeSliderDiagramWidget::updateSelectedDiagrams()
 
 QList<int> iARangeSliderDiagramWidget::getSelectedRawTableRows()
 {
-	QList<int> selectedRawTableRows;	
+	QList<int> selectedRawTableRows;
 
 	if ( m_firstSelectedBin == -1 || m_lastSelectedBin == -1 )
 		return selectedRawTableRows;

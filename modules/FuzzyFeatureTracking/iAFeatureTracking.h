@@ -61,7 +61,7 @@ public:
 	std::vector<iAFeatureTrackingCorrespondence> FromUtoV(unsigned int uId);
 	std::vector<iAFeatureTrackingCorrespondence> FromVtoU(unsigned int vId);
 	float GetOverallMatchingPercentage();
-		
+
 	size_t getNumberOfEventsInU();
 	size_t getNumberOfEventsInV();
 	vtkSmartPointer<vtkTable> getU();

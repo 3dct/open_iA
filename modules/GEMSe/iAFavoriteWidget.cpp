@@ -54,7 +54,7 @@ iAFavoriteWidget::iAFavoriteWidget(iAPreviewWidgetPool* previewPool) :
 	likes->setStyleSheet("background-color: #DFD;");
 
 	favListLayout->addWidget(likes);
-	
+
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 

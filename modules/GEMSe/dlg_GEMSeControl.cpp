@@ -164,7 +164,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 	connect(mdiChild, &MdiChild::transferFunctionChanged, this, &dlg_GEMSeControl::dataTFChanged);
-	
+
 	dataAvailable();
 }
 
@@ -220,7 +220,7 @@ void dlg_GEMSeControl::startSampling()
 		connect(m_sampler.data(), &iAImageSampler::finished, this, &dlg_GEMSeControl::samplingFinished);
 		connect(m_sampler.data(), &iAImageSampler::Progress, m_dlgProgress, &dlg_progress::setProgress );
 		connect(m_sampler.data(), &iAImageSampler::Status, m_dlgProgress, &dlg_progress::setStatus );
-		
+
 		// trigger parameter set creation & sampling (in foreground with progress bar for now)
 		m_sampler->start();
 		m_dlgSamplingSettings->GetValues(m_samplingSettings);

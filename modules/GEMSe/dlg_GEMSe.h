@@ -110,7 +110,7 @@ private slots:
 	void ToggleLike();
 	void GoToCluster();
 	void FavoriteClicked(iAImageTreeNode * leaf);
-	
+
 	void SlicerModeChanged(iASlicerMode mode, int sliceNr);
 	void SliceNumberChanged(int sliceNr);
 	void UpdateViews();
@@ -126,14 +126,14 @@ private:
 	void CreateMapper();
 	void CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelImagePointer refImg,
 		int labelCount);
-	
+
 	// data:
 	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > m_samplings;
 	QStringList m_pipelineNames;
 	QSharedPointer<iAAttributes> m_chartAttributes;
 	iAChartAttributeMapper m_chartAttributeMapper;
 	int m_MeasureChartIDStart;
-	
+
 	QSharedPointer<iAImageTreeNode> m_selectedCluster;
 	iAImageTreeLeaf * m_selectedLeaf;
 

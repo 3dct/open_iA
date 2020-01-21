@@ -25,7 +25,7 @@
 enum FeatureEvent { Creation, Continuation, Bifurcation, Amalgamation, Dissipation }; //Creation, Continuation, Dissipation, Bifurcation, Amalgamation
 
 class iAFeatureTrackingCorrespondence
-{	
+{
 public:
 	iAFeatureTrackingCorrespondence(vtkIdType id, float overlap, float volumeRatio,
 		bool isTakenForCurrentIteration, float likelyhood, FeatureEvent featureEvent);

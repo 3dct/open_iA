@@ -52,7 +52,7 @@ public:
 	void setMasksOpacity( double opacity );
 	void setGTOpacity( double opacity );
 	void changeMode( iASlicerMode mode );
-	void initialize( vtkSmartPointer<vtkImageData> img, 
+	void initialize( vtkSmartPointer<vtkImageData> img,
 		vtkSmartPointer<vtkColorTransferFunction> tf );
 	void initBPDChans( QString const & minFile, QString const & medFile, QString const & maxFile );
 	void initializeMasks( QStringList & masks );

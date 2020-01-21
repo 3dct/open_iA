@@ -122,7 +122,7 @@ int iATriPrim::Intersect(iAaabb &/*a_aabb*/, iAVec3f & a_BoxCentre, iAVec3f & a_
 	iAVec3f * a_V0 = m_Tri.vertices[0];
 	iAVec3f * a_V1 = m_Tri.vertices[1];
 	iAVec3f * a_V2 = m_Tri.vertices[2];
-	
+
 	iAVec3f v0, v1, v2, normal, e0, e1, e2;
 	float min, max, p0, p1, p2, rad, fex, fey, fez;
 	v0 = *a_V0 - a_BoxCentre;
@@ -246,7 +246,7 @@ int iAScene::initScene(iAModelData & mdata, iADreamCasterSettings * s, QString c
 		else
 			m_bsp->BuildTree(s->TREE_L1, mdata.box);
 		//
-		m_bsp->FillTree(m_tris);	
+		m_bsp->FillTree(m_tris);
 	}
 	else
 	{
@@ -254,7 +254,7 @@ int iAScene::initScene(iAModelData & mdata, iADreamCasterSettings * s, QString c
 		if(!m_bsp->LoadTree(filename))
 		{
 			dcast->log("Creating a new tree.");
-			
+
 			//building new tree
 			if(m_tris.size()>(unsigned int)s->TREE_SPLIT2)
 				m_bsp->BuildTree(s->TREE_L3, mdata.box);
@@ -304,14 +304,14 @@ int IntersectCyl(const iARay & ray, const iAaabb & box, float & /*tmin*/, float 
 		return 1;
 	//first cap
 	iAVec3f A = bcenter - cylDir*box.half_size()[2];
-	float h = (ro-A)&cylDir; 
+	float h = (ro-A)&cylDir;
 	float dist = (A - ro + rd*h/(rd&cylDir)).length();
 	if(dist<=cylRad)
 		return 1;
 	//second cap
 	A = bcenter + cylDir*box.half_size()[2];
-	h = (ro-A)&cylDir; 
-	dist = (A - ro + rd*h/(rd&cylDir)).length(); 
+	h = (ro-A)&cylDir;
+	dist = (A - ro + rd*h/(rd&cylDir)).length();
 	if(dist<=cylRad)
 		return 1;
 	return 0;

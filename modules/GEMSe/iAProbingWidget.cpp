@@ -63,7 +63,7 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	m_lbInfo = new QLabel("Probing n/a");
 	m_lbInfo->setMaximumHeight(20);
 	layout->addWidget(m_lbInfo);
-	
+
 	// entropy chart:
 	m_entropyChartData = CreateEmptyProbData(Continuous, 0, 1);
 	m_charts.push_back(new iAChartWidget(this, "Algorithmic Uncertainty", "Frequency (Members)"));

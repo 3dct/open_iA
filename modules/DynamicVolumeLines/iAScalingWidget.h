@@ -40,14 +40,14 @@ public:
 	void setNonlinearScalingVec(const QVector<double> &nls, const QVector<double> &impfv);
 	void setAxes(QCPAxis *nla, QCPAxis *la);
 	void setCursorPos(double lcp, double nlcp);
-	void setRange(double lowerIdx, double upperIdx, double nonlinearLowerRest, 
+	void setRange(double lowerIdx, double upperIdx, double nonlinearLowerRest,
 		double nonlinearUpperRest, double linearLowerRest, double linearUpperRest);
 	void setBkgrdThrRanges(const QList<QCPRange> &bkgrdRangeList);
 	void setSel(QCPDataSelection sel);
 	void setHistVisMode(bool histVisMode);
 
 	void setOverviewRange(double lowerIdx, double upperIdx, double nonlinearLowerRest,
-		double nonlinearUpperRest, double linearLowerRest, double linearUpperRest, 
+		double nonlinearUpperRest, double linearLowerRest, double linearUpperRest,
 		const QVector<double> &histBinImpFunctAvgVec, const QVector<double> &linearHistBinBoarderVec);
 
 protected:
@@ -62,7 +62,7 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	double m_linearBarCursorPos, m_nonlinearBarCursorPos, m_nonlinearLowerIdx,
 		m_nonlinearUpperIdx, m_nonlinearLowerRest, m_nonlinearUpperRest,
-		m_linearLowerRest, m_linearUpperRest, m_prevNonlinearBarStartPosX, 
+		m_linearLowerRest, m_linearUpperRest, m_prevNonlinearBarStartPosX,
 		m_prevLinearBarStartPosX;
 	QList<QCPRange> m_bkgrdRangeList;
 	QCPDataSelection m_sel;

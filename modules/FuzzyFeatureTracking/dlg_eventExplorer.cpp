@@ -152,7 +152,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 
 		m_contextViews.push_back(vtkSmartPointer<vtkContextView>::New());
 		m_charts.push_back(vtkSmartPointer<vtkChartXY>::New());
-  
+
 		m_contextViews.at(i)->SetRenderWindow(m_widgets.at(i)->GetRenderWindow());
 		m_contextViews.at(i)->GetScene()->AddItem(m_charts.at(i));
 
@@ -405,7 +405,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		}*/
 
 		int numberOfRows;
-		
+
 		if (t > 0)
 			numberOfRows = u->GetNumberOfRows();
 		else
@@ -434,7 +434,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 				vtkSmartPointer<vtkVariantArray> arr = vtkSmartPointer<vtkVariantArray>::New();
 				arr->SetNumberOfValues(12);
 
-				if (t > 0) //t > 0 
+				if (t > 0) //t > 0
 				{
 					switch (c->featureEvent)
 					{
@@ -655,14 +655,14 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		plot->SetTooltipLabelFormat("");
 		m_plots.push_back(plot);
 	}
-	  
+
 	for(int i=0; i<numberOfEventTypes; i++)
 	{
 		m_plotPositionInVector[i]=i;
 	}
 
 	m_numberOfActivePlots = numberOfEventTypes;
- 
+
 	for(int i=0; i<numberOfCharts; i++)
 	{
 		m_charts.at(i)->GetAxis(0)->SetTitle("Uncertainty");
@@ -766,7 +766,7 @@ void dlg_eventExplorer::updateCheckBoxCreation(int /*c*/)
 		{
 			m_charts.at(i)->RemovePlot(m_plotPositionInVector[0]);
 		}
-		
+
 		for(int i=0; i<m_numberOfEventTypes; i++)
 		{
 			if(m_plotPositionInVector[i] > m_plotPositionInVector[0])
@@ -788,7 +788,7 @@ void dlg_eventExplorer::updateCheckBoxCreation(int /*c*/)
 		{
 			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 0));
 			m_charts.at(i)->Update();
-			
+
 			m_plotPositionInVector[0]=m_numberOfActivePlots;
 		}
 
@@ -815,7 +815,7 @@ void dlg_eventExplorer::updateCheckBoxContinuation(int /*c*/)
 		{
 			m_charts.at(i)->RemovePlot(m_plotPositionInVector[1]);
 		}
-		
+
 		for(int i=0; i<m_numberOfEventTypes; i++)
 		{
 			if(m_plotPositionInVector[i] > m_plotPositionInVector[1])
@@ -836,7 +836,7 @@ void dlg_eventExplorer::updateCheckBoxContinuation(int /*c*/)
 		for(int i=0; i<m_numberOfCharts; i++)
 		{
 			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 1));
-			
+
 			m_plotPositionInVector[1]=m_numberOfActivePlots;
 		}
 
@@ -863,7 +863,7 @@ void dlg_eventExplorer::updateCheckBoxSplit(int /*c*/)
 		{
 			m_charts.at(i)->RemovePlot(m_plotPositionInVector[2]);
 		}
-		
+
 		for(int i=0; i<m_numberOfEventTypes; i++)
 		{
 			if(m_plotPositionInVector[i] > m_plotPositionInVector[2])
@@ -884,7 +884,7 @@ void dlg_eventExplorer::updateCheckBoxSplit(int /*c*/)
 		for(int i=0; i<m_numberOfCharts; i++)
 		{
 			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 2));
-			
+
 			m_plotPositionInVector[2]=m_numberOfActivePlots;
 		}
 
@@ -911,7 +911,7 @@ void dlg_eventExplorer::updateCheckBoxMerge(int /*c*/)
 		{
 			m_charts.at(i)->RemovePlot(m_plotPositionInVector[3]);
 		}
-		
+
 		for(int i=0; i<m_numberOfEventTypes; i++)
 		{
 			if(m_plotPositionInVector[i] > m_plotPositionInVector[3])
@@ -932,7 +932,7 @@ void dlg_eventExplorer::updateCheckBoxMerge(int /*c*/)
 		for(int i=0; i<m_numberOfCharts; i++)
 		{
 			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 3));
-			
+
 			m_plotPositionInVector[3]=m_numberOfActivePlots;
 		}
 
@@ -980,7 +980,7 @@ void dlg_eventExplorer::updateCheckBoxDissipation(int /*c*/)
 		for(int i=0; i<m_numberOfCharts; i++)
 		{
 			m_charts.at(i)->AddPlot(m_plots.at(i+m_numberOfCharts*4));
-			
+
 			m_plotPositionInVector[4]=m_numberOfActivePlots;
 		}
 
@@ -1372,7 +1372,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 						//TODO: only add edges which are not existing
 						m_graph->AddEdge(m_tableToGraphId[layer][id], m_tableToGraphId[layer - 1][c.id]);
 						DEBUG_LOG(QString("Edge [%1][%2] --> [%3][%4]").arg(id).arg(layer).arg(c.id).arg(layer - 1));
-						
+
 						/*if (g->GetEdgeId(tableToGraphId[layer][id], tableToGraphId[layer - 1][c.id]) != -1 || g->GetEdgeId(tableToGraphId[layer - 1][c.id], tableToGraphId[layer][id]) != -1)
 						{
 							g->AddEdge(tableToGraphId[layer][id], tableToGraphId[layer - 1][c.id]);
@@ -1443,7 +1443,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 						//TODO: only add edges which are not existing
 						m_graph->AddEdge(m_tableToGraphId[layer][id], m_tableToGraphId[layer + 1][c.id]);
 						DEBUG_LOG(QString("Edge [%1][%2] --> [%3][%4]").arg(id).arg(layer).arg(c.id).arg(layer + 1));
-							
+
 						/*if (g->GetEdgeId(tableToGraphId[layer][id], tableToGraphId[layer + 1][c.id]) != -1 || g->GetEdgeId(tableToGraphId[layer + 1][c.id], tableToGraphId[layer][id]) != -1)
 						{
 							g->AddEdge(tableToGraphId[layer][id], tableToGraphId[layer + 1][c.id]);

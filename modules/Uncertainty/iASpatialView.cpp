@@ -79,7 +79,7 @@ iASpatialView::iASpatialView(): QWidget(),
 	}
 	m_curMode = iASlicerMode::XY;
 	slicerModeButton[m_curMode]->setChecked(true);
-	
+
 	m_sliceBar = new QWidget();
 	m_sliceBar->setLayout(new QHBoxLayout());
 	m_sliceBar->layout()->setSpacing(0);

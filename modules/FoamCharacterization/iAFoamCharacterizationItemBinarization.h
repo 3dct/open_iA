@@ -63,7 +63,7 @@ public:
 
 private:
 	bool m_bIsMask = false;
-		
+
 	EItemFilterType m_eItemFilterType = iftOtzu;
 
 	unsigned short m_usLowerThreshold = 0;

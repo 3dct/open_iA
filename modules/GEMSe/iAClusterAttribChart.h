@@ -50,7 +50,7 @@ public:
 	iAValueType GetRangeType() const;
 	double GetMaxYValue() const;
 	void SetMaxYAxisValue(double val);
-	
+
 	void SetSpanValues(double minValue, double maxValue);
 	void ResetSpan();
 	double mapValueToBin(double value) const;
@@ -66,7 +66,7 @@ private slots:
 private:
 	void SetAdditionalDrawer(QSharedPointer<iAPlot>& drawer, QSharedPointer<iAPlot> newDrawer);
 	QColor GetClusterColor(int nr) const;
-	
+
 	iAFilterChart*  m_charts;
 	QCheckBox*     m_checkbox;
 	int    m_ID;
@@ -75,6 +75,6 @@ private:
 	QSharedPointer<iAPlot> m_filteredClusterDrawer;
 	int	           m_oldMin;
 	int	           m_oldMax;
-	
+
 	QSharedPointer<iAParamHistogramData> m_filteredClusterData;
 };

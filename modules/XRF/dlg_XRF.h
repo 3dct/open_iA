@@ -85,10 +85,10 @@ public:
 	void UpdateVoxelSpectrum(int x, int y, int z);
 	void UpdateConcentrationViews(int x, int y, int z);
 	bool IsInitialized();
-	
+
 	void OnSelectionUpdate(QVector<iASpectrumFilter> const & filter);
 	bool isDecompositionLoaded() {return m_decompositionLoaded;}
-	
+
 	void AddSimilarityMarkers();
 	void RemoveSimilarityMarkers();
 

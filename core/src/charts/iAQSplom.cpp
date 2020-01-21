@@ -974,7 +974,7 @@ void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 	m_contextMenu->exec(event->globalPos());
 }
 
-void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot) 
+void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 {
 	if (!selectedPlot)
 	{
@@ -1067,7 +1067,7 @@ void iAQSplom::paintEvent(QPaintEvent * /*event*/)
 		return;
 	}
 	QFontMetrics fm = painter.fontMetrics();
-	
+
 	// collect tick labels text and positions:
 	QList<double> ticksX, ticksY; QList<QString> textX, textY;
 	for (size_t i = 0; i < m_visiblePlots.size() -1; ++i)
@@ -1145,7 +1145,7 @@ void iAQSplom::paintEvent(QPaintEvent * /*event*/)
 		settings.plotsSpacing
 		+ m_scatPlotSize.y() / ((((getVisibleParametersCount() + (settings.histogramVisible ? 1 : 0)) % 2) == 1) ? 2 : 1)
 	);
-		
+
 	double minVal = settings.colorMode == cmAllPointsSame ? 0 : m_lut->getRange()[0];
 	double maxVal = settings.colorMode == cmAllPointsSame ? 0 : m_lut->getRange()[1];
 	QRect colorBarRect(topLeft.x(), topLeft.y(),
@@ -1607,7 +1607,7 @@ void iAQSplom::drawPlotLabels(QPainter & painter, bool switchTO_YRow)
 			continue;
 		}
 		QString currentParamName = m_splomData->parameterName(m_visibleIndices[axisIdx]);
-		if (switchTO_YRow) 
+		if (switchTO_YRow)
 		{
 			currentRect = getPlotRectByIndex(0, axisIdx);
 			//top = TextPadding;
@@ -1941,7 +1941,7 @@ void iAQSplom::loadSettings(iASettings const & config)
 		m_settingsDlg->sbHistogramBins->setValue(newHistogramBins);
 		setHistogramVisible(newHistogramVisible);
 	}
-	
+
 	int newSelectionMode = config.value(CfgKeySelectionMode, settings.selectionMode).toInt();
 	if (settings.selectionMode != newSelectionMode)
 	{
@@ -1998,7 +1998,7 @@ void iAQSplom::loadSettings(iASettings const & config)
 			setParameterVisibility(newParamVis);
 		}
 	}
-	
+
 	// write all settings directly to settings object / blocked GUI elements.
 	// Except for opacity, which triggers the required updateLookupTable to apply the settings
 	settings.colorMode = static_cast<ColorMode>(config.value(CfgKeyColorMode, settings.colorMode).toInt());

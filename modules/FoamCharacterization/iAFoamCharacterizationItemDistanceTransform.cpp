@@ -76,11 +76,11 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->itkImage()));
 	pFilter->SetUseImageSpacing(m_bImageSpacing);
 	pFilter->InputIsBinaryOn();
-	
+
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->observe(pFilter);
 	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
-	
+
 	pFilter->Update();
 
 	typedef itk::MinimumMaximumImageCalculator<itk::Image<float, 3>> itkCalculator;

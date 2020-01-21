@@ -163,10 +163,10 @@ bool iASamplingResults::Store(QString const & fileName,
 	paramRangeFile.close();
 
 	m_fileName = fileName;
-	
+
 	return StoreAttributes(iAAttributeDescriptor::Parameter, parameterSetFileName, true) &&
 		StoreAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
-	
+
 
 	return true;
 }

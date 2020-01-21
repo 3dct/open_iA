@@ -95,7 +95,7 @@ void iAPaintWidget::mouseMoveEvent ( QMouseEvent * event )
 		double delta = scaleCoef*((double)event->y()-(double)m_lastMoveY);
 		//m_offset[0] += (double)geometry().width()/m_scale - (double)geometry().width()/(m_scale+delta);
 		//m_offset[1] += (double)geometry().height()/m_scale - (double)geometry().height()/(m_scale+delta);
-		m_scale += delta;	
+		m_scale += delta;
 		checkScale();
 		checkOffset();
 		update();
@@ -117,13 +117,13 @@ void iAPaintWidget::mouseMoveEvent ( QMouseEvent * event )
 }
 void iAPaintWidget::checkOffset()
 {
-	if(m_offset[0]>0) 
+	if(m_offset[0]>0)
 		m_offset[0] = 0;
-	if(m_offset[1]>0) 
+	if(m_offset[1]>0)
 		m_offset[1] = 0;
-	if(m_offset[0]<-(double)geometry().width()+(double)geometry().width()/m_scale) 
+	if(m_offset[0]<-(double)geometry().width()+(double)geometry().width()/m_scale)
 		m_offset[0] = -(double)geometry().width()+(double)geometry().width()/m_scale;
-	if(m_offset[1]<-(double)geometry().height()+(double)geometry().height()/m_scale) 
+	if(m_offset[1]<-(double)geometry().height()+(double)geometry().height()/m_scale)
 		m_offset[1] = -(double)geometry().height()+(double)geometry().height()/m_scale;
 }
 void iAPaintWidget::checkScale()

@@ -147,19 +147,19 @@ void iACalculatePorePropertiesThread::run()
 			ScalarPixelType pixelType;
 			ImagePointer image = iAITKIO::readFile( masksName, pixelType, true );
 			CharInputImageType* input = dynamic_cast<CharInputImageType*>( image.GetPointer() );
-	
+
 			//label image
 			ConnectedComponentImageFilterType::Pointer connectedComponents = ConnectedComponentImageFilterType::New();
 			connectedComponents->SetInput( input );
 			connectedComponents->FullyConnectedOn();
 			connectedComponents->Update();
-			
+
 			//Save labeled image
 			QString labeledMaskName = masksName;
 			labeledMaskName.insert(masksName.lastIndexOf("."), "_labeled");
 			iAITKIO::writeFile(labeledMaskName, connectedComponents->GetOutput(), itk::ImageIOBase::LONG, true);
 
-			// Writing pore csv file 
+			// Writing pore csv file
 			double spacing = image->GetSpacing()[0];
 			ofstream fout( getLocalEncodingFileName(masksName.append( ".csv" )).c_str(), std::ofstream::out );
 
@@ -218,14 +218,14 @@ void iACalculatePorePropertiesThread::run()
 			I2LType::Pointer i2l = I2LType::New();
 			i2l->SetInput( connectedComponents->GetOutput() );
 			i2l->SetComputePerimeter( false );
-			i2l->SetComputeFeretDiameter( true );	//Debug changed to false 
+			i2l->SetComputeFeretDiameter( true );	//Debug changed to false
 			i2l->Update();
 
 			LabelMapType *labelMap = i2l->GetOutput();
 			LabelGeometryImageFilterType::LabelsType allLabels = labelGeometryImageFilter->GetLabels();
 			LabelGeometryImageFilterType::LabelsType::iterator allLabelsIt;
 
-			// Pore Characteristics calculation 
+			// Pore Characteristics calculation
 			for ( allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
 			{
 				LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
@@ -309,8 +309,8 @@ void iACalculatePorePropertiesThread::run()
 				dimY = abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[2] - labelGeometryImageFilter->GetBoundingBox( labelValue )[3] ) + 1;
 				dimZ = abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[4] - labelGeometryImageFilter->GetBoundingBox( labelValue )[5] ) + 1;
 
-				// Calculation of other pore characteristics and writing the csv file 
-				ShapeLabelObjectType *labelObject = labelMap->GetNthLabelObject( labelValue - 1 ); // debug -1 delated	// labelMap index contaions first pore at 0 
+				// Calculation of other pore characteristics and writing the csv file
+				ShapeLabelObjectType *labelObject = labelMap->GetNthLabelObject( labelValue - 1 ); // debug -1 delated	// labelMap index contaions first pore at 0
 
 				/* The equivalent radius is a radius of a circle with the same area as the object.
 				The feret diameter is the diameter of circumscribing circle. So this measure has a maximum of 1.0 when the object is a perfect circle.
@@ -322,7 +322,7 @@ void iACalculatePorePropertiesThread::run()
 				}
 				else
 				{
-					labelObject->SetRoundness(labelObject->GetEquivalentSphericalRadius() 
+					labelObject->SetRoundness(labelObject->GetEquivalentSphericalRadius()
 						/ (labelObject->GetFeretDiameter() / 2.0));
 				}
 

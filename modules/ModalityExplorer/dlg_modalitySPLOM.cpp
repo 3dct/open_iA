@@ -56,7 +56,7 @@ dlg_modalitySPLOM::dlg_modalitySPLOM():
 
 	QHBoxLayout* lay = new QHBoxLayout();
 	lay->addWidget(m_splom);
-	
+
 	QWidget* content = new QWidget();
 	content->setLayout(lay);
 	setWidget(content);
@@ -98,7 +98,7 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 		m_selected = true;
 		return;
 	}
-	
+
 	if (m_SPLOMSelectionChannelID == NotExistingChannel)
 		m_SPLOMSelectionChannelID = mdiChild->createChannel();
 	auto chData = mdiChild->channelData(m_SPLOMSelectionChannelID);

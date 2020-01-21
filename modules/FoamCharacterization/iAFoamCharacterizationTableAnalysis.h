@@ -67,7 +67,7 @@ public:
 	explicit iAFoamCharacterizationTableAnalysis(QWidget* _pParent = nullptr);
 
 	void setRowCount(const int& _iRowCount);
-		
+
 	void setRow ( const int& _iRow, const long& _lLabel
 				, const double& _dCenterX, const double& _dCenterY, const double& _dCenterZ
 				, const double& _dVolume, const double& _dDiameter

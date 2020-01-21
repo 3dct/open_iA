@@ -211,16 +211,16 @@ public:
 	void updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, bool enable);
 	//! Update opacity of the given channel ID.
 	void updateChannelOpacity(uint id, double opacity);
-	
+
 	void setChannelRenderingEnabled(uint, bool enabled);
-	
+
 	//! Enable / disable a channel in all slicers.
 	void setSlicerChannelEnabled(uint id, bool enabled);
 
 	//! Remove channel in all slicers.
 	void removeChannel(uint id);
 
-	
+
 	iAChannelData * channelData(uint id);
 	iAChannelData const * channelData(uint id) const;
 	void initChannelRenderer(uint id, bool use3D, bool enableChannel = true);

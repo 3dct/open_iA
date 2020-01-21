@@ -62,7 +62,7 @@ int dlg_planeSlicer::AddImage(vtkSmartPointer<vtkImageData> image, vtkSmartPoint
 	mapper->SetInputConnection(map->GetOutputPort());
 
 	m_images.push_back(imageSlice);
-	
+
 	m_renderer->AddViewProp(imageSlice);
 
 	return m_images.size() - 1;

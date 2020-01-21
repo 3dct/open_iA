@@ -186,7 +186,7 @@ void iACameraWidget::showImage(vtkSmartPointer<vtkImageData> imgData)
 		DEBUG_LOG("CameraWidget: image data is nullptr!\n");
 		return;
 	}
-	
+
 	for (int i=0; i<SLICE_VIEW_COUNT; ++i)
 	{
 		m_sliceViews[i]->setImage(imgData, false, false);

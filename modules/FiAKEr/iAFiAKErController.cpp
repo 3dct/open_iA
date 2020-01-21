@@ -131,7 +131,7 @@ namespace
 	const size_t NoResult = std::numeric_limits<size_t>::max();
 	const QString RefMarker(" (Reference)");
 
-	
+
 	const QString DefaultResultColorTheme("Brewer Accent (max. 8)");
 	const QString DefaultStackedBarColorTheme("Material red (max. 10)");
 
@@ -391,7 +391,7 @@ void iAFiAKErController::setupSettingsView()
 	int factorSliderValue = static_cast<int>(m_diameterFactorMapper->srcToDst(DiameterFactor));
 	m_settingsView->slDiameterFactorDefault->setValue(factorSliderValue);
 	m_settingsView->lbDiameterFactorDefaultValue->setText(QString::number(m_diameterFactorMapper->dstToSrc(factorSliderValue), 'f', 2));
-	
+
 	m_settingsView->slDiameterFactorContext->setMinimum(MinFactorSliderVal);
 	m_settingsView->slDiameterFactorContext->setMaximum(MaxFactorSliderVal);
 	int contextFactorSlider = static_cast<int>(m_diameterFactorMapper->srcToDst(ContextDiameterFactor));
@@ -691,9 +691,9 @@ QWidget* iAFiAKErController::setupResultListView()
 		ui.histoChart->setShowXAxisLabel(false);
 		ui.histoChart->setMinimumWidth(HistogramMinWidth);
 		ui.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		
+
 		m_resultListSorting.insert(resultID, static_cast<int>(resultID));
-		
+
 		std::map<size_t, std::vector<iAVec3f> > curvedStepInfo;
 		if (m_useStepData && d.stepData == iAFiberCharData::CurvedStepData)
 		{   // get last step:
@@ -2310,7 +2310,7 @@ void iAFiAKErController::loadReference(iASettings settings)
 namespace
 {
 	typedef void (vtkCamera::*SetMethod)(double const[3]);
-	
+
 	void setCameraParameter(iASettings const & settings, QString const & key, vtkCamera* cam, SetMethod method)
 	{
 		if (!settings.contains(key))

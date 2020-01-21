@@ -36,7 +36,7 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 
 	//typedef itk::PatchBasedDenoisingBaseImageFilter
 		//<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>>::NoiseModelType ENoiseModelType;
-		
+
 	class QtRunnableMedian : public QRunnable
 	{
 		public:

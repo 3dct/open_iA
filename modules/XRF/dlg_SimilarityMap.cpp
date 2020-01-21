@@ -27,7 +27,7 @@
 
 #include <QFileDialog>
 
-dlg_SimilarityMap::dlg_SimilarityMap( QWidget *parentWidget) 
+dlg_SimilarityMap::dlg_SimilarityMap( QWidget *parentWidget)
 : dlg_SimilarityMapContainer( parentWidget ),
   m_similarityMapWidget( new iASimilarityMapWidget( parentWidget ) ),
   m_similarityWidgetGridLayout( new QGridLayout( widget_Container ) )

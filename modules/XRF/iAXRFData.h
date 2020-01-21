@@ -59,7 +59,7 @@ public:
 	//! the [min,max] interval specified in the filter
 	vtkSmartPointer<vtkImageData> FilterSpectrum(QVector<iASpectrumFilter> const & filter, iAFilterMode mode);
 	bool CheckFilters(int x, int y, int z, QVector<iASpectrumFilter> const & filter, iAFilterMode mode) const;
-	
+
 	void SetColorTransferFunction(vtkSmartPointer<vtkDiscretizableColorTransferFunction> ctf);
 	void SetCombinedImage(vtkSmartPointer<vtkImageData> combinedVolume);
 

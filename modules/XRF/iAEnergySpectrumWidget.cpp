@@ -75,7 +75,7 @@ void iAEnergySpectrumWidget::mousePressEvent(QMouseEvent *event)
 		selectionRubberBand->show();
 	}
 	else
-	{	
+	{
 		if(!selectionRects.isEmpty())
 		{
 			selectionRects.clear();

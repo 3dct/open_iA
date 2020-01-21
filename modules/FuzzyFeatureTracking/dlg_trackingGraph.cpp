@@ -83,12 +83,12 @@ void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, int nunRanks, st
 	this->m_graph = g;
 	this->m_nodesToLayers = nodesToLayers;
 
-	vtkNew<vtkPoints> points;	
+	vtkNew<vtkPoints> points;
 	iAVtkGraphDrawer graphDrawer;
 	//graphDrawer.setMaxIteration(MAX_ITERATIONS);
 	graphDrawer.createLayout(points.GetPointer(), m_graph, graphWidget->GetRenderWindow()->GetSize(), nunRanks);
 	m_graph->SetPoints(points.GetPointer());
-	
+
 	m_graphItem->SetGraph(m_graph);
 	m_graphItem->Update();
 	graphWidget->GetRenderWindow()->Render();

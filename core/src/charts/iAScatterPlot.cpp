@@ -38,7 +38,7 @@
 #include <QPropertyAnimation>
 #include <QWheelEvent>
 
-namespace 
+namespace
 {
 	const size_t CordDim = 3;
 	const size_t ColChan = 4;

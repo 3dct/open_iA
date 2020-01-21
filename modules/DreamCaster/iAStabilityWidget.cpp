@@ -208,7 +208,7 @@ void iAStabilityWidget::mouseReleaseEvent ( QMouseEvent * event )
 }
 
 void iAStabilityWidget::SetCount(int count)
-{ 
+{
 	for (unsigned int i=0; i<m_countX; i++)
 		if (m_colsXY[i])
 			delete[] m_colsXY[i];

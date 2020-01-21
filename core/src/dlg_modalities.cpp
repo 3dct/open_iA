@@ -248,7 +248,7 @@ void dlg_modalities::removeClicked()
 	enableButtons();
 
 	m_mainRenderer->GetRenderWindow()->Render();
-	
+
 	emit modalitiesChanged(false, nullptr);
 }
 
@@ -348,7 +348,7 @@ void dlg_modalities::manualRegistration()
 			return;
 		}
 		QSharedPointer<iAModality> editModality(m_modalities->get(idx));
-		
+
 		setModalitySelectionMovable(idx);
 
 		if (!editModality->renderer())
@@ -356,7 +356,7 @@ void dlg_modalities::manualRegistration()
 			DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
 			return;
 		}
-		
+
 		if (cbManualRegistration->isChecked())
 		{
 			configureInterActorStyles(editModality);
@@ -373,7 +373,7 @@ void dlg_modalities::manualRegistration()
 	}
 	catch (std::invalid_argument &ivae)
 	{
-		DEBUG_LOG(ivae.what()); 
+		DEBUG_LOG(ivae.what());
 	}
 }
 
@@ -445,7 +445,7 @@ void dlg_modalities::setModalitySelectionMovable(int selectedRow)
 
 		//enable / disable dragging
 		mod->renderer()->setMovable(mod == currentData);
-		
+
 		for (int sl = 0; sl < iASlicerMode::SlicerCount; sl++)
 		{
 			if (mod->channelID() == NotExistingChannel)

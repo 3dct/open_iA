@@ -292,7 +292,7 @@ QString iALatinHypercubeParameterGenerator::name() const
 ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
 {
 	ParameterSetsPointer result(new ParameterSets);
-	
+
 	// for each parameter, create a "range", dividing its interval into sampleCount pieces
 	QVector<QSharedPointer<RandomGenerator> > random;
 	QVector<QVector<double> > sampleValues;
@@ -306,7 +306,7 @@ ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QShare
 			parameter->at(p)->max(),
 			sampleCount,
 			valueType);
-		
+
 		sampleValues.push_back(QVector<double>());
 		// iterate over sampleCount, and for each parameter, create one value per piece
 		for (int s = 0; s < sampleCount; ++s)
@@ -322,7 +322,7 @@ ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QShare
 	}
 
 	MyRangeRandom<int> intRand;
-	// iterate over sampleCount, and for each parameter, randomly select one of the pieces 
+	// iterate over sampleCount, and for each parameter, randomly select one of the pieces
 	for (int s = sampleCount; s > 0 ; --s)
 	{
 		ParameterSet set;
@@ -359,7 +359,7 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 		.arg(actualSampleCount)
 	);
 */
-	
+
 	QVector<QSharedPointer<MyRange>> ranges;
 	for (int p = 0; p < parameter->size(); ++p)
 	{

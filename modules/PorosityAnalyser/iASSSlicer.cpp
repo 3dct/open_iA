@@ -124,7 +124,7 @@ iASSSlicer::iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> 
 	container = new QWidget();
 	containerLayout = new QVBoxLayout (container);
 	container->setLayout( containerLayout );
-	
+
 	QLabel * selTextLabel = new QLabel( m_SlicerName, container );
 	selTextLabel->setAlignment( Qt::AlignCenter );
 	selTextLabel->setFixedHeight( 15 );
@@ -137,13 +137,13 @@ iASSSlicer::iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> 
 	medContour->UseScalarTreeOn();
 	medContour->SetComputeGradients( false );
 	medContour->SetComputeNormals( false );
-	
+
 	minContour->SetNumberOfContours( 1 );
 	minContour->SetValue( 0, contourValue );
 	minContour->UseScalarTreeOn();
 	minContour->SetComputeGradients( false );
 	minContour->SetComputeNormals( false );
-	
+
 	maxContour->SetNumberOfContours( 1 );
 	maxContour->SetValue( 0, contourValue );
 	maxContour->UseScalarTreeOn();

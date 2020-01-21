@@ -168,7 +168,7 @@ void iABarycentricContextRenderer::drawImageNow()
 	for (int z = 0; z < dims[2]; z++) {
 		for (int y = 0; y < dims[1]; y++) {
 			for (int x = 0; x < dims[0]; x++) {
-				
+
 				values = static_cast<double*>(m_barycentricCoordinates->GetScalarPointer(x, y, z));
 				QPoint cartesian = m_triangle.getCartesianCoordinates(values[0], values[1]);
 

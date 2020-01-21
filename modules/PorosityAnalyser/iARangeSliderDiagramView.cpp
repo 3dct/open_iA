@@ -32,13 +32,13 @@
 #include <QTableWidget>
 
 iARangeSliderDiagramView::iARangeSliderDiagramView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	: RangeSliderDiagramViewConnector( parent, f ), 
+	: RangeSliderDiagramViewConnector( parent, f ),
 	m_mainContainer( 0 ), m_layoutVBMainContainer( 0 ),
-	m_cbPorDev( 0 ), 
-	m_cbStatisticMeasurements( 0 ), 
-	m_layoutHBComboBoxes( 0 ), 
-	m_comboBoxContainer( 0 ), 
-	m_title( 0 ), 
+	m_cbPorDev( 0 ),
+	m_cbStatisticMeasurements( 0 ),
+	m_layoutHBComboBoxes( 0 ),
+	m_comboBoxContainer( 0 ),
+	m_title( 0 ),
 	m_histoContainer( 0 ),
 	m_layoutVBHistoContainer( 0 ),
 	m_separator( 0 ),
@@ -60,7 +60,7 @@ void iARangeSliderDiagramView::setData( const QTableWidget * newData )
 	setupHistogram();
 	addComboBoxes();
 	setupDiagrams();
-	
+
 	m_mainContainer->setLayout( m_layoutVBMainContainer );
 	rangeSliderDiagramContainer->addWidget( m_mainContainer );
 	show();
@@ -97,7 +97,7 @@ QMap<QString, QList<double> > iARangeSliderDiagramView::prepareData( const QTabl
 				{
 					unsortedValues.push_back(tableData->item(j, NbOfParam + porOrDev)->text().toDouble());
 				}
-			}	
+			}
 			intervalsIt.next();
 			if (statisticMeasurements)
 			{
@@ -130,7 +130,7 @@ void iARangeSliderDiagramView::updateDiagrams()
 
 void iARangeSliderDiagramView::addTitleLabel()
 {
-	//Setup main container for GUI elements 
+	//Setup main container for GUI elements
 	m_mainContainer = new QWidget();
 	m_mainContainer->setMinimumHeight( 300 );
 	m_layoutVBMainContainer = new QVBoxLayout( this );
@@ -171,12 +171,12 @@ void iARangeSliderDiagramView::addTitleLabel()
 }
 
 void iARangeSliderDiagramView::addComboBoxes()
-{	
+{
 	// Separator
 	m_separator = new QFrame();
 	m_separator->setGeometry( QRect( 320, 150, 118, 3 ) );
 	m_separator->setFrameShape( QFrame::HLine );
-	m_separator->setStyleSheet( "border-width: 1px; border-top-style: none; border-right-style: none;" 
+	m_separator->setStyleSheet( "border-width: 1px; border-top-style: none; border-right-style: none;"
 						 "border-bottom-style: solid; border-left-style: none; border-color: lightGray; " );
 	m_separator->setFrameShadow( QFrame::Sunken );
 	m_layoutVBMainContainer->addWidget( m_separator );
@@ -194,7 +194,7 @@ void iARangeSliderDiagramView::addComboBoxes()
 	m_input->setText( "<font color = 'darkRed'>Input Parameters< / font>" );
 	m_input->setAlignment( Qt::AlignTop | Qt::AlignCenter );
 	m_layoutVBMainContainer->addWidget( m_input );
-	
+
 	// ComboBoxes
 	m_comboBoxContainer = new QWidget();
 	m_comboBoxContainer->setFixedHeight( 25 );
@@ -215,8 +215,8 @@ void iARangeSliderDiagramView::addComboBoxes()
 	m_layoutHBComboBoxes->addWidget( m_cbPorDev );
 
 	m_cbStatisticMeasurements = new QComboBox();
-	m_cbStatisticMeasurements->addItem( "Median" ); 
-	m_cbStatisticMeasurements->addItem( "Mean" ); 
+	m_cbStatisticMeasurements->addItem( "Median" );
+	m_cbStatisticMeasurements->addItem( "Mean" );
 	connect( m_cbStatisticMeasurements, SIGNAL( currentIndexChanged( int ) ), this, SLOT( updateDiagrams() ) );
 	m_cbStatisticMeasurements->setSizePolicy( comboBoxSizePolicy );
 	m_layoutHBComboBoxes->addWidget( m_cbStatisticMeasurements );
@@ -343,7 +343,7 @@ void iARangeSliderDiagramView::setupDiagrams()
 	QMap<QString, QList<double> > paramPorOrDevMap = prepareData( m_rawTable, m_cbPorDev->currentIndex(),
 																  m_cbStatisticMeasurements->currentIndex() );
 
-	
+
 	QMapIterator<QString, QList<double> > mapIt( paramPorOrDevMap );
 	while ( mapIt.hasNext() )
 	{
@@ -376,7 +376,7 @@ void iARangeSliderDiagramView::setupDiagrams()
 		m_cTFList.append( cTF );
 
 		iARangeSliderDiagramWidget* rangeSliderDiagramWidget = new iARangeSliderDiagramWidget( dynamic_cast<QWidget*> ( parent() ), nullptr,
-															m_oTFList.last(), m_cTFList.last(), m_rangeSliderData, 
+															m_oTFList.last(), m_cTFList.last(), m_rangeSliderData,
 															&m_histogramMap, m_rawTable, mapIt.key(), m_cbPorDev->currentText() );
 
 		connect( m_widgetList[0], SIGNAL( selected() ), rangeSliderDiagramWidget, SLOT( selectSlot() ) );

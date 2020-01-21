@@ -49,7 +49,7 @@ struct iASelection;
 class iASegm3DView;
 class iAPreviewSPLOMView;
 class QButtonGroup;
-class MainWindow; 
+class MainWindow;
 
 class iAPorosityAnalyser : public PorosityAnalyserConnector
 {

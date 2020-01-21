@@ -28,7 +28,7 @@
 //! in order to be called when the user selects to "Save Project".
 //!
 //! Refactoring ideas:
-//! - make this class the container for the open projects currently stored in 
+//! - make this class the container for the open projects currently stored in
 //!   MdiChild::m_projects,
 //!   and move MdiChild::doSaveProject into saveProject (or into default implementation of
 //!   doSaveProject, as MdiChild probably into the forseeable future needs to do things

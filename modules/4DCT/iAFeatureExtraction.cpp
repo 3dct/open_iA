@@ -33,7 +33,7 @@
 #include <vector>
 
 typedef itk::Image<unsigned short, 3>	ImageType;
- 
+
 void iAFeatureExtraction::run(QString inputImgPath, QString outputImgPath)
 {
 	std::cout << "Feature extracted started\n";
@@ -44,16 +44,16 @@ void iAFeatureExtraction::run(QString inputImgPath, QString outputImgPath)
 	ImageReaderType::Pointer labelReader = ImageReaderType::New();
 	labelReader->SetFileName( getLocalEncodingFileName(inputImgPath) );
 	labelReader->Update();
- 
+
 	labelImage = labelReader->GetOutput();
 
 	double origin[2] = {0.0, 0.0};
 	labelImage->SetOrigin(origin);
- 
+
 	typedef itk::LabelGeometryImageFilter2<ImageType> LabelGeometryImageFilterType;
 	LabelGeometryImageFilterType::Pointer labelGeometryImageFilter = LabelGeometryImageFilterType::New();
 	labelGeometryImageFilter->SetInput(labelImage);
- 
+
 	// These generate optional outputs.
 	labelGeometryImageFilter->CalculatePixelIndicesOn();
 	labelGeometryImageFilter->CalculateOrientedBoundingBoxOn();
@@ -61,7 +61,7 @@ void iAFeatureExtraction::run(QString inputImgPath, QString outputImgPath)
 	//labelGeometryImageFilter->CalculateOrientedIntensityRegionsOn();
 	labelGeometryImageFilter->Update();
 
-	LabelGeometryImageFilterType::LabelsType allLabels = labelGeometryImageFilter->GetLabels(); 
+	LabelGeometryImageFilterType::LabelsType allLabels = labelGeometryImageFilter->GetLabels();
 	LabelGeometryImageFilterType::LabelsType::iterator allLabelsIt;
 	std::vector<iAFeature> features;
 	for( allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )

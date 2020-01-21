@@ -56,7 +56,7 @@ public:
 
 	//! get attribute (parameter or characteristic)
 	double Attribute(int id) const;
-	
+
 	//! set attribute (parameter or characteristic)
 	void SetAttribute(int id, double value);
 

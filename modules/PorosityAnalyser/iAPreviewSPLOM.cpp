@@ -210,7 +210,7 @@ QPointF iAPreviewSPLOM::posToPxmpPos( QPointF pos )
 	QPointF res = pos - m_origin;
 	if( !m_pxmp )
 		return res;
-	double scale = 1.0;	
+	double scale = 1.0;
 	double aspectPxmp = m_pxmp->width() / ( (double)m_pxmp->height() );
 	double aspectWgt = width() / ( (double)height() );
 	if( aspectPxmp < aspectWgt )

@@ -134,7 +134,7 @@ void dlg_modalityProperties::OKButtonClicked()
 
 	double const * oldSpacing = m_modality->spacing();
 	m_spacingChanged = false;
-	
+
 	for (int i = 0; i < 3; i++)
 	{
 		if (oldSpacing[i] != spacing[i])

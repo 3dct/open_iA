@@ -50,7 +50,7 @@ iAFoamCharacterizationDialog::iAFoamCharacterizationDialog(iAFoamCharacterizatio
 	m_pCheckBoxEnabled = new QCheckBox("Enabled", this);
 	m_pCheckBoxEnabled->setChecked(m_pItem->itemEnabled());
 	m_pCheckBoxEnabled->setWhatsThis("Enable / disable the item.");
-	
+
 	m_pDialogButtonBox = new QDialogButtonBox(this);
 
 	QPushButton* pPushButtonCancel(new QPushButton("Cancel", m_pDialogButtonBox));

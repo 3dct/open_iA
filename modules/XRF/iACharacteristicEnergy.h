@@ -41,7 +41,7 @@ struct iACharacteristicEnergy
 		Lgamma1,
 		Malpha1
 	};
-	
+
 	static const double NotAvailable;
 	std::vector<double> energies;
 

@@ -44,7 +44,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChi
 	m_pBoneThickness.reset(new iABoneThickness());
 	m_pBoneThicknessChartBar = new iABoneThicknessChartBar(pWidget);
 	m_pBoneThicknessTable = new iABoneThicknessTable(pWidget);
-	
+
 	m_pBoneThickness->set(m_child->renderer(), m_child->polyData(), m_pBoneThicknessChartBar, m_pBoneThicknessTable);
 	m_pBoneThicknessChartBar->set(m_pBoneThickness.data(), m_pBoneThicknessTable);
 	m_pBoneThicknessTable->set(m_pBoneThickness.data(), m_pBoneThicknessChartBar);

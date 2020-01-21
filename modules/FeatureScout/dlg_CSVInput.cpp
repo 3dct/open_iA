@@ -353,7 +353,7 @@ void dlg_CSVInput::updateColumnMappingInputs()
 	cmbbox_col_DimensionX->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
 	cmbbox_col_DimensionY->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
 	cmbbox_col_DimensionZ->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
-	
+
 	bool computeStartEnd = cb_ComputeStartEnd->isChecked();
 	cmbbox_col_PosStartX->setEnabled(!computeStartEnd);
 	cmbbox_col_PosStartY->setEnabled(!computeStartEnd);

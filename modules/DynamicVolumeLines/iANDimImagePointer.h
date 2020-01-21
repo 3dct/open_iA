@@ -63,7 +63,7 @@ public:
 
 	unsigned int getMaxDim();
 	double getDensityAt(const itk::IndexValueType* index, unsigned int indexDim);
-	
+
 	unsigned int getDimensionCount() { return _dimensionCount; }
 
 	unsigned int* getDimSizes() { return _dimSize.get(); }

@@ -111,7 +111,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	std::vector<double> vecHist;
 
 	ITK_TYPED_CALL(computeHistogram, filter->inputPixelType(), filter, binCount, minVal, maxVal, vecHist);
-	
+
 	if (filter->m_chart)
 	{
 		auto histoPlotData = iASimpleHistogramData::create(minVal, maxVal, vecHist, Continuous);
