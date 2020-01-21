@@ -20,13 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include <QFile>
 
-class iAAdaptiveThresholdModuleInterface : public iAModuleInterface
+class QString;
+
+class iALoader
 {
-	Q_OBJECT
 public:
-	void Initialize() override;
-private slots:
-	void determineThreshold();
+	bool loadCSV(const QString &Fname);
+	const std::vector<double> &getFrequencies()
+	{
+		return this->m_frequencies;
+	}
+	const std::vector<double> &getGreyValues()
+	{
+		return m_greyValues;
+	}
+private:
+	std::vector<double> m_frequencies;
+	std::vector<double> m_greyValues;
 };

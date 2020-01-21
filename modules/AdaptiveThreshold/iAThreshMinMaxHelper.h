@@ -20,13 +20,28 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include "iAThresholdDefinitions.h"
 
-class iAAdaptiveThresholdModuleInterface : public iAModuleInterface
-{
-	Q_OBJECT
-public:
-	void Initialize() override;
-private slots:
-	void determineThreshold();
+class QTextEdit;
+
+namespace threshold_defs {
+
+	class iAThreshMinMaxHelper
+	{
+	public:
+
+		/*
+		*compare fmin with fair/2
+		if fmin > fair/2 take first minimum (gmin, fmin) as greythreshold, else take the next crossing of fair/2 or 50 %, whichever is lowest
+		*/
+		QPointF determineThresholdResultsPointXY(const iAThresMinMax& results, QTextEdit *elem);
+
+	private:
+		QPointF getIntersectionPoint(const iAThresMinMax& results);
+
+		//fmin > fair /2
+		bool compareFminWithAirPeak(const iAThresMinMax& results);
+		QPointF getLokalMininum(const iAThresMinMax& results);
+
+	};
 };

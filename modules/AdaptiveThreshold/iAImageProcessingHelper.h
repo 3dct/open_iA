@@ -20,13 +20,19 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+class MdiChild;
 
-class iAAdaptiveThresholdModuleInterface : public iAModuleInterface
+class iAImageProcessingHelper
 {
-	Q_OBJECT
 public:
-	void Initialize() override;
-private slots:
-	void determineThreshold();
+	iAImageProcessingHelper(MdiChild* child);
+	void performSegmentation(double greyThresholdMin, double greyThreshold);
+	void prepareFilter(double greyThresholdLower, double greyThresholdUpper);
+private:
+	void imageToReslicer();
+
+	iAImageProcessingHelper(const iAImageProcessingHelper& other) = delete;
+	iAImageProcessingHelper() = delete;
+	MdiChild* m_childData = nullptr;
 };
+

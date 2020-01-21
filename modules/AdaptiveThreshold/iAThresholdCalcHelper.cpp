@@ -1,14 +1,36 @@
-#include "ThresholdCalcHelper.h"
-#include <numeric>
-#include "ThresholdDefinitions.h"
+/*************************************  open_iA  ************************************ *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
+* *********************************************************************************** *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* *********************************************************************************** *
+* This program is free software: you can redistribute it and/or modify it under the   *
+* terms of the GNU General Public License as published by the Free Software           *
+* Foundation, either version 3 of the License, or (at your option) any later version. *
+*                                                                                     *
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+*                                                                                     *
+* You should have received a copy of the GNU General Public License along with this   *
+* program.  If not, see http://www.gnu.org/licenses/                                  *
+* *********************************************************************************** *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* ************************************************************************************/
+#include "iAThresholdCalcHelper.h"
+
+#include "iAThresholdDefinitions.h"
+
+#include <iAConsole.h>
+#include <iAMathUtility.h>
+
+#include <QLine>
+
 #include <algorithm>
-#include <stdexcept>
-
-#include "iAConsole.h"
-#include "QLine"
-#include "iAMathUtility.h"
-
 #include <cmath>
+#include <numeric>
+#include <stdexcept>
 
 namespace algorithm
 {
@@ -63,7 +85,7 @@ namespace algorithm
 
 }
 
-double ThresholdCalcHelper::findMaxPeak(std::vector<double>& v_ind) const
+double iAThresholdCalcHelper::findMaxPeak(std::vector<double>& v_ind) const
 {
 	std::sort(v_ind.begin(), v_ind.end(), algorithm::greaterThan);
 	auto peak = std::adjacent_find(v_ind.begin(), v_ind.end(), std::greater<double>());
@@ -75,7 +97,7 @@ double ThresholdCalcHelper::findMaxPeak(std::vector<double>& v_ind) const
 	return *peak;
 }
 
-double ThresholdCalcHelper::findMinPeak(std::vector<double>& v_ind) const {
+double iAThresholdCalcHelper::findMinPeak(std::vector<double>& v_ind) const {
 	std::sort(v_ind.begin(), v_ind.end(), algorithm::smallerThan);
 	auto peak = std::adjacent_find(v_ind.begin(), v_ind.end(), std::less<double>());
 
@@ -86,7 +108,7 @@ double ThresholdCalcHelper::findMinPeak(std::vector<double>& v_ind) const {
 	return *peak;
 }
 
-double ThresholdCalcHelper::vectorSum(const std::vector<double>& vec, size_t startInd, size_t endInd)
+double iAThresholdCalcHelper::vectorSum(const std::vector<double>& vec, size_t startInd, size_t endInd)
 {
 	if (startInd >= vec.size() || endInd >= vec.size()) throw new std::invalid_argument("test");
 	double tmp = 0.0f;
@@ -102,14 +124,14 @@ double ThresholdCalcHelper::vectorSum(const std::vector<double>& vec, size_t sta
 }
 
 
-threshold_defs::ThresIndx ThresholdCalcHelper::findIndex(const std::vector<double>& vec, double cmpVal) const
+threshold_defs::iAThresIndx iAThresholdCalcHelper::findIndex(const std::vector<double>& vec, double cmpVal) const
 {
 
-	threshold_defs::ThresIndx thrInd;
+	threshold_defs::iAThresIndx thrInd;
 	long ind = 0;
 	thrInd.value = cmpVal;
 	if (vec.empty()) {
-		thrInd.thrIndx = -1; 
+		thrInd.thrIndx = -1;
 	}
 
 	for (const double& el : vec) {
@@ -129,77 +151,77 @@ threshold_defs::ThresIndx ThresholdCalcHelper::findIndex(const std::vector<doubl
 
 }
 
-threshold_defs::ThresMinMax ThresholdCalcHelper::calculateLocalePeaks(const threshold_defs::ParametersRanges& inRanges) const
+threshold_defs::iAThresMinMax iAThresholdCalcHelper::calculateLocalePeaks(const threshold_defs::iAParametersRanges& inRanges) const
 {
 	double y_min = 0;
 	double y_max = 0;
 	std::vector<double> yRange = inRanges.getYRange();
 	std::vector<double> xRange = inRanges.getXRange();
-	
+
 	//or copy this because the array is sorted
 	y_max = this->findMaxPeak(yRange);
 	y_min = this->findMinPeak(yRange);
 	DEBUG_LOG(QString("peaks at y %1 %2").arg(y_max).arg(y_min));
-	
+
 	const auto indMax = this->findIndex(inRanges.getYRange(), y_max);
 	const auto indMin = this->findIndex(inRanges.getYRange(), y_min);
-	
-	if ((indMin.thrIndx == -1) || (indMax.thrIndx == -1)) 
+
+	if ((indMin.thrIndx == -1) || (indMax.thrIndx == -1))
 		throw std::invalid_argument("index out of range");
-	
+
 	double x_max = xRange[indMax.thrIndx];
-	double x_min = xRange[indMin.thrIndx];	
-	
-	threshold_defs::ThresMinMax thrMinMax;
-	
+	double x_min = xRange[indMin.thrIndx];
+
+	threshold_defs::iAThresMinMax thrMinMax;
+
 	thrMinMax.FreqPeakLokalMaxY(y_max);
 	thrMinMax.FreqPeakMinY(y_min);
 	thrMinMax.PeakMinXThreshold(x_min);
 	thrMinMax.LokalMaxPeakThreshold_X(x_max);
-	return thrMinMax; 
+	return thrMinMax;
 }
 
-void ThresholdCalcHelper::determinIso50andGlobalMax(const threshold_defs::ParametersRanges& inRanges, threshold_defs::ThresMinMax &inVals)
+void iAThresholdCalcHelper::determinIso50andGlobalMax(const threshold_defs::iAParametersRanges& inRanges, threshold_defs::iAThresMinMax &inVals)
 {
 	//min_Max of a Range
 	//detect peak max
 	//iso 50 is between air and material peak - grauwert
 
 	try{
-			
+
 		std::vector<double> freqRangesY = inRanges.getYRange();
-		double maxRange = this->findMaxPeak(freqRangesY); //maximum 
-		
-		threshold_defs::ThresIndx indMinMax = findIndex(inRanges.getYRange(), maxRange);
+		double maxRange = this->findMaxPeak(freqRangesY); //maximum
+
+		threshold_defs::iAThresIndx indMinMax = findIndex(inRanges.getYRange(), maxRange);
 		if (indMinMax.thrIndx < 0) {
-			return; 
+			return;
 		}
-		
-		double maxPeakThres = inRanges.getXRange()[indMinMax.thrIndx]; 
+
+		double maxPeakThres = inRanges.getXRange()[indMinMax.thrIndx];
 		double Iso50Val = (maxPeakThres + inVals.LokalMaxPeakThreshold_X()) * 0.5f;
-		inVals.setMaterialsThreshold(maxPeakThres); 				
+		inVals.setMaterialsThreshold(maxPeakThres);
 		inVals.Iso50ValueThr(Iso50Val);
 	}
 	catch (std::invalid_argument& /*iae*/) {
-		throw; 
+		throw;
 	}
 
 }
 
 
-void ThresholdCalcHelper::getFirstElemInRange(const QVector <QPointF>& in, float xmin, float xmax, QPointF* result)
+void iAThresholdCalcHelper::getFirstElemInRange(const QVector <QPointF>& in, float xmin, float xmax, QPointF* result)
 {
-	if (!result) throw std::invalid_argument("null argument QPointF"); 
+	if (!result) throw std::invalid_argument("null argument QPointF");
 	if (in.empty())
-	{ 
+	{
 		result = nullptr;
 		return;
 	}
 
-	
-	try 
+
+	try
 	{
-	
+
 		QVector<QPointF> ranges = in;
 		sortPointsByX(ranges);
 		bool contained = false;
@@ -227,31 +249,31 @@ void ThresholdCalcHelper::getFirstElemInRange(const QVector <QPointF>& in, float
 		}
 	}
 	catch (std::invalid_argument& /*ia*/) {
-		throw; 
+		throw;
 	}
 	catch (std::bad_alloc& /*ba*/) {
 		DEBUG_LOG("error calculation elem by ranges faild in memory");
-		throw; 
+		throw;
 	}
-	
+
 }
 
-void ThresholdCalcHelper::PeakgreyThresholdNormalization(threshold_defs::ParametersRanges& ranges, double greyThrPeakAir, double greyThrPeakMax)
+void iAThresholdCalcHelper::PeakgreyThresholdNormalization(threshold_defs::iAParametersRanges& ranges, double greyThrPeakAir, double greyThrPeakMax)
 {
 	if (greyThrPeakAir < std::numeric_limits<double>::min() || (greyThrPeakAir > std::numeric_limits<double>::max())) {
 		DEBUG_LOG(QString("grey value threshold invalid %1").arg(greyThrPeakAir));
-		return; 
+		return;
 	}
 
 	if (greyThrPeakAir > greyThrPeakMax) {
 		DEBUG_LOG("grey value of air peak must be smaller than matierial peak, please change order");
-		return; 
+		return;
 	}
 
 
 	std::vector<double> tmp_ranges_x = ranges.getXRange();
 	if (tmp_ranges_x.empty()) {
-		return; 		
+		return;
 	}
 
 
@@ -262,10 +284,10 @@ void ThresholdCalcHelper::PeakgreyThresholdNormalization(threshold_defs::Paramet
 	}
 
 	ranges.setXVals(tmp_ranges_x);
-	
+
 }
 
-bool ThresholdCalcHelper::checkInRange(const QPointF& pt, float min, float max)
+bool iAThresholdCalcHelper::checkInRange(const QPointF& pt, float min, float max)
 {
 	float xval = (float)pt.x();
 	bool isInRangeMin = false;
