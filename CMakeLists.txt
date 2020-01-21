@@ -88,6 +88,7 @@ IF (MSVC)
 		SET (ReleaseLibraryPaths "${ONNX_LIB_WIN_DIR};${ReleaseLibraryPaths}")
 		SET (DebugLibraryPaths "${ONNX_LIB_WIN_DIR};${DebugLibraryPaths}")
 		SET (MinSizeRelLibraryPaths "${ONNX_LIB_WIN_DIR};${MinSizeRelLibraryPaths}")
+		LIST (APPEND BUNDLE_DIRS "${ONNX_LIB_DIR}")
 	ENDIF()
 
 	IF (ITK_USE_SYSTEM_FFTW)
