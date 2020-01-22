@@ -1,10 +1,4 @@
-SET( MODULE_DESCRIPTION_OUT
-	"Use segmentation filters:\nRegion growing\n\tOtsu threshold filter\n\tAdaptive Otsu threshold filter\n\tRats threshold filter\n\tOtsu multiple threshold filter\nBased on Watersheds\n\tWatershed Segmentation filter\nRandom Walker Segmentation"
-PARENT_SCOPE)
-
-SET( MODULE_DEFAULT_OPTION_VALUE_OUT OFF  PARENT_SCOPE)
-
-IF (openiA_TESTING_ENABLED AND Module_RandomWalker)
+IF (openiA_TESTING_ENABLED)
 	get_filename_component(CoreSrcDir "../../core/src" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 	get_filename_component(CoreBinDir "../../core" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 	ADD_EXECUTABLE(ImageGraphTest iAImageGraphTest.cpp iAImageGraph.cpp ${CoreSrcDir}/iAImageCoordinate.cpp)

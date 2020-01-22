@@ -5,7 +5,6 @@ SET (option_prefix "Module_")
 LOAD_MODULES( ${CMAKE_CURRENT_SOURCE_DIR}
 	MODULE_NAMES
 	MODULE_DESCRIPTIONS
-	MODULE_DEFAULT_VALS
 )
 
 # Iteratively process modules
@@ -20,9 +19,8 @@ ENDIF()
 FOREACH( indx RANGE ${len} )
 	LIST( GET MODULE_NAMES ${indx} module_name)
 	LIST( GET MODULE_DESCRIPTIONS ${indx} module_description)
-	LIST( GET MODULE_DEFAULT_VALS ${indx} module_def_val)
 	SET(module_option ${option_prefix}${module_name})
-	OPTION( ${module_option} ${module_description} ${module_def_val})
+	OPTION( ${module_option} ${module_description} OFF)
 	IF (openiA_BUILD_ALL_MODULES)
 		set(${module_option} "ON" CACHE BOOL "" FORCE)
 	ENDIF()
@@ -48,12 +46,12 @@ FOREACH( indx RANGE ${len} )
 	LIST( GET MODULE_NAMES ${indx} module_name)
 	# Read and print module description
 	GET_MODULE_FULL_PATH ( ${module_name} module_full_path )
-	# Add an option for the module
-	SET(module_option ${option_prefix}${module_name})
 
+	SET(module_option ${option_prefix}${module_name})
 	IF( NOT ${module_option} )
 		CONTINUE()
 	ENDIF()
+
 	# Collect source files from the module directories, except potential *Test.cpp/cxx files
 	FILE (GLOB_RECURSE module_srcs "${module_full_path}/*.cpp" "${module_full_path}/*.cxx" )
 	FILE (GLOB_RECURSE module_test_srcs "${module_full_path}/*Test.cpp" "${module_full_path}/*Test.cxx" )
@@ -80,6 +78,10 @@ FOREACH( indx RANGE ${len} )
 		MESSAGE(STATUS "  ${module_name}:")
 	ENDIF()
 	LIST(APPEND ENABLED_MODULE_NAMES ${module_name})
+	IF (EXISTS "${module_full_path}/enabled.cmake")
+		MESSAGE(STATUS "    Running ${module_full_path}/enabled.cmake...")
+		INCLUDE("${module_full_path}/enabled.cmake")
+	ENDIF()
 
 	# clean module name for use as identifier (if leading number, then add "_" prefix)
 	string(REGEX REPLACE "^([0123456789])" "_\\1" ident_module_name ${module_name})
