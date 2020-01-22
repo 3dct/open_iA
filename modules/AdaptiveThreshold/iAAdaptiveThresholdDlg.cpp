@@ -519,7 +519,7 @@ void iAAdaptiveThresholdDlg::determineIntersectionAndFinalThreshold()
 		QPointF LokalMaxHalfEnd(m_graphValuesScope.getXMax(), lokalMaxHalf.y());
 
 		//prepare line for intersection with fpeak half
-		intersection::XYLine LinePeakHalf(lokalMaxHalf, LokalMaxHalfEnd);
+		intersection::iAXYLine LinePeakHalf(lokalMaxHalf, LokalMaxHalfEnd);
 
 		//points for intersection x,y - Werte of normalized Hist for Line Intersections
 		threshold_defs::iAParametersRanges Intersectranges;
