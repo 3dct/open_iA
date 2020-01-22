@@ -27,7 +27,10 @@
 namespace intersection
 {
 
-	QLineF::IntersectType XYLine::calulateILineInterSection(const XYLine& other, QPointF* pt) const
+	iAXYLine::iAXYLine()
+	{}
+
+	QLineF::IntersectType iAXYLine::calulateILineInterSection(const iAXYLine& other, QPointF* pt) const
 	{
 #if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
 		return this->intersects(other, pt);
@@ -37,10 +40,10 @@ namespace intersection
 	}
 
 
-	void XYLine::intersectWithLines(const QVector<XYLine>& allLines)
+	void iAXYLine::intersectWithLines(const QVector<iAXYLine>& allLines)
 	{
 
-		for (const XYLine& line : allLines)
+		for (const iAXYLine& line : allLines)
 		{
 			QPointF pt_Intersect;
 
@@ -52,11 +55,11 @@ namespace intersection
 			if ((!pt_Intersect.isNull()) && ( !(interSectFlag == QLineF::UnboundedIntersection)))
 			{
 				m_intersectPoints.push_back(pt_Intersect);
+			}
 		}
 	}
-	}
 
-	void createLineSegments(const threshold_defs::iAParametersRanges& lineRange, QVector<XYLine>& xyLines)
+	void createLineSegments(const threshold_defs::iAParametersRanges& lineRange, QVector<iAXYLine>& xyLines)
 	{
 		std::vector<double> x_vals = lineRange.getXRange();
 		std::vector<double> y_vals = lineRange.getYRange();
@@ -74,27 +77,27 @@ namespace intersection
 
 			DEBUG_LOG(QString("segment %1 %2 %3 %4").arg(x1).arg(y1).arg(x2).arg(y2));
 
-			XYLine line(x1, y1, x2, y2);
+			iAXYLine line(x1, y1, x2, y2);
 			xyLines.push_back(line);
 		}
 	}
 
-	const QVector<QPointF>& XYLine::intersectionFromRange(const threshold_defs::iAParametersRanges& aRange)
+	const QVector<QPointF>& iAXYLine::intersectionFromRange(const threshold_defs::iAParametersRanges& aRange)
 	{
-		QVector<XYLine> Lines;
+		QVector<iAXYLine> Lines;
 		createLineSegments(aRange, Lines);
 		DEBUG_LOG(QString("Line size %1").arg(Lines.size()));
-		XYLine aLine = Lines.takeFirst();
+		iAXYLine aLine = Lines.takeFirst();
 		aLine.intersectWithLines(Lines);
 		return this->m_intersectPoints;
 	}
 
-	const QVector<QPointF>& XYLine::intersectionLineWithRange(const threshold_defs::iAParametersRanges& aRange)
+	const QVector<QPointF>& iAXYLine::intersectionLineWithRange(const threshold_defs::iAParametersRanges& aRange)
 	{
-			QVector<XYLine> Lines;
+		QVector<iAXYLine> Lines;
 		createLineSegments(aRange, Lines);
-			this->intersectWithLines(Lines);
-			return this->m_intersectPoints;
-		}
+		this->intersectWithLines(Lines);
+		return this->m_intersectPoints;
+	}
 
 }

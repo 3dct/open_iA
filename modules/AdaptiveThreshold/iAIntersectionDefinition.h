@@ -30,19 +30,19 @@ class QString;
 
 namespace intersection
 {
-	class XYLine : protected QLineF
+	class iAXYLine : protected QLineF
 	{
 	public:
-		//XYLine();
-		XYLine(const QPointF& pt1, const QPointF& pt2):QLineF(pt1, pt2) {};
-		XYLine(float x1, float y1, float x2, float y2):QLineF(x1, y1, x2, y2) {};
-		XYLine(const QLineF &line):QLineF(line) {};
+		iAXYLine();
+		iAXYLine(const QPointF& pt1, const QPointF& pt2):QLineF(pt1, pt2) {};
+		iAXYLine(float x1, float y1, float x2, float y2):QLineF(x1, y1, x2, y2) {};
+		iAXYLine(const QLineF &line):QLineF(line) {};
 
 		//can be also null if no intersection
-		QLineF::IntersectType calulateILineInterSection(const XYLine& other, QPointF* pt) const;
+		QLineF::IntersectType calulateILineInterSection(const iAXYLine& other, QPointF* pt) const;
 
 		//calculates the intersection with of line segments with a current line;
-		void intersectWithLines(const QVector<XYLine> &QVector);
+		void intersectWithLines(const QVector<iAXYLine> &QVector);
 
 
 		//the first line is taken for intersection calculation
