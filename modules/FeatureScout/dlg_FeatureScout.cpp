@@ -2339,7 +2339,9 @@ void dlg_FeatureScout::ClassDeleteButton()
 void dlg_FeatureScout::showScatterPlot()
 {
 	if (dwSPM)
+	{
 		return;
+	}
 	dwSPM = new iADockWidgetWrapper("Scatter Plot Matrix", "FeatureScoutSPM");
 	activeChild->addDockWidget(Qt::RightDockWidgetArea, dwSPM);
 	dwSPM->show();
@@ -2348,7 +2350,9 @@ void dlg_FeatureScout::showScatterPlot()
 	dwSPM->raise();
 	m_splom->initScatterPlot(dwSPM, csvTable, columnVisibility);
 	if (m_renderMode == rmMultiClass)
+	{
 		m_splom->multiClassRendering(m_colorList);
+	}
 	else
 	{
 		m_splom->setDotColor(StandardSPLOMDotColor);

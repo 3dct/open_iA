@@ -363,7 +363,7 @@ DoubleImage::Pointer NeighbourhoodEntropyImage(IntImage::Pointer intImage, int l
 			}
 			entropy = clamp(0.0, limit, -entropy * normalizeFactor);
 		}
-		else
+		else // if on boundary
 		{
 			for (int l = 0; l < labelCount; ++l)
 			{
@@ -373,9 +373,9 @@ DoubleImage::Pointer NeighbourhoodEntropyImage(IntImage::Pointer intImage, int l
 					entropy += (prob * std::log(prob));
 				}
 			}
-			double limit = std::log(valueCount);  // max entropy: - N* (1/N * log(1/N)) = log(N)
-			double normalizeFactor = 1.0 / limit;
-			entropy = clamp(0.0, limit, -entropy * normalizeFactor);
+			double localLimit = std::log(valueCount);  // max entropy: - N* (1/N * log(1/N)) = log(N)
+			double localNormalizeFactor = 1.0 / localLimit;
+			entropy = clamp(0.0, localLimit, -entropy * localNormalizeFactor);
 		}
 		outIt.Set(entropy);
 		++it;
