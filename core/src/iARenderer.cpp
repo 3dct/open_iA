@@ -265,11 +265,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	m_slicePlaneOpacity(0.8)
 {
 	m_ren->SetLayer(0);
-	m_ren->UseDepthPeelingOn();
-	m_ren->SetMaximumNumberOfPeels(1000);
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
-	m_ren->UseDepthPeelingForVolumesOn();
-#endif
 	m_labelRen->SetLayer(1);
 	m_labelRen->InteractiveOff();
 	m_labelRen->UseDepthPeelingOn();
@@ -952,6 +947,11 @@ void iARenderer::setSlicePlanePos(int planeID, double originX, double originY, d
 
 void iARenderer::applySettings(iARenderSettings const & settings)
 {
+	m_ren->SetUseDepthPeeling(settings.UseDepthPeeling);
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
+	m_ren->SetUseDepthPeelingForVolumes(settings.UseDepthPeeling);
+#endif
+	m_ren->SetMaximumNumberOfPeels(settings.DepthPeels);
 	m_ren->SetUseFXAA(settings.UseFXAA);
 	m_cam->SetParallelProjection(settings.ParallelProjection);
 	QColor bgTop(settings.BackgroundTop);

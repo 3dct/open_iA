@@ -743,6 +743,10 @@ void MainWindow::saveRenderSettings(iAXmlSettings &xml)
 	renderSettingsElement.setAttribute("parallelProjection", m_defaultRenderSettings.ParallelProjection);
 	renderSettingsElement.setAttribute("backgroundTop", m_defaultRenderSettings.BackgroundTop);
 	renderSettingsElement.setAttribute("backgroundBottom", m_defaultRenderSettings.BackgroundBottom);
+	renderSettingsElement.setAttribute("planeOpacity", m_defaultRenderSettings.PlaneOpacity);
+	renderSettingsElement.setAttribute("useFXAA", m_defaultRenderSettings.UseFXAA);
+	renderSettingsElement.setAttribute("useDepthPeeling", m_defaultRenderSettings.UseDepthPeeling);
+	renderSettingsElement.setAttribute("depthPeels", m_defaultRenderSettings.DepthPeels);
 	renderSettingsElement.setAttribute("linearInterpolation", m_defaultVolumeSettings.LinearInterpolation);
 	renderSettingsElement.setAttribute("shading", m_defaultVolumeSettings.Shading);
 	renderSettingsElement.setAttribute("sampleDistance", m_defaultVolumeSettings.SampleDistance);
@@ -764,6 +768,10 @@ void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
 	m_defaultRenderSettings.ParallelProjection = attributes.namedItem("parallelProjection").nodeValue() == "1";
 	m_defaultRenderSettings.BackgroundTop = attributes.namedItem("backgroundTop").nodeValue();
 	m_defaultRenderSettings.BackgroundBottom = attributes.namedItem("backgroundBottom").nodeValue();
+	m_defaultRenderSettings.PlaneOpacity = attributes.namedItem("planeOpacity").nodeValue().toDouble();
+	m_defaultRenderSettings.UseFXAA = attributes.namedItem("useFXAA").nodeValue() == "1";
+	m_defaultRenderSettings.UseDepthPeeling = attributes.namedItem("useDepthPeeling").nodeValue() == "1";
+	m_defaultRenderSettings.DepthPeels = attributes.namedItem("depthPeels").nodeValue().toInt();
 
 	m_defaultVolumeSettings.LinearInterpolation = attributes.namedItem("linearInterpolation").nodeValue() == "1";
 	m_defaultVolumeSettings.Shading = attributes.namedItem("shading").nodeValue() == "1";
@@ -996,10 +1004,6 @@ void MainWindow::prefs()
 void MainWindow::renderSettings()
 {
 	MdiChild *child = activeMdiChild();
-
-	QString t = tr("true");
-	QString f = tr("false");
-
 	iARenderSettings const & renderSettings = child->renderSettings();
 	iAVolumeSettings const & volumeSettings = child->volumeSettings();
 
@@ -1017,6 +1021,8 @@ void MainWindow::renderSettings()
 		<< tr("#Background top")
 		<< tr("#Background bottom")
 		<< tr("$Use FXAA")
+		<< tr("$Use Depth Peeling")
+		<< tr("#Maximum Depth Peels")
 		<< tr("$Linear interpolation")
 		<< tr("$Shading")
 		<< tr("#Sample distance")
@@ -1028,37 +1034,42 @@ void MainWindow::renderSettings()
 		<< tr("#Slice plane opacity");
 
 	QList<QVariant> inPara;
-	inPara << (renderSettings.ShowSlicers ? t : f)
-		<< (renderSettings.ShowSlicePlanes ? t : f)
-		<< (renderSettings.ShowHelpers ? t : f)
-		<< (renderSettings.ShowRPosition ? t : f)
-		<< (renderSettings.ParallelProjection ? t : f)
-		<< tr("%1").arg(renderSettings.BackgroundTop)
-		<< tr("%1").arg(renderSettings.BackgroundBottom)
-		<< (renderSettings.UseFXAA ? t : f)
-		<< (volumeSettings.LinearInterpolation ? t : f)
-		<< (volumeSettings.Shading ? t : f)
-		<< tr("%1").arg(volumeSettings.SampleDistance)
-		<< tr("%1").arg(volumeSettings.AmbientLighting)
-		<< tr("%1").arg(volumeSettings.DiffuseLighting)
-		<< tr("%1").arg(volumeSettings.SpecularLighting)
-		<< tr("%1").arg(volumeSettings.SpecularPower)
+	inPara << renderSettings.ShowSlicers
+		<< renderSettings.ShowSlicePlanes
+		<< renderSettings.ShowHelpers
+		<< renderSettings.ShowRPosition
+		<< renderSettings.ParallelProjection
+		<< renderSettings.BackgroundTop
+		<< renderSettings.BackgroundBottom
+		<< renderSettings.UseFXAA
+		<< renderSettings.UseDepthPeeling
+		<< renderSettings.DepthPeels
+		<< volumeSettings.LinearInterpolation
+		<< volumeSettings.Shading
+		<< volumeSettings.SampleDistance
+		<< volumeSettings.AmbientLighting
+		<< volumeSettings.DiffuseLighting
+		<< volumeSettings.SpecularLighting
+		<< volumeSettings.SpecularPower
 		<< renderTypes
-		<< tr("%1").arg(renderSettings.PlaneOpacity);
+		<< renderSettings.PlaneOpacity;
 
 	dlg_commoninput dlg(this, "Renderer settings", inList, inPara, nullptr);
 
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
-	m_defaultRenderSettings.ShowSlicers = dlg.getCheckValue(0) != 0;
-	m_defaultRenderSettings.ShowSlicePlanes = dlg.getCheckValue(1) != 0;
-	m_defaultRenderSettings.ShowHelpers = dlg.getCheckValue(2) != 0;
-	m_defaultRenderSettings.ShowRPosition = dlg.getCheckValue(3) != 0;
-	m_defaultRenderSettings.ParallelProjection = dlg.getCheckValue(4) != 0;
-	m_defaultRenderSettings.BackgroundTop = dlg.getText(5);
-	m_defaultRenderSettings.BackgroundBottom = dlg.getText(6);
-	m_defaultRenderSettings.UseFXAA = dlg.getCheckValue(7) !=0;
+	int param = 0;
+	m_defaultRenderSettings.ShowSlicers = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.ShowSlicePlanes = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.ShowHelpers = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.ShowRPosition = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.ParallelProjection = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.BackgroundTop = dlg.getText(param++);
+	m_defaultRenderSettings.BackgroundBottom = dlg.getText(param++);
+	m_defaultRenderSettings.UseFXAA = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.UseDepthPeeling = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.DepthPeels = dlg.getIntValue(param++);
 
 	QColor bgTop(m_defaultRenderSettings.BackgroundTop);
 	QColor bgBottom(m_defaultRenderSettings.BackgroundBottom);
@@ -1073,16 +1084,16 @@ void MainWindow::renderSettings()
 		m_defaultRenderSettings.BackgroundBottom = bgTop.name();
 	}
 
-	m_defaultVolumeSettings.LinearInterpolation = dlg.getCheckValue(8) != 0;
-	m_defaultVolumeSettings.Shading = dlg.getCheckValue(9) != 0;
-	m_defaultVolumeSettings.SampleDistance = dlg.getDblValue(10);
-	m_defaultVolumeSettings.AmbientLighting = dlg.getDblValue(11);
-	m_defaultVolumeSettings.DiffuseLighting = dlg.getDblValue(12);
-	m_defaultVolumeSettings.SpecularLighting = dlg.getDblValue(13);
-	m_defaultVolumeSettings.SpecularPower = dlg.getDblValue(14);
-	m_defaultVolumeSettings.RenderMode = mapRenderModeToEnum(dlg.getComboBoxValue(15));
+	m_defaultVolumeSettings.LinearInterpolation = dlg.getCheckValue(param++) != 0;
+	m_defaultVolumeSettings.Shading = dlg.getCheckValue(param++) != 0;
+	m_defaultVolumeSettings.SampleDistance = dlg.getDblValue(param++);
+	m_defaultVolumeSettings.AmbientLighting = dlg.getDblValue(param++);
+	m_defaultVolumeSettings.DiffuseLighting = dlg.getDblValue(param++);
+	m_defaultVolumeSettings.SpecularLighting = dlg.getDblValue(param++);
+	m_defaultVolumeSettings.SpecularPower = dlg.getDblValue(param++);
+	m_defaultVolumeSettings.RenderMode = mapRenderModeToEnum(dlg.getComboBoxValue(param++));
 
-	m_defaultRenderSettings.PlaneOpacity = dlg.getDblValue(16);
+	m_defaultRenderSettings.PlaneOpacity = dlg.getDblValue(param++);
 
 	if (activeMdiChild() && activeMdiChild()->editRendererSettings(
 		m_defaultRenderSettings,
@@ -1656,8 +1667,12 @@ void MainWindow::readSettings()
 	m_defaultRenderSettings.ShowHelpers = settings.value("Renderer/rsShowHelpers", fallbackRS.ShowHelpers).toBool();
 	m_defaultRenderSettings.ShowRPosition = settings.value("Renderer/rsShowRPosition", fallbackRS.ShowRPosition).toBool();
 	m_defaultRenderSettings.ParallelProjection = settings.value("Renderer/rsParallelProjection", fallbackRS.ParallelProjection).toBool();
+	m_defaultRenderSettings.UseFXAA = settings.value("Renderer/rsUseFXAA", fallbackRS.UseFXAA).toBool();
+	m_defaultRenderSettings.PlaneOpacity = settings.value("Renderer/rsPlaneOpacity", fallbackRS.PlaneOpacity).toDouble();
 	m_defaultRenderSettings.BackgroundTop = settings.value("Renderer/rsBackgroundTop", fallbackRS.BackgroundTop).toString();
 	m_defaultRenderSettings.BackgroundBottom = settings.value("Renderer/rsBackgroundBottom", fallbackRS.BackgroundBottom).toString();
+	m_defaultRenderSettings.UseDepthPeeling = settings.value("Renderer/rsUseDepthPeeling", fallbackRS.UseDepthPeeling).toBool();
+	m_defaultRenderSettings.DepthPeels = settings.value("Renderer/rsDepthPeels", fallbackRS.DepthPeels).toInt();
 
 	iAVolumeSettings fallbackVS;
 	m_defaultVolumeSettings.LinearInterpolation = settings.value("Renderer/rsLinearInterpolation", fallbackVS.LinearInterpolation).toBool();
@@ -1755,6 +1770,10 @@ void MainWindow::writeSettings()
 	settings.setValue("Renderer/rsBackgroundBottom", m_defaultRenderSettings.BackgroundBottom);
 	settings.setValue("Renderer/rsShowHelpers", m_defaultRenderSettings.ShowHelpers);
 	settings.setValue("Renderer/rsShowRPosition", m_defaultRenderSettings.ShowRPosition);
+	settings.setValue("Renderer/rsUseFXAA", m_defaultRenderSettings.UseFXAA);
+	settings.setValue("Renderer/rsPlaneOpacity", m_defaultRenderSettings.PlaneOpacity);
+	settings.setValue("Renderer/rsUseDepthPeeling", m_defaultRenderSettings.UseDepthPeeling);
+	settings.setValue("Renderer/rsDepthPeels", m_defaultRenderSettings.DepthPeels);
 
 	settings.setValue("Renderer/rsLinearInterpolation", m_defaultVolumeSettings.LinearInterpolation);
 	settings.setValue("Renderer/rsShading", m_defaultVolumeSettings.Shading);

@@ -30,10 +30,12 @@ public:
 		ShowHelpers,
 		ShowRPosition,
 		ParallelProjection,
-		UseFXAA;
+		UseFXAA,
+		UseDepthPeeling;
 	QString BackgroundTop,
 		BackgroundBottom;
 	float PlaneOpacity;
+	int DepthPeels;
 
 	iARenderSettings() :
 		ShowSlicers(false),
@@ -42,8 +44,10 @@ public:
 		ShowRPosition(true),
 		ParallelProjection(false),
 		UseFXAA(true),
+		UseDepthPeeling(true),
 		BackgroundTop("#7FAAFF"),
 		BackgroundBottom("#FFFFFF"),
-		PlaneOpacity(0.8f)
+		PlaneOpacity(0.8f),
+		DepthPeels(4)
 	{}
 };
