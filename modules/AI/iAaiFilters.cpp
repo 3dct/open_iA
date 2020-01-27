@@ -87,7 +87,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	// ORT_ENABLE_BASIC -> To enable basic optimizations (Such as redundant node removals)
 	// ORT_ENABLE_EXTENDED -> To enable extended optimizations (Includes level 1 + more complex optimizations like node fusions)
 	// ORT_ENABLE_ALL -> To Enable All possible opitmizations
-	session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
+	session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
 
 	//*************************************************************************
 	// create session and load model into memory
@@ -168,7 +168,9 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	size_t input_tensor_size = 128 * 128 * 128*1;  // simplify ... using known dim values to calculate size
 											   // use OrtGetTensorShapeElementCount() to get official size!
 
-	std::vector<const char*> output_node_names = { "conv3d_24" };
+	char* output_name = session.GetOutputName(0, allocator);
+
+	std::vector<const char*> output_node_names = { output_name };
 
 	ImageType::RegionType region = itk_img->GetLargestPossibleRegion();
 
@@ -200,6 +202,8 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 			}
 		}
 	}
+
+	outputImage->SetSpacing(filter->input()[0]->itkImage()->GetSpacing());
 
 	filter->addOutput(outputImage);
 
