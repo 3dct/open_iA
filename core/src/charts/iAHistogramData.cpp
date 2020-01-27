@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAHistogramData.h"
 
+#include "iAConsole.h"
 #include "iAImageInfo.h"
 #include "iAMathUtility.h"
 #include "iAVtkDataTypeMapper.h"
@@ -66,7 +67,13 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 	accumulate->SetInputData(img);
 	accumulate->SetComponentOrigin(img->GetScalarRange()[0], 0.0, 0.0);
 	double * const scalarRange = img->GetScalarRange();
-	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0);
+	if (binCount > std::numeric_limits<int>::max())
+	{
+		DEBUG_LOG(QString("iAHistogramData::create: Only up to %1 bins supported, but requested %2! Bin number will be set to %1!")
+			.arg(std::numeric_limits<int>::max()).arg(binCount));
+		binCount = std::numeric_limits<int>::max();
+	}   // check above guarantees that binCount is smaller than int max, so cast below is safe!
+	accumulate->SetComponentExtent(0, static_cast<int>(binCount - 1), 0, 0, 0, 0);
 	const double RangeEnlargeFactor = 1 + 1e-10;  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
 	accumulate->SetComponentSpacing(((scalarRange[1] - scalarRange[0]) * RangeEnlargeFactor) / binCount, 0.0, 0.0);
 	accumulate->Update();
@@ -155,7 +162,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(const std::vector<DataTy
 		std::fill(result->m_rawData, result->m_rawData + binCount, 0.0);
 		for (DataType d : histData)
 		{
-			int bin = clamp(static_cast<size_t>(0), binCount - 1, mapValue(minValue, maxValue, static_cast<size_t>(0), binCount, d));
+			size_t bin = clamp(static_cast<size_t>(0), binCount - 1, mapValue(minValue, maxValue, static_cast<size_t>(0), binCount, d));
 			++result->m_rawData[bin];
 		}
 	}
@@ -168,7 +175,7 @@ void iAHistogramData::setMaxFreq()
 	if (!m_rawData)
 		return;
 	m_yBounds[1] = 1;
-	for ( int i = 0; i < numBin(); i++ )
+	for (size_t i = 0; i < numBin(); i++ )
 		if (m_rawData[i] > m_yBounds[1])
 			m_yBounds[1] = m_rawData[i];
 }

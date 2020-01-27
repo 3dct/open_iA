@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -86,7 +86,9 @@ iAFiberData iAFiberData::getOrientationCorrected(iAFiberData const & source, iAF
 		result.length = source.length;
 		iAVec3f dir = result.pts[PtStart] - source.pts[PtEnd];
 		if (dir.z() < 0)
-		dir = result.pts[PtEnd] - source.pts[PtStart];
+		{
+			dir = result.pts[PtEnd] - source.pts[PtStart];
+		}
 		if (dir.x() == 0 && dir.y() == 0)
 		{
 			result.phi = 0.0;
@@ -113,7 +115,9 @@ iAFiberData iAFiberData::getOrientationCorrected(iAFiberData const & source, iAF
 		return result;
 	}
 	else
+	{
 		return source;
+	}
 }
 
 
@@ -127,10 +131,14 @@ namespace
 	{
 		T1 diff = std::fabs(a - b);
 		if (diff <= tolerance)
+		{
 			return true;
+		}
 
 		if (diff < std::fmax(std::fabs(a), std::fabs(b)) * tolerance)
+		{
 			return true;
+		}
 
 		return false;
 	}
@@ -138,9 +146,13 @@ namespace
 	iAVec3f perpendicularVector(iAVec3f const & vectorIn)
 	{
 		if (!isApproxEqual(vectorIn[0], 0.0) && !isApproxEqual(-vectorIn[0], vectorIn[1]))
+		{
 			return iAVec3f(vectorIn[2], vectorIn[2], -vectorIn[0] - vectorIn[1]);
+		}
 		else
+		{
 			return iAVec3f(-vectorIn[1] - vectorIn[2], vectorIn[0], vectorIn[0]);
+		}
 	}
 
 	iAVec3f fromSpherical(double phi, double theta, double radius)
@@ -164,7 +176,6 @@ namespace
 
 	bool pointContainedInLineSegment(iAVec3f const & start, iAVec3f const & dir, double radius, iAVec3f const & point)
 	{
-
 		double dist;
 		iAVec3f ptOnLine = nearestPointOnLine(start, dir, point, dist);
 		if (dist > 0 && dist < dir.length())  // check whether point is between start and end
@@ -228,11 +239,15 @@ namespace
 		for (iAVec3f pt : sampledPoints)
 		{
 			if (pointContainedInFiber(pt, longerFiber))
+			{
 				++containedPoints;
+			}
 		}
-		double similarity = static_cast<double>(containedPoints) / DefaultSamplePoints;
+		double similarity = static_cast<double>(containedPoints) / sampledPoints.size();
 		if (volRelation)
+		{
 			similarity *= (fiber1Vol < fiber2Vol) ? fiber1Vol / fiber2Vol : fiber2Vol / fiber1Vol;
+		}
 		return similarity;
 	}
 
@@ -240,12 +255,14 @@ namespace
 	double dist(double* vec1, double* vec2, size_t cnt)
 	{
 		double sqdiffsum = 0;
-		for (size_t cur=0; cur<cnt; ++cur)
-			sqdiffsum += std::pow(vec2 - vec1, 2);
+		for (size_t cur = 0; cur < cnt; ++cur)
+		{
+			sqdiffsum += std::pow(vec2[cur] - vec1[cur], 2);
+		}
 		return sqrt(sqdiffsum);
 	}
 
-	void sampleSegmentPoints(iAVec3f const & start, iAVec3f const & dir, double radius, std::vector<iAVec3f> & result, int numSamples)
+	void sampleSegmentPoints(iAVec3f const & start, iAVec3f const & dir, double radius, std::vector<iAVec3f> & result, size_t numSamples)
 	{
 		std::random_device r;
 		std::default_random_engine generator(r());
@@ -276,7 +293,7 @@ namespace
 		.arg(perpDir2[0]).arg(perpDir2[1]).arg(perpDir2[2]));
 		*/
 
-		for (int i = 0; i < numSamples; ++i)
+		for (size_t i = 0; i < numSamples; ++i)
 		{
 			size_t angleIdx = angleRnd(generator);
 			double newRadius = radius * std::sqrt(radiusRnd(generator));
@@ -291,7 +308,7 @@ namespace
 		double sumVal = 0;
 		double minVal = std::numeric_limits<double>::max();
 		double maxVal = 0;
-		
+
 		std::vector<iAVec3f> const & f1pts = (f1.curvedPoints.empty()) ? f1.pts : f1.curvedPoints;
 
 		for (iAVec3f const & f1pt: f1pts)
@@ -309,14 +326,20 @@ namespace
 				{
 					double dist = distanceToLineSegment(f1pt, f2.curvedPoints[j], f2.curvedPoints[j+1]);
 					if (dist < curDist)
+					{
 						curDist = dist;
+					}
 				}
 			}
 			sumVal += curDist;
 			if (curDist < minVal)
+			{
 				minVal = curDist;
+			}
 			if (curDist > maxVal)
+			{
 				maxVal = curDist;
+			}
 		}
 		double avgVal = sumVal / f1.curvedPoints.size();
 		// which one to use?
@@ -343,6 +366,12 @@ void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size
 	}
 	else
 	{
+		// TODO: make sure the implementation delivers exactly numSamples points;
+		//       different sampling altogether:
+		//           - measure segment lengths
+		//           - for each point:
+		//               - first determine position along center line (random between 0 and full curved length)
+		//               - determine final point from going randomly 0 to radius in arbitrary direction from this position
 		double curvedLength = 0;
 		for (size_t i=0; i<fiber.curvedPoints.size()-1; ++i)
 		{
@@ -353,16 +382,16 @@ void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size
 			iAVec3f dir = (fiber.curvedPoints[i+1] - fiber.curvedPoints[i]);
 			iAVec3f start(fiber.curvedPoints[i]);
 			sampleSegmentPoints(start, dir, fiber.diameter / 2.0, result,
-				// spread number of samples according to length ratio
-				numSamples * dir.length() / curvedLength);
+				// spread number of samples according to length ratio, make sure 1 point per segment
+				std::max(static_cast<size_t>(1), static_cast<size_t>(numSamples * dir.length() / curvedLength)));
 		}
 	}
 }
 
-double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
+double getDissimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	int measureID, double diagonalLength, double maxLength)
 {
-	double similarity = 0;
+	double dissimilarity = 0;
 	switch (measureID)
 	{
 	default:
@@ -373,7 +402,7 @@ double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		for (int i=0; i<3; ++i)
 		{
 			vec1[i] = fiber1.pts[PtCenter].data()[i];
-			vec2[i] = fiber1.pts[PtCenter].data()[i];
+			vec2[i] = fiber2.pts[PtCenter].data()[i];
 		}
 		vec1[3] = fiber1.length;
 		vec2[3] = fiber2.length;
@@ -381,7 +410,7 @@ double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		vec2[4] = fiber2.phi;
 		vec1[5] = fiber1.theta;
 		vec2[5] = fiber2.theta;
-		similarity = dist(vec1, vec2, 6);
+		dissimilarity = dist(vec1, vec2, 6);
 		break;
 	}
 	case 1: // weighted mid-point, angle, length
@@ -397,7 +426,7 @@ double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 				.arg(fiber1.phi).arg(fiber1.theta).arg(fiber2.phi).arg(fiber2.theta).arg(fiberAngle));
 		}
 		*/
-		similarity = 0.25 * (
+		dissimilarity = 0.25 * (
 			(std::abs(fiber2.phi - fiber1.phi) / 180) +  // phi diff.
 			(std::abs(fiber2.theta - fiber1.theta) / 90) +  // theta diff.
 			((fiber2.pts[PtCenter] - fiber1.pts[PtCenter]).length() / diagonalLength) +  // center diff.
@@ -408,20 +437,24 @@ double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	case 2: // start/end/center distance
 	{
 		iAFiberData fiber1 = iAFiberData::getOrientationCorrected(fiber1raw, fiber2);
-		similarity =
+		dissimilarity =
 			(fiber2.pts[PtStart] - fiber1.pts[PtStart]).length() +
 			(fiber2.pts[PtCenter] - fiber1.pts[PtCenter]).length() +
 			(fiber2.pts[PtEnd] - fiber1.pts[PtEnd]).length();
-		similarity /= (3 * diagonalLength);
+		dissimilarity /= (3 * diagonalLength);
 
 		break;
 	}
 	case 3: // distances between all 9 pairs of the 3 points of each fiber:
 	{
 		for (int i = 0; i < 3; ++i)
+		{
 			for (int j = 0; j < 3; ++j)
-				similarity += (fiber2.pts[j] - fiber1raw.pts[i]).length();
-		similarity /= (fiber1raw.length != 0.0) ? fiber1raw.length : 1;
+			{
+				dissimilarity += (fiber2.pts[j] - fiber1raw.pts[i]).length();
+			}
+		}
+		dissimilarity /= (fiber1raw.length != 0.0) ? fiber1raw.length : 1;
 		break;
 	}
 	case 4: // Fiber fragment distance:
@@ -432,7 +465,7 @@ double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		auto aimbj = (fiber1raw.pts[PtStart] - fiber2.pts[PtEnd]);
 		auto bimaj = (fiber1raw.pts[PtEnd]   - fiber2.pts[PtStart]);
 		double dist2 = std::sqrt((aimbj*aimbj).sum() + (bimaj*bimaj).sum() + (aimbj*bimaj).sum());
-		similarity = std::min(dist1, dist2);
+		dissimilarity = std::min(dist1, dist2);
 		break;
 	}
 	case 5: // overlap between the cylinder volumes, sampled through CylinderSamplePoints from the shorter fiber
@@ -449,55 +482,61 @@ double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		//        - one random variable for distance from center (0.. fiber radius); make sure to use sqrt of random variable to avoid clustering points in center (http://mathworld.wolfram.com/DiskPointPicking.html)
 		//    - pseudorandom?
 		//        --> no idea at the moment
-		similarity = 1 - getOverlap(fiber1raw, fiber2, false, true);
+		dissimilarity = 1 - getOverlap(fiber1raw, fiber2, false, true);
 		break;
 	}
 	case 6:
-		similarity = 1 - getOverlap(fiber1raw, fiber2, true, true);
+		dissimilarity = 1 - getOverlap(fiber1raw, fiber2, true, true);
 		break;
 	case 7:
-		similarity = 1 - getOverlap(fiber1raw, fiber2, true, false);
+		dissimilarity = 1 - getOverlap(fiber1raw, fiber2, true, false);
 		break;
 
-	// measure in both directions and take minimum?
+	// one-sided distance:
 	case 8:
-		similarity = getPtToSegDistance(fiber1raw, fiber2, 0);
+		dissimilarity = getPtToSegDistance(fiber1raw, fiber2, 0);
 		break;
 	case 9:
-		similarity = getPtToSegDistance(fiber1raw, fiber2, 1);
+		dissimilarity = getPtToSegDistance(fiber1raw, fiber2, 1);
 		break;
 	case 10:
-		similarity = getPtToSegDistance(fiber1raw, fiber2, 2);
+		dissimilarity = getPtToSegDistance(fiber1raw, fiber2, 2);
 		break;
 	case 11:
-		similarity = getPtToSegDistance(fiber1raw, fiber2, 3);
+		dissimilarity = getPtToSegDistance(fiber1raw, fiber2, 3);
 		break;
+
+	// measure in both directions and take minimum:
 	case 12:
-		similarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 0), getPtToSegDistance(fiber2, fiber1raw, 0));
+		dissimilarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 0), getPtToSegDistance(fiber2, fiber1raw, 0));
 		break;
 	case 13:
-		similarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 1), getPtToSegDistance(fiber2, fiber1raw, 1));
+		dissimilarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 1), getPtToSegDistance(fiber2, fiber1raw, 1));
 		break;
 	case 14:
-		similarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 2), getPtToSegDistance(fiber2, fiber1raw, 2));
+		dissimilarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 2), getPtToSegDistance(fiber2, fiber1raw, 2));
 		break;
 	case 15:
-		similarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 3), getPtToSegDistance(fiber2, fiber1raw, 3));
+		dissimilarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 3), getPtToSegDistance(fiber2, fiber1raw, 3));
 		break;
+
+	// measure in both directions and take maximum:
 	case 16:
-		similarity = std::max(getPtToSegDistance(fiber1raw, fiber2, 0), getPtToSegDistance(fiber2, fiber1raw, 0));
+		dissimilarity = std::max(getPtToSegDistance(fiber1raw, fiber2, 0), getPtToSegDistance(fiber2, fiber1raw, 0));
 		break;
 	case 17:
-		similarity = std::max(getPtToSegDistance(fiber1raw, fiber2, 1), getPtToSegDistance(fiber2, fiber1raw, 1));
+		dissimilarity = std::max(getPtToSegDistance(fiber1raw, fiber2, 1), getPtToSegDistance(fiber2, fiber1raw, 1));
 		break;
 	case 18:
-		similarity = std::max(getPtToSegDistance(fiber1raw, fiber2, 2), getPtToSegDistance(fiber2, fiber1raw, 2));
+		dissimilarity = std::max(getPtToSegDistance(fiber1raw, fiber2, 2), getPtToSegDistance(fiber2, fiber1raw, 2));
 		break;
 	case 19:
-		similarity = std::max(getPtToSegDistance(fiber1raw, fiber2, 3), getPtToSegDistance(fiber2, fiber1raw, 3));
+		dissimilarity = std::max(getPtToSegDistance(fiber1raw, fiber2, 3), getPtToSegDistance(fiber2, fiber1raw, 3));
 		break;
 	}
-	if (std::isinf(similarity))
-		similarity = 0;
-	return similarity;
+	if (std::isinf(dissimilarity) || std::isnan(dissimilarity))
+	{
+		dissimilarity = 0;
+	}
+	return dissimilarity;
 }

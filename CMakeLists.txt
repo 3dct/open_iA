@@ -122,7 +122,7 @@ IF (MSVC)
 		SET (DebugLibraryPaths "${ZLIB_DBG_LIB_DIR};${DebugLibraryPaths}")
 		SET (MinSizeRelLibraryPaths "${ZLIB_REL_LIB_DIR};${MinSizeRelLibraryPaths}")
 	ENDIF()
-	
+
 	IF (HDF5_FOUND)
 		STRING(REGEX REPLACE "/cmake/hdf5" "" HDF5_BASE_DIR ${HDF5_DIR})
 		STRING(REGEX REPLACE "/" "\\\\" HDF5_BASE_DIR ${HDF5_BASE_DIR})
@@ -138,7 +138,7 @@ IF (MSVC)
 			SET (MinSizeRelLibraryPaths "${HDF5_BASE_DIR}\\bin;${MinSizeRelLibraryPaths}")
 		ENDIF()
 	ENDIF()
-	
+
 	IF (vtkRenderingOpenVR_LOADED)
 		STRING(FIND "${vtkRenderingOpenVR_INCLUDE_DIRS}" ";" semicolonpos REVERSE)
 		math(EXPR aftersemicolon "${semicolonpos}+1")
@@ -165,7 +165,6 @@ ENDIF ()
 SET (GUI_EXECUTABLE_NAME open_iA)
 ADD_SUBDIRECTORY(cmd)     # Sets CMD test runner, used in modules
 ADD_SUBDIRECTORY(modules)
-ADD_SUBDIRECTORY(Toolkit) # needs to know which modules are enabled; with openiA_BUILD_ALL_MODULES flag this is only determined in modules, so needs to be after that
 ADD_SUBDIRECTORY(gui)
 
 ADD_SUBDIRECTORY(xinst)

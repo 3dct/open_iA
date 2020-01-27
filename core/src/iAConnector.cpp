@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -30,11 +30,7 @@
 #include <itkVTKImageExport.h>
 
 
-
-/**
-* This function will connect the given itk::VTKImageExport filter to
-* the given vtkImageImport filter.
-*/
+//! Connects the given itk::VTKImageExport filter to the given vtkImageImport filter.
 template <typename ITK_Exporter, typename VTK_Importer>
 void ConnectPipelines(ITK_Exporter exporter, VTK_Importer* importer)
 {
@@ -52,10 +48,7 @@ void ConnectPipelines(ITK_Exporter exporter, VTK_Importer* importer)
 	importer->SetCallbackUserData(exporter->GetCallbackUserData());
 }
 
-/**
-* This function will connect the given vtkImageExport filter to
-* the given itk::VTKImageImport filter.
-*/
+//! Connects the given vtkImageExport filter to the given itk::VTKImageImport filter.
 template <typename VTK_Exporter, typename ITK_Importer>
 void ConnectPipelines(VTK_Exporter* exporter, ITK_Importer importer)
 {
@@ -88,10 +81,8 @@ void SetupPipelineVTKtoITK(
 	itkImporter->Update();
 }
 
-/**
-*  Will take care of instantiating the appropriate
-*  ITK Export class corresponding to the actual pixel type of the
-*  input image. */
+//! Takes care of instantiating the appropriate ITK Export class corresponding
+//! to the actual pixel type of the input image.
 template <class T >
 void SetupPipelineITKtoVTK(
 	iAConnector::ImagePointer	& imageBase,
@@ -116,6 +107,7 @@ void SetupPipelineITKtoVTK(
 	importer->Update();
 }
 
+
 iAConnector::iAConnector() :
 	m_ITKImage(ImageBaseType::New()),
 	m_VTKImage(vtkSmartPointer<vtkImageData>::New()),
@@ -126,7 +118,6 @@ iAConnector::iAConnector() :
 	m_vtkImporter(vtkSmartPointer<vtkImageImport>::New()),
 	m_vtkExporter(vtkSmartPointer<vtkImageExport>::New())
 {}
-
 
 void iAConnector::setImage(ImageBaseType * image)
 {

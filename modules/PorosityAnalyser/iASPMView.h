@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -51,7 +51,7 @@ class vtkTable;
 class iAPAQSplom;
 struct iASelection;
 class iASPMSettings;
-class MainWindow; 
+class MainWindow;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_SPMView>  PorosityAnalyzerSPMConnector;
 
@@ -88,7 +88,7 @@ protected:
 	vtkVector2i getActivePlotIndices();
 
 protected slots:
-	
+
 	/** Apply lookup table to all the plots in the SPM */
 	void applyLookupTable();
 

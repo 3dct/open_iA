@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -42,7 +42,7 @@ iAProbabilisticVotingImageFilter<TInputImage, TOutputImage>::iAProbabilisticVoti
 
 template< typename TInputImage, typename TOutputImage >
 void iAProbabilisticVotingImageFilter< TInputImage, TOutputImage >
-::PrintSelf(std::ostream & os, itk::Indent indent) const
+::PrintSelf(std::ostream & /*os*/, itk::Indent /*indent*/) const
 {}
 
 template< typename TInputImage, typename TOutputImage >

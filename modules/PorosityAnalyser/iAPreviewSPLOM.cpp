@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -77,7 +77,6 @@ void iAPreviewSPLOM::paintGL( )
 {
 	QPainter painter( this );
 	painter.setRenderHint( QPainter::Antialiasing );
-	painter.setRenderHint( QPainter::HighQualityAntialiasing );
 	painter.fillRect( rect(), bgrCol );
 	if( !m_pxmp )
 		return;
@@ -211,7 +210,7 @@ QPointF iAPreviewSPLOM::posToPxmpPos( QPointF pos )
 	QPointF res = pos - m_origin;
 	if( !m_pxmp )
 		return res;
-	double scale = 1.0;	
+	double scale = 1.0;
 	double aspectPxmp = m_pxmp->width() / ( (double)m_pxmp->height() );
 	double aspectWgt = width() / ( (double)height() );
 	if( aspectPxmp < aspectWgt )

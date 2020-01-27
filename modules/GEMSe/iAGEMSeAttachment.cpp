@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -42,19 +42,18 @@ iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, MdiChild * child):
 {
 	auto project = QSharedPointer<iAGEMSeProject>::create();
 	project->setMainWindow(mainWnd);
-	project->setChild(child);
 	child->addProject(iAGEMSeProject::ID, project);
 }
 
 iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * child)
 {
 	iAGEMSeAttachment * newAttachment = new iAGEMSeAttachment(mainWnd, child);
-	
+
 	QString defaultThemeName("Brewer Set3 (max. 12)");
 	iAColorTheme const * colorTheme = iAColorThemeManager::instance().theme(defaultThemeName);
-	
+
 	newAttachment->m_dlgGEMSe = new dlg_GEMSe(child, child->logger(), colorTheme);
-	
+
 	newAttachment->m_dlgLabels = new dlg_labels(child, colorTheme);
 	newAttachment->m_dlgSamplings = new dlg_samplings();
 	newAttachment->m_dlgGEMSeControl = new dlg_GEMSeControl(

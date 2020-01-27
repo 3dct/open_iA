@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -41,20 +41,20 @@
 
 bool operator<(iAFiberSimilarity const & a, iAFiberSimilarity const & b)
 {
-	return a.similarity < b.similarity;
+	return a.dissimilarity < b.dissimilarity;
 }
 
 QDataStream &operator<<(QDataStream &out, const iAFiberSimilarity &s)
 {
 	out << s.index;
-	out << s.similarity;
+	out << s.dissimilarity;
 	return out;
 }
 
 QDataStream &operator>>(QDataStream &in, iAFiberSimilarity &s)
 {
 	in >> s.index;
-	in >> s.similarity;
+	in >> s.dissimilarity;
 	return in;
 }
 
@@ -172,17 +172,17 @@ iAFiberResultsCollection::iAFiberResultsCollection():
 	stepShift(0)
 {}
 
-bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const & cfg, double stepShift, iAProgress * progress)
+bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const & cfg, double newStepShift, iAProgress * progress)
 {
 	folder = path;
-	this->stepShift = stepShift;
+	stepShift = newStepShift;
 	QStringList filters;
 	filters << "*.csv";
 	QStringList csvFileNames;
 
 	FindFiles(path, filters, false, csvFileNames, Files);
 
-	const int MaxDatasetCount = 100;
+	const int MaxDatasetCount = 200;
 	if (csvFileNames.size() > MaxDatasetCount)
 	{
 		DEBUG_LOG(QString("The specified folder %1 contains %2 datasets; currently we only support loading up to %3 datasets!")
@@ -214,26 +214,36 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		curData.mapping = io.getOutputMapping();
 		curData.fileName = csvFile;
 		if (curData.fiberCount < minFiberCount)
+		{
 			minFiberCount = curData.fiberCount;
+		}
 		if (curData.fiberCount > maxFiberCount)
+		{
 			maxFiberCount = curData.fiberCount;
+		}
 
 		if (result.empty())
-			for (size_t h=0; h<io.getOutputHeaders().size(); ++h)
+		{
+			for (int h = 0; h < io.getOutputHeaders().size(); ++h)
+			{
 				paramNames.push_back(io.getOutputHeaders()[h]);
+			}
+		}
 		else
 		{
 			// Check if output mapping is the same (it must be)!
-			for (auto key: result[0].mapping->keys())
+			for (auto key : result[0].mapping->keys())
+			{
 				if (curData.mapping->value(key) != result[0].mapping->value(key))
 				{
-					DEBUG_LOG(QString("Mapping does not match for result %1, column %2!").arg(csvFile).arg(curData.mapping->value(key)) );
+					DEBUG_LOG(QString("Mapping does not match for result %1, column %2!").arg(csvFile).arg(curData.mapping->value(key)));
 					return false;
 				}
+			}
 			// (though actually same mapping should be guaranteed by using same config)
 		}
 
-		QString stepInfoPath(QFileInfo(csvFile).absolutePath() + "/" + QFileInfo(csvFile).baseName());
+		QString stepInfoPath(QFileInfo(csvFile).absolutePath() + "/" + QFileInfo(csvFile).completeBaseName());
 		QFileInfo stepInfo(stepInfoPath);
 
 		// TODO: in case reading gets inefficient, look at pre-reserving the required amount of fields
@@ -259,14 +269,16 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			else
 			{
 				curData.projectionError.resize(curData.fiberCount);
-				QTextStream in(&projErrorFile);
+				QTextStream inProjError(&projErrorFile);
 				size_t fiberID = 0;
-				while (!in.atEnd())
+				while (!inProjError.atEnd())
 				{
-					QString line = in.readLine();
+					QString line = inProjError.readLine();
 					QStringList valueStrList = line.split(",");
 					if (valueStrList.size() < 2)
+					{
 						continue;
+					}
 					if (fiberID >= curData.fiberCount)
 					{
 						DEBUG_LOG(QString("Discrepancy: More lines in %1 file than there were fibers in the fiber description csv (%2).\n")
@@ -277,11 +289,15 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 					for (int i = 0; i < valueStrList.size(); ++i)
 					{
 						if (valueStrList[i] == "nan")
+						{
 							break;
+						}
 						projErrFib.push_back(valueStrList[i].toDouble());
 					}
 					for (int i = 0; i < projErrFib.size(); ++i)
-						projErrFib[i] -= projErrFib[projErrFib.size()-1];
+					{
+						projErrFib[i] -= projErrFib[projErrFib.size() - 1];
+					}
 					++fiberID;
 				}
 
@@ -296,21 +312,21 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						break;
 					}
 					std::vector<std::vector<double> > singleFiberValues;
-					QFile file(fiberStepCsvInfo.absoluteFilePath());
-					if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+					QFile fileFiberStepCsv(fiberStepCsvInfo.absoluteFilePath());
+					if (!fileFiberStepCsv.open(QIODevice::ReadOnly | QIODevice::Text))
 					{
 						stepInfoErrorMsgs += QString("Unable to open file '%1': %2\n")
 							.arg(fiberStepCsvInfo.absoluteFilePath())
-							.arg(file.errorString());
+							.arg(fileFiberStepCsv.errorString());
 						break;
 					}
-					QTextStream in(&file);
-					in.readLine(); // skip header line
+					QTextStream inFiberStepCsv(&fileFiberStepCsv);
+					inFiberStepCsv.readLine(); // skip header line
 					size_t lineNr = 1;
-					while (!in.atEnd())
+					while (!inFiberStepCsv.atEnd())
 					{
 						lineNr++;
-						QString line = in.readLine();
+						QString line = inFiberStepCsv.readLine();
 						QStringList values = line.split(",");
 						if (values.size() != 6)
 						{
@@ -323,10 +339,14 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						}
 						double middlePoint[3];
 						for (int i = 0; i < 3; ++i)
+						{
 							middlePoint[i] = values[i].toDouble() + stepShift; // middle point positions are shifted!
+						}
 						double theta = values[4].toDouble();
 						if (theta < 0)  // theta is encoded in -Pi, Pi instead of 0..Pi as we expect
-							theta = 2*vtkMath::Pi() + theta;
+						{
+							theta = 2 * vtkMath::Pi() + theta;
+						}
 						double phi = values[3].toDouble();
 						double radius = values[5].toDouble() * 0.5;
 
@@ -455,10 +475,10 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			if (curData.stepData != iAFiberCharData::NoStepData)
 			{
 				curData.stepValues.resize(thisResultStepMax);
-				for (int t = 0; t < thisResultStepMax; ++t)
+				for (size_t t = 0; t < thisResultStepMax; ++t)
 				{
 					curData.stepValues[t].resize(curData.fiberCount);
-					for (int f = 0; f < curData.fiberCount; ++f)
+					for (size_t f = 0; f < curData.fiberCount; ++f)
 					{
 						curData.stepValues[t][f] = (t < fiberStepValues[f].size()) ?
 							fiberStepValues[f][t] :
@@ -472,15 +492,17 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			}
 		}
 
-		QString curvedFileName(QFileInfo(csvFile).absolutePath() + "/curved/" + QFileInfo(csvFile).baseName() + "-CurvedFibrePoints.csv");
+		QString curvedFileName(QFileInfo(csvFile).absolutePath() + "/curved/" + QFileInfo(csvFile).completeBaseName() + "-CurvedFibrePoints.csv");
 		if (readCurvedFiberInfo(curvedFileName, curData.curveInfo))
+		{
 			curData.curvedFileName = curvedFileName;
+		}
 
 		if (thisResultStepMax > optimStepMax)
 		{
 			if (optimStepMax > 1)
 			{
-				DEBUG_LOG(QString("In result %1, the maximum number of steps changes from %2 to %3! This shouldn't be a problem, but support for it is currently untested.")
+				DEBUG_LOG(QString("Result %1 has a new maximum number of steps %2 (was %3).")
 					.arg(resultID).arg(optimStepMax).arg(thisResultStepMax));
 			}
 			optimStepMax = thisResultStepMax;
@@ -527,7 +549,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	paramNames.push_back("LengthDiff");
 	paramNames.push_back("DiameterDiff");
 
-	auto similarityMeasures = iARefDistCompute::getSimilarityMeasureNames();
+	auto similarityMeasures = iARefDistCompute::getDissimilarityMeasureNames();
 	for (auto name: similarityMeasures)
 		paramNames.push_back(name);
 
@@ -539,7 +561,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	for (resultID=0; resultID<result.size(); ++resultID)
 	{
 		auto & curData = result[resultID];
-		size_t numTableColumns = curData.table->GetNumberOfColumns();
+		vtkIdType numTableColumns = curData.table->GetNumberOfColumns();
 		for (int i = (iARefDistCompute::SimilarityMeasureCount+iAFiberCharData::FiberValueCount+iARefDistCompute::EndColumns); i >= iARefDistCompute::EndColumns; --i)
 		{
 			spmData->data()[numParams - i].resize(spmData->data()[numParams - i].size() + curData.fiberCount, 0);
@@ -585,9 +607,13 @@ iAFiberResultsLoader::iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollecti
 void iAFiberResultsLoader::run()
 {
 	if (!m_results->loadData(m_path, m_config, m_stepShift, &m_progress))
+	{
 		emit failed(m_path);
+	}
 	else
+	{
 		emit success();
+	}
 }
 
 iAProgress* iAFiberResultsLoader::progress()

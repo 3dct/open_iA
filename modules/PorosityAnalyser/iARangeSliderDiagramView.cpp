@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -32,13 +32,13 @@
 #include <QTableWidget>
 
 iARangeSliderDiagramView::iARangeSliderDiagramView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	: RangeSliderDiagramViewConnector( parent, f ), 
+	: RangeSliderDiagramViewConnector( parent, f ),
 	m_mainContainer( 0 ), m_layoutVBMainContainer( 0 ),
-	m_cbPorDev( 0 ), 
-	m_cbStatisticMeasurements( 0 ), 
-	m_layoutHBComboBoxes( 0 ), 
-	m_comboBoxContainer( 0 ), 
-	m_title( 0 ), 
+	m_cbPorDev( 0 ),
+	m_cbStatisticMeasurements( 0 ),
+	m_layoutHBComboBoxes( 0 ),
+	m_comboBoxContainer( 0 ),
+	m_title( 0 ),
 	m_histoContainer( 0 ),
 	m_layoutVBHistoContainer( 0 ),
 	m_separator( 0 ),
@@ -51,36 +51,38 @@ iARangeSliderDiagramView::~iARangeSliderDiagramView()
 {
 }
 
-void iARangeSliderDiagramView::setData( const QTableWidget * data )
+void iARangeSliderDiagramView::setData( const QTableWidget * newData )
 {
-	m_rawTable = data;
+	m_rawTable = newData;
 
 	deleteOutdated();
 	addTitleLabel();
 	setupHistogram();
 	addComboBoxes();
 	setupDiagrams();
-	
+
 	m_mainContainer->setLayout( m_layoutVBMainContainer );
 	rangeSliderDiagramContainer->addWidget( m_mainContainer );
 	show();
 }
 
-QMap<QString, QList<double> > iARangeSliderDiagramView::prepareData( const QTableWidget * data, bool porOrDev, bool statisticMeasurements )
+QMap<QString, QList<double> > iARangeSliderDiagramView::prepareData( const QTableWidget * tableData, bool porOrDev, bool statisticMeasurements )
 {
 	QMap<QString, QList<double> > map;
-	int NbOfParam = data->columnCount() - 4;
+	int NbOfParam = tableData->columnCount() - 4;
 
 	// Traverse all parameters
 	for ( int param = 0; param < NbOfParam; ++param )
 	{
 		//Get the individual parameters as a sorted list
 		QList<double> intervals;
-		for ( int i = 1; i < data->rowCount(); ++i )
+		for ( int i = 1; i < tableData->rowCount(); ++i )
 		{
-			double newInterval = data->item( i, param )->text().toDouble();
-			if ( !intervals.contains( newInterval ) )
-				intervals.append( newInterval );
+			double newInterval = tableData->item( i, param )->text().toDouble();
+			if (!intervals.contains(newInterval))
+			{
+				intervals.append(newInterval);
+			}
 		}
 
 		//Calculate the median or mean for each interval and store it in a list
@@ -89,18 +91,24 @@ QMap<QString, QList<double> > iARangeSliderDiagramView::prepareData( const QTabl
 		while ( intervalsIt.hasNext() )
 		{
 			std::vector<double> unsortedValues;
-			for ( int j = 1; j < data->rowCount(); ++j )
+			for ( int j = 1; j < tableData->rowCount(); ++j )
 			{
-				if ( data->item( j, param )->text().toDouble() == intervalsIt.peekNext() )
-					unsortedValues.push_back( data->item( j, NbOfParam + porOrDev )->text().toDouble() );
-			}	
+				if (tableData->item(j, param)->text().toDouble() == intervalsIt.peekNext())
+				{
+					unsortedValues.push_back(tableData->item(j, NbOfParam + porOrDev)->text().toDouble());
+				}
+			}
 			intervalsIt.next();
-			if ( statisticMeasurements )
-				meanValues.append( mean( unsortedValues ) );
+			if (statisticMeasurements)
+			{
+				meanValues.append(mean(unsortedValues));
+			}
 			else
-				meanValues.append( median( unsortedValues ) );
+			{
+				meanValues.append(median(unsortedValues));
+			}
 		}
-		map.insertMulti( data->item( 0, param )->text(), meanValues );
+		map.insertMulti(tableData->item( 0, param )->text(), meanValues );
 	}
 	return map;
 }
@@ -108,7 +116,6 @@ QMap<QString, QList<double> > iARangeSliderDiagramView::prepareData( const QTabl
 void iARangeSliderDiagramView::updateDiagrams()
 {
 	QListIterator<iARangeSliderDiagramWidget *> widgetIt( m_widgetList );
-	int index = 0;
 	widgetIt.next();
 	while ( widgetIt.hasNext() )
 	{
@@ -123,7 +130,7 @@ void iARangeSliderDiagramView::updateDiagrams()
 
 void iARangeSliderDiagramView::addTitleLabel()
 {
-	//Setup main container for GUI elements 
+	//Setup main container for GUI elements
 	m_mainContainer = new QWidget();
 	m_mainContainer->setMinimumHeight( 300 );
 	m_layoutVBMainContainer = new QVBoxLayout( this );
@@ -164,12 +171,12 @@ void iARangeSliderDiagramView::addTitleLabel()
 }
 
 void iARangeSliderDiagramView::addComboBoxes()
-{	
+{
 	// Separator
 	m_separator = new QFrame();
 	m_separator->setGeometry( QRect( 320, 150, 118, 3 ) );
 	m_separator->setFrameShape( QFrame::HLine );
-	m_separator->setStyleSheet( "border-width: 1px; border-top-style: none; border-right-style: none;" 
+	m_separator->setStyleSheet( "border-width: 1px; border-top-style: none; border-right-style: none;"
 						 "border-bottom-style: solid; border-left-style: none; border-color: lightGray; " );
 	m_separator->setFrameShadow( QFrame::Sunken );
 	m_layoutVBMainContainer->addWidget( m_separator );
@@ -187,7 +194,7 @@ void iARangeSliderDiagramView::addComboBoxes()
 	m_input->setText( "<font color = 'darkRed'>Input Parameters< / font>" );
 	m_input->setAlignment( Qt::AlignTop | Qt::AlignCenter );
 	m_layoutVBMainContainer->addWidget( m_input );
-	
+
 	// ComboBoxes
 	m_comboBoxContainer = new QWidget();
 	m_comboBoxContainer->setFixedHeight( 25 );
@@ -208,8 +215,8 @@ void iARangeSliderDiagramView::addComboBoxes()
 	m_layoutHBComboBoxes->addWidget( m_cbPorDev );
 
 	m_cbStatisticMeasurements = new QComboBox();
-	m_cbStatisticMeasurements->addItem( "Median" ); 
-	m_cbStatisticMeasurements->addItem( "Mean" ); 
+	m_cbStatisticMeasurements->addItem( "Median" );
+	m_cbStatisticMeasurements->addItem( "Mean" );
 	connect( m_cbStatisticMeasurements, SIGNAL( currentIndexChanged( int ) ), this, SLOT( updateDiagrams() ) );
 	m_cbStatisticMeasurements->setSizePolicy( comboBoxSizePolicy );
 	m_layoutHBComboBoxes->addWidget( m_cbStatisticMeasurements );
@@ -228,22 +235,38 @@ void iARangeSliderDiagramView::loadSelectionToSPMView()
 		{
 			if ( rsdSelection.count() )
 			{
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+				auto l = m_widgetList[i]->getSelectedRawTableRows();
+				rsdSelection.intersect(QSet<int>(l.begin(), l.end()));
+#else
 				rsdSelection.intersect( m_widgetList[i]->getSelectedRawTableRows().toSet() );
+#endif
 			}
 			else
 			{
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+				auto l = m_widgetList[i]->getSelectedRawTableRows();
+				rsdSelection.unite(QSet<int>(l.begin(), l.end()));
+#else
 				rsdSelection.unite( m_widgetList[i]->getSelectedRawTableRows().toSet() );
+#endif
 			}
 		}
 	}
 
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+	QList<int> rsdSelectionList(rsdSelection.values());
+#else
 	QList<int> rsdSelectionList = rsdSelection.toList();
+#endif
 	std::sort( rsdSelectionList.begin(), rsdSelectionList.end() );
 
 	vtkIdTypeArray *rdsIds = vtkIdTypeArray::New();
 	rdsIds->SetName( "rsdIds" );
-	for ( int i = 0; i < rsdSelectionList.size(); ++i )
-		rdsIds->InsertNextValue( rsdSelectionList[i] );
+	for (int i = 0; i < rsdSelectionList.size(); ++i)
+	{
+		rdsIds->InsertNextValue(rsdSelectionList[i]);
+	}
 
 	emit selectionModified( rdsIds );
 }
@@ -252,8 +275,10 @@ void iARangeSliderDiagramView::deleteOutdated()
 {
 	//Delete old diagrams and GUI elements
 	QListIterator<iARangeSliderDiagramWidget *> widgetIt( m_widgetList );
-	while ( widgetIt.hasNext() )
+	while (widgetIt.hasNext())
+	{
 		delete widgetIt.next();
+	}
 	m_widgetList.clear();
 	m_oTFList.clear();
 	m_cTFList.clear();
@@ -276,8 +301,10 @@ void iARangeSliderDiagramView::setupHistogram()
 {
 	//Setup frequency/porosity histogram (OUTPUT)
 	QList<double> porosityList;
-	for ( int i = 1; i < m_rawTable->rowCount(); ++i )
-		porosityList.append( m_rawTable->item( i, m_rawTable->columnCount() - 4 )->text().toDouble() );
+	for (int i = 1; i < m_rawTable->rowCount(); ++i)
+	{
+		porosityList.append(m_rawTable->item(i, m_rawTable->columnCount() - 4)->text().toDouble());
+	}
 
 	QList<double> binList;
 	m_histogramMap = calculateHistogram( porosityList, 0.0, 100.0 );
@@ -316,7 +343,7 @@ void iARangeSliderDiagramView::setupDiagrams()
 	QMap<QString, QList<double> > paramPorOrDevMap = prepareData( m_rawTable, m_cbPorDev->currentIndex(),
 																  m_cbStatisticMeasurements->currentIndex() );
 
-	
+
 	QMapIterator<QString, QList<double> > mapIt( paramPorOrDevMap );
 	while ( mapIt.hasNext() )
 	{
@@ -325,8 +352,10 @@ void iARangeSliderDiagramView::setupDiagrams()
 		int paramColumnPos = 0;	/*param position in column*/
 		for ( int i = 0; i < m_rawTable->columnCount(); ++i )
 		{
-			if ( mapIt.key() == m_rawTable->item( 0, i )->text())
+			if (mapIt.key() == m_rawTable->item(0, i)->text())
+			{
 				paramColumnPos = i;
+			}
 		}
 
 		double min = m_rawTable->item( 1, paramColumnPos )->text().toDouble();
@@ -347,7 +376,7 @@ void iARangeSliderDiagramView::setupDiagrams()
 		m_cTFList.append( cTF );
 
 		iARangeSliderDiagramWidget* rangeSliderDiagramWidget = new iARangeSliderDiagramWidget( dynamic_cast<QWidget*> ( parent() ), nullptr,
-															m_oTFList.last(), m_cTFList.last(), m_rangeSliderData, 
+															m_oTFList.last(), m_cTFList.last(), m_rangeSliderData,
 															&m_histogramMap, m_rawTable, mapIt.key(), m_cbPorDev->currentText() );
 
 		connect( m_widgetList[0], SIGNAL( selected() ), rangeSliderDiagramWidget, SLOT( selectSlot() ) );
@@ -362,6 +391,8 @@ void iARangeSliderDiagramView::setupDiagrams()
 
 void iARangeSliderDiagramView::clearOldRSDView()
 {
-	if ( m_mainContainer )
+	if (m_mainContainer)
+	{
 		deleteOutdated();
+	}
 }

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,9 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAChannelSlicerData.h"
+
 #include "iAChannelData.h"
+#include "iAConsole.h"
 #include "iASlicerMode.h"
 
 #include <vtkActor.h>
@@ -40,17 +41,17 @@
 #include <QThread>
 
 iAChannelSlicerData::iAChannelSlicerData(iAChannelData const & chData, int mode):
+	m_imageActor(vtkSmartPointer<vtkImageActor>::New()),
 	m_reslicer(vtkSmartPointer<vtkImageReslice>::New()),
 	m_colormapper(vtkSmartPointer<vtkImageMapToColors>::New()),
-	m_imageActor(vtkSmartPointer<vtkImageActor>::New()),
 	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
-	m_name(chData.name()),
 	m_cTF(nullptr),
 	m_oTF(nullptr),
+	m_name(chData.name()),
+	m_enabled(false),
 	m_contourFilter(vtkSmartPointer<vtkMarchingContourFilter>::New()),
 	m_contourMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_contourActor(vtkSmartPointer<vtkActor>::New()),
-	m_enabled(false)
+	m_contourActor(vtkSmartPointer<vtkActor>::New())
 {
 	m_reslicer->SetOutputDimensionality(2);
 	m_reslicer->SetInterpolationModeToCubic();
@@ -88,14 +89,33 @@ void iAChannelSlicerData::assign(vtkSmartPointer<vtkImageData> imageData)
 
 void iAChannelSlicerData::setupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
 {
-	m_cTF = ctf;
-	m_oTF = otf;
-	updateLUT();
-	m_colormapper->SetLookupTable( m_oTF ? m_lut : m_cTF);
-	m_colormapper->PassAlphaToOutputOn();
+	if (input()->GetNumberOfScalarComponents() == 1)
+	{
+		m_cTF = ctf;
+		m_oTF = otf;
+		updateLUT();
+		m_colormapper->SetLookupTable(m_oTF ? m_lut : m_cTF);
+		m_colormapper->PassAlphaToOutputOn();
+	}
+	else
+	{
+		m_colormapper->SetLookupTable(nullptr);
+		if (input()->GetNumberOfScalarComponents() == 3)
+		{
+			m_colormapper->SetOutputFormatToRGB();
+		}
+		else if (input()->GetNumberOfScalarComponents() == 4)
+		{
+			m_colormapper->SetOutputFormatToRGBA();
+		}
+		else
+		{
+			DEBUG_LOG(QString("Unsupported number of components (%1)!").arg(input()->GetNumberOfScalarComponents()));
+		}
+	}
 	m_colormapper->SetInputConnection(m_reslicer->GetOutputPort());
 	m_colormapper->Update();
-	m_imageActor->SetInputData(m_colormapper->GetOutput());  // TODO: check why we don't use port/connection here?
+	m_imageActor->SetInputData(m_colormapper->GetOutput());
 }
 
 void iAChannelSlicerData::updateLUT()

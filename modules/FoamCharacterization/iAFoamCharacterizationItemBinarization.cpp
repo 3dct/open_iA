@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -31,8 +31,8 @@
 #include <vtkImageData.h>
 
 #include <QApplication>
+#include <QElapsedTimer>
 #include <QFile>
-#include <QTime>
 
 iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
 																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
@@ -71,7 +71,7 @@ void iAFoamCharacterizationItemBinarization::execute()
 {
 	setExecuting(true);
 
-	QTime t;
+	QElapsedTimer t;
 	t.start();
 
 	switch (m_eItemFilterType)
@@ -81,7 +81,7 @@ void iAFoamCharacterizationItemBinarization::execute()
 		break;
 
 		default:
-		executeOtzu(); 
+		executeOtzu();
 		break;
 	}
 
@@ -179,7 +179,7 @@ void iAFoamCharacterizationItemBinarization::open(QFile* _pFileOpen)
 	_pFileOpen->read((char*)&m_usUpperThreshold, sizeof(m_usUpperThreshold));
 	_pFileOpen->read((char*)&m_uiOtzuHistogramBins, sizeof(m_uiOtzuHistogramBins));
 	_pFileOpen->read((char*)&m_bIsMask, sizeof(m_bIsMask));
-	
+
 	setItemText();
 }
 

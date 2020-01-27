@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -353,7 +353,7 @@ void dlg_CSVInput::updateColumnMappingInputs()
 	cmbbox_col_DimensionX->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
 	cmbbox_col_DimensionY->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
 	cmbbox_col_DimensionZ->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
-	
+
 	bool computeStartEnd = cb_ComputeStartEnd->isChecked();
 	cmbbox_col_PosStartX->setEnabled(!computeStartEnd);
 	cmbbox_col_PosStartY->setEnabled(!computeStartEnd);

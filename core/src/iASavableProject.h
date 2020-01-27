@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -28,7 +28,7 @@
 //! in order to be called when the user selects to "Save Project".
 //!
 //! Refactoring ideas:
-//! - make this class the container for the open projects currently stored in 
+//! - make this class the container for the open projects currently stored in
 //!   MdiChild::m_projects,
 //!   and move MdiChild::doSaveProject into saveProject (or into default implementation of
 //!   doSaveProject, as MdiChild probably into the forseeable future needs to do things

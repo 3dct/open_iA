@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -98,10 +98,10 @@ void iAPieChartWidget::paintEvent(QPaintEvent * e)
 		painter.setBrush(brushColor);
 
 		painter.drawPie(pieCenterX-radius, pieCenterY-radius, diameter, diameter, curStartAngle * 16, (it->percentage*3.6) * 16);
-		
+
 		QFont myFont;
 		QFontMetrics fm(myFont);
-#if QT_VERSION >= 0x050B00
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		int width = fm.horizontalAdvance(it->name);
 #else
 		int width = fm.width(it->name);

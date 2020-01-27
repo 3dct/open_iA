@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,8 +22,9 @@
 
 #include "PorosityAnalyserHelpers.h"
 
-#include <QtWidgets>
 #include <QStringList>
+#include <QtGlobal> // for QT_VERSION
+#include <QtWidgets>
 
 const QStringList customMimeType = QStringList()\
 << "application/x-dnditemdatafilter"\
@@ -479,7 +480,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		// Surrounding
 		QLabel *createSurrounding = new QLabel( this );
 		createSurrounding->setObjectName( "Create Surrounding" );
-		createSurrounding->setPixmap( QPixmap( ":/images/createSurrounding.png" ) );	
+		createSurrounding->setPixmap( QPixmap( ":/images/createSurrounding.png" ) );
 		createSurrounding->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
 		createSurrounding->setToolTip( "" );
 		createSurrounding->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
@@ -489,7 +490,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 
 		QLabel *removeSurrounding = new QLabel( this );
 		removeSurrounding->setObjectName( "Remove Surrounding" );
-		removeSurrounding->setPixmap( QPixmap( ":/images/removeSurrounding.png" ) );	
+		removeSurrounding->setPixmap( QPixmap( ":/images/removeSurrounding.png" ) );
 		removeSurrounding->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
 		removeSurrounding->setToolTip( "" );
 		removeSurrounding->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
@@ -500,11 +501,11 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 }
 
 QPixmap iADragFilterWidget::mergeOnTop( const QPixmap& pix, QString txt )
-{	
+{
 	txt.truncate( 7 );
 	txt.append( "..." );
 	QPainter p;
-#if QT_VERSION >= 0x050B00
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 	int strWidth = p.fontMetrics().horizontalAdvance( txt );
 #else
 	int strWidth = p.fontMetrics().width( txt );
@@ -643,8 +644,10 @@ QString iADragFilterWidget::generateDatasetTooltip( QString dataset )
 
 void iADragFilterWidget::updateDatasetTooltip( QStringList filesToUpdateList )
 {
-	foreach( QString s, filesToUpdateList )
-		this->findChild<QLabel*>( QString("dataset_").append(s) )->setToolTip(generateDatasetTooltip( s ) );
+	for (QString s : filesToUpdateList)
+	{
+		this->findChild<QLabel*>(QString("dataset_").append(s))->setToolTip(generateDatasetTooltip(s));
+	}
 }
 
 QLabel* iADragFilterWidget::getLabel( QString name )

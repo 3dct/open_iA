@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -55,7 +55,7 @@ void iAStackReaderFilter::performWork(QMap<QString, QVariant> const & parameters
 		QString suffix = imgFileInfo.suffix();
 		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
 		bool ok;
-		int myNum = lastDigit.toInt(&ok);
+		/*int myNum =*/ lastDigit.toInt(&ok);
 		if (!ok)
 		{
 			DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));
@@ -80,7 +80,7 @@ void iAStackReaderFilter::performWork(QMap<QString, QVariant> const & parameters
 		QString suffix = imgFileInfo.suffix();
 		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
 		bool ok;
-		int myNum = lastDigit.toInt(&ok);
+		/*int myNum =*/ lastDigit.toInt(&ok);
 		if (!ok)
 		{
 			//DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));

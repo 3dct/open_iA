@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -60,5 +60,5 @@ void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size
 //! @param diagonalLength length of the diagonal of the dataset (i.e. the maximum possible length of a fiber)
 //! @param maxLength the maximum length difference in the dataset, i.e. the length of the longest fiber
 //!     in the dataset minus the length of the shortest one
-double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
+double getDissimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	int measureID, double diagonalLength, double maxLength);

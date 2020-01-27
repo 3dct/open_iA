@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -259,7 +259,6 @@ void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedG
 			//     AND has the lowest average uncertainty		-> ignore at the moment
 			int maxFSNCount = 0; int maxFSNLabel = -1;
 			int maxFNCount = 0;  int maxFNLabel = -1;
-			double minUncertainty = 1;
 			for (int l : candidateLabels)
 			{
 				int fsnCount = fbgLabelFreq[l] + sbgLabelFreq[l] + neiLabelFreq[l];

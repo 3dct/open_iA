@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -109,7 +109,7 @@ iAModalityList::iAModalityList() :
 
 bool iAModalityList::modalityExists(QString const & filename, int channel) const
 {
-	foreach(QSharedPointer<iAModality> mod, m_modalitiesActive)
+	for (QSharedPointer<iAModality> mod: m_modalitiesActive)
 	{
 		if (mod->fileName() == filename && mod->channel() == channel)
 		{
@@ -188,13 +188,13 @@ void iAModalityList::store(QString const & filename, vtkCamera* camera)
 		if (absoluteTFFileName.isEmpty())
 		{
 			absoluteTFFileName = MakeAbsolute(fi.absolutePath(), modFileInfo.fileName() + "_tf.xml");
-			QFileInfo fi(absoluteTFFileName);
-			int i = 1;
-			while (fi.exists())
+			QFileInfo uniqueNameSearchFileInfo(absoluteTFFileName);
+			int suffix = 1;
+			while (uniqueNameSearchFileInfo.exists())
 			{
-				absoluteTFFileName = MakeAbsolute(fi.absolutePath(), modFileInfo.fileName() + "_tf-" + QString::number(i) + ".xml");
-				fi.setFile(absoluteTFFileName);
-				++i;
+				absoluteTFFileName = MakeAbsolute(uniqueNameSearchFileInfo.absolutePath(), modFileInfo.fileName() + "_tf-" + QString::number(suffix) + ".xml");
+				uniqueNameSearchFileInfo.setFile(absoluteTFFileName);
+				++suffix;
 			}
 		}
 		QString tfFileName = MakeRelative(fi.absolutePath(), absoluteTFFileName);
@@ -224,7 +224,7 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 	if (!settings.contains(FileVersionKey) ||
 		settings.value(FileVersionKey).toString() != ModFileVersion)
 	{
-		DEBUG_LOG(QString("Invalid project file version (was %1, expected %2! Trying to parse anyway, but expect failures.")
+		DEBUG_LOG(QString("Invalid project file version (was %1, expected %2)! Trying to parse anyway, but expect failures.")
 			.arg(settings.contains(FileVersionKey) ? settings.value(FileVersionKey).toString() : "not set")
 			.arg(ModFileVersion));
 		return false;

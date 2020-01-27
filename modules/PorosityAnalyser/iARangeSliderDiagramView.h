@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -72,7 +72,7 @@ private:
 	QList<vtkSmartPointer<vtkPiecewiseFunction> >		m_oTFList;
 	QList<vtkSmartPointer<vtkColorTransferFunction> >	m_cTFList;
 	QList<iARangeSliderDiagramWidget *>					m_widgetList;
-	
+
 	QWidget							*m_mainContainer;
 	QWidget							*m_comboBoxContainer;
 	QWidget							*m_histoContainer;
@@ -88,7 +88,7 @@ private:
 	const QTableWidget				*m_rawTable;
 	QMap<double, QList<double> >	m_histogramMap;
 
-	QMap<QString, QList<double> > prepareData( const QTableWidget * data, bool porOrDev, bool statisticMeasurements );
+	QMap<QString, QList<double> > prepareData( const QTableWidget * tableData, bool porOrDev, bool statisticMeasurements );
 	void addTitleLabel();
 	void addComboBoxes();
 	void addOutputLabel();

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -54,7 +54,7 @@ iAFavoriteWidget::iAFavoriteWidget(iAPreviewWidgetPool* previewPool) :
 	likes->setStyleSheet("background-color: #DFD;");
 
 	favListLayout->addWidget(likes);
-	
+
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
@@ -221,11 +221,11 @@ int iAFavoriteWidget::GetIndexForNode(iAImageTreeNode const* node)
 
 iAImageTreeNode * iAFavoriteWidget::GetNodeForWidget(iAImagePreviewWidget* widget)
 {
-	for (FavoriteData const & data: m_favorites)
+	for (FavoriteData const & fav: m_favorites)
 	{
-		if (data.widget == widget)
+		if (fav.widget == widget)
 		{
-			return data.node;
+			return fav.node;
 		}
 	}
 	return 0;
@@ -235,11 +235,11 @@ iAImageTreeNode * iAFavoriteWidget::GetNodeForWidget(iAImagePreviewWidget* widge
 QVector<iAImageTreeNode const *> iAFavoriteWidget::GetFavorites(iAImageTreeNode::Attitude att) const
 {
 	QVector<iAImageTreeNode const *> result;
-	for (FavoriteData const & data : m_favorites)
+	for (FavoriteData const & fav : m_favorites)
 	{
-		if (data.node->GetAttitude() == att)
+		if (fav.node->GetAttitude() == att)
 		{
-			result.push_back(data.node);
+			result.push_back(fav.node);
 		}
 	}
 	return result;

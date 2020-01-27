@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -77,7 +77,7 @@ namespace
 		auto size = dynamic_cast<InputImageType*>(patchFilter->input()[0]->itkImage())->GetLargestPossibleRegion().GetSize();
 		//DEBUG_LOG(QString("Size: (%1, %2, %3)").arg(size[0]).arg(size[1]).arg(size[2]));
 		auto inputSpacing = dynamic_cast<InputImageType*>(patchFilter->input()[0]->itkImage())->GetSpacing();
-	
+
 		QStringList filterParamStrs = splitPossiblyQuotedString(parameters["Parameters"].toString());
 		if (filter->parameters().size() != filterParamStrs.size())
 		{
@@ -89,7 +89,7 @@ namespace
 		QMap<QString, QVariant> filterParams;
 		for (int i = 0; i<filterParamStrs.size(); ++i)
 			filterParams.insert(filter->parameters()[i]->name(), filterParamStrs[i]);
-		
+
 		QVector<iAConnector*> inputImages;
 		inputImages.push_back(new iAConnector);
 		inputImages[0]->setImage(patchFilter->input()[0]->itkImage());
@@ -229,7 +229,7 @@ namespace
 						else
 							throw e;
 					}
-					
+
 					patchFilter->progress()->emitProgress(static_cast<int>(100.0 * curOp / totalOps));
 					++curOp;
 					++outIdx[2];

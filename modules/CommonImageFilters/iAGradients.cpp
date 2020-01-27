@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -107,7 +107,7 @@ iAGradientMagnitudeRecursiveGaussian::iAGradientMagnitudeRecursiveGaussian() :
 
 // iADerivative:
 
-template<class T> 
+template<class T>
 void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
@@ -164,7 +164,7 @@ void hoaDerivative(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	hoaFilter->Update();
 	filter->addOutput(hoaFilter->GetOutput());
 }
-		
+
 void iAHigherOrderAccurateDerivative::performWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(hoaDerivative, inputPixelType(), this, parameters);

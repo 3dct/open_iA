@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -36,7 +36,7 @@
 template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Vector<double, 3> VectorPixelType;
-	VectorPixelType eigenTempVector;
+	//VectorPixelType eigenTempVector;
 	typedef itk::Image< T, 3 > InputImageType;
 	typedef	itk::HessianRecursiveGaussianImageFilter<InputImageType >	HessianFilterType;
 	typedef	typename HessianFilterType::OutputImageType	HessianImageType;
@@ -62,7 +62,7 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 	auto eigenFilter = EigenAnalysisFilterType::New();
 	eigenFilter->SetDimension( HessianPixelType::Dimension );
 	eigenFilter->SetInput( hessianFilter->GetOutput() );
-	auto hessianImage = hessianFilter->GetOutput();
+	//auto hessianImage = hessianFilter->GetOutput();
 	eigenFilter->OrderEigenValuesBy( EigenAnalysisFilterType::FunctorType::OrderByValue );
 
 	// Eigen analysis
@@ -90,7 +90,7 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 	eigenAdaptor3->SetPixelAccessor( accessor3 );
 
 	// m_EigenCastfilter1 will give the eigen values with the maximum eigen
-	// value. m_EigenCastfilter3 will give the eigen values with the 
+	// value. m_EigenCastfilter3 will give the eigen values with the
 	// minimum eigen value.
 	auto eigenCastfilter1 = CastImageFilterType::New();
 	eigenCastfilter1->SetInput( eigenAdaptor3 );
@@ -101,7 +101,7 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 	eigenCastfilter2->SetInput( eigenAdaptor2 );
 	eigenCastfilter2->Update();
 	filter->addOutput(eigenCastfilter2->GetOutput());
-	
+
 	auto eigenCastfilter3 = CastImageFilterType::New();
 	eigenCastfilter3->SetInput( eigenAdaptor1 );
 	eigenCastfilter3->Update();
@@ -162,7 +162,7 @@ iAHessianEigenanalysis::iAHessianEigenanalysis() :
 template<class T> void Laplacian(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image< T, DIM > ImageType;
-	typedef itk::Image<float, DIM> OutputImageType; 
+	typedef itk::Image<float, DIM> OutputImageType;
 	typedef itk::LaplacianRecursiveGaussianImageFilter<ImageType, OutputImageType> LoGFilterType;
 
 	auto logFilter = LoGFilterType::New();

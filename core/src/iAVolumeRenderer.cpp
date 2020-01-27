@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -81,7 +81,8 @@ void iAVolumeRenderer::setImage(iATransferFunction * transfer, vtkSmartPointer<v
 	if ( imgData->GetNumberOfScalarComponents() > 1 )
 	{
 		m_volMapper->SetBlendModeToComposite();
-		m_volProp->SetIndependentComponents( 0 );
+		m_volProp->IndependentComponentsOff();
+		m_volProp->SetScalarOpacity(0, transfer->opacityTF());
 	}
 	else
 	{
@@ -100,7 +101,7 @@ void iAVolumeRenderer::setImage(iATransferFunction * transfer, vtkSmartPointer<v
 
 void iAVolumeRenderer::setImage(vtkImageData * imgData)
 {
-	DEBUG_LOG("update image"); 
+	DEBUG_LOG("update image");
 	vtkSmartPointer<vtkColorTransferFunction>volumeColor =
 		vtkSmartPointer<vtkColorTransferFunction>::New();
 
@@ -151,7 +152,9 @@ const iAVolumeSettings& iAVolumeRenderer::volumeSettings() const
 void iAVolumeRenderer::applySettings(iAVolumeSettings const & vs)
 {
 	if (m_isFlat)
+	{
 		return;
+	}
 	m_volSettings = vs;
 	m_volProp->SetAmbient(vs.AmbientLighting);
 	m_volProp->SetDiffuse(vs.DiffuseLighting);
@@ -160,9 +163,13 @@ void iAVolumeRenderer::applySettings(iAVolumeSettings const & vs)
 	m_volProp->SetInterpolationType(vs.LinearInterpolation);
 	m_volProp->SetShade(vs.Shading);
 	if (vs.ScalarOpacityUnitDistance > 0)
+	{
 		m_volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
+	}
 	else
+	{
 		m_volSettings.ScalarOpacityUnitDistance = m_volProp->GetScalarOpacityUnitDistance();
+	}
 	m_volMapper->SetRequestedRenderMode(vs.RenderMode);
 #ifdef VTK_OPENGL2_BACKEND
 	m_volMapper->SetSampleDistance(vs.SampleDistance);
@@ -271,7 +278,9 @@ vtkRenderer* iAVolumeRenderer::currentRenderer()
 void iAVolumeRenderer::update()
 {
 	if (m_isFlat)
+	{
 		return;
+	}
 	m_volume->Modified();
 	m_volume->Update();
 	m_volMapper->Modified();
@@ -283,7 +292,9 @@ void iAVolumeRenderer::update()
 void iAVolumeRenderer::setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3)
 {
 	if (m_isFlat)
+	{
 		return;
+	}
 	m_volMapper->AddClippingPlane(p1);
 	m_volMapper->AddClippingPlane(p2);
 	m_volMapper->AddClippingPlane(p3);

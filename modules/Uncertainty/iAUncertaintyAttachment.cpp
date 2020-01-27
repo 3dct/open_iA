@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -171,7 +171,7 @@ void iAUncertaintyAttachment::CalculateNewSubEnsemble()
 	} while (QDir(cachePath).exists());
 	QSharedPointer<iAEnsemble> newEnsemble = mainEnsemble->AddSubEnsemble(memberIDs, subEnsembleID);
 	mainEnsemble->EnsembleFile()->AddSubEnsemble(subEnsembleID, memberIDs);
-	m_ensembleView->AddEnsemble(QString("Subset: Members %1").arg(join(memberIDs, ",")), newEnsemble);
+	m_ensembleView->AddEnsemble(QString("Subset: Members %1").arg(joinAsString(memberIDs, ",")), newEnsemble);
 	mainEnsemble->Store();
 }
 

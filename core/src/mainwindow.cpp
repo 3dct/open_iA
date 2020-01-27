@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,14 +20,14 @@
 * ************************************************************************************/
 #include "mainwindow.h"
 
-#include "charts/iADiagramFctWidget.h"
+#include "charts/iAChartFunctionBezier.h"
+#include "charts/iAChartFunctionGaussian.h"
+#include "charts/iAChartFunctionTransfer.h"
+#include "charts/iAChartWithFunctionsWidget.h"
 #include "defines.h"
 #include "dlg_commoninput.h"
 #include "dlg_datatypeconversion.h"
 #include "dlg_openfile_sizecheck.h"
-#include "iAChartFunctionBezier.h"
-#include "iAChartFunctionGaussian.h"
-#include "iAChartFunctionTransfer.h"
 #include "iACheckOpenGL.h"
 #include "iAConsole.h"
 #include "iALogger.h"
@@ -316,7 +316,9 @@ void MainWindow::loadFile(QString const & fileName)
 void MainWindow::loadFile(QString fileName, bool isStack)
 {
 	if (fileName.isEmpty())
+	{
 		return;
+	}
 	statusBar()->showMessage(tr("Loading data..."), 5000);
 	QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
 	m_path = t;
@@ -338,7 +340,8 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 			else if (ret == QMessageBox::No)
 			{
 				MdiChild *child = createMdiChild(false);
-				if (child->loadFile(fileName, false)) {
+				if (child->loadFile(fileName, false))
+				{
 					child->show();
 				} else {
 					statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
@@ -348,6 +351,7 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 			return;
 		}
 	}
+	/*
 	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
 		QSettings projectFile(fileName, QSettings::IniFormat);
@@ -372,9 +376,11 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 			return;
 		}
 	}
+	*/
 	// Todo: hook for plugins?
 	MdiChild *child = createMdiChild(false);
-	if (child->loadFile(fileName, isStack)) {
+	if (child->loadFile(fileName, isStack))
+	{
 		child->show();
 	}
 	else
@@ -395,13 +401,17 @@ void MainWindow::loadFiles(QStringList fileNames)
 void MainWindow::save()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->save();
+	}
 }
 
 void MainWindow::saveAs()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->saveAs();
+	}
 }
 
 bool MainWindow::saveSettings()
@@ -1111,8 +1121,10 @@ void MainWindow::slicerSettings()
 
 	iASlicerSettings const & slicerSettings = child->slicerSettings();
 	QStringList mouseCursorTypes;
-	foreach( QString mode, mouseCursorModes )
-		mouseCursorTypes << ( ( mode == slicerSettings.SingleSlicer.CursorMode ) ? QString( "!" ) : QString() ) + mode;
+	for (QString mode : mouseCursorModes)
+	{
+		mouseCursorTypes << ((mode == slicerSettings.SingleSlicer.CursorMode) ? QString("!") : QString()) + mode;
+	}
 
 	QList<QVariant> inPara; 	inPara  << (slicerSettings.LinkViews ? tr("true") : tr("false"))
 		<< (slicerSettings.SingleSlicer.ShowPosition ? tr("true") : tr("false"))
@@ -2174,7 +2186,7 @@ void MainWindow::openWithDataTypeConversion()
 	QStringList additionalLabels = (QStringList() << tr("#Slice sample rate"));
 	QList<QVariant> additionalValues = (QList<QVariant>() << tr("%1").arg(m_owdtcs));
 
-	dlg_openfile_sizecheck dlg(false, file, this, "Open With DataType Conversion", additionalLabels, additionalValues, m_rawFileParams);
+	dlg_openfile_sizecheck dlg(file, this, "Open With DataType Conversion", additionalLabels, additionalValues, m_rawFileParams);
 	if (!dlg.accepted())
 	{
 		return;
@@ -2213,13 +2225,13 @@ void MainWindow::openWithDataTypeConversion()
 		{
 			finalfilename = conversionwidget.convert(file, m_rawFileParams,
 				mapReadableDataTypeToVTKType(outDataType),
-				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, m_owdtcdov);
+				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax);
 		}
 		else
 		{
 			finalfilename = conversionwidget.convertROI(file, m_rawFileParams,
 				mapReadableDataTypeToVTKType(outDataType),
-				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, m_owdtcdov, roi);
+				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, roi);
 		}
 		loadFile(finalfilename, false);
 	}

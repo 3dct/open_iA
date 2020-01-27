@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,14 +24,7 @@
 
 class QString;
 
-/**
-* class which (at some point in the future)
-* provides simple access to asynchronous,
-* pluggable IO operations.
-*
-* For the moment, collection of helper methods
-* around IO.
-*/
+//! Class which provides helper methods around IO.
 class open_iA_Core_API iAIOProvider
 {
 public:
@@ -47,5 +40,5 @@ public:
 	static const QString NewProjectFileTypeFilter;
 	static const QString NewProjectFileExtension;
 	static const QString MetaImages;
-	static const QString VTKFiles; 
+	static const QString VTKFiles;
 };

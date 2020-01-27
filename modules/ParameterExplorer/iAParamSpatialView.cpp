@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,7 +25,7 @@
 #include "iAHistogramCreator.h"
 #include "iAImageWidget.h"
 
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 #include <charts/iAPlotTypes.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
@@ -41,7 +41,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & basePath, iADiagramFctWidget* chartWidget, int binCount) :
+iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & basePath, iAChartWithFunctionsWidget* chartWidget, int binCount) :
 	m_table(table),
 	m_basePath(basePath),
 	m_imageWidget(nullptr),
@@ -154,7 +154,7 @@ void iAParamSpatialView::setImage(size_t id)
 	}
 }
 
-void iAParamSpatialView::SlicerModeButtonClicked(bool checked)
+void iAParamSpatialView::SlicerModeButtonClicked(bool /*checked*/)
 {
 	int modeIdx = slicerModeButton.indexOf(qobject_cast<QToolButton*>(sender()));
 	if (!m_imageWidget || m_curMode == modeIdx || modeIdx == -1)

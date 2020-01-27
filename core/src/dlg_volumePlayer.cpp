@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -48,7 +48,13 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 	setupUi(this);
 	m_isBlendingOn = blending->isChecked();
 	m_mdiChild = dynamic_cast<MdiChild*>(parent);
-	m_numberOfVolumes=m_volumeStack->numberOfVolumes();
+	if (m_volumeStack->numberOfVolumes() > std::numeric_limits<int>::max())
+	{
+		DEBUG_LOG(QString("WARNING: More Volumes (%1) in volume player than supported (%2)!")
+			.arg(m_volumeStack->numberOfVolumes())
+			.arg(std::numeric_limits<int>::max()));
+	}
+	m_numberOfVolumes = static_cast<int>(m_volumeStack->numberOfVolumes());
 	for (int i = 0; i < m_numberOfVolumes; i++)
 	{
 		showVolume(i);
@@ -197,7 +203,7 @@ void dlg_volumePlayer::setSpeed()
 	this->speedValue->setText(QString::number(speed, 'f', 2));
 }
 
-void dlg_volumePlayer::updateView(int r, int c)
+void dlg_volumePlayer::updateView(int r, int /*c*/)
 {
 	emit update(r);
 }
@@ -217,7 +223,7 @@ void dlg_volumePlayer::editMaxSpeed()
 	}
 }
 
-void dlg_volumePlayer::setChecked(int r, int c)
+void dlg_volumePlayer::setChecked(int r, int /*c*/)
 {
 	for (int i=1; i<m_numberOfColumns;i++)
 	{
@@ -392,7 +398,6 @@ void dlg_volumePlayer::enableVolume(int state)
 	}
 
 	// setup slider
-	int oldVal = volumeSlider->value();
 	if(m_isBlendingOn)
 	{
 		volumeSlider->setMaximum((getNumberOfCheckedVolumes() - 1) * DIVISIONS_PER_VOLUME);
@@ -433,7 +438,7 @@ int dlg_volumePlayer::sliderIndexToVolumeIndex(int slicerIndex)
 }
 
 void dlg_volumePlayer::showVolume(int volumeIndex)
-{
+{	// since mask is short, this only works for up to 16 volumes?
 	m_mask = m_mask|(1<<volumeIndex);
 }
 

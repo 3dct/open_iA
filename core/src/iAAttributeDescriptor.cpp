@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -174,13 +174,16 @@ QString iAAttributeDescriptor::toString() const
 
 iAAttributeDescriptor::iAAttributeDescriptor(
 		QString const & name, iAAttributeType attribType, iAValueType valueType) :
-	m_name(name),
 	m_attribType(attribType),
 	m_valueType(valueType),
-	m_logarithmic(false)
+	m_logarithmic(false),
+	m_name(name)
 {
 	resetMinMax();	// TODO: check why we set it in constructor when it's reset again here anyway; maybe move this to where it's actually needed?
 }
+
+iAAttributeDescriptor::~iAAttributeDescriptor()
+{}
 
 iAAttributeDescriptor::iAAttributeType iAAttributeDescriptor::attribType() const
 {

@@ -154,6 +154,9 @@ ELSE()
 	ENDIF()
 	LIST (APPEND VTK_COMPONENTS vtkGUISupportQtOpenGL)    # for QVTKWidget2
 ENDIF()
+IF ("${vtkRenderingOSPRay_LOADED}")
+	ADD_DEFINITIONS(-DVTK_OSPRAY_AVAILABLE)
+ENDIF()
 
 FUNCTION (ExtractVersion filename identifier output_varname)
 	FILE (STRINGS "${filename}" MYLINE REGEX "${identifier}")
@@ -265,6 +268,8 @@ ENDIF()
 LIST (APPEND BUNDLE_DIRS "${QT_LIB_DIR}")
 
 
+#FIND_PACKAGE(Qt5Charts)
+
 # Eigen
 FIND_PACKAGE(Eigen3)
 IF (EIGEN3_FOUND)
@@ -280,14 +285,12 @@ ENDIF()
 FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C NO_MODULE QUIET)
 
 IF (HDF5_FOUND)
+	SET (HDF5_CORE_LIB_NAME libhdf5${CMAKE_STATIC_LIBRARY_SUFFIX})
+	SET (HDF5_SZIP_LIB_NAME libszip${CMAKE_STATIC_LIBRARY_SUFFIX})
 	IF (WIN32)
-		SET (HDF5_CORE_LIB_NAME libhdf5.lib)
 		SET (HDF5_Z_LIB_NAME libzlib.lib)
-		SET (HDF5_SZIP_LIB_NAME libszip.lib)
 	ELSE()
-		SET (HDF5_CORE_LIB_NAME libhdf5.a)
 		SET (HDF5_Z_LIB_NAME libz.a)
-		SET (HDF5_SZIP_LIB_NAME libszip.a)
 	ENDIF()
 	FIND_PATH(HDF5_INCLUDE_OVERWRITE_DIR hdf5.h PATHS "${HDF5_DIR}/../../include" "${HDF5_DIR}/../../../include")
 	SET(HDF5_INCLUDE_DIR "${HDF5_INCLUDE_OVERWRITE_DIR}" CACHE PATH "" FORCE)
@@ -368,8 +371,16 @@ ENDIF()
 
 # OpenMP
 INCLUDE(${CMAKE_ROOT}/Modules/FindOpenMP.cmake)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+# For CMake < 3.9, we need to make the target 'OpenMP::OpenMP_CXX' ourselves
+if(NOT TARGET OpenMP::OpenMP_CXX)
+    find_package(Threads REQUIRED)
+    add_library(OpenMP::OpenMP_CXX IMPORTED INTERFACE)
+    set_property(TARGET OpenMP::OpenMP_CXX
+                 PROPERTY INTERFACE_COMPILE_OPTIONS ${OpenMP_CXX_FLAGS})
+    # Only works if the same flag is passed to the linker; use CMake 3.9+ otherwise (Intel, AppleClang)
+    set_property(TARGET OpenMP::OpenMP_CXX
+                 PROPERTY INTERFACE_LINK_LIBRARIES ${OpenMP_CXX_FLAGS} Threads::Threads)
+endif()
 
 # IF (Module_ElastixRegistration)
 	# find_package(Elastix REQUIRED)
@@ -387,16 +398,20 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 # Compiler Flags
 #-------------------------
 IF (MSVC)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /EHsc")  # multi-processor compilation and common exception handling strategy
+	ADD_COMPILE_OPTIONS(/arch:AVX)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")  # enable multi-processor compilation
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 	ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
+	
+	# enable all warnings:
+	ADD_COMPILE_OPTIONS(/W4 /wd4127 /wd4251 /wd4515)
+	# disabled: C4127 - caused by QVector
+	#           C4251 - "class requires dll interface"
+	#           C4515 - "namespace uses itself" - caused by ITK/gdcm
 ELSE()
 	# on MSVC, setting CMAKE_CXX_STANDARD leads to RTK not to compile currently
 	# due to random_shuffle being used (deprecated in C++14, apparently removed in 17 or 20)
-	IF (CMAKE_VERSION VERSION_LESS "3.8")
-		MESSAGE(STATUS "Aiming for C++14 support.")
-		SET(CMAKE_CXX_STANDARD 14)
-	ELSEIF (CMAKE_VERSION VERSION_LESS "3.11")
+	IF (CMAKE_VERSION VERSION_LESS "3.11")
 		MESSAGE(STATUS "Aiming for C++17 support.")
 		SET(CMAKE_CXX_STANDARD 17)
 	ELSE()
@@ -404,6 +419,12 @@ ELSE()
 		SET(CMAKE_CXX_STANDARD 20)
 	ENDIF()
 	SET(CMAKE_CXX_EXTENSIONS OFF)
+	# use CMAKE_CXX_STANDARD_REQUIRED? e.g.:
+	# SET (CMAKE_CXX_STANDARD 11)
+	# SET (CMAKE_CXX_STANDARD_REQUIRED ON)
+
+	# enable all warnings:
+	ADD_COMPILE_OPTIONS(-Wall -Wextra) # with -Wpedantic, lots of warnings about extra ';' in VTK/ITK code...
 ENDIF()
 
 IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -414,8 +435,8 @@ IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 		MESSAGE(WARNING "The used compiler ${CMAKE_CXX_COMPILER} has no C++0x/11 support. Please use a newer C++ compiler.")
 	ENDIF()
 
-	set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -msse4.1 -fpermissive -fopenmp -march=core2 -O2")
-	set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -msse4.1 -fopenmp -march=core2 -O2")
+	set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -fpermissive -fopenmp -march=core2 -O2 -msse4.2 -mavx")
+	set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -fopenmp -march=core2 -O2 -msse4.2 -mavx")
 ENDIF()
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

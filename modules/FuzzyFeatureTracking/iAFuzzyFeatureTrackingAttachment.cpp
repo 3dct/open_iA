@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -28,11 +28,11 @@
 #include <iAVolumeStack.h>
 #include <mdichild.h>
 
-#include <itkMacro.h>
+#include <itkMacro.h>    // for itk::ExceptionObject
 
 const int FOURDCT_MIN_NUMBER_OF_VOLUMES = 1;
 
-iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( MainWindow * mainWnd, MdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ), 
+iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( MainWindow * mainWnd, MdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ),
 	trackingGraph( 0 ), m_dlgDataView4DCT( 0 ), m_dlgTrackingGraph( 0 ), m_dlgEventExplorer( 0 ), m_volumeStack( 0 )
 {
 	m_volumeStack = child->volumeStack();

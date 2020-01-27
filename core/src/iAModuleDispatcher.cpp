@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -78,7 +78,7 @@ iAModuleDispatcher::iAModuleDispatcher(QString const & rootPath): m_mainWnd(null
 	m_rootPath = rootPath;
 }
 
-void CloseLibrary(iALoadedModule & module)
+void CloseLibrary(iALoadedModule & /*module*/)
 {
 #ifdef _MSC_VER
 /*
@@ -336,7 +336,7 @@ QMenu * iAModuleDispatcher::getMenuWithTitle(QMenu * parentMenu, QString const &
 void  iAModuleDispatcher::AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable)
 {
 	AddModuleAction(action, isDisablable);
-	foreach(QAction * curAct, menu->actions())
+	for(QAction * curAct: menu->actions())
 	{
 		if (curAct->text() > action->text())
 		{

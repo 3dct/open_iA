@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,6 +25,10 @@
 #include "iAModuleInterface.h"
 #include "qthelper/iAQTtoUIConnector.h"
 
+class iAFIAKERProject;
+
+class QSettings;
+
 typedef iAQTtoUIConnector<QToolBar, Ui_FiAKErToolBar> iAFiAKErToolBar;
 
 class iAFiAKErModuleInterface : public iAModuleInterface
@@ -33,9 +37,16 @@ class iAFiAKErModuleInterface : public iAModuleInterface
 public:
 	void Initialize() override;
 	void SaveSettings() const override;
+
 	void setupToolBar();
+	void loadProject(MdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERProject* project);
+protected:
+	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild* child) override;
 private slots:
 	void startFiAKEr();
+
+	//! Method to load fiaker project (called on Tools->FIAKER->Load project)
+	//! Deprecated, use open_iA project feature instead!
 	void loadFiAKErProject();
 	void toggleDockWidgetTitleBars();
 	void toggleSettings();

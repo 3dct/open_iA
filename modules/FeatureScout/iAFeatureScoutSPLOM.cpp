@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -91,8 +91,8 @@ void iAFeatureScoutSPLOM::multiClassRendering(QList<QColor> const & colors)
 	iALookupTable lookupTable;
 	lookupTable.allocate(colors.size());
 	lookupTable.setRange(0, colors.size() - 1);
-	for (size_t c = 0; c < colors.size(); ++c)
-		lookupTable.setColor(c, colors.at(c));
+	for (int c = 0; c < colors.size(); ++c)
+		lookupTable.setColor(static_cast<size_t>(c), colors.at(c));
 	matrix->setLookupTable(lookupTable, matrix->data()->numParams()-1 );
 }
 

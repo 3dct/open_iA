@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,8 +23,6 @@
 #include "iACsvConfig.h"
 #include "iAFeatureScoutObjectType.h"
 
-#include "mdichild.h"
-
 #include <vtkColorTransferFunction.h>
 #include <vtkFloatArray.h>
 #include <vtkPiecewiseFunction.h>
@@ -41,7 +39,7 @@ iA3DLabelledVolumeVis::iA3DLabelledVolumeVis(vtkRenderer* ren, vtkColorTransferF
 	std::copy(bounds, bounds + 6, m_bounds);
 }
 
-void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem )
+void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedSelInds, int /*classID*/, QColor const & classColor, QStandardItem* activeClassItem )
 {
 	QColor BackColor(128, 128, 128, 0);
 	double backRGB[3];
@@ -220,7 +218,7 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 	updateRenderer();
 }
 
-void iA3DLabelledVolumeVis::renderSingle( int labelID, int classID, QColor const & classColor, QStandardItem* activeClassItem )
+void iA3DLabelledVolumeVis::renderSingle( int labelID, int /*classID*/, QColor const & classColor, QStandardItem* activeClassItem )
 {
 	int itemL = activeClassItem->rowCount();
 	double red   = classColor.redF(),
@@ -340,7 +338,6 @@ void iA3DLabelledVolumeVis::multiClassRendering( QList<QColor> const & classColo
 	double red = 0.0;
 	double green = 0.0;
 	double blue = 0.0;
-	int CID = 0;
 
 	// clear existing points
 	oTF->RemoveAllPoints();

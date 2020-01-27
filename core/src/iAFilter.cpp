@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,14 +25,15 @@
 #include "iAConsole.h"
 #include "iAStringHelper.h"
 
+#include <QColor>
 #include <QFileInfo>
 
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
 	unsigned int requiredInputs, unsigned int outputCount) :
+	m_log(iAStdOutLogger::get()),
 	m_name(name),
 	m_category(category),
 	m_description(description),
-	m_log(iAStdOutLogger::get()),
 	m_requiredInputs(requiredInputs),
 	m_outputCount(outputCount),
 	m_firstInputChannels(1)
@@ -69,7 +70,7 @@ QVector<pParameter> const & iAFilter::parameters() const
 	return m_parameters;
 }
 
-unsigned int iAFilter::requiredInputs() const
+int iAFilter::requiredInputs() const
 {
 	return m_requiredInputs;
 }
@@ -96,8 +97,10 @@ QVector<QPair<QString, QVariant> > const & iAFilter::outputValues() const
 
 void iAFilter::clearOutput()
 {
-	for (iAConnector* con: m_output)
+	for (iAConnector* con : m_output)
+	{
 		delete con;
+	}
 	m_output.clear();
 }
 
@@ -142,6 +145,9 @@ void iAFilter::clearInput()
 	m_input.clear();
 }
 
+// TODO: Allow to check type of input files (e.g. to check if input images are
+// of a specific type, or all of the same type), e.g. in addInput or
+// checkParameters.
 void iAFilter::addInput(iAConnector* con)
 {
 	m_input.push_back(con);
@@ -171,7 +177,8 @@ bool iAFilter::run(QMap<QString, QVariant> const & parameters)
 {
 	if (m_input.size() < m_requiredInputs)
 	{
-		addMsg(QString("Not enough inputs specified. Filter %1 requires %2 input images, but only %3 given!").arg(m_name).arg(m_requiredInputs).arg(m_input.size()));
+		addMsg(QString("Not enough inputs specified. Filter %1 requires %2 input images, but only %3 given!")
+			.arg(m_name).arg(m_requiredInputs).arg(m_input.size()));
 		return false;
 	}
 	clearOutput();
@@ -275,6 +282,19 @@ bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
 			}
 			break;
 		}
+		case Color:
+		{
+			QColor color(parameters[param->name()].toString());
+			if (!color.isValid())
+			{
+				addMsg(QString("Parameter '%1': '%2' is not a valid color value; "
+					"please either give a color name (e.g. blue, green, ...) "
+					"or a hexadecimal RGB specifier, like #RGB, #RRGGBB!")
+					.arg(param->name()).arg(parameters[param->name()].toString()));
+				return false;
+			}
+			break;
+		}
 		case Invalid:
 			addMsg(QString("Parameter '%1': Invalid parameter type (please contact developers!)!").arg(param->name()));
 			return false;
@@ -303,9 +323,13 @@ iALogger* iAFilter::logger()
 QString iAFilter::inputName(int i) const
 {
 	if (m_inputNames.contains(i))
+	{
 		return m_inputNames[i];
+	}
 	else
+	{
 		return QString("Input %1").arg(i);
+	}
 }
 
 void iAFilter::setInputName(int i, QString const & name)
@@ -313,16 +337,20 @@ void iAFilter::setInputName(int i, QString const & name)
 	m_inputNames.insert(i, name);
 }
 
-QString iAFilter::outputName(int i, QString defaultName=NULL) const
+QString iAFilter::outputName(int i, QString defaultName) const
 {
-	if (m_outputNames.contains(i)) {
+	if (m_outputNames.contains(i))
+	{
 		return m_outputNames[i];
 	}
-	else {
-		if (defaultName != NULL) {
+	else
+	{
+		if (!defaultName.isEmpty())
+		{
 			return defaultName;
 		}
-		else {
+		else
+		{
 			return QString("Out %1").arg(i);
 		}
 	}

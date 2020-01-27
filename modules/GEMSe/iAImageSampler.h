@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -101,7 +101,7 @@ private:
 	iAPerformanceTimer::DurationType m_derivedOutputDuration;
 	//! @}
 
-	// intention: running several extended random walker's in parallel
+	// intention: running several sampled algorithms in parallel
 	// downside: seems to slow down rather than speed up overall process
 	QMap<iACommandRunner*, int > m_runningComputation;
 	QMap<iADerivedOutputCalculator*, QSharedPointer<iASingleResult> > m_runningDerivedOutput;

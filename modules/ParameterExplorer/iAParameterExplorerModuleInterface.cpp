@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -41,7 +41,7 @@ void iAParameterExplorerModuleInterface::Initialize()
 	actionExplore->setText(QApplication::translate("MainWindow", "Parameter Explorer", 0));
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionExplore, true);
 	connect(actionExplore, SIGNAL(triggered()), this, SLOT(StartParameterExplorer()));
-	
+
 	QAction * actionLoad = new QAction(m_mainWnd);
 	actionLoad->setText(QApplication::translate("MainWindow", "Load Parameter Explorer State", 0));
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionLoad, false);

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -43,7 +43,7 @@
 #include <QFileDialog>
 #include <QtMath>
 
-iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ), 
+iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ),
 	dlgPeriodicTable(0), dlgXRF(0), dlgSimilarityMap(0), ioThread(0),
 	m_xrfChannelID(NotExistingChannel)
 {
@@ -70,7 +70,7 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAM
 	dlgRefSpectra = new dlg_RefSpectra( m_child );
 	m_child->splitDockWidget(m_child->slicerDockWidget(iASlicerMode::XY), dlgPeriodicTable, Qt::Horizontal);
 	m_child->splitDockWidget(m_child->slicerDockWidget(iASlicerMode::XY), dlgRefSpectra, Qt::Horizontal);
-	
+
 	dlgXRF = new dlg_XRF( m_child, dlgPeriodicTable, dlgRefSpectra );
 
 	ioThread = new iAIO( m_child->logger(), m_child, dlgXRF->GetXRFData()->GetDataPtr() );
@@ -100,7 +100,7 @@ iAXRFAttachment::~iAXRFAttachment()
 
 
 void iAXRFAttachment::reInitXRF()
-{	
+{
 	vtkSmartPointer<vtkImageData> img = dlgXRF->GetCombinedVolume();
 	if (m_child->isMagicLensToggled())
 		m_child->reInitMagicLens(m_xrfChannelID, "Spectral Color Image", img, dlgXRF->GetColorTransferFunction());
@@ -151,7 +151,7 @@ QThread* iAXRFAttachment::recalculateXRF()
 	return dlgXRF->UpdateForVisualization();
 }
 
-void iAXRFAttachment::updateXRFVoxelEnergy( int x, int y, int z, int mode )
+void iAXRFAttachment::updateXRFVoxelEnergy( int x, int y, int z, int /*mode*/ )
 {
 	if( !dlgXRF )
 	{
@@ -251,7 +251,7 @@ void iAXRFAttachment::updateSlicerXRFOpacity()
 	m_child->updateChannelOpacity(m_xrfChannelID, opacity );
 }
 
-void iAXRFAttachment::updateXRFOpacity( int value )
+void iAXRFAttachment::updateXRFOpacity( int /*value*/ )
 {
 	iAChannelData * data = m_child->channelData(m_xrfChannelID);
 	if( data && data->isEnabled() )
@@ -317,7 +317,7 @@ void iAXRFAttachment::updateXRF()
 	connect( calcThread, &QThread::finished, calcThread, &QThread::deleteLater);
 }
 
-void iAXRFAttachment::magicLensToggled( bool isOn )
+void iAXRFAttachment::magicLensToggled( bool /*isOn*/ )
 {
 	if( dlgXRF && !m_child->channelData(m_xrfChannelID) )
 	{

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -114,7 +114,6 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		return;
 	}
 	QString batchDir = parameters["Image folder"].toString();
-	iAConnector* con = new iAConnector();
 	QVector<iAConnector*> inputImages;
 	QStringList additionalInput = splitPossiblyQuotedString(parameters["Additional Input"].toString());
 	for (QString fileName : additionalInput)
@@ -148,7 +147,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 	filter->setLogger(logger());
 
 	QStringList filters = parameters["File mask"].toString().split(";");
-	
+
 	if (!QFileInfo(batchDir).exists() || !QFileInfo(batchDir).isDir())
 	{
 		addMsg("Path given as 'Image folder' either does not exist or is not a folder!");

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -49,8 +49,8 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-	
-	//intensity statistics 
+
+	//intensity statistics
 	double minIntensity, maxIntensity, mean, sigma, variance;
 	getStatistics(duplicator->GetOutput(), &minIntensity, &maxIntensity, &mean, &sigma, &variance);
 
@@ -71,7 +71,7 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 	imageToHistogramFilter->SetHistogramSize( h_size );
 	imageToHistogramFilter->Update();
 	typename ImageToHistogramFilterType::HistogramType* histogram = imageToHistogramFilter->GetOutput();
-	
+
 	//Write info to dataset info file
 	ofstream fout( getLocalEncodingFileName( datasetPath + "/" + datasetName + ".info" ).c_str(), std::ofstream::out );
 	fout << "Datasetname:" << QString( datasetName ).toStdString() << '\n'
@@ -176,7 +176,7 @@ void iADatasetInfo::calculateInfo()
 	int totalFInfoNbToCreate = dl.size() - fl.size();
 	int currentFInfoNb = 0;
 	bool success = false;
-	
+
 	for ( int i = 0; i < dl.size(); ++i ) //iterate over datasets
 	{
 		QString datasetName = dl[i];
@@ -236,9 +236,15 @@ void iADatasetInfo::calculateInfo()
 	{
 		QDir newfilesInfoDir( datasetPath );
 		newfilesInfoDir.setNameFilters( QStringList( "*.mhd.info" ) );
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+		QSet<QString> old_fl(fl.begin(), fl.end());
+		QSet<QString> new_fl(newfilesInfoDir.entryList().begin(), newfilesInfoDir.entryList().end());
+		m_newGeneratedInfoFilesList = new_fl.subtract(old_fl).values();
+#else
 		QSet<QString> old_fl = fl.toSet();
 		QSet<QString> new_fl = newfilesInfoDir.entryList().toSet();
 		m_newGeneratedInfoFilesList = new_fl.subtract( old_fl ).toList();
+#endif
 		m_pmi->log( "Dataset previews successfully created." );
 	}
 }

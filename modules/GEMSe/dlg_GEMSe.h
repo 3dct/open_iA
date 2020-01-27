@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -110,7 +110,7 @@ private slots:
 	void ToggleLike();
 	void GoToCluster();
 	void FavoriteClicked(iAImageTreeNode * leaf);
-	
+
 	void SlicerModeChanged(iASlicerMode mode, int sliceNr);
 	void SliceNumberChanged(int sliceNr);
 	void UpdateViews();
@@ -126,14 +126,14 @@ private:
 	void CreateMapper();
 	void CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelImagePointer refImg,
 		int labelCount);
-	
+
 	// data:
 	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > m_samplings;
 	QStringList m_pipelineNames;
 	QSharedPointer<iAAttributes> m_chartAttributes;
 	iAChartAttributeMapper m_chartAttributeMapper;
 	int m_MeasureChartIDStart;
-	
+
 	QSharedPointer<iAImageTreeNode> m_selectedCluster;
 	iAImageTreeLeaf * m_selectedLeaf;
 
@@ -145,10 +145,10 @@ private:
 	iAExampleImageWidget * m_exampleView;
 	iACameraWidget* m_cameraWidget;
 	iAFavoriteWidget* m_favoriteWidget;
-	iAColorTheme const * m_colorTheme;
 	iAHistogramContainer * m_histogramContainer;
 	iAGEMSeScatterplot * m_scatterplot;
 	iAProbingWidget * m_probingWidget;
+	iAColorTheme const* m_colorTheme;
 	iALogger* m_logger;
 	iAPreviewWidgetPool* m_previewWidgetPool;
 	ClusterImageType m_nullImage;

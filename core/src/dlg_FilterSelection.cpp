@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,6 +26,7 @@
 #include <QPushButton>
 
 dlg_FilterSelection::dlg_FilterSelection(QWidget * parent, QString const & preselectedFilter):
+	dlg_FilterSelectionConnector(parent),
 	m_curMatches(0)
 {
 	connect(leFilterSearch, SIGNAL(textEdited(QString const &)), this, SLOT(FilterChanged(QString const &)));
@@ -64,7 +65,7 @@ void dlg_FilterSelection::enableOKButton()
 		(lwFilterList->currentItem() != nullptr && !lwFilterList->currentItem()->isHidden()));
 }
 
-void dlg_FilterSelection::listSelectionChanged(QListWidgetItem *current, QListWidgetItem *previous)
+void dlg_FilterSelection::listSelectionChanged(QListWidgetItem * /*current*/, QListWidgetItem * /*previous*/)
 {
 	enableOKButton();
 }

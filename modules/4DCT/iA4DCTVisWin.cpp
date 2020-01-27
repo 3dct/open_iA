@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -177,8 +177,8 @@ iA4DCTVisWin::~iA4DCTVisWin( )
 void iA4DCTVisWin::setImageSize( double * size )
 {
 	m_size[0] = size[0]; m_size[1] = size[1]; m_size[2] = size[2];
-	const double dNear = 0.1;
-	double dFar = std::max( m_size[0], std::max( m_size[1], m_size[2] ) ) * 8;
+	//const double dNear = 0.1;
+	//double dFar = std::max( m_size[0], std::max( m_size[1], m_size[2] ) ) * 8;
 }
 
 void iA4DCTVisWin::setNumberOfStages( int number )

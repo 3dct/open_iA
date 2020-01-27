@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -30,9 +30,9 @@ dlg_4DCTFileOpen::dlg_4DCTFileOpen( QWidget * parent )
 	connect( twFiles, SIGNAL( doubleClicked( QModelIndex ) ), this, SLOT( onTreeViewDoubleClicked( QModelIndex ) ) );
 }
 
-void dlg_4DCTFileOpen::setData( iA4DCTData * data )
+void dlg_4DCTFileOpen::setData( iA4DCTData * newData )
 {
-	m_data = data;
+	m_data = newData;
 
 	QStandardItem * rootNode = m_model.invisibleRootItem( );
 	for( auto stageData : *m_data ) {

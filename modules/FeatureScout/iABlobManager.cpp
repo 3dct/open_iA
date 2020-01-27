@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -254,7 +254,7 @@ bool iABlobManager::SmartOverlapping( void )
 					for ( int i = 0; i < size; ++i )
 					{
 						d1 = d1_out = m_blobsList[i]->GetImageData()->GetScalarComponentAsDouble( x, y, z, MAX_VALUE_COMPONENT );
-						for ( int j = 0; j < size, i != j; ++j )
+						for ( int j = 0; j < size && i != j; ++j )
 						{
 							d2 = d2_out = m_blobsList[j]->GetImageData()->GetScalarComponentAsDouble( x, y, z, MAX_VALUE_COMPONENT );
 							delta = fabs( d1 - d2 );
@@ -477,11 +477,6 @@ int* iABlobManager::GetDimensions()
 	return m_dimension;
 }
 
-void iABlobManager::SetBlobResolution( int resolution )
-{
-
-}
-
 void iABlobManager::SetSmoothing( bool isOn )
 {
 	m_isSmoothingEnabled = isOn;
@@ -618,15 +613,15 @@ bool iABlobManager::GetShowBlob() const
 void iABlobManager::SaveMovie( QWidget *activeChild,
 							   iARenderer * raycaster,
 							   vtkCamera * cam,
-							   vtkRenderWindowInteractor * interactor,
+							   vtkRenderWindowInteractor * /*interactor*/,
 							   vtkRenderWindow * renWin,
 							   size_t numberOfFrames,
-							   const double range[2],
-							   const double blobOpacity[2],
-							   const double silhouetteOpacity[2],
-							   const double overlapThreshold[2],
-							   const double gaussianBlurVariance[2],
-							   const int dimX[2], const int dimY[2], const int dimZ[2],
+							   const double /*range*/[2],
+							   const double /*blobOpacity*/[2],
+							   const double /*silhouetteOpacity*/[2],
+							   const double /*overlapThreshold*/[2],
+							   const double /*gaussianBlurVariance*/[2],
+							   const int /*dimX*/[2], const int /*dimY*/[2], const int /*dimZ*/[2],
 							   const QString& fileName, int mode, int qual )
 {
 	if ( numberOfFrames <= 1 )

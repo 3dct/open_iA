@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,7 +22,6 @@
 
 #include "dlg_commoninput.h"
 #include "dlg_modalityProperties.h"
-#include "iAChartFunctionTransfer.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iAConsole.h"
@@ -72,6 +71,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	connect(pbEdit,   &QPushButton::clicked, this, &dlg_modalities::editClicked);
 	connect(cbManualRegistration, &QCheckBox::clicked, this, &dlg_modalities::manualRegistration);
 	connect(cbShowMagicLens, &QCheckBox::clicked, this, &dlg_modalities::magicLens);
+	connect(tbMeshActive, &QToolButton::toggled, this, &dlg_modalities::meshActive);
 
 	connect(lwModalities, SIGNAL(itemClicked(QListWidgetItem*)),
 		this, SLOT(listClicked(QListWidgetItem*)));
@@ -248,7 +248,7 @@ void dlg_modalities::removeClicked()
 	enableButtons();
 
 	m_mainRenderer->GetRenderWindow()->Render();
-	
+
 	emit modalitiesChanged(false, nullptr);
 }
 
@@ -348,7 +348,7 @@ void dlg_modalities::manualRegistration()
 			return;
 		}
 		QSharedPointer<iAModality> editModality(m_modalities->get(idx));
-		
+
 		setModalitySelectionMovable(idx);
 
 		if (!editModality->renderer())
@@ -356,7 +356,7 @@ void dlg_modalities::manualRegistration()
 			DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
 			return;
 		}
-		
+
 		if (cbManualRegistration->isChecked())
 		{
 			configureInterActorStyles(editModality);
@@ -373,8 +373,15 @@ void dlg_modalities::manualRegistration()
 	}
 	catch (std::invalid_argument &ivae)
 	{
-		DEBUG_LOG(ivae.what()); 
+		DEBUG_LOG(ivae.what());
 	}
+}
+
+void dlg_modalities::meshActive()
+{
+	bool active = tbMeshActive->isChecked();
+	m_mdiChild->renderer()->polyActor()->SetPickable(active);
+	m_mdiChild->renderer()->polyActor()->SetDragable(active);
 }
 
 void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editModality)
@@ -438,7 +445,7 @@ void dlg_modalities::setModalitySelectionMovable(int selectedRow)
 
 		//enable / disable dragging
 		mod->renderer()->setMovable(mod == currentData);
-		
+
 		for (int sl = 0; sl < iASlicerMode::SlicerCount; sl++)
 		{
 			if (mod->channelID() == NotExistingChannel)

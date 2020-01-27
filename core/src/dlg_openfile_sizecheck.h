@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -33,14 +33,13 @@ class dlg_openfile_sizecheck: public QObject
 
 public:
 	//! Constructor.
-	//! @param isVolumeStack    Whether we are opening a volume stack (true) or a single file (false).
 	//! @param fileName         File name of the RAW file.
 	//! @param parent           The parent widget.
 	//! @param title            The window title.
 	//! @param additionalLabels List of additional input parameter labels (@see dlg_commoninput).
 	//! @param additionalValues List of additional input parameter values (@see dlg_commoninput).
 	//! @param [out] rawFileParams The parameters of the raw file that were set by the user.
-	dlg_openfile_sizecheck (bool isVolumeStack, QString const & fileName, QWidget *parent, QString const & title,
+	dlg_openfile_sizecheck (QString const & fileName, QWidget *parent, QString const & title,
 		QStringList const & additionalLabels, QList<QVariant> const & additionalValues, iARawFileParameters & rawFileParams);
 	~dlg_openfile_sizecheck();
 	//! Checks whether or not the user has accepted the input dialog.

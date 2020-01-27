@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -36,12 +36,12 @@ public:
 	virtual DataType const * rawData() const =0;
 	virtual size_t numBin() const =0;
 	virtual double minX() const { return 0; }
-	virtual double maxX() const { return numBin(); }
+	virtual double maxX() const { return static_cast<double>(numBin()); }
 	virtual double spacing() const = 0;
 	virtual double const * xBounds() const = 0;
 	virtual DataType const * yBounds() const = 0;
 
-	virtual double binStart(int binNr) const		// default: assume constant (i.e. linear) spacing
+	virtual double binStart(size_t binNr) const		// default: assume constant (i.e. linear) spacing
 	{
 		return spacing() * binNr + xBounds()[0];
 	}

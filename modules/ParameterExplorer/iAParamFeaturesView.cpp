@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -102,8 +102,8 @@ void iAParamFeaturesView::SaveSettings(QSettings & settings)
 		shownList << m_featureTable->cellWidget(row, ShowColumn)->findChildren<QCheckBox*>()[0]->isChecked();
 		invertedList << m_featureTable->cellWidget(row, InvertColumn)->findChildren<QCheckBox*>()[0]->isChecked();
 	}
-	settings.setValue("Shown", join(shownList, ","));
-	settings.setValue("Inverted", join(invertedList, ","));
+	settings.setValue("Shown", joinAsString(shownList, ","));
+	settings.setValue("Inverted", joinAsString(invertedList, ","));
 }
 
 void iAParamFeaturesView::LoadSettings(QSettings const & settings)

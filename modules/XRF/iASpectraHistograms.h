@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -43,11 +43,11 @@ private:
 private:
 	long	m_numBins;			///< number of bins in a histogram
 	size_t	m_numHistograms;	///< number of energy bins is the number of histograms
-	double	m_countRange[2];	///< range of XRF 
+	double	m_countRange[2];	///< range of XRF
 
 	double			m_binWidth;			///< width of a histogram bin
 	CountType	*	m_histData;			///< raw data containing a 2D array, first dimension - histograms, second - bins
-	
+
 	QSharedPointer<iAXRFData> m_xrfData;	///< pointer to the input xrf data set
 	CountType	m_maxValue;			///< maximum value of all histograms' bins
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -57,18 +57,17 @@ dlg_GEMSe::dlg_GEMSe(
 	iALogger * logger,
 	iAColorTheme const * colorTheme)
 :
+	m_selectedLeaf(nullptr),
 	dlg_GEMSeUI(parent),
-	m_selectedCluster(0),
-	m_treeView(0),
-	m_detailView(0),
-	m_logger(logger),
-	m_cameraWidget(0),
-	m_exampleView(0),
-	m_favoriteWidget(0),
-	m_probingWidget(0),
-	m_selectedLeaf(0),
-	m_previewWidgetPool(0),
+	m_treeView(nullptr),
+	m_detailView(nullptr),
+	m_exampleView(nullptr),
+	m_cameraWidget(nullptr),
+	m_favoriteWidget(nullptr),
+	m_probingWidget(nullptr),
 	m_colorTheme(colorTheme),
+	m_logger(logger),
+	m_previewWidgetPool(nullptr),
 	m_representativeType(iARepresentativeType::Difference)
 {
 }
@@ -198,7 +197,7 @@ void dlg_GEMSe::CreateMapper()
 		{
 			int chartID = -1;
 			QSharedPointer<iAAttributeDescriptor> attribute = attributes->at(attributeID);
-			
+
 			// check if previous datasets have an attribute with the same name
 			if (samplingIdx > 0 &&
 				attribute->attribType() ==

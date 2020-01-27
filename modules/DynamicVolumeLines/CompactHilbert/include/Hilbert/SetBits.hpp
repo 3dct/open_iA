@@ -70,15 +70,15 @@ namespace Hilbert
 		}
 		return;
 	}
-	
-	
+
+
 	// <CFixBitVec,CFixBitVec>
 	template<>
 	H_INLINE
 	void
 	setBits(
 		CFixBitVec &h,
-		int n,
+		int /*n*/,
 		int i,
 		const CFixBitVec &w
 		)

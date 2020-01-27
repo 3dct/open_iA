@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -34,12 +34,16 @@ class QString;
 template <typename T>
 struct iAConverter
 {
-	static T toT(QString str, bool * ok)
+	static T toT(QString /*string*/, bool * ok)
 	{
 		assert(false && "Unspecialized Converter::toT called! This should not happen!");
+		if (ok)
+		{
+			*ok = false;
+		}
 		return std::numeric_limits<T>::signaling_NaN();
 	}
-	static QString toString(T t)
+	static QString toString(T /*number*/)
 	{
 		assert(false && "Unspecialized Converter::toString called! This should not happen!");
 		return "";
@@ -87,17 +91,19 @@ open_iA_Core_API QString quoteString(QString const & str);
 
 //! Convert a given string representation to an array of given type with given number of elements
 template <typename T>
-bool stringToArray(QString const & str, T * arr, size_t size, QString const & sep = " ")
+bool stringToArray(QString const & str, T * arr, int expectedSize, QString const & sep = " ")
 {
 	QStringList list = str.split(sep);
-	for (size_t i = 0; i < size && i < list.size(); ++i)
+	for (QStringList::size_type i = 0; i < expectedSize && i < list.size(); ++i)
 	{
 		bool ok;
 		arr[i] = iAConverter<T>::toT(list[i], &ok);
 		if (!ok)
+		{
 			return false;
+		}
 	}
-	return (list.size() == size);
+	return (list.size() == expectedSize);
 }
 
 //! Convert a given array with specified number of elements to a string representation
@@ -109,7 +115,9 @@ QString arrayToString(T const * arr, size_t size, QString const & sep = " ")
 	{
 		result += iAConverter<T>::toString(arr[i]);
 		if (i < size - 1)
+		{
 			result += sep;
+		}
 	}
 	return result;
 }
@@ -139,16 +147,20 @@ open_iA_Core_API QString dblToStringWithUnits(double value);
 //! @param joinStr the string to be used in between the elements of the string
 //! @return a string joining all elements of the given collection together
 template <template <typename...> class Container, typename Element>
-QString join(Container<Element> const & vec, QString const & joinStr)
+QString joinAsString(Container<Element> const & vec, QString const & joinStr)
 {
 	QString result;
 	bool first = true;
 	for (Element elem : vec)
 	{
 		if (!first)
+		{
 			result += joinStr;
+		}
 		else
+		{
 			first = false;
+		}
 		result += QString::number(elem);
 	}
 	return result;

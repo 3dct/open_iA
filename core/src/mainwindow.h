@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -119,7 +119,7 @@ public:
 	QMdiSubWindow* addSubWindow(QWidget * child);
 	void loadArguments(int argc, char** argv);
 	iAPreferences const & getDefaultPreferences() const;
-	iAModuleDispatcher& getModuleDispatcher() const; 
+	iAModuleDispatcher& getModuleDispatcher() const;
 	MdiChild *createMdiChild(bool unsavedChanges);
 	void closeMdiChild(MdiChild* child);
 	void closeAllSubWindows();
@@ -248,11 +248,13 @@ private:
 template <typename T> QList<T*> MainWindow::childList(QMdiArea::WindowOrder order)
 {
 	QList<T*> res;
-	foreach(QMdiSubWindow *window, mdiArea->subWindowList(order))
+	for (QMdiSubWindow *window: mdiArea->subWindowList(order))
 	{
 		T * child = dynamic_cast<T*>(window->widget());
 		if (child)
+		{
 			res.append(child);
+		}
 	}
 	return res;
 }
@@ -261,6 +263,8 @@ template <typename T> T * MainWindow::activeChild()
 {
 	int subWndCnt = childList<T>().size();
 	if (subWndCnt > 0)
+	{
 		return childList<T>(QMdiArea::ActivationHistoryOrder).last();
+	}
 	return nullptr;
 }

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -35,10 +35,10 @@
 #include <QKeyEvent>
 #include <QMenu>
 
-//openMP
+// OpenMP
 #ifndef __APPLE__
 #ifndef __MACOSX
-#include <omp.h>///TODO: gcc include omp //omp.h works with gcc 4.6
+#include <omp.h>
 #endif
 #endif
 
@@ -57,11 +57,11 @@ iAPAQSplom::iAPAQSplom( MainWindow *mWnd, QWidget * parent, Qt::WindowFlags f /*
 	setWindowFlags(f);
 	m_fixAction = m_contextMenu->addAction( "Fix Point", this, SLOT( fixPoint() ) );
 	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, SLOT( removeFixedPoint() ) );
-	
+
 	//sent to FeatureScout
 	m_detailsToFeatureScoutAction = m_contextMenu->addAction("Detailed View...", this, SLOT(sendToFeatureScout()));
 	m_detailsToFeatureScoutAction->setVisible(false);
-	
+
 	m_fixAction->setVisible( false );
 	m_removeFixedAction->setVisible( false );
 	setHistogramVisible(false);
@@ -79,7 +79,7 @@ void iAPAQSplom::setData( const QTableWidget * data )
 	{
 		newData.setUpdatesEnabled( false );  //for faster processing of large lists
 		int datasetIndexCol = -1;
-		for( int c = 0; c < maskCol; ++c ) //header		
+		for( int c = 0; c < maskCol; ++c ) //header
 		{
 			QString s = data->item( 0, c )->text();
 			if( s == "Dataset Index" )
@@ -118,8 +118,10 @@ void iAPAQSplom::setSliceCounts( QList<int> sliceCnts )
 {
 	m_sliceCntLst = sliceCnts;
 	m_sliceNumPopupLst.clear();
-	foreach( const int & sc, m_sliceCntLst )
-		m_sliceNumPopupLst.push_back( sc*0.5 );
+	for (const int& sc : m_sliceCntLst)
+	{
+		m_sliceNumPopupLst.push_back(sc * 0.5);
+	}
 }
 
 void iAPAQSplom::setDatasetsDir( QString datsetsDir )
@@ -131,8 +133,10 @@ void iAPAQSplom::setDatasetsByIndices( QStringList selDatasets, QList<int> indic
 {
 	m_dsIndices = indices;
 	m_datasets.clear();
-	foreach( const QString & d, selDatasets )
-		m_datasets.push_back( m_datasetsDir + "/" + QFileInfo( d ).baseName() );
+	for (const QString& d: selDatasets)
+	{
+		m_datasets.push_back(m_datasetsDir + "/" + QFileInfo(d).baseName());
+	}
 }
 
 void iAPAQSplom::reemitFixedPixmap()
@@ -142,8 +146,10 @@ void iAPAQSplom::reemitFixedPixmap()
 		int dsInd = getDatasetIndexFromPointIndex( m_fixedPointInd );
 		QString sliceFilename = getSliceFilename( m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd] );
 		QImage fixedMaskImg;
-		if( !fixedMaskImg.load( sliceFilename, "PNG" ) )
+		if (!fixedMaskImg.load(sliceFilename, "PNG"))
+		{
 			return;
+		}
 		fixedMaskImg.setColor( 0, qRgba( 0, 0, 0, 0 ) );
 		fixedMaskImg.setColor( 1, qRgba( 0, 255, 0, maskOpacity ) );
 
@@ -151,7 +157,9 @@ void iAPAQSplom::reemitFixedPixmap()
 		emit maskHovered( &m_maskPxmp, dsInd );
 	}
 	else
-		emit maskHovered( nullptr, -1 );
+	{
+		emit maskHovered(nullptr, -1);
+	}
 }
 
 int iAPAQSplom::getDatasetIndexFromPointIndex(size_t pointIndex)
@@ -191,8 +199,8 @@ bool iAPAQSplom::drawPopup( QPainter& painter )
 	double ptRad = m_activePlot->getPointRadius();
 	popupPos.setY( popupPos.y() - pPM * ptRad );
 	painter.translate( popupPos );
-	
-	
+
+
 	int dsInd = getDatasetIndexFromPointIndex( curInd );
 	const QRectF & roi = m_roiLst[dsInd];
 	double scaledH = settings.popupWidth / roi.width() * roi.height();
@@ -267,7 +275,7 @@ void iAPAQSplom::updatePreviewPixmap()
 	{
 		emit maskHovered( 0, -1 );
 		return;
-	}	
+	}
 
 	QImage fixedMaskImg;
 	int dsInd = -1;
@@ -368,8 +376,8 @@ void iAPAQSplom::sendToFeatureScout()
 {
 	if (!m_activePlot)
 		return;
-	QString fileName = ""; 
-	QString mhdName = ""; 
+	QString fileName = "";
+	QString mhdName = "";
 	getFilesLabeledFromPoint(fileName, mhdName);
 	this->m_mdiChild = m_mainWnd->createMdiChild(false);
 	if (!this->m_mdiChild)

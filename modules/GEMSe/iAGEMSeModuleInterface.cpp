@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,8 +20,12 @@
 * ************************************************************************************/
 #include "iAGEMSeModuleInterface.h"
 
+#include "iAConnector.h"
+#include "iAFilter.h"
+#include "iAFilterRegistry.h"
 #include "iAGEMSeAttachment.h"
 #include "iAGEMSeProject.h"
+#include "iARepresentative.h"
 #include "iASEAFile.h"
 
 #include <dlg_modalities.h>
@@ -35,6 +39,37 @@
 
 #include <cassert>
 
+IAFILTER_DEFAULT_CLASS(iADifferenceMarker);
+
+IAFILTER_CREATE(iADifferenceMarker);
+
+iADifferenceMarker::iADifferenceMarker():
+	iAFilter("Difference marker", "Intensity", "Computes an image where differences are marked with the given marker value.<br/>"
+		"The filter is meant for labelled images; both input images are required to have the same data type. "
+		"It also works for any other voxel data types, but for "
+		"<em>Difference marker value</em> specifies the intensity value that should be used to mark regions"
+		"where the two given images deviate. Where the images are the same, "
+		"this same value will be used in the output image as well.", 2)
+{
+	addParameter("Difference marker value", Continuous);
+	setInputName(1, "Difference to");
+}
+
+void iADifferenceMarker::performWork(QMap<QString, QVariant> const & params)
+{
+	QVector<iAITKIO::ImagePointer> imgs;
+	imgs.push_back(input()[0]->itkImage());
+	imgs.push_back(input()[1]->itkImage());
+	auto out = CalculateDifferenceMarkers(imgs, params["Difference marker value"].toDouble());
+	if (!out)
+	{
+		addMsg("No output generated, check additional messages in debug log.");
+	}
+	else
+	{
+		addOutput(out);
+	}
+}
 
 iAGEMSeModuleInterface::iAGEMSeModuleInterface():
 	m_toolbar(0)
@@ -42,13 +77,15 @@ iAGEMSeModuleInterface::iAGEMSeModuleInterface():
 
 void iAGEMSeModuleInterface::Initialize()
 {
+	REGISTER_FILTER(iADifferenceMarker);
+
 	if (!m_mainWnd)
 		return;
 
 	iAProjectRegistry::addProject<iAGEMSeProject>(iAGEMSeProject::ID);
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, tr( "Image Ensembles" ), false );
-	
+
 	QAction * actionGEMSe = new QAction( tr("GEMSe"), nullptr);
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionGEMSe, true);
 	connect(actionGEMSe, &QAction::triggered, this, &iAGEMSeModuleInterface::startGEMSe);

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,10 +26,10 @@
 
 #include <vtkSmartPointer.h>
 
+#include <QElapsedTimer>
 #include <QMutex>
 #include <QThread>
 #include <QWaitCondition>
-#include <QTime>
 #include <QVector>
 
 class vtkActor;
@@ -105,7 +105,7 @@ protected:
 
 private:
 	bool m_isRunning;
-	QTime m_time;
+	QElapsedTimer m_time;
 	QString m_filterName;
 	vtkImageData *m_image;
 	vtkPolyData *m_polyData;

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -72,6 +72,11 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 	ed_SpecularLighting->setText(QString::number(vs.SpecularLighting));
 	ed_SpecularPower->setText(QString::number(vs.SpecularPower));
 	ed_ScalarOpacityUnitDistance->setText(QString::number(vs.ScalarOpacityUnitDistance));
+
+	for (QString item: RenderModeMap().values())
+	{
+		cb_RenderMode->addItem(item);
+	}
 	cb_RenderMode->setCurrentText(RenderModeMap().value(vs.RenderMode));
 
 	connect(pbOK, SIGNAL(clicked()), this, SLOT(OKButtonClicked()));
@@ -129,7 +134,7 @@ void dlg_modalityProperties::OKButtonClicked()
 
 	double const * oldSpacing = m_modality->spacing();
 	m_spacingChanged = false;
-	
+
 	for (int i = 0; i < 3; i++)
 	{
 		if (oldSpacing[i] != spacing[i])

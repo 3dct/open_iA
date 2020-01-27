@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -28,7 +28,6 @@
 #include <QMap>
 #include <QSharedPointer>
 
-#include <map>
 #include <vector>
 
 class vtkColorTransferFunction;
@@ -66,9 +65,3 @@ protected:
 	vtkTable* m_objectTable;
 	QSharedPointer<QMap<uint, uint> > m_columnMapping;
 };
-
-class MdiChild;
-
-QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, MdiChild* mdi, vtkTable* table,
-	QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor,
-	std::map<size_t, std::vector<iAVec3f> > & curvedFiberInfo, int numberOfCylinderSides, size_t segmentSkip);

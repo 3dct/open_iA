@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -36,11 +36,16 @@
 #include <itkRecursiveGaussianImageFilter.h>
 #ifndef ITKNOGPU
 #define CL_TARGET_OPENCL_VERSION 220
+#include <itkConfigure.h>    // for ITK_VERSION...
 #include <itkGPUImage.h>
 #include <itkGPUKernelManager.h>
 #include <itkGPUContextManager.h>
 #include <itkGPUImageToImageFilter.h>
 #include <itkGPUGradientAnisotropicDiffusionImageFilter.h>
+#if ITK_VERSION_MAJOR > 5 || (ITK_VERSION_MAJOR == 5 && ITK_VERSION_MINOR >= 1)
+// split into a separate file starting with ITK 5.1 (previously included in itkGPUGradientAnisotropicDiffusionImageFilter.h)
+#include <itkGPUGradientAnisotropicDiffusionImageFilterFactory.h>
+#endif
 #endif
 
 
@@ -153,7 +158,7 @@ iARecursiveGaussian::iARecursiveGaussian() :
 
 
 
-template<class T> 
+template<class T>
 void discreteGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;

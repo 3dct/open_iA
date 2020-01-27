@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -35,8 +35,8 @@
 #include <map>
 #include <vector>
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_IOVPP;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_IOVMO;
+typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_PolarPlot;
+typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_MeanObject;
 
 class iA3DObjectVis;
 class iABlobCluster;
@@ -138,7 +138,7 @@ private slots:
 	void saveStl();
 	void updateStlProgress(int i);
 	void updateMarProgress(int i);
-	void renderLUTChanges(QSharedPointer<iALookupTable> lut, int colInd);
+	void renderLUTChanges(QSharedPointer<iALookupTable> lut, size_t colInd);
 private:
 	//create labelled output image based on defined classes
 	template <class T> void CreateLabelledOutputMask(iAConnector & con, const QString & fOutPath);
@@ -176,7 +176,7 @@ private:
 	QList<QStandardItem *> prepareRow(const QString &first, const QString &second, const QString &third);
 	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item);
 	void writeWisetex(QXmlStreamWriter *writer);
-	void autoAddClass(int NbOfClasses);
+	//void autoAddClass(int NbOfClasses);
 	bool OpenBlobVisDialog();
 	//! @{ 3D-rendering-related methods:
 	void SingleRendering(int idx = -10000);               //!< render a single fiber or a single class
@@ -265,9 +265,9 @@ private:
 
 	int mousePressedPos [2];
 
-	iADockWidgetWrapper * iovPC, *iovDV, *iovSPM;
-	dlg_IOVPP * iovPP;
-	dlg_IOVMO * iovMO;
+	iADockWidgetWrapper * dwPC, *dwDV, *dwSPM;
+	dlg_PolarPlot * dwPP;
+	dlg_MeanObject * dwMO;
 
 	//Mean Object Rendering
 	iAMeanObjectTFView* m_motfView;

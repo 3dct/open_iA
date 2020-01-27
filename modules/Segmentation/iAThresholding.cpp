@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -54,7 +54,7 @@
 
 IAFILTER_CREATE(iACopy)
 
-void iACopy::performWork(QMap<QString, QVariant> const & parameters)
+void iACopy::performWork(QMap<QString, QVariant> const & /*parameters*/)
 {
 	addOutput(input()[0]->itkImage());
 }
@@ -112,7 +112,7 @@ iABinaryThreshold::iABinaryThreshold() :
 
 // Robust Automatic Threshold (RAT)
 
-template<class T> 
+template<class T>
 void rats_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;
@@ -122,7 +122,7 @@ void rats_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 	typename GMFType::Pointer gmfilter = GMFType::New();
 	gmfilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	filter->progress()->observe( gmfilter );
-	gmfilter->Update(); 
+	gmfilter->Update();
 	typedef typename itk::RobustAutomaticThresholdImageFilter < InputImageType, GradientImageType, OutputImageType > RATType;
 	auto ratsFilter = RATType::New();
 	ratsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
@@ -161,7 +161,7 @@ iARatsThreshold::iARatsThreshold() :
 
 // Otsu's Threshold
 
-template<class T> 
+template<class T>
 void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;

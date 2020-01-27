@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -124,9 +124,9 @@ void iASPMView::initScalarBar()
 iASPMView::~iASPMView()
 {}
 
-void iASPMView::setData( const QTableWidget * data )
+void iASPMView::setData( const QTableWidget * newData )
 {
-	m_splom->setData( data );
+	m_splom->setData( newData );
 	m_splom->setSelectionColor(QColor(Qt::black));
 	m_splom->setPointRadius(2.5);
 	m_splom->setColorParam(defaultColorParam);
@@ -165,7 +165,9 @@ void iASPMView::selectionUpdated( std::vector<size_t> const & selInds )
 void iASPMView::updateLUT()
 {
 	if (m_splom->lookupTable()->numberOfValues() < m_lut->GetNumberOfTableValues())
+	{
 		return;
+	}
 	double rgba[4];
 	vtkIdType lutColCnt = m_lut->GetNumberOfTableValues();
 #if (VTK_MAJOR_VERSION > 8 || (VTK_MAJOR_VERSION == 8 && VTK_MINOR_VERSION > 0))
@@ -187,8 +189,10 @@ void iASPMView::updateLUT()
 void iASPMView::setSPLOMSelection( vtkIdTypeArray * ids )
 {
 	iAQSplom::SelectionType selInds;
-	for( vtkIdType i = 0; i < ids->GetDataSize(); ++i )
-		selInds.push_back( ids->GetValue( i ) );
+	for (vtkIdType i = 0; i < ids->GetDataSize(); ++i)
+	{
+		selInds.push_back(ids->GetValue(i));
+	}
 	m_splom->setSelection( selInds );
 }
 

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -41,13 +41,13 @@ iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
 	int representativeType)
 :
 	QWidget(parent),
-	m_cluster(treeNode),
 	m_shrinkedAuto(shrinkAuto),
 	m_shrinkStatus(shrinkAuto || treeNode->GetFilteredSize() == 0),
+	m_cluster(treeNode),
+	m_imageView(nullptr),
+	m_expandButton(nullptr),
 	m_infoLabel(new QLabel(this)),
-	m_expandButton(0),
 	m_previewPool(previewPool),
-	m_imageView(0),
 	m_representativeType(representativeType)
 {
 	setStyleSheet("background-color: transparent;");
@@ -64,7 +64,7 @@ iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
 	m_leftLayout = new QVBoxLayout();
 	m_leftLayout->setSpacing(0);
 	m_leftLayout->setMargin(0);
-	
+
 	m_leftLayout->addWidget(m_infoLabel);
 	m_leftLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 

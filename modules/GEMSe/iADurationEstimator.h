@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,18 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
+//! Interface for operations providing elapsed time and estimated remaining duration.
 class iADurationEstimator
 {
 public:
-	/**
-	* returns the time that has elapsed since start of the operation
-	* @return elapsed time in seconds
-	*/
+	//! Get the time that has elapsed since start of the operation.
+	//! @return elapsed time in seconds
 	virtual double elapsed() const =0;
-	/**
-	* returns the estimated, still required time to finish the operation
-	* @return the estimated remaining time in seconds
-	*         -1 if remaining time still unknown
-	*/
+	//! Get the estimated, still required time to finish the operation.
+	//! @return the estimated remaining time in seconds
+	//!         -1 if remaining time still unknown
 	virtual double estimatedTimeRemaining() const =0;
 };

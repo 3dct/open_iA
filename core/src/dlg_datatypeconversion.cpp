@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -379,7 +379,7 @@ QVBoxLayout* setupSliceWidget(iAVtkWidget* &widget, vtkSmartPointer<vtkPlaneSour
 }
 
 dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & filename, iARawFileParameters const & p,
-	unsigned int zSkip, size_t numBins, double* c, double* inPara) : QDialog (parent)
+	unsigned int zSkip, size_t numBins, double* /*c*/, double* inPara) : QDialog (parent)
 {
 	setupUi(this);
 
@@ -561,8 +561,8 @@ void dlg_datatypeconversion::updatevalues(double* inPara)
 void dlg_datatypeconversion::createHistogram(iAPlotData::DataType* histbinlist, double minVal, double maxVal, int bins, double discretization )
 {
 	iAChartWidget* chart = new iAChartWidget(nullptr, "Histogram (Intensities)", "Frequency");
-	auto data = iAHistogramData::create(histbinlist, bins, discretization, minVal, maxVal);
-	chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(data, QColor(70, 70, 70, 255))));
+	auto histogramData = iAHistogramData::create(histbinlist, bins, discretization, minVal, maxVal);
+	chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, QColor(70, 70, 70, 255))));
 	chart->update();
 	chart->setMinimumHeight(80);
 	verticalLayout->addWidget(chart);
@@ -582,7 +582,7 @@ void loadBinary(FILE* pFile, vtkImageData* imageData, float shift, float scale, 
 		{
 			for (int x = 0; x<dims[0]; x++)
 			{
-				size_t result = fread(reinterpret_cast<char*>(&buffer), sizeof(buffer), 1, pFile);
+				/*size_t result =*/ fread(reinterpret_cast<char*>(&buffer), sizeof(buffer), 1, pFile);
 				double value = buffer * scale + shift;
 				value = (value > maxout) ? maxout : value;
 				value = (value < minout) ? minout : value;
@@ -592,7 +592,9 @@ void loadBinary(FILE* pFile, vtkImageData* imageData, float shift, float scale, 
 	}
 }
 
-QString dlg_datatypeconversion::convert( QString const & filename, iARawFileParameters const & p, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check )
+QString dlg_datatypeconversion::convert( QString const & filename,
+	iARawFileParameters const & p, int outdatatype, double minrange,
+	double maxrange, double minout, double maxout)
 {
 	float scale = 0;
 	//scale and shift calculator
@@ -625,7 +627,9 @@ QString dlg_datatypeconversion::convert( QString const & filename, iARawFilePara
 	return outputFileName;
 }
 
-QString dlg_datatypeconversion::convertROI(QString const & filename, iARawFileParameters const & p, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check, double* roi)
+QString dlg_datatypeconversion::convertROI(QString const & filename,
+	iARawFileParameters const & p, int outdatatype, double minrange,
+	double maxrange, double minout, double maxout, double* roi)
 {
 	DataTypeConversionROI(filename, p, roi);
 	double scale = 0;

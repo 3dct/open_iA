@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -100,11 +100,11 @@ void iARenderObserver::Execute(vtkObject * caller,
 			if (!m_pImageData)
 				return;
 			PickWithWorldPicker();
-			double* pos = m_pWorldPicker->GetPickPosition();
+			double* pickPos = m_pWorldPicker->GetPickPosition();
 			double* spacing = m_pImageData->GetSpacing();
-			int x = static_cast<int>(pos[0] / spacing[0]),
-				y = static_cast<int>(pos[1] / spacing[1]),
-				z = static_cast<int>(pos[2] / spacing[2]);
+			int x = static_cast<int>(pickPos[0] / spacing[0]),
+				y = static_cast<int>(pickPos[1] / spacing[1]),
+				z = static_cast<int>(pickPos[2] / spacing[2]);
 			emit clicked(x, y, z);
 			break;
 		}

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -125,13 +125,13 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	iAColorTheme const * colorTheme
 ):
 	dlg_GEMSeControlUI(parentWidget),
-	m_dlgSamplingSettings(0),
-	m_dlgProgress(0),
-	m_dlgConsensus(0),
-	m_dlgGEMSe(dlgGEMSe),
 	m_dlgModalities(dlgModalities),
+	m_dlgSamplingSettings(nullptr),
+	m_dlgProgress(nullptr),
+	m_dlgGEMSe(dlgGEMSe),
 	m_dlgLabels(dlgLabels),
 	m_dlgSamplings(dlgSamplings),
+	m_dlgConsensus(nullptr),
 	m_simpleLabelInfo(new iASimpleLabelInfo())
 
 {
@@ -164,7 +164,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 	connect(mdiChild, &MdiChild::transferFunctionChanged, this, &dlg_GEMSeControl::dataTFChanged);
-	
+
 	dataAvailable();
 }
 
@@ -220,7 +220,7 @@ void dlg_GEMSeControl::startSampling()
 		connect(m_sampler.data(), &iAImageSampler::finished, this, &dlg_GEMSeControl::samplingFinished);
 		connect(m_sampler.data(), &iAImageSampler::Progress, m_dlgProgress, &dlg_progress::setProgress );
 		connect(m_sampler.data(), &iAImageSampler::Status, m_dlgProgress, &dlg_progress::setStatus );
-		
+
 		// trigger parameter set creation & sampling (in foreground with progress bar for now)
 		m_sampler->start();
 		m_dlgSamplingSettings->GetValues(m_samplingSettings);

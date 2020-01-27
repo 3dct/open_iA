@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -28,7 +28,7 @@ class open_iA_Core_API iAMappingDiagramData: public iAPlotData
 {
 public:
 	iAMappingDiagramData(DataType const * data,
-		int srcNumBin, double srcMinX, double srcMaxX,
+		size_t srcNumBin, double srcMinX, double srcMaxX,
 		size_t targetNumBin, double targetMinX, double targetMaxX,
 		DataType const maxValue);
 	~iAMappingDiagramData();

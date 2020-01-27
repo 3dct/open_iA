@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -36,7 +36,7 @@ iASpectraHistograms::iASpectraHistograms(QSharedPointer<iAXRFData> xrfData, long
 {
 	m_countRange[0] = minCount; m_countRange[1] = maxCount;
 	m_numHistograms = m_xrfData->size();
-	size_t count = m_numHistograms*m_numBins; 
+	size_t count = m_numHistograms*m_numBins;
 	m_histData = new CountType[count];
 	std::fill_n(m_histData, count, CountTypeNull);
 	m_binWidth = (m_countRange[1] - m_countRange[0]) / m_numBins;
@@ -83,15 +83,15 @@ void iASpectraHistograms::computeHistograms( )
 		vtkSmartPointer<vtkImageData> curImg = *it;
 		// just checks: begin
 		assert (curImg->GetNumberOfScalarComponents() == 1);
-		int extent[6];
-		curImg->GetExtent(extent);
-		assert( ((extent[1]-extent[0]+1) * (extent[3]-extent[2]+1) * (extent[5]-extent[4]+1)) == count );
+		int curImgExtent[6];
+		curImg->GetExtent(curImgExtent);
+		assert( ((curImgExtent[1]- curImgExtent[0]+1) * (curImgExtent[3]- curImgExtent[2]+1) * (curImgExtent[5]- curImgExtent[4]+1)) == count );
 		// end checks
 		int type = curImg->GetScalarType();
 		VTK_TYPED_CALL(computeHistogram, type, curImg->GetScalarPointer(), count, m_binWidth, curHistPtr, m_countRange);
 		curHistPtr += m_numBins;
 		++it;
-		++i;	
+		++i;
 	}
 	computeMaximumVal();
 }

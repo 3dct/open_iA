@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -41,11 +41,11 @@ public:
 			QFile file(fileName);
 			if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 				return;
-			
+
 			//skip the header
 			for(int i=0; i<LINES_IN_HEADER; ++i)
 				file.readLine();
-			
+
 			//read the data
 			QStringList stringList;
 			QRegExp splitter("\\s+");

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -79,7 +79,7 @@ iADetailView::iADetailView(
 	m_modalities(modalities),
 	m_magicLensCurrentModality(0),
 	m_magicLensCurrentComponent(0),
-	m_representativeType(representativeType), 
+	m_representativeType(representativeType),
 	m_nextChannelID(0),
 	m_magicLensEnabled(false),
 	m_magicLensCount(1),
@@ -101,7 +101,7 @@ iADetailView::iADetailView(
 	buttonLay->addWidget(m_pbLike);
 	buttonLay->addWidget(m_pbHate);
 	buttonLay->addWidget(m_pbGoto);
-	
+
 	QWidget * buttonBar = new QWidget();
 	buttonBar->setLayout(buttonLay);
 	buttonBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
@@ -122,11 +122,11 @@ iADetailView::iADetailView(
 	QWidget * imgStuffWidget = new QWidget();
 	imgStuffWidget->setLayout(lay);
 	imgStuffWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	
+
 	QWidget * detailWidget = new QWidget();
 	QVBoxLayout* detailWidgetLayout = new QVBoxLayout();
 	detailWidget->setLayout(detailWidgetLayout);
-	
+
 	QSplitter * detailSplitter = new QSplitter();
 	detailSplitter->setOrientation(Qt::Vertical);
 	detailWidgetLayout->addWidget(detailSplitter);
@@ -142,17 +142,17 @@ iADetailView::iADetailView(
 	resetResultFilterButton->setMinimumHeight(10);
 	resetResultFilterButton->setMaximumHeight(25);
 	detailSplitter->addWidget(resetResultFilterButton);
-	
+
 	m_detailText = new QTextEdit();
 	m_detailText->setReadOnly(true);
 	m_detailText->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	detailSplitter->addWidget(m_detailText);
-	
+
 	QFont f(m_detailText->font());
 	f.setPointSize(FontSize);
 	m_detailText->setFont(f);
 	m_lvLegend->setFont(f);
-	
+
 	m_lvLegend->setStyleSheet("border: none; outline:none;");
 	m_detailText->setStyleSheet("border: none; outline:none;");
 
@@ -176,7 +176,7 @@ iADetailView::iADetailView(
 	tw->addTab(comparisonContainer, "Comparison");
 
 	QSplitter * horzSplitter = new QSplitter();
-	
+
 	QHBoxLayout* mainLay = new QHBoxLayout();
 	mainLay->setSpacing(1);
 	mainLay->setMargin(1);
@@ -186,7 +186,7 @@ iADetailView::iADetailView(
 	horzSplitter->addWidget(tw);
 	horzSplitter->setStretchFactor(0, 2);
 	horzSplitter->setStretchFactor(1, 1);
-		
+
 	QWidget * mainWdgt(this);
 	mainWdgt->setLayout(mainLay);
 	QRect geom(geometry());
@@ -290,7 +290,7 @@ void iADetailView::changeMagicLensOpacity(int chg)
 }
 
 
-void iADetailView::setSliceNumber(int sliceNr)
+void iADetailView::setSliceNumber(int /*sliceNr*/)
 {
 	iASlicer* slicer = m_previewWidget->slicer();
 	slicer->update();
@@ -548,10 +548,10 @@ void iADetailView::setImage()
 	if (m_correctnessUncertaintyOverlayEnabled)
 	{
 		m_previewWidget->removeChannel();
-		vtkSmartPointer<vtkImageData> img = m_node->GetCorrectnessEntropyImage(m_refImg);
-		if (img)
+		vtkSmartPointer<vtkImageData> entropyImg = m_node->GetCorrectnessEntropyImage(m_refImg);
+		if (entropyImg)
 		{
-			m_previewWidget->addNoMapperChannel(img);
+			m_previewWidget->addNoMapperChannel(entropyImg);
 		}
 	}
 }
@@ -624,13 +624,13 @@ void iADetailView::TriggerResultFilterUpdate()
 }
 
 
-void iADetailView::SlicerReleased(int x, int y, int z)
+void iADetailView::SlicerReleased(int /*x*/, int /*y*/, int /*z*/)
 {
 	m_MouseButtonDown = false;
 }
 
 
-void iADetailView::SlicerMouseMove(int x, int y, int z, int c)
+void iADetailView::SlicerMouseMove(int x, int y, int z, int /*c*/)
 {
 	if (m_MouseButtonDown)
 	{
@@ -721,9 +721,9 @@ int iADetailView::GetCurLabelRow() const
 void iADetailView::UpdateComparisonNumbers()
 {
 	/* calculate (if both integer types)
-		- dice metric between selected 
+		- dice metric between selected
 		- equal pixels
-		- 
+		-
 	*/
 	if (m_compareWidget->empty())
 	{
@@ -771,7 +771,6 @@ void iADetailView::UpdateComparisonNumbers()
 			.arg(rightDims[0]).arg(rightDims[1]).arg(rightDims[2]));
 		return;
 	}
-	long matching = 0;
 	long leftUndecided = 0;
 	long leftOnlyUndecided = 0;
 	long rightUndecided = 0;
@@ -816,12 +815,12 @@ void iADetailView::UpdateComparisonNumbers()
 	//{
 		//text += 		measureFilter->GetTargetOverlap
 	//}
-	
+
 	text += QString("Undecided (left/right/only left/only right): %1/%2/%3/%4")
 		.arg(leftUndecided)
 		.arg(rightUndecided)
 		.arg(leftOnlyUndecided)
 		.arg(rightOnlyUndecided);
-		
+
 	m_cmpDetailsLabel->setText(text);
 }

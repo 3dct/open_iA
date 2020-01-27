@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -38,11 +38,11 @@
 #include "iAXRFData.h"
 #include "iAXRFOverlay.h"
 
+#include <charts/iAChartFunctionTransfer.h>
 #include <charts/iAPlotTypes.h>
 #include <charts/iAMappingDiagramData.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
-#include <iAChartFunctionTransfer.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
 #include <iAFunctionalBoxplot.h>
@@ -407,7 +407,7 @@ void dlg_XRF::initSpectraLinesDrawer()
 			{
 				QSharedPointer<iAEnergySpectrumDiagramData> dataset(new iAEnergySpectrumDiagramData(m_xrfData.data(), m_accumulatedXRF.data()));
 				dataset->updateEnergyFunction(x, y, z);
-				
+
 				bool isSelected = m_activeFilter.empty() ||
 					m_xrfData->CheckFilters(x, y, z, m_activeFilter, static_cast<iAFilterMode>(comB_spectrumSelectionMode->currentIndex()));
 
@@ -531,7 +531,7 @@ void dlg_XRF::ReferenceSpectrumDoubleClicked( const QModelIndex &index )
 	if(newColor.isValid())
 	{
 		m_refSpectraLib->getItemModel()->itemFromIndex(index)->setData(newColor, Qt::DecorationRole);
-		
+
 		for (size_t i=0; i<m_elementRenderers.size(); ++i)
 		{
 			if( m_elementRenderers[i]->GetRefLibIndex() == index.row() )
@@ -706,7 +706,7 @@ void dlg_XRF::loadDecomposition()
 
 	QString elementNames = io.additionalInfo();
 	QStringList elements = elementNames.split(",");
-	
+
 	elements.replaceInStrings(QRegExp("^\\s+"), ""); // trim whitespaces
 	updateDecompositionGUI( elements );
 }
@@ -731,7 +731,7 @@ void dlg_XRF::storeDecomposition()
 	{
 		return;
 	}
-		
+
 	QString elementInfo("elementNames: ");
 	for (int i=0;i<m_decomposeSelectedElements.size(); ++i)
 	{
@@ -760,7 +760,7 @@ void dlg_XRF::combinedElementMaps(int show)
 	{
 		return;
 	}
-	
+
 	pieGlyphsVisualization( cb_pieChartGlyphs->isChecked() );
 	MdiChild * mdiChild = (dynamic_cast<MdiChild*>(parent()));
 	if (!show)
@@ -774,7 +774,7 @@ void dlg_XRF::combinedElementMaps(int show)
 
 		return;
 	}
-	
+
 	m_enabledChannels = 0;
 	for (size_t i=0; i < m_refSpectraLib->spectra.size() &&
 		m_enabledChannels < iAChannelData::Maximum3DChannels;
@@ -789,7 +789,7 @@ void dlg_XRF::combinedElementMaps(int show)
 		m_channelColors.resize(m_enabledChannels + 1);
 		if (m_channelIDs.size() <= m_enabledChannels)
 			m_channelIDs.push_back(mdiChild->createChannel());
-		auto chData = mdiChild->channelData(m_channelIDs[m_enabledChannels]);
+		//auto chData = mdiChild->channelData(m_channelIDs[m_enabledChannels]);
 		vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(m_decomposeSelectedElements.indexOf(i));
 		QColor color = m_refSpectraLib->getElementColor(i);
 		m_channelColors[m_enabledChannels] = color;
@@ -808,7 +808,7 @@ void dlg_XRF::combinedElementMaps(int show)
 		m_otf[m_enabledChannels] = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		m_otf[m_enabledChannels]->AddPoint(0, 0);
 		m_otf[m_enabledChannels]->AddPoint(1, 0.1);
-		
+
 		mdiChild->updateChannel(m_channelIDs[m_enabledChannels], chImgData, m_ctf[m_enabledChannels], m_otf[m_enabledChannels], true);
 		mdiChild->updateChannelOpacity(m_channelIDs[m_enabledChannels], 1);
 
@@ -832,18 +832,18 @@ void dlg_XRF::recomputeSpectraHistograms()
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::spectraHistSensitivityChanged( int newVal )
+void dlg_XRF::spectraHistSensitivityChanged( int /*newVal*/ )
 {
 	sl_specHistSensitivity->repaint();
 	recomputeSpectraHistograms();
 }
 
-void dlg_XRF::smoothOpacityFadeChecked( int checked )
+void dlg_XRF::smoothOpacityFadeChecked( int /*checked*/ )
 {
 	recomputeSpectraHistograms();
 }
 
-void dlg_XRF::spectraOpacityThresholdChanged( int newVal )
+void dlg_XRF::spectraOpacityThresholdChanged( int /*newVal*/ )
 {
 	sl_specHistOpacThreshold->repaint();
 	recomputeSpectraHistograms();
@@ -872,7 +872,7 @@ void dlg_XRF::OnSelectionUpdate(QVector<iASpectrumFilter> const & filter)
 	updateSelection();
 }
 
-void dlg_XRF::updateSelectionMode(int modeIdx)
+void dlg_XRF::updateSelectionMode(int /*modeIdx*/)
 {
 	updateSelection();
 }
@@ -886,9 +886,9 @@ void dlg_XRF::updateSelection()
 		mdiChild->setChannelRenderingEnabled(m_spectrumSelectionChannelID, false);
 		return;
 	}
-	
+
 	vtkSmartPointer<vtkImageData> result = m_xrfData->FilterSpectrum(m_activeFilter, static_cast<iAFilterMode>(comB_spectrumSelectionMode->currentIndex()));
-	
+
 	if (m_spectrumSelectionChannelID == NotExistingChannel)
 		m_spectrumSelectionChannelID = mdiChild->createChannel();
 	auto chData = mdiChild->channelData(m_spectrumSelectionChannelID);
@@ -1084,7 +1084,7 @@ void dlg_XRF::computeSimilarityMap()
 	vtkSmartPointer<vtkImageData> similarityImageData = vtkSmartPointer<vtkImageData>::New();
 	similarityImageData->SetDimensions(numEBins, numEBins, 1);
 	similarityImageData->AllocateScalars(VTK_DOUBLE, 1);
-	
+
 	double * similarityData = static_cast <double*> ( similarityImageData->GetScalarPointer() );
 
 	//initialization
@@ -1104,15 +1104,15 @@ void dlg_XRF::computeSimilarityMap()
 	ImageType3D ** images = new ImageType3D*[numEBins];
 	for (int i=0; i<numEBins; ++i)
 	{
-		connectors[i].setImage( ( *m_xrfData->GetDataPtr() )[i] ); 
+		connectors[i].setImage( ( *m_xrfData->GetDataPtr() )[i] );
 		connectors[i].modified();
 		images[i] = dynamic_cast <ImageType3D*> ( connectors[i].itkImage() );
 	}
-	
+
 // 	//extract slice from 3D
 // 	ExtractImageType::Pointer extractSliceFilter1, extractSliceFilter2;
 // 	ImageType3D::RegionType desiredRegion;
-// 	try 
+// 	try
 // 	{
 // 		ImageType3D::IndexType desiredStart;
 // 		desiredStart.Fill(0);
@@ -1121,13 +1121,13 @@ void dlg_XRF::computeSimilarityMap()
 // 		desiredSize[1] = ( *m_xrfData->GetDataPtr() )[0]->GetDimensions()[1];
 // 		desiredSize[2] = 0;
 // 		desiredRegion = ImageType3D::RegionType(desiredStart, desiredSize);
-// 
+//
 // 		extractSliceFilter1 = ExtractImageType::New();
 // 		extractSliceFilter2 = ExtractImageType::New();
 // 		extractSliceFilter1->SetDirectionCollapseToIdentity();
 // 		extractSliceFilter2->SetDirectionCollapseToIdentity();
 // 	}
-// 	catch (itk::ExceptionObject & excp) 
+// 	catch (itk::ExceptionObject & excp)
 // 	{
 // 		(dynamic_cast<MdiChild*>(parent()))->addMsg("Exception in computeSimilarityMap(): " + QString(excp.GetDescription()));
 // 		delete [] connectors;
@@ -1150,13 +1150,13 @@ void dlg_XRF::computeSimilarityMap()
 	//#pragma omp parallel for shared(similarityData)
 	for (int i=0; i<numEBins; ++i)
 	{
-		try 
+		try
 		{
 			MetricType::Pointer metric = MetricType::New();
 			InterpolatorType::Pointer interpolator = InterpolatorType::New();
 			TransformType::Pointer transform = TransformType::New();
 			TransformType::ParametersType params(transform->GetNumberOfParameters());
-			
+
 			similarityData[i + i*numEBins] = 1.0f;
 			params.Fill(0.0);
 			//extractSliceFilter1->SetInput( images[i] ); extractSliceFilter1->SetExtractionRegion(desiredRegion); extractSliceFilter1->Update();
@@ -1185,13 +1185,13 @@ void dlg_XRF::computeSimilarityMap()
 				}
 			}
 		}
-		catch (itk::ExceptionObject & excp) 
+		catch (itk::ExceptionObject & excp)
 		{
 			errorCount++;
 			errDescr.append( QString(excp.GetDescription()) );
 		}
 	}
-	try 
+	try
 	{
 		vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();
 		writer->SetCompression(false);
@@ -1200,7 +1200,7 @@ void dlg_XRF::computeSimilarityMap()
 		writer->Write();
 		writer->Update();
 	}
-	catch (itk::ExceptionObject & excp) 
+	catch (itk::ExceptionObject & excp)
 	{
 		(dynamic_cast<MdiChild*>(parent()))->addMsg( "Exception in computeSimilarityMap(): " + QString(excp.GetDescription()) );
 	}
@@ -1211,7 +1211,7 @@ void dlg_XRF::computeSimilarityMap()
 	mdiChild->hideProgressBar();
 	QCoreApplication::processEvents();
 
-	for (int i=0; i<errorCount; ++i) 
+	for (int i=0; i<errorCount; ++i)
 		(dynamic_cast<MdiChild*>(parent()))->addMsg("Exception in computeSimilarityMap(): " + errDescr[i]);
 }
 
@@ -1307,13 +1307,13 @@ void dlg_XRF::AddReferenceSpectrum(int modelIdx)
 		RemoveReferenceSpectrum(modelIdx);
 	}
 	QVector<float> const & energies = m_refSpectraLib->spectra[modelIdx].GetEnergyData();
-	QSharedPointer<iAMappingDiagramData> data(new iAMappingDiagramData(
+	QSharedPointer<iAMappingDiagramData> plotData(new iAMappingDiagramData(
 		&m_refSpectraLib->spectra[modelIdx].GetCountsData()[0],
 		energies.size(), energies[0], energies[energies.size()-1],
 		m_xrfData->size(), m_xrfData->GetMinEnergy(), m_xrfData->GetMaxEnergy(),
 		m_accumulatedXRF->yBounds()[1]));
 	QColor color = m_refSpectraLib->getElementColor(modelIdx);
-	QSharedPointer<iAStepFunctionPlot> drawable(new iAStepFunctionPlot(data, color));
+	QSharedPointer<iAStepFunctionPlot> drawable(new iAStepFunctionPlot(plotData, color));
 	m_refSpectraDrawers.insert(modelIdx, drawable);
 	m_spectrumDiagram->addPlot(drawable);
 	m_spectrumDiagram->update();
@@ -1382,7 +1382,7 @@ void dlg_XRF::showPieGlyphsSettings(bool isChecked)
 		gb_pieGlyphsSettings->hide();
 }
 
-void dlg_XRF::updatePieGlyphParameters(int newVal)
+void dlg_XRF::updatePieGlyphParameters(int /*newVal*/)
 {
 	updatePieGlyphParamsInternal();
 	updateAllPieGlyphs();

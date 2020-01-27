@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,7 +27,7 @@
 
 #include <QFileDialog>
 
-dlg_SimilarityMap::dlg_SimilarityMap( QWidget *parentWidget) 
+dlg_SimilarityMap::dlg_SimilarityMap( QWidget *parentWidget)
 : dlg_SimilarityMapContainer( parentWidget ),
   m_similarityMapWidget( new iASimilarityMapWidget( parentWidget ) ),
   m_similarityWidgetGridLayout( new QGridLayout( widget_Container ) )
@@ -52,7 +52,7 @@ void dlg_SimilarityMap::connectSignalsToSlots()
 	connect( cbShowMarkersInSpectrum, SIGNAL( toggled(bool) ), this, SLOT( showMarkers(bool) ) );
 }
 
-void dlg_SimilarityMap::windowingChanged( int val )
+void dlg_SimilarityMap::windowingChanged( int /*val*/ )
 {
 	double lowerRange = ( (double)horizontalSlider_WindowLower->value() ) / horizontalSlider_WindowLower->maximum();
 	double upperRange = ( (double)horizontalSlider_WindowUpper->value() ) / horizontalSlider_WindowUpper->maximum();

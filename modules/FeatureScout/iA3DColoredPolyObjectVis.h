@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -30,6 +30,7 @@ class iALookupTable;
 
 class vtkActor;
 class vtkOutlineFilter;
+class vtkPlane;
 class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkUnsignedCharArray;
@@ -63,7 +64,9 @@ public:
 	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex);
 	void updateColorSelectionRendering();
 	virtual QString visualizationStatistics() const =0;
-	virtual void setShowLines(bool lines) {} // not ideal, should not be here
+	virtual void setShowLines(bool /*lines*/) {} // not ideal, should not be here
+	void setClippingPlanes(vtkPlane* planes[3]);
+	void removeClippingPlanes();
 protected:
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
@@ -77,6 +80,7 @@ protected:
 	vtkSmartPointer<vtkPolyDataMapper> m_outlineMapper;
 	vtkSmartPointer<vtkActor> m_outlineActor;
 	std::vector<size_t> m_selection;
+	bool m_clippingPlanesEnabled;
 
 	//! Set an object to a specified color.
 	//! @param objIdx index of the object.

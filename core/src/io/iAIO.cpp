@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -37,8 +37,8 @@
 #include "iAToolsVTK.h"
 #include "iATypedCallHelper.h"
 
-#include <itkExceptionObject.h>
 #include <itkBMPImageIO.h>
+#include <itkMacro.h>    // for itkExceptionObject, which (starting with ITK 5.1), may not be included directly
 #include <itkGDCMImageIO.h>
 #include <itkGDCMSeriesFileNames.h>
 #include <itkImage.h>
@@ -271,7 +271,7 @@ hid_t GetHDF5ReadType(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
 }
 
 // typedef herr_t(*H5E_walk2_t)(unsigned n, const H5E_error2_t *err_desc, void *client_data)
-herr_t errorfunc(unsigned n, const H5E_error2_t *err, void *client_data)
+herr_t errorfunc(unsigned /*n*/, const H5E_error2_t *err, void * /*client_data*/)
 {
 	/*
 	hid_t       cls_id;     class ID
@@ -298,7 +298,7 @@ herr_t errorfunc(unsigned n, const H5E_error2_t *err, void *client_data)
 void printHDF5ErrorsToConsole()
 {
 	hid_t err_stack = H5Eget_current_stack();
-	herr_t walkresult = H5Ewalk(err_stack, H5E_WALK_UPWARD, errorfunc, nullptr);
+	/*herr_t walkresult = */ H5Ewalk(err_stack, H5E_WALK_UPWARD, errorfunc, nullptr);
 }
 
 #include <vtkImageImport.h>
@@ -327,7 +327,7 @@ void iAIO::readHDF5File()
 	hsize_t * hdf5Dims = new hsize_t[rank];
 	hsize_t * maxdims = new hsize_t[rank];
 	int status = H5Sget_simple_extent_dims(space, hdf5Dims, maxdims);
-	H5S_class_t hdf5Class = H5Sget_simple_extent_type(space);
+	//H5S_class_t hdf5Class = H5Sget_simple_extent_type(space);
 	hid_t type_id = H5Dget_type(dataset_id);
 	H5T_class_t hdf5Type = H5Tget_class(type_id);
 	size_t numBytes = H5Tget_size(type_id);
@@ -547,11 +547,9 @@ const int DATASET = 0;
 const int GROUP = 1;
 const int OTHER = 2;
 
-/**
-This function recursively searches the linked list of
-opdata structures for one whose address matches
-target_addr.  Returns 1 if a match is found, and 0
-otherwise. */
+//! This function recursively searches the linked list of opdata structures
+//! for one whose address matches target_addr.  Returns 1 if a match is
+//! found, and 0 otherwise.
 int group_check(struct opdata *od, haddr_t target_addr)
 {
 	if (od->addr == target_addr)
@@ -563,7 +561,7 @@ int group_check(struct opdata *od, haddr_t target_addr)
 	/* Recursively examine the next node */
 }
 
-herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
+herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t * /*info*/,
 	void *operator_data)
 {
 	herr_t          status, return_val = 0;
@@ -590,8 +588,8 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
 		rank = H5Sget_simple_extent_ndims(space);
 		hsize_t * dims = new hsize_t[rank];
 		hsize_t * maxdims = new hsize_t[rank];
-		int status = H5Sget_simple_extent_dims(space, dims, maxdims);
-		H5S_class_t hdf5Class = H5Sget_simple_extent_type(space);
+		status = H5Sget_simple_extent_dims(space, dims, maxdims);
+		//H5S_class_t hdf5Class = H5Sget_simple_extent_type(space);
 		hid_t type_id = H5Dget_type(dset);
 		H5T_class_t hdf5Type = H5Tget_class(type_id);
 		size_t numBytes = H5Tget_size(type_id);
@@ -944,17 +942,17 @@ void iAIO::readVTKFile()
 	// Get all data from the file
 	auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
 	reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
-	reader->Update();				
-		
+	reader->Update();
+
 	// All of the standard data types can be checked and obtained like this:
 	if (reader->IsFilePolyData())
 	{
 		DEBUG_LOG("output is a polydata");
-						
+
 		getVtkPolyData()->DeepCopy(reader->GetPolyDataOutput());
 		printSTLFileInfos();
 		addMsg(tr("File loaded."));
-						
+
 	}
 	else if (reader->IsFileRectilinearGrid())
 	{
@@ -976,8 +974,12 @@ void iAIO::readVTKFile()
 			int numComp = coords[i]->GetNumberOfComponents();
 			int numValues = coords[i]->GetNumberOfValues();
 			int extentSize = extent[i * 2 + 1] - extent[i * 2] + 1;
-			assert(numComp == 1);
-			assert(numValues == extentSize);
+			if (numComp != 1 || numValues != extentSize)
+			{
+				DEBUG_LOG(QString("Don't know how to handle situation where number of components is %1 "
+					"and number of values=%2 not equal to extentSize=%3")
+					.arg(numComp).arg(numValues).arg(extentSize))
+			}
 			if (numValues < 2)
 			{
 				DEBUG_LOG(QString("Dimension %1 has dimensions of less than 2, cannot compute proper spacing, using 1 instead!"));
@@ -1002,7 +1004,10 @@ void iAIO::readVTKFile()
 		}
 
 		auto numOfArrays = rectilinearGrid->GetPointData()->GetNumberOfArrays();
-		for (int i = 0; i < numOfArrays; ++i)
+
+//		for (
+			int i = 0; // i < numOfArrays; ++i)
+		if (numOfArrays > 0) //< remove this if enabling for loop
 		{
 			auto img = getVtkImageData();
 			img->ReleaseData();
@@ -1027,7 +1032,7 @@ void iAIO::readVTKFile()
 			getConnector()->setImage(img);
 			getConnector()->modified();
 
-			break; // in the future, when iAIO is refactored, load all datasets as separate modalities...
+//			break; // in the future, when iAIO is refactored, load all datasets as separate modalities...
 		}
 		addMsg(tr("File loaded."));
 	}
@@ -1294,7 +1299,7 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 		<< tr("%1").arg(indexRange[0])
 		<< tr("%1").arg(indexRange[1]));
 
-	dlg_openfile_sizecheck dlg(true, f, m_parent, "RAW file specs", additionalLabels, additionalValues, m_rawFileParams);
+	dlg_openfile_sizecheck dlg(f, m_parent, "RAW file specs", additionalLabels, additionalValues, m_rawFileParams);
 	if (!dlg.accepted())
 		return false;
 
@@ -1310,7 +1315,7 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 bool iAIO::setupRAWReader( QString const & f )
 {
 	m_fileName = f;
-	dlg_openfile_sizecheck dlg(false, f, m_parent, "RAW file specs", QStringList(), QVariantList(), m_rawFileParams);
+	dlg_openfile_sizecheck dlg(f, m_parent, "RAW file specs", QStringList(), QVariantList(), m_rawFileParams);
 	return dlg.accepted();
 }
 
@@ -1544,7 +1549,7 @@ bool iAIO::setupStackReader( QString const & f )
 		QString suffix = imgFileInfo.suffix();
 		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
 		bool ok;
-		int myNum = lastDigit.toInt(&ok);
+		/*int myNum =*/ lastDigit.toInt(&ok);
 		if (!ok)
 		{
 			DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));
@@ -1569,7 +1574,7 @@ bool iAIO::setupStackReader( QString const & f )
 		QString suffix = imgFileInfo.suffix();
 		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
 		bool ok;
-		int myNum = lastDigit.toInt(&ok);
+		/*int myNum =*/ lastDigit.toInt(&ok);
 		if (!ok)
 		{
 			//DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));

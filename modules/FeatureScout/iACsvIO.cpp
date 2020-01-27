@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -115,7 +115,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 	}
 	QTextStream in(&file);
 	in.setCodec(m_csvConfig.encoding.toStdString().c_str());
-	size_t effectiveRowCount = std::min(rowCount, 
+	size_t effectiveRowCount = std::min(rowCount,
 		calcRowCount(in, m_csvConfig.skipLinesStart + (cnfg_params.containsHeader ? 1 : 0), m_csvConfig.skipLinesEnd));
 	if (effectiveRowCount <= 0)
 	{
@@ -132,7 +132,6 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		m_fileHeaders = m_csvConfig.currentHeaders;
 	auto selectedColIdx = computeSelectedColIdx();
 	determineOutputHeaders(selectedColIdx);
-	int colCount = m_outputHeaders.size();
 
 	dstTbl.initialize(m_outputHeaders, effectiveRowCount);
 
@@ -430,6 +429,7 @@ bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<
 	QFileInfo curvedInfo(fileName);
 	if (!curvedInfo.exists() || !curvedInfo.isFile())
 	{
+		DEBUG_LOG(QString("No curved fibre file named %1 exists.").arg(fileName));
 		return false;
 	}
 	QFile curvedFiberPoints(curvedInfo.absoluteFilePath());

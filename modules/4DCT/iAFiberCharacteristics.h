@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -54,18 +54,28 @@ public:
 		std::string line;
 
 		// row skipping
-		for (int i = 0; i < skipRows; i++) {
+		for (int i = 0; i < skipRows; i++)
+		{
 			std::getline(fileStream, line);
 		}
 
 		// reading
-		while (std::getline(fileStream, line)) {
+		while (std::getline(fileStream, line))
+		{
 			std::stringstream stringStream(line);
 			std::string cell[numRows];
 			int readedRows = 0;
 			for (int i = 0; i < numRows; i++)
-				if (std::getline(stringStream, cell[i], ',')) readedRows++;
-			if (readedRows != numRows) continue;
+			{
+				if (std::getline(stringStream, cell[i], ','))
+				{
+					readedRows++;
+				}
+			}
+			if (readedRows != numRows)
+			{
+				continue;
+			}
 
 			Fiber fiber;
 			fiber.id = atoi(cell[0].c_str());

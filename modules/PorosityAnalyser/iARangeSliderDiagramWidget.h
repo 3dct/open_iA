@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,7 +22,7 @@
 
 #include "iARangeSliderDiagramData.h"
 
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 #include <charts/iAPlotTypes.h>
 
 #include <vtkPiecewiseFunction.h>
@@ -76,7 +76,7 @@ private:
 };
 
 
-class iARangeSliderDiagramWidget : public iADiagramFctWidget
+class iARangeSliderDiagramWidget : public iAChartWithFunctionsWidget
 {
 	Q_OBJECT
 
@@ -86,7 +86,7 @@ public:
 								vtkColorTransferFunction* cTF,
 								QSharedPointer<iARangeSliderDiagramData> data,
 								QMap<double, QList<double> > *,
-								const QTableWidget * rawTable, 
+								const QTableWidget * rawTable,
 								QString const & xlabel = "Greyvalue",
 								QString const & yLabel = "Frequency" );
 
@@ -103,7 +103,7 @@ signals:
 	void selected();
 	void deselected();
 	void selectionRelesedSignal();
-	
+
 public slots:
 	void selectSlot();
 	void deleteSlot();

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "dlg_TFTable.h"
 
-#include "charts/iADiagramFctWidget.h"
+#include "charts/iAChartWithFunctionsWidget.h"
 #include "iAChartFunctionTransfer.h"
 
 #include <vtkSmartPointer.h>
@@ -44,11 +44,11 @@ public:
 	}
 };
 
-dlg_TFTable::dlg_TFTable( iADiagramFctWidget * parent, iAChartFunction* func ) : dlg_TFTableWidgetConnector( parent ),
-	m_parent(parent),
+dlg_TFTable::dlg_TFTable( iAChartWithFunctionsWidget * parent, iAChartFunction* func ) : dlg_TFTableWidgetConnector( parent ),
 	m_oTF( dynamic_cast<iAChartTransferFunction*>( func )->opacityTF() ),
 	m_cTF( dynamic_cast<iAChartTransferFunction*>( func )->colorTF() ),
-	m_newPointColor( Qt::gray )
+	m_newPointColor( Qt::gray ),
+	m_parent(parent)
 {
 	Init();
 	updateTable();
@@ -163,8 +163,10 @@ void dlg_TFTable::removeSelectedPoint()
 		}
 	}
 	std::sort( rowsToRemove.begin(), rowsToRemove.end(), std::greater<int>() );
-	foreach( int row, rowsToRemove )
-		table->removeRow( row );
+	for (int row : rowsToRemove)
+	{
+		table->removeRow(row);
+	}
 }
 
 void dlg_TFTable::updateHistogram()

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -147,7 +147,7 @@ size_t mapVTKTypeToSize(int vtkType)
 	case VTK_FLOAT:         return sizeof(float);
 	case VTK_DOUBLE:        return sizeof(double);
 	default:                return 0;
-	}	
+	}
 }
 
 namespace
@@ -201,6 +201,9 @@ QMap<int, QString> const & RenderModeMap()
 		renderModeMap.insert(vtkSmartVolumeMapper::DefaultRenderMode, "DefaultRenderMode");
 		renderModeMap.insert(vtkSmartVolumeMapper::RayCastRenderMode, "RayCastRenderMode");
 		renderModeMap.insert(vtkSmartVolumeMapper::GPURenderMode, "GPURenderMode");
+#if VTK_OSPRAY_AVAILABLE
+		renderModeMap.insert(vtkSmartVolumeMapper::OSPRayRenderMode, "OSPRayRenderer");
+#endif
 	}
 	return renderModeMap;
 }

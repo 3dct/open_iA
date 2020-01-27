@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -40,9 +40,9 @@ typedef iAFunctionalBoxplot< unsigned int, double> FunctionalBoxPlot;
 
 struct icData
 {
-	icData(double i, itk::Index<DIM> coord ) : 
+	icData(double i, itk::Index<DIM> coord ) :
 		intensity(i), x(coord[0]), y(coord[1]), z(coord[2]) {}
-	
+
 	double intensity;
 	unsigned int x;
 	unsigned int y;
@@ -121,7 +121,7 @@ inline void hideGraphandRemoveFromLegend(QCustomPlot *nonlinearPlot, QCustomPlot
 	linearPlot->graph(graphIdx)->removeFromLegend();
 }
 
-inline void switchFBPMode(QString FBPMode, QCustomPlot *nonlinearPlot, QCustomPlot *linearPlot, 
+inline void switchFBPMode(QString FBPMode, QCustomPlot *nonlinearPlot, QCustomPlot *linearPlot,
 	int datasetsCnt, QSlider *sl_FBPTransparency)
 {
 	if (FBPMode == "only")
@@ -193,7 +193,7 @@ inline void switchLevelOfDetail(bool histVisMode, QCheckBox *cb_showFBP, QComboB
 
 inline void setPlotVisibility(QToolButton *tb, QCustomPlot *qcp)
 {
-	qcp->isVisible() ? 
+	qcp->isVisible() ?
 		tb->setIcon(QIcon(":/images/add.png")) :
 		tb->setIcon(QIcon(":/images/minus.png"));
 	qcp->setVisible(!qcp->isVisible());

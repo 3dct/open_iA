@@ -5,7 +5,6 @@ SET (option_prefix "Module_")
 LOAD_MODULES( ${CMAKE_CURRENT_SOURCE_DIR}
 	MODULE_NAMES
 	MODULE_DESCRIPTIONS
-	MODULE_DEFAULT_VALS
 )
 
 # Iteratively process modules
@@ -17,9 +16,8 @@ option (openiA_BUILD_ALL_MODULES "Whether to enable all modules in build. Note: 
 FOREACH( indx RANGE ${len} )
 	LIST( GET MODULE_NAMES ${indx} module_name)
 	LIST( GET MODULE_DESCRIPTIONS ${indx} module_description)
-	LIST( GET MODULE_DEFAULT_VALS ${indx} module_def_val)
 	SET(module_option ${option_prefix}${module_name})
-	OPTION( ${module_option} ${module_description} ${module_def_val})
+	OPTION( ${module_option} ${module_description} OFF)
 	IF (openiA_BUILD_ALL_MODULES)
 		set(${module_option} "ON" CACHE BOOL "" FORCE)
 	ENDIF()
@@ -44,24 +42,28 @@ FOREACH( indx RANGE ${len} )
 	LIST( GET MODULE_NAMES ${indx} module_name)
 	# Read and print module description
 	GET_MODULE_FULL_PATH ( ${module_name} module_full_path )
-	# Add an option for the module
-	SET(module_option ${option_prefix}${module_name})
 
+	SET(module_option ${option_prefix}${module_name})
 	IF( NOT ${module_option} )
 		CONTINUE()
 	ENDIF()
-	LIST(APPEND ENABLED_MODULE_NAMES ${module_name})
+
 	# Collect source files from the module directories, except potential *Test.cpp/cxx files
-	FILE( GLOB_RECURSE module_srcs "${module_full_path}/*.cpp" "${module_full_path}/*.cxx" )
-	FILE( GLOB_RECURSE module_test_srcs "${module_full_path}/*Test.cpp" "${module_full_path}/*Test.cxx" )
+	FILE (GLOB_RECURSE module_srcs "${module_full_path}/*.cpp" "${module_full_path}/*.cxx" )
+	FILE (GLOB_RECURSE module_test_srcs "${module_full_path}/*Test.cpp" "${module_full_path}/*Test.cxx" )
 	IF ( NOT "${module_test_srcs}" STREQUAL "" )
 		LIST( REMOVE_ITEM module_srcs ${module_test_srcs} )
 	ENDIF ()
-	FILE( GLOB_RECURSE module_hs "${module_full_path}/*.h" )
-	FILE( GLOB_RECURSE module_hpp "${module_full_path}/*.hpp" )
+	FILE (GLOB_RECURSE module_hs "${module_full_path}/*.h" )
+	FILE (GLOB_RECURSE module_hpp "${module_full_path}/*.hpp" )
 	LIST (APPEND module_hs ${module_hpp})
-	FILE( GLOB_RECURSE module_uis "${module_full_path}/*.ui" )
+	FILE (GLOB_RECURSE module_uis "${module_full_path}/*.ui" )
+	FILE (GLOB_RECURSE module_qrc "${module_full_path}/*.qrc" )
 	QT5_WRAP_UI( module_srcs ${module_uis})
+	IF ( NOT "${module_qrc}" STREQUAL "" )
+		QT5_ADD_RESOURCES( module_srcs "${module_qrc}" )
+		LIST (APPEND module_srcs "${module_qrc}" )
+	ENDIF ()
 	# If there are dependencies do the check
 	MODULE_CHECK_DEPENDENCIES( ${module_option} ${module_full_path} )
 	# Module can be disabled in the course of the dependency check - if so, we need to skip the rest:
@@ -72,6 +74,12 @@ FOREACH( indx RANGE ${len} )
 	IF (openiA_DEPENDENCY_INFO)
 		MESSAGE(STATUS "${module_name}:")
 	ENDIF()
+	LIST(APPEND ENABLED_MODULE_NAMES ${module_name})
+	IF (EXISTS "${module_full_path}/enabled.cmake")
+		MESSAGE(STATUS "    Running ${module_full_path}/enabled.cmake...")
+		INCLUDE("${module_full_path}/enabled.cmake")
+	ENDIF()
+
 	# clean module name for use as identifier (if leading number, then add "_" prefix)
 	string(REGEX REPLACE "^([0123456789])" "_\\1" ident_module_name ${module_name})
 	# Generate module export header
@@ -97,7 +105,7 @@ FOREACH( indx RANGE ${len} )
 			ENDIF()
 		ENDIF()
 	ENDIF()
-	
+
 	# Module dependencies: new style - include directory and link dll:
 	FOREACH( d ${ADDITIONAL_MODULE_MODULES} )
 		IF (openiA_DEPENDENCY_INFO)
@@ -193,7 +201,7 @@ FOREACH( indx RANGE ${len} )
 			INSTALL (TARGETS ${module_name} LIBRARY DESTINATION plugins)
 		ENDIF()
 	ENDIF()
-	
+
 	IF (FLATPAK_BUILD)
 		LIST (APPEND BUNDLE_LIBS "\${CMAKE_INSTALL_PREFIX}/bin/plugins/${CMAKE_SHARED_LIBRARY_PREFIX}${module_name}${CMAKE_SHARED_LIBRARY_SUFFIX}")
 	ELSE()
@@ -212,9 +220,6 @@ ELSEIF (NOT "${ENABLED_MODULE_NAMES}" STREQUAL "")
 ENDIF ()
 
 # Compiler flags
-IF (MSVC)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
-ENDIF (MSVC)
 IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic -fvisibility=hidden")
 	SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic -fvisibility=hidden")

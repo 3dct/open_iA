@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -262,7 +262,7 @@ public:
 				result += 1;
 			}
 		}
-	
+
 		return result;
 	}
 };
@@ -270,7 +270,11 @@ public:
 template <typename ArgType, typename ValType>
 iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunction<ArgType, ValType> *> & functions,
 	iADepthMeasure<ArgType, ValType>* measure,
-	size_t maxBandSize)
+	size_t
+#ifndef NDEBUG // to silence compiler warning about unused parameter
+		maxBandSize
+#endif
+	)
 {
 	assert(maxBandSize <= functions.size());
 	assert(maxBandSize >= 2);

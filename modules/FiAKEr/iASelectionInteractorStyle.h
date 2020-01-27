@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkInteractorStyleRubberBandPick.h>
+#include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkSmartPointer.h>
 
 #include <QMap>
@@ -31,20 +31,26 @@
 class vtkPolyData;
 class vtkRenderWindow;
 class vtkTextActor;
+class vtkUnsignedCharArray;
 
 class iASelectionProvider
 {
 public:
 	virtual std::vector<std::vector<size_t> > & selection() =0;
 protected:
-	~iASelectionProvider();
+	virtual ~iASelectionProvider();
 };
 
 
-class iASelectionInteractorStyle : public QObject, public vtkInteractorStyleRubberBandPick
+class iASelectionInteractorStyle : public QObject, public vtkInteractorStyleTrackballCamera
 {
 	Q_OBJECT
 public:
+	enum InteractionMode
+	{
+		imNavigate,
+		imSelect
+	};
 	enum SelectionMode
 	{
 		smDrag,
@@ -52,10 +58,13 @@ public:
 	};
 	iASelectionInteractorStyle();
 	static iASelectionInteractorStyle* New();
-	vtkTypeMacro(iASelectionInteractorStyle, vtkInteractorStyleRubberBandPick);
-	void Pick() override;
+	vtkTypeMacro(iASelectionInteractorStyle, vtkInteractorStyleTrackballCamera);
+
 	void OnChar() override;
 	void OnLeftButtonDown() override;
+	void OnMouseMove() override;
+	void OnLeftButtonUp() override;
+
 	void setSelectionProvider(iASelectionProvider * selectionProvider);
 	void addInput(size_t resultID, vtkSmartPointer<vtkPolyData> points, vtkSmartPointer<vtkActor> actor);
 	void removeInput(size_t resultID);
@@ -65,10 +74,19 @@ public:
 signals:
 	void selectionChanged();
 private:
-	QMap<int, std::pair<vtkSmartPointer<vtkPolyData>, vtkSmartPointer<vtkActor> > > m_input;
+	void pick();
+	void redrawRubberBand();
+
+	QMap<size_t, std::pair<vtkSmartPointer<vtkPolyData>, vtkSmartPointer<vtkActor> > > m_input;
 	iASelectionProvider * m_selectionProvider;
 	vtkSmartPointer<vtkTextActor> m_showModeActor;
 	vtkSmartPointer<vtkRenderWindow> m_renWin;
+	InteractionMode m_interactionMode;
 	SelectionMode m_selectionMode;
 	vtkRenderer* m_cellRenderer;
+
+	int m_startPos[2];
+	int m_endPos[2];
+	bool m_moving;
+	vtkSmartPointer<vtkUnsignedCharArray> m_pixelArray;
 };

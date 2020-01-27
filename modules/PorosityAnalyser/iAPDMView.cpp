@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,7 +29,7 @@
 #include <iAVtkWidget.h>
 
 #include <vtkColorTransferFunction.h>
-#include <vtkLookupTable.h> 
+#include <vtkLookupTable.h>
 #include <vtkScalarBarActor.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
@@ -112,7 +112,7 @@ void iAPDMView::UpdateTableDeviation()
 		for( int j = 0; j < m_datasets->size(); ++j )
 		{
 			QWidget * wgt = new QWidget( 0 );
-			
+
 			QString datasetName = (*m_datasets)[j];
 			double gt = (*m_gtPorosityMap).find( datasetName ).value();// Ground truth
 			double med = (*m_boxPlots)[i][j].med;	//median value
@@ -205,14 +205,14 @@ void iAPDMView::UpdateTableHistogram()
 			QVector<double> keyData; QVector<double> valueData;
 			QMap<double, QList<double> > map = ( *m_histogramPlots )[i][j].histoBinMap;
 
-			// prepare all x and y axis values 
+			// prepare all x and y axis values
 			for ( double idx = 0; idx < map.size(); ++idx )
 			{
 				keyData << idx / 10.0;	// step size = 0.1; between 0 and 100 there are 1000 buckets
 				valueData << map.find( idx ).value().size();
 			}
 
-			// get middle value (x axis) of histogram bukcet with higest frequency 
+			// get middle value (x axis) of histogram bukcet with higest frequency
 			int highestFrequency = *std::max_element( valueData.begin(), valueData.end() );
 			double meanHigestHistoFrequencyBucket = 0.0;
 			for ( int k = 0; k < valueData.size(); ++k )
@@ -316,7 +316,7 @@ void iAPDMView::FitTable()
 					tableWidget->setColumnWidth( nCol, 24 );
 				break;
 		}
-	else 
+	else
 		tableWidget->resizeColumnsToContents();
 }
 
@@ -378,8 +378,8 @@ void iAPDMView::addWidgetToTable( int r, int c, QWidget * plot )
 void iAPDMView::setSelection( QModelIndexList selInds )
 {
 	m_selectedIndices = selInds;
-	foreach( QModelIndex i, selInds )
-	{	
+	for (QModelIndex i: selInds )
+	{
 		QWidget * w = (QWidget*)m_indices.key( i )->parent();
 		SetWidgetSelectionStyle( w, true );
 	}

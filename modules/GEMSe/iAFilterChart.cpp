@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -48,16 +48,17 @@ iAFilterChart::iAFilterChart(QWidget* parent,
 :
 	iAChartWidget(parent, caption, ""),
 	m_data(data),
-	m_markedLocation(InvalidMarker),
 	m_nameMapper(nameMapper),
-	m_selectedHandle(-1)
+	m_markedLocation(InvalidMarker),
+	m_selectedHandle(-1),
+	m_selectionOffset(0)
 {
 	addPlot(GetDrawer(m_data, DefaultColors::AllDataChartColor));
 	m_minSliderPos = m_data->mapBinToValue(0);
 	m_maxSliderPos = m_data->mapBinToValue(m_data->numBin());
 	setCaptionPosition(Qt::AlignLeft | Qt::AlignTop);
 	setShowXAxisLabel(showCaption);
-	for (int i = 0; i < m_data->numBin(); ++i)
+	for (size_t i = 0; i < m_data->numBin(); ++i)
 	{
 		m_binColors.push_back(QColor(0, 0, 0, 0));
 	}
@@ -73,12 +74,12 @@ double iAFilterChart::mapValueToBin(double value) const
 	return m_data->mapValueToBin(value);
 }
 
-QSharedPointer<iAPlot> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color)
+QSharedPointer<iAPlot> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramData> newData, QColor color)
 {
-	return (data->valueType() == Categorical ||
-		(data->valueType() == Discrete && ((data->xBounds()[1]-data->xBounds()[0])  <= data->numBin())))
-		? QSharedPointer<iAPlot>(new iABarGraphPlot(data, color, 2))
-		: QSharedPointer<iAPlot>(new iAFilledLinePlot(data, color));
+	return (newData->valueType() == Categorical ||
+		(newData->valueType() == Discrete && ((newData->xBounds()[1]- newData->xBounds()[0])  <= newData->numBin())))
+		? QSharedPointer<iAPlot>(new iABarGraphPlot(newData, color, 2))
+		: QSharedPointer<iAPlot>(new iAFilledLinePlot(newData, color));
 }
 
 void iAFilterChart::drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush)
@@ -107,8 +108,8 @@ void iAFilterChart::drawAxes(QPainter& painter)
 	{
 		double y1 =  0;
 		double y2 =  ChartColoringHeight;
-		int binWidth = std::ceil(mapValue(0.0, static_cast<double>(m_data->numBin()), 0.0, activeWidth()*m_xZoom, static_cast<double>(1)));
-		for (int b = 0; b < m_data->numBin(); ++b)
+		int binWidth = static_cast<int>(std::ceil(mapValue(0.0, static_cast<double>(m_data->numBin()), 0.0, activeWidth()*m_xZoom, static_cast<double>(1))));
+		for (size_t b = 0; b < m_data->numBin(); ++b)
 		{
 			if (m_binColors[b].alpha() == 0)
 			{
@@ -174,7 +175,7 @@ QString iAFilterChart::xAxisTickMarkLabel(double value, double stepWidth)
 	return iAChartWidget::xAxisTickMarkLabel(value, stepWidth);
 }
 
-void iAFilterChart::contextMenuEvent(QContextMenuEvent *event)
+void iAFilterChart::contextMenuEvent(QContextMenuEvent * /*event*/)
 {
 	// disable context menu
 }
@@ -191,7 +192,7 @@ void iAFilterChart::mousePressEvent( QMouseEvent *event )
 			iAChartWidget::changeMode( MOVE_VIEW_MODE, event );
 			return;
 		}
-		
+
 		if ( event->y() > geometry().height() - bottomMargin() - m_translationY
 			  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
 		{
@@ -233,7 +234,7 @@ void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 {
 	if (	( event->buttons() == Qt::LeftButton ) &&
 			( event->y() > geometry().height() - bottomMargin() - m_translationY			// mouse event below X-axis
-			  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) ) &&	
+			  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) ) &&
 			  m_selectedHandle != -1)
 	{
 		int x = event->x() - leftMargin() + m_selectionOffset;

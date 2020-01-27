@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -38,7 +38,7 @@ namespace
 {
 	const QString FileVersionKey   = "FileVersion";
 	const QString FileVersionValue = "1.6.1";
-	
+
 	const QString ModalitiesKey = "Modalities";
 	const QString LabelCountKey = "LabelCount";
 	const QString SamplingDataKey = "SamplingData";
@@ -57,7 +57,7 @@ namespace
 		}
 		result.append(append);
 	}
-	
+
 	void AddIfMissing(QSettings const & settings, QString & result, QString const & key)
 	{
 		if (!settings.contains(key))
@@ -232,7 +232,7 @@ void iASEAFile::save(QSettings & metaFile, QString const & fileName)
 	}
 	metaFile.setValue(ColorThemeKey, m_colorTheme);
 	metaFile.setValue(LabelNamesKey, m_labelNames);
-	
+
 	metaFile.sync();
 	if (metaFile.status() != QSettings::NoError)
 	{

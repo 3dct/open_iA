@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -66,7 +66,7 @@ class dlg_slicer;
 class dlg_volumePlayer;
 class iAAlgorithm;
 class iAChannelData;
-class iADiagramFctWidget;
+class iAChartWithFunctionsWidget;
 class iADockWidgetWrapper;
 class iAIO;
 class iALogger;
@@ -188,7 +188,7 @@ public:
 	bool linkedViews() const;   //!< Whether this child has the linked views feature enabled
 	std::vector<iAChartFunction*> &functions();
 	void redrawHistogram();
-	iADiagramFctWidget* histogram();
+	iAChartWithFunctionsWidget* histogram();
 
 	int selectedFuncPoint();
 	int isFuncEndPoint(int index);
@@ -211,16 +211,16 @@ public:
 	void updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, bool enable);
 	//! Update opacity of the given channel ID.
 	void updateChannelOpacity(uint id, double opacity);
-	
+
 	void setChannelRenderingEnabled(uint, bool enabled);
-	
+
 	//! Enable / disable a channel in all slicers.
 	void setSlicerChannelEnabled(uint id, bool enabled);
 
 	//! Remove channel in all slicers.
 	void removeChannel(uint id);
 
-	
+
 	iAChannelData * channelData(uint id);
 	iAChannelData const * channelData(uint id) const;
 	void initChannelRenderer(uint id, bool use3D, bool enableChannel = true);
@@ -285,7 +285,9 @@ public:
 	QSharedPointer<iAModalityList> modalities();
 	//! Retrieve data for modality with given index.
 	QSharedPointer<iAModality> modality(int idx);
-
+	iASlicer* getSlicer(uint i) {
+		return m_slicer[i];
+	}
 	//! add project
 	void addProject(QString const & key, QSharedPointer<iAProjectBase> project);
 	QMap<QString, QSharedPointer<iAProjectBase> > const & projects();
@@ -364,6 +366,7 @@ private slots:
 	void modalityAdded(int modalityIdx);
 	void rendererCamPos();
 	void resetCamera(bool spacingChanged, double const * newSpacing);
+	void toggleFullScreen();
 
 private:
 	void closeEvent(QCloseEvent *event) override;
@@ -390,7 +393,6 @@ private:
 	void connectSignalsToSlots();
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void snakeNormal(int index, double point[3], double normal[3]);
-	//void updateReslicer(double point[3], double normal[3], int mode);
 
 	//! sets up the IO thread for saving the correct file type for the given filename.
 	//! \return	true if it succeeds, false if it fails.
@@ -461,7 +463,7 @@ private:
 	QList<int> m_checkedList;
 	iAIO* m_ioThread;
 
-	iADiagramFctWidget * m_histogram;
+	iAChartWithFunctionsWidget * m_histogram;
 	QSharedPointer<iAPlot> m_histogramPlot;
 
 	//! @{ dock widgets
@@ -483,7 +485,6 @@ private:
 	uint m_nextChannelID;
 	uint m_magicLensChannel;
 
-	int m_numberOfVolumes;
 	int m_previousIndexOfVolume;
 
 	iALogger* m_logger;

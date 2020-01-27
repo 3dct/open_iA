@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -46,7 +46,7 @@ class iAFiberSimilarity
 {
 public:
 	quint64 index;
-	double similarity;
+	double dissimilarity;
 	friend bool operator<(iAFiberSimilarity const & a, iAFiberSimilarity const & b);
 };
 
@@ -124,7 +124,7 @@ public:
 	size_t minFiberCount, maxFiberCount;
 // { TODO: make private ?
 	//! maximum of optimization steps in all results
-	int optimStepMax;
+	size_t optimStepMax;
 	//! results folder
 	QString folder;
 	//! shift applied to each step
