@@ -263,7 +263,9 @@ IAFILTER_CREATE(iAElastixRegistration)
 
 iAElastixRegistration::iAElastixRegistration() :
 	iAFilter("Elastix Registration", "Registration",
-		"Makes a registration of two images and computes the deformation matrix and the spatial jacobion <br/>"
+		"Makes a registration of two images and computes the deformation matrix and the spatial jacobion using elastix<br/>"
+		"To use this filter please download elastix and set Path to elastix executeable as Parameter<br/>"
+		"More Information on <a href=\"http://elastix.isi.uu.nl/index.php\">elastix.isi.uu.nl</a><br/>"
 		"Outputs"
 		"<ul>"
 		"<ol>Registration of both images</ol>"
