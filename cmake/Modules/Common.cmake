@@ -382,6 +382,17 @@ if(NOT TARGET OpenMP::OpenMP_CXX)
                  PROPERTY INTERFACE_LINK_LIBRARIES ${OpenMP_CXX_FLAGS} Threads::Threads)
 endif()
 
+# IF (Module_ElastixRegistration)
+	# find_package(Elastix REQUIRED)
+	# include(${ELASTIX_USE_FILE})
+	# #FOREACH (lib ${ELASTIX_LIBRARIES})
+	# #	LIST(APPEND FULL_ELASTIX_LIBS "${ELASTIX_LIBRARY_DIRS}/Debug/${lib}-5.0.lib")
+	# #ENDFOREACH()
+	# #LIST(APPEND FULL_ELASTIX_LIBS "${ELASTIX_LIBRARY_DIRS}/Debug/param-5.0.lib")
+	# #MESSAGE(STATUS "${FULL_ELASTIX_LIBS}")
+	# #SET (ELASTIX_LIBRARIES "${FULL_ELASTIX_LIBS}" PARENT_SCOPE)
+	# #SET (ELASTIX_INCLUDE_DIRS "${ELASTIX_INCLUDE_DIRS}" PARENT_SCOPE)
+# ENDIF()
 
 #-------------------------
 # Compiler Flags
