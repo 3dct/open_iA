@@ -31,7 +31,6 @@
 
 namespace threshold_defs
 {
-
 	const double dblInf_min = -std::numeric_limits<double>::infinity();
 	const double fltInf_min = -std::numeric_limits<float>::infinity();
 
@@ -163,9 +162,9 @@ namespace threshold_defs
 
 		QString MinMaxToString()
 		{
-			QString res = QString("First Min above air %1 \t %2\n First Max Peak %3 \t %4").arg(PeakMinXThreshold()).arg(FreqPeakMinY()).arg(LokalMaxPeakThreshold_X()).arg(FreqPeakLokalMaxY());
+			QString res = QString("First Min above air %1 \t %2\n First Max Peak %3 \t %4")
+				.arg(PeakMinXThreshold()).arg(FreqPeakMinY()).arg(LokalMaxPeakThreshold_X()).arg(FreqPeakLokalMaxY());
 			return res;
-
 		}
 
 		void normalizeXValues(double min, double max)
@@ -176,24 +175,22 @@ namespace threshold_defs
 			MaterialPeakThrX = minMaxNormalize(min, max, MaterialPeakThrX);
 		}
 
-
-		void mapNormalizedBackToMinMax(double min, double max) {
-
+		void mapNormalizedBackToMinMax(double min, double max)
+		{
 			peakMinXThreshold = normalizedToMinMax(min, max, peakMinXThreshold);
 			iso50ValueThr = normalizedToMinMax(min, max, iso50ValueThr);
 			lokalPeakAirThrX = normalizedToMinMax(min, max, lokalPeakAirThrX);
 			MaterialPeakThrX = normalizedToMinMax(min, max, MaterialPeakThrX);
-
 		}
 
 		//apply custom min max
-		void updateMinMaxPeaks(double lokalMinX, double lokalMinY, double lokalMaxX, double lokalMaxY) {
+		void updateMinMaxPeaks(double lokalMinX, double lokalMinY, double lokalMaxX, double lokalMaxY)
+		{
 			peakMinXThreshold = lokalMinX;
 			freqPeakMinY = lokalMinY;
 			freqPeakLokalMaxY = lokalMaxY;
 			lokalPeakAirThrX = lokalMaxX;
 			m_custimizedMinMax = true;
-
 		}
 
 		double LokalMaxPeakThreshold_X() const { return lokalPeakAirThrX; }
@@ -286,7 +283,6 @@ namespace threshold_defs
 	};
 
 
-
 	struct iAPeakRanges
 	{
 		double XRangeMin;
@@ -294,64 +290,6 @@ namespace threshold_defs
 
 		double HighPeakXmin;
 		double HighPeakXMax;
-
-	};
-
-	class iAGraphRange
-	{
-	public:
-		iAGraphRange()
-		{
-			m_xmin = fltInf_min;
-			m_xmax = fltInf_min;
-			m_ymin = fltInf_min;
-			m_ymax = fltInf_min;
-		}
-
-		void initRange(double xmin, double xmax, double ymin, double ymax)
-		{
-			this->m_xmin = xmin;
-			this->m_xmax = xmax;
-			this->m_ymin = ymin;
-			this->m_ymax = ymax;
-		}
-
-		double getYMin() const { return m_ymin; }
-		double getYMax() const { return m_ymax; }
-		double getXMax() const { return m_xmax;  }
-		double getxmin() const { return m_xmin;  }
-
-	private:
-		double m_xmin;
-		double m_xmax;
-		double m_ymin;
-		double m_ymax;
-	};
-
-	//! Storing averages of a histogram
-	class iAMovingFreqs {
-	public:
-		inline	void addSequence(std::vector<double>& values)
-		{
-			m_sequences.push_back(values);
-		};
-
-		const std::vector<double> &getFrequencyByInd(uint index) const
-		{
-			if (index >= m_sequences.size())
-			{
-				throw std::invalid_argument("not in index list");
-			}
-			return m_sequences.at(index);
-		}
-
-		inline const std::vector<std::vector<double>> getAll()
-		{
-			return m_sequences;
-		}
-
-	private:
-		std::vector<std::vector<double>> m_sequences;
 	};
 
 }

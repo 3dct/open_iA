@@ -344,7 +344,7 @@ p, li { white-space: pre-wrap; }
           </widget>
          </item>
          <item row="5" column="0" colspan="2">
-          <widget class="QPushButton" name="btn_selectRange">
+          <widget class="QPushButton" name="btn_detectPeaksMinimum">
            <property name="text">
             <string>Identify Peaks + Normalize + Detect Mininum</string>
            </property>
@@ -447,7 +447,7 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item row="0" column="0" colspan="4">
-             <widget class="QPushButton" name="btn_VisPoints">
+             <widget class="QPushButton" name="btn_determineFinalThreshold">
               <property name="text">
                <string>Determine final threshold</string>
               </property>
@@ -645,7 +645,7 @@ p, li { white-space: pre-wrap; }
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="btn_performSegmentation">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -658,7 +658,7 @@ p, li { white-space: pre-wrap; }
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_3">
+         <widget class="QPushButton" name="btn_cancel">
           <property name="text">
            <string>Cancel</string>
           </property>
@@ -674,7 +674,7 @@ p, li { white-space: pre-wrap; }
  <resources/>
  <connections>
   <connection>
-   <sender>pushButton</sender>
+   <sender>btn_performSegmentation</sender>
    <signal>clicked()</signal>
    <receiver>AdaptiveThreshold</receiver>
    <slot>accept()</slot>
@@ -690,7 +690,7 @@ p, li { white-space: pre-wrap; }
    </hints>
   </connection>
   <connection>
-   <sender>pushButton_3</sender>
+   <sender>btn_cancel</sender>
    <signal>clicked()</signal>
    <receiver>AdaptiveThreshold</receiver>
    <slot>reject()</slot>

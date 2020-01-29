@@ -38,7 +38,11 @@
 
 
 iAAdaptiveThresholdDlg::iAAdaptiveThresholdDlg(QWidget * parent, Qt::WindowFlags f)
-	: QDialog(parent, f)
+	: QDialog(parent, f),
+	m_xMinRef(std::numeric_limits<double>::infinity()),
+	m_xMaxRef(std::numeric_limits<double>::infinity()),
+	m_yMinRef(std::numeric_limits<double>::infinity()),
+	m_yMaxRef(std::numeric_limits<double>::infinity())
 {
 	setupUi(this);
 	m_chart = new QtCharts::QChart;
@@ -50,11 +54,6 @@ iAAdaptiveThresholdDlg::iAAdaptiveThresholdDlg(QWidget * parent, Qt::WindowFlags
 	axisX = new QValueAxis;
 	axisY = new QValueAxis;
 	m_refSeries = new QLineSeries();
-	series_vec.reserve(maxSeriesNumbers);
-	this->ed_XMin->setText("");
-	this->ed_XMax->setText("");
-	this->ed_YMax->setText("");
-	this->ed_YMin->setText("");
 	QValidator* validator = new QDoubleValidator(0, 8000, 2, this);
 	this->ed_minSegmRange->setValidator(validator);
 	this->ed_minSegmRange->setText(QString("%1").arg(0));
@@ -64,62 +63,22 @@ iAAdaptiveThresholdDlg::iAAdaptiveThresholdDlg(QWidget * parent, Qt::WindowFlags
 	flags |= Qt::Tool;
 	this->setWindowFlags(flags);
 
-	for (auto series: series_vec)
-	{
-		series = new QLineSeries();
-	}
-
+	spin_xTicks->setValue(m_defaultTickCountsX);
+	spin_yTicks->setValue(m_defaultTickCountsY);
 	setupUIActions();
 	this->mainLayout->addWidget(m_chartView);
 }
 
 void iAAdaptiveThresholdDlg::setupUIActions()
 {
-	connect(this->btn_update, SIGNAL(clicked()), this, SLOT(updateChartClicked()));
-	connect(this->btn_resetGraph, SIGNAL(clicked()), this, SLOT(resetGraphToDefault()));
-	connect(this->btn_movingAverage, SIGNAL(clicked()), this, SLOT(calculateMovingAndVisualizeAverage()));
-
-	connect(this->btn_clearLog, SIGNAL(clicked()), this, SLOT(clearLog()));
-	connect(this->btn_selectRange, SIGNAL(clicked()), this, SLOT(buttonSelectRangesClickedAndComputePeaks()));
-	connect(this->btn_redraw, SIGNAL(clicked()), this, SLOT(redrawPlots()));
-	connect(this->btn_VisPoints, SIGNAL(clicked()), this, SLOT(determineIntersectionAndFinalThreshold()));
-	connect(this->btn_rescaleToDefault, SIGNAL(clicked()), this, SLOT(rescaleToMinMax()));
-	connect(this->checkBox_excludeThreshold, SIGNAL(clicked(bool)), this, SLOT(updateSegmentationRange(bool)));
-
-}
-
-void iAAdaptiveThresholdDlg::initChart()
-{
-	initAxes(0, 20, 2, 20, false);
-}
-
-void iAAdaptiveThresholdDlg::generateSampleData(bool addserries)
-{
-	m_refSeries->append(0, 6);
-	m_refSeries->append(2, 4);
-	m_refSeries->append(3, 8);
-	m_refSeries->append(7, 4);
-	m_refSeries->append(10, 5);
-	*m_refSeries << QPointF(2, 2) << QPointF(3, 3) << QPointF(20, 0);
-	QColor color = QColor(255, 0, 0);
-	m_refSeries->setColor(color);
-	m_refSeries->setName("TestSeries");
-
-	QScatterSeries * series = new QScatterSeries();
-	series->append(4, 8);
-	series->append(2, 20);
-	series->setName("AName");
-	series->setColor(QColor(0, 255, 0));
-
-	if (addserries)
-	{
-		m_chart->addSeries(m_refSeries);
-		m_chart->addSeries(series);
-	}
-
-	QLineSeries * s2 = new QLineSeries();
-	s2->append(8, 0);
-	s2->append(8, 8);
+	connect(btn_update, &QPushButton::clicked, this, &iAAdaptiveThresholdDlg::updateChartClicked);
+	connect(btn_resetGraph, &QPushButton::clicked, this, &iAAdaptiveThresholdDlg::resetGraphToDefault);
+	connect(btn_movingAverage, &QPushButton::clicked, this, &iAAdaptiveThresholdDlg::calculateMovingAndVisualizeAverage);
+	connect(btn_clearLog, &QPushButton::clicked, this, &iAAdaptiveThresholdDlg::clearLog);
+	connect(btn_detectPeaksMinimum, &QPushButton::clicked, this, &iAAdaptiveThresholdDlg::computePeaksMinimum);
+	connect(btn_redraw, &QPushButton::clicked, this, &iAAdaptiveThresholdDlg::redrawPlots);
+	connect(btn_determineFinalThreshold, &QPushButton::clicked, this, &iAAdaptiveThresholdDlg::determineIntersectionAndFinalThreshold);
+	connect(checkBox_excludeThreshold, &QCheckBox::clicked, this, &iAAdaptiveThresholdDlg::updateSegmentationRange);
 }
 
 void iAAdaptiveThresholdDlg::determineMinMax(const std::vector<double> &xVal, const std::vector<double> &yVal)
@@ -140,9 +99,6 @@ void iAAdaptiveThresholdDlg::determineMinMax(const std::vector<double> &xVal, co
 	m_xMaxRef = *std::max_element(std::begin(xVal), std::end(xVal));
 	m_yMinRef = *std::min_element(std::begin(yVal), std::end(yVal));
 	m_yMaxRef = *std::max_element(std::begin(yVal), std::end(yVal));
-
-
-	this->m_graphValuesScope.initRange(m_xMinRef, m_xMaxRef, m_yMinRef, m_yMaxRef);
 }
 
 void iAAdaptiveThresholdDlg::logText(const QString& Text)
@@ -155,14 +111,6 @@ void iAAdaptiveThresholdDlg::setInputData(const std::vector<double> &thres_binIn
 {
 	m_greyThresholds = thres_binInX;
 	m_frequencies = freqValsInY;
-}
-
-void iAAdaptiveThresholdDlg::addAllSeries(std::vector<QXYSeries*> allSeries, bool disableMarker)
-{
-	for (QXYSeries* el : allSeries)
-	{
-		this->addSeries(el, disableMarker);
-	}
 }
 
 void iAAdaptiveThresholdDlg::setHistData (QSharedPointer<iAPlotData> &newData)
@@ -198,21 +146,19 @@ void iAAdaptiveThresholdDlg::resetGraphToDefault()
 	this->ed_XMax->setText(QString("%1").arg(m_xMaxRef));
 	this->ed_YMin->setText(QString("%1").arg(m_yMinRef));
 	this->ed_YMax->setText(QString("%1").arg(m_yMaxRef));
-
+	spin_xTicks->setValue(m_defaultTickCountsX);
+	spin_yTicks->setValue(m_defaultTickCountsY);
 	m_chart->update();
 	m_chartView->update();
 }
 
 void iAAdaptiveThresholdDlg::calculateMovingAndVisualizeAverage()
 {
-	//DEBUG_LOG("Moving Average");
 	uint averageCount = this->spinBox_average->text().toUInt();
 	if (averageCount <= 2)
 	{
 		return;
 	}
-
-	//DEBUG_LOG(QString("Freq size%1").arg(m_frequencies.size()));
 
 	//reset the frequency
 	if (m_movingFrequencies.size() > 0)
@@ -223,16 +169,13 @@ void iAAdaptiveThresholdDlg::calculateMovingAndVisualizeAverage()
 	QString text = QString("Moving average %1").arg(averageCount);
 	m_thresCalculator.calculateMovingAverage(m_frequencies, m_movingFrequencies, averageCount);
 
-	//for saving moving average
-	allMovingfreqs.addSequence(m_movingFrequencies);
-
 	/*prepare visualisation*/
 	QLineSeries *newSeries = new QLineSeries;
 	this->prepareDataSeries(newSeries, m_greyThresholds, m_movingFrequencies, &text, false,false);
 
 }
 
-void iAAdaptiveThresholdDlg::buttonSelectRangesClickedAndComputePeaks()
+void iAAdaptiveThresholdDlg::computePeaksMinimum()
 {
 	/*
 	determine ranges for lokal peak
@@ -266,10 +209,10 @@ void iAAdaptiveThresholdDlg::computeNormalizeAndComputeLokalPeaks(threshold_defs
 	}
 
 	// first take moving current moving frequencies
-	if (runOnFirstTime || this->chck_box_RecalcRange->isChecked())
+	if (m_runOnFirstTime || this->chck_box_RecalcRange->isChecked())
 	{
 		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies,
-			m_NormalizedGlobalValueRangeXY, m_graphValuesScope.getxmin(), m_graphValuesScope.getXMax());
+			m_NormalizedGlobalValueRangeXY, m_xMinRef, m_xMaxRef);
 
 		m_resultingthrPeaks = determineLocalPeaks(ranges, m_resultingthrPeaks); //Peak Air (lokal Maxium) and Peak Min (lokal Min) are calculated
 		//m_ maxPeakMaterialRanges;
@@ -289,7 +232,7 @@ void iAAdaptiveThresholdDlg::computeNormalizeAndComputeLokalPeaks(threshold_defs
 		this->chckbx_LokalMinMax->setEnabled(true);
 		logText("After Normalisation");
 		logText(m_resultingthrPeaks.resultsToString(false));
-		runOnFirstTime = false;
+		m_runOnFirstTime = false;
 	}
 	else
 	{
@@ -326,7 +269,7 @@ void iAAdaptiveThresholdDlg::visualizeIntermediateResults(threshold_defs::iAThre
 
 	this->addSeries(GlobalRangeGraph, false);
 
-	QPointF f1 = QPointF(resultingthrPeaks.Iso50ValueThr(), m_graphValuesScope.getYMax());
+	QPointF f1 = QPointF(resultingthrPeaks.Iso50ValueThr(), m_yMaxRef);
 	QPointF f2 = QPointF(resultingthrPeaks.Iso50ValueThr(), 0);
 
 	QLineSeries* iso50 = nullptr;
@@ -455,9 +398,11 @@ void iAAdaptiveThresholdDlg::createVisualisation(threshold_defs::iAParametersRan
 	newData.push_back(series_p2);
 
 	this->addSeries(series_p2, true);
-	this->addAllSeries(newData, true);
+	for (QXYSeries* el : newData)
+	{
+		this->addSeries(el, /*disableMarker*/true);
+	}
 	m_chartView->update();
-
 	logText(thrPeaks.MinMaxToString());
 }
 
@@ -509,7 +454,7 @@ void iAAdaptiveThresholdDlg::determineIntersectionAndFinalThreshold()
 
 		//TODO REPLACE BY MAX limits
 		//fair_half end point for visualisation only
-		QPointF LokalMaxHalfEnd(m_graphValuesScope.getXMax(), lokalMaxHalf.y());
+		QPointF LokalMaxHalfEnd(m_xMaxRef, lokalMaxHalf.y());
 
 		//prepare line for intersection with fpeak half
 		intersection::iAXYLine LinePeakHalf(lokalMaxHalf, LokalMaxHalfEnd);
@@ -581,7 +526,7 @@ void iAAdaptiveThresholdDlg::determineIntersectionAndFinalThreshold()
 		m_chart->update();
 		m_chartView->update();
 		this->ed_minSegmRange->setEnabled(true);
-		this->pushButton->setEnabled(true);
+		btn_performSegmentation->setEnabled(true);
 	}
 	catch (std::invalid_argument& iae)
 	{
@@ -638,7 +583,6 @@ void iAAdaptiveThresholdDlg::scaleGraphToMinMax(const threshold_defs::iAParamete
 	{
 		throw std::invalid_argument("greyvalues or frequencies not set");
 	}
-
 	axisX->setRange(ranges.getXMin(), ranges.getXMax());
 	m_chart->update();
 	m_chartView->update();
@@ -706,11 +650,10 @@ void iAAdaptiveThresholdDlg::redrawPlots()
 
 void iAAdaptiveThresholdDlg::rescaleToMinMax()
 {
-	double xmin_val = this->m_graphValuesScope.getxmin();
-	double xmax_val = this->m_graphValuesScope.getXMax();
-
-	double ymin_val = this->m_graphValuesScope.getYMin();
-	double ymax_val = this->m_graphValuesScope.getYMax();
+	double xmin_val = m_xMinRef;
+	double xmax_val = m_xMaxRef;
+	double ymin_val = m_yMinRef;
+	double ymax_val = m_yMaxRef;
 
 	if ((xmin_val < xmax_val) && (ymin_val < ymax_val))
 	{
@@ -734,7 +677,6 @@ void iAAdaptiveThresholdDlg::updateSegmentationRange(bool updateRange)
 		m_segmentationStartValue = 0;
 		return;
 	}
-	//DEBUG_LOG("Signal update segmentation triggered");
 	m_segmentationStartValue = this->ed_minSegmRange->text().toDouble();
 }
 
@@ -745,8 +687,8 @@ void iAAdaptiveThresholdDlg::clearLog()
 
 void iAAdaptiveThresholdDlg::initAxes(double xmin, double xmax, double ymin, double yMax, bool setDefaultAxis)
 {
-	QString titleX = "xGreyThreshold";
-	QString titleY = "YFrequencies";
+	QString titleX = "Grey values";
+	QString titleY = "Frequencies";
 
 	//TODO welchen sinn hat das
 	if (setDefaultAxis)
@@ -754,14 +696,13 @@ void iAAdaptiveThresholdDlg::initAxes(double xmin, double xmax, double ymin, dou
 		return;
 	}
 
-	prepareAxis(axisX, titleX, xmin, xmax, m_defautTickCountsX, axisMode::x);
+	prepareAxis(axisX, titleX, xmin, xmax, m_defaultTickCountsX, axisMode::x);
 	prepareAxis(axisY, titleY, ymin, yMax, m_defaultTickCountsY, axisMode::y);
 }
 
 void iAAdaptiveThresholdDlg::prepareAxis(QValueAxis *axis, const QString &title, double min, double max, uint ticks, axisMode mode)
 {
-	axis->setMin(min);
-	axis->setMax(max);
+	axis->setRange(min, max);
 	axis->setTickCount(ticks);
 	axis->setTitleText(title);
 
@@ -777,15 +718,6 @@ void iAAdaptiveThresholdDlg::prepareAxis(QValueAxis *axis, const QString &title,
 		break;
 	}
 }
-
-/*
-void iAAdaptiveThresholdDlg::clear()
-{
-	m_chart->removeAllSeries();
-	m_chart->update();
-	m_chartView->update();
-}
-*/
 
 void iAAdaptiveThresholdDlg::prepareDataSeries(QXYSeries *aSeries,
 	const std::vector<double> &x_vals, const std::vector<double> &y_vals,
@@ -813,10 +745,8 @@ void iAAdaptiveThresholdDlg::prepareDataSeries(QXYSeries *aSeries,
 	}
 	else
 	{
-		this->DetermineGraphRange();
+		setGraphRangeFromInput();
 	}
-
-	//DEBUG_LOG(QString("xmin xmax ymin ymax %1 %2 %3 %4").arg(m_xMinRef).arg(m_yMaxRef).arg(m_yMinRef).arg(m_yMaxRef));
 
 	if (updateCoords)
 	{
@@ -843,7 +773,6 @@ void iAAdaptiveThresholdDlg::prepareDataSeries(QXYSeries *aSeries,
 	this->m_chartView->update();
 }
 
-
 void iAAdaptiveThresholdDlg::addSeries(QXYSeries* aSeries, bool disableMarker)
 {
 	if (!aSeries)
@@ -857,76 +786,44 @@ void iAAdaptiveThresholdDlg::addSeries(QXYSeries* aSeries, bool disableMarker)
 	{
 		m_chart->legend()->markers(aSeries)[0]->setVisible(false);
 	}
-
 	aSeries->attachAxis(axisX);
 	aSeries->attachAxis(axisY);
 	m_chart->update();
 	m_chartView->update();
-
 }
 
-//rescale
 void iAAdaptiveThresholdDlg::updateChartClicked()
 {
-	DEBUG_LOG("rescale graph");
 	this->m_chart->setTitle("Grey value distribution");
 
-	DetermineGraphRange();
+	setGraphRangeFromInput();
 
-	QString xTicks, yTicks;
-	xTicks = this->spin_xTicks->text();
-	yTicks = this->spin_yTicks->text();
-
-	uint xTickcount = xTicks.toUInt();
-	uint yTickcount = yTicks.toUInt();
-
-	if ((!yTicks.isEmpty()) && (!xTicks.isEmpty()))
-	{
-		this->setTicks(xTickcount, yTickcount, false);
-	}
+	uint xTicks = spin_xTicks->value();
+	uint yTicks = spin_yTicks->value();
+	axisX->setTickCount(xTicks);
+	axisY->setTickCount(yTicks);
 
 	m_chart->update();
-	this->m_chartView->update();
+	m_chartView->update();
 }
 
-void iAAdaptiveThresholdDlg::DetermineGraphRange()
+void iAAdaptiveThresholdDlg::setGraphRangeFromInput()
 {
-	QString xMin, xMax, yMin, yMax;
-	double xmin_val, xmax_val, ymin_val, ymax_val;
+	QString xMin = this->ed_XMin->text();
+	QString xMax = this->ed_XMax->text();
+	QString yMin = this->ed_YMin->text();
+	QString yMax = this->ed_YMax->text();
 
-	xMin = this->ed_XMin->text();
-	xMax = this->ed_XMax->text();
-	yMin = this->ed_YMin->text();
-	yMax = this->ed_YMax->text();
-
-	if (xMin.isEmpty() && xMax.isEmpty() && yMin.isEmpty() && yMax.isEmpty())
+	if (xMin.isEmpty() || xMax.isEmpty() || yMin.isEmpty() || yMax.isEmpty())
 	{
 		return;
 	}
 
-	xmin_val = xMin.toDouble();
-	xmax_val = xMax.toDouble();
-	ymin_val = yMin.toDouble();
-	ymax_val = yMax.toDouble();
+	double xmin_val = xMin.toDouble();
+	double xmax_val = xMax.toDouble();
+	double ymin_val = yMin.toDouble();
+	double ymax_val = yMax.toDouble();
 
 	axisX->setRange(xmin_val, xmax_val);
 	axisY->setRange(ymin_val, ymax_val);
-}
-
-void iAAdaptiveThresholdDlg::setTicks(uint xTicks, uint yTicks, bool update)
-{
-	if ((xTicks > 0) && (yTicks > 0))
-	{
-		axisX->setTickCount(xTicks);
-		axisY->setTickCount(yTicks);
-	}
-	else
-	{
-		logText(QString("Please set a tick count greater 0"));
-	}
-	if (update)
-	{
-		m_chart->update();
-		m_chartView->update();
-	}
 }

@@ -52,18 +52,11 @@ Q_OBJECT
 public:
 	//! Create a new dialog, all parameters are optional
 	iAAdaptiveThresholdDlg(QWidget * parent = 0, Qt::WindowFlags f = 0);
-
 	void setupUIActions();
-	void initChart();
-
-	//init Axis in x and y, also with ticks
 	void initAxes(double xmin, double xmax, double ymin, double yMax, bool setDefaultAxis);
-
 	void prepareDataSeries(QtCharts::QXYSeries* aSeries, const std::vector<double>& x_vals, const std::vector<double>& y_vals, QString* grText, bool useDefaultValues, bool updateCoords);
 	void addSeries(QtCharts::QXYSeries* aSeries, bool disableMarker);
-
 	void setHistData(/*const*/ QSharedPointer<iAPlotData>& data);
-
 	double resultingThreshold() const;
 	double segmentationStartValue() const;
 
@@ -71,7 +64,7 @@ private slots:
 	void updateChartClicked();
 	void resetGraphToDefault();
 	void calculateMovingAndVisualizeAverage();
-	void buttonSelectRangesClickedAndComputePeaks();
+	void computePeaksMinimum();
 	void determineIntersectionAndFinalThreshold();
 	void redrawPlots();
 	void rescaleToMinMax();
@@ -92,54 +85,36 @@ private:
 	void visualizeFinalThreshold(double resThres);
 	void OptionallyUpdateThrPeaks(bool selectedData, threshold_defs::iAThresMinMax& thrPeaks);
 
-	void DetermineGraphRange();
+	void setGraphRangeFromInput();
 	void prepareAxis(QValueAxis *axis, const QString &title, double min, double max, uint ticks, axisMode mode);
-	void generateSampleData(bool addserries);
 	void determineMinMax(const std::vector<double> &xVal, const std::vector<double> &yVal);
 	void logText(const QString& Text);
 	void setInputData(const std::vector<double> &thres_binInX, const std::vector<double> &freqValsInY);
-	//TODO Refactoring
-	void addAllSeries(std::vector<QXYSeries*> allSeries, bool disableMarker);
 
 	void assignValuesFromField(threshold_defs::iAPeakRanges &Ranges);
 
-	void writeDebugText(const QString& Text);
-
-	void setTicks(uint xTicks, uint yTicks, bool update);
-
 	void scaleGraphToMinMax(const threshold_defs::iAParametersRanges& ranges);
 
-	threshold_defs::iAMovingFreqs allMovingfreqs;
 	iAThresholdCalculator m_thresCalculator;
-	threshold_defs::iAGraphRange m_graphValuesScope;
-
 	threshold_defs::iAParametersRanges m_NormalizedGlobalValueRangeXY;
 	threshold_defs::iAParametersRanges m_paramRanges;
 	threshold_defs::iAThresMinMax m_resultingthrPeaks;
 	threshold_defs::iAParametersRanges m_maxPeakMaterialRanges;
 
-	bool updateValuesChecked = false;
-	bool runOnFirstTime = true;
+	bool m_runOnFirstTime = true;
 
 	double m_segmentationStartValue = 0;
-
-	const double minXDefault = 0; const double maxXDefault = 65535;
-	const double minYDefault = 0; const double maxYDefault = 40000;
-	int m_average = 0;
 	int m_colCounter = 0;
 
-	const int m_defautTickCountsX = 10;
-	const int m_defaultTickCountsY = 10;
+	const int m_defaultTickCountsX = 5;
+	const int m_defaultTickCountsY = 5;
 
-	const int maxSeriesNumbers = 10;
 	double m_xMinRef, m_xMaxRef, m_yMinRef, m_yMaxRef;
 
 	std::vector<double> m_greyThresholds;
 	std::vector<double> m_frequencies;
 	std::vector<double> m_movingFrequencies;
 	QtCharts::QLineSeries *m_refSeries;
-	std::vector<QtCharts::QLineSeries*> series_vec;
-	double resThreshold;
 
 	QtCharts::QChartView* m_chartView;
 	QtCharts::QChart* m_chart;
