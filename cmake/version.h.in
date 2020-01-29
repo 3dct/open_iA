@@ -1,4 +1,9 @@
 #ifndef VERSION_H
 #define VERSION_H
-#define VERSION "@openiA_VERSION@"
+
+#include <QString>
+
+const char * Open_iA_Version("@openiA_VERSION@");
+const QString BuildInfo(@BUILD_INFO@);
+
 #endif

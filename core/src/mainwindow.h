@@ -59,9 +59,9 @@ class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
 	Q_OBJECT
 
 public:
-	MainWindow(QString const & appName, QString const & version, QString const & splashImage);
+	MainWindow(QString const & appName, QString const & version, QString const& buildInformation, QString const & splashImage);
 	~MainWindow();
-	static int runGUI(int argc, char * argv[], QString const & appName, QString const & version,
+	static int runGUI(int argc, char * argv[], QString const & appName, QString const & version, QString const& buildInformation,
 		QString const & splashPath, QString const & iconPath);
 	static void initResources();
 
@@ -175,6 +175,7 @@ private slots:
 	void toggleChildStatusBar();
 	void toggleToolbar();
 	void about();
+	void buildInformation();
 	void wiki();
 	void saveLayout();
 	void resetLayout();
@@ -242,7 +243,7 @@ private:
 	QComboBox * m_layout;
 	QScopedPointer<iAModuleDispatcher> m_moduleDispatcher;
 	QStringList m_layoutNames;
-	QString m_gitVersion;
+	QString m_gitVersion, m_buildInformation;
 };
 
 template <typename T> QList<T*> MainWindow::childList(QMdiArea::WindowOrder order)

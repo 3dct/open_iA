@@ -68,11 +68,11 @@
 #include <QtXml/QDomDocument>
 #include <QDesktopServices>
 
-MainWindow::MainWindow(QString const & appName, QString const & version, QString const & splashImage )
-:
+MainWindow::MainWindow(QString const & appName, QString const & version, QString const & buildInformation, QString const & splashImage ):
 	QMainWindow(),
 	m_moduleDispatcher( new iAModuleDispatcher( this ) ),
-	m_gitVersion(version)
+	m_gitVersion(version),
+	m_buildInformation(buildInformation)
 {
 	setupUi(this);
 	setAcceptDrops(true);
@@ -1366,7 +1366,12 @@ void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 void MainWindow::about()
 {
 	m_splashScreen->show();
-	m_splashScreen->showMessage(tr("\n      Version: %1").arg (m_gitVersion), Qt::AlignTop, QColor(255, 255, 255));
+	m_splashScreen->showMessage(QString("\n      Version: %1").arg(m_gitVersion), Qt::AlignTop, QColor(255, 255, 255));
+}
+
+void MainWindow::buildInformation()
+{
+	QMessageBox::information(this, "Build Information", m_buildInformation, QMessageBox::Ok);
 }
 
 void MainWindow::wiki()
@@ -1603,6 +1608,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionReleases, &QAction::triggered, this, &MainWindow::wiki);
 	connect(actionBug, &QAction::triggered, this, &MainWindow::wiki);
 	connect(actionAbout, &QAction::triggered, this, &MainWindow::about);
+	connect(actionBuildInformation, &QAction::triggered, this, &MainWindow::buildInformation);
 
 	// Renderer toolbar:
 	connect(actionViewXDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::rendererCamPosition);
@@ -2308,7 +2314,7 @@ void MainWindow::initResources()
 }
 
 int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString const & version,
-	QString const & splashPath, QString const & iconPath)
+	QString const& buildInformation, QString const & splashPath, QString const & iconPath)
 {
 	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
 	MainWindow::initResources();
@@ -2338,7 +2344,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 	app.setAttribute(Qt::AA_ShareOpenGLContexts);
 	iAGlobalLogger::setLogger(iAConsole::instance());
-	MainWindow mainWin(appName, version, splashPath);
+	MainWindow mainWin(appName, version, buildInformation, splashPath);
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
 	mainWin.loadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!

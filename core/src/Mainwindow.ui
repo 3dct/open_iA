@@ -186,6 +186,7 @@
     <addaction name="actionReleases"/>
     <addaction name="actionBug"/>
     <addaction name="actionAbout"/>
+    <addaction name="actionBuildInformation"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -1035,6 +1036,11 @@
    </property>
    <property name="text">
     <string>Show Console</string>
+   </property>
+  </action>
+  <action name="actionBuildInformation">
+   <property name="text">
+    <string>Build Information</string>
    </property>
   </action>
  </widget>

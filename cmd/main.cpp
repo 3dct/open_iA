@@ -30,5 +30,5 @@ int main(int argc, char *argv[])
 	iAGlobalLogger::setLogger(iAStdOutLogger::get());
 	QFileInfo fi(argv[0]);
 	CheckSCIFIO(fi.absolutePath());
-	return ProcessCommandLine(argc, argv, VERSION);
+	return ProcessCommandLine(argc, argv, Open_iA_Version);
 }
