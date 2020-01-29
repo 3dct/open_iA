@@ -54,9 +54,6 @@ void iAImageProcessingHelper::performSegmentation(double greyThresholdMin, doubl
 		return;
 	}
 
-	DEBUG_LOG(QString("final threshold for segmentation is %1").arg(greyThresholdUpper));
-
-
 	if ((greyThresholdUpper < 0) || (greyThresholdUpper == std::numeric_limits<double>::infinity()) || (greyThresholdUpper == -std::numeric_limits<double>::infinity()))
 	{
 		DEBUG_LOG(QString("Threshold not valid %1 or negative, please report to developer, if negative values should be valid, aborted segmentation ").arg(0));
@@ -86,8 +83,6 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 	{
 		throw std::invalid_argument("Change order of values");
 	}
-
-	DEBUG_LOG(QString("Using values for segmentation %1 %2 ").arg(greyThresholdLower).arg(greyThresholdUpper));
 
 	iAConnector con;
 	con.setImage(m_childData->imageData());

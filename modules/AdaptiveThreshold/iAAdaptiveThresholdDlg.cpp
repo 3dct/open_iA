@@ -140,7 +140,6 @@ double iAAdaptiveThresholdDlg::segmentationStartValue() const
 
 void iAAdaptiveThresholdDlg::resetGraphToDefault()
 {
-	//DEBUG_LOG("reset to default");
 	this->initAxes(m_xMinRef, m_xMaxRef, m_yMinRef, m_yMaxRef, false);
 	this->ed_XMin->setText(QString("%1").arg(m_xMinRef));
 	this->ed_XMax->setText(QString("%1").arg(m_xMaxRef));

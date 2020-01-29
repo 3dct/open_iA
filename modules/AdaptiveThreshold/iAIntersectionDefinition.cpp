@@ -71,8 +71,6 @@ namespace intersection
 			y1 = (float) y_vals[start];
 			y2 = (float) y_vals[start + 1];
 
-			DEBUG_LOG(QString("segment %1 %2 %3 %4").arg(x1).arg(y1).arg(x2).arg(y2));
-
 			iAXYLine line(x1, y1, x2, y2);
 			xyLines.push_back(line);
 		}
