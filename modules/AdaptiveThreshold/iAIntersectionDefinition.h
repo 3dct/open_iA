@@ -38,26 +38,11 @@ namespace intersection
 		iAXYLine(float x1, float y1, float x2, float y2):QLineF(x1, y1, x2, y2) {};
 		iAXYLine(const QLineF &line):QLineF(line) {};
 
-		//can be also null if no intersection
-		QLineF::IntersectType calulateILineInterSection(const iAXYLine& other, QPointF* pt) const;
-
 		//calculates the intersection with of line segments with a current line;
 		void intersectWithLines(const QVector<iAXYLine> &QVector);
 
-
-		//the first line is taken for intersection calculation
-		const QVector<QPointF>& intersectionFromRange(const threshold_defs::iAParametersRanges& aRange);
-		//output vector with intersection points
-
 		//intersects a this line with some segments
 		const QVector<QPointF>& intersectionLineWithRange(const threshold_defs::iAParametersRanges& aRange);
-
-		inline const QString toString() const {
-			QString lineStr = "line ";
-			lineStr += QString("%1 %2").arg(this->p1().x()).arg(this->p1().y());
-			lineStr += QString("%1 %2").arg(this->p2().x()).arg(this->p2().y());
-			return lineStr;
-		}
 
 		inline const QVector<QPointF>& intersectionPoints() const {
 			return m_intersectPoints;

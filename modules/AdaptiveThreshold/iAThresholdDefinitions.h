@@ -99,18 +99,6 @@ namespace threshold_defs
 			return y_vals;
 		}
 
-
-		QString toString()
-		{
-			QString res = "";
-			size_t x_size = x_vals.size();
-			for (size_t i = 0; i < x_size; ++i)
-			{
-				QString	 tmp = QString("Pair %1 %2\n").arg(x_vals[i]).arg(y_vals[i]);
-				res += tmp;
-			}
-		}
-
 		double getXMin() const
 		{
 			double min = *std::min_element(std::begin(x_vals), std::end(x_vals));
@@ -301,7 +289,7 @@ namespace threshold_defs
 
 	struct iAPeakRanges
 	{
-		double XRangeMIn;
+		double XRangeMin;
 		double XRangeMax;
 
 		double HighPeakXmin;
@@ -328,16 +316,10 @@ namespace threshold_defs
 			this->m_ymax = ymax;
 		}
 
-		const QString & toString() const
-		{
-			QString output = "Range x1:x2, y1:y2 ";
-			return output += QString("%1, %2 %3, %4").arg(m_xmin).arg(m_xmax).arg(m_ymin).arg(m_ymax);
-		}
-
-		double getYMin() { return m_ymin; }
-		double getYMax() { return m_ymax; }
-		double getXMax() { return m_xmax;  }
-		double getxmin() { return m_xmin;  }
+		double getYMin() const { return m_ymin; }
+		double getYMax() const { return m_ymax; }
+		double getXMax() const { return m_xmax;  }
+		double getxmin() const { return m_xmin;  }
 
 	private:
 		double m_xmin;

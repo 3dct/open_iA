@@ -42,8 +42,8 @@ void iAAdaptiveThresholdModuleInterface::Initialize()
 	}
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * determineThreshold = new QAction( m_mainWnd );
-	determineThreshold->setText( QApplication::translate( "MainWindow", "AdaptiveThresholding", 0 ) );
-	AddActionToMenuAlphabeticallySorted(toolsMenu,  determineThreshold, false );
+	determineThreshold->setText( QApplication::translate( "MainWindow", "Adaptive Thresholding", 0 ) );
+	AddActionToMenuAlphabeticallySorted(toolsMenu,  determineThreshold, true);
 	connect( determineThreshold, SIGNAL( triggered() ), this, SLOT( determineThreshold() ) );
 }
 
@@ -61,28 +61,24 @@ https://doi.org/10.1016/j.compositesa.2019.04.029
 
 void iAAdaptiveThresholdModuleInterface::determineThreshold()
 {
+	if (!m_mainWnd->activeMdiChild())
+	{
+		DEBUG_LOG("No dataset avaiable, please load a dataset before.");
+		return;
+	}
+
+	auto hist = m_mainWnd->activeMdiChild()->histogram();
+	if (!hist || hist->plots().empty())
+	{
+		DEBUG_LOG("Current data does not have a histogram or histogram not ready");
+		return;
+	}
 	try
 	{
+
 		iAAdaptiveThresholdDlg dlg_thres;
-
-		if (!m_mainWnd->activeMdiChild())
-		{
-			DEBUG_LOG("data not avaiable, please load a data set before");
-			return;
-		}
-
-		auto hist = m_mainWnd->activeMdiChild()->histogram();
-		if (!hist || hist->plots().empty())
-		{
-			DEBUG_LOG("Current data does not have a histogram or histogram not ready");
-			return;
-		}
-
 		auto data = hist->plots()[0]->data();
 		dlg_thres.setHistData(data);
-
-		//load histogram data
-		dlg_thres.buttonLoadHistDataClicked();
 
 		/*
 		*Major Actions in dlg_AdaptiveThreshold.cpp:
@@ -91,7 +87,6 @@ void iAAdaptiveThresholdModuleInterface::determineThreshold()
 		*3: Determine final threshold- go for decision rule proposed in paper: determineIntersectionAndFinalThreshold
 		*4 perform Segmentation see below
 		*/
-		//determineIntersectionAndFinalThreshold
 		if (dlg_thres.exec() != QDialog::Accepted)
 		{
 			return;
@@ -100,7 +95,7 @@ void iAAdaptiveThresholdModuleInterface::determineThreshold()
 		iAImageProcessingHelper imgSegmenter(m_mainWnd->activeMdiChild());
 		// resulting threshold: lower and upper limit to obtain for segmentation
 
-		imgSegmenter.performSegmentation(dlg_thres.SegmentationStartValue(),dlg_thres.getResultingThreshold());
+		imgSegmenter.performSegmentation(dlg_thres.segmentationStartValue(), dlg_thres.resultingThreshold());
 	}
 	catch (std::exception& ex)
 	{

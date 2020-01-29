@@ -37,21 +37,10 @@ class QColor;
 namespace QtCharts
 {
 	class QLineSeries;
-	class QScatterSeries;
 	class QXYSeries;
 }
 
 //! @{ Create a line series
 QtCharts::QLineSeries* createLineSeries(const threshold_defs::iAParametersRanges& ranges);
-QtCharts::QLineSeries* createLineSeries(const std::vector<double>& vec_x,
-	const std::vector<double>& vec_y);
 QtCharts::QLineSeries* createLineSeries(const QPointF& pt_1, const QPointF& pt_2, LineVisOption option);
-//! @}
-
-//! @{ Create a scatter series
-QtCharts::QScatterSeries* createScatterSeries(const threshold_defs::iAParametersRanges& ranges);
-QtCharts::QScatterSeries* createScatterSeries(const std::vector<double>& vec_x,
-	const std::vector<double>& vec_y);
-QtCharts::QScatterSeries *createScatterSeries(const std::vector<QPointF> pts, double *pt_size);
-QtCharts::QScatterSeries *createScatterSeries(const QPointF& pt, double pt_size, const QColor* color);
 //! @}

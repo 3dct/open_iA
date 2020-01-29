@@ -21,10 +21,7 @@
 #include "iAChartVisHelper.h"
 #include "iAThresholdDefinitions.h"
 
-#include <iAConsole.h>
-
 #include <QLineSeries>
-#include <QScatterSeries>
 
 #include <vector>
 
@@ -32,8 +29,7 @@ void fillSeries(QtCharts::QXYSeries* aSeries, const std::vector<double>& vec_x, 
 {
 	if (!aSeries)
 	{
-		DEBUG_LOG("fillSeries: Empty series given!")
-			return;
+		throw std::invalid_argument("fillSeries: Empty series given!");
 	}
 	for (size_t ind = 0; ind < vec_x.size(); ++ind)
 	{
@@ -78,87 +74,5 @@ QtCharts::QLineSeries* createLineSeries(const QPointF& pt_1, const QPointF& pt_2
 	series->append(x_1, y_1);
 	series->append(x_2, y_2);
 
-	return series;
-}
-
-QtCharts::QScatterSeries* createScatterSeries(const std::vector<double>& vec_x, const std::vector<double>& vec_y)
-{
-	if (!((vec_x.size() > 0) && (vec_x.size() == vec_y.size())))
-	{
-		return nullptr;
-	}
-	auto series = new QtCharts::QScatterSeries;
-	fillSeries(series, vec_x, vec_y);
-	return series;
-
-}
-
-QtCharts::QScatterSeries* createScatterSeries(const threshold_defs::iAParametersRanges& ranges)
-{
-	const std::vector<double> x_series = ranges.getXRange();
-	const std::vector<double> y_series = ranges.getYRange();
-
-	if (x_series.empty() || y_series.empty())
-	{
-		return nullptr;
-	}
-
-	auto series = new QtCharts::QScatterSeries;
-	fillSeries(series, x_series, y_series);
-	return series;
-
-}
-
-QtCharts::QScatterSeries* createScatterSeries(const std::vector<QPointF> pts, double* pt_size)
-{
-	if (pts.empty())
-	{
-		DEBUG_LOG("createScatterSeries: Empty points given!")
-		return nullptr;
-	}
-
-	auto series = new QtCharts::QScatterSeries;
-	for (const QPointF& el : pts)
-	{
-		series->append(el);
-	}
-	if (pt_size)
-	{
-		if (*pt_size > 0)
-		{
-			series->setMarkerSize(*pt_size);
-		}
-	}
-	return series;
-}
-
-QtCharts::QScatterSeries* createScatterSeries(const QPointF& pt, double pt_size, const QColor *color)
-{
-	if (pt.isNull())
-	{
-		DEBUG_LOG("createScatterSeries: null pt given!")
-		return nullptr;
-	}
-	auto series = new QtCharts::QScatterSeries;
-	series->append(pt);
-	series->setMarkerShape(QtCharts::QScatterSeries::MarkerShapeRectangle);
-	if (color)
-	{
-		series->setColor(*color);
-	}
-
-	if (pt_size > 5.0) series->setMarkerSize(pt_size);
-	return series;
-
-}
-
-QtCharts::QLineSeries* createLineSeries(const std::vector<double> &vec_x, const std::vector<double> &vec_y)
-{
-	if (!((vec_x.size() > 0) && (vec_x.size() == vec_y.size())))
-	{
-		return nullptr;
-	}
-	auto series = new QtCharts::QLineSeries;
-	fillSeries(series, vec_x, vec_y);
 	return series;
 }

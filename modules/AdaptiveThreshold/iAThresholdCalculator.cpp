@@ -165,10 +165,10 @@ void iAThresholdCalculator::rangeFromParamRanges(const threshold_defs::iAParamet
 
 void iAThresholdCalculator::calculateMovingAverage(const std::vector<double> &v_in, std::vector<double> &v_out, unsigned int count)
 {
-	DEBUG_LOG("Calculate average");
+	//DEBUG_LOG("Calculate average");
 	if (v_in.size() == 0)
 	{
-		DEBUG_LOG("input lenght values are zero");
+		DEBUG_LOG("input length values are zero");
 		return;
 	}
 

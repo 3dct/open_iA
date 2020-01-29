@@ -30,16 +30,6 @@ namespace intersection
 	iAXYLine::iAXYLine()
 	{}
 
-	QLineF::IntersectType iAXYLine::calulateILineInterSection(const iAXYLine& other, QPointF* pt) const
-	{
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-		return this->intersects(other, pt);
-#else
-		return this->intersect(other, pt);
-#endif
-	}
-
-
 	void iAXYLine::intersectWithLines(const QVector<iAXYLine>& allLines)
 	{
 
@@ -64,8 +54,14 @@ namespace intersection
 		std::vector<double> x_vals = lineRange.getXRange();
 		std::vector<double> y_vals = lineRange.getYRange();
 
-		if (x_vals.empty() || y_vals.empty()) throw std::invalid_argument("xrange for intersection empty") ;
-		if (x_vals.size() != y_vals.size()) throw std::invalid_argument("y_range for intersection empty") ;
+		if (x_vals.empty() || y_vals.empty())
+		{
+			throw std::invalid_argument("xrange for intersection empty");
+		}
+		if (x_vals.size() != y_vals.size())
+		{
+			throw std::invalid_argument("y_range for intersection empty");
+		}
 		float x1, x2, y1, y2;
 
 		for (size_t start = 0; start < x_vals.size()-1; start++)
@@ -80,16 +76,6 @@ namespace intersection
 			iAXYLine line(x1, y1, x2, y2);
 			xyLines.push_back(line);
 		}
-	}
-
-	const QVector<QPointF>& iAXYLine::intersectionFromRange(const threshold_defs::iAParametersRanges& aRange)
-	{
-		QVector<iAXYLine> Lines;
-		createLineSegments(aRange, Lines);
-		DEBUG_LOG(QString("Line size %1").arg(Lines.size()));
-		iAXYLine aLine = Lines.takeFirst();
-		aLine.intersectWithLines(Lines);
-		return this->m_intersectPoints;
 	}
 
 	const QVector<QPointF>& iAXYLine::intersectionLineWithRange(const threshold_defs::iAParametersRanges& aRange)

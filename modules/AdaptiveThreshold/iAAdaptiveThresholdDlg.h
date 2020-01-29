@@ -21,7 +21,6 @@
 #pragma once
 
 #include "ui_AdaptiveThreshold.h"
-#include "iALoader.h"
 #include "iAThresholdCalculator.h"
 
 #include <charts/iAPlotData.h>
@@ -54,8 +53,6 @@ public:
 	//! Create a new dialog, all parameters are optional
 	iAAdaptiveThresholdDlg(QWidget * parent = 0, Qt::WindowFlags f = 0);
 
-	void enableComponents(bool setCompsVisible);
-
 	void setupUIActions();
 	void initChart();
 
@@ -67,29 +64,19 @@ public:
 
 	void setHistData(/*const*/ QSharedPointer<iAPlotData>& data);
 
-	inline double getResultingThreshold()
-	{
-		return m_thresCalculator.GetResultingThreshold();
-	}
-
-	double SegmentationStartValue() const { return segmentationStartValue; }
-	void SegmentationStartValue(double val) { segmentationStartValue = val; }
-	void buttonLoadHistDataClicked();
+	double resultingThreshold() const;
+	double segmentationStartValue() const;
 
 private slots:
 	void updateChartClicked();
-	void buttonLoadDataClicked();
-	void clear();
 	void resetGraphToDefault();
 	void calculateMovingAndVisualizeAverage();
 	void buttonSelectRangesClickedAndComputePeaks();
-	void enableCheckBox();
 	void determineIntersectionAndFinalThreshold();
-	void buttonNormalizedClicked();
 	void redrawPlots();
 	void rescaleToMinMax();
 	void updateSegmentationRange(bool updateRange);
-	void clearEditField();
+	void clearLog();
 
 private:
 	void computeNormalizeAndComputeLokalPeaks(threshold_defs::iAPeakRanges& ranges);
@@ -109,41 +96,17 @@ private:
 	void prepareAxis(QValueAxis *axis, const QString &title, double min, double max, uint ticks, axisMode mode);
 	void generateSampleData(bool addserries);
 	void determineMinMax(const std::vector<double> &xVal, const std::vector<double> &yVal);
-	void setOutputText(const QString& Text);
+	void logText(const QString& Text);
 	void setInputData(const std::vector<double> &thres_binInX, const std::vector<double> &freqValsInY);
 	//TODO Refactoring
 	void addAllSeries(std::vector<QXYSeries*> allSeries, bool disableMarker);
 
-	void setDefaultMinMax(double xMIn, double xMax, double yMin, double yMax);
-
 	void assignValuesFromField(threshold_defs::iAPeakRanges &Ranges);
 
-	inline void writeDebugText(const QString& Text)
-	{
-		if (Text.isNull() || Text.isEmpty())
-		{
-			return;
-		}
-		this->textEdit->append(Text);
-	}
+	void writeDebugText(const QString& Text);
 
-	inline void setTicks(uint xTicks, uint yTicks, bool update)
-	{
-		if ((xTicks > 0) && (yTicks > 0))
-		{
-			axisX->setTickCount(xTicks);
-			axisY->setTickCount(yTicks);
-		}
-		else
-		{
-			writeDebugText(QString("Please set a tick count greater 0"));
-		}
-		if (update)
-		{
-			m_chart->update();
-			m_chartView->update();
-		}
-	}
+	void setTicks(uint xTicks, uint yTicks, bool update);
+
 	void scaleGraphToMinMax(const threshold_defs::iAParametersRanges& ranges);
 
 	threshold_defs::iAMovingFreqs allMovingfreqs;
@@ -158,9 +121,7 @@ private:
 	bool updateValuesChecked = false;
 	bool runOnFirstTime = true;
 
-	iALoader m_seriesLoader;
-
-	double segmentationStartValue = 0;
+	double m_segmentationStartValue = 0;
 
 	const double minXDefault = 0; const double maxXDefault = 65535;
 	const double minYDefault = 0; const double maxYDefault = 40000;
