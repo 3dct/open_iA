@@ -28,7 +28,7 @@ void extractChannels(typename itk::VectorImage<InPixelType, DIM>::Pointer vector
 	typedef  itk::ImageFileWriter< OutputImageType  > WriterType;
 
 
-	for (int p = 0; p < vectorImg->GetVectorLength(); ++p)
+	for (unsigned int p = 0; p < vectorImg->GetVectorLength(); ++p)
 	{
 		auto indexSelectionFilter = IndexSelectionType::New();
 		indexSelectionFilter->SetIndex(p);
@@ -104,14 +104,10 @@ void createOutput(iAFilter* filter, QString dirname, bool tranformixActive, bool
 		jacobianImage->Update();
 		filter->addOutput(jacobianImage->GetOutput());
 
-
 		writeDeformationImage(filter, dirname, loadTransformixResult);
 
 		writeFullJacobian(filter, dirname, loadTransformixResult);
 	}
-
-
-
 }
 
 
@@ -201,21 +197,16 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 
 	}
 
-
-	
-
-	
-
 	QString fixedImagePath = dirname + "/fixed.mhd";
 	QString movingImagePath = dirname + "/moving.mhd";
 
 	typedef itk::Image<T, DIM> OutputImageType;
 	typedef  itk::ImageFileWriter< OutputImageType  > WriterType;
-	WriterType::Pointer fixedWriter = WriterType::New();
+	typename WriterType::Pointer fixedWriter = WriterType::New();
 	fixedWriter->SetFileName(fixedImagePath.toStdString());
 	fixedWriter->SetInput(dynamic_cast<OutputImageType *>(filter->input()[0]->itkImage()));
 
-	WriterType::Pointer movingWriter = WriterType::New();
+	typename WriterType::Pointer movingWriter = WriterType::New();
 	movingWriter->SetFileName(movingImagePath.toStdString());
 	movingWriter->SetInput(dynamic_cast<OutputImageType *>(filter->input()[1]->itkImage()));
 
@@ -224,7 +215,7 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 		fixedWriter->Update();
 		movingWriter->Update();
 	}
-	catch (itk::ExceptionObject & err)
+	catch (itk::ExceptionObject & /*err*/)
 	{
 		
 		throw  std::runtime_error(("Exception save temp files in directory" + dirname).toStdString());
@@ -243,7 +234,7 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 	{
 		createOutput(filter, dirname, params["Run Transformix"].toBool(), params["Load Files"].toBool());
 	}
-	catch(itk::ImageFileReaderException &err)
+	catch(itk::ImageFileReaderException & /*err*/)
 	{
 
 		throw std::runtime_error( "Error reading files please set a Outputdir and check Elastix/Transformix logs for more information");

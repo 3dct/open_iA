@@ -73,7 +73,7 @@ void createOutput(QList<QList<float>> data, QList<float> maxValues, float offset
 
 	ImageType::IndexType pixelIndex;
 
-	for each (QList<float> var in data)
+	for(QList<float> var: data)
 	{
 		pixelIndex[0] = (var[1] - offset[0]) / spacing[0];
 		pixelIndex[1] = (var[2] - offset[1]) / spacing[1];
