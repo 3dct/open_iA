@@ -39,8 +39,6 @@ namespace threshold_defs {
 	private:
 		QPointF getIntersectionPoint(const iAThresMinMax& results);
 
-		//fmin > fair /2
-		bool compareFminWithAirPeak(const iAThresMinMax& results);
 		QPointF getLokalMininum(const iAThresMinMax& results);
 
 	};

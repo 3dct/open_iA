@@ -38,7 +38,7 @@ namespace threshold_defs {
 		double fmin = results.FreqPeakMinY();
 		elem->append(QString("fmin: %1").arg(fmin));
 		//if fmin > fair/2 return first minimum gmin / fmin
-		if (compareFminWithAirPeak(results)) {
+		if (results.FreqPeakMinY() > results.fAirPeakHalf()) {
 
 			elem->append(QString("fmin: %1 is greater than fair/2: %2").arg(fmin).arg(results.fAirPeakHalf()));
 
@@ -71,11 +71,6 @@ namespace threshold_defs {
 			return resultingPoint;
 
 		}
-	}
-
-	bool iAThreshMinMaxHelper::compareFminWithAirPeak(const iAThresMinMax& results)
-	{
-		return (results.FreqPeakMinY() > results.fAirPeakHalf());
 	}
 
 	QPointF iAThreshMinMaxHelper::getIntersectionPoint(const iAThresMinMax& results)

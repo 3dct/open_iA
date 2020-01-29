@@ -190,7 +190,6 @@ namespace threshold_defs
 			freqPeakMinY = lokalMinY;
 			freqPeakLokalMaxY = lokalMaxY;
 			lokalPeakAirThrX = lokalMaxX;
-			m_custimizedMinMax = true;
 		}
 
 		double LokalMaxPeakThreshold_X() const { return lokalPeakAirThrX; }
@@ -233,11 +232,6 @@ namespace threshold_defs
 			return intersectionPoint;
 		}
 
-		bool custimizedMinMax()
-		{
-			return m_custimizedMinMax;
-		}
-
 		QString resultsToString(bool printFinalResult)
 		{
 			QString resSt = QString("Min peak %1  %2\n").arg(peakMinXThreshold).arg(freqPeakMinY);
@@ -245,7 +239,6 @@ namespace threshold_defs
 			resSt += QString("Intersection point %1 %2\n").arg(intersectionPoint.x()).arg(intersectionPoint.y());
 			resSt += QString("iso 50 %1\n").arg(Iso50ValueThr());
 			resSt += QString("Maximum Peak(Material) - Grey Value: %1\n").arg(MaterialPeakThrX);
-			//resSt += QString("Specified min max %1 %2").arg(specifiedMax).arg(specifiedMax);
 
 			if (printFinalResult)
 			{
@@ -269,16 +262,11 @@ namespace threshold_defs
 		double peakMinXThreshold;
 		double fPeakHalf;
 		double iso50ValueThr; //is this needed?
-		/*double iso50ValueFreq; */
 		double freqPeakLokalMaxY;
 		double lokalPeakAirThrX;
 		double MaterialPeakThrX; //Material value, at global maximum
 		QPointF intersectionPoint;
 		double determinedThreshold;
-		bool m_custimizedMinMax = false;
-		//todo is is this needed?
-		double specifiedMax;
-		double specifiedMin;
 		iAGreyThresholdPeaks m_peaks;
 	};
 
@@ -287,8 +275,7 @@ namespace threshold_defs
 	{
 		double XRangeMin;
 		double XRangeMax;
-
-		double HighPeakXmin;
+		double HighPeakXMin;
 		double HighPeakXMax;
 	};
 

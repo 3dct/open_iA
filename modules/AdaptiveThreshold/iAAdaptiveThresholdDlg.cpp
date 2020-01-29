@@ -244,7 +244,7 @@ void iAAdaptiveThresholdDlg::computeNormalizeAndComputeLokalPeaks(threshold_defs
 void iAAdaptiveThresholdDlg::peakNormalization(threshold_defs::iAParametersRanges& maxPeakMaterialRanges, threshold_defs::iAPeakRanges& ranges, threshold_defs::iAThresMinMax& resultingthrPeaks)
 {
 	//determine global maximum HighPeakRanges in specified intervall
-	m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, maxPeakMaterialRanges, ranges.HighPeakXmin, ranges.HighPeakXMax);
+	m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, maxPeakMaterialRanges, ranges.HighPeakXMin, ranges.HighPeakXMax);
 
 	std::vector<double> tmp_Max = maxPeakMaterialRanges.getXRange();
 
@@ -437,7 +437,7 @@ void iAAdaptiveThresholdDlg::determineIntersectionAndFinalThreshold()
 	}
 	if (m_greyThresholds.size() == 0)
 	{
-		logText("Workflow: \n1 Please load histogram data first\n 2 create Moving average\n 3 Specify Ranges of Peaks \n4  Calculate Intersection");
+		logText("Workflow: \n 1 Please load histogram data first\n 2 create Moving average\n 3 Specify Ranges of Peaks \n4  Calculate Intersection");
 		return;
 	}
 	if (m_movingFrequencies.size() == 0)
@@ -549,17 +549,15 @@ void iAAdaptiveThresholdDlg::visualizeFinalThreshold(double resThres)
 
 void iAAdaptiveThresholdDlg::assignValuesFromField(threshold_defs::iAPeakRanges &Ranges)
 {
-	bool* x_OK = new bool; bool* x2_OK = new bool;
-	bool* x3_oK = new bool; bool *x4_ok = new bool;
+	bool x1_ok, x2_ok, x3_ok, x4_ok;
 
-	Ranges.XRangeMin = this->ed_minRange->text().toDouble(x_OK);
-	Ranges.XRangeMax = this->ed_maxRange->text().toDouble(x2_OK);
-
-	Ranges.HighPeakXMax = this->ed_MaxPeakXRangeMax->text().toDouble(x3_oK);
-	Ranges.HighPeakXmin = this->ed_MaxPeakXRangeMin->text().toDouble(x4_ok);
+	Ranges.XRangeMin = this->ed_minRange->text().toDouble(&x1_ok);
+	Ranges.XRangeMax = this->ed_maxRange->text().toDouble(&x2_ok);
+	Ranges.HighPeakXMax = this->ed_MaxPeakXRangeMax->text().toDouble(&x3_ok);
+	Ranges.HighPeakXMin = this->ed_MaxPeakXRangeMin->text().toDouble(&x4_ok);
 
 
-	if ((!x_OK) || (!x2_OK) || (!x3_oK) || (!x4_ok) )
+	if ((!x1_ok) || (!x2_ok) || (!x3_ok) || (!x4_ok) )
 	{
 		logEdit->append("Invalid input!");
 		return;
@@ -569,11 +567,6 @@ void iAAdaptiveThresholdDlg::assignValuesFromField(threshold_defs::iAPeakRanges 
 		logEdit->append("Please check input parameters - ");
 		return;
 	}
-
-	delete x_OK;
-	delete x2_OK;
-	delete x3_oK;
-	delete x4_ok;
 }
 
 void iAAdaptiveThresholdDlg::scaleGraphToMinMax(const threshold_defs::iAParametersRanges& ranges)
