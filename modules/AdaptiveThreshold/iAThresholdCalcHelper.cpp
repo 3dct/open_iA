@@ -78,7 +78,7 @@ double iAThresholdCalcHelper::vectorSum(const std::vector<double>& vec, size_t s
 {
 	if (startInd >= vec.size() || endInd >= vec.size())
 	{
-		throw new std::invalid_argument("test");
+		throw std::invalid_argument("test");
 	}
 	double tmp = 0.0f;
 
@@ -91,7 +91,6 @@ double iAThresholdCalcHelper::vectorSum(const std::vector<double>& vec, size_t s
 
 	return tmp;
 }
-
 
 threshold_defs::iAThresIndx iAThresholdCalcHelper::findIndex(const std::vector<double>& vec, double cmpVal) const
 {
@@ -122,15 +121,12 @@ threshold_defs::iAThresIndx iAThresholdCalcHelper::findIndex(const std::vector<d
 
 threshold_defs::iAThresMinMax iAThresholdCalcHelper::calculateLocalePeaks(const threshold_defs::iAParametersRanges& inRanges) const
 {
-	double y_min = 0;
-	double y_max = 0;
 	std::vector<double> yRange = inRanges.getYRange();
 	std::vector<double> xRange = inRanges.getXRange();
 
 	//or copy this because the array is sorted
-	y_max = this->findMaxPeak(yRange);
-	y_min = this->findMinPeak(yRange);
-	//DEBUG_LOG(QString("peaks at y %1 %2").arg(y_max).arg(y_min));
+	double y_max = this->findMaxPeak(yRange);
+	double y_min = this->findMinPeak(yRange);
 
 	const auto indMax = this->findIndex(inRanges.getYRange(), y_max);
 	const auto indMin = this->findIndex(inRanges.getYRange(), y_min);

@@ -32,21 +32,6 @@ iAThresholdCalculator::iAThresholdCalculator()
 	m_newDataSeries = nullptr;
 }
 
-//double iAThresholdCalculator::vectorSum(const std::vector<double> &vec, size_t startInd, size_t endInd)
-//{
-//	if (startInd >= vec.size() || endInd >= vec.size()) throw new std::invalid_argument("test");
-//	double tmp = 0.0f;
-//
-//	size_t i = startInd;
-//	while (i <= endInd){
-//
-//		tmp += vec[i];
-//		++i;
-//	}
-//
-//	return tmp;
-//}
-
 void iAThresholdCalculator::testPeakDetect()
 {
 	std::vector<double> data{ 6.1, 8.0, 9.0, 14.1, 10.0,14.3, 12.1, 14.4 };

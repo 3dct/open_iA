@@ -30,19 +30,9 @@
 
 class QPointF;
 
-class ComparablePointFX
-{
-public:
-	bool operator()(const QPointF& p1, const QPointF& p2)
-	{
-		return p1.x() < p2.x();
-	}
-};
-
 class iAThresholdCalcHelper
 {
 public:
-	//iAThresholdCalcHelper();
 	double findMaxPeak(std::vector<double>& v_ind) const;
 	double findMinPeak(std::vector<double>& v_ind) const;
 	double vectorSum(const std::vector<double>& vec, size_t startInd, size_t endInd);
@@ -54,8 +44,6 @@ public:
 		const  QPointF& pt_1, const QPointF& pt2);
 
 	threshold_defs::iAThresIndx findIndex(const std::vector<double>& vec, double cmpVal) const;
-
-
 
 	threshold_defs::iAThresMinMax calculateLocalePeaks(const threshold_defs::iAParametersRanges& inRanges) const;
 
@@ -91,7 +79,10 @@ public:
 
 	inline void sortPointsByX(QVector<QPointF>& vec)
 	{
-		std::sort(vec.begin(), vec.end(), ComparablePointFX());
+		std::sort(vec.begin(), vec.end(), [](const QPointF & p1, const QPointF & p2)
+		{
+			return p1.x() < p2.x();
+		});
 	}
 
 	void PeakgreyThresholdNormalization(threshold_defs::iAParametersRanges& ranges, double greyThrPeakAir, double greyThrPeakMax);
