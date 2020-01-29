@@ -456,7 +456,7 @@ void iAAdaptiveThresholdDlg::determineIntersectionAndFinalThreshold()
 		QPointF LokalMaxHalfEnd(m_xMaxRef, lokalMaxHalf.y());
 
 		//prepare line for intersection with fpeak half
-		intersection::iAXYLine LinePeakHalf(lokalMaxHalf, LokalMaxHalfEnd);
+		QLineF LinePeakHalf(lokalMaxHalf, LokalMaxHalfEnd);
 
 		//points for intersection x,y - Werte of normalized Hist for Line Intersections
 		threshold_defs::iAParametersRanges Intersectranges;
@@ -467,7 +467,7 @@ void iAAdaptiveThresholdDlg::determineIntersectionAndFinalThreshold()
 		m_thresCalculator.rangeFromParamRanges(m_thresCalculator.getNormalizedRangedValues(), Intersectranges, xmin, xmax);
 		//determine line intersection
 		//create points for intersection
-		auto intersectionPoints = LinePeakHalf.intersectionLineWithRange(Intersectranges);
+		auto intersectionPoints = intersectLineWithRange(LinePeakHalf, Intersectranges);
 
 		QPointF ptIntersect(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity());
 

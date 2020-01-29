@@ -22,34 +22,13 @@
 
 #include "iAThresholdDefinitions.h"
 
+#include <QLineF>
+
 #include <iAConsole.h>
 
-namespace intersection
+namespace
 {
-
-	iAXYLine::iAXYLine()
-	{}
-
-	void iAXYLine::intersectWithLines(const QVector<iAXYLine>& allLines)
-	{
-
-		for (const iAXYLine& line : allLines)
-		{
-			QPointF pt_Intersect;
-
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-			auto interSectFlag = this->intersects(line, &pt_Intersect);
-#else
-			auto interSectFlag = this->intersect(line, &pt_Intersect);
-#endif
-			if ((!pt_Intersect.isNull()) && ( !(interSectFlag == QLineF::UnboundedIntersection)))
-			{
-				m_intersectPoints.push_back(pt_Intersect);
-			}
-		}
-	}
-
-	void createLineSegments(const threshold_defs::iAParametersRanges& lineRange, QVector<iAXYLine>& xyLines)
+	void createLineSegments(const threshold_defs::iAParametersRanges& lineRange, QVector<QLineF>& xyLines)
 	{
 		std::vector<double> x_vals = lineRange.getXRange();
 		std::vector<double> y_vals = lineRange.getYRange();
@@ -64,24 +43,37 @@ namespace intersection
 		}
 		float x1, x2, y1, y2;
 
-		for (size_t start = 0; start < x_vals.size()-1; start++)
+		for (size_t start = 0; start < x_vals.size() - 1; start++)
 		{
-			x1 =(float) x_vals[start];
-			x2 = (float) x_vals[start + 1];
-			y1 = (float) y_vals[start];
-			y2 = (float) y_vals[start + 1];
+			x1 = static_cast<float>(x_vals[start]);
+			x2 = static_cast<float>(x_vals[start + 1]);
+			y1 = static_cast<float>(y_vals[start]);
+			y2 = static_cast<float>(y_vals[start + 1]);
 
-			iAXYLine line(x1, y1, x2, y2);
+			QLineF line(x1, y1, x2, y2);
 			xyLines.push_back(line);
 		}
 	}
+}
 
-	const QVector<QPointF>& iAXYLine::intersectionLineWithRange(const threshold_defs::iAParametersRanges& aRange)
+QVector<QPointF> intersectLineWithRange(QLineF const& line, const threshold_defs::iAParametersRanges& aRange)
+{
+	QVector<QLineF> allLines;
+	createLineSegments(aRange, allLines);
+	QVector<QPointF> intersectPoints;
+	for (const QLineF& otherLine : allLines)
 	{
-		QVector<iAXYLine> Lines;
-		createLineSegments(aRange, Lines);
-		this->intersectWithLines(Lines);
-		return this->m_intersectPoints;
-	}
+		QPointF pt_Intersect;
 
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+		auto interSectFlag = line.intersects(otherLine, &pt_Intersect);
+#else
+		auto interSectFlag = line.intersect(otherLine, &pt_Intersect);
+#endif
+		if ((!pt_Intersect.isNull()) && (!(interSectFlag == QLineF::UnboundedIntersection)))
+		{
+			intersectPoints.push_back(pt_Intersect);
+		}
+	}
+	return intersectPoints;
 }

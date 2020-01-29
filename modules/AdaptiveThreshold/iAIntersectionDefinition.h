@@ -22,34 +22,10 @@
 
 #include "iAThresholdDefinitions.h"
 
-#include <QLineF>
 #include <QVector>
 
+class QLineF;
 class QPointF;
-class QString;
 
-namespace intersection
-{
-	class iAXYLine : protected QLineF
-	{
-	public:
-		iAXYLine();
-		iAXYLine(const QPointF& pt1, const QPointF& pt2):QLineF(pt1, pt2) {};
-		iAXYLine(float x1, float y1, float x2, float y2):QLineF(x1, y1, x2, y2) {};
-		iAXYLine(const QLineF &line):QLineF(line) {};
-
-		//calculates the intersection with of line segments with a current line;
-		void intersectWithLines(const QVector<iAXYLine> &QVector);
-
-		//intersects a this line with some segments
-		const QVector<QPointF>& intersectionLineWithRange(const threshold_defs::iAParametersRanges& aRange);
-
-		inline const QVector<QPointF>& intersectionPoints() const {
-			return m_intersectPoints;
-		};
-
-	private:
-		QVector<QPointF> m_intersectPoints;
-	};
-
-}
+//! intersects a line with some segments
+QVector<QPointF> intersectLineWithRange(QLineF const & line, const threshold_defs::iAParametersRanges& aRange);
