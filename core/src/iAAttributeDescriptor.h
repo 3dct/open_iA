@@ -53,6 +53,7 @@ public:
 	iAAttributeType attribType() const;
 	iAValueType valueType() const;
 	QVariant defaultValue() const;
+	void setDefaultValue(QVariant v);
 	virtual QSharedPointer<iANameMapper> nameMapper() const;
 	double min() const;
 	double max() const;

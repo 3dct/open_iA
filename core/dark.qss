@@ -225,7 +225,7 @@ QPushButton
 		/*border-radius: 0.3em;*/
 		padding: 0px 6px;
 		min-width: 3em;
-		min-height: 2em;
+		min-height: 1.5em;
 		color: rgba(230, 230, 230, 255);
 		background: qlineargradient(spread:pad,
 		x1:0, y1:0,

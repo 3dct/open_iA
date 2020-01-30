@@ -228,6 +228,11 @@ QVariant iAAttributeDescriptor::defaultValue() const
 	return m_defaultValue;
 }
 
+void iAAttributeDescriptor::setDefaultValue(QVariant v)
+{
+	m_defaultValue = v;
+}
+
 QString const & iAAttributeDescriptor::name() const
 {
 	return m_name;

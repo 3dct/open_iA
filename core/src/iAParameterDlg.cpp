@@ -149,7 +149,9 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 		case Discrete:
 		{
 			auto spinBox = new QSpinBox(m_container);
-			spinBox->setRange(p->min(), p->max());
+			int minValue = (p->min() < std::numeric_limits<int>::lowest()) ? std::numeric_limits<int>::lowest() : static_cast<int>(p->min());
+			int maxValue = (p->max() > std::numeric_limits<int>::max()) ? std::numeric_limits<int>::max() : static_cast<int>(p->max());
+			spinBox->setRange(minValue, maxValue);
 			spinBox->setObjectName(p->name());	// required for ROI (parses object name)
 			spinBox->setValue(p->defaultValue().toInt());
 			newWidget = spinBox;
@@ -183,7 +185,13 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 			break;
 		}
 		default:     // intentional fall-through
-		case String: // intentional fall-through
+		case String:
+		{
+			auto textEdit = new QLineEdit(m_container);
+			textEdit->setText(p->defaultValue().toString());
+			newWidget = textEdit;
+			break;
+		}
 		case Text:
 		{
 			auto plainTextEdit = new QPlainTextEdit(m_container);
@@ -434,7 +442,13 @@ QMap<QString, QVariant> iAParameterDlg::parameterValues() const
 			break;
 		}
 		default:     // intentional fall-through
-		case String: // intentional fall-through
+		case String:
+		{
+			QLineEdit* t = qobject_cast<QLineEdit*>(m_widgetList[i]);
+			assert(t);
+			result.insert(p->name(), t->text());
+			break;
+		}
 		case Text:
 		{
 			QPlainTextEdit* t = qobject_cast<QPlainTextEdit*>(m_widgetList[i]);
