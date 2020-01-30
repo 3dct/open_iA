@@ -38,8 +38,8 @@
 #include <iostream>
 
 iACommandLineProgressIndicator::iACommandLineProgressIndicator(int numberOfSteps, bool quiet) :
-	m_numberOfDots(clamp(1, 100, numberOfSteps)),
 	m_lastDots(0),
+	m_numberOfDots(clamp(1, 100, numberOfSteps)),
 	m_quiet(quiet)
 {
 	if (!quiet)
@@ -51,7 +51,9 @@ iACommandLineProgressIndicator::iACommandLineProgressIndicator(int numberOfSteps
 void iACommandLineProgressIndicator::Progress(int percent)
 {
 	if (m_quiet)
+	{
 		return;
+	}
 	int curDots = percent * m_numberOfDots / 100;
 	if (curDots > m_lastDots)
 	{
@@ -172,9 +174,13 @@ namespace
 			std::cout << p->name().toStdString() << "\tParameter\t"
 					<< ValueType2Str(p->valueType()).toStdString() << "\t";
 			if (p->valueType() == Continuous || p->valueType() == Discrete)
+			{
 				std::cout << p->min() << "\t" << p->max() << "\tLinear";
+			}
 			else if (p->valueType() == Categorical)
+			{
 				std::cout << "\t" << p->defaultValue().toStringList().join(",").toStdString();
+			}
 			std::cout << std::endl;
 		}
 	}
@@ -404,9 +410,11 @@ namespace
 				}
 				iAITKIO::writeFile(outFileName, filter->output()[o]->itkImage(), filter->output()[o]->itkScalarPixelType(), compress);
 			}
-			for (auto outputValue: filter->outputValues())
+			for (auto outputValue : filter->outputValues())
+			{
 				std::cout << outputValue.first.toStdString() << ": "
 					<< outputValue.second.toString().toStdString() << std::endl;
+			}
 
 			return 0;
 		}

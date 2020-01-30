@@ -73,10 +73,10 @@ public:
 
 	void setImage(vtkImageData * data); //todo is this necessary???
 	//just for testing
-	vtkRenderer * getCurrentRenderer() {
+	vtkRenderer * getCurrentRenderer()
+	{
 		return m_currentRenderer;
 	}
-
 
 	void setMovable(bool movable);
 

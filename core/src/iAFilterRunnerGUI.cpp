@@ -194,7 +194,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	return true;
 }
 
-void iAFilterRunnerGUI::filterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* /*mdiChild*/, MainWindow* /*mainWnd*/)
+void iAFilterRunnerGUI::filterGUIPreparations(QSharedPointer<iAFilter> /*filter*/, MdiChild* /*mdiChild*/, MainWindow* /*mainWnd*/)
 {
 }
 

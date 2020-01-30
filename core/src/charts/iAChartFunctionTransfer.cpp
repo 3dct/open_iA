@@ -38,11 +38,11 @@
 iAChartTransferFunction::iAChartTransferFunction(iAChartWithFunctionsWidget *chart, QColor color):
 	iAChartFunction(chart),
 	m_rangeSliderHandles(false),
+	m_selectedPoint(-1),
 	m_color(color),
 	m_colorDlg(new QColorDialog(chart)),
 	m_opacityTF(nullptr),
-	m_colorTF(nullptr),
-	m_selectedPoint(-1)
+	m_colorTF(nullptr)
 {
 	m_gradient.setSpread(QGradient::PadSpread);
 }

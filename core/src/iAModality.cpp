@@ -37,24 +37,24 @@
 
 iAModality::iAModality(QString const & name, QString const & filename, int channel,
 	vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
+	m_VolSettingsSavedStatus(false),
 	m_name(name),
 	m_filename(filename),
-	m_renderFlags(renderFlags),
 	m_channel(channel),
-	m_imgs(1),
-	m_VolSettingsSavedStatus(false),
-	m_channelID(NotExistingChannel)
+	m_renderFlags(renderFlags),
+	m_channelID(NotExistingChannel),
+	m_imgs(1)
 {
 	setData(imgData);
 }
 
 iAModality::iAModality(QString const & name, QString const & filename, std::vector<vtkSmartPointer<vtkImageData> > imgs, int renderFlags) :
+	m_VolSettingsSavedStatus(false),
 	m_name(name),
 	m_filename(filename),
-	m_renderFlags(renderFlags),
 	m_channel(-1),
-	m_imgs(imgs),
-	m_VolSettingsSavedStatus(false)
+	m_renderFlags(renderFlags),
+	m_imgs(imgs)
 {
 	setData(imgs[0]);
 }

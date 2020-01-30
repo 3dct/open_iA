@@ -30,14 +30,16 @@
 #include <QPainter>
 #include <QMouseEvent>
 
-iAChartFunctionBezier::iAChartFunctionBezier(iAChartWithFunctionsWidget *chart, QColor &color, bool res)
-	: iAChartFunction(chart),
-	m_selectedPoint(-1),
-	m_color(color)
+iAChartFunctionBezier::iAChartFunctionBezier(iAChartWithFunctionsWidget *chart, QColor &color, bool res):
+	iAChartFunction(chart),
+	m_color(color),
+	m_selectedPoint(-1)
 {
 	controlDist = chart->xRange() / 8;
 	if (res)
+	{
 		reset();
+	}
 }
 
 void iAChartFunctionBezier::draw(QPainter &painter)
@@ -192,19 +194,15 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 	int ly = chart->geometry().height() - event->y() - chart->bottomMargin();
 	int index = -1;
 
-	for (int pointIndex = 0; pointIndex < viewPoints.size(); pointIndex++)
+	for (size_t pointIndex = 0; pointIndex < viewPoints.size(); pointIndex++)
 	{
-
-		int viewX, viewY;
-
-		viewX = d2vX(viewPoints[pointIndex].x());
-		viewY = d2vY(viewPoints[pointIndex].y());
+		int viewX = d2vX(viewPoints[pointIndex].x());
+		int viewY = d2vY(viewPoints[pointIndex].y());
 
 		if ((pointIndex % 3 == 0 && lx >= viewX-iAChartWithFunctionsWidget::POINT_RADIUS && lx <= viewX+iAChartWithFunctionsWidget::POINT_RADIUS &&
 			ly >= viewY-iAChartWithFunctionsWidget::POINT_RADIUS && ly <= viewY+iAChartWithFunctionsWidget::POINT_RADIUS) ||
 			(lx >= viewX-iAChartWithFunctionsWidget::POINT_RADIUS/2 && lx <= viewX+iAChartWithFunctionsWidget::POINT_RADIUS/2 &&
 			ly >= viewY-iAChartWithFunctionsWidget::POINT_RADIUS/2 && ly <= viewY+iAChartWithFunctionsWidget::POINT_RADIUS/2))
-
 		{
 			index = pointIndex;
 			break;
@@ -213,9 +211,13 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 		if (x != nullptr)
 		{
 			if (*x == viewX)
-				*x = lx+1;
+			{
+				*x = lx + 1;
+			}
 			else
+			{
 				*x = lx;
+			}
 		}
 	}
 
@@ -300,7 +302,9 @@ void iAChartFunctionBezier::moveSelectedPoint(int x, int y)
 		x = clamp(0, chart->geometry().width() - 1, x);
 		y = clamp(0, static_cast<int>((chart->geometry().height() - chart->bottomMargin() - 1)*chart->yZoom()), y);
 		if (isEndPoint(m_selectedPoint))
+		{
 			y = 0;
+		}
 	}
 
 	int functionPointIndex = getFunctionPointIndex(m_selectedPoint);
@@ -404,7 +408,9 @@ size_t iAChartFunctionBezier::numPoints() const
 void iAChartFunctionBezier::mouseReleaseEvent(QMouseEvent*)
 {
 	if (m_selectedPoint != -1)
+	{
 		setViewPoint(m_selectedPoint);
+	}
 }
 
 void iAChartFunctionBezier::push_back(double x, double y)
@@ -459,7 +465,10 @@ void iAChartFunctionBezier::setViewPoint(int selectedPoint)
 		double pointY = realPoint.y();
 
 		int functionPointIndex = getFunctionPointIndex(selectedPoint);
-		if (functionPointIndex == selectedPoint) viewPoints[selectedPoint] = realPoint;
+		if (functionPointIndex == selectedPoint)
+		{
+			viewPoints[selectedPoint] = realPoint;
+		}
 		else
 		{
 			QPointF functionPoint = realPoints[functionPointIndex];
@@ -488,7 +497,9 @@ void iAChartFunctionBezier::setViewPoint(int selectedPoint)
 				}
 			}
 			else
+			{
 				viewPoints[selectedPoint] = realPoint;
+			}
 		}
 	}
 }
@@ -497,8 +508,14 @@ void iAChartFunctionBezier::setOppositeViewPoint(int selectedPoint)
 {
 	int functionPointIndex = getFunctionPointIndex(selectedPoint);
 	unsigned int oppositePointIndex;
-	if (functionPointIndex +1 == selectedPoint) oppositePointIndex = functionPointIndex-1;
-	else oppositePointIndex = functionPointIndex +1;
+	if (functionPointIndex + 1 == selectedPoint)
+	{
+		oppositePointIndex = functionPointIndex - 1;
+	}
+	else
+	{
+		oppositePointIndex = functionPointIndex + 1;
+	}
 
 	if (oppositePointIndex < realPoints.size())
 	{

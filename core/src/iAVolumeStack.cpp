@@ -24,11 +24,6 @@
 #include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
 
-iAVolumeStack::iAVolumeStack():
-	m_id(0)
-{
-}
-
 iAVolumeStack::~iAVolumeStack()
 {
 	while(!m_colorTFVector.empty())

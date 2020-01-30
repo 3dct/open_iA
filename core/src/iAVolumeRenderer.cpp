@@ -46,14 +46,14 @@ iAVolumeRenderer::iAVolumeRenderer(
 	iATransferFunction * transfer,
 	vtkSmartPointer<vtkImageData> imgData)
 :
-	m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
 	m_volume(vtkSmartPointer<vtkVolume>::New()),
+	m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
 	m_volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
+	m_currentRenderer(nullptr),
 	m_outlineFilter(vtkSmartPointer<vtkOutlineFilter>::New()),
 	m_outlineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_outlineActor(vtkSmartPointer<vtkActor>::New()),
-	m_currentRenderer(0),
-	m_currentBoundingBoxRenderer(0)
+	m_currentBoundingBoxRenderer(nullptr)
 {
 	m_isFlat = IsFlat(imgData->GetExtent());
 	if (!m_isFlat)
@@ -76,7 +76,9 @@ void iAVolumeRenderer::setImage(iATransferFunction * transfer, vtkSmartPointer<v
 {
 	m_isFlat = IsFlat(imgData->GetExtent());
 	if (m_isFlat)
+	{
 		return;
+	}
 	m_volMapper->SetInputData(imgData);
 	if ( imgData->GetNumberOfScalarComponents() > 1 )
 	{
@@ -111,7 +113,9 @@ void iAVolumeRenderer::setImage(vtkImageData * imgData)
 	volumeColor->AddRGBPoint(1150, 1.0, 1.0, 0.9);
 	m_isFlat = IsFlat(imgData->GetExtent());
 	if (m_isFlat)
+	{
 		return;
+	}
 	m_volMapper->SetInputData(imgData);
 	if (imgData->GetNumberOfScalarComponents() > 1)
 	{
@@ -213,7 +217,9 @@ void iAVolumeRenderer::addTo(vtkRenderer* r)
 		}
 	}
 	if (m_isFlat)
+	{
 		return;
+	}
 	r->AddVolume(m_volume);
 	m_currentRenderer = r;
 }
@@ -223,7 +229,9 @@ void iAVolumeRenderer::remove()
 	if (!m_currentRenderer)
 	{
 		if (!m_isFlat)
+		{
 			DEBUG_LOG("RemoveFromWindow called on VolumeRenderer which was not attached to a window!");
+		}
 		return;
 	}
 	m_currentRenderer->RemoveVolume(m_volume);
@@ -251,7 +259,9 @@ void iAVolumeRenderer::addBoundingBoxTo(vtkRenderer* w)
 void iAVolumeRenderer::removeBoundingBox()
 {
 	if (!m_currentBoundingBoxRenderer)
+	{
 		return;
+	}
 	m_currentBoundingBoxRenderer->RemoveActor(m_outlineActor);
 	m_currentBoundingBoxRenderer = nullptr;
 }
@@ -259,7 +269,9 @@ void iAVolumeRenderer::removeBoundingBox()
 void iAVolumeRenderer::updateBoundingBox()
 {
 	if (!m_currentBoundingBoxRenderer)
+	{
 		return;
+	}
 	m_outlineActor->SetOrientation(m_volume->GetOrientation());
 	m_outlineActor->SetPosition(m_volume->GetPosition());
 }
@@ -303,7 +315,9 @@ void iAVolumeRenderer::setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3
 void iAVolumeRenderer::removeCuttingPlanes()
 {
 	if (m_isFlat)
+	{
 		return;
+	}
 	m_volMapper->RemoveAllClippingPlanes();
 }
 
@@ -311,7 +325,9 @@ void iAVolumeRenderer::removeCuttingPlanes()
 void iAVolumeRenderer::showVolume(bool visible)
 {
 	if (m_isFlat)
+	{
 		return;
+	}
 	m_volume->SetVisibility(visible);
 }
 

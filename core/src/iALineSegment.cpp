@@ -27,9 +27,9 @@
 
 iALineSegment::iALineSegment():
 	points(vtkSmartPointer<vtkPoints>::New()),
-	lineSource(vtkSmartPointer<vtkLineSource>::New()),
+	actor(vtkSmartPointer<vtkActor>::New()),
 	mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	actor(vtkSmartPointer<vtkActor>::New())
+	lineSource(vtkSmartPointer<vtkLineSource>::New())
 {
 	points->Allocate(2);
 	points->SetPoint(0, 0,0,0);

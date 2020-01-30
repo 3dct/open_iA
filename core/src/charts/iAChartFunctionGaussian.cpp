@@ -33,13 +33,15 @@
 iAChartFunctionGaussian::iAChartFunctionGaussian(iAChartWithFunctionsWidget *chart, QColor &color, bool res):
 	iAChartFunction(chart),
 	m_color(color),
-	m_sigma(0.0),
+	m_selectedPoint(-1),
 	m_mean(0.0),
-	m_multiplier(0.0),
-	m_selectedPoint(-1)
+	m_sigma(0.0),
+	m_multiplier(0.0)
 {
 	if (res)
+	{
 		reset();
+	}
 }
 
 void iAChartFunctionGaussian::draw(QPainter &painter)

@@ -35,8 +35,6 @@ class vtkPiecewiseFunction;
 class open_iA_Core_API iAVolumeStack
 {
 	public:
-
-		iAVolumeStack();
 		~iAVolumeStack();
 
 		vtkImageData* volume(int i);
@@ -53,7 +51,6 @@ class open_iA_Core_API iAVolumeStack
 		std::vector<QString> * fileNames();
 
 	private:
-		int m_id;
 		std::vector<vtkSmartPointer<vtkImageData> > m_volumes;
 		std::vector<vtkColorTransferFunction*> m_colorTFVector;
 		std::vector<vtkPiecewiseFunction*> m_opacityTFVector;

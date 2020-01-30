@@ -115,8 +115,8 @@ iAConnector::iAConnector() :
 	m_isTypeInitialized(false),
 	m_itkPixelType( itk::ImageIOBase::UNKNOWNPIXELTYPE ),
 	m_isPixelTypeInitialized( false ),
-	m_vtkImporter(vtkSmartPointer<vtkImageImport>::New()),
-	m_vtkExporter(vtkSmartPointer<vtkImageExport>::New())
+	m_vtkExporter(vtkSmartPointer<vtkImageExport>::New()),
+	m_vtkImporter(vtkSmartPointer<vtkImageImport>::New())
 {}
 
 void iAConnector::setImage(ImageBaseType * image)

@@ -49,6 +49,7 @@
 #include <vtkProperty.h>
 
 
+/*
 namespace
 {
 	//set the coords based on a slicer mode, keep other one fixed
@@ -77,6 +78,7 @@ namespace
 		}
 	}
 }
+*/
 
 vtkStandardNewMacro(iAvtkInteractStyleActor);
 

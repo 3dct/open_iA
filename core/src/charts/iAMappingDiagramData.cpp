@@ -20,9 +20,11 @@
 * ************************************************************************************/
 #include "iAMappingDiagramData.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 
+// TODO: Check if this can be replaced with vtkMath::Round
 #if (defined(_MSC_VER) && _MSC_VER < 1800)
 static inline double Round(double val)
 {
@@ -47,10 +49,7 @@ iAMappingDiagramData::iAMappingDiagramData(DataType const * data,
 	m_yBounds[0] = 0;
 	m_yBounds[1] = maxValue;
 	// get scale factor from all source data
-	DataType myMax = 0;
-	for (size_t i=0; i<srcNumBin; ++i)
-		if (data[i] > myMax)
-			myMax = data[i];
+	DataType myMax = *std::max_element(data, data+srcNumBin);
 	double scaleFactor = static_cast<double>(maxValue) / myMax;
 
 	// map source data to target indices:
@@ -59,7 +58,7 @@ iAMappingDiagramData::iAMappingDiagramData(DataType const * data,
 		double sourceIdxDbl = ((i * m_spacing) + targetMinX - srcMinX) / srcSpacing ;
 		int sourceIdx = static_cast<int>(Round(sourceIdxDbl));
 
-		m_data[i] = (sourceIdx >= 0 && sourceIdx < srcNumBin) ?
+		m_data[i] = (sourceIdx >= 0 && static_cast<size_t>(sourceIdx) < srcNumBin) ?
 			static_cast<DataType>(data[sourceIdx] * scaleFactor) : 0;
 	}
 }

@@ -319,6 +319,7 @@ void iAModalityList::applyCameraSettings(vtkCamera* camera)
 	m_camSettingsAvailable = false;
 }
 
+/*
 namespace
 {
 	QString GetMeasurementString(QSharedPointer<iAModality> mod)
@@ -331,6 +332,7 @@ namespace
 			QString::number(mod->spacing()[2]) + ")";
 	}
 }
+*/
 
 void iAModalityList::add(QSharedPointer<iAModality> mod)
 {
@@ -413,7 +415,7 @@ ModalityCollection iAModalityList::load(QString const & filename, QString const 
 	io.start();
 	io.wait();
 	QString nameBase = name.isEmpty() ? fileInfo.baseName() : name;
-	if (volumes.size() > 1 && (channel < 0 || channel > volumes.size()))
+	if (volumes.size() > 1 && (channel < 0 || static_cast<size_t>(channel) > volumes.size()))
 	{
 		if (split) // load one modality for each channel
 		{

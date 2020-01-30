@@ -53,15 +53,15 @@ void iASlicerProfile::setVisibility( bool isVisible )
 	m_plotActorHalo->SetVisibility(isVisible);
 }
 
-iASlicerProfile::iASlicerProfile()
-	:m_plotScaleFactor(0),
-	m_plotPoints( vtkSmartPointer<vtkPoints>::New() ),
-	m_plotPolyLine( vtkSmartPointer<vtkPolyLine>::New() ),
-	m_plotCells( vtkSmartPointer<vtkCellArray>::New() ),
-	m_plotPolyData( vtkSmartPointer<vtkPolyData>::New() ),
-	m_plotMapper( vtkSmartPointer<vtkPolyDataMapper>::New() ),
-	m_plotActor( vtkSmartPointer<vtkActor>::New() ),
-	m_plotActorHalo( vtkSmartPointer<vtkActor>::New() )
+iASlicerProfile::iASlicerProfile():
+	m_plotPolyLine(vtkSmartPointer<vtkPolyLine>::New()),
+	m_plotCells(vtkSmartPointer<vtkCellArray>::New()),
+	m_plotPolyData(vtkSmartPointer<vtkPolyData>::New()),
+	m_plotPoints(vtkSmartPointer<vtkPoints>::New()),
+	m_plotActor(vtkSmartPointer<vtkActor>::New()),
+	m_plotActorHalo(vtkSmartPointer<vtkActor>::New()),
+	m_plotMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_plotScaleFactor(0)
 {
 	m_profileLine.actor->GetProperty()->SetColor(0.59, 0.73, 0.94);//ffa800//150, 186, 240
 	m_profileLine.actor->GetProperty()->SetLineWidth(3.0);

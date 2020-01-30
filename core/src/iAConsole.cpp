@@ -130,11 +130,11 @@ QString iAConsole::logFileName() const
 }
 
 iAConsole::iAConsole() :
+	m_logFileName("debug.log"),
 	m_console(new dlg_console()),
 	m_logToFile(false),
 	m_closed(false),
-	m_fileLogError(false),
-	m_logFileName("debug.log")
+	m_fileLogError(false)
 {
 	// redirect VTK and ITK output to console window:
 	m_vtkOutputWindow = vtkSmartPointer<iARedirectVtkOutput>::New();

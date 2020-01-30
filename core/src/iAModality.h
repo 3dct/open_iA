@@ -128,7 +128,6 @@ private:
 	iAVolumeSettings m_volSettings;
 	bool m_VolSettingsSavedStatus;
 
-
 	QString m_name;
 	QString m_filename;
 	int     m_channel;     //!< in case the file contains multiple channels, the channel no. for this modality

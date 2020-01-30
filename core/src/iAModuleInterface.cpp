@@ -60,9 +60,9 @@ void iAModuleInterface::SetDispatcher( iAModuleDispatcher * dispatcher )
 }
 
 iAModuleInterface::iAModuleInterface():
+	m_mainWnd(nullptr),
 	m_dispatcher(nullptr),
-	m_mdiChild(nullptr),
-	m_mainWnd(nullptr)
+	m_mdiChild(nullptr)
 {}
 
 void iAModuleInterface::PrepareActiveChild()

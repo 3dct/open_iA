@@ -1282,8 +1282,6 @@ namespace
 
 	const double FisheyeMinRadius = 4.0;
 	const double FisheyeMaxRadius = 220.0;
-	const double FisheyeRadiusDefault = 80.0;
-	const double FisheyeInnerRadiusDefault = 70.0;
 
 	double fisheyeMinInnerRadius(double radius) { return std::max(1, static_cast<int>((radius - 1) * 0.7)); }
 }
