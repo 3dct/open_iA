@@ -143,7 +143,7 @@ void iAStackReaderFilter::performWork(QMap<QString, QVariant> const & parameters
 IAFILTER_CREATE(iAStackReaderFilter)
 
 iAStackReaderFilter::iAStackReaderFilter() :
-	iAFilter("Image Stack Reader", "Readers",
+	iAFilter("Image Stack Reader", "Input",
 		"Read an image stack.<br/>"
 		"Minimum and maximum index are automatically determined "
 		"from the given folder name, spacing and datatype can be adapted.", 0, 1)
