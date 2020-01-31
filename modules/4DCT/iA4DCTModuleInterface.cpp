@@ -64,7 +64,10 @@ iA4DCTModuleInterface::~iA4DCTModuleInterface( )
 void iA4DCTModuleInterface::Initialize( )
 {
 	if (!m_mainWnd)
+	{
 		return;
+	}
+	Q_INIT_RESOURCE(4DCT);
 	QMenu* toolsMenu = m_mainWnd->toolsMenu( );
 	QMenu* menu4DCT = getMenuWithTitle(toolsMenu, tr("4DCT"), false);
 
