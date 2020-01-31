@@ -52,9 +52,10 @@ public:
 		layout()->setSpacing(0);
 		setContentsMargins(0, 0, 0, 0);
 		layout()->setContentsMargins(0, 0, 0, 0);
+		layout()->setAlignment(Qt::AlignCenter);
 		layout()->addWidget(m_textEdit);
 		layout()->addWidget(m_browseButton);
-		m_browseButton->setFixedHeight(16);
+		m_browseButton->setStyleSheet("min-height: 1.2em;");
 		connect(m_browseButton, &QPushButton::clicked, this, &iAFileChooserWidget::BrowseClicked);
 		connect(m_textEdit, &QLineEdit::editingFinished, this, &iAFileChooserWidget::emitChangedFileName);
 	}
