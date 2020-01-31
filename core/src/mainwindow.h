@@ -123,6 +123,7 @@ public:
 	MdiChild *createMdiChild(bool unsavedChanges);
 	void closeMdiChild(MdiChild* child);
 	void closeAllSubWindows();
+	void updateInteractionModeControls(int mode);
 
 protected:
 	void closeEvent(QCloseEvent *event) override;
@@ -163,8 +164,11 @@ private slots:
 	void changeColor();
 	void resetView();
 	void resetTrf();
+	void changeInteractionMode(bool isChecked);
+	void meshDataMovable(bool isChecked);
 	void toggleSnakeSlicer(bool isChecked);
 	void toggleMagicLens(bool isChecked);
+	void toggleMagicLens3D(bool isChecked);
 	void rendererCamPosition();
 	void raycasterAssignIso();
 	void raycasterSaveCameraSettings();
@@ -181,7 +185,6 @@ private slots:
 	void resetLayout();
 	void deleteLayout();
 	void toggleSliceProfile(bool isChecked);
-	void childActivatedSlot(QMdiSubWindow *wnd);
 	void updateMenus();
 	void updateWindowMenu();
 	void setActiveSubWindow(QWidget *window);

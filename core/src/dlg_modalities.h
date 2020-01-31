@@ -71,10 +71,10 @@ public:
 	void selectRow(int idx);
 	void enableUI();
 	void setFileName(int modality, QString const & fileName);
+	void setInteractionMode(bool manualRegistration);
 public slots:
 	//! add modality to list, create transfer function, add volume to renderers
 	void modalityAdded(QSharedPointer<iAModality> mod);
-	void interactorModeSwitched(int newMode);
 signals:
 	void modalityAvailable(int modalityIdx);
 	void modalitySelected(int modalityIdx);
@@ -85,12 +85,6 @@ private slots:
 	void removeClicked();
 	void editClicked();
 
-	//! toggle manual movement / registration of one object to another
-	void manualRegistration();
-	void meshActive();
-
-	void magicLens();
-	//void CuttingPlane();
 	void rendererMouseMoved();
 	void enableButtons();
 

@@ -6,203 +6,102 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>256</width>
-    <height>210</height>
+    <width>100</width>
+    <height>100</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>237</width>
-    <height>148</height>
+    <width>100</width>
+    <height>100</height>
    </size>
   </property>
   <property name="features">
    <set>QDockWidget::DockWidgetFeatureMask</set>
   </property>
   <property name="windowTitle">
-   <string>Data Modalities</string>
+   <string>Data</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
-   <layout class="QHBoxLayout" name="horizontalLayout_3">
+   <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
-     <number>0</number>
+     <number>4</number>
     </property>
     <property name="topMargin">
-     <number>0</number>
+     <number>4</number>
     </property>
     <property name="rightMargin">
-     <number>0</number>
+     <number>4</number>
     </property>
     <property name="bottomMargin">
-     <number>0</number>
+     <number>4</number>
     </property>
-    <item>
-     <widget class="QSplitter" name="splitter_2">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+    <property name="spacing">
+     <number>4</number>
+    </property>
+    <item row="0" column="1">
+     <widget class="QPushButton" name="pbAdd">
+      <property name="enabled">
+       <bool>false</bool>
       </property>
-      <widget class="QSplitter" name="splitter">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <widget class="QWidget" name="dataList" native="true">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>1</horstretch>
-          <verstretch>2</verstretch>
-         </sizepolicy>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_2">
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item row="0" column="0" rowspan="9">
-          <widget class="QListWidget" name="lwModalities"/>
-         </item>
-         <item row="6" column="1">
-          <widget class="QWidget" name="wdLoadStore" native="true">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <property name="spacing">
-             <number>4</number>
-            </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-           </layout>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <layout class="QHBoxLayout" name="horizontalLayout_4">
-           <item>
-            <widget class="QPushButton" name="pbAdd">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="icon">
-              <iconset resource="../open_iA.qrc">
-               <normaloff>:/images/add.png</normaloff>:/images/add.png</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pbRemove">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="icon">
-              <iconset resource="../open_iA.qrc">
-               <normaloff>:/images/minus.png</normaloff>:/images/minus.png</iconset>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item row="5" column="1">
-          <widget class="QCheckBox" name="cbManualRegistration">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>Manual Registration</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QWidget" name="wdAddRemove" native="true">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <property name="spacing">
-             <number>4</number>
-            </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-           </layout>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QPushButton" name="pbEdit">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>Edit</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QCheckBox" name="cbShowMagicLens">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>3D Magic Lens</string>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="1">
-          <widget class="QToolButton" name="tbMeshActive">
-           <property name="text">
-            <string>Mesh Active</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextOnly</enum>
-           </property>
-           <property name="autoRaise">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </widget>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset resource="../open_iA.qrc">
+        <normaloff>:/images/add.png</normaloff>:/images/add.png</iconset>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QPushButton" name="pbEdit">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset resource="../open_iA.qrc">
+        <normaloff>:/images/document-edit.png</normaloff>:/images/document-edit.png</iconset>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="1" column="1">
+     <widget class="QPushButton" name="pbRemove">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset resource="../open_iA.qrc">
+        <normaloff>:/images/minus.png</normaloff>:/images/minus.png</iconset>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" rowspan="4">
+     <widget class="QListWidget" name="lwModalities">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
      </widget>
     </item>
    </layout>

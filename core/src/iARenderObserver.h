@@ -126,5 +126,5 @@ private:
 
 Q_SIGNALS:
 	void clicked(int x, int y, int z);
-	void interactorModeSwitched(int newMode);
+	void keyPressed(int keyCode);
 };

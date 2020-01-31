@@ -124,7 +124,8 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_currentModality(0),
 	m_currentComponent(0),
 	m_currentHistogramModality(-1),
-	m_initVolumeRenderers(false)
+	m_initVolumeRenderers(false),
+	m_interactionMode(imCamera)
 {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
@@ -192,6 +193,15 @@ void MdiChild::toggleFullScreen()
 		mdiSubWin->setWindowFlags(windowFlags() & ~Qt::FramelessWindowHint);
 	}
 	mdiSubWin->show();
+}
+
+void MdiChild::rendererKeyPressed(int keyCode)
+{
+	if (keyCode == 'a' || keyCode == 'c')
+	{
+		iAInteractionMode mode = (keyCode == 'a') ? imCamera : imRegistration;
+		setInteractionMode(mode);
+	}
 }
 
 MdiChild::~MdiChild()
@@ -616,6 +626,7 @@ vtkPolyData* MdiChild::polyData()
 {
 	return m_polyData;
 }
+
 iARenderer* MdiChild::renderer()
 {
 	return m_renderer;
@@ -1357,7 +1368,7 @@ bool MdiChild::editPrefs(iAPreferences const& prefs)
 	}
 	setHistogramModality(m_currentModality);	// to update Histogram bin count
 	applyViewerPreferences();
-	if (isMagicLensToggled())
+	if (isMagicLens2DEnabled())
 	{
 		updateSlicers();
 	}
@@ -1781,7 +1792,7 @@ bool MdiChild::isSliceProfileToggled(void) const
 	return m_isSliceProfileEnabled;
 }
 
-void MdiChild::toggleMagicLens(bool isEnabled)
+void MdiChild::toggleMagicLens2D(bool isEnabled)
 {
 	m_isMagicLensEnabled = isEnabled;
 
@@ -1795,9 +1806,26 @@ void MdiChild::toggleMagicLens(bool isEnabled)
 	emit magicLensToggled(m_isMagicLensEnabled);
 }
 
-bool MdiChild::isMagicLensToggled(void) const
+void MdiChild::toggleMagicLens3D(bool isEnabled)
+{
+	if (isEnabled)
+	{
+		m_dwRenderer->vtkWidgetRC->magicLensOn();
+	}
+	else
+	{
+		m_dwRenderer->vtkWidgetRC->magicLensOff();
+	}
+}
+
+bool MdiChild::isMagicLens2DEnabled() const
 {
 	return m_isMagicLensEnabled;
+}
+
+bool MdiChild::isMagicLens3DEnabled() const
+{
+	return m_dwRenderer->vtkWidgetRC->isMagicLensEnabled();
 }
 
 bool MdiChild::initView(QString const& title)
@@ -1805,7 +1833,7 @@ bool MdiChild::initView(QString const& title)
 	if (!m_raycasterInitialized)
 	{
 		m_renderer->initialize(m_imageData, m_polyData);
-		connect(m_renderer->getRenderObserver(), SIGNAL(interactorModeSwitched(int)), m_dwModalities, SLOT(interactorModeSwitched(int)));
+		connect(m_renderer->getRenderObserver(), &iARenderObserver::keyPressed, this, &MdiChild::rendererKeyPressed);
 		m_raycasterInitialized = true;
 	}
 	if (modalities()->size() == 0 && isVolumeDataLoaded())
@@ -2546,7 +2574,7 @@ void MdiChild::changeMagicLensOpacity(int chg)
 
 void MdiChild::changeMagicLensSize(int chg)
 {
-	if (!isMagicLensToggled())
+	if (!isMagicLens2DEnabled())
 	{
 		return;
 	}
@@ -2853,6 +2881,29 @@ void MdiChild::addProject(QString const& key, QSharedPointer<iAProjectBase> proj
 QMap<QString, QSharedPointer<iAProjectBase>> const& MdiChild::projects()
 {
 	return m_projects;
+}
+
+MdiChild::iAInteractionMode MdiChild::interactionMode() const
+{
+	return m_interactionMode;
+}
+
+void MdiChild::setInteractionMode(iAInteractionMode mode)
+{
+	m_interactionMode = mode;
+	m_mainWnd->updateInteractionModeControls(mode);
+	m_dwModalities->setInteractionMode(mode == imRegistration);
+}
+
+bool MdiChild::meshDataMovable()
+{
+	return renderer()->polyActor()->GetDragable();
+}
+
+void MdiChild::setMeshDataMovable(bool movable)
+{
+	renderer()->polyActor()->SetPickable(movable);
+	renderer()->polyActor()->SetDragable(movable);
 }
 
 MainWindow* MdiChild::mainWnd()

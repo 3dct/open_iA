@@ -102,7 +102,7 @@ iAXRFAttachment::~iAXRFAttachment()
 void iAXRFAttachment::reInitXRF()
 {
 	vtkSmartPointer<vtkImageData> img = dlgXRF->GetCombinedVolume();
-	if (m_child->isMagicLensToggled())
+	if (m_child->isMagicLens2DEnabled())
 		m_child->reInitMagicLens(m_xrfChannelID, "Spectral Color Image", img, dlgXRF->GetColorTransferFunction());
 	if (m_child->channelData(m_xrfChannelID) && m_child->channelData(m_xrfChannelID)->isEnabled())
 		m_child->updateChannel(m_xrfChannelID, img, dlgXRF->GetColorTransferFunction(), nullptr, false);
@@ -129,7 +129,7 @@ void iAXRFAttachment::initXRF( bool enableChannel )
 	chData->setName("Spectral Color Image");
 	// TODO: initialize channel?
 	m_child->initChannelRenderer(m_xrfChannelID, false, enableChannel );
-	bool isMagicLensEnabled = m_child->isMagicLensToggled();
+	bool isMagicLensEnabled = m_child->isMagicLens2DEnabled();
 	if( enableChannel )
 	{
 		updateSlicerXRFOpacity();
@@ -303,7 +303,7 @@ void iAXRFAttachment::visualizeXRF( int isOn )
 void iAXRFAttachment::updateXRF()
 {
 	iAChannelData * chData = m_child->channelData(m_xrfChannelID);
-	bool isMagicLensEnabled = m_child->isMagicLensToggled();
+	bool isMagicLensEnabled = m_child->isMagicLens2DEnabled();
 	if( !chData || (!chData->isEnabled() && !isMagicLensEnabled) )
 	{
 		return;

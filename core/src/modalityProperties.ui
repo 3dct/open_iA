@@ -6,152 +6,115 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>305</width>
-    <height>548</height>
+    <width>218</width>
+    <height>510</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Data Modality Properties</string>
+   <string>Data Properties</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="QWidget" name="gridWidget" native="true">
-     <layout class="QGridLayout" name="gridLayout_2">
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item row="6" column="0" colspan="2">
-       <widget class="QLabel" name="label_8">
-        <property name="text">
-         <string>Origin</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0" colspan="2">
-       <widget class="QLabel" name="label_7">
-        <property name="text">
-         <string>Spacing</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2" colspan="3">
-       <widget class="QLineEdit" name="edChannel">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2" colspan="3">
-       <widget class="QLineEdit" name="edFilename">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="4">
-       <widget class="QLineEdit" name="edSpacingZ"/>
-      </item>
-      <item row="3" column="2">
-       <widget class="QLineEdit" name="edOrientationX"/>
-      </item>
-      <item row="6" column="2">
-       <widget class="QLineEdit" name="edOriginX"/>
-      </item>
-      <item row="6" column="3">
-       <widget class="QLineEdit" name="edOriginY"/>
-      </item>
-      <item row="2" column="0" colspan="2">
-       <widget class="QLabel" name="lbChannel">
-        <property name="text">
-         <string>Channel</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="4">
-       <widget class="QLineEdit" name="edOrientationZ"/>
-      </item>
-      <item row="0" column="2" colspan="3">
-       <widget class="QLineEdit" name="edName"/>
-      </item>
-      <item row="6" column="4">
-       <widget class="QLineEdit" name="edOriginZ"/>
-      </item>
-      <item row="3" column="3">
-       <widget class="QLineEdit" name="edOrientationY"/>
-      </item>
-      <item row="5" column="2">
-       <widget class="QLineEdit" name="edSpacingX"/>
-      </item>
-      <item row="5" column="3">
-       <widget class="QLineEdit" name="edSpacingY"/>
-      </item>
-      <item row="0" column="0" colspan="2">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Name</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0" colspan="2">
-       <widget class="QLabel" name="label_6">
-        <property name="text">
-         <string>Orientation</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0" colspan="2">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>File</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0" colspan="4">
-       <widget class="QCheckBox" name="cbMagicLens">
-        <property name="text">
-         <string>Show in Magic Lens</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+  <layout class="QGridLayout" name="gridLayout_3">
+   <property name="leftMargin">
+    <number>4</number>
+   </property>
+   <property name="topMargin">
+    <number>4</number>
+   </property>
+   <property name="rightMargin">
+    <number>4</number>
+   </property>
+   <property name="bottomMargin">
+    <number>4</number>
+   </property>
+   <property name="spacing">
+    <number>4</number>
+   </property>
+   <item row="4" column="3">
+    <widget class="QLineEdit" name="edSpacingZ"/>
+   </item>
+   <item row="2" column="1" colspan="3">
+    <widget class="QLineEdit" name="edChannel">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
     </widget>
    </item>
-   <item>
+   <item row="5" column="3">
+    <widget class="QLineEdit" name="edOriginZ"/>
+   </item>
+   <item row="3" column="2">
+    <widget class="QLineEdit" name="edOrientationY"/>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="label_8">
+     <property name="text">
+      <string>Origin</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0" colspan="4">
     <widget class="QCheckBox" name="cbBoundingBox">
      <property name="text">
       <string>Show Bounding Box</string>
      </property>
     </widget>
    </item>
-   <item>
-    <widget class="QCheckBox" name="cbShowInSlicer">
+   <item row="5" column="2">
+    <widget class="QLineEdit" name="edOriginY"/>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
      <property name="text">
-      <string>Show in Slicer</string>
+      <string>Name</string>
      </property>
     </widget>
    </item>
-   <item>
+   <item row="1" column="1" colspan="3">
+    <widget class="QLineEdit" name="edFilename">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_6">
+     <property name="text">
+      <string>Orientation</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="lbChannel">
+     <property name="text">
+      <string>Channel</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="0" colspan="4">
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>Volume Settings</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <item row="0" column="0" colspan="2">
        <widget class="QCheckBox" name="cb_LinearInterpolation">
         <property name="text">
          <string>Linear interpolation</string>
@@ -161,7 +124,42 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="lbl_AmbientLighting">
+        <property name="text">
+         <string>Ambient ligthing</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="lbl_SpecularLighting">
+        <property name="text">
+         <string>Specular lighting</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="lbl_SampleDistance">
+        <property name="text">
+         <string>Sample distance</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLineEdit" name="ed_DiffuseLighting">
+        <property name="text">
+         <string>0.5</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QLineEdit" name="ed_SpecularPower">
+        <property name="text">
+         <string>10</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
        <widget class="QCheckBox" name="cb_Shading">
         <property name="text">
          <string>Shading</string>
@@ -171,108 +169,69 @@
         </property>
        </widget>
       </item>
-      <item>
-       <layout class="QGridLayout" name="gridLayout">
-        <item row="4" column="0">
-         <widget class="QLabel" name="lbl_DiffuseLighting">
-          <property name="text">
-           <string>Diffuse lighting</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1">
-         <widget class="QLineEdit" name="ed_SpecularPower">
-          <property name="text">
-           <string>10</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="lbl_SpecularPower">
-          <property name="text">
-           <string>Specular power</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QLineEdit" name="ed_SampleDistance">
-          <property name="text">
-           <string>2</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <widget class="QLineEdit" name="ed_SpecularLighting">
-          <property name="text">
-           <string>0.7</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="lbl_SampleDistance">
-          <property name="text">
-           <string>Sample distance</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="ed_AmbientLighting">
-          <property name="text">
-           <string>0.2</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="lbl_SpecularLighting">
-          <property name="text">
-           <string>Specular lighting</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="lbl_AmbientLighting">
-          <property name="text">
-           <string>Ambient ligthing</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Scalar opacity unit distance</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="1">
-         <widget class="QLineEdit" name="ed_ScalarOpacityUnitDistance">
-          <property name="text">
-           <string>1.0</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QLineEdit" name="ed_DiffuseLighting">
-          <property name="text">
-           <string>0.5</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="1">
-         <widget class="QComboBox" name="cb_RenderMode"/>
-        </item>
-        <item row="8" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Renderer type</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
+      <item row="7" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Scalar opacity unit dist.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QLineEdit" name="ed_ScalarOpacityUnitDistance">
+        <property name="text">
+         <string>1.0</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="ed_AmbientLighting">
+        <property name="text">
+         <string>0.2</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="lbl_SpecularPower">
+        <property name="text">
+         <string>Specular power</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="ed_SampleDistance">
+        <property name="text">
+         <string>2</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Renderer type</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QComboBox" name="cb_RenderMode"/>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLineEdit" name="ed_SpecularLighting">
+        <property name="text">
+         <string>0.7</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="lbl_DiffuseLighting">
+        <property name="text">
+         <string>Diffuse lighting</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
    </item>
-   <item>
+   <item row="13" column="0" colspan="4">
     <widget class="QLabel" name="lbError">
      <property name="text">
       <string/>
@@ -282,51 +241,60 @@
      </property>
     </widget>
    </item>
-   <item>
-    <widget class="QWidget" name="buttonWidget" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+   <item row="4" column="2">
+    <widget class="QLineEdit" name="edSpacingY"/>
+   </item>
+   <item row="0" column="1" colspan="3">
+    <widget class="QLineEdit" name="edName"/>
+   </item>
+   <item row="14" column="0" colspan="4">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QPushButton" name="pbOK">
-        <property name="text">
-         <string>OK</string>
-        </property>
-        <property name="checkable">
-         <bool>false</bool>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-        <property name="default">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pbCancel">
-        <property name="text">
-         <string>Cancel</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>File</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QLineEdit" name="edSpacingX"/>
+   </item>
+   <item row="3" column="3">
+    <widget class="QLineEdit" name="edOrientationZ"/>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLineEdit" name="edOrientationX"/>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_7">
+     <property name="text">
+      <string>Spacing</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QLineEdit" name="edOriginX"/>
+   </item>
+   <item row="6" column="0" colspan="4">
+    <widget class="QCheckBox" name="cbShowInSlicer">
+     <property name="text">
+      <string>Show in Slicers</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0" colspan="4">
+    <widget class="QCheckBox" name="cbMagicLens">
+     <property name="text">
+      <string>Show in 3D Magic Lens</string>
+     </property>
     </widget>
    </item>
   </layout>
@@ -344,9 +312,9 @@
   <tabstop>edOriginX</tabstop>
   <tabstop>edOriginY</tabstop>
   <tabstop>edOriginZ</tabstop>
+  <tabstop>cbShowInSlicer</tabstop>
   <tabstop>cbMagicLens</tabstop>
   <tabstop>cbBoundingBox</tabstop>
-  <tabstop>cbShowInSlicer</tabstop>
   <tabstop>cb_LinearInterpolation</tabstop>
   <tabstop>cb_Shading</tabstop>
   <tabstop>ed_SampleDistance</tabstop>
@@ -356,8 +324,6 @@
   <tabstop>ed_SpecularPower</tabstop>
   <tabstop>ed_ScalarOpacityUnitDistance</tabstop>
   <tabstop>cb_RenderMode</tabstop>
-  <tabstop>pbOK</tabstop>
-  <tabstop>pbCancel</tabstop>
  </tabstops>
  <resources/>
  <connections/>

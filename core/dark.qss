@@ -179,39 +179,31 @@ QMenu
 ****************************************************************************/
 	QMenu
 	{
-		background-color: rgba(0, 0, 0, 255); /* sets background of the menu */ /*border: 1px solid black;*/
+		background-color: rgba(0, 0, 0, 255); /* sets background of the menu */
+		/*border: 1px solid white;*/
 	}
 	QMenu::item
 	{
-		/* sets background of menu item. set this to something non-transparent if you want menu color and menu item color to be different */
-		background-color: transparent;
+		/*background-color: rgba(0, 0, 0, 255);*/ /* do not use 'transparent' here, otherwise checked menu entries with colors don't get properly highlighted! */
 		color: rgba(230, 230, 230, 255);
 	}
 	QMenu::item:selected
-	{
-		/* when user selects item using mouse or keyboard */
+	{	/* when user selects item using mouse or keyboard */
 		background-color: rgba(90, 90, 90, 255);
 		color: rgba(255, 168, 0, 255);
 	}
 	QMenu::separator
 	{
 		height: 2px;
-		margin-left: 18px;
-		margin-right: 18px;
-		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(150, 186, 230, 255),
-		stop:0.617 rgba(100, 146, 212, 255),
-		stop:0.618 rgba(100, 146, 212, 255),
-		stop:1 rgba(70, 122, 201, 255));
 	}
 	QMenu::item:disabled
 	{
-		/* when user selects item using mouse or keyboard */
-		background-color: rgba(0, 0, 0, 255);
 		color: rgba(140, 140, 140, 255);
 	}
+	/*
+	QMenu::item:checked     // styling for checked menu entries
+	QMenu::item:unchecked
+	*/
 /****************************************************************************
 QPushButton
 ****************************************************************************/

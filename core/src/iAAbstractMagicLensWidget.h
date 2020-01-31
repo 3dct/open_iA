@@ -47,6 +47,7 @@ public:
 	vtkRenderer* getLensRenderer( );
 	void setViewMode( ViewMode mode );
 	void SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin);
+	bool isMagicLensEnabled() const;
 
 signals:
 	void MouseMoved( );
@@ -67,4 +68,5 @@ protected:
 
 private:
 	static const double          OFFSET_VAL;
+	bool                         m_magicLensEnabled;
 };

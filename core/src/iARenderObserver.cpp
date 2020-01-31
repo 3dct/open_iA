@@ -110,10 +110,7 @@ void iARenderObserver::Execute(vtkObject * caller,
 		}
 		case vtkCommand::KeyPressEvent:
 		{
-			if (keyCode == 'a' || keyCode == 'c')
-			{
-				emit interactorModeSwitched(keyCode);
-			}
+			emit keyPressed(keyCode);
 			if (keyCode == '\t') {
 				mode++; if (mode > 1) mode = 0;
 			}

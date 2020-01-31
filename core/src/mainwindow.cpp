@@ -1179,9 +1179,13 @@ void MainWindow::loadTransferFunction()
 	if (activeMdiChild())
 	{
 		if (activeMdiChild()->loadTransferFunction())
+		{
 			statusBar()->showMessage(tr("Loaded transfer function successfully"), 5000);
+		}
 		else
+		{
 			statusBar()->showMessage(tr("Loading transfer function failed"), 5000);
+		}
 	}
 }
 
@@ -1190,9 +1194,13 @@ void MainWindow::saveTransferFunctionSlot()
 	if (activeMdiChild())
 	{
 		if (activeMdiChild()->saveTransferFunction())
+		{
 			statusBar()->showMessage(tr("Saved transfer function successfully"), 5000);
+		}
 		else
+		{
 			statusBar()->showMessage(tr("Saving transfer function failed"), 5000);
+		}
 	}
 }
 
@@ -1208,37 +1216,86 @@ void MainWindow::deletePoint()
 void MainWindow::changeColor()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->changeColor();
+	}
 }
 
 void MainWindow::resetView()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->resetView();
+	}
 }
 
 void MainWindow::resetTrf()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->resetTrf();
+	}
+}
+
+void MainWindow::changeInteractionMode(bool isChecked)
+{
+	if (activeMdiChild())
+	{
+		QAction* a = qobject_cast<QAction*>(sender());
+		MdiChild::iAInteractionMode mode =
+			(a == actionInteractionModeCamera) ?
+			(isChecked ? MdiChild::imCamera : MdiChild::imRegistration) :
+			(isChecked ? MdiChild::imRegistration : MdiChild::imCamera);
+		activeMdiChild()->setInteractionMode(mode);
+	}
+}
+
+void MainWindow::updateInteractionModeControls(int mode)
+{
+	QSignalBlocker b1(actionInteractionModeRegistration),
+		b2(actionInteractionModeCamera);
+	actionInteractionModeCamera->setChecked(mode == MdiChild::imCamera);
+	actionInteractionModeRegistration->setChecked(mode == MdiChild::imRegistration);
+}
+
+void MainWindow::meshDataMovable(bool isChecked)
+{
+	if (activeMdiChild())
+	{
+		activeMdiChild()->setMeshDataMovable(isChecked);
+	}
 }
 
 void MainWindow::toggleSnakeSlicer(bool isChecked)
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->toggleSnakeSlicer(isChecked);
+	}
 }
 
 void MainWindow::toggleSliceProfile(bool isChecked)
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->toggleSliceProfile(isChecked);
+	}
 }
 
 void MainWindow::toggleMagicLens( bool isChecked )
 {
 	if (activeMdiChild())
-		activeMdiChild()->toggleMagicLens(isChecked);
+	{
+		activeMdiChild()->toggleMagicLens2D(isChecked);
+	}
+}
+
+void MainWindow::toggleMagicLens3D(bool isChecked)
+{
+	if (activeMdiChild())
+	{
+		activeMdiChild()->toggleMagicLens3D(isChecked);
+	}
 }
 
 void MainWindow::rendererCamPosition()
@@ -1432,7 +1489,12 @@ void MainWindow::updateMenus()
 	actionLoadTransferFunction->setEnabled(hasMdiChild);
 	actionSaveTransferFunction->setEnabled(hasMdiChild);
 	actionSnakeSlicer->setEnabled(hasMdiChild);
-	actionMagicLens->setEnabled(hasMdiChild);
+	actionMagicLens2D->setEnabled(hasMdiChild);
+	actionMagicLens3D->setEnabled(hasMdiChild);
+
+	actionMeshDataMovable->setEnabled(hasMdiChild);
+	actionInteractionModeCamera->setEnabled(hasMdiChild);
+	actionInteractionModeRegistration->setEnabled(hasMdiChild);
 
 	bool hasChangeableRenderer = activeChild<iAChangeableCameraWidget>();
 	actionViewXDirectionInRaycaster->setEnabled(hasChangeableRenderer);
@@ -1453,6 +1515,23 @@ void MainWindow::updateMenus()
 	actionResetLayout->setEnabled(hasMdiChild);
 	actionDeleteLayout->setEnabled(hasMdiChild);
 	actionChildStatusBar->setEnabled(hasMdiChild);
+
+	// Update checked states of actions:
+	auto child = activeMdiChild();
+	QSignalBlocker movableBlock(actionMeshDataMovable);
+	actionMeshDataMovable->setChecked(hasMdiChild && child->meshDataMovable());
+	QSignalBlocker interactionModeCameraBlock(actionInteractionModeCamera);
+	actionInteractionModeCamera->setChecked(hasMdiChild && child->interactionMode() == MdiChild::imCamera);
+	QSignalBlocker interactionModeRegistrationBlock(actionInteractionModeRegistration);
+	actionInteractionModeRegistration->setChecked(hasMdiChild && child->interactionMode() == MdiChild::imRegistration);
+	QSignalBlocker blockSliceProfile(actionRawProfile);
+	actionRawProfile->setChecked(hasMdiChild && child->isSliceProfileToggled());
+	QSignalBlocker blockSnakeSlicer(actionSnakeSlicer);
+	actionSnakeSlicer->setChecked(hasMdiChild && child->isSnakeSlicerToggled());
+	QSignalBlocker blockMagicLens2D(actionMagicLens2D);
+	actionMagicLens2D->setChecked(hasMdiChild && child->isMagicLens2DEnabled());
+	QSignalBlocker blockMagicLens3D(actionMagicLens3D);
+	actionMagicLens3D->setChecked(hasMdiChild && child->isMagicLens3DEnabled());
 
 	updateRecentFileActions();
 
@@ -1477,7 +1556,9 @@ void MainWindow::updateMenus()
 		// set current application working directory to the one where the file is in (as default directory, e.g. for file open)
 		// see also MdiChild::setCurrentFile
 		if (!activeMdiChild()->filePath().isEmpty())
+		{
 			QDir::setCurrent(activeMdiChild()->filePath());
+		}
 		//??if (activeMdiChild())
 		//	histogramToolbar->setEnabled(activeMdiChild()->getTabIndex() == 1 && !activeMdiChild()->isMaximized());
 	}
@@ -1492,14 +1573,17 @@ void MainWindow::updateWindowMenu()
 {
 	QList<MdiChild *> windows = mdiChildList();
 
-	for (int i = 0; i < windows.size(); ++i) {
+	for (int i = 0; i < windows.size(); ++i)
+	{
 		MdiChild *child = windows.at(i);
-
 		QString text;
-		if (i < 9) {
+		if (i < 9)
+		{
 			text = tr("&%1 %2").arg(i + 1)
 				.arg(child->userFriendlyCurrentFile());
-		} else {
+		}
+		else
+		{
 			text = tr("%1 %2").arg(i + 1)
 				.arg(child->userFriendlyCurrentFile());
 		}
@@ -1571,6 +1655,9 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionDeletePoint, &QAction::triggered, this, &MainWindow::deletePoint);
 	connect(actionResetView, &QAction::triggered, this, &MainWindow::resetView);
 	connect(actionResetFunction, &QAction::triggered, this, &MainWindow::resetTrf);
+	connect(actionInteractionModeRegistration, &QAction::triggered, this, &MainWindow::changeInteractionMode);
+	connect(actionInteractionModeCamera, &QAction::triggered, this, &MainWindow::changeInteractionMode);
+	connect(actionMeshDataMovable, &QAction::triggered, this, &MainWindow::meshDataMovable);
 
 	// "Views" menu entries:
 	connect(actionXY, &QAction::triggered, this, &MainWindow::maxXY);
@@ -1627,22 +1714,22 @@ void MainWindow::connectSignalsToSlots()
 	actionIsometricViewInRaycaster->setProperty("camPosition", iACameraPosition::Iso);
 
 	// Camera toolbar:
-	connect(actionAssignView, &QAction::triggered, this, &MainWindow::raycasterAssignIso);
+	connect(actionAssignView,   &QAction::triggered, this, &MainWindow::raycasterAssignIso);
 	connect(actionSaveCameraSettings, &QAction::triggered, this, &MainWindow::raycasterSaveCameraSettings);
 	connect(actionLoadCameraSettings, &QAction::triggered, this, &MainWindow::raycasterLoadCameraSettings);
 
 	// Snake slicer toolbar
-	connect(actionSnakeSlicer, &QAction::toggled, this, &MainWindow::toggleSnakeSlicer);
-	connect(actionRawProfile, &QAction::toggled, this, &MainWindow::toggleSliceProfile);
-	connect(actionMagicLens, &QAction::toggled, this, &MainWindow::toggleMagicLens);
+	connect(actionSnakeSlicer,  &QAction::toggled, this, &MainWindow::toggleSnakeSlicer);
+	connect(actionRawProfile,   &QAction::toggled, this, &MainWindow::toggleSliceProfile);
+	connect(actionMagicLens2D,  &QAction::toggled, this, &MainWindow::toggleMagicLens);
+	connect(actionMagicLens3D,  &QAction::triggered, this, &MainWindow::toggleMagicLens3D);
 
 	// Layout toolbar menu entries
-	connect(actionSaveLayout, &QAction::triggered, this, &MainWindow::saveLayout);
-	connect(actionLoadLayout, &QAction::triggered, this, &MainWindow::loadLayout);
+	connect(actionSaveLayout,   &QAction::triggered, this, &MainWindow::saveLayout);
+	connect(actionLoadLayout,   &QAction::triggered, this, &MainWindow::loadLayout);
 	connect(actionDeleteLayout, &QAction::triggered, this, &MainWindow::deleteLayout);
-	connect(actionResetLayout, &QAction::triggered, this, &MainWindow::resetLayout);
+	connect(actionResetLayout,  &QAction::triggered, this, &MainWindow::resetLayout);
 
-	connect(mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::childActivatedSlot);
 	connect(mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::updateMenus);
 
 	consoleVisibilityChanged(iAConsole::instance()->isVisible());
@@ -1979,20 +2066,6 @@ void MainWindow::consoleVisibilityChanged(bool newVisibility)
 QList<MdiChild*> MainWindow::mdiChildList(QMdiArea::WindowOrder order)
 {
 	return childList<MdiChild>(order);
-}
-
-void MainWindow::childActivatedSlot(QMdiSubWindow *wnd)
-{
-	MdiChild * activeChild = activeMdiChild();
-	if (activeChild && wnd)
-	{
-		QSignalBlocker blockSliceProfile(actionRawProfile);
-		actionRawProfile->setChecked(activeChild->isSliceProfileToggled());
-		QSignalBlocker blockSnakeSlicer(actionSnakeSlicer);
-		actionSnakeSlicer->setChecked(activeChild->isSnakeSlicerToggled());
-		QSignalBlocker blockMagicLens(actionMagicLens);
-		actionMagicLens->setChecked(activeChild->isMagicLensToggled());
-	}
 }
 
 void MainWindow::applyQSS()

@@ -85,6 +85,7 @@
     <file>images/smooth_Gauss.png</file>
     <file>images/smooth_Median.png</file>
     <file>images/magicLens.png</file>
+    <file>images/magicLens3d.png</file>
     <file>images/xml_save.png</file>
     <file>images/activateSPM.png</file>
     <file>images/MultiRendering.png</file>
@@ -111,6 +112,9 @@
     <file>images/straightness.png</file>
     <file>images/add.png</file>
     <file>images/minus.png</file>
+    <file>images/document-edit.png</file>
+    <file>images/camera.png</file>
+    <file>images/transform-move.png</file>
     <file>images/remove.png</file>
     <file>images/saveCamera.png</file>
     <file>images/loadCamera.png</file>

@@ -90,6 +90,11 @@ class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild, public
 {
 	Q_OBJECT
 public:
+	enum iAInteractionMode
+	{
+		imCamera,
+		imRegistration
+	};
 	MdiChild(MainWindow * mainWnd, iAPreferences const & preferences, bool unsavedChanges);
 	~MdiChild();
 
@@ -229,8 +234,10 @@ public:
 
 
 	//! @{ Magic Lens
-	void toggleMagicLens(bool isEnabled);
-	bool isMagicLensToggled(void) const;
+	void toggleMagicLens2D(bool isEnabled);
+	void toggleMagicLens3D(bool isEnabled);
+	bool isMagicLens2DEnabled() const;
+	bool isMagicLens3DEnabled() const;
 	void setMagicLensInput(uint id);
 	void setMagicLensEnabled(bool isOn);
 	void reInitMagicLens(uint id, QString const & name, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf);
@@ -291,6 +298,12 @@ public:
 	//! add project
 	void addProject(QString const & key, QSharedPointer<iAProjectBase> project);
 	QMap<QString, QSharedPointer<iAProjectBase> > const & projects();
+
+	iAInteractionMode interactionMode() const;
+	void setInteractionMode(iAInteractionMode mode);
+
+	bool meshDataMovable();
+	void setMeshDataMovable(bool movable);
 
 signals:
 	void rendererDeactivated(int c);
@@ -367,6 +380,7 @@ private slots:
 	void rendererCamPos();
 	void resetCamera(bool spacingChanged, double const * newSpacing);
 	void toggleFullScreen();
+	void rendererKeyPressed(int keyCode);
 
 private:
 	void closeEvent(QCloseEvent *event) override;
@@ -496,7 +510,7 @@ private:
 	int m_currentComponent;
 	int m_currentHistogramModality;
 	bool m_initVolumeRenderers;
-	int m_storedModalityNr;		//!< modality nr being stored
-
-	QMap<QString, QSharedPointer<iAProjectBase>> m_projects;
+	int m_storedModalityNr;		                              //!< modality nr being stored
+	QMap<QString, QSharedPointer<iAProjectBase>> m_projects;  //!< list of currently active "projects" (i.e. Tools)
+	iAInteractionMode m_interactionMode;                      //!< current interaction mode in slicers/renderer (see iAInteractionMode)
 };

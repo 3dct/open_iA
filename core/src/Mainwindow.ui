@@ -96,9 +96,19 @@
     <property name="toolTipsVisible">
      <bool>true</bool>
     </property>
+    <widget class="QMenu" name="menuInteractionMode">
+     <property name="title">
+      <string>Interaction mode</string>
+     </property>
+     <addaction name="actionMeshDataMovable"/>
+     <addaction name="actionInteractionModeCamera"/>
+     <addaction name="actionInteractionModeRegistration"/>
+    </widget>
     <addaction name="actionPreferences"/>
     <addaction name="actionRendererSettings"/>
     <addaction name="actionSlicerSettings"/>
+    <addaction name="separator"/>
+    <addaction name="menuInteractionMode"/>
     <addaction name="separator"/>
     <addaction name="actionLoadTransferFunction"/>
     <addaction name="actionSaveTransferFunction"/>
@@ -139,7 +149,8 @@
     <addaction name="actionLinkViews"/>
     <addaction name="actionLinkMdis"/>
     <addaction name="separator"/>
-    <addaction name="actionMagicLens"/>
+    <addaction name="actionMagicLens2D"/>
+    <addaction name="actionMagicLens3D"/>
     <addaction name="actionRawProfile"/>
     <addaction name="actionSnakeSlicer"/>
     <addaction name="separator"/>
@@ -264,7 +275,11 @@
    </attribute>
    <addaction name="actionSnakeSlicer"/>
    <addaction name="actionRawProfile"/>
-   <addaction name="actionMagicLens"/>
+   <addaction name="actionMagicLens2D"/>
+   <addaction name="actionMagicLens3D"/>
+   <addaction name="separator"/>
+   <addaction name="actionInteractionModeCamera"/>
+   <addaction name="actionInteractionModeRegistration"/>
   </widget>
   <widget class="QToolBar" name="raycasterToolbar">
    <property name="windowTitle">
@@ -863,7 +878,7 @@
     <string>Delete currently selected layout</string>
    </property>
   </action>
-  <action name="actionMagicLens">
+  <action name="actionMagicLens2D">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -872,7 +887,7 @@
      <normaloff>:/images/magicLens.png</normaloff>:/images/magicLens.png</iconset>
    </property>
    <property name="text">
-    <string>actionMagicLens</string>
+    <string>Magic Lens 2D</string>
    </property>
    <property name="toolTip">
     <string>Enable magic lens</string>
@@ -1041,6 +1056,56 @@
   <action name="actionBuildInformation">
    <property name="text">
     <string>Build Information</string>
+   </property>
+  </action>
+  <action name="actionMagicLens3D">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../open_iA.qrc">
+     <normaloff>:/images/magicLens3d.png</normaloff>:/images/magicLens3d.png</iconset>
+   </property>
+   <property name="text">
+    <string>Magic Lens 3D</string>
+   </property>
+  </action>
+  <action name="actionInteractionModeCamera">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../open_iA.qrc">
+     <normaloff>:/images/camera.png</normaloff>:/images/camera.png</iconset>
+   </property>
+   <property name="text">
+    <string>Camera change</string>
+   </property>
+  </action>
+  <action name="actionInteractionModeRegistration">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../open_iA.qrc">
+     <normaloff>:/images/transform-move.png</normaloff>:/images/transform-move.png</iconset>
+   </property>
+   <property name="text">
+    <string>Manual registration</string>
+   </property>
+  </action>
+  <action name="actionMeshDataMovable">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Mesh data movable</string>
    </property>
   </action>
  </widget>
