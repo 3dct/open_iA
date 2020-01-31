@@ -7,8 +7,6 @@
     <file>images/remTFPoint.png</file>
     <file>images/addTFPoint.png</file>
     <file>images/load.png</file>
-    <file>images/pin2.png</file>
-    <file>images/pin.png</file>
     <file>images/undock_white.png</file>
     <file>images/left_arrow.png</file>
     <file>images/right_arrow.png</file>
@@ -41,12 +39,6 @@
     <file>images/saveCamera.png</file>
     <file>images/loadCamera.png</file>
     <file>images/profile.png</file>
-    <file>images/plot.png</file>
-    <file>images/do_mar.png</file>
-    <file>images/fusion.png</file>
-    <file>images/overview.png</file>
-    <file>images/segm.png</file>
-    <file>images/segm_prev.png</file>
     <file>images/savemov.png</file>
     <file>images/snakeSlicer.png</file>
     <file>images/saveFkt.png</file>
@@ -58,7 +50,6 @@
     <file>images/removeFkt.png</file>
     <file>images/savescreen.png</file>
     <file>images/resetTrf.png</file>
-    <file>images/autoUpdate.png</file>
     <file>images/update.png</file>
     <file>images/resetView.png</file>
     <file>images/loadtrf.png</file>
@@ -92,7 +83,6 @@
     <file>images/settings_preferences.png</file>
     <file>images/settings_renderer.png</file>
     <file>images/settings_slicer.png</file>
-    <file>images/pin.jpg</file>
     <file>images/toggle_titleBar.png</file>
   </qresource>
 </RCC>
