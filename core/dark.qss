@@ -12,13 +12,6 @@ General
 	}
 	QToolbar
 	{
-		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(30, 30, 30, 255),
-		stop:0.617 rgba(23, 23, 23, 255),
-		stop:0.618 rgba(23, 23, 23, 255),
-		stop:1 rgba(20, 20, 20, 255));
 		color: rgba(230, 230, 230, 255);
 		border-top: 1px solid rgba(50, 50, 50, 255);
 		border-bottom: 1px solid rgba(0, 0, 0, 255);
@@ -82,13 +75,6 @@ QToolButton
 	QToolBar,
 	QStatusBar
 	{
-		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(30, 30, 30, 255),
-		stop:0.617 rgba(23, 23, 23, 255),
-		stop:0.618 rgba(23, 23, 23, 255),
-		stop:1 rgba(20, 20, 20, 255));
 		color: rgba(230, 230, 230, 255);
 		spacing: 4px; /* spacing between items in the tool bar */
 	}
@@ -146,6 +132,14 @@ QToolButton
 	QToolButton:flat
 	{
 	}
+
+	QToolBar::separator
+	{
+		margin-top: 5px;
+		margin-bottom: 5px;
+		background-color: rgba(50, 50, 50, 255);
+		width: 1px;
+	}
 /****************************************************************************
 QMenuBar
 ****************************************************************************/
@@ -194,7 +188,8 @@ QMenu
 	}
 	QMenu::separator
 	{
-		height: 2px;
+		height: 1px;
+		background-color: rgba(50, 50, 50, 255);
 	}
 	QMenu::item:disabled
 	{
