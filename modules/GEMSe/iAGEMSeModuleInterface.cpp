@@ -80,7 +80,10 @@ void iAGEMSeModuleInterface::Initialize()
 	REGISTER_FILTER(iADifferenceMarker);
 
 	if (!m_mainWnd)
+	{
 		return;
+	}
+	Q_INIT_RESOURCE(GEMSe);
 
 	iAProjectRegistry::addProject<iAGEMSeProject>(iAGEMSeProject::ID);
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();

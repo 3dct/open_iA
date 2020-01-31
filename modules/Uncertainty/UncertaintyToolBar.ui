@@ -34,7 +34,7 @@
   <action name="action_ToggleTitleBar">
    <property name="icon">
     <iconset resource="../../core/open_iA.qrc">
-     <normaloff>:/images/GEMSe_toggle_titleBar.png</normaloff>:/images/GEMSe_toggle_titleBar.png</iconset>
+     <normaloff>:/images/toggle_titleBar.png</normaloff>:/images/toggle_titleBar.png</iconset>
    </property>
    <property name="text">
     <string>Toggle Title Bar</string>

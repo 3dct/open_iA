@@ -153,17 +153,6 @@
     <file>images/settings_renderer.png</file>
     <file>images/settings_slicer.png</file>
     <file>images/pin.jpg</file>
-    <file>images/GEMSe_like.png</file>
-    <file>images/GEMSe_like2.png</file>
-    <file>images/GEMSe_hate.png</file>
-    <file>images/GEMSe_hate2.png</file>
-    <file>images/GEMSe_goto.png</file>
-    <file>images/GEMSe_filter_reset.png</file>
-    <file>images/GEMSe_toggle_autoshrink.png</file>
-    <file>images/GEMSe_toggle_titleBar.png</file>
-    <file>images/GEMSe_export_ids.png</file>
-    <file>images/GEMSe_export_ranges.png</file>
-    <file>images/GEMSe_export_rankings.png</file>
-    <file>images/GEMSe_import_rankings.png</file>
+    <file>images/toggle_titleBar.png</file>
   </qresource>
 </RCC>
