@@ -117,6 +117,7 @@ void iAFeatureScoutModuleInterface::Initialize()
 	{
 		return;
 	}
+	Q_INIT_RESOURCE(FeatureScout);
 	iAProjectRegistry::addProject<iAFeatureScoutProject>(iAFeatureScoutProject::ID);
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionFibreScout = new QAction( QObject::tr("FeatureScout"), nullptr );

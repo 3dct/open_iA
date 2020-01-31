@@ -13,10 +13,6 @@
     <file>images/close_white.png</file>
     <file>images/magicLens.png</file>
     <file>images/magicLens3d.png</file>
-    <file>images/xml_save.png</file>
-    <file>images/activateSPM.png</file>
-    <file>images/MultiRendering.png</file>
-    <file>images/OrientationRendering.png</file>
     <file>images/saveClass.png</file>
     <file>bright.qss</file>
     <file>images/sizeGrip.png</file>
@@ -27,8 +23,6 @@
     <file>images/layout_reset.png</file>
     <file>images/layout_load.png</file>
     <file>images/layout_delete.png</file>
-    <file>images/FeatureScout_csvDV.png</file>
-    <file>images/FeatureScout_meanObject.png</file>
     <file>images/colormap.png</file>
     <file>images/add.png</file>
     <file>images/minus.png</file>
