@@ -192,7 +192,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="../../core/open_iA.qrc">
+        <iconset resource="PorosityAnalyser.qrc">
          <normaloff>:/images/preview.png</normaloff>:/images/preview.png</iconset>
        </property>
        <property name="iconSize">
@@ -348,7 +348,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="../../core/open_iA.qrc">
+        <iconset resource="PorosityAnalyser.qrc">
          <normaloff>:/images/rem_sel.png</normaloff>:/images/rem_sel.png</iconset>
        </property>
        <property name="iconSize">
@@ -690,6 +690,7 @@
  </widget>
  <resources>
   <include location="../../core/open_iA.qrc"/>
+  <include location="PorosityAnalyser.qrc"/>
  </resources>
  <connections/>
 </ui>

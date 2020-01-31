@@ -51,7 +51,10 @@ const int maxPipelineSlotsCount = 10;
 void iAPorosityAnalyserModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
+	{
 		return;
+	}
+	Q_INIT_RESOURCE(PorosityAnalyser);
 	qsrand(QTime::currentTime().msec());
 
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
