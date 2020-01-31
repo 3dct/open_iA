@@ -29,15 +29,8 @@
     <file>images/layout_reset.png</file>
     <file>images/layout_load.png</file>
     <file>images/layout_delete.png</file>
-    <file>images/angularity.png</file>
     <file>images/FeatureScout_csvDV.png</file>
     <file>images/FeatureScout_meanObject.png</file>
-    <file>images/circularity.png</file>
-    <file>images/cylindricity.png</file>
-    <file>images/flatness.png</file>
-    <file>images/parallelism.png</file>
-    <file>images/perpendicularity.png</file>
-    <file>images/straightness.png</file>
     <file>images/colormap.png</file>
     <file>images/add.png</file>
     <file>images/minus.png</file>
@@ -93,15 +86,8 @@
     <file>images/iso.png</file>
     <file>images/savestack.png</file>
     <file>images/splashscreen.png</file>
-    <file>images/label.png</file>
-    <file>images/label_highlighted.png</file>
-    <file>images/label_small.png</file>
-    <file>images/label_small_highlighted.png</file>
     <file>images/w2r_colormap.png</file>
     <file>images/w2b_colormap.png</file>
-    <file>images/deviation_colormap.png</file>
-    <file>images/tol_failed.png</file>
-    <file>images/tol_passed.png</file>
     <file>images/settings.png</file>
     <file>images/settings_preferences.png</file>
     <file>images/settings_renderer.png</file>
