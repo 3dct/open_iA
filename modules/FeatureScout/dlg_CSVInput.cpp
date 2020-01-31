@@ -434,7 +434,7 @@ void dlg_CSVInput::selectedColsChanged()
 
 void dlg_CSVInput::advancedModeToggled()
 {
-	grpbox_Format->setVisible(cb_AdvancedMode->isChecked());
+	wd_Advanced->setVisible(cb_AdvancedMode->isChecked());
 }
 
 void dlg_CSVInput::selectFileBtnClicked()
