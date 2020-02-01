@@ -10,13 +10,6 @@ General
 	{
 		background: transparent;
 	}
-	QToolbar
-	{
-		/*
-		border-top: 1px solid rgba(50, 50, 50, 255);
-		border-bottom: 1px solid rgba(0, 0, 0, 255);
-		*/
-	}
 	QFrame, QStackedWidget
 	{
 		background: none;
@@ -25,18 +18,27 @@ General
 	{
 		background: none;
 	}
+	QTableView,
 	QTableWidget,
+	QTreeView,
+	QHeaderView,
 	QMdiArea::background
 	{
 		background-color: rgba(40, 40, 40, 255);
 	}
+	QTableCornerButton::section,
 	QHeaderView::section
 	{
 		background-color: rgba(40, 40, 40, 255);
+		border: 1px solid black;
 	}
-	QTableWidget
+	QTableView::item,
+	QTableWidget::item,
+	QTreeView::item
 	{
 		background-color: rgba(0, 0, 0, 255);
+		border-right: 1px solid rgba(40, 40, 40, 255);
+		border-bottom: 1px solid rgba(40, 40, 40, 255);
 	}
 	QLineEdit,
 	QSpinBox,
@@ -78,6 +80,11 @@ QToolButton
 	{
 		color: rgba(230, 230, 230, 255);
 		spacing: 4px; /* spacing between items in the tool bar */
+	}
+	QToolBar
+	{
+		border-top: 1px solid rgba(50, 50, 50, 255);
+		border-bottom: 1px solid rgba(50, 50, 50, 255);
 	}
 	QToolButton
 	{
@@ -439,11 +446,7 @@ QListView
 ****************************************************************************/
 	QListView,
 	QListWidget,
-	QTextEdit
-	{
-		background-color: rgba(0, 0, 0, 255);
-		color: rgba(230, 230, 230, 255);
-	}
+	QTextEdit,
 	QListView::item,
 	QListWidget::item
 	{
