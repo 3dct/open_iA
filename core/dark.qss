@@ -12,9 +12,10 @@ General
 	}
 	QToolbar
 	{
-		color: rgba(230, 230, 230, 255);
+		/*
 		border-top: 1px solid rgba(50, 50, 50, 255);
 		border-bottom: 1px solid rgba(0, 0, 0, 255);
+		*/
 	}
 	QFrame, QStackedWidget
 	{
@@ -488,13 +489,6 @@ QCheckBox
 		border: 1px;
 		background: none;
 		color: rgba(230, 230, 230, 255);
-	}
-/****************************************************************************
-QGroupBox
-****************************************************************************/
-	QGroupBox
-	{
-		border: 1px solid rgba(80, 80, 80, 255);
 	}
 /****************************************************************************
 QSlider
