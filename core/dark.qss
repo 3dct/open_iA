@@ -718,28 +718,15 @@ QDockWidget
 	QDockWidget
 	{
 		background-color: rgba(40, 40, 40, 255);
-		color: rgba(230, 230, 230, 255); /* font-color */
+		color: rgba(230, 230, 230, 255);
 		font: bold;
 		border: 2px;
-		titlebar-normal-icon: url(Resource/Icons/dock-normal.png);
 	}
 	QDockWidget::title
 	{
 		margin-top: 2px;
 		margin-left: 2px;
 		font-size: 14px;
-		/*background: transparent;*/
-	}
-	QDockWidget::float-button
-	{
-	}
-	QDockWidget::float-button:hover
-	{
-		image: url(Resource/Icons/dock-hover.png);
-	}
-	QDockWidget::float-button:pressed
-	{
-		image: url(Resource/Icons/dock-hover.png);
 	}
 /****************************************************************************
 QSplitter
