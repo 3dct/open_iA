@@ -54,7 +54,7 @@ public:
 	QVector<QWidget*> widgetList();
 
 private slots:
-	void updatedROI(QString text);
+	void updatedROI(int value);
 	void sourceChildClosed();
 	void selectFilter();
 
@@ -68,5 +68,5 @@ private:
 	QVector<QWidget*> m_widgetList;
 	QVector<QSharedPointer<iAAttributeDescriptor> > m_parameters;
 
-	void updateROIPart(QString const& partName, QString const& value);
+	void updateROIPart(QString const& partName, int value);
 };

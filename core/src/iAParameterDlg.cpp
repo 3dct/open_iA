@@ -333,50 +333,50 @@ void iAParameterDlg::showROI()
 		QSpinBox *input = dynamic_cast<QSpinBox*>(children.at(i));
 		if (input && (input->objectName().contains("Index") || input->objectName().contains("Size")))
 		{
-			connect(input, SIGNAL(valueChanged(QString)), this, SLOT(ROIUpdated(QString)));
-			updateROIPart(input->objectName(), input->text());
+			connect(input, SIGNAL(valueChanged(int)), this, SLOT(updatedROI(int)));
+			updateROIPart(input->objectName(), input->value());
 		}
 	}
 	m_sourceMdiChild->setROIVisible(true);
 	m_sourceMdiChild->updateROI(m_roi);
 }
 
-void iAParameterDlg::updatedROI(QString text)
+void iAParameterDlg::updatedROI(int value)
 {
 	if (m_sourceMdiChildClosed)
 	{
 		return;
 	}
 	QString senderName = QObject::sender()->objectName();
-	updateROIPart(senderName, text);
+	updateROIPart(senderName, value);
 	m_sourceMdiChild->updateROI(m_roi);
 }
 
-void iAParameterDlg::updateROIPart(QString const & partName, QString const & value)
+void iAParameterDlg::updateROIPart(QString const & partName, int value)
 {
 	if (partName.contains("Index X"))
 	{
-		m_roi[0] = value.toInt();
+		m_roi[0] = value;
 	}
 	else if (partName.contains("Index Y"))
 	{
-		m_roi[1] = value.toInt();
+		m_roi[1] = value;
 	}
 	else if (partName.contains("Index Z"))
 	{
-		m_roi[2] = value.toInt();
+		m_roi[2] = value;
 	}
 	else if (partName.contains("Size X"))
 	{
-		m_roi[3] = value.toInt() > 0 ? value.toInt() : 0;
+		m_roi[3] = value > 0 ? value : 0;
 	}
 	else if (partName.contains("Size Y"))
 	{
-		m_roi[4] = value.toInt() > 0 ? value.toInt() : 0;
+		m_roi[4] = value > 0 ? value : 0;
 	}
 	else if (partName.contains("Size Z"))
 	{
-		m_roi[5] = value.toInt() > 0 ? value.toInt() : 0;
+		m_roi[5] = value > 0 ? value : 0;
 	}
 }
 
