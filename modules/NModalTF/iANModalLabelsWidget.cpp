@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iANModalLabelControls.h"
+#include "iANModalLabelsWidget.h"
 
 #include "iANModalObjects.h"
 
@@ -45,12 +45,12 @@ namespace {
 	}
 }
 
-iANModalLabelControls::iANModalLabelControls(QWidget* parent) {
+iANModalLabelsWidget::iANModalLabelsWidget(QWidget* parent) {
 	setParent(parent);
 	m_layout = new QGridLayout(this);
 }
 
-void iANModalLabelControls::updateTable(QList<iANModalLabel> labels) {
+void iANModalLabelsWidget::updateTable(QList<iANModalLabel> labels) {
 	int i;
 	for (i = 0; i < labels.size(); i++) {
 		auto label = labels[i];
@@ -65,7 +65,7 @@ void iANModalLabelControls::updateTable(QList<iANModalLabel> labels) {
 	m_rows.resize(size);
 }
 
-void iANModalLabelControls::insertLabel(int rowIndex, iANModalLabel label, float opacity) {
+void iANModalLabelsWidget::insertLabel(int rowIndex, iANModalLabel label, float opacity) {
 	if (rowIndex >= m_labels.size()) {
 		m_labels.resize(rowIndex + 1);
 		m_labels[rowIndex] = label;
@@ -76,7 +76,7 @@ void iANModalLabelControls::insertLabel(int rowIndex, iANModalLabel label, float
 	}
 }
 
-void iANModalLabelControls::removeLabel(int rowIndex) {
+void iANModalLabelsWidget::removeLabel(int rowIndex) {
 	assert(containsLabel(rowIndex));
 	Row row = m_rows[rowIndex];
 	if (row.row != -1) {
@@ -86,26 +86,18 @@ void iANModalLabelControls::removeLabel(int rowIndex) {
 	}
 }
 
-bool iANModalLabelControls::containsLabel(int rowIndex) {
+bool iANModalLabelsWidget::containsLabel(int rowIndex) {
 	return rowIndex < m_rows.size();
 }
 
-float iANModalLabelControls::opacity(int row) {
+float iANModalLabelsWidget::opacity(int row) {
 	assert(containsLabel(row));
 	return getOpacity(m_rows[row].opacity);
 }
 
-bool iANModalLabelControls::remover(int row) {
-	assert(containsLabel(row));
-	return m_rows[row].remover->isChecked();
-}
-
-void iANModalLabelControls::addRow(int rowIndex, iANModalLabel label, float opacity) {
+void iANModalLabelsWidget::addRow(int rowIndex, iANModalLabel label, float opacity) {
 	assert(rowIndex <= m_layout->rowCount());
 	int labelId = label.id;
-
-	QCheckBox* cbRemover = new QCheckBox("Exclude");
-	connect(cbRemover, &QCheckBox::stateChanged, this, [this, labelId]() { emit labelRemoverStateChanged(labelId); });
 
 	QLabel *lName = new QLabel(label.name);
 
@@ -118,7 +110,6 @@ void iANModalLabelControls::addRow(int rowIndex, iANModalLabel label, float opac
 	setOpacity(sOpacity, opacity);
 	connect(sOpacity, &QSlider::valueChanged, this, [this, labelId]() { emit labelOpacityChanged(labelId); });
 
-	m_layout->addWidget(cbRemover, rowIndex, REMOVER);
 	m_layout->addWidget(lName, rowIndex, NAME);
 	m_layout->addWidget(lColor, rowIndex, COLOR);
 	m_layout->addWidget(sOpacity, rowIndex, OPACITY);
@@ -126,14 +117,13 @@ void iANModalLabelControls::addRow(int rowIndex, iANModalLabel label, float opac
 	if (rowIndex >= m_rows.size()) {
 		m_rows.resize(rowIndex + 1);
 	}
-	m_rows[rowIndex] = Row(rowIndex, cbRemover, lName, lColor, sOpacity);
+	m_rows[rowIndex] = Row(rowIndex, lName, lColor, sOpacity);
 }
 
-void iANModalLabelControls::updateRow(int rowIndex, iANModalLabel label) {
+void iANModalLabelsWidget::updateRow(int rowIndex, iANModalLabel label) {
 	assert(containsLabel(rowIndex));
 	Row row = m_rows[rowIndex];
 	row.name->setText(label.name);
 	setLabelColor(row.color, label.color);
 	setOpacity(row.opacity, label.opacity);
-	row.remover->setChecked(label.remover);
 }

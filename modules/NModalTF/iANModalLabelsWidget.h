@@ -20,59 +20,59 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QString>
-#include <QColor>
-#include <QList>
+#include <QWidget>
+#include <QListWidget>
+#include <QMap>
+#include <QSharedPointer>
 
-struct iANModalSeed {
+struct iANModalLabel;
 
-	friend class iANModalController;
+class QGridLayout;
+class QLabel;
+class QSlider;
 
-	iANModalSeed(int X, int Y, int Z, int oiid)
-		: x(X), y(Y), z(Z), overlayImageId(oiid), labelId(-1), scalar(-1)
-	{}
-	//iANModalSeed(int X, int Y, int Z, int oiid, int lid, double s)
-	//	: x(X), y(Y), z(Z), overlayImageId(oiid), labelId(lid), scalar(s)
-	//{}
-	int x;
-	int y;
-	int z;
-	int overlayImageId;
+class iANModalLabelsWidget : public QWidget {
+	Q_OBJECT
+
+public:
+	iANModalLabelsWidget(QWidget *parent = nullptr);
+
+	void updateTable(QList<iANModalLabel>);
+	void insertLabel(int row, iANModalLabel, float opacity);
+	void removeLabel(int row);
+	bool containsLabel(int row);
+
+	float opacity(int labelId);
 
 private:
-	int labelId;
-	double scalar;
+
+	enum Column {
+		NAME = 0,
+		COLOR = 1,
+		OPACITY = 2
+	};
+
+	struct Row {
+		Row() {}
+		Row(int _row, QLabel *_name, QLabel *_color, QSlider *_opacity) : 
+			row(_row), name(_name), color(_color), opacity(_opacity)
+		{}
+		int row = -1;
+		QLabel *name = nullptr;
+		QLabel *color = nullptr;
+		QSlider *opacity = nullptr;
+	};
+
+	QGridLayout *m_layout;
+	QVector<iANModalLabel> m_labels;
+	QVector<Row> m_rows;
+
+	int m_nextId = 0;
+
+	void addRow(int row, iANModalLabel, float opacity);
+	void updateRow(int row, iANModalLabel);
+
+signals:
+	void labelOpacityChanged(int labelId);
+
 };
-
-inline bool operator==(const iANModalSeed& i1, const iANModalSeed& i2)
-{
-	return i1.x == i2.x && i1.y == i2.y && i1.z == i2.z && i1.overlayImageId == i2.overlayImageId;
-}
-
-inline uint qHash(const iANModalSeed& key, uint seed)
-{
-	return qHash(key.x ^ key.y ^ key.z ^ key.overlayImageId, seed);
-}
-
-struct iANModalLabel {
-	iANModalLabel() :
-		id(-1), opacity(0.0f)
-	{}
-	iANModalLabel(int i, QString n, QColor c, float o)
-		: id(i), name(n), color(c), opacity(o)
-	{}
-	int id;
-	QString name;
-	QColor color;
-	float opacity;
-};
-
-inline bool operator==(const iANModalLabel& i1, const iANModalLabel& i2)
-{
-	return i1.id == i2.id;
-}
-
-inline uint qHash(const iANModalLabel& key, uint seed)
-{
-	return qHash(key.id, seed);
-}

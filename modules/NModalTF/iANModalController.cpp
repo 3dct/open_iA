@@ -80,7 +80,8 @@ void iANModalController::reinitialize() {
 
 void iANModalController::_initialize() {
 
-	// TODO: cherry pick modalities
+	// TODO: group modalities by dimension
+	// TODO: promt user to select a group
 
 	assert(countModalities() < 4); // VTK limit. TODO: don't hard-code
 
@@ -278,17 +279,6 @@ int iANModalController::countModalities() {
 	return m_modalities.size();
 }
 
-QList<QSharedPointer<iAModality>> iANModalController::cherryPickModalities(QList<QSharedPointer<iAModality>>modalities) {
-
-	// TODO: pick "best" combination of modalities
-
-	QList<QSharedPointer<iAModality>> mods;
-	for (auto modality : modalities) {
-		mods.append(modality);
-	}
-	return mods;
-}
-
 bool iANModalController::_checkModalities(QList<QSharedPointer<iAModality>> modalities) {
 	if (modalities.size() < 1 || modalities.size() > 4) { // Bad: '4' is hard-coded. TODO: improve
 		return false;
@@ -373,8 +363,8 @@ void iANModalController::updateLabels(QList<iANModalLabel> labelsList) {
 			auto opacityTf = modality->transfer()->opacityTF();
 
 			auto label = labels[seed.labelId];
-			auto c = label.remover ? NMODAL_COLOR_REMOVER : label.color;
-			auto o = label.remover ? NMODAL_OPACITY_REMOVER : label.opacity;
+			auto c = label.color;
+			auto o = label.opacity;
 
 			colorTf->RemovePoint(seed.scalar);
 			colorTf->AddRGBPoint(seed.scalar, c.redF(), c.greenF(), c.blueF());
@@ -404,8 +394,8 @@ void iANModalController::addSeeds(QList<iANModalSeed> seeds, iANModalLabel label
 		seed.labelId = label.id;
 		seed.scalar = scalar;
 
-		auto c = label.remover ? NMODAL_COLOR_REMOVER : label.color;
-		auto o = label.remover ? NMODAL_OPACITY_REMOVER : label.opacity;
+		auto c = label.color;
+		auto o = label.opacity;
 		colorTf->AddRGBPoint(seed.scalar, c.redF(), c.greenF(), c.blueF());
 		opacityTf->AddPoint(seed.scalar, o);
 

@@ -18,61 +18,47 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include <QString>
-#include <QColor>
-#include <QList>
+#include "iANModalPCAModalityReducer.h"
 
-struct iANModalSeed {
+// Input modalities (volumes) must have the exact same dimensions
+QList<QSharedPointer<iAModality>> iANModalModalityReducer::reduce(QList<QSharedPointer<iAModality>> modalities) {
 
-	friend class iANModalController;
+	// Assert if all modalities have the same dimensions
 
-	iANModalSeed(int X, int Y, int Z, int oiid)
-		: x(X), y(Y), z(Z), overlayImageId(oiid), labelId(-1), scalar(-1)
-	{}
-	//iANModalSeed(int X, int Y, int Z, int oiid, int lid, double s)
-	//	: x(X), y(Y), z(Z), overlayImageId(oiid), labelId(lid), scalar(s)
-	//{}
-	int x;
-	int y;
-	int z;
-	int overlayImageId;
 
-private:
-	int labelId;
-	double scalar;
-};
+	// Flatten volumes
+	// - all volumes have the same dimensions N1 x N2 x N3
+	// - number of volumes: M
+	// - flattened volumes: 2D matrix of size N1*N2*N3 x M
 
-inline bool operator==(const iANModalSeed& i1, const iANModalSeed& i2)
-{
-	return i1.x == i2.x && i1.y == i2.y && i1.z == i2.z && i1.overlayImageId == i2.overlayImageId;
-}
 
-inline uint qHash(const iANModalSeed& key, uint seed)
-{
-	return qHash(key.x ^ key.y ^ key.z ^ key.overlayImageId, seed);
-}
+	// Calculate mean of each of the M vectors
+	// ITK mean image filter: https://itk.org/Doxygen/html/classitk_1_1MeanImageFilter.html
+	// ITK statistics image filter: https://itk.org/Doxygen/html/classitk_1_1StatisticsImageFilter.html
 
-struct iANModalLabel {
-	iANModalLabel() :
-		id(-1), opacity(0.0f)
-	{}
-	iANModalLabel(int i, QString n, QColor c, float o)
-		: id(i), name(n), color(c), opacity(o)
-	{}
-	int id;
-	QString name;
-	QColor color;
-	float opacity;
-};
 
-inline bool operator==(const iANModalLabel& i1, const iANModalLabel& i2)
-{
-	return i1.id == i2.id;
-}
+	// Subtract each element of the M vectors by their respective mean
+	// ITK subtract image filter: https://itk.org/Doxygen/html/classitk_1_1SubtractImageFilter.html
 
-inline uint qHash(const iANModalLabel& key, uint seed)
-{
-	return qHash(key.id, seed);
+
+	// Calculate covariance matrix
+	// ITK covariance calculator: https://itk.org/Doxygen320/html/classitk_1_1Statistics_1_1CovarianceCalculator.html
+	// ITK covariance sample filter: https://itk.org/Doxygen/html/classitk_1_1Statistics_1_1CovarianceSampleFilter.html
+
+
+	// Perform eigen analysis on the covariance matrix
+	// ITK symmetric eigen analysis: https://itk.org/Doxygen/html/classitk_1_1SymmetricEigenAnalysis.html
+
+
+	// Reshape eigenvectors (each of size N1*N2*N3 x 1) into volumes
+	// - we will now again have a number M of volumes with dimensions N1 x N2 x N3
+	// - if  M  >  K = maxOutputLength()  then only necessary to reshape the K eigenvectors with largest eigenvalues
+
+
+	// Ready to output :)
+	// - length of output list <= maxOutputLength()
+	auto output = modalities;
+	assert(output.size() <= maxOutputLength());
+	return output;
 }

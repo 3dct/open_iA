@@ -20,64 +20,56 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iANModalBackgroundRemover.h"
+
+#include <itkImageBase.h>
+
 #include <QWidget>
-#include <QListWidget>
-#include <QMap>
-#include <QSharedPointer>
 
-struct iANModalLabel;
+class MdiChild;
+class iAConnector;
+class iANModalDisplay;
 
-class QGridLayout;
-class QLabel;
-class QSlider;
-class QCheckBox;
-
-class iANModalLabelControls : public QWidget {
+class iANModalThresholdingWidget : public QWidget {
 	Q_OBJECT
+public:
+	iANModalThresholdingWidget(QWidget *parent, iANModalDisplay *display);
+	int threshold();
+	QSharedPointer<iAModality> modality();
+private:
+	int m_threshold;
+	QSharedPointer<iAModality> m_mod;
+private slots:
+	void setThreshold(int);
+};
+
+class iANModalDilationBackgroundRemover : public iANModalBackgroundRemover {
 
 public:
-	iANModalLabelControls(QWidget *parent = nullptr);
-
-	void updateTable(QList<iANModalLabel>);
-	void insertLabel(int row, iANModalLabel, float opacity);
-	void removeLabel(int row);
-	bool containsLabel(int row);
-
-	float opacity(int labelId);
-	bool remover(int labelId);
+	iANModalDilationBackgroundRemover(MdiChild *mdiChild);
+	vtkSmartPointer<vtkImageData> removeBackground(QList<QSharedPointer<iAModality>>) override;
 
 private:
 
-	enum Column {
-		REMOVER = 0,
-		NAME = 1,
-		COLOR = 2,
-		OPACITY = 3
-	};
+	MdiChild *m_mdiChild;
 
-	struct Row {
-		Row() {}
-		Row(int _row, QCheckBox *_remover, QLabel *_name, QLabel *_color, QSlider *_opacity) : 
-			row(_row), remover(_remover), name(_name), color(_color), opacity(_opacity)
-		{}
-		int row = -1;
-		QCheckBox* remover = nullptr;
-		QLabel *name = nullptr;
-		QLabel *color = nullptr;
-		QSlider *opacity = nullptr;
-	};
+	// return - true if a modality and a threshold were successfully chosen
+	//        - false otherwise
+	bool selectModalityAndThreshold(QWidget *parent, QList<QSharedPointer<iAModality>> modalities, int &out_threshold, QSharedPointer<iAModality> &out_modality);
 
-	QGridLayout *m_layout;
-	QVector<iANModalLabel> m_labels;
-	QVector<Row> m_rows;
 
-	int m_nextId = 0;
+	typedef itk::ImageBase<3>::Pointer ImagePointer;
 
-	void addRow(int row, iANModalLabel, float opacity);
-	void updateRow(int row, iANModalLabel);
+	//iAConnector *m_temp_connector = nullptr;
+	//vtkSmartPointer<vtkImageData> m_vtkTempImg;
+	ImagePointer m_itkTempImg;
 
-signals:
-	void labelOpacityChanged(int labelId);
-	void labelRemoverStateChanged(int labelId);
+	template<class T>
+	void itkBinaryThreshold(iAConnector *conn, int loThresh, int upThresh);
 
+	template<class T>
+	void binary_threshold(ImagePointer itkImgPtr);
+
+	template<class T>
+	void binary_threshold2(ImagePointer itkImgPtr);
 };

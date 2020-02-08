@@ -49,7 +49,6 @@ public:
 	void initialize();
 
 	int countModalities();
-	QList<QSharedPointer<iAModality>> cherryPickModalities(QList<QSharedPointer<iAModality>> modalities);
 	bool setModalities(QList<QSharedPointer<iAModality>> modalities);
 	void reinitialize();
 

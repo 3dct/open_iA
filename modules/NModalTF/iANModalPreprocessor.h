@@ -20,59 +20,46 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QString>
-#include <QColor>
+#include <vtkSmartPointer.h>
+
 #include <QList>
+#include <QSharedPointer>
 
-struct iANModalSeed {
+class vtkImageData;
 
-	friend class iANModalController;
+class iAModality;
+class iANModalModalityReducer;
+class iANModalBackgroundRemover;
 
-	iANModalSeed(int X, int Y, int Z, int oiid)
-		: x(X), y(Y), z(Z), overlayImageId(oiid), labelId(-1), scalar(-1)
-	{}
-	//iANModalSeed(int X, int Y, int Z, int oiid, int lid, double s)
-	//	: x(X), y(Y), z(Z), overlayImageId(oiid), labelId(lid), scalar(s)
-	//{}
-	int x;
-	int y;
-	int z;
-	int overlayImageId;
+
+
+struct iANModalPreprocessorOutput {
+	QList<QSharedPointer<iAModality>> modalities;
+	//bool hasMask = false;
+	vtkSmartPointer<vtkImageData> mask;
+};
+
+
+
+class iANModalPreprocessor {
+
+public:
+	iANModalPreprocessor(QSharedPointer<iANModalModalityReducer>, QSharedPointer<iANModalBackgroundRemover>);
+	iANModalPreprocessorOutput preprocess(QList<QSharedPointer<iAModality>>);
 
 private:
-	int labelId;
-	double scalar;
+
+	struct ModalitiesGroup {
+		QList<QSharedPointer<iAModality>> modalities;
+		int dimx, dimy, dimz;
+	};
+
+	QSharedPointer<iANModalModalityReducer> m_modalityReducer;
+	QSharedPointer<iANModalBackgroundRemover> m_backgroundRemover;
+
+	bool areModalitiesCompatible(QSharedPointer<iAModality>, QSharedPointer <iAModality>);
+	void groupModalities(QList<QSharedPointer<iAModality>>, QList<ModalitiesGroup> &output);
+	QList<QSharedPointer<iAModality>> chooseGroup(QList<ModalitiesGroup>);
+
+
 };
-
-inline bool operator==(const iANModalSeed& i1, const iANModalSeed& i2)
-{
-	return i1.x == i2.x && i1.y == i2.y && i1.z == i2.z && i1.overlayImageId == i2.overlayImageId;
-}
-
-inline uint qHash(const iANModalSeed& key, uint seed)
-{
-	return qHash(key.x ^ key.y ^ key.z ^ key.overlayImageId, seed);
-}
-
-struct iANModalLabel {
-	iANModalLabel() :
-		id(-1), opacity(0.0f)
-	{}
-	iANModalLabel(int i, QString n, QColor c, float o)
-		: id(i), name(n), color(c), opacity(o)
-	{}
-	int id;
-	QString name;
-	QColor color;
-	float opacity;
-};
-
-inline bool operator==(const iANModalLabel& i1, const iANModalLabel& i2)
-{
-	return i1.id == i2.id;
-}
-
-inline uint qHash(const iANModalLabel& key, uint seed)
-{
-	return qHash(key.id, seed);
-}
