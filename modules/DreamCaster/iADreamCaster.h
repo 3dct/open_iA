@@ -116,9 +116,9 @@ private:
 	iAparameters_t *** rotationsParams; //!< Data about av. parameter of every rendering
 	iAparameters_t ** placementsParams; //!< Data about av. parameter of every object's placement(sum of all elements in column)
 	double ** weightedParams;           //!< Data about weighted parameter of every object's placement(sum of all elements in column)
-	int cntX;                           //!< number of renderings by X axis
-	int cntY;                           //!< number of renderings by Y axis
-	int cntZ;                           //!< number of renderings by Z axis
+	int renderCntX;                     //!< number of renderings by X axis
+	int renderCntY;                     //!< number of renderings by Y axis
+	int renderCntZ;                     //!< number of renderings by Z axis
 	double paramMin;                    //!< minimum value of current parameter
 	double paramMax;                    //!< maximum value of current parameter
 	double stabilitySensitivity;        //!< sensitivity of stability widget

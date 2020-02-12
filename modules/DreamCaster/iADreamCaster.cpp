@@ -118,7 +118,19 @@ inline void SetSliderNormalizedValue(QSlider * slider, float val)
 }
 
 iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
-	: QMainWindow(parent, flags), modelOpened(false), datasetOpened(false)
+	: QMainWindow(parent, flags),
+	rotations(nullptr),
+	rotationsParams(nullptr),
+	placementsParams(nullptr),
+	weightedParams(nullptr),
+	renderCntX(0),
+	renderCntY(0),
+	renderCntZ(0),
+	curIndX(0),
+	curIndY(0),
+	curIndZ(0),
+	modelOpened(false),
+	datasetOpened(false)
 {
 	Q_INIT_RESOURCE(dreamcaster);
 	ParseConfigFile(&stngs);
@@ -231,12 +243,6 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	qvtkWidget->GetInteractor()->SetInteractorStyle(style);
 	style->Delete();
 
-	rotations=0;
-	rotationsParams = 0;
-	placementsParams = 0;
-	weightedParams = 0;
-	cntX = 0; cntZ = 0; cntY = 0;
-	curIndX=0; curIndZ=0; curIndY = 0;
 	//
 //TODO: peredelat' pod openCL!!
 // 	int            deviceCount;
@@ -655,21 +661,21 @@ void iADreamCaster::RenderViewsSlot()
 	//delete prev data
 	ClearPrevData();//plotData,rotations,plotColumnData
 	//
-	cntX = ui.sb_countX->value();
+	renderCntX = ui.sb_countX->value();
 	if (ui.cb_RadonSA->currentIndex() == 2)
 	{
 		ui.sb_numProj->setValue(1);
 	}
-	cntY = ui.sb_numProj->value();
-	cntZ = ui.sb_countZ->value();
+	renderCntY = ui.sb_numProj->value();
+	renderCntZ = ui.sb_countZ->value();
 	ViewsReset();
-	ui.hs_projection->setMaximum(cntY-1);
+	ui.hs_projection->setMaximum(renderCntY-1);
 	if(viewsBuffer)
 	{
 		delete [] viewsBuffer;
 		viewsBuffer = 0;
 	}
-	int s = cntX*cntZ;
+	int s = renderCntX* renderCntZ;
 	viewsBuffer = new unsigned int[s];
 	memset(viewsBuffer, 0, s*sizeof(viewsBuffer[0]));
 	AllocateData();//plotData,rotations,plotColumnData
@@ -679,9 +685,9 @@ void iADreamCaster::RenderViewsSlot()
 	float minValZ = ui.sb_min_z->value()*DEG2RAD;
 	float maxValX = ui.sb_max_x->value()*DEG2RAD;
 	float maxValZ = ui.sb_max_z->value()*DEG2RAD;
-	float deltaX = (maxValX-minValX)/cntX;
-	float deltaY = 2*M_PI/cntY;
-	float deltaZ = (maxValZ-minValZ)/cntZ;
+	float deltaX = (maxValX-minValX)/ renderCntX;
+	float deltaY = 2*M_PI/ renderCntY;
+	float deltaZ = (maxValZ-minValZ)/ renderCntZ;
 	//open file for writing in binary mode and write header
 	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str(),"wb");
 	if(!fptr)
@@ -693,13 +699,13 @@ void iADreamCaster::RenderViewsSlot()
 	float cur_minValZ = ui.sb_min_z->value()/DEG_IN_PI;
 	float cur_maxValX = ui.sb_max_x->value()/DEG_IN_PI;
 	float cur_maxValZ = ui.sb_max_z->value()/DEG_IN_PI;
-	fwrite(&cntX, sizeof(cntX), 1, fptr);
+	fwrite(&renderCntX, sizeof(renderCntX), 1, fptr);
 	fwrite(&cur_minValX, sizeof(cur_minValX), 1, fptr);
 	fwrite(&cur_maxValX, sizeof(cur_maxValX), 1, fptr);
 
-	fwrite(&cntY, sizeof(cntY), 1, fptr);
+	fwrite(&renderCntY, sizeof(renderCntY), 1, fptr);
 
-	fwrite(&cntZ, sizeof(cntZ), 1, fptr);
+	fwrite(&renderCntZ, sizeof(renderCntZ), 1, fptr);
 	fwrite(&cur_minValZ, sizeof(cur_minValZ), 1, fptr);
 	fwrite(&cur_maxValZ, sizeof(cur_maxValZ), 1, fptr);
 
@@ -725,18 +731,18 @@ void iADreamCaster::RenderViewsSlot()
 	int paramIndex = ui.cb_rangeParameter->currentIndex();
 	tracer->SetCutAABBList(&cutFigList->aabbs);
 	findSelectedTriangles();
-	int totalRends = cntX*cntY*cntZ;
+	int totalRends = renderCntX* renderCntY*renderCntZ;
 	if(ui.cb_RadonSA->currentIndex() == 2)//do only Radon space analysis
 	{
 		iAVec3f l_o; // rays' origin point
 		iAVec3f l_vp_corners[2];// plane's corners in 3d
 		iAVec3f l_vp_delta[2];// plane's x and y axes' directions in 3D
 		int counter = 0;
-		for (int x=0; x<cntX; x++)
+		for (int x=0; x< renderCntX; x++)
 		{
-			for (int z=0; z<cntZ; z++)
+			for (int z=0; z< renderCntZ; z++)
 			{
-				for (int y=0; y<cntY; y++)
+				for (int y=0; y< renderCntY; y++)
 				{
 					if (isStopped)
 					{
@@ -815,7 +821,7 @@ void iADreamCaster::RenderViewsSlot()
 		unsigned int s1_x = 0;
 		unsigned int s1_y = 0;
 		unsigned int s1_z = 0;
-		int numberOfRenderings = cntX*cntY*cntZ;
+		int numberOfRenderings = renderCntX* renderCntY*renderCntZ;
 		while(counter < numberOfRenderings)
 		{
 			if(isStopped)
@@ -833,9 +839,9 @@ void iADreamCaster::RenderViewsSlot()
 
 				return;
 			}
-			s1_x = counter / (cntY*cntZ);
-			s1_y = counter % cntY;
-			s1_z = (counter / cntY)%cntZ;
+			s1_x = counter / (renderCntY*renderCntZ);
+			s1_y = counter % renderCntY;
+			s1_z = (counter / renderCntY)% renderCntZ;
 			counter++;
 			if( s1_y==0 )
 			{
@@ -875,7 +881,10 @@ void iADreamCaster::RenderViewsSlot()
 			rotsY[batch_counter] = ry;
 			rotsZ[batch_counter] = rz;
 			batch_counter++;
-			if (batch_counter == stngs.BATCH_SIZE || (s1_x == cntX-1 && s1_y == cntY-1 && s1_z == cntZ-1))
+			if (batch_counter == stngs.BATCH_SIZE ||
+				(s1_x == static_cast<unsigned int>(renderCntX-1) &&
+				 s1_y == static_cast<unsigned int>(renderCntY-1) &&
+				 s1_z == static_cast<unsigned int>(renderCntZ-1)))
 			{
 				QElapsedTimer localTime;
 				localTime.start();//int fstart = GetTickCount();
@@ -920,10 +929,10 @@ void iADreamCaster::RenderViewsSlot()
 						placementsParams[xs[batch]][zs[batch]].maxPenLen = rotationsParams[xs[batch]][ys[batch]][zs[batch]].maxPenLen;
 					}
 
-					if(ys[batch]==(cntY-1))
+					if(ys[batch]==static_cast<unsigned int>(renderCntY-1))
 					{
-						placementsParams[ xs[batch] ][ zs[batch] ].avPenLen /= cntY;
-						placementsParams[ xs[batch] ][ zs[batch] ].avDipAng /= cntY;
+						placementsParams[ xs[batch] ][ zs[batch] ].avPenLen /= renderCntY;
+						placementsParams[ xs[batch] ][ zs[batch] ].avDipAng /= renderCntY;
 						float s1_cur_param = 0.0f;
 						switch(paramIndex)
 						{
@@ -950,7 +959,7 @@ void iADreamCaster::RenderViewsSlot()
 						unsigned int s1_lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R+stngs.COL_RANGE_DR*s1_cur_param) << 16) +
 							((unsigned int)(stngs.COL_RANGE_MIN_G+stngs.COL_RANGE_DG*s1_cur_param) << 8) +
 							(unsigned int)(stngs.COL_RANGE_MIN_B+stngs.COL_RANGE_DB*s1_cur_param);
-						viewsBuffer[ xs[batch] + zs[batch]*cntX] = s1_lencol;
+						viewsBuffer[ xs[batch] + zs[batch]* renderCntX] = s1_lencol;
 					}
 				}
 				///plot->loadFromData(plotData, cntX, cntY, 0,1,0,1);
@@ -990,12 +999,12 @@ void iADreamCaster::RenderViewsSlot()
 		iAVec3f vp_corners[2];// plane's corners in 3d
 		iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
 		int counter = 0;
-		for (int x=0; x<cntX; x++)
+		for (int x=0; x< renderCntX; x++)
 		{
-			for (int z=0; z<cntZ; z++)
+			for (int z=0; z< renderCntZ; z++)
 			{
 				placementsParams[x][z]= iAparameters_t();
-				for (int y=0; y<cntY; y++)
+				for (int y=0; y< renderCntY; y++)
 				{
 					if (isStopped)
 					{
@@ -1097,8 +1106,8 @@ void iADreamCaster::RenderViewsSlot()
 					;
 					break;
 				}*/
-				placementsParams[x][z].avPenLen /= cntY;
-				placementsParams[x][z].avDipAng /= cntY;
+				placementsParams[x][z].avPenLen /= renderCntY;
+				placementsParams[x][z].avDipAng /= renderCntY;
 				//if(plotColumnData[x][z] > max_param)
 				//	max_param =  plotColumnData[x][z];
 				//if(plotColumnData[x][z] < min_param)
@@ -1130,12 +1139,12 @@ void iADreamCaster::RenderViewsSlot()
 				unsigned int lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R+stngs.COL_RANGE_DR*cur_param) << 16) +
 					((unsigned int)(stngs.COL_RANGE_MIN_G+stngs.COL_RANGE_DG*cur_param) << 8) +
 					(unsigned int)(stngs.COL_RANGE_MIN_B+stngs.COL_RANGE_DB*cur_param);
-				viewsBuffer[x + z*cntX] = lencol;
+				viewsBuffer[x + z*renderCntX] = lencol;
 				UpdateSlot();
 				RenderFrame->repaint();
 				stabilityView->repaint();
 				app->processEvents();
-				///plot->loadFromData(plotData, cntX, cntY, 0,1,0,1);
+				///plot->loadFromData(plotData, renderCntX, renderCntY, 0,1,0,1);
 				//if(max_param==0)
 				//	max_param=1;
 				///plot->setScale(1.,1., 1./max_param);
@@ -1151,80 +1160,6 @@ void iADreamCaster::RenderViewsSlot()
 	}
 	tracer->SetCutAABBList(0);
 	datasetOpened = true;
-	/*//normalization of heightmap //TODO: unite with UpdatePlotSlot
-	curParamInd = paramIndex;
-	float curParam;
-	double max_param=-1000;
-	double min_param=100000;
-	for (unsigned int x=0; x<cntX; x++)
-	for (unsigned int z=0; z<cntZ; z++)
-	{
-		if( (placementsParams[x][z])[paramIndex] > max_param )
-			max_param =  (placementsParams[x][z])[paramIndex];
-		if( (placementsParams[x][z])[paramIndex] < min_param )
-			min_param =  (placementsParams[x][z])[paramIndex];
-	}
-	if(max_param==0)
-		max_param=1;
-	double scalec = max_param-min_param;
-	if(scalec==0) scalec=1;
-
-	double **plotData;
-	plotData = new double*[cntX];
-	for (unsigned int x=0; x<cntX; x++)
-		plotData[x] = new double[cntZ];
-
-	for (unsigned int x=0; x<cntX; x++)
-		for (unsigned int z=0; z<cntZ; z++)
-	plotData[x][z] = (placementsParams[x][z])[paramIndex];
-
-	plot->loadFromData(plotData, cntX, cntZ, 0,1,0,1);
-
-	if(plotData)
-	{
-		for (unsigned int x=0; x<cntX; x++)
-		{
-			if(plotData[x])
-				delete [] plotData[x];
-		}
-		delete [] plotData;
-	}
-
-	plot->setScale(1.,1., 1./max_param);
-	plot->updateData();
-	plot->updateGL();
-	plot->setScale(1.,1., 1./scalec);
-	for (unsigned int x=0; x<cntX; x++)
-	{
-		for (unsigned int z=0; z<cntZ; z++)
-		{
-			switch(paramIndex)
-			{
-			case 0://av. penetration length
-				curParam = (placementsParams[x][z].av_pen_len - min_param)/scalec;
-				break;
-			case 1://dip angle cosine
-				curParam = (max_param - placementsParams[x][z].av_dip_ang)/scalec;
-				break;
-			case 2://max penetration length
-				curParam = (placementsParams[x][z].max_pen_len - min_param)/scalec;
-				break;
-			default:
-				break;
-			}
-			if (curParam>1.f) curParam=1.f;
-			unsigned int lencol = ((unsigned int)(COL_RANGE_MIN_R+COL_RANGE_DR*curParam) << 16) +
-				((unsigned int)(COL_RANGE_MIN_G+COL_RANGE_DG*curParam) << 8) +
-				(unsigned int)(COL_RANGE_MIN_B+COL_RANGE_DB*curParam);
-			viewsBuffer[x + z*cntX] = lencol;
-		}
-	}
-	//setup stability widget sensitivity
-	paramMin = min_param;
-	paramMax = max_param;
-	SensitivityChangedSlot();
-	UpdateSlot();*/
-//	mat->Delete();
 	fclose(fptr);
 	UpdatePlotSlot();
 }
@@ -1255,7 +1190,7 @@ void iADreamCaster::UpdateHistogramSlot()
 	if(ui.cb_hist4placement->isChecked())//for placement
 	{
 		startY = 0;
-		endY = cntY;
+		endY = renderCntY;
 	}
 	for (int y=startY; y<endY; y++)
 	{
@@ -1379,7 +1314,7 @@ void iADreamCaster::UpdateSlot()
 	RenderFrame->update();
 	stabilityView->update();
 	//
-	img = QImage((uchar*)viewsBuffer, cntX, cntZ, QImage::Format_RGB32);
+	img = QImage((uchar*)viewsBuffer, renderCntX, renderCntZ, QImage::Format_RGB32);
 	formPainter->begin(viewsPxmp);
 		formPainter->drawImage(QRect(0, 0, viewsPxmp->width(), viewsPxmp->height()), img);
 	formPainter->end();
@@ -1949,11 +1884,11 @@ void iADreamCaster::UpdatePlotSlot()
 	//
 	float minValX, maxValX, minValZ, maxValZ;
 
-	if (fread(&cntX, sizeof(cntX), 1, fptr) != 1 ||
+	if (fread(&renderCntX, sizeof(renderCntX), 1, fptr) != 1 ||
 		fread(&minValX, sizeof(minValX), 1, fptr) != 1 ||
 		fread(&maxValX, sizeof(maxValX), 1, fptr) != 1 ||
-		fread(&cntY, sizeof(cntY), 1, fptr) != 1 ||
-		fread(&cntZ, sizeof(cntZ), 1, fptr) != 1 ||
+		fread(&renderCntY, sizeof(renderCntY), 1, fptr) != 1 ||
+		fread(&renderCntZ, sizeof(renderCntZ), 1, fptr) != 1 ||
 		fread(&minValZ, sizeof(minValZ), 1, fptr) != 1 ||
 		fread(&maxValZ, sizeof(maxValZ), 1, fptr) != 1)
 	{
@@ -2000,17 +1935,17 @@ void iADreamCaster::UpdatePlotSlot()
 	}
 	//
 	ViewsReset();
-	ui.sb_countX->setValue(cntX);
-	ui.sb_numProj->setValue(cntY);
-	ui.sb_countZ->setValue(cntZ);
-	ui.hs_projection->setMaximum(cntY-1);
+	ui.sb_countX->setValue(renderCntX);
+	ui.sb_numProj->setValue(renderCntY);
+	ui.sb_countZ->setValue(renderCntZ);
+	ui.hs_projection->setMaximum(renderCntY-1);
 
 	if(viewsBuffer)
 	{
 		delete [] viewsBuffer;
 		viewsBuffer = 0;
 	}
-	int s = cntX*cntZ;
+	int s = renderCntX * renderCntZ;
 	viewsBuffer = new unsigned int[s];
 	memset(viewsBuffer, 0, s*sizeof(viewsBuffer[0]));
 
@@ -2027,18 +1962,18 @@ void iADreamCaster::UpdatePlotSlot()
 	int paramIndex = ui.cb_rangeParameter->currentIndex();
 	curParamInd = paramIndex;
 	//read parameter values, store them, assign to 3d plot
-	for (int x = 0; x < cntX; x++)
+	for (int x = 0; x < renderCntX; x++)
 	{
-		for (int z = 0; z < cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
 			placementsParams[x][z] = iAparameters_t();
 		}
 	}
-	for (int x = 0; x < cntX; x++)
+	for (int x = 0; x < renderCntX; x++)
 	{
-		for (int z = 0; z < cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
-			for (int y = 0; y < cntY; y++)
+			for (int y = 0; y < renderCntY; y++)
 			{
 				if (fread(&rotations[x][y][z].rotX, sizeof(rotations[x][y][z].rotX), 1, fptr) != 1)
 				{
@@ -2129,9 +2064,9 @@ void iADreamCaster::UpdatePlotSlot()
 			}
 		}
 	}
-	for (int x = 0; x < cntX; x++)
+	for (int x = 0; x < renderCntX; x++)
 	{
-		for (int z = 0; z < cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
 			/*switch(paramIndex)
 			{
@@ -2147,8 +2082,8 @@ void iADreamCaster::UpdatePlotSlot()
 			default:
 				break;
 			}*/
-			placementsParams[x][z].avPenLen /= cntY;
-			placementsParams[x][z].avDipAng /= cntY;
+			placementsParams[x][z].avPenLen /= renderCntY;
+			placementsParams[x][z].avDipAng /= renderCntY;
 
 			if ((placementsParams[x][z])[paramIndex] > max_param)
 			{
@@ -2172,12 +2107,12 @@ void iADreamCaster::UpdatePlotSlot()
 	datasetOpened = true;
 	SensitivityChangedSlot();
 ///
-	double * scalarVals = new double[cntX*cntZ];
-	double * plotData = new double[cntX*cntZ];
+	double * scalarVals = new double[renderCntX*renderCntZ];
+	double * plotData = new double[renderCntX*renderCntZ];
 	double lookupNumber = plot3d->GetNumberOfLookupTableValues();
-	for (int x=0; x<cntX; x++)
+	for (int x=0; x< renderCntX; x++)
 	{
-		for (int z = 0; z < cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
 			switch (paramIndex)
 			{
@@ -2203,19 +2138,19 @@ void iADreamCaster::UpdatePlotSlot()
 			unsigned int lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R + stngs.COL_RANGE_DR*curParam) << 16) +
 						   ((unsigned int)(stngs.COL_RANGE_MIN_G + stngs.COL_RANGE_DG*curParam) << 8) +
 							(unsigned int)(stngs.COL_RANGE_MIN_B + stngs.COL_RANGE_DB*curParam);
-			viewsBuffer[x + z*cntX] = lencol;
-			plotData[x + z*cntX] = curParam;
-			scalarVals[x + z*cntX] = curParam*lookupNumber;
+			viewsBuffer[x + z* renderCntX] = lencol;
+			plotData[x + z* renderCntX] = curParam;
+			scalarVals[x + z* renderCntX] = curParam*lookupNumber;
 		}
 	}
 	//Comparison and weighting tabs
-	weightingTab->results.AllocateBuffer(cntX, cntZ);
+	weightingTab->results.AllocateBuffer(renderCntX, renderCntZ);
 	//TODO: vynesty vverh indices
 	for (unsigned int i=0; i<3; i++)
 	{
 		/*if(i==1)
 			i++;*/
-		comparisonTab->paramWidgets[i].AllocateBuffer(cntX, cntZ);
+		comparisonTab->paramWidgets[i].AllocateBuffer(renderCntX, renderCntZ);
 		//weightingTab->paramWidgets[i].AllocateBuffer(cntX, cntZ);
 		fillParamBuffer(comparisonTab->paramWidgets[i].buffer, indices[i]);
 		//fillParamBuffer(weightingTab->paramWidgets[i].buffer, indices[i]);
@@ -2229,7 +2164,7 @@ void iADreamCaster::UpdatePlotSlot()
 	for (int z=0; z<cntZ; z++)
 		for (int x=0; x<cntX; x++)
 			plotData[x + z*cntX] = (placementsParams[x][z])[paramIndex];*/
-	plot3d->loadFromData(plotData, scalarVals, cntX, cntZ);
+	plot3d->loadFromData(plotData, scalarVals, renderCntX, renderCntZ);
 	plot3d->ShowWireGrid(1, 0,0,0);
 	plot3d->Update();
 	plot3d->GetRenderer()->GetRenderWindow()->Render();
@@ -2237,32 +2172,31 @@ void iADreamCaster::UpdatePlotSlot()
 	delete [] scalarVals;
 ///
 	//plot->setScale(1.,1., 1./scalec);
-	if(cntX || cntZ)
+	if(renderCntX || renderCntZ)
 	{
-		double **plotData;
-		plotData = new double*[cntX];
-		for (int x=0; x<cntX; x++)
+		double **localPlotData = new double*[renderCntX];
+		for (int x=0; x < renderCntX; x++)
 		{
-			plotData[x] = new double[cntZ];
+			localPlotData[x] = new double[renderCntZ];
 		}
-		for (int x = 0; x < cntX; x++)
+		for (int x = 0; x < renderCntX; x++)
 		{
-			for (int z = 0; z < cntZ; z++)
+			for (int z = 0; z < renderCntZ; z++)
 			{
-				plotData[x][z] = (placementsParams[x][z])[paramIndex];
+				localPlotData[x][z] = (placementsParams[x][z])[paramIndex];
 			}
 		}
 		//plot->loadFromData(plotData, cntX, cntZ, 0,1,0,1);
-		if(plotData)
+		if(localPlotData)
 		{
-			for (int x=0; x<cntX; x++)
+			for (int x=0; x < renderCntX; x++)
 			{
-				if (plotData[x])
+				if (localPlotData[x])
 				{
-					delete[] plotData[x];
+					delete[] localPlotData[x];
 				}
 			}
-			delete [] plotData;
+			delete [] localPlotData;
 		}
 	}
 	//plot->updateData();
@@ -2281,18 +2215,18 @@ void iADreamCaster::SaveTree()
 
 void iADreamCaster::RenderFrameMouseReleasedSlot()
 {
-	if (!cntZ || !cntX)
+	if (!renderCntZ || !renderCntX)
 	{
 		return;
 	}
-	int buf = (int)((float)ViewsFrame->lastX/((float)ViewsFrame->width()/cntX));
-	if (buf < 0 || buf >= cntX)
+	int buf = (int)((float)ViewsFrame->lastX/((float)ViewsFrame->width()/ renderCntX));
+	if (buf < 0 || buf >= renderCntX)
 	{
 		return;
 	}
 	curIndX = buf;
-	buf = (int)((float)ViewsFrame->lastY/((float)ViewsFrame->width()/cntZ));
-	if (buf < 0 || buf >= cntZ)
+	buf = (int)((float)ViewsFrame->lastY/((float)ViewsFrame->width()/ renderCntZ));
+	if (buf < 0 || buf >= renderCntZ)
 	{
 		return;
 	}
@@ -2311,7 +2245,7 @@ void iADreamCaster::RenderFrameMouseReleasedSlot()
 
 void iADreamCaster::ShowResultsSlot()
 {
-	if (!cntZ || !cntX)
+	if (!renderCntZ || !renderCntX)
 	{
 		return;
 	}
@@ -2322,9 +2256,9 @@ void iADreamCaster::ShowResultsSlot()
 	{
 	case 0://av. penetration parameter choosed
 		optimalParam=10000.0f;
-		for (int i = 0; i < cntX; i++)
+		for (int i = 0; i < renderCntX; i++)
 		{
-			for (int j = 0; j < cntZ; j++)
+			for (int j = 0; j < renderCntZ; j++)
 			{
 				if ((placementsParams[i][j])[curParamInd] < optimalParam)
 				{
@@ -2337,9 +2271,9 @@ void iADreamCaster::ShowResultsSlot()
 		break;
 	case 1://av. dip angle
 		optimalParam=0.f;
-		for (int i = 0; i < cntX; i++)
+		for (int i = 0; i < renderCntX; i++)
 		{
-			for (int j = 0; j < cntZ; j++)
+			for (int j = 0; j < renderCntZ; j++)
 			{
 				if ((placementsParams[i][j])[curParamInd] > optimalParam)
 				{
@@ -2352,9 +2286,9 @@ void iADreamCaster::ShowResultsSlot()
 		break;
 	case 2://max. penetration parameter choosed
 		optimalParam=10000.0f;
-		for (int i = 0; i < cntX; i++)
+		for (int i = 0; i < renderCntX; i++)
 		{
-			for (int j = 0; j < cntZ; j++)
+			for (int j = 0; j < renderCntZ; j++)
 			{
 				if ((placementsParams[i][j])[curParamInd] < optimalParam)
 				{
@@ -2370,9 +2304,9 @@ void iADreamCaster::ShowResultsSlot()
 	int hl_indices[2] = {(int)xind,(int)zind};
 	ViewsFrame->SetHiglightedIndices(&hl_indices[0], &hl_indices[1], 1);
 	rstr = "Object: " + modelFileName + "\n";
-	rstr += "Number of renderings by X: "+QString::number(cntX)+"\n";
-	rstr += "Number of renderings by Y: "+QString::number(cntY)+"\n";
-	rstr += "Number of renderings by Z: "+QString::number(cntZ)+"\n";
+	rstr += "Number of renderings by X: "+QString::number(renderCntX)+"\n";
+	rstr += "Number of renderings by Y: "+QString::number(renderCntY)+"\n";
+	rstr += "Number of renderings by Z: "+QString::number(renderCntZ)+"\n";
 	rstr += "Parameter: ";
 	switch(ui.cb_rangeParameter->currentIndex())
 	{
@@ -2489,37 +2423,37 @@ void iADreamCaster::ConfigureSettingsSlot()
 
 void iADreamCaster::SaveSettingsSlot()
 {
-	QSettings settings;
-	settings.setValue( "DreamCaster/THREAD_GRID_X", settingsUi.tableWidget->item(0, 0)->text().toInt());
-	settings.setValue( "DreamCaster/THREAD_GRID_Y", settingsUi.tableWidget->item(1, 0)->text().toInt());
-	settings.setValue( "DreamCaster/SCALE_COEF",    settingsUi.tableWidget->item(2, 0)->text().toFloat());
-	settings.setValue( "DreamCaster/COLORING_COEF", settingsUi.tableWidget->item(3, 0)->text().toFloat());
-	settings.setValue( "DreamCaster/RFRAME_W",      settingsUi.tableWidget->item(4, 0)->text().toInt());
-	settings.setValue( "DreamCaster/RFRAME_H",      settingsUi.tableWidget->item(5, 0)->text().toInt());
-	settings.setValue( "DreamCaster/VFRAME_W",      settingsUi.tableWidget->item(6, 0)->text().toInt());
-	settings.setValue( "DreamCaster/VFRAME_H",      settingsUi.tableWidget->item(7, 0)->text().toInt());
-	settings.setValue( "DreamCaster/ORIGIN_Z",      settingsUi.tableWidget->item(8, 0)->text().toFloat());
-	settings.setValue( "DreamCaster/PLANE_Z",       settingsUi.tableWidget->item(9, 0)->text().toFloat());
-	settings.setValue( "DreamCaster/PLANE_H_W",     settingsUi.tableWidget->item(10, 0)->text().toFloat());
-	settings.setValue( "DreamCaster/PLANE_H_H",     settingsUi.tableWidget->item(11, 0)->text().toFloat());
-	settings.setValue( "DreamCaster/TREE_L1",       settingsUi.tableWidget->item(12, 0)->text().toInt());
-	settings.setValue( "DreamCaster/TREE_L2",       settingsUi.tableWidget->item(13, 0)->text().toInt());
-	settings.setValue( "DreamCaster/TREE_L3",       settingsUi.tableWidget->item(14, 0)->text().toInt());
-	settings.setValue( "DreamCaster/TREE_SPLIT1",   settingsUi.tableWidget->item(15, 0)->text().toInt());
-	settings.setValue( "DreamCaster/TREE_SPLIT2",   settingsUi.tableWidget->item(16, 0)->text().toInt());
-	settings.setValue( "DreamCaster/BG_COL_R",      settingsUi.tableWidget->item(17, 0)->text().toInt());
-	settings.setValue( "DreamCaster/BG_COL_G",      settingsUi.tableWidget->item(18, 0)->text().toInt());
-	settings.setValue( "DreamCaster/BG_COL_B",      settingsUi.tableWidget->item(19, 0)->text().toInt());
-	settings.setValue( "DreamCaster/PLATE_COL_R",   settingsUi.tableWidget->item(20, 0)->text().toInt());
-	settings.setValue( "DreamCaster/PLATE_COL_G",   settingsUi.tableWidget->item(21, 0)->text().toInt());
-	settings.setValue( "DreamCaster/PLATE_COL_B",   settingsUi.tableWidget->item(22, 0)->text().toInt());
-	settings.setValue( "DreamCaster/COL_RANGE_MIN_R", settingsUi.tableWidget->item(23, 0)->text().toInt());
-	settings.setValue( "DreamCaster/COL_RANGE_MIN_G", settingsUi.tableWidget->item(24, 0)->text().toInt());
-	settings.setValue( "DreamCaster/COL_RANGE_MIN_B", settingsUi.tableWidget->item(25, 0)->text().toInt());
-	settings.setValue( "DreamCaster/COL_RANGE_MAX_R", settingsUi.tableWidget->item(26, 0)->text().toInt());
-	settings.setValue( "DreamCaster/COL_RANGE_MAX_G", settingsUi.tableWidget->item(27, 0)->text().toInt());
-	settings.setValue( "DreamCaster/COL_RANGE_MAX_B", settingsUi.tableWidget->item(28, 0)->text().toInt());
-	settings.setValue( "DreamCaster/BATCH_SIZE",      settingsUi.tableWidget->item(29, 0)->text().toInt());
+	QSettings s;
+	s.setValue( "DreamCaster/THREAD_GRID_X", settingsUi.tableWidget->item(0, 0)->text().toInt());
+	s.setValue( "DreamCaster/THREAD_GRID_Y", settingsUi.tableWidget->item(1, 0)->text().toInt());
+	s.setValue( "DreamCaster/SCALE_COEF",    settingsUi.tableWidget->item(2, 0)->text().toFloat());
+	s.setValue( "DreamCaster/COLORING_COEF", settingsUi.tableWidget->item(3, 0)->text().toFloat());
+	s.setValue( "DreamCaster/RFRAME_W",      settingsUi.tableWidget->item(4, 0)->text().toInt());
+	s.setValue( "DreamCaster/RFRAME_H",      settingsUi.tableWidget->item(5, 0)->text().toInt());
+	s.setValue( "DreamCaster/VFRAME_W",      settingsUi.tableWidget->item(6, 0)->text().toInt());
+	s.setValue( "DreamCaster/VFRAME_H",      settingsUi.tableWidget->item(7, 0)->text().toInt());
+	s.setValue( "DreamCaster/ORIGIN_Z",      settingsUi.tableWidget->item(8, 0)->text().toFloat());
+	s.setValue( "DreamCaster/PLANE_Z",       settingsUi.tableWidget->item(9, 0)->text().toFloat());
+	s.setValue( "DreamCaster/PLANE_H_W",     settingsUi.tableWidget->item(10, 0)->text().toFloat());
+	s.setValue( "DreamCaster/PLANE_H_H",     settingsUi.tableWidget->item(11, 0)->text().toFloat());
+	s.setValue( "DreamCaster/TREE_L1",       settingsUi.tableWidget->item(12, 0)->text().toInt());
+	s.setValue( "DreamCaster/TREE_L2",       settingsUi.tableWidget->item(13, 0)->text().toInt());
+	s.setValue( "DreamCaster/TREE_L3",       settingsUi.tableWidget->item(14, 0)->text().toInt());
+	s.setValue( "DreamCaster/TREE_SPLIT1",   settingsUi.tableWidget->item(15, 0)->text().toInt());
+	s.setValue( "DreamCaster/TREE_SPLIT2",   settingsUi.tableWidget->item(16, 0)->text().toInt());
+	s.setValue( "DreamCaster/BG_COL_R",      settingsUi.tableWidget->item(17, 0)->text().toInt());
+	s.setValue( "DreamCaster/BG_COL_G",      settingsUi.tableWidget->item(18, 0)->text().toInt());
+	s.setValue( "DreamCaster/BG_COL_B",      settingsUi.tableWidget->item(19, 0)->text().toInt());
+	s.setValue( "DreamCaster/PLATE_COL_R",   settingsUi.tableWidget->item(20, 0)->text().toInt());
+	s.setValue( "DreamCaster/PLATE_COL_G",   settingsUi.tableWidget->item(21, 0)->text().toInt());
+	s.setValue( "DreamCaster/PLATE_COL_B",   settingsUi.tableWidget->item(22, 0)->text().toInt());
+	s.setValue( "DreamCaster/COL_RANGE_MIN_R", settingsUi.tableWidget->item(23, 0)->text().toInt());
+	s.setValue( "DreamCaster/COL_RANGE_MIN_G", settingsUi.tableWidget->item(24, 0)->text().toInt());
+	s.setValue( "DreamCaster/COL_RANGE_MIN_B", settingsUi.tableWidget->item(25, 0)->text().toInt());
+	s.setValue( "DreamCaster/COL_RANGE_MAX_R", settingsUi.tableWidget->item(26, 0)->text().toInt());
+	s.setValue( "DreamCaster/COL_RANGE_MAX_G", settingsUi.tableWidget->item(27, 0)->text().toInt());
+	s.setValue( "DreamCaster/COL_RANGE_MAX_B", settingsUi.tableWidget->item(28, 0)->text().toInt());
+	s.setValue( "DreamCaster/BATCH_SIZE",      settingsUi.tableWidget->item(29, 0)->text().toInt());
 }
 
 void iADreamCaster::ResetSettingsSlot()
@@ -2529,37 +2463,37 @@ void iADreamCaster::ResetSettingsSlot()
 
 int iADreamCaster::SetupSettingsFromConfigFile()
 {
-	QSettings settings;
-	settingsUi.tableWidget->item(0, 0)->setText(QString::number(settings.value( "DreamCaster/THREAD_GRID_X", stngs.THREAD_GRID_X).toInt()));
-	settingsUi.tableWidget->item(1, 0)->setText(QString::number(settings.value( "DreamCaster/THREAD_GRID_Y", stngs.THREAD_GRID_Y ).toInt()));
-	settingsUi.tableWidget->item(2, 0)->setText(QString::number(settings.value( "DreamCaster/SCALE_COEF", stngs.SCALE_COEF ).value<float>()));
-	settingsUi.tableWidget->item(3, 0)->setText(QString::number(settings.value( "DreamCaster/COLORING_COEF", stngs.COLORING_COEF ).value<float>()));
-	settingsUi.tableWidget->item(4, 0)->setText(QString::number(settings.value( "DreamCaster/RFRAME_W", stngs.RFRAME_W ).toInt()));
-	settingsUi.tableWidget->item(5, 0)->setText(QString::number(settings.value( "DreamCaster/RFRAME_H", stngs.RFRAME_H ).toInt()));
-	settingsUi.tableWidget->item(6, 0)->setText(QString::number(settings.value( "DreamCaster/VFRAME_W", stngs.VFRAME_W ).toInt()));
-	settingsUi.tableWidget->item(7, 0)->setText(QString::number(settings.value( "DreamCaster/VFRAME_H", stngs.VFRAME_H ).toInt()));
-	settingsUi.tableWidget->item(8, 0)->setText(QString::number(settings.value( "DreamCaster/ORIGIN_Z", stngs.ORIGIN_Z ).value<float>()));
-	settingsUi.tableWidget->item(9, 0)->setText(QString::number(settings.value( "DreamCaster/PLANE_Z", stngs.PLANE_Z ).value<float>()));
-	settingsUi.tableWidget->item(10,0)->setText(QString::number(settings.value( "DreamCaster/PLANE_H_W", stngs.PLANE_H_W ).value<float>()));
-	settingsUi.tableWidget->item(11,0)->setText(QString::number(settings.value( "DreamCaster/PLANE_H_H", stngs.PLANE_H_H ).value<float>()));
-	settingsUi.tableWidget->item(12,0)->setText(QString::number(settings.value( "DreamCaster/TREE_L1", stngs.TREE_L1 ).toInt()));
-	settingsUi.tableWidget->item(13,0)->setText(QString::number(settings.value( "DreamCaster/TREE_L2", stngs.TREE_L2 ).toInt()));
-	settingsUi.tableWidget->item(14,0)->setText(QString::number(settings.value( "DreamCaster/TREE_L3", stngs.TREE_L3 ).toInt()));
-	settingsUi.tableWidget->item(15,0)->setText(QString::number(settings.value( "DreamCaster/TREE_SPLIT1", stngs.TREE_SPLIT1 ).toInt()));
-	settingsUi.tableWidget->item(16,0)->setText(QString::number(settings.value( "DreamCaster/TREE_SPLIT2", stngs.TREE_SPLIT2 ).toInt()));
-	settingsUi.tableWidget->item(17,0)->setText(QString::number(settings.value( "DreamCaster/BG_COL_R", stngs.BG_COL_R ).toInt()));
-	settingsUi.tableWidget->item(18,0)->setText(QString::number(settings.value( "DreamCaster/BG_COL_G", stngs.BG_COL_G ).toInt()));
-	settingsUi.tableWidget->item(19,0)->setText(QString::number(settings.value( "DreamCaster/BG_COL_B", stngs.BG_COL_B ).toInt()));
-	settingsUi.tableWidget->item(20,0)->setText(QString::number(settings.value( "DreamCaster/PLATE_COL_R", stngs.PLATE_COL_R ).toInt()));
-	settingsUi.tableWidget->item(21,0)->setText(QString::number(settings.value( "DreamCaster/PLATE_COL_G", stngs.PLATE_COL_G ).toInt()));
-	settingsUi.tableWidget->item(22,0)->setText(QString::number(settings.value( "DreamCaster/PLATE_COL_B", stngs.PLATE_COL_B ).toInt()));
-	settingsUi.tableWidget->item(23,0)->setText(QString::number(settings.value( "DreamCaster/COL_RANGE_MIN_R", stngs.COL_RANGE_MIN_R ).toInt()));
-	settingsUi.tableWidget->item(24,0)->setText(QString::number(settings.value( "DreamCaster/COL_RANGE_MIN_G", stngs.COL_RANGE_MIN_G ).toInt()));
-	settingsUi.tableWidget->item(25,0)->setText(QString::number(settings.value( "DreamCaster/COL_RANGE_MIN_B", stngs.COL_RANGE_MIN_B ).toInt()));
-	settingsUi.tableWidget->item(26,0)->setText(QString::number(settings.value( "DreamCaster/COL_RANGE_MAX_R", stngs.COL_RANGE_MAX_R ).toInt()));
-	settingsUi.tableWidget->item(27,0)->setText(QString::number(settings.value( "DreamCaster/COL_RANGE_MAX_G", stngs.COL_RANGE_MAX_G ).toInt()));
-	settingsUi.tableWidget->item(28,0)->setText(QString::number(settings.value( "DreamCaster/COL_RANGE_MAX_B", stngs.COL_RANGE_MAX_B ).toInt()));
-	settingsUi.tableWidget->item(29,0)->setText(QString::number(settings.value( "DreamCaster/BATCH_SIZE", stngs.BATCH_SIZE ).toInt()));
+	QSettings s;
+	settingsUi.tableWidget->item(0, 0)->setText(QString::number(s.value( "DreamCaster/THREAD_GRID_X", stngs.THREAD_GRID_X).toInt()));
+	settingsUi.tableWidget->item(1, 0)->setText(QString::number(s.value( "DreamCaster/THREAD_GRID_Y", stngs.THREAD_GRID_Y ).toInt()));
+	settingsUi.tableWidget->item(2, 0)->setText(QString::number(s.value( "DreamCaster/SCALE_COEF", stngs.SCALE_COEF ).value<float>()));
+	settingsUi.tableWidget->item(3, 0)->setText(QString::number(s.value( "DreamCaster/COLORING_COEF", stngs.COLORING_COEF ).value<float>()));
+	settingsUi.tableWidget->item(4, 0)->setText(QString::number(s.value( "DreamCaster/RFRAME_W", stngs.RFRAME_W ).toInt()));
+	settingsUi.tableWidget->item(5, 0)->setText(QString::number(s.value( "DreamCaster/RFRAME_H", stngs.RFRAME_H ).toInt()));
+	settingsUi.tableWidget->item(6, 0)->setText(QString::number(s.value( "DreamCaster/VFRAME_W", stngs.VFRAME_W ).toInt()));
+	settingsUi.tableWidget->item(7, 0)->setText(QString::number(s.value( "DreamCaster/VFRAME_H", stngs.VFRAME_H ).toInt()));
+	settingsUi.tableWidget->item(8, 0)->setText(QString::number(s.value( "DreamCaster/ORIGIN_Z", stngs.ORIGIN_Z ).value<float>()));
+	settingsUi.tableWidget->item(9, 0)->setText(QString::number(s.value( "DreamCaster/PLANE_Z", stngs.PLANE_Z ).value<float>()));
+	settingsUi.tableWidget->item(10,0)->setText(QString::number(s.value( "DreamCaster/PLANE_H_W", stngs.PLANE_H_W ).value<float>()));
+	settingsUi.tableWidget->item(11,0)->setText(QString::number(s.value( "DreamCaster/PLANE_H_H", stngs.PLANE_H_H ).value<float>()));
+	settingsUi.tableWidget->item(12,0)->setText(QString::number(s.value( "DreamCaster/TREE_L1", stngs.TREE_L1 ).toInt()));
+	settingsUi.tableWidget->item(13,0)->setText(QString::number(s.value( "DreamCaster/TREE_L2", stngs.TREE_L2 ).toInt()));
+	settingsUi.tableWidget->item(14,0)->setText(QString::number(s.value( "DreamCaster/TREE_L3", stngs.TREE_L3 ).toInt()));
+	settingsUi.tableWidget->item(15,0)->setText(QString::number(s.value( "DreamCaster/TREE_SPLIT1", stngs.TREE_SPLIT1 ).toInt()));
+	settingsUi.tableWidget->item(16,0)->setText(QString::number(s.value( "DreamCaster/TREE_SPLIT2", stngs.TREE_SPLIT2 ).toInt()));
+	settingsUi.tableWidget->item(17,0)->setText(QString::number(s.value( "DreamCaster/BG_COL_R", stngs.BG_COL_R ).toInt()));
+	settingsUi.tableWidget->item(18,0)->setText(QString::number(s.value( "DreamCaster/BG_COL_G", stngs.BG_COL_G ).toInt()));
+	settingsUi.tableWidget->item(19,0)->setText(QString::number(s.value( "DreamCaster/BG_COL_B", stngs.BG_COL_B ).toInt()));
+	settingsUi.tableWidget->item(20,0)->setText(QString::number(s.value( "DreamCaster/PLATE_COL_R", stngs.PLATE_COL_R ).toInt()));
+	settingsUi.tableWidget->item(21,0)->setText(QString::number(s.value( "DreamCaster/PLATE_COL_G", stngs.PLATE_COL_G ).toInt()));
+	settingsUi.tableWidget->item(22,0)->setText(QString::number(s.value( "DreamCaster/PLATE_COL_B", stngs.PLATE_COL_B ).toInt()));
+	settingsUi.tableWidget->item(23,0)->setText(QString::number(s.value( "DreamCaster/COL_RANGE_MIN_R", stngs.COL_RANGE_MIN_R ).toInt()));
+	settingsUi.tableWidget->item(24,0)->setText(QString::number(s.value( "DreamCaster/COL_RANGE_MIN_G", stngs.COL_RANGE_MIN_G ).toInt()));
+	settingsUi.tableWidget->item(25,0)->setText(QString::number(s.value( "DreamCaster/COL_RANGE_MIN_B", stngs.COL_RANGE_MIN_B ).toInt()));
+	settingsUi.tableWidget->item(26,0)->setText(QString::number(s.value( "DreamCaster/COL_RANGE_MAX_R", stngs.COL_RANGE_MAX_R ).toInt()));
+	settingsUi.tableWidget->item(27,0)->setText(QString::number(s.value( "DreamCaster/COL_RANGE_MAX_G", stngs.COL_RANGE_MAX_G ).toInt()));
+	settingsUi.tableWidget->item(28,0)->setText(QString::number(s.value( "DreamCaster/COL_RANGE_MAX_B", stngs.COL_RANGE_MAX_B ).toInt()));
+	settingsUi.tableWidget->item(29,0)->setText(QString::number(s.value( "DreamCaster/BATCH_SIZE", stngs.BATCH_SIZE ).toInt()));
 	return 1;
 }
 
@@ -2588,13 +2522,13 @@ int iADreamCaster::UpdateStabilityWidget()
 		int indx = (int)curIndX+i;
 		if (indx<0)
 		{
-			int buf = indx/cntX;
-			indx-= buf*cntX;
-			indx+=cntX-1;
+			int buf = indx/ renderCntX;
+			indx-= buf* renderCntX;
+			indx+= renderCntX-1;
 		}
 		else
 		{
-			indx = indx % cntX;
+			indx = indx % renderCntX;
 		}
 		double val =  fabs( ( (placementsParams[indx][curIndZ])[curParamInd] - (placementsParams[curIndX][curIndZ])[curParamInd] ) / stabilitySensitivity );
 		if (val > 1.)
@@ -2626,13 +2560,13 @@ int iADreamCaster::UpdateStabilityWidget()
 		int indx = (int)curIndZ+i;
 		if (indx<0)
 		{
-			int buf = indx/cntZ;
-			indx-= buf*cntZ;
-			indx+=cntZ-1;
+			int buf = indx/ renderCntZ;
+			indx-= buf* renderCntZ;
+			indx+= renderCntZ-1;
 		}
 		else
 		{
-			indx = indx % cntZ;
+			indx = indx % renderCntZ;
 		}
 		double val =  fabs( ( (placementsParams[curIndX][indx])[curParamInd] - (placementsParams[curIndX][curIndZ])[curParamInd] ) / stabilitySensitivity );
 		if (val > 1.)
@@ -2663,23 +2597,23 @@ int iADreamCaster::UpdateStabilityWidget()
 			int indxZ = (int)curIndZ+k;
 			if(indxZ<0)
 			{
-				int buf = indxZ/cntZ;
-				indxZ-= buf*cntZ;
-				indxZ+=cntZ-1;
+				int buf = indxZ/ renderCntZ;
+				indxZ-= buf* renderCntZ;
+				indxZ+= renderCntZ-1;
 			}
 			else
-				indxZ = indxZ%cntZ;
+				indxZ = indxZ% renderCntZ;
 
 			int indxX = (int)curIndX+i;
 			if(indxX<0)
 			{
-				int buf = indxX/cntX;
-				indxX-= buf*cntX;
-				indxX+=cntX-1;
+				int buf = indxX/ renderCntX;
+				indxX-= buf* renderCntX;
+				indxX+= renderCntX-1;
 			}
 			else
 			{
-				indxX = indxX % cntX;
+				indxX = indxX % renderCntX;
 			}
 			double val =  fabs( ( (placementsParams[indxX][indxZ])[curParamInd] - (placementsParams[curIndX][curIndZ])[curParamInd] ) / stabilitySensitivity );
 			if (val > 1.)
@@ -2735,14 +2669,14 @@ void iADreamCaster::UpdateStabilityOnMouseMoveCheckedSlot()
 
 void iADreamCaster::ViewsMouseMoveSlot()
 {
-	int buf = (int)((float)ViewsFrame->lastMoveX/((float)ViewsFrame->width()/cntX));
-	if (buf < 0 || buf >= cntX)
+	int buf = (int)((float)ViewsFrame->lastMoveX/((float)ViewsFrame->width()/ renderCntX));
+	if (buf < 0 || buf >= renderCntX)
 	{
 		return;
 	}
 	curIndX = buf;
-	buf = (int)((float)ViewsFrame->lastMoveY/((float)ViewsFrame->width()/cntZ));
-	if (buf < 0 || buf >= cntX)
+	buf = (int)((float)ViewsFrame->lastMoveY/((float)ViewsFrame->width()/ renderCntZ));
+	if (buf < 0 || buf >= renderCntX)
 	{
 		return;
 	}
@@ -2760,11 +2694,11 @@ void iADreamCaster::ClearPrevData()
 	//plotData
 	if(rotationsParams)
 	{
-		for (int x=0; x<cntX; x++)
+		for (int x=0; x< renderCntX; x++)
 		{
 			if(rotationsParams[x])
 			{
-				for (int y=0; y<cntY; y++)
+				for (int y=0; y< renderCntY; y++)
 				{
 					if (rotationsParams[x][y])
 					{
@@ -2779,11 +2713,11 @@ void iADreamCaster::ClearPrevData()
 	//rotations
 	if(rotations)
 	{
-		for (int x=0; x<cntX; x++)
+		for (int x=0; x< renderCntX; x++)
 		{
 			if(rotations[x])
 			{
-				for (int y=0; y<cntY; y++)
+				for (int y=0; y< renderCntY; y++)
 				{
 					if (rotations[x][y])
 					{
@@ -2798,7 +2732,7 @@ void iADreamCaster::ClearPrevData()
 	//plotColumnData
 	if(placementsParams)
 	{
-		for (int x=0; x<cntX; x++)
+		for (int x=0; x< renderCntX; x++)
 		{
 			if(placementsParams[x])
 				delete [] placementsParams[x];
@@ -2810,7 +2744,7 @@ void iADreamCaster::ClearPrevData()
 	//weightedParams
 	if(weightedParams)
 	{
-		for (int x=0; x<cntX; x++)
+		for (int x=0; x< renderCntX; x++)
 		{
 			if (weightedParams[x])
 			{
@@ -2826,37 +2760,36 @@ void iADreamCaster::ClearPrevData()
 void iADreamCaster::AllocateData()
 {
 	//plotData
-	rotationsParams = new iAparameters_t**[cntX];
-	for (int x=0; x<cntX; x++)
+	rotationsParams = new iAparameters_t**[renderCntX];
+	for (int x = 0; x < renderCntX; x++)
 	{
-		rotationsParams[x] = new iAparameters_t*[cntY];
-		for (int y = 0; y < cntY; y++)
+		rotationsParams[x] = new iAparameters_t*[renderCntY];
+		for (int y = 0; y < renderCntY; y++)
 		{
-			rotationsParams[x][y] = new iAparameters_t[cntZ];
+			rotationsParams[x][y] = new iAparameters_t[renderCntZ];
 		}
-
 	}
 	//rotations
-	rotations = new iArotation_t**[cntX];
-	for (int x=0; x<cntX; x++)
+	rotations = new iArotation_t**[renderCntX];
+	for (int x = 0; x < renderCntX; x++)
 	{
-		rotations[x] = new iArotation_t*[cntY];
-		for (int y = 0; y < cntY; y++)
+		rotations[x] = new iArotation_t*[renderCntY];
+		for (int y = 0; y < renderCntY; y++)
 		{
-			rotations[x][y] = new iArotation_t[cntZ];
+			rotations[x][y] = new iArotation_t[renderCntZ];
 		}
 	}
 	//plotColumnData
-	placementsParams = new iAparameters_t*[cntX];
-	for (int x = 0; x < cntX; x++)
+	placementsParams = new iAparameters_t*[renderCntX];
+	for (int x = 0; x < renderCntX; x++)
 	{
-		placementsParams[x] = new iAparameters_t[cntZ];
+		placementsParams[x] = new iAparameters_t[renderCntZ];
 	}
 	//weightedParams
-	weightedParams = new double*[cntX];
-	for (int x = 0; x < cntX; x++)
+	weightedParams = new double*[renderCntX];
+	for (int x = 0; x < renderCntX; x++)
 	{
-		weightedParams[x] = new double[cntZ];
+		weightedParams[x] = new double[renderCntZ];
 	}
 }
 
@@ -2949,7 +2882,7 @@ void iADreamCaster::ViewsReset()
 	{
 		delete viewsPxmp;
 	}
-	viewsPxmp = new QPixmap(cntX, cntZ);
+	viewsPxmp = new QPixmap(renderCntX, renderCntZ);
 	ViewsFrame->SetPixmap(viewsPxmp);
 	ViewsFrame->RemoveHighlights();
 }
@@ -2959,9 +2892,9 @@ void iADreamCaster::TopPlacementsChangedSlot()
 	float curParam = 0;;
 	double max_param=-1000;
 	double min_param=100000;
-	for (int x = 0; x < cntX; x++)
+	for (int x = 0; x < renderCntX; x++)
 	{
-		for (int z = 0; z < cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
 			if ((placementsParams[x][z])[curParamInd] > max_param)
 			{
@@ -3001,42 +2934,42 @@ void iADreamCaster::TopPlacementsChangedSlot()
 	{
 		scalec = 1;
 	}
-	for (int x=0; x<cntX; x++)
+	for (int x = 0; x < renderCntX; x++)
 	{
-		for (int z=0; z<cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
-			if(
+			if (
 				(placementsParams[x][z])[curParamInd] <= max_param
-				 &&
+				&&
 				(placementsParams[x][z])[curParamInd] >= min_param
-			  )
+				)
 			{
-				switch(curParamInd)
+				switch (curParamInd)
 				{
 				case 0://av. penetration length
-					curParam = ( (placementsParams[x][z])[curParamInd] - min_param ) / scalec;
+					curParam = ((placementsParams[x][z])[curParamInd] - min_param) / scalec;
 					break;
 				case 1://dip angle cosine
 					curParam = (max_param - (placementsParams[x][z])[curParamInd]) / scalec;
 					break;
 				case 2://max penetration length
-					curParam = ( (placementsParams[x][z])[curParamInd] - min_param ) / scalec;
+					curParam = ((placementsParams[x][z])[curParamInd] - min_param) / scalec;
 					break;
 				case 3://bad surface area %
-					curParam = ( (placementsParams[x][z])[curParamInd] - min_param ) / scalec;
+					curParam = ((placementsParams[x][z])[curParamInd] - min_param) / scalec;
 					break;
 				default:
 					break;
 				}
-				if (curParam>1.f) curParam=1.f;
-				unsigned int lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R+stngs.COL_RANGE_DR*curParam) << 16) +
-					((unsigned int)(stngs.COL_RANGE_MIN_G+stngs.COL_RANGE_DG*curParam) << 8) +
-					(unsigned int)(stngs.COL_RANGE_MIN_B+stngs.COL_RANGE_DB*curParam);
-				viewsBuffer[x + z*cntX] = lencol;
+				if (curParam > 1.f) curParam = 1.f;
+				unsigned int lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R + stngs.COL_RANGE_DR*curParam) << 16) +
+					((unsigned int)(stngs.COL_RANGE_MIN_G + stngs.COL_RANGE_DG*curParam) << 8) +
+					(unsigned int)(stngs.COL_RANGE_MIN_B + stngs.COL_RANGE_DB*curParam);
+				viewsBuffer[x + z * renderCntX] = lencol;
 			}
 			else
 			{
-				viewsBuffer[x + z*cntX] = (unsigned int)(0);
+				viewsBuffer[x + z * renderCntX] = (unsigned int)(0);
 			}
 		}
 	}
@@ -3048,9 +2981,9 @@ void iADreamCaster::fillParamBuffer( unsigned int* dest, int paramInd)
 {
 	double max_param=-1000;
 	double min_param = 10000;
-	for (int x = 0; x < cntX; x++)
+	for (int x = 0; x < renderCntX; x++)
 	{
-		for (int z = 0; z < cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
 			if ((placementsParams[x][z])[paramInd] > max_param)
 			{
@@ -3074,23 +3007,23 @@ void iADreamCaster::fillParamBuffer( unsigned int* dest, int paramInd)
 	}
 
 	double curParam = 0;
-	for (int x=0; x<cntX; x++)
+	for (int x = 0; x < renderCntX; x++)
 	{
-		for (int z=0; z<cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
-			switch(paramInd)
+			switch (paramInd)
 			{
 			case 0://av. penetration length
-				curParam = (placementsParams[x][z].avPenLen - min_param)/scalec;
+				curParam = (placementsParams[x][z].avPenLen - min_param) / scalec;
 				break;
 			case 1://dip angle cosine
-				curParam = (max_param - placementsParams[x][z].avDipAng)/scalec;
+				curParam = (max_param - placementsParams[x][z].avDipAng) / scalec;
 				break;
 			case 2://max penetration length
-				curParam = (placementsParams[x][z].maxPenLen - min_param)/scalec;
+				curParam = (placementsParams[x][z].maxPenLen - min_param) / scalec;
 				break;
 			case 3://bad surface area %
-				curParam = (placementsParams[x][z].badAreaPercentage - min_param)/scalec;
+				curParam = (placementsParams[x][z].badAreaPercentage - min_param) / scalec;
 				break;
 			default:
 				break;
@@ -3099,10 +3032,10 @@ void iADreamCaster::fillParamBuffer( unsigned int* dest, int paramInd)
 			{
 				curParam = 1.f;
 			}
-			unsigned int lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R+stngs.COL_RANGE_DR*curParam) << 16) +
-				((unsigned int)(stngs.COL_RANGE_MIN_G+stngs.COL_RANGE_DG*curParam) << 8) +
-				(unsigned int)(stngs.COL_RANGE_MIN_B+stngs.COL_RANGE_DB*curParam);
-			dest[x + z*cntX] = lencol;
+			unsigned int lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R + stngs.COL_RANGE_DR*curParam) << 16) +
+				((unsigned int)(stngs.COL_RANGE_MIN_G + stngs.COL_RANGE_DG*curParam) << 8) +
+				(unsigned int)(stngs.COL_RANGE_MIN_B + stngs.COL_RANGE_DB*curParam);
+			dest[x + z * renderCntX] = lencol;
 		}
 	}
 }
@@ -3110,18 +3043,18 @@ void iADreamCaster::fillParamBuffer( unsigned int* dest, int paramInd)
 void iADreamCaster::ComparisonTabPlacementPickedSlot(int x, int y)
 {
 	int pickedX, pickedZ;
-	if (!cntZ || !cntX)
+	if (!renderCntZ || !renderCntX)
 	{
 		return;
 	}
-	int buf = (int)((float)x/((float)comparisonTab->paramWidgets[0].paintWidget->width()/cntX));
-	if (buf < 0 || buf >= cntX)
+	int buf = (int)((float)x/((float)comparisonTab->paramWidgets[0].paintWidget->width()/ renderCntX));
+	if (buf < 0 || buf >= renderCntX)
 	{
 		return;
 	}
 	pickedX = buf;
-	buf = (int)((float)y/((float)comparisonTab->paramWidgets[0].paintWidget->height()/cntZ));
-	if (buf < 0 || buf >= cntZ)
+	buf = (int)((float)y/((float)comparisonTab->paramWidgets[0].paintWidget->height()/ renderCntZ));
+	if (buf < 0 || buf >= renderCntZ)
 	{
 		return;
 	}
@@ -3158,9 +3091,9 @@ void iADreamCaster::LowCutParam1Slot()
 	float curParam;
 	double max_param=-1000;
 	double min_param=100000;
-	for (int x = 0; x < cntX; x++)
+	for (int x = 0; x < renderCntX; x++)
 	{
-		for (int z = 0; z < cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
 			if ((placementsParams[x][z])[paramInd] > max_param)
 			{
@@ -3184,28 +3117,28 @@ void iADreamCaster::LowCutParam1Slot()
 
 	double scalec = max_param-min_param;
 	if(scalec==0) scalec=1;
-	for (int x=0; x<cntX; x++)
+	for (int x = 0; x < renderCntX; x++)
 	{
-		for (int z=0; z<cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
-			if ( (placementsParams[x][z])[paramInd] <= max_param  &&
-			     (placementsParams[x][z])[paramInd] >= min_param )
+			if ((placementsParams[x][z])[paramInd] <= max_param &&
+				(placementsParams[x][z])[paramInd] >= min_param)
 			{
 				//av. penetration length
-				curParam = ( (placementsParams[x][z])[paramInd] - min_param ) / scalec;
+				curParam = ((placementsParams[x][z])[paramInd] - min_param) / scalec;
 
 				if (curParam > 1.f)
 				{
 					curParam = 1.f;
 				}
-				unsigned int lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R+stngs.COL_RANGE_DR*curParam) << 16) +
-					((unsigned int)(stngs.COL_RANGE_MIN_G+stngs.COL_RANGE_DG*curParam) << 8) +
-					(unsigned int)(stngs.COL_RANGE_MIN_B+stngs.COL_RANGE_DB*curParam);
-				comparisonTab->paramWidgets[paramInd].buffer[x + z*cntX] = lencol;
+				unsigned int lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R + stngs.COL_RANGE_DR*curParam) << 16) +
+					((unsigned int)(stngs.COL_RANGE_MIN_G + stngs.COL_RANGE_DG*curParam) << 8) +
+					(unsigned int)(stngs.COL_RANGE_MIN_B + stngs.COL_RANGE_DB*curParam);
+				comparisonTab->paramWidgets[paramInd].buffer[x + z * renderCntX] = lencol;
 			}
 			else
 			{
-				comparisonTab->paramWidgets[paramInd].buffer[x + z*cntX] = (unsigned int)0;
+				comparisonTab->paramWidgets[paramInd].buffer[x + z * renderCntX] = (unsigned int)0;
 			}
 		}
 	}
@@ -3219,9 +3152,9 @@ void iADreamCaster::LowCutParam2Slot()
 	float curParam;
 	double max_param=-1000;
 	double min_param=100000;
-	for (int x = 0; x < cntX; x++)
+	for (int x = 0; x < renderCntX; x++)
 	{
-		for (int z = 0; z < cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
 			if ((placementsParams[x][z])[paramInd] > max_param)
 			{
@@ -3246,28 +3179,28 @@ void iADreamCaster::LowCutParam2Slot()
 	{
 		scalec = 1;
 	}
-	for (int x=0; x<cntX; x++)
+	for (int x = 0; x < renderCntX; x++)
 	{
-		for (int z=0; z<cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
-			if ( (placementsParams[x][z])[paramInd] <= max_param &&
-			     (placementsParams[x][z])[paramInd] >= min_param )
+			if ((placementsParams[x][z])[paramInd] <= max_param &&
+				(placementsParams[x][z])[paramInd] >= min_param)
 			{
 				//max pen len
-				curParam = ( (placementsParams[x][z])[paramInd] - min_param ) / scalec;
+				curParam = ((placementsParams[x][z])[paramInd] - min_param) / scalec;
 
 				if (curParam > 1.f)
 				{
 					curParam = 1.f;
 				}
-				unsigned int lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R+stngs.COL_RANGE_DR*curParam) << 16) +
-					((unsigned int)(stngs.COL_RANGE_MIN_G+stngs.COL_RANGE_DG*curParam) << 8) +
-					(unsigned int)(stngs.COL_RANGE_MIN_B+stngs.COL_RANGE_DB*curParam);
-				comparisonTab->paramWidgets[1].buffer[x + z*cntX] = lencol;
+				unsigned int lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R + stngs.COL_RANGE_DR*curParam) << 16) +
+					((unsigned int)(stngs.COL_RANGE_MIN_G + stngs.COL_RANGE_DG*curParam) << 8) +
+					(unsigned int)(stngs.COL_RANGE_MIN_B + stngs.COL_RANGE_DB*curParam);
+				comparisonTab->paramWidgets[1].buffer[x + z * renderCntX] = lencol;
 			}
 			else
 			{
-				comparisonTab->paramWidgets[1].buffer[x + z*cntX] = (unsigned int)0;
+				comparisonTab->paramWidgets[1].buffer[x + z * renderCntX] = (unsigned int)0;
 			}
 		}
 	}
@@ -3281,9 +3214,9 @@ void iADreamCaster::LowCutParam3Slot()
 	float curParam;
 	double max_param=-1000;
 	double min_param=100000;
-	for (int x = 0; x < cntX; x++)
+	for (int x = 0; x < renderCntX; x++)
 	{
-		for (int z = 0; z < cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
 			if ((placementsParams[x][z])[paramInd] > max_param)
 			{
@@ -3305,25 +3238,25 @@ void iADreamCaster::LowCutParam3Slot()
 
 	double scalec = max_param-min_param;
 	if(scalec==0) scalec=1;
-	for (int x=0; x<cntX; x++)
+	for (int x = 0; x < renderCntX; x++)
 	{
-		for (int z=0; z<cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
-			if ( (placementsParams[x][z])[paramInd] <= max_param &&
-			     (placementsParams[x][z])[paramInd] >= min_param )
+			if ((placementsParams[x][z])[paramInd] <= max_param &&
+				(placementsParams[x][z])[paramInd] >= min_param)
 			{
 				//max penetration length
-				curParam = ( (placementsParams[x][z])[paramInd] - min_param ) / scalec;
+				curParam = ((placementsParams[x][z])[paramInd] - min_param) / scalec;
 
-				if (curParam>1.f) curParam=1.f;
-				unsigned int lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R+stngs.COL_RANGE_DR*curParam) << 16) +
-					((unsigned int)(stngs.COL_RANGE_MIN_G+stngs.COL_RANGE_DG*curParam) << 8) +
-					(unsigned int)(stngs.COL_RANGE_MIN_B+stngs.COL_RANGE_DB*curParam);
-				comparisonTab->paramWidgets[2].buffer[x + z*cntX] = lencol;
+				if (curParam > 1.f) curParam = 1.f;
+				unsigned int lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R + stngs.COL_RANGE_DR*curParam) << 16) +
+					((unsigned int)(stngs.COL_RANGE_MIN_G + stngs.COL_RANGE_DG*curParam) << 8) +
+					(unsigned int)(stngs.COL_RANGE_MIN_B + stngs.COL_RANGE_DB*curParam);
+				comparisonTab->paramWidgets[2].buffer[x + z * renderCntX] = lencol;
 			}
 			else
 			{
-				comparisonTab->paramWidgets[2].buffer[x + z*cntX] = (unsigned int)0;
+				comparisonTab->paramWidgets[2].buffer[x + z * renderCntX] = (unsigned int)0;
 			}
 		}
 	}
@@ -3334,9 +3267,9 @@ void iADreamCaster::LowCutParam3Slot()
 void iADreamCaster::UpdateWeightingResultsSlot()
 {
 	double coefs[3] = { ui.dsb_weightCoef1->value(), ui.dsb_weightCoef2->value(), ui.dsb_weightCoef3->value() };
-	for (int x=0; x<cntX; x++)
+	for (int x=0; x< renderCntX; x++)
 	{
-		for (int z=0; z<cntZ; z++)
+		for (int z=0; z< renderCntZ; z++)
 		{
 			//TODO: do not forget that dip angle cosine used inversed!
 			weightedParams[x][z] = coefs[0]*(placementsParams[x][z])[indices[0]] + coefs[1]*((placementsParams[x][z])[indices[1]]) + coefs[2]*(placementsParams[x][z])[indices[2]];
@@ -3345,9 +3278,9 @@ void iADreamCaster::UpdateWeightingResultsSlot()
 	//
 	double max_param=-1000;
 	double min_param=100000;
-	for (int x = 0; x < cntX; x++)
+	for (int x = 0; x < renderCntX; x++)
 	{
-		for (int z = 0; z < cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
 			if (weightedParams[x][z] > max_param)
 			{
@@ -3366,11 +3299,11 @@ void iADreamCaster::UpdateWeightingResultsSlot()
 	double scalec = max_param-min_param;
 	if(scalec==0) scalec=1;
 	double lookupNumber = plot3dWeighting->GetNumberOfLookupTableValues();
-	double * scalarVals = new double[cntX*cntZ];
-	double * plotData = new double[cntX*cntZ];
-	for (int x=0; x<cntX; x++)
+	double * scalarVals = new double[renderCntX*renderCntZ];
+	double * plotData = new double[renderCntX*renderCntZ];
+	for (int x=0; x< renderCntX; x++)
 	{
-		for (int z=0; z<cntZ; z++)
+		for (int z=0; z< renderCntZ; z++)
 		{
 			double curParam = ( weightedParams[x][z] - min_param ) / scalec;
 			if (curParam > 1.f)
@@ -3380,16 +3313,16 @@ void iADreamCaster::UpdateWeightingResultsSlot()
 			unsigned int lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R+stngs.COL_RANGE_DR*curParam) << 16) +
 							((unsigned int)(stngs.COL_RANGE_MIN_G+stngs.COL_RANGE_DG*curParam) << 8) +
 							(unsigned int)(stngs.COL_RANGE_MIN_B+stngs.COL_RANGE_DB*curParam);
-			weightingTab->results.buffer[x + z*cntX] = lencol;
-			scalarVals[x + z*cntX] = curParam*lookupNumber;
-			plotData[x + z*cntX] = curParam;
+			weightingTab->results.buffer[x + z* renderCntX] = lencol;
+			scalarVals[x + z* renderCntX] = curParam*lookupNumber;
+			plotData[x + z* renderCntX] = curParam;
 		}
 	}
 	weightingTab->Update();
 
 	//plot3DWeighting fill with data
 	plot3dWeighting->SetAutoScalarRange();
-	plot3dWeighting->loadFromData(plotData, scalarVals, cntX, cntZ);
+	plot3dWeighting->loadFromData(plotData, scalarVals, renderCntX, renderCntZ);
 	plot3dWeighting->ShowWireGrid(1, 0,0,0);
 	plot3dWeighting->Update();
 	plot3dWeighting->GetRenderer()->GetRenderWindow()->Render();
@@ -3400,18 +3333,18 @@ void iADreamCaster::UpdateWeightingResultsSlot()
 void iADreamCaster::WeightingResultsPlacementPickedSlot(int x, int y)
 {
 	int pickedX, pickedZ;
-	if (!cntZ || !cntX)
+	if (!renderCntZ || !renderCntX)
 	{
 		return;
 	}
-	int buf = (int)((float)x/((float)weightingTab->results.paintWidget->width()/cntX));
-	if (buf < 0 || buf >= cntX)
+	int buf = (int)((float)x/((float)weightingTab->results.paintWidget->width()/ renderCntX));
+	if (buf < 0 || buf >= renderCntX)
 	{
 		return;
 	}
 	pickedX = buf;
-	buf = (int)((float)y/((float)weightingTab->results.paintWidget->height()/cntZ));
-	if (buf < 0 || buf >= cntZ)
+	buf = (int)((float)y/((float)weightingTab->results.paintWidget->height()/ renderCntZ));
+	if (buf < 0 || buf >= renderCntZ)
 	{
 		return;
 	}
@@ -3446,9 +3379,9 @@ void iADreamCaster::LowCutWeightingResSlot()
 	float curParam;
 	double max_param=-1000;
 	double min_param=100000;
-	for (int x = 0; x < cntX; x++)
+	for (int x = 0; x < renderCntX; x++)
 	{
-		for (int z = 0; z < cntZ; z++)
+		for (int z = 0; z < renderCntZ; z++)
 		{
 			if (weightedParams[x][z] > max_param)
 			{
@@ -3469,9 +3402,9 @@ void iADreamCaster::LowCutWeightingResSlot()
 
 	double scalec = max_param-min_param;
 	if(scalec==0) scalec=1;
-	for (int x=0; x<cntX; x++)
+	for (int x=0; x< renderCntX; x++)
 	{
-		for (int z=0; z<cntZ; z++)
+		for (int z=0; z< renderCntZ; z++)
 		{
 			if (weightedParams[x][z] <= max_param &&
 				weightedParams[x][z] >= min_param )
@@ -3484,11 +3417,11 @@ void iADreamCaster::LowCutWeightingResSlot()
 				unsigned int lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R+stngs.COL_RANGE_DR*curParam) << 16) +
 								((unsigned int)(stngs.COL_RANGE_MIN_G+stngs.COL_RANGE_DG*curParam) << 8) +
 								(unsigned int)(stngs.COL_RANGE_MIN_B+stngs.COL_RANGE_DB*curParam);
-				weightingTab->results.buffer[x + z*cntX] = lencol;
+				weightingTab->results.buffer[x + z* renderCntX] = lencol;
 			}
 			else
 			{
-				weightingTab->results.buffer[x + z*cntX] = (unsigned int)0;
+				weightingTab->results.buffer[x + z* renderCntX] = (unsigned int)0;
 			}
 		}
 	}

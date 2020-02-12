@@ -216,10 +216,10 @@ public:
 		}
 		//SAH bound determining
 		float minCost = 10000000.f, cur_cost;
-		unsigned int axis_ind, cur_axis_ind, is_maximum;
+		unsigned int axis_ind=0, cur_axis_ind, is_maximum;
 		unsigned int l_counter, r_counter;
-		unsigned int l_count, r_count;
-		float bound, cur_bound;
+		unsigned int l_count=0, r_count=0;
+		float bound=0, cur_bound;
 		iAaabb l_aabb, r_aabb;
 		for (unsigned int i=0; i<primSz; i++)
 		{
