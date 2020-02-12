@@ -711,6 +711,7 @@ QDockWidget
 	}
 	QDockWidget::title
 	{
+		background-color: rgba(215, 215, 215, 255);
 		margin-top: 2px;
 		margin-left: 2px;
 		font-size: 14px;
