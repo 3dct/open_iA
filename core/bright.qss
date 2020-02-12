@@ -35,12 +35,13 @@ General
 	QTabBar::tab
 	{
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(235, 235, 235, 255),
-		stop:0.617 rgba(216, 216, 216, 255),
-		stop:0.618 rgba(216, 216, 216, 255),
-		stop:1 rgba(205, 205, 205, 255));
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(235, 235, 235, 255),
+			stop:0.617 rgba(216, 216, 216, 255),
+			stop:0.618 rgba(216, 216, 216, 255),
+			stop:1 rgba(205, 205, 205, 255)
+		);
 	}
 	QLineEdit:hover,
 	QSpinBox:hover,
@@ -50,12 +51,13 @@ General
 	QTabBar::tab:hover
 	{
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(229, 229, 229, 255),
-		stop:0.617 rgba(210, 210, 210, 255),
-		stop:0.618 rgba(210, 210, 210, 255),
-		stop:1 rgba(199, 199, 199, 255));
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(229, 229, 229, 255),
+			stop:0.617 rgba(210, 210, 210, 255),
+			stop:0.618 rgba(210, 210, 210, 255),
+			stop:1 rgba(199, 199, 199, 255)
+		);
 	}
 /****************************************************************************
 QToolBar
@@ -76,34 +78,37 @@ QToolButton
 	QToolButton#qt_toolbar_ext_button
 	{
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(195, 195, 195, 255),
-		stop:0.617 rgba(170, 170, 170, 255),
-		stop:0.618 rgba(170, 170, 170, 255),
-		stop:1 rgba(155, 155, 155, 255));
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(195, 195, 195, 255),
+			stop:0.617 rgba(170, 170, 170, 255),
+			stop:0.618 rgba(170, 170, 170, 255),
+			stop:1 rgba(155, 155, 155, 255)
+		);
 	}
 	QToolButton:hover,
 	QToolButton#qt_toolbar_ext_button:hover
 	{
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(150, 186, 230, 255),
-		stop:0.617 rgba(100, 146, 212, 255),
-		stop:0.618 rgba(100, 146, 212, 255),
-		stop:1 rgba(70, 122, 201, 255));
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(150, 186, 230, 255),
+			stop:0.617 rgba(100, 146, 212, 255),
+			stop:0.618 rgba(100, 146, 212, 255),
+			stop:1 rgba(70, 122, 201, 255)
+		);
 	}
 	QToolButton:pressed,
 	QToolButton#qt_toolbar_ext_button:pressed
 	{
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(70, 122, 201, 255),
-		stop:0.381 rgba(100, 146, 212, 255),
-		stop:0.382 rgba(100, 146, 212, 255),
-		stop:1 rgba(150, 186, 230, 255));
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(70, 122, 201, 255),
+			stop:0.381 rgba(100, 146, 212, 255),
+			stop:0.382 rgba(100, 146, 212, 255),
+			stop:1 rgba(150, 186, 230, 255)
+		);
 	}
 	QToolButton:disabled
 	{
@@ -112,12 +117,13 @@ QToolButton
 	QToolButton#qt_toolbar_ext_button:checked
 	{
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(105, 69, 25, 255),
-		stop:0.381 rgba(135, 93, 36, 255),
-		stop:0.382 rgba(135, 93, 36, 255),
-		stop:1 rgba(185, 133, 54, 255));
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(105, 69, 25, 255),
+			stop:0.381 rgba(135, 93, 36, 255),
+			stop:0.382 rgba(135, 93, 36, 255),
+			stop:1 rgba(185, 133, 54, 255)
+		);
 	}
 	QToolButton:flat
 	{
@@ -277,12 +283,13 @@ QTabBar
 		/* Style the tab using the tab sub-control. Note thatit reads QTabBar _not_ QTabWidget */
 		color: rgba(25, 25, 25, 255);
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(235, 235, 235, 255),
-		stop:0.617 rgba(228, 228, 228, 255),
-		stop:0.618 rgba(228, 228, 228, 255),
-		stop:1 rgba(225, 225, 225, 255));
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(235, 235, 235, 255),
+			stop:0.617 rgba(228, 228, 228, 255),
+			stop:0.618 rgba(228, 228, 228, 255),
+			stop:1 rgba(225, 225, 225, 255)
+		);
 		border: 1px solid rgba(155, 155, 155, 255);
 		/*border-top-left-radius: 4px;
 		border-top-right-radius: 10px;*/
@@ -295,12 +302,13 @@ QTabBar
 		border-left: 1px solid rgba(135, 135, 135, 255);
 		border-right: 1px solid rgba(135, 135, 135, 255);
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(255, 255, 255, 255),
-		stop:0.617 rgba(255, 255, 255, 255),
-		stop:0.618 rgba(255, 255, 255, 255),
-		stop:1 rgba(255, 255, 255, 255));
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(255, 255, 255, 255),
+			stop:0.617 rgba(255, 255, 255, 255),
+			stop:0.618 rgba(255, 255, 255, 255),
+			stop:1 rgba(255, 255, 255, 255)
+		);
 	}
 	QTabBar::tab:!selected
 	{
@@ -375,12 +383,13 @@ QDoubleSpinBox
 	QDoubleSpinBox::down-button:hover
 	{
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(195, 195, 195, 255),
-		stop:0.617 rgba(170, 170, 170, 255),
-		stop:0.618 rgba(170, 170, 170, 255),
-		stop:1 rgba(155, 155, 155, 255));
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(195, 195, 195, 255),
+			stop:0.617 rgba(170, 170, 170, 255),
+			stop:0.618 rgba(170, 170, 170, 255),
+			stop:1 rgba(155, 155, 155, 255)
+		);
 	}
 	QSpinBox::up-button:pressed,
 	QDoubleSpinBox::up-button:pressed,
@@ -388,12 +397,13 @@ QDoubleSpinBox
 	QDoubleSpinBox::down-button:pressed
 	{
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(155, 155, 155, 255),
-		stop:0.381 rgba(170, 170, 170, 255),
-		stop:0.382 rgba(170, 170, 170, 255),
-		stop:1 rgba(195, 195, 195, 255));
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(155, 155, 155, 255),
+			stop:0.381 rgba(170, 170, 170, 255),
+			stop:0.382 rgba(170, 170, 170, 255),
+			stop:1 rgba(195, 195, 195, 255)
+		);
 	}
 /****************************************************************************
 QProgressBar
@@ -411,12 +421,13 @@ QProgressBar
 	QProgressBar::chunk
 	{
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(150, 186, 230, 255),
-		stop:0.617 rgba(100, 146, 212, 255),
-		stop:0.618 rgba(100, 146, 212, 255),
-		stop:1 rgba(70, 122, 201, 255));
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(150, 186, 230, 255),
+			stop:0.617 rgba(100, 146, 212, 255),
+			stop:0.618 rgba(100, 146, 212, 255),
+			stop:1 rgba(70, 122, 201, 255)
+		);
 		color: rgba(25, 25, 25, 255);
 		/*border-radius: 9px;*/
 		border-bottom-right-radius: 0px;
@@ -492,12 +503,13 @@ QSlider
 		border: 1px solid rgba(155, 155, 155, 255);
 		height: 5px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(195, 195, 195, 255),
-		stop:0.381 rgba(206, 206, 206, 255),
-		stop:0.382 rgba(206, 206, 206, 255),
-		stop:1 rgba(225, 225, 225, 255));
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(195, 195, 195, 255),
+			stop:0.381 rgba(206, 206, 206, 255),
+			stop:0.382 rgba(206, 206, 206, 255),
+			stop:1 rgba(225, 225, 225, 255)
+		);
 		margin: 3px 0;
 		border-radius: 3px;
 	}
@@ -508,7 +520,8 @@ QSlider
 			stop:0.176136 rgba(120, 120, 120, 255),
 			stop:0.5		rgba(180, 180, 180, 255),
 			stop:0.664773 rgba(120, 120, 120, 255),
-			stop:1			rgba(180, 180, 180, 255));
+			stop:1			rgba(180, 180, 180, 255)
+		);
 		border: 0px solid rgb(142,142,142);
 		width: 13px;
 		margin: -4px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
@@ -519,12 +532,13 @@ QSlider
 		border: 1px solid rgba(105, 105, 105, 255);
 		width: 6px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:1, y2:0,
-		stop:0 rgba(195, 195, 195, 255),
-		stop:0.381 rgba(206, 206, 206, 255),
-		stop:0.382 rgba(206, 206, 206, 255),
-		stop:1 rgba(225, 225, 225, 255));
+			x1:0, y1:0,
+			x2:1, y2:0,
+			stop:0 rgba(195, 195, 195, 255),
+			stop:0.381 rgba(206, 206, 206, 255),
+			stop:0.382 rgba(206, 206, 206, 255),
+			stop:1 rgba(225, 225, 225, 255)
+		);
 		margin: 0 3px;
 		border-radius: 3px;
 	}
@@ -535,7 +549,8 @@ QSlider
 			stop:0.176136	rgba(120, 120, 120, 255),
 			stop:0.5		rgba(180, 180, 180, 255),
 			stop:0.664773	rgba(120, 120, 120, 255),
-			stop:1			rgba(180, 180, 180, 255));
+			stop:1			rgba(180, 180, 180, 255)
+		);
 		border: 1px solid rgb(142,142,142);
 		height: 12px;
 		margin: 0 -4px; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
@@ -563,12 +578,13 @@ QComboBox
 	QComboBox:on
 	{
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(229, 229, 229, 255),
-		stop:0.617 rgba(210, 210, 210, 255),
-		stop:0.618 rgba(210, 210, 210, 255),
-		stop:1 rgba(199, 199, 199, 255));
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(229, 229, 229, 255),
+			stop:0.617 rgba(210, 210, 210, 255),
+			stop:0.618 rgba(210, 210, 210, 255),
+			stop:1 rgba(199, 199, 199, 255)
+		);
 	}
 	/* for linux: */
 	QComboBox::item
@@ -588,7 +604,12 @@ QComboBox
 	}
 	.QDateTimeEdit:pressed
 	{
-		background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(195, 195, 195, 255), stop:1 rgba(225, 225, 225, 255));
+		background: qlineargradient(spread:pad,
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(195, 195, 195, 255),
+			stop:1 rgba(225, 225, 225, 255)
+		);
 	}
 /****************************************************************************
 QStatusBar
@@ -619,12 +640,13 @@ QScrollBar
 	QScrollBar::handle:horizontal
 	{
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:0, y2:1,
-		stop:0 rgba(150, 186, 230, 255),
-		stop:0.617 rgba(100, 146, 212, 255),
-		stop:0.618 rgba(100, 146, 212, 255),
-		stop:1 rgba(70, 122, 201, 255));
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(150, 186, 230, 255),
+			stop:0.617 rgba(100, 146, 212, 255),
+			stop:0.618 rgba(100, 146, 212, 255),
+			stop:1 rgba(70, 122, 201, 255)
+		);
 		min-width:20px;
 	}
 	QScrollBar::add-line:horizontal
@@ -664,12 +686,13 @@ QScrollBar
 	QScrollBar::handle:vertical
 	{
 		background: qlineargradient(spread:pad,
-		x1:0, y1:0,
-		x2:1, y2:0,
-		stop:0 rgba(150, 186, 230, 255),
-		stop:0.617 rgba(100, 146, 212, 255),
-		stop:0.618 rgba(100, 146, 212, 255),
-		stop:1 rgba(70, 122, 201, 255));
+			x1:0, y1:0,
+			x2:1, y2:0,
+			stop:0 rgba(150, 186, 230, 255),
+			stop:0.617 rgba(100, 146, 212, 255),
+			stop:0.618 rgba(100, 146, 212, 255),
+			stop:1 rgba(70, 122, 201, 255)
+		);
 		min-height: 20px;
 	}
 	QScrollBar::add-line:vertical
@@ -707,14 +730,13 @@ QDockWidget
 		background-color: rgba(215, 215, 215, 255);
 		color: rgba(25, 25, 25, 255);
 		font: bold;
-		border: 2px;
 	}
 	QDockWidget::title
 	{
 		background-color: rgba(215, 215, 215, 255);
-		margin-top: 2px;
-		margin-left: 2px;
-		font-size: 14px;
+		vertical-align: center;
+		text-align: left;
+		border: 1px solid rgba(155, 155, 155, 255);
 	}
 /****************************************************************************
 QSplitter
