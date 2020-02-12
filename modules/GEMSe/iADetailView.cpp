@@ -85,7 +85,7 @@ iADetailView::iADetailView(
 	m_magicLensCount(1),
 	m_labelItemModel(new QStandardItemModel()),
 	m_MouseButtonDown(false),
-	m_resultFilterTriggerThread(0),
+	m_resultFilterTriggerThread(nullptr),
 	m_correctnessUncertaintyOverlayEnabled(false),
 	m_cmpDetailsWidget(comparisonDetailsWidget)
 {

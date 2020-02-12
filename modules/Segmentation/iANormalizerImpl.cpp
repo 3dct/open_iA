@@ -29,6 +29,9 @@ char const * const TransformNames[3] = {
 	"Gaussian"
 };
 
+iANormalizer::~iANormalizer()
+{}
+
 iADistanceType iANoNormalizer::Normalize(iADistanceType d) const
 {
 	return d;
@@ -38,7 +41,7 @@ void iANoNormalizer::SetMaxValue(iADistanceType )
 {
 }
 
-char const * const iANoNormalizer::name() const
+char const * iANoNormalizer::name() const
 {
 	return TransformNames[nmNone];
 }
@@ -62,7 +65,7 @@ iADistanceType iALinearNormalizer::Normalize(iADistanceType d) const
 	return d * m_normalizeFactor;
 }
 
-char const * const iALinearNormalizer::name() const
+char const * iALinearNormalizer::name() const
 {
 	return TransformNames[nmLinear];
 }
@@ -95,7 +98,7 @@ void iAGaussianNormalizer::SetMaxValue(iADistanceType maxValue)
 	UpdateValueFactor();
 }
 
-char const * const iAGaussianNormalizer::name() const
+char const * iAGaussianNormalizer::name() const
 {
 	return TransformNames[nmGaussian];
 }
@@ -115,7 +118,7 @@ QSharedPointer<iANormalizer> CreateNormalizer(QString const & name, double beta)
 }
 
 
-char const * const * const GetNormalizerNames()
+char const * const * GetNormalizerNames()
 {
 	return TransformNames;
 }

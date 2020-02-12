@@ -101,12 +101,12 @@ int GetDistanceMeasureCount()
 }
 
 
-char const * const * const GetDistanceMeasureNames()
+char const * const * GetDistanceMeasureNames()
 {
 	return MeasureNames;
 }
 
-char const * const * const GetShortMeasureNames()
+char const * const * GetShortMeasureNames()
 {
 	return MeasureShortNames;
 }

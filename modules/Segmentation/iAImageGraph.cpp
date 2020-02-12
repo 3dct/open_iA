@@ -156,7 +156,7 @@ iAImageGraph::iAImageGraph(iAVoxelIndexType width, iAVoxelIndexType height, iAVo
 
 bool iAImageGraph::containsEdge(iAVoxelIndexType voxel1, iAVoxelIndexType voxel2)
 {
-	for (iAEdgeIndexType i=0; i<m_edges.size(); ++i)
+	for (int i=0; i<m_edges.size(); ++i)
 	{
 		// edges are bi-directional
 		if ( (m_edges[i].first == voxel1 && m_edges[i].second == voxel2) ||

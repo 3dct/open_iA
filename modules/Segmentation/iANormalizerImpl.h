@@ -43,7 +43,7 @@ class iANoNormalizer: public iANormalizer
 public:
 	virtual iADistanceType Normalize(iADistanceType d) const;
 	virtual void SetMaxValue(iADistanceType d);
-	virtual char const * const name() const;
+	virtual char const * name() const;
 };
 
 class iALinearNormalizer: public iANormalizer
@@ -52,7 +52,7 @@ public:
 	iALinearNormalizer();
 	virtual iADistanceType Normalize(iADistanceType d) const;
 	virtual void SetMaxValue(iADistanceType d);
-	virtual char const * const name() const;
+	virtual char const * name() const;
 private:
 	iADistanceType m_normalizeFactor;
 };
@@ -63,7 +63,7 @@ public:
 	iAGaussianNormalizer();
 	virtual iADistanceType Normalize(iADistanceType d) const;
 	virtual void SetMaxValue(iADistanceType d);
-	virtual char const * const name() const;
+	virtual char const * name() const;
 	void SetBeta(double beta);
 private:
 	double m_beta;
@@ -73,5 +73,5 @@ private:
 	void UpdateValueFactor();
 };
 
-char const * const * const GetNormalizerNames();
+char const * const * GetNormalizerNames();
 QSharedPointer<iANormalizer> CreateNormalizer(QString const & name, double beta);
