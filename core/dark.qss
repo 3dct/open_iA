@@ -521,7 +521,7 @@ QCheckBox
 	}
 	QCheckBox::indicator:checked:pressed
 	{
-		image: url(:/images/checkbox_pressed_dark.png);
+		image: url(:/images/checkbox_checked_pressed_dark.png);
 	}
 
 	QCheckBox::indicator:unchecked
@@ -534,18 +534,21 @@ QCheckBox
 	}
 	QCheckBox::indicator:unchecked:pressed
 	{
-		image: url(:/images/checkbox_pressed_dark.png);
+		image: url(:/images/checkbox_unchecked_pressed_dark.png);
 	}
 
-/*
-	QCheckBox::indicator:indeterminate:hover {
-		image: url(:/images/checkbox_indeterminate_hover.png);
+	QCheckBox::indicator:indeterminate
+	{
+		image: url(:/images/checkbox_indeterminate_dark.png);
 	}
-
-	QCheckBox::indicator:indeterminate:pressed {
-		image: url(:/images/checkbox_indeterminate_pressed.png);
+	QCheckBox::indicator:indeterminate:hover
+	{
+		image: url(:/images/checkbox_indeterminate_hover_dark.png);
 	}
-*/
+	QCheckBox::indicator:indeterminate:pressed
+	{
+		image: url(:/images/checkbox_indeterminate_pressed_dark.png);
+	}
 /****************************************************************************
 QSlider
 ****************************************************************************/

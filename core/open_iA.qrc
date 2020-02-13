@@ -16,9 +16,13 @@
     <file>images/changeColor.png</file>
     <file>images/checkbox_checked_dark.png</file>
     <file>images/checkbox_checked_hover_dark.png</file>
-    <file>images/checkbox_pressed_dark.png</file>
+    <file>images/checkbox_checked_pressed_dark.png</file>
+    <file>images/checkbox_indeterminate_dark.png</file>
+    <file>images/checkbox_indeterminate_hover_dark.png</file>
+    <file>images/checkbox_indeterminate_pressed_dark.png</file>
     <file>images/checkbox_unchecked_dark.png</file>
     <file>images/checkbox_unchecked_hover_dark.png</file>
+    <file>images/checkbox_unchecked_pressed_dark.png</file>
     <file>images/close_white.png</file>
     <file>images/colormap.png</file>
     <file>images/copy.png</file>
