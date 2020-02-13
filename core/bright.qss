@@ -319,15 +319,13 @@ QTabBar
 		background-color: rgba(135, 135, 135, 255);
 	}
 	QTabBar::scroller
-	{       /* the width of the scroll buttons */
-		background: none;
-		width: 10px;
+	{   /* the width of the scroll buttons */
+		width: 24px;
 	}
 	QTabBar QToolButton
 	{	/* the scroll buttons are tool buttons */
-		border-width: 1px;
 		color: rgba(255, 168, 0, 255);
-		background: none;
+		background-color: rgba(215, 215, 215, 255);
 	}
 /****************************************************************************
 QLabel
