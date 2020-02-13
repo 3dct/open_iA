@@ -498,10 +498,54 @@ QCheckBox
 	QCheckBox
 	{
 		border-radius: 1px;
-		border: 1px;
-		background: none;
-		color: rgba(230, 230, 230, 255);
 	}
+	/*
+	QCheckBox
+	{
+		spacing: 5px;
+	}*/
+
+	QCheckBox::indicator
+	{
+		width: 13px;
+		height: 13px;
+	}
+
+	QCheckBox::indicator:checked
+	{
+		image: url(:/images/checkbox_checked_dark.png);
+	}
+	QCheckBox::indicator:checked:hover
+	{
+		image: url(:/images/checkbox_checked_hover_dark.png);
+	}
+	QCheckBox::indicator:checked:pressed
+	{
+		image: url(:/images/checkbox_pressed_dark.png);
+	}
+
+	QCheckBox::indicator:unchecked
+	{
+		image: url(:/images/checkbox_unchecked_dark.png);
+	}
+	QCheckBox::indicator:unchecked:hover
+	{
+		image: url(:/images/checkbox_unchecked_hover_dark.png);
+	}
+	QCheckBox::indicator:unchecked:pressed
+	{
+		image: url(:/images/checkbox_pressed_dark.png);
+	}
+
+/*
+	QCheckBox::indicator:indeterminate:hover {
+		image: url(:/images/checkbox_indeterminate_hover.png);
+	}
+
+	QCheckBox::indicator:indeterminate:pressed {
+		image: url(:/images/checkbox_indeterminate_pressed.png);
+	}
+*/
 /****************************************************************************
 QSlider
 ****************************************************************************/
