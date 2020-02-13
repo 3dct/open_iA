@@ -590,8 +590,8 @@ QWidget* iAFiAKErController::setupResultListView()
 	m_resultsListLayout->setSpacing(2);
 	m_resultsListLayout->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
 	m_resultsListLayout->setColumnStretch(PreviewColumn, 1);
-	m_resultsListLayout->setColumnStretch(StackedBarColumn, m_data->result.size());
-	m_resultsListLayout->setColumnStretch(HistogramColumn, 2 * m_data->result.size());
+	m_resultsListLayout->setColumnStretch(StackedBarColumn, static_cast<int>(m_data->result.size()));
+	m_resultsListLayout->setColumnStretch(HistogramColumn, static_cast<int>(2 * m_data->result.size()));
 
 	auto colorTheme = iAColorThemeManager::instance().theme(DefaultStackedBarColorTheme);
 	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
@@ -621,7 +621,7 @@ QWidget* iAFiAKErController::setupResultListView()
 	}
 	m_distributionChoice->addItems(paramNames);
 	m_distributionChoice->addItem("Match Quality");
-	m_distributionChoice->setCurrentIndex((*m_data->result[0].mapping)[iACsvConfig::Length]);
+	m_distributionChoice->setCurrentIndex(static_cast<int>((*m_data->result[0].mapping)[iACsvConfig::Length]));
 	connect(m_distributionChoice, SIGNAL(currentIndexChanged(int)), this, SLOT(distributionChoiceChanged(int)));
 	m_distributionChoice->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	m_colorByDistribution = new QCheckBox("Color by");
@@ -709,9 +709,9 @@ QWidget* iAFiAKErController::setupResultListView()
 				for (size_t p = 0; p < numPts; ++p)
 				{
 					fiberCurvePoints[p] = iAVec3f(
-						lastStepValues[f][p * 3],
-						lastStepValues[f][p * 3 + 1],
-						lastStepValues[f][p * 3 + 2]);
+						static_cast<float>(lastStepValues[f][p * 3]),
+						static_cast<float>(lastStepValues[f][p * 3 + 1]),
+						static_cast<float>(lastStepValues[f][p * 3 + 2]));
 				}
 				curvedStepInfo.insert(std::make_pair(f, fiberCurvePoints));
 			}
@@ -858,7 +858,7 @@ void iAFiAKErController::addStackedBar(int index)
 		}
 		m_resultUIs[resultID].stackedBars->addBar(title, value, maxValue);
 	}
-	m_resultsListLayout->setColumnStretch(StackedBarColumn, m_stackedBarsHeaders->numberOfBars()* m_data->result.size() );
+	m_resultsListLayout->setColumnStretch(StackedBarColumn, static_cast<int>(m_stackedBarsHeaders->numberOfBars()* m_data->result.size()) );
 }
 
 void iAFiAKErController::removeStackedBar(int index)
@@ -869,7 +869,7 @@ void iAFiAKErController::removeStackedBar(int index)
 	{
 		m_resultUIs[resultID].stackedBars->removeBar(title);
 	}
-	m_resultsListLayout->setColumnStretch(StackedBarColumn, m_stackedBarsHeaders->numberOfBars()*m_data->result.size());
+	m_resultsListLayout->setColumnStretch(StackedBarColumn, static_cast<int>(m_stackedBarsHeaders->numberOfBars()*m_data->result.size()));
 }
 
 void iAFiAKErController::updateResultList()
