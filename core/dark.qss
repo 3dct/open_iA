@@ -494,17 +494,7 @@ QListView
 QRadioButton
 QCheckBox
 ****************************************************************************/
-	QRadioButton,
-	QCheckBox
-	{
-		border-radius: 1px;
-	}
-	/*
-	QCheckBox
-	{
-		spacing: 5px;
-	}*/
-
+	QRadioButton::indicator,
 	QCheckBox::indicator
 	{
 		width: 13px;
@@ -548,6 +538,32 @@ QCheckBox
 	QCheckBox::indicator:indeterminate:pressed
 	{
 		image: url(:/images/checkbox_indeterminate_pressed_dark.png);
+	}
+
+	QRadioButton::indicator::unchecked
+	{
+		image: url(:/images/radiobutton_unchecked_dark.png);
+	}
+	QRadioButton::indicator:unchecked:hover
+	{
+		image: url(:/images/radiobutton_unchecked_hover_dark.png);
+	}
+	QRadioButton::indicator:unchecked:pressed
+	{
+		image: url(:/images/radiobutton_unchecked_pressed_dark.png);
+	}
+
+	QRadioButton::indicator::checked
+	{
+		image: url(:/images/radiobutton_checked_dark.png);
+	}
+	QRadioButton::indicator:checked:hover
+	{
+		image: url(:/images/radiobutton_checked_hover_dark.png);
+	}
+	QRadioButton::indicator:checked:pressed
+	{
+		image: url(:/images/radiobutton_checked_pressed_dark.png);
 	}
 /****************************************************************************
 QSlider

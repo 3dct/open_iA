@@ -56,6 +56,12 @@
     <file>images/px.png</file>
     <file>images/py.png</file>
     <file>images/pz.png</file>
+    <file>images/radiobutton_checked_dark.png</file>
+    <file>images/radiobutton_checked_hover_dark.png</file>
+    <file>images/radiobutton_checked_pressed_dark.png</file>
+    <file>images/radiobutton_unchecked_dark.png</file>
+    <file>images/radiobutton_unchecked_hover_dark.png</file>
+    <file>images/radiobutton_unchecked_pressed_dark.png</file>
     <file>images/remTFPoint.png</file>
     <file>images/remove.png</file>
     <file>images/removeFkt.png</file>
