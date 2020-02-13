@@ -33,6 +33,7 @@
 #include <QDebug>
 #include <QtMath>
 #include <QPainter>
+#include <QPalette>
 #include <QPen>
 #include <QPolygon>
 #include <QPropertyAnimation>
@@ -63,7 +64,6 @@ iAScatterPlot::Settings::Settings() :
 	plotBorderColor( QColor( 170, 170, 170 ) ),
 	tickLineColor( QColor( 221, 221, 221 ) ),
 	tickLabelColor( QColor( 100, 100, 100 ) ),
-	backgroundColor( QColor( 255, 255, 255 ) ),
 	selectionColor( QColor(0, 0, 0) ),
 	selectionMode(Polygon),
 	selectionEnabled(false),
@@ -264,15 +264,22 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 		fillVBO();
 	painter.save();
 	painter.translate( m_globRect.x(), m_globRect.y());
-	painter.setBrush( settings.backgroundColor );
+	QColor bg(settings.backgroundColor);
+	if (!bg.isValid())
+	{
+		bg = m_parentWidget->palette().color(m_parentWidget->backgroundRole());
+	}
+	painter.setBrush(bg);
 	drawTicks( painter );
 	drawPoints( painter );
 	if (settings.selectionEnabled)
-		drawSelectionPolygon( painter );
+	{
+		drawSelectionPolygon(painter);
+	}
 	drawBorder( painter );
 	if (settings.showPCC)
 	{
-		painter.setPen(QColor(0, 0, 0));
+		painter.setPen( /* QColor(0, 0, 0) */ m_parentWidget->palette().color(QPalette::Text));
 		painter.drawText( QRect(0, 0, m_globRect.width(), m_globRect.height()), Qt::AlignCenter | Qt::AlignVCenter, QString::number(m_pcc));
 	}
 	painter.restore();
@@ -855,7 +862,7 @@ void iAScatterPlot::drawSelectionPolygon( QPainter &painter )
 	if ( m_selPoly.size() )
 	{
 		painter.setBrush( settings.selectionPolyColor );
-		painter.setPen( settings.selectionPolyColor );
+		painter.setPen( settings.selectionPolyColor /* m_parentWidget->palette().color(QPalette::Text) */ );
 		painter.drawPolygon( m_selPoly );
 	}
 }
@@ -876,7 +883,10 @@ void iAScatterPlot::drawBorder( QPainter &painter )
 void iAScatterPlot::drawTicks( QPainter &painter )
 {
 	painter.save();
-	QPen p;	p.setColor( settings.tickLineColor ); p.setStyle( Qt::DotLine ); painter.setPen( p );
+	QPen p;
+		p.setColor( /*settings.tickLineColor*/ m_parentWidget->palette().color(QPalette::Light) );
+		p.setStyle( Qt::DotLine );
+	painter.setPen( p );
 	for (double t: m_ticksX)
 	{
 		double loc_t = p2x( t );
@@ -906,7 +916,7 @@ void iAScatterPlot::drawMaximizedLabels( QPainter &painter )
 		tS = settings.tickSpacing, \
 		mPO = settings.maximizedParamsOffset, \
 		tRH = settings.textRectHeight;
-	painter.setPen( settings.tickLabelColor );
+	painter.setPen( /*settings.tickLabelColor*/ m_parentWidget->palette().color(QPalette::Text) );
 
 	for (double t : m_ticksY)
 	{

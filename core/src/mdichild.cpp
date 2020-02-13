@@ -179,6 +179,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 
 	m_worldProfilePoints->Allocate(2);
 	connect(mainWnd, &MainWindow::fullScreenToggled, this, &MdiChild::toggleFullScreen);
+	connect(mainWnd, &MainWindow::styleChanged, this, &MdiChild::styleChanged);
 }
 
 void MdiChild::toggleFullScreen()
@@ -2652,7 +2653,8 @@ void MdiChild::initModalities()
 
 void MdiChild::setHistogramModality(int modalityIdx)
 {
-	if (!m_histogram || modality(modalityIdx)->image()->GetNumberOfScalarComponents() != 1) //No histogram/profile for rgb, rgba or vector pixel type images
+	if (!m_histogram || modalities()->size() <= modalityIdx ||
+		modality(modalityIdx)->image()->GetNumberOfScalarComponents() != 1) //No histogram/profile for rgb, rgba or vector pixel type images
 	{
 		return;
 	}
@@ -2948,4 +2950,12 @@ bool MdiChild::isFullyLoaded() const
 {
 	int const* dim = m_imageData->GetDimensions();
 	return dim[0] > 0 && dim[1] > 0 && dim[2] > 0;
+}
+
+void MdiChild::styleChanged()
+{
+	if (m_histogramPlot)
+	{
+		m_histogramPlot->setColor(QWidget::palette().color(QPalette::Dark));
+	}
 }

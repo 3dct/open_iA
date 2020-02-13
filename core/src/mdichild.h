@@ -381,6 +381,7 @@ private slots:
 	void resetCamera(bool spacingChanged, double const * newSpacing);
 	void toggleFullScreen();
 	void rendererKeyPressed(int keyCode);
+	void styleChanged();
 
 private:
 	void closeEvent(QCloseEvent *event) override;

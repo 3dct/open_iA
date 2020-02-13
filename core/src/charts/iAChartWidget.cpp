@@ -321,11 +321,15 @@ QString iAChartWidget::xAxisTickMarkLabel(double value, double stepWidth)
 	{
 		QString result = QString::number(value, 'g', ((value > 0) ? placesBeforeComma + placesAfterComma : placesAfterComma));
 		if (result.contains("e")) // only 4 digits for scientific notation:
+		{
 			result = QString::number(value, 'g', 4);
+		}
 		return result;
 	}
 	else
+	{
 		return QString::number(static_cast<long long>(value), 'g', 15);
+	}
 }
 
 void iAChartWidget::drawAxes(QPainter& painter)
@@ -337,9 +341,13 @@ void iAChartWidget::drawAxes(QPainter& painter)
 bool iAChartWidget::categoricalAxis() const
 {
 	if (!m_plots.empty())
+	{
 		return (m_plots[0]->data()->valueType() == Categorical);
+	}
 	else
+	{
 		return false;
+	}
 }
 
 double iAChartWidget::visibleXStart() const
@@ -375,9 +383,13 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 				double value = m_xTickBounds[0] + static_cast<double>(i) * stepWidth;
 				double nextValue = m_xTickBounds[0] + static_cast<double>(i+1) * stepWidth;
 				if (value < startXVal)
+				{
 					continue;
+				}
 				else if (value > endXVal)
+				{
 					break;
+				}
 				QString text = xAxisTickMarkLabel(value, stepWidth);
 				int markerX = markerPos(m_xMapper->srcToDst(value), i, stepCount);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
@@ -394,7 +406,9 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 				overlap = (textX + textWidth) >= nextTextX;
 			}
 			if (overlap)
+			{
 				stepCount /= 2;
+			}
 		} while (overlap && stepCount > 1);
 	}
 	else
@@ -411,9 +425,13 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 	{
 		double value = m_xTickBounds[0] + static_cast<double>(i) * stepWidth;
 		if (value < startXVal)
+		{
 			continue;
+		}
 		else if (value > endXVal)
+		{
 			break;
+		}
 		QString text = xAxisTickMarkLabel(value, stepWidth);
 		int markerX = markerPos(m_xMapper->srcToDst(value), i, stepCount);
 		painter.drawLine(markerX, TickWidth, markerX, -1);
@@ -580,9 +598,12 @@ void iAChartWidget::updateBounds(size_t startPlot)
 
 void iAChartWidget::drawBackground(QPainter &painter)
 {
-	if (!m_bgColor.isValid())
-		m_bgColor = QWidget::palette().color(QWidget::backgroundRole());
-	painter.fillRect( rect(), m_bgColor );
+	QColor bgColor(m_bgColor);
+	if (!bgColor.isValid())
+	{
+		bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	}
+	painter.fillRect( rect(), bgColor);
 }
 
 void iAChartWidget::resetView()

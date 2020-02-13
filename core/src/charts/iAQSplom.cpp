@@ -81,7 +81,6 @@ iAQSplom::Settings::Settings() :
 	tickLabelsOffset(5),
 	maxRectExtraOffset(20),
 	tickOffsets(45, 45),
-	backgroundColor(Qt::white),
 	maximizedLinked(false),
 	flipAxes(false),
 	popupBorderColor(QColor(180, 180, 180, 220)),
@@ -449,6 +448,7 @@ void iAQSplom::createScatterPlot(size_t y, size_t x, bool initial)
 		return;
 	}
 	iAScatterPlot * s = new iAScatterPlot(this, this);
+	s->settings.backgroundColor = settings.backgroundColor;
 	connect(s, &iAScatterPlot::transformModified, this, &iAQSplom::transformUpdated);
 	connect(s, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
 	s->setData(x, y, m_splomData);
@@ -1005,6 +1005,7 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 
 	delete m_maximizedPlot;
 	m_maximizedPlot = new iAScatterPlot(this, this, 11, true);
+	m_maximizedPlot->settings.backgroundColor = settings.backgroundColor;
 	connect(m_maximizedPlot, &iAScatterPlot::selectionModified, this, &iAQSplom::selectionUpdated);
 	connect(m_maximizedPlot, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
 
@@ -1058,9 +1059,15 @@ void iAQSplom::paintEvent(QPaintEvent * /*event*/)
 	QPainter painter( this );
 	painter.setRenderHint(QPainter::Antialiasing);
 	painter.beginNativePainting();
-	glClearColor(settings.backgroundColor.redF(), settings.backgroundColor.greenF(), settings.backgroundColor.blueF(), settings.backgroundColor.alphaF());
+	QColor bg(settings.backgroundColor);
+	if (!bg.isValid())
+	{
+		bg = QWidget::palette().color(QWidget::backgroundRole());
+	}
+	glClearColor(bg.redF(), bg.greenF(), bg.blueF(), bg.alphaF());
 	glClear(GL_COLOR_BUFFER_BIT);
 	painter.endNativePainting();
+	painter.setPen(QWidget::palette().color(QPalette::Text));
 	if (m_visiblePlots.size() < 2)
 	{
 		painter.drawText(geometry(), Qt::AlignCenter | Qt::AlignVCenter, "Too few parameters selected!");
@@ -1160,7 +1167,6 @@ void iAQSplom::paintEvent(QPaintEvent * /*event*/)
 		double key = 1 - (static_cast<double>(i) / (m_lut->numberOfValues()-1) );
 		grad.setColorAt(key, color);
 	}
-	painter.setPen(QPen(QColor(0, 0, 0), 0.5));
 	painter.fillRect(colorBarRect, grad);
 	painter.drawRect(colorBarRect);
 	QString minStr = dblToStringWithUnits(minVal);
@@ -1219,8 +1225,10 @@ bool iAQSplom::drawPopup( QPainter& painter )
 	double pPM = m_activePlot->settings.pickedPointMagnification;
 	double ptRad = m_activePlot->getPointRadius();
 	popupPos.setY( popupPos.y() -  pPM * ptRad ); //popupPos.setY( popupPos.y() - ( 1 + ( pPM - 1 )*m_anim ) * ptRad );
-	QColor col = settings.popupFillColor; col.setAlpha( col.alpha()* anim ); painter.setBrush( col );
-	col = settings.popupBorderColor; col.setAlpha( col.alpha()* anim ); painter.setPen( col );
+	QColor col = settings.popupFillColor; col.setAlpha( col.alpha()* anim );
+	painter.setBrush( col );
+	col = settings.popupBorderColor; col.setAlpha( col.alpha()* anim );
+	painter.setPen( col );
 	//painter.setBrush( settings.popupFillColor );
 	//painter.setPen( settings.popupBorderColor );
 	painter.translate( popupPos );
@@ -1638,7 +1646,8 @@ void iAQSplom::drawPlotLabels(QPainter & painter, bool switchTO_YRow)
 void iAQSplom::drawTicks( QPainter & painter, QList<double> const & ticksX, QList<double> const & ticksY, QList<QString> const & textX, QList<QString> const & textY)
 {
 	painter.save();
-	painter.setPen( m_visiblePlots[1][0]->settings.tickLabelColor );
+	//painter.setPen( m_visiblePlots[1][0]->settings.tickLabelColor );
+	painter.setPen(QWidget::palette().color(QPalette::Text));
 	QPoint * tOfs = &settings.tickOffsets;
 	long tSpc = settings.tickLabelsOffset;
 	for( long i = 0; i < ticksY.size(); ++i )
