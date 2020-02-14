@@ -40,7 +40,7 @@ void iAJobListView::addJob(QString name, iAProgress * p, QThread * t)
 {
 	auto jobWidget = new QWidget();
 	jobWidget->setLayout(new QVBoxLayout());
-	jobWidget->setStyleSheet("background-color:#EEE;");
+	jobWidget->setStyleSheet("background-color:#"+QWidget::palette().color(QPalette::Button).name()+";");
 	auto progressBar = new QProgressBar();
 	progressBar->setRange(0, 100);
 	progressBar->setValue(0);

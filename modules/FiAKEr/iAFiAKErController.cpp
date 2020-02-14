@@ -2447,7 +2447,8 @@ void iAFiAKErController::refDistAvailable()
 	m_refDistCompute = nullptr;
 
 	auto & ui = m_resultUIs[m_referenceID];
-	setResultBackground(ui, ReferenceColor);
+	QColor refBGColor(m_mainWnd->palette().color(QPalette::AlternateBase));
+	setResultBackground(ui, refBGColor);
 	m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text() + RefMarker);
 
 	for (size_t chartID = 0; chartID < ChartCount - 1; ++chartID)

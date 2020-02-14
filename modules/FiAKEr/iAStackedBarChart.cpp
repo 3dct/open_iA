@@ -132,11 +132,12 @@ void iAStackedBarChart::paintEvent(QPaintEvent* /*ev*/)
 	int accumulatedWidth = 0;
 	int barHeight = std::min(geometry().height(), MaxBarHeight);
 	int topY = geometry().height() / 2 - barHeight / 2;
-	if (!m_bgColor.isValid())
+	QColor bg(m_bgColor);
+	if (!bg.isValid())
 	{
-		m_bgColor = QWidget::palette().color(QWidget::backgroundRole());
+		bg = QWidget::palette().color(QWidget::backgroundRole());
 	}
-	painter.fillRect(rect(), QBrush(m_bgColor));
+	painter.fillRect(rect(), QBrush(bg));
 	for (size_t barID = 0; barID < m_bars.size(); ++barID)
 	{
 		auto & bar = m_bars[barID];
