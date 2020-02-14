@@ -112,9 +112,8 @@
 
 namespace
 {
-	const int DockWidgetMargin = 3;
-	const int SettingSpacing = 4;
-
+	const int ControlSpacing = 4;
+	const int ResultListMargin = 2;
 	const int HistogramMinWidth = 80;
 	const int StackedBarMinWidth = 70;
 	const int DefaultPlayDelay = 1000;
@@ -262,7 +261,9 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 {
 	m_config = config;
 	m_useStepData = useStepData;
-	m_jobs = new iAJobListView(DockWidgetMargin);
+	m_jobs = new iAJobListView();
+	m_jobs->layout()->setContentsMargins(1, 0, 0, 0);
+	m_jobs->layout()->setSpacing(ControlSpacing);
 	m_views.resize(DockWidgetCount);
 	m_views[JobView] = new iADockWidgetWrapper(m_jobs, "Jobs", "foeJobs");
 	m_mdiChild->addDockWidget(Qt::BottomDockWidgetArea, m_views[JobView]);
@@ -458,7 +459,7 @@ void iAFiAKErController::setupSettingsView()
 	m_spnboxReferenceCount->setMaximum(1);
 	m_showReferenceWidget->setLayout(new QHBoxLayout());
 	m_showReferenceWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	m_showReferenceWidget->layout()->setSpacing(SettingSpacing);
+	m_showReferenceWidget->layout()->setSpacing(ControlSpacing);
 	m_chkboxShowLines = new QCheckBox("Connect");
 	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceToggled);
 	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(showReferenceCountChanged(int)));
@@ -537,7 +538,8 @@ QWidget* iAFiAKErController::setupOptimStepView()
 
 	QWidget* optimStepsView = new QWidget();
 	optimStepsView->setLayout(new QVBoxLayout());
-	optimStepsView->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
+	optimStepsView->layout()->setContentsMargins(1, 0, 0, 0);
+	optimStepsView->layout()->setSpacing(ControlSpacing);
 	optimStepsView->layout()->addWidget(chartContainer);
 	optimStepsView->layout()->addWidget(optimStepsCtrls);
 	return optimStepsView;
@@ -585,9 +587,10 @@ QWidget* iAFiAKErController::setupResultListView()
 	resultListScrollArea->setWidgetResizable(true);
 	auto resultList = new QWidget();
 	resultListScrollArea->setWidget(resultList);
+	resultListScrollArea->setContentsMargins(0, 0, 0, 0);
 	m_resultsListLayout = new QGridLayout();
-	m_resultsListLayout->setSpacing(2);
-	m_resultsListLayout->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
+	m_resultsListLayout->setSpacing(ControlSpacing);
+	m_resultsListLayout->setContentsMargins(ResultListMargin, ResultListMargin, ResultListMargin, ResultListMargin);
 	m_resultsListLayout->setColumnStretch(PreviewColumn, 1);
 	m_resultsListLayout->setColumnStretch(StackedBarColumn, static_cast<int>(m_data->result.size()));
 	m_resultsListLayout->setColumnStretch(HistogramColumn, static_cast<int>(2 * m_data->result.size()));
@@ -760,7 +763,14 @@ QWidget* iAFiAKErController::setupResultListView()
 	resultList->setLayout(m_resultsListLayout);
 	addStackedBar(0);
 	changeDistributionSource((*m_data->result[0].mapping)[iACsvConfig::Length]);
-	return resultListScrollArea;
+
+	// to add 1 pixel margin on the left:
+	auto outerWidget = new QWidget();
+	outerWidget->setLayout(new QHBoxLayout());
+	outerWidget->layout()->setContentsMargins(1, 0, 0, 0);
+	outerWidget->layout()->setSpacing(0);
+	outerWidget->layout()->addWidget(resultListScrollArea);
+	return outerWidget;
 }
 
 QWidget * iAFiAKErController::setupProtocolView()
@@ -772,7 +782,8 @@ QWidget * iAFiAKErController::setupProtocolView()
 	m_interactionProtocol->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	QWidget* protocolView = new QWidget();
 	protocolView->setLayout(new QHBoxLayout());
-	protocolView->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
+	protocolView->layout()->setContentsMargins(1, 0, 0, 0);
+	protocolView->layout()->setSpacing(ControlSpacing);
 	protocolView->layout()->addWidget(m_interactionProtocol);
 	return protocolView;
 }
@@ -785,6 +796,8 @@ QWidget * iAFiAKErController::setupSelectionView()
 	connect(m_selectionList, &QListView::clicked, this, &iAFiAKErController::selectionFromListActivated);
 	auto selectionListWrapper = new QWidget();
 	selectionListWrapper->setLayout(new QVBoxLayout());
+	selectionListWrapper->layout()->setContentsMargins(0, 0, 0, 0);
+	selectionListWrapper->layout()->setSpacing(ControlSpacing);
 	selectionListWrapper->layout()->addWidget(new QLabel("Selections:"));
 	selectionListWrapper->layout()->addWidget(m_selectionList);
 	m_selectionDetailModel = new QStandardItemModel();
@@ -794,11 +807,14 @@ QWidget * iAFiAKErController::setupSelectionView()
 	connect(m_selectionDetailsTree, &QTreeView::clicked, this, &iAFiAKErController::selectionDetailsItemClicked);
 	auto selectionDetailWrapper = new QWidget();
 	selectionDetailWrapper->setLayout(new QVBoxLayout());
+	selectionDetailWrapper->layout()->setContentsMargins(0, 0, 0, 0);
+	selectionDetailWrapper->layout()->setSpacing(ControlSpacing);
 	selectionDetailWrapper->layout()->addWidget(new QLabel("Details:"));
 	selectionDetailWrapper->layout()->addWidget(m_selectionDetailsTree);
 	auto selectionView = new QWidget();
 	selectionView->setLayout(new QHBoxLayout());
-	selectionView->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
+	selectionView->layout()->setContentsMargins(1, 0, 0, 0);
+	selectionView->layout()->setSpacing(ControlSpacing);
 	selectionView->layout()->addWidget(selectionListWrapper);
 	selectionView->layout()->addWidget(selectionDetailWrapper);
 	return selectionView;

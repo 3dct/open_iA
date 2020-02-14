@@ -32,7 +32,7 @@ class iAJobListView : public QWidget
 {
 	Q_OBJECT
 public:
-	iAJobListView(int margin);
+	iAJobListView();
 	void addJob(QString name, iAProgress * p, QThread * t);
 private:
 	//QMap<iAProgress*, iAJobData> m_jobData;
