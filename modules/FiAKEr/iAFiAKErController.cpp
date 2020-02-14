@@ -597,8 +597,8 @@ QWidget* iAFiAKErController::setupResultListView()
 	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
 	m_stackedBarsHeaders->setMinimumWidth(StackedBarMinWidth);
 
-	QAction* exportDissimilarities = new QAction("Export Average Dissimilarities", nullptr);
-	connect(exportDissimilarities, &QAction::triggered, this, &iAFiAKErController::exportAverageDissimilarities);
+	QAction* exportDissimilarities = new QAction("Export Dissimilarities", nullptr);
+	connect(exportDissimilarities, &QAction::triggered, this, &iAFiAKErController::exportDissimilarities);
 	m_stackedBarsHeaders->contextMenu()->addAction(exportDissimilarities);
 	auto headerFiberCountAction = new QAction("Fiber Count", nullptr);
 	headerFiberCountAction->setProperty("colID", 0);

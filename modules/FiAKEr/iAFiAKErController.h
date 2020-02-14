@@ -168,7 +168,7 @@ private slots:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
 	void colorByDistrToggled();
-	void exportAverageDissimilarities();
+	void exportDissimilarities();
 	void sortByCurrentWeighting();
 	// settings view:
 	void update3D();
