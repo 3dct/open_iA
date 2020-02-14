@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>100</width>
+    <width>135</width>
     <height>100</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>100</width>
+    <width>135</width>
     <height>100</height>
    </size>
   </property>
@@ -25,16 +25,16 @@
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
-     <number>4</number>
+     <number>1</number>
     </property>
     <property name="topMargin">
-     <number>4</number>
+     <number>0</number>
     </property>
     <property name="rightMargin">
-     <number>4</number>
+     <number>0</number>
     </property>
     <property name="bottomMargin">
-     <number>4</number>
+     <number>0</number>
     </property>
     <property name="spacing">
      <number>4</number>

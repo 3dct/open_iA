@@ -12,7 +12,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>200</width>
+    <width>314</width>
     <height>80</height>
    </size>
   </property>
@@ -25,7 +25,7 @@
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
-     <number>0</number>
+     <number>1</number>
     </property>
     <property name="topMargin">
      <number>0</number>
