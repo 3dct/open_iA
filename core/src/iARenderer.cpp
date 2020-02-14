@@ -56,7 +56,6 @@
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkPicker.h>
 #include <vtkPlane.h>
-#include <vtkPlaneSource.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
@@ -287,7 +286,8 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	m_txtActor->SetDragable(false);
 	for (int s = 0; s < 3; ++s)
 	{
-		m_slicePlaneSource[s] = vtkSmartPointer<vtkPlaneSource>::New();
+		m_slicePlaneSource[s] = vtkSmartPointer<vtkCubeSource>::New();
+		//m_slicePlaneSource[s]->SetOutputPointsPrecision(10);
 		m_slicePlaneMapper[s] = vtkSmartPointer<vtkPolyDataMapper>::New();
 		m_slicePlaneActor[s] = vtkSmartPointer<vtkActor>::New();
 		m_slicePlaneActor[s]->GetProperty()->LightingOff();
@@ -995,32 +995,25 @@ void iARenderer::updateSlicePlanes(double const * newSpacing)
 	}
 	double const * spc = newSpacing;
 
-	double center[3], origin[3];
 	const int * dim = m_imageData->GetDimensions();
 	if (dim[0] == 0 || dim[1] == 0 || dim[2] == 0)
 	{
 		return;
 	}
+	double center[3];
 	for (int i = 0; i < 3; ++i)
 	{
 		center[i] = dim[i] * spc[i] / 2;
-		origin[i] = 0;
 	}
 	for (int s = 0; s < 3; ++s)
 	{
-		m_slicePlaneSource[s]->SetOrigin(origin);
-		double point1[3], point2[3];
-		for (int j = 0; j < 3; ++j)
-		{
-			point1[j] = 0;
-			point2[j] = 0;
-		}
-		int slicerXAxisIdx = mapSliceToGlobalAxis(s, iAAxisIndex::X);
-		int slicerYAxisIdx = mapSliceToGlobalAxis(s, iAAxisIndex::Y);
-		point1[slicerXAxisIdx] += 1.1 * dim[slicerXAxisIdx] * spc[slicerXAxisIdx];
-		point2[slicerYAxisIdx] += 1.1 * dim[slicerYAxisIdx] * spc[slicerYAxisIdx];
-		m_slicePlaneSource[s]->SetPoint1(point1);
-		m_slicePlaneSource[s]->SetPoint2(point2);
+		const double LenMultiplier = 1.3;
+		m_slicePlaneSource[s]->SetXLength((s == iASlicerMode::XY || s == iASlicerMode::XZ) ?
+				LenMultiplier * dim[0] * spc[0] : spc[0]);
+		m_slicePlaneSource[s]->SetYLength((s == iASlicerMode::XY || s == iASlicerMode::YZ) ?
+				LenMultiplier * dim[1] * spc[1] : spc[1]);
+		m_slicePlaneSource[s]->SetZLength((s == iASlicerMode::XZ || s == iASlicerMode::YZ) ?
+				LenMultiplier * dim[2] * spc[2] : spc[2]);
 		m_slicePlaneSource[s]->SetCenter(center);
 	}
 }

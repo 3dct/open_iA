@@ -51,7 +51,6 @@ class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
 class vtkPicker;
 class vtkPlane;
-class vtkPlaneSource;
 class vtkPoints;
 class vtkPolyData;
 class vtkPolyDataMapper;
@@ -233,7 +232,7 @@ private:
 	//! @}
 
 	//! @{ Slice planes
-	vtkSmartPointer<vtkPlaneSource>    m_slicePlaneSource[3];
+	vtkSmartPointer<vtkCubeSource>    m_slicePlaneSource[3];
 	vtkSmartPointer<vtkPolyDataMapper> m_slicePlaneMapper[3];
 	vtkSmartPointer<vtkActor>          m_slicePlaneActor[3];
 	float m_slicePlaneOpacity; //!< Slice Plane Opacity
