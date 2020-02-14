@@ -128,7 +128,7 @@ void iAStackedBarChart::paintEvent(QPaintEvent* /*ev*/)
 {
 	m_dividers.clear();
 	QPainter painter(this);
-	painter.setPen(QColor(0, 0, 0));
+	painter.setPen(QWidget::palette().color(QPalette::Text));
 	int accumulatedWidth = 0;
 	int barHeight = std::min(geometry().height(), MaxBarHeight);
 	int topY = geometry().height() / 2 - barHeight / 2;

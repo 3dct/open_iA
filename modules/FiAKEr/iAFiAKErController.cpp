@@ -138,8 +138,6 @@ namespace
 	const int DistributionRefAlpha = 80;
 	const QColor OptimStepMarkerColor(192, 0, 0);
 	const QColor SelectionColor(0, 0, 0);
-	const QColor ReferenceColor(235, 235, 235);
-	QColor StandardBackgroundColor;
 
 	enum ResultListColumns
 	{
@@ -234,7 +232,8 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild) 
 	m_contextSpacing(0.0),
 	m_cameraInitialized(false),
 	m_spm(new iAQSplom())
-{}
+{
+}
 
 void iAFiAKErController::loadProject(QSettings const& projectFile, QString const& fileName)
 {
@@ -3001,6 +3000,19 @@ void iAFiAKErController::applyRenderSettings()
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto mainVis = m_resultUIs[resultID].main3DVis;
+
+		auto ren = m_resultUIs[resultID].vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer();
+		ren->SetUseDepthPeeling(m_mdiChild->renderSettings().UseDepthPeeling);
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
+		ren->SetUseDepthPeelingForVolumes(m_mdiChild->renderSettings().UseDepthPeeling);
+#endif
+		ren->SetMaximumNumberOfPeels(m_mdiChild->renderSettings().DepthPeels);
+		ren->SetUseFXAA(m_mdiChild->renderSettings().UseFXAA);
+		QColor bgTop(m_mdiChild->renderSettings().BackgroundTop);
+		QColor bgBottom(m_mdiChild->renderSettings().BackgroundBottom);
+		ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
+		ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
+
 		if (mainVis->visible())
 		{
 			setClippingPlanes(mainVis);
