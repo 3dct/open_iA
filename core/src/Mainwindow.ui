@@ -890,7 +890,7 @@
     <string>Magic Lens 2D</string>
    </property>
    <property name="toolTip">
-    <string>Enable magic lens</string>
+    <string>Enable/Disable 2D Magic Lens</string>
    </property>
   </action>
   <action name="actionResetLayout">
@@ -1064,10 +1064,10 @@
    </property>
    <property name="icon">
     <iconset resource="../open_iA.qrc">
-     <normaloff>:/images/magicLens3d.png</normaloff>:/images/magicLens3d.png</iconset>
+     <normaloff>:/images/magicLens3D.png</normaloff>:/images/magicLens3D.png</iconset>
    </property>
    <property name="text">
-    <string>Magic Lens 3D</string>
+    <string>Enable/Disable 3D Magic Lens</string>
    </property>
   </action>
   <action name="actionInteractionModeCamera">
