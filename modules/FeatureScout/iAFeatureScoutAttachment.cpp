@@ -55,7 +55,9 @@ void iAFeatureScoutAttachment::disableBlobVisualization()
 	blobVisEnabled = false;
 
 	while (!blobList.isEmpty())
+	{
 		delete blobList.takeFirst();
+	}
 }
 
 void iAFeatureScoutAttachment::enableBlobVisualization()
@@ -64,11 +66,13 @@ void iAFeatureScoutAttachment::enableBlobVisualization()
 	if (blobVisEnabled) return;
 	blobVisEnabled = true;
 	vtkSmartPointer<vtkImageData> imageData = m_child->imagePointer();
+	/*
 	double size[3] = {
 		imageData->GetBounds()[1] - imageData->GetBounds()[0],
 		imageData->GetBounds()[3] - imageData->GetBounds()[2],
 		imageData->GetBounds()[5] - imageData->GetBounds()[4]
 	};
+	*/
 }
 
 void iAFeatureScoutAttachment::FeatureScout_Options(int idx)

@@ -55,7 +55,7 @@ class iABlobCluster
 {
 public:
 	iABlobCluster ();
-	~iABlobCluster ();
+	virtual ~iABlobCluster ();
 	virtual void SetDimension (int dimens[3]);
 	void SetBounds (double bounds[6]);
 	void GetDimension (int dimens[3]) const;  //!< Get dimension for blob

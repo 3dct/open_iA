@@ -453,20 +453,33 @@ bool MainWindow::saveSettings()
 			iAXmlSettings xml;
 
 			if (m_spCamera)
+			{
 				saveCamera(xml);
+			}
 			if (m_spSliceViews)
+			{
 				saveSliceViews(xml);
+			}
 			if (m_spTransferFunction && activeMdiChild()->histogram())
-				xml.saveTransferFunction((iAChartTransferFunction*)activeMdiChild()->functions()[0]);
+			{
+				xml.saveTransferFunction(dynamic_cast<iAChartTransferFunction*>(activeMdiChild()->functions()[0]));
+			}
 			if (m_spProbabilityFunctions && activeMdiChild()->histogram())
+			{
 				activeMdiChild()->histogram()->saveProbabilityFunctions(xml);
+			}
 			if (m_spPreferences)
+			{
 				savePreferences(xml);
+			}
 			if (m_spRenderSettings)
+			{
 				saveRenderSettings(xml);
+			}
 			if (m_spSlicerSettings)
+			{
 				saveSlicerSettings(xml);
-
+			}
 			xml.save(fileName);
 		}
 	}
@@ -976,8 +989,8 @@ void MainWindow::prefs()
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
-		m_defaultPreferences.HistogramBins = (int)dlg.getDblValue(0);
-		m_defaultPreferences.StatisticalExtent = (int)dlg.getDblValue(1);
+		m_defaultPreferences.HistogramBins = dlg.getIntValue(0);
+		m_defaultPreferences.StatisticalExtent = dlg.getIntValue(1);
 		m_defaultPreferences.Compression = dlg.getCheckValue(2) != 0;
 		m_defaultPreferences.PrintParameters = dlg.getCheckValue(3) != 0;
 		m_defaultPreferences.ResultInNewWindow = dlg.getCheckValue(4) != 0;
@@ -1977,11 +1990,13 @@ void MainWindow::updateRecentFileActions()
 		QString fileName = it.next();
 		QFileInfo fi(fileName);
 		if (!fi.exists())
+		{
 			it.remove();
+		}
 	}
 	settings.setValue("recentFileList", files);
 
-	int numRecentFiles = qMin(files.size(), (int)MaxRecentFiles);
+	int numRecentFiles = qMin(files.size(), MaxRecentFiles);
 
 	for (int i = 0; i < numRecentFiles; ++i) {
 		QString text = tr("&%1 %2").arg(i + 1).arg(fileNameOnly(files[i]));

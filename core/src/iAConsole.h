@@ -72,7 +72,7 @@ private slots:
 	void consoleClosed();
 private:
 	iAConsole();
-	~iAConsole();
+	virtual ~iAConsole();
 
 	iAConsole(iAConsole const&)			= delete;
 	void operator=(iAConsole const&)	= delete;
