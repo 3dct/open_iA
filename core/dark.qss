@@ -72,6 +72,13 @@ General
 			stop:1 rgba(26, 26, 26, 255)
 		);
 	}
+
+	QToolTip
+	{
+		color: rgba(255, 255, 255, 255);
+		background-color: rgba(40, 40, 40, 255);
+		border: 1px solid white;
+	}
 /****************************************************************************
 QToolBar
 QStatusBar
