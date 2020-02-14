@@ -804,6 +804,8 @@ QDockWidget
 		background-color: rgba(40, 40, 40, 255);
 		color: rgba(230, 230, 230, 255);
 		font: bold;
+		titlebar-close-icon: url(:/images/dockwidget-close_dark.svg);
+		titlebar-normal-icon: url(:/images/dockwidget-float_dark.svg);
 	}
 	QDockWidget::title
 	{

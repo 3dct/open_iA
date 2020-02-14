@@ -728,6 +728,8 @@ QDockWidget
 		background-color: rgba(215, 215, 215, 255);
 		color: rgba(25, 25, 25, 255);
 		font: bold;
+		titlebar-close-icon: url(:/images/dockwidget-close_bright.svg);
+		titlebar-normal-icon: url(:/images/dockwidget-float_bright.svg);
 	}
 	QDockWidget::title
 	{

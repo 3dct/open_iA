@@ -28,6 +28,10 @@
     <file>images/copy.png</file>
     <file>images/cut.png</file>
     <file>images/deletePoint.png</file>
+    <file>images/dockwidget-close_bright.svg</file>
+    <file>images/dockwidget-close_dark.svg</file>
+    <file>images/dockwidget-float_bright.svg</file>
+    <file>images/dockwidget-float_dark.svg</file>
     <file>images/document-edit.png</file>
     <file>images/down_arrow.png</file>
     <file>images/fhlogo.png</file>
