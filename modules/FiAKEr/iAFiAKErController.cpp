@@ -1152,8 +1152,13 @@ void iAFiAKErController::colorByDistrToggled()
 	updateHistogramColors();
 }
 
-void iAFiAKErController::exportAverageDissimilarities()
+void iAFiAKErController::exportDissimilarities()
 {
+	if (m_referenceID == NoResult)
+	{
+		DEBUG_LOG("No reference set, therefore there are no dissimilarities to export!");
+		return;
+	}
 	QString fileName = QFileDialog::getSaveFileName(m_mainWnd, iAFiAKErController::FIAKERProjectID, m_data->folder, "Comma-Separated Values (*.csv);;");
 	if (fileName.isEmpty())
 	{
@@ -1172,16 +1177,63 @@ void iAFiAKErController::exportAverageDissimilarities()
 		out << "," << iARefDistCompute::getDissimilarityMeasureNames()[measureID];
 	}
 	out << endl;
+	QFileInfo fi(fileName);
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		out << resultID;
-		auto& avgMeasure = m_data->result[resultID].avgDifference;
-		for (int measureID = avgMeasure.size() - iARefDistCompute::SimilarityMeasureCount;
-			measureID >= 0 && measureID < avgMeasure.size(); ++measureID)
+		auto& r = m_data->result[resultID];
+		auto& avgMeasure = r.avgDifference;
+		if (resultID == m_referenceID)
 		{
-			out << "," << avgMeasure[measureID];
+			out << ",REFERENCE";
+		}
+		else
+		{
+			for (int measureID = avgMeasure.size() - iARefDistCompute::SimilarityMeasureCount;
+				measureID >= 0 && measureID < avgMeasure.size(); ++measureID)
+			{
+				out << "," << avgMeasure[measureID];
+			}
 		}
 		out << endl;
+
+		if (resultID == m_referenceID)
+		{
+			continue;
+		}
+		QString resultFileName = fi.absolutePath() + "/" + fi.baseName() + "-" + QFileInfo(r.fileName).baseName() + ".csv";
+		QFile resultOutFile(resultFileName);
+		if (!resultOutFile.open(QIODevice::WriteOnly))
+		{
+			DEBUG_LOG(QString("Cannot open file %1 for writing!").arg(fileName));
+			return;
+		}
+		const int NumOfMatchesToWrite = 3;
+		QTextStream resultOut(&resultOutFile);
+		resultOut << "LabelID";
+		for (size_t measureID = 0; measureID < iARefDistCompute::SimilarityMeasureCount; ++measureID)
+		{
+			for (int i = 0; i < NumOfMatchesToWrite; ++i)
+			{
+				resultOut << "," << iARefDistCompute::getDissimilarityMeasureNames()[measureID] << QString(" Fiber ID Match %1").arg(i)
+					<< "," << iARefDistCompute::getDissimilarityMeasureNames()[measureID] << QString(" Dissimilarity %1").arg(i);
+			}
+		}
+		resultOut << endl;
+		for (size_t fiberID = 0; fiberID < r.refDiffFiber.size(); ++fiberID)
+		{
+			auto& f = r.refDiffFiber[fiberID].dist;
+			resultOut << fiberID + 1;
+			for (int m = 0; m < f.size(); ++m)
+			{
+				for (int i = 0; i < NumOfMatchesToWrite; ++i)
+				{
+					resultOut << "," << f[m][i].index << "," << f[m][i].dissimilarity;
+				}
+			}
+			resultOut << endl;
+		}
+		resultOutFile.close();
 	}
 	outFile.close();
 }

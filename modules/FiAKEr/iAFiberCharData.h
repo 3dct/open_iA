@@ -68,7 +68,7 @@ QDataStream &operator>>(QDataStream &in, iARefDiffFiberStepData &s);
 class iARefDiffFiberData
 {
 public:
-	//! differences to reference fiber, one per diff/similarity measure
+	//! stepwise differences to reference fiber, one per diff/similarity measure (and internally then per step)
 	QVector<iARefDiffFiberStepData> diff;
 	//! dist to ref fibers: for each similarity measure, in order of ascending difference
 	QVector<QVector<iAFiberSimilarity> > dist;

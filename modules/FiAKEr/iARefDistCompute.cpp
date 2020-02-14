@@ -340,7 +340,9 @@ void iARefDistCompute::run()
 		for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 		{
 			if (resultID == m_referenceID)
+			{
 				continue;
+			}
 			auto & d = m_data->result[resultID];
 			//d.avgDifference.resize(diffCount, 0.0);
 			d.avgDifference.fill(0.0, diffCount);
@@ -357,7 +359,9 @@ void iARefDistCompute::run()
 			{
 				d.avgDifference[diffID] /= d.fiberCount;
 				if (d.avgDifference[diffID] > m_data->maxAvgDifference[diffID])
+				{
 					m_data->maxAvgDifference[diffID] = d.avgDifference[diffID];
+				}
 			}
 		}
 		writeAverageMeasures(avgCacheFile);
