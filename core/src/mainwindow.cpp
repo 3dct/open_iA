@@ -1009,7 +1009,9 @@ void MainWindow::renderSettings()
 
 	QStringList renderTypes;
 	for (int mode : RenderModeMap().keys())
+	{
 		renderTypes << ((mode == volumeSettings.RenderMode) ? QString("!") : QString()) + RenderModeMap().value(mode);
+	}
 
 	QStringList inList;
 	inList
@@ -1057,7 +1059,9 @@ void MainWindow::renderSettings()
 	dlg_commoninput dlg(this, "Renderer settings", inList, inPara, nullptr);
 
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 
 	int param = 0;
 	m_defaultRenderSettings.ShowSlicers = dlg.getCheckValue(param++) != 0;
