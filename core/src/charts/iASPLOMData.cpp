@@ -45,21 +45,15 @@ void iASPLOMData::clear()
 void iASPLOMData::import(const QTableWidget * tw)
 {
 	clear();
-	size_t numParams = tw->columnCount();
-	size_t numPoints = tw->rowCount() - 1;
-	if (numPoints < 0)
+	for (int c = 0; c < tw->columnCount(); ++c)
 	{
-		numPoints = 0;
-	}
-	for (size_t c = 0; c < numParams; ++c)
-	{
-		m_paramNames.push_back(tw->item(0, static_cast<int>(c))->text());
-		m_dataPoints.push_back(std::vector<double>());
-		std::vector<double> * paramData = &m_dataPoints[c];
-		for (size_t r = 1; r < numPoints + 1; ++r)
+		m_paramNames.push_back(tw->item(0, c)->text());
+		std::vector<double> paramData;
+		for (int r = 1; r < tw->rowCount() + 1; ++r)
 		{
-			paramData->push_back(tw->item(static_cast<int>(r), static_cast<int>(c))->text().toDouble());
+			paramData.push_back(tw->item(r, c)->text().toDouble());
 		}
+		m_dataPoints.push_back(paramData);
 		m_inverted.push_back(false);
 	}
 	updateRanges();

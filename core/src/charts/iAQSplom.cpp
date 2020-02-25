@@ -570,7 +570,7 @@ void iAQSplom::setParameterVisibility( const QString & paramName, bool isVisible
 
 void iAQSplom::setParameterVisibility( size_t paramIndex, bool isVisible )
 {
-	if (paramIndex < 0 || paramIndex >= m_paramVisibility.size() || static_cast<bool>(m_paramVisibility[paramIndex]) == isVisible)
+	if (paramIndex >= m_paramVisibility.size() || static_cast<bool>(m_paramVisibility[paramIndex]) == isVisible)
 	{
 		return;
 	}
@@ -1394,8 +1394,8 @@ void iAQSplom::updateSPLOMLayout()
 	for( int yind = 0; yind < visParamCnt; ++yind )
 	{
 		auto & row = m_visiblePlots[yind];
-		for( int xind = 0; xind < row.size(); ++xind )
-		{
+		for( int xind = 0; xind < static_cast<int>(row.size()); ++xind )
+		{   // cast above is guaranteed to work because we checked numPoints/numParams to be smaller than int max in setData!
 			iAScatterPlot * s = row[xind];
 			if( s )
 			{
@@ -1985,8 +1985,8 @@ void iAQSplom::loadSettings(iASettings const & config)
 		int paramsSetVisible = 0;
 		for (QString idxStr : newVisibleIndices)
 		{
-			int idx = idxStr.toInt(&ok);
-			if (!ok || idx < 0)
+			size_t idx = idxStr.toULongLong(&ok);
+			if (!ok)
 			{
 				DEBUG_LOG(QString("Invalid index %1 in VisibleParameter Scatter Plot Matrix setting.").arg(idxStr));
 				continue;
@@ -2066,9 +2066,9 @@ void iAQSplom::loadSettings(iASettings const & config)
 		else
 		{
 			bool ok1, ok2;
-			int idx1 = strInds[0].toInt(&ok1);
-			int idx2 = strInds[1].toInt(&ok2);
-			if (!ok1 || !ok2 || idx1 < 0 || idx2 < 0 || idx1 >= m_splomData->numParams() || idx2 >= m_splomData->numParams())
+			size_t idx1 = strInds[0].toULongLong(&ok1);
+			size_t idx2 = strInds[1].toULongLong(&ok2);
+			if (!ok1 || !ok2 || idx1 >= m_splomData->numParams() || idx2 >= m_splomData->numParams())
 			{
 				DEBUG_LOG(QString("Cannot create maximized plot from setting %1, invalid or out-of-range indices: %2")
 					.arg(CfgKeyMaximizedPlot)
