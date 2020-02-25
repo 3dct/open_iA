@@ -44,6 +44,7 @@ ELSE()
 	MESSAGE(WARNING "Unknown compiler! Please report any CMake or compilation errors on https://github.com/3dct/open_iA!")
 	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: Unknown\\n\"\n")
 ENDIF()
+set (BUILD_INFO "${BUILD_INFO}    \"Targetting ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION}\\n\"\n")
 
 #-------------------------
 # Output Directories
