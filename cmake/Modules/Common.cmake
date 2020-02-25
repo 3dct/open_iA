@@ -26,31 +26,46 @@ IF (openiA_TESTING_ENABLED)
 	ENDIF()
 ENDIF()
 
-#-------------------------
-# Output Directories
-#-------------------------
-set (BUILD_INFO "\"CMake: ${CMAKE_VERSION}\\n\"\n")
+#------------------------------
+# Build / Compiler information
+#------------------------------
+set (BUILD_INFO "\"CMake: ${CMAKE_VERSION} (Generator: ${CMAKE_GENERATOR})\\n\"\n")
 IF (MSVC)
 	MESSAGE(STATUS "Compiler: Visual C++ (MSVC_VERSION ${MSVC_VERSION} / ${CMAKE_CXX_COMPILER_VERSION})")
-	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: Visual C++ ((MSVC_VERSION ${MSVC_VERSION} / ${CMAKE_CXX_COMPILER_VERSION})\\n\"\n")
+	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: Visual C++ (MSVC_VERSION ${MSVC_VERSION} / ${CMAKE_CXX_COMPILER_VERSION})\\n\"\n")
 	set (BUILD_INFO "${BUILD_INFO}    \"Windows SDK: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}\\n\"\n")
-	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/x64/Debug")
-	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/x64/Release")
-	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/x64/RelWithDebInfo")
-	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/x64/MinSizeRel")
 ELSEIF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	MESSAGE(STATUS "Compiler: Clang (${CMAKE_CXX_COMPILER_VERSION})")
 	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: Clang (Version ${CMAKE_CXX_COMPILER_VERSION})\\n\"\n")
-	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-	SET( CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 ELSEIF (CMAKE_COMPILER_IS_GNUCXX)
 	MESSAGE(STATUS "Compiler: G++ (${CMAKE_CXX_COMPILER_VERSION})")
 	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: G++ (Version ${CMAKE_CXX_COMPILER_VERSION})\\n\"\n")
-	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-	SET( CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 ELSE()
 	MESSAGE(WARNING "Unknown compiler! Please report any CMake or compilation errors on https://github.com/3dct/open_iA!")
 	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: Unknown\\n\"\n")
+ENDIF()
+
+#-------------------------
+# Output Directories
+#-------------------------
+IF (CMAKE_CONFIGURATION_TYPES)
+	message(STATUS "Multi-configuration generator")
+	SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/x64/Debug")
+	SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/x64/Release")
+	SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/x64/RelWithDebInfo")
+	SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/x64/MinSizeRel")
+ELSE()
+	message(STATUS "Single-configuration generator")
+	# Set a default build type if none was specified
+	if (NOT CMAKE_BUILD_TYPE)
+		set(DEFAULT_BUILD_TYPE "Release")
+		message(STATUS "Setting build type to '${DEFAULT_BUILD_TYPE}' as none was specified.")
+		set(CMAKE_BUILD_TYPE ${DEFAULT_BUILD_TYPE} CACHE STRING "Choose the type of build." FORCE)
+		# Set the possible values of build type for cmake-gui
+		set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+	endif()
+	SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+	SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 ENDIF()
 
 
