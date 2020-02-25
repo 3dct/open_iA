@@ -2541,7 +2541,7 @@ void MdiChild::changeMagicLensModality(int chg)
 		return;
 	}
 	m_currentComponent = (m_currentComponent + chg);
-	if (m_currentComponent < 0 || m_currentComponent >= modality(m_currentModality)->componentCount())
+	if (m_currentComponent < 0 || static_cast<size_t>(m_currentComponent) >= modality(m_currentModality)->componentCount())
 	{
 		m_currentComponent = 0;
 		m_currentModality = (m_currentModality + chg + modalities()->size()) % (modalities()->size());

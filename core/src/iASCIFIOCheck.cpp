@@ -25,7 +25,11 @@
 #include <QCoreApplication>
 #include <QFileInfo>
 
-void CheckSCIFIO(QString const & applicationPath)
+void CheckSCIFIO(QString const &
+#ifdef USE_SCIFIO
+	applicationPath
+#endif
+)
 {
 #ifdef USE_SCIFIO
 	// Workaround for ITK requiring SCIFIO_PATH to be set when compiled with SCIFIO

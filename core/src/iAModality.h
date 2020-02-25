@@ -169,8 +169,8 @@ signals:
 	void HistogramReady(int modalityIdx);
 private:
 	int m_modalityIdx;
-	size_t m_binCount;
 	QSharedPointer<iAModality> m_modality;
+	size_t m_binCount;
 public:
 	iAHistogramUpdater(int modalityIdx, QSharedPointer<iAModality> modality, size_t binCount);
 };

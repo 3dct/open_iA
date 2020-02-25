@@ -1983,7 +1983,7 @@ void iASlicer::mousePressEvent(QMouseEvent *event)
 		const double y = m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
 
 		// if no point is found at picked position add a new one
-		if (m_snakeSpline->CalculateSelectedPoint(x, y) == -1)
+		if (m_snakeSpline->CalculateSelectedPoint(x, y) == iASnakeSpline::NoPointSelected)
 		{
 			m_snakeSpline->addPoint(x, y);
 			// add the point to the world point list only once because it is a member of MdiChild

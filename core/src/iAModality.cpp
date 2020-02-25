@@ -175,7 +175,6 @@ bool iAModality::hasRenderFlag(RenderFlag loc) const
 	return (m_renderFlags & loc) == loc;
 }
 
-
 int iAModality::renderFlags() const
 {
 	return m_renderFlags;

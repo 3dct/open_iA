@@ -216,10 +216,9 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 	const int elemCount = 1;
 	fseek ( pFile , 0 , SEEK_SET );
 	std::fill(histptr, histptr + static_cast<size_t>(numBins), 0);
-	size_t result;
 	while (loop)
 	{
-		result = fread (reinterpret_cast<char*>(&buffer),datatypesize, elemCount, pFile);
+		/*size_t result =*/ fread (reinterpret_cast<char*>(&buffer),datatypesize, elemCount, pFile);
 		size_t binIdx = clamp(static_cast<size_t>(0), numBins-1, static_cast<size_t>((buffer-minVal)/discretization));
 		iter.Set(buffer);
 		++iter;
@@ -283,13 +282,12 @@ template<class T> void DataTypeConversionROI_template(QString const & filename, 
 
 	bool loop = true;
 	typename InputImageType::PixelType buffer;
-	size_t result;
 	const int elemCount = 1;
 	// copy the file into the buffer:
 	fseek ( pFile , 0 , SEEK_SET );
 	while (loop)
 	{
-		result = fread (reinterpret_cast<char*>(&buffer), sizeof(buffer), elemCount, pFile);
+		size_t result = fread (reinterpret_cast<char*>(&buffer), sizeof(buffer), elemCount, pFile);
 		if ( result == elemCount )
 		{
 			iter.Set(buffer);

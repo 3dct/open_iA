@@ -90,35 +90,35 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 		DEBUG_LOG(QString("Not enough tokens in attribute descriptor '%1'").arg(def));
 		return QSharedPointer<iAAttributeDescriptor>();
 	}
-	switch (result->valueType())
+	if (result->valueType() == Continuous || result->valueType() == Discrete)
 	{
-		case Continuous:	// intentional fall-through!
-		case Discrete:
+		result->m_logarithmic = false;
+		bool minOk = true, maxOk = true;
+		result->m_min = iAConverter<double>::toT(defTokens[3], &minOk);
+		result->m_max = iAConverter<double>::toT(defTokens[4], &maxOk);
+		if (!minOk || !maxOk)
 		{
-			result->m_logarithmic = false;
-			bool minOk = true, maxOk = true;
-			result->m_min = iAConverter<double>::toT(defTokens[3], &minOk);
-			result->m_max = iAConverter<double>::toT(defTokens[4], &maxOk);
-			if (!minOk || !maxOk)
-			{
-				DEBUG_LOG(QString("Minimum or maximum of attribute couldn't be parsed in line %1\n").arg(def));
-				return QSharedPointer<iAAttributeDescriptor>();
-			}
-			if (defTokens.size() >= 6)
-				result->m_logarithmic = (defTokens[5] == LogarithmicStr);
-			if (defTokens.size() > 6)
-				DEBUG_LOG(QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
-			break;
+			DEBUG_LOG(QString("Minimum or maximum of attribute couldn't be parsed in line %1\n").arg(def));
+			return QSharedPointer<iAAttributeDescriptor>();
 		}
-		case Categorical:
+		if (defTokens.size() >= 6)
 		{
-			QStringList categories = defTokens[3].split(CategoricalValueSplitString);
-			result->m_min = 0;
-			result->m_max = categories.size()-1;
-			result->m_nameMapper = QSharedPointer<iAListNameMapper>(new iAListNameMapper(categories));
-			if (defTokens.size() > 5)
-				DEBUG_LOG(QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
-			break;
+			result->m_logarithmic = (defTokens[5] == LogarithmicStr);
+		}
+		if (defTokens.size() > 6)
+		{
+			DEBUG_LOG(QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
+		}
+	}
+	else if (result->valueType() == Categorical)
+	{
+		QStringList categories = defTokens[3].split(CategoricalValueSplitString);
+		result->m_min = 0;
+		result->m_max = categories.size()-1;
+		result->m_nameMapper = QSharedPointer<iAListNameMapper>(new iAListNameMapper(categories));
+		if (defTokens.size() > 5)
+		{
+			DEBUG_LOG(QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
 		}
 	}
 	return result;
@@ -135,29 +135,31 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::createParam(
 	return result;
 }
 
-
 QString iAAttributeDescriptor::toString() const
 {
 	QString result = name() + AttributeSplitString +
 		AttribType2Str(attribType()) + AttributeSplitString +
 		ValueType2Str(valueType()) + AttributeSplitString;
-	switch (valueType())
+	if (valueType() == Continuous || valueType() == Discrete)
 	{
-		case iAValueType::Continuous: // intentional fall-through!
-		case iAValueType::Discrete:
-			result += QString::number(min()) + AttributeSplitString + QString::number(max()) + AttributeSplitString + (m_logarithmic ? LogarithmicStr : LinearStr);
-			break;
-		case iAValueType::Categorical:	{
-			if (!m_nameMapper)
+		result += QString::number(min()) + AttributeSplitString + QString::number(max()) + AttributeSplitString + (m_logarithmic ? LogarithmicStr : LinearStr);
+	}
+	else if (valueType() == iAValueType::Categorical)
+	{
+		if (!m_nameMapper)
+		{
+			DEBUG_LOG("nameMapper nullptr for categorical attribute!\n");
+			for (int i = min(); i <= max(); ++i)
 			{
-				DEBUG_LOG("nameMapper nullptr for categorical attribute!\n");
-				for (int i = min(); i <= max(); ++i)
+				result += QString::number(i);
+				if (i < max())
 				{
-					result += QString::number(i);
-					if (i < max()) result += CategoricalValueSplitString;
+					result += CategoricalValueSplitString;
 				}
-				break;
 			}
+		}
+		else
+		{
 			for (int i = min(); i <= max(); ++i)
 			{
 				result += m_nameMapper->name(i);
@@ -166,7 +168,6 @@ QString iAAttributeDescriptor::toString() const
 					result += CategoricalValueSplitString;
 				}
 			}
-			break;
 		}
 	}
 	return result + "\n";
@@ -242,7 +243,6 @@ bool iAAttributeDescriptor::isLogScale() const
 {
 	return m_logarithmic;
 }
-
 
 void iAAttributeDescriptor::setLogScale(bool l)
 {

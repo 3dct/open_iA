@@ -383,7 +383,7 @@ void iAOIFReaderHelper::Preprocess()
 	std::wstring name = m_path_name.substr(pos + 1);
 	//extract time sequence string
 	int64_t begin = name.find(m_time_id);
-	size_t end; // not read anywhere?
+	//size_t end; // not read anywhere?
 	size_t id_len = m_time_id.size();
 	if (begin != -1)
 	{
@@ -393,13 +393,22 @@ void iAOIFReaderHelper::Preprocess()
 		{
 			wchar_t c = name[j];
 			if (iswdigit(c))
+			{
 				t_num.push_back(c);
-			else break;
+			}
+			else
+			{
+				break;
+			}
 		}
 		if (t_num.size() > 0)
-			end = j;
+		{
+			//end = j;
+		}
 		else
+		{
 			begin = -1;
+		}
 	}
 
 	if (begin == -1)
@@ -412,7 +421,8 @@ void iAOIFReaderHelper::Preprocess()
 		std::vector<std::wstring> list;
 		int tmp = 0;
 		FIND_FILES(path, L".oif", list, tmp, name.substr(0, begin + id_len + 1));
-		for (size_t i = 0; i < list.size(); i++) {
+		for (size_t i = 0; i < list.size(); i++)
+		{
 			size_t start_idx = list.at(i).find(m_time_id) + id_len;
 			size_t end_idx = list.at(i).find(L".oif");
 			size_t size = end_idx - start_idx;
@@ -440,7 +450,9 @@ void iAOIFReaderHelper::Preprocess()
 
 	m_time_num = int(m_oif_info.size());
 	if (m_type == 0)
+	{
 		m_cur_time = 0;
+	}
 	m_chan_num = m_time_num > 0 ? int(m_oif_info[0].dataset.size()) : 0;
 	m_slice_num = m_chan_num > 0 ? int(m_oif_info[0].dataset[0].size()) : 0;
 }
@@ -458,7 +470,9 @@ void iAOIFReaderHelper::ReadSingleOif()
 	FIND_FILES(m_subdir_name, L".tif", list, tmp);
 	//read file sequence
 	for (size_t f = 0; f < list.size(); f++)
+	{
 		ReadTifSequence(list.at(f));
+	}
 }
 
 void iAOIFReaderHelper::ReadSequenceOif()
@@ -534,7 +548,7 @@ void iAOIFReaderHelper::ReadTifSequence(std::wstring file_name, int t)
 			int num_c = -1;
 			int num_z = -1;
 			int num_t = -1;
-			int num_l = -1;
+			//int num_l = -1;
 
 			//read channel number 'C'
 			pos = file_name.find(L'C', pos_ + 1);
@@ -589,7 +603,7 @@ void iAOIFReaderHelper::ReadTifSequence(std::wstring file_name, int t)
 					else
 						break;
 				}
-				num_l = WSTOI(wstr);
+				//num_l = WSTOI(wstr);
 				wstr.clear();
 			}
 
