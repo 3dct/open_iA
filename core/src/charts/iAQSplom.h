@@ -44,7 +44,6 @@ class QListWidgetItem;
 class QMenu;
 class QPropertyAnimation;
 class QSettings;
-class QTableWidget;
 
 //! A scatter plot matrix (SPLOM) widget.
 /*!
@@ -116,7 +115,6 @@ public:
 	iAQSplom( QWidget * parent = 0, Qt::WindowFlags f = 0 );
 	~iAQSplom();
 
-	virtual void setData( const QTableWidget * data );               //! import data from QTableWidget, first row should contain parameter names, each column corresponds to one parameter.
 	void setData(QSharedPointer<iASPLOMData> data, std::vector<char> const & visibility);                  //! set SPLOM data directly.
 	QSharedPointer<iASPLOMData> data();                              //! retrieve SPLOM data
 	void setLookupTable( vtkLookupTable * lut, const QString & paramName ); //!< Set lookup table from VTK (vtkLookupTable) given the name of a parameter to color-code.

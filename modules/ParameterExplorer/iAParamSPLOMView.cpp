@@ -25,6 +25,7 @@
 #include "iAParamTableView.h"
 
 #include <charts/iAQSplom.h>
+#include <charts/iASPLOMData.h>
 #include <iAColorTheme.h>
 #include <iAConsole.h>
 #include <iALUT.h>
@@ -48,9 +49,27 @@ namespace
 	const int EmptyTableValues = 2;
 	const int FullTableValues = 256;
 	const int DefaultColorColumn = 1;
+
+	//!< Create data from a QTableWidget.
+	QSharedPointer<iASPLOMData> splomDataFromQTable(const QTableWidget* tw)
+	{
+		QSharedPointer<iASPLOMData> result(new iASPLOMData);
+		for (int c = 0; c < tw->columnCount(); ++c)
+		{
+			result->paramNames().push_back(tw->item(0, c)->text());
+			std::vector<double> paramData;
+			for (int r = 1; r < tw->rowCount() + 1; ++r)
+			{
+				paramData.push_back(tw->item(r, c)->text().toDouble());
+			}
+			result->data().push_back(paramData);
+		}
+		result->updateRanges();
+		return result;
+	}
 }
 
-iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialView * spatialView) :
+iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialView* spatialView) :
 	m_spatialView(spatialView),
 	m_tableView(tableView),
 	m_splom(new iAQSplom(this)),
@@ -66,9 +85,11 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	m_selection_otf->AddPoint(1, 1);
 	connect(m_splom, &iAQSplom::selectionModified, this, &iAParamSPLOMView::SplomSelection);
 	connect(m_splom, &iAQSplom::currentPointModified, this, &iAParamSPLOMView::PointHovered);
-	m_splom->setData(m_tableView->Table());
+	QSharedPointer<iASPLOMData> spmData = splomDataFromQTable(m_tableView->Table());
+	std::vector<char> visibility(spmData->numParams(), true);
+	visibility[spmData->paramIndex("filename")] = false;
+	m_splom->setData(spmData, visibility);
 	SetLUTColumn("None");
-	m_splom->setParameterVisibility("filename", false);
 	m_splom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 	// set up settings:

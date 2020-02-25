@@ -30,13 +30,15 @@ class QMenu;
 class QAction;
 class Mainwindow;
 
+class QTableWidget;
+
 class iAPAQSplom : public iAQSplom
 {
 	Q_OBJECT
 public:
 	iAPAQSplom(MainWindow *mainWind,  QWidget * parent = 0, Qt::WindowFlags f = 0 );
 public:
-	void setData( const QTableWidget * data ) override;
+	void setData( const QTableWidget * data );
 	void setPreviewSliceNumbers( QList<int> sliceNumber );
 	void setROIList( QList<QRectF> roi );
 	void setSliceCounts( QList<int> sliceCnts );

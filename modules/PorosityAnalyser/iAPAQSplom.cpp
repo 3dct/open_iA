@@ -69,35 +69,40 @@ iAPAQSplom::iAPAQSplom( MainWindow *mWnd, QWidget * parent, Qt::WindowFlags f /*
 
 void iAPAQSplom::setData( const QTableWidget * data )
 {
-	QTableWidget newData;
-	newData.setRowCount( data->rowCount() );
+	QSharedPointer<iASPLOMData> newData(new iASPLOMData);
 	int maskCol = data->columnCount() - 1;
-	newData.setColumnCount( maskCol );
 	m_maskNames.clear();
 	m_datasetIndices.clear();
 	if( data->rowCount() )
 	{
-		newData.setUpdatesEnabled( false );  //for faster processing of large lists
 		int datasetIndexCol = -1;
+		std::vector<QString> paramNames;
 		for( int c = 0; c < maskCol; ++c ) //header
 		{
 			QString s = data->item( 0, c )->text();
-			if( s == "Dataset Index" )
+			if (s == "Dataset Index")
+			{
 				datasetIndexCol = c;
-			newData.setItem( 0, c, new QTableWidgetItem( s ) );
+			}
+			paramNames.push_back(s);
 		}
+		newData->setParameterNames(paramNames, maskCol);
 		for( int r = 1; r < data->rowCount(); ++r ) //points
 		{
-			for( int c = 0; c < maskCol; ++c )
-				newData.setItem( r, c, new QTableWidgetItem( data->item( r, c )->text() ) );
+			for (int c = 0; c < maskCol; ++c)
+			{
+				newData->data()[c].push_back(data->item(r, c)->text().toDouble());
+			}
 			m_maskNames.push_back( data->item( r, maskCol )->text() );
-			if( datasetIndexCol >= 0 )
-				m_datasetIndices.push_back( data->item( r, datasetIndexCol )->text().toInt() );
+			if (datasetIndexCol >= 0)
+			{
+				m_datasetIndices.push_back(data->item(r, datasetIndexCol)->text().toInt());
+			}
 		}
-		newData.setUpdatesEnabled( true );  //done with load
 	}
-
-	iAQSplom::setData( &newData );
+	std::vector<char> visibility(newData->numParams(), true);
+	newData->updateRanges();
+	iAQSplom::setData( newData, visibility );
 }
 
 void iAPAQSplom::setPreviewSliceNumbers( QList<int> sliceNumberLst )

@@ -23,15 +23,8 @@
 #include "iAConsole.h"
 #include "iAMathUtility.h"
 
-#include <QTableWidget>
-
 iASPLOMData::iASPLOMData()
 {
-}
-
-iASPLOMData::iASPLOMData(const QTableWidget * tw)
-{
-	import(tw);
 }
 
 void iASPLOMData::clear()
@@ -42,30 +35,18 @@ void iASPLOMData::clear()
 	m_filters.clear();
 }
 
-void iASPLOMData::import(const QTableWidget * tw)
-{
-	clear();
-	for (int c = 0; c < tw->columnCount(); ++c)
-	{
-		m_paramNames.push_back(tw->item(0, c)->text());
-		std::vector<double> paramData;
-		for (int r = 1; r < tw->rowCount() + 1; ++r)
-		{
-			paramData.push_back(tw->item(r, c)->text().toDouble());
-		}
-		m_dataPoints.push_back(paramData);
-		m_inverted.push_back(false);
-	}
-	updateRanges();
-}
-
-void iASPLOMData::setParameterNames(std::vector<QString> const & names)
+void iASPLOMData::setParameterNames(std::vector<QString> const & names, size_t rowReserve)
 {
 	clear();
 	m_paramNames = names;
 	for (size_t i = 0; i < m_paramNames.size(); ++i)
 	{
-		m_dataPoints.push_back(std::vector<double>());
+		std::vector<double> column;
+		if (rowReserve > 0)
+		{
+			column.reserve(rowReserve);
+		}
+		m_dataPoints.push_back(column);
 	}
 }
 

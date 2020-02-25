@@ -44,7 +44,6 @@
 #include <QPainter>
 #include <QPropertyAnimation>
 #include <QSettings>
-#include <QTableWidget>
 #include <QWheelEvent>
 #include <QtGlobal> // for QT_VERSION
 #include <QtMath>
@@ -408,13 +407,6 @@ iAQSplom::~iAQSplom()
 	delete m_animationIn;
 	delete m_animationOut;
 	delete m_contextMenu;
-}
-
-void iAQSplom::setData( const QTableWidget * data )
-{
-	m_splomData->import( data );
-	std::vector<char> allVisible(m_splomData->numParams(), true);
-	dataChanged(allVisible);
 }
 
 void iAQSplom::setData( QSharedPointer<iASPLOMData> data, std::vector<char> const & visibility )

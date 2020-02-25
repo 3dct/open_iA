@@ -31,9 +31,9 @@ const QColor roiCol( 255, 0, 0, 240 );
 
 iAPreviewSPLOM::iAPreviewSPLOM(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
 	iAQGLWidget(parent),
-	m_pxmp( 0 ),
+	m_pxmp( nullptr ),
 	m_mousePressed( false ),
-	m_maskPtrExt( 0 )
+	m_maskPtrExt( nullptr )
 {
 	setWindowFlags(f);
 }
