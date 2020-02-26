@@ -276,21 +276,21 @@ iAElastixRegistration::iAElastixRegistration() :
 	
 
 
-	setInputName(1, "Moving Image");
+	setInputName(1u, "Moving Image");
 
-	setOutputName(0, "Registration of both images");
-	setOutputName(1, "Spatial Jacobian");
-	setOutputName(2, "Deformation X");
-	setOutputName(3, "Deformation Y");
-	setOutputName(4, "Deformation Z");
+	setOutputName(0u, "Registration of both images");
+	setOutputName(1u, "Spatial Jacobian");
+	setOutputName(2u, "Deformation X");
+	setOutputName(3u, "Deformation Y");
+	setOutputName(4u, "Deformation Z");
 
-	setOutputName(5, "Jacobian 11");
-	setOutputName(6, "Jacobian 12");
-	setOutputName(7, "Jacobian 13");
-	setOutputName(8, "Jacobian 21");
-	setOutputName(9, "Jacobian 22");
-	setOutputName(10, "Jacobian 23");
-	setOutputName(11, "Jacobian 31");
-	setOutputName(12, "Jacobian 32");
-	setOutputName(13, "Jacobian 33");
+	setOutputName(5u, "Jacobian 11");
+	setOutputName(6u, "Jacobian 12");
+	setOutputName(7u, "Jacobian 13");
+	setOutputName(8u, "Jacobian 21");
+	setOutputName(9u, "Jacobian 22");
+	setOutputName(10u, "Jacobian 23");
+	setOutputName(11u, "Jacobian 31");
+	setOutputName(12u, "Jacobian 32");
+	setOutputName(13u, "Jacobian 33");
 }

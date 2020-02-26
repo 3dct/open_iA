@@ -58,13 +58,15 @@ void pca(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	auto pcaFilter = EstimatorType::New();
 	pcaFilter->SetNumberOfTrainingImages(filter->input().size());
 	pcaFilter->SetNumberOfPrincipalComponentsRequired(parameters["Cutoff"].toUInt());
-	for (unsigned int k = 0; k < filter->input().size(); k++)
-		pcaFilter->SetInput(k, dynamic_cast<ImageType*>(filter->input()[k]->itkImage()));
+	for (int k = 0; k < filter->input().size(); k++)
+	{
+		pcaFilter->SetInput(static_cast<unsigned int>(k), dynamic_cast<ImageType*>(filter->input()[k]->itkImage()));
+	}
 	pcaFilter->Update();
 	auto scaler = ScaleType::New();
 	auto v = pcaFilter->GetEigenValues();
 	double sv_mean = sqrt(v[0]);
-	for (int o = 0; o < parameters["Cutoff"].toUInt() + 1; ++o)
+	for (size_t o = 0; o < static_cast<size_t>(parameters["Cutoff"].toUInt() + 1); ++o)
 	{
 		double sv = sqrt(v[o]);
 		double sv_n = sv / sv_mean;

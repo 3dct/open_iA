@@ -140,7 +140,7 @@ iATsvToVolume::iATsvToVolume() :
 {
 	addParameter("File", FileNameOpen, 0, 0);
 
-	setOutputName(0, "Z Displacement");
-	setOutputName(1, "Y Displacement");
-	setOutputName(2, "X Displacement");
+	setOutputName(0u, "Z Displacement");
+	setOutputName(1u, "Y Displacement");
+	setOutputName(2u, "X Displacement");
 }

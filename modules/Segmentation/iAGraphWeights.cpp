@@ -44,7 +44,7 @@ iAEdgeWeightType iAGraphWeights::GetWeight(iAEdgeIndexType edgeIdx) const
 
 void iAGraphWeights::SetWeight(iAEdgeIndexType edgeIdx, iAEdgeWeightType weight)
 {
-	assert(edgeIdx < m_weights.size());
+	assert(edgeIdx < static_cast<unsigned int>(m_weights.size()));
 	m_weights[edgeIdx] = weight;
 }
 

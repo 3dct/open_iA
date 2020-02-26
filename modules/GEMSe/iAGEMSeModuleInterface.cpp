@@ -52,7 +52,7 @@ iADifferenceMarker::iADifferenceMarker():
 		"this same value will be used in the output image as well.", 2)
 {
 	addParameter("Difference marker value", Continuous);
-	setInputName(1, "Difference to");
+	setInputName(1u, "Difference to");
 }
 
 void iADifferenceMarker::performWork(QMap<QString, QVariant> const & params)

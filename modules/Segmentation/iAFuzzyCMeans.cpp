@@ -51,7 +51,7 @@ namespace
 {
 	void setProbabilities(VectorImageType::Pointer vectorImg, iAFilter* filter)
 	{
-		for (int p = 0; p < vectorImg->GetVectorLength(); ++p)
+		for (unsigned int p = 0; p < vectorImg->GetVectorLength(); ++p)
 		{
 			auto indexSelectionFilter = IndexSelectionType::New();
 			indexSelectionFilter->SetIndex(p);
@@ -86,7 +86,7 @@ namespace
 	bool convertStringToCentroids(QString centroidString, unsigned int numberOfClasses, QVector<double> & centroids)
 	{
 		auto centroidStringList = centroidString.split(" ");
-		if (centroidStringList.size() != numberOfClasses)
+		if (centroidStringList.size() < 0 || static_cast<unsigned int>(centroidStringList.size()) != numberOfClasses)
 		{
 			DEBUG_LOG("Number of classes doesn't match the count of centroids specified!");
 			return false;
@@ -138,7 +138,7 @@ void fcm(iAFilter* filter, QMap<QString, QVariant> const & params)
 #endif
 	classifier->SetNumberOfClasses(numberOfClasses);
 	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
-	for (int i = 0; i < numberOfClasses; i++)
+	for (int i = 0; static_cast<unsigned int>(i) < numberOfClasses; i++)
 	{
 		centroidsArray.push_back(centroids[i]);
 	}
@@ -173,7 +173,7 @@ bool iAFCMFilter::checkParameters(QMap<QString, QVariant> & parameters)
 
 void iAFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	for (int i = 0; i < parameters["Number of Classes"].toUInt(); ++i)
+	for (unsigned int i = 0; i < parameters["Number of Classes"].toUInt(); ++i)
 	{
 		setOutputName(i + 1, QString("Probability image label %1").arg(i));
 	}
@@ -232,7 +232,7 @@ void kfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 #endif
 	classifier->SetNumberOfClasses(numberOfClasses);
 	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
-	for (int i = 0; i < numberOfClasses; i++)
+	for (int i = 0; static_cast<unsigned int>(i) < numberOfClasses; i++)
 	{
 		centroidsArray.push_back(centroids[i]);
 	}
@@ -263,7 +263,7 @@ void kfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 void iAKFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	for (int i = 0; i < parameters["Number of Classes"].toUInt(); ++i)
+	for (unsigned int i = 0; i < parameters["Number of Classes"].toUInt(); ++i)
 	{
 		setOutputName(i + 1, QString("Probability image label %1").arg(i));
 	}
@@ -362,7 +362,7 @@ void mskfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 void iAMSKFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	for (int i = 0; i < parameters["Number of Classes"].toUInt(); ++i)
+	for (unsigned int i = 0; i < parameters["Number of Classes"].toUInt(); ++i)
 	{
 		setOutputName(i + 1, QString("Probability image label %1").arg(i));
 	}
