@@ -35,6 +35,7 @@ private:
 	std::vector<iAVectorDataType> m_data;
 public:
 	iAStandaloneVector(IndexType size);
+	~iAStandaloneVector() override;
 	virtual iAVectorDataType get(size_t channelIdx) const;
 	virtual IndexType size() const;
 	void set(IndexType, iAVectorDataType);
@@ -49,6 +50,7 @@ private:
 	iAVectorArray const & m_data;
 	size_t m_voxelIdx;
 public:
+	~iAPixelVector() override;
 	iAPixelVector(iAVectorArray const & data, size_t voxelIdx);
 	iAVectorDataType get(size_t channelIdx) const;
 	IndexType size() const;

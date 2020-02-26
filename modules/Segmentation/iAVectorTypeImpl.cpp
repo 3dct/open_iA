@@ -20,6 +20,9 @@
 * ************************************************************************************/
 #include "iAVectorTypeImpl.h"
 
+iAVectorType::~iAVectorType()
+{}
+
 iAVectorDataType iAVectorType::operator[](size_t channelIdx) const
 {
 	return get(channelIdx);
@@ -42,25 +45,8 @@ QSharedPointer<iAVectorType const> iAVectorType::normalized() const
 
 
 
-
-iAPixelVector::iAPixelVector(iAVectorArray const & data, size_t voxelIdx):
-	m_data(data),
-	m_voxelIdx(voxelIdx)
+iAStandaloneVector::~iAStandaloneVector()
 {}
-
-iAVectorDataType iAPixelVector::get(size_t channelIdx) const
-{
-	iAVectorDataType value = m_data.get(m_voxelIdx, channelIdx);
-	return value;
-}
-
-iAVectorType::IndexType iAPixelVector::size() const
-{
-	return m_data.channelCount();
-}
-
-
-
 
 iAStandaloneVector::iAStandaloneVector(IndexType size):
 	m_data(size)
@@ -79,4 +65,25 @@ iAVectorType::IndexType iAStandaloneVector::size() const
 void iAStandaloneVector::set(iAVectorType::IndexType idx, iAVectorDataType value)
 {
 	m_data[idx] = value;
+}
+
+
+
+iAPixelVector::~iAPixelVector()
+{}
+
+iAPixelVector::iAPixelVector(iAVectorArray const& data, size_t voxelIdx) :
+	m_data(data),
+	m_voxelIdx(voxelIdx)
+{}
+
+iAVectorDataType iAPixelVector::get(size_t channelIdx) const
+{
+	iAVectorDataType value = m_data.get(m_voxelIdx, channelIdx);
+	return value;
+}
+
+iAVectorType::IndexType iAPixelVector::size() const
+{
+	return m_data.channelCount();
 }

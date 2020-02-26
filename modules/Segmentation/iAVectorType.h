@@ -28,6 +28,7 @@ typedef double iAVectorDataType;
 class iAVectorType
 {
 public:
+	virtual ~iAVectorType();
 	typedef size_t IndexType;
 	virtual iAVectorDataType operator[](size_t channelIdx) const;
 	virtual iAVectorDataType get(size_t channelIdx) const = 0;
