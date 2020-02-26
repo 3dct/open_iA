@@ -176,16 +176,16 @@ public:
 	iALogger* logger();
 
 	//! Retrieve the name of the input image with index i
-	QString inputName(int i) const;
+	QString inputName(unsigned int i) const;
 
 	//! Retrieve the name of the output image with index i
-	QString outputName(int i, QString defaultName=QString()) const;
+	QString outputName(unsigned int i, QString defaultName=QString()) const;
 protected:
 	//! Set the name of the input with the given index
-	void setInputName(int i, QString const & name);
+	void setInputName(unsigned int i, QString const & name);
 
 	//! Set the name of the output with the given index
-	void setOutputName(int i, QString const & name);
+	void setOutputName(unsigned int i, QString const & name);
 
 private:
 	//! The actual implementation of the filter
@@ -209,8 +209,8 @@ private:
 	//! Names for the output values of the algorithm
 	QVector<QString> m_outputValueNames;
 	//! Names for the input images of the algorithm
-	QMap<int, QString> m_inputNames;
-	QMap<int, QString> m_outputNames;
+	QMap<unsigned int, QString> m_inputNames;
+	QMap<unsigned int, QString> m_outputNames;
 	QString m_name, m_category, m_description;
 	int m_requiredInputs, m_outputCount, m_firstInputChannels;
 };

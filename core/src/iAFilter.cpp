@@ -320,7 +320,7 @@ iALogger* iAFilter::logger()
 	return m_log;
 }
 
-QString iAFilter::inputName(int i) const
+QString iAFilter::inputName(unsigned int i) const
 {
 	if (m_inputNames.contains(i))
 	{
@@ -332,12 +332,12 @@ QString iAFilter::inputName(int i) const
 	}
 }
 
-void iAFilter::setInputName(int i, QString const & name)
+void iAFilter::setInputName(unsigned int i, QString const & name)
 {
 	m_inputNames.insert(i, name);
 }
 
-QString iAFilter::outputName(int i, QString defaultName) const
+QString iAFilter::outputName(unsigned int i, QString defaultName) const
 {
 	if (m_outputNames.contains(i))
 	{
@@ -356,7 +356,7 @@ QString iAFilter::outputName(int i, QString defaultName) const
 	}
 }
 
-void iAFilter::setOutputName(int i, QString const & name)
+void iAFilter::setOutputName(unsigned int i, QString const & name)
 {
 	m_outputNames.insert(i, name);
 }

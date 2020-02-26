@@ -22,6 +22,7 @@
 
 #include "open_iA_Core_export.h"
 
+// why is this not unsigned int?
 typedef int iAVoxelIndexType;
 
 //! Helper for storing 3D image coordinates.
