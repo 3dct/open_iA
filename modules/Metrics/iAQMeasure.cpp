@@ -225,7 +225,8 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 
 	// find out which of the peaks is closest to 0 (air)
 	double minDistToZero = std::numeric_limits<double>::max();
-	size_t minDistToZeroIdx = -1;
+	const size_t NoIdx = std::numeric_limits<size_t>::max();
+	size_t minDistToZeroIdx = NoIdx;
 	for (int p = 0; p < numberOfPeaks; ++p)
 	{
 		double curDistToZero = std::abs(minVal + peaks[p].first * (maxVal - minVal) / binCount);
@@ -238,7 +239,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 
 	// find out which of the non-air peaks is highest:
 	double highestNonAirPeakValue = std::numeric_limits<double>::lowest();
-	size_t highestNonAirPeakIdx = -1;
+	size_t highestNonAirPeakIdx = NoIdx;
 	for (int p = 0; p < numberOfPeaks; ++p)
 	{
 		if (p == minDistToZeroIdx)
@@ -248,6 +249,11 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 			highestNonAirPeakValue = peaks[p].second;
 			highestNonAirPeakIdx = p;
 		}
+	}
+	if (minDistToZeroIdx == NoIdx || highestNonAirPeakIdx == NoIdx)
+	{
+		DEBUG_LOG("No index for peak close to zero or highest non-air peak found!");
+		return;
 	}
 	if (parameters["Histogram-based SNR (highest non-air-peak)"].toBool())
 	{
@@ -319,7 +325,7 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 	cImageHistogram curHist;
 	curHist.CreateHist(fImage, dim[0], dim[1], dim[2],
 		params["OrigQ Histogram bins"].toInt(), range[0], range[1], false, 0, 0);
-	unsigned int Peaks_fnd = curHist.DetectPeaksValleys(params["Number of peaks"].toInt(),
+	/*unsigned int Peaks_fnd = */ curHist.DetectPeaksValleys(params["Number of peaks"].toInt(),
 		dgauss_size_BINscale, gauss_size_P2Pscale, threshold_x, threshold_y, false);
 
 	// Calculate histogram quality measures Q using the valley thresholds to seperate classes

@@ -176,7 +176,7 @@ int cImageHistogram::CreateHist(float* fImage, unsigned int nPixelH, unsigned in
  */
 unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned int dgauss_size_BINscale, unsigned int gauss_size_P2Pscale, double threshold_x , double threshold_y, bool consTruncBin)
 {
-	std::vector<double> gauss_knl,gauss_knl_P2P,dgauss_knl;
+	std::vector<double> gauss_knl, dgauss_knl;
 
 	// Generate Gauss kernel
 	// =========================================================================
@@ -185,7 +185,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 		dknl_sz = 1;                 // y' via gauss': [1.184 0 -1.184] ~= diff: [1 -1]
 	float gauss_sigma = (float)dknl_sz/4;
 
-	double sum=0.0, value;
+	double sum=0.0;
 	for(int i=-dknl_sz; i<=dknl_sz; i++)
 	{
 		double value=1/(std::sqrt(2*vtkMath::Pi())*gauss_sigma)*std::exp(-0.5*i*i/(gauss_sigma*gauss_sigma));
@@ -263,12 +263,12 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 			int knl_sz = (int)floor(0.5f*abs((float)Peaks[p+1].idx-Peaks[p].idx)/gauss_size_P2Pscale+0.5f);
 			if(knl_sz<1)
 				knl_sz = 1;                 // y' via gauss': [1.184 0 -1.184] ~= diff: [1 -1]
-			float gauss_sigma = (float)knl_sz/4;
+			float new_gauss_sigma = (float)knl_sz/4;
 
 			sum = 0.0;
 			for(int i=-knl_sz; i<=knl_sz; i++)
 			{
-				value = 1/(sqrt(2*vtkMath::Pi())*gauss_sigma)*exp(-0.5*i*i/(gauss_sigma*gauss_sigma));
+				double value = 1/(sqrt(2*vtkMath::Pi())* new_gauss_sigma)*exp(-0.5*i*i/(new_gauss_sigma * new_gauss_sigma));
 				gauss_knl_P2P.push_back(value);
 				sum+=value;
 			}
@@ -314,7 +314,8 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
  */
  float cImageHistogram::CalcQ(std::vector<int> thrsh_IDX, std::vector<ClassMeasure> &result, int Q_equation)
 {
-	int CStart,CEnd,maxprobabilityClassIDX;
+	int CStart,CEnd,
+		maxprobabilityClassIDX = -1;
 	unsigned long long nval;
 	double sum,count,counttotal=0,maxprobability=0.0;
 	ClassMeasure val;
@@ -351,7 +352,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 		for(int i=CStart; i<CEnd; i++)
 		{
 			count+=hist_y[i];
-			sum+=hist_y[i]*hist_x[i];
+			sum+=static_cast<double>(hist_y[i])*hist_x[i];
 			nval+=hist_y[i];
 		}
 		val.mean=(float)(sum/nval);
@@ -422,7 +423,7 @@ float cImageHistogram::CalcEntropy()
 	Hmax = dlog2((double)bins);												// Maximal Shannon Entropy Hmax
 	for(dHistPosList::iterator iter = p.begin(); iter < p.end(); iter++)
 	{
-		double mx = (iter->y*dlog2(iter->y));
+		//double mx = (iter->y*dlog2(iter->y));
 		if(iter->y>=DoubleEpsilon)
 			H+=(iter->y*dlog2(iter->y));
 	}

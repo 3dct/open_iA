@@ -155,10 +155,10 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 		histogramFilter->SetInput(joinFilter->GetOutput());
 		histogramFilter->SetMarginalScale(10.0);
 		typedef typename HistogramFilterType::HistogramSizeType   HistogramSizeType;
-		HistogramSizeType size(2);
-		size[0] = parameters["Histogram Bins"].toDouble();  // number of bins for the first  channel
-		size[1] = parameters["Histogram Bins"].toDouble();  // number of bins for the second channel
-		histogramFilter->SetHistogramSize(size);
+		HistogramSizeType histSize(2);
+		histSize[0] = parameters["Histogram Bins"].toDouble();  // number of bins for the first  channel
+		histSize[1] = parameters["Histogram Bins"].toDouble();  // number of bins for the second channel
+		histogramFilter->SetHistogramSize(histSize);
 		/*
 		typedef typename HistogramFilterType::HistogramMeasurementVectorType HistogramMeasurementVectorType;
 		HistogramMeasurementVectorType binMinimum(3);
@@ -192,9 +192,9 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 			++itr;
 		}
 
-		size[0] = parameters["Histogram Bins"].toDouble();  // number of bins for the first  channel
-		size[1] = 1;  // number of bins for the second channel
-		histogramFilter->SetHistogramSize(size);
+		histSize[0] = parameters["Histogram Bins"].toDouble();  // number of bins for the first  channel
+		histSize[1] = 1;  // number of bins for the second channel
+		histogramFilter->SetHistogramSize(histSize);
 		histogramFilter->Update();
 		itr = histogram->Begin();
 		end = histogram->End();
@@ -210,9 +210,9 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 			++itr;
 		}
 
-		size[0] = 1;  // number of bins for the first channel
-		size[1] = parameters["Histogram Bins"].toDouble();  // number of bins for the second channel
-		histogramFilter->SetHistogramSize(size);
+		histSize[0] = 1;  // number of bins for the first channel
+		histSize[1] = parameters["Histogram Bins"].toDouble();  // number of bins for the second channel
+		histogramFilter->SetHistogramSize(histSize);
 		histogramFilter->Update();
 		itr = histogram->Begin();
 		end = histogram->End();
@@ -327,11 +327,11 @@ QMap<QString, QVariant> iASimilarityFilterRunner::loadParameters(QSharedPointer<
 {
 	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
 	int const * dim = sourceMdi->imagePointer()->GetDimensions();
-	if (params["Index X"].toUInt() >= dim[0])
+	if (params["Index X"].toInt() >= dim[0])
 		params["Index X"] = 0;
-	if (params["Index Y"].toUInt() >= dim[1])
+	if (params["Index Y"].toInt() >= dim[1])
 		params["Index Y"] = 0;
-	if (params["Index Z"].toUInt() >= dim[2])
+	if (params["Index Z"].toInt() >= dim[2])
 		params["Index Z"] = 0;
 	params["Size X"] = std::min(params["Size X"].toUInt(), dim[0] - params["Index X"].toUInt());
 	params["Size Y"] = std::min(params["Size Y"].toUInt(), dim[1] - params["Index Y"].toUInt());
