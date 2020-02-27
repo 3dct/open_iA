@@ -250,7 +250,7 @@ iAFeatureTracking::iAFeatureTracking(QString const & fileName1, QString const &f
 	this->dissipationThreshold = dissipationThreshold;
 	this->overlapThreshold = overlapThreshold;
 	this->volumeThreshold = volumeThreshold;
-	this->maxSearchValue = maxSearchValue;
+	this->m_maxSearchValue = maxSearchValue;
 	uToV = new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
 	vToU = new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
 	allUtoV = new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
@@ -305,7 +305,7 @@ void iAFeatureTracking::TrackFeatures()
 	for(int i = 0; i < u->GetNumberOfRows(); i++)
 	{
 		u->GetRow(i, row);
-		auto result = &getCorrespondences(*row, *v, maxSearchValue, true);
+		auto result = &getCorrespondences(*row, *v, m_maxSearchValue, true);
 		uToV->push_back(std::make_pair(i + 1, *result));
 	}
 
@@ -388,7 +388,7 @@ void iAFeatureTracking::TrackFeatures()
 					}
 					else
 					{
-						unsigned int j = 0;
+						j = 0;
 						int cnt = 0;
 						while(j < uToV->at(i).second.size())
 						{

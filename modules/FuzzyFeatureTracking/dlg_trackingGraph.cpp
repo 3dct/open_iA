@@ -76,7 +76,7 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 	graphWidget->GetRenderWindow()->Render();
 }
 
-void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, int nunRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId)
+void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, size_t numRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId)
 {
 	if(g->GetNumberOfVertices() < 1) return;
 
@@ -86,7 +86,7 @@ void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, int nunRanks, st
 	vtkNew<vtkPoints> points;
 	iAVtkGraphDrawer graphDrawer;
 	//graphDrawer.setMaxIteration(MAX_ITERATIONS);
-	graphDrawer.createLayout(points.GetPointer(), m_graph, graphWidget->GetRenderWindow()->GetSize(), nunRanks);
+	graphDrawer.createLayout(points.GetPointer(), m_graph, graphWidget->GetRenderWindow()->GetSize(), numRanks);
 	m_graph->SetPoints(points.GetPointer());
 
 	m_graphItem->SetGraph(m_graph);

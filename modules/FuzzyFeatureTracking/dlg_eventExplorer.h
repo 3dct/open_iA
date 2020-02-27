@@ -49,7 +49,7 @@ class dlg_eventExplorer : public QDockWidget, private Ui_EventExplorer
 	Q_OBJECT
 
 public:
-	dlg_eventExplorer(QWidget *parent, int numberOfCharts, int numberOfEventTypes, iAVolumeStack *volumeStack, dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards);
+	dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int numberOfEventTypes, iAVolumeStack *volumeStack, dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards);
 	~dlg_eventExplorer();
 
 	private slots:
@@ -80,7 +80,7 @@ private:
 	void buildSubGraph(int id, int layer);
 
 	iAVolumeStack* m_volumeStack;
-	int m_numberOfCharts;
+	size_t m_numberOfCharts;
 	int m_numberOfEventTypes;
 	int m_plotPositionInVector[5];
 	int m_numberOfActivePlots;

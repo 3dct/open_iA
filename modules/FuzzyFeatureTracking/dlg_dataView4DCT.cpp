@@ -49,11 +49,11 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 	m_rendererManager.addToBundle(m_mdiChild->renderer()->renderer());
 
 	// add widgets to window
-	int numOfVolumes = m_volumeStack->numberOfVolumes();
+	size_t numOfVolumes = m_volumeStack->numberOfVolumes();
 	m_vtkWidgets = new iAQVTKWidgetMouseReleaseWorkaround*[numOfVolumes];
 	m_renderers = new iARenderer*[numOfVolumes];
 	m_volumeRenderer = new iAVolumeRenderer*[numOfVolumes];
-	for(int i = 0; i < numOfVolumes; i++)
+	for(size_t i = 0; i < numOfVolumes; i++)
 	{
 		m_vtkWidgets[i] = new iAQVTKWidgetMouseReleaseWorkaround(this);
 		m_renderers[i] = new iARenderer(this);

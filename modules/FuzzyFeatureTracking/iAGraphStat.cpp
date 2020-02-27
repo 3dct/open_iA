@@ -75,9 +75,13 @@ void iAGraphStat::update()
 {
 	m_maxRank = 0;
 	const iAGraph::VerticesMap* vertices = m_graph->getVertices();
-	for (VerticesIterator vertIt = vertices->begin(); vertIt != vertices->end(); vertIt++) {
+	for (VerticesIterator vertIt = vertices->begin(); vertIt != vertices->end(); vertIt++)
+	{
 		int rank = vertIt->second.rank;
-		if(rank > m_maxRank) m_maxRank = rank;
+		if (rank > m_maxRank)
+		{
+			m_maxRank = rank;
+		}
 	}
 	m_numVertices = std::vector<int>(m_maxRank+1, 0);
 	for (VerticesIterator vertIt = vertices->begin(); vertIt != vertices->end(); vertIt++) {
@@ -88,12 +92,20 @@ void iAGraphStat::update()
 		m_isHeaderVertex[id] = true;
 		VerticesIDs parents, childs;
 		const iAGraph::EdgesMap* edges = m_graph->getEdges();
-		for(EdgesIterator edgeIt = edges->begin(); edgeIt != edges->end(); edgeIt++) {
-			if(edgeIt->second.vertTo == id)
+		for(EdgesIterator edgeIt = edges->begin(); edgeIt != edges->end(); edgeIt++)
+		{
+			if (edgeIt->second.vertTo == id)
+			{
 				parents.push_back(edgeIt->second.vertTo);
-			if(edgeIt->second.vertFrom == id)
+			}
+			if (edgeIt->second.vertFrom == id)
+			{
 				childs.push_back(edgeIt->second.vertTo);
-			if(edgeIt->second.vertTo == id) m_isHeaderVertex[id] = false;
+			}
+			if (edgeIt->second.vertTo == id)
+			{
+				m_isHeaderVertex[id] = false;
+			}
 		}
 		m_parentVertices[id] = parents;
 		m_childVertices[id] = childs;

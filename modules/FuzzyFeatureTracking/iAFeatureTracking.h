@@ -42,7 +42,7 @@ private:
 	float overlapThreshold;
 	float volumeThreshold;
 	float overallMatchingPercentage;
-	int maxSearchValue;
+	int m_maxSearchValue;
 	std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > > *uToV;
 	std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > > *vToU;
 	std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > > *allUtoV;

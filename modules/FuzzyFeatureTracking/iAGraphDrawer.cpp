@@ -35,19 +35,20 @@ bool compareMedians(std::pair<iAGraph::idType, float> v1, std::pair<iAGraph::idT
 	return (v1.second < v2.second);
 }
 
-void swapVertices(std::vector<iAGraph::idType>& rank, int index1, int index2)
+void swapVertices(std::vector<iAGraph::idType>& rank, size_t index1, size_t index2)
 {
 	assert(&rank);
-	assert((size_t)index1 < rank.size());
-	assert((size_t)index2 < rank.size());
+	assert(index1 < rank.size());
+	assert(index2 < rank.size());
 
 	iAGraph::idType val = rank[index1];
 	rank[index1] = rank[index2];
 	rank[index2] = val;
 }
 
-iAGraphDrawer::iAGraphDrawer()
-	: m_maxIteration{4}
+iAGraphDrawer::iAGraphDrawer():
+	m_maxIteration{4},
+	m_graph(nullptr)
 { }
 
 iAGraphDrawer::~iAGraphDrawer()
@@ -67,24 +68,31 @@ void iAGraphDrawer::setGraph(iAGraph* g)
 
 void iAGraphDrawer::initialOrder(OrderType& order)
 {
-	if (!order.empty()) order.clear();
-	for (int i = 0; i <= m_graphStat.getMaxRank(); i++) {
+	if (!order.empty())
+	{
+		order.clear();
+	}
+	for (int i = 0; i <= m_graphStat.getMaxRank(); i++)
+	{
 		std::vector<iAGraph::idType> vertices(m_graphStat.getNumVerticesInRank(i), -1);
 		order.push_back(vertices);
 	}
 
 	// find headers vertices
 	// then sort them by their rank
-	std::vector<std::pair<iAGraph::idType, iAGraph::Vertex>> headerVerticles;
-	for (auto vertIt = m_graph->getVertices()->begin(); vertIt != m_graph->getVertices()->end(); vertIt++) {
-		if (m_graphStat.isHeaderVertix(vertIt->first)) {
-			headerVerticles.push_back(std::make_pair(vertIt->first, m_graph->getVertices()->at(vertIt->first)));
+	std::vector<std::pair<iAGraph::idType, iAGraph::Vertex>> headerVertices;
+	for (auto vertIt = m_graph->getVertices()->begin(); vertIt != m_graph->getVertices()->end(); vertIt++)
+	{
+		if (m_graphStat.isHeaderVertix(vertIt->first))
+		{
+			headerVertices.push_back(std::make_pair(vertIt->first, m_graph->getVertices()->at(vertIt->first)));
 		}
 	}
-	sort(headerVerticles.begin(), headerVerticles.end(), compare);
-
-	for (int i = headerVerticles.size() - 1; i >= 0; i--) {
-		this->addVerticesToOrder(headerVerticles[i].first, order);
+	sort(headerVertices.begin(), headerVertices.end(), compare);
+	assert(headerVertices.size() <= static_cast<size_t>(std::numeric_limits<int>::max()));
+	for (int i = static_cast<int>(headerVertices.size() - 1); i >= 0; i--)
+	{
+		this->addVerticesToOrder(headerVertices[i].first, order);
 	}
 }
 
@@ -92,16 +100,19 @@ void iAGraphDrawer::addVerticesToOrder(iAGraph::idType headerVert, OrderType& or
 {
 	iAGraph::Vertex v = m_graph->getVertices()->at(headerVert);
 	for (size_t i = 0; i < order[v.rank].size(); i++) {
-		if (order[v.rank][i] == headerVert) {
+		if (order[v.rank][i] == headerVert)
+		{
 			return;			// the vertex has been added already
 		}
-		else if (order[v.rank][i] < 0) {
+		else if (order[v.rank][i] < 0)
+		{
 			// we find a free place in an order then we add a vertex
 			order[v.rank][i] = headerVert;
 
 			// add childs of a vertex
 			iAGraphStat::VerticesIDs childs = m_graphStat.getChildVertices(headerVert);
-			for (size_t j = 0; j < childs.size(); j++) {
+			for (size_t j = 0; j < childs.size(); j++)
+			{
 				this->addVerticesToOrder(childs[j], order);
 			}
 
@@ -136,9 +147,9 @@ void iAGraphDrawer::start()
 	{
 		for (size_t j = 0; j < m_order[i].size(); j++)
 		{
-			float displacement = (m_order[i].size() - 1) / 2;
-			m_graph->getVertices()->at(m_order[i][j]).posX = (float)i;
-			m_graph->getVertices()->at(m_order[i][j]).posY = (float)j - displacement;
+			float displacement = static_cast<float>((m_order[i].size() - 1) / 2);
+			m_graph->getVertices()->at(m_order[i][j]).posX = static_cast<float>(i);
+			m_graph->getVertices()->at(m_order[i][j]).posY = static_cast<float>(j) - displacement;
 		}
 	}
 }
@@ -150,23 +161,26 @@ void iAGraphDrawer::wmedian(OrderType& order, bool forwardTraversal)
 	{
 		for (int i = 0; i <= maxRank; i++)
 		{
-			int numVertex = order[i].size();
+			size_t numVertex = order[i].size();
 			std::vector<std::pair<iAGraph::idType, float>> median;
-			for (int j = 0; j < numVertex; j++)
+			for (size_t j = 0; j < numVertex; j++)
 			{
 				float val = medianValue(order[i][j], order, forwardTraversal);
 				median.push_back(std::make_pair(order[i][j], val));
 			}
 			sort(median.begin(), median.end(), compareMedians);
-			for (int j = 0; j < numVertex; j++) {
+			for (size_t j = 0; j < numVertex; j++)
+			{
 				order[i][j] = median[j].first;
 			}
 		}
 	}
-	else {
+	else
+	{
 		for (int i = maxRank; i >= 0; i--)
 		{
-			int numVertex = order[i].size();
+			assert(order[i].size() <= std::numeric_limits<int>::max());
+			int numVertex = static_cast<int>(order[i].size());
 			std::vector<std::pair<iAGraph::idType, float>> median;
 			for (int j = 0; j < numVertex; j++)
 			{
@@ -184,30 +198,30 @@ void iAGraphDrawer::wmedian(OrderType& order, bool forwardTraversal)
 
 float iAGraphDrawer::medianValue(iAGraph::idType vert, OrderType& order, bool forwardTraversal)
 {
-	std::vector<int> p = getAdjacentPositions(vert, order, forwardTraversal);
-	int size = p.size();
-	int m = (int)std::floor((float)size / 2);
+	auto p = getAdjacentPositions(vert, order, forwardTraversal);
+	size_t size = p.size();
+	int m = static_cast<int>(std::floor(static_cast<float>(size) / 2));
 	if (size == 0)
 	{
 		return -1;
 	}
 	else if (size % 2 == 1)
 	{
-		return (float)p[m];
+		return static_cast<float>(p[m]);
 	}
 	else if (size == 2)
 	{
-		return (float)(p[0] + p[1]) / 2;
+		return static_cast<float>(p[0] + p[1]) / 2;
 	}
 	else
 	{
-		int left = p[m - 1] - p[0];
-		int right = p[size - 1] - p[m];
-		return ((float)p[m - 1] * right + (float)p[m] * left) / (left + right);
+		size_t left = p[m - 1] - p[0];
+		size_t right = p[size - 1] - p[m];
+		return (static_cast<float>(p[m - 1]) * right + static_cast<float>(p[m]) * left) / (left + right);
 	}
 }
 
-std::vector<int> iAGraphDrawer::getAdjacentPositions(iAGraph::idType vert, OrderType& order, bool forwardTraversal)
+std::vector<size_t> iAGraphDrawer::getAdjacentPositions(iAGraph::idType vert, OrderType& order, bool forwardTraversal)
 {
 	std::vector<iAGraph::idType> adjacentVerts;
 	if(forwardTraversal)
@@ -218,8 +232,11 @@ std::vector<int> iAGraphDrawer::getAdjacentPositions(iAGraph::idType vert, Order
 	{
 		adjacentVerts = m_graphStat.getChildVertices(vert);
 	}
-	std::vector<int>	positions;
-	if (adjacentVerts.size() == 0) return positions;
+	std::vector<size_t> positions;
+	if (adjacentVerts.size() == 0)
+	{
+		return positions;
+	}
 
 	int rank = m_graph->getVertices()->at(adjacentVerts[0]).rank;
 	for (size_t i = 0; i < adjacentVerts.size(); i++)
@@ -268,13 +285,17 @@ void iAGraphDrawer::transpose(OrderType& order, bool forwardTraversal)
 int iAGraphDrawer::numberOfCrossing(OrderType& order)
 {
 	int crossings = 0;
-	for(size_t i = 0; i+1 < order.size(); i++)
-		for(size_t j = 0; j+1 < order[i].size(); j++)
-			crossings = crossings + numberOfCrossing(order, i, j, j+1, true);
+	for (size_t i = 0; i + 1 < order.size(); i++)
+	{
+		for (size_t j = 0; j + 1 < order[i].size(); j++)
+		{
+			crossings = crossings + numberOfCrossing(order, i, j, j + 1, true);
+		}
+	}
 	return crossings;
 }
 
-int iAGraphDrawer::numberOfCrossing(OrderType& order, int rank, int pos1, int pos2, bool forwardTraversal)
+int iAGraphDrawer::numberOfCrossing(OrderType& order, size_t rank, size_t pos1, size_t pos2, bool forwardTraversal)
 {
 	/*iAGraphStat::VerticesIDs topChilds = m_graphStat.getChildVertices(order[rank][pos1]);
 	iAGraphStat::VerticesIDs bottomChilds = m_graphStat.getChildVertices(order[rank][pos2]);*/
@@ -290,25 +311,40 @@ int iAGraphDrawer::numberOfCrossing(OrderType& order, int rank, int pos1, int po
 		bottomChilds = m_graphStat.getParentVertices(order[rank][pos2]);
 	}
 
-	std::vector<int> topPos, bottomPos;
-	for(auto vertId : topChilds)
-		for(size_t j = 0; j < order[rank+1].size(); j++)
-			if(order[rank+1][j] == vertId)
+	std::vector<size_t> topPos, bottomPos;
+	for (auto vertId : topChilds)
+	{
+		for (size_t j = 0; j < order[rank + 1].size(); j++)
+		{
+			if (order[rank + 1][j] == vertId)
 			{
 				topPos.push_back(j);
 				break;
 			}
-	for(auto vertId : bottomChilds)
-		for(size_t j = 0; j < order[rank+1].size(); j++)
-			if(order[rank+1][j] == vertId)
+		}
+	}
+	for (auto vertId : bottomChilds)
+	{
+		for (size_t j = 0; j < order[rank + 1].size(); j++)
+		{
+			if (order[rank + 1][j] == vertId)
 			{
 				bottomPos.push_back(j);
 				break;
 			}
+		}
+	}
 
 	int crossings = 0;
-	for(size_t i = 0; i < topPos.size(); i++)
-		for(size_t j = 0; j < bottomPos.size(); j++)
-			if(topPos[i] > bottomPos[j]) crossings++;
+	for (size_t i = 0; i < topPos.size(); i++)
+	{
+		for (size_t j = 0; j < bottomPos.size(); j++)
+		{
+			if (topPos[i] > bottomPos[j])
+			{
+				crossings++;
+			}
+		}
+	}
 	return crossings;
 }

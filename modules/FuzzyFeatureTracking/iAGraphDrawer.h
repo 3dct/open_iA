@@ -41,10 +41,10 @@ private:
 	void addVerticesToOrder(iAGraph::idType headerVert, OrderType& order);
 	void wmedian(OrderType& order, bool forwardTraversal);
 	float medianValue(iAGraph::idType vert, OrderType& order, bool forwardTraversal);
-	std::vector<int> getAdjacentPositions(iAGraph::idType vert, OrderType& order, bool forwardTraversal);
+	std::vector<size_t> getAdjacentPositions(iAGraph::idType vert, OrderType& order, bool forwardTraversal);
 	void transpose(OrderType& order, bool forwardTraversal);
 	int numberOfCrossing(OrderType& order);
-	int numberOfCrossing(OrderType& order, int rank, int pos1, int pos2, bool forwardTraversal);
+	int numberOfCrossing(OrderType& order, size_t rank, size_t pos1, size_t pos2, bool forwardTraversal);
 
 	int m_maxIteration;
 	OrderType m_order;
