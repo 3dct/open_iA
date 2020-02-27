@@ -508,9 +508,6 @@ ENDIF()
 MESSAGE(STATUS "Build version: ${openiA_VERSION}")
 set (BUILD_INFO "${BUILD_INFO}    \"git revision: ${openiA_HASH}\"\n")
 
-# TODO: Find solution to include info for libraries included from modules, e.g. OpenVR SDK
-configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${open_iA_BINARY_DIR}/version.h" @ONLY)
-
 ADD_DEFINITIONS(-DUNICODE -D_UNICODE)    # Enable Unicode
 
 IF (UNIX)

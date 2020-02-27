@@ -164,6 +164,10 @@ ENDIF ()
 
 SET (GUI_EXECUTABLE_NAME open_iA)
 ADD_SUBDIRECTORY(cmd)     # Sets CMD test runner, used in modules
+
+# modules might have added something to BUILD_INFO:
+configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${open_iA_BINARY_DIR}/version.h" @ONLY)
+
 ADD_SUBDIRECTORY(modules)
 ADD_SUBDIRECTORY(gui)
 
