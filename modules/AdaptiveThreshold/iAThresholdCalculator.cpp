@@ -158,11 +158,11 @@ void iAThresholdCalculator::calculateMovingAverage(const std::vector<double> &v_
 	}
 
 	double sum = 0.0f;
-	const double moving = 3.0f;
 	double maxLen = v_in.size() - 1;
 
-	if ((!(count % 2) == 1) || (count > maxLen) || (count == 0))
+	if ((count % 2) != 1 || count > maxLen || count < 3)
 	{
+		DEBUG_LOG(QString("Moving average size was specified as %1, but it must be >= 3, < %2 and odd!").arg(count).arg(maxLen));
 		return;
 	}
 

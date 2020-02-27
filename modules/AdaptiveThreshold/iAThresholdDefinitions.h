@@ -150,8 +150,8 @@ namespace threshold_defs
 			iso50ValueThr(dblInf_min),
 			freqPeakLokalMaxY(dblInf_min),
 			lokalPeakAirThrX(dblInf_min),
-			determinedThreshold(dblInf_min),
-			intersectionPoint(fltInf_min, fltInf_min)
+			intersectionPoint(fltInf_min, fltInf_min),
+			determinedThreshold(dblInf_min)
 		{
 		}
 
