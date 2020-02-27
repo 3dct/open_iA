@@ -36,8 +36,8 @@ private:
 public:
 	iAStandaloneVector(IndexType size);
 	~iAStandaloneVector() override;
-	virtual iAVectorDataType get(size_t channelIdx) const;
-	virtual IndexType size() const;
+	virtual iAVectorDataType get(size_t channelIdx) const override;
+	virtual IndexType size() const override;
 	void set(IndexType, iAVectorDataType);
 };
 
@@ -52,6 +52,6 @@ private:
 public:
 	~iAPixelVector() override;
 	iAPixelVector(iAVectorArray const & data, size_t voxelIdx);
-	iAVectorDataType get(size_t channelIdx) const;
-	IndexType size() const;
+	iAVectorDataType get(size_t channelIdx) const override;
+	IndexType size() const override;
 };

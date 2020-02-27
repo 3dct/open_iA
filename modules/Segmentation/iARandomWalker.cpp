@@ -450,9 +450,6 @@ iAExtendedRandomWalker::iAExtendedRandomWalker() :
 
 IAFILTER_CREATE(iAExtendedRandomWalker)
 
-
-const double EPSILON = 1e-6;
-
 void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 {
 	int const * dim = input()[0]->vtkImage()->GetDimensions();
@@ -533,7 +530,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 			double value = priorModel[labelIdx]->vtkImage()->GetScalarComponentAsDouble(coord.x, coord.y, coord.z, 0);
 			sum += value;
 		}
-		assert (std::abs(sum-1.0) < EPSILON);
+		assert (dblApproxEqual(sum, 1.0, 1e-6) );
 		//if (std::abs(sum-1.0) >= EPSILON)
 		//{
 		//priorNormalized = false;
