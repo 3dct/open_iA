@@ -82,9 +82,9 @@ private:
 public:
 
 	IntLinRandom(int min, int max) :
+		dist(0, 1),
 		m_min(min),
-		m_max(max),
-		dist(0, 1)
+		m_max(max)
 	{
 		rng.seed(std::random_device{}()); //Initialize with non-deterministic seeds
 	}
@@ -106,9 +106,9 @@ private:
 	int m_max;
 public:
 	IntLogRandom(int min, int max) :
+		dist(0, 1),
 		m_min(min),
-		m_max(max),
-		dist(0, 1)
+		m_max(max)
 	{
 		rng.seed(std::random_device{}()); //Initialize with non-deterministic seeds
 	}
@@ -428,7 +428,7 @@ iASelectionParameterGenerator::iASelectionParameterGenerator(QString const & nam
 
 }
 
-ParameterSetsPointer iASelectionParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int /*sampleCount*/)
+ParameterSetsPointer iASelectionParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> /*parameter*/, int /*sampleCount*/)
 {
 	return m_parameterSets;
 }

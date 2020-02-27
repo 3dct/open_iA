@@ -27,6 +27,9 @@ iAImageTreeNode::iAImageTreeNode() :
 {
 }
 
+iAImageTreeNode::~iAImageTreeNode()
+{}
+
 void iAImageTreeNode::SetParent(QSharedPointer<iAImageTreeNode > parent)
 {
 	m_parent = parent;

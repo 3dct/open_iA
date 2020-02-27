@@ -110,6 +110,7 @@ private:
 	void AddResultFilterPixel(int x, int y, int z);
 	void AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf, QString const & name);
 	void UpdateComparisonNumbers();
+	int GetCurLabelRow() const;
 
 	iAImageTreeNode const * m_node;
 	iAImageTreeNode const * m_compareNode;
@@ -117,12 +118,14 @@ private:
 	iAImagePreviewWidget* m_compareWidget;
 	QPushButton *m_pbLike, *m_pbHate, *m_pbGoto;
 	QTextEdit* m_detailText;
+	QListView* m_lvLegend;
+	QWidget* m_cmpDetailsWidget;
+	QLabel* m_cmpDetailsLabel;
+	QStandardItemModel* m_labelItemModel;
 	bool m_showingClusterRepresentative;
 	ClusterImageType m_nullImage;
 	QSharedPointer<iAModalityList> m_modalities;
-	QStandardItemModel* m_labelItemModel;
 	int m_representativeType;
-	QListView* m_lvLegend;
 	LabelImagePointer m_refImg;
 
 	int m_magicLensCurrentModality;
@@ -144,8 +147,5 @@ private:
 	int m_labelCount;
 	double m_spacing[3];
 	int m_dimensions[3];
-	int GetCurLabelRow() const;
 	bool m_correctnessUncertaintyOverlayEnabled;
-	QWidget* m_cmpDetailsWidget;
-	QLabel* m_cmpDetailsLabel;
 };

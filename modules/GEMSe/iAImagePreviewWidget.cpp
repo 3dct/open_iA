@@ -60,17 +60,17 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 	iASlicerMode mode, int labelCount, bool magicLens):
 	QWidget(parent),
 	m_isLabelImage(isLabel),
-	m_conn(0),
 	m_empty(true),
 	m_enableInteractions(commonCamera),
+	m_conn(nullptr),
+	m_slicerTransform(vtkTransform::New()),
 	m_title(title),
 	m_commonCamera(commonCamera),
 	m_labelCount(labelCount),
 	m_sliceNumber(SliceNumberNotSet),
 	m_mode(mode),
 	m_aspectRatio(1.0),
-	m_colorTheme(nullptr),
-	m_slicerTransform(vtkTransform::New())
+	m_colorTheme(nullptr)
 {
 	m_slicer = new iASlicer(this, mode, false, magicLens, m_slicerTransform);
 	m_slicer->setup(iASingleSlicerSettings());
@@ -300,12 +300,14 @@ QSize iAImagePreviewWidget::sizeHint() const
 }
 
 
+/*
 #include <QResizeEvent>
 
 namespace
 {
 	const int Tolerance = 0;
 }
+*/
 
 void iAImagePreviewWidget::resizeEvent(QResizeEvent * /*event*/)
 {

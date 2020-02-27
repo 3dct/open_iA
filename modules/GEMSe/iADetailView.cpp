@@ -69,25 +69,31 @@ iADetailView::iADetailView(
 		iAColorTheme const * colorTheme,
 		int representativeType,
 		QWidget* comparisonDetailsWidget) :
+	m_node(nullptr),
+	m_compareNode(nullptr),
 	m_previewWidget(prevWdgt),
 	m_compareWidget(compareWdgt),
-	m_showingClusterRepresentative(true),
 	m_pbLike(new QPushButton("")),
 	m_pbHate(new QPushButton("")),
 	m_pbGoto(new QPushButton("")),
+	m_detailText(new QTextEdit()),
+	m_lvLegend(new QListView()),
+	m_cmpDetailsWidget(comparisonDetailsWidget),
+	m_cmpDetailsLabel(new QLabel()),
+	m_labelItemModel(new QStandardItemModel()),
+	m_showingClusterRepresentative(true),
 	m_nullImage(nullImage),
 	m_modalities(modalities),
+	m_representativeType(representativeType),
 	m_magicLensCurrentModality(0),
 	m_magicLensCurrentComponent(0),
-	m_representativeType(representativeType),
-	m_nextChannelID(0),
 	m_magicLensEnabled(false),
 	m_magicLensCount(1),
-	m_labelItemModel(new QStandardItemModel()),
-	m_MouseButtonDown(false),
+	m_colorTheme(nullptr),
+	m_nextChannelID(0),
 	m_resultFilterTriggerThread(nullptr),
-	m_correctnessUncertaintyOverlayEnabled(false),
-	m_cmpDetailsWidget(comparisonDetailsWidget)
+	m_MouseButtonDown(false),
+	m_correctnessUncertaintyOverlayEnabled(false)
 {
 	m_pbLike->setContentsMargins(0, 0, 0, 0);
 	m_pbHate->setContentsMargins(0, 0, 0, 0);
@@ -131,7 +137,6 @@ iADetailView::iADetailView(
 	detailSplitter->setOrientation(Qt::Vertical);
 	detailWidgetLayout->addWidget(detailSplitter);
 
-	m_lvLegend = new QListView();
 	m_lvLegend->setModel(m_labelItemModel);
 	detailSplitter->addWidget(m_lvLegend);
 	SetLabelInfo(labelInfo, colorTheme);
@@ -143,7 +148,6 @@ iADetailView::iADetailView(
 	resetResultFilterButton->setMaximumHeight(25);
 	detailSplitter->addWidget(resetResultFilterButton);
 
-	m_detailText = new QTextEdit();
 	m_detailText->setReadOnly(true);
 	m_detailText->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	detailSplitter->addWidget(m_detailText);
@@ -193,7 +197,7 @@ iADetailView::iADetailView(
 	geom.adjust(+1, +1, -1, -1);
 	mainWdgt->setGeometry(geom);
 
-	m_cmpDetailsWidget->layout()->addWidget(m_cmpDetailsLabel = new QLabel());
+	m_cmpDetailsWidget->layout()->addWidget(m_cmpDetailsLabel);
 	m_cmpDetailsLabel->setWordWrap(true);
 
 	// prevWdgt->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

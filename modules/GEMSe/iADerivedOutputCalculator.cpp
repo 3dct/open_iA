@@ -79,7 +79,7 @@ void iADerivedOutputCalculator::run()
 
 		if (m_result->ProbabilityAvailable())
 		{
-			typedef itk::ImageRegionConstIterator<ProbabilityImageType> ConstDblIt;
+			//typedef itk::ImageRegionConstIterator<ProbabilityImageType> ConstDblIt;
 			typedef iAEntropyImageFilter<ProbabilityImageType, ProbabilityImageType> EntropyFilter;
 			auto entropyFilter = EntropyFilter::New();
 			for (int i = 0; i < m_labelCount; ++i)

@@ -105,8 +105,8 @@ class DiagonalMatrix
 {
 public:
 	DiagonalMatrix(int side):
-		m_storageSize(triangularNumber(side)),
 		m_side(side),
+		m_storageSize(triangularNumber(side)),
 		m_values(new ValueType[m_storageSize])
 	{
 		for (int i=0; i<m_storageSize; ++i)

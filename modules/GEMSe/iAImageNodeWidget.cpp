@@ -196,12 +196,11 @@ void iAImageNodeWidget::paintEvent(QPaintEvent * e)
 		m_infoLabel->setText(QString::number(m_cluster->GetClusterSize()));
 	}
 	QWidget::paintEvent(e);
+	/*
 	QPainter p(this);
 	QRect g(geometry());
-	/*
 	p.fillRect(g, QColor(230, 230, 230));
 	*/
-
 }
 
 void iAImageNodeWidget::mouseReleaseEvent(QMouseEvent * ev)

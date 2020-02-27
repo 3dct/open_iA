@@ -52,8 +52,8 @@
 dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
 	m_itemModel(new QStandardItemModel()),
 	m_colorTheme(colorTheme),
-	m_mdiChild(mdiChild),
 	m_maxColor(0),
+	m_mdiChild(mdiChild),
 	m_labelChannelID(mdiChild->createChannel())
 {
 	connect(pbAdd, SIGNAL(clicked()), this, SLOT(Add()));

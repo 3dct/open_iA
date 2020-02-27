@@ -57,13 +57,15 @@ dlg_GEMSe::dlg_GEMSe(
 	iALogger * logger,
 	iAColorTheme const * colorTheme)
 :
-	m_selectedLeaf(nullptr),
 	dlg_GEMSeUI(parent),
+	m_selectedLeaf(nullptr),
 	m_treeView(nullptr),
 	m_detailView(nullptr),
 	m_exampleView(nullptr),
 	m_cameraWidget(nullptr),
 	m_favoriteWidget(nullptr),
+	m_histogramContainer(nullptr),
+	m_scatterplot(nullptr),
 	m_probingWidget(nullptr),
 	m_colorTheme(colorTheme),
 	m_logger(logger),

@@ -27,9 +27,9 @@
 #include <iAToolsITK.h>
 
 iAImageTreeLeaf::iAImageTreeLeaf(QSharedPointer<iASingleResult> img, int labelCount) :
-	m_singleResult(img),
 	m_filtered(false),
-	m_labelCount(labelCount)
+	m_labelCount(labelCount),
+	m_singleResult(img)
 {
 }
 
@@ -54,7 +54,7 @@ void iAImageTreeLeaf::GetExampleImages(QVector<iAImageTreeLeaf *> & result, int 
 }
 
 
-ClusterImageType const iAImageTreeLeaf::GetRepresentativeImage(int /*type*/, LabelImagePointer refImg) const
+ClusterImageType const iAImageTreeLeaf::GetRepresentativeImage(int /*type*/, LabelImagePointer /*refImg*/) const
 {
 	if (m_filtered)
 	{

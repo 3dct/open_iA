@@ -65,23 +65,22 @@ iAImageSampler::iAImageSampler(
 	m_sampleGenerator(sampleGenerator),
 	m_sampleCount(sampleCount),
 	m_labelCount(labelCount),
-	m_curLoop(0),
-	m_parameterSets(0),
 	m_executable(computationExecutable),
 	m_additionalArguments(additionalArguments),
-	m_pipelineName(pipelineName),
 	m_outputBaseDir(outputBaseDir),
-	m_aborted(false),
+	m_pipelineName(pipelineName),
 	m_parameterRangeFile(parameterRangeFile),
 	m_parameterSetFile  (parameterSetFile),
 	m_derivedOutputFile (derivedOutputFile),
-	m_runningOperations(0),
-	m_computationDuration(0),
-	m_derivedOutputDuration(0),
-	m_samplingID(samplingID),
 	m_imageBaseName(imageBaseName),
 	m_separateOutputDir(separateOutputDir),
-	m_calculateCharacteristics(calculateChar)
+	m_calculateCharacteristics(calculateChar),
+	m_curLoop(0),
+	m_aborted(false),
+	m_computationDuration(0),
+	m_derivedOutputDuration(0),
+	m_runningOperations(0),
+	m_samplingID(samplingID)
 {
 }
 
@@ -187,6 +186,7 @@ void iAImageSampler::run()
 			QString value;
 			switch (m_parameters->at(i)->valueType())
 			{
+			default:
 			case Continuous:
 				value = QString::number(paramSet.at(i), 'g', 12);
 				break;

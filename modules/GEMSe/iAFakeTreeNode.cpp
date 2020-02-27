@@ -51,7 +51,7 @@ double iAFakeTreeNode::GetAttribute(int) const
 	return 0;
 }
 
- ClusterImageType const iAFakeTreeNode::GetRepresentativeImage(int /*type*/, LabelImagePointer refImg) const
+ ClusterImageType const iAFakeTreeNode::GetRepresentativeImage(int /*type*/, LabelImagePointer /*refImg*/) const
 {
 	return m_img;
 }

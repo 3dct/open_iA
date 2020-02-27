@@ -79,6 +79,7 @@ public:
 		Hated
 	};
 	iAImageTreeNode();
+	virtual ~iAImageTreeNode();
 	virtual int GetChildCount() const = 0;
 	virtual int GetClusterSize() const = 0;
 	virtual int GetFilteredSize() const = 0;

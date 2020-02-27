@@ -32,16 +32,15 @@
 #include <QPainter>
 
 iAImageTreeView::iAImageTreeView(
-	QWidget* parent,
-	QSharedPointer<iAImageTree > tree,
-	iAPreviewWidgetPool * previewPool,
-	int representativeType)
-:
+		QWidget* parent,
+		QSharedPointer<iAImageTree > tree,
+		iAPreviewWidgetPool * previewPool,
+		int representativeType):
 	QWidget(parent),
-	m_imageTree(tree),
 	m_highlightSubtree(false),
-	m_previewPool(previewPool),
+	m_imageTree(tree),
 	m_autoShrink(true),
+	m_previewPool(previewPool),
 	m_iconSize(TreePreviewSize),
 	m_representativeType(representativeType)
 {
