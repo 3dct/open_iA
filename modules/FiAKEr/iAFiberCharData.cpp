@@ -211,6 +211,11 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		iAFiberCharData curData;
 		curData.table = tableCreator.table();
 		curData.fiberCount = curData.table->GetNumberOfRows();
+		if (curData.fiberCount > std::numeric_limits<int>::max())
+		{
+			DEBUG_LOG(QString("Large number of objects (%1) detected - currently only up to %2 objects are supported!")
+				.arg(curData.fiberCount).arg(std::numeric_limits<int>::max()));
+		}
 		curData.mapping = io.getOutputMapping();
 		curData.fileName = csvFile;
 		if (curData.fiberCount < minFiberCount)

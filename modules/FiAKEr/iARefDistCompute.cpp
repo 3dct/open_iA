@@ -222,7 +222,7 @@ void iARefDistCompute::run()
 		{
 			if (d.stepData == iAFiberCharData::SimpleStepData)
 			{
-				iARefDistCompute::ContainerSizeType stepCount = d.stepValues.size();
+				iARefDistCompute::ContainerSizeType stepCount = static_cast<int>(d.stepValues.size());
 				auto & diffs = d.refDiffFiber[fiberID].diff;
 				diffs.resize(iAFiberCharData::FiberValueCount+SimilarityMeasureCount);
 				for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
@@ -278,7 +278,7 @@ void iARefDistCompute::run()
 				size_t tableColumnID = m_data->spmData->numParams() -
 					(iAFiberCharData::FiberValueCount + SimilarityMeasureCount + EndColumns) + diffID;
 				double lastValue = (d.stepData == iAFiberCharData::SimpleStepData) ?
-						diffData.diff[diffID].step[d.stepValues.size() - 1] : 0;
+						diffData.diff[diffID].step[static_cast<int>(d.stepValues.size() - 1)] : 0;
 				if (std::isnan(lastValue))
 				{
 					lastValue = 0;
@@ -325,11 +325,11 @@ void iARefDistCompute::run()
 		}
 		//size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns();
 		addColumn(m_data->result[m_referenceID].table, 0, "AvgSimilarity", ref.fiberCount);
-		m_data->avgRefFiberMatch.resize(ref.fiberCount);
+		m_data->avgRefFiberMatch.resize(static_cast<int>(ref.fiberCount));
 		for (size_t fiberID = 0; fiberID < ref.fiberCount; ++fiberID)
 		{
 			double value = (refMatchCount[fiberID] == 0) ? -1 : refDistSum[fiberID] / refMatchCount[fiberID];
-			m_data->avgRefFiberMatch[fiberID] = value;
+			m_data->avgRefFiberMatch[static_cast<int>(fiberID)] = value;
 		}
 		m_progress.setStatus("Computing average differences/similarities for each result.");
 		iARefDistCompute::ContainerSizeType diffCount = iAFiberCharData::FiberValueCount + SimilarityMeasureCount;
@@ -379,9 +379,8 @@ void iARefDistCompute::run()
 	}
 
 	size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns() -1 ;
-	for (size_t fiberID = 0; fiberID < ref.fiberCount; ++fiberID)
+	for (int fiberID = 0; fiberID < static_cast<int>(ref.fiberCount); ++fiberID)
 	{
-
 		m_data->result[m_referenceID].table->SetValue(fiberID, colID, m_data->avgRefFiberMatch[fiberID]);
 		//DEBUG_LOG(QString("Fiber %1: matches=%2, similarity sum=%3, average=%4")
 		//	.arg(fiberID).arg(refDistSum[fiberID]).arg(refMatchCount[fiberID]).arg(value));
