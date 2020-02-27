@@ -38,7 +38,7 @@ struct Key
 		}
 
 		bool _equal = true;
-		for (int j = 0; j < _size; j++)
+		for (unsigned int j = 0; j < _size; j++)
 		{
 			if (indizes[j] != other.indizes[j])
 			{
@@ -64,7 +64,8 @@ namespace std {
 			// and bit shifting:
 
 			size_t retVal = 0;
-			for (int j = 0; j < k._size; j++) {
+			for (unsigned int j = 0; j < k._size; j++)
+			{
 				retVal = retVal * 31 + (hash<int>()(k.indizes[j]));
 			}
 

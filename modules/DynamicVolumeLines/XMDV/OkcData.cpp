@@ -1,34 +1,33 @@
 #include "OkcData.h"
 
- #include <QtWidgets/QMessageBox>
-#include <QFileInfo>
-#include <cstring>
-
 //#include "main/XmdvTool.h"
 #include "multidim/OkcDataModifierManager.h"
 //#include "data/storage/CardStorage.h"
 #include "util/exception/ReadOkcException.h"
 
-#include <cstdio>//remove
-#include <sys/stat.h>// get file info
-#include <ctime>
-#include <iostream>
-#include <string>
+//#include <QtWidgets/QMessageBox>
+//#include <QFileInfo>
+
+//#include <cstdio>//remove
+//#include <sys/stat.h>// get file info
+//#include <ctime>
+//#include <iostream>
+//#include <string>
 #include <cassert>
-using namespace std;
 
-
-OkcData::OkcData() {
+OkcData::OkcData()
+{
 	data_size = 0;
 	dims = 0;
-	data_buf = new std::vector<double>();
+	m_data_buf = new std::vector<double>();
 	// Initialize the filename to a null string
 	filepath[0] = 0;
 	filename[0] = 0;
 	m_okcDataModifierManager = new OkcDataModifierManager(this);
 }
 
-OkcData::OkcData(OkcData* okcdata) {
+OkcData::OkcData(OkcData* okcdata)
+{
 	m_okcDataModifierManager = new OkcDataModifierManager();
 	copyFrom(okcdata);
 }
@@ -40,17 +39,19 @@ OkcData::~OkcData()
 	{
 		SAFE_DELETE_ARR(names[i]);
 	}
-	if (isBaseOkcData()) {
-		SAFE_DELETE(data_buf);
+	if (isBaseOkcData())
+	{
+		SAFE_DELETE(m_data_buf);
 	}
 
 	SAFE_DELETE(m_okcDataModifierManager);
 }
 
-void OkcData::copyFrom(const OkcData* okcData){
+void OkcData::copyFrom(const OkcData* okcData)
+{
 	this->data_size = okcData->data_size;
 	this->dims = okcData->dims;
-	this->data_buf = okcData->data_buf;
+	m_data_buf = okcData->m_data_buf;
 	setBaseFlag(false);
 	if (this->dims>0) {
 		dim_min.resize(this->dims);
@@ -78,16 +79,19 @@ void OkcData::copyFrom(const OkcData* okcData){
 	*m_okcDataModifierManager = *(okcData->m_okcDataModifierManager);
 }
 
-void OkcData::copyDataBufFrom(const OkcData* okcData) {
-	if (isBaseOkcData()) {
-		delete data_buf;
+void OkcData::copyDataBufFrom(const OkcData* okcData)
+{
+	if (isBaseOkcData())
+	{
+		delete m_data_buf;
 	}
-	data_buf = new std::vector<double>();
-	*(data_buf) = *(okcData->data_buf);
+	m_data_buf = new std::vector<double>();
+	*(m_data_buf) = *(okcData->m_data_buf);
 	setBaseFlag(true);
 }
 
-QStringList OkcData::toStringList() {
+QStringList OkcData::toStringList()
+{
 	QStringList result;
 	result << "Multi-dimensional Dataset:";
 	result << QString("-- File name : %1").arg( QString(filename) );
@@ -144,7 +148,7 @@ bool OkcData::read(const char *fname){
 	if(ext==".okc"){
 		OkcData::ReadOkcResult result = readOKC(fname);
 		if ( result.success && result.outOfRange ) {
-	        QMessageBox::critical(0, QString("Values Out of Range!"),
+			QMessageBox::critical(0, QString("Values Out of Range!"),
 					QString("The file %1 has been read successfully, "
 							"but some values are out of range.  "
 							"XmdvTool has adjusted the ranges specified in Okc data "
@@ -166,9 +170,12 @@ bool OkcData::read(const char *fname){
 // count the number of appearing of one substing in the string
 int OkcData::strstr_cnt(const char *string, const char *substring) {
 	int i, j, k, count = 0;
-	for (i = 0; string[i]; i++) {
-		for (j = i, k = 0; (string[j] == substring[k] && (j < (int)strlen(string))); j++, k++) {
-			if (!substring[k + 1]) {
+	for (i = 0; string[i]; i++)
+	{
+		for (j = i, k = 0; (string[j] == substring[k] && (j < (int)strlen(string))); j++, k++)
+		{
+			if (!substring[k + 1])
+			{
 				count++;
 			}
 		}
@@ -179,55 +186,64 @@ int OkcData::strstr_cnt(const char *string, const char *substring) {
 
 // get the position of a substring in a string
 int OkcData::substring_index(const char *s1,const char *s2, int pos){
-    int i,j,k;
-    for( i = pos ; s1[i] ; i++ ) {
-        for( j = i, k = 0 ; s1[j] == s2[k]; j++,k++ ){
-            if (! s2[k + 1]) {
-                return i;
-            }
-        }
-    }
-    return -1;
+	int i,j,k;
+	for( i = pos ; s1[i] ; i++ )
+	{
+		for( j = i, k = 0 ; s1[j] == s2[k]; j++,k++ )
+		{
+			if (! s2[k + 1])
+			{
+				return i;
+			}
+		}
+	}
+	return -1;
 }
 
 
 char* OkcData::fgetcsvline(vector<string> &csv_databuf, FILE *fhead) {
-    char  *ret_stat;
-    char  data_buf[1024];
-    string stringbuf;
-    ret_stat = fgets( data_buf, 1024, fhead );
+	char  *ret_stat;
+	char  data_buf[1024];
+	string stringbuf;
+	ret_stat = fgets( data_buf, 1024, fhead );
 
-    if (ret_stat != nullptr) {
-        int len = strstr_cnt(data_buf,",");
-        if (len > 0){
-            int pos = substring_index(data_buf,",",0);
-            int startpos = 0;
-            string csv_buf;
-            while (pos > 0) {
-                stringbuf = (string)data_buf;
-                csv_buf = stringbuf.substr(startpos, pos - startpos);
-                char* name_ = new char[csv_buf.length() + 4];
-                strcpy(name_, csv_buf.c_str());
-                //printf("%s \n", csv_buf);
-                csv_databuf.push_back(csv_buf);
-                startpos = pos + 1;
-                pos = substring_index(data_buf,",",pos+1);
-                SAFE_DELETE(name_);
-            }
-            if ((substring_index(data_buf, "\n", 0)) > 0) {
-            	int length = stringbuf.length();
+	if (ret_stat != nullptr)
+	{
+		int len = strstr_cnt(data_buf,",");
+		if (len > 0)
+		{
+			int pos = substring_index(data_buf,",",0);
+			int startpos = 0;
+			string csv_buf;
+			while (pos > 0)
+			{
+				stringbuf = (string)data_buf;
+				csv_buf = stringbuf.substr(startpos, pos - startpos);
+				char* name_ = new char[csv_buf.length() + 4];    // name is as assigned but never read?
+				strcpy(name_, csv_buf.c_str());
+				//printf("%s \n", csv_buf);
+				csv_databuf.push_back(csv_buf);
+				startpos = pos + 1;
+				pos = substring_index(data_buf,",",pos+1);
+				SAFE_DELETE(name_);
+			}
+			if ((substring_index(data_buf, "\n", 0)) > 0)
+			{
+				size_t length = stringbuf.length();
 				csv_buf = stringbuf.substr(startpos, length - startpos - 1);
-				char* name_ = new char[csv_buf.length() + 4];
+				char* name_ = new char[csv_buf.length() + 4];    // name is as assigned but never read?
 				strcpy(name_, csv_buf.c_str());
 				SAFE_DELETE(name_);
-			} else {
+			}
+			else
+			{
 				csv_buf = stringbuf.substr(startpos, stringbuf.length()- startpos - 1);
 			}
-            csv_databuf.push_back(csv_buf);
-        }
-    }
+			csv_databuf.push_back(csv_buf);
+		}
+	}
 
-    return ret_stat;
+	return ret_stat;
 }
 /*
 bool OkcData::readCSV(const char *fname){
@@ -713,7 +729,7 @@ void OkcData::GetDimensionData(std::vector<double> &data, int dimIdx){
 	data.resize(data_size);
 
 	for (i = 0; i < data_size; i++)
-		data[i] = (*data_buf)[ i * dims + dimIdx];
+		data[i] = (*m_data_buf)[ i * dims + dimIdx];
 }
 
 void OkcData::getData(std::vector<double> &buf, int line)
@@ -728,7 +744,7 @@ void OkcData::getData(std::vector<double> &buf, int line)
 	int origLine = m_okcDataModifierManager->getOrigLine(line);
 	int base = dims * origLine;
 	for (i = 0; i < dims; i++)
-		temp_buf[i] = (*data_buf)[base + i];
+		temp_buf[i] = (*m_data_buf)[base + i];
 	m_okcDataModifierManager->mapData(temp_buf, buf);
 }
 
@@ -746,14 +762,14 @@ void OkcData::getOrigData(std::vector<double> &data, int line) {
 	data.resize(dims);
 	int base = dims *line;
 	for (i = 0; i < dims; i++)
-		data[i] = (*data_buf)[base + i];
+		data[i] = (*m_data_buf)[base + i];
 }
 
 void OkcData::setOrigData(std::vector<double> &data, int line) {
 	assert( (int)data.size() == dims );
 	int i, base = dims *line;
 	for (i = 0; i < dims; i++)
-		(*data_buf)[base + i] = data[i];
+		(*m_data_buf)[base + i] = data[i];
 }
 
 
@@ -812,7 +828,7 @@ OkcDataModifierManager* OkcData::getOkcDataModifierManager() {
 
 double OkcData::getSingleDataAttribute(int line, int dimIdx){
 	int base = dims *line;
-	return (*data_buf)[base + dimIdx];
+	return (*m_data_buf)[base + dimIdx];
 }
 
 //void OkcData::updateCardinalityByStorage(CardStorage* storage) {
