@@ -37,16 +37,16 @@ class open_iA_Core_API iAVolumeStack
 	public:
 		~iAVolumeStack();
 
-		vtkImageData* volume(int i);
+		vtkImageData* volume(size_t i);
 		void addVolume(vtkImageData* volume);
 		void addFileName(QString fileName);
-		QString fileName(int i);
+		QString fileName(size_t i);
 		size_t numberOfVolumes();
-		void addVolumeAt(vtkImageData* volume, int i);
+		void addVolumeAt(vtkImageData* volume, size_t i);
 		void addColorTransferFunction(vtkColorTransferFunction* instance);
 		void addPiecewiseFunction(vtkPiecewiseFunction* instance);
-		vtkColorTransferFunction* colorTF(int i);
-		vtkPiecewiseFunction* opacityTF(int i);
+		vtkColorTransferFunction* colorTF(size_t i);
+		vtkPiecewiseFunction* opacityTF(size_t i);
 		std::vector<vtkSmartPointer<vtkImageData> > * volumes();
 		std::vector<QString> * fileNames();
 
