@@ -42,7 +42,7 @@ iA3DObjectVis::iA3DObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPoi
 iA3DObjectVis::~iA3DObjectVis()
 {}
 
-QColor iA3DObjectVis::getOrientationColor( vtkImageData* oi, size_t objID ) const
+QColor iA3DObjectVis::getOrientationColor( vtkImageData* oi, IndexType objID ) const
 {
 	int ip = qFloor( m_objectTable->GetValue( objID, m_columnMapping->value(iACsvConfig::Phi) ).ToDouble() );
 	int it = qFloor( m_objectTable->GetValue( objID, m_columnMapping->value(iACsvConfig::Theta) ).ToDouble() );
@@ -50,7 +50,7 @@ QColor iA3DObjectVis::getOrientationColor( vtkImageData* oi, size_t objID ) cons
 	return QColor(p[0]*255, p[1]*255, p[2]*255, 255);
 }
 
-QColor iA3DObjectVis::getLengthColor( vtkColorTransferFunction* cTFun, size_t objID ) const
+QColor iA3DObjectVis::getLengthColor( vtkColorTransferFunction* cTFun, IndexType objID ) const
 {
 	double length = m_objectTable->GetValue( objID, m_columnMapping->value(iACsvConfig::Length) ).ToDouble();
 	double dcolor[3];

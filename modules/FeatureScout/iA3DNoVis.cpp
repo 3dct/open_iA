@@ -29,7 +29,7 @@ iA3DNoVis::iA3DNoVis():iA3DObjectVis(nullptr, nullptr, QSharedPointer<QMap<uint,
 void iA3DNoVis::renderSelection(std::vector<size_t> const & /*sortedSelInds*/, int /*classID*/, QColor const & /*classColor*/, QStandardItem* /*activeClassItem*/)
 {}
 
-void iA3DNoVis::renderSingle(int /*labelID*/, int /*classID*/, QColor const & /*classColor*/, QStandardItem* /*activeClassItem*/)
+void iA3DNoVis::renderSingle(IndexType /*selectedObjID*/, int /*classID*/, QColor const & /*classColor*/, QStandardItem* /*activeClassItem*/)
 {}
 
 void iA3DNoVis::multiClassRendering(QList<QColor> const & /*classColors*/, QStandardItem* /*rootItem*/, double /*alpha*/)

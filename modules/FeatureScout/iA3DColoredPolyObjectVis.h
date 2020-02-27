@@ -44,7 +44,7 @@ public:
 	void show() override;
 	void hide();
 	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem) override;
-	void renderSingle(int labelID, int classID, QColor const & classColors, QStandardItem* activeClassItem) override;
+	void renderSingle(IndexType selectedObjID, int classID, QColor const & classColors, QStandardItem* activeClassItem) override;
 	void multiClassRendering(QList<QColor> const & colors, QStandardItem* rootItem, double alpha) override;
 	void renderOrientationDistribution(vtkImageData* oi) override;
 	void renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range) override;
@@ -85,7 +85,7 @@ protected:
 	//! Set an object to a specified color.
 	//! @param objIdx index of the object.
 	//! @param qcolor new color of the object.
-	void setObjectColor(int objIdx, QColor const & qcolor);
+	void setObjectColor(IndexType objIdx, QColor const & qcolor);
 	//! Triggers an update of the color mapper and the renderer.
 	void updatePolyMapper();
 	//! Prepare the filters providing the bounding box.
@@ -98,14 +98,14 @@ protected:
 	//! Get the index of the first point of a given object.
 	//! @param objIdx the index of the object.
 	//! @return the index of the first point in the object.
-	virtual int objectStartPointIdx(int objIdx) const;
+	virtual IndexType objectStartPointIdx(IndexType objIdx) const;
 	//! Get the number of points representing a given object.
 	//! @param objIdx the index of the object.
 	//! @return the number of points in the object.
-	virtual int objectPointCount(int objIdx) const;
+	virtual IndexType objectPointCount(IndexType objIdx) const;
 	//! Get the number of points in all objects.
 	//! @return the number of points in all objects, i.e. the sum of objectPointCount over all object indices.
-	size_t allPointCount() const;
+	IndexType allPointCount() const;
 
 	//! Updates the renderer; but only if the own actor is actually shown.
 	void updateRenderer() override;
@@ -113,8 +113,8 @@ protected:
 private:
 
 	QSharedPointer<iALookupTable> m_lut;
-	size_t m_colorParamIdx;
+	IndexType m_colorParamIdx;
 	bool m_selectionActive;
 
-	const int DefaultPointsPerObject = 2;
+	const IndexType DefaultPointsPerObject = 2;
 };

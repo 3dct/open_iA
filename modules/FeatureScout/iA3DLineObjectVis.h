@@ -38,13 +38,13 @@ public:
 	vtkPolyData* getPolyData() override;
 	QString visualizationStatistics() const override;
 protected:
-	int objectStartPointIdx(int objIdx) const override;
-	int objectPointCount(int objIdx) const override;
+	IndexType objectStartPointIdx(IndexType objIdx) const override;
+	IndexType objectPointCount(IndexType objIdx) const override;
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPoints> m_points;
 private:
 	//! maps the object ID to (first=) the first index in the points array that belongs to this object, and (second=) the number of points
-	std::vector<std::pair<size_t, size_t>> m_objectPointMap;
-	size_t m_totalNumOfSegments;
+	std::vector<std::pair<IndexType, IndexType>> m_objectPointMap;
+	IndexType m_totalNumOfSegments;
 };
 

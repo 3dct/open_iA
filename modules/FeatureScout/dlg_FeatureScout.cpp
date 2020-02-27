@@ -786,11 +786,11 @@ void dlg_FeatureScout::MultiClassRendering()
 	m_3dvis->multiClassRendering( m_colorList, rootItem, alpha );
 }
 
-void dlg_FeatureScout::SingleRendering( int labelID )
+void dlg_FeatureScout::SingleRendering(int objectID)
 {
 	int cID = activeClassItem->index().row();
 	QColor classColor = m_colorList.at(cID);
-	m_3dvis->renderSingle( labelID, cID, classColor, activeClassItem );
+	m_3dvis->renderSingle(objectID, cID, classColor, activeClassItem );
 }
 
 void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
@@ -1113,13 +1113,13 @@ void dlg_FeatureScout::RenderMeanObject()
 	meanObjectWidget->GetRenderWindow()->GetRenderers()->RemoveAllItems();
 
 	// Define viewport variables
-	unsigned numberOfMeanObjectVolumes = m_MOData.moVolumesList.size();
-	float viewportColumns = numberOfMeanObjectVolumes < 3.0 ? fmod( numberOfMeanObjectVolumes, 3.0 ) : 3.0;
+	int numberOfMeanObjectVolumes = m_MOData.moVolumesList.size();
+	float viewportColumns = numberOfMeanObjectVolumes < 3 ? fmod( numberOfMeanObjectVolumes, 3.0 ) : 3.0;
 	float viewportRows = ceil( numberOfMeanObjectVolumes / viewportColumns );
 	float fieldLengthX = 1.0 / viewportColumns, fieldLengthY = 1.0 / viewportRows;
-
+	int numOfViewPorts = static_cast<int>(viewportColumns* viewportRows);
 	// Set up viewports
-	for ( unsigned i = 0; i < viewportColumns * viewportRows; ++i )
+	for (int i = 0; i < numOfViewPorts; ++i)
 	{
 		auto renderer = vtkSmartPointer<vtkRenderer>::New();
 		m_MOData.moRendererList.append( renderer );
@@ -2691,8 +2691,8 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 
 		// update elementTableView
 		this->initElementTableModel( sID );
-		int labelID = item->text().toInt();
-		this->SingleRendering(labelID);
+		int objectID = item->text().toInt();
+		this->SingleRendering(objectID);
 		elementTableView->update();
 
 		// update SPLOM selection

@@ -100,7 +100,7 @@ void iA3DCylinderObjectVis::setContextDiameterFactor(double contextDiameterFacto
 		size_t selIdx = 0;
 		for (vtkIdType row = 0; row < m_objectCount; ++row)
 		{
-			bool isSelected = selIdx < m_selection.size() && (m_selection[selIdx] == row);
+			bool isSelected = selIdx < m_selection.size() && (m_selection[selIdx] == static_cast<size_t>(row));
 			if (isSelected)
 			{
 				++selIdx;

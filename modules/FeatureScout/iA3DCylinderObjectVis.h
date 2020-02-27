@@ -30,7 +30,7 @@ private:
 	double m_diameterFactor = 1;
 	vtkSmartPointer<iAvtkTubeFilter> m_tubeFilter;
 	float* m_contextFactors;
-	size_t m_objectCount;
+	IndexType m_objectCount;
 	float m_contextDiameterFactor;
 	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberData;
 	bool m_lines;

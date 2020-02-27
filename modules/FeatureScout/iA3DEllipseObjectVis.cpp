@@ -82,12 +82,12 @@ QString iA3DEllipseObjectVis::visualizationStatistics() const
 		.arg(m_fullPoly->GetNumberOfPoints());
 }
 
-int iA3DEllipseObjectVis::objectStartPointIdx(int objIdx) const
+iA3DColoredPolyObjectVis::IndexType iA3DEllipseObjectVis::objectStartPointIdx(IndexType objIdx) const
 {
 	return objIdx * m_pointsPerEllipse;
 }
 
-int iA3DEllipseObjectVis::objectPointCount(int /*objIdx*/) const
+iA3DColoredPolyObjectVis::IndexType iA3DEllipseObjectVis::objectPointCount(IndexType /*objIdx*/) const
 {
 	return m_pointsPerEllipse;
 }

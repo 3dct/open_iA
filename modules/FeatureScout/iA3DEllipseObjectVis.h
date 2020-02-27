@@ -38,7 +38,7 @@ public:
 	QString visualizationStatistics() const override;
 private:
 	vtkSmartPointer<vtkPolyData> m_fullPoly;
-	int m_pointsPerEllipse;
-	int objectStartPointIdx(int objIdx) const override;
-	int objectPointCount(int objIdx) const override;
+	IndexType m_pointsPerEllipse;
+	IndexType objectStartPointIdx(IndexType objIdx) const override;
+	IndexType objectPointCount(IndexType objIdx) const override;
 };

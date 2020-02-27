@@ -39,7 +39,6 @@
 namespace
 {
 	const int TransparentAlpha = 32;
-	const size_t NoPointIdx = std::numeric_limits<size_t>::max();
 }
 
 iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
@@ -96,7 +95,7 @@ void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sorte
 {
 	QColor BackColor(128, 128, 128, 0);
 	int currentObjectIndexInSelection = 0;
-	size_t curSelObjID = NoPointIdx;
+	IndexType curSelObjID = -1;
 	QColor classColor(constClassColor);
 	if (sortedSelInds.size() > 0)
 	{
@@ -107,7 +106,7 @@ void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sorte
 	{
 		classColor.setAlpha(255);
 	}
-	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
 	{
 		int curClassID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
 		QColor curColor = (objID == curSelObjID) ?
@@ -128,25 +127,25 @@ void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sorte
 	updatePolyMapper();
 }
 
-void iA3DColoredPolyObjectVis::renderSingle(int labelID, int classID, QColor const & constClassColor, QStandardItem* /*activeClassItem*/)
+void iA3DColoredPolyObjectVis::renderSingle(IndexType selectedObjID, int classID, QColor const & constClassColor, QStandardItem* /*activeClassItem*/)
 {
 	QColor classColor(constClassColor);
 	QColor nonClassColor = QColor(0, 0, 0, 0);
-	if (labelID > 0)
+	if (selectedObjID > 0)
 	{
 		classColor.setAlpha(TransparentAlpha);
 	}
-	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
 	{
 		int curClassID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
-		setObjectColor(objID, (labelID > 0 && objID + 1 == labelID) ? SelectedColor : (curClassID == classID) ? classColor : nonClassColor);
+		setObjectColor(objID, (selectedObjID > 0 && objID + 1 == selectedObjID) ? SelectedColor : (curClassID == classID) ? classColor : nonClassColor);
 	}
 	updatePolyMapper();
 }
 
 void iA3DColoredPolyObjectVis::multiClassRendering(QList<QColor> const & classColors, QStandardItem* /*rootItem*/, double /*alpha*/)
 {
-	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
 	{
 		int classID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
 		setObjectColor(objID, classColors.at(classID));
@@ -156,7 +155,7 @@ void iA3DColoredPolyObjectVis::multiClassRendering(QList<QColor> const & classCo
 
 void iA3DColoredPolyObjectVis::renderOrientationDistribution(vtkImageData* oi)
 {
-	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
 	{
 		QColor color = getOrientationColor(oi, objID);
 		setObjectColor(objID, color);
@@ -166,7 +165,7 @@ void iA3DColoredPolyObjectVis::renderOrientationDistribution(vtkImageData* oi)
 
 void iA3DColoredPolyObjectVis::renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* /*extents*/, double /*halfInc*/, int /*filterID*/, double const * /*range*/)
 {
-	for (int objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
 	{
 		QColor color = getLengthColor(ctFun, objID);
 		setObjectColor(objID, color);
@@ -174,7 +173,7 @@ void iA3DColoredPolyObjectVis::renderLengthDistribution(vtkColorTransferFunction
 	updatePolyMapper();
 }
 
-void iA3DColoredPolyObjectVis::setObjectColor(int objIdx, QColor const & qcolor)
+void iA3DColoredPolyObjectVis::setObjectColor(IndexType objIdx, QColor const & qcolor)
 {
 	unsigned char color[4];
 	color[0] = qcolor.red();
@@ -183,7 +182,7 @@ void iA3DColoredPolyObjectVis::setObjectColor(int objIdx, QColor const & qcolor)
 	color[3] = qcolor.alpha();
 	for (int c = 0; c < 4; ++c)
 	{
-		for (size_t p = 0; p < objectPointCount(objIdx); ++p)
+		for (IndexType p = 0; p < objectPointCount(objIdx); ++p)
 		{
 			m_colors->SetComponent(objectStartPointIdx(objIdx) + p, c, color[c]);
 		}
@@ -314,7 +313,7 @@ void iA3DColoredPolyObjectVis::setLookupTable(QSharedPointer<iALookupTable> lut,
 void iA3DColoredPolyObjectVis::updateColorSelectionRendering()
 {
 	size_t curSelIdx = 0;
-	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
 	{
 		QColor color = m_baseColor;
 		if (m_lut)
@@ -324,7 +323,7 @@ void iA3DColoredPolyObjectVis::updateColorSelectionRendering()
 		}
 		if (m_selectionActive)
 		{
-			if (curSelIdx < m_selection.size() && objID == m_selection[curSelIdx])
+			if (curSelIdx < m_selection.size() && static_cast<size_t>(objID) == m_selection[curSelIdx])
 			{
 				color.setAlpha(m_selectionAlpha);
 				++curSelIdx;
@@ -362,20 +361,20 @@ void iA3DColoredPolyObjectVis::removeClippingPlanes()
 	m_clippingPlanesEnabled = false;
 }
 
-int iA3DColoredPolyObjectVis::objectPointCount(int /*ptIdx*/) const
+iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::objectPointCount(IndexType /*ptIdx*/) const
 {
 	return DefaultPointsPerObject;
 }
 
-int iA3DColoredPolyObjectVis::objectStartPointIdx(int ptIdx) const
+iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::objectStartPointIdx(IndexType ptIdx) const
 {
 	return ptIdx * DefaultPointsPerObject;
 }
 
-size_t iA3DColoredPolyObjectVis::allPointCount() const
+iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::allPointCount() const
 {
-	size_t pointCount = 0;
-	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	IndexType pointCount = 0;
+	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
 	{
 		pointCount += objectPointCount(objID);
 	}

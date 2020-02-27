@@ -474,12 +474,18 @@ void dlg_CSVInput::showConfigParams()
 		ctblock(cb_ComputeTensors), ccblock(cb_ComputeCenter), chblock(cb_ContainsHeader),
 		cseblock(cb_ComputeStartEnd), cfdblock(cb_FixedDiameter),
 		dsblock(sb_FixedDiameter);
+	if (m_confParams.skipLinesStart > std::numeric_limits<int>::max() ||
+		m_confParams.skipLinesEnd > std::numeric_limits<int>::max() ||
+		m_confParams.segmentSkip > std::numeric_limits<int>::max())
+	{
+		DEBUG_LOG("Skip Line start/end or segment skip number is too high for display in this dialog!");
+	}
 	int index = cmbbox_ObjectType->findText(MapObjectTypeToString(m_confParams.objectType), Qt::MatchContains);
 	cmbbox_ObjectType->setCurrentIndex(index);
 	cmbbox_ColSeparator->setCurrentIndex(ColumnSeparators().indexOf(m_confParams.columnSeparator));
 	cmbbox_DecimalSeparator->setCurrentText(m_confParams.decimalSeparator);
-	ed_SkipLinesStart->setValue(m_confParams.skipLinesStart);
-	ed_SkipLinesEnd->setValue(m_confParams.skipLinesEnd);
+	ed_SkipLinesStart->setValue(static_cast<int>(m_confParams.skipLinesStart));
+	ed_SkipLinesEnd->setValue(static_cast<int>(m_confParams.skipLinesEnd));
 	ed_Spacing->setText(QString("%1").arg(m_confParams.spacing));
 	cmbbox_Unit->setCurrentText(m_confParams.unit);
 	cmbbox_Encoding->setCurrentText(m_confParams.encoding);
@@ -495,7 +501,7 @@ void dlg_CSVInput::showConfigParams()
 	sb_OfsZ->setValue(m_confParams.offset[2]);
 	cmbbox_VisualizeAs->setCurrentText(MapVisType2Str(m_confParams.visType));
 	visualizationTypeChanged(m_confParams.visType);
-	sb_SegmentSkip->setValue(m_confParams.segmentSkip);
+	sb_SegmentSkip->setValue(static_cast<int>(m_confParams.segmentSkip));
 	sb_CylinderQuality->setValue(m_confParams.cylinderQuality);
 	cb_FixedDiameter->setChecked(m_confParams.isDiameterFixed);
 	sb_FixedDiameter->setValue(m_confParams.fixedDiameterValue);

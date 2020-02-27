@@ -179,7 +179,7 @@ private:
 	//void autoAddClass(int NbOfClasses);
 	bool OpenBlobVisDialog();
 	//! @{ 3D-rendering-related methods:
-	void SingleRendering(int idx = -10000);               //!< render a single fiber or a single class
+	void SingleRendering(int objectID = -10000);          //!< render a single object (if objectID > 0) or a single class
 	void MultiClassRendering();                           //!< multi-class rendering
 	void RenderSelection(std::vector<size_t> const & selInds); //!< render a selection (+ the class that contains it)
 	void RenderLengthDistribution();                      //!< render fiber-length distribution

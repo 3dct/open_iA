@@ -43,8 +43,8 @@ iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QS
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
 	{
 		auto it = curvedFiberData.find(row);
-		size_t numberOfPts;
-		size_t totalNumOfPtsBefore = static_cast<size_t>(m_points->GetNumberOfPoints());
+		IndexType numberOfPts;
+		IndexType totalNumOfPtsBefore = m_points->GetNumberOfPoints();
 		if (it != curvedFiberData.end())
 		{
 			auto line = vtkSmartPointer<vtkPolyLine>::New();
@@ -109,7 +109,7 @@ void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & v
 		}
 		else if (straightOrCurved == 2) // CurvedStepData
 		{
-			if (f == 0 && (values[f].size()) / 3 != m_objectPointMap[f].second)
+			if (f == 0 && static_cast<IndexType>(values[f].size()) / 3 != m_objectPointMap[f].second)
 			{
 				DEBUG_LOG(QString("For fiber %1, number of points given "
 					"doesn't match number of existing points; expected %2, got %3. "
@@ -119,7 +119,7 @@ void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & v
 					.arg(m_objectPointMap[f].second)
 					.arg(values[f].size()/3));
 			}
-			int pointCount = std::min( (values[f].size()) / 3, m_objectPointMap[f].second);
+			IndexType pointCount = std::min( static_cast<IndexType>(values[f].size() / 3), m_objectPointMap[f].second);
 			for (int p = 0; p < pointCount; ++p)
 			{
 				m_points->SetPoint(m_objectPointMap[f].first + p, values[f].data() + p * 3);
@@ -139,19 +139,18 @@ vtkPolyData* iA3DLineObjectVis::getPolyData()
 	return m_linePolyData;
 }
 
-
 QString iA3DLineObjectVis::visualizationStatistics() const
 {
 	return QString("# lines: %1; # line segments: %2; # points: %3")
 		.arg(m_linePolyData->GetNumberOfCells()).arg(m_totalNumOfSegments).arg(m_points->GetNumberOfPoints());
 }
 
-int iA3DLineObjectVis::objectStartPointIdx(int objIdx) const
+iA3DColoredPolyObjectVis::IndexType iA3DLineObjectVis::objectStartPointIdx(IndexType objIdx) const
 {
 	return m_objectPointMap[objIdx].first;
 }
 
-int iA3DLineObjectVis::objectPointCount(int objIdx) const
+iA3DColoredPolyObjectVis::IndexType iA3DLineObjectVis::objectPointCount(IndexType objIdx) const
 {
 	return m_objectPointMap[objIdx].second;
 }
