@@ -33,6 +33,7 @@
 class RandomGenerator
 {
 public:
+	virtual ~RandomGenerator() {}
 	virtual double next() =0;
 };
 
