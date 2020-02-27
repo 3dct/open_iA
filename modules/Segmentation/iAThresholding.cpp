@@ -284,8 +284,10 @@ void otsu_multiple_threshold(iAFilter* filter, QMap<QString, QVariant> const & p
 	otsumultiFilter->SetValleyEmphasis( parameters["Valley emphasis"].toBool() );
 	filter->progress()->observe( otsumultiFilter );
 	otsumultiFilter->Update();
-	for (int i = 0; i< otsumultiFilter->GetThresholds().size(); i++)
+	for (size_t i = 0; i < otsumultiFilter->GetThresholds().size(); i++)
+	{
 		filter->addOutputValue(QString("Otsu multiple threshold %1").arg(i), otsumultiFilter->GetThresholds()[i]);
+	}
 	filter->addOutput(otsumultiFilter->GetOutput());
 }
 

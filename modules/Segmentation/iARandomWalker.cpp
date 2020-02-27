@@ -22,6 +22,9 @@
 
 #include "iAGraphWeights.h"
 #include "iAImageGraph.h"
+#ifndef NDEBUG
+#include "iAMathUtility.h"
+#endif
 #include "iANormalizerImpl.h"
 #include "iAVectorArrayImpl.h"
 #include "iAVectorDistanceImpl.h"
