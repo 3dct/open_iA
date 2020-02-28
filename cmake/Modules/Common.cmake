@@ -441,6 +441,15 @@ endif()
 # Compiler Flags
 #-------------------------
 IF (MSVC)
+	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus")	# set correct __cplusplus
+	# Reduce size of .pdb files:
+	OPTION (openiA_COMPRESS_PDB "Whether to compress .pdb files to conserve disk space. Default: enabled." ON)
+	IF (openiA_COMPRESS_PDB)
+		# significantly reduces size of .pdb files (89 -> 28 MB):
+		SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /PDBCOMPRESS")
+		# only slightly decrease build sizes (89 -> 80 MB), and disables incremental linking:
+		#SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /OPT:REF /OPT:ICF")
+	ENDIF()
 	ADD_COMPILE_OPTIONS(/arch:AVX)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")  # enable multi-processor compilation
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
@@ -468,6 +477,13 @@ ELSE()
 
 	# enable all warnings:
 	ADD_COMPILE_OPTIONS(-Wall -Wextra) # with -Wpedantic, lots of warnings about extra ';' in VTK/ITK code...
+ENDIF()
+
+IF (CMAKE_COMPILER_IS_GNUCXX)
+	IF ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+		SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb3")
+		SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ggdb3")
+	ENDIF()
 ENDIF()
 
 IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")

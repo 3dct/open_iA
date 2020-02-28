@@ -29,23 +29,6 @@ SET (BUNDLE_LIBS "")
 
 INCLUDE(Common)
 
-IF (CMAKE_COMPILER_IS_GNUCXX)
-	IF ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
-		SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb3")
-		SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ggdb3")
-	ENDIF()
-ENDIF()
-IF (MSVC)
-	# Reduce size of .pdb files:
-	OPTION (openiA_COMPRESS_PDB "Whether to compress .pdb files to conserve disk space. Default: enabled." ON)
-	IF (openiA_COMPRESS_PDB)
-		# significantly reduces size of .pdb files (89 -> 28 MB):
-		SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /PDBCOMPRESS")
-		# only slightly decrease build sizes (89 -> 80 MB), and disables incremental linking:
-		#SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /OPT:REF /OPT:ICF")
-	ENDIF()
-ENDIF()
-
 #-------------------------
 # Subdirectories
 #-------------------------
@@ -163,13 +146,13 @@ IF (MSVC)
 	STRING(REGEX REPLACE "/" "\\\\" CMAKE_BINARY_WIN_DIR ${CMAKE_BINARY_DIR})
 ENDIF ()
 
-SET (GUI_EXECUTABLE_NAME open_iA)
 ADD_SUBDIRECTORY(cmd)     # Sets CMD test runner, used in modules
+ADD_SUBDIRECTORY(modules)
 
 # modules might have added something to BUILD_INFO:
 configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${open_iA_BINARY_DIR}/version.h" @ONLY)
 
-ADD_SUBDIRECTORY(modules)
+SET (GUI_EXECUTABLE_NAME open_iA)
 ADD_SUBDIRECTORY(gui)
 
 ADD_SUBDIRECTORY(xinst)
