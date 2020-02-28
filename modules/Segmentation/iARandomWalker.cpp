@@ -603,7 +603,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 #else
 		vnl_sparse_matrix_linear_system<double> problem(A, priorForLabel);
 		vnl_lsqr solver(problem);
-		int returnCode = solver.minimize(x);
+		/*int returnCode =*/ solver.minimize(x);
 		// in case sparse LU should be used, do this instead:
 		//linear_solver.solve(priorForLabel, &x);
 #endif
