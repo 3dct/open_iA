@@ -14,14 +14,7 @@ IF (MSVC)
 	ENDIF()
 
 	IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_OPENIA_CMD_DBG_ENV_PATH}")
-		# force cmake to copy the files:
-		file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/open_iA_cmd.vcxproj.user)
-		# create .user files:
-		CONFIGURE_FILE(${open_iA_SOURCE_DIR}/cmd/open_iA_cmd.vcxproj.user ${CMAKE_CURRENT_BINARY_DIR}/ @ONLY)
-		# make sure visual studio reloads the projects:
-		execute_process(COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/open_iA_cmd.vcxproj)
 		SET (CACHED_OPENIA_CMD_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
-
 		SET (EXE_NAME "${EXECUTABLE_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
 		foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
 			set (ADDITIONAL_PATH ${${CONFIG}LibraryPaths})
@@ -29,6 +22,7 @@ IF (MSVC)
 			CONFIGURE_FILE(${open_iA_SOURCE_DIR}/cmake/run-tmpl.bat ${CMAKE_BINARY_DIR}/x64/open_iA_cmd_${CONFIG}.bat @ONLY)
 		endforeach()
 	ENDIF ()
+	set_target_properties(${EXECUTABLE_NAME} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=$<IF:$<CONFIG:Debug>,${DebugLibraryPaths},$<IF:$<CONFIG:Release>,${ReleaseLibraryPaths},$<IF:$<CONFIG:RelWithDebInfo>,${RelWithDebInfoLibraryPaths},${MinSizeRelLibraryPaths}>>;%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")
 ENDIF (MSVC)
 
 # Test running filters from command line

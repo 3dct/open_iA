@@ -22,27 +22,23 @@ IF (MSVC)
 	ENDIF()
 
 	IF (NOT EXISTS ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user
-		OR NOT EXISTS ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj.user
-		OR NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_OPENIA_GUI_DBG_ENV_PATH}")
-
+		OR NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_OPENIA_GUI_DBG_ENV_PATH}"
+	)
 		MESSAGE(STATUS "LIBRARY paths changed new=${DebugLibraryPaths}, cached=${CACHED_OPENIA_GUI_DBG_ENV_PATH}")
 		# force cmake to copy the files:
-		file(REMOVE ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj.user)
 		file(REMOVE ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user)
-		# create .user files:
-		CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/gui/open_iA.vcxproj.user ${CMAKE_BINARY_DIR}/gui @ONLY)
+		# create .user file FOR ALL_BUILD (for which we cannot use set_property / set_target_properties):
 		CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/gui/ALL_BUILD.vcxproj.user ${CMAKE_BINARY_DIR}/ @ONLY)
 		# make sure visual studio reloads the projects:
-		execute_process(COMMAND cmake -E touch ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj)
 		execute_process(COMMAND cmake -E touch ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj)
 		SET (CACHED_OPENIA_GUI_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
-
 		foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
 			set (ADDITIONAL_PATH ${${CONFIG}LibraryPaths})
 			file(REMOVE ${CMAKE_BINARY_DIR}/x64/open_iA_gui_${CONFIG}.bat )
 			CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/cmake/run-tmpl.bat ${CMAKE_BINARY_DIR}/x64/open_iA_gui_${CONFIG}.bat @ONLY)
 		endforeach()
 	ENDIF ()
+	set_target_properties(${GUI_EXECUTABLE_NAME} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=$<IF:$<CONFIG:Debug>,${DebugLibraryPaths},$<IF:$<CONFIG:Release>,${ReleaseLibraryPaths},$<IF:$<CONFIG:RelWithDebInfo>,${RelWithDebInfoLibraryPaths},${MinSizeRelLibraryPaths}>>>;%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")
 ENDIF (MSVC)
 
 IF (openiA_TESTING_ENABLED)
