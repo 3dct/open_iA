@@ -476,7 +476,7 @@ IF (MSVC)
 		# only slightly decrease build sizes (89 -> 80 MB), and disables incremental linking:
 		#SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /OPT:REF /OPT:ICF")
 	ENDIF()
-	ADD_COMPILE_OPTIONS(/arch:AVX)
+	ADD_COMPILE_OPTIONS(/arch:AVX)                 # maybe /arch:AVX2 or /arch:AVX512 ?
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")  # enable multi-processor compilation
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 	ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
