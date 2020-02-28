@@ -22,7 +22,7 @@ IF (MSVC)
 	ENDIF()
 
 	IF (NOT EXISTS ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user
-		OR NOT EXISTS "${CMAKE_BINARY_DIR}/x64/open_iA_gui_Release.bat"
+		OR NOT EXISTS ${CMAKE_BINARY_DIR}/x64/open_iA_gui_Release.bat
 		OR NOT "${WinDLLPaths}" STREQUAL "${CACHED_OPENIA_GUI_ENV_PATH}"
 	)
 		MESSAGE(STATUS "GUI LIBRARY paths changed new=${WinDLLPaths}, cached=${CACHED_OPENIA_GUI_ENV_PATH}")
