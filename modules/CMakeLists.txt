@@ -184,7 +184,7 @@ FOREACH( indx RANGE ${len} )
 		INSTALL (TARGETS ${module_name} RUNTIME DESTINATION plugins)    # install dll in plugins folder
 
 		# set up debugging command / environment dll paths
-		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_COMMAND "$(Platform)\\$(Configuration)\\open_iA.exe")
+		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_COMMAND "$(Platform)\\$(Configuration)\\${GUI_EXECUTABLE_FILE}")
 		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${WinDLLPaths};%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")
 
 		add_dependencies(${module_name} ${GUI_EXECUTABLE_TARGET})       # dependency to GUI executable for triggering rebuild when starting module
