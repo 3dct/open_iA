@@ -13,11 +13,11 @@ IF (MSVC)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive-")
 	ENDIF()
 
-	IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_OPENIA_CMD_DBG_ENV_PATH}"
+	IF (NOT "${WinDLLPaths}" STREQUAL "${CACHED_OPENIA_CMD_ENV_PATH}"
 		OR NOT EXISTS "${CMAKE_BINARY_DIR}/x64/open_iA_cmd_Release.bat"
 	)
-		MESSAGE(STATUS "CMD LIBRARY paths changed new=${DebugLibraryPaths}, cached=${CACHED_OPENIA_CMD_DBG_ENV_PATH}")
-		SET (CACHED_OPENIA_CMD_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
+		MESSAGE(STATUS "CMD LIBRARY paths changed new=${WinDLLPaths}, cached=${CACHED_OPENIA_CMD_ENV_PATH}")
+		SET (CACHED_OPENIA_CMD_ENV_PATH "${WinDLLPaths}" CACHE INTERNAL "" FORCE)
 		SET (EXE_NAME "${EXECUTABLE_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
 		foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
 			string(REPLACE "$(Configuration)" "${CONFIG}" ADDITIONAL_PATH "${${CONFIG}LibraryPaths}")
@@ -25,7 +25,7 @@ IF (MSVC)
 			CONFIGURE_FILE(${open_iA_SOURCE_DIR}/cmake/run-tmpl.bat ${CMAKE_BINARY_DIR}/x64/open_iA_cmd_${CONFIG}.bat @ONLY)
 		endforeach()
 	ENDIF ()
-	set_target_properties(${EXECUTABLE_NAME} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=$<IF:$<CONFIG:Debug>,${DebugLibraryPaths},$<IF:$<CONFIG:Release>,${ReleaseLibraryPaths},$<IF:$<CONFIG:RelWithDebInfo>,${RelWithDebInfoLibraryPaths},${MinSizeRelLibraryPaths}>>;%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")
+	set_target_properties(${EXECUTABLE_NAME} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${WinDLLPaths};%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")
 ENDIF (MSVC)
 
 # Test running filters from command line

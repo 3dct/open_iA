@@ -2,25 +2,25 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <LocalDebuggerCommand>$(Platform)\$(Configuration)\@GUI_EXECUTABLE_FILE@</LocalDebuggerCommand>
-    <LocalDebuggerEnvironment>PATH=@RelWithDebInfoLibraryPaths@;%PATH%
+    <LocalDebuggerEnvironment>PATH=@WinDLLPaths@;%PATH%
 SCIFIO_PATH=@SCIFIO_PATH@</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommand>$(Platform)\$(Configuration)\@GUI_EXECUTABLE_FILE@</LocalDebuggerCommand>
-    <LocalDebuggerEnvironment>PATH=@DebugLibraryPaths@;%PATH%
+    <LocalDebuggerEnvironment>PATH=@WinDLLPaths@;%PATH%
 SCIFIO_PATH=@SCIFIO_PATH@</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <LocalDebuggerCommand>$(Platform)\$(Configuration)\@GUI_EXECUTABLE_FILE@</LocalDebuggerCommand>
-    <LocalDebuggerEnvironment>PATH=@MinSizeRelLibraryPaths@;%PATH%
+    <LocalDebuggerEnvironment>PATH=@WinDLLPaths@;%PATH%
 SCIFIO_PATH=@SCIFIO_PATH@</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommand>$(Platform)\$(Configuration)\@GUI_EXECUTABLE_FILE@</LocalDebuggerCommand>
-    <LocalDebuggerEnvironment>PATH=@ReleaseLibraryPaths@;%PATH%
+    <LocalDebuggerEnvironment>PATH=@WinDLLPaths@;%PATH%
 SCIFIO_PATH=@SCIFIO_PATH@</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
