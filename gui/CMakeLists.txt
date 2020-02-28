@@ -22,9 +22,10 @@ IF (MSVC)
 	ENDIF()
 
 	IF (NOT EXISTS ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user
+		OR NOT EXISTS "${CMAKE_BINARY_DIR}/x64/open_iA_gui_Release.bat"
 		OR NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_OPENIA_GUI_DBG_ENV_PATH}"
 	)
-		MESSAGE(STATUS "LIBRARY paths changed new=${DebugLibraryPaths}, cached=${CACHED_OPENIA_GUI_DBG_ENV_PATH}")
+		MESSAGE(STATUS "GUI LIBRARY paths changed new=${DebugLibraryPaths}, cached=${CACHED_OPENIA_GUI_DBG_ENV_PATH}")
 		# force cmake to copy the files:
 		file(REMOVE ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user)
 		# create .user file FOR ALL_BUILD (for which we cannot use set_property / set_target_properties):
@@ -33,8 +34,8 @@ IF (MSVC)
 		execute_process(COMMAND cmake -E touch ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj)
 		SET (CACHED_OPENIA_GUI_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
 		foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
-			set (ADDITIONAL_PATH ${${CONFIG}LibraryPaths})
-			file(REMOVE ${CMAKE_BINARY_DIR}/x64/open_iA_gui_${CONFIG}.bat )
+			string(REPLACE "$(Configuration)" "${CONFIG}" ADDITIONAL_PATH "${${CONFIG}LibraryPaths}")
+			file(REMOVE ${CMAKE_BINARY_DIR}/x64/open_iA_gui_${CONFIG}.bat)
 			CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/cmake/run-tmpl.bat ${CMAKE_BINARY_DIR}/x64/open_iA_gui_${CONFIG}.bat @ONLY)
 		endforeach()
 	ENDIF ()
