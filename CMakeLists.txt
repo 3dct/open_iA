@@ -35,7 +35,6 @@ INCLUDE(Common)
 SET (TEST_DATA_DIR "${CMAKE_SOURCE_DIR}/test/data")
 ADD_SUBDIRECTORY(core)
 
-SET (EXE_NAME "open_iA${CMAKE_EXECUTABLE_SUFFIX}")
 IF (MSVC)
 	# Set up debugging/running environments	in Visual Studio to point to the correct dll files:
 	STRING(REGEX REPLACE "/" "\\\\" VTK_WIN_DIR ${VTK_DIR})
@@ -147,12 +146,14 @@ IF (MSVC)
 ENDIF ()
 
 ADD_SUBDIRECTORY(cmd)     # Sets CMD test runner, used in modules
+
+SET (GUI_EXECUTABLE_TARGET open_iA)  # required already in modules to set dependency on it
 ADD_SUBDIRECTORY(modules)
 
 # modules might have added something to BUILD_INFO:
 configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${open_iA_BINARY_DIR}/version.h" @ONLY)
 
-SET (GUI_EXECUTABLE_NAME open_iA)
+SET (GUI_EXECUTABLE_FILE "${GUI_EXECUTABLE_TARGET}${CMAKE_EXECUTABLE_SUFFIX}")
 ADD_SUBDIRECTORY(gui)
 
 ADD_SUBDIRECTORY(xinst)
