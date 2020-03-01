@@ -30,6 +30,8 @@ class MdiChild;
 class iAConnector;
 class iANModalDisplay;
 
+class QLabel;
+
 class iANModalThresholdingWidget : public QWidget {
 	Q_OBJECT
 public:
@@ -37,6 +39,8 @@ public:
 	int threshold();
 	QSharedPointer<iAModality> modality();
 private:
+	void setStatusText(QString text);
+	QLabel *m_statusLabel;
 	int m_threshold;
 	QSharedPointer<iAModality> m_mod;
 private slots:
@@ -65,7 +69,7 @@ private:
 	ImagePointer m_itkTempImg;
 
 	template<class T>
-	void itkBinaryThreshold(iAConnector *conn, int loThresh, int upThresh);
+	void itkBinaryThreshold(iAConnector &conn, int loThresh, int upThresh);
 
 	template<class T>
 	void binary_threshold(ImagePointer itkImgPtr);

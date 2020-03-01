@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iANModalModalityReducer.h"
+#include "iANModalManualModalityReducer.h"
 
-QList<QSharedPointer<iAModality>> iANModalModalityReducer::reduce(QList<QSharedPointer<iAModality>> modalities) {
+QList<QSharedPointer<iAModality>> iANModalManualModalityReducer::reduce(QList<QSharedPointer<iAModality>> modalities) {
 	// TODO
 	// For now, return same modalities as in the input
 	auto output = modalities;

@@ -25,7 +25,7 @@
 class iANModalManualModalityReducer : public iANModalModalityReducer {
 
 public:
-	QList<QSharedPointer<iAModality>> reduce(QList<QSharedPointer<iAModality>> modalities);
+	QList<QSharedPointer<iAModality>> reduce(QList<QSharedPointer<iAModality>> modalities) override;
 
 private:
 

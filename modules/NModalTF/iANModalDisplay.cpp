@@ -40,9 +40,12 @@
 iANModalDisplay::iANModalDisplay(QWidget *parent, MdiChild *mdiChild, QList<QSharedPointer<iAModality>> modalities, int maxSelection, int minSelection, int numOfRows) :
 	m_mdiChild(mdiChild),
 	m_maxSelection(maxSelection),
-	m_minSelection(minSelection)
+	m_minSelection(minSelection),
+	m_modalities(modalities)
 {
 	setParent(parent); 
+
+	assert(modalities.size() >= 0);
 
 	numOfRows = numOfRows < 1 ? 1 : numOfRows;
 	int numOfCols = ceil((float)modalities.size() / (float)numOfRows);
@@ -107,9 +110,9 @@ iASlicer* iANModalDisplay::createSlicer(QSharedPointer<iAModality> mod) {
 	return slicer;
 }
 
-inline QWidget* iANModalDisplay::_createSlicerContainer(iASlicer* slicer, QSharedPointer<iAModality> mod, QButtonGroup* group, bool selected) {
+inline QWidget* iANModalDisplay::_createSlicerContainer(iASlicer* slicer, QSharedPointer<iAModality> mod, QButtonGroup* group, bool checked) {
 	QWidget *widget = new QWidget(this);
-	QVBoxLayout *layout = new QVBoxLayout(widget);
+	QHBoxLayout *layout = new QHBoxLayout(widget);
 
 	widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -119,14 +122,16 @@ inline QWidget* iANModalDisplay::_createSlicerContainer(iASlicer* slicer, QShare
 	} else {
 		selectionButton = new QCheckBox(widget);
 	}
-	selectionButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	selectionButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 	connect(selectionButton, &QAbstractButton::toggled, this, [this, mod, selectionButton]() { setModalitySelected(mod, selectionButton); });
 
-	selectionButton->setDown(selected);
+	selectionButton->setChecked(checked);
 
 	group->addButton(selectionButton);
 
 	slicer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+	layout->setSpacing(0);
 
 	layout->addWidget(selectionButton);
 	layout->addWidget(slicer);

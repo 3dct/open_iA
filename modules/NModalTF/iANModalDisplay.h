@@ -43,6 +43,7 @@ public:
 	// minSelection: how many modalities can be selected at minimum. <= 0 means it acceptable to make no selections
 	iANModalDisplay(QWidget *parent, MdiChild *mdiChild, QList<QSharedPointer<iAModality>> modalities, int maxSelection = 0, int minSelection = 1, int numOfRows = 1);
 
+	QList<QSharedPointer<iAModality>> modalities() { return m_modalities; }
 
 	QList<QSharedPointer<iAModality>> selection() { return m_selectedModalities; };
 	QSharedPointer<iAModality> singleSelection() { return selection()[0]; }
@@ -78,7 +79,7 @@ private:
 
 	MdiChild *m_mdiChild;
 
-	QWidget* _createSlicerContainer(iASlicer* slicer, QSharedPointer<iAModality> mod, QButtonGroup* group, bool selected);
+	QWidget* _createSlicerContainer(iASlicer* slicer, QSharedPointer<iAModality> mod, QButtonGroup* group, bool checked);
 
 	void setModalitySelected(QSharedPointer<iAModality> mod, QAbstractButton *button);
 	bool isSelectionValid();

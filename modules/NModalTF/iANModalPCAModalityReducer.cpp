@@ -22,7 +22,7 @@
 #include "iANModalPCAModalityReducer.h"
 
 // Input modalities (volumes) must have the exact same dimensions
-QList<QSharedPointer<iAModality>> iANModalModalityReducer::reduce(QList<QSharedPointer<iAModality>> modalities) {
+QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(QList<QSharedPointer<iAModality>> modalities) {
 
 	// Assert if all modalities have the same dimensions
 
