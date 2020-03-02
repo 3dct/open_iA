@@ -9,4 +9,4 @@ export GEOMETRY="${SCREEN_WIDTH}x${SCREEN_HEIGHT}x${SCREEN_DEPTH}"
 # use short-hand -e instead of --error-file.
 #     This is because centOS 6 is affected by this bug:
 #      https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=337703;msg=2
-xvfb-run -e /workspace/xvfb.log --server-args="$DISPLAY -screen 0 $GEOMETRY -ac +extension RANDR" "$@"
+MESA_GL_VERSION_OVERRIDE=3.2 xvfb-run -e /workspace/xvfb.log --server-args="$DISPLAY -screen 0 $GEOMETRY -ac +extension RANDR" "$@"
