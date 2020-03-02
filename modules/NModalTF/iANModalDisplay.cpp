@@ -88,7 +88,8 @@ iASlicer* iANModalDisplay::createSlicer(QSharedPointer<iAModality> mod) {
 	double max = range[1];
 	colorTf->AddRGBPoint(min, 0.0, 0.0, 0.0);
 	colorTf->AddRGBPoint(max, 1.0, 1.0, 1.0);
-	slicer->addChannel(CHANNEL_MAIN, iAChannelData(mod->name(), image, colorTf), true);
+	auto channelData = iAChannelData(mod->name(), image, colorTf);
+	slicer->addChannel(CHANNEL_MAIN, channelData, true);
 
 	double* origin = image->GetOrigin();
 	int* extent = image->GetExtent();
@@ -125,7 +126,7 @@ inline QWidget* iANModalDisplay::_createSlicerContainer(iASlicer* slicer, QShare
 	selectionButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 	connect(selectionButton, &QAbstractButton::toggled, this, [this, mod, selectionButton]() { setModalitySelected(mod, selectionButton); });
 
-	selectionButton->setChecked(checked);
+	//selectionButton->setChecked(checked);
 
 	group->addButton(selectionButton);
 
@@ -162,13 +163,13 @@ void iANModalDisplay::setModalitySelected(QSharedPointer<iAModality> mod, QAbstr
 	if (isSingleSelection()) {
 		m_selectedModalities.clear();
 		m_selectedModalities.append(mod);
-		return;
-	}
 
-	if (button->isDown()) {
-		m_selectedModalities.append(mod);
 	} else {
-		m_selectedModalities.removeOne(mod);
+		if (button->isDown()) {
+			m_selectedModalities.append(mod);
+		} else {
+			m_selectedModalities.removeOne(mod);
+		}
 	}
 
 	emit selectionChanged();
@@ -200,5 +201,22 @@ void iANModalDisplay::SelectionDialog::done(int r) {
 		if (m_display->validateSelection()) {
 			QDialog::done(r);
 		}
+	}
+}
+
+uint iANModalDisplay::createChannel() {
+	uint channel = m_nextChannelId;
+	m_nextChannelId++;
+	return channel;
+}
+
+void iANModalDisplay::setChannelData(uint channelId, iAChannelData channelData) {
+	for (auto slicer : m_slicers) {
+		if (slicer->hasChannel(channelId)) {
+			slicer->updateChannel(channelId, channelData);
+		} else {
+			slicer->addChannel(channelId, channelData, true);
+		}
+		slicer->update();
 	}
 }

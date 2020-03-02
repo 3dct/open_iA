@@ -24,42 +24,58 @@
 
 #include <itkImageBase.h>
 
+#include <vtkSmartPointer.h>
+
 #include <QWidget>
 
 class MdiChild;
 class iAConnector;
 class iANModalDisplay;
 
-class QLabel;
+class vtkLookupTable;
+class vtkPiecewiseFunction;
+
+class QSlider;
+class QSpinBox;
 
 class iANModalThresholdingWidget : public QWidget {
 	Q_OBJECT
 public:
-	iANModalThresholdingWidget(QWidget *parent, iANModalDisplay *display);
+	iANModalThresholdingWidget(QWidget *parent);
 	int threshold();
-	QSharedPointer<iAModality> modality();
+	QSlider* slider();
+	QSpinBox* spinBox();
 private:
-	void setStatusText(QString text);
-	QLabel *m_statusLabel;
+	QSlider* m_slider;
+	QSpinBox* m_spinBox;
 	int m_threshold;
-	QSharedPointer<iAModality> m_mod;
+signals:
+	void thresholdChanged(int);
 private slots:
 	void setThreshold(int);
 };
 
-class iANModalDilationBackgroundRemover : public iANModalBackgroundRemover {
+class iANModalDilationBackgroundRemover : public QObject, public iANModalBackgroundRemover {
+	Q_OBJECT
 
 public:
 	iANModalDilationBackgroundRemover(MdiChild *mdiChild);
 	vtkSmartPointer<vtkImageData> removeBackground(QList<QSharedPointer<iAModality>>) override;
 
 private:
-
 	MdiChild *m_mdiChild;
 
 	// return - true if a modality and a threshold were successfully chosen
 	//        - false otherwise
 	bool selectModalityAndThreshold(QWidget *parent, QList<QSharedPointer<iAModality>> modalities, int &out_threshold, QSharedPointer<iAModality> &out_modality);
+
+
+	iANModalDisplay *m_display;
+	uint m_threholdingMaskChannelId;
+	vtkSmartPointer<vtkLookupTable> m_colorTf;
+	vtkSmartPointer<vtkPiecewiseFunction> m_opacityTf;
+
+	iANModalThresholdingWidget *m_threshold;
 
 
 	typedef itk::ImageBase<3>::Pointer ImagePointer;
@@ -76,4 +92,9 @@ private:
 
 	template<class T>
 	void binary_threshold2(ImagePointer itkImgPtr);
+
+public slots:
+	void setModalitySelected(QSharedPointer<iAModality>);
+	void updateModalitySelected();
+	void updateThreshold();
 };

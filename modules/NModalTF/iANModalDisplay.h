@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include <iAChannelData.h>
+
 #include <QWidget>
 #include <QList>
 #include <QSharedPointer>
@@ -54,6 +56,10 @@ public:
 
 	iASlicer* createSlicer(QSharedPointer<iAModality> modality);
 
+	uint createChannel();
+	void setChannelData(uint channelId, iAChannelData channelData);
+
+
 
 	// Result can be null! That means that the selection was cancelled
 	static QList<QSharedPointer<iAModality>> selectModalities(
@@ -86,7 +92,7 @@ private:
 	bool validateSelection();
 
 	static const uint CHANNEL_MAIN = 0;
-	static const uint CHANNEL_MASK = 1;
+	uint m_nextChannelId;
 
 	// Source: https://www.qtcentre.org/threads/8048-Validate-Data-in-QDialog
 	class SelectionDialog : public QDialog {

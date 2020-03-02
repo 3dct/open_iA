@@ -28,8 +28,9 @@
 #include "iATypedCallHelper.h"
 #include "iASlicer.h"
 
-#include "vtkSmartPointer.h"
-#include "vtkImageData.h"
+#include <vtkImageData.h>
+#include <vtkLookupTable.h>
+#include <vtkPiecewiseFunction.h>
 
 #include <itkBinaryThresholdImageFilter.h>
 
@@ -92,13 +93,22 @@ void iANModalDilationBackgroundRemover::binary_threshold2(ImagePointer itkImgPtr
 
 iANModalDilationBackgroundRemover::iANModalDilationBackgroundRemover(MdiChild *mdiChild)
 	: m_mdiChild(mdiChild)
-{}
+{
+	m_colorTf = vtkSmartPointer<vtkLookupTable>::New();
+	m_colorTf->SetNumberOfTableValues(2);
+	m_colorTf->SetRange(0, 1);
+	m_colorTf->SetTableValue(0.0, 0.0, 0.0, 0.0, 0.0);
+	m_colorTf->SetTableValue(1.0, 1.0, 0.0, 0.0, 0.5);
+	m_colorTf->Build();
+
+	// TODO: opacity tf
+}
 
 vtkSmartPointer<vtkImageData> iANModalDilationBackgroundRemover::removeBackground(QList<QSharedPointer<iAModality>> modalities) {
 
 	QSharedPointer<iAModality> mod;
 	int upThresh;
-	int loThresh = 0;
+	int loThresh = -1;
 
 	bool success = selectModalityAndThreshold(nullptr, modalities, upThresh, mod);
 	if (!success) {
@@ -138,12 +148,16 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 
 	
 	auto displayWidget = new QWidget(dialog);
-	auto display = new iANModalDisplay(displayWidget, m_mdiChild, modalities, 1, 1);
 	auto displayLayout = new QVBoxLayout(displayWidget);  {
 		auto displayLabel = new QLabel("Select modality for the thresholding step of the dilation-based background removal", displayWidget);
 		
+		m_display = new iANModalDisplay(displayWidget, m_mdiChild, modalities, 1, 1);
+		m_threholdingMaskChannelId = m_display->createChannel();
+		//connect(m_display, SIGNAL(selectionChanged()), this, SLOT(updateThreshold()));
+		connect(m_display, SIGNAL(selectionChanged()), this, SLOT(updateModalitySelected()));
+
 		displayLayout->addWidget(displayLabel);
-		displayLayout->addWidget(display);
+		displayLayout->addWidget(m_display);
 		displayLayout->setSpacing(0);
 
 		//displayWidget->setStyleSheet("border: 1px solid black");
@@ -151,12 +165,14 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 	}
 
 	auto thresholdWidget = new QWidget(dialog);
-	auto threshold = new iANModalThresholdingWidget(thresholdWidget, display);
 	auto thresholdLayout = new QVBoxLayout(thresholdWidget); {
 		auto thresholdLabel = new QLabel("Set threshold", thresholdWidget);
 
+		m_threshold = new iANModalThresholdingWidget(thresholdWidget);
+		connect(m_threshold, SIGNAL(thresholdChanged(int)), this, SLOT(updateThreshold()));
+
 		thresholdLayout->addWidget(thresholdLabel);
-		thresholdLayout->addWidget(threshold);
+		thresholdLayout->addWidget(m_threshold);
 		thresholdLayout->setSpacing(0);
 
 		thresholdWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
@@ -197,48 +213,88 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 		return false;
 	}
 
-	out_threshold = threshold->threshold();
-	out_modality = threshold->modality();
+	out_threshold = m_threshold->threshold();
+	out_modality = m_display->singleSelection();
 
 	return true;
 }
 
-iANModalThresholdingWidget::iANModalThresholdingWidget(QWidget *parent, iANModalDisplay *display) :
-	QWidget(parent)
-{
-	m_mod = display->modalities()[0];
+void iANModalDilationBackgroundRemover::updateModalitySelected() {
+	setModalitySelected(m_display->singleSelection());
+}
+
+void iANModalDilationBackgroundRemover::setModalitySelected(QSharedPointer<iAModality> modality) {
 	double range[2];
-	m_mod->image()->GetScalarRange(range);
+	modality->image()->GetScalarRange(range);
 	double min = range[0];
 	double max = range[1];
+	int value = round(max - min) / 2 + min;
+
+	m_threshold->spinBox()->setRange(min, max);
+	m_threshold->spinBox()->setValue(value);
+
+	m_threshold->slider()->setRange(min, max);
+	//m_threshold->slider()->setValue(value); // already happens at spinBox()->setValue(value)
+
+	//updateThreshold(); // already happens at spinBox()->setValue(value)
+}
+
+void iANModalDilationBackgroundRemover::updateThreshold() {
+	auto modality = m_display->singleSelection();
+	int threshold = m_threshold->threshold();
+
+	iAConnector conn;
+	conn.setImage(modality->image());
+	ITK_TYPED_CALL(itkBinaryThreshold, conn.itkScalarPixelType(), conn, 0, threshold);
+	auto mask = conn.vtkImage();
+
+	/*m_labelColorTF = iALUT::BuildLabelColorTF(m_itemModel->rowCount(), m_colorTheme);
+	m_labelOpacityTF = iALUT::BuildLabelOpacityTF(m_itemModel->rowCount());
+	
+	auto channelData = slicerData->channelData;
+	channelData.setColorTF(m_labelColorTF);
+	channelData.setOpacityTF(m_labelOpacityTF);*/
+
+	auto channelData = iAChannelData("Threshold mask", mask, m_colorTf);
+	m_display->setChannelData(m_threholdingMaskChannelId, channelData);
+}
+
+
+
+iANModalThresholdingWidget::iANModalThresholdingWidget(QWidget *parent) :
+	QWidget(parent)
+{
+	int min = 0;
+	int max = 0;
 	int threshold = round(max - min) / 2 + min;
 
 	//auto slicer = display->createSlicer(m_mod);
 
-	auto spinBox = new QSpinBox(this);
-	spinBox->setMaximum(max);
-	spinBox->setMinimum(min);
-	spinBox->setValue(threshold);
+	m_spinBox = new QSpinBox(this);
+	m_spinBox->setMaximum(max);
+	m_spinBox->setMinimum(min);
+	m_spinBox->setValue(threshold);
 
 	//auto slider = new QSlider(Qt::Orientation::Vertical, this);
-	auto slider = new QSlider(Qt::Orientation::Horizontal, this);
-	slider->setMaximum(max);
-	slider->setMinimum(min);
-	slider->setValue(threshold);
+	m_slider = new QSlider(Qt::Orientation::Horizontal, this);
+	m_slider->setMaximum(max);
+	m_slider->setMinimum(min);
+	m_slider->setValue(threshold);
 
 	/*auto layout = new QGridLayout(this);
 	layout->addWidget(slicer, 0, 0, 2, 1);
 	layout->addWidget(spinBox, 0, 1);
 	layout->addWidget(slider, 1, 1);*/
 	auto layout = new QHBoxLayout(this);
-	layout->addWidget(slider);
-	layout->setStretchFactor(slider, 1);
-	layout->addWidget(spinBox);
-	layout->setStretchFactor(spinBox, 0);
+	layout->addWidget(m_slider);
+	layout->setStretchFactor(m_slider, 1);
+	layout->addWidget(m_spinBox);
+	layout->setStretchFactor(m_spinBox, 0);
 
-	connect(slider, SIGNAL(sliderMoved(int)), spinBox, SLOT(setValue(int)));
-	connect(spinBox, SIGNAL(valueChanged(int)), slider, SLOT(setValue(int)));
-	connect(spinBox, SIGNAL(valueChanged(int)), this, SLOT(setThreshold(int)));
+	connect(m_slider, SIGNAL(sliderMoved(int)), m_spinBox, SLOT(setValue(int)));
+	connect(m_spinBox, SIGNAL(valueChanged(int)), m_slider, SLOT(setValue(int)));
+	connect(m_spinBox, SIGNAL(valueChanged(int)), this, SLOT(setThreshold(int)));
+	connect(m_spinBox, SIGNAL(valueChanged(int)), this, SIGNAL(thresholdChanged(int)));
 }
 
 void iANModalThresholdingWidget::setThreshold(int threshold) {
@@ -249,6 +305,10 @@ int iANModalThresholdingWidget::threshold() {
 	return m_threshold;
 }
 
-QSharedPointer<iAModality> iANModalThresholdingWidget::modality() {
-	return m_mod;
+QSlider* iANModalThresholdingWidget::slider() {
+	return m_slider;
+}
+
+QSpinBox* iANModalThresholdingWidget::spinBox() {
+	return m_spinBox;
 }
