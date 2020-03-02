@@ -33,6 +33,9 @@
 #include <vtkPiecewiseFunction.h>
 
 #include <itkBinaryThresholdImageFilter.h>
+#include <itkBinaryDilateImageFilter.h>
+#include <itkBinaryErodeImageFilter.h>
+#include <itkConnectedComponentImageFilter.h>
 
 #include <QDialog>
 #include <QVBoxLayout>
@@ -41,6 +44,11 @@
 #include <QStatusBar>
 #include <QLabel>
 #include <QPushButton>
+
+namespace {
+	static const int BACKGROUND = 0;
+	static const int FOREGROUND = 1;
+}
 
 template<class T>
 void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector &conn, int loThresh, int upThresh) {
@@ -51,8 +59,8 @@ void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector &conn, in
 	auto binThreshFilter = BTIFType::New();
 	binThreshFilter->SetLowerThreshold(loThresh);
 	binThreshFilter->SetUpperThreshold(upThresh);
-	binThreshFilter->SetOutsideValue(1);
-	binThreshFilter->SetInsideValue(0);
+	binThreshFilter->SetOutsideValue(FOREGROUND);
+	binThreshFilter->SetInsideValue(BACKGROUND);
 	binThreshFilter->SetInput(dynamic_cast<InputImageType *>(conn.itkImage()));
 	//filter->progress()->observe(binThreshFilter);
 	binThreshFilter->Update();
@@ -61,34 +69,70 @@ void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector &conn, in
 }
 
 template<class T>
-void iANModalDilationBackgroundRemover::binary_threshold(ImagePointer itkImgPtr) {
-	/*typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< T, 3 >   OutputImageType;
-	typedef itk::BinaryThresholdImageFilter<InputImageType, OutputImageType> BTIFType;
-	typedef itk::Erosion...Filter
+void iANModalDilationBackgroundRemover::itkDilateAndCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponentsOut, bool dilate /*= true*/) {
+	typedef itk::Image<T, 3> InputImageType;
+	typedef itk::Image<T, 3> OutputImageType;
+	typedef itk::Image<T, 3> KernelType;
+	typedef itk::BinaryDilateImageFilter<InputImageType, OutputImageType, KernelType> BDIFType;
+	typedef itk::ConnectedComponentImageFilter<InputImageType, OutputImageType> CCIFType;
 
-		auto binThreshFilter = BTIFType::New();
-	binThreshFilter->SetLowerThreshold(loThresh);
-	binThreshFilter->SetUpperThreshold(upThresh);
-	binThreshFilter->SetOutsideValue(1);
-	binThreshFilter->SetInsideValue(0);
-	binThreshFilter->SetInput(dynamic_cast<InputImageType *>(conn.itkImage());
-	//filter->progress()->observe(binThreshFilter);
-	//binThreshFilter->Update();
+	auto connCompFilter = CCIFType::New();
 
-	auto erosionFilter = ...;
-	//set everything
-	erosionFilter->SetInput(binThreshFilter->GetOutput());
-	erosionFilter->Update();
+	if (dilate) {
+		// dilate the foreground...
+		auto dilationFilter = BDIFType::New();
+		dilationFilter->SetDilateValue(FOREGROUND);
+		dilationFilter->SetInput(dynamic_cast<InputImageType *>(itkImgPtr));
+
+		connCompFilter->SetInput(dilationFilter->GetOutput());
+	} else {
+		connCompFilter->SetInput(dynamic_cast<InputImageType *>(itkImgPtr));
+	}
+
+	// ...until the number of background components is equal to connectedComponents
+	connCompFilter->SetBackgroundValue(FOREGROUND);
+	//filter->progress()->observe(connCompFilter);
+	connCompFilter->Update();
 
 	//filter->addOutput(binThreshFilter->GetOutput());
 	//conn.setImage(binThreshFilter->GetOutput());
-	m_itkTempImg = binThreshFilter->GetOutput();*/
+	m_itkTempImg = connCompFilter->GetOutput();
+
+	connectedComponentsOut = connCompFilter->GetObjectCount();
 }
 
 template<class T>
-void iANModalDilationBackgroundRemover::binary_threshold2(ImagePointer itkImgPtr) {
+void iANModalDilationBackgroundRemover::itkCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponentsOut) {
+	itkDilateAndCountConnectedComponents(itkImgPtr, connectedComponentsOut, false);
+}
+
+template<class T>
+void iANModalDilationBackgroundRemover::itkErode(ImagePointer itkImgPtr, int count) {
+	typedef itk::Image<T, 3> InputImageType;
+	typedef itk::Image<T, 3> OutputImageType;
+	typedef itk::Image<T, 3> KernelType;
+	typedef itk::BinaryErodeImageFilter<InputImageType, OutputImageType, KernelType> BDIFType;
+
+	if (count <= 0) {
+		m_itkTempImg = itkImgPtr;
+		return;
+	}
+
+	auto erosionFilter = BDIFType::New();
+	erosionFilter->SetErodeValue(FOREGROUND);
+	erosionFilter->SetInput(dynamic_cast<InputImageType *>(itkImgPtr));
 	
+	auto efPrev = erosionFilter;
+	for (int i = 1; i < count; i++) {
+		auto ef = BDIFType::New();
+		ef->SetErodeValue(FOREGROUND);
+		ef->SetInput(efPrev->GetOutput());
+		efPrev = ef;
+	}
+
+	efPrev->Update();
+
+	m_itkTempImg = efPrev->GetOutput();
 }
 
 iANModalDilationBackgroundRemover::iANModalDilationBackgroundRemover(MdiChild *mdiChild)
@@ -108,7 +152,8 @@ vtkSmartPointer<vtkImageData> iANModalDilationBackgroundRemover::removeBackgroun
 
 	QSharedPointer<iAModality> mod;
 	int upThresh;
-	int loThresh = -1;
+	int loThresh = 0;
+	int regionCountGoal = 1;
 
 	bool success = selectModalityAndThreshold(nullptr, modalities, upThresh, mod);
 	if (!success) {
@@ -124,11 +169,17 @@ vtkSmartPointer<vtkImageData> iANModalDilationBackgroundRemover::removeBackgroun
 	} else { // example if == itk::ImageIOBase::RGBA
 		return nullptr;
 	}
-	
-	ITK_TYPED_CALL(itkBinaryThreshold, conn.itkScalarPixelType(), conn, loThresh, upThresh);
 
-	// Perform dilations
+	success = iterativeDilation(itkImgPtr, regionCountGoal);
+	conn.setImage(m_itkTempImg);
 
+	QList<QSharedPointer<iAModality>> mods;
+	mods.append(mod);
+	auto TEMPORARY_DISPLAY = new iANModalDisplay(nullptr, m_mdiChild, mods);
+	uint cid = TEMPORARY_DISPLAY->createChannel();
+	auto cd = iAChannelData("temp", conn.vtkImage(), m_colorTf, m_opacityTf);
+	TEMPORARY_DISPLAY->setChannelData(cid, cd);
+	iANModalDisplay::selectModalities(nullptr, TEMPORARY_DISPLAY);
 
 	conn.setImage(itkImgPtr);
 	auto image = conn.vtkImage();
@@ -248,18 +299,31 @@ void iANModalDilationBackgroundRemover::updateThreshold() {
 	ITK_TYPED_CALL(itkBinaryThreshold, conn.itkScalarPixelType(), conn, 0, threshold);
 	auto mask = conn.vtkImage();
 
-	/*m_labelColorTF = iALUT::BuildLabelColorTF(m_itemModel->rowCount(), m_colorTheme);
-	m_labelOpacityTF = iALUT::BuildLabelOpacityTF(m_itemModel->rowCount());
-	
-	auto channelData = slicerData->channelData;
-	channelData.setColorTF(m_labelColorTF);
-	channelData.setOpacityTF(m_labelOpacityTF);*/
-
 	auto channelData = iAChannelData("Threshold mask", mask, m_colorTf);
 	m_display->setChannelData(m_threholdingMaskChannelId, channelData);
 }
 
+bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int regionCountGoal) {
+	int connectedComponents;
 
+	ITK_TYPED_CALL(itkCountConnectedComponents, itk::ImageIOBase::SCALAR, mask, connectedComponents);
+	
+	int dilationCount = 0;
+	while (connectedComponents > regionCountGoal) {
+		ITK_TYPED_CALL(itkDilateAndCountConnectedComponents, itk::ImageIOBase::SCALAR, m_itkTempImg, connectedComponents);
+		dilationCount++;
+	}
+
+	ITK_TYPED_CALL(itkErode, itk::ImageIOBase::SCALAR, m_itkTempImg, dilationCount);
+
+	return true;
+}
+
+
+
+// ----------------------------------------------------------------------------------------------
+// iANModalThresholdingWidget
+// ----------------------------------------------------------------------------------------------
 
 iANModalThresholdingWidget::iANModalThresholdingWidget(QWidget *parent) :
 	QWidget(parent)

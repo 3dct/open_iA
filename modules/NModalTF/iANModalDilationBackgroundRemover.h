@@ -63,11 +63,16 @@ public:
 	vtkSmartPointer<vtkImageData> removeBackground(QList<QSharedPointer<iAModality>>) override;
 
 private:
+	typedef itk::ImageBase<3>::Pointer ImagePointer;
+
 	MdiChild *m_mdiChild;
 
 	// return - true if a modality and a threshold were successfully chosen
 	//        - false otherwise
 	bool selectModalityAndThreshold(QWidget *parent, QList<QSharedPointer<iAModality>> modalities, int &out_threshold, QSharedPointer<iAModality> &out_modality);
+	
+	// TODO describe
+	bool iterativeDilation(ImagePointer mask, int regionCountGoal);
 
 
 	iANModalDisplay *m_display;
@@ -76,10 +81,7 @@ private:
 	vtkSmartPointer<vtkPiecewiseFunction> m_opacityTf;
 
 	iANModalThresholdingWidget *m_threshold;
-
-
-	typedef itk::ImageBase<3>::Pointer ImagePointer;
-
+	
 	//iAConnector *m_temp_connector = nullptr;
 	//vtkSmartPointer<vtkImageData> m_vtkTempImg;
 	ImagePointer m_itkTempImg;
@@ -88,10 +90,13 @@ private:
 	void itkBinaryThreshold(iAConnector &conn, int loThresh, int upThresh);
 
 	template<class T>
-	void binary_threshold(ImagePointer itkImgPtr);
+	void itkDilateAndCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponents, bool dilate = true);
 
 	template<class T>
-	void binary_threshold2(ImagePointer itkImgPtr);
+	void itkCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponents);
+
+	template<class T>
+	void itkErode(ImagePointer itkImgPtr, int count);
 
 public slots:
 	void setModalitySelected(QSharedPointer<iAModality>);
