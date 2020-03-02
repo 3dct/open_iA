@@ -33,6 +33,7 @@ IF (MSVC)
 		# make sure visual studio reloads the projects:
 		execute_process(COMMAND cmake -E touch ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj)
 		SET (CACHED_OPENIA_GUI_ENV_PATH "${WinDLLPaths}" CACHE INTERNAL "" FORCE)
+		set (EXE_NAME ${GUI_EXECUTABLE_FILE})
 		foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
 			string(REPLACE "$(Configuration)" "${CONFIG}" ADDITIONAL_PATH "${${CONFIG}LibraryPaths}")
 			file(REMOVE ${CMAKE_BINARY_DIR}/x64/open_iA_gui_${CONFIG}.bat)
