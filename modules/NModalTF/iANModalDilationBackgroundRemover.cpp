@@ -234,7 +234,7 @@ void iANModalDilationBackgroundRemover::setModalitySelected(QSharedPointer<iAMod
 	m_threshold->spinBox()->setValue(value);
 
 	m_threshold->slider()->setRange(min, max);
-	//m_threshold->slider()->setValue(value); // already happens at spinBox()->setValue(value)
+	m_threshold->slider()->setValue(value);
 
 	//updateThreshold(); // already happens at spinBox()->setValue(value)
 }
