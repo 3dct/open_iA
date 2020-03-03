@@ -178,13 +178,12 @@ namespace
 		T* imgBuf = static_cast<T*>(img->GetScalarPointer());
 		int * dim = img->GetDimensions();
 		size_t inIdx = 0;
-		for (size_t z = 0; z < dim[2]; ++z)
+		for (size_t z = 0; z < static_cast<size_t>(dim[2]); ++z)
 		{
-			for (size_t y = 0; y < dim[1]; ++y)
+			for (int y = 0; y < dim[1]; ++y)
 			{
 #pragma omp parallel for
-				for (long long x = 0; x < dim[0]; ++x)
-
+				for (int x = 0; x < dim[0]; ++x)
 				{
 					size_t outIdx = y + ((x + z * dim[0]) * dim[1]);
 					buf[outIdx] = static_cast<float>(imgBuf[inIdx + x]);
@@ -350,14 +349,14 @@ void iAASTRAForwardProject::performWork(QMap<QString, QVariant> const & paramete
 	size_t imgIndex = 0;
 	unsigned int projAngleCount = parameters[ProjAngleCnt].toUInt();
 	unsigned int detectorColCnt = parameters[DetColCnt].toUInt();
-	for (size_t z = 0; z < projDim[2]; ++z)
+	for (size_t z = 0; z < static_cast<size_t>(projDim[2]); ++z)
 	{
-		for (size_t y = 0; y < projDim[1]; ++y)
+		for (int y = 0; y < projDim[1]; ++y)
 		{
 			size_t startIdx = ((y * projDim[2]) + (projAngleCount - z - 1)) * projDim[0];
 			astra::float32* row = &(projData[startIdx]);
 #pragma omp parallel for
-			for (long long x = 0; x < projDim[0]; ++x)
+			for (int x = 0; x < projDim[0]; ++x)
 			{
 				projImgBuf[imgIndex + x] = row[detectorColCnt - x - 1];
 			}
@@ -410,14 +409,14 @@ void swapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int 
 	int detColDimIdx = detColDim % 3;		// only do modulus once before loop
 	int detRowDimIdx = detRowDim % 3;
 	int projAngleDimIdx = projAngleDim % 3;
-	size_t idx[3];
+	int idx[3];
 	size_t imgBufIdx = 0;
 	for (idx[2] = 0; idx[2] < dim[2]; ++idx[2])
 	{
 		for (idx[1] = 0; idx[1] < dim[1]; ++idx[1])
 		{
 #pragma omp parallel for
-			for (long long x = 0; x < dim[0]; ++x)
+			for (int x = 0; x < dim[0]; ++x)
 			{
 				idx[0] = x;
 				size_t detCol    = idx[detColDimIdx];     if (detColDim >= 3)    { detCol    = dim[detColDimIdx]    - detCol    - 1; }
@@ -539,9 +538,9 @@ void iAASTRAReconstruct::performWork(QMap<QString, QVariant> const & parameters)
 	size_t imgIndex = 0;
 	size_t sliceOffset = static_cast<size_t>(volDim[1]) * volDim[0];
 	astra::float32* slice = volumeData->getData();
-	for (size_t z = 0; z < volDim[2]; ++z)
+	for (size_t z = 0; z < static_cast<size_t>(volDim[2]); ++z)
 	{
-		for (size_t y = 0; y < volDim[1]; ++y)
+		for (int y = 0; y < volDim[1]; ++y)
 		{
 #pragma omp parallel for
 			for (long long x = 0; x < volDim[0]; ++x)
