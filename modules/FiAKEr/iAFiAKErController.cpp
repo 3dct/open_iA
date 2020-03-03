@@ -610,6 +610,7 @@ QWidget* iAFiAKErController::setupResultListView()
 	m_stackedBarsHeaders->contextMenu()->addAction(headerFiberCountAction);
 	connect(m_stackedBarsHeaders, &iAStackedBarChart::switchedStackMode, this, &iAFiAKErController::switchStackMode);
 	connect(m_stackedBarsHeaders, &iAStackedBarChart::doubleClicked, this, &iAFiAKErController::sortByCurrentWeighting);
+	m_stackedBarsHeaders->contextMenu()->addSeparator();
 
 	auto nameActionsLabel = new QLabel("Name/Actions");
 	nameActionsLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
