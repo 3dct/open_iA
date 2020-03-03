@@ -2027,8 +2027,17 @@ void iAQSplom::loadSettings(iASettings const & config)
 	m_settingsDlg->cbColorRangeMode->setCurrentIndex(settings.colorRangeMode);
 
 	m_colorLookupParam = config.value(CfgKeyColorLookupParam, static_cast<qulonglong>(m_colorLookupParam)).toULongLong();
-	QSignalBlocker blockColorParameter(m_settingsDlg->cbColorParameter);
-	m_settingsDlg->cbColorParameter->setCurrentIndex(static_cast<int>(m_colorLookupParam));
+	if (m_colorLookupParam < m_splomData->numParams())
+	{
+		QSignalBlocker blockColorParameter(m_settingsDlg->cbColorParameter);
+		m_settingsDlg->cbColorParameter->setCurrentIndex(static_cast<int>(m_colorLookupParam));
+	}
+	else
+	{
+		DEBUG_LOG(QString("Stored index of parameter to color by (%1) exceeds valid range (0..%2)")
+			.arg(m_colorLookupParam)
+			.arg(m_splomData->numParams()));
+	}
 
 	if (settings.colorRangeMode == rmManual)
 	{
