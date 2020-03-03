@@ -67,8 +67,8 @@
 
 iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
 	: QMainWindow( parent )
+	, m_currentStage(0)
 	, m_mainWin( parent )
-	, m_currentStage( 0 )
 	, m_isVirgin( true )
 {
 	setupUi( this );

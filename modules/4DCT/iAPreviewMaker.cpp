@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAPreviewMaker.h"
 
+#include <iAConsole.h>
 #include <io/iAFileUtils.h>
 
 #include <itkImage.h>
@@ -35,7 +36,8 @@ void iAPreviewMaker::makeUsingType( QString fileName, QString thumbFileName )
 
 	itk::ImageIOBase::Pointer imageIO;
 	imageIO = itk::ImageIOFactory::CreateImageIO( getLocalEncodingFileName(fileName).c_str( ), itk::ImageIOFactory::ReadMode );
-	if( !imageIO ) {
+	if( !imageIO )
+	{
 		//std::cerr << "Could not CreateImageIO for: " << inputFilename << std::endl;
 		return;
 	}
@@ -57,6 +59,9 @@ void iAPreviewMaker::makeUsingType( QString fileName, QString thumbFileName )
 		makeUsingType<PixelType>( fileName, thumbFileName );
 		break;
 	}
+	default:
+		DEBUG_LOG("Image pixel type not supported!");
+		break;
 	}
 }
 
