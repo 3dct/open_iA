@@ -33,8 +33,8 @@
 iA3DLabelledVolumeVis::iA3DLabelledVolumeVis(vtkRenderer* ren, vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
 		vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, double const * bounds ):
 	iA3DObjectVis(ren, objectTable, columnMapping),
-	cTF(color),
-	oTF(opac)
+	oTF(opac),
+	cTF(color)
 {
 	std::copy(bounds, bounds + 6, m_bounds);
 }

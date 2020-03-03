@@ -35,8 +35,8 @@
 iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color,
 	std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip):
 	iA3DColoredPolyObjectVis(ren, objectTable, columnMapping, color),
-	m_points(vtkSmartPointer<vtkPoints>::New()),
 	m_linePolyData(vtkSmartPointer<vtkPolyData>::New()),
+	m_points(vtkSmartPointer<vtkPoints>::New()),
 	m_totalNumOfSegments(0)
 {
 	auto lines = vtkSmartPointer<vtkCellArray>::New();
@@ -99,13 +99,19 @@ iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QS
 
 void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & values, int straightOrCurved)
 {
-	for (int f = 0; f < values.size(); ++f)
+	if (2*values.size()+1 >= static_cast<size_t>(std::numeric_limits<vtkIdType>::max()))
+	{
+		DEBUG_LOG(QString("More values (current number: %1) than VTK can handle (limit: %2)")
+			.arg(2 * values.size() + 1)
+			.arg(std::numeric_limits<vtkIdType>::max()));
+	}
+	for (size_t f = 0; f < values.size(); ++f)
 	{
 		// "magic numbers" 1 and 2 need to match values in FIAKER - iAFiberCharData::StepDataType:
 		if (straightOrCurved == 1) // SimpleStepData
 		{
-			m_points->SetPoint(2 * f, values[f].data());
-			m_points->SetPoint(2 * f + 1, values[f].data() + 3);
+			m_points->SetPoint(static_cast<vtkIdType>(2 * f), values[f].data());
+			m_points->SetPoint(static_cast<vtkIdType>(2 * f + 1), values[f].data() + 3);
 		}
 		else if (straightOrCurved == 2) // CurvedStepData
 		{

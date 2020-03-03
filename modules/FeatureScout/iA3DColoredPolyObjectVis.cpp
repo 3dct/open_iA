@@ -44,19 +44,19 @@ namespace
 iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 	QColor const & color) :
 	iA3DObjectVis(ren, objectTable, columnMapping),
-	m_colors(vtkSmartPointer<vtkUnsignedCharArray>::New()),
 	m_mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_contextAlpha(DefaultContextOpacity),
-	m_selectionAlpha(DefaultSelectionOpacity),
-	m_selectionColor(SelectedColor),
-	m_baseColor(color),
+	m_colors(vtkSmartPointer<vtkUnsignedCharArray>::New()),
 	m_actor(vtkSmartPointer<vtkActor>::New()),
 	m_visible(false),
-	m_selectionActive(false),
+	m_contextAlpha(DefaultContextOpacity),
+	m_selectionAlpha(DefaultSelectionOpacity),
+	m_baseColor(color),
+	m_selectionColor(SelectedColor),
 	m_outlineFilter(vtkSmartPointer<vtkOutlineFilter>::New()),
 	m_outlineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_outlineActor(vtkSmartPointer<vtkActor>::New()),
-	m_clippingPlanesEnabled(false)
+	m_clippingPlanesEnabled(false),
+	m_selectionActive(false)
 {
 	m_mapper->SetScalarModeToUsePointFieldData();
 	m_mapper->ScalarVisibilityOn();

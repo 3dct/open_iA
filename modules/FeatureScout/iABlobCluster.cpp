@@ -42,43 +42,46 @@
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
 
-#define DEFAULT_BLOB_OPACITY 0.3
-#define DEFAULT_SILHOUETTE_OPACITY 0.8
+namespace
+{
+	const double DEFAULT_BLOB_OPACITY = 0.3;
+	const double DEFAULT_SILHOUETTE_OPACITY = 0.8;
+}
 
-iABlobCluster::iABlobCluster( void )	:
-	m_objectType( "Fibers" ),
-	m_count( 0.0 ),
-	m_percentage( 0.0 ),
-	m_silhouetteIsOn( true ),
-	m_blobIsOn( true ),
-	m_labelIsOn( true ),
-	m_isSmoothingOn( true ),
-	m_renderIndividually( false ),
-	m_blurVariance( 1 ),
-	m_blobOpacity( DEFAULT_BLOB_OPACITY ),
-	m_silhouetteOpacity( DEFAULT_SILHOUETTE_OPACITY ),
-	m_blobRenderer( 0 ),
-	m_labelRenderer( 0 ),
-	m_blobManager( 0 ),
-	m_blobColor()
+iABlobCluster::iABlobCluster():
+	m_blobColor(),
+	m_count(0.0),
+	m_percentage(0.0),
+	m_objectType("Fibers"),
+	m_countContours(1),
+	m_silhouetteIsOn(true),
+	m_blobIsOn(true),
+	m_labelIsOn(true),
+	m_isSmoothingOn(true),
+	m_renderIndividually(false),
+	m_blurVariance(1),
+	m_blobOpacity(DEFAULT_BLOB_OPACITY),
+	m_silhouetteOpacity(DEFAULT_SILHOUETTE_OPACITY),
+	m_blobManager(nullptr),
+	m_blobRenderer(nullptr),
+	m_labelRenderer(nullptr),
+	m_polyDataNormals(vtkSmartPointer<vtkPolyDataNormals>::New()),
+	m_smoother(vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New()),
+	m_implicitFunction(iABlobImplicitFunction::New()),
+	m_sampleFunction(vtkSmartPointer<vtkSampleFunction>::New()),
+	m_contourFilter(vtkSmartPointer<vtkContourFilter>::New()),
+	m_contourMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_contourActor(vtkSmartPointer<vtkActor>::New()),
+	m_silhouette(vtkSmartPointer<vtkPolyDataSilhouette>::New()),
+	m_silhouetteMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_silhouetteActor(vtkSmartPointer<vtkActor>::New()),
+	m_captionActor(vtkSmartPointer<vtkCaptionActor2D>::New())
 {
 	// setup variables
-	m_countContours = 1;
 	m_range[0] = 0.025;
 	//m_range[1] = 0.5;
 
 	// initialize members
-	m_implicitFunction = iABlobImplicitFunction::New();
-	m_sampleFunction = vtkSmartPointer<vtkSampleFunction>::New();
-	m_contourFilter = vtkSmartPointer<vtkContourFilter>::New();
-	m_contourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	m_contourActor = vtkSmartPointer<vtkActor>::New();
-	m_silhouette = vtkSmartPointer<vtkPolyDataSilhouette>::New();
-	m_silhouetteMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	m_silhouetteActor = vtkSmartPointer<vtkActor>::New();
-	m_smoother = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
-	m_polyDataNormals = vtkSmartPointer<vtkPolyDataNormals>::New();
-	m_captionActor = vtkSmartPointer<vtkCaptionActor2D>::New();
 
 	SetDefaultProperties();
 }
@@ -469,8 +472,6 @@ void iABlobCluster::GaussianBlur()
 
 
 	typedef itk::Image<double, 3> ImageType;
-	typedef itk::ImageRegionConstIterator< ImageType > ConstIteratorType;
-	typedef itk::ImageRegionIterator< ImageType > IteratorType;
 	typedef itk::VTKImageToImageFilter<ImageType> VTKImageToImageType;
 
 	VTKImageToImageType::Pointer vtkImageToImageFilter =

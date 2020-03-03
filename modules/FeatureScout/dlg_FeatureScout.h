@@ -219,8 +219,8 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_multiClassLUT;//!< Color lookup table for multi-class rendering in parallel coordinate view
 	QTreeView* classTreeView;                       //!< Class tree view
 	QTableView* elementTableView;                   //!< Element(=column) table view
-	QStandardItemModel* elementTableModel;          //!< Model for element table
 	QStandardItemModel* classTreeModel;             //!< Model for class tree view (->invisibleRootItem->child(0,...,i, 0,..,2))
+	QStandardItemModel* elementTableModel;          //!< Model for element table
 	QStandardItem *activeClassItem;                 //!< Currently active class item in classTreeView/Model
 
 	//! @{ context menu actions for classTreeView
