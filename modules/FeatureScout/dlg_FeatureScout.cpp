@@ -1732,8 +1732,10 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	for ( int i = 0; i < indexes.count(); ++i )
 	{
 		//Ensures that indices are unique
-		if (characteristicsList.contains( indexes.at( i ).row() ) )
+		if (characteristicsList.contains(indexes.at(i).row()))
+		{
 			continue;
+		}
 		characteristicsList.append( indexes.at( i ).row() );
 
 		QString columnName( this->elementTable->GetColumn( 0 )->GetVariantValue(characteristicsList.at( i ) ).ToString().c_str() );
@@ -1756,7 +1758,9 @@ void dlg_FeatureScout::CsvDVSaveButton()
 
 	dlg_commoninput dlg( this, "DistributionViewCSVSaveDialog", inList, inPara, nullptr );
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 
 	bool saveFile = dlg.getCheckValue(0) == 2;
 	bool showHistogram = dlg.getCheckValue(1) == 2;
@@ -1770,8 +1774,10 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	if (saveFile)
 	{
 		filename = QFileDialog::getSaveFileName( this, tr( "Save characteristic distributions" ), m_sourcePath, tr( "CSV Files (*.csv *.CSV)" ) );
-		if ( filename.isEmpty() )
+		if (filename.isEmpty())
+		{
 			return;
+		}
 	}
 
 	this->m_dvContextView->GetScene()->ClearItems();
@@ -1783,7 +1789,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	distributionChartMatrix->SetGutter( vtkVector2f( 70.0, 70.0 ) );
 
 	//Calculates histogram for each selected characteristic
-	for ( int characteristicIdx = 0; characteristicIdx < characteristicsList.count(); ++characteristicIdx)
+	for (int characteristicIdx = 0; characteristicIdx < characteristicsList.count(); ++characteristicIdx)
 	{
 		double range[2] = { 0.0, 0.0 };
 		vtkDataArray *length = vtkDataArray::SafeDownCast(
@@ -1824,7 +1830,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 			pops[k] = 0;
 		}
 
-		for ( vtkIdType j = 0; j < length->GetNumberOfTuples(); ++j )
+		for (vtkIdType j = 0; j < length->GetNumberOfTuples(); ++j)
 		{
 			double v( 0.0 );
 			length->GetTuple( j, &v );
@@ -1867,14 +1873,13 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		disTable->AddColumn( populations.GetPointer() );
 
 		//Writes csv file
-		if ( saveFile )
+		if (saveFile)
 		{
 			ofstream file( getLocalEncodingFileName(filename).c_str(), std::ios::app );
 			if ( file.is_open() )
 			{
-				vtkVariant tColNb, tRowNb, tVal;
-				tColNb = disTable->GetNumberOfColumns();
-				tRowNb = disTable->GetNumberOfRows();
+				vtkIdType tColNb = disTable->GetNumberOfColumns();
+				vtkIdType tRowNb = disTable->GetNumberOfRows();
 
 				file << QString( "%1 Distribution of '%2'" )
 					.arg( this->csvTable->GetColumnName(characteristicsList.at( characteristicIdx) ) )
@@ -1883,12 +1888,12 @@ void dlg_FeatureScout::CsvDVSaveButton()
 
 				file << "HistoBinID;" << "HistoBinCenter" << "Frequency;" << endl;
 
-				for ( int row = 0; row < tRowNb.ToTypeUInt64(); ++row )
+				for (vtkIdType row = 0; row < tRowNb; ++row)
 				{
-					for ( int col = 0; col < tColNb.ToUnsignedShort(); ++col )
+					for (vtkIdType col = 0; col < tColNb; ++col)
 					{
-						tVal = disTable->GetValue( row, col );
-						switch ( col )
+						vtkVariant tVal = disTable->GetValue(row, col);
+						switch (col)
 						{
 							case 0:
 								file << row + 1 << ";"
