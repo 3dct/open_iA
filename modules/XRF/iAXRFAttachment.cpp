@@ -44,15 +44,22 @@
 #include <QtMath>
 
 iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ),
-	dlgPeriodicTable(0), dlgXRF(0), dlgSimilarityMap(0), ioThread(0),
+	dlgPeriodicTable(nullptr),
+	dlgSimilarityMap(nullptr),
+	dlgXRF(nullptr),
+	ioThread(nullptr),
 	m_xrfChannelID(NotExistingChannel)
 {
 	connect( m_child, SIGNAL( magicLensToggled( bool ) ), this, SLOT( magicLensToggled( bool ) ) );
-	for (int i=0; i<3; ++i)
-		connect( m_child->slicer(i), SIGNAL( oslicerPos( int, int, int, int ) ), this, SLOT( updateXRFVoxelEnergy( int, int, int, int ) ) );
+	for (int i = 0; i < 3; ++i)
+	{
+		connect(m_child->slicer(i), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(updateXRFVoxelEnergy(int, int, int, int)));
+	}
 	//TODO: move
-	if( !filter_SimilarityMap() )
+	if (!filter_SimilarityMap())
+	{
 		throw itk::ExceptionObject(__FILE__, __LINE__, "filter_SimilarityMap failed");
+	}
 	QString filtername = tr( "XRF" );
 	m_child->addStatusMsg( filtername );
 
@@ -61,8 +68,10 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAM
 		tr( "Open File" ),
 		m_child->filePath(),
 		tr( "All supported types (*.mhd *.raw *.volstack);;MetaImages (*.mhd *.mha);;RAW files (*.raw);;Volume Stack (*.volstack)" ) );
-	if( !QFile::exists( f ) )
+	if (!QFile::exists(f))
+	{
 		throw itk::ExceptionObject(__FILE__, __LINE__, "File does not exist");
+	}
 
 	m_child->addMsg(tr("Loading file '%1', please wait...").arg(f));
 
@@ -82,8 +91,10 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAM
 
 	QString extension = QFileInfo( f ).suffix();
 	extension = extension.toUpper();
-	if( extensionToIdStack.find( extension ) == extensionToIdStack.end() )
+	if (extensionToIdStack.find(extension) == extensionToIdStack.end())
+	{
 		throw itk::ExceptionObject(__FILE__, __LINE__, "Unsupported extension");
+	}
 
 	iAIOType id = extensionToIdStack.find( extension ).value();
 	if( !ioThread->setupIO( id, f ) )
@@ -103,9 +114,13 @@ void iAXRFAttachment::reInitXRF()
 {
 	vtkSmartPointer<vtkImageData> img = dlgXRF->GetCombinedVolume();
 	if (m_child->isMagicLens2DEnabled())
+	{
 		m_child->reInitMagicLens(m_xrfChannelID, "Spectral Color Image", img, dlgXRF->GetColorTransferFunction());
+	}
 	if (m_child->channelData(m_xrfChannelID) && m_child->channelData(m_xrfChannelID)->isEnabled())
+	{
 		m_child->updateChannel(m_xrfChannelID, img, dlgXRF->GetColorTransferFunction(), nullptr, false);
+	}
 }
 
 void iAXRFAttachment::initXRF()
@@ -121,7 +136,9 @@ void iAXRFAttachment::deinitXRF()
 void iAXRFAttachment::initXRF( bool enableChannel )
 {
 	if (m_xrfChannelID == NotExistingChannel)
+	{
 		m_xrfChannelID = m_child->createChannel();
+	}
 	vtkSmartPointer<vtkImageData> img = dlgXRF->GetCombinedVolume();
 	auto chData = m_child->channelData(m_xrfChannelID);
 	chData->setImage( img );
@@ -153,14 +170,14 @@ QThread* iAXRFAttachment::recalculateXRF()
 
 void iAXRFAttachment::updateXRFVoxelEnergy( int x, int y, int z, int /*mode*/ )
 {
-	if( !dlgXRF )
+	if (!dlgXRF)
 	{
 		return;
 	}
-	if( dlgXRF->cb_spectrumProbing->isChecked() )
+	if (dlgXRF->cb_spectrumProbing->isChecked())
 	{
 		iAXRFData * xrfData = dlgXRF->GetXRFData().data();
-		if( !xrfData || xrfData->begin() == xrfData->end() )
+		if (!xrfData || xrfData->begin() == xrfData->end())
 		{
 			return;
 		}
@@ -172,7 +189,7 @@ void iAXRFAttachment::updateXRFVoxelEnergy( int x, int y, int z, int /*mode*/ )
 		firstImg->GetSpacing( xrfSpacing );
 
 		double spacing[3];
-		for( int i = 0; i<3; ++i )
+		for (int i = 0; i<3; ++i)
 		{
 			spacing[i] = xrfSpacing[i] / imgSpacing[i];
 		}
@@ -184,12 +201,18 @@ void iAXRFAttachment::updateXRFVoxelEnergy( int x, int y, int z, int /*mode*/ )
 		int xrfY = qFloor( y / spacing[1] );
 		int xrfZ = qFloor( z / spacing[2] );
 
-		if( xrfX > extent[1] )
+		if (xrfX > extent[1])
+		{
 			xrfX = extent[1];
-		if( xrfY > extent[3] )
+		}
+		if (xrfY > extent[3])
+		{
 			xrfY = extent[3];
-		if( xrfZ > extent[5] )
+		}
+		if (xrfZ > extent[5])
+		{
 			xrfZ = extent[5];
+		}
 
 		dlgXRF->UpdateVoxelSpectrum( xrfX, xrfY, xrfZ );
 
@@ -211,10 +234,10 @@ void iAXRFAttachment::xrfLoadingDone()
 	double maxEnergy = dlgXRF->GetXRFData()->size();
 	bool haveEnergyLevels = false;
 	QString energyRange = ioThread->additionalInfo();
-	if( !energyRange.isEmpty() )
+	if (!energyRange.isEmpty())
 	{
 		QStringList energies = energyRange.split( ":" );
-		if( energies.size() == 2 )
+		if (energies.size() == 2)
 		{
 			minEnergy = energies[0].toDouble();
 			maxEnergy = energies[1].toDouble();
@@ -254,7 +277,7 @@ void iAXRFAttachment::updateSlicerXRFOpacity()
 void iAXRFAttachment::updateXRFOpacity( int /*value*/ )
 {
 	iAChannelData * data = m_child->channelData(m_xrfChannelID);
-	if( data && data->isEnabled() )
+	if (data && data->isEnabled())
 	{
 		dlgXRF->sl_peakOpacity->repaint();
 		updateSlicerXRFOpacity();
@@ -274,7 +297,7 @@ void iAXRFAttachment::initSlicerXRF( bool enableChannel )
 	assert( !m_child->channelData(m_xrfChannelID) );
 	m_child->addMsg(tr("Initializing Spectral Color Image. This may take a while..."));
 	QObject* calcThread = recalculateXRF();
-	if( enableChannel )
+	if (enableChannel)
 	{
 		QObject::connect( calcThread, SIGNAL( finished() ), this, SLOT( initXRF() ) );
 	}
@@ -288,13 +311,13 @@ void iAXRFAttachment::visualizeXRF( int isOn )
 {
 	bool enabled = (isOn != 0);
 	iAChannelData * chData = m_child->channelData(m_xrfChannelID);
-	if( !chData && enabled )
+	if (!chData && enabled)
 	{
 		initSlicerXRF( true );
 		return;
 	}
 	m_child->setChannelRenderingEnabled(m_xrfChannelID, enabled );
-	if( enabled )
+	if (enabled)
 	{
 		updateSlicerXRFOpacity();
 	}
@@ -304,12 +327,12 @@ void iAXRFAttachment::updateXRF()
 {
 	iAChannelData * chData = m_child->channelData(m_xrfChannelID);
 	bool isMagicLensEnabled = m_child->isMagicLens2DEnabled();
-	if( !chData || (!chData->isEnabled() && !isMagicLensEnabled) )
+	if (!chData || (!chData->isEnabled() && !isMagicLensEnabled))
 	{
 		return;
 	}
 	QThread* calcThread = recalculateXRF();
-	if( !calcThread )
+	if (!calcThread)
 	{
 		return;
 	}
@@ -319,7 +342,7 @@ void iAXRFAttachment::updateXRF()
 
 void iAXRFAttachment::magicLensToggled( bool /*isOn*/ )
 {
-	if( dlgXRF && !m_child->channelData(m_xrfChannelID) )
+	if (dlgXRF && !m_child->channelData(m_xrfChannelID))
 	{
 		initSlicerXRF( false );
 		return;
@@ -328,5 +351,5 @@ void iAXRFAttachment::magicLensToggled( bool /*isOn*/ )
 
 void iAXRFAttachment::ioFinished()
 {
-	ioThread = 0;
+	ioThread = nullptr;
 }

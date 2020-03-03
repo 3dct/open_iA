@@ -34,11 +34,11 @@
 
 iAAccumulatedXRFData::iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, double minEnergy, double maxEnergy) :
 	m_xrfData(data),
-	m_spectraHistograms(new iASpectraHistograms(data)),
 	m_minimum(new CountType[m_xrfData->size()]),
 	m_maximum(new CountType[m_xrfData->size()]),
 	m_average(new CountType[m_xrfData->size()]),
-	m_functionalBoxplotData(0)
+	m_functionalBoxplotData(0),
+	m_spectraHistograms(new iASpectraHistograms(data))
 {
 	m_xBounds[0] = minEnergy;
 	m_xBounds[1] = maxEnergy;
@@ -190,13 +190,15 @@ void iAAccumulatedXRFData::calculateStatistics()
 	}
 
 	//workaround if XRF values are negative (in our case due to the FDK reco nature)
-	if(m_yBounds[0] < 0.0 )
-		for(int j=0; j<i; ++j)
+	if (m_yBounds[0] < 0.0)
+	{
+		for (size_t j = 0; j < i; ++j)
 		{
 			m_average[j] -= m_yBounds[0];
 			m_maximum[j] -= m_yBounds[0];
 			m_minimum[j] -= m_yBounds[0];
 		}
+	}
 }
 
 void iAAccumulatedXRFData::createSpectrumFunctions()
@@ -236,7 +238,7 @@ void iAAccumulatedXRFData::calculateFunctionBoxplots()
 		functions, &measure, 2);
 }
 
-FunctionalBoxPlot* const iAAccumulatedXRFData::functionalBoxPlot()
+FunctionalBoxPlot* iAAccumulatedXRFData::functionalBoxPlot()
 {
 	if (!m_functionalBoxplotData)
 	{

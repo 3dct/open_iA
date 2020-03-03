@@ -23,6 +23,7 @@
 class iAElementSelectionListener
 {
 public:
+	virtual ~iAElementSelectionListener();
 	virtual void ElementEnter(int elementIdx) =0;
 	virtual void ElementLeave(int elementIdx) =0;
 };

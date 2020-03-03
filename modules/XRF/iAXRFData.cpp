@@ -83,7 +83,7 @@ void addValues(double* result, void* data, size_t voxelCount, double energyColor
 	for (int i=0; i<voxelCount; ++i)
 	{
 		// color = value of colorTransferFunction for this energy (volume)
-		for (int comp = 0; comp<COLOR_COMPONENTS; ++comp)
+		for (size_t comp = 0; comp<COLOR_COMPONENTS; ++comp)
 		{
 			size_t idx = COLOR_COMPONENTS*i+comp;
 			double toAdd = energyCounts[i] * energyColor[comp];
@@ -152,10 +152,10 @@ public:
 		// build a color map of all resulting colors; and insert indices to this color map instead of actual colors
 		std::map<unsigned long, unsigned long> colorMap;
 		unsigned long lastColorIdx = 0;
-		for (int i=0; i < voxelCount; i++)
+		for (size_t i=0; i < voxelCount; i++)
 		{
 			unsigned long colorKey = 0;
-			for (int comp = 0; comp<COLOR_COMPONENTS; ++comp)
+			for (size_t comp = 0; comp<COLOR_COMPONENTS; ++comp)
 			{
 				colorValues[COLOR_COMPONENTS*i+comp] = colorValues[COLOR_COMPONENTS*i+comp] / componentMax * COLOR_RANGE;
 				unsigned long curColorValue = static_cast<unsigned long>(colorValues[COLOR_COMPONENTS*i+comp]);
@@ -183,9 +183,9 @@ public:
 		{
 			unsigned long colorVal = it->first;
 			double colorComponents[COLOR_COMPONENTS];
-			for (int i=COLOR_COMPONENTS-1; i>=0; --i)
+			for (int c=COLOR_COMPONENTS-1; c>=0; --c)
 			{
-				colorComponents[i] = static_cast<double>(colorVal & COLOR_COMP_BITMASK) / COLOR_RANGE;
+				colorComponents[c] = static_cast<double>(colorVal & COLOR_COMP_BITMASK) / COLOR_RANGE;
 				colorVal >>= COLOR_BITS;
 			}
 			colorTransfer->AddRGBPoint(it->second, colorComponents[0], colorComponents[1], colorComponents[2]);

@@ -179,7 +179,7 @@ void iAEnergySpectrumWidget::drawAfterPlots(QPainter& painter)
 		QColor color = m_elementEnergies[element];
 		painter.setPen(color);
 		int drawnLines = 0;
-		for (int j=0; j<element->energies.size(); ++j)
+		for (size_t j=0; j<element->energies.size(); ++j)
 		{
 			double elementkEV = element->energies[j]/1000.0;
 			if (elementkEV >= xBounds()[0] &&

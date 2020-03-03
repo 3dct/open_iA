@@ -57,7 +57,7 @@ public:
 	void retrieveHistData(long numBin_in, DataType * &data_out, size_t &numHist_out, DataType &maxValue_out);
 	CountType spectraHistogramMax() const;
 	DataType const * avgData() const;
-	FunctionalBoxPlot* const functionalBoxPlot();
+	FunctionalBoxPlot* functionalBoxPlot();
 private:
 	void computeSpectraHistograms( long numBins );
 	iAAccumulatedXRFData(iAAccumulatedXRFData const & other);

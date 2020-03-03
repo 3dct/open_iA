@@ -23,6 +23,10 @@
 #include "dlg_XRF.h"
 #include "iAElementConstants.h"
 
+
+iAElementSelectionListener::~iAElementSelectionListener()
+{}
+
 iAPeriodicTableListener::iAPeriodicTableListener(dlg_XRF* dlgXRF):
 	m_dlgXRF(dlgXRF)
 {}

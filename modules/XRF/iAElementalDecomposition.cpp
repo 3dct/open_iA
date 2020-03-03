@@ -33,7 +33,7 @@ TReal **create_matrix ( size_t nrow, size_t ncol )
 {
 	typedef TReal* TRealPointer;
 	TReal **m = new TRealPointer[nrow];
-	for ( int row = 0; row < nrow; ++row )
+	for (size_t row = 0; row < nrow; ++row)
 	{
 		m[row] = new TReal[ncol];
 	}
@@ -43,7 +43,7 @@ TReal **create_matrix ( size_t nrow, size_t ncol )
 template<class TReal>
 void free_matrix ( TReal **m, size_t nrow)
 {
-	for ( int row = 0; row < nrow; ++row )
+	for (size_t row = 0; row < nrow; ++row)
 	{
 		delete [] m[row];
 	}
