@@ -412,20 +412,20 @@ void iAFiAKErController::setupSettingsView()
 
 	m_settingsView->cbShowWireFrame->setChecked(false);
 
-
-	auto dissimilarityMeasures = iARefDistCompute::getDissimilarityMeasureNames();
-	for (auto name : dissimilarityMeasures)
+	auto measureNames = getAvailableDissimilarityMeasureNames();
+	for (auto measureID: m_data->m_measures)
 	{
-		m_settingsView->cmbboxSimilarityMeasure->addItem(name);
+		m_settingsView->cmbboxSimilarityMeasure->addItem(measureNames[measureID]);
 	}
-	m_settingsView->cmbboxSimilarityMeasure->setCurrentIndex(iARefDistCompute::BestSimilarityMeasure);
+	//m_settingsView->cmbboxSimilarityMeasure->setCurrentIndex(iARefDistCompute::BestSimilarityMeasure); // <- stored in settings anyway!
 
 	m_settingsView->sbAnimationDelay->setValue(DefaultPlayDelay);
 	m_playTimer->setInterval(DefaultPlayDelay);
 
-	m_optimStepChart.resize(iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount + 1);
-
-	ChartCount = iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount + 1;
+	//iAFiberCharData::FiberValueCount               // v Projection error
+	ChartCount = m_data->m_measures.size() + 1;
+	
+	m_optimStepChart.resize( ChartCount );
 	m_chartCB.resize(ChartCount);
 	for (size_t chartID = 0; chartID < ChartCount; ++chartID)
 	{
@@ -1187,9 +1187,10 @@ void iAFiAKErController::exportDissimilarities()
 	}
 	QTextStream out(&outFile);
 	out << "ResultID";
-	for (size_t measureID = 0; measureID < iARefDistCompute::SimilarityMeasureCount; ++measureID)
+	auto measureNames = getAvailableDissimilarityMeasureNames();
+	for (auto measureID: m_data->m_measures)
 	{
-		out << "," << iARefDistCompute::getDissimilarityMeasureNames()[measureID];
+		out << "," << measureNames[measureID];
 	}
 	out << endl;
 	QFileInfo fi(fileName);
@@ -1204,10 +1205,10 @@ void iAFiAKErController::exportDissimilarities()
 		}
 		else
 		{
-			for (int measureID = avgMeasure.size() - iARefDistCompute::SimilarityMeasureCount;
-				measureID >= 0 && measureID < avgMeasure.size(); ++measureID)
+			for (int m = avgMeasure.size() - m_data->m_measures.size();
+				m >= 0 && m < avgMeasure.size(); ++m)
 			{
-				out << "," << avgMeasure[measureID];
+				out << "," << avgMeasure[m];
 			}
 		}
 		out << endl;
@@ -1226,12 +1227,12 @@ void iAFiAKErController::exportDissimilarities()
 		const int NumOfMatchesToWrite = 3;
 		QTextStream resultOut(&resultOutFile);
 		resultOut << "LabelID";
-		for (size_t measureID = 0; measureID < iARefDistCompute::SimilarityMeasureCount; ++measureID)
+		for (auto measureID: m_data->m_measures)
 		{
 			for (int i = 0; i < NumOfMatchesToWrite; ++i)
 			{
-				resultOut << "," << iARefDistCompute::getDissimilarityMeasureNames()[measureID] << QString(" Fiber ID Match %1").arg(i)
-					<< "," << iARefDistCompute::getDissimilarityMeasureNames()[measureID] << QString(" Dissimilarity %1").arg(i);
+				resultOut << "," << measureNames[measureID] << QString(" Fiber ID Match %1").arg(i)
+					<< "," << measureNames[measureID] << QString(" Dissimilarity %1").arg(i);
 			}
 		}
 		resultOut << endl;
@@ -2432,16 +2433,15 @@ void iAFiAKErController::saveSettings(QSettings & settings)
 
 void iAFiAKErController::refDistAvailable()
 {
-	size_t startIdx = m_data->spmData->numParams() - (iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount + iARefDistCompute::EndColumns);
+	size_t startIdx = m_refDistCompute->columnsBefore();
 	std::vector<size_t> changedSpmColumns;
-	for (size_t paramID = 0; paramID < iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount; ++paramID)
+	for (size_t col = startIdx; col < startIdx+m_refDistCompute->columnsAdded(); ++col)
 	{
-		size_t columnID = startIdx + paramID;
-		changedSpmColumns.push_back(columnID);
+		changedSpmColumns.push_back(col);
 	}
+	m_data->spmData->updateRanges(changedSpmColumns);
 	m_referenceID = m_refDistCompute->referenceID();
 	m_spnboxReferenceCount->setMaximum(std::min(iARefDistCompute::MaxNumberOfCloseFibers, static_cast<int>(m_data->result[m_referenceID].fiberCount)));
-	m_data->spmData->updateRanges(changedSpmColumns);
 	m_spm->update();
 	delete m_refDistCompute;
 	m_refDistCompute = nullptr;
@@ -2458,10 +2458,10 @@ void iAFiAKErController::refDistAvailable()
 
 	updateRefDistPlots();
 
-	for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount; ++diffID)
+	for (size_t diffID = 0; diffID < m_data->m_measures.size(); ++diffID)
 	{
 		auto diffAvgAction = new QAction(m_data->spmData->parameterName(startIdx+diffID), nullptr);
-		diffAvgAction->setProperty("colID", static_cast<unsigned long long>(diffID+1));
+		diffAvgAction->setProperty("colID", static_cast<unsigned long long>(startIdx+diffID));
 		diffAvgAction->setCheckable(true);
 		diffAvgAction->setChecked(false);
 		connect(diffAvgAction, &QAction::triggered, this, &iAFiAKErController::stackedColSelect);
@@ -2566,7 +2566,7 @@ void iAFiAKErController::showReferenceLinesToggled()
 
 void iAFiAKErController::changeReferenceDisplay()
 {
-	size_t similarityMeasure = clamp(0, iARefDistCompute::SimilarityMeasureCount, m_settingsView->cmbboxSimilarityMeasure->currentIndex());
+	size_t similarityMeasure = clamp(0, m_data->m_measures.size(), m_settingsView->cmbboxSimilarityMeasure->currentIndex());
 	bool showRef = m_chkboxShowReference->isChecked();
 	int refCount = std::min(iARefDistCompute::MaxNumberOfCloseFibers, m_spnboxReferenceCount->value());
 
@@ -2949,7 +2949,7 @@ void iAFiAKErController::selectionDetailsItemClicked(QModelIndex const & index)
 QString iAFiAKErController::diffName(size_t chartID) const
 {
 	size_t spmCol = m_data->spmData->numParams() -
-		(iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount + iARefDistCompute::EndColumns) + chartID;
+		m_data->m_projectionErrorColumn + 1 + chartID;
 	return m_data->spmData->parameterName(spmCol);
 }
 

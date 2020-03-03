@@ -25,10 +25,11 @@
 
 #include "iACsvConfig.h"
 
-#include "charts/iASPLOMData.h"
-#include "iAConsole.h"
-#include "iAStringHelper.h"
-#include "iAvec3.h"
+// Core:
+#include <charts/iASPLOMData.h>
+#include <iAConsole.h>
+#include <iAStringHelper.h>
+#include <iAvec3.h>
 
 #include <vtkTable.h>
 #include <vtkVariant.h>
@@ -48,62 +49,13 @@
 namespace
 {
 
-	void getBestMatches(iAFiberData const & fiber, QMap<uint, uint> const & mapping, vtkTable* refTable,
-		QVector<QVector<iAFiberSimilarity> > & bestMatches, double diagonalLength, double maxLength,
-		std::map<size_t, std::vector<iAVec3f> > const & refCurveInfo)
-	{
-		iARefDistCompute::ContainerSizeType refFiberCount = refTable->GetNumberOfRows();
-		bestMatches.resize(iARefDistCompute::SimilarityMeasureCount);
-		auto maxNumberOfCloseFibers = std::min(iARefDistCompute::MaxNumberOfCloseFibers, refFiberCount);
-		for (int d = 0; d<iARefDistCompute::SimilarityMeasureCount; ++d)
-		{
-			QVector<iAFiberSimilarity> similarities;
-			if (d < iARefDistCompute::OverlapMeasureStart)
-			{
-				similarities.resize(refFiberCount);
-				for (iARefDistCompute::ContainerSizeType refFiberID = 0; refFiberID < refFiberCount; ++refFiberID)
-				{
-					auto it = refCurveInfo.find(refFiberID);
-					iAFiberData refFiber(refTable, refFiberID, mapping, (it != refCurveInfo.end())? it->second: std::vector<iAVec3f>());
-					similarities[refFiberID].index = refFiberID;
-					double curDissimilarity = getDissimilarity(fiber, refFiber, d, diagonalLength, maxLength);
-					if (std::isnan(curDissimilarity))
-					{
-						curDissimilarity = 0;
-					}
-					similarities[refFiberID].dissimilarity = curDissimilarity;
-				}
-			}
-			else
-			{ // compute overlap measures only for the best-matching fibers according to a simpler metric:
-				auto & otherMatches = bestMatches[iARefDistCompute::BestMeasureWithoutOverlap];
-				similarities.resize(otherMatches.size());
-				for (iARefDistCompute::ContainerSizeType bestMatchID = 0; bestMatchID < otherMatches.size(); ++bestMatchID)
-				{
-					size_t refFiberID = otherMatches[bestMatchID].index;
-					auto it = refCurveInfo.find(refFiberID);
-					iAFiberData refFiber(refTable, refFiberID, mapping, (it != refCurveInfo.end())? it->second: std::vector<iAVec3f>());
-					similarities[bestMatchID].index = refFiberID;
-					double curDissimilarity = getDissimilarity(fiber, refFiber, d, diagonalLength, maxLength);
-					if (std::isnan(curDissimilarity))
-					{
-						curDissimilarity = 0;
-					}
-					similarities[bestMatchID].dissimilarity = curDissimilarity;
-				}
-			}
-			std::sort(similarities.begin(), similarities.end());
-			std::copy(similarities.begin(), similarities.begin() + maxNumberOfCloseFibers, std::back_inserter(bestMatches[d]));
-		}
-	}
-
 	QString ResultCacheFileIdentifier("FIAKERResultCacheFile");
 	QString AverageCacheFileIdentifier("FIAKERAverageCacheFile");
 	QDataStream::Version CacheFileQtDataStreamVersion(QDataStream::Qt_5_6);
 	//QString CacheFileClosestFibers("ClosestFibers");
 	//QString CacheFileResultPattern("Result%1");
 	quint32 AverageCacheFileVersion(1);
-	quint32 ResultRefCacheFileVersion(2);
+	quint32 ResultRefCacheFileVersion(3);
 
 	bool verifyOpenCacheFile(QFile & cacheFile)
 	{
@@ -122,36 +74,117 @@ namespace
 
 iARefDistCompute::ContainerSizeType iARefDistCompute::MaxNumberOfCloseFibers = 25;
 
-iARefDistCompute::iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, size_t referenceID):
+iARefDistCompute::iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, size_t referenceID) :
 	m_data(data),
-	m_referenceID(referenceID)
-{}
-
-QStringList iARefDistCompute::getDissimilarityMeasureNames()
+	m_referenceID(referenceID),
+	m_columnsBefore(data->spmData->numParams()),
+	m_optimizationMeasureIdx(0),
+	m_bestMeasure(0)
 {
-	QStringList result;
-	result.push_back("dc₁");
-	result.push_back("dc₂");
-	result.push_back("dp₁");
-	result.push_back("dp₂");
-	result.push_back("dp₃");
-	result.push_back("do₁");
-	result.push_back("do₂");
-	result.push_back("do₃");
-	result.push_back("dmin");
-	result.push_back("dmax");
-	result.push_back("dsum");
-	result.push_back("davg");
-	result.push_back("dminmin");
-	result.push_back("dminmax");
-	result.push_back("dminsum");
-	result.push_back("dminavg");
-	result.push_back("dmaxmin");
-	result.push_back("dmaxmax");
-	result.push_back("dmaxsum");
-	result.push_back("dmaxavg");
-	assert(result.size() == SimilarityMeasureCount);
-	return result;
+}
+
+bool iARefDistCompute::setMeasuresToCompute(std::vector<std::pair<int, bool>> const& measuresToCompute,
+	int optimizationMeasure, int bestMeasure)
+{
+	m_measuresToCompute = measuresToCompute;
+	std::sort(m_measuresToCompute.begin(), m_measuresToCompute.end(),
+		[](std::pair<int, bool> const& a, std::pair<int, bool> const& b)
+		{
+			return !a.second && b.second;
+		});
+	QVector<size_t> allMeasures(m_data->m_measures);
+	for (auto m : m_measuresToCompute)
+	{
+		allMeasures.push_back(m.first);
+	}
+	auto optMeasIt = std::find(allMeasures.begin(), allMeasures.end(), optimizationMeasure);
+	auto optMeasItNew = std::find(m_measuresToCompute.begin(), m_measuresToCompute.end(), std::make_pair(optimizationMeasure, true));
+	if (optMeasIt == allMeasures.end() || optMeasItNew != m_measuresToCompute.end())
+	{
+		DEBUG_LOG("Measure to use for optimization not found, or uses optimization itself!");
+		return false;
+	}
+	else
+	{
+		m_optimizationMeasureIdx = optMeasIt - allMeasures.begin();
+	}
+	auto it = std::find(allMeasures.begin(), allMeasures.end(), bestMeasure);
+	if (it == allMeasures.end())
+	{
+		DEBUG_LOG("Selected best measure not found!");
+		return false;
+	}
+	else
+	{
+		m_bestMeasure = it - allMeasures.begin();
+	}
+	return true;
+}
+
+class iAFiberAndRefData
+{
+public:
+	iAFiberData const& fiber;
+	QMap<uint, uint> const& mapping;
+	vtkTable* refTable;
+	QVector<QVector<iAFiberSimilarity> >& bestMatches;
+	std::map<size_t, std::vector<iAVec3f> > const& refCurveInfo;
+	iAFiberAndRefData(iAFiberData const& f,
+		QMap<uint, uint> const& m,
+		vtkTable* rT,
+		QVector<QVector<iAFiberSimilarity> >& b,
+		std::map<size_t, std::vector<iAVec3f> > const& rC) :
+		fiber(f), mapping(m), refTable(rT), bestMatches(b), refCurveInfo(rC)
+	{}
+
+};
+
+void iARefDistCompute::getBestMatches(iAFiberAndRefData& f)
+{
+	iARefDistCompute::ContainerSizeType refFiberCount = f.refTable->GetNumberOfRows();
+	int bestMatchesStartIdx = f.bestMatches.size();
+	f.bestMatches.resize(bestMatchesStartIdx + static_cast<int>(m_measuresToCompute.size()));
+	auto maxNumberOfCloseFibers = std::min(iARefDistCompute::MaxNumberOfCloseFibers, refFiberCount);
+	for (int d = 0; d < m_measuresToCompute.size(); ++d)
+	{
+		QVector<iAFiberSimilarity> similarities;
+		if (!m_measuresToCompute[d].second)
+		{
+			similarities.resize(refFiberCount);
+			for (iARefDistCompute::ContainerSizeType refFiberID = 0; refFiberID < refFiberCount; ++refFiberID)
+			{
+				auto it = f.refCurveInfo.find(refFiberID);
+				iAFiberData refFiber(f.refTable, refFiberID, f.mapping, (it != f.refCurveInfo.end()) ? it->second : std::vector<iAVec3f>());
+				similarities[refFiberID].index = refFiberID;
+				double curDissimilarity = getDissimilarity(f.fiber, refFiber, d, m_diagonalLength, m_maxLength);
+				if (std::isnan(curDissimilarity))
+				{
+					curDissimilarity = 0;
+				}
+				similarities[refFiberID].dissimilarity = curDissimilarity;
+			}
+		}
+		else
+		{ // compute overlap measures only for the best-matching fibers according to a simpler metric:
+			auto& otherMatches = f.bestMatches[bestMatchesStartIdx+m_optimizationMeasureIdx];
+			similarities.resize(otherMatches.size());
+			for (iARefDistCompute::ContainerSizeType bestMatchID = 0; bestMatchID < otherMatches.size(); ++bestMatchID)
+			{
+				size_t refFiberID = otherMatches[bestMatchID].index;
+				auto it = f.refCurveInfo.find(refFiberID);
+				iAFiberData refFiber(f.refTable, refFiberID, f.mapping, (it != f.refCurveInfo.end()) ? it->second : std::vector<iAVec3f>());
+				similarities[bestMatchID].index = refFiberID;
+				double curDissimilarity = getDissimilarity(f.fiber, refFiber, d, m_diagonalLength, m_maxLength);
+				if (std::isnan(curDissimilarity))
+				{
+					curDissimilarity = 0;
+				}
+				similarities[bestMatchID].dissimilarity = curDissimilarity;
+			}
+		}
+		std::sort(similarities.begin(), similarities.end());
+		std::copy(similarities.begin(), similarities.begin() + maxNumberOfCloseFibers, std::back_inserter(f.bestMatches[bestMatchesStartIdx+d]));
+	}
 }
 
 void iARefDistCompute::run()
@@ -164,6 +197,7 @@ void iARefDistCompute::run()
 	auto & ref = m_data->result[m_referenceID];
 
 	auto const & mapping = *ref.mapping.data();
+	/*
 	std::array<size_t, iAFiberCharData::FiberValueCount> diffCols = {
 		mapping[iACsvConfig::StartX],  mapping[iACsvConfig::StartY],  mapping[iACsvConfig::StartZ],
 		mapping[iACsvConfig::EndX],    mapping[iACsvConfig::EndY],    mapping[iACsvConfig::EndZ],
@@ -172,14 +206,15 @@ void iARefDistCompute::run()
 		mapping[iACsvConfig::Length],
 		mapping[iACsvConfig::Diameter]
 	};
+	*/
 	// get values for normalization:
 	double const * cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
 		*cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
 		*czr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterZ]);
 	double a = cxr[1] - cxr[0], b = cyr[1] - cyr[0], c = czr[1] - czr[0];
-	double diagLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
+	m_diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
 	double const * lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
-	double maxLength = lengthRange[1] - lengthRange[0];
+	m_maxLength = lengthRange[1] - lengthRange[0];
 	bool recomputeAverages = false;
 	std::vector<bool> writeResultCache(m_data->result.size(), false);
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
@@ -213,9 +248,10 @@ void iARefDistCompute::run()
 			auto it = d.curveInfo.find(fiberID);
 			// find the best-matching fibers in reference & compute difference:
 			iAFiberData fiber(d.table, fiberID, mapping, (it != d.curveInfo.end())? it->second : std::vector<iAVec3f>());
-			getBestMatches(fiber, mapping, ref.table,
-				d.refDiffFiber[fiberID].dist, diagLength, maxLength, ref.curveInfo);
+			iAFiberAndRefData f(fiber, mapping, ref.table, d.refDiffFiber[fiberID].dist, ref.curveInfo);
+			getBestMatches(f);
 		}
+/*
 		// Computing the difference between consecutive steps.
 #pragma omp parallel for
 		for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
@@ -224,7 +260,7 @@ void iARefDistCompute::run()
 			{
 				iARefDistCompute::ContainerSizeType stepCount = static_cast<int>(d.stepValues.size());
 				auto & diffs = d.refDiffFiber[fiberID].diff;
-				diffs.resize(iAFiberCharData::FiberValueCount+SimilarityMeasureCount);
+				diffs.resize(diffs.size + );
 				for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 				{
 					auto & stepDiffs = diffs[diffID].step;
@@ -251,28 +287,30 @@ void iARefDistCompute::run()
 						stepDiffs[step] = dist;
 					}
 				}
-			}/*
+			}
 			else if (data.stepData == iAFiberCharData::CurvedStepData)
 			{
 				// difference computation for curved step data ...
 			}
-			*/
 		}
+		*/
 	}
 	m_progress.setStatus("Updating tables with data computed so far.");
 	size_t spmID = 0;
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result[resultID];
+		/*
 		if (resultID == m_referenceID)
 		{
 			spmID += d.fiberCount;
 			continue;
 		}
+		*/
 		for (iARefDistCompute::ContainerSizeType fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 		{
 			//if (d.stepData == iAFiberCharData::SimpleStepData) ???
-			auto & diffData = d.refDiffFiber[fiberID];
+			/*
 			for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 			{
 				size_t tableColumnID = m_data->spmData->numParams() -
@@ -286,14 +324,15 @@ void iARefDistCompute::run()
 				m_data->spmData->data()[tableColumnID][spmID] = lastValue;
 				d.table->SetValue(fiberID, tableColumnID, lastValue); // required for coloring 3D view by these diffs + used below for average!
 			}
-			for (iARefDistCompute::ContainerSizeType distID = 0; distID < SimilarityMeasureCount; ++distID)
+			*/
+			for (iARefDistCompute::ContainerSizeType distID = 0; distID < m_measuresToCompute.size(); ++distID)
 			{
-				double dissimilarity = diffData.dist[distID][0].dissimilarity;
+				double dissimilarity = (resultID == m_referenceID) ? 0 : d.refDiffFiber[fiberID].dist[distID][0].dissimilarity;
 				if (std::isnan(dissimilarity))
 				{   // TODO: Find out under which circumstances this happens
 					dissimilarity = 0;
 				}
-				size_t tableColumnID = m_data->spmData->numParams() - (SimilarityMeasureCount + EndColumns) + distID;
+				size_t tableColumnID = m_data->spmData->numParams() - m_measuresToCompute.size() + distID;
 				m_data->spmData->data()[tableColumnID][spmID] = dissimilarity;
 				d.table->SetValue(fiberID, tableColumnID, dissimilarity); // required for coloring 3D view by these similarities + used below for average!
 			}
@@ -317,7 +356,7 @@ void iARefDistCompute::run()
 			auto & d = m_data->result[resultID];
 			for (iARefDistCompute::ContainerSizeType fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 			{
-				auto & bestFiberBestDist = d.refDiffFiber[fiberID].dist[BestSimilarityMeasure][0];
+				auto & bestFiberBestDist = d.refDiffFiber[fiberID].dist[m_bestMeasure][0];
 				size_t refFiberID = bestFiberBestDist.index;
 				refDistSum[refFiberID] += bestFiberBestDist.dissimilarity;
 				refMatchCount[refFiberID] += 1;
@@ -332,7 +371,7 @@ void iARefDistCompute::run()
 			m_data->avgRefFiberMatch[static_cast<int>(fiberID)] = value;
 		}
 		m_progress.setStatus("Computing average differences/similarities for each result.");
-		iARefDistCompute::ContainerSizeType diffCount = iAFiberCharData::FiberValueCount + SimilarityMeasureCount;
+		iARefDistCompute::ContainerSizeType diffCount = static_cast<int>(m_measuresToCompute.size());
 		// std::vector resize has an additional optional argument for default value for new entries,
 		// in QVector, the same can be achieved via fill method (but argument order is reversed!)
 		//m_data->maxAvgDifference.resize(diffCount, std::numeric_limits<double>::min());
@@ -350,7 +389,7 @@ void iARefDistCompute::run()
 			{
 				for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < diffCount; ++diffID)
 				{
-					size_t tableColumnID = m_data->spmData->numParams() - (iAFiberCharData::FiberValueCount + SimilarityMeasureCount + EndColumns) + diffID;
+					size_t tableColumnID = m_data->spmData->numParams() - m_measuresToCompute.size() + diffID;
 					double value = std::abs(d.table->GetValue(fiberID, tableColumnID).ToDouble());
 					d.avgDifference[diffID] += value;
 				}
@@ -412,6 +451,26 @@ bool iARefDistCompute::readResultRefComparison(QFile & cacheFile, size_t resultI
 		DEBUG_LOG(QString("FIAKER cache file '%1': Found file of version 1 which is known to have wrong dc1 and do3 computations. "
 			"If you want to recompute with correct values, please delete the 'cache' subfolder!")
 			.arg(cacheFile.fileName()));
+	} 
+	if (version <= 2)
+	{
+		std::vector<std::pair<int, bool>> measuresToCompute;
+		for (int d = 0; d < getAvailableDissimilarityMeasureNames().size(); ++d)
+		{
+			measuresToCompute.push_back(std::make_pair(d, false));
+		}
+		measuresToCompute[5].second = true;
+		measuresToCompute[6].second = true;
+		measuresToCompute[7].second = true;
+		int optimizationMeasure = 3;
+		int bestMeasure = 7;
+		if (!setMeasuresToCompute(measuresToCompute, optimizationMeasure, bestMeasure))
+		{
+			return false;
+		}
+	}
+	else
+	{
 	}
 	if (version > ResultRefCacheFileVersion)
 	{
@@ -511,4 +570,14 @@ iAProgress* iARefDistCompute::progress()
 size_t iARefDistCompute::referenceID() const
 {
 	return m_referenceID;
+}
+
+size_t iARefDistCompute::columnsBefore() const
+{
+	return m_columnsBefore;
+}
+
+size_t iARefDistCompute::columnsAdded() const
+{
+	return m_measuresToCompute.size();
 }

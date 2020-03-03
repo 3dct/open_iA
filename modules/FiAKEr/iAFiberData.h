@@ -62,3 +62,5 @@ void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size
 //!     in the dataset minus the length of the shortest one
 double getDissimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	int measureID, double diagonalLength, double maxLength);
+
+QStringList getAvailableDissimilarityMeasureNames();
