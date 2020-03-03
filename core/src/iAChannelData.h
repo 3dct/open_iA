@@ -34,7 +34,7 @@ class vtkScalarsToColors;
 class open_iA_Core_API iAChannelData
 {
 public:
-	static const size_t Maximum3DChannels = 3;
+	static const int Maximum3DChannels = 3;
 
 	iAChannelData();
 	iAChannelData(QString const & name, vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf=nullptr);

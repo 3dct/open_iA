@@ -288,9 +288,6 @@ iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunctio
 		bandDepth[i] = 0;
 	}
 
-	typedef std::vector<iAFunction<unsigned int, unsigned int> >::const_iterator FuncIt;
-	typedef std::vector<iAFunctionBand<unsigned int, unsigned int> >::const_iterator BandIt;
-
 	// set up sampling:
 
 	// start at minimum counts:
