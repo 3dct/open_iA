@@ -561,18 +561,18 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		addColumn(curData.table, resultID, spmData->parameterName(m_projectionErrorColumn).toStdString().c_str(), curData.fiberCount);
 		for (size_t fiberID = 0; fiberID < curData.fiberCount; ++fiberID)
 		{
-			size_t spmFiberID = spmStartIdx + fiberID;
+			//size_t spmFiberID = spmStartIdx + fiberID;
 			for (vtkIdType col = 0; col < numTableColumns; ++col)
 			{
 				double value = curData.table->GetValue(fiberID, col).ToDouble();
-				spmData->data()[col][spmFiberID] = value;
+				spmData->data()[col].push_back(value);
 			}
-			spmData->data()[m_resultIDColumn][spmFiberID] = resultID;
+			spmData->data()[m_resultIDColumn].push_back(resultID);
 
 			double projErrorRed = curData.projectionError.size() > 0 ?
 				curData.projectionError[fiberID][0] - curData.projectionError[fiberID][curData.projectionError[fiberID].size() - 1]
 					: 0;
-			spmData->data()[m_projectionErrorColumn][spmFiberID] = projErrorRed;
+			spmData->data()[m_projectionErrorColumn].push_back(projErrorRed);
 
 			curData.table->SetValue(fiberID, m_resultIDColumn, resultID);
 			curData.table->SetValue(fiberID, m_projectionErrorColumn, projErrorRed);
