@@ -33,7 +33,6 @@
 
 #include <itkAddImageFilter.h>
 #include <itkCastImageFilter.h>
-#include <itkDivideImageFilter.h>
 #include <itkImage.h>
 #include <itkImageToVTKImageFilter.h>
 
@@ -244,7 +243,6 @@ void iASSSlicer::computeAggregatedImageData( const QStringList & filesList )
 	typedef itk::Image< unsigned char, imgDim >   SumImageType;
 	//first use itk filters to compute aggregated image
 	typedef itk::AddImageFilter<SumImageType, MaskImageType, SumImageType> AddImageFilter;
-	typedef itk::DivideImageFilter<MaskImageType, MaskImageType, MaskImageType> DivideImageFilter;
 
 	ScalarPixelType pixelType;
 	ImagePointer lastOutput = iAITKIO::readFile( filesList.first(), pixelType, true);

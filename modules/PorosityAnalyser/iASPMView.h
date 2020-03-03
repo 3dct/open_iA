@@ -53,9 +53,9 @@ struct iASelection;
 class iASPMSettings;
 class MainWindow;
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_SPMView>  PorosityAnalyzerSPMConnector;
+typedef iAQTtoUIConnector<QDockWidget, Ui_SPMView> iAPorosityAnalyzerSPMConnector;
 
-class iASPMView : public PorosityAnalyzerSPMConnector
+class iASPMView : public iAPorosityAnalyzerSPMConnector
 {
 	Q_OBJECT
 

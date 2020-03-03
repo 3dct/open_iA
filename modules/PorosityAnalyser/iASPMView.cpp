@@ -71,12 +71,13 @@
 const QString defaultColorParam = "Deviat. from Ref.";
 const int popupWidthRange[2] = { 80, 300 };
 
-iASPMView::iASPMView(MainWindow *mWnd,  QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) : PorosityAnalyzerSPMConnector( parent, f ),
+iASPMView::iASPMView(MainWindow *mWnd,  QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ):
+	iAPorosityAnalyzerSPMConnector( parent, f ),
+	m_splom(new iAPAQSplom(mWnd, parent)),
 	m_SPLOMSelection( vtkSmartPointer<vtkIdTypeArray>::New() ),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
-	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() ),
-	m_splom( new iAPAQSplom(mWnd, parent) )
+	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() )
 {
 	CREATE_OLDVTKWIDGET(m_SBQVTKWidget);
 	QHBoxLayout *layoutHB2 = new QHBoxLayout( this );
@@ -164,7 +165,7 @@ void iASPMView::selectionUpdated( std::vector<size_t> const & selInds )
 
 void iASPMView::updateLUT()
 {
-	if (m_splom->lookupTable()->numberOfValues() < m_lut->GetNumberOfTableValues())
+	if (m_splom->lookupTable()->numberOfValues() < static_cast<size_t>(m_lut->GetNumberOfTableValues()))
 	{
 		return;
 	}

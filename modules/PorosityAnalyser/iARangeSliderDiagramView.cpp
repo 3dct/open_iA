@@ -31,23 +31,20 @@
 #include <QLabel>
 #include <QTableWidget>
 
-iARangeSliderDiagramView::iARangeSliderDiagramView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	: RangeSliderDiagramViewConnector( parent, f ),
-	m_mainContainer( 0 ), m_layoutVBMainContainer( 0 ),
-	m_cbPorDev( 0 ),
-	m_cbStatisticMeasurements( 0 ),
-	m_layoutHBComboBoxes( 0 ),
-	m_comboBoxContainer( 0 ),
-	m_title( 0 ),
-	m_histoContainer( 0 ),
-	m_layoutVBHistoContainer( 0 ),
-	m_separator( 0 ),
-	m_input( 0 ),
-	m_output( 0 )
-{
-}
-
-iARangeSliderDiagramView::~iARangeSliderDiagramView()
+iARangeSliderDiagramView::iARangeSliderDiagramView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ):
+	RangeSliderDiagramViewConnector( parent, f ),
+	m_mainContainer(nullptr),
+	m_comboBoxContainer(nullptr),
+	m_histoContainer(nullptr),
+	m_layoutVBMainContainer(nullptr),
+	m_layoutHBComboBoxes(nullptr),
+	m_layoutVBHistoContainer(nullptr),
+	m_cbPorDev(nullptr),
+	m_cbStatisticMeasurements(nullptr),
+	m_title(nullptr),
+	m_input(nullptr),
+	m_output(nullptr),
+	m_separator(nullptr)
 {
 }
 

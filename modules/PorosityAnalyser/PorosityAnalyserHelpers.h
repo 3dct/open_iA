@@ -412,7 +412,9 @@ struct sameType < T, T > { static const bool value = true; };  //specialization
 
 struct IParameterInfo
 {
-	IParameterInfo( QString parameterName, int numberOfSamples ) : name( parameterName ), numSamples( numberOfSamples ), incr(0), sampleId(0) {}
+	IParameterInfo( QString parameterName, int numberOfSamples ) :
+		name( parameterName ), numSamples( numberOfSamples ), sampleId(0), incr(0)
+	{}
 	virtual ~IParameterInfo() {}
 
 	virtual void reset() = 0;
@@ -423,10 +425,10 @@ struct IParameterInfo
 	virtual double asDouble() const = 0;
 	virtual QString asString() const = 0;
 
+	QString name;
 	int numSamples;
 	int sampleId;
 	double incr;
-	QString name;
 };
 
 template<typename T>

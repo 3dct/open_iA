@@ -53,12 +53,11 @@ void resizeList( QList<T> & list, int newSize ) {
 	else if ( diff < 0 ) list.erase( list.end() + diff, list.end() );
 }
 
-iADropPipelineWidget::iADropPipelineWidget( int imageSize, int totalPipelineSlots,
-											QString datasetDir, QWidget *parent )
-											: QWidget( parent ),
-											m_imageSize( imageSize ),
-											m_totalPipelineSlots( totalPipelineSlots ),
-											m_datasetDir( datasetDir )
+iADropPipelineWidget::iADropPipelineWidget(int imageSize, int totalPipelineSlots, QString datasetDir, QWidget *parent ):
+	QWidget(parent),
+	m_datasetDir(datasetDir),
+	m_imageSize(imageSize),
+	m_totalPipelineSlots(totalPipelineSlots)
 {
 	setAcceptDrops( true );
 	setFixedSize( m_imageSize, pieceSize() );
