@@ -17,13 +17,13 @@ ADD_SUBDIRECTORY(core)
 
 ADD_SUBDIRECTORY(cmd)     # Sets CMD test runner, used in modules
 
-SET (GUI_EXECUTABLE_TARGET open_iA)  # required already in modules to set dependency on it
+SET (GUI_EXECUTABLE_TARGET open_iA)  # required in modules to set dependency on it
+SET (GUI_EXECUTABLE_FILE "${GUI_EXECUTABLE_TARGET}${CMAKE_EXECUTABLE_SUFFIX}")  # required in modules to use as debugger command
 ADD_SUBDIRECTORY(modules)
 
 # modules might have added something to BUILD_INFO:
 configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${open_iA_BINARY_DIR}/version.h" @ONLY)
 
-SET (GUI_EXECUTABLE_FILE "${GUI_EXECUTABLE_TARGET}${CMAKE_EXECUTABLE_SUFFIX}")
 ADD_SUBDIRECTORY(gui)
 
 ADD_SUBDIRECTORY(xinst)

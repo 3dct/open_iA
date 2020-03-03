@@ -31,11 +31,11 @@ class iADatasetInfo : public QThread
 	Q_OBJECT
 
 public:
-	iADatasetInfo( iAPorosityAnalyserModuleInterface * pmi, QObject * parent = 0 ) : m_pmi( pmi ), QThread( parent ) {};
+	iADatasetInfo(iAPorosityAnalyserModuleInterface* pmi, QObject* parent = 0);
 	QStringList getNewGeneratedInfoFiles();
 
 protected:
-	virtual void run();
+	void run() override;
 	void calculateInfo();
 
 	iAPorosityAnalyserModuleInterface * m_pmi;

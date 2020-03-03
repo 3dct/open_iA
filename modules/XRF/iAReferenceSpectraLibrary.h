@@ -55,14 +55,14 @@ public:
 
 		m_refSpectraItemModel->setHorizontalHeaderItem(0, new QStandardItem("Element Name"));
 
-		for(int i=0; i<spectra.size(); ++i)
+		for(size_t i=0; i<spectra.size(); ++i)
 		{
 			QStandardItem * item = new QStandardItem(spectra[i].name()); //TODO: make sure that the memory does not leak
 			item->setData(QColor(255, 0, 0, 255), Qt::DecorationRole);
 			item->setData(QVariant(0), Qt::UserRole);
 			item->setData(QVariant(-1), Qt::UserRole+1);
 			item->setCheckable(true);
-			m_refSpectraItemModel->setItem(i, item);
+			m_refSpectraItemModel->setItem(static_cast<int>(i), item);
 		}
 	}
 	QSharedPointer<QStandardItemModel> getItemModel()

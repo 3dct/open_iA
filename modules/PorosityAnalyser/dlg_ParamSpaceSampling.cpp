@@ -141,11 +141,18 @@ namespace
 	};
 }
 
-dlg_ParamSpaceSampling::dlg_ParamSpaceSampling( QWidget *parent, QString winTitle, int n, QStringList inList,
+dlg_ParamSpaceSampling::dlg_ParamSpaceSampling(QWidget *parent, QString winTitle, int n, QStringList inList,
 	QList<QVariant> inPara, QTextDocument * fDescr, QString datasetDir, QString datasetName, QStringList datasetInfo,
-	QVector<double> keyData, QVector<double> valueData, QString filterName, bool modal ) : QDialog( parent ),
-	m_keyData( keyData ), m_valueData( valueData ), m_datasetDir( datasetDir ), m_datasetName( datasetName ),
-	m_datasetInfo( datasetInfo ), m_description( fDescr ), m_filterName( filterName ), m_inPara( inPara )
+	QVector<double> keyData, QVector<double> valueData, QString filterName, bool modal):
+	QDialog(parent),
+	m_description(fDescr),
+	m_datasetDir(datasetDir),
+	m_datasetName(datasetName),
+	m_filterName(filterName),
+	m_datasetInfo(datasetInfo),
+	m_inPara(inPara),
+	m_keyData(keyData),
+	m_valueData(valueData)
 {
 	//initialize a instance of error message dialog box
 	QErrorMessage* eMessage = new QErrorMessage( this );

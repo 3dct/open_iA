@@ -27,7 +27,6 @@ class iAvtkTubeFilter;
 class FeatureScout_API iA3DCylinderObjectVis: public iA3DLineObjectVis
 {
 private:
-	double m_diameterFactor = 1;
 	vtkSmartPointer<iAvtkTubeFilter> m_tubeFilter;
 	float* m_contextFactors;
 	IndexType m_objectCount;

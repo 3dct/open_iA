@@ -29,10 +29,10 @@
 #include <cassert>
 
 iASpectraHistograms::iASpectraHistograms(QSharedPointer<iAXRFData> xrfData, long numBins, double minCount, double maxCount ) :
-		m_xrfData(xrfData),
-		m_numBins(numBins),
-		m_histData(0),
-		m_maxValue(0)
+	m_numBins(numBins),
+	m_histData(nullptr),
+	m_xrfData(xrfData),
+	m_maxValue(0)
 {
 	m_countRange[0] = minCount; m_countRange[1] = maxCount;
 	m_numHistograms = m_xrfData->size();

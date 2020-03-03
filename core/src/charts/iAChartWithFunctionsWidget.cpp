@@ -57,15 +57,19 @@ iAChartWithFunctionsWidget::iAChartWithFunctionsWidget(QWidget *parent, MdiChild
 
 iAChartWithFunctionsWidget::~iAChartWithFunctionsWidget()
 {
-	for (auto fct: m_functions)
+	for (auto fct : m_functions)
+	{
 		delete fct;
+	}
 }
 
 int iAChartWithFunctionsWidget::selectedFuncPoint() const
 {
 	auto it = m_functions.begin();
 	if (it == m_functions.end())
+	{
 		return -1;
+	}
 	iAChartFunction *func = *(it + m_selectedFunction);
 	return func->getSelectedPoint();
 }
@@ -74,7 +78,9 @@ bool iAChartWithFunctionsWidget::isFuncEndPoint(int index) const
 {
 	auto it = m_functions.begin();
 	if (it == m_functions.end())
+	{
 		return false;
+	}
 	iAChartFunction *func = *(it + m_selectedFunction);
 	return func->isEndPoint(index);
 }
@@ -82,7 +88,9 @@ bool iAChartWithFunctionsWidget::isFuncEndPoint(int index) const
 void iAChartWithFunctionsWidget::drawAfterPlots(QPainter & painter)
 {
 	if (m_showFunctions)
+	{
 		drawFunctions(painter);
+	}
 }
 
 void iAChartWithFunctionsWidget::drawFunctions(QPainter &painter)
@@ -102,9 +110,8 @@ void iAChartWithFunctionsWidget::drawFunctions(QPainter &painter)
 			func->draw(painter);
 		}
 		++it;
-		counter++;
+		++counter;
 	}
-
 	it = m_functions.begin();
 	while (it != m_functions.end())
 	{
@@ -140,17 +147,23 @@ void iAChartWithFunctionsWidget::mousePressEvent(QMouseEvent *event)
 				changeMode(MOVE_VIEW_MODE, event);
 			}
 			else if (!isContextMenuVisible())
+			{
 				changeMode(MOVE_POINT_MODE, event);
+			}
 			break;
 		case Qt::RightButton:
 		{
 			if (!m_showFunctions)
+			{
 				return;
+			}
 			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 			iAChartFunction *func = *(it + m_selectedFunction);
 			int selectedPoint = func->selectPoint(event);
 			if (selectedPoint == -1)
+			{
 				emit noPointSelected();
+			}
 			update();
 			break;
 		}
@@ -172,7 +185,9 @@ void iAChartWithFunctionsWidget::mouseReleaseEvent(QMouseEvent *event)
 	if (event->button() == Qt::LeftButton)
 	{
 		if (m_mode == MOVE_NEW_POINT_MODE)
+		{
 			func->mouseReleaseEventAfterNewPoint(event);
+		}
 		update();
 		emit updateTFTable();
 		emit updateViews();
@@ -226,16 +241,22 @@ void iAChartWithFunctionsWidget::keyPressEvent(QKeyEvent *event)
 	{
 		m_selectedFunction++;
 		if (m_selectedFunction >= m_functions.size())
+		{
 			m_selectedFunction = 0;
+		}
 
 		update();
 	}
 	else if (event->key() == Qt::Key_Up)
 	{
 		if (m_selectedFunction > 0)
-			m_selectedFunction--;
+		{
+			--m_selectedFunction;
+		}
 		else
-			m_selectedFunction = m_functions.size()-1;
+		{
+			m_selectedFunction = m_functions.size() - 1;
+		}
 
 		update();
 	}
@@ -259,7 +280,9 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 			}
 
 			if (func->isDeletable(func->getSelectedPoint()))
+			{
 				contextMenu->addAction(QIcon(":/images/deletePoint.png"), tr("Delete"), this, SLOT(deletePoint()));
+			}
 			contextMenu->addSeparator();
 		}
 		contextMenu->addAction(QIcon(":/images/TFTableView.png"), tr("Transfer Function Table View"), this, SLOT(showTFTable()));
@@ -267,7 +290,9 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Save transfer function"), this, SLOT(saveTransferFunction()));
 		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Apply transfer function for all"), this, SLOT(applyTransferFunctionForAll()));
 		if (m_allowTrfReset)
+		{
 			contextMenu->addAction(QIcon(":/images/resetTrf.png"), tr("Reset transfer function"), this, SLOT(resetTrf()));
+		}
 		contextMenu->addSeparator();
 	}
 	if (m_enableAdditionalFunctions)
@@ -278,7 +303,9 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 		contextMenu->addAction(QIcon(":/images/saveFkt.png"), tr("Save functions"), this, SLOT(saveFunctions()));
 
 		if (m_selectedFunction != 0)
+		{
 			contextMenu->addAction(QIcon(":/images/removeFkt.png"), tr("Remove selected function"), this, SLOT(removeFunction()));
+		}
 	}
 }
 
@@ -289,7 +316,9 @@ void iAChartWithFunctionsWidget::changeMode(int newMode, QMouseEvent *event)
 		case MOVE_POINT_MODE:
 		{
 			if (!m_showFunctions)
+			{
 				return;
+			}
 			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 			iAChartFunction *func = *(it + m_selectedFunction);
 			int x = event->x() - leftMargin();
@@ -298,15 +327,21 @@ void iAChartWithFunctionsWidget::changeMode(int newMode, QMouseEvent *event)
 
 			// don't do anything if outside of diagram region:
 			if (selectedPoint == -1 && x < 0)
+			{
 				return;
+			}
 			// disallow removal and reinsertion of first point; instead, insert a point after it:
 			if (selectedPoint == -1 && x == 0)
+			{
 				x = 1;
+			}
 			bool added = false;
 			if (selectedPoint == -1)
 			{
 				if (y < 0)
+				{
 					y = 0;
+				}
 				size_t numPointsBefore = func->numPoints();
 				// if point's x is the same as for an existing point, that point will be selected, instead of a new one created:
 				selectedPoint = func->addPoint(x, y);
@@ -319,15 +354,21 @@ void iAChartWithFunctionsWidget::changeMode(int newMode, QMouseEvent *event)
 				m_mode = MOVE_NEW_POINT_MODE;
 			}
 			else
+			{
 				m_mode = MOVE_POINT_MODE;
+			}
 
 			update();
 
 			bool endPoint = func->isEndPoint(selectedPoint);//selectedPoint == 0 || selectedPoint == opacityTF->GetSize()-1;
 			if (endPoint)
+			{
 				emit endPointSelected();
+			}
 			else
+			{
 				emit pointSelected();
+			}
 		}
 			break;
 		default:
@@ -353,7 +394,9 @@ int iAChartWithFunctionsWidget::deletePoint()
 void iAChartWithFunctionsWidget::changeColor(QMouseEvent *event)
 {
 	if (!m_showFunctions)
+	{
 		return;
+	}
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	iAChartFunction *func = *(it + m_selectedFunction);
 
@@ -495,7 +538,9 @@ void iAChartWithFunctionsWidget::loadFunctions()
 bool iAChartWithFunctionsWidget::loadProbabilityFunctions(iAXmlSettings & xml)
 {
 	if (!xml.hasElement("functions"))
+	{
 		return false;
+	}
 	QDomNode functionsNode = xml.node("functions");
 	int colorIndex = 1;
 	QDomNodeList list = functionsNode.childNodes();
@@ -557,12 +602,16 @@ void iAChartWithFunctionsWidget::saveProbabilityFunctions(iAXmlSettings &xml)
 	{
 		QDomNode node = functionsNode.childNodes().item(n);
 		if (node.nodeName() == "bezier" || node.nodeName() == "gaussian")
+		{
 			functionsNode.removeChild(node);
+		}
 		else
-			n++;
+		{
+			++n;
+		}
 	}
 	// add new function nodes
-	for (unsigned int f = 1; f < m_functions.size(); f++)
+	for (unsigned int f = 1; f < m_functions.size(); ++f)
 	{
 		switch (m_functions[f]->getType())
 		{
@@ -625,7 +674,9 @@ void iAChartWithFunctionsWidget::setTransferFunctions(vtkColorTransferFunction* 
 {
 	m_showFunctions = ctf && pwf;
 	if (!m_showFunctions)
+	{
 		return;
+	}
 	((iAChartTransferFunction*)m_functions[0])->setColorFunction(ctf);
 	((iAChartTransferFunction*)m_functions[0])->setOpacityFunction(pwf);
 	newTransferFunction();

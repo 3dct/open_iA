@@ -141,12 +141,6 @@
 
 #include <cmath>
 
-//Global defines for initial layout
-const int initEExpPCPPHeight = 300;
-const int initEExpWidth = 1000;
-const int initPCWidth = 600;
-const int initPPWidth = 330;
-
 // global defines for using QXmlStream
 const QString IFVTag( "IFV_Class_Tree" );
 const QString ClassTag( "CLASS" );
@@ -251,36 +245,37 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping,
 	std::map<size_t, std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip)
 	: QDockWidget( parent ),
-	csvTable( csvtbl ),
-	m_renderer( parent->renderer() ),
-	elementTableModel(nullptr),
-	classTreeModel(new QStandardItemModel()),
-	dwSPM(nullptr),
-	dwPP(nullptr),
-	dwPC(nullptr),
-	dwDV(nullptr),
-	dwMO(nullptr),
-	m_splom(new iAFeatureScoutSPLOM()),
-	m_sourcePath( parent->filePath() ),
-	m_columnMapping(columnMapping),
-	m_renderMode(rmSingleClass),
-	m_singleObjectSelected(false),
-	m_pcFontSize(15),
-	m_pcTickCount(10),
-	m_pcLineWidth(0.1),
-	visualization(vis),
 	activeChild(parent),
+	elementsCount(csvTable->GetNumberOfColumns()),
+	objectsCount(csvTable->GetNumberOfRows()),
 	filterID(fid),
 	draw3DPolarPlot(false),
-	blobManager(new iABlobManager())
+	m_renderMode(rmSingleClass),
+	m_singleObjectSelected(false),
+	visualization(vis),
+	m_sourcePath(parent->filePath()),
+	csvTable(csvtbl),
+	chartTable(vtkSmartPointer<vtkTable>::New()),
+	m_multiClassLUT(vtkSmartPointer<vtkLookupTable>::New()),
+	classTreeModel(new QStandardItemModel()),
+	elementTableModel(nullptr),
+	m_pcLineWidth(0.1),
+	m_pcFontSize(15),
+	m_pcTickCount(10),
+	m_renderer( parent->renderer() ),
+	blobManager(new iABlobManager()),
+	blobVisDialog(new dlg_blobVisualization()),
+	dwPC(nullptr),
+	dwDV(nullptr),
+	dwSPM(nullptr),
+	dwPP(nullptr),
+	dwMO(nullptr),
+	m_columnMapping(columnMapping),
+	m_splom(new iAFeatureScoutSPLOM())
 {
 	setupUi( this );
-	this->elementsCount = csvTable->GetNumberOfColumns();
-	this->objectsCount = csvTable->GetNumberOfRows();
 	this->setupPolarPlotResolution( 3.0 );
-
-	m_multiClassLUT = vtkSmartPointer<vtkLookupTable>::New();
-	chartTable = vtkSmartPointer<vtkTable>::New();
+	
 	chartTable->DeepCopy( csvTable );
 	tableList.push_back( chartTable );
 
@@ -305,7 +300,6 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 		SingleRendering();
 	m_3dvis->show();
 	parent->renderer()->renderer()->ResetCamera();
-	blobVisDialog = new dlg_blobVisualization();
 	blobManager->SetRenderers(blobRen, m_renderer->labelRenderer());
 	blobManager->SetBounds(m_3dvis->bounds());
 	blobManager->SetProtrusion(1.5);
@@ -1738,8 +1732,10 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	for ( int i = 0; i < indexes.count(); ++i )
 	{
 		//Ensures that indices are unique
-		if (characteristicsList.contains( indexes.at( i ).row() ) )
+		if (characteristicsList.contains(indexes.at(i).row()))
+		{
 			continue;
+		}
 		characteristicsList.append( indexes.at( i ).row() );
 
 		QString columnName( this->elementTable->GetColumn( 0 )->GetVariantValue(characteristicsList.at( i ) ).ToString().c_str() );
@@ -1762,7 +1758,9 @@ void dlg_FeatureScout::CsvDVSaveButton()
 
 	dlg_commoninput dlg( this, "DistributionViewCSVSaveDialog", inList, inPara, nullptr );
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 
 	bool saveFile = dlg.getCheckValue(0) == 2;
 	bool showHistogram = dlg.getCheckValue(1) == 2;
@@ -1776,8 +1774,10 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	if (saveFile)
 	{
 		filename = QFileDialog::getSaveFileName( this, tr( "Save characteristic distributions" ), m_sourcePath, tr( "CSV Files (*.csv *.CSV)" ) );
-		if ( filename.isEmpty() )
+		if (filename.isEmpty())
+		{
 			return;
+		}
 	}
 
 	this->m_dvContextView->GetScene()->ClearItems();
@@ -1789,7 +1789,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	distributionChartMatrix->SetGutter( vtkVector2f( 70.0, 70.0 ) );
 
 	//Calculates histogram for each selected characteristic
-	for ( int characteristicIdx = 0; characteristicIdx < characteristicsList.count(); ++characteristicIdx)
+	for (int characteristicIdx = 0; characteristicIdx < characteristicsList.count(); ++characteristicIdx)
 	{
 		double range[2] = { 0.0, 0.0 };
 		vtkDataArray *length = vtkDataArray::SafeDownCast(
@@ -1830,7 +1830,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 			pops[k] = 0;
 		}
 
-		for ( vtkIdType j = 0; j < length->GetNumberOfTuples(); ++j )
+		for (vtkIdType j = 0; j < length->GetNumberOfTuples(); ++j)
 		{
 			double v( 0.0 );
 			length->GetTuple( j, &v );
@@ -1873,14 +1873,13 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		disTable->AddColumn( populations.GetPointer() );
 
 		//Writes csv file
-		if ( saveFile )
+		if (saveFile)
 		{
 			ofstream file( getLocalEncodingFileName(filename).c_str(), std::ios::app );
 			if ( file.is_open() )
 			{
-				vtkVariant tColNb, tRowNb, tVal;
-				tColNb = disTable->GetNumberOfColumns();
-				tRowNb = disTable->GetNumberOfRows();
+				vtkIdType tColNb = disTable->GetNumberOfColumns();
+				vtkIdType tRowNb = disTable->GetNumberOfRows();
 
 				file << QString( "%1 Distribution of '%2'" )
 					.arg( this->csvTable->GetColumnName(characteristicsList.at( characteristicIdx) ) )
@@ -1889,12 +1888,12 @@ void dlg_FeatureScout::CsvDVSaveButton()
 
 				file << "HistoBinID;" << "HistoBinCenter" << "Frequency;" << endl;
 
-				for ( int row = 0; row < tRowNb.ToTypeUInt64(); ++row )
+				for (vtkIdType row = 0; row < tRowNb; ++row)
 				{
-					for ( int col = 0; col < tColNb.ToUnsignedShort(); ++col )
+					for (vtkIdType col = 0; col < tColNb; ++col)
 					{
-						tVal = disTable->GetValue( row, col );
-						switch ( col )
+						vtkVariant tVal = disTable->GetValue(row, col);
+						switch (col)
 						{
 							case 0:
 								file << row + 1 << ";"
@@ -2464,7 +2463,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 		// semi-automatic classification not ported to new SPM yet
 		//vtkAbstractArray *SelArr = matrix->GetkMeansCluster( i )->GetNode( 0 )->GetSelectionList();
 		int CountObject = 0; //  SelArr->GetNumberOfTuples();
-		/*
+		/---*
 		if ( CountObject > 0 )
 		{
 			// class name and color

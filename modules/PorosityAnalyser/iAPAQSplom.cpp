@@ -45,23 +45,18 @@
 const int maskOpacity = 127;
 
 iAPAQSplom::iAPAQSplom( MainWindow *mWnd, QWidget * parent, Qt::WindowFlags f /*= 0 */):
-	iAQSplom( parent, f ),
-	m_fixAction( nullptr ),
-	m_removeFixedAction( nullptr ),
-	m_detailsToFeatureScoutAction(nullptr),
-	m_fixedPointInd( iAScatterPlot::NoPointIndex ),
-	m_mainWnd( mWnd ),
-	m_mdiChild( nullptr ),
+	iAQSplom(parent, f),
+	m_fixedPointInd(iAScatterPlot::NoPointIndex),
+	m_mainWnd(mWnd),
+	m_mdiChild(nullptr),
 	m_csvName("")
 {
 	setWindowFlags(f);
 	m_fixAction = m_contextMenu->addAction( "Fix Point", this, SLOT( fixPoint() ) );
 	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, SLOT( removeFixedPoint() ) );
-
-	//sent to FeatureScout
 	m_detailsToFeatureScoutAction = m_contextMenu->addAction("Detailed View...", this, SLOT(sendToFeatureScout()));
-	m_detailsToFeatureScoutAction->setVisible(false);
 
+	m_detailsToFeatureScoutAction->setVisible(false);
 	m_fixAction->setVisible( false );
 	m_removeFixedAction->setVisible( false );
 	setHistogramVisible(false);

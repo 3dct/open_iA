@@ -133,7 +133,7 @@ private:
 	double    m_blurVariance;
 	double    m_blobOpacity;
 	double    m_silhouetteOpacity;
-
+	iABlobManager* m_blobManager;
 	// vtk members
 	vtkSmartPointer<vtkRenderer>                m_blobRenderer;
 	vtkSmartPointer<vtkRenderer>                m_labelRenderer;
@@ -148,6 +148,5 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper>          m_silhouetteMapper;
 	vtkSmartPointer<vtkActor>                   m_silhouetteActor;
 	vtkSmartPointer<vtkImageData>               m_imageData;
-	iABlobManager*                              m_blobManager;
 	vtkSmartPointer<vtkCaptionActor2D>			m_captionActor;
 };

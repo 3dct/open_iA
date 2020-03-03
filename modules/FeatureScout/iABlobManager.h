@@ -113,6 +113,7 @@ private:
 	void	InitializeMask (int extent[6]);
 	void	AddBlobToMask (vtkImageData* imageData);
 	void	OverlapWithMask (vtkImageData* imageData);
+
 	QList<iABlobCluster*>	m_blobsList;
 	vtkSmartPointer<vtkImageData>	m_imageMask;
 	double	m_blurVariance;

@@ -34,8 +34,9 @@
 iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 	QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, int numberOfCylinderSides, size_t segmentSkip):
 	iA3DLineObjectVis( ren, objectTable, columnMapping, color, curvedFiberData, segmentSkip),
-	m_objectCount(objectTable->GetNumberOfRows()),
+	m_tubeFilter(vtkSmartPointer<iAvtkTubeFilter>::New()),
 	m_contextFactors(nullptr),
+	m_objectCount(objectTable->GetNumberOfRows()),
 	m_contextDiameterFactor(1.0),
 	m_lines(false)
 {
@@ -50,7 +51,6 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectT
 	}
 	m_linePolyData->GetPointData()->AddArray(tubeRadius);
 	m_linePolyData->GetPointData()->SetActiveScalars("TubeRadius");
-	m_tubeFilter = vtkSmartPointer<iAvtkTubeFilter>::New();
 	m_tubeFilter->SetRadiusFactor(1.0);
 	m_tubeFilter->SetInputData(m_linePolyData);
 	m_tubeFilter->CappingOn();

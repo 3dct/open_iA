@@ -133,9 +133,9 @@ void iADefectClassifier::classify( FibersData* fibers, FeatureList* defects )
 			&& neighborFibersFF.size( ) >= 2 )
 		{
 			double minAngle = 2 * vtkMath::Pi(); // maximum possible angle
-			for( int i = 0; i < neighborFibersFF.size( ); ++i )
+			for (size_t i = 0; i < neighborFibersFF.size( ); ++i)
 			{
-				for( int j = i + 1; j < neighborFibersFF.size( ); ++j )
+				for (size_t j = i + 1; j < neighborFibersFF.size( ); ++j)
 				{
 					double max[2], min[2];
 					max[0] = std::max( neighborFibersFF[i].startPoint[2], neighborFibersFF[i].endPoint[2] );

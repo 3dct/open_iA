@@ -96,7 +96,6 @@ private:
 	double			m_size[3];
 	int				m_imgSize[3];
 	double			m_imgSpacing[3];
-	double			m_axialElements[16];
 };
 
 //==============================================

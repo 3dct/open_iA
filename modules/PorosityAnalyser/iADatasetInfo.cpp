@@ -36,13 +36,19 @@
 #include <QDir>
 #include <QDebug>
 
+
+iADatasetInfo::iADatasetInfo(iAPorosityAnalyserModuleInterface* pmi, QObject* parent) :
+	QThread(parent),
+	m_pmi(pmi)
+{}
+
 template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString datasetName,
 												   ImagePointer & image, iAPorosityAnalyserModuleInterface * pmi,
 												   int totalFInfoNbToCreate, int currentFInfoNb )
 {
 	typedef itk::Image<T, DIM>  InputImageType;
 	typedef itk::Image<unsigned char, DIM>  uCharInputImageType;
-	typedef itk::Image<unsigned char, 2>  OutputImageType;
+	//typedef itk::Image<unsigned char, 2>  OutputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
 	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
@@ -112,20 +118,28 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 		unsigned int sliceSize = size[0] * size[1];
 		QString datasetFolder = datasetPath + "/" + datasetName;
 		QFileInfo maskFI( datasetFolder );
-		if( !QDir( maskFI.absoluteDir() ).mkdir( getMaskSliceDirName( datasetFolder ) ) )
-			pmi->log( "Could not create directory for slices!" );
+		if (!QDir(maskFI.absoluteDir()).mkdir(getMaskSliceDirName(datasetFolder)))
+		{
+			pmi->log("Could not create directory for slices!");
+		}
 
 		for( unsigned int sliceNumber = 1; sliceNumber <= size[2]; ++sliceNumber )	// int slicerNumber set to 1 cause of emitted progess value
 		{
 			const unsigned char * sBufferPtr = bufferPtr + sliceSize * (sliceNumber - 1);
 			QImage img( size[0], size[1], QImage::Format_Indexed8 );
-			for( int y = 0; y < size[1]; y++ )
-				memcpy( img.scanLine( size[1] - y - 1 ), sBufferPtr + y*size[0], size[0] );	// we invert Y-axis, because VTK and Qt have different Y axis directions
-			for( int i = 0; i < 255; ++i )
-				img.setColor( i, qRgb( i, i, i ) );
+			for (itk::SizeValueType y = 0; y < size[1]; y++)
+			{
+				memcpy(img.scanLine(size[1] - y - 1), sBufferPtr + y * size[0], size[0]);	// we invert Y-axis, because VTK and Qt have different Y axis directions
+			}
+			for (int i = 0; i < 255; ++i)
+			{
+				img.setColor(i, qRgb(i, i, i));
+			}
 			QString fileName = getSliceFilename( datasetFolder, (sliceNumber - 1));
-			if( !img.save( fileName ) )
-				throw itk::ExceptionObject( "Could not save png!" );
+			if (!img.save(fileName))
+			{
+				throw itk::ExceptionObject("Could not save png!");
+			}
 			emit progress( sliceNumber * ( 100 / totalFInfoNbToCreate ) / size[2]  +  100 * currentFInfoNb / totalFInfoNbToCreate );
 		}
 	}
@@ -211,6 +225,12 @@ void iADatasetInfo::calculateInfo()
 					generateInfo<float>( datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb ); break;
 				case itk::ImageIOBase::DOUBLE:
 					generateInfo<double>( datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb ); break;
+#if ITK_VERSION_MAJOR > 4 || (ITK_VERSION_MAJOR == 4 && ITK_VERSION_MINOR > 12)
+				case itk::ImageIOBase::LONGLONG:
+					generateInfo<long long>(datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb); break;
+				case itk::ImageIOBase::ULONGLONG:
+					generateInfo<unsigned long long>(datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb); break;
+#endif
 				case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
 					//
 					break;

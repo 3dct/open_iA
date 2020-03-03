@@ -93,23 +93,23 @@
 
 dlg_XRF::dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg_RefSpectra* dlgRefSpectra):
 	dlg_xrfContainer(parentWidget),
+	m_pieGlyphsEnabled(false),
+	m_spectraHistogramColormap(QString::fromUtf8(":/images/colormap.png")),
 	m_initialized(false),
 	m_ctfChanged(true),
 	m_decompositionLoaded(false),
 	m_spectrumDiagram(nullptr),
 	m_accumulatedGridLayout(nullptr),
+	m_spectrumSelectionChannelID(NotExistingChannel),
 	m_oTF(vtkSmartPointer<vtkPiecewiseFunction>::New()),
 	m_cTF(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_xrfData(new iAXRFData),
-	m_spectraHistogramColormap(QString::fromUtf8(":/images/colormap.png")),
 	m_enabledChannels(0),
 	m_periodicTable(dlgPeriodicTable),
 	m_selection_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
-	m_periodicTableListener(new iAPeriodicTableListener(this)),
 	m_refSpectra(dlgRefSpectra),
-	m_spectrumSelectionChannelID(NotExistingChannel),
-	m_pieGlyphsEnabled(false)
+	m_periodicTableListener(new iAPeriodicTableListener(this))
 {
 	spectrumVisWidget->hide();
 
@@ -532,10 +532,12 @@ void dlg_XRF::ReferenceSpectrumDoubleClicked( const QModelIndex &index )
 	{
 		m_refSpectraLib->getItemModel()->itemFromIndex(index)->setData(newColor, Qt::DecorationRole);
 
-		for (size_t i=0; i<m_elementRenderers.size(); ++i)
+		for (int i=0; i<m_elementRenderers.size(); ++i)
 		{
-			if( m_elementRenderers[i]->GetRefLibIndex() == index.row() )
+			if (m_elementRenderers[i]->GetRefLibIndex() == index.row())
+			{
 				InitElementRenderer(m_elementRenderers[i], index.row());
+			}
 		}
 	}
 }
@@ -568,12 +570,12 @@ void dlg_XRF::ReferenceSpectrumItemChanged( QStandardItem * item )
 	{
 		RemoveElementLine(m_refSpectraLib->spectra[indRow].GetSymbol());
 	}
-	long elemRendInd = -1;
-	for (size_t i=0; i<m_elementRenderers.size(); ++i)
+	int elemRendInd = -1;
+	for (int i=0; i<m_elementRenderers.size(); ++i)
 	{
 		if( m_elementRenderers[i]->GetRefLibIndex() == indRow )
 		{
-			elemRendInd = (long)i;
+			elemRendInd = i;
 		}
 	}
 
@@ -920,7 +922,7 @@ void dlg_XRF::showLinkedElementMaps( int show )
 
 	if (!show)
 	{
-		for (size_t i = 0; i < m_elementRenderers.size(); ++i)
+		for (int i = 0; i < m_elementRenderers.size(); ++i)
 		{
 			m_elementRenderers[i]->removeObserver();
 			delete m_elementRenderers[i];
@@ -1092,13 +1094,10 @@ void dlg_XRF::computeSimilarityMap()
 	typedef float ScalarType;
 	typedef itk::Image < ScalarType, 3 >  ImageType3D;
 	typedef itk::Image < ScalarType, Dimensions >  ImageType;
-	typedef itk::MeanSquaresImageToImageMetric < ImageType, ImageType >  MeanSquaresMetricType;
 	typedef itk::MutualInformationImageToImageMetric < ImageType, ImageType >  MutualInformationMetricType;
-	typedef itk::NormalizedCorrelationImageToImageMetric < ImageType, ImageType > NormalizedCorrelationMetricType;
 	typedef MutualInformationMetricType MetricType;
 	typedef itk::LinearInterpolateImageFunction < ImageType, double > InterpolatorType;
 	typedef itk::IdentityTransform<double, Dimensions>  TransformType;
-	typedef itk::ExtractImageFilter < ImageType3D, ImageType > ExtractImageType;
 
 	iAConnector * connectors = new iAConnector[numEBins];
 	ImageType3D ** images = new ImageType3D*[numEBins];
@@ -1229,7 +1228,7 @@ void dlg_XRF::updateDecompositionGUI( QStringList elementsNames )
 
 	QVector<iAElementSpectralInfo*> elementSpectra;
 
-	int colorIdx = 0;
+	size_t colorIdx = 0;
 	iAColorTheme const * theme = iAColorThemeManager::instance().theme( "Brewer Set1 (max. 9)" );
 	for ( size_t i = 0; i < m_refSpectraLib->spectra.size(); ++i )
 	{
@@ -1243,7 +1242,7 @@ void dlg_XRF::updateDecompositionGUI( QStringList elementsNames )
 			{
 				m_refSpectraLib->getItemModel()->item( i )->setData( theme->color( colorIdx ), Qt::DecorationRole );
 			}
-			colorIdx++;
+			++colorIdx;
 		}
 		else
 		{
@@ -1441,23 +1440,29 @@ void dlg_XRF::updatePieGlyphs(int slicerMode)
 	if (hasPieGlyphs)
 	{
 		for (int i = 0; i < m_pieGlyphs[slicerMode].size(); ++i)
+		{
 			ren->RemoveActor(m_pieGlyphs[slicerMode][i]->actor);
+		}
 		m_pieGlyphs[slicerMode].clear();
 	}
 
 	if (!m_pieGlyphsEnabled)
 	{
 		if (hasPieGlyphs)
+		{
 			renWin->GetInteractor()->Render();
+		}
 		return;
 	}
 
 	QVector<double> angleOffsets;
 
-	for (int chan = 0; chan < m_channelIDs.size(); ++chan)
+	for (size_t chan = 0; chan < m_channelIDs.size(); ++chan)
 	{
 		if (!child->slicer(slicerMode)->hasChannel(m_channelIDs[chan]))
+		{
 			continue;
+		}
 		iAChannelSlicerData * chSlicerData = child->slicer(slicerMode)->channel(m_channelIDs[chan]);
 		vtkSmartPointer<vtkImageResample> resampler = vtkSmartPointer<vtkImageResample>::New();
 		resampler->SetInputConnection(chSlicerData->reslicer()->GetOutputPort());
@@ -1504,9 +1509,13 @@ void dlg_XRF::updatePieGlyphs(int slicerMode)
 				}
 
 				if (0 == chan)
+				{
 					angleOffsets.push_back(angularRange[1]);
+				}
 				else
+				{
 					angleOffsets[index] = angularRange[1];
+				}
 			}
 		}
 	}

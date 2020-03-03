@@ -34,48 +34,6 @@
 #include <QTableWidget>
 
 
-class iAFilteringDiagramData : public iAPlotData
-{
-public:
-	iAFilteringDiagramData( QSharedPointer<iAPlotData> other, int min, int max )
-		: m_data( new double[other->numBin()] ),
-		m_size( other->numBin() ),
-		m_other(other)
-	{
-		for ( int i = 0; i < other->numBin(); ++i )
-		{
-			m_data[i] = ( i >= min && i <= max ) ? other->rawData()[i] : 0;
-		}
-	}
-
-	DataType const * rawData() const override
-	{
-		return m_data;
-	}
-
-	size_t numBin() const override
-	{
-		return m_size;
-	}
-	double spacing() const override
-	{
-		return m_other->spacing();
-	}
-	double const * xBounds() const override
-	{
-		return m_other->xBounds();
-	}
-	DataType const * yBounds() const override
-	{
-		return m_other->yBounds();
-	}
-private:
-	DataType* m_data;
-	size_t m_size;
-	QSharedPointer<iAPlotData> m_other;
-};
-
-
 class iARangeSliderDiagramWidget : public iAChartWithFunctionsWidget
 {
 	Q_OBJECT
@@ -109,22 +67,22 @@ public slots:
 	void deleteSlot();
 
 private:
-	QSharedPointer<iARangeSliderDiagramData>			m_data;
-	QSharedPointer<iAPlotData>							m_selectedData;
-	QSharedPointer<iAStepFunctionPlot>				m_selectionDrawer;
-	QList<QSharedPointer<iAStepFunctionPlot> >		m_histogramDrawerList;
-	QPoint												m_selectionOrigin;
-	QRubberBand*										m_selectionRubberBand;
-	QString												m_xLabel;
-	QString												m_yLabel;
-	QColor												m_selectionColor;
-	QList<int>											m_addedHandles;
+	QSharedPointer<iARangeSliderDiagramData> m_data;
+	QSharedPointer<iAPlotData> m_selectedData;
+	QSharedPointer<iAStepFunctionPlot> m_selectionDrawer;
+	QList<QSharedPointer<iAStepFunctionPlot> > m_histogramDrawerList;
+	QPoint m_selectionOrigin;
+	QRubberBand * m_selectionRubberBand;
+	QString m_xLabel;
+	QString m_yLabel;
+	QColor m_selectionColor;
+	QList<int> m_addedHandles;
 
 	int m_firstSelectedBin;
 	int m_lastSelectedBin;
 
-	QMap<double, QList<double> >				*m_histogramMap;
-	const QTableWidget							*m_rawTable;
+	QMap<double, QList<double> > * m_histogramMap;
+	const QTableWidget * m_rawTable;
 
 	int getBin( QMouseEvent *event );
 	void setupSelectionDrawer();

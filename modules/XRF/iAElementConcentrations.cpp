@@ -102,7 +102,7 @@ iAElementConcentrations::VoxelConcentrationType
 	iAElementConcentrations::getConcentrationForVoxel(int x, int y, int z)
 {
 	VoxelConcentrationType result;
-	for (int i=0; i<m_ElementConcentration.size(); ++i)
+	for (size_t i=0; i<m_ElementConcentration.size(); ++i)
 	{
 		result.push_back(m_ElementConcentration[i]->GetScalarComponentAsFloat(x, y, z, 0));
 	}

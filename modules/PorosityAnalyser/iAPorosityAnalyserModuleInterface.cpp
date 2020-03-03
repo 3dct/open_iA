@@ -25,7 +25,6 @@
 #include "iADatasetInfo.h"
 #include "iADragFilterWidget.h"
 #include "iADropPipelineWidget.h"
-//#include "PorosityAnalyserHelpers.h"
 #include "iAPorosityAnalyser.h"
 #include "iARunBatchThread.h"
 
@@ -63,19 +62,14 @@ void iAPorosityAnalyserModuleInterface::Initialize()
 	QAction * actionComputeSegmentations = new QAction( m_mainWnd );
 	actionComputeSegmentations->setText( QApplication::translate( "MainWindow", "Compute Segmentations", 0 ) );
 
-	//QAction * actionCalcPoreProps = new QAction( m_mainWnd );
-	//actionCalcPoreProps->setText( QApplication::translate( "MainWindow", "Compute Pore Properties", 0 ) );
-
 	QAction * actionRunPA = new QAction( m_mainWnd );
 	actionRunPA->setText( QApplication::translate( "MainWindow", "Analyze Segmentations", 0 ) );
 
 	menuPorosityAnalyser->addAction( actionComputeSegmentations );
-	//menuPorosityAnalyser->addAction( actionCalcPoreProps );
 	menuPorosityAnalyser->addAction( actionRunPA );
 
 	//connect signals to slots
 	connect( actionComputeSegmentations, SIGNAL( triggered() ), this, SLOT( computeParameterSpace() ) );
-	//connect( actionCalcPoreProps, SIGNAL( triggered() ), this, SLOT( launchCalcPoreProps() ) );
 	connect( actionRunPA, SIGNAL( triggered() ), this, SLOT( launchPorosityAnalyser() ) );
 
 	//Read settings
@@ -445,8 +439,10 @@ QString iAPorosityAnalyserModuleInterface::ComputerName() const
 void iAPorosityAnalyserModuleInterface::launchPorosityAnalyser()
 {
 	iADataFolderDialog * dlg = new iADataFolderDialog( m_mainWnd );
-	if( !dlg->exec() == QDialog::Accepted )
+	if (dlg->exec() != QDialog::Accepted)
+	{
 		return;
+	}
 
 	m_porosityAnalyser = new iAPorosityAnalyser(m_mainWnd, dlg->ResultsFolderName(), dlg->DatasetsFolderName(), m_mainWnd );
 	m_mainWnd->addSubWindow( m_porosityAnalyser );
