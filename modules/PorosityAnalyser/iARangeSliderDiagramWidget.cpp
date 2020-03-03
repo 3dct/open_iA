@@ -23,6 +23,7 @@
 #include <charts/iAChartFunctionTransfer.h>
 #include <iACSVToQTableWidgetConverter.h>
 
+#include <cassert>
 
 
 class iAFilteringDiagramData : public iAPlotData
