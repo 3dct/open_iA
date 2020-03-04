@@ -27,7 +27,7 @@
 //! Widget having a QPixmap pointer, drawing on widget is implemented by drawing on this pixmap.
 //! paintEvent is redefined to draw data contained in pixmap on widget.
 //! In this way, it is possible to draw on this widget outside paintEvent event.
-class iAPaintWidget : public QWidget
+class iAPaintWidget final : public QWidget
 {
 	Q_OBJECT
 
@@ -57,7 +57,7 @@ signals:
 	void mousePressEventSignal();
 	void ChangedSignal(double & scale, double & offsetX, double & offsetY);
 public slots:
-	virtual void UpdateSlot(double & scale, double & offsetX, double & offsetY);
+	void UpdateSlot(double & scale, double & offsetX, double & offsetY);
 
 private:
 	void checkOffset();

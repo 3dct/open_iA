@@ -40,28 +40,28 @@ public:
 	iAPaintWidget *paintWidget;
 	unsigned int * buffer;
 	int bufferWidth, bufferHeight;
-protected:
+private:
 	bool initialized;
 };
 
 //! Struct that uses all parameters.
 //! Contains: ParamWidget for every parameter.
-struct iAParametersView
+struct iAParametersView final
 {
 	// methods
 	iAParametersView(int width, int height, QWidget *w1, QWidget *w2, QWidget *w3);
-	virtual void Update();
+	void Update();
 	// properties
 	iAParamWidget paramWidgets[3];
 };
 
 //! Struct that uses all parameters and combination of all parameters.
 //! Contains: ParamWidget for every parameter and one for combination results
-struct iACombinedParametersView
+struct iACombinedParametersView final
 {
 	// methods
 	iACombinedParametersView(QWidget *resultsWidget, int width, int height);
-	virtual void Update();
+	void Update();
 	// properties
 	iAParamWidget results;
 };
