@@ -50,8 +50,8 @@ const int EntropyBinCount = 100;
 
 iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, MdiChild * child):
 	iAModuleAttachmentToChild(mainWnd, child),
-	m_newSubEnsembleID(1),
-	m_labelLut(vtkSmartPointer<vtkLookupTable>::New())
+	m_labelLut(vtkSmartPointer<vtkLookupTable>::New()),
+	m_newSubEnsembleID(1)
 {
 	m_scatterplotView = new iAScatterPlotView();
 	m_memberView = new iAMemberView();
