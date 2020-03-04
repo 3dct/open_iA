@@ -211,7 +211,7 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 		prev_hid = hid;
 	}
 
-	if ( hid < m_objectTable->GetNumberOfRows() )	// Creates the very last points (for all objects)  if it's not created yet
+	if ( hid < static_cast<size_t>(m_objectTable->GetNumberOfRows()) )	// Creates the very last points (for all objects)  if it's not created yet
 	{
 		oTF->AddPoint( m_objectTable->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0 );
 		cTF->AddRGBPoint( m_objectTable->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
