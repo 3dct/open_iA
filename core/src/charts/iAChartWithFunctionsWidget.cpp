@@ -711,8 +711,7 @@ void iAChartWithFunctionsWidget::showTFTable()
 {
 	if ( !m_TFTable )
 	{
-		std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-		iAChartFunction* func = *( it + m_selectedFunction );
+		iAChartFunction* func = m_functions[0];
 
 		m_TFTable = new dlg_TFTable( this, func );
 		m_TFTable->setWindowTitle( "Transfer Function Table View" );
