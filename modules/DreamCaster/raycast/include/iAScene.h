@@ -185,7 +185,7 @@ inline int GetIntersectionState(const iARay &ray, float &tmin, float &tmax, floa
 }
 
 //! Triangle primitive class.
-class iATriPrim
+class iATriPrim final
 {
 public:
 	inline unsigned int GetIndex() {return m_index;}
@@ -195,13 +195,15 @@ public:
 	float &surface() {return m_Surface;}
 	inline iAVec3f * getVertex(int i)
 	{
-		if(i>=0 && i<3)
+		if (i >= 0 && i < 3)
+		{
 			return m_Tri.vertices[i];
+		}
 		return 0;
 	}
 	float &d() {return m_d;}
-	virtual int Intersect(iARay& a_Ray, float& a_Dist ) const;
-	virtual int Intersect(iAaabb &a_aabb, iAVec3f & a_BoxCentre, iAVec3f & a_BoxHalfsize) const;
+	int Intersect(iARay& a_Ray, float& a_Dist ) const;
+	int Intersect(iAaabb &a_aabb, iAVec3f & a_BoxCentre, iAVec3f & a_BoxHalfsize) const;
 	int CenterInside(iAaabb &a_aabb) const;
 	inline float GetAngleCos(iARay& a_Ray){ return a_Ray.GetDirection()&m_Tri.N; }
 	iAwald_tri GetWaldTri() {return m_WaldTri;}

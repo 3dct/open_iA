@@ -27,18 +27,20 @@
 #include <QPixmap>
 
 //ParamWidget impl//////////////////////////////////////////////////////////////////////////
-iAParamWidget::iAParamWidget()
+iAParamWidget::iAParamWidget():
+	pxmp(nullptr),
+	paintWidget(nullptr),
+	buffer(nullptr),
+	initialized(false)
 {
-	pxmp = 0;
-	paintWidget = 0;
-	buffer = 0;
-	initialized = false;
 }
 
 void iAParamWidget::Init(int pxmpWidth, int pxmpHeight, QWidget *widget)
 {
-	if(initialized)
+	if (initialized)
+	{
 		return;
+	}
 	pxmp = new QPixmap(pxmpWidth, pxmpHeight);
 
 	paintWidget = new iAPaintWidget(pxmp, widget);
@@ -52,8 +54,10 @@ void iAParamWidget::Init(int pxmpWidth, int pxmpHeight, QWidget *widget)
 
 int iAParamWidget::AllocateBuffer(int width, int height)
 {
-	if(pxmp)
+	if (pxmp)
+	{
 		delete pxmp;
+	}
 	pxmp = new QPixmap(width, height);
 	paintWidget->SetPixmap(pxmp);
 	if(buffer)
@@ -63,8 +67,10 @@ int iAParamWidget::AllocateBuffer(int width, int height)
 	}
 	int s = width*height;
 	buffer = new unsigned int[s];
-	for (int i=0; i<s; i++)
+	for (int i = 0; i < s; i++)
+	{
 		buffer[i] = 0;
+	}
 	memset(buffer, 0, s*sizeof(buffer[0]));
 	bufferWidth = width;
 	bufferHeight = height;
@@ -73,12 +79,9 @@ int iAParamWidget::AllocateBuffer(int width, int height)
 
 iAParamWidget::~iAParamWidget()
 {
-	if(buffer)
-		delete [] buffer;
-	if(pxmp)
-		delete pxmp;
-	if(paintWidget)
-		delete paintWidget;
+	delete [] buffer;
+	delete pxmp;
+	delete paintWidget;
 }
 
 //ParametersView impl //////////////////////////////////////////////////////////////////////////
