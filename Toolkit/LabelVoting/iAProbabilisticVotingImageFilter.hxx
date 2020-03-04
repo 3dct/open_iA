@@ -71,9 +71,9 @@ void iAProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenera
 {
 	itk::ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
 
-	typedef itk::ImageRegionConstIterator< TInputImage > IteratorType;
+	//typedef itk::ImageRegionConstIterator< TInputImage > IteratorType;
 	typedef itk::ImageRegionIterator< TOutputImage >     OutIteratorType;
-	typedef itk::ImageRegionIterator<DoubleImg> DoubleOutIteratorType;
+	//typedef itk::ImageRegionIterator<DoubleImg> DoubleOutIteratorType;
 
 	typename TOutputImage::Pointer output = this->GetOutput();
 

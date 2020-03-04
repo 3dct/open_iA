@@ -115,9 +115,13 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 				newWidget = new QCheckBox(m_container);
 				break;
 			case '.':
-				if (labels[i - 1].at(0).toLatin1() == '&')	 // if this is a filter parameter string,
-					m_filterWithParameters.push_back(i - 1); // and previous was a filter name, then
-				// intentional fall-through!				 // remember this for the filter selection
+				if (labels[i - 1].at(0).toLatin1() == '&')   // if this is a filter parameter string,
+				{                                            // and previous was a filter name, then
+					m_filterWithParameters.push_back(i - 1); // remember this for the filter selection
+				}
+#if __cplusplus >= 201703L
+				[[fallthrough]];  // intentional fall-through
+#endif
 			case '#':
 				newWidget = new QLineEdit(m_container);
 				break;

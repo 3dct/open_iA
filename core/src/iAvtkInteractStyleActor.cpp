@@ -697,10 +697,11 @@ void iAvtkInteractStyleActor::update3DUpdateReslicer(double const * movementXYZ,
 
 	//movement in xyz
 	//relative position + volactor in 3d
-	double newPosition_3dAbs[3], slicerMoventXYZ[3];
+	//double newPosition_3dAbs[3];
+	double slicerMoventXYZ[3];
 	for (int i = 0; i < 3; i++)
 	{
-		newPosition_3dAbs[i] = movementXYZ[i] + m_currentVolRendererPosition[i];
+		//newPosition_3dAbs[i] = movementXYZ[i] + m_currentVolRendererPosition[i];
 		slicerMoventXYZ[i] = -movementXYZ[i];
 	}
 

@@ -1225,8 +1225,6 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 
 		const int SampleCount = sbSampleCount->value();
 		const int ResultCount = 10;
-		const int UndecidedLabel = m_labelCount;
-
 
 		vtkSmartPointer<vtkTable> tables[ResultCount];
 		// TODO: sample all for different undecided pixel types:
