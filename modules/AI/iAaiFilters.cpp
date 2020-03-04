@@ -33,8 +33,10 @@
 #include "itkImageFileWriter.h"
 #include "itkNormalizeImageFilter.h"
 #include "itkImageRegionIterator.h"
+#include "itkMirrorPadImageFilter.h"
 
 #include "onnxruntime_cxx_api.h"
+#include "cuda_provider_factory.h"
 
 
 
@@ -44,7 +46,8 @@ typedef itk::Image<PixelType, Dimension>      				ImageType;
 typedef itk::ImageFileReader<ImageType>       				ReaderType;
 typedef itk::ImageRegionIterator<ImageType> 			    IteratorType;
 
-#define sizeDNN 128
+#define sizeDNNin 132
+#define sizeDNNout 122
 
 template<class T>
 void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
@@ -62,9 +65,9 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		itk_img = castFilter->GetOutput();
 		
 
-		
+		ImageType::Pointer itk_img_normalized = Normamalize(itk_img);
 
-
+		itk_img_normalized = AddPadding(itk_img_normalized,2);
 
 
 
@@ -78,8 +81,8 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 	// If onnxruntime.dll is built with CUDA enabled, we can uncomment out this line to use CUDA for this
 	// session (we also need to include cuda_provider_factory.h above which defines it)
-	// #include "cuda_provider_factory.h"
-	// OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 1);
+	
+	OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0);
 
 	// Sets graph optimization level
 	// Available levels are
@@ -87,7 +90,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	// ORT_ENABLE_BASIC -> To enable basic optimizations (Such as redundant node removals)
 	// ORT_ENABLE_EXTENDED -> To enable extended optimizations (Includes level 1 + more complex optimizations like node fusions)
 	// ORT_ENABLE_ALL -> To Enable All possible opitmizations
-	session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+	session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
 
 	//*************************************************************************
 	// create session and load model into memory
@@ -165,26 +168,26 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	//*************************************************************************
 	// Score the model using sample data, and inspect values
 
-	size_t input_tensor_size = 128 * 128 * 128*1;  // simplify ... using known dim values to calculate size
+	size_t input_tensor_size = sizeDNNin * sizeDNNin * sizeDNNin *1;  // simplify ... using known dim values to calculate size
 											   // use OrtGetTensorShapeElementCount() to get official size!
 
 	char* output_name = session.GetOutputName(0, allocator);
 
 	std::vector<const char*> output_node_names = { output_name };
 
-	ImageType::RegionType region = itk_img->GetLargestPossibleRegion();
+	ImageType::RegionType region = itk_img_normalized->GetLargestPossibleRegion();
 
 	ImageType::SizeType size = region.GetSize();
 
 	ImageType::Pointer outputImage = createImage(size[0], size[1], size[2]);
 
-	for (int x = 0; x <= size[0] - sizeDNN; x=x+sizeDNN) {
-		for (int y = 0; y <= size[1] - sizeDNN; y=y+sizeDNN) {
-			for (int z = 0; z <= size[2] - sizeDNN; z=z+sizeDNN) {
+	for (int x = 0; x <= size[0] - sizeDNNin; x=x+sizeDNNout) {
+		for (int y = 0; y <= size[1] - sizeDNNin; y=y+sizeDNNout) {
+			for (int z = 0; z <= size[2] - sizeDNNin; z=z+sizeDNNout) {
 
 				std::vector<float> tensor_img;
 
-				itk2tensor(itk_img, tensor_img,x,y,z);
+				itk2tensor(itk_img_normalized, tensor_img,x,y,z);
 
 				// create input tensor object from data values
 				auto memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
@@ -239,9 +242,27 @@ ImageType::Pointer Normamalize(ImageType::Pointer itk_img) {
 	return normalizeFilter->GetOutput();
 }
 
+ImageType::Pointer AddPadding(ImageType::Pointer itk_img, int paddingSize ) {
+
+	ImageType::SizeType lowerExtendRegion;
+	lowerExtendRegion.Fill(paddingSize);
+
+	ImageType::SizeType upperExtendRegion;
+	upperExtendRegion.Fill(paddingSize);
+
+	using FilterType = itk::MirrorPadImageFilter<ImageType, ImageType>;
+	FilterType::Pointer filter = FilterType::New();
+	filter->SetInput(itk_img);
+	filter->SetPadLowerBound(lowerExtendRegion);
+	filter->SetPadUpperBound(upperExtendRegion);
+	filter->Update();
+
+	return filter->GetOutput();
+}
+
 bool itk2tensor(ImageType::Pointer itk_img, std::vector<float> &tensor_img, int offsetX, int offsetY, int offsetZ) {
 
-	ImageType::Pointer itk_img_normalized = Normamalize(itk_img);
+	//ImageType::Pointer itk_img_normalized = Normamalize(itk_img);
 
 	typename ImageType::RegionType region = itk_img->GetLargestPossibleRegion();
 	
@@ -255,16 +276,16 @@ bool itk2tensor(ImageType::Pointer itk_img, std::vector<float> &tensor_img, int 
 	inputStart[1] = offsetY;
 	inputStart[2] = offsetZ;
 
-	size[0] = sizeDNN;
-	size[1] = sizeDNN;
-	size[2] = sizeDNN;
+	size[0] = sizeDNNin;
+	size[1] = sizeDNNin;
+	size[2] = sizeDNNin;
 
 	inputRegion.SetSize(size);
 	inputRegion.SetIndex(inputStart);
 
 	tensor_img.resize(size[0] * size[1] * size[2]);
 	int count = 0;
-	IteratorType iter(itk_img_normalized, inputRegion);
+	IteratorType iter(itk_img, inputRegion);
 
 	// convert itk to array
 	for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter) {
@@ -311,9 +332,9 @@ bool tensor2itk(std::vector<Ort::Value> &tensor_img, ImageType::Pointer itk_img,
 	start[2] = offsetZ;  // first index on Z
 
 	ImageType::SizeType  size;
-	size[0] = sizeDNN;
-	size[1] = sizeDNN;
-	size[2] = sizeDNN;
+	size[0] = sizeDNNout;
+	size[1] = sizeDNNout;
+	size[2] = sizeDNNout;
 
 	ImageType::RegionType region;
 	region.SetSize(size);
