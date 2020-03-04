@@ -23,6 +23,7 @@
 
 #include "iANModalDisplay.h"
 
+#include <defines.h> // for DIM
 #include "iAModality.h"
 #include "iAConnector.h"
 #include "iATypedCallHelper.h"
@@ -33,6 +34,7 @@
 #include <vtkPiecewiseFunction.h>
 
 #include <itkBinaryThresholdImageFilter.h>
+#include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryDilateImageFilter.h>
 #include <itkBinaryErodeImageFilter.h>
 #include <itkConnectedComponentImageFilter.h>
@@ -52,15 +54,15 @@ namespace {
 
 template<class T>
 void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector &conn, int loThresh, int upThresh) {
-	typedef itk::Image<T, 3> InputImageType;
-	typedef itk::Image<T, 3> OutputImageType;
+	typedef itk::Image<T, DIM> InputImageType;
+	typedef itk::Image<T, DIM> OutputImageType;
 	typedef itk::BinaryThresholdImageFilter<InputImageType, OutputImageType> BTIFType;
 
 	auto binThreshFilter = BTIFType::New();
 	binThreshFilter->SetLowerThreshold(loThresh);
 	binThreshFilter->SetUpperThreshold(upThresh);
-	binThreshFilter->SetOutsideValue(FOREGROUND);
-	binThreshFilter->SetInsideValue(BACKGROUND);
+	binThreshFilter->SetOutsideValue(BACKGROUND);
+	binThreshFilter->SetInsideValue(FOREGROUND);
 	binThreshFilter->SetInput(dynamic_cast<InputImageType *>(conn.itkImage()));
 	//filter->progress()->observe(binThreshFilter);
 	binThreshFilter->Update();
@@ -70,27 +72,32 @@ void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector &conn, in
 
 template<class T>
 void iANModalDilationBackgroundRemover::itkDilateAndCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponentsOut, bool dilate /*= true*/) {
-	typedef itk::Image<T, 3> InputImageType;
-	typedef itk::Image<T, 3> OutputImageType;
-	typedef itk::Image<T, 3> KernelType;
-	typedef itk::BinaryDilateImageFilter<InputImageType, OutputImageType, KernelType> BDIFType;
+	typedef itk::Image<T, DIM> InputImageType;
+	typedef itk::Image<T, DIM> OutputImageType;
+	typedef itk::BinaryBallStructuringElement<typename InputImageType::PixelType, DIM> BallElement;
+	typedef itk::BinaryDilateImageFilter<InputImageType, OutputImageType, BallElement> BDIFType;
 	typedef itk::ConnectedComponentImageFilter<InputImageType, OutputImageType> CCIFType;
+	
+	BallElement structuringElement;
+	structuringElement.SetRadius(1);
+	structuringElement.CreateStructuringElement();
 
 	auto connCompFilter = CCIFType::New();
 
 	if (dilate) {
-		// dilate the foreground...
+		// dilate the background (region of higher intensity)...
 		auto dilationFilter = BDIFType::New();
-		dilationFilter->SetDilateValue(FOREGROUND);
-		dilationFilter->SetInput(dynamic_cast<InputImageType *>(itkImgPtr));
+		dilationFilter->SetDilateValue(BACKGROUND);
+		dilationFilter->SetKernel(structuringElement);
+		dilationFilter->SetInput(dynamic_cast<InputImageType *>(itkImgPtr.GetPointer()));
 
 		connCompFilter->SetInput(dilationFilter->GetOutput());
 	} else {
-		connCompFilter->SetInput(dynamic_cast<InputImageType *>(itkImgPtr));
+		connCompFilter->SetInput(dynamic_cast<InputImageType *>(itkImgPtr.GetPointer()));
 	}
 
-	// ...until the number of background components is equal to connectedComponents
-	connCompFilter->SetBackgroundValue(FOREGROUND);
+	// ...until the number of foreground components is equal to connectedComponents
+	connCompFilter->SetBackgroundValue(BACKGROUND);
 	//filter->progress()->observe(connCompFilter);
 	connCompFilter->Update();
 
@@ -103,24 +110,29 @@ void iANModalDilationBackgroundRemover::itkDilateAndCountConnectedComponents(Ima
 
 template<class T>
 void iANModalDilationBackgroundRemover::itkCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponentsOut) {
-	itkDilateAndCountConnectedComponents(itkImgPtr, connectedComponentsOut, false);
+	itkDilateAndCountConnectedComponents<T>(itkImgPtr, connectedComponentsOut, false);
 }
 
 template<class T>
 void iANModalDilationBackgroundRemover::itkErode(ImagePointer itkImgPtr, int count) {
-	typedef itk::Image<T, 3> InputImageType;
-	typedef itk::Image<T, 3> OutputImageType;
-	typedef itk::Image<T, 3> KernelType;
-	typedef itk::BinaryErodeImageFilter<InputImageType, OutputImageType, KernelType> BDIFType;
+	typedef itk::Image<T, DIM> InputImageType;
+	typedef itk::Image<T, DIM> OutputImageType;
+	typedef itk::BinaryBallStructuringElement<typename InputImageType::PixelType, DIM> BallElement;
+	typedef itk::BinaryErodeImageFilter<InputImageType, OutputImageType, BallElement> BDIFType;
 
 	if (count <= 0) {
 		m_itkTempImg = itkImgPtr;
 		return;
 	}
 
+	BallElement structuringElement;
+	structuringElement.SetRadius(1);
+	structuringElement.CreateStructuringElement();
+
 	auto erosionFilter = BDIFType::New();
 	erosionFilter->SetErodeValue(FOREGROUND);
-	erosionFilter->SetInput(dynamic_cast<InputImageType *>(itkImgPtr));
+	erosionFilter->SetKernel(structuringElement);
+	erosionFilter->SetInput(dynamic_cast<InputImageType *>(itkImgPtr.GetPointer()));
 	
 	auto efPrev = erosionFilter;
 	for (int i = 1; i < count; i++) {
