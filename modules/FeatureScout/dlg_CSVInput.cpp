@@ -235,8 +235,10 @@ void dlg_CSVInput::exportTable()
 	QStringList origCSVInfo;
 	QTextStream in(&origCSV);
 	//TODO: Skip Header problem for arbitrary file format (see getOutputHeaders below)
-	for (int r = 0; r < m_confParams.skipLinesStart-1; ++r)
+	for (size_t r = 0; r < m_confParams.skipLinesStart - 1; ++r)
+	{
 		origCSVInfo.append(in.readLine());
+	}
 	QString exportCSVFileName = QFileDialog::getSaveFileName(this, tr("Export CSV file"),
 		m_path, "CSV file (*.csv);;");
 	if (exportCSVFileName.isEmpty())
