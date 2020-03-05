@@ -30,6 +30,8 @@
 #include <QPainter>
 #include <QMouseEvent>
 
+#include <cassert>
+
 iAChartFunctionBezier::iAChartFunctionBezier(iAChartWithFunctionsWidget *chart, QColor &color, bool res):
 	iAChartFunction(chart),
 	m_color(color),
@@ -58,7 +60,7 @@ void iAChartFunctionBezier::draw(QPainter &painter, QColor penColor, int lineWid
 
 	painter.setPen(pen);
 
-	int pointNumber = (int)realPoints.size();
+	int pointNumber = static_cast<int>(realPoints.size());
 	for(int l = 0; l < pointNumber-1; l+=3)
 	{
 		double X1 = realPoints[l].x();
@@ -194,7 +196,7 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 	int ly = chart->geometry().height() - event->y() - chart->bottomMargin();
 	int index = -1;
 
-	for (size_t pointIndex = 0; pointIndex < viewPoints.size(); pointIndex++)
+	for (size_t pointIndex = 0; pointIndex < viewPoints.size(); ++pointIndex)
 	{
 		int viewX = d2vX(viewPoints[pointIndex].x());
 		int viewY = d2vY(viewPoints[pointIndex].y());
@@ -544,26 +546,27 @@ void iAChartFunctionBezier::setOppositeViewPoint(int selectedPoint)
 
 int iAChartFunctionBezier::getFunctionPointIndex(int index)
 {
-	int mod = index %3;
+	int mod = index % 3;
 	switch(mod)
 	{
 	case 0: return index;
 	case 1: return index-1;
 	case 2: return index+1;
 	}
-
 	return -1;
 }
 
 double iAChartFunctionBezier::getLength(QPointF start, QPointF end)
 {
-	return sqrt(pow((double)(d2vX(end.x())-d2vX(start.x())), 2)+pow((double)(d2vY(end.y())-d2vY(start.y())), 2));
+	return sqrt(pow(static_cast<double>(d2vX(end.x())-d2vX(start.x())), 2)+
+				pow(static_cast<double>(d2vY(end.y())-d2vY(start.y())), 2));
 }
 
 // TODO: unify somewhere!
 double iAChartFunctionBezier::v2dX(int x)
 {
-	return ((double)(x- chart->xShift()) / (double)chart->geometry().width() * chart->xRange()) / chart->xZoom() + chart->xBounds()[0];
+	return (static_cast<double>(x- chart->xShift()) /
+			static_cast<double>(chart->geometry().width()) * chart->xRange()) / chart->xZoom() + chart->xBounds()[0];
 }
 
 double iAChartFunctionBezier::v2dY(int y)
@@ -573,12 +576,13 @@ double iAChartFunctionBezier::v2dY(int y)
 
 int iAChartFunctionBezier::d2vX(double x)
 {
-	return (int)((x - chart->xBounds()[0]) * (double)chart->geometry().width() / chart->xRange()*chart->xZoom()) + chart->xShift();
+	return static_cast<int>((x - chart->xBounds()[0]) * static_cast<double>(chart->geometry().width()) /
+			chart->xRange()*chart->xZoom()) + chart->xShift();
 }
 
 int iAChartFunctionBezier::d2vY(double y)
 {
-	return (int)(y / chart->yBounds()[1] *(double)(chart->geometry().height() - chart->bottomMargin()-1) *chart->yZoom());
+	return static_cast<int>(y / chart->yBounds()[1] * static_cast<double>(chart->geometry().height() - chart->bottomMargin()-1) *chart->yZoom());
 }
 
 int iAChartFunctionBezier::d2iX(double x)

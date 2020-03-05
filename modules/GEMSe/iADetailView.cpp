@@ -542,7 +542,6 @@ void iADetailView::setImage()
 	m_spacing[0] = img->GetSpacing()[0]; m_spacing[1] = img->GetSpacing()[1]; m_spacing[2] = img->GetSpacing()[2];
 	itk::ImageRegion<3> region = img->GetLargestPossibleRegion();
 	itk::Size<3> size = region.GetSize();
-	itk::Index<3> idx = region.GetIndex();
 	m_dimensions[0] = size[0]; m_dimensions[1] = size[1]; m_dimensions[2] = size[2];
 	// }
 	m_previewWidget->setImage(img ?

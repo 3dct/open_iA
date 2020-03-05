@@ -113,7 +113,10 @@ namespace
 				{
 					std::cout << " max=" << p->max();
 				}
-			case Boolean:		// intentional fall-through!
+#if __cplusplus >= 201703L
+				[[fallthrough]];  // intentional fall-through
+#endif
+			case Boolean:
 				std::cout << " default=" << p->defaultValue().toString().toStdString();
 				break;
 			case Categorical:

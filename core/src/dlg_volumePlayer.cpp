@@ -55,7 +55,7 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 			.arg(std::numeric_limits<int>::max()));
 	}
 	m_numberOfVolumes = static_cast<int>(m_volumeStack->numberOfVolumes());
-	for (int i = 0; i < m_numberOfVolumes; i++)
+	for (int i = 0; i < m_numberOfVolumes; ++i)
 	{
 		showVolume(i);
 	}
@@ -383,7 +383,8 @@ void dlg_volumePlayer::enableVolume(int state)
 	{
 		if (check == m_checkBoxes[i])
 		{
-			switch(state) {
+			switch(state)
+			{
 			case Qt::Checked:
 				showVolume(i);
 				break;
@@ -399,7 +400,7 @@ void dlg_volumePlayer::enableVolume(int state)
 	}
 
 	int numOfCheckedVolumes = getNumberOfCheckedVolumes();
-	for(int i = 0; i < m_checkBoxes.size(); i++)
+	for(size_t i = 0; i < m_checkBoxes.size(); ++i)
 	{
 		if (numOfCheckedVolumes <= 1 && m_checkBoxes[i]->isChecked())
 		{
@@ -470,11 +471,11 @@ void dlg_volumePlayer::hideVolume(int volumeIndex)
 int dlg_volumePlayer::getNumberOfCheckedVolumes()
 {
 	int num = 0;
-	for(int i = 0; i < m_numberOfVolumes; i++)
+	for(int i = 0; i < m_numberOfVolumes; ++i)
 	{
 		if (volumeIsShown(i))
 		{
-			num++;
+			++num;
 		}
 	}
 	return num;

@@ -32,7 +32,6 @@ const QString iAEnsembleDescriptorFile::DefaultSMPFileName("sampling.smp");
 const QString iAEnsembleDescriptorFile::DefaultSPSFileName("sampling.sps");
 const QString iAEnsembleDescriptorFile::DefaultCHRFileName("characteristics.chr");
 const QString iAEnsembleDescriptorFile::DefaultModalityFileName("modalities.mod");
-const int DefaultLabelCount = 2;
 
 namespace
 {

@@ -58,7 +58,7 @@ typedef char RawDataType;
 int decodeRLE(RawDataType* in, size_t inLength, RawDataType* out, size_t maxOutLength)
 {
 	int curOutStart = 0;
-	for (int curInIdx = 0; curInIdx < inLength; ++curInIdx)
+	for (size_t curInIdx = 0; curInIdx < inLength; ++curInIdx)
 	{
 		int len = in[curInIdx];  // block length
 		char c = in[curInIdx + 1]; // character
@@ -217,9 +217,9 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	//Set the file pointer to the beginning of "# Data section follows"
 	bool err = fseek(fp, idxStartData, SEEK_SET) != 0;
 	//Consume this line, which is "# Data section follows"
-	err |= fgets(buffer, MaxHeaderSize, fp) == 0;
+	err |= fgets(buffer, MaxHeaderSize, fp) == nullptr;
 	//Consume the next line, which is "@1"
-	err |= fgets(buffer, MaxHeaderSize, fp) == 0;
+	err |= fgets(buffer, MaxHeaderSize, fp) == nullptr;
 	if (err)
 	{
 		fclose(fp);
@@ -363,17 +363,6 @@ void iAAmiraMeshIO::Write(QString const & filename, vtkImageData* img)
 	stream << "# Data section follows\n";
 	stream << "@1\n";
 	stream.flush();
-
-	int dataTypeSize = 0;
-	switch(vtkType)
-	{
-	case VTK_UNSIGNED_CHAR:
-		dataTypeSize = sizeof(unsigned char);
-		break;
-	case VTK_FLOAT:
-		dataTypeSize = sizeof(float);
-		break;
-	}
 
 	file.write(headerData);
 	for (int z = 0; z < d; z++)

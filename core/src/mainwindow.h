@@ -60,7 +60,7 @@ class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
 
 public:
 	MainWindow(QString const & appName, QString const & version, QString const& buildInformation, QString const & splashImage);
-	~MainWindow();
+	~MainWindow() override;
 	static int runGUI(int argc, char * argv[], QString const & appName, QString const & version, QString const& buildInformation,
 		QString const & splashPath, QString const & iconPath);
 	static void initResources();
