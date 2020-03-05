@@ -1985,8 +1985,8 @@ void iAQSplom::loadSettings(iASettings const & config)
 			}
 			if (idx >= newParamVis.size())
 			{
-				DEBUG_LOG(QString("Index %1 in VisibleParameter settings is larger than currently available number of parameter; "
-					"probably these settings were stored for a different Scatter Plot Matrix!").arg(idx));
+				DEBUG_LOG(QString("Index %1 in VisibleParameter settings is larger than currently available number of parameters (%2); "
+					"probably these settings were stored for a different Scatter Plot Matrix!").arg(idx).arg(newParamVis.size()));
 			}
 			else
 			{
@@ -2026,16 +2026,17 @@ void iAQSplom::loadSettings(iASettings const & config)
 	settings.colorRangeMode = static_cast<ColorRangeMode>(config.value(CfgKeyColorRangeMode, settings.colorRangeMode).toInt());
 	m_settingsDlg->cbColorRangeMode->setCurrentIndex(settings.colorRangeMode);
 
-	m_colorLookupParam = config.value(CfgKeyColorLookupParam, static_cast<qulonglong>(m_colorLookupParam)).toULongLong();
-	if (m_colorLookupParam < m_splomData->numParams())
+	auto tmpColorLookupParam = config.value(CfgKeyColorLookupParam, static_cast<qulonglong>(m_colorLookupParam)).toULongLong();
+	if (tmpColorLookupParam < m_splomData->numParams())
 	{
+		m_colorLookupParam = tmpColorLookupParam;
 		QSignalBlocker blockColorParameter(m_settingsDlg->cbColorParameter);
 		m_settingsDlg->cbColorParameter->setCurrentIndex(static_cast<int>(m_colorLookupParam));
 	}
 	else
 	{
 		DEBUG_LOG(QString("Stored index of parameter to color by (%1) exceeds valid range (0..%2)")
-			.arg(m_colorLookupParam)
+			.arg(tmpColorLookupParam)
 			.arg(m_splomData->numParams()));
 	}
 

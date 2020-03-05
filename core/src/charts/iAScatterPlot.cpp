@@ -890,7 +890,7 @@ void iAScatterPlot::drawTicks( QPainter &painter )
 {
 	painter.save();
 	QPen p;
-		p.setColor( /*settings.tickLineColor*/ m_parentWidget->palette().color(QPalette::Light) );
+		p.setColor( /*settings.tickLineColor*/ m_parentWidget->palette().color(QPalette::Midlight) );
 		p.setStyle( Qt::DotLine );
 	painter.setPen( p );
 	for (double t: m_ticksX)
