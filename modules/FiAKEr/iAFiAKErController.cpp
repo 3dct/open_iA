@@ -30,6 +30,7 @@
 #include "iA3DCylinderObjectVis.h"
 #include "iA3DEllipseObjectVis.h"
 #include "iACsvConfig.h"
+#include "iACsvVectorTableCreator.h"
 #include "iAFeatureScoutModuleInterface.h"
 #include "iAVectorPlotData.h"
 
@@ -512,6 +513,7 @@ void iAFiAKErController::setupSettingsView()
 		this, SLOT(distributionColorThemeChanged(QString const &)));
 	connect(m_settingsView->cmbboxResultColors, SIGNAL(currentIndexChanged(QString const &)),
 		this, SLOT(resultColorThemeChanged(QString const &)));
+	connect(m_settingsView->pbSensitivity, &QPushButton::clicked, this, &iAFiAKErController::sensitivitySlot);
 }
 
 QWidget* iAFiAKErController::setupOptimStepView()
@@ -1009,6 +1011,52 @@ void iAFiAKErController::resultColorThemeChanged(QString const & colorThemeName)
 
 	setSPMColorByResult();
 	// main3DVis automatically updated through SPM
+}
+
+bool readParameterCSV(QString const& fileName, QString const & encoding, QString const & columnSeparator, iACsvTableCreator& tblCreator, size_t resultCount)
+{
+	if (!QFile::exists(fileName))
+	{
+		DEBUG_LOG("Error loading csv file, file does not exist.");
+		return false;
+	}
+	QFile file(fileName);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		DEBUG_LOG(QString("Unable to open file '%1': %2").arg(fileName).arg(file.errorString()));
+		return false;
+	}
+	QTextStream in(&file);
+	in.setCodec(encoding.toStdString().c_str());
+	auto headers = in.readLine().split(columnSeparator);
+	tblCreator.initialize(headers, resultCount);
+
+	while (!in.atEnd())
+	{
+		QString line = in.readLine();
+		if (line.trimmed().isEmpty()) // skip empty lines
+		{
+			continue;
+		}
+	}
+}
+
+void iAFiAKErController::sensitivitySlot()
+{
+	QString fileName = QFileDialog::getOpenFileName(m_mainWnd, iAFiAKErController::FIAKERProjectID, m_data->folder, "Comma-Separated Values (*.csv);;");
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	iACsvVectorTableCreator tblCreator;
+	if (!readParameterCSV(fileName, "UTF-8", ",", tblCreator, m_data->result.size()))
+	{
+		return;
+	}
+	assert(tblCreator.table().size() == m_data->result.size());
+	m_parameterFile = fileName;
+	// compute pairwise dissimilarities between results:
+	return true;
 }
 
 void iAFiAKErController::stackedBarColorThemeChanged(QString const & colorThemeName)

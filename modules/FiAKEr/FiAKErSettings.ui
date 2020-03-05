@@ -7,8 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>422</width>
-    <height>288</height>
+    <height>330</height>
    </rect>
+  </property>
+  <property name="windowTitle">
+   <string>FIAKER Settings</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <property name="spacing">
@@ -107,6 +110,43 @@
           <property name="bottomMargin">
            <number>4</number>
           </property>
+          <item row="2" column="0">
+           <widget class="QLabel" name="lbHistogramShow">
+            <property name="text">
+             <string>Histogram Bins:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0" colspan="2">
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QCheckBox" name="cbLinkPreviews">
+            <property name="text">
+             <string>Link preview cameras to main 3D view</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="lbStackedBarColors">
+            <property name="text">
+             <string>Stacked Bar Chart Colors</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QComboBox" name="cmbboxStackedBarChartColors"/>
+          </item>
           <item row="3" column="1">
            <widget class="QComboBox" name="cmbboxDistributionPlotType">
             <item>
@@ -121,27 +161,10 @@
             </item>
            </widget>
           </item>
-          <item row="4" column="1">
-           <widget class="QComboBox" name="cmbboxStackedBarChartColors"/>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="lbHistogramShow">
-            <property name="text">
-             <string>Histogram Bins:</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="0" colspan="2">
            <widget class="QCheckBox" name="cbShowReferenceDistribution">
             <property name="text">
              <string>Show Reference in Distribution Histograms</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="lbStackedBarColors">
-            <property name="text">
-             <string>Stacked Bar Chart Colors</string>
             </property>
            </widget>
           </item>
@@ -163,22 +186,9 @@
            </widget>
           </item>
           <item row="5" column="0" colspan="2">
-           <spacer name="verticalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="1" column="0" colspan="2">
-           <widget class="QCheckBox" name="cbLinkPreviews">
+           <widget class="QPushButton" name="pbSensitivity">
             <property name="text">
-             <string>Link preview cameras to main 3D view</string>
+             <string>Parameter Sensitivity Matrix</string>
             </property>
            </widget>
           </item>
@@ -537,8 +547,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>409</width>
-            <height>195</height>
+            <width>392</width>
+            <height>235</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">

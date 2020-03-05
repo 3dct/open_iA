@@ -173,6 +173,7 @@ private slots:
 	// settings view:
 	void update3D();
 	void applyRenderSettings();
+	void sensitivitySlot();
 private:
 	bool loadReferenceInternal(iASettings settings);
 	void changeDistributionSource(int index);
@@ -226,19 +227,19 @@ private:
 	size_t m_referenceID;
 	SelectionType m_selection;
 	vtkSmartPointer<vtkTable> m_refVisTable;
+	iACsvConfig m_config;
+	QString m_colorByThemeName;
+	bool m_useStepData;
+	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame, m_showLines;
+	double m_contextSpacing;
+	QString m_parameterFile; //! (.csv-)file containing eventual parameters used in creating the loaded results
 
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 
 	vtkSmartPointer<vtkActor> m_sampleActor;
-	iACsvConfig m_config;
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
-	QString m_colorByThemeName;
-	bool m_useStepData;
 	QMap<QString, QObject*> m_settingsWidgetMap;
-
-	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame, m_showLines;
-	double m_contextSpacing;
 
 	// The different views and their elements:
 	std::vector<iADockWidgetWrapper*> m_views;
