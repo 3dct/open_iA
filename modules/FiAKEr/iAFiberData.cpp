@@ -154,7 +154,7 @@ namespace
 			return iAVec3f(-vectorIn[1] - vectorIn[2], vectorIn[0], vectorIn[0]);
 		}
 	}
-
+	/*
 	iAVec3f fromSpherical(double phi, double theta, double radius)
 	{
 		return iAVec3f(
@@ -162,6 +162,7 @@ namespace
 			radius * std::sin(vtkMath::RadiansFromDegrees(phi)) * std::sin(vtkMath::RadiansFromDegrees(theta)),
 			radius * std::cos(vtkMath::RadiansFromDegrees(phi)));
 	}
+	*/
 
 	//linePnt - point the line passes through
 	//lineDir - unit vector in direction of line, either direction works

@@ -166,18 +166,24 @@ void dlg_volumePlayer::nextVolume()
 
 void dlg_volumePlayer::previousVolume()
 {
-	int index = volumeSlider->value();
-	if (--index < 0)
-		index=volumeSlider->maximum();
+	int index = volumeSlider->value() - 1;
+	if (index < 0)
+	{
+		index = volumeSlider->maximum();
+	}
 	volumeSlider->setValue(index);
 }
 
 void dlg_volumePlayer::sliderChanged()
 {
-	if(m_isBlendingOn)
+	if (m_isBlendingOn)
+	{
 		updateMultiChannelVisualization();
+	}
 	else
+	{
 		emit update(sliderIndexToVolumeIndex(volumeSlider->value()));
+	}
 }
 
 void dlg_volumePlayer::playVolume()
@@ -247,7 +253,9 @@ QList<int> dlg_volumePlayer::getCheckedList()
 			m_outCheckList.insert(i,t->checkState());
 		}
 		else
+		{
 			m_outCheckList.insert(i, 0);
+		}
 	}
 	return (m_outCheckList);
 }
@@ -367,7 +375,9 @@ void dlg_volumePlayer::enableVolume(int state)
 {
 	QCheckBox* check = static_cast<QCheckBox*>(QObject::sender());
 	if (!check)
+	{
 		return;
+	}
 
 	for(int i = 0; i < m_checkBoxes.size(); i++)
 	{
@@ -391,10 +401,14 @@ void dlg_volumePlayer::enableVolume(int state)
 	int numOfCheckedVolumes = getNumberOfCheckedVolumes();
 	for(int i = 0; i < m_checkBoxes.size(); i++)
 	{
-		if(numOfCheckedVolumes <= 1 && m_checkBoxes[i]->isChecked())
+		if (numOfCheckedVolumes <= 1 && m_checkBoxes[i]->isChecked())
+		{
 			m_checkBoxes[i]->setEnabled(false);
+		}
 		else
+		{
 			m_checkBoxes[i]->setEnabled(true);
+		}
 	}
 
 	// setup slider
@@ -412,11 +426,17 @@ void dlg_volumePlayer::enableVolume(int state)
 int dlg_volumePlayer::volumeIndexToSlicerIndex(int volumeIndex)
 {
 	int slicerIndex = -1;
-	if (((m_mask>>volumeIndex)&1) == 0)
+	if (((m_mask >> volumeIndex) & 1) == 0)
+	{
 		return -1;
-	for(int i = 0; i <= volumeIndex; i++)
-		if (((m_mask>>i)&1) == 1)
+	}
+	for (int i = 0; i <= volumeIndex; i++)
+	{
+		if (((m_mask >> i) & 1) == 1)
+		{
 			++slicerIndex;
+		}
+	}
 	return slicerIndex;
 }
 
@@ -450,8 +470,12 @@ void dlg_volumePlayer::hideVolume(int volumeIndex)
 int dlg_volumePlayer::getNumberOfCheckedVolumes()
 {
 	int num = 0;
-	for(int i = 0; i < m_numberOfVolumes; i++) {
-		if(volumeIsShown(i)) num++;
+	for(int i = 0; i < m_numberOfVolumes; i++)
+	{
+		if (volumeIsShown(i))
+		{
+			num++;
+		}
 	}
 	return num;
 }
@@ -464,32 +488,46 @@ bool dlg_volumePlayer::volumeIsShown (int volumeIndex)
 void dlg_volumePlayer::enableMultiChannelVisualization()
 {
 	if (!m_mdiChild)
+	{
 		return;
+	}
 
-	for(int i = 0; i < CHANNELS_COUNT; i++)
+	for (int i = 0; i < CHANNELS_COUNT; i++)
+	{
 		m_mdiChild->setChannelRenderingEnabled(m_channelID[i], true);
+	}
 }
 
 void dlg_volumePlayer::disableMultiChannelVisualization()
 {
 	if (!m_mdiChild)
+	{
 		return;
+	}
 
-	for(int i = 0; i < CHANNELS_COUNT; i++)
+	for (int i = 0; i < CHANNELS_COUNT; i++)
+	{
 		m_mdiChild->setChannelRenderingEnabled(m_channelID[i], false);
+	}
 }
 
 void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volumeIndex2, double blendingCoeff)
 {
 	if (!m_mdiChild)
+	{
 		return;
+	}
 
 	int volumeIndex[] = { volumeIndex1, volumeIndex2 };
 	double opacity[] = { 1., blendingCoeff };
 
 	if (!m_multiChannelIsInitialized)
+	{
 		for (int i = 0; i < CHANNELS_COUNT; i++)
+		{
 			m_channelID.push_back(m_mdiChild->createChannel());
+		}
+	}
 	for(int i = 0; i < CHANNELS_COUNT; i++)
 	{
 		iAChannelData* chData = m_mdiChild->channelData(m_channelID[i]);
@@ -520,11 +558,16 @@ void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volume
 		m_mdiChild->updateChannelOpacity(m_channelID[i], opacity[i]);
 	}
 
-	if(!m_multiChannelIsInitialized) m_multiChannelIsInitialized = true;
+	if (!m_multiChannelIsInitialized)
+	{
+		m_multiChannelIsInitialized = true;
+	}
 
 //	m_mdiChild->renderer()->updateChannelImages();
-	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+	{
 		m_mdiChild->slicer(i)->updateChannelMappers();
+	}
 	m_mdiChild->updateViews();
 }
 

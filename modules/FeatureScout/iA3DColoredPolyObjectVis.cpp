@@ -94,7 +94,7 @@ void iA3DColoredPolyObjectVis::updateRenderer()
 void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & constClassColor, QStandardItem* /*activeClassItem*/)
 {
 	QColor BackColor(128, 128, 128, 0);
-	int currentObjectIndexInSelection = 0;
+	size_t currentObjectIndexInSelection = 0;
 	IndexType curSelObjID = -1;
 	QColor classColor(constClassColor);
 	if (sortedSelInds.size() > 0)

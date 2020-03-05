@@ -35,7 +35,7 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
 
-const int MAX_ITERATIONS		= 24;
+//const int MAX_ITERATIONS		= 24;
 const double BACKGROUND[3]		= {1, 1, 1};
 
 dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
@@ -76,7 +76,7 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 	graphWidget->GetRenderWindow()->Render();
 }
 
-void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, size_t numRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId)
+void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, size_t numRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> /*graphToTableId*/)
 {
 	if(g->GetNumberOfVertices() < 1) return;
 

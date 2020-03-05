@@ -616,7 +616,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 	float width = 1.0;
 
 	vtkPlot *plot;
-	for(int i=0; i<numberOfCharts; i++)
+	for(size_t i=0; i<numberOfCharts; i++)
 	{
 		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
 		plot->SetInputData(m_tables.at(i + numberOfCharts * 0), 1, 6);
@@ -625,7 +625,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		plot->SetTooltipLabelFormat("");
 		m_plots.push_back(plot);
 	}
-	for(int i=0; i<numberOfCharts; i++)
+	for(size_t i=0; i<numberOfCharts; i++)
 	{
 		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
 		plot->SetInputData(m_tables.at(i + numberOfCharts * 1), 1, 6);
@@ -634,7 +634,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		plot->SetTooltipLabelFormat("");
 		m_plots.push_back(plot);
 	}
-	for(int i=0; i<numberOfCharts; i++)
+	for(size_t i=0; i<numberOfCharts; i++)
 	{
 		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
 		plot->SetInputData(m_tables.at(i + numberOfCharts * 2), 1, 6);
@@ -643,7 +643,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		plot->SetTooltipLabelFormat("");
 		m_plots.push_back(plot);
 	}
-	for(int i=0; i<numberOfCharts; i++)
+	for(size_t i=0; i<numberOfCharts; i++)
 	{
 		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
 		plot->SetInputData(m_tables.at(i + numberOfCharts * 3), 1, 6);
@@ -652,7 +652,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		plot->SetTooltipLabelFormat("");
 		m_plots.push_back(plot);
 	}
-	for(int i=0; i<numberOfCharts; i++)
+	for(size_t i=0; i<numberOfCharts; i++)
 	{
 		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
 		plot->SetInputData(m_tables.at(i + numberOfCharts * 4), 1, 6);
@@ -662,14 +662,14 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		m_plots.push_back(plot);
 	}
 
-	for(int i=0; i<numberOfEventTypes; i++)
+	for(size_t i=0; i<numberOfEventTypes; i++)
 	{
-		m_plotPositionInVector[i]=i;
+		m_plotPositionInVector[i]=static_cast<int>(i);
 	}
 
 	m_numberOfActivePlots = numberOfEventTypes;
 
-	for(int i=0; i<numberOfCharts; i++)
+	for(size_t i=0; i<numberOfCharts; i++)
 	{
 		m_charts.at(i)->GetAxis(0)->SetTitle("Uncertainty");
 		m_charts.at(i)->GetAxis(1)->SetTitle("Volume");
@@ -1344,9 +1344,13 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 						//if (trackedFeaturesBackwards.at(layer - 1)->FromUtoV(c.id).size() > 0)
 						//	featureEvent = trackedFeaturesBackwards.at(layer - 1)->FromUtoV(c.id).at(0).featureEvent;
 						if (m_trackedFeaturesForwards.at(layer - 1)->FromVtoU(c.id).size() > 0)
+						{
 							featureEvent = m_trackedFeaturesForwards.at(layer - 1)->FromVtoU(c.id).at(0).featureEvent;
+						}
 						else
+						{
 							featureEvent = 0;
+						}
 
 						newVertexId = m_graph->AddVertex();
 
@@ -1403,9 +1407,13 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 
 			std::vector<iAFeatureTrackingCorrespondence> correspondences;
 			if (layer > 0)
+			{
 				correspondences = ftF->FromVtoU(id);
+			}
 			else
+			{
 				correspondences = ftF->FromUtoV(id);
+			}
 
 			for (auto c : correspondences)
 			{
@@ -1417,9 +1425,14 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 						//if (trackedFeaturesBackwards.at(layer - 1)->FromUtoV(c.id).size() > 0)
 						//	featureEvent = trackedFeaturesBackwards.at(layer - 1)->FromUtoV(c.id).at(0).featureEvent;
 						if (m_trackedFeaturesForwards.at(layer + 1)->FromUtoV(c.id).size() > 0)
+						{
+							// featureEvent = ??? otherwise result
 							m_trackedFeaturesForwards.at(layer + 1)->FromUtoV(c.id).at(0).featureEvent;
+						}
 						else
+						{
 							featureEvent = 0;
+						}
 
 						newVertexId = m_graph->AddVertex();
 						m_labels->InsertValue(newVertexId, std::to_string(c.id) +" (" + std::to_string((long long)(1 - c.likelyhood)) + ")");

@@ -50,6 +50,5 @@ private:
 	OrderType m_order;
 	iAGraph* m_graph;
 	iAGraphStat m_graphStat;
-	int m_ranks;
 };
 

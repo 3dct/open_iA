@@ -138,7 +138,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		return false;
 	}
 
-	for (int i = 0; i < m_csvConfig.skipLinesStart; i++)
+	for (size_t i = 0; i < m_csvConfig.skipLinesStart; i++)
 	{
 		in.readLine();
 	}
@@ -178,7 +178,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 				.arg(values.size()).arg(m_csvConfig.currentHeaders.size()));
 			continue;
 		}
-		if (!m_csvConfig.addAutoID && values[0].toInt() != (row + 1))
+		if (!m_csvConfig.addAutoID && values[0].toULongLong() != (row + 1))
 		{
 			DEBUG_LOG(QString("ID column not ordered as expected in line %1 (needs to be consecutive, starting at 1)! "
 				"Please either fix the data in the CSV or use the 'Create ID' feature!").arg(row));
@@ -440,7 +440,7 @@ QVector<uint> iACsvIO::computeSelectedColIdx()
 size_t iACsvIO::calcRowCount(QTextStream& in, const size_t skipLinesStart, const size_t skipLinesEnd)
 {
 	// skip (unused) header lines (+1 for line containing actual column headers)
-	for (int i = 0; i < skipLinesStart && !in.atEnd(); i++)
+	for (size_t i = 0; i < skipLinesStart && !in.atEnd(); i++)
 	{
 		in.readLine();
 	}

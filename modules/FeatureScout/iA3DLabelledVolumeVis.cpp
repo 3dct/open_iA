@@ -60,13 +60,15 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 	oTF->AddPoint( 0, backAlpha, 0.5, 1.0 );
 	cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 
-	int hid = 0, next_hid = 1, prev_hid = -1, selectionIndex = 0, previous_selectionIndex = 0;
+	size_t const HidInvalid = std::numeric_limits<size_t>::max();
+	size_t hid = 0, next_hid = 1, prev_hid = HidInvalid;
+	size_t selectionIndex = 0, previous_selectionIndex = 0;
 	bool starting = false, hid_isASelection = false, previous_hid_isASelection = false;
 
 	int countClass = activeClassItem->rowCount();
 	for (int j = 0; j < countClass; ++j )
 	{
-		hid = activeClassItem->child( j )->text().toInt();
+		hid = activeClassItem->child( j )->text().toULongLong();
 
 		if (sortedSelInds.size() > 0 )
 		{
@@ -84,7 +86,7 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 				red = classRGB[0]; green = classRGB[1]; blue = classRGB[2];
 			}
 
-			if ( prev_hid > 0 )
+			if (prev_hid != HidInvalid)
 			{
 				if (prev_hid-1 == sortedSelInds[previous_selectionIndex])
 				{
@@ -105,7 +107,7 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 		// If we are not yet at the last object (of the class) get the next hid
 		if ( ( j + 1 ) < countClass )
 		{
-			next_hid = activeClassItem->child( j + 1 )->text().toInt();
+			next_hid = activeClassItem->child( j + 1 )->text().toULongLong();
 		}
 		else	// If hid = the last object (of the class) we have to set the last object points
 		{
@@ -209,7 +211,7 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 		prev_hid = hid;
 	}
 
-	if ( hid < m_objectTable->GetNumberOfRows() )	// Creates the very last points (for all objects)  if it's not created yet
+	if ( hid < static_cast<size_t>(m_objectTable->GetNumberOfRows()) )	// Creates the very last points (for all objects)  if it's not created yet
 	{
 		oTF->AddPoint( m_objectTable->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0 );
 		cTF->AddRGBPoint( m_objectTable->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
@@ -263,8 +265,10 @@ void iA3DLabelledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*
 		{
 			hid = activeClassItem->child( j, 0 )->text().toInt();
 
-			if ( j + 1 < itemL )
-				next_hid = activeClassItem->child( j + 1, 0 )->text().toInt();
+			if (j + 1 < itemL)
+			{
+				next_hid = activeClassItem->child(j + 1, 0)->text().toInt();
+			}
 			else
 			{
 				if ( starting )
