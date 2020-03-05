@@ -2950,8 +2950,7 @@ void iAFiAKErController::selectionDetailsItemClicked(QModelIndex const & index)
 
 QString iAFiAKErController::diffName(size_t chartID) const
 {
-	size_t spmCol = m_data->spmData->numParams() -
-		m_data->m_projectionErrorColumn + 1 + chartID;
+	size_t spmCol = m_data->m_projectionErrorColumn + chartID;
 	return m_data->spmData->parameterName(spmCol);
 }
 

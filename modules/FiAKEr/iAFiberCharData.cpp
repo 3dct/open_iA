@@ -544,8 +544,8 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		);
 	}
 
-	paramNames.push_back("Proj. Error Red.");
 	paramNames.push_back("Result_ID");
+	paramNames.push_back("Proj. Error Red.");
 
 	spmData->setParameterNames(paramNames, totalFiberCount);
 	size_t numParams = spmData->numParams();
