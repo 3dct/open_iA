@@ -174,7 +174,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		if (values.size() < m_csvConfig.currentHeaders.size())
 		{
 			DEBUG_LOG(QString("Line %1 in file '%2' only contains %3 entries, expected %4. Skipping...")
-				.arg(row + m_csvConfig.skipLinesStart + (m_csvConfig.containsHeader?0:1) ).arg(m_csvConfig.fileName)
+				.arg(row + m_csvConfig.skipLinesStart + (m_csvConfig.containsHeader ? 0 : 1)).arg(m_csvConfig.fileName)
 				.arg(values.size()).arg(m_csvConfig.currentHeaders.size()));
 			continue;
 		}
@@ -188,7 +188,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		{
 			if (valIdx >= values.size())
 			{
-				DEBUG_LOG(QString("Error in line %1: Only %2 values, at least %3 expected").arg(resultRowID).arg(values.size()).arg(valIdx+1));
+				DEBUG_LOG(QString("Error in line %1: Only %2 values, at least %3 expected").arg(resultRowID).arg(values.size()).arg(valIdx + 1));
 				break;
 			}
 			QString value = values[valIdx];
@@ -196,7 +196,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 			{
 				value = value.replace(m_csvConfig.decimalSeparator, ".");
 			}
-			entries.append(transformValue(value, valIdx, m_csvConfig) );
+			entries.append(transformValue(value, valIdx, m_csvConfig));
 		}
 		if (m_csvConfig.computeStartEnd)
 		{
@@ -244,7 +244,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 			}
 			if (m_csvConfig.computeLength)
 			{
-				double length = std::sqrt(dx*dx + dy*dy + dz*dz);
+				double length = std::sqrt(dx * dx + dy * dy + dz * dz);
 				entries.append(DblToString(length));
 			}
 			if (m_csvConfig.computeCenter)
@@ -265,8 +265,8 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 				}
 				else
 				{
-					phi = asin(dy / sqrt(dx*dx + dy * dy));
-					theta = acos(dz / sqrt(dx*dx + dy * dy + dz * dz));
+					phi = asin(dy / sqrt(dx * dx + dy * dy));
+					theta = acos(dz / sqrt(dx * dx + dy * dy + dz * dz));
 					phi = vtkMath::DegreesFromRadians(phi);
 					theta = vtkMath::DegreesFromRadians(theta);
 					// locate the phi value to quadrant
@@ -292,12 +292,12 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 			}
 			double rad_phi = vtkMath::RadiansFromDegrees(phi);
 			double rad_theta = vtkMath::RadiansFromDegrees(theta);
-			double a11 = cos(rad_phi)*cos(rad_phi)*sin(rad_theta)*sin(rad_theta);
-			double a22 = sin(rad_phi)*sin(rad_phi)*sin(rad_theta)*sin(rad_theta);
-			double a33 = cos(rad_theta)*cos(rad_theta);
-			double a12 = cos(rad_phi)*sin(rad_theta)*sin(rad_theta)*sin(rad_phi);
-			double a13 = cos(rad_phi)*sin(rad_theta)*cos(rad_theta);
-			double a23 = sin(rad_phi)*sin(rad_theta)*cos(rad_theta);
+			double a11 = cos(rad_phi) * cos(rad_phi) * sin(rad_theta) * sin(rad_theta);
+			double a22 = sin(rad_phi) * sin(rad_phi) * sin(rad_theta) * sin(rad_theta);
+			double a33 = cos(rad_theta) * cos(rad_theta);
+			double a12 = cos(rad_phi) * sin(rad_theta) * sin(rad_theta) * sin(rad_phi);
+			double a13 = cos(rad_phi) * sin(rad_theta) * cos(rad_theta);
+			double a23 = sin(rad_phi) * sin(rad_theta) * cos(rad_theta);
 			/*
 			if (dx == 0 && dy == 0)
 			{
@@ -315,12 +315,17 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 			entries.append(DblToString(a13));
 			entries.append(DblToString(a23));
 		}
-		entries.append("0"); // class ID
+		if (m_csvConfig.addClassID)
+		{
+			entries.append("0"); // class ID
+		}
 		dstTbl.addRow(resultRowID-1, entries);
 		++resultRowID;
 	}
 	if (file.isOpen())
+	{
 		file.close();
+	}
 	return true;
 }
 
@@ -346,10 +351,14 @@ void iACsvIO::determineOutputHeaders(QVector<uint> const & selectedCols)
 	}
 
 	if (m_csvConfig.addAutoID)
+	{
 		m_outputHeaders.append(iACsvIO::ColNameAutoID);
+	}
 
-	for (int i=0; i<selectedCols.size(); ++i)
+	for (int i = 0; i < selectedCols.size(); ++i)
+	{
 		m_outputHeaders.append(m_fileHeaders[selectedCols[i]]);
+	}
 
 	if (m_csvConfig.computeStartEnd)
 	{
@@ -402,7 +411,10 @@ void iACsvIO::determineOutputHeaders(QVector<uint> const & selectedCols)
 		m_outputHeaders.append(ColNameA13);
 		m_outputHeaders.append(ColNameA23);
 	}
-	m_outputHeaders.append(iACsvIO::ColNameClassID);
+	if (m_csvConfig.addClassID)
+	{
+		m_outputHeaders.append(iACsvIO::ColNameClassID);
+	}
 }
 
 QVector<uint> iACsvIO::computeSelectedColIdx()
@@ -414,9 +426,13 @@ QVector<uint> iACsvIO::computeSelectedColIdx()
 	{
 		int idx = m_fileHeaders.indexOf(colName);
 		if (idx >= 0)
+		{
 			result.append(idx);
+		}
 		else
+		{
 			DEBUG_LOG(QString("Selected column '%1' not found in file headers '%2', skipping.").arg(colName).arg(m_fileHeaders.join(",")));
+		}
 	}
 	return result;
 }
@@ -425,7 +441,9 @@ size_t iACsvIO::calcRowCount(QTextStream& in, const size_t skipLinesStart, const
 {
 	// skip (unused) header lines (+1 for line containing actual column headers)
 	for (int i = 0; i < skipLinesStart && !in.atEnd(); i++)
+	{
 		in.readLine();
+	}
 
 	// count remaining lines
 	size_t rowCount = 0;
@@ -433,7 +451,9 @@ size_t iACsvIO::calcRowCount(QTextStream& in, const size_t skipLinesStart, const
 	{
 		QString line = in.readLine();
 		if (line.trimmed().isEmpty()) // skip empty lines
+		{
 			continue;
+		}
 		++rowCount;
 	}
 	in.seek(0);
@@ -477,7 +497,9 @@ bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<
 		++lineNr;
 		QString line = in.readLine();
 		if (lineNr <= 5 || line.isEmpty())
+		{
 			continue;
+		}
 		QStringList valueStrList = line.split(",", QString::SkipEmptyParts);
 		if (valueStrList.size() < 7 || ((valueStrList.size() - 1) % 3) != 0)
 		{

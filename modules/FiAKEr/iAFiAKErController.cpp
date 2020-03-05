@@ -260,6 +260,7 @@ void iAFiAKErController::loadProject(QSettings const& projectFile, QString const
 void iAFiAKErController::start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData)
 {
 	m_config = config;
+	m_config.addClassID = false;
 	m_useStepData = useStepData;
 	m_jobs = new iAJobListView();
 	m_jobs->layout()->setContentsMargins(1, 0, 0, 0);
@@ -270,7 +271,7 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 	connect(m_mdiChild, &MdiChild::renderSettingsChanged, this, &iAFiAKErController::applyRenderSettings);
 
 	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
-	auto resultsLoader = new iAFiberResultsLoader(m_data, path, config, stepShift);
+	auto resultsLoader = new iAFiberResultsLoader(m_data, path, m_config, stepShift);
 	connect(resultsLoader, &iAFiberResultsLoader::success, this, &iAFiAKErController::resultsLoaded);
 	connect(resultsLoader, &iAFiberResultsLoader::failed,  this, &iAFiAKErController::resultsLoadFailed);
 	m_jobs->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
