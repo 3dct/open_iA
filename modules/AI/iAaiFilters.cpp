@@ -67,7 +67,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 		ImageType::Pointer itk_img_normalized = Normamalize(itk_img);
 
-		itk_img_normalized = AddPadding(itk_img_normalized,2);
+		itk_img_normalized = AddPadding(itk_img_normalized,(sizeDNNin - sizeDNNout)/2);
 
 
 
@@ -156,9 +156,10 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	// Input 0 : type = 1
 	// Input 0 : num_dims = 4
 	// Input 0 : dim 0 = 1
-	// Input 0 : dim 1 = 3
+	// Input 0 : dim 1 = 224
 	// Input 0 : dim 2 = 224
 	// Input 0 : dim 3 = 224
+	// Input 0 : dim 3 = 1
 
 	//*************************************************************************
 	// Similar operations to get output node information.
