@@ -274,6 +274,7 @@ private:
 	QMap<size_t, int> m_resultListSorting;
 
 	// Settings View:
+	void addChartCB();
 	iAFIAKERSettingsWidget* m_settingsView;
 	// 3D view part
 	iAQLineEditVector m_teBoundingBox;
@@ -291,7 +292,7 @@ private:
 	std::vector<iAChartWidget*> m_optimStepChart;
 	QSlider* m_optimStepSlider;
 	QVBoxLayout* m_optimChartLayout;
-	size_t ChartCount;
+	size_t m_chartCount;
 
 	// Jobs:
 	iAJobListView * m_jobs;

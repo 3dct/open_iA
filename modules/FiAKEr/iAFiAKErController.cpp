@@ -377,6 +377,20 @@ void iAFiAKErController::setupMain3DView()
 	m_customBoundingBoxActor->SetMapper(m_customBoundingBoxMapper);
 }
 
+// not ideal - no clear separation between differences between steps and distance metrics!
+void iAFiAKErController::addChartCB()
+{
+	++m_chartCount;
+	auto cb = new QCheckBox(diffName(m_chartCount-1));
+	cb->setChecked(false);
+	cb->setEnabled(false);
+	cb->setProperty("chartID", static_cast<qulonglong>(m_chartCount - 1));
+	connect(cb, &QCheckBox::stateChanged, this, &iAFiAKErController::optimDataToggled);
+	m_settingsView->checkboxContainer->layout()->addWidget(cb);
+	m_chartCB.push_back(cb);
+	m_optimStepChart.push_back(nullptr);
+}
+
 void iAFiAKErController::setupSettingsView()
 {
 	m_settingsView = new iAFIAKERSettingsWidget();
@@ -425,19 +439,8 @@ void iAFiAKErController::setupSettingsView()
 	m_playTimer->setInterval(DefaultPlayDelay);
 
 	//iAFiberCharData::FiberValueCount               // v Projection error
-	ChartCount = m_data->m_measures.size() + 1;
-	
-	m_optimStepChart.resize( ChartCount );
-	m_chartCB.resize(ChartCount);
-	for (size_t chartID = 0; chartID < ChartCount; ++chartID)
-	{
-		m_chartCB[chartID] = new QCheckBox(diffName(chartID));
-		m_chartCB[chartID]->setChecked(chartID == ChartCount - 1);
-		m_chartCB[chartID]->setEnabled(chartID == ChartCount - 1);
-		m_chartCB[chartID]->setProperty("chartID", static_cast<qulonglong>(chartID));
-		connect(m_chartCB[chartID], &QCheckBox::stateChanged, this, &iAFiAKErController::optimDataToggled);
-		m_settingsView->checkboxContainer->layout()->addWidget(m_chartCB[chartID]);
-	}
+	m_chartCount = 0;
+	addChartCB();
 	size_t curPlotStart = 0;
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -831,9 +834,9 @@ void iAFiAKErController::loadStateAndShow()
 	// SPM needs an active OpenGL Context (it must be visible when setData is called):
 	m_spm->setMinimumWidth(200);
 	m_spm->showAllPlots(false);
-	auto np = m_data->spmData->numParams();
+	//auto np = m_data->spmData->numParams();
 	std::vector<char> v(m_data->spmData->numParams(), false);
-	v[np - 7] = v[np - 6] = v[np - 5] = v[np - 4] = v[np - 3] = v[np - 2] = true;
+	v[0] = v[1] = v[2] = true;
 	m_spm->setData(m_data->spmData, v);
 	m_spm->setSelectionMode(iAScatterPlot::Rectangle);
 	m_spm->showDefaultMaxizimedPlot();
@@ -1376,7 +1379,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 	}
 	if (!m_optimStepChart[chartID])
 	{
-		if (chartID < ChartCount-1 && m_referenceID == NoResult)
+		if (chartID < m_chartCount-1 && m_referenceID == NoResult)
 		{
 			DEBUG_LOG(QString("You need to set a reference first!"));
 			return;
@@ -1406,7 +1409,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 			{
 				QSharedPointer<iAVectorPlotData> plotData;
-				if (chartID < ChartCount - 1)
+				if (chartID < m_chartCount - 1)
 				{
 					if (chartID < static_cast<size_t>(d.refDiffFiber[fiberID].diff.size()))
 					{
@@ -1507,7 +1510,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		{
 			if (!anyOtherResultSelected(m_resultUIs, resultID))
 			{
-				for (size_t c = 0; c < ChartCount; ++c)
+				for (size_t c = 0; c < m_chartCount; ++c)
 				{
 					if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
 					{
@@ -1518,7 +1521,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 					}
 				}
 			}
-			for (size_t c = 0; c < ChartCount; ++c)
+			for (size_t c = 0; c < m_chartCount; ++c)
 			{
 				if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
 				{
@@ -1558,7 +1561,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		{
 			if (anyOtherResultSelected(m_resultUIs, resultID))
 			{
-				for (size_t c = 0; c < ChartCount; ++c)
+				for (size_t c = 0; c < m_chartCount; ++c)
 				{
 					if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
 					{
@@ -1580,7 +1583,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 			}
 			else // nothing selected, show everything
 			{
-				for (size_t c = 0; c < ChartCount; ++c)
+				for (size_t c = 0; c < m_chartCount; ++c)
 				{
 					if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
 					{
@@ -1596,7 +1599,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		m_style->removeInput(resultID);
 		m_spm->removeFilter(m_data->spmData->numParams()-1, resultID);
 	}
-	for (size_t c = 0; c < ChartCount; ++c)
+	for (size_t c = 0; c < m_chartCount; ++c)
 	{
 		if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
 		{
@@ -1698,7 +1701,7 @@ size_t iAFiAKErController::selectionSize() const
 
 void iAFiAKErController::showSelectionInPlots()
 {
-	for (size_t chartID = 0; chartID < ChartCount; ++chartID)
+	for (size_t chartID = 0; chartID < m_chartCount; ++chartID)
 	{
 		showSelectionInPlot(chartID);
 	}
@@ -1892,7 +1895,7 @@ void iAFiAKErController::optimStepSliderChanged(int optimStep)
 void iAFiAKErController::setOptimStep(int optimStep)
 {
 	m_currentOptimStepLabel->setText(QString::number(optimStep));
-	for (size_t chartID= 0; chartID < ChartCount; ++chartID)
+	for (size_t chartID= 0; chartID < m_chartCount; ++chartID)
 	{
 		auto chart = m_optimStepChart[chartID];
 		if (!chart || !chart->isVisible())
@@ -2494,7 +2497,10 @@ void iAFiAKErController::refDistAvailable()
 	m_data->spmData->updateRanges(changedSpmColumns);
 	m_referenceID = m_refDistCompute->referenceID();
 	m_spnboxReferenceCount->setMaximum(std::min(iARefDistCompute::MaxNumberOfCloseFibers, static_cast<int>(m_data->result[m_referenceID].fiberCount)));
-	m_spm->update();
+	std::vector<char> v(m_data->spmData->numParams(), false);
+	v[0] = v[1] = v[2] = true;
+	m_spm->setData(m_data->spmData, v);
+	//m_spm->update();
 	delete m_refDistCompute;
 	m_refDistCompute = nullptr;
 
@@ -2502,11 +2508,6 @@ void iAFiAKErController::refDistAvailable()
 	QColor refBGColor(m_mainWnd->palette().color(QPalette::AlternateBase));
 	setResultBackground(ui, refBGColor);
 	m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text() + RefMarker);
-
-	for (size_t chartID = 0; chartID < ChartCount - 1; ++chartID)
-	{
-		m_chartCB[chartID]->setEnabled(true);
-	}
 
 	updateRefDistPlots();
 
