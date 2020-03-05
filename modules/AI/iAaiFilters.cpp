@@ -188,7 +188,8 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 				std::vector<float> tensor_img;
 
-				itk2tensor(itk_img_normalized, tensor_img,x,y,z);
+				int offset = (sizeDNNout - sizeDNNin)/2;
+				itk2tensor(itk_img_normalized, tensor_img,x+ offset,y+ offset,z+ offset);
 
 				// create input tensor object from data values
 				auto memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
