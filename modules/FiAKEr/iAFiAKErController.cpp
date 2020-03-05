@@ -1042,6 +1042,7 @@ bool readParameterCSV(QString const& fileName, QString const & encoding, QString
 			continue;
 		}
 	}
+	return true;
 }
 
 void iAFiAKErController::sensitivitySlot()
@@ -1059,7 +1060,6 @@ void iAFiAKErController::sensitivitySlot()
 	assert(tblCreator.table().size() == m_data->result.size());
 	m_parameterFile = fileName;
 	// compute pairwise dissimilarities between results:
-	return true;
 }
 
 void iAFiAKErController::stackedBarColorThemeChanged(QString const & colorThemeName)
