@@ -89,7 +89,7 @@ dlg_dataView4DCT::~dlg_dataView4DCT()
 
 void dlg_dataView4DCT::update()
 {
-	for(int i = 0; i < m_volumeStack->numberOfVolumes(); i++)
+	for(size_t i = 0; i < m_volumeStack->numberOfVolumes(); i++)
 	{
 		m_renderers[i]->reInitialize(m_volumeStack->volume(i), m_mdiChild->polyData());
 		m_renderers[i]->update();
