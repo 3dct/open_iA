@@ -38,7 +38,6 @@ class dlg_SimilarityMap : public dlg_SimilarityMapContainer
 	Q_OBJECT
 public:
 	dlg_SimilarityMap( QWidget *parentWidget = 0 );
-	~dlg_SimilarityMap();
 	void connectToXRF( dlg_XRF* dlgXRF );
 protected:
 	void connectSignalsToSlots();
@@ -50,5 +49,4 @@ protected:
 	dlg_XRF* m_dlgXRF;
 	QScopedPointer<iASimilarityMapWidget> m_similarityMapWidget;
 	QGridLayout * m_similarityWidgetGridLayout;
-private:
 };

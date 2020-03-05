@@ -34,15 +34,14 @@ class iASimilarityMapWidget : public QWidget
 	Q_OBJECT
 public:
 	iASimilarityMapWidget( QWidget *parent = 0 );
-	~iASimilarityMapWidget( );
 	void setImageData( vtkImageData * image );
 	void setWindowing( double lowerVal, double upperVal );
 	void load( QString const & filename );
 	typedef double ImageScalarType;
 protected:
 	void paintEvent(QPaintEvent * );
-	virtual void mouseMoveEvent( QMouseEvent *event );
-	virtual void mouseReleaseEvent( QMouseEvent * event );
+	void mouseMoveEvent( QMouseEvent *event ) override;
+	void mouseReleaseEvent( QMouseEvent * event ) override;
 	void drawMap();
 	void drawPeak();
 	void drawAverageSimilarityPlot();

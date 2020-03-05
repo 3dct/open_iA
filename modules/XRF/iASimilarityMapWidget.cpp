@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iASimilarityMapWidget.h"
 
+//#include <iAMathUtility.h>
 #include <io/iAFileUtils.h>
 
 #include <vtkImageData.h>
@@ -40,10 +41,16 @@ iASimilarityMapWidget::ImageScalarType getValue( int x, int y, iASimilarityMapWi
 iASimilarityMapWidget::ImageScalarType getNeighborhoodAvrg( int x, int y, iASimilarityMapWidget::ImageScalarType * ptr, int * dims )
 {
 	iASimilarityMapWidget::ImageScalarType val = getValue( x, y, ptr, dims );
-	for( int i = -1; i <= 1; ++i )
-		for( int j = -1; j <= 1; ++j )
-			if( i && j )
-				val += getValue( x + i, y + j, ptr, dims );
+	for (int i = -1; i <= 1; ++i)
+	{
+		for (int j = -1; j <= 1; ++j)
+		{
+			if (i && j)
+			{
+				val += getValue(x + i, y + j, ptr, dims);
+			}
+		}
+	}
 	return val;
 }
 
@@ -55,8 +62,10 @@ int steepestGradientPos( int x, int y, int dx, int dy, iASimilarityMapWidget::Im
 	int iterCount = 0;
 	do
 	{
-		if( iterCount > 100 )
+		if (iterCount > 100)
+		{
 			break;
+		}
 
 		gradient = nextGradient;
 		curPos[0] = nextPos[0]; curPos[1] = nextPos[1];
@@ -67,8 +76,10 @@ int steepestGradientPos( int x, int y, int dx, int dy, iASimilarityMapWidget::Im
 		nextGradient = getNeighborhoodAvrg( nextPos[0], nextPos[1], ptr, dims )
 						- getNeighborhoodAvrg( curPos[0], curPos[1], ptr, dims );
 	} while( nextGradient <= 0 );
-	if( dx != 0 )
+	if (dx != 0)
+	{
 		return  curPos[0];
+	}
 	return curPos[1];
 }
 
@@ -76,9 +87,13 @@ iASimilarityMapWidget::iASimilarityMapWidget( QWidget *parent /*= 0 */ )
 : QWidget( parent ), m_numBins( 0 ), m_mapWidth( 0 )
 {
 	m_peakPos[0] = m_peakPos[1] = 0;
-	for( int i = 0; i < 2; ++i )
-		for( int j = 0; j < 2; ++j )
+	for (int i = 0; i < 2; ++i)
+	{
+		for (int j = 0; j < 2; ++j)
+		{
 			m_peakRange[i][j] = 0.0;
+		}
+	}
 
 	m_WindowRange[0] = m_WindowRange[1] = 0;
 	setMouseTracking( true );
@@ -90,11 +105,6 @@ void iASimilarityMapWidget::load( QString const & filename )
 	reader->SetFileName( getLocalEncodingFileName(filename).c_str() );
 	reader->Update();
 	setImageData( reader->GetOutput() );
-}
-
-iASimilarityMapWidget::~iASimilarityMapWidget()
-{
-
 }
 
 void iASimilarityMapWidget::setImageData( vtkImageData * image )
@@ -123,13 +133,24 @@ void iASimilarityMapWidget::updateQtImage()
 		{
 			int inv_y = dims[1] - y - 1;
 			ImageScalarType val = getValue(x, y, scalPtr, dims);
+			// double mapping ?
+			/* begin */
 			applyWindow( val, windowRange );
-			if( val <= windowRange[0] )
+			if (val <= windowRange[0])
+			{
 				val = 0.0;
-			else if( val >= windowRange[1] )
+			}
+			else if (val >= windowRange[1])
+			{
 				val = 1.0;
+			}
 			else
+			{
 				val = (val - windowRange[0]) / (windowRange[1] - windowRange[0]);
+			}
+			/* end */
+			// should be equivalent to:
+			// val = mapToNorm(windowRange[0], windowRange[1], val);
 
 			QColor color( 255.0*val, 255.0*val, 255.0*val );
 			m_qtImage->setPixel( x, inv_y, color.rgba() );
@@ -139,12 +160,18 @@ void iASimilarityMapWidget::updateQtImage()
 
 void iASimilarityMapWidget::applyWindow( ImageScalarType &val_out, const double( &windowRange )[2] )
 {
-	if( val_out <= windowRange[0] )
+	if (val_out <= windowRange[0])
+	{
 		val_out = 0.0;
-	else if( val_out >= windowRange[1] )
+	}
+	else if (val_out >= windowRange[1])
+	{
 		val_out = 1.0;
+	}
 	else
+	{
 		val_out = (val_out - windowRange[0]) / (windowRange[1] - windowRange[0]);
+	}
 }
 
 void iASimilarityMapWidget::paintEvent( QPaintEvent * )
@@ -245,25 +272,32 @@ void iASimilarityMapWidget::findPeak( int x, int y )
 	int iterCount = 0;
 	do
 	{
-		if( iterCount >= 100 )
+		if (iterCount >= 100)
+		{
 			return;
+		}
 		curVal = betterVal;
 		pos[0] = nextPos[0]; pos[1] = nextPos[1];
-		for( int i = -1; i <= 1; ++i )
-			for( int j = -1; j <= 1; ++j )
+		for (int i = -1; i <= 1; ++i)
+		{
+			for (int j = -1; j <= 1; ++j)
 			{
-				if( !i && !j )
+				if (!i && !j)
+				{
 					continue;
-				ImageScalarType val = getNeighborhoodAvrg( pos[0] + i, pos[1] + j, scalPtr, dims );
+				}
+				ImageScalarType val = getNeighborhoodAvrg(pos[0] + i, pos[1] + j, scalPtr, dims);
 				//ImageScalarType val = getValue( pos[0] + i, pos[1] + j, scalPtr, dims );
-				if( val > betterVal )
+				if (val > betterVal)
 				{
 					betterVal = val;
 					nextPos[0] = pos[0] + i;
 					nextPos[1] = pos[1] + j;
 				}
 			}
-	} while( curVal < betterVal );
+		}
+	}
+	while( curVal < betterVal );
 	m_peakPos[0] = pos[0]; m_peakPos[1] = pos[1];
 }
 
@@ -285,11 +319,13 @@ void iASimilarityMapWidget::findPeakRanges()
 void iASimilarityMapWidget::binsFromPos( const int( &pos )[2], int( &bins_out )[2] )
 {
 	double pos_inv_y[2] = {
-			static_cast<double>(pos[0]),
-			static_cast<double>(geometry().height() - pos[1])
+		static_cast<double>(pos[0]),
+		static_cast<double>(geometry().height() - pos[1])
 	};
-	if( pos_inv_y[0] > m_mapWidth || pos_inv_y[1] > m_mapWidth )
+	if (pos_inv_y[0] > m_mapWidth || pos_inv_y[1] > m_mapWidth)
+	{
 		return;
+	}
 	bins_out[0] = m_numBins == 0 ? 0 : pos_inv_y[0] / m_mapWidth * m_numBins - 1;
 	bins_out[1] = m_numBins == 0 ? 0 : pos_inv_y[1] / m_mapWidth * m_numBins - 1;
 }
@@ -312,10 +348,11 @@ void iASimilarityMapWidget::updateAverageSimilarity()
 	for( int y = 0; y < dims[1]; ++y )
 	{
 		ImageScalarType val = 0;
-		for( int x = 0; x < dims[0]; ++x )
-			val += getValue( x, y, scalPtr, dims );
+		for (int x = 0; x < dims[0]; ++x)
+		{
+			val += getValue(x, y, scalPtr, dims);
+		}
 		val /= dims[0];
 		m_avrgSimilarityVec.push_back( val );
 	}
 }
-
