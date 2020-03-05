@@ -304,8 +304,10 @@ void iASelectionInteractorStyle::OnLeftButtonDown()
 				return;
 			}
 			size_t objectID = (picker->GetCellId()) / 14;
-			for (int i = 0; i < m_selectionProvider->selection().size(); ++i)
+			for (size_t i = 0; i < m_selectionProvider->selection().size(); ++i)
+			{
 				m_selectionProvider->selection()[i].clear();
+			}
 			m_selectionProvider->selection()[pickedResultID].push_back(objectID);
 			emit selectionChanged();
 		}
