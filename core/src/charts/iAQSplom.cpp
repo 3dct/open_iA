@@ -486,13 +486,6 @@ void iAQSplom::dataChanged(std::vector<char> visibleParams)
 	m_columnPickMenu->clear();
 	size_t numParams = m_splomData->numParams();
 
-	// cleanup old histograms (if any)
-	for (auto histo : m_histograms)
-	{
-		delete histo;
-	}
-	m_histograms.clear();
-
 	QSignalBlocker blockListSignals(m_settingsDlg->parametersList);
 	QSignalBlocker colorSignals(m_settingsDlg->cbColorParameter);
 	m_settingsDlg->parametersList->clear();
@@ -738,6 +731,10 @@ void iAQSplom::clear()
 		row.clear();
 	}
 	m_matrix.clear();
+	for (auto histo : m_histograms)
+	{
+		delete histo;
+	}
 	m_histograms.clear();
 	m_paramVisibility.clear();
 }
