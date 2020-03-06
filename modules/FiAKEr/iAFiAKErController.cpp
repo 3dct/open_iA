@@ -1051,6 +1051,7 @@ bool readParameterCSV(QString const& fileName, QString const & encoding, QString
 	return true;
 }
 
+// source: https://stackoverflow.com/questions/1577475/c-sorting-and-keeping-track-of-indexes
 template <typename T>
 std::vector<size_t> sort_indexes(const std::vector<T>& v) {
 
@@ -1157,7 +1158,7 @@ private:
 		QPoint topLeft(geometry().width() - (2* scalarBarPadding + scalarBarWidth), scalarBarPadding);
 
 		QRect colorBarRect(topLeft.x(), topLeft.y(),
-			scalarBarWidth, height() - topLeft.y() - scalarBarPadding);
+			scalarBarWidth, height() - topLeft.y() - 2*scalarBarPadding);
 		QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y() + colorBarRect.height());
 		QMap<double, QColor>::iterator it;
 		for (size_t i = 0; i < m_lut.numberOfValues(); ++i)
