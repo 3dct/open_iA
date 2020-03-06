@@ -27,7 +27,7 @@ iACsvVectorTableCreator::iACsvVectorTableCreator()
 void iACsvVectorTableCreator::initialize(QStringList const & headers, size_t const rowCount)
 {
 	m_header = headers;
-	for (int col = 1; col < headers.size() - 1; ++col)
+	for (int col = 0; col < headers.size(); ++col)
 	{
 		m_values.push_back(std::vector<double>(rowCount, 0));
 	}
