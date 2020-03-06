@@ -1019,6 +1019,7 @@ void iAFiAKErController::resultColorThemeChanged(QString const & colorThemeName)
 	// main3DVis automatically updated through SPM
 }
 
+// Factor out as generic CSV reading class also used by iACsvIO?
 bool readParameterCSV(QString const& fileName, QString const & encoding, QString const & columnSeparator, iACsvTableCreator& tblCreator, size_t resultCount)
 {
 	if (!QFile::exists(fileName))
@@ -1053,8 +1054,8 @@ bool readParameterCSV(QString const& fileName, QString const & encoding, QString
 
 // source: https://stackoverflow.com/questions/1577475/c-sorting-and-keeping-track-of-indexes
 template <typename T>
-std::vector<size_t> sort_indexes(const std::vector<T>& v) {
-
+std::vector<size_t> sort_indexes(const std::vector<T>& v)
+{
 	// initialize original index locations
 	std::vector<size_t> idx(v.size());
 	iota(idx.begin(), idx.end(), 0);
@@ -1069,6 +1070,7 @@ std::vector<size_t> sort_indexes(const std::vector<T>& v) {
 	return idx;
 }
 
+// TODO: Refactor to use more generic data source
 class iAMatrixWidget: public QWidget
 {
 public:
@@ -1133,7 +1135,7 @@ private:
 		QFontMetrics fm = p.fontMetrics();
 
 		int scalarBarWidth = 20;
-		int scalarBarPadding = 10;
+		int scalarBarPadding = 4;
 
 		QString minStr = dblToStringWithUnits(m_range[0]);
 		QString maxStr = dblToStringWithUnits(m_range[1]);
@@ -1146,7 +1148,7 @@ private:
 
 		int cellPixel = std::max(1,
 			std::min(geometry().height() / static_cast<int>(m_data.size()),
-				(geometry().width() - (2 * scalarBarPadding + scalarBarWidth + textWidth)) / static_cast<int>(m_data.size())));
+				(geometry().width() - (3 * scalarBarPadding + scalarBarWidth + textWidth)) / static_cast<int>(m_data.size())));
 		for (int x = 0; x < m_data.size(); ++x)
 		{
 			for (int y = 0; y < m_data[x].size(); ++y)
@@ -1159,10 +1161,10 @@ private:
 		}
 
 		// Draw scalar bar (duplicated from iAQSplom!)
-		QPoint topLeft(geometry().width() - (2* scalarBarPadding + scalarBarWidth), scalarBarPadding);
+		QPoint topLeft(geometry().width() - (scalarBarPadding + scalarBarWidth), scalarBarPadding);
 
 		QRect colorBarRect(topLeft.x(), topLeft.y(),
-			scalarBarWidth, height() - topLeft.y() - 2*scalarBarPadding);
+			scalarBarWidth, height() - 2*scalarBarPadding);
 		QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y() + colorBarRect.height());
 		QMap<double, QColor>::iterator it;
 		for (size_t i = 0; i < m_lut.numberOfValues(); ++i)
@@ -1178,7 +1180,7 @@ private:
 		// Draw color bar / name of parameter used for coloring
 		int colorBarTextX = topLeft.x() - (textWidth + scalarBarPadding);
 		p.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
-		p.drawText(colorBarTextX, height() - scalarBarPadding, minStr);
+		p.drawText(colorBarTextX, height() - (fm.height() + scalarBarPadding), minStr);
 	}
 	std::vector<std::vector<iAResultPairInfo>> m_data;
 	std::vector<std::vector<double>> m_paramValues;
