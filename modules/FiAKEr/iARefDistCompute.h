@@ -22,6 +22,9 @@
 
 #include "iAProgress.h"
 
+#include "iAFiberData.h"
+#include "iAFiberCharData.h"
+
 #include <QSharedPointer>
 #include <QThread>
 

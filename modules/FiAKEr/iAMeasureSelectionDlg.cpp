@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAMeasureSelectionDlg.h"
 
+#include "iAFiberData.h"
+
 #include <QMessageBox>
 #include <QStandardItemModel>
 
