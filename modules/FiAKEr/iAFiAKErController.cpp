@@ -1123,10 +1123,25 @@ private:
 		{
 			return;
 		}
+
 		QPainter p(this);
+		QFontMetrics fm = p.fontMetrics();
+
+		int scalarBarWidth = 20;
+		int scalarBarPadding = 10;
+
+		QString minStr = dblToStringWithUnits(m_range[0]);
+		QString maxStr = dblToStringWithUnits(m_range[1]);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+		int textWidth = std::max(fm.horizontalAdvance(minStr), fm.horizontalAdvance(maxStr));
+#else
+		int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
+#endif
+
+
 		int cellPixel = std::max(1,
 			std::min(geometry().height() / static_cast<int>(m_data.size()),
-			geometry().width() / static_cast<int>(m_data.size())));
+				(geometry().width() - (2 * scalarBarPadding + scalarBarWidth + textWidth)) / static_cast<int>(m_data.size())));
 		for (int x = 0; x < m_data.size(); ++x)
 		{
 			for (int y = 0; y < m_data[x].size(); ++y)
@@ -1137,6 +1152,28 @@ private:
 				p.fillRect(rect, color);
 			}
 		}
+
+		// Draw scalar bar (duplicated from iAQSplom!)
+		QPoint topLeft(geometry().width() - (2* scalarBarPadding + scalarBarWidth), scalarBarPadding);
+
+		QRect colorBarRect(topLeft.x(), topLeft.y(),
+			scalarBarWidth, height() - topLeft.y() - scalarBarPadding);
+		QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y() + colorBarRect.height());
+		QMap<double, QColor>::iterator it;
+		for (size_t i = 0; i < m_lut.numberOfValues(); ++i)
+		{
+			double rgba[4];
+			m_lut.getTableValue(i, rgba);
+			QColor color(rgba[0] * 255, rgba[1] * 255, rgba[2] * 255, rgba[3] * 255);
+			double key = 1 - (static_cast<double>(i) / (m_lut.numberOfValues() - 1));
+			grad.setColorAt(key, color);
+		}
+		p.fillRect(colorBarRect, grad);
+		p.drawRect(colorBarRect);
+		// Draw color bar / name of parameter used for coloring
+		int colorBarTextX = topLeft.x() - (textWidth + scalarBarPadding);
+		p.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
+		p.drawText(colorBarTextX, height() - scalarBarPadding, minStr);
 	}
 	std::vector<std::vector<iAResultPairInfo>> m_data;
 	std::vector<std::vector<double>> m_paramValues;
