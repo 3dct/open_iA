@@ -135,6 +135,17 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::createParam(
 	return result;
 }
 
+QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::clone() const
+{
+	auto result = QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(m_name, m_attribType, m_valueType));
+	result->m_min = m_min;
+	result->m_max = m_max;
+	result->m_defaultValue = m_defaultValue;
+	result->m_logarithmic = m_logarithmic;
+	result->m_nameMapper = m_nameMapper;
+	return result;
+}
+
 QString iAAttributeDescriptor::toString() const
 {
 	QString result = name() + AttributeSplitString +

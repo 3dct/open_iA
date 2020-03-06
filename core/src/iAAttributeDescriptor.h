@@ -50,6 +50,7 @@ public:
 		double max = std::numeric_limits<double>::max());
 	iAAttributeDescriptor(QString const & name, iAAttributeType attribType, iAValueType valueType);
 	virtual ~iAAttributeDescriptor();
+	QSharedPointer<iAAttributeDescriptor> clone() const;
 	iAAttributeType attribType() const;
 	iAValueType valueType() const;
 	QVariant defaultValue() const;
