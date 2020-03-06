@@ -1033,7 +1033,7 @@ bool readParameterCSV(QString const& fileName, QString const & encoding, QString
 	in.setCodec(encoding.toStdString().c_str());
 	auto headers = in.readLine().split(columnSeparator);
 	tblCreator.initialize(headers, resultCount);
-
+	size_t row = 0;
 	while (!in.atEnd())
 	{
 		QString line = in.readLine();
@@ -1041,6 +1041,9 @@ bool readParameterCSV(QString const& fileName, QString const & encoding, QString
 		{
 			continue;
 		}
+		auto values = line.split(columnSeparator);
+		tblCreator.addRow(row, values);
+		++row;
 	}
 	return true;
 }
