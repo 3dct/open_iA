@@ -22,6 +22,7 @@
 
 // FiAKEr:
 #include "iAChangeableCameraWidget.h"
+#include "iAFiberCharData.h"            // for iAFiberSimilarity -> REFACTOR!!!
 #include "iASavableProject.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 #include "ui_FiAKErSettings.h"
@@ -45,6 +46,7 @@
 class iAFiberResultsCollection;
 class iAFiberCharUIData;
 class iAJobListView;
+class iAMatrixWidget;
 class iAStackedBarChart;
 
 class iA3DColoredPolyObjectVis;
@@ -89,6 +91,20 @@ class QVBoxLayout;
 // To be able to put non-QObject derived class in settingsWidgetMap
 class iAQCheckBoxVector: public QObject, public QVector<QCheckBox*> { };
 class iAQLineEditVector: public QObject, public QVector<QLineEdit*> { };
+
+
+class iAResultPairInfo
+{
+public:
+	iAResultPairInfo(int measureCount) :
+		avgDissim(measureCount)
+	{}
+	// average dissimilarity, per dissimilarity measure
+	QVector<double> avgDissim;
+
+	// for every fiber, and every dissimilarity measure, the n best matching fibers (in descending match quality)
+	QVector<QVector<QVector<iAFiberSimilarity>>> fiberDissim;
+};
 
 class iAFiAKErController: public QObject, public iASelectionProvider
 {
@@ -173,7 +189,11 @@ private slots:
 	// settings view:
 	void update3D();
 	void applyRenderSettings();
+	// sensitivity:
 	void sensitivitySlot();
+	void dissimMatrixMeasureChanged(int);
+	void dissimMatrixParameterChanged(int);
+	void dissimMatrixColorMapChanged(int);
 private:
 	bool loadReferenceInternal(iASettings settings);
 	void changeDistributionSource(int index);
@@ -307,4 +327,8 @@ private:
 	QStandardItemModel* m_selectionListModel;
 	QStandardItemModel* m_selectionDetailModel;
 	std::vector<SelectionType> m_selections;
+
+	// Sensitivity
+	std::vector<std::vector<iAResultPairInfo>> m_dissimilarityMatrix;
+	iAMatrixWidget* m_matrixWidget;
 };

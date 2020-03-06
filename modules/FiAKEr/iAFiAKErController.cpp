@@ -23,8 +23,10 @@
 #include "iAFiberCharData.h"
 #include "iAFiberData.h"     // for samplePoints
 #include "iAJobListView.h"
+#include "iAMeasureSelectionDlg.h"
 #include "iARefDistCompute.h"
 #include "iAStackedBarChart.h"
+#include "ui_DissimilarityMatrix.h"
 
 // FeatureScout:
 #include "iA3DCylinderObjectVis.h"
@@ -62,6 +64,7 @@
 #include <mdichild.h>
 #include <qthelper/iADockWidgetWrapper.h>
 #include <qthelper/iAFixedAspectWidget.h>
+#include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iASignallingWidget.h>
 #include <qthelper/iAVtkQtWidget.h>
 
@@ -1048,6 +1051,105 @@ bool readParameterCSV(QString const& fileName, QString const & encoding, QString
 	return true;
 }
 
+template <typename T>
+std::vector<size_t> sort_indexes(const std::vector<T>& v) {
+
+	// initialize original index locations
+	std::vector<size_t> idx(v.size());
+	iota(idx.begin(), idx.end(), 0);
+
+	// sort indexes based on comparing values in v
+	// using std::stable_sort instead of std::sort
+	// to avoid unnecessary index re-orderings
+	// when v contains elements of equal values 
+	std::stable_sort(idx.begin(), idx.end(),
+		[&v](size_t i1, size_t i2) {return v[i1] < v[i2]; });
+
+	return idx;
+}
+
+class iAMatrixWidget: public QWidget
+{
+public:
+	iAMatrixWidget(std::vector<std::vector<iAResultPairInfo>>& data) :
+		m_data(data),
+		m_sortParam(0),
+		m_dataIdx(0),
+		m_lut(nullptr)
+	{
+		m_range[0] = m_range[1] = 0;
+	}
+	void setData(int idx)
+	{
+		m_dataIdx = idx;
+		m_range[0] = std::numeric_limits<double>::max();
+		m_range[1] = std::numeric_limits<double>::lowest();
+		for (int i = 0; i < m_data.size(); ++i)
+		{
+			for (int j = 0; j < m_data[i].size(); ++j)
+			{
+				double value = m_data[i][j].avgDissim[m_dataIdx];
+				if (value < m_range[0])
+				{
+					m_range[0] = value;
+				}
+				if (value > m_range[1])
+				{
+					m_range[1] = value;
+				}
+			}
+		}
+	}
+	void setLookupTable(iALookupTable lut)
+	{
+		m_lut = lut;
+	}
+	void setParameterValues(std::vector<std::vector<double>> paramValues)
+	{
+		m_paramValues = paramValues;
+	}
+	void setSortParameter(int paramIdx)
+	{
+		m_sortParam = paramIdx;
+		m_sortOrder = sort_indexes(m_paramValues[paramIdx]);
+	}
+	double const* range()
+	{
+		return m_range;
+	}
+private:
+	void paintEvent(QPaintEvent* /*event*/) override
+	{
+		if (!m_lut.initialized())
+		{
+			return;
+		}
+		QPainter p(this);
+		int cellPixel = std::max(1,
+			std::min(geometry().height() / static_cast<int>(m_data.size()),
+			geometry().width() / static_cast<int>(m_data.size())));
+		for (int x = 0; x < m_data.size(); ++x)
+		{
+			for (int y = 0; y < m_data[x].size(); ++y)
+			{
+				QRect rect(x * cellPixel, y * cellPixel, cellPixel, cellPixel);
+				double value = m_data[m_sortOrder[x]][m_sortOrder[y]].avgDissim[m_dataIdx];
+				QColor color = m_lut.getQColor(value);
+				p.fillRect(rect, color);
+			}
+		}
+	}
+	std::vector<std::vector<iAResultPairInfo>> m_data;
+	std::vector<std::vector<double>> m_paramValues;
+	int m_sortParam;
+	int m_dataIdx;
+	iALookupTable m_lut;
+	double m_range[2];
+	std::vector<size_t> m_sortOrder;
+};
+
+using iADissimilarityMatrixDockContent = iAQTtoUIConnector<QWidget, Ui_DissimilarityMatrix>;
+
 void iAFiAKErController::sensitivitySlot()
 {
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd, iAFiAKErController::FIAKERProjectID, m_data->folder, "Comma-Separated Values (*.csv);;");
@@ -1060,9 +1162,106 @@ void iAFiAKErController::sensitivitySlot()
 	{
 		return;
 	}
-	assert(tblCreator.table().size() == m_data->result.size());
+	assert(tblCreator.table().size() > 0 && tblCreator.table()[0].size() == m_data->result.size());
 	m_parameterFile = fileName;
 	// compute pairwise dissimilarities between results:
+
+	iAMeasureSelectionDlg selectMeasure;
+	if (selectMeasure.exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	auto measures = selectMeasure.measures();
+	auto optimizationMeasureIdx = selectMeasure.optimizeMeasureIdx();
+
+	m_dissimilarityMatrix = std::vector<std::vector<iAResultPairInfo>>(m_data->result.size(),
+		std::vector<iAResultPairInfo>(m_data->result.size(),
+			iAResultPairInfo(measures.size())));
+	
+	for (size_t resultID1 = 0; resultID1 < m_data->result.size(); ++resultID1)
+	{
+		auto& res1 = m_data->result[resultID1];
+		auto const& mapping = *res1.mapping.data();
+		double const* cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
+			* cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
+			* czr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterZ]);
+		double a = cxr[1] - cxr[0], b = cyr[1] - cyr[0], c = czr[1] - czr[0];
+		double diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
+		double const* lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
+		double maxLength = lengthRange[1] - lengthRange[0];
+		for (size_t resultID2 = 0; resultID2 < m_data->result.size(); ++resultID2)
+		{
+			for (int m = 0; m < measures.size(); ++m)
+			{
+				m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] = 0;
+			}
+			if (resultID1 == resultID2)
+			{
+				continue;
+			}
+			auto& res2 = m_data->result[resultID2];
+			qint64 const fiberCount = res2.table->GetNumberOfRows();
+			auto& dissimilarities = m_dissimilarityMatrix[resultID1][resultID2].fiberDissim;
+			dissimilarities.resize(fiberCount);
+#pragma omp parallel for
+			for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
+			{
+				auto it = res2.curveInfo.find(fiberID);
+				// find the best-matching fibers in reference & compute difference:
+				iAFiberData fiber(res2.table, fiberID, mapping, (it != res2.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
+				getBestMatches(fiber, mapping, res1.table, dissimilarities[fiberID], res1.curveInfo,
+					diagonalLength, maxLength, measures, optimizationMeasureIdx);
+				for (int m = 0; m < measures.size(); ++m)
+				{
+					m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
+				}
+			}
+			for (int m = 0; m < measures.size(); ++m)
+			{
+				m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] /= res2.fiberCount;
+			}
+		}
+	}
+	iADissimilarityMatrixDockContent* dissimDockContent = new iADissimilarityMatrixDockContent();
+
+	auto measureNames = getAvailableDissimilarityMeasureNames();
+	QStringList computedMeasureNames;
+	for (int m = 0; m < measures.size(); ++m)
+	{
+		computedMeasureNames << measureNames[measures[m].first];
+	}
+	dissimDockContent->cbMeasure->addItems(computedMeasureNames);
+
+	dissimDockContent->cbParameter->addItems(tblCreator.header());
+
+	dissimDockContent->cbColorMap->addItems(iALUT::GetColorMapNames());
+
+	connect(dissimDockContent->cbMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(dissimMatrixMeasureChanged(int)));
+	connect(dissimDockContent->cbParameter, SIGNAL(currentIndexChanged(int)), this, SLOT(dissimMatrixParameterChanged(int)));
+	connect(dissimDockContent->cbColorMap, SIGNAL(currentIndexChanged(int)), this, SLOT(dissimMatrixColorMapChanged(int)));
+	m_matrixWidget = new iAMatrixWidget(m_dissimilarityMatrix);
+	m_matrixWidget->setParameterValues(tblCreator.table());
+	m_matrixWidget->setSortParameter(0);
+	dissimMatrixMeasureChanged(0);
+	m_matrixWidget->setLookupTable(iALUT::Build(m_matrixWidget->range(), iALUT::GetColorMapNames()[0], 255, 255));
+	dissimDockContent->matrix->layout()->addWidget(m_matrixWidget);
+	m_views.push_back(new iADockWidgetWrapper(dissimDockContent, "Dissimilarity Matrix", "foeMatrix"));
+	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[m_views.size()-1], Qt::Vertical);
+}
+
+void iAFiAKErController::dissimMatrixMeasureChanged(int idx)
+{
+	m_matrixWidget->setData(idx);
+}
+
+void iAFiAKErController::dissimMatrixParameterChanged(int idx)
+{
+	m_matrixWidget->setSortParameter(idx);
+}
+
+void iAFiAKErController::dissimMatrixColorMapChanged(int idx)
+{
+	m_matrixWidget->setLookupTable(iALUT::Build(m_matrixWidget->range(), iALUT::GetColorMapNames()[idx], 255, 255));
 }
 
 void iAFiAKErController::stackedBarColorThemeChanged(QString const & colorThemeName)
