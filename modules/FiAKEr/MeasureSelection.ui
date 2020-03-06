@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>dlgMeasures</class>
- <widget class="QDialog" name="dlgMeasures">
+ <class>dlgMeasureSelection</class>
+ <widget class="QDialog" name="dlgMeasureSelection">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>231</width>
-    <height>165</height>
+    <width>256</width>
+    <height>148</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -42,6 +42,9 @@
      </property>
     </widget>
    </item>
+   <item row="0" column="0" colspan="2">
+    <widget class="QTableView" name="lvMeasures"/>
+   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="lbContext">
      <property name="text">
@@ -49,42 +52,23 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="0" colspan="2">
-    <widget class="QListView" name="lvMeasures"/>
-   </item>
   </layout>
  </widget>
  <resources/>
  <connections>
   <connection>
    <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>dlgMeasures</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>dlgMeasures</receiver>
+   <receiver>dlgMeasureSelection</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>127</x>
+     <y>132</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
+     <x>127</x>
+     <y>73</y>
     </hint>
    </hints>
   </connection>
