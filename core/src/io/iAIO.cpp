@@ -345,7 +345,7 @@ void iAIO::readHDF5File()
 		.arg(rank);
 	for (int i = 0; i < rank; ++i)
 	{
-		caption += QString("%1%2").arg(hdf5Dims[i]).arg((hdf5Dims[i] != maxdims[i]) ? QString("%1").arg(maxdims[i]) : QString());
+		caption += QString::number(hdf5Dims[i]);
 		if (i < rank - 1) caption += " x ";
 	}
 	DEBUG_LOG(caption);
