@@ -50,6 +50,13 @@ void iASPLOMData::setParameterNames(std::vector<QString> const & names, size_t r
 	}
 }
 
+void iASPLOMData::addParameter(QString& name)
+{
+	m_paramNames.push_back(name);
+	m_ranges.push_back(std::vector<double>(2, 0));
+	m_dataPoints.push_back(std::vector<double>(numPoints()));
+}
+
 std::vector<std::vector<double>> & iASPLOMData::data()
 {
 	return m_dataPoints;
