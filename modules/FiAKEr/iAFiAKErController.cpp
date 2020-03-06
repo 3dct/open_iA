@@ -1074,8 +1074,7 @@ public:
 	iAMatrixWidget(std::vector<std::vector<iAResultPairInfo>>& data) :
 		m_data(data),
 		m_sortParam(0),
-		m_dataIdx(0),
-		m_lut(nullptr)
+		m_dataIdx(0)
 	{
 		m_range[0] = m_range[1] = 0;
 	}
@@ -1242,26 +1241,30 @@ void iAFiAKErController::sensitivitySlot()
 	m_matrixWidget = new iAMatrixWidget(m_dissimilarityMatrix);
 	m_matrixWidget->setParameterValues(tblCreator.table());
 	m_matrixWidget->setSortParameter(0);
-	dissimMatrixMeasureChanged(0);
+	m_matrixWidget->setData(0);
 	m_matrixWidget->setLookupTable(iALUT::Build(m_matrixWidget->range(), iALUT::GetColorMapNames()[0], 255, 255));
 	dissimDockContent->matrix->layout()->addWidget(m_matrixWidget);
 	m_views.push_back(new iADockWidgetWrapper(dissimDockContent, "Dissimilarity Matrix", "foeMatrix"));
 	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[m_views.size()-1], Qt::Vertical);
+	dissimMatrixMeasureChanged(0);
 }
 
 void iAFiAKErController::dissimMatrixMeasureChanged(int idx)
 {
 	m_matrixWidget->setData(idx);
+	m_matrixWidget->update();
 }
 
 void iAFiAKErController::dissimMatrixParameterChanged(int idx)
 {
 	m_matrixWidget->setSortParameter(idx);
+	m_matrixWidget->update();
 }
 
 void iAFiAKErController::dissimMatrixColorMapChanged(int idx)
 {
 	m_matrixWidget->setLookupTable(iALUT::Build(m_matrixWidget->range(), iALUT::GetColorMapNames()[idx], 255, 255));
+	m_matrixWidget->update();
 }
 
 void iAFiAKErController::stackedBarColorThemeChanged(QString const & colorThemeName)
