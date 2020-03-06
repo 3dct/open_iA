@@ -28,7 +28,6 @@
 #include <vector>
 
 class iAFiberResultsCollection;
-class iAFiberAndRefData;
 
 class vtkTable;
 
@@ -58,7 +57,6 @@ private:
 	void writeResultRefComparison(QFile& cacheFile, size_t resultID);
 	bool readAverageMeasures(QFile& cacheFile);
 	void writeAverageMeasures(QFile& cacheFile);
-	void getBestMatches(iAFiberAndRefData& fiberRef);
 
 	iAProgress m_progress;
 	QSharedPointer<iAFiberResultsCollection> m_data;
@@ -72,3 +70,11 @@ private:
 	double m_diagonalLength, m_maxLength;
 	//! @}
 };
+
+void getBestMatches(iAFiberData const& fiber,
+	QMap<uint, uint> const& mapping,
+	vtkTable* refTable,
+	QVector<QVector<iAFiberSimilarity> >& bestMatches,
+	std::map<size_t, std::vector<iAVec3f> > const& refCurveInfo,
+	double diagonalLength, double maxLength,
+	std::vector<std::pair<int, bool>>& measuresToCompute, int optimizationMeasureIdx);

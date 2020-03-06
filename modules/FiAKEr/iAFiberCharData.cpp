@@ -142,15 +142,25 @@ iACsvConfig getCsvConfig(QString const & formatName)
 	if (!result.load(settings, formatName))
 	{
 		if (formatName == iACsvConfig::LegacyFiberFormat)
+		{
 			result = iACsvConfig::getLegacyFiberFormat("");
+		}
 		else if (formatName == iACsvConfig::LegacyVoidFormat)
+		{
 			result = iACsvConfig::getLegacyPoreFormat("");
+		}
 		else if (formatName == iAFiberResultsCollection::LegacyFormat)
+		{
 			result = getLegacyConfig();
+		}
 		else if (formatName == iAFiberResultsCollection::SimpleFormat)
+		{
 			result = getSimpleConfig();
+		}
 		else
+		{
 			DEBUG_LOG(QString("Invalid format %1!").arg(formatName));
+		}
 	}
 	return result;
 }
