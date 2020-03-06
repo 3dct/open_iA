@@ -1099,6 +1099,10 @@ public:
 				}
 			}
 		}
+		if (m_lut.initialized())
+		{
+			m_lut.setRange(m_range);
+		}
 	}
 	void setLookupTable(iALookupTable lut)
 	{

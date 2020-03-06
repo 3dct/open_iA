@@ -63,7 +63,9 @@ void iALookupTable::getColor(double val, double * rgba_out) const
 	if (m_data.size() < NumberOfColorComponents)
 	{
 		for (int i = 0; i < 3; ++i)
+		{
 			rgba_out[i] = 0;
+		}
 		rgba_out[3] = 1;
 		return;
 	}
@@ -84,7 +86,9 @@ void iALookupTable::getTableValue(size_t index, double * rgba_out) const
 {
 	index *= NumberOfColorComponents;
 	for (int i = 0; i < NumberOfColorComponents; ++i)
+	{
 		rgba_out[i] = m_data[index++];
+	}
 }
 
 void iALookupTable::allocate(size_t numberOfColors)
@@ -106,9 +110,13 @@ void iALookupTable::setColor(size_t colInd, double * rgba)
 	assert(m_isInitialized);
 	size_t offset = colInd * NumberOfColorComponents;
 	if (m_data.size() < (offset + NumberOfColorComponents))
+	{
 		return;
+	}
 	for (int i = 0; i < NumberOfColorComponents; ++i)
+	{
 		m_data[offset++] = rgba[i];
+	}
 }
 
 void iALookupTable::setColor(size_t colInd, QColor const & col)
