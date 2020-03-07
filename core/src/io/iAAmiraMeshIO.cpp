@@ -57,7 +57,7 @@ typedef char RawDataType;
 
 int decodeRLE(RawDataType* in, size_t inLength, RawDataType* out, size_t maxOutLength)
 {
-	int curOutStart = 0;
+	size_t curOutStart = 0;
 	for (size_t curInIdx = 0; curInIdx < inLength; ++curInIdx)
 	{
 		int len = in[curInIdx];  // block length
@@ -83,7 +83,8 @@ int decodeRLE(RawDataType* in, size_t inLength, RawDataType* out, size_t maxOutL
 		}
 		curOutStart += len;
 	}
-	return curOutStart;
+	assert(curOutStart <= std::numeric_limits<int>::max());
+	return static_cast<int>(curOutStart);
 }
 
 namespace

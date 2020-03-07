@@ -378,8 +378,8 @@ void dlg_volumePlayer::enableVolume(int state)
 	{
 		return;
 	}
-
-	for(int i = 0; i < m_checkBoxes.size(); i++)
+	assert(m_checkBoxes.size() < std::numeric_limits<int>::max());
+	for(int i = 0; i < static_cast<int>(m_checkBoxes.size()); i++)
 	{
 		if (check == m_checkBoxes[i])
 		{
