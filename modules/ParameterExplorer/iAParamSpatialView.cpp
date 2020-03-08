@@ -41,14 +41,16 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include <cassert>
+
 iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & basePath, iAChartWithFunctionsWidget* chartWidget, int binCount) :
 	m_table(table),
 	m_basePath(basePath),
-	m_imageWidget(nullptr),
 	m_curMode(iASlicerMode::XY),
+	m_sliceControl(new QSpinBox()),
+	m_imageWidget(nullptr),
 	m_settings(new QWidget),
 	m_imageContainer(new QWidget),
-	m_sliceControl(new QSpinBox()),
 	m_sliceNrInitialized(false),
 	m_chartWidget(chartWidget),
 	m_binCount(binCount)
@@ -96,7 +98,8 @@ void iAParamSpatialView::setImage(size_t id)
 {
 	if (!m_imageCache.contains(id))
 	{
-		if (id < 0 || id >= m_table->Table()->rowCount())
+		assert(m_table->Table()->rowCount() >= 0);
+		if (id >= static_cast<size_t>(m_table->Table()->rowCount()))
 		{
 			DEBUG_LOG("Invalid column index!");
 			return;
