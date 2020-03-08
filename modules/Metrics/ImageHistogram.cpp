@@ -75,6 +75,7 @@ namespace
  */
 int cImageHistogram::CreateHist(float* fImage, unsigned int nPixelH, unsigned int nPixelW, unsigned int nPixelD, int n, float min, float max, bool ConsiderRecoFillZeroes, unsigned long long nCutL, unsigned long long nCutH)
 {
+	assert(n >= 0);
 	bins = n;
 	unsigned long long datasize = (unsigned long long)nPixelH*nPixelW*nPixelD;
 	float curX, StepPerBin;
@@ -82,9 +83,11 @@ int cImageHistogram::CreateHist(float* fImage, unsigned int nPixelH, unsigned in
 
 	// Two iterations are only needed if several counts should be cuted from beginning and end of the first iterations histogram
 	int runs=1;
-	if( ((nCutL>0) || (nCutH>0)) && (nCutL+nCutH)<datasize)
-		runs=2;
-	for(int r=0; r<runs; r++)
+	if (((nCutL > 0) || (nCutH > 0)) && (nCutL + nCutH) < datasize)
+	{
+		runs = 2;
+	}
+	for (int r=0; r<runs; r++)
 	{
 		if(r==1)
 		{
@@ -103,47 +106,55 @@ int cImageHistogram::CreateHist(float* fImage, unsigned int nPixelH, unsigned in
 			hist_x.push_back(curX);
 			curX+=StepPerBin;
 		}
-		int zero_idx = (int)floor(((0.0f-min)/StepPerBin)+0.5f);
+		int zero_idx = static_cast<int>(floor(((0.0f-min)/StepPerBin)+0.5f));
 
 		// Calculate histogram by indexing
 		for(unsigned long long index=0; index<datasize; index++)
 		{
 			curX = floor(((fImage[index]-min)/StepPerBin)+0.5f);
-			if(curX<0)
+			if (curX < 0)
+			{
 				hist_y[0]++;
-			else if (curX>n-1)
-				hist_y[n-1]++;
+			}
+			else if (curX > n - 1)
+			{
+				hist_y[n - 1]++;
+			}
 			else
+			{
 				hist_y[(int)curX]++;
+			}
 		}
 
 		// Calculate new min/max values with truncation
-		if(r==0 && runs==2)
+		if (r==0 && runs==2)
 		{
 			// Accumulate data to the lower truncation index
 			unsigned long long sum=0;
-			for(unsigned long long t=0; t<(unsigned int)n; t++)
+			for (int t=0; t < n; ++t)
 			{
 				sum += hist_y[t];
 				if(sum > nCutL)
 				{
-					if(t>0)
-						trunc_idx[0] = t-1;
-
+					if (t > 0)
+					{
+						trunc_idx[0] = t - 1;
+					}
 					break;
 				}
 			}
 
 			// Accumulate data to the upper truncation index
 			sum=0;
-			for(unsigned long long t=(unsigned int)n-1; t>=0; t--)
+			for(int t=n-1; t>=0; --t)
 			{
 				sum += hist_y[t];
-				if(sum > nCutH)
+				if (sum > nCutH)
 				{
-					if(t<n-1)
-						trunc_idx[1] = t+1;
-
+					if (t < n - 1)
+					{
+						trunc_idx[1] = t + 1;
+					}
 					break;
 				}
 			}
@@ -151,12 +162,18 @@ int cImageHistogram::CreateHist(float* fImage, unsigned int nPixelH, unsigned in
 		else
 		{
 			// Handle reco fill zeroes
-			if(!ConsiderRecoFillZeroes && zero_idx==0)
+			if (!ConsiderRecoFillZeroes && zero_idx == 0)
+			{
 				hist_y[zero_idx] = hist_y[1];
-			else if(!ConsiderRecoFillZeroes && zero_idx==bins-1)
-				hist_y[zero_idx] = hist_y[bins-2];
-			else if(!ConsiderRecoFillZeroes && zero_idx>0 && zero_idx<bins-1)
-				hist_y[zero_idx] = (unsigned long long)(((double)hist_y[zero_idx-1]+hist_y[zero_idx+1])*0.5+0.5);
+			}
+			else if (!ConsiderRecoFillZeroes && zero_idx == bins - 1)
+			{
+				hist_y[zero_idx] = hist_y[bins - 2];
+			}
+			else if (!ConsiderRecoFillZeroes && zero_idx > 0 && zero_idx < bins - 1)
+			{
+				hist_y[zero_idx] = (unsigned long long)(((double)hist_y[zero_idx - 1] + hist_y[zero_idx + 1])*0.5 + 0.5);
+			}
 		}
 	}
 
@@ -312,79 +329,88 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
  *	\param Q_equation a int. Select the used Q equation. 0 ... sqrt(sigma*sigma) else ... sqrt(sigma^2+sigma^2)
  *	\return a float. The number total quality measure.
  */
- float cImageHistogram::CalcQ(std::vector<int> thrsh_IDX, std::vector<ClassMeasure> &result, int Q_equation)
+float cImageHistogram::CalcQ(std::vector<int> thrsh_IDX, std::vector<ClassMeasure> &result, int Q_equation)
 {
-	int CStart,CEnd,
+	int CStart, CEnd,
 		maxprobabilityClassIDX = -1;
 	unsigned long long nval;
-	double sum,count,counttotal=0,maxprobability=0.0;
+	double sum, count, counttotal = 0, maxprobability = 0.0;
 	ClassMeasure val;
 	result.clear();
 
 	// Total count of data points
-	for(std::vector<unsigned long long>::iterator iter = hist_y.begin(); iter < hist_y.end(); iter++)
+	for (std::vector<unsigned long long>::iterator iter = hist_y.begin(); iter < hist_y.end(); iter++)
+	{
 		counttotal += *iter;
+	}
 
 	// Sort by increasing indices
-	std::sort(thrsh_IDX.begin(),thrsh_IDX.end());
+	std::sort(thrsh_IDX.begin(), thrsh_IDX.end());
 
 	// Calculate data per class, divided by the thresholds
-	for(int t=0; t<=(int)thrsh_IDX.size(); t++)
+	assert(thrsh_IDX.size() < std::numeric_limits<int>::max());
+	for (int t = 0; t <= static_cast<int>(thrsh_IDX.size()); ++t)
 	{
-		if(t==0)
+		if (t == 0)
 		{
 			CStart = 0;
 			CEnd = thrsh_IDX[t];
 		}
-		else if(t==thrsh_IDX.size())
+		else if (t == static_cast<int>(thrsh_IDX.size()))
 		{
-			CStart = thrsh_IDX[t-1];
-			CEnd = (int)hist_y.size();
+			CStart = thrsh_IDX[t - 1];
+			CEnd = static_cast<int>(hist_y.size());
 		}
 		else
 		{
-			CStart = thrsh_IDX[t-1];
+			CStart = thrsh_IDX[t - 1];
 			CEnd = thrsh_IDX[t];
 		}
 
 		// mean
-		count=0,sum=0,nval=0;
-		for(int i=CStart; i<CEnd; i++)
+		count = 0, sum = 0, nval = 0;
+		for (int i = CStart; i < CEnd; i++)
 		{
-			count+=hist_y[i];
-			sum+=static_cast<double>(hist_y[i])*hist_x[i];
-			nval+=hist_y[i];
+			count += hist_y[i];
+			sum += static_cast<double>(hist_y[i])*hist_x[i];
+			nval += hist_y[i];
 		}
-		val.mean=(float)(sum/nval);
+		val.mean = (float)(sum / nval);
 
 		// standard deviation
-		sum=0;
-		for(int i=CStart; i<CEnd; i++)
-			sum += pow((double)hist_x[i]-val.mean,2)*hist_y[i];
+		sum = 0;
+		for (int i = CStart; i < CEnd; i++)
+		{
+			sum += pow(static_cast<double>(hist_x[i]) - val.mean, 2)*hist_y[i];
+		}
 
-		val.sigma=(float)pow(sum/nval,0.5);
+		val.sigma = (float)pow(sum / nval, 0.5);
 
 		//probability
-		val.probability = (float)(count/counttotal);
+		val.probability = (float)(count / counttotal);
 
-		if(t>0 && val.probability>maxprobability)
+		if (t > 0 && val.probability > maxprobability)
 		{
 			maxprobability = val.probability;
 			maxprobabilityClassIDX = t;
 		}
-		val.UsedForQ=0;
+		val.UsedForQ = 0;
 		val.LowerThreshold = hist_x[CStart];
-		val.UpperThreshold = hist_x[CEnd-1];
+		val.UpperThreshold = hist_x[CEnd - 1];
 		result.push_back(val);
 	}
 	result[0].UsedForQ = 1;
 	result[maxprobabilityClassIDX].UsedForQ = 2;
 
 	// Total quality measure between the lowest absorbing (air) and the peak with highest probability
-	if(Q_equation==0)
-		return abs(result[maxprobabilityClassIDX].mean-result[0].mean)/std::sqrt(result[maxprobabilityClassIDX].sigma*result[0].sigma);
+	if (Q_equation == 0)
+	{
+		return abs(result[maxprobabilityClassIDX].mean - result[0].mean) / std::sqrt(result[maxprobabilityClassIDX].sigma*result[0].sigma);
+	}
 	else
-		return abs(result[maxprobabilityClassIDX].mean-result[0].mean)/std::sqrt(result[maxprobabilityClassIDX].sigma*result[maxprobabilityClassIDX].sigma+result[0].sigma*result[0].sigma);
+	{
+		return abs(result[maxprobabilityClassIDX].mean - result[0].mean) / std::sqrt(result[maxprobabilityClassIDX].sigma*result[maxprobabilityClassIDX].sigma + result[0].sigma*result[0].sigma);
+	}
 }
 
  /** \fn float cImageHistogram::CalcEntropy(std::vector<int> , std::vector<ClassMeasure> &result, int Q_equation)
@@ -396,8 +422,10 @@ float cImageHistogram::CalcEntropy()
 	double H=0.0,Hmax=0.0,counttotal=0;
 
 	// Total count of data points
-	for(std::vector<unsigned long long>::iterator iter = hist_y.begin(); iter < hist_y.end(); iter++)
+	for (std::vector<unsigned long long>::iterator iter = hist_y.begin(); iter < hist_y.end(); iter++)
+	{
 		counttotal += *iter;
+	}
 
 	// Calculate propabilities
 	dHistPosList p;
@@ -424,8 +452,10 @@ float cImageHistogram::CalcEntropy()
 	for(dHistPosList::iterator iter = p.begin(); iter < p.end(); iter++)
 	{
 		//double mx = (iter->y*dlog2(iter->y));
-		if(iter->y>=DoubleEpsilon)
-			H+=(iter->y*dlog2(iter->y));
+		if (iter->y >= DoubleEpsilon)
+		{
+			H += (iter->y*dlog2(iter->y));
+		}
 	}
 	H/=-Hmax;
 
@@ -440,8 +470,10 @@ std::vector<int> cImageHistogram::GetValleyThreshold_IDX()
 {
 	std::vector<int> thrsh;
 
-	for(HistPosList::iterator iter = Valleys.begin(); iter < Valleys.end(); iter++)
+	for (HistPosList::iterator iter = Valleys.begin(); iter < Valleys.end(); iter++)
+	{
 		thrsh.push_back(iter->idx);
+	}
 
 	return thrsh;
 }
@@ -454,8 +486,10 @@ std::vector<float> cImageHistogram::GetValleyThreshold()
 {
 	std::vector<float> thrsh;
 
-	for(HistPosList::iterator iter = Valleys.begin(); iter < Valleys.end(); iter++)
+	for (HistPosList::iterator iter = Valleys.begin(); iter < Valleys.end(); iter++)
+	{
 		thrsh.push_back(iter->x);
+	}
 
 	return thrsh;
 }
@@ -464,10 +498,14 @@ std::vector<double> cImageHistogram::Conv1D(std::vector<unsigned long long> in, 
 {
 	std::vector<double> out;
 	int i, iext, k, kext, extsize = ((int)knl.size()-1), fullsize = (int)in.size()+(int)knl.size()-1, hlpsize;
-	if(knl.size()%2)
-		hlpsize = ((int)knl.size()-1)/2;
+	if (knl.size() % 2)
+	{
+		hlpsize = ((int)knl.size() - 1) / 2;
+	}
 	else
-		hlpsize = (int)knl.size()/2-1;
+	{
+		hlpsize = (int)knl.size() / 2 - 1;
+	}
 
 	// Zero padding
 	for(i=0; i<extsize; i++)
@@ -480,17 +518,23 @@ std::vector<double> cImageHistogram::Conv1D(std::vector<unsigned long long> in, 
 	for(i=0, iext=hlpsize; i<fullsize; i++, iext++)
 	{
 		out.push_back(0.0f);
-		for(k=(int)knl.size()-1, kext=-hlpsize; k>=0; k--, kext++)
-			out[i] += knl[k] * in[iext+kext];
+		for (k = (int)knl.size() - 1, kext = -hlpsize; k >= 0; k--, kext++)
+		{
+			out[i] += knl[k] * in[iext + kext];
+		}
 	}
 
 	if(mode==1)
 	{
 		// Reduce to same (core) size
-		if(knl.size()%2)
-			out.erase(out.begin(),out.begin()+hlpsize);
+		if (knl.size() % 2)
+		{
+			out.erase(out.begin(), out.begin() + hlpsize);
+		}
 		else
-			out.erase(out.begin(),out.begin()+hlpsize+1);
+		{
+			out.erase(out.begin(), out.begin() + hlpsize + 1);
+		}
 		out.erase(out.end()-hlpsize,out.end());
 	}
 	else if(mode==2)

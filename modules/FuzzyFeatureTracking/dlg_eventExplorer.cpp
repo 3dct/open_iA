@@ -1385,6 +1385,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 		}
 
 		// search forwards
+		assert(layer > 0);
 		if (static_cast<size_t>(layer) < m_numberOfCharts - 1)
 		{
 			//iAFeatureTracking *ftB = m_trackedFeaturesBackwards.at(layer + 1);
