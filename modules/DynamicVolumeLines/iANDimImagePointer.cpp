@@ -65,7 +65,11 @@ unsigned int iANDimImagePointer::getMaxDim()
 	return maxDim;
 }
 
-double iANDimImagePointer::getDensityAt(const itk::IndexValueType * index, unsigned int indexDim)
+double iANDimImagePointer::getDensityAt(const itk::IndexValueType * index, unsigned int
+#ifndef NDEBUG     // to silence compiler warning about unused parameter
+	indexDim
+#endif
+)
 {
 	// sum up all elements at the given index hypercube and return the value divided by the count of all elements
 

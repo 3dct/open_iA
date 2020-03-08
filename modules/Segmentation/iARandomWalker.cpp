@@ -23,7 +23,7 @@
 #include "iAGraphWeights.h"
 #include "iAImageGraph.h"
 #ifndef NDEBUG
-#include "iAMathUtility.h"
+#include "iAMathUtility.h"    // for dblApproxEqual used in assert
 #endif
 #include "iANormalizerImpl.h"
 #include "iAVectorArrayImpl.h"
