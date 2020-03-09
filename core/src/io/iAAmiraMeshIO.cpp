@@ -292,7 +292,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 			{
 				//Note: Random access to the value (of the first component) of the grid point (x,y,z):
 				// pData[((z * yDim + y) * xDim + x) * NumComponents]
-				assert(((z * yDim + y) * xDim + x) * NumComponents == Idx * NumComponents);
+				assert(((static_cast<size_t>(z) * yDim + y) * xDim + x) * NumComponents == Idx * NumComponents);
 				for (int c = 0; c<NumComponents; c++)
 				{
 					float pixelValue = 0;
