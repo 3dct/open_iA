@@ -971,7 +971,7 @@ void computeFhwThreshold( ImagePointer & image, PorosityFilterID /*filterId*/, R
 	typedef iAMaximumDistanceFilter< InputImageType >   MaximumDistanceType;
 	typename MaximumDistanceType::Pointer maxDistFilter = MaximumDistanceType::New();
 	maxDistFilter->SetInput( duplicator->GetOutput() );
-	maxDistFilter->SetBins( 10 );
+	maxDistFilter->SetBinWidth( 10 );
 	maxDistFilter->SetCentre( airporeGV );
 	maxDistFilter->Update();
 	mdThr = maxDistFilter->GetOutThreshold();
