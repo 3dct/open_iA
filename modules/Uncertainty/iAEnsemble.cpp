@@ -39,6 +39,13 @@
 #include <QFileInfo>
 #include <QTextStream>
 
+#include <cassert>
+
+
+iAUncertaintyImages::~iAUncertaintyImages()
+{}
+
+
 QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 	QSharedPointer<iAEnsembleDescriptorFile> ensembleFile)
 {
@@ -63,7 +70,7 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 		result->m_referenceImage = dynamic_cast<IntImage*>(itkImg.GetPointer());
 	}
 	// load sub ensembles:
-	for (int i = 0; i < ensembleFile->SubEnsembleCount(); ++i)
+	for (size_t i = 0; i < ensembleFile->SubEnsembleCount(); ++i)
 	{
 		result->AddSubEnsemble(ensembleFile->SubEnsemble(i), ensembleFile->SubEnsembleID(i));
 	}
@@ -86,7 +93,6 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 	result->CreateUncertaintyImages();
 	return result;
 }
-
 
 namespace
 {
@@ -118,12 +124,15 @@ namespace
 		double limit = std::log(distribution.size());  // max entropy: - N* (1/N * log(1/N)) = log(N)
 		double normalizeFactor = normalize ? 1.0 / limit : 1.0;
 		auto result = createImage<DoubleImage>(size, spacing);
+		assert(size[0] < std::numeric_limits<itk::IndexValueType>::max() &&
+			size[1] < std::numeric_limits<itk::IndexValueType>::max() &&
+			size[2] < std::numeric_limits<itk::IndexValueType>::max());
 		itk::Index<3> idx; // optimize speed via iterators / direct access?
-		for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
+		for (idx[0] = 0; static_cast<itk::SizeValueType>(idx[0]) < size[0]; ++idx[0])
 		{
-			for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+			for (idx[1] = 0; static_cast<itk::SizeValueType>(idx[1]) < size[1]; ++idx[1])
 			{
-				for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+				for (idx[2] = 0; static_cast<itk::SizeValueType>(idx[2]) < size[2]; ++idx[2])
 				{
 					double entropy = 0;
 					for (int l = 0; l < distribution.size(); ++l)
@@ -282,7 +291,7 @@ namespace
 			return false;
 		}
 		QTextStream outStream(&out);
-		for (int i = 0; i < values.size(); ++i)
+		for (size_t i = 0; i < values.size(); ++i)
 		{
 			outStream << QString("%1\n").arg(values[i]);
 		}
@@ -442,11 +451,14 @@ void iAEnsemble::CreateUncertaintyImages()
 						size = intlabelImg->GetLargestPossibleRegion().GetSize();
 						spacing = intlabelImg->GetSpacing();
 					}
-					for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
+					assert(size[0] < std::numeric_limits<itk::IndexValueType>::max() &&
+					       size[1] < std::numeric_limits<itk::IndexValueType>::max() &&
+					       size[2] < std::numeric_limits<itk::IndexValueType>::max());
+					for (idx[0] = 0; static_cast<itk::SizeValueType>(idx[0]) < size[0]; ++idx[0])
 					{
-						for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+						for (idx[1] = 0; static_cast<itk::SizeValueType>(idx[1]) < size[1]; ++idx[1])
 						{
-							for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+							for (idx[2] = 0; static_cast<itk::SizeValueType>(idx[2]) < size[2]; ++idx[2])
 							{
 								int label = intlabelImg->GetPixel(idx);
 								// optimize speed via iterators / direct access?
@@ -577,12 +589,15 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 		}
 	}
 
+	assert(size[0] < std::numeric_limits<itk::IndexValueType>::max() &&
+		size[1] < std::numeric_limits<itk::IndexValueType>::max() &&
+		size[2] < std::numeric_limits<itk::IndexValueType>::max());
 	// collect feature values for each pixel:
-	for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+	for (idx[2] = 0; static_cast<itk::SizeValueType>(idx[2]) < size[2]; ++idx[2])
 	{
-		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+		for (idx[1] = 0; static_cast<itk::SizeValueType>(idx[1]) < size[1]; ++idx[1])
 		{
-			for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
+			for (idx[0] = 0; static_cast<itk::SizeValueType>(idx[0]) < size[0]; ++idx[0])
 			{
 				QString line(QString::number(m_referenceImage->GetPixel(idx))+" ");
 
@@ -592,7 +607,7 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 				{
 					for (int m = 0; m < modalities->size(); ++m)
 					{
-						for (int c = 0; c < modalities->get(m)->componentCount(); ++c)
+						for (size_t c = 0; c < modalities->get(m)->componentCount(); ++c)
 						{
 							auto img = modalities->get(m)->component(c);
 							line += QString::number(++curFeature) + ":" + QString::number(img->GetScalarComponentAsDouble(idx[0], idx[1], idx[2], 0)) + " ";
@@ -635,37 +650,34 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 	allDataFile.close();
 }
 
-
 vtkImagePointer iAEnsemble::GetEntropy(int source) const
 {
 	return m_entropy[source];
 }
-
 
 vtkImagePointer iAEnsemble::GetReference() const
 {
 	return ConvertITK2VTK<IntImage>(m_referenceImage);
 }
 
-
 bool iAEnsemble::HasReference() const
 {
 	return m_referenceImage;
 }
 
-
-const char* const UncertaintyNames[] = {
-	"Algorithm Uncertainty",
-	"Neighborhood Uncertainty",
-	"Ensemble Uncertainty",
-};
-
+namespace
+{
+	const char* const UncertaintyNames[] = {
+		"Algorithm Uncertainty",
+		"Neighborhood Uncertainty",
+		"Ensemble Uncertainty",
+	};
+}
 
 QString iAEnsemble::GetSourceName(int sourceIdx) const
 {
 	return UncertaintyNames[sourceIdx];
 }
-
 
 bool iAEnsemble::LoadSampling(QString const & fileName, int id)
 {
@@ -692,30 +704,25 @@ iAEnsemble::iAEnsemble(int entropyBinCount) :
 	std::fill(m_entropyHistogram, m_entropyHistogram + entropyBinCount, 0);
 }
 
-
 iAEnsemble::~iAEnsemble()
 {
 	delete[] m_entropyHistogram;
 }
-
 
 QVector<IntImage::Pointer> const & iAEnsemble::GetLabelDistribution() const
 {
 	return m_labelDistr;
 }
 
-
 int iAEnsemble::LabelCount() const
 {
 	return m_labelCount;
 }
 
-
 double * iAEnsemble::EntropyHistogram() const
 {
 	return m_entropyHistogram;
 }
-
 
 int iAEnsemble::EntropyBinCount() const
 {
@@ -731,7 +738,8 @@ QSharedPointer<iAMember> const iAEnsemble::Member(size_t memberIdx) const
 {
 	for (int s=0; s<m_samplings.size(); ++s)
 	{
-		if (memberIdx < m_samplings[s]->Size())
+		assert(m_samplings[s]->Size() > 0);
+		if (memberIdx < static_cast<size_t>(m_samplings[s]->Size()))
 		{
 			return m_samplings[s]->Get(memberIdx);
 		}
@@ -754,7 +762,6 @@ QSharedPointer<iASamplingResults> iAEnsemble::Sampling(size_t idx) const
 {
 	return m_samplings[idx];
 }
-
 
 QString const & iAEnsemble::CachePath() const
 {
@@ -784,7 +791,6 @@ QVector<QSharedPointer<iAEnsemble> > iAEnsemble::SubEnsembles() const
 	return m_subEnsembles;
 }
 
-
 int iAEnsemble::ID() const
 {
 	if (m_samplings.size() > 1)
@@ -793,7 +799,6 @@ int iAEnsemble::ID() const
 	}
 	return m_samplings[0]->ID();
 }
-
 
 QSharedPointer<iAEnsembleDescriptorFile> iAEnsemble::EnsembleFile()
 {

@@ -43,6 +43,7 @@ public:
 		LabelDistributionEntropy,
 		SourceCount
 	};
+	virtual ~iAUncertaintyImages(); //!< implementation in iAEnsemble.cpp
 	virtual vtkImagePointer GetEntropy(int source) const =0;
 	virtual vtkImagePointer GetReference() const =0;
 	virtual QString GetSourceName(int source) const =0;

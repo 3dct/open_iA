@@ -33,6 +33,8 @@
 
 #include <QCheckBox>
 
+#include <cassert>
+
 
 const float TIMER_MIN_SPEED = 0.2f;	// frames per second
 const float TIMER_MAX_SPEED = 50.0f;	// frames per second

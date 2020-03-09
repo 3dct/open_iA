@@ -136,7 +136,7 @@ int nrOfOccurences(std::vector<int>& v, int occurence)
 	// this loop probably does not do what it's supposed to? only compares index of v, not its content!
 	for (int i = 0; i < v.size(); ++i)
 	{
-		if (i == occurence)
+		if (i == occurence)	// v[i] == occurrence ?
 		{
 			++result;
 		}

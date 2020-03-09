@@ -39,7 +39,7 @@ public:
 		UncertaintyMean,
 		UncertaintyVar
 	};
-	~iAEnsemble();
+	~iAEnsemble() override;
 	//! create from string
 	static QSharedPointer<iAEnsemble> Create(int entropyBinCount,
 		QSharedPointer<iAEnsembleDescriptorFile> ensembleFile);
