@@ -67,7 +67,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 		ImageType::Pointer itk_img_normalized = Normamalize(itk_img);
 
-		itk_img_normalized = AddPadding(itk_img_normalized,(sizeDNNin - sizeDNNout)/2);
+		ImageType::Pointer itk_img_normalized_padded = AddPadding(itk_img_normalized,(sizeDNNin - sizeDNNout)/2);
 
 
 
@@ -182,14 +182,15 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 	ImageType::Pointer outputImage = createImage(size[0], size[1], size[2]);
 
-	for (int x = 0; x <= size[0] - sizeDNNin; x=x+sizeDNNout) {
-		for (int y = 0; y <= size[1] - sizeDNNin; y=y+sizeDNNout) {
-			for (int z = 0; z <= size[2] - sizeDNNin; z=z+sizeDNNout) {
+	for (int x = 0; x <= size[0] - sizeDNNout; x=x+sizeDNNout) {
+		for (int y = 0; y <= size[1] - sizeDNNout; y=y+sizeDNNout) {
+			for (int z = 0; z <= size[2] - sizeDNNout; z=z+sizeDNNout) {
 
 				std::vector<float> tensor_img;
 
+				
 				int offset = (sizeDNNout - sizeDNNin)/2;
-				itk2tensor(itk_img_normalized, tensor_img,x+ offset,y+ offset,z+ offset);
+				itk2tensor(itk_img_normalized_padded, tensor_img,x+ offset,y+ offset,z+ offset);
 
 				// create input tensor object from data values
 				auto memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
