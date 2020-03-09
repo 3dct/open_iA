@@ -135,7 +135,7 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	layout()->addWidget(m_settings);
 }
 
-void iAParamSPLOMView::SplomSelection(std::vector<size_t> const & selInds)
+void iAParamSPLOMView::SplomSelection(std::vector<size_t> const & /*selInds*/)
 {
 	// set 1 for selection:
 	//for (int i = 0; i<selInds.size(); ++i)
