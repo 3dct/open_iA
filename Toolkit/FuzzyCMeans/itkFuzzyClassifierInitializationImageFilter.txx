@@ -230,7 +230,7 @@ FuzzyClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
 
   for (i = 0; i < m_NumberOfClasses; i++)
     {
-    m_Centroids[i] = CentroidValueNumericTraitsType::Zero;
+    m_Centroids[i] = CentroidValueNumericTraitsType::ZeroValue();
     }
 
   this->Modified();
