@@ -70,9 +70,9 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 		result->m_referenceImage = dynamic_cast<IntImage*>(itkImg.GetPointer());
 	}
 	// load sub ensembles:
-	for (size_t i = 0; i < ensembleFile->SubEnsembleCount(); ++i)
+	for (int i = 0; i < ensembleFile->subEnsembleCount(); ++i)
 	{
-		result->AddSubEnsemble(ensembleFile->SubEnsemble(i), ensembleFile->SubEnsembleID(i));
+		result->AddSubEnsemble(ensembleFile->subEnsemble(i), ensembleFile->subEnsembleID(i));
 	}
 	return result;
 }
@@ -124,9 +124,9 @@ namespace
 		double limit = std::log(distribution.size());  // max entropy: - N* (1/N * log(1/N)) = log(N)
 		double normalizeFactor = normalize ? 1.0 / limit : 1.0;
 		auto result = createImage<DoubleImage>(size, spacing);
-		assert(size[0] < std::numeric_limits<itk::IndexValueType>::max() &&
-			size[1] < std::numeric_limits<itk::IndexValueType>::max() &&
-			size[2] < std::numeric_limits<itk::IndexValueType>::max());
+		assert(size[0] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()) &&
+		       size[1] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()) &&
+		       size[2] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()));
 		itk::Index<3> idx; // optimize speed via iterators / direct access?
 		for (idx[0] = 0; static_cast<itk::SizeValueType>(idx[0]) < size[0]; ++idx[0])
 		{
@@ -451,9 +451,9 @@ void iAEnsemble::CreateUncertaintyImages()
 						size = intlabelImg->GetLargestPossibleRegion().GetSize();
 						spacing = intlabelImg->GetSpacing();
 					}
-					assert(size[0] < std::numeric_limits<itk::IndexValueType>::max() &&
-					       size[1] < std::numeric_limits<itk::IndexValueType>::max() &&
-					       size[2] < std::numeric_limits<itk::IndexValueType>::max());
+					assert(size[0] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()) &&
+					       size[1] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()) &&
+					       size[2] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()));
 					for (idx[0] = 0; static_cast<itk::SizeValueType>(idx[0]) < size[0]; ++idx[0])
 					{
 						for (idx[1] = 0; static_cast<itk::SizeValueType>(idx[1]) < size[1]; ++idx[1])
@@ -589,9 +589,9 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 		}
 	}
 
-	assert(size[0] < std::numeric_limits<itk::IndexValueType>::max() &&
-		size[1] < std::numeric_limits<itk::IndexValueType>::max() &&
-		size[2] < std::numeric_limits<itk::IndexValueType>::max());
+	assert(size[0] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()) &&
+	       size[1] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()) &&
+	       size[2] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()));
 	// collect feature values for each pixel:
 	for (idx[2] = 0; static_cast<itk::SizeValueType>(idx[2]) < size[2]; ++idx[2])
 	{

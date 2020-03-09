@@ -264,7 +264,6 @@ QString const & iAEnsembleDescriptorFile::FileName() const
 	return m_fileName;
 }
 
-
 QString const & iAEnsembleDescriptorFile::ModalityFileName() const
 {
 	return m_ModalityFileName;
@@ -305,18 +304,17 @@ QString const & iAEnsembleDescriptorFile::ColorTheme() const
 	return m_ColorTheme;
 }
 
-
-size_t iAEnsembleDescriptorFile::SubEnsembleCount() const
+int iAEnsembleDescriptorFile::subEnsembleCount() const
 {
 	return m_subEnsembles.size();
 }
 
-QVector<int> iAEnsembleDescriptorFile::SubEnsemble(size_t idx) const
+QVector<int> iAEnsembleDescriptorFile::subEnsemble(int idx) const
 {
 	return m_subEnsembles[idx];
 }
 
-int iAEnsembleDescriptorFile::SubEnsembleID(size_t idx) const
+int iAEnsembleDescriptorFile::subEnsembleID(int idx) const
 {
 	return m_subEnsembleID[idx];
 }

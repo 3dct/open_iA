@@ -56,9 +56,9 @@ public:
 	QString const & LabelNames() const;
 	QString const & ColorTheme() const;
 
-	size_t SubEnsembleCount() const;
-	QVector<int> SubEnsemble(size_t idx) const;
-	int SubEnsembleID(size_t idx) const;
+	int subEnsembleCount() const;
+	QVector<int> subEnsemble(int idx) const;
+	int subEnsembleID(int idx) const;
 
 	void AddSubEnsemble(int id, QVector<int> const & members);
 
