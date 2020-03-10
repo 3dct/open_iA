@@ -33,7 +33,7 @@
 namespace
 {
 	const int ShowColumn = 0;
-	const int NameColumn = 1;
+	//const int NameColumn = 1;
 	const int InvertColumn = 2;
 }
 

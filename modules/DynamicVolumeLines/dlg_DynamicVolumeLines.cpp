@@ -77,18 +77,18 @@ void winModCallback(vtkObject *caller, long unsigned int vtkNotUsed(eventId),
 
 dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget *parent /*= 0*/, QDir datasetsDir, Qt::WindowFlags f /*= 0 */) :
 	DynamicVolumeLinesConnector(parent, f),
-	m_mdiChild(static_cast<MdiChild*>(parent)),
 	m_datasetsDir(datasetsDir),
-	m_MultiRendererView(new multi3DRendererView()),
-	m_mrvBGRen(vtkSmartPointer<vtkRenderer>::New()),
-	m_mrvTxtAct(vtkSmartPointer<vtkTextActor>::New()),
-	m_scalingWidget(0),
+	m_mdiChild(static_cast<MdiChild*>(parent)),
+	m_nonlinearScaledPlot(new QCustomPlot(dockWidgetContents)),
+	m_linearScaledPlot(new QCustomPlot(dockWidgetContents)),
+	m_scalingWidget(nullptr),
 	m_compLvlLUT(vtkSmartPointer<vtkLookupTable>::New()),
 	m_histLUT(vtkSmartPointer<vtkLookupTable>::New()),
 	m_subHistBinCntChanged(false),
 	m_histVisMode(true),
-	m_nonlinearScaledPlot(new QCustomPlot(dockWidgetContents)),
-	m_linearScaledPlot(new QCustomPlot(dockWidgetContents))
+	m_MultiRendererView(new multi3DRendererView()),
+	m_mrvBGRen(vtkSmartPointer<vtkRenderer>::New()),
+	m_mrvTxtAct(vtkSmartPointer<vtkTextActor>::New())
 {
 	connect(&m_iMProgress, SIGNAL(progress(int)), this, SLOT(updateIntensityMapperProgress(int)));
 	m_mdiChild->renderer()->setAreaPicker();

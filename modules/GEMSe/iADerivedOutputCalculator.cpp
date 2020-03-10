@@ -57,7 +57,7 @@ void iADerivedOutputCalculator::run()
 		typedef itk::Image< unsigned int, 3 > OutputImageType;
 		typedef itk::ScalarConnectedComponentImageFilter <LabelImageType, OutputImageType > ConnectedComponentImageFilterType;
 		ConnectedComponentImageFilterType::Pointer connected = ConnectedComponentImageFilterType::New();
-		connected->SetDistanceThreshold(0.5);
+		connected->SetDistanceThreshold(0);
 		if (m_result->GetLabelledImage().IsNull())
 		{
 			DEBUG_LOG("Labelled Image is null");

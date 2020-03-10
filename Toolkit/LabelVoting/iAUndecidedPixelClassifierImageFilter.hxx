@@ -37,9 +37,9 @@ template< typename TInputImage, typename TOutputImage >
 iAUndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
 ::iAUndecidedPixelClassifierImageFilter():
 	m_undecidedPixelLabel(0),
+	m_hasUndecidedPixelLabel(false),
 	m_labelCount(0),
-	m_uncertaintyTieSolver(true),
-	m_hasUndecidedPixelLabel(false)
+	m_uncertaintyTieSolver(true)
 {
 	m_radius.Fill(1);
 }
@@ -84,6 +84,11 @@ iAUndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
 	typename TOutputImage::Pointer output = this->GetOutput();
 	output->SetBufferedRegion(output->GetRequestedRegion());
 	output->Allocate();
+}
+
+namespace
+{
+	const itk::SizeValueType NoNeighbor = std::numeric_limits<itk::SizeValueType>::max();
 }
 
 template< typename TInputImage, typename TOutputImage >
@@ -182,10 +187,10 @@ void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedG
 			{
 				double maxProb = 0;
 				int label = -1;
-				int selectedNeighbor = -1;
+				itk::SizeValueType selectedNeighbor = NoNeighbor;
 				for (size_t l = 0; l < m_labelCount; ++l)
 				{
-					for (int n = 0; n < probIt[i][l].Size(); ++n)
+					for (itk::SizeValueType n = 0; n < probIt[i][l].Size(); ++n)
 					{
 						bool isInBounds;
 						double curProb = probIt[i][l].GetPixel(n, isInBounds);
@@ -197,7 +202,7 @@ void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedG
 						}
 					}
 				}
-				if (selectedNeighbor == -1)
+				if (selectedNeighbor == NoNeighbor)
 				{
 					DEBUG_LOG("No neighbor found with probability higher than 0!");
 				}
@@ -289,9 +294,9 @@ void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedG
 				std::vector<int> candLabelUncertaintyCnt(candidateLabels.size());
 				std::fill(candLabelUncertaintySum.begin(), candLabelUncertaintySum.end(), 0);
 				std::fill(candLabelUncertaintyCnt.begin(), candLabelUncertaintyCnt.end(), 0);
-				for (int i = 0; i < numberOfClassifiers; ++i)
+				for (size_t i = 0; i < numberOfClassifiers; ++i)
 				{
-					for (int c = 0; c < candidateLabels.size(); ++c)
+					for (size_t c = 0; c < candidateLabels.size(); ++c)
 					{
 						if (fbgLabels[i] == candidateLabels[c])
 						{
@@ -307,7 +312,7 @@ void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedG
 				}
 				double minUncertainty = 1;
 				int finalLabel = -1;
-				for (int c = 0; c < candidateLabels.size(); ++c)
+				for (size_t c = 0; c < candidateLabels.size(); ++c)
 				{
 					double uncertainty = candLabelUncertaintySum[c] / candLabelUncertaintyCnt[c];
 					if (uncertainty < minUncertainty)

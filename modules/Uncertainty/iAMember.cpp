@@ -141,8 +141,8 @@ QString iAMember::ToString(QSharedPointer<iAAttributes> attributes, int type)
 
 
 iAMember::iAMember(int id, iASamplingResults const & sampling):
-	m_id(id),
-	m_sampling(sampling)
+	m_sampling(sampling),
+	m_id(id)
 {
 }
 

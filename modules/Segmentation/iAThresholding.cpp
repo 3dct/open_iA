@@ -317,15 +317,14 @@ template<class T>
 void maximum_distance(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< T, 3 >   OutputImageType;
 	typedef iAMaximumDistanceFilter< InputImageType > MaximumDistanceType;
 	auto maxFilter = MaximumDistanceType::New();
 	maxFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
-	maxFilter->SetBins(parameters["Number of histogram bins"].toDouble());
+	maxFilter->SetBinWidth(parameters["Width of histogram bin"].toDouble());
 	if (parameters["Use low intensity"].toBool())
+	{
 		maxFilter->SetCentre(parameters["Low intensity"].toDouble());
-	else
-		maxFilter->SetCentre(32767);
+	} // if not set, centre / low intensity will be automatically determined as maximum possible pixelType value / 2
 	filter->progress()->observe(maxFilter);
 	maxFilter->Update();
 	filter->addOutput(maxFilter->GetOutput());
@@ -343,9 +342,10 @@ IAFILTER_CREATE(iAMaximumDistance)
 
 iAMaximumDistance::iAMaximumDistance() :
 	iAFilter("Maximum Distance", "Segmentation/Global Thresholding",
-		"A global threshold based on the maximum distance of peaks in the histogram, for voids segmentation.")
+		"A global threshold based on the maximum distance of peaks in the histogram, for voids segmentation.<br/>"
+		"Note: This filter only works with images with a positive integer pixel data type (unsigned char, unsigned short, unsigned int).")
 {
-	addParameter("Number of histogram bins", Discrete, 256, 2);
+	addParameter("Width of histogram bin", Discrete, 256, 1);
 	addParameter("Low intensity", Continuous, 0);
 	addParameter("Use low intensity", Boolean, false);
 }

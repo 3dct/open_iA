@@ -87,6 +87,8 @@
 #endif
 #endif
 
+#include <cassert>
+
 struct RunInfo
 {
 	RunInfo() :
@@ -392,6 +394,9 @@ void computeParamFree( ImagePointer & image, PorosityFilterID filterId, RunInfo 
 			filter = minimumFilter;
 			break;
 		}
+		default:
+			DEBUG_LOG(QString("Invalid algorithm selection (%1 is not a parameterless method)!").arg(filterId));
+			break;
 	}
 
 	filter->SetInput( duplicator->GetOutput() );
@@ -971,7 +976,7 @@ void computeFhwThreshold( ImagePointer & image, PorosityFilterID /*filterId*/, R
 	typedef iAMaximumDistanceFilter< InputImageType >   MaximumDistanceType;
 	typename MaximumDistanceType::Pointer maxDistFilter = MaximumDistanceType::New();
 	maxDistFilter->SetInput( duplicator->GetOutput() );
-	maxDistFilter->SetBins( 10 );
+	maxDistFilter->SetBinWidth( 10 );
 	maxDistFilter->SetCentre( airporeGV );
 	maxDistFilter->Update();
 	mdThr = maxDistFilter->GetOutThreshold();
@@ -1213,28 +1218,37 @@ void iARunBatchThread::saveResultsToRunsCSV( RunInfo & results, QString masksDir
 	try
 	{
 		MaskImageType * mask = dynamic_cast<MaskImageType*>( results.maskImage.GetPointer() );
-		if ( !mask )
-			throw itk::ExceptionObject( "No mask!" );
+		if (!mask)
+		{
+			throw itk::ExceptionObject("No mask!");
+		}
 
 		QFileInfo maskFI( maskFilename );
-		if ( !QDir( maskFI.absoluteDir() ).mkdir( getMaskSliceDirName( maskFilename ) ) )
-			throw std::runtime_error( "Could not create directory for slices!" );
+		if (!QDir(maskFI.absoluteDir()).mkdir(getMaskSliceDirName(maskFilename)))
+		{
+			throw std::runtime_error("Could not create directory for slices!");
+		}
 
 		//TODO: move to common or helpers, duplicated in DatasetInfo
 		MaskImageType::SizeType size = mask->GetLargestPossibleRegion().GetSize();
 		unsigned char * bufferPtr = (unsigned char *) mask->GetBufferPointer();
 		unsigned long sliceSize = size[0] * size[1];
-		for ( unsigned int sliceNumber = 0; sliceNumber < size[2]; sliceNumber++ )
+		for ( unsigned int sliceNumber = 0; sliceNumber < size[2]; ++sliceNumber )
 		{
 			unsigned char * sBufferPtr = bufferPtr + sliceSize * sliceNumber;
 			QImage img( size[0], size[1], QImage::Format_Indexed8 );
-			for ( int y = 0; y < size[1]; y++ )
+			assert(size[1] <= static_cast<itk::SizeValueType>(std::numeric_limits<int>::max()));
+			for ( int y = 0; static_cast<itk::SizeValueType>(y) < size[1]; ++y )
+			{
 				memcpy( img.scanLine( size[1] - y - 1 ), sBufferPtr + y*size[0], size[0] );//we invert Y-axis, because VTK and Qt have different Y axis directions
+			}
 			img.setColor( 0, qRgb( 0, 0, 0 ) );
 			img.setColor( 1, qRgb( 255, 255, 255 ) );
 
-			if ( !img.save( getSliceFilename( maskFilename, sliceNumber ) ) )
-				throw std::runtime_error( "Could not save png!" );
+			if (!img.save(getSliceFilename(maskFilename, sliceNumber)))
+			{
+				throw std::runtime_error("Could not save png!");
+			}
 		}
 	}
 	catch ( itk::ExceptionObject & err )
@@ -1307,8 +1321,10 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 
 	for( int sampleNo = 0; sampleNo < totalNumSamples; ++sampleNo ) //iterate over parameters
 	{
-		while( m_pmi->ui()->rbPause->isChecked() )
+		while (m_pmi->ui()->rbPause->isChecked())
+		{
 			QCoreApplication::processEvents();
+		}
 
 		RunInfo results;
 		//fill in parameters info

@@ -46,7 +46,7 @@
 
 namespace
 {
-	const int EmptyTableValues = 2;
+	//const int EmptyTableValues = 2;
 	const int FullTableValues = 256;
 	const int DefaultColorColumn = 1;
 
@@ -73,10 +73,12 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	m_spatialView(spatialView),
 	m_tableView(tableView),
 	m_splom(new iAQSplom(this)),
+	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
 	m_selection_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
-	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
-	m_settings(new QWidget)
+	m_settings(new QWidget),
+	m_separationColors(new QComboBox()),
+	m_separationSpinBox(new QSpinBox())
 {
 	// set up scatter plot matrix:
 	m_selection_ctf->AddRGBPoint(0, 0, 0, 0);
@@ -94,12 +96,10 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 
 	// set up settings:
 	m_settings->setLayout(new QVBoxLayout());
-	m_separationSpinBox = new QSpinBox();
 	m_separationSpinBox->setMinimum(0);
 	m_separationSpinBox->setMaximum(m_tableView->Table()->columnCount()-1);
 	m_separationSpinBox->setValue(0);
 	connect(m_separationSpinBox, SIGNAL(valueChanged(int)), this, SLOT(SeparationChanged(int)));
-	m_separationColors = new QComboBox();
 	for (QString themeName : iAColorThemeManager::instance().availableThemes())
 	{
 		m_separationColors->addItem(themeName);
@@ -135,13 +135,13 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	layout()->addWidget(m_settings);
 }
 
-void iAParamSPLOMView::SplomSelection(std::vector<size_t> const & selInds)
+void iAParamSPLOMView::SplomSelection(std::vector<size_t> const & /*selInds*/)
 {
 	// set 1 for selection:
-	for (int i = 0; i<selInds.size(); ++i)
-	{
+	//for (int i = 0; i<selInds.size(); ++i)
+	//{
 		// show in spatial view?
-	}
+	//}
 }
 
 void iAParamSPLOMView::SetLUTColumn(QString const & colName)

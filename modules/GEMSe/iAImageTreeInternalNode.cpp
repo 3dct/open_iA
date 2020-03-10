@@ -41,11 +41,11 @@ iAImageTreeInternalNode::iAImageTreeInternalNode(
 	ClusterIDType id,
 	ClusterDistanceType distance
 ) :
-	m_children(a, b),
+	m_ID(id),
 	m_clusterSize(0),
 	m_filteredRepresentativeOutdated(true),
 	m_differenceMarkerValue(differenceMarkerValue),
-	m_ID(id),
+	m_children(a, b),
 	m_distance(distance),
 	m_cachePath(cachePath)
 {

@@ -176,9 +176,9 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     {
     m_OldCentroids[i] = this->m_Centroids[i];
 
-    m_CentroidsNumerator[i] = CentroidNumericTraitsType::Zero;
+    m_CentroidsNumerator[i] = CentroidNumericTraitsType::ZeroValue();
     }
-  m_CentroidsDenominator.Fill(CentroidValueNumericTraitsType::Zero);
+  m_CentroidsDenominator.Fill(CentroidValueNumericTraitsType::ZeroValue());
 
   ThreadIdType numThreads = this->GetNumberOfThreads();
   if( itk::MultiThreader::GetGlobalMaximumNumberOfThreads() != 0 )
@@ -307,10 +307,10 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
   // of centroid expression.
   CentroidArrayType
     tempThreadCentroidsNumerator( this->m_NumberOfClasses,
-                                  CentroidNumericTraitsType::Zero );
+                                  CentroidNumericTraitsType::ZeroValue());
   Array< CentroidValueType >
     tempThreadCentroidsDenominator(this->m_NumberOfClasses);
-  tempThreadCentroidsDenominator.Fill(CentroidValueNumericTraitsType::Zero);
+  tempThreadCentroidsDenominator.Fill(CentroidValueNumericTraitsType::ZeroValue());
 
   typename StructuringElementType::ConstIterator nit;
   StructuringElementRadiusType radiusStructEl;

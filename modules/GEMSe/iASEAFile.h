@@ -34,7 +34,6 @@ public:
 	static const QString DefaultCHRFileName;
 	static const QString DefaultCLTFileName;
 	static const QString DefaultModalityFileName;
-	static const int DefaultLabelCount;
 
 	iASEAFile(QString const & seaFileName);
 	iASEAFile(

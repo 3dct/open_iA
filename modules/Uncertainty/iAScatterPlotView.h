@@ -35,8 +35,6 @@ public:
 	void SetDatasets(QSharedPointer<iAUncertaintyImages> imgs);
 	vtkImagePointer GetSelectionImage();
 	void ToggleSettings();
-public slots:
-	void StyleChanged();
 private slots:
 	void XAxisChoice();
 	void YAxisChoice();

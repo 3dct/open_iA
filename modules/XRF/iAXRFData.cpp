@@ -80,7 +80,7 @@ template <typename T>
 void addValues(double* result, void* data, size_t voxelCount, double energyColor[COLOR_COMPONENTS], double &componentMax)
 {
 	T* energyCounts = static_cast<T*>(data);
-	for (int i=0; i<voxelCount; ++i)
+	for (size_t i=0; i<voxelCount; ++i)
 	{
 		// color = value of colorTransferFunction for this energy (volume)
 		for (size_t comp = 0; comp<COLOR_COMPONENTS; ++comp)

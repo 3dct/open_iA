@@ -636,6 +636,7 @@ iARenderer* MdiChild::renderer()
 bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 {
 	// TODO: VOLUME: Test!!! copy from currently selected instead of fixed 0 index?
+	// This function probbl never called, update(int, bool) signal doesn't seem to be emitted anywhere?
 	vtkColorTransferFunction* colorTransferFunction = modality(0)->transfer()->colorTF();
 	vtkPiecewiseFunction* piecewiseFunction = modality(0)->transfer()->opacityTF();
 	m_volumeStack->colorTF(m_previousIndexOfVolume)->DeepCopy(colorTransferFunction);
@@ -643,12 +644,12 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 	m_previousIndexOfVolume = updateIndex;
 
 	m_imageData->DeepCopy(m_volumeStack->volume(updateIndex));
-
+	assert(m_volumeStack->numberOfVolumes() < std::numeric_limits<int>::max());
 	if (isApplyForAll)
 	{
 		for (size_t i = 0; i < m_volumeStack->numberOfVolumes(); ++i)
 		{
-			if (i != updateIndex)
+			if (static_cast<int>(i) != updateIndex)
 			{
 				m_volumeStack->colorTF(i)->DeepCopy(colorTransferFunction);
 				m_volumeStack->opacityTF(i)->DeepCopy(piecewiseFunction);
@@ -692,7 +693,7 @@ void MdiChild::setupStackView(bool active)
 
 	m_imageData->DeepCopy(m_volumeStack->volume(currentIndexOfVolume));
 	setupViewInternal(active);
-	for (int i = 0; i < m_volumeStack->numberOfVolumes(); ++i)
+	for (size_t i = 0; i < m_volumeStack->numberOfVolumes(); ++i)
 	{
 		vtkSmartPointer<vtkColorTransferFunction> cTF = defaultColorTF(m_imageData->GetScalarRange());
 		vtkSmartPointer<vtkPiecewiseFunction> pWF = defaultOpacityTF(m_imageData->GetScalarRange(), m_imageData->GetNumberOfScalarComponents() == 1);

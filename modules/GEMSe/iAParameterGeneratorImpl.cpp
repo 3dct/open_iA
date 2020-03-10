@@ -30,6 +30,10 @@
 #include <cmath>
 #include <random>
 
+
+iAParameterGenerator::~iAParameterGenerator()
+{}
+
 class RandomGenerator
 {
 public:
@@ -226,6 +230,7 @@ T pop_at(QVector<T>& v, typename QVector<T>::size_type n)
 class MyRange
 {
 public:
+	virtual ~MyRange() {}
 	virtual double min(int i) =0;
 	virtual double max(int i) =0;
 };

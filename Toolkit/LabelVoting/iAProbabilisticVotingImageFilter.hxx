@@ -54,8 +54,12 @@ void iAProbabilisticVotingImageFilter< TInputImage, TOutputImage >
 	m_numberOfClassifiers = m_probImgs.size();
 	m_labelCount = m_probImgs[0].size();
 	if (m_weights.empty())
-		for (int c = 0; c < m_numberOfClassifiers; ++c)
+	{
+		for (size_t c = 0; c < m_numberOfClassifiers; ++c)
+		{
 			m_weights.push_back(1);
+		}
+	}
 
 	assert(m_weights.size() == m_numberOfClassifiers);
 
@@ -96,26 +100,26 @@ void iAProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenera
 	{
 		double normalizationSum = 0;
 		std::fill(combinedPixelProbs, combinedPixelProbs + m_labelCount, 0);
-		for (int l = 0; l < m_labelCount; ++l)
+		for (size_t l = 0; l < m_labelCount; ++l)
 		{
 			switch (m_votingRule)
 			{
 			case SumRule:
-				for (int c = 0; c < m_numberOfClassifiers; ++c)
+				for (size_t c = 0; c < m_numberOfClassifiers; ++c)
 				{
 					combinedPixelProbs[l] += probIt[c][l].Get();
 				}
 				combinedPixelProbs[l] /= m_numberOfClassifiers;
 				break;
 			case MaxRule:
-				for (int c = 0; c < m_numberOfClassifiers; ++c)
+				for (size_t c = 0; c < m_numberOfClassifiers; ++c)
 				{
 					combinedPixelProbs[l] = std::max(probIt[c][l].Get(), combinedPixelProbs[l]);
 				}
 				break;
 			case MinRule: {
 				double curLabelProb = 1;
-				for (int c = 0; c < m_numberOfClassifiers; ++c)
+				for (size_t c = 0; c < m_numberOfClassifiers; ++c)
 				{
 					curLabelProb = std::min(probIt[c][l].Get(), curLabelProb);
 				}
@@ -124,7 +128,7 @@ void iAProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenera
 			}
 			case MedianRule: {
 				std::vector<double> probs;
-				for (int c = 0; c < m_numberOfClassifiers; ++c)
+				for (size_t c = 0; c < m_numberOfClassifiers; ++c)
 				{
 					probs.push_back(probIt[c][l].Get());
 				}
@@ -136,10 +140,10 @@ void iAProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenera
 			}
 			case MajorityVoteRule: {
 				double majorityCount = 0;
-				for (int c = 0; c < m_numberOfClassifiers; ++c)
+				for (size_t c = 0; c < m_numberOfClassifiers; ++c)
 				{
 					bool isMajority = true;
-					for (int l2 = 0; l2 < m_labelCount; ++l2)
+					for (size_t l2 = 0; l2 < m_labelCount; ++l2)
 					{
 						if (l == l2)
 						{
@@ -173,9 +177,9 @@ void iAProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenera
 			DEBUG_LOG("Normalization Sum != 1!");
 		}
 		*/
-		int maxProbIdx = 0;
+		size_t maxProbIdx = 0;
 		double entropy = 0.0;
-		for (int l = 0; l < m_labelCount; ++l)
+		for (size_t l = 0; l < m_labelCount; ++l)
 		{
 			combinedPixelProbs[l] /= normalizationSum;
 			if (combinedPixelProbs[l] > combinedPixelProbs[maxProbIdx])
@@ -189,7 +193,7 @@ void iAProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenera
 		}
 		entropy = clamp(0.0, 1.0, -entropy*normalizeFactor);
 
-		int finalLabel = maxProbIdx;
+		size_t finalLabel = maxProbIdx;
 		if (entropy >= m_undecidedUncertaintyThresh)
 		{
 			finalLabel = m_labelCount;

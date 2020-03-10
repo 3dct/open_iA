@@ -256,7 +256,7 @@ void iADetailView::changeModality(int offset)
 {
 	// TOOD: refactor to remove duplication between here and MdiChild::changeModality!
 	m_magicLensCurrentComponent = (m_magicLensCurrentComponent + offset);
-	if (m_magicLensCurrentComponent < 0 || m_magicLensCurrentComponent >= m_modalities->get(m_magicLensCurrentModality)->componentCount())
+	if (m_magicLensCurrentComponent < 0 || static_cast<size_t>(m_magicLensCurrentComponent) >= m_modalities->get(m_magicLensCurrentModality)->componentCount())
 	{
 		m_magicLensCurrentComponent = 0;
 		m_magicLensCurrentModality = (m_magicLensCurrentModality + offset + m_modalities->size()) % m_modalities->size();

@@ -67,7 +67,6 @@ iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, MdiChild 
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_ensembleView, "Ensemble View", "UncEnsembleView"));
 	connect(mainWnd, SIGNAL(styleChanged()), m_spatialView, SLOT(StyleChanged()));
 	connect(mainWnd, SIGNAL(styleChanged()), m_memberView, SLOT(StyleChanged()));
-	connect(mainWnd, SIGNAL(styleChanged()), m_scatterplotView, SLOT(StyleChanged()));
 	connect(m_scatterplotView, SIGNAL(SelectionChanged()), m_spatialView, SLOT(UpdateSelection()));
 	connect(m_memberView, SIGNAL(MemberSelected(int)), this, SLOT(MemberSelected(int)));
 	connect(m_ensembleView, SIGNAL(EnsembleSelected(QSharedPointer<iAEnsemble>)), this, SLOT(EnsembleSelected(QSharedPointer<iAEnsemble>)));

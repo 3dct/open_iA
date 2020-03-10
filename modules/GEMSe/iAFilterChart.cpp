@@ -134,7 +134,7 @@ void iAFilterChart::drawAxes(QPainter& painter)
 
 void iAFilterChart::SetBinColor(int bin, QColor const & color)
 {
-	assert(bin >= 0 && bin < m_data->numBin());
+	assert(bin >= 0 && static_cast<size_t>(bin) < m_data->numBin());
 	m_binColors[bin] = color;
 }
 

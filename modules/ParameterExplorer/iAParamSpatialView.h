@@ -66,7 +66,7 @@ private:
 	bool m_sliceNrInitialized;
 	iAChartWithFunctionsWidget* m_chartWidget;
 	QSharedPointer<iAPlot> m_curHistogramPlot;
-	QVector<QSharedPointer<iAHistogramCreator> > m_histogramCreaters;
+	QVector<QSharedPointer<iAHistogramCreator>> m_histogramCreaters;
 	QMap<int, QSharedPointer<iAHistogramData>> m_histogramCache;
 	int m_binCount;
 };

@@ -32,7 +32,6 @@ const QString iASEAFile::DefaultSPSFileName("sampling.sps");
 const QString iASEAFile::DefaultCHRFileName("characteristics.chr");
 const QString iASEAFile::DefaultCLTFileName("cluster.clt");
 const QString iASEAFile::DefaultModalityFileName("modalities.mod");
-const int DefaultLabelCount = 2;
 
 namespace
 {

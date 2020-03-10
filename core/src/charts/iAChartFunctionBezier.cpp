@@ -195,6 +195,8 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 	int lx = event->x();
 	int ly = chart->geometry().height() - event->y() - chart->bottomMargin();
 	int index = -1;
+	assert(realPoints.size() < std::numeric_limits<int>::max());
+	assert(viewPoints.size() < std::numeric_limits<int>::max());
 
 	for (size_t pointIndex = 0; pointIndex < viewPoints.size(); ++pointIndex)
 	{
@@ -206,7 +208,7 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 			(lx >= viewX-iAChartWithFunctionsWidget::POINT_RADIUS/2 && lx <= viewX+iAChartWithFunctionsWidget::POINT_RADIUS/2 &&
 			ly >= viewY-iAChartWithFunctionsWidget::POINT_RADIUS/2 && ly <= viewY+iAChartWithFunctionsWidget::POINT_RADIUS/2))
 		{
-			index = pointIndex;
+			index = static_cast<int>(pointIndex);
 			break;
 		}
 
@@ -246,7 +248,7 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 
 			QPointF functionPoint = realPoints[functionPointIndex];
 
-			if (oppositePointIndex < realPoints.size())
+			if (oppositePointIndex < static_cast<int>(realPoints.size()))
 			{
 				QPointF oppositePoint = realPoints[oppositePointIndex];
 				oppositeLength = getLength(functionPoint, oppositePoint);
@@ -299,6 +301,7 @@ void iAChartFunctionBezier::removePoint(int index)
 
 void iAChartFunctionBezier::moveSelectedPoint(int x, int y)
 {
+	assert(realPoints.size() < std::numeric_limits<int>::max());
 	if (isFunctionPoint(m_selectedPoint))
 	{
 		x = clamp(0, chart->geometry().width() - 1, x);
@@ -344,7 +347,7 @@ void iAChartFunctionBezier::moveSelectedPoint(int x, int y)
 
 			setViewPoint(m_selectedPoint-1);
 		}
-		if (m_selectedPoint < realPoints.size()-1)
+		if (m_selectedPoint < static_cast<int>(realPoints.size())-1)
 		{
 			QPointF &nextControlPoint = realPoints[m_selectedPoint+1];
 			double diffX = selPoint.x() -nextControlPoint.x();
@@ -373,7 +376,8 @@ void iAChartFunctionBezier::moveSelectedPoint(int x, int y)
 
 bool iAChartFunctionBezier::isEndPoint(int index)
 {
-	return (index == 0 || index == realPoints.size()-1);
+	assert(realPoints.size() < std::numeric_limits<int>::max());
+	return (index == 0 || index == static_cast<int>(realPoints.size())-1);
 }
 
 bool iAChartFunctionBezier::isDeletable(int index)

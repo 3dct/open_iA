@@ -33,6 +33,8 @@
 
 #include <QCheckBox>
 
+#include <cassert>
+
 
 const float TIMER_MIN_SPEED = 0.2f;	// frames per second
 const float TIMER_MAX_SPEED = 50.0f;	// frames per second
@@ -378,8 +380,8 @@ void dlg_volumePlayer::enableVolume(int state)
 	{
 		return;
 	}
-
-	for(int i = 0; i < m_checkBoxes.size(); i++)
+	assert(m_checkBoxes.size() < std::numeric_limits<int>::max());
+	for(int i = 0; i < static_cast<int>(m_checkBoxes.size()); i++)
 	{
 		if (check == m_checkBoxes[i])
 		{

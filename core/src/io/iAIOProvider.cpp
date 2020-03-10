@@ -37,7 +37,7 @@ namespace
 QString iAIOProvider::GetSupportedLoadFormats()
 {
 	return QString(
-		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.nia *.nii *.nii.gz *.hdr *.hdr.gz *.img *.img.gz *.oif *.am *.vtk "
+		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pre *.pars *.dcm *.nia *.nii *.nii.gz *.hdr *.hdr.gz *.img *.img.gz *.oif *.am *.vtk "
 #ifdef USE_HDF5
 		"*.hdf5 *.h5 *.he5 *.mat "
 #endif
@@ -45,7 +45,7 @@ QString iAIOProvider::GetSupportedLoadFormats()
 		+ MetaImages + VTKFiles +
 		"STL files (*.stl);;"
 		"VG Studio Scenes (*.vgi);;"
-		"RAW files (*.raw *.rec *.vol *.pro);;"
+		"RAW files (*.raw *.rec *.vol *.pro *.pre);;"
 		"PARS files (*.pars);;"
 		"Dicom Series (*.dcm);;"
 //		"NRRD files (*.nrrd *.nhdr);;"	// currently not supported as it reads as a itk::VectorImage, which we cannot convert to vtkImageData at the moment

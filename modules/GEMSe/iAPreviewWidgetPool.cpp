@@ -24,10 +24,9 @@
 
 #include <iAConsole.h>
 
-iAPreviewWidgetPool::iAPreviewWidgetPool(int maxWidgets, vtkCamera* camera, iASlicerMode slicerMode, int labelCount, iAColorTheme const * colorTheme)
-	: m_slicerMode(slicerMode),
+iAPreviewWidgetPool::iAPreviewWidgetPool(int maxWidgets, vtkCamera* camera, iASlicerMode slicerMode, int labelCount, iAColorTheme const * colorTheme):
 	m_commonCamera(camera),
-	m_maxWidgets(maxWidgets),
+	m_slicerMode(slicerMode),
 	m_labelCount(labelCount),
 	m_colorTheme(colorTheme)
 {

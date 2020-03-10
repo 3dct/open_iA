@@ -345,7 +345,7 @@ void iAIO::readHDF5File()
 		.arg(rank);
 	for (int i = 0; i < rank; ++i)
 	{
-		caption += QString("%1%2").arg(hdf5Dims[i]).arg((hdf5Dims[i] != maxdims[i]) ? QString("%1").arg(maxdims[i]) : QString());
+		caption += QString::number(hdf5Dims[i]);
 		if (i < rank - 1) caption += " x ";
 	}
 	DEBUG_LOG(caption);
@@ -378,9 +378,9 @@ void iAIO::readHDF5File()
 	H5Fclose(file);
 
 	vtkSmartPointer<vtkImageImport> imgImport = vtkSmartPointer<vtkImageImport>::New();
-	imgImport->SetDataSpacing(m_hdf5Spacing[0], m_hdf5Spacing[1], m_hdf5Spacing[2]);
+	imgImport->SetDataSpacing(m_hdf5Spacing[2], m_hdf5Spacing[1], m_hdf5Spacing[0]);
 	imgImport->SetDataOrigin(0, 0, 0);
-	imgImport->SetWholeExtent(0, dim[0]-1, 0, dim[1]-1, 0, dim[2]-1);
+	imgImport->SetWholeExtent(0, dim[2]-1, 0, dim[1]-1, 0, dim[0]-1);
 	imgImport->SetDataExtentToWholeExtent();
 	imgImport->SetDataScalarType(vtkType);
 	imgImport->SetNumberOfScalarComponents(1);

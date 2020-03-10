@@ -55,9 +55,9 @@ public:
 	//! @param lowIntensity taken as the range to calculate the low intensity.
 	void SetCentre(double lowIntensity);
 
-	//! Set number of histogram bins.
-	//! @param bin the number of bins in histogram.
-	void SetBins(double bin);
+	//! Set number of values in a histogram bin.
+	//! @param bin the number of values in a histogram bin.
+	void SetBinWidth(double binWidth);
 
 	//! Get maximum distance threshold.
 	//! @return t an int, which is the maximum distance threshold.
@@ -81,13 +81,12 @@ private:
 	iAMaximumDistanceFilter(Self&);
 	void operator=(const Self&);
 
-	typename BTIFType::Pointer     m_BTIFFilter;
+	typename BTIFType::Pointer m_BTIFFilter;
 
-	PixelType m_Threshold, m_intensity, m_first_value, m_last_value;
-	PixelType m_i, m_start, m_end, m_high_intensity, m_low_intensity, m_centre;
-	double m_Bins;
-	int m_high_freq, m_low_freq;
-	ImageConstPointer m_InImage;
+	PixelType m_Threshold;
+	int m_high_intensity, m_low_intensity, m_centre;
+	double m_binWidth;
+	ImageConstPointer m_inImage;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

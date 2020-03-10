@@ -22,134 +22,107 @@
 
 #include "iAMaximumDistanceFilter.h"
 
-// Traits type to prevent overflow in Threshold below
-template<typename T>
-struct MyThreshType{
-	static const int Threshold = 65534;
-};
-
-template<>
-struct MyThreshType<char>{
-	static const int Threshold = 127;
-};
-
-template<>
-struct MyThreshType<unsigned char>{
-	static const int Threshold = 254;
-};
+#include <iAConsole.h>
 
 template <class TImageType>
 iAMaximumDistanceFilter<TImageType>::iAMaximumDistanceFilter()
 {
 	m_BTIFFilter = BTIFType::New();
 	m_Threshold = 0;
-	m_intensity = 0;
-	m_i = 0;
 	m_high_intensity = 0;
 	m_low_intensity = 0;
-	m_high_freq = 0;
-	m_low_freq = 0;
-	m_start = 0;
-	m_end = 0;
-	m_first_value = 0;
-	m_last_value = 0;
+	m_binWidth = 0;
+	m_centre = 0;
 }
 
 template <class TImageType>
 void iAMaximumDistanceFilter<TImageType>::GenerateData()
 {
-	m_InImage = (  this->GetInput() );
-	ConstIteratorType in_Iter (m_InImage, m_InImage->GetLargestPossibleRegion());
+	if (std::numeric_limits<typename TImageType::PixelType>::lowest() < 0)
+	{
+		DEBUG_LOG("Signed pixel type not supported by maximum distance filter!");
+		return;
+	}
+	if (!std::is_integral<typename TImageType::PixelType>::value)
+	{
+		DEBUG_LOG("Non-integral pixel type not supported by maximum distance filter!");
+		return;
+	}
+	if (m_centre == 0)
+	{
+		m_centre = std::numeric_limits<typename TImageType::PixelType>::max() / (m_binWidth * 2);
+	}
+	assert(m_binWidth != 0);
+	m_inImage = this->GetInput();
+	ConstIteratorType in_Iter (m_inImage, m_inImage->GetLargestPossibleRegion());
 
-	//get the starting pixel value in the image
+	// histogram:
+	int noofBins = (std::numeric_limits<typename TImageType::PixelType>::max() / m_binWidth) + 1;
+	std::vector<long long> histogram (noofBins, 0 );
 	for ( in_Iter.GoToBegin(); !in_Iter.IsAtEnd(); ++in_Iter )
 	{
-		if ( in_Iter.Get() < m_first_value )
-		{
-			m_first_value = in_Iter.Get();	
-		} 
+		PixelType binIndex = static_cast<PixelType> (in_Iter.Get()/ m_binWidth);
+		histogram[binIndex] += 1;
 	}
 
-	//get the maximum pixel value in the image
-	for ( in_Iter.GoToBegin(); !in_Iter.IsAtEnd(); ++in_Iter )
-	{
-		if ( in_Iter.Get() > m_last_value )
-		{
-			m_last_value = in_Iter.Get();	
-		} 
-	}
+	// TODO: Proper peak determination!
 
-
-	//calculate the number of bins required
-	//int m_NoofBins = ( (m_last_value - m_first_value) / m_Bins ) + 1;
-	int m_NoofBins = (65536/m_Bins)+1;
-
-	//create the container for the histogram
-	std::vector<long long> m_VolumeCount ( m_NoofBins, 0 );
-
-	//histogram code
-	for ( in_Iter.GoToBegin(); !in_Iter.IsAtEnd(); ++in_Iter )
-	{
-		PixelType Pixel_test = static_cast<PixelType> (in_Iter.Get()/m_Bins);
-		long long value = m_VolumeCount[Pixel_test];	
-		m_VolumeCount[Pixel_test] = value + 1;	
-	}
-
+	int start = 0, end = 0;
 	//remove the first intensity
-	for( m_i = 0; m_i < m_NoofBins; m_i++ )
+	for(int i = 0; i < noofBins; ++i )
 	{
-		if ( m_VolumeCount[m_i] != 0 )
+		if (histogram[i] != 0 )
 		{
-			m_start = m_i;
+			start = i;
 			break;
 		}
 	}
 
 	//remove the last intensity
-	for( m_i = (m_NoofBins-1); m_i >= 0; m_i-- )
+	for(int i = (noofBins-1); i >= 0; --i )
 	{
-		if ( m_VolumeCount[m_i] != 0 )
+		if (histogram[i] != 0 )
 		{
-			m_end = m_i;
+			end = i;
 			break;
 		}
 	}
 
 	//find the high intensity peak
-	for( m_i = (m_start+1); m_i < (m_end-1); m_i++ )
+	long long high_freq = 0;
+	for(int i = (start+1); i < (end-1); ++i )
 	{
-		if (m_VolumeCount[m_i] > m_high_freq )
+		if (histogram[i] > high_freq )
 		{
-			m_high_freq = (int)m_VolumeCount[m_i];
-			m_high_intensity = m_i;
+			high_freq = histogram[i];
+			m_high_intensity = i;
 		}
 	}
 
 	//find the low intensity peak
-	for( m_i = (m_start+1); m_i < m_centre; m_i++ )
+	long long low_freq = 0;
+	for( int i = (start+1); i < m_centre && i < m_high_intensity; ++i )
 	{
-		if ( m_VolumeCount[m_i] > m_low_freq )
+		if (histogram[i] > low_freq )
 		{
-			m_low_freq = m_VolumeCount[m_i];
-			m_low_intensity = m_i;
+			low_freq = histogram[i];
+			m_low_intensity = i;
 		}
 	}
 
-	// initialising the threshold variables to zero
 	double max_diff = 0;
-
-	unsigned int threshold_frequency = 0;
-
-	//calculation of angle CDE 
-	double alpha = atan( (double)(m_VolumeCount[m_high_intensity] - m_VolumeCount[m_low_intensity]) / ( m_high_intensity - m_low_intensity ));
-
-	for( m_i = m_low_intensity; m_i < m_high_intensity; m_i++ )
+	//calculation of angle CDE
+	double alphaWithoutATan = static_cast<double>(histogram[m_high_intensity] - histogram[m_low_intensity]) / (m_high_intensity - m_low_intensity);
+	double alpha = atan( alphaWithoutATan );
+	int intensity = 0;
+	for(int i = m_low_intensity; i < m_high_intensity; ++i )
 	{
-		//calculation of new height
-		double new_height =  ((m_i - m_low_intensity) * tan(alpha)) + m_VolumeCount[m_low_intensity];
+		//calculation of new height                // first atan and then tan -> one is inverse of the other, so couldn't we simply skip both?
+		double tanatanalpha = tan(alpha);
+		double new_height =  ((static_cast<double>(i) - m_low_intensity) * tanatanalpha) + histogram[m_low_intensity];
 
 		// the difference between the new height and the original histogram height
-		double diff = new_height - m_VolumeCount[m_i];
+		double diff = new_height - histogram[i];
 
 		//check whether the difference is greater than the previous difference
 		//if YES change the max_difference value and the threshold intensity value
@@ -157,17 +130,16 @@ void iAMaximumDistanceFilter<TImageType>::GenerateData()
 		if ( max_diff < diff )
 		{
 			max_diff = diff;
-			m_intensity = m_i;
-			threshold_frequency = (unsigned int)m_VolumeCount[m_i];
+			intensity = i;
 		}
 	}
-	//0.5 is an appoxiemation factor 
-	m_Threshold = (m_intensity + 0.5) * (this->m_Bins);
+	// 0.5 is an approximation factor
+	m_Threshold = (intensity + 0.5) * m_binWidth;
 
 	m_BTIFFilter->SetLowerThreshold( 0 );
-	m_BTIFFilter->SetUpperThreshold( m_Threshold );
+	m_BTIFFilter->SetUpperThreshold(m_Threshold);
 	m_BTIFFilter->SetOutsideValue( 0 );
-	m_BTIFFilter->SetInsideValue( MyThreshType<typename TImageType::PixelType>::Threshold );
+	m_BTIFFilter->SetInsideValue(std::numeric_limits<typename TImageType::PixelType>::max() - 1);
 	m_BTIFFilter->SetInput(this->GetInput());
 
 	m_BTIFFilter->GraftOutput( this->GetOutput() );
@@ -178,41 +150,37 @@ void iAMaximumDistanceFilter<TImageType>::GenerateData()
 template<class TInputImage>
 void iAMaximumDistanceFilter<TInputImage>::SetCentre(double lowIntensity)
 {
-	this->m_centre = (lowIntensity / (this->m_Bins));
+	m_centre = lowIntensity / m_binWidth;
 }
 
 template<class TInputImage>
-void iAMaximumDistanceFilter<TInputImage>::SetBins(double bin)
+void iAMaximumDistanceFilter<TInputImage>::SetBinWidth(double binWidth)
 {
-	this->m_Bins = bin;
+	m_binWidth = binWidth;
 }
 
 template<class TInputImage>
 int iAMaximumDistanceFilter<TInputImage>::GetOutThreshold()
 {
-	return (int) (this->m_Threshold);
+	return static_cast<int>(m_Threshold);
 }
 
 template<class TInputImage>
 int iAMaximumDistanceFilter<TInputImage>::GetLowIntensity()
 {
-	return (int) ((this->m_low_intensity + 0.5) * (this->m_Bins));
+	return static_cast<int>((m_low_intensity + 0.5) * m_binWidth);
 }
 
 template<class TInputImage>
 int iAMaximumDistanceFilter<TInputImage>::GetHighIntensity()
 {
-	return (int) ((this->m_high_intensity + 0.5) * (this->m_Bins));
+	return static_cast<int>((m_high_intensity + 0.5) * m_binWidth);
 }
 
 template <class TImageType>
-void
-	iAMaximumDistanceFilter<TImageType>::
-	PrintSelf( std::ostream& os, itk::Indent indent ) const
+void iAMaximumDistanceFilter<TImageType>::PrintSelf(std::ostream& os, itk::Indent indent) const
 {
-	Superclass::PrintSelf(os,indent);
-
-	os
-		<< indent << "Threshold:" << this->m_Threshold
-		<< std::endl;
+	Superclass::PrintSelf(os, indent);
+	os << indent << "Threshold:" << m_Threshold
+	   << std::endl;
 }

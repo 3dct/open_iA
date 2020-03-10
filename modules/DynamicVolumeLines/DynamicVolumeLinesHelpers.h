@@ -28,7 +28,7 @@
 #include <itkImage.h>
 #include <itkImageIOBase.h>
 
-#include <math.h>
+#include <cassert>
 
 typedef itk::ImageBase< DIM > ImageBaseType;
 typedef ImageBaseType::Pointer ImagePointer;
@@ -89,7 +89,8 @@ inline QPen getDatasetPen(int datasetIdx, int datasetCnt, int penWidth, QString 
 	auto theme = iAColorThemeManager::instance().theme(themeName);
 	QPen datasetPen; datasetPen.setWidth(penWidth);
 	QColor datasetColor;
-	if (datasetCnt <= theme->size())
+	assert(datasetCnt > 0);
+	if (static_cast<size_t>(datasetCnt) <= theme->size())
 	{
 		datasetColor = theme->color(datasetIdx);
 	}

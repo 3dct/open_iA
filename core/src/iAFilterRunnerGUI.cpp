@@ -123,10 +123,11 @@ void iAFilterRunnerGUI::storeParameters(QSharedPointer<iAFilter> filter, QMap<QS
 bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
 	MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput)
 {
-	QVector<pParameter> params(filter->parameters());
+	QVector<pParameter> dlgParams;
 	bool showROI = false;	// TODO: find better way to check this?
-	for (auto p : params)
+	for (auto filterParam : filter->parameters())
 	{
+		pParameter p(filterParam->clone());
 		if (p->valueType() == Categorical)
 		{
 			QStringList comboValues = p->defaultValue().toStringList();
@@ -148,8 +149,9 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		{
 			showROI = true;
 		}
+		dlgParams.push_back(p);
 	}
-	if (filter->requiredInputs() == 1 && params.empty())
+	if (filter->requiredInputs() == 1 && dlgParams.empty())
 	{
 		return true;
 	}
@@ -168,7 +170,6 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 			.arg(filter->requiredInputs()).arg(otherMdis.size()+1));
 		return false;
 	}
-	QVector<pParameter> dlgParams(params);
 	QStringList mdiChildrenNames;
 	if (askForAdditionalInput && filter->requiredInputs() > 1)
 	{
