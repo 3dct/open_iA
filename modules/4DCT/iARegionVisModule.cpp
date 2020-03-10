@@ -42,6 +42,8 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 
+#include <cassert>
+
 iARegionVisModule::iARegionVisModule( )
 	: iAVisModule( )
 	, m_densityVal( 0.5 )

@@ -87,6 +87,8 @@
 #endif
 #endif
 
+#include <cassert>
+
 struct RunInfo
 {
 	RunInfo() :

@@ -225,7 +225,7 @@ char* OkcData::fgetcsvline(vector<string> &csv_databuf, FILE *fhead) {
 				csv_databuf.push_back(csv_buf);
 				startpos = pos + 1;
 				pos = substring_index(data_buf,",",pos+1);
-				SAFE_DELETE(name_);
+				SAFE_DELETE_ARR(name_);
 			}
 			if ((substring_index(data_buf, "\n", 0)) > 0)
 			{
@@ -233,7 +233,7 @@ char* OkcData::fgetcsvline(vector<string> &csv_databuf, FILE *fhead) {
 				csv_buf = stringbuf.substr(startpos, length - startpos - 1);
 				char* name_ = new char[csv_buf.length() + 4];    // name is as assigned but never read?
 				strcpy(name_, csv_buf.c_str());
-				SAFE_DELETE(name_);
+				SAFE_DELETE_ARR(name_);
 			}
 			else
 			{
