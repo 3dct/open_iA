@@ -143,8 +143,8 @@ QString iASingleResult::ToString(QSharedPointer<iAAttributes> attributes, int ty
 
 
 iASingleResult::iASingleResult(int id, iASamplingResults const & sampling):
-	m_id(id),
-	m_sampling(sampling)
+	m_sampling(sampling),
+	m_id(id)
 {
 }
 

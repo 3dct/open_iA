@@ -765,7 +765,7 @@ void dlg_Consensus::StoreConfig()
 
 	const size_t NumberOfBestSets = 10;
 	QStringList bestParameterSets, bestDice;
-	for (int b = 0; b < std::min(runs.size(), NumberOfBestSets); ++b)
+	for (size_t b = 0; b < std::min(runs.size(), NumberOfBestSets); ++b)
 	{
 		bestParameterSets.append(QString::number(std::get<0>(runs[b])) + "-" + QString::number(std::get<1>(runs[b])));
 		bestDice.append(QString::number(std::get<2>(runs[b])));

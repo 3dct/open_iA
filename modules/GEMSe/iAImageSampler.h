@@ -91,7 +91,7 @@ private:
 	bool m_calculateCharacteristics;
 	//! @}
 
-	size_t m_curLoop;
+	int m_curLoop;
 	bool m_aborted;
 
 	//! @{

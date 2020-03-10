@@ -32,7 +32,6 @@ public:
 	static const QString DefaultSPSFileName;
 	static const QString DefaultCHRFileName;
 	static const QString DefaultModalityFileName;
-	static const int DefaultLabelCount;
 
 	iAEnsembleDescriptorFile(QString const & ensembleFileName);
 	iAEnsembleDescriptorFile(

@@ -55,7 +55,6 @@ private:
 	vtkCamera*   m_commonCamera;
 	iASlicerMode m_slicerMode;
 	int m_sliceNumber[SlicerCount];
-	int m_maxWidgets;
 	int m_labelCount;
 	iAColorTheme const * m_colorTheme;
 };

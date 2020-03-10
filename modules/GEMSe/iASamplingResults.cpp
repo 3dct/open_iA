@@ -43,11 +43,11 @@ iASamplingResults::iASamplingResults(
 	int id
 ):
 	m_attributes(attr),
+	m_name(name),
 	m_samplingMethod(samplingMethod),
 	m_path(path),
 	m_executable(executable),
 	m_additionalArguments(additionalArguments),
-	m_name(name),
 	m_id(id)
 {
 }
