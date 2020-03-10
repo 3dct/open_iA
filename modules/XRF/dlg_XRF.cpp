@@ -90,6 +90,8 @@
 #include <QFileDialog>
 #include <QMapIterator>
 
+#include <cassert>
+
 
 dlg_XRF::dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg_RefSpectra* dlgRefSpectra):
 	dlg_xrfContainer(parentWidget),
@@ -100,11 +102,11 @@ dlg_XRF::dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg
 	m_decompositionLoaded(false),
 	m_spectrumDiagram(nullptr),
 	m_accumulatedGridLayout(nullptr),
-	m_spectrumSelectionChannelID(NotExistingChannel),
 	m_oTF(vtkSmartPointer<vtkPiecewiseFunction>::New()),
 	m_cTF(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_xrfData(new iAXRFData),
 	m_enabledChannels(0),
+	m_spectrumSelectionChannelID(NotExistingChannel),
 	m_periodicTable(dlgPeriodicTable),
 	m_selection_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
@@ -526,6 +528,7 @@ void dlg_XRF::updateFunctionalBoxplot(int show)
 
 void dlg_XRF::ReferenceSpectrumDoubleClicked( const QModelIndex &index )
 {
+	assert(index.row() >= 0);
 	QColor initCol = m_refSpectraLib->getElementColor(index);
 	QColor newColor = QColorDialog::getColor(initCol, this, "New color for the reference spectrum", QColorDialog::ShowAlphaChannel);
 	if(newColor.isValid())
@@ -534,7 +537,7 @@ void dlg_XRF::ReferenceSpectrumDoubleClicked( const QModelIndex &index )
 
 		for (int i=0; i<m_elementRenderers.size(); ++i)
 		{
-			if (m_elementRenderers[i]->GetRefLibIndex() == index.row())
+			if (m_elementRenderers[i]->GetRefLibIndex() == static_cast<size_t>(index.row()))
 			{
 				InitElementRenderer(m_elementRenderers[i], index.row());
 			}
@@ -571,9 +574,10 @@ void dlg_XRF::ReferenceSpectrumItemChanged( QStandardItem * item )
 		RemoveElementLine(m_refSpectraLib->spectra[indRow].GetSymbol());
 	}
 	int elemRendInd = -1;
+	assert(indRow >= 0);
 	for (int i=0; i<m_elementRenderers.size(); ++i)
 	{
-		if( m_elementRenderers[i]->GetRefLibIndex() == indRow )
+		if( m_elementRenderers[i]->GetRefLibIndex() == static_cast<size_t>(indRow))
 		{
 			elemRendInd = i;
 		}
@@ -789,8 +793,10 @@ void dlg_XRF::combinedElementMaps(int show)
 			continue;
 		}
 		m_channelColors.resize(m_enabledChannels + 1);
-		if (m_channelIDs.size() <= m_enabledChannels)
+		if (m_channelIDs.size() <= static_cast<size_t>(m_enabledChannels))
+		{
 			m_channelIDs.push_back(mdiChild->createChannel());
+		}
 		//auto chData = mdiChild->channelData(m_channelIDs[m_enabledChannels]);
 		vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(m_decomposeSelectedElements.indexOf(i));
 		QColor color = m_refSpectraLib->getElementColor(i);

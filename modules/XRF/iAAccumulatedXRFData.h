@@ -68,8 +68,8 @@ private:
 	std::vector<iAFunction<size_t, unsigned int> *> const & spectrumFunctions();
 
 	QSharedPointer<iAXRFData> m_xrfData;
-	CountType* m_maximum;
 	CountType* m_minimum;
+	CountType* m_maximum;
 	CountType* m_average;
 	AccumulateFct m_accumulateFct;
 	double m_xBounds[2];

@@ -171,7 +171,7 @@ void iAAccumulatedXRFData::calculateStatistics()
 		int extentImg1[6];
 		img1->GetExtent(extentImg1);
 		//double * range = img1->GetScalarRange();
-		assert( ((extentImg1[1]- extentImg1[0]+1) * (extentImg1[3]- extentImg1[2]+1) * (extentImg1[5]- extentImg1[4]+1)) == count );
+		assert( (static_cast<unsigned>(extentImg1[1]- extentImg1[0]+1) * (extentImg1[3]- extentImg1[2]+1) * (extentImg1[5]- extentImg1[4]+1)) == count );
 		// end checks
 		int type = img1->GetScalarType();
 		double avg = 0.0;
