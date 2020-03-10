@@ -39,17 +39,17 @@
 
 namespace
 {
-	int getRequiredParts(int size, int partSize)
+	size_t getRequiredParts(size_t size, size_t partSize)
 	{
 		return size / partSize + ((size % partSize == 0) ? 0 : 1);
 	}
 
-	int getLeft(int x, int patchSizeHalf, bool center)
+	size_t getLeft(size_t x, size_t patchSizeHalf, bool center)
 	{
-		return center ? std::max(0, x - patchSizeHalf) : x;
+		return center ? std::max(static_cast<size_t>(0), x - patchSizeHalf) : x;
 	}
 
-	int getSize(int x, int left, int size, int patchSizeHalf, int patchSize, bool center)
+	int getSize(size_t x, size_t left, size_t size, size_t patchSizeHalf, size_t patchSize, bool center)
 	{
 		return center ? (
 			(x < patchSizeHalf) ?
@@ -112,16 +112,16 @@ namespace
 		QStringList outputBuffer;
 
 		int curOp = 0;
-		int patchSize[3] = {
-			parameters["Patch size X"].toInt(),
-			parameters["Patch size Y"].toInt(),
-			parameters["Patch size Z"].toInt()
+		size_t patchSize[3] = {
+			parameters["Patch size X"].toULongLong(),
+			parameters["Patch size Y"].toULongLong(),
+			parameters["Patch size Z"].toULongLong()
 		};
-		int patchSizeHalf[3];
-		int stepSize[3] = {
-			parameters["Step size X"].toInt(),
-			parameters["Step size Y"].toInt(),
-			parameters["Step size Z"].toInt()
+		size_t patchSizeHalf[3];
+		size_t stepSize[3] = {
+			parameters["Step size X"].toULongLong(),
+			parameters["Step size Y"].toULongLong(),
+			parameters["Step size Z"].toULongLong()
 		};
 		int blockCount[DIM];
 		double outputSpacing[DIM];
@@ -147,18 +147,18 @@ namespace
 		filter->setProgress(&dummyProgress);
 		// iterate over all patches:
 		itk::Index<DIM> outIdx; outIdx[0] = 0;
-		for (int x = 0; x < size[0]; x += stepSize[0])
+		for (size_t x = 0; x < size[0]; x += stepSize[0])
 		{
 			outIdx[1] = 0;
 			size_t extractIndex[3], extractSize[3];
 			extractIndex[0] = getLeft(x, patchSizeHalf[0], center);
 			extractSize[0] = getSize(x, extractIndex[0], size[0], patchSizeHalf[0], patchSize[0], center);
-			for (int y = 0; y < size[1]; y += stepSize[1])
+			for (size_t y = 0; y < size[1]; y += stepSize[1])
 			{
 				outIdx[2] = 0;
 				extractIndex[1] = getLeft(y, patchSizeHalf[1], center);
 				extractSize[1] = getSize(y, extractIndex[1], size[1], patchSizeHalf[1], patchSize[1], center);
-				for (int z = 0; z < size[2]; z += stepSize[2])
+				for (size_t z = 0; z < size[2]; z += stepSize[2])
 				{
 					extractIndex[2] = getLeft(z, patchSizeHalf[2], center);
 					extractSize[2] = getSize(z, extractIndex[2], size[2], patchSizeHalf[2], patchSize[2], center);
