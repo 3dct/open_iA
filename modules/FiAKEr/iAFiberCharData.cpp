@@ -320,7 +320,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 					++fiberID;
 				}
 
-				for (int curFiber=0; curFiber<curData.fiberCount; ++curFiber)
+				for (int curFiber=0; static_cast<size_t>(curFiber) < curData.fiberCount; ++curFiber)
 				{
 					QString fiberStepCsv = QString("fiber%1_paramlog.csv").arg(curFiber, 3, 10, QChar('0'));
 					QFileInfo fiberStepCsvInfo(stepInfo.absoluteFilePath() + "/" + fiberStepCsv);
@@ -419,7 +419,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 				//DEBUG_LOG("Looking for optimization step info in new (curved) format...");
 				// check if we can load new, curved step data:
 				curData.projectionError.resize(curData.fiberCount);
-				for (int curFiber = 0; curFiber < curData.fiberCount; ++curFiber)
+				for (int curFiber = 0; static_cast<size_t>(curFiber) < curData.fiberCount; ++curFiber)
 				{
 					QString fiberStepCsv = QString("fiber_%1.csv").arg(curFiber, 4, 10, QChar('0'));
 					QFileInfo fiberStepCsvInfo(stepInfo.absoluteFilePath() + "/" + fiberStepCsv);
@@ -562,7 +562,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	size_t spmStartIdx = 0;
 	m_resultIDColumn = static_cast<uint>(numParams) - 2;
 	m_projectionErrorColumn = static_cast<uint>(numParams) - 1;
-	for (resultID=0; resultID<result.size(); ++resultID)
+	for (resultID=0; static_cast<size_t>(resultID) < result.size(); ++resultID)
 	{
 		auto & curData = result[resultID];
 		vtkIdType numTableColumns = curData.table->GetNumberOfColumns();

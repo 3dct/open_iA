@@ -1538,7 +1538,7 @@ void iAFiAKErController::exportDissimilarities()
 			}
 		}
 		resultOut << endl;
-		for (size_t fiberID = 0; fiberID < r.refDiffFiber.size(); ++fiberID)
+		for (int fiberID = 0; fiberID < r.refDiffFiber.size(); ++fiberID)
 		{
 			auto& f = r.refDiffFiber[fiberID].dist;
 			resultOut << fiberID + 1;
