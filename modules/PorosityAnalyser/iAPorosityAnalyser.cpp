@@ -47,10 +47,8 @@
 #include <QStatusBar>
 #include <QTreeWidget>
 
-const int treeViewIndex = 0;
-const int overviewIndex = 1;
-
-iAPorosityAnalyser::iAPorosityAnalyser(MainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) : PorosityAnalyserConnector( parent, f ),
+iAPorosityAnalyser::iAPorosityAnalyser(MainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ):
+	PorosityAnalyserConnector( parent, f ),
 	m_dataDir( resDir ),
 	m_datasetsDir( datasetsDir ),
 	m_spmView( new iASPMView(mWnd, parent, f ) ),
@@ -265,15 +263,15 @@ void iAPorosityAnalyser::ParseComputerCSV( const QFileInfo & fi )
 			{
 				m_data.setColumnCount(colCnt);
 			}
- 			/////UNCOMMENT TO CALCULATE DICE METRIC/////////////////////////////////////
- 			//QMap<QString, QString> datasetGTs;
- 			//for( int i = 1; i < m_referenceData.rowCount(); i++ )
- 			//	datasetGTs[m_referenceData.item( i, gtDatasetColInd )->text()] = m_referenceData.item( i, gtGTSegmColumnIndex )->text();
- 			//QString datasetName = compCSV.item( cid, 3 )->text();
- 			//QString gtMaskFile = m_datasetsDir + "/" + datasetGTs[datasetName];
- 			//ScalarPixelType maskPixType;
- 			//ImagePointer gtMaskPtr = iAITKIO::readFile( gtMaskFile, maskPixType, true );
- 			////////////////////////////////////////////////////////////////////////////
+			/////UNCOMMENT TO CALCULATE DICE METRIC/////////////////////////////////////
+			//QMap<QString, QString> datasetGTs;
+			//for( int i = 1; i < m_referenceData.rowCount(); i++ )
+			//	datasetGTs[m_referenceData.item( i, gtDatasetColInd )->text()] = m_referenceData.item( i, gtGTSegmColumnIndex )->text();
+			//QString datasetName = compCSV.item( cid, 3 )->text();
+			//QString gtMaskFile = m_datasetsDir + "/" + datasetGTs[datasetName];
+			//ScalarPixelType maskPixType;
+			//ImagePointer gtMaskPtr = iAITKIO::readFile( gtMaskFile, maskPixType, true );
+			////////////////////////////////////////////////////////////////////////////
 			for( int rid = 1; rid < runsCSV.rowCount(); ++rid ) //1 because 0 is header
 			{
 				int lastRow = m_data.rowCount(), col = 0;
@@ -324,11 +322,11 @@ void iAPorosityAnalyser::ParseComputerCSV( const QFileInfo & fi )
  //				//QString oldfne = runsCSV.item( rid, errorInd + 1 )->text();
  //				runsCSV.item( rid, errorInd )->setText( QString::number( fpe ) );
  //				runsCSV.item( rid, errorInd + 1 )->setText( QString::number( fne ) );
- 				//////////////////////////////////////////////////////////////////////////
+				//////////////////////////////////////////////////////////////////////////
 			}
- 			/////UNCOMMENT TO CALCULATE DICE METRIC/////////////////////////////////////
- 			//iACSVToQTableWidgetConverter::saveToCSVFile( runsCSV, runsCSVDirPath );
- 			////////////////////////////////////////////////////////////////////////////
+			/////UNCOMMENT TO CALCULATE DICE METRIC/////////////////////////////////////
+			//iACSVToQTableWidgetConverter::saveToCSVFile( runsCSV, runsCSVDirPath );
+			////////////////////////////////////////////////////////////////////////////
 		}
 	}
 }
