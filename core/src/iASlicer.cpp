@@ -73,13 +73,13 @@
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkPoints.h>
-#include <vtkProperty.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 #include <vtkQImageToImageSource.h>
 #include <vtkRegularPolygonSource.h>
-#include <vtkRendererCollection.h>
-#include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarRepresentation.h>
 #include <vtkScalarBarWidget.h>
@@ -829,7 +829,9 @@ void iASlicer::setResliceAxesOrigin(double x, double y, double z)
 	if (m_interactor->GetEnabled())
 	{
 		for (auto ch : m_channels)
+		{
 			ch->setResliceAxesOrigin(x, y, z);
+		}
 		m_interactor->Render();
 	}
 }
@@ -837,7 +839,9 @@ void iASlicer::setResliceAxesOrigin(double x, double y, double z)
 void iASlicer::setPositionMarkerCenter(double x, double y)
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 
 	if (m_interactor->GetEnabled() && m_showPositionMarker)
 	{
@@ -851,23 +855,31 @@ void iASlicer::setPositionMarkerCenter(double x, double y)
 void iASlicer::showIsolines(bool s)
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 	for (auto ch : m_channels)
+	{
 		ch->setShowContours(m_ren, s);
+	}
 }
 
 void iASlicer::showPosition(bool s)
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 	m_showPositionMarker = s;
 }
 
-void iASlicer::saveSliceMovie(QString const & fileName, int qual /*= 2*/)
+void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 {
 	// TODO: select channel / for all channels?
 	if (!hasChannel(0))
+	{
 		return;
+	}
 	QString movie_file_types = GetAvailableMovieFormats();
 	if (movie_file_types.isEmpty())
 	{
@@ -876,14 +888,21 @@ void iASlicer::saveSliceMovie(QString const & fileName, int qual /*= 2*/)
 	}
 	auto movieWriter = GetMovieWriter(fileName, qual);
 	if (movieWriter.GetPointer() == nullptr)
+	{
 		return;
-
+	}
 	m_interactor->Disable();
 
 	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
 	int* rws = m_renWin->GetSize();
-	if (rws[0] % 2 != 0) rws[0]++;
-	if (rws[1] % 2 != 0) rws[1]++;
+	if (rws[0] % 2 != 0)
+	{
+		rws[0]++;
+	}
+	if (rws[1] % 2 != 0)
+	{
+		rws[1]++;
+	}
 	m_renWin->SetSize(rws);
 	m_renWin->Render();
 	windowToImage->SetInput(m_renWin);
@@ -929,20 +948,28 @@ void iASlicer::saveSliceMovie(QString const & fileName, int qual /*= 2*/)
 	m_interactor->Enable();
 
 	if (movieWriter->GetError())
+	{
 		emit msg(tr("Movie export failed."));
+	}
 	else
+	{
 		emit msg(tr("Movie export completed."));
+	}
 }
 
 void iASlicer::saveAsImage()
 {
 	if (!hasChannel(0))
+	{
 		return;
+	}
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save Image"),
 		"", // TODO: get directory of file?
 		iAIOProvider::GetSupportedImageFormats());
 	if (fileName.isEmpty())
+	{
 		return;
+	}
 	bool saveNative = true;
 	bool output16Bit = false;
 
@@ -972,10 +999,14 @@ void iASlicer::saveAsImage()
 
 	dlg_commoninput dlg(this, "Save options", inList, inPara, nullptr);
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 	saveNative = dlg.getCheckValue(0);
 	if (inList.size() > 2)
+	{
 		output16Bit = dlg.getCheckValue(2);
+	}
 	iAConnector con;
 	vtkSmartPointer<vtkImageData> img;
 	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -1020,14 +1051,18 @@ void iASlicer::saveImageStack()
 {
 	// TODO: allow selecting channel to export? export all channels?
 	if (!hasChannel(0))
+	{
 		return;
+	}
 	auto imageData = m_channels[0]->input();
 
 	QString file = QFileDialog::getSaveFileName(this, tr("Save Image Stack"),
 		"", // TODO: get directory of file?
 		iAIOProvider::GetSupportedImageFormats());
 	if (file.isEmpty())
+	{
 		return;
+	}
 
 	QFileInfo fileInfo(file);
 	QString baseName = fileInfo.absolutePath() + "/" + fileInfo.baseName();
@@ -1052,13 +1087,17 @@ void iASlicer::saveImageStack()
 	}
 	dlg_commoninput dlg(this, "Save options", inList, inPara, nullptr);
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 
 	saveNative = dlg.getCheckValue(0);
 	int sliceFrom = dlg.getIntValue(1);
-	int sliceTo   = dlg.getIntValue(2);
+	int sliceTo = dlg.getIntValue(2);
 	if (inList.size() > 3)
+	{
 		output16Bit = dlg.getCheckValue(3);
+	}
 
 	if (sliceFrom < sliceMin || sliceFrom > sliceTo || sliceTo > sliceMax)
 	{
@@ -1085,9 +1124,13 @@ void iASlicer::saveImageStack()
 			con.setImage(reslicer->GetOutput());
 			iAITKIO::ImagePointer imgITK;
 			if (!output16Bit)
+			{
 				imgITK = rescaleImageTo<unsigned char>(con.itkImage(), 0, 255);
+			}
 			else
+			{
 				imgITK = rescaleImageTo<unsigned short>(con.itkImage(), 0, 65535);
+			}
 			con.setImage(imgITK);
 			img = con.vtkImage();
 		}
@@ -1112,7 +1155,9 @@ void iASlicer::saveImageStack()
 void iASlicer::updatePositionMarkerExtent()
 {
 	if (m_channels.empty() || !m_positionMarkerSrc)
+	{
 		return;
+	}
 	// TODO: how to choose spacing? currently fixed from first image? export all channels?
 	auto imageData = m_channels[0]->input();
 	m_positionMarkerSrc->SetXLength(m_ext * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)]);
@@ -1623,7 +1668,9 @@ void iASlicer::snapToHighGradient(double &x, double &y)
 void iASlicer::setShowText(bool isVisible)
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 	m_textInfo->Show(isVisible);
 }
 
@@ -1651,7 +1698,9 @@ void iASlicer::setSlabThickness(int thickness)
 {
 	m_slabThickness = thickness;
 	for (auto ch : m_channels)
+	{
 		ch->setSlabNumberOfSlices(thickness);
+	}
 	update();
 }
 
@@ -1659,14 +1708,18 @@ void iASlicer::setSlabCompositeMode(int slabCompositeMode)
 {
 	m_slabCompositeMode = slabCompositeMode;
 	for (auto ch : m_channels)
+	{
 		ch->setSlabMode(slabCompositeMode);
+	}
 	update();
 }
 
 QSharedPointer<iAChannelSlicerData> iASlicer::createChannel(uint id, iAChannelData const & chData)
 {
 	if (m_channels.contains(id))
+	{
 		throw std::runtime_error(QString("iASlicer: Channel with ID %1 already exists!").arg(id).toStdString());
+	}
 
 	QSharedPointer<iAChannelSlicerData> newData(new iAChannelSlicerData(chData, m_mode));
 	newData->setInterpolate(m_settings.LinearInterpolation);
@@ -1681,14 +1734,18 @@ iAChannelSlicerData * iASlicer::channel(uint id)
 {
 	assert(m_channels.contains(id));
 	if (!m_channels.contains(id))
+	{
 		return nullptr;
+	}
 	return m_channels.find(id)->data();
 }
 
 void iASlicer::removeChannel(uint id)
 {
 	if (channel(id)->isEnabled())
+	{
 		enableChannel(id, false);
+	}
 	m_channels.remove(id);
 }
 
@@ -1727,7 +1784,9 @@ void iASlicer::rotateSlice(double angle)
 	m_angle[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z)] = angle;
 
 	if (!hasChannel(0))
+	{
 		return;
+	}
 
 	double center[3];
 
@@ -1776,17 +1835,25 @@ void iASlicer::switchContourSourceToChannel(uint id )
 void iASlicer::setContours(int numberOfContours, double contourMin, double contourMax)
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 	for (auto ch : m_channels)
+	{
 		ch->setContours(numberOfContours, contourMin, contourMax);
+	}
 }
 
 void iASlicer::setContours(int numberOfContours, double const * contourValues)
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 	for (auto ch : m_channels)
+	{
 		ch->setContours(numberOfContours, contourValues);
+	}
 }
 
 void iASlicer::setMouseCursor(QString const & s)
@@ -1797,7 +1864,9 @@ void iASlicer::setMouseCursor(QString const & s)
 		QString shape = s.section(' ', 0, 0);
 		QPixmap pm;
 		if (shape == "Crosshair")
+		{
 			pm = QPixmap(":/images/" + s.section(' ', 0, 1) + ".png");
+		}
 		QPixmap cpm(pm.size());
 		cpm.fill(color);
 		cpm.setMask(pm.createMaskFromColor(Qt::transparent));
