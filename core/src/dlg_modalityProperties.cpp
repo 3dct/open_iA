@@ -79,6 +79,8 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 	}
 	cb_RenderMode->setCurrentText(RenderModeMap().value(vs.RenderMode));
 
+	dsbOpacity->setValue(modality->slicerOpacity());
+
 	connect(buttonBox, &QDialogButtonBox::accepted, this, &dlg_modalityProperties::OKButtonClicked);
 	connect(buttonBox, &QDialogButtonBox::rejected, this, &dlg_modalityProperties::reject);
 }
@@ -148,6 +150,7 @@ void dlg_modalityProperties::OKButtonClicked()
 
 	m_modality->setOrigin(origin);
 	m_modality->setSpacing(spacing);
+	m_modality->setSlicerOpacity(dsbOpacity->value());
 	m_modality->renderer()->setOrientation(orientation);
 	//m_modality->renderer()->setPosition(position);
 	m_modality->renderer()->applySettings(m_volumeSettings);

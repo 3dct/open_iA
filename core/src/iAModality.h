@@ -123,6 +123,14 @@ public:
 		this->m_VolSettingsSavedStatus = false;
 	}
 
+	void setSlicerOpacity(double opacity)
+	{
+		m_slicerOpacity = opacity;
+	}
+	double slicerOpacity()
+	{
+		return m_slicerOpacity;
+	}
 
 private:
 	iAVolumeSettings m_volSettings;
@@ -133,6 +141,7 @@ private:
 	int     m_channel;     //!< in case the file contains multiple channels, the channel no. for this modality
 	int     m_renderFlags;
 	uint    m_channelID;
+	double m_slicerOpacity;  //!< overall opacity in the slicers
 	QSharedPointer<iAImageCoordConverter> m_converter;
 	QSharedPointer<iAModalityTransfer> m_transfer;
 	QSharedPointer<iAVolumeRenderer> m_renderer;

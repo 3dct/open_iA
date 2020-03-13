@@ -305,9 +305,8 @@ void dlg_modalities::editClicked()
 			editModality->setChannelID(m_mdiChild->createChannel());
 		}
 		m_mdiChild->updateChannel(editModality->channelID(), editModality->image(), editModality->transfer()->colorTF(), editModality->transfer()->opacityTF(), true);
-		m_mdiChild->updateChannelOpacity(editModality->channelID(), 1);
-		m_mdiChild->updateViews();
 	}
+	m_mdiChild->updateChannelOpacity(editModality->channelID(), editModality->slicerOpacity());
 	lwModalities->item(idx)->setText(GetCaption(*editModality));
 	emit modalitiesChanged(prop.spacingChanged(),prop.newSpacing());
 }
