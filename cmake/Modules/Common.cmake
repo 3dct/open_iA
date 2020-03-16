@@ -8,6 +8,7 @@ ELSE()	# deprecated for CMake >= 3.10
 	# suppress warnings from Qt config (required for Qt versions < 5.10 or so)
 	CMAKE_POLICY(SET CMP0053 OLD)	# suppress warnings from Qt config (required for Qt versions < 5.10 or so)
 ENDIF()
+CMAKE_POLICY(SET CMP0087 NEW)
 
 #-------------------------
 # Disable In-Source Build
@@ -270,7 +271,7 @@ SET(QT_USE_QTXML TRUE)
 #IF (WIN32)
 #	SET( CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/Program Files (x86)/Windows Kits/8.1/Lib/winv6.3/um/x64" )
 #ENDIF (WIN32)
-FIND_PACKAGE(Qt5 COMPONENTS Widgets Xml Network Test OpenGL PrintSupport REQUIRED)
+FIND_PACKAGE(Qt5 COMPONENTS Widgets Xml Network Test OpenGL PrintSupport Svg REQUIRED)
 MESSAGE(STATUS "Qt: ${Qt5_VERSION} in ${Qt5_DIR}")
 set (BUILD_INFO "${BUILD_INFO}    \"Qt: ${Qt5_VERSION}\\n\"\n")
 IF (Qt5_VERSION_MINOR LESS 9)
@@ -282,6 +283,10 @@ SET(QT_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Xml_LIBRARIES} ${Qt5OpenGL_LIBRARIES}
 
 STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
 STRING(REGEX REPLACE "/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_BASEDIR})	# on linux, lib is omitted if installed from package repos
+
+# Install svg imageformats plugin:
+INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION imageformats)
+LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt5::QSvgPlugin>")
 IF (WIN32)
 	SET (QT_LIB_DIR "${Qt5_BASEDIR}/bin")
 	# use imported targets for windows plugin:
@@ -326,8 +331,6 @@ IF (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
 ENDIF()
 LIST (APPEND BUNDLE_DIRS "${QT_LIB_DIR}")
 
-
-#FIND_PACKAGE(Qt5Charts)
 
 # Eigen
 FIND_PACKAGE(Eigen3)

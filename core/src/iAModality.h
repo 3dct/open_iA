@@ -115,14 +115,24 @@ public:
 
 	const iAVolumeSettings &volumeSettings() const;
 
-	inline bool volSettingsSavedStatus() {
+	bool volSettingsSavedStatus()
+	{
 		return this->m_VolSettingsSavedStatus;
 	}
 
-	inline void setVolSettingsSavedStatusFalse() {
+	void setVolSettingsSavedStatusFalse()
+	{
 		this->m_VolSettingsSavedStatus = false;
 	}
 
+	void setSlicerOpacity(double opacity)
+	{
+		m_slicerOpacity = opacity;
+	}
+	double slicerOpacity()
+	{
+		return m_slicerOpacity;
+	}
 
 private:
 	iAVolumeSettings m_volSettings;
@@ -130,13 +140,14 @@ private:
 
 	QString m_name;
 	QString m_filename;
-	int     m_channel;     //!< in case the file contains multiple channels, the channel no. for this modality
-	int     m_renderFlags;
-	uint    m_channelID;
+	int m_channel;  //!< in case the file contains multiple channels, the channel no. for this modality
+	int m_renderFlags;
+	uint m_channelID;  //!< channel in mdi child
+	double m_slicerOpacity;  //!< overall opacity in the slicers
 	QSharedPointer<iAImageCoordConverter> m_converter;
 	QSharedPointer<iAModalityTransfer> m_transfer;
 	QSharedPointer<iAVolumeRenderer> m_renderer;
-	std::vector<vtkSmartPointer<vtkImageData> > m_imgs;	// TODO: implement lazy loading
+	std::vector<vtkSmartPointer<vtkImageData>> m_imgs;  // TODO: implement lazy loading
 	vtkSmartPointer<vtkImageData> m_imgData;
 
 	// TODO: Refactor

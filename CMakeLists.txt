@@ -1,5 +1,6 @@
-CMAKE_MINIMUM_REQUIRED ( VERSION 3.13 )
+CMAKE_MINIMUM_REQUIRED ( VERSION 3.14 )
 # 3.13 required for VS_DEBUGGER_ENVIRONMENT!
+# 3.14 required for CMAKE_POLICY CMP0087 / Generator expressions in install code|script
 
 PROJECT ( open_iA LANGUAGES CXX )
 

@@ -43,6 +43,7 @@ iAModality::iAModality(QString const & name, QString const & filename, int chann
 	m_channel(channel),
 	m_renderFlags(renderFlags),
 	m_channelID(NotExistingChannel),
+	m_slicerOpacity(1),
 	m_imgs(1)
 {
 	setData(imgData);
