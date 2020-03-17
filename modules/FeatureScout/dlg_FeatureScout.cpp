@@ -294,10 +294,14 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupConnections();
 	m_3dvis = create3DObjectVis(vis, parent, csvtbl, m_columnMapping, m_colorList.at(0), curvedFiberInfo, cylinderQuality, segmentSkip);
 	if (vis != iACsvConfig::UseVolume)
+	{
 		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
 			.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
+	}
 	else
+	{
 		SingleRendering();
+	}
 	m_3dvis->show();
 	parent->renderer()->renderer()->ResetCamera();
 	blobManager->SetRenderers(blobRen, m_renderer->labelRenderer());
@@ -355,7 +359,9 @@ void dlg_FeatureScout::setPCChartData( bool specialRendering )
 		chartTable = csvTable;
 	}
 	if (pcView->GetScene()->GetNumberOfItems() > 0)
+	{
 		pcView->GetScene()->RemoveItem(0u);
+	}
 	this->pcChart = vtkSmartPointer<vtkChartParallelCoordinates>::New();
 	this->pcChart->GetPlot( 0 )->SetInputData( chartTable );
 	this->pcChart->GetPlot( 0 )->GetPen()->SetOpacity( 90 );
@@ -370,8 +376,10 @@ void dlg_FeatureScout::setPCChartData( bool specialRendering )
 
 void dlg_FeatureScout::updateVisibility( QStandardItem *item )
 {
-	if ( !item->isCheckable() )
+	if (!item->isCheckable())
+	{
 		return;
+	}
 	int i = item->index().row();
 	columnVisibility[i] = (item->checkState() == Qt::Checked);
 	updatePCColumnVisibility();
@@ -410,21 +418,25 @@ void dlg_FeatureScout::initColumnVisibility()
 	columnVisibility.resize(elementsCount);
 	std::fill(columnVisibility.begin(), columnVisibility.end(), false);
 	if (filterID == iAFeatureScoutObjectType::Fibers) // Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
-		columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]]   =
-		columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
-		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] =
-		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] =
-		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] =
-		columnVisibility[(*m_columnMapping)[iACsvConfig::Length]]  =
-		columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] = true;
-	else if (filterID == iAFeatureScoutObjectType::Voids) // Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
-		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] =
-		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] =
-		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] =
-		columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
+	{
 		columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]] =
-		columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] =
-		columnVisibility[(*m_columnMapping)[iACsvConfig::Length]] =	true;
+			columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
+			columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] =
+			columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] =
+			columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] =
+			columnVisibility[(*m_columnMapping)[iACsvConfig::Length]] =
+			columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] = true;
+	}
+	else if (filterID == iAFeatureScoutObjectType::Voids) // Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
+	{
+		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] =
+			columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] =
+			columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] =
+			columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
+			columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]] =
+			columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] =
+			columnVisibility[(*m_columnMapping)[iACsvConfig::Length]] = true;
+	}
 }
 
 void dlg_FeatureScout::setupModel()
@@ -573,10 +585,14 @@ void dlg_FeatureScout::initElementTableModel( int idx )
 				}
 				else
 				{
-					if ( i == 0 || i == elementsCount - 1 )
-						str = QString::number( v.ToInt() );
+					if (i == 0 || i == elementsCount - 1)
+					{
+						str = QString::number(v.ToInt());
+					}
 					else
-						str = QString::number( v.ToDouble(), 'f', 2 );
+					{
+						str = QString::number(v.ToDouble(), 'f', 2);
+					}
 				}
 				elementTableModel->setData( elementTableModel->index( i, j, QModelIndex() ), str );
 				// Surpresses changeability of items.
@@ -598,8 +614,10 @@ void dlg_FeatureScout::initElementTableModel( int idx )
 			vtkVariant v = chartTable->GetValue( idx, i );
 			QString str = QString::number( v.ToDouble(), 'f', 2 );
 
-			if ( i == 0 || i == elementsCount - 1 )
-				str = QString::number( v.ToInt() );
+			if (i == 0 || i == elementsCount - 1)
+			{
+				str = QString::number(v.ToInt());
+			}
 
 			elementTableModel->setData( elementTableModel->index( i, 1, QModelIndex() ), str );
 		}
@@ -631,16 +649,24 @@ void dlg_FeatureScout::PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, c
 	ofstream debugfile;
 	std::string OutfileName = "";
 	if (fileName)
+	{
 		OutfileName = getLocalEncodingFileName(*fileName);
+	}
 	else
+	{
 		OutfileName = "debugFile";
+	}
 
 	if (!QDir(outputPath).exists() || !anyTable)
+	{
 		return;
+	}
 
 	debugfile.open(getLocalEncodingFileName(outputPath) + OutfileName + ".csv");
 	if (!debugfile.is_open())
+	{
 		return;
+	}
 
 	vtkVariant spCol, spRow, spCN, spVal;
 	spCol = anyTable->GetNumberOfColumns();
@@ -701,8 +727,10 @@ float dlg_FeatureScout::calculateAverage( vtkDataArray *arr )
 	double av = 0.0;
 	double sum = 0.0;
 
-	for ( int i = 0; i < arr->GetNumberOfTuples(); ++i )
-		sum = sum + arr->GetVariantValue( i ).ToDouble();
+	for (int i = 0; i < arr->GetNumberOfTuples(); ++i)
+	{
+		sum = sum + arr->GetVariantValue(i).ToDouble();
+	}
 
 	av = sum / arr->GetNumberOfTuples();
 	return av;
@@ -760,7 +788,9 @@ void dlg_FeatureScout::MultiClassRendering()
 	int classCount = rootItem->rowCount();
 
 	if (classCount == 1)
+	{
 		return;
+	}
 	m_renderMode = rmMultiClass;
 
 	double alpha = this->calculateOpacity(rootItem);
@@ -792,7 +822,9 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 	showOrientationDistribution();
 
 	if (activeClassItem->rowCount() <= 0)
+	{
 		return;
+	}
 
 	auto sortedSelInds = selInds;
 	std::sort(sortedSelInds.begin(), sortedSelInds.end());
@@ -819,8 +851,10 @@ void dlg_FeatureScout::RenderMeanObject()
 	activeChild->initProgressBar();
 
 	// Delete old mean object data lists
-	for ( int i = 0; i < m_MOData.moHistogramList.size(); ++i )
+	for (int i = 0; i < m_MOData.moHistogramList.size(); ++i)
+	{
 		delete m_MOData.moHistogramList[i];
+	}
 	m_MOData.moVolumesList.clear();
 	m_MOData.moHistogramList.clear();
 	m_MOData.moRendererList.clear();
@@ -841,14 +875,12 @@ void dlg_FeatureScout::RenderMeanObject()
 		vtkToItkConverter->SetInput( cast->GetOutput() );
 	}
 	else
-		vtkToItkConverter->SetInput( static_cast<MdiChild*>( activeChild )->imagePointer() );
+	{
+		vtkToItkConverter->SetInput(static_cast<MdiChild*>(activeChild)->imagePointer());
+	}
 	vtkToItkConverter->Update();
 
 	IType::Pointer itkImageData = vtkToItkConverter->GetOutput();
-	double spacing[3];
-	spacing[0] = activeChild->imagePointer()->GetSpacing()[0];
-	spacing[1] = activeChild->imagePointer()->GetSpacing()[1];
-	spacing[2] = activeChild->imagePointer()->GetSpacing()[2];
 	itk::Size<DIM> itkImageDataSize = itkImageData->GetLargestPossibleRegion().GetSize();
 
 	typedef itk::BinaryThresholdImageFilter <IType, IType> BinaryThresholdImageFilterType;
@@ -894,8 +926,10 @@ void dlg_FeatureScout::RenderMeanObject()
 	const MObjectImageType::SpacingType& out_spacing = itkImageData->GetSpacing();
 	const MObjectImageType::PointType& inputOrigin = itkImageData->GetOrigin();
 	double outputOrigin[DIM];
-	for ( unsigned int i = 0; i < DIM; ++i )
+	for (unsigned int i = 0; i < DIM; ++i)
+	{
 		outputOrigin[i] = inputOrigin[i];
+	}
 	mObjectITKImage->SetSpacing( out_spacing );
 	mObjectITKImage->SetOrigin( outputOrigin );
 	mObjectITKImage->Allocate();
@@ -913,8 +947,10 @@ void dlg_FeatureScout::RenderMeanObject()
 	const addImageType::SpacingType& addout_spacing = itkImageData->GetSpacing();
 	const addImageType::PointType& addinputOrigin = itkImageData->GetOrigin();
 	double addoutputOrigin[DIM];
-	for ( unsigned int i = 0; i < DIM; ++i )
+	for (unsigned int i = 0; i < DIM; ++i)
+	{
 		addoutputOrigin[i] = addinputOrigin[i];
+	}
 	addImage->SetSpacing( addout_spacing );
 	addImage->SetOrigin( addoutputOrigin );
 	addImage->Allocate();
@@ -930,13 +966,17 @@ void dlg_FeatureScout::RenderMeanObject()
 
 		typedef itk::ImageRegionIterator< MObjectImageType> IteratorType;
 		IteratorType mOITKImgIt( mObjectITKImage, outputRegion );
-		for ( mOITKImgIt.GoToBegin(); !mOITKImgIt.IsAtEnd(); ++mOITKImgIt )
-			mOITKImgIt.Set( 0 );
+		for (mOITKImgIt.GoToBegin(); !mOITKImgIt.IsAtEnd(); ++mOITKImgIt)
+		{
+			mOITKImgIt.Set(0);
+		}
 
 		typedef itk::ImageRegionIterator< addImageType> IteratorType;
 		IteratorType addImgIt( addImage, addoutputRegion );
-		for ( addImgIt.GoToBegin(); !addImgIt.IsAtEnd(); ++addImgIt )
-			addImgIt.Set( 0 );
+		for (addImgIt.GoToBegin(); !addImgIt.IsAtEnd(); ++addImgIt)
+		{
+			addImgIt.Set(0);
+		}
 
 		int progress = 0;
 		std::map<int, int>::const_iterator it;
@@ -980,8 +1020,10 @@ void dlg_FeatureScout::RenderMeanObject()
 		caster->Update();
 		typedef itk::ImageRegionIterator< moOutputImageType> casterIteratorType;
 		casterIteratorType casterImgIt( caster->GetOutput(), caster->GetOutput()->GetLargestPossibleRegion() );
-		for ( casterImgIt.GoToBegin(); !casterImgIt.IsAtEnd(); ++casterImgIt )
-			casterImgIt.Set( casterImgIt.Get() / meanObjectIds->size() );
+		for (casterImgIt.GoToBegin(); !casterImgIt.IsAtEnd(); ++casterImgIt)
+		{
+			casterImgIt.Set(casterImgIt.Get() / meanObjectIds->size());
+		}
 
 		// Convert resulting MObject ITK image to an VTK image
 		typedef itk::ImageToVTKImageFilter<moOutputImageType> ITKTOVTKConverterType;
@@ -1066,8 +1108,10 @@ void dlg_FeatureScout::RenderMeanObject()
 	double maxDim = 0.0;
 	for ( int i = 0; i < 6; ++i )
 	{
-		if ( outlineActor->GetBounds()[i] > maxDim )
+		if (outlineActor->GetBounds()[i] > maxDim)
+		{
 			maxDim = outlineActor->GetBounds()[i];
+		}
 	}
 
 	// Setup Mean Object view
@@ -1195,8 +1239,10 @@ void dlg_FeatureScout::updateMOView()
 void dlg_FeatureScout::browseFolderDialog()
 {
 	QString filename = QFileDialog::getSaveFileName( this, tr( "Save STL File" ), m_sourcePath, tr( "STL Files (*.stl)" ) );
-	if ( filename.isEmpty() )
+	if (filename.isEmpty())
+	{
 		return;
+	}
 	dwMO->le_StlPath->setText( filename );
 }
 
@@ -1242,33 +1288,45 @@ void CheckBounds( double color_out[3] )
 {
 	for ( int i = 0; i < 3; ++i )
 	{
-		if ( color_out[i] < 0 )
+		if (color_out[i] < 0)
+		{
 			color_out[i] = 0;
-		if ( color_out[i] > 1.0 )
+		}
+		if (color_out[i] > 1.0)
+		{
 			color_out[i] = 1.0;
+		}
 	}
 }
 
 void ColormapRGB( const double normal[3], double color_out[3] )
 {
-	for ( int i = 0; i < 3; ++i )
-		color_out[i] = 0.5 + 0.5*normal[i];
+	for (int i = 0; i < 3; ++i)
+	{
+		color_out[i] = 0.5 + 0.5 * normal[i];
+	}
 	CheckBounds( color_out );
 }
 
 void ColormapCMY( const double normal[3], double color_out[3] )
 {
-	for ( int i = 0; i < 3; ++i )
-		color_out[i] = 0.5 + 0.5*normal[i];
+	for (int i = 0; i < 3; ++i)
+	{
+		color_out[i] = 0.5 + 0.5 * normal[i];
+	}
 	CheckBounds( color_out );
-	for ( int i = 0; i < 3; ++i )
+	for (int i = 0; i < 3; ++i)
+	{
 		color_out[i] = 1 - color_out[i];
+	}
 }
 
 void ColormapCMYNormalized( const double normal[3], double color_out[3] )
 {
-	for ( int i = 0; i < 3; ++i )
-		color_out[i] = 0.5 + 0.5*normal[i];
+	for (int i = 0; i < 3; ++i)
+	{
+		color_out[i] = 0.5 + 0.5 * normal[i];
+	}
 	CheckBounds( color_out );
 	for ( int i = 0; i < 3; ++i )
 		color_out[i] = 1 - color_out[i];
@@ -1277,42 +1335,56 @@ void ColormapCMYNormalized( const double normal[3], double color_out[3] )
 
 void ColormapRGBNormalized( const double normal[3], double color_out[3] )
 {
-	for ( int i = 0; i < 3; ++i )
-		color_out[i] = 0.5 + 0.5*normal[i];
+	for (int i = 0; i < 3; ++i)
+	{
+		color_out[i] = 0.5 + 0.5 * normal[i];
+	}
 	CheckBounds( color_out );
 	vtkMath::Normalize( color_out );
 }
 
 void ColormapCMYAbsolute( const double normal[3], double color_out[3] )
 {
-	for ( int i = 0; i < 3; ++i )
-		color_out[i] = fabs( normal[i] );
+	for (int i = 0; i < 3; ++i)
+	{
+		color_out[i] = fabs(normal[i]);
+	}
 	CheckBounds( color_out );
-	for ( int i = 0; i < 3; ++i )
+	for (int i = 0; i < 3; ++i)
+	{
 		color_out[i] = 1 - color_out[i];
+	}
 }
 
 void ColormapRGBAbsolute( const double normal[3], double color_out[3] )
 {
-	for ( int i = 0; i < 3; ++i )
-		color_out[i] = fabs( normal[i] );
+	for (int i = 0; i < 3; ++i)
+	{
+		color_out[i] = fabs(normal[i]);
+	}
 	CheckBounds( color_out );
 }
 
 void ColormapCMYAbsoluteNormalized( const double normal[3], double color_out[3] )
 {
-	for ( int i = 0; i < 3; ++i )
-		color_out[i] = fabs( normal[i] );
+	for (int i = 0; i < 3; ++i)
+	{
+		color_out[i] = fabs(normal[i]);
+	}
 	CheckBounds( color_out );
-	for ( int i = 0; i < 3; ++i )
+	for (int i = 0; i < 3; ++i)
+	{
 		color_out[i] = 1 - color_out[i];
+	}
 	vtkMath::Normalize( color_out );
 }
 
 void ColormapRGBAbsoluteNormalized( const double normal[3], double color_out[3] )
 {
-	for ( int i = 0; i < 3; ++i )
-		color_out[i] = fabs( normal[i] );
+	for (int i = 0; i < 3; ++i)
+	{
+		color_out[i] = fabs(normal[i]);
+	}
 	CheckBounds( color_out );
 	vtkMath::Normalize( color_out );
 }
@@ -1321,16 +1393,23 @@ void ColormapRGBHalfSphere( const double normal[3], double color_out[3] )
 {
 	double longest = std::max( normal[0], normal[1] );
 	longest = std::max( normal[2], longest );
-	if ( !longest ) longest = 0.00000000001;
+	if (!longest)
+	{
+		longest = 0.00000000001;
+	}
 
 	double oneVec[3] = { 1.0, 1.0, 1.0 };
 	vtkMath::Normalize( oneVec );
 	int sign = 1;
-	if ( vtkMath::Dot( oneVec, normal ) < 0 )
+	if (vtkMath::Dot(oneVec, normal) < 0)
+	{
 		sign = -1;
+	}
 
-	for ( int i = 0; i < 3; ++i )
-		color_out[i] = 0.5 + 0.5*sign*normal[i];///longest;
+	for (int i = 0; i < 3; ++i)
+	{
+		color_out[i] = 0.5 + 0.5 * sign * normal[i];///longest;
+	}
 	CheckBounds( color_out );
 }
 
@@ -1385,8 +1464,10 @@ void dlg_FeatureScout::RenderOrientation()
 			points->InsertNextPoint( xx, yy, 0.0 );
 			double *p = static_cast<double *>( oi->GetScalarPointer( theta, phi, 0 ) );
 			unsigned char color[3];
-			for ( unsigned int j = 0; j < 3; ++j )
-				color[j] = static_cast<unsigned char>( 255.0 * p[j] );
+			for (unsigned int j = 0; j < 3; ++j)
+			{
+				color[j] = static_cast<unsigned char>(255.0 * p[j]);
+			}
 			colors->InsertNextTypedTuple( color );
 		}
 	}
@@ -1433,8 +1514,10 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	int numberOfBins = (this->filterID == iAFeatureScoutObjectType::Fibers) ? 8 : 3;  // TODO: setting?
 
 	length->GetRange( range );
-	if ( range[0] == range[1] )
+	if (range[0] == range[1])
+	{
 		range[1] = range[0] + 1.0;
+	}
 
 	double inc = ( range[1] - range[0] ) / (numberOfBins) * 1.001;
 	double halfInc = inc / 2.0;
@@ -1446,16 +1529,20 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	float *centers = static_cast<float *>( extents->GetVoidPointer( 0 ) );
 	double min = range[0] - 0.0005*inc + halfInc;
 
-	for ( int j = 0; j < numberOfBins; ++j )
-		extents->SetValue( j, min + j*inc );
+	for (int j = 0; j < numberOfBins; ++j)
+	{
+		extents->SetValue(j, min + j * inc);
+	}
 
 	auto populations = vtkSmartPointer<vtkIntArray>::New();
 	populations->SetName( "Probability" );
 	populations->SetNumberOfTuples( numberOfBins );
 	int *pops = static_cast<int *>( populations->GetVoidPointer( 0 ) );
 
-	for ( int k = 0; k < numberOfBins; ++k )
+	for (int k = 0; k < numberOfBins; ++k)
+	{
 		pops[k] = 0;
+	}
 
 	for ( vtkIdType j = 0; j < length->GetNumberOfTuples(); ++j )
 	{
@@ -1550,7 +1637,9 @@ void dlg_FeatureScout::ClassAddButton()
 	// class name and color input when calling AddClassDialog.
 	cText = dlg_editPCClass::getClassInfo( 0, "FeatureScout", cText, &cColor, &ok ).section( ',', 0, 0 );
 	if (!ok)
+	{
 		return;
+	}
 	m_colorList.push_back( cColor );
 	// get the root item from class tree
 	QStandardItem *rootItem = classTreeModel->invisibleRootItem();
@@ -1608,8 +1697,10 @@ void dlg_FeatureScout::ClassAddButton()
 	rootItem->appendRow( firstLevelItem );
 
 	// remove items from activeClassItem from table button to top, otherwise you would make a wrong delete
-	for ( int i = 0; i < CountObject; ++i )
-		this->activeClassItem->removeRow( kIdx.value( i ) );
+	for (int i = 0; i < CountObject; ++i)
+	{
+		this->activeClassItem->removeRow(kIdx.value(i));
+	}
 
 	updateClassStatistics( this->activeClassItem );
 	setActiveClassItem( firstLevelItem.first(), 1 );
@@ -1625,9 +1716,11 @@ void dlg_FeatureScout::ClassAddButton()
 void dlg_FeatureScout::writeWisetex(QXmlStreamWriter *writer)
 {
 	if (QMessageBox::warning(this, "FeatureScout",
-			"This functionality is only available for legacy fiber/pore csv formats at the moment. Are you sure you want to proceed?",
-			QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes)
+		"This functionality is only available for legacy fiber/pore csv formats at the moment. Are you sure you want to proceed?",
+		QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes)
+	{
 		return;
+	}
 	// Write XML tags using WiseTex specification
 	//check if it is a class item
 	if ( classTreeModel->invisibleRootItem()->hasChildren() )
@@ -1798,8 +1891,10 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		range[1] = dlg.getDblValue(3 * characteristicIdx + 3);
 		//length->GetRange(range);
 
-		if ( range[0] == range[1] )
+		if (range[0] == range[1])
+		{
 			range[1] = range[0] + 1.0;
+		}
 
 		int numberOfBins = dlg.getDblValue(3 * characteristicIdx + 4);
 		//int numberOfBins = dlg.getDblValue(row+2);
@@ -1960,8 +2055,10 @@ void dlg_FeatureScout::WisetexSaveButton()
 
 	//XML file save path
 	QString filename = QFileDialog::getSaveFileName( this, tr( "Save File" ), m_sourcePath, tr( "XML Files (*.xml *.XML)" ) );
-	if ( filename.isEmpty() )
+	if (filename.isEmpty())
+	{
 		return;
+	}
 
 	QFile file( filename );
 	if ( !file.open( QIODevice::WriteOnly | QIODevice::Text ) )
@@ -2005,7 +2102,9 @@ void dlg_FeatureScout::ExportClassButton()
 		tr("Save Classes..."), "",
 		tr("mhd (*.mhd)"));
 	if (fileName.isEmpty())
+	{
 		return;
+	}
 	iAConnector con;
 	auto img_data = activeChild->imagePointer();
 	con.setImage(img_data);
@@ -2028,7 +2127,9 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector & con, const QString
 	QList<QVariant> inPara = (QList<QVariant>() << modes);
 	dlg_commoninput dlg(this, "Save classification options", inList, inPara, nullptr);
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 	QString mode = dlg.getComboBoxValue(0);
 	bool exportAllClassified = (mode.compare(mode1) == 0); //if export all selected else single class export
 
@@ -2037,7 +2138,9 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector & con, const QString
 	{
 
 		if (!exportAllClassified && i != activeClassItem->row())
+		{
 			continue;
+		}
 
 		QStandardItem *item = classTreeModel->invisibleRootItem()->child(i);
 		for (int j = 0; j < item->rowCount(); ++j)
@@ -2100,8 +2203,10 @@ void dlg_FeatureScout::ClassSaveButton()
 	}
 
 	QString filename = QFileDialog::getSaveFileName( this, tr( "Save File" ), m_sourcePath, tr( "XML Files (*.xml *.XML)" ) );
-	if ( filename.isEmpty() )
+	if (filename.isEmpty())
+	{
 		return;
+	}
 
 	QFile file( filename );
 	if ( !file.open( QIODevice::WriteOnly | QIODevice::Text ) )
@@ -2132,8 +2237,10 @@ void dlg_FeatureScout::ClassLoadButton()
 {
 	// open xml file and get meta information
 	QString filename = QFileDialog::getOpenFileName( this, tr( "Load xml file" ), m_sourcePath, tr( "XML Files (*.xml *.XML)" ) );
-	if ( filename.isEmpty() )
+	if (filename.isEmpty())
+	{
 		return;
+	}
 
 	QFile file( filename );
 	if ( !file.open( QIODevice::ReadOnly ) )
@@ -2188,8 +2295,10 @@ void dlg_FeatureScout::ClassLoadButton()
 	QStandardItem *activeItem = nullptr;
 
 	QFile readFile( filename );
-	if ( !readFile.open( QIODevice::ReadOnly ) )
+	if (!readFile.open(QIODevice::ReadOnly))
+	{
 		return;
+	}
 
 	QXmlStreamReader reader( &readFile );
 	while ( !reader.atEnd() )
@@ -2226,14 +2335,18 @@ void dlg_FeatureScout::ClassLoadButton()
 		}
 	}
 	if (reader.hasError())
+	{
 		DEBUG_LOG(QString("Error while parsing XML: %1").arg(reader.errorString()));
+	}
 	m_splom->classesChanged();
 
 	//upadate TableList
 	if ( rootItem->rowCount() == idxClass )
 	{
-		for ( int i = 0; i < idxClass; ++i )
-			this->recalculateChartTable( rootItem->child( i ) );
+		for (int i = 0; i < idxClass; ++i)
+		{
+			this->recalculateChartTable(rootItem->child(i));
+		}
 		this->setActiveClassItem( rootItem->child( 0 ), 0 );
 		MultiClassRendering();
 	}
@@ -2262,8 +2375,10 @@ void dlg_FeatureScout::ClassDeleteButton()
 	int countActive = this->activeClassItem->rowCount();
 
 	// append stamm item values to list
-	for ( int i = 0; i < stammItem->rowCount(); ++i )
-		list.append( stammItem->child( i )->text().toInt() );
+	for (int i = 0; i < stammItem->rowCount(); ++i)
+	{
+		list.append(stammItem->child(i)->text().toInt());
+	}
 	for ( int j = 0; j < countActive; ++j )
 	{
 		int labelID = this->activeClassItem->child( j )->text().toInt();
@@ -2363,7 +2478,9 @@ void dlg_FeatureScout::showScatterPlot()
 			if (item)
 			{
 				if (!item->hasChildren())
+				{
 					item = item->parent();
+				}
 				int classID = item->row();
 				m_splom->setFilter(classID);
 			}
@@ -2557,7 +2674,9 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 		return;
 	}
 	else	// An 'undefined area' was clicked.
+	{
 		return;
+	}
 
 	this->pcWidget->setEnabled( true );
 
@@ -2593,7 +2712,9 @@ void dlg_FeatureScout::showOrientationDistribution()
 void dlg_FeatureScout::showLengthDistribution(bool show, vtkScalarsToColors* lut)
 {
 	if (m_scalarWidgetFLD)
+	{
 		m_scalarWidgetFLD->SetEnabled(show);
+	}
 	else if (show)
 	{
 		m_scalarWidgetFLD = vtkSmartPointer<vtkScalarBarWidget>::New();
@@ -2632,10 +2753,14 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 	QStandardItem *item;
 
 	// checks if click on class 'level'
-	if ( index.parent().row() == -1 )
-		item = classTreeModel->item( index.row(), 0 );
+	if (index.parent().row() == -1)
+	{
+		item = classTreeModel->item(index.row(), 0);
+	}
 	else
-		item = classTreeModel->itemFromIndex( index );
+	{
+		item = classTreeModel->itemFromIndex(index);
+	}
 
 	// check if unclassified class is empty
 	if ( this->classTreeModel->invisibleRootItem()->child( 0 ) == item && item->rowCount() == 0 )
@@ -2704,15 +2829,22 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 double dlg_FeatureScout::calculateOpacity( QStandardItem *item )
 {
 	// chart opacity dependence of number of objects
+	// TODO: replace by some kind of logarithmic formula
 	// for multi rendering
 	if ( item == this->classTreeModel->invisibleRootItem() )
 	{
-		if ( objectsCount < 1000 )
+		if (objectsCount < 1000)
+		{
 			return 1.0;
-		if ( objectsCount < 3000 )
+		}
+		if (objectsCount < 3000)
+		{
 			return 0.8;
-		if ( objectsCount < 10000 )
+		}
+		if (objectsCount < 10000)
+		{
 			return 0.6;
+		}
 		return 0.5;
 	}
 	// for single class rendering
@@ -2720,14 +2852,22 @@ double dlg_FeatureScout::calculateOpacity( QStandardItem *item )
 	{
 		int n = item->rowCount();
 
-		if ( n < 1000 )
+		if (n < 1000)
+		{
 			return 1.0;
-		if ( n < 3000 )
+		}
+		if (n < 3000)
+		{
 			return 0.8;
-		if ( n < 10000 )
+		}
+		if (n < 10000)
+		{
 			return 0.6;
-		if ( n < 20000 )
+		}
+		if (n < 20000)
+		{
 			return 0.2;
+		}
 		return 0.4;
 	}
 	// default opacity:
@@ -2741,7 +2881,9 @@ namespace
 		QString result(str);
 		QRegularExpression validFirstChar("^[a-zA-Z_:]");
 		while (!validFirstChar.match(result).hasMatch() && result.size() > 0)
+		{
 			result.remove(0, 1);
+		}
 		QRegularExpression invalidChars("[^a-zA-Z0-9_:.-]");
 		result.remove(invalidChars);
 		return result;
@@ -2781,8 +2923,10 @@ void dlg_FeatureScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStand
 void dlg_FeatureScout::setActiveClassItem( QStandardItem* item, int situ )
 {
 	// check once more, if its really a class item
-	if ( !item->hasChildren() )
+	if (!item->hasChildren())
+	{
 		return;
+	}
 
 	if ( situ == 0 )	// class clicked
 	{
@@ -2813,8 +2957,10 @@ void dlg_FeatureScout::setActiveClassItem( QStandardItem* item, int situ )
 
 void dlg_FeatureScout::recalculateChartTable( QStandardItem *item )
 {
-	if ( !item->hasChildren() )
+	if (!item->hasChildren())
+	{
 		return;
+	}
 
 	auto table = vtkSmartPointer<vtkTable>::New();
 	auto arr = vtkSmartPointer<vtkIntArray>::New();
@@ -2864,12 +3010,14 @@ void dlg_FeatureScout::updateLookupTable( double alpha )
 {
 	int lutNum = m_colorList.size();
 	m_multiClassLUT->SetNumberOfTableValues( lutNum );
-	for ( int i = 0; i < lutNum; ++i )
-		m_multiClassLUT->SetTableValue( i,
-			m_colorList.at( i ).red() / 255.0,
-			m_colorList.at( i ).green() / 255.0,
-			m_colorList.at( i ).blue() / 255.0,
-			m_colorList.at( i ).alpha() / 255.0 );
+	for (int i = 0; i < lutNum; ++i)
+	{
+		m_multiClassLUT->SetTableValue(i,
+			m_colorList.at(i).red() / 255.0,
+			m_colorList.at(i).green() / 255.0,
+			m_colorList.at(i).blue() / 255.0,
+			m_colorList.at(i).alpha() / 255.0);
+	}
 
 	m_multiClassLUT->SetRange( 0, lutNum - 1 );
 	m_multiClassLUT->SetAlpha( alpha );
@@ -2878,8 +3026,10 @@ void dlg_FeatureScout::updateLookupTable( double alpha )
 
 void dlg_FeatureScout::EnableBlobRendering()
 {
-	if ( !OpenBlobVisDialog() )
+	if (!OpenBlobVisDialog())
+	{
 		return;
+	}
 
 	iABlobCluster* blob = nullptr;
 	// check if that class is already visualized; if yes, update the existing blob:
@@ -2937,8 +3087,10 @@ void dlg_FeatureScout::showContextMenu( const QPoint &pnt )
 {
 	QStandardItem *item = this->classTreeModel->itemFromIndex( this->classTreeView->currentIndex() );
 
-	if ( !item || item->column() > 0 )
+	if (!item || item->column() > 0)
+	{
 		return;
+	}
 
 	QList<QAction *> actions;
 	if ( this->classTreeView->indexAt( pnt ).isValid() )
@@ -2952,12 +3104,16 @@ void dlg_FeatureScout::showContextMenu( const QPoint &pnt )
 		}
 		else if ( item->parent() ) // item also might have no children because it's an empty class!
 		{
-			if ( item->parent()->index().row() != 0 )
-				actions.append( this->objectDelete );
+			if (item->parent()->index().row() != 0)
+			{
+				actions.append(this->objectDelete);
+			}
 		}
 	}
-	if ( actions.count() > 0 )
-		QMenu::exec( actions, this->classTreeView->mapToGlobal( pnt ) );
+	if (actions.count() > 0)
+	{
+		QMenu::exec(actions, this->classTreeView->mapToGlobal(pnt));
+	}
 }
 
 void dlg_FeatureScout::addObject()
@@ -2970,8 +3126,10 @@ void dlg_FeatureScout::addObject()
 void dlg_FeatureScout::deleteObject()
 {
 	QStandardItem *item = this->classTreeModel->itemFromIndex( this->classTreeView->currentIndex() );
-	if ( item->hasChildren() )
+	if (item->hasChildren())
+	{
 		return;
+	}
 
 	// if the parent item is the unclassified item
 	if ( item->parent()->index() == this->classTreeModel->invisibleRootItem()->child( 0 )->index() )
@@ -3059,8 +3217,10 @@ int dlg_FeatureScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
 		auto arr = vtkSmartPointer<vtkIntArray>::New();
 		arr->SetNumberOfValues( gPhi );
 		ot->AddColumn( arr );
-		for ( int j = 0; j < gPhi; ++j )
-			ot->SetValue( j, i, 0 );
+		for (int j = 0; j < gPhi; ++j)
+		{
+			ot->SetValue(j, i, 0);
+		}
 	}
 
 	length = t->GetNumberOfRows();
@@ -3075,14 +3235,18 @@ int dlg_FeatureScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
 		//if(ip > 360 || ip < 0 || it < 0 || it > 91)
 		//	QString( "error computed phi" );
 
-		if ( ip == gPhi )
+		if (ip == gPhi)
+		{
 			ip = 0;
+		}
 
 		tt = ot->GetValue( ip, it ).ToInt();
 		ot->SetValue( ip, it, tt + 1 );
 
-		if ( maxF < tt + 1 )
+		if (maxF < tt + 1)
+		{
 			maxF = tt + 1;
+		}
 	}
 	return maxF;
 }
@@ -3106,8 +3270,10 @@ void dlg_FeatureScout::drawAnnotations( vtkRenderer *renderer )
 		double phi = i * re * M_PI / 180.0;
 		double rx = 100.0;
 
-		if ( i < 2 )
+		if (i < 2)
+		{
 			rx = 95.0;
+		}
 
 		x[0] = rx * cos( phi );
 		x[1] = rx * sin( phi );
@@ -3261,18 +3427,24 @@ void dlg_FeatureScout::updatePolarPlotView( vtkTable *it )
 			double yy = rx*sin( phi );
 			double zz = table->GetValue( y, x ).ToDouble();
 
-			if ( this->draw3DPolarPlot )
-				points->InsertNextPoint( xx, yy, zz );
+			if (this->draw3DPolarPlot)
+			{
+				points->InsertNextPoint(xx, yy, zz);
+			}
 			else
-				points->InsertNextPoint( xx, yy, 0.0 );
+			{
+				points->InsertNextPoint(xx, yy, 0.0);
+			}
 
 			double dcolor[3];
 
 			cTFun->GetColor( zz, dcolor );
 			unsigned char color[3];
 
-			for ( unsigned int j = 0; j < 3; ++j )
-				color[j] = static_cast<unsigned char>( 255.0 * dcolor[j] );
+			for (unsigned int j = 0; j < 3; ++j)
+			{
+				color[j] = static_cast<unsigned char>(255.0 * dcolor[j]);
+			}
 
 			colors->InsertNextTypedTuple( color );
 		}
@@ -3302,7 +3474,9 @@ void dlg_FeatureScout::updatePolarPlotView( vtkTable *it )
 	auto renW = m_polarPlotWidget->GetRenderWindow();
 	auto ren = renW->GetRenderers()->GetFirstRenderer();
 	if (ren)
+	{
 		renW->RemoveRenderer(ren);
+	}
 	renderer->AddActor(actor);
 	renW->AddRenderer(renderer);
 
@@ -3325,26 +3499,28 @@ void dlg_FeatureScout::setupPolarPlotResolution( float grad )
 bool dlg_FeatureScout::OpenBlobVisDialog()
 {
 	QStringList inList = ( QStringList()
-						   << tr( "^Range:" )
-						   << tr( "$Blob body:" )
-						   << tr( "$Use Depth peeling:" )
-						   << tr( "^Blob opacity [0,1]:" )
-						   << tr( "$Silhouettes:" )
-						   << tr( "^Silhouettes opacity [0,1]:" )
-						   << tr( "$3D labels:" )
-						   << tr( "$Smart overlapping:" )
-						   << tr( "^Separation distance (if smart overlapping):" )
-						   << tr( "$Smooth after smart overlapping:" )
-						   << tr( "$Gaussian blurring of the blob:" )
-						   << tr( "*Gaussian blur variance:" )
-						   << tr( "*Dimension X" )
-						   << tr( "*Dimension Y" )
-						   << tr( "*Dimension Z" )
-						   );
+		<< tr( "^Range:" )
+		<< tr( "$Blob body:" )
+		<< tr( "$Use Depth peeling:" )
+		<< tr( "^Blob opacity [0,1]:" )
+		<< tr( "$Silhouettes:" )
+		<< tr( "^Silhouettes opacity [0,1]:" )
+		<< tr( "$3D labels:" )
+		<< tr( "$Smart overlapping:" )
+		<< tr( "^Separation distance (if smart overlapping):" )
+		<< tr( "$Smooth after smart overlapping:" )
+		<< tr( "$Gaussian blurring of the blob:" )
+		<< tr( "*Gaussian blur variance:" )
+		<< tr( "*Dimension X" )
+		<< tr( "*Dimension Y" )
+		<< tr( "*Dimension Z" )
+		);
 	QList<QVariant> inPara;
 	iABlobCluster* blob = nullptr;
-	if ( blobMap.contains( this->activeClassItem->text() ) )
+	if (blobMap.contains(this->activeClassItem->text()))
+	{
 		blob = blobMap[this->activeClassItem->text()];
+	}
 
 	inPara
 		<< tr( "%1" ).arg( blob ? blob->GetRange() : blobManager->GetRange() )
@@ -3363,8 +3539,10 @@ bool dlg_FeatureScout::OpenBlobVisDialog()
 		<< tr( "%1" ).arg( blob ? blob->GetDimensions()[1] : blobManager->GetDimensions()[1] )
 		<< tr( "%1" ).arg( blob ? blob->GetDimensions()[2] : blobManager->GetDimensions()[2] );
 	dlg_commoninput dlg( this, "Blob rendering preferences", inList, inPara, nullptr );
-	if ( dlg.exec() != QDialog::Accepted )
+	if (dlg.exec() != QDialog::Accepted)
+	{
 		return false;
+	}
 	int i = 0;
 	blobManager->SetRange               ( dlg.getDblValue(i++) );
 	blobManager->SetShowBlob            ( dlg.getCheckValue(i++) != 0 );
@@ -3399,8 +3577,10 @@ void dlg_FeatureScout::SaveBlobMovie()
 	QStringList inList = ( QStringList() << tr( "+Rotation mode" ) );
 	QList<QVariant> inPara = ( QList<QVariant>() << modes );
 	dlg_commoninput dlg( this, "Save movie options", inList, inPara, nullptr );
-	if ( dlg.exec() != QDialog::Accepted )
+	if (dlg.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 	QString mode = dlg.getComboBoxValue(0);
 	int imode = dlg.getComboBoxIndex(0);
 	inList.clear();
@@ -3451,26 +3631,45 @@ void dlg_FeatureScout::SaveBlobMovie()
 	int dimX[2]; int dimY[2]; int dimZ[2];
 
 	size_t numFrames = dlg.getIntValue(i++);
-	for ( int ind = 0; ind < 2; ++ind )
+	for (int ind = 0; ind < 2; ++ind)
+	{
 		range[ind] = dlg.getDblValue(i++);
+	}
 	blobManager->SetShowBlob( dlg.getCheckValue(i++) != 0 );
-	for ( int ind = 0; ind < 2; ++ind )
+	for (int ind = 0; ind < 2; ++ind)
+	{
 		blobOpacity[ind] = dlg.getDblValue(i++);
+	}
 	blobManager->SetSilhouettes( dlg.getCheckValue(i++) != 0 );
-	for ( int ind = 0; ind < 2; ++ind )
+	for (int ind = 0; ind < 2; ++ind)
+	{
 		silhouetteOpacity[ind] = dlg.getDblValue(i++);
+	}
 	blobManager->SetLabeling( dlg.getCheckValue(i++) != 0 );
 	blobManager->SetOverlappingEnabled( dlg.getCheckValue(i++) != 0 );
-	for ( int ind = 0; ind < 2; ++ind )
+	for (int ind = 0; ind < 2; ++ind)
+	{
 		overlapThreshold[ind] = dlg.getDblValue(i++);
+	}
 	blobManager->SetSmoothing( dlg.getCheckValue(i++) );
 	blobManager->SetGaussianBlur( dlg.getCheckValue(i++) );
-	for ( int ind = 0; ind < 2; ++ind )
+	for (int ind = 0; ind < 2; ++ind)
+	{
 		gaussianBlurVariance[ind] = dlg.getIntValue(i++);
+	}
 
-	for ( int ind = 0; ind < 2; ++ind )	dimX[ind] = dlg.getIntValue(i++);
-	for ( int ind = 0; ind < 2; ++ind )	dimY[ind] = dlg.getIntValue(i++);
-	for ( int ind = 0; ind < 2; ++ind )	dimZ[ind] = dlg.getIntValue(i++);
+	for (int ind = 0; ind < 2; ++ind)
+	{
+		dimX[ind] = dlg.getIntValue(i++);
+	}
+	for (int ind = 0; ind < 2; ++ind)
+	{
+		dimY[ind] = dlg.getIntValue(i++);
+	}
+	for (int ind = 0; ind < 2; ++ind)
+	{
+		dimZ[ind] = dlg.getIntValue(i++);
+	}
 
 	QFileInfo fileInfo = activeChild->fileInfo();
 
@@ -3503,15 +3702,21 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	activeChild->addDockWidget( Qt::RightDockWidgetArea, dwPP );
 	dwPP->colorMapSelection->hide();
 	if (this->filterID == iAFeatureScoutObjectType::Voids)
+	{
 		dwPP->hide();
+	}
 	connect(dwPP->orientationColorMap, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderOrientation()));
 
 	if (visualization == iACsvConfig::UseVolume)
+	{
 		activeChild->imagePropertyDockWidget()->hide();
+	}
 	activeChild->hideHistogram();
 	activeChild->logDockWidget()->hide();
-	for (int i=0; i<3; ++i)
+	for (int i = 0; i < 3; ++i)
+	{
 		activeChild->slicerDockWidget(i)->hide();
+	}
 	activeChild->modalitiesDockWidget()->hide();
 }
 
@@ -3550,7 +3755,9 @@ void dlg_FeatureScout::updateAxisProperties()
 	for (int i = 0; i < axis_count; i++)
 	{
 		while (!columnVisibility[visibleColIdx])
+		{
 			++visibleColIdx;
+		}
 		vtkAxis *axis = pcChart->GetAxis(i);
 		if (!axis)
 		{
