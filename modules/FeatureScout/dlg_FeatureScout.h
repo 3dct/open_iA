@@ -194,47 +194,47 @@ private:
 	//! @}
 
 	//! @{ members referencing MdiChild, used for 3D rendering
-	MdiChild *activeChild;
+	MdiChild* m_activeChild;
 	//! @}
 
-	int elementsCount;                              //!< Number of elements(=columns) in csv inputTable
-	int objectsCount;                               //!< Number of objects in the specimen
-	iAFeatureScoutObjectType filterID;              //!< Type of objects that are shown
-	bool draw3DPolarPlot;                           //!< Whether the polar plot is drawn in 3D, set only in constructor, default false
+	int m_elementCount;                             //!< Number of elements(=columns) in csv inputTable
+	int m_objectCount;                             //!< Number of objects in the specimen
+	iAFeatureScoutObjectType m_filterID;            //!< Type of objects that are shown
+	bool m_draw3DPolarPlot;                         //!< Whether the polar plot is drawn in 3D, set only in constructor, default false
 	int m_renderMode;                               //!< Indicates what is currently shown: single classes, or special rendering (multi-class, orientation, ...)
 	bool m_singleObjectSelected;                    //!< Indicates whether a single object or a whole class is selected (if m_renderMode is rmSingleClass)
-	int visualization;                              //!< 3D visualization being used (a value out of iACsvConfig::VisualizationType
+	int m_visualization;                            //!< 3D visualization being used (a value out of iACsvConfig::VisualizationType
 	const QString m_sourcePath;                     //!< folder of file currently opened
 
 	//! Input csv table with all objects.
-	vtkSmartPointer<vtkTable> csvTable;
+	vtkSmartPointer<vtkTable> m_csvTable;
 	//! Table of elements (=parameters) with min, max and average computed for each object in the current class.
-	vtkSmartPointer<vtkTable> elementTable;
+	vtkSmartPointer<vtkTable> m_elementTable;
 	//! Table for the objects shown in the parallel coordinates view (i.e., the objects of the current class)
-	vtkSmartPointer<vtkTable> chartTable;
+	vtkSmartPointer<vtkTable> m_chartTable;
 
-	QList<vtkSmartPointer<vtkTable> > tableList;    //!< The data table for each class.
+	QList<vtkSmartPointer<vtkTable> > m_tableList;  //!< The data table for each class.
 	QList<QColor> m_colorList;                      //!< The color for each class.
-	std::vector<char> columnVisibility;             //!< Element(=column) visibility list
+	std::vector<char> m_columnVisibility;           //!< Element(=column) visibility list
 	vtkSmartPointer<vtkLookupTable> m_multiClassLUT;//!< Color lookup table for multi-class rendering in parallel coordinate view
-	QTreeView* classTreeView;                       //!< Class tree view
-	QTableView* elementTableView;                   //!< Element(=column) table view
-	QStandardItemModel* classTreeModel;             //!< Model for class tree view (->invisibleRootItem->child(0,...,i, 0,..,2))
-	QStandardItemModel* elementTableModel;          //!< Model for element table
-	QStandardItem *activeClassItem;                 //!< Currently active class item in classTreeView/Model
+	QTreeView* m_classTreeView;                     //!< Class tree view
+	QTableView* m_elementTableView;                 //!< Element(=column) table view
+	QStandardItemModel* m_classTreeModel;           //!< Model for class tree view (->invisibleRootItem->child(0,...,i, 0,..,2))
+	QStandardItemModel* m_elementTableModel;        //!< Model for element table
+	QStandardItem* m_activeClassItem;               //!< Currently active class item in classTreeView/Model
 
 	//! @{ context menu actions for classTreeView
-	QAction *blobRendering;
-	QAction *blobRemoveRendering;
-	QAction *objectDelete;
-	QAction *objectAdd;
-	QAction *saveBlobMovie;
+	QAction *m_blobRendering;
+	QAction *m_blobRemoveRendering;
+	QAction *m_objectDelete;
+	QAction *m_objectAdd;
+	QAction *m_saveBlobMovie;
 	//! @}
 
 	//! @{ Parallel coordinates view
-	vtkSmartPointer<vtkContextView> pcView;
-	vtkSmartPointer<vtkChartParallelCoordinates> pcChart;
-	vtkSmartPointer<vtkEventQtSlotConnect> pcConnections;
+	vtkSmartPointer<vtkContextView> m_pcView;
+	vtkSmartPointer<vtkChartParallelCoordinates> m_pcChart;
+	vtkSmartPointer<vtkEventQtSlotConnect> m_pcConnections;
 	float m_pcLineWidth;              //!< width of the line for each object in Parallel Coordinates
 	int m_pcFontSize;                 //!< current font size of titles and tick labels
 	int m_pcTickCount;                //!< current tick count
@@ -243,18 +243,18 @@ private:
 
 	vtkSmartPointer<vtkContextView> m_lengthDistrView;
 
-	iARenderer *m_renderer;
-	iABlobManager *blobManager;
-	QMap <QString, iABlobCluster*> blobMap;
+	iARenderer* m_renderer;
+	iABlobManager* m_blobManager;
+	QMap <QString, iABlobCluster*> m_blobMap;
 
 	//! @{ polar plot view
-	int gPhi, gThe;
-	float PolarPlotPhiResolution, PolarPlotThetaResolution;
+	int m_gPhi, m_gThe;
+	float m_PolarPlotPhiResolution, m_PolarPlotThetaResolution;
 	//! @}
 
-	dlg_blobVisualization *blobVisDialog;
+	dlg_blobVisualization* m_blobVisDialog;
 
-	iAVtkOldWidget *pcWidget, *m_polarPlotWidget, *meanObjectWidget, *m_lengthDistrWidget;
+	iAVtkOldWidget* m_pcWidget, *m_polarPlotWidget, * m_meanObjectWidget, *m_lengthDistrWidget;
 
 	vtkSmartPointer<vtkContextView> m_dvContextView;
 
@@ -263,11 +263,11 @@ private:
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarWidgetPP;
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarWidgetFLD;
 
-	int mousePressedPos [2];
+	int m_mousePressPos[2];
 
-	iADockWidgetWrapper * dwPC, *dwDV, *dwSPM;
-	dlg_PolarPlot * dwPP;
-	dlg_MeanObject * dwMO;
+	iADockWidgetWrapper * m_dwPC, *m_dwDV, *m_dwSPM;
+	dlg_PolarPlot * m_dwPP;
+	dlg_MeanObject * m_dwMO;
 
 	//Mean Object Rendering
 	iAMeanObjectTFView* m_motfView;

@@ -245,47 +245,47 @@ dlg_FeatureScout::dlg_FeatureScout(MdiChild* parent, iAFeatureScoutObjectType fi
 	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping,
 	std::map<size_t, std::vector<iAVec3f> >& curvedFiberInfo, int cylinderQuality, size_t segmentSkip) :
 	QDockWidget(parent),
-	activeChild(parent),
-	elementsCount(csvtbl->GetNumberOfColumns()),
-	objectsCount(csvtbl->GetNumberOfRows()),
-	filterID(fid),
-	draw3DPolarPlot(false),
+	m_activeChild(parent),
+	m_elementCount(csvtbl->GetNumberOfColumns()),
+	m_objectCount(csvtbl->GetNumberOfRows()),
+	m_filterID(fid),
+	m_draw3DPolarPlot(false),
 	m_renderMode(rmSingleClass),
 	m_singleObjectSelected(false),
-	visualization(vis),
+	m_visualization(vis),
 	m_sourcePath(parent->filePath()),
-	csvTable(csvtbl),
-	chartTable(vtkSmartPointer<vtkTable>::New()),
+	m_csvTable(csvtbl),
+	m_chartTable(vtkSmartPointer<vtkTable>::New()),
 	m_multiClassLUT(vtkSmartPointer<vtkLookupTable>::New()),
-	classTreeModel(new QStandardItemModel()),
-	elementTableModel(nullptr),
+	m_classTreeModel(new QStandardItemModel()),
+	m_elementTableModel(nullptr),
 	m_pcLineWidth(0.1),
 	m_pcFontSize(15),
 	m_pcTickCount(10),
 	m_renderer(parent->renderer()),
-	blobManager(new iABlobManager()),
-	blobVisDialog(new dlg_blobVisualization()),
-	dwPC(nullptr),
-	dwDV(nullptr),
-	dwSPM(nullptr),
-	dwPP(nullptr),
-	dwMO(nullptr),
+	m_blobManager(new iABlobManager()),
+	m_blobVisDialog(new dlg_blobVisualization()),
+	m_dwPC(nullptr),
+	m_dwDV(nullptr),
+	m_dwSPM(nullptr),
+	m_dwPP(nullptr),
+	m_dwMO(nullptr),
 	m_columnMapping(columnMapping),
 	m_splom(new iAFeatureScoutSPLOM())
 {
 	setupUi(this);
 	this->setupPolarPlotResolution(3.0);
 
-	chartTable->DeepCopy(csvTable);
-	tableList.push_back(chartTable);
+	m_chartTable->DeepCopy(m_csvTable);
+	m_tableList.push_back(m_chartTable);
 
 	initFeatureScoutUI();
-	CREATE_OLDVTKWIDGET(pcWidget);
+	CREATE_OLDVTKWIDGET(m_pcWidget);
 	CREATE_OLDVTKWIDGET(m_polarPlotWidget);
 	CREATE_OLDVTKWIDGET(m_lengthDistrWidget);
 	m_lengthDistrWidget->hide();
-	dwPC->setWidget(pcWidget);
-	dwPP->legendLayout->addWidget(m_polarPlotWidget);
+	m_dwPC->setWidget(m_pcWidget);
+	m_dwPP->legendLayout->addWidget(m_polarPlotWidget);
 
 	// Initialize the models for QtViews
 	initColumnVisibility();
@@ -296,7 +296,7 @@ dlg_FeatureScout::dlg_FeatureScout(MdiChild* parent, iAFeatureScoutObjectType fi
 	if (vis != iACsvConfig::UseVolume)
 	{
 		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
-			.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
+			.arg(MapObjectTypeToString(m_filterID)), nullptr, nullptr);
 	}
 	else
 	{
@@ -304,29 +304,29 @@ dlg_FeatureScout::dlg_FeatureScout(MdiChild* parent, iAFeatureScoutObjectType fi
 	}
 	m_3dvis->show();
 	parent->renderer()->renderer()->ResetCamera();
-	blobManager->SetRenderers(blobRen, m_renderer->labelRenderer());
-	blobManager->SetBounds(m_3dvis->bounds());
-	blobManager->SetProtrusion(1.5);
+	m_blobManager->SetRenderers(blobRen, m_renderer->labelRenderer());
+	m_blobManager->SetBounds(m_3dvis->bounds());
+	m_blobManager->SetProtrusion(1.5);
 	int dimens[3] = { 50, 50, 50 };
-	blobManager->SetDimensions(dimens);
+	m_blobManager->SetDimensions(dimens);
 	// set first column of the classTreeView to minimal (not stretched)
-	this->classTreeView->resizeColumnToContents(0);
-	this->classTreeView->header()->setStretchLastSection(false);
-	this->elementTableView->resizeColumnsToContents();
-	this->classTreeView->setExpandsOnDoubleClick(false);
+	m_classTreeView->resizeColumnToContents(0);
+	m_classTreeView->header()->setStretchLastSection(false);
+	m_classTreeView->setExpandsOnDoubleClick(false);
+	m_elementTableView->resizeColumnsToContents();
 }
 
 dlg_FeatureScout::~dlg_FeatureScout()
 {
-	delete blobManager;
-	delete elementTableModel;
-	delete classTreeModel;
+	delete m_blobManager;
+	delete m_elementTableModel;
+	delete m_classTreeModel;
 }
 
 std::vector<size_t> dlg_FeatureScout::getPCSelection()
 {
 	std::vector<size_t> selectedIndices;
-	auto pcSelection = pcChart->GetPlot(0)->GetSelection();
+	auto pcSelection = m_pcChart->GetPlot(0)->GetSelection();
 	int countSelection = pcSelection->GetNumberOfValues();
 	for (int idx = 0; idx < countSelection; ++idx)
 	{
@@ -342,10 +342,10 @@ void dlg_FeatureScout::pcViewMouseButtonCallBack(vtkObject*, unsigned long, void
 	m_splom->setFilteredSelection(classSelectionIndices);
 	// map from indices inside the class to global indices:
 	std::vector<size_t> selectionIndices;
-	int classID = activeClassItem->index().row();
+	int classID = m_activeClassItem->index().row();
 	for (size_t filteredSelIdx : classSelectionIndices)
 	{
-		size_t labelID = tableList[classID]->GetValue(filteredSelIdx, 0).ToUnsignedLongLong();
+		size_t labelID = m_tableList[classID]->GetValue(filteredSelIdx, 0).ToUnsignedLongLong();
 		selectionIndices.push_back(labelID - 1);
 	}
 	RenderSelection(selectionIndices);
@@ -353,21 +353,21 @@ void dlg_FeatureScout::pcViewMouseButtonCallBack(vtkObject*, unsigned long, void
 
 void dlg_FeatureScout::setPCChartData(bool specialRendering)
 {
-	pcWidget->setEnabled(!specialRendering); // to disable selection
+	m_pcWidget->setEnabled(!specialRendering); // to disable selection
 	if (specialRendering)
 	{   // for the special renderings, we use all data:
-		chartTable = csvTable;
+		m_chartTable = m_csvTable;
 	}
-	if (pcView->GetScene()->GetNumberOfItems() > 0)
+	if (m_pcView->GetScene()->GetNumberOfItems() > 0)
 	{
-		pcView->GetScene()->RemoveItem(0u);
+		m_pcView->GetScene()->RemoveItem(0u);
 	}
-	this->pcChart = vtkSmartPointer<vtkChartParallelCoordinates>::New();
-	this->pcChart->GetPlot(0)->SetInputData(chartTable);
-	this->pcChart->GetPlot(0)->GetPen()->SetOpacity(90);
-	this->pcChart->GetPlot(0)->SetWidth(m_pcLineWidth);
-	pcView->GetScene()->AddItem(pcChart);
-	pcConnections->Connect(pcChart,
+	m_pcChart = vtkSmartPointer<vtkChartParallelCoordinates>::New();
+	m_pcChart->GetPlot(0)->SetInputData(m_chartTable);
+	m_pcChart->GetPlot(0)->GetPen()->SetOpacity(90);
+	m_pcChart->GetPlot(0)->SetWidth(m_pcLineWidth);
+	m_pcView->GetScene()->AddItem(m_pcChart);
+	m_pcConnections->Connect(m_pcChart,
 		vtkCommand::SelectionChangedEvent,
 		this,
 		SLOT(pcViewMouseButtonCallBack(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
@@ -381,14 +381,14 @@ void dlg_FeatureScout::updateVisibility(QStandardItem* item)
 		return;
 	}
 	int i = item->index().row();
-	columnVisibility[i] = (item->checkState() == Qt::Checked);
+	m_columnVisibility[i] = (item->checkState() == Qt::Checked);
 	updatePCColumnVisibility();
-	m_splom->setParameterVisibility(i, columnVisibility[i]);
+	m_splom->setParameterVisibility(i, m_columnVisibility[i]);
 }
 
 void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enabled)
 {
-	elementTableModel->item(paramIndex, 0)->setCheckState(enabled ? Qt::Checked : Qt::Unchecked);
+	m_elementTableModel->item(paramIndex, 0)->setCheckState(enabled ? Qt::Checked : Qt::Unchecked);
 	// itemChanged signal from elementTableModel takes care about updating PC (see updatePCColumnValues slot)
 }
 
@@ -403,56 +403,56 @@ void dlg_FeatureScout::renderLUTChanges(QSharedPointer<iALookupTable> lut, size_
 
 void dlg_FeatureScout::updatePCColumnVisibility()
 {
-	for (int j = 0; j < elementsCount; ++j)
+	for (int j = 0; j < m_elementCount; ++j)
 	{
-		pcChart->SetColumnVisibility(csvTable->GetColumnName(j), columnVisibility[j]);
+		m_pcChart->SetColumnVisibility(m_csvTable->GetColumnName(j), m_columnVisibility[j]);
 	}
 	updateAxisProperties();
-	pcView->Update();
-	pcView->ResetCamera();
-	pcView->Render();
+	m_pcView->Update();
+	m_pcView->ResetCamera();
+	m_pcView->Render();
 }
 
 void dlg_FeatureScout::initColumnVisibility()
 {
-	columnVisibility.resize(elementsCount);
-	std::fill(columnVisibility.begin(), columnVisibility.end(), false);
-	if (filterID == iAFeatureScoutObjectType::Fibers) // Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
+	m_columnVisibility.resize(m_elementCount);
+	std::fill(m_columnVisibility.begin(), m_columnVisibility.end(), false);
+	if (m_filterID == iAFeatureScoutObjectType::Fibers) // Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
 	{
-		columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]] =
-			columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
-			columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] =
-			columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] =
-			columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] =
-			columnVisibility[(*m_columnMapping)[iACsvConfig::Length]] =
-			columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] = true;
+		m_columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]] =
+			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
+			m_columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] =
+			m_columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] =
+			m_columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] =
+			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Length]] =
+			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] = true;
 	}
-	else if (filterID == iAFeatureScoutObjectType::Voids) // Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
+	else if (m_filterID == iAFeatureScoutObjectType::Voids) // Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
 	{
-		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] =
-			columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] =
-			columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] =
-			columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
-			columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]] =
-			columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] =
-			columnVisibility[(*m_columnMapping)[iACsvConfig::Length]] = true;
+		m_columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] =
+			m_columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] =
+			m_columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] =
+			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
+			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]] =
+			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] =
+			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Length]] = true;
 	}
 }
 
 void dlg_FeatureScout::setupModel()
 {
 	// setup header data
-	elementTableModel->setHeaderData(0, Qt::Horizontal, tr("Element"));
-	elementTableModel->setHeaderData(1, Qt::Horizontal, tr("Minimal"));
-	elementTableModel->setHeaderData(2, Qt::Horizontal, tr("Maximal"));
-	elementTableModel->setHeaderData(3, Qt::Horizontal, tr("Average"));
+	m_elementTableModel->setHeaderData(0, Qt::Horizontal, tr("Element"));
+	m_elementTableModel->setHeaderData(1, Qt::Horizontal, tr("Minimal"));
+	m_elementTableModel->setHeaderData(2, Qt::Horizontal, tr("Maximal"));
+	m_elementTableModel->setHeaderData(3, Qt::Horizontal, tr("Average"));
 
 	// initialize checkboxes for the first column
-	for (int i = 0; i < elementsCount - 1; ++i)
+	for (int i = 0; i < m_elementCount - 1; ++i)
 	{
-		Qt::CheckState checkState = (columnVisibility[i]) ? Qt::Checked : Qt::Unchecked;
-		elementTableModel->setData(elementTableModel->index(i, 0, QModelIndex()), checkState, Qt::CheckStateRole);
-		elementTableModel->item(i, 0)->setCheckable(true);
+		Qt::CheckState checkState = (m_columnVisibility[i]) ? Qt::Checked : Qt::Unchecked;
+		m_elementTableModel->setData(m_elementTableModel->index(i, 0, QModelIndex()), checkState, Qt::CheckStateRole);
+		m_elementTableModel->item(i, 0)->setCheckable(true);
 	}
 
 	// initialize element values
@@ -460,10 +460,10 @@ void dlg_FeatureScout::setupModel()
 	this->initElementTableModel();
 
 	// set up class tree headeritems
-	this->activeClassItem = new QStandardItem();
-	classTreeModel->setHorizontalHeaderItem(0, new QStandardItem("Class"));
-	classTreeModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
-	classTreeModel->setHorizontalHeaderItem(2, new QStandardItem("Percent"));
+	m_activeClassItem = new QStandardItem();
+	m_classTreeModel->setHorizontalHeaderItem(0, new QStandardItem("Class"));
+	m_classTreeModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
+	m_classTreeModel->setHorizontalHeaderItem(2, new QStandardItem("Percent"));
 
 	// initialize children for default class
 	this->initClassTreeModel();
@@ -472,84 +472,84 @@ void dlg_FeatureScout::setupModel()
 void dlg_FeatureScout::setupViews()
 {
 	// declare element table model
-	elementTableModel = new QStandardItemModel(elementsCount - 1, 4, this);
-	elementTable = vtkSmartPointer<vtkTable>::New();
+	m_elementTableModel = new QStandardItemModel(m_elementCount - 1, 4, this);
+	m_elementTable = vtkSmartPointer<vtkTable>::New();
 
 	//init Distribution View
 	m_dvContextView = vtkSmartPointer<vtkContextView>::New();
 
 	// initialize the QtTableView
-	this->classTreeView = new QTreeView();
-	this->elementTableView = new QTableView();
+	m_classTreeView = new QTreeView();
+	m_elementTableView = new QTableView();
 
 	// setup context menu
-	this->classTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
+	m_classTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
 
 	// set Widgets for the table views
-	this->ClassLayout->addWidget(this->classTreeView);
-	this->ElementLayout->addWidget(this->elementTableView);
+	this->ClassLayout->addWidget(m_classTreeView);
+	this->ElementLayout->addWidget(m_elementTableView);
 	// set models
-	this->elementTableView->setModel(elementTableModel);
-	this->classTreeView->setModel(classTreeModel);
+	m_elementTableView->setModel(m_elementTableModel);
+	m_classTreeView->setModel(m_classTreeModel);
 
 	// preparing chart and view for Parallel Coordinates
-	this->pcView = vtkSmartPointer<vtkContextView>::New();
-	pcView->SetRenderWindow(pcWidget->GetRenderWindow());
-	pcView->SetInteractor(pcWidget->GetInteractor());
+	m_pcView = vtkSmartPointer<vtkContextView>::New();
+	m_pcView->SetRenderWindow(m_pcWidget->GetRenderWindow());
+	m_pcView->SetInteractor(m_pcWidget->GetInteractor());
 
 	m_lengthDistrView = vtkSmartPointer<vtkContextView>::New();
 	m_lengthDistrView->SetRenderWindow(m_lengthDistrWidget->GetRenderWindow());
 	m_lengthDistrView->SetInteractor(m_lengthDistrWidget->GetInteractor());
 
 	// Creates a popup menu
-	QMenu* popup2 = new QMenu(pcWidget);
+	QMenu* popup2 = new QMenu(m_pcWidget);
 	popup2->addAction("Add class");
 	popup2->setStyleSheet("font-size: 11px; background-color: #9B9B9B; border: 1px solid black;");
 	connect(popup2, SIGNAL(triggered(QAction*)), this, SLOT(spPopupSelection(QAction*)));
 
-	pcConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
+	m_pcConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 	// Gets right button release event (on a parallel coordinates).
-	pcConnections->Connect(pcWidget->GetRenderWindow()->GetInteractor(),
+	m_pcConnections->Connect(m_pcWidget->GetRenderWindow()->GetInteractor(),
 		vtkCommand::RightButtonReleaseEvent,
 		this,
 		SLOT(spPopup(vtkObject*, unsigned long, void*, void*, vtkCommand*)),
 		popup2, 1.0);
 
 	// Gets right button press event (on a scatter plot).
-	pcConnections->Connect(pcWidget->GetRenderWindow()->GetInteractor(),
+	m_pcConnections->Connect(m_pcWidget->GetRenderWindow()->GetInteractor(),
 		vtkCommand::RightButtonPressEvent,
 		this,
 		SLOT(spBigChartMouseButtonPressed(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
 
 	setPCChartData(false);
-	updatePolarPlotView(chartTable);
+	updatePolarPlotView(m_chartTable);
 }
 
 void dlg_FeatureScout::calculateElementTable()
 {
 	// free table contents first
-	elementTable->Initialize();
+	m_elementTable->Initialize();
 
 	double range[2] = { 0, 1 };
 	auto nameArr = vtkSmartPointer<vtkStringArray>::New();  // name of columns
 	auto v1Arr = vtkSmartPointer<vtkFloatArray >::New();	// minimum
 	auto v2Arr = vtkSmartPointer<vtkFloatArray >::New();	// maximal
 	auto v3Arr = vtkSmartPointer<vtkFloatArray >::New();	// average
-	nameArr->SetNumberOfValues(elementsCount);
-	v1Arr->SetNumberOfValues(elementsCount);
-	v2Arr->SetNumberOfValues(elementsCount);
-	v3Arr->SetNumberOfValues(elementsCount);
+	nameArr->SetNumberOfValues(m_elementCount);
+	v1Arr->SetNumberOfValues(m_elementCount);
+	v2Arr->SetNumberOfValues(m_elementCount);
+	v3Arr->SetNumberOfValues(m_elementCount);
 
 	// convert IDs in String to Int
-	nameArr->SetValue(0, csvTable->GetColumnName(0));
-	v1Arr->SetValue(0, chartTable->GetColumn(0)->GetVariantValue(0).ToFloat());
-	v2Arr->SetValue(0, chartTable->GetColumn(0)->GetVariantValue(chartTable->GetNumberOfRows() - 1).ToFloat());
+	nameArr->SetValue(0, m_csvTable->GetColumnName(0));
+	v1Arr->SetValue(0, m_chartTable->GetColumn(0)->GetVariantValue(0).ToFloat());
+	v2Arr->SetValue(0, m_chartTable->GetColumn(0)->GetVariantValue(m_chartTable->GetNumberOfRows() - 1).ToFloat());
 	v3Arr->SetValue(0, 0);
 
-	for (int i = 1; i < elementsCount; ++i)
+	for (int i = 1; i < m_elementCount; ++i)
 	{
-		nameArr->SetValue(i, csvTable->GetColumnName(i));
-		vtkDataArray* mmr = vtkDataArray::SafeDownCast(chartTable->GetColumn(i));
+		nameArr->SetValue(i, m_csvTable->GetColumnName(i));
+		vtkDataArray* mmr = vtkDataArray::SafeDownCast(m_chartTable->GetColumn(i));
 		mmr->GetRange(range);
 		v1Arr->SetValue(i, range[0]);
 		v2Arr->SetValue(i, range[1]);
@@ -557,10 +557,10 @@ void dlg_FeatureScout::calculateElementTable()
 	}
 
 	// add new values
-	elementTable->AddColumn(nameArr);
-	elementTable->AddColumn(v1Arr);
-	elementTable->AddColumn(v2Arr);
-	elementTable->AddColumn(v3Arr);
+	m_elementTable->AddColumn(nameArr);
+	m_elementTable->AddColumn(v1Arr);
+	m_elementTable->AddColumn(v2Arr);
+	m_elementTable->AddColumn(v3Arr);
 }
 
 void dlg_FeatureScout::initElementTableModel(int idx)
@@ -569,15 +569,15 @@ void dlg_FeatureScout::initElementTableModel(int idx)
 	// this should be done every time when initialize realtime values for elementTable
 	if (idx < 0)
 	{
-		elementTableModel->setHeaderData(1, Qt::Horizontal, tr("Minimal"));
-		elementTableView->showColumn(2);
-		elementTableView->showColumn(3);
+		m_elementTableModel->setHeaderData(1, Qt::Horizontal, tr("Minimal"));
+		m_elementTableView->showColumn(2);
+		m_elementTableView->showColumn(3);
 
-		for (int i = 0; i < elementsCount - 1; ++i) // number of rows
+		for (int i = 0; i < m_elementCount - 1; ++i) // number of rows
 		{
 			for (int j = 0; j < 4; ++j)
 			{
-				vtkVariant v = elementTable->GetValue(i, j);
+				vtkVariant v = m_elementTable->GetValue(i, j);
 				QString str;
 				if (j == 0)
 				{
@@ -585,7 +585,7 @@ void dlg_FeatureScout::initElementTableModel(int idx)
 				}
 				else
 				{
-					if (i == 0 || i == elementsCount - 1)
+					if (i == 0 || i == m_elementCount - 1)
 					{
 						str = QString::number(v.ToInt());
 					}
@@ -594,9 +594,9 @@ void dlg_FeatureScout::initElementTableModel(int idx)
 						str = QString::number(v.ToDouble(), 'f', 2);
 					}
 				}
-				elementTableModel->setData(elementTableModel->index(i, j, QModelIndex()), str);
+				m_elementTableModel->setData(m_elementTableModel->index(i, j, QModelIndex()), str);
 				// Surpresses changeability of items.
-				elementTableModel->item(i, j)->setEditable(false);
+				m_elementTableModel->item(i, j)->setEditable(false);
 			}
 		}
 	}
@@ -605,40 +605,40 @@ void dlg_FeatureScout::initElementTableModel(int idx)
 		// if the values of objectID is given and bigger than zero
 		// we then know that is a single selection, and we want to update the
 		// element Table view with the new values
-		elementTableModel->setHeaderData(1, Qt::Horizontal, tr("Value"));
-		elementTableView->hideColumn(2);
-		elementTableView->hideColumn(3);
+		m_elementTableModel->setHeaderData(1, Qt::Horizontal, tr("Value"));
+		m_elementTableView->hideColumn(2);
+		m_elementTableView->hideColumn(3);
 
-		for (int i = 0; i < elementsCount - 1; ++i)
+		for (int i = 0; i < m_elementCount - 1; ++i)
 		{
-			vtkVariant v = chartTable->GetValue(idx, i);
+			vtkVariant v = m_chartTable->GetValue(idx, i);
 			QString str = QString::number(v.ToDouble(), 'f', 2);
 
-			if (i == 0 || i == elementsCount - 1)
+			if (i == 0 || i == m_elementCount - 1)
 			{
 				str = QString::number(v.ToInt());
 			}
 
-			elementTableModel->setData(elementTableModel->index(i, 1, QModelIndex()), str);
+			m_elementTableModel->setData(m_elementTableModel->index(i, 1, QModelIndex()), str);
 		}
 	}
 }
 
 void dlg_FeatureScout::initClassTreeModel()
 {
-	QStandardItem* rootItem = classTreeModel->invisibleRootItem();
-	QList<QStandardItem*> stammItem = prepareRow("Unclassified", QString("%1").arg(objectsCount), "100");
+	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
+	QList<QStandardItem*> stammItem = prepareRow("Unclassified", QString("%1").arg(m_objectCount), "100");
 	stammItem.first()->setData(QColor("darkGray"), Qt::DecorationRole);
 	m_colorList.push_back(QColor("darkGray"));
 
 	rootItem->appendRow(stammItem);
-	for (int i = 0; i < objectsCount; ++i)
+	for (int i = 0; i < m_objectCount; ++i)
 	{
-		vtkVariant v = chartTable->GetColumn(0)->GetVariantValue(i);
+		vtkVariant v = m_chartTable->GetColumn(0)->GetVariantValue(i);
 		QStandardItem* item = new QStandardItem(QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed());
 		stammItem.first()->appendRow(item);
 	}
-	this->activeClassItem = stammItem.first();
+	m_activeClassItem = stammItem.first();
 }
 
 // BEGIN DEBUG FUNCTIONS
@@ -693,13 +693,13 @@ void dlg_FeatureScout::PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, c
 void dlg_FeatureScout::PrintChartTable(const QString& outputPath)
 {
 	QString fileName = "chartTable";
-	PrintVTKTable(this->chartTable, true, outputPath, &fileName);
+	PrintVTKTable(m_chartTable, true, outputPath, &fileName);
 }
 
 void dlg_FeatureScout::PrintCSVTable(const QString& outputPath)
 {
 	QString fileName = "csvTable";
-	PrintVTKTable(this->csvTable, true, outputPath, &fileName);
+	PrintVTKTable(m_csvTable, true, outputPath, &fileName);
 }
 
 void dlg_FeatureScout::PrintTableList(const QList<vtkSmartPointer<vtkTable>>& OutTableList, QString& outputPath) const
@@ -710,7 +710,7 @@ void dlg_FeatureScout::PrintTableList(const QList<vtkSmartPointer<vtkTable>>& Ou
 
 	if (OutTableList.count() > 1)
 	{
-		for (int i = 0; i < tableList.count(); ++i)
+		for (int i = 0; i < m_tableList.count(); ++i)
 		{
 			fID = QString(i);
 			auto outputTable = OutTableList[i];
@@ -751,18 +751,18 @@ QList<QStandardItem*> dlg_FeatureScout::prepareRow(const QString& first, const Q
 void dlg_FeatureScout::setupConnections()
 {
 	// create ClassTreeView context menu actions
-	blobRendering = new QAction(tr("Enable blob rendering"), this->classTreeView);
-	blobRemoveRendering = new QAction(tr("Disable blob rendering"), this->classTreeView);
-	saveBlobMovie = new QAction(tr("Save blob movie"), this->classTreeView);
-	objectAdd = new QAction(tr("Add object"), this->classTreeView);
-	objectDelete = new QAction(tr("Delete object"), this->classTreeView);
+	m_blobRendering = new QAction(tr("Enable blob rendering"), m_classTreeView);
+	m_blobRemoveRendering = new QAction(tr("Disable blob rendering"), m_classTreeView);
+	m_saveBlobMovie = new QAction(tr("Save blob movie"), m_classTreeView);
+	m_objectAdd = new QAction(tr("Add object"), m_classTreeView);
+	m_objectDelete = new QAction(tr("Delete object"), m_classTreeView);
 
-	connect(this->blobRendering, SIGNAL(triggered()), this, SLOT(EnableBlobRendering()));
-	connect(this->blobRemoveRendering, SIGNAL(triggered()), this, SLOT(DisableBlobRendering()));
-	connect(this->saveBlobMovie, SIGNAL(triggered()), this, SLOT(SaveBlobMovie()));
-	connect(this->objectAdd, SIGNAL(triggered()), this, SLOT(addObject()));
-	connect(this->objectDelete, SIGNAL(triggered()), this, SLOT(deleteObject()));
-	connect(this->classTreeView, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
+	connect(m_blobRendering, SIGNAL(triggered()), this, SLOT(EnableBlobRendering()));
+	connect(m_blobRemoveRendering, SIGNAL(triggered()), this, SLOT(DisableBlobRendering()));
+	connect(m_saveBlobMovie, SIGNAL(triggered()), this, SLOT(SaveBlobMovie()));
+	connect(m_objectAdd, SIGNAL(triggered()), this, SLOT(addObject()));
+	connect(m_objectDelete, SIGNAL(triggered()), this, SLOT(deleteObject()));
+	connect(m_classTreeView, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
 	connect(this->add_class, SIGNAL(clicked()), this, SLOT(ClassAddButton()));
 	connect(this->save_class, SIGNAL(released()), this, SLOT(ClassSaveButton()));
 	connect(this->load_class, SIGNAL(released()), this, SLOT(ClassLoadButton()));
@@ -771,10 +771,10 @@ void dlg_FeatureScout::setupConnections()
 	connect(this->export_class, SIGNAL(clicked()), this, SLOT(ExportClassButton()));
 	connect(this->csv_dv, SIGNAL(released()), this, SLOT(CsvDVSaveButton()));
 
-	connect(this->elementTableModel, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(updateVisibility(QStandardItem*)));
-	connect(this->classTreeView, SIGNAL(clicked(QModelIndex)), this, SLOT(classClicked(QModelIndex)));
-	connect(this->classTreeView, SIGNAL(activated(QModelIndex)), this, SLOT(classClicked(QModelIndex)));
-	connect(this->classTreeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(classDoubleClicked(QModelIndex)));
+	connect(m_elementTableModel, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(updateVisibility(QStandardItem*)));
+	connect(m_classTreeView, SIGNAL(clicked(QModelIndex)), this, SLOT(classClicked(QModelIndex)));
+	connect(m_classTreeView, SIGNAL(activated(QModelIndex)), this, SLOT(classClicked(QModelIndex)));
+	connect(m_classTreeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(classDoubleClicked(QModelIndex)));
 
 	connect(m_splom.data(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart);
 	connect(m_splom.data(), &iAFeatureScoutSPLOM::addClass, this, &dlg_FeatureScout::ClassAddButton);
@@ -785,7 +785,7 @@ void dlg_FeatureScout::setupConnections()
 void dlg_FeatureScout::MultiClassRendering()
 {
 	showOrientationDistribution();
-	QStandardItem* rootItem = this->classTreeModel->invisibleRootItem();
+	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
 	int classCount = rootItem->rowCount();
 
 	if (classCount == 1)
@@ -801,28 +801,28 @@ void dlg_FeatureScout::MultiClassRendering()
 	// update lookup table in PC View
 	this->updateLookupTable(alpha);
 	this->setPCChartData(true);
-	static_cast<vtkPlotParallelCoordinates*>(pcChart->GetPlot(0))->SetScalarVisibility(1);
-	static_cast<vtkPlotParallelCoordinates*>(pcChart->GetPlot(0))->SetLookupTable(m_multiClassLUT);
-	static_cast<vtkPlotParallelCoordinates*>(pcChart->GetPlot(0))->SelectColorArray(iACsvIO::ColNameClassID);
-	this->pcChart->SetSize(pcChart->GetSize());
-	this->pcChart->GetPlot(0)->SetOpacity(0.8);
-	pcView->Render();
+	static_cast<vtkPlotParallelCoordinates*>(m_pcChart->GetPlot(0))->SetScalarVisibility(1);
+	static_cast<vtkPlotParallelCoordinates*>(m_pcChart->GetPlot(0))->SetLookupTable(m_multiClassLUT);
+	static_cast<vtkPlotParallelCoordinates*>(m_pcChart->GetPlot(0))->SelectColorArray(iACsvIO::ColNameClassID);
+	m_pcChart->SetSize(m_pcChart->GetSize());
+	m_pcChart->GetPlot(0)->SetOpacity(0.8);
+	m_pcView->Render();
 
 	m_3dvis->multiClassRendering(m_colorList, rootItem, alpha);
 }
 
 void dlg_FeatureScout::SingleRendering(int objectID)
 {
-	int cID = activeClassItem->index().row();
+	int cID = m_activeClassItem->index().row();
 	QColor classColor = m_colorList.at(cID);
-	m_3dvis->renderSingle(objectID, cID, classColor, activeClassItem);
+	m_3dvis->renderSingle(objectID, cID, classColor, m_activeClassItem);
 }
 
 void dlg_FeatureScout::RenderSelection(std::vector<size_t> const& selInds)
 {
 	showOrientationDistribution();
 
-	if (activeClassItem->rowCount() <= 0)
+	if (m_activeClassItem->rowCount() <= 0)
 	{
 		return;
 	}
@@ -830,26 +830,26 @@ void dlg_FeatureScout::RenderSelection(std::vector<size_t> const& selInds)
 	auto sortedSelInds = selInds;
 	std::sort(sortedSelInds.begin(), sortedSelInds.end());
 
-	int selectedClassID = activeClassItem->index().row();
+	int selectedClassID = m_activeClassItem->index().row();
 	QColor classColor = m_colorList.at(selectedClassID);
-	m_3dvis->renderSelection(sortedSelInds, selectedClassID, classColor, activeClassItem);
+	m_3dvis->renderSelection(sortedSelInds, selectedClassID, classColor, m_activeClassItem);
 }
 
 void dlg_FeatureScout::RenderMeanObject()
 {
-	if (visualization != iACsvConfig::UseVolume)
+	if (m_visualization != iACsvConfig::UseVolume)
 	{
 		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labelled Volume visualization at the moment!");
 		return;
 	}
-	int classCount = classTreeModel->invisibleRootItem()->rowCount();
+	int classCount = m_classTreeModel->invisibleRootItem()->rowCount();
 	if (classCount < 2)	// unclassified class only
 	{
 		QMessageBox::warning(this, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!");
 		return;
 	}
 	m_renderMode = rmMeanObject;
-	activeChild->initProgressBar();
+	m_activeChild->initProgressBar();
 
 	// Delete old mean object data lists
 	for (int i = 0; i < m_MOData.moHistogramList.size(); ++i)
@@ -867,17 +867,17 @@ void dlg_FeatureScout::RenderMeanObject()
 	typedef itk::Image< long, DIM > IType;
 	typedef itk::VTKImageToImageFilter<IType> VTKToITKConnector;
 	VTKToITKConnector::Pointer vtkToItkConverter = VTKToITKConnector::New();
-	if (activeChild->imagePointer()->GetScalarType() != 8)	// long type
+	if (m_activeChild->imagePointer()->GetScalarType() != 8)	// long type
 	{
 		auto cast = vtkSmartPointer<vtkImageCast>::New();
-		cast->SetInputData(activeChild->imagePointer());
+		cast->SetInputData(m_activeChild->imagePointer());
 		cast->SetOutputScalarTypeToLong();
 		cast->Update();
 		vtkToItkConverter->SetInput(cast->GetOutput());
 	}
 	else
 	{
-		vtkToItkConverter->SetInput(static_cast<MdiChild*>(activeChild)->imagePointer());
+		vtkToItkConverter->SetInput(static_cast<MdiChild*>(m_activeChild)->imagePointer());
 	}
 	vtkToItkConverter->Update();
 
@@ -959,10 +959,10 @@ void dlg_FeatureScout::RenderMeanObject()
 	for (int currClass = 1; currClass < classCount; ++currClass)
 	{
 		std::map<int, int>* meanObjectIds = new std::map<int, int>();
-		for (int j = 0; j < classTreeModel->invisibleRootItem()->child(currClass)->rowCount(); ++j)
+		for (int j = 0; j < m_classTreeModel->invisibleRootItem()->child(currClass)->rowCount(); ++j)
 		{
-			meanObjectIds->operator[](tableList[currClass]->GetValue(j, 0).ToInt()) =
-				tableList[currClass]->GetValue(j, 0).ToFloat();
+			meanObjectIds->operator[](m_tableList[currClass]->GetValue(j, 0).ToInt()) =
+				m_tableList[currClass]->GetValue(j, 0).ToFloat();
 		}
 
 		typedef itk::ImageRegionIterator< MObjectImageType> IteratorType;
@@ -1008,7 +1008,7 @@ void dlg_FeatureScout::RenderMeanObject()
 
 			double percentage = round((currClass - 1) * 100.0 / (classCount - 1) +
 				(progress + 1.0) * (100.0 / (classCount - 1)) / meanObjectIds->size());
-			activeChild->updateProgressBar(percentage);
+			m_activeChild->updateProgressBar(percentage);
 			QCoreApplication::processEvents();
 			++progress;
 		}
@@ -1036,13 +1036,13 @@ void dlg_FeatureScout::RenderMeanObject()
 		m_MOData.moImageDataList.append(meanObjectImage);
 
 		// Create histogram and TFs for each MObject
-		QString moHistName = classTreeModel->invisibleRootItem()->child(currClass, 0)->text();
-		moHistName.append(QString(" %1 Mean Object").arg(MapObjectTypeToString(filterID)));
+		QString moHistName = m_classTreeModel->invisibleRootItem()->child(currClass, 0)->text();
+		moHistName.append(QString(" %1 Mean Object").arg(MapObjectTypeToString(m_filterID)));
 		iAModalityTransfer* moHistogram = new iAModalityTransfer(m_MOData.moImageDataList[currClass - 1]->GetScalarRange());
 		m_MOData.moHistogramList.append(moHistogram);
 
 		// Create MObject default Transfer Tunctions
-		if (filterID == iAFeatureScoutObjectType::Fibers) // Fibers
+		if (m_filterID == iAFeatureScoutObjectType::Fibers) // Fibers
 		{
 			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
 			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.01, 1.0, 1.0, 0.0);
@@ -1116,40 +1116,40 @@ void dlg_FeatureScout::RenderMeanObject()
 	}
 
 	// Setup Mean Object view
-	if (!dwMO)
+	if (!m_dwMO)
 	{
-		dwMO = new dlg_MeanObject(this);
-		connect(dwMO->pb_ModTF, SIGNAL(clicked()), this, SLOT(modifyMeanObjectTF()));
-		connect(dwMO->tb_OpenDataFolder, SIGNAL(clicked()), this, SLOT(browseFolderDialog()));
-		connect(dwMO->tb_SaveStl, SIGNAL(clicked()), this, SLOT(saveStl()));
+		m_dwMO = new dlg_MeanObject(this);
+		connect(m_dwMO->pb_ModTF, SIGNAL(clicked()), this, SLOT(modifyMeanObjectTF()));
+		connect(m_dwMO->tb_OpenDataFolder, SIGNAL(clicked()), this, SLOT(browseFolderDialog()));
+		connect(m_dwMO->tb_SaveStl, SIGNAL(clicked()), this, SLOT(saveStl()));
 
 		// Create a render window and an interactor for all the MObjects
-		CREATE_OLDVTKWIDGET(meanObjectWidget);
+		CREATE_OLDVTKWIDGET(m_meanObjectWidget);
 
-		dwMO->verticalLayout->addWidget(meanObjectWidget);
+		m_dwMO->verticalLayout->addWidget(m_meanObjectWidget);
 		auto renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-		renderWindowInteractor->SetRenderWindow(meanObjectWidget->GetRenderWindow());
+		renderWindowInteractor->SetRenderWindow(m_meanObjectWidget->GetRenderWindow());
 		auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
 		renderWindowInteractor->SetInteractorStyle(style);
 
-		dwMO->setWindowTitle(QString("%1 Mean Object View").arg(MapObjectTypeToString(filterID)));
+		m_dwMO->setWindowTitle(QString("%1 Mean Object View").arg(MapObjectTypeToString(m_filterID)));
 
-		activeChild->addDockWidget(Qt::RightDockWidgetArea, dwMO);
-		dwMO->show();
+		m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwMO);
+		m_dwMO->show();
 	}
 
 	// Update MOClass comboBox
-	dwMO->cb_Classes->clear();
+	m_dwMO->cb_Classes->clear();
 	for (int i = 1; i < classCount; ++i)
 	{
-		dwMO->cb_Classes->addItem(classTreeModel->invisibleRootItem()->child(i, 0)->text());
+		m_dwMO->cb_Classes->addItem(m_classTreeModel->invisibleRootItem()->child(i, 0)->text());
 	}
-	activeChild->tabifyDockWidget(dwSPM ? dwSPM : (dwDV ? dwDV : dwPC), dwMO);
-	dwMO->show();
-	dwMO->raise();
+	m_activeChild->tabifyDockWidget(m_dwSPM ? m_dwSPM : (m_dwDV ? m_dwDV : m_dwPC), m_dwMO);
+	m_dwMO->show();
+	m_dwMO->raise();
 
 	// Remove old renderers
-	meanObjectWidget->GetRenderWindow()->GetRenderers()->RemoveAllItems();
+	m_meanObjectWidget->GetRenderWindow()->GetRenderers()->RemoveAllItems();
 
 	// Define viewport variables
 	int numberOfMeanObjectVolumes = m_MOData.moVolumesList.size();
@@ -1164,7 +1164,7 @@ void dlg_FeatureScout::RenderMeanObject()
 		m_MOData.moRendererList.append(renderer);
 		renderer->GetActiveCamera()->ParallelProjectionOn();
 		renderer->SetBackground(1.0, 1.0, 1.0);
-		meanObjectWidget->GetRenderWindow()->AddRenderer(m_MOData.moRendererList[i]);
+		m_meanObjectWidget->GetRenderWindow()->AddRenderer(m_MOData.moRendererList[i]);
 		renderer->SetViewport(fmod(i, viewportColumns) * fieldLengthX,
 			1 - (ceil((i + 1.0) / viewportColumns) / viewportRows),
 			fmod(i, viewportColumns) * fieldLengthX + fieldLengthX,
@@ -1180,7 +1180,7 @@ void dlg_FeatureScout::RenderMeanObject()
 			cornerAnnotation->SetLinearFontScaleFactor(2);
 			cornerAnnotation->SetNonlinearFontScaleFactor(1);
 			cornerAnnotation->SetMaximumFontSize(25);
-			cornerAnnotation->SetText(2, classTreeModel->invisibleRootItem()->child(i + 1, 0)->text().toStdString().c_str());
+			cornerAnnotation->SetText(2, m_classTreeModel->invisibleRootItem()->child(i + 1, 0)->text().toStdString().c_str());
 			cornerAnnotation->GetTextProperty()->SetColor(m_colorList.at(i + 1).redF(), m_colorList.at(i + 1).greenF(), m_colorList.at(i + 1).blueF());
 			cornerAnnotation->GetTextProperty()->BoldOn();
 
@@ -1215,7 +1215,7 @@ void dlg_FeatureScout::RenderMeanObject()
 			renderer->AddActor(cubeAxesActor);
 			renderer->AddActor(outlineActor);
 		}
-		meanObjectWidget->GetRenderWindow()->Render();
+		m_meanObjectWidget->GetRenderWindow()->Render();
 	}
 }
 
@@ -1223,9 +1223,9 @@ void dlg_FeatureScout::modifyMeanObjectTF()
 {
 	m_motfView = new iAMeanObjectTFView(this);
 	m_motfView->setWindowTitle(QString("%1 %2 Mean Object Transfer Function")
-		.arg(dwMO->cb_Classes->itemText(dwMO->cb_Classes->currentIndex()))
-		.arg(MapObjectTypeToString(filterID)));
-	iAChartWithFunctionsWidget* histogram = activeChild->histogram();
+		.arg(m_dwMO->cb_Classes->itemText(m_dwMO->cb_Classes->currentIndex()))
+		.arg(MapObjectTypeToString(m_filterID)));
+	iAChartWithFunctionsWidget* histogram = m_activeChild->histogram();
 	connect(histogram, SIGNAL(updateViews()), this, SLOT(updateMOView()));
 	m_motfView->horizontalLayout->addWidget(histogram);
 	histogram->show();
@@ -1234,7 +1234,7 @@ void dlg_FeatureScout::modifyMeanObjectTF()
 
 void dlg_FeatureScout::updateMOView()
 {
-	meanObjectWidget->GetRenderWindow()->Render();
+	m_meanObjectWidget->GetRenderWindow()->Render();
 }
 
 void dlg_FeatureScout::browseFolderDialog()
@@ -1244,17 +1244,17 @@ void dlg_FeatureScout::browseFolderDialog()
 	{
 		return;
 	}
-	dwMO->le_StlPath->setText(filename);
+	m_dwMO->le_StlPath->setText(filename);
 }
 
 void dlg_FeatureScout::saveStl()
 {
-	if (dwMO->le_StlPath->text().isEmpty())
+	if (m_dwMO->le_StlPath->text().isEmpty())
 	{
 		QMessageBox::warning(this, "FeatureScout", "No save file destination specified.");
 		return;
 	}
-	activeChild->initProgressBar();
+	m_activeChild->initProgressBar();
 
 	iAProgress marCubProgress;
 	iAProgress stlWriProgress;
@@ -1263,26 +1263,26 @@ void dlg_FeatureScout::saveStl()
 
 	auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
 	marCubProgress.observe(moSurface);
-	moSurface->SetInputData(m_MOData.moImageDataList[dwMO->cb_Classes->currentIndex()]);
+	moSurface->SetInputData(m_MOData.moImageDataList[m_dwMO->cb_Classes->currentIndex()]);
 	moSurface->ComputeNormalsOn();
 	moSurface->ComputeGradientsOn();
-	moSurface->SetValue(0, dwMO->dsb_IsoValue->value());
+	moSurface->SetValue(0, m_dwMO->dsb_IsoValue->value());
 
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 	stlWriProgress.observe(stlWriter);
-	stlWriter->SetFileName(getLocalEncodingFileName(dwMO->le_StlPath->text()).c_str());
+	stlWriter->SetFileName(getLocalEncodingFileName(m_dwMO->le_StlPath->text()).c_str());
 	stlWriter->SetInputConnection(moSurface->GetOutputPort());
 	stlWriter->Write();
 }
 
 void dlg_FeatureScout::updateMarProgress(int i)
 {
-	activeChild->updateProgressBar(i / 2);
+	m_activeChild->updateProgressBar(i / 2);
 }
 
 void dlg_FeatureScout::updateStlProgress(int i)
 {
-	activeChild->updateProgressBar(50 + i / 2);
+	m_activeChild->updateProgressBar(50 + i / 2);
 }
 
 void CheckBounds(double color_out[3])
@@ -1421,7 +1421,7 @@ void dlg_FeatureScout::RenderOrientation()
 	m_splom->enableSelection(false);
 	m_splom->setFilter(-1);
 	showLengthDistribution(false);
-	dwPP->setWindowTitle("Orientation Distribution Color Map");
+	m_dwPP->setWindowTitle("Orientation Distribution Color Map");
 
 	// define color coding using hsv -> create color palette
 	auto oi = vtkSmartPointer<vtkImageData>::New();
@@ -1439,7 +1439,7 @@ void dlg_FeatureScout::RenderOrientation()
 				cos(theta_rad) };
 			double* p = static_cast<double*>(oi->GetScalarPointer(theta, phi, 0));
 			vtkMath::Normalize(recCoord);
-			colormapsIndex[dwPP->orientationColorMap->currentIndex()](recCoord, p);
+			colormapsIndex[m_dwPP->orientationColorMap->currentIndex()](recCoord, p);
 		}
 	}
 
@@ -1496,8 +1496,8 @@ void dlg_FeatureScout::RenderOrientation()
 	this->drawPolarPlotMesh(renderer);
 	this->drawAnnotations(renderer);
 
-	activeChild->updateViews();
-	dwPP->colorMapSelection->show();
+	m_activeChild->updateViews();
+	m_dwPP->colorMapSelection->show();
 	renW->Render();
 }
 
@@ -1509,10 +1509,10 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	m_splom->setFilter(-1);
 
 	double range[2] = { 0.0, 0.0 };
-	auto length = vtkDataArray::SafeDownCast(this->csvTable->GetColumn(m_columnMapping->value(iACsvConfig::Length)));
-	QString title = QString("%1 Frequency Distribution").arg(csvTable->GetColumnName(m_columnMapping->value(iACsvConfig::Length)));
-	dwPP->setWindowTitle(title);
-	int numberOfBins = (this->filterID == iAFeatureScoutObjectType::Fibers) ? 8 : 3;  // TODO: setting?
+	auto length = vtkDataArray::SafeDownCast(m_csvTable->GetColumn(m_columnMapping->value(iACsvConfig::Length)));
+	QString title = QString("%1 Frequency Distribution").arg(m_csvTable->GetColumnName(m_columnMapping->value(iACsvConfig::Length)));
+	m_dwPP->setWindowTitle(title);
+	int numberOfBins = (m_filterID == iAFeatureScoutObjectType::Fibers) ? 8 : 3;  // TODO: setting?
 
 	length->GetRange(range);
 	if (range[0] == range[1])
@@ -1567,7 +1567,7 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	//Create a transfer function mapping scalar value to color
 	auto cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
 	cTFun->SetColorSpaceToRGB();
-	if (this->filterID == iAFeatureScoutObjectType::Fibers)
+	if (m_filterID == iAFeatureScoutObjectType::Fibers)
 	{
 		cTFun->AddRGBPoint(range[0], 1.0, 0.6, 0.0);	//orange
 		cTFun->AddRGBPoint(extents->GetValue(0) + halfInc, 1.0, 0.0, 0.0); //red
@@ -1582,16 +1582,16 @@ void dlg_FeatureScout::RenderLengthDistribution()
 		cTFun->AddRGBPoint(extents->GetValue(2) + halfInc, 0.0, 1.0, 0.7); //cyan
 	}
 
-	m_3dvis->renderLengthDistribution(cTFun, extents, halfInc, filterID, range);
+	m_3dvis->renderLengthDistribution(cTFun, extents, halfInc, m_filterID, range);
 
-	dwPP->colorMapSelection->hide();
+	m_dwPP->colorMapSelection->hide();
 	showLengthDistribution(true, cTFun);
 	m_renderer->update();
 
 	// plot length distribution
 	auto chart = vtkSmartPointer<vtkChartXY>::New();
 	chart->SetTitle(title.toUtf8().constData());
-	chart->GetTitleProperties()->SetFontSize((filterID == iAFeatureScoutObjectType::Fibers) ? 15 : 12); // TODO: setting?
+	chart->GetTitleProperties()->SetFontSize((m_filterID == iAFeatureScoutObjectType::Fibers) ? 15 : 12); // TODO: setting?
 	vtkPlot* plot = chart->AddPlot(vtkChartXY::BAR);
 	plot->SetInputData(fldTable, 0, 1);
 	plot->GetXAxis()->SetTitle("Length in microns");
@@ -1601,22 +1601,22 @@ void dlg_FeatureScout::RenderLengthDistribution()
 
 	m_lengthDistrWidget->GetRenderWindow()->Render();
 	m_lengthDistrWidget->update();
-	dwPP->legendLayout->removeWidget(m_polarPlotWidget);
-	dwPP->legendLayout->addWidget(m_lengthDistrWidget);
+	m_dwPP->legendLayout->removeWidget(m_polarPlotWidget);
+	m_dwPP->legendLayout->addWidget(m_lengthDistrWidget);
 	m_polarPlotWidget->hide();
 	m_lengthDistrWidget->show();
 }
 
 void dlg_FeatureScout::ClassAddButton()
 {
-	vtkIdTypeArray* pcSelection = pcChart->GetPlot(0)->GetSelection();
+	vtkIdTypeArray* pcSelection = m_pcChart->GetPlot(0)->GetSelection();
 	int CountObject = pcSelection->GetNumberOfTuples();
 	if (CountObject <= 0)
 	{
 		QMessageBox::warning(this, "FeatureScout", "No object was selected!");
 		return;
 	}
-	if (CountObject == activeClassItem->rowCount() && this->activeClassItem->index().row() != 0)
+	if (CountObject == m_activeClassItem->rowCount() && m_activeClassItem->index().row() != 0)
 	{
 		QMessageBox::warning(this, "FeatureScout", "All items in current class are selected. There is no need to create a new class out of them. Please select only a subset of items!");
 		return;
@@ -1629,7 +1629,7 @@ void dlg_FeatureScout::ClassAddButton()
 		return;
 	}
 	// class name and color
-	int cid = classTreeModel->invisibleRootItem()->rowCount();
+	int cid = m_classTreeModel->invisibleRootItem()->rowCount();
 	QString cText = QString("Class %1").arg(cid);
 	QColor cColor = getClassColor(cid);
 
@@ -1643,17 +1643,17 @@ void dlg_FeatureScout::ClassAddButton()
 	}
 	m_colorList.push_back(cColor);
 	// get the root item from class tree
-	QStandardItem* rootItem = classTreeModel->invisibleRootItem();
+	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
 	QStandardItem* item;
 
 	// create a first level child under rootItem as new class
-	double percent = 100.0 * CountObject / objectsCount;
+	double percent = 100.0 * CountObject / m_objectCount;
 	QList<QStandardItem*> firstLevelItem = prepareRow(cText, QString("%1").arg(CountObject), QString::number(percent, 'f', 1));
 	firstLevelItem.first()->setData(cColor, Qt::DecorationRole);
 
 	int classID = rootItem->rowCount();
 	int objID = 0;
-	QList<int> kIdx; // list to regist the selected index of object IDs in activeClassItem
+	QList<int> kIdx; // list to regist the selected index of object IDs in m_activeClassItem
 
 	// add new class
 	for (int i = 0; i < CountObject; ++i)
@@ -1661,7 +1661,7 @@ void dlg_FeatureScout::ClassAddButton()
 		// get objID from item->text()
 		vtkVariant v = pcSelection->GetVariantValue(i);
 		objID = v.ToInt() + 1;	//fibre index starting at 1 not at 0
-		objID = this->activeClassItem->child(v.ToInt())->text().toInt();
+		objID = m_activeClassItem->child(v.ToInt())->text().toInt();
 
 		if (kIdx.contains(v.ToInt()))
 		{
@@ -1676,7 +1676,7 @@ void dlg_FeatureScout::ClassAddButton()
 			item = new QStandardItem(str);
 			firstLevelItem.first()->appendRow(item);
 
-			this->csvTable->SetValue(objID - 1, elementsCount - 1, classID); // update Class_ID column in csvTable
+			m_csvTable->SetValue(objID - 1, m_elementCount - 1, classID); // update Class_ID column in csvTable
 		}
 	}
 
@@ -1697,20 +1697,20 @@ void dlg_FeatureScout::ClassAddButton()
 	// append the new class to class tree
 	rootItem->appendRow(firstLevelItem);
 
-	// remove items from activeClassItem from table button to top, otherwise you would make a wrong delete
+	// remove items from m_activeClassItem from table button to top, otherwise you would make a wrong delete
 	for (int i = 0; i < CountObject; ++i)
 	{
-		this->activeClassItem->removeRow(kIdx.value(i));
+		m_activeClassItem->removeRow(kIdx.value(i));
 	}
 
-	updateClassStatistics(this->activeClassItem);
+	updateClassStatistics(m_activeClassItem);
 	setActiveClassItem(firstLevelItem.first(), 1);
 	calculateElementTable();
 	initElementTableModel();
 	setPCChartData();
-	classTreeView->collapseAll();
-	classTreeView->setCurrentIndex(firstLevelItem.first()->index());
-	updatePolarPlotView(chartTable);
+	m_classTreeView->collapseAll();
+	m_classTreeView->setCurrentIndex(firstLevelItem.first()->index());
+	updatePolarPlotView(m_chartTable);
 	SingleRendering();
 }
 
@@ -1724,16 +1724,16 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 	}
 	// Write XML tags using WiseTex specification
 	//check if it is a class item
-	if (classTreeModel->invisibleRootItem()->hasChildren())
+	if (m_classTreeModel->invisibleRootItem()->hasChildren())
 	{
-		if (filterID == iAFeatureScoutObjectType::Fibers)
+		if (m_filterID == iAFeatureScoutObjectType::Fibers)
 		{
 			writer->writeStartElement("FibreClasses"); //start FibreClasses tag
 
-			for (int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); ++i)
+			for (int i = 0; i < m_classTreeModel->invisibleRootItem()->rowCount(); ++i)
 			{
 				//Gets the fibre class
-				QStandardItem* fc = classTreeModel->invisibleRootItem()->child(i, 1);
+				QStandardItem* fc = m_classTreeModel->invisibleRootItem()->child(i, 1);
 
 				writer->writeStartElement(QString("FibreClass-%1").arg(i)); //start FibreClass-n tag
 				writer->writeTextElement("CColor", QString("0x00").append
@@ -1742,25 +1742,25 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 
 				writer->writeStartElement(QString("Fibres")); //Fibres tag
 
-				for (int j = 0; j < classTreeModel->invisibleRootItem()->child(i)->rowCount(); ++j)
+				for (int j = 0; j < m_classTreeModel->invisibleRootItem()->child(i)->rowCount(); ++j)
 				{
 					writer->writeStartElement(QString("Fibre-%1").arg(j + 1)); //Fibre-n tag
 
 					//Gets fibre features from csvTable
-					writer->writeTextElement("X1", QString(tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartX)).ToString()));
-					writer->writeTextElement("Y1", QString(tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartY)).ToString()));
-					writer->writeTextElement("Z1", QString(tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartZ)).ToString()));
-					writer->writeTextElement("X1", QString(tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::EndX)).ToString()));
-					writer->writeTextElement("Y2", QString(tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::EndY)).ToString()));
-					writer->writeTextElement("Z2", QString(tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::EndZ)).ToString()));
-					writer->writeTextElement("Phi", QString(tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Phi)).ToString()));
-					writer->writeTextElement("Theta", QString(tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Theta)).ToString()));
-					writer->writeTextElement("Dia", QString(tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Diameter)).ToString()));
-					writer->writeTextElement("sL", QString(tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Length)).ToString()));
+					writer->writeTextElement("X1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartX)).ToString()));
+					writer->writeTextElement("Y1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartY)).ToString()));
+					writer->writeTextElement("Z1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartZ)).ToString()));
+					writer->writeTextElement("X1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::EndX)).ToString()));
+					writer->writeTextElement("Y2", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::EndY)).ToString()));
+					writer->writeTextElement("Z2", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::EndZ)).ToString()));
+					writer->writeTextElement("Phi", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Phi)).ToString()));
+					writer->writeTextElement("Theta", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Theta)).ToString()));
+					writer->writeTextElement("Dia", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Diameter)).ToString()));
+					writer->writeTextElement("sL", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Length)).ToString()));
 					// TODO: define mapping?
-					writer->writeTextElement("cL", QString(tableList[i]->GetValue(j, 19).ToString()));
-					writer->writeTextElement("Surf", QString(tableList[i]->GetValue(j, 21).ToString()));
-					writer->writeTextElement("Vol", QString(tableList[i]->GetValue(j, 22).ToString()));
+					writer->writeTextElement("cL", QString(m_tableList[i]->GetValue(j, 19).ToString()));
+					writer->writeTextElement("Surf", QString(m_tableList[i]->GetValue(j, 21).ToString()));
+					writer->writeTextElement("Vol", QString(m_tableList[i]->GetValue(j, 22).ToString()));
 
 					writer->writeEndElement(); //end Fibre-n tag
 				}
@@ -1769,14 +1769,14 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 			}
 			writer->writeEndElement(); //end FibreClasses tag
 		}
-		else if (filterID == iAFeatureScoutObjectType::Voids)
+		else if (m_filterID == iAFeatureScoutObjectType::Voids)
 		{
 			writer->writeStartElement("VoidClasses"); //start FibreClasses tag
 
-			for (int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); ++i)
+			for (int i = 0; i < m_classTreeModel->invisibleRootItem()->rowCount(); ++i)
 			{
 				//Gets the fibre class
-				QStandardItem* fc = classTreeModel->invisibleRootItem()->child(i, 1);
+				QStandardItem* fc = m_classTreeModel->invisibleRootItem()->child(i, 1);
 
 				writer->writeStartElement(QString("VoidClass-%1").arg(i)); //start VoidClass-n tag
 				writer->writeTextElement("CColor", QString("0x00").append
@@ -1785,19 +1785,19 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 
 				writer->writeStartElement(QString("Voids")); //Voids tag
 
-				for (int j = 0; j < classTreeModel->invisibleRootItem()->child(i)->rowCount(); ++j)
+				for (int j = 0; j < m_classTreeModel->invisibleRootItem()->child(i)->rowCount(); ++j)
 				{
 					writer->writeStartElement(QString("Void-%1").arg(j + 1)); //Void-n tag
 
 					//Gets void properties from csvTable
-					writer->writeTextElement("Volume", QString(tableList[i]->GetValue(j, 21).ToString()));
-					writer->writeTextElement("dimX", QString(tableList[i]->GetValue(j, 13).ToString()));
-					writer->writeTextElement("dimY", QString(tableList[i]->GetValue(j, 14).ToString()));
-					writer->writeTextElement("dimZ", QString(tableList[i]->GetValue(j, 15).ToString()));
-					writer->writeTextElement("posX", QString(tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterX)).ToString()));
-					writer->writeTextElement("posY", QString(tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterY)).ToString()));
-					writer->writeTextElement("posZ", QString(tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterZ)).ToString()));
-					//writer->writeTextElement("ShapeFactor", QString(tableList[i]->GetValue(j,22).ToString()));
+					writer->writeTextElement("Volume", QString(m_tableList[i]->GetValue(j, 21).ToString()));
+					writer->writeTextElement("dimX", QString(m_tableList[i]->GetValue(j, 13).ToString()));
+					writer->writeTextElement("dimY", QString(m_tableList[i]->GetValue(j, 14).ToString()));
+					writer->writeTextElement("dimZ", QString(m_tableList[i]->GetValue(j, 15).ToString()));
+					writer->writeTextElement("posX", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterX)).ToString()));
+					writer->writeTextElement("posY", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterY)).ToString()));
+					writer->writeTextElement("posZ", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterZ)).ToString()));
+					//writer->writeTextElement("ShapeFactor", QString(m_tableList[i]->GetValue(j,22).ToString()));
 
 					writer->writeEndElement(); //end Void-n tag
 				}
@@ -1812,7 +1812,7 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 void dlg_FeatureScout::CsvDVSaveButton()
 {
 	//Gets the selected rows out of elementTable
-	QModelIndexList indexes = elementTableView->selectionModel()->selection().indexes();
+	QModelIndexList indexes = m_elementTableView->selectionModel()->selection().indexes();
 	QList<ushort> characteristicsList;
 	QStringList inList;
 	QList<QVariant> inPara;
@@ -1832,15 +1832,15 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		}
 		characteristicsList.append(indexes.at(i).row());
 
-		QString columnName(this->elementTable->GetColumn(0)->GetVariantValue(characteristicsList.at(i)).ToString().c_str());
+		QString columnName(m_elementTable->GetColumn(0)->GetVariantValue(characteristicsList.at(i)).ToString().c_str());
 		columnName.remove("Â");
 
 		inList.append(QString("#HistoMin for %1").arg(columnName));
 		inList.append(QString("#HistoMax for %1").arg(columnName));
 		inList.append(QString("#HistoBinNbr for %1").arg(columnName));
 
-		inPara.append(this->elementTable->GetColumn(1)->GetVariantValue(characteristicsList.at(i)).ToFloat());
-		inPara.append(this->elementTable->GetColumn(2)->GetVariantValue(characteristicsList.at(i)).ToFloat());
+		inPara.append(m_elementTable->GetColumn(1)->GetVariantValue(characteristicsList.at(i)).ToFloat());
+		inPara.append(m_elementTable->GetColumn(2)->GetVariantValue(characteristicsList.at(i)).ToFloat());
 		inPara.append(100);
 	}
 
@@ -1874,7 +1874,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		}
 	}
 
-	this->m_dvContextView->GetScene()->ClearItems();
+	m_dvContextView->GetScene()->ClearItems();
 
 	//Sets up a chart matrix for the feature distribution charts
 	vtkNew<vtkChartMatrix> distributionChartMatrix;
@@ -1887,7 +1887,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	{
 		double range[2] = { 0.0, 0.0 };
 		vtkDataArray* length = vtkDataArray::SafeDownCast(
-			this->tableList[this->activeClassItem->index().row()]->GetColumn(characteristicsList.at(characteristicIdx)));
+			m_tableList[m_activeClassItem->index().row()]->GetColumn(characteristicsList.at(characteristicIdx)));
 		range[0] = dlg.getDblValue(3 * characteristicIdx + 2);
 		range[1] = dlg.getDblValue(3 * characteristicIdx + 3);
 		//length->GetRange(range);
@@ -1978,8 +1978,8 @@ void dlg_FeatureScout::CsvDVSaveButton()
 				vtkIdType tRowNb = disTable->GetNumberOfRows();
 
 				file << QString("%1 Distribution of '%2'")
-					.arg(this->csvTable->GetColumnName(characteristicsList.at(characteristicIdx)))
-					.arg(this->activeClassItem->text()).toStdString()
+					.arg(m_csvTable->GetColumnName(characteristicsList.at(characteristicIdx)))
+					.arg(m_activeClassItem->text()).toStdString()
 					<< endl;
 
 				file << "HistoBinID;" << "HistoBinCenter" << "Frequency;" << endl;
@@ -2014,7 +2014,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 			chart->GetTitleProperties()->SetFontSize(18);
 			vtkPlot* plot = chart->AddPlot(vtkChartXY::BAR);
 			plot->SetInputData(disTable, 0, 1);
-			plot->GetXAxis()->SetTitle(this->csvTable->GetColumnName(characteristicsList.at(characteristicIdx)));
+			plot->GetXAxis()->SetTitle(m_csvTable->GetColumnName(characteristicsList.at(characteristicIdx)));
 			plot->GetYAxis()->SetTitle("Frequency");
 			plot->GetXAxis()->GetLabelProperties()->SetFontSize(19);
 			plot->GetYAxis()->GetLabelProperties()->SetFontSize(19);
@@ -2026,29 +2026,29 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	//Renders the distributionMatrix in a new dockWidget
 	if (showHistogram)
 	{
-		if (!dwDV)
+		if (!m_dwDV)
 		{
-			dwDV = new iADockWidgetWrapper("Distribution View", "FeatureScoutDV");
+			m_dwDV = new iADockWidgetWrapper("Distribution View", "FeatureScoutDV");
 
 			iAVtkOldWidget* dvqvtkWidget;
 			CREATE_OLDVTKWIDGET(dvqvtkWidget);
-			dwDV->setWidget(dvqvtkWidget);
+			m_dwDV->setWidget(dvqvtkWidget);
 			m_dvContextView->SetRenderWindow(dvqvtkWidget->GetRenderWindow());
 			m_dvContextView->SetInteractor(dvqvtkWidget->GetInteractor());
-			activeChild->addDockWidget(Qt::RightDockWidgetArea, dwDV);
-			dwDV->show();
+			m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwDV);
+			m_dwDV->show();
 		}
-		activeChild->tabifyDockWidget(dwSPM ? dwSPM : (dwMO ? (QDockWidget*)dwMO : dwPC), dwDV);
-		dwDV->show();
-		dwDV->raise();
-		this->m_dvContextView->GetScene()->AddItem(distributionChartMatrix.GetPointer());
-		this->m_dvContextView->GetRenderWindow()->Render();
+		m_activeChild->tabifyDockWidget(m_dwSPM ? m_dwSPM : (m_dwMO ? (QDockWidget*)m_dwMO : m_dwPC), m_dwDV);
+		m_dwDV->show();
+		m_dwDV->raise();
+		m_dvContextView->GetScene()->AddItem(distributionChartMatrix.GetPointer());
+		m_dvContextView->GetRenderWindow()->Render();
 	}
 }
 
 void dlg_FeatureScout::WisetexSaveButton()
 {
-	if (!classTreeModel->invisibleRootItem()->hasChildren())
+	if (!m_classTreeModel->invisibleRootItem()->hasChildren())
 	{
 		QMessageBox::warning(this, "FeatureScout", "No data available!");
 		return;
@@ -2081,9 +2081,9 @@ void dlg_FeatureScout::WisetexSaveButton()
 void dlg_FeatureScout::ExportClassButton()
 {
 	// if no volume loaded, then exit
-	if (visualization != iACsvConfig::UseVolume)
+	if (m_visualization != iACsvConfig::UseVolume)
 	{
-		if (activeChild->modalities()->size() == 0)
+		if (m_activeChild->modalities()->size() == 0)
 		{
 			QMessageBox::information(this, "FeatureScout", "Feature only available if labeled volume is loaded!");
 			return;
@@ -2093,7 +2093,7 @@ void dlg_FeatureScout::ExportClassButton()
 			QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes)
 			return;
 	}
-	int classCount = classTreeModel->invisibleRootItem()->rowCount();
+	int classCount = m_classTreeModel->invisibleRootItem()->rowCount();
 	if (classCount < 2)	// unclassified class only
 	{
 		QMessageBox::warning(this, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!");
@@ -2107,7 +2107,7 @@ void dlg_FeatureScout::ExportClassButton()
 		return;
 	}
 	iAConnector con;
-	auto img_data = activeChild->imagePointer();
+	auto img_data = m_activeChild->imagePointer();
 	con.setImage(img_data);
 	ITK_TYPED_CALL(CreateLabelledOutputMask, con.itkScalarPixelType(), con, fileName);
 }
@@ -2135,15 +2135,15 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector& con, const QString&
 	bool exportAllClassified = (mode.compare(mode1) == 0); //if export all selected else single class export
 
 	// Skip first, as classes start with 1, 0 is the uncategorized class
-	for (int i = 1; i < classTreeModel->invisibleRootItem()->rowCount(); i++)
+	for (int i = 1; i < m_classTreeModel->invisibleRootItem()->rowCount(); i++)
 	{
 
-		if (!exportAllClassified && i != activeClassItem->row())
+		if (!exportAllClassified && i != m_activeClassItem->row())
 		{
 			continue;
 		}
 
-		QStandardItem* item = classTreeModel->invisibleRootItem()->child(i);
+		QStandardItem* item = m_classTreeModel->invisibleRootItem()->child(i);
 		for (int j = 0; j < item->rowCount(); ++j)
 		{
 			size_t labelID = item->child(j)->text().toULongLong();
@@ -2152,8 +2152,8 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector& con, const QString&
 	}
 
 	//export class ID or fiber labels for single class
-	bool fiberIDLabelling = (classTreeModel->invisibleRootItem()->rowCount() >= 2 &&
-		(m_renderMode == rmSingleClass && activeClassItem->row() > 0) && (!exportAllClassified));
+	bool fiberIDLabelling = (m_classTreeModel->invisibleRootItem()->rowCount() >= 2 &&
+		(m_renderMode == rmSingleClass && m_activeClassItem->row() > 0) && (!exportAllClassified));
 	if (fiberIDLabelling &&
 		(QMessageBox::question(this, "FeatureScout", "Only one class selected, "
 			"should we export the individual fiber IDs? "
@@ -2191,13 +2191,13 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector& con, const QString&
 		++in;
 		++out;
 	}
-	storeImage<OutputImageType>(out_img, fOutPath, activeChild->preferences().Compression);
-	activeChild->addMsg("Stored image of of classes.");
+	storeImage<OutputImageType>(out_img, fOutPath, m_activeChild->preferences().Compression);
+	m_activeChild->addMsg("Stored image of of classes.");
 }
 
 void dlg_FeatureScout::ClassSaveButton()
 {
-	if (classTreeModel->invisibleRootItem()->rowCount() == 1)
+	if (m_classTreeModel->invisibleRootItem()->rowCount() == 1)
 	{
 		QMessageBox::warning(this, "FeatureScout", "No classes was defined.");
 		return;
@@ -2222,12 +2222,12 @@ void dlg_FeatureScout::ClassSaveButton()
 	stream.writeStartDocument();
 	stream.writeStartElement(IFVTag);
 	stream.writeAttribute(VersionAttribute, "1.0");
-	stream.writeAttribute(CountAllAttribute, QString("%1").arg(objectsCount));
-	stream.writeAttribute(IDColumnAttribute, csvTable->GetColumnName(0)); // store name of ID  -> TODO: ID mapping!
+	stream.writeAttribute(CountAllAttribute, QString("%1").arg(m_objectCount));
+	stream.writeAttribute(IDColumnAttribute, m_csvTable->GetColumnName(0)); // store name of ID  -> TODO: ID mapping!
 
-	for (int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); ++i)
+	for (int i = 0; i < m_classTreeModel->invisibleRootItem()->rowCount(); ++i)
 	{
-		writeClassesAndChildren(&stream, classTreeModel->invisibleRootItem()->child(i));
+		writeClassesAndChildren(&stream, m_classTreeModel->invisibleRootItem()->child(i));
 	}
 
 	stream.writeEndElement(); // ClassTree
@@ -2254,11 +2254,11 @@ void dlg_FeatureScout::ClassLoadButton()
 	QXmlStreamReader checker(&file);
 	checker.readNext(); // skip xml tag?
 	checker.readNext(); // read IFV_Class_Tree element
-	QString IDColumnName = (filterID == iAFeatureScoutObjectType::Fibers) ? LabelAttribute : LabelAttributePore;
+	QString IDColumnName = (m_filterID == iAFeatureScoutObjectType::Fibers) ? LabelAttribute : LabelAttributePore;
 	if (checker.name() == IFVTag)
 	{
 		// if the object number is not correct, stop the load process
-		if (checker.attributes().value(CountAllAttribute).toString().toInt() != this->objectsCount)
+		if (checker.attributes().value(CountAllAttribute).toString().toInt() != m_objectCount)
 		{
 			QMessageBox::warning(this, "FeatureScout", "Class load error: Incorrect xml file for current dataset, please check.");
 			checker.clear();
@@ -2278,21 +2278,21 @@ void dlg_FeatureScout::ClassLoadButton()
 	checker.clear();
 	file.close();
 
-	chartTable->DeepCopy(csvTable); // reset charttable
-	tableList.clear();
-	tableList.push_back(chartTable);
+	m_chartTable->DeepCopy(m_csvTable); // reset charttable
+	m_tableList.clear();
+	m_tableList.push_back(m_chartTable);
 	m_colorList.clear();
-	classTreeModel->clear();
+	m_classTreeModel->clear();
 
 	// init header names for class tree model
-	classTreeModel->setHorizontalHeaderItem(0, new QStandardItem("Class"));
-	classTreeModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
-	classTreeModel->setHorizontalHeaderItem(2, new QStandardItem("Percent"));
+	m_classTreeModel->setHorizontalHeaderItem(0, new QStandardItem("Class"));
+	m_classTreeModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
+	m_classTreeModel->setHorizontalHeaderItem(2, new QStandardItem("Percent"));
 
 	int idxClass = 0;
 
 	// create xml reader
-	QStandardItem* rootItem = this->classTreeModel->invisibleRootItem();
+	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
 	QStandardItem* activeItem = nullptr;
 
 	QFile readFile(filename);
@@ -2315,7 +2315,7 @@ void dlg_FeatureScout::ClassLoadButton()
 				activeItem->appendRow(item);
 
 				// update Class_ID number in csvTable;
-				this->csvTable->SetValue(label.toInt() - 1, this->elementsCount - 1, idxClass - 1);
+				m_csvTable->SetValue(label.toInt() - 1, m_elementCount - 1, idxClass - 1);
 				m_splom->changeClass(label.toInt() - 1, idxClass - 1);
 			}
 			else if (reader.name() == ClassTag)
@@ -2361,9 +2361,9 @@ void dlg_FeatureScout::ClassLoadButton()
 
 void dlg_FeatureScout::ClassDeleteButton()
 {
-	QStandardItem* rootItem = this->classTreeModel->invisibleRootItem();
+	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
 	QStandardItem* stammItem = rootItem->child(0);
-	if (this->activeClassItem->index().row() == 0)
+	if (m_activeClassItem->index().row() == 0)
 	{
 		QMessageBox::warning(this, "FeatureScout", "You are trying to delete the unclassified class, please select another class.");
 		return;
@@ -2372,8 +2372,8 @@ void dlg_FeatureScout::ClassDeleteButton()
 	// define a list to sort the items in stammItem
 	QList<int> list;
 	// get Class_ID
-	int deleteClassID = this->activeClassItem->index().row();
-	int countActive = this->activeClassItem->rowCount();
+	int deleteClassID = m_activeClassItem->index().row();
+	int countActive = m_activeClassItem->rowCount();
 
 	// append stamm item values to list
 	for (int i = 0; i < stammItem->rowCount(); ++i)
@@ -2382,9 +2382,9 @@ void dlg_FeatureScout::ClassDeleteButton()
 	}
 	for (int j = 0; j < countActive; ++j)
 	{
-		int labelID = this->activeClassItem->child(j)->text().toInt();
+		int labelID = m_activeClassItem->child(j)->text().toInt();
 		// update Class_ID column, prepare values for LookupTable
-		this->csvTable->SetValue(labelID - 1, elementsCount - 1, 0);
+		m_csvTable->SetValue(labelID - 1, m_elementCount - 1, 0);
 		// append the deleted object IDs to list
 		list.append(labelID);
 	}
@@ -2399,8 +2399,8 @@ void dlg_FeatureScout::ClassDeleteButton()
 		stammItem->appendRow(item);
 	}
 
-	// remove the deleted class from tree view, its entry in tableList and its color
-	tableList.removeAt(deleteClassID);
+	// remove the deleted class from tree view, its entry in m_tableList and its color
+	m_tableList.removeAt(deleteClassID);
 	rootItem->removeRow(deleteClassID);
 	m_colorList.removeAt(deleteClassID);
 
@@ -2419,23 +2419,23 @@ void dlg_FeatureScout::ClassDeleteButton()
 			for (int j = 0; j < item->rowCount(); ++j)
 			{
 				int labelID = item->child(j, 0)->text().toInt();
-				this->csvTable->SetValue(labelID - 1, elementsCount - 1, classID);
+				m_csvTable->SetValue(labelID - 1, m_elementCount - 1, classID);
 			}
-			for (int k = 0; k < tableList[classID]->GetNumberOfRows(); ++k)
+			for (int k = 0; k < m_tableList[classID]->GetNumberOfRows(); ++k)
 			{
-				tableList[classID]->SetValue(k, elementsCount - 1, classID);
+				m_tableList[classID]->SetValue(k, m_elementCount - 1, classID);
 			}
-			tableList[classID]->GetColumn(classID)->Modified();
+			m_tableList[classID]->GetColumn(classID)->Modified();
 		}
 	}
 
-	// update statistics for activeClassItem
+	// update statistics for m_activeClassItem
 	this->updateClassStatistics(stammItem);
 
-	// update tableList and setup activeClassItem
+	// update m_tableList and setup m_activeClassItem
 	this->setActiveClassItem(stammItem, 2);
-	QSignalBlocker ctvBlocker(classTreeView);
-	classTreeView->setCurrentIndex(classTreeView->model()->index(0, 0));
+	QSignalBlocker ctvBlocker(m_classTreeView);
+	m_classTreeView->setCurrentIndex(m_classTreeView->model()->index(0, 0));
 
 	// update element view
 	this->setPCChartData();
@@ -2453,17 +2453,17 @@ void dlg_FeatureScout::ClassDeleteButton()
 
 void dlg_FeatureScout::showScatterPlot()
 {
-	if (dwSPM)
+	if (m_dwSPM)
 	{
 		return;
 	}
-	dwSPM = new iADockWidgetWrapper("Scatter Plot Matrix", "FeatureScoutSPM");
-	activeChild->addDockWidget(Qt::RightDockWidgetArea, dwSPM);
-	dwSPM->show();
-	activeChild->tabifyDockWidget(dwDV ? dwDV : (dwMO ? (QDockWidget*)dwMO : dwPC), dwSPM);
-	dwSPM->show();
-	dwSPM->raise();
-	m_splom->initScatterPlot(dwSPM, csvTable, columnVisibility);
+	m_dwSPM = new iADockWidgetWrapper("Scatter Plot Matrix", "FeatureScoutSPM");
+	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwSPM);
+	m_dwSPM->show();
+	m_activeChild->tabifyDockWidget(m_dwDV ? m_dwDV : (m_dwMO ? (QDockWidget*)m_dwMO : m_dwPC), m_dwSPM);
+	m_dwSPM->show();
+	m_dwSPM->raise();
+	m_splom->initScatterPlot(m_dwSPM, m_csvTable, m_columnVisibility);
 	if (m_renderMode == rmMultiClass)
 	{
 		m_splom->multiClassRendering(m_colorList);
@@ -2475,7 +2475,7 @@ void dlg_FeatureScout::showScatterPlot()
 		{
 			auto filteredSelInds = getPCSelection();
 			m_splom->setFilteredSelection(filteredSelInds);
-			QStandardItem* item = activeClassItem;
+			QStandardItem* item = m_activeClassItem;
 			if (item)
 			{
 				if (!item->hasChildren())
@@ -2506,16 +2506,16 @@ void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const& selInds)
 		vtk_selInd->SetVariantValue(idx, curr_selInd);
 		++idx;
 	}
-	pcChart->GetPlot(0)->SetSelection(vtk_selInd);
-	pcView->Render();
+	m_pcChart->GetPlot(0)->SetSelection(vtk_selInd);
+	m_pcView->Render();
 }
 
 void dlg_FeatureScout::spBigChartMouseButtonPressed(vtkObject* obj, unsigned long, void* /*client_data*/, void*, vtkCommand* /*command*/)
 {
 	// Gets the right mouse button press event for scatter plot matrix.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(obj);
-	mousePressedPos[0] = iren->GetEventPosition()[0];
-	mousePressedPos[1] = iren->GetEventPosition()[1];
+	m_mousePressPos[0] = iren->GetEventPosition()[0];
+	m_mousePressPos[1] = iren->GetEventPosition()[1];
 }
 
 void dlg_FeatureScout::spPopup(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command)
@@ -2523,7 +2523,7 @@ void dlg_FeatureScout::spPopup(vtkObject* obj, unsigned long, void* client_data,
 	// Gets the mouse button event for scatter plot matrix and opens a popup menu.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(obj);
 	int* mouseReleasePos = iren->GetLastEventPosition();
-	if (mouseReleasePos[0] == mousePressedPos[0] && mouseReleasePos[1] == mousePressedPos[1])
+	if (mouseReleasePos[0] == m_mousePressPos[0] && mouseReleasePos[1] == m_mousePressPos[1])
 	{
 		// Consume event so the interactor style doesn't get it
 		command->AbortFlagOn();
@@ -2552,7 +2552,7 @@ void dlg_FeatureScout::spPopupSelection(QAction* selection)
 	if ( selection->text() == "Suggest Classification" )
 	{
 		bool ok;
-		int i = QInputDialog::getInt( dwSPM, tr( "kMeans-Classification" ), tr( "Number of Classes" ), 3, 1, 7, 1, &ok );
+		int i = QInputDialog::getInt( m_dwSPM, tr( "kMeans-Classification" ), tr( "Number of Classes" ), 3, 1, 7, 1, &ok );
 
 		if ( ok )
 		{
@@ -2573,7 +2573,7 @@ void dlg_FeatureScout::spPopupSelection(QAction* selection)
 	// semi-automatic classification not ported to new SPM yet
 void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 {
-	QStandardItem *motherClassItem = this->activeClassItem;
+	QStandardItem *motherClassItem = m_activeClassItem;
 
 	for ( int i = 1; i <= NbOfClusters; ++i )
 	{
@@ -2585,7 +2585,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 		if ( CountObject > 0 )
 		{
 			// class name and color
-			int cid = classTreeModel->invisibleRootItem()->rowCount();
+			int cid = m_classTreeModel->invisibleRootItem()->rowCount();
 			QString cText = QString( "Class %1" ).arg( cid );
 			QColor cColor = getClassColor(cid);
 			m_colorList.append( cColor );
@@ -2595,7 +2595,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 			QList<QStandardItem *> firstLevelItem = prepareRow( cText, QString( "%1" ).arg( CountObject ), QString::number( percent, 'f', 1 ) );
 			firstLevelItem.first()->setData( cColor, Qt::DecorationRole );
 
-			QList<int> kIdx; // list to regist the selected index of object IDs in activeClassItem
+			QList<int> kIdx; // list to regist the selected index of object IDs in m_activeClassItem
 			int objID = 0;
 			// add new class
 			for ( int i = 0; i < CountObject; ++i )
@@ -2607,16 +2607,16 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 					// add item to the new class
 					firstLevelItem.first()->appendRow( new QStandardItem( QString( "%1" ).arg( objID ) ) );
 					// update Class_ID column, prepare values for LookupTable
-					this->csvTable->SetValue( objID - 1, elementNr - 1, cid );
+					m_csvTable->SetValue( objID - 1, elementNr - 1, cid );
 				}
 			}
 
 			// append the new class to class tree
-			classTreeModel->invisibleRootItem()->appendRow( firstLevelItem );
+			m_classTreeModel->invisibleRootItem()->appendRow( firstLevelItem );
 
 			// update chartTable
 			this->setActiveClassItem( firstLevelItem.first(), 1 );
-			this->classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
+			m_classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
 		}
 		else
 		{
@@ -2627,17 +2627,17 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 	}
 
 	//  Mother Class is empty after kMeans auto class added, therefore rows are removed
-	classTreeModel->invisibleRootItem()->child( motherClassItem->index().row() )->
-		removeRows( 0, classTreeModel->invisibleRootItem()->child( motherClassItem->index().row() )->rowCount() );
+	m_classTreeModel->invisibleRootItem()->child( motherClassItem->index().row() )->
+		removeRows( 0, m_classTreeModel->invisibleRootItem()->child( motherClassItem->index().row() )->rowCount() );
 
 	// Update statistics for motherClassItem
-	this->updateClassStatistics( classTreeModel->invisibleRootItem()->child( motherClassItem->index().row() ) );
+	this->updateClassStatistics( m_classTreeModel->invisibleRootItem()->child( motherClassItem->index().row() ) );
 
-	if ( this->activeClassItem->rowCount() == 0 && this->activeClassItem->index().row() != 0 )//new
+	if ( m_activeClassItem->rowCount() == 0 && m_activeClassItem->index().row() != 0 )//new
 	{
 		// delete the activeItem
-		int cID = this->activeClassItem->index().row();
-		classTreeModel->invisibleRootItem()->removeRow( cID );
+		int cID = m_activeClassItem->index().row();
+		m_classTreeModel->invisibleRootItem()->removeRow( cID );
 		m_colorList.removeAt( cID );
 		//update Class_ID and lookupTable??
 	}
@@ -2645,14 +2645,14 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 	calculateElementTable();
 	initElementTableModel();
 	setPCChartData();
-	classTreeView->collapseAll();
+	m_classTreeView->collapseAll();
 	SingleRendering();
-	updatePolarPlotView( chartTable );
+	updatePolarPlotView( m_chartTable );
 
 	//Updates scatter plot matrix when a class is added.
 	// TODO SPM
-	//matrix->UpdateColorInfo( classTreeModel, m_colorList );
-	//matrix->SetClass2Plot( this->activeClassItem->index().row() );
+	//matrix->UpdateColorInfo( m_classTreeModel, m_colorList );
+	//matrix->SetClass2Plot( m_activeClassItem->index().row() );
 	//matrix->UpdateLayout();
 }
 */
@@ -2664,14 +2664,14 @@ void dlg_FeatureScout::classDoubleClicked(const QModelIndex& index)
 	// A class was clicked. (and no -1 row index - 'undefined' area click)
 	if (index.parent().row() == -1 && index.isValid())
 	{
-		item = classTreeModel->item(index.row(), 0);
+		item = m_classTreeModel->item(index.row(), 0);
 		// Surpresses changeability items (class level) after dlg_editPCClass dialog.
-		classTreeModel->itemFromIndex(index)->setEditable(false);
+		m_classTreeModel->itemFromIndex(index)->setEditable(false);
 	}
 	else if (index.parent().row() != -1 && index.isValid())
 	{	// An item was clicked.
 		// Surpresses changeability of items (single fiber level) after dlg_editPCClass dialog.
-		classTreeModel->itemFromIndex(index)->setEditable(false);
+		m_classTreeModel->itemFromIndex(index)->setEditable(false);
 		return;
 	}
 	else	// An 'undefined area' was clicked.
@@ -2679,7 +2679,7 @@ void dlg_FeatureScout::classDoubleClicked(const QModelIndex& index)
 		return;
 	}
 
-	this->pcWidget->setEnabled(true);
+	m_pcWidget->setEnabled(true);
 
 	if (item->hasChildren())
 	{
@@ -2707,7 +2707,7 @@ void dlg_FeatureScout::classDoubleClicked(const QModelIndex& index)
 void dlg_FeatureScout::showOrientationDistribution()
 {
 	showLengthDistribution(false);
-	updatePolarPlotView(chartTable); // maybe orientation distribution is already shown; we could add a check, and skip this call in that case
+	updatePolarPlotView(m_chartTable); // maybe orientation distribution is already shown; we could add a check, and skip this call in that case
 }
 
 void dlg_FeatureScout::showLengthDistribution(bool show, vtkScalarsToColors* lut)
@@ -2738,12 +2738,12 @@ void dlg_FeatureScout::showLengthDistribution(bool show, vtkScalarsToColors* lut
 	}
 	if (!show && m_lengthDistrWidget->isVisible())
 	{
-		dwPP->legendLayout->removeWidget(m_lengthDistrWidget);
-		dwPP->legendLayout->addWidget(m_polarPlotWidget);
+		m_dwPP->legendLayout->removeWidget(m_lengthDistrWidget);
+		m_dwPP->legendLayout->addWidget(m_polarPlotWidget);
 		m_lengthDistrWidget->hide();
 		m_polarPlotWidget->show();
 	}
-	dwPP->colorMapSelection->hide();
+	m_dwPP->colorMapSelection->hide();
 }
 
 void dlg_FeatureScout::classClicked(const QModelIndex& index)
@@ -2756,27 +2756,27 @@ void dlg_FeatureScout::classClicked(const QModelIndex& index)
 	// checks if click on class 'level'
 	if (index.parent().row() == -1)
 	{
-		item = classTreeModel->item(index.row(), 0);
+		item = m_classTreeModel->item(index.row(), 0);
 	}
 	else
 	{
-		item = classTreeModel->itemFromIndex(index);
+		item = m_classTreeModel->itemFromIndex(index);
 	}
 
 	// check if unclassified class is empty
-	if (this->classTreeModel->invisibleRootItem()->child(0) == item && item->rowCount() == 0)
+	if (m_classTreeModel->invisibleRootItem()->child(0) == item && item->rowCount() == 0)
 	{
 		QMessageBox::information(this, "FeatureScout", "Unclassified class contains no objects, please make another selection.");
 		return;
 	}
 	//MOD kMeans
-	if (item->rowCount() == 0 && item->parent()->index() == this->classTreeModel->invisibleRootItem()->index())
+	if (item->rowCount() == 0 && item->parent()->index() == m_classTreeModel->invisibleRootItem()->index())
 	{
 		QMessageBox::information(this, "FeatureScout", "This class contains no object, please make another selection or delete the class.");
 		return;
 	}
 	QStandardItem* classItem = item->hasChildren() ? item : item->parent();
-	if (classItem != activeClassItem || m_renderMode != rmSingleClass ||
+	if (classItem != m_activeClassItem || m_renderMode != rmSingleClass ||
 		(m_singleObjectSelected && item->hasChildren()))
 	{
 		int classID = classItem->index().row();
@@ -2784,7 +2784,7 @@ void dlg_FeatureScout::classClicked(const QModelIndex& index)
 		setActiveClassItem(classItem);
 		calculateElementTable();
 		setPCChartData();
-		updatePolarPlotView(chartTable);
+		updatePolarPlotView(m_chartTable);
 		if (item->hasChildren())  // has children => a class was selected
 		{
 			SingleRendering();
@@ -2810,15 +2810,15 @@ void dlg_FeatureScout::classClicked(const QModelIndex& index)
 		testArr->SetName("Label");
 		testArr->InsertNextValue(sID);
 
-		this->pcChart->GetPlot(0)->SetSelection(testArr);
-		pcView->ResetCamera();
-		pcView->Render();
+		m_pcChart->GetPlot(0)->SetSelection(testArr);
+		m_pcView->ResetCamera();
+		m_pcView->Render();
 
 		// update elementTableView
 		this->initElementTableModel(sID);
 		int objectID = item->text().toInt();
 		this->SingleRendering(objectID);
-		elementTableView->update();
+		m_elementTableView->update();
 
 		// update SPLOM selection
 		std::vector<size_t> filteredSelInds;
@@ -2832,17 +2832,17 @@ double dlg_FeatureScout::calculateOpacity(QStandardItem* item)
 	// chart opacity dependence of number of objects
 	// TODO: replace by some kind of logarithmic formula
 	// for multi rendering
-	if (item == this->classTreeModel->invisibleRootItem())
+	if (item == m_classTreeModel->invisibleRootItem())
 	{
-		if (objectsCount < 1000)
+		if (m_objectCount < 1000)
 		{
 			return 1.0;
 		}
-		if (objectsCount < 3000)
+		if (m_objectCount < 3000)
 		{
 			return 0.8;
 		}
-		if (objectsCount < 10000)
+		if (m_objectCount < 10000)
 		{
 			return 0.6;
 		}
@@ -2902,16 +2902,16 @@ void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStanda
 		QString color = QString(m_colorList.at(item->index().row()).name());
 
 		writer->writeAttribute(ColorAttribute, color);
-		writer->writeAttribute(CountAttribute, classTreeModel->invisibleRootItem()->child(item->index().row(), 1)->text());
-		writer->writeAttribute(PercentAttribute, classTreeModel->invisibleRootItem()->child(item->index().row(), 2)->text());
+		writer->writeAttribute(CountAttribute, m_classTreeModel->invisibleRootItem()->child(item->index().row(), 1)->text());
+		writer->writeAttribute(PercentAttribute, m_classTreeModel->invisibleRootItem()->child(item->index().row(), 2)->text());
 		for (int i = 0; i < item->rowCount(); ++i)
 		{
 			writer->writeStartElement(ObjectTag);
-			for (int j = 0; j < elementsCount; ++j)
+			for (int j = 0; j < m_elementCount; ++j)
 			{
-				vtkVariant v = csvTable->GetValue(item->child(i)->text().toInt() - 1, j);
+				vtkVariant v = m_csvTable->GetValue(item->child(i)->text().toInt() - 1, j);
 				QString str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
-				vtkVariant v1 = elementTable->GetValue(j, 0);
+				vtkVariant v1 = m_elementTable->GetValue(j, 0);
 				QString str1 = filterToXMLAttributeName(QString::fromUtf8(v1.ToUnicodeString().utf8_str()).trimmed());
 				writer->writeAttribute(str1, str);
 			}
@@ -2931,28 +2931,28 @@ void dlg_FeatureScout::setActiveClassItem(QStandardItem* item, int situ)
 
 	if (situ == 0)	// class clicked
 	{
-		this->activeClassItem = item;
+		m_activeClassItem = item;
 		int id = item->index().row();
-		chartTable = tableList[id];
+		m_chartTable = m_tableList[id];
 	}
 	else if (situ == 1)	// add class
 	{
 		// recalculate the old active class
-		this->recalculateChartTable(this->activeClassItem);
+		this->recalculateChartTable(m_activeClassItem);
 
 		// calculate the new class table and set up chartTable
 		this->recalculateChartTable(item);
 
-		this->activeClassItem = item;
+		m_activeClassItem = item;
 		int id = item->index().row();
-		chartTable = tableList[id];
+		m_chartTable = m_tableList[id];
 	}
 	else if (situ == 2)	// delete class
 	{
 		// merge the deleted class table to stamm table
 		this->recalculateChartTable(item);
-		this->activeClassItem = item;
-		chartTable = tableList[0];
+		m_activeClassItem = item;
+		m_chartTable = m_tableList[0];
 	}
 }
 
@@ -2965,16 +2965,16 @@ void dlg_FeatureScout::recalculateChartTable(QStandardItem* item)
 
 	auto table = vtkSmartPointer<vtkTable>::New();
 	auto arr = vtkSmartPointer<vtkIntArray>::New();
-	arr->SetName(chartTable->GetColumnName(0));
+	arr->SetName(m_chartTable->GetColumnName(0));
 	table->AddColumn(arr);
-	for (int i = 1; i < elementsCount - 1; ++i)
+	for (int i = 1; i < m_elementCount - 1; ++i)
 	{
 		auto arrX = vtkSmartPointer<vtkFloatArray>::New();
-		arrX->SetName(chartTable->GetColumnName(i));
+		arrX->SetName(m_chartTable->GetColumnName(i));
 		table->AddColumn(arrX);
 	}
 	auto arrI = vtkSmartPointer<vtkIntArray>::New();
-	arrI->SetName(chartTable->GetColumnName(elementsCount - 1));
+	arrI->SetName(m_chartTable->GetColumnName(m_elementCount - 1));
 	table->AddColumn(arrI);
 
 	int oCount = item->rowCount();
@@ -2985,25 +2985,25 @@ void dlg_FeatureScout::recalculateChartTable(QStandardItem* item)
 	{
 		csvID = item->child(j)->text().toInt();
 		auto arrRow = vtkSmartPointer<vtkVariantArray>::New();
-		csvTable->GetRow(csvID - 1, arrRow);
+		m_csvTable->GetRow(csvID - 1, arrRow);
 		table->SetRow(j, arrRow);
 	}
 
 	// if item already exists
 	int itemID = item->index().row();
-	if (itemID + 1 <= tableList.size())
+	if (itemID + 1 <= m_tableList.size())
 	{
-		// add the new active class table to tableList
-		tableList.insert(itemID, table);
+		// add the new active class table to m_tableList
+		m_tableList.insert(itemID, table);
 		// delete the old active class table
-		tableList.removeAt(itemID + 1);
+		m_tableList.removeAt(itemID + 1);
 	}
 	else
 	{
-		// add the new table to the end of the tableList
+		// add the new table to the end of the m_tableList
 		// maka a copy to chartTable
-		tableList.push_back(table);
-		chartTable = tableList[item->index().row()];
+		m_tableList.push_back(table);
+		m_chartTable = m_tableList[item->index().row()];
 	}
 }
 
@@ -3034,59 +3034,59 @@ void dlg_FeatureScout::EnableBlobRendering()
 
 	iABlobCluster* blob = nullptr;
 	// check if that class is already visualized; if yes, update the existing blob:
-	if (blobMap.contains(this->activeClassItem->text()))
+	if (m_blobMap.contains(m_activeClassItem->text()))
 	{
-		blob = blobMap[this->activeClassItem->text()];
+		blob = m_blobMap[m_activeClassItem->text()];
 	}
 	else
 	{
 		blob = new iABlobCluster;
-		blobManager->AddBlob(blob);
-		blobMap.insert(this->activeClassItem->text(), blob);
+		m_blobManager->AddBlob(blob);
+		m_blobMap.insert(m_activeClassItem->text(), blob);
 	}
 
-	blobManager->UpdateBlobSettings(blob);
+	m_blobManager->UpdateBlobSettings(blob);
 
 	QVector<FeatureInfo> objects;
-	for (int i = 0; i < chartTable->GetNumberOfRows(); ++i)
+	for (int i = 0; i < m_chartTable->GetNumberOfRows(); ++i)
 	{
 		FeatureInfo fi;
 		//int index = chartTable->GetValue( i, 0 ).ToInt();
-		fi.x1 = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::StartX)).ToDouble();
-		fi.y1 = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::StartY)).ToDouble();
-		fi.z1 = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::StartZ)).ToDouble();
-		fi.x2 = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::EndX)).ToDouble();
-		fi.y2 = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::EndY)).ToDouble();
-		fi.z2 = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::EndZ)).ToDouble();
-		fi.diameter = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::Diameter)).ToDouble();
+		fi.x1 = m_chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::StartX)).ToDouble();
+		fi.y1 = m_chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::StartY)).ToDouble();
+		fi.z1 = m_chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::StartZ)).ToDouble();
+		fi.x2 = m_chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::EndX)).ToDouble();
+		fi.y2 = m_chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::EndY)).ToDouble();
+		fi.z2 = m_chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::EndZ)).ToDouble();
+		fi.diameter = m_chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::Diameter)).ToDouble();
 		objects.append(fi);
 	}
 
-	QColor color = m_colorList.at(activeClassItem->index().row());
-	const double count = activeClassItem->rowCount();
-	const double percentage = 100.0 * count / objectsCount;
-	blob->SetObjectType(MapObjectTypeToString(filterID));
+	QColor color = m_colorList.at(m_activeClassItem->index().row());
+	const double count = m_activeClassItem->rowCount();
+	const double percentage = 100.0 * count / m_objectCount;
+	blob->SetObjectType(MapObjectTypeToString(m_filterID));
 	blob->SetCluster(objects);
-	blob->SetName(activeClassItem->text());
+	blob->SetName(m_activeClassItem->text());
 	blob->SetBlobColor(color);
 	blob->SetStats(count, percentage);
-	blobManager->Update();
+	m_blobManager->Update();
 }
 
 void dlg_FeatureScout::DisableBlobRendering()
 {
 	// delete blob for class
-	if (blobMap.contains(this->activeClassItem->text()))
+	if (m_blobMap.contains(m_activeClassItem->text()))
 	{
-		iABlobCluster* blob = blobMap.take(this->activeClassItem->text());
-		blobManager->RemoveBlob(blob);
+		iABlobCluster* blob = m_blobMap.take(m_activeClassItem->text());
+		m_blobManager->RemoveBlob(blob);
 		delete blob;
 	}
 }
 
 void dlg_FeatureScout::showContextMenu(const QPoint& pnt)
 {
-	QStandardItem* item = this->classTreeModel->itemFromIndex(this->classTreeView->currentIndex());
+	QStandardItem* item = m_classTreeModel->itemFromIndex(m_classTreeView->currentIndex());
 
 	if (!item || item->column() > 0)
 	{
@@ -3094,26 +3094,26 @@ void dlg_FeatureScout::showContextMenu(const QPoint& pnt)
 	}
 
 	QList<QAction*> actions;
-	if (this->classTreeView->indexAt(pnt).isValid())
+	if (m_classTreeView->indexAt(pnt).isValid())
 	{
 		if (item->hasChildren())
 		{
-			actions.append(this->blobRendering);
-			actions.append(this->blobRemoveRendering);
-			actions.append(this->saveBlobMovie);
-			actions.append(this->objectAdd);
+			actions.append(m_blobRendering);
+			actions.append(m_blobRemoveRendering);
+			actions.append(m_saveBlobMovie);
+			actions.append(m_objectAdd);
 		}
 		else if (item->parent()) // item also might have no children because it's an empty class!
 		{
 			if (item->parent()->index().row() != 0)
 			{
-				actions.append(this->objectDelete);
+				actions.append(m_objectDelete);
 			}
 		}
 	}
 	if (actions.count() > 0)
 	{
-		QMenu::exec(actions, this->classTreeView->mapToGlobal(pnt));
+		QMenu::exec(actions, m_classTreeView->mapToGlobal(pnt));
 	}
 }
 
@@ -3126,14 +3126,14 @@ void dlg_FeatureScout::addObject()
 
 void dlg_FeatureScout::deleteObject()
 {
-	QStandardItem* item = this->classTreeModel->itemFromIndex(this->classTreeView->currentIndex());
+	QStandardItem* item = m_classTreeModel->itemFromIndex(m_classTreeView->currentIndex());
 	if (item->hasChildren())
 	{
 		return;
 	}
 
 	// if the parent item is the unclassified item
-	if (item->parent()->index() == this->classTreeModel->invisibleRootItem()->child(0)->index())
+	if (item->parent()->index() == m_classTreeModel->invisibleRootItem()->child(0)->index())
 	{
 		QMessageBox::information(this, "FeatureScout", "An object in the unclassified class can not be deleted.");
 		return;
@@ -3146,9 +3146,9 @@ void dlg_FeatureScout::deleteObject()
 	else
 	{
 		int oID = item->text().toInt();
-		this->csvTable->SetValue(oID - 1, elementsCount - 1, 0);
+		m_csvTable->SetValue(oID - 1, m_elementCount - 1, 0);
 
-		QStandardItem* sItem = this->classTreeModel->invisibleRootItem()->child(0);
+		QStandardItem* sItem = m_classTreeModel->invisibleRootItem()->child(0);
 		QStandardItem* newItem = new QStandardItem(QString("%1").arg(oID));
 
 		if (oID == 1 || sItem->rowCount() == 0)
@@ -3181,12 +3181,12 @@ void dlg_FeatureScout::deleteObject()
 
 void dlg_FeatureScout::updateClassStatistics(QStandardItem* item)
 {
-	QStandardItem* rootItem = this->classTreeModel->invisibleRootItem();
+	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
 
 	if (item->hasChildren())
 	{
 		rootItem->child(item->index().row(), 1)->setText(QString("%1").arg(item->rowCount()));
-		double percent = 100.0 * item->rowCount() / objectsCount;
+		double percent = 100.0 * item->rowCount() / m_objectCount;
 		rootItem->child(item->index().row(), 2)->setText(QString::number(percent, 'f', 1));
 	}
 	else
@@ -3213,12 +3213,12 @@ int dlg_FeatureScout::calcOrientationProbability(vtkTable* t, vtkTable* ot)
 	double fp, ft;
 	int ip, it, tt, length;
 
-	for (int i = 0; i < gThe; ++i)
+	for (int i = 0; i < m_gThe; ++i)
 	{
 		auto arr = vtkSmartPointer<vtkIntArray>::New();
-		arr->SetNumberOfValues(gPhi);
+		arr->SetNumberOfValues(m_gPhi);
 		ot->AddColumn(arr);
-		for (int j = 0; j < gPhi; ++j)
+		for (int j = 0; j < m_gPhi; ++j)
 		{
 			ot->SetValue(j, i, 0);
 		}
@@ -3228,15 +3228,15 @@ int dlg_FeatureScout::calcOrientationProbability(vtkTable* t, vtkTable* ot)
 
 	for (int k = 0; k < length; ++k)
 	{
-		fp = t->GetValue(k, m_columnMapping->value(iACsvConfig::Phi)).ToDouble() / PolarPlotPhiResolution;
-		ft = t->GetValue(k, m_columnMapping->value(iACsvConfig::Theta)).ToDouble() / PolarPlotThetaResolution;
+		fp = t->GetValue(k, m_columnMapping->value(iACsvConfig::Phi)).ToDouble() / m_PolarPlotPhiResolution;
+		ft = t->GetValue(k, m_columnMapping->value(iACsvConfig::Theta)).ToDouble() / m_PolarPlotThetaResolution;
 		ip = vtkMath::Round(fp);
 		it = vtkMath::Round(ft);
 
 		//if(ip > 360 || ip < 0 || it < 0 || it > 91)
 		//	QString( "error computed phi" );
 
-		if (ip == gPhi)
+		if (ip == m_gPhi)
 		{
 			ip = 0;
 		}
@@ -3390,7 +3390,7 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 		DEBUG_LOG("It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot view.");
 		return;
 	}
-	dwPP->setWindowTitle("Orientation Distribution");
+	m_dwPP->setWindowTitle("Orientation Distribution");
 
 	// calculate object probability and save it to a table
 	auto table = vtkSmartPointer<vtkTable>::New();
@@ -3417,18 +3417,18 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 	colors->SetName("Colors");
 
 	auto points = vtkSmartPointer<vtkPoints>::New();
-	for (int x = 0; x < gThe; ++x)
+	for (int x = 0; x < m_gThe; ++x)
 	{
-		double rx = x * PolarPlotThetaResolution;
+		double rx = x * m_PolarPlotThetaResolution;
 
-		for (int y = 0; y < gPhi; ++y)
+		for (int y = 0; y < m_gPhi; ++y)
 		{
-			double phi = y * PolarPlotPhiResolution * M_PI / 180.0;
+			double phi = y * m_PolarPlotPhiResolution * M_PI / 180.0;
 			double xx = rx * cos(phi);
 			double yy = rx * sin(phi);
 			double zz = table->GetValue(y, x).ToDouble();
 
-			if (this->draw3DPolarPlot)
+			if (m_draw3DPolarPlot)
 			{
 				points->InsertNextPoint(xx, yy, zz);
 			}
@@ -3490,11 +3490,11 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 
 void dlg_FeatureScout::setupPolarPlotResolution(float grad)
 {
-	this->gPhi = vtkMath::Floor(360.0 / grad);
-	this->gThe = vtkMath::Floor(90.0 / grad);
-	this->PolarPlotPhiResolution = 360.0 / gPhi;
-	this->PolarPlotThetaResolution = 90.0 / gThe;
-	gThe = gThe + 1;
+	m_gPhi = vtkMath::Floor(360.0 / grad);
+	m_gThe = vtkMath::Floor(90.0 / grad);
+	m_PolarPlotPhiResolution = 360.0 / m_gPhi;
+	m_PolarPlotThetaResolution = 90.0 / m_gThe;
+	m_gThe = m_gThe + 1;
 }
 
 bool dlg_FeatureScout::OpenBlobVisDialog()
@@ -3518,51 +3518,51 @@ bool dlg_FeatureScout::OpenBlobVisDialog()
 		);
 	QList<QVariant> inPara;
 	iABlobCluster* blob = nullptr;
-	if (blobMap.contains(this->activeClassItem->text()))
+	if (m_blobMap.contains(m_activeClassItem->text()))
 	{
-		blob = blobMap[this->activeClassItem->text()];
+		blob = m_blobMap[m_activeClassItem->text()];
 	}
 
 	inPara
-		<< tr("%1").arg(blob ? blob->GetRange() : blobManager->GetRange())
-		<< tr("%1").arg(blob ? blob->GetShowBlob() : blobManager->GetShowBlob())
-		<< tr("%1").arg(blobManager->GetUseDepthPeeling())
-		<< tr("%1").arg(blob ? blob->GetBlobOpacity() : blobManager->GetBlobOpacity())
-		<< tr("%1").arg(blob ? blob->GetSilhouette() : blobManager->GetSilhouettes())
-		<< tr("%1").arg(blob ? blob->GetSilhouetteOpacity() : blobManager->GetSilhouetteOpacity())
-		<< tr("%1").arg(blob ? blob->GetLabel() : blobManager->GetLabeling())
-		<< tr("%1").arg(blobManager->OverlappingIsEnabled())
-		<< tr("%1").arg(blobManager->GetOverlapThreshold())
-		<< tr("%1").arg(blob ? blob->GetSmoothing() : blobManager->GetSmoothing())
-		<< tr("%1").arg(blobManager->GetGaussianBlur())
-		<< tr("%1").arg(blob ? blob->GetGaussianBlurVariance() : blobManager->GetGaussianBlurVariance())
-		<< tr("%1").arg(blob ? blob->GetDimensions()[0] : blobManager->GetDimensions()[0])
-		<< tr("%1").arg(blob ? blob->GetDimensions()[1] : blobManager->GetDimensions()[1])
-		<< tr("%1").arg(blob ? blob->GetDimensions()[2] : blobManager->GetDimensions()[2]);
+		<< tr("%1").arg(blob ? blob->GetRange() : m_blobManager->GetRange())
+		<< tr("%1").arg(blob ? blob->GetShowBlob() : m_blobManager->GetShowBlob())
+		<< tr("%1").arg(m_blobManager->GetUseDepthPeeling())
+		<< tr("%1").arg(blob ? blob->GetBlobOpacity() : m_blobManager->GetBlobOpacity())
+		<< tr("%1").arg(blob ? blob->GetSilhouette() : m_blobManager->GetSilhouettes())
+		<< tr("%1").arg(blob ? blob->GetSilhouetteOpacity() : m_blobManager->GetSilhouetteOpacity())
+		<< tr("%1").arg(blob ? blob->GetLabel() : m_blobManager->GetLabeling())
+		<< tr("%1").arg(m_blobManager->OverlappingIsEnabled())
+		<< tr("%1").arg(m_blobManager->GetOverlapThreshold())
+		<< tr("%1").arg(blob ? blob->GetSmoothing() : m_blobManager->GetSmoothing())
+		<< tr("%1").arg(m_blobManager->GetGaussianBlur())
+		<< tr("%1").arg(blob ? blob->GetGaussianBlurVariance() : m_blobManager->GetGaussianBlurVariance())
+		<< tr("%1").arg(blob ? blob->GetDimensions()[0] : m_blobManager->GetDimensions()[0])
+		<< tr("%1").arg(blob ? blob->GetDimensions()[1] : m_blobManager->GetDimensions()[1])
+		<< tr("%1").arg(blob ? blob->GetDimensions()[2] : m_blobManager->GetDimensions()[2]);
 	dlg_commoninput dlg(this, "Blob rendering preferences", inList, inPara, nullptr);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;
 	}
 	int i = 0;
-	blobManager->SetRange(dlg.getDblValue(i++));
-	blobManager->SetShowBlob(dlg.getCheckValue(i++) != 0);
-	blobManager->SetUseDepthPeeling(dlg.getCheckValue(i++));
-	blobManager->SetBlobOpacity(dlg.getDblValue(i++));
-	blobManager->SetSilhouettes(dlg.getCheckValue(i++) != 0);
-	blobManager->SetSilhouetteOpacity(dlg.getDblValue(i++));
-	blobManager->SetLabeling(dlg.getCheckValue(i++) != 0);
-	blobManager->SetOverlappingEnabled(dlg.getCheckValue(i++) != 0);
-	blobManager->SetOverlapThreshold(dlg.getDblValue(i++));
-	blobManager->SetSmoothing(dlg.getCheckValue(i++));
-	blobManager->SetGaussianBlur(dlg.getCheckValue(i++));
-	blobManager->SetGaussianBlurVariance(dlg.getIntValue(i++));
+	m_blobManager->SetRange(dlg.getDblValue(i++));
+	m_blobManager->SetShowBlob(dlg.getCheckValue(i++) != 0);
+	m_blobManager->SetUseDepthPeeling(dlg.getCheckValue(i++));
+	m_blobManager->SetBlobOpacity(dlg.getDblValue(i++));
+	m_blobManager->SetSilhouettes(dlg.getCheckValue(i++) != 0);
+	m_blobManager->SetSilhouetteOpacity(dlg.getDblValue(i++));
+	m_blobManager->SetLabeling(dlg.getCheckValue(i++) != 0);
+	m_blobManager->SetOverlappingEnabled(dlg.getCheckValue(i++) != 0);
+	m_blobManager->SetOverlapThreshold(dlg.getDblValue(i++));
+	m_blobManager->SetSmoothing(dlg.getCheckValue(i++));
+	m_blobManager->SetGaussianBlur(dlg.getCheckValue(i++));
+	m_blobManager->SetGaussianBlurVariance(dlg.getIntValue(i++));
 
 	int dimens[3];
 	dimens[0] = dlg.getIntValue(i++);
 	dimens[1] = dlg.getIntValue(i++);
 	dimens[2] = dlg.getIntValue(i++);
-	blobManager->SetDimensions(dimens);
+	m_blobManager->SetDimensions(dimens);
 	return true;
 }
 
@@ -3605,20 +3605,20 @@ void dlg_FeatureScout::SaveBlobMovie()
 	inPara.clear();
 	inPara
 		<< tr("%1").arg(24)
-		<< tr("%1").arg(blobManager->GetRange()) << tr("%1").arg(blobManager->GetRange())
-		<< tr("%1").arg(blobManager->GetShowBlob())
-		<< tr("%1").arg(blobManager->GetBlobOpacity()) << tr("%1").arg(blobManager->GetBlobOpacity())
-		<< tr("%1").arg(blobManager->GetSilhouettes())
-		<< tr("%1").arg(blobManager->GetSilhouetteOpacity()) << tr("%1").arg(blobManager->GetSilhouetteOpacity())
-		<< tr("%1").arg(blobManager->GetLabeling())
-		<< tr("%1").arg(blobManager->OverlappingIsEnabled())
-		<< tr("%1").arg(blobManager->GetOverlapThreshold()) << tr("%1").arg(blobManager->GetOverlapThreshold())
-		<< tr("%1").arg(blobManager->GetSmoothing())
-		<< tr("%1").arg(blobManager->GetGaussianBlur())
-		<< tr("%1").arg(blobManager->GetGaussianBlurVariance()) << tr("%1").arg(blobManager->GetGaussianBlurVariance())
-		<< tr("%1").arg(blobManager->GetDimensions()[0]) << tr("%1").arg(blobManager->GetDimensions()[0])
-		<< tr("%1").arg(blobManager->GetDimensions()[1]) << tr("%1").arg(blobManager->GetDimensions()[1])
-		<< tr("%1").arg(blobManager->GetDimensions()[2]) << tr("%1").arg(blobManager->GetDimensions()[2]);
+		<< tr("%1").arg(m_blobManager->GetRange()) << tr("%1").arg(m_blobManager->GetRange())
+		<< tr("%1").arg(m_blobManager->GetShowBlob())
+		<< tr("%1").arg(m_blobManager->GetBlobOpacity()) << tr("%1").arg(m_blobManager->GetBlobOpacity())
+		<< tr("%1").arg(m_blobManager->GetSilhouettes())
+		<< tr("%1").arg(m_blobManager->GetSilhouetteOpacity()) << tr("%1").arg(m_blobManager->GetSilhouetteOpacity())
+		<< tr("%1").arg(m_blobManager->GetLabeling())
+		<< tr("%1").arg(m_blobManager->OverlappingIsEnabled())
+		<< tr("%1").arg(m_blobManager->GetOverlapThreshold()) << tr("%1").arg(m_blobManager->GetOverlapThreshold())
+		<< tr("%1").arg(m_blobManager->GetSmoothing())
+		<< tr("%1").arg(m_blobManager->GetGaussianBlur())
+		<< tr("%1").arg(m_blobManager->GetGaussianBlurVariance()) << tr("%1").arg(m_blobManager->GetGaussianBlurVariance())
+		<< tr("%1").arg(m_blobManager->GetDimensions()[0]) << tr("%1").arg(m_blobManager->GetDimensions()[0])
+		<< tr("%1").arg(m_blobManager->GetDimensions()[1]) << tr("%1").arg(m_blobManager->GetDimensions()[1])
+		<< tr("%1").arg(m_blobManager->GetDimensions()[2]) << tr("%1").arg(m_blobManager->GetDimensions()[2]);
 	dlg_commoninput dlg2(this, "Blob rendering preferences", inList, inPara, nullptr);
 	if (dlg2.exec() != QDialog::Accepted)
 		return;
@@ -3636,24 +3636,24 @@ void dlg_FeatureScout::SaveBlobMovie()
 	{
 		range[ind] = dlg.getDblValue(i++);
 	}
-	blobManager->SetShowBlob(dlg.getCheckValue(i++) != 0);
+	m_blobManager->SetShowBlob(dlg.getCheckValue(i++) != 0);
 	for (int ind = 0; ind < 2; ++ind)
 	{
 		blobOpacity[ind] = dlg.getDblValue(i++);
 	}
-	blobManager->SetSilhouettes(dlg.getCheckValue(i++) != 0);
+	m_blobManager->SetSilhouettes(dlg.getCheckValue(i++) != 0);
 	for (int ind = 0; ind < 2; ++ind)
 	{
 		silhouetteOpacity[ind] = dlg.getDblValue(i++);
 	}
-	blobManager->SetLabeling(dlg.getCheckValue(i++) != 0);
-	blobManager->SetOverlappingEnabled(dlg.getCheckValue(i++) != 0);
+	m_blobManager->SetLabeling(dlg.getCheckValue(i++) != 0);
+	m_blobManager->SetOverlappingEnabled(dlg.getCheckValue(i++) != 0);
 	for (int ind = 0; ind < 2; ++ind)
 	{
 		overlapThreshold[ind] = dlg.getDblValue(i++);
 	}
-	blobManager->SetSmoothing(dlg.getCheckValue(i++));
-	blobManager->SetGaussianBlur(dlg.getCheckValue(i++));
+	m_blobManager->SetSmoothing(dlg.getCheckValue(i++));
+	m_blobManager->SetGaussianBlur(dlg.getCheckValue(i++));
 	for (int ind = 0; ind < 2; ++ind)
 	{
 		gaussianBlurVariance[ind] = dlg.getIntValue(i++);
@@ -3672,9 +3672,9 @@ void dlg_FeatureScout::SaveBlobMovie()
 		dimZ[ind] = dlg.getIntValue(i++);
 	}
 
-	QFileInfo fileInfo = activeChild->fileInfo();
+	QFileInfo fileInfo = m_activeChild->fileInfo();
 
-	blobManager->SaveMovie(activeChild,
+	m_blobManager->SaveMovie(m_activeChild,
 		m_renderer,
 		m_renderer->renderer()->GetActiveCamera(),
 		m_renderer->interactor(),
@@ -3696,29 +3696,29 @@ void dlg_FeatureScout::SaveBlobMovie()
 
 void dlg_FeatureScout::initFeatureScoutUI()
 {
-	dwPC = new iADockWidgetWrapper("Parallel Coordinates", "FeatureScoutPC");
-	dwPP = new dlg_PolarPlot(this);
-	activeChild->addDockWidget(Qt::RightDockWidgetArea, this);
-	activeChild->addDockWidget(Qt::RightDockWidgetArea, dwPC);
-	activeChild->addDockWidget(Qt::RightDockWidgetArea, dwPP);
-	dwPP->colorMapSelection->hide();
-	if (this->filterID == iAFeatureScoutObjectType::Voids)
+	m_dwPC = new iADockWidgetWrapper("Parallel Coordinates", "FeatureScoutPC");
+	m_dwPP = new dlg_PolarPlot(this);
+	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, this);
+	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPC);
+	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPP);
+	m_dwPP->colorMapSelection->hide();
+	if (m_filterID == iAFeatureScoutObjectType::Voids)
 	{
-		dwPP->hide();
+		m_dwPP->hide();
 	}
-	connect(dwPP->orientationColorMap, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderOrientation()));
+	connect(m_dwPP->orientationColorMap, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderOrientation()));
 
-	if (visualization == iACsvConfig::UseVolume)
+	if (m_visualization == iACsvConfig::UseVolume)
 	{
-		activeChild->imagePropertyDockWidget()->hide();
+		m_activeChild->imagePropertyDockWidget()->hide();
 	}
-	activeChild->hideHistogram();
-	activeChild->logDockWidget()->hide();
+	m_activeChild->hideHistogram();
+	m_activeChild->logDockWidget()->hide();
 	for (int i = 0; i < 3; ++i)
 	{
-		activeChild->slicerDockWidget(i)->hide();
+		m_activeChild->slicerDockWidget(i)->hide();
 	}
-	activeChild->modalitiesDockWidget()->hide();
+	m_activeChild->modalitiesDockWidget()->hide();
 }
 
 void dlg_FeatureScout::changeFeatureScout_Options(int idx)
@@ -3738,7 +3738,7 @@ void dlg_FeatureScout::changeFeatureScout_Options(int idx)
 	case 7: RenderLengthDistribution(); break;
 
 	case 6:			// plot scatterplot matrix
-		if (dwSPM)
+		if (m_dwSPM)
 		{
 			QMessageBox::information(this, "FeatureScout", "Scatterplot Matrix already created.");
 			return;
@@ -3750,16 +3750,16 @@ void dlg_FeatureScout::changeFeatureScout_Options(int idx)
 
 void dlg_FeatureScout::updateAxisProperties()
 {
-	int axis_count = pcChart->GetNumberOfAxes();
+	int axis_count = m_pcChart->GetNumberOfAxes();
 	m_pcTickCount = (m_pcTickCount < PCMinTicksCount) ? PCMinTicksCount : m_pcTickCount;
 	int visibleColIdx = 0;
 	for (int i = 0; i < axis_count; i++)
 	{
-		while (!columnVisibility[visibleColIdx])
+		while (!m_columnVisibility[visibleColIdx])
 		{
 			++visibleColIdx;
 		}
-		vtkAxis* axis = pcChart->GetAxis(i);
+		vtkAxis* axis = m_pcChart->GetAxis(i);
 		if (!axis)
 		{
 			DEBUG_LOG(QString("Invalid axis %1 in Parallel Coordinates!").arg(i));
@@ -3767,7 +3767,7 @@ void dlg_FeatureScout::updateAxisProperties()
 		}
 		axis->GetLabelProperties()->SetFontSize(m_pcFontSize);
 		axis->GetTitleProperties()->SetFontSize(m_pcFontSize);
-		vtkDataArray* columnData = vtkDataArray::SafeDownCast(chartTable->GetColumn(visibleColIdx));
+		vtkDataArray* columnData = vtkDataArray::SafeDownCast(m_chartTable->GetColumn(visibleColIdx));
 		double* const range = columnData->GetRange();
 		if (range[0] != range[1])
 		{
@@ -3777,5 +3777,5 @@ void dlg_FeatureScout::updateAxisProperties()
 		axis->RecalculateTickSpacing();
 		++visibleColIdx;
 	}
-	pcChart->Update();
+	m_pcChart->Update();
 }
