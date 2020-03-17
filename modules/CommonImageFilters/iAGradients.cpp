@@ -28,7 +28,9 @@
 
 #include <itkCastImageFilter.h>
 #include <itkDerivativeImageFilter.h>
+#ifdef ITKHigherOrderGradient
 #include <itkHigherOrderAccurateDerivativeImageFilter.h>       // HigherOrderAccurateGradient ITK Module
+#endif
 #include <itkGradientMagnitudeImageFilter.h>
 #include <itkGradientMagnitudeRecursiveGaussianImageFilter.h>
 #include <itkImageIOBase.h>
@@ -146,6 +148,7 @@ iADerivative::iADerivative() :
 }
 
 
+#ifdef ITKHigherOrderGradient
 // iAHigherOrderAccurateGradient
 
 template<class T>
@@ -185,3 +188,5 @@ iAHigherOrderAccurateDerivative::iAHigherOrderAccurateDerivative() :
 	addParameter("Direction", Discrete, 0, 0, DIM-1);
 	addParameter("Order of Accuracy", Discrete, 2, 1);
 }
+
+#endif

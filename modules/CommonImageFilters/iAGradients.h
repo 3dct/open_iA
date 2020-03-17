@@ -25,4 +25,6 @@
 IAFILTER_DEFAULT_CLASS(iADerivative);
 IAFILTER_DEFAULT_CLASS(iAGradientMagnitude);
 IAFILTER_DEFAULT_CLASS(iAGradientMagnitudeRecursiveGaussian);
+#ifdef ITKHigherOrderGradient
 IAFILTER_DEFAULT_CLASS(iAHigherOrderAccurateDerivative);
+#endif
