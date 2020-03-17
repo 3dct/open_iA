@@ -246,8 +246,8 @@ dlg_FeatureScout::dlg_FeatureScout(MdiChild* parent, iAFeatureScoutObjectType fi
 	std::map<size_t, std::vector<iAVec3f> >& curvedFiberInfo, int cylinderQuality, size_t segmentSkip) :
 	QDockWidget(parent),
 	activeChild(parent),
-	elementsCount(csvTable->GetNumberOfColumns()),
-	objectsCount(csvTable->GetNumberOfRows()),
+	elementsCount(csvtbl->GetNumberOfColumns()),
+	objectsCount(csvtbl->GetNumberOfRows()),
 	filterID(fid),
 	draw3DPolarPlot(false),
 	m_renderMode(rmSingleClass),
