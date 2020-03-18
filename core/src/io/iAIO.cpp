@@ -76,6 +76,8 @@
 #include <QTextStream>
 
 #ifdef USE_HDF5
+// for now, let's use HDF5 1.10 API:
+#define H5_USE_110_API
 #include <hdf5.h>
 #include <QStack>
 #endif
@@ -553,11 +555,17 @@ const int OTHER = 2;
 int group_check(struct opdata *od, haddr_t target_addr)
 {
 	if (od->addr == target_addr)
+	{
 		return 1;       /* Addresses match */
+	}
 	else if (!od->recurs)
+	{
 		return 0;       /* Root group reached with no matches */
+	}
 	else
+	{
 		return group_check(od->prev, target_addr);
+	}
 	/* Recursively examine the next node */
 }
 
@@ -572,12 +580,14 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t * /*info*/,
 	bool group = false;
 	int vtkType = -1;
 	int rank = 0;
-	switch (infobuf.type) {
+	switch (infobuf.type)
+	{
 	case H5O_TYPE_GROUP:
 		caption = QString("Group: %1").arg(name);
 		group = true;
 		break;
-	case H5O_TYPE_DATASET: {
+	case H5O_TYPE_DATASET:
+		{
 		hid_t dset = H5Dopen(loc_id, name, H5P_DEFAULT);
 		if (dset == -1)
 		{
@@ -613,7 +623,7 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t * /*info*/,
 		status = H5Sclose(space);
 		status = H5Dclose(dset);
 		break;
-	}
+		}
 	case H5O_TYPE_NAMED_DATATYPE:
 		caption = QString("Datatype: %1").arg(name);
 		break;
