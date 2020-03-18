@@ -1,15 +1,17 @@
-
-SET (BUNDLE_APP "\${CMAKE_INSTALL_PREFIX}/${GUI_EXECUTABLE_FILE}")
-
-INSTALL(CODE "
-	SET (BUNDLE_LIBS \"${BUNDLE_LIBS}\")
-	file(GLOB_RECURSE QTPLUGINS
-		\"\${CMAKE_INSTALL_PREFIX}/platforms/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
-	LIST (APPEND BUNDLE_LIBS \"\${QTPLUGINS}\")
-	include(BundleUtilities)
-	fixup_bundle(\"${BUNDLE_APP}\" \"\${BUNDLE_LIBS}\" \"${BUNDLE_DIRS}\")
-	")
-
-IF (UNIX)
-	INSTALL(CODE "include(\"${CMAKE_CURRENT_SOURCE_DIR}/../cmake/ChangeRPath.cmake\")")
+IF (FLATPAK_BUILD)
+	MESSAGE(STATUS "Skipping fixup_bundle for FLATPAK build...")
+ELSE()
+	SET (BUNDLE_APP "\${CMAKE_INSTALL_PREFIX}/${GUI_EXECUTABLE_FILE}")
+	INSTALL(CODE "
+		SET (BUNDLE_LIBS \"${BUNDLE_LIBS}\")
+		file(GLOB_RECURSE QTPLUGINS
+			\"\${CMAKE_INSTALL_PREFIX}/platforms/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
+		LIST (APPEND BUNDLE_LIBS \"\${QTPLUGINS}\")
+		include(BundleUtilities)
+		fixup_bundle(\"${BUNDLE_APP}\" \"\${BUNDLE_LIBS}\" \"${BUNDLE_DIRS}\")
+		")
+	IF (UNIX)
+		INSTALL(CODE "include(\"${CMAKE_CURRENT_SOURCE_DIR}/../cmake/ChangeRPath.cmake\")")
+	ENDIF()
 ENDIF()
+

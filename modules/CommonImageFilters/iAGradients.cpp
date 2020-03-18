@@ -28,7 +28,9 @@
 
 #include <itkCastImageFilter.h>
 #include <itkDerivativeImageFilter.h>
+#ifdef ITKHigherOrderGradient
 #include <itkHigherOrderAccurateDerivativeImageFilter.h>       // HigherOrderAccurateGradient ITK Module
+#endif
 #include <itkGradientMagnitudeImageFilter.h>
 #include <itkGradientMagnitudeRecursiveGaussianImageFilter.h>
 #include <itkImageIOBase.h>
@@ -38,7 +40,6 @@
 template<class T> void gradientMagnitude(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< float, 3 >   RealImageType;
 	typedef itk::GradientMagnitudeImageFilter< InputImageType, InputImageType > GMFType;
 
 	auto gmFilter = GMFType::New();
@@ -73,7 +74,6 @@ iAGradientMagnitude::iAGradientMagnitude() :
 template<class T> void gradientMagnitudeRecursiveGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< float, 3 >   RealImageType;
 	typedef itk::GradientMagnitudeRecursiveGaussianImageFilter< InputImageType, InputImageType > GMFType;
 
 	auto gmFilter = GMFType::New();
@@ -146,6 +146,7 @@ iADerivative::iADerivative() :
 }
 
 
+#ifdef ITKHigherOrderGradient
 // iAHigherOrderAccurateGradient
 
 template<class T>
@@ -185,3 +186,5 @@ iAHigherOrderAccurateDerivative::iAHigherOrderAccurateDerivative() :
 	addParameter("Direction", Discrete, 0, 0, DIM-1);
 	addParameter("Order of Accuracy", Discrete, 2, 1);
 }
+
+#endif

@@ -70,7 +70,9 @@ void iACommonImageFiltersModuleInterface::Initialize()
 	REGISTER_FILTER(iADerivative);
 	REGISTER_FILTER(iAGradientMagnitude);
 	REGISTER_FILTER(iAGradientMagnitudeRecursiveGaussian);
+#ifdef ITKHigherOrderGradient
 	REGISTER_FILTER(iAHigherOrderAccurateDerivative);
+#endif
 
 	// Hessian eigen-analysis / Laplacian
 	REGISTER_FILTER(iAHessianEigenanalysis);

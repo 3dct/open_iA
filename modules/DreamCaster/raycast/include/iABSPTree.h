@@ -218,7 +218,7 @@ public:
 		float minCost = 10000000.f, cur_cost;
 		unsigned int axis_ind=0, cur_axis_ind, is_maximum;
 		unsigned int l_counter, r_counter;
-		unsigned int l_count=0, r_count=0;
+		//unsigned int l_count=0, r_count=0;
 		float bound=0, cur_bound;
 		iAaabb l_aabb, r_aabb;
 		for (unsigned int i=0; i<primSz; i++)
@@ -245,8 +245,8 @@ public:
 						minCost = cur_cost;
 						bound = cur_bound;
 						axis_ind = cur_axis_ind;
-						l_count = l_counter;
-						r_count = r_counter;
+						//l_count = l_counter;
+						//r_count = r_counter;
 					}
 				}
 			}

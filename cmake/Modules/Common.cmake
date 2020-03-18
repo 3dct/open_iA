@@ -109,7 +109,6 @@ IF (ITK_VERSION_MAJOR LESS 4 OR (ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR
 	MESSAGE(FATAL_ERROR "Your ITK version is too old. Please use ITK >= 4.10")
 ENDIF()
 SET (ITK_COMPONENTS
-	HigherOrderAccurateGradient
 	ITKConvolution
 	ITKDenoising
 	ITKDistanceMap
@@ -132,6 +131,13 @@ ELSE()
 			LIST (APPEND ITK_COMPONENTS ${mod})
 		ENDIF()
 	ENDFOREACH()
+ENDIF()
+set (ITK_HGrad_INFO "disabled")
+IF (HigherOrderAccurateGradient_LOADED)
+	MESSAGE(STATUS "    HigherOrderAccurateGradient available as ITK module.")
+	ADD_DEFINITIONS(-DITKHigherOrderGradient)
+	set (ITK_HGrad_INFO "enabled")
+	LIST (APPEND ITK_COMPONENTS HigherOrderAccurateGradient)
 ENDIF()
 set (ITK_RTK_INFO "disabled")
 IF (RTK_LOADED)
@@ -179,7 +185,7 @@ IF ("${ITKGPUCommon_LIBRARY_DIRS}" STREQUAL "")
 	ADD_DEFINITIONS(-DITKNOGPU)
 	MESSAGE(WARNING "ITK is built without GPU support (flag ITK_USE_GPU disabled). Some GPU-optimized functionality might not be available!")
 ENDIF()
-set (BUILD_INFO "${BUILD_INFO}    \"ITK: ${ITK_VERSION} (GPU: ${ITK_GPU_INFO}, SCIFIO: ${ITK_SCIFIO_INFO}, RTK: ${ITK_RTK_INFO})\\n\"\n")
+set (BUILD_INFO "${BUILD_INFO}    \"ITK: ${ITK_VERSION} (GPU: ${ITK_GPU_INFO}, SCIFIO: ${ITK_SCIFIO_INFO}, RTK: ${ITK_RTK_INFO}, HigherOrderGradient: ${ITK_HGrad_INFO})\\n\"\n")
 
 # VTK
 FIND_PACKAGE(VTK REQUIRED)
@@ -285,7 +291,11 @@ STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
 STRING(REGEX REPLACE "/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_BASEDIR})	# on linux, lib is omitted if installed from package repos
 
 # Install svg imageformats plugin:
-INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION imageformats)
+IF (FLATPAK_BUILD)
+	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION bin/imageformats)
+ELSE()
+	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION imageformats)
+ENDIF()
 LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt5::QSvgPlugin>")
 IF (WIN32)
 	SET (QT_LIB_DIR "${Qt5_BASEDIR}/bin")
