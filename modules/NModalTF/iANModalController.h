@@ -24,14 +24,17 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QString>
-#include <QList>
 #include <QColor>
+#include <QList>
+#include <QMap>
+#include <QSet>
 #include <QSharedPointer>
+#include <QString>
+
+class dlg_labels;
 
 class iAModality;
 class iASlicer;
-class dlg_labels;
 class MdiChild;
 
 class vtkVolume;
