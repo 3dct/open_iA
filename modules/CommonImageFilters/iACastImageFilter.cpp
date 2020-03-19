@@ -205,7 +205,7 @@ void convertToRGB(iAFilter * filter, QMap<QString, QVariant> const & params)
 	{
 		iAColorTheme const * theme = iAColorThemeManager::instance().theme(params["Color scheme"].toString());
 		labelToRGBFilter->ResetColors();
-		for (int c = 0; c < theme->size(); ++c)
+		for (size_t c = 0; c < theme->size(); ++c)
 		{
 			labelToRGBFilter->AddColor(theme->color(c).red(), theme->color(c).green(), theme->color(c).blue());
 		}

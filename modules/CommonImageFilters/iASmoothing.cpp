@@ -54,7 +54,6 @@ typedef itk::Image<RealType, DIM> RealImageType;
 
 template<class T> void medianFilter(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::MedianImageFilter<RealImageType, RealImageType > FilterType;
 	auto realImage = castImageTo<RealType>(filter->input()[0]->itkImage());
 	auto medianFilter = FilterType::New();
