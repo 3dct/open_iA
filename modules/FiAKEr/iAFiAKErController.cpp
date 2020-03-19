@@ -353,10 +353,6 @@ void iAFiAKErController::resultsLoaded()
 	loadStateAndShow();
 }
 
-iAFiAKErController::~iAFiAKErController()
-{
-}
-
 void iAFiAKErController::setupMain3DView()
 {
 	m_main3DWidget = m_mdiChild->renderDockWidget()->vtkWidgetRC;
@@ -627,7 +623,7 @@ QWidget* iAFiAKErController::setupResultListView()
 	previewLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	m_distributionChoice = new QComboBox();
 	QStringList paramNames;
-	for (size_t curIdx = 0; curIdx < m_data->spmData->numParams() - 1; ++curIdx)
+	for (size_t curIdx = 0; curIdx < m_data->m_resultIDColumn; ++curIdx)
 	{
 		paramNames.push_back(QString("%1 Distribution").arg(m_data->spmData->parameterName(curIdx)));
 	}
@@ -860,7 +856,7 @@ void iAFiAKErController::loadStateAndShow()
 
 QString iAFiAKErController::stackedBarColName(int index) const
 {
-	return index == 0 ? "Fiber Count" : diffName(index-1);
+	return index == 0 ? "Fiber Count" : diffName(index);
 }
 
 void iAFiAKErController::addStackedBar(int index)
@@ -923,7 +919,7 @@ void iAFiAKErController::setSPMColorByResult()
 	{
 		lut.setColor(i, getResultColor(i));
 	}
-	m_spm->setLookupTable(lut, m_data->spmData->numParams() - 1);
+	m_spm->setLookupTable(lut, m_data->m_resultIDColumn);
 }
 
 void iAFiAKErController::stackedColSelect()
@@ -1801,8 +1797,8 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 			m_ren->ResetCamera();
 			m_cameraInitialized = true;
 		}
-		m_style->addInput( resultID, ui.main3DVis->getPolyData(), ui.main3DVis->getActor() );
-		m_spm->addFilter(m_data->spmData->numParams()-1, resultID);
+		m_style->addInput(resultID, ui.main3DVis->getPolyData(), ui.main3DVis->getActor() );
+		m_spm->addFilter(m_data->m_resultIDColumn, resultID);
 	}
 	else
 	{
@@ -1846,7 +1842,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		}
 		ui.main3DVis->hide();
 		m_style->removeInput(resultID);
-		m_spm->removeFilter(m_data->spmData->numParams()-1, resultID);
+		m_spm->removeFilter(m_data->m_resultIDColumn, resultID);
 	}
 	for (size_t c = 0; c < m_chartCount; ++c)
 	{
@@ -2487,7 +2483,9 @@ namespace
 				{
 					int idx = qobject_cast<QComboBox*>(w)->findText(settings.value(key).toString());
 					if (idx != -1)
+					{
 						qobject_cast<QComboBox*>(w)->setCurrentIndex(idx);
+					}
 				}
 				else if (qobject_cast<QCheckBox*>(w))
 				{
@@ -2739,6 +2737,7 @@ void iAFiAKErController::refDistAvailable()
 {
 	size_t startIdx = m_refDistCompute->columnsBefore();
 	std::vector<size_t> changedSpmColumns;
+	assert(startIdx + m_refDistCompute->columnsAdded() == m_data->spmData->numParams());
 	for (size_t col = startIdx; col < startIdx+m_refDistCompute->columnsAdded(); ++col)
 	{
 		changedSpmColumns.push_back(col);
@@ -2760,10 +2759,11 @@ void iAFiAKErController::refDistAvailable()
 
 	updateRefDistPlots();
 
-	for (size_t diffID = 0; diffID < m_data->m_measures.size(); ++diffID)
+	for (size_t spmParamIdx = startIdx; spmParamIdx < m_data->spmData->numParams(); ++spmParamIdx)
 	{
-		auto diffAvgAction = new QAction(m_data->spmData->parameterName(startIdx+diffID), nullptr);
-		diffAvgAction->setProperty("colID", static_cast<unsigned long long>(startIdx+diffID));
+		size_t measureIdx = m_data->m_measures.size() - (m_data->spmData->numParams() - spmParamIdx);
+		auto diffAvgAction = new QAction(m_data->spmData->parameterName(spmParamIdx), nullptr);
+		diffAvgAction->setProperty("colID", static_cast<unsigned long long>(measureIdx+1)); // 0 is Fiber Count
 		diffAvgAction->setCheckable(true);
 		diffAvgAction->setChecked(false);
 		connect(diffAvgAction, &QAction::triggered, this, &iAFiAKErController::stackedColSelect);

@@ -115,7 +115,6 @@ public:
 	static const QString FIAKERProjectID;
 
 	iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild);
-	~iAFiAKErController() override;
 
 	void loadProject(QSettings const & projectFile, QString const & fileName);
 	void start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData);

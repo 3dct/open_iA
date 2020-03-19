@@ -56,7 +56,7 @@ public:
 	size_t columnsBefore() const;
 	size_t columnsAdded() const;
 private:
-	bool readResultRefComparison(QFile& file, size_t resultID);
+	bool readResultRefComparison(QFile& file, size_t resultID, bool& first);
 	void writeResultRefComparison(QFile& cacheFile, size_t resultID);
 	bool readAverageMeasures(QFile& cacheFile);
 	void writeAverageMeasures(QFile& cacheFile);

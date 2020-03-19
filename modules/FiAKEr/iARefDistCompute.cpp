@@ -92,31 +92,31 @@ bool iARefDistCompute::setMeasuresToCompute(std::vector<std::pair<int, bool>> co
 		{
 			return !a.second && b.second;
 		});
-	QVector<size_t> allMeasures(m_data->m_measures);
+	//QVector<size_t> allMeasures(m_data->m_measures);
 	for (auto m : m_measuresToCompute)
 	{
-		allMeasures.push_back(m.first);
+		m_data->m_measures.push_back(m.first);
 	}
-	auto optMeasIt = std::find(allMeasures.begin(), allMeasures.end(), optimizationMeasure);
+	auto optMeasIt = std::find(m_data->m_measures.begin(), m_data->m_measures.end(), optimizationMeasure);
 	auto optMeasItNew = std::find(m_measuresToCompute.begin(), m_measuresToCompute.end(), std::make_pair(optimizationMeasure, true));
-	if (optMeasIt == allMeasures.end() || optMeasItNew != m_measuresToCompute.end())
+	if (optMeasIt == m_data->m_measures.end() || optMeasItNew != m_measuresToCompute.end())
 	{
 		DEBUG_LOG("Measure to use for optimization not found, or uses optimization itself!");
 		return false;
 	}
 	else
 	{
-		m_optimizationMeasureIdx = optMeasIt - allMeasures.begin();
+		m_optimizationMeasureIdx = optMeasIt - m_data->m_measures.begin();
 	}
-	auto it = std::find(allMeasures.begin(), allMeasures.end(), bestMeasure);
-	if (it == allMeasures.end())
+	auto it = std::find(m_data->m_measures.begin(), m_data->m_measures.end(), bestMeasure);
+	if (it == m_data->m_measures.end())
 	{
 		DEBUG_LOG("Selected best measure not found!");
 		return false;
 	}
 	else
 	{
-		m_bestMeasure = it - allMeasures.begin();
+		m_bestMeasure = it - m_data->m_measures.begin();
 	}
 	return true;
 }
@@ -213,12 +213,13 @@ void iARefDistCompute::run()
 	m_maxLength = lengthRange[1] - lengthRange[0];
 	bool recomputeAverages = false;
 	std::vector<bool> writeResultCache(m_data->result.size(), false);
+	bool first = true;
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		QString resultName(QFileInfo(m_data->result[resultID].fileName).completeBaseName());
 		QString resultCacheFileName(cachePath + QString("refDist_%1_%2.cache").arg(referenceName).arg(resultName));
 		QFile cacheFile(resultCacheFileName);
-		bool readCacheResult = readResultRefComparison(cacheFile, resultID);
+		bool readCacheResult = readResultRefComparison(cacheFile, resultID, first);
 		bool skip = (resultID == m_referenceID) || readCacheResult;
 		auto& d = m_data->result[resultID];
 		if (resultID != m_referenceID && readCacheResult && d.avgDifference.size() == 0)
@@ -433,7 +434,7 @@ void iARefDistCompute::run()
 	}
 }
 
-bool iARefDistCompute::readResultRefComparison(QFile & cacheFile, size_t resultID)
+bool iARefDistCompute::readResultRefComparison(QFile & cacheFile, size_t resultID, bool & first)
 {
 	if (!verifyOpenCacheFile(cacheFile))
 	{
@@ -459,8 +460,9 @@ bool iARefDistCompute::readResultRefComparison(QFile & cacheFile, size_t resultI
 			"If you want to recompute with correct values, please delete the 'cache' subfolder!")
 			.arg(cacheFile.fileName()));
 	} 
-	if (version <= 2)
+	if (version <= 2 && first)
 	{
+		first = false;
 		std::vector<std::pair<int, bool>> measuresToCompute;
 		for (int d = 0; d < getAvailableDissimilarityMeasureNames().size(); ++d)
 		{
