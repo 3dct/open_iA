@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -48,7 +48,7 @@ public:
 	QVector<iAImagePreviewWidget*> m_previews;
 	int m_selectedIndex;
 protected:
-	virtual void paintEvent(QPaintEvent * e)
+	virtual void paintEvent(QPaintEvent * /*e*/)
 	{
 		if (m_selectedIndex != NoImageSelected)
 		{
@@ -64,10 +64,10 @@ protected:
 
 iAExampleImageWidget::iAExampleImageWidget(double aspectRatio, iAPreviewWidgetPool * previewPool, ClusterImageType nullImage):
 	m_layout(new QGridLayout()),
-	m_aspectRatio(aspectRatio),
-	m_previewPool(previewPool),
 	m_width(-1),
 	m_height(1),
+	m_aspectRatio(aspectRatio),
+	m_previewPool(previewPool),
 	m_gridWidget(new ExampleGrid),
 	m_nullImage(nullImage)
 {
@@ -84,7 +84,7 @@ iAExampleImageWidget::iAExampleImageWidget(double aspectRatio, iAPreviewWidgetPo
 	container->setLayout(new QHBoxLayout());
 	container->layout()->addWidget(m_gridWidget);
 	container->layout()->addWidget(refreshButton);
-	
+
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	SetCaptionedContent(this, "Examples", container);
 

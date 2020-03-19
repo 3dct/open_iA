@@ -168,7 +168,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="../../open_iA/core/open_iA.qrc">
+          <iconset resource="../../core/open_iA.qrc">
            <normaloff>:/images/savemov.png</normaloff>:/images/savemov.png</iconset>
          </property>
          <property name="iconSize">
@@ -191,7 +191,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="../../open_iA/core/open_iA.qrc">
+          <iconset resource="../../core/open_iA.qrc">
            <normaloff>:/images/savescreen.png</normaloff>:/images/savescreen.png</iconset>
          </property>
          <property name="iconSize">
@@ -224,7 +224,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="../../open_iA/core/open_iA.qrc">
+          <iconset resource="../../core/open_iA.qrc">
            <normaloff>:/images/settings.png</normaloff>:/images/settings.png</iconset>
          </property>
          <property name="iconSize">

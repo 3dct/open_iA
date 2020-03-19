@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -33,7 +33,6 @@
 
 #include <itkAddImageFilter.h>
 #include <itkCastImageFilter.h>
-#include <itkDivideImageFilter.h>
 #include <itkImage.h>
 #include <itkImageToVTKImageFilter.h>
 
@@ -96,7 +95,7 @@ void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & im
 	reader->Update();
 	imgData = reader->GetOutput();
 	if (!imgData)
-		DEBUG_LOG("Image data is NULL!");
+		DEBUG_LOG("Image data is nullptr!");
 }
 
 namespace
@@ -124,7 +123,7 @@ iASSSlicer::iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> 
 	container = new QWidget();
 	containerLayout = new QVBoxLayout (container);
 	container->setLayout( containerLayout );
-	
+
 	QLabel * selTextLabel = new QLabel( m_SlicerName, container );
 	selTextLabel->setAlignment( Qt::AlignCenter );
 	selTextLabel->setFixedHeight( 15 );
@@ -137,13 +136,13 @@ iASSSlicer::iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> 
 	medContour->UseScalarTreeOn();
 	medContour->SetComputeGradients( false );
 	medContour->SetComputeNormals( false );
-	
+
 	minContour->SetNumberOfContours( 1 );
 	minContour->SetValue( 0, contourValue );
 	minContour->UseScalarTreeOn();
 	minContour->SetComputeGradients( false );
 	minContour->SetComputeNormals( false );
-	
+
 	maxContour->SetNumberOfContours( 1 );
 	maxContour->SetValue( 0, contourValue );
 	maxContour->UseScalarTreeOn();
@@ -244,7 +243,6 @@ void iASSSlicer::computeAggregatedImageData( const QStringList & filesList )
 	typedef itk::Image< unsigned char, imgDim >   SumImageType;
 	//first use itk filters to compute aggregated image
 	typedef itk::AddImageFilter<SumImageType, MaskImageType, SumImageType> AddImageFilter;
-	typedef itk::DivideImageFilter<MaskImageType, MaskImageType, MaskImageType> DivideImageFilter;
 
 	ScalarPixelType pixelType;
 	ImagePointer lastOutput = iAITKIO::readFile( filesList.first(), pixelType, true);

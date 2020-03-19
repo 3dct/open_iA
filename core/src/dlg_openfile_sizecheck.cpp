@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,11 @@
 * ************************************************************************************/
 #include "dlg_openfile_sizecheck.h"
 
-#include "iAToolsVTK.h"    // for mapVTKTypeStringToSize
+#include "dlg_commoninput.h"
+#include "io/iARawFileParameters.h"
+#include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
+
+#include <vtkImageReader.h>  // for VTK_FILE_BYTE_ORDER_... constants
 
 #include <QComboBox>
 #include <QFileInfo>
@@ -28,45 +32,129 @@
 #include <QLineEdit>
 #include <QPushButton>
 
-dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QString const & fileName, QWidget *parent, QString const & title,
-	QStringList const & labels, QList<QVariant> const & values, QTextDocument *fDescr) :
-	dlg_commoninput(parent, title, labels, values, fDescr)
+#include <cassert>
+
+namespace
+{
+	unsigned int mapVTKByteOrderToIdx(unsigned int vtkByteOrder)
+	{
+		switch (vtkByteOrder)
+		{
+		default:
+		case VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN: return 0;
+		case VTK_FILE_BYTE_ORDER_BIG_ENDIAN: return 1;
+		}
+	}
+}
+
+dlg_openfile_sizecheck::dlg_openfile_sizecheck(QString const & fileName, QWidget *parent, QString const & title,
+	QStringList const & additionalLabels, QList<QVariant> const & additionalValues, iARawFileParameters & rawFileParams):
+	m_accepted(false)
 {
 	QFileInfo info1(fileName);
 	m_fileSize = info1.size();
+	m_sizeXIdx = 0; m_sizeYIdx = 1; m_sizeZIdx = 2; m_headerSizeIdx = 9; m_voxelSizeIdx = 10;
 
-	m_actualSizeLabel = new QLabel("Actual file size: " + QString::number(m_fileSize) + " bytes", this);
+	QStringList datatype(readableDataTypeList(false));
+	QString selectedType = mapVTKTypeToReadableDataType(rawFileParams.m_scalarType);
+	int selectedIdx = datatype.indexOf(selectedType);
+	if (selectedIdx != -1)
+		datatype[selectedIdx] = "!" + datatype[selectedIdx];
+	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
+	byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)];
+	QStringList labels = (QStringList()
+		<< tr("#Size X") << tr("#Size Y") << tr("#Size Z")
+		<< tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
+		<< tr("#Origin X") << tr("#Origin Y") << tr("#Origin Z")
+		<< tr("#Headersize")
+		<< tr("+Data Type")
+		<< tr("+Byte Order"));
+	m_fixedParams = labels.size();
+	labels.append(additionalLabels);
+
+	QList<QVariant> values = (QList<QVariant>()
+		<< rawFileParams.m_size[0]    << rawFileParams.m_size[1]    << rawFileParams.m_size[2]
+		<< rawFileParams.m_spacing[0] << rawFileParams.m_spacing[1] << rawFileParams.m_spacing[2]
+		<< rawFileParams.m_origin[0]  << rawFileParams.m_origin[1]  << rawFileParams.m_origin[2]
+		<< rawFileParams.m_headersize
+		<< datatype
+		<< byteOrderStr
+		<< additionalValues);
+
+	m_inputDlg = new dlg_commoninput(parent, title, labels, values);
+
+	m_actualSizeLabel = new QLabel("Actual file size: " + QString::number(m_fileSize) + " bytes");
 	m_actualSizeLabel->setAlignment(Qt::AlignRight);
-	gridLayout->addWidget(m_actualSizeLabel, labels.size(), 0, 1, 1);
+	m_inputDlg->gridLayout->addWidget(m_actualSizeLabel, labels.size(), 0, 1, 1);
 
-	m_proposedSizeLabel = new QLabel("Predicted file size: ", this);
+	m_proposedSizeLabel = new QLabel("Predicted file size: ");
 	m_proposedSizeLabel->setAlignment(Qt::AlignRight);
-	gridLayout->addWidget(m_proposedSizeLabel, labels.size()+1, 0, 1, 1);
+	m_inputDlg->gridLayout->addWidget(m_proposedSizeLabel, labels.size() + 1, 0, 1, 1);
 
-	gridLayout->addWidget(buttonBox, labels.size()+2, 0, 1, 1);
+	m_inputDlg->gridLayout->addWidget(m_inputDlg->buttonBox, labels.size() + 2, 0, 1, 1);
 
-	if (!isVolumeStack)   // TODO: not ideal - either load from outside, or only create these boxes here!
-	{
-		m_extentXIdx = 0; m_extentYIdx = 1; m_extentZIdx = 2; m_voxelSizeIdx = 10;
-	}
-	else
-	{
-		m_extentXIdx = 5; m_extentYIdx = 6; m_extentZIdx = 7; m_voxelSizeIdx = 14;
-	}
-	connect(qobject_cast<QLineEdit*>(m_widgetList[m_extentXIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
-	connect(qobject_cast<QLineEdit*>(m_widgetList[m_extentYIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
-	connect(qobject_cast<QLineEdit*>(m_widgetList[m_extentZIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
-	connect(qobject_cast<QComboBox*>(m_widgetList[m_voxelSizeIdx]), SIGNAL(currentIndexChanged(int)), this, SLOT(checkFileSize()));
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeXIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeYIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeZIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_headerSizeIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
+	connect(qobject_cast<QComboBox*>(m_inputDlg->widgetList()[m_voxelSizeIdx]), SIGNAL(currentIndexChanged(int)), this, SLOT(checkFileSize()));
 
 	checkFileSize();
+
+	if (m_inputDlg->exec() != QDialog::Accepted)
+		return;
+
+	for (int i = 0; i < 3; ++i)
+	{
+		rawFileParams.m_size[i] = m_inputDlg->getIntValue(i);
+		rawFileParams.m_spacing[i] = m_inputDlg->getDblValue(3 + i);
+		rawFileParams.m_origin[i] = m_inputDlg->getDblValue(6 + i);
+	}
+	rawFileParams.m_headersize = m_inputDlg->getDblValue(9);
+	rawFileParams.m_scalarType = mapReadableDataTypeToVTKType(m_inputDlg->getComboBoxValue(10));
+	if (m_inputDlg->getComboBoxValue(11) == "Little Endian")
+		rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
+	else if (m_inputDlg->getComboBoxValue(11) == "Big Endian")
+		rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
+	m_accepted = true;
 }
 
 void dlg_openfile_sizecheck::checkFileSize()
 {
-	qint64 extentX = getDblValue(m_extentXIdx), extentY= getDblValue(m_extentYIdx), extentZ = getDblValue(m_extentZIdx);
-	qint64 voxelSize = mapVTKTypeStringToSize(getComboBoxValue(m_voxelSizeIdx));
-	qint64 proposedSize = extentX*extentY*extentZ*voxelSize;
-	m_proposedSizeLabel->setText("Predicted file size: " + QString::number(proposedSize) + " bytes");
+	qint64 sizeX = m_inputDlg->getDblValue(m_sizeXIdx),
+		sizeY= m_inputDlg->getDblValue(m_sizeYIdx),
+		sizeZ = m_inputDlg->getDblValue(m_sizeZIdx),
+		voxelSize = mapVTKTypeToSize(mapReadableDataTypeToVTKType(m_inputDlg->getComboBoxValue(m_voxelSizeIdx))),
+		headerSize = m_inputDlg->getDblValue(m_headerSizeIdx);
+	qint64 proposedSize = sizeX * sizeY * sizeZ * voxelSize + headerSize;
+	if (sizeX <= 0 || sizeY <= 0 || sizeZ <= 0 || voxelSize <= 0 || headerSize < 0)
+	{
+		m_proposedSizeLabel->setText("Invalid numbers in size, data type or header size (too large/negative)?");
+	}
+	else
+	{
+		m_proposedSizeLabel->setText("Predicted file size: " + QString::number(proposedSize) + " bytes");
+	}
 	m_proposedSizeLabel->setStyleSheet(QString("QLabel { background-color : %1; }").arg(proposedSize == m_fileSize ? "#BFB" : "#FBB" ));
-	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(proposedSize == m_fileSize);
+	m_inputDlg->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(proposedSize == m_fileSize);
+}
+
+bool dlg_openfile_sizecheck::accepted() const
+{
+	return m_accepted;
+}
+
+int dlg_openfile_sizecheck::fixedParams() const
+{
+	return m_fixedParams;
+}
+
+dlg_commoninput const * dlg_openfile_sizecheck::inputDlg() const
+{
+	return m_inputDlg;
+}
+
+dlg_openfile_sizecheck::~dlg_openfile_sizecheck()
+{
+	delete m_inputDlg;
 }

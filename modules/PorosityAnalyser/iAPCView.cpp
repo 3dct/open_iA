@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -56,11 +56,11 @@ iAPCView::iAPCView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 iAPCView::~iAPCView()
 {}
 
-void iAPCView::SetData( const QTableWidget * data )
+void iAPCView::SetData( const QTableWidget * newData )
 {
 	//Init PC
 	vtkSmartPointer<vtkTable> matrixInputTable = vtkSmartPointer<vtkTable>::New();
-	matrixInputTable->DeepCopy( convertQTableWidgetToVTKTable( data ) );
+	matrixInputTable->DeepCopy( convertQTableWidgetToVTKTable(newData) );
 	m_chart->GetPlot( 0 )->SetInputData( matrixInputTable );
 	ChartModified();
 }

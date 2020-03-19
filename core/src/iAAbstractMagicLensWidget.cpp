@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -37,11 +37,12 @@
 const double iAAbstractMagicLensWidget::OFFSET_VAL = 20.;
 
 iAAbstractMagicLensWidget::iAAbstractMagicLensWidget( QWidget * parent /*= 0 */ )
-	: iAVtkWidget( parent )
-	, m_lensRen{ vtkSmartPointer<vtkRenderer>::New( ) }
-	, m_GUIRen{ vtkSmartPointer<vtkRenderer>::New( ) }
-	, m_GUIActor { vtkSmartPointer<vtkActor2D>::New() }
-	, m_viewMode( iAAbstractMagicLensWidget::OFFSET )
+	: iAVtkWidget( parent ),
+	m_lensRen{ vtkSmartPointer<vtkRenderer>::New( ) },
+	m_GUIRen{ vtkSmartPointer<vtkRenderer>::New( ) },
+	m_GUIActor { vtkSmartPointer<vtkActor2D>::New() },
+	m_viewMode( iAAbstractMagicLensWidget::OFFSET ),
+	m_magicLensEnabled(false)
 { }
 
 iAAbstractMagicLensWidget::~iAAbstractMagicLensWidget( )
@@ -49,6 +50,7 @@ iAAbstractMagicLensWidget::~iAAbstractMagicLensWidget( )
 
 void iAAbstractMagicLensWidget::magicLensOn( )
 {
+	m_magicLensEnabled = true;
 	setCursor( Qt::BlankCursor );
 	GetRenderWindow( )->AddRenderer( m_lensRen );
 	GetRenderWindow( )->AddRenderer( m_GUIRen );
@@ -57,10 +59,16 @@ void iAAbstractMagicLensWidget::magicLensOn( )
 
 void iAAbstractMagicLensWidget::magicLensOff( )
 {
+	m_magicLensEnabled = false;
 	setCursor( Qt::ArrowCursor );
 	GetRenderWindow( )->RemoveRenderer( m_lensRen );
 	GetRenderWindow( )->RemoveRenderer( m_GUIRen );
 	GetRenderWindow( )->Render( );
+}
+
+bool iAAbstractMagicLensWidget::isMagicLensEnabled() const
+{
+	return m_magicLensEnabled;
 }
 
 void iAAbstractMagicLensWidget::setLensSize( int sizeX, int sizeY )

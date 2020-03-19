@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -56,11 +56,11 @@ public:
 	iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAQGLWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
 	~iAScatterPlot();
 
-	void setData( int x, int y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
+	void setData(size_t x, size_t y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
 	bool hasData() const;                                            //!< Check if data is already set to the plot
 	//! Set color lookup table and the name of a color-coded parameter
-	void setLookupTable( QSharedPointer<iALookupTable> &lut, int colInd );
-	const int * getIndices() const { return m_paramIndices; }        //!< Get indices of X and Y parameters
+	void setLookupTable( QSharedPointer<iALookupTable> &lut, size_t colInd );
+	const size_t* getIndices() const { return m_paramIndices; }      //!< Get indices of X and Y parameters
 	void setTransform( double scale, QPointF newOffset );            //!< Set new transform: new scale and new offset
 	void setTransformDelta( double scale, QPointF deltaOffset );     //!< Set new transform: new scale and change in the offset (delta)
 	QRect getRect() const { return m_globRect; }                     //!< Get rectangle where scatter plot contents are displayed
@@ -70,7 +70,7 @@ public:
 	QPointF getPointPosition( size_t index ) const;                  //!< Get global position of a point by its index
 	double getPointRadius() const;                                   //!< Get point radius (magnified if plot is maximized)
 	void setPointRadius(double radius);                              //!< Set point radius (magnified if plot is maximized)
-	
+
 	//!  Output positions and labels of plot ticks for X and Y axes
 	void printTicksInfo( QList<double> * posX, QList<double> * posY, QList<QString> * textX, QList<QString> * textY ) const;
 	void setCurrentPoint( size_t index );                            //!< Set the index of currently hovered point
@@ -111,7 +111,7 @@ protected:
 	void calculateNiceSteps( double * r, QList<double> * ticks );    //!< Calculates nice steps displayed parameter ranges given a range and a desired number of ticks
 	int getBinIndex( int x, int y ) const;                           //!< Get global grid bin offset (index) using X and Y bin indices
 	size_t getPointIndexAtPosition( QPointF mpos ) const;            //!< Get index of data point under cursor, NoPointIndex if none
-	QPointF getPositionFromPointIndex( int ind ) const;              //!< Get position of a data point with a given index
+	QPointF getPositionFromPointIndex( size_t idx ) const;           //!< Get position of a data point with a given index
 	void updateSelectedPoints( bool append, bool remove);            //!< Update selected points; parameters specify whether to append or to remove from previous selection (or create new if both false). if both append and remove are true, then XOR logic is applied (of newly selected, those already selected will be de-selected, new ones will be added)
 	void updateDrawRect();                                           //!< Re-calculate dimensions of the plot's rectangle
 	QPoint getLocalPos( QPoint pos ) const;                          //!< Local (plot) position from global (SPLOM)
@@ -177,9 +177,9 @@ protected:
 	QRect m_globRect;                                                //!< plot's rectangle
 	QRectF m_locRect;                                                //!< plot's local drawing rectangle
 	QSharedPointer<iASPLOMData> m_splomData;                         //!< pointer to SPLOM-parent's data
-	int m_paramIndices[2];                                           //!< indices of plot X, Y parameters
+	size_t m_paramIndices[2];                                        //!< indices of plot X, Y parameters
 	double m_prX[2], m_prY[2];                                       //!< range of x and y parameter
-	int m_colInd;                                                    //!< index of color-coded parameter
+	size_t m_colInd;                                                 //!< index of color-coded parameter
 	QSharedPointer<iALookupTable> m_lut;                             //!< pointer to SPLOM-parent's lookup table
 	QRectF m_maxBtnRect;                                             //!< rectangle of maximized button
 	// zooming, translating

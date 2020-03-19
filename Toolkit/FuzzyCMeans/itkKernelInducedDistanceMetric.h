@@ -48,7 +48,7 @@ namespace Statistics
  * \sa PolynomialKernelInducedDistanceMetric
  */
 template< class TVector >
-class ITK_EXPORT KernelInducedDistanceMetric : public DistanceMetric< TVector >
+class KernelInducedDistanceMetric : public DistanceMetric< TVector >
 {
 
 public:
@@ -59,26 +59,11 @@ public:
   typedef SmartPointer< Self >        Pointer;
   typedef SmartPointer< const Self >  ConstPointer;
 
-#if ITK_VERSION_MAJOR < 4
-#ifdef ITK_USE_REVIEW_STATISTICS
   /** Typedef to represent the measurement vector type. */
   typedef typename Superclass::MeasurementVectorType MeasurementVectorType;
   /** Typedef for the component of a vector. */
   typedef typename itk::Statistics::MeasurementVectorTraitsTypes<
                        MeasurementVectorType >::ValueType ValueType;
-#else
-  /** Typedef to represent the measurement vector type. */
-  typedef TVector MeasurementVectorType;
-  /** Type of the component of a vector. */
-  typedef typename TVector::ValueType ValueType;
-#endif
-#else
-  /** Typedef to represent the measurement vector type. */
-  typedef typename Superclass::MeasurementVectorType MeasurementVectorType;
-  /** Typedef for the component of a vector. */
-  typedef typename itk::Statistics::MeasurementVectorTraitsTypes<
-                       MeasurementVectorType >::ValueType ValueType;
-#endif
 
   /** Typedef to represent the length of each measurement vector. */
   typedef typename Superclass::MeasurementVectorSizeType

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -35,7 +35,7 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
 
-const int MAX_ITERATIONS		= 24;
+//const int MAX_ITERATIONS		= 24;
 const double BACKGROUND[3]		= {1, 1, 1};
 
 dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
@@ -76,19 +76,19 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 	graphWidget->GetRenderWindow()->Render();
 }
 
-void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, int nunRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId)
+void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, size_t numRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> /*graphToTableId*/)
 {
 	if(g->GetNumberOfVertices() < 1) return;
 
 	this->m_graph = g;
 	this->m_nodesToLayers = nodesToLayers;
 
-	vtkNew<vtkPoints> points;	
+	vtkNew<vtkPoints> points;
 	iAVtkGraphDrawer graphDrawer;
 	//graphDrawer.setMaxIteration(MAX_ITERATIONS);
-	graphDrawer.createLayout(points.GetPointer(), m_graph, graphWidget->GetRenderWindow()->GetSize(), nunRanks);
+	graphDrawer.createLayout(points.GetPointer(), m_graph, graphWidget->GetRenderWindow()->GetSize(), numRanks);
 	m_graph->SetPoints(points.GetPointer());
-	
+
 	m_graphItem->SetGraph(m_graph);
 	m_graphItem->Update();
 	graphWidget->GetRenderWindow()->Render();

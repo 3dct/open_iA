@@ -19,7 +19,7 @@ namespace itk
  */
 template <class TInputImage1, class TInputImage2,
           class TOutputImage >
-class ITK_EXPORT ThresholdImageFusionFilter :
+class ThresholdImageFusionFilter :
     public InPlaceImageFilter<TInputImage1,TOutputImage> 
 {
 public:
@@ -103,7 +103,7 @@ protected:
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData()  */
   void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                            itk::ThreadIdType threadId );
+                            itk::ThreadIdType threadId ) override;
 
 private:
   ThresholdImageFusionFilter(const Self&); //purposely not implemented

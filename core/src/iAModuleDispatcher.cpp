@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -43,7 +43,7 @@ QString GetLastErrorAsString()
 		return QString();
 	LPSTR messageBuffer = nullptr;
 	size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+		nullptr, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, nullptr);
 	std::string message(messageBuffer, size);
 	LocalFree(messageBuffer);
 	QString result(message.c_str());
@@ -78,7 +78,7 @@ iAModuleDispatcher::iAModuleDispatcher(QString const & rootPath): m_mainWnd(null
 	m_rootPath = rootPath;
 }
 
-void CloseLibrary(iALoadedModule & module)
+void CloseLibrary(iALoadedModule & /*module*/)
 {
 #ifdef _MSC_VER
 /*
@@ -251,7 +251,7 @@ void iAModuleDispatcher::SelectAndRunFilter()
 {
 	dlg_FilterSelection filterSelection(m_mainWnd);
 	if (filterSelection.exec() == QDialog::Accepted)
-		RunFilter(iAFilterRegistry::filterID(filterSelection.SelectedFilterName()));
+		RunFilter(iAFilterRegistry::filterID(filterSelection.selectedFilterName()));
 }
 
 void iAModuleDispatcher::RunFilter(int filterID)
@@ -336,7 +336,7 @@ QMenu * iAModuleDispatcher::getMenuWithTitle(QMenu * parentMenu, QString const &
 void  iAModuleDispatcher::AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable)
 {
 	AddModuleAction(action, isDisablable);
-	foreach(QAction * curAct, menu->actions())
+	for(QAction * curAct: menu->actions())
 	{
 		if (curAct->text() > action->text())
 		{

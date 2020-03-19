@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,7 +25,7 @@
 #include "iASingleResult.h"
 
 // Toolkit/Entropy
-#include <EntropyImageFilter.h>
+#include <iAEntropyImageFilter.h>
 
 #include <iAConsole.h>
 #include <iAToolsITK.h>
@@ -57,7 +57,7 @@ void iADerivedOutputCalculator::run()
 		typedef itk::Image< unsigned int, 3 > OutputImageType;
 		typedef itk::ScalarConnectedComponentImageFilter <LabelImageType, OutputImageType > ConnectedComponentImageFilterType;
 		ConnectedComponentImageFilterType::Pointer connected = ConnectedComponentImageFilterType::New();
-		connected->SetDistanceThreshold(0.5);
+		connected->SetDistanceThreshold(0);
 		if (m_result->GetLabelledImage().IsNull())
 		{
 			DEBUG_LOG("Labelled Image is null");
@@ -79,8 +79,8 @@ void iADerivedOutputCalculator::run()
 
 		if (m_result->ProbabilityAvailable())
 		{
-			typedef itk::ImageRegionConstIterator<ProbabilityImageType> ConstDblIt;
-			typedef fhw::EntropyImageFilter<ProbabilityImageType, ProbabilityImageType> EntropyFilter;
+			//typedef itk::ImageRegionConstIterator<ProbabilityImageType> ConstDblIt;
+			typedef iAEntropyImageFilter<ProbabilityImageType, ProbabilityImageType> EntropyFilter;
 			auto entropyFilter = EntropyFilter::New();
 			for (int i = 0; i < m_labelCount; ++i)
 			{

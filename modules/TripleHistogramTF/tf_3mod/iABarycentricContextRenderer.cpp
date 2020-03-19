@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -168,7 +168,7 @@ void iABarycentricContextRenderer::drawImageNow()
 	for (int z = 0; z < dims[2]; z++) {
 		for (int y = 0; y < dims[1]; y++) {
 			for (int x = 0; x < dims[0]; x++) {
-				
+
 				values = static_cast<double*>(m_barycentricCoordinates->GetScalarPointer(x, y, z));
 				QPoint cartesian = m_triangle.getCartesianCoordinates(values[0], values[1]);
 

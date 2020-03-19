@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -34,8 +34,12 @@ iAArbitraryProfileOnSlicer::iAArbitraryProfileOnSlicer():
 	m_arbProfPntInd(-1)
 {
 	for (int i = 0; i < 2; i++)
+	{
 		for (int j = 0; j < 3; j++)
+		{
 			m_positions[i][j] = 0;
+		}
+	}
 
 	m_profLine.actor->GetProperty()->SetColor(0.59, 0.73, 0.94);//ffa800//150, 186, 240
 	m_profLine.actor->GetProperty()->SetLineWidth(2.0);
@@ -76,8 +80,10 @@ void iAArbitraryProfileOnSlicer::setVisibility( bool isVisible )
 void iAArbitraryProfileOnSlicer::setPointScaling( double scaling )
 {
 	m_radius = PointRadius * scaling;
-	for (vtkIdType i=0; i<2; i++)
+	for (vtkIdType i = 0; i < 2; i++)
+	{
 		m_points[i].source->SetOuterRadius(m_radius);
+	}
 }
 
 void iAArbitraryProfileOnSlicer::findSelectedPointIdx( double x, double y )
@@ -108,10 +114,14 @@ void iAArbitraryProfileOnSlicer::addToRenderer( vtkRenderer * ren )
 
 int iAArbitraryProfileOnSlicer::setup( int pointIdx, double const * pos3d, double const * pos2d, vtkImageData *imgData )
 {
-	if(pointIdx <0 || pointIdx>1)
+	if (pointIdx < 0 || pointIdx>1)
+	{
 		return 0;
-	for (int i=0; i<3; i++)
+	}
+	for (int i = 0; i < 3; i++)
+	{
 		m_positions[pointIdx][i] = pos3d[i];
+	}
 
 	// get spacing for point creation whose size depends on
 	double * spacing	= imgData->GetSpacing();
@@ -130,10 +140,14 @@ int iAArbitraryProfileOnSlicer::setup( int pointIdx, double const * pos3d, doubl
 	m_vLine[pointIdx].lineSource->SetPoint1(m_vLine[pointIdx].points->GetPoint(0));
 	m_vLine[pointIdx].lineSource->SetPoint2(m_vLine[pointIdx].points->GetPoint(1));
 
-	if(pointIdx == 0)
+	if (pointIdx == 0)
+	{
 		m_profLine.lineSource->SetPoint1(m_profLine.points->GetPoint(0));
+	}
 	else
+	{
 		m_profLine.lineSource->SetPoint2(m_profLine.points->GetPoint(1));
+	}
 
 	double currentPos[3]; m_points[pointIdx].actor->GetPosition(currentPos);
 	m_points[pointIdx].actor->SetPosition(pos2d[0], pos2d[1], ZCoord);
@@ -151,4 +165,3 @@ double const * iAArbitraryProfileOnSlicer::position( int pointIdx)
 {
 	return m_positions[pointIdx];
 }
-

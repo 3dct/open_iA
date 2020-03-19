@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -30,29 +30,31 @@ class dlg_GEMSe;
 class dlg_GEMSeControl;
 class dlg_priors;
 class dlg_samplings;
-class iAWidgetAddHelper;
 
 class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
+
+class QSettings;
 
 class iAGEMSeAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
 	static iAGEMSeAttachment* create(MainWindow * mainWnd, MdiChild * child);
-	bool LoadSampling(QString const & smpFileName, int labelCount, int datasetID);
-	bool LoadClustering(QString const & fileName);
-	bool LoadRefImg(QString const & refImgName);
-	void SetSerializedHiddenCharts(QString const & hiddenCharts);
-	void SetLabelInfo(QString const & colorTheme, QString const & labelNames);
+	bool loadSampling(QString const & smpFileName, int labelCount, int datasetID);
+	bool loadClustering(QString const & fileName);
+	bool loadRefImg(QString const & refImgName);
+	void setSerializedHiddenCharts(QString const & hiddenCharts);
+	void setLabelInfo(QString const & colorTheme, QString const & labelNames);
+	void saveProject(QSettings & metaFile, QString const & fileName);
 
-	void ResetFilter();
-	void ToggleAutoShrink();
-	void ToggleDockWidgetTitleBar();
-	void ExportClusterIDs();
-	void ExportAttributeRangeRanking();
-	void ExportRankings();
-	void ImportRankings();
+	void resetFilter();
+	void toggleAutoShrink();
+	void toggleDockWidgetTitleBar();
+	void exportClusterIDs();
+	void exportAttributeRangeRanking();
+	void exportRankings();
+	void importRankings();
 private:
 	iAGEMSeAttachment(MainWindow * mainWnd, MdiChild * child);
 	dlg_priors*                       m_dlgPriors;
@@ -60,5 +62,4 @@ private:
 	QWidget*                          m_dummyTitleWidget;
 	dlg_GEMSe*                        m_dlgGEMSe;
 	dlg_samplings*                    m_dlgSamplings;
-	QSharedPointer<iAWidgetAddHelper> m_widgetAddHelper;
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,7 +22,7 @@
 
 #include "defines.h"        // for DIM
 #include "iAConnector.h"
-#include "iAProgress.h"		
+#include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
 #include <itkExtractImageFilter.h>
@@ -33,7 +33,7 @@
 #include <itkImageSliceIteratorWithIndex.h>
 #include <itkStatisticsImageFilter.h>
 
-#include <qmath.h>
+#include <QtMath>
 
 template<class InPixelType, class OutPixelType>
 void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filter )
@@ -91,7 +91,7 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 		typename ImageType2D::Pointer outputROISliceImage = ImageType2D::New();
 		outputROISliceImage->SetRegions(roiSliceRegion);
 		outputROISliceImage->Allocate();
-		
+
 		typedef itk::ImageLinearIteratorWithIndex< ImageType2D > LinearIteratorType;
 		typedef itk::ImageSliceConstIteratorWithIndex< InputImageType > SliceConstIteratorType;
 		typedef itk::ImageSliceIteratorWithIndex< OutputImageType > SliceIteratorType;
@@ -163,7 +163,7 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 		typedef itk::ImageRegionIterator< OutputImageType > OutputIteratorType;
 		InputIteratorType inputIt(img, img->GetLargestPossibleRegion());
 		OutputIteratorType outputIt(outputImage, outputRegion);
-		
+
 		inputIt.GoToBegin();
 		outputIt.GoToBegin();
 		auto size = img->GetLargestPossibleRegion().GetSize();

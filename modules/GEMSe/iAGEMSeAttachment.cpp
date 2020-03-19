@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,6 +23,7 @@
 #include "dlg_GEMSeControl.h"
 #include "dlg_GEMSe.h"
 #include "dlg_samplings.h"
+#include "iAGEMSeProject.h"
 
 #include <dlg_modalities.h>
 #include <iAConsole.h>
@@ -33,23 +34,23 @@
 #include <iASlicer.h>
 #include <mdichild.h>
 #include <mainwindow.h>
-#include <qthelper/iAWidgetAddHelper.h>
 
 iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, MdiChild * child):
 	iAModuleAttachmentToChild(mainWnd, child),
 	m_dummyTitleWidget(new QWidget())
 {
+	auto project = QSharedPointer<iAGEMSeProject>::create();
+	project->setMainWindow(mainWnd);
+	child->addProject(iAGEMSeProject::ID, project);
 }
 
 iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * child)
 {
 	iAGEMSeAttachment * newAttachment = new iAGEMSeAttachment(mainWnd, child);
 
-	newAttachment->m_widgetAddHelper = QSharedPointer<iAWidgetAddHelper>(new iAWidgetAddHelper(child, child->logDockWidget()));
-	
 	QString defaultThemeName("Brewer Set3 (max. 12)");
 	iAColorTheme const * colorTheme = iAColorThemeManager::instance().theme(defaultThemeName);
-	
+
 	newAttachment->m_dlgGEMSe = new dlg_GEMSe(child, child->logger(), colorTheme);
 	newAttachment->m_dlgSamplings = new dlg_samplings();
 	newAttachment->m_dlgGEMSeControl = new dlg_GEMSeControl(
@@ -65,37 +66,37 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * ch
 	return newAttachment;
 }
 
-bool iAGEMSeAttachment::LoadSampling(QString const & smpFileName, int labelCount, int datasetID)
+bool iAGEMSeAttachment::loadSampling(QString const & smpFileName, int labelCount, int datasetID)
 {
-	return m_dlgGEMSeControl->LoadSampling(smpFileName, labelCount, datasetID);
+	return m_dlgGEMSeControl->loadSampling(smpFileName, labelCount, datasetID);
 }
 
-bool iAGEMSeAttachment::LoadClustering(QString const & fileName)
+bool iAGEMSeAttachment::loadClustering(QString const & fileName)
 {
-	return m_dlgGEMSeControl->LoadClustering(fileName);
+	return m_dlgGEMSeControl->loadClustering(fileName);
 }
 
-bool iAGEMSeAttachment::LoadRefImg(QString const & refImgName)
+bool iAGEMSeAttachment::loadRefImg(QString const & refImgName)
 {
-	return m_dlgGEMSeControl->LoadRefImg(refImgName);
+	return m_dlgGEMSeControl->loadRefImg(refImgName);
 }
 
-void iAGEMSeAttachment::SetSerializedHiddenCharts(QString const & hiddenCharts)
+void iAGEMSeAttachment::setSerializedHiddenCharts(QString const & hiddenCharts)
 {
-	return m_dlgGEMSeControl->SetSerializedHiddenCharts(hiddenCharts);
+	return m_dlgGEMSeControl->setSerializedHiddenCharts(hiddenCharts);
 }
 
-void iAGEMSeAttachment::ResetFilter()
+void iAGEMSeAttachment::resetFilter()
 {
 	m_dlgGEMSe->ResetFilters();
 }
 
-void iAGEMSeAttachment::ToggleAutoShrink()
+void iAGEMSeAttachment::toggleAutoShrink()
 {
 	m_dlgGEMSe->ToggleAutoShrink();
 }
 
-void iAGEMSeAttachment::ToggleDockWidgetTitleBar()
+void iAGEMSeAttachment::toggleDockWidgetTitleBar()
 {
 	QWidget* titleBar = m_dlgGEMSe->titleBarWidget();
 	if (titleBar == m_dummyTitleWidget)
@@ -108,29 +109,32 @@ void iAGEMSeAttachment::ToggleDockWidgetTitleBar()
 	}
 }
 
-
-void iAGEMSeAttachment::ExportClusterIDs()
+void iAGEMSeAttachment::exportClusterIDs()
 {
-	m_dlgGEMSeControl->ExportIDs();
+	m_dlgGEMSeControl->exportIDs();
 }
 
-
-void iAGEMSeAttachment::ExportAttributeRangeRanking()
+void iAGEMSeAttachment::exportAttributeRangeRanking()
 {
-	m_dlgGEMSeControl->ExportAttributeRangeRanking();
+	m_dlgGEMSeControl->exportAttributeRangeRanking();
 }
 
-void iAGEMSeAttachment::ExportRankings()
+void iAGEMSeAttachment::exportRankings()
 {
-	m_dlgGEMSeControl->ExportRankings();
+	m_dlgGEMSeControl->exportRankings();
 }
 
-void iAGEMSeAttachment::ImportRankings()
+void iAGEMSeAttachment::importRankings()
 {
-	m_dlgGEMSeControl->ImportRankings();
+	m_dlgGEMSeControl->importRankings();
 }
 
-void iAGEMSeAttachment::SetLabelInfo(QString const & colorTheme, QString const & labelNames)
+void iAGEMSeAttachment::setLabelInfo(QString const & colorTheme, QString const & labelNames)
 {
-	m_dlgGEMSeControl->SetLabelInfo(colorTheme, labelNames);
+	m_dlgGEMSeControl->setLabelInfo(colorTheme, labelNames);
+}
+
+void iAGEMSeAttachment::saveProject(QSettings & metaFile, QString const & fileName)
+{
+	m_dlgGEMSeControl->saveProject(metaFile, fileName);
 }

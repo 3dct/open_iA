@@ -25,6 +25,10 @@
 
 #include "qcustomplot.h"
 
+#if (defined(_MSC_VER))
+#pragma warning (disable : 4996 ) // to disable warnings regarding QWeakPointer.
+#endif
+// ToDo: find proper fix for this warning!
 
 /* including file 'src/vector2d.cpp', size 7340                              */
 /* commit ce344b3f96a62e5f652585e55f1ae7c7883cd45b 2018-06-25 01:03:39 +0200 */
@@ -667,7 +671,7 @@ QCPPaintBufferPixmap::~QCPPaintBufferPixmap()
 QCPPainter *QCPPaintBufferPixmap::startPainting()
 {
   QCPPainter *result = new QCPPainter(&mBuffer);
-  result->setRenderHint(QPainter::HighQualityAntialiasing);
+  result->setRenderHint(QPainter::Antialiasing);
   return result;
 }
 
@@ -755,7 +759,7 @@ QCPPainter *QCPPaintBufferGlPbuffer::startPainting()
   }
   
   QCPPainter *result = new QCPPainter(mGlPBuffer);
-  result->setRenderHint(QPainter::HighQualityAntialiasing);
+  result->setRenderHint(QPainter::Antialiasing);
   return result;
 }
 
@@ -856,11 +860,11 @@ QCPPainter *QCPPaintBufferGlFbo::startPainting()
     return 0;
   }
   
-  if (QOpenGLContext::currentContext() != mGlContext.data())
-    mGlContext.data()->makeCurrent(mGlContext.data()->surface());
+  if (QOpenGLContext::currentContext() != mGlContext.toStrongRef().data())
+    mGlContext.toStrongRef().data()->makeCurrent(mGlContext.toStrongRef().data()->surface());
   mGlFrameBuffer->bind();
-  QCPPainter *result = new QCPPainter(mGlPaintDevice.data());
-  result->setRenderHint(QPainter::HighQualityAntialiasing);
+  QCPPainter *result = new QCPPainter(mGlPaintDevice.toStrongRef().data());
+  result->setRenderHint(QPainter::Antialiasing);
   return result;
 }
 
@@ -888,8 +892,8 @@ void QCPPaintBufferGlFbo::draw(QCPPainter *painter) const
   }
 
   // See: http://www.qcustomplot.com/index.php/support/forum/1153
-  if (QOpenGLContext::currentContext() != mGlContext.data())
-	  mGlContext.data()->makeCurrent(mGlContext.data()->surface());
+  if (QOpenGLContext::currentContext() != mGlContext.toStrongRef().data())
+	  mGlContext.toStrongRef().data()->makeCurrent(mGlContext.toStrongRef().data()->surface());
 
   painter->drawImage(0, 0, mGlFrameBuffer->toImage());
 }
@@ -908,8 +912,8 @@ void QCPPaintBufferGlFbo::clear(const QColor &color)
     return;
   }
   
-  if (QOpenGLContext::currentContext() != mGlContext.data())
-    mGlContext.data()->makeCurrent(mGlContext.data()->surface());
+  if (QOpenGLContext::currentContext() != mGlContext.toStrongRef().data())
+    mGlContext.toStrongRef().data()->makeCurrent(mGlContext.toStrongRef().data()->surface());
   mGlFrameBuffer->bind();
   glClearColor(color.redF(), color.greenF(), color.blueF(), color.alphaF());
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -940,15 +944,15 @@ void QCPPaintBufferGlFbo::reallocateBuffer()
   }
   
   // create new fbo with appropriate size:
-  mGlContext.data()->makeCurrent(mGlContext.data()->surface());
+  mGlContext.toStrongRef().data()->makeCurrent(mGlContext.toStrongRef().data()->surface());
   QOpenGLFramebufferObjectFormat frameBufferFormat;
-  frameBufferFormat.setSamples(mGlContext.data()->format().samples());
+  frameBufferFormat.setSamples(mGlContext.toStrongRef().data()->format().samples());
   frameBufferFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
   mGlFrameBuffer = new QOpenGLFramebufferObject(mSize*mDevicePixelRatio, frameBufferFormat);
-  if (mGlPaintDevice.data()->size() != mSize*mDevicePixelRatio)
-    mGlPaintDevice.data()->setSize(mSize*mDevicePixelRatio);
+  if (mGlPaintDevice.toStrongRef().data()->size() != mSize*mDevicePixelRatio)
+    mGlPaintDevice.toStrongRef().data()->setSize(mSize*mDevicePixelRatio);
 #ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
-  mGlPaintDevice.data()->setDevicePixelRatio(mDevicePixelRatio);
+  mGlPaintDevice.toStrongRef().data()->setDevicePixelRatio(mDevicePixelRatio);
 #endif
 }
 #endif // QCP_OPENGL_FBO
@@ -1110,7 +1114,7 @@ void QCPLayer::setMode(QCPLayer::LayerMode mode)
   {
     mMode = mode;
     if (!mPaintBuffer.isNull())
-      mPaintBuffer.data()->setInvalidated();
+      mPaintBuffer.toStrongRef().data()->setInvalidated();
   }
 }
 
@@ -1122,7 +1126,7 @@ void QCPLayer::setMode(QCPLayer::LayerMode mode)
 */
 void QCPLayer::draw(QCPPainter *painter)
 {
-  foreach (QCPLayerable *child, mChildren)
+  for (QCPLayerable *child: mChildren)
   {
     if (child->realVisibility())
     {
@@ -1147,14 +1151,14 @@ void QCPLayer::drawToPaintBuffer()
 {
   if (!mPaintBuffer.isNull())
   {
-    if (QCPPainter *painter = mPaintBuffer.data()->startPainting())
+    if (QCPPainter *painter = mPaintBuffer.toStrongRef().data()->startPainting())
     {
       if (painter->isActive())
         draw(painter);
       else
         qDebug() << Q_FUNC_INFO << "paint buffer returned inactive painter";
       delete painter;
-      mPaintBuffer.data()->donePainting();
+      mPaintBuffer.toStrongRef().data()->donePainting();
     } else
       qDebug() << Q_FUNC_INFO << "paint buffer returned zero painter";
   } else
@@ -1180,9 +1184,9 @@ void QCPLayer::replot()
   {
     if (!mPaintBuffer.isNull())
     {
-      mPaintBuffer.data()->clear(Qt::transparent);
+      mPaintBuffer.toStrongRef().data()->clear(Qt::transparent);
       drawToPaintBuffer();
-      mPaintBuffer.data()->setInvalidated(false);
+      mPaintBuffer.toStrongRef().data()->setInvalidated(false);
       mParentPlot->update();
     } else
       qDebug() << Q_FUNC_INFO << "no valid paint buffer associated with this layer";
@@ -1209,7 +1213,7 @@ void QCPLayer::addChild(QCPLayerable *layerable, bool prepend)
     else
       mChildren.append(layerable);
     if (!mPaintBuffer.isNull())
-      mPaintBuffer.data()->setInvalidated();
+      mPaintBuffer.toStrongRef().data()->setInvalidated();
   } else
     qDebug() << Q_FUNC_INFO << "layerable is already child of this layer" << reinterpret_cast<quintptr>(layerable);
 }
@@ -1228,7 +1232,7 @@ void QCPLayer::removeChild(QCPLayerable *layerable)
   if (mChildren.removeOne(layerable))
   {
     if (!mPaintBuffer.isNull())
-      mPaintBuffer.data()->setInvalidated();
+      mPaintBuffer.toStrongRef().data()->setInvalidated();
   } else
     qDebug() << Q_FUNC_INFO << "layerable is not child of this layer" << reinterpret_cast<quintptr>(layerable);
 }
@@ -3422,7 +3426,7 @@ void QCPLayoutElement::update(UpdatePhase phase)
       // set the margins of this layout element according to automatic margin calculation, either directly or via a margin group:
       QMargins newMargins = mMargins;
       QList<QCP::MarginSide> allMarginSides = QList<QCP::MarginSide>() << QCP::msLeft << QCP::msRight << QCP::msTop << QCP::msBottom;
-      foreach (QCP::MarginSide side, allMarginSides)
+      for (QCP::MarginSide side: allMarginSides)
       {
         if (mAutoMargins.testFlag(side)) // this side's margin shall be calculated automatically
         {
@@ -3529,7 +3533,7 @@ double QCPLayoutElement::selectTest(const QPointF &pos, bool onlySelectable, QVa
 */
 void QCPLayoutElement::parentPlotInitialized(QCustomPlot *parentPlot)
 {
-  foreach (QCPLayoutElement* el, elements(false))
+  for (QCPLayoutElement* el: elements(false))
   {
     if (!el->parentPlot())
       el->initializeParentPlot(parentPlot);
@@ -11339,12 +11343,12 @@ QCPItemAnchor::QCPItemAnchor(QCustomPlot *parentPlot, QCPAbstractItem *parentIte
 QCPItemAnchor::~QCPItemAnchor()
 {
   // unregister as parent at children:
-  foreach (QCPItemPosition *child, mChildrenX.toList())
+  for (QCPItemPosition *child: mChildrenX.values())
   {
     if (child->parentAnchorX() == this)
       child->setParentAnchorX(0); // this acts back on this anchor and child removes itself from mChildrenX
   }
-  foreach (QCPItemPosition *child, mChildrenY.toList())
+  for (QCPItemPosition *child: mChildrenY.values())
   {
     if (child->parentAnchorY() == this)
       child->setParentAnchorY(0); // this acts back on this anchor and child removes itself from mChildrenY
@@ -11517,12 +11521,12 @@ QCPItemPosition::~QCPItemPosition()
   // unregister as parent at children:
   // Note: this is done in ~QCPItemAnchor again, but it's important QCPItemPosition does it itself, because only then
   //       the setParentAnchor(0) call the correct QCPItemPosition::pixelPosition function instead of QCPItemAnchor::pixelPosition
-  foreach (QCPItemPosition *child, mChildrenX.toList())
+  for (QCPItemPosition *child: mChildrenX.values())
   {
     if (child->parentAnchorX() == this)
       child->setParentAnchorX(0); // this acts back on this anchor and child removes itself from mChildrenX
   }
-  foreach (QCPItemPosition *child, mChildrenY.toList())
+  for (QCPItemPosition *child: mChildrenY.values())
   {
     if (child->parentAnchorY() == this)
       child->setParentAnchorY(0); // this acts back on this anchor and child removes itself from mChildrenY
@@ -13612,7 +13616,7 @@ int QCustomPlot::plottableCount() const
 QList<QCPAbstractPlottable*> QCustomPlot::selectedPlottables() const
 {
   QList<QCPAbstractPlottable*> result;
-  foreach (QCPAbstractPlottable *plottable, mPlottables)
+  for (QCPAbstractPlottable *plottable: mPlottables)
   {
     if (plottable->selected())
       result.append(plottable);
@@ -13637,7 +13641,7 @@ QCPAbstractPlottable *QCustomPlot::plottableAt(const QPointF &pos, bool onlySele
   QCPAbstractPlottable *resultPlottable = 0;
   double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
   
-  foreach (QCPAbstractPlottable *plottable, mPlottables)
+  for (QCPAbstractPlottable *plottable: mPlottables)
   {
     if (onlySelectable && !plottable->selectable()) // we could have also passed onlySelectable to the selectTest function, but checking here is faster, because we have access to QCPabstractPlottable::selectable
       continue;
@@ -13795,7 +13799,7 @@ int QCustomPlot::graphCount() const
 QList<QCPGraph*> QCustomPlot::selectedGraphs() const
 {
   QList<QCPGraph*> result;
-  foreach (QCPGraph *graph, mGraphs)
+  for (QCPGraph *graph: mGraphs)
   {
     if (graph->selected())
       result.append(graph);
@@ -13908,7 +13912,7 @@ int QCustomPlot::itemCount() const
 QList<QCPAbstractItem*> QCustomPlot::selectedItems() const
 {
   QList<QCPAbstractItem*> result;
-  foreach (QCPAbstractItem *item, mItems)
+  for (QCPAbstractItem *item: mItems)
   {
     if (item->selected())
       result.append(item);
@@ -13934,7 +13938,7 @@ QCPAbstractItem *QCustomPlot::itemAt(const QPointF &pos, bool onlySelectable) co
   QCPAbstractItem *resultItem = 0;
   double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
   
-  foreach (QCPAbstractItem *item, mItems)
+  for (QCPAbstractItem *item: mItems)
   {
     if (onlySelectable && !item->selectable()) // we could have also passed onlySelectable to the selectTest function, but checking here is faster, because we have access to QCPAbstractItem::selectable
       continue;
@@ -13972,7 +13976,7 @@ bool QCustomPlot::hasItem(QCPAbstractItem *item) const
 */
 QCPLayer *QCustomPlot::layer(const QString &name) const
 {
-  foreach (QCPLayer *layer, mLayers)
+  for (QCPLayer *layer: mLayers)
   {
     if (layer->name() == name)
       return layer;
@@ -14139,7 +14143,7 @@ bool QCustomPlot::removeLayer(QCPLayer *layer)
     setCurrentLayer(targetLayer);
   // invalidate the paint buffer that was responsible for this layer:
   if (!layer->mPaintBuffer.isNull())
-    layer->mPaintBuffer.data()->setInvalidated();
+    layer->mPaintBuffer.toStrongRef().data()->setInvalidated();
   // remove layer:
   delete layer;
   mLayers.removeOne(layer);
@@ -14176,9 +14180,9 @@ bool QCustomPlot::moveLayer(QCPLayer *layer, QCPLayer *otherLayer, QCustomPlot::
   
   // invalidate the paint buffers that are responsible for the layers:
   if (!layer->mPaintBuffer.isNull())
-    layer->mPaintBuffer.data()->setInvalidated();
+    layer->mPaintBuffer.toStrongRef().data()->setInvalidated();
   if (!otherLayer->mPaintBuffer.isNull())
-    otherLayer->mPaintBuffer.data()->setInvalidated();
+    otherLayer->mPaintBuffer.toStrongRef().data()->setInvalidated();
   
   updateLayerIndices();
   return true;
@@ -14250,7 +14254,7 @@ QList<QCPAxisRect*> QCustomPlot::axisRects() const
   
   while (!elementStack.isEmpty())
   {
-    foreach (QCPLayoutElement *element, elementStack.pop()->elements(false))
+    for (QCPLayoutElement *element: elementStack.pop()->elements(false))
     {
       if (element)
       {
@@ -14280,7 +14284,7 @@ QCPLayoutElement *QCustomPlot::layoutElementAt(const QPointF &pos) const
   while (searchSubElements && currentElement)
   {
     searchSubElements = false;
-    foreach (QCPLayoutElement *subElement, currentElement->elements(false))
+    for (QCPLayoutElement *subElement: currentElement->elements(false))
     {
       if (subElement && subElement->realVisibility() && subElement->selectTest(pos, false) >= 0)
       {
@@ -14311,7 +14315,7 @@ QCPAxisRect *QCustomPlot::axisRectAt(const QPointF &pos) const
   while (searchSubElements && currentElement)
   {
     searchSubElements = false;
-    foreach (QCPLayoutElement *subElement, currentElement->elements(false))
+    for (QCPLayoutElement *subElement: currentElement->elements(false))
     {
       if (subElement && subElement->realVisibility() && subElement->selectTest(pos, false) >= 0)
       {
@@ -14336,10 +14340,10 @@ QCPAxisRect *QCustomPlot::axisRectAt(const QPointF &pos) const
 QList<QCPAxis*> QCustomPlot::selectedAxes() const
 {
   QList<QCPAxis*> result, allAxes;
-  foreach (QCPAxisRect *rect, axisRects())
+  for (QCPAxisRect *rect: axisRects())
     allAxes << rect->axes();
   
-  foreach (QCPAxis *axis, allAxes)
+  for (QCPAxis *axis: allAxes)
   {
     if (axis->selectedParts() != QCPAxis::spNone)
       result.append(axis);
@@ -14365,7 +14369,7 @@ QList<QCPLegend*> QCustomPlot::selectedLegends() const
   
   while (!elementStack.isEmpty())
   {
-    foreach (QCPLayoutElement *subElement, elementStack.pop()->elements(false))
+    for (QCPLayoutElement *subElement: elementStack.pop()->elements(false))
     {
       if (subElement)
       {
@@ -14393,7 +14397,7 @@ QList<QCPLegend*> QCustomPlot::selectedLegends() const
 */
 void QCustomPlot::deselectAll()
 {
-  foreach (QCPLayer *layer, mLayers)
+  for (QCPLayer *layer: mLayers)
   {
     foreach (QCPLayerable *layerable, layer->children())
       layerable->deselectEvent(0);
@@ -14753,7 +14757,7 @@ void QCustomPlot::paintEvent(QPaintEvent *event)
   QCPPainter painter(this);
   if (painter.isActive())
   {
-    painter.setRenderHint(QPainter::HighQualityAntialiasing); // to make Antialiasing look good if using the OpenGL graphicssystem
+    painter.setRenderHint(QPainter::Antialiasing); // to make Antialiasing look good if using the OpenGL graphicssystem
     if (mBackgroundBrush.style() != Qt::NoBrush)
       painter.fillRect(mViewport, mBackgroundBrush);
     drawBackground(&painter);
@@ -15278,9 +15282,9 @@ void QCustomPlot::axisRemoved(QCPAxis *axis)
   This method is used by the QCPLegend destructor to report legend removal to the QCustomPlot so
   it may clear its QCustomPlot::legend member accordingly.
 */
-void QCustomPlot::legendRemoved(QCPLegend *legend)
+void QCustomPlot::legendRemoved(QCPLegend * newLegend)
 {
-  if (this->legend == legend)
+  if (this->legend == newLegend)
     this->legend = 0;
 }
 
@@ -15338,9 +15342,9 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
       if (!additive)
       {
         // emit deselection except to those plottables who will be selected afterwards:
-        foreach (QCPLayer *layer, mLayers)
+        for (QCPLayer *layer: mLayers)
         {
-          foreach (QCPLayerable *layerable, layer->children())
+          for (QCPLayerable *layerable: layer->children())
           {
             if ((potentialSelections.isEmpty() || potentialSelections.constBegin()->first != layerable) && mInteractions.testFlag(layerable->selectionCategory()))
             {
@@ -15424,9 +15428,9 @@ void QCustomPlot::processPointSelection(QMouseEvent *event)
   // deselect all other layerables if not additive selection:
   if (!additive)
   {
-    foreach (QCPLayer *layer, mLayers)
+    for (QCPLayer *layer: mLayers)
     {
-      foreach (QCPLayerable *layerable, layer->children())
+      for (QCPLayerable *layerable: layer->children())
       {
         if (layerable != clickedLayerable && mInteractions.testFlag(layerable->selectionCategory()))
         {
@@ -28371,15 +28375,15 @@ void QCPItemLine::draw(QCPPainter *painter)
   
   This is a helper function for \ref draw.
 */
-QLineF QCPItemLine::getRectClippedLine(const QCPVector2D &start, const QCPVector2D &end, const QRect &rect) const
+QLineF QCPItemLine::getRectClippedLine(const QCPVector2D &lineStart, const QCPVector2D &lineEnd, const QRect &rect) const
 {
-  bool containsStart = rect.contains(start.x(), start.y());
-  bool containsEnd = rect.contains(end.x(), end.y());
+  bool containsStart = rect.contains(lineStart.x(), lineStart.y());
+  bool containsEnd = rect.contains(lineEnd.x(), lineEnd.y());
   if (containsStart && containsEnd)
-    return QLineF(start.toPointF(), end.toPointF());
+    return QLineF(lineStart.toPointF(), lineEnd.toPointF());
   
-  QCPVector2D base = start;
-  QCPVector2D vec = end-start;
+  QCPVector2D base = lineStart;
+  QCPVector2D vec = lineEnd - lineStart;
   double bx, by;
   double gamma, mu;
   QLineF result;
@@ -28433,9 +28437,9 @@ QLineF QCPItemLine::getRectClippedLine(const QCPVector2D &start, const QCPVector
   }
   
   if (containsStart)
-    pointVectors.append(start);
+    pointVectors.append(lineStart);
   if (containsEnd)
-    pointVectors.append(end);
+    pointVectors.append(lineEnd);
   
   // evaluate points:
   if (pointVectors.size() == 2)
@@ -29248,11 +29252,11 @@ double QCPItemEllipse::selectTest(const QPointF &pos, bool onlySelectable, QVari
   
   QPointF p1 = topLeft->pixelPosition();
   QPointF p2 = bottomRight->pixelPosition();
-  QPointF center((p1+p2)/2.0);
+  QPointF centerPoint((p1+p2)/2.0);
   double a = qAbs(p1.x()-p2.x())/2.0;
   double b = qAbs(p1.y()-p2.y())/2.0;
-  double x = pos.x()-center.x();
-  double y = pos.y()-center.y();
+  double x = pos.x()- centerPoint.x();
+  double y = pos.y()- centerPoint.y();
   
   // distance to border:
   double c = 1.0/qSqrt(x*x/(a*a)+y*y/(b*b));
@@ -29559,18 +29563,18 @@ QRect QCPItemPixmap::getFinalRect(bool *flippedHorz, bool *flippedVert) const
   if (mScaled)
   {
     QSize newSize = QSize(p2.x()-p1.x(), p2.y()-p1.y());
-    QPoint topLeft = p1;
+    QPoint scaledTopLeft = p1;
     if (newSize.width() < 0)
     {
       flipHorz = true;
       newSize.rwidth() *= -1;
-      topLeft.setX(p2.x());
+      scaledTopLeft.setX(p2.x());
     }
     if (newSize.height() < 0)
     {
       flipVert = true;
       newSize.rheight() *= -1;
-      topLeft.setY(p2.y());
+      scaledTopLeft.setY(p2.y());
     }
     QSize scaledSize = mPixmap.size();
 #ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
@@ -29579,7 +29583,7 @@ QRect QCPItemPixmap::getFinalRect(bool *flippedHorz, bool *flippedVert) const
 #else
     scaledSize.scale(newSize, mAspectRatioMode);
 #endif
-    result = QRect(topLeft, scaledSize);
+    result = QRect(scaledTopLeft, scaledSize);
   } else
   {
 #ifdef QCP_DEVICEPIXELRATIO_SUPPORTED

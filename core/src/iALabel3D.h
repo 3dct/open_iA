@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -46,21 +46,22 @@ class vtkDoubleArray;
 class vtkDataArray;
 class vtkLineSource;
 
-struct open_iA_Core_API iALabel3D
+//! Shows a text label attached to a point in 3D.
+class open_iA_Core_API iALabel3D final
 {
 //methods
 public:
 	iALabel3D(bool showLine = true);
 	~iALabel3D();
 
-	virtual void AttachActorsToRenderers(
+	void AttachActorsToRenderers(
 		vtkRenderer * ren,
 		vtkRenderer * labelRen,
 		vtkCamera * cam ) const;
-	virtual void DetachActorsToRenderers(vtkRenderer * ren, vtkRenderer * labelRen);
+	void DetachActorsToRenderers(vtkRenderer * ren, vtkRenderer * labelRen);
 	void SetVisible(bool isVisible);
 	void SetLabeledPoint(double labeledPnt[3], double centerPnt[3]);
-	virtual void Update();	//make label up to date after Qt image is changed
+	void Update();	//make label up to date after Qt image is changed
 
 	void UpdateImageData();	//copy image from Qt to VTK
 	void SetupLabelQuad();  //setup VTK textured quad corresponding to Qt image

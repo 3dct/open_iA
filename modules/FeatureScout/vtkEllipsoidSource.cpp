@@ -36,14 +36,14 @@ namespace //anonymous
 {
   void AlignFrame(double* ray1, double* ray2, double* ray3, vtkSmartPointer<vtkTransform> transform);
 }
-    
+
 vtkEllipsoidSource::vtkEllipsoidSource(int res)
 {
   res = res < 4 ? 4 : res;
   this->Center[0] = 0.0;
   this->Center[1] = 0.0;
   this->Center[2] = 0.0;
-  
+
   this->ThetaResolution = res;
   this->PhiResolution = res;
   this->StartTheta = 0.0;
@@ -51,21 +51,21 @@ vtkEllipsoidSource::vtkEllipsoidSource(int res)
   this->StartPhi = 0.0;
   this->EndPhi = 180.0;
   this->LatLongTessellation = 0;
-  
+
   this->SetNumberOfInputPorts(0);
-  
+
   this->EllipsoidTransform = vtkSmartPointer<vtkTransform>::New();
   this->EllipsoidTransform->PostMultiply();
-  
+
   //initialize axes to defaults
   this->XAxis[0] = 1.0;
   this->XAxis[1] = 0.0;
   this->XAxis[2] = 0.0;
-  
+
   this->YAxis[0] = 0.0;
   this->YAxis[1] = 1.0;
   this->YAxis[2] = 0.0;
-  
+
   this->ZAxis[0] = 0.0;
   this->ZAxis[1] = 0.0;
   this->ZAxis[2] = 1.0;
@@ -81,31 +81,31 @@ int vtkEllipsoidSource::RequestData(
   vtkInformationVector **vtkNotUsed(inputVector),
   vtkInformationVector *outputVector)
 {
-  
+
   // get the info object
   vtkInformation *outInfo = outputVector->GetInformationObject(0);
-  
+
   // get the ouptut
   vtkPolyData *output = vtkPolyData::SafeDownCast(
     outInfo->Get(vtkDataObject::DATA_OBJECT()));
-  
+
   //save the center info
   double originalCenter[3];
   originalCenter[0] = this->Center[0];
   originalCenter[1] = this->Center[1];
   originalCenter[2] = this->Center[2];
-  
+
   double unitRadius = 1.0;
-  
+
   //for now set the center to (0,0,0) so the scaling is around the origin
   this->Center[0] = 0.0;
   this->Center[1] = 0.0;
   this->Center[2] = 0.0;
-  
+
   int i, j;
   int jStart, jEnd, numOffset;
   int numPts, numPolys;
-  
+
   double x[3], n[3], deltaPhi, deltaTheta, phi, theta, radius, norm;
   double startTheta, endTheta, startPhi, endPhi;
   int base, numPoles=0, thetaResolution, phiResolution;
@@ -114,33 +114,33 @@ int vtkEllipsoidSource::RequestData(
     outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_PIECE_NUMBER());
   int numPieces =
     outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_PIECES());
-  
+
   if (numPieces > this->ThetaResolution)
     {
     numPieces = this->ThetaResolution;
     }
-    
+
   if (piece >= numPieces)
     {
     // Although the super class should take care of this,
     // it cannot hurt to check here.
     return 1;
     }
-  
+
   // I want to modify the ivars resoultion start theta and end theta,
   // so I will make local copies of them.  THese might be able to be merged
   // with the other copies of them, ...
   int localThetaResolution = this->ThetaResolution;
   double localStartTheta = this->StartTheta;
   double localEndTheta = this->EndTheta;
-  
+
   while (localEndTheta < localStartTheta) //here
     {
     localEndTheta += 360.0;
     }
-    
+
   deltaTheta = (localEndTheta - localStartTheta) / localThetaResolution;
-  
+
   // Change the ivars based on pieces.
   int start, end;
   start = piece * localThetaResolution / numPieces;
@@ -148,29 +148,29 @@ int vtkEllipsoidSource::RequestData(
   localEndTheta = localStartTheta + (double)(end) * deltaTheta;
   localStartTheta = localStartTheta + (double)(start) * deltaTheta;
   localThetaResolution = end - start;
-  
+
   // Set things up; allocate memory
   //
   vtkDebugMacro("SphereSource Executing piece index " << piece
 		  << " of " << numPieces << " pieces.");
-  
+
   numPts = this->PhiResolution * localThetaResolution + 2;
   // creating triangles
   numPolys = this->PhiResolution * 2 * localThetaResolution;
-  
-  vtkSmartPointer<vtkPoints> newPoints = 
+
+  vtkSmartPointer<vtkPoints> newPoints =
       vtkSmartPointer<vtkPoints>::New();
   newPoints->Allocate(numPts);
-  vtkSmartPointer<vtkFloatArray> newNormals = 
+  vtkSmartPointer<vtkFloatArray> newNormals =
       vtkSmartPointer<vtkFloatArray>::New();
   newNormals->SetNumberOfComponents(3);
   newNormals->Allocate(3*numPts);
   newNormals->SetName("Normals");
-  
-  vtkSmartPointer<vtkCellArray> newPolys = 
+
+  vtkSmartPointer<vtkCellArray> newPolys =
       vtkSmartPointer<vtkCellArray>::New();
   newPolys->Allocate(newPolys->EstimateSize(numPolys, 3));
-  
+
   // Create sphere
   //
   // Create north pole if needed
@@ -180,12 +180,12 @@ int vtkEllipsoidSource::RequestData(
     x[1] = this->Center[1];
     x[2] = this->Center[2] + unitRadius;
     newPoints->InsertPoint(numPoles,x);
-  
+
     x[0] = x[1] = 0.0; x[2] = 1.0;
     newNormals->InsertTuple(numPoles,x);
     numPoles++;
     }
-  
+
   // Create south pole if needed
   if ( this->EndPhi >= 180.0 )
     {
@@ -193,23 +193,23 @@ int vtkEllipsoidSource::RequestData(
     x[1] = this->Center[1];
     x[2] = this->Center[2] - unitRadius;
     newPoints->InsertPoint(numPoles,x);
-  
+
     x[0] = x[1] = 0.0; x[2] = -1.0;
     newNormals->InsertTuple(numPoles,x);
     numPoles++;
     }
-  
+
   // Check data, determine increments, and convert to radians
   startTheta = (localStartTheta < localEndTheta ? localStartTheta : localEndTheta);
   startTheta *= vtkMath::Pi() / 180.0;
   endTheta = (localEndTheta > localStartTheta ? localEndTheta : localStartTheta);
   endTheta *= vtkMath::Pi() / 180.0;
-  
+
   startPhi = (this->StartPhi < this->EndPhi ? this->StartPhi : this->EndPhi);
   startPhi *= vtkMath::Pi() / 180.0;
   endPhi = (this->EndPhi > this->StartPhi ? this->EndPhi : this->StartPhi);
   endPhi *= vtkMath::Pi() / 180.0;
-  
+
   phiResolution = this->PhiResolution - numPoles;
   deltaPhi = (endPhi - startPhi) / (this->PhiResolution - 1);
   thetaResolution = localThetaResolution;
@@ -217,20 +217,20 @@ int vtkEllipsoidSource::RequestData(
     {
     ++localThetaResolution;
     }
-    
+
   deltaTheta = (endTheta - startTheta) / thetaResolution;
-  
+
   jStart = (this->StartPhi <= 0.0 ? 1 : 0);
   jEnd = (this->EndPhi >= 180.0 ? this->PhiResolution - 1
   : this->PhiResolution);
-  
+
   this->UpdateProgress(0.1);
-  
+
   // Create intermediate points
   for (i=0; i < localThetaResolution; i++)
     {
     theta = localStartTheta * vtkMath::Pi() / 180.0 + i*deltaTheta;
-  
+
     for (j=jStart; j<jEnd; j++)
       {
       phi = startPhi + j*deltaPhi;
@@ -252,15 +252,15 @@ int vtkEllipsoidSource::RequestData(
       }
     this->UpdateProgress (0.10 + 0.50*i/static_cast<float>(localThetaResolution));
     }
-  
+
   // Generate mesh connectivity
   base = phiResolution * localThetaResolution;
-  
+
   if (fabs(localStartTheta - localEndTheta) < 360.0)
     {
     --localThetaResolution;
     }
-  
+
   if ( this->StartPhi <= 0.0 )  // around north pole
     {
     for (i=0; i < localThetaResolution; i++)
@@ -271,11 +271,11 @@ int vtkEllipsoidSource::RequestData(
       newPolys->InsertNextCell(3, pts);
       }
     }
-  
+
   if ( this->EndPhi >= 180.0 ) // around south pole
     {
     numOffset = phiResolution - 1 + numPoles;
-  
+
     for (i=0; i < localThetaResolution; i++)
       {
       pts[0] = phiResolution*i + numOffset;
@@ -284,9 +284,9 @@ int vtkEllipsoidSource::RequestData(
       newPolys->InsertNextCell(3, pts);
       }
 	}
-    
+
   this->UpdateProgress (0.70);
-  
+
   // bands in-between poles
   for (i=0; i < localThetaResolution; i++)
     {
@@ -310,59 +310,60 @@ int vtkEllipsoidSource::RequestData(
       }
     this->UpdateProgress (0.70 + 0.30*i/static_cast<double>(localThetaResolution));
     }
-  
+
   // Update ourselves and release memeory
   //
-  
-  vtkSmartPointer<vtkPolyData> spherePolyData = 
+
+  vtkSmartPointer<vtkPolyData> spherePolyData =
       vtkSmartPointer<vtkPolyData>::New();
-  
+
   newPoints->Squeeze();
   spherePolyData->SetPoints(newPoints);
-  
+
   newNormals->Squeeze();
   spherePolyData->GetPointData()->SetNormals(newNormals);
-  
+
   newPolys->Squeeze();
   spherePolyData->SetPolys(newPolys);
-  
+
   //reset the center
   this->Center[0] = originalCenter[0];
   this->Center[1] = originalCenter[1];
   this->Center[2] = originalCenter[2];
-  
+
   //this ellipsoid assumes that its major axis is aligned with the Z axis
-  
+
   //create the transform
-  this->EllipsoidTransform->Scale(this->XRadius, 
-                                  this->YRadius, 
+  this->EllipsoidTransform->Identity();
+  this->EllipsoidTransform->Scale(this->XRadius,
+                                  this->YRadius,
                                   this->ZRadius);
-  
+
   //compute the ZAxis (orthogonal to XAxis and YAxis)
   vtkMath::Cross(this->XAxis, this->YAxis, this->ZAxis);
-  
+
   //align the major axis
-  vtkSmartPointer<vtkTransform> alignmentTransform = 
+  vtkSmartPointer<vtkTransform> alignmentTransform =
         vtkSmartPointer<vtkTransform>::New();
   AlignFrame(this->XAxis, this->YAxis, this->ZAxis, alignmentTransform);
-  
+
   this->EllipsoidTransform->Concatenate(alignmentTransform);
-  
+
   //translate to the correct center
-  this->EllipsoidTransform->Translate(this->Center[0], 
-                                      this->Center[1], 
+  this->EllipsoidTransform->Translate(this->Center[0],
+                                      this->Center[1],
                                       this->Center[2]);
-  
+
   //apply the transform
-  vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = 
+  vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =
       vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  
+
   transformFilter->SetInputData(spherePolyData);
   transformFilter->SetTransform(this->EllipsoidTransform);
   transformFilter->Update();
-  
+
   output->ShallowCopy(transformFilter->GetOutput());
-  
+
   return 1;
 }
 
@@ -378,7 +379,7 @@ void vtkEllipsoidSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "Phi Start: " << this->StartPhi << "\n";
   os << indent << "Theta End: " << this->EndTheta << "\n";
   os << indent << "Phi End: " << this->EndPhi << "\n";
-  os << indent << "Center: (" << this->Center[0] << ", " 
+  os << indent << "Center: (" << this->Center[0] << ", "
 		  << this->Center[1] << ", " << this->Center[2] << ")\n";
   os << indent
 		  << "LatLong Tessellation: " << this->LatLongTessellation << "\n";
@@ -387,17 +388,17 @@ void vtkEllipsoidSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "Length: " << this->XRadius << std::endl;
   os << indent << "Direction: " << this->XAxis[0] << " " << this->XAxis[1] << " " << this->XAxis[2] << std::endl;
   os << std::endl;
-  
+
   os << indent << "Y axis" << std::endl << "---------" << std::endl;
   os << indent << "Length: " << this->YRadius << std::endl;
   os << indent << "Direction: " << this->YAxis[0] << " " << this->YAxis[1] << " " << this->YAxis[2] << std::endl;
   os << std::endl;
-  
+
   os << indent << "Z axis" << std::endl << "---------" << std::endl;
   os << indent << "Length: " << this->ZRadius << std::endl;
   os << indent << "Direction: " << this->ZAxis[0] << " " << this->ZAxis[1] << " " << this->ZAxis[2] << std::endl;
   os << std::endl;
-  
+
 }
 
 namespace //anonymous
@@ -408,34 +409,34 @@ namespace //anonymous
     vtkMath::Normalize(ray1);
     vtkMath::Normalize(ray2);
     vtkMath::Normalize(ray3);
-  
-    vtkSmartPointer<vtkLandmarkTransform> landmarkTransform = 
+
+    vtkSmartPointer<vtkLandmarkTransform> landmarkTransform =
         vtkSmartPointer<vtkLandmarkTransform>::New();
-    vtkSmartPointer<vtkPoints> sourcePoints = 
+    vtkSmartPointer<vtkPoints> sourcePoints =
         vtkSmartPointer<vtkPoints>::New();
-    vtkSmartPointer<vtkPoints> targetPoints = 
+    vtkSmartPointer<vtkPoints> targetPoints =
         vtkSmartPointer<vtkPoints>::New();
-  
+
     double xaxis[3] = {1,0,0};
     double yaxis[3] = {0,1,0};
     double zaxis[3] = {0,0,1};
-    
+
     sourcePoints->InsertNextPoint(xaxis);
     sourcePoints->InsertNextPoint(yaxis);
     sourcePoints->InsertNextPoint(zaxis);
-        
+
     targetPoints->InsertNextPoint(ray1);
     targetPoints->InsertNextPoint(ray2);
     targetPoints->InsertNextPoint(ray3);
-        
+
     landmarkTransform->SetSourceLandmarks(sourcePoints);
     landmarkTransform->SetTargetLandmarks(targetPoints);
     landmarkTransform->SetModeToRigidBody();
     landmarkTransform->Update();
-    
+
     vtkMatrix4x4* m = landmarkTransform->GetMatrix();
-    
+
     transform->SetMatrix(m);
-      
+
   } // end AlignRays
 } //end anonymous namespace

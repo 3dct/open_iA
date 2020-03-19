@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -51,7 +51,7 @@ double iAFakeTreeNode::GetAttribute(int) const
 	return 0;
 }
 
- ClusterImageType const iAFakeTreeNode::GetRepresentativeImage(int type, LabelImagePointer refImg) const
+ ClusterImageType const iAFakeTreeNode::GetRepresentativeImage(int /*type*/, LabelImagePointer /*refImg*/) const
 {
 	return m_img;
 }
@@ -59,19 +59,19 @@ double iAFakeTreeNode::GetAttribute(int) const
 {
 	return -1;
 }
- void iAFakeTreeNode::GetMinMax(int chartID, double & min, double & max,
-	iAChartAttributeMapper const & chartAttrMap) const
+ void iAFakeTreeNode::GetMinMax(int /*chartID*/, double & /*min*/, double & /*max*/,
+	iAChartAttributeMapper const & /*chartAttrMap*/) const
 {}
  ClusterDistanceType iAFakeTreeNode::GetDistance() const
 {
 	return 0;
 }
 // we should never get into any of these:
- void iAFakeTreeNode::GetExampleImages(QVector<iAImageTreeLeaf *> & result, int amount)
+ void iAFakeTreeNode::GetExampleImages(QVector<iAImageTreeLeaf *> & /*result*/, int /*amount*/)
 {
 	assert(false);
 }
- void iAFakeTreeNode::SetParent(QSharedPointer<iAImageTreeNode > parent)
+ void iAFakeTreeNode::SetParent(QSharedPointer<iAImageTreeNode > /*parent*/)
 {
 	assert(false);
 }
@@ -80,7 +80,7 @@ double iAFakeTreeNode::GetAttribute(int) const
 	assert(false);
 	return QSharedPointer<iAImageTreeNode >();
 }
- QSharedPointer<iAImageTreeNode > iAFakeTreeNode::GetChild(int idx) const
+ QSharedPointer<iAImageTreeNode > iAFakeTreeNode::GetChild(int /*idx*/) const
 {
 	assert(false);
 	return QSharedPointer<iAImageTreeNode >();
@@ -104,13 +104,13 @@ ClusterImageType const iAFakeTreeNode::GetLargeImage() const
 	assert(false);
 	return CombinedProbPtr();
 }
- void iAFakeTreeNode::UpdateFilter(iAChartFilter const & filter,
-	iAChartAttributeMapper const & chartAttrMap,
-	iAResultFilter const & resultFilter)
+ void iAFakeTreeNode::UpdateFilter(iAChartFilter const & /*filter*/,
+	iAChartAttributeMapper const & /*chartAttrMap*/,
+	iAResultFilter const & /*resultFilter*/)
 {
 	assert(false);
 }
- void iAFakeTreeNode::GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const
+ void iAFakeTreeNode::GetSelection(QVector<QSharedPointer<iASingleResult> > & /*result*/) const
 {
-	
+
 }

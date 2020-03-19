@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -68,7 +68,7 @@ public:
 	void SetIconSize(int iconSize);
 	bool SetRepresentativeType(int representativeType, LabelImagePointer refImg);
 	int  GetRepresentativeType() const;
-	void FreeMemory(QSharedPointer<iAImageTreeNode> node, bool overrideFree);
+	void freeMemory(QSharedPointer<iAImageTreeNode> node, bool overrideFree);
 	void SetRefImg(LabelImagePointer refImg);
 signals:
 	void clicked(QSharedPointer<iAImageTreeNode >);
@@ -81,7 +81,7 @@ signals:
 protected:
 	virtual void paintEvent(QPaintEvent * );
 private slots:
-	void ExpandNode(bool expand);
+	void ExpandNodeSlot(bool expand);
 	void NodeClicked();
 	void NodeImageClicked();
 	void NodeImageRightClicked();
@@ -96,7 +96,7 @@ private:
 	//! collapse a node and all its subclusters:
 	void CollapseNode(QSharedPointer<iAImageTreeNode > node, bool & selectionChanged);
 
-	int getNodeWithIdx(QSharedPointer<iAImageTreeNode > node, int currentNr, 
+	int getNodeWithIdx(QSharedPointer<iAImageTreeNode > node, int currentNr,
 		int level, int searchedFor, QSharedPointer<iAImageTreeNode > &result);
 
 	void InsertNodeHighlight(iAImageTreeNode* node, QColor const & color);

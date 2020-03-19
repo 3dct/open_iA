@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -108,25 +108,31 @@ bool iA4DCTProjectReaderWriter::load( iA4DCTMainWin * mainWin, QString path )
 
 		QDomElement files = stage.firstChildElement( "files" );
 		QList<iA4DCTFileData> list;
-		if( files.hasChildNodes( ) ) {
+		if( files.hasChildNodes( ) )
+		{
 			QDomNodeList fileList = files.childNodes( );
-			for( int i = 0; i < fileList.size( ); i++ ) {
-				QDomNode f = fileList.item( i );
+			for( int j = 0; j < fileList.size( ); j++ )
+			{
+				QDomNode f = fileList.item( j );
 				QDomElement abssolutePath = f.firstChildElement( "absolutePath" );
 				QDomElement relativePath = f.firstChildElement( "relativePath" );
 				QDomElement name = f.firstChildElement( "name" );
 
-				QString path = dir.filePath( abssolutePath.text( ) );
-				if( !QFile::exists( path ) ) {
-					path = dir.filePath( relativePath.text( ) );
-					if( !QFile::exists( path ) ) {
+				QString filePath = dir.filePath( abssolutePath.text( ) );
+				if( !QFile::exists( filePath ) )
+				{
+					filePath = dir.filePath( relativePath.text( ) );
+					if( !QFile::exists( filePath ) )
+					{
 						continue;
 					}
 				}
-				path = QFileInfo( path ).absoluteFilePath( );	// cleaning path
-				if( name.isNull( ) )
-					continue;;
-				iA4DCTFileData fd; fd.Name = name.text( ); fd.Path = path;
+				filePath = QFileInfo( filePath ).absoluteFilePath( );	// cleaning path
+				if (name.isNull())
+				{
+					continue;
+				}
+				iA4DCTFileData fd; fd.Name = name.text( ); fd.Path = filePath;
 				list.push_back( fd );
 			}
 		}

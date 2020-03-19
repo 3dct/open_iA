@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,7 +22,7 @@
 
 #include "iARangeSliderDiagramData.h"
 
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 #include <charts/iAPlotTypes.h>
 
 #include <vtkPiecewiseFunction.h>
@@ -34,49 +34,7 @@
 #include <QTableWidget>
 
 
-class iAFilteringDiagramData : public iAPlotData
-{
-public:
-	iAFilteringDiagramData( QSharedPointer<iAPlotData> other, int min, int max )
-		: m_data( new double[other->numBin()] ),
-		m_size( other->numBin() ),
-		m_other(other)
-	{
-		for ( int i = 0; i < other->numBin(); ++i )
-		{
-			m_data[i] = ( i >= min && i <= max ) ? other->rawData()[i] : 0;
-		}
-	}
-
-	DataType const * rawData() const override
-	{
-		return m_data;
-	}
-
-	size_t numBin() const override
-	{
-		return m_size;
-	}
-	double spacing() const override
-	{
-		return m_other->spacing();
-	}
-	double const * xBounds() const override
-	{
-		return m_other->xBounds();
-	}
-	DataType const * yBounds() const override
-	{
-		return m_other->yBounds();
-	}
-private:
-	DataType* m_data;
-	size_t m_size;
-	QSharedPointer<iAPlotData> m_other;
-};
-
-
-class iARangeSliderDiagramWidget : public iADiagramFctWidget
+class iARangeSliderDiagramWidget : public iAChartWithFunctionsWidget
 {
 	Q_OBJECT
 
@@ -86,7 +44,7 @@ public:
 								vtkColorTransferFunction* cTF,
 								QSharedPointer<iARangeSliderDiagramData> data,
 								QMap<double, QList<double> > *,
-								const QTableWidget * rawTable, 
+								const QTableWidget * rawTable,
 								QString const & xlabel = "Greyvalue",
 								QString const & yLabel = "Frequency" );
 
@@ -103,28 +61,28 @@ signals:
 	void selected();
 	void deselected();
 	void selectionRelesedSignal();
-	
+
 public slots:
 	void selectSlot();
 	void deleteSlot();
 
 private:
-	QSharedPointer<iARangeSliderDiagramData>			m_data;
-	QSharedPointer<iAPlotData>							m_selectedData;
-	QSharedPointer<iAStepFunctionPlot>				m_selectionDrawer;
-	QList<QSharedPointer<iAStepFunctionPlot> >		m_histogramDrawerList;
-	QPoint												m_selectionOrigin;
-	QRubberBand*										m_selectionRubberBand;
-	QString												m_xLabel;
-	QString												m_yLabel;
-	QColor												m_selectionColor;
-	QList<int>											m_addedHandles;
+	QSharedPointer<iARangeSliderDiagramData> m_data;
+	QSharedPointer<iAPlotData> m_selectedData;
+	QSharedPointer<iAStepFunctionPlot> m_selectionDrawer;
+	QList<QSharedPointer<iAStepFunctionPlot> > m_histogramDrawerList;
+	QPoint m_selectionOrigin;
+	QRubberBand * m_selectionRubberBand;
+	QString m_xLabel;
+	QString m_yLabel;
+	QColor m_selectionColor;
+	QList<int> m_addedHandles;
 
 	int m_firstSelectedBin;
 	int m_lastSelectedBin;
 
-	QMap<double, QList<double> >				*m_histogramMap;
-	const QTableWidget							*m_rawTable;
+	QMap<double, QList<double> > * m_histogramMap;
+	const QTableWidget * m_rawTable;
 
 	int getBin( QMouseEvent *event );
 	void setupSelectionDrawer();

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -32,6 +32,8 @@ template <>           struct iAVtkDataType<int>            { static const int va
 template <>           struct iAVtkDataType<unsigned int>   { static const int value = VTK_UNSIGNED_INT;   };
 template <>           struct iAVtkDataType<long>           { static const int value = VTK_LONG;           };
 template <>           struct iAVtkDataType<unsigned long>  { static const int value = VTK_UNSIGNED_LONG;  };
+template <>           struct iAVtkDataType<long long>      { static const int value = VTK_LONG_LONG;      };
+template <>           struct iAVtkDataType<unsigned long long>{ static const int value = VTK_UNSIGNED_LONG_LONG;};
 template <>           struct iAVtkDataType<float>          { static const int value = VTK_FLOAT;          };
 template <>           struct iAVtkDataType<double>         { static const int value = VTK_DOUBLE;         };
 //not supported on g++ (4.6, without --std=c++0x)

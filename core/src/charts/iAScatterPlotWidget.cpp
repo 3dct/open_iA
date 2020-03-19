@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAScatterPlotWidget.h"
 
+#include "iAConsole.h"
 #include "iALookupTable.h"
 #include "iAScatterPlot.h"
 #include "iAScatterPlotSelectionHandler.h"
@@ -30,6 +31,9 @@
 
 #include <QMouseEvent>
 #include <QPainter>
+
+iAScatterPlotSelectionHandler::~iAScatterPlotSelectionHandler()
+{}
 
 class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
 {
@@ -92,6 +96,12 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), this);
 	m_scatterplot->settings.selectionEnabled = true;
 	data->updateRanges();
+	if (data->numPoints() > std::numeric_limits<int>::max())
+	{
+		DEBUG_LOG(QString("Number of points (%1) larger than supported (%2)")
+			.arg(data->numPoints())
+			.arg(std::numeric_limits<int>::max()));
+	}
 	m_scatterplot->setData(0, 1, data);
 }
 
@@ -106,17 +116,23 @@ void iAScatterPlotWidget::SetPlotColor(QColor const & c, double rangeMin, double
 	m_scatterplot->setLookupTable(lut, 0);
 }
 
-void iAScatterPlotWidget::paintEvent(QPaintEvent * event)
+void iAScatterPlotWidget::paintEvent(QPaintEvent * /*event*/)
 {
 	QPainter painter(this);
 	QFontMetrics fm = painter.fontMetrics();
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.horizontalAdvance("0.99"))
+	{
+		m_fontHeight = fm.height();
+		m_maxTickLabelWidth = fm.horizontalAdvance("0.99");
+#else
 	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.width("0.99"))
 	{
 		m_fontHeight = fm.height();
 		m_maxTickLabelWidth = fm.width("0.99");
+#endif
 	}
 	painter.setRenderHint(QPainter::Antialiasing);
-	painter.setRenderHint(QPainter::HighQualityAntialiasing);
 	painter.beginNativePainting();
 	QColor bgColor(QWidget::palette().color(QWidget::backgroundRole()));
 	QColor fg(QWidget::palette().color(QPalette::Text));

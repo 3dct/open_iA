@@ -199,7 +199,7 @@
         </widget>
        </item>
        <item>
-        <widget class="Line" name="line">
+        <widget class="Line" name="lnSeparator1">
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
@@ -261,7 +261,7 @@ are highly compressed in the plots and are indicated by light orange rectangles<
         </widget>
        </item>
        <item>
-        <widget class="Line" name="line_2">
+        <widget class="Line" name="lnSeparator2">
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
@@ -305,7 +305,7 @@ then the visualization mode is switch from histogram heatmap to line plots</stri
         </widget>
        </item>
        <item>
-        <widget class="Line" name="line_5">
+        <widget class="Line" name="lnSeparator3">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -367,7 +367,7 @@ the compression on the x-axis </string>
         </widget>
        </item>
        <item>
-        <widget class="Line" name="line_3">
+        <widget class="Line" name="lnSeparator4">
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
@@ -622,7 +622,7 @@ Local Ensemble Variation range</string>
         </widget>
        </item>
        <item>
-        <widget class="Line" name="line_4">
+        <widget class="Line" name="lnSeparator5">
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
@@ -1010,7 +1010,6 @@ press the Update button to update the plots</string>
   </widget>
  </widget>
  <resources>
-  <include location="../../core/open_iA.qrc"/>
   <include location="../../core/open_iA.qrc"/>
  </resources>
  <connections/>

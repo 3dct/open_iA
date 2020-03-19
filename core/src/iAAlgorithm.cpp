@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -37,12 +37,11 @@
 iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALogger * logger, QObject *parent )
 	: QThread( parent ),
 	m_isRunning(false),
-	m_elapsed(0),
 	m_filterName(fn),
 	m_image(idata),
 	m_polyData(p),
-	m_logger(logger),
-	m_progressObserver(new iAProgress)
+	m_progressObserver(new iAProgress),
+	m_logger(logger)
 {
 	m_connectors.push_back(new iAConnector());
 	if (parent)
@@ -52,14 +51,17 @@ iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALog
 
 iAAlgorithm::~iAAlgorithm()
 {
-	foreach(iAConnector* c, m_connectors)
+	for (iAConnector* c : m_connectors)
+	{
 		delete c;
+	}
 	m_connectors.clear();
 	delete m_progressObserver;
 }
 
 void iAAlgorithm::run()
 {
+	Start();
 	try
 	{
 		getConnector()->setImage(getVtkImageData());
@@ -100,22 +102,16 @@ void iAAlgorithm::setImageData(vtkImageData* imgData)
 	m_image = imgData;
 }
 
-QDateTime iAAlgorithm::Start()
+void iAAlgorithm::Start()
 {
-	m_elapsed = 0;
 	m_time.start();
 	m_isRunning = true;
-	return QDateTime::currentDateTime();
 }
 
 int iAAlgorithm::Stop()
 {
-	if (m_isRunning)
-	{
-		m_isRunning = false;
-		m_elapsed = m_time.elapsed();
-	}
-	return m_elapsed;
+	m_isRunning = false;
+	return m_time.elapsed();
 }
 
 void iAAlgorithm::setup(QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l)
@@ -253,8 +249,7 @@ void iAAlgorithm::itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* poly
 	while ( cellIt != cells->End() )
 	{
 		CellType *nextCell = cellIt->Value();
-		CellType::PointIdIterator pointIt = nextCell->PointIdsBegin() ;
-		MeshPointType  p;
+		CellType::PointIdIterator pointIt = nextCell->PointIdsBegin();
 		int i;
 
 		switch (nextCell->GetType())

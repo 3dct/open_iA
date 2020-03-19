@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -85,7 +85,7 @@ bool iATLGICTLoader::setup(QString const & baseDirectory, QWidget* parent)
 	inPara << tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
 		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]);
 
-	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, NULL);
+	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, nullptr);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;
@@ -154,7 +154,7 @@ void iATLGICTLoader::run()
 			QString completeSuffix = imgFileInfo.completeSuffix();
 			QString lastDigit = imgFileName.mid(imgFileName.length() - (completeSuffix.length() + 2), 1);
 			bool ok;
-			int myNum = lastDigit.toInt(&ok);
+			/*int myNum =*/ lastDigit.toInt(&ok);
 			if (!ok)
 			{
 				//DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));

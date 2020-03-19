@@ -67,7 +67,7 @@
 namespace itk {
 
 template < class TInputImage, class TOutputImage >
-class ITK_EXPORT AdaptiveOtsuThresholdImageFilter :
+class AdaptiveOtsuThresholdImageFilter :
   public ImageToImageFilter< TInputImage, TOutputImage >
 {
 public:

@@ -162,7 +162,7 @@
   </widget>
   <action name="actionDefectFinder">
    <property name="icon">
-    <iconset resource="../../core/open_iA.qrc">
+    <iconset resource="4DCT.qrc">
      <normaloff>:/images/4DCT_Find.png</normaloff>:/images/4DCT_Find.png</iconset>
    </property>
    <property name="text">
@@ -171,7 +171,7 @@
   </action>
   <action name="actionVisualization">
    <property name="icon">
-    <iconset resource="../../core/open_iA.qrc">
+    <iconset resource="4DCT.qrc">
      <normaloff>:/images/4DCT_Visualization.png</normaloff>:/images/4DCT_Visualization.png</iconset>
    </property>
    <property name="text">
@@ -183,7 +183,7 @@
   </action>
   <action name="actionAdd">
    <property name="icon">
-    <iconset resource="../../core/open_iA.qrc">
+    <iconset resource="4DCT.qrc">
      <normaloff>:/images/4DCT_Add.png</normaloff>:/images/4DCT_Add.png</iconset>
    </property>
    <property name="text">
@@ -192,7 +192,7 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset resource="../../core/open_iA.qrc">
+    <iconset resource="4DCT.qrc">
      <normaloff>:/images/4DCT_Save.png</normaloff>:/images/4DCT_Save.png</iconset>
    </property>
    <property name="text">
@@ -201,7 +201,7 @@
   </action>
  </widget>
  <resources>
-  <include location="../../core/open_iA.qrc"/>
+  <include location="4DCT.qrc"/>
  </resources>
  <connections/>
 </ui>

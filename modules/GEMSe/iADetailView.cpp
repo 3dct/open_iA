@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -69,25 +69,31 @@ iADetailView::iADetailView(
 		iAColorTheme const * colorTheme,
 		int representativeType,
 		QWidget* comparisonDetailsWidget) :
+	m_node(nullptr),
+	m_compareNode(nullptr),
 	m_previewWidget(prevWdgt),
 	m_compareWidget(compareWdgt),
-	m_showingClusterRepresentative(true),
 	m_pbLike(new QPushButton("")),
 	m_pbHate(new QPushButton("")),
 	m_pbGoto(new QPushButton("")),
+	m_detailText(new QTextEdit()),
+	m_lvLegend(new QListView()),
+	m_cmpDetailsWidget(comparisonDetailsWidget),
+	m_cmpDetailsLabel(new QLabel()),
+	m_labelItemModel(new QStandardItemModel()),
+	m_showingClusterRepresentative(true),
 	m_nullImage(nullImage),
 	m_modalities(modalities),
+	m_representativeType(representativeType),
 	m_magicLensCurrentModality(0),
 	m_magicLensCurrentComponent(0),
-	m_representativeType(representativeType), 
-	m_nextChannelID(0),
 	m_magicLensEnabled(false),
 	m_magicLensCount(1),
-	m_labelItemModel(new QStandardItemModel()),
+	m_colorTheme(nullptr),
+	m_nextChannelID(0),
+	m_resultFilterTriggerThread(nullptr),
 	m_MouseButtonDown(false),
-	m_resultFilterTriggerThread(0),
-	m_correctnessUncertaintyOverlayEnabled(false),
-	m_cmpDetailsWidget(comparisonDetailsWidget)
+	m_correctnessUncertaintyOverlayEnabled(false)
 {
 	m_pbLike->setContentsMargins(0, 0, 0, 0);
 	m_pbHate->setContentsMargins(0, 0, 0, 0);
@@ -101,7 +107,7 @@ iADetailView::iADetailView(
 	buttonLay->addWidget(m_pbLike);
 	buttonLay->addWidget(m_pbHate);
 	buttonLay->addWidget(m_pbGoto);
-	
+
 	QWidget * buttonBar = new QWidget();
 	buttonBar->setLayout(buttonLay);
 	buttonBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
@@ -122,16 +128,15 @@ iADetailView::iADetailView(
 	QWidget * imgStuffWidget = new QWidget();
 	imgStuffWidget->setLayout(lay);
 	imgStuffWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	
+
 	QWidget * detailWidget = new QWidget();
 	QVBoxLayout* detailWidgetLayout = new QVBoxLayout();
 	detailWidget->setLayout(detailWidgetLayout);
-	
+
 	QSplitter * detailSplitter = new QSplitter();
 	detailSplitter->setOrientation(Qt::Vertical);
 	detailWidgetLayout->addWidget(detailSplitter);
 
-	m_lvLegend = new QListView();
 	m_lvLegend->setModel(m_labelItemModel);
 	detailSplitter->addWidget(m_lvLegend);
 	SetLabelInfo(labelInfo, colorTheme);
@@ -142,17 +147,16 @@ iADetailView::iADetailView(
 	resetResultFilterButton->setMinimumHeight(10);
 	resetResultFilterButton->setMaximumHeight(25);
 	detailSplitter->addWidget(resetResultFilterButton);
-	
-	m_detailText = new QTextEdit();
+
 	m_detailText->setReadOnly(true);
 	m_detailText->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	detailSplitter->addWidget(m_detailText);
-	
+
 	QFont f(m_detailText->font());
 	f.setPointSize(FontSize);
 	m_detailText->setFont(f);
 	m_lvLegend->setFont(f);
-	
+
 	m_lvLegend->setStyleSheet("border: none; outline:none;");
 	m_detailText->setStyleSheet("border: none; outline:none;");
 
@@ -176,7 +180,7 @@ iADetailView::iADetailView(
 	tw->addTab(comparisonContainer, "Comparison");
 
 	QSplitter * horzSplitter = new QSplitter();
-	
+
 	QHBoxLayout* mainLay = new QHBoxLayout();
 	mainLay->setSpacing(1);
 	mainLay->setMargin(1);
@@ -186,14 +190,14 @@ iADetailView::iADetailView(
 	horzSplitter->addWidget(tw);
 	horzSplitter->setStretchFactor(0, 2);
 	horzSplitter->setStretchFactor(1, 1);
-		
+
 	QWidget * mainWdgt(this);
 	mainWdgt->setLayout(mainLay);
 	QRect geom(geometry());
 	geom.adjust(+1, +1, -1, -1);
 	mainWdgt->setGeometry(geom);
 
-	m_cmpDetailsWidget->layout()->addWidget(m_cmpDetailsLabel = new QLabel());
+	m_cmpDetailsWidget->layout()->addWidget(m_cmpDetailsLabel);
 	m_cmpDetailsLabel->setWordWrap(true);
 
 	// prevWdgt->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -252,7 +256,7 @@ void iADetailView::changeModality(int offset)
 {
 	// TOOD: refactor to remove duplication between here and MdiChild::changeModality!
 	m_magicLensCurrentComponent = (m_magicLensCurrentComponent + offset);
-	if (m_magicLensCurrentComponent < 0 || m_magicLensCurrentComponent >= m_modalities->get(m_magicLensCurrentModality)->componentCount())
+	if (m_magicLensCurrentComponent < 0 || static_cast<size_t>(m_magicLensCurrentComponent) >= m_modalities->get(m_magicLensCurrentModality)->componentCount())
 	{
 		m_magicLensCurrentComponent = 0;
 		m_magicLensCurrentModality = (m_magicLensCurrentModality + offset + m_modalities->size()) % m_modalities->size();
@@ -290,7 +294,7 @@ void iADetailView::changeMagicLensOpacity(int chg)
 }
 
 
-void iADetailView::setSliceNumber(int sliceNr)
+void iADetailView::setSliceNumber(int /*sliceNr*/)
 {
 	iASlicer* slicer = m_previewWidget->slicer();
 	slicer->update();
@@ -538,7 +542,6 @@ void iADetailView::setImage()
 	m_spacing[0] = img->GetSpacing()[0]; m_spacing[1] = img->GetSpacing()[1]; m_spacing[2] = img->GetSpacing()[2];
 	itk::ImageRegion<3> region = img->GetLargestPossibleRegion();
 	itk::Size<3> size = region.GetSize();
-	itk::Index<3> idx = region.GetIndex();
 	m_dimensions[0] = size[0]; m_dimensions[1] = size[1]; m_dimensions[2] = size[2];
 	// }
 	m_previewWidget->setImage(img ?
@@ -548,15 +551,15 @@ void iADetailView::setImage()
 	if (m_correctnessUncertaintyOverlayEnabled)
 	{
 		m_previewWidget->removeChannel();
-		vtkSmartPointer<vtkImageData> img = m_node->GetCorrectnessEntropyImage(m_refImg);
-		if (img)
+		vtkSmartPointer<vtkImageData> entropyImg = m_node->GetCorrectnessEntropyImage(m_refImg);
+		if (entropyImg)
 		{
-			m_previewWidget->addNoMapperChannel(img);
+			m_previewWidget->addNoMapperChannel(entropyImg);
 		}
 	}
 }
 
-void iADetailView::SetMagicLensCount(int count)
+void iADetailView::setMagicLensCount(int count)
 {
 	m_magicLensCount = count;
 	iASlicer* slicer = m_previewWidget->slicer();
@@ -624,13 +627,13 @@ void iADetailView::TriggerResultFilterUpdate()
 }
 
 
-void iADetailView::SlicerReleased(int x, int y, int z)
+void iADetailView::SlicerReleased(int /*x*/, int /*y*/, int /*z*/)
 {
 	m_MouseButtonDown = false;
 }
 
 
-void iADetailView::SlicerMouseMove(int x, int y, int z, int c)
+void iADetailView::SlicerMouseMove(int x, int y, int z, int /*c*/)
 {
 	if (m_MouseButtonDown)
 	{
@@ -721,9 +724,9 @@ int iADetailView::GetCurLabelRow() const
 void iADetailView::UpdateComparisonNumbers()
 {
 	/* calculate (if both integer types)
-		- dice metric between selected 
+		- dice metric between selected
 		- equal pixels
-		- 
+		-
 	*/
 	if (m_compareWidget->empty())
 	{
@@ -771,7 +774,6 @@ void iADetailView::UpdateComparisonNumbers()
 			.arg(rightDims[0]).arg(rightDims[1]).arg(rightDims[2]));
 		return;
 	}
-	long matching = 0;
 	long leftUndecided = 0;
 	long leftOnlyUndecided = 0;
 	long rightUndecided = 0;
@@ -816,12 +818,12 @@ void iADetailView::UpdateComparisonNumbers()
 	//{
 		//text += 		measureFilter->GetTargetOverlap
 	//}
-	
+
 	text += QString("Undecided (left/right/only left/only right): %1/%2/%3/%4")
 		.arg(leftUndecided)
 		.arg(rightUndecided)
 		.arg(leftOnlyUndecided)
 		.arg(rightOnlyUndecided);
-		
+
 	m_cmpDetailsLabel->setText(text);
 }

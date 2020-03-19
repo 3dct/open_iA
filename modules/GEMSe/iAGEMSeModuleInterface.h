@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,6 +29,8 @@
 
 class iASEAFile;
 
+class QSettings;
+
 typedef iAQTtoUIConnector<QToolBar, Ui_GEMSeToolBar> iAGEMSeToolbar;
 
 class iAGEMSeModuleInterface : public iAModuleInterface
@@ -37,27 +39,29 @@ class iAGEMSeModuleInterface : public iAModuleInterface
 public:
 	iAGEMSeModuleInterface();
 	void Initialize() override;
+	void loadProject(MdiChild* mdiChild, QSettings const & metaFile, QString const & fileName);
+	void saveProject(QSettings & metaFile, QString const & fileName);
 protected:
 	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
 private slots:
 	//! @{ Menu entries:
-	void StartGEMSe();
-	void LoadPreCalculatedData();
+	void startGEMSe();
+	void loadPreCalculatedData();
 	//! @}
 	//! @{ Toolbar actions:
-	void ResetFilter();
-	void ToggleAutoShrink();
-	void ToggleDockWidgetTitleBar();
-	void ExportClusterIDs();
-	void ExportAttributeRangeRanking();
-	void ExportRankings();
-	void ImportRankings();
+	void resetFilter();
+	void toggleAutoShrink();
+	void toggleDockWidgetTitleBar();
+	void exportClusterIDs();
+	void exportAttributeRangeRanking();
+	void exportRankings();
+	void importRankings();
 	//! @}
-	void continuePreCalculatedDataLoading();
+	void loadGEMSe();
 private:
-	void LoadPreCalculatedData(iASEAFile const & seaFile);
-	void SetupToolbar();
-	
+	void loadOldGEMSeProject(QString const & fileName);
+	void setupToolbar();
+
 	iAGEMSeToolbar* m_toolbar;
 
 	//! cache for precalculated data loading

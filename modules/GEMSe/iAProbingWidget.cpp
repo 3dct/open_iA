@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -63,14 +63,14 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	m_lbInfo = new QLabel("Probing n/a");
 	m_lbInfo->setMaximumHeight(20);
 	layout->addWidget(m_lbInfo);
-	
+
 	// entropy chart:
 	m_entropyChartData = CreateEmptyProbData(Continuous, 0, 1);
 	m_charts.push_back(new iAChartWidget(this, "Algorithmic Uncertainty", "Frequency (Members)"));
-	auto plot = QSharedPointer<iAPlot>(
+	auto algoUncertaintyPlot = QSharedPointer<iAPlot>(
 		new iABarGraphPlot(m_entropyChartData,
 			QColor(117, 112, 179), BarMargin));
-	m_charts[0]->addPlot(plot);
+	m_charts[0]->addPlot(algoUncertaintyPlot);
 
 	// label distribution chart:
 	for (int label = 0; label < m_labelInfo->count(); ++label)
@@ -119,7 +119,7 @@ void iAProbingWidget::SetSelectedNode(iAImageTreeNode const * node)
 	m_selectedNode = node;
 }
 
-void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
+void iAProbingWidget::ProbeUpdate(int x, int y, int z, int /*mode*/)
 {
 	// entropy chart:
 	m_entropyChartData->reset();

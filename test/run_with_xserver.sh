@@ -6,6 +6,7 @@ export SCREEN_HEIGHT=1200
 export SCREEN_DEPTH=24
 export GEOMETRY="${SCREEN_WIDTH}x${SCREEN_HEIGHT}x${SCREEN_DEPTH}"
 
-#unrecognized option +extensions"
-# 
-xvfb-run --error-file=/workspace/xvfb.log --server-args="$DISPLAY -screen 0 $GEOMETRY -ac +extension RANDR" "$@"
+# use short-hand -e instead of --error-file.
+#     This is because centOS 6 is affected by this bug:
+#      https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=337703;msg=2
+MESA_GL_VERSION_OVERRIDE=3.2 xvfb-run -e /workspace/xvfb.log --server-args="$DISPLAY -screen 0 $GEOMETRY -ac +extension RANDR" "$@"

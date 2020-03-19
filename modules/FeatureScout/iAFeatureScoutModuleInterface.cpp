@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,10 +25,14 @@
 #include "iACsvVtkTableCreator.h"
 #include "iAFeatureScoutAttachment.h"
 #include "iAFeatureScoutToolbar.h"
-#include "iAModalityList.h"
 #include "ui_CsvInput.h"
 
 #include <iAConsole.h>
+#include <iAModalityList.h>
+#include <iAModuleDispatcher.h> // TODO: Refactor; it shouldn't be required to go via iAModuleDispatcher to retrieve one's own module
+#include <iAProjectBase.h>
+#include <iAProjectRegistry.h>
+#include <io/iAFileUtils.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 
@@ -38,12 +42,83 @@
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QSettings>
 #include <QTextStream>
+
+class iAFeatureScoutProject: public iAProjectBase
+{
+public:
+	static const QString ID;
+	iAFeatureScoutProject()
+	{}
+	virtual ~iAFeatureScoutProject() override
+	{}
+	void loadProject(QSettings & projectFile, QString const & fileName) override;
+	void saveProject(QSettings & projectFile, QString const & fileName) override;
+	static QSharedPointer<iAProjectBase> create()
+	{
+		return QSharedPointer<iAFeatureScoutProject>::create();
+	}
+	void setOptions(iACsvConfig config)
+	{
+		m_config = config;
+	}
+private:
+	iACsvConfig m_config;
+};
+
+const QString iAFeatureScoutProject::ID("FeatureScout");
+
+
+void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const & fileName)
+{
+	if (!m_mdiChild)
+	{
+		DEBUG_LOG(QString("Invalid FeatureScout project file '%1': FeatureScout requires an MdiChild, "
+			"but UseMdiChild was apparently not specified in this project, as no MdiChild available! "
+			"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
+		return;
+	}
+	m_config.load(projectFile, "CSVFormat");
+
+	QString path(QFileInfo(fileName).absolutePath());
+	QString csvFileName = projectFile.value("CSVFileName").toString();
+	if (csvFileName.isEmpty())
+	{
+		DEBUG_LOG(QString("Invalid FeatureScout project file '%1': Empty or missing 'CSVFileName'!").arg(fileName));
+		return;
+	}
+	m_config.fileName = MakeAbsolute(path, csvFileName);
+	m_config.curvedFiberFileName = MakeAbsolute(path, projectFile.value("CurvedFileName").toString());
+	iAFeatureScoutModuleInterface * featureScout = m_mainWindow->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
+	featureScout->LoadFeatureScout(m_config, m_mdiChild);
+	QString layoutName = projectFile.value("Layout").toString();
+	if (!layoutName.isEmpty())
+	{
+		m_mdiChild->loadLayout(layoutName);
+	}
+}
+
+void iAFeatureScoutProject::saveProject(QSettings & projectFile, QString const & fileName)
+{
+	m_config.save(projectFile, "CSVFormat");
+	QString path(QFileInfo(fileName).absolutePath());
+	projectFile.setValue("CSVFileName", MakeRelative(path, m_config.fileName));
+	projectFile.setValue("CurvedFileName", MakeRelative(path, m_config.curvedFiberFileName));
+	if (m_mdiChild)
+	{
+		projectFile.setValue("Layout", m_mdiChild->layoutName());
+	}
+}
 
 void iAFeatureScoutModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
+	{
 		return;
+	}
+	Q_INIT_RESOURCE(FeatureScout);
+	iAProjectRegistry::addProject<iAFeatureScoutProject>(iAFeatureScoutProject::ID);
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionFibreScout = new QAction( QObject::tr("FeatureScout"), nullptr );
 	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreScout, false );
@@ -53,6 +128,7 @@ void iAFeatureScoutModuleInterface::Initialize()
 
 void iAFeatureScoutModuleInterface::FeatureScout()
 {
+	//auto project = QSharedPointer<iAFeatureScoutProject>::create(m_mainWnd);
 	bool volumeDataAvailable = m_mainWnd->activeMdiChild() &&
 		m_mainWnd->activeMdiChild()->modalities()->size() > 0 &&
 		m_mainWnd->activeMdiChild()->isVolumeDataLoaded();
@@ -67,18 +143,23 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 			dlg.setFileName(testCSVFileName);
 			auto type = guessFeatureType(testCSVFileName);
 			if (type != InvalidObjectType)
+			{
 				dlg.setFormat(type == Voids ? iACsvConfig::LegacyVoidFormat : iACsvConfig::LegacyFiberFormat);
+			}
 		}
 		else
+		{
 			dlg.setPath(mdi->filePath());
+		}
 	}
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 	iACsvConfig csvConfig = dlg.getConfig();
+	bool createdMdi = false;
 	if (csvConfig.visType != iACsvConfig::UseVolume)
 	{
-		csvConfig.curvedFiberFileName = QFileDialog::getOpenFileName(m_mainWnd, "Curved Fiber Info",
-			QFileInfo(csvConfig.fileName).absolutePath(), tr("Curved Fiber Information(*.csv);;"));
 		if (m_mainWnd->activeMdiChild() && QMessageBox::question(m_mainWnd, "FeatureScout",
 			"Load FeatureScout in currently active window (If you choose No, FeatureScout will be opened in a new window)?",
 			QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes)
@@ -87,22 +168,21 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 		}
 		else
 		{
+			createdMdi = true;
 			m_mdiChild = m_mainWnd->createMdiChild(false);
 			m_mdiChild->show();
 		}
 	}
 	else
-		m_mdiChild = m_mainWnd->activeMdiChild();
-	if (!startFeatureScout(csvConfig))
 	{
-		if (csvConfig.visType != iACsvConfig::UseVolume)
-		{
-			m_mainWnd->closeMdiChild(m_mdiChild);
-			m_mdiChild = nullptr;
-			QMessageBox::warning(m_mainWnd, "FeatureScout", "Starting FeatureScout failed! Please check console for detailed error messages!");
-		}
+		m_mdiChild = m_mainWnd->activeMdiChild();
 	}
-
+	if (!startFeatureScout(csvConfig) && createdMdi)
+	{
+		m_mainWnd->closeMdiChild(m_mdiChild);
+		m_mdiChild = nullptr;
+		QMessageBox::warning(m_mainWnd, "FeatureScout", "Starting FeatureScout failed! Please check console for detailed error messages!");
+	}
 }
 
 iAFeatureScoutObjectType iAFeatureScoutModuleInterface::guessFeatureType(QString const & csvFileName)
@@ -124,8 +204,10 @@ iAFeatureScoutObjectType iAFeatureScoutModuleInterface::guessFeatureType(QString
 
 void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(QString const & csvFileName, MdiChild* mdiChild)
 {
-	if ( csvFileName.isEmpty() )
+	if (csvFileName.isEmpty())
+	{
 		return;
+	}
 	m_mdiChild = mdiChild;
 	auto type = guessFeatureType(csvFileName);
 	if (type == InvalidObjectType)
@@ -141,8 +223,10 @@ void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(QString const & c
 
 void iAFeatureScoutModuleInterface::SetupToolbar()
 {
-	if ( tlbFeatureScout )
+	if (tlbFeatureScout)
+	{
 		return;
+	}
 	tlbFeatureScout = new iAFeatureScoutToolbar( m_mainWnd );
 	m_mainWnd->addToolBar( Qt::BottomToolBarArea, tlbFeatureScout );
 	connect( tlbFeatureScout->actionLength_Distribution, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
@@ -180,13 +264,15 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 	iACsvVtkTableCreator creator;
 	iACsvIO io;
 	if (!io.loadCSV(creator, csvConfig))
-		return false;
-	AttachToMdiChild( m_mdiChild );
-	connect( m_mdiChild, SIGNAL( closed() ), this, SLOT( onChildClose() ) );
-	iAFeatureScoutAttachment* attach = attachment<iAFeatureScoutAttachment>(m_mdiChild);
-	if ( !attach )
 	{
-		m_mdiChild->addMsg( "Error while attaching FeatureScout to mdi child window!" );
+		return false;
+	}
+	AttachToMdiChild(m_mdiChild);
+	connect(m_mdiChild, SIGNAL(closed()), this, SLOT(onChildClose()));
+	iAFeatureScoutAttachment* attach = attachment<iAFeatureScoutAttachment>(m_mdiChild);
+	if (!attach)
+	{
+		m_mdiChild->addMsg("Error while attaching FeatureScout to mdi child window!");
 		return false;
 	}
 	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
@@ -194,7 +280,8 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 	{
 		readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo);
 	}
-	attach->init(csvConfig.objectType, csvConfig.fileName, creator.table(), csvConfig.visType, io.getOutputMapping(), curvedFiberInfo);
+	attach->init(csvConfig.objectType, csvConfig.fileName, creator.table(), csvConfig.visType, io.getOutputMapping(),
+		curvedFiberInfo, csvConfig.cylinderQuality, csvConfig.segmentSkip);
 	SetupToolbar();
 	m_mdiChild->addStatusMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
 	m_mdiChild->addMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
@@ -203,6 +290,9 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		setFeatureScoutRenderSettings();
 		m_mdiChild->addMsg("The render settings of the current child window have been adapted for the volume visualization of FeatureScout!");
 	}
+	auto project = QSharedPointer<iAFeatureScoutProject>::create();
+	project->setOptions(csvConfig);
+	m_mdiChild->addProject(iAFeatureScoutProject::ID, project);
 	return true;
 }
 
@@ -215,7 +305,7 @@ void iAFeatureScoutModuleInterface::FeatureScout_Options()
 		DEBUG_LOG( "No FeatureScout attachment in current MdiChild!" );
 		return;
 	}
-	QString actionText = ((QAction *)sender())->text();
+	QString actionText = qobject_cast<QAction *>(sender())->text();
 	int idx = 0;
 	if ( actionText.toStdString() == "Length Distribution" ) idx = 7;
 	if ( actionText.toStdString() == "Mean Object" ) idx = 4;
@@ -237,7 +327,9 @@ void iAFeatureScoutModuleInterface::onChildClose()
 		m_mdiChild = mdi;
 		iAFeatureScoutAttachment* attach = attachment<iAFeatureScoutAttachment>(m_mdiChild);
 		if (attach)
+		{
 			return;
+		}
 	}
 	m_mainWnd->removeToolBar( tlbFeatureScout );
 	delete tlbFeatureScout;

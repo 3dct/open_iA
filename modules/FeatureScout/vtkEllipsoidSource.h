@@ -15,7 +15,7 @@
 =========================================================================*/
 // .NAME vtkEllipsoidSource - create a polygonal ellipsoid centered at the origin
 // .SECTION Description
-// vtkEllipsoidSource creates an ellipsoid (represented by polygons) centered at 
+// vtkEllipsoidSource creates an ellipsoid (represented by polygons) centered at
 // the origin. The orientation is completely specified by the major axis direction.
 // The minor and major axis lengths can be set.
 
@@ -30,7 +30,7 @@ class vtkSphereSource;
 
 #define VTK_MAX_SPHERE_RESOLUTION 1024
 
-class vtkEllipsoidSource : public vtkPolyDataAlgorithm 
+class vtkEllipsoidSource : public vtkPolyDataAlgorithm
 {
 public:
   vtkTypeMacro(vtkEllipsoidSource,vtkPolyDataAlgorithm);
@@ -86,36 +86,36 @@ public:
   vtkSetMacro(LatLongTessellation,int);
   vtkGetMacro(LatLongTessellation,int);
   vtkBooleanMacro(LatLongTessellation,int);
-  
+
   // Description:
   // Set the X radius.
   vtkSetMacro(XRadius, double);
   vtkGetMacro(XRadius, double);
-  
+
   // Description:
   // Set the Y radius.
   vtkSetMacro(YRadius, double);
   vtkGetMacro(YRadius, double);
-  
+
   // Description:
   // Set the Z radius.
   vtkSetMacro(ZRadius, double);
   vtkGetMacro(ZRadius, double);
-  
+
   // Description:
   // Set the direction of the axis initially aligned with the X axis.
   vtkSetVector3Macro(XAxis, double);
   vtkGetVector3Macro(XAxis, double);
-  
+
   // Description:
   // Set the direction of the axis initially aligned with the Y axis.
   vtkSetVector3Macro(YAxis, double);
   vtkGetVector3Macro(YAxis, double);
-	
+
 protected:
   vtkEllipsoidSource(int res=8);
   ~vtkEllipsoidSource();
-  
+
   int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
   double Center[3];
@@ -126,7 +126,7 @@ protected:
   double StartPhi;
   double EndPhi;
   int LatLongTessellation;
-  
+
   double XRadius;
   double YRadius;
   double ZRadius;
@@ -134,9 +134,9 @@ protected:
 private:
   vtkEllipsoidSource(const vtkEllipsoidSource&);  // Not implemented.
   void operator=(const vtkEllipsoidSource&);  // Not implemented.
-  
+
   vtkSmartPointer<vtkTransform> EllipsoidTransform;
-  
+
   double XAxis[3];
   double YAxis[3];
   double ZAxis[3];

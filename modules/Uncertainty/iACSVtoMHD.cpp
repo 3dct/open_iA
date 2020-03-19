@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -35,18 +35,7 @@
 iACSVtoMHD::iACSVtoMHD() : iAFilter("CSV to MHD", "Uncertainty",
 	"Read a CSV file and reshape it into an image of the given dimensions", 0, 1)
 {
-	QStringList pixelTypes;
-	pixelTypes
-		<< QString("VTK_SIGNED_CHAR")
-		<< QString("VTK_UNSIGNED_CHAR")
-		<< QString("VTK_SHORT")
-		<< QString("VTK_UNSIGNED_SHORT")
-		<< QString("VTK_INT")
-		<< QString("VTK_UNSIGNED_INT")
-		<< QString("VTK_LONG")
-		<< QString("VTK_UNSIGNED_LONG")
-		<< QString("VTK_FLOAT")
-		<< QString("VTK_DOUBLE");
+	QStringList pixelTypes (readableDataTypeList(false));
 	addParameter("CSV FileName", String, "");
 	addParameter("Output fileName", String, "");
 	//addParameter("Field separator", String, ";");
@@ -76,7 +65,7 @@ void iACSVtoMHD::performWork(QMap<QString, QVariant> const & parameters)
 	spacing[0] = parameters["Spacing X"].toUInt();
 	spacing[1] = parameters["Spacing Y"].toUInt();
 	spacing[2] = parameters["Spacing Z"].toUInt();
-	auto img = allocateImage(mapVTKTypeStringToInt(parameters["Pixel Type"].toString()), dim, spacing);
+	auto img = allocateImage(mapReadableDataTypeToVTKType(parameters["Pixel Type"].toString()), dim, spacing);
 
 	QString fileName(parameters["CSV FileName"].toString());
 	QFile in(fileName);

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -32,16 +32,15 @@
 #include <QPainter>
 
 iAImageTreeView::iAImageTreeView(
-	QWidget* parent,
-	QSharedPointer<iAImageTree > tree,
-	iAPreviewWidgetPool * previewPool,
-	int representativeType)
-:
+		QWidget* parent,
+		QSharedPointer<iAImageTree > tree,
+		iAPreviewWidgetPool * previewPool,
+		int representativeType):
 	QWidget(parent),
-	m_imageTree(tree),
 	m_highlightSubtree(false),
-	m_previewPool(previewPool),
+	m_imageTree(tree),
 	m_autoShrink(true),
+	m_previewPool(previewPool),
 	m_iconSize(TreePreviewSize),
 	m_representativeType(representativeType)
 {
@@ -231,11 +230,11 @@ int iAImageTreeView::LayoutNode(QSharedPointer<iAImageTreeNode > node, int nodeN
 	}
 	iAImageNodeWidget* nodeWidget = m_nodeWidgets[node.data()];
 	if (!nodeWidget) {
-		DEBUG_LOG("ERROR in LayoutNode: widget for current child node is NULL.");
+		DEBUG_LOG("ERROR in LayoutNode: widget for current child node is nullptr.");
 		return nodeNumber;
 	}
 	nodeWidget->UpdateShrinkStatus(m_refImg);
-	
+
 	int left = TreePadding + level * TreeLevelIndent;
 	int top = TreePadding + (nodeNumber-shrinkedNodes) * (TreeClusterPadding+m_iconSize) +
 							shrinkedNodes * (TreeClusterShrinkedHeight+TreeClusterPadding);
@@ -273,7 +272,7 @@ void iAImageTreeView::UpdateRepresentative(QSharedPointer<iAImageTreeNode > node
 	iAImageNodeWidget* nodeWidget = m_nodeWidgets[node.data()];
 	if (!nodeWidget)
 	{
-		DEBUG_LOG("ERROR in UpdateRepresentative: widget for current child node is NULL.");
+		DEBUG_LOG("ERROR in UpdateRepresentative: widget for current child node is nullptr.");
 		return;
 	}
 	if (!nodeWidget->IsShrinked())
@@ -293,11 +292,11 @@ void iAImageTreeView::UpdateRepresentative(QSharedPointer<iAImageTreeNode > node
 void iAImageTreeView::AddNode(QSharedPointer<iAImageTreeNode > node, bool shrinked)
 {
 	iAImageNodeWidget* nodeWidget = new iAImageNodeWidget(this, node, m_previewPool, shrinked, m_representativeType);
-	connect(nodeWidget, SIGNAL(Expand(bool)), this, SLOT(ExpandNode(bool)));
-	connect(nodeWidget, SIGNAL(clicked()), this, SLOT(NodeClicked()));
-	connect(nodeWidget, SIGNAL(ImageClicked()), this, SLOT(NodeImageClicked()));
-	connect(nodeWidget, SIGNAL(ImageRightClicked()), this, SLOT(NodeImageRightClicked()));
-	connect(nodeWidget, SIGNAL(updated()), this, SIGNAL(ViewUpdated()));
+	connect(nodeWidget, &iAImageNodeWidget::Expand, this, &iAImageTreeView::ExpandNodeSlot);
+	connect(nodeWidget, &iAImageNodeWidget::clicked, this, &iAImageTreeView::NodeClicked);
+	connect(nodeWidget, &iAImageNodeWidget::ImageClicked, this, &iAImageTreeView::NodeImageClicked);
+	connect(nodeWidget, &iAImageNodeWidget::ImageRightClicked, this, &iAImageTreeView::NodeImageRightClicked);
+	connect(nodeWidget, &iAImageNodeWidget::updated, this, &iAImageTreeView::ViewUpdated);
 	m_nodeWidgets.insert(node.data(), nodeWidget);
 	nodeWidget->show();
 }
@@ -336,7 +335,7 @@ void iAImageTreeView::CollapseNode(QSharedPointer<iAImageTreeNode > node, bool &
 }
 
 
-void iAImageTreeView::ExpandNode(bool expand)
+void iAImageTreeView::ExpandNodeSlot(bool expand)
 {
 	QObject* obj = sender();
 	iAImageNodeWidget* nodeWidget = dynamic_cast<iAImageNodeWidget*>(obj);
@@ -413,7 +412,7 @@ bool iAImageTreeView::JumpToNode(iAImageTreeNode const * cluster, int stepLimit)
 		DEBUG_LOG("JumpToNode: Couldn't find given cluster!");
 		return false;
 	}
-	
+
 	//QList<iAImageTreeNode const *> path(pathStack.toList());
 
 	int steps = 0;
@@ -563,7 +562,7 @@ int  iAImageTreeView::GetRepresentativeType() const
 }
 
 
-void iAImageTreeView::FreeMemory(QSharedPointer<iAImageTreeNode> node, bool overrideFree)
+void iAImageTreeView::freeMemory(QSharedPointer<iAImageTreeNode> node, bool overrideFree)
 {
 	if (overrideFree ||
 		!m_nodeWidgets[node.data()] ||
@@ -574,7 +573,7 @@ void iAImageTreeView::FreeMemory(QSharedPointer<iAImageTreeNode> node, bool over
 	}
 	for (int i = 0; i<node->GetChildCount(); ++i)
 	{
-		FreeMemory(node->GetChild(i),
+		freeMemory(node->GetChild(i),
 			overrideFree ||
 			!m_nodeWidgets[node.data()] ||
 			!m_nodeWidgets[node.data()]->IsExpanded()

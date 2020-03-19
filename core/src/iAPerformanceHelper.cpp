@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -60,10 +60,8 @@
 #endif
 
 
-/**
- * Returns the current resident set size (physical memory use) measured
- * in bytes, or zero if the value cannot be determined on this OS.
- */
+//! Returns the current resident set size (physical memory use) measured
+//! in bytes, or zero if the value cannot be determined on this OS.
 size_t getCurrentRSS( )
 {
 #if defined(_WIN32)
@@ -84,8 +82,8 @@ size_t getCurrentRSS( )
 #elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
 	/* Linux ---------------------------------------------------- */
 	long rss = 0L;
-	FILE* fp = NULL;
-	if ( (fp = fopen( "/proc/self/statm", "r" )) == NULL )
+	FILE* fp = nullptr;
+	if ( (fp = fopen( "/proc/self/statm", "r" )) == nullptr )
 		return (size_t)0L;      /* Can't open? */
 	if ( fscanf( fp, "%*s%ld", &rss ) != 1 )
 	{

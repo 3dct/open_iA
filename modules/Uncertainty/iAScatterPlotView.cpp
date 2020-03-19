@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -49,12 +49,13 @@
 #include <QVariant>
 #include <QVBoxLayout>
 
-#define VTK_CREATE(type, name) \
-	vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
-
 iAScatterPlotView::iAScatterPlotView():
-	m_scatterPlotWidget(nullptr),
-	m_scatterPlotContainer(new QWidget())
+	m_voxelCount(0),
+	m_xAxisChooser(new QWidget()),
+	m_yAxisChooser(new QWidget()),
+	m_settings(new QWidget()),
+	m_scatterPlotContainer(new QWidget()),
+	m_scatterPlotWidget(nullptr)
 {
 	setLayout(new QVBoxLayout());
 	layout()->setSpacing(0);
@@ -65,7 +66,6 @@ iAScatterPlotView::iAScatterPlotView():
 	m_scatterPlotContainer->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
 	layout()->addWidget(m_scatterPlotContainer);
 
-	m_settings = new QWidget();
 	m_settings->setLayout(new QVBoxLayout);
 	m_settings->layout()->setSpacing(0);
 	m_settings->layout()->setContentsMargins(0, 4, 0, 0);
@@ -73,11 +73,10 @@ iAScatterPlotView::iAScatterPlotView():
 
 	auto datasetChoiceContainer = new QWidget();
 	datasetChoiceContainer->setLayout(new QVBoxLayout());
-	m_xAxisChooser = new QWidget();
+
 	m_xAxisChooser->setLayout(new iAQFlowLayout(0, 0, 0));
 	m_xAxisChooser->layout()->addWidget(new QLabel("X Axis:"));
 	m_xAxisChooser->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-	m_yAxisChooser = new QWidget();
 	m_yAxisChooser->setLayout(new iAQFlowLayout(0, 0, 0));
 	m_yAxisChooser->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	m_yAxisChooser->layout()->addWidget(new QLabel("Y Axis:"));
@@ -126,8 +125,6 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	m_scatterPlotWidget->setMinimumWidth(width() / 2);
 	m_scatterPlotContainer->layout()->addWidget(m_scatterPlotWidget);
 	connect(m_scatterPlotWidget->m_scatterplot, SIGNAL(selectionModified()), this, SLOT(SelectionUpdated()));
-
-	StyleChanged();
 }
 
 
@@ -192,7 +189,9 @@ void iAScatterPlotView::XAxisChoice()
 {
 	int imgId = qobject_cast<QToolButton*>(sender())->property("imgId").toInt();
 	if (imgId == m_xAxisChoice)
+	{
 		return;
+	}
 	m_xAxisChoice = imgId;
 	AddPlot(m_imgs->GetEntropy(m_xAxisChoice), m_imgs->GetEntropy(m_yAxisChoice),
 		m_imgs->GetSourceName(m_xAxisChoice), m_imgs->GetSourceName(m_yAxisChoice));
@@ -203,7 +202,9 @@ void iAScatterPlotView::YAxisChoice()
 {
 	int imgId = qobject_cast<QToolButton*>(sender())->property("imgId").toInt();
 	if (imgId == m_yAxisChoice)
+	{
 		return;
+	}
 	m_yAxisChoice = imgId;
 	AddPlot(m_imgs->GetEntropy(m_xAxisChoice), m_imgs->GetEntropy(m_yAxisChoice),
 		m_imgs->GetSourceName(m_xAxisChoice), m_imgs->GetSourceName(m_yAxisChoice));
@@ -232,8 +233,4 @@ vtkImagePointer iAScatterPlotView::GetSelectionImage()
 void iAScatterPlotView::ToggleSettings()
 {
 	m_settings->setVisible(!m_settings->isVisible());
-}
-
-void iAScatterPlotView::StyleChanged()
-{
 }

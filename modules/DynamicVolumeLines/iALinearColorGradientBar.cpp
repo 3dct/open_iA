@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -79,7 +79,7 @@ bool iALinearColorGradientBar::event(QEvent *event)
 	return QWidget::event(event);
 }
 
-void iALinearColorGradientBar::mouseDoubleClickEvent(QMouseEvent * event)
+void iALinearColorGradientBar::mouseDoubleClickEvent(QMouseEvent * /*event*/)
 {
 	if (!m_modifiable)
 		return;
@@ -87,7 +87,7 @@ void iALinearColorGradientBar::mouseDoubleClickEvent(QMouseEvent * event)
 	bool ok;
 	QString colormapName = QInputDialog::getItem(this, tr("Change Histogram Colormap"),
 		tr(""), iALUT::GetColorMapNames(), 0, false, &ok);
-	
+
 	if (!ok)
 		return;
 

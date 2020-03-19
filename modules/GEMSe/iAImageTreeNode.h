@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -42,13 +42,13 @@ typedef int ClusterIDType;
 typedef float ClusterDistanceType;
 
 // TODO: Replace with some other definition / template?
-const int DIM = 3;
+const int Dimensions = 3;
 typedef int LabelPixelType;
-typedef itk::Image<LabelPixelType, DIM> LabelImageType;
+typedef itk::Image<LabelPixelType, Dimensions> LabelImageType;
 typedef LabelImageType::Pointer LabelImagePointer;
 
 typedef double ProbabilityPixel;
-typedef itk::Image<ProbabilityPixel, DIM> ProbabilityImageType;
+typedef itk::Image<ProbabilityPixel, Dimensions> ProbabilityImageType;
 typedef ProbabilityImageType::Pointer ProbabilityImagePointer;
 
 typedef iAITKIO::ImagePointer ClusterImageType;
@@ -79,6 +79,7 @@ public:
 		Hated
 	};
 	iAImageTreeNode();
+	virtual ~iAImageTreeNode();
 	virtual int GetChildCount() const = 0;
 	virtual int GetClusterSize() const = 0;
 	virtual int GetFilteredSize() const = 0;

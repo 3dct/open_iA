@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -47,40 +47,54 @@ enum ContainerSize {
 	WIDTH=530, HEIGHT=600
 };
 
-dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QStringList const & labels, QList<QVariant> const & values, QTextDocument *fDescr)
+dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QStringList const & labels, QList<QVariant> const & values, QString const & descr)
 	: QDialog(parent),
 	m_sourceMdiChild(nullptr),
 	m_sourceMdiChildClosed(false),
 	m_widgetList(labels.size())
 {
+	setupUi(this);
 	if (title.isEmpty())
 	{
 		DEBUG_LOG("No window title entered. Please give a window title");
+		auto lbl = new QLabel("No window title entered. Please give a window title");
+		gridLayout->addWidget(lbl, 0, 0);
+		buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+		gridLayout->addWidget(buttonBox, 1, 0);
 		return;
 	}
 	if (labels.size() != values.size())
 	{
 		DEBUG_LOG("Implementation Error: The number of of parameter descriptions and the number of given values does not match. "
 			"Please report this message to the developers, along with the action you were trying to perform when it occured!");
+		auto lbl = new QLabel("Implementation Error: The number of of parameter descriptions and the number of given values does not match. "
+			"Please report this message to the developers, along with the action you were trying to perform when it occured!");
+		gridLayout->addWidget(lbl, 0, 0);
+		buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+		gridLayout->addWidget(buttonBox, 1, 0);
 		return;
 	}
-	setupUi(this);
 	this->setWindowTitle(title);
 
-	if (fDescr)
+	//Generates a scrollable container for the widgets with a grid layout
+	auto scrollArea = new QScrollArea(this);
+
+	if (!descr.isEmpty())
 	{
 		auto info = new QTextBrowser();
 		QPalette p = info->palette();
 		p.setColor(QPalette::Base, QColor(240, 240, 255));
 		info->setPalette(p);
-		info->setDocument(fDescr);
+		QTextDocument *doc = new QTextDocument(info); // set info as parent so it will get deleted along with it
+		doc->setHtml(descr);
+		info->setDocument(doc);
 		info->setReadOnly(true);
 		info->setOpenExternalLinks(true);
 		gridLayout->addWidget(info, 0, 0);
+		// make sure that description can be easily resized; parameters have scroll bar
+		scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	}
 
-	//Generates a scrollable container for the widgets with a grid layout
-	auto scrollArea = new QScrollArea(this);
 	scrollArea->setObjectName("scrollArea");
 	m_container = new QWidget(scrollArea);
 	m_container->setObjectName("container");
@@ -101,9 +115,13 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 				newWidget = new QCheckBox(m_container);
 				break;
 			case '.':
-				if (labels[i - 1].at(0).toLatin1() == '&')	 // if this is a filter parameter string,
-					m_filterWithParameters.push_back(i - 1); // and previous was a filter name, then
-				// intentional fall-through!				 // remember this for the filter selection
+				if (labels[i - 1].at(0).toLatin1() == '&')   // if this is a filter parameter string,
+				{                                            // and previous was a filter name, then
+					m_filterWithParameters.push_back(i - 1); // remember this for the filter selection
+				}
+#if __cplusplus >= 201703L
+				[[fallthrough]];  // intentional fall-through
+#endif
 			case '#':
 				newWidget = new QLineEdit(m_container);
 				break;
@@ -191,13 +209,18 @@ void  dlg_commoninput::setSourceMdi(MdiChild* child, MainWindow* mainWnd)
 	connect(child, SIGNAL(closed()), this, SLOT(SourceChildClosed()));
 }
 
+QVector<QWidget*> dlg_commoninput::widgetList()
+{
+	return m_widgetList;
+}
+
 void dlg_commoninput::SelectFilter()
 {
 	QPushButton* sender = qobject_cast<QPushButton*>(QObject::sender());
 	dlg_FilterSelection dlg(this, sender->text());
 	if (dlg.exec())
 	{
-		QString filterName = dlg.SelectedFilterName();
+		QString filterName = dlg.selectedFilterName();
 		int idx = m_widgetList.indexOf(sender);
 		if (idx < m_widgetList.size() - 1 && m_filterWithParameters.indexOf(idx) != -1 &&
 			m_sourceMdiChild)	// TODO: if possible, get rid of sourceMdi?

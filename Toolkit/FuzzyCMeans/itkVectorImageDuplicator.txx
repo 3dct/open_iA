@@ -29,8 +29,8 @@ template<class TInputVectorImage>
 VectorImageDuplicator<TInputVectorImage>
 ::VectorImageDuplicator()
 {
-  m_InputImage = NULL;
-  m_Output = NULL;
+  m_InputImage = nullptr;
+  m_Output = nullptr;
   m_InternalImageTime = 0;
 }
 

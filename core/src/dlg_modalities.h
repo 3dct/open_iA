@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -71,10 +71,10 @@ public:
 	void selectRow(int idx);
 	void enableUI();
 	void setFileName(int modality, QString const & fileName);
+	void setInteractionMode(bool manualRegistration);
 public slots:
 	//! add modality to list, create transfer function, add volume to renderers
 	void modalityAdded(QSharedPointer<iAModality> mod);
-	void interactorModeSwitched(int newMode);
 signals:
 	void modalityAvailable(int modalityIdx);
 	void modalitySelected(int modalityIdx);
@@ -85,11 +85,6 @@ private slots:
 	void removeClicked();
 	void editClicked();
 
-	//! toggle manual movement / registration of one object to another
-	void manualRegistration();
-
-	void magicLens();
-	//void CuttingPlane();
 	void rendererMouseMoved();
 	void enableButtons();
 
@@ -103,7 +98,7 @@ private slots:
 
 private:
 
-	//connects interactor styles  slicer to each other and with 3D renderer 
+	//connects interactor styles  slicer to each other and with 3D renderer
 	void configureInterActorStyles(QSharedPointer<iAModality> editModality);
 
 	// TODO: move modalities out of here (mdichild? common data repository?)
@@ -114,7 +109,7 @@ private:
 	MdiChild* m_mdiChild;
 
 	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];
-	
+
 	void addToList(QSharedPointer<iAModality> mod);
 	//! initialize a modality's transfer function
 	void initTransfer(QSharedPointer<iAModality> mod);

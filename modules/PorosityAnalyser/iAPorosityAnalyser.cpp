@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -47,10 +47,8 @@
 #include <QStatusBar>
 #include <QTreeWidget>
 
-const int treeViewIndex = 0;
-const int overviewIndex = 1;
-
-iAPorosityAnalyser::iAPorosityAnalyser(MainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) : PorosityAnalyserConnector( parent, f ),
+iAPorosityAnalyser::iAPorosityAnalyser(MainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ):
+	PorosityAnalyserConnector( parent, f ),
 	m_dataDir( resDir ),
 	m_datasetsDir( datasetsDir ),
 	m_spmView( new iASPMView(mWnd, parent, f ) ),
@@ -72,7 +70,7 @@ iAPorosityAnalyser::iAPorosityAnalyser(MainWindow *mWnd, const QString & resDir,
 	m_visanMW->setParent( mainArea );
 
 	QVBoxLayout * visanLayout = new QVBoxLayout();
-	visanLayout->setMargin( 0 );	
+	visanLayout->setMargin( 0 );
 	visanLayout->setSpacing( 0 );
 	visanLayout->addWidget( m_visanMW );
 	mainArea->setLayout( visanLayout );
@@ -121,7 +119,7 @@ iAPorosityAnalyser::iAPorosityAnalyser(MainWindow *mWnd, const QString & resDir,
 	m_visanMW->splitDockWidget( m_prvSplomView, m_ssView, Qt::Vertical );
 	m_visanMW->tabifyDockWidget( m_ssView, m_segm3DView );
 	m_ssView->attachSegm3DView( m_segm3DView );
-	
+
 	m_rangeSliderDiagramView->raise();
 	//m_rangeSliderDiagramView->hide();
 
@@ -144,21 +142,25 @@ iAPorosityAnalyser::~iAPorosityAnalyser()
 
 void iAPorosityAnalyser::CalculateRunsOffset()
 {
-	if( m_dataDir == "" )
+	if (m_dataDir == "")
+	{
 		return;
+	}
 	m_data.clear();
 	QDir dataRootDir( m_dataDir );
 	dataRootDir.setFilter( QDir::Dirs );
 	QStringList dirs = dataRootDir.entryList();
-	foreach( QString d, dirs )
+	for (QString d: dirs)
 	{
-		if( d == "." || d == ".." )
+		if (d == "." || d == "..")
+		{
 			continue;
+		}
 		QString subDirName = m_dataDir + "/" + d;
 		QDir subDir( subDirName );
 		subDir.setFilter( QDir::Files );
 		QStringList files = subDir.entryList();
-		foreach( QString f, files )
+		for (QString f: files)
 		{
 			QFileInfo fi( subDirName + "/" + f );
 			if( QString::compare( fi.suffix(), "CSV", Qt::CaseInsensitive ) == 0 )
@@ -172,12 +174,16 @@ void iAPorosityAnalyser::CalculateRunsOffset()
 				{
 					QString batchesCSVDirPath = absPath + "/" + compCSV.item( cid, 4 )->text();
 					int batchesCSVColCount = iACSVToQTableWidgetConverter::getCSVFileColumnCount( batchesCSVDirPath + "/batches.csv" );
-					if( batchesCSVColCount > maxBatchesColumnCount )
+					if (batchesCSVColCount > maxBatchesColumnCount)
+					{
 						maxBatchesColumnCount = batchesCSVColCount;
+					}
 				}
 				int newRunsOffset = compCSV.columnCount() + maxBatchesColumnCount;
-				if( newRunsOffset > m_runsOffset )
+				if (newRunsOffset > m_runsOffset)
+				{
 					m_runsOffset = newRunsOffset;
+				}
 			}
 		}
 	}
@@ -194,15 +200,17 @@ void iAPorosityAnalyser::LoadData()
 	iACSVToQTableWidgetConverter::loadCSVFile( m_dataDir + "/DatasetDescription.csv", &m_referenceData );
 	for( int i = 1; i < m_referenceData.rowCount(); i++ )
 		m_gtPorosityMap[m_referenceData.item( i, gtDatasetColInd )->text()] = m_referenceData.item( i, gtPorosityColInd )->text().toDouble();
-		
+
 	m_data.clear();
 	QDir dataRootDir( m_dataDir );
 	dataRootDir.setFilter( QDir::Dirs );
 	QStringList dirs = dataRootDir.entryList();
-	foreach( QString d, dirs )
+	for (QString d: dirs)
 	{
-		if( d == "." || d == ".." )
+		if (d == "." || d == "..")
+		{
 			continue;
+		}
 		AddSubdirectory( m_dataDir + "/" + d );
 	}
 }
@@ -212,11 +220,13 @@ void iAPorosityAnalyser::AddSubdirectory( const QString & subDirName )
 	QDir subDir( subDirName );
 	subDir.setFilter( QDir::Files );
 	QStringList files = subDir.entryList();
-	foreach( QString f, files )
+	for (QString f: files)
 	{
 		QFileInfo fi( subDirName + "/" + f );
-		if( QString::compare( fi.suffix(), "CSV", Qt::CaseInsensitive ) == 0 )
-			ParseComputerCSV( fi );
+		if (QString::compare(fi.suffix(), "CSV", Qt::CaseInsensitive) == 0)
+		{
+			ParseComputerCSV(fi);
+		}
 	}
 }
 
@@ -229,8 +239,10 @@ void iAPorosityAnalyser::ParseComputerCSV( const QFileInfo & fi )
 	for( int cid = 1; cid < compCSV.rowCount(); ++cid ) //1 because 0 is header
 	{
 		QStringList compData;
-		for( int i = 0; i < compCSV.columnCount(); ++i )
-			compData << compCSV.item( cid, i )->text();
+		for (int i = 0; i < compCSV.columnCount(); ++i)
+		{
+			compData << compCSV.item(cid, i)->text();
+		}
 
 		QString batchesCSVDirPath = absPath + "/" + compCSV.item( cid, 4 )->text();
 		QTableWidget batchesCSV;
@@ -238,37 +250,49 @@ void iAPorosityAnalyser::ParseComputerCSV( const QFileInfo & fi )
 		for( int bid = 1; bid < batchesCSV.rowCount(); ++bid ) //1 because 0 is header
 		{
 			QStringList batchesData;
-			for( int i = 0; i < batchesCSV.columnCount(); ++i )
-				batchesData << batchesCSV.item( bid, i )->text();
+			for (int i = 0; i < batchesCSV.columnCount(); ++i)
+			{
+				batchesData << batchesCSV.item(bid, i)->text();
+			}
 
 			QString runsCSVDirPath = batchesCSVDirPath + "/batch" + QString::number( bid ) + "/runs.csv";
 			QTableWidget runsCSV;
 			iACSVToQTableWidgetConverter::loadCSVFile( runsCSVDirPath, &runsCSV );
 			int colCnt = m_runsOffset + runsCSV.columnCount();
-			if( m_data.columnCount() < colCnt )
-				m_data.setColumnCount( colCnt );
- 			/////UNCOMMENT TO CALCULATE DICE METRIC/////////////////////////////////////
- 			//QMap<QString, QString> datasetGTs;
- 			//for( int i = 1; i < m_referenceData.rowCount(); i++ )
- 			//	datasetGTs[m_referenceData.item( i, gtDatasetColInd )->text()] = m_referenceData.item( i, gtGTSegmColumnIndex )->text();
- 			//QString datasetName = compCSV.item( cid, 3 )->text();
- 			//QString gtMaskFile = m_datasetsDir + "/" + datasetGTs[datasetName];
- 			//ScalarPixelType maskPixType;
- 			//ImagePointer gtMaskPtr = iAITKIO::readFile( gtMaskFile, maskPixType, true );
- 			////////////////////////////////////////////////////////////////////////////
+			if (m_data.columnCount() < colCnt)
+			{
+				m_data.setColumnCount(colCnt);
+			}
+			/////UNCOMMENT TO CALCULATE DICE METRIC/////////////////////////////////////
+			//QMap<QString, QString> datasetGTs;
+			//for( int i = 1; i < m_referenceData.rowCount(); i++ )
+			//	datasetGTs[m_referenceData.item( i, gtDatasetColInd )->text()] = m_referenceData.item( i, gtGTSegmColumnIndex )->text();
+			//QString datasetName = compCSV.item( cid, 3 )->text();
+			//QString gtMaskFile = m_datasetsDir + "/" + datasetGTs[datasetName];
+			//ScalarPixelType maskPixType;
+			//ImagePointer gtMaskPtr = iAITKIO::readFile( gtMaskFile, maskPixType, true );
+			////////////////////////////////////////////////////////////////////////////
 			for( int rid = 1; rid < runsCSV.rowCount(); ++rid ) //1 because 0 is header
 			{
 				int lastRow = m_data.rowCount(), col = 0;
 				m_data.insertRow( lastRow );
 				//add info from computer, batches, and runs CSVs
-				for( int i = 0; i < compData.size(); i++ )
-					m_data.setItem( lastRow, col++, new QTableWidgetItem( compData[i] ) );
-				for( int i = 0; i < batchesData.size(); i++ )
-					m_data.setItem( lastRow, col++, new QTableWidgetItem( batchesData[i] ) );
-				while( col < m_runsOffset )//fill the alignment with empty if needed
-					m_data.setItem( lastRow, col++, new QTableWidgetItem( "" ) );
-				for( int i = 0; i < runsCSV.columnCount(); i++ )
-					m_data.setItem( lastRow, col++, new QTableWidgetItem( runsCSV.item( rid, i )->text() ) );
+				for (int i = 0; i < compData.size(); i++)
+				{
+					m_data.setItem(lastRow, col++, new QTableWidgetItem(compData[i]));
+				}
+				for (int i = 0; i < batchesData.size(); i++)
+				{
+					m_data.setItem(lastRow, col++, new QTableWidgetItem(batchesData[i]));
+				}
+				while (col < m_runsOffset)//fill the alignment with empty if needed
+				{
+					m_data.setItem(lastRow, col++, new QTableWidgetItem(""));
+				}
+				for (int i = 0; i < runsCSV.columnCount(); i++)
+				{
+					m_data.setItem(lastRow, col++, new QTableWidgetItem(runsCSV.item(rid, i)->text()));
+				}
 				//substitute relative path with global path for the mask file
 				int maskInd = m_runsOffset + maskOffsetInRuns;
 				QString fullMaskPath = batchesCSVDirPath + "/batch" + QString::number( bid ) + "/masks/" + m_data.item( lastRow, maskInd )->text();
@@ -298,11 +322,11 @@ void iAPorosityAnalyser::ParseComputerCSV( const QFileInfo & fi )
  //				//QString oldfne = runsCSV.item( rid, errorInd + 1 )->text();
  //				runsCSV.item( rid, errorInd )->setText( QString::number( fpe ) );
  //				runsCSV.item( rid, errorInd + 1 )->setText( QString::number( fne ) );
- 				//////////////////////////////////////////////////////////////////////////
+				//////////////////////////////////////////////////////////////////////////
 			}
- 			/////UNCOMMENT TO CALCULATE DICE METRIC/////////////////////////////////////
- 			//iACSVToQTableWidgetConverter::saveToCSVFile( runsCSV, runsCSVDirPath );
- 			////////////////////////////////////////////////////////////////////////////
+			/////UNCOMMENT TO CALCULATE DICE METRIC/////////////////////////////////////
+			//iACSVToQTableWidgetConverter::saveToCSVFile( runsCSV, runsCSVDirPath );
+			////////////////////////////////////////////////////////////////////////////
 		}
 	}
 }
@@ -318,7 +342,7 @@ void iAPorosityAnalyser::LoadStateAndShow()
 void iAPorosityAnalyser::ShowSelections( bool checked )
 {
 	//TODO: bad code
-	if( checked )
+	if (checked)
 	{
 		tbTreeView->setChecked( false );
 		m_treeView->hide();
@@ -334,13 +358,15 @@ void iAPorosityAnalyser::ShowSelections( bool checked )
 		selectionsExplorer->show();
 	}
 	else
+	{
 		selectionsExplorer->hide();
+	}
 }
 
 void iAPorosityAnalyser::ShowTreeView( bool checked )
 {
 	//TODO: bad code
-	if( checked )
+	if (checked)
 	{
 		tbSelections->setChecked( false );
 		m_selView->hide();
@@ -356,7 +382,9 @@ void iAPorosityAnalyser::ShowTreeView( bool checked )
 		selectionsExplorer->show();
 	}
 	else
+	{
 		selectionsExplorer->hide();
+	}
 }
 
 void iAPorosityAnalyser::selectionLoaded( iASelection * sel )
@@ -369,9 +397,9 @@ void iAPorosityAnalyser::selectionLoaded( iASelection * sel )
 	m_spmView->setSelection( sel );
 }
 
-void iAPorosityAnalyser::tabChanged( int index )
+void iAPorosityAnalyser::tabChanged( int /*index*/ )
 {
-	//emit loadTreeDataToViews(); 
+	//emit loadTreeDataToViews();
 }
 
 void iAPorosityAnalyser::message( QString text )

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -37,12 +37,12 @@ iAHistogramView::iAHistogramView()
 	setLayout(new QHBoxLayout());
 }
 
-void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data,
+void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> histoData,
 		QColor const & color, QSharedPointer<iALookupTable> lut)
 {
 	m_chart = new iAChartWidget(this, caption, "Frequency (Pixels)");
 	m_chart->setMinimumHeight(120);
-	QSharedPointer<iABarGraphPlot> barGraph(new iABarGraphPlot(data, color, 2));
+	QSharedPointer<iABarGraphPlot> barGraph(new iABarGraphPlot(histoData, color, 2));
 	barGraph->setLookupTable(lut);
 	m_chart->addPlot(barGraph);
 	layout()->setSpacing(0);

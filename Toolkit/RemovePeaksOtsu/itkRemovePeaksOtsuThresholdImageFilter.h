@@ -39,7 +39,7 @@ namespace itk {
  */
 
 template<class TInputImage, class TOutputImage>
-class ITK_EXPORT RemovePeaksOtsuThresholdImageFilter : 
+class RemovePeaksOtsuThresholdImageFilter : 
     public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:

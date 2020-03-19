@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -39,7 +39,7 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	m_axesTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_observedRenderer(0),
 	m_tag(0),
-	m_indexInReferenceLib(-1)
+	m_indexInReferenceLib(std::numeric_limits<size_t>::max())
 {
 	renContainer->SetRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_renderer->renderWindow()));
 	m_renderer->renderer()->InteractiveOff();

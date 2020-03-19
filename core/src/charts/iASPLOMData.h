@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -28,7 +28,6 @@
 #include <vector>
 
 class QString;
-class QTableWidget;
 
 //! Class for storing data shown in a scatter plot matrix (SPLOM)
 //! (a table with data values for one object per row, along with the names of the columns/parameters).
@@ -37,9 +36,7 @@ class open_iA_Core_API iASPLOMData: public QObject
 	Q_OBJECT
 public:
 	iASPLOMData();
-	explicit iASPLOMData(const QTableWidget * tw);    //!< Create data from a QTableWidget
 	void clear();                                     //!< Free all the data.
-	void import(const QTableWidget * tw);             //!< Imports data from a QTableWidget and stores it in a list of double-lists.
 	std::vector<std::vector<double>> & data();        //!< Get the table values
 	std::vector<QString> & paramNames();              //!< Get the names of the columns/parameters
 	const std::vector<std::vector<double>> & data() const; //!< Get constant ref. to the lists containing raw data points.
@@ -50,10 +47,10 @@ public:
 	size_t numPoints() const;                         //!< Get number of data points.
 	bool isInverted(size_t paramIndex);               //!< Get whether the axis of a parameter should be inverted in the scatter plots.
 	void setInverted(size_t paramIndex, bool isInverted);//!< Set whether the axis of a parameter should be inverted in the scatter plots.
-	void setParameterNames(std::vector<QString> const & names); //! Set the parameter names (clears all columns)
+	void setParameterNames(std::vector<QString> const & names, size_t rowReserve = 0); //! Set the parameter names (clears all columns) with an optional row "size" (i.e. how many rows are planned to be there, i.e. used in vector::reserve)
 	bool matchesFilter(size_t ind) const;             //!< Returns true if point with given index matches current filter
-	void addFilter(int paramIndex, double value);     //!< Adds a filter on the given column (index), it needs to match the given value; multiple filters are linked via OR
-	void removeFilter(int paramIndex, double value);  //!< Removes the filter on the given column and value.
+	void addFilter(size_t paramIndex, double value);  //!< Adds a filter on the given column (index), it needs to match the given value; multiple filters are linked via OR
+	void removeFilter(size_t paramIndex, double value);//!< Removes the filter on the given column and value.
 	void clearFilter();                               //!< Clear all filters
 	bool filterDefined() const;                       //!< Returns true if a filter is defined on the data
 	double const* paramRange(size_t paramIndex) const;//!< Get the range of the parameter with given index
@@ -69,5 +66,5 @@ protected:
 	std::vector<char> m_inverted;                     //!< whether to invert a feature
 private:
 	void updateRangeInternal(size_t paramIndex);      //!< Update internal range data for parameter paramIndex
-	std::vector<std::pair<int,  double> > m_filters;  //!< collection of filters: each column index/value pair is linked via OR
+	std::vector<std::pair<size_t, double> > m_filters;//!< collection of filters: each column index/value pair is linked via OR
 };

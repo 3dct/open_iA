@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -104,12 +104,12 @@ public:
 	bool GetSeparateFolder() const;
 	bool GetCalcChar() const;
 private slots:
-	void ChooseOutputFolder();
-	void ChooseParameterDescriptor();
-	void ChooseExecutable();
-	void ParameterDescriptorChanged();
-	void SaveSettings();
-	void LoadSettings();
+	void chooseOutputFolder();
+	void chooseParameterDescriptor();
+	void chooseExecutable();
+	void parameterDescriptorChanged();
+	void saveSettings();
+	void loadSettings();
 private:
 	void setInputsFromMap(QMap<QString, QString> const & values);
 	void loadDescriptor(QString const & fileName);

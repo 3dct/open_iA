@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -109,7 +109,6 @@ public:
 	void setMagicLensFrameWidth(int newWidth);
 	void setMagicLensCount(int count);
 	void setMagicLensInput(uint id);
-	void addMagicLensInput(uint id);
 	uint magicLensInput() const;
 	void setMagicLensOpacity(double opacity);
 	double magicLensOpacity() const;
@@ -179,7 +178,7 @@ public:
 	void setDefaultInteractor();
 
 	//! Blend two images. Should probably be implemented in terms of two channels?
-	void blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range);
+	void blend(vtkAlgorithmOutput *data1, vtkAlgorithmOutput *data2, double opacity, double * range);
 
 	//! Get current slice number
 	int sliceNumber() const;
@@ -394,7 +393,7 @@ private:
 	int m_slabThickness;       //! current slab thickness (default = 1, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
 	int m_slabCompositeMode;   //! current slab mode (how to combine the voxels of the current slab into a single pixel); TODO: move to iASingleslicerSettings?
 
-	//! @ for indicating current measurement ('m' key)
+	//! @{ for indicating current measurement ('m' key)
 	vtkSmartPointer<vtkLineSource> m_lineSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_lineMapper;
 	vtkSmartPointer<vtkActor> m_lineActor;

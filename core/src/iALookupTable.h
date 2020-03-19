@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -28,11 +28,10 @@
 class QColor;
 class vtkLookupTable;
 
-//! Class representing lookup table for color coding used in scatter plot matrix (SPLOM).
-/*!
-	Has methods for importing existing VTK lookup table
-	and mapping scalar values to a corresponding QColor.
-*/
+//! Class representing a lookup table for color coding.
+//! Used for example in the scatter plot matrix iAQSplom.
+//! Has methods for importing an existing VTK lookup table,
+//! and for mapping scalar values to a corresponding QColor.
 class open_iA_Core_API iALookupTable
 {
 public:

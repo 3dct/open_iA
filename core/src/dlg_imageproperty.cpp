@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -21,6 +21,7 @@
 #include "dlg_imageproperty.h"
 
 #include "iAImageInfo.h"
+#include "iAToolsVTK.h"
 
 #include <vtkImageData.h>
 
@@ -65,7 +66,7 @@ void dlg_imageproperty::AddInfo(vtkImageData* src, iAImageInfo const & info, QSt
 
 	EnterMsg( QString("    %1: %2")
 		.arg(tr("Datatype"))
-		.arg(src->GetScalarTypeAsString()) );
+		.arg(mapVTKTypeToReadableDataType(src->GetScalarType()) ) );
 
 	QString componentStr;
 	if (src->GetNumberOfScalarComponents() > 1 && channelCount > 1)

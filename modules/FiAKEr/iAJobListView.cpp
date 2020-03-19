@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -31,18 +31,16 @@
 
 
 
-iAJobListView::iAJobListView(int margin)
+iAJobListView::iAJobListView()
 {
 	setLayout(new QVBoxLayout());
-	layout()->setContentsMargins(margin, margin, margin, margin);
-	layout()->setSpacing(margin);
 }
 
 void iAJobListView::addJob(QString name, iAProgress * p, QThread * t)
 {
 	auto jobWidget = new QWidget();
 	jobWidget->setLayout(new QVBoxLayout());
-	jobWidget->setStyleSheet("background-color:#EEE;");
+	jobWidget->setStyleSheet("background-color:#"+QWidget::palette().color(QPalette::Button).name()+";");
 	auto progressBar = new QProgressBar();
 	progressBar->setRange(0, 100);
 	progressBar->setValue(0);

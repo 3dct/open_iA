@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -33,6 +33,8 @@
 
 #include <QCheckBox>
 
+#include <cassert>
+
 
 const float TIMER_MIN_SPEED = 0.2f;	// frames per second
 const float TIMER_MAX_SPEED = 50.0f;	// frames per second
@@ -48,8 +50,14 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 	setupUi(this);
 	m_isBlendingOn = blending->isChecked();
 	m_mdiChild = dynamic_cast<MdiChild*>(parent);
-	m_numberOfVolumes=m_volumeStack->numberOfVolumes();
-	for (int i = 0; i < m_numberOfVolumes; i++)
+	if (m_volumeStack->numberOfVolumes() > std::numeric_limits<int>::max())
+	{
+		DEBUG_LOG(QString("WARNING: More Volumes (%1) in volume player than supported (%2)!")
+			.arg(m_volumeStack->numberOfVolumes())
+			.arg(std::numeric_limits<int>::max()));
+	}
+	m_numberOfVolumes = static_cast<int>(m_volumeStack->numberOfVolumes());
+	for (int i = 0; i < m_numberOfVolumes; ++i)
 	{
 		showVolume(i);
 	}
@@ -160,18 +168,24 @@ void dlg_volumePlayer::nextVolume()
 
 void dlg_volumePlayer::previousVolume()
 {
-	int index = volumeSlider->value();
-	if (--index < 0)
-		index=volumeSlider->maximum();
+	int index = volumeSlider->value() - 1;
+	if (index < 0)
+	{
+		index = volumeSlider->maximum();
+	}
 	volumeSlider->setValue(index);
 }
 
 void dlg_volumePlayer::sliderChanged()
 {
-	if(m_isBlendingOn)
+	if (m_isBlendingOn)
+	{
 		updateMultiChannelVisualization();
+	}
 	else
+	{
 		emit update(sliderIndexToVolumeIndex(volumeSlider->value()));
+	}
 }
 
 void dlg_volumePlayer::playVolume()
@@ -197,7 +211,7 @@ void dlg_volumePlayer::setSpeed()
 	this->speedValue->setText(QString::number(speed, 'f', 2));
 }
 
-void dlg_volumePlayer::updateView(int r, int c)
+void dlg_volumePlayer::updateView(int r, int /*c*/)
 {
 	emit update(r);
 }
@@ -207,7 +221,7 @@ void dlg_volumePlayer::editMaxSpeed()
 	QStringList inList		= (QStringList() << tr("#Speed (one step/msec)"));
 	QList<QVariant> inPara	= (QList<QVariant>() << tr("%1").arg(getCurrentSpeed()));
 
-	dlg_commoninput dlg(m_mdiChild, "Set speed", inList, inPara, NULL);
+	dlg_commoninput dlg(m_mdiChild, "Set speed", inList, inPara, nullptr);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
@@ -217,12 +231,12 @@ void dlg_volumePlayer::editMaxSpeed()
 	}
 }
 
-void dlg_volumePlayer::setChecked(int r, int c)
+void dlg_volumePlayer::setChecked(int r, int /*c*/)
 {
 	for (int i=1; i<m_numberOfColumns;i++)
 	{
-		dataTable->item(m_old_r,i)->setBackgroundColor(Qt::white);
-		dataTable->item(r,i)->setBackgroundColor(Qt::lightGray);
+		dataTable->item(m_old_r,i)->setBackground(Qt::white);
+		dataTable->item(r,i)->setBackground(Qt::lightGray);
 	}
 	m_old_r=r;
 }
@@ -241,7 +255,9 @@ QList<int> dlg_volumePlayer::getCheckedList()
 			m_outCheckList.insert(i,t->checkState());
 		}
 		else
+		{
 			m_outCheckList.insert(i, 0);
+		}
 	}
 	return (m_outCheckList);
 }
@@ -361,13 +377,16 @@ void dlg_volumePlayer::enableVolume(int state)
 {
 	QCheckBox* check = static_cast<QCheckBox*>(QObject::sender());
 	if (!check)
+	{
 		return;
-
-	for(int i = 0; i < m_checkBoxes.size(); i++)
+	}
+	assert(m_checkBoxes.size() < std::numeric_limits<int>::max());
+	for(int i = 0; i < static_cast<int>(m_checkBoxes.size()); i++)
 	{
 		if (check == m_checkBoxes[i])
 		{
-			switch(state) {
+			switch(state)
+			{
 			case Qt::Checked:
 				showVolume(i);
 				break;
@@ -383,16 +402,19 @@ void dlg_volumePlayer::enableVolume(int state)
 	}
 
 	int numOfCheckedVolumes = getNumberOfCheckedVolumes();
-	for(int i = 0; i < m_checkBoxes.size(); i++)
+	for(size_t i = 0; i < m_checkBoxes.size(); ++i)
 	{
-		if(numOfCheckedVolumes <= 1 && m_checkBoxes[i]->isChecked())
+		if (numOfCheckedVolumes <= 1 && m_checkBoxes[i]->isChecked())
+		{
 			m_checkBoxes[i]->setEnabled(false);
+		}
 		else
+		{
 			m_checkBoxes[i]->setEnabled(true);
+		}
 	}
 
 	// setup slider
-	int oldVal = volumeSlider->value();
 	if(m_isBlendingOn)
 	{
 		volumeSlider->setMaximum((getNumberOfCheckedVolumes() - 1) * DIVISIONS_PER_VOLUME);
@@ -407,11 +429,17 @@ void dlg_volumePlayer::enableVolume(int state)
 int dlg_volumePlayer::volumeIndexToSlicerIndex(int volumeIndex)
 {
 	int slicerIndex = -1;
-	if (((m_mask>>volumeIndex)&1) == 0)
+	if (((m_mask >> volumeIndex) & 1) == 0)
+	{
 		return -1;
-	for(int i = 0; i <= volumeIndex; i++)
-		if (((m_mask>>i)&1) == 1)
+	}
+	for (int i = 0; i <= volumeIndex; i++)
+	{
+		if (((m_mask >> i) & 1) == 1)
+		{
 			++slicerIndex;
+		}
+	}
 	return slicerIndex;
 }
 
@@ -433,7 +461,7 @@ int dlg_volumePlayer::sliderIndexToVolumeIndex(int slicerIndex)
 }
 
 void dlg_volumePlayer::showVolume(int volumeIndex)
-{
+{	// since mask is short, this only works for up to 16 volumes?
 	m_mask = m_mask|(1<<volumeIndex);
 }
 
@@ -445,8 +473,12 @@ void dlg_volumePlayer::hideVolume(int volumeIndex)
 int dlg_volumePlayer::getNumberOfCheckedVolumes()
 {
 	int num = 0;
-	for(int i = 0; i < m_numberOfVolumes; i++) {
-		if(volumeIsShown(i)) num++;
+	for(int i = 0; i < m_numberOfVolumes; ++i)
+	{
+		if (volumeIsShown(i))
+		{
+			++num;
+		}
 	}
 	return num;
 }
@@ -459,32 +491,46 @@ bool dlg_volumePlayer::volumeIsShown (int volumeIndex)
 void dlg_volumePlayer::enableMultiChannelVisualization()
 {
 	if (!m_mdiChild)
+	{
 		return;
+	}
 
-	for(int i = 0; i < CHANNELS_COUNT; i++)
+	for (int i = 0; i < CHANNELS_COUNT; i++)
+	{
 		m_mdiChild->setChannelRenderingEnabled(m_channelID[i], true);
+	}
 }
 
 void dlg_volumePlayer::disableMultiChannelVisualization()
 {
 	if (!m_mdiChild)
+	{
 		return;
+	}
 
-	for(int i = 0; i < CHANNELS_COUNT; i++)
+	for (int i = 0; i < CHANNELS_COUNT; i++)
+	{
 		m_mdiChild->setChannelRenderingEnabled(m_channelID[i], false);
+	}
 }
 
 void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volumeIndex2, double blendingCoeff)
 {
 	if (!m_mdiChild)
+	{
 		return;
+	}
 
 	int volumeIndex[] = { volumeIndex1, volumeIndex2 };
 	double opacity[] = { 1., blendingCoeff };
 
 	if (!m_multiChannelIsInitialized)
+	{
 		for (int i = 0; i < CHANNELS_COUNT; i++)
+		{
 			m_channelID.push_back(m_mdiChild->createChannel());
+		}
+	}
 	for(int i = 0; i < CHANNELS_COUNT; i++)
 	{
 		iAChannelData* chData = m_mdiChild->channelData(m_channelID[i]);
@@ -515,11 +561,16 @@ void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volume
 		m_mdiChild->updateChannelOpacity(m_channelID[i], opacity[i]);
 	}
 
-	if(!m_multiChannelIsInitialized) m_multiChannelIsInitialized = true;
+	if (!m_multiChannelIsInitialized)
+	{
+		m_multiChannelIsInitialized = true;
+	}
 
 //	m_mdiChild->renderer()->updateChannelImages();
-	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+	{
 		m_mdiChild->slicer(i)->updateChannelMappers();
+	}
 	m_mdiChild->updateViews();
 }
 

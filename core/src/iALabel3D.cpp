@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -213,7 +213,7 @@ void iALabel3D::AttachActorsToRenderers( vtkRenderer * ren, vtkRenderer * labelR
 	actor->GetPosition2Coordinate()->SetCoordinateSystemToView();
 	actor->GetPosition2Coordinate()->SetValue(0.7, 0.8);
 	double textColor[3] = { 1.0, 0.0, 0.0 };
-	
+
 	vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
 	sphere->SetRadius(10.0);
 	sphere->Update();
@@ -277,10 +277,10 @@ void iALabel3D::UpdateImageData()
 		imageDataGeometryFilter->SetInputConnection(qImageToVtk->GetOutputPort());
 		imageDataGeometryFilter->Update();
 
-		
+
 		//m_mapper->SetInputConnection(imageDataGeometryFilter->GetOutputPort());
 		//m_mapper->Update();
-		
+
 		//m_imageData->Modified();
 		//m_texture->SetInputData(m_imageData);
 		//m_texture->Update();

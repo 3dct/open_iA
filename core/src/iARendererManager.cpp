@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -34,16 +34,19 @@
 iARendererManager::iARendererManager()
 {
 	m_isRedrawn = false;
-	m_commonCamera = NULL;
+	m_commonCamera = nullptr;
 }
 
 void iARendererManager::addToBundle(vtkRenderer* renderer)
 {
-	if(!m_commonCamera)
+	if (!m_commonCamera)
+	{
 		m_commonCamera = renderer->GetActiveCamera();
+	}
 	else
+	{
 		renderer->SetActiveCamera(m_commonCamera);
-
+	}
 	m_renderers.append(renderer);
 	renderer->AddObserver(vtkCommand::EndEvent, this, &iARendererManager::redrawOtherRenderers);
 }
@@ -65,14 +68,14 @@ bool iARendererManager::removeFromBundle(vtkRenderer* renderer)
 
 void iARendererManager::removeAll()
 {
-	m_commonCamera = NULL;
+	m_commonCamera = nullptr;
 	for(vtkRenderer * r: m_renderers)
 	{
 		removeFromBundle( r );
 	}
 }
 
-void iARendererManager::redrawOtherRenderers(vtkObject* caller, long unsigned int eventId, void* callData)
+void iARendererManager::redrawOtherRenderers(vtkObject* /*caller*/, long unsigned int /*eventId*/, void* callData)
 {
 	if (!m_isRedrawn)
 	{

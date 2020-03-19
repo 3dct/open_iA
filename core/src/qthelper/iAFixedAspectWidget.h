@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,18 +23,20 @@
 #include "open_iA_Core_export.h"
 
 #include "iASignallingWidget.h"
-#include "iAVtkWidgetFwd.h"
+#include "iAVtkQtWidget.h"
 
 class iAColoredWidget;
 
+//! Keeps the aspect ratio of a contained iAVtkQtWidget fixed
+//! by placing two other resizable widgets around it as padding.
 class open_iA_Core_API iAFixedAspectWidget: public iASignallingWidget
 {
 	Q_OBJECT
 public:
 	iAFixedAspectWidget(double aspect=1.0, Qt::Alignment verticalAlign = Qt::AlignVCenter);
-	iAVtkWidget* vtkWidget();
+	iAVtkQtWidget* vtkWidget();
 	void setBackgroundColor(QColor const & color);
 private:
-	iAVtkWidget* m_widget;
+	iAVtkQtWidget* m_widget;
 	iAColoredWidget* m_fill1, * m_fill2;
 };

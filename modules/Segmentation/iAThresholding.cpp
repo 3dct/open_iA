@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,7 +27,7 @@
 #include <iATypedCallHelper.h>
 
 // from Toolkit/MaximumDistance
-#include <itkMaximumDistance.h>
+#include <iAMaximumDistanceFilter.h>
 
 #include <itkAdaptiveOtsuThresholdImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
@@ -49,6 +49,22 @@
 #include <itkYenThresholdImageFilter.h>
 
 #include <QLocale>
+
+// No operation (simply pass-through image)
+
+IAFILTER_CREATE(iACopy)
+
+void iACopy::performWork(QMap<QString, QVariant> const & /*parameters*/)
+{
+	addOutput(input()[0]->itkImage());
+}
+
+iACopy::iACopy() :
+	iAFilter("Copy", "",
+		"Copy the input image to output."
+		"That is, this filter simply directly returns the input, without any modifications.")
+{
+}
 
 // Binary Threshold
 
@@ -96,7 +112,7 @@ iABinaryThreshold::iABinaryThreshold() :
 
 // Robust Automatic Threshold (RAT)
 
-template<class T> 
+template<class T>
 void rats_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;
@@ -106,7 +122,7 @@ void rats_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 	typename GMFType::Pointer gmfilter = GMFType::New();
 	gmfilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	filter->progress()->observe( gmfilter );
-	gmfilter->Update(); 
+	gmfilter->Update();
 	typedef typename itk::RobustAutomaticThresholdImageFilter < InputImageType, GradientImageType, OutputImageType > RATType;
 	auto ratsFilter = RATType::New();
 	ratsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
@@ -145,7 +161,7 @@ iARatsThreshold::iARatsThreshold() :
 
 // Otsu's Threshold
 
-template<class T> 
+template<class T>
 void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;
@@ -268,8 +284,10 @@ void otsu_multiple_threshold(iAFilter* filter, QMap<QString, QVariant> const & p
 	otsumultiFilter->SetValleyEmphasis( parameters["Valley emphasis"].toBool() );
 	filter->progress()->observe( otsumultiFilter );
 	otsumultiFilter->Update();
-	for (int i = 0; i< otsumultiFilter->GetThresholds().size(); i++)
+	for (size_t i = 0; i < otsumultiFilter->GetThresholds().size(); i++)
+	{
 		filter->addOutputValue(QString("Otsu multiple threshold %1").arg(i), otsumultiFilter->GetThresholds()[i]);
+	}
 	filter->addOutput(otsumultiFilter->GetOutput());
 }
 
@@ -299,15 +317,14 @@ template<class T>
 void maximum_distance(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< T, 3 >   OutputImageType;
-	typedef itk::MaximumDistance< InputImageType > MaximumDistanceType;
+	typedef iAMaximumDistanceFilter< InputImageType > MaximumDistanceType;
 	auto maxFilter = MaximumDistanceType::New();
 	maxFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
-	maxFilter->SetBins(parameters["Number of histogram bins"].toDouble());
+	maxFilter->SetBinWidth(parameters["Width of histogram bin"].toDouble());
 	if (parameters["Use low intensity"].toBool())
+	{
 		maxFilter->SetCentre(parameters["Low intensity"].toDouble());
-	else
-		maxFilter->SetCentre(32767);
+	} // if not set, centre / low intensity will be automatically determined as maximum possible pixelType value / 2
 	filter->progress()->observe(maxFilter);
 	maxFilter->Update();
 	filter->addOutput(maxFilter->GetOutput());
@@ -325,9 +342,10 @@ IAFILTER_CREATE(iAMaximumDistance)
 
 iAMaximumDistance::iAMaximumDistance() :
 	iAFilter("Maximum Distance", "Segmentation/Global Thresholding",
-		"A global threshold based on the maximum distance of peaks in the histogram, for voids segmentation.")
+		"A global threshold based on the maximum distance of peaks in the histogram, for voids segmentation.<br/>"
+		"Note: This filter only works with images with a positive integer pixel data type (unsigned char, unsigned short, unsigned int).")
 {
-	addParameter("Number of histogram bins", Discrete, 256, 2);
+	addParameter("Width of histogram bin", Discrete, 256, 1);
 	addParameter("Low intensity", Continuous, 0);
 	addParameter("Use low intensity", Boolean, false);
 }

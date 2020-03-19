@@ -45,9 +45,7 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
   elementRadius.Fill(1);
   m_StructuringElement = StructuringElementType::Box(elementRadius);
 
-#if ITK_VERSION_MAJOR < 5
   m_CentroidsModificationAttributesLock = MutexLockType::New();
-#endif
 
   m_TmpMembershipImage = MembershipImageType::New();
 }
@@ -178,33 +176,23 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     {
     m_OldCentroids[i] = this->m_Centroids[i];
 
-    m_CentroidsNumerator[i] = CentroidNumericTraitsType::Zero;
+    m_CentroidsNumerator[i] = CentroidNumericTraitsType::ZeroValue();
     }
-  m_CentroidsDenominator.Fill(CentroidValueNumericTraitsType::Zero);
+  m_CentroidsDenominator.Fill(CentroidValueNumericTraitsType::ZeroValue());
 
   ThreadIdType numThreads = this->GetNumberOfThreads();
-#if ITK_VERSION_MAJOR < 5
   if( itk::MultiThreader::GetGlobalMaximumNumberOfThreads() != 0 )
-#else
-  if( itk::MultiThreaderBase::GetGlobalMaximumNumberOfThreads() != 0 )
-#endif
-    {
-    numThreads =  std::min( this->GetNumberOfThreads(),
-#if ITK_VERSION_MAJOR < 5
+	{
+	numThreads =  std::min( this->GetNumberOfThreads(),
         itk::MultiThreader::GetGlobalMaximumNumberOfThreads() );
-#else
-        itk::MultiThreaderBase::GetGlobalMaximumNumberOfThreads() );
-#endif
     }
   // number of threads can be constrained by the region size, so call the
   //SplitRequestedRegion to get the real number of threads which will be used
   OutputImageRegionType splitRegion;  // dummy region - just to call the following method
   numThreads = this->SplitRequestedRegion(0, numThreads, splitRegion);
 
-#if ITK_VERSION_MAJOR < 5
   m_Barrier = Barrier::New();
   m_Barrier->Initialize( numThreads );
-#endif
 }
 
 
@@ -309,31 +297,25 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     itrTmpMembershipMatrix.Set(tmpMembershipPixel);
     }
 
-#if ITK_VERSION_MAJOR < 5
   // Synchronize threaded execution. As each thread enters the barrier it
   // blocks. When all threads have entered the barrier (and therefore all
   // memberships required to compute the second step of the procedure have
   // been calculated), all released and continue to execute.
   this->m_Barrier->Wait();
-#endif
 
   // These variables are used to accumulate the numerator and the denominator
   // of centroid expression.
   CentroidArrayType
     tempThreadCentroidsNumerator( this->m_NumberOfClasses,
-                                  CentroidNumericTraitsType::Zero );
+                                  CentroidNumericTraitsType::ZeroValue());
   Array< CentroidValueType >
     tempThreadCentroidsDenominator(this->m_NumberOfClasses);
-  tempThreadCentroidsDenominator.Fill(CentroidValueNumericTraitsType::Zero);
+  tempThreadCentroidsDenominator.Fill(CentroidValueNumericTraitsType::ZeroValue());
 
   typename StructuringElementType::ConstIterator nit;
   StructuringElementRadiusType radiusStructEl;
 
-#if ITK_VERSION_MAJOR > 3
   typename StructuringElementType::NeighborIndexType idx;
-#else
-  unsigned int idx;
-#endif
 
   idx =0;
   radiusStructEl = m_StructuringElement.GetRadius();
@@ -460,22 +442,16 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     itrMembershipMatrix.Set(membershipPixel);
     }
 
-#if ITK_VERSION_MAJOR < 5
   m_CentroidsModificationAttributesLock->Lock();
-#else
-  m_CentroidsModificationAttributesLock.lock();
-#endif
+
   for (i = 0; i < this->m_NumberOfClasses; i++)
     {
     m_CentroidsNumerator[i] += tempThreadCentroidsNumerator[i];
     m_CentroidsDenominator[i] += tempThreadCentroidsDenominator[i];
     }
 
-#if ITK_VERSION_MAJOR < 5
   m_CentroidsModificationAttributesLock->Unlock();
-#else
-  m_CentroidsModificationAttributesLock.unlock();
-#endif
+
 }
 
 

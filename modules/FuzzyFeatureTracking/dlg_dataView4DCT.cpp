@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,7 +29,7 @@
 #include <iAVolumeStack.h>
 #include <mdichild.h>
 #include <qthelper/iAQTtoUIConnector.h>
-#include <QVTKWidgetMouseReleaseWorkaround.h>
+#include <iAQVTKWidgetMouseReleaseWorkaround.h>
 
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
@@ -49,13 +49,13 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 	m_rendererManager.addToBundle(m_mdiChild->renderer()->renderer());
 
 	// add widgets to window
-	int numOfVolumes = m_volumeStack->numberOfVolumes();
-	m_vtkWidgets = new QVTKWidgetMouseReleaseWorkaround*[numOfVolumes];
+	size_t numOfVolumes = m_volumeStack->numberOfVolumes();
+	m_vtkWidgets = new iAQVTKWidgetMouseReleaseWorkaround*[numOfVolumes];
 	m_renderers = new iARenderer*[numOfVolumes];
 	m_volumeRenderer = new iAVolumeRenderer*[numOfVolumes];
-	for(int i = 0; i < numOfVolumes; i++)
+	for(size_t i = 0; i < numOfVolumes; i++)
 	{
-		m_vtkWidgets[i] = new QVTKWidgetMouseReleaseWorkaround(this);
+		m_vtkWidgets[i] = new iAQVTKWidgetMouseReleaseWorkaround(this);
 		m_renderers[i] = new iARenderer(this);
 		// TODO: VOLUME: check if this is working!
 		iASimpleTransferFunction transferFunction(
@@ -69,14 +69,14 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 		m_volumeRenderer[i]->addTo(m_renderers[i]->renderer());
 		m_renderers[i]->applySettings( m_mdiChild->renderSettings() );
 		m_volumeRenderer[i]->applySettings(m_mdiChild->volumeSettings());
-		
+
 		// setup renderers
 		m_renderers[i]->showHelpers(SHOW_HELPERS);
 		m_renderers[i]->renderer()->SetBackground(FOURDCT_BACGROUND[0], FOURDCT_BACGROUND[1], FOURDCT_BACGROUND[2]);
 		m_renderers[i]->renderer()->SetBackground2(FOURDCT_BACGROUND2[0], FOURDCT_BACGROUND2[1], FOURDCT_BACGROUND2[2]);
 
 		m_rendererManager.addToBundle(m_renderers[i]->renderer());
-		
+
 		this->dockWidgetContents->layout()->addWidget(m_vtkWidgets[i]);
 	}
 }
@@ -89,7 +89,7 @@ dlg_dataView4DCT::~dlg_dataView4DCT()
 
 void dlg_dataView4DCT::update()
 {
-	for(int i = 0; i < m_volumeStack->numberOfVolumes(); i++)
+	for(size_t i = 0; i < m_volumeStack->numberOfVolumes(); i++)
 	{
 		m_renderers[i]->reInitialize(m_volumeStack->volume(i), m_mdiChild->polyData());
 		m_renderers[i]->update();

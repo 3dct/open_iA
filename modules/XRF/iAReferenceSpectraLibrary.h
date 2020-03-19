@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,13 +24,7 @@
 
 #include <QStandardItemModel>
 
-/**
- * \class	iAReferenceSpectraLibrary
- *
- * \brief	Loads the reference spectra library from the .reflib file
- *
- */
-
+//! Loads the reference spectra library from the .reflib file
 class iAReferenceSpectraLibrary
 {
 public:
@@ -61,14 +55,14 @@ public:
 
 		m_refSpectraItemModel->setHorizontalHeaderItem(0, new QStandardItem("Element Name"));
 
-		for(int i=0; i<spectra.size(); ++i)
+		for(size_t i=0; i<spectra.size(); ++i)
 		{
 			QStandardItem * item = new QStandardItem(spectra[i].name()); //TODO: make sure that the memory does not leak
 			item->setData(QColor(255, 0, 0, 255), Qt::DecorationRole);
 			item->setData(QVariant(0), Qt::UserRole);
 			item->setData(QVariant(-1), Qt::UserRole+1);
 			item->setCheckable(true);
-			m_refSpectraItemModel->setItem(i, item);
+			m_refSpectraItemModel->setItem(static_cast<int>(i), item);
 		}
 	}
 	QSharedPointer<QStandardItemModel> getItemModel()

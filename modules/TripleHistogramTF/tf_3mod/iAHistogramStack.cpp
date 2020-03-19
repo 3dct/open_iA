@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,7 +27,7 @@
 #include "iAHistogramStackGrid.h"
 
 #include <iATransferFunction.h>
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 
 #include <QComboBox>
 #include <QHBoxLayout>
@@ -53,7 +53,7 @@ void iAHistogramStack::initialize(QString const names[3])
 		m_labels.push_back(l);
 	}
 
-	QVector<iADiagramFctWidget*> histograms;
+	QVector<iAChartWithFunctionsWidget*> histograms;
 	histograms.push_back(m_tmw->w_histogram(0).data());
 	histograms.push_back(m_tmw->w_histogram(1).data());
 	histograms.push_back(m_tmw->w_histogram(2).data());
@@ -75,7 +75,7 @@ void iAHistogramStack::initialize(QString const names[3])
 	optionsContainerLayout->addStretch();
 	optionsContainerLayout->addWidget(m_tmw->w_slicerModeLabel());
 	optionsContainerLayout->addWidget(m_tmw->w_sliceNumberLabel());
-	
+
 	m_grid = new iAHistogramStackGrid(this, histograms, slicers, m_labels);
 
 	QWidget *leftWidget = new QWidget();

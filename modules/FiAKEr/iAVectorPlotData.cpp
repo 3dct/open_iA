@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #include "iAVectorPlotData.h"
 
-iAVectorPlotData::iAVectorPlotData(std::vector<double> const & data):
+iAVectorPlotData::iAVectorPlotData(QVector<double> const & data):
 	m_data(data)
 {
 	m_xBounds[0] = 0;
-	m_xBounds[1] = m_data.size()-1;
+	m_xBounds[1] = static_cast<double>(m_data.size())-1;
 
 	updateBounds();
 }
@@ -60,10 +60,11 @@ iAValueType iAVectorPlotData::valueType() const
 }
 
 void iAVectorPlotData::setXDataType(iAValueType xDataType)
-{	m_xDataType = xDataType;
+{
+	m_xDataType = xDataType;
 }
 
-std::vector<double> & iAVectorPlotData::data()
+QVector<double> & iAVectorPlotData::data()
 {
 	return m_data;
 }
@@ -72,7 +73,7 @@ void iAVectorPlotData::updateBounds()
 {
 	m_yBounds[0] = std::numeric_limits<double>::max();
 	m_yBounds[1] = std::numeric_limits<double>::lowest();
-	for (size_t i = 0; i < m_data.size(); ++i)
+	for (int i = 0; i < m_data.size(); ++i)
 	{
 		if (m_data[i] < m_yBounds[0])
 			m_yBounds[0] = m_data[i];

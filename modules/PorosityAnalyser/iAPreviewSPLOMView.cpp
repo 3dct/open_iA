@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -83,9 +83,11 @@ void iAPreviewSPLOMView::LoadDatasets()
 {
 	clear();
 	//parse some info
-	if( m_datasets.isEmpty() )
+	if (m_datasets.isEmpty())
+	{
 		return;
-	foreach( const QString & d, m_datasets )
+	}
+	for (const QString & d: m_datasets)
 	{
 		QString datasetFolder = m_datasetsDir + "/" + d;
 		QString fileName = getSliceFilename( datasetFolder, 0 );
@@ -100,8 +102,10 @@ void iAPreviewSPLOMView::LoadDatasets()
 	emit sliceNumbersChanged( m_sliceNumberLst );
 
 	QSignalBlocker blockcbDatasetsSignals(cbDatasets);
-	foreach( const QString & d, m_datasets )
-		cbDatasets->addItem( d );
+	for (const QString& d : m_datasets)
+	{
+		cbDatasets->addItem(d);
+	}
 	UpdatePixmap();
 
 	m_preview->ResetROI();

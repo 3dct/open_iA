@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -62,19 +62,23 @@ iASegm3DView::iASegm3DView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */
 
 void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPolyData*> polyData, QList<vtkPiecewiseFunction*> otf, QList<vtkColorTransferFunction*> ctf, QStringList slicerNames )
 {
-	for (auto i: imgData)
+	for (auto i : imgData)
+	{
 		if (!i)
-			DEBUG_LOG("Image data is NULL!");
+		{
+			DEBUG_LOG("Image data is nullptr!");
+		}
+	}
 	m_range = 0.0;
 	m_renMgr->removeAll();
-	foreach( iASegm3DViewData* sd, m_data )
+	for (iASegm3DViewData* sd: m_data)
 	{
 		m_layout->removeWidget( sd->GetWidget() );
 		delete sd;
 	}
 	m_data.clear();
 
-	foreach( QWidget* c, m_containerList )
+	for (QWidget* c: m_containerList)
 	{
 		m_layout->removeWidget( c );
 		delete c;
@@ -104,8 +108,10 @@ void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPo
 
 		m_layout->addWidget( container );
 	}
-	foreach( iASegm3DViewData* sd, m_data )
+	for (iASegm3DViewData* sd: m_data)
+	{
 		sd->UpdateRange();
+	}
 }
 
 void iASegm3DView::SetPolyData( QList<vtkPolyData*> polyData )
@@ -117,41 +123,55 @@ void iASegm3DView::SetPolyData( QList<vtkPolyData*> polyData )
 		iASegm3DViewData * sd = m_data[i];
 		sd->SetPolyData( polyData[i] );
 	}
-	foreach( iASegm3DViewData* sd, m_data )
+	for (iASegm3DViewData* sd : m_data)
+	{
 		sd->UpdateRange();
+	}
 }
 
 iASegm3DView::~iASegm3DView()
 {
-	foreach( iASegm3DViewData* sd, m_data )
+	for (iASegm3DViewData* sd : m_data)
+	{
 		delete sd;
+	}
 }
 
 void iASegm3DView::ShowVolume( bool visible )
 {
-	foreach( iASegm3DViewData* sd, m_data )
+	for (iASegm3DViewData* sd : m_data)
+	{
 		sd->ShowVolume( visible );
+	}
 }
 
 void iASegm3DView::ShowSurface( bool visible )
 {
-	foreach( iASegm3DViewData* sd, m_data )
-		sd->ShowSurface( visible );
+	for (iASegm3DViewData* sd : m_data)
+	{
+		sd->ShowSurface(visible);
+	}
 }
 
 void iASegm3DView::SetSensitivity( double sensitivity )
 {
 	m_range = 0.0;
-	foreach( iASegm3DViewData* sd, m_data )
+	for (iASegm3DViewData* sd : m_data)
+	{
 		sd->SetSensitivity( sensitivity );
-	foreach( iASegm3DViewData* sd, m_data )
+	}
+	for (iASegm3DViewData* sd: m_data)
+	{
 		sd->UpdateRange();
+	}
 }
 
 void iASegm3DView::ShowWireframe( bool visible )
 {
-	foreach( iASegm3DViewData* sd, m_data )
+	for (iASegm3DViewData* sd : m_data)
+	{
 		sd->ShowWireframe( visible );
+	}
 }
 
 
@@ -227,7 +247,7 @@ void iASegm3DViewData::removeObserver()
 void iASegm3DViewData::SetDataToVisualize( vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
 {
 	if (!imgData)
-		DEBUG_LOG("Image data is NULL!");
+		DEBUG_LOG("Image data is nullptr!");
 	iASimpleTransferFunction tf(ctf, otf);
 	if( !m_rendInitialized )
 	{
@@ -287,7 +307,7 @@ void iASegm3DViewData::LoadAndApplySettings()
 	renderSettings.ShowHelpers = settings.value("Renderer/rsShowHelpers", true).toBool();
 	renderSettings.ShowRPosition = settings.value("Renderer/rsShowRPosition", false).toBool();
 	renderSettings.ParallelProjection = true;
-	renderSettings.BackgroundTop = "#8f8f8f"; //"#FFFFFF" 
+	renderSettings.BackgroundTop = "#8f8f8f"; //"#FFFFFF"
 	renderSettings.BackgroundBottom = "#8f8f8f";
 
 	volumeSettings.LinearInterpolation = settings.value("Renderer/rsLinearInterpolation", true).toBool();
@@ -311,7 +331,7 @@ void iASegm3DViewData::LoadAndApplySettings()
 
 	m_renderer->polyActor()->SetVisibility( settings.value( "PorosityAnalyser/GUI/ShowSurface", false ).toBool() );
 	m_wireActor->SetVisibility( settings.value( "PorosityAnalyser/GUI/ShowWireframe", false ).toBool() );
-	
+
 	m_renderer->polyActor()->GetProperty()->SetSpecular( 0 );
 	m_renderer->polyActor()->GetProperty()->SetDiffuse( 0 );
 	m_renderer->polyActor()->GetProperty()->SetAmbient( 1 );

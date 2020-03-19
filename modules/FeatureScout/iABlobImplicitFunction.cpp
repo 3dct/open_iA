@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -32,7 +32,7 @@ iABlobImplicitFunction::iABlobImplicitFunction()
 {
 	m_blobManager = 0;
 
-	mb = NULL;
+	mb = nullptr;
 	mbSize = 0;
 	mbCount = 0;
 	mbExt = 1000;
@@ -52,7 +52,7 @@ void iABlobImplicitFunction::Allocate (const vtkIdType sz,
 	if (mb)
 	{
 		delete mb;
-		mb = NULL;
+		mb = nullptr;
 	}
 	mbCount = 0;
 	mbSize = 0;
@@ -145,7 +145,7 @@ double iABlobImplicitFunction::EvaluateFunction (double x[3])
 {
 	double value = JustEvaluateFunction (x);
 
-	if (m_blobManager != NULL)
+	if (m_blobManager != nullptr)
 	{
 		QList<iABlobCluster*>* list = m_blobManager->GetListObBlobClusters();
 		double otherVal;

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -49,9 +49,12 @@ public:
 		double min = std::numeric_limits<double>::lowest(),
 		double max = std::numeric_limits<double>::max());
 	iAAttributeDescriptor(QString const & name, iAAttributeType attribType, iAValueType valueType);
+	virtual ~iAAttributeDescriptor();
+	QSharedPointer<iAAttributeDescriptor> clone() const;
 	iAAttributeType attribType() const;
 	iAValueType valueType() const;
 	QVariant defaultValue() const;
+	void setDefaultValue(QVariant v);
 	virtual QSharedPointer<iANameMapper> nameMapper() const;
 	double min() const;
 	double max() const;

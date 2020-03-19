@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,7 +24,7 @@
 
 #include "iASimpleSlicerWidget.h"
 
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 #include <iATransferFunction.h>
 
 #include <vtkSmartPointer.h>
@@ -66,7 +66,7 @@ private:
 public:
 	iAMultimodalWidget(QWidget *parent, MdiChild* mdiChild, NumOfMod num);
 
-	QSharedPointer<iADiagramFctWidget> w_histogram(int i) {
+	QSharedPointer<iAChartWithFunctionsWidget> w_histogram(int i) {
 		return m_histograms[i];
 	}
 
@@ -133,7 +133,7 @@ protected:
 private:
 	// User interface {
 	void updateDisabledLabel();
-	QVector<QSharedPointer<iADiagramFctWidget>> m_histograms;
+	QVector<QSharedPointer<iAChartWithFunctionsWidget>> m_histograms;
 	QVector<QSharedPointer<iASimpleSlicerWidget>> m_slicerWidgets;
 	QVector<uint> m_channelID;
 	QStackedLayout *m_stackedLayout;

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -35,25 +35,22 @@ class vtkPiecewiseFunction;
 class open_iA_Core_API iAVolumeStack
 {
 	public:
-
-		iAVolumeStack();
 		~iAVolumeStack();
 
-		vtkImageData* volume(int i);
+		vtkImageData* volume(size_t i);
 		void addVolume(vtkImageData* volume);
 		void addFileName(QString fileName);
-		QString fileName(int i);
+		QString fileName(size_t i);
 		size_t numberOfVolumes();
-		void addVolumeAt(vtkImageData* volume, int i);
+		void addVolumeAt(vtkImageData* volume, size_t i);
 		void addColorTransferFunction(vtkColorTransferFunction* instance);
 		void addPiecewiseFunction(vtkPiecewiseFunction* instance);
-		vtkColorTransferFunction* colorTF(int i);
-		vtkPiecewiseFunction* opacityTF(int i);
+		vtkColorTransferFunction* colorTF(size_t i);
+		vtkPiecewiseFunction* opacityTF(size_t i);
 		std::vector<vtkSmartPointer<vtkImageData> > * volumes();
 		std::vector<QString> * fileNames();
 
 	private:
-		int m_id;
 		std::vector<vtkSmartPointer<vtkImageData> > m_volumes;
 		std::vector<vtkColorTransferFunction*> m_colorTFVector;
 		std::vector<vtkPiecewiseFunction*> m_opacityTFVector;

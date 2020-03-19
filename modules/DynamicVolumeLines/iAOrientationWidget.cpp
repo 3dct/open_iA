@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -71,7 +71,7 @@ void iAOrientationWidget::paintGL()
 	double x = m_plot->xAxis->range().lower * width() / (m_upperLimitX - m_lowerLimitX);
 	double y = (m_upperLimitY - m_plot->yAxis->range().upper) * height() / (m_upperLimitY - m_lowerLimitY);
 	double w = m_plot->xAxis->range().size() * width() / (m_upperLimitX - m_lowerLimitX);
-	double h = m_plot->yAxis->range().size() * height() / (m_upperLimitY - m_lowerLimitY);	
+	double h = m_plot->yAxis->range().size() * height() / (m_upperLimitY - m_lowerLimitY);
 	if (w < minPixelSize) w = minPixelSize;
 	if (h < minPixelSize) h = minPixelSize;
 	painter.drawRect(x, y, w, h);
