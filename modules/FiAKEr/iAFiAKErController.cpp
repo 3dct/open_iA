@@ -1827,7 +1827,7 @@ void iAFiAKErController::startFeatureScout(int resultID, MdiChild* newChild)
 	iACsvConfig config(m_config);
 	config.fileName = m_data->result[resultID].fileName;
 	config.curvedFiberFileName = m_data->result[resultID].curvedFileName;
-	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
+	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->moduleDispatcher().module<iAFeatureScoutModuleInterface>();
 	featureScout->LoadFeatureScout(config, newChild);
 	//newChild->loadLayout("FeatureScout");
 }

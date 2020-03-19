@@ -162,7 +162,7 @@ void iAGEMSeModuleInterface::loadProject(MdiChild* mdiChild, QSettings const & m
 
 void iAGEMSeModuleInterface::saveProject(QSettings & metaFile, QString const & fileName)
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mdiChild);
 	if (!gemseAttach)
 	{
 		DEBUG_LOG("Could not store project - no GEMSE module attached to current child!");
