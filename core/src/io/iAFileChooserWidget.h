@@ -25,7 +25,7 @@
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QLineEdit>
-#include <QPushButton>
+#include <QToolButton>
 #include <QWidget>
 
 //! A widget for selection of input/output file(s), or folder, combining a text input and a browse button.
@@ -45,9 +45,10 @@ public:
 	iAFileChooserWidget(QWidget* parent, ChoiceType type):
 		QWidget(parent),
 		m_textEdit(new QLineEdit()),
-		m_browseButton(new QPushButton("...")),
+		m_browseButton(new QToolButton()),
 		m_choiceType(type)
 	{
+		m_browseButton->setText("...");
 		setLayout(new QHBoxLayout);
 		layout()->setSpacing(0);
 		setContentsMargins(0, 0, 0, 0);
@@ -56,7 +57,7 @@ public:
 		layout()->addWidget(m_textEdit);
 		layout()->addWidget(m_browseButton);
 		m_browseButton->setStyleSheet("min-height: 1.2em;");
-		connect(m_browseButton, &QPushButton::clicked, this, &iAFileChooserWidget::BrowseClicked);
+		connect(m_browseButton, &QToolButton::clicked, this, &iAFileChooserWidget::BrowseClicked);
 		connect(m_textEdit, &QLineEdit::editingFinished, this, &iAFileChooserWidget::emitChangedFileName);
 	}
 	void BrowseClicked()
@@ -85,7 +86,7 @@ public:
 		m_textEdit->setText(text);
 	}
 	QLineEdit* m_textEdit;
-	QPushButton* m_browseButton;
+	QToolButton* m_browseButton;
 	ChoiceType m_choiceType;
 private slots:
 	void emitChangedFileName()
