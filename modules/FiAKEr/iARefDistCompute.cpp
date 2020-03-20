@@ -434,7 +434,7 @@ void iARefDistCompute::run()
 	}
 }
 
-bool iARefDistCompute::readResultRefComparison(QFile & cacheFile, size_t resultID, bool & first)
+bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID, bool& first)
 {
 	if (!verifyOpenCacheFile(cacheFile))
 	{
@@ -459,27 +459,6 @@ bool iARefDistCompute::readResultRefComparison(QFile & cacheFile, size_t resultI
 		DEBUG_LOG(QString("FIAKER cache file '%1': Found file of version 1 which is known to have wrong dc1 and do3 computations. "
 			"If you want to recompute with correct values, please delete the 'cache' subfolder!")
 			.arg(cacheFile.fileName()));
-	} 
-	if (version <= 2 && first)
-	{
-		first = false;
-		std::vector<std::pair<int, bool>> measuresToCompute;
-		for (int d = 0; d < getAvailableDissimilarityMeasureNames().size(); ++d)
-		{
-			measuresToCompute.push_back(std::make_pair(d, false));
-		}
-		measuresToCompute[5].second = true;
-		measuresToCompute[6].second = true;
-		measuresToCompute[7].second = true;
-		int optimizationMeasure = 3;
-		int bestMeasure = 7;
-		if (!setMeasuresToCompute(measuresToCompute, optimizationMeasure, bestMeasure))
-		{
-			return false;
-		}
-	}
-	else
-	{
 	}
 	if (version > ResultRefCacheFileVersion)
 	{
@@ -487,6 +466,32 @@ bool iARefDistCompute::readResultRefComparison(QFile & cacheFile, size_t resultI
 			.arg(cacheFile.fileName())
 			.arg(version).arg(ResultRefCacheFileVersion));
 		return false;
+	}
+	if (first)
+	{
+		QVector<size_t> cachedMeasures;
+		if (version <= 2)
+		{
+			for (int m = 0; m < getAvailableDissimilarityMeasureNames().size(); ++m)
+			{
+				cachedMeasures.push_back(m);
+			}
+		}
+		else
+		{
+			in >> cachedMeasures;
+		}
+		for (auto m : cachedMeasures)
+		{
+			m_data->m_measures.push_back(m);
+			m_measuresToCompute.push_back(std::make_pair(m, false)); //
+		}
+		first = false;
+	}
+	else if (version > 2)
+	{
+		QVector<size_t> cachedMeasures;
+		in >> cachedMeasures;
 	}
 	auto & d = m_data->result[resultID];
 	in >> d.refDiffFiber;
@@ -508,6 +513,7 @@ void iARefDistCompute::writeResultRefComparison(QFile& cacheFile, size_t resultI
 	out << ResultCacheFileIdentifier;
 	out << ResultRefCacheFileVersion;
 	// write data:
+	out << m_data->m_measures;
 	out << m_data->result[resultID].refDiffFiber;
 	out << m_data->result[resultID].avgDifference;
 	cacheFile.close();

@@ -218,7 +218,7 @@ private:
 	void showSelectionDetail();
 	void hideSamplePointsPrivate();
 	void showSpatialOverview();
-	void setReference(size_t referenceID);
+	void setReference(size_t referenceID, std::vector<std::pair<int, bool>> measures, int optimizationMeasure, int bestMeasure);
 	void showMainVis(size_t resultID, int state);
 	void updateRefDistPlots();
 	bool matchQualityVisActive() const;

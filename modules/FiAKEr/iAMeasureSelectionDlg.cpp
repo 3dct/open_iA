@@ -31,13 +31,13 @@ iAMeasureSelectionDlg::iAMeasureSelectionDlg(QWidget* parent) :
 {
 	this->setupUi(this);
 	QStringList headers;
-	headers << "Measure" << "Compute" << "Optimize" << "Use as optimization basis";
+	headers << "Measure" << "Compute" << "Optimize" << "Optim. base" << "Best Measure";
 	m_model->setHorizontalHeaderLabels(headers);
 	auto measureNames = getAvailableDissimilarityMeasureNames();
 	for (int row = 0; row < measureNames.size(); ++row)
 	{
 		m_model->setItem(row, 0, new QStandardItem(measureNames[row]));
-		for (int col = 1; col < 4; ++col)
+		for (int col = 1; col < 5; ++col)
 		{
 			auto checkItem = new QStandardItem();
 			checkItem->setCheckable(true);
@@ -54,11 +54,13 @@ void iAMeasureSelectionDlg::okBtnClicked()
 	int optimBaseCnt = 0;
 	int optimCnt = 0;
 	int selectedCnt = 0;
+	int bestMeasCnt = 0;
 	for (int row = 0; row < m_model->rowCount(); ++row)
 	{
 		bool selected  = m_model->item(row, 1)->checkState() == Qt::Checked;
 		bool optim     = m_model->item(row, 2)->checkState() == Qt::Checked;
 		bool optimBase = m_model->item(row, 3)->checkState() == Qt::Checked;
+		bool bestMeas  = m_model->item(row, 4)->checkState() == Qt::Checked;
 		if (!selected && optimBase)
 		{
 			QMessageBox::warning(this, "FIAKER", "The measure selected as optimization base also needs to be selected for computation!");
@@ -69,9 +71,15 @@ void iAMeasureSelectionDlg::okBtnClicked()
 			QMessageBox::warning(this, "FIAKER", "You cannot mark the same measure as requiring optimization and as optimization base!");
 			return;
 		}
+		if (!selected & bestMeas)
+		{
+			QMessageBox::warning(this, "FIAKER", "The measure selected as best also needs to be selected for computation!");
+			return;
+		}
 		optimBaseCnt += (optimBase) ? 1 : 0;
 		optimCnt += (optim) ? 1 : 0;
 		selectedCnt += (selected) ? 1 : 0;
+		bestMeasCnt += (bestMeas) ? 1 : 0;
 	}
 	if (optimBaseCnt > 1)
 	{
@@ -88,12 +96,17 @@ void iAMeasureSelectionDlg::okBtnClicked()
 		QMessageBox::warning(this, "FIAKER", "You have to choose at least one measure to compute!");
 		return;
 	}
+	if (bestMeasCnt != 1)
+	{
+		QMessageBox::warning(this, "FIAKER", "You have to choose exactly one 'best measure'!");
+		return;
+	}
 	accept();
 }
 
-std::vector<std::pair<int, bool>> iAMeasureSelectionDlg::measures() const
+iAMeasureSelectionDlg::TMeasureSelection iAMeasureSelectionDlg::measures() const
 {
-	std::vector<std::pair<int, bool>> result;
+	TMeasureSelection result;
 	for (int row = 0; row < m_model->rowCount(); ++row)
 	{
 		if (m_model->item(row, 1)->checkState() == Qt::Checked)
@@ -110,6 +123,18 @@ int iAMeasureSelectionDlg::optimizeMeasureIdx() const
 	for (int row = 0; row < m_model->rowCount(); ++row)
 	{
 		if (m_model->item(row, 3)->checkState() == Qt::Checked)
+		{
+			return row;
+		}
+	}
+	return -1;
+}
+
+int iAMeasureSelectionDlg::bestMeasureIdx() const
+{
+	for (int row = 0; row < m_model->rowCount(); ++row)
+	{
+		if (m_model->item(row, 4)->checkState() == Qt::Checked)
 		{
 			return row;
 		}

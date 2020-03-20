@@ -28,9 +28,11 @@ class iAMeasureSelectionDlg : public QDialog, public Ui_dlgMeasureSelection
 {
 	Q_OBJECT
 public:
+	using TMeasureSelection = std::vector<std::pair<int, bool>>;
 	iAMeasureSelectionDlg(QWidget* parent = nullptr);
-	std::vector<std::pair<int, bool>> measures() const;
+	TMeasureSelection measures() const;
 	int optimizeMeasureIdx() const;
+	int bestMeasureIdx() const;
 private slots:
 	void okBtnClicked();
 private:

@@ -427,13 +427,6 @@ void iAFiAKErController::setupSettingsView()
 
 	m_settingsView->cbShowWireFrame->setChecked(false);
 
-	auto measureNames = getAvailableDissimilarityMeasureNames();
-	for (auto measureID: m_data->m_measures)
-	{
-		m_settingsView->cmbboxSimilarityMeasure->addItem(measureNames[measureID]);
-	}
-	//m_settingsView->cmbboxSimilarityMeasure->setCurrentIndex(iARefDistCompute::BestSimilarityMeasure); // <- stored in settings anyway!
-
 	m_settingsView->sbAnimationDelay->setValue(DefaultPlayDelay);
 	m_playTimer->setInterval(DefaultPlayDelay);
 
@@ -2420,10 +2413,16 @@ void iAFiAKErController::referenceToggled()
 		return;
 	}
 	size_t referenceID = QObject::sender()->property("resultID").toULongLong();
-	setReference(referenceID);
+
+	iAMeasureSelectionDlg measureDlg;
+	if (measureDlg.exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	setReference(referenceID, measureDlg.measures(), measureDlg.optimizeMeasureIdx(), measureDlg.bestMeasureIdx());
 }
 
-void iAFiAKErController::setReference(size_t referenceID)
+void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<int, bool>> measures, int optimizationMeasure, int bestMeasure)
 {
 	if (referenceID == m_referenceID)
 	{
@@ -2464,6 +2463,10 @@ void iAFiAKErController::setReference(size_t referenceID)
 		}
 	}
 	m_refDistCompute = new iARefDistCompute(m_data, referenceID);
+	if (measures.size() > 0)
+	{
+		m_refDistCompute->setMeasuresToCompute(measures, optimizationMeasure, bestMeasure);
+	}
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiAKErController::refDistAvailable);
 	m_views[JobView]->show();
 	m_jobs->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
@@ -2665,7 +2668,7 @@ bool iAFiAKErController::loadReferenceInternal(iASettings settings)
 	{   // defer loading the rest of the settings until reference is computed
 		loadSettings(settings);
 	});
-	setReference(referenceID);
+	setReference(referenceID, std::vector<std::pair<int,bool>>(), 0, 0);
 	return true;
 }
 
@@ -2768,6 +2771,12 @@ void iAFiAKErController::refDistAvailable()
 		diffAvgAction->setChecked(false);
 		connect(diffAvgAction, &QAction::triggered, this, &iAFiAKErController::stackedColSelect);
 		m_stackedBarsHeaders->contextMenu()->addAction(diffAvgAction);
+	}
+	size_t measureStartIdx = m_data->m_measures.size() - (m_data->spmData->numParams() - startIdx);
+	auto measureNames = getAvailableDissimilarityMeasureNames();
+	for (size_t measureIdx = measureStartIdx; measureIdx < m_data->m_measures.size(); ++measureIdx)
+	{
+		m_settingsView->cmbboxSimilarityMeasure->addItem(measureNames[m_data->m_measures[measureIdx]]);
 	}
 
 	QSignalBlocker cblock(m_distributionChoice);
