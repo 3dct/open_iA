@@ -100,11 +100,11 @@ void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & im
 
 namespace
 {
-	const uint MasksChanID = 0;
-	const uint GTChanID    = 1;
-	const uint MinChanID   = 2;
-	const uint MedChanID   = 3;
-	const uint MaxChanID   = 4;
+	const uint MasksChanID = 1;
+	const uint GTChanID    = 2;
+	const uint MinChanID   = 3;
+	const uint MedChanID   = 4;
+	const uint MaxChanID   = 5;
 }
 
 iASSSlicer::iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> transform) :
@@ -129,7 +129,7 @@ iASSSlicer::iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> 
 	selTextLabel->setFixedHeight( 15 );
 	selTextLabel->setStyleSheet( "font-weight: bold;" );
 
-	slicer = new iASlicer( wgt, iASlicerMode::XY, true, true, transform);
+	slicer = new iASlicer( nullptr, iASlicerMode::XY, true, true, transform);
 
 	medContour->SetNumberOfContours( 1 );
 	medContour->SetValue( 0, contourValue );

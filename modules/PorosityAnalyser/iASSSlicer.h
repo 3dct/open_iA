@@ -69,7 +69,6 @@ protected:
 public:
 	QWidget * container;
 	QVBoxLayout * containerLayout;
-	QWidget * wgt;
 	iASlicer * slicer;
 	QScopedPointer<iAChanData> masksChan;
 	QScopedPointer<iAChanData> gtChan;
