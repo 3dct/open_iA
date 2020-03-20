@@ -225,7 +225,8 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_slabThickness(0),
 	m_roiActive(false),
 	m_sliceNumber(0),
-	m_cursorSet(false)
+	m_cursorSet(false),
+	m_linkedMdiChild(nullptr)
 {
 	std::fill(m_angle, m_angle + 3, 0);
 	setAutoFillBackground(false);
@@ -648,7 +649,9 @@ void iASlicer::setMagicLensInput(uint id)
 	iAChannelSlicerData * d = channel(id);
 	assert(d);
 	if (!d)
+	{
 		return;
+	}
 	m_magicLensInput = id;
 	m_magicLens->addInput(d->reslicer(), d->colorTF(), d->name());
 	update();
@@ -711,8 +714,9 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 		double const * spc = m_channels[id]->output()->GetSpacing();
 		int    const * dim = m_channels[id]->output()->GetDimensions();
 		for (int i = 0; i < 2; ++i)
-			// scaling required to shrink the text to required size (because of large font size, see initialize method)
+		{	// scaling required to shrink the text to required size (because of large font size, see initialize method)
 			m_axisTransform[i]->Scale(unitSpacing / 10, unitSpacing / 10, unitSpacing / 10);
+		}
 		double xHalf = (dim[0] - 1) * spc[0] / 2.0;
 		double yHalf = (dim[1] - 1) * spc[1] / 2.0;
 		// "* 10 / unitSpacing" adjusts for scaling (see above)
@@ -728,7 +732,9 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 	origin[axis] += static_cast<double>(sliceNumber()) * imgSpc[axis];
 	setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2]);
 	if (enable)
+	{
 		enableChannel(id, true);
+	}
 }
 
 void iASlicer::triggerSliceRangeChange()
@@ -741,14 +747,18 @@ void iASlicer::triggerSliceRangeChange()
 void iASlicer::updateMagicLensColors()
 {
 	if (m_magicLens)
+	{
 		m_magicLens->updateColors();
+	}
 }
 
 void iASlicer::setTransform(vtkAbstractTransform * tr)
 {
 	m_transform = tr;
 	for (auto ch : m_channels)
+	{
 		ch->setTransform(m_transform);
+	}
 }
 
 void iASlicer::setDefaultInteractor()
@@ -771,7 +781,9 @@ void iASlicer::blend(vtkAlgorithmOutput *data1, vtkAlgorithmOutput *data2,
 	double opacity, double * range)
 {
 	if (!hasChannel(0))
+	{
 		return;
+	}
 	// ToDo: check what it does, implement using new slicer channel feature!
 	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
 	lut->SetRange( range );
@@ -797,7 +809,9 @@ void iASlicer::blend(vtkAlgorithmOutput *data1, vtkAlgorithmOutput *data2,
 void iASlicer::setROIVisible(bool visible)
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 	m_roiActive = visible;
 	m_roiActor->SetVisibility(visible);
 }
@@ -805,7 +819,9 @@ void iASlicer::setROIVisible(bool visible)
 void iASlicer::updateROI(int const roi[6])
 {
 	if (!m_decorations || !m_roiActive || !hasChannel(0))
+	{
 		return;
+	}
 	double const * spacing = m_channels[0]->output()->GetSpacing();
 	int sliceXAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::X);
 	int sliceYAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y);
@@ -922,7 +938,9 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 
 	double movingOrigin[3];
 	for (int i = 0; i < 3; ++i)
+	{
 		movingOrigin[i] = imgOrigin[i];
+	}
 	int const sliceZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
 	int const sliceFrom = imgExtent[sliceZAxisIdx * 2];
 	int const sliceTo = imgExtent[sliceZAxisIdx * 2 + 1];
@@ -987,7 +1005,9 @@ void iASlicer::saveAsImage()
 	{
 		QStringList currentChannels;
 		for (auto ch : m_channels)
+		{
 			currentChannels << ch->name();
+		}
 		inList << tr("+Channel (native only exports slice of what's selected here)");
 		inPara << currentChannels;
 	}
@@ -1199,8 +1219,9 @@ void iASlicer::setBackground(double r, double g, double b)
 void iASlicer::execute(vtkObject * /*caller*/, unsigned long eventId, void * /*callData*/)
 {
 	if (m_channels.empty())
+	{
 		return;
-
+	}
 	if (eventId == vtkCommand::LeftButtonPressEvent)
 	{
 		emit clicked();
@@ -1253,11 +1274,15 @@ void iASlicer::execute(vtkObject * /*caller*/, unsigned long eventId, void * /*c
 		break;
 	case vtkCommand::KeyReleaseEvent:
 		if (m_interactor->GetKeyCode() == 'p')
+		{
 			emit pick();
+		}
 		break;
 	default:
 		if (m_interactor->GetKeyCode() == 'p')
+		{
 			emit pick();
+		}
 		break;
 	}
 
@@ -1289,18 +1314,22 @@ void iASlicer::updatePosition()
 void iASlicer::computeCoords(double * coord, uint channelID)
 {
 	if (!hasChannel(channelID))
+	{
 		return;
+	}
 
 	auto imageData = m_channels[channelID]->input();
 	double const * imgSpacing = imageData->GetSpacing();
 	double const * imgOrigin  = imageData->GetOrigin();
 	int    const * imgExtent  = imageData->GetExtent();
 	// coords will contain voxel coordinates for the given channel
-	for (int i=0; i<3; ++i)
+	for (int i = 0; i < 3; ++i)
+	{
 		coord[i] = clamp(
-			static_cast<double>(imgExtent[i*2]),
-			imgExtent[i*2+1] + 1 - std::numeric_limits<double>::epsilon(),
+			static_cast<double>(imgExtent[i * 2]),
+			imgExtent[i * 2 + 1] + 1 - std::numeric_limits<double>::epsilon(),
 			(m_globalPt[i] - imgOrigin[i]) / imgSpacing[i] + 0.5);	// + 0.5 to correct for BorderOn
+	}
 
 	// TODO: check for negative origin images!
 }
@@ -1336,7 +1365,9 @@ namespace
 bool operator==(QCursor const & a, QCursor const & b)
 {
 	if (a.shape() != Qt::BitmapCursor)
+	{
 		return a.shape() == b.shape();
+	}
 	return b.shape() == Qt::BitmapCursor &&
 		a.hotSpot() == b.hotSpot() &&
 		(a.pixmap() == b.pixmap() || (a.bitmap() == b.bitmap() && a.mask() == b.mask()));
@@ -1350,15 +1381,21 @@ bool operator!=(QCursor const & a, QCursor const & b)
 void iASlicer::printVoxelInformation()
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 	if (m_cursorSet && cursor() != mouseCursor())
+	{
 		setCursor(mouseCursor());
+	}
 	QString strDetails(QString("%1: %2, %3, %4\n").arg(padOrTruncate("Position", MaxNameLength))
 		.arg(m_globalPt[0]).arg(m_globalPt[1]).arg(m_globalPt[2]));
 	for (auto channelID: m_channels.keys())
 	{
 		if (!m_channels[channelID]->isEnabled())
+		{
 			continue;
+		}
 
 		double const * slicerSpacing = m_channels[channelID]->output()->GetSpacing();
 		int    const * slicerExtent  = m_channels[channelID]->output()->GetExtent();
@@ -1380,7 +1417,9 @@ void iASlicer::printVoxelInformation()
 			//   - consider slab thickness / print slab projection result
 			double value = m_channels[channelID]->output()->GetScalarComponentAsDouble(cX, cY, 0, i);
 			if (i > 0)
+			{
 				valueStr += " ";
+			}
 			valueStr += QString::number(value);
 		}
 		double coords[3];
@@ -1397,12 +1436,16 @@ void iASlicer::printVoxelInformation()
 		{
 			MdiChild *tmpChild = mdiwindows.at(i);
 			if (m_linkedMdiChild == tmpChild)
+			{
 				continue;
+			}
 
 			double * const tmpSpacing = tmpChild->imagePointer()->GetSpacing();
 			int tmpCoord[3];
 			for (int c = 0; c < 3; ++c)
+			{
 				tmpCoord[c] = static_cast<int>(m_globalPt[c] / tmpSpacing[c]);
+			}
 			int slicerXAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::X),
 				slicerYAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y),
 				slicerZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
@@ -1466,8 +1509,9 @@ void iASlicer::executeKeyPressEvent()
 void iASlicer::defaultOutput()
 {
 	if (!m_decorations)
+	{
 		return;
-
+	}
 	QString strDetails(" ");
 	m_textInfo->GetActor()->SetPosition(20, 20);
 	m_textInfo->GetTextMapper()->SetInput(strDetails.toStdString().c_str());
