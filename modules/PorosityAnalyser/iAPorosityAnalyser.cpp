@@ -52,20 +52,20 @@ iAPorosityAnalyser::iAPorosityAnalyser(MainWindow *mWnd, const QString & resDir,
 	m_dataDir( resDir ),
 	m_datasetsDir( datasetsDir ),
 	m_spmView( new iASPMView(mWnd, parent, f ) ),
-	m_treeView( new iATreeView( 0, f ) ),
+	m_treeView( new iATreeView( nullptr, f ) ),
 	m_pdmView( new iAPDMView( parent, f ) ),
 	//m_pcView( new iAPCView( parent, f ) ),
 	m_ssView( new iASSView( parent, f ) ),
 	m_rangeSliderDiagramView( new iARangeSliderDiagramView( parent, f ) ),
-	m_selView( new iASelectionsView( 0, f ) ),
+	m_selView( new iASelectionsView( nullptr, f ) ),
 	m_segm3DView( new iASegm3DView( parent, f ) ),
 	m_prvSplomView( new iAPreviewSPLOMView( parent, f ) ),
 	m_runsOffset( -1 ),
-	m_visanMW( new QMainWindow( 0 ) )
+	m_visanMW( new QMainWindow( nullptr ) )
 {
 	vtkObject::GlobalWarningDisplayOff();
 	//prepare window for handling dock widgets
-	m_visanMW->setCentralWidget( 0 );
+	m_visanMW->setCentralWidget(nullptr);
 	m_visanMW->setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
 	m_visanMW->setParent( mainArea );
 
