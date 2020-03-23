@@ -18,35 +18,66 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iACsvVectorTableCreator.h"
 
-#include "ui_SimilarityMap.h"
 
-#include <qthelper/iAQTtoUIConnector.h>
+iACsvVectorTableCreator::iACsvVectorTableCreator()
+{}
 
-#include <vtkSmartPointer.h>
-
-#include <QScopedPointer>
-
-class iASimilarityMapWidget;
-class dlg_XRF;
-
-typedef iAQTtoUIConnector<QDockWidget, Ui_SimilarityMap>   dlg_SimilarityMapContainer;
-
-class dlg_SimilarityMap : public dlg_SimilarityMapContainer
+void iACsvVectorTableCreator::initialize(QStringList const & headers, size_t const rowCount)
 {
-	Q_OBJECT
-public:
-	dlg_SimilarityMap( QWidget *parentWidget = 0 );
-	void connectToXRF( dlg_XRF* dlgXRF );
-protected:
-	void connectSignalsToSlots();
-protected slots:
-	void windowingChanged( int val = 0);
-	void loadMap();
-	void showMarkers(bool checked);
-protected:
-	dlg_XRF* m_dlgXRF;
-	QScopedPointer<iASimilarityMapWidget> m_similarityMapWidget;
-	QGridLayout * m_similarityWidgetGridLayout;
-};
+	m_header = headers;
+	for (int col = 0; col < headers.size(); ++col)
+	{
+		m_values.push_back(std::vector<double>(rowCount, 0));
+	}
+}
+
+void iACsvVectorTableCreator::addRow(size_t row, QStringList const & values)
+{
+	for (int col = 0; col < values.size(); ++col)
+	{
+		m_values[col][row] = values[col].toDouble();
+	}
+}
+
+iACsvVectorTableCreator::TableType const& iACsvVectorTableCreator::table()
+{
+	return m_values;
+}
+
+QStringList const& iACsvVectorTableCreator::header()
+{
+	return m_header;
+}
+
+
+//void iACsvVtkTableCreator::debugTable(const bool useTabSeparator)
+//{
+//	std::string separator = (useTabSeparator) ? "\t" : ",";
+//	ofstream debugfile;
+//	debugfile.open("C:/Users/p41883/Desktop/inputData.txt");
+//	if (debugfile.is_open())
+//	{
+//		vtkVariant spCol, spRow, spCN, spVal;
+//		spCol = m_table->GetNumberOfColumns();
+//		spRow = m_table->GetNumberOfRows();
+//
+//		for (int i = 0; i<spCol.ToInt(); i++)
+//		{
+//			spCN = m_table->GetColumnName(i);
+//			debugfile << spCN.ToString() << separator;
+//		}
+//		debugfile << "\n";
+//		for (int row = 0; row < spRow.ToInt(); row++)
+//		{
+//			for (int col = 0; col < spCol.ToInt(); col++)
+//			{
+//				spVal = m_table->GetValue(row, col);
+//				debugfile << spVal.ToString() << separator; //TODO cast debug to double
+//			}
+//			debugfile << "\n";
+//		}
+//		debugfile.close();
+//	}
+//}

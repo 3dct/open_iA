@@ -48,6 +48,7 @@ public:
 	bool isInverted(size_t paramIndex);               //!< Get whether the axis of a parameter should be inverted in the scatter plots.
 	void setInverted(size_t paramIndex, bool isInverted);//!< Set whether the axis of a parameter should be inverted in the scatter plots.
 	void setParameterNames(std::vector<QString> const & names, size_t rowReserve = 0); //! Set the parameter names (clears all columns) with an optional row "size" (i.e. how many rows are planned to be there, i.e. used in vector::reserve)
+	void addParameter(QString& name);                 //!< Add an additional column
 	bool matchesFilter(size_t ind) const;             //!< Returns true if point with given index matches current filter
 	void addFilter(size_t paramIndex, double value);  //!< Adds a filter on the given column (index), it needs to match the given value; multiple filters are linked via OR
 	void removeFilter(size_t paramIndex, double value);//!< Removes the filter on the given column and value.

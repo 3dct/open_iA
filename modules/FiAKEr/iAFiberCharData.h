@@ -81,7 +81,6 @@ QDataStream &operator>>(QDataStream &in, iARefDiffFiberData &s);
 class iAFiberCharData
 {
 public:
-	static const int FiberValueCount = 13;
 	//! the fiber data as vtkTable, mainly for the 3d visualization:
 	vtkSmartPointer<vtkTable> table;
 	//! mapping of the columns in m_resultTable
@@ -105,7 +104,7 @@ public:
 	//! comparison data to reference for each fiber
 	QVector<iARefDiffFiberData> refDiffFiber;
 	//! for each similarity measure, the average over all fibers
-	QVector<double> avgDifference;
+	QVector<double> avgDifference;  // rename -> avgDissimilarity
 };
 
 //! A collection of multiple results from one or more fiber reconstruction algorithms.
@@ -137,6 +136,12 @@ public:
 	QVector<double> avgRefFiberMatch;
 	//! for each difference/similarity measure, the maximum value over all results:
 	QVector<double> maxAvgDifference;
+
+	//! IDs of the computed dissimilarity measures (ref. to position in getAvailableDissimilarityMeasures / switch in getDissimilarity
+	QVector<size_t> m_measures;
+
+	//! mapping for the resultID and projection error column:
+	uint m_resultIDColumn, m_projectionErrorColumn;
 
 // Methods:
 	bool loadData(QString const & path, iACsvConfig const & config, double stepShift, iAProgress * progress);

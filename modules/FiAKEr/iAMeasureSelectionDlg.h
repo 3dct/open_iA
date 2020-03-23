@@ -20,33 +20,21 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_SimilarityMap.h"
+#include "ui_MeasureSelection.h"
 
-#include <qthelper/iAQTtoUIConnector.h>
+class QStandardItemModel;
 
-#include <vtkSmartPointer.h>
-
-#include <QScopedPointer>
-
-class iASimilarityMapWidget;
-class dlg_XRF;
-
-typedef iAQTtoUIConnector<QDockWidget, Ui_SimilarityMap>   dlg_SimilarityMapContainer;
-
-class dlg_SimilarityMap : public dlg_SimilarityMapContainer
+class iAMeasureSelectionDlg : public QDialog, public Ui_dlgMeasureSelection
 {
 	Q_OBJECT
 public:
-	dlg_SimilarityMap( QWidget *parentWidget = 0 );
-	void connectToXRF( dlg_XRF* dlgXRF );
-protected:
-	void connectSignalsToSlots();
-protected slots:
-	void windowingChanged( int val = 0);
-	void loadMap();
-	void showMarkers(bool checked);
-protected:
-	dlg_XRF* m_dlgXRF;
-	QScopedPointer<iASimilarityMapWidget> m_similarityMapWidget;
-	QGridLayout * m_similarityWidgetGridLayout;
+	using TMeasureSelection = std::vector<std::pair<int, bool>>;
+	iAMeasureSelectionDlg(QWidget* parent = nullptr);
+	TMeasureSelection measures() const;
+	int optimizeMeasureIdx() const;
+	int bestMeasureIdx() const;
+private slots:
+	void okBtnClicked();
+private:
+	QScopedPointer<QStandardItemModel> m_model;
 };

@@ -22,6 +22,7 @@
 
 // FiAKEr:
 #include "iAChangeableCameraWidget.h"
+#include "iAFiberCharData.h"            // for iAFiberSimilarity -> REFACTOR!!!
 #include "iASavableProject.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 #include "ui_FiAKErSettings.h"
@@ -45,6 +46,7 @@
 class iAFiberResultsCollection;
 class iAFiberCharUIData;
 class iAJobListView;
+class iAMatrixWidget;
 class iAStackedBarChart;
 
 class iA3DColoredPolyObjectVis;
@@ -90,6 +92,20 @@ class QVBoxLayout;
 class iAQCheckBoxVector: public QObject, public QVector<QCheckBox*> { };
 class iAQLineEditVector: public QObject, public QVector<QLineEdit*> { };
 
+
+class iAResultPairInfo
+{
+public:
+	iAResultPairInfo(int measureCount) :
+		avgDissim(measureCount)
+	{}
+	// average dissimilarity, per dissimilarity measure
+	QVector<double> avgDissim;
+
+	// for every fiber, and every dissimilarity measure, the n best matching fibers (in descending match quality)
+	QVector<QVector<QVector<iAFiberSimilarity>>> fiberDissim;
+};
+
 class iAFiAKErController: public QObject, public iASelectionProvider
 {
 	Q_OBJECT
@@ -99,7 +115,6 @@ public:
 	static const QString FIAKERProjectID;
 
 	iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild);
-	~iAFiAKErController() override;
 
 	void loadProject(QSettings const & projectFile, QString const & fileName);
 	void start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData);
@@ -173,6 +188,11 @@ private slots:
 	// settings view:
 	void update3D();
 	void applyRenderSettings();
+	// sensitivity:
+	void sensitivitySlot();
+	void dissimMatrixMeasureChanged(int);
+	void dissimMatrixParameterChanged(int);
+	void dissimMatrixColorMapChanged(int);
 private:
 	bool loadReferenceInternal(iASettings settings);
 	void changeDistributionSource(int index);
@@ -198,7 +218,7 @@ private:
 	void showSelectionDetail();
 	void hideSamplePointsPrivate();
 	void showSpatialOverview();
-	void setReference(size_t referenceID);
+	void setReference(size_t referenceID, std::vector<std::pair<int, bool>> measures, int optimizationMeasure, int bestMeasure);
 	void showMainVis(size_t resultID, int state);
 	void updateRefDistPlots();
 	bool matchQualityVisActive() const;
@@ -226,19 +246,19 @@ private:
 	size_t m_referenceID;
 	SelectionType m_selection;
 	vtkSmartPointer<vtkTable> m_refVisTable;
+	iACsvConfig m_config;
+	QString m_colorByThemeName;
+	bool m_useStepData;
+	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame, m_showLines;
+	double m_contextSpacing;
+	QString m_parameterFile; //! (.csv-)file containing eventual parameters used in creating the loaded results
 
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 
 	vtkSmartPointer<vtkActor> m_sampleActor;
-	iACsvConfig m_config;
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
-	QString m_colorByThemeName;
-	bool m_useStepData;
 	QMap<QString, QObject*> m_settingsWidgetMap;
-
-	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame, m_showLines;
-	double m_contextSpacing;
 
 	// The different views and their elements:
 	std::vector<iADockWidgetWrapper*> m_views;
@@ -273,6 +293,7 @@ private:
 	QMap<size_t, int> m_resultListSorting;
 
 	// Settings View:
+	void addChartCB();
 	iAFIAKERSettingsWidget* m_settingsView;
 	// 3D view part
 	iAQLineEditVector m_teBoundingBox;
@@ -290,7 +311,7 @@ private:
 	std::vector<iAChartWidget*> m_optimStepChart;
 	QSlider* m_optimStepSlider;
 	QVBoxLayout* m_optimChartLayout;
-	size_t ChartCount;
+	size_t m_chartCount;
 
 	// Jobs:
 	iAJobListView * m_jobs;
@@ -305,4 +326,8 @@ private:
 	QStandardItemModel* m_selectionListModel;
 	QStandardItemModel* m_selectionDetailModel;
 	std::vector<SelectionType> m_selections;
+
+	// Sensitivity
+	std::vector<std::vector<iAResultPairInfo>> m_dissimilarityMatrix;
+	iAMatrixWidget* m_matrixWidget;
 };

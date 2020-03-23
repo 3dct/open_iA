@@ -20,33 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_SimilarityMap.h"
+#include "iACsvIO.h"
 
-#include <qthelper/iAQTtoUIConnector.h>
+#include "FeatureScout_export.h"
 
-#include <vtkSmartPointer.h>
+#include <vector>
 
-#include <QScopedPointer>
-
-class iASimilarityMapWidget;
-class dlg_XRF;
-
-typedef iAQTtoUIConnector<QDockWidget, Ui_SimilarityMap>   dlg_SimilarityMapContainer;
-
-class dlg_SimilarityMap : public dlg_SimilarityMapContainer
+class FeatureScout_API iACsvVectorTableCreator: public iACsvTableCreator
 {
-	Q_OBJECT
 public:
-	dlg_SimilarityMap( QWidget *parentWidget = 0 );
-	void connectToXRF( dlg_XRF* dlgXRF );
-protected:
-	void connectSignalsToSlots();
-protected slots:
-	void windowingChanged( int val = 0);
-	void loadMap();
-	void showMarkers(bool checked);
-protected:
-	dlg_XRF* m_dlgXRF;
-	QScopedPointer<iASimilarityMapWidget> m_similarityMapWidget;
-	QGridLayout * m_similarityWidgetGridLayout;
+	using ValueType = double;
+	using TableType = std::vector<std::vector<ValueType>>;
+	iACsvVectorTableCreator();
+	void initialize(QStringList const & headers, size_t const rowCount) override;
+	void addRow(size_t row, QStringList const & values) override;
+	TableType const & table();
+	QStringList const& header();
+private:
+	QStringList m_header;
+	TableType m_values;   //!< output values
 };

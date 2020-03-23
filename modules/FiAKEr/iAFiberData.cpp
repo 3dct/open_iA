@@ -541,3 +541,32 @@ double getDissimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber
 	}
 	return dissimilarity;
 }
+
+
+
+QStringList getAvailableDissimilarityMeasureNames()
+{
+	QStringList result;
+	result.push_back("dc₁");
+	result.push_back("dc₂");
+	result.push_back("dp₁");
+	result.push_back("dp₂");
+	result.push_back("dp₃");
+	result.push_back("do₁");
+	result.push_back("do₂");
+	result.push_back("do₃");
+	result.push_back("dmin");
+	result.push_back("dmax");
+	result.push_back("dsum");
+	result.push_back("davg");
+	result.push_back("dminmin");
+	result.push_back("dminmax");
+	result.push_back("dminsum");
+	result.push_back("dminavg");
+	result.push_back("dmaxmin");
+	result.push_back("dmaxmax");
+	result.push_back("dmaxsum");
+	result.push_back("dmaxavg");
+	//assert(result.size() == SimilarityMeasureCount);
+	return result;
+}

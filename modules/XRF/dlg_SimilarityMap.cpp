@@ -39,11 +39,6 @@ dlg_SimilarityMap::dlg_SimilarityMap( QWidget *parentWidget)
 	windowingChanged();
 }
 
-dlg_SimilarityMap::~dlg_SimilarityMap()
-{
-
-}
-
 void dlg_SimilarityMap::connectSignalsToSlots()
 {
 	connect( horizontalSlider_WindowLower, SIGNAL( valueChanged( int ) ), this, SLOT( windowingChanged( int ) ) );
@@ -72,11 +67,12 @@ void dlg_SimilarityMap::loadMap()
 		tr("Open File"),
 		(dynamic_cast<MdiChild*>(parent()))->filePath(),
 		tr("MetaImages (*.mhd *.mha );;") );
-	if(mapFileName == "")
+	if (mapFileName.isEmpty())
+	{
 		return;
+	}
 	m_similarityMapWidget->load(mapFileName);
 }
-
 
 void dlg_SimilarityMap::showMarkers(bool checked)
 {

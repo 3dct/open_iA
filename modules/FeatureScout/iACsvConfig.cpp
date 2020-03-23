@@ -64,6 +64,7 @@ namespace
 	static const QString CfgKeyOffset = "Offset";
 	static const QString CfgKeyIsDiameterFixed = "IsDiameterFixed";
 	static const QString CfgKeyFixedDiameterValue = "FixedDiameterValue";
+//	static const QString CfgKeyAddClassID = "AddClassID";
 }
 
 QString MapVisType2Str(iACsvConfig::VisualizationType visType)
@@ -102,7 +103,8 @@ iACsvConfig::iACsvConfig() :
 	cylinderQuality(12),
 	segmentSkip(1),
 	isDiameterFixed(false),
-	fixedDiameterValue(0.0)
+	fixedDiameterValue(0.0),
+	addClassID(true)
 {
 	std::fill(offset, offset + 3, 0.0);
 }

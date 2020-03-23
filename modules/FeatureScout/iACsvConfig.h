@@ -79,6 +79,7 @@ struct FeatureScout_API iACsvConfig
 	double offset[3];                       //! offset to apply to all coordinates (start, end, center)
 	bool isDiameterFixed;                   //! whether to insert a fixed diameter (given by fixedDiameterValue)
 	double fixedDiameterValue;              //! value to use as diameter for all objects
+	bool addClassID;                        //! whether to add class ID at the end. This setting is not stored, rather this is a use-case dependent setting
 	static iACsvConfig const & getLegacyFiberFormat(QString const & fileName);
 	static iACsvConfig const & getLegacyPoreFormat(QString const & fileName);
 

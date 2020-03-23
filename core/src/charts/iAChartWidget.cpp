@@ -806,19 +806,14 @@ void iAChartWidget::drawPlots(QPainter &painter)
 			};
 			ensureNonZeroRange(plotVisXBounds);
 			double plotStepWidth = (plotXBounds[1] - plotXBounds[0]
-				+ (((*it)->data()->valueType() == Discrete)?1:0) ) / m_plots[0]->data()->numBin();
+				+ (((*it)->data()->valueType() == Discrete)?1:0) ) / (*it)->data()->numBin();
 			size_t plotStartBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[0] - (*it)->data()->xBounds()[0]) / plotStepWidth - 1));
 			size_t plotEndBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[1] - (*it)->data()->xBounds()[0]) / plotStepWidth + 1));
 			double plotPixelBinWidth = m_xMapper->srcToDst(xBounds()[0] + plotStepWidth);
 			iALinearMapper plotXMapper;
-			if ((*it)->data()->valueType() == Continuous)
-			{
-				plotXMapper.update(-1, plotNumBin + 1, m_xMapper->srcToDst((*it)->data()->xBounds()[0] - plotStepWidth), m_xMapper->srcToDst((*it)->data()->xBounds()[1] + plotStepWidth));
-			}
-			else
-			{
-				plotXMapper.update(-1, plotNumBin, m_xMapper->srcToDst((*it)->data()->xBounds()[0] - plotStepWidth), m_xMapper->srcToDst((*it)->data()->xBounds()[1] + plotStepWidth));
-			}
+			plotXMapper.update(-1, plotNumBin + (((*it)->data()->valueType() == Continuous) ? 1 : 0),
+				m_xMapper->srcToDst((*it)->data()->xBounds()[0] - plotStepWidth),
+				m_xMapper->srcToDst((*it)->data()->xBounds()[1] + plotStepWidth));
 			(*it)->draw(painter, plotPixelBinWidth, plotStartBin, plotEndBin, plotXMapper, *m_yMapper.data());
 		}
 	}

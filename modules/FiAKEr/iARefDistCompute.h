@@ -22,12 +22,17 @@
 
 #include "iAProgress.h"
 
+#include "iAFiberData.h"
+#include "iAFiberCharData.h"
+
 #include <QSharedPointer>
 #include <QThread>
 
 #include <vector>
 
 class iAFiberResultsCollection;
+
+class vtkTable;
 
 class QFile;
 
@@ -36,20 +41,22 @@ class iARefDistCompute : public QThread
 	Q_OBJECT
 public:
 	typedef int ContainerSizeType;
-	static const int SimilarityMeasureCount = 20;
-	static const int BestSimilarityMeasure = 7;
-	static const int OverlapMeasureCount = 3;
-	static const int OverlapMeasureStart = SimilarityMeasureCount-OverlapMeasureCount;
-	static const int EndColumns = 2;
-	static const int BestMeasureWithoutOverlap = 2;
+	//static const int SimilarityMeasureCount = 20;
+	//static const int BestSimilarityMeasure = 7;
+	//static const int OverlapMeasureCount = 3;
+	//static const int OverlapMeasureStart = SimilarityMeasureCount-OverlapMeasureCount;
+	//static const int EndColumns = 2;
+	//static const int BestMeasureWithoutOverlap = 2;
 	static ContainerSizeType MaxNumberOfCloseFibers;
 	iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, size_t referenceID);
+	bool setMeasuresToCompute(std::vector<std::pair<int, bool>> const& measuresToCompute, int optimizationMeasure, int bestMeasure);
 	void run() override;
 	iAProgress* progress();
 	size_t referenceID() const;
-	static QStringList getDissimilarityMeasureNames();
+	size_t columnsBefore() const;
+	size_t columnsAdded() const;
 private:
-	bool readResultRefComparison(QFile& file, size_t resultID);
+	bool readResultRefComparison(QFile& file, size_t resultID, bool& first);
 	void writeResultRefComparison(QFile& cacheFile, size_t resultID);
 	bool readAverageMeasures(QFile& cacheFile);
 	void writeAverageMeasures(QFile& cacheFile);
@@ -57,4 +64,20 @@ private:
 	iAProgress m_progress;
 	QSharedPointer<iAFiberResultsCollection> m_data;
 	size_t m_referenceID;
+	std::vector<std::pair<int, bool>> m_measuresToCompute;  //!< index of measure to compute along with flag whether to use optimized computation
+	size_t m_columnsBefore;
+	int m_optimizationMeasureIdx,
+		m_bestMeasure;
+
+	//! @{ internal computation caches:
+	double m_diagonalLength, m_maxLength;
+	//! @}
 };
+
+void getBestMatches(iAFiberData const& fiber,
+	QMap<uint, uint> const& mapping,
+	vtkTable* refTable,
+	QVector<QVector<iAFiberSimilarity> >& bestMatches,
+	std::map<size_t, std::vector<iAVec3f> > const& refCurveInfo,
+	double diagonalLength, double maxLength,
+	std::vector<std::pair<int, bool>>& measuresToCompute, int optimizationMeasureIdx);

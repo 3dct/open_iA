@@ -179,7 +179,9 @@ void dlg_CSVInput::okBtnClicked()
 		return;
 	}
 	if (!cmbbox_Format->currentText().isEmpty())
+	{
 		saveGeneralSetting(csvRegKeys::DefaultFormat, cmbbox_Format->currentText());
+	}
 	saveGeneralSetting(csvRegKeys::AdvancedMode, cb_AdvancedMode->isChecked());
 	accept();
 }
