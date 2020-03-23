@@ -235,6 +235,12 @@ void iARefDistCompute::run()
 		{
 			continue;
 		}
+		if (m_measuresToCompute.size() == 0)
+		{
+			DEBUG_LOG(QString("Tried to set reference without specifying which measure to use. "
+				"This might happen if you use an old project file. In this case, please select the reference again"))
+			return;
+		}
 		writeResultCache[resultID] = true;
 		recomputeAverages = true; // if any result is not loaded from cache, we have to recompute averages
 		qint64 const fiberCount = d.table->GetNumberOfRows();

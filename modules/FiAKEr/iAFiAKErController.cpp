@@ -2738,6 +2738,12 @@ void iAFiAKErController::saveSettings(QSettings & settings)
 
 void iAFiAKErController::refDistAvailable()
 {
+	if (m_refDistCompute->columnsAdded() == 0)
+	{
+		delete m_refDistCompute;
+		m_refDistCompute = nullptr;
+		return;
+	}
 	size_t startIdx = m_refDistCompute->columnsBefore();
 	std::vector<size_t> changedSpmColumns;
 	assert(startIdx + m_refDistCompute->columnsAdded() == m_data->spmData->numParams());
