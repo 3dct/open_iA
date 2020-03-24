@@ -23,7 +23,6 @@
 #include "iAFiberData.h"
 
 #include <QMessageBox>
-#include <QStandardItemModel>
 
 iAMeasureSelectionDlg::iAMeasureSelectionDlg(QWidget* parent) :
 	QDialog(parent),

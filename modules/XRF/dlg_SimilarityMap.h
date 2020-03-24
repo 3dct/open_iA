@@ -22,13 +22,14 @@
 
 #include "ui_SimilarityMap.h"
 
+#include "iASimilarityMapWidget.h"
+
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
 #include <QScopedPointer>
 
-class iASimilarityMapWidget;
 class dlg_XRF;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_SimilarityMap>   dlg_SimilarityMapContainer;

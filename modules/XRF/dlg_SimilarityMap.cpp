@@ -21,7 +21,6 @@
 #include "dlg_SimilarityMap.h"
 
 #include "dlg_XRF.h"
-#include "iASimilarityMapWidget.h"
 
 #include <mdichild.h>
 

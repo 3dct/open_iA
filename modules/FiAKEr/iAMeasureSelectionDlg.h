@@ -22,7 +22,7 @@
 
 #include "ui_MeasureSelection.h"
 
-class QStandardItemModel;
+#include <QStandardItemModel>
 
 class iAMeasureSelectionDlg : public QDialog, public Ui_dlgMeasureSelection
 {
