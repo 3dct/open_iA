@@ -89,14 +89,15 @@ private:
 	template<class T>
 	void itkBinaryThreshold(iAConnector &conn, int loThresh, int upThresh);
 
-	template<class T>
 	void itkDilateAndCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponents, bool dilate = true);
 
-	template<class T>
 	void itkCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponents);
 
-	template<class T>
 	void itkErode(ImagePointer itkImgPtr, int count);
+
+	// TODO make debug only
+	void showMask(QSharedPointer<iAModality> mod, vtkSmartPointer<vtkImageData> mask);
+	void showMask(ImagePointer itkImgPtr);
 
 public slots:
 	void setModalitySelected(QSharedPointer<iAModality>);
