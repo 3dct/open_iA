@@ -92,6 +92,26 @@ class QVBoxLayout;
 class iAQCheckBoxVector: public QObject, public QVector<QCheckBox*> { };
 class iAQLineEditVector: public QObject, public QVector<QLineEdit*> { };
 
+class iAVtkQtWidget;
+class iAFixedAspectWidget;
+class iASignallingWidget;
+
+//! UI elements for each result
+class iAFiberCharUIData
+{
+public:
+	iAVtkQtWidget* vtkWidget;
+	QSharedPointer<iA3DColoredPolyObjectVis> mini3DVis;
+	QSharedPointer<iA3DColoredPolyObjectVis> main3DVis;
+	iAChartWidget* histoChart;
+	iAStackedBarChart* stackedBars;
+	iAFixedAspectWidget* previewWidget;
+	iASignallingWidget* nameActions;
+	QWidget* topFiller, * bottomFiller;
+	//! index where the plots for this result start
+	size_t startPlotIdx;
+};
+
 
 class iAResultPairInfo
 {

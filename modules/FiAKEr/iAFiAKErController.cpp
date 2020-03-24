@@ -201,22 +201,6 @@ namespace
 	// }
 }
 
-//! UI elements for each result
-class iAFiberCharUIData
-{
-public:
-	iAVtkQtWidget* vtkWidget;
-	QSharedPointer<iA3DColoredPolyObjectVis> mini3DVis;
-	QSharedPointer<iA3DColoredPolyObjectVis> main3DVis;
-	iAChartWidget* histoChart;
-	iAStackedBarChart* stackedBars;
-	iAFixedAspectWidget* previewWidget;
-	iASignallingWidget* nameActions;
-	QWidget* topFiller, * bottomFiller;
-	//! index where the plots for this result start
-	size_t startPlotIdx;
-};
-
 const QString iAFiAKErController::FIAKERProjectID("FIAKER");
 
 iAFiAKErController::iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild) :
@@ -225,14 +209,14 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild) 
 	m_mainWnd(mainWnd),
 	m_mdiChild(mdiChild),
 	m_referenceID(NoResult),
-	m_playTimer(new QTimer(mainWnd)),
-	m_refDistCompute(nullptr),
 	m_colorByThemeName(iALUT::GetColorMapNames()[0]),
 	m_showFiberContext(false),
 	m_mergeContextBoxes(false),
 	m_showWireFrame(false),
 	m_showLines(false),
 	m_contextSpacing(0.0),
+	m_playTimer(new QTimer(mainWnd)),
+	m_refDistCompute(nullptr),
 	m_cameraInitialized(false),
 	m_spm(new iAQSplom())
 {
@@ -1075,9 +1059,9 @@ public:
 		m_dataIdx = idx;
 		m_range[0] = std::numeric_limits<double>::max();
 		m_range[1] = std::numeric_limits<double>::lowest();
-		for (int i = 0; i < m_data.size(); ++i)
+		for (size_t i = 0; i < m_data.size(); ++i)
 		{
-			for (int j = 0; j < m_data[i].size(); ++j)
+			for (size_t j = 0; j < m_data[i].size(); ++j)
 			{
 				double value = m_data[i][j].avgDissim[m_dataIdx];
 				if (value < m_range[0])
@@ -1138,11 +1122,11 @@ private:
 		int cellPixel = std::max(1,
 			std::min(geometry().height() / static_cast<int>(m_data.size()),
 				(geometry().width() - (3 * scalarBarPadding + scalarBarWidth + textWidth)) / static_cast<int>(m_data.size())));
-		for (int x = 0; x < m_data.size(); ++x)
+		for (size_t x = 0; x < m_data.size(); ++x)
 		{
-			for (int y = 0; y < m_data[x].size(); ++y)
+			for (size_t y = 0; y < m_data[x].size(); ++y)
 			{
-				QRect rect(x * cellPixel, y * cellPixel, cellPixel, cellPixel);
+				QRect rect(static_cast<int>(x * cellPixel), static_cast<int>(y * cellPixel), cellPixel, cellPixel);
 				double value = m_data[m_sortOrder[x]][m_sortOrder[y]].avgDissim[m_dataIdx];
 				QColor color = m_lut.getQColor(value);
 				p.fillRect(rect, color);
@@ -1223,7 +1207,7 @@ void iAFiAKErController::sensitivitySlot()
 		double maxLength = lengthRange[1] - lengthRange[0];
 		for (size_t resultID2 = 0; resultID2 < m_data->result.size(); ++resultID2)
 		{
-			for (int m = 0; m < measures.size(); ++m)
+			for (size_t m = 0; m < measures.size(); ++m)
 			{
 				m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] = 0;
 			}
@@ -1243,12 +1227,12 @@ void iAFiAKErController::sensitivitySlot()
 				iAFiberData fiber(res2.table, fiberID, mapping, (it != res2.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
 				getBestMatches(fiber, mapping, res1.table, dissimilarities[fiberID], res1.curveInfo,
 					diagonalLength, maxLength, measures, optimizationMeasureIdx);
-				for (int m = 0; m < measures.size(); ++m)
+				for (size_t m = 0; m < measures.size(); ++m)
 				{
 					m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
 				}
 			}
-			for (int m = 0; m < measures.size(); ++m)
+			for (size_t m = 0; m < measures.size(); ++m)
 			{
 				m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] /= res2.fiberCount;
 			}
@@ -1258,7 +1242,7 @@ void iAFiAKErController::sensitivitySlot()
 
 	auto measureNames = getAvailableDissimilarityMeasureNames();
 	QStringList computedMeasureNames;
-	for (int m = 0; m < measures.size(); ++m)
+	for (size_t m = 0; m < measures.size(); ++m)
 	{
 		computedMeasureNames << measureNames[measures[m].first];
 	}
@@ -2780,7 +2764,7 @@ void iAFiAKErController::refDistAvailable()
 	}
 	size_t measureStartIdx = m_data->m_measures.size() - (m_data->spmData->numParams() - startIdx);
 	auto measureNames = getAvailableDissimilarityMeasureNames();
-	for (size_t measureIdx = measureStartIdx; measureIdx < m_data->m_measures.size(); ++measureIdx)
+	for (int measureIdx = measureStartIdx; measureIdx < m_data->m_measures.size(); ++measureIdx)
 	{
 		m_settingsView->cmbboxSimilarityMeasure->addItem(measureNames[m_data->m_measures[measureIdx]]);
 	}

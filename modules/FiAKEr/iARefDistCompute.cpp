@@ -475,7 +475,7 @@ bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID
 	}
 	if (first)
 	{
-		QVector<size_t> cachedMeasures;
+		QVector<qulonglong> cachedMeasures;
 		if (version <= 2)
 		{
 			for (int m = 0; m < getAvailableDissimilarityMeasureNames().size(); ++m)
@@ -496,7 +496,7 @@ bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID
 	}
 	else if (version > 2)
 	{
-		QVector<size_t> cachedMeasures;
+		QVector<qulonglong> cachedMeasures;
 		in >> cachedMeasures;
 	}
 	auto & d = m_data->result[resultID];
