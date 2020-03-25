@@ -40,6 +40,7 @@ class iARefDistCompute : public QThread
 {
 	Q_OBJECT
 public:
+	//! type for containers - but since we mix QVector and std::vector usages, it doesn't really help!
 	typedef int ContainerSizeType;
 	//static const int SimilarityMeasureCount = 20;
 	//static const int BestSimilarityMeasure = 7;
