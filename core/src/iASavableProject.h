@@ -22,6 +22,8 @@
 
 #include "open_iA_Core_export.h"
 
+#include <QString>
+
 //! Interface for anything that can be saved as a project.
 //! Necessary since not all current tools employ mdichild as container for their widgets.
 //! So every such container needs to implement this class and its doLoadProject method,
@@ -39,13 +41,17 @@ class open_iA_Core_API iASavableProject
 public:
 	//! Called from main window to save the project of the current window.
 	//! In case you're wondering why there are two methods in this class, this one
-	//! and the virtual "doLoadProject": This is because it follows the "Non-Virtual Interface
+	//! and the virtual "doSaveProject": This is because it follows the "Non-Virtual Interface
 	//! Idiom", see http://www.gotw.ca/publications/mill18.htm
-	void saveProject();
+	bool saveProject(QString const & basePath);
+	//! return the name of the last file that was stored
+	QString const & fileName() const;
 protected:
 	//! Prevent destruction of the object through this interface.
 	virtual ~iASavableProject();
 private:
 	//! Override this method to implement the actual saving of the project
-	virtual void doSaveProject() = 0;
+	virtual bool doSaveProject(QString const & projectFileName) = 0;
+
+	QString m_fileName;
 };

@@ -21,10 +21,30 @@
 #include "iASavableProject.h"
 
 #include "iAChangeableCameraWidget.h" // TODO: disentangle - but no separate file!
+#include <io/iAIOProvider.h>
 
-void iASavableProject::saveProject()
+#include <QApplication>
+#include <QFileDialog>
+#include <QMessageBox>
+
+bool iASavableProject::saveProject(QString const & basePath)
 {
-	doSaveProject();
+	QString projectFileName = QFileDialog::getSaveFileName(
+		QApplication::activeWindow(),
+		QCoreApplication::translate("MainWindow", "Select Output File"),
+		basePath,
+		iAIOProvider::NewProjectFileTypeFilter + iAIOProvider::ProjectFileTypeFilter);
+	if (projectFileName.isEmpty())
+	{
+		return false;
+	}
+	m_fileName = projectFileName;
+	return doSaveProject(projectFileName);
+}
+
+QString const& iASavableProject::fileName() const
+{
+	return m_fileName;
 }
 
 iASavableProject::~iASavableProject()

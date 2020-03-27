@@ -351,13 +351,12 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 			return;
 		}
 	}
-	/*
 	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
 		QSettings projectFile(fileName, QSettings::IniFormat);
 		projectFile.setIniCodec("UTF-8");
 		// TODO: asynchronous loading, merge with mdichild: loadFile project init parts
-		if (!projectFile.value("UseMdiChild", false).toBool())
+		if (projectFile.contains("UseMdiChild") && !projectFile.value("UseMdiChild", false).toBool())
 		{
 			auto registeredProjects = iAProjectRegistry::projectKeys();
 			auto projectFileGroups = projectFile.childGroups();
@@ -376,7 +375,6 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 			return;
 		}
 	}
-	*/
 	// Todo: hook for plugins?
 	MdiChild *child = createMdiChild(false);
 	if (child->loadFile(fileName, isStack))
@@ -2245,8 +2243,17 @@ void MainWindow::saveProject()
 {
 	iASavableProject * child = activeChild<iASavableProject>();
 	if (!child)
+	{
 		return;
-	child->saveProject();
+	}
+	if (!child->saveProject(m_path))
+	{
+		QMessageBox::warning(this, "Save Project", "Saving project was aborted!");
+	}
+	else
+	{
+		setCurrentFile(child->fileName());
+	}
 }
 
 void MainWindow::loadArguments(int argc, char** argv)

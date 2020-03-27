@@ -2822,20 +2822,8 @@ void MdiChild::saveProject(QString const& fileName)
 	setCurrentFile(fileName);
 }
 
-void MdiChild::doSaveProject()
+bool MdiChild::doSaveProject(QString const & projectFileName)
 {
-	QString projectFileName = QFileDialog::getSaveFileName(
-		QApplication::activeWindow(),
-		tr("Select Output File"),
-		m_path,
-		iAIOProvider::NewProjectFileTypeFilter + iAIOProvider::ProjectFileTypeFilter);
-	if (projectFileName.isEmpty())
-	{
-		return;
-	}
-
-	// TODO:
-	//   - work in background
 	QVector<int> unsavedModalities;
 	for (int i = 0; i < modalities()->size(); ++i)
 	{
@@ -2850,16 +2838,18 @@ void MdiChild::doSaveProject()
 			"This window has some unsaved modalities, you need to save them before you can store the project. Save them now?",
 			QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) != QMessageBox::Yes)
 		{
-			return;
+			return false;
 		}
 		for (int modNr : unsavedModalities)
 		{
 			if (!saveAs(modNr))
 			{
-				return;
+				return false;
 			}
 		}
 	}
+	// TODO:
+	//   - work in background
 	saveProject(projectFileName);
 	if (projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{

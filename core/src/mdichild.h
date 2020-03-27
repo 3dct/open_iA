@@ -271,11 +271,11 @@ public:
 
 	//! Checks whether the main image data is fully loaded.
 	bool isFullyLoaded() const;
-	//! Ask for a project file name and store in that project file:
+	//! Store current situation in the given project file:
 	//!    - loaded files and their transfer functions, when old project file (.mod) is chosen
 	//!    - configuration of opened tools (which support it), when new project file (.iaproj) is chosen
 	//!      (to be extended to modalities and TFs soon)
-	void doSaveProject() override;
+	bool doSaveProject(QString const& projectFileName) override;
 	//! Save all currently loaded files into a project with the given file name.
 	void saveProject(QString const & fileName);
 	//! Whether volume data is loaded (only checks filename and volume dimensions).
