@@ -37,17 +37,20 @@ public:
 	void paintEvent(QPaintEvent* /*ev*/) override
 	{
 		QPainter p(this);
+		QColor bgColor(m_bgColor);
 		if (!bgColor.isValid())
+		{
 			bgColor = QWidget::palette().color(QWidget::backgroundRole());
+		}
 		p.fillRect(rect(), bgColor);
 	}
 	void setBGColor(QColor const & color)
 	{
-		bgColor = color;
+		m_bgColor = color;
 		update();
 	}
 private:
-	QColor bgColor;
+	QColor m_bgColor;
 };
 
 //! The internal iAVtkQtWidget of an iAFixedAspectWidget which actually keeps its aspect ratio.
@@ -101,7 +104,11 @@ iAVtkQtWidget* iAFixedAspectWidget::vtkWidget()
 void iAFixedAspectWidget::setBackgroundColor(QColor const & color)
 {
 	if (m_fill1)
+	{
 		m_fill1->setBGColor(color);
+	}
 	if (m_fill2)
+	{
 		m_fill2->setBGColor(color);
+	}
 }
