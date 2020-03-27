@@ -25,12 +25,14 @@
 #include "iADatasetInfo.h"
 #include "iADragFilterWidget.h"
 #include "iADropPipelineWidget.h"
+#include "iAFeatureAnalyserProject.h"
 #include "iAPorosityAnalyser.h"
 #include "iARunBatchThread.h"
 
-#include <iACPUID.h>
 #include <defines.h>
+#include <iACPUID.h>
 #include <iACSVToQTableWidgetConverter.h>
+#include <iAProjectRegistry.h>
 #include <mainwindow.h>
 
 #include <QDebug>
@@ -54,6 +56,7 @@ void iAPorosityAnalyserModuleInterface::Initialize()
 		return;
 	}
 	Q_INIT_RESOURCE(PorosityAnalyser);
+	iAProjectRegistry::addProject<iAFeatureAnalyserProject>(iAFeatureAnalyserProject::ID);
 	qsrand(QTime::currentTime().msec());
 
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
@@ -438,13 +441,17 @@ QString iAPorosityAnalyserModuleInterface::ComputerName() const
 
 void iAPorosityAnalyserModuleInterface::launchPorosityAnalyser()
 {
-	iADataFolderDialog * dlg = new iADataFolderDialog( m_mainWnd );
+	iADataFolderDialog* dlg = new iADataFolderDialog(m_mainWnd);
 	if (dlg->exec() != QDialog::Accepted)
 	{
 		return;
 	}
+	startFeatureAnalyser(dlg->ResultsFolderName(), dlg->DatasetsFolderName());
+}
 
-	m_porosityAnalyser = new iAPorosityAnalyser(m_mainWnd, dlg->ResultsFolderName(), dlg->DatasetsFolderName(), m_mainWnd );
+void iAPorosityAnalyserModuleInterface::startFeatureAnalyser(QString const & resultsFolderName, QString const & datasetsFolderName)
+{
+	m_porosityAnalyser = new iAPorosityAnalyser(m_mainWnd, resultsFolderName, datasetsFolderName, m_mainWnd );
 	m_mainWnd->addSubWindow( m_porosityAnalyser );
 	m_porosityAnalyser->LoadStateAndShow(); //show();
 }

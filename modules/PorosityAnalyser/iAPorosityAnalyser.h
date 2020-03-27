@@ -22,6 +22,7 @@
 
 #include "ui_PorosityAnalyser.h"
 
+#include <iASavableProject.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
@@ -51,7 +52,7 @@ class iAPreviewSPLOMView;
 class QButtonGroup;
 class MainWindow;
 
-class iAPorosityAnalyser : public PorosityAnalyserConnector
+class iAPorosityAnalyser : public PorosityAnalyserConnector, public iASavableProject
 {
 	Q_OBJECT
 
@@ -60,26 +61,26 @@ public:
 	~iAPorosityAnalyser();
 	void LoadStateAndShow();
 
-protected:
-	void LoadData();
-	void AddSubdirectory( const QString & subDirName );
-	void ParseComputerCSV( const QFileInfo & fi );
-	void CalculateRunsOffset();
-	//void GenerateMasksData();
-
 signals:
 	void loadTreeDataToViews();
 	void loadOverviewSelectionToSPM( QModelIndexList indices );
 	void runsOffsetChanged( int );
 
-	protected slots:
+private slots:
 	void ShowSelections( bool checked );
 	void ShowTreeView( bool checked );
 	void selectionLoaded( iASelection * sel );
 	void tabChanged( int index );
 	void message( QString text );
 
-protected:
+private:
+	void LoadData();
+	void AddSubdirectory(const QString& subDirName);
+	void ParseComputerCSV(const QFileInfo& fi);
+	void CalculateRunsOffset();
+	//void GenerateMasksData();
+	bool doSaveProject(QString const& projectFileName) override;
+
 	QTableWidget m_data;
 	QTableWidget m_referenceData;
 	QMap<QString, double> m_gtPorosityMap;

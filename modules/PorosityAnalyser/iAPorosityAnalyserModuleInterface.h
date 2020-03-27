@@ -42,6 +42,7 @@ public:
 	QString CpuVendor() const { return m_cpuVendor; }
 	QString CpuBrand() const { return m_cpuBrand; }
 	QString ComputerName() const;
+	void startFeatureAnalyser(QString const& resultsFolderName, QString const& datasetsFolderName);
 
 private slots:
 	void computeParameterSpace();

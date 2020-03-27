@@ -86,7 +86,7 @@ void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPo
 	m_containerList.clear();
 
 	int sz = imgData.size();
-	for( int i = 0; i < sz; ++i )
+	for (int i = 0; i < sz; ++i)
 	{
 		QWidget * container = new QWidget( wgtContainer );
 		QVBoxLayout *  containerLayout = new QVBoxLayout( container );
@@ -240,14 +240,18 @@ iASegm3DViewData::~iASegm3DViewData()
 void iASegm3DViewData::removeObserver()
 {
 	//is m_renderer deleted by Qt?
-	if( m_observedRenderer )
-		m_observedRenderer->RemoveObserver( m_tag );
+	if (m_observedRenderer)
+	{
+		m_observedRenderer->RemoveObserver(m_tag);
+	}
 }
 
 void iASegm3DViewData::SetDataToVisualize( vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
 {
 	if (!imgData)
+	{
 		DEBUG_LOG("Image data is nullptr!");
+	}
 	iASimpleTransferFunction tf(ctf, otf);
 	if( !m_rendInitialized )
 	{
@@ -277,8 +281,10 @@ void iASegm3DViewData::SetDataToVisualize( vtkImageData * imgData, vtkPolyData *
 
 void iASegm3DViewData::SetPolyData( vtkPolyData * polyData )
 {
-	if( !m_rendInitialized )
+	if (!m_rendInitialized)
+	{
 		return;
+	}
 	m_wireMapper->SetInputData( polyData );
 	m_renderer->setPolyData( polyData );
 	vtkPolyDataMapper * mapper = m_renderer->polyMapper();
@@ -379,13 +385,17 @@ void iASegm3DViewData::ShowWireframe( bool visible )
 void iASegm3DViewData::UpdateColorCoding()
 {
 	vtkPolyData * pd = m_renderer->polyMapper()->GetInput();
-	if( !pd )
+	if (!pd)
+	{
 		return;
+	}
 	double range[2]; pd->GetPointData()->GetScalars()->GetRange( range );
 	double absRange = fabs( range[1] ) > fabs( range[0] ) ? fabs( range[1] ) : fabs( range[0] );
 	absRange *= m_sensitivity;
-	if( absRange > *m_rangeExt )
+	if (absRange > * m_rangeExt)
+	{
 		*m_rangeExt = absRange;
+	}
 }
 
 void iASegm3DViewData::SetSensitivity( double sensitivity )

@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAPorosityAnalyser.h"
 
+#include "iAFeatureAnalyserProject.h"
 //#include "iAPCView.h"
 #include "iAPDMView.h"
 #include "iAPreviewSPLOMView.h"
@@ -31,8 +32,10 @@
 #include "iATreeView.h"
 #include "PorosityAnalyserHelpers.h"
 
+#include <iAConsole.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <io/iAITKIO.h>
+#include <io/iAIOProvider.h>
 
 #include <vtkIdTypeArray.h>
 #include <vtkSelection.h>
@@ -405,6 +408,26 @@ void iAPorosityAnalyser::tabChanged( int /*index*/ )
 void iAPorosityAnalyser::message( QString text )
 {
 	statusBar()->showMessage( text );
+}
+
+bool iAPorosityAnalyser::doSaveProject(QString const& projectFileName)
+{
+	iAFeatureAnalyserProject project;
+	project.setOptions(m_dataDir, m_datasetsDir);
+	
+	if (!projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
+	{
+		DEBUG_LOG(QString("Only extension %1 is supported!").arg(iAIOProvider::NewProjectFileExtension));
+		return false;
+	}
+	// TODO: Unify with MdiChild::doSaveProject
+	QSettings projectFile(projectFileName, QSettings::IniFormat);
+	projectFile.setIniCodec("UTF-8");
+	projectFile.setValue("UseMdiChild", false);
+	projectFile.beginGroup(iAFeatureAnalyserProject::ID);
+	project.saveProject(projectFile, projectFileName);
+	projectFile.endGroup();
+	return true;
 }
 
 //void iAPorosityAnalyser::GenerateMasksData()
