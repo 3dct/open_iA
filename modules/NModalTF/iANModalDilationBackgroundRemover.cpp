@@ -22,6 +22,7 @@
 #include "iANModalDilationBackgroundRemover.h"
 
 #include "iANModalDisplay.h"
+#include "iANModalProgressWidget.h"
 
 #include <defines.h> // for DIM
 #include "iAModality.h"
@@ -204,7 +205,6 @@ vtkSmartPointer<vtkImageData> iANModalDilationBackgroundRemover::removeBackgroun
 	success = iterativeDilation(m_itkTempImg, regionCountGoal);
 	if (success) {
 		conn.setImage(m_itkTempImg);
-		showMask(m_itkTempImg);
 		return conn.vtkImage(); // If doesn't work, keep iAConnector alive (member variable)
 
 	} else {
@@ -313,19 +313,31 @@ void iANModalDilationBackgroundRemover::updateThreshold() {
 }
 
 bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int regionCountGoal) {
+	
+	QLabel *statusLabel = new QLabel("Total progress");
+	QLabel *filterLabel = new QLabel("Filter progress");
+	QLabel *dilationsLabel = new QLabel("Dilations progress");
+
+	iANModalProgressWidget *progress = new iANModalProgressWidget();
+	int status = progress->addProgressBar(3, statusLabel, true); // 3 steps: counts; counts+dilations; erosions
+	progress->addSeparator();
+	int filter = progress->addProgressBar(100, filterLabel, true); // 100 steps, because that's how iAProgress words
+	int dilations = progress->addProgressBar(1, dilationsLabel, false); // unkown number of steps... change later
+	progress->show();
+
+	// Now begin the heavy computation
+	
 	int connectedComponents;
 
 	itkCountConnectedComponents(mask, connectedComponents);
-	storeImage(m_itkTempImg, "connectedComponents.mhd", true);
+	//storeImage(m_itkTempImg, "connectedComponents.mhd", true);
 	
 	int dilationCount = 0;
 	while (connectedComponents > regionCountGoal) {
 		itkDilateAndCountConnectedComponents(m_itkTempImg, connectedComponents);
-		storeImage(m_itkTempImg, "connectedComponents" + QString::number(dilationCount) + ".mhd", true);
+		//storeImage(m_itkTempImg, "connectedComponents" + QString::number(dilationCount) + ".mhd", true);
 		dilationCount++;
 	}
-
-	auto wow = m_itkTempImg;
 
 	itkErode(m_itkTempImg, dilationCount);
 

@@ -31,6 +31,7 @@
 class MdiChild;
 class iAConnector;
 class iANModalDisplay;
+class iANModalProgressWidget;
 
 class vtkLookupTable;
 class vtkPiecewiseFunction;
@@ -74,7 +75,6 @@ private:
 	// TODO describe
 	bool iterativeDilation(ImagePointer mask, int regionCountGoal);
 
-
 	iANModalDisplay *m_display;
 	uint m_threholdingMaskChannelId;
 	vtkSmartPointer<vtkLookupTable> m_colorTf;
@@ -84,6 +84,7 @@ private:
 	
 	//iAConnector *m_temp_connector = nullptr;
 	//vtkSmartPointer<vtkImageData> m_vtkTempImg;
+	// TODO: Try without
 	ImagePointer m_itkTempImg;
 
 	template<class T>
