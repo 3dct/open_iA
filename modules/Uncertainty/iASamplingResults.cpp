@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -41,11 +41,11 @@ iASamplingResults::iASamplingResults(
 	int id
 ):
 	m_attributes(attr),
+	m_name(name),
 	m_samplingMethod(samplingMethod),
 	m_path(path),
 	m_executable(executable),
 	m_additionalArguments(additionalArguments),
-	m_name(name),
 	m_id(id)
 {
 }
@@ -137,7 +137,6 @@ QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFil
 	return QSharedPointer<iASamplingResults>();
 }
 
-
 bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QString const & derivedOutputFileName)
 {
 	m_parameterSetFile = parameterSetFileName;
@@ -195,7 +194,6 @@ bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QStri
 	return true;
 }
 
-
 bool iASamplingResults::Store(QString const & fileName,
 	QString const & parameterSetFileName,
 	QString const & derivedOutputFileName)
@@ -248,18 +246,15 @@ bool iASamplingResults::StoreAttributes(int type, QString const & fileName, bool
 	return true;
 }
 
-
 int iASamplingResults::Size() const
 {
 	return m_results.size();
 }
 
-
 QSharedPointer<iAMember> iASamplingResults::Get(int i) const
 {
 	return m_results[i];
 }
-
 
 void iASamplingResults::AddResult(QSharedPointer<iAMember> result)
 {
@@ -281,18 +276,15 @@ QSharedPointer<iAAttributes> iASamplingResults::Attributes() const
 	return m_attributes;
 }
 
-
 QString iASamplingResults::name() const
 {
 	return m_name;
 }
 
-
 QString iASamplingResults::FileName() const
 {
 	return m_fileName;
 }
-
 
 QString iASamplingResults::Path(int id) const
 {

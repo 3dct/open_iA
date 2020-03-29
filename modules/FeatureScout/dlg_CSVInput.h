@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -44,9 +44,15 @@ public:
 	void setFormat(QString const & formatName);
 	//! Retrieve the configuration currently set in the dialog
 	const iACsvConfig & getConfig() const;
+	//! Loads settings from registry for a given format name, into a given config object
+	static bool loadFormatFromRegistry(const QString & formatName, iACsvConfig & dest);
 private slots:
-	//! updates preview (e.g. when Update Preview button called)
+	//! On button click for selecting CSV file
 	void selectFileBtnClicked();
+	//! On button click for selecting curved CSV file
+	void selectCurvedFileBtnClicked();
+	//! when checkbox for curved fiber info
+	void curvedFiberInfoChanged();
 	//! handles a click on the OK button
 	void okBtnClicked();
 	//! load format based on selected input format (ex. mavi/ vg, ...)
@@ -83,6 +89,8 @@ private slots:
 	void exportButtonClicked();
 	//! called when the export button is clicked
 	void importButtonClicked();
+	//! called when different visualization type was selected
+	void visualizationTypeChanged(int);
 private:
 	//! switch length mapping choice enabled based on whether to checkbox to automatically compute it is checked or not
 	void updateLengthEditEnabled();
@@ -104,8 +112,6 @@ private:
 	void saveFormatToRegistry(const QString & formatName);
 	//! Loads settings from registry for a given format name, into default config object
 	bool loadFormatFromRegistry(const QString & formatName);
-	//! Loads settings from registry for a given format name, into a given config object
-	bool loadFormatFromRegistry(const QString & formatName, iACsvConfig & dest);
 	//! Deletes a format from the registry
 	void deleteFormatFromReg(QString const & formatName);
 	//! Shows configuration parameters in GUI

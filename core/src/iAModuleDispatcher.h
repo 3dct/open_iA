@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -41,6 +41,7 @@ class QAction;
 class QFileInfo;
 class QMenu;
 
+//! Data for menu actions created automatically for filters.
 struct iAModuleAction
 {
 	iAModuleAction(): action(nullptr), isDisablable(true) {}
@@ -58,6 +59,7 @@ class iAModuleInterface;
 	#define MODULE_HANDLE void*
 #endif
 
+//! Data associated with a single loaded module.
 struct open_iA_Core_API iALoadedModule
 {
 	iALoadedModule();
@@ -67,6 +69,7 @@ struct open_iA_Core_API iALoadedModule
 	iAModuleInterface* moduleInterface;
 };
 
+//! Responsible for managing (i.e. loading, initializing and properly shutting down) all modules existing in the plugin folder.
 class iAModuleDispatcher: public QObject
 {
 	Q_OBJECT

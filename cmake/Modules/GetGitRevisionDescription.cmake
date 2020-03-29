@@ -57,7 +57,7 @@ function(get_git_head_revision _refspecvar _hashvar)
 	if(NOT EXISTS "${GIT_DATA}")
 		file(MAKE_DIRECTORY "${GIT_DATA}")
 	endif()
-	IF (NOT IS_DIRECTORY "${GIT_DIR}")	# special treatment for submodules
+	IF (NOT IS_DIRECTORY "${GIT_DIR}")	# special treatment for submodules / worktrees
 		FILE(READ "${GIT_DIR}" NEW_GIT_DIR OFFSET 8)
 		STRING(REGEX REPLACE "\n$" "" NEW_GIT_DIR "${NEW_GIT_DIR}")
 		get_filename_component(GIT_DIR "${NEW_GIT_DIR}"
@@ -78,7 +78,7 @@ function(get_git_head_revision _refspecvar _hashvar)
 	set(${_hashvar} "${HEAD_HASH}" PARENT_SCOPE)
 endfunction()
 
-function(git_describe _var)
+function(git_describe out_nice out_shorthash)
 	if(NOT GIT_FOUND)
 		find_package(Git QUIET)
 	endif()
@@ -92,16 +92,6 @@ function(git_describe _var)
 		return()
 	endif()
 
-	# TODO sanitize
-	#if((${ARGN}" MATCHES "&&") OR
-	#	(ARGN MATCHES "||") OR
-	#	(ARGN MATCHES "\\;"))
-	#	message("Please report the following error to the project!")
-	#	message(FATAL_ERROR "Looks like someone's doing something nefarious with git_describe! Passed arguments ${ARGN}")
-	#endif()
-
-	#message(STATUS "Arguments to execute_process: ${ARGN}")
-
 	execute_process(COMMAND
 		"${GIT_EXECUTABLE}" describe ${hash} ${ARGN}
 		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
@@ -109,7 +99,6 @@ function(git_describe _var)
 		OUTPUT_VARIABLE	out
 		ERROR_QUIET
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
-		
 	if(NOT res EQUAL 0)
 		set(out "${out}-${res}-NOTFOUND")
 	endif()
@@ -132,7 +121,19 @@ function(git_describe _var)
 		endif()
 		STRING(CONCAT out "${versionstr}" "-" "${branch}" "-" "${shorthash}")
 	ENDIF()
-	set(${_var} "${out}" PARENT_SCOPE)
+	set(${out_nice} "${out}" PARENT_SCOPE)
+
+	execute_process(COMMAND
+		"${GIT_EXECUTABLE}" rev-parse --short ${hash}
+		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+		RESULT_VARIABLE res2
+		OUTPUT_VARIABLE	revparseout
+		ERROR_QUIET
+		OUTPUT_STRIP_TRAILING_WHITESPACE)
+	if(NOT res2 EQUAL 0)
+		set(revparseout "${revparseout}-${res2}-INVALID")
+	endif()
+	set(${out_shorthash} "${revparseout}" PARENT_SCOPE)
 endfunction()
 
 function(git_get_exact_tag _var)

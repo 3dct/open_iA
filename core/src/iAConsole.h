@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -34,6 +34,7 @@ class dlg_console;
 class iARedirectVtkOutput;
 class iARedirectItkOutput;
 
+//! Singleton providing access to the global logger object.
 class open_iA_Core_API iAGlobalLogger
 {
 public:
@@ -45,8 +46,9 @@ private:
 
 #define DEBUG_LOG(t) { if (iAGlobalLogger::get()) iAGlobalLogger::get()->log(t); }
 
-//! Debugging helper class. Instantiates a dlg_console to
-//! log debug messages
+//! Helper class for (debug) logging purposes, available from everywhere as singleton.
+//! Instantiates a dlg_console to log debug messages
+//! Note: Typically not used directly, but through DEBUG_LOG macro!
 //! TODO: check if we can't reuse logging window here!
 class open_iA_Core_API iAConsole: public QObject, public iALogger
 {
@@ -70,7 +72,7 @@ private slots:
 	void consoleClosed();
 private:
 	iAConsole();
-	~iAConsole();
+	virtual ~iAConsole();
 
 	iAConsole(iAConsole const&)			= delete;
 	void operator=(iAConsole const&)	= delete;
@@ -87,8 +89,9 @@ private:
 };
 
 
-// Some default loggers:
-// check why we need separate class iAConsoleLogger
+//! Some default loggers:
+
+//! A logger whose output is written to the global output console (iAConsole).
 class open_iA_Core_API iAConsoleLogger : public iALogger
 {
 public:
@@ -100,6 +103,7 @@ private:
 	void operator=(iAConsoleLogger const&);
 };
 
+//! A logger whose output is written to standard output.
 class open_iA_Core_API iAStdOutLogger : public iALogger
 {
 public:

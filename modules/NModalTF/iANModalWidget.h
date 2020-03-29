@@ -23,8 +23,9 @@
 #include "iALabellingObjects.h"
 #include "iANModalObjects.h"
 
-#include <QWidget>
 #include <QList>
+#include <QMap>
+#include <QWidget>
 
 class iANModalController;
 class iANModalPreprocessor;

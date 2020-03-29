@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -51,21 +51,21 @@ iATrackingGraphItem::~iATrackingGraphItem()
 //----------------------------------------------------------------------------
 vtkColor4ub iATrackingGraphItem::VertexColor(vtkIdType vertex)
 {
-	if (this->GetGraph()->GetVertexData()->GetAbstractArray("ColorR") != 0 && 
+	if (this->GetGraph()->GetVertexData()->GetAbstractArray("ColorR") != 0 &&
 		this->GetGraph()->GetVertexData()->GetAbstractArray("ColorG") != 0 &&
 		this->GetGraph()->GetVertexData()->GetAbstractArray("ColorB") != 0 &&
 		this->GetGraph()->GetVertexData()->GetAbstractArray("Uncertainty") != 0)
 	{
-		return vtkColor4ub(this->GetGraph()->GetVertexData()->GetAbstractArray("ColorR")->GetVariantValue(vertex).ToInt(), 
-			this->GetGraph()->GetVertexData()->GetAbstractArray("ColorG")->GetVariantValue(vertex).ToInt(), 
+		return vtkColor4ub(this->GetGraph()->GetVertexData()->GetAbstractArray("ColorR")->GetVariantValue(vertex).ToInt(),
+			this->GetGraph()->GetVertexData()->GetAbstractArray("ColorG")->GetVariantValue(vertex).ToInt(),
 			this->GetGraph()->GetVertexData()->GetAbstractArray("ColorB")->GetVariantValue(vertex).ToInt(),
 			(1.0 - this->GetGraph()->GetVertexData()->GetAbstractArray("Uncertainty")->GetVariantValue(vertex).ToDouble()) * DELTA_ALPHA + MIN_ALPHA);
 	}
-	
+
 	return DEFAULT_COLOR;
 }
 
-float iATrackingGraphItem::VertexSize(vtkIdType vertex)
+float iATrackingGraphItem::VertexSize(vtkIdType /*vertex*/)
 {
 	return VERTEX_SIZE;
 }
@@ -117,7 +117,7 @@ bool iATrackingGraphItem::MouseButtonPressEvent(const vtkContextMouseEvent &even
 }
 
 //----------------------------------------------------------------------------
-bool iATrackingGraphItem::MouseMoveEvent(const vtkContextMouseEvent &event)
+bool iATrackingGraphItem::MouseMoveEvent(const vtkContextMouseEvent &/*event*/)
 {
 	/*this->Superclass::MouseButtonPressEvent(event);
 	focusedVertex = this->HitVertex(event.GetPos());
@@ -134,7 +134,7 @@ vtkStdString iATrackingGraphItem::VertexTooltip(vtkIdType vertex)
 	{
 		return "N/A";
 	}
-	
+
 	return this->GetGraph()->GetVertexData()->GetAbstractArray("Label")->GetVariantValue(vertex).ToString();
 }
 

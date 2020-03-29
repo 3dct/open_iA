@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -41,6 +41,8 @@
 #include <vtkPolyDataSilhouette.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
+
+#include <cassert>
 
 iARegionVisModule::iARegionVisModule( )
 	: iAVisModule( )
@@ -171,15 +173,18 @@ void iARegionVisModule::setImage( QString fileName )
 		image->SetSpacing( reader->GetOutput( )->GetSpacing( ) );
 		image->Allocate( );
 		image->FillBuffer( 0 );
-		for( int x = 0; x < originalSize[0]; x++ )
+		DensityMapImageType::IndexType ind1;
+		assert(originalSize[0] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()) &&
+			originalSize[1] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()) &&
+			originalSize[2] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()));
+		for(ind1[0] = 0; static_cast<itk::SizeValueType>(ind1[0]) < originalSize[0]; ++ind1[0])
 		{
-			for( int y = 0; y < originalSize[1]; y++ )
+			for(ind1[1] = 0; static_cast<itk::SizeValueType>(ind1[1]) < originalSize[1]; ++ind1[1])
 			{
-				for( int z = 0; z < originalSize[2]; z++ )
+				for(ind1[2] = 0; static_cast<itk::SizeValueType>(ind1[2]) < originalSize[2]; ++ind1[2])
 				{
-					DensityMapImageType::IndexType ind1, ind2;
-					ind1[0] = x; ind1[1] = y; ind1[2] = z;
-					ind2[0] = x + 1; ind2[1] = y + 1; ind2[2] = z + 1;
+					DensityMapImageType::IndexType ind2;
+					ind2[0] = ind1[0] + 1; ind2[1] = ind1[1] + 1; ind2[2] = ind1[2] + 1;
 					image->SetPixel( ind2, reader->GetOutput( )->GetPixel( ind1 ) );
 				}
 			}
@@ -256,7 +261,7 @@ void iARegionVisModule::setDensityMapDimension( int * dim )
 	setDensityMapDimension( dim[0], dim[1], dim[2] );
 }
 
-void iARegionVisModule::calculateDensityMap( QString fileName, iARegionVisModule* visModule )
+void iARegionVisModule::calculateDensityMap( QString fileName, iARegionVisModule* /*visModule*/ )
 {
 	typedef itk::Image<double, 3> DoubleImageType;
 	// read image
@@ -292,12 +297,15 @@ void iARegionVisModule::calculateDensityMap( QString fileName, iARegionVisModule
 	image->SetSpacing( newSpacing );
 	image->Allocate( );
 	image->FillBuffer( 0 );
-	for( int x = 0; x < density.size( ); x++ )
+	for (size_t x = 0; x < density.size(); ++x)
 	{
-		for( int y = 0; y < density[x].size( ); y++ )
+		for (size_t y = 0; y < density[x].size(); ++y)
 		{
-			for( int z = 0; z < density[x][y].size( ); z++ )
+			for (size_t z = 0; z < density[x][y].size(); ++z)
 			{
+				assert(x < static_cast<size_t>(std::numeric_limits<itk::IndexValueType>::max()) &&
+				       y < static_cast<size_t>(std::numeric_limits<itk::IndexValueType>::max()) &&
+				       z < static_cast<size_t>(std::numeric_limits<itk::IndexValueType>::max()));
 				DoubleImageType::IndexType ind;
 				ind[0] = x + 1; ind[1] = y + 1; ind[2] = z + 1;
 				image->SetPixel( ind, density[x][y][z] );

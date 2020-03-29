@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -79,7 +79,7 @@ void iAScalingWidget::setCursorPos(double lcp, double nlcp)
 	update();
 }
 
-void iAScalingWidget::setRange(double lowerIdx, double upperIdx, double nonlinearLowerRest, 
+void iAScalingWidget::setRange(double lowerIdx, double upperIdx, double nonlinearLowerRest,
 	double nonlinearUpperRest, double linearLowerRest, double linearUpperRest)
 {
 	m_nonlinearLowerIdx = lowerIdx;
@@ -127,7 +127,7 @@ void iAScalingWidget::initializeGL()
 
 void iAScalingWidget::paintGL()
 {
-	// TODO: whole widget is always painted (not needed if only red line moves)?  
+	// TODO: whole widget is always painted (not needed if only red line moves)?
 	if (m_nonlinearScalingVec.size() == 0)
 		return;
 
@@ -137,7 +137,7 @@ void iAScalingWidget::paintGL()
 		nonlinearBarHeight + barSpacing + linearBarHeight));
 	double rgb[3]; QColor c;
 	int leftOffset = m_nonlinearAxis->axisRect()->left();
-	
+
 	if (!m_histVisMode)
 	{
 		double linearBarStartPosX = 0, nonlinearBarStartPosX = 0, nonlinearBarWidth, linearBarWidth;
@@ -148,7 +148,7 @@ void iAScalingWidget::paintGL()
 			(m_nonlinearScalingVec[m_nonlinearLowerIdx] + m_nonlinearLowerRest));
 		painter.setRenderHint(QPainter::Antialiasing, true);
 		m_prevNonlinearBarStartPosX = 0.0, m_prevLinearBarStartPosX = 0.0;
-		
+
 		for (int hIdx = m_nonlinearLowerIdx + 1; hIdx <= m_nonlinearUpperIdx; ++hIdx)
 		{
 			if (hIdx == m_nonlinearLowerIdx + 1)
@@ -181,7 +181,7 @@ void iAScalingWidget::paintGL()
 			nonlinearBarStartPosX += nonlinearBarWidth;
 			linearBarStartPosX += linearBarWidth;
 
-			// Connection between nonlinear and linear Bar 
+			// Connection between nonlinear and linear Bar
 			QLinearGradient gradient(
 				leftOffset + m_prevLinearBarStartPosX, 20,
 				leftOffset + m_prevLinearBarStartPosX, 70);
@@ -202,12 +202,12 @@ void iAScalingWidget::paintGL()
 			m_prevNonlinearBarStartPosX = nonlinearBarStartPosX;
 			m_prevLinearBarStartPosX = linearBarStartPosX;
 		}
-		
+
 		// Linear Bar
 		painter.setBrush(QBrush(linearBarColor));
 		painter.setPen(QPen(linearBarColor));
 		painter.drawRect(leftOffset, linearBarStartPosY, linearBarStartPosX, linearBarHeight);
-		
+
 		// Cursor
 		painter.setPen(QPen(QColor(255, 128, 0), 1.5));
 		painter.drawLine(m_nonlinearBarCursorPos, nonlinearBarStartPosY, m_nonlinearBarCursorPos,
@@ -216,7 +216,7 @@ void iAScalingWidget::paintGL()
 			m_linearBarCursorPos, linearBarStartPosY);
 		painter.drawLine(m_linearBarCursorPos, linearBarStartPosY, m_linearBarCursorPos,
 			linearBarStartPosY + linearBarHeight);
-		
+
 		// Selection
 		if (!m_sel.isEmpty())
 		{
@@ -257,19 +257,19 @@ void iAScalingWidget::paintGL()
 				{
 					nonlinearBarWidth = m_nonlinearLowerRest * nonlinearScalingFactor;
 					linearBarWidth = m_linearLowerRest * linearScalingFactor;
-					
+
 				}
 				else if (histBinNbr == m_nonlinearUpperIdx)
 				{
 					nonlinearBarWidth = m_nonlinearUpperRest * nonlinearScalingFactor;
 					linearBarWidth = m_linearUpperRest * linearScalingFactor;
-				} 
+				}
 				else
 				{
 					nonlinearBarWidth = nonlinearScalingFactor;
 					linearBarWidth = (m_linearHistBinBoarderVec[histBinNbr] - m_linearHistBinBoarderVec[histBinNbr-1]) * linearScalingFactor;
 				}
-				
+
 				// Nonlinear Bar
 				m_lut->GetColor(m_histBinImpFunctAvgVec[histBinNbr], rgb);
 				c.setRgbF(rgb[0], rgb[1], rgb[2]);
@@ -282,15 +282,15 @@ void iAScalingWidget::paintGL()
 
 				nonlinearBarStartPosX += nonlinearBarWidth;
 				linearBarStartPosX += linearBarWidth;
-				
-				// Connection between nonlinear and linear Bar 
+
+				// Connection between nonlinear and linear Bar
 				QLinearGradient gradient(
 					leftOffset + m_prevLinearBarStartPosX, 20,
 					leftOffset + m_prevLinearBarStartPosX, 70);
 				gradient.setColorAt(0.0, c);
 				gradient.setColorAt(1.0, linearBarColor);
 				painter.setBrush(gradient);
-				painter.setPen(Qt::NoPen);	
+				painter.setPen(Qt::NoPen);
 				//painter.setPen(QPen(QColor(0, 0, 0)));	//debug
 				QPainterPath path;
 				path.moveTo(QPoint(leftOffset + m_prevNonlinearBarStartPosX,

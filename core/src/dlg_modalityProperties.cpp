@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -72,10 +72,17 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 	ed_SpecularLighting->setText(QString::number(vs.SpecularLighting));
 	ed_SpecularPower->setText(QString::number(vs.SpecularPower));
 	ed_ScalarOpacityUnitDistance->setText(QString::number(vs.ScalarOpacityUnitDistance));
+
+	for (QString item: RenderModeMap().values())
+	{
+		cb_RenderMode->addItem(item);
+	}
 	cb_RenderMode->setCurrentText(RenderModeMap().value(vs.RenderMode));
 
-	connect(pbOK, SIGNAL(clicked()), this, SLOT(OKButtonClicked()));
-	connect(pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
+	dsbOpacity->setValue(modality->slicerOpacity());
+
+	connect(buttonBox, &QDialogButtonBox::accepted, this, &dlg_modalityProperties::OKButtonClicked);
+	connect(buttonBox, &QDialogButtonBox::rejected, this, &dlg_modalityProperties::reject);
 }
 
 double getValueAndCheck(QLineEdit * le, QString const & caption, QStringList & notOKList)
@@ -113,23 +120,23 @@ void dlg_modalityProperties::OKButtonClicked()
 
 	m_volumeSettings.LinearInterpolation = cb_LinearInterpolation->isChecked();
 	m_volumeSettings.Shading = cb_Shading->isChecked();
-	m_volumeSettings.SampleDistance = getValueAndCheck(ed_SampleDistance, "Sample Distance", notOKValues);
-	m_volumeSettings.AmbientLighting = getValueAndCheck(ed_AmbientLighting, "AmbientLighting", notOKValues);
-	m_volumeSettings.DiffuseLighting = getValueAndCheck(ed_DiffuseLighting, "DiffuseLighting", notOKValues);
-	m_volumeSettings.SpecularLighting = getValueAndCheck(ed_SpecularLighting, "SpecularLighting", notOKValues);
-	m_volumeSettings.SpecularPower = getValueAndCheck(ed_SpecularPower, "SpecularPower", notOKValues);
-	m_volumeSettings.ScalarOpacityUnitDistance = getValueAndCheck(ed_ScalarOpacityUnitDistance, "ScalarOpacityUnitDistance", notOKValues);
+	m_volumeSettings.SampleDistance = getValueAndCheck(ed_SampleDistance, "Sample distance", notOKValues);
+	m_volumeSettings.AmbientLighting = getValueAndCheck(ed_AmbientLighting, "Ambient lighting", notOKValues);
+	m_volumeSettings.DiffuseLighting = getValueAndCheck(ed_DiffuseLighting, "Diffuse lighting", notOKValues);
+	m_volumeSettings.SpecularLighting = getValueAndCheck(ed_SpecularLighting, "Specular lighting", notOKValues);
+	m_volumeSettings.SpecularPower = getValueAndCheck(ed_SpecularPower, "Specular power", notOKValues);
+	m_volumeSettings.ScalarOpacityUnitDistance = getValueAndCheck(ed_ScalarOpacityUnitDistance, "Scalar opacity unit dist.", notOKValues);
 	m_volumeSettings.RenderMode = mapRenderModeToEnum(cb_RenderMode->currentText());
 
 	if (notOKValues.size() > 0)
 	{
-		lbError->setText(QString("One or mor values are not valid: %1").arg(notOKValues.join(",")));
+		lbError->setText(QString("Invalid value(s) detected; check: %1").arg(notOKValues.join(", ")));
 		return;
 	}
 
 	double const * oldSpacing = m_modality->spacing();
 	m_spacingChanged = false;
-	
+
 	for (int i = 0; i < 3; i++)
 	{
 		if (oldSpacing[i] != spacing[i])
@@ -143,6 +150,7 @@ void dlg_modalityProperties::OKButtonClicked()
 
 	m_modality->setOrigin(origin);
 	m_modality->setSpacing(spacing);
+	m_modality->setSlicerOpacity(dsbOpacity->value());
 	m_modality->renderer()->setOrientation(orientation);
 	//m_modality->renderer()->setPosition(position);
 	m_modality->renderer()->applySettings(m_volumeSettings);

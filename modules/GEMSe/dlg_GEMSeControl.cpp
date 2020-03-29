@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -123,49 +123,48 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	iAColorTheme const * colorTheme
 ):
 	dlg_GEMSeControlUI(parentWidget),
-	m_dlgSamplingSettings(0),
-	m_dlgProgress(0),
-	m_dlgConsensus(0),
-	m_dlgGEMSe(dlgGEMSe),
 	m_dlgModalities(dlgModalities),
+	m_dlgSamplingSettings(nullptr),
+	m_dlgProgress(nullptr),
+	m_dlgGEMSe(dlgGEMSe),
 	m_dlgSamplings(dlgSamplings),
+	m_dlgConsensus(nullptr),
 	m_simpleLabelInfo(new iASimpleLabelInfo())
 
 {
-	connect(m_dlgSamplings, SIGNAL(AddSampling()), this, SLOT(LoadSampling()));
+	connect(m_dlgSamplings, &dlg_samplings::AddSampling, this, &dlg_GEMSeControl::loadSamplingSlot);
 	m_simpleLabelInfo->setColorTheme(colorTheme);
 	cbColorThemes->addItems(iAColorThemeManager::instance().availableThemes());
 	cbColorThemes->setCurrentText(colorTheme->name());
 
-	connect(pbSample,           SIGNAL(clicked()), this, SLOT(StartSampling()));
-	connect(pbSamplingLoad,     SIGNAL(clicked()), this, SLOT(LoadSampling()));
-	connect(pbClusteringCalc,   SIGNAL(clicked()), this, SLOT(CalculateClustering()));
-	connect(pbClusteringLoad,   SIGNAL(clicked()), this, SLOT(LoadClustering()));
-	connect(pbClusteringStore,  SIGNAL(clicked()), this, SLOT(StoreClustering()));
-	connect(pbAllStore,         SIGNAL(clicked()), this, SLOT(StoreAll()));
-	connect(pbSelectHistograms, SIGNAL(clicked()), m_dlgGEMSe, SLOT(SelectHistograms()));
-	connect(pbLoadRefImage,     SIGNAL(clicked()), this, SLOT(LoadRefImg()));
-	connect(pbStoreDerivedOutput, SIGNAL(clicked()), this, SLOT(StoreDerivedOutput()));
-	connect(pbFreeMemory, SIGNAL(clicked()), this, SLOT(FreeMemory()));
+	connect(pbSample, &QPushButton::clicked, this, &dlg_GEMSeControl::startSampling);
+	connect(pbSamplingLoad, &QPushButton::clicked, this, &dlg_GEMSeControl::loadSamplingSlot);
+	connect(pbClusteringCalc, &QPushButton::clicked, this, &dlg_GEMSeControl::calculateClustering);
+	connect(pbClusteringLoad, &QPushButton::clicked, this, &dlg_GEMSeControl::loadClusteringSlot);
+	connect(pbClusteringStore, &QPushButton::clicked, this, &dlg_GEMSeControl::saveClustering);
+	connect(pbAllStore, &QPushButton::clicked, this, &dlg_GEMSeControl::saveAll);
+	connect(pbSelectHistograms, &QPushButton::clicked, m_dlgGEMSe, &dlg_GEMSe::selectHistograms);
+	connect(pbLoadRefImage, &QPushButton::clicked, this, &dlg_GEMSeControl::loadRefImgSlot);
+	connect(pbStoreDerivedOutput, &QPushButton::clicked, this, &dlg_GEMSeControl::saveDerivedOutputSlot);
+	connect(pbFreeMemory, &QPushButton::clicked, this, &dlg_GEMSeControl::freeMemory);
 
-	connect(m_dlgModalities,  SIGNAL(modalityAvailable(int)), this, SLOT(DataAvailable()));
-	connect(m_dlgModalities,  SIGNAL(modalitySelected(int)), this, SLOT(ModalitySelected(int)));
+	connect(m_dlgModalities, &dlg_modalities::modalityAvailable, this, &dlg_GEMSeControl::dataAvailable);
+	connect(m_dlgModalities, &dlg_modalities::modalitySelected, this, &dlg_GEMSeControl::modalitySelected);
 
 	connect(sbClusterViewPreviewSize, SIGNAL(valueChanged(int)), this, SLOT(SetIconSize(int)));
-	connect(sbMagicLensCount, SIGNAL(valueChanged(int)), this, SLOT(SetMagicLensCount(int)));
+	connect(sbMagicLensCount, SIGNAL(valueChanged(int)), this, SLOT(setMagicLensCount(int)));
 	connect(cbColorThemes, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(setColorTheme(const QString &)));
 	connect(cbRepresentative, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetRepresentative(const QString &)));
-	connect(cbProbabilityProbing, SIGNAL(stateChanged(int)), this, SLOT(SetProbabilityProbing(int)));
-	connect(cbCorrectnessUncertainty, SIGNAL(stateChanged(int)), this, SLOT(SetCorrectnessUncertainty(int)));
+	connect(cbProbabilityProbing, &QCheckBox::stateChanged, this, &dlg_GEMSeControl::setProbabilityProbing);
+	connect(cbCorrectnessUncertainty, &QCheckBox::stateChanged, this, &dlg_GEMSeControl::setCorrectnessUncertainty);
 
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	connect(mdiChild, SIGNAL(transferFunctionChanged()), this, SLOT(DataTFChanged()));
-	
-	DataAvailable();
+	connect(mdiChild, &MdiChild::transferFunctionChanged, this, &dlg_GEMSeControl::dataTFChanged);
+
+	dataAvailable();
 }
 
-
-void dlg_GEMSeControl::StartSampling()
+void dlg_GEMSeControl::startSampling()
 {
 	if (!m_dlgModalities->modalities()->size())
 	{
@@ -214,10 +213,10 @@ void dlg_GEMSeControl::StartSampling()
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 		mdiChild->tabifyDockWidget(this, m_dlgProgress);
-		connect(m_sampler.data(), SIGNAL(finished()), this, SLOT(SamplingFinished()) );
-		connect(m_sampler.data(), SIGNAL(Progress(int)), m_dlgProgress, SLOT(SetProgress(int)) );
-		connect(m_sampler.data(), SIGNAL(Status(QString const &)), m_dlgProgress, SLOT(SetStatus(QString const &)) );
-		
+		connect(m_sampler.data(), &iAImageSampler::finished, this, &dlg_GEMSeControl::samplingFinished);
+		connect(m_sampler.data(), &iAImageSampler::Progress, m_dlgProgress, &dlg_progress::setProgress );
+		connect(m_sampler.data(), &iAImageSampler::Status, m_dlgProgress, &dlg_progress::setStatus );
+
 		// trigger parameter set creation & sampling (in foreground with progress bar for now)
 		m_sampler->start();
 		m_dlgSamplingSettings->GetValues(m_samplingSettings);
@@ -226,8 +225,7 @@ void dlg_GEMSeControl::StartSampling()
 	m_dlgSamplingSettings = 0;
 }
 
-
-void dlg_GEMSeControl::LoadSampling()
+void dlg_GEMSeControl::loadSamplingSlot()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Sampling"),
 		QString(), // TODO get directory of current file
@@ -251,11 +249,10 @@ void dlg_GEMSeControl::LoadSampling()
 		}
 		labelCount = lblCountInput.getIntValue(0);
 	}
-	LoadSampling(fileName, labelCount, m_dlgSamplings->GetSamplings()->size());
+	loadSampling(fileName, labelCount, m_dlgSamplings->GetSamplings()->size());
 }
 
-
-bool dlg_GEMSeControl::LoadSampling(QString const & fileName, int labelCount, int datasetID)
+bool dlg_GEMSeControl::loadSampling(QString const & fileName, int labelCount, int datasetID)
 {
 	m_simpleLabelInfo->setLabelCount(labelCount);
 	if (fileName.isEmpty())
@@ -276,8 +273,7 @@ bool dlg_GEMSeControl::LoadSampling(QString const & fileName, int labelCount, in
 	return true;
 }
 
-
-void dlg_GEMSeControl::SamplingFinished()
+void dlg_GEMSeControl::samplingFinished()
 {
 	// retrieve results from sampler
 	QSharedPointer<iASamplingResults> samplingResults = m_sampler->GetResults();
@@ -298,8 +294,7 @@ void dlg_GEMSeControl::SamplingFinished()
 	EnableSamplingDependantUI();
 }
 
-
-void dlg_GEMSeControl::LoadClustering()
+void dlg_GEMSeControl::loadClusteringSlot()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load"),
 		QString(), // TODO get directory of current file
@@ -307,12 +302,11 @@ void dlg_GEMSeControl::LoadClustering()
 	if (!fileName.isEmpty())
 	{
 		m_cltFile = fileName;
-		LoadClustering(fileName);
+		loadClustering(fileName);
 	}
 }
 
-
-bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
+bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 {
 	if (m_simpleLabelInfo->count() < 2)
 	{
@@ -362,8 +356,7 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 	return true;
 }
 
-
-void dlg_GEMSeControl::CalculateClustering()
+void dlg_GEMSeControl::calculateClustering()
 {
 	if (m_dlgSamplings->SamplingCount() == 0)
 	{
@@ -401,14 +394,13 @@ void dlg_GEMSeControl::CalculateClustering()
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 	mdiChild->tabifyDockWidget(this, m_dlgProgress);
-	connect(m_clusterer.data(), SIGNAL(finished()), this, SLOT(ClusteringFinished()) );
-	connect(m_clusterer.data(), SIGNAL(Progress(int)), m_dlgProgress, SLOT(SetProgress(int)) );
-	connect(m_clusterer.data(), SIGNAL(Status(QString const &)), m_dlgProgress, SLOT(SetStatus(QString const &)) );
+	connect(m_clusterer.data(), &iAImageClusterer::finished, this, &dlg_GEMSeControl::clusteringFinished);
+	connect(m_clusterer.data(), &iAImageClusterer::Progress, m_dlgProgress, &dlg_progress::setProgress);
+	connect(m_clusterer.data(), &iAImageClusterer::Status, m_dlgProgress, &dlg_progress::setStatus);
 	m_clusterer->start();
 }
 
-
-void dlg_GEMSeControl::ClusteringFinished()
+void dlg_GEMSeControl::clusteringFinished()
 {
 	delete m_dlgProgress;
 	m_dlgProgress = 0;
@@ -436,7 +428,7 @@ void dlg_GEMSeControl::ClusteringFinished()
 		{
 			mdiChild->saveProject(m_outputFolder + "/" + iASEAFile::DefaultModalityFileName);
 		}
-		StoreGEMSeProject(m_outputFolder + "/sampling.sea", "");
+		saveGEMSeProject(m_outputFolder + "/sampling.sea", "");
 	}
 	m_dlgGEMSe->SetTree(
 		m_clusterer->GetResult(),
@@ -449,8 +441,7 @@ void dlg_GEMSeControl::ClusteringFinished()
 	m_dlgConsensus->EnableUI();
 }
 
-
-void dlg_GEMSeControl::StoreClustering()
+void dlg_GEMSeControl::saveClustering()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save clustering"),
 		QString(), // TODO get directory of current file
@@ -461,15 +452,13 @@ void dlg_GEMSeControl::StoreClustering()
 	}
 }
 
-
-void dlg_GEMSeControl::DataAvailable()
+void dlg_GEMSeControl::dataAvailable()
 {
 	pbSample->setEnabled(m_dlgModalities->modalities()->size() > 0);
 	pbSamplingLoad->setEnabled(m_dlgModalities->modalities()->size() > 0);
 }
 
-
-void dlg_GEMSeControl::StoreAll()
+void dlg_GEMSeControl::saveAll()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save all"),
 		QString(), // TODO get directory of current file
@@ -478,11 +467,10 @@ void dlg_GEMSeControl::StoreAll()
 	{
 		return;
 	}
-	StoreGEMSeProject(fileName, m_dlgGEMSe->GetSerializedHiddenCharts());
+	saveGEMSeProject(fileName, m_dlgGEMSe->GetSerializedHiddenCharts());
 }
 
-
-void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName, QString const & hiddenCharts)
+void dlg_GEMSeControl::saveGEMSeProject(QString const & fileName, QString const & hiddenCharts)
 {
 	QMap<int, QString> samplingFilenames;
 	for (QSharedPointer<iASamplingResults> sampling : *m_dlgSamplings->GetSamplings())
@@ -490,7 +478,7 @@ void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName, QString const
 		samplingFilenames.insert(sampling->GetID(), sampling->GetFileName());
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	iASEAFile metaFile(
+	iASEAFile seaFile(
 		m_dlgModalities->modalities()->fileName(),
 		m_simpleLabelInfo->count(),
 		samplingFilenames,
@@ -501,9 +489,31 @@ void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName, QString const
 		m_simpleLabelInfo->colorTheme()->name(),
 		m_dlgGEMSe->GetLabelNames()
 	);
-	metaFile.Store(fileName);
+	seaFile.save(fileName);
 }
 
+void dlg_GEMSeControl::saveProject(QSettings & metaFile, QString const & fileName)
+{
+	// TODO: remove duplication between saveProject and saveGEMSeProject!
+	QMap<int, QString> samplingFilenames;
+	for (QSharedPointer<iASamplingResults> sampling : *m_dlgSamplings->GetSamplings())
+	{
+		samplingFilenames.insert(sampling->GetID(), sampling->GetFileName());
+	}
+	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+	iASEAFile seaFile(
+		"", // don't store modalities here!
+		m_simpleLabelInfo->count(),
+		samplingFilenames,
+		m_cltFile,
+		mdiChild->layoutName(),
+		leRefImage->text(),
+		m_dlgGEMSe->GetSerializedHiddenCharts(),
+		m_simpleLabelInfo->colorTheme()->name(),
+		m_dlgGEMSe->GetLabelNames()
+	);
+	seaFile.save(metaFile, fileName);
+}
 
 void dlg_GEMSeControl::EnableClusteringDependantUI()
 {
@@ -528,25 +538,22 @@ void dlg_GEMSeControl::EnableSamplingDependantUI()
 	pbStoreDerivedOutput->setEnabled(true);
 }
 
-
-void dlg_GEMSeControl::ModalitySelected(int modalityIdx)
+void dlg_GEMSeControl::modalitySelected(int modalityIdx)
 {
 	vtkSmartPointer<vtkImageData> imgData = m_dlgModalities->modalities()->get(modalityIdx)->image();
 	m_dlgGEMSe->ShowImage(imgData);
 }
 
-
 void ExportClusterIDs(QSharedPointer<iAImageTreeNode> node, std::ostream & out)
 {
 	VisitLeafs(node.data(), [&](iAImageTreeLeaf const * leaf)
 	{
-		static int curr = 0;
+		//static int curr = 0;
 		out << leaf->GetDatasetID() << "\t" << leaf->GetID() << "\n";
 	});
 }
 
-
-void dlg_GEMSeControl::ExportIDs()
+void dlg_GEMSeControl::exportIDs()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Export cluster IDs"),
 		QString(), // TODO get directory of current file
@@ -560,12 +567,10 @@ void dlg_GEMSeControl::ExportIDs()
 	ExportClusterIDs(cluster, out);
 }
 
-
 void dlg_GEMSeControl::SetIconSize(int newSize)
 {
 	m_dlgGEMSe->SetIconSize(newSize);
 }
-
 
 void dlg_GEMSeControl::setColorTheme(const QString &themeName)
 {
@@ -573,7 +578,6 @@ void dlg_GEMSeControl::setColorTheme(const QString &themeName)
 	m_simpleLabelInfo->setColorTheme(theme);
 	m_dlgGEMSe->setColorTheme(theme, m_simpleLabelInfo.data());
 }
-
 
 void dlg_GEMSeControl::SetRepresentative(const QString & reprType)
 {
@@ -593,7 +597,7 @@ void dlg_GEMSeControl::SetRepresentative(const QString & reprType)
 	}
 }
 
-void dlg_GEMSeControl::LoadRefImg()
+void dlg_GEMSeControl::loadRefImgSlot()
 {
 	QString refFileName = QFileDialog::getOpenFileName(
 		this,
@@ -603,10 +607,10 @@ void dlg_GEMSeControl::LoadRefImg()
 	);
 	if (refFileName.isEmpty())
 		return;
-	LoadRefImg(refFileName);
+	loadRefImg(refFileName);
 }
 
-bool dlg_GEMSeControl::LoadRefImg(QString const & refImgName)
+bool dlg_GEMSeControl::loadRefImg(QString const & refImgName)
 {
 	try
 	{
@@ -630,7 +634,7 @@ bool dlg_GEMSeControl::LoadRefImg(QString const & refImgName)
 	return true;
 }
 
-void dlg_GEMSeControl::StoreDerivedOutput()
+void dlg_GEMSeControl::saveDerivedOutputSlot()
 {
 	SamplingVectorPtr samplings = m_dlgSamplings->GetSamplings();
 	for (int i = 0; i < samplings->size(); ++i)
@@ -646,12 +650,11 @@ void dlg_GEMSeControl::StoreDerivedOutput()
 		{
 			return;
 		}
-		StoreDerivedOutput(derivedOutputFileName, attributeDescriptorOutputFileName, samplings->at(i));
+		saveDerivedOutput(derivedOutputFileName, attributeDescriptorOutputFileName, samplings->at(i));
 	}
 }
 
-
-void dlg_GEMSeControl::StoreDerivedOutput(
+void dlg_GEMSeControl::saveDerivedOutput(
 	QString const & derivedOutputFileName,
 	QString const & attributeDescriptorOutputFileName,
 	QSharedPointer<iASamplingResults> results)
@@ -672,8 +675,7 @@ void dlg_GEMSeControl::StoreDerivedOutput(
 	results->StoreAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
 }
 
-
-void dlg_GEMSeControl::ExportAttributeRangeRanking()
+void dlg_GEMSeControl::exportAttributeRangeRanking()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Store Attribute Range Rankings"),
 		QString(), // TODO get directory of current file
@@ -684,8 +686,7 @@ void dlg_GEMSeControl::ExportAttributeRangeRanking()
 	}
 }
 
-
-void dlg_GEMSeControl::ExportRankings()
+void dlg_GEMSeControl::exportRankings()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Store Rankings"),
 		QString(), // TODO get directory of current file
@@ -696,8 +697,7 @@ void dlg_GEMSeControl::ExportRankings()
 	}
 }
 
-
-void dlg_GEMSeControl::ImportRankings()
+void dlg_GEMSeControl::importRankings()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Rankings"),
 		QString(), // TODO get directory of current file
@@ -708,46 +708,43 @@ void dlg_GEMSeControl::ImportRankings()
 	}
 }
 
-void dlg_GEMSeControl::SetSerializedHiddenCharts(QString const & hiddenCharts)
+void dlg_GEMSeControl::setSerializedHiddenCharts(QString const & hiddenCharts)
 {
 	m_dlgGEMSe->SetSerializedHiddenCharts(hiddenCharts);
 }
 
-
-void dlg_GEMSeControl::SetMagicLensCount(int count)
+void dlg_GEMSeControl::setMagicLensCount(int count)
 {
-	m_dlgGEMSe->SetMagicLensCount(count);
+	m_dlgGEMSe->setMagicLensCount(count);
 }
 
-
-void dlg_GEMSeControl::FreeMemory()
+void dlg_GEMSeControl::freeMemory()
 {
-	m_dlgGEMSe->FreeMemory();
+	m_dlgGEMSe->freeMemory();
 }
 
-
-void dlg_GEMSeControl::SetProbabilityProbing(int state)
+void dlg_GEMSeControl::setProbabilityProbing(int state)
 {
 	if (!m_dlgGEMSe)
 		return;
 	m_dlgGEMSe->SetProbabilityProbing(state == Qt::Checked);
 }
 
-void dlg_GEMSeControl::SetCorrectnessUncertainty(int state)
+void dlg_GEMSeControl::setCorrectnessUncertainty(int state)
 {
 	if (!m_dlgGEMSe)
 		return;
 	m_dlgGEMSe->SetCorrectnessUncertaintyOverlay(state == Qt::Checked);
 }
 
-void dlg_GEMSeControl::DataTFChanged()
+void dlg_GEMSeControl::dataTFChanged()
 {
 	if (!m_dlgGEMSe)
 		return;
 	m_dlgGEMSe->DataTFChanged();
 }
 
-void dlg_GEMSeControl::SetLabelInfo(QString const & colorTheme, QString const & labelNames)
+void dlg_GEMSeControl::setLabelInfo(QString const & colorTheme, QString const & labelNames)
 {
 	m_simpleLabelInfo->setLabelNames(labelNames.split(","));
 	int colorThemeIdx = cbColorThemes->findText(colorTheme);

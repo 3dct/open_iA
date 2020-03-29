@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -35,8 +35,8 @@
 #include <map>
 #include <vector>
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_IOVPP;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_IOVMO;
+typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_PolarPlot;
+typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_MeanObject;
 
 class iA3DObjectVis;
 class iABlobCluster;
@@ -100,7 +100,8 @@ class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 	Q_OBJECT
 public:
 	dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
-		vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t, std::vector<iAVec3f> > & curvedFiberFileName);
+		vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
+		std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip);
 	~dlg_FeatureScout();
 	void changeFeatureScout_Options(int idx);
 private slots:
@@ -137,7 +138,7 @@ private slots:
 	void saveStl();
 	void updateStlProgress(int i);
 	void updateMarProgress(int i);
-	void renderLUTChanges(QSharedPointer<iALookupTable> lut, int colInd);
+	void renderLUTChanges(QSharedPointer<iALookupTable> lut, size_t colInd);
 private:
 	//create labelled output image based on defined classes
 	template <class T> void CreateLabelledOutputMask(iAConnector & con, const QString & fOutPath);
@@ -175,10 +176,10 @@ private:
 	QList<QStandardItem *> prepareRow(const QString &first, const QString &second, const QString &third);
 	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item);
 	void writeWisetex(QXmlStreamWriter *writer);
-	void autoAddClass(int NbOfClasses);
+	//void autoAddClass(int NbOfClasses);
 	bool OpenBlobVisDialog();
 	//! @{ 3D-rendering-related methods:
-	void SingleRendering(int idx = -10000);               //!< render a single fiber or a single class
+	void SingleRendering(int objectID = -10000);          //!< render a single object (if objectID > 0) or a single class
 	void MultiClassRendering();                           //!< multi-class rendering
 	void RenderSelection(std::vector<size_t> const & selInds); //!< render a selection (+ the class that contains it)
 	void RenderLengthDistribution();                      //!< render fiber-length distribution
@@ -193,47 +194,47 @@ private:
 	//! @}
 
 	//! @{ members referencing MdiChild, used for 3D rendering
-	MdiChild *activeChild;
+	MdiChild* m_activeChild;
 	//! @}
 
-	int elementsCount;                              //!< Number of elements(=columns) in csv inputTable
-	int objectsCount;                               //!< Number of objects in the specimen
-	iAFeatureScoutObjectType filterID;              //!< Type of objects that are shown
-	bool draw3DPolarPlot;                           //!< Whether the polar plot is drawn in 3D, set only in constructor, default false
+	int m_elementCount;                             //!< Number of elements(=columns) in csv inputTable
+	int m_objectCount;                             //!< Number of objects in the specimen
+	iAFeatureScoutObjectType m_filterID;            //!< Type of objects that are shown
+	bool m_draw3DPolarPlot;                         //!< Whether the polar plot is drawn in 3D, set only in constructor, default false
 	int m_renderMode;                               //!< Indicates what is currently shown: single classes, or special rendering (multi-class, orientation, ...)
 	bool m_singleObjectSelected;                    //!< Indicates whether a single object or a whole class is selected (if m_renderMode is rmSingleClass)
-	int visualization;                              //!< 3D visualization being used (a value out of iACsvConfig::VisualizationType
+	int m_visualization;                            //!< 3D visualization being used (a value out of iACsvConfig::VisualizationType
 	const QString m_sourcePath;                     //!< folder of file currently opened
 
 	//! Input csv table with all objects.
-	vtkSmartPointer<vtkTable> csvTable;
+	vtkSmartPointer<vtkTable> m_csvTable;
 	//! Table of elements (=parameters) with min, max and average computed for each object in the current class.
-	vtkSmartPointer<vtkTable> elementTable;
+	vtkSmartPointer<vtkTable> m_elementTable;
 	//! Table for the objects shown in the parallel coordinates view (i.e., the objects of the current class)
-	vtkSmartPointer<vtkTable> chartTable;
+	vtkSmartPointer<vtkTable> m_chartTable;
 
-	QList<vtkSmartPointer<vtkTable> > tableList;    //!< The data table for each class.
+	QList<vtkSmartPointer<vtkTable> > m_tableList;  //!< The data table for each class.
 	QList<QColor> m_colorList;                      //!< The color for each class.
-	std::vector<char> columnVisibility;             //!< Element(=column) visibility list
+	std::vector<char> m_columnVisibility;           //!< Element(=column) visibility list
 	vtkSmartPointer<vtkLookupTable> m_multiClassLUT;//!< Color lookup table for multi-class rendering in parallel coordinate view
-	QTreeView* classTreeView;                       //!< Class tree view
-	QTableView* elementTableView;                   //!< Element(=column) table view
-	QStandardItemModel* elementTableModel;          //!< Model for element table
-	QStandardItemModel* classTreeModel;             //!< Model for class tree view (->invisibleRootItem->child(0,...,i, 0,..,2))
-	QStandardItem *activeClassItem;                 //!< Currently active class item in classTreeView/Model
+	QTreeView* m_classTreeView;                     //!< Class tree view
+	QTableView* m_elementTableView;                 //!< Element(=column) table view
+	QStandardItemModel* m_classTreeModel;           //!< Model for class tree view (->invisibleRootItem->child(0,...,i, 0,..,2))
+	QStandardItemModel* m_elementTableModel;        //!< Model for element table
+	QStandardItem* m_activeClassItem;               //!< Currently active class item in classTreeView/Model
 
 	//! @{ context menu actions for classTreeView
-	QAction *blobRendering;
-	QAction *blobRemoveRendering;
-	QAction *objectDelete;
-	QAction *objectAdd;
-	QAction *saveBlobMovie;
+	QAction *m_blobRendering;
+	QAction *m_blobRemoveRendering;
+	QAction *m_objectDelete;
+	QAction *m_objectAdd;
+	QAction *m_saveBlobMovie;
 	//! @}
 
 	//! @{ Parallel coordinates view
-	vtkSmartPointer<vtkContextView> pcView;
-	vtkSmartPointer<vtkChartParallelCoordinates> pcChart;
-	vtkSmartPointer<vtkEventQtSlotConnect> pcConnections;
+	vtkSmartPointer<vtkContextView> m_pcView;
+	vtkSmartPointer<vtkChartParallelCoordinates> m_pcChart;
+	vtkSmartPointer<vtkEventQtSlotConnect> m_pcConnections;
 	float m_pcLineWidth;              //!< width of the line for each object in Parallel Coordinates
 	int m_pcFontSize;                 //!< current font size of titles and tick labels
 	int m_pcTickCount;                //!< current tick count
@@ -242,18 +243,18 @@ private:
 
 	vtkSmartPointer<vtkContextView> m_lengthDistrView;
 
-	iARenderer *m_renderer;
-	iABlobManager *blobManager;
-	QMap <QString, iABlobCluster*> blobMap;
+	iARenderer* m_renderer;
+	iABlobManager* m_blobManager;
+	QMap <QString, iABlobCluster*> m_blobMap;
 
 	//! @{ polar plot view
-	int gPhi, gThe;
-	float PolarPlotPhiResolution, PolarPlotThetaResolution;
+	int m_gPhi, m_gThe;
+	float m_PolarPlotPhiResolution, m_PolarPlotThetaResolution;
 	//! @}
 
-	dlg_blobVisualization *blobVisDialog;
+	dlg_blobVisualization* m_blobVisDialog;
 
-	iAVtkOldWidget *pcWidget, *m_polarPlotWidget, *meanObjectWidget, *m_lengthDistrWidget;
+	iAVtkOldWidget* m_pcWidget, *m_polarPlotWidget, * m_meanObjectWidget, *m_lengthDistrWidget;
 
 	vtkSmartPointer<vtkContextView> m_dvContextView;
 
@@ -262,11 +263,11 @@ private:
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarWidgetPP;
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarWidgetFLD;
 
-	int mousePressedPos [2];
+	int m_mousePressPos[2];
 
-	iADockWidgetWrapper * iovPC, *iovDV, *iovSPM;
-	dlg_IOVPP * iovPP;
-	dlg_IOVMO * iovMO;
+	iADockWidgetWrapper * m_dwPC, *m_dwDV, *m_dwSPM;
+	dlg_PolarPlot * m_dwPP;
+	dlg_MeanObject * m_dwMO;
 
 	//Mean Object Rendering
 	iAMeanObjectTFView* m_motfView;

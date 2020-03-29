@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,6 +27,7 @@
 #include "iARenderSettings.h"
 #include "iASlicerSettings.h"
 #include "iAVolumeSettings.h"
+#include "io/iARawFileParameters.h"
 
 #include <QMainWindow>
 #include <QMdiSubWindow>
@@ -40,7 +41,6 @@ class QDomElement;
 class QDomNode;
 class QMenu;
 class QMdiArea;
-class QSignalMapper;
 class QLabel;
 class QSplashScreen;
 
@@ -53,18 +53,19 @@ class iAModuleDispatcher;
 class iAXmlSettings;
 class MdiChild;
 
+//! Application main window, provides access to all global graphical user interface elements.
 class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
 {
 	Q_OBJECT
 
 public:
-	MainWindow(QString const & appName, QString const & version, QString const & splashImage);
-	~MainWindow();
-	static int runGUI(int argc, char * argv[], QString const & appName, QString const & version,
+	MainWindow(QString const & appName, QString const & version, QString const& buildInformation, QString const & splashImage);
+	~MainWindow() override;
+	static int runGUI(int argc, char * argv[], QString const & appName, QString const & version, QString const& buildInformation,
 		QString const & splashPath, QString const & iconPath);
 	static void initResources();
 
-	void setPath(QString p);
+	void setPath(QString const & p);
 	QString const & path();
 	void setCurrentFile(const QString &fileName);
 	QString const & currentFile();  //!< deprecated. Use a specific mdichilds, or even better, an mdichilds dlg_modalities methods instead!
@@ -122,6 +123,7 @@ public:
 	MdiChild *createMdiChild(bool unsavedChanges);
 	void closeMdiChild(MdiChild* child);
 	void closeAllSubWindows();
+	void updateInteractionModeControls(int mode);
 
 protected:
 	void closeEvent(QCloseEvent *event) override;
@@ -162,8 +164,11 @@ private slots:
 	void changeColor();
 	void resetView();
 	void resetTrf();
+	void changeInteractionMode(bool isChecked);
+	void meshDataMovable(bool isChecked);
 	void toggleSnakeSlicer(bool isChecked);
 	void toggleMagicLens(bool isChecked);
+	void toggleMagicLens3D(bool isChecked);
 	void rendererCamPosition();
 	void raycasterAssignIso();
 	void raycasterSaveCameraSettings();
@@ -174,12 +179,12 @@ private slots:
 	void toggleChildStatusBar();
 	void toggleToolbar();
 	void about();
+	void buildInformation();
 	void wiki();
 	void saveLayout();
 	void resetLayout();
 	void deleteLayout();
 	void toggleSliceProfile(bool isChecked);
-	void childActivatedSlot(QMdiSubWindow *wnd);
 	void updateMenus();
 	void updateWindowMenu();
 	void setActiveSubWindow(QWidget *window);
@@ -217,7 +222,6 @@ private:
 	QAction *m_separatorAct;
 	QAction *m_recentFileActs[MaxRecentFiles];
 	QActionGroup *m_slicerToolsGroup;
-	QSignalMapper *m_windowMapper;
 	QString m_qssName;
 	iAVolumeSettings m_defaultVolumeSettings;
 	iARenderSettings m_defaultRenderSettings;
@@ -225,14 +229,12 @@ private:
 	iAPreferences m_defaultPreferences;
 
 	//! @{ Open with DataType Conversion settings
-	int m_owdtcs,
-		m_owdtcx, m_owdtcy, m_owdtcz,
-		m_owdtcxori, m_owdtcyori, m_owdtczori,
+	unsigned int m_owdtcs;
+	int m_owdtcxori, m_owdtcyori, m_owdtczori,
 		m_owdtcxsize, m_owdtcysize, m_owdtczsize,
 		m_owdtcdov;
-	double m_owdtcsx, m_owdtcsy, m_owdtcsz,
-		m_owdtcoutmin, m_owdtcoutmax;
-	float m_owdtcmin, m_owdtcmax;
+	iARawFileParameters m_rawFileParams;
+	double m_owdtcoutmin, m_owdtcoutmax, m_owdtcmin, m_owdtcmax;
 	//! @}
 
 	bool m_lpCamera, m_lpSliceViews, m_lpTransferFunction, m_lpProbabilityFunctions, m_lpPreferences, m_lpRenderSettings, m_lpSlicerSettings;
@@ -244,17 +246,19 @@ private:
 	QComboBox * m_layout;
 	QScopedPointer<iAModuleDispatcher> m_moduleDispatcher;
 	QStringList m_layoutNames;
-	QString m_gitVersion;
+	QString m_gitVersion, m_buildInformation;
 };
 
 template <typename T> QList<T*> MainWindow::childList(QMdiArea::WindowOrder order)
 {
 	QList<T*> res;
-	foreach(QMdiSubWindow *window, mdiArea->subWindowList(order))
+	for (QMdiSubWindow *window: mdiArea->subWindowList(order))
 	{
 		T * child = dynamic_cast<T*>(window->widget());
 		if (child)
+		{
 			res.append(child);
+		}
 	}
 	return res;
 }
@@ -263,6 +267,8 @@ template <typename T> T * MainWindow::activeChild()
 {
 	int subWndCnt = childList<T>().size();
 	if (subWndCnt > 0)
+	{
 		return childList<T>(QMdiArea::ActivationHistoryOrder).last();
+	}
 	return nullptr;
 }

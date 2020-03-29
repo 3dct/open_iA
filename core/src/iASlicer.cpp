@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -48,7 +48,6 @@
 #include "mdichild.h"
 
 #include <vtkActor.h>
-//#include <vtkAlgorithmOutput.h>
 #include <vtkAxisActor2D.h>
 #include <vtkCamera.h>
 #include <vtkCommand.h>
@@ -66,7 +65,6 @@
 #include <vtkImageResample.h>
 #include <vtkImageReslice.h>
 #include <vtkInteractorStyleImage.h>
-//#include <vtkInteractorStyleTrackballActor.h>
 #include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
@@ -75,13 +73,13 @@
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkPoints.h>
-#include <vtkProperty.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 #include <vtkQImageToImageSource.h>
 #include <vtkRegularPolygonSource.h>
-#include <vtkRendererCollection.h>
-#include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarRepresentation.h>
 #include <vtkScalarBarWidget.h>
@@ -98,40 +96,47 @@
 #include <QFileDialog>
 #include <QIcon>
 #include <QKeyEvent>
-#include <qmath.h>
+#include <QtMath>
 #include <QMenu>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QString>
+#include <QtGlobal> // for QT_VERSION
 
 #include <cassert>
 
-
+//! Custom interactor style for slicers, for disabling certain vtk interactions we do differently.
 class iAInteractorStyleImage : public vtkInteractorStyleImage
 {
 public:
 	static iAInteractorStyleImage *New();
-	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage);
+	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage)
 
 	//! Disable "window-level" and rotation interaction (anything but shift-dragging)
 	void OnLeftButtonDown() override
 	{
 		if (!this->Interactor->GetShiftKey())
+		{
 			return;
+		}
 		vtkInteractorStyleImage::OnLeftButtonDown();
 	}
 	//! @{ shift and control + mousewheel are used differently - don't use them for zooming!
 	void OnMouseWheelForward() override
 	{
 		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
+		{
 			return;
+		}
 		vtkInteractorStyleImage::OnMouseWheelForward();
 	}
 	void OnMouseWheelBackward() override
 	{
 		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
+		{
 			return;
+		}
 		vtkInteractorStyleImage::OnMouseWheelBackward();
 	}
 	//! @}
@@ -139,7 +144,9 @@ public:
 	void OnRightButtonDown() override
 	{
 		if (!m_rightButtonDragZoomEnabled)
+		{
 			return;
+		}
 		vtkInteractorStyleImage::OnRightButtonDown();
 	}
 	void SetRightButtonDragZoomEnabled(bool enabled)
@@ -162,9 +169,9 @@ public:
 		}
 	}
 	*/
+
 private:
 	bool m_rightButtonDragZoomEnabled = true;
-	bool m_rotionEnabled = false;
 };
 
 vtkStandardNewMacro(iAInteractorStyleImage);
@@ -423,8 +430,9 @@ iASlicer::~iASlicer()
 	m_interactorStyle->Delete();
 
 	if (m_cameraOwner)
+	{
 		m_camera->Delete();
-
+	}
 	if (m_decorations)
 	{
 		delete m_snakeSpline;
@@ -453,7 +461,9 @@ void iASlicer::setMode( const iASlicerMode mode )
 {
 	m_mode = mode;
 	for (auto ch : m_channels)
+	{
 		ch->updateResliceAxesDirectionCosines(m_mode);
+	}
 	updateBackground();
 }
 
@@ -476,7 +486,9 @@ void iASlicer::enableInteractor()
 void iASlicer::update()
 {
 	if (!isVisible())
+	{
 		return;
+	}
 	for (auto ch : m_channels)
 	{
 		ch->updateMapper();
@@ -486,7 +498,9 @@ void iASlicer::update()
 	m_interactor->Render();
 	m_ren->Render();
 	if (m_magicLens)
+	{
 		m_magicLens->render();
+	}
 	iAVtkWidget::update();
 
 	emit updateSignal();
@@ -513,16 +527,22 @@ void iASlicer::setSliceNumber( int sliceNumber )
 	//       then we wouldn'T need image spacing and origin below
 	//       (which don't make too much sense anyway, if it's not the same between loaded datasets)
 	if (!hasChannel(0))
+	{
 		return;
+	}
 	m_sliceNumber = sliceNumber;
 	double xyz[3] = { 0.0, 0.0, 0.0 };
 	xyz[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z)] = sliceNumber;
 	if (m_roiActive)
+	{
 		m_roiActor->SetVisibility(m_roiSlice[0] <= m_sliceNumber && m_sliceNumber < (m_roiSlice[1]));
+	}
 	double const * spacing = m_channels[0]->input()->GetSpacing();
 	double const * origin = m_channels[0]->input()->GetOrigin();
 	for (auto ch : m_channels)
+	{
 		ch->setResliceAxesOrigin(origin[0] + xyz[0] * spacing[0], origin[1] + xyz[1] * spacing[1], origin[2] + xyz[2] * spacing[2]);
+	}
 	updateMagicLensColors();
 	update();
 	emit sliceNumberChanged( m_mode, sliceNumber );
@@ -536,7 +556,9 @@ void iASlicer::setup( iASingleSlicerSettings const & settings )
 		channel->setInterpolate(settings.LinearInterpolation);
 	}
 	if (m_magicLens)
+	{
 		m_magicLens->setInterpolate(settings.LinearInterpolation);
+	}
 	setMouseCursor(settings.CursorMode);
 	setContours(settings.NumberOfIsoLines, settings.MinIsoValue, settings.MaxIsoValue);
 	showIsolines(settings.ShowIsoLines);
@@ -549,7 +571,9 @@ void iASlicer::setup( iASingleSlicerSettings const & settings )
 		m_textInfo->GetActor()->SetVisibility(settings.ShowTooltip);
 	}
 	if (m_magicLens)
+	{
 		updateMagicLens();
+	}
 	m_renWin->Render();
 }
 
@@ -621,12 +645,12 @@ void iASlicer::setMagicLensInput(uint id)
 		DEBUG_LOG("SetMagicLensInput called on slicer which doesn't have a magic lens!");
 		return;
 	}
-	iAChannelSlicerData * data = channel(id);
-	assert(data);
-	if (!data)
+	iAChannelSlicerData * d = channel(id);
+	assert(d);
+	if (!d)
 		return;
 	m_magicLensInput = id;
-	m_magicLens->addInput(data->reslicer(), data->colorTF(), data->name());
+	m_magicLens->addInput(d->reslicer(), d->colorTF(), d->name());
 	update();
 }
 
@@ -683,7 +707,6 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 		setScalarBarTF(chData.colorTF());
 		updatePositionMarkerExtent();
 		// TODO: update required for new channels other than to export? export all channels?
-		int const * imgExt = image->GetExtent();
 		double unitSpacing = std::max(std::max(imgSpc[0], imgSpc[1]), imgSpc[2]);
 		double const * spc = m_channels[id]->output()->GetSpacing();
 		int    const * dim = m_channels[id]->output()->GetDimensions();
@@ -744,7 +767,7 @@ void iASlicer::removeImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 	m_ren->RemoveActor(imgActor);
 }
 
-void iASlicer::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
+void iASlicer::blend(vtkAlgorithmOutput *data1, vtkAlgorithmOutput *data2,
 	double opacity, double * range)
 {
 	if (!hasChannel(0))
@@ -760,7 +783,7 @@ void iASlicer::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
 	vtkSmartPointer<vtkImageBlend> imgBlender = vtkSmartPointer<vtkImageBlend>::New();
 	imgBlender->SetOpacity( 0, opacity );
 	imgBlender->SetOpacity( 1, 1.0-opacity );
-	imgBlender->AddInputConnection(data);
+	imgBlender->AddInputConnection(data1);
 	imgBlender->AddInputConnection(data2);
 	imgBlender->UpdateInformation();
 	imgBlender->Update();
@@ -806,7 +829,9 @@ void iASlicer::setResliceAxesOrigin(double x, double y, double z)
 	if (m_interactor->GetEnabled())
 	{
 		for (auto ch : m_channels)
+		{
 			ch->setResliceAxesOrigin(x, y, z);
+		}
 		m_interactor->Render();
 	}
 }
@@ -814,7 +839,9 @@ void iASlicer::setResliceAxesOrigin(double x, double y, double z)
 void iASlicer::setPositionMarkerCenter(double x, double y)
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 
 	if (m_interactor->GetEnabled() && m_showPositionMarker)
 	{
@@ -828,23 +855,31 @@ void iASlicer::setPositionMarkerCenter(double x, double y)
 void iASlicer::showIsolines(bool s)
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 	for (auto ch : m_channels)
+	{
 		ch->setShowContours(m_ren, s);
+	}
 }
 
 void iASlicer::showPosition(bool s)
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 	m_showPositionMarker = s;
 }
 
-void iASlicer::saveSliceMovie(QString const & fileName, int qual /*= 2*/)
+void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 {
 	// TODO: select channel / for all channels?
 	if (!hasChannel(0))
+	{
 		return;
+	}
 	QString movie_file_types = GetAvailableMovieFormats();
 	if (movie_file_types.isEmpty())
 	{
@@ -853,14 +888,21 @@ void iASlicer::saveSliceMovie(QString const & fileName, int qual /*= 2*/)
 	}
 	auto movieWriter = GetMovieWriter(fileName, qual);
 	if (movieWriter.GetPointer() == nullptr)
+	{
 		return;
-
+	}
 	m_interactor->Disable();
 
 	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
 	int* rws = m_renWin->GetSize();
-	if (rws[0] % 2 != 0) rws[0]++;
-	if (rws[1] % 2 != 0) rws[1]++;
+	if (rws[0] % 2 != 0)
+	{
+		rws[0]++;
+	}
+	if (rws[1] % 2 != 0)
+	{
+		rws[1]++;
+	}
 	m_renWin->SetSize(rws);
 	m_renWin->Render();
 	windowToImage->SetInput(m_renWin);
@@ -906,20 +948,28 @@ void iASlicer::saveSliceMovie(QString const & fileName, int qual /*= 2*/)
 	m_interactor->Enable();
 
 	if (movieWriter->GetError())
+	{
 		emit msg(tr("Movie export failed."));
+	}
 	else
+	{
 		emit msg(tr("Movie export completed."));
+	}
 }
 
 void iASlicer::saveAsImage()
 {
 	if (!hasChannel(0))
+	{
 		return;
+	}
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save Image"),
 		"", // TODO: get directory of file?
 		iAIOProvider::GetSupportedImageFormats());
 	if (fileName.isEmpty())
+	{
 		return;
+	}
 	bool saveNative = true;
 	bool output16Bit = false;
 
@@ -949,10 +999,14 @@ void iASlicer::saveAsImage()
 
 	dlg_commoninput dlg(this, "Save options", inList, inPara, nullptr);
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 	saveNative = dlg.getCheckValue(0);
 	if (inList.size() > 2)
+	{
 		output16Bit = dlg.getCheckValue(2);
+	}
 	iAConnector con;
 	vtkSmartPointer<vtkImageData> img;
 	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -997,14 +1051,18 @@ void iASlicer::saveImageStack()
 {
 	// TODO: allow selecting channel to export? export all channels?
 	if (!hasChannel(0))
+	{
 		return;
+	}
 	auto imageData = m_channels[0]->input();
 
 	QString file = QFileDialog::getSaveFileName(this, tr("Save Image Stack"),
 		"", // TODO: get directory of file?
 		iAIOProvider::GetSupportedImageFormats());
 	if (file.isEmpty())
+	{
 		return;
+	}
 
 	QFileInfo fileInfo(file);
 	QString baseName = fileInfo.absolutePath() + "/" + fileInfo.baseName();
@@ -1029,13 +1087,17 @@ void iASlicer::saveImageStack()
 	}
 	dlg_commoninput dlg(this, "Save options", inList, inPara, nullptr);
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 
 	saveNative = dlg.getCheckValue(0);
 	int sliceFrom = dlg.getIntValue(1);
-	int sliceTo   = dlg.getIntValue(2);
+	int sliceTo = dlg.getIntValue(2);
 	if (inList.size() > 3)
+	{
 		output16Bit = dlg.getCheckValue(3);
+	}
 
 	if (sliceFrom < sliceMin || sliceFrom > sliceTo || sliceTo > sliceMax)
 	{
@@ -1062,9 +1124,13 @@ void iASlicer::saveImageStack()
 			con.setImage(reslicer->GetOutput());
 			iAITKIO::ImagePointer imgITK;
 			if (!output16Bit)
+			{
 				imgITK = rescaleImageTo<unsigned char>(con.itkImage(), 0, 255);
+			}
 			else
+			{
 				imgITK = rescaleImageTo<unsigned short>(con.itkImage(), 0, 65535);
+			}
 			con.setImage(imgITK);
 			img = con.vtkImage();
 		}
@@ -1089,7 +1155,9 @@ void iASlicer::saveImageStack()
 void iASlicer::updatePositionMarkerExtent()
 {
 	if (m_channels.empty() || !m_positionMarkerSrc)
+	{
 		return;
+	}
 	// TODO: how to choose spacing? currently fixed from first image? export all channels?
 	auto imageData = m_channels[0]->input();
 	m_positionMarkerSrc->SetXLength(m_ext * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)]);
@@ -1128,7 +1196,7 @@ void iASlicer::setBackground(double r, double g, double b)
 	updateBackground();
 }
 
-void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callData)
+void iASlicer::execute(vtkObject * /*caller*/, unsigned long eventId, void * /*callData*/)
 {
 	if (m_channels.empty())
 		return;
@@ -1265,11 +1333,25 @@ namespace
 
 	const double FisheyeMinRadius = 4.0;
 	const double FisheyeMaxRadius = 220.0;
-	const double FisheyeRadiusDefault = 80.0;
-	const double FisheyeInnerRadiusDefault = 70.0;
 
 	double fisheyeMinInnerRadius(double radius) { return std::max(1, static_cast<int>((radius - 1) * 0.7)); }
 }
+
+// Qt versions before 5.10 don't have these operators yet:
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+bool operator==(QCursor const & a, QCursor const & b)
+{
+	if (a.shape() != Qt::BitmapCursor)
+		return a.shape() == b.shape();
+	return b.shape() == Qt::BitmapCursor &&
+		a.hotSpot() == b.hotSpot() &&
+		(a.pixmap() == b.pixmap() || (a.bitmap() == b.bitmap() && a.mask() == b.mask()));
+}
+bool operator!=(QCursor const & a, QCursor const & b)
+{
+	return !operator==(a, b);
+}
+#endif
 
 void iASlicer::printVoxelInformation()
 {
@@ -1325,8 +1407,8 @@ void iASlicer::printVoxelInformation()
 
 			double * const tmpSpacing = tmpChild->imagePointer()->GetSpacing();
 			int tmpCoord[3];
-			for (int i = 0; i < 3; ++i)
-				tmpCoord[i] = static_cast<int>(m_globalPt[0] / tmpSpacing[0]);
+			for (int c = 0; c < 3; ++c)
+				tmpCoord[c] = static_cast<int>(m_globalPt[c] / tmpSpacing[c]);
 			int slicerXAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::X),
 				slicerYAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y),
 				slicerZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
@@ -1592,7 +1674,9 @@ void iASlicer::snapToHighGradient(double &x, double &y)
 void iASlicer::setShowText(bool isVisible)
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 	m_textInfo->Show(isVisible);
 }
 
@@ -1620,7 +1704,9 @@ void iASlicer::setSlabThickness(int thickness)
 {
 	m_slabThickness = thickness;
 	for (auto ch : m_channels)
+	{
 		ch->setSlabNumberOfSlices(thickness);
+	}
 	update();
 }
 
@@ -1628,14 +1714,18 @@ void iASlicer::setSlabCompositeMode(int slabCompositeMode)
 {
 	m_slabCompositeMode = slabCompositeMode;
 	for (auto ch : m_channels)
+	{
 		ch->setSlabMode(slabCompositeMode);
+	}
 	update();
 }
 
 QSharedPointer<iAChannelSlicerData> iASlicer::createChannel(uint id, iAChannelData const & chData)
 {
 	if (m_channels.contains(id))
+	{
 		throw std::runtime_error(QString("iASlicer: Channel with ID %1 already exists!").arg(id).toStdString());
+	}
 
 	QSharedPointer<iAChannelSlicerData> newData(new iAChannelSlicerData(chData, m_mode));
 	newData->setInterpolate(m_settings.LinearInterpolation);
@@ -1650,14 +1740,18 @@ iAChannelSlicerData * iASlicer::channel(uint id)
 {
 	assert(m_channels.contains(id));
 	if (!m_channels.contains(id))
+	{
 		return nullptr;
+	}
 	return m_channels.find(id)->data();
 }
 
 void iASlicer::removeChannel(uint id)
 {
 	if (channel(id)->isEnabled())
+	{
 		enableChannel(id, false);
+	}
 	m_channels.remove(id);
 }
 
@@ -1696,7 +1790,9 @@ void iASlicer::rotateSlice(double angle)
 	m_angle[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z)] = angle;
 
 	if (!hasChannel(0))
+	{
 		return;
+	}
 
 	double center[3];
 
@@ -1745,17 +1841,25 @@ void iASlicer::switchContourSourceToChannel(uint id )
 void iASlicer::setContours(int numberOfContours, double contourMin, double contourMax)
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 	for (auto ch : m_channels)
+	{
 		ch->setContours(numberOfContours, contourMin, contourMax);
+	}
 }
 
 void iASlicer::setContours(int numberOfContours, double const * contourValues)
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 	for (auto ch : m_channels)
+	{
 		ch->setContours(numberOfContours, contourValues);
+	}
 }
 
 void iASlicer::setMouseCursor(QString const & s)
@@ -1766,7 +1870,9 @@ void iASlicer::setMouseCursor(QString const & s)
 		QString shape = s.section(' ', 0, 0);
 		QPixmap pm;
 		if (shape == "Crosshair")
+		{
 			pm = QPixmap(":/images/" + s.section(' ', 0, 1) + ".png");
+		}
 		QPixmap cpm(pm.size());
 		cpm.fill(color);
 		cpm.setMask(pm.createMaskFromColor(Qt::transparent));
@@ -1783,7 +1889,9 @@ void iASlicer::setMouseCursor(QString const & s)
 void iASlicer::setScalarBarTF(vtkScalarsToColors* ctf)
 {
 	if (!m_scalarBarWidget)
+	{
 		return;
+	}
 	m_scalarBarWidget->GetScalarBarActor()->SetLookupTable(ctf);
 	m_scalarBarWidget->SetEnabled(ctf != nullptr);
 }
@@ -1802,7 +1910,9 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 {
 	// TODO: merge with iASlicer::execute, switch branch vtkCommand::KeyPressEvent ?
 	if (!hasChannel(0))
+	{
 		return;
+	}
 
 	vtkRenderer * ren = m_renWin->GetRenderers()->GetFirstRenderer();
 	if (event->key() == Qt::Key_R)
@@ -1831,12 +1941,16 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 
 			// Clear outdated circles and actors (not needed for final version)
 			for (int i = 0; i < m_circle1ActList.length(); ++i)
+			{
 				ren->RemoveActor(m_circle1ActList.at(i));
+			}
 			//circle1List.clear();
 			m_circle1ActList.clear();
 
 			for (int i = 0; i < m_circle2ActList.length(); ++i)
+			{
 				ren->RemoveActor(m_circle2ActList.at(i));
+			}
 			m_circle2List.clear();
 			m_circle2ActList.clear(); //*/
 
@@ -1892,10 +2006,14 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 				* ((event->key() == Qt::Key_Minus) ? -1 : 1);   // which direction
 			m_fisheyeRadius = clamp(FisheyeMinRadius, FisheyeMaxRadius, m_fisheyeRadius + ofs);
 			if (m_fisheyeRadius != oldRadius)
+			{
 				m_innerFisheyeRadius = clamp(fisheyeMinInnerRadius(m_fisheyeRadius), m_fisheyeRadius, m_innerFisheyeRadius + ofs);
+			}
 		}
 		if (oldRadius != m_fisheyeRadius || oldInnerRadius != m_innerFisheyeRadius) // only update if something changed
+		{
 			updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
+		}
 	}
 	if (event->key() == Qt::Key_S)
 	{
@@ -1903,7 +2021,7 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 		{   // toggle between interaction modes:
 			case Normal   : switchInteractionMode(SnakeEdit); break;
 			case SnakeEdit: switchInteractionMode(/*SnakeShow*/Normal); break;
-//			case SnakeShow: switchInteractionMode(Normal);    break;
+			case SnakeShow: switchInteractionMode(Normal);    break;
 		}
 		// let other slice views know that interaction mode changed
 		emit switchedMode(m_interactionMode);
@@ -1940,7 +2058,7 @@ void iASlicer::mousePressEvent(QMouseEvent *event)
 		const double y = m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
 
 		// if no point is found at picked position add a new one
-		if (m_snakeSpline->CalculateSelectedPoint(x, y) == -1)
+		if (m_snakeSpline->CalculateSelectedPoint(x, y) == iASnakeSpline::NoPointSelected)
 		{
 			m_snakeSpline->addPoint(x, y);
 			// add the point to the world point list only once because it is a member of MdiChild
@@ -1958,7 +2076,9 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 	iAVtkWidget::mouseMoveEvent(event);
 
 	if (!hasChannel(0)) // nothing to do if no data
+	{
 		return;
+	}
 
 	if (m_fisheyeLensActivated)
 	{
@@ -1975,7 +2095,7 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	// only do something in spline drawing mode and if a point is selected
-	if (m_decorations && m_interactionMode == SnakeEdit && m_snakeSpline->selectedPointIndex() != -1)
+	if (m_decorations && m_interactionMode == SnakeEdit && m_snakeSpline->selectedPointIndex() != iASnakeSpline::NoPointSelected)
 	{
 		// Move world and slice view points
 		double const * point = m_worldSnakePoints->GetPoint(m_snakeSpline->selectedPointIndex());
@@ -1984,7 +2104,9 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 		int indxs[3] = { mapSliceToGlobalAxis(m_mode, iAAxisIndex::X), mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y), mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z) };
 
 		for (int i = 0; i < 2; ++i)         // Update the two coordinates in the slice plane (slicer's x and y) from the current position in the slicer
+		{
 			pos[indxs[i]] = m_slicerPt[i];
+		}
 		pos[indxs[2]] = point[indxs[2]];	// Update the other coordinate (slicer's z) from the current global position of the point
 
 		movePoint(m_snakeSpline->selectedPointIndex(), pos[0], pos[1], pos[2]);
@@ -1997,8 +2119,9 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	if (m_isSliceProfEnabled && (event->modifiers() == Qt::NoModifier) && (event->buttons() & Qt::LeftButton))
+	{
 		updateRawProfile(m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
-
+	}
 	if (m_isArbProfEnabled)
 	{
 		int arbProfPointIdx = m_arbProfile->pointIdx();
@@ -2013,7 +2136,9 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 				globalPos[zind] = ptPos[zind];
 
 				if (setArbitraryProfile(arbProfPointIdx, globalPos, true))
+				{
 					emit arbitraryProfileChanged(arbProfPointIdx, globalPos);
+				}
 			}
 		}
 	}
@@ -2022,7 +2147,9 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 void iASlicer::deselectPoint()
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 	m_snakeSpline->deselectPoint();
 }
 
@@ -2047,16 +2174,21 @@ void iASlicer::mouseDoubleClickEvent(QMouseEvent* event)
 void iASlicer::contextMenuEvent(QContextMenuEvent *event)
 {
 	if (m_magicLens && m_magicLens->isEnabled())
+	{
 		m_contextMenuMagicLens->exec(event->globalPos());
+	}
 	else if (m_decorations && m_interactionMode == SnakeEdit)
+	{
 		m_contextMenuSnakeSlicer->exec(event->globalPos());
+	}
 }
 
 void iASlicer::switchInteractionMode(int mode)
 {
 	if (!m_decorations)
+	{
 		return;
-
+	}
 	m_interactionMode = static_cast<InteractionMode>(mode);
 	m_snakeSpline->SetVisibility(m_interactionMode == SnakeEdit);
 	m_renWin->GetInteractor()->Render();
@@ -2065,7 +2197,9 @@ void iASlicer::switchInteractionMode(int mode)
 void iASlicer::addPoint(double xPos, double yPos, double zPos)
 {
 	if (!m_decorations)
+	{
 		return;
+	}
 	double pos[3] = { xPos, yPos, zPos };
 	double x = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)];
 	double y = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
@@ -2080,11 +2214,15 @@ void iASlicer::addPoint(double xPos, double yPos, double zPos)
 void iASlicer::updateRawProfile(double posY)
 {
 	if (!hasChannel(0))
+	{
 		return;
+	}
 	// TODO: slice "raw" profile on selected/current channel
 	vtkImageData * reslicedImgData = channel(0)->output();
 	if (!m_sliceProfile->updatePosition(posY, reslicedImgData))
+	{
 		return;
+	}
 	// render slice view
 	GetRenderWindow()->GetInteractor()->Render();
 }
@@ -2092,7 +2230,9 @@ void iASlicer::updateRawProfile(double posY)
 bool iASlicer::setArbitraryProfile(int pointInd, double * Pos, bool doClamp)
 {
 	if (!m_decorations || !hasChannel(0))
+	{
 		return false;
+	}
 	// TODO: slice profile on selected/current channel
 	auto imageData = channel(0)->input();
 	if (doClamp)
@@ -2107,7 +2247,9 @@ bool iASlicer::setArbitraryProfile(int pointInd, double * Pos, bool doClamp)
 	}
 	double profileCoord2d[2] = { Pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], Pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)] };
 	if (!m_arbProfile->setup(pointInd, Pos, profileCoord2d, channel(0)->output()))
+	{
 		return false;
+	}
 	GetRenderWindow()->GetInteractor()->Render();
 	return true;
 }
@@ -2115,14 +2257,15 @@ bool iASlicer::setArbitraryProfile(int pointInd, double * Pos, bool doClamp)
 void iASlicer::movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos)
 {
 	if (!m_decorations)
+	{
 		return;
-
+	}
 	double pos[3] = { xPos, yPos, zPos };
 	double x = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)];
 	double y = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
 
 	// move only if a point is selected
-	if (selectedPointIndex != -1)
+	if (selectedPointIndex != iASnakeSpline::NoPointSelected)
 	{
 		// move only if a point is selected
 		m_snakeSpline->movePoint(selectedPointIndex, x, y);
@@ -2141,8 +2284,9 @@ void iASlicer::menuDeleteSnakeLine()
 void iASlicer::deleteSnakeLine()
 {
 	if (!m_decorations)
+	{
 		return;
-
+	}
 	m_snakeSpline->deleteAllPoints();
 	m_worldSnakePoints->Reset();
 	m_renWin->GetInteractor()->Render();
@@ -2185,7 +2329,11 @@ void iASlicer::resizeEvent(QResizeEvent * event)
 void iASlicer::wheelEvent(QWheelEvent* event)
 {
 	event->accept();
-	if (event->modifiers().testFlag(Qt::ControlModifier) && receivers(SIGNAL(ctrlMouseWheel(int))) > 0)
+	if (event->modifiers().testFlag(Qt::ControlModifier) && event->modifiers().testFlag(Qt::ShiftModifier) && receivers(SIGNAL(altMouseWheel(int))) > 0)
+	{
+		this->setSliceNumber(event->angleDelta().y() / 120.0 + this->sliceNumber());
+	}
+	else if (event->modifiers().testFlag(Qt::ControlModifier) && receivers(SIGNAL(ctrlMouseWheel(int))) > 0)
 	{
 		emit ctrlMouseWheel(event->angleDelta().y() / 120.0);
 	}
@@ -2197,6 +2345,10 @@ void iASlicer::wheelEvent(QWheelEvent* event)
 	{
 		emit altMouseWheel(event->angleDelta().x() / 120);
 	}
+	else if (event->angleDelta().x() != 0 && receivers(SIGNAL(altMouseWheel(int))) > 0)
+	{
+		this->setSliceNumber(event->angleDelta().x() / 120.0 + this->sliceNumber());
+	}
 	else
 	{
 		iAVtkWidget::wheelEvent(event);
@@ -2207,7 +2359,9 @@ void iASlicer::wheelEvent(QWheelEvent* event)
 void iASlicer::menuCenteredMagicLens()
 {
 	if (!m_magicLens)
+	{
 		return;
+	}
 	m_magicLens->setViewMode(iAMagicLens::CENTERED);
 	updateMagicLens();
 }
@@ -2215,7 +2369,9 @@ void iASlicer::menuCenteredMagicLens()
 void iASlicer::menuOffsetMagicLens()
 {
 	if (!m_magicLens)
+	{
 		return;
+	}
 	m_magicLens->setViewMode(iAMagicLens::OFFSET);
 	updateMagicLens();
 }
@@ -2339,8 +2495,9 @@ void iASlicer::updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslic
 	}
 
 	for (int i = 0; i < m_pointsTarget->GetNumberOfPoints() - (m_pointsTarget->GetNumberOfPoints() - 8); ++i)
+	{
 		m_pointsSource->SetPoint(i, m_pointsTarget->GetPoint(i));
-
+	}
 	int fixPoints = 8;
 	// outer circle 1
 	double fixRadiusX;
@@ -2456,7 +2613,9 @@ void iASlicer::updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslic
 void iASlicer::updateMagicLens()
 {
 	if (!m_magicLens || !m_magicLens->isEnabled())
+	{
 		return;
+	}
 	vtkRenderer * ren = m_renWin->GetRenderers()->GetFirstRenderer();
 	ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
 	ren->WorldToDisplay();

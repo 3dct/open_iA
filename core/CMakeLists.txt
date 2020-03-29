@@ -11,11 +11,6 @@ QT5_ADD_RESOURCES( open_iA_core_SRCS ${open_iA_core_QRC} )
 
 SET (LIB_TYPE SHARED)
 
-#get_cmake_property(_variableNames VARIABLES)
-#foreach (_variableName ${_variableNames})
-#    message(STATUS "${_variableName}=${${_variableName}}")
-#endforeach()
-
 # Generate core dll file / shared object:
 add_library(${CORE_LIBRARY_NAME} ${LIB_TYPE} ${open_iA_core_SRCS} ${open_iA_core_QRC} )
 TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${QT_LIBRARIES} ${VTK_LIBRARIES} ${ITK_LIBRARIES})
@@ -31,6 +26,12 @@ IF (WIN32)
 	# apparently required for VS 2015, and doesn't hurt for VS2013:
 	TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC Opengl32)
 ENDIF (WIN32)
+IF(OpenMP_CXX_FOUND)
+	TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC OpenMP::OpenMP_CXX)
+	IF (MSVC)
+		TARGET_COMPILE_OPTIONS(${CORE_LIBRARY_NAME} PUBLIC /Zc:twoPhase-)
+	ENDIF()
+ENDIF()
 
 IF(APPLE)
 	INCLUDE_DIRECTORIES( /System/Library/Frameworks )
@@ -50,9 +51,14 @@ MODULE_GENERATE_EXPORT_HEADER ( ${CORE_LIBRARY_NAME} )
 
 TARGET_INCLUDE_DIRECTORIES(${CORE_LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 
-IF (openiA_USE_COTIRE)
-	cotire(${CORE_LIBRARY_NAME})
+IF (openiA_PRECOMPILE)
+	IF (CMAKE_MAJOR_VERSION GREATER 4 OR
+	(CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 15))
+		INCLUDE(precompile.cmake)
+		target_precompile_headers(${CORE_LIBRARY_NAME} PRIVATE ${OPENIA_PRECOMPILE_HEADERS})
+	ENDIF()
 ENDIF()
+
 
 IF (openiA_TESTING_ENABLED)
 	# StringHelperTest
@@ -71,22 +77,15 @@ IF (openiA_TESTING_ENABLED)
 	TARGET_INCLUDE_DIRECTORIES(Vec3Test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 	target_compile_definitions(Vec3Test PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME Vec3Test COMMAND Vec3Test)
-	
+
 	IF (openiA_USE_IDE_FOLDERS)
 		SET_PROPERTY(TARGET StringHelperTest PROPERTY FOLDER "Tests")
 		SET_PROPERTY(TARGET Vec3Test PROPERTY FOLDER "Tests")
 	ENDIF()
 
-	IF (openiA_USE_COTIRE)
-		cotire(StringHelperTest)
-		cotire(Vec3Test)
-	ENDIF()
 ENDIF()
 
 # Compiler Flags
-IF (MSVC)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
-ENDIF ()
 IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	# see Ulrich Drepper - How to write Shared Libraries
 	#   - fPIC vs. fpic

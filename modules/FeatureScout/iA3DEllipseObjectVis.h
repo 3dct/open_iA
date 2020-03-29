@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -35,9 +35,10 @@ public:
 		QColor const & color, int phiRes = DefaultPhiRes, int thetaRes = DefaultThetaRes);
 	double const * bounds() override;
 	vtkPolyData* getPolyData() override;
+	QString visualizationStatistics() const override;
 private:
 	vtkSmartPointer<vtkPolyData> m_fullPoly;
-	int m_pointsPerEllipse;
-	int objectStartPointIdx(int objIdx) const override;
-	int objectPointCount(int objIdx) const override;
+	IndexType m_pointsPerEllipse;
+	IndexType objectStartPointIdx(IndexType objIdx) const override;
+	IndexType objectPointCount(IndexType objIdx) const override;
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,7 +22,6 @@
 
 #include "dlg_commoninput.h"
 #include "dlg_modalityProperties.h"
-#include "iAChartFunctionTransfer.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iAConsole.h"
@@ -50,7 +49,6 @@
 
 #include <QFileDialog>
 #include <QSettings>
-#include <QTextDocument>
 
 #include <cassert>
 
@@ -71,8 +69,6 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	connect(pbAdd,    &QPushButton::clicked, this, &dlg_modalities::addClicked);
 	connect(pbRemove, &QPushButton::clicked, this, &dlg_modalities::removeClicked);
 	connect(pbEdit,   &QPushButton::clicked, this, &dlg_modalities::editClicked);
-	connect(cbManualRegistration, &QCheckBox::clicked, this, &dlg_modalities::manualRegistration);
-	connect(cbShowMagicLens, &QCheckBox::clicked, this, &dlg_modalities::magicLens);
 
 	connect(lwModalities, SIGNAL(itemClicked(QListWidgetItem*)),
 		this, SLOT(listClicked(QListWidgetItem*)));
@@ -111,7 +107,9 @@ void dlg_modalities::addClicked()
 		m_modalities->size() > 0 ? QFileInfo(m_modalities->get(0)->fileName()).absolutePath() : "",
 		iAIOProvider::GetSupportedLoadFormats() + tr("Volume Stack (*.volstack);;"));
 	if (fileName.isEmpty())
+	{
 		return;
+	}
 
 	const int DefaultRenderFlags = iAModality::MainRenderer;
 	bool split = false;
@@ -121,11 +119,10 @@ void dlg_modalities::addClicked()
 		inList << tr("$Split Channels");
 		QList<QVariant> inPara;
 		inPara << tr("%1").arg(true);
-		QTextDocument descr;
-		descr.setHtml("Input file potentially has multiple channels. "
+		QString descr("Input file potentially has multiple channels. "
 			"Should they be split into separate datasets, "
 			"or kept as one dataset with multiple components ?");
-		dlg_commoninput splitInput(this, "Seed File Format", inList, inPara, &descr);
+		dlg_commoninput splitInput(this, "Seed File Format", inList, inPara, descr);
 		if (splitInput.exec() != QDialog::Accepted)
 		{
 			DEBUG_LOG("Aborted by user.");
@@ -139,18 +136,6 @@ void dlg_modalities::addClicked()
 		m_modalities->add(mod);
 	}
 	emit modalitiesChanged(false, nullptr);
-}
-
-void dlg_modalities::magicLens()
-{
-	if (cbShowMagicLens->isChecked())
-	{
-		m_magicLensWidget->magicLensOn();
-	}
-	else
-	{
-		m_magicLensWidget->magicLensOff();
-	}
 }
 
 void dlg_modalities::initDisplay(QSharedPointer<iAModality> mod)
@@ -206,16 +191,9 @@ void dlg_modalities::modalityAdded(QSharedPointer<iAModality> mod)
 	emit modalityAvailable(lwModalities->count()-1);
 }
 
-void dlg_modalities::interactorModeSwitched(int newMode)
-{
-	cbManualRegistration->setChecked(newMode == 'a');
-}
-
 void dlg_modalities::enableUI()
 {
 	pbAdd->setEnabled(true);
-	cbManualRegistration->setEnabled(true);
-	cbShowMagicLens->setEnabled(true);
 }
 
 void dlg_modalities::removeClicked()
@@ -250,7 +228,7 @@ void dlg_modalities::removeClicked()
 	enableButtons();
 
 	m_mainRenderer->GetRenderWindow()->Render();
-	
+
 	emit modalitiesChanged(false, nullptr);
 }
 
@@ -323,11 +301,12 @@ void dlg_modalities::editClicked()
 		&& editModality->hasRenderFlag(iAModality::Slicer))
 	{
 		if (editModality->channelID() == NotExistingChannel)
+		{
 			editModality->setChannelID(m_mdiChild->createChannel());
+		}
 		m_mdiChild->updateChannel(editModality->channelID(), editModality->image(), editModality->transfer()->colorTF(), editModality->transfer()->opacityTF(), true);
-		m_mdiChild->updateChannelOpacity(editModality->channelID(), 1);
-		m_mdiChild->updateViews();
 	}
+	m_mdiChild->updateChannelOpacity(editModality->channelID(), editModality->slicerOpacity());
 	lwModalities->item(idx)->setText(GetCaption(*editModality));
 	emit modalitiesChanged(prop.spacingChanged(),prop.newSpacing());
 }
@@ -339,7 +318,7 @@ void dlg_modalities::enableButtons()
 	pbRemove->setEnabled(enable);
 }
 
-void dlg_modalities::manualRegistration()
+void dlg_modalities::setInteractionMode(bool manualRegistration)
 {
 	try
 	{
@@ -350,7 +329,7 @@ void dlg_modalities::manualRegistration()
 			return;
 		}
 		QSharedPointer<iAModality> editModality(m_modalities->get(idx));
-		
+
 		setModalitySelectionMovable(idx);
 
 		if (!editModality->renderer())
@@ -358,24 +337,28 @@ void dlg_modalities::manualRegistration()
 			DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
 			return;
 		}
-		
-		if (cbManualRegistration->isChecked())
+
+		if (manualRegistration)
 		{
 			configureInterActorStyles(editModality);
 			m_mdiChild->renderer()->interactor()->SetInteractorStyle(m_manualMoveStyle[iASlicerMode::SlicerCount]);
 			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+			{
 				m_mdiChild->slicer(i)->GetInteractor()->SetInteractorStyle(m_manualMoveStyle[i]);
+			}
 		}
 		else
 		{
 			m_mdiChild->renderer()->setDefaultInteractor();
 			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+			{
 				m_mdiChild->slicer(i)->setDefaultInteractor();
+			}
 		}
 	}
 	catch (std::invalid_argument &ivae)
 	{
-		DEBUG_LOG(ivae.what()); 
+		DEBUG_LOG(ivae.what());
 	}
 }
 
@@ -395,18 +378,22 @@ void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editMo
 	iAChannelSlicerData * props[3];
 	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
 	{
-		if (!m_mdiChild->slicer(i)->hasChannel(chID)) {
+		if (!m_mdiChild->slicer(i)->hasChannel(chID))
+		{
 			DEBUG_LOG("This modality cannot be moved as it isn't active in slicer, please select another one!")
 			return;
 		}
-		else {
+		else
+		{
 			props[i] = m_mdiChild->slicer(i)->channel(chID);
 		}
-	};
+	}
 
 	//intialize slicers and 3D interactor for registration
-	for (int i=0; i<= iASlicerMode::SlicerCount; ++i)
+	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
+	{
 		m_manualMoveStyle[i]->initialize(img, volRend, props, i, m_mdiChild);
+	}
 }
 
 void dlg_modalities::listClicked(QListWidgetItem* item)
@@ -416,12 +403,11 @@ void dlg_modalities::listClicked(QListWidgetItem* item)
 	{
 		return;
 	}
-	if (cbManualRegistration->isChecked())
+	if (m_mdiChild->interactionMode() == MdiChild::imRegistration)
 	{
 		setModalitySelectionMovable(selectedRow);
 		configureInterActorStyles(m_modalities->get(selectedRow));
 	}
-
 	emit modalitySelected(selectedRow);
 }
 
@@ -440,11 +426,13 @@ void dlg_modalities::setModalitySelectionMovable(int selectedRow)
 
 		//enable / disable dragging
 		mod->renderer()->setMovable(mod == currentData);
-		
+
 		for (int sl = 0; sl < iASlicerMode::SlicerCount; sl++)
 		{
 			if (mod->channelID() == NotExistingChannel)
+			{
 				continue;
+			}
 			m_mdiChild->slicer(sl)->channel(mod->channelID())->setMovable(currentData->channelID() == mod->channelID());
 		}
 	}

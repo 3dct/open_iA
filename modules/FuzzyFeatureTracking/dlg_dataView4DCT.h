@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -39,7 +39,7 @@ class iARenderer;
 class iAVolumeRenderer;
 class iAVolumeStack;
 class MdiChild;
-class QVTKWidgetMouseReleaseWorkaround;
+class iAQVTKWidgetMouseReleaseWorkaround;
 
 class dlg_dataView4DCT : public dlg_dataView4DCTContainer
 {
@@ -51,7 +51,7 @@ public:
 
 private:
 	iAVolumeStack*						m_volumeStack;
-	QVTKWidgetMouseReleaseWorkaround**	m_vtkWidgets;
+	iAQVTKWidgetMouseReleaseWorkaround** m_vtkWidgets;
 	iARenderer**						m_renderers;
 	iAVolumeRenderer**					m_volumeRenderer;
 	vtkSmartPointer<vtkTransform>		m_axesTransform;

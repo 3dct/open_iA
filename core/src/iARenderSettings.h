@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -30,10 +30,12 @@ public:
 		ShowHelpers,
 		ShowRPosition,
 		ParallelProjection,
-		UseFXAA;
+		UseFXAA,
+		UseDepthPeeling;
 	QString BackgroundTop,
 		BackgroundBottom;
-	float PlaneOpacity; 
+	float PlaneOpacity;
+	int DepthPeels;
 
 	iARenderSettings() :
 		ShowSlicers(false),
@@ -41,9 +43,11 @@ public:
 		ShowHelpers(true),
 		ShowRPosition(true),
 		ParallelProjection(false),
+		UseFXAA(true),
+		UseDepthPeeling(true),
 		BackgroundTop("#7FAAFF"),
 		BackgroundBottom("#FFFFFF"),
-		UseFXAA(true),
-		PlaneOpacity(0.8f)
+		PlaneOpacity(0.8f),
+		DepthPeels(4)
 	{}
 };

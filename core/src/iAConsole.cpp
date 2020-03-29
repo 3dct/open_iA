@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -40,6 +40,7 @@ void iAGlobalLogger::setLogger(iALogger* logger)
 }
 
 iALogger* iAGlobalLogger::get()
+
 {
 	return m_globalLogger;
 }
@@ -129,11 +130,11 @@ QString iAConsole::logFileName() const
 }
 
 iAConsole::iAConsole() :
+	m_logFileName("debug.log"),
 	m_console(new dlg_console()),
 	m_logToFile(false),
 	m_closed(false),
-	m_fileLogError(false),
-	m_logFileName("debug.log")
+	m_fileLogError(false)
 {
 	// redirect VTK and ITK output to console window:
 	m_vtkOutputWindow = vtkSmartPointer<iARedirectVtkOutput>::New();

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,13 +23,12 @@
 #include "iACSVToQTableWidgetConverter.h"
 #include "iAPorosityAnalyserModuleInterface.h"
 
-#include <CPUID.h>
 #include <defines.h>
 #include <iATypedCallHelper.h>
 #include <io/iAITKIO.h>
 
 // from Maximum Distance Toolkit
-#include <itkMaximumDistance.h>
+#include <iAMaximumDistanceFilter.h>
 
 #include <itkAndImageFilter.h>
 #include <itkBilateralImageFilter.h>
@@ -77,27 +76,30 @@
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
+#include <QElapsedTimer>
 #include <QMessageBox>
 #include <QTime>
 
-//openMP
+// OpenMP
 #ifndef __APPLE__
 #ifndef __MACOSX
-#include <omp.h>///TODO: gcc include omp //omp.h works with gcc 4.6
+#include <omp.h>
 #endif
 #endif
 
+#include <cassert>
+
 struct RunInfo
 {
-	RunInfo() : 
-		startTime( "" ), 
-		elapsedTime( 0 ), 
-		maskImage(), 
+	RunInfo() :
+		startTime( "" ),
+		elapsedTime( 0 ),
+		maskImage(),
 		surroundingMaskImage(),
-		porosity( -1.0 ), 
-		threshold( -1 ), 
-		surroundingVoxels( 0 ), 
-		falseNegativeRate( -1.0 ), 
+		porosity( -1.0 ),
+		threshold( -1 ),
+		surroundingVoxels( 0 ),
+		falseNegativeRate( -1.0 ),
 		falsePositiveRate( -1.0 ),
 		dice(-1.0),
 		featureCnt(-1),
@@ -392,11 +394,14 @@ void computeParamFree( ImagePointer & image, PorosityFilterID filterId, RunInfo 
 			filter = minimumFilter;
 			break;
 		}
+		default:
+			DEBUG_LOG(QString("Invalid algorithm selection (%1 is not a parameterless method)!").arg(filterId));
+			break;
 	}
 
 	filter->SetInput( duplicator->GetOutput() );
 	filter->Update();
-	
+
 	// Binary Threshold (fixes the no slice png image issue)
 	typedef itk::BinaryThresholdImageFilter <MaskImageType, MaskImageType> BinaryThresholdImageFilterType;
 	typename BinaryThresholdImageFilterType::Pointer binaryThresholdFilter = BinaryThresholdImageFilterType::New();
@@ -532,7 +537,7 @@ void computeNeighbConn( ImagePointer & inputImage, ImagePointer & seedImage, Run
 }
 
 template<class T>
-void computeMultiOtsu( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int NbOfThr, int ValleyEmphasis, bool releaseData = false )
+void computeMultiOtsu( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int NbOfThr, int ValleyEmphasis, bool releaseData = false )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
@@ -571,7 +576,7 @@ void computeMultiOtsu( ImagePointer & image, PorosityFilterID filterId, RunInfo 
 }
 
 template<class T>
-void computeCreateSurrounding( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, float upSurrThr, bool releaseData = false )
+void computeCreateSurrounding( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, float upSurrThr, bool releaseData = false )
 {
 	// Use this filter together with computeRemoveSurrounding
 	typedef itk::Image< T, DIM >   InputImageType;
@@ -614,7 +619,7 @@ void computeCreateSurrounding( ImagePointer & image, PorosityFilterID filterId, 
 		}
 	}
 
-	// White surface border 
+	// White surface border
 	typedef itk::InvertIntensityImageFilter <MaskImageType> InvertIntensityImageFilterType;
 	typename InvertIntensityImageFilterType::Pointer surfaceBorderMask = InvertIntensityImageFilterType::New();
 	surfaceBorderMask->SetInput( dummyImage );
@@ -656,7 +661,7 @@ void computeCreateSurrounding( ImagePointer & image, PorosityFilterID filterId, 
 }
 
 template<class T>
-void computeRemoveSurrounding( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, bool releaseData = false )
+void computeRemoveSurrounding( ImagePointer & /*image*/, PorosityFilterID /*filterId*/, RunInfo & results, bool releaseData = false )
 {
 	// Use this filter together with computeCreateSurrounding
 	MaskImageType * surMask = dynamic_cast<MaskImageType*>( results.surroundingMaskImage.GetPointer() );
@@ -676,7 +681,7 @@ void computeRemoveSurrounding( ImagePointer & image, PorosityFilterID filterId, 
 	typename DuplicatorType::Pointer resMaskDup = DuplicatorType::New();
 	resMaskDup->SetInputImage( resMask );
 	resMaskDup->Update();
-	
+
 	typedef itk::AndImageFilter <MaskImageType> AndImageFilterType;
 	typename AndImageFilterType::Pointer andFilter = AndImageFilterType::New();
 	andFilter->SetInput( 0, invertedIntensityMask->GetOutput() );
@@ -690,18 +695,18 @@ void computeRemoveSurrounding( ImagePointer & image, PorosityFilterID filterId, 
 }
 
 template<class T>
-void computeGradAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
+void computeGradAnisoDiffSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   GADSFImageType;
-	
+
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
-	
+
 	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-	
+
 	typedef itk::GradientAnisotropicDiffusionImageFilter< InputImageType, GADSFImageType > GADSFType;
 	typename GADSFType::Pointer gadsfilter = GADSFType::New();
 	gadsfilter->SetInput( duplicator->GetOutput() );
@@ -726,7 +731,7 @@ void computeGradAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId
 }
 
 template<class T>
-void computeCurvAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
+void computeCurvAnisoDiffSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   CADSFImageType;
@@ -762,7 +767,7 @@ void computeCurvAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId
 }
 
 template<class T>
-void computeRecursiveGaussSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, float sigma, bool releaseData = false )
+void computeRecursiveGaussSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, float sigma, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   RGSFImageType;
@@ -814,7 +819,7 @@ void computeRecursiveGaussSmooth( ImagePointer & image, PorosityFilterID filterI
 }
 
 template<class T>
-void computeBilateralSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, float domainSigma, float rangeSigma, bool releaseData = false )
+void computeBilateralSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, float domainSigma, float rangeSigma, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   BSFImageType;
@@ -829,11 +834,11 @@ void computeBilateralSmooth( ImagePointer & image, PorosityFilterID filterId, Ru
 	typedef itk::BilateralImageFilter<InputImageType, BSFImageType > BSFType;
 	typename BSFType::Pointer bsfilter = BSFType::New();
 	bsfilter->SetInput( duplicator->GetOutput() );
-	
+
 	double domainSigmas[DIM];
 	for ( unsigned int i = 0; i < DIM; i++ )
 		domainSigmas[i] = domainSigma;
-	
+
 	bsfilter->SetDomainSigma( domainSigmas );
 	bsfilter->SetRangeSigma( rangeSigma );
 	bsfilter->Update();
@@ -854,7 +859,7 @@ void computeBilateralSmooth( ImagePointer & image, PorosityFilterID filterId, Ru
 }
 
 template<class T>
-void computeCurvFlowSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int nbOfIt, float timeStep, bool releaseData = false )
+void computeCurvFlowSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int nbOfIt, float timeStep, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   CFSFImageType;
@@ -889,7 +894,7 @@ void computeCurvFlowSmooth( ImagePointer & image, PorosityFilterID filterId, Run
 }
 
 template<class T>
-void computeMedianSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int radius, bool releaseData = false )
+void computeMedianSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int radius, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   MSFImageType;
@@ -927,7 +932,7 @@ void computeMedianSmooth( ImagePointer & image, PorosityFilterID filterId, RunIn
 }
 
 template<class T>
-void computeIsoXThreshold( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int isoX, bool releaseData = false )
+void computeIsoXThreshold( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int isoX, bool releaseData = false )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::BinaryThresholdImageFilter <InputImageType, MaskImageType> BinaryThresholdImageFilterType;
@@ -941,7 +946,7 @@ void computeIsoXThreshold( ImagePointer & image, PorosityFilterID filterId, RunI
 	duplicator->Update();
 
 	binaryThresholdFilter->SetLowerThreshold( 0 );
-	binaryThresholdFilter->SetUpperThreshold( isoX );	
+	binaryThresholdFilter->SetUpperThreshold( isoX );
 	binaryThresholdFilter->SetInsideValue( 1 );
 	binaryThresholdFilter->SetOutsideValue( 0 );
 	binaryThresholdFilter->SetInput( duplicator->GetOutput() );
@@ -955,7 +960,7 @@ void computeIsoXThreshold( ImagePointer & image, PorosityFilterID filterId, RunI
 }
 
 template<class T>
-void computeFhwThreshold( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int airporeGV, int fhwWeight, bool releaseData = false )
+void computeFhwThreshold( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int airporeGV, int fhwWeight, bool releaseData = false )
 {
 	int mdThr, omThr, fhwThr;
 	typedef itk::Image< T, DIM >   InputImageType;
@@ -968,10 +973,10 @@ void computeFhwThreshold( ImagePointer & image, PorosityFilterID filterId, RunIn
 	duplicator->Update();
 
 	// Calculate Maximum Distance Threshold
-	typedef itk::MaximumDistance< InputImageType >   MaximumDistanceType;
+	typedef iAMaximumDistanceFilter< InputImageType >   MaximumDistanceType;
 	typename MaximumDistanceType::Pointer maxDistFilter = MaximumDistanceType::New();
 	maxDistFilter->SetInput( duplicator->GetOutput() );
-	maxDistFilter->SetBins( 10 );
+	maxDistFilter->SetBinWidth( 10 );
 	maxDistFilter->SetCentre( airporeGV );
 	maxDistFilter->Update();
 	mdThr = maxDistFilter->GetOutThreshold();
@@ -982,10 +987,8 @@ void computeFhwThreshold( ImagePointer & image, PorosityFilterID filterId, RunIn
 	typename FilterType::Pointer otsuMultiFilter = FilterType::New();
 	otsuMultiFilter->SetInput( duplicator->GetOutput() );
 	otsuMultiFilter->SetNumberOfThresholds( 1 );
-#if (ITK_MAJOR_VERSION > 4 || ITK_MINOR_VERSION > 5)
 	otsuMultiFilter->ValleyEmphasisOn();
-#endif
-	otsuMultiFilter->Update(); 
+	otsuMultiFilter->Update();
 	typename FilterType::ThresholdVectorType thresholds = otsuMultiFilter->GetThresholds();
 	omThr = thresholds[0];
 	otsuMultiFilter->ReleaseDataFlagOn();
@@ -1016,9 +1019,9 @@ void runBatch( const QList<PorosityFilterID> & filterIds, ImagePointer & image, 
 	ImagePointer curImage = image;
 	results.startTime = QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat );
 	int pind = 0;
-	foreach( PorosityFilterID fid, filterIds )
+	for (PorosityFilterID fid: filterIds)
 	{
-		QTime t;
+		QElapsedTimer t;
 		t.start();
 		bool releaseData = (fid != filterIds.last());
 		switch( fid )
@@ -1102,7 +1105,7 @@ void runBatch( const QList<PorosityFilterID> & filterIds, ImagePointer & image, 
 	}
 }
 
-void iARunBatchThread::Init(iAPorosityAnalyserModuleInterface * pmi, QString datasetFolder, 
+void iARunBatchThread::Init(iAPorosityAnalyserModuleInterface * pmi, QString datasetFolder,
 	bool rbNewPipelineDataNoPores, bool rbNewPipelineData)
 {
 	m_pmi = pmi;
@@ -1169,10 +1172,14 @@ void iARunBatchThread::initRunsCSVFile( QTableWidget & runsCSV, QString batchDir
 		//Insert a header
 		runsCSV.setRowCount( 1 );
 		runsCSV.setColumnCount( runsCSVHeader.size() + paramNames.size() );
-		foreach( const QString l, runsCSVHeader )
-			runsCSV.setItem( 0, col++, new QTableWidgetItem( l ) );
-		foreach( const ParamNameType pnt, paramNames )
-			runsCSV.setItem( 0, col++, new QTableWidgetItem( pnt.name() ) );
+		for (const QString l : runsCSVHeader)
+		{
+			runsCSV.setItem(0, col++, new QTableWidgetItem(l));
+		}
+		for (const ParamNameType pnt : paramNames)
+		{
+			runsCSV.setItem(0, col++, new QTableWidgetItem(pnt.name()));
+		}
 	}
 	iACSVToQTableWidgetConverter::saveToCSVFile( runsCSV, runsCSVFile.fileName() );
 }
@@ -1207,32 +1214,41 @@ void iARunBatchThread::saveResultsToRunsCSV( RunInfo & results, QString masksDir
 
 	iAITKIO::writeFile( maskFilename, results.maskImage, itk::ImageIOBase::CHAR, true );
 
-	//Write mask image preview (png) 
+	//Write mask image preview (png)
 	try
 	{
 		MaskImageType * mask = dynamic_cast<MaskImageType*>( results.maskImage.GetPointer() );
-		if ( !mask )
-			throw itk::ExceptionObject( "No mask!" );
+		if (!mask)
+		{
+			throw itk::ExceptionObject("No mask!");
+		}
 
 		QFileInfo maskFI( maskFilename );
-		if ( !QDir( maskFI.absoluteDir() ).mkdir( getMaskSliceDirName( maskFilename ) ) )
-			throw std::runtime_error( "Could not create directory for slices!" );
+		if (!QDir(maskFI.absoluteDir()).mkdir(getMaskSliceDirName(maskFilename)))
+		{
+			throw std::runtime_error("Could not create directory for slices!");
+		}
 
 		//TODO: move to common or helpers, duplicated in DatasetInfo
 		MaskImageType::SizeType size = mask->GetLargestPossibleRegion().GetSize();
 		unsigned char * bufferPtr = (unsigned char *) mask->GetBufferPointer();
 		unsigned long sliceSize = size[0] * size[1];
-		for ( unsigned int sliceNumber = 0; sliceNumber < size[2]; sliceNumber++ )
+		for ( unsigned int sliceNumber = 0; sliceNumber < size[2]; ++sliceNumber )
 		{
 			unsigned char * sBufferPtr = bufferPtr + sliceSize * sliceNumber;
 			QImage img( size[0], size[1], QImage::Format_Indexed8 );
-			for ( int y = 0; y < size[1]; y++ )
+			assert(size[1] <= static_cast<itk::SizeValueType>(std::numeric_limits<int>::max()));
+			for ( int y = 0; static_cast<itk::SizeValueType>(y) < size[1]; ++y )
+			{
 				memcpy( img.scanLine( size[1] - y - 1 ), sBufferPtr + y*size[0], size[0] );//we invert Y-axis, because VTK and Qt have different Y axis directions
+			}
 			img.setColor( 0, qRgb( 0, 0, 0 ) );
 			img.setColor( 1, qRgb( 255, 255, 255 ) );
 
-			if ( !img.save( getSliceFilename( maskFilename, sliceNumber ) ) )
-				throw std::runtime_error( "Could not save png!" );
+			if (!img.save(getSliceFilename(maskFilename, sliceNumber)))
+			{
+				throw std::runtime_error("Could not save png!");
+			}
 		}
 	}
 	catch ( itk::ExceptionObject & err )
@@ -1252,8 +1268,10 @@ void iARunBatchThread::saveResultsToRunsCSV( RunInfo & results, QString masksDir
 void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, QString datasetName, QString batchDir, QTableWidget * settingsCSV, int row )
 {
 	QList<ParamNameType> paramsNameType;
-	foreach( PorosityFilterID fid, filterIds )
-		paramsNameType.append( FilterIdToParamList[fid] );
+	for (PorosityFilterID fid: filterIds)
+	{
+		paramsNameType.append(FilterIdToParamList[fid]);
+	}
 	int numParams = paramsNameType.size();
 
 	QString masksDir = "masks";
@@ -1263,8 +1281,10 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 	bool randSampling = isRandomSampling( settingsCSV, row );
 
 	QList<IParameterInfo*> params;
-	for( int i = 0; i < numParams; i++ )
-		params.push_back( getParameterInfo( paramsNameType.at( i ), settingsCSV, row, 3 + i ) );
+	for (int i = 0; i < numParams; i++)
+	{
+		params.push_back(getParameterInfo(paramsNameType.at(i), settingsCSV, row, 3 + i));
+	}
 
 	double totalNumSamples = 1.0;
 	if( randSampling )
@@ -1274,8 +1294,10 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 	}
 	else
 	{
-		for( int i = 0; i < numParams; ++i )
+		for (int i = 0; i < numParams; ++i)
+		{
 			totalNumSamples *= params[i]->numSamples;
+		}
 	}
 
 	// initialize runsCSV data
@@ -1299,8 +1321,10 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 
 	for( int sampleNo = 0; sampleNo < totalNumSamples; ++sampleNo ) //iterate over parameters
 	{
-		while( m_pmi->ui()->rbPause->isChecked() )
+		while (m_pmi->ui()->rbPause->isChecked())
+		{
 			QCoreApplication::processEvents();
+		}
 
 		RunInfo results;
 		//fill in parameters info
@@ -1311,7 +1335,7 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 		}
 
 		bool success = true;
-		results.elapsedTime = 0;	// reset elapsed time 
+		results.elapsedTime = 0;	// reset elapsed time
 
 		try
 		{
@@ -1320,23 +1344,23 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 			MaskImageType * mask = dynamic_cast<MaskImageType*>(results.maskImage.GetPointer());
 			MaskImageType * gtImage = dynamic_cast<MaskImageType*>(gtMask.GetPointer());
 			results.porosity = calcPorosity( mask, results.surroundingVoxels );
-			
+
 			if (m_rbNewPipelineData)
 			{
 				QString currMaskFilePath = masksDir + "/mask" + QString::number(sampleNo + 1) + ".mhd";
 				calcFeatureCharsForMask(results, currMaskFilePath);
 			}
-			
+
 			//Dice metric, false positve error, false negative error
 			if ( m_datasetGTs[dsFN] != "" )
 			{
 				MaskImageType::RegionType reg = mask->GetLargestPossibleRegion();
-				size_t size = static_cast<size_t>(reg.GetSize()[0]) * reg.GetSize()[1] * reg.GetSize()[2];
+				long long size = static_cast<long long>(reg.GetSize()[0]) * reg.GetSize()[1] * reg.GetSize()[2];
 				size_t tp = 0, fn = 0, fp = 0, tn = 0;
 				MaskImageType::PixelType gt, m;
 
 #pragma omp parallel for reduction(+:tp,fn,fp,tn)
-				for ( size_t i = 0; i < size; ++i )
+				for (long long i = 0; i < size; ++i )
 				{
 					gt = gtImage->GetBufferPointer()[i];
 					m = mask->GetBufferPointer()[i];
@@ -1405,8 +1429,10 @@ void iARunBatchThread::updateComputerCSVFile( QTableWidget & settingsCSV )
 		//Insert a header
 		m_computerCSVData.setRowCount( 1 );
 		m_computerCSVData.setColumnCount( computerCSVHeader.size() );
-		foreach( const QString l, computerCSVHeader )
-			m_computerCSVData.setItem( 0, col++, new QTableWidgetItem( l ) );
+		for (const QString l : computerCSVHeader)
+		{
+			m_computerCSVData.setItem(0, col++, new QTableWidgetItem(l));
+		}
 	}
 
 	//Update computer CSV with new entries
@@ -1535,7 +1561,7 @@ void iARunBatchThread::run()
 void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMaskFilePath)
 {
 	MaskImageType * mask = dynamic_cast<MaskImageType*>(results.maskImage.GetPointer());
-	
+
 	// Label image
 	typedef itk::Image<long, DIM>  LabeledImageType;
 	typedef itk::ConnectedComponentImageFilter<MaskImageType, LabeledImageType> ConnectedComponentImageFilterType;
@@ -1549,7 +1575,7 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 	labeledMaskName.insert(currMaskFilePath.lastIndexOf("."), "_labeled");
 	iAITKIO::writeFile(labeledMaskName, connectedComponents->GetOutput(), itk::ImageIOBase::LONG, true);
 
-	// Save features characteristics in csv file 
+	// Save features characteristics in csv file
 	double spacing = mask->GetSpacing()[0];
 	double totalFeatureVol = 0, totalPhi = 0, totalTheta = 0, totalRoundness = 0, totalLength = 0;
 	ofstream fout( getLocalEncodingFileName(currMaskFilePath.append(".csv")).c_str(), std::ofstream::out);
@@ -1612,7 +1638,7 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 	LabelGeometryImageFilterType::LabelsType allLabels = labelGeometryImageFilter->GetLabels();
 	LabelGeometryImageFilterType::LabelsType::iterator allLabelsIt;
 
-	// Pore Characteristics calculation 
+	// Pore Characteristics calculation
 	for (allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++)
 	{
 		LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
@@ -1696,8 +1722,8 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 		dimY = abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[2] - labelGeometryImageFilter->GetBoundingBox(labelValue)[3]) + 1;
 		dimZ = abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[4] - labelGeometryImageFilter->GetBoundingBox(labelValue)[5]) + 1;
 
-		// Calculation of other pore characteristics and writing the csv file 
-		ShapeLabelObjectType *labelObject = labelMap->GetNthLabelObject(labelValue - 1); // debug -1 delated	// labelMap index contaions first pore at 0 
+		// Calculation of other pore characteristics and writing the csv file
+		ShapeLabelObjectType *labelObject = labelMap->GetNthLabelObject(labelValue - 1); // debug -1 delated	// labelMap index contaions first pore at 0
 
 		/* The equivalent radius is a radius of a circle with the same area as the object.
 		The feret diameter is the diameter of circumscribing circle. So this measure has a maximum of 1.0 when the object is a perfect circle.

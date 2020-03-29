@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -32,13 +32,12 @@ const QString iAEnsembleDescriptorFile::DefaultSMPFileName("sampling.smp");
 const QString iAEnsembleDescriptorFile::DefaultSPSFileName("sampling.sps");
 const QString iAEnsembleDescriptorFile::DefaultCHRFileName("characteristics.chr");
 const QString iAEnsembleDescriptorFile::DefaultModalityFileName("modalities.mod");
-const int DefaultLabelCount = 2;
 
 namespace
 {
 	const QString FileVersionKey   = "FileVersion";
 	const QString FileVersionValue = "1.6.1";
-	
+
 	const QString ModalitiesKey = "Modalities";
 	const QString LabelCountKey = "LabelCount";
 	const QString SamplingDataKey = "SamplingData";
@@ -57,7 +56,7 @@ namespace
 		}
 		result.append(append);
 	}
-	
+
 	bool AddIfMissing(QSettings const & settings, QString & result, QString const & key)
 	{
 		if (!settings.contains(key))
@@ -136,7 +135,7 @@ iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(QString const & fileName):
 		m_Samplings.insert(key, MakeAbsolute(fi.absolutePath(), metaFile.value(keyStr).toString()));
 	}
 	QList<int> keys = m_Samplings.keys();
-	qSort(keys.begin(), keys.end());
+	std::sort(keys.begin(), keys.end());
 	if (keys[0] != 0 || keys[keys.size() - 1] != keys.size() - 1)
 	{
 		DEBUG_LOG(QString("Ensemble loading: Incoherent sampling indices, or not starting at 0: [%1..%2]").arg(keys[0]).arg(keys[keys.size() - 1]));
@@ -185,7 +184,7 @@ iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(QString const & fileName):
 		}
 		AddSubEnsemble(key, memberIDs);
 	}
-	
+
 	m_good = true;
 }
 
@@ -215,7 +214,7 @@ void iAEnsembleDescriptorFile::Store(QString const & fileName)
 {
 	QSettings metaFile(fileName, QSettings::IniFormat);
 	metaFile.setValue(FileVersionKey, FileVersionValue);
-	
+
 	m_fileName = fileName;
 	QFileInfo fi(fileName);
 	QString path(fi.absolutePath());
@@ -245,9 +244,9 @@ void iAEnsembleDescriptorFile::Store(QString const & fileName)
 
 	for (int i = 0; i < m_subEnsembles.size(); ++i)
 	{
-		metaFile.setValue(SubEnsembleKey + QString::number(m_subEnsembleID[i]), join(m_subEnsembles[i], ","));
+		metaFile.setValue(SubEnsembleKey + QString::number(m_subEnsembleID[i]), joinAsString(m_subEnsembles[i], ","));
 	}
-	
+
 	metaFile.sync();
 	if (metaFile.status() != QSettings::NoError)
 	{
@@ -264,7 +263,6 @@ QString const & iAEnsembleDescriptorFile::FileName() const
 {
 	return m_fileName;
 }
-
 
 QString const & iAEnsembleDescriptorFile::ModalityFileName() const
 {
@@ -306,18 +304,17 @@ QString const & iAEnsembleDescriptorFile::ColorTheme() const
 	return m_ColorTheme;
 }
 
-
-size_t iAEnsembleDescriptorFile::SubEnsembleCount() const
+int iAEnsembleDescriptorFile::subEnsembleCount() const
 {
 	return m_subEnsembles.size();
 }
 
-QVector<int> iAEnsembleDescriptorFile::SubEnsemble(size_t idx) const
+QVector<int> iAEnsembleDescriptorFile::subEnsemble(int idx) const
 {
 	return m_subEnsembles[idx];
 }
 
-int iAEnsembleDescriptorFile::SubEnsembleID(size_t idx) const
+int iAEnsembleDescriptorFile::subEnsembleID(int idx) const
 {
 	return m_subEnsembleID[idx];
 }

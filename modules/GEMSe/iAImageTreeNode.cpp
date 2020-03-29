@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,6 +26,9 @@ iAImageTreeNode::iAImageTreeNode() :
 	m_attitude(NoPreference)
 {
 }
+
+iAImageTreeNode::~iAImageTreeNode()
+{}
 
 void iAImageTreeNode::SetParent(QSharedPointer<iAImageTreeNode > parent)
 {
@@ -126,7 +129,7 @@ vtkSmartPointer<vtkImageData> iAImageTreeNode::GetCorrectnessEntropyImage(LabelI
 	vtkSmartPointer<vtkImageData> correctnessEntropyImg = allocateImage(VTK_UNSIGNED_CHAR, dim, spacing, 4);
 
 	itk::Index<3> idx;
-	for (idx[0] = 0; idx[0] <dim[0]; ++idx[0])
+	for (idx[0] = 0; idx[0] < dim[0]; ++idx[0])
 	{
 		for (idx[1] = 0; idx[1] < dim[1]; ++idx[1])
 		{

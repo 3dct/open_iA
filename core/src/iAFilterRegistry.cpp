@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,9 +23,6 @@
 #include "iAConsole.h"
 #include "iAFilter.h"
 #include "iAFilterRunnerGUI.h"
-
-iAIFilterFactory::~iAIFilterFactory() {}
-iAIFilterRunnerGUIFactory::~iAIFilterRunnerGUIFactory() {}
 
 void iAFilterRegistry::addFilterFactory(QSharedPointer<iAIFilterFactory> factory)
 {
@@ -58,7 +55,9 @@ int iAFilterRegistry::filterID(QString const & name)
 	{
 		auto filter = filterFactory->create();
 		if (filter->name() == name)
+		{
 			return cur;
+		}
 		++cur;
 	}
 	DEBUG_LOG(QString("Filter '%1' not found!").arg(name));

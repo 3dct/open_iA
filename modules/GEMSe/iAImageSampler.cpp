@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -65,23 +65,22 @@ iAImageSampler::iAImageSampler(
 	m_sampleGenerator(sampleGenerator),
 	m_sampleCount(sampleCount),
 	m_labelCount(labelCount),
-	m_curLoop(0),
-	m_parameterSets(0),
 	m_executable(computationExecutable),
 	m_additionalArguments(additionalArguments),
-	m_pipelineName(pipelineName),
 	m_outputBaseDir(outputBaseDir),
-	m_aborted(false),
+	m_pipelineName(pipelineName),
 	m_parameterRangeFile(parameterRangeFile),
 	m_parameterSetFile  (parameterSetFile),
 	m_derivedOutputFile (derivedOutputFile),
-	m_runningOperations(0),
-	m_computationDuration(0),
-	m_derivedOutputDuration(0),
-	m_samplingID(samplingID),
 	m_imageBaseName(imageBaseName),
 	m_separateOutputDir(separateOutputDir),
-	m_calculateCharacteristics(calculateChar)
+	m_calculateCharacteristics(calculateChar),
+	m_curLoop(0),
+	m_aborted(false),
+	m_computationDuration(0),
+	m_derivedOutputDuration(0),
+	m_runningOperations(0),
+	m_samplingID(samplingID)
 {
 }
 
@@ -89,7 +88,9 @@ void iAImageSampler::StatusMsg(QString const & msg)
 {
 	QString statusMsg(msg);
 	if (statusMsg.length() > 105)
+	{
 		statusMsg = statusMsg.left(100) + "...";
+	}
 	emit Status(statusMsg);
 	DEBUG_LOG(msg);
 }
@@ -107,6 +108,8 @@ void iAImageSampler::run()
 		DEBUG_LOG("Algorithm has no parameters, nothing to sample!");
 		return;
 	}
+	DEBUG_LOG("");
+	DEBUG_LOG("---------- SAMPLING STARTED ----------");
 	StatusMsg("Generating sampling parameter sets...");
 	m_parameterSets = m_sampleGenerator->GetParameterSets(m_parameters, m_sampleCount);
 	if (!m_parameterSets)
@@ -140,6 +143,8 @@ void iAImageSampler::run()
 		m_pipelineName,
 		m_samplingID));
 
+	int numDigits = std::floor(std::log10(std::abs(m_parameterSets->size()))) + 1;  // number of required digits for number >= 1
+
 	for (m_curLoop=0; !m_aborted && m_curLoop<m_parameterSets->size(); ++m_curLoop)
 	{
 		ParameterSet const & paramSet = m_parameterSets->at(m_curLoop);
@@ -164,7 +169,9 @@ void iAImageSampler::run()
 		QFileInfo fi(m_imageBaseName);
 		QString outputFile = outputDirectory + "/" + (m_separateOutputDir ?
 			m_imageBaseName :
-			QString("%1%2.%3").arg(fi.baseName()).arg(m_curLoop).arg(fi.completeSuffix()));
+			QString("%1%2%3").arg(fi.baseName()).arg(m_curLoop, numDigits, 10, QChar('0')).arg(
+				fi.completeSuffix().size() > 0 ? QString(".%1").arg(fi.completeSuffix()) : QString("") )
+		);
 		QStringList argumentList;
 		argumentList << additionalArgumentList;
 		argumentList << outputFile;
@@ -179,6 +186,7 @@ void iAImageSampler::run()
 			QString value;
 			switch (m_parameters->at(i)->valueType())
 			{
+			default:
 			case Continuous:
 				value = QString::number(paramSet.at(i), 'g', 12);
 				break;
@@ -192,12 +200,12 @@ void iAImageSampler::run()
 			argumentList << value;
 		}
 		iACommandRunner* cmd = new iACommandRunner(m_executable, argumentList);
-		
+
 		QSharedPointer<iAModality const> mod0 = m_modalities->get(0);
-		
+
 		m_runningComputation.insert(cmd, m_curLoop);
-		connect(cmd, SIGNAL(finished()), this, SLOT(computationFinished()) );
-		
+		connect(cmd, &iACommandRunner::finished, this, &iAImageSampler::computationFinished );
+
 		m_mutex.lock();
 		m_runningOperations++;
 		m_mutex.unlock();
@@ -212,6 +220,7 @@ void iAImageSampler::run()
 	{
 		msleep(100);
 	}
+	DEBUG_LOG("---------- SAMPLING FINISHED! ----------");
 }
 
 void iAImageSampler::computationFinished()
@@ -219,7 +228,7 @@ void iAImageSampler::computationFinished()
 	iACommandRunner* cmd = dynamic_cast<iACommandRunner*>(QObject::sender());
 	if (!cmd)
 	{
-		DEBUG_LOG("Invalid state: NULL sender in computationFinished!");
+		DEBUG_LOG("Invalid state: nullptr sender in computationFinished!");
 		return;
 	}
 	int id = m_runningComputation[cmd];
@@ -243,7 +252,7 @@ void iAImageSampler::computationFinished()
 
 	QSharedPointer<iASingleResult> result = iASingleResult::Create(id, *m_results.data(), param,
 		m_outputBaseDir + "/sample" + QString::number(id) + +"/label.mhd");
-	
+
 	result->SetAttribute(m_parameterCount+2, computationTime);
 	m_results->GetAttributes()->at(m_parameterCount+2)->adjustMinMax(computationTime);
 
@@ -252,7 +261,7 @@ void iAImageSampler::computationFinished()
 		// TODO: use external programs to calculate derived output!
 		iADerivedOutputCalculator * newCharCalc = new iADerivedOutputCalculator(result, m_parameterCount, m_parameterCount + 1, m_labelCount);
 		m_runningDerivedOutput.insert(newCharCalc, result);
-		connect(newCharCalc, SIGNAL(finished()), this, SLOT(derivedOutputFinished()));
+		connect(newCharCalc, &iADerivedOutputCalculator::finished, this, &iAImageSampler::derivedOutputFinished);
 		newCharCalc->start();
 	}
 	else
@@ -318,7 +327,7 @@ double iAImageSampler::elapsed() const
 
 double iAImageSampler::estimatedTimeRemaining() const
 {
-	return 
+	return
 		(m_overallTimer.elapsed()/(m_curLoop+1)) // average duration of one cycle
 		* static_cast<double>(m_parameterSets->size()-m_curLoop-1) // remaining cycles
 	;

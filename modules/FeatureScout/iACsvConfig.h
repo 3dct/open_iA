@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -53,7 +53,7 @@ struct FeatureScout_API iACsvConfig
 		Ellipses,
 		NoVis,
 		VisTypeCount //must be last element
-	}; //!< what visualization to use for the objects. Should match the entries of VisualizationTypeName iACsvConfig.cpp 
+	}; //!< what visualization to use for the objects. Should match the entries of VisualizationTypeName iACsvConfig.cpp
 	static const int LegacyFormatStartSkipLines = 5;
 	iACsvConfig();
 	bool isValid(QString & errorMsg) const;
@@ -73,13 +73,15 @@ struct FeatureScout_API iACsvConfig
 	QStringList selectedHeaders;            //!< names of the selected headers
 	bool computeLength, computeAngles, computeTensors, computeCenter, computeStartEnd;  //!< flags whether to compute additional columns
 	VisualizationType visType;              //! how to visualize the given objects
+	int cylinderQuality;                    //! how much sides are used for the cylinder visualization; the higher the number, the worse the quality (default=12)
+	size_t segmentSkip;                     //! curved fiber optimization: if 1, all points along the fiber will be used; if larger, points will be skipped
 	QMap<uint, uint> columnMapping;         //! map a specific value (denoted by an ID from MappedColumn) to the number of the column where it's stored
 	double offset[3];                       //! offset to apply to all coordinates (start, end, center)
 	bool isDiameterFixed;                   //! whether to insert a fixed diameter (given by fixedDiameterValue)
 	double fixedDiameterValue;              //! value to use as diameter for all objects
 	static iACsvConfig const & getLegacyFiberFormat(QString const & fileName);
 	static iACsvConfig const & getLegacyPoreFormat(QString const & fileName);
-	
+
 	//! Return base key for a given format
 	static QString getFormatKey(QString const & formatName);
 	//! Return list of all csv configs stored in registry, list is empty if no format definitions exist
@@ -89,7 +91,7 @@ struct FeatureScout_API iACsvConfig
 	void save(QSettings & settings, const QString & formatName);
 
 	//! Load a given configuration name
-	bool load(QSettings & settings, const QString & formatName);
+	bool load(QSettings const & settings, const QString & formatName);
 };
 
 QString MapVisType2Str(iACsvConfig::VisualizationType visType);

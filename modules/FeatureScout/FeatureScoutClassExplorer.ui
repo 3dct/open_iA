@@ -313,7 +313,7 @@
                <string>wisetex_save</string>
               </property>
               <property name="icon">
-               <iconset resource="../../core/open_iA.qrc">
+               <iconset resource="FeatureScout.qrc">
                 <normaloff>:/images/xml_save.png</normaloff>:/images/xml_save.png</iconset>
               </property>
               <property name="iconSize">
@@ -349,7 +349,7 @@
                <string>csv_dv</string>
               </property>
               <property name="icon">
-               <iconset resource="../../core/open_iA.qrc">
+               <iconset resource="FeatureScout.qrc">
                 <normaloff>:/images/FeatureScout_csvDV.png</normaloff>:/images/FeatureScout_csvDV.png</iconset>
               </property>
               <property name="iconSize">
@@ -406,6 +406,7 @@
  </widget>
  <resources>
   <include location="../../core/open_iA.qrc"/>
+  <include location="FeatureScout.qrc"/>
  </resources>
  <connections/>
 </ui>

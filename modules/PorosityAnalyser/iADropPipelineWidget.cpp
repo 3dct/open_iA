@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -53,12 +53,11 @@ void resizeList( QList<T> & list, int newSize ) {
 	else if ( diff < 0 ) list.erase( list.end() + diff, list.end() );
 }
 
-iADropPipelineWidget::iADropPipelineWidget( int imageSize, int totalPipelineSlots,
-											QString datasetDir, QWidget *parent )
-											: QWidget( parent ),
-											m_imageSize( imageSize ),
-											m_totalPipelineSlots( totalPipelineSlots ),
-											m_datasetDir( datasetDir )
+iADropPipelineWidget::iADropPipelineWidget(int imageSize, int totalPipelineSlots, QString datasetDir, QWidget *parent ):
+	QWidget(parent),
+	m_datasetDir(datasetDir),
+	m_imageSize(imageSize),
+	m_totalPipelineSlots(totalPipelineSlots)
 {
 	setAcceptDrops( true );
 	setFixedSize( m_imageSize, pieceSize() );
@@ -160,7 +159,7 @@ void iADropPipelineWidget::dropEvent( QDropEvent *event )
 		update( square );
 		return;
 	}
-		
+
 	pieceName.replace( dropPiecePos, name );
 	pieceParams.replace( dropPiecePos, params );
 	pieceLastPos.replace( dropPiecePos, lastPiecePos );
@@ -208,15 +207,17 @@ void iADropPipelineWidget::mousePressEvent( QMouseEvent *event )
 
 		QList<PorosityFilterID> filterIds = parseFiltersFromString( pieceName[found] );
 		QList<ParamNameType> paramsNameType;
-		foreach( PorosityFilterID fid, filterIds )
-			paramsNameType.append( FilterIdToParamList[fid] );
+		for (PorosityFilterID fid: filterIds)
+		{
+			paramsNameType.append(FilterIdToParamList[fid]);
+		}
 
 		QSettings settings( organisationName, applicationName );
 		QString filterName = pieceName[found],
 			dialogWindowName = paramsNameType.size() > 0
-			? pieceName[found] + " Parameters" 
+			? pieceName[found] + " Parameters"
 			: pieceName[found] + " Parameter";
-		filterName.remove( " " );	
+		filterName.remove( " " );
 		QStringList inList, unionList;
 		QList<QVariant> inPara;
 		inList.append( "$Random Sampling" );
@@ -227,22 +228,22 @@ void iADropPipelineWidget::mousePressEvent( QMouseEvent *event )
 			QString filterParam = "#" + paramsNameType[i].name() + " Start";
 			inList.append( filterParam );
 			QString nosnows_filterParam = filterParam;
-			nosnows_filterParam.remove( " " );	
-			inPara.append( settings.value( pipelinePresetsPath + 
+			nosnows_filterParam.remove( " " );
+			inPara.append( settings.value( pipelinePresetsPath +
 				filterName + "/" + nosnows_filterParam ).toDouble() );
 
 			filterParam = "#" + paramsNameType[i].name() + " End";
 			inList.append( filterParam );
 			nosnows_filterParam = filterParam;
-			nosnows_filterParam.remove( " " );	
-			inPara.append( settings.value( pipelinePresetsPath + 
+			nosnows_filterParam.remove( " " );
+			inPara.append( settings.value( pipelinePresetsPath +
 				filterName + "/" + nosnows_filterParam ).toDouble() );
 
 			filterParam = "#" + paramsNameType[i].name() + " Samples";
 			inList.append( filterParam );
 			nosnows_filterParam = filterParam;
-			nosnows_filterParam.remove( " " );	
-			inPara.append( settings.value( pipelinePresetsPath + 
+			nosnows_filterParam.remove( " " );
+			inPara.append( settings.value( pipelinePresetsPath +
 				filterName + "/" + nosnows_filterParam ).toDouble() );
 		}
 
@@ -250,7 +251,7 @@ void iADropPipelineWidget::mousePressEvent( QMouseEvent *event )
 		QTextDocument algoDoc;
 		algoDoc.setHtml( pieceDescription[found] );
 
-		// Find datasetName in the pieceName list   
+		// Find datasetName in the pieceName list
 		int datasetNameIdx = -1;
 		for ( int i = 0; i < pieceName.size(); ++i )
 		{
@@ -258,7 +259,7 @@ void iADropPipelineWidget::mousePressEvent( QMouseEvent *event )
 				datasetNameIdx = i;
 		}
 
-		// No parameter setting without a dataset 
+		// No parameter setting without a dataset
 		if ( datasetNameIdx == -1 )
 		{
 			QMessageBox msgBox;
@@ -284,7 +285,7 @@ void iADropPipelineWidget::mousePressEvent( QMouseEvent *event )
 		for ( int j = 0; j < inList.size(); ++j )
 		{
 			QString nosnows_filterParam = inList[j];
-			nosnows_filterParam.remove( " " );	
+			nosnows_filterParam.remove( " " );
 			double value = dlg.getValue(j);
 			unionList.append( inList[j] + " " + QString::number( value ) );
 			settings.setValue( pipelinePresetsPath + filterName + "/" + nosnows_filterParam, value );
@@ -328,7 +329,7 @@ void iADropPipelineWidget::mouseMoveEvent( QMouseEvent *event )
 			int piecePos = found;
 			QPixmap pixmap = piecePixmaps[found];
 			QString description = pieceDescription[found];
-			
+
 			QByteArray itemData;
 			QDataStream dataStream( &itemData, QIODevice::WriteOnly );
 			dataStream << pixmap << piecePos << name << description << params;
@@ -338,7 +339,7 @@ void iADropPipelineWidget::mouseMoveEvent( QMouseEvent *event )
 				mimeData->setData( customMimeType[3], itemData );
 			else
 				mimeData->setData( customMimeType[2], itemData );
-				
+
 			QDrag *drag = new QDrag( this );
 			drag->setMimeData( mimeData );
 			drag->setPixmap( pixmap );
@@ -379,8 +380,8 @@ void iADropPipelineWidget::paintEvent( QPaintEvent *event )
 
 const QRect iADropPipelineWidget::targetSquare( const QPoint &position ) const
 {
-	return QRect( position.x() / pieceSize() * pieceSize(), 
-				  position.y() / pieceSize() * pieceSize(), 
+	return QRect( position.x() / pieceSize() * pieceSize(),
+				  position.y() / pieceSize() * pieceSize(),
 				  pieceSize(), pieceSize() );
 }
 

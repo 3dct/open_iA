@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "dlg_TFTable.h"
 
-#include "charts/iADiagramFctWidget.h"
+#include "charts/iAChartWithFunctionsWidget.h"
 #include "iAChartFunctionTransfer.h"
 
 #include <vtkSmartPointer.h>
@@ -34,7 +34,8 @@
 const QStringList columnNames = QStringList()\
 << "X" << "Y" << "Color";
 
-class MyTableWidgetItem : public QTableWidgetItem
+// override operator < for search ... TODO: maybe this could be done via a standalone operator?
+class iATableWidgetItem : public QTableWidgetItem
 {
 public:
 	bool operator <( const QTableWidgetItem &other ) const
@@ -43,11 +44,11 @@ public:
 	}
 };
 
-dlg_TFTable::dlg_TFTable( iADiagramFctWidget * parent, iAChartFunction* func ) : dlg_TFTableWidgetConnector( parent ),
-	m_parent(parent),
+dlg_TFTable::dlg_TFTable( iAChartWithFunctionsWidget * parent, iAChartFunction* func ) : dlg_TFTableWidgetConnector( parent ),
 	m_oTF( dynamic_cast<iAChartTransferFunction*>( func )->opacityTF() ),
 	m_cTF( dynamic_cast<iAChartTransferFunction*>( func )->colorTF() ),
-	m_newPointColor( Qt::gray )
+	m_newPointColor( Qt::gray ),
+	m_parent(parent)
 {
 	Init();
 	updateTable();
@@ -95,17 +96,16 @@ void dlg_TFTable::updateTable()
 	table->blockSignals( true );
 	for ( int i = 0; i < m_oTF->GetSize(); ++i )
 	{
-		int t = m_oTF->GetSize();
 		double pointValue[4], color[4];
 		m_oTF->GetNodeValue( i, pointValue );
 		m_cTF->GetIndexedColor( i, color );
 		QColor c; c.setRgbF( color[0], color[1], color[2], color[3] );
-		MyTableWidgetItem* xItem = new MyTableWidgetItem;
-		MyTableWidgetItem* yItem = new MyTableWidgetItem;
-		MyTableWidgetItem* colorItem = new MyTableWidgetItem;
-		xItem->setData( Qt::DisplayRole, QString::number( (double) pointValue[0] ) );
-		yItem->setData( Qt::DisplayRole, QString::number( (double) pointValue[1] ) );
-		colorItem->setBackgroundColor( c );
+		iATableWidgetItem* xItem = new iATableWidgetItem;
+		iATableWidgetItem* yItem = new iATableWidgetItem;
+		iATableWidgetItem* colorItem = new iATableWidgetItem;
+		xItem->setData( Qt::DisplayRole, QString::number( pointValue[0] ) );
+		yItem->setData( Qt::DisplayRole, QString::number( pointValue[1] ) );
+		colorItem->setBackground( c );
 		if ( i == 0 || i == m_oTF->GetSize() - 1 )
 		{
 			xItem->setFlags( xItem->flags() & ~Qt::ItemIsEditable & ~Qt::ItemIsSelectable & ~Qt::ItemIsEnabled );
@@ -133,15 +133,15 @@ void dlg_TFTable::addPoint()
 		return;
 	table->insertRow( table->rowCount() );
 	table->blockSignals( true );
-	MyTableWidgetItem* newXItem = new MyTableWidgetItem;
-	MyTableWidgetItem* newYItem = new MyTableWidgetItem;
-	MyTableWidgetItem* newColorItem = new MyTableWidgetItem;
+	iATableWidgetItem* newXItem = new iATableWidgetItem;
+	iATableWidgetItem* newYItem = new iATableWidgetItem;
+	iATableWidgetItem* newColorItem = new iATableWidgetItem;
 	newXItem->setData( Qt::DisplayRole, QString::number( (double) dsbNewPointX->value() ) );
 	newYItem->setData( Qt::DisplayRole, QString::number( (double) dsbNewPointY->value() ) );
 	table->setSortingEnabled( false );
 	table->setItem( table->rowCount()-1, 0, newXItem );
 	table->setItem( table->rowCount()-1, 1, newYItem );
-	newColorItem->setBackgroundColor( m_newPointColor );
+	newColorItem->setBackground( m_newPointColor );
 	table->setItem( table->rowCount()-1, 2, newColorItem );
 	table->setSortingEnabled( true );
 	table->sortByColumn( 0, Qt::AscendingOrder );
@@ -162,9 +162,11 @@ void dlg_TFTable::removeSelectedPoint()
 			rowsToRemove.append( j );
 		}
 	}
-	qSort( rowsToRemove.begin(), rowsToRemove.end(), qGreater<int>() );
-	foreach( int row, rowsToRemove )
-		table->removeRow( row );
+	std::sort( rowsToRemove.begin(), rowsToRemove.end(), std::greater<int>() );
+	for (int row : rowsToRemove)
+	{
+		table->removeRow(row);
+	}
 }
 
 void dlg_TFTable::updateHistogram()
@@ -175,7 +177,7 @@ void dlg_TFTable::updateHistogram()
 	{
 		double x = table->item( i, 0 )->data( Qt::DisplayRole ).toDouble();
 		double y = table->item( i, 1 )->data( Qt::DisplayRole ).toDouble();
-		QColor c = table->item( i, 2 )->backgroundColor();
+		QColor c = table->item( i, 2 )->background().color();
 		m_oTF->AddPoint( x, y );
 		m_cTF->AddRGBPoint( x, c.redF(), c.greenF(), c.blueF() );
 	}
@@ -188,7 +190,7 @@ void dlg_TFTable::itemClicked( QTableWidgetItem * item )
 	{
 		table->blockSignals( true );
 		QColor newItemColor = QColorDialog::getColor( Qt::gray, this, "Set Color", QColorDialog::ShowAlphaChannel );
-		item->setBackgroundColor( newItemColor );
+		item->setBackground( newItemColor );
 		table->blockSignals( false );
 	}
 	else

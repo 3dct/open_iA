@@ -27,7 +27,7 @@
 #include <Hilbert/GetBits.hpp>
 #include <Hilbert/SetBits.hpp>
 #include <Hilbert/GrayCodeRank.hpp>
-#include <string.h>
+#include <cstring>
 
 
 // Templated Hilbert functions.
@@ -102,7 +102,7 @@ namespace Hilbert
 		assert( 0 <= d && d < n );
 		e = l;
 		e.toggleBit( d ); //#D d == n-1 ? 0 : d+1 );
-	
+
 		// Update direction
 		d += 1 + t.fsb();
 		if ( d >= n ) d -= n;
@@ -122,7 +122,7 @@ namespace Hilbert
 	update2(
 		const I &l,
 		const I &t,
-		const I &w,
+		const I & /*w*/,
 		int n,
 		I &e,
 		int &d
@@ -131,7 +131,7 @@ namespace Hilbert
 		assert( 0 <= d && d < n );
 		e = l;
 		e.toggleBit( d );//#D d == n-1 ? 0 : d+1 );
-	
+
 		// Update direction
 		d += 1 + t.fsb();
 		if ( d >= n ) d -= n;
@@ -149,7 +149,7 @@ namespace Hilbert
 		int m,
 		int n,
 		H &h,
-		int *ds = NULL // #HACK
+		int *ds = nullptr // #HACK
 		)
 	{
 		I e(n), l(n), t(n), w(n);
@@ -171,7 +171,7 @@ namespace Hilbert
 		{
 			// #HACK
 			if ( ds ) ds[i] = d;
-			
+
 			// Get corner of sub-hypercube where point lies.
 			getLocation<P,I>(p,n,i,l);
 
@@ -245,7 +245,7 @@ namespace Hilbert
 			p[j].zero();
 
 		ho = m*n;
-		
+
 		// Work from MSB to LSB
 		for ( i = m-1; i >= 0; i-- )
 		{
@@ -314,7 +314,7 @@ namespace Hilbert
 	{
 		int i, mn;
 		int *ds;
-		
+
 		// Get total precision and max precision
 		// if not supplied
 		if ( M == 0 || m == 0 )
@@ -406,14 +406,14 @@ namespace Hilbert
 				M += ms[i];
 			}
 		}
-		
+
 		// Initialize
 		e.zero();
 		d = D0;
 		l.zero();
 		for ( j = 0; j < n; j++ )
 			p[j].zero();
-		
+
 		// Work from MSB to LSB
 		for ( i = m-1; i >= 0; i-- )
 		{

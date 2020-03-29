@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -63,9 +63,9 @@ namespace
 
 dlg_labels::dlg_labels(MdiChild* mdiChild, bool addMainSlicers /* = true*/):
 	m_itemModel(new QStandardItemModel()),
+	m_trackingSeeds(false),
 	m_colorTheme(iAColorThemeManager::instance().theme("Brewer Set3 (max. 12)")),
-	m_mdiChild(mdiChild),
-	m_trackingSeeds(false)
+	m_mdiChild(mdiChild)
 {
 	cbColorTheme->addItems(iAColorThemeManager::instance().availableThemes());
 	cbColorTheme->setCurrentText(m_colorTheme->name());
@@ -430,7 +430,6 @@ void dlg_labels::remove()
 	QStandardItem* item = m_itemModel->itemFromIndex(indices[0]);
 	if (!item)
 		return;
-	bool updateOverlay = true;
 	if (item->parent() == nullptr)  // a label was selected
 	{
 		if (item->rowCount() > 0)
@@ -605,14 +604,14 @@ bool dlg_labels::load(QString const & filename)
 	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-	{	
+	{
 		DEBUG_LOG(QString("Seed file loading: Failed to open file '%1'!").arg(filename));
 		return false;
 	}
 	QXmlStreamReader stream(&file);
 	stream.readNext();
 	int curLabelRow = -1;
-	
+
 	bool enableStoreBtn = false;
 	QList<QStandardItem*> items;
 	while (!stream.atEnd())
@@ -704,7 +703,7 @@ bool dlg_labels::store(QString const & filename, bool extendedFormat)
 
 	QFile file(filename);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-	{	
+	{
 		QMessageBox::warning(this, "GEMSe", "Seed file storing: Failed to open file '" + filename + "'!");
 		return false;
 	}
@@ -737,7 +736,7 @@ bool dlg_labels::store(QString const & filename, bool extendedFormat)
 				for (int m = 0; m < modalities->size(); ++m)
 				{
 					auto mod = modalities->get(m);
-					for (int c = 0; c < mod->componentCount(); ++c)
+					for (size_t c = 0; c < mod->componentCount(); ++c)
 					{
 						double value = mod->component(c)->GetScalarComponentAsDouble(x, y, z, 0);
 						stream.writeStartElement("Value");
@@ -913,7 +912,7 @@ void dlg_labels::sample()
 			numOfSeedsPerLabel[i] = minNumOfSeeds;
 		}
 	}
-	
+
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> xDist(0, img->GetDimensions()[0] - 1);

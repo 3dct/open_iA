@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,6 +25,7 @@
 #include "iAChangeableCameraWidget.h"
 #include "iAPreferences.h"
 #include "iARenderSettings.h"
+#include "iASavableProject.h"
 #include "iASlicerSettings.h"
 #include "iAVolumeSettings.h"
 #include "open_iA_Core_export.h"
@@ -65,7 +66,7 @@ class dlg_slicer;
 class dlg_volumePlayer;
 class iAAlgorithm;
 class iAChannelData;
-class iADiagramFctWidget;
+class iAChartWithFunctionsWidget;
 class iADockWidgetWrapper;
 class iAIO;
 class iALogger;
@@ -74,6 +75,7 @@ class iAModalityList;
 class iAParametricSpline;
 class iAPlot;
 struct iAProfileProbe;
+class iAProjectBase;
 class iARenderer;
 class iASlicer;
 class iAVolumeStack;
@@ -82,10 +84,17 @@ class MainWindow;
 typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>  dlg_renderer;
 typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
-class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild, public iAChangeableCameraWidget
+//! Child window of MainWindow's mdi area for showing a volume or mesh dataset.
+//! Some tools in the modules attach to MdiChild's to enhance their functionality.
+class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild, public iAChangeableCameraWidget, public iASavableProject
 {
 	Q_OBJECT
 public:
+	enum iAInteractionMode
+	{
+		imCamera,
+		imRegistration
+	};
 	MdiChild(MainWindow * mainWnd, iAPreferences const & preferences, bool unsavedChanges);
 	~MdiChild();
 
@@ -184,7 +193,7 @@ public:
 	bool linkedViews() const;   //!< Whether this child has the linked views feature enabled
 	std::vector<iAChartFunction*> &functions();
 	void redrawHistogram();
-	iADiagramFctWidget* histogram();
+	iAChartWithFunctionsWidget* histogram();
 
 	int selectedFuncPoint();
 	int isFuncEndPoint(int index);
@@ -207,16 +216,16 @@ public:
 	void updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, bool enable);
 	//! Update opacity of the given channel ID.
 	void updateChannelOpacity(uint id, double opacity);
-	
+
 	void setChannelRenderingEnabled(uint, bool enabled);
-	
+
 	//! Enable / disable a channel in all slicers.
 	void setSlicerChannelEnabled(uint id, bool enabled);
 
 	//! Remove channel in all slicers.
 	void removeChannel(uint id);
 
-	
+
 	iAChannelData * channelData(uint id);
 	iAChannelData const * channelData(uint id) const;
 	void initChannelRenderer(uint id, bool use3D, bool enableChannel = true);
@@ -225,8 +234,10 @@ public:
 
 
 	//! @{ Magic Lens
-	void toggleMagicLens(bool isEnabled);
-	bool isMagicLensToggled(void) const;
+	void toggleMagicLens2D(bool isEnabled);
+	void toggleMagicLens3D(bool isEnabled);
+	bool isMagicLens2DEnabled() const;
+	bool isMagicLens3DEnabled() const;
 	void setMagicLensInput(uint id);
 	void setMagicLensEnabled(bool isOn);
 	void reInitMagicLens(uint id, QString const & name, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf);
@@ -260,28 +271,41 @@ public:
 
 	//! Checks whether the main image data is fully loaded.
 	bool isFullyLoaded() const;
-
+	//! Ask for a project file name and store in that project file:
+	//!    - loaded files and their transfer functions, when old project file (.mod) is chosen
+	//!    - configuration of opened tools (which support it), when new project file (.iaproj) is chosen
+	//!      (to be extended to modalities and TFs soon)
+	void doSaveProject() override;
 	//! Save all currently loaded files into a project with the given file name.
 	void saveProject(QString const & fileName);
-
 	//! Whether volume data is loaded (only checks filename and volume dimensions).
 	bool isVolumeDataLoaded() const;
-
 	//! Enable or disable linked slicers and 3D renderer.
 	void linkViews(bool l);
-	
 	//! Enable or disable linked MDI windows for this MDI child.
 	void linkMDIs(bool lm);
-
-	//! clear current histogram (i.e. don't show it anymore)
+	//! Clear current histogram (i.e. don't show it anymore)
 	void clearHistogram();
-
+	//! Set the list of modalities for this window.
 	void setModalities(QSharedPointer<iAModalityList> modList);
+	//! Retrieve the list of all currently loaded modalities.
 	QSharedPointer<iAModalityList> modalities();
+	//! Retrieve data for modality with given index.
 	QSharedPointer<iAModality> modality(int idx);
-	void storeProject();
+	iASlicer* getSlicer(uint i) {
+		return m_slicer[i];
+	}
+	//! add project
+	void addProject(QString const & key, QSharedPointer<iAProjectBase> project);
+	QMap<QString, QSharedPointer<iAProjectBase> > const & projects();
 
-Q_SIGNALS:
+	iAInteractionMode interactionMode() const;
+	void setInteractionMode(iAInteractionMode mode);
+
+	bool meshDataMovable();
+	void setMeshDataMovable(bool movable);
+
+signals:
 	void rendererDeactivated(int c);
 	void pointSelected();
 	void noPointSelected();
@@ -293,7 +317,6 @@ Q_SIGNALS:
 	void renderSettingsChanged();
 	void slicerSettingsChanged();
 	void preferencesChanged();
-	void viewInitialized();
 	void transferFunctionChanged();
 	void fileLoaded();
 	void histogramAvailable();
@@ -356,6 +379,9 @@ private slots:
 	void modalityAdded(int modalityIdx);
 	void rendererCamPos();
 	void resetCamera(bool spacingChanged, double const * newSpacing);
+	void toggleFullScreen();
+	void rendererKeyPressed(int keyCode);
+	void styleChanged();
 
 private:
 	void closeEvent(QCloseEvent *event) override;
@@ -382,7 +408,6 @@ private:
 	void connectSignalsToSlots();
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void snakeNormal(int index, double point[3], double normal[3]);
-	//void updateReslicer(double point[3], double normal[3], int mode);
 
 	//! sets up the IO thread for saving the correct file type for the given filename.
 	//! \return	true if it succeeds, false if it fails.
@@ -453,7 +478,7 @@ private:
 	QList<int> m_checkedList;
 	iAIO* m_ioThread;
 
-	iADiagramFctWidget * m_histogram;
+	iAChartWithFunctionsWidget * m_histogram;
 	QSharedPointer<iAPlot> m_histogramPlot;
 
 	//! @{ dock widgets
@@ -475,7 +500,6 @@ private:
 	uint m_nextChannelID;
 	uint m_magicLensChannel;
 
-	int m_numberOfVolumes;
 	int m_previousIndexOfVolume;
 
 	iALogger* m_logger;
@@ -487,5 +511,7 @@ private:
 	int m_currentComponent;
 	int m_currentHistogramModality;
 	bool m_initVolumeRenderers;
-	int m_storedModalityNr;		//!< modality nr being stored
+	int m_storedModalityNr;		                              //!< modality nr being stored
+	QMap<QString, QSharedPointer<iAProjectBase>> m_projects;  //!< list of currently active "projects" (i.e. Tools)
+	iAInteractionMode m_interactionMode;                      //!< current interaction mode in slicers/renderer (see iAInteractionMode)
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,24 +29,32 @@
 
 class iAFiberResultsCollection;
 
+class QFile;
+
 class iARefDistCompute : public QThread
 {
 	Q_OBJECT
 public:
-	static const int SimilarityMeasureCount = 8;
+	typedef int ContainerSizeType;
+	static const int SimilarityMeasureCount = 20;
 	static const int BestSimilarityMeasure = 7;
 	static const int OverlapMeasureCount = 3;
 	static const int OverlapMeasureStart = SimilarityMeasureCount-OverlapMeasureCount;
 	static const int EndColumns = 2;
 	static const int BestMeasureWithoutOverlap = 2;
-	static size_t MaxNumberOfCloseFibers;
-	iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, int referenceID);
+	static ContainerSizeType MaxNumberOfCloseFibers;
+	iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, size_t referenceID);
 	void run() override;
 	iAProgress* progress();
 	size_t referenceID() const;
-	static QStringList getSimilarityMeasureNames();
+	static QStringList getDissimilarityMeasureNames();
 private:
+	bool readResultRefComparison(QFile& file, size_t resultID);
+	void writeResultRefComparison(QFile& cacheFile, size_t resultID);
+	bool readAverageMeasures(QFile& cacheFile);
+	void writeAverageMeasures(QFile& cacheFile);
+
 	iAProgress m_progress;
 	QSharedPointer<iAFiberResultsCollection> m_data;
-	int m_referenceID;
+	size_t m_referenceID;
 };

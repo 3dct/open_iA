@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -130,6 +130,8 @@ void dlg_CSVInput::initParameters()
 void dlg_CSVInput::connectSignals()
 {
 	connect(btn_SelectFile, &QPushButton::clicked, this, &dlg_CSVInput::selectFileBtnClicked);
+	connect(cb_CurvedFiberInfo, &QCheckBox::stateChanged, this, &dlg_CSVInput::curvedFiberInfoChanged);
+	connect(btn_SelectCurvedFile, &QPushButton::clicked, this, &dlg_CSVInput::selectCurvedFileBtnClicked);
 	connect(btn_SaveFormat, &QPushButton::clicked, this, &dlg_CSVInput::saveFormatBtnClicked);
 	connect(btn_DeleteFormat, &QPushButton::clicked, this, &dlg_CSVInput::deleteFormatBtnClicked);
 	connect(btn_UpdatePreview, &QPushButton::clicked, this, &dlg_CSVInput::updatePreview);
@@ -141,6 +143,7 @@ void dlg_CSVInput::connectSignals()
 	connect(cmbbox_ColSeparator, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updatePreview);
 	connect(cmbbox_ObjectType, &QComboBox::currentTextChanged, this, &dlg_CSVInput::switchObjectType);
 	connect(cmbbox_Encoding, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updatePreview);
+	connect(cmbbox_VisualizeAs, SIGNAL(currentIndexChanged(int)), this, SLOT(visualizationTypeChanged(int)));
 	connect(buttonBox, &QDialogButtonBox::accepted, this, &dlg_CSVInput::okBtnClicked);
 	connect(ed_SkipLinesStart, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
 	connect(ed_SkipLinesEnd, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
@@ -202,6 +205,15 @@ void dlg_CSVInput::updatePreview()
 	showSelectedCols();
 }
 
+void dlg_CSVInput::visualizationTypeChanged(int newType)
+{
+	sb_CylinderQuality->setEnabled(newType == iACsvConfig::Cylinders);
+	sb_SegmentSkip->setEnabled(newType == iACsvConfig::Cylinders || newType == iACsvConfig::Lines);
+	if (newType != iACsvConfig::Cylinders && newType != iACsvConfig::Lines)
+		cb_CurvedFiberInfo->setChecked(false);
+	cb_CurvedFiberInfo->setEnabled(newType == iACsvConfig::Cylinders || newType == iACsvConfig::Lines);
+}
+
 void dlg_CSVInput::exportTable()
 {
 	iACsvIO io;
@@ -220,13 +232,13 @@ void dlg_CSVInput::exportTable()
 		DEBUG_LOG("Error loading csv file, file does not exist.");
 		return;
 	}
-
-	size_t sls = m_confParams.skipLinesStart;
 	QStringList origCSVInfo;
 	QTextStream in(&origCSV);
 	//TODO: Skip Header problem for arbitrary file format (see getOutputHeaders below)
-	for (int r = 0; r < sls-1; ++r)
+	for (size_t r = 0; r < m_confParams.skipLinesStart - 1; ++r)
+	{
 		origCSVInfo.append(in.readLine());
+	}
 	QString exportCSVFileName = QFileDialog::getSaveFileName(this, tr("Export CSV file"),
 		m_path, "CSV file (*.csv);;");
 	if (exportCSVFileName.isEmpty())
@@ -269,7 +281,7 @@ void dlg_CSVInput::exportTable()
 	return;
 }
 
-void dlg_CSVInput::switchObjectType(const QString &ObjectInputType)
+void dlg_CSVInput::switchObjectType(const QString & /*ObjectInputType*/)
 {
 	assignObjectTypes();
 	updateColumnMappingInputs();
@@ -343,7 +355,7 @@ void dlg_CSVInput::updateColumnMappingInputs()
 	cmbbox_col_DimensionX->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
 	cmbbox_col_DimensionY->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
 	cmbbox_col_DimensionZ->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
-	
+
 	bool computeStartEnd = cb_ComputeStartEnd->isChecked();
 	cmbbox_col_PosStartX->setEnabled(!computeStartEnd);
 	cmbbox_col_PosStartY->setEnabled(!computeStartEnd);
@@ -424,7 +436,7 @@ void dlg_CSVInput::selectedColsChanged()
 
 void dlg_CSVInput::advancedModeToggled()
 {
-	grpbox_Format->setVisible(cb_AdvancedMode->isChecked());
+	wd_Advanced->setVisible(cb_AdvancedMode->isChecked());
 }
 
 void dlg_CSVInput::selectFileBtnClicked()
@@ -438,6 +450,22 @@ void dlg_CSVInput::selectFileBtnClicked()
 	updatePreview();
 }
 
+void dlg_CSVInput::selectCurvedFileBtnClicked()
+{
+	QString fileName = QFileDialog::getOpenFileName(
+		this, tr("Open Files"), m_path, tr("Curved Fiber Information (*.csv);;")
+	);
+	if (fileName.isEmpty())
+		return;
+	ed_CurvedFileName->setText(fileName);
+}
+
+void dlg_CSVInput::curvedFiberInfoChanged()
+{
+	ed_CurvedFileName->setEnabled(cb_CurvedFiberInfo->isChecked());
+	btn_SelectCurvedFile->setEnabled(cb_CurvedFiberInfo->isChecked());
+}
+
 void dlg_CSVInput::showConfigParams()
 {
 	// prevent signals to update config and preview:
@@ -448,12 +476,18 @@ void dlg_CSVInput::showConfigParams()
 		ctblock(cb_ComputeTensors), ccblock(cb_ComputeCenter), chblock(cb_ContainsHeader),
 		cseblock(cb_ComputeStartEnd), cfdblock(cb_FixedDiameter),
 		dsblock(sb_FixedDiameter);
+	if (m_confParams.skipLinesStart > std::numeric_limits<int>::max() ||
+		m_confParams.skipLinesEnd > std::numeric_limits<int>::max() ||
+		m_confParams.segmentSkip > std::numeric_limits<int>::max())
+	{
+		DEBUG_LOG("Skip Line start/end or segment skip number is too high for display in this dialog!");
+	}
 	int index = cmbbox_ObjectType->findText(MapObjectTypeToString(m_confParams.objectType), Qt::MatchContains);
 	cmbbox_ObjectType->setCurrentIndex(index);
 	cmbbox_ColSeparator->setCurrentIndex(ColumnSeparators().indexOf(m_confParams.columnSeparator));
 	cmbbox_DecimalSeparator->setCurrentText(m_confParams.decimalSeparator);
-	ed_SkipLinesStart->setValue(m_confParams.skipLinesStart);
-	ed_SkipLinesEnd->setValue(m_confParams.skipLinesEnd);
+	ed_SkipLinesStart->setValue(static_cast<int>(m_confParams.skipLinesStart));
+	ed_SkipLinesEnd->setValue(static_cast<int>(m_confParams.skipLinesEnd));
 	ed_Spacing->setText(QString("%1").arg(m_confParams.spacing));
 	cmbbox_Unit->setCurrentText(m_confParams.unit);
 	cmbbox_Encoding->setCurrentText(m_confParams.encoding);
@@ -468,6 +502,9 @@ void dlg_CSVInput::showConfigParams()
 	sb_OfsY->setValue(m_confParams.offset[1]);
 	sb_OfsZ->setValue(m_confParams.offset[2]);
 	cmbbox_VisualizeAs->setCurrentText(MapVisType2Str(m_confParams.visType));
+	visualizationTypeChanged(m_confParams.visType);
+	sb_SegmentSkip->setValue(static_cast<int>(m_confParams.segmentSkip));
+	sb_CylinderQuality->setValue(m_confParams.cylinderQuality);
 	cb_FixedDiameter->setChecked(m_confParams.isDiameterFixed);
 	sb_FixedDiameter->setValue(m_confParams.fixedDiameterValue);
 	updateColumnMappingInputs();
@@ -476,6 +513,7 @@ void dlg_CSVInput::showConfigParams()
 void dlg_CSVInput::assignFormatSettings()
 {
 	m_confParams.fileName = ed_FileName->text();
+	m_confParams.curvedFiberFileName = cb_CurvedFiberInfo->isChecked() ? ed_CurvedFileName->text() : "";
 	assignObjectTypes();
 	m_confParams.columnSeparator = ColumnSeparators()[cmbbox_ColSeparator->currentIndex()];
 	m_confParams.decimalSeparator = cmbbox_DecimalSeparator->currentText();
@@ -495,6 +533,8 @@ void dlg_CSVInput::assignFormatSettings()
 	m_confParams.offset[2] = sb_OfsZ->value();
 	m_confParams.containsHeader = cb_ContainsHeader->isChecked();
 	m_confParams.visType = static_cast<iACsvConfig::VisualizationType>(cmbbox_VisualizeAs->currentIndex());
+	m_confParams.cylinderQuality = sb_CylinderQuality->value();
+	m_confParams.segmentSkip = sb_SegmentSkip->value();
 	m_confParams.isDiameterFixed = cb_FixedDiameter->isChecked();
 	m_confParams.fixedDiameterValue = sb_FixedDiameter->value();
 	if (!m_columnMappingChoiceSet)
@@ -578,7 +618,7 @@ void dlg_CSVInput::assignSelectedCols()
 	QVector<int> selectedColIDx;
 	for (auto selColModelIdx : selectedColModelIndices)
 		selectedColIDx.push_back(selColModelIdx.row());
-	qSort(selectedColIDx.begin(), selectedColIDx.end(), qLess<uint>());
+	std::sort(selectedColIDx.begin(), selectedColIDx.end(), std::less<uint>());
 	if (list_ColumnSelection->count() > 0)
 	{
 		m_confParams.currentHeaders.clear();
@@ -679,12 +719,12 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName, iACsvConfi
 	{
 		if (formatName == iACsvConfig::LegacyFiberFormat)
 		{
-			m_confParams = iACsvConfig::getLegacyFiberFormat(m_confParams.fileName);
+			dest = iACsvConfig::getLegacyFiberFormat(dest.fileName);
 			return true;
 		}
 		else if (formatName == iACsvConfig::LegacyVoidFormat)
 		{
-			m_confParams = iACsvConfig::getLegacyPoreFormat(m_confParams.fileName);
+			dest = iACsvConfig::getLegacyPoreFormat(dest.fileName);
 			return true;
 		}
 		return false;

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -21,19 +21,20 @@
 #include "iAFixedAspectWidget.h"
 
 #include "iAConsole.h"
-#include "iAVtkWidget.h"
+#include "iAVtkQtWidget.h"
 
 #include <QVTKOpenGLWidget.h>
 
 #include <QPainter>
 #include <QVBoxLayout>
 
+//! Widget with a fixed colored background color.
 class iAColoredWidget: public QWidget
 {
 public:
 	iAColoredWidget()
 	{}
-	void paintEvent(QPaintEvent* ev)
+	void paintEvent(QPaintEvent* /*ev*/) override
 	{
 		QPainter p(this);
 		if (!bgColor.isValid())
@@ -49,7 +50,8 @@ private:
 	QColor bgColor;
 };
 
-class iAFixedAspectWidgetInternal: public iAVtkWidget
+//! The internal iAVtkQtWidget of an iAFixedAspectWidget which actually keeps its aspect ratio.
+class iAFixedAspectWidgetInternal: public iAVtkQtWidget
 {
 public:
 	iAFixedAspectWidgetInternal(double aspect):
@@ -91,7 +93,7 @@ iAFixedAspectWidget::iAFixedAspectWidget(double aspect, Qt::Alignment verticalAl
 	}
 }
 
-iAVtkWidget* iAFixedAspectWidget::vtkWidget()
+iAVtkQtWidget* iAFixedAspectWidget::vtkWidget()
 {
 	return m_widget;
 }

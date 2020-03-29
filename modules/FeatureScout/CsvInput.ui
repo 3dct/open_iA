@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>901</width>
-    <height>634</height>
+    <width>926</width>
+    <height>527</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -38,12 +38,9 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>CSV File</string>
+      <string>Input</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_6">
-      <property name="spacing">
-       <number>4</number>
-      </property>
+     <layout class="QGridLayout" name="gridLayout_3">
       <property name="leftMargin">
        <number>4</number>
       </property>
@@ -56,13 +53,47 @@
       <property name="bottomMargin">
        <number>4</number>
       </property>
-      <item>
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <item row="0" column="1">
        <widget class="QLineEdit" name="ed_FileName"/>
       </item>
-      <item>
+      <item row="0" column="2">
        <widget class="QPushButton" name="btn_SelectFile">
         <property name="text">
          <string>...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="lb_FileName">
+        <property name="text">
+         <string>Fiber CSV (information on each fiber)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="ed_CurvedFileName">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="btn_SelectCurvedFile">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="cb_CurvedFiberInfo">
+        <property name="text">
+         <string>Curved Fiber Info</string>
         </property>
        </widget>
       </item>
@@ -114,338 +145,423 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QLabel" name="lbl_VisualizeAs">
+        <property name="text">
+         <string>Visualization:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cmbbox_VisualizeAs"/>
+      </item>
      </layout>
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="grpbox_Format">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="title">
-      <string>Format</string>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <widget class="QWidget" name="wd_Advanced" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
       <property name="spacing">
        <number>4</number>
       </property>
       <property name="leftMargin">
-       <number>4</number>
+       <number>0</number>
       </property>
       <property name="topMargin">
-       <number>4</number>
+       <number>0</number>
       </property>
       <property name="rightMargin">
-       <number>4</number>
+       <number>0</number>
       </property>
       <property name="bottomMargin">
-       <number>4</number>
+       <number>0</number>
       </property>
       <item>
-       <layout class="QGridLayout" name="gridLayout_2">
-        <property name="spacing">
-         <number>4</number>
+       <widget class="QGroupBox" name="grpbox_Format">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <item row="3" column="1">
-         <widget class="QLabel" name="lbl_SeparatorColumn">
-          <property name="text">
-           <string>Column:</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="4">
-         <widget class="QComboBox" name="cmbbox_DecimalSeparator">
-          <property name="editable">
-           <bool>true</bool>
-          </property>
-          <item>
-           <property name="text">
-            <string>.</string>
+        <property name="title">
+         <string>Format Details</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <property name="spacing">
+          <number>4</number>
+         </property>
+         <property name="leftMargin">
+          <number>4</number>
+         </property>
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
+          <number>4</number>
+         </property>
+         <item>
+          <layout class="QGridLayout" name="gridLayout_2">
+           <property name="spacing">
+            <number>4</number>
            </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>,</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="lbl_Separators">
-          <property name="text">
-           <string>Separators</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="3">
-         <widget class="QLabel" name="lbl_SeparatorDecimal">
-          <property name="text">
-           <string>Decimal:</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="3">
-         <widget class="QLabel" name="lbl_VisualizeAs">
-          <property name="text">
-           <string>Visualization:</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0" colspan="2">
-         <widget class="QLabel" name="lbl_FormatName">
-          <property name="text">
-           <string>Format Name</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="2" colspan="3">
-         <widget class="QComboBox" name="cmbbox_Encoding">
-          <item>
-           <property name="text">
-            <string>System</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>UTF-8</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>ISO-8859-1</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Windows-1252</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="3" column="2">
-         <widget class="QComboBox" name="cmbbox_ColSeparator">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="editable">
-           <bool>false</bool>
-          </property>
-          <item>
-           <property name="text">
-            <string>Comma (,)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Semicolon (;)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Tabulator</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="6" column="3" colspan="2">
-         <widget class="QCheckBox" name="cb_ContainsHeader">
-          <property name="text">
-           <string>Contains header</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0" colspan="2">
-         <widget class="QCheckBox" name="cb_AddAutoID">
-          <property name="text">
-           <string>Create ID</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QComboBox" name="cmbbox_ObjectType">
-          <item>
-           <property name="text">
-            <string>Fibers</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Voids</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Other</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="6" column="2">
-         <widget class="QLineEdit" name="ed_col_ID">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="4">
-         <widget class="QLineEdit" name="ed_Spacing">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>1</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0" colspan="2">
-         <widget class="QLabel" name="lbl_Encoding">
-          <property name="text">
-           <string>Encoding</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="4">
-         <widget class="QSpinBox" name="ed_SkipLinesEnd">
-          <property name="maximum">
-           <number>9999999</number>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="2">
-         <widget class="QLabel" name="lbl_ObjectType">
-          <property name="text">
-           <string>Object Type</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="2">
-         <widget class="QComboBox" name="cmbbox_Unit">
-          <item>
-           <property name="text">
-            <string>microns</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="4" column="2">
-         <widget class="QSpinBox" name="ed_SkipLinesStart">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="minimum">
-           <number>0</number>
-          </property>
-          <property name="maximum">
-           <number>9999999</number>
-          </property>
-          <property name="value">
-           <number>5</number>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2" colspan="3">
-         <widget class="QLineEdit" name="ed_FormatName"/>
-        </item>
-        <item row="4" column="3">
-         <widget class="QLabel" name="lbl_SkipLinesEnd">
-          <property name="text">
-           <string>End:</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0" colspan="2">
-         <widget class="QLabel" name="lbl_Unit">
-          <property name="text">
-           <string>Unit:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="3">
-         <widget class="QLabel" name="lbl_Spacing">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Spacing:</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QLabel" name="lbl_SkipLinesStart">
-          <property name="text">
-           <string>Start:</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="4">
-         <widget class="QComboBox" name="cmbbox_VisualizeAs"/>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="lbl_SkipLines">
-          <property name="text">
-           <string>Skip Lines</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0" colspan="5">
-         <widget class="QWidget" name="widget" native="true">
-          <layout class="QHBoxLayout" name="horizontalLayout">
-           <item>
-            <widget class="QPushButton" name="btn_SaveFormat">
+           <item row="6" column="4">
+            <widget class="QLineEdit" name="ed_Spacing">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>1</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="3">
+            <widget class="QLabel" name="lbl_SkipLinesEnd">
+             <property name="text">
+              <string>End:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="lbl_SkipLines">
+             <property name="text">
+              <string>Skip Lines</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QLabel" name="lbl_ObjectType">
+             <property name="text">
+              <string>Object Type</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0" colspan="2">
+            <widget class="QLabel" name="lbl_Encoding">
+             <property name="text">
+              <string>Encoding</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2" colspan="3">
+            <widget class="QComboBox" name="cmbbox_Encoding">
+             <item>
+              <property name="text">
+               <string>System</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>UTF-8</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>ISO-8859-1</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Windows-1252</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QComboBox" name="cmbbox_ObjectType">
+             <item>
+              <property name="text">
+               <string>Fibers</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Voids</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Other</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="4" column="4">
+            <widget class="QComboBox" name="cmbbox_DecimalSeparator">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+             <item>
+              <property name="text">
+               <string>.</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>,</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="7" column="0" colspan="2">
+            <widget class="QCheckBox" name="cb_AddAutoID">
+             <property name="text">
+              <string>Create ID</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="3" colspan="2">
+            <widget class="QCheckBox" name="cb_ContainsHeader">
+             <property name="text">
+              <string>Use custom header</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="2">
+            <widget class="QComboBox" name="cmbbox_ColSeparator">
              <property name="enabled">
               <bool>true</bool>
              </property>
+             <property name="editable">
+              <bool>false</bool>
+             </property>
+             <item>
+              <property name="text">
+               <string>Comma (,)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Semicolon (;)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Tabulator</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="6" column="3">
+            <widget class="QLabel" name="lbl_Spacing">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
-              <string>Save</string>
+              <string>Spacing:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QPushButton" name="btn_DeleteFormat">
-             <property name="text">
-              <string>Delete</string>
+           <item row="8" column="0" colspan="5">
+            <widget class="QWidget" name="widget" native="true">
+             <layout class="QHBoxLayout" name="horizontalLayout">
+              <item>
+               <widget class="QPushButton" name="btn_SaveFormat">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string>Save</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btn_DeleteFormat">
+                <property name="text">
+                 <string>Delete</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btn_ExportFormat">
+                <property name="text">
+                 <string>Export</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btn_ImportFormat">
+                <property name="text">
+                 <string>Import</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="5" column="4">
+            <widget class="QSpinBox" name="ed_SkipLinesEnd">
+             <property name="maximum">
+              <number>9999999</number>
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QPushButton" name="btn_ExportFormat">
+           <item row="4" column="3">
+            <widget class="QLabel" name="lbl_SeparatorDecimal">
              <property name="text">
-              <string>Export</string>
+              <string>Decimal:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QPushButton" name="btn_ImportFormat">
+           <item row="5" column="2">
+            <widget class="QSpinBox" name="ed_SkipLinesStart">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="minimum">
+              <number>0</number>
+             </property>
+             <property name="maximum">
+              <number>9999999</number>
+             </property>
+             <property name="value">
+              <number>5</number>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0" colspan="2">
+            <widget class="QLabel" name="lbl_Unit">
              <property name="text">
-              <string>Import</string>
+              <string>Unit:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="2">
+            <widget class="QLineEdit" name="ed_col_ID">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLabel" name="lbl_SeparatorColumn">
+             <property name="text">
+              <string>Column:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="2">
+            <widget class="QLabel" name="lbl_FormatName">
+             <property name="text">
+              <string>Format Name</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QLabel" name="lbl_SkipLinesStart">
+             <property name="text">
+              <string>Start:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="2">
+            <widget class="QComboBox" name="cmbbox_Unit">
+             <item>
+              <property name="text">
+               <string>microns</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="lbl_Separators">
+             <property name="text">
+              <string>Separators</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2" colspan="3">
+            <widget class="QLineEdit" name="ed_FormatName"/>
+           </item>
+           <item row="2" column="3">
+            <widget class="QLabel" name="lb_CylinderQuality">
+             <property name="toolTip">
+              <string>The higher the number, the better the cylinder visualization quality (represents number of sides used for modelling cylinder).</string>
+             </property>
+             <property name="toolTipDuration">
+              <number>5000</number>
+             </property>
+             <property name="text">
+              <string>Quality:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="4">
+            <widget class="QSpinBox" name="sb_CylinderQuality">
+             <property name="toolTip">
+              <string>The higher the number, the better the cylinder visualization quality (represents number of sides used for modelling cylinder).</string>
+             </property>
+             <property name="toolTipDuration">
+              <number>5000</number>
+             </property>
+             <property name="minimum">
+              <number>3</number>
+             </property>
+             <property name="maximum">
+              <number>1000</number>
+             </property>
+             <property name="value">
+              <number>12</number>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0" colspan="2">
+            <widget class="QLabel" name="label">
+             <property name="toolTip">
+              <string>1=best quality, higher values -&gt; less quality for curved fibers. Value determines that every nth point of those given will be shown.</string>
+             </property>
+             <property name="toolTipDuration">
+              <number>5000</number>
+             </property>
+             <property name="whatsThis">
+              <string/>
+             </property>
+             <property name="text">
+              <string>Segment Skip</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QSpinBox" name="sb_SegmentSkip">
+             <property name="toolTip">
+              <string>1=best quality, higher values -&gt; less quality for curved fibers. Value determines that every nth point of those given will be shown.</string>
+             </property>
+             <property name="toolTipDuration">
+              <number>5000</number>
+             </property>
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>1000</number>
              </property>
             </widget>
            </item>
           </layout>
-         </widget>
-        </item>
-       </layout>
+         </item>
+        </layout>
+       </widget>
       </item>
       <item>
        <widget class="QGroupBox" name="grpbox_ColMapping">
@@ -500,7 +616,11 @@
           </widget>
          </item>
          <item row="8" column="5">
-          <widget class="QDoubleSpinBox" name="sb_OfsZ"/>
+          <widget class="QDoubleSpinBox" name="sb_OfsZ">
+           <property name="maximum">
+            <double>99999.000000000000000</double>
+           </property>
+          </widget>
          </item>
          <item row="6" column="2">
           <widget class="QLabel" name="lbl_col_length">
@@ -637,7 +757,11 @@
           </widget>
          </item>
          <item row="8" column="3">
-          <widget class="QDoubleSpinBox" name="sb_OfsY"/>
+          <widget class="QDoubleSpinBox" name="sb_OfsY">
+           <property name="maximum">
+            <double>99999.000000000000000</double>
+           </property>
+          </widget>
          </item>
          <item row="6" column="1">
           <widget class="QComboBox" name="cmbbox_col_PosEndY"/>
@@ -646,7 +770,11 @@
           <widget class="QComboBox" name="cmbbox_col_PosEndX"/>
          </item>
          <item row="8" column="1">
-          <widget class="QDoubleSpinBox" name="sb_OfsX"/>
+          <widget class="QDoubleSpinBox" name="sb_OfsX">
+           <property name="maximum">
+            <double>99999.000000000000000</double>
+           </property>
+          </widget>
          </item>
          <item row="0" column="4" colspan="2">
           <widget class="QCheckBox" name="cb_ComputeAngles">

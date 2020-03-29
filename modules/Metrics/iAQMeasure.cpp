@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,8 +20,7 @@
 * ************************************************************************************/
 #include "iAQMeasure.h"
 
-#include <charts/iAChartWidget.h>
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 #include <charts/iASimpleHistogramData.h>
 #include <charts/iAPlotTypes.h>
 #include <defines.h>    // for DIM
@@ -94,7 +93,9 @@ template <typename T> void computeHistogram(iAFilter* filter, size_t binCount,
 	auto histogram = histogramFilter->GetOutput();
 	vecHist.clear();
 	for (auto it = histogram->Begin(); it != histogram->End(); ++it)
+	{
 		vecHist.push_back(it.GetFrequency());
+	}
 }
 
 void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QString, QVariant> const & parameters)
@@ -112,7 +113,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	std::vector<double> vecHist;
 
 	ITK_TYPED_CALL(computeHistogram, filter->inputPixelType(), filter, binCount, minVal, maxVal, vecHist);
-	
+
 	if (filter->m_chart)
 	{
 		auto histoPlotData = iASimpleHistogramData::create(minVal, maxVal, vecHist, Continuous);
@@ -152,7 +153,9 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 			(i < smoothedDeriv.size() - 1
 				&& smoothedDeriv[i] > 0
 				&& smoothedDeriv[i + 1] < 0))
+		{
 			peaks.push_back(std::make_pair(i, smoothedHist[i]));
+		}
 	}
 	if (peaks.size() < numberOfPeaks)
 	{
@@ -161,7 +164,9 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		{
 			//DEBUG_LOG(QString("Cannot continue with less than 2 peaks!"));
 			if (parameters["Histogram-based SNR (highest non-air-peak)"].toBool())
+			{
 				filter->addOutputValue("Histogram-based SNR (highest non-air-peak)", 0);
+			}
 			filter->addOutputValue("Q", 0);
 			return;
 		}
@@ -173,9 +178,12 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	});
 	peaks.resize(numberOfPeaks);		// only consider numberOfPeaks peaks
 	if (filter->m_chart)
+	{
 		for (size_t p = 0; p < numberOfPeaks; ++p)
+		{
 			filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iASelectedBinPlot(filter->m_chart->plots()[0]->data(), peaks[p].first, QColor(90, 180, 90, 182))));
-
+		}
+	}
 										// order peaks by index
 	std::sort(peaks.begin(), peaks.end(), [](std::pair<size_t, double> const & a, std::pair<size_t, double> const & b) {
 		return a.first < b.first;
@@ -221,13 +229,18 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	//for (int p = 0; p < numberOfPeaks; ++p)
 	//	DEBUG_LOG(QString("Peak %1: mean=%2, variance=%3, stddev=%4").arg(p).arg(mean[p]).arg(variance[p]).arg(std::sqrt(variance[p])));
 	if (filter->m_mdiChild)
-		for (int p = 0; p < numberOfPeaks; ++p)
+	{
+		for (size_t p = 0; p < numberOfPeaks; ++p)
+		{
 			filter->m_mdiChild->histogram()->addGaussianFunction(mean[p], std::sqrt(variance[p]), 15);
+		}
+	}
 
 	// find out which of the peaks is closest to 0 (air)
 	double minDistToZero = std::numeric_limits<double>::max();
-	size_t minDistToZeroIdx = -1;
-	for (int p = 0; p < numberOfPeaks; ++p)
+	const size_t NoIdx = std::numeric_limits<size_t>::max();
+	size_t minDistToZeroIdx = NoIdx;
+	for (size_t p = 0; p < numberOfPeaks; ++p)
 	{
 		double curDistToZero = std::abs(minVal + peaks[p].first * (maxVal - minVal) / binCount);
 		if (curDistToZero < minDistToZero)
@@ -239,16 +252,23 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 
 	// find out which of the non-air peaks is highest:
 	double highestNonAirPeakValue = std::numeric_limits<double>::lowest();
-	size_t highestNonAirPeakIdx = -1;
-	for (int p = 0; p < numberOfPeaks; ++p)
+	size_t highestNonAirPeakIdx = NoIdx;
+	for (size_t p = 0; p < numberOfPeaks; ++p)
 	{
 		if (p == minDistToZeroIdx)
+		{
 			continue;
+		}
 		if (peaks[p].second > highestNonAirPeakValue)
 		{
 			highestNonAirPeakValue = peaks[p].second;
 			highestNonAirPeakIdx = p;
 		}
+	}
+	if (minDistToZeroIdx == NoIdx || highestNonAirPeakIdx == NoIdx)
+	{
+		DEBUG_LOG("No index for peak close to zero or highest non-air peak found!");
+		return;
 	}
 	if (parameters["Histogram-based SNR (highest non-air-peak)"].toBool())
 	{
@@ -304,9 +324,13 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 
 	vtkSmartPointer<vtkImageData> floatImage;
 	if (filter->inputPixelType() == itk::ImageIOBase::FLOAT)
+	{
 		floatImage = img;
+	}
 	else
+	{
 		floatImage = castVTKImage(img, VTK_FLOAT);
+	}
 
 	int const * dim = floatImage->GetDimensions();
 	double const * range = floatImage->GetScalarRange();
@@ -320,7 +344,7 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 	cImageHistogram curHist;
 	curHist.CreateHist(fImage, dim[0], dim[1], dim[2],
 		params["OrigQ Histogram bins"].toInt(), range[0], range[1], false, 0, 0);
-	unsigned int Peaks_fnd = curHist.DetectPeaksValleys(params["Number of peaks"].toInt(),
+	/*unsigned int Peaks_fnd = */ curHist.DetectPeaksValleys(params["Number of peaks"].toInt(),
 		dgauss_size_BINscale, gauss_size_P2Pscale, threshold_x, threshold_y, false);
 
 	// Calculate histogram quality measures Q using the valley thresholds to seperate classes
@@ -406,7 +430,7 @@ void iAQMeasure::setupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
 
 IAFILTER_RUNNER_CREATE(iAQMeasureRunner);
 
-void iAQMeasureRunner::filterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd)
+void iAQMeasureRunner::filterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* /*mainWnd*/)
 {
 	iAChartWidget * chart = new iAChartWidget(mdiChild, "Intensity", "Frequency");
 	iADockWidgetWrapper* wrapper = new iADockWidgetWrapper(chart, "TestHistogram", "TestHistogram");

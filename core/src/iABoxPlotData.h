@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,6 +24,7 @@
 
 #include <QList>
 
+//! Computes and stores data required for showing a boxplot
 struct open_iA_Core_API iABoxPlotData
 {
 public:
@@ -31,14 +32,11 @@ public:
 	iABoxPlotData(double q25_v, double med_v, double q75_v, double min_v, double max_v);
 	static int cmp(const void *px, const void *py);
 
-	/**
-	* \fn void iABoxPlotData::CalculateBoxPlot ( double * data, int dataSize, bool removeOutliers = false, double k = 1.5)
-	* \param data
-	* \param dataSize
-	* \param removeOutliers
-	* \param k used to find outliers as: x < q25 - k * (q75 - q25) || x < q75 - k * ( q75 - q25 )
-	* \return void
-	*/
+	//! Computes values required for the box plot.
+	//! @param data the data as array
+	//! @param dataSize number of elements in data
+	//! @param removeOutliers whether outliers should be removed
+	//! @param k used to find outliers as: x < q25 - k * (q75 - q25) || x < q75 - k * ( q75 - q25 )
 	void CalculateBoxPlot( double * data, int dataSize, bool removeOutliers = false, double k = 2.0 );
 
 	double q25, med, q75, min, max;

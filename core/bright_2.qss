@@ -685,7 +685,6 @@ QDockWidget
 		background-color: rgba(175, 175, 175, 255);
 		color: rgba(25, 25, 25, 255); /* font-color */
 		font: bold;
-		/*border: 2px;*/
 		titlebar-normal-icon: url(Resource/Icons/dock-normal.png);
 	}
 
@@ -694,7 +693,6 @@ QDockWidget
 		margin-top: 2px;
 		margin-left: 2px;
 		font-size: 14px;
-		/*background: transparent;*/
 	}
 
 	QDockWidget::float-button

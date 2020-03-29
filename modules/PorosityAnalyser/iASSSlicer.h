@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -52,7 +52,7 @@ public:
 	void setMasksOpacity( double opacity );
 	void setGTOpacity( double opacity );
 	void changeMode( iASlicerMode mode );
-	void initialize( vtkSmartPointer<vtkImageData> img, 
+	void initialize( vtkSmartPointer<vtkImageData> img,
 		vtkSmartPointer<vtkColorTransferFunction> tf );
 	void initBPDChans( QString const & minFile, QString const & medFile, QString const & maxFile );
 	void initializeMasks( QStringList & masks );

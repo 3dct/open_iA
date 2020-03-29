@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "iALUT.h"
 
 #include "iAColorTheme.h"
@@ -29,6 +29,7 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>
 #include <vtkPiecewiseFunction.h>
+#include <vtkVersion.h>
 
 const QStringList colormaps = QStringList()
 	<< "Diverging blue-gray-red"
@@ -1490,7 +1491,7 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRan
 		ctf->AddRGBPoint(0.5, 0.865, 0.865, 0.865);
 		ctf->AddRGBPoint(1.0, 0.230, 0.299, 0.754);
 		break;
-	
+
 	case 2:     // Black Body http://www.kennethmoreland.com/color-advice/
 		ctf->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
 		ctf->AddRGBPoint(0.142857142857, 0.251720295995, 0.0884210421079, 0.0696046995283);
@@ -1652,7 +1653,7 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, dou
 	return BuildLUT( pLUT, lutRange, colorMap, numCols);
 }
 
-iALookupTable open_iA_Core_API iALUT::Build(double const * lutRange, QString colorMap, int numCols, double alpha)
+iALookupTable open_iA_Core_API iALUT::Build(double const * lutRange, QString colorMap, int numCols, double /*alpha*/)
 {
 	vtkSmartPointer<vtkLookupTable> vtkLUT(vtkSmartPointer<vtkLookupTable>::New());
 	BuildLUT(vtkLUT, lutRange, colorMap, numCols);

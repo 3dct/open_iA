@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,7 +23,8 @@
 
 #include "iASimpleSlicerWidget.h"
 
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartFunctionTransfer.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 #include <charts/iAHistogramData.h>
 #include <charts/iAPlotTypes.h>
 #include <charts/iAProfileWidget.h>
@@ -31,7 +32,6 @@
 #include <dlg_slicer.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
-#include <iAChartFunctionTransfer.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
@@ -148,7 +148,7 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 }
 
 // ----------------------------------------------------------------------------------
-// 
+//
 // ----------------------------------------------------------------------------------
 
 void iAMultimodalWidget::setSlicerMode(iASlicerMode slicerMode) {
@@ -486,7 +486,7 @@ void iAMultimodalWidget::updateModalities()
 		vtkPiecewiseFunction *opFuncCopy = vtkPiecewiseFunction::New();
 		m_copyTFs[i] = createCopyTf(i, colorFuncCopy, opFuncCopy);
 
-		m_histograms[i] = QSharedPointer<iADiagramFctWidget>(new iADiagramFctWidget(nullptr, m_mdiChild, m_modalitiesActive[i]->name()+" gray value", "Frequency"));
+		m_histograms[i] = QSharedPointer<iAChartWithFunctionsWidget>(new iAChartWithFunctionsWidget(nullptr, m_mdiChild, m_modalitiesActive[i]->name()+" gray value", "Frequency"));
 		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
 			new	iABarGraphPlot(m_modalitiesActive[i]->histogramData(), QColor(70, 70, 70, 255)));
 		m_histograms[i]->addPlot(histogramPlot);

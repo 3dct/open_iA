@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,13 +25,19 @@
 #include <iAAttributeDescriptor.h>
 #include <iAConsole.h>
 #include <iAMathUtility.h>
+#include <iAStringHelper.h>
 
 #include <cmath>
 #include <random>
 
+
+iAParameterGenerator::~iAParameterGenerator()
+{}
+
 class RandomGenerator
 {
 public:
+	virtual ~RandomGenerator() {}
 	virtual double next() =0;
 };
 
@@ -81,9 +87,9 @@ private:
 public:
 
 	IntLinRandom(int min, int max) :
+		dist(0, 1),
 		m_min(min),
-		m_max(max),
-		dist(0, 1)
+		m_max(max)
 	{
 		rng.seed(std::random_device{}()); //Initialize with non-deterministic seeds
 	}
@@ -105,9 +111,9 @@ private:
 	int m_max;
 public:
 	IntLogRandom(int min, int max) :
+		dist(0, 1),
 		m_min(min),
-		m_max(max),
-		dist(0, 1)
+		m_max(max)
 	{
 		rng.seed(std::random_device{}()); //Initialize with non-deterministic seeds
 	}
@@ -224,6 +230,7 @@ T pop_at(QVector<T>& v, typename QVector<T>::size_type n)
 class MyRange
 {
 public:
+	virtual ~MyRange() {}
 	virtual double min(int i) =0;
 	virtual double max(int i) =0;
 };
@@ -291,7 +298,7 @@ QString iALatinHypercubeParameterGenerator::name() const
 ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
 {
 	ParameterSetsPointer result(new ParameterSets);
-	
+
 	// for each parameter, create a "range", dividing its interval into sampleCount pieces
 	QVector<QSharedPointer<RandomGenerator> > random;
 	QVector<QVector<double> > sampleValues;
@@ -305,7 +312,7 @@ ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QShare
 			parameter->at(p)->max(),
 			sampleCount,
 			valueType);
-		
+
 		sampleValues.push_back(QVector<double>());
 		// iterate over sampleCount, and for each parameter, create one value per piece
 		for (int s = 0; s < sampleCount; ++s)
@@ -321,7 +328,7 @@ ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QShare
 	}
 
 	MyRangeRandom<int> intRand;
-	// iterate over sampleCount, and for each parameter, randomly select one of the pieces 
+	// iterate over sampleCount, and for each parameter, randomly select one of the pieces
 	for (int s = sampleCount; s > 0 ; --s)
 	{
 		ParameterSet set;
@@ -343,7 +350,6 @@ QString iACartesianGridParameterGenerator::name() const
 
 ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
 {
-	DEBUG_LOG("Cartesian grid sampling broken at the moment!");
 	ParameterSetsPointer result(new ParameterSets);
 	int samplesPerParameter = static_cast<int>(std::pow(10, std::log10(sampleCount) / parameter->size()));
 	samplesPerParameter = std::max(2, samplesPerParameter); // at least 2 sample values per parameter
@@ -351,15 +357,15 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 	// calculate actual sample count (have to adhere to grid structure / powers):
 	// maybe get sample count per parameter?
 	int actualSampleCount = std::pow(samplesPerParameter, parameter->size());
-
-	/*
-	DEBUG_LOG(QString("parameter count: %1, sample count: %2 samplesPerParameter: %3")
-		.arg(paramCount)
-		.arg(parameterRange->sampleCount)
+/*
+	DEBUG_LOG(QString("param. count: %1, samples/param.: %2, targeted samples: %3, actual samples: %4")
+		.arg(parameter->size())
 		.arg(samplesPerParameter)
+		.arg(sampleCount)
+		.arg(actualSampleCount)
 	);
-	*/
-	
+*/
+
 	QVector<QSharedPointer<MyRange>> ranges;
 	for (int p = 0; p < parameter->size(); ++p)
 	{
@@ -376,7 +382,7 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 	// to keep track of which grid index for which parameter we are currently using
 	QVector<int> parameterRangeIdx(parameter->size(), 0);
 
-	for (int sampleIdx = 0; sampleIdx< sampleCount; ++sampleIdx)
+	for (int sampleIdx = 0; sampleIdx < actualSampleCount; ++sampleIdx)
 	{
 		ParameterSet set;
 		for (int p = 0; p < parameter->size(); ++p)
@@ -390,15 +396,19 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 			set.push_back(value);
 		}
 		result->append(set);
+		//DEBUG_LOG(QString("%1: %2").arg(joinAsString(parameterRangeIdx, ",")).arg(joinAsString(result->at(result->size() - 1), ",")));
 
 		// increase indices into the parameter range:
 		++parameterRangeIdx[0];
 		int curIdx = 0;
-		while (parameterRangeIdx[curIdx] >= samplesPerParameter)
+		while (curIdx < parameter->size() && parameterRangeIdx[curIdx] >= samplesPerParameter)
 		{
 			parameterRangeIdx[curIdx] = 0;
 			++curIdx;
-			parameterRangeIdx[curIdx]++;
+			if (curIdx < parameter->size())
+			{
+				parameterRangeIdx[curIdx]++;
+			}
 		}
 	}
 	return result;
@@ -411,7 +421,7 @@ QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators()
 	{
 		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iARandomParameterGenerator()));
 		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iALatinHypercubeParameterGenerator()));
-		//parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iACartesianGridParameterGenerator()));
+		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iACartesianGridParameterGenerator()));
 	}
 	return parameterGenerators;
 }
@@ -424,7 +434,7 @@ iASelectionParameterGenerator::iASelectionParameterGenerator(QString const & nam
 
 }
 
-ParameterSetsPointer iASelectionParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
+ParameterSetsPointer iASelectionParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> /*parameter*/, int /*sampleCount*/)
 {
 	return m_parameterSets;
 }

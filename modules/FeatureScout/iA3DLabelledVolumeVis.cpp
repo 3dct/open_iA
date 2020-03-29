@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,8 +23,6 @@
 #include "iACsvConfig.h"
 #include "iAFeatureScoutObjectType.h"
 
-#include "mdichild.h"
-
 #include <vtkColorTransferFunction.h>
 #include <vtkFloatArray.h>
 #include <vtkPiecewiseFunction.h>
@@ -35,13 +33,13 @@
 iA3DLabelledVolumeVis::iA3DLabelledVolumeVis(vtkRenderer* ren, vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
 		vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, double const * bounds ):
 	iA3DObjectVis(ren, objectTable, columnMapping),
-	cTF(color),
-	oTF(opac)
+	oTF(opac),
+	cTF(color)
 {
 	std::copy(bounds, bounds + 6, m_bounds);
 }
 
-void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem )
+void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedSelInds, int /*classID*/, QColor const & classColor, QStandardItem* activeClassItem )
 {
 	QColor BackColor(128, 128, 128, 0);
 	double backRGB[3];
@@ -62,16 +60,17 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 	oTF->AddPoint( 0, backAlpha, 0.5, 1.0 );
 	cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 
-	int hid = 0, next_hid = 1, prev_hid = -1, selectionIndex = 0, previous_selectionIndex = 0;
+	size_t const HidInvalid = std::numeric_limits<size_t>::max();
+	size_t hid = 0, next_hid = 1, prev_hid = HidInvalid;
+	size_t selectionIndex = 0, previous_selectionIndex = 0;
 	bool starting = false, hid_isASelection = false, previous_hid_isASelection = false;
 
 	int countClass = activeClassItem->rowCount();
-	int countSelection = sortedSelInds.size();
-	for ( size_t j = 0; j < countClass; ++j )
+	for (int j = 0; j < countClass; ++j )
 	{
-		hid = activeClassItem->child( j )->text().toInt();
+		hid = activeClassItem->child( j )->text().toULongLong();
 
-		if ( countSelection > 0 )
+		if (sortedSelInds.size() > 0 )
 		{
 			if (hid-1 == sortedSelInds[selectionIndex] )
 			{
@@ -87,7 +86,7 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 				red = classRGB[0]; green = classRGB[1]; blue = classRGB[2];
 			}
 
-			if ( prev_hid > 0 )
+			if (prev_hid != HidInvalid)
 			{
 				if (prev_hid-1 == sortedSelInds[previous_selectionIndex])
 				{
@@ -108,7 +107,7 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 		// If we are not yet at the last object (of the class) get the next hid
 		if ( ( j + 1 ) < countClass )
 		{
-			next_hid = activeClassItem->child( j + 1 )->text().toInt();
+			next_hid = activeClassItem->child( j + 1 )->text().toULongLong();
 		}
 		else	// If hid = the last object (of the class) we have to set the last object points
 		{
@@ -212,7 +211,7 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 		prev_hid = hid;
 	}
 
-	if ( hid < m_objectTable->GetNumberOfRows() )	// Creates the very last points (for all objects)  if it's not created yet
+	if ( hid < static_cast<size_t>(m_objectTable->GetNumberOfRows()) )	// Creates the very last points (for all objects)  if it's not created yet
 	{
 		oTF->AddPoint( m_objectTable->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0 );
 		cTF->AddRGBPoint( m_objectTable->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
@@ -220,7 +219,7 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 	updateRenderer();
 }
 
-void iA3DLabelledVolumeVis::renderSingle( int labelID, int classID, QColor const & classColor, QStandardItem* activeClassItem )
+void iA3DLabelledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*/, QColor const & classColor, QStandardItem* activeClassItem )
 {
 	int itemL = activeClassItem->rowCount();
 	double red   = classColor.redF(),
@@ -239,23 +238,23 @@ void iA3DLabelledVolumeVis::renderSingle( int labelID, int classID, QColor const
 	cTF->ClampingOff();
 	oTF->AddPoint(0, backAlpha);
 	cTF->AddRGBPoint(0, backRGB[0], backRGB[1], backRGB[2]);
-	if ( labelID > 0 ) // for single object selection
+	if (selectedObjID > 0 ) // for single object selection
 	{
-		if ( (labelID - 1) >= 0)
+		if ( (selectedObjID - 1) >= 0)
 		{
-			oTF->AddPoint(labelID - 0.5, backAlpha);
-			oTF->AddPoint(labelID - 0.49, alpha);
-			cTF->AddRGBPoint(labelID - 0.5, backRGB[0], backRGB[1], backRGB[2]);
-			cTF->AddRGBPoint(labelID - 0.49, red, green, blue);
+			oTF->AddPoint(selectedObjID - 0.5, backAlpha);
+			oTF->AddPoint(selectedObjID - 0.49, alpha);
+			cTF->AddRGBPoint(selectedObjID - 0.5, backRGB[0], backRGB[1], backRGB[2]);
+			cTF->AddRGBPoint(selectedObjID - 0.49, red, green, blue);
 		}
-		oTF->AddPoint(labelID, alpha);
-		cTF->AddRGBPoint(labelID, red, green, blue);
-		if ((labelID + 1) <= m_objectTable->GetNumberOfRows())
+		oTF->AddPoint(selectedObjID, alpha);
+		cTF->AddRGBPoint(selectedObjID, red, green, blue);
+		if ((selectedObjID + 1) <= m_objectTable->GetNumberOfRows())
 		{
-			oTF->AddPoint(labelID + 0.3, backAlpha);
-			oTF->AddPoint(labelID + 0.29, alpha);
-			cTF->AddRGBPoint(labelID + 0.3, backRGB[0], backRGB[1], backRGB[2]);
-			cTF->AddRGBPoint(labelID + 0.29, red, green, blue);
+			oTF->AddPoint(selectedObjID + 0.3, backAlpha);
+			oTF->AddPoint(selectedObjID + 0.29, alpha);
+			cTF->AddRGBPoint(selectedObjID + 0.3, backRGB[0], backRGB[1], backRGB[2]);
+			cTF->AddRGBPoint(selectedObjID + 0.29, red, green, blue);
 		}
 	}
 	else // for single class selection
@@ -266,8 +265,10 @@ void iA3DLabelledVolumeVis::renderSingle( int labelID, int classID, QColor const
 		{
 			hid = activeClassItem->child( j, 0 )->text().toInt();
 
-			if ( j + 1 < itemL )
-				next_hid = activeClassItem->child( j + 1, 0 )->text().toInt();
+			if (j + 1 < itemL)
+			{
+				next_hid = activeClassItem->child(j + 1, 0)->text().toInt();
+			}
 			else
 			{
 				if ( starting )
@@ -340,7 +341,6 @@ void iA3DLabelledVolumeVis::multiClassRendering( QList<QColor> const & classColo
 	double red = 0.0;
 	double green = 0.0;
 	double blue = 0.0;
-	int CID = 0;
 
 	// clear existing points
 	oTF->RemoveAllPoints();
@@ -448,7 +448,7 @@ void iA3DLabelledVolumeVis::renderOrientationDistribution( vtkImageData* oi )
 	oTF->AddPoint( 0, backAlpha );
 	cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2] );
 
-	for ( size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID )
+	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID )
 	{
 		QColor color = getOrientationColor( oi, objID );
 		oTF->AddPoint( objID + 1, alpha );
@@ -463,7 +463,7 @@ void iA3DLabelledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* 
 	cTF->RemoveAllPoints();
 	cTF->AddRGBPoint(0, 0.0, 0.0, 0.0);
 
-	for ( size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID )
+	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID )
 	{
 		double ll = m_objectTable->GetValue(objID, m_columnMapping->value(iACsvConfig::Length)).ToDouble();
 		QColor color = getLengthColor( ctFun, objID );

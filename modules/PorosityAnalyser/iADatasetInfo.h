@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -31,11 +31,11 @@ class iADatasetInfo : public QThread
 	Q_OBJECT
 
 public:
-	iADatasetInfo( iAPorosityAnalyserModuleInterface * pmi, QObject * parent = 0 ) : m_pmi( pmi ), QThread( parent ) {};
+	iADatasetInfo(iAPorosityAnalyserModuleInterface* pmi, QObject* parent = 0);
 	QStringList getNewGeneratedInfoFiles();
 
 protected:
-	virtual void run();
+	void run() override;
 	void calculateInfo();
 
 	iAPorosityAnalyserModuleInterface * m_pmi;

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -43,11 +43,11 @@ iASamplingResults::iASamplingResults(
 	int id
 ):
 	m_attributes(attr),
+	m_name(name),
 	m_samplingMethod(samplingMethod),
 	m_path(path),
 	m_executable(executable),
 	m_additionalArguments(additionalArguments),
-	m_name(name),
 	m_id(id)
 {
 }
@@ -163,10 +163,10 @@ bool iASamplingResults::Store(QString const & fileName,
 	paramRangeFile.close();
 
 	m_fileName = fileName;
-	
+
 	return StoreAttributes(iAAttributeDescriptor::Parameter, parameterSetFileName, true) &&
 		StoreAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
-	
+
 
 	return true;
 }

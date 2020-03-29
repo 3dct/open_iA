@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -60,7 +60,7 @@ QString toqstr(vtkVariant const & var)
 	return QString(oss.str().c_str());
 }
 
-dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int numberOfEventTypes, iAVolumeStack* volumeStack, dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards) : QDockWidget(parent)
+dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int numberOfEventTypes, iAVolumeStack* volumeStack, dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards) : QDockWidget(parent)
 {
 	setupUi(this);
 
@@ -142,7 +142,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 
 	m_chartConnections = vtkEventQtSlotConnect::New();
 
-	for(int i=0; i<numberOfCharts; i++)
+	for (size_t i=0; i<numberOfCharts; i++)
 	{
 		iAVtkOldWidget* vtkWidget;
 		CREATE_OLDVTKWIDGET(vtkWidget);
@@ -152,7 +152,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 
 		m_contextViews.push_back(vtkSmartPointer<vtkContextView>::New());
 		m_charts.push_back(vtkSmartPointer<vtkChartXY>::New());
-  
+
 		m_contextViews.at(i)->SetRenderWindow(m_widgets.at(i)->GetRenderWindow());
 		m_contextViews.at(i)->GetScene()->AddItem(m_charts.at(i));
 
@@ -162,7 +162,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 			SLOT(chartMouseButtonCallBack(vtkObject*)));
 	}
 	int tableId=0;
-	for(int i=0; i<numberOfCharts; i++)
+	for (size_t i=0; i<numberOfCharts; i++)
 	{
 		m_tables.push_back(vtkSmartPointer<vtkTable>::New());
 
@@ -205,7 +205,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		tableId++;
 	}
 
-	for(int i=0; i<numberOfCharts; i++)
+	for (size_t i=0; i<numberOfCharts; i++)
 	{
 		m_tables.push_back(vtkSmartPointer<vtkTable>::New());
 
@@ -248,7 +248,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		tableId++;
 	}
 
-	for(int i=0; i<numberOfCharts; i++)
+	for (size_t i=0; i<numberOfCharts; i++)
 	{
 		m_tables.push_back(vtkSmartPointer<vtkTable>::New());
 
@@ -291,7 +291,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		tableId++;
 	}
 
-	for(int i=0; i<numberOfCharts; i++)
+	for (size_t i=0; i<numberOfCharts; ++i)
 	{
 		m_tables.push_back(vtkSmartPointer<vtkTable>::New());
 
@@ -334,7 +334,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		tableId++;
 	}
 
-	for(int i=0; i<numberOfCharts; i++)
+	for (size_t i=0; i<numberOfCharts; ++i)
 	{
 		m_tables.push_back(vtkSmartPointer<vtkTable>::New());
 
@@ -374,12 +374,12 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		VTK_CREATE(vtkFloatArray, arrEvent);
 		arrEvent->SetName("Dissipation[Event Type]");
 		m_tables.at(tableId)->AddColumn(arrEvent);
-		tableId++;
+		++tableId;
 	}
 	iAFeatureTracking *ftF;
 	iAFeatureTracking *ftB;
 
-	for (int t = 0; t < trackedFeaturesForwards.size(); t++)
+	for (size_t t = 0; t < trackedFeaturesForwards.size(); ++t)
 	{
 		ftF = trackedFeaturesForwards.at(t);
 		ftB = trackedFeaturesBackwards.at(t);
@@ -404,27 +404,19 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 			}
 		}*/
 
-		int numberOfRows;
-		
-		if (t > 0)
-			numberOfRows = u->GetNumberOfRows();
-		else
-			numberOfRows = v->GetNumberOfRows();
+		int numberOfRows = (t > 0) ? u->GetNumberOfRows() : v->GetNumberOfRows();
 
 		DEBUG_LOG(QString("%1 rows\n").arg(numberOfRows));
 
-		for (int i = 0; i < numberOfRows; i++) //ft->getNumberOfEventsInV()
+		for (int i = 0; i < numberOfRows; ++i) //ft->getNumberOfEventsInV()
 		{
 			//cout << "i: " << i << "   " << v->GetValue(i, 4) << ", " << v->GetValue(i, 5) << ", " << v->GetValue(i, 6) << ", " << v->GetValue(i, 7) << ", " << endl;
 
-			std::vector<iAFeatureTrackingCorrespondence> correspondences;
-			if (t > 0)
-				correspondences = ftB->FromUtoV(i+1);
-			else
-				correspondences = ftB->FromVtoU(i+1);
-			//correspondences = ftF->FromUtoV(i);
+			auto correspondences = (t > 0) ? ftB->FromUtoV(i + 1): ftB->FromVtoU(i + 1);
 
-			for (auto c = correspondences.begin(); c != correspondences.end(); c++)
+			for (auto c = correspondences.begin(); c != correspondences.end();
+				/* ++c */  // currently only one loop iteration is performed anyway (see break at end) -> unreachable code warning if uncommented
+			)
 			{
 				DEBUG_LOG(QString("i: %1   c->id: %2, event: %3, overlap: %4, volumeRatio: %5   %6, %7, %8, %9")
 					.arg(i).arg(c->id).arg(c->featureEvent).arg(c->overlap).arg(c->volumeRatio)
@@ -434,7 +426,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 				vtkSmartPointer<vtkVariantArray> arr = vtkSmartPointer<vtkVariantArray>::New();
 				arr->SetNumberOfValues(12);
 
-				if (t > 0) //t > 0 
+				if (t > 0) //t > 0
 				{
 					switch (c->featureEvent)
 					{
@@ -610,7 +602,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 	float width = 1.0;
 
 	vtkPlot *plot;
-	for(int i=0; i<numberOfCharts; i++)
+	for(size_t i=0; i<numberOfCharts; i++)
 	{
 		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
 		plot->SetInputData(m_tables.at(i + numberOfCharts * 0), 1, 6);
@@ -619,7 +611,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		plot->SetTooltipLabelFormat("");
 		m_plots.push_back(plot);
 	}
-	for(int i=0; i<numberOfCharts; i++)
+	for (size_t i=0; i<numberOfCharts; ++i)
 	{
 		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
 		plot->SetInputData(m_tables.at(i + numberOfCharts * 1), 1, 6);
@@ -628,7 +620,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		plot->SetTooltipLabelFormat("");
 		m_plots.push_back(plot);
 	}
-	for(int i=0; i<numberOfCharts; i++)
+	for (size_t i=0; i<numberOfCharts; ++i)
 	{
 		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
 		plot->SetInputData(m_tables.at(i + numberOfCharts * 2), 1, 6);
@@ -637,7 +629,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		plot->SetTooltipLabelFormat("");
 		m_plots.push_back(plot);
 	}
-	for(int i=0; i<numberOfCharts; i++)
+	for (size_t i=0; i<numberOfCharts; ++i)
 	{
 		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
 		plot->SetInputData(m_tables.at(i + numberOfCharts * 3), 1, 6);
@@ -646,7 +638,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		plot->SetTooltipLabelFormat("");
 		m_plots.push_back(plot);
 	}
-	for(int i=0; i<numberOfCharts; i++)
+	for (size_t i=0; i<numberOfCharts; ++i)
 	{
 		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
 		plot->SetInputData(m_tables.at(i + numberOfCharts * 4), 1, 6);
@@ -655,15 +647,15 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		plot->SetTooltipLabelFormat("");
 		m_plots.push_back(plot);
 	}
-	  
-	for(int i=0; i<numberOfEventTypes; i++)
+
+	for (int i=0; i<numberOfEventTypes; ++i)
 	{
-		m_plotPositionInVector[i]=i;
+		m_plotPositionInVector[i] = i;
 	}
 
 	m_numberOfActivePlots = numberOfEventTypes;
- 
-	for(int i=0; i<numberOfCharts; i++)
+
+	for (size_t i=0; i<numberOfCharts; ++i)
 	{
 		m_charts.at(i)->GetAxis(0)->SetTitle("Uncertainty");
 		m_charts.at(i)->GetAxis(1)->SetTitle("Volume");
@@ -681,12 +673,12 @@ dlg_eventExplorer::~dlg_eventExplorer()
 
 void dlg_eventExplorer::updateOpacityCreation(int v)
 {
-	for (int i = (m_numberOfCharts * 0); i<(m_numberOfCharts * 1); i++)
+	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
 		m_plots.at(i)->GetPen()->SetOpacity(v);
 	}
 
-	for (int i = 0; i < m_numberOfCharts; i++)
+	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
 		m_charts.at(i)->Update();
 	}
@@ -694,12 +686,12 @@ void dlg_eventExplorer::updateOpacityCreation(int v)
 
 void dlg_eventExplorer::updateOpacityContinuation(int v)
 {
-	for (int i = (m_numberOfCharts * 1); i<(m_numberOfCharts * 2); i++)
+	for (size_t i = (m_numberOfCharts * 1); i<(m_numberOfCharts * 2); ++i)
 	{
 		m_plots.at(i)->GetPen()->SetOpacity(v);
 	}
 
-	for (int i = 0; i < m_numberOfCharts; i++)
+	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
 		m_charts.at(i)->Update();
 	}
@@ -707,12 +699,12 @@ void dlg_eventExplorer::updateOpacityContinuation(int v)
 
 void dlg_eventExplorer::updateOpacitySplit(int v)
 {
-	for (int i = (m_numberOfCharts * 2); i<(m_numberOfCharts * 3); i++)
+	for (size_t i = (m_numberOfCharts * 2); i<(m_numberOfCharts * 3); ++i)
 	{
 		m_plots.at(i)->GetPen()->SetOpacity(v);
 	}
 
-	for (int i = 0; i < m_numberOfCharts; i++)
+	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
 		m_charts.at(i)->Update();
 	}
@@ -720,12 +712,12 @@ void dlg_eventExplorer::updateOpacitySplit(int v)
 
 void dlg_eventExplorer::updateOpacityMerge(int v)
 {
-	for (int i = (m_numberOfCharts * 3); i<(m_numberOfCharts * 4); i++)
+	for (size_t i = (m_numberOfCharts * 3); i<(m_numberOfCharts * 4); ++i)
 	{
 		m_plots.at(i)->GetPen()->SetOpacity(v);
 	}
 
-	for (int i = 0; i < m_numberOfCharts; i++)
+	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
 		m_charts.at(i)->Update();
 	}
@@ -733,12 +725,12 @@ void dlg_eventExplorer::updateOpacityMerge(int v)
 
 void dlg_eventExplorer::updateOpacityDissipation(int v)
 {
-	for (int i = (m_numberOfCharts * 4); i<(m_numberOfCharts * 5); i++)
+	for (size_t i = (m_numberOfCharts * 4); i<(m_numberOfCharts * 5); ++i)
 	{
 		m_plots.at(i)->GetPen()->SetOpacity(v);
 	}
 
-	for (int i = 0; i < m_numberOfCharts; i++)
+	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
 		m_charts.at(i)->Update();
 	}
@@ -746,7 +738,7 @@ void dlg_eventExplorer::updateOpacityDissipation(int v)
 
 void dlg_eventExplorer::updateOpacityGrid(int v)
 {
-	for (int i = 0; i < m_numberOfCharts; i++)
+	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
 		m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->GetGridPen()->SetColorF(0.5, 0.5, 0.5, v/255.0);
 		m_charts.at(i)->GetAxis(vtkAxis::LEFT)->GetGridPen()->SetColorF(0.5, 0.5, 0.5, v/255.0);
@@ -754,22 +746,22 @@ void dlg_eventExplorer::updateOpacityGrid(int v)
 	}
 }
 
-void dlg_eventExplorer::updateCheckBoxCreation(int c)
+void dlg_eventExplorer::updateCheckBoxCreation(int /*c*/)
 {
 	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 
-	if(!creationCheckBox->isChecked())
+	if (!creationCheckBox->isChecked())
 	{
-		for(int i=0; i<m_numberOfCharts; i++)
+		for (size_t i=0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->RemovePlot(m_plotPositionInVector[0]);
 		}
-		
-		for(int i=0; i<m_numberOfEventTypes; i++)
+
+		for (int i=0; i<m_numberOfEventTypes; ++i)
 		{
-			if(m_plotPositionInVector[i] > m_plotPositionInVector[0])
+			if (m_plotPositionInVector[i] > m_plotPositionInVector[0])
 			{
 				m_plotPositionInVector[i]--;
 			}
@@ -784,11 +776,11 @@ void dlg_eventExplorer::updateCheckBoxCreation(int c)
 	}
 	else
 	{
-		for(int i=0; i<m_numberOfCharts; i++)
+		for (size_t i=0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 0));
 			m_charts.at(i)->Update();
-			
+
 			m_plotPositionInVector[0]=m_numberOfActivePlots;
 		}
 
@@ -804,39 +796,39 @@ void dlg_eventExplorer::updateCheckBoxCreation(int c)
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
-void dlg_eventExplorer::updateCheckBoxContinuation(int c)
+void dlg_eventExplorer::updateCheckBoxContinuation(int /*c*/)
 {
 	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 	if(!continuationCheckBox->isChecked())
 	{
-		for(int i=0; i<m_numberOfCharts; i++)
+		for (size_t i=0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->RemovePlot(m_plotPositionInVector[1]);
 		}
-		
-		for(int i=0; i<m_numberOfEventTypes; i++)
+
+		for (int i=0; i<m_numberOfEventTypes; ++i)
 		{
-			if(m_plotPositionInVector[i] > m_plotPositionInVector[1])
+			if (m_plotPositionInVector[i] > m_plotPositionInVector[1])
 			{
-				m_plotPositionInVector[i]--;
+				--m_plotPositionInVector[i];
 			}
 		}
 
 		m_plotPositionInVector[1] = -1;
 
-		m_numberOfActivePlots--;
+		--m_numberOfActivePlots;
 
 		continuationSlider->setValue(0);
 		updateOpacityContinuation(0);
 	}
 	else
 	{
-		for(int i=0; i<m_numberOfCharts; i++)
+		for (size_t i=0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 1));
-			
+
 			m_plotPositionInVector[1]=m_numberOfActivePlots;
 		}
 
@@ -852,39 +844,39 @@ void dlg_eventExplorer::updateCheckBoxContinuation(int c)
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
-void dlg_eventExplorer::updateCheckBoxSplit(int c)
+void dlg_eventExplorer::updateCheckBoxSplit(int /*c*/)
 {
 	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 	if(!splitCheckBox->isChecked())
 	{
-		for(int i=0; i<m_numberOfCharts; i++)
+		for (size_t i=0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->RemovePlot(m_plotPositionInVector[2]);
 		}
-		
-		for(int i=0; i<m_numberOfEventTypes; i++)
+
+		for (int i=0; i<m_numberOfEventTypes; ++i)
 		{
 			if(m_plotPositionInVector[i] > m_plotPositionInVector[2])
 			{
-				m_plotPositionInVector[i]--;
+				--m_plotPositionInVector[i];
 			}
 		}
 
 		m_plotPositionInVector[2] = -1;
 
-		m_numberOfActivePlots--;
+		--m_numberOfActivePlots;
 
 		splitSlider->setValue(0);
 		updateOpacitySplit(0);
 	}
 	else
 	{
-		for(int i=0; i<m_numberOfCharts; i++)
+		for (size_t i=0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 2));
-			
+
 			m_plotPositionInVector[2]=m_numberOfActivePlots;
 		}
 
@@ -900,23 +892,23 @@ void dlg_eventExplorer::updateCheckBoxSplit(int c)
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
-void dlg_eventExplorer::updateCheckBoxMerge(int c)
+void dlg_eventExplorer::updateCheckBoxMerge(int /*c*/)
 {
 	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-	if(!mergeCheckBox->isChecked())
+	if (!mergeCheckBox->isChecked())
 	{
-		for(int i=0; i<m_numberOfCharts; i++)
+		for (size_t i=0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->RemovePlot(m_plotPositionInVector[3]);
 		}
-		
-		for(int i=0; i<m_numberOfEventTypes; i++)
+
+		for (int i=0; i<m_numberOfEventTypes; ++i)
 		{
 			if(m_plotPositionInVector[i] > m_plotPositionInVector[3])
 			{
-				m_plotPositionInVector[i]--;
+				--m_plotPositionInVector[i];
 			}
 		}
 
@@ -929,14 +921,14 @@ void dlg_eventExplorer::updateCheckBoxMerge(int c)
 	}
 	else
 	{
-		for(int i=0; i<m_numberOfCharts; i++)
+		for (size_t i=0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 3));
-			
+
 			m_plotPositionInVector[3]=m_numberOfActivePlots;
 		}
 
-		m_numberOfActivePlots++;
+		++m_numberOfActivePlots;
 
 		mergeSlider->setValue(255);
 		updateOpacityMerge(255);
@@ -948,43 +940,43 @@ void dlg_eventExplorer::updateCheckBoxMerge(int c)
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
-void dlg_eventExplorer::updateCheckBoxDissipation(int c)
+void dlg_eventExplorer::updateCheckBoxDissipation(int /*c*/)
 {
 	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-	if(!dissipationCheckBox->isChecked())
+	if (!dissipationCheckBox->isChecked())
 	{
-		for(int i=0; i<m_numberOfCharts; i++)
+		for (size_t i=0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->RemovePlot(m_plotPositionInVector[4]);
 		}
 
-		for(int i=0; i<m_numberOfEventTypes; i++)
+		for (int i=0; i<m_numberOfEventTypes; ++i)
 		{
-			if(m_plotPositionInVector[i] > m_plotPositionInVector[4])
+			if (m_plotPositionInVector[i] > m_plotPositionInVector[4])
 			{
-				m_plotPositionInVector[i]--;
+				--m_plotPositionInVector[i];
 			}
 		}
 
 		m_plotPositionInVector[4] = -1;
 
-		m_numberOfActivePlots--;
+		--m_numberOfActivePlots;
 
 		dissipationSlider->setValue(0);
 		updateOpacityDissipation(0);
 	}
 	else
 	{
-		for(int i=0; i<m_numberOfCharts; i++)
+		for (size_t i=0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->AddPlot(m_plots.at(i+m_numberOfCharts*4));
-			
+
 			m_plotPositionInVector[4]=m_numberOfActivePlots;
 		}
 
-		m_numberOfActivePlots++;
+		++m_numberOfActivePlots;
 
 		dissipationSlider->setValue(255);
 		updateOpacityDissipation(255);
@@ -996,36 +988,36 @@ void dlg_eventExplorer::updateCheckBoxDissipation(int c)
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
-void dlg_eventExplorer::updateCheckBoxLogX(int c)
+void dlg_eventExplorer::updateCheckBoxLogX(int /*c*/)
 {
 	if (!logXCheckBox->isChecked())
 	{
-		for (int i = 0; i<m_numberOfCharts; i++)
+		for (size_t i = 0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->LogScaleOff();
 		}
 	}
 	else
 	{
-		for (int i = 0; i<m_numberOfCharts; i++)
+		for (size_t i = 0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->LogScaleOn();
 		}
 	}
 }
 
-void dlg_eventExplorer::updateCheckBoxLogY(int c)
+void dlg_eventExplorer::updateCheckBoxLogY(int /*c*/)
 {
 	if (!logYCheckBox->isChecked())
 	{
-		for (int i = 0; i<m_numberOfCharts; i++)
+		for (size_t i = 0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->GetAxis(vtkAxis::LEFT)->LogScaleOff();
 		}
 	}
 	else
 	{
-		for (int i = 0; i<m_numberOfCharts; i++)
+		for (size_t i = 0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->GetAxis(vtkAxis::LEFT)->LogScaleOn();
 		}
@@ -1055,21 +1047,21 @@ void dlg_eventExplorer::comboBoxXSelectionChanged(int s)
 		break;
 	case 5:
 		title = "Probability";
-		for (int i = 0; i<m_numberOfCharts; i++)
+		for (size_t i = 0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->SetRange(0.0, 1.0);
 		}
 		break;
 	case 6:
 		title = "Uncertainty";
-		for (int i = 0; i<m_numberOfCharts; i++)
+		for (size_t i = 0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->SetRange(0.0, 1.0);
 		}
 		break;
 	case 7:
 		title = "Volume Overlap";
-		for (int i = 0; i<m_numberOfCharts; i++)
+		for (size_t i = 0; i<m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->SetRange(0.0, 1.0);
 		}
@@ -1078,12 +1070,12 @@ void dlg_eventExplorer::comboBoxXSelectionChanged(int s)
 
 	m_propertyXId = s;
 
-	for(int i=0; i<m_numberOfCharts*m_numberOfEventTypes; i++)
+	for (size_t i=0; i<m_numberOfCharts*m_numberOfEventTypes; ++i)
 	{
 		m_plots.at(i)->SetInputData(m_tables.at(i), m_propertyXId+1, m_propertyYId+1);
 	}
 
-	for(int i=0; i<m_numberOfCharts; i++)
+	for (size_t i=0; i<m_numberOfCharts; ++i)
 	{
 		m_charts.at(i)->GetAxis(1)->SetTitle(title);
 	}
@@ -1112,21 +1104,21 @@ void dlg_eventExplorer::comboBoxYSelectionChanged(int s)
 			break;
 		case 5:
 			title="Probability";
-			for (int i = 0; i<m_numberOfCharts; i++)
+			for (size_t i = 0; i<m_numberOfCharts; ++i)
 			{
 				m_charts.at(i)->GetAxis(vtkAxis::LEFT)->SetRange(0.0, 1.0);
 			}
 			break;
 		case 6:
 			title = "Uncertainty";
-			for (int i = 0; i<m_numberOfCharts; i++)
+			for (size_t i = 0; i<m_numberOfCharts; ++i)
 			{
 				m_charts.at(i)->GetAxis(vtkAxis::LEFT)->SetRange(0.0, 1.0);
 			}
 			break;
 		case 7:
 			title = "Volume Overlap";
-			for (int i = 0; i<m_numberOfCharts; i++)
+			for (size_t i = 0; i<m_numberOfCharts; ++i)
 			{
 				m_charts.at(i)->GetAxis(vtkAxis::LEFT)->SetRange(0.0, 1.0);
 			}
@@ -1135,18 +1127,18 @@ void dlg_eventExplorer::comboBoxYSelectionChanged(int s)
 
 	m_propertyYId = s;
 
-	for(int i=0; i<m_numberOfCharts*m_numberOfEventTypes; i++)
+	for (size_t i=0; i<m_numberOfCharts*m_numberOfEventTypes; ++i)
 	{
 		m_plots.at(i)->SetInputData(m_tables.at(i), m_propertyXId+1, m_propertyYId+1);
 	}
 
-	for(int i=0; i<m_numberOfCharts; i++)
+	for (size_t i=0; i<m_numberOfCharts; ++i)
 	{
 		m_charts.at(i)->GetAxis(0)->SetTitle(title);
 	}
 }
 
-void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
+void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * /*obj*/)
 {
 	//clear graph TODO
 	m_graph = vtkMutableDirectedGraph::New();
@@ -1167,7 +1159,7 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
 	m_nodesToLayers.clear();
 	m_graphToTableId.clear();
 	m_tableToGraphId.clear();
-	for (int i = 0; i < m_numberOfCharts; i++)
+	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
 		m_nodes.push_back(std::vector<int>());
 	}
@@ -1177,7 +1169,11 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
 	vtkColorTransferFunction *cTF;
 	vtkPiecewiseFunction *oTF;
 
-	for (int i = 0; i < m_numberOfCharts; i++)
+	if (m_numberOfCharts > std::numeric_limits<int>::max())
+	{
+		DEBUG_LOG(QString("Number of charts (%1) larger than supported (%2)!").arg(m_numberOfCharts).arg(std::numeric_limits<int>::max()));
+	}
+	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
 		DEBUG_LOG(QString("\nChart[%1]").arg(i));
 
@@ -1192,7 +1188,7 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
 		cTF->AddRGBPoint(m_trackedFeaturesBackwards.at(i)->getNumberOfEventsInV(), 0.0, 0.0, 0.0);
 		oTF->AddPoint(m_trackedFeaturesBackwards.at(i)->getNumberOfEventsInV(), 0.0);
 
-		for (int c = 1; c < m_trackedFeaturesBackwards.at(i)->getNumberOfEventsInV(); c++)
+		for (size_t c = 1; c < m_trackedFeaturesBackwards.at(i)->getNumberOfEventsInV(); ++c)
 		{
 			cTF = m_volumeStack->colorTF(i);
 			cTF->AddRGBPoint(c - 0.5, 0.0, 0.0, 0.0, 0.5, 1.0);
@@ -1205,7 +1201,7 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
 		}
 
 		int currentPlot = 0;
-		for (int j = 0; j < m_numberOfEventTypes; j++)
+		for (int j = 0; j < m_numberOfEventTypes; ++j)
 		{
 			if (m_plotPositionInVector[j] >= 0)
 			{
@@ -1215,7 +1211,7 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
 				{
 					DEBUG_LOG(QString("  Plot[%1] is active. %2 selected.").arg(j).arg(ids->GetNumberOfTuples()));
 
-					for (int k = 0; k < m_numberOfEventTypes; k++)
+					for (int k = 0; k < m_numberOfEventTypes; ++k)
 					{
 						//if(currentPlot==plotPositionInVector[k])
 						if (currentPlot == k)
@@ -1244,16 +1240,16 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
 								break;
 							}
 
-							for (int l = 0; l < ids->GetNumberOfTuples(); l++)
+							for (int l = 0; l < ids->GetNumberOfTuples(); ++l)
 							{
 								double id = m_tables.at(i + m_numberOfCharts * k)->GetRow(ids->GetValue(l))->GetValue(0).ToDouble();
 								DEBUG_LOG(QString("    %1 --> table id: %2").arg(ids->GetValue(l)).arg(id));
 
-								buildGraph(id, i, k, m_tables.at(i + m_numberOfCharts * k)->GetRow(ids->GetValue(l))->GetValue(7).ToDouble());
+								buildGraph(id, static_cast<int>(i), k, m_tables.at(i + m_numberOfCharts * k)->GetRow(ids->GetValue(l))->GetValue(7).ToDouble());
 							}
 						}
 					}
-					currentPlot++;
+					++currentPlot;
 				}
 			}
 			else
@@ -1318,7 +1314,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 		if (layer > 0)
 		{
 			iAFeatureTracking *ftB = m_trackedFeaturesBackwards.at(layer);
-			iAFeatureTracking *ftF = m_trackedFeaturesForwards.at(layer - 1);
+			//iAFeatureTracking *ftF = m_trackedFeaturesForwards.at(layer - 1);
 			int newVertexId;
 
 			std::vector<iAFeatureTrackingCorrespondence> correspondences;
@@ -1334,9 +1330,13 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 						//if (trackedFeaturesBackwards.at(layer - 1)->FromUtoV(c.id).size() > 0)
 						//	featureEvent = trackedFeaturesBackwards.at(layer - 1)->FromUtoV(c.id).at(0).featureEvent;
 						if (m_trackedFeaturesForwards.at(layer - 1)->FromVtoU(c.id).size() > 0)
+						{
 							featureEvent = m_trackedFeaturesForwards.at(layer - 1)->FromVtoU(c.id).at(0).featureEvent;
+						}
 						else
+						{
 							featureEvent = 0;
+						}
 
 						newVertexId = m_graph->AddVertex();
 
@@ -1372,7 +1372,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 						//TODO: only add edges which are not existing
 						m_graph->AddEdge(m_tableToGraphId[layer][id], m_tableToGraphId[layer - 1][c.id]);
 						DEBUG_LOG(QString("Edge [%1][%2] --> [%3][%4]").arg(id).arg(layer).arg(c.id).arg(layer - 1));
-						
+
 						/*if (g->GetEdgeId(tableToGraphId[layer][id], tableToGraphId[layer - 1][c.id]) != -1 || g->GetEdgeId(tableToGraphId[layer - 1][c.id], tableToGraphId[layer][id]) != -1)
 						{
 							g->AddEdge(tableToGraphId[layer][id], tableToGraphId[layer - 1][c.id]);
@@ -1385,31 +1385,41 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 		}
 
 		// search forwards
-		if (layer < m_numberOfCharts - 1)
+		assert(layer > 0);
+		if (static_cast<size_t>(layer) < m_numberOfCharts - 1)
 		{
-			iAFeatureTracking *ftB = m_trackedFeaturesBackwards.at(layer + 1);
+			//iAFeatureTracking *ftB = m_trackedFeaturesBackwards.at(layer + 1);
 			iAFeatureTracking *ftF = m_trackedFeaturesForwards.at(layer + 1);
 			int newVertexId;
 
 			std::vector<iAFeatureTrackingCorrespondence> correspondences;
 			if (layer > 0)
+			{
 				correspondences = ftF->FromVtoU(id);
+			}
 			else
+			{
 				correspondences = ftF->FromUtoV(id);
+			}
 
 			for (auto c : correspondences)
 			{
 				if (c.id > 0 && c.isTakenForCurrentIteration)
 				{
-					if(m_tableToGraphId[layer + 1].find(c.id) == m_tableToGraphId[layer + 1].end())
+					if (m_tableToGraphId[layer + 1].find(c.id) == m_tableToGraphId[layer + 1].end())
 					{
 						int featureEvent = 0;
 						//if (trackedFeaturesBackwards.at(layer - 1)->FromUtoV(c.id).size() > 0)
 						//	featureEvent = trackedFeaturesBackwards.at(layer - 1)->FromUtoV(c.id).at(0).featureEvent;
 						if (m_trackedFeaturesForwards.at(layer + 1)->FromUtoV(c.id).size() > 0)
+						{
+							// featureEvent = ??? otherwise result unused (warning!)
 							m_trackedFeaturesForwards.at(layer + 1)->FromUtoV(c.id).at(0).featureEvent;
+						}
 						else
+						{
 							featureEvent = 0;
+						}
 
 						newVertexId = m_graph->AddVertex();
 						m_labels->InsertValue(newVertexId, std::to_string(c.id) +" (" + std::to_string((long long)(1 - c.likelyhood)) + ")");
@@ -1443,7 +1453,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 						//TODO: only add edges which are not existing
 						m_graph->AddEdge(m_tableToGraphId[layer][id], m_tableToGraphId[layer + 1][c.id]);
 						DEBUG_LOG(QString("Edge [%1][%2] --> [%3][%4]").arg(id).arg(layer).arg(c.id).arg(layer + 1));
-							
+
 						/*if (g->GetEdgeId(tableToGraphId[layer][id], tableToGraphId[layer + 1][c.id]) != -1 || g->GetEdgeId(tableToGraphId[layer + 1][c.id], tableToGraphId[layer][id]) != -1)
 						{
 							g->AddEdge(tableToGraphId[layer][id], tableToGraphId[layer + 1][c.id]);

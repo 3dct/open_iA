@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -28,17 +28,22 @@
 #include <iAVolumeStack.h>
 #include <mdichild.h>
 
-#include <itkMacro.h>
+#include <itkMacro.h>    // for itk::ExceptionObject
 
 const int FOURDCT_MIN_NUMBER_OF_VOLUMES = 1;
 
-iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( MainWindow * mainWnd, MdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ), 
-	trackingGraph( 0 ), m_dlgDataView4DCT( 0 ), m_dlgTrackingGraph( 0 ), m_dlgEventExplorer( 0 ), m_volumeStack( 0 )
+iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( MainWindow * mainWnd, MdiChild * child ):
+	iAModuleAttachmentToChild( mainWnd, child ),
+	trackingGraph(nullptr),
+	m_dlgDataView4DCT(nullptr),
+	m_dlgTrackingGraph(nullptr),
+	m_dlgEventExplorer(nullptr),
+	m_volumeStack(nullptr)
 {
 	m_volumeStack = child->volumeStack();
 	connect( child, SIGNAL( viewsUpdated() ), this, SLOT( updateViews() ) );
 
-	if( !create4DCTDataViewWidget() )
+	if (!create4DCTDataViewWidget())
 	{
 		throw itk::ExceptionObject(__FILE__, __LINE__, "create4DCTDataViewWidget failed");
 	}
@@ -54,13 +59,13 @@ iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( MainWindow *
 
 bool iAFuzzyFeatureTrackingAttachment::create4DCTDataViewWidget()
 {
-	if( m_dlgDataView4DCT )
+	if (m_dlgDataView4DCT)
 	{
 		m_child->addMsg( tr( "The data view 4DCT dialog already exists!" ) );
 		return false;
 	}
 
-	if( !m_volumeStack || m_volumeStack->numberOfVolumes() <= FOURDCT_MIN_NUMBER_OF_VOLUMES )
+	if (!m_volumeStack || m_volumeStack->numberOfVolumes() <= FOURDCT_MIN_NUMBER_OF_VOLUMES)
 	{
 		m_child->addMsg( tr( "No volume stack loaded or it does not contain enough volumes (expected: %1, actual: %2)!" )
 			.arg(FOURDCT_MIN_NUMBER_OF_VOLUMES)
@@ -80,7 +85,7 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTDataViewWidget()
 
 bool iAFuzzyFeatureTrackingAttachment::create4DCTTrackingGraphWidget()
 {
-	if( m_dlgTrackingGraph )
+	if (m_dlgTrackingGraph)
 	{
 		m_child->addMsg( tr( "The Tracking Graph widget already exists!" ) );
 		return false;
@@ -96,13 +101,13 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTTrackingGraphWidget()
 
 bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
 {
-	if( m_dlgEventExplorer )
+	if (m_dlgEventExplorer)
 	{
 		m_child->addMsg( tr( "The Event Explorer widget already exists!" ) );
 		return false;
 	}
 
-	if( !m_dlgTrackingGraph )
+	if (!m_dlgTrackingGraph)
 	{
 		m_child->addMsg( tr( "The Tracking Graph widget is missing. It is required for creating the Event Explorer widget" ) );
 		return false;
@@ -111,33 +116,35 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
 	std::vector<iAFeatureTracking*> trackedFeaturesForwards;
 	std::vector<iAFeatureTracking*> trackedFeaturesBackwards;
 
-	for( int i = 0; i < m_volumeStack->fileNames()->size(); i++ )
+	for (size_t i = 0; i < m_volumeStack->fileNames()->size(); ++i)
 	{
 		QString file[2];
 
 		const QString csvExt = QString( ".csv" );
 
-		if( i == 0 ) {
+		if (i == 0)
+		{
 			file[0] = QString();
 		}
-		else {
+		else
+		{
 			file[0] = m_volumeStack->fileName( i - 1 ) + csvExt;
 		}
 		file[1] = m_volumeStack->fileName( i ) + csvExt;
 
-		if( !file[0].isEmpty() && !QFile::exists( file[0] ) )
+		if (!file[0].isEmpty() && !QFile::exists(file[0]))
 		{
 			m_child->addMsg( QString( "The file \"" ) + file[0] + QString( "\" is missing" ) );
 			return false;
 		}
-		if( !QFile::exists( file[1] ) )
+		if (!QFile::exists(file[1]))
 		{
 			m_child->addMsg( QString( "The file \"" ) + file[1] + QString( "\" is missing" ) );
 			return false;
 		}
 
 		int lastIndex = file[1].lastIndexOf( QString( "/" ) );
-		QString outputFileName = file[1].left( lastIndex + 1 ) + "outF" + i + ".txt";
+		QString outputFileName = file[1].left( lastIndex + 1 ) + "outF" + QString::number(i) + ".txt";
 
 		const float	dissipationThreshold = 0.02f;
 		const float	overlapThreshold = 0.90f;
@@ -146,19 +153,23 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
 		const int	lineOffset = 4;
 
 		trackedFeaturesForwards.push_back( new iAFeatureTracking( file[0], file[1], lineOffset, outputFileName, dissipationThreshold, overlapThreshold, volumeThreshold, maxSearchValue ) );
-		if( i == 0 )
-			trackedFeaturesBackwards.push_back( new iAFeatureTracking( file[0], file[1], lineOffset, outputFileName, dissipationThreshold, overlapThreshold, volumeThreshold, maxSearchValue ) );
+		if (i == 0)
+		{
+			trackedFeaturesBackwards.push_back(new iAFeatureTracking(file[0], file[1], lineOffset, outputFileName, dissipationThreshold, overlapThreshold, volumeThreshold, maxSearchValue));
+		}
 		else
-			trackedFeaturesBackwards.push_back( new iAFeatureTracking( file[1], file[0], lineOffset, outputFileName, dissipationThreshold, overlapThreshold, volumeThreshold, maxSearchValue ) );
+		{
+			trackedFeaturesBackwards.push_back(new iAFeatureTracking(file[1], file[0], lineOffset, outputFileName, dissipationThreshold, overlapThreshold, volumeThreshold, maxSearchValue));
+		}
 	}
 
 	// 		AllocConsole();
 	// 		freopen("CON", "w", stdout);
 
-	for( int i = 0; i < trackedFeaturesForwards.size(); i++ )
+	for (size_t i = 0; i < trackedFeaturesForwards.size(); ++i)
 	{
-		trackedFeaturesForwards.at( i )->TrackFeatures();
-		trackedFeaturesBackwards.at( i )->TrackFeatures();
+		trackedFeaturesForwards.at(i)->TrackFeatures();
+		trackedFeaturesBackwards.at(i)->TrackFeatures();
 	}
 
 	m_dlgEventExplorer = new dlg_eventExplorer( m_child, trackedFeaturesForwards.size(), 5, m_volumeStack, m_dlgTrackingGraph, trackedFeaturesForwards, trackedFeaturesBackwards );
@@ -170,12 +181,12 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
 
 iAFuzzyFeatureTrackingAttachment::~iAFuzzyFeatureTrackingAttachment()
 {
-	if (m_dlgDataView4DCT)	delete m_dlgDataView4DCT;
+	delete m_dlgDataView4DCT;
 }
 
 void iAFuzzyFeatureTrackingAttachment::updateViews()
 {
-	if( m_dlgDataView4DCT )
+	if (m_dlgDataView4DCT)
 	{
 		m_dlgDataView4DCT->update();
 	}

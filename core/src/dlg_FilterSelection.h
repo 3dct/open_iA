@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -31,11 +31,11 @@ class dlg_FilterSelection : public dlg_FilterSelectionConnector
 Q_OBJECT
 public:
 	dlg_FilterSelection(QWidget * parent, QString const & preselectedFilter = "");
-	QString SelectedFilterName() const;
+	QString selectedFilterName() const;
 public slots:
-	void FilterChanged(QString const &);
-	void ListSelectionChanged(QListWidgetItem *, QListWidgetItem *);
+	void filterChanged(QString const &);
+	void listSelectionChanged(QListWidgetItem *, QListWidgetItem *);
 private:
-	void EnableOKButton();
+	void enableOKButton();
 	int m_curMatches;
 };

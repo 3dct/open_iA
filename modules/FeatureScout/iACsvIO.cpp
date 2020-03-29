@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -62,35 +62,50 @@ namespace
 	{
 		return QString::number(value, 'f', 10);
 	}
-	QString transformValue(QString value, int idx, iACsvConfig const & config)
+	QString transformValue(QString value, uint idx, iACsvConfig const& config)
 	{
 		if (config.offset[0] != 0 && (
 			(config.columnMapping.contains(iACsvConfig::CenterX) && idx == config.columnMapping[iACsvConfig::CenterX]) ||
 			(config.columnMapping.contains(iACsvConfig::StartX) && idx == config.columnMapping[iACsvConfig::StartX]) ||
 			(config.columnMapping.contains(iACsvConfig::EndX) && idx == config.columnMapping[iACsvConfig::EndX])))
+		{
 			return DblToString(value.toDouble() + config.offset[0]);
+		}
 		else if (config.offset[1] != 0 && (
 			(config.columnMapping.contains(iACsvConfig::CenterY) && idx == config.columnMapping[iACsvConfig::CenterY]) ||
 			(config.columnMapping.contains(iACsvConfig::StartY) && idx == config.columnMapping[iACsvConfig::StartY]) ||
 			(config.columnMapping.contains(iACsvConfig::EndY) && idx == config.columnMapping[iACsvConfig::EndY])))
+		{
 			return DblToString(value.toDouble() + config.offset[1]);
+		}
 		else if (config.offset[2] != 0 && (
 			(config.columnMapping.contains(iACsvConfig::CenterZ) && idx == config.columnMapping[iACsvConfig::CenterZ]) ||
 			(config.columnMapping.contains(iACsvConfig::StartZ) && idx == config.columnMapping[iACsvConfig::StartZ]) ||
 			(config.columnMapping.contains(iACsvConfig::EndZ) && idx == config.columnMapping[iACsvConfig::EndZ])))
+		{
 			return DblToString(value.toDouble() + config.offset[2]);
+		}
 		else if (config.columnMapping.contains(iACsvConfig::Theta) && idx == config.columnMapping[iACsvConfig::Theta] && value.toDouble() < 0)
+		{
 			return DblToString(2 * vtkMath::Pi() + value.toDouble());
+		}
 		else
+		{
 			return value;
+		}
 	}
-	double getValueAsDouble(QStringList const & values, int index, iACsvConfig const & config)
+	double getValueAsDouble(QStringList const & values, uint index, iACsvConfig const & config)
 	{
-		if (index >= values.size())
+		if (index > static_cast<uint>(std::numeric_limits<int>::max()) ||
+			static_cast<int>(index) > values.size())
+		{
 			return 0;
+		}
 		QString value = values[index];
 		if (config.decimalSeparator != ".")
+		{
 			value = value.replace(config.decimalSeparator, ".");
+		}
 		return transformValue(value, index, config).toDouble();
 	}
 }
@@ -110,12 +125,12 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 	QFile file(m_csvConfig.fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Unable to open file: %1").arg(file.errorString()));
+		DEBUG_LOG(QString("Unable to open file '%1': %2").arg(m_csvConfig.fileName).arg(file.errorString()));
 		return false;
 	}
 	QTextStream in(&file);
 	in.setCodec(m_csvConfig.encoding.toStdString().c_str());
-	size_t effectiveRowCount = std::min(rowCount, 
+	size_t effectiveRowCount = std::min(rowCount,
 		calcRowCount(in, m_csvConfig.skipLinesStart + (cnfg_params.containsHeader ? 1 : 0), m_csvConfig.skipLinesEnd));
 	if (effectiveRowCount <= 0)
 	{
@@ -123,16 +138,21 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		return false;
 	}
 
-	for (int i = 0; i < m_csvConfig.skipLinesStart; i++)
+	for (size_t i = 0; i < m_csvConfig.skipLinesStart; i++)
+	{
 		in.readLine();
+	}
 
 	if (m_csvConfig.containsHeader)
+	{
 		m_fileHeaders = in.readLine().split(m_csvConfig.columnSeparator);
+	}
 	else
+	{
 		m_fileHeaders = m_csvConfig.currentHeaders;
+	}
 	auto selectedColIdx = computeSelectedColIdx();
 	determineOutputHeaders(selectedColIdx);
-	int colCount = m_outputHeaders.size();
 
 	dstTbl.initialize(m_outputHeaders, effectiveRowCount);
 
@@ -141,10 +161,14 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 	{
 		QString line = in.readLine();
 		if (line.isEmpty())
+		{
 			continue;
+		}
 		QStringList entries;
 		if (m_csvConfig.addAutoID)
+		{
 			entries.append(QString::number(resultRowID));
+		}
 
 		auto values = line.split(m_csvConfig.columnSeparator);
 		if (values.size() < m_csvConfig.currentHeaders.size())
@@ -154,7 +178,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 				.arg(values.size()).arg(m_csvConfig.currentHeaders.size()));
 			continue;
 		}
-		if (!m_csvConfig.addAutoID && values[0].toInt() != (row + 1))
+		if (!m_csvConfig.addAutoID && values[0].toULongLong() != (row + 1))
 		{
 			DEBUG_LOG(QString("ID column not ordered as expected in line %1 (needs to be consecutive, starting at 1)! "
 				"Please either fix the data in the CSV or use the 'Create ID' feature!").arg(row));
@@ -169,7 +193,9 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 			}
 			QString value = values[valIdx];
 			if (m_csvConfig.decimalSeparator != ".")
+			{
 				value = value.replace(m_csvConfig.decimalSeparator, ".");
+			}
 			entries.append(transformValue(value, valIdx, m_csvConfig) );
 		}
 		if (m_csvConfig.computeStartEnd)
@@ -186,9 +212,13 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 			dir[1] = radius * std::sin(phi) * std::sin(theta);
 			dir[2] = radius * std::cos(phi);
 			for (int i = 0; i < 3; ++i)
+			{
 				entries.append(DblToString(center[i] + dir[i])); // start
+			}
 			for (int i = 0; i < 3; ++i)
+			{
 				entries.append(DblToString(center[i] - dir[i])); // end
+			}
 		}
 		if (m_csvConfig.isDiameterFixed)
 		{
@@ -294,14 +324,14 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 	return true;
 }
 
-void iACsvIO::determineOutputHeaders(QVector<int> const & selectedCols)
+void iACsvIO::determineOutputHeaders(QVector<uint> const & selectedCols)
 {
 	m_outputHeaders.clear();
 	m_outputMapping->clear();
 
 	//m_outputMapping.insert(iACsvConfig::ID, 0); // for now, ID is fixed to be in column 0
 
-	for (int key : m_csvConfig.columnMapping.keys())
+	for (uint key : m_csvConfig.columnMapping.keys())
 	{
 		int outIdx = selectedCols.indexOf(m_csvConfig.columnMapping[key]);
 		if (outIdx < 0)
@@ -375,10 +405,10 @@ void iACsvIO::determineOutputHeaders(QVector<int> const & selectedCols)
 	m_outputHeaders.append(iACsvIO::ColNameClassID);
 }
 
-QVector<int> iACsvIO::computeSelectedColIdx()
+QVector<uint> iACsvIO::computeSelectedColIdx()
 {
 	QStringList selectedHeaders = (m_csvConfig.selectedHeaders.isEmpty()) ? m_fileHeaders : m_csvConfig.selectedHeaders;
-	QVector<int> result;
+	QVector<uint> result;
 
 	for (QString colName: selectedHeaders)
 	{
@@ -394,8 +424,10 @@ QVector<int> iACsvIO::computeSelectedColIdx()
 size_t iACsvIO::calcRowCount(QTextStream& in, const size_t skipLinesStart, const size_t skipLinesEnd)
 {
 	// skip (unused) header lines (+1 for line containing actual column headers)
-	for (int i = 0; i < skipLinesStart && !in.atEnd(); i++)
+	for (size_t i = 0; i < skipLinesStart && !in.atEnd(); i++)
+	{
 		in.readLine();
+	}
 
 	// count remaining lines
 	size_t rowCount = 0;
@@ -430,6 +462,7 @@ bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<
 	QFileInfo curvedInfo(fileName);
 	if (!curvedInfo.exists() || !curvedInfo.isFile())
 	{
+		DEBUG_LOG(QString("No curved fibre file named %1 exists.").arg(fileName));
 		return false;
 	}
 	QFile curvedFiberPoints(curvedInfo.absoluteFilePath());
@@ -445,7 +478,7 @@ bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<
 	{
 		++lineNr;
 		QString line = in.readLine();
-		if (lineNr <= 6)
+		if (lineNr <= 5 || line.isEmpty())
 			continue;
 		QStringList valueStrList = line.split(",", QString::SkipEmptyParts);
 		if (valueStrList.size() < 7 || ((valueStrList.size() - 1) % 3) != 0)

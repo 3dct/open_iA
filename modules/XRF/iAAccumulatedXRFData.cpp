@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -34,11 +34,11 @@
 
 iAAccumulatedXRFData::iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, double minEnergy, double maxEnergy) :
 	m_xrfData(data),
-	m_spectraHistograms(new iASpectraHistograms(data)),
 	m_minimum(new CountType[m_xrfData->size()]),
 	m_maximum(new CountType[m_xrfData->size()]),
 	m_average(new CountType[m_xrfData->size()]),
-	m_functionalBoxplotData(0)
+	m_functionalBoxplotData(0),
+	m_spectraHistograms(new iASpectraHistograms(data))
 {
 	m_xBounds[0] = minEnergy;
 	m_xBounds[1] = maxEnergy;
@@ -168,10 +168,10 @@ void iAAccumulatedXRFData::calculateStatistics()
 		vtkSmartPointer<vtkImageData> img1 = *it;
 		// just checks: begin
 		assert (img1->GetNumberOfScalarComponents() == 1);
-		int extent[6];
-		img1->GetExtent(extent);
-		double * range = img1->GetScalarRange();
-		assert( ((extent[1]-extent[0]+1) * (extent[3]-extent[2]+1) * (extent[5]-extent[4]+1)) == count );
+		int extentImg1[6];
+		img1->GetExtent(extentImg1);
+		//double * range = img1->GetScalarRange();
+		assert( (static_cast<unsigned>(extentImg1[1]- extentImg1[0]+1) * (extentImg1[3]- extentImg1[2]+1) * (extentImg1[5]- extentImg1[4]+1)) == count );
 		// end checks
 		int type = img1->GetScalarType();
 		double avg = 0.0;
@@ -190,13 +190,15 @@ void iAAccumulatedXRFData::calculateStatistics()
 	}
 
 	//workaround if XRF values are negative (in our case due to the FDK reco nature)
-	if(m_yBounds[0] < 0.0 )
-		for(int j=0; j<i; ++j)
+	if (m_yBounds[0] < 0.0)
+	{
+		for (size_t j = 0; j < i; ++j)
 		{
 			m_average[j] -= m_yBounds[0];
 			m_maximum[j] -= m_yBounds[0];
 			m_minimum[j] -= m_yBounds[0];
 		}
+	}
 }
 
 void iAAccumulatedXRFData::createSpectrumFunctions()
@@ -215,7 +217,7 @@ void iAAccumulatedXRFData::createSpectrumFunctions()
 			}
 		}
 	}
-	size_t numSpectra = (extent[1] - extent[0] + 1) * (extent[3] - extent[2] + 1) * (extent[5] - extent[4] + 1);
+	//size_t numSpectra = (extent[1] - extent[0] + 1) * (extent[3] - extent[2] + 1) * (extent[5] - extent[4] + 1);
 }
 
 std::vector<iAFunction<size_t, unsigned int> *> const & iAAccumulatedXRFData::spectrumFunctions()
@@ -236,7 +238,7 @@ void iAAccumulatedXRFData::calculateFunctionBoxplots()
 		functions, &measure, 2);
 }
 
-FunctionalBoxPlot* const iAAccumulatedXRFData::functionalBoxPlot()
+FunctionalBoxPlot* iAAccumulatedXRFData::functionalBoxPlot()
 {
 	if (!m_functionalBoxplotData)
 	{

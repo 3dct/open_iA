@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -31,17 +31,20 @@ class vtkPoints;
 class FeatureScout_API iA3DLineObjectVis: public iA3DColoredPolyObjectVis
 {
 public:
+	// TODO: unify curved fiber data between here and updateValues!
 	iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData );
-	void updateValues( std::vector<std::vector<double> > const & values );
+		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip );
+	void updateValues( std::vector<std::vector<double> > const & values, int straightOrCurved);
 	vtkPolyData* getPolyData() override;
+	QString visualizationStatistics() const override;
 protected:
-	int objectStartPointIdx(int objIdx) const override;
-	int objectPointCount(int objIdx) const override;
+	IndexType objectStartPointIdx(IndexType objIdx) const override;
+	IndexType objectPointCount(IndexType objIdx) const override;
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPoints> m_points;
 private:
 	//! maps the object ID to (first=) the first index in the points array that belongs to this object, and (second=) the number of points
-	std::vector<std::pair<size_t, size_t>> m_objectPointMap;
+	std::vector<std::pair<IndexType, IndexType>> m_objectPointMap;
+	IndexType m_totalNumOfSegments;
 };
 

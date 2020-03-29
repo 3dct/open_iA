@@ -34,7 +34,7 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="QWidgetToolbar" name="toolBar" native="true">
+     <widget class="iAQWidgetToolbar" name="toolBar" native="true">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -474,9 +474,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QWidgetToolbar</class>
+   <class>iAQWidgetToolbar</class>
    <extends>QWidget</extends>
-   <header>QWidgetToolbar.h</header>
+   <header>iAQWidgetToolbar.h</header>
   </customwidget>
  </customwidgets>
  <resources>

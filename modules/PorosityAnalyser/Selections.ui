@@ -51,7 +51,7 @@
           <string>...</string>
          </property>
          <property name="icon">
-          <iconset resource="../../open_iA/core/open_iA.qrc">
+          <iconset resource="PorosityAnalyser.qrc">
            <normaloff>:/images/add_sel.png</normaloff>:/images/add_sel.png</iconset>
          </property>
          <property name="iconSize">
@@ -83,7 +83,7 @@
           <string>...</string>
          </property>
          <property name="icon">
-          <iconset resource="../../open_iA/core/open_iA.qrc">
+          <iconset resource="PorosityAnalyser.qrc">
            <normaloff>:/images/rem_sel.png</normaloff>:/images/rem_sel.png</iconset>
          </property>
          <property name="iconSize">
@@ -115,7 +115,7 @@
           <string>...</string>
          </property>
          <property name="icon">
-          <iconset resource="../../open_iA/core/open_iA.qrc">
+          <iconset resource="PorosityAnalyser.qrc">
            <normaloff>:/images/switch_sel.png</normaloff>:/images/switch_sel.png</iconset>
          </property>
          <property name="iconSize">
@@ -173,7 +173,7 @@
             <string>...</string>
            </property>
            <property name="icon">
-            <iconset resource="../../open_iA/core/open_iA.qrc">
+            <iconset resource="PorosityAnalyser.qrc">
              <normaloff>:/images/vis_sel.png</normaloff>:/images/vis_sel.png</iconset>
            </property>
            <property name="iconSize">
@@ -205,7 +205,7 @@
             <string>...</string>
            </property>
            <property name="icon">
-            <iconset resource="../../open_iA/core/open_iA.qrc">
+            <iconset resource="PorosityAnalyser.qrc">
              <normaloff>:/images/compare_sel.png</normaloff>:/images/compare_sel.png</iconset>
            </property>
            <property name="iconSize">
@@ -238,7 +238,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../open_iA/core/open_iA.qrc"/>
+  <include location="PorosityAnalyser.qrc"/>
  </resources>
  <connections/>
 </ui>

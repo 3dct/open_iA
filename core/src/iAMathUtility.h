@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -41,15 +41,16 @@ T clamp(T const min, T const max, T const value)
 	return (value < min) ? min : ((value > max) ? max : value);
 }
 
-//! Map value from given range to "normalized" range [0..1].
-//! if min is bigger than max, a reverse mapping is applied
-//! @param minSrcVal minimum value of source range
-//! @param maxSrcVal maximum value of source range
-//! @param value     the value to be mapped from the source range to the normalized range
-//! @return the mapped value; in case the given value is outside given min/max,
-//!         the value will still be clamped to the range [0..1]
+/**
+ * apply minmax normalization
+ * if min is bigger than max, a reverse mapping is applied
+ * @param minSrcVal minimum value of source interval
+ * @param maxSrcVal maximum value of source interval
+ * @param value a value in source interval
+ * @return the corresponding mapped value = (value - minSrcVal) / (maxSrcVal - minSrcVal)
+ */
 template <typename SrcType>
-double mapToNorm(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value)
+double minMaxNormalize(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value)
 {
 	//assert (value >= minSrcVal && value <= maxSrcVal);
 	SrcType range = maxSrcVal - minSrcVal;
@@ -58,6 +59,38 @@ double mapToNorm(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const
 		return 0;
 	}
 	double returnVal = static_cast<double>(value - minSrcVal) / range;
+	return returnVal;
+}
+
+
+//map back from min max transformation 0 MIn , 1: min to original min max
+template<typename SrcType>
+double normalizedToMinMax(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value) {
+	double res = static_cast<double> ((value * (maxSrcVal - minSrcVal) + minSrcVal));
+	return res;
+}
+
+
+//template<typename SrcType>
+//double minMaxShift(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value) {
+//
+//	double val = minMaxNormalize(minSrcVal, maxSrcVal, value);
+//
+//}
+
+/**
+ * map value from given interval to "norm" interval [0..1]
+ * if min is bigger than max, a reverse mapping is applied
+ * @param minSrcVal minimum value of source interval
+ * @param maxSrcVal maximum value of source interval
+ * @param value a value in source interval
+ * @return if norm was in interval [minSrcVal..maxSrcVal], the
+ *     corresponding mapped value in interval [0..1]
+ */
+template <typename SrcType>
+double mapToNorm(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value)
+{
+	double returnVal = minMaxNormalize(minSrcVal, maxSrcVal, value);
 	//assert(returnVal >= 0 && returnVal <= 1);
 	return clamp(0.0, 1.0, returnVal);
 }

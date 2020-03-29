@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -50,8 +50,8 @@ const int EntropyBinCount = 100;
 
 iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, MdiChild * child):
 	iAModuleAttachmentToChild(mainWnd, child),
-	m_newSubEnsembleID(1),
-	m_labelLut(vtkSmartPointer<vtkLookupTable>::New())
+	m_labelLut(vtkSmartPointer<vtkLookupTable>::New()),
+	m_newSubEnsembleID(1)
 {
 	m_scatterplotView = new iAScatterPlotView();
 	m_memberView = new iAMemberView();
@@ -67,7 +67,6 @@ iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, MdiChild 
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_ensembleView, "Ensemble View", "UncEnsembleView"));
 	connect(mainWnd, SIGNAL(styleChanged()), m_spatialView, SLOT(StyleChanged()));
 	connect(mainWnd, SIGNAL(styleChanged()), m_memberView, SLOT(StyleChanged()));
-	connect(mainWnd, SIGNAL(styleChanged()), m_scatterplotView, SLOT(StyleChanged()));
 	connect(m_scatterplotView, SIGNAL(SelectionChanged()), m_spatialView, SLOT(UpdateSelection()));
 	connect(m_memberView, SIGNAL(MemberSelected(int)), this, SLOT(MemberSelected(int)));
 	connect(m_ensembleView, SIGNAL(EnsembleSelected(QSharedPointer<iAEnsemble>)), this, SLOT(EnsembleSelected(QSharedPointer<iAEnsemble>)));
@@ -171,7 +170,7 @@ void iAUncertaintyAttachment::CalculateNewSubEnsemble()
 	} while (QDir(cachePath).exists());
 	QSharedPointer<iAEnsemble> newEnsemble = mainEnsemble->AddSubEnsemble(memberIDs, subEnsembleID);
 	mainEnsemble->EnsembleFile()->AddSubEnsemble(subEnsembleID, memberIDs);
-	m_ensembleView->AddEnsemble(QString("Subset: Members %1").arg(join(memberIDs, ",")), newEnsemble);
+	m_ensembleView->AddEnsemble(QString("Subset: Members %1").arg(joinAsString(memberIDs, ",")), newEnsemble);
 	mainEnsemble->Store();
 }
 

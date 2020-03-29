@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,8 +22,6 @@
 
 #include <QString>
 
-class QColor;
-
 enum iAFeatureScoutObjectType
 {
 	InvalidObjectType = -1,
@@ -34,6 +32,3 @@ enum iAFeatureScoutObjectType
 
 QString MapObjectTypeToString(int objectType);
 iAFeatureScoutObjectType MapStringToObjectType(QString const & objectTypeName);
-
-//! returns the color for a given class id
-QColor getClassColor(int cid);

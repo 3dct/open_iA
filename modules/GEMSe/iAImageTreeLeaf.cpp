@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,9 +27,9 @@
 #include <iAToolsITK.h>
 
 iAImageTreeLeaf::iAImageTreeLeaf(QSharedPointer<iASingleResult> img, int labelCount) :
-	m_singleResult(img),
 	m_filtered(false),
-	m_labelCount(labelCount)
+	m_labelCount(labelCount),
+	m_singleResult(img)
 {
 }
 
@@ -54,7 +54,7 @@ void iAImageTreeLeaf::GetExampleImages(QVector<iAImageTreeLeaf *> & result, int 
 }
 
 
-ClusterImageType const iAImageTreeLeaf::GetRepresentativeImage(int type, LabelImagePointer refImg) const
+ClusterImageType const iAImageTreeLeaf::GetRepresentativeImage(int /*type*/, LabelImagePointer /*refImg*/) const
 {
 	if (m_filtered)
 	{
@@ -70,7 +70,7 @@ void iAImageTreeLeaf::DiscardDetails() const
 }
 
 
-QSharedPointer<iAImageTreeNode > iAImageTreeLeaf::GetChild(int idx) const
+QSharedPointer<iAImageTreeNode > iAImageTreeLeaf::GetChild(int /*idx*/) const
 {
 	// leaf node, no children -> null pointer
 	return QSharedPointer<iAImageTreeNode >();
@@ -133,11 +133,11 @@ LabelPixelHistPtr iAImageTreeLeaf::UpdateLabelDistribution() const
 	}
 	// calculate actual histogram:
 	LabelImageType::IndexType idx;
-	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
-	{
-		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+	for (idx[0] = 0; idx[0] >= 0 && static_cast<uint64_t>(idx[0]) < size[0]; ++idx[0])
+	{	// >= 0 checks to prevent signed int overflow!
+		for (idx[1] = 0;  idx[1] >= 0 && static_cast<uint64_t>(idx[1]) < size[1]; ++idx[1])
 		{
-			for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+			for (idx[2] = 0;  idx[2] >= 0 && static_cast<uint64_t>(idx[2]) < size[2]; ++idx[2])
 			{
 				int label = img->GetPixel(idx);
 				result->hist.at(label)->SetPixel(idx, 1);
@@ -154,7 +154,9 @@ CombinedProbPtr iAImageTreeLeaf::UpdateProbabilities() const
 {
 	CombinedProbPtr result(new CombinedProbability());
 	if (!m_singleResult->ProbabilityAvailable())
+	{
 		return result;
+	}
 	for (int i = 0; i < m_labelCount; ++i)
 	{
 		// TODO: probably very problematic regarding memory leaks!!!!!
@@ -168,7 +170,9 @@ CombinedProbPtr iAImageTreeLeaf::UpdateProbabilities() const
 double iAImageTreeLeaf::GetProbabilityValue(int l, int x, int y, int z) const
 {
 	if (!m_singleResult->ProbabilityAvailable())
+	{
 		return 0;
+	}
 	itk::Index<3> idx; idx[0] = x; idx[1] = y; idx[2] = z;
 	// probably very inefficient - dynamic cast involved!
 	return dynamic_cast<ProbabilityImageType*>(m_singleResult->GetProbabilityImg(l).GetPointer())->GetPixel(idx);

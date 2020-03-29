@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -81,7 +81,7 @@ void iABarycentricTriangleWidget::onSpinBoxValueChanged_1(int newValue) {
 	int A = newValue;
 	double a = A / 100.0;
 	double rest = 1 - a;
-	
+
 	BCoord bc = getWeight();
 	double b = bc[1];
 	double c = bc[2];
@@ -125,7 +125,7 @@ void iABarycentricTriangleWidget::onSpinBoxValueChanged_3(int newValue) {
 	int C = newValue;
 	double c = C / 100.0;
 	double rest = 1 - c;
-	
+
 	BCoord bc = getWeight();
 	double a = bc[0];
 	double b = bc[1];
@@ -200,7 +200,7 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, Ba
 void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bool changeTriangle)
 {
 	int spinBoxHeight = m_spinBoxes[0]->sizeHint().height();
-	
+
 	int triangleSpacingLeft = MODALITY_LABEL_MARGIN; // LEFT margin of BOTTOM-LEFT modality
 	int triangleSpacingTop = spinBoxHeight + MODALITY_LABEL_MARGIN_TIMES_TWO; // complete height of TOP modality
 	int triangleSpacingRight = MODALITY_LABEL_MARGIN; // RIGHT margin of BOTTOM-RIGHT modality

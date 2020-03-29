@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,21 +26,13 @@
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
-#include <itkCastImageFilter.h>
-#include <itkImageFileWriter.h>
 #include <itkMorphologicalWatershedImageFilter.h>
-#include <itkScalarToRGBPixelFunctor.h>
-#include <itkUnaryFunctorImageFilter.h>
 #include <itkWatershedImageFilter.h>
 
-#include <vtkImageData.h>
 
-#include <QLocale>
+// Watershed segmentation
 
-
-// Watershed segmentation 
-
-template<class T> 
+template<class T>
 void watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
@@ -51,6 +43,7 @@ void watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	wsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	filter->progress()->observe( wsFilter );
 	wsFilter->Update();
+	// return is unsigned long long, but vtk can't handle that, so convert to ulong:
 	filter->addOutput( castImageTo<unsigned long>(wsFilter->GetOutput()) );
 }
 
@@ -92,7 +85,7 @@ void morph_watershed(iAFilter* filter, QMap<QString, QVariant> const & parameter
 	mWSFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	filter->progress()->observe( mWSFilter );
 	mWSFilter->Update();
-	filter->addOutput( castImageTo<unsigned long>(mWSFilter->GetOutput()) );
+	filter->addOutput( mWSFilter->GetOutput() );
 }
 
 IAFILTER_CREATE(iAMorphologicalWatershed)

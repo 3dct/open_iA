@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,10 +26,10 @@
 
 #include <vtkSmartPointer.h>
 
+#include <QElapsedTimer>
 #include <QMutex>
 #include <QThread>
 #include <QWaitCondition>
-#include <QTime>
 #include <QVector>
 
 class vtkActor;
@@ -53,8 +53,8 @@ public:
 	iAAlgorithm( QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l, QObject *parent = nullptr );
 	virtual ~iAAlgorithm();
 
-	QDateTime Start(); //< Start counting the running time and set the start time
-	int Stop();        //< Calculate and get the elapsed time
+	void Start(); //< Start counting the running time and set the start time
+	int Stop();   //< Get the elapsed time since Start call
 
 	void setup(QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l );
 	void addMsg(QString txt);
@@ -105,8 +105,7 @@ protected:
 
 private:
 	bool m_isRunning;
-	QTime m_time;
-	int m_elapsed;
+	QElapsedTimer m_time;
 	QString m_filterName;
 	vtkImageData *m_image;
 	vtkPolyData *m_polyData;

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,10 +22,61 @@
 
 #include "open_iA_Core_export.h"
 
+#include <QStringList>
 #include <QVector>
 
+#include <cassert>
+
 class QString;
-class QStringList;
+
+//! Class for converting a variable of the type QString to the templated type.
+//! Can be overloaded for any desired conversion.
+template <typename T>
+struct iAConverter
+{
+	static T toT(QString /*string*/, bool * ok)
+	{
+		assert(false && "Unspecialized Converter::toT called! This should not happen!");
+		if (ok)
+		{
+			*ok = false;
+		}
+		return std::numeric_limits<T>::signaling_NaN();
+	}
+	static QString toString(T /*number*/)
+	{
+		assert(false && "Unspecialized Converter::toString called! This should not happen!");
+		return "";
+	}
+};
+
+template <>
+struct iAConverter<int>
+{
+	static int toT(QString str, bool * ok)
+	{
+		return str.toInt(ok);
+	}
+	static QString toString(int n)
+	{
+		return QString::number(n);
+	}
+};
+
+template <>
+struct iAConverter<double>
+{
+	static double toT(QString str, bool * ok)
+	{
+		return str.toDouble(ok);
+	}
+	static QString toString(double n)
+	{
+		return QString::number(n);
+	}
+};
+
+
 
 //! split a string at the space characters, while correctly treating quoted elements
 //!
@@ -38,11 +89,38 @@ open_iA_Core_API QStringList splitPossiblyQuotedString(QString const & str);
 
 open_iA_Core_API QString quoteString(QString const & str);
 
-//! Convert a given string representation to a double vector with three elements
-open_iA_Core_API bool str2Vec3D(QString const & str, double vec[3]);
+//! Convert a given string representation to an array of given type with given number of elements
+template <typename T>
+bool stringToArray(QString const & str, T * arr, int expectedSize, QString const & sep = " ")
+{
+	QStringList list = str.split(sep);
+	for (QStringList::size_type i = 0; i < expectedSize && i < list.size(); ++i)
+	{
+		bool ok;
+		arr[i] = iAConverter<T>::toT(list[i], &ok);
+		if (!ok)
+		{
+			return false;
+		}
+	}
+	return (list.size() == expectedSize);
+}
 
-//! Convert a given double vector with three elements to a string representation
-open_iA_Core_API QString vec3D2String(double const * vec);
+//! Convert a given array with specified number of elements to a string representation
+template <typename T>
+QString arrayToString(T const * arr, size_t size, QString const & sep = " ")
+{
+	QString result;
+	for (size_t i = 0; i < size; ++i)
+	{
+		result += iAConverter<T>::toString(arr[i]);
+		if (i < size - 1)
+		{
+			result += sep;
+		}
+	}
+	return result;
+}
 
 //! Pads or truncates the given string to the given size.
 //!
@@ -69,16 +147,20 @@ open_iA_Core_API QString dblToStringWithUnits(double value);
 //! @param joinStr the string to be used in between the elements of the string
 //! @return a string joining all elements of the given collection together
 template <template <typename...> class Container, typename Element>
-QString join(Container<Element> const & vec, QString const & joinStr)
+QString joinAsString(Container<Element> const & vec, QString const & joinStr)
 {
 	QString result;
 	bool first = true;
 	for (Element elem : vec)
 	{
 		if (!first)
+		{
 			result += joinStr;
+		}
 		else
+		{
 			first = false;
+		}
 		result += QString::number(elem);
 	}
 	return result;

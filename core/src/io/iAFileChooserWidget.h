@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -28,6 +28,7 @@
 #include <QPushButton>
 #include <QWidget>
 
+//! A widget for selection of input/output file(s), or folder, combining a text input and a browse button.
 class open_iA_Core_API iAFileChooserWidget : public QWidget
 {
 	Q_OBJECT
@@ -51,9 +52,10 @@ public:
 		layout()->setSpacing(0);
 		setContentsMargins(0, 0, 0, 0);
 		layout()->setContentsMargins(0, 0, 0, 0);
+		layout()->setAlignment(Qt::AlignCenter);
 		layout()->addWidget(m_textEdit);
 		layout()->addWidget(m_browseButton);
-		m_browseButton->setFixedHeight(16);
+		m_browseButton->setStyleSheet("min-height: 1.2em;");
 		connect(m_browseButton, &QPushButton::clicked, this, &iAFileChooserWidget::BrowseClicked);
 		connect(m_textEdit, &QLineEdit::editingFinished, this, &iAFileChooserWidget::emitChangedFileName);
 	}
