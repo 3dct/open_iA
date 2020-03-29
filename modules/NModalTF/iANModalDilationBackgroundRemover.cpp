@@ -28,6 +28,7 @@
 #include "iAConnector.h"
 #include "iATypedCallHelper.h"
 #include "iASlicer.h"
+#include "iAToolsITK.h"
 
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
@@ -73,20 +74,21 @@ void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector &conn, in
 
 void iANModalDilationBackgroundRemover::itkDilateAndCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponentsOut, bool dilate /*= true*/) {
 	typedef itk::Image<int, DIM> ImageType;
-	typedef itk::FlatStructuringElement<DIM> StructuringElementType;
-	typedef itk::BinaryDilateImageFilter<ImageType, ImageType, StructuringElementType> BDIFType;
 	typedef itk::ConnectedComponentImageFilter<ImageType, ImageType> CCIFType;
 
+	typedef itk::FlatStructuringElement<DIM> StructuringElementType;
 	typename StructuringElementType::RadiusType elementRadius;
 	elementRadius.Fill(1);
 	auto structuringElement = StructuringElementType::Ball(elementRadius);
+	typedef itk::BinaryDilateImageFilter<ImageType, ImageType, StructuringElementType> BDIFType;
 
+	typename BDIFType::Pointer dilationFilter;
 	auto connCompFilter = CCIFType::New();
 
 	auto input = dynamic_cast<ImageType *>(itkImgPtr.GetPointer());
 	if (dilate) {
 		// dilate the background (region of higher intensity)...
-		auto dilationFilter = BDIFType::New();
+		dilationFilter = BDIFType::New();
 		dilationFilter->SetDilateValue(BACKGROUND);
 		dilationFilter->SetKernel(structuringElement);
 		dilationFilter->SetInput(input);
@@ -114,9 +116,8 @@ void iANModalDilationBackgroundRemover::itkCountConnectedComponents(ImagePointer
 
 void iANModalDilationBackgroundRemover::itkErode(ImagePointer itkImgPtr, int count) {
 	typedef itk::FlatStructuringElement<DIM> StructuringElementType;
-	typedef itk::Image<int, DIM> InputImageType;
-	typedef itk::Image<int, DIM> OutputImageType;
-	typedef itk::BinaryErodeImageFilter<InputImageType, OutputImageType, StructuringElementType> BDIFType;
+	typedef itk::Image<int, DIM> ImageType;
+	typedef itk::BinaryErodeImageFilter<ImageType, ImageType, StructuringElementType> BDIFType;
 
 	typename StructuringElementType::RadiusType elementRadius;
 	elementRadius.Fill(1);
@@ -127,24 +128,21 @@ void iANModalDilationBackgroundRemover::itkErode(ImagePointer itkImgPtr, int cou
 		return;
 	}
 
-	auto erosionFilter = BDIFType::New();
-	erosionFilter->SetErodeValue(FOREGROUND);
-	erosionFilter->SetKernel(structuringElement);
-	erosionFilter->SetInput(dynamic_cast<InputImageType *>(itkImgPtr.GetPointer()));
-	
-	auto efPrev = erosionFilter;
-	for (int i = 1; i < count; i++) {
-		auto ef = BDIFType::New();
-		ef->SetErodeValue(FOREGROUND);
-		ef->SetInput(efPrev->GetOutput());
-		efPrev = ef;
+	std::vector<typename BDIFType::Pointer> erosionFilters(count);
+	auto input = dynamic_cast<ImageType *>(itkImgPtr.GetPointer());
+	for (int i = 0; i < count; i++) {
+		erosionFilters[i] = BDIFType::New();
+		erosionFilters[i]->SetKernel(structuringElement);
+		erosionFilters[i]->SetErodeValue(FOREGROUND);
+		erosionFilters[i]->SetInput(i == 0 ? input : erosionFilters[i-1]->GetOutput());
 	}
 
-	efPrev->Update();
+	erosionFilters[count-1]->Update();
 
-	m_itkTempImg = efPrev->GetOutput();
+	m_itkTempImg = erosionFilters[count-1]->GetOutput();
 }
 
+// TODO make debug only?
 void iANModalDilationBackgroundRemover::showMask(QSharedPointer<iAModality> mod, vtkSmartPointer<vtkImageData> mask) {
 	QList<QSharedPointer<iAModality>> mods;
 	mods.append(mod);
@@ -155,6 +153,7 @@ void iANModalDilationBackgroundRemover::showMask(QSharedPointer<iAModality> mod,
 	iANModalDisplay::selectModalities(display);
 }
 
+// TODO make debug only?
 void iANModalDilationBackgroundRemover::showMask(ImagePointer itkImgPtr) {
 	auto c = iAConnector();
 	c.setImage(itkImgPtr);
@@ -177,8 +176,6 @@ iANModalDilationBackgroundRemover::iANModalDilationBackgroundRemover(MdiChild *m
 	m_colorTf->SetTableValue(0.0, 0.0, 0.0, 0.0, 0.0);
 	m_colorTf->SetTableValue(1.0, 1.0, 0.0, 0.0, 0.5);
 	m_colorTf->Build();
-
-	// TODO: opacity tf
 }
 
 vtkSmartPointer<vtkImageData> iANModalDilationBackgroundRemover::removeBackground(QList<QSharedPointer<iAModality>> modalities) {
@@ -319,12 +316,16 @@ bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int
 	int connectedComponents;
 
 	itkCountConnectedComponents(mask, connectedComponents);
+	storeImage(m_itkTempImg, "connectedComponents.mhd", true);
 	
 	int dilationCount = 0;
 	while (connectedComponents > regionCountGoal) {
 		itkDilateAndCountConnectedComponents(m_itkTempImg, connectedComponents);
+		storeImage(m_itkTempImg, "connectedComponents" + QString::number(dilationCount) + ".mhd", true);
 		dilationCount++;
 	}
+
+	auto wow = m_itkTempImg;
 
 	itkErode(m_itkTempImg, dilationCount);
 
