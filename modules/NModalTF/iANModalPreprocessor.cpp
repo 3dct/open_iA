@@ -37,13 +37,13 @@ iANModalPreprocessor::iANModalPreprocessor(QSharedPointer<iANModalModalityReduce
 
 namespace {
 	inline bool promptReduceNumOfModalitiesFirst() {
-		return false; // TODO
+		return true; // TODO
 	}
 	inline bool promptReduceNumOfModalitiesSecond() {
 		return true; // TODO
 	}
 	inline bool promptRemoveBackground() {
-		return true; // TODO
+		return false; // TODO
 	}
 }
 
@@ -64,8 +64,9 @@ iANModalPreprocessorOutput iANModalPreprocessor::preprocess(QList<QSharedPointer
 				output.mask = mask;
 			}
 		}
-
-	} else {
+	}
+	else
+	{
 		// if number of modalities is to be reduced after background removal
 		if (promptRemoveBackground()) {
 			auto mask = m_backgroundRemover->removeBackground(modalities);
