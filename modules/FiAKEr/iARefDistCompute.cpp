@@ -49,7 +49,7 @@
 
 namespace
 {
-
+	const int CacheFileVersion2NumberOfMeasures = 20;
 	QString ResultCacheFileIdentifier("FIAKERResultCacheFile");
 	QString AverageCacheFileIdentifier("FIAKERAverageCacheFile");
 	QDataStream::Version CacheFileQtDataStreamVersion(QDataStream::Qt_5_6);
@@ -485,7 +485,7 @@ bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID
 		QVector<qulonglong> cachedMeasures;
 		if (version <= 2)
 		{
-			for (int m = 0; m < getAvailableDissimilarityMeasureNames().size(); ++m)
+			for (int m = 0; m < CacheFileVersion2NumberOfMeasures; ++m)
 			{
 				cachedMeasures.push_back(m);
 			}

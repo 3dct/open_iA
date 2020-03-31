@@ -42,12 +42,6 @@ class iARefDistCompute : public QThread
 public:
 	//! type for containers - but since we mix QVector and std::vector usages, it doesn't really help!
 	typedef int ContainerSizeType;
-	//static const int SimilarityMeasureCount = 20;
-	//static const int BestSimilarityMeasure = 7;
-	//static const int OverlapMeasureCount = 3;
-	//static const int OverlapMeasureStart = SimilarityMeasureCount-OverlapMeasureCount;
-	//static const int EndColumns = 2;
-	//static const int BestMeasureWithoutOverlap = 2;
 	static ContainerSizeType MaxNumberOfCloseFibers;
 	iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, size_t referenceID);
 	bool setMeasuresToCompute(std::vector<std::pair<int, bool>> const& measuresToCompute, int optimizationMeasure, int bestMeasure);

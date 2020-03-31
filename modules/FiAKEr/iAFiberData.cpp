@@ -253,9 +253,10 @@ namespace
 	}
 
 	//! computes the Euclidean distance between two vectors in R^cnt
-	double dist(double* vec1, double* vec2, size_t cnt)
+	template <typename FloatType>
+	FloatType dist(FloatType const * vec1, FloatType const* vec2, size_t cnt)
 	{
-		double sqdiffsum = 0;
+		FloatType sqdiffsum = 0;
 		for (size_t cur = 0; cur < cnt; ++cur)
 		{
 			sqdiffsum += std::pow(vec2[cur] - vec1[cur], 2);
@@ -304,7 +305,7 @@ namespace
 		}
 	}
 
-	double getPtToSegDistance(iAFiberData const & f1, iAFiberData const & f2, int measure)
+	double getPtToSegDistance(iAFiberData const & f1, iAFiberData const & f2, int measure, bool useGaussWgt=false)
 	{
 		double sumVal = 0;
 		double minVal = std::numeric_limits<double>::max();
@@ -312,8 +313,32 @@ namespace
 
 		std::vector<iAVec3f> const & f1pts = (f1.curvedPoints.empty()) ? f1.pts : f1.curvedPoints;
 
-		for (iAVec3f const & f1pt: f1pts)
+		double middle = (f1pts.size() - 1) / 2.0;
+		double sigmaSquared = 0.0;
+		double oneOverZ = 0.0;
+		if (useGaussWgt)
 		{
+			double eexpSum = 0.0;
+			double Lc = f1pts.size();
+			/*
+			// curved length for Lc?
+			for (size_t k = 0; k < f1pts.size()-1; ++k)
+			{
+				Lc += dist(f1pts[k].data(), f1pts[k + 1].data(), 3);
+			}
+			*/
+			double const lambda = 0.5;
+			sigmaSquared = std::pow(lambda * Lc, 2.0);
+			for (size_t k = 0; k < f1pts.size(); ++k)
+			{
+				double eexp = std::exp( std::pow(k - middle, 2) / sigmaSquared );
+				eexpSum += eexp;
+			}
+			oneOverZ = 1 / eexpSum;
+		}
+		for (size_t k=0; k < f1pts.size(); ++k)
+		{
+			iAVec3f const& f1pt = f1pts[k];
 			double curDist;
 			if (f2.curvedPoints.empty())
 			{
@@ -332,6 +357,11 @@ namespace
 					}
 				}
 			}
+			if (useGaussWgt)
+			{
+				double alpha = oneOverZ * std::exp(std::pow(k - middle, 2) / sigmaSquared);
+				curDist *= alpha;
+			}
 			sumVal += curDist;
 			if (curDist < minVal)
 			{
@@ -342,14 +372,16 @@ namespace
 				maxVal = curDist;
 			}
 		}
-		double avgVal = sumVal / f1.curvedPoints.size();
 		// which one to use?
 		switch (measure)
 		{
 		case 0: return minVal;
 		case 1: return maxVal;
 		case 2: return sumVal;
-		case 3: return avgVal;
+		case 3: {
+			double avgVal = useGaussWgt ? sumVal: (sumVal / f1.curvedPoints.size());
+			return avgVal;
+		}
 		default: return 0;
 		}
 	}
@@ -534,6 +566,13 @@ double getDissimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber
 	case 19:
 		dissimilarity = std::max(getPtToSegDistance(fiber1raw, fiber2, 3), getPtToSegDistance(fiber2, fiber1raw, 3));
 		break;
+
+	case 20:
+		dissimilarity = std::min(getPtToSegDistance(fiber1raw, fiber2, 3, true), getPtToSegDistance(fiber2, fiber1raw, 3, true));
+		break;
+	case 21:
+		dissimilarity = std::max(getPtToSegDistance(fiber1raw, fiber2, 3, true), getPtToSegDistance(fiber2, fiber1raw, 3, true));
+		break;
 	}
 	if (std::isinf(dissimilarity) || std::isnan(dissimilarity))
 	{
@@ -567,6 +606,8 @@ QStringList getAvailableDissimilarityMeasureNames()
 	result.push_back("dmaxmax");
 	result.push_back("dmaxsum");
 	result.push_back("dmaxavg");
+	result.push_back("dminGaussWeightAvg");
+	result.push_back("dmaxGaussWeightAvg");
 	//assert(result.size() == SimilarityMeasureCount);
 	return result;
 }
