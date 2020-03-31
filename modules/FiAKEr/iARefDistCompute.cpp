@@ -55,8 +55,7 @@ namespace
 	QDataStream::Version CacheFileQtDataStreamVersion(QDataStream::Qt_5_6);
 	//QString CacheFileClosestFibers("ClosestFibers");
 	//QString CacheFileResultPattern("Result%1");
-	quint32 AverageCacheFileVersion(1);
-	quint32 ResultRefCacheFileVersion(3);
+	quint32 CacheFileVersion(3);
 
 	bool verifyOpenCacheFile(QFile & cacheFile)
 	{
@@ -473,11 +472,11 @@ bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID
 			"If you want to recompute with correct values, please delete the 'cache' subfolder!")
 			.arg(cacheFile.fileName()));
 	}
-	if (version > ResultRefCacheFileVersion)
+	if (version > CacheFileVersion)
 	{
 		DEBUG_LOG(QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
 			.arg(cacheFile.fileName())
-			.arg(version).arg(ResultRefCacheFileVersion));
+			.arg(version).arg(CacheFileVersion));
 		return false;
 	}
 	if (first)
@@ -508,7 +507,20 @@ bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID
 	}
 	auto & d = m_data->result[resultID];
 	in >> d.refDiffFiber;
-	in >> d.avgDifference;
+	if (version > 2)
+	{
+		in >> d.avgDifference;
+	}
+	else
+	{
+		QVector<double> avgDiffsAndDissimilarities;
+		in >> avgDiffsAndDissimilarities;
+		const int DiffCount = 13; // cache version <= 2 had 13 differences stored before average dissimilarities, we have to skip these
+		for (int i = DiffCount; i < avgDiffsAndDissimilarities.size(); ++i)
+		{
+			d.avgDifference.push_back(avgDiffsAndDissimilarities[i]);
+		}
+	}
 	return true;
 }
 
@@ -524,7 +536,7 @@ void iARefDistCompute::writeResultRefComparison(QFile& cacheFile, size_t resultI
 	out.setVersion(CacheFileQtDataStreamVersion);
 	// write header:
 	out << ResultCacheFileIdentifier;
-	out << ResultRefCacheFileVersion;
+	out << CacheFileVersion;
 	// write data:
 	out << m_data->m_measures;
 	out << m_data->result[resultID].refDiffFiber;
@@ -544,7 +556,7 @@ void iARefDistCompute::writeAverageMeasures(QFile& cacheFile)
 	out.setVersion(CacheFileQtDataStreamVersion);
 	// write header:
 	out << AverageCacheFileIdentifier;
-	out << AverageCacheFileVersion;
+	out << CacheFileVersion;
 	// write data:
 	out << static_cast<quint32>(m_data->result.size());
 	out << m_data->avgRefFiberMatch;
@@ -571,10 +583,10 @@ bool iARefDistCompute::readAverageMeasures(QFile& cacheFile)
 	}
 	quint32 version;
 	in >> version;
-	if (version > AverageCacheFileVersion)
+	if (version > CacheFileVersion)
 	{
 		DEBUG_LOG(QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
-			.arg(cacheFile.fileName()).arg(version).arg(AverageCacheFileVersion));
+			.arg(cacheFile.fileName()).arg(version).arg(CacheFileVersion));
 		return false;
 	}
 	quint32 numberOfResults;
@@ -586,7 +598,20 @@ bool iARefDistCompute::readAverageMeasures(QFile& cacheFile)
 		return false;
 	}
 	in >> m_data->avgRefFiberMatch;
-	in >> m_data->maxAvgDifference;
+	if (version > 2)
+	{
+		in >> m_data->maxAvgDifference;
+	}
+	else
+	{
+		QVector<double> maxAvgDiffsAndDissimilarities;
+		in >> maxAvgDiffsAndDissimilarities;
+		const int DiffCount = 13; // cache file versions <= 2 had 13 differences stored before average dissimilarities, we have to skip these
+		for (int i = DiffCount; i < maxAvgDiffsAndDissimilarities.size(); ++i)
+		{
+			m_data->maxAvgDifference.push_back(maxAvgDiffsAndDissimilarities[i]);
+		}
+	}
 	return true;
 }
 
