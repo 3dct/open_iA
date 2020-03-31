@@ -3223,7 +3223,7 @@ void iAFiAKErController::showSelectionDetail()
 		for (size_t selID = 0; selID < m_selection[resultID].size(); ++selID)
 		{
 			size_t fiberID = m_selection[resultID][selID];
-			auto item = new QStandardItem(QString("%1").arg(fiberID));
+			auto item = new QStandardItem(QString("%1").arg(fiberID+1));
 			item->setData(static_cast<unsigned long long>(fiberID), Qt::UserRole);
 			resultItem->appendRow(item);
 		}
