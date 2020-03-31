@@ -2863,6 +2863,7 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 			projectFile.endGroup();
 		}
 	}
+	return true;
 }
 
 void MdiChild::addProject(QString const& key, QSharedPointer<iAProjectBase> project)
