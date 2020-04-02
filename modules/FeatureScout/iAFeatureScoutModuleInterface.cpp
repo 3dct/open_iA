@@ -89,7 +89,10 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 		return;
 	}
 	m_config.fileName = MakeAbsolute(path, csvFileName);
-	m_config.curvedFiberFileName = MakeAbsolute(path, projectFile.value("CurvedFileName").toString());
+	if (projectFile.contains("CurvedFileName") && !projectFile.value("CurvedFileName").toString().isEmpty())
+	{
+		m_config.curvedFiberFileName = MakeAbsolute(path, projectFile.value("CurvedFileName").toString());
+	}
 	iAFeatureScoutModuleInterface * featureScout = m_mainWindow->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
 	featureScout->LoadFeatureScout(m_config, m_mdiChild);
 	QString layoutName = projectFile.value("Layout").toString();
@@ -104,7 +107,10 @@ void iAFeatureScoutProject::saveProject(QSettings & projectFile, QString const &
 	m_config.save(projectFile, "CSVFormat");
 	QString path(QFileInfo(fileName).absolutePath());
 	projectFile.setValue("CSVFileName", MakeRelative(path, m_config.fileName));
-	projectFile.setValue("CurvedFileName", MakeRelative(path, m_config.curvedFiberFileName));
+	if (!m_config.curvedFiberFileName.isEmpty())
+	{
+		projectFile.setValue("CurvedFileName", MakeRelative(path, m_config.curvedFiberFileName));
+	}
 	if (m_mdiChild)
 	{
 		projectFile.setValue("Layout", m_mdiChild->layoutName());

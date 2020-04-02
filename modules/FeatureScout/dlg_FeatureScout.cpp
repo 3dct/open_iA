@@ -1151,9 +1151,6 @@ void dlg_FeatureScout::RenderMeanObject()
 		renderWindowInteractor->SetInteractorStyle(style);
 
 		m_dwMO->setWindowTitle(QString("%1 Mean Object View").arg(MapObjectTypeToString(m_filterID)));
-
-		m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwMO);
-		m_dwMO->show();
 	}
 
 	// Update MOClass comboBox
@@ -2505,11 +2502,10 @@ void dlg_FeatureScout::showScatterPlot()
 		return;
 	}
 	m_dwSPM = new iADockWidgetWrapper("Scatter Plot Matrix", "FeatureScoutSPM");
-	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwSPM);
-	m_dwSPM->show();
-	m_activeChild->tabifyDockWidget(m_dwDV ? m_dwDV : (m_dwMO ? (QDockWidget*)m_dwMO : m_dwPC), m_dwSPM);
+	m_activeChild->splitDockWidget(m_activeChild->renderDockWidget(), m_dwSPM, Qt::Vertical);
 	m_dwSPM->show();
 	m_dwSPM->raise();
+	QSignalBlocker spmBlock(m_splom.data()); //< no need to trigger updates while we're creating SPM
 	m_splom->initScatterPlot(m_dwSPM, m_csvTable, m_columnVisibility);
 	if (m_renderMode == rmMultiClass)
 	{
