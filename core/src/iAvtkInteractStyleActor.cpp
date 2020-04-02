@@ -644,9 +644,10 @@ void iAvtkInteractStyleActor::updateInteractors()
 	else //update 2d Slicer
 	{
 		if (!m_slicerChannel[m_currentSliceMode])
+		{
 			return;
-		/*This is a translation of current slicer/actor
-		*/
+		}
+		/*
 		auto render = this->GetCurrentRenderer();
 		if (!render)
 		{
@@ -657,6 +658,8 @@ void iAvtkInteractStyleActor::updateInteractors()
 		{
 			DEBUG_LOG("##########################renderer is active");
 		}
+		*/
+		// This is a translation of current slicer/actor
 
 		//DEBUG_LOG(QString("2D translation %1").arg(m_currentSliceMode));
 		double sliceActorPos[3];

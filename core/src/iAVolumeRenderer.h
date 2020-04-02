@@ -71,8 +71,6 @@ public:
 
 	void setImage(iATransferFunction * transfer, vtkSmartPointer<vtkImageData> imgData);
 
-	void setImage(vtkImageData * data); //todo is this necessary???
-	//just for testing
 	vtkRenderer * getCurrentRenderer()
 	{
 		return m_currentRenderer;
