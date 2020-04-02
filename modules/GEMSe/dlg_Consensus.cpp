@@ -109,9 +109,14 @@ ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
 {
 	ChartWidgetData result;
 	result.vtkWidget = new iAVtkWidget();
-	result.vtkWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	auto contextView = vtkSmartPointer<vtkContextView>::New();
+#if VTK_MAJOR_VERSION < 9
+	result.vtkWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	contextView->SetRenderWindow(result.vtkWidget->GetRenderWindow());
+#else
+	result.vtkWidget->setRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
+	contextView->SetRenderWindow(result.vtkWidget->renderWindow());
+#endif
 	result.chart = vtkSmartPointer<vtkChartXY>::New();
 	result.chart->SetSelectionMode(vtkContextScene::SELECTION_NONE);
 	auto xAxis1 = result.chart->GetAxis(vtkAxis::BOTTOM);

@@ -41,7 +41,11 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	m_tag(0),
 	m_indexInReferenceLib(std::numeric_limits<size_t>::max())
 {
+#if VTK_MAJOR_VERSION < 9
 	renContainer->SetRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_renderer->renderWindow()));
+#else
+	renContainer->setRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_renderer->renderWindow()));
+#endif
 	m_renderer->renderer()->InteractiveOff();
 	m_renderer->setAxesTransform(m_axesTransform);
 

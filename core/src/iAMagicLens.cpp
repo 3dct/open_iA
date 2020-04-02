@@ -35,7 +35,6 @@
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
 #include <vtkPolyData.h>
-#include <vtkPolyDataMapper2D.h>
 #include <vtkPolyLine.h>
 #include <vtkProperty2D.h>
 #include <vtkRenderer.h>

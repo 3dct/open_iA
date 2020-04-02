@@ -344,7 +344,7 @@ void dlg_modalities::setInteractionMode(bool manualRegistration)
 			m_mdiChild->renderer()->interactor()->SetInteractorStyle(m_manualMoveStyle[iASlicerMode::SlicerCount]);
 			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 			{
-				m_mdiChild->slicer(i)->GetInteractor()->SetInteractorStyle(m_manualMoveStyle[i]);
+				m_mdiChild->slicer(i)->interactor()->SetInteractorStyle(m_manualMoveStyle[i]);
 			}
 		}
 		else

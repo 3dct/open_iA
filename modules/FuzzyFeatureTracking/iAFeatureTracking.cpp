@@ -73,7 +73,7 @@ vtkSmartPointer<vtkTable> iAFeatureTracking::readTableFromFile(const QString& fi
 	if (filename != "")
 	{
 		std::string line;
-		ifstream inputStream(getLocalEncodingFileName(filename));
+		std::ifstream inputStream(getLocalEncodingFileName(filename));
 		if (inputStream.is_open())
 		{
 			for (int i = 0; i < dataLineOffset; i++)
@@ -672,39 +672,39 @@ void iAFeatureTracking::TrackFeatures()
 
 	if (outputFilename != "")
 	{
-		ofstream out;
+		std::ofstream out;
 		out.open(getLocalEncodingFileName(outputFilename));
-		out << "Dissipation" << endl;
+		out << "Dissipation" << std::endl;
 		for (auto p = dissipated->begin(); p != dissipated->end(); p++)
 		{
-			out << p->first << endl;
+			out << p->first << std::endl;
 		}
 
-		out << "Creation" << endl;
+		out << "Creation" << std::endl;
 		for (auto p = created->begin(); p != created->end(); p++)
 		{
-			out << p->first << endl;
+			out << p->first << std::endl;
 		}
 
-		out << "Continuation" << endl;
+		out << "Continuation" << std::endl;
 		for (auto p = continuated->begin(); p != continuated->end(); p++)
 		{
-			out << p->first << " to " << p->second.at(0).id << endl;
+			out << p->first << " to " << p->second.at(0).id << std::endl;
 		}
 
-		out << "Amalgamation" << endl;
+		out << "Amalgamation" << std::endl;
 		for (auto p = merged->begin(); p != merged->end(); p++)
 		{
-			out << p->first << " to " << p->second.at(0).id << endl;
+			out << p->first << " to " << p->second.at(0).id << std::endl;
 		}
 
-		out << "Bifurcation" << endl;
+		out << "Bifurcation" << std::endl;
 		for (auto p = splitted->begin(); p != splitted->end(); p++)
 		{
 			out << p->first << " to ";
 			for (unsigned int i = 0; i < p->second.size(); i++)
 				out << p->second.at(i).id << " ";
-			out << endl;
+			out << std::endl;
 		}
 
 		out.close();

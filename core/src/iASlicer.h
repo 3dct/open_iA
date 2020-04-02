@@ -360,7 +360,7 @@ private:
 	QList<vtkSmartPointer<vtkActor>> m_circle2ActList;
 	//! @}
 
-	vtkRenderWindowInteractor * m_interactor;
+	vtkRenderWindowInteractor * m_interactor;  //!< FIXME: only convenience to access interactor of underlying QVTKOpenGLNativeWidget!
 	iAInteractorStyleImage * m_interactorStyle;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renWin;
 	vtkSmartPointer<vtkRenderer> m_ren;

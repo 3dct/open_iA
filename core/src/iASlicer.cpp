@@ -237,7 +237,11 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_renWin->PointSmoothingOn();
 	// Turned off, because of gray strokes e.g., on scalarBarActors. Only on NVIDIA graphic cards:
 	m_renWin->PolygonSmoothingOff();
+#if VTK_MAJOR_VERSION < 9
 	SetRenderWindow(m_renWin);
+#else
+	setRenderWindow(m_renWin);
+#endif
 	setDefaultInteractor();
 
 	m_renWin->AddRenderer(m_ren);
@@ -2246,7 +2250,11 @@ void iASlicer::addPoint(double xPos, double yPos, double zPos)
 	m_snakeSpline->addPoint(x, y);
 
 	// render slice view
+#if VTK_MAJOR_VERSION < 9
 	GetRenderWindow()->GetInteractor()->Render();
+#else
+	renderWindow()->GetInteractor()->Render();
+#endif
 }
 
 void iASlicer::updateRawProfile(double posY)
@@ -2262,7 +2270,11 @@ void iASlicer::updateRawProfile(double posY)
 		return;
 	}
 	// render slice view
+#if VTK_MAJOR_VERSION < 9
 	GetRenderWindow()->GetInteractor()->Render();
+#else
+	renderWindow()->GetInteractor()->Render();
+#endif
 }
 
 bool iASlicer::setArbitraryProfile(int pointInd, double * Pos, bool doClamp)
@@ -2288,7 +2300,11 @@ bool iASlicer::setArbitraryProfile(int pointInd, double * Pos, bool doClamp)
 	{
 		return false;
 	}
+#if VTK_MAJOR_VERSION < 9
 	GetRenderWindow()->GetInteractor()->Render();
+#else
+	renderWindow()->GetInteractor()->Render();
+#endif
 	return true;
 }
 
@@ -2309,7 +2325,11 @@ void iASlicer::movePoint(size_t selectedPointIndex, double xPos, double yPos, do
 		m_snakeSpline->movePoint(selectedPointIndex, x, y);
 
 		// render slice view
+#if VTK_MAJOR_VERSION < 9
 		GetRenderWindow()->GetInteractor()->Render();
+#else
+		renderWindow()->GetInteractor()->Render();
+#endif
 	}
 }
 
@@ -2345,7 +2365,11 @@ void iASlicer::setArbitraryProfileOn(bool isOn)
 	}
 	m_isArbProfEnabled = isOn;
 	m_arbProfile->setVisibility(m_isArbProfEnabled);
+#if VTK_MAJOR_VERSION < 9
 	GetRenderWindow()->GetInteractor()->Render();
+#else
+	renderWindow()->GetInteractor()->Render();
+#endif
 }
 
 void iASlicer::setIndex(int x, int y, int z)
@@ -2416,7 +2440,11 @@ void iASlicer::menuOffsetMagicLens()
 
 void iASlicer::initializeFisheyeLens(vtkImageReslice* reslicer)
 {
+#if VTK_MAJOR_VERSION < 9
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
+#else
+	vtkRenderer * ren = renderWindow()->GetRenderers()->GetFirstRenderer();
+#endif
 
 	m_fisheyeTransform = vtkSmartPointer<vtkThinPlateSplineTransform>::New();
 	m_fisheyeTransform->SetBasisToR2LogR();

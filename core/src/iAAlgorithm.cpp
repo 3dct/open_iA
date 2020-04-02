@@ -30,6 +30,7 @@
 #include <vtkImageData.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
+#include <vtkVersion.h>
 
 #include <QLocale>
 #include <QMessageBox>
@@ -292,7 +293,11 @@ void iAAlgorithm::vtkPolydata_itkMesh(vtkPolyData* polyData, MeshType::Pointer m
 
 	// Transfer the cells from the vtkPolyData into the itk::Mesh
 	vtkCellArray * triangleStrips = polyData->GetStrips();
-	vtkIdType  * cellPoints;
+#if VTK_MAJOR_VERSION < 9
+	vtkIdType * cellPoints;
+#else
+	vtkIdType const  * cellPoints;
+#endif
 	vtkIdType    numberOfCellPoints;
 
 	// First count the total number of triangles from all the triangle strips.

@@ -494,12 +494,18 @@ void dlg_FeatureScout::setupViews()
 
 	// preparing chart and view for Parallel Coordinates
 	m_pcView = vtkSmartPointer<vtkContextView>::New();
+	m_lengthDistrView = vtkSmartPointer<vtkContextView>::New();
+#if VTK_MAJOR_VERSION < 9
 	m_pcView->SetRenderWindow(m_pcWidget->GetRenderWindow());
 	m_pcView->SetInteractor(m_pcWidget->GetInteractor());
-
-	m_lengthDistrView = vtkSmartPointer<vtkContextView>::New();
 	m_lengthDistrView->SetRenderWindow(m_lengthDistrWidget->GetRenderWindow());
 	m_lengthDistrView->SetInteractor(m_lengthDistrWidget->GetInteractor());
+#else
+	m_pcView->SetRenderWindow(m_pcWidget->renderWindow());
+	m_pcView->SetInteractor(m_pcWidget->interactor());
+	m_lengthDistrView->SetRenderWindow(m_lengthDistrWidget->renderWindow());
+	m_lengthDistrView->SetInteractor(m_lengthDistrWidget->interactor());
+#endif
 
 	// Creates a popup menu
 	QMenu* popup2 = new QMenu(m_pcWidget);
@@ -509,14 +515,22 @@ void dlg_FeatureScout::setupViews()
 
 	m_pcConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 	// Gets right button release event (on a parallel coordinates).
+#if VTK_MAJOR_VERSION < 9
 	m_pcConnections->Connect(m_pcWidget->GetRenderWindow()->GetInteractor(),
+#else
+	m_pcConnections->Connect(m_pcWidget->renderWindow()->GetInteractor(),
+#endif
 		vtkCommand::RightButtonReleaseEvent,
 		this,
 		SLOT(spPopup(vtkObject*, unsigned long, void*, void*, vtkCommand*)),
 		popup2, 1.0);
 
 	// Gets right button press event (on a scatter plot).
+#if VTK_MAJOR_VERSION < 9
 	m_pcConnections->Connect(m_pcWidget->GetRenderWindow()->GetInteractor(),
+#else
+	m_pcConnections->Connect(m_pcWidget->renderWindow()->GetInteractor(),
+#endif
 		vtkCommand::RightButtonPressEvent,
 		this,
 		SLOT(spBigChartMouseButtonPressed(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
@@ -646,7 +660,7 @@ void dlg_FeatureScout::initClassTreeModel()
 void dlg_FeatureScout::PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, const bool useTabSeparator, const QString& outputPath, const QString* fileName) const
 {
 	std::string separator = (useTabSeparator) ? "\t" : ",";
-	ofstream debugfile;
+	std::ofstream debugfile;
 	std::string OutfileName = "";
 	if (fileName)
 	{
@@ -1128,7 +1142,11 @@ void dlg_FeatureScout::RenderMeanObject()
 
 		m_dwMO->verticalLayout->addWidget(m_meanObjectWidget);
 		auto renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+#if VTK_MAJOR_VERSION < 9
 		renderWindowInteractor->SetRenderWindow(m_meanObjectWidget->GetRenderWindow());
+#else
+		renderWindowInteractor->SetRenderWindow(m_meanObjectWidget->renderWindow());
+#endif
 		auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
 		renderWindowInteractor->SetInteractorStyle(style);
 
@@ -1149,7 +1167,11 @@ void dlg_FeatureScout::RenderMeanObject()
 	m_dwMO->raise();
 
 	// Remove old renderers
+#if VTK_MAJOR_VERSION < 9
 	m_meanObjectWidget->GetRenderWindow()->GetRenderers()->RemoveAllItems();
+#else
+	m_meanObjectWidget->renderWindow()->GetRenderers()->RemoveAllItems();
+#endif
 
 	// Define viewport variables
 	int numberOfMeanObjectVolumes = m_MOData.moVolumesList.size();
@@ -1164,7 +1186,11 @@ void dlg_FeatureScout::RenderMeanObject()
 		m_MOData.moRendererList.append(renderer);
 		renderer->GetActiveCamera()->ParallelProjectionOn();
 		renderer->SetBackground(1.0, 1.0, 1.0);
+#if VTK_MAJOR_VERSION < 9
 		m_meanObjectWidget->GetRenderWindow()->AddRenderer(m_MOData.moRendererList[i]);
+#else
+		m_meanObjectWidget->renderWindow()->AddRenderer(m_MOData.moRendererList[i]);
+#endif
 		renderer->SetViewport(fmod(i, viewportColumns) * fieldLengthX,
 			1 - (ceil((i + 1.0) / viewportColumns) / viewportRows),
 			fmod(i, viewportColumns) * fieldLengthX + fieldLengthX,
@@ -1215,7 +1241,11 @@ void dlg_FeatureScout::RenderMeanObject()
 			renderer->AddActor(cubeAxesActor);
 			renderer->AddActor(outlineActor);
 		}
+#if VTK_MAJOR_VERSION < 9
 		m_meanObjectWidget->GetRenderWindow()->Render();
+#else
+		m_meanObjectWidget->renderWindow()->Render();
+#endif
 	}
 }
 
@@ -1234,7 +1264,11 @@ void dlg_FeatureScout::modifyMeanObjectTF()
 
 void dlg_FeatureScout::updateMOView()
 {
+#if VTK_MAJOR_VERSION < 9
 	m_meanObjectWidget->GetRenderWindow()->Render();
+#else
+	m_meanObjectWidget->renderWindow()->Render();
+#endif
 }
 
 void dlg_FeatureScout::browseFolderDialog()
@@ -1486,7 +1520,11 @@ void dlg_FeatureScout::RenderOrientation()
 	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetBackground(1, 1, 1);
 	renderer->AddActor(actor);
+#if VTK_MAJOR_VERSION < 9
 	vtkRenderWindow* renW = m_polarPlotWidget->GetRenderWindow();
+#else
+	vtkRenderWindow* renW = m_polarPlotWidget->renderWindow();
+#endif
 	auto ren = renW->GetRenderers()->GetFirstRenderer();
 	renW->RemoveRenderer(ren);
 	renW->AddRenderer(renderer);
@@ -1599,7 +1637,11 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	m_lengthDistrView->GetScene()->ClearItems();
 	m_lengthDistrView->GetScene()->AddItem(chart);
 
+#if VTK_MAJOR_VERSION < 9
 	m_lengthDistrWidget->GetRenderWindow()->Render();
+#else
+	m_lengthDistrWidget->renderWindow()->Render();
+#endif
 	m_lengthDistrWidget->update();
 	m_dwPP->legendLayout->removeWidget(m_polarPlotWidget);
 	m_dwPP->legendLayout->addWidget(m_lengthDistrWidget);
@@ -1971,7 +2013,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		//Writes csv file
 		if (saveFile)
 		{
-			ofstream file(getLocalEncodingFileName(filename).c_str(), std::ios::app);
+			std::ofstream file(getLocalEncodingFileName(filename).c_str(), std::ios::app);
 			if (file.is_open())
 			{
 				vtkIdType tColNb = disTable->GetNumberOfColumns();
@@ -2033,8 +2075,13 @@ void dlg_FeatureScout::CsvDVSaveButton()
 			iAVtkOldWidget* dvqvtkWidget;
 			CREATE_OLDVTKWIDGET(dvqvtkWidget);
 			m_dwDV->setWidget(dvqvtkWidget);
+#if VTK_MAJOR_VERSION < 9
 			m_dvContextView->SetRenderWindow(dvqvtkWidget->GetRenderWindow());
 			m_dvContextView->SetInteractor(dvqvtkWidget->GetInteractor());
+#else
+			m_dvContextView->SetRenderWindow(dvqvtkWidget->renderWindow());
+			m_dvContextView->SetInteractor(dvqvtkWidget->interactor());
+#endif
 			m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwDV);
 			m_dwDV->show();
 		}
@@ -3371,7 +3418,11 @@ void dlg_FeatureScout::drawOrientationScalarBar(vtkScalarsToColors* lut)
 	m_scalarBarPP->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
 	m_scalarBarPP->SetTitle("Frequency");
 	m_scalarBarPP->SetNumberOfLabels(5);
+#if VTK_MAJOR_VERSION < 9
 	m_scalarWidgetPP->SetInteractor(m_polarPlotWidget->GetInteractor());
+#else
+	m_scalarWidgetPP->SetInteractor(m_polarPlotWidget->interactor());
+#endif
 	m_scalarWidgetPP->SetScalarBarActor(m_scalarBarPP);
 	m_scalarWidgetPP->SetEnabled(true);
 	m_scalarWidgetPP->SetRepositionable(true);
@@ -3472,7 +3523,11 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetBackground(1, 1, 1);
 
+#if VTK_MAJOR_VERSION < 9
 	auto renW = m_polarPlotWidget->GetRenderWindow();
+#else
+	auto renW = m_polarPlotWidget->renderWindow();
+#endif
 	auto ren = renW->GetRenderers()->GetFirstRenderer();
 	if (ren)
 	{
@@ -3485,7 +3540,11 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 	drawAnnotations(renderer);
 	drawOrientationScalarBar(cTFun);
 	renderer->ResetCamera();
+#if VTK_MAJOR_VERSION < 9
 	m_polarPlotWidget->GetRenderWindow()->Render();
+#else
+	m_polarPlotWidget->renderWindow()->Render();
+#endif
 }
 
 void dlg_FeatureScout::setupPolarPlotResolution(float grad)

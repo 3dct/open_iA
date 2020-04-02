@@ -37,6 +37,7 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
+#include <vtkUnsignedCharArray.h>
 #include <vtkVertexGlyphFilter.h>
 
 namespace

@@ -113,7 +113,11 @@ void iASPMView::initScalarBar()
 	m_sbActor->SetLookupTable( m_lut );
 	m_sbActor->SetTitle( "Color Map" );
 	m_sbActor->VisibilityOff();
+#if VTK_MAJOR_VERSION < 9
 	m_SBQVTKWidget->GetRenderWindow()->AddRenderer( m_sbRen );
+#else
+	m_SBQVTKWidget->renderWindow()->AddRenderer( m_sbRen );
+#endif
 	m_SBQVTKWidget->update();
 	QVBoxLayout *lutLayoutHB = new QVBoxLayout( this );
 	lutLayoutHB->setMargin( 0 );
@@ -150,7 +154,11 @@ void iASPMView::applyLookupTable()
 	updateLUT();
 	m_sbActor->SetLookupTable( m_lut );
 	m_sbActor->SetTitle( m_splom->data()->parameterName(m_splom->colorLookupParam()).toStdString().c_str() );
+#if VTK_MAJOR_VERSION < 9
 	m_SBQVTKWidget->GetRenderWindow()->Render();
+#else
+	m_SBQVTKWidget->renderWindow()->Render();
+#endif
 	m_SBQVTKWidget->update();
 }
 

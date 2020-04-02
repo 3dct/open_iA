@@ -29,12 +29,21 @@
 	#include <vtkGenericOpenGLRenderWindow.h>
 	typedef QVTKOpenGLNativeWidget iAVtkWidget;
 	typedef QVTKOpenGLNativeWidget iAVtkOldWidget;
+#if VTK_MAJOR_VERSION < 9
 	#define CREATE_OLDVTKWIDGET(x) \
 	{ \
 		(x) = new QVTKOpenGLNativeWidget(); \
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New(); \
 		(x)->SetRenderWindow(renWin); \
 	}
+#else
+	#define CREATE_OLDVTKWIDGET(x) \
+	{ \
+		(x) = new QVTKOpenGLNativeWidget(); \
+		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New(); \
+		(x)->setRenderWindow(renWin); \
+	}
+#endif
 #else
 	#if (VTK_MAJOR_VERSION == 8 && VTK_MINOR_VERSION < 2 && (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)) )
 		#include <QVTKOpenGLWidget.h>

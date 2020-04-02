@@ -647,9 +647,9 @@ void iAOIFReaderHelper::ReadOif()
 {
 	//read oif file
 #ifdef _WIN32
-	ifstream is(m_path_name.c_str());
+	std::ifstream is(m_path_name.c_str());
 #else
-	ifstream is(ws2s(m_path_name).c_str());
+	std::ifstream is(ws2s(m_path_name).c_str());
 #endif
 	std::wstring oneline;
 	if (is.is_open())

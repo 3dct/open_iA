@@ -221,7 +221,11 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	ui.gridLayout_4->addWidget(qvtkPlot3d);
 	ui.gridLayout_1->addWidget(qvtkWeighing);
 
+#if VTK_MAJOR_VERSION < 9
 	qvtkWidget->GetRenderWindow()->AddRenderer(ren);
+#else
+	qvtkWidget->renderWindow()->AddRenderer(ren);
+#endif
 	stlReader = vtkSTLReader::New();
 	mapper = vtkPolyDataMapper::New();
 	actor = vtkActor::New();
@@ -240,7 +244,11 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	depthSort = 0;
 	vtkInteractorStyleSwitch *style = vtkInteractorStyleSwitch::New();
 	style->SetCurrentStyleToTrackballCamera();
+#if VTK_MAJOR_VERSION < 9
 	qvtkWidget->GetInteractor()->SetInteractorStyle(style);
+#else
+	qvtkWidget->interactor()->SetInteractorStyle(style);
+#endif
 	style->Delete();
 
 	//
@@ -353,31 +361,52 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	//plot3d->GetRenderer()->GetActiveCamera()->SetParallelProjection(1);
 	plot3d->GetRenderer()->SetBackground(stngs.BG_COL_R/255.0, stngs.BG_COL_G/255.0, stngs.BG_COL_B/255.0);//(0,0,0);//
 	plot3d->GetRenderer()->SetBackground2(0.5, 0.66666666666666666666666666666667, 1);
-	qvtkPlot3d->GetRenderWindow()->AddRenderer(plot3d->GetRenderer());
 	vtkInteractorStyleSwitch *cube_style = vtkInteractorStyleSwitch::New();
 	cube_style->SetCurrentStyleToTrackballCamera();
+#if VTK_MAJOR_VERSION < 9
+	qvtkPlot3d->GetRenderWindow()->AddRenderer(plot3d->GetRenderer());
 	qvtkPlot3d->GetInteractor()->SetInteractorStyle(cube_style);
+#else
+	qvtkPlot3d->renderWindow()->AddRenderer(plot3d->GetRenderer());
+	qvtkPlot3d->interactor()->SetInteractorStyle(cube_style);
+#endif
 	cube_style->Delete();
 	plot3d->SetPalette(100, stngs.COL_RANGE_MIN_R, stngs.COL_RANGE_MIN_G, stngs.COL_RANGE_MIN_B, stngs.COL_RANGE_MAX_R, stngs.COL_RANGE_MAX_G, stngs.COL_RANGE_MAX_B);
 	plot3d->Update();
 	//TODO: callback not used?
 	vtkCallbackCommand* callback = vtkCallbackCommand::New();
 	//callback->SetCallback(&(plot3d->Pick));
+#if VTK_MAJOR_VERSION < 9
 	qvtkPlot3d->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, callback, 1.0);
+#else
+	qvtkPlot3d->renderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, callback, 1.0);
+#endif
 	callback->Delete();
 	//plot3dWeighting stuff
 	plot3dWeighting = new iAPlot3DVtk;
 	plot3dWeighting->GetRenderer()->SetBackground(stngs.BG_COL_R/255.0, stngs.BG_COL_G/255.0, stngs.BG_COL_B/255.0);//(0,0,0);//
 	plot3dWeighting->GetRenderer()->SetBackground2(0.5, 0.66666666666666666666666666666667, 1);
+#if VTK_MAJOR_VERSION < 9
 	qvtkWeighing->GetRenderWindow()->AddRenderer(plot3dWeighting->GetRenderer());
+#else
+	qvtkWeighing->renderWindow()->AddRenderer(plot3dWeighting->GetRenderer());
+#endif
 	vtkInteractorStyleSwitch *cube_style2 = vtkInteractorStyleSwitch::New();
 	cube_style2->SetCurrentStyleToTrackballCamera();
+#if VTK_MAJOR_VERSION < 9
 	qvtkWeighing->GetInteractor()->SetInteractorStyle(cube_style2);
+#else
+	qvtkWeighing->interactor()->SetInteractorStyle(cube_style2);
+#endif
 	cube_style2->Delete();
 	plot3dWeighting->SetPalette(100, stngs.COL_RANGE_MIN_R, stngs.COL_RANGE_MIN_G, stngs.COL_RANGE_MIN_B, stngs.COL_RANGE_MAX_R, stngs.COL_RANGE_MAX_G, stngs.COL_RANGE_MAX_B);
 	plot3dWeighting->Update();
 
+#if VTK_MAJOR_VERSION < 9
 	qvtkPlot3d->GetRenderWindow()->Render();
+#else
+	qvtkPlot3d->renderWindow()->Render();
+#endif
 	//
 	qvtkPlot3d->installEventFilter(this);
 	ui.RenderViewWidget->installEventFilter(this);

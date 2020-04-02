@@ -50,7 +50,7 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 
 	// Writing pore csv file
 	double spacing = longImage->GetSpacing()[0];
-	ofstream fout( getLocalEncodingFileName(pathCSV), std::ofstream::out );
+	std::ofstream fout( getLocalEncodingFileName(pathCSV), std::ofstream::out );
 
 	// Header of pore csv file
 	fout << "Spacing" << ',' << spacing << '\n'

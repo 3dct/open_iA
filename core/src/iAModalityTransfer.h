@@ -24,6 +24,8 @@
 #include "iATransferFunction.h"
 #include "open_iA_Core_export.h"
 
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkSmartPointer.h>
 
 #include <QSharedPointer>
@@ -31,9 +33,7 @@
 class iAHistogramData;
 class iAImageInfo;
 
-class vtkColorTransferFunction;
 class vtkImageData;
-class vtkPiecewiseFunction;
 
 class QString;
 

@@ -24,16 +24,11 @@
 #include "iATransferFunction.h"
 #include "iAVolumeSettings.h"
 
+#include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
-#include <vtkOutlineFilter.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRendererCollection.h>
-#include <vtkSmartVolumeMapper.h>
-#include <vtkVolume.h>
-#include <vtkVolumeProperty.h>
-#include "vtkColorTransferFunction.h"
 
 bool IsFlat(int extent[6])
 {

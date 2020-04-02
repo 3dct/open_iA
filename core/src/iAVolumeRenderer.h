@@ -23,22 +23,22 @@
 #include "open_iA_Core_export.h"
 #include "iAVolumeSettings.h"
 
+#include <vtkActor.h>
+#include <vtkOutlineFilter.h>
+#include <vtkPolyDataMapper.h>
 #include <vtkSmartPointer.h>
+#include <vtkSmartVolumeMapper.h>
+#include <vtkVolume.h>
+#include <vtkVolumeProperty.h>
 
 #include <QSharedPointer>
 
 class iATransferFunction;
 
-class vtkActor;
 class vtkImageData;
 class vtkPlane;
 class vtkOpenGLRenderer;
-class vtkOutlineFilter;
-class vtkPolyDataMapper;
 class vtkRenderer;
-class vtkSmartVolumeMapper;
-class vtkVolume;
-class vtkVolumeProperty;
 
 //! Collects all vtk classes required for rendering a volume.
 //! Provides convenience functionality for adding it to a render window,

@@ -153,7 +153,11 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		m_contextViews.push_back(vtkSmartPointer<vtkContextView>::New());
 		m_charts.push_back(vtkSmartPointer<vtkChartXY>::New());
 
+#if VTK_MAJOR_VERSION < 9
 		m_contextViews.at(i)->SetRenderWindow(m_widgets.at(i)->GetRenderWindow());
+#else
+		m_contextViews.at(i)->SetRenderWindow(m_widgets.at(i)->renderWindow());
+#endif
 		m_contextViews.at(i)->GetScene()->AddItem(m_charts.at(i));
 
 		m_chartConnections->Connect(m_charts.at(i),

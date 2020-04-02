@@ -72,6 +72,7 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkCubeSource.h>
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkIdTypeArray.h>
 #include <vtkImageData.h>
 #include <vtkLine.h>
 #include <vtkPiecewiseFunction.h>
@@ -82,6 +83,7 @@
 #include <vtkRendererCollection.h>
 #include <vtkRenderer.h>
 #include <vtkTable.h>
+#include <vtkUnsignedCharArray.h>
 #include <vtkVersion.h>
 #include <vtkVertexGlyphFilter.h>
 
@@ -340,7 +342,11 @@ void iAFiAKErController::resultsLoaded()
 void iAFiAKErController::setupMain3DView()
 {
 	m_main3DWidget = m_mdiChild->renderDockWidget()->vtkWidgetRC;
+#if VTK_MAJOR_VERSION < 9
 	auto renWin = m_main3DWidget->GetRenderWindow();
+#else
+	auto renWin = m_main3DWidget->renderWindow();
+#endif
 	m_ren = renWin->GetRenderers()->GetFirstRenderer();
 	m_renderManager->addToBundle(m_ren);
 	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
@@ -639,7 +645,11 @@ QWidget* iAFiAKErController::setupResultListView()
 		ren->SetUseDepthPeeling(true);
 		ren->SetMaximumNumberOfPeels(10);
 		renWin->AddRenderer(ren);
+#if VTK_MAJOR_VERSION < 9
 		ui.vtkWidget->SetRenderWindow(renWin);
+#else
+		ui.vtkWidget->setRenderWindow(renWin);
+#endif
 		ui.vtkWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
 
 		QString name = QFileInfo(d.fileName).completeBaseName();
@@ -728,7 +738,16 @@ QWidget* iAFiAKErController::setupResultListView()
 		connect(ui.stackedBars, &iAStackedBarChart::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(ui.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(ui.nameActions, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
+
+#if VTK_MAJOR_VERSION < 9
 		connect(ui.vtkWidget, &iAVtkWidget::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
+#else
+#ifndef _MSC_VER
+		#warning("VTK >= 9.0 - Fix required for missing mouseEvent signal in QVTKOpenGLNativeWidget")
+#else
+		#pragma message("VTK >= 9.0 - Fix required for missing mouseEvent signal in QVTKOpenGLNativeWidget")
+#endif
+#endif
 		connect(m_showResultVis[resultID], &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
 		connect(m_showResultBox[resultID], &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
 
@@ -2313,7 +2332,11 @@ void iAFiAKErController::updateFiberContext()
 {
 	for (auto actor : m_contextActors)
 	{
+#if VTK_MAJOR_VERSION < 9
 		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
+#else
+		m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
+#endif
 	}
 	m_contextActors.clear();
 	if (m_showFiberContext)
@@ -2358,7 +2381,11 @@ void iAFiAKErController::updateFiberContext()
 				if (!m_mergeContextBoxes)
 				{
 					auto actor = getCubeActor(minCoord, maxCoord);
+#if VTK_MAJOR_VERSION < 9
 					m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+#else
+					m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+#endif
 					m_contextActors.push_back(actor);
 				}
 			}
@@ -2366,7 +2393,11 @@ void iAFiAKErController::updateFiberContext()
 		if (m_mergeContextBoxes)
 		{
 			auto actor = getCubeActor(minCoord, maxCoord);
+#if VTK_MAJOR_VERSION < 9
 			m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+#else
+			m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+#endif
 			m_contextActors.push_back(actor);
 		}
 	}
@@ -2381,7 +2412,11 @@ namespace
 		ui.topFiller->setStyleSheet("background-color: " + color.name());
 		ui.bottomFiller->setStyleSheet("background-color: " + color.name());
 		ui.previewWidget->setBackgroundColor(color);
+#if VTK_MAJOR_VERSION < 9
 		ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
+#else
+		ui.vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
+#endif
 			color.redF(), color.greenF(), color.blueF());
 		ui.vtkWidget->update();
 		ui.stackedBars->setBackgroundColor(color);
@@ -2879,7 +2914,11 @@ void iAFiAKErController::changeReferenceDisplay()
 
 	if (m_refLineActor)
 	{
+#if VTK_MAJOR_VERSION < 9
 		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
+#else
+		m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
+#endif
 	}
 	if (!isAnythingSelected() || !showRef)
 	{
@@ -3071,7 +3110,11 @@ void iAFiAKErController::changeReferenceDisplay()
 	m_refLineActor = vtkSmartPointer<vtkActor>::New();
 	m_refLineActor->SetMapper(mapper);
 	m_refLineActor->GetProperty()->SetLineWidth(2);
+#if VTK_MAJOR_VERSION < 9
 	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_refLineActor);
+#else
+	m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_refLineActor);
+#endif
 	update3D();
 }
 
@@ -3164,7 +3207,11 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 	m_sampleActor->SetMapper(sampleMapper);
 	sampleMapper->Update();
 	m_sampleActor->GetProperty()->SetPointSize(2);
+#if VTK_MAJOR_VERSION < 9
 	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
+#else
+	m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
+#endif
 	update3D();
 }
 
@@ -3184,7 +3231,11 @@ void iAFiAKErController::hideSamplePointsPrivate()
 {
 	if (m_sampleActor)
 	{
+#if VTK_MAJOR_VERSION < 9
 		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
+#else
+		m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
+#endif
 	}
 }
 
@@ -3294,7 +3345,11 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 
 void iAFiAKErController::update3D()
 {
+#if VTK_MAJOR_VERSION < 9
 	m_main3DWidget->GetRenderWindow()->Render();
+#else
+	m_main3DWidget->renderWindow()->Render();
+#endif
 	m_main3DWidget->update();
 }
 
@@ -3318,7 +3373,11 @@ void iAFiAKErController::applyRenderSettings()
 	{
 		auto mainVis = m_resultUIs[resultID].main3DVis;
 
+#if VTK_MAJOR_VERSION < 9
 		auto ren = m_resultUIs[resultID].vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer();
+#else
+		auto ren = m_resultUIs[resultID].vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer();
+#endif
 		ren->SetUseDepthPeeling(m_mdiChild->renderSettings().UseDepthPeeling);
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
 		ren->SetUseDepthPeelingForVolumes(m_mdiChild->renderSettings().UseDepthPeeling);
@@ -3352,7 +3411,11 @@ void iAFiAKErController::linkPreviewsToggled()
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & ui = m_resultUIs[resultID];
+#if VTK_MAJOR_VERSION < 9
 		auto ren = ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer();
+#else
+		auto ren = ui.vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer();
+#endif
 		if (link)
 		{
 			m_renderManager->addToBundle(ren);

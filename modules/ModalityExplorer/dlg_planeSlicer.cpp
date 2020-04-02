@@ -36,8 +36,13 @@ dlg_planeSlicer::dlg_planeSlicer() :
 	m_vtkWidget(new iAVtkWidget(this))
 {
 	m_renderer = vtkSmartPointer<vtkOpenGLRenderer>::New();
+#if VTK_MAJOR_VERSION < 9
 	m_vtkWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	m_vtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
+#else
+	m_vtkWidget->setRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
+	m_vtkWidget->renderWindow()->AddRenderer(m_renderer);
+#endif
 	slicer->layout()->addWidget(m_vtkWidget);
 	m_renderer->SetBackground(1, 1, 1);
 

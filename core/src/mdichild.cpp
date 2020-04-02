@@ -1494,7 +1494,11 @@ bool MdiChild::editRendererSettings(iARenderSettings const& rs, iAVolumeSettings
 	applyVolumeSettings(false);
 	m_renderer->applySettings(renderSettings());
 	m_dwRenderer->vtkWidgetRC->show();
+#if VTK_MAJOR_VERSION < 9
 	m_dwRenderer->vtkWidgetRC->GetRenderWindow()->Render();
+#else
+	m_dwRenderer->vtkWidgetRC->renderWindow()->Render();
+#endif
 	emit renderSettingsChanged();
 	return true;
 }

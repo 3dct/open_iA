@@ -224,7 +224,11 @@ iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
 	m_wireActor->GetProperty()->SetSpecular( 0.0 );
 	m_renderer->renderer()->AddActor( m_wireActor );
 
+#if VTK_MAJOR_VERSION < 9
 	m_wgt->SetRenderWindow( (vtkGenericOpenGLRenderWindow* )m_renderer->renderWindow() );
+#else
+	m_wgt->setRenderWindow((vtkGenericOpenGLRenderWindow*)m_renderer->renderWindow());
+#endif
 	m_renderer->setAxesTransform( m_axesTransform );
 
 	QObject::connect( m_wgt, SIGNAL( rightButtonReleasedSignal() ), m_renderer, SLOT( mouseRightButtonReleasedSlot() ) );

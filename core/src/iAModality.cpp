@@ -29,7 +29,6 @@
 #include "iATypedCallHelper.h"
 #include "iAVolumeRenderer.h"
 
-#include <vtkImageData.h>
 #include <vtkVolume.h>
 
 #include <cassert>

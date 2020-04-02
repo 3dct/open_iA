@@ -79,7 +79,7 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 	typename ImageToHistogramFilterType::HistogramType* histogram = imageToHistogramFilter->GetOutput();
 
 	//Write info to dataset info file
-	ofstream fout( getLocalEncodingFileName( datasetPath + "/" + datasetName + ".info" ).c_str(), std::ofstream::out );
+	std::ofstream fout( getLocalEncodingFileName( datasetPath + "/" + datasetName + ".info" ).c_str(), std::ofstream::out );
 	fout << "Datasetname:" << QString( datasetName ).toStdString() << '\n'
 		<< "Min:" << minIntensity << '\n'
 		<< "Max:" << maxIntensity << '\n'

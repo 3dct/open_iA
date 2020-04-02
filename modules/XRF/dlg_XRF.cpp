@@ -211,9 +211,14 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 
 	CREATE_OLDVTKWIDGET(m_colormapWidget);
 	horizontalLayout_8->insertWidget(0, m_colormapWidget);
-	m_colormapWidget->GetRenderWindow()->AddRenderer(m_colormapRen);
 	vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
+#if VTK_MAJOR_VERSION < 9
+	m_colormapWidget->GetRenderWindow()->AddRenderer(m_colormapRen);
 	m_colormapWidget->GetInteractor()->SetInteractorStyle(style);
+#else
+	m_colormapWidget->renderWindow()->AddRenderer(m_colormapRen);
+	m_colormapWidget->interactor()->SetInteractorStyle(style);
+#endif
 
 	m_colormapLUT = vtkSmartPointer<vtkColorTransferFunction>::New();
 	m_colormapLUT->SetColorSpaceToRGB();
@@ -235,7 +240,11 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 	m_colormapScalarBarActor->SetPosition2(1.0, 0.93);
 
 	m_colormapRen->AddActor2D(m_colormapScalarBarActor);
+#if VTK_MAJOR_VERSION < 9
 	m_colormapWidget->GetRenderWindow()->Render();
+#else
+	m_colormapWidget->renderWindow()->Render();
+#endif
 
 	m_refSpectra->cb_showRefSpectra->setEnabled(true);
 	m_refSpectra->cb_showRefLines->setEnabled(true);
@@ -435,7 +444,11 @@ void dlg_XRF::initSpectraOverlay()
 		numBin,
 		sensVal, sensMax, threshVal, threshMax, smoothFade);
 	m_spectrumDiagram->addImageOverlay(m_spectraHistogramImage);
+#if VTK_MAJOR_VERSION < 9
 	m_colormapWidget->GetRenderWindow()->Render();
+#else
+	m_colormapWidget->renderWindow()->Render();
+#endif
 }
 
 void dlg_XRF::showSpectraLines(int show)

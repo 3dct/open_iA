@@ -31,6 +31,7 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkPolyLine.h>
 #include <vtkTable.h>
+#include <vtkUnsignedCharArray.h>
 
 iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color,
 	std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip):

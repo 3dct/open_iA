@@ -190,24 +190,45 @@ set (BUILD_INFO "${BUILD_INFO}    \"ITK: ${ITK_VERSION} (GPU: ${ITK_GPU_INFO}, S
 # VTK
 FIND_PACKAGE(VTK REQUIRED)
 MESSAGE(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}.")
-MESSAGE(STATUS "    Rendering Backend: ${VTK_RENDERING_BACKEND}")
 IF (VTK_VERSION_MAJOR LESS 8)
 	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 8.0")
 ENDIF()
+IF (VTK_VERSION_MAJOR LESS 9)
+	SET (VTK_COMP_PREFIX "vtk")
+ELSE()
+	SET (VTK_RENDERING_BACKEND "OpenGL2")     # peculiarity about VTK 9: it sets VTK_RENDERING_BACKEND to "OpenGL", but for our purposes, it behaves exactly like when previously it was set to OpenGL2. The VTK_RENDERING_BACKEND also isn't exposed as user parameter anymore.
+	SET (VTK_COMP_PREFIX "")
+ENDIF()
+MESSAGE(STATUS "    Rendering Backend: ${VTK_RENDERING_BACKEND}")
 SET (VTK_COMPONENTS
-	vtkFiltersModeling         # for vtkRotationalExtrusionFilter, vtkOutlineFilter
-	vtkInteractionImage        # for vtkImageViewer2
-	vtkInteractionWidgets      # for vtkScalarBarWidget/Representation
-	vtkImagingStatistics       # for vtkImageAccumulate
-	vtkIOGeometry              # for vtkSTLReader/Writer
-	vtkIOMovie                 # for vtkGenericMovieWriter
-	vtkRenderingAnnotation     # for vtkAnnotatedCubeActor, vtkScalarBarActor
-	vtkRenderingContext${VTK_RENDERING_BACKEND} # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
-	vtkRenderingImage          # for vtkImageResliceMapper
-	vtkRenderingVolume${VTK_RENDERING_BACKEND}  # for volume rendering
-	vtkRenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
-	vtkViewsContext2D          # for vtkContextView, vtkContextInteractorStyle
-	vtkViewsInfovis)           # for vtkGraphItem
+	${VTK_COMP_PREFIX}FiltersModeling         # for vtkRotationalExtrusionFilter, vtkOutlineFilter
+	${VTK_COMP_PREFIX}InteractionImage        # for vtkImageViewer2
+	${VTK_COMP_PREFIX}InteractionWidgets      # for vtkScalarBarWidget/Representation
+	${VTK_COMP_PREFIX}ImagingStatistics       # for vtkImageAccumulate
+	${VTK_COMP_PREFIX}IOGeometry              # for vtkSTLReader/Writer
+	${VTK_COMP_PREFIX}IOMovie                 # for vtkGenericMovieWriter
+	${VTK_COMP_PREFIX}RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkScalarBarActor
+	${VTK_COMP_PREFIX}RenderingImage          # for vtkImageResliceMapper
+	${VTK_COMP_PREFIX}RenderingVolume${VTK_RENDERING_BACKEND}  # for volume rendering
+	${VTK_COMP_PREFIX}RenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
+	${VTK_COMP_PREFIX}ViewsContext2D          # for vtkContextView, vtkContextInteractorStyle
+	${VTK_COMP_PREFIX}ViewsInfovis)           # for vtkGraphItem
+IF (VTK_MAJOR_VERSION LESS 9)
+	LIST (APPEND VTK_COMPONENTS ${VTK_COMP_PREFIX}RenderingContext${VTK_RENDERING_BACKEND}) # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
+ELSE()
+	# These components are apparently not pulled in automatically anymore in VTK >= 9
+	LIST (APPEND VTK_COMPONENTS
+		ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, PorosityAnalyzer
+		CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
+		GUISupportQt                # for QVTKOpenGLNativeWidget
+		FiltersExtraction           # for vtkExtractGeometry, used in FIAKER - iASelectionInteractorStyle
+		FiltersGeometry             # for vtkImageDataGeometryFilter used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
+		FiltersHybrid               # for vtkDepthSortPolyData used in 4DCT, DreamCaster, FeatureScout, vtkPolyDataSilhouette used in FeatureScout
+		FiltersStatistics           # for vtkDataSetSurfaceFilter used in BoneThickness - iABoneThickness
+		ImagingHybrid               # for vtkSampleFunction.h used in FeatureScout - iABlobCluster
+		IOXML                       # for vtkXMLImageDataReader used in iAIO
+	)
+ENDIF()
 IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
 	ADD_DEFINITIONS(-DVTK_OPENGL2_BACKEND)
 ELSE()
@@ -230,20 +251,25 @@ FUNCTION (ExtractVersion filename identifier output_varname)
 	SET (${output_varname} "${version_value}" PARENT_SCOPE)
 ENDFUNCTION(ExtractVersion)
 
-IF (vtkRenderingOpenVR_LOADED)
+IF ( (VTK_MAJOR_VERSION LESS 9 AND vtkRenderingOpenVR_LOADED) OR
+	 (VTK_MAJOR_VERSION GREATER 8 AND RenderingOpenVR IN_LIST VTK_AVAILABLE_COMPONENTS) )
 	MESSAGE(STATUS "    RenderingOpenVR: available")
 	set (VRMESSAGE "enabled")
-	LIST (APPEND VTK_COMPONENTS vtkRenderingOpenVR)
-	STRING(FIND "${vtkRenderingOpenVR_INCLUDE_DIRS}" ";" semicolonpos REVERSE)
-	MATH(EXPR aftersemicolon "${semicolonpos}+1")
-	STRING(SUBSTRING "${vtkRenderingOpenVR_INCLUDE_DIRS}" ${aftersemicolon} -1 OPENVR_PATH_INCLUDE)
-	STRING(REGEX REPLACE "/headers" "" OPENVR_PATH ${OPENVR_PATH_INCLUDE})
+	LIST (APPEND VTK_COMPONENTS ${VTK_COMP_PREFIX}RenderingOpenVR)
+	IF (VTK_MAJOR_VERSION LESS 9)
+		STRING(FIND "${vtkRenderingOpenVR_INCLUDE_DIRS}" ";" semicolonpos REVERSE)
+		MATH(EXPR aftersemicolon "${semicolonpos}+1")
+		STRING(SUBSTRING "${vtkRenderingOpenVR_INCLUDE_DIRS}" ${aftersemicolon} -1 OPENVR_PATH_INCLUDE)
+	ELSE()
+		SET(OPENVR_PATH_INCLUDE OpenVR_INCLUDE_DIR)
+	ENDIF()
 	IF (EXISTS "${OPENVR_PATH_INCLUDE}/openvr.h")
 		# Parse OpenVR version number:
 		ExtractVersion("${OPENVR_PATH_INCLUDE}/openvr.h" "k_nSteamVRVersionMajor" OPENVR_VERSION_MAJOR)
 		ExtractVersion("${OPENVR_PATH_INCLUDE}/openvr.h" "k_nSteamVRVersionMinor" OPENVR_VERSION_MINOR)
 		ExtractVersion("${OPENVR_PATH_INCLUDE}/openvr.h" "k_nSteamVRVersionBuild" OPENVR_VERSION_BUILD)
 	ENDIF()
+	STRING(REGEX REPLACE "/headers" "" OPENVR_PATH ${OPENVR_PATH_INCLUDE})
 	IF (WIN32)
 		SET (OPENVR_LIB_PATH "${OPENVR_PATH}/bin/win64")
 	ELSE ()
@@ -252,18 +278,37 @@ IF (vtkRenderingOpenVR_LOADED)
 	LIST (APPEND BUNDLE_DIRS "${OPENVR_LIB_PATH}")
 ELSE()
 	set (VRMESSAGE "disabled")
-	MESSAGE(STATUS "    RenderingOpenVR: NOT available! Enable Module_vtkRenderingOpenVR in VTK to make it available.")
+	IF (VTK_MAJOR_VERSION LESS 8)
+		SET (VTK_VR_OPTION_NAME "Module_vtkRenderingOpenVR")
+	ELSE()
+		SET (VTK_VR_OPTION_NAME "VTK_MODULE_ENABLE_VTK_RenderingOpenVR")
+	ENDIF()
+	MESSAGE(STATUS "    RenderingOpenVR: NOT available! Enable ${VTK_VR_OPTION_NAME} in VTK to make it available.")
 ENDIF()
 set (BUILD_INFO "${BUILD_INFO}    \"VTK: ${VTK_VERSION} (Backend ${VTK_RENDERING_BACKEND}, OpenVR support ${VRMESSAGE})\\n\"\n")
+IF (VTK_MAJOR_VERSION GREATER 8)
+	IF ("theora" IN_LIST VTK_AVAILABLE_COMPONENTS)
+		LIST (APPEND VTK_COMPONENTS theora)
+	ENDIF()
+	IF ("ogg" IN_LIST VTK_AVAILABLE_COMPONENTS)
+		LIST (APPEND VTK_COMPONENTS ogg)
+	ENDIF()
+	IF ("IOOggTheora" IN_LIST VTK_AVAILABLE_COMPONENTS)
+		LIST (APPEND VTK_COMPONENTS IOOggTheora)
+	ENDIF()
+ENDIF()
 FIND_PACKAGE(VTK COMPONENTS ${VTK_COMPONENTS})
-INCLUDE(${VTK_USE_FILE})  # maybe avoid by using INCLUDE/LINK commands on targets instead?
+IF (VTK_MAJOR_VERSION LESS 9)		# VTK >= 9.0 uses imported targets -> include directories are set by TARGET_LINK_LIBRARY(... VTK_LIBRARIES) call!
+	INCLUDE(${VTK_USE_FILE})
+ENDIF()
 IF (MSVC)
 	SET (VTK_LIB_DIR "${VTK_DIR}/bin/Release")
 ELSE ()
 	SET (VTK_LIB_DIR "${VTK_DIR}/lib")
 ENDIF()
 LIST (APPEND BUNDLE_DIRS "${VTK_LIB_DIR}")
-IF (vtkoggtheora_LOADED OR vtkogg_LOADED)
+IF ( (VTK_MAJOR_VERSION LESS 9 AND (vtkoggtheora_LOADED OR vtkogg_LOADED)) OR
+     (VTK_MAJOR_VERSION GREATER 8 AND (VTK_ogg_FOUND EQUAL 1 AND VTK_theora_FOUND EQUAL 1 AND VTK_IOOggTheora_FOUND EQUAL 1)) )
 	MESSAGE(STATUS "    Video: Ogg Theora Encoder available")
 	ADD_DEFINITIONS(-DVTK_USE_OGGTHEORA_ENCODER)
 ELSE()

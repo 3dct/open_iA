@@ -25,6 +25,7 @@
 
 #include <vtkActor.h>
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkIdTypeArray.h>
 #include <vtkOutlineFilter.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>

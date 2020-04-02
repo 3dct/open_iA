@@ -51,6 +51,7 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
+#include <vtkVersion.h>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -328,7 +329,11 @@ QVBoxLayout* setupSliceWidget(iAVtkWidget* &widget, vtkSmartPointer<vtkPlaneSour
 	widget->setMinimumHeight(50);
 	widget->setWindowTitle(QString("%1 Plane").arg(name));
 	auto window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+#if VTK_MAJOR_VERSION < 9
 	widget->SetRenderWindow(window);
+#else
+	widget->setRenderWindow(window);
+#endif
 
 	auto color = vtkSmartPointer<vtkImageMapToColors>::New();
 	auto table = defaultColorTF(image->vtkImage()->GetScalarRange());
@@ -702,11 +707,19 @@ void dlg_datatypeconversion::updateROI( )
 	m_yzroiSource->SetPoint1(-0.5*m_spacing[1] + m_roi[1]*m_spacing[1]+m_roi[4]*m_spacing[1], -0.5*m_spacing[2] + m_roi[2]*m_spacing[2], 0);
 	m_yzroiSource->SetPoint2(-0.5*m_spacing[1] + m_roi[1]*m_spacing[1], -0.5*m_spacing[2] + m_roi[2]+m_roi[5], 0);
 
+#if VTK_MAJOR_VERSION < 9
 	m_xyWidget->GetRenderWindow()->Render();
 	m_xyWidget->update();
 	m_xzWidget->GetRenderWindow()->Render();
 	m_xzWidget->update();
 	m_yzWidget->GetRenderWindow()->Render();
+#else
+	m_xyWidget->renderWindow()->Render();
+	m_xyWidget->update();
+	m_xzWidget->renderWindow()->Render();
+	m_xzWidget->update();
+	m_yzWidget->renderWindow()->Render();
+#endif
 	m_yzWidget->update();
 }
 

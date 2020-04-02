@@ -23,6 +23,7 @@
 #include "open_iA_Core_export.h"
 #include "iAVolumeSettings.h"
 
+#include <vtkImageData.h>
 #include <vtkSmartPointer.h>
 
 #include <QSharedPointer>
@@ -36,7 +37,6 @@ class iAImageCoordConverter;
 class iAImageInfo;
 class iAModalityTransfer;
 class iAVolumeRenderer;
-class vtkImageData;
 
 //! class holding the data of a single image channel
 class open_iA_Core_API iAModality

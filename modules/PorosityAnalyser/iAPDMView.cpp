@@ -72,7 +72,11 @@ iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_sbActor->SetOrientationToHorizontal();
 	m_sbActor->SetLookupTable( m_lut );
 	m_sbActor->SetTitle( "Deviation from reference porosity (%)" );
+#if VTK_MAJOR_VERSION < 9
 	m_sbWidget->GetRenderWindow()->AddRenderer( m_sbRen );
+#else
+	m_sbWidget->renderWindow()->AddRenderer( m_sbRen );
+#endif
 	m_sbWidget->update();
 	QVBoxLayout *lutLayoutHB = new QVBoxLayout( this );
 	lutLayoutHB->setMargin( 0 );

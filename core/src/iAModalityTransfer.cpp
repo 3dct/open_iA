@@ -22,9 +22,7 @@
 
 #include "charts/iAHistogramData.h"
 
-#include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
-#include <vtkPiecewiseFunction.h>
 
 #include <cassert>
 

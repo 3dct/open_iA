@@ -29,6 +29,7 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkPointData.h>
 #include <vtkTable.h>
+#include <vtkUnsignedCharArray.h>
 
 iA3DEllipseObjectVis::iA3DEllipseObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 	QColor const & color, int phiRes, int thetaRes) :

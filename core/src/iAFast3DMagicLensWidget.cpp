@@ -56,10 +56,20 @@ void iAFast3DMagicLensWidget::updateLens()
 	iAAbstractMagicLensWidget::updateLens();
 	// preparations
 
+#if VTK_MAJOR_VERSION < 9
 	if (GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
+#else
+	if (renderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
+#endif
+	{
 		return;
+	}
 
+#if VTK_MAJOR_VERSION < 9
 	vtkCamera * mainCam = GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+#else
+	vtkCamera * mainCam = renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+#endif
 	vtkCamera * magicLensCam = m_lensRen->GetActiveCamera();
 
 	if( mainCam->GetUseOffAxisProjection() == 0 )
@@ -71,7 +81,11 @@ void iAFast3DMagicLensWidget::updateLens()
 		magicLensCam->UseOffAxisProjectionOn();
 	}
 
+#if VTK_MAJOR_VERSION < 9
 	int * pos = GetInteractor()->GetEventPosition();
+#else
+	int * pos = interactor()->GetEventPosition();
+#endif
 
 	// copy camera position and rotation
 	magicLensCam->SetPosition( mainCam->GetPosition() );
@@ -92,10 +106,20 @@ void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 {
 	iAVtkWidget::resizeEvent( event );
 
+#if VTK_MAJOR_VERSION < 9
 	if (GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
+#else
+	if (renderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
+#endif
+	{
 		return;
+	}
 						// TODO: VOLUME: find better way to get "main" renderer here!
+#if VTK_MAJOR_VERSION < 9
 	vtkCamera * mainCam = GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+#else
+	vtkCamera * mainCam = renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+#endif
 	double w = (double)width() / height();	// calculate width aspect ratio
 	double z = calculateZ( m_viewAngle );
 	mainCam->SetScreenBottomLeft( -w, -1, z );

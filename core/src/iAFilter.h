@@ -27,6 +27,7 @@
 #include <itkImageBase.h>
 #include <itkImageIOBase.h>
 
+#include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
 #include <QMap>
@@ -36,7 +37,6 @@
 #include <QVector>
 
 class vtkImageData;
-class vtkPolyData;
 
 class iAAttributeDescriptor;
 class iAConnector;
