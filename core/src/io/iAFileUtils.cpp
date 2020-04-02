@@ -64,9 +64,12 @@ void FindFiles(QString const & directory, QStringList const & nameFilters, bool 
 		QString fileName = it.next();
 		if (fileName == "." || fileName == ".." ||
 			(QFileInfo(fileName).isDir() && !filesFolders.testFlag(Folders)) )
+		{
 			continue;
+		}
 		filesOut.append(fileName);
 	}
+	filesOut.sort();
 }
 
 std::string getLocalEncodingFileName(QString const & fileName)
