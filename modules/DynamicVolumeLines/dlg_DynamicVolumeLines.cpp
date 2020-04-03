@@ -1269,8 +1269,8 @@ void dlg_DynamicVolumeLines::legendClick(QCPLegend* legendU,
 	QCPAbstractLegendItem* legendUItem, QMouseEvent* e)
 {
 	QCustomPlot *plotU = qobject_cast<QCustomPlot *>(QObject::sender());
-	QCustomPlot *plotP = plotU == m_linearScaledPlot ?
-		plotP = m_nonlinearScaledPlot : plotP = m_linearScaledPlot;
+	QCustomPlot *plotP = (plotU == m_linearScaledPlot) ?
+		m_nonlinearScaledPlot : m_linearScaledPlot;
 
 	int legendPItemIdx = 0;
 	for (int i = 0; i < legendU->itemCount(); ++i)

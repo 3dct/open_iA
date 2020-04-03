@@ -43,7 +43,7 @@ iAFoamCharacterizationDialogAnalysis::iAFoamCharacterizationDialogAnalysis(vtkIm
 																									  , m_pImageData (_pImageData)
 {
 	setAttribute(Qt::WA_DeleteOnClose);
-	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::WindowMaximizeButtonHint);
+	setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint | Qt::WindowMaximizeButtonHint) );
 	setWindowTitle("Analysis");
 
 	m_pTable = new iAFoamCharacterizationTableAnalysis(this);

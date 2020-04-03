@@ -216,6 +216,8 @@ void iAPDMView::UpdateTableHistogram()
 				valueData << map.find( idx ).value().size();
 			}
 
+			// NOT USED - REMOVE?
+			/*
 			// get middle value (x axis) of histogram bukcet with higest frequency
 			int highestFrequency = *std::max_element( valueData.begin(), valueData.end() );
 			double meanHigestHistoFrequencyBucket = 0.0;
@@ -228,6 +230,7 @@ void iAPDMView::UpdateTableHistogram()
 					break;
 				}
 			}
+			*/
 
 			// Create histogram plot
 			QCustomPlot * customPlot = new QCustomPlot( 0 );
