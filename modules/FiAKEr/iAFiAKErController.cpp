@@ -144,13 +144,10 @@ namespace
 	const QColor OptimStepMarkerColor(192, 0, 0);
 	const QColor SelectionColor(0, 0, 0);
 
-	enum ResultListColumns
-	{
-		NameActionColumn,
-		PreviewColumn,
-		StackedBarColumn,
-		HistogramColumn
-	};
+	int NameActionColumn = 0;
+	int PreviewColumn = 1;
+	int StackedBarColumn = 2;
+	int HistogramColumn = 3;
 
 	// { SETTING NAMES:
 	const QString ProjectFileFolder("Folder");
@@ -159,6 +156,7 @@ namespace
 	const QString ProjectFileStepShift("StepShift");
 	const QString ProjectFileSaveFormatName("CsvFormat");
 	const QString ProjectUseStepData("UseStepData");
+	const QString ProjectShowPreviews("ShowPreviews");
 	const QString CameraPosition("CameraPosition");
 	const QString CameraViewUp("CameraViewUp");
 	const QString CameraFocalPoint("CameraFocalPoint");
@@ -244,14 +242,16 @@ void iAFiAKErController::loadProject(QSettings const& projectFile, QString const
 	// if config name entry exists, load that, otherwise load full config...
 	auto stepShift = projectFile.value(ProjectFileStepShift, 0).toDouble();
 	auto useStepData = projectFile.value(ProjectUseStepData, true).toBool();
-	start(dataFolder, config, stepShift, useStepData);
+	auto showPreviews = projectFile.value(ProjectShowPreviews, true).toBool();
+	start(dataFolder, config, stepShift, useStepData, showPreviews);
 }
 
-void iAFiAKErController::start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData)
+void iAFiAKErController::start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData, bool showPreviews)
 {
 	m_config = config;
 	m_config.addClassID = false;
 	m_useStepData = useStepData;
+	m_showPreviews = showPreviews;
 	m_jobs = new iAJobListView();
 	m_jobs->layout()->setContentsMargins(1, 0, 0, 0);
 	m_jobs->layout()->setSpacing(ControlSpacing);
@@ -323,6 +323,7 @@ void iAFiAKErController::resultsLoaded()
 	m_settingsWidgetMap.insert(ProjectNumberOfMatchingReferenceFibers, m_spnboxReferenceCount);
 	m_settingsWidgetMap.insert(ProjectConnectMatchingReferenceFibers, m_chkboxShowLines);
 	m_settingsWidgetMap.insert(ProjectShowRefInDistribution, m_settingsView->cbShowReferenceDistribution);
+	m_settingsWidgetMap.insert(ProjectShowPreviews, m_settingsView->cbShowPreviews);
 	m_settingsWidgetMap.insert(ProjectLinkPreviews, m_settingsView->cbLinkPreviews);
 	m_settingsWidgetMap.insert(ProjectDistributionHistogramBins, m_settingsView->sbHistogramBins);
 	m_settingsWidgetMap.insert(ProjectDistributionPlotTypes, m_settingsView->cmbboxDistributionPlotType);
@@ -550,6 +551,11 @@ namespace
 
 QWidget* iAFiAKErController::setupResultListView()
 {
+	if (!m_showPreviews)
+	{
+		StackedBarColumn = 1;
+		HistogramColumn = 2;
+	}
 	int commonPrefixLength = 0, commonSuffixLength = 0;
 	QString baseName0;
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
@@ -579,7 +585,6 @@ QWidget* iAFiAKErController::setupResultListView()
 	m_resultsListLayout = new QGridLayout();
 	m_resultsListLayout->setSpacing(ControlSpacing);
 	m_resultsListLayout->setContentsMargins(ResultListMargin, ResultListMargin, ResultListMargin, ResultListMargin);
-	m_resultsListLayout->setColumnStretch(PreviewColumn, 1);
 	m_resultsListLayout->setColumnStretch(StackedBarColumn, static_cast<int>(m_data->result.size()));
 	m_resultsListLayout->setColumnStretch(HistogramColumn, static_cast<int>(2 * m_data->result.size()));
 
@@ -602,8 +607,6 @@ QWidget* iAFiAKErController::setupResultListView()
 
 	auto nameActionsLabel = new QLabel("Name/Actions");
 	nameActionsLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-	auto previewLabel = new QLabel("Preview");
-	previewLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	m_distributionChoice = new QComboBox();
 	QStringList paramNames;
 	for (size_t curIdx = 0; curIdx < m_data->m_resultIDColumn; ++curIdx)
@@ -625,7 +628,13 @@ QWidget* iAFiAKErController::setupResultListView()
 	histHeader->layout()->addWidget(m_distributionChoice);
 
 	m_resultsListLayout->addWidget(nameActionsLabel, 0, NameActionColumn);
-	m_resultsListLayout->addWidget(previewLabel, 0, PreviewColumn);
+	if (m_showPreviews)
+	{
+		m_resultsListLayout->setColumnStretch(PreviewColumn, 1);
+		auto previewLabel = new QLabel("Preview");
+		previewLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		m_resultsListLayout->addWidget(previewLabel, 0, PreviewColumn);
+	}
 	m_resultsListLayout->addWidget(m_stackedBarsHeaders, 0, StackedBarColumn);
 	m_resultsListLayout->addWidget(histHeader, 0, HistogramColumn);
 
@@ -636,21 +645,6 @@ QWidget* iAFiAKErController::setupResultListView()
 	{
 		auto & d = m_data->result.at(resultID);
 		auto & ui = m_resultUIs[resultID];
-		ui.previewWidget = new iAFixedAspectWidget();
-		ui.vtkWidget = ui.previewWidget->vtkWidget();
-		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-		renWin->SetAlphaBitPlanes(1);
-		auto ren = vtkSmartPointer<vtkRenderer>::New();
-		ren->SetBackground(1.0, 1.0, 1.0);
-		ren->SetUseDepthPeeling(true);
-		ren->SetMaximumNumberOfPeels(10);
-		renWin->AddRenderer(ren);
-#if VTK_MAJOR_VERSION < 9
-		ui.vtkWidget->SetRenderWindow(renWin);
-#else
-		ui.vtkWidget->setRenderWindow(renWin);
-#endif
-		ui.vtkWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
 
 		QString name = QFileInfo(d.fileName).completeBaseName();
 		name = name.mid(commonPrefixLength, name.size() - commonPrefixLength - commonSuffixLength);
@@ -717,11 +711,43 @@ QWidget* iAFiAKErController::setupResultListView()
 			curvedStepInfo : d.curveInfo;
 		QColor resultColor(getResultColor(resultID));
 
-		ui.mini3DVis = create3DVis(  ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
+		if (m_showPreviews)
+		{
+			ui.previewWidget = new iAFixedAspectWidget();
+			ui.vtkWidget = ui.previewWidget->vtkWidget();
+			auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+			renWin->SetAlphaBitPlanes(1);
+			auto ren = vtkSmartPointer<vtkRenderer>::New();
+			ren->SetBackground(1.0, 1.0, 1.0);
+			ren->SetUseDepthPeeling(true);
+			ren->SetMaximumNumberOfPeels(10);
+			renWin->AddRenderer(ren);
+#if VTK_MAJOR_VERSION < 9
+			ui.vtkWidget->SetRenderWindow(renWin);
+#else
+			ui.vtkWidget->setRenderWindow(renWin);
+#endif
+			ui.vtkWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
+			ui.mini3DVis = create3DVis(ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
+			ui.mini3DVis->setColor(resultColor);
+			ui.mini3DVis->show();
+			ren->ResetCamera();
+			ui.previewWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
+			connect(ui.previewWidget, &iAFixedAspectWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
+#if VTK_MAJOR_VERSION < 9
+			connect(ui.vtkWidget, &iAVtkWidget::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
+#else
+#ifndef _MSC_VER
+			#warning("VTK >= 9.0 - Fix required for missing mouseEvent signal in QVTKOpenGLNativeWidget")
+#else
+#pragma message("VTK >= 9.0 - Fix required for missing mouseEvent signal in QVTKOpenGLNativeWidget")
+#endif
+#endif
+			// connect changes to visualizations to an update of the 3D widget:
+			// {
+			connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
+		}
 		ui.main3DVis = create3DVis(m_ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
-		ui.mini3DVis->setColor(resultColor);
-		ui.mini3DVis->show();
-		ren->ResetCamera();
 
 		const double * b = ui.main3DVis->bounds();
 		QString bbox = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
@@ -730,36 +756,20 @@ QWidget* iAFiAKErController::setupResultListView()
 			"Filename: " + d.fileName + "\n"
 			"Visualization details: " + ui.main3DVis->visualizationStatistics());
 
-		ui.previewWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
 		ui.stackedBars->setProperty("resultID", static_cast<qulonglong>(resultID));
 		ui.histoChart->setProperty("resultID", static_cast<qulonglong>(resultID));
 		ui.nameActions->setProperty("resultID", static_cast<qulonglong>(resultID));
-		connect(ui.previewWidget, &iAFixedAspectWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(ui.stackedBars, &iAStackedBarChart::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(ui.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(ui.nameActions, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
-
-#if VTK_MAJOR_VERSION < 9
-		connect(ui.vtkWidget, &iAVtkWidget::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
-#else
-#ifndef _MSC_VER
-		#warning("VTK >= 9.0 - Fix required for missing mouseEvent signal in QVTKOpenGLNativeWidget")
-#else
-		#pragma message("VTK >= 9.0 - Fix required for missing mouseEvent signal in QVTKOpenGLNativeWidget")
-#endif
-#endif
 		connect(m_showResultVis[resultID], &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
 		connect(m_showResultBox[resultID], &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
 
-		// connect changes to visualizations to an update of the 3D widget:
-		// {
-		connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
 
 		// iA3DColoredObjectVis::updateRenderer makes sure this connection is only triggered if vis is currently shown:
 		connect(ui.main3DVis.data(), &iA3DObjectVis::updated, this, &iAFiAKErController::update3D);
 		// }
 	}
-
 	updateResultList();
 
 	resultList->setLayout(m_resultsListLayout);
@@ -895,11 +905,17 @@ void iAFiAKErController::updateResultList()
 	{
 		auto& ui = m_resultUIs[resultID];
 		m_resultsListLayout->removeWidget(ui.nameActions);
-		m_resultsListLayout->removeWidget(ui.previewWidget);
+		if (ui.previewWidget)
+		{
+			m_resultsListLayout->removeWidget(ui.previewWidget);
+		}
 		m_resultsListLayout->removeWidget(ui.stackedBars);
 		m_resultsListLayout->removeWidget(ui.histoChart);
 		m_resultsListLayout->addWidget(ui.nameActions, m_resultListSorting[resultID] + 1, NameActionColumn);
-		m_resultsListLayout->addWidget(ui.previewWidget, m_resultListSorting[resultID] + 1, PreviewColumn);
+		if (ui.previewWidget)
+		{
+			m_resultsListLayout->addWidget(ui.previewWidget, m_resultListSorting[resultID] + 1, PreviewColumn);
+		}
 		m_resultsListLayout->addWidget(ui.stackedBars, m_resultListSorting[resultID] + 1, StackedBarColumn);
 		m_resultsListLayout->addWidget(ui.histoChart, m_resultListSorting[resultID] + 1, HistogramColumn);
 	}
@@ -975,9 +991,12 @@ void iAFiAKErController::resultColorThemeChanged(QString const & colorThemeName)
 	addInteraction(QString("Changed result color theme to '%1'.").arg(colorThemeName));
 	m_resultColorTheme = iAColorThemeManager::instance().theme(colorThemeName);
 
-	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+	if (m_showPreviews)
 	{
-		m_resultUIs[resultID].mini3DVis->setColor(getResultColor(resultID));
+		for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+		{
+			m_resultUIs[resultID].mini3DVis->setColor(getResultColor(resultID));
+		}
 	}
 
 	// recolor the optimization step plots:
@@ -2235,7 +2254,10 @@ void iAFiAKErController::visitAllVisibleVis(std::function<void(QSharedPointer<iA
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto& vis = m_resultUIs[resultID];
-		func(vis.mini3DVis, resultID);
+		if (vis.mini3DVis)
+		{
+			func(vis.mini3DVis, resultID);
+		}
 		if (vis.main3DVis->visible())
 		{
 			func(vis.main3DVis, resultID);
@@ -2411,14 +2433,17 @@ namespace
 		ui.nameActions->setBackgroundColor(color);
 		ui.topFiller->setStyleSheet("background-color: " + color.name());
 		ui.bottomFiller->setStyleSheet("background-color: " + color.name());
-		ui.previewWidget->setBackgroundColor(color);
+		if (ui.previewWidget && ui.vtkWidget)
+		{
+			ui.previewWidget->setBackgroundColor(color);
 #if VTK_MAJOR_VERSION < 9
-		ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
+			ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
 #else
-		ui.vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
+			ui.vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
 #endif
-			color.redF(), color.greenF(), color.blueF());
-		ui.vtkWidget->update();
+				color.redF(), color.greenF(), color.blueF());
+			ui.vtkWidget->update();
+		}
 		ui.stackedBars->setBackgroundColor(color);
 		ui.histoChart->setBackgroundColor(color);
 	}
@@ -2463,7 +2488,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 		m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text().left(m_showResultVis[m_referenceID]->text().length()-RefMarker.length()));
 	}
 	addInteraction(QString("Reference set to %1.").arg(resultName(referenceID)));
-	auto bounds = m_resultUIs[referenceID].mini3DVis->bounds();
+	auto bounds = m_resultUIs[referenceID].main3DVis->bounds();
 	bool setBB = true;
 	for (int i = 0; i < 6; ++i)
 	{
@@ -3340,6 +3365,7 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 	m_config.save(projectFile, ProjectFileSaveFormatName);
 	projectFile.setValue(ProjectFileStepShift, m_data->stepShift);
 	projectFile.setValue(ProjectUseStepData, m_useStepData);
+	projectFile.setValue(ProjectShowPreviews, m_showPreviews);
 	saveSettings(projectFile);
 }
 
@@ -3373,21 +3399,24 @@ void iAFiAKErController::applyRenderSettings()
 	{
 		auto mainVis = m_resultUIs[resultID].main3DVis;
 
+		if (m_resultUIs[resultID].vtkWidget)
+		{
 #if VTK_MAJOR_VERSION < 9
-		auto ren = m_resultUIs[resultID].vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer();
+			auto ren = m_resultUIs[resultID].vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 #else
-		auto ren = m_resultUIs[resultID].vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer();
+			auto ren = m_resultUIs[resultID].vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer();
 #endif
-		ren->SetUseDepthPeeling(m_mdiChild->renderSettings().UseDepthPeeling);
+			ren->SetUseDepthPeeling(m_mdiChild->renderSettings().UseDepthPeeling);
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
-		ren->SetUseDepthPeelingForVolumes(m_mdiChild->renderSettings().UseDepthPeeling);
+			ren->SetUseDepthPeelingForVolumes(m_mdiChild->renderSettings().UseDepthPeeling);
 #endif
-		ren->SetMaximumNumberOfPeels(m_mdiChild->renderSettings().DepthPeels);
-		ren->SetUseFXAA(m_mdiChild->renderSettings().UseFXAA);
-		QColor bgTop(m_mdiChild->renderSettings().BackgroundTop);
-		QColor bgBottom(m_mdiChild->renderSettings().BackgroundBottom);
-		ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
-		ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
+			ren->SetMaximumNumberOfPeels(m_mdiChild->renderSettings().DepthPeels);
+			ren->SetUseFXAA(m_mdiChild->renderSettings().UseFXAA);
+			QColor bgTop(m_mdiChild->renderSettings().BackgroundTop);
+			QColor bgBottom(m_mdiChild->renderSettings().BackgroundBottom);
+			ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
+			ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
+		}
 
 		if (mainVis->visible())
 		{
@@ -3405,6 +3434,10 @@ void iAFiAKErController::showReferenceInChartToggled()
 
 void iAFiAKErController::linkPreviewsToggled()
 {
+	if (!m_showPreviews)
+	{
+		return;
+	}
 	bool link = m_settingsView->cbLinkPreviews->isChecked();
 	addInteraction(QString("Toggled linking preview and main 3D view to %1")
 		.arg(link ? "on" : "off"));
