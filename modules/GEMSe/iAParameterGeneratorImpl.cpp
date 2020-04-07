@@ -227,27 +227,27 @@ T pop_at(QVector<T>& v, typename QVector<T>::size_type n)
 }
 
 
-class MyRange
+class iARange
 {
 public:
-	virtual ~MyRange() {}
+	virtual ~iARange() {}
 	virtual double min(int i) =0;
 	virtual double max(int i) =0;
 };
 
 
-class MyLinRange: public MyRange
+class iALinRange: public iARange
 {
 public:
-	MyLinRange(double min, double max, int count):
+	iALinRange(double min, double max, int count):
 		m_min(min),
 		m_step((max-min)/count)
 	{}
-	virtual double min(int i)
+	double min(int i) override
 	{
 		return m_min+ i*m_step;
 	}
-	virtual double max(int i)
+	double max(int i) override
 	{
 		return m_min+ (i+1)*m_step;
 	}
@@ -256,20 +256,20 @@ private:
 	double m_step;
 };
 
-class MyLogRange: public MyRange
+class iALogRange: public iARange
 {
 public:
-	MyLogRange(double min, double max, int count):
+	iALogRange(double min, double max, int count):
 		m_min(min),
 		m_factor(std::pow(max/min, 1.0/count))
 	{
 		assert(min > 0);
 	}
-	virtual double min(int i)
+	double min(int i) override
 	{
 		return m_min*std::pow(m_factor, i+1);
 	}
-	virtual double max(int i)
+	double max(int i) override
 	{
 		return m_min*std::pow(m_factor, i+1);
 	}
@@ -278,14 +278,14 @@ private:
 	double m_factor;
 };
 
-QSharedPointer<MyRange> CreateRange(bool log, double min, double max, int count, iAValueType valueType)
+QSharedPointer<iARange> CreateRange(bool log, double min, double max, int count, iAValueType valueType)
 {
 	if (log)
 	{
 		assert(valueType != Categorical);
-		return QSharedPointer<MyRange>(new MyLogRange(min, max + ((valueType == Discrete) ? 0.999999 : 0), count));
+		return QSharedPointer<iARange>(new iALogRange(min, max + ((valueType == Discrete) ? 0.999999 : 0), count));
 	}
-	else return QSharedPointer<MyRange>(new MyLinRange(min, max + ((valueType == Categorical || valueType == Discrete) ? 0.999999 : 0), count));
+	else return QSharedPointer<iARange>(new iALinRange(min, max + ((valueType == Categorical || valueType == Discrete) ? 0.999999 : 0), count));
 }
 
 
@@ -293,7 +293,6 @@ QString iALatinHypercubeParameterGenerator::name() const
 {
 	return QString("Latin HyperCube");
 }
-
 
 ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
 {
@@ -307,7 +306,7 @@ ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QShare
 	for (int p = 0; p < parameter->size(); ++p)
 	{
 		iAValueType valueType = parameter->at(p)->valueType();
-		QSharedPointer<MyRange> range = CreateRange(parameter->at(p)->isLogScale(),
+		QSharedPointer<iARange> range = CreateRange(parameter->at(p)->isLogScale(),
 			parameter->at(p)->min(),
 			parameter->at(p)->max(),
 			sampleCount,
@@ -347,7 +346,6 @@ QString iACartesianGridParameterGenerator::name() const
 	return QString("Cartesian Grid");
 }
 
-
 ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
 {
 	ParameterSetsPointer result(new ParameterSets);
@@ -366,7 +364,7 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 	);
 */
 
-	QVector<QSharedPointer<MyRange>> ranges;
+	QVector<QSharedPointer<iARange>> ranges;
 	for (int p = 0; p < parameter->size(); ++p)
 	{
 		iAValueType valueType = parameter->at(p)->valueType();
@@ -414,6 +412,98 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 	return result;
 }
 
+QString iASensitivityParameterGenerator::name() const
+{
+	return QString("Sensitivity");
+}
+
+namespace
+{
+	const double Base = 10.0;
+
+	//! return series 1, 5, 10, 50, 100, ... (for input 0, 1, 2, 3, 4, ...)
+	double getSensitivityValue(int i)
+	{
+		double value = std::pow(Base, (i+1) / 2);
+		if ((i+1) % 2 == 0)
+		{
+			value /= 2;
+		}
+		return value;
+	}
+}
+
+ParameterSetsPointer iASensitivityParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
+{
+	int samplesPerParameter = static_cast<int>(std::pow(10, std::log10(sampleCount) / parameter->size()));
+	samplesPerParameter = std::max(1, samplesPerParameter); // at least 2 sample values per parameter
+	if (samplesPerParameter % 2 == 0)
+	{
+		samplesPerParameter += 1; // must be odd - centered at the middle!
+	}
+	// calculate actual sample count (have to adhere to grid structure / powers):
+	// maybe get sample count per parameter?
+	int actualSampleCount = std::pow(samplesPerParameter, parameter->size());
+	ParameterSetsPointer result(new ParameterSets);
+
+	QVector<double> offsetFactors;
+	int samplesPerSide = samplesPerParameter / 2;
+	double maxSensitivityValue = getSensitivityValue(samplesPerSide - 1);
+	for (int i = 0; i < samplesPerSide; ++i)
+	{
+		offsetFactors.push_back(getSensitivityValue(i) / maxSensitivityValue);
+	}
+	QVector<QVector<double>> allValues(parameter->size());
+	for (int p = 0; p < parameter->size(); ++p)
+	{
+		allValues[p].resize(samplesPerParameter);
+		iAValueType valueType = parameter->at(p)->valueType();
+		if (valueType != Continuous)
+		{
+			DEBUG_LOG("Sensitivity Parameter Generator only works for Continuous parameters!");
+			return result;
+		}
+
+		double halfRange = (parameter->at(p)->max() - parameter->at(p)->min()) / 2;
+		double middle = parameter->at(p)->min() + halfRange;
+		for (int s =  0; s < samplesPerSide; ++s)
+		{
+			double curOfs = offsetFactors[s] * halfRange;
+			allValues[p][samplesPerSide-1-s] = middle - curOfs;
+			allValues[p][samplesPerSide+1+s] = middle + curOfs;
+		}
+		allValues[p][samplesPerSide] = middle;
+	}
+
+	// build power set of above values
+	QVector<int> parameterRangeIdx(parameter->size(), 0);
+	for (int sampleIdx = 0; sampleIdx < actualSampleCount; ++sampleIdx)
+	{
+		ParameterSet set;
+		for (int p = 0; p < parameter->size(); ++p)
+		{
+			set.push_back(allValues[p][parameterRangeIdx[p]]);
+		}
+		result->append(set);
+		//DEBUG_LOG(QString("%1: %2").arg(joinAsString(parameterRangeIdx, ",")).arg(joinAsString(result->at(result->size() - 1), ",")));
+
+		// increase indices into the parameter range:
+		++parameterRangeIdx[0];
+		int curIdx = 0;
+		while (curIdx < parameter->size() && parameterRangeIdx[curIdx] >= samplesPerParameter)
+		{
+			parameterRangeIdx[curIdx] = 0;
+			++curIdx;
+			if (curIdx < parameter->size())
+			{
+				parameterRangeIdx[curIdx]++;
+			}
+		}
+	}
+
+	return result;
+}
+
 QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators()
 {
 	static QVector<QSharedPointer<iAParameterGenerator> > parameterGenerators;
@@ -422,6 +512,7 @@ QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators()
 		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iARandomParameterGenerator()));
 		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iALatinHypercubeParameterGenerator()));
 		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iACartesianGridParameterGenerator()));
+		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iASensitivityParameterGenerator));
 	}
 	return parameterGenerators;
 }
