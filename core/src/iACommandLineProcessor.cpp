@@ -161,6 +161,18 @@ namespace
 				std::cout << "    " << filter->inputName(i).toStdString() << std::endl;
 			}
 		}
+		if (filter->outputCount() == 0)
+		{
+			std::cout << "No output images." << std::endl;
+		}
+		else
+		{
+			std::cout << "Output images:" << std::endl;
+			for (int i = 0; i < filter->outputCount(); ++i)
+			{
+				std::cout << "    " << filter->outputName(i).toStdString() << std::endl;
+			}
+		}
 	}
 
 	void PrintParameterDescriptor(QString filterName)
