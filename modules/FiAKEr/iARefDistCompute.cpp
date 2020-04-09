@@ -493,10 +493,21 @@ bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID
 		{
 			in >> cachedMeasures;
 		}
+		for (auto m : m_measuresToCompute)
+		{
+			if (!cachedMeasures.contains(m.first))
+			{
+				DEBUG_LOG(QString("Measure %1 not contained in cache file, triggering full recomputation").arg(m.first));
+				return false;
+			}
+		}
 		for (auto m : cachedMeasures)
 		{
-			m_data->m_measures.push_back(m);
-			m_measuresToCompute.push_back(std::make_pair(m, false)); //
+			if (!m_data->m_measures.contains(m))
+			{
+				m_data->m_measures.push_back(m);
+				m_measuresToCompute.push_back(std::make_pair(m, false));
+			}
 		}
 		first = false;
 	}
