@@ -214,6 +214,11 @@ iAPerformanceTimer::DurationType iAPerformanceHelper::stop()
 	return duration;
 }
 
+iAPerformanceTimer::DurationType iAPerformanceHelper::elapsed() const
+{
+	return m_pImpl->m_perfTimer.elapsed();
+}
+
 
 // class iATimeGuard
 
@@ -230,6 +235,11 @@ void iATimeGuard::time(std::string const & caption)
 iATimeGuard::~iATimeGuard()
 {
 	m_perfHelper.stop();
+}
+
+iAPerformanceTimer::DurationType iATimeGuard::elapsed() const
+{
+	return m_perfHelper.elapsed();
 }
 
 QString formatDuration(double duration)
