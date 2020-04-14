@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -50,11 +50,17 @@ static mapQString2int fill_extensionToId()
 	m["PNG"] = MHD_READER;
 	m["BMP"] = MHD_READER;
 	m["PNG"] = MHD_READER;
+	m["NIA"] = MHD_READER;
+	m["NII"] = MHD_READER;
+	m["GZ"]  = MHD_READER;   // actually, only nii.gz and img.gz...
+	m["HDR"] = MHD_READER;
+	m["IMG"] = MHD_READER;
 	m["OIF"] = OIF_READER;
 	m["AM"] = AM_READER;
 	m["VTI"] = VTI_READER;
 	m["VTK"] = VTK_READER;
 	m["MOD"] = PROJECT_READER;
+	m["IAPROJ"] = PROJECT_READER;
 #ifdef USE_HDF5
 	m["HDF5"] = HDF5_READER;
 	m["H5"] = HDF5_READER;

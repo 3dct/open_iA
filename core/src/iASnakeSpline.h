@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -28,8 +28,10 @@ typedef std::vector<iADiskData*> disc_vector;
 class iASnakeSpline
 {
 public:
+	static const disc_vector::size_type NoPointSelected = std::numeric_limits<disc_vector::size_type>::max();
+
 	iASnakeSpline()
-	  : m_selectedPntInd(-1), m_ren(0), m_radius(RADIUS)
+	  : m_selectedPntInd(NoPointSelected), m_ren(0), m_radius(RADIUS)
 	{}
 
 	void initialize(vtkRenderer * ren, double imageSpacing)
@@ -79,7 +81,7 @@ public:
 		if (static_cast<int>(selectedPntInd) < m_spline.GetNumberOfPoints())
 		{
 			// get current position of point and only move in two directions depending on slice view
-			double * currentPos = m_snakeDisks[selectedPntInd]->actor->GetPosition();
+			//double * currentPos = m_snakeDisks[selectedPntInd]->actor->GetPosition();
 			m_snakeDisks[selectedPntInd]->actor->SetPosition(x, y, ZCoord);
 			m_spline.SetPoint(selectedPntInd, x, y, ZCoord);
 		}
@@ -90,17 +92,21 @@ public:
 
 	disc_vector::size_type CalculateSelectedPoint(double x, double y)
 	{
-		m_selectedPntInd = -1;
-		for(disc_vector::size_type i = 0; i != m_snakeDisks.size(); i++)
+		m_selectedPntInd = NoPointSelected;
+		for (disc_vector::size_type i = 0; i != m_snakeDisks.size(); i++)
 		{
 			double *handlePos = m_snakeDisks[i]->actor->GetPosition();
 
-			if ( x >= handlePos[0] - m_radius &&  x <= handlePos[0] + m_radius &&
-				 y >= handlePos[1] - m_radius &&  y <= handlePos[1] + m_radius )
+			if (x >= handlePos[0] - m_radius && x <= handlePos[0] + m_radius &&
+				y >= handlePos[1] - m_radius && y <= handlePos[1] + m_radius)
+			{
 				m_selectedPntInd = i;
+			}
 
-			if (m_selectedPntInd != -1)
+			if (m_selectedPntInd != NoPointSelected)
+			{
 				break;
+			}
 		}
 		return m_selectedPntInd;
 	}
@@ -108,7 +114,7 @@ public:
 	void deleteAllPoints()
 	{
 		// remove point snakeDisks
-		for(disc_vector::size_type i = 0; i != m_snakeDisks.size(); i++)
+		for (disc_vector::size_type i = 0; i != m_snakeDisks.size(); i++)
 		{
 			m_ren->RemoveActor(m_snakeDisks[i]->actor);
 			delete m_snakeDisks[i];
@@ -126,8 +132,10 @@ public:
 
 	void SetVisibility(bool isVisible)
 	{
-		for(disc_vector::size_type i = 0; i != m_snakeDisks.size(); i++)
+		for (disc_vector::size_type i = 0; i != m_snakeDisks.size(); i++)
+		{
 			m_snakeDisks[i]->actor->SetVisibility(isVisible);
+		}
 		m_spline.SetVisibility(isVisible);
 	}
 
@@ -138,7 +146,7 @@ public:
 
 	void deselectPoint()
 	{
-		m_selectedPntInd = -1;
+		m_selectedPntInd = NoPointSelected;
 	}
 
 	static const int RADIUS = 5;

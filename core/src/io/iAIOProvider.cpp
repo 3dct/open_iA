@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,7 +23,9 @@
 #include <QObject>
 
 const QString iAIOProvider::ProjectFileExtension(".mod");
-const QString iAIOProvider::ProjectFileTypeFilter("open_iA project file (*"+ProjectFileExtension+");;");
+const QString iAIOProvider::ProjectFileTypeFilter("open_iA modality file (*"+ProjectFileExtension+");;");
+const QString iAIOProvider::NewProjectFileExtension(".iaproj");
+const QString iAIOProvider::NewProjectFileTypeFilter("open_iA project file (*"+NewProjectFileExtension+");;");
 const QString iAIOProvider::MetaImages("Meta Images (*.mhd *.mha);;");
 const QString iAIOProvider::VTKFiles("VTK Files (*.vtk);;");
 
@@ -35,18 +37,19 @@ namespace
 QString iAIOProvider::GetSupportedLoadFormats()
 {
 	return QString(
-		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.oif *.am *.vtk "
+		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pre *.pars *.dcm *.nia *.nii *.nii.gz *.hdr *.hdr.gz *.img *.img.gz *.oif *.am *.vtk "
 #ifdef USE_HDF5
 		"*.hdf5 *.h5 *.he5 *.mat "
 #endif
-		"*.vti "+ImageFormatExtensions+" *"+ProjectFileExtension+");;"
+		"*.vti "+ImageFormatExtensions+" *"+ProjectFileExtension+" *"+NewProjectFileExtension+");;"
 		+ MetaImages + VTKFiles +
 		"STL files (*.stl);;"
 		"VG Studio Scenes (*.vgi);;"
-		"RAW files (*.raw *.rec *.vol *.pro);;"
+		"RAW files (*.raw *.rec *.vol *.pro *.pre);;"
 		"PARS files (*.pars);;"
 		"Dicom Series (*.dcm);;"
 //		"NRRD files (*.nrrd *.nhdr);;"	// currently not supported as it reads as a itk::VectorImage, which we cannot convert to vtkImageData at the moment
+		"NIFTI Images (*.nia *.nii *.nii.gz *.hdr *.hdr.gz *.img *.img.gz);;"
 		"Olympus FluoView (*.oif);;"
 		"AmiraMesh (*.am);;"
 #ifdef USE_HDF5
@@ -56,7 +59,8 @@ QString iAIOProvider::GetSupportedLoadFormats()
 #endif
 		"Serial VTK image data (*.vti);;") +
 		GetSupportedImageFormats() +
-		ProjectFileTypeFilter;
+		ProjectFileTypeFilter +
+		NewProjectFileTypeFilter;
 }
 
 

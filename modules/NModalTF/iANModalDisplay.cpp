@@ -89,7 +89,7 @@ iASlicer* iANModalDisplay::createSlicer(QSharedPointer<iAModality> mod) {
 	colorTf->AddRGBPoint(min, 0.0, 0.0, 0.0);
 	colorTf->AddRGBPoint(max, 1.0, 1.0, 1.0);
 	auto channelData = iAChannelData(mod->name(), image, colorTf);
-	slicer->addChannel(CHANNEL_MAIN, channelData, true);
+	slicer->addChannel(MAIN_CHANNEL_ID, channelData, true);
 
 	double* origin = image->GetOrigin();
 	int* extent = image->GetExtent();
@@ -140,15 +140,26 @@ inline QWidget* iANModalDisplay::_createSlicerContainer(iASlicer* slicer, QShare
 	return widget;
 }
 
-QList<QSharedPointer<iAModality>> iANModalDisplay::selectModalities(QWidget *widget, iANModalDisplay *display, int maxSelection,int minSelection, QWidget *dialogParent){
+QList<QSharedPointer<iAModality>> iANModalDisplay::selectModalities(
+	iANModalDisplay *display,
+	int maxSelection,
+	int minSelection,
+	QWidget *footer,
+	QWidget *dialogParent)
+{
 	// Set up dialog
 	//QDialog *dialog = new QDialog(dialogParent);
-	auto dialog = new SelectionDialog(display);
+	auto dialog = new SelectionDialog(display, dialogParent);
 	dialog->setModal(true);
+
+	if (!footer) {
+		footer = createOkCancelFooter(dialog);
+	}
 
 	// Set up dialog contents
 	QVBoxLayout *layout = new QVBoxLayout(dialog);
-	layout->addWidget(widget);
+	layout->addWidget(display, 1);
+	layout->addWidget(footer, 0);
 
 	// Execute dialog and output
 	auto dialogCode = dialog->exec();
@@ -156,6 +167,31 @@ QList<QSharedPointer<iAModality>> iANModalDisplay::selectModalities(QWidget *wid
 		return QList<QSharedPointer<iAModality>>();
 	}
 	return display->selection();
+}
+
+QWidget* iANModalDisplay::createOkCancelFooter(QDialog *dialog) {
+	auto footerWigdet = new QWidget(dialog);
+	auto footerLabel = new QLabel(footerWigdet);
+	auto footerLayout = new QHBoxLayout(footerWigdet); {
+		auto footerOK = new QPushButton("OK");
+		QObject::connect(footerOK, SIGNAL(clicked()), dialog, SLOT(accept()));
+
+		auto footerCancel = new QPushButton("Cancel");
+		QObject::connect(footerCancel, SIGNAL(clicked()), dialog, SLOT(reject()));
+
+		footerLayout->addWidget(footerLabel);
+		footerLayout->setStretchFactor(footerLabel, 1);
+
+		footerLayout->addWidget(footerOK);
+		footerLayout->setStretchFactor(footerOK, 0);
+
+		footerLayout->addWidget(footerCancel);
+		footerLayout->setStretchFactor(footerCancel, 0);
+
+		footerWigdet->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+	}
+
+	return footerWigdet;
 }
 
 
@@ -190,10 +226,11 @@ bool iANModalDisplay::validateSelection() {
 	return true;
 }
 
-iANModalDisplay::SelectionDialog::SelectionDialog(iANModalDisplay *display) :
+iANModalDisplay::SelectionDialog::SelectionDialog(iANModalDisplay *display, QWidget *parent) :
+	QDialog(parent),
 	m_display(display)
 {
-	setParent(display);
+	display->setParent(this);
 }
 
 void iANModalDisplay::SelectionDialog::done(int r) {

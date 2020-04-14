@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -30,6 +30,7 @@ class iALookupTable;
 
 class vtkActor;
 class vtkOutlineFilter;
+class vtkPlane;
 class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkUnsignedCharArray;
@@ -43,7 +44,7 @@ public:
 	void show() override;
 	void hide();
 	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem) override;
-	void renderSingle(int labelID, int classID, QColor const & classColors, QStandardItem* activeClassItem) override;
+	void renderSingle(IndexType selectedObjID, int classID, QColor const & classColors, QStandardItem* activeClassItem) override;
 	void multiClassRendering(QList<QColor> const & colors, QStandardItem* rootItem, double alpha) override;
 	void renderOrientationDistribution(vtkImageData* oi) override;
 	void renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range) override;
@@ -57,10 +58,15 @@ public:
 	void hideBoundingBox();
 	double const * bounds() override;
 	//! @}
+	void setShowWireFrame(bool show);
 	virtual void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive);
 	void setColor(QColor const & color);
 	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex);
 	void updateColorSelectionRendering();
+	virtual QString visualizationStatistics() const =0;
+	virtual void setShowLines(bool /*lines*/) {} // not ideal, should not be here
+	void setClippingPlanes(vtkPlane* planes[3]);
+	void removeClippingPlanes();
 protected:
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
@@ -74,29 +80,41 @@ protected:
 	vtkSmartPointer<vtkPolyDataMapper> m_outlineMapper;
 	vtkSmartPointer<vtkActor> m_outlineActor;
 	std::vector<size_t> m_selection;
+	bool m_clippingPlanesEnabled;
 
-	void setObjectColor(int objIdx, QColor const & qcolor);
+	//! Set an object to a specified color.
+	//! @param objIdx index of the object.
+	//! @param qcolor new color of the object.
+	void setObjectColor(IndexType objIdx, QColor const & qcolor);
+	//! Triggers an update of the color mapper and the renderer.
 	void updatePolyMapper();
+	//! Prepare the filters providing the bounding box.
 	void setupBoundingBox();
+	//! Set up the mapping from object parts to object IDs.
 	void setupOriginalIds();
+	//! Set up the array of colors for each object.
 	void setupColors();
 
 	//! Get the index of the first point of a given object.
 	//! @param objIdx the index of the object.
 	//! @return the index of the first point in the object.
-	virtual int objectStartPointIdx(int objIdx) const;
+	virtual IndexType objectStartPointIdx(IndexType objIdx) const;
 	//! Get the number of points representing a given object.
 	//! @param objIdx the index of the object.
 	//! @return the number of points in the object.
-	virtual int objectPointCount(int objIdx) const;
+	virtual IndexType objectPointCount(IndexType objIdx) const;
 	//! Get the number of points in all objects.
 	//! @return the number of points in all objects, i.e. the sum of objectPointCount over all object indices.
-	size_t allPointCount() const;
+	IndexType allPointCount() const;
+
+	//! Updates the renderer; but only if the own actor is actually shown.
+	void updateRenderer() override;
 
 private:
+
 	QSharedPointer<iALookupTable> m_lut;
-	size_t m_colorParamIdx;
+	IndexType m_colorParamIdx;
 	bool m_selectionActive;
 
-	const int DefaultPointsPerObject = 2;
+	const IndexType DefaultPointsPerObject = 2;
 };

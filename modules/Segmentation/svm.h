@@ -83,7 +83,7 @@ struct svm_parameter
 
 //
 // svm_model
-// 
+//
 struct svm_model
 {
 	struct svm_parameter param;	/* parameter */

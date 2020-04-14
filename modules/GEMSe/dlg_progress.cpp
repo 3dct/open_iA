@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -32,11 +32,11 @@ dlg_progress::dlg_progress(QWidget *parentWidget,
 	m_durationEstimator(durationEstimator),
 	m_abortListener(abortListener)
 {
-	connect(pbAbort, SIGNAL(clicked()), this, SLOT(Abort()));
+	connect(pbAbort, &QPushButton::clicked, this, &dlg_progress::abort);
 	setWindowTitle(caption);
 }
 
-void dlg_progress::SetProgress(int progress)
+void dlg_progress::setProgress(int progress)
 {
 	progressBar->setValue(progress);
 
@@ -51,13 +51,13 @@ void dlg_progress::SetProgress(int progress)
 	}
 }
 
-void dlg_progress::SetStatus(QString const & status)
+void dlg_progress::setStatus(QString const & status)
 {
 	lbStatus->setText(QString("Status: ")+status);
 }
 
 
-void dlg_progress::Abort()
+void dlg_progress::abort()
 {
 	m_abortListener->abort();
 }

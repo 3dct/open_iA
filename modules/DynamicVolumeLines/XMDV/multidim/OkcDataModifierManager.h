@@ -19,7 +19,7 @@
 #include "../OkcDataModifier.h"
 #include "../OkcDataModifierDimOOO.h"
 #include <map>
-#include <assert.h>
+#include <cassert>
 using namespace std;
 
 class OkcDataModifier;
@@ -82,42 +82,50 @@ public:
 	void operator=(const OkcDataModifierManager& copy);
 
 	template<class T>
-	void mapData(std::vector<T> const &all_data, std::vector<T> &data) {
+	void mapData(std::vector<T> const &all_data, std::vector<T> &data)
+	{
 		static std::vector<T>	temp;
 
 		OkcDataModifier* modifier = getOkcDataModifier(XmdvTool::MODIFIER_DIMOOO);
-		if (modifier) {
+		if (modifier)
+		{
 			// If the modifier exists, call its map function
 			OkcDataModifierDimOOO* modifierDimOOO = (OkcDataModifierDimOOO*)modifier;
 			modifierDimOOO->mapData(all_data, data);
-
-		} else {
+		}
+		else
+		{
 			// Otherwise, make the output equal to the input
-			int i, n=all_data.size();
+			size_t n=all_data.size();
 			data.resize(n);
-			for (i=0; i<n; i++) {
+			for (size_t i=0; i<n; i++)
+			{
 				data[i] = all_data[i];
 			}
 		}
 	}
 
 	template<class T>
-	void invMapData(std::vector<T> &data, std::vector<T> &origData) {
+	void invMapData(std::vector<T> &data, std::vector<T> &origData)
+	{
 		OkcDataModifier* modifier = getOkcDataModifier(XmdvTool::MODIFIER_DIMOOO);
-		if (modifier) {
+		if (modifier)
+		{
 			// If the modifier exists, call its invMap function
 			OkcDataModifierDimOOO* modifierDimOOO = (OkcDataModifierDimOOO*)modifier;
 			modifierDimOOO->invMapData(data, origData);
-		} else {
+		}
+		else
+		{
 			// Otherwise, make the output equal to the input
 			assert(data.size()==origData.size());
-			int i, n=data.size();
-			for (i=0; i<n; i++) {
+			size_t n = data.size();
+			for (size_t i=0; i<n; i++)
+			{
 				origData[i] = data[i];
 			}
 		}
 	}
-
 
 };
 

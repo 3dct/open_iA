@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,7 +25,7 @@
 #include "iAImageCoordinate.h"
 #include "iAModalityTransfer.h"
 #include "iAXmlSettings.h"
-#include "iAStringHelper.h" // for Str2Vec3D
+#include "iAStringHelper.h"   // for arrayToString, stringToArray
 #include "iATypedCallHelper.h"
 #include "iAVolumeRenderer.h"
 
@@ -37,24 +37,25 @@
 
 iAModality::iAModality(QString const & name, QString const & filename, int channel,
 	vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
+	m_VolSettingsSavedStatus(false),
 	m_name(name),
 	m_filename(filename),
-	m_renderFlags(renderFlags),
 	m_channel(channel),
-	m_imgs(1),
-	m_VolSettingsSavedStatus(false),
-	m_channelID(NotExistingChannel)
+	m_renderFlags(renderFlags),
+	m_channelID(NotExistingChannel),
+	m_slicerOpacity(1),
+	m_imgs(1)
 {
 	setData(imgData);
 }
 
 iAModality::iAModality(QString const & name, QString const & filename, std::vector<vtkSmartPointer<vtkImageData> > imgs, int renderFlags) :
+	m_VolSettingsSavedStatus(false),
 	m_name(name),
 	m_filename(filename),
-	m_renderFlags(renderFlags),
 	m_channel(-1),
-	m_imgs(imgs),
-	m_VolSettingsSavedStatus(false)
+	m_renderFlags(renderFlags),
+	m_imgs(imgs)
 {
 	setData(imgs[0]);
 }
@@ -74,12 +75,12 @@ int iAModality::channel() const
 	return m_channel;
 }
 
-int iAModality::componentCount() const
+size_t iAModality::componentCount() const
 {
 	return m_imgs.size();
 }
 
-vtkSmartPointer<vtkImageData> iAModality::component(int componentIdx) const
+vtkSmartPointer<vtkImageData> iAModality::component(size_t componentIdx) const
 {
 	return m_imgs[componentIdx];
 }
@@ -175,7 +176,6 @@ bool iAModality::hasRenderFlag(RenderFlag loc) const
 	return (m_renderFlags & loc) == loc;
 }
 
-
 int iAModality::renderFlags() const
 {
 	return m_renderFlags;
@@ -186,7 +186,7 @@ void iAModality::loadTransferFunction()
 	iAXmlSettings s;
 	if (!s.read(m_tfFileName))
 	{
-		DEBUG_LOG(QString("Failed to read transfer function from file %&1").arg(m_tfFileName));
+		DEBUG_LOG(QString("Failed to read transfer function from file %1").arg(m_tfFileName));
 		return;
 	}
 	s.loadTransferFunction(transfer().data());
@@ -207,8 +207,8 @@ void iAModality::setRenderer(QSharedPointer<iAVolumeRenderer> renderer)
 	}
 	double position[3];
 	double orientation[3];
-	if (!str2Vec3D(m_orientationSettings, orientation) ||
-		!str2Vec3D(m_positionSettings, position))
+	if (!stringToArray<double>(m_orientationSettings, orientation, 3) ||
+		!stringToArray<double>(m_positionSettings, position, 3))
 	{
 		return;
 	}
@@ -255,12 +255,12 @@ void iAModality::setStringSettings(QString const & pos, QString const & ori, QSt
 
 QString iAModality::orientationString()
 {
-	return m_renderer ? vec3D2String(m_renderer->orientation()) : QString();
+	return m_renderer ? arrayToString(m_renderer->orientation(), 3) : QString();
 }
 
 QString iAModality::positionString()
 {
-	return m_renderer ? vec3D2String(m_renderer->position()) : QString();
+	return m_renderer ? arrayToString(m_renderer->position(), 3) : QString();
 }
 
 void iAModality::computeHistogramData(size_t numBin)

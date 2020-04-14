@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,7 +25,7 @@
 #include "iATripleModalityWidget.h"
 #include "iASimpleSlicerWidget.h"
 
-#include <charts/iADiagramFctWidget.h>
+#include <charts/iAChartWithFunctionsWidget.h>
 #include <iASlicer.h>
 
 #include <QPoint>
@@ -214,7 +214,7 @@ void iAHistogramTriangle::forwardWheelEvent(QWheelEvent *e)
 void iAHistogramTriangle::forwardContextMenuEvent(QContextMenuEvent *e)
 {
 	QPoint transformed;
-	iADiagramFctWidget *target = onHistogram(e->pos(), transformed).data();
+	iAChartWithFunctionsWidget *target = onHistogram(e->pos(), transformed).data();
 	if (target) {
 		QContextMenuEvent *newE = new QContextMenuEvent(e->reason(), transformed, e->globalPos());
 		QApplication::sendEvent(target, newE);
@@ -224,7 +224,7 @@ void iAHistogramTriangle::forwardContextMenuEvent(QContextMenuEvent *e)
 	}
 }
 
-QSharedPointer<iADiagramFctWidget> iAHistogramTriangle::onHistogram(QPoint p, QPoint &transformed)
+QSharedPointer<iAChartWithFunctionsWidget> iAHistogramTriangle::onHistogram(QPoint p, QPoint &transformed)
 {
 	for (int i = 0; i < 3; i++) {
 		transformed = m_transformHistograms[i].inverted().map(p);
@@ -282,10 +282,10 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		boxRight = boxLeft + width + TRIANGLE_LEFT + TRIANGLE_RIGHT;
 		boxBottom = boxTop + height + TRIANGLE_TOP + TRIANGLE_BOTTOM;
 
-		//        /\ 
+		//        /\
 		//       /  \    BIG TRIANGLE
 		//      /    \   bounding box: left, top, right, bottom (, centerX)
-		//     /______\ 
+		//     /______\
 		left = boxLeft + TRIANGLE_LEFT;
 		top = boxTop + TRIANGLE_TOP;
 		right = left + width;

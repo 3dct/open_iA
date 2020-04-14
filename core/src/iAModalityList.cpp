@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -109,7 +109,7 @@ iAModalityList::iAModalityList() :
 
 bool iAModalityList::modalityExists(QString const & filename, int channel) const
 {
-	foreach(QSharedPointer<iAModality> mod, m_modalitiesActive)
+	for (QSharedPointer<iAModality> mod: m_modalitiesActive)
 	{
 		if (mod->fileName() == filename && mod->channel() == channel)
 		{
@@ -143,9 +143,9 @@ void iAModalityList::store(QString const & filename, vtkCamera* camera)
 	settings.setValue(FileVersionKey, ModFileVersion);
 	if (camera)
 	{
-		settings.setValue(CameraPositionKey, vec3D2String(camera->GetPosition()));
-		settings.setValue(CameraFocalPointKey, vec3D2String(camera->GetFocalPoint()));
-		settings.setValue(CameraViewUpKey, vec3D2String(camera->GetViewUp()));
+		settings.setValue(CameraPositionKey, arrayToString(camera->GetPosition(), 3));
+		settings.setValue(CameraFocalPointKey, arrayToString(camera->GetFocalPoint(), 3));
+		settings.setValue(CameraViewUpKey, arrayToString(camera->GetViewUp(), 3));
 	}
 	for (int i = 0; i<m_modalitiesActive.size(); ++i)
 	{
@@ -188,13 +188,13 @@ void iAModalityList::store(QString const & filename, vtkCamera* camera)
 		if (absoluteTFFileName.isEmpty())
 		{
 			absoluteTFFileName = MakeAbsolute(fi.absolutePath(), modFileInfo.fileName() + "_tf.xml");
-			QFileInfo fi(absoluteTFFileName);
-			int i = 1;
-			while (fi.exists())
+			QFileInfo uniqueNameSearchFileInfo(absoluteTFFileName);
+			int suffix = 1;
+			while (uniqueNameSearchFileInfo.exists())
 			{
-				absoluteTFFileName = MakeAbsolute(fi.absolutePath(), modFileInfo.fileName() + "_tf-" + QString::number(i) + ".xml");
-				fi.setFile(absoluteTFFileName);
-				++i;
+				absoluteTFFileName = MakeAbsolute(uniqueNameSearchFileInfo.absolutePath(), modFileInfo.fileName() + "_tf-" + QString::number(suffix) + ".xml");
+				uniqueNameSearchFileInfo.setFile(absoluteTFFileName);
+				++suffix;
 			}
 		}
 		QString tfFileName = MakeRelative(fi.absolutePath(), absoluteTFFileName);
@@ -209,13 +209,13 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 {
 	if (filename.isEmpty())
 	{
-		DEBUG_LOG("No modality file given.");
+		DEBUG_LOG("No project file given.");
 		return false;
 	}
 	QFileInfo fi(filename);
 	if (!fi.exists())
 	{
-		DEBUG_LOG(QString("Given modality file '%1' does not exist.").arg(filename));
+		DEBUG_LOG(QString("Given project file '%1' does not exist.").arg(filename));
 		return false;
 	}
 	QSettings settings(filename, QSettings::IniFormat);
@@ -224,14 +224,14 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 	if (!settings.contains(FileVersionKey) ||
 		settings.value(FileVersionKey).toString() != ModFileVersion)
 	{
-		DEBUG_LOG(QString("Invalid modality file version (was %1, expected %2! Trying to parse anyway, but expect failures.")
+		DEBUG_LOG(QString("Invalid project file version (was %1, expected %2)! Trying to parse anyway, but expect failures.")
 			.arg(settings.contains(FileVersionKey) ? settings.value(FileVersionKey).toString() : "not set")
 			.arg(ModFileVersion));
 		return false;
 	}
-	if (!str2Vec3D(settings.value(CameraPositionKey).toString(), m_camPosition) ||
-		!str2Vec3D(settings.value(CameraFocalPointKey).toString(), m_camFocalPoint) ||
-		!str2Vec3D(settings.value(CameraViewUpKey).toString(), m_camViewUp))
+	if (!stringToArray<double>(settings.value(CameraPositionKey).toString(), m_camPosition, 3) ||
+		!stringToArray<double>(settings.value(CameraFocalPointKey).toString(), m_camFocalPoint, 3) ||
+		!stringToArray<double>(settings.value(CameraViewUpKey).toString(), m_camViewUp, 3))
 	{
 		//DEBUG_LOG(QString("Invalid or missing camera information."));
 	}
@@ -319,6 +319,7 @@ void iAModalityList::applyCameraSettings(vtkCamera* camera)
 	m_camSettingsAvailable = false;
 }
 
+/*
 namespace
 {
 	QString GetMeasurementString(QSharedPointer<iAModality> mod)
@@ -331,6 +332,7 @@ namespace
 			QString::number(mod->spacing()[2]) + ")";
 	}
 }
+*/
 
 void iAModalityList::add(QSharedPointer<iAModality> mod)
 {
@@ -380,6 +382,11 @@ ModalityCollection iAModalityList::load(QString const & filename, QString const 
 {
 	// TODO: unify this with mdichild::loadFile
 	ModalityCollection result;
+	if (!QFileInfo(filename).exists())
+	{
+		DEBUG_LOG(QString("Error: File %1 does not exist!").arg(filename));
+		return result;
+	}
 	QFileInfo fileInfo(filename);
 	vtkSmartPointer<vtkImageData> img = vtkSmartPointer<vtkImageData>::New();
 	std::vector<vtkSmartPointer<vtkImageData> > volumes;
@@ -408,7 +415,7 @@ ModalityCollection iAModalityList::load(QString const & filename, QString const 
 	io.start();
 	io.wait();
 	QString nameBase = name.isEmpty() ? fileInfo.baseName() : name;
-	if (volumes.size() > 1 && (channel < 0 || channel > volumes.size()))
+	if (volumes.size() > 1 && (channel < 0 || static_cast<size_t>(channel) > volumes.size()))
 	{
 		if (split) // load one modality for each channel
 		{

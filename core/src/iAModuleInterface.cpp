@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,7 +25,7 @@
 #include "mainwindow.h"
 #include "mdichild.h"
 
-#include <itkMacro.h>  // for itk::ExceptionObject
+#include <itkMacro.h>    // for itk::ExceptionObject
 
 #include <QMessageBox>
 
@@ -60,9 +60,9 @@ void iAModuleInterface::SetDispatcher( iAModuleDispatcher * dispatcher )
 }
 
 iAModuleInterface::iAModuleInterface():
+	m_mainWnd(nullptr),
 	m_dispatcher(nullptr),
-	m_mdiChild(nullptr),
-	m_mainWnd(nullptr)
+	m_mdiChild(nullptr)
 {}
 
 void iAModuleInterface::PrepareActiveChild()
@@ -82,7 +82,7 @@ QMenu * iAModuleInterface::getMenuWithTitle( QMenu * parentMenu, QString const &
 
 void iAModuleInterface::SaveSettings() const {}
 
-void iAModuleInterface::ChildCreated(MdiChild* child)
+void iAModuleInterface::ChildCreated(MdiChild * /*child*/)
 {
 }
 
@@ -137,7 +137,7 @@ void iAModuleInterface::AddActionToMenuAlphabeticallySorted( QMenu * menu, QActi
 	m_dispatcher->AddActionToMenuAlphabeticallySorted(menu, action, isDisablable);
 }
 
-iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild * child )
+iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow * /*mainWnd*/, MdiChild * /*child*/ )
 {
 	return nullptr;
 }

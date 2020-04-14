@@ -16,7 +16,7 @@ namespace itk
  */
 template <class TInputImage1, class TInputImage2, class TInputImage3,
 		  class TOutputImage >
-class ITK_EXPORT ArtifactBasedImageFusionFilter :
+class ArtifactBasedImageFusionFilter :
 	public InPlaceImageFilter<TInputImage1, TOutputImage>
 {
 public:
@@ -112,7 +112,7 @@ protected:
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData()  */
   void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-							itk::ThreadIdType threadId );
+							itk::ThreadIdType threadId ) override;
 
 private:
   ArtifactBasedImageFusionFilter(const Self&); //purposely not implemented

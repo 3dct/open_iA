@@ -122,7 +122,7 @@ public:
 	//all_names[k] is the name of the kth dimension.
 	std::vector<char*> names;
 	//buffer in main memory for storing all the data points in full dimensions
-	std::vector<double>* data_buf;
+	std::vector<double>* m_data_buf;
 
 private:
 	// an object to manage all OkcData modifiers.

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -56,7 +56,6 @@
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkPicker.h>
 #include <vtkPlane.h>
-#include <vtkPlaneSource.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
@@ -76,8 +75,7 @@
 #include <QDateTime>
 #include <QImage>
 #include <QLocale>
-#include <QApplication>
-#include <QImage>
+#include <QtGlobal> // for QT_VERSION
 
 #define VTKISRBP_ORIENT 0
 #define VTKISRBP_SELECT 1
@@ -85,11 +83,11 @@
 static void GetCellCenter(vtkUnstructuredGrid* imageData, const unsigned int cellId,
 	double center[3], double spacing[3]);
 
-class MouseInteractorStyle : public vtkInteractorStyleRubberBandPick
+class iAMouseInteractorStyle : public vtkInteractorStyleRubberBandPick
 {
 public:
-	static MouseInteractorStyle* New();
-	
+	static iAMouseInteractorStyle* New();
+
 	virtual void OnChar()
 	{
 		switch (this->Interactor->GetKeyCode())
@@ -125,9 +123,9 @@ public:
 		}
 	}
 };
-vtkStandardNewMacro(MouseInteractorStyle);
+vtkStandardNewMacro(iAMouseInteractorStyle);
 
-void KeyPressCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
+void KeyPressCallbackFunction(vtkObject* /*caller*/, long unsigned int /*eventId*/,
 	void* clientData, void* vtkNotUsed(callData))
 {
 	iARenderer *ren = static_cast<iARenderer*>(clientData);
@@ -157,7 +155,7 @@ void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventI
 		ren->emitNoSelectedCells();
 		return;
 	}
-	
+
 	if (ren->interactor()->GetControlKey() &&
 		!ren->interactor()->GetShiftKey())
 	{
@@ -171,7 +169,7 @@ void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventI
 	else if (ren->interactor()->GetControlKey() &&
 		ren->interactor()->GetShiftKey())
 	{
-		// Removes cells from selection 
+		// Removes cells from selection
 		auto newfinalSel = vtkSmartPointer<vtkUnstructuredGrid>::New();
 		newfinalSel->Allocate(1, 1);
 		newfinalSel->SetPoints(ren->finalSelection()->GetPoints());
@@ -196,9 +194,11 @@ void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventI
 				}
 			}
 			if (addCell)
+			{
 				newfinalSel->InsertNextCell(ren->finalSelection()->GetCell(i)->GetCellType(),
 					ren->finalSelection()->GetCell(i)->GetPointIds());
-		}		
+			}
+		}
 		ren->finalSelection()->ShallowCopy(newfinalSel);
 	}
 	else
@@ -216,41 +216,40 @@ void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double 
 	double pcoords[DIM] = { 0,0,0 };
 	double *weights = new double[data->GetMaxCellSize()];
 	vtkCell* cell = data->GetCell(cellId);
-	int np = cell->GetPoints()->GetNumberOfPoints();
 	int subId = cell->GetParametricCenter(pcoords);
 	cell->EvaluateLocation(subId, pcoords, center, weights);
 	for (int i = 0; i < DIM; ++i)
+	{
 		center[i] = floor(center[i] / spacing[i]);
+	}
 }
 
 iARenderer::iARenderer(QObject *par)  :  QObject( par ),
-	m_interactor(nullptr),
 	m_renderObserver(nullptr),
+	m_interactor(nullptr),
 	m_imageData(nullptr),
 	m_renWin(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New()),		// TODO: move out of here?
+	m_ren(vtkSmartPointer<vtkOpenGLRenderer>::New()),
+	m_labelRen(vtkSmartPointer<vtkOpenGLRenderer>::New()),
 	m_cam(vtkSmartPointer<vtkCamera>::New()),
-	m_cSource(vtkSmartPointer<vtkCubeSource>::New()),
-	m_cMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_cActor(vtkSmartPointer<vtkActor>::New()),
+	m_cellLocator(vtkSmartPointer<vtkCellLocator>::New()),
+	m_polyMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_polyActor(vtkSmartPointer<vtkActor>::New()),
 	m_logoRep(vtkSmartPointer<vtkLogoRepresentation>::New()),
 	m_logoWidget(vtkSmartPointer<vtkLogoWidget>::New()),
 	m_logoImage(vtkSmartPointer<vtkQImageToImageSource>::New()),
-	m_labelRen(vtkSmartPointer<vtkOpenGLRenderer>::New()),
-	m_ren(vtkSmartPointer<vtkOpenGLRenderer>::New()),
-	m_polyMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_polyActor(vtkSmartPointer<vtkActor>::New()),
+	m_txtActor(vtkSmartPointer<vtkTextActor>::New()),
+	m_cSource(vtkSmartPointer<vtkCubeSource>::New()),
+	m_cMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_cActor(vtkSmartPointer<vtkActor>::New()),
+	m_ext(1),
 	m_annotatedCubeActor(vtkSmartPointer<vtkAnnotatedCubeActor>::New()),
 	m_axesActor(vtkSmartPointer<vtkAxesActor>::New()),
-	m_moveableAxesActor(vtkSmartPointer<vtkAxesActor>::New()),
 	m_orientationMarkerWidget(vtkSmartPointer<vtkOrientationMarkerWidget>::New()),
 	m_plane1(vtkSmartPointer<vtkPlane>::New()),
 	m_plane2(vtkSmartPointer<vtkPlane>::New()),
 	m_plane3(vtkSmartPointer<vtkPlane>::New()),
-	m_slicingCube(vtkSmartPointer<vtkCubeSource>::New()),
-	m_sliceCubeMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_sliceCubeActor(vtkSmartPointer<vtkActor>::New()),
-	m_txtActor(vtkSmartPointer<vtkTextActor>::New()),
-	m_cellLocator(vtkSmartPointer<vtkCellLocator>::New()),
+	m_moveableAxesActor(vtkSmartPointer<vtkAxesActor>::New()),
 	m_profileLineSource(vtkSmartPointer<vtkLineSource>::New()),
 	m_profileLineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_profileLineActor(vtkSmartPointer<vtkActor>::New()),
@@ -260,13 +259,12 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	m_profileLineEndPointSource(vtkSmartPointer<vtkSphereSource>::New()),
 	m_profileLineEndPointMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_profileLineEndPointActor(vtkSmartPointer<vtkActor>::New()),
-	m_slicePlaneOpacity(0.8)
+	m_slicePlaneOpacity(0.8),
+	m_slicingCube(vtkSmartPointer<vtkCubeSource>::New()),
+	m_sliceCubeMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_sliceCubeActor(vtkSmartPointer<vtkActor>::New())
 {
 	m_ren->SetLayer(0);
-	m_ren->UseDepthPeelingOn();
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	m_ren->UseDepthPeelingForVolumesOn();
-#endif
 	m_labelRen->SetLayer(1);
 	m_labelRen->InteractiveOff();
 	m_labelRen->UseDepthPeelingOn();
@@ -288,7 +286,8 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	m_txtActor->SetDragable(false);
 	for (int s = 0; s < 3; ++s)
 	{
-		m_slicePlaneSource[s] = vtkSmartPointer<vtkPlaneSource>::New();
+		m_slicePlaneSource[s] = vtkSmartPointer<vtkCubeSource>::New();
+		//m_slicePlaneSource[s]->SetOutputPointsPrecision(10);
 		m_slicePlaneMapper[s] = vtkSmartPointer<vtkPolyDataMapper>::New();
 		m_slicePlaneActor[s] = vtkSmartPointer<vtkActor>::New();
 		m_slicePlaneActor[s]->GetProperty()->LightingOff();
@@ -308,7 +307,10 @@ iARenderer::~iARenderer(void)
 {
 	m_ren->RemoveAllObservers();
 	m_renWin->RemoveAllObservers();
-	if (m_renderObserver) m_renderObserver->Delete();
+	if (m_renderObserver)
+	{
+		m_renderObserver->Delete();
+	}
 }
 
 void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
@@ -318,7 +320,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 	double spacing[3];	ds->GetSpacing(spacing);
 
 	m_interactor = m_renWin->GetInteractor();
-	setPointPicker();	
+	setPointPicker();
 	initObserver();
 
 	QImage img;
@@ -381,7 +383,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 	m_sliceCubeActor->SetMapper(m_sliceCubeMapper);
 	m_sliceCubeActor->GetProperty()->SetColor(1.0, 0, 0);
 	m_sliceCubeActor->GetProperty()->SetRepresentationToWireframe();
-	m_sliceCubeActor->GetProperty()->SetOpacity(1); 
+	m_sliceCubeActor->GetProperty()->SetOpacity(1);
 	m_sliceCubeActor->GetProperty()->SetLineWidth(2.3);
 	m_sliceCubeActor->GetProperty()->SetAmbient(1.0);
 	m_sliceCubeActor->GetProperty()->SetDiffuse(0.0);
@@ -420,7 +422,7 @@ void iARenderer::setAreaPicker()
 {
 	auto areaPicker = vtkSmartPointer<vtkAreaPicker>::New();
 	m_interactor->SetPicker(areaPicker);
-	auto style = vtkSmartPointer<MouseInteractorStyle>::New();
+	auto style = vtkSmartPointer<iAMouseInteractorStyle>::New();
 	m_interactor->SetInteractorStyle(style);
 
 	auto keyPressCallback = vtkSmartPointer<vtkCallbackCommand>::New();
@@ -534,6 +536,8 @@ void iARenderer::setupRenderer()
 	m_polyMapper->SelectColorArray("Colors");
 	m_polyMapper->SetScalarModeToUsePointFieldData();
 	m_polyActor->SetMapper(m_polyMapper);
+	m_polyActor->SetPickable(false);
+	m_polyActor->SetDragable(false);
 
 	m_ren->GradientBackgroundOn();
 	m_ren->AddActor2D(m_txtActor);
@@ -544,14 +548,16 @@ void iARenderer::setupRenderer()
 	m_ren->AddActor(m_profileLineActor);
 	m_ren->AddActor(m_profileLineStartPointActor);
 	m_ren->AddActor(m_profileLineEndPointActor);
-	m_ren->AddActor(m_sliceCubeActor); 
+	m_ren->AddActor(m_sliceCubeActor);
 	emit onSetupRenderer();
 }
 
 void iARenderer::update()
 {
 	if (m_polyData)
+	{
 		m_polyMapper->Update();
+	}
 	m_ren->Render();
 	m_renWin->Render();
 	m_renWin->GetInteractor()->Render();
@@ -575,9 +581,13 @@ void iARenderer::showSlicePlanes(bool show)
 	for (int s = 0; s < 3; ++s)
 	{
 		if (show)
+		{
 			m_ren->AddActor(m_slicePlaneActor[s]);
+		}
 		else
+		{
 			m_ren->RemoveActor(m_slicePlaneActor[s]);
+		}
 		m_slicePlaneActor[s]->GetProperty()->SetOpacity(m_slicePlaneOpacity);
 	}
 }
@@ -604,7 +614,8 @@ void iARenderer::setPlaneNormals( vtkTransform *tr )
 
 void iARenderer::setCubeCenter( int x, int y, int z )
 {
-	if (m_interactor->GetEnabled()) {
+	if (m_interactor->GetEnabled())
+	{
 		m_cSource->SetCenter( x * m_imageData->GetSpacing()[0],
 			y * m_imageData->GetSpacing()[1],
 			z * m_imageData->GetSpacing()[2] );
@@ -651,9 +662,10 @@ void iARenderer::setCamPosition( double * camOptions, bool rsParallelProjection 
 	m_cam->SetPosition ( camOptions[3], camOptions[4], camOptions[5] );
 	m_cam->SetFocalPoint( camOptions[6], camOptions[7], camOptions[8] );
 
-	if(rsParallelProjection)
-		m_cam->SetParallelScale( camOptions[9] );
-
+	if (rsParallelProjection)
+	{
+		m_cam->SetParallelScale(camOptions[9]);
+	}
 	update();
 }
 
@@ -679,7 +691,9 @@ void iARenderer::setStatExt(int s)
 void iARenderer::updatePositionMarkerExtent()
 {
 	if (!m_imageData)
+	{
 		return;
+	}
 	double const * spacing = m_imageData->GetSpacing();
 	m_cSource->SetXLength(m_ext * spacing[0]);
 	m_cSource->SetYLength(m_ext * spacing[1]);
@@ -702,8 +716,9 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	auto movieWriter = GetMovieWriter(fileName, qual);
 
 	if (movieWriter.GetPointer() == nullptr)
+	{
 		return;
-
+	}
 	// save current state and disable interaction:
 	m_interactor->Disable();
 	auto oldCam = vtkSmartPointer<vtkCamera>::New();
@@ -712,8 +727,14 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	// set up movie export pipeline:
 	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
 	int* rws = m_renWin->GetSize();
-	if (rws[0] % 2 != 0) rws[0]++;
-	if (rws[1] % 2 != 0) rws[1]++;
+	if (rws[0] % 2 != 0)
+	{
+		rws[0]++;
+	}
+	if (rws[1] % 2 != 0)
+	{
+		rws[1]++;
+	}
 	m_renWin->SetSize(rws);
 	m_renWin->Render();
 	windowToImage->SetInput(m_renWin);
@@ -784,22 +805,30 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	m_interactor->Enable();
 
 	if (movieWriter->GetError())
+	{
 		emit msg(tr("Movie export failed."));
+	}
 	else
+	{
 		emit msg(tr("Movie export completed."));
+	}
 }
 
 void iARenderer::mouseRightButtonReleasedSlot()
 {
 	if (!m_interactor)
+	{
 		return;
+	}
 	m_interactor->InvokeEvent(vtkCommand::RightButtonReleaseEvent);
 }
 
 void iARenderer::mouseLeftButtonReleasedSlot()
 {
 	if (!m_interactor)
+	{
 		return;
+	}
 	m_interactor->InvokeEvent(vtkCommand::LeftButtonReleaseEvent);
 }
 
@@ -846,11 +875,15 @@ void iARenderer::setPolyData(vtkPolyData* pd)
 {
 	m_polyData = pd;
 	if (!m_polyData)
+	{
 		return;
+	}
 	m_polyMapper->SetInputData(m_polyData);
 	m_cellLocator->SetDataSet(m_polyData);
 	if (m_polyData->GetNumberOfCells())
+	{
 		m_cellLocator->BuildLocator();
+	}
 }
 
 void iARenderer::addRenderer(vtkRenderer* renderer)
@@ -915,11 +948,16 @@ void iARenderer::setSlicePlanePos(int planeID, double originX, double originY, d
 
 void iARenderer::applySettings(iARenderSettings const & settings)
 {
+	m_ren->SetUseDepthPeeling(settings.UseDepthPeeling);
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
+	m_ren->SetUseDepthPeelingForVolumes(settings.UseDepthPeeling);
+#endif
+	m_ren->SetMaximumNumberOfPeels(settings.DepthPeels);
 	m_ren->SetUseFXAA(settings.UseFXAA);
 	m_cam->SetParallelProjection(settings.ParallelProjection);
 	QColor bgTop(settings.BackgroundTop);
 	QColor bgBottom(settings.BackgroundBottom);
-	
+
 	setSlicePlaneOpacity(settings.PlaneOpacity);
 
 	m_ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
@@ -952,35 +990,30 @@ void iARenderer::updateSlicePlanes(double const * newSpacing)
 {
 	if (!newSpacing)
 	{
-		DEBUG_LOG("Spacing is NULL");
+		DEBUG_LOG("Spacing is nullptr");
 		return;
 	}
 	double const * spc = newSpacing;
 
-	double center[3], origin[3];
 	const int * dim = m_imageData->GetDimensions();
 	if (dim[0] == 0 || dim[1] == 0 || dim[2] == 0)
+	{
 		return;
+	}
+	double center[3];
 	for (int i = 0; i < 3; ++i)
 	{
 		center[i] = dim[i] * spc[i] / 2;
-		origin[i] = 0;
 	}
 	for (int s = 0; s < 3; ++s)
 	{
-		m_slicePlaneSource[s]->SetOrigin(origin);
-		double point1[3], point2[3];
-		for (int j = 0; j < 3; ++j)
-		{
-			point1[j] = 0;
-			point2[j] = 0;
-		}
-		int slicerXAxisIdx = mapSliceToGlobalAxis(s, iAAxisIndex::X);
-		int slicerYAxisIdx = mapSliceToGlobalAxis(s, iAAxisIndex::Y);
-		point1[slicerXAxisIdx] += 1.1 * dim[slicerXAxisIdx] * spc[slicerXAxisIdx];
-		point2[slicerYAxisIdx] += 1.1 * dim[slicerYAxisIdx] * spc[slicerYAxisIdx];
-		m_slicePlaneSource[s]->SetPoint1(point1);
-		m_slicePlaneSource[s]->SetPoint2(point2);
+		const double LenMultiplier = 1.3;
+		m_slicePlaneSource[s]->SetXLength((s == iASlicerMode::XY || s == iASlicerMode::XZ) ?
+				LenMultiplier * dim[0] * spc[0] : spc[0]);
+		m_slicePlaneSource[s]->SetYLength((s == iASlicerMode::XY || s == iASlicerMode::YZ) ?
+				LenMultiplier * dim[1] * spc[1] : spc[1]);
+		m_slicePlaneSource[s]->SetZLength((s == iASlicerMode::XZ || s == iASlicerMode::YZ) ?
+				LenMultiplier * dim[2] * spc[2] : spc[2]);
 		m_slicePlaneSource[s]->SetCenter(center);
 	}
 }

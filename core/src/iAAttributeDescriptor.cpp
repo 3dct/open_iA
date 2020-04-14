@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,6 +22,7 @@
 
 #include "iAConsole.h"
 #include "iAListNameMapper.h"
+#include "iAStringHelper.h"
 
 const QString iAAttributeDescriptor::ValueSplitString(",");
 
@@ -39,37 +40,6 @@ namespace
 
 	const QString UnknownStr("Unknown");
 }
-
-#include <cassert>
-
-template <typename T>
-struct Converter
-{
-	static T convert(QString str, bool * ok)
-	{
-		DEBUG_LOG("Unspecialized Converter called! This should not happen!\n");
-		assert(false);
-		return std::numeric_limits<T>::signaling_NaN();
-	}
-};
-
-template <>
-struct Converter<int>
-{
-	static int convert(QString str, bool * ok)
-	{
-		return str.toInt(ok);
-	}
-};
-
-template <>
-struct Converter<double>
-{
-	static double convert(QString str, bool * ok)
-	{
-		return str.toDouble(ok);
-	}
-};
 
 
 iAAttributeDescriptor::iAAttributeType Str2AttribType(QString const & str)
@@ -120,35 +90,35 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 		DEBUG_LOG(QString("Not enough tokens in attribute descriptor '%1'").arg(def));
 		return QSharedPointer<iAAttributeDescriptor>();
 	}
-	switch (result->valueType())
+	if (result->valueType() == Continuous || result->valueType() == Discrete)
 	{
-		case Continuous:	// intentional fall-through!
-		case Discrete:
+		result->m_logarithmic = false;
+		bool minOk = true, maxOk = true;
+		result->m_min = iAConverter<double>::toT(defTokens[3], &minOk);
+		result->m_max = iAConverter<double>::toT(defTokens[4], &maxOk);
+		if (!minOk || !maxOk)
 		{
-			result->m_logarithmic = false;
-			bool minOk = true, maxOk = true;
-			result->m_min = Converter<double>::convert(defTokens[3], &minOk);
-			result->m_max = Converter<double>::convert(defTokens[4], &maxOk);
-			if (!minOk || !maxOk)
-			{
-				DEBUG_LOG(QString("Minimum or maximum of attribute couldn't be parsed in line %1\n").arg(def));
-				return QSharedPointer<iAAttributeDescriptor>();
-			}
-			if (defTokens.size() >= 6)
-				result->m_logarithmic = (defTokens[5] == LogarithmicStr);
-			if (defTokens.size() > 6)
-				DEBUG_LOG(QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
-			break;
+			DEBUG_LOG(QString("Minimum or maximum of attribute couldn't be parsed in line %1\n").arg(def));
+			return QSharedPointer<iAAttributeDescriptor>();
 		}
-		case Categorical:
+		if (defTokens.size() >= 6)
 		{
-			QStringList categories = defTokens[3].split(CategoricalValueSplitString);
-			result->m_min = 0;
-			result->m_max = categories.size()-1;
-			result->m_nameMapper = QSharedPointer<iAListNameMapper>(new iAListNameMapper(categories));
-			if (defTokens.size() > 5)
-				DEBUG_LOG(QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
-			break;
+			result->m_logarithmic = (defTokens[5] == LogarithmicStr);
+		}
+		if (defTokens.size() > 6)
+		{
+			DEBUG_LOG(QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
+		}
+	}
+	else if (result->valueType() == Categorical)
+	{
+		QStringList categories = defTokens[3].split(CategoricalValueSplitString);
+		result->m_min = 0;
+		result->m_max = categories.size()-1;
+		result->m_nameMapper = QSharedPointer<iAListNameMapper>(new iAListNameMapper(categories));
+		if (defTokens.size() > 5)
+		{
+			DEBUG_LOG(QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
 		}
 	}
 	return result;
@@ -165,29 +135,42 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::createParam(
 	return result;
 }
 
+QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::clone() const
+{
+	auto result = QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(m_name, m_attribType, m_valueType));
+	result->m_min = m_min;
+	result->m_max = m_max;
+	result->m_defaultValue = m_defaultValue;
+	result->m_logarithmic = m_logarithmic;
+	result->m_nameMapper = m_nameMapper;
+	return result;
+}
 
 QString iAAttributeDescriptor::toString() const
 {
 	QString result = name() + AttributeSplitString +
 		AttribType2Str(attribType()) + AttributeSplitString +
 		ValueType2Str(valueType()) + AttributeSplitString;
-	switch (valueType())
+	if (valueType() == Continuous || valueType() == Discrete)
 	{
-		case iAValueType::Continuous: // intentional fall-through!
-		case iAValueType::Discrete:
-			result += QString::number(min()) + AttributeSplitString + QString::number(max()) + AttributeSplitString + (m_logarithmic ? LogarithmicStr : LinearStr);
-			break;
-		case iAValueType::Categorical:	{
-			if (!m_nameMapper)
+		result += QString::number(min()) + AttributeSplitString + QString::number(max()) + AttributeSplitString + (m_logarithmic ? LogarithmicStr : LinearStr);
+	}
+	else if (valueType() == iAValueType::Categorical)
+	{
+		if (!m_nameMapper)
+		{
+			DEBUG_LOG("nameMapper nullptr for categorical attribute!\n");
+			for (int i = min(); i <= max(); ++i)
 			{
-				DEBUG_LOG("nameMapper NULL for categorical attribute!\n");
-				for (int i = min(); i <= max(); ++i)
+				result += QString::number(i);
+				if (i < max())
 				{
-					result += QString::number(i);
-					if (i < max()) result += CategoricalValueSplitString;
+					result += CategoricalValueSplitString;
 				}
-				break;
 			}
+		}
+		else
+		{
 			for (int i = min(); i <= max(); ++i)
 			{
 				result += m_nameMapper->name(i);
@@ -196,7 +179,6 @@ QString iAAttributeDescriptor::toString() const
 					result += CategoricalValueSplitString;
 				}
 			}
-			break;
 		}
 	}
 	return result + "\n";
@@ -204,13 +186,16 @@ QString iAAttributeDescriptor::toString() const
 
 iAAttributeDescriptor::iAAttributeDescriptor(
 		QString const & name, iAAttributeType attribType, iAValueType valueType) :
-	m_name(name),
 	m_attribType(attribType),
 	m_valueType(valueType),
-	m_logarithmic(false)
+	m_logarithmic(false),
+	m_name(name)
 {
 	resetMinMax();	// TODO: check why we set it in constructor when it's reset again here anyway; maybe move this to where it's actually needed?
 }
+
+iAAttributeDescriptor::~iAAttributeDescriptor()
+{}
 
 iAAttributeDescriptor::iAAttributeType iAAttributeDescriptor::attribType() const
 {
@@ -255,6 +240,11 @@ QVariant iAAttributeDescriptor::defaultValue() const
 	return m_defaultValue;
 }
 
+void iAAttributeDescriptor::setDefaultValue(QVariant v)
+{
+	m_defaultValue = v;
+}
+
 QString const & iAAttributeDescriptor::name() const
 {
 	return m_name;
@@ -264,7 +254,6 @@ bool iAAttributeDescriptor::isLogScale() const
 {
 	return m_logarithmic;
 }
-
 
 void iAAttributeDescriptor::setLogScale(bool l)
 {

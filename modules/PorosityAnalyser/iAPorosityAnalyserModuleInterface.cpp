@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,11 +25,10 @@
 #include "iADatasetInfo.h"
 #include "iADragFilterWidget.h"
 #include "iADropPipelineWidget.h"
-//#include "PorosityAnalyserHelpers.h"
 #include "iAPorosityAnalyser.h"
 #include "iARunBatchThread.h"
 
-#include <CPUID.h>
+#include <iACPUID.h>
 #include <defines.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <mainwindow.h>
@@ -51,7 +50,10 @@ const int maxPipelineSlotsCount = 10;
 void iAPorosityAnalyserModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
+	{
 		return;
+	}
+	Q_INIT_RESOURCE(PorosityAnalyser);
 	qsrand(QTime::currentTime().msec());
 
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
@@ -60,19 +62,14 @@ void iAPorosityAnalyserModuleInterface::Initialize()
 	QAction * actionComputeSegmentations = new QAction( m_mainWnd );
 	actionComputeSegmentations->setText( QApplication::translate( "MainWindow", "Compute Segmentations", 0 ) );
 
-	//QAction * actionCalcPoreProps = new QAction( m_mainWnd );
-	//actionCalcPoreProps->setText( QApplication::translate( "MainWindow", "Compute Pore Properties", 0 ) );
-
 	QAction * actionRunPA = new QAction( m_mainWnd );
 	actionRunPA->setText( QApplication::translate( "MainWindow", "Analyze Segmentations", 0 ) );
 
 	menuPorosityAnalyser->addAction( actionComputeSegmentations );
-	//menuPorosityAnalyser->addAction( actionCalcPoreProps );
 	menuPorosityAnalyser->addAction( actionRunPA );
 
 	//connect signals to slots
 	connect( actionComputeSegmentations, SIGNAL( triggered() ), this, SLOT( computeParameterSpace() ) );
-	//connect( actionCalcPoreProps, SIGNAL( triggered() ), this, SLOT( launchCalcPoreProps() ) );
 	connect( actionRunPA, SIGNAL( triggered() ), this, SLOT( launchPorosityAnalyser() ) );
 
 	//Read settings
@@ -107,24 +104,24 @@ void iAPorosityAnalyserModuleInterface::Initialize()
 	setupTableWidgetContextMenu();
 
 	//Get CPU info
-	m_cpuVendor = CPUID::GetCPUVendor().toLocal8Bit().data();
-	m_cpuBrand = CPUID::GetCPUBrand().toLocal8Bit().data();
+	m_cpuVendor = iACPUID::cpuVendor().toLocal8Bit().data();
+	m_cpuBrand = iACPUID::cpuBrand().toLocal8Bit().data();
 }
 
 void iAPorosityAnalyserModuleInterface::computeParameterSpace()
 {
-	// TODO: move comp segmentation dialog to own class 
-	
+	// TODO: move comp segmentation dialog to own class
+
 	while ( QWidget* w = uiComputeSegm.dragWidget->findChild<QWidget*>() )
 		delete w;
-	
+
 	m_pipelineSlotIconSize = QPixmap( ":/images/dataset2.png" ).size();
 	if ( m_pipelineSlotsCount > 0 )
 		m_compSegmWidget->setFixedWidth( m_compSegmWidget->width() -
 		( ( m_pipelineSlotsCount - minPipelineSlotsCount ) *
 		m_pipelineSlotIconSize.width() ) );
 	m_pipelineSlotsCount = minPipelineSlotsCount;
-	
+
 	// Datasets box
 	QDir datasetDir( m_datasetsFolder );
 	datasetDir.setNameFilters( QStringList() << "*.mhd" );
@@ -217,7 +214,7 @@ void iAPorosityAnalyserModuleInterface::computeParameterSpace()
 	m_dropPipelineContainer->setObjectName( "dropPipelineContainer" );
 	m_dropPipelineContainer->setFixedWidth( m_pipelineSlotIconSize.width() * m_pipelineSlotsCount );
 	QHBoxLayout *m_hLayoutDropPipelineContainer = new QHBoxLayout;
-	iADropPipelineWidget* m_dropPipelineWidget = new iADropPipelineWidget( m_pipelineSlotIconSize.width() * m_pipelineSlotsCount, 
+	iADropPipelineWidget* m_dropPipelineWidget = new iADropPipelineWidget( m_pipelineSlotIconSize.width() * m_pipelineSlotsCount,
 																		   m_pipelineSlotsCount, m_datasetsFolder, m_dropPipelineContainer );
 	m_dropPipelineWidget->setObjectName( "dropPipelineWidget" );
 	m_hLayoutDropPipelineContainer->addWidget( m_dropPipelineWidget );
@@ -245,7 +242,7 @@ void iAPorosityAnalyserModuleInterface::computeParameterSpace()
 	btAddPipeline->setToolTip( "Adds the pipeline to the table below." );
 	hLayoutDropAcceptPipelineButtonsContainer->addWidget( btAddPipeline );
 	dropAcceptPipelineButtonsContainer->setLayout( hLayoutDropAcceptPipelineButtonsContainer );
-	
+
 	QWidget* vSpacer1 = new QWidget();
 	vSpacer1->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Fixed );
 	vSpacer1->setFixedHeight( 1 );
@@ -318,9 +315,9 @@ void iAPorosityAnalyserModuleInterface::displayPipelineInSlots( QTableWidgetItem
 			for ( int i = 0; i < algoList.length(); ++i )
 				algoLabelList.append( dfw->getLabel( algoList[i] ) );
 
-			iADragFilterWidget* ddw = uiComputeSegm.dragWidget->findChild<iADragFilterWidget*>( "dragDatasetWidget" );
-			QString dataset = QString( "dataset_" + tw->item( selRow, 1 )->text() );
-			QLabel* datsetLabel = ddw->getLabel( dataset );
+			//iADragFilterWidget* ddw = uiComputeSegm.dragWidget->findChild<iADragFilterWidget*>( "dragDatasetWidget" );
+			//QString dataset = QString( "dataset_" + tw->item( selRow, 1 )->text() );
+			//QLabel* datsetLabel = ddw->getLabel( dataset );
 		}
 	}
 }
@@ -355,7 +352,7 @@ void iAPorosityAnalyserModuleInterface::browserDatasetsFolder()
 	m_datasetsFolder = QFileDialog::getExistingDirectory( m_mainWnd, tr( "Datasets folder" ), m_datasetsFolder,
 		QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
 	uiComputeSegm.datasetsFolder->setText( m_datasetsFolder );
-	computeParameterSpace();	//bad code; creates everything new in uiComputeSegm.dragWidget 
+	computeParameterSpace();	//bad code; creates everything new in uiComputeSegm.dragWidget
 }
 
 void iAPorosityAnalyserModuleInterface::runCalculations()
@@ -442,8 +439,10 @@ QString iAPorosityAnalyserModuleInterface::ComputerName() const
 void iAPorosityAnalyserModuleInterface::launchPorosityAnalyser()
 {
 	iADataFolderDialog * dlg = new iADataFolderDialog( m_mainWnd );
-	if( !dlg->exec() == QDialog::Accepted )
+	if (dlg->exec() != QDialog::Accepted)
+	{
 		return;
+	}
 
 	m_porosityAnalyser = new iAPorosityAnalyser(m_mainWnd, dlg->ResultsFolderName(), dlg->DatasetsFolderName(), m_mainWnd );
 	m_mainWnd->addSubWindow( m_porosityAnalyser );
@@ -497,7 +496,7 @@ void iAPorosityAnalyserModuleInterface::addPipeline()
 
 	QString algoStr, datasetStr = "dataset is missing", randSamplStr = "0";
 
-	// Find datasetName in the pipeline list   
+	// Find datasetName in the pipeline list
 	int datasetNameIdx = -1;
 	for ( int i = 0; i < pipeline.size(); ++i )
 	{
@@ -505,7 +504,7 @@ void iAPorosityAnalyserModuleInterface::addPipeline()
 			datasetNameIdx = i;
 	}
 
-	// No parameter setting without a dataset 
+	// No parameter setting without a dataset
 	if ( datasetNameIdx == -1 )
 	{
 		QMessageBox msgBox;
@@ -602,7 +601,7 @@ void iAPorosityAnalyserModuleInterface::resizePipeline()
 			m_compSegmWidget->setFixedWidth( m_compSegmWidget->width() + m_pipelineSlotIconSize.width() );
 		}
 	}
-	
+
 	if ( tb->objectName() == "decPipelineButton" )
 	{
 		if ( !dpw->isLastPipelineSlotEmpty() )
@@ -628,7 +627,7 @@ void iAPorosityAnalyserModuleInterface::resizePipeline()
 			return;
 		}
 	}
-	
+
 	dpw->updatePipelineSlots( m_pipelineSlotsCount, m_pipelineSlotIconSize.width() );
 	QWidget* dpc = uiComputeSegm.dragWidget->findChild<QWidget*>( "dropPipelineContainer" );
 	dpc->setFixedWidth( m_pipelineSlotsCount * m_pipelineSlotIconSize.width() );
@@ -670,7 +669,7 @@ void iAPorosityAnalyserModuleInterface::createTableWidgetActions()
 	connect( uiComputeSegm.tbSaveTable, SIGNAL( clicked() ), this, SLOT( saveCSV() ) );
 	connect( loadTableFromCSVAction, SIGNAL( triggered() ), this, SLOT( loadCSV() ) );
 	connect( uiComputeSegm.tbLoadTable, SIGNAL( clicked() ), this, SLOT( loadCSV() ) );
-	connect( uiComputeSegm.tableWidget, SIGNAL( itemClicked( QTableWidgetItem * ) ), 
+	connect( uiComputeSegm.tableWidget, SIGNAL( itemClicked( QTableWidgetItem * ) ),
 			 this, SLOT( displayPipelineInSlots( QTableWidgetItem * ) ) );
 }
 

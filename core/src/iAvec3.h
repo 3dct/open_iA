@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -36,8 +36,9 @@ public:
 	explicit iAVec3T(T px, T py, T pz);
 	//! initialize vector components from an array
 	explicit iAVec3T(T data[3]);
-	//! initialize vector components from another vector (of potentially different type)
-	iAVec3T(const iAVec3T<T>& v);
+	//! initialize vector components from another vector
+	template <typename ParamType>
+	iAVec3T(const iAVec3T<ParamType>& v);
 
 	//! assign another vector
 	template <typename ParamType> iAVec3T<T>& operator= (const iAVec3T<ParamType>& v);
@@ -104,7 +105,7 @@ template <typename T> bool operator== (const iAVec3T<T>& u, const iAVec3T<T>& v)
 template <typename T> bool operator!= (const iAVec3T<T>& u, const iAVec3T<T>& v);
 template <typename T> bool operator<  (const iAVec3T<T>& u, const iAVec3T<T>& v);
 template <typename T> bool operator>  (const iAVec3T<T>& u, const iAVec3T<T>& v);
-//! @
+//! @}
 
 //! @{
 //! basic arithmetical operations on two vectors / a vector and a value
@@ -162,10 +163,11 @@ iAVec3T<T>::iAVec3T(T data[3])
 }
 
 template <typename T>
-iAVec3T<T>::iAVec3T(const iAVec3T<T>& v)
+template <typename ParamType>
+iAVec3T<T>::iAVec3T(const iAVec3T<ParamType>& v)
 {
 	for (int i = 0; i<3; ++i)
-		values[i] = static_cast<T>(v.values[i]);
+		values[i] = static_cast<T>(v[i]);
 }
 
 template <typename T>

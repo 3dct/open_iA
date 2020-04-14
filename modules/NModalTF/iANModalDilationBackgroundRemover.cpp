@@ -22,77 +22,173 @@
 #include "iANModalDilationBackgroundRemover.h"
 
 #include "iANModalDisplay.h"
+#include "iANModalProgressWidget.h"
 
-#include "iAModality.h"
+#include <defines.h>  // for DIM
 #include "iAConnector.h"
-#include "iATypedCallHelper.h"
+#include "iAModality.h"
 #include "iASlicer.h"
+#include "iAToolsITK.h"
+#include "iATypedCallHelper.h"
 
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
 #include <vtkPiecewiseFunction.h>
 
+#include <itkBinaryBallStructuringElement.h>
+#include <itkBinaryDilateImageFilter.h>
+#include <itkBinaryErodeImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
+#include <itkConnectedComponentImageFilter.h>
 
 #include <QDialog>
-#include <QVBoxLayout>
+#include <QLabel>
+#include <QPushButton>
 #include <QSlider>
 #include <QSpinBox>
 #include <QStatusBar>
-#include <QLabel>
-#include <QPushButton>
+#include <QVBoxLayout>
 
-template<class T>
-void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector &conn, int loThresh, int upThresh) {
-	typedef itk::Image<T, 3> InputImageType;
-	typedef itk::Image<T, 3> OutputImageType;
+namespace
+{
+static const int BACKGROUND = 0;
+static const int FOREGROUND = 1;
+}
+
+template <class T>
+void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector &conn, int loThresh, int upThresh)
+{
+	typedef itk::Image<T, DIM> InputImageType;
+	typedef itk::Image<int, DIM> OutputImageType;
 	typedef itk::BinaryThresholdImageFilter<InputImageType, OutputImageType> BTIFType;
 
 	auto binThreshFilter = BTIFType::New();
 	binThreshFilter->SetLowerThreshold(loThresh);
 	binThreshFilter->SetUpperThreshold(upThresh);
-	binThreshFilter->SetOutsideValue(1);
-	binThreshFilter->SetInsideValue(0);
+	binThreshFilter->SetOutsideValue(BACKGROUND);
+	binThreshFilter->SetInsideValue(FOREGROUND);
 	binThreshFilter->SetInput(dynamic_cast<InputImageType *>(conn.itkImage()));
 	//filter->progress()->observe(binThreshFilter);
 	binThreshFilter->Update();
-	
-	conn.setImage(binThreshFilter->GetOutput());
+
+	m_itkTempImg = binThreshFilter->GetOutput();
+	conn.setImage(m_itkTempImg);
 }
 
-template<class T>
-void iANModalDilationBackgroundRemover::binary_threshold(ImagePointer itkImgPtr) {
-	/*typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< T, 3 >   OutputImageType;
-	typedef itk::BinaryThresholdImageFilter<InputImageType, OutputImageType> BTIFType;
-	typedef itk::Erosion...Filter
+void iANModalDilationBackgroundRemover::itkDilateAndCountConnectedComponents(
+	ImagePointer itkImgPtr, int &connectedComponentsOut, bool dilate /*= true*/)
+{
+	typedef itk::Image<int, DIM> ImageType;
+	typedef itk::ConnectedComponentImageFilter<ImageType, ImageType> CCIFType;
 
-		auto binThreshFilter = BTIFType::New();
-	binThreshFilter->SetLowerThreshold(loThresh);
-	binThreshFilter->SetUpperThreshold(upThresh);
-	binThreshFilter->SetOutsideValue(1);
-	binThreshFilter->SetInsideValue(0);
-	binThreshFilter->SetInput(dynamic_cast<InputImageType *>(conn.itkImage());
-	//filter->progress()->observe(binThreshFilter);
-	//binThreshFilter->Update();
+	typedef itk::FlatStructuringElement<DIM> StructuringElementType;
+	typename StructuringElementType::RadiusType elementRadius;
+	elementRadius.Fill(1);
+	auto structuringElement = StructuringElementType::Ball(elementRadius);
+	typedef itk::BinaryDilateImageFilter<ImageType, ImageType, StructuringElementType> BDIFType;
 
-	auto erosionFilter = ...;
-	//set everything
-	erosionFilter->SetInput(binThreshFilter->GetOutput());
-	erosionFilter->Update();
+	typename BDIFType::Pointer dilationFilter;
+	auto connCompFilter = CCIFType::New();
+
+	//iAProgress progress;
+
+	auto input = dynamic_cast<ImageType *>(itkImgPtr.GetPointer());
+	if (dilate)
+	{
+		// dilate the background (region of higher intensity)...
+		dilationFilter = BDIFType::New();
+		dilationFilter->SetDilateValue(BACKGROUND);
+		dilationFilter->SetKernel(structuringElement);
+		dilationFilter->SetInput(input);
+
+		//progress.observe(dilationFilter);
+
+		connCompFilter->SetInput(dilationFilter->GetOutput());
+	}
+	else
+	{
+		connCompFilter->SetInput(input);
+	}
+
+	// ...until the number of foreground components is equal to connectedComponents
+	connCompFilter->SetBackgroundValue(BACKGROUND);
+	//progress.observe(connCompFilter);
+	//filter->progress()->observe(connCompFilter);
+	connCompFilter->Update();
 
 	//filter->addOutput(binThreshFilter->GetOutput());
 	//conn.setImage(binThreshFilter->GetOutput());
-	m_itkTempImg = binThreshFilter->GetOutput();*/
+	m_itkTempImg = connCompFilter->GetOutput();
+
+	connectedComponentsOut = connCompFilter->GetObjectCount();
 }
 
-template<class T>
-void iANModalDilationBackgroundRemover::binary_threshold2(ImagePointer itkImgPtr) {
-	
+void iANModalDilationBackgroundRemover::itkCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponentsOut)
+{
+	itkDilateAndCountConnectedComponents(itkImgPtr, connectedComponentsOut, false);
 }
 
-iANModalDilationBackgroundRemover::iANModalDilationBackgroundRemover(MdiChild *mdiChild)
-	: m_mdiChild(mdiChild)
+void iANModalDilationBackgroundRemover::itkErode(ImagePointer itkImgPtr, int count)
+{
+	typedef itk::FlatStructuringElement<DIM> StructuringElementType;
+	typedef itk::Image<int, DIM> ImageType;
+	typedef itk::BinaryErodeImageFilter<ImageType, ImageType, StructuringElementType> BDIFType;
+
+	typename StructuringElementType::RadiusType elementRadius;
+	elementRadius.Fill(1);
+	auto structuringElement = StructuringElementType::Ball(elementRadius);
+
+	if (count <= 0)
+	{
+		m_itkTempImg = itkImgPtr;
+		return;
+	}
+
+	std::vector<typename BDIFType::Pointer> erosionFilters(count);
+	auto input = dynamic_cast<ImageType *>(itkImgPtr.GetPointer());
+	for (int i = 0; i < count; i++)
+	{
+		erosionFilters[i] = BDIFType::New();
+		erosionFilters[i]->SetKernel(structuringElement);
+		erosionFilters[i]->SetErodeValue(FOREGROUND);
+		erosionFilters[i]->SetInput(i == 0 ? input : erosionFilters[i - 1]->GetOutput());
+	}
+
+	erosionFilters[count - 1]->Update();
+
+	m_itkTempImg = erosionFilters[count - 1]->GetOutput();
+}
+
+#ifndef NDEBUG
+void iANModalDilationBackgroundRemover::showMask(QSharedPointer<iAModality> mod, vtkSmartPointer<vtkImageData> mask)
+{
+	QList<QSharedPointer<iAModality>> mods;
+	mods.append(mod);
+	auto display = new iANModalDisplay(new QWidget(), m_mdiChild, mods);
+	uint cid = display->createChannel();
+	auto cd = iAChannelData("Binary mask for " + mod->name(), mask, m_colorTf, m_opacityTf);
+	display->setChannelData(cid, cd);
+	iANModalDisplay::selectModalities(display);
+}
+void iANModalDilationBackgroundRemover::showMask(ImagePointer itkImgPtr)
+{
+	auto c = iAConnector();
+	c.setImage(itkImgPtr);
+	auto vtkImg = c.vtkImage();
+
+	QList<QSharedPointer<iAModality>> mods;
+	mods.append(QSharedPointer<iAModality>(new iAModality("Binary mask", "", -1, vtkImg, iAModality::NoRenderer)));
+	auto display = new iANModalDisplay(new QWidget(), m_mdiChild, mods);
+	auto cd = iAChannelData("temp", vtkImg, m_colorTf, m_opacityTf);
+	display->setChannelData(iANModalDisplay::MAIN_CHANNEL_ID, cd);
+	iANModalDisplay::selectModalities(display);
+}
+#else
+void iANModalDilationBackgroundRemover::showMask(QSharedPointer<iAModality> mod, vtkSmartPointer<vtkImageData> mask){}
+void iANModalDilationBackgroundRemover::showMask(ImagePointer itkImgPtr){}
+#endif
+
+iANModalDilationBackgroundRemover::iANModalDilationBackgroundRemover(MdiChild *mdiChild) : m_mdiChild(mdiChild)
 {
 	m_colorTf = vtkSmartPointer<vtkLookupTable>::New();
 	m_colorTf->SetNumberOfTableValues(2);
@@ -100,45 +196,52 @@ iANModalDilationBackgroundRemover::iANModalDilationBackgroundRemover(MdiChild *m
 	m_colorTf->SetTableValue(0.0, 0.0, 0.0, 0.0, 0.0);
 	m_colorTf->SetTableValue(1.0, 1.0, 0.0, 0.0, 0.5);
 	m_colorTf->Build();
-
-	// TODO: opacity tf
 }
 
-vtkSmartPointer<vtkImageData> iANModalDilationBackgroundRemover::removeBackground(QList<QSharedPointer<iAModality>> modalities) {
-
-	QSharedPointer<iAModality> mod;
+vtkSmartPointer<vtkImageData> iANModalDilationBackgroundRemover::removeBackground(
+	QList<QSharedPointer<iAModality>> modalities)
+{
+	QSharedPointer<iAModality> selectedMod;
 	int upThresh;
-	int loThresh = -1;
+	int loThresh = 0;
+	int regionCountGoal = 1;
 
-	bool success = selectModalityAndThreshold(nullptr, modalities, upThresh, mod);
-	if (!success) {
+	bool success = selectModalityAndThreshold(nullptr, modalities, upThresh, selectedMod);
+	if (!success)
+	{
 		return nullptr;
 	}
 
 	iAConnector conn;
-	conn.setImage(mod->image());
-	ImagePointer itkImgPtr = conn.itkImage();
+	//conn.setImage(mod->image());
+	conn.setImage(m_itkTempImg);
+	//ImagePointer itkImgPtr = conn.itkImage();
 
-	if (conn.itkPixelType() == itk::ImageIOBase::SCALAR) {
+	if (conn.itkPixelType() == itk::ImageIOBase::SCALAR)
+	{
 		// TODO
-	} else { // example if == itk::ImageIOBase::RGBA
+	}
+	else
+	{  // example if == itk::ImageIOBase::RGBA
 		return nullptr;
 	}
-	
-	ITK_TYPED_CALL(itkBinaryThreshold, conn.itkScalarPixelType(), conn, loThresh, upThresh);
 
-	// Perform dilations
-
-
-	conn.setImage(itkImgPtr);
-	auto image = conn.vtkImage();
-	return image; // If doesn't work, keep iAConnector alive (member variable)
+	success = iterativeDilation(m_itkTempImg, regionCountGoal);
+	if (success)
+	{
+		conn.setImage(m_itkTempImg);
+		return conn.vtkImage();  // If doesn't work, keep iAConnector alive (member variable)
+	}
+	else
+	{
+		return nullptr;
+	}
 }
 
 // return - true if a modality and a threshold were successfully chosen
 //        - false otherwise
-bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *parent, QList<QSharedPointer<iAModality>> modalities,
-	int &out_threshold, QSharedPointer<iAModality> &out_modality)
+bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *parent,
+	QList<QSharedPointer<iAModality>> modalities, int &out_threshold, QSharedPointer<iAModality> &out_modality)
 {
 	QDialog *dialog = new QDialog(parent);
 	// TODO: set dialog title
@@ -146,11 +249,13 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 
 	auto layout = new QVBoxLayout(dialog);
 
-	
+
 	auto displayWidget = new QWidget(dialog);
-	auto displayLayout = new QVBoxLayout(displayWidget);  {
-		auto displayLabel = new QLabel("Select modality for the thresholding step of the dilation-based background removal", displayWidget);
-		
+	auto displayLayout = new QVBoxLayout(displayWidget);
+	{
+		auto displayLabel = new QLabel(
+			"Select modality for the thresholding step of the dilation-based background removal", displayWidget);
+
 		m_display = new iANModalDisplay(displayWidget, m_mdiChild, modalities, 1, 1);
 		m_threholdingMaskChannelId = m_display->createChannel();
 		//connect(m_display, SIGNAL(selectionChanged()), this, SLOT(updateThreshold()));
@@ -165,7 +270,8 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 	}
 
 	auto thresholdWidget = new QWidget(dialog);
-	auto thresholdLayout = new QVBoxLayout(thresholdWidget); {
+	auto thresholdLayout = new QVBoxLayout(thresholdWidget);
+	{
 		auto thresholdLabel = new QLabel("Set threshold", thresholdWidget);
 
 		m_threshold = new iANModalThresholdingWidget(thresholdWidget);
@@ -178,38 +284,19 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 		thresholdWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	}
 
-	auto footerWigdet = new QWidget(dialog);
-	auto footerLabel = new QLabel(footerWigdet);
-	auto footerLayout = new QHBoxLayout(footerWigdet); {
-		auto footerOK = new QPushButton("OK");
-		QObject::connect(footerOK, SIGNAL(clicked()), dialog, SLOT(accept()));
-
-		auto footerCancel = new QPushButton("Cancel");
-		QObject::connect(footerCancel, SIGNAL(clicked()), dialog, SLOT(reject()));
-
-		footerLayout->addWidget(footerLabel);
-		footerLayout->setStretchFactor(footerLabel, 1);
-
-		footerLayout->addWidget(footerOK);
-		footerLayout->setStretchFactor(footerOK, 0);
-		
-		footerLayout->addWidget(footerCancel);
-		footerLayout->setStretchFactor(footerCancel, 0);
-
-		footerWigdet->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-	}
-
 	layout->addWidget(displayWidget);
 	layout->setStretchFactor(displayWidget, 1);
 
 	layout->addWidget(thresholdWidget);
 	layout->setStretchFactor(thresholdWidget, 0);
 
-	layout->addWidget(footerWigdet);
-	layout->setStretchFactor(footerWigdet, 0);
+	QWidget *footerWidget = iANModalDisplay::createOkCancelFooter(dialog);
+	layout->addWidget(footerWidget);
+	layout->setStretchFactor(footerWidget, 0);
 
 	auto dialogCode = dialog->exec();
-	if (dialogCode == QDialog::Rejected) {
+	if (dialogCode == QDialog::Rejected)
+	{
 		return false;
 	}
 
@@ -219,11 +306,13 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 	return true;
 }
 
-void iANModalDilationBackgroundRemover::updateModalitySelected() {
+void iANModalDilationBackgroundRemover::updateModalitySelected()
+{
 	setModalitySelected(m_display->singleSelection());
 }
 
-void iANModalDilationBackgroundRemover::setModalitySelected(QSharedPointer<iAModality> modality) {
+void iANModalDilationBackgroundRemover::setModalitySelected(QSharedPointer<iAModality> modality)
+{
 	double range[2];
 	modality->image()->GetScalarRange(range);
 	double min = range[0];
@@ -239,7 +328,8 @@ void iANModalDilationBackgroundRemover::setModalitySelected(QSharedPointer<iAMod
 	//updateThreshold(); // already happens at spinBox()->setValue(value)
 }
 
-void iANModalDilationBackgroundRemover::updateThreshold() {
+void iANModalDilationBackgroundRemover::updateThreshold()
+{
 	auto modality = m_display->singleSelection();
 	int threshold = m_threshold->threshold();
 
@@ -248,21 +338,49 @@ void iANModalDilationBackgroundRemover::updateThreshold() {
 	ITK_TYPED_CALL(itkBinaryThreshold, conn.itkScalarPixelType(), conn, 0, threshold);
 	auto mask = conn.vtkImage();
 
-	/*m_labelColorTF = iALUT::BuildLabelColorTF(m_itemModel->rowCount(), m_colorTheme);
-	m_labelOpacityTF = iALUT::BuildLabelOpacityTF(m_itemModel->rowCount());
-	
-	auto channelData = slicerData->channelData;
-	channelData.setColorTF(m_labelColorTF);
-	channelData.setOpacityTF(m_labelOpacityTF);*/
-
 	auto channelData = iAChannelData("Threshold mask", mask, m_colorTf);
 	m_display->setChannelData(m_threholdingMaskChannelId, channelData);
 }
 
+bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int regionCountGoal)
+{
+	QLabel *statusLabel = new QLabel("Total progress");
+	QLabel *filterLabel = new QLabel("Filter progress");
+	QLabel *dilationsLabel = new QLabel("Dilations progress");
+
+	iANModalProgressWidget *progress = new iANModalProgressWidget();
+	int status = progress->addProgressBar(3, statusLabel, true);  // 3 steps: counts; counts+dilations; erosions
+	progress->addSeparator();
+	int filter = progress->addProgressBar(100, filterLabel, true);  // 100 steps, because that's how iAProgress works
+	int dilations = progress->addProgressBar(1, dilationsLabel, false);  // unkown number of steps... change later
+	progress->show();
+
+	// Now begin the heavy computation
+
+	int connectedComponents;
+
+	itkCountConnectedComponents(mask, connectedComponents);
+	//storeImage(m_itkTempImg, "connectedComponents.mhd", true);
+
+	int dilationCount = 0;
+	while (connectedComponents > regionCountGoal)
+	{
+		itkDilateAndCountConnectedComponents(m_itkTempImg, connectedComponents);
+		//storeImage(m_itkTempImg, "connectedComponents" + QString::number(dilationCount) + ".mhd", true);
+		dilationCount++;
+	}
+
+	itkErode(m_itkTempImg, dilationCount);
+
+	return true;
+}
 
 
-iANModalThresholdingWidget::iANModalThresholdingWidget(QWidget *parent) :
-	QWidget(parent)
+// ----------------------------------------------------------------------------------------------
+// iANModalThresholdingWidget
+// ----------------------------------------------------------------------------------------------
+
+iANModalThresholdingWidget::iANModalThresholdingWidget(QWidget *parent) : QWidget(parent)
 {
 	int min = 0;
 	int max = 0;
@@ -297,18 +415,22 @@ iANModalThresholdingWidget::iANModalThresholdingWidget(QWidget *parent) :
 	connect(m_spinBox, SIGNAL(valueChanged(int)), this, SIGNAL(thresholdChanged(int)));
 }
 
-void iANModalThresholdingWidget::setThreshold(int threshold) {
+void iANModalThresholdingWidget::setThreshold(int threshold)
+{
 	m_threshold = threshold;
 }
 
-int iANModalThresholdingWidget::threshold() {
+int iANModalThresholdingWidget::threshold()
+{
 	return m_threshold;
 }
 
-QSlider* iANModalThresholdingWidget::slider() {
+QSlider *iANModalThresholdingWidget::slider()
+{
 	return m_slider;
 }
 
-QSpinBox* iANModalThresholdingWidget::spinBox() {
+QSpinBox *iANModalThresholdingWidget::spinBox()
+{
 	return m_spinBox;
 }

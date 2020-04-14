@@ -19,7 +19,7 @@
 #ifndef _COMMON_HPP_
 #define _COMMON_HPP_
 
-#include <assert.h>
+#include <cassert>
 
 #define H_INLINE	inline
 

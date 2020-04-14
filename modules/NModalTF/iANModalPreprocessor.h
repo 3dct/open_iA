@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "mdichild.h"
+
 #include <vtkSmartPointer.h>
 
 #include <QList>
@@ -31,31 +33,30 @@ class iAModality;
 class iANModalModalityReducer;
 class iANModalBackgroundRemover;
 
-
-
-struct iANModalPreprocessorOutput {
-	QList<QSharedPointer<iAModality>> modalities;
-	//bool hasMask = false;
-	vtkSmartPointer<vtkImageData> mask;
-};
-
-
-
 class iANModalPreprocessor {
 
 public:
-	iANModalPreprocessor(QSharedPointer<iANModalModalityReducer>, QSharedPointer<iANModalBackgroundRemover>);
-	iANModalPreprocessorOutput preprocess(QList<QSharedPointer<iAModality>>);
+	iANModalPreprocessor(MdiChild *mdiChild);
+
+	struct Output {
+		QList<QSharedPointer<iAModality>> modalities;
+		//bool hasMask = false;
+		vtkSmartPointer<vtkImageData> mask;
+	};
+	
+	Output preprocess(QList<QSharedPointer<iAModality>>);
 
 private:
+
+	MdiChild *m_mdiChild;
 
 	struct ModalitiesGroup {
 		QList<QSharedPointer<iAModality>> modalities;
 		int dimx, dimy, dimz;
 	};
 
-	QSharedPointer<iANModalModalityReducer> m_modalityReducer;
-	QSharedPointer<iANModalBackgroundRemover> m_backgroundRemover;
+	QSharedPointer<iANModalModalityReducer> chooseModalityReducer();
+	QSharedPointer<iANModalBackgroundRemover> chooseBackgroundRemover();
 
 	bool areModalitiesCompatible(QSharedPointer<iAModality>, QSharedPointer <iAModality>);
 	void groupModalities(QList<QSharedPointer<iAModality>>, QList<ModalitiesGroup> &output);

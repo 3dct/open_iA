@@ -102,9 +102,10 @@ FuzzyClassifierImageFilter< TInputVectorImage, TLabel >
 
     membershipVector.resize(currentMembershipPixel.Size());
 
-    for(int i=0; i<numberOfClasses; ++i){
+    for(LabelType i=0; i<numberOfClasses; ++i)
+      {
       membershipVector[i]=currentMembershipPixel[i];
-    }
+      }
 
     itrLabelsImage.Set( static_cast< LabelType >(
                             decisionRule->Evaluate(membershipVector) ) );

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,23 +25,29 @@
 #include <QVector>
 
 template <class T>
-void diff_marker_tmpl(QVector<iAITKIO::ImagePointer> imgsBase, int differenceMarkerValue, iAITKIO::ImagePointer & result)
+void diff_marker_tmpl(QVector<iAITKIO::ImagePointer> imgsBase, double differenceMarkerValue, iAITKIO::ImagePointer & result)
 {
 	typedef itk::Image<T, iAITKIO::m_DIM > ImgType;
 	QVector<ImgType*> imgs;
 	for (int i = 0; i < imgsBase.size(); ++i)
 	{
-		imgs.push_back(dynamic_cast<ImgType*>(imgsBase[i].GetPointer()));
+		auto ptr = dynamic_cast<ImgType*>(imgsBase[i].GetPointer());
+		if (!ptr)
+		{
+			DEBUG_LOG("Differnce Marker: Invalid type conversion - images must have same type!");
+			return;
+		}
+		imgs.push_back(ptr);
 	}
 	typename ImgType::Pointer out = createImage<ImgType>(imgs[0]);
 	typename iAITKIO::ImageBaseType::RegionType reg = imgs[0]->GetLargestPossibleRegion();
 	typename iAITKIO::ImageBaseType::SizeType size = reg.GetSize();
 	typename iAITKIO::ImageBaseType::IndexType idx;
-	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
-	{
-		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+	for (idx[0] = 0; idx[0] >= 0 && static_cast<uint64_t>(idx[0]) < size[0]; ++idx[0])
+	{	// >= 0 checks to prevent signed int overflow!
+		for (idx[1] = 0; idx[1] >= 0 && static_cast<uint64_t>(idx[1]) < size[1]; ++idx[1])
 		{
-			for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+			for (idx[2] = 0; idx[2] >= 0 && static_cast<uint64_t>(idx[2]) < size[2]; ++idx[2])
 			{
 				double pixel = imgs[0]->GetPixel(idx);
 				for (int i = 1; i < imgs.size(); ++i)
@@ -58,7 +64,7 @@ void diff_marker_tmpl(QVector<iAITKIO::ImagePointer> imgsBase, int differenceMar
 	result = out;
 }
 
-iAITKIO::ImagePointer CalculateDifferenceMarkers(QVector<iAITKIO::ImagePointer> imgs, int differenceMarkerValue)
+iAITKIO::ImagePointer CalculateDifferenceMarkers(QVector<iAITKIO::ImagePointer> imgs, double differenceMarkerValue)
 {
 	if (imgs.size() == 0) // all child images filtered out
 	{

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,45 +20,24 @@
 * ************************************************************************************/
 #pragma once
 
-// Eigenvalue pixel accessor to access vector of eigen value pixels
-// as individual images
+//! Eigenvalue pixel accessor to access vector of eigen value pixels as individual images
 template< class TPixel >
-class EigenValueAccessor
+class iAEigenValueAccessor
 {
 public:
-  typedef TPixel                     InternalType;
-  typedef float                      ExternalType;
+	typedef TPixel                     InternalType;
+	typedef float                      ExternalType;
 
-  inline ExternalType Get( const InternalType & input ) const
+	inline ExternalType Get( const InternalType & input ) const
 	{
-	  return static_cast<ExternalType>( input[m_EigenIdx] );
+		return static_cast<ExternalType>( input[m_EigenIdx] );
 	}
 
-  void SetEigenIdx( unsigned int i )
+	void SetEigenIdx( unsigned int i )
 	{
-	this->m_EigenIdx = i;
+		this->m_EigenIdx = i;
 	}
 
 private:
-  unsigned int m_EigenIdx;
+	unsigned int m_EigenIdx;
 };
-
-
-// Functor to get trace of the hessian matrix (laplacian of the image )
-namespace Functor {
-
-	template< typename TInput, typename TOutput >
-	class HessianToLaplacianFunction
-	{
-	public:
-	  typedef typename TInput::RealValueType  RealValueType;
-	  HessianToLaplacianFunction() {}
-	  ~HessianToLaplacianFunction() {}
-
-	  inline TOutput operator()( const TInput & x ) const
-		{
-		return static_cast< TOutput >( x(0,0) + x(1,1) + x(2,2) );
-		}
-	};
-
-} // namespace Functor

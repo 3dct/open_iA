@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -40,11 +40,12 @@ iAFeatureScoutAttachment::iAFeatureScoutAttachment(MainWindow* mainWnd, MdiChild
 iAFeatureScoutAttachment::~iAFeatureScoutAttachment()
 {}
 
-void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, 
-	int visType, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t, std::vector<iAVec3f> > & curvedFiberInfo)
+void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl,
+	int visType, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
+	std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip)
 {
 	imgFS = new dlg_FeatureScout(m_child, static_cast<iAFeatureScoutObjectType>(filterID),
-		fileName, m_child->renderer()->renderer(), csvtbl, visType, columnMapping, curvedFiberInfo);
+		fileName, m_child->renderer()->renderer(), csvtbl, visType, columnMapping, curvedFiberInfo, cylinderQuality, segmentSkip);
 }
 
 void iAFeatureScoutAttachment::disableBlobVisualization()
@@ -54,7 +55,9 @@ void iAFeatureScoutAttachment::disableBlobVisualization()
 	blobVisEnabled = false;
 
 	while (!blobList.isEmpty())
+	{
 		delete blobList.takeFirst();
+	}
 }
 
 void iAFeatureScoutAttachment::enableBlobVisualization()
@@ -63,11 +66,13 @@ void iAFeatureScoutAttachment::enableBlobVisualization()
 	if (blobVisEnabled) return;
 	blobVisEnabled = true;
 	vtkSmartPointer<vtkImageData> imageData = m_child->imagePointer();
+	/*
 	double size[3] = {
 		imageData->GetBounds()[1] - imageData->GetBounds()[0],
 		imageData->GetBounds()[3] - imageData->GetBounds()[2],
 		imageData->GetBounds()[5] - imageData->GetBounds()[4]
 	};
+	*/
 }
 
 void iAFeatureScoutAttachment::FeatureScout_Options(int idx)

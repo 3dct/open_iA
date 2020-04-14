@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -51,7 +51,6 @@ class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
 class vtkPicker;
 class vtkPlane;
-class vtkPlaneSource;
 class vtkPoints;
 class vtkPolyData;
 class vtkPolyDataMapper;
@@ -63,7 +62,7 @@ class vtkTextActor;
 class vtkTransform;
 class vtkUnstructuredGrid;
 
-
+//! Displays several helper widgets for a 3D vtk rendering window.
 class open_iA_Core_API iARenderer: public QObject
 {
 	Q_OBJECT
@@ -143,14 +142,14 @@ public:
 
 	//sets bounds of the slicing volume, using the spacing of image
 	void setSlicingBounds(const int roi[6], const double *spacing);
-	
+
 	void setCubeVisible(bool visible); //Visibility of the slice cube
-	
+
 	void saveMovie(const QString& fileName, int mode, int qual = 2);	//!< move out of here
 	iARenderObserver * getRenderObserver();
 	void addRenderer(vtkRenderer* renderer);
 	void applySettings(iARenderSettings const & settings);
-	
+
 	void emitSelectedCells(vtkUnstructuredGrid* selectedCells);
 	void emitNoSelectedCells();
 
@@ -219,7 +218,7 @@ private:
 	vtkTransform* m_moveableAxesTransform;
 	vtkSmartPointer<vtkAxesActor> m_moveableAxesActor;
 	//! @}
-	
+
 	//! @{ Line profile
 	vtkSmartPointer<vtkLineSource>     m_profileLineSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_profileLineMapper;
@@ -233,7 +232,7 @@ private:
 	//! @}
 
 	//! @{ Slice planes
-	vtkSmartPointer<vtkPlaneSource>    m_slicePlaneSource[3];
+	vtkSmartPointer<vtkCubeSource>    m_slicePlaneSource[3];
 	vtkSmartPointer<vtkPolyDataMapper> m_slicePlaneMapper[3];
 	vtkSmartPointer<vtkActor>          m_slicePlaneActor[3];
 	float m_slicePlaneOpacity; //!< Slice Plane Opacity

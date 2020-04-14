@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -33,8 +33,8 @@
 #include <vtkImageData.h>
 
 #include <QApplication>
+#include <QElapsedTimer>
 #include <QFile>
-#include <QTime>
 
 iAFoamCharacterizationItemDistanceTransform::iAFoamCharacterizationItemDistanceTransform
 																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
@@ -65,7 +65,7 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 {
 	setExecuting(true);
 
-	QTime t;
+	QElapsedTimer t;
 	t.start();
 
 	QScopedPointer<iAConnector> pConnector(new iAConnector());
@@ -76,11 +76,11 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->itkImage()));
 	pFilter->SetUseImageSpacing(m_bImageSpacing);
 	pFilter->InputIsBinaryOn();
-	
+
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->observe(pFilter);
 	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
-	
+
 	pFilter->Update();
 
 	typedef itk::MinimumMaximumImageCalculator<itk::Image<float, 3>> itkCalculator;

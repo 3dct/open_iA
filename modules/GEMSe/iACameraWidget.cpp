@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -47,7 +47,7 @@ namespace
 }
 
 
-iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> originalData, int labelCount, CameraLayout layout):
+iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> originalData, int labelCount, CameraLayout /*layout*/):
 	QWidget(parent),
 	m_slicerMode(InitialSlicerMode)
 {
@@ -183,10 +183,10 @@ void iACameraWidget::showImage(vtkSmartPointer<vtkImageData> imgData)
 {
 	if (!imgData)
 	{
-		DEBUG_LOG("CameraWidget: image data is NULL!\n");
+		DEBUG_LOG("CameraWidget: image data is nullptr!\n");
 		return;
 	}
-	
+
 	for (int i=0; i<SLICE_VIEW_COUNT; ++i)
 	{
 		m_sliceViews[i]->setImage(imgData, false, false);

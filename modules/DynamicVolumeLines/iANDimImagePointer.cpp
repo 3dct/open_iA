@@ -1,6 +1,26 @@
+/*************************************  open_iA  ************************************ *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
+* *********************************************************************************** *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* *********************************************************************************** *
+* This program is free software: you can redistribute it and/or modify it under the   *
+* terms of the GNU General Public License as published by the Free Software           *
+* Foundation, either version 3 of the License, or (at your option) any later version. *
+*                                                                                     *
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+*                                                                                     *
+* You should have received a copy of the GNU General Public License along with this   *
+* program.  If not, see http://www.gnu.org/licenses/                                  *
+* *********************************************************************************** *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* ************************************************************************************/
 #include "iANDimImagePointer.h"
 
-#include "assert.h"
+#include <cassert>
 
 iANDimImagePointer::iANDimImagePointer(unsigned int dimensionCount, unsigned int* dimSize, std::vector<std::vector<double>> &values) :
 	_dimensionCount{dimensionCount},
@@ -9,16 +29,14 @@ iANDimImagePointer::iANDimImagePointer(unsigned int dimensionCount, unsigned int
 {
 	// sum up all elements in their hypercube and return the value divided by the count of all elements
 
-	for (int i = 0; i < _values.size(); i++) {
+	for (size_t i = 0; i < _values.size(); i++)
+	{
 		std::vector<double> record = _values[i];
-
-		bool allIn = true;
-
 		itk::IndexValueType * index = new itk::IndexValueType[dimensionCount];
-		for (int j = 0; j < record.size(); j++) {
-
+		for (size_t j = 0; j < record.size(); j++)
+		{
 			double value = record[j];
-			index[j] = (int)value;
+			index[j] = static_cast<int>(value);
 		}
 
 		Key indexKey;
@@ -37,15 +55,21 @@ iANDimImagePointer::~iANDimImagePointer()
 unsigned int iANDimImagePointer::getMaxDim()
 {
 	unsigned int maxDim = 0;
-	for (int i = 0; i < _dimensionCount; i++) {
-		if (_dimSize[i] > maxDim) {
+	for (unsigned int i = 0; i < _dimensionCount; i++)
+	{
+		if (_dimSize[i] > maxDim)
+		{
 			maxDim = _dimSize[i];
 		}
 	}
 	return maxDim;
 }
 
-double iANDimImagePointer::getDensityAt(const itk::IndexValueType * index, unsigned int indexDim)
+double iANDimImagePointer::getDensityAt(const itk::IndexValueType * index, unsigned int
+#ifndef NDEBUG     // to silence compiler warning about unused parameter
+	indexDim
+#endif
+)
 {
 	// sum up all elements at the given index hypercube and return the value divided by the count of all elements
 
@@ -56,7 +80,8 @@ double iANDimImagePointer::getDensityAt(const itk::IndexValueType * index, unsig
 	indexKey.indizes = index;
 
 	auto density = _densityMap.find(indexKey);
-	if (density != _densityMap.end()) {
+	if (density != _densityMap.end())
+	{
 		return density->second;
 	}
 	return 0.0;
@@ -90,7 +115,8 @@ double iANDimImagePointer::getDensityAt(const itk::IndexValueType * index, unsig
 unsigned int iANDimImagePointer::getLinearizedDimSize()
 {
 	unsigned int ret = 1;
-	for (int i = 0; i < _dimensionCount; i++) {
+	for (unsigned int i = 0; i < _dimensionCount; i++)
+	{
 		ret *= _dimSize[i];
 	}
 	return ret;

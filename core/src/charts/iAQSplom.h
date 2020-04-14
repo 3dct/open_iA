@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,8 +22,9 @@
 
 #include "open_iA_Core_export.h"
 
-#include "qthelper/iAQGLWidget.h"
 #include "iAScatterPlotSelectionHandler.h"
+#include "iASettings.h"
+#include "qthelper/iAQGLWidget.h"
 
 #include <QList>
 
@@ -42,7 +43,7 @@ class QGridLayout;
 class QListWidgetItem;
 class QMenu;
 class QPropertyAnimation;
-class QTableWidget;
+class QSettings;
 
 //! A scatter plot matrix (SPLOM) widget.
 /*!
@@ -87,26 +88,33 @@ class QTableWidget;
 class open_iA_Core_API iAQSplom : public iAQGLWidget, public iAScatterPlotSelectionHandler
 {
 	Q_OBJECT
-	Q_PROPERTY( double m_animIn READ getAnimIn WRITE setAnimIn )
-	Q_PROPERTY( double m_animOut READ getAnimOut WRITE setAnimOut )
-
-	enum splom_mode    //!< two possible states of SPLOM: upper triangle with maximized plot or all possible combinations of scatter plots
-	{
-		UPPER_HALF,
-		ALL_PLOTS
-	};
+	Q_PROPERTY(double m_animIn READ getAnimIn WRITE setAnimIn)
+	Q_PROPERTY(double m_animOut READ getAnimOut WRITE setAnimOut)
 public:
-	enum ColorScheme   //!< what color scheme to use for coloring the dots
+	enum SPMMode            //!< two possible states of SPLOM: upper triangle with maximized plot or all possible combinations of scatter plots
 	{
-		AllPointsSame, //!< all points have the same color
-		ByParameter,   //!< points are colored by a specific parameter, using a diverging, perceptually uniform lookup table
-		Custom         //!< points are colored
+		smUpperHalf,        //!< only show upper left diagonal
+		smAllPlots          //!< show both sides of diagonal (symmetrically mirrored)
 	};
-// Methods
+	enum ColorMode          //!< in what way the the dots should be colored. Order must match labels in m_settingsDlg->cbColorMode!
+	{
+		cmAllPointsSame,    //!< all points have the same color
+		cmByParameter,      //!< points are colored by a specific parameter, using a diverging, perceptually uniform lookup table
+		cmCustom            //!< points are colored
+	};
+	enum ColorParameterMode //!< How parameter colors should be applied.
+	{
+		pmContinuous,       //!< lookup table from min to max, applied continously
+		pmQualitative       //!< lookup table applied discretely, i.e. parameter assumed to have integer values and each point gets a distinctive color
+	};
+	enum ColorRangeMode     //!< How parameter range is determined if points are colored by parameter. Order must match labels in m_settingsDlg->cbColorRangeMode!
+	{
+		rmAutomatic,       //!< Range is automatically determined from chosen parameter
+		rmManual           //!< Range is manually set via minimum and maximum inputs
+	};
 	iAQSplom( QWidget * parent = 0, Qt::WindowFlags f = 0 );
 	~iAQSplom();
 
-	virtual void setData( const QTableWidget * data );               //! import data from QTableWidget, first row should contain parameter names, each column corresponds to one parameter.
 	void setData(QSharedPointer<iASPLOMData> data, std::vector<char> const & visibility);                  //! set SPLOM data directly.
 	QSharedPointer<iASPLOMData> data();                              //! retrieve SPLOM data
 	void setLookupTable( vtkLookupTable * lut, const QString & paramName ); //!< Set lookup table from VTK (vtkLookupTable) given the name of a parameter to color-code.
@@ -140,19 +148,23 @@ public:
 	iAColorTheme const * getBackgroundColorTheme();                  //!< retrieve the theme for background colors for the separated regions
 	void showAllPlots(const bool enableAllPlotsVisible);             //!< switch between showing all plots or only upper half
 	void showDefaultMaxizimedPlot();                                 //!< maximize plot in upper left corner
-	void addFilter(int paramIndex, double value);                    //!< set filter on data to be shown; only data points where given parameter contains given value will be shown
-	void removeFilter(int paramIndex, double value);                 //!< remove a specific filter
+	void addFilter(size_t paramIndex, double value);                 //!< set filter on data to be shown; only data points where given parameter contains given value will be shown
+	void removeFilter(size_t paramIndex, double value);              //!< remove a specific filter
 	void resetFilter();                                              //!< reset filter on data; after calling this method, all data points will be shown again
 	void addContextMenuAction(QAction* action);                      //!< add an additional option to the context menu
 	size_t colorLookupParam() const;                                 //!< parameter currently used for color lookup
 	QSharedPointer<iALookupTable> lookupTable() const;               //!< get lookup table
-	ColorScheme colorScheme() const;                                 //!< get current color scheme
+	ColorMode colorMode() const;                                     //!< get current coloring mode
+	void saveSettings(QSettings & iniFile) const;                    //!< store current settings into given object
+	void loadSettings(iASettings const & iniFile);                   //!< load settings from given object
 public slots:
 	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
+	void setFlipAxes(bool flip);                                     //!< set whether to flip parameters in large scatterplot
 	void setHistogramBins(int bins);                                 //!< set the number of histogram bins
 	void showSettings();                                             //!< Show the settings dialog
 	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
-	void setColorTheme(QString const & themeName);                   //!< Call to adapt color theme used for coloring by a parameter
+	void setColorTheme(QString const& themeName);                    //!< Call to adapt color theme used for coloring by a continuous parameter
+	void setColorThemeQual(QString const& themeName);                //!< Call to adapt color theme used for coloring by a qualitative parameter
 	void rangeFromParameter();                                       //!< Call when color range should be determined from parameter
 signals:
 	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
@@ -167,10 +179,11 @@ protected:
 	iAScatterPlot * getScatterplotAt( QPoint pos );                  //!< Get a scatter plot at mouse position.
 	void changeActivePlot( iAScatterPlot * s);
 	void drawVisibleParameters(QPainter & painter);                  //!< draws label for the whole scatter plot matrix
-	void drawPlotLabels(QVector<ulong> &ind_VisX, int axisOffSet, QPainter & painter, bool switchXY);
+	void drawPlotLabels(QPainter & painter, bool switchXY);
 	void drawTicks( QPainter & painter, QList<double> const & ticksX, QList<double> const & ticksY, QList<QString> const & textX,
 	    QList<QString> const & textY);                               //!< Draw ticks for X and Y axes of all plots in the SPLOM.
 	void updateMaxPlotRect();                                        //!< Updates the rectangle of the maximized scatter plot.
+	QRect getMaxRect();
 	void updateSPLOMLayout();                                        //!< Updates SPLOM layout: every plot in the matrix + maximized plot (if exists).
 	void updatePlotGridParams();                                     //!< Updates some parameters used for the matrix grid layout calculations.
 	void updateVisiblePlots();                                       //!< Updates matrix using only plots that are currently visible.
@@ -200,14 +213,18 @@ private:
 	void updateFilter();                                             //!< update filter in internal scatter plots
 	void updateHistograms();                                         //!< Updates all histograms when data or filter changes
 	void updateHistogram(size_t paramIndex);                         //!< Updates the histogram of the given parameter
-	void setColorScheme(ColorScheme colorScheme);                    //!< Set color scheme (method how points are colored)
+	void setColorMode(ColorMode colorMode);                          //!< Set color mode (method how points are colored)
+	void setColorParameterMode(ColorParameterMode paramMode);        //!< Set mode how colors are applied from parameter
+	void setColorRangeMode(ColorRangeMode rangeMode);                //!< Set how parameter range is determined if points colored by parameter
 	void applyLookupTable();                                         //!< Apply lookup table to all the scatter plots.
 	void createScatterPlot(size_t y, size_t x, bool initial);        //!< Creates a single scatter plot at location y, y
+	void updateColorControls();                                      //!< Update color controls and color coding of points
 private slots:
 	void selectionUpdated();                                         //!< When selection of data points is modified.
 	void transformUpdated( double scale, QPointF deltaOffset );      //!< When transform of scatter plots is modified.
 	void setQuadraticPlots(bool quadratic);                          //!< set whether plots are restricted to quadratic size
 	void setShowPCC(bool showPCC);                                   //!< set whether the correlation coefficient is shown in each plot
+	void setShowColorLegend(bool showColorLegend);                   //!< set whether the color legend is shown left of the maximized plot
 	void selectionModePolygon();                                     //!< set selection mode to polygon
 	void selectionModeRectangle();                                   //!< set selection mode to rectangle
 	void parameterVisibilityToggled(bool enabled);                   //!< called when parameter visibility is adapted through the context menu
@@ -216,8 +233,13 @@ private slots:
 	void updateLookupTable();                                        //!< Update lookup table sensitivity
 	void pointRadiusChanged(int);                                    //!< Called from settings dialog when point size slider changes
 	void pointOpacityChanged(int);                                   //!< Called from settings dialog when opacity slider changes
-	void colorSchemeChanged(int colorScheme);                        //!< Called from settings dialog when the color scheme is changed
+	void colorModeChanged(int colorMode);                            //!< Called from settings dialog when the color scheme is changed
 	void changePointColor();                                         //!< Called from settings dialog when the point color is clicked
+	void saveSettingsSlot();                                         //!< Called from settings dialog for storing settings
+	void loadSettingsSlot();                                         //!< Called from settings dialog for loading settings
+	void setContinousParamMode();
+	void setQualitativeParamMode();
+	void colorRangeModeChanged();
 
 // Members:
 public:
@@ -231,6 +253,7 @@ public:
 		QPoint tickOffsets;
 		QColor backgroundColor;
 		bool maximizedLinked;
+		bool flipAxes;
 
 		QColor popupBorderColor;
 		QColor popupFillColor;
@@ -246,15 +269,20 @@ public:
 		double animStart;
 
 		int separationMargin;
-		int histogramBins;
-		bool histogramVisible;
+		int histogramBins;                       //!< The number of bins used in the histogram
+		bool histogramVisible;                   //!< Whether the histogram is shown in the diagonal
 
 		int selectionMode;                       //!< The selection mode of all scatter plots
 		bool selectionEnabled;                   //!< Whether selection is enabled in the SPLOM
 		bool quadraticPlots;                     //!< Whether the scatter plots are constrained to quadratic sizes
 		bool showPCC;                            //!< Whether to show the Pearson's correlation coefficient
-		ColorScheme colorScheme;                 //!< Scheme to use for coloring the matrix dots
+		bool showColorLegend;                    //!< Whether the color legend is shown
+		ColorMode colorMode;                     //!< How the matrix dots are colored
+		ColorParameterMode colorParameterMode;   //!< How parameters are translated to colors if colored by parameter
+		ColorRangeMode colorRangeMode;           //!< How parameter range is determined if colored by parameter
 		QString colorThemeName;                  //!< Name of a color theme for when points are colored by a parameter (from iALUT)
+		QString colorThemeQualName;              //!< Name of a color theme (iAColorTheme) when points are colored qualitatively by parameter
+
 		QColor pointColor;                       //!< Color for each point if color scheme is uniform
 		bool enableColorSettings;                //!< Whether color coding settings are accessible
 	};
@@ -263,12 +291,12 @@ protected:
 	std::vector<std::vector<iAScatterPlot*> > m_matrix; //!< cache for all scatter plots
 	std::vector<std::vector<iAScatterPlot*> > m_visiblePlots; //!< matrix of visible scatter plots
 	std::vector<char> m_paramVisibility;         //!< array of individual parameter visibility
-	std::vector<int> m_visibleIndices;           //!< stores mapping from visible plot index to parameter index
+	std::vector<size_t> m_visibleIndices;        //!< stores mapping from visible plot index to parameter index
 	QSharedPointer<iALookupTable> m_lut;         //!< lookup table, shared with individual scatter plots
-	size_t m_colorLookupParam;                   //!< index of the column to use for color lookup
+	size_t m_colorLookupParam;                   //!< index of the column to use for color lookup (TODO: Move to settings?)
 	QPoint m_scatPlotSize;                       //!< size of one scatter plot in the layout
 	iAScatterPlot * m_activePlot;                //!< scatter plot that user currently interacts with
-	splom_mode m_mode;                           //!< SPLOM current state: all plots or upper triangle with maximized plot
+	SPMMode m_mode;                              //!< SPLOM current state: all plots or upper triangle with maximized plot (TODO: Move to settings?)
 	QSharedPointer<iASPLOMData> m_splomData;     //!< contains raw data points used in SPLOM
 	iAScatterPlot * m_previewPlot;               //!< plot currently being previewed (shown in maximized plot)
 	iAScatterPlot * m_maximizedPlot;             //!< pointer to the maximized plot
@@ -285,7 +313,8 @@ protected:
 	QMenu* m_contextMenu;                        //!< the context menu (can be extended via addContextMenuAction)
 	QMenu* m_columnPickMenu;                     //!< sub-menu of the context menu for picking which columns are visible
 private:
-	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction, *quadraticPlotsAction, *showPCCAction;
-	QVector<iAChartWidget*> m_histograms;        //!< histograms of scatter plot matrix
+	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction, *quadraticPlotsAction,
+		*showPCCAction, *flipAxesAction, *showColorLegendAction;
+	std::vector<iAChartWidget*> m_histograms;    //!< histograms of scatter plot matrix
 	iASPMSettings * m_settingsDlg;               //!< dialog with all the SPLOM settings (which params are visible, opacity of each dot, which column to use for coloring...
 };

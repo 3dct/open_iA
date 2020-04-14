@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -54,7 +54,6 @@ class iARangeSliderDiagramView : public RangeSliderDiagramViewConnector
 
 public:
 	iARangeSliderDiagramView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
-	~iARangeSliderDiagramView();
 
 public slots:
 	void setData( const QTableWidget * data );
@@ -66,29 +65,29 @@ signals:
 	void selectionModified( vtkIdTypeArray * );
 
 private:
-	QSharedPointer<iARangeSliderDiagramData>			m_rangeSliderData;
-	QSharedPointer<iABarGraphPlot>					m_rangeSliderDiagramDrawer;
-	QList<double>										m_data;
-	QList<vtkSmartPointer<vtkPiecewiseFunction> >		m_oTFList;
-	QList<vtkSmartPointer<vtkColorTransferFunction> >	m_cTFList;
-	QList<iARangeSliderDiagramWidget *>					m_widgetList;
-	
-	QWidget							*m_mainContainer;
-	QWidget							*m_comboBoxContainer;
-	QWidget							*m_histoContainer;
-	QVBoxLayout						*m_layoutVBMainContainer;
-	QHBoxLayout						*m_layoutHBComboBoxes;
-	QVBoxLayout						*m_layoutVBHistoContainer;
-	QComboBox						*m_cbPorDev;
-	QComboBox						*m_cbStatisticMeasurements;
-	QLabel							*m_title;
-	QLabel							*m_input;
-	QLabel							*m_output;
-	QFrame							*m_separator;
-	const QTableWidget				*m_rawTable;
-	QMap<double, QList<double> >	m_histogramMap;
+	QSharedPointer<iARangeSliderDiagramData> m_rangeSliderData;
+	QSharedPointer<iABarGraphPlot> m_rangeSliderDiagramDrawer;
+	QList<double> m_data;
+	QList<vtkSmartPointer<vtkPiecewiseFunction> > m_oTFList;
+	QList<vtkSmartPointer<vtkColorTransferFunction> > m_cTFList;
+	QList<iARangeSliderDiagramWidget *> m_widgetList;
 
-	QMap<QString, QList<double> > prepareData( const QTableWidget * data, bool porOrDev, bool statisticMeasurements );
+	QWidget * m_mainContainer;
+	QWidget * m_comboBoxContainer;
+	QWidget * m_histoContainer;
+	QVBoxLayout * m_layoutVBMainContainer;
+	QHBoxLayout * m_layoutHBComboBoxes;
+	QVBoxLayout * m_layoutVBHistoContainer;
+	QComboBox * m_cbPorDev;
+	QComboBox * m_cbStatisticMeasurements;
+	QLabel * m_title;
+	QLabel * m_input;
+	QLabel * m_output;
+	QFrame * m_separator;
+	const QTableWidget * m_rawTable;
+	QMap<double, QList<double> > m_histogramMap;
+
+	QMap<QString, QList<double> > prepareData( const QTableWidget * tableData, bool porOrDev, bool statisticMeasurements );
 	void addTitleLabel();
 	void addComboBoxes();
 	void addOutputLabel();

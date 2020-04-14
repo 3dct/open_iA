@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -55,7 +55,7 @@ class iABlobCluster
 {
 public:
 	iABlobCluster ();
-	~iABlobCluster ();
+	virtual ~iABlobCluster ();
 	virtual void SetDimension (int dimens[3]);
 	void SetBounds (double bounds[6]);
 	void GetDimension (int dimens[3]) const;  //!< Get dimension for blob
@@ -133,7 +133,7 @@ private:
 	double    m_blurVariance;
 	double    m_blobOpacity;
 	double    m_silhouetteOpacity;
-
+	iABlobManager* m_blobManager;
 	// vtk members
 	vtkSmartPointer<vtkRenderer>                m_blobRenderer;
 	vtkSmartPointer<vtkRenderer>                m_labelRenderer;
@@ -148,6 +148,5 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper>          m_silhouetteMapper;
 	vtkSmartPointer<vtkActor>                   m_silhouetteActor;
 	vtkSmartPointer<vtkImageData>               m_imageData;
-	iABlobManager*                              m_blobManager;
 	vtkSmartPointer<vtkCaptionActor2D>			m_captionActor;
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,12 +29,11 @@
 #include <QStringList>
 #include <QList>
 
-class QWidget;
-class QErrorMessage;
-class QLabel;
-class QScrollArea;
+class QCheckBox;
+class QSpinBox;
 class QTextDocument;
 class QTextEdit;
+class QWidget;
 
 const int MAX_PEAK = 8000;
 
@@ -56,45 +55,32 @@ public slots:
 
 private:
 
-	int numPara;
-	int m_sbDelta, m_sbSigma, m_sbIsoX, m_emi_count, m_absorp_count;
-	int emi_peaks[MAX_PEAK];
-	int absorp_peaks[MAX_PEAK];
+	int m_numPara;
+	int m_delta, m_sigma, m_isoX, m_emi_count, m_absorp_count;
+	int m_emi_peaks[MAX_PEAK];
+	int m_absorp_peaks[MAX_PEAK];
 	int m_isoXGrayValue;
 	int m_airPoreGrayValue;
 	double* m_data[2];
 	double m_highestFreq;
 	QTextDocument* m_description;
 	QString m_datasetDir, m_datasetName;
-	QString tStr;
 	QString m_filterName;
 	QStringList m_datasetInfo;
-	QStringList widgetList;
+	QStringList m_widgetList;
 	QList<QCPGraph *> m_peakGraphList;
 	QList<QVariant> m_inPara;
 	QVector<double> m_keyData, m_valueData;
 	QVector<double> m_smoothKey;
 	QVector<double> m_smoothValue;
 	QCustomPlot * m_histoPlot;
-	QErrorMessage * eMessage;
-	QScrollArea *scrollArea;
-	QWidget *container;
-	QGridLayout *containerLayout;
-	QTextEdit * info;
-	QWidget* histoBtnContainer;
-	QHBoxLayout* histogramBtnContainer_HBLayout;
-	QLabel* sbDelta_Label;
-	QSpinBox* sbDelta;
-	QLabel* sbSigma_Label;
-	QSpinBox* sbSigma;
-	QLabel* sbIsoX_Label;
-	QSpinBox* sbIsoX;
-	QLabel* cbSHLine_Label;
-	QCheckBox* cbSHLine;
+	QWidget* m_container;
+	QSpinBox* m_sbIsoX;
+	QCheckBox* m_cbSHLine;
 
 	void createDatasetPreview();
 	void createDatasetInfo();
-	void computeSmoothHisto( QVector<double> *m_smoothKey, QVector<double> *m_smoothValue );
+	void computeSmoothHisto();
 	void computePeaks( QVector<double> key, QVector<double> value );
 	void createHistoPlot();
 	void createHistoSpinBoxes();
@@ -104,20 +90,4 @@ private:
 	void updateLineEdits();
 	void addUnits();
 	void updateValues(QList<QVariant>);
-
-protected:
-
-	int detect_peak(
-		const double*   data, /* the data */
-		int             data_count, /* row count of data */
-		int*            emi_peaks, /* emission peaks will be put here */
-		int*            num_emi_peaks, /* number of emission peaks found */
-		int             max_emi_peaks, /* maximum number of emission peaks */
-		int*            absop_peaks, /* absorption peaks will be put here */
-		int*            num_absop_peaks, /* number of absorption peaks found */
-		int             max_absop_peaks, /* maximum number of absorption peaks */
-		double          delta, /* delta used for distinguishing peaks */
-		int             emi_first /* should we search emission peak first of absorption peak first? */
-		);
-
 };

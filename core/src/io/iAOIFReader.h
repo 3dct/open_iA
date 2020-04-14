@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,11 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "oif_reader.h"
-
-#include <itkImageBase.h>
-
 #include <vtkSmartPointer.h>
+
+#include <vector>
 
 class iAConnector;
 
@@ -32,16 +30,6 @@ class vtkImageData;
 
 class QString;
 
-namespace IO
-{
-	namespace OIF
-	{
-		class Reader
-		{
-		public:
-			Reader();
-			void read(QString const & filename, iAConnector* con, int channel,
-				std::vector<vtkSmartPointer<vtkImageData> > * volumes);
-		};
-	}
-}
+//! Reads an .oif file
+void readOIF(QString const & filename, iAConnector* con, int channel,
+		std::vector<vtkSmartPointer<vtkImageData> > * volumes);

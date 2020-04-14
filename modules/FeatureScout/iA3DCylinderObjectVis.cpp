@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -32,11 +32,13 @@
 
 
 iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-	QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, int numberOfCylinderSides):
-	iA3DLineObjectVis( ren, objectTable, columnMapping, color, curvedFiberData),
-	m_objectCount(objectTable->GetNumberOfRows()),
+	QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, int numberOfCylinderSides, size_t segmentSkip):
+	iA3DLineObjectVis( ren, objectTable, columnMapping, color, curvedFiberData, segmentSkip),
+	m_tubeFilter(vtkSmartPointer<iAvtkTubeFilter>::New()),
 	m_contextFactors(nullptr),
-	m_contextDiameterFactor(1.0)
+	m_objectCount(objectTable->GetNumberOfRows()),
+	m_contextDiameterFactor(1.0),
+	m_lines(false)
 {
 	auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
 	tubeRadius->SetName("TubeRadius");
@@ -49,7 +51,6 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectT
 	}
 	m_linePolyData->GetPointData()->AddArray(tubeRadius);
 	m_linePolyData->GetPointData()->SetActiveScalars("TubeRadius");
-	m_tubeFilter = vtkSmartPointer<iAvtkTubeFilter>::New();
 	m_tubeFilter->SetRadiusFactor(1.0);
 	m_tubeFilter->SetInputData(m_linePolyData);
 	m_tubeFilter->CappingOn();
@@ -60,6 +61,11 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectT
 	m_mapper->SetInputConnection(m_tubeFilter->GetOutputPort());
 
 	m_outlineFilter->SetInputConnection(m_tubeFilter->GetOutputPort());
+}
+
+iA3DCylinderObjectVis::~iA3DCylinderObjectVis()
+{
+	delete [] m_contextFactors;
 }
 
 void iA3DCylinderObjectVis::setDiameterFactor(double diameterFactor)
@@ -75,23 +81,35 @@ void iA3DCylinderObjectVis::setContextDiameterFactor(double contextDiameterFacto
 	if (contextDiameterFactor == 1.0)
 	{
 		if (m_contextFactors)
+		{
 			delete m_contextFactors;
-		m_contextFactors = nullptr;
+			m_contextFactors = nullptr;
+		}
+		else
+		{
+			return;
+		}
 	}
 	else
 	{
 		if (!m_contextFactors)
+		{
 			m_contextFactors = new float[m_points->GetNumberOfPoints()];
+		}
 		m_contextDiameterFactor = contextDiameterFactor;
 		size_t selIdx = 0;
 		for (vtkIdType row = 0; row < m_objectCount; ++row)
 		{
-			bool isSelected = selIdx < m_selection.size() && (m_selection[selIdx] == row);
+			bool isSelected = selIdx < m_selection.size() && (m_selection[selIdx] == static_cast<size_t>(row));
 			if (isSelected)
+			{
 				++selIdx;
+			}
 			float diameter = (!isSelected) ? m_contextDiameterFactor : 1.0;
 			for (int p = 0; p < objectPointCount(row); ++p)
+			{
 				m_contextFactors[objectStartPointIdx(row) + p] = diameter;
+			}
 		}
 	}
 	m_tubeFilter->SetIndividualFactors(m_contextFactors);
@@ -104,4 +122,23 @@ void iA3DCylinderObjectVis::setSelection(std::vector<size_t> const & sortedSelIn
 {
 	iA3DColoredPolyObjectVis::setSelection(sortedSelInds, selectionActive);
 	setContextDiameterFactor(m_contextDiameterFactor);
+}
+
+QString iA3DCylinderObjectVis::visualizationStatistics() const
+{
+	return iA3DLineObjectVis::visualizationStatistics() + "; # cylinder sides: " +
+		QString::number(m_tubeFilter->GetNumberOfSides());
+}
+
+void iA3DCylinderObjectVis::setShowLines(bool lines)
+{
+	m_lines = lines;
+	if (m_lines)
+	{
+		m_mapper->SetInputData(m_linePolyData);
+	}
+	else
+	{
+		m_mapper->SetInputConnection(m_tubeFilter->GetOutputPort());
+	}
 }

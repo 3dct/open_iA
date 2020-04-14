@@ -7,70 +7,83 @@
 
 #include "DimOOOMap.h"
 #include <vector>
-#include <assert.h>
+#include <cassert>
 
-DimOOOMap::DimOOOMap() {
+DimOOOMap::DimOOOMap()
+{
 	map_in_to_out.clear();
 	on.clear();
 }
 
-DimOOOMap::DimOOOMap(int dimSize) {
+DimOOOMap::DimOOOMap(int dimSize)
+{
 	m_dimSize = dimSize;
 	map_in_to_out.clear();
 	on.clear();
 }
 
 
-DimOOOMap::~DimOOOMap() {
+DimOOOMap::~DimOOOMap()
+{
 }
 
-void DimOOOMap::setDimSize(int dimSize) {
+void DimOOOMap::setDimSize(int dimSize)
+{
 	m_dimSize = dimSize;
 }
 
-int DimOOOMap::getDimSize() {
+int DimOOOMap::getDimSize()
+{
 	return m_dimSize;
 }
 
-void DimOOOMap::initMap() {
+void DimOOOMap::initMap()
+{
 	map_in_to_out.resize(m_dimSize);
 	on.resize(m_dimSize);
-	int i;
-	for (i=0; i<m_dimSize; i++) {
+	for (int i=0; i<m_dimSize; i++)
+	{
 		map_in_to_out[i] = i;
 		on[i] = true;
 	}
 }
 
-void DimOOOMap::setMapInToOut(std::vector<int>& map_in_to_out) {
-	assert( (int)map_in_to_out.size() == m_dimSize );
-	this->map_in_to_out = map_in_to_out;
+void DimOOOMap::setMapInToOut(std::vector<int>& newMap)
+{
+	assert( (int)newMap.size() == m_dimSize );
+	this->map_in_to_out = newMap;
 }
 
-void DimOOOMap::getMapInToOut(std::vector<int>& map_in_to_out) {
-	map_in_to_out = this->map_in_to_out;
+void DimOOOMap::getMapInToOut(std::vector<int>& outMap)
+{
+	outMap = this->map_in_to_out;
 }
 
-void DimOOOMap::setOn(std::vector<bool>& on) {
-	assert( (int)on.size() == m_dimSize );
-	this->on = on;
+void DimOOOMap::setOn(std::vector<bool>& newOn)
+{
+	assert( (int)newOn.size() == m_dimSize );
+	this->on = newOn;
 }
 
-void DimOOOMap::getOn(std::vector<bool>& on) {
-	on = this->on;
+void DimOOOMap::getOn(std::vector<bool>& outOn)
+{
+	outOn = this->on;
 }
 
-void DimOOOMap::getMapOutToIn(std::vector<int>& map_out_to_in) {
+void DimOOOMap::getMapOutToIn(std::vector<int>& map_out_to_in)
+{
 	assert( (int)map_in_to_out.size() == m_dimSize );
 	map_out_to_in.resize(m_dimSize);
 	int i;
 	// generate map_out_to_in
-	for (i=0; i<m_dimSize; i++) {
+	for (i=0; i<m_dimSize; i++)
+	{
 		map_out_to_in[map_in_to_out[i]] = i;
 	}
 }
 
-void DimOOOMap::getPosInView(std::vector<int>& posInView) {
+void DimOOOMap::getPosInView(std::vector<int>& posInView)
+{
 	assert( (int)map_in_to_out.size() == m_dimSize );
 	assert( (int)on.size() == m_dimSize );
 

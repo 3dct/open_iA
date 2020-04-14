@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -31,7 +31,7 @@
 #define VTK_CREATE(type,name) \
   vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
 
-std::vector<std::string> &iAFeatureTracking::split(const std::string &s, char delim, std::vector<std::string> &elems)
+std::vector<std::string>& iAFeatureTracking::split(const std::string& s, char delim, std::vector<std::string>& elems)
 {
 	std::stringstream ss(s);
 	std::string item;
@@ -42,14 +42,14 @@ std::vector<std::string> &iAFeatureTracking::split(const std::string &s, char de
 	return elems;
 }
 
-std::vector<std::string> iAFeatureTracking::split(const std::string &s, char delim)
+std::vector<std::string> iAFeatureTracking::split(const std::string& s, char delim)
 {
 	std::vector<std::string> elems;
 	split(s, delim, elems);
 	return elems;
 }
 
-vtkSmartPointer<vtkTable> iAFeatureTracking::readTableFromFile(const QString &filename, int dataLineOffset)
+vtkSmartPointer<vtkTable> iAFeatureTracking::readTableFromFile(const QString& filename, int dataLineOffset)
 {
 	auto t = vtkSmartPointer<vtkTable>::New();
 
@@ -74,14 +74,16 @@ vtkSmartPointer<vtkTable> iAFeatureTracking::readTableFromFile(const QString &fi
 	{
 		std::string line;
 		ifstream inputStream(getLocalEncodingFileName(filename));
-		if(inputStream.is_open())
+		if (inputStream.is_open())
 		{
-			for(int i = 0; i < dataLineOffset; i++)
+			for (int i = 0; i < dataLineOffset; i++)
+			{
 				std::getline(inputStream, line);
+			}
 			// at header row
 			std::getline(inputStream, line);
 			std::vector<std::string> splittedRow;
-			while(getline(inputStream, line))
+			while (getline(inputStream, line))
 			{
 				splittedRow = split(line, ',');
 				try
@@ -95,7 +97,7 @@ vtkSmartPointer<vtkTable> iAFeatureTracking::readTableFromFile(const QString &fi
 					dimYVxArray->InsertNextValue(stoi(splittedRow.at(11)));
 					dimZVxArray->InsertNextValue(stoi(splittedRow.at(12)));
 				}
-				catch(std::exception) {}
+				catch (std::exception) {}
 			}
 		}
 	}
@@ -111,14 +113,14 @@ vtkSmartPointer<vtkTable> iAFeatureTracking::readTableFromFile(const QString &fi
 	return t;
 }
 
-void iAFeatureTracking::sortCorrespondencesByOverlap(std::vector<iAFeatureTrackingCorrespondence> &correspondences)
+void iAFeatureTracking::sortCorrespondencesByOverlap(std::vector<iAFeatureTrackingCorrespondence>& correspondences)
 {
-	iAFeatureTrackingCorrespondence *temp;
-	for(size_t i = correspondences.size(); i > 1; i--)
+	iAFeatureTrackingCorrespondence* temp;
+	for (size_t i = correspondences.size(); i > 1; i--)
 	{
-		for(int j = 0; j < i - 1; j++)
+		for (size_t j = 0; j < i - 1; j++)
 		{
-			if(correspondences.at(j).overlap < correspondences.at(j + 1).overlap)
+			if (correspondences.at(j).overlap < correspondences.at(j + 1).overlap)
 			{
 				temp = new iAFeatureTrackingCorrespondence(correspondences.at(j));
 				correspondences.at(j) = correspondences.at(j + 1);
@@ -128,18 +130,23 @@ void iAFeatureTracking::sortCorrespondencesByOverlap(std::vector<iAFeatureTracki
 	}
 }
 
-int nrOfOccurences(std::vector<int> &v, int occurence)
+int nrOfOccurences(std::vector<int>& v, int occurence)
 {
 	int result = 0;
-	for(int i = 0; i < v.size(); i++)
-		if(i == occurence)
-			result++;
+	// this loop probably does not do what it's supposed to? only compares index of v, not its content!
+	for (int i = 0; i < v.size(); ++i)
+	{
+		if (i == occurence)	// v[i] == occurrence ?
+		{
+			++result;
+		}
+	}
 	return result;
 }
 
 std::vector<iAFeatureTrackingCorrespondence>& iAFeatureTracking::getCorrespondences(
-	const vtkVariantArray &row,
-	vtkTable &table,
+	const vtkVariantArray& row,
+	vtkTable& table,
 	int maxSearchValue,
 	bool useZ)
 {
@@ -159,7 +166,7 @@ std::vector<iAFeatureTrackingCorrespondence>& iAFeatureTracking::getCorresponden
 	int inputMinZ = inputCenterZ - inputDimensionZ / 2;
 	int inputMaxZ = inputCenterZ + inputDimensionZ / 2;
 
-	for(int i = 0; i < table.GetNumberOfRows(); i++)
+	for (int i = 0; i < table.GetNumberOfRows(); i++)
 	{
 		auto currentRow = table.GetRow(i);
 		int currentCenterX = currentRow->GetValue(1).ToInt();
@@ -182,66 +189,81 @@ std::vector<iAFeatureTrackingCorrespondence>& iAFeatureTracking::getCorresponden
 		currentMinZ = currentCenterZ - currentDimensionZ / 2;
 		currentMaxZ = currentCenterZ + currentDimensionZ / 2;*/
 
-		if((
+		if ((
 			(currentMinX < inputMaxX && currentMinX >= inputMinX) ||
-			(currentMaxX > inputMinX && currentMaxX <= inputMaxX) ||
+			(currentMaxX > inputMinX&& currentMaxX <= inputMaxX) ||
 			(currentMinX <= inputMinX && currentMaxX >= inputMaxX)
 			) && (
 			(currentMinY < inputMaxY && currentMinY >= inputMinY) ||
-			(currentMaxY > inputMinY && currentMaxY <= inputMaxY) ||
-			(currentMinY <= inputMinY && currentMaxY >= inputMaxY)
-			) && (
-			(currentMinZ < inputMaxZ && currentMinZ >= inputMinZ) ||
-			(currentMaxZ > inputMinZ && currentMaxZ <= inputMaxZ) ||
-			(currentMinZ <= inputMinZ && currentMaxZ >= inputMaxZ)
-			))
+				(currentMaxY > inputMinY&& currentMaxY <= inputMaxY) ||
+				(currentMinY <= inputMinY && currentMaxY >= inputMaxY)
+				) && (
+				(currentMinZ < inputMaxZ && currentMinZ >= inputMinZ) ||
+					(currentMaxZ > inputMinZ&& currentMaxZ <= inputMaxZ) ||
+					(currentMinZ <= inputMinZ && currentMaxZ >= inputMaxZ)
+					))
 		{
-				float xOverlap = 1.f;
-				float yOverlap = 1.f;
-				float zOverlap = 1.f;
+			float xOverlap = 1.f;
+			float yOverlap = 1.f;
+			float zOverlap = 1.f;
 
-				if(currentMinX > inputMinX)
-					xOverlap -= (currentMinX - inputMinX) / (inputDimensionX * 1.f);
+			if (currentMinX > inputMinX)
+			{
+				xOverlap -= (currentMinX - inputMinX) / (inputDimensionX * 1.f);
+			}
 
-				if(currentMaxX < inputMaxX)
-					xOverlap -= (inputMaxX - currentMaxX) / (inputDimensionX * 1.f);
+			if (currentMaxX < inputMaxX)
+			{
+				xOverlap -= (inputMaxX - currentMaxX) / (inputDimensionX * 1.f);
+			}
 
-				if(currentMinY > inputMinY)
-					yOverlap -= (currentMinY - inputMinY) / (inputDimensionY * 1.f);
+			if (currentMinY > inputMinY)
+			{
+				yOverlap -= (currentMinY - inputMinY) / (inputDimensionY * 1.f);
+			}
 
-				if(currentMaxY < inputMaxY)
-					yOverlap -= (inputMaxY - currentMaxY) / (inputDimensionY * 1.f);
+			if (currentMaxY < inputMaxY)
+			{
+				yOverlap -= (inputMaxY - currentMaxY) / (inputDimensionY * 1.f);
+			}
 
-				if(currentMinZ > inputMinZ)
-					zOverlap -= (currentMinZ - inputMinZ) / (inputDimensionZ * 1.f);
+			if (currentMinZ > inputMinZ)
+			{
+				zOverlap -= (currentMinZ - inputMinZ) / (inputDimensionZ * 1.f);
+			}
 
-				if(currentMaxZ < inputMaxZ)
-					zOverlap -= (inputMaxZ - currentMaxZ) / (inputDimensionZ * 1.f);
+			if (currentMaxZ < inputMaxZ)
+			{
+				zOverlap -= (inputMaxZ - currentMaxZ) / (inputDimensionZ * 1.f);
+			}
 
-				float overlap;
-				if(useZ)
-					overlap = xOverlap * yOverlap * zOverlap;
-				else
-					overlap = xOverlap * yOverlap;
-				correspondences->push_back(
-					*new iAFeatureTrackingCorrespondence(i + 1,
-										overlap,
-										inputVolume / (float)currentVolume,
-										false,
-										0.f,
-										Continuation)
-				);
+			float overlap;
+			if (useZ)
+			{
+				overlap = xOverlap * yOverlap * zOverlap;
+			}
+			else
+			{
+				overlap = xOverlap * yOverlap;
+			}
+			correspondences->push_back(
+				*new iAFeatureTrackingCorrespondence(i + 1,
+					overlap,
+					inputVolume / (float)currentVolume,
+					false,
+					0.f,
+					Continuation)
+			);
 		}
 	}
 	sortCorrespondencesByOverlap(*correspondences);
 	return *correspondences;
 }
 
-
 // public methods
-iAFeatureTracking::iAFeatureTracking(QString const & fileName1, QString const &fileName2, int lineOffset, QString const & outputFilename,
-								 float dissipationThreshold, float overlapThreshold, float volumeThreshold,
-								 int maxSearchValue)
+iAFeatureTracking::iAFeatureTracking(QString const& fileName1, QString const& fileName2, int lineOffset, QString const& outputFilename,
+	float dissipationThreshold, float overlapThreshold, float volumeThreshold,
+	int maxSearchValue)
 {
 	this->file1 = fileName1;
 	this->file2 = fileName2;
@@ -250,7 +272,7 @@ iAFeatureTracking::iAFeatureTracking(QString const & fileName1, QString const &f
 	this->dissipationThreshold = dissipationThreshold;
 	this->overlapThreshold = overlapThreshold;
 	this->volumeThreshold = volumeThreshold;
-	this->maxSearchValue = maxSearchValue;
+	this->m_maxSearchValue = maxSearchValue;
 	uToV = new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
 	vToU = new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
 	allUtoV = new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
@@ -264,18 +286,18 @@ float iAFeatureTracking::GetOverallMatchingPercentage()
 
 void iAFeatureTracking::ComputeOverallMatchingPercentage()
 {
-	if(file1 == "")
+	if (file1 == "")
 	{
 		overallMatchingPercentage = 1.f;
 		return;
 	}
 	overallMatchingPercentage = 0.f;
 	size_t n = allUtoV->size();
-	for(size_t i = 0; i < allUtoV->size(); i++)
+	for (size_t i = 0; i < allUtoV->size(); i++)
 	{
-		for(size_t j = 0; j < allUtoV->at(i).second.size(); j++)
+		for (size_t j = 0; j < allUtoV->at(i).second.size(); j++)
 		{
-			if(allUtoV->at(i).second.at(j).isTakenForCurrentIteration)
+			if (allUtoV->at(i).second.at(j).isTakenForCurrentIteration)
 			{
 				overallMatchingPercentage += allUtoV->at(i).second.at(j).likelyhood;
 			}
@@ -289,48 +311,47 @@ void iAFeatureTracking::TrackFeatures()
 	u = readTableFromFile(file1, lineOffset);
 	v = readTableFromFile(file2, lineOffset);
 
-	auto dissipated =                new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
-	auto continuated =               new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
-	auto created =                   new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
-	auto merged =                    new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
-	auto splitted =                  new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
-	auto mergeCandidates =           new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
-	auto splitCandidates =           new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
+	auto dissipated = new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
+	auto continuated = new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
+	auto created = new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
+	auto merged = new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
+	auto splitted = new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
+	auto mergeCandidates = new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
+	auto splitCandidates = new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
 	auto continuatedAfterMergeTest = new std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > >();
 
-
-	vtkVariantArray *row = vtkVariantArray::New();
+	vtkVariantArray* row = vtkVariantArray::New();
 
 	// main computation ==============================================================================================
-	for(int i = 0; i < u->GetNumberOfRows(); i++)
+	for (int i = 0; i < u->GetNumberOfRows(); i++)
 	{
 		u->GetRow(i, row);
-		auto result = &getCorrespondences(*row, *v, maxSearchValue, true);
+		auto result = &getCorrespondences(*row, *v, m_maxSearchValue, true);
 		uToV->push_back(std::make_pair(i + 1, *result));
 	}
 
 	// compute vToU out of uToV ======================================================================================
 	vToU->reserve(v->GetNumberOfRows());
-	for(int i = 0; i < v->GetNumberOfRows(); i++)
+	for (int i = 0; i < v->GetNumberOfRows(); i++)
 	{
 		auto result = new std::vector<iAFeatureTrackingCorrespondence>();
 		vToU->push_back(std::make_pair(i + 1, *result));
 	}
-	for(unsigned int i = 0; i < uToV->size(); i++)
+	for (unsigned int i = 0; i < uToV->size(); i++)
 	{
-		for(unsigned int j = 0; j < uToV->at(i).second.size(); j++)
+		for (unsigned int j = 0; j < uToV->at(i).second.size(); j++)
 		{
 			iAFeatureTrackingCorrespondence tmp = uToV->at(i).second.at(j);
 			vToU->at(tmp.id - 1).second.push_back(
 				*new iAFeatureTrackingCorrespondence(uToV->at(i).first, tmp.overlap, tmp.volumeRatio,
-				tmp.isTakenForCurrentIteration, tmp.likelyhood, tmp.featureEvent));
+					tmp.isTakenForCurrentIteration, tmp.likelyhood, tmp.featureEvent));
 		}
 	}
 
 	// compute creation ==============================================================================================
-	for(unsigned int i = 0; i < vToU->size(); i++)
+	for (unsigned int i = 0; i < vToU->size(); i++)
 	{
-		if(vToU->at(i).second.size() == 0)
+		if (vToU->at(i).second.size() == 0)
 		{
 			auto vec = new std::vector<iAFeatureTrackingCorrespondence>();
 			vec->push_back(*new iAFeatureTrackingCorrespondence(0, 0.f, 0.f, true, 1.f, Creation));
@@ -340,15 +361,15 @@ void iAFeatureTracking::TrackFeatures()
 
 	// look for merge/continuation/split and dissipation in uToV and vToU ============================================
 	// this section removes all obvious pores to leave just those with difficult values left for further computation
-	for(unsigned int i = 0; i < uToV->size(); i++)
+	for (unsigned int i = 0; i < uToV->size(); i++)
 	{
-		if(uToV->at(i).second.size() > 0)
+		if (uToV->at(i).second.size() > 0)
 		{
-			if(uToV->at(i).second.at(0).overlap >= dissipationThreshold)
+			if (uToV->at(i).second.at(0).overlap >= dissipationThreshold)
 			{
-				if(vToU->at(uToV->at(i).second.at(0).id - 1).second.size() == 1)
+				if (vToU->at(uToV->at(i).second.at(0).id - 1).second.size() == 1)
 				{
-					if( uToV->at(i).second.size() == 1)
+					if (uToV->at(i).second.size() == 1)
 					{
 						// Continuation
 						auto vec = &uToV->at(i).second;
@@ -361,47 +382,59 @@ void iAFeatureTracking::TrackFeatures()
 						// Bifurcation/Continuation
 						auto vec = &uToV->at(i).second;
 						for (auto c = vec->begin(); c != vec->end(); c++)
+						{
 							c->featureEvent = Bifurcation;
+						}
 						splitCandidates->push_back(make_pair(i + 1, *vec));
 					}
 				}
-				else if(vToU->at(uToV->at(i).second.at(0).id - 1).second.size() > 1)
+				else if (vToU->at(uToV->at(i).second.at(0).id - 1).second.size() > 1)
 				{
 					unsigned int j = 0;
-					while(j < uToV->at(i).second.size())
+					while (j < uToV->at(i).second.size())
 					{
-						if(	uToV->at(i).second.at(j).volumeRatio >= (float)(1.0f - volumeThreshold) &&
+						if (uToV->at(i).second.at(j).volumeRatio >= (float)(1.0f - volumeThreshold) &&
 							uToV->at(i).second.at(j).volumeRatio <= (float)(1.0f + volumeThreshold) &&
 							uToV->at(i).second.at(j).overlap >= overlapThreshold)
+						{
 							break;
+						}
 						j++;
 					}
-					if(j < uToV->at(i).second.size())
+					if (j < uToV->at(i).second.size())
 					{
 						// Continuation
 						auto vec = &uToV->at(i).second;
 						vec->at(j).isTakenForCurrentIteration = true;
 						continuated->push_back(std::make_pair(i + 1, *vec));
-						for(unsigned int k = 0; k < uToV->at(i).second.size(); k++)
-							if(k != j)
+						for (unsigned int k = 0; k < uToV->at(i).second.size(); k++)
+						{
+							if (k != j)
+							{
 								vToU->at(uToV->at(i).second.at(k).id - 1).second.pop_back(); // just for decreasing size
+							}
+						}
 					}
 					else
 					{
-						unsigned int j = 0;
+						j = 0;
 						int cnt = 0;
-						while(j < uToV->at(i).second.size())
+						while (j < uToV->at(i).second.size())
 						{
-							if(vToU->at(uToV->at(i).second.at(j).id - 1).second.size() == 1)
+							if (vToU->at(uToV->at(i).second.at(j).id - 1).second.size() == 1)
+							{
 								cnt++;
+							}
 							j++;
 						}
-						if(cnt > 0)
+						if (cnt > 0)
 						{
 							// Bifurcation/Continuation
 							auto vec = &uToV->at(i).second;
 							for (auto c = vec->begin(); c != vec->end(); c++)
+							{
 								c->featureEvent = Bifurcation;
+							}
 							splitCandidates->push_back(make_pair(i + 1, *vec));
 						}
 						else
@@ -409,7 +442,9 @@ void iAFeatureTracking::TrackFeatures()
 							// Amalgamation/Continuation/Dissipation
 							auto vec = &uToV->at(i).second;
 							for (auto c = vec->begin(); c != vec->end(); c++)
+							{
 								c->featureEvent = Amalgamation;
+							}
 							mergeCandidates->push_back(make_pair(i + 1, *vec));
 						}
 					}
@@ -420,13 +455,14 @@ void iAFeatureTracking::TrackFeatures()
 				// Dissipation
 				// almost never happening
 				auto vec = &uToV->at(i).second;
-				for(unsigned int k = 0; k < uToV->at(i).second.size(); k++)
+				for (unsigned int k = 0; k < uToV->at(i).second.size(); k++)
+				{
 					vToU->at(uToV->at(i).second.at(k).id - 1).second.pop_back(); // just for decreasing size
+				}
 				vec->clear();
 				vec->push_back(*new iAFeatureTrackingCorrespondence(0, 1.f, 1.f, true, 1.f, Dissipation));
 				vec->at(vec->size() - 1).isTakenForCurrentIteration = true;
 				dissipated->push_back(std::make_pair(i + 1, *vec));
-
 			}
 		}
 		else
@@ -442,10 +478,8 @@ void iAFeatureTracking::TrackFeatures()
 	// which is the vector containing those pores, that were comptuted within a nontrivial computation
 	// and are needed to evaluate the other pores(i.e. removing their results from those left to compute)
 
-
 	// if for any reason this algorithm shouldn't be able to evaluate all pores, the following section should
 	// be executed till there is no change any more *1
-
 
 	// first mergeCandidates -----------------------------------------------------------------------------
 	// remove all correspondences already connected to another continuated pore
@@ -455,10 +489,14 @@ void iAFeatureTracking::TrackFeatures()
 		{
 			for (auto it2 = it->second.begin(); it2 != it->second.end();)
 			{
-					if(p->second.at(0).id == it2->id)
-						it2 = it->second.erase(it2);
-					else
-						it2++;
+				if (p->second.at(0).id == it2->id)
+				{
+					it2 = it->second.erase(it2);
+				}
+				else
+				{
+					it2++;
+				}
 			}
 			it++;
 		}
@@ -468,21 +506,25 @@ void iAFeatureTracking::TrackFeatures()
 	{
 		float currentMax = 0.f;
 		int currentMaxId = -1;
-		for(unsigned int i = 0; i < it->second.size(); i++)
+		for (unsigned int i = 0; i < it->second.size(); i++)
 		{
 			float volumeRatio;
-			if(it->second.at(i).volumeRatio > 1.f)
+			if (it->second.at(i).volumeRatio > 1.f)
+			{
 				volumeRatio = 1.f;
+			}
 			else
+			{
 				volumeRatio = it->second.at(i).volumeRatio;
-			if((it->second.at(i).overlap * 2.f) + volumeRatio > currentMax)
+			}
+			if ((it->second.at(i).overlap * 2.f) + volumeRatio > currentMax)
 			{
 				currentMaxId = i;
 				currentMax = (it->second.at(i).overlap * 2.f) + it->second.at(i).volumeRatio;
 			}
 		}
 		auto vec = new std::vector<iAFeatureTrackingCorrespondence>();
-		if(currentMaxId > -1)
+		if (currentMaxId > -1)
 		{
 			vec->push_back(*new iAFeatureTrackingCorrespondence(it->second.at(currentMaxId)));
 			continuatedAfterMergeTest->push_back(std::make_pair(it->first, *vec));
@@ -503,10 +545,14 @@ void iAFeatureTracking::TrackFeatures()
 		{
 			for (auto it2 = it->second.begin(); it2 != it->second.end();)
 			{
-				if(p->second.at(0).id == it2->id)
+				if (p->second.at(0).id == it2->id)
+				{
 					it2 = it->second.erase(it2);
+				}
 				else
+				{
 					it2++;
+				}
 			}
 			it++;
 		}
@@ -515,12 +561,16 @@ void iAFeatureTracking::TrackFeatures()
 	{
 		for (auto it = splitCandidates->begin(); it != splitCandidates->end();)
 		{
-			for (auto it2 = it->second.begin();	it2 != it->second.end();)
+			for (auto it2 = it->second.begin(); it2 != it->second.end();)
 			{
-				if(p->second.at(0).id == it2->id)
+				if (p->second.at(0).id == it2->id)
+				{
 					it2 = it->second.erase(it2);
+				}
 				else
+				{
 					it2++;
+				}
 			}
 			it++;
 		}
@@ -529,11 +579,11 @@ void iAFeatureTracking::TrackFeatures()
 	// categorize
 	for (auto p = splitCandidates->begin(); p != splitCandidates->end(); p++)
 	{
-		if(p->second.size() == 0)
+		if (p->second.size() == 0)
 		{
 			//Dissipated
 		}
-		else if(p->second.size() == 1)
+		else if (p->second.size() == 1)
 		{
 			// Continuated
 			auto vec = new std::vector<iAFeatureTrackingCorrespondence>();
@@ -546,7 +596,9 @@ void iAFeatureTracking::TrackFeatures()
 			// splitted
 			auto vec = new std::vector<iAFeatureTrackingCorrespondence>();
 			for (auto c = p->second.begin(); c != p->second.end(); c++)
+			{
 				vec->push_back(*new iAFeatureTrackingCorrespondence(*c));
+			}
 			vec->at(0).featureEvent = Bifurcation;
 			splitted->push_back(make_pair(p->first, *vec));
 		}
@@ -557,30 +609,38 @@ void iAFeatureTracking::TrackFeatures()
 	for (auto it = continuatedAfterMergeTest->begin(); it != continuatedAfterMergeTest->end();)
 	{
 		unsigned int i = 0;
-		while(i < it->second.size())
+		while (i < it->second.size())
 		{
-			if(it->second.at(i).isTakenForCurrentIteration)
+			if (it->second.at(i).isTakenForCurrentIteration)
+			{
 				break;
+			}
 			i++;
 		}
-		if(i < it->second.size())
+		if (i < it->second.size())
 		{
 			continuated->push_back(*it);
 			it = continuatedAfterMergeTest->erase(it);
 		}
 		else
+		{
 			it++;
+		}
 	}
 
 	// finally compute all out of the left pores in continuatedAfterMergeTest
 	auto occurences = new std::vector<int>();
 	for (auto p = continuatedAfterMergeTest->begin(); p != continuatedAfterMergeTest->end(); p++)
+	{
 		for (auto c = p->second.begin(); c != p->second.end(); c++)
+		{
 			occurences->push_back(c->id);
+		}
+	}
 
 	for (auto p = continuatedAfterMergeTest->begin(); p != continuatedAfterMergeTest->end(); p++)
 	{
-		if(nrOfOccurences(*occurences, p->second.at(0).id) == 1)
+		if (nrOfOccurences(*occurences, p->second.at(0).id) == 1)
 		{
 			// Continuation
 			auto vec = new std::vector<iAFeatureTrackingCorrespondence>();
@@ -602,13 +662,15 @@ void iAFeatureTracking::TrackFeatures()
 	// end of the section which should be executed till there is no change from step to step any more *1
 
 	// setting all correspondence for splitted pores to Bifurcation
-	for (auto it = splitted->begin();
-		it != splitted->end(); it++)
-	for (auto it2 = it->second.begin();
-			it2 != it->second.end(); it2++)
-				it2->featureEvent = Bifurcation;
+	for (auto it = splitted->begin(); it != splitted->end(); it++)
+	{
+		for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++)
+		{
+			it2->featureEvent = Bifurcation;
+		}
+	}
 
-	if(outputFilename != "")
+	if (outputFilename != "")
 	{
 		ofstream out;
 		out.open(getLocalEncodingFileName(outputFilename));
@@ -631,16 +693,16 @@ void iAFeatureTracking::TrackFeatures()
 		}
 
 		out << "Amalgamation" << endl;
-		for (auto p = merged->begin(); p != merged->end();	p++)
+		for (auto p = merged->begin(); p != merged->end(); p++)
 		{
-			out << p->first << " to " <<  p->second.at(0).id << endl;
+			out << p->first << " to " << p->second.at(0).id << endl;
 		}
 
 		out << "Bifurcation" << endl;
 		for (auto p = splitted->begin(); p != splitted->end(); p++)
 		{
 			out << p->first << " to ";
-			for(unsigned int i = 0; i < p->second.size(); i++)
+			for (unsigned int i = 0; i < p->second.size(); i++)
 				out << p->second.at(i).id << " ";
 			out << endl;
 		}
@@ -655,42 +717,45 @@ void iAFeatureTracking::TrackFeatures()
 	// adding erased values to dissipated
 	for (auto it = dissipated->begin(); it != dissipated->end(); it++)
 	{
-			if(uToV->at(it->first - 1).second.size() > it->second.size())
+		if (uToV->at(it->first - 1).second.size() > it->second.size())
+		{
+			// adding erased values
+			for (auto c = uToV->at(it->first - 1).second.begin(); c != uToV->at(it->first - 1).second.end(); c++)
 			{
-				// adding erased values
-				for (auto c = uToV->at(it->first - 1).second.begin(); c != uToV->at(it->first - 1).second.end(); c++)
-				{
-					it->second.push_back(*new iAFeatureTrackingCorrespondence(*c));
-				}
+				it->second.push_back(*new iAFeatureTrackingCorrespondence(*c));
 			}
+		}
 	}
 
 	// adding erased values to continuated
 	for (auto it = continuated->begin(); it != continuated->end(); it++)
 	{
-			if(uToV->at(it->first - 1).second.size() > 1)
+		if (uToV->at(it->first - 1).second.size() > 1)
+		{
+			// adding erased values
+			for (auto c = uToV->at(it->first - 1).second.begin(); c != uToV->at(it->first - 1).second.end(); c++)
 			{
-				// adding erased values
-				for (auto c = uToV->at(it->first - 1).second.begin(); c != uToV->at(it->first - 1).second.end(); c++)
+				bool alreadyContaining = false;
+				for (auto c1 = it->second.begin(); c1 != it->second.end(); c1++)
 				{
-					bool alreadyContaining = false;
-					for (auto c1 = it->second.begin(); c1 != it->second.end(); c1++)
-						if(c1->id == c->id)
-						{
-							alreadyContaining = true;
-							break;
-						}
-					if(!alreadyContaining)
-						it->second.push_back(*new iAFeatureTrackingCorrespondence(*c));
+					if (c1->id == c->id)
+					{
+						alreadyContaining = true;
+						break;
+					}
+				}
+				if (!alreadyContaining)
+				{
+					it->second.push_back(*new iAFeatureTrackingCorrespondence(*c));
 				}
 			}
+		}
 	}
 
 	// set usedForCurrentIteration before adding erased values to remember the difference
-	for (auto it = merged->begin();
-		it != merged->end(); it++)
+	for (auto it = merged->begin();	it != merged->end(); it++)
 	{
-		for (auto it2 = it->second.begin();	it2 != it->second.end(); it2++)
+		for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++)
 		{
 			it2->isTakenForCurrentIteration = true;
 		}
@@ -699,28 +764,32 @@ void iAFeatureTracking::TrackFeatures()
 	// adding erased values to merged
 	for (auto it = merged->begin(); it != merged->end(); it++)
 	{
-		if(uToV->at(it->first - 1).second.size() > it->second.size())
+		if (uToV->at(it->first - 1).second.size() > it->second.size())
 		{
 			// adding erased values
 			for (auto c = uToV->at(it->first - 1).second.begin(); c != uToV->at(it->first - 1).second.end(); c++)
 			{
 				bool alreadyContaining = false;
 				for (auto c1 = it->second.begin(); c1 != it->second.end(); c1++)
-					if(c1->id == c->id)
+				{
+					if (c1->id == c->id)
 					{
 						alreadyContaining = true;
 						break;
 					}
-				if(!alreadyContaining)
+				}
+				if (!alreadyContaining)
+				{
 					it->second.push_back(*new iAFeatureTrackingCorrespondence(*c));
+				}
 			}
 		}
 	}
 
 	// set usedForCurrentIteration before adding erased values to remember the difference
-	for (auto it = splitted->begin();it != splitted->end(); it++)
+	for (auto it = splitted->begin(); it != splitted->end(); it++)
 	{
-		for (auto it2 = it->second.begin();	it2 != it->second.end(); it2++)
+		for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++)
 		{
 			it2->isTakenForCurrentIteration = true;
 		}
@@ -729,20 +798,24 @@ void iAFeatureTracking::TrackFeatures()
 	// adding erased values to splitted
 	for (auto it = splitted->begin(); it != splitted->end(); it++)
 	{
-		if(uToV->at(it->first - 1).second.size() > it->second.size())
+		if (uToV->at(it->first - 1).second.size() > it->second.size())
 		{
 			// adding erased values
 			for (auto c = uToV->at(it->first - 1).second.begin(); c != uToV->at(it->first - 1).second.end(); c++)
 			{
 				bool alreadyContaining = false;
 				for (auto c1 = it->second.begin(); c1 != it->second.end(); c1++)
-					if(c1->id == c->id)
+				{
+					if (c1->id == c->id)
 					{
 						alreadyContaining = true;
 						break;
 					}
-				if(!alreadyContaining)
+				}
+				if (!alreadyContaining)
+				{
 					it->second.push_back(*new iAFeatureTrackingCorrespondence(*c));
+				}
 			}
 		}
 	}
@@ -758,7 +831,7 @@ void iAFeatureTracking::TrackFeatures()
 
 	// make allUtoV initialization
 	allUtoV->reserve(uToV->size());
-	for(unsigned int i = 0; i < uToV->size(); i++)
+	for (unsigned int i = 0; i < uToV->size(); i++)
 	{
 		auto vec = new std::vector<iAFeatureTrackingCorrespondence>();
 		auto p = std::make_pair(i + 1, *vec);
@@ -767,12 +840,16 @@ void iAFeatureTracking::TrackFeatures()
 
 	// insert sorted
 	for (auto p = temp->begin(); p != temp->end(); p++)
+	{
 		for (auto c = p->second.begin(); c != p->second.end(); c++)
+		{
 			allUtoV->at(p->first - 1).second.push_back(*new iAFeatureTrackingCorrespondence(*c));
+		}
+	}
 
 	// make the mirroring version allVtoU -----------------------------------------------------------------------
 	allVtoU->reserve(vToU->size());
-	for(unsigned int i = 0; i < vToU->size(); i++)
+	for (unsigned int i = 0; i < vToU->size(); i++)
 	{
 		auto vec = new std::vector<iAFeatureTrackingCorrespondence>();
 		auto p = std::make_pair(i + 1, *vec);
@@ -784,30 +861,36 @@ void iAFeatureTracking::TrackFeatures()
 	{
 		for (auto c = p->second.begin(); c != p->second.end(); c++)
 		{
-			if(c->featureEvent == Dissipation)
+			if (c->featureEvent == Dissipation)
 			{
 				// do nothing
 			}
-			else if(c->featureEvent == Continuation)
+			else if (c->featureEvent == Continuation)
 			{
 				// Continuation
-				if(c->isTakenForCurrentIteration)
+				if (c->isTakenForCurrentIteration)
+				{
 					allVtoU->at(c->id - 1).second.push_back(
 						*new iAFeatureTrackingCorrespondence(p->first, c->overlap, 1 / c->volumeRatio, true, 1.f, Continuation));
+				}
 			}
-			else if(c->featureEvent == Amalgamation)
+			else if (c->featureEvent == Amalgamation)
 			{
 				// add splitted
-				if(c->isTakenForCurrentIteration)
+				if (c->isTakenForCurrentIteration)
+				{
 					allVtoU->at(c->id - 1).second.push_back(
 						*new iAFeatureTrackingCorrespondence(p->first, c->overlap, 1 / c->volumeRatio, true, 1.f, Bifurcation));
+				}
 			}
-			else if(c->featureEvent == Bifurcation)
+			else if (c->featureEvent == Bifurcation)
 			{
 				// add merge
-				if(c->isTakenForCurrentIteration)
+				if (c->isTakenForCurrentIteration)
+				{
 					allVtoU->at(c->id - 1).second.push_back(
 						*new iAFeatureTrackingCorrespondence(p->first, c->overlap, 1 / c->volumeRatio, true, 1.f, Amalgamation));
+				}
 			}
 		}
 	}
@@ -820,22 +903,25 @@ void iAFeatureTracking::TrackFeatures()
 	// compute the percentages =====================================================================
 	for (auto it = allUtoV->begin(); it != allUtoV->end(); it++)
 	{
-
-			float total = 0.f;
-			for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++)
+		float total = 0.f;
+		for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++)
+		{
+			float overlap;
+			if (it2->overlap > 1.f)
 			{
-				float overlap;
-				if(it2->overlap > 1.f)
-					overlap = 1.f;
-				else
-					overlap = it2->overlap;
-				it2->likelyhood = it2->overlap * 2  + overlap;
-				total += it2->likelyhood;
+				overlap = 1.f;
 			}
-			for (auto it2 = it->second.begin();	it2 != it->second.end(); it2++)
+			else
 			{
-				it2->likelyhood /= total;
+				overlap = it2->overlap;
 			}
+			it2->likelyhood = it2->overlap * 2 + overlap;
+			total += it2->likelyhood;
+		}
+		for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++)
+		{
+			it2->likelyhood /= total;
+		}
 	}
 
 	ComputeOverallMatchingPercentage();
@@ -844,18 +930,26 @@ void iAFeatureTracking::TrackFeatures()
 std::vector<iAFeatureTrackingCorrespondence> iAFeatureTracking::FromUtoV(unsigned int uId)
 {
 	std::vector<iAFeatureTrackingCorrespondence> result;
-	if(allUtoV != 0 && uId > 0 && uId <= allUtoV->size() && allUtoV->at(uId - 1).second.size() > 0)
+	if (allUtoV != 0 && uId > 0 && uId <= allUtoV->size() && allUtoV->at(uId - 1).second.size() > 0)
+	{
 		for (auto c = allUtoV->at(uId - 1).second.begin(); c != allUtoV->at(uId - 1).second.end(); c++)
+		{
 			result.push_back(*new iAFeatureTrackingCorrespondence(*c));
+		}
+	}
 	return result;
 }
 
 std::vector<iAFeatureTrackingCorrespondence> iAFeatureTracking::FromVtoU(unsigned int vId)
 {
 	std::vector<iAFeatureTrackingCorrespondence> result;
-	if(allVtoU != 0 && vId > 0 && vId <= allVtoU->size() && allVtoU->at(vId - 1).second.size() > 0)
+	if (allVtoU != 0 && vId > 0 && vId <= allVtoU->size() && allVtoU->at(vId - 1).second.size() > 0)
+	{
 		for (auto c = allVtoU->at(vId - 1).second.begin(); c != allVtoU->at(vId - 1).second.end(); c++)
+		{
 			result.push_back(*new iAFeatureTrackingCorrespondence(*c));
+		}
+	}
 	return result;
 }
 

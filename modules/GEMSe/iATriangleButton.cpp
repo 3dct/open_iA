@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -31,7 +31,7 @@ iATriangleButton::iATriangleButton():
 	setStyleSheet("background-color: transparent;");
 }
 
-void iATriangleButton::paintEvent(QPaintEvent* ev)
+void iATriangleButton::paintEvent(QPaintEvent* /*ev*/)
 {
 	QPainter p(this);
 	p.setRenderHint(QPainter::Antialiasing);
@@ -40,7 +40,7 @@ void iATriangleButton::paintEvent(QPaintEvent* ev)
 
 	int partX = g.width()/4;
 	int partY = partX*2;
-	
+
 	p.translate(g.width()/2, g.height()/2);
 	if (m_expanded)
 	{
@@ -51,7 +51,7 @@ void iATriangleButton::paintEvent(QPaintEvent* ev)
 	poly<< QPoint(-partX, -partY)
 		<< QPoint(partX, 0)
 		<< QPoint(-partX,  partY);
-	
+
 	if (m_expanded)
 	{
 		QPainterPath path;

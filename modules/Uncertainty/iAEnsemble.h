@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -39,7 +39,7 @@ public:
 		UncertaintyMean,
 		UncertaintyVar
 	};
-	~iAEnsemble();
+	~iAEnsemble() override;
 	//! create from string
 	static QSharedPointer<iAEnsemble> Create(int entropyBinCount,
 		QSharedPointer<iAEnsembleDescriptorFile> ensembleFile);
@@ -67,7 +67,7 @@ public:
 	QSharedPointer<iAEnsembleDescriptorFile> EnsembleFile();
 	void WriteFullDataFile(QString const & filename, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties, QSharedPointer<iAModalityList> modalities);
 private:
-	bool LoadSampling(QString const & fileName, int labelCount, int id);
+	bool LoadSampling(QString const & fileName, int id);
 	void CreateUncertaintyImages();
 	//! constructor; use static Create methods instead!
 	iAEnsemble(int entropyBinCount);

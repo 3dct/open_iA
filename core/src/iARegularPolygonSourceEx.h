@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -59,10 +59,10 @@ protected:
 	}
 	~iARegularPolygonSourceEx() {}
 
-	virtual int RequestData(
+	int RequestData(
 		vtkInformation *vtkNotUsed(request),
 		vtkInformationVector **vtkNotUsed(inputVector),
-		vtkInformationVector *outputVector)
+		vtkInformationVector *outputVector) override
 	{
 		// Get the info object
 		vtkInformation *outInfo = outputVector->GetInformationObject(0);
@@ -148,6 +148,6 @@ private:
 	iARegularPolygonSourceEx(const iARegularPolygonSourceEx&);  // Not implemented.
 	void operator=(const iARegularPolygonSourceEx&);  // Not implemented.
 protected:
-		double Point1[3], Point2[3];
+	double Point1[3], Point2[3];
 };
 vtkStandardNewMacro(iARegularPolygonSourceEx);

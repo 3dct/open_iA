@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -21,7 +21,6 @@
 #include "iAStringHelper.h"
 
 #include <QRegularExpression>
-#include <QStringList>
 
 
 QStringList splitPossiblyQuotedString(QString const & str)
@@ -51,28 +50,6 @@ QString quoteString(QString const & str)
 	QString result = str;
 	result.replace("\"", "\\\"");
 	return "\"" + result + "\"";
-}
-
-bool str2Vec3D(QString const & str, double vec[3])
-{
-	QStringList list = str.split(" ");
-	if (list.size() != 3)
-	{
-		return false;
-	}
-	for (int i = 0; i < 3; ++i)
-	{
-		bool ok;
-		vec[i] = list[i].toDouble(&ok);
-		if (!ok)
-			return false;
-	}
-	return true;
-}
-
-QString vec3D2String(double const * vec)
-{
-	return QString("%1 %2 %3").arg(vec[0]).arg(vec[1]).arg(vec[2]);
 }
 
 QString padOrTruncate(QString const & str, int size)

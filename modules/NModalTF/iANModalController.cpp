@@ -239,12 +239,12 @@ inline void iANModalController::_initializeCombinedVol() {
 	m_combinedVolRenderer->AddVolume(m_combinedVol);
 	//m_combinedVolRenderer->ResetCamera();
 
-	for (int i = 0; i < countModalities(); ++i) {
+	/*for (int i = 0; i < countModalities(); ++i) {
 		QSharedPointer<iAVolumeRenderer> renderer = m_modalities[i]->renderer();
-		if (renderer->isRendered())
+		if (renderer && renderer->isRendered())
 			renderer->remove();
 	}
-	m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);
+	m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);*/
 }
 
 inline void iANModalController::applyVolumeSettings() {

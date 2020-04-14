@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -64,7 +64,10 @@ iA4DCTModuleInterface::~iA4DCTModuleInterface( )
 void iA4DCTModuleInterface::Initialize( )
 {
 	if (!m_mainWnd)
+	{
 		return;
+	}
+	Q_INIT_RESOURCE(4DCT);
 	QMenu* toolsMenu = m_mainWnd->toolsMenu( );
 	QMenu* menu4DCT = getMenuWithTitle(toolsMenu, tr("4DCT"), false);
 
@@ -126,7 +129,7 @@ void iA4DCTModuleInterface::saveProj( )
 {
 	QMdiSubWindow* subWnd = m_mainWnd->mdiArea->currentSubWindow( );
 	iA4DCTMainWin* stackView = qobject_cast<iA4DCTMainWin*>( subWnd->widget( ) );
-	if( stackView != NULL ) {
+	if( stackView != nullptr ) {
 		stackView->save( );
 	}
 }

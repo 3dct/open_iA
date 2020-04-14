@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
  * * **********   A tool for visual analysis and processing of 3D CT images   ********** *
  * * *********************************************************************************** *
- * * Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+ * * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
  * *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
  * * *********************************************************************************** *
  * * This program is free software: you can redistribute it and/or modify it under the   *
@@ -84,8 +84,8 @@ void iASVMImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 	param.p = 0.1;
 	param.shrinking = 0;
 	param.nr_weight = 0;
-	param.weight_label = NULL;
-	param.weight = NULL;
+	param.weight_label = nullptr;
+	param.weight = nullptr;
 
 	svm_problem problem;
 	typedef svm_node* p_svm_node;
@@ -162,8 +162,8 @@ void iASVMImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 			node[m].index = m;
 			node[m].value = input()[m]->vtkImage()->GetScalarComponentAsDouble(x, y, z, 0);
 		}
-		double label = svm_predict_probability(model, node, prob_estimates);
-		double label2 = svm_predict(model, node);
+		/*double label =*/ svm_predict_probability(model, node, prob_estimates);
+		/*double label2 =*/ svm_predict(model, node);
 		double probSum = 0;
 		for (int l = 0; l < labelCount; ++l)
 		{

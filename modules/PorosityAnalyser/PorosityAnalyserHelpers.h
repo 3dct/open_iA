@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -43,8 +43,8 @@
 #include <numeric>
 
 const int imgDim = 3;
-typedef itk::ImageBase< imgDim > ImageBaseType;
-typedef ImageBaseType::Pointer ImagePointer;
+typedef itk::ImageBase< imgDim > PAImageBaseType;
+typedef PAImageBaseType::Pointer ImagePointer;
 typedef itk::Image< char, imgDim >   MaskImageType;
 typedef MaskImageType::Pointer   MaskImagePointer;
 typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
@@ -412,7 +412,9 @@ struct sameType < T, T > { static const bool value = true; };  //specialization
 
 struct IParameterInfo
 {
-	IParameterInfo( QString parameterName, int numberOfSamples ) : name( parameterName ), numSamples( numberOfSamples ), incr(0), sampleId(0) {}
+	IParameterInfo( QString parameterName, int numberOfSamples ) :
+		name( parameterName ), numSamples( numberOfSamples ), sampleId(0), incr(0)
+	{}
 	virtual ~IParameterInfo() {}
 
 	virtual void reset() = 0;
@@ -423,10 +425,10 @@ struct IParameterInfo
 	virtual double asDouble() const = 0;
 	virtual QString asString() const = 0;
 
+	QString name;
 	int numSamples;
 	int sampleId;
 	double incr;
-	QString name;
 };
 
 template<typename T>
@@ -466,7 +468,7 @@ struct ParameterInfo : public IParameterInfo
 	}
 	inline virtual void randomInRange()
 	{
-		double randVal = qrand() / (double)RAND_MAX;
+		double randVal = qrand() / static_cast<double>(RAND_MAX);
 		randVal = range[0] + (range[1] - range[0]) * randVal;
 		val = randVal;
 	}
@@ -475,7 +477,6 @@ struct ParameterInfo : public IParameterInfo
 		if( sameType<T, int>::value )
 			return val;
 		throw itk::ExceptionObject( __FILE__, __LINE__, "Error: wrong parameter type is used!" );
-		return 0;
 	}
 	inline virtual float asFloat() const
 	{
@@ -517,8 +518,10 @@ inline bool incrementParameterSet( QList<IParameterInfo*> & parameters )
 
 inline void randomlySampleParameters( QList<IParameterInfo*> & parameters )
 {
-	foreach( IParameterInfo * p, parameters )
+	for (IParameterInfo* p : parameters)
+	{
 		p->randomInRange();
+	}
 }
 
 template<typename T>
@@ -529,15 +532,23 @@ inline ParameterInfo<T> * getParameterInfoType( QString paramName, QTableWidget 
 	paramInfo->name = paramName;
 	for( int i = 0; i < 2; ++i )
 	{
-		if( sameType<T, int>::value )
-			paramInfo->range[i] = thrStr.section( ' ', i, i ).toInt();
-		if( sameType<T, float>::value )
-			paramInfo->range[i] = thrStr.section( ' ', i, i ).toFloat();
-		if( sameType<T, double>::value )
-			paramInfo->range[i] = thrStr.section( ' ', i, i ).toDouble();
+		if (sameType<T, int>::value)
+		{
+			paramInfo->range[i] = thrStr.section(' ', i, i).toInt();
+		}
+		if (sameType<T, float>::value)
+		{
+			paramInfo->range[i] = thrStr.section(' ', i, i).toFloat();
+		}
+		if (sameType<T, double>::value)
+		{
+			paramInfo->range[i] = thrStr.section(' ', i, i).toDouble();
+		}
 	}
-	if( thrStr.count( ' ' ) == 2 )
-		paramInfo->numSamples = thrStr.section( ' ', -1 ).toInt();	//last Parameter = numSamples (no algo specific param)
+	if (thrStr.count(' ') == 2)
+	{
+		paramInfo->numSamples = thrStr.section(' ', -1).toInt();	//last Parameter = numSamples (no algo specific param)
+	}
 	paramInfo->reset();
 	return paramInfo;
 }
@@ -557,8 +568,6 @@ inline IParameterInfo * getParameterInfo( const ParamNameType & paramNameType, Q
 			break;
 		default:
 			throw itk::ExceptionObject( __FILE__, __LINE__, "Error: wrong parameter type is used in getParameterInfoType!" );
-			return 0;
-			break;
 	}
 }
 
@@ -582,8 +591,10 @@ inline QList<PorosityFilterID> parseFiltersFromString( QString algName )
 {
 	QStringList algs = algName.split( "_" );
 	QList<PorosityFilterID> filterIds;
-	foreach( QString a, algs )
-		filterIds.append( FilterNameToId[a] );
+	for (QString a : algs)
+	{
+		filterIds.append(FilterNameToId[a]);
+	}
 	return filterIds;
 }
 
@@ -613,7 +624,7 @@ inline QMap<double, QList<double> > calculateHistogram( QList<double> data, doub
 
 	if ( minmax[0] == minmax[1] )
 			minmax[1] = minmax[0] + 1.0;
-	
+
 	double inc = ( minmax[1] - minmax[0] ) / (NumberOfBins) * 1.001;
 	double halfInc = inc / 2.0;
 
@@ -701,7 +712,7 @@ inline QStringList getDatasetInfo( QString datasetDir, QString datasetName )
 		}
 		mhdFile.close();	// done with *.mhd file
 	}
-		
+
 	// Read *.mhd.info file
 	QFile infoFile( datasetDir + "/" + datasetName + ".info" );
 	if ( !infoFile.open( QIODevice::ReadOnly | QIODevice::Text ) )

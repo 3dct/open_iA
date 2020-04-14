@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,6 +22,7 @@
 
 #include <QString>
 
+//! Settings applicable to a single slicer window.
 class iASingleSlicerSettings
 {
 public:
@@ -40,15 +41,16 @@ public:
 		ShowIsoLines(false),
 		ShowPosition(false),
 		ShowAxesCaption(false),
+		ShowTooltip(true),
 		MinIsoValue(20000),
 		MaxIsoValue(40000),
 		NumberOfIsoLines(5),
 		ToolTipFontSize(12),
-		CursorMode(QString("Crosshair default")),
-		ShowTooltip(true)
+		CursorMode(QString("Crosshair default"))
 	{}
 };
 
+//! Settings for slicer windows and their interaction among each other and with other windows.
 class iASlicerSettings
 {
 public:

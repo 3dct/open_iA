@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -111,9 +111,7 @@ public:
 	//! Call this in case you are re-using a filter already called before,
 	//! and you want to call it with new input images
 	void clearInput();
-	//! TODO: also allow to check input files here (e.g. for AddImage to check
-	//!     if input images are all of the same type!
-	//! Adds an image as input
+	//! Adds an image as input.
 	void addInput(iAConnector* con);
 	//! Initialize and run the filter
 	//! @param parameters the map of parameters to use in this specific filter run
@@ -133,7 +131,7 @@ public:
 	//! Returns the number of image inputs required by this filter.
 	//! for typical image filters, this returns 1.
 	//! @return the number of images required as input
-	unsigned int requiredInputs() const;
+	int requiredInputs() const;
 	//! input/output connectors
 	QVector<iAConnector*> const & input();
 	QVector<iAConnector*> const & output();
@@ -176,6 +174,19 @@ public:
 	//! Retrieve the progress reporting object for this filter
 	iAProgress* progress();
 	iALogger* logger();
+
+	//! Retrieve the name of the input image with index i
+	QString inputName(unsigned int i) const;
+
+	//! Retrieve the name of the output image with index i
+	QString outputName(unsigned int i, QString defaultName=QString()) const;
+protected:
+	//! Set the name of the input with the given index
+	void setInputName(unsigned int i, QString const & name);
+
+	//! Set the name of the output with the given index
+	void setOutputName(unsigned int i, QString const & name);
+
 private:
 	//! The actual implementation of the filter
 	//! @param parameters the map of parameters to use in this specific filter run
@@ -193,11 +204,15 @@ private:
 	iAProgress* m_progress;
 	//! The logger
 	iALogger* m_log;
-	//! variables describing the algorithm and its parameters and output values
+	//! Describes the parameters of the algorithm
 	QVector<pParameter> m_parameters;
+	//! Names for the output values of the algorithm
 	QVector<QString> m_outputValueNames;
+	//! Names for the input images of the algorithm
+	QMap<unsigned int, QString> m_inputNames;
+	QMap<unsigned int, QString> m_outputNames;
 	QString m_name, m_category, m_description;
-	unsigned int m_requiredInputs, m_outputCount, m_firstInputChannels;
+	int m_requiredInputs, m_outputCount, m_firstInputChannels;
 };
 
 //! Convenience Macro for creating the static Create method for your filter

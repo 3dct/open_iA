@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -42,43 +42,46 @@
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
 
-#define DEFAULT_BLOB_OPACITY 0.3
-#define DEFAULT_SILHOUETTE_OPACITY 0.8
+namespace
+{
+	const double DEFAULT_BLOB_OPACITY = 0.3;
+	const double DEFAULT_SILHOUETTE_OPACITY = 0.8;
+}
 
-iABlobCluster::iABlobCluster( void )	:
-	m_objectType( "Fibers" ),
-	m_count( 0.0 ),
-	m_percentage( 0.0 ),
-	m_silhouetteIsOn( true ),
-	m_blobIsOn( true ),
-	m_labelIsOn( true ),
-	m_isSmoothingOn( true ),
-	m_renderIndividually( false ),
-	m_blurVariance( 1 ),
-	m_blobOpacity( DEFAULT_BLOB_OPACITY ),
-	m_silhouetteOpacity( DEFAULT_SILHOUETTE_OPACITY ),
-	m_blobRenderer( 0 ),
-	m_labelRenderer( 0 ),
-	m_blobManager( 0 ),
-	m_blobColor()
+iABlobCluster::iABlobCluster():
+	m_blobColor(),
+	m_count(0.0),
+	m_percentage(0.0),
+	m_objectType("Fibers"),
+	m_countContours(1),
+	m_silhouetteIsOn(true),
+	m_blobIsOn(true),
+	m_labelIsOn(true),
+	m_isSmoothingOn(true),
+	m_renderIndividually(false),
+	m_blurVariance(1),
+	m_blobOpacity(DEFAULT_BLOB_OPACITY),
+	m_silhouetteOpacity(DEFAULT_SILHOUETTE_OPACITY),
+	m_blobManager(nullptr),
+	m_blobRenderer(nullptr),
+	m_labelRenderer(nullptr),
+	m_polyDataNormals(vtkSmartPointer<vtkPolyDataNormals>::New()),
+	m_smoother(vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New()),
+	m_implicitFunction(iABlobImplicitFunction::New()),
+	m_sampleFunction(vtkSmartPointer<vtkSampleFunction>::New()),
+	m_contourFilter(vtkSmartPointer<vtkContourFilter>::New()),
+	m_contourMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_contourActor(vtkSmartPointer<vtkActor>::New()),
+	m_silhouette(vtkSmartPointer<vtkPolyDataSilhouette>::New()),
+	m_silhouetteMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_silhouetteActor(vtkSmartPointer<vtkActor>::New()),
+	m_captionActor(vtkSmartPointer<vtkCaptionActor2D>::New())
 {
 	// setup variables
-	m_countContours = 1;
 	m_range[0] = 0.025;
 	//m_range[1] = 0.5;
 
 	// initialize members
-	m_implicitFunction = iABlobImplicitFunction::New();
-	m_sampleFunction = vtkSmartPointer<vtkSampleFunction>::New();
-	m_contourFilter = vtkSmartPointer<vtkContourFilter>::New();
-	m_contourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	m_contourActor = vtkSmartPointer<vtkActor>::New();
-	m_silhouette = vtkSmartPointer<vtkPolyDataSilhouette>::New();
-	m_silhouetteMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	m_silhouetteActor = vtkSmartPointer<vtkActor>::New();
-	m_smoother = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
-	m_polyDataNormals = vtkSmartPointer<vtkPolyDataNormals>::New();
-	m_captionActor = vtkSmartPointer<vtkCaptionActor2D>::New();
 
 	SetDefaultProperties();
 }
@@ -104,7 +107,7 @@ void iABlobCluster::ResetRenderers( void )
 		m_blobRenderer->RemoveActor( m_contourActor );
 		m_blobRenderer->RemoveActor( m_silhouetteActor );
 	}
-	
+
 	if ( m_labelRenderer )
 	{
 		m_labelRenderer->RemoveViewProp(m_captionActor);
@@ -117,7 +120,7 @@ void iABlobCluster::UpdateRenderer( void )
 
 	if ( !m_blobRenderer )
 		return;
-	
+
 	if ( m_renderIndividually )
 	{
 		if ( m_blobIsOn )
@@ -125,7 +128,7 @@ void iABlobCluster::UpdateRenderer( void )
 		if ( m_silhouetteIsOn )
 			m_blobRenderer->AddActor( m_silhouetteActor );
 	}
-	
+
 	if (m_labelIsOn)
 	{
 		double centerPnt[3];
@@ -196,7 +199,7 @@ void iABlobCluster::SetCluster( QVector<FeatureInfo> objects ) const
 
 	for ( int i = 0; i < objects.size(); i++ )
 	{
-		m_implicitFunction->AddObjectInfo( 
+		m_implicitFunction->AddObjectInfo(
 			objects[i].x1, objects[i].y1, objects[i].z1,
 			objects[i].x2, objects[i].y2, objects[i].z2,
 			objects[i].diameter );
@@ -269,14 +272,14 @@ void iABlobCluster::SetName( QString name )
 void iABlobCluster::SetBlobColor(QColor blobColor)
 {
 	m_blobColor = blobColor;
-	
+
 	GetSurfaceProperty()->SetColor(
 		m_blobColor.redF(),
 		m_blobColor.greenF(),
 		m_blobColor.blueF());
 
 	m_captionActor->GetCaptionTextProperty()->SetBackgroundColor(
-		m_blobColor.redF(), 
+		m_blobColor.redF(),
 		m_blobColor.greenF(),
 		m_blobColor.blueF());
 }
@@ -469,8 +472,6 @@ void iABlobCluster::GaussianBlur()
 
 
 	typedef itk::Image<double, 3> ImageType;
-	typedef itk::ImageRegionConstIterator< ImageType > ConstIteratorType;
-	typedef itk::ImageRegionIterator< ImageType > IteratorType;
 	typedef itk::VTKImageToImageFilter<ImageType> VTKImageToImageType;
 
 	VTKImageToImageType::Pointer vtkImageToImageFilter =

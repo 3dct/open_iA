@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -61,9 +61,9 @@ public:
 	//! return the channel in the specified file that the data in this class comes from (don't confuse with channelID!)
 	int channel() const;
 	//! return the number of components in this modality
-	int componentCount() const;
+	size_t componentCount() const;
 	//! return a specific component of this modality
-	vtkSmartPointer<vtkImageData> component(int idx) const;
+	vtkSmartPointer<vtkImageData> component(size_t idx) const;
 	//! get the name of the transfer function file
 	QString transferFileName() const;
 	//! set name of the modality
@@ -115,29 +115,39 @@ public:
 
 	const iAVolumeSettings &volumeSettings() const;
 
-	inline bool volSettingsSavedStatus() {
+	bool volSettingsSavedStatus()
+	{
 		return this->m_VolSettingsSavedStatus;
 	}
 
-	inline void setVolSettingsSavedStatusFalse() {
+	void setVolSettingsSavedStatusFalse()
+	{
 		this->m_VolSettingsSavedStatus = false;
 	}
 
+	void setSlicerOpacity(double opacity)
+	{
+		m_slicerOpacity = opacity;
+	}
+	double slicerOpacity()
+	{
+		return m_slicerOpacity;
+	}
 
 private:
 	iAVolumeSettings m_volSettings;
 	bool m_VolSettingsSavedStatus;
 
-
 	QString m_name;
 	QString m_filename;
-	int     m_channel;     //!< in case the file contains multiple channels, the channel no. for this modality
-	int     m_renderFlags;
-	uint    m_channelID;
+	int m_channel;  //!< in case the file contains multiple channels, the channel no. for this modality
+	int m_renderFlags;
+	uint m_channelID;  //!< channel in mdi child
+	double m_slicerOpacity;  //!< overall opacity in the slicers
 	QSharedPointer<iAImageCoordConverter> m_converter;
 	QSharedPointer<iAModalityTransfer> m_transfer;
 	QSharedPointer<iAVolumeRenderer> m_renderer;
-	std::vector<vtkSmartPointer<vtkImageData> > m_imgs;	// TODO: implement lazy loading
+	std::vector<vtkSmartPointer<vtkImageData>> m_imgs;  // TODO: implement lazy loading
 	vtkSmartPointer<vtkImageData> m_imgData;
 
 	// TODO: Refactor
@@ -170,8 +180,8 @@ signals:
 	void HistogramReady(int modalityIdx);
 private:
 	int m_modalityIdx;
-	size_t m_binCount;
 	QSharedPointer<iAModality> m_modality;
+	size_t m_binCount;
 public:
 	iAHistogramUpdater(int modalityIdx, QSharedPointer<iAModality> modality, size_t binCount);
 };

@@ -64,7 +64,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset resource="../../open_iA/core/open_iA.qrc">
+           <iconset resource="PorosityAnalyser.qrc">
             <normaloff>:/images/filter.png</normaloff>:/images/filter.png</iconset>
           </property>
           <property name="iconSize">
@@ -203,7 +203,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../core/open_iA.qrc"/>
+  <include location="PorosityAnalyser.qrc"/>
  </resources>
  <connections/>
 </ui>

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -57,7 +57,7 @@ public:
 	void retrieveHistData(long numBin_in, DataType * &data_out, size_t &numHist_out, DataType &maxValue_out);
 	CountType spectraHistogramMax() const;
 	DataType const * avgData() const;
-	FunctionalBoxPlot* const functionalBoxPlot();
+	FunctionalBoxPlot* functionalBoxPlot();
 private:
 	void computeSpectraHistograms( long numBins );
 	iAAccumulatedXRFData(iAAccumulatedXRFData const & other);
@@ -68,8 +68,8 @@ private:
 	std::vector<iAFunction<size_t, unsigned int> *> const & spectrumFunctions();
 
 	QSharedPointer<iAXRFData> m_xrfData;
-	CountType* m_maximum;
 	CountType* m_minimum;
+	CountType* m_maximum;
 	CountType* m_average;
 	AccumulateFct m_accumulateFct;
 	double m_xBounds[2];

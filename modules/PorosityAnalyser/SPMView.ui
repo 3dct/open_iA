@@ -63,7 +63,7 @@
           <string>...</string>
          </property>
          <property name="icon">
-          <iconset resource="../../open_iA/core/open_iA.qrc">
+          <iconset resource="../../core/open_iA.qrc">
            <normaloff>:/images/settings.png</normaloff>:/images/settings.png</iconset>
          </property>
          <property name="checkable">

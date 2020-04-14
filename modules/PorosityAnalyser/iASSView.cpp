@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -107,14 +107,16 @@ iASSView::iASSView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	connect( m_SSViewSettings->cbShowWireframe, SIGNAL( stateChanged( int ) ), this, SLOT( updateSettings() ) );
 	connect( m_SSViewSettings->cbDeviation, SIGNAL( currentIndexChanged( int ) ), this, SLOT( updateSettings() ) );
 	connect( m_SSViewSettings->sSensitivity, SIGNAL( valueChanged( int ) ), this, SLOT( updateSettings() ) );
-	
+
 	connect( tbSettings, SIGNAL( clicked() ), this, SLOT( showSettings() ) );
 }
 
 iASSView::~iASSView()
 {
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		delete s;
+	}
 	updateSettings();
 }
 
@@ -136,7 +138,7 @@ void iASSView::updateSettings()
 void iASSView::BuildDefaultTF( vtkSmartPointer<vtkImageData> & imgData, vtkSmartPointer<vtkColorTransferFunction> & tf, QColor color )
 {
 	if (!imgData)
-		DEBUG_LOG("Image data is NULL!");
+		DEBUG_LOG("Image data is nullptr!");
 	tf->RemoveAllPoints();
 	tf->AddRGBPoint( imgData->GetScalarRange()[0], 0.0, 0.0, 0.0 );
 	tf->AddRGBPoint( imgData->GetScalarRange()[1], color.redF(), color.greenF(), color.blueF() );
@@ -160,18 +162,20 @@ void iASSView::InitializeGUI()
 	setShowContours( m_SSViewSettings->cbShowContours->isChecked() );
 }
 
-void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * data )
+void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * dataTable )
 {
 	//data itself
-	m_datasetFile = m_datasetFolder + "/" + data->item( 0, datasetColInd )->text();
+	m_datasetFile = m_datasetFolder + "/" + dataTable->item( 0, datasetColInd )->text();
 	loadImageData( m_datasetFile, m_imgData );
 	BuildDefaultTF( m_imgData, m_slicerTF );
 	slicer->initialize( m_imgData, m_slicerTF );
 
 	//masks channel
 	QStringList masks;
-	for( int i = 0; i < data->rowCount(); ++i )
-		masks << data->item( i, m_runsOffset + maskOffsetInRuns )->text();
+	for (int i = 0; i < dataTable->rowCount(); ++i)
+	{
+		masks << dataTable->item(i, m_runsOffset + maskOffsetInRuns)->text();
+	}
 
 	slicer->initializeMasks( masks );
 
@@ -179,18 +183,22 @@ void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * data 
 	QTableWidget dsDescr;
 	iACSVToQTableWidgetConverter::loadCSVFile( m_resultsFolder + "/DatasetDescription.csv", &dsDescr );
 	QMap<QString, QString> datasetGTs;
-	for( int i = 1; i < dsDescr.rowCount(); i++ )
-		datasetGTs[dsDescr.item( i, gtDatasetColInd )->text()] = dsDescr.item( i, gtGTSegmColumnIndex )->text();
-	if( datasetGTs[data->item( 0, datasetColInd )->text()] != "" )
+	for (int i = 1; i < dsDescr.rowCount(); i++)
 	{
-		QString gtSegmFile = m_datasetFolder + "/" + datasetGTs[data->item( 0, datasetColInd )->text()];
+		datasetGTs[dsDescr.item(i, gtDatasetColInd)->text()] = dsDescr.item(i, gtGTSegmColumnIndex)->text();
+	}
+	if( datasetGTs[dataTable->item( 0, datasetColInd )->text()] != "" )
+	{
+		QString gtSegmFile = m_datasetFolder + "/" + datasetGTs[dataTable->item( 0, datasetColInd )->text()];
 		slicer->initializeGT( gtSegmFile );
 	}
 
 	//contours
 	QVector<double> porosities;
-	for( int i = 0; i < data->rowCount(); ++i )
-		porosities << data->item( i, m_runsOffset + porosityOffsetInRuns )->text().toDouble();
+	for (int i = 0; i < dataTable->rowCount(); ++i)
+	{
+		porosities << dataTable->item(i, m_runsOffset + porosityOffsetInRuns)->text().toDouble();
+	}
 	iABoxPlotData bpd;
 	bpd.CalculateBoxPlot( porosities.data(), porosities.size() );
 	int inds[3] = { 0, 0, 0 };
@@ -199,12 +207,14 @@ void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * data 
 	{
 		double p = porosities[i];
 		double curDeltas[3] = { fabs( p - bpd.min ), fabs( p - bpd.med ), fabs( p - bpd.max ) };
-		for( int j = 0; j < 3; j++ )
-			if( curDeltas[j] < deltas[j] )
+		for (int j = 0; j < 3; j++)
+		{
+			if (curDeltas[j] < deltas[j])
 			{
 				deltas[j] = curDeltas[j];
 				inds[j] = i;
 			}
+		}
 	}
 	slicer->initBPDChans( masks[inds[0]], masks[inds[1]], masks[inds[2]] );
 
@@ -212,10 +222,10 @@ void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * data 
 	InitializeGUI();
 }
 
-void iASSView::SetData( const QTableWidget * data, QString selText )
+void iASSView::SetData( const QTableWidget * dataTable, QString selText )
 {
 	m_sliceMgr->removeAll();
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
 	{
 		m_slicerViewsLayout->removeWidget( s->container );
 		delete s;
@@ -228,15 +238,15 @@ void iASSView::SetData( const QTableWidget * data, QString selText )
 	connect( pushSave, SIGNAL( clicked() ), view->slicer, SLOT( saveAsImage() ) );
 	connect( pushMov, SIGNAL( clicked() ), view->slicer, SLOT( saveMovie() ) );
 	m_slicerViews.push_back( view );
-	
-	LoadDataToSlicer( view, data );
+
+	LoadDataToSlicer(view, dataTable);
 	SetDataTo3D();
 }
 
 void iASSView::SetCompareData( const QList< QPair<QTableWidget *, QString> > * dataList )
 {
 	m_sliceMgr->removeAll();
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
 	{
 		m_slicerViewsLayout->removeWidget( s->container );
 		delete s;
@@ -255,23 +265,29 @@ void iASSView::SetCompareData( const QList< QPair<QTableWidget *, QString> > * d
 	}
 
 	SetDataTo3D();
-	
-	foreach( iASSSlicer *sv, m_slicerViews )
-		m_sliceMgr->addToBundle( sv->slicer->renderer() );
+
+	for (iASSSlicer* s : m_slicerViews)
+	{
+		m_sliceMgr->addToBundle( s->slicer->renderer() );
+	}
 }
 
 void iASSView::setSlicerDirection( int cbIndex )
 {
 	m_modeInd = cbIndex;
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->changeMode( mode[m_modeInd] );
+	}
 	InitializeGUI();
 }
 
 void iASSView::setSliceSpinBox( int sn )
 {
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->slicer->setSliceNumber( sn );
+	}
 	QSignalBlocker block( verticalScrollBar );
 	verticalScrollBar->setValue( sn );
 }
@@ -280,8 +296,10 @@ void iASSView::setSliceScrollBar( int sn )
 {
 	sbNum->repaint();
 	verticalScrollBar->repaint();
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->slicer->setSliceNumber( sn );
+	}
 	QSignalBlocker block( sbNum );
 	sbNum->setValue( sn );
 }
@@ -289,29 +307,37 @@ void iASSView::setSliceScrollBar( int sn )
 void iASSView::setShowMasks( int state )
 {
 	bool visible = state;
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->enableMasksChannel( visible );
+	}
 }
 
 void iASSView::setMasksOpacity( int sliderVal )
 {
 	double opacity = (double)sliderVal / ( m_SSViewSettings->sMasksOpacity->maximum() - m_SSViewSettings->sMasksOpacity->minimum() );
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->setMasksOpacity( opacity );
+	}
 }
 
 void iASSView::setShowGT( int state )
 {
 	bool visible = state;
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->enableGTChannel( visible );
+	}
 }
 
 void iASSView::setGTOpacity( int sliderVal )
 {
 	double opacity = (double)sliderVal / (m_SSViewSettings->sGTOpacity->maximum() - m_SSViewSettings->sGTOpacity->minimum());
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->setGTOpacity( opacity );
+	}
 }
 
 void iASSView::showSettings()
@@ -322,8 +348,10 @@ void iASSView::showSettings()
 void iASSView::setShowContours( int state )
 {
 	bool visible = state;
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
+	{
 		s->enableContours( visible );
+	}
 }
 
 void iASSView::attachSegm3DView( iASegm3DView * m_segm3DView )
@@ -339,14 +367,18 @@ void iASSView::SetDataTo3D()
 	QList<vtkPiecewiseFunction*> otf;
 	QList<vtkColorTransferFunction*> ctf;
 	QStringList slicerNames;
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
 	{
 		imgData.push_back( s->masksChan->imgData );
 		vtkPolyData * pd = 0;
-		if( NeedsDistances() )
-			pd = s->GetDeviationPolyData( m_deviationMode );
-		else if( NeedsPolyData() )
+		if (NeedsDistances())
+		{
+			pd = s->GetDeviationPolyData(m_deviationMode);
+		}
+		else if (NeedsPolyData())
+		{
 			pd = s->GetMedPolyData();
+		}
 		polyData.push_back( pd );
 		otf.push_back( s->masksChan->vol_otf );
 		ctf.push_back( s->masksChan->tf );
@@ -375,22 +407,26 @@ void iASSView::setShowWireframe( int state )
 	m_segm3DViewExtrnl->ShowWireframe( visible );
 }
 
-void iASSView::setDeviationMode( int mode )
+void iASSView::setDeviationMode( int deviationMode )
 {
-	m_deviationMode = mode;
+	m_deviationMode = deviationMode;
 	UpdatePolyData();
 }
 
 void iASSView::UpdatePolyData()
 {
 	QList<vtkPolyData*> polyData;
-	foreach( iASSSlicer * s, m_slicerViews )
+	for (iASSSlicer* s : m_slicerViews)
 	{
 		vtkPolyData * pd = 0;
-		if( NeedsDistances() )
-			pd = s->GetDeviationPolyData( m_deviationMode );
-		else if( NeedsPolyData() )
+		if (NeedsDistances())
+		{
+			pd = s->GetDeviationPolyData(m_deviationMode);
+		}
+		else if (NeedsPolyData())
+		{
 			pd = s->GetMedPolyData();
+		}
 		polyData.push_back( pd );
 	}
 	m_segm3DViewExtrnl->SetPolyData( polyData );

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,6 +26,7 @@
 #include <QPushButton>
 
 dlg_FilterSelection::dlg_FilterSelection(QWidget * parent, QString const & preselectedFilter):
+	dlg_FilterSelectionConnector(parent),
 	m_curMatches(0)
 {
 	connect(leFilterSearch, SIGNAL(textEdited(QString const &)), this, SLOT(FilterChanged(QString const &)));
@@ -43,7 +44,7 @@ dlg_FilterSelection::dlg_FilterSelection(QWidget * parent, QString const & prese
 	}
 }
 
-void dlg_FilterSelection::FilterChanged(QString const & filter)
+void dlg_FilterSelection::filterChanged(QString const & filter)
 {
 	for (int row=0; row < lwFilterList->count(); ++row)
 		lwFilterList->item(row)->setHidden(true);
@@ -55,21 +56,21 @@ void dlg_FilterSelection::FilterChanged(QString const & filter)
 		if (matches.size() == 1)
 			lwFilterList->setCurrentItem(item);
 	}
-	EnableOKButton();
+	enableOKButton();
 }
 
-void dlg_FilterSelection::EnableOKButton()
+void dlg_FilterSelection::enableOKButton()
 {
 	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(m_curMatches == 1 ||
 		(lwFilterList->currentItem() != nullptr && !lwFilterList->currentItem()->isHidden()));
 }
 
-void dlg_FilterSelection::ListSelectionChanged(QListWidgetItem *current, QListWidgetItem *previous)
+void dlg_FilterSelection::listSelectionChanged(QListWidgetItem * /*current*/, QListWidgetItem * /*previous*/)
 {
-	EnableOKButton();
+	enableOKButton();
 }
 
-QString dlg_FilterSelection::SelectedFilterName() const
+QString dlg_FilterSelection::selectedFilterName() const
 {
 	return lwFilterList->currentItem() == nullptr ? QString() : lwFilterList->currentItem()->text();
 }

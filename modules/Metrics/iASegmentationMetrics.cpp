@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -80,7 +80,7 @@ iASegmentationMetrics::iASegmentationMetrics() :
 		"Label Overlap Measures Filter</a> in the ITK documentation.", 2, 0)
 {}
 
-void iASegmentationMetrics::performWork(QMap<QString, QVariant> const & parameters)
+void iASegmentationMetrics::performWork(QMap<QString, QVariant> const & /*parameters*/)
 {
 	switch (inputPixelType())
 	{	// only int types, so ITK_TYPED_CALL won't work

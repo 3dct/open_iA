@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,12 +24,12 @@
 
 #include <QSharedPointer>
 
-#include <vector>
+#include <QVector>
 
 class iAVectorPlotData : public iAPlotData
 {
 public:
-	iAVectorPlotData(std::vector<double> const & data);
+	iAVectorPlotData(QVector<double> const & data);
 	DataType const * rawData() const override;
 	size_t numBin() const override;
 	double spacing() const override;
@@ -37,10 +37,10 @@ public:
 	DataType const * yBounds() const override;
 	iAValueType valueType() const override;
 	void setXDataType(iAValueType);
-	std::vector<double> & data();
+	QVector<double> & data();
 	void updateBounds();
 private:
-	std::vector<double> m_data;
+	QVector<double> m_data;
 	iAValueType m_xDataType;
 	double m_xBounds[2];
 	double m_yBounds[2];

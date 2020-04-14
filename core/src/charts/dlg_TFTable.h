@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,7 +26,7 @@
 #include <vtkSmartPointer.h>
 
 class iAChartFunction;
-class iADiagramFctWidget;
+class iAChartWithFunctionsWidget;
 
 class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
@@ -38,7 +38,7 @@ class dlg_TFTable : public dlg_TFTableWidgetConnector
 	Q_OBJECT
 
 public:
-	dlg_TFTable( iADiagramFctWidget * parent, iAChartFunction* func );
+	dlg_TFTable( iAChartWithFunctionsWidget * parent, iAChartFunction* func );
 
 public slots:
 	void changeColor();
@@ -58,5 +58,5 @@ private:
 	QColor m_newPointColor;
 	double m_xRange[2];
 	double m_oldItemValue;
-	iADiagramFctWidget* m_parent;
+	iAChartWithFunctionsWidget* m_parent;
 };

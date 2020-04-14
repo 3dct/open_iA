@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,6 +25,7 @@
 #include "iAParamTableView.h"
 
 #include <charts/iAQSplom.h>
+#include <charts/iASPLOMData.h>
 #include <iAColorTheme.h>
 #include <iAConsole.h>
 #include <iALUT.h>
@@ -45,19 +46,39 @@
 
 namespace
 {
-	const int EmptyTableValues = 2;
+	//const int EmptyTableValues = 2;
 	const int FullTableValues = 256;
 	const int DefaultColorColumn = 1;
+
+	//!< Create data from a QTableWidget.
+	QSharedPointer<iASPLOMData> splomDataFromQTable(const QTableWidget* tw)
+	{
+		QSharedPointer<iASPLOMData> result(new iASPLOMData);
+		for (int c = 0; c < tw->columnCount(); ++c)
+		{
+			result->paramNames().push_back(tw->item(0, c)->text());
+			std::vector<double> paramData;
+			for (int r = 1; r < tw->rowCount() + 1; ++r)
+			{
+				paramData.push_back(tw->item(r, c)->text().toDouble());
+			}
+			result->data().push_back(paramData);
+		}
+		result->updateRanges();
+		return result;
+	}
 }
 
-iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialView * spatialView) :
+iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialView* spatialView) :
 	m_spatialView(spatialView),
 	m_tableView(tableView),
 	m_splom(new iAQSplom(this)),
+	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
 	m_selection_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
-	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
-	m_settings(new QWidget)
+	m_settings(new QWidget),
+	m_separationColors(new QComboBox()),
+	m_separationSpinBox(new QSpinBox())
 {
 	// set up scatter plot matrix:
 	m_selection_ctf->AddRGBPoint(0, 0, 0, 0);
@@ -66,19 +87,19 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	m_selection_otf->AddPoint(1, 1);
 	connect(m_splom, &iAQSplom::selectionModified, this, &iAParamSPLOMView::SplomSelection);
 	connect(m_splom, &iAQSplom::currentPointModified, this, &iAParamSPLOMView::PointHovered);
-	m_splom->setData(m_tableView->Table());
+	QSharedPointer<iASPLOMData> spmData = splomDataFromQTable(m_tableView->Table());
+	std::vector<char> visibility(spmData->numParams(), true);
+	visibility[spmData->paramIndex("filename")] = false;
+	m_splom->setData(spmData, visibility);
 	SetLUTColumn("None");
-	m_splom->setParameterVisibility("filename", false);
 	m_splom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 	// set up settings:
 	m_settings->setLayout(new QVBoxLayout());
-	m_separationSpinBox = new QSpinBox();
 	m_separationSpinBox->setMinimum(0);
 	m_separationSpinBox->setMaximum(m_tableView->Table()->columnCount()-1);
 	m_separationSpinBox->setValue(0);
 	connect(m_separationSpinBox, SIGNAL(valueChanged(int)), this, SLOT(SeparationChanged(int)));
-	m_separationColors = new QComboBox();
 	for (QString themeName : iAColorThemeManager::instance().availableThemes())
 	{
 		m_separationColors->addItem(themeName);
@@ -114,13 +135,13 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	layout()->addWidget(m_settings);
 }
 
-void iAParamSPLOMView::SplomSelection(std::vector<size_t> const & selInds)
+void iAParamSPLOMView::SplomSelection(std::vector<size_t> const & /*selInds*/)
 {
 	// set 1 for selection:
-	for (int i = 0; i<selInds.size(); ++i)
-	{
+	//for (int i = 0; i<selInds.size(); ++i)
+	//{
 		// show in spatial view?
-	}
+	//}
 }
 
 void iAParamSPLOMView::SetLUTColumn(QString const & colName)

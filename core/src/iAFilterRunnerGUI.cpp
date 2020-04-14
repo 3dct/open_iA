@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,6 +29,7 @@
 #include "iALogger.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
+#include "iAParameterDlg.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
@@ -39,7 +40,6 @@
 #include <QSettings>
 #include <QSharedPointer>
 #include <QString>
-#include <QTextDocument>
 #include <QVariant>
 
 class iAFilter;
@@ -49,13 +49,11 @@ class vtkImageData;
 
 // iAFilterRunnerGUIThread
 
-
 iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild) :
 	iAAlgorithm(filter->name(), mdiChild->imagePointer(), mdiChild->polyData(), mdiChild->logger(), mdiChild),
 	m_filter(filter),
 	m_paramValues(paramValues)
 {}
-
 
 void iAFilterRunnerGUIThread::performWork()
 {
@@ -74,7 +72,6 @@ void iAFilterRunnerGUIThread::performWork()
 	}
 }
 
-
 QSharedPointer<iAFilter> iAFilterRunnerGUIThread::filter()
 {
 	return m_filter;
@@ -89,26 +86,6 @@ namespace
 		filterNameShort.replace(" ", "");
 		return QString("Filters/%1/%2/%3").arg(filter->category()).arg(filterNameShort).arg(param->name());
 	}
-
-	QString ValueTypePrefix(iAValueType val)
-	{
-		switch (val)
-		{
-		case Continuous : return "#"; // potentially ^ for DoubleSpinBox?
-		case Discrete   : return "*";
-		case Boolean    : return "$";
-		case Categorical: return "+";
-		case Text       : return "=";
-		case FilterName : return "&";
-		case FilterParameters: return ".";
-		case FileNameOpen: return "<";
-		case FileNamesOpen: return "{";
-		case FileNameSave: return ">";
-		case Folder:       return ";";
-		default:
-		case String     : return "#";
-		}
-	}
 }
 
 
@@ -120,8 +97,7 @@ QSharedPointer<iAFilterRunnerGUI> iAFilterRunnerGUI::create()
 	return QSharedPointer<iAFilterRunnerGUI>(new iAFilterRunnerGUI());
 }
 
-
-QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
+QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* /*sourceMdi*/)
 {
 	auto params = filter->parameters();
 	QMap<QString, QVariant> result;
@@ -134,8 +110,7 @@ QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilte
 	return result;
 }
 
-
-void iAFilterRunnerGUI::StoreParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues)
+void iAFilterRunnerGUI::storeParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues)
 {
 	auto params = filter->parameters();
 	QSettings settings;
@@ -145,20 +120,48 @@ void iAFilterRunnerGUI::StoreParameters(QSharedPointer<iAFilter> filter, QMap<QS
 	}
 }
 
-
 bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
 	MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput)
 {
-	auto params = filter->parameters();
-	if (filter->requiredInputs() == 1 && params.empty())
+	QVector<pParameter> dlgParams;
+	bool showROI = false;	// TODO: find better way to check this?
+	for (auto filterParam : filter->parameters())
+	{
+		pParameter p(filterParam->clone());
+		if (p->valueType() == Categorical)
+		{
+			QStringList comboValues = p->defaultValue().toStringList();
+			QString storedValue = paramValues[p->name()].toString();
+			for (int i = 0; i < comboValues.size(); ++i)
+			{
+				if (comboValues[i] == storedValue)
+				{
+					comboValues[i] = "!" + comboValues[i];
+				}
+			}
+			p->setDefaultValue(comboValues);
+		}
+		else
+		{
+			p->setDefaultValue(paramValues[p->name()]);
+		}
+		if (p->name() == "Index X")
+		{
+			showROI = true;
+		}
+		dlgParams.push_back(p);
+	}
+	if (filter->requiredInputs() == 1 && dlgParams.empty())
+	{
 		return true;
-	QStringList dlgParamNames;
-	QList<QVariant> dlgParamValues;
+	}
 	QVector<MdiChild*> otherMdis;
 	for (auto mdi : mainWnd->mdiChildList())
 	{
 		if (mdi != sourceMdi)
+		{
 			otherMdis.push_back(mdi);
+		}
 	}
 	if (askForAdditionalInput && filter->requiredInputs() > (otherMdis.size()+1) )
 	{
@@ -167,90 +170,48 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 			.arg(filter->requiredInputs()).arg(otherMdis.size()+1));
 		return false;
 	}
-	bool showROI = false;
-	for (auto param : params)
-	{
-		dlgParamNames << (ValueTypePrefix(param->valueType()) + param->name());
-		if (param->name() == "Index X")	// TODO: find better way to check this?
-			showROI = true;
-		if (param->valueType() == Categorical)
-		{
-			QStringList comboValues = param->defaultValue().toStringList();
-			QString storedValue = paramValues[param->name()].toString();
-			for (int i = 0; i < comboValues.size(); ++i)
-				if (comboValues[i] == storedValue)
-					comboValues[i] = "!" + comboValues[i];
-			dlgParamValues << comboValues;
-		}
-		else
-		{
-			dlgParamValues << paramValues[param->name()];
-		}
-	}
+	QStringList mdiChildrenNames;
 	if (askForAdditionalInput && filter->requiredInputs() > 1)
 	{
-		QStringList mdiChildrenNames;
 		for (auto mdi: otherMdis)
 		{
 			mdiChildrenNames << mdi->windowTitle().replace("[*]", "");
 		}
-		for (int i = 0; i < filter->requiredInputs()-1; ++i)
+		for (int i = 1; i < filter->requiredInputs(); ++i)
 		{
-			dlgParamNames << QString("+Additional Input %1").arg(i+1);
-			dlgParamValues << mdiChildrenNames;
+			dlgParams.push_back(iAAttributeDescriptor::createParam(
+				QString("%1").arg(filter->inputName(i)), Categorical, mdiChildrenNames));
 		}
 	}
-	QTextDocument descr;
-	descr.setHtml(filter->description());
-	dlg_commoninput dlg(mainWnd, filter->name(), dlgParamNames, dlgParamValues, &descr);
+	iAParameterDlg dlg(mainWnd, filter->name(), dlgParams, filter->description());
 	dlg.setModal(false);
 	dlg.hide();	dlg.show(); // required to apply change in modality!
 	dlg.setSourceMdi(sourceMdi, mainWnd);
 	if (showROI)
-		dlg.showROI();
-	if (dlg.exec() != QDialog::Accepted)
-		return false;
-
-	int idx = 0;
-	for (auto param : params)
 	{
-		QVariant value;
-		switch (param->valueType())
-		{
-		case Continuous:  value = dlg.getDblValue(idx);      break;
-		case Discrete:    value = dlg.getIntValue(idx);      break;
-		default:
-		case FilterName:
-		case FilterParameters:
-		case Text:
-		case Folder:
-		case FileNameSave:
-		case FileNameOpen:
-		case FileNamesOpen:
-		case String:      value = dlg.getText(idx);          break;
-		case Boolean:     value = dlg.getCheckValue(idx);    break;
-		case Categorical: value = dlg.getComboBoxValue(idx); break;
-		}
-		paramValues[param->name()] = value;
-		++idx;
+		dlg.showROI();
 	}
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return false;
+	}
+	paramValues = dlg.parameterValues();
 	if (askForAdditionalInput && filter->requiredInputs() > 1)
 	{
-		for (int i = 0; i < filter->requiredInputs()-1; ++i)
+		for (int i = 1; i < filter->requiredInputs(); ++i)
 		{
-			int mdiIdx = dlg.getComboBoxIndex(idx);
+			QString selectedFile = paramValues[QString("%1").arg(filter->inputName(i))].toString();
+			int mdiIdx = mdiChildrenNames.indexOf(selectedFile);
 			for (int m = 0; m < otherMdis[mdiIdx]->modalities()->size(); ++m)
 			{
 				m_additionalInput.push_back(otherMdis[mdiIdx]->modality(m)->image());
 			}
-			++idx;
-
 		}
 	}
 	return true;
 }
 
-void iAFilterRunnerGUI::filterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd)
+void iAFilterRunnerGUI::filterGUIPreparations(QSharedPointer<iAFilter> /*filter*/, MdiChild* /*mdiChild*/, MainWindow* /*mainWnd*/)
 {
 }
 
@@ -267,18 +228,23 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	QMap<QString, QVariant> paramValues = loadParameters(filter, sourceMdi);
 
 	if (!askForParameters(filter, paramValues, sourceMdi, mainWnd, true))
+	{
 		return;
-	StoreParameters(filter, paramValues);
+	}
+	storeParameters(filter, paramValues);
 
 	//! TODO: find way to check parameters already in dlg_commoninput (before closing)
 	if (!filter->checkParameters(paramValues))
+	{
 		return;
+	}
 
 	QString oldTitle(sourceMdi->windowTitle());
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
 	auto mdiChild = filter->outputCount() > 0 ?
-		mainWnd->resultChild(sourceMdi, filter->name() + " " + oldTitle) :
+		mainWnd->resultChild(sourceMdi, filter->outputName(0, filter->name() + " " + oldTitle)) :
 		sourceMdi;
+	filter->setLogger(mdiChild->logger());
 	if (!mdiChild)
 	{
 		mainWnd->statusBar()->showMessage("Cannot create result child!", 5000);
@@ -307,15 +273,22 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 			.arg(filter->name()).arg(filter->requiredInputs()));
 		return;
 	}
-	mdiChild->addMsg(QString("Starting %1 filter with parameters:").arg(thread->filter()->name()));
-	for (int p = 0; p < thread->filter()->parameters().size(); ++p)
+	if (mdiChild->preferences().PrintParameters && !filter->parameters().isEmpty())
 	{
-		auto paramDescriptor = thread->filter()->parameters()[p];
-		QString paramName = paramDescriptor->name();
-		QString paramValue = paramDescriptor->valueType() == Boolean ?
-			(paramValues[paramName].toBool() ? "yes" : "no")
-			: paramValues[paramName].toString();
-		mdiChild->addMsg(QString("    %1 = %2").arg(paramName).arg(paramValue));
+		mdiChild->addMsg(QString("Starting %1 filter with parameters:").arg(thread->filter()->name()));
+		for (int p = 0; p < thread->filter()->parameters().size(); ++p)
+		{
+			auto paramDescriptor = thread->filter()->parameters()[p];
+			QString paramName = paramDescriptor->name();
+			QString paramValue = paramDescriptor->valueType() == Boolean ?
+				(paramValues[paramName].toBool() ? "yes" : "no")
+				: paramValues[paramName].toString();
+			mdiChild->addMsg(QString("    %1 = %2").arg(paramName).arg(paramValue));
+		}
+	}
+	else
+	{
+		mdiChild->addMsg(QString("Starting %1 filter.").arg(thread->filter()->name()));
 	}
 	connectThreadSignals(mdiChild, thread);
 	mdiChild->addStatusMsg(filter->name());
@@ -336,7 +309,9 @@ void iAFilterRunnerGUI::filterFinished()
 	// "default" output 0 is handled elsewhere (via obscure MdiChild::rendererDeactivated / iAAlgorithm::updateVtkImageData)
 	auto mdiChild = qobject_cast<MdiChild*>(thread->parent());
 	if (thread->filter()->polyOutput())
+	{
 		mdiChild->polyData()->DeepCopy(thread->filter()->polyOutput());
+	}
 	if (thread->filter()->output().size() > 1)
 	{
 		for (int p = 1; p < thread->filter()->output().size(); ++p)
@@ -346,14 +321,16 @@ void iAFilterRunnerGUI::filterFinished()
 			// (disregarding that a smart pointer still points to it...)
 			// so let's copy it to be on the safe side!
 			img->DeepCopy(thread->filter()->output()[p]->vtkImage());
-			QSharedPointer<iAModality> mod(new iAModality(QString("Extra Out %1").arg(p), "", -1, img, 0));
+			QSharedPointer<iAModality> mod(new iAModality(thread->filter()->outputName(p, QString("Extra Out %1").arg(p)), "", -1, img, 0));
 			mdiChild->modalities()->add(mod);
 			// signal to add it to list automatically is created to late to be effective here, we have to add it to list ourselves:
 			mdiChild->modalitiesDockWidget()->modalityAdded(mod);
 		}
 	}
 	for (auto outputValue : thread->filter()->outputValues())
+	{
 		mdiChild->addMsg(QString("%1: %2").arg(outputValue.first).arg(outputValue.second.toString()));
+	}
 
 	emit finished();
 }

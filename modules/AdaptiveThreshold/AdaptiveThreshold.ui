@@ -1,0 +1,807 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AdaptiveThreshold</class>
+ <widget class="QDialog" name="AdaptiveThreshold">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>968</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>600</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Adaptive Threshold</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_17" stretch="5,1,3">
+   <property name="leftMargin">
+    <number>4</number>
+   </property>
+   <property name="topMargin">
+    <number>4</number>
+   </property>
+   <property name="rightMargin">
+    <number>4</number>
+   </property>
+   <property name="bottomMargin">
+    <number>4</number>
+   </property>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="2,1">
+     <item>
+      <layout class="QVBoxLayout" name="mainLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+      </layout>
+     </item>
+     <item>
+      <widget class="QTextEdit" name="textEdit_2">
+       <property name="html">
+        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.15094pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; font-weight:600;&quot;&gt;Description&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt;&quot;&gt;Adaptive Thresholding provides improved segmentation of voids based on the grey value histogram of an image. This algorithm calculates the segmentation threshold based on local maximum, minimum and global maximum of the grey value histogram. As a first step the histogram is smoothed by a moving average. Based on the moving average the histogram peaks are calculated. The data is then normalized, and the final grey threshold is determined. To segment the image, binary thresholding with the computed threshold is performed.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; font-weight:600;&quot;&gt;Criteria for chosing the threshold - determine first minimum above air (g&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; font-weight:600; vertical-align:sub;&quot;&gt;min&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; font-weight:600;&quot;&gt;, f&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; font-weight:600; vertical-align:sub;&quot;&gt;min&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; font-weight:600;&quot;&gt;)&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt;&quot;&gt;- If f&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; vertical-align:sub;&quot;&gt;min&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt;&quot;&gt; &amp;gt; f&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; vertical-align:sub;&quot;&gt;air&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt;&quot;&gt;/2, the first minimum (g&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; vertical-align:sub;&quot;&gt;min&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt;&quot;&gt;,f&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; vertical-align:sub;&quot;&gt;min&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt;&quot;&gt;) is taken as the grey-level threshold.&lt;br /&gt;- If f&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; vertical-align:sub;&quot;&gt;min&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt;&quot;&gt; &amp;lt; f&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; vertical-align:sub;&quot;&gt;air&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt;&quot;&gt;/2, the next crossing of f&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; vertical-align:sub;&quot;&gt;air&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt;&quot;&gt;/2 (half of f&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; vertical-align:sub;&quot;&gt;air&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt;&quot;&gt;) with the Histogram function above the minimum is taken as the grey-level threshold, or ISO 50 whichever is lowest.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; font-weight:600;&quot;&gt;Workflow&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt;&quot;&gt;1: Specify value of moving average (e.g. 17 - take average of 17 values)&lt;br /&gt;2: Specify Search Range of Local Maximum + Local Minimum + Give Search range of Second Peak&lt;br /&gt;3: Specify interval for first intersection of f&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; vertical-align:sub;&quot;&gt;air&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt;&quot;&gt;/2 and global maximum peak&lt;br /&gt;4. Final segmentation is shown, perform segmentation with starting range (default 0)&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt;&quot;&gt;Orange line is a visualization of f&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt; vertical-align:sub;&quot;&gt;air&lt;/span&gt;&lt;span style=&quot; font-family:'Arial','sans-serif'; font-size:9pt;&quot;&gt;/2.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_5">
+     <property name="title">
+      <string>Adative Thresholding Parametrisation</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="1,1,1,1">
+      <item>
+       <widget class="QGroupBox" name="groupBox_6">
+        <property name="title">
+         <string>1. Histogram scaling</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout">
+         <property name="leftMargin">
+          <number>4</number>
+         </property>
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
+          <number>4</number>
+         </property>
+         <item row="0" column="2">
+          <widget class="QLabel" name="label_9">
+           <property name="text">
+            <string>Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="ed_XMin">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="lb_xmin">
+           <property name="text">
+            <string>min</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="lbl_xmax">
+           <property name="text">
+            <string>max</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="QSpinBox" name="spin_yTicks">
+           <property name="minimum">
+            <number>2</number>
+           </property>
+           <property name="value">
+            <number>8</number>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QSpinBox" name="spin_xTicks">
+           <property name="minimum">
+            <number>2</number>
+           </property>
+           <property name="maximum">
+            <number>30</number>
+           </property>
+           <property name="value">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLineEdit" name="ed_YMin">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0" colspan="2">
+          <widget class="QPushButton" name="btn_update">
+           <property name="text">
+            <string>Update</string>
+           </property>
+           <property name="default">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0" colspan="3">
+          <widget class="QPushButton" name="btn_redraw">
+           <property name="text">
+            <string>Redraw</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="label_8">
+           <property name="text">
+            <string>X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="ed_XMax">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="0" colspan="3">
+          <spacer name="verticalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="4" column="2">
+          <widget class="QPushButton" name="btn_resetGraph">
+           <property name="text">
+            <string>Reset</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLineEdit" name="ed_YMax">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_10">
+           <property name="text">
+            <string>ticks</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0" colspan="3">
+          <widget class="QPushButton" name="btn_rescaleToDefault">
+           <property name="text">
+            <string>Reset Default MinMax</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_4">
+        <property name="title">
+         <string>2. Specify average and threshold ranges</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <property name="leftMargin">
+          <number>4</number>
+         </property>
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
+          <number>4</number>
+         </property>
+         <item row="4" column="0" colspan="2">
+          <widget class="QCheckBox" name="chck_box_RecalcRange">
+           <property name="text">
+            <string>Recalculate Range</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0" colspan="2">
+          <widget class="QGroupBox" name="groupBox_8">
+           <property name="title">
+            <string>Peak grey value ranges (X)</string>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_4">
+            <property name="leftMargin">
+             <number>4</number>
+            </property>
+            <property name="topMargin">
+             <number>4</number>
+            </property>
+            <property name="rightMargin">
+             <number>4</number>
+            </property>
+            <property name="bottomMargin">
+             <number>4</number>
+            </property>
+            <item row="0" column="1">
+             <widget class="QLabel" name="label_19">
+              <property name="text">
+               <string>First (Air+First Mininum)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_6">
+              <property name="text">
+               <string>min</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="ed_minRange">
+              <property name="text">
+               <string>10000</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QLabel" name="label_11">
+              <property name="text">
+               <string>Second (Material)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QLineEdit" name="ed_MaxPeakXRangeMin">
+              <property name="text">
+               <string>18000</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="ed_maxRange">
+              <property name="text">
+               <string>18000</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_7">
+              <property name="text">
+               <string>max</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="2">
+             <widget class="QLineEdit" name="ed_MaxPeakXRangeMax">
+              <property name="text">
+               <string>22000</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="2">
+          <widget class="QPushButton" name="btn_movingAverage">
+           <property name="text">
+            <string>Calculate Moving Average</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QSpinBox" name="spinBox_average">
+           <property name="minimum">
+            <number>3</number>
+           </property>
+           <property name="maximum">
+            <number>100001</number>
+           </property>
+           <property name="singleStep">
+            <number>2</number>
+           </property>
+           <property name="value">
+            <number>17</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0" colspan="2">
+          <widget class="QPushButton" name="btn_detectPeaksMinimum">
+           <property name="text">
+            <string>Identify Peaks + Normalize + Detect Mininum</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_14">
+           <property name="text">
+            <string># Moving Average</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0" colspan="2">
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox">
+        <property name="toolTip">
+         <string>Manually Define Maxinum Peak and Lokal MIN / Max Peaks</string>
+        </property>
+        <property name="toolTipDuration">
+         <number>31</number>
+        </property>
+        <property name="whatsThis">
+         <string>AText</string>
+        </property>
+        <property name="title">
+         <string>3. Manually define peaks (normalized coordinates)</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_7">
+         <property name="leftMargin">
+          <number>4</number>
+         </property>
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
+          <number>4</number>
+         </property>
+         <item row="4" column="0" colspan="3">
+          <widget class="QGroupBox" name="groupBox_9">
+           <property name="title">
+            <string>Crossing Range of fair/2 with histogram above minimum</string>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_2">
+            <property name="leftMargin">
+             <number>4</number>
+            </property>
+            <property name="topMargin">
+             <number>4</number>
+            </property>
+            <property name="rightMargin">
+             <number>4</number>
+            </property>
+            <property name="bottomMargin">
+             <number>4</number>
+            </property>
+            <item row="1" column="2">
+             <widget class="QLabel" name="label_16">
+              <property name="text">
+               <string>XMax</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="3">
+             <widget class="QLineEdit" name="ed_pt_xMax">
+              <property name="text">
+               <string>0.8</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_15">
+              <property name="text">
+               <string>Xmin</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="ed_ptXmin">
+              <property name="text">
+               <string>0.5</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0" colspan="4">
+             <widget class="QPushButton" name="btn_determineFinalThreshold">
+              <property name="text">
+               <string>Determine final threshold</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Grey value (X)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>First  Peak (x,y)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0" colspan="3">
+          <widget class="QCheckBox" name="chckbx_LokalMinMax">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Specify local min/max Peak</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLineEdit" name="ed_minPeakFreqY"/>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Minimum above first peak</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="ed_PeakThrMaxX"/>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLineEdit" name="ed_minPeakThrX"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>Freq (Y)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="ed_PeakFreqMaxY"/>
+         </item>
+         <item row="5" column="0" colspan="3">
+          <spacer name="verticalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_7">
+        <property name="title">
+         <string>4. Final segmentation</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_11">
+         <property name="leftMargin">
+          <number>4</number>
+         </property>
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
+          <number>4</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_17">
+           <property name="text">
+            <string> Grey Value Start</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="ed_minSegmRange">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_excludeThreshold">
+           <property name="text">
+            <string>Specify Start Value</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_18">
+           <property name="text">
+            <string>Determined Threshold </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="ed_maxThresholdRange">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_10">
+     <property name="title">
+      <string>Log</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <item>
+       <widget class="QTextEdit" name="logEdit">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QPushButton" name="btn_clearLog">
+          <property name="text">
+           <string>Clear Log</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_9">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>42</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_performSegmentation">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Perfom Segmenation</string>
+          </property>
+          <property name="default">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_cancel">
+          <property name="text">
+           <string>Cancel</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>btn_performSegmentation</sender>
+   <signal>clicked()</signal>
+   <receiver>AdaptiveThreshold</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1578</x>
+     <y>1167</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>667</x>
+     <y>444</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btn_cancel</sender>
+   <signal>clicked()</signal>
+   <receiver>AdaptiveThreshold</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1659</x>
+     <y>1167</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>761</x>
+     <y>451</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ed_XMin</sender>
+   <signal>editingFinished()</signal>
+   <receiver>btn_update</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1335</x>
+     <y>203</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1646</x>
+     <y>204</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ed_XMax</sender>
+   <signal>editingFinished()</signal>
+   <receiver>btn_update</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1335</x>
+     <y>231</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1646</x>
+     <y>204</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ed_YMin</sender>
+   <signal>editingFinished()</signal>
+   <receiver>btn_update</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1335</x>
+     <y>259</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1646</x>
+     <y>204</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ed_YMax</sender>
+   <signal>editingFinished()</signal>
+   <receiver>btn_update</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1313</x>
+     <y>268</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1646</x>
+     <y>204</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spin_xTicks</sender>
+   <signal>editingFinished()</signal>
+   <receiver>btn_update</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1335</x>
+     <y>391</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1646</x>
+     <y>204</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spin_yTicks</sender>
+   <signal>editingFinished()</signal>
+   <receiver>btn_update</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1335</x>
+     <y>363</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1646</x>
+     <y>204</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

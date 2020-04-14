@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -76,15 +76,12 @@ void dlg_slicer::showBorder(bool show)
 
 void dlg_slicer::setSliceSpinBox(int s)
 {
-	QSignalBlocker block(verticalScrollBar);
-	verticalScrollBar->setValue(s);
+
 	m_slicer->setSliceNumber(s);
 }
 
 void dlg_slicer::setSliceScrollBar(int s)
 {
-	QSignalBlocker block(sbSlice);
-	sbSlice->setValue(s);
 	m_slicer->setSliceNumber(s);
 }
 

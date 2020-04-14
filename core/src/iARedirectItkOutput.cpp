@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -59,7 +59,7 @@ void iARedirectItkOutput::DisplayWarningText(const char *t)
 	DEBUG_LOG(QString("ITK %1").arg(t));
 }
 
-void iARedirectItkOutput::SetPromptUser(bool _arg)
+void iARedirectItkOutput::SetPromptUser(bool /*arg*/)
 {}
 
 bool iARedirectItkOutput::GetPromptUser() const

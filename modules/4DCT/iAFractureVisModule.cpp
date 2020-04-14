@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -169,7 +169,7 @@ void iAFractureVisModule::setData( vtkPoints* points, vtkCellArray* polys, vtkUn
 	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New( );
 	polyData->SetPoints( points );
 	polyData->SetPolys( polys );
-	if( colors != NULL ) {
+	if( colors != nullptr ) {
 		polyData->GetPointData( )->SetScalars( colors );
 		m_surfMapper->SetScalarVisibility( 1 );
 	}
@@ -215,8 +215,9 @@ void iAFractureVisModule::calculateMap( MapType* map, QString fileName, MapName 
 	//double previousValue = (double)(minZ + maxZ) / 2;
 	double previousValue = 0.5;
 	ImageType::IndexType ind;
-	for( ind[0] = 0u; ind[0] < imgSize[0]; ind[0]++ ) {
-		for( ind[1] = 0u; ind[1] < imgSize[1]; ind[1]++ ) {
+	assert(imgSize[0] <= static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()));
+	for( ind[0] = 0u; static_cast<itk::SizeValueType>(ind[0]) < imgSize[0]; ind[0]++ ) {
+		for( ind[1] = 0u; static_cast<itk::SizeValueType>(ind[1]) < imgSize[1]; ind[1]++ ) {
 			QVector<unsigned int> ray;
 			//for (ind[2] = 0; ind[2] < imgSize[2]; ind[2]++) {
 			for( ind[2] = minZ; ind[2] < maxZ; ind[2]++ ) {

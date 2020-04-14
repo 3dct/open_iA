@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -71,12 +71,12 @@ private:
 	QSharedPointer<QMap<uint, uint> > m_outputMapping;   //!< maps a value identifier (given as a value out of the iACsvConfig::MappedColumn enum) to the index of the column in the output which contains this value
 
 	//! determine the header columns used in the output
-	void determineOutputHeaders(QVector<int> const & selectedCols);
+	void determineOutputHeaders(QVector<uint> const & selectedCols);
 	//! determine how man actual data rows the result table will have
 	size_t calcRowCount(QTextStream& in, size_t const skipLinesStart,
 		size_t const skipLinesEnd);
 	//! determine the indices of the selected columns
-	QVector<int> computeSelectedColIdx();
+	QVector<uint> computeSelectedColIdx();
 };
 
 //! read the curved fiber info file

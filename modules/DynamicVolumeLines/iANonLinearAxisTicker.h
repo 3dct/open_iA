@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -35,12 +35,12 @@ protected:
 	QCPAxis *m_xAxis;
 	int m_tickStep;
 
-	virtual QVector<double> createTickVector(double tickStep,
-		const QCPRange &range) Q_DECL_OVERRIDE;
+	QVector<double> createTickVector(double tickStep,
+		const QCPRange &range) override;
 
-	virtual QVector<double> createSubTickVector(int subTickCount,
-		const QVector<double> &ticks) Q_DECL_OVERRIDE;
+	QVector<double> createSubTickVector(int subTickCount,
+		const QVector<double> &ticks) override;
 
-	virtual QVector<QString> createLabelVector(const QVector<double> &ticks,
-		const QLocale &locale, QChar formatChar, int precision) Q_DECL_OVERRIDE;
+	QVector<QString> createLabelVector(const QVector<double> &ticks,
+		const QLocale &locale, QChar formatChar, int precision) override;
 };

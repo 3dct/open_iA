@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -32,6 +32,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QRubberBand>
+#include <QtGlobal> // for QT_VERSION
 
 const char * EnergyLineNames[9] =
 {
@@ -52,7 +53,7 @@ iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent, MdiChild *mdiChi
 		vtkColorTransferFunction* cTF,
 		iASpectrumFilterListener* filterListener,
 		QString const & xLabel)
-	: iADiagramFctWidget(parent, mdiChild, xLabel, "Count"),
+	: iAChartWithFunctionsWidget(parent, mdiChild, xLabel, "Count"),
 	m_data(data),
 	selectionRubberBand(new QRubberBand(QRubberBand::Rectangle, this)),
 	filterListener(filterListener)
@@ -74,7 +75,7 @@ void iAEnergySpectrumWidget::mousePressEvent(QMouseEvent *event)
 		selectionRubberBand->show();
 	}
 	else
-	{	
+	{
 		if(!selectionRects.isEmpty())
 		{
 			selectionRects.clear();
@@ -89,7 +90,7 @@ void iAEnergySpectrumWidget::mousePressEvent(QMouseEvent *event)
 				event->buttons(),
 				event->modifiers()
 			);
-			iADiagramFctWidget::mousePressEvent(&eventCopy); //if any modifiers, or click is on the bottom panel: process in base class
+			iAChartWithFunctionsWidget::mousePressEvent(&eventCopy); //if any modifiers, or click is on the bottom panel: process in base class
 		}
 	}
 }
@@ -103,7 +104,7 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 		event->buttons(),
 		event->modifiers()
 	);
-	iADiagramFctWidget::mouseReleaseEvent(&eventCopy);
+	iAChartWithFunctionsWidget::mouseReleaseEvent(&eventCopy);
 	if (selectionRubberBand->isVisible())
 	{
 		selectionRubberBand->hide();
@@ -144,7 +145,7 @@ void iAEnergySpectrumWidget::mouseMoveEvent(QMouseEvent *event)
 		event->buttons(),
 		event->modifiers()
 	);
-	iADiagramFctWidget::mouseMoveEvent(&eventCopy);
+	iAChartWithFunctionsWidget::mouseMoveEvent(&eventCopy);
 	if (!selectionRubberBand->isVisible())
 	{
 		return;
@@ -178,7 +179,7 @@ void iAEnergySpectrumWidget::drawAfterPlots(QPainter& painter)
 		QColor color = m_elementEnergies[element];
 		painter.setPen(color);
 		int drawnLines = 0;
-		for (int j=0; j<element->energies.size(); ++j)
+		for (size_t j=0; j<element->energies.size(); ++j)
 		{
 			double elementkEV = element->energies[j]/1000.0;
 			if (elementkEV >= xBounds()[0] &&
@@ -195,7 +196,11 @@ void iAEnergySpectrumWidget::drawAfterPlots(QPainter& painter)
 				QRect captionBoundingBox(
 					static_cast<int>(pos+5),
 					- (10 + (fm.height()+2) * (drawnLines+1)*2),
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+					std::max(fm.horizontalAdvance(element->symbol), fm.horizontalAdvance(QString::fromUtf8(EnergyLineNames[j]))),
+#else
 					std::max(fm.width(element->symbol), fm.width(QString::fromUtf8(EnergyLineNames[j]))),
+#endif
 					fm.height()*2
 				);
 				drawnLines++;
@@ -207,7 +212,7 @@ void iAEnergySpectrumWidget::drawAfterPlots(QPainter& painter)
 			}
 		}
 	}
-	iADiagramFctWidget::drawAfterPlots(painter);
+	iAChartWithFunctionsWidget::drawAfterPlots(painter);
 }
 
 void iAEnergySpectrumWidget::NotifySelectionUpdateListener()

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -33,7 +33,7 @@ TReal **create_matrix ( size_t nrow, size_t ncol )
 {
 	typedef TReal* TRealPointer;
 	TReal **m = new TRealPointer[nrow];
-	for ( int row = 0; row < nrow; ++row )
+	for (size_t row = 0; row < nrow; ++row)
 	{
 		m[row] = new TReal[ncol];
 	}
@@ -43,7 +43,7 @@ TReal **create_matrix ( size_t nrow, size_t ncol )
 template<class TReal>
 void free_matrix ( TReal **m, size_t nrow)
 {
-	for ( int row = 0; row < nrow; ++row )
+	for (size_t row = 0; row < nrow; ++row)
 	{
 		delete [] m[row];
 	}

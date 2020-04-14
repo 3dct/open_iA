@@ -82,7 +82,7 @@
           <string>Selections</string>
          </property>
          <property name="icon">
-          <iconset resource="../../open_iA/core/open_iA.qrc">
+          <iconset resource="PorosityAnalyser.qrc">
            <normaloff>:/images/treeView.png</normaloff>:/images/treeView.png</iconset>
          </property>
          <property name="iconSize">
@@ -123,7 +123,7 @@
           <string>Selections</string>
          </property>
          <property name="icon">
-          <iconset resource="../../open_iA/core/open_iA.qrc">
+          <iconset resource="PorosityAnalyser.qrc">
            <normaloff>:/images/selection_list.png</normaloff>:/images/selection_list.png</iconset>
          </property>
          <property name="iconSize">
@@ -167,7 +167,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="../../core/open_iA.qrc"/>
+  <include location="PorosityAnalyser.qrc"/>
  </resources>
  <connections/>
 </ui>

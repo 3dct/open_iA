@@ -23,14 +23,19 @@
 #include "iANModalModalityReducer.h"
 #include "iANModalBackgroundRemover.h"
 
+// Background removers
+#include "iANModalDilationBackgroundRemover.h"
+
+// Modality reducers
+#include "iANModalManualModalityReducer.h"
+#include "iANModalPCAModalityReducer.h"
+
 #include "iAModality.h"
 
 #include <vtkImageData.h>
 
-iANModalPreprocessor::iANModalPreprocessor(QSharedPointer<iANModalModalityReducer> modalityReducer, QSharedPointer<iANModalBackgroundRemover> backgroundRemover)
-	:
-	m_modalityReducer(modalityReducer),
-	m_backgroundRemover(backgroundRemover)
+iANModalPreprocessor::iANModalPreprocessor(MdiChild *mdiChild) :
+	m_mdiChild(mdiChild)
 {
 
 }
@@ -40,16 +45,16 @@ namespace {
 		return false; // TODO
 	}
 	inline bool promptReduceNumOfModalitiesSecond() {
-		return true; // TODO
+		return false; // TODO
 	}
 	inline bool promptRemoveBackground() {
 		return true; // TODO
 	}
 }
 
-iANModalPreprocessorOutput iANModalPreprocessor::preprocess(QList<QSharedPointer<iAModality>> modalities) {
+iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPointer<iAModality>> modalities) {
 
-	iANModalPreprocessorOutput output;
+	Output output;
 
 	QList<ModalitiesGroup> groups;
 	groupModalities(modalities, groups);
@@ -57,32 +62,45 @@ iANModalPreprocessorOutput iANModalPreprocessor::preprocess(QList<QSharedPointer
 
 	if (promptReduceNumOfModalitiesFirst()) {
 		// if number of modalities is to be reduced before background removal
-		modalities = m_modalityReducer->reduce(modalities);
+		modalities = chooseModalityReducer()->reduce(modalities);
 		if (promptRemoveBackground()) {
-			auto mask = m_backgroundRemover->removeBackground(modalities);
+			auto mask = chooseBackgroundRemover()->removeBackground(modalities);
 			if (mask != nullptr) {
 				output.mask = mask;
 			}
 		}
-
-	} else {
+	}
+	else
+	{
 		// if number of modalities is to be reduced after background removal
 		if (promptRemoveBackground()) {
-			auto mask = m_backgroundRemover->removeBackground(modalities);
+			auto mask = chooseBackgroundRemover()->removeBackground(modalities);
 			if (mask != nullptr) {
 				output.mask = mask;
 			}
 		}
 
-		if (modalities.size() > m_modalityReducer->maxOutputLength() || promptReduceNumOfModalitiesSecond()) {
+		auto reducer = chooseModalityReducer();
+		if (modalities.size() > reducer->maxOutputLength() || promptReduceNumOfModalitiesSecond()) {
 			// if we have more modalities than allowed, force reduction
-			modalities = m_modalityReducer->reduce(modalities);
+			modalities = reducer->reduce(modalities);
 		}
 	}
 
 	output.modalities = modalities;
 
 	return output;
+}
+
+QSharedPointer<iANModalModalityReducer> iANModalPreprocessor::chooseModalityReducer() {
+	// TODO
+	//return QSharedPointer<iANModalModalityReducer>(new iANModalManualModalityReducer());
+	return QSharedPointer<iANModalModalityReducer>(new iANModalPCAModalityReducer());
+}
+
+QSharedPointer<iANModalBackgroundRemover> iANModalPreprocessor::chooseBackgroundRemover() {
+	// TODO
+	return QSharedPointer<iANModalBackgroundRemover>(new iANModalDilationBackgroundRemover(m_mdiChild));
 }
 
 bool iANModalPreprocessor::areModalitiesCompatible(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2) {

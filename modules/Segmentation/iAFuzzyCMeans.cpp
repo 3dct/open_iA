@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,10 +27,14 @@
 #include <iATypedCallHelper.h>
 #include <io/iAITKIO.h>
 
+#include <itkConfigure.h>    // for ITK_VERSION...
 #include <itkFCMClassifierInitializationImageFilter.h>
 #include <itkFuzzyClassifierImageFilter.h>
 #include <itkKFCMSClassifierInitializationImageFilter.h>
+#if ITK_VERSION_MAJOR < 5
+// MSKFCM filter is implemented with the help of itk Barriers, which got removed with ITK 5
 #include <itkMSKFCMClassifierInitializationImageFilter.h>
+#endif
 #include <itkVectorImage.h>
 #include <itkVectorIndexSelectionCastImageFilter.h>
 
@@ -47,7 +51,7 @@ namespace
 {
 	void setProbabilities(VectorImageType::Pointer vectorImg, iAFilter* filter)
 	{
-		for (int p = 0; p < vectorImg->GetVectorLength(); ++p)
+		for (unsigned int p = 0; p < vectorImg->GetVectorLength(); ++p)
 		{
 			auto indexSelectionFilter = IndexSelectionType::New();
 			indexSelectionFilter->SetIndex(p);
@@ -82,7 +86,7 @@ namespace
 	bool convertStringToCentroids(QString centroidString, unsigned int numberOfClasses, QVector<double> & centroids)
 	{
 		auto centroidStringList = centroidString.split(" ");
-		if (centroidStringList.size() != numberOfClasses)
+		if (centroidStringList.size() < 0 || static_cast<unsigned int>(centroidStringList.size()) != numberOfClasses)
 		{
 			DEBUG_LOG("Number of classes doesn't match the count of centroids specified!");
 			return false;
@@ -127,10 +131,14 @@ void fcm(iAFilter* filter, QMap<QString, QVariant> const & params)
 	classifier->SetMaximumNumberOfIterations(params["Maximum Iterations"].toUInt());
 	classifier->SetMaximumError(params["Maximum Error"].toDouble());
 	classifier->SetM(params["M"].toDouble());
+#if ITK_VERSION_MAJOR < 5
 	classifier->SetNumberOfThreads(params["Number of Threads"].toUInt());
+#else
+	classifier->SetNumberOfWorkUnits(params["Number of Threads"].toUInt());
+#endif
 	classifier->SetNumberOfClasses(numberOfClasses);
 	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
-	for (int i = 0; i < numberOfClasses; i++)
+	for (int i = 0; static_cast<unsigned int>(i) < numberOfClasses; i++)
 	{
 		centroidsArray.push_back(centroids[i]);
 	}
@@ -165,6 +173,10 @@ bool iAFCMFilter::checkParameters(QMap<QString, QVariant> & parameters)
 
 void iAFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
+	for (unsigned int i = 0; i < parameters["Number of Classes"].toUInt(); ++i)
+	{
+		setOutputName(i + 1, QString("Probability image label %1").arg(i));
+	}
 	ITK_TYPED_CALL(fcm, inputPixelType(), this, parameters);
 }
 
@@ -213,10 +225,14 @@ void kfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	classifier->SetMaximumError(parameters["Maximum Error"].toDouble());
 	classifier->SetM(parameters["M"].toDouble());
 	classifier->SetAlpha(parameters["Alpha"].toDouble());
+#if ITK_VERSION_MAJOR < 5
 	classifier->SetNumberOfThreads(parameters["Number of Threads"].toUInt());
+#else
+	classifier->SetNumberOfWorkUnits(parameters["Number of Threads"].toUInt());
+#endif
 	classifier->SetNumberOfClasses(numberOfClasses);
 	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
-	for (int i = 0; i < numberOfClasses; i++)
+	for (int i = 0; static_cast<unsigned int>(i) < numberOfClasses; i++)
 	{
 		centroidsArray.push_back(centroids[i]);
 	}
@@ -247,12 +263,17 @@ void kfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 void iAKFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
+	for (unsigned int i = 0; i < parameters["Number of Classes"].toUInt(); ++i)
+	{
+		setOutputName(i + 1, QString("Probability image label %1").arg(i));
+	}
 	ITK_TYPED_CALL(kfcm, inputPixelType(), this, parameters);
 }
 
 
 // MSKFCM
 
+#if ITK_VERSION_MAJOR < 5
 IAFILTER_CREATE(iAMSKFCMFilter)
 
 iAMSKFCMFilter::iAMSKFCMFilter() :
@@ -298,7 +319,11 @@ void mskfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	//classifier->SetAlpha(parameters["Alpha"].toDouble());
 	classifier->SetP(parameters["P"].toDouble());
 	classifier->SetQ(parameters["Q"].toDouble());
+#if ITK_VERSION_MAJOR < 5
 	classifier->SetNumberOfThreads(parameters["Number of Threads"].toUInt());
+#else
+	classifier->SetNumberOfWorkUnits(parameters["Number of Threads"].toUInt());
+#endif
 	classifier->SetNumberOfClasses(numberOfClasses);
 	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
 	for (int i = 0; i < numberOfClasses; i++)
@@ -337,5 +362,10 @@ void mskfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 void iAMSKFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
+	for (unsigned int i = 0; i < parameters["Number of Classes"].toUInt(); ++i)
+	{
+		setOutputName(i + 1, QString("Probability image label %1").arg(i));
+	}
 	ITK_TYPED_CALL(mskfcm, inputPixelType(), this, parameters);
 }
+#endif

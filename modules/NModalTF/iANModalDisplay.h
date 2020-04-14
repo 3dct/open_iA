@@ -58,21 +58,26 @@ public:
 
 	uint createChannel();
 	void setChannelData(uint channelId, iAChannelData channelData);
-
-
+	static const uint MAIN_CHANNEL_ID = 0;
 
 	// Result can be null! That means that the selection was cancelled
 	static QList<QSharedPointer<iAModality>> selectModalities(
-		QWidget *widget,
 		iANModalDisplay *display,
 		int maxSelection = 0, // how many modalities can be selected at maximum. <= 0 means there is no limit
 		int minSelection = 1, // how many modalities can be selected at minimum. <= 0 means it acceptable to make no selections
+		QWidget *footer = nullptr,
 		QWidget *dialogParent = nullptr
 	);
 
-	static QSharedPointer<iAModality> selectModality(QWidget *widget, iANModalDisplay *display, QWidget* dialogParent) {
-		return selectModalities(widget, display, 1, 1, dialogParent)[0];
+	static QSharedPointer<iAModality> selectModality(
+		iANModalDisplay *display,
+		QWidget *footer = nullptr,
+		QWidget *dialogParent = nullptr)
+	{
+		return selectModalities(display, 1, 1, dialogParent)[0];
 	};
+
+	static QWidget* createOkCancelFooter(QDialog *dialog);
 
 private:
 	QList<QSharedPointer<iAModality>> m_modalities;
@@ -91,13 +96,12 @@ private:
 	bool isSelectionValid();
 	bool validateSelection();
 
-	static const uint CHANNEL_MAIN = 0;
 	uint m_nextChannelId;
 
 	// Source: https://www.qtcentre.org/threads/8048-Validate-Data-in-QDialog
 	class SelectionDialog : public QDialog {
 	public:
-		SelectionDialog(iANModalDisplay *display);
+		SelectionDialog(iANModalDisplay *display, QWidget *parent);
 		void done(int r) override;
 		iANModalDisplay *m_display;
 	};

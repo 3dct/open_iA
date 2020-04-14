@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -40,6 +40,9 @@ class vtkSmartVolumeMapper;
 class vtkVolume;
 class vtkVolumeProperty;
 
+//! Collects all vtk classes required for rendering a volume.
+//! Provides convenience functionality for adding it to a render window,
+//! as well as for showing its bounding box
 class open_iA_Core_API iAVolumeRenderer
 {
 public:
@@ -68,12 +71,12 @@ public:
 
 	void setImage(iATransferFunction * transfer, vtkSmartPointer<vtkImageData> imgData);
 
-	void setImage(vtkImageData * data); //todo is this necessary??? 
+	void setImage(vtkImageData * data); //todo is this necessary???
 	//just for testing
-	vtkRenderer * getCurrentRenderer() {
-		return m_currentRenderer; 
+	vtkRenderer * getCurrentRenderer()
+	{
+		return m_currentRenderer;
 	}
-
 
 	void setMovable(bool movable);
 

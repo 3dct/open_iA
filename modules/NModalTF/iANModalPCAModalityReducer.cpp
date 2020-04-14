@@ -21,44 +21,71 @@
 
 #include "iANModalPCAModalityReducer.h"
 
+#include <defines.h> // for DIM
+#include "iAModality.h"
+#include "iATypedCallHelper.h"
+
+#include <vtkImageData.h>
+
+#include <itkImagePCAShapeModelEstimator.h>
+
 // Input modalities (volumes) must have the exact same dimensions
 QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(QList<QSharedPointer<iAModality>> modalities) {
 
-	// Assert if all modalities have the same dimensions
+	// TODO: assert if all modalities have the same dimensions
+
+	// Set up connectors
+	std::vector<iAConnector> connectors(modalities.size());
+	for (int i = 0; i < modalities.size(); i++) {
+		connectors[i] = iAConnector();
+		connectors[i].setImage(modalities[i]->image());
+	}
+
+	// Go!
+	ITK_TYPED_CALL(itkPCA, connectors[0].itkScalarPixelType(), connectors);
+
+	// Set up output list
+	modalities = QList<QSharedPointer<iAModality>>();
+	for (int i = 0; i < connectors.size(); i++) {
+		auto name = "Principal Component " + QString::number(i);
+		auto mod = new iAModality(name, "", -1, connectors[i].vtkImage(), iAModality::NoRenderer);
+		
 
 
-	// Flatten volumes
-	// - all volumes have the same dimensions N1 x N2 x N3
-	// - number of volumes: M
-	// - flattened volumes: 2D matrix of size N1*N2*N3 x M
+		//QSharedPointer<iAVolumeRenderer> renderer(new iAVolumeRenderer(mod->transfer().data(), mod->image()));
+		//mod->setRenderer(renderer);
 
+		//m_mdiChild->modalitiesDockWidget()->addModality(...);
 
-	// Calculate mean of each of the M vectors
-	// ITK mean image filter: https://itk.org/Doxygen/html/classitk_1_1MeanImageFilter.html
-	// ITK statistics image filter: https://itk.org/Doxygen/html/classitk_1_1StatisticsImageFilter.html
-
-
-	// Subtract each element of the M vectors by their respective mean
-	// ITK subtract image filter: https://itk.org/Doxygen/html/classitk_1_1SubtractImageFilter.html
-
-
-	// Calculate covariance matrix
-	// ITK covariance calculator: https://itk.org/Doxygen320/html/classitk_1_1Statistics_1_1CovarianceCalculator.html
-	// ITK covariance sample filter: https://itk.org/Doxygen/html/classitk_1_1Statistics_1_1CovarianceSampleFilter.html
-
-
-	// Perform eigen analysis on the covariance matrix
-	// ITK symmetric eigen analysis: https://itk.org/Doxygen/html/classitk_1_1SymmetricEigenAnalysis.html
-
-
-	// Reshape eigenvectors (each of size N1*N2*N3 x 1) into volumes
-	// - we will now again have a number M of volumes with dimensions N1 x N2 x N3
-	// - if  M  >  K = maxOutputLength()  then only necessary to reshape the K eigenvectors with largest eigenvalues
-
+		modalities.append(QSharedPointer<iAModality>(mod));
+	}
 
 	// Ready to output :)
 	// - length of output list <= maxOutputLength()
 	auto output = modalities;
 	assert(output.size() <= maxOutputLength());
 	return output;
+}
+
+template<class T>
+void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector> &c) {
+	typedef itk::Image<T, DIM> ImageType;
+	typedef itk::ImagePCAShapeModelEstimator<ImageType, ImageType> PCASMEType;
+
+	int inputSize = c.size();
+	int outputSize = std::min((int)c.size(), maxOutputLength());
+	
+	auto pca = PCASMEType::New();
+	pca->SetNumberOfTrainingImages(inputSize);
+	pca->SetNumberOfPrincipalComponentsRequired(outputSize);
+	for (int i = 0; i < inputSize; i++) {
+		pca->SetInput(i, dynamic_cast<ImageType *>(c[i].itkImage()));
+	}
+
+	pca->Update();
+
+	c.resize(outputSize);
+	for (int i = 0; i < outputSize; i++) {
+		c[i].setImage(pca->GetOutput(i));
+	}
 }

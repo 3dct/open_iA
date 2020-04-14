@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -57,20 +57,24 @@ bool iAVTKRendererManager::removeFromBundle( vtkRenderer* renderer )
 void iAVTKRendererManager::removeAll()
 {
 	m_commonCamera = 0;
-	foreach( vtkRenderer * r, m_renderers )
-		removeFromBundle( r );
+	for (vtkRenderer* r : m_renderers)
+	{
+		removeFromBundle(r);
+	}
 	m_renderers.clear();
 }
 
-void iAVTKRendererManager::redrawOtherRenderers( vtkObject* caller, long unsigned int eventId, void* callData )
+void iAVTKRendererManager::redrawOtherRenderers( vtkObject* /*caller*/, long unsigned int /*eventId*/, void* callData )
 {
 	if( !m_isRedrawn )
 	{
 		m_isRedrawn = true;
 		for( int i = 0; i < m_renderers.count(); i++ )
 		{
-			if( m_renderers[i]->GetRenderWindow() != callData )
+			if (m_renderers[i]->GetRenderWindow() != callData)
+			{
 				m_renderers[i]->GetRenderWindow()->Render();
+			}
 		}
 		m_isRedrawn = false;
 	}

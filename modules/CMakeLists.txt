@@ -5,7 +5,6 @@ SET (option_prefix "Module_")
 LOAD_MODULES( ${CMAKE_CURRENT_SOURCE_DIR}
 	MODULE_NAMES
 	MODULE_DESCRIPTIONS
-	MODULE_DEFAULT_VALS
 )
 
 # Iteratively process modules
@@ -17,9 +16,8 @@ option (openiA_BUILD_ALL_MODULES "Whether to enable all modules in build. Note: 
 FOREACH( indx RANGE ${len} )
 	LIST( GET MODULE_NAMES ${indx} module_name)
 	LIST( GET MODULE_DESCRIPTIONS ${indx} module_description)
-	LIST( GET MODULE_DEFAULT_VALS ${indx} module_def_val)
 	SET(module_option ${option_prefix}${module_name})
-	OPTION( ${module_option} ${module_description} ${module_def_val})
+	OPTION( ${module_option} ${module_description} OFF)
 	IF (openiA_BUILD_ALL_MODULES)
 		set(${module_option} "ON" CACHE BOOL "" FORCE)
 	ENDIF()
@@ -38,36 +36,48 @@ SET (LIB_TYPE SHARED)
 get_filename_component(OpeniASrcDir "../" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 get_filename_component(OpeniABinDir "../" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
+
+
 FOREACH( indx RANGE ${len} )
 	LIST( GET MODULE_NAMES ${indx} module_name)
 	# Read and print module description
-	IF (openiA_DEPENDENCY_INFO)
-		MESSAGE(STATUS "${module_name}:")
-	ENDIF()
 	GET_MODULE_FULL_PATH ( ${module_name} module_full_path )
-	# Add an option for the module
-	SET(module_option ${option_prefix}${module_name})
 
+	SET(module_option ${option_prefix}${module_name})
 	IF( NOT ${module_option} )
 		CONTINUE()
 	ENDIF()
-	LIST(APPEND ENABLED_MODULE_NAMES ${module_name})
+
 	# Collect source files from the module directories, except potential *Test.cpp/cxx files
-	FILE( GLOB_RECURSE module_srcs "${module_full_path}/*.cpp" "${module_full_path}/*.cxx" )
-	FILE( GLOB_RECURSE module_test_srcs "${module_full_path}/*Test.cpp" "${module_full_path}/*Test.cxx" )
+	FILE (GLOB_RECURSE module_srcs "${module_full_path}/*.cpp" "${module_full_path}/*.cxx" )
+	FILE (GLOB_RECURSE module_test_srcs "${module_full_path}/*Test.cpp" "${module_full_path}/*Test.cxx" )
 	IF ( NOT "${module_test_srcs}" STREQUAL "" )
 		LIST( REMOVE_ITEM module_srcs ${module_test_srcs} )
 	ENDIF ()
-	FILE( GLOB_RECURSE module_hs "${module_full_path}/*.h" )
-	FILE( GLOB_RECURSE module_hpp "${module_full_path}/*.hpp" )
+	FILE (GLOB_RECURSE module_hs "${module_full_path}/*.h" )
+	FILE (GLOB_RECURSE module_hpp "${module_full_path}/*.hpp" )
 	LIST (APPEND module_hs ${module_hpp})
-	FILE( GLOB_RECURSE module_uis "${module_full_path}/*.ui" )
+	FILE (GLOB_RECURSE module_uis "${module_full_path}/*.ui" )
+	FILE (GLOB_RECURSE module_qrc "${module_full_path}/*.qrc" )
 	QT5_WRAP_UI( module_srcs ${module_uis})
+	IF ( NOT "${module_qrc}" STREQUAL "" )
+		QT5_ADD_RESOURCES( module_srcs "${module_qrc}" )
+		LIST (APPEND module_srcs "${module_qrc}" )
+	ENDIF ()
 	# If there are dependencies do the check
 	MODULE_CHECK_DEPENDENCIES( ${module_option} ${module_full_path} )
 	# Module can be disabled in the course of the dependency check - if so, we need to skip the rest:
 	IF( NOT ${module_option} )
 		CONTINUE()
+	ENDIF()
+
+	IF (openiA_DEPENDENCY_INFO)
+		MESSAGE(STATUS "${module_name}:")
+	ENDIF()
+	LIST(APPEND ENABLED_MODULE_NAMES ${module_name})
+	IF (EXISTS "${module_full_path}/enabled.cmake")
+		MESSAGE(STATUS "    Running ${module_full_path}/enabled.cmake...")
+		INCLUDE("${module_full_path}/enabled.cmake")
 	ENDIF()
 
 	# clean module name for use as identifier (if leading number, then add "_" prefix)
@@ -84,7 +94,18 @@ FOREACH( indx RANGE ${len} )
 	endif()
 	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${module_full_path} )
 	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/modules ) # ui files in module folders
-	
+
+	IF (openiA_PRECOMPILE)
+		IF (CMAKE_MAJOR_VERSION GREATER 4 OR
+		(CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 15))
+			IF (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${module_name}/precompile.cmake")
+				INCLUDE(${module_name}/precompile.cmake)
+				# MESSAGE(STATUS "    Creating precompiled headers for module ${module_name}: ${${module_name}_PRECOMPILE_INCLUDES}")
+				target_precompile_headers(${module_name} PRIVATE ${${module_name}_PRECOMPILE_INCLUDES} )
+			ENDIF()
+		ENDIF()
+	ENDIF()
+
 	# Module dependencies: new style - include directory and link dll:
 	FOREACH( d ${ADDITIONAL_MODULE_MODULES} )
 		IF (openiA_DEPENDENCY_INFO)
@@ -136,55 +157,45 @@ FOREACH( indx RANGE ${len} )
 		TARGET_COMPILE_DEFINITIONS(${module_name} PRIVATE ${ADDITIONAL_COMPILE_DEFINITIONS})
 	ENDIF()
 
-	IF (openiA_USE_COTIRE)
-		cotire(${module_name})
-	ENDIF()
-
 	IF (openiA_USE_IDE_FOLDERS)
 		SET_PROPERTY(TARGET ${module_name} PROPERTY FOLDER "Modules")
 	ENDIF()
 
-	IF (MSVC)
-		# Apply file grouping based on regular expressions for Visual Studio IDE.
-		SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
+	IF (CMAKE_CONFIGURATION_TYPES)
 		set_target_properties(${module_name} PROPERTIES
-			RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/x64/Debug/plugins"
-			RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/x64/Release/plugins"
-			RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/x64/RelWithDebInfo/plugins"
-			RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/x64/MinSizeRel/plugins"
+			RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/plugins"
+			RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/plugins"
+			RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO}/plugins"
+			RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL}/plugins"
 		)
-		INSTALL (TARGETS ${module_name} RUNTIME DESTINATION plugins)
-
-		# Install .vcxproj.user file for module to be able to start open_iA
-		IF (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj.user OR NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_${module_name}_DBG_ENV_PATH}")
-			# force cmake to copy the files:
-			FILE(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj.user)
-			# create .user files:
-			CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/module.vcxproj.user ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj.user @ONLY)
-			# make sure visual studio reloads the projects:
-			execute_process(COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj)
-			SET (CACHED_${module_name}_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
-		ENDIF ()
-		add_dependencies(${module_name} ${GUI_EXECUTABLE_NAME})
+		set_target_properties(${module_name} PROPERTIES
+			LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG}/plugins"
+			LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE}/plugins"
+			LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO}/plugins"
+			LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL}/plugins"
+	)
 	ELSE()
-		IF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-			set_target_properties(${module_name} PROPERTIES
-				LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/Debug/plugins"
-				LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/Release/plugins"
-				LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/RelWithDebInfo/plugins"
-				LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/MinSizeRel/plugins"
-		)
-		ELSE()
-			set_target_properties(${module_name} PROPERTIES
-				LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/plugins")
-		ENDIF()
+		set_target_properties(${module_name} PROPERTIES
+			LIBRARY_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/plugins")
+	ENDIF()
+
+	IF (MSVC)
+		SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")      # Apply file grouping based on regular expressions for Visual Studio IDE.
+		INSTALL (TARGETS ${module_name} RUNTIME DESTINATION plugins)    # install dll in plugins folder
+
+		# set up debugging command / environment dll paths
+		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_COMMAND "${CMAKE_BINARY_DIR}\\$(Platform)\\$(Configuration)\\${GUI_EXECUTABLE_FILE}")
+		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${WinDLLPaths};%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")
+
+		add_dependencies(${module_name} ${GUI_EXECUTABLE_TARGET})       # dependency to GUI executable for triggering rebuild when starting module
+	ELSE()
 		IF (FLATPAK_BUILD)
 			INSTALL (TARGETS ${module_name} LIBRARY DESTINATION bin/plugins)
 		ELSE()
 			INSTALL (TARGETS ${module_name} LIBRARY DESTINATION plugins)
 		ENDIF()
 	ENDIF()
-	
+
 	IF (FLATPAK_BUILD)
 		LIST (APPEND BUNDLE_LIBS "\${CMAKE_INSTALL_PREFIX}/bin/plugins/${CMAKE_SHARED_LIBRARY_PREFIX}${module_name}${CMAKE_SHARED_LIBRARY_SUFFIX}")
 	ELSE()
@@ -203,9 +214,6 @@ ELSEIF (NOT "${ENABLED_MODULE_NAMES}" STREQUAL "")
 ENDIF ()
 
 # Compiler flags
-IF (MSVC)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
-ENDIF (MSVC)
 IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic -fvisibility=hidden")
 	SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic -fvisibility=hidden")
