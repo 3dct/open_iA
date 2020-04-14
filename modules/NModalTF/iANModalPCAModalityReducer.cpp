@@ -48,8 +48,16 @@ QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(QList<QShar
 	modalities = QList<QSharedPointer<iAModality>>();
 	for (int i = 0; i < connectors.size(); i++) {
 		auto name = "Principal Component " + QString::number(i);
-		auto mod = new iAModality(name, "", -1, connectors[i].vtkImage(), iAModality::MainRenderer);
-		modalities[i] = QSharedPointer<iAModality>(mod);
+		auto mod = new iAModality(name, "", -1, connectors[i].vtkImage(), iAModality::NoRenderer);
+		
+
+
+		//QSharedPointer<iAVolumeRenderer> renderer(new iAVolumeRenderer(mod->transfer().data(), mod->image()));
+		//mod->setRenderer(renderer);
+
+		//m_mdiChild->modalitiesDockWidget()->addModality(...);
+
+		modalities.append(QSharedPointer<iAModality>(mod));
 	}
 
 	// Ready to output :)
@@ -60,7 +68,7 @@ QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(QList<QShar
 }
 
 template<class T>
-void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector>& c) {
+void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector> &c) {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::ImagePCAShapeModelEstimator<ImageType, ImageType> PCASMEType;
 

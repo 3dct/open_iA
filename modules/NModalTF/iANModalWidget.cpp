@@ -25,8 +25,6 @@
 #include "iANModalLabelsWidget.h"
 
 #include "iANModalPreprocessor.h"
-#include "iANModalDilationBackgroundRemover.h"
-#include "iANModalManualModalityReducer.h"
 
 #include "dlg_labels.h"
 #include "iAModality.h"
@@ -94,11 +92,8 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 	for (int i = 0; i < list->size(); i++) {
 		modalities.append(list->get(i));
 	}
-	
-	auto bgRemover = QSharedPointer<iANModalBackgroundRemover>(new iANModalDilationBackgroundRemover(mdiChild));
-	auto reducer = QSharedPointer<iANModalModalityReducer>(new iANModalManualModalityReducer());
-	m_preprocessor = new iANModalPreprocessor(reducer, bgRemover);
 
+	m_preprocessor = new iANModalPreprocessor(mdiChild);
 	auto output = m_preprocessor->preprocess(modalities);
 
 	m_c->setModalities(output.modalities);
