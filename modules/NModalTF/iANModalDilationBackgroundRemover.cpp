@@ -30,6 +30,7 @@
 #include "iASlicer.h"
 #include "iAToolsITK.h"
 #include "iATypedCallHelper.h"
+#include "iAProgress.h"
 
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
@@ -48,6 +49,7 @@
 #include <QSpinBox>
 #include <QStatusBar>
 #include <QVBoxLayout>
+#include <QPointer>
 
 namespace
 {
@@ -75,7 +77,7 @@ void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector &conn, in
 	conn.setImage(m_itkTempImg);
 }
 
-void iANModalDilationBackgroundRemover::itkDilateAndCountConnectedComponents(
+void iANModalIterativeDilationThread::itkDilateAndCountConnectedComponents(
 	ImagePointer itkImgPtr, int &connectedComponentsOut, bool dilate /*= true*/)
 {
 	typedef itk::Image<int, DIM> ImageType;
@@ -90,7 +92,9 @@ void iANModalDilationBackgroundRemover::itkDilateAndCountConnectedComponents(
 	typename BDIFType::Pointer dilationFilter;
 	auto connCompFilter = CCIFType::New();
 
-	//iAProgress progress;
+	auto prog = QPointer<iAProgress>(new iAProgress());
+	// won't work... TODO: fix
+	//connect(prog, &iAProgress::progress, this, [this](int p) { emit setValue("filter", p); }, CONNECTION_TYPE);
 
 	auto input = dynamic_cast<ImageType *>(itkImgPtr.GetPointer());
 	if (dilate)
@@ -110,6 +114,8 @@ void iANModalDilationBackgroundRemover::itkDilateAndCountConnectedComponents(
 		connCompFilter->SetInput(input);
 	}
 
+	prog->observe(connCompFilter);
+
 	// ...until the number of foreground components is equal to connectedComponents
 	connCompFilter->SetBackgroundValue(BACKGROUND);
 	//progress.observe(connCompFilter);
@@ -118,17 +124,17 @@ void iANModalDilationBackgroundRemover::itkDilateAndCountConnectedComponents(
 
 	//filter->addOutput(binThreshFilter->GetOutput());
 	//conn.setImage(binThreshFilter->GetOutput());
-	m_itkTempImg = connCompFilter->GetOutput();
+	m_mask = connCompFilter->GetOutput();
 
 	connectedComponentsOut = connCompFilter->GetObjectCount();
 }
 
-void iANModalDilationBackgroundRemover::itkCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponentsOut)
+void iANModalIterativeDilationThread::itkCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponentsOut)
 {
 	itkDilateAndCountConnectedComponents(itkImgPtr, connectedComponentsOut, false);
 }
 
-void iANModalDilationBackgroundRemover::itkErode(ImagePointer itkImgPtr, int count)
+void iANModalIterativeDilationThread::itkErode(ImagePointer itkImgPtr, int count)
 {
 	typedef itk::FlatStructuringElement<DIM> StructuringElementType;
 	typedef itk::Image<int, DIM> ImageType;
@@ -138,9 +144,8 @@ void iANModalDilationBackgroundRemover::itkErode(ImagePointer itkImgPtr, int cou
 	elementRadius.Fill(1);
 	auto structuringElement = StructuringElementType::Ball(elementRadius);
 
-	if (count <= 0)
-	{
-		m_itkTempImg = itkImgPtr;
+	if (count <= 0) {
+		m_mask = itkImgPtr;
 		return;
 	}
 
@@ -156,7 +161,7 @@ void iANModalDilationBackgroundRemover::itkErode(ImagePointer itkImgPtr, int cou
 
 	erosionFilters[count - 1]->Update();
 
-	m_itkTempImg = erosionFilters[count - 1]->GetOutput();
+	m_mask = erosionFilters[count - 1]->GetOutput();
 }
 
 #ifndef NDEBUG
@@ -349,30 +354,46 @@ bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int
 	QLabel *dilationsLabel = new QLabel("Dilations progress");
 
 	iANModalProgressWidget *progress = new iANModalProgressWidget();
-	int status = progress->addProgressBar(3, statusLabel, true);  // 3 steps: counts; counts+dilations; erosions
+	progress->addProgressBar(3, statusLabel, true, "status");  // 3 steps: counts; counts+dilations; erosions
 	progress->addSeparator();
-	int filter = progress->addProgressBar(100, filterLabel, true);  // 100 steps, because that's how iAProgress works
-	int dilations = progress->addProgressBar(1, dilationsLabel, false);  // unkown number of steps... change later
-	progress->show();
+	progress->addProgressBar(100, filterLabel, true, "filter");  // 100 steps, because that's how iAProgress works
+	progress->addProgressBar(1, dilationsLabel, false, "dilations");  // unkown number of steps... change later
 
 	// Now begin the heavy computation
+	auto thread = new iANModalIterativeDilationThread(progress, mask, regionCountGoal);
+	thread->start();
 
-	int connectedComponents;
+	progress->showDialog();
 
-	itkCountConnectedComponents(mask, connectedComponents);
-	//storeImage(m_itkTempImg, "connectedComponents.mhd", true);
-
-	int dilationCount = 0;
-	while (connectedComponents > regionCountGoal)
-	{
-		itkDilateAndCountConnectedComponents(m_itkTempImg, connectedComponents);
-		//storeImage(m_itkTempImg, "connectedComponents" + QString::number(dilationCount) + ".mhd", true);
-		dilationCount++;
-	}
-
-	itkErode(m_itkTempImg, dilationCount);
+	// TODO: check result
 
 	return true;
+}
+
+void iANModalIterativeDilationThread::run() {
+	int connectedComponents;
+
+	emit setText("status", "Counting connected components...");
+	itkCountConnectedComponents(m_mask, connectedComponents);
+	//storeImage(m_itkTempImg, "connectedComponents.mhd", true);
+
+	emit setValue("status", 1);
+	emit setText("status", "Dilating and counting connected components...");
+	int dilationCount = 0;
+	while (connectedComponents > m_regionCountGoal)
+	{
+		itkDilateAndCountConnectedComponents(m_mask, connectedComponents);
+		//storeImage(m_itkTempImg, "connectedComponents" + QString::number(dilationCount) + ".mhd", true);
+		dilationCount++;
+		emit setMax("dilations", dilationCount);
+		emit setValue("dilations", dilationCount);
+	}
+
+	emit setValue("status", 2);
+	emit setText("status", "Eroding...");
+	itkErode(m_mask, dilationCount);
+
+	emit finish();
 }
 
 

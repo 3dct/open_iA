@@ -34,11 +34,11 @@ iANModalProgressWidget::iANModalProgressWidget(QWidget *parent) :
 	m_layout->setColumnStretch(1, 1);
 }
 
-int iANModalProgressWidget::addProgressBar(int max, QString title, bool autoUpdateText/*=true*/) {
-	return addProgressBar(max, new QLabel(title), autoUpdateText);
+int iANModalProgressWidget::addProgressBar(int max, QString title, bool autoUpdateText/*=true*/, QString name/*=QString()*/) {
+	return addProgressBar(max, new QLabel(title), autoUpdateText, name);
 }
 
-int iANModalProgressWidget::addProgressBar(int max, QLabel *label, bool autoUpdateText/*=false*/) {
+int iANModalProgressWidget::addProgressBar(int max, QLabel *label, bool autoUpdateText/*=false*/, QString name/*=QString()*/) {
 	QProgressBar *pb = new QProgressBar(this);
 	addWidget(pb, label, 0);
 
@@ -56,6 +56,10 @@ int iANModalProgressWidget::addProgressBar(int max, QLabel *label, bool autoUpda
 	QString text = label->text() + (max >= 0 ? " (0/" + QString::number(max) + ")" : "");
 	label->setText(text);
 
+	if (!name.isNull()) {
+		m_name2id.insert(name, id);
+	}
+
 	return id;
 }
 
@@ -68,6 +72,10 @@ void iANModalProgressWidget::setMax(int pbid, int max) {
 	}
 }
 
+void iANModalProgressWidget::setMax(QString name, int max) {
+	setMax(m_name2id.value(name, -1), max);
+}
+
 void iANModalProgressWidget::setAutoUpdateText(int pbid, bool autoUpdateText) {
 	if (exists(pbid)) {
 		m_barAutoUpdateText[pbid] = autoUpdateText;
@@ -75,11 +83,19 @@ void iANModalProgressWidget::setAutoUpdateText(int pbid, bool autoUpdateText) {
 	}
 }
 
+void iANModalProgressWidget::setAutoUpdateText(QString name, bool autoUpdateText) {
+	setAutoUpdateText(m_name2id.value(name, -1), autoUpdateText);
+}
+
 void iANModalProgressWidget::setText(int pbid, QString text) {
 	if (exists(pbid)) {
 		m_barTexts[pbid] = text;
 		update(pbid);
 	}
+}
+
+void iANModalProgressWidget::setText(QString name, QString text) {
+	setText(m_name2id.value(name, -1), text);
 }
 
 void iANModalProgressWidget::addWidget(QWidget *widget, QString title, int rowStretch/*=1*/) {
@@ -129,7 +145,7 @@ void iANModalProgressWidget::setCanceled(bool canceled) {
 }
 
 bool iANModalProgressWidget::exists(int pbid) {
-	return pbid < m_bars.size();
+	return pbid >= 0 && pbid < m_bars.size();
 }
 
 void iANModalProgressWidget::showDialog(QWidget *widget/*=nullptr*/) {
@@ -176,6 +192,10 @@ void iANModalProgressWidget::setValue(int pbid, int value) {
 	}
 }
 
+void iANModalProgressWidget::setValue(QString name, int value) {
+	setValue(m_name2id.value(name, -1), value);
+}
+
 void iANModalProgressWidget::update(int pbid) {
 	if (exists(pbid)) {
 		setValue(pbid, m_bars[pbid]->value());
@@ -192,4 +212,23 @@ void iANModalProgressWidget::finish() {
 void iANModalProgressWidget::cancel() {
 	m_canceled = true;
 	emit canceled();
+}
+
+iANModalProgressUpdater::iANModalProgressUpdater(iANModalProgressWidget* progress) {
+	connect(this, SIGNAL(finish()), progress, SLOT(finish()), CONNECTION_TYPE);
+	connect(this, SIGNAL(cancel()), progress, SLOT(cancel()), CONNECTION_TYPE);
+
+	connect(this, SIGNAL(showDialog(QWidget*)), progress, SLOT(showDialog(QWidget*)), CONNECTION_TYPE);
+
+	connect(this, SIGNAL(setFirstValue(int)), progress, SLOT(setFirstValue(int)), CONNECTION_TYPE);
+
+	connect(this, SIGNAL(setValue(int, int)), progress, SLOT(setValue(int, int)), CONNECTION_TYPE);
+	connect(this, SIGNAL(setMax(int, int)), progress, SLOT(setMax(int, int)), CONNECTION_TYPE);
+	connect(this, SIGNAL(setAutoUpdateText(int, bool)), progress, SLOT(setAutoUpdateText(int, bool)), CONNECTION_TYPE);
+	connect(this, SIGNAL(setText(int, QString)), progress, SLOT(setText(int, QString)), CONNECTION_TYPE);
+
+	connect(this, SIGNAL(setValue(QString, int)), progress, SLOT(setValue(QString, int)), CONNECTION_TYPE);
+	connect(this, SIGNAL(setMax(QString, int)), progress, SLOT(setMax(QString, int)), CONNECTION_TYPE);
+	connect(this, SIGNAL(setAutoUpdateText(QString, bool)), progress, SLOT(setAutoUpdateText(QString, bool)), CONNECTION_TYPE);
+	connect(this, SIGNAL(setText(QString, QString)), progress, SLOT(setText(QString, QString)), CONNECTION_TYPE);
 }

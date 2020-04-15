@@ -21,6 +21,7 @@
 #pragma once
 
 #include "iANModalBackgroundRemover.h"
+#include "iANModalProgressWidget.h"
 
 #include <itkImageBase.h>
 
@@ -31,7 +32,6 @@
 class MdiChild;
 class iAConnector;
 class iANModalDisplay;
-class iANModalProgressWidget;
 
 class vtkLookupTable;
 class vtkPiecewiseFunction;
@@ -66,6 +66,11 @@ public:
 private:
 	typedef itk::ImageBase<3>::Pointer ImagePointer;
 
+	//iAConnector *m_temp_connector = nullptr;
+	//vtkSmartPointer<vtkImageData> m_vtkTempImg;
+	// TODO: Try without
+	ImagePointer m_itkTempImg;
+
 	MdiChild *m_mdiChild;
 
 	// return - true if a modality and a threshold were successfully chosen
@@ -81,20 +86,9 @@ private:
 	vtkSmartPointer<vtkPiecewiseFunction> m_opacityTf;
 
 	iANModalThresholdingWidget *m_threshold;
-	
-	//iAConnector *m_temp_connector = nullptr;
-	//vtkSmartPointer<vtkImageData> m_vtkTempImg;
-	// TODO: Try without
-	ImagePointer m_itkTempImg;
 
 	template<class T>
 	void itkBinaryThreshold(iAConnector &conn, int loThresh, int upThresh);
-
-	void itkDilateAndCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponents, bool dilate = true);
-
-	void itkCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponents);
-
-	void itkErode(ImagePointer itkImgPtr, int count);
 
 	// TODO make debug only
 	void showMask(QSharedPointer<iAModality> mod, vtkSmartPointer<vtkImageData> mask);
@@ -104,4 +98,23 @@ public slots:
 	void setModalitySelected(QSharedPointer<iAModality>);
 	void updateModalitySelected();
 	void updateThreshold();
+};
+
+class iANModalIterativeDilationThread : public iANModalProgressUpdater {
+	Q_OBJECT
+
+private:
+	typedef itk::ImageBase<3>::Pointer ImagePointer;
+
+	ImagePointer m_mask;
+	int m_regionCountGoal;
+
+	void itkDilateAndCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponents, bool dilate = true);
+	void itkCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponents);
+	void itkErode(ImagePointer itkImgPtr, int count);
+
+public:
+	iANModalIterativeDilationThread(iANModalProgressWidget *progress, ImagePointer mask, int regionCountGoal) :
+		iANModalProgressUpdater(progress), m_mask(mask), m_regionCountGoal(regionCountGoal) {}
+	void run() override;
 };
