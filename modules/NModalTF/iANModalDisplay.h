@@ -74,7 +74,7 @@ public:
 		QWidget *footer = nullptr,
 		QWidget *dialogParent = nullptr)
 	{
-		return selectModalities(display, 1, 1, dialogParent)[0];
+		return selectModalities(display, 1, 1, footer, dialogParent)[0];
 	};
 
 	static QWidget* createOkCancelFooter(QDialog *dialog);
