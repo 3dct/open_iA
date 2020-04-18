@@ -83,7 +83,7 @@ void iANModalController::_initialize() {
 	// TODO: group modalities by dimension
 	// TODO: promt user to select a group
 
-	assert(countModalities() < 4); // VTK limit. TODO: don't hard-code
+	assert(countModalities() <= 4); // VTK limit. TODO: don't hard-code
 
 	for (auto slicer : m_slicers) {
 		m_dlg_labels->removeSlicer(slicer);
