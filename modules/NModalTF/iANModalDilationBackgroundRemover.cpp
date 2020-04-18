@@ -50,6 +50,7 @@
 #include <QStatusBar>
 #include <QVBoxLayout>
 #include <QPointer>
+#include <QPainter>
 
 namespace
 {
@@ -90,11 +91,10 @@ void iANModalIterativeDilationThread::itkDilateAndCountConnectedComponents(
 	typedef itk::BinaryDilateImageFilter<ImageType, ImageType, StructuringElementType> BDIFType;
 
 	typename BDIFType::Pointer dilationFilter;
-	auto connCompFilter = CCIFType::New();
 
-	auto prog = QPointer<iAProgress>(new iAProgress());
-	// won't work... TODO: fix
-	//connect(prog, &iAProgress::progress, this, [this](int p) { emit setValue("filter", p); }, CONNECTION_TYPE);
+	auto connCompFilter = CCIFType::New();
+	connCompFilter->SetBackgroundValue(BACKGROUND);
+	m_progCc->observe(connCompFilter);
 
 	auto input = dynamic_cast<ImageType *>(itkImgPtr.GetPointer());
 	if (dilate)
@@ -104,8 +104,7 @@ void iANModalIterativeDilationThread::itkDilateAndCountConnectedComponents(
 		dilationFilter->SetDilateValue(BACKGROUND);
 		dilationFilter->SetKernel(structuringElement);
 		dilationFilter->SetInput(input);
-
-		//progress.observe(dilationFilter);
+		m_progDil->observe(dilationFilter);
 
 		connCompFilter->SetInput(dilationFilter->GetOutput());
 	}
@@ -114,12 +113,7 @@ void iANModalIterativeDilationThread::itkDilateAndCountConnectedComponents(
 		connCompFilter->SetInput(input);
 	}
 
-	prog->observe(connCompFilter);
-
 	// ...until the number of foreground components is equal to connectedComponents
-	connCompFilter->SetBackgroundValue(BACKGROUND);
-	//progress.observe(connCompFilter);
-	//filter->progress()->observe(connCompFilter);
 	connCompFilter->Update();
 
 	//filter->addOutput(binThreshFilter->GetOutput());
@@ -157,6 +151,7 @@ void iANModalIterativeDilationThread::itkErode(ImagePointer itkImgPtr, int count
 		erosionFilters[i]->SetKernel(structuringElement);
 		erosionFilters[i]->SetErodeValue(FOREGROUND);
 		erosionFilters[i]->SetInput(i == 0 ? input : erosionFilters[i - 1]->GetOutput());
+		m_progEro->observe(erosionFilters[i]);
 	}
 
 	erosionFilters[count - 1]->Update();
@@ -349,23 +344,40 @@ void iANModalDilationBackgroundRemover::updateThreshold()
 
 bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int regionCountGoal)
 {
-	QLabel *statusLabel = new QLabel("Total progress");
-	QLabel *filterLabel = new QLabel("Filter progress");
-	QLabel *dilationsLabel = new QLabel("Dilations progress");
 
-	iANModalProgressWidget *progress = new iANModalProgressWidget();
-	progress->addProgressBar(3, statusLabel, true, "status");  // 3 steps: counts; counts+dilations; erosions
-	progress->addSeparator();
-	progress->addProgressBar(100, filterLabel, true, "filter");  // 100 steps, because that's how iAProgress works
-	progress->addProgressBar(1, dilationsLabel, false, "dilations");  // unkown number of steps... change later
+	auto pw = new iANModalProgressWidget();
+
+	auto plot = new iANModalIterativeDilationPlot(pw);
+
+	pw->addWidget(new QLabel("Target number of background regions: " + QString::number(regionCountGoal)), nullptr, 0);
+	pw->addProgressBar(3, "Total progress", true, "status");  // 3 steps: counts; counts+dilations; erosions
+	pw->addProgressBar(100, "Dilation", false, "dil");  // 100 steps, because that's how iAProgress works
+	pw->addProgressBar(100, "Count connected components", false, "cc");
+	pw->addProgressBar(100, "Erosion", false, "ero");
+	pw->addWidget(plot);
+
+	constexpr int PROGS = 3;
+	iAProgress* progs[PROGS] = {new iAProgress(), new iAProgress(), new iAProgress()};
+
+	auto thread = new iANModalIterativeDilationThread(pw, progs, mask, regionCountGoal);
+	connect(thread, SIGNAL(addValue(int)), plot, SLOT(addValue(int)));
+	connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+	connect(progs[0], &iAProgress::progress, pw, [pw](int p) { pw->setValue("dil", p); });
+	connect(progs[1], &iAProgress::progress, pw, [pw](int p) { pw->setValue("cc", p); });
+	connect(progs[2], &iAProgress::progress, pw, [pw](int p) { pw->setValue("ero", p); });
 
 	// Now begin the heavy computation
-	auto thread = new iANModalIterativeDilationThread(progress, mask, regionCountGoal);
 	thread->start();
 
-	progress->showDialog();
+	// Progress dialog will close automatically once everything is finished
+	pw->showDialog();
 
 	// TODO: check result
+
+	pw->deleteLater();
+	for (int i = 0; i < PROGS; i++) {
+		progs[i]->deleteLater();
+	}
 
 	return true;
 }
@@ -373,24 +385,34 @@ bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int
 void iANModalIterativeDilationThread::run() {
 	int connectedComponents;
 
-	emit setText("status", "Counting connected components...");
+	emit setValue("dil", 100);
+	emit setValue("ero", 100);
+
 	itkCountConnectedComponents(m_mask, connectedComponents);
 	//storeImage(m_itkTempImg, "connectedComponents.mhd", true);
+	emit addValue(connectedComponents);
+	emit setValue("dil", 0);
+	emit setValue("cc", 0);
 
 	emit setValue("status", 1);
-	emit setText("status", "Dilating and counting connected components...");
 	int dilationCount = 0;
 	while (connectedComponents > m_regionCountGoal)
 	{
+		emit setValue("dil", 0);
+		emit setValue("cc", 0);
+		auto d = QString::number(dilationCount + 1);
+		auto c = QString::number(connectedComponents);
+		auto t = QString::number(m_regionCountGoal);
 		itkDilateAndCountConnectedComponents(m_mask, connectedComponents);
 		//storeImage(m_itkTempImg, "connectedComponents" + QString::number(dilationCount) + ".mhd", true);
+		emit addValue(connectedComponents);
 		dilationCount++;
-		emit setMax("dilations", dilationCount);
-		emit setValue("dilations", dilationCount);
 	}
 
+	emit setValue("ero", 0);
+
 	emit setValue("status", 2);
-	emit setText("status", "Eroding...");
+	emit setText("ero", "Erosion (" + QString::number(dilationCount) + ")");
 	itkErode(m_mask, dilationCount);
 
 	emit finish();
@@ -454,4 +476,97 @@ QSlider *iANModalThresholdingWidget::slider()
 QSpinBox *iANModalThresholdingWidget::spinBox()
 {
 	return m_spinBox;
+}
+
+// ----------------------------------------------------------------------------------------------
+// iANModalProgressUpdater
+// ----------------------------------------------------------------------------------------------
+
+iANModalIterativeDilationThread::iANModalIterativeDilationThread(
+	iANModalProgressWidget *progressWidget, iAProgress *progress[3], ImagePointer mask, int regionCountGoal) :
+	iANModalProgressUpdater(progressWidget), m_mask(mask), m_regionCountGoal(regionCountGoal),
+	m_progDil(progress[0]), m_progCc(progress[1]), m_progEro(progress[2])
+{
+}
+
+// ----------------------------------------------------------------------------------------------
+// iANModalIterativeDilationPlot
+// ----------------------------------------------------------------------------------------------
+
+iANModalIterativeDilationPlot::iANModalIterativeDilationPlot(QWidget *parent) : QWidget(parent) {
+}
+
+void iANModalIterativeDilationPlot::addValue(int v) {
+	assert(v > 0);
+	m_values.append(v);
+	m_max = v > m_max ? v : m_max;
+	update();
+}
+
+QSize iANModalIterativeDilationPlot::sizeHint() const {
+	return QSize(200, 200);
+}
+
+void iANModalIterativeDilationPlot::paintEvent(QPaintEvent* event) {
+	if (m_values.empty()) {
+		return;
+	}
+
+	constexpr int sep = 10; // separation
+	constexpr int textSep = sep / 2; // text separation
+	constexpr int mar = sep * 2; // margin
+
+	QPainter p(this);
+	p.setRenderHint(QPainter::Antialiasing);
+
+	QFontMetrics fm(p.font());
+	int textHeight = fm.height();
+
+	int w = size().width();
+	int h = size().height();
+	int top = mar + textHeight + textSep;
+	int left = mar + textHeight + textSep;
+	int right = w - mar;
+	int bottom = h - mar - (2 * (textHeight - textSep));
+
+	int wAvailable = right - left; // available width
+	int wSeparators = (sep * (m_values.size() - 1)); // width occupied by separators
+	int barWidth = (int)((float)(wAvailable - wSeparators) / (float)m_values.size());
+
+	int hAvailable = bottom - top; // available height
+
+	for (int i = 0; i < m_values.size(); i++) {
+		int v = m_values[i];
+
+		int barHeight = v == 0 ? 0 : (int)((float)(hAvailable * v) / (float)(m_max));
+		int barLeft = left + ((barWidth + sep) * i);
+		int barTop = bottom - barHeight;
+
+		QString vs = QString::number(v);
+		int vWidth = fm.horizontalAdvance(vs);
+		int vLeft = barLeft + (int)((float)(barWidth - vWidth) / 2.0f);
+
+		QString ids = QString::number(i);
+		int idWidth = fm.horizontalAdvance(ids);
+		int idLeft = barLeft + (int)((float)(barWidth - idWidth) / 2.0f);
+
+		p.fillRect(barLeft, barTop, barWidth, barHeight, QColor::fromRgb(0, 114, 189));
+		p.drawText(vLeft, barTop - textSep, vs);
+		p.drawText(idLeft, bottom + textSep + textHeight, ids);
+	}
+	p.setPen(QColor::fromRgb(0, 0, 0));
+	p.drawLine(left, bottom, right, bottom);
+
+	int centerx = left + (int)((float)wAvailable / 2.0f);
+	int centery = top + (int)((float)hAvailable / 2.0f);
+
+	QString xlabel = "# dilations";
+	int xlabelwidth = fm.horizontalAdvance(xlabel);
+	p.drawText(centerx - (int)((float)xlabelwidth / 2.0f), bottom + (2 * (textSep + textHeight)), xlabel);
+
+	QString ylabel = "# background regions";
+	int ylabelwidth = fm.horizontalAdvance(ylabel);
+	p.translate(mar, top + (int)(((float)hAvailable + (float)ylabelwidth) / 2.0f));
+	p.rotate(-90);
+	p.drawText(0, 0, ylabel);
 }

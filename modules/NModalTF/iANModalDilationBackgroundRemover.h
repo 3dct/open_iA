@@ -32,6 +32,7 @@
 class MdiChild;
 class iAConnector;
 class iANModalDisplay;
+class iAProgress;
 
 class vtkLookupTable;
 class vtkPiecewiseFunction;
@@ -106,6 +107,9 @@ class iANModalIterativeDilationThread : public iANModalProgressUpdater {
 private:
 	typedef itk::ImageBase<3>::Pointer ImagePointer;
 
+	iAProgress *m_progDil;
+	iAProgress *m_progCc;
+	iAProgress *m_progEro;
 	ImagePointer m_mask;
 	int m_regionCountGoal;
 
@@ -114,7 +118,27 @@ private:
 	void itkErode(ImagePointer itkImgPtr, int count);
 
 public:
-	iANModalIterativeDilationThread(iANModalProgressWidget *progress, ImagePointer mask, int regionCountGoal) :
-		iANModalProgressUpdater(progress), m_mask(mask), m_regionCountGoal(regionCountGoal) {}
+	iANModalIterativeDilationThread(iANModalProgressWidget *progressWidget, iAProgress *progress[3], ImagePointer mask, int regionCountGoal);
 	void run() override;
+
+signals:
+	void addValue(int v);
+};
+
+class iANModalIterativeDilationPlot : public QWidget {
+	Q_OBJECT
+
+public:
+	iANModalIterativeDilationPlot(QWidget *parent);
+
+private:
+	QList<int> m_values;
+	int m_max = 0;
+
+public slots:
+	void addValue(int v);
+
+protected:
+	void paintEvent(QPaintEvent* event) override;
+	QSize sizeHint() const override;
 };

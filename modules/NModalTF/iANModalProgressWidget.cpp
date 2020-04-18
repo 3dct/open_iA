@@ -53,9 +53,6 @@ int iANModalProgressWidget::addProgressBar(int max, QLabel *label, bool autoUpda
 	pb->setValue(0);
 	setMax(id, max);
 
-	QString text = label->text() + (max >= 0 ? " (0/" + QString::number(max) + ")" : "");
-	label->setText(text);
-
 	if (!name.isNull()) {
 		m_name2id.insert(name, id);
 	}
@@ -179,16 +176,7 @@ void iANModalProgressWidget::setValue(int pbid, int value) {
 	if (exists(pbid) && value >= 0) {
 		auto bar = m_bars[pbid];
 		bar->setValue(value);
-		if (m_barAutoUpdateText[pbid]) {
-			QString text = m_barTexts[pbid];
-			QString sval = QString::number(value);
-			QString smax = QString::number(bar->maximum());
-			m_barLabels[pbid]->setText(text + " (" + sval + "/" + smax + ")");
-		}
-		emit updated(pbid, value, bar->maximum());
-		if (isFinished()) {
-			emit finished();
-		}
+		update(pbid);
 	}
 }
 
@@ -198,7 +186,21 @@ void iANModalProgressWidget::setValue(QString name, int value) {
 
 void iANModalProgressWidget::update(int pbid) {
 	if (exists(pbid)) {
-		setValue(pbid, m_bars[pbid]->value());
+		auto bar = m_bars[pbid];
+		auto value = bar->value();
+		auto max = bar->maximum();
+		QString text = m_barTexts[pbid];
+		if (m_barAutoUpdateText[pbid]) {
+			QString sval = QString::number(value);
+			QString smax = QString::number(max);
+			m_barLabels[pbid]->setText(text + " (" + sval + "/" + smax + ")");
+		} else {
+			m_barLabels[pbid]->setText(text);
+		}
+		emit updated(pbid, value,max);
+		if (isFinished()) {
+			emit finished();
+		}
 	}
 }
 
