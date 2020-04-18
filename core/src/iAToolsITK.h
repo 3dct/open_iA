@@ -40,7 +40,7 @@ open_iA_Core_API itk::ImageIOBase::IOComponentType itkScalarPixelType(iAITKIO::I
 open_iA_Core_API itk::ImageIOBase::IOPixelType itkPixelType( iAITKIO::ImagePointer image );
 open_iA_Core_API iAITKIO::ImagePointer allocateImage(iAITKIO::ImagePointer img);
 open_iA_Core_API iAITKIO::ImagePointer allocateImage(int const size[iAITKIO::m_DIM], double const spacing[iAITKIO::m_DIM], itk::ImageIOBase::IOComponentType type);
-open_iA_Core_API void storeImage(iAITKIO::ImagePointer image, QString const & filename, bool useCompression);
+open_iA_Core_API void storeImage2(iAITKIO::ImagePointer image, QString const & filename, bool useCompression);
 
 //! @{
 //! Generic access to pixels of any ITK image as double.
