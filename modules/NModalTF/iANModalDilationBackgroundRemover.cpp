@@ -349,11 +349,12 @@ bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int
 
 	auto plot = new iANModalIterativeDilationPlot(pw);
 
-	pw->addWidget(new QLabel("Target number of background regions: " + QString::number(regionCountGoal)), nullptr, 0);
 	pw->addProgressBar(3, "Total progress", true, "status");  // 3 steps: counts; counts+dilations; erosions
 	pw->addProgressBar(100, "Dilation", false, "dil");  // 100 steps, because that's how iAProgress works
 	pw->addProgressBar(100, "Count connected components", false, "cc");
 	pw->addProgressBar(100, "Erosion", false, "ero");
+	pw->addSeparator();
+	pw->addWidget(new QLabel("Target number of background regions: " + QString::number(regionCountGoal)), nullptr, 0);
 	pw->addWidget(plot);
 
 	constexpr int PROGS = 3;
