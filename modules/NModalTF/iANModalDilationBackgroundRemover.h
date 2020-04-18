@@ -117,9 +117,14 @@ private:
 	void itkCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponents);
 	void itkErode(ImagePointer itkImgPtr, int count);
 
+	bool m_canceled = false;
+
 public:
 	iANModalIterativeDilationThread(iANModalProgressWidget *progressWidget, iAProgress *progress[3], ImagePointer mask, int regionCountGoal);
 	void run() override;
+
+public slots:
+	void setCanceled(bool);
 
 signals:
 	void addValue(int v);

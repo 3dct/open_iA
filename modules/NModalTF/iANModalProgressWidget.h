@@ -89,7 +89,7 @@ class iANModalProgressUpdater : public QThread {
 public:
 	iANModalProgressUpdater(iANModalProgressWidget*);
 
-protected:
+private:
 	static const auto CONNECTION_TYPE = Qt::BlockingQueuedConnection;
 
 signals:

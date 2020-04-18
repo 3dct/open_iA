@@ -39,9 +39,12 @@ public:
 	iANModalPreprocessor(MdiChild *mdiChild);
 
 	struct Output {
+		Output() {}
+		Output(bool valid) : valid(valid) {}
 		QList<QSharedPointer<iAModality>> modalities;
 		//bool hasMask = false;
 		vtkSmartPointer<vtkImageData> mask;
+		bool valid = true;
 	};
 	
 	Output preprocess(QList<QSharedPointer<iAModality>>);

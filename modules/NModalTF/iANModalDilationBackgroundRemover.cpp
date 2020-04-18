@@ -362,6 +362,8 @@ bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int
 	auto thread = new iANModalIterativeDilationThread(pw, progs, mask, regionCountGoal);
 	connect(thread, SIGNAL(addValue(int)), plot, SLOT(addValue(int)));
 	connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+	connect(thread, &QThread::finished, pw, &QObject::deleteLater);
+	for (int i = 0; i < PROGS; i++) connect(thread, &QThread::finished, progs[i], &QObject::deleteLater);
 	connect(progs[0], &iAProgress::progress, pw, [pw](int p) { pw->setValue("dil", p); });
 	connect(progs[1], &iAProgress::progress, pw, [pw](int p) { pw->setValue("cc", p); });
 	connect(progs[2], &iAProgress::progress, pw, [pw](int p) { pw->setValue("ero", p); });
@@ -371,16 +373,34 @@ bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int
 
 	// Progress dialog will close automatically once everything is finished
 	pw->showDialog();
-
-	// TODO: check result
-
-	pw->deleteLater();
-	for (int i = 0; i < PROGS; i++) {
-		progs[i]->deleteLater();
+	if (pw->isCanceled()) {
+		thread->setCanceled(true);
 	}
 
-	return true;
+	return !pw->isCanceled();
 }
+
+// ----------------------------------------------------------------------------------------------
+// iANModalIterativeDilationThread
+// ----------------------------------------------------------------------------------------------
+
+iANModalIterativeDilationThread::iANModalIterativeDilationThread(
+	iANModalProgressWidget *progressWidget, iAProgress *progress[3], ImagePointer mask, int regionCountGoal) :
+	iANModalProgressUpdater(progressWidget), m_mask(mask), m_regionCountGoal(regionCountGoal),
+	m_progDil(progress[0]), m_progCc(progress[1]), m_progEro(progress[2])
+{
+}
+
+void iANModalIterativeDilationThread::setCanceled(bool c) {
+	m_canceled = c;
+}
+
+#ifndef IANMODAL_REQUIRE_NCANCELED
+#define IANMODAL_REQUIRE_NCANCELED() \
+	if (m_canceled) { \
+		return; \
+	} while(0)
+#endif
 
 void iANModalIterativeDilationThread::run() {
 	int connectedComponents;
@@ -388,6 +408,7 @@ void iANModalIterativeDilationThread::run() {
 	emit setValue("dil", 100);
 	emit setValue("ero", 100);
 
+	IANMODAL_REQUIRE_NCANCELED();
 	itkCountConnectedComponents(m_mask, connectedComponents);
 	//storeImage(m_itkTempImg, "connectedComponents.mhd", true);
 	emit addValue(connectedComponents);
@@ -403,6 +424,7 @@ void iANModalIterativeDilationThread::run() {
 		auto d = QString::number(dilationCount + 1);
 		auto c = QString::number(connectedComponents);
 		auto t = QString::number(m_regionCountGoal);
+		IANMODAL_REQUIRE_NCANCELED();
 		itkDilateAndCountConnectedComponents(m_mask, connectedComponents);
 		//storeImage(m_itkTempImg, "connectedComponents" + QString::number(dilationCount) + ".mhd", true);
 		emit addValue(connectedComponents);
@@ -413,8 +435,10 @@ void iANModalIterativeDilationThread::run() {
 
 	emit setValue("status", 2);
 	emit setText("ero", "Erosion (" + QString::number(dilationCount) + ")");
+	IANMODAL_REQUIRE_NCANCELED();
 	itkErode(m_mask, dilationCount);
 
+	IANMODAL_REQUIRE_NCANCELED();
 	emit finish();
 }
 
@@ -476,17 +500,6 @@ QSlider *iANModalThresholdingWidget::slider()
 QSpinBox *iANModalThresholdingWidget::spinBox()
 {
 	return m_spinBox;
-}
-
-// ----------------------------------------------------------------------------------------------
-// iANModalProgressUpdater
-// ----------------------------------------------------------------------------------------------
-
-iANModalIterativeDilationThread::iANModalIterativeDilationThread(
-	iANModalProgressWidget *progressWidget, iAProgress *progress[3], ImagePointer mask, int regionCountGoal) :
-	iANModalProgressUpdater(progressWidget), m_mask(mask), m_regionCountGoal(regionCountGoal),
-	m_progDil(progress[0]), m_progCc(progress[1]), m_progEro(progress[2])
-{
 }
 
 // ----------------------------------------------------------------------------------------------

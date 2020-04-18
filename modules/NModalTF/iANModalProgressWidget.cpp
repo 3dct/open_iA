@@ -150,7 +150,6 @@ void iANModalProgressWidget::showDialog(QWidget *widget/*=nullptr*/) {
 	dialog->setModal(false);
 
 	QPushButton *buttonCancel = new QPushButton("Cancel");
-	buttonCancel->setEnabled(false); // TODO enable
 
 	QGridLayout *layout = new QGridLayout(dialog);
 	layout->addWidget(this, 0, 0, 1, 2);
@@ -165,7 +164,10 @@ void iANModalProgressWidget::showDialog(QWidget *widget/*=nullptr*/) {
 	connect(this, SIGNAL(finished()), dialog, SLOT(accept()));
 	connect(this, SIGNAL(canceled()), dialog, SLOT(reject()));
 
-	dialog->exec();
+	auto dialogCode = dialog->exec();
+	if (dialogCode == QDialog::Rejected) {
+		emit canceled();
+	}
 }
 
 void iANModalProgressWidget::setFirstValue(int value) {

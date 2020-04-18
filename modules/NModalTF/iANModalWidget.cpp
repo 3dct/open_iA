@@ -96,6 +96,10 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 	m_preprocessor = new iANModalPreprocessor(mdiChild);
 	auto output = m_preprocessor->preprocess(modalities);
 
+	if (!output.valid) {
+		// TODO
+	}
+
 	m_c->setModalities(output.modalities);
 	m_c->initialize();
 }

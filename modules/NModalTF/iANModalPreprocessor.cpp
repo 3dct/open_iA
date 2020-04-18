@@ -63,11 +63,11 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPoint
 	if (promptReduceNumOfModalitiesFirst()) {
 		// if number of modalities is to be reduced before background removal
 		modalities = chooseModalityReducer()->reduce(modalities);
+		if (modalities.empty()) return Output(false);
 		if (promptRemoveBackground()) {
 			auto mask = chooseBackgroundRemover()->removeBackground(modalities);
-			if (mask != nullptr) {
-				output.mask = mask;
-			}
+			if (mask == nullptr) return Output(false);
+			output.mask = mask;
 		}
 	}
 	else
@@ -75,23 +75,19 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPoint
 		// if number of modalities is to be reduced after background removal
 		if (promptRemoveBackground()) {
 			auto mask = chooseBackgroundRemover()->removeBackground(modalities);
-			if (mask != nullptr) {
-				output.mask = mask;
-			}
+			if (mask == nullptr) return Output(false);
+			output.mask = mask;
 		}
 
 		auto reducer = chooseModalityReducer();
 		if (modalities.size() > reducer->maxOutputLength() || promptReduceNumOfModalitiesSecond()) {
 			// if we have more modalities than allowed, force reduction
 			modalities = reducer->reduce(modalities);
+			if (modalities.empty()) return Output(false);
 		}
 	}
 
 	output.modalities = modalities;
-
-	// TODO debug remove
-	auto img = modalities[0]->image();
-	
 
 	return output;
 }
