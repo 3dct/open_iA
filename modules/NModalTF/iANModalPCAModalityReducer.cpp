@@ -24,6 +24,9 @@
 #include <defines.h> // for DIM
 #include "iAModality.h"
 #include "iATypedCallHelper.h"
+#ifndef NDEBUG
+#include "iAToolsITK.h"
+#endif
 
 #include <vtkImageData.h>
 
@@ -48,9 +51,15 @@ QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(QList<QShar
 	modalities = QList<QSharedPointer<iAModality>>();
 	for (int i = 0; i < connectors.size(); i++) {
 		auto name = "Principal Component " + QString::number(i);
-		auto mod = new iAModality(name, "", -1, connectors[i].vtkImage(), iAModality::NoRenderer);
-		
 
+		auto imageData = vtkSmartPointer<vtkImageData>::New();
+		imageData->DeepCopy(connectors[i].vtkImage());
+
+		auto mod = new iAModality(name, "", -1, imageData, iAModality::NoRenderer);
+
+#ifndef NDEBUG
+		storeImage2(connectors[i].itkImage(), "pca_output_" + QString::number(i) + ".mhd", true);
+#endif
 
 		//QSharedPointer<iAVolumeRenderer> renderer(new iAVolumeRenderer(mod->transfer().data(), mod->image()));
 		//mod->setRenderer(renderer);
@@ -79,13 +88,28 @@ void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector> &c) {
 	pca->SetNumberOfTrainingImages(inputSize);
 	pca->SetNumberOfPrincipalComponentsRequired(outputSize);
 	for (int i = 0; i < inputSize; i++) {
+
+#ifndef NDEBUG
+		storeImage2(c[i].itkImage(), "pca_input_" + QString::number(i) + ".mhd", true);
+#endif
+
 		pca->SetInput(i, dynamic_cast<ImageType *>(c[i].itkImage()));
 	}
 
 	pca->Update();
 
-	c.resize(outputSize);
-	for (int i = 0; i < outputSize; i++) {
+	auto count = pca->GetNumberOfOutputs();
+
+	// TODO uncomment
+	//c.resize(outputSize);
+	//for (int i = 0; i < outputSize; i++) {
+	c.resize(count);
+	for (int i = 0; i < count; i++) {
+
+#ifndef NDEBUG
+		storeImage2(pca->GetOutput(i), "pca_output_before_conversion_" + QString::number(i) + ".mhd", true);
+#endif
+
 		c[i].setImage(pca->GetOutput(i));
 	}
 }

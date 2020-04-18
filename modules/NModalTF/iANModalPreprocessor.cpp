@@ -89,6 +89,10 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPoint
 
 	output.modalities = modalities;
 
+	// TODO debug remove
+	auto img = modalities[0]->image();
+	
+
 	return output;
 }
 
