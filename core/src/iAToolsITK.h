@@ -129,6 +129,7 @@ typename TImage::Pointer createImage(typename TImage::Pointer otherImg)
 	return image;
 }
 
+/*
 template <typename TImage>
 void storeImage(TImage * image, QString const & filename, bool useCompression = true)
 {
@@ -147,6 +148,7 @@ void storeImage(TImage * image, QString const & filename, bool useCompression = 
 			.arg(e.what()));
 	}
 }
+*/
 
 template<typename SourceImageType, typename ResultImageType>
 iAITKIO::ImagePointer internalCastImageTo(iAITKIO::ImagePointer img)

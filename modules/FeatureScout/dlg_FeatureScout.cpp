@@ -2235,7 +2235,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector& con, const QString&
 		++in;
 		++out;
 	}
-	storeImage<OutputImageType>(out_img, fOutPath, m_activeChild->preferences().Compression);
+	storeImage(out_img, fOutPath, m_activeChild->preferences().Compression);
 	m_activeChild->addMsg("Stored image of of classes.");
 }
 
