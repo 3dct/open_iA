@@ -230,8 +230,14 @@ open_iA_Core_API double standardDeviation(FuncType const & func, double meanVal 
 open_iA_Core_API double covariance(FuncType const & func1, FuncType const & func2,
 	double mean1 = std::numeric_limits<double>::infinity(), double mean2 = std::numeric_limits<double>::infinity(), bool correctDF = true);
 
+//! Compute ranks for a given list of values.
+open_iA_Core_API FuncType getNormedRanks(FuncType const& func);
+
 //! Calculate the Pearson's correlation coefficient between two functions.
 open_iA_Core_API double pearsonsCorrelationCoefficient(FuncType const & func1, FuncType const & func2);
+
+//! Calculate the Spearman's correlation coefficient between two functions.
+open_iA_Core_API double spearmansCorrelationCoefficient(FuncType const& func1, FuncType const& func2);
 
 //! Checks whether two real values are equal, given a certain tolerance.
 //! inspired by https://stackoverflow.com/a/41405501/671366
@@ -244,4 +250,22 @@ bool dblApproxEqual(RealType a, RealType b, RealType tolerance = std::numeric_li
 	// return true;
 	// TODO: Test!
 	//return ((a>1 || b>1) && (diff < std::max(std::fabs(a), std::abs(b)) * tolerance));
+}
+
+// source: https://stackoverflow.com/questions/1577475/c-sorting-and-keeping-track-of-indexes
+template <typename T>
+std::vector<size_t> sort_indexes(const std::vector<T>& v)
+{
+	// initialize original index locations
+	std::vector<size_t> idx(v.size());
+	iota(idx.begin(), idx.end(), 0);
+
+	// sort indexes based on comparing values in v
+	// using std::stable_sort instead of std::sort
+	// to avoid unnecessary index re-orderings
+	// when v contains elements of equal values
+	std::stable_sort(idx.begin(), idx.end(),
+		[&v](size_t i1, size_t i2) {return v[i1] < v[i2]; });
+
+	return idx;
 }

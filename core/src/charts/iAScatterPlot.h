@@ -165,7 +165,7 @@ public:
 		QColor selectionColor;
 		SelectionMode selectionMode;
 		bool selectionEnabled;
-		bool showPCC;
+		bool showPCC, showSCC;
 	};
 
 	// Members
@@ -204,8 +204,12 @@ protected:
 	//state flags
 	bool m_isMaximizedPlot;                                          //!< flag telling if this plot itself is maximized (bigger plot)
 	bool m_isPreviewPlot;                                            //!< flag telling if a large version of this plot is shown maximized currently
-	double m_pcc;                                                    //!< correlation coefficient between the two given data columns
 	size_t m_curVisiblePts;                                          //!< number of currently visible points
 	bool m_dragging;                                                 //!< indicates whether a drag operation is currently going on
 	bool m_pointsOutdated;                                           //!< indicates whether we need to fill the points buffer
+private:
+	double scc();
+	double pcc();
+	double m_pcc, m_scc;                                             //!< correlation coefficients between the two given data columns
+	bool m_pccValid, m_sccValid;                                     //!< indicates whether current cached values cor correlation coefficients can be used
 };

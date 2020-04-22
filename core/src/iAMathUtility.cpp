@@ -119,3 +119,36 @@ open_iA_Core_API double pearsonsCorrelationCoefficient(FuncType const & func1, F
 	double cov = covariance(func1, func2, mean1, mean2);
 	return cov / (stddev1 * stddev2);
 }
+
+open_iA_Core_API FuncType getNormedRanks(FuncType const & func)
+{
+	auto sortIdx = sort_indexes(func);
+	auto idxIt = sortIdx.cbegin();
+	FuncType result (func.size());
+	while (idxIt != sortIdx.cend())
+	{
+		auto idxSameRankStart = idxIt;
+		while (idxIt + 1 != sortIdx.cend() && (func[*(idxIt+1)] == func[*idxIt]))
+		{
+			++idxIt;
+		}
+		// rank should start at 1; our indices start at 0, therefore +1 below
+		size_t startRank = idxSameRankStart - sortIdx.cbegin() + 1;
+		size_t numWithSameRank = idxIt - idxSameRankStart + 1;
+		double normRank = startRank + (numWithSameRank - 1) / 2.0;
+		for (size_t outOfs = 0; outOfs < numWithSameRank; ++outOfs)
+		{
+			result[*(idxSameRankStart + outOfs)] = normRank;
+		}
+		++idxIt;
+	}
+	return result;
+}
+
+open_iA_Core_API double spearmansCorrelationCoefficient(FuncType const& func1, FuncType const& func2)
+{
+	assert(func1.size() == func2.size());
+	auto normedRanks1 = getNormedRanks(func1);
+	auto normedRanks2 = getNormedRanks(func2);
+	return pearsonsCorrelationCoefficient(normedRanks1, normedRanks2);
+}

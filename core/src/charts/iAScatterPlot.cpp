@@ -67,7 +67,8 @@ iAScatterPlot::Settings::Settings() :
 	selectionColor( QColor(0, 0, 0) ),
 	selectionMode(Polygon),
 	selectionEnabled(false),
-	showPCC(false)
+	showPCC(false),
+	showSCC(false)
 {}
 
 size_t iAScatterPlot::NoPointIndex = std::numeric_limits<size_t>::max();
@@ -89,10 +90,13 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAQGLWidget 
 	m_curInd( NoPointIndex ),
 	m_isMaximizedPlot( isMaximizedPlot ),
 	m_isPreviewPlot( false ),
-	m_pcc( 0 ),
 	m_curVisiblePts ( 0 ),
 	m_dragging(false),
-	m_pointsOutdated(true)
+	m_pointsOutdated(true),
+	m_pcc(0),
+	m_scc(0),
+	m_pccValid(false),
+	m_sccValid(false)
 {
 	m_paramIndices[0] = 0; m_paramIndices[1] = 1;
 	initGrid();
@@ -119,11 +123,12 @@ void iAScatterPlot::setData( size_t x, size_t y, QSharedPointer<iASPLOMData> &sp
 	m_paramIndices[0] = x; m_paramIndices[1] = y;
 	m_splomData = splomData;
 	connect(m_splomData.data(), &iASPLOMData::dataChanged, this, &iAScatterPlot::dataChanged);
-	m_pcc = pearsonsCorrelationCoefficient(m_splomData->paramData(m_paramIndices[0]), m_splomData->paramData(m_paramIndices[1]));
 	if (!hasData())
 	{
 		return;
 	}
+	m_pccValid = false;
+	m_sccValid = false;
 	applyMarginToRanges();
 	updateGrid();
 	updatePoints();
@@ -283,10 +288,19 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 		drawSelectionPolygon(painter);
 	}
 	drawBorder( painter );
-	if (settings.showPCC)
+	if (settings.showPCC || settings.showSCC)
 	{
 		painter.setPen( /* QColor(0, 0, 0) */ m_parentWidget->palette().color(QPalette::Text));
-		painter.drawText( QRect(0, 0, m_globRect.width(), m_globRect.height()), Qt::AlignCenter | Qt::AlignVCenter, QString::number(m_pcc));
+		QString corrCoeffText;
+		if (settings.showPCC)
+		{
+			corrCoeffText = "Pearson's Coeff." + QString::number(pcc(), 'g', 3);
+		}
+		if (settings.showSCC)
+		{
+			corrCoeffText += (!corrCoeffText.isEmpty()?"\n":"") + QString("Spearman's Coeff.") + QString::number(scc(), 'g', 3);
+		}
+		painter.drawText( QRect(0, 0, m_globRect.width(), m_globRect.height()), Qt::AlignCenter | Qt::AlignVCenter, corrCoeffText);
 	}
 	painter.restore();
 }
@@ -1037,4 +1051,24 @@ double iAScatterPlot::getPointRadius() const
 void iAScatterPlot::setPointRadius(double radius)
 {
 	settings.pointRadius = radius;
+}
+
+double iAScatterPlot::scc()
+{
+	if (!m_sccValid)
+	{
+		m_scc = spearmansCorrelationCoefficient(m_splomData->paramData(m_paramIndices[0]), m_splomData->paramData(m_paramIndices[1]));
+		m_sccValid = true;
+	}
+	return m_scc;
+}
+
+double iAScatterPlot::pcc()
+{
+	if (!m_pccValid)
+	{
+		m_pcc = pearsonsCorrelationCoefficient(m_splomData->paramData(m_paramIndices[0]), m_splomData->paramData(m_paramIndices[1]));
+		m_pccValid = true;
+	}
+	return m_pcc;
 }
