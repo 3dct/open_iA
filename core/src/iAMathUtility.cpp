@@ -24,8 +24,6 @@
 
 #include <vtkMath.h>
 
-#include <numeric>    // for std::accumulate
-
 double gaussian(double x, double sigma)
 {
 	return 1 / std::sqrt(2 * vtkMath::Pi()*std::pow(sigma, 2.0)) *

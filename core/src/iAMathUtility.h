@@ -24,9 +24,10 @@
 
 #include <algorithm>  // for stable_sort
 #include <cassert>
-#include <cmath>   // for ceil/floor
-#include <cstddef> // for size_t
-#include <limits>  // for std::numeric_limits
+#include <cmath>      // for ceil/floor
+#include <cstddef>    // for size_t
+#include <limits>     // for std::numeric_limits
+#include <numeric>    // for std::accumulate, std::iota
 #include <vector>
 
 //! Make sure the given value is inside the given range.
