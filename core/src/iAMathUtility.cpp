@@ -24,7 +24,6 @@
 
 #include <vtkMath.h>
 
-#include <algorithm>
 #include <numeric>    // for std::accumulate
 
 double gaussian(double x, double sigma)

@@ -22,6 +22,7 @@
 
 #include "open_iA_Core_export.h"
 
+#include <algorithm>  // for stable_sort
 #include <cassert>
 #include <cmath>   // for ceil/floor
 #include <cstddef> // for size_t

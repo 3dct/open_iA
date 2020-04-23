@@ -243,7 +243,7 @@ iAITKIO::ImagePointer allocateImage(int const size[iAITKIO::m_DIM], double const
 }
 
 
-void storeImage(iAITKIO::ImagePointer image, QString const & filename, bool useCompression)
+void storeImage(iAITKIO::ImagePtr image, QString const & filename, bool useCompression)
 {
 	iAITKIO::writeFile(filename, image, itkScalarPixelType(image), useCompression);
 }
