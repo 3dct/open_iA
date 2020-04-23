@@ -115,14 +115,18 @@ void iAPorosityAnalyserModuleInterface::computeParameterSpace()
 {
 	// TODO: move comp segmentation dialog to own class
 
-	while ( QWidget* w = uiComputeSegm.dragWidget->findChild<QWidget*>() )
+	while (QWidget* w = uiComputeSegm.dragWidget->findChild<QWidget*>())
+	{
 		delete w;
+	}
 
 	m_pipelineSlotIconSize = QPixmap( ":/images/dataset2.png" ).size();
-	if ( m_pipelineSlotsCount > 0 )
-		m_compSegmWidget->setFixedWidth( m_compSegmWidget->width() -
-		( ( m_pipelineSlotsCount - minPipelineSlotsCount ) *
-		m_pipelineSlotIconSize.width() ) );
+	if (m_pipelineSlotsCount > 0)
+	{
+		m_compSegmWidget->setFixedWidth(m_compSegmWidget->width() -
+			((m_pipelineSlotsCount - minPipelineSlotsCount) *
+				m_pipelineSlotIconSize.width()));
+	}
 	m_pipelineSlotsCount = minPipelineSlotsCount;
 
 	// Datasets box
@@ -278,10 +282,13 @@ void iAPorosityAnalyserModuleInterface::computeParameterSpace()
 	loadCSV();
 }
 
-void iAPorosityAnalyserModuleInterface::removeGTDatasets( QStringList& list, const QStringList& toDelete ){
+void iAPorosityAnalyserModuleInterface::removeGTDatasets( QStringList& list, const QStringList& toDelete )
+{
 	QStringListIterator i( toDelete );
-	while ( i.hasNext() )
-		list.removeAll( i.next() );
+	while (i.hasNext())
+	{
+		list.removeAll(i.next());
+	}
 }
 
 void iAPorosityAnalyserModuleInterface::loadCSV()
@@ -315,8 +322,10 @@ void iAPorosityAnalyserModuleInterface::displayPipelineInSlots( QTableWidgetItem
 			QStringList algoList = tw->item( selRow, 0 )->text().split( "_" );
 			QList<QLabel*> algoLabelList;
 			iADragFilterWidget* dfw = uiComputeSegm.dragWidget->findChild<iADragFilterWidget*>( "dragFilterWidget" );
-			for ( int i = 0; i < algoList.length(); ++i )
-				algoLabelList.append( dfw->getLabel( algoList[i] ) );
+			for (int i = 0; i < algoList.length(); ++i)
+			{
+				algoLabelList.append(dfw->getLabel(algoList[i]));
+			}
 
 			//iADragFilterWidget* ddw = uiComputeSegm.dragWidget->findChild<iADragFilterWidget*>( "dragDatasetWidget" );
 			//QString dataset = QString( "dataset_" + tw->item( selRow, 1 )->text() );
@@ -393,7 +402,9 @@ void iAPorosityAnalyserModuleInterface::log( QString text, bool appendToPrev )
 		uiComputeSegm.Logs->item( uiComputeSegm.Logs->count() - 1 )->setText( prev_text + text );
 	}
 	else
-		uiComputeSegm.Logs->insertItem( uiComputeSegm.Logs->count(), text );
+	{
+		uiComputeSegm.Logs->insertItem(uiComputeSegm.Logs->count(), text);
+	}
 }
 
 Ui::ComputeSegmentations * iAPorosityAnalyserModuleInterface::ui()
@@ -474,8 +485,10 @@ void iAPorosityAnalyserModuleInterface::addPipeline()
 	iADropPipelineWidget* dpw = uiComputeSegm.dragWidget->findChild<iADropPipelineWidget*>( "dropPipelineWidget" );
 	QList<QList<QString>> pipeline = dpw->getPipeline();
 
-	if ( !pipeline.size() )
+	if (!pipeline.size())
+	{
 		return;
+	}
 
 	int lastRow = uiComputeSegm.tableWidget->rowCount(), totalPipeParts = 0, totalParams = 0;
 
@@ -507,8 +520,10 @@ void iAPorosityAnalyserModuleInterface::addPipeline()
 	int datasetNameIdx = -1;
 	for ( int i = 0; i < pipeline.size(); ++i )
 	{
-		if ( pipeline[i][0].left( 8 ) == "dataset_" )
+		if (pipeline[i][0].left(8) == "dataset_")
+		{
 			datasetNameIdx = i;
+		}
 	}
 
 	// No parameter setting without a dataset
@@ -531,8 +546,10 @@ void iAPorosityAnalyserModuleInterface::addPipeline()
 	{
 		// Chain filters
 		algoStr.append( pipeline.at( i ).at( 0 ) );
-		if ( i != totalPipeParts - 1 )
-			algoStr.append( "_" );
+		if (i != totalPipeParts - 1)
+		{
+			algoStr.append("_");
+		}
 
 		// Random sampling must be set
 		if ( pipeline.at( i ).size() < 2 )
@@ -545,8 +562,10 @@ void iAPorosityAnalyserModuleInterface::addPipeline()
 		}
 
 		// Aggregate random sampling
-		if ( pipeline.at( i ).at( 1 ) == "$Random Sampling 1" )
+		if (pipeline.at(i).at(1) == "$Random Sampling 1")
+		{
 			randSamplStr = "1";
+		}
 	}
 
 	if ( !algoStr.size() )
@@ -564,8 +583,10 @@ void iAPorosityAnalyserModuleInterface::addPipeline()
 	uiComputeSegm.tableWidget->setItem( lastRow, currCol++, new QTableWidgetItem( datasetStr ) );
 	uiComputeSegm.tableWidget->setItem( lastRow, currCol++, new QTableWidgetItem( randSamplStr ) );
 
-	if ( uiComputeSegm.tableWidget->columnCount() < totalParams + currCol )
-		uiComputeSegm.tableWidget->setColumnCount( totalParams + currCol );
+	if (uiComputeSegm.tableWidget->columnCount() < totalParams + currCol)
+	{
+		uiComputeSegm.tableWidget->setColumnCount(totalParams + currCol);
+	}
 
 	for ( int i = 0; i < totalPipeParts; ++i )
 	{

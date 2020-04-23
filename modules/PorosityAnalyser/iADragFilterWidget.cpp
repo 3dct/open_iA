@@ -618,10 +618,14 @@ QString iADragFilterWidget::generateDatasetTooltip( QString dataset )
 	QString datasetToolTipStr;
 	QStringList datasetInfo = getDatasetInfo( m_datasetDir, dataset );
 
-	if ( tmpPic.width() > 500 || tmpPic.height() > 500 )
-		scaledTmpPic = tmpPic.scaled( tmpPic.width() / 2, tmpPic.height() / 2, Qt::KeepAspectRatio );
+	if (!tmpPic.isNull() && (tmpPic.width() > 500 || tmpPic.height() > 500))
+	{
+		scaledTmpPic = tmpPic.scaled(tmpPic.width() / 2, tmpPic.height() / 2, Qt::KeepAspectRatio);
+	}
 	else
+	{
 		scaledTmpPic = tmpPic;
+	}
 
 	if ( !scaledTmpPic.isNull() )
 	{
@@ -629,15 +633,19 @@ QString iADragFilterWidget::generateDatasetTooltip( QString dataset )
 								  .arg( sliceName ).arg( scaledTmpPic.width() ).arg( scaledTmpPic.height() ) );
 	}
 	else
-		datasetToolTipStr.append( "<center><br>No dataset preview available.</center><br>" );
+	{
+		datasetToolTipStr.append("<center><br>No dataset preview available.</center><br>");
+	}
 
-	if ( datasetInfo[2].section( ' ', 0, 0 ) == "DimSize(microns)" )
+	if (datasetInfo.size() >= 3 && datasetInfo[2].section( ' ', 0, 0 ) == "DimSize(microns)" )
 	{
 		int zDim = datasetInfo[2].section( ' ', -1, -1 ).section( ':', 1, 1 ).toInt() / 2;
 		datasetToolTipStr.append( tr( "<left>XY-Slice No. %4<br></left>" ).arg( zDim ) );
 	}
-	for ( int k = 0; k < datasetInfo.size(); ++k )
-		datasetToolTipStr.append( tr( "%1<br>" ).arg( datasetInfo[k] ) );
+	for (int k = 0; k < datasetInfo.size(); ++k)
+	{
+		datasetToolTipStr.append(tr("%1<br>").arg(datasetInfo[k]));
+	}
 
 	return datasetToolTipStr;
 }
