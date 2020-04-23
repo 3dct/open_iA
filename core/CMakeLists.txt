@@ -80,6 +80,7 @@ IF (openiA_TESTING_ENABLED)
 	
 	ADD_EXECUTABLE(MathUtilTest src/iAMathUtilityTest.cpp src/iAMathUtility.cpp)
 	TARGET_INCLUDE_DIRECTORIES(MathUtilTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
+	TARGET_LINK_LIBRARIES(MathUtilTest PRIVATE ${VTK_LIBRARIES})
 	target_compile_definitions(MathUtilTest PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME MathUtilTest COMMAND MathUtilTest)
 
