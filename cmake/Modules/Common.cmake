@@ -690,7 +690,7 @@ IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL")
 	SET (openiA_VERSION "${openiA_VERSION}-oldOpenGL")
 ENDIF()
 MESSAGE(STATUS "Build version: ${openiA_VERSION}")
-set (BUILD_INFO "${BUILD_INFO}    \"git revision: ${openiA_HASH}\"\n")
+set (BUILD_INFO "${BUILD_INFO}    \"git revision: ${openiA_HASH}\\n\"\n")
 
 ADD_DEFINITIONS(-DUNICODE -D_UNICODE)    # Enable Unicode
 
