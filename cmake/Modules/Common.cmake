@@ -346,6 +346,8 @@ IF (WIN32)
 	SET (QT_LIB_DIR "${Qt5_BASEDIR}/bin")
 	# use imported targets for windows plugin:
 	INSTALL (FILES "$<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>" DESTINATION platforms)
+	# install windows vista style plugin:
+	INSTALL (FILES "$<TARGET_FILE:Qt5::QWindowsVistaStylePlugin>" DESTINATION styles)
 ENDIF()
 IF (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
 	IF (EXISTS "${Qt5_BASEDIR}/lib")
