@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=open_iA
+GenericName=Volume Analysis
+Comment=Volume analysis, visualization and processing
+Comment[de]=Volumenanalyse, -visualisierung und -verarbeitung
+Exec=at.zfp.openia
+Icon=at.zfp.openia
+Terminal=false
+Type=Application
+Categories=Graphics;3DGraphics;Science;
+MimeType=application/x-openia
