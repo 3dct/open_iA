@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component type="desktop">
+<component type="desktop-application">
     <id>at.zfp.openia</id>
     <launchable type="desktop-id">at.zfp.openia.desktop</launchable>
     <name>open_iA</name>
     <summary>Tool for visual analysis and processing of volumetric datasets</summary>
-    <metadata_license>CC-BY-NC-SA-4.0</metadata_license>
-    <project_license>GPL-3.0</project_license>
     <description>
+	<p>
         A tool for the visual analysis and processing of volumetric datasets, with a focus on industrial computed tomography.
+        </p>
     </description>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>GPL-3.0</project_license>
+    <content_rating type="oars-1.0" />
     <url type="homepage">https://3dct.github.io/open_iA</url>
     <url type="help">https://github.com/3dct/open_iA/wiki</url>
     <url type="bugtracker">https://github.com/3dct/open_iA/issues</url>
