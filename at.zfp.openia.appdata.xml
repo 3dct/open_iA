@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+    <id>at.zfp.openia</id>
+    <launchable type="desktop-id">at.zfp.openia.desktop</launchable>
+    <name>open_iA</name>
+    <summary>Tool for visual analysis and processing of volumetric datasets</summary>
+    <metadata_license>CC-BY-NC-SA-4.0</metadata_license>
+    <project_license>GPL-3.0</project_license>
+    <description>
+        A tool for the visual analysis and processing of volumetric datasets, with a focus on industrial computed tomography.
+    </description>
+    <url type="homepage">https://3dct.github.io/open_iA</url>
+    <url type="help">https://github.com/3dct/open_iA/wiki</url>
+    <url type="bugtracker">https://github.com/3dct/open_iA/issues</url>
+    <screenshots>
+        <screenshot type="default">
+            <image>https://raw.githubusercontent.com/wiki/3dct/open_iA/images/interface.png</image>
+        </screenshot>
+        <screenshot>
+            <image>http://3dct.at/cms2/images/software/Anw-Software_iAnalyse2_B600px.jpg</image>
+        </screenshot>
+        <screenshot>
+            <image>http://3dct.at/cms2/images/software/open_iA_InSpectr.png</image>
+        </screenshot>
+        <screenshot>
+            <image>http://3dct.at/cms2/images/software/open_iA_GEMSe.png</image>
+        </screenshot>
+        <screenshot>
+	    <image>http://3dct.at/cms2/images/PorosityAnalyzer.png</image>
+        </screenshot>
+        <screenshot>
+	    <image>http://3dct.at/cms2/images/software/open_iA_4dct.png</image>
+        </screenshot>
+        <screenshot>
+	    <image>http://3dct.at/cms2/images/software/open_iA_DynamicVolumeLines.png</image>
+        </screenshot>
+    </screenshots>
+    <releases>
+        <release version="2020.04" date="2020-04-27">
+            <description>
+                Improvements to the data dialog, better style and colors.
+            </description>
+        </release>
+  </releases>
+</component>
