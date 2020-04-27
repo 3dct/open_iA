@@ -203,9 +203,9 @@ iADetailView::iADetailView(
 	// prevWdgt->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 	connect(resetResultFilterButton, SIGNAL(clicked()), this, SLOT(ResetResultFilter()));
-	connect(m_pbLike, SIGNAL(clicked()), this, SIGNAL(Like()));
-	connect(m_pbHate, SIGNAL(clicked()), this, SIGNAL(Hate()));
-	connect(m_pbGoto, SIGNAL(clicked()), this, SIGNAL(GoToCluster()));
+	connect(m_pbLike, &QPushButton::clicked, this, &iADetailView::Like);
+	connect(m_pbHate, &QPushButton::clicked, this, &iADetailView::Hate);
+	connect(m_pbGoto, &QPushButton::clicked, this, &iADetailView::GoToCluster);
 	connect(m_compareWidget, SIGNAL(updated()), this, SIGNAL(ViewUpdated()));
 	connect(m_previewWidget, SIGNAL(updated()), this, SIGNAL(ViewUpdated()));
 
