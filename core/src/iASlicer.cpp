@@ -1243,7 +1243,7 @@ void iASlicer::execute(vtkObject * /*caller*/, unsigned long eventId, void * /*c
 	{
 	case vtkCommand::LeftButtonPressEvent:
 	{
-		emit clicked(channel0Coords[0], channel0Coords[1], channel0Coords[2]);
+		emit leftClicked(channel0Coords[0], channel0Coords[1], channel0Coords[2]);
 		emit userInteraction();
 		break;
 	}

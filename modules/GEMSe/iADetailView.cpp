@@ -214,7 +214,7 @@ iADetailView::iADetailView(
 	connect(m_previewWidget->slicer(), SIGNAL(altMouseWheel(int)), this, SLOT(changeMagicLensOpacity(int)));
 	connect(m_previewWidget->slicer(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
 	connect(m_previewWidget->slicer(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerMouseMove(int, int, int, int)));
-	connect(m_previewWidget->slicer(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
+	connect(m_previewWidget->slicer(), &iASlicer::leftClicked, this, &iADetailView::SlicerClicked);
 	connect(m_previewWidget->slicer(), SIGNAL(released(int, int, int)), this, SLOT(SlicerReleased(int, int, int)));
 }
 
