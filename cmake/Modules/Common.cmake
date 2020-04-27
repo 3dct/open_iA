@@ -68,6 +68,9 @@ ELSE()
 	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: Unknown\\n\"\n")
 ENDIF()
 set (BUILD_INFO "${BUILD_INFO}    \"Targetting ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION}\\n\"\n")
+IF (FLATPAK_BUILD)
+	set (BUILD_INFO "${BUILD_INFO}    \"Flatpak Build\\n\"\n")
+ENDIF()
 
 #-------------------------
 # Output Directories
