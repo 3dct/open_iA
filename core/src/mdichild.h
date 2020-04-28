@@ -425,6 +425,7 @@ private:
 	int  currentModality() const;
 	void initModalities();
 	void initVolumeRenderers();
+	void slicerVisibilityChanged(int mode);
 
 	static const unsigned char RC = 0x01;
 	static const unsigned char XY = 0x02;
@@ -512,4 +513,5 @@ private:
 	int m_storedModalityNr;		                              //!< modality nr being stored
 	QMap<QString, QSharedPointer<iAProjectBase>> m_projects;  //!< list of currently active "projects" (i.e. Tools)
 	iAInteractionMode m_interactionMode;                      //!< current interaction mode in slicers/renderer (see iAInteractionMode)
+	bool m_slicerVisibility[3];
 };

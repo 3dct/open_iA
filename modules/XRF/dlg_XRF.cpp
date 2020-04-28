@@ -963,7 +963,8 @@ void dlg_XRF::showLinkedElementMaps( int show )
 		dlg_elementRenderer *elemRend = new dlg_elementRenderer( mdiChild );
 		elemRend->SetRefLibIndex(i);
 		InitElementRenderer( elemRend, i );
-		elemRend->GetRenderer()->applySettings(mdiChild->renderSettings());
+		bool slicerVisibility[3] = { false, false, false };
+		elemRend->GetRenderer()->applySettings(mdiChild->renderSettings(), slicerVisibility);
 		elemRend->ApplyVolumeSettings(mdiChild->volumeSettings());
 		m_rendererManager.addToBundle(elemRend->GetRenderer()->renderer());
 		m_elementRenderers.push_back( elemRend );

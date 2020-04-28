@@ -127,6 +127,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_initVolumeRenderers(false),
 	m_interactionMode(imCamera)
 {
+	std::fill(m_slicerVisibility, m_slicerVisibility + 3, false);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
 #endif
@@ -224,11 +225,26 @@ MdiChild::~MdiChild()
 	delete m_dwProfile;
 }
 
+void MdiChild::slicerVisibilityChanged(int mode)
+{
+	if (m_dwSlicer[mode]->isVisible() == m_slicerVisibility[mode])
+	{
+		return; // no change
+	}
+	m_slicerVisibility[mode] = m_dwSlicer[mode]->isVisible();
+	if (m_renderSettings.ShowSlicePlanes)
+	{
+		m_renderer->showSlicePlane(mode, m_slicerVisibility[mode]);
+	}
+	m_renderer->update();
+}
+
 void MdiChild::connectSignalsToSlots()
 {
 	for (int mode = 0; mode < iASlicerMode::SlicerCount; ++mode)
 	{
 		connect(m_dwSlicer[mode]->pbMax, &QPushButton::clicked, [this, mode] { maximizeSlicer(mode); });
+		connect(m_dwSlicer[mode], &QDockWidget::visibilityChanged, [this, mode]{ slicerVisibilityChanged(mode); });
 	}
 
 	connect(m_dwRenderer->pushMaxRC, &QPushButton::clicked, this, &MdiChild::maximizeRC);
@@ -466,7 +482,7 @@ bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyD
 
 	initView(title);
 	setWindowTitle(title);
-	m_renderer->applySettings(m_renderSettings);
+	m_renderer->applySettings(m_renderSettings, m_slicerVisibility);
 	setupSlicers(m_slicerSettings, true);
 
 	if (m_imageData->GetExtent()[1] <= 1)
@@ -728,7 +744,7 @@ void MdiChild::setupViewInternal(bool active)
 	}
 
 	m_volumeSettings.SampleDistance = m_imageData->GetSpacing()[0];
-	m_renderer->applySettings(m_renderSettings);
+	m_renderer->applySettings(m_renderSettings, m_slicerVisibility);
 	setupSlicers(m_slicerSettings, true);
 
 	if (m_imageData->GetExtent()[1] <= 1)
@@ -1472,7 +1488,7 @@ bool MdiChild::editRendererSettings(iARenderSettings const& rs, iAVolumeSettings
 {
 	setRenderSettings(rs, vs);
 	applyVolumeSettings(false);
-	m_renderer->applySettings(renderSettings());
+	m_renderer->applySettings(renderSettings(), m_slicerVisibility);
 	m_dwRenderer->vtkWidgetRC->show();
 #if VTK_MAJOR_VERSION < 9
 	m_dwRenderer->vtkWidgetRC->GetRenderWindow()->Render();

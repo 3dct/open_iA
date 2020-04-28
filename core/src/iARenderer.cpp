@@ -576,20 +576,17 @@ void iARenderer::showRPosition(bool s)
 	m_cActor->SetVisibility(s);
 }
 
-void iARenderer::showSlicePlanes(bool show)
+void iARenderer::showSlicePlane(int axis, bool show)
 {
-	for (int s = 0; s < 3; ++s)
+	if (show)
 	{
-		if (show)
-		{
-			m_ren->AddActor(m_slicePlaneActor[s]);
-		}
-		else
-		{
-			m_ren->RemoveActor(m_slicePlaneActor[s]);
-		}
-		m_slicePlaneActor[s]->GetProperty()->SetOpacity(m_slicePlaneOpacity);
+		m_ren->AddActor(m_slicePlaneActor[axis]);
 	}
+	else
+	{
+		m_ren->RemoveActor(m_slicePlaneActor[axis]);
+	}
+	m_slicePlaneActor[axis]->GetProperty()->SetOpacity(m_slicePlaneOpacity);
 }
 
 void iARenderer::setPlaneNormals( vtkTransform *tr )
@@ -946,7 +943,7 @@ void iARenderer::setSlicePlanePos(int planeID, double originX, double originY, d
 	update();
 }
 
-void iARenderer::applySettings(iARenderSettings const & settings)
+void iARenderer::applySettings(iARenderSettings const & settings, bool slicePlaneVisibility[3])
 {
 	m_ren->SetUseDepthPeeling(settings.UseDepthPeeling);
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
@@ -964,7 +961,10 @@ void iARenderer::applySettings(iARenderSettings const & settings)
 	m_ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
 	showHelpers(settings.ShowHelpers);
 	showRPosition(settings.ShowRPosition);
-	showSlicePlanes(settings.ShowSlicePlanes);
+	for (int i = 0; i < 3; ++i)
+	{
+		showSlicePlane(i, settings.ShowSlicePlanes && slicePlaneVisibility[i]);
+	}
 	//renWin->Render();
 }
 

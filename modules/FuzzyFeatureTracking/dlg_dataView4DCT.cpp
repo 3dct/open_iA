@@ -71,7 +71,8 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 #endif
 		m_renderers[i]->initialize(m_volumeStack->volume(i), m_mdiChild->polyData());
 		m_volumeRenderer[i]->addTo(m_renderers[i]->renderer());
-		m_renderers[i]->applySettings( m_mdiChild->renderSettings() );
+		bool slicerVisibility[3] = { false, false, false };
+		m_renderers[i]->applySettings(m_mdiChild->renderSettings(), slicerVisibility );
 		m_volumeRenderer[i]->applySettings(m_mdiChild->volumeSettings());
 
 		// setup renderers

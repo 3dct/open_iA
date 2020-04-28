@@ -329,7 +329,8 @@ void iASegm3DViewData::LoadAndApplySettings()
 	volumeSettings.SpecularPower = settings.value("Renderer/rsSpecularPower", 1).toDouble();
 	volumeSettings.RenderMode = settings.value("Renderer/rsRenderMode", 0).toInt();
 
-	m_renderer->applySettings(renderSettings);
+	bool slicerVisibility[3] = { false, false, false };
+	m_renderer->applySettings(renderSettings, slicerVisibility);
 	m_volumeRenderer->applySettings(volumeSettings);
 
 	// TODO: VOLUME: apply volume/bounding box vis.!
