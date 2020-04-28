@@ -29,10 +29,9 @@ dlg_FilterSelection::dlg_FilterSelection(QWidget * parent, QString const & prese
 	dlg_FilterSelectionConnector(parent),
 	m_curMatches(0)
 {
-	connect(leFilterSearch, SIGNAL(textEdited(QString const &)), this, SLOT(FilterChanged(QString const &)));
-	connect(lwFilterList, SIGNAL(currentItemChanged(QListWidgetItem *, QListWidgetItem *)),
-		this, SLOT(ListSelectionChanged(QListWidgetItem *, QListWidgetItem *)));
-	connect(lwFilterList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(accept()));
+	connect(leFilterSearch, &QLineEdit::textEdited, this, &dlg_FilterSelection::filterChanged);
+	connect(lwFilterList, &QListWidget::currentItemChanged, this, &dlg_FilterSelection::listSelectionChanged);
+	connect(lwFilterList, &QListWidget::itemDoubleClicked, this, &dlg_FilterSelection::accept);
 	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 	for (auto filterFactory : iAFilterRegistry::filterFactories())
 		lwFilterList->addItem(filterFactory->create()->name());
