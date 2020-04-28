@@ -32,7 +32,8 @@ public:
 		MagicLensFrameWidth;
 	bool Compression,
 		ResultInNewWindow,
-		PrintParameters;
+		PrintParameters,
+		HistogramLogarithmicYAxis;
 		//LogToFile;
 	iAPreferences():
 		HistogramBins(DefaultHistogramBins),
@@ -41,6 +42,7 @@ public:
 		MagicLensFrameWidth(3),
 		Compression(true),
 		ResultInNewWindow(true),
-		PrintParameters(true)
+		PrintParameters(true),
+		HistogramLogarithmicYAxis(false)
 	{}
 };

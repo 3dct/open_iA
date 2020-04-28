@@ -958,7 +958,8 @@ void MainWindow::prefs()
 		<< tr("#Log File Name")
 		<< tr("+Looks")
 		<< tr("#Magic lens size")
-		<< tr("#Magic lens frame width"));
+		<< tr("#Magic lens frame width")
+		<< tr("$Logarithmic Histogram y axis"));
 	QStringList looks;
 	QMap<QString, QString> styleNames;
 	styleNames.insert(tr("Dark")      , ":/dark.qss");
@@ -993,7 +994,8 @@ void MainWindow::prefs()
 		<< iAConsole::instance()->logFileName()
 		<< looks
 		<< tr("%1").arg(p.MagicLensSize)
-		<< tr("%1").arg(p.MagicLensFrameWidth);
+		<< tr("%1").arg(p.MagicLensFrameWidth)
+		<< p.HistogramLogarithmicYAxis;
 
 	dlg_commoninput dlg(this, "Preferences", inList, inPara, descr);
 
@@ -1016,9 +1018,12 @@ void MainWindow::prefs()
 		m_defaultPreferences.MagicLensSize = clamp(MinimumMagicLensSize, MaximumMagicLensSize,
 			static_cast<int>(dlg.getDblValue(8)));
 		m_defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getDblValue(9)));
+		m_defaultPreferences.HistogramLogarithmicYAxis = dlg.getCheckValue(10);
 
 		if (activeMdiChild() && activeMdiChild()->editPrefs(m_defaultPreferences))
+		{
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
+		}
 
 		iAConsole::instance()->setLogToFile(logToFile, logFileName, true);
 	}

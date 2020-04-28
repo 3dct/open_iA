@@ -1369,6 +1369,7 @@ bool MdiChild::editPrefs(iAPreferences const& prefs)
 		return true;
 	}
 	setHistogramModality(m_currentModality);	// to update Histogram bin count
+	m_histogram->setYMappingMode(prefs.HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
 	applyViewerPreferences();
 	if (isMagicLens2DEnabled())
 	{
