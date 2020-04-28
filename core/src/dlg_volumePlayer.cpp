@@ -126,15 +126,15 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 
 	//Contextmenu start
 	m_contextDimensions = new QAction(tr("Dimensions"), this );
-	connect( m_contextDimensions, SIGNAL(activated()), this, SLOT(dimensionsActive()) );
+	connect( m_contextDimensions, &QAction::triggered, this, &dlg_volumePlayer::dimensionsActive);
 	m_contextDimensions->setCheckable(true);
 	m_contextDimensions->setChecked(true);
 	m_contextSpacing = new QAction(tr("Spacing"), this );
-	connect( m_contextSpacing, SIGNAL(activated()), this, SLOT(spacingActive()) );
+	connect( m_contextSpacing, &QAction::triggered, this, &dlg_volumePlayer::spacingActive);
 	m_contextSpacing->setCheckable(true);
 	m_contextSpacing->setChecked(true);
 	m_contextFileName = new QAction(tr("Filename"), this );
-	connect( m_contextFileName, SIGNAL(activated()), this, SLOT(fileNameActive()) );
+	connect( m_contextFileName, &QAction::triggered, this, &dlg_volumePlayer::fileNameActive);
 	m_contextFileName->setCheckable(true);
 	m_contextFileName->setChecked(true);
 	setContextMenuPolicy( Qt::ActionsContextMenu );
