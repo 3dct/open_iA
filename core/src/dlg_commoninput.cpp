@@ -143,9 +143,12 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 				newWidget = new QPlainTextEdit(m_container);
 				break;
 			case '&':
-				newWidget = new QPushButton(m_container);
-				connect(newWidget, SIGNAL(clicked()), this, SLOT(SelectFilter()));
+			{
+				auto pb = new QPushButton(m_container);
+				connect(pb, &QPushButton::clicked, this, &dlg_commoninput::SelectFilter);
+				newWidget = pb;
 				break;
+			}
 			case '<':
 				newWidget = new iAFileChooserWidget(m_container, iAFileChooserWidget::FileNameOpen);
 				break;
@@ -206,7 +209,7 @@ void  dlg_commoninput::setSourceMdi(MdiChild* child, MainWindow* mainWnd)
 {
 	m_sourceMdiChild = child;
 	m_mainWnd = mainWnd;
-	connect(child, SIGNAL(closed()), this, SLOT(SourceChildClosed()));
+	connect(child, &MdiChild::closed, this, &dlg_commoninput::SourceChildClosed);
 }
 
 QVector<QWidget*> dlg_commoninput::widgetList()
@@ -340,7 +343,11 @@ void dlg_commoninput::showROI()
 		QSpinBox *input = dynamic_cast<QSpinBox*>(children.at(i));
 		if (input && (input->objectName().contains("Index") || input->objectName().contains("Size")))
 		{
-			connect(input, SIGNAL(valueChanged(QString)), this, SLOT(ROIUpdated(QString)));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+			connect(input, &QSpinBox::textChanged, this, &dlg_commoninput::ROIUpdated);
+#else
+			connect(input, QOverload<QString const&>::of(&QSpinBox::valueChanged), this, &dlg_commoninput::ROIUpdated);
+#endif
 			UpdateROIPart(input->objectName(), input->text());
 		}
 	}
@@ -351,7 +358,9 @@ void dlg_commoninput::showROI()
 void dlg_commoninput::ROIUpdated(QString text)
 {
 	if (m_sourceMdiChildClosed)
+	{
 		return;
+	}
 	QString senderName = QObject::sender()->objectName();
 	UpdateROIPart(senderName, text);
 	// size may not be smaller than 1 (otherwise there's a vtk error):
@@ -493,7 +502,7 @@ int dlg_commoninput::exec()
 		return QDialog::Rejected;
 	if (m_sourceMdiChild)
 	{
-		disconnect(m_sourceMdiChild, SIGNAL(closed()), this, SLOT(SourceChildClosed()));
+		disconnect(m_sourceMdiChild, &MdiChild::closed, this, &dlg_commoninput::SourceChildClosed);
 		m_sourceMdiChild->setROIVisible(false);
 	}
 	return result;

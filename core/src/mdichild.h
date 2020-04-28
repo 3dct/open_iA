@@ -304,6 +304,8 @@ public:
 
 	bool meshDataMovable();
 	void setMeshDataMovable(bool movable);
+	//! maximize slicer dockwidget with the given mode
+	void maximizeSlicer(int mode);
 
 signals:
 	void rendererDeactivated(int c);
@@ -323,9 +325,6 @@ signals:
 
 public slots:
 	void maximizeRC();
-	void maximizeXY();
-	void maximizeXZ();
-	void maximizeYZ();
 	void updateProgressBar(int i);
 	void hideProgressBar();
 	void initProgressBar();
@@ -377,7 +376,6 @@ private slots:
 	void showModality(int modIdx);
 	void saveFinished();
 	void modalityAdded(int modalityIdx);
-	void rendererCamPos();
 	void resetCamera(bool spacingChanged, double const * newSpacing);
 	void toggleFullScreen();
 	void rendererKeyPressed(int keyCode);

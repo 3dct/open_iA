@@ -37,7 +37,7 @@ public:
 protected:
 	virtual void mouseReleaseEvent ( QMouseEvent * event );
 	virtual void resizeEvent ( QResizeEvent * event );
-Q_SIGNALS:
+signals:
 	void rightButtonReleasedSignal();
 	void leftButtonReleasedSignal();
 };

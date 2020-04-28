@@ -124,7 +124,7 @@ private:
 	void SetAxis(Axis axis, double point[3]);
 	void CheckPos(int dim);
 
-Q_SIGNALS:
+signals:
 	void clicked(int x, int y, int z);
 	void keyPressed(int keyCode);
 };

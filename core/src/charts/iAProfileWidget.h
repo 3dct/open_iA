@@ -46,6 +46,6 @@ private:
 	double yHeight;
 	void drawPlots(QPainter &painter) override;
 	void showDataTooltip(QHelpEvent *event) override;
-Q_SIGNALS:
+signals:
 	void binSelected(int newBin);
 };

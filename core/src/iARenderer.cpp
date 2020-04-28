@@ -298,8 +298,8 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(parent());
 	if (mdi_parent)
 	{
-		connect(this, SIGNAL(msg(QString)), mdi_parent, SLOT(addMsg(QString)));
-		connect(this, SIGNAL(progress(int)), mdi_parent, SLOT(updateProgressBar(int)));
+		connect(this, &iARenderer::msg, mdi_parent, &MdiChild::addMsg);
+		connect(this, &iARenderer::progress, mdi_parent, &MdiChild::updateProgressBar);
 	}
 }
 

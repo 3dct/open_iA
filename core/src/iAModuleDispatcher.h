@@ -87,18 +87,18 @@ public:
 	QMenu * getMenuWithTitle(QMenu * parentMenu, QString const & title, bool isDisablable = true);
 	void AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable = true);
 private slots:
-	void ExecuteFilter();
-	void RemoveFilter();
-	void SelectAndRunFilter();
+	void executeFilter();
+	void removeFilter();
+	void selectAndRunFilter();
 private:
 	MainWindow * m_mainWnd;
 	QVector < iAModuleAction > m_moduleActions;
 	QVector < iALoadedModule > m_loadedModules;
 	QVector< QSharedPointer<iAFilterRunnerGUI> > m_runningFilters;
 	QString m_rootPath;
-	iAModuleInterface* LoadModuleAndInterface(QFileInfo fi, QStringList & errorMessages);
-	void InitializeModuleInterface(iAModuleInterface* m);
-	void RunFilter(int filterID);
+	iAModuleInterface* loadModuleAndInterface(QFileInfo fi, QStringList & errorMessages);
+	void initializeModuleInterface(iAModuleInterface* m);
+	void runFilter(int filterID);
 };
 
 template <typename T> T* iAModuleDispatcher::GetModule()

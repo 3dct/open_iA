@@ -67,22 +67,22 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 	volumeSlider->setMaximum(m_numberOfVolumes-1);
 	volumeSlider->setMinimum(0);
 
-	connect(volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(sliderChanged()));
-	connect(nextVolumeButton, SIGNAL(clicked()),this, SLOT(nextVolume()));
-	connect(previousVolumeButton, SIGNAL(clicked()),this, SLOT(previousVolume()));
-	connect(playVolumeButton, SIGNAL(clicked()),this, SLOT(playVolume()));
-	connect(pauseVolumeButton, SIGNAL(clicked()),this, SLOT(pauseVolume()));
-	connect(stopVolumeButton, SIGNAL(clicked()),this, SLOT(stopVolume()));
-	connect(speedSlider, SIGNAL(valueChanged(int)), this, SLOT(setSpeed()));
-	connect(setMaxSpeedButton, SIGNAL(clicked()), this, SLOT(editMaxSpeed()));
-	connect(dataTable, SIGNAL(cellClicked(int, int)), this, SLOT(setChecked(int, int)));
-	connect(dataTable, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(updateView(int, int)));
-	connect(applyForAllButton, SIGNAL(clicked()),this, SLOT(applyForAll()));
-	connect(dataTable->horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(selectAll(int)));
-	connect(this, SIGNAL(setAllSelected(int)), this, SLOT(selectAll(int)));
-	connect(this, SIGNAL(update(int, bool)), m_mdiChild, SLOT(updateVolumePlayerView(int, bool)));
-	connect(&m_timer, SIGNAL(timeout()), this, SLOT(nextVolume()));
-	connect(blending, SIGNAL(stateChanged(int)), this, SLOT(blendingStateChanged(int)));
+	connect(volumeSlider, &QSlider::valueChanged, this, &dlg_volumePlayer::sliderChanged);
+	connect(nextVolumeButton, &QPushButton::clicked,this, &dlg_volumePlayer::nextVolume);
+	connect(previousVolumeButton, &QPushButton::clicked,this, &dlg_volumePlayer::previousVolume);
+	connect(playVolumeButton, &QPushButton::clicked,this, &dlg_volumePlayer::playVolume);
+	connect(pauseVolumeButton, &QPushButton::clicked, this, &dlg_volumePlayer::pauseVolume);
+	connect(stopVolumeButton, &QPushButton::clicked,this, &dlg_volumePlayer::stopVolume);
+	connect(speedSlider, &QSlider::valueChanged, this, &dlg_volumePlayer::setSpeed);
+	connect(setMaxSpeedButton, &QPushButton::clicked, this, &dlg_volumePlayer::editMaxSpeed);
+	connect(dataTable, &QTableWidget::cellClicked, this, &dlg_volumePlayer::setChecked);
+	connect(dataTable, &QTableWidget::cellDoubleClicked, this, &dlg_volumePlayer::updateView);
+	connect(applyForAllButton, &QPushButton::clicked,this, &dlg_volumePlayer::applyForAll);
+	connect(dataTable->horizontalHeader(), &QHeaderView::sectionClicked, this, &dlg_volumePlayer::selectAll);
+	connect(this, &dlg_volumePlayer::setAllSelected, this, &dlg_volumePlayer::selectAll);
+	connect(this, &dlg_volumePlayer::update, m_mdiChild, &MdiChild::updateVolumePlayerView);
+	connect(&m_timer, &QTimer::timeout, this, &dlg_volumePlayer::nextVolume);
+	connect(blending, &QCheckBox::stateChanged, this, &dlg_volumePlayer::blendingStateChanged);
 
 	dataTable->setShowGrid(true);
 	dataTable->setRowCount(m_numberOfVolumes);
@@ -103,11 +103,12 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 	for (int i=0; i<m_numberOfVolumes; i++)
 	{
 		m_tempStr=QString("%1").arg(i);
-		m_newWidget = new QCheckBox(this);
+		auto cb = new QCheckBox(this);
+		m_newWidget = cb;
 		m_newWidget->setObjectName(m_tempStr.append("check"));
 		m_checkBoxes.push_back((QCheckBox*)m_newWidget);
 		dataTable->setCellWidget(i,m_checkColumn,m_newWidget);
-		connect(m_newWidget, SIGNAL(stateChanged(int)), this, SLOT(enableVolume(int)));
+		connect(cb, &QCheckBox::stateChanged, this, &dlg_volumePlayer::enableVolume);
 		m_widgetList.insert(i, m_tempStr);
 		dataTable->setRowHeight(i, 17);
 		dataTable->setItem(i, m_dimColumn, new QTableWidgetItem(QString("%1, %2, %3")

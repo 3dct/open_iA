@@ -64,19 +64,16 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
 	{
 		m_manualMoveStyle[i] = vtkSmartPointer<iAvtkInteractStyleActor>::New();
-		connect(m_manualMoveStyle[i], SIGNAL(actorsUpdated()), mdiChild, SLOT(updateViews()));
+		connect(m_manualMoveStyle[i], &iAvtkInteractStyleActor::actorsUpdated, mdiChild, &MdiChild::updateViews);
 	}
 	connect(pbAdd,    &QPushButton::clicked, this, &dlg_modalities::addClicked);
 	connect(pbRemove, &QPushButton::clicked, this, &dlg_modalities::removeClicked);
 	connect(pbEdit,   &QPushButton::clicked, this, &dlg_modalities::editClicked);
 
-	connect(lwModalities, SIGNAL(itemClicked(QListWidgetItem*)),
-		this, SLOT(listClicked(QListWidgetItem*)));
+	connect(lwModalities, &QListWidget::itemClicked, this, &dlg_modalities::listClicked);
+	connect(lwModalities, &QListWidget::itemChanged, this, &dlg_modalities::showChecked);
 
-	connect(lwModalities, SIGNAL(itemChanged(QListWidgetItem*)),
-		this, SLOT(showChecked(QListWidgetItem*)));
-
-	connect(magicLensWidget, SIGNAL(MouseMoved()), this, SLOT(rendererMouseMoved()));
+	connect(magicLensWidget, &iAFast3DMagicLensWidget::MouseMoved, this, &dlg_modalities::rendererMouseMoved);
 }
 
 void dlg_modalities::setModalities(QSharedPointer<iAModalityList> modList)

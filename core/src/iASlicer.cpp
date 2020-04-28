@@ -270,11 +270,11 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		// setup context menu for the magic lens view options
 		m_contextMenuMagicLens = new QMenu(this);
 		QActionGroup * actionGr(new QActionGroup(this));
-		auto centeredLens = m_contextMenuMagicLens->addAction(tr("Centered Magic Lens"), this, SLOT(menuCenteredMagicLens()));
+		auto centeredLens = m_contextMenuMagicLens->addAction(tr("Centered Magic Lens"), this, &iASlicer::menuCenteredMagicLens);
 		centeredLens->setCheckable(true);
 		centeredLens->setChecked(true);
 		actionGr->addAction(centeredLens);
-		auto offsetLens = m_contextMenuMagicLens->addAction(tr("Offseted Magic Lens"), this, SLOT(menuOffsetMagicLens()));
+		auto offsetLens = m_contextMenuMagicLens->addAction(tr("Offseted Magic Lens"), this, &iASlicer::menuOffsetMagicLens);
 		offsetLens->setCheckable(true);
 		actionGr->addAction(offsetLens);
 	}
@@ -284,7 +284,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_snakeSpline = new iASnakeSpline;
 
 		m_contextMenuSnakeSlicer = new QMenu(this);
-		m_contextMenuSnakeSlicer->addAction(QIcon(":/images/loadtrf.png"), tr("Delete Snake Line"), this, SLOT(menuDeleteSnakeLine()));
+		m_contextMenuSnakeSlicer->addAction(QIcon(":/images/loadtrf.png"), tr("Delete Snake Line"), this, &iASlicer::menuDeleteSnakeLine);
 		m_sliceProfile = new iASlicerProfile();
 		m_sliceProfile->setVisibility(false);
 
@@ -2177,7 +2177,7 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 				std::copy(m_globalPt, m_globalPt + 3, globalPos);
 				globalPos[zind] = ptPos[zind];
 
-				if (setArbitraryProfile(arbProfPointIdx, globalPos, true))
+				if (setArbitraryProfileWithClamp(arbProfPointIdx, globalPos, true))
 				{
 					emit arbitraryProfileChanged(arbProfPointIdx, globalPos);
 				}
@@ -2277,7 +2277,12 @@ void iASlicer::updateRawProfile(double posY)
 #endif
 }
 
-bool iASlicer::setArbitraryProfile(int pointInd, double * Pos, bool doClamp)
+bool iASlicer::setArbitraryProfile(int pointInd, double* Pos)
+{
+	return setArbitraryProfileWithClamp(pointInd, Pos, false);
+}
+
+bool iASlicer::setArbitraryProfileWithClamp(int pointInd, double * Pos, bool doClamp)
 {
 	if (!m_decorations || !hasChannel(0))
 	{

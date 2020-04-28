@@ -24,7 +24,7 @@
 
 iAMdiChildLogger::iAMdiChildLogger(MdiChild* mdiChild)
 {
-	connect(this, SIGNAL(logSignal(QString)), mdiChild, SLOT(addMsg(QString)));
+	connect(this, &iAMdiChildLogger::logSignal, mdiChild, &MdiChild::addMsg);
 }
 
 void iAMdiChildLogger::log(QString const & msg)

@@ -34,26 +34,34 @@ dlg_FilterSelection::dlg_FilterSelection(QWidget * parent, QString const & prese
 	connect(lwFilterList, &QListWidget::itemDoubleClicked, this, &dlg_FilterSelection::accept);
 	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 	for (auto filterFactory : iAFilterRegistry::filterFactories())
+	{
 		lwFilterList->addItem(filterFactory->create()->name());
+	}
 	if (!preselectedFilter.isEmpty())
 	{
 		auto matching = lwFilterList->findItems(preselectedFilter, Qt::MatchExactly);
 		if (matching.size() > 0)
+		{
 			lwFilterList->setCurrentItem(matching[0]);
+		}
 	}
 }
 
 void dlg_FilterSelection::filterChanged(QString const & filter)
 {
-	for (int row=0; row < lwFilterList->count(); ++row)
+	for (int row = 0; row < lwFilterList->count(); ++row)
+	{
 		lwFilterList->item(row)->setHidden(true);
+	}
 	QList<QListWidgetItem*> matches(lwFilterList->findItems(filter, Qt::MatchFlag::MatchContains));
 	m_curMatches = matches.size();
 	for (QListWidgetItem* item : matches)
 	{
 		item->setHidden(false);
 		if (matches.size() == 1)
+		{
 			lwFilterList->setCurrentItem(item);
+		}
 	}
 	enableOKButton();
 }

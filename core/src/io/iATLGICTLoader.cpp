@@ -103,10 +103,10 @@ void iATLGICTLoader::start(MdiChild* child)
 	m_child->show();
 	m_child->addMsg(tr("Loading TLGI-CT data, please wait..."));
 
-	connect(m_multiStepObserver, SIGNAL(progress(int)), m_child, SLOT(updateProgressBar(int)));
-	connect(this, SIGNAL(started()), m_child, SLOT(initProgressBar()));
-	connect(this, SIGNAL(finished()), m_child, SLOT(hideProgressBar()));
-	connect(this, SIGNAL(finished()), this, SLOT(finishUp()));		// this needs to be last, as it deletes this object!
+	connect(m_multiStepObserver, &iAMultiStepProgressObserver::progress, m_child, &MdiChild::updateProgressBar);
+	connect(this, &iATLGICTLoader::started, m_child, &MdiChild::initProgressBar);
+	connect(this, &iATLGICTLoader::finished, m_child, &MdiChild::hideProgressBar);
+	connect(this, &iATLGICTLoader::finished, this, &iATLGICTLoader::finishUp);		// this needs to be last, as it deletes this object!
 	QThread::start();
 }
 

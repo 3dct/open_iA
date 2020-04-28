@@ -529,12 +529,12 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 
 	verticalLayout->addWidget(buttonBox);
 
-	connect(leXOrigin, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(leXSize, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(leYOrigin, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(leYSize, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(leZOrigin, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(leZSize, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
+	connect(leXOrigin, &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
+	connect(leXSize,   &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
+	connect(leYOrigin, &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
+	connect(leYSize,   &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
+	connect(leZOrigin, &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
+	connect(leZSize,   &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
 }
 
 dlg_datatypeconversion::~dlg_datatypeconversion()

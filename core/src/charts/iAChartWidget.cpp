@@ -1173,13 +1173,13 @@ void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)
 {
 	m_contextPos = event->pos();
 	m_contextMenu->clear();
-	m_contextMenu->addAction(QIcon(":/images/resetView.png"), tr("Reset histogram view"), this, SLOT(resetView()));
+	m_contextMenu->addAction(QIcon(":/images/resetView.png"), tr("Reset histogram view"), this, &iAChartWidget::resetView);
 	QAction *showTooltipAction = new QAction(tr("Show histogram coordinates"), this);
 	showTooltipAction->setCheckable(true);
 	showTooltipAction->setChecked(m_showTooltip);
-	connect(showTooltipAction, SIGNAL(toggled(bool)), this, SLOT(showTooltip(bool)));
+	connect(showTooltipAction, &QAction::toggled, this, &iAChartWidget::showTooltip);
 	m_contextMenu->addAction(showTooltipAction);
-	m_contextMenu->addAction(QIcon(":/images/save.png"), tr("Export histogram data"), this, SLOT(exportData()));
+	m_contextMenu->addAction(QIcon(":/images/save.png"), tr("Export histogram data"), this, &iAChartWidget::exportData);
 	m_contextMenu->addSeparator();
 	addContextMenuEntries(m_contextMenu);
 	m_contextMenuVisible = true;

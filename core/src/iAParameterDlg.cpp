@@ -204,7 +204,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 			auto button = new QPushButton(m_container);
 			button->setText(p->defaultValue().toString());
 			newWidget = button;
-			connect(newWidget, SIGNAL(clicked()), this, SLOT(SelectFilter()));
+			connect(button, &QPushButton::clicked, this, &iAParameterDlg::selectFilter);
 			break;
 		}
 		case FileNameOpen:  // intentional fall-through
@@ -258,7 +258,7 @@ void  iAParameterDlg::setSourceMdi(MdiChild* child, MainWindow* mainWnd)
 {
 	m_sourceMdiChild = child;
 	m_mainWnd = mainWnd;
-	connect(child, SIGNAL(closed()), this, SLOT(SourceChildClosed()));
+	connect(child, &MdiChild::closed, this, &iAParameterDlg::sourceChildClosed);
 }
 
 QVector<QWidget*> iAParameterDlg::widgetList()
@@ -333,7 +333,7 @@ void iAParameterDlg::showROI()
 		QSpinBox *input = dynamic_cast<QSpinBox*>(children.at(i));
 		if (input && (input->objectName().contains("Index") || input->objectName().contains("Size")))
 		{
-			connect(input, SIGNAL(valueChanged(int)), this, SLOT(updatedROI(int)));
+			connect(input, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAParameterDlg::updatedROI);
 			updateROIPart(input->objectName(), input->value());
 		}
 	}
@@ -487,7 +487,7 @@ int iAParameterDlg::exec()
 	}
 	if (m_sourceMdiChild)
 	{
-		disconnect(m_sourceMdiChild, SIGNAL(closed()), this, SLOT(SourceChildClosed()));
+		disconnect(m_sourceMdiChild, &MdiChild::closed, this, &iAParameterDlg::sourceChildClosed);
 		m_sourceMdiChild->setROIVisible(false);
 	}
 	return result;
