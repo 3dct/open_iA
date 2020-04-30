@@ -44,29 +44,33 @@ public:
 	//! @param parent the parent widget
 	//! @param title  the dialog title
 	//! @param labels the list of parameter labels; each name needs to have a prefix signifying the type of control used to ask for it:
-	//!        $ ... QCheckBox
-	//!        . ... Filter parameters (special) - line edit
-	//!        # ... a line edit
-	//!        + ... a combo box (in values, give a QStringList with all options, prefix the one that should be selected with a '!')
-	//!        * ... a SpinBox, asking for an (integer) number between 0 and 65536
-	//!        ^ ... a double SpinBox asking for a floating point number between -999999, 999999
-	//!        = ... a PlainTextEdit (allowing to enter multiple lines of text)
-	//!        & ... Filter type (special) - PushButton, which on click enables user to select a filter name
-	//!        < ... file chooser (single file name for opening)
-	//!        { ... file chooser (multiple file names for opening)
-	//!        > ... file chooser (single file name for saving)
-	//!        ; ... folder chooser (single existing folder name)
+	//!       - $ ... QCheckBox
+	//!       - \# ... a line edit
+	//!       - \+ ... a combo box (in values, give a QStringList with all options, prefix the one that should be selected with a '!')
+	//!       - \* ... a SpinBox, asking for an (integer) number between 0 and 65536
+	//!       - ^ ... a double SpinBox asking for a floating point number between -999999, 999999
+	//!       - = ... a PlainTextEdit (allowing to enter multiple lines of text)
+	//!       - & ... Filter type (special) - PushButton, which on click enables user to select a filter name
+	//!       - . ... Filter parameters (special); preferably, use right after & - Control: line edit
+	//!       - < ... file chooser (single file name for opening)
+	//!       - { ... file chooser (multiple file names for opening)
+	//!       - > ... file chooser (single file name for saving)
+	//!       - ; ... folder chooser (single existing folder name)
+	//!
 	//!    e.g. "*Name" gives you an (integer) spinbox with label "Name"
 	//! @param values starting values for all parameters.
 	//! @param descr an optional description text, displayed on top of the dialog
 	dlg_commoninput ( QWidget *parent, QString const & title, QStringList const & labels, QList<QVariant> const & values, QString const & descr = QString());
+	//! @{ Retrieve value for parameter with given index
 	int getCheckValue(int index) const;
 	QString getComboBoxValue(int index) const;
 	int getComboBoxIndex(int index) const;
 	QString getText(int index) const;
 	int getIntValue(int index) const;
 	double getDblValue(int index) const;
+	//! @}
 	void showROI();
+	//! Show the dialog. This is just a wrapper around QDialog::exec, see there for more details on e.g. the return value
 	int exec() override;
 	void setSourceMdi(MdiChild* child, MainWindow* mainWnd);
 	QVector<QWidget*> widgetList();

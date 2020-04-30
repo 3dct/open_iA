@@ -63,18 +63,28 @@ void dlg_FilterSelection::filterChanged(QString const & filter)
 			lwFilterList->setCurrentItem(item);
 		}
 	}
-	enableOKButton();
+	updateOKAndDescription();
 }
 
-void dlg_FilterSelection::enableOKButton()
+void dlg_FilterSelection::updateOKAndDescription()
 {
-	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(m_curMatches == 1 ||
-		(lwFilterList->currentItem() != nullptr && !lwFilterList->currentItem()->isHidden()));
+	bool enable = m_curMatches == 1 ||
+		(lwFilterList->currentItem() != nullptr && !lwFilterList->currentItem()->isHidden());
+	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(enable);
+	QString description;
+	if (enable)
+	{
+		QString filterName = lwFilterList->currentItem()->text();
+		auto filter = iAFilterRegistry::filter(filterName);
+		assert(filter);
+		description = filter->description();
+	}
+	teDescription->setText(description);
 }
 
 void dlg_FilterSelection::listSelectionChanged(QListWidgetItem * /*current*/, QListWidgetItem * /*previous*/)
 {
-	enableOKButton();
+	updateOKAndDescription();
 }
 
 QString dlg_FilterSelection::selectedFilterName() const
