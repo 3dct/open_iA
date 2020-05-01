@@ -64,7 +64,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
 	{
 		m_manualMoveStyle[i] = vtkSmartPointer<iAvtkInteractStyleActor>::New();
-		connect(m_manualMoveStyle[i], &iAvtkInteractStyleActor::actorsUpdated, mdiChild, &MdiChild::updateViews);
+		connect(m_manualMoveStyle[i].Get(), &iAvtkInteractStyleActor::actorsUpdated, mdiChild, &MdiChild::updateViews);
 	}
 	connect(pbAdd,    &QPushButton::clicked, this, &dlg_modalities::addClicked);
 	connect(pbRemove, &QPushButton::clicked, this, &dlg_modalities::removeClicked);
