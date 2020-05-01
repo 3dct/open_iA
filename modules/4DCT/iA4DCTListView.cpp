@@ -34,9 +34,9 @@ iA4DCTListView::iA4DCTListView( QWidget* parent/*=0*/ ) :
 	QListView( parent )
 {
 	m_actOpen = new QAction( tr( "Open file" ), this );
-	connect( m_actOpen, SIGNAL( triggered( ) ), this, SLOT( openFile( ) ) );
+	connect( m_actOpen, &QAction::triggered, this, &iA4DCTListView::openFile);
 	m_actNew = new QAction( tr( "Add new file" ), this );
-	connect( m_actNew, SIGNAL( triggered( ) ), this, SLOT( addFile( ) ) );
+	connect( m_actNew, &QAction::triggered, this, &iA4DCTListView::addFile);
 
 	m_menu = new QMenu( this );
 	m_menu->addAction( m_actOpen );
