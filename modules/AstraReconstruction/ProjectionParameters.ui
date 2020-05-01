@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>523</width>
-    <height>630</height>
+    <width>529</width>
+    <height>653</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,16 +21,16 @@
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <item row="6" column="0" colspan="2">
-       <widget class="QLabel" name="ProjGeomProjCountLabel">
+       <widget class="QLabel" name="lbProjGeomProjCount">
         <property name="text">
          <string>Number of Projections:</string>
         </property>
        </widget>
       </item>
       <item row="5" column="1" colspan="2">
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <layout class="QHBoxLayout" name="lyProjGeomProjAngles">
         <item>
-         <widget class="QLabel" name="label_14">
+         <widget class="QLabel" name="lbProjGeomProjAngleStart">
           <property name="minimumSize">
            <size>
             <width>35</width>
@@ -43,7 +43,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="ProjGeomProjAngleStart">
+         <widget class="QDoubleSpinBox" name="dsbProjGeomProjAngleStart">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -74,7 +74,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="label_15">
+         <widget class="QLabel" name="lbProjGeomProjAngleEnd">
           <property name="minimumSize">
            <size>
             <width>35</width>
@@ -87,7 +87,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="ProjGeomProjAngleEnd">
+         <widget class="QDoubleSpinBox" name="dsbProjGeomProjAngleEnd">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -120,14 +120,14 @@
        </layout>
       </item>
       <item row="5" column="0">
-       <widget class="QLabel" name="label_10">
+       <widget class="QLabel" name="lbProjAngles">
         <property name="text">
          <string>Projection Angles</string>
         </property>
        </widget>
       </item>
       <item row="0" column="0">
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="lbProjGeomType">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -146,16 +146,16 @@
        </widget>
       </item>
       <item row="2" column="1" colspan="2">
-       <layout class="QGridLayout" name="gridLayout_5">
+       <layout class="QGridLayout" name="lyProjGeomDists">
         <item row="0" column="0">
-         <widget class="QLabel" name="label_12">
+         <widget class="QLabel" name="lbProjGeomDistOriginDetector_2">
           <property name="text">
            <string>Origin-Detector</string>
           </property>
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QDoubleSpinBox" name="ProjGeomDistOriginDetector">
+         <widget class="QDoubleSpinBox" name="dsbProjGeomDistOriginDetector">
           <property name="decimals">
            <number>6</number>
           </property>
@@ -171,14 +171,14 @@
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QLabel" name="label_13">
+         <widget class="QLabel" name="lbProjGeomDistOriginSource_2">
           <property name="text">
            <string>Origin-Source</string>
           </property>
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QDoubleSpinBox" name="ProjGeomDistOriginSource">
+         <widget class="QDoubleSpinBox" name="dsbProjGeomDistOriginSource">
           <property name="decimals">
            <number>6</number>
           </property>
@@ -196,7 +196,7 @@
        </layout>
       </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="label_11">
+       <widget class="QLabel" name="lbProjGeomDistances">
         <property name="text">
          <string>Distances</string>
         </property>
@@ -206,7 +206,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QComboBox" name="ProjGeomType">
+       <widget class="QComboBox" name="cbProjGeomType">
         <item>
          <property name="text">
           <string>cone</string>
@@ -215,7 +215,7 @@
        </widget>
       </item>
       <item row="0" column="2">
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="pbVectorGeometry">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -225,9 +225,9 @@
        </widget>
       </item>
       <item row="3" column="1" colspan="2">
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <layout class="QHBoxLayout" name="lyProjGeomDetPixels">
         <item>
-         <widget class="QLabel" name="ProjGeomDetectorPixelsXLabel">
+         <widget class="QLabel" name="lbProjGeomDetectorPixelsX">
           <property name="minimumSize">
            <size>
             <width>35</width>
@@ -240,7 +240,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="ProjGeomDetectorPixelsX">
+         <widget class="QSpinBox" name="sbProjGeomDetectorPixelsX">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -268,7 +268,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="ProjGeomDetectorPixelsYLabel">
+         <widget class="QLabel" name="lbProjGeomDetectorPixelsY">
           <property name="minimumSize">
            <size>
             <width>35</width>
@@ -281,7 +281,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="ProjGeomDetectorPixelsY">
+         <widget class="QSpinBox" name="sbProjGeomDetectorPixelsY">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -311,9 +311,9 @@
        </layout>
       </item>
       <item row="4" column="1" colspan="2">
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <layout class="QHBoxLayout" name="lyProjGeomDetSpacing">
         <item>
-         <widget class="QLabel" name="label_5">
+         <widget class="QLabel" name="lbProjGeomDetectorSpacingX">
           <property name="minimumSize">
            <size>
             <width>35</width>
@@ -326,7 +326,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="ProjGeomDetectorSpacingX">
+         <widget class="QDoubleSpinBox" name="dsbProjGeomDetectorSpacingX">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -357,7 +357,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="label_6">
+         <widget class="QLabel" name="lbProjGeomDetectorSpacingY">
           <property name="minimumSize">
            <size>
             <width>35</width>
@@ -370,7 +370,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="ProjGeomDetectorSpacingY">
+         <widget class="QDoubleSpinBox" name="dsbProjGeomDetectorSpacingY">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -403,21 +403,21 @@
        </layout>
       </item>
       <item row="4" column="0">
-       <widget class="QLabel" name="label_4">
+       <widget class="QLabel" name="lbDetectorSpacing">
         <property name="text">
          <string>Detector Spacing</string>
         </property>
        </widget>
       </item>
       <item row="3" column="0">
-       <widget class="QLabel" name="ProjGeomDetectorPixelsLabel">
+       <widget class="QLabel" name="lbProjGeomDetectorPixels">
         <property name="text">
          <string>Detector Pixels</string>
         </property>
        </widget>
       </item>
       <item row="6" column="2">
-       <widget class="QSpinBox" name="ProjGeomProjCount">
+       <widget class="QSpinBox" name="sbProjGeomProjCount">
         <property name="minimum">
          <number>1</number>
         </property>
@@ -439,7 +439,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="0" column="1">
-       <widget class="QLabel" name="label_17">
+       <widget class="QLabel" name="lbVolGeomDimensions">
         <property name="minimumSize">
          <size>
           <width>90</width>
@@ -452,16 +452,16 @@
        </widget>
       </item>
       <item row="0" column="2">
-       <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QHBoxLayout" name="lyVolGeomDimensions">
         <item>
-         <widget class="QLabel" name="label_19">
+         <widget class="QLabel" name="lbVolGeomDimensionX">
           <property name="text">
            <string>X</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="VolGeomDimensionX">
+         <widget class="QSpinBox" name="sbVolGeomDimensionX">
           <property name="minimum">
            <number>1</number>
           </property>
@@ -471,14 +471,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="label_20">
+         <widget class="QLabel" name="lbVolGeomDimensionY">
           <property name="text">
            <string>Y</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="VolGeomDimensionY">
+         <widget class="QSpinBox" name="sbVolGeomDimensionY">
           <property name="minimum">
            <number>1</number>
           </property>
@@ -488,14 +488,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="label_21">
+         <widget class="QLabel" name="lbVolGeomDimensionZ">
           <property name="text">
            <string>Z</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="VolGeomDimensionZ">
+         <widget class="QSpinBox" name="sbVolGeomDimensionZ">
           <property name="minimum">
            <number>1</number>
           </property>
@@ -507,23 +507,23 @@
        </layout>
       </item>
       <item row="1" column="1">
-       <widget class="QLabel" name="label_22">
+       <widget class="QLabel" name="lbVolGeomSpacing">
         <property name="text">
          <string>Spacing</string>
         </property>
        </widget>
       </item>
       <item row="1" column="2">
-       <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <layout class="QHBoxLayout" name="lyVolGeomSpacing">
         <item>
-         <widget class="QLabel" name="label_26">
+         <widget class="QLabel" name="lbVolGeomSpacingX">
           <property name="text">
            <string>X</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="VolGeomSpacingX">
+         <widget class="QDoubleSpinBox" name="dsbVolGeomSpacingX">
           <property name="decimals">
            <number>6</number>
           </property>
@@ -536,14 +536,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="label_27">
+         <widget class="QLabel" name="lbVolGeomSpacingY">
           <property name="text">
            <string>Y</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="VolGeomSpacingY">
+         <widget class="QDoubleSpinBox" name="dsbVolGeomSpacingY">
           <property name="decimals">
            <number>6</number>
           </property>
@@ -556,14 +556,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="label_28">
+         <widget class="QLabel" name="lbVolGeomSpacingZ">
           <property name="text">
            <string>Z</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="VolGeomSpacingZ">
+         <widget class="QDoubleSpinBox" name="dsbVolGeomSpacingZ">
           <property name="decimals">
            <number>6</number>
           </property>
@@ -587,34 +587,34 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_6">
       <item row="1" column="0">
-       <widget class="QLabel" name="label_29">
+       <widget class="QLabel" name="lbProjInputDetectorRowDim">
         <property name="text">
          <string>Detector Row Dimension</string>
         </property>
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="label_18">
+       <widget class="QLabel" name="lbProjInputProjAngle">
         <property name="text">
          <string>Projection Angle Dimension</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QComboBox" name="ProjInputDetectorRowDim"/>
+       <widget class="QComboBox" name="cbProjInputDetectorRowDim"/>
       </item>
       <item row="2" column="1">
-       <widget class="QComboBox" name="ProjInputProjAngleDim"/>
+       <widget class="QComboBox" name="cbProjInputProjAngleDim"/>
       </item>
       <item row="0" column="0">
-       <widget class="QLabel" name="label_30">
+       <widget class="QLabel" name="lbProjInputDetectorColDim">
         <property name="text">
          <string>Detector Column Dimension</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QComboBox" name="ProjInputDetectorColDim"/>
+       <widget class="QComboBox" name="cbProjInputDetectorColDim"/>
       </item>
      </layout>
     </widget>
@@ -626,7 +626,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="1" column="1">
-       <widget class="QComboBox" name="AlgorithmType">
+       <widget class="QComboBox" name="cbAlgorithmType">
         <item>
          <property name="text">
           <string>Backprojection  (CUDA)</string>
@@ -650,21 +650,21 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="label_2">
+       <widget class="QLabel" name="lbAlgorithmType">
         <property name="text">
          <string>Type</string>
         </property>
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="AlgorithmIterationsLabel">
+       <widget class="QLabel" name="lbAlgorithmIterations">
         <property name="text">
          <string>Iterations</string>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QSpinBox" name="AlgorithmIterations">
+       <widget class="QSpinBox" name="sbAlgorithmIterations">
         <property name="minimum">
          <number>1</number>
         </property>
@@ -677,7 +677,7 @@
        </widget>
       </item>
       <item row="3" column="0" colspan="2">
-       <widget class="QCheckBox" name="InitWithFDK">
+       <widget class="QCheckBox" name="cbInitWithFDK">
         <property name="text">
          <string>Initialize with FDK</string>
         </property>
@@ -696,7 +696,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
       <item row="0" column="1">
-       <widget class="QLabel" name="label_3">
+       <widget class="QLabel" name="lbCorrectCenterOfRotationOffset">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
           <horstretch>0</horstretch>
@@ -715,7 +715,7 @@
        </widget>
       </item>
       <item row="0" column="2">
-       <widget class="QDoubleSpinBox" name="CorrectionCenterOfRotationOffset">
+       <widget class="QDoubleSpinBox" name="dsbCorrectCenterOfRotationOffset">
         <property name="decimals">
          <number>6</number>
         </property>
@@ -731,14 +731,14 @@
        </widget>
       </item>
       <item row="0" column="0">
-       <widget class="QCheckBox" name="CorrectionCenterOfRotation">
+       <widget class="QCheckBox" name="cbCorrectCenterOfRotation">
         <property name="text">
          <string>Center of Rotation Correction</string>
         </property>
        </widget>
       </item>
       <item row="1" column="0" colspan="3">
-       <widget class="QLabel" name="CorrectionHint">
+       <widget class="QLabel" name="lbCorrectionHint">
         <property name="autoFillBackground">
          <bool>true</bool>
         </property>
@@ -763,30 +763,30 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>ProjGeomType</tabstop>
-  <tabstop>pushButton</tabstop>
-  <tabstop>ProjGeomDistOriginDetector</tabstop>
-  <tabstop>ProjGeomDistOriginSource</tabstop>
-  <tabstop>ProjGeomDetectorPixelsX</tabstop>
-  <tabstop>ProjGeomDetectorPixelsY</tabstop>
-  <tabstop>ProjGeomDetectorSpacingX</tabstop>
-  <tabstop>ProjGeomDetectorSpacingY</tabstop>
-  <tabstop>ProjGeomProjAngleStart</tabstop>
-  <tabstop>ProjGeomProjAngleEnd</tabstop>
-  <tabstop>ProjGeomProjCount</tabstop>
-  <tabstop>VolGeomDimensionX</tabstop>
-  <tabstop>VolGeomDimensionY</tabstop>
-  <tabstop>VolGeomDimensionZ</tabstop>
-  <tabstop>VolGeomSpacingX</tabstop>
-  <tabstop>VolGeomSpacingY</tabstop>
-  <tabstop>VolGeomSpacingZ</tabstop>
-  <tabstop>ProjInputDetectorColDim</tabstop>
-  <tabstop>ProjInputDetectorRowDim</tabstop>
-  <tabstop>ProjInputProjAngleDim</tabstop>
-  <tabstop>AlgorithmType</tabstop>
-  <tabstop>AlgorithmIterations</tabstop>
-  <tabstop>CorrectionCenterOfRotation</tabstop>
-  <tabstop>CorrectionCenterOfRotationOffset</tabstop>
+  <tabstop>cbProjGeomType</tabstop>
+  <tabstop>pbVectorGeometry</tabstop>
+  <tabstop>dsbProjGeomDistOriginDetector</tabstop>
+  <tabstop>dsbProjGeomDistOriginSource</tabstop>
+  <tabstop>sbProjGeomDetectorPixelsX</tabstop>
+  <tabstop>sbProjGeomDetectorPixelsY</tabstop>
+  <tabstop>dsbProjGeomDetectorSpacingX</tabstop>
+  <tabstop>dsbProjGeomDetectorSpacingY</tabstop>
+  <tabstop>dsbProjGeomProjAngleStart</tabstop>
+  <tabstop>dsbProjGeomProjAngleEnd</tabstop>
+  <tabstop>sbProjGeomProjCount</tabstop>
+  <tabstop>sbVolGeomDimensionX</tabstop>
+  <tabstop>sbVolGeomDimensionY</tabstop>
+  <tabstop>sbVolGeomDimensionZ</tabstop>
+  <tabstop>dsbVolGeomSpacingX</tabstop>
+  <tabstop>dsbVolGeomSpacingY</tabstop>
+  <tabstop>dsbVolGeomSpacingZ</tabstop>
+  <tabstop>cbProjInputDetectorColDim</tabstop>
+  <tabstop>cbProjInputDetectorRowDim</tabstop>
+  <tabstop>cbProjInputProjAngleDim</tabstop>
+  <tabstop>cbAlgorithmType</tabstop>
+  <tabstop>sbAlgorithmIterations</tabstop>
+  <tabstop>cbCorrectCenterOfRotation</tabstop>
+  <tabstop>dsbCorrectCenterOfRotationOffset</tabstop>
  </tabstops>
  <resources/>
  <connections>

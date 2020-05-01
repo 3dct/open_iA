@@ -645,35 +645,35 @@ bool iAASTRAFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QMap
 	if (dlg.exec() != QDialog::Accepted)
 		return false;
 
-	parameters[ProjGeometry] = dlg.ProjGeomType->currentText();
-	parameters[DetSpcX] = dlg.ProjGeomDetectorSpacingX->value();
-	parameters[DetSpcY] = dlg.ProjGeomDetectorSpacingY->value();
-	parameters[ProjAngleStart] = dlg.ProjGeomProjAngleStart->value();
-	parameters[ProjAngleEnd] = dlg.ProjGeomProjAngleEnd->value();
-	parameters[DstOrigDet] = dlg.ProjGeomDistOriginDetector->value();
-	parameters[DstOrigSrc] = dlg.ProjGeomDistOriginSource->value();
+	parameters[ProjGeometry] = dlg.cbProjGeomType->currentText();
+	parameters[DetSpcX] = dlg.dsbProjGeomDetectorSpacingX->value();
+	parameters[DetSpcY] = dlg.dsbProjGeomDetectorSpacingY->value();
+	parameters[ProjAngleStart] = dlg.dsbProjGeomProjAngleStart->value();
+	parameters[ProjAngleEnd] = dlg.dsbProjGeomProjAngleEnd->value();
+	parameters[DstOrigDet] = dlg.dsbProjGeomDistOriginDetector->value();
+	parameters[DstOrigSrc] = dlg.dsbProjGeomDistOriginSource->value();
 	if (filter->name() == "ASTRA Forward Projection")
 	{
-		parameters[DetRowCnt] = dlg.ProjGeomDetectorPixelsY->value();
-		parameters[DetColCnt] = dlg.ProjGeomDetectorPixelsX->value();
-		parameters[ProjAngleCnt] = dlg.ProjGeomProjCount->value();
+		parameters[DetRowCnt] = dlg.sbProjGeomDetectorPixelsY->value();
+		parameters[DetColCnt] = dlg.sbProjGeomDetectorPixelsX->value();
+		parameters[ProjAngleCnt] = dlg.sbProjGeomProjCount->value();
 	}
 	else    // Reconstruction:
 	{
-		int detRowDim = dlg.ProjInputDetectorRowDim->currentIndex();
-		int detColDim = dlg.ProjInputDetectorColDim->currentIndex();
-		int projAngleDim = dlg.ProjInputProjAngleDim->currentIndex();
-		parameters[VolDimX] = dlg.VolGeomDimensionX->value();
-		parameters[VolDimY] = dlg.VolGeomDimensionY->value();
-		parameters[VolDimZ] = dlg.VolGeomDimensionZ->value();
-		parameters[VolSpcX] = dlg.VolGeomSpacingX->value();
-		parameters[VolSpcY] = dlg.VolGeomSpacingY->value();
-		parameters[VolSpcZ] = dlg.VolGeomSpacingZ->value();
-		parameters[AlgoType] = mapAlgoIndexToString(dlg.AlgorithmType->currentIndex());
-		parameters[NumberOfIterations] = dlg.AlgorithmIterations->value();
-		parameters[InitWithFDK] = dlg.InitWithFDK->isChecked();
-		parameters[CenterOfRotCorr] = dlg.CorrectionCenterOfRotation->isChecked();
-		parameters[CenterOfRotOfs] = dlg.CorrectionCenterOfRotationOffset->value();
+		int detRowDim = dlg.cbProjInputDetectorRowDim->currentIndex();
+		int detColDim = dlg.cbProjInputDetectorColDim->currentIndex();
+		int projAngleDim = dlg.cbProjInputProjAngleDim->currentIndex();
+		parameters[VolDimX] = dlg.sbVolGeomDimensionX->value();
+		parameters[VolDimY] = dlg.sbVolGeomDimensionY->value();
+		parameters[VolDimZ] = dlg.sbVolGeomDimensionZ->value();
+		parameters[VolSpcX] = dlg.dsbVolGeomSpacingX->value();
+		parameters[VolSpcY] = dlg.dsbVolGeomSpacingY->value();
+		parameters[VolSpcZ] = dlg.dsbVolGeomSpacingZ->value();
+		parameters[AlgoType] = mapAlgoIndexToString(dlg.cbAlgorithmType->currentIndex());
+		parameters[NumberOfIterations] = dlg.sbAlgorithmIterations->value();
+		parameters[InitWithFDK] = dlg.cbInitWithFDK->isChecked();
+		parameters[CenterOfRotCorr] = dlg.cbCorrectCenterOfRotation->isChecked();
+		parameters[CenterOfRotOfs] = dlg.dsbCorrectCenterOfRotationOffset->value();
 		if ((detColDim % 3) == (detRowDim % 3) || (detColDim % 3) == (projAngleDim % 3) || (detRowDim % 3) == (projAngleDim % 3))
 		{
 			QMessageBox::warning(mainWnd, "ASTRA", "One of the axes (x, y, z) has been specified for more than one usage out of "
