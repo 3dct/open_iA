@@ -44,7 +44,7 @@ void iAAdaptiveThresholdModuleInterface::Initialize()
 	QAction * determineThreshold = new QAction( m_mainWnd );
 	determineThreshold->setText( QApplication::translate( "MainWindow", "Adaptive Thresholding", 0 ) );
 	AddActionToMenuAlphabeticallySorted(toolsMenu,  determineThreshold, true);
-	connect( determineThreshold, SIGNAL( triggered() ), this, SLOT( determineThreshold() ) );
+	connect(determineThreshold, &QAction::triggered, this, &iAAdaptiveThresholdModuleInterface::determineThreshold);
 }
 
 /*
