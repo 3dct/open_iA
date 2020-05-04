@@ -83,32 +83,32 @@ iASSView::iASSView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_SSViewSettings->cbDeviation->setCurrentIndex( settings.value( "PorosityAnalyser/GUI/Deviation", 0 ).toInt() );
 	m_deviationMode = m_SSViewSettings->cbDeviation->currentIndex();
 
-	connect( sbNum, SIGNAL( valueChanged( int ) ), this, SLOT( setSliceSpinBox( int ) ) );
-	connect( verticalScrollBar, SIGNAL( valueChanged( int ) ), this, SLOT( setSliceScrollBar( int ) ) );
-	connect( cbDir, SIGNAL( currentIndexChanged( int ) ), this, SLOT( setSlicerDirection( int ) ) );
-	connect( m_SSViewSettings->cbShowMasks, SIGNAL( stateChanged( int ) ), this, SLOT( setShowMasks( int ) ) );
-	connect( m_SSViewSettings->sMasksOpacity, SIGNAL( valueChanged( int ) ), this, SLOT( setMasksOpacity( int ) ) );
-	connect( m_SSViewSettings->cbShowGT, SIGNAL( stateChanged( int ) ), this, SLOT( setShowGT( int ) ) );
-	connect( m_SSViewSettings->sGTOpacity, SIGNAL( valueChanged( int ) ), this, SLOT( setGTOpacity( int ) ) );
-	connect( m_SSViewSettings->cbShowContours, SIGNAL( stateChanged( int ) ), this, SLOT( setShowContours( int ) ) );
-	connect( m_SSViewSettings->cbShowVolume, SIGNAL( stateChanged( int ) ), this, SLOT( setShowVolume( int ) ) );
-	connect( m_SSViewSettings->cbShowSurface, SIGNAL( stateChanged( int ) ), this, SLOT( setShowSurface( int ) ) );
-	connect( m_SSViewSettings->cbShowWireframe, SIGNAL( stateChanged( int ) ), this, SLOT( setShowWireframe( int ) ) );
-	connect( m_SSViewSettings->cbDeviation, SIGNAL( currentIndexChanged( int ) ), this, SLOT( setDeviationMode( int ) ) );
-	connect( m_SSViewSettings->sSensitivity, SIGNAL( valueChanged( int ) ), this, SLOT( setSensitivity( int ) ) );
+	connect(sbNum, QOverload<int>::of(&QSpinBox::valueChanged), this, &iASSView::setSliceSpinBox);
+	connect(verticalScrollBar, &QScrollBar::valueChanged, this, &iASSView::setSliceScrollBar);
+	connect(cbDir, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iASSView::setSlicerDirection);
+	connect(m_SSViewSettings->cbShowMasks, &QCheckBox::stateChanged, this, &iASSView::setShowMasks);
+	connect(m_SSViewSettings->sMasksOpacity, &QSlider::valueChanged, this, &iASSView::setMasksOpacity);
+	connect(m_SSViewSettings->cbShowGT, &QCheckBox::stateChanged, this, &iASSView::setShowGT);
+	connect(m_SSViewSettings->sGTOpacity, &QSlider::valueChanged, this, &iASSView::setGTOpacity);
+	connect(m_SSViewSettings->cbShowContours, &QCheckBox::stateChanged, this, &iASSView::setShowContours);
+	connect(m_SSViewSettings->cbShowVolume, &QCheckBox::stateChanged, this, &iASSView::setShowVolume);
+	connect(m_SSViewSettings->cbShowSurface, &QCheckBox::stateChanged, this, &iASSView::setShowSurface);
+	connect(m_SSViewSettings->cbShowWireframe, &QCheckBox::stateChanged, this, &iASSView::setShowWireframe);
+	connect(m_SSViewSettings->cbDeviation, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iASSView::setDeviationMode);
+	connect(m_SSViewSettings->sSensitivity, &QSlider::valueChanged, this, &iASSView::setSensitivity);
 
-	connect( m_SSViewSettings->cbShowMasks, SIGNAL( stateChanged( int ) ), this, SLOT( updateSettings() ) );
-	connect( m_SSViewSettings->sMasksOpacity, SIGNAL( valueChanged( int ) ), this, SLOT( updateSettings() ) );
-	connect( m_SSViewSettings->cbShowGT, SIGNAL( stateChanged( int ) ), this, SLOT( updateSettings() ) );
-	connect( m_SSViewSettings->sGTOpacity, SIGNAL( valueChanged( int ) ), this, SLOT( updateSettings() ) );
-	connect( m_SSViewSettings->cbShowContours, SIGNAL( stateChanged( int ) ), this, SLOT( updateSettings() ) );
-	connect( m_SSViewSettings->cbShowVolume, SIGNAL( stateChanged( int ) ), this, SLOT( updateSettings() ) );
-	connect( m_SSViewSettings->cbShowSurface, SIGNAL( stateChanged( int ) ), this, SLOT( updateSettings() ) );
-	connect( m_SSViewSettings->cbShowWireframe, SIGNAL( stateChanged( int ) ), this, SLOT( updateSettings() ) );
-	connect( m_SSViewSettings->cbDeviation, SIGNAL( currentIndexChanged( int ) ), this, SLOT( updateSettings() ) );
-	connect( m_SSViewSettings->sSensitivity, SIGNAL( valueChanged( int ) ), this, SLOT( updateSettings() ) );
+	connect(m_SSViewSettings->cbShowMasks, &QCheckBox::stateChanged, this, &iASSView::updateSettings);
+	connect(m_SSViewSettings->sMasksOpacity, &QSlider::valueChanged, this, &iASSView::updateSettings);
+	connect(m_SSViewSettings->cbShowGT, &QCheckBox::stateChanged, this,   &iASSView::updateSettings);
+	connect(m_SSViewSettings->sGTOpacity, &QSlider::valueChanged, this, &iASSView::updateSettings);
+	connect(m_SSViewSettings->cbShowContours, &QCheckBox::stateChanged, this, &iASSView::updateSettings);
+	connect(m_SSViewSettings->cbShowVolume, &QCheckBox::stateChanged, this, &iASSView::updateSettings);
+	connect(m_SSViewSettings->cbShowSurface, &QCheckBox::stateChanged, this, &iASSView::updateSettings);
+	connect(m_SSViewSettings->cbShowWireframe, &QCheckBox::stateChanged, this, &iASSView::updateSettings);
+	connect(m_SSViewSettings->cbDeviation, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iASSView::updateSettings);
+	connect(m_SSViewSettings->sSensitivity, &QSlider::valueChanged, this, &iASSView::updateSettings);
 
-	connect( tbSettings, SIGNAL( clicked() ), this, SLOT( showSettings() ) );
+	connect(tbSettings, &QToolButton::clicked, this, &iASSView::showSettings);
 }
 
 iASSView::~iASSView()
@@ -234,9 +234,9 @@ void iASSView::SetData( const QTableWidget * dataTable, QString selText )
 
 	iASSSlicer * view = new iASSSlicer( selText, m_slicerTransform);
 	m_slicerViewsLayout->addWidget( view->container );
-	connect( sbRot, SIGNAL( valueChanged( double ) ), view->slicer, SLOT( rotateSlice( double ) ) );
-	connect( pushSave, SIGNAL( clicked() ), view->slicer, SLOT( saveAsImage() ) );
-	connect( pushMov, SIGNAL( clicked() ), view->slicer, SLOT( saveMovie() ) );
+	connect(sbRot, QOverload<double>::of(&QDoubleSpinBox::valueChanged), view->slicer, &iASlicer::rotateSlice);
+	connect(pushSave, &QToolButton::clicked, view->slicer, &iASlicer::saveAsImage);
+	connect(pushMov, &QToolButton::clicked, view->slicer, &iASlicer::saveMovie);
 	m_slicerViews.push_back( view );
 
 	LoadDataToSlicer(view, dataTable);
@@ -257,9 +257,9 @@ void iASSView::SetCompareData( const QList< QPair<QTableWidget *, QString> > * d
 	{
 		iASSSlicer * view = new iASSSlicer( (*dataList)[i].second, m_slicerTransform ) ;
 		m_slicerViewsLayout->addWidget( view->container );
-		connect( sbRot, SIGNAL( valueChanged( double ) ), view->slicer, SLOT( rotateSlice( double ) ) );
-		connect( pushSave, SIGNAL( clicked() ), view->slicer, SLOT( saveAsImage() ) );
-		connect( pushMov, SIGNAL( clicked() ), view->slicer, SLOT( saveMovie() ) );
+		connect(sbRot, QOverload<double>::of(&QDoubleSpinBox::valueChanged), view->slicer, &iASlicer::rotateSlice);
+		connect(pushSave, &QToolButton::clicked, view->slicer, &iASlicer::saveAsImage);
+		connect(pushMov,  &QToolButton::clicked, view->slicer, &iASlicer::saveMovie);
 		m_slicerViews.push_back( view );
 		LoadDataToSlicer( view, ( *dataList )[i].first );
 	}

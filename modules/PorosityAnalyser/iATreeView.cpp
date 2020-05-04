@@ -50,18 +50,18 @@ iATreeView::iATreeView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_contextMenu->addAction( "=> Pipeline/Dataset Matrix", this, SLOT( loadSelectionToPDM() ) );
 	m_contextMenu->addAction( "=> Range Slider Diagram", this, SLOT( forwardRSDSelection() ) );
 	m_contextMenu->addAction( "=> Slice Segmentation View", this, SLOT( loadSelectionToSS() ) );
-	connect( treeWidget, SIGNAL( itemCollapsed( QTreeWidgetItem* ) ), this, SLOT( adjustTreeWidgetColumnWidths() ) );
-	connect( treeWidget, SIGNAL( itemExpanded( QTreeWidgetItem* ) ), this, SLOT( adjustTreeWidgetColumnWidths() ) );
+	connect(treeWidget, &QTreeWidget::itemCollapsed, this, &iATreeView::adjustTreeWidgetColumnWidths);
+	connect(treeWidget, &QTreeWidget::itemExpanded, this, &iATreeView::adjustTreeWidgetColumnWidths);
 
 	filterWidget->hide();
 	lwFiltDataset->setSelectionMode( QAbstractItemView::ExtendedSelection );
 	lwFiltPipeline->setSelectionMode( QAbstractItemView::ExtendedSelection );
-	connect( tbFiltering, SIGNAL( clicked( bool ) ), this, SLOT( filteringShow( bool ) ) );
-	connect( cbFiltDataset, SIGNAL( clicked() ), this, SLOT( applyFilter() ) );
-	connect( cbFiltPipeline, SIGNAL( clicked() ), this, SLOT( applyFilter() ) );
-	connect( lwFiltDataset, SIGNAL( itemChanged( QListWidgetItem * ) ), this, SLOT( applyFilter() ) );
-	connect( lwFiltPipeline, SIGNAL( itemChanged( QListWidgetItem * ) ), this, SLOT( applyFilter() ) );
-	connect( cbGrouping, SIGNAL( currentIndexChanged( int ) ), this, SLOT( applyFilter() ) );
+	connect(tbFiltering, &QToolButton::clicked, this, &iATreeView::filteringShow);
+	connect(cbFiltDataset, &QCheckBox::clicked, this, &iATreeView::applyFilter);
+	connect(cbFiltPipeline, &QCheckBox::clicked, this, &iATreeView::applyFilter);
+	connect(lwFiltDataset,  &QListWidget::itemChanged, this, &iATreeView::applyFilter);
+	connect(lwFiltPipeline, &QListWidget::itemChanged, this, &iATreeView::applyFilter);
+	connect(cbGrouping, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iATreeView::applyFilter);
 }
 
 iATreeView::~iATreeView()

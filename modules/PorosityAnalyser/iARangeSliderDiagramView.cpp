@@ -207,14 +207,14 @@ void iARangeSliderDiagramView::addComboBoxes()
 	comboBoxSizePolicy.setHorizontalStretch( 0 );
 	comboBoxSizePolicy.setVerticalStretch( 0 );
 	comboBoxSizePolicy.setHeightForWidth( m_cbPorDev->sizePolicy().hasHeightForWidth() );
-	connect( m_cbPorDev, SIGNAL( currentIndexChanged( int ) ), this, SLOT( updateDiagrams() ) );
+	connect(m_cbPorDev, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iARangeSliderDiagramView::updateDiagrams);
 	m_cbPorDev->setSizePolicy( comboBoxSizePolicy );
 	m_layoutHBComboBoxes->addWidget( m_cbPorDev );
 
 	m_cbStatisticMeasurements = new QComboBox();
 	m_cbStatisticMeasurements->addItem( "Median" );
 	m_cbStatisticMeasurements->addItem( "Mean" );
-	connect( m_cbStatisticMeasurements, SIGNAL( currentIndexChanged( int ) ), this, SLOT( updateDiagrams() ) );
+	connect( m_cbStatisticMeasurements, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iARangeSliderDiagramView::updateDiagrams);
 	m_cbStatisticMeasurements->setSizePolicy( comboBoxSizePolicy );
 	m_layoutHBComboBoxes->addWidget( m_cbStatisticMeasurements );
 
@@ -376,9 +376,9 @@ void iARangeSliderDiagramView::setupDiagrams()
 															m_oTFList.last(), m_cTFList.last(), m_rangeSliderData,
 															&m_histogramMap, m_rawTable, mapIt.key(), m_cbPorDev->currentText() );
 
-		connect( m_widgetList[0], SIGNAL( selected() ), rangeSliderDiagramWidget, SLOT( selectSlot() ) );
-		connect( m_widgetList[0], SIGNAL( deselected() ), rangeSliderDiagramWidget, SLOT( deleteSlot() ) );
-		connect( rangeSliderDiagramWidget, SIGNAL( selectionRelesedSignal() ), this, SLOT( loadSelectionToSPMView() ) );
+		connect( m_widgetList[0], &iARangeSliderDiagramWidget::selected, rangeSliderDiagramWidget,    &iARangeSliderDiagramWidget::selectSlot);
+		connect( m_widgetList[0], &iARangeSliderDiagramWidget::deselected, rangeSliderDiagramWidget,  &iARangeSliderDiagramWidget::deleteSlot);
+		connect( rangeSliderDiagramWidget, &iARangeSliderDiagramWidget::selectionRelesedSignal, this, &iARangeSliderDiagramView::loadSelectionToSPMView);
 
 		rangeSliderDiagramWidget->addPlot( m_rangeSliderDiagramDrawer );
 		m_widgetList.append( rangeSliderDiagramWidget );

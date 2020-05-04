@@ -25,17 +25,20 @@ iASelectionsView::iASelectionsView( QWidget * parent /*= 0*/, Qt::WindowFlags f 
 	m_curSelection( new iASelection() ),
 	m_selCounter( 1 )
 {
-	connect( tbCreate, SIGNAL( clicked() ), this, SLOT( saveCurrentSelection() ) );
-	connect( tbSwitch, SIGNAL( clicked() ), this, SLOT( loadSelection() ) );
-	connect( tbDelete, SIGNAL( clicked() ), this, SLOT( deleteSelection() ) );
-	connect( tbAddVis, SIGNAL( clicked() ), this, SLOT( visualizeSelectionSlot() ) );
-	connect( tbCompare, SIGNAL( clicked() ), this, SLOT( compareSelectionsSlot() ) );
+	connect(tbCreate, &QToolButton::clicked, this, &iASelectionsView::saveCurrentSelection);
+	connect(tbSwitch, &QToolButton::clicked, this, &iASelectionsView::loadSelection);
+	connect(tbDelete, &QToolButton::clicked, this, &iASelectionsView::deleteSelection);
+	connect(tbAddVis, &QToolButton::clicked, this, &iASelectionsView::visualizeSelectionSlot);
+	connect(tbCompare, &QToolButton::clicked, this, &iASelectionsView::compareSelectionsSlot);
 }
 
 iASelectionsView::~iASelectionsView()
 {
-	for( int i = 0; i < m_selections.size(); ++i )
+	for (int i = 0; i < m_selections.size(); ++i)
+	{
+
 		delete m_selections[i];
+	}
 }
 
 void iASelectionsView::selectionModifiedTreeView( QList<QTreeWidgetItem*> * selItems )

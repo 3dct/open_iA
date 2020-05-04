@@ -473,10 +473,10 @@ void dlg_ParamSpaceSampling::createHistoSpinBoxes()
 	m_cbSHLine = new QCheckBox( histoBtnContainer );
 	m_cbSHLine->setToolTip( "<p>Shows the smoothed histogram peak line.</p>" );
 
-	QObject::connect( sbDelta, SIGNAL( valueChanged( int ) ), this, SLOT( updateHistoPeaks( int ) ) );
-	QObject::connect( sbSigma, SIGNAL( valueChanged( int ) ), this, SLOT( updateHistoSmooth( int ) ) );
-	QObject::connect( m_sbIsoX, SIGNAL( valueChanged( int ) ), this, SLOT( updateIsoXPeak( int ) ) );
-	QObject::connect( m_cbSHLine, SIGNAL( stateChanged( int ) ), this, SLOT( updateSHLine( int ) ) );
+	QObject::connect(sbDelta, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_ParamSpaceSampling::updateHistoPeaks);
+	QObject::connect(sbSigma, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_ParamSpaceSampling::updateHistoSmooth);
+	QObject::connect(m_sbIsoX, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_ParamSpaceSampling::updateIsoXPeak);
+	QObject::connect(m_cbSHLine, &QCheckBox::stateChanged, this, &dlg_ParamSpaceSampling::updateSHLine);
 
 	histogramBtnContainer_HBLayout->addWidget( sbDelta_Label );
 	histogramBtnContainer_HBLayout->addWidget( sbDelta );

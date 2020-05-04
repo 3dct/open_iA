@@ -47,12 +47,12 @@ public slots:
 	void LoadDatasets();
 	void clear();
 	void SetMask( const QPixmap * mask, int datasetIndex = -1 );
+	void SetSlice( int slice );
 
 protected slots:
 	void ROIChangedSlot( QRectF roi );
 	void UpdatePixmap();
 	void DatasetChanged();
-	void SetSlice( int slice );
 
 signals:
 	void roiChanged( QList<QRectF> roi );

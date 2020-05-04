@@ -88,13 +88,13 @@ iASPMView::iASPMView(MainWindow *mWnd,  QWidget * parent /*= 0*/, Qt::WindowFlag
 
 	initScalarBar();
 
-	connect(tbSettings, SIGNAL(clicked()), m_splom, SLOT(showSettings()));
+	connect(tbSettings, &QToolButton::clicked, m_splom, &iAPAQSplom::showSettings);
 
-	connect( m_splom, &iAQSplom::selectionModified, this, &iASPMView::selectionUpdated );
-	connect( m_splom, SIGNAL( previewSliceChanged( int ) ), this, SIGNAL( previewSliceChanged( int ) ) );
-	connect( m_splom, SIGNAL( sliceCountChanged( int ) ), this, SIGNAL( sliceCountChanged( int ) ) );
-	connect( m_splom, SIGNAL( maskHovered( const QPixmap *, int ) ), this, SIGNAL( maskHovered( const QPixmap *, int ) ) );
-	connect( m_splom, SIGNAL( lookupTableChanged()), this, SLOT( applyLookupTable() ));
+	connect(m_splom, &iAQSplom::selectionModified, this, &iASPMView::selectionUpdated );
+	connect(m_splom, &iAPAQSplom::previewSliceChanged, this, &iASPMView::previewSliceChanged);
+	connect(m_splom, &iAPAQSplom::sliceCountChanged, this, &iASPMView::sliceCountChanged);
+	connect(m_splom, &iAPAQSplom::maskHovered, this, &iASPMView::maskHovered);
+	connect(m_splom, &iAQSplom::lookupTableChanged, this, &iASPMView::applyLookupTable);
 }
 
 void iASPMView::initScalarBar()

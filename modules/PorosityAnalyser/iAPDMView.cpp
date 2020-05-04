@@ -87,10 +87,10 @@ iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	tableWidget->verticalHeader()->setVisible( true );
 	tableWidget->horizontalHeader()->setVisible( true );
 	cbRepresentation->setEnabled( false );
-	connect( cbRepresentation, SIGNAL( currentIndexChanged( int ) ), this, SLOT( UpdateTable() ) );
-	connect( cbTableFit, SIGNAL( currentIndexChanged( int ) ), this, SLOT( FitTable() ) );
-	connect( cbPorosityRange, SIGNAL( currentIndexChanged( int ) ), this, SLOT( UpdateRepresentation() ) );
-	connect( this->dsbCMRange, SIGNAL( valueChanged( double ) ), this, SLOT( UpdateColormapSettings( double ) ) );
+	connect( cbRepresentation, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAPDMView::UpdateTable);
+	connect( cbTableFit, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAPDMView::FitTable);
+	connect( cbPorosityRange, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAPDMView::UpdateRepresentation);
+	connect( dsbCMRange, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &iAPDMView::UpdateColormapSettings);
 }
 
 iAPDMView::~iAPDMView()

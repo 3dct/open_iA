@@ -33,33 +33,37 @@
 void iAParameterExplorerModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
+	{
 		return;
+	}
 
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
 	QAction * actionExplore = new QAction( m_mainWnd );
 	actionExplore->setText(QApplication::translate("MainWindow", "Parameter Explorer", 0));
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionExplore, true);
-	connect(actionExplore, SIGNAL(triggered()), this, SLOT(StartParameterExplorer()));
+	connect(actionExplore, &QAction::triggered, this, &iAParameterExplorerModuleInterface::StartParameterExplorer);
 
 	QAction * actionLoad = new QAction(m_mainWnd);
 	actionLoad->setText(QApplication::translate("MainWindow", "Load Parameter Explorer State", 0));
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionLoad, false);
-	connect(actionLoad, SIGNAL(triggered()), this, SLOT(LoadState()));
+	connect(actionLoad, &QAction::triggered, this, &iAParameterExplorerModuleInterface::LoadState);
 }
 
 void iAParameterExplorerModuleInterface::SetupToolBar()
 {
 	if (m_toolBar)
+	{
 		return;
+	}
 	m_toolBar = new iAParamToolBar("Parameter Explorer Toolbar");
 	m_toolBar->action_ToggleTitleBar->setCheckable(true);
 	m_toolBar->action_ToggleTitleBar->setChecked(true);
-	connect(m_toolBar->action_ToggleTitleBar, SIGNAL(triggered()), this, SLOT(ToggleDockWidgetTitleBars()));
+	connect(m_toolBar->action_ToggleTitleBar, &QAction::triggered, this, &iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars);
 	m_toolBar->action_ToggleSettings->setCheckable(true);
 	m_toolBar->action_ToggleSettings->setChecked(true);
-	connect(m_toolBar->action_ToggleSettings, SIGNAL(triggered()), this, SLOT(ToggleSettings()));
-	connect(m_toolBar->action_SaveState, SIGNAL(triggered()), this, SLOT(SaveState()));
+	connect(m_toolBar->action_ToggleSettings, &QAction::triggered, this, &iAParameterExplorerModuleInterface::ToggleSettings);
+	connect(m_toolBar->action_SaveState, &QAction::triggered, this, &iAParameterExplorerModuleInterface::SaveState);
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolBar);
 }
 
@@ -95,7 +99,9 @@ void iAParameterExplorerModuleInterface::StartParameterExplorer()
 	QString csvFileName = QFileDialog::getOpenFileName(m_mainWnd,
 		tr("Select CSV File"), m_mdiChild->filePath(), tr("CSV Files (*.csv);;"));
 	if (csvFileName.isEmpty())
+	{
 		return;
+	}
 	CreateAttachment(csvFileName, m_mdiChild);
 }
 
@@ -111,7 +117,9 @@ void iAParameterExplorerModuleInterface::SaveState()
 	QString stateFileName = QFileDialog::getSaveFileName(m_mainWnd, "Save Parameter Explorer State",
 		m_mdiChild->filePath(), "Parameter Explorer State (*.pes);;");
 	if (stateFileName.isEmpty())
+	{
 		return;
+	}
 	QSettings stateFileSettings(stateFileName, QSettings::IniFormat);
 	QFileInfo stateFileInfo(stateFileName);
 	stateFileSettings.setValue("Reference", MakeRelative(stateFileInfo.absolutePath(), m_mdiChild->currentFile()));
@@ -125,7 +133,9 @@ void iAParameterExplorerModuleInterface::LoadState()
 	QString stateFileName = QFileDialog::getOpenFileName(m_mainWnd, "Save Parameter Explorer State",
 		"", "Parameter Explorer State (*.pes);;");
 	if (stateFileName.isEmpty())
+	{
 		return;
+	}
 	QFileInfo stateFileInfo(stateFileName);
 	QSettings stateFileSettings(stateFileName, QSettings::IniFormat);
 	QString refFileName = MakeAbsolute(stateFileInfo.absolutePath(), stateFileSettings.value("Reference").toString());
@@ -154,7 +164,9 @@ void iAParameterExplorerModuleInterface::ContinueStateLoading()
 	QSettings stateFileSettings(stateFileName, QSettings::IniFormat);
 	QString csvFileName = MakeAbsolute(stateFileInfo.absolutePath(), stateFileSettings.value("CSVFile").toString());
 	if (!CreateAttachment(csvFileName, child))
+	{
 		return;
+	}
 	attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!attach)
 	{
@@ -172,7 +184,9 @@ bool iAParameterExplorerModuleInterface::CreateAttachment(QString const & csvFil
 	bool result = AttachToMdiChild(child);
 	m_mdiChild = child;
 	if (!result)
+	{
 		return false;
+	}
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!attach)
 	{

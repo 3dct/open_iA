@@ -51,8 +51,10 @@ namespace
 
 iACalculatePoreProperties::iACalculatePoreProperties( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) : PorePropertiesConnector( parent, f )
 {
-	for( int i = 0; i < numThreads; i++ )
+	for (int i = 0; i < numThreads; i++)
+	{
 		m_calcThread[i] = 0;
+	}
 
 	//connect( tbOpenCSV, SIGNAL( clicked() ), this, SLOT( browseCSV() ) );
 	//connect( pbRunCalculations, SIGNAL( clicked() ), this, SLOT( CalculatePoreProperties() ) );

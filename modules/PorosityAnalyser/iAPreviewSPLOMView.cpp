@@ -40,11 +40,11 @@ iAPreviewSPLOMView::iAPreviewSPLOMView( QWidget * parent /*= 0*/, Qt::WindowFlag
 
 	spinBoxSliceNumber->setMinimum( 0 );
 
-	connect( m_preview, SIGNAL( roiChanged( QRectF ) ), this, SLOT( ROIChangedSlot( QRectF ) ) );
-	connect( m_preview, SIGNAL( sliceCountsChanged( QList<int> ) ), this, SIGNAL( sliceCountsChanged( QList<int> ) ) );
-	connect( spinBoxSliceNumber, SIGNAL( valueChanged( int ) ), this, SLOT( SetSlice( int ) ) );
-	connect( sliceScrollBar, SIGNAL( valueChanged( int ) ), this, SLOT( SetSlice( int ) ) );
-	connect( cbDatasets, SIGNAL( currentIndexChanged( int ) ), this, SLOT( DatasetChanged() ) );
+	connect(m_preview, &iAPreviewSPLOM::roiChanged, this, &iAPreviewSPLOMView::ROIChangedSlot);
+	connect(m_preview, &iAPreviewSPLOM::sliceCountsChanged, this, &iAPreviewSPLOMView::sliceCountsChanged);
+	connect(spinBoxSliceNumber, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAPreviewSPLOMView::SetSlice);
+	connect(sliceScrollBar, &QScrollBar::valueChanged, this, &iAPreviewSPLOMView::SetSlice);
+	connect(cbDatasets, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAPreviewSPLOMView::DatasetChanged);
 }
 
 void iAPreviewSPLOMView::SetDatasetsDir( const QString & datasetsFolder )
@@ -141,8 +141,10 @@ void iAPreviewSPLOMView::UpdatePixmap()
 
 void iAPreviewSPLOMView::DatasetChanged()
 {
-	if( !m_datasetsLoaded )
+	if (!m_datasetsLoaded)
+	{
 		return;
+	}
 	int dsInd = cbDatasets->currentIndex();
 	QString datasetFolder = m_datasetsDir + "/" + m_datasets[dsInd];
 	SetSliceCount( m_sliceCntLst[dsInd] );
@@ -153,8 +155,10 @@ void iAPreviewSPLOMView::DatasetChanged()
 
 void iAPreviewSPLOMView::SetSlice( int slice )
 {
-	if( !m_datasetsLoaded )
+	if (!m_datasetsLoaded)
+	{
 		return;
+	}
 	int dsInd = cbDatasets->currentIndex();
 	m_sliceNumberLst[dsInd] = slice;
 	SliceNumberChanged();

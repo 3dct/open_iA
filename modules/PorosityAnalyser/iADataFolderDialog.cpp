@@ -35,9 +35,9 @@ iADataFolderDialog::iADataFolderDialog( QWidget * parent /*= 0*/, Qt::WindowFlag
 	dataFolder->setText( settings.value( "PorosityAnalyser/GUI/resultsFolder", "" ).toString() );
 	datasetsFolder->setText( settings.value( "PorosityAnalyser/GUI/datasetsFolder", "" ).toString() );
 
-	connect( tbOpenDataFolder, SIGNAL( clicked() ), this, SLOT( browseDataFolder() ) );
-	connect( tbOpenDatasetsFolder, SIGNAL( clicked() ), this, SLOT( browseDatasetsFolder() ) );
-	connect( buttonBox, &QDialogButtonBox::accepted, this, &iADataFolderDialog::okBtnClicked );
+	connect(tbOpenDataFolder, &QToolButton::clicked, this, &iADataFolderDialog::browseDataFolder);
+	connect(tbOpenDatasetsFolder, &QToolButton::clicked, this, &iADataFolderDialog::browseDatasetsFolder);
+	connect(buttonBox, &QDialogButtonBox::accepted, this, &iADataFolderDialog::okBtnClicked );
 }
 
 QString iADataFolderDialog::ResultsFolderName()

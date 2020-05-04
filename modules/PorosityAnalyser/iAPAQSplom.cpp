@@ -383,7 +383,7 @@ void iAPAQSplom::sendToFeatureScout()
 	if (!this->m_mdiChild)
 		return;
 	this->m_mdiChild->show();
-	connect(m_mdiChild, SIGNAL(histogramAvailable()), this, SLOT(startFeatureScout()));
+	connect(m_mdiChild, &MdiChild::histogramAvailable, this, &iAPAQSplom::startFeatureScout);
 	if (!m_mdiChild->loadFile(mhdName, false))
 	{
 		DEBUG_LOG(QString("File '%1' could not be loaded!").arg(mhdName));
@@ -409,7 +409,7 @@ void iAPAQSplom::startFeatureScout()
 	if (!featureScout)
 		return;
 	featureScout->LoadFeatureScoutWithParams(m_csvName, m_mdiChild);
-	disconnect(m_mdiChild, SIGNAL(histogramAvailable()), this, SLOT(startFeatureScout()));
+	disconnect(m_mdiChild, &MdiChild::histogramAvailable, this, &iAPAQSplom::startFeatureScout);
 }
 
 void iAPAQSplom::removeFixedPoint()
