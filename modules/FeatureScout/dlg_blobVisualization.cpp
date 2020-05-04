@@ -94,8 +94,8 @@ dlg_blobVisualization::dlg_blobVisualization (QWidget* parent) : QDialog (parent
 	mainLayout->addWidget (m_buttons);
 
 	// setup connections
-	connect (m_buttons, SIGNAL (accepted()), this, SLOT (accept()));
-	connect (m_buttons, SIGNAL (rejected()), this, SLOT (reject()));
+	connect (m_buttons, &QDialogButtonBox::accepted, this, &dlg_blobVisualization::accept);
+	connect (m_buttons, &QDialogButtonBox::rejected, this, &dlg_blobVisualization::reject);
 }
 
 dlg_blobVisualization::~dlg_blobVisualization (void)
