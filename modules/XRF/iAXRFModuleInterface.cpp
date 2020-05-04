@@ -33,7 +33,7 @@ void iAXRFModuleInterface::Initialize()
 	QAction * actionXRF = new QAction( m_mainWnd );
 	actionXRF->setText( QApplication::translate( "MainWindow", "InSpectr", 0 ) );
 	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionXRF );
-	connect(actionXRF, SIGNAL(triggered()), this, SLOT(XRF_Visualization()));
+	connect(actionXRF, &QAction::triggered, this, &iAXRFModuleInterface::XRF_Visualization);
 }
 
 bool iAXRFModuleInterface::XRF_Visualization()

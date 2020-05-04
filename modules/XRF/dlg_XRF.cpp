@@ -193,7 +193,7 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 	m_selectedBinXDrawer = QSharedPointer<iASelectedBinPlot>(new iASelectedBinPlot(m_voxelEnergy, 0, QColor(150, 0, 0, 50)));
 	m_selectedBinYDrawer = QSharedPointer<iASelectedBinPlot>(new iASelectedBinPlot(m_voxelEnergy, 0, QColor(0, 0, 150, 50)));
 
-	connect((iAChartTransferFunction*)(m_spectrumDiagram->functions()[0]), SIGNAL(Changed()), this, SLOT(SpectrumTFChanged()));
+	connect((iAChartTransferFunction*)(m_spectrumDiagram->functions()[0]), &iAChartTransferFunction::Changed, this, &dlg_XRF::SpectrumTFChanged);
 	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget");
 	spectrumChartContainer->setContentsMargins(0, 0, 0, 0);
 
@@ -268,11 +268,11 @@ void dlg_XRF::InitCommonGUI(iAWidgetAddHelper & widgetAddHelper)
 		rootDir + "elementSpectra/reference_library.reflib"));
 	m_refSpectra->getSpectraList()->setModel(m_refSpectraLib->getItemModel().data());
 	EnergyLoader::Load(rootDir + "characteristic-energies.cel", m_characteristicEnergies);
-	connect(m_refSpectra->getSpectraList(), SIGNAL(doubleClicked(QModelIndex)), this, SLOT(ReferenceSpectrumDoubleClicked(QModelIndex)), Qt::UniqueConnection);
-	connect(m_refSpectra->getSpectraList(), SIGNAL(clicked(QModelIndex)), this, SLOT(ReferenceSpectrumClicked(QModelIndex)), Qt::UniqueConnection );
-	connect(m_refSpectra->getSpectraList()->model(), SIGNAL(itemChanged ( QStandardItem *)), this, SLOT(ReferenceSpectrumItemChanged( QStandardItem *)), Qt::UniqueConnection);
-	connect(m_refSpectra->cb_showRefSpectra, SIGNAL( stateChanged(int) ), this, SLOT( showRefSpectraChanged(int) ) );
-	connect(m_refSpectra->cb_showRefLines, SIGNAL( stateChanged(int) ), this, SLOT( showRefLineChanged(int) ) );
+	connect(m_refSpectra->getSpectraList(), &QListView::doubleClicked, this, &dlg_XRF::ReferenceSpectrumDoubleClicked, Qt::UniqueConnection);
+	connect(m_refSpectra->getSpectraList(), &QListView::clicked, this, &dlg_XRF::ReferenceSpectrumClicked, Qt::UniqueConnection );
+	connect(m_refSpectraLib->getItemModel().data(), &QStandardItemModel::itemChanged, this, &dlg_XRF::ReferenceSpectrumItemChanged, Qt::UniqueConnection);
+	connect(m_refSpectra->cb_showRefSpectra, &QCheckBox::stateChanged, this, &dlg_XRF::showRefSpectraChanged);
+	connect(m_refSpectra->cb_showRefLines, &QCheckBox::stateChanged, this, &dlg_XRF::showRefLineChanged);
 
 	m_pieChart = new iAPieChartWidget(this);
 	m_pieChart->setObjectName(QString::fromUtf8("Composition"));
@@ -659,9 +659,9 @@ void dlg_XRF::decomposeElements()
 		return;
 	}
 	pb_decompose->setText("Stop");
-	connect(m_decompositionCalculator.data(), SIGNAL( success() ), this, SLOT (decompositionSuccess()) );
-	connect(m_decompositionCalculator.data(), SIGNAL( finished() ), this, SLOT (decompositionFinished()) );
-	connect(m_decompositionCalculator.data(), SIGNAL( progress(int) ), dynamic_cast<MdiChild*>(parent()), SLOT(updateProgressBar(int)) );
+	connect(m_decompositionCalculator.data(), &iADecompositionCalculator::success, this, &dlg_XRF::decompositionSuccess);
+	connect(m_decompositionCalculator.data(), &iADecompositionCalculator::finished, this, &dlg_XRF::decompositionFinished);
+	connect(m_decompositionCalculator.data(), &iADecompositionCalculator::progress, dynamic_cast<MdiChild*>(parent()), &MdiChild::updateProgressBar);
 	m_decompositionCalculator->start();
 	(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("Decomposition calculation started..."));
 }
