@@ -74,7 +74,7 @@ iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
 		m_expandButton->setFixedSize(TreeButtonWidth, TreeButtonHeight);
 		m_expandButton->setContentsMargins(QMargins(0, 0, 0, 0));
 		m_leftLayout->addWidget(m_expandButton);
-		connect(m_expandButton, SIGNAL(clicked()), this, SLOT(ExpandButtonClicked()));
+		connect(m_expandButton, &iATriangleButton::clicked, this, &iAImageNodeWidget::ExpandButtonClicked);
 	}
 	leftContainer->setLayout(m_leftLayout);
 
@@ -101,9 +101,9 @@ bool iAImageNodeWidget::CreatePreview(LabelImagePointer refImg)
 		return false;
 	}
 	UpdateRepresentative(refImg);
-	connect(m_imageView, SIGNAL(clicked()), this, SIGNAL(ImageClicked()));
-	connect(m_imageView, SIGNAL(rightClicked()), this, SIGNAL(ImageRightClicked()));
-	connect(m_imageView, SIGNAL(updated()), this, SIGNAL(updated()) );
+	connect(m_imageView, &iAImagePreviewWidget::clicked, this, &iAImageNodeWidget::ImageClicked);
+	connect(m_imageView, &iAImagePreviewWidget::rightClicked, this, &iAImageNodeWidget::ImageRightClicked);
+	connect(m_imageView, &iAImagePreviewWidget::updated, this, &iAImageNodeWidget::updated);
 	m_mainLayout->addWidget(m_imageView);
 	return true;
 }
@@ -112,9 +112,9 @@ void iAImageNodeWidget::ReturnPreview()
 {
 	m_imageView->hide();
 	m_mainLayout->removeWidget(m_imageView);
-	disconnect(m_imageView, SIGNAL(clicked()), this, SIGNAL(ImageClicked()));
-	disconnect(m_imageView, SIGNAL(rightClicked()), this, SIGNAL(ImageRightClicked()));
-	disconnect(m_imageView, SIGNAL(updated()),   this, SIGNAL(updated()) );
+	disconnect(m_imageView, &iAImagePreviewWidget::clicked, this, &iAImageNodeWidget::ImageClicked);
+	disconnect(m_imageView, &iAImagePreviewWidget::rightClicked, this, &iAImageNodeWidget::ImageRightClicked);
+	disconnect(m_imageView, &iAImagePreviewWidget::updated, this, &iAImageNodeWidget::updated);
 	m_previewPool->returnWidget(m_imageView);
 	m_imageView = 0;
 	m_cluster->DiscardDetails();

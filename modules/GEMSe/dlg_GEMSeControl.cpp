@@ -155,10 +155,10 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(m_dlgModalities, &dlg_modalities::modalityAvailable, this, &dlg_GEMSeControl::dataAvailable);
 	connect(m_dlgModalities, &dlg_modalities::modalitySelected, this, &dlg_GEMSeControl::modalitySelected);
 
-	connect(sbClusterViewPreviewSize, SIGNAL(valueChanged(int)), this, SLOT(SetIconSize(int)));
-	connect(sbMagicLensCount, SIGNAL(valueChanged(int)), this, SLOT(setMagicLensCount(int)));
-	connect(cbColorThemes, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(setColorTheme(const QString &)));
-	connect(cbRepresentative, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetRepresentative(const QString &)));
+	connect(sbClusterViewPreviewSize, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_GEMSeControl::SetIconSize);
+	connect(sbMagicLensCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_GEMSeControl::setMagicLensCount);
+	connect(cbColorThemes, QOverload<QString const &>::of(&QComboBox::currentIndexChanged), this, &dlg_GEMSeControl::setColorTheme);
+	connect(cbRepresentative, QOverload<QString const&>::of(&QComboBox::currentIndexChanged), this, &dlg_GEMSeControl::SetRepresentative);
 	connect(cbProbabilityProbing, &QCheckBox::stateChanged, this, &dlg_GEMSeControl::setProbabilityProbing);
 	connect(cbCorrectnessUncertainty, &QCheckBox::stateChanged, this, &dlg_GEMSeControl::setCorrectnessUncertainty);
 

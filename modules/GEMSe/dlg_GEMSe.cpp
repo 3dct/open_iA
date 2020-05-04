@@ -153,32 +153,32 @@ void dlg_GEMSe::SetTree(
 	m_probingWidget->SetSelectedNode(m_selectedCluster.data());
 	wdProbing->layout()->addWidget(m_probingWidget);
 
-	connect(m_cameraWidget, SIGNAL(ModeChanged(iASlicerMode, int)), this, SLOT(SlicerModeChanged(iASlicerMode, int)));
-	connect(m_treeView, SIGNAL(clicked(QSharedPointer<iAImageTreeNode>)), this, SLOT(ClusterNodeClicked(QSharedPointer<iAImageTreeNode>)));
-	connect(m_treeView, SIGNAL(ImageClicked(QSharedPointer<iAImageTreeNode>)), this, SLOT(ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode>)));
-	connect(m_treeView, SIGNAL(ImageRightClicked(iAImageTreeNode *)), this, SLOT(CompareAlternateSelected(iAImageTreeNode *)));
-	connect(m_treeView, SIGNAL(Expanded(QSharedPointer<iAImageTreeNode>)), this, SLOT(SelectCluster(QSharedPointer<iAImageTreeNode>)));
-	connect(m_treeView, SIGNAL(JumpedTo(QSharedPointer<iAImageTreeNode>)), this, SLOT(SelectCluster(QSharedPointer<iAImageTreeNode>)));
-	connect(m_treeView, SIGNAL(SelectionChanged()), this, SLOT(UpdateClusterChartData()));
-	connect(m_exampleView, SIGNAL(Selected(iAImageTreeLeaf *)), this, SLOT(ClusterLeafSelected(iAImageTreeLeaf *)));
-	connect(m_exampleView, SIGNAL(AlternateSelected(iAImageTreeNode *)), this, SLOT(CompareAlternateSelected(iAImageTreeNode *)));
-	connect(m_detailView, SIGNAL(Like()), this, SLOT(ToggleLike()));
-	connect(m_detailView, SIGNAL(Hate()), this, SLOT(ToggleHate()));
-	connect(m_detailView, SIGNAL(GoToCluster()), this, SLOT(GoToCluster()));
-	connect(m_detailView, SIGNAL(ResultFilterUpdate()), this, SLOT(UpdateResultFilter()));
-	connect(m_cameraWidget, SIGNAL(SliceChanged(int)), this, SLOT(SliceNumberChanged(int)));
-	connect(m_favoriteWidget, SIGNAL(clicked(iAImageTreeNode *)), this, SLOT(FavoriteClicked(iAImageTreeNode *)));
-	connect(m_favoriteWidget, SIGNAL(rightClicked(iAImageTreeNode *)), this, SLOT(CompareAlternateSelected(iAImageTreeNode *)));
-	connect(m_histogramContainer, SIGNAL(ChartSelectionUpdated()), this, SLOT(HistogramSelectionUpdated()));
-	connect(m_histogramContainer, SIGNAL(FilterChanged(int, double, double)), this, SLOT(FilterChanged(int, double, double)));
-	connect(m_histogramContainer, SIGNAL(ChartDblClicked(int)), this, SLOT(ChartDblClicked(int)));
+	connect(m_cameraWidget, &iACameraWidget::ModeChanged, this, &dlg_GEMSe::SlicerModeChanged);
+	connect(m_treeView, &iAImageTreeView::clicked, this, &dlg_GEMSe::ClusterNodeClicked);
+	connect(m_treeView, &iAImageTreeView::ImageClicked, this, &dlg_GEMSe::ClusterNodeImageClicked);
+	connect(m_treeView, &iAImageTreeView::ImageRightClicked, this, &dlg_GEMSe::CompareAlternateSelected);
+	connect(m_treeView, &iAImageTreeView::Expanded, this, &dlg_GEMSe::SelectCluster);
+	connect(m_treeView, &iAImageTreeView::JumpedTo, this, &dlg_GEMSe::SelectCluster);
+	connect(m_treeView, &iAImageTreeView::SelectionChanged, this, &dlg_GEMSe::UpdateClusterChartData);
+	connect(m_exampleView, &iAExampleImageWidget::Selected, this, &dlg_GEMSe::ClusterLeafSelected);
+	connect(m_exampleView, &iAExampleImageWidget::AlternateSelected, this, &dlg_GEMSe::CompareAlternateSelected);
+	connect(m_detailView, &iADetailView::Like, this, &dlg_GEMSe::ToggleLike);
+	connect(m_detailView, &iADetailView::Hate, this, &dlg_GEMSe::ToggleHate);
+	connect(m_detailView, &iADetailView::GoToCluster, this, &dlg_GEMSe::GoToCluster);
+	connect(m_detailView, &iADetailView::ResultFilterUpdate, this, &dlg_GEMSe::UpdateResultFilter);
+	connect(m_cameraWidget, &iACameraWidget::SliceChanged, this, &dlg_GEMSe::SliceNumberChanged);
+	connect(m_favoriteWidget, &iAFavoriteWidget::clicked, this, &dlg_GEMSe::FavoriteClicked);
+	connect(m_favoriteWidget, &iAFavoriteWidget::rightClicked, this, &dlg_GEMSe::CompareAlternateSelected);
+	connect(m_histogramContainer, &iAHistogramContainer::ChartSelectionUpdated, this, &dlg_GEMSe::HistogramSelectionUpdated);
+	connect(m_histogramContainer, QOverload<int,double,double>::of(&iAHistogramContainer::FilterChanged), this, &dlg_GEMSe::FilterChanged);
+	connect(m_histogramContainer, QOverload<int>::of(&iAHistogramContainer::ChartDblClicked), this, &dlg_GEMSe::ChartDblClicked);
 
 	// view updates:
-	connect(m_detailView,     SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
-	connect(m_cameraWidget,   SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
-	connect(m_treeView,       SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
-	connect(m_exampleView,    SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
-	connect(m_favoriteWidget, SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
+	connect(m_detailView,     &iADetailView::ViewUpdated, this, &dlg_GEMSe::UpdateViews);
+	connect(m_cameraWidget,   &iACameraWidget::ViewUpdated, this, &dlg_GEMSe::UpdateViews);
+	connect(m_treeView,       &iAImageTreeView::ViewUpdated, this, &dlg_GEMSe::UpdateViews);
+	connect(m_exampleView,    &iAExampleImageWidget::ViewUpdated, this, &dlg_GEMSe::UpdateViews);
+	connect(m_favoriteWidget, &iAFavoriteWidget::ViewUpdated, this, &dlg_GEMSe::UpdateViews);
 }
 
 void dlg_GEMSe::CreateMapper()
@@ -766,11 +766,11 @@ void dlg_GEMSe::SetProbabilityProbing(bool enabled)
 {
 	if (enabled)
 	{
-		connect(m_detailView, SIGNAL(SlicerHover(int, int, int, int)), m_probingWidget, SLOT(ProbeUpdate(int, int, int, int)));
+		connect(m_detailView, &iADetailView::SlicerHover, m_probingWidget, &iAProbingWidget::ProbeUpdate);
 	}
 	else
 	{
-		disconnect(m_detailView, SIGNAL(SlicerHover(int, int, int, int)), m_probingWidget, SLOT(ProbeUpdate(int, int, int, int)));
+		disconnect(m_detailView, &iADetailView::SlicerHover, m_probingWidget, &iAProbingWidget::ProbeUpdate);
 	}
 }
 

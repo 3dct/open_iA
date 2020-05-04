@@ -41,7 +41,7 @@ void iACommandRunner::run()
 	myProcess.setArguments(m_arguments);
 	DEBUG_LOG(QString("Running '%1' with arguments '%2'").arg(m_executable).arg(m_arguments.join(" ")));
 	myProcess.setProcessChannelMode(QProcess::MergedChannels);
-	connect(&myProcess, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(errorOccured(QProcess::ProcessError)));
+	connect(&myProcess, &QProcess::errorOccurred, this, &iACommandRunner::errorOccured);
 	myProcess.start();
 	myProcess.waitForFinished(-1);
 	if (myProcess.exitStatus() != QProcess::NormalExit)

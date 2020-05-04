@@ -131,9 +131,9 @@ void iAHistogramContainer::CreateCharts()
 		m_charts.insert(chartID, new iAClusterAttribChart(attrib->name(), chartID, paramData,
 			attrib->nameMapper()));
 
-		connect(m_charts[chartID], SIGNAL(Toggled(bool)), this, SLOT(ChartSelected(bool)));
-		connect(m_charts[chartID], SIGNAL(FilterChanged(double, double)), this, SLOT(FilterChanged(double, double)));
-		connect(m_charts[chartID], SIGNAL(ChartDblClicked()), this, SLOT(ChartDblClicked()));
+		connect(m_charts[chartID], &iAClusterAttribChart::Toggled, this, &iAHistogramContainer::ChartSelected);
+		connect(m_charts[chartID], &iAClusterAttribChart::FilterChanged, this, QOverload<double,double>::of(&iAHistogramContainer::FilterChanged));
+		connect(m_charts[chartID], &iAClusterAttribChart::ChartDblClicked, this, QOverload<>::of(&iAHistogramContainer::ChartDblClicked));
 
 		if (attrib->attribType() == iAAttributeDescriptor::Parameter)
 		{
@@ -514,8 +514,8 @@ void iAHistogramContainer::selectHistograms()
 		layout->addWidget(box);
 	}
 	auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-	connect(buttons, SIGNAL(accepted()), &dlg, SLOT(accept()));
-	connect(buttons, SIGNAL(rejected()), &dlg, SLOT(reject()));
+	connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+	connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
 	layout->addWidget(buttons);
 	dlg.setLayout(layout);
 	if (dlg.exec() == QDialog::Accepted)

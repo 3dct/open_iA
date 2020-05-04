@@ -137,9 +137,9 @@ void iAFavoriteWidget::Add(iAImageTreeNode * node)
 	widget->setFixedSize(FavoriteWidth, FavoriteWidth);
 	widget->setImage(node->GetRepresentativeImage(iARepresentativeType::Difference,
 		LabelImagePointer()), false, true);
-	connect(widget, SIGNAL(clicked()), this, SLOT(FavoriteClicked()));
-	connect(widget, SIGNAL(rightClicked()), this, SLOT(FavoriteRightClicked()));
-	connect(widget, SIGNAL(updated()), this, SIGNAL(ViewUpdated()));
+	connect(widget, &iAImagePreviewWidget::clicked, this, &iAFavoriteWidget::FavoriteClicked);
+	connect(widget, &iAImagePreviewWidget::rightClicked, this, &iAFavoriteWidget::FavoriteRightClicked);
+	connect(widget, &iAImagePreviewWidget::updated, this, &iAFavoriteWidget::ViewUpdated);
 	m_favorites.push_back(FavoriteData(node, widget));
 	dynamic_cast<LikeLayoutType*>(m_likeLayout)->insertWidget(0, widget);
 }
@@ -167,9 +167,9 @@ void iAFavoriteWidget::Remove(iAImageTreeNode const * node)
 	m_favorites[idx].node = 0;
 	m_favorites[idx].widget = 0;
 	m_favorites.remove(idx);
-	disconnect(widget, SIGNAL(clicked()), this, SLOT(FavoriteClicked()));
-	disconnect(widget, SIGNAL(rightClicked()), this, SLOT(FavoriteRightClicked()));
-	disconnect(widget, SIGNAL(updated()), this, SIGNAL(ViewUpdated()));
+	disconnect(widget, &iAImagePreviewWidget::clicked, this, &iAFavoriteWidget::FavoriteClicked);
+	disconnect(widget, &iAImagePreviewWidget::rightClicked, this, &iAFavoriteWidget::FavoriteRightClicked);
+	disconnect(widget, &iAImagePreviewWidget::updated, this, &iAFavoriteWidget::ViewUpdated);
 	m_previewPool->returnWidget(widget);
 }
 

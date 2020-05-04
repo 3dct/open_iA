@@ -69,7 +69,6 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * ch
 	child->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgLabels, Qt::Vertical);
 	child->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgSamplings, Qt::Vertical);
 
-	//connect(mdiChild->renderer(),     SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(RendererClicked(int, int, int)));
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
 		connect(child->slicer(i), &iASlicer::leftClicked, newAttachment->m_dlgLabels, &dlg_labels::SlicerClicked);

@@ -202,20 +202,20 @@ iADetailView::iADetailView(
 
 	// prevWdgt->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-	connect(resetResultFilterButton, SIGNAL(clicked()), this, SLOT(ResetResultFilter()));
+	connect(resetResultFilterButton, &QPushButton::clicked, this, &iADetailView::ResetResultFilter);
 	connect(m_pbLike, &QPushButton::clicked, this, &iADetailView::Like);
 	connect(m_pbHate, &QPushButton::clicked, this, &iADetailView::Hate);
 	connect(m_pbGoto, &QPushButton::clicked, this, &iADetailView::GoToCluster);
-	connect(m_compareWidget, SIGNAL(updated()), this, SIGNAL(ViewUpdated()));
-	connect(m_previewWidget, SIGNAL(updated()), this, SIGNAL(ViewUpdated()));
+	connect(m_compareWidget, &iAImagePreviewWidget::updated, this, &iADetailView::ViewUpdated);
+	connect(m_previewWidget, &iAImagePreviewWidget::updated, this, &iADetailView::ViewUpdated);
 
-	connect(m_previewWidget->slicer(), SIGNAL(dblClicked()), this, SLOT(dblClicked()));
-	connect(m_previewWidget->slicer(), SIGNAL(shiftMouseWheel(int)), this, SLOT(changeModality(int)));
-	connect(m_previewWidget->slicer(), SIGNAL(altMouseWheel(int)), this, SLOT(changeMagicLensOpacity(int)));
-	connect(m_previewWidget->slicer(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
-	connect(m_previewWidget->slicer(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerMouseMove(int, int, int, int)));
+	connect(m_previewWidget->slicer(), &iASlicer::dblClicked, this, &iADetailView::dblClicked);
+	connect(m_previewWidget->slicer(), &iASlicer::shiftMouseWheel, this, &iADetailView::changeModality);
+	connect(m_previewWidget->slicer(), &iASlicer::altMouseWheel, this, &iADetailView::changeMagicLensOpacity);
+	connect(m_previewWidget->slicer(), &iASlicer::oslicerPos, this, &iADetailView::SlicerHover);
+	connect(m_previewWidget->slicer(), &iASlicer::oslicerPos, this, &iADetailView::SlicerMouseMove);
 	connect(m_previewWidget->slicer(), &iASlicer::leftClicked, this, &iADetailView::SlicerClicked);
-	connect(m_previewWidget->slicer(), SIGNAL(released(int, int, int)), this, SLOT(SlicerReleased(int, int, int)));
+	connect(m_previewWidget->slicer(), &iASlicer::released, this, &iADetailView::SlicerReleased);
 }
 
 
@@ -613,7 +613,7 @@ void iADetailView::SlicerClicked(int x, int y, int z)
 	if (!m_resultFilterTriggerThread)
 	{
 		m_resultFilterTriggerThread = new iATimedEvent(5000);
-		connect(m_resultFilterTriggerThread, SIGNAL(finished()), this, SLOT(TriggerResultFilterUpdate()));
+		connect(m_resultFilterTriggerThread, &iATimedEvent::finished, this, &iADetailView::TriggerResultFilterUpdate);
 		m_resultFilterTriggerThread->start();
 	}
 	m_MouseButtonDown = true;
