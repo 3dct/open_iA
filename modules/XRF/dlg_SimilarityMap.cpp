@@ -40,10 +40,10 @@ dlg_SimilarityMap::dlg_SimilarityMap( QWidget *parentWidget)
 
 void dlg_SimilarityMap::connectSignalsToSlots()
 {
-	connect( horizontalSlider_WindowLower, SIGNAL( valueChanged( int ) ), this, SLOT( windowingChanged( int ) ) );
-	connect( horizontalSlider_WindowUpper, SIGNAL( valueChanged( int ) ), this, SLOT( windowingChanged( int ) ) );
-	connect( pushButton_LoadMap, SIGNAL( clicked() ), this, SLOT( loadMap() ) );
-	connect( cbShowMarkersInSpectrum, SIGNAL( toggled(bool) ), this, SLOT( showMarkers(bool) ) );
+	connect(horizontalSlider_WindowLower, &QSlider::valueChanged, this, &dlg_SimilarityMap::windowingChanged);
+	connect(horizontalSlider_WindowUpper, &QSlider::valueChanged, this, &dlg_SimilarityMap::windowingChanged);
+	connect(pushButton_LoadMap, &QPushButton::clicked, this, &dlg_SimilarityMap::loadMap);
+	connect(cbShowMarkersInSpectrum, &QCheckBox::toggled, this, &dlg_SimilarityMap::showMarkers);
 }
 
 void dlg_SimilarityMap::windowingChanged( int /*val*/ )
@@ -56,7 +56,7 @@ void dlg_SimilarityMap::windowingChanged( int /*val*/ )
 void dlg_SimilarityMap::connectToXRF( dlg_XRF* dlgXRF )
 {
 	m_dlgXRF = dlgXRF;
-	connect( m_similarityMapWidget.data(), SIGNAL( energyBinsSelectedSignal( int, int ) ), dlgXRF, SLOT( energyBinsSelected( int, int ) ) );
+	connect( m_similarityMapWidget.data(), &iASimilarityMapWidget::energyBinsSelectedSignal, dlgXRF, &dlg_XRF::energyBinsSelected);
 }
 
 void dlg_SimilarityMap::loadMap()

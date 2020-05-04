@@ -49,8 +49,8 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	m_renderer->renderer()->InteractiveOff();
 	m_renderer->setAxesTransform(m_axesTransform);
 
-	connect(renContainer, SIGNAL(rightButtonReleasedSignal()), m_renderer, SLOT(mouseRightButtonReleasedSlot()) );
-	connect(renContainer, SIGNAL(leftButtonReleasedSignal()), m_renderer, SLOT(mouseLeftButtonReleasedSlot()) );
+	connect(renContainer, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARenderer::mouseRightButtonReleasedSlot);
+	connect(renContainer, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARenderer::mouseLeftButtonReleasedSlot);
 }
 
 

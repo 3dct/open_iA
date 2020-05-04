@@ -68,12 +68,12 @@ iAInterpolationSliderWidget::iAInterpolationSliderWidget() :
 	double t = 0.5;
 	setT(t);
 
-	connect(m_timerT, SIGNAL(timeout()), this, SLOT(onTTimeout()));
+	connect(m_timerT, &QTimer::timeout, this, &iAInterpolationSliderWidget::onTTimeout);
 
-	connect(m_spinBoxes[0], SIGNAL(valueChanged(int)), this, SLOT(onSpinBox1ValueChanged(int)));
-	connect(m_spinBoxes[1], SIGNAL(valueChanged(int)), this, SLOT(onSpinBox2ValueChanged(int)));
+	connect(m_spinBoxes[0], QOverload<int>::of(&QSpinBox::valueChanged), this, &iAInterpolationSliderWidget::onSpinBox1ValueChanged);
+	connect(m_spinBoxes[1], QOverload<int>::of(&QSpinBox::valueChanged), this, &iAInterpolationSliderWidget::onSpinBox2ValueChanged);
 
-	connect(m_slider, SIGNAL(tChanged(double)), this, SLOT(onTChanged(double)));
+	connect(m_slider, &iAInterpolationSlider::tChanged, this, &iAInterpolationSliderWidget::onTChanged);
 }
 
 void iAInterpolationSliderWidget::setT(double t) {
@@ -197,20 +197,23 @@ iAInterpolationSlider::iAInterpolationSlider() :
 	m_timerHistogram->setSingleShot(true); // Fires only once or every interval
 	setHistogramWaitingTimeMs(TIMER_HISTOGRAM_MS_DEFAULT);
 
-	connect(this, SIGNAL(volumeReady()), this, SLOT(onVolumeReady()));
+	connect(this, &iAInterpolationSlider::volumeReady, this, &iAInterpolationSlider::onVolumeReady);
 }
 
-double iAInterpolationSlider::getT() {
+double iAInterpolationSlider::getT()
+{
 	return m_t;
 }
 
-void iAInterpolationSlider::onHistogramTimeout() {
+void iAInterpolationSlider::onHistogramTimeout()
+{
 	calculateHistogramNow();
 }
 
-void iAInterpolationSlider::onVolumeReady() {
-	connect(this, SIGNAL(histogramReady()), this, SLOT(onHistogramReady()));
-	connect(m_timerHistogram, SIGNAL(timeout()), this, SLOT(onHistogramTimeout()));
+void iAInterpolationSlider::onVolumeReady()
+{
+	connect(this, &iAInterpolationSlider::histogramReady, this, &iAInterpolationSlider::onHistogramReady);
+	connect(m_timerHistogram, &QTimer::timeout, this, &iAInterpolationSlider::onHistogramTimeout);
 	calculateHistogramNow();
 }
 

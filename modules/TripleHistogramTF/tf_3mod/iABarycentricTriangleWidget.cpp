@@ -67,9 +67,9 @@ iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*
 		sb->setStyleSheet("font-size: 10pt;");
 	}
 
-	connect(m_spinBoxes[0], SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged_1(int)));
-	connect(m_spinBoxes[1], SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged_2(int)));
-	connect(m_spinBoxes[2], SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged_3(int)));
+	connect(m_spinBoxes[0], QOverload<int>::of(&QSpinBox::valueChanged), this, &iABarycentricTriangleWidget::onSpinBoxValueChanged_1);
+	connect(m_spinBoxes[1], QOverload<int>::of(&QSpinBox::valueChanged), this, &iABarycentricTriangleWidget::onSpinBoxValueChanged_2);
+	connect(m_spinBoxes[2], QOverload<int>::of(&QSpinBox::valueChanged), this, &iABarycentricTriangleWidget::onSpinBoxValueChanged_3);
 }
 
 void iABarycentricTriangleWidget::onSpinBoxValueChanged_1(int newValue) {
@@ -359,12 +359,14 @@ void iABarycentricTriangleWidget::setWeight(iABCoord newWeight)
 
 void iABarycentricTriangleWidget::setTriangleRenderer(iABarycentricContextRenderer *triangleRenderer)
 {
-	if (m_triangleRenderer) {
-		disconnect(m_triangleRenderer, SIGNAL(heatmapReady()), this, SLOT(onHeatmapReady()));
+	if (m_triangleRenderer)
+	{
+		disconnect(m_triangleRenderer, &iABarycentricContextRenderer::heatmapReady, this, &iABarycentricTriangleWidget::onHeatmapReady);
 	}
 	m_triangleRenderer = triangleRenderer;
-	if (m_triangleRenderer) {
-		connect(m_triangleRenderer, SIGNAL(heatmapReady()), this, SLOT(onHeatmapReady()));
+	if (m_triangleRenderer)
+	{
+		connect(m_triangleRenderer, &iABarycentricContextRenderer::heatmapReady, this, &iABarycentricTriangleWidget::onHeatmapReady);
 	}
 }
 

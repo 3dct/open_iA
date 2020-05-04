@@ -99,18 +99,12 @@ void iAHistogramTriangle::initialize(QString const /*names*/[3])
 	update();
 
 	// Debug
-	for (int i = 0; i < 3; i++) {
-		connect(m_tmw->w_slicer(i)->getSlicer(), SIGNAL(resized()), this, SLOT(glresized()));
+	for (int i = 0; i < 3; i++)
+	{
+		connect(m_tmw->w_slicer(i)->getSlicer(), &iASlicer::resized, this, &iAHistogramTriangle::glresized);
 	}
-
-	// CONNECTIONS
-	connect(m_tmw, SIGNAL(transferFunctionChanged()), this, SLOT(updateSlicers()));
-	connect(m_tmw, SIGNAL(slicerModeChanged(iASlicerMode)), this, SLOT(updateSlicers()));
-	connect(m_tmw, SIGNAL(sliceNumberChanged(int)), this, SLOT(updateSlicers()));
-	connect(m_tmw, SIGNAL(slicerModeChangedExternally(iASlicerMode)), this, SLOT(updateSlicers()));
-	connect(m_tmw, SIGNAL(sliceNumberChangedExternally(int)), this, SLOT(updateSlicers()));
-
-	connect(m_tmw, SIGNAL(transferFunctionChanged()), this, SLOT(updateHistograms()));
+	connect(m_tmw, &iATripleModalityWidget::slicerModeChangedExternally, this, iAHistogramTriangle::updateSlicers);
+	connect(m_tmw, &iATripleModalityWidget::sliceNumberChangedExternally, this, iAHistogramTriangle::updateSlicers);
 }
 
 void iAHistogramTriangle::resizeEvent(QResizeEvent* event)
@@ -120,7 +114,8 @@ void iAHistogramTriangle::resizeEvent(QResizeEvent* event)
 
 void iAHistogramTriangle::updateSlicers()
 {
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++)
+	{
 		m_fRenderSlicer[i] = true;
 	}
 	update();

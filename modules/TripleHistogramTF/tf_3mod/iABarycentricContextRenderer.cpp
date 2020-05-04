@@ -39,7 +39,7 @@ iABarycentricContextRenderer::iABarycentricContextRenderer() :
 	m_timer_heatmap(new QTimer()),
 	m_timerWait_heatmap(TIMER_HEATMAP_WAIT)
 {
-	connect(m_timer_heatmap, SIGNAL(timeout()), this, SLOT(onHeatmapTimeout()));
+	connect(m_timer_heatmap, &QTimer::timeout, this, &iABarycentricContextRenderer::onHeatmapTimeout);
 }
 
 void iABarycentricContextRenderer::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, iABarycentricTriangle triangle)

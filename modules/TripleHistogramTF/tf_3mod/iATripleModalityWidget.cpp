@@ -54,9 +54,10 @@ iATripleModalityWidget::iATripleModalityWidget(MdiChild *mdiChild) :
 	connect(m_triangleWidget, &iABarycentricTriangleWidget::weightsChanged, this, &iATripleModalityWidget::triangleWeightChanged);
 	connect(m_triangleWidget, &iABarycentricTriangleWidget::weightsChanged, this, &iATripleModalityWidget::weightsChangedSlot);
 
-	connect(this, SIGNAL(modalitiesLoaded_beforeUpdate()), this, SLOT(modalitiesLoaded_beforeUpdateSlot()));
+	connect(this, &iATripleModalityWidget::modalitiesLoaded_beforeUpdate, this, &iATripleModalityWidget::modalitiesLoaded_beforeUpdateSlot);
 
-	if (isReady()) {
+	if (isReady())
+	{
 		updateModalities();
 	}
 }
