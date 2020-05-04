@@ -99,7 +99,7 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 	mean->setData(ticks, meanData);
 
 	connect(mean, QOverload<QCPDataSelection const&>::of(&QCPBars::selectionChanged), this, &iAMemberView::SelectionChanged);
-	connect(m_plot->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, iAMemberView::ChangedRange);
+	connect(m_plot->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, &iAMemberView::ChangedRange);
 
 	StyleChanged();
 	m_plot->replot();

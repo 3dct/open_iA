@@ -103,8 +103,8 @@ void iAHistogramTriangle::initialize(QString const /*names*/[3])
 	{
 		connect(m_tmw->w_slicer(i)->getSlicer(), &iASlicer::resized, this, &iAHistogramTriangle::glresized);
 	}
-	connect(m_tmw, &iATripleModalityWidget::slicerModeChangedExternally, this, iAHistogramTriangle::updateSlicers);
-	connect(m_tmw, &iATripleModalityWidget::sliceNumberChangedExternally, this, iAHistogramTriangle::updateSlicers);
+	connect(m_tmw, &iATripleModalityWidget::slicerModeChangedExternally, this, &iAHistogramTriangle::updateSlicers);
+	connect(m_tmw, &iATripleModalityWidget::sliceNumberChangedExternally, this, &iAHistogramTriangle::updateSlicers);
 }
 
 void iAHistogramTriangle::resizeEvent(QResizeEvent* event)
