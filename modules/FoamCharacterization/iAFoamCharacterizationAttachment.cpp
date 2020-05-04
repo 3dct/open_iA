@@ -52,50 +52,50 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* m
 
 	QPushButton* pPushButtonOpen(new QPushButton("Open table...", pWidget));
 	pPushButtonOpen->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOpenButton));
-	connect(pPushButtonOpen, SIGNAL(clicked()), this, SLOT(slotPushButtonOpen()));
+	connect(pPushButtonOpen, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonOpen);
 
 	QPushButton* pPushButtonSave(new QPushButton("Save table...", pWidget));
 	pPushButtonSave->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton));
-	connect(pPushButtonSave, SIGNAL(clicked()), this, SLOT(slotPushButtonSave()));
+	connect(pPushButtonSave, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonSave);
 
 	QPushButton* pPushButtonClear(new QPushButton("Clear table...", pWidget));
 	pPushButtonClear->setIcon(qApp->style()->standardIcon(QStyle::SP_FileIcon));
-	connect(pPushButtonClear, SIGNAL(clicked()), this, SLOT(slotPushButtonClear()));
+	connect(pPushButtonClear, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonClear);
 
 	QPushButton* pPushButtonFilter(new QPushButton("Add filter", pWidget));
 	iAFoamCharacterizationItemFilter itemFilter(0, m_pImageData);
 	pPushButtonFilter->setIcon(itemFilter.itemButtonIcon());
-	connect(pPushButtonFilter, SIGNAL(clicked()), this, SLOT(slotPushButtonFilter()));
+	connect(pPushButtonFilter, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonFilter);
 
 	QPushButton* pPushButtonBinarization(new QPushButton("Add binarization", pWidget));
 	iAFoamCharacterizationItemBinarization itemBinarization(0, m_pImageData);
 	pPushButtonBinarization->setIcon(itemBinarization.itemButtonIcon());
-	connect(pPushButtonBinarization, SIGNAL(clicked()), this, SLOT(slotPushButtonBinarization()));
+	connect(pPushButtonBinarization, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonBinarization);
 
 	QPushButton* pPushButtonDistanceTransform(new QPushButton("Add distance transform", pWidget));
 	iAFoamCharacterizationItemDistanceTransform itemDistanceTransform(0, m_pImageData);
 	pPushButtonDistanceTransform->setIcon(itemDistanceTransform.itemButtonIcon());
-	connect(pPushButtonDistanceTransform, SIGNAL(clicked()), this, SLOT(slotPushButtonDistanceTransform()));
+	connect(pPushButtonDistanceTransform, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonDistanceTransform);
 
 	QPushButton* pPushButtonWatershed(new QPushButton("Add watershed", pWidget));
 	iAFoamCharacterizationItemWatershed itemWatershed(0, m_pImageData);
 	pPushButtonWatershed->setIcon(itemWatershed.itemButtonIcon());
-	connect(pPushButtonWatershed, SIGNAL(clicked()), this, SLOT(slotPushButtonWatershed()));
+	connect(pPushButtonWatershed, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonWatershed);
 
 	m_pTable = new iAFoamCharacterizationTable(m_pImageData, pWidget);
 
 	QPushButton* pPushButtonExecute(new QPushButton("Execute", pWidget));
 	pPushButtonExecute->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogApplyButton));
-	connect(pPushButtonExecute, SIGNAL(clicked()), this, SLOT(slotPushButtonExecute()));
+	connect(pPushButtonExecute, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonExecute);
 
 	m_pPushButtonAnalysis = new QPushButton("Analysis", pWidget);
 	m_pPushButtonAnalysis->setIcon(qApp->style()->standardIcon(QStyle::SP_FileDialogStart));
 	m_pPushButtonAnalysis->setEnabled(false);
-	connect(m_pPushButtonAnalysis, SIGNAL(clicked()), this, SLOT(slotPushButtonAnalysis()));
+	connect(m_pPushButtonAnalysis, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonAnalysis);
 
 	QPushButton* pPushButtonRestore(new QPushButton("Restore image", pWidget));
 	pPushButtonRestore->setIcon(qApp->style()->standardIcon(QStyle::SP_DriveHDIcon));
-	connect(pPushButtonRestore, SIGNAL(clicked()), this, SLOT(slotPushButtonRestore()));
+	connect(pPushButtonRestore, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonRestore);
 
 	QGridLayout* pGridLayout1(new QGridLayout(pGroupBox1));
 	pGridLayout1->addWidget(pPushButtonOpen, 0, 0);
