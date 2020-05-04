@@ -25,7 +25,7 @@
 #include "iABarycentricContextRenderer.h"
 #include "iABarycentricTriangleWidget.h"
 #include "iASimpleSlicerWidget.h"
-#include "RightBorderLayout.h"
+#include "iARightBorderLayout.h"
 
 #include <charts/iAChartWithFunctionsWidget.h>
 #include <iAModality.h>
@@ -36,8 +36,8 @@
 #include <QLabel>
 #include <QSpinBox>
 
-iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiChild, Qt::WindowFlags f /*= 0 */) :
-	iAMultimodalWidget(parent, mdiChild, THREE)
+iATripleModalityWidget::iATripleModalityWidget(MdiChild *mdiChild) :
+	iAMultimodalWidget(mdiChild, THREE)
 {
 	m_triangleRenderer = new iABarycentricContextRenderer();
 	m_triangleWidget = new iABarycentricTriangleWidget();
@@ -50,9 +50,9 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	// Initialize the inner widget
 	setHistogramAbstractType(iAHistogramAbstractType::STACK);
 
-	connect(m_layoutComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(layoutComboBoxIndexChanged(int)));
-	connect(m_triangleWidget, SIGNAL(weightsChanged(BCoord)), this, SLOT(triangleWeightChanged(BCoord)));
-	connect(m_triangleWidget, SIGNAL(weightsChanged(BCoord)), this, SLOT(weightsChangedSlot(BCoord)));
+	connect(m_layoutComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iATripleModalityWidget::layoutComboBoxIndexChanged);
+	connect(m_triangleWidget, &iABarycentricTriangleWidget::weightsChanged, this, &iATripleModalityWidget::triangleWeightChanged);
+	connect(m_triangleWidget, &iABarycentricTriangleWidget::weightsChanged, this, &iATripleModalityWidget::weightsChangedSlot);
 
 	connect(this, SIGNAL(modalitiesLoaded_beforeUpdate()), this, SLOT(modalitiesLoaded_beforeUpdateSlot()));
 
@@ -95,13 +95,13 @@ void iATripleModalityWidget::modalitiesChanged()
 }
 
 // SLOT
-void iATripleModalityWidget::triangleWeightChanged(BCoord newWeight)
+void iATripleModalityWidget::triangleWeightChanged(iABCoord newWeight)
 {
 	setWeightsProtected(newWeight);
 }
 
 // SLOT
-void iATripleModalityWidget::weightsChangedSlot(BCoord bCoord)
+void iATripleModalityWidget::weightsChangedSlot(iABCoord bCoord)
 {
 	if (bCoord != getWeights()) {
 		m_triangleWidget->setWeight(bCoord);
@@ -127,7 +127,7 @@ void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) 
 		return;
 	}
 
-	iAHistogramAbstract *histogramAbstract_new = iAHistogramAbstract::buildHistogramAbstract(type, this, m_mdiChild);
+	iAHistogramAbstract *histogramAbstract_new = iAHistogramAbstract::buildHistogramAbstract(type, this);
 
 	if (m_histogramAbstract) {
 		for (int i = 0; i < 3; i++) {

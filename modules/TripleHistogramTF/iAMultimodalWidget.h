@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "tf_3mod/BCoord.h"
+#include "tf_3mod/iABCoord.h"
 
 #include "iASimpleSlicerWidget.h"
 
@@ -59,12 +59,12 @@ class iAMultimodalWidget : public QWidget {
 
 // Private methods used by public/protected
 private:
-	double bCoord_to_t(BCoord bCoord) { return bCoord[1]; }
-	BCoord t_to_bCoord(double t) { return BCoord(1-t, t); }
-	void setWeights(BCoord bCoord, double t);
+	double bCoord_to_t(iABCoord bCoord) { return bCoord[1]; }
+	iABCoord t_to_bCoord(double t) { return iABCoord(1-t, t); }
+	void setWeights(iABCoord bCoord, double t);
 
 public:
-	iAMultimodalWidget(QWidget *parent, MdiChild* mdiChild, NumOfMod num);
+	iAMultimodalWidget(MdiChild* mdiChild, NumOfMod num);
 
 	QSharedPointer<iAChartWithFunctionsWidget> w_histogram(int i) {
 		return m_histograms[i];
@@ -90,13 +90,13 @@ public:
 		return m_sliceNumberLabel;
 	}
 
-	void setWeights(BCoord bCoord) {
+	void setWeights(iABCoord bCoord) {
 		setWeights(bCoord, bCoord_to_t(bCoord));
 	}
 	void setWeights(double t) {
 		setWeights(t_to_bCoord(t), t);
 	}
-	BCoord getWeights();
+	iABCoord getWeights();
 	double getWeight(int i);
 
 	void setSlicerMode(iASlicerMode slicerMode);
@@ -115,7 +115,7 @@ public:
 	void updateTransferFunction(int index);
 
 protected:
-	void setWeightsProtected(BCoord bCoord, double t);
+	void setWeightsProtected(iABCoord bCoord, double t);
 
 	void resetSlicer(int i);
 
@@ -123,7 +123,7 @@ protected:
 		setWeightsProtected(t_to_bCoord(t), t);
 	}
 
-	void setWeightsProtected(BCoord bCoord) {
+	void setWeightsProtected(iABCoord bCoord) {
 		setWeightsProtected(bCoord, bCoord_to_t(bCoord));
 	}
 
@@ -160,7 +160,7 @@ private:
 	void disconnectAcrossSlicers();
 	//! @}
 
-	BCoord m_weights;
+	iABCoord m_weights;
 
 	void updateLabels();
 	iASlicerMode m_slicerMode;
@@ -188,7 +188,7 @@ private:
 	QSharedPointer<iATransferFunction> createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacity);
 
 signals:
-	void weightsChanged3(BCoord weights);
+	void weightsChanged3(iABCoord weights);
 	void weightsChanged2(double t);
 
 	void slicerModeChangedExternally(iASlicerMode slicerMode);

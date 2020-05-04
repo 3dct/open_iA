@@ -29,7 +29,7 @@ class QLabel;
 
 class MdiChild;
 class iATripleModalityWidget;
-class BCoord;
+class iABCoord;
 
 class vtkSmartVolumeMapper;
 class vtkVolume;

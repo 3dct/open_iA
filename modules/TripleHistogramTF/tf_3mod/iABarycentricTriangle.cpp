@@ -18,132 +18,132 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "BarycentricTriangle.h"
+#include "iABarycentricTriangle.h"
 
-#include "BCoord.h"
+#include "iABCoord.h"
 
-BarycentricTriangle::BarycentricTriangle(int xa, int ya, int xb, int yb, int xc, int yc) :
+iABarycentricTriangle::iABarycentricTriangle(int xa, int ya, int xb, int yb, int xc, int yc) :
 	m_xa(xa), m_ya(ya), m_xb(xb), m_yb(yb), m_xc(xc), m_yc(yc)
 {
 }
 
-BarycentricTriangle::BarycentricTriangle() :
+iABarycentricTriangle::iABarycentricTriangle() :
 	m_xa(0), m_ya(0), m_xb(0), m_yb(0), m_xc(0), m_yc(0)
 {
 }
 
-BCoord BarycentricTriangle::getBarycentricCoordinates(double x, double y)
+iABCoord iABarycentricTriangle::getBarycentricCoordinates(double x, double y)
 {
-	return BCoord(*this, x, y);
+	return iABCoord(*this, x, y);
 }
 
-BCoord BarycentricTriangle::getBarycentricCoordinatesA()
+iABCoord iABarycentricTriangle::getBarycentricCoordinatesA()
 {
-	return BCoord(1, 0);
+	return iABCoord(1, 0);
 }
 
-BCoord BarycentricTriangle::getBarycentricCoordinatesB()
+iABCoord iABarycentricTriangle::getBarycentricCoordinatesB()
 {
-	return BCoord(0, 1);
+	return iABCoord(0, 1);
 }
 
-BCoord BarycentricTriangle::getBarycentricCoordinatesC()
+iABCoord iABarycentricTriangle::getBarycentricCoordinatesC()
 {
-	return BCoord(0, 0);
+	return iABCoord(0, 0);
 }
 
-QPoint BarycentricTriangle::getCartesianCoordinates(const BCoord &bCoord)
+QPoint iABarycentricTriangle::getCartesianCoordinates(const iABCoord &bCoord)
 {
 	QPoint ret = QPoint();
 	updateCartesianCoordinates(ret, bCoord);
 	return ret;
 }
 
-QPoint BarycentricTriangle::getCartesianCoordinates(double alpha, double beta)
+QPoint iABarycentricTriangle::getCartesianCoordinates(double alpha, double beta)
 {
 	QPoint ret = QPoint();
 	updateCartesianCoordinates(ret, alpha, beta);
 	return ret;
 }
 
-void BarycentricTriangle::updateCartesianCoordinates(QPoint &qPoint, const BCoord &bCoord)
+void iABarycentricTriangle::updateCartesianCoordinates(QPoint &qPoint, const iABCoord &bCoord)
 {
 	updateCartesianCoordinates(qPoint, bCoord.getAlpha(), bCoord.getBeta(), bCoord.getGamma());
 }
 
-void BarycentricTriangle::updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta)
+void iABarycentricTriangle::updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta)
 {
 	updateCartesianCoordinates(qPoint, alpha, beta, 1.0 - alpha - beta);
 }
 
-void BarycentricTriangle::updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta, double gamma)
+void iABarycentricTriangle::updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta, double gamma)
 {
 	qPoint.setX((alpha * m_xa) + (beta * m_xb) + (gamma * m_xc));
 	qPoint.setY((alpha * m_ya) + (beta * m_yb) + (gamma * m_yc));
 }
 
 
-int BarycentricTriangle::getXa()
+int iABarycentricTriangle::getXa()
 {
 	return m_xa;
 }
 
-int BarycentricTriangle::getYa()
+int iABarycentricTriangle::getYa()
 {
 	return m_ya;
 }
 
-int BarycentricTriangle::getXb()
+int iABarycentricTriangle::getXb()
 {
 	return m_xb;
 }
 
-int BarycentricTriangle::getYb()
+int iABarycentricTriangle::getYb()
 {
 	return m_yb;
 }
 
-int BarycentricTriangle::getXc()
+int iABarycentricTriangle::getXc()
 {
 	return m_xc;
 }
 
-int BarycentricTriangle::getYc()
+int iABarycentricTriangle::getYc()
 {
 	return m_yc;
 }
 
-void BarycentricTriangle::setXa(int xa)
+void iABarycentricTriangle::setXa(int xa)
 {
 	m_xa = xa;
 }
 
-void BarycentricTriangle::setYa(int ya)
+void iABarycentricTriangle::setYa(int ya)
 {
 	m_ya = ya;
 }
 
-void BarycentricTriangle::setXb(int xb)
+void iABarycentricTriangle::setXb(int xb)
 {
 	m_xb = xb;
 }
 
-void BarycentricTriangle::setYb(int yb)
+void iABarycentricTriangle::setYb(int yb)
 {
 	m_yb = yb;
 }
 
-void BarycentricTriangle::setXc(int xc)
+void iABarycentricTriangle::setXc(int xc)
 {
 	m_xc = xc;
 }
 
-void BarycentricTriangle::setYc(int yc)
+void iABarycentricTriangle::setYc(int yc)
 {
 	m_yc = yc;
 }
 
-void BarycentricTriangle::set(int xa, int ya, int xb, int yb, int xc, int yc)
+void iABarycentricTriangle::set(int xa, int ya, int xb, int yb, int xc, int yc)
 {
 	m_xa = xa;
 	m_ya = ya;
@@ -153,12 +153,12 @@ void BarycentricTriangle::set(int xa, int ya, int xb, int yb, int xc, int yc)
 	m_yc = yc;
 }
 
-bool BarycentricTriangle::contains(double x, double y)
+bool iABarycentricTriangle::contains(double x, double y)
 {
 	return getBarycentricCoordinates(x, y).isInside();
 }
 
-QRect BarycentricTriangle::getBounds()
+QRect iABarycentricTriangle::getBounds()
 {
 	int minx = qMin(m_xa, qMin(m_xb, m_xc));
 	int maxx = qMax(m_xa, qMax(m_xb, m_xc));

@@ -41,9 +41,9 @@
 
 static const int TIMER_T_MS_DEFAULT = 250; // in milliseconds
 
-iAInterpolationSliderWidget::iAInterpolationSliderWidget(QWidget* parent) :
-	m_timerT(new QTimer()),
-	m_slider(new iAInterpolationSlider(this))
+iAInterpolationSliderWidget::iAInterpolationSliderWidget() :
+	m_slider(new iAInterpolationSlider()),
+	m_timerT(new QTimer())
 {
 	for (int i = 0; i < 2; i++) {
 		auto sb = m_spinBoxes[i] = new QSpinBox(this);
@@ -166,9 +166,9 @@ static const int TIMER_HISTOGRAM_MS_DEFAULT = 2500; // in milliseconds
 static const int SLIDER_RECTANGLE_WIDTH = 30;
 static const int HISTOGRAM_BAR_LENGTH_MIN = 10;
 
-iAInterpolationSlider::iAInterpolationSlider(QWidget* parent) :
-	m_timerHistogram(new QTimer()),
-	m_histogramImg(new QImage(0, 0, IMAGE_FORMAT))
+iAInterpolationSlider::iAInterpolationSlider() :
+	m_histogramImg(new QImage(0, 0, IMAGE_FORMAT)),
+	m_timerHistogram(new QTimer())
 {
 	m_sliderPen.setWidth(4);
 	m_sliderPen.setColor(Qt::black);
@@ -181,17 +181,15 @@ iAInterpolationSlider::iAInterpolationSlider(QWidget* parent) :
 		int l = 0;
 		int r = SLIDER_RECTANGLE_WIDTH;
 		int t = 0;
-		int b = SLIDER_RECTANGLE_WIDTH;
 		int w = SLIDER_RECTANGLE_WIDTH;
 		int h = SLIDER_RECTANGLE_WIDTH;
-		int cx = l + w/2;
 		int cy = t + h / 2;
 
 		m_sliderHandle.addEllipse(0, -cy, w, h);
 		m_sliderHandle.moveTo(r, 0);
 		m_sliderHandle.lineTo(l, 0);
 
-		m_sliderHandleBrush = QBrush(QColor::fromRgb(0, 0, 0, 0.5));
+		m_sliderHandleBrush = QBrush(QColor::fromRgb(0, 0, 0, 0));  // TODO: values from 0..255 -> was 0.5 in alpha -> maybe 127 was meant?
 	}
 
 	//setMouseTracking(true); // to enable mouse move events without the mouse button needing to be pressed
@@ -252,7 +250,7 @@ void iAInterpolationSlider::layOut() {
 	m_sliderHeight = h;
 }
 
-void iAInterpolationSlider::paintEvent(QPaintEvent* event) {
+void iAInterpolationSlider::paintEvent(QPaintEvent* /*event*/) {
 	QPainter p(this);
 	p.setRenderHint(QPainter::Antialiasing);
 
@@ -273,7 +271,7 @@ void iAInterpolationSlider::paintEvent(QPaintEvent* event) {
 	p.drawImage(m_histogramRect, m_histogramImg->scaled(m_histogramRect.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 }
 
-void iAInterpolationSlider::resizeEvent(QResizeEvent* event) {
+void iAInterpolationSlider::resizeEvent(QResizeEvent* /*event*/) {
 	layOut();
 	calculateHistogramLater();
 }
@@ -399,7 +397,6 @@ void iAInterpolationSlider::calculateHistogramNow() {
 	buf->fill(Qt::white);
 	if (max > 0) {
 		double k = (double)histogramBarLengthInterval / (double)log(max);
-		int grayValue, count;
 		for (int y = 0; y < h; y++) {
 			unsigned long c = counter[y];
 			if (c > 0) {

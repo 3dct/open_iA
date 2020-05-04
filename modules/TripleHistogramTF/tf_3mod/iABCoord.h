@@ -20,60 +20,39 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QPoint>
-#include <QRect>
+class iABarycentricTriangle;
 
-class BCoord;
-
-class BarycentricTriangle
+class iABCoord
 {
-	public: // TODO: int/double or references?
-		BarycentricTriangle(int xa, int ya, int xb, int yb, int xc, int yc);
-		BarycentricTriangle();
+public:
+	iABCoord(double alpha, double beta);
+	iABCoord() : iABCoord((double)1 / (double)3, (double)1 / (double)3) {}
+	iABCoord(iABarycentricTriangle triangle, double x, double y);
 
-		BarycentricTriangle operator- (QPoint p) {
-			return BarycentricTriangle(m_xa - p.x(), m_ya - p.y(), m_xb - p.x(), m_yb - p.y(), m_xc - p.x(), m_yc - p.y());
+	double getAlpha() const;
+	double getBeta() const;
+	double getGamma() const;
+	bool isInside() const;
+
+	double operator[] (int x) {
+		switch (x) {
+		case 0: return getAlpha();
+		case 1: return getBeta();
+		case 2: return getGamma();
+		default: return 0;
 		}
+	}
 
-		int getXa();
-		int getYa();
-		int getXb();
-		int getYb();
-		int getXc();
-		int getYc();
+	bool operator== (const iABCoord that) {
+		return getAlpha() == that.getAlpha() && getBeta() == that.getBeta();
+	}
 
-		void set(int xa, int ya, int xb, int yb, int xc, int yc);
-		void setXa(int xa);
-		void setYa(int ya);
-		void setXb(int xb);
-		void setYb(int yb);
-		void setXc(int xc);
-		void setYc(int yc);
+	bool operator!= (const iABCoord that) {
+		return getAlpha() != that.getAlpha() || getBeta() != that.getBeta();
+	}
 
-		BCoord getBarycentricCoordinates(double x, double y);
-		BCoord getBarycentricCoordinatesA();
-		BCoord getBarycentricCoordinatesB();
-		BCoord getBarycentricCoordinatesC();
-
-		bool contains(double x, double y);
-
-		QPoint getCartesianCoordinates(const BCoord &bCoord);
-		QPoint getCartesianCoordinates(double alpha, double beta);
-		void updateCartesianCoordinates(QPoint &qPoint, const BCoord &bCoord);
-		void updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta);
-		void updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta, double gamma);
-
-		QRect getBounds();
-
-	private:
-		int m_xa;
-		int m_ya;
-
-		int m_xb;
-		int m_yb;
-
-		int m_xc;
-		int m_yc;
-
+private:
+	double m_alpha;
+	double m_beta;
 
 };

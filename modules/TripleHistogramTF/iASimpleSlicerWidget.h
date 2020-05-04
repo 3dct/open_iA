@@ -47,8 +47,8 @@ public:
 	void setSliceNumber(int sliceNumber);
 	int getSliceNumber();
 
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
+	bool hasHeightForWidth() const override;
+	int heightForWidth(int width) const override;
 
 	void applySettings(iASingleSlicerSettings const & settings);
 	void changeModality(QSharedPointer<iAModality> modality);

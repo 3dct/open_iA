@@ -18,60 +18,63 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "RightBorderLayout.h"
+#include "iARightBorderLayout.h"
 
-RightBorderLayout::RightBorderLayout(QWidget *parent, Position pos, int margin, int spacing)
+iAIBorderItem::~iAIBorderItem()
+{}
+
+iARightBorderLayout::iARightBorderLayout(QWidget *parent, Position pos, int margin, int spacing)
 	: QLayout(parent), m_pos(pos)
 {
 	setMargin(margin);
 	setSpacing(spacing);
 }
 
-RightBorderLayout::RightBorderLayout(int spacing)
+iARightBorderLayout::iARightBorderLayout(int spacing)
 {
 	setSpacing(spacing);
 }
 
 
-RightBorderLayout::~RightBorderLayout()
+iARightBorderLayout::~iARightBorderLayout()
 {
 	delete m_centerItem;
 	delete m_borderItem;
 }
 
-void RightBorderLayout::addItem(QLayoutItem * /*item*/)
+void iARightBorderLayout::addItem(QLayoutItem * /*item*/)
 {
 	// Do nothing
 }
 
-void RightBorderLayout::addWidgetBorder(BorderLayoutItemWrapper *item)
+void iARightBorderLayout::addWidgetBorder(BorderLayoutItemWrapper *item)
 {
 	setBorderItem(item);
 }
 
-void RightBorderLayout::addWidgetCenter(QLayoutItem *item)
+void iARightBorderLayout::addWidgetCenter(QLayoutItem *item)
 {
 	setCenterItem(item);
 }
 
-Qt::Orientations RightBorderLayout::expandingDirections() const
+Qt::Orientations iARightBorderLayout::expandingDirections() const
 {
 	return Qt::Horizontal | Qt::Vertical;
 }
 
-bool RightBorderLayout::hasHeightForWidth() const
+bool iARightBorderLayout::hasHeightForWidth() const
 {
 	return false;
 }
 
-int RightBorderLayout::count() const
+int iARightBorderLayout::count() const
 {
 	return m_centerItem != 0 ? 1 : 0
 		+
 		m_borderItem != 0 ? 1 : 0;
 }
 
-QLayoutItem *RightBorderLayout::itemAt(int index) const
+QLayoutItem *iARightBorderLayout::itemAt(int index) const
 {
 	switch (index)
 	{
@@ -96,12 +99,12 @@ QLayoutItem *RightBorderLayout::itemAt(int index) const
 	}
 }
 
-QSize RightBorderLayout::minimumSize() const
+QSize iARightBorderLayout::minimumSize() const
 {
 	return calculateSize(MinimumSize);
 }
 
-void RightBorderLayout::setGeometry(const QRect &rect)
+void iARightBorderLayout::setGeometry(const QRect &rect)
 {
 	QLayoutItem *borderLayoutItem = m_borderItem->layoutItem();
 
@@ -141,12 +144,12 @@ void RightBorderLayout::setGeometry(const QRect &rect)
 	}
 }
 
-QSize RightBorderLayout::sizeHint() const
+QSize iARightBorderLayout::sizeHint() const
 {
 	return calculateSize(SizeHint);
 }
 
-QLayoutItem *RightBorderLayout::takeAt(int index)
+QLayoutItem *iARightBorderLayout::takeAt(int index)
 {
 	if (index >= 0 && index < count()) {
 		return itemAt(index);
@@ -154,29 +157,29 @@ QLayoutItem *RightBorderLayout::takeAt(int index)
 	return 0;
 }
 
-void RightBorderLayout::setCenterItem(QLayoutItem* item)
+void iARightBorderLayout::setCenterItem(QLayoutItem* item)
 {
 	QLayout::addWidget(item->widget());
 	m_centerItem = item;
 }
 
-void RightBorderLayout::setBorderItem(BorderLayoutItemWrapper* item)
+void iARightBorderLayout::setBorderItem(BorderLayoutItemWrapper* item)
 {
 	QLayout::addWidget(item->layoutItem()->widget());
 	m_borderItem = item;
 }
 
-void RightBorderLayout::setCenterWidget(QWidget* widget)
+void iARightBorderLayout::setCenterWidget(QWidget* widget)
 {
 	setCenterItem(new QWidgetItem(widget));
 }
 
-void RightBorderLayout::setBorderWidget(IBorderWidget *rbw)
+void iARightBorderLayout::setBorderWidget(iAIBorderWidget *rbw)
 {
 	setBorderItem(new BorderLayoutItemWrapper(rbw));
 }
 
-QSize RightBorderLayout::calculateSize(SizeType sizeType) const
+QSize iARightBorderLayout::calculateSize(SizeType sizeType) const
 {
 	//return calculateSize(centerItems, sizeType) + calculateSize(rightItems, sizeType);
 
@@ -186,7 +189,7 @@ QSize RightBorderLayout::calculateSize(SizeType sizeType) const
 	return totalSize;
 }
 
-void RightBorderLayout::incrementSize(QSize &totalSize, QLayoutItem *item, SizeType sizeType) const
+void iARightBorderLayout::incrementSize(QSize &totalSize, QLayoutItem *item, SizeType sizeType) const
 {
 	QSize itemSize;
 	if (sizeType == MinimumSize)

@@ -23,17 +23,17 @@
 #include "iAHistogramStack.h"
 #include "iAHistogramTriangle.h"
 
-iAHistogramAbstract* iAHistogramAbstract::buildHistogramAbstract(iAHistogramAbstractType type, iATripleModalityWidget *tmw, MdiChild *mdiChild, Qt::WindowFlags f) {
+iAHistogramAbstract* iAHistogramAbstract::buildHistogramAbstract(iAHistogramAbstractType type, iATripleModalityWidget *tmw) {
 	switch (type) {
 	case STACK:
-		return new iAHistogramStack(tmw, tmw, mdiChild, f);
+		return new iAHistogramStack(tmw);
 
 	case TRIANGLE:
-		return new iAHistogramTriangle(tmw, tmw, mdiChild, f);
+		return new iAHistogramTriangle(tmw);
 	}
 
 	throw "Unexpected type";
 }
 
-void iAHistogramAbstract::updateModalityNames(QString const names[3])
+void iAHistogramAbstract::updateModalityNames(QString const /*names*/[3])
 {}

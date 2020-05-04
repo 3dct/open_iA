@@ -71,19 +71,17 @@
 // Debug
 #include <QDebug>
 
-//static const char *WEIGHT_FORMAT = "%.10f";
 static const QString DISABLED_TEXT_COLOR = "rgb(0,0,0)"; // black
 static const QString DISABLED_BACKGROUND_COLOR = "rgba(255,255,255)"; // white
 static const int TIMER_UPDATE_VISUALIZATIONS_WAIT_MS = 250; // in milliseconds
 
-iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumOfMod num)
-	:
-	m_numOfMod(num),
+iAMultimodalWidget::iAMultimodalWidget(MdiChild* mdiChild, NumOfMod num):
 	m_mdiChild(mdiChild),
-	m_mainSlicersInitialized(false),
+	m_timer_updateVisualizations(new QTimer()),
 	m_slicerMode(iASlicerMode::XY),
-	m_minimumWeight(0.01),
-	m_timer_updateVisualizations(new QTimer())
+	m_numOfMod(num),
+	m_mainSlicersInitialized(false),
+	m_minimumWeight(0.01)
 {
 	m_stackedLayout = new QStackedLayout(this);
 	m_stackedLayout->setStackingMode(QStackedLayout::StackOne);
@@ -178,7 +176,7 @@ void iAMultimodalWidget::setSliceNumber(int sliceNumber) {
 	emit sliceNumberChangedExternally(sliceNumber);
 }
 
-void iAMultimodalWidget::setWeightsProtected(BCoord bCoord, double t)
+void iAMultimodalWidget::setWeightsProtected(iABCoord bCoord, double t)
 {
 	if (bCoord == m_weights) {
 		return;
@@ -475,10 +473,11 @@ void iAMultimodalWidget::updateModalities()
 
 		// TODO: Don't duplicate code from mdichild, call it instead!
 		// Histogram {
-		if (!m_modalitiesActive[i]->histogramData() || m_modalitiesActive[i]->histogramData()->numBin() != m_mdiChild->preferences().HistogramBins)
+		size_t newHistBins = m_mdiChild->preferences().HistogramBins;
+		if (!m_modalitiesActive[i]->histogramData() || m_modalitiesActive[i]->histogramData()->numBin() != newHistBins)
 		{
 			m_modalitiesActive[i]->computeImageStatistics();
-			m_modalitiesActive[i]->computeHistogramData(m_mdiChild->preferences().HistogramBins);
+			m_modalitiesActive[i]->computeHistogramData(newHistBins);
 		}
 		m_modalitiesHistogramAvailable[i] = true;
 
@@ -815,7 +814,7 @@ vtkSmartPointer<vtkImageData> iAMultimodalWidget::getModalityImage(int index) {
 	return getModality(index)->image();
 }
 
-BCoord iAMultimodalWidget::getWeights()
+iABCoord iAMultimodalWidget::getWeights()
 {
 	return m_weights;
 }

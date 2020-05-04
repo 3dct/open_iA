@@ -38,16 +38,11 @@
 static const qreal RAD60 = vtkMath::Pi() / 3.0;
 static const qreal SIN60 = sin(RAD60);
 static const qreal ONE_DIV_SIN60 = 1.0 / SIN60;
-static const qreal COS60 = 0.5;
-static const qreal ONE_DIV_THREE = 1.0 / 3.0;
 
 static const int CONTROL_POINT_RADIUS = 10;
 static const int MODALITY_LABEL_MARGIN = 10;
 static const int MODALITY_LABEL_MARGIN_TIMES_TWO = MODALITY_LABEL_MARGIN * 2;
-//static const int MODALITY_LABEL_HIGHLIGHT_PADDING = 5;
-//static const int MODALITY_LABEL_HIGHLIGHT_PADDING_TIMES_TWO = MODALITY_LABEL_HIGHLIGHT_PADDING * 2;
 
-static const char* WEIGHT_FORMAT = "%.0f%%"; //"%.2f%;
 
 iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
 	QWidget(parent, f)
@@ -82,7 +77,7 @@ void iABarycentricTriangleWidget::onSpinBoxValueChanged_1(int newValue) {
 	double a = A / 100.0;
 	double rest = 1 - a;
 
-	BCoord bc = getWeight();
+	iABCoord bc = getWeight();
 	double b = bc[1];
 	double c = bc[2];
 	double sum = b + c;
@@ -95,7 +90,7 @@ void iABarycentricTriangleWidget::onSpinBoxValueChanged_1(int newValue) {
 	int B = qRound(b * 100);
 	int C = 100 - A - B;
 
-	bc = BCoord(a, b);
+	bc = iABCoord(a, b);
 	updateControlPointCoordinates(bc, A, B, C);
 }
 
@@ -104,7 +99,7 @@ void iABarycentricTriangleWidget::onSpinBoxValueChanged_2(int newValue) {
 	double b = B / 100.0;
 	double rest = 1 - b;
 
-	BCoord bc = getWeight();
+	iABCoord bc = getWeight();
 	double a = bc[0];
 	double c = bc[2];
 	double sum = a + c;
@@ -117,7 +112,7 @@ void iABarycentricTriangleWidget::onSpinBoxValueChanged_2(int newValue) {
 	int A = qRound(a * 100);
 	int C = 100 - A - B;
 
-	bc = BCoord(a, b);
+	bc = iABCoord(a, b);
 	updateControlPointCoordinates(bc, A, B, C);
 }
 
@@ -126,7 +121,7 @@ void iABarycentricTriangleWidget::onSpinBoxValueChanged_3(int newValue) {
 	double c = C / 100.0;
 	double rest = 1 - c;
 
-	BCoord bc = getWeight();
+	iABCoord bc = getWeight();
 	double a = bc[0];
 	double b = bc[1];
 	double sum = a + b;
@@ -140,7 +135,7 @@ void iABarycentricTriangleWidget::onSpinBoxValueChanged_3(int newValue) {
 	int A = qRound(a * 100);
 	int B = 100 - A - C;
 
-	bc = BCoord(a, b);
+	bc = iABCoord(a, b);
 	updateControlPointCoordinates(bc, A, B, C);
 }
 
@@ -181,7 +176,7 @@ void iABarycentricTriangleWidget::mouseMoveEvent(QMouseEvent *event)
 	}
 }
 
-void iABarycentricTriangleWidget::mouseReleaseEvent(QMouseEvent *event)
+void iABarycentricTriangleWidget::mouseReleaseEvent(QMouseEvent * /*event*/)
 {
 	m_dragging = false;
 }
@@ -191,7 +186,7 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height)
 	recalculatePositions(width, height, true);
 }
 
-void iABarycentricTriangleWidget::recalculatePositions(int width, int height, BarycentricTriangle triangle)
+void iABarycentricTriangleWidget::recalculatePositions(int width, int height, iABarycentricTriangle triangle)
 {
 	m_triangle = triangle;
 	recalculatePositions(width, height, false);
@@ -275,30 +270,30 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bo
 	}
 }
 
-void iABarycentricTriangleWidget::updateControlPoint(BCoord bCoord, QPoint newPos, int a, int b, int c)
+void iABarycentricTriangleWidget::updateControlPoint(iABCoord bCoord, QPoint newPos, int a, int b, int c)
 {
 	if (!bCoord.isInside()) {
 		// Snap to edge
 
-		double a = bCoord.getAlpha();
-		double b = bCoord.getBeta();
-		double c = bCoord.getGamma();
+		double aSnap = bCoord.getAlpha();
+		double bSnap = bCoord.getBeta();
+		double cSnap = bCoord.getGamma();
 
-		a = a < 0 ? 0 : a;
-		b = b < 0 ? 0 : b;
-		c = c < 0 ? 0 : c;
-		double sum = a + b + c;
+		aSnap = aSnap < 0 ? 0 : aSnap;
+		bSnap = bSnap < 0 ? 0 : bSnap;
+		cSnap = cSnap < 0 ? 0 : cSnap;
+		double sum = aSnap + bSnap + cSnap;
 		if (sum == 0) {
 			// No idea if this can possibly happen
 			// Probably good to be safe though
 			return;
 		}
 
-		a /= sum;
-		b /= sum;
+		aSnap /= sum;
+		bSnap /= sum;
 		//c /= sum;
 
-		bCoord = BCoord(a, b);
+		bCoord = iABCoord(aSnap, bSnap);
 		updateControlPointCoordinates(bCoord);
 		return;
 	}
@@ -352,12 +347,12 @@ int iABarycentricTriangleWidget::getHeightForWidth(int width)
 	return (int)round(width * SIN60);
 }
 
-BCoord iABarycentricTriangleWidget::getWeight()
+iABCoord iABarycentricTriangleWidget::getWeight()
 {
 	return m_controlPointBCoord;
 }
 
-void iABarycentricTriangleWidget::setWeight(BCoord newWeight)
+void iABarycentricTriangleWidget::setWeight(iABCoord newWeight)
 {
 	updateControlPointCoordinates(newWeight);
 }
@@ -397,7 +392,7 @@ void iABarycentricTriangleWidget::onHeatmapReady() {
 // PAINT METHODS
 // ----------------------------------------------------------------------------------------------
 
-void iABarycentricTriangleWidget::paintEvent(QPaintEvent* event)
+void iABarycentricTriangleWidget::paintEvent(QPaintEvent* /*event*/)
 {
 	QPainter p(this);
 	paintContext(p);

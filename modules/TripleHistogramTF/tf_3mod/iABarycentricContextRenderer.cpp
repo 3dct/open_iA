@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iABarycentricContextRenderer.h"
 
-#include "BarycentricTriangle.h"
+#include "iABarycentricTriangle.h"
 
 #include <vtkVersion.h>
 
@@ -35,20 +35,20 @@ static const int GRAY_VALUE_INTERVAL = 255 - GRAY_VALUE_MIN;
 static const int TIMER_HEATMAP_WAIT = 2000; // in milliseconds
 
 iABarycentricContextRenderer::iABarycentricContextRenderer() :
+	m_image(new QImage()),
 	m_timer_heatmap(new QTimer()),
-	m_timerWait_heatmap(TIMER_HEATMAP_WAIT),
-	m_image(new QImage())
+	m_timerWait_heatmap(TIMER_HEATMAP_WAIT)
 {
 	connect(m_timer_heatmap, SIGNAL(timeout()), this, SLOT(onHeatmapTimeout()));
 }
 
-void iABarycentricContextRenderer::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle)
+void iABarycentricContextRenderer::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, iABarycentricTriangle triangle)
 {
 	calculateCoordinates(d1, d2, d3);
 	updateTriangle(triangle);
 }
 
-void iABarycentricContextRenderer::setTriangle(BarycentricTriangle triangle)
+void iABarycentricContextRenderer::setTriangle(iABarycentricTriangle triangle)
 {
 	updateTriangle(triangle);
 }
@@ -123,7 +123,7 @@ void iABarycentricContextRenderer::calculateCoordinates(vtkSmartPointer<vtkImage
 	}
 }
 
-void iABarycentricContextRenderer::updateTriangle(BarycentricTriangle triangle)
+void iABarycentricContextRenderer::updateTriangle(iABarycentricTriangle triangle)
 {
 	if (!m_barycentricCoordinates) {
 		return;
@@ -131,7 +131,7 @@ void iABarycentricContextRenderer::updateTriangle(BarycentricTriangle triangle)
 
 	QRect rect = triangle.getBounds();
 	m_imageRect = rect;
-	m_triangle = BarycentricTriangle(
+	m_triangle = iABarycentricTriangle(
 		triangle.getXa() - rect.x(), triangle.getYa() - rect.y(),
 		triangle.getXb() - rect.x(), triangle.getYb() - rect.y(),
 		triangle.getXc() - rect.x(), triangle.getYc() - rect.y()

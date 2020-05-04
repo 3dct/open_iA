@@ -31,9 +31,9 @@
 #include <QHBoxLayout>
 #include <QSplitter>
 
-iABimodalWidget::iABimodalWidget(QWidget *parent, MdiChild *mdiChild)
+iABimodalWidget::iABimodalWidget(MdiChild *mdiChild)
 	:
-	iAMultimodalWidget(parent, mdiChild, TWO)
+	iAMultimodalWidget(mdiChild, TWO)
 {
 	connect(this, SIGNAL(modalitiesLoaded_beforeUpdate()), this, SLOT(modalitiesLoaded_beforeUpdateSlot()));
 	if (isReady()) {

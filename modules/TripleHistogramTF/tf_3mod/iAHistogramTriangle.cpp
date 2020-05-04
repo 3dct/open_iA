@@ -53,10 +53,9 @@ const static int TRIANGLE_RIGHT = TRIANGLE_LEFT;
 const static int TRIANGLE_BOTTOM = HISTOGRAM_HEIGHT;
 const static double TRIANGLE_HEIGHT_RATIO = SIN60;
 const static double TRIANGLE_WIDTH_RATIO = 1.0 / TRIANGLE_HEIGHT_RATIO;
-const static int MODALITY_LABEL_MARGIN = 10;
 const static int WIDGETS_MARGIN = 10;
 
-iAHistogramTriangle::iAHistogramTriangle(QWidget* parent, iATripleModalityWidget* tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f)
+iAHistogramTriangle::iAHistogramTriangle(iATripleModalityWidget* tripleModalityWidget)
 	: m_tmw(tripleModalityWidget)
 {
 }
@@ -65,7 +64,7 @@ void iAHistogramTriangle::glresized() {
 	qDebug() << "GL RESIZED!";
 }
 
-void iAHistogramTriangle::initialize(QString const names[3])
+void iAHistogramTriangle::initialize(QString const /*names*/[3])
 {
 	m_clipPathPen.setWidth(1);
 	m_clipPathPen.setColor(Qt::black);
@@ -199,29 +198,31 @@ void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event, MouseEventType e
 void iAHistogramTriangle::forwardWheelEvent(QWheelEvent *e)
 {
 	QPoint transformed;
-	iASlicer * target;
-	if (target = onSlicer(e->pos(), transformed)) {
-		QWheelEvent *newE = new QWheelEvent(transformed, e->globalPosF(), e->pixelDelta(), e->angleDelta(),
-			e->delta(), e->orientation(), e->buttons(),
-			e->modifiers(), e->phase(), e->source(), e->inverted());
-		QApplication::sendEvent(target, newE);
-		m_fRenderSlicer[m_lastIndex] = true;
-		update();
+	iASlicer * target = onSlicer(e->pos(), transformed);
+	if (!target)
+	{
 		return;
 	}
+	QWheelEvent *newE = new QWheelEvent(transformed, e->globalPosF(), e->pixelDelta(), e->angleDelta(),
+		e->delta(), e->orientation(), e->buttons(),
+		e->modifiers(), e->phase(), e->source(), e->inverted());
+	QApplication::sendEvent(target, newE);
+	m_fRenderSlicer[m_lastIndex] = true;
+	update();
 }
 
 void iAHistogramTriangle::forwardContextMenuEvent(QContextMenuEvent *e)
 {
 	QPoint transformed;
 	iAChartWithFunctionsWidget *target = onHistogram(e->pos(), transformed).data();
-	if (target) {
-		QContextMenuEvent *newE = new QContextMenuEvent(e->reason(), transformed, e->globalPos());
-		QApplication::sendEvent(target, newE);
-		//m_fRenderHistogram[index] = true;
-		//update();
+	if (!target)
+	{
 		return;
 	}
+	QContextMenuEvent *newE = new QContextMenuEvent(e->reason(), transformed, e->globalPos());
+	QApplication::sendEvent(target, newE);
+	//m_fRenderHistogram[index] = true;
+	//update();
 }
 
 QSharedPointer<iAChartWithFunctionsWidget> iAHistogramTriangle::onHistogram(QPoint p, QPoint &transformed)
@@ -282,10 +283,12 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		boxRight = boxLeft + width + TRIANGLE_LEFT + TRIANGLE_RIGHT;
 		boxBottom = boxTop + height + TRIANGLE_TOP + TRIANGLE_BOTTOM;
 
+		// NOTE: CAREFUL with \ sign -> at the end it is the "line continuation" sign
+		// -> if used at end of single line comment line, it makes next line also a comment!
 		//        /\
 		//       /  \    BIG TRIANGLE
-		//      /    \   bounding box: left, top, right, bottom (, centerX)
-		//     /______\
+		//      /    \   bounding box:
+		//     /______\  left, top, right, bottom (, centerX)
 		left = boxLeft + TRIANGLE_LEFT;
 		top = boxTop + TRIANGLE_TOP;
 		right = left + width;
@@ -304,7 +307,7 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		//int b = bottom;
 		//int cx = centerX;
 
-		m_tmw->w_triangle()->recalculatePositions(w, h, BarycentricTriangle(l, t, r, t, centerX, bottom));
+		m_tmw->w_triangle()->recalculatePositions(w, h, iABarycentricTriangle(l, t, r, t, centerX, bottom));
 		m_triangleBigWidth = width;
 	}
 
@@ -399,7 +402,7 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		int layoutTypeComboBoxHeight = m_tmw->w_layoutComboBox()->sizeHint().height();
 		int sliceNumberLabelHeight = m_tmw->w_sliceNumberLabel()->sizeHint().height();
 
-		int bottom = 0;
+		bottom = 0;
 
 		m_tmw->w_layoutComboBox()->setGeometry(QRect(0, bottom, controlsWidth, layoutTypeComboBoxHeight));
 		bottom += layoutTypeComboBoxHeight + WIDGETS_MARGIN;
@@ -421,7 +424,7 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 	m_fClear = true;
 }
 
-void iAHistogramTriangle::paintEvent(QPaintEvent* event)
+void iAHistogramTriangle::paintEvent(QPaintEvent* /*event*/)
 {
 	// Unfortunatelly, enabling this mechanism of not rendering everything leads to
 	// many updates not occurring. Probably a consequence of the Qt hacks this class
