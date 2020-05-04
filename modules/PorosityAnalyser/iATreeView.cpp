@@ -45,11 +45,11 @@ iATreeView::iATreeView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	treeWidget->setSelectionMode( QAbstractItemView::ExtendedSelection );
 	treeWidget->viewport()->installEventFilter( this );
 	m_contextMenu->setStyleSheet( contextMenuStyle );
-	m_contextMenu->addAction( "=> Scatter Plot Matrix", this, SLOT( loadSelectionToSPM() ) );
-	m_contextMenu->addAction( "=> Parallel Coordinates", this, SLOT( loadSelectionToPC() ) );
-	m_contextMenu->addAction( "=> Pipeline/Dataset Matrix", this, SLOT( loadSelectionToPDM() ) );
-	m_contextMenu->addAction( "=> Range Slider Diagram", this, SLOT( forwardRSDSelection() ) );
-	m_contextMenu->addAction( "=> Slice Segmentation View", this, SLOT( loadSelectionToSS() ) );
+	m_contextMenu->addAction( "=> Scatter Plot Matrix", this, &iATreeView::loadSelectionToSPM);
+	m_contextMenu->addAction( "=> Parallel Coordinates", this, &iATreeView::loadSelectionToPC);
+	m_contextMenu->addAction( "=> Pipeline/Dataset Matrix", this, &iATreeView::loadSelectionToPDM);
+	m_contextMenu->addAction( "=> Range Slider Diagram", this, &iATreeView::forwardRSDSelection);
+	m_contextMenu->addAction( "=> Slice Segmentation View", this, QOverload<>::of(&iATreeView::loadSelectionToSS));
 	connect(treeWidget, &QTreeWidget::itemCollapsed, this, &iATreeView::adjustTreeWidgetColumnWidths);
 	connect(treeWidget, &QTreeWidget::itemExpanded, this, &iATreeView::adjustTreeWidgetColumnWidths);
 

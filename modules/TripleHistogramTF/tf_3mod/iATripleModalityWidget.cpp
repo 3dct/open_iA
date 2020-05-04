@@ -95,13 +95,11 @@ void iATripleModalityWidget::modalitiesChanged()
 	m_histogramAbstract->updateModalityNames(names);
 }
 
-// SLOT
 void iATripleModalityWidget::triangleWeightChanged(iABCoord newWeight)
 {
 	setWeightsProtected(newWeight);
 }
 
-// SLOT
 void iATripleModalityWidget::weightsChangedSlot(iABCoord bCoord)
 {
 	if (bCoord != getWeights()) {
@@ -109,7 +107,6 @@ void iATripleModalityWidget::weightsChangedSlot(iABCoord bCoord)
 	}
 }
 
-// SLOT
 void iATripleModalityWidget::modalitiesLoaded_beforeUpdateSlot() {
 	updateModalities();
 	QString names[3];

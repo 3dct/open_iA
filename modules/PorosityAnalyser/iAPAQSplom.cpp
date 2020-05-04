@@ -52,9 +52,9 @@ iAPAQSplom::iAPAQSplom( MainWindow *mWnd, QWidget * parent, Qt::WindowFlags f /*
 	m_csvName("")
 {
 	setWindowFlags(f);
-	m_fixAction = m_contextMenu->addAction( "Fix Point", this, SLOT( fixPoint() ) );
-	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, SLOT( removeFixedPoint() ) );
-	m_detailsToFeatureScoutAction = m_contextMenu->addAction("Detailed View...", this, SLOT(sendToFeatureScout()));
+	m_fixAction = m_contextMenu->addAction( "Fix Point", this, &iAPAQSplom::fixPoint);
+	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, &iAPAQSplom::removeFixedPoint);
+	m_detailsToFeatureScoutAction = m_contextMenu->addAction("Detailed View...", this, &iAPAQSplom::sendToFeatureScout);
 
 	m_detailsToFeatureScoutAction->setVisible(false);
 	m_fixAction->setVisible( false );
