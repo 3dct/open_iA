@@ -450,7 +450,7 @@ void iAFiAKErController::setupSettingsView()
 	m_showReferenceWidget->layout()->setSpacing(ControlSpacing);
 	m_chkboxShowLines = new QCheckBox("Connect");
 	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceToggled);
-	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(showReferenceCountChanged(int)));
+	connect(m_spnboxReferenceCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAFiAKErController::showReferenceCountChanged);
 	connect(m_chkboxShowLines, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceLinesToggled);
 	m_showReferenceWidget->layout()->addWidget(m_chkboxShowReference);
 	m_showReferenceWidget->layout()->addWidget(m_spnboxReferenceCount);
@@ -477,28 +477,28 @@ void iAFiAKErController::setupSettingsView()
 	connect(m_settingsView->slDiameterFactorContext, &QSlider::valueChanged, this, &iAFiAKErController::contextDiameterFactorChanged);
 	connect(m_settingsView->cbFiberContextShow, &QCheckBox::stateChanged, this, &iAFiAKErController::showFiberContextChanged);
 	connect(m_settingsView->cbFiberContextMerge, &QCheckBox::stateChanged, this, &iAFiAKErController::mergeFiberContextBoxesChanged);
-	connect(m_settingsView->sbFiberContextSpacing, SIGNAL(valueChanged(double)), this, SLOT(contextSpacingChanged(double)));
+	connect(m_settingsView->sbFiberContextSpacing, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &iAFiAKErController::contextSpacingChanged);
 	connect(m_settingsView->cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::showBoundingBoxChanged);
 	connect(m_settingsView->cbShowWireFrame, &QCheckBox::stateChanged, this, &iAFiAKErController::showWireFrameChanged);
 	connect(m_settingsView->cbShowLines, &QCheckBox::stateChanged, this, &iAFiAKErController::showLinesChanged);
 	connect(m_settingsView->pbSampleSelectedFiber, &QPushButton::pressed, this, &iAFiAKErController::visualizeCylinderSamplePoints);
 	connect(m_settingsView->pbHideSamplePoints, &QPushButton::pressed, this, &iAFiAKErController::hideSamplePoints);
 	connect(m_settingsView->pbSpatialOverview, &QPushButton::pressed, this, &iAFiAKErController::showSpatialOverviewButton);
-	connect(m_settingsView->cmbboxSelectionMode, SIGNAL(currentIndexChanged(int)), this, SLOT(selectionModeChanged(int)));
-	connect(m_settingsView->cmbboxSimilarityMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(showReferenceMeasureChanged(int)));
+	connect(m_settingsView->cmbboxSelectionMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::selectionModeChanged);
+	connect(m_settingsView->cmbboxSimilarityMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::showReferenceMeasureChanged);
 	connect(m_playTimer, &QTimer::timeout, this, &iAFiAKErController::playTimer);
-	connect(m_settingsView->sbAnimationDelay, SIGNAL(valueChanged(int)), this, SLOT(playDelayChanged(int)));
-	connect(m_settingsView->sbHistogramBins, SIGNAL(valueChanged(int)), this, SLOT(histogramBinsChanged(int)));
+	connect(m_settingsView->sbAnimationDelay, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAFiAKErController::playDelayChanged);
+	connect(m_settingsView->sbHistogramBins,  QOverload<int>::of(&QSpinBox::valueChanged), this, &iAFiAKErController::histogramBinsChanged);
 	connect(m_settingsView->cbShowReferenceDistribution, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceInChartToggled);
 	connect(m_settingsView->cbLinkPreviews, &QCheckBox::stateChanged, this, &iAFiAKErController::linkPreviewsToggled);
-	connect(m_settingsView->cmbboxDistributionPlotType, SIGNAL(currentIndexChanged(int)),
-		this, SLOT(distributionChartTypeChanged(int)));
-	connect(m_settingsView->cmbboxStackedBarChartColors, SIGNAL(currentIndexChanged(QString const &)),
-		this, SLOT(stackedBarColorThemeChanged(QString const &)));
-	connect(m_settingsView->cmbboxDistributionColors, SIGNAL(currentIndexChanged(QString const &)),
-		this, SLOT(distributionColorThemeChanged(QString const &)));
-	connect(m_settingsView->cmbboxResultColors, SIGNAL(currentIndexChanged(QString const &)),
-		this, SLOT(resultColorThemeChanged(QString const &)));
+	connect(m_settingsView->cmbboxDistributionPlotType, QOverload<int>::of(&QComboBox::currentIndexChanged),
+		this, &iAFiAKErController::distributionChartTypeChanged);
+	connect(m_settingsView->cmbboxStackedBarChartColors, QOverload<QString const&>::of(&QComboBox::currentIndexChanged),
+		this, &iAFiAKErController::stackedBarColorThemeChanged);
+	connect(m_settingsView->cmbboxDistributionColors, QOverload<QString const&>::of(&QComboBox::currentIndexChanged),
+		this, &iAFiAKErController::distributionColorThemeChanged);
+	connect(m_settingsView->cmbboxResultColors, QOverload<QString const&>::of(&QComboBox::currentIndexChanged),
+		this, &iAFiAKErController::resultColorThemeChanged);
 	connect(m_settingsView->pbSensitivity, &QPushButton::clicked, this, &iAFiAKErController::sensitivitySlot);
 }
 
@@ -616,7 +616,7 @@ QWidget* iAFiAKErController::setupResultListView()
 	m_distributionChoice->addItems(paramNames);
 	m_distributionChoice->addItem("Match Quality");
 	m_distributionChoice->setCurrentIndex(static_cast<int>((*m_data->result[0].mapping)[iACsvConfig::Length]));
-	connect(m_distributionChoice, SIGNAL(currentIndexChanged(int)), this, SLOT(distributionChoiceChanged(int)));
+	connect(m_distributionChoice, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::distributionChoiceChanged);
 	m_distributionChoice->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	m_colorByDistribution = new QCheckBox("Color by");
 	connect(m_colorByDistribution, &QCheckBox::stateChanged, this, &iAFiAKErController::colorByDistrToggled);
@@ -1272,9 +1272,9 @@ void iAFiAKErController::sensitivitySlot()
 
 	dissimDockContent->cbColorMap->addItems(iALUT::GetColorMapNames());
 
-	connect(dissimDockContent->cbMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(dissimMatrixMeasureChanged(int)));
-	connect(dissimDockContent->cbParameter, SIGNAL(currentIndexChanged(int)), this, SLOT(dissimMatrixParameterChanged(int)));
-	connect(dissimDockContent->cbColorMap, SIGNAL(currentIndexChanged(int)), this, SLOT(dissimMatrixColorMapChanged(int)));
+	connect(dissimDockContent->cbMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixMeasureChanged);
+	connect(dissimDockContent->cbParameter, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixParameterChanged);
+	connect(dissimDockContent->cbColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixColorMapChanged);
 	m_matrixWidget = new iAMatrixWidget(m_dissimilarityMatrix);
 	m_matrixWidget->setParameterValues(tblCreator.table());
 	m_matrixWidget->setSortParameter(0);
