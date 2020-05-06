@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "dlg_SimilarityMap.h"
 
-#include "dlg_XRF.h"
+#include "dlg_InSpectr.h"
 
 #include <mdichild.h>
 
@@ -53,10 +53,10 @@ void dlg_SimilarityMap::windowingChanged( int /*val*/ )
 	m_similarityMapWidget->setWindowing( lowerRange, upperRange );
 }
 
-void dlg_SimilarityMap::connectToXRF( dlg_XRF* dlgXRF )
+void dlg_SimilarityMap::connectToXRF( dlg_InSpectr* dlgXRF )
 {
 	m_dlgXRF = dlgXRF;
-	connect( m_similarityMapWidget.data(), &iASimilarityMapWidget::energyBinsSelectedSignal, dlgXRF, &dlg_XRF::energyBinsSelected);
+	connect( m_similarityMapWidget.data(), &iASimilarityMapWidget::energyBinsSelectedSignal, dlgXRF, &dlg_InSpectr::energyBinsSelected);
 }
 
 void dlg_SimilarityMap::loadMap()

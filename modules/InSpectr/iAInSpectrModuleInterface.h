@@ -20,34 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_SimilarityMap.h"
+#include <iAModuleInterface.h>
 
-#include "iASimilarityMapWidget.h"
-
-#include <qthelper/iAQTtoUIConnector.h>
-
-#include <vtkSmartPointer.h>
-
-#include <QScopedPointer>
-
-class dlg_XRF;
-
-typedef iAQTtoUIConnector<QDockWidget, Ui_SimilarityMap>   dlg_SimilarityMapContainer;
-
-class dlg_SimilarityMap : public dlg_SimilarityMapContainer
+class iAInSpectrModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 public:
-	dlg_SimilarityMap( QWidget *parentWidget = 0 );
-	void connectToXRF( dlg_XRF* dlgXRF );
-protected:
-	void connectSignalsToSlots();
-protected slots:
-	void windowingChanged( int val = 0);
-	void loadMap();
-	void showMarkers(bool checked);
-protected:
-	dlg_XRF* m_dlgXRF;
-	QScopedPointer<iASimilarityMapWidget> m_similarityMapWidget;
-	QGridLayout * m_similarityWidgetGridLayout;
+	void Initialize() override;
+private slots:
+	bool startInSpectr();
+private:
+	iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
 };

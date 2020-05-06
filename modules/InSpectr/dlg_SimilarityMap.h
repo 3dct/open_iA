@@ -18,41 +18,36 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAPeriodicTableListener.h"
+#pragma once
 
-#include "dlg_XRF.h"
-#include "iAElementConstants.h"
+#include "ui_SimilarityMap.h"
 
+#include "iASimilarityMapWidget.h"
 
-iAElementSelectionListener::~iAElementSelectionListener()
-{}
+#include <qthelper/iAQTtoUIConnector.h>
 
-iAPeriodicTableListener::iAPeriodicTableListener(dlg_XRF* dlgXRF):
-	m_dlgXRF(dlgXRF)
-{}
+#include <vtkSmartPointer.h>
 
-void iAPeriodicTableListener::ElementEnter(int elementIdx)
+#include <QScopedPointer>
+
+class dlg_InSpectr;
+
+typedef iAQTtoUIConnector<QDockWidget, Ui_SimilarityMap>   dlg_SimilarityMapContainer;
+
+class dlg_SimilarityMap : public dlg_SimilarityMapContainer
 {
-	if (m_dlgXRF->IsElementSelected(elementIdx))
-	{
-		return;
-	}
-	if (m_dlgXRF->ShowElementLines())
-	{
-		m_dlgXRF->AddElementLine(PeriodicTable::elements[elementIdx].shortname.c_str());
-	}
-	if (m_dlgXRF->ShowReferenceSpectra())
-	{
-		m_dlgXRF->AddReferenceSpectrum(m_dlgXRF->GetModelIdx(elementIdx));
-	}
-}
-
-void iAPeriodicTableListener::ElementLeave(int elementIdx)
-{
-	if (m_dlgXRF->IsElementSelected(elementIdx))
-	{
-		return;
-	}
-	m_dlgXRF->RemoveElementLine(PeriodicTable::elements[elementIdx].shortname.c_str());
-	m_dlgXRF->RemoveReferenceSpectrum(m_dlgXRF->GetModelIdx(elementIdx));
-}
+	Q_OBJECT
+public:
+	dlg_SimilarityMap( QWidget *parentWidget = 0 );
+	void connectToXRF( dlg_InSpectr* dlgXRF );
+protected:
+	void connectSignalsToSlots();
+protected slots:
+	void windowingChanged( int val = 0);
+	void loadMap();
+	void showMarkers(bool checked);
+protected:
+	dlg_InSpectr* m_dlgXRF;
+	QScopedPointer<iASimilarityMapWidget> m_similarityMapWidget;
+	QGridLayout * m_similarityWidgetGridLayout;
+};

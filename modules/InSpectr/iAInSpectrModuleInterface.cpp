@@ -18,17 +18,33 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAInSpectrModuleInterface.h"
 
-#include <iAModuleInterface.h>
+#include "iAInSpectrAttachment.h"
 
-class iAXRFModuleInterface : public iAModuleInterface
+#include <mainwindow.h>
+#include <mdichild.h>
+
+void iAInSpectrModuleInterface::Initialize()
 {
-	Q_OBJECT
-public:
-	void Initialize() override;
-private slots:
-	bool XRF_Visualization();
-private:
-	iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
-};
+	if (!m_mainWnd)
+	{
+		return;
+	}
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
+	QAction * actionXRF = new QAction( m_mainWnd );
+	actionXRF->setText( QApplication::translate( "MainWindow", "InSpectr", 0 ) );
+	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionXRF );
+	connect(actionXRF, &QAction::triggered, this, &iAInSpectrModuleInterface::startInSpectr);
+}
+
+bool iAInSpectrModuleInterface::startInSpectr()
+{
+	PrepareActiveChild();
+	return AttachToMdiChild( m_mdiChild );
+}
+
+iAModuleAttachmentToChild * iAInSpectrModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+{
+	return new iAInSpectrAttachment( mainWnd, child );
+}

@@ -20,16 +20,56 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAElementSelectionListener.h"
+#include <iAModuleInterface.h>
+#include <iAModuleAttachmentToChild.h>
 
-class dlg_XRF;
+#include <vtkSmartPointer.h>
 
-class iAPeriodicTableListener: public iAElementSelectionListener
+class MainWindow;
+class dlg_periodicTable;
+class dlg_RefSpectra;
+class dlg_SimilarityMap;
+class dlg_InSpectr;
+class iASlicer;
+class iAIO;
+
+class vtkPiecewiseFunction;
+
+class QThread;
+
+class iAInSpectrAttachment : public iAModuleAttachmentToChild
 {
-private:
-	dlg_XRF* m_dlgXRF;
+	Q_OBJECT
+
 public:
-	iAPeriodicTableListener(dlg_XRF* dlgXRF);
-	virtual void ElementEnter(int elementIdx);
-	virtual void ElementLeave(int elementIdx);
+	iAInSpectrAttachment( MainWindow * mainWnd, MdiChild * child );
+	~iAInSpectrAttachment();
+
+private slots:
+	void visualizeXRF( int isOn );
+	void updateXRFOpacity( int value );
+	void updateXRF();
+	void updateXRFVoxelEnergy( int x, int y, int z, int mode );
+	void xrfLoadingDone();
+	void xrfLoadingFailed();
+	void reInitXRF();
+	void initXRF();
+	void deinitXRF();
+	void initXRF( bool enableChannel );
+	bool filter_SimilarityMap();
+	void magicLensToggled( bool isOn );
+	void ioFinished();
+
+protected:
+	void updateSlicerXRFOpacity();
+	QThread* recalculateXRF();
+	void initSlicerXRF( bool enableChannel );
+
+protected:
+	dlg_periodicTable * dlgPeriodicTable;
+	dlg_RefSpectra* dlgRefSpectra;
+	dlg_SimilarityMap * dlgSimilarityMap;
+	dlg_InSpectr * dlgXRF;
+	iAIO * ioThread;
+	uint m_xrfChannelID;
 };

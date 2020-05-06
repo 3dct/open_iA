@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_XRF.h"
+#include "dlg_InSpectr.h"
 
 #include "dlg_periodicTable.h"
 #include "dlg_RefSpectra.h"
@@ -93,7 +93,7 @@
 #include <cassert>
 
 
-dlg_XRF::dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg_RefSpectra* dlgRefSpectra):
+dlg_InSpectr::dlg_InSpectr(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg_RefSpectra* dlgRefSpectra):
 	dlg_xrfContainer(parentWidget),
 	m_pieGlyphsEnabled(false),
 	m_spectraHistogramColormap(QString::fromUtf8(":/images/colormap.png")),
@@ -126,50 +126,50 @@ dlg_XRF::dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg
 	m_selection_otf->AddPoint(0, 0);
 	m_selection_otf->AddPoint(1, 1);
 
-	connect ( comB_AccumulateFunction, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_XRF::updateAccumulate);
-	connect ( comB_spectrumSelectionMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_XRF::updateSelectionMode);
-	connect ( cb_spectraLines, &QCheckBox::stateChanged, this, &dlg_XRF::showSpectraLines);
-	connect ( cb_spectraHistograms, &QCheckBox::stateChanged, this, &dlg_XRF::showSpectraHistograms);
-	connect ( tb_spectraSettings, &QToolButton::toggled, this, &dlg_XRF::showSpectraHistogramsSettings);
-	connect ( cb_spectrumProbing, &QCheckBox::stateChanged, this, &dlg_XRF::showVoxelSpectrum);
-	connect ( pb_decompose, &QPushButton::clicked, this, &dlg_XRF::decomposeElements);
-	connect ( pb_decompositionLoad, &QPushButton::clicked, this, &dlg_XRF::loadDecomposition);
-	connect ( pb_decompositionStore, &QPushButton::clicked, this, &dlg_XRF::storeDecomposition);
-	connect ( cb_combinedElementMaps, &QCheckBox::stateChanged, this, &dlg_XRF::combinedElementMaps);
-	connect ( sl_specHistSensitivity, &QSlider::valueChanged, this, &dlg_XRF::spectraHistSensitivityChanged);
-	connect ( pb_recompute, &QPushButton::clicked, this, &dlg_XRF::recomputeSpectraHistograms);
-	connect ( cb_smoothOpacFade, &QCheckBox::stateChanged, this, &dlg_XRF::smoothOpacityFadeChecked);
-	connect ( sl_specHistOpacThreshold, &QSlider::valueChanged, this, &dlg_XRF::spectraOpacityThresholdChanged);
-	connect ( comB_colormap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_XRF::changeColormap);
-	connect ( cb_linkedElementMaps, &QCheckBox::stateChanged, this, &dlg_XRF::showLinkedElementMaps);
-	connect ( cb_pieChartGlyphs, &QCheckBox::stateChanged, this, &dlg_XRF::pieGlyphsVisualization);
-	connect ( tb_pieGlyphSettings, &QToolButton::toggled, this, &dlg_XRF::showPieGlyphsSettings);
-	connect ( sl_pieGlyphsOpacity, &QSlider::valueChanged, this, &dlg_XRF::updatePieGlyphParameters);
-	connect ( sl_pieGlyphsSpacing, &QSlider::valueChanged, this, &dlg_XRF::updatePieGlyphParameters);
-	connect ( sl_pieGlyphResolution, &QSlider::valueChanged, this, &dlg_XRF::updatePieGlyphParameters);
-	connect ( sl_concentrationOpacity, &QSlider::valueChanged, this, &dlg_XRF::updateConcentrationOpacity);
-	connect ( cb_aggregatedSpectrum, &QCheckBox::stateChanged, this, &dlg_XRF::showAggregatedSpectrum);
-	connect ( cb_functionalBoxplot,  &QCheckBox::stateChanged, this, &dlg_XRF::updateFunctionalBoxplot);
-	connect ( rb_DrawMode_Log, &QToolButton::toggled, this, &dlg_XRF::setLogDrawMode);
-	connect ( rb_DrawMode_Lin, &QToolButton::toggled, this, &dlg_XRF::setLinDrawMode);
-	connect ( pb_computeSimilarityMap, &QPushButton::clicked, this, &dlg_XRF::computeSimilarityMap);
+	connect ( comB_AccumulateFunction, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_InSpectr::updateAccumulate);
+	connect ( comB_spectrumSelectionMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_InSpectr::updateSelectionMode);
+	connect ( cb_spectraLines, &QCheckBox::stateChanged, this, &dlg_InSpectr::showSpectraLines);
+	connect ( cb_spectraHistograms, &QCheckBox::stateChanged, this, &dlg_InSpectr::showSpectraHistograms);
+	connect ( tb_spectraSettings, &QToolButton::toggled, this, &dlg_InSpectr::showSpectraHistogramsSettings);
+	connect ( cb_spectrumProbing, &QCheckBox::stateChanged, this, &dlg_InSpectr::showVoxelSpectrum);
+	connect ( pb_decompose, &QPushButton::clicked, this, &dlg_InSpectr::decomposeElements);
+	connect ( pb_decompositionLoad, &QPushButton::clicked, this, &dlg_InSpectr::loadDecomposition);
+	connect ( pb_decompositionStore, &QPushButton::clicked, this, &dlg_InSpectr::storeDecomposition);
+	connect ( cb_combinedElementMaps, &QCheckBox::stateChanged, this, &dlg_InSpectr::combinedElementMaps);
+	connect ( sl_specHistSensitivity, &QSlider::valueChanged, this, &dlg_InSpectr::spectraHistSensitivityChanged);
+	connect ( pb_recompute, &QPushButton::clicked, this, &dlg_InSpectr::recomputeSpectraHistograms);
+	connect ( cb_smoothOpacFade, &QCheckBox::stateChanged, this, &dlg_InSpectr::smoothOpacityFadeChecked);
+	connect ( sl_specHistOpacThreshold, &QSlider::valueChanged, this, &dlg_InSpectr::spectraOpacityThresholdChanged);
+	connect ( comB_colormap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_InSpectr::changeColormap);
+	connect ( cb_linkedElementMaps, &QCheckBox::stateChanged, this, &dlg_InSpectr::showLinkedElementMaps);
+	connect ( cb_pieChartGlyphs, &QCheckBox::stateChanged, this, &dlg_InSpectr::pieGlyphsVisualization);
+	connect ( tb_pieGlyphSettings, &QToolButton::toggled, this, &dlg_InSpectr::showPieGlyphsSettings);
+	connect ( sl_pieGlyphsOpacity, &QSlider::valueChanged, this, &dlg_InSpectr::updatePieGlyphParameters);
+	connect ( sl_pieGlyphsSpacing, &QSlider::valueChanged, this, &dlg_InSpectr::updatePieGlyphParameters);
+	connect ( sl_pieGlyphResolution, &QSlider::valueChanged, this, &dlg_InSpectr::updatePieGlyphParameters);
+	connect ( sl_concentrationOpacity, &QSlider::valueChanged, this, &dlg_InSpectr::updateConcentrationOpacity);
+	connect ( cb_aggregatedSpectrum, &QCheckBox::stateChanged, this, &dlg_InSpectr::showAggregatedSpectrum);
+	connect ( cb_functionalBoxplot,  &QCheckBox::stateChanged, this, &dlg_InSpectr::updateFunctionalBoxplot);
+	connect ( rb_DrawMode_Log, &QToolButton::toggled, this, &dlg_InSpectr::setLogDrawMode);
+	connect ( rb_DrawMode_Lin, &QToolButton::toggled, this, &dlg_InSpectr::setLinDrawMode);
+	connect ( pb_computeSimilarityMap, &QPushButton::clicked, this, &dlg_InSpectr::computeSimilarityMap);
 }
 
-void dlg_XRF::AddSimilarityMarkers()
+void dlg_InSpectr::AddSimilarityMarkers()
 {
 	m_spectrumDiagram->addPlot( m_selectedBinXDrawer );
 	m_spectrumDiagram->addPlot( m_selectedBinYDrawer );
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::RemoveSimilarityMarkers()
+void dlg_InSpectr::RemoveSimilarityMarkers()
 {
 	m_spectrumDiagram->removePlot( m_selectedBinXDrawer );
 	m_spectrumDiagram->removePlot( m_selectedBinYDrawer );
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
+void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 		iAWidgetAddHelper & widgetAddHelper)
 {
 	spectrumVisWidget->show();
@@ -193,7 +193,7 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 	m_selectedBinXDrawer = QSharedPointer<iASelectedBinPlot>(new iASelectedBinPlot(m_voxelEnergy, 0, QColor(150, 0, 0, 50)));
 	m_selectedBinYDrawer = QSharedPointer<iASelectedBinPlot>(new iASelectedBinPlot(m_voxelEnergy, 0, QColor(0, 0, 150, 50)));
 
-	connect((iAChartTransferFunction*)(m_spectrumDiagram->functions()[0]), &iAChartTransferFunction::Changed, this, &dlg_XRF::SpectrumTFChanged);
+	connect((iAChartTransferFunction*)(m_spectrumDiagram->functions()[0]), &iAChartTransferFunction::Changed, this, &dlg_InSpectr::SpectrumTFChanged);
 	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget");
 	spectrumChartContainer->setContentsMargins(0, 0, 0, 0);
 
@@ -251,13 +251,13 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 	pb_decompose->setEnabled(true);
 }
 
-void dlg_XRF::InitElementMaps(/* QSharedPointer<iAElementConcentrations> conc */iAWidgetAddHelper & widgetAddHelper)
+void dlg_InSpectr::InitElementMaps(/* QSharedPointer<iAElementConcentrations> conc */iAWidgetAddHelper & widgetAddHelper)
 {
 	InitCommonGUI(widgetAddHelper);
 	widgetAddHelper.SplitWidget(m_pieChartContainer, m_periodicTable, Qt::Vertical);
 }
 
-void dlg_XRF::InitCommonGUI(iAWidgetAddHelper & widgetAddHelper)
+void dlg_InSpectr::InitCommonGUI(iAWidgetAddHelper & widgetAddHelper)
 {
 	m_periodicTable->setListener(m_periodicTableListener);
 
@@ -268,11 +268,11 @@ void dlg_XRF::InitCommonGUI(iAWidgetAddHelper & widgetAddHelper)
 		rootDir + "elementSpectra/reference_library.reflib"));
 	m_refSpectra->getSpectraList()->setModel(m_refSpectraLib->getItemModel().data());
 	EnergyLoader::Load(rootDir + "characteristic-energies.cel", m_characteristicEnergies);
-	connect(m_refSpectra->getSpectraList(), &QListView::doubleClicked, this, &dlg_XRF::ReferenceSpectrumDoubleClicked, Qt::UniqueConnection);
-	connect(m_refSpectra->getSpectraList(), &QListView::clicked, this, &dlg_XRF::ReferenceSpectrumClicked, Qt::UniqueConnection );
-	connect(m_refSpectraLib->getItemModel().data(), &QStandardItemModel::itemChanged, this, &dlg_XRF::ReferenceSpectrumItemChanged, Qt::UniqueConnection);
-	connect(m_refSpectra->cb_showRefSpectra, &QCheckBox::stateChanged, this, &dlg_XRF::showRefSpectraChanged);
-	connect(m_refSpectra->cb_showRefLines, &QCheckBox::stateChanged, this, &dlg_XRF::showRefLineChanged);
+	connect(m_refSpectra->getSpectraList(), &QListView::doubleClicked, this, &dlg_InSpectr::ReferenceSpectrumDoubleClicked, Qt::UniqueConnection);
+	connect(m_refSpectra->getSpectraList(), &QListView::clicked, this, &dlg_InSpectr::ReferenceSpectrumClicked, Qt::UniqueConnection );
+	connect(m_refSpectraLib->getItemModel().data(), &QStandardItemModel::itemChanged, this, &dlg_InSpectr::ReferenceSpectrumItemChanged, Qt::UniqueConnection);
+	connect(m_refSpectra->cb_showRefSpectra, &QCheckBox::stateChanged, this, &dlg_InSpectr::showRefSpectraChanged);
+	connect(m_refSpectra->cb_showRefLines, &QCheckBox::stateChanged, this, &dlg_InSpectr::showRefLineChanged);
 
 	m_pieChart = new iAPieChartWidget(this);
 	m_pieChart->setObjectName(QString::fromUtf8("Composition"));
@@ -283,7 +283,7 @@ void dlg_XRF::InitCommonGUI(iAWidgetAddHelper & widgetAddHelper)
 	widgetAddHelper.TabWidget(m_refSpectra, this);
 }
 
-void dlg_XRF::setLogDrawMode(bool checked)
+void dlg_InSpectr::setLogDrawMode(bool checked)
 {
 	if (checked)
 	{
@@ -292,7 +292,7 @@ void dlg_XRF::setLogDrawMode(bool checked)
 	}
 }
 
-void dlg_XRF::setLinDrawMode(bool checked)
+void dlg_InSpectr::setLinDrawMode(bool checked)
 {
 	if (checked)
 	{
@@ -301,22 +301,22 @@ void dlg_XRF::setLinDrawMode(bool checked)
 	}
 }
 
-bool dlg_XRF::IsInitialized()
+bool dlg_InSpectr::IsInitialized()
 {
 	return m_initialized;
 }
 
-vtkSmartPointer<vtkImageData> dlg_XRF::GetCombinedVolume()
+vtkSmartPointer<vtkImageData> dlg_InSpectr::GetCombinedVolume()
 {
 	return m_xrfData->GetCombinedVolume();
 }
 
-vtkSmartPointer<vtkColorTransferFunction> dlg_XRF::GetColorTransferFunction()
+vtkSmartPointer<vtkColorTransferFunction> dlg_InSpectr::GetColorTransferFunction()
 {
 	return m_xrfData->GetColorTransferFunction();
 }
 
-QThread* dlg_XRF::UpdateForVisualization()
+QThread* dlg_InSpectr::UpdateForVisualization()
 {
 	if (m_ctfChanged)
 	{
@@ -326,12 +326,12 @@ QThread* dlg_XRF::UpdateForVisualization()
 	return nullptr;
 }
 
-QSharedPointer<iAXRFData> dlg_XRF::GetXRFData()
+QSharedPointer<iAXRFData> dlg_InSpectr::GetXRFData()
 {
 	return m_xrfData;
 }
 
-void dlg_XRF::updateComposition(QVector<double> const & concentration)
+void dlg_InSpectr::updateComposition(QVector<double> const & concentration)
 {
 	if (m_refSpectraLib->spectra.size() == 0) // can't do anything without refspectra!
 	{
@@ -360,13 +360,13 @@ void dlg_XRF::updateComposition(QVector<double> const & concentration)
 	m_pieChart->update();
 }
 
-void dlg_XRF::UpdateVoxelSpectrum(int x, int y, int z)
+void dlg_InSpectr::UpdateVoxelSpectrum(int x, int y, int z)
 {
 	m_voxelEnergy->updateEnergyFunction(x, y, z);
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::UpdateConcentrationViews( int x, int y, int z )
+void dlg_InSpectr::UpdateConcentrationViews( int x, int y, int z )
 {
 	if (m_elementConcentrations)
 	{
@@ -382,18 +382,18 @@ void dlg_XRF::UpdateConcentrationViews( int x, int y, int z )
 	}
 }
 
-void dlg_XRF::SpectrumTFChanged()
+void dlg_InSpectr::SpectrumTFChanged()
 {
 	m_ctfChanged = true;
 }
 
-void dlg_XRF::updateAccumulate(int fctIdx)
+void dlg_InSpectr::updateAccumulate(int fctIdx)
 {
 	m_accumulatedXRF->setFct(fctIdx);
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::initSpectraLinesDrawer()
+void dlg_InSpectr::initSpectraLinesDrawer()
 {
 	int extent[6];
 	m_xrfData->GetExtent(extent);
@@ -431,7 +431,7 @@ void dlg_XRF::initSpectraLinesDrawer()
 	}
 }
 
-void dlg_XRF::initSpectraOverlay()
+void dlg_InSpectr::initSpectraOverlay()
 {
 	int numBin = sb_numBins->value();
 	bool smoothFade = cb_smoothOpacFade->isChecked();
@@ -451,7 +451,7 @@ void dlg_XRF::initSpectraOverlay()
 #endif
 }
 
-void dlg_XRF::showSpectraLines(int show)
+void dlg_InSpectr::showSpectraLines(int show)
 {
 	if (show)
 	{
@@ -468,7 +468,7 @@ void dlg_XRF::showSpectraLines(int show)
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::showSpectraHistograms( int show )
+void dlg_InSpectr::showSpectraHistograms( int show )
 {
 	if (show)
 	{
@@ -486,7 +486,7 @@ void dlg_XRF::showSpectraHistograms( int show )
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::showSpectraHistogramsSettings( bool isChecked )
+void dlg_InSpectr::showSpectraHistogramsSettings( bool isChecked )
 {
 	if(isChecked)
 	{
@@ -500,7 +500,7 @@ void dlg_XRF::showSpectraHistogramsSettings( bool isChecked )
 	}
 }
 
-void dlg_XRF::showVoxelSpectrum(int show)
+void dlg_InSpectr::showVoxelSpectrum(int show)
 {
 	if (!m_xrfData)
 	{
@@ -517,13 +517,13 @@ void dlg_XRF::showVoxelSpectrum(int show)
 	}
 }
 
-void dlg_XRF::showAggregatedSpectrum( int show )
+void dlg_InSpectr::showAggregatedSpectrum( int show )
 {
 	m_spectrumDiagram->plots()[0]->setVisible(show);
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::updateFunctionalBoxplot(int show)
+void dlg_InSpectr::updateFunctionalBoxplot(int show)
 {
 	if (show)
 	{
@@ -539,7 +539,7 @@ void dlg_XRF::updateFunctionalBoxplot(int show)
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::ReferenceSpectrumDoubleClicked( const QModelIndex &index )
+void dlg_InSpectr::ReferenceSpectrumDoubleClicked( const QModelIndex &index )
 {
 	assert(index.row() >= 0);
 	QColor initCol = m_refSpectraLib->getElementColor(index);
@@ -572,7 +572,7 @@ namespace {
 	}
 }
 
-void dlg_XRF::ReferenceSpectrumItemChanged( QStandardItem * item )
+void dlg_InSpectr::ReferenceSpectrumItemChanged( QStandardItem * item )
 {
 	QModelIndex index = item->index();
 	int indRow = index.row();
@@ -625,7 +625,7 @@ void dlg_XRF::ReferenceSpectrumItemChanged( QStandardItem * item )
 	}
 }
 
-void dlg_XRF::decomposeElements()
+void dlg_InSpectr::decomposeElements()
 {
 	if (!m_refSpectraLib)
 	{
@@ -659,20 +659,20 @@ void dlg_XRF::decomposeElements()
 		return;
 	}
 	pb_decompose->setText("Stop");
-	connect(m_decompositionCalculator.data(), &iADecompositionCalculator::success, this, &dlg_XRF::decompositionSuccess);
-	connect(m_decompositionCalculator.data(), &iADecompositionCalculator::finished, this, &dlg_XRF::decompositionFinished);
+	connect(m_decompositionCalculator.data(), &iADecompositionCalculator::success, this, &dlg_InSpectr::decompositionSuccess);
+	connect(m_decompositionCalculator.data(), &iADecompositionCalculator::finished, this, &dlg_InSpectr::decompositionFinished);
 	connect(m_decompositionCalculator.data(), &iADecompositionCalculator::progress, dynamic_cast<MdiChild*>(parent()), &MdiChild::updateProgressBar);
 	m_decompositionCalculator->start();
 	(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("Decomposition calculation started..."));
 }
 
-void dlg_XRF::decompositionSuccess()
+void dlg_InSpectr::decompositionSuccess()
 {
 	(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("Decomposition calculation successful."));
 	decompositionAvailable();
 }
 
-void dlg_XRF::decompositionAvailable()
+void dlg_InSpectr::decompositionAvailable()
 {
 	if (m_elementConcentrations->hasAvgConcentration())
 	{
@@ -681,14 +681,14 @@ void dlg_XRF::decompositionAvailable()
 	enableControlsNeedingDecompositionData();
 }
 
-void dlg_XRF::decompositionFinished()
+void dlg_InSpectr::decompositionFinished()
 {
 	m_decompositionCalculator.clear();
 	(dynamic_cast<MdiChild*>(parent()))->hideProgressBar();
 	pb_decompose->setText("Calculate");
 }
 
-void dlg_XRF::loadDecomposition()
+void dlg_InSpectr::loadDecomposition()
 {
 	if (!m_refSpectraLib)
 	{
@@ -730,7 +730,7 @@ void dlg_XRF::loadDecomposition()
 	updateDecompositionGUI( elements );
 }
 
-void dlg_XRF::enableControlsNeedingDecompositionData()
+void dlg_InSpectr::enableControlsNeedingDecompositionData()
 {
 	m_decompositionLoaded = true;
 	pb_decompositionStore->setEnabled(true);
@@ -738,7 +738,7 @@ void dlg_XRF::enableControlsNeedingDecompositionData()
 	cb_linkedElementMaps->setEnabled(true);
 }
 
-void dlg_XRF::storeDecomposition()
+void dlg_InSpectr::storeDecomposition()
 {
 	QString fileName = QFileDialog::getSaveFileName(
 		QApplication::activeWindow(),
@@ -773,7 +773,7 @@ void dlg_XRF::storeDecomposition()
 	io.wait();
 }
 
-void dlg_XRF::combinedElementMaps(int show)
+void dlg_InSpectr::combinedElementMaps(int show)
 {
 	if (!m_elementConcentrations)
 	{
@@ -845,7 +845,7 @@ void dlg_XRF::combinedElementMaps(int show)
 	}
 }
 
-void dlg_XRF::recomputeSpectraHistograms()
+void dlg_InSpectr::recomputeSpectraHistograms()
 {
 	if(!m_spectraHistogramImage.isNull())
 		m_spectrumDiagram->removeImageOverlay(m_spectraHistogramImage.data());
@@ -853,24 +853,24 @@ void dlg_XRF::recomputeSpectraHistograms()
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::spectraHistSensitivityChanged( int /*newVal*/ )
+void dlg_InSpectr::spectraHistSensitivityChanged( int /*newVal*/ )
 {
 	sl_specHistSensitivity->repaint();
 	recomputeSpectraHistograms();
 }
 
-void dlg_XRF::smoothOpacityFadeChecked( int /*checked*/ )
+void dlg_InSpectr::smoothOpacityFadeChecked( int /*checked*/ )
 {
 	recomputeSpectraHistograms();
 }
 
-void dlg_XRF::spectraOpacityThresholdChanged( int /*newVal*/ )
+void dlg_InSpectr::spectraOpacityThresholdChanged( int /*newVal*/ )
 {
 	sl_specHistOpacThreshold->repaint();
 	recomputeSpectraHistograms();
 }
 
-void dlg_XRF::changeColormap( int colormapInd )
+void dlg_InSpectr::changeColormap( int colormapInd )
 {
 	switch (colormapInd)
 	{
@@ -887,18 +887,18 @@ void dlg_XRF::changeColormap( int colormapInd )
 	recomputeSpectraHistograms();
 }
 
-void dlg_XRF::OnSelectionUpdate(QVector<iASpectrumFilter> const & filter)
+void dlg_InSpectr::OnSelectionUpdate(QVector<iASpectrumFilter> const & filter)
 {
 	m_activeFilter = filter;
 	updateSelection();
 }
 
-void dlg_XRF::updateSelectionMode(int /*modeIdx*/)
+void dlg_InSpectr::updateSelectionMode(int /*modeIdx*/)
 {
 	updateSelection();
 }
 
-void dlg_XRF::updateSelection()
+void dlg_InSpectr::updateSelection()
 {
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 
@@ -928,7 +928,7 @@ void dlg_XRF::updateSelection()
 	mdiChild->updateViews();
 }
 
-void dlg_XRF::showLinkedElementMaps( int show )
+void dlg_InSpectr::showLinkedElementMaps( int show )
 {
 	if (!m_elementConcentrations)
 	{
@@ -976,7 +976,7 @@ void dlg_XRF::showLinkedElementMaps( int show )
 	}
 }
 
-void dlg_XRF::InitElementRenderer( dlg_elementRenderer * elemRend, size_t index )
+void dlg_InSpectr::InitElementRenderer( dlg_elementRenderer * elemRend, size_t index )
 {
 	MdiChild * mdiChild = (dynamic_cast<MdiChild*>(parent()));
 
@@ -999,7 +999,7 @@ void dlg_XRF::InitElementRenderer( dlg_elementRenderer * elemRend, size_t index 
 	elemRend->SetDataToVisualize( chImgData, chPolyData, chOTF, chCTF );
 }
 
-void dlg_XRF::updateConcentrationOpacity(int newVal)
+void dlg_InSpectr::updateConcentrationOpacity(int newVal)
 {
 	if (cb_combinedElementMaps->checkState() != Qt::Checked)
 		return;
@@ -1020,7 +1020,7 @@ void dlg_XRF::updateConcentrationOpacity(int newVal)
 	(dynamic_cast<MdiChild*>(parent()))->updateViews();
 }
 
-void dlg_XRF::ReferenceSpectrumClicked( const QModelIndex &index )
+void dlg_InSpectr::ReferenceSpectrumClicked( const QModelIndex &index )
 {
 	int opacity;
 	if (m_refSpectraLib->getElementOpacity(index, opacity))
@@ -1029,12 +1029,12 @@ void dlg_XRF::ReferenceSpectrumClicked( const QModelIndex &index )
 	}
 }
 
-QSharedPointer<iAElementConcentrations> dlg_XRF::GetElementConcentrations()
+QSharedPointer<iAElementConcentrations> dlg_InSpectr::GetElementConcentrations()
 {
 	return m_elementConcentrations;
 }
 
-void dlg_XRF::showRefSpectraChanged( int show )
+void dlg_InSpectr::showRefSpectraChanged( int show )
 {
 	if (!m_spectrumDiagram)
 	{
@@ -1061,7 +1061,7 @@ void dlg_XRF::showRefSpectraChanged( int show )
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::showRefLineChanged( int show )
+void dlg_InSpectr::showRefLineChanged( int show )
 {
 	if (!m_spectrumDiagram)
 	{
@@ -1088,7 +1088,7 @@ void dlg_XRF::showRefLineChanged( int show )
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::computeSimilarityMap()
+void dlg_InSpectr::computeSimilarityMap()
 {
 
 	QString fileName = QFileDialog::getSaveFileName(
@@ -1234,14 +1234,14 @@ void dlg_XRF::computeSimilarityMap()
 		(dynamic_cast<MdiChild*>(parent()))->addMsg("Exception in computeSimilarityMap(): " + errDescr[i]);
 }
 
-void dlg_XRF::energyBinsSelected( int binX, int binY )
+void dlg_InSpectr::energyBinsSelected( int binX, int binY )
 {
 	m_selectedBinXDrawer->setPosition( binX );
 	m_selectedBinYDrawer->setPosition( binY );
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::updateDecompositionGUI( QStringList elementsNames )
+void dlg_InSpectr::updateDecompositionGUI( QStringList elementsNames )
 {
 	m_decomposeSelectedElements.clear();
 	m_decomposeSelectedElements.resize( elementsNames.size() );
@@ -1278,7 +1278,7 @@ void dlg_XRF::updateDecompositionGUI( QStringList elementsNames )
 	decompositionAvailable();
 }
 
-void dlg_XRF::AddElementLine(QString const & symbol)
+void dlg_InSpectr::AddElementLine(QString const & symbol)
 {
 	if (!m_spectrumDiagram)
 	{
@@ -1297,7 +1297,7 @@ void dlg_XRF::AddElementLine(QString const & symbol)
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::RemoveElementLine(QString const & symbol)
+void dlg_InSpectr::RemoveElementLine(QString const & symbol)
 {
 	if (!m_spectrumDiagram)
 	{
@@ -1311,7 +1311,7 @@ void dlg_XRF::RemoveElementLine(QString const & symbol)
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::AddReferenceSpectrum(int modelIdx)
+void dlg_InSpectr::AddReferenceSpectrum(int modelIdx)
 {
 	if (!m_spectrumDiagram)
 	{
@@ -1338,7 +1338,7 @@ void dlg_XRF::AddReferenceSpectrum(int modelIdx)
 	m_spectrumDiagram->update();
 }
 
-void dlg_XRF::RemoveReferenceSpectrum(int modelIdx)
+void dlg_InSpectr::RemoveReferenceSpectrum(int modelIdx)
 {
 	if (!m_spectrumDiagram)
 	{
@@ -1356,22 +1356,22 @@ void dlg_XRF::RemoveReferenceSpectrum(int modelIdx)
 	m_spectrumDiagram->update();
 }
 
-bool dlg_XRF::ShowElementLines() const
+bool dlg_InSpectr::ShowElementLines() const
 {
 	return m_refSpectra->cb_showRefLines->isChecked();
 }
 
-bool dlg_XRF::ShowReferenceSpectra() const
+bool dlg_InSpectr::ShowReferenceSpectra() const
 {
 	return m_refSpectra->cb_showRefSpectra->isChecked();
 }
 
-int dlg_XRF::GetModelIdx(int elemIdx) const
+int dlg_InSpectr::GetModelIdx(int elemIdx) const
 {
 	return GetModelIdx(PeriodicTable::elements[elemIdx].shortname.c_str());
 }
 
-int dlg_XRF::GetModelIdx(QString const & symbol) const
+int dlg_InSpectr::GetModelIdx(QString const & symbol) const
 {
 	for (size_t i=0; i<m_refSpectraLib->spectra.size(); ++i)
 	{
@@ -1383,7 +1383,7 @@ int dlg_XRF::GetModelIdx(QString const & symbol) const
 	return -1;
 }
 
-bool dlg_XRF::IsElementSelected(int elemIdx) const
+bool dlg_InSpectr::IsElementSelected(int elemIdx) const
 {
 	int modelIdx = GetModelIdx(elemIdx);
 	if (modelIdx == -1)
@@ -1393,7 +1393,7 @@ bool dlg_XRF::IsElementSelected(int elemIdx) const
 
 //  { Start Slicer Pie Glyphs
 
-void dlg_XRF::showPieGlyphsSettings(bool isChecked)
+void dlg_InSpectr::showPieGlyphsSettings(bool isChecked)
 {
 	if (isChecked)
 		gb_pieGlyphsSettings->show();
@@ -1401,20 +1401,20 @@ void dlg_XRF::showPieGlyphsSettings(bool isChecked)
 		gb_pieGlyphsSettings->hide();
 }
 
-void dlg_XRF::updatePieGlyphParameters(int /*newVal*/)
+void dlg_InSpectr::updatePieGlyphParameters(int /*newVal*/)
 {
 	updatePieGlyphParamsInternal();
 	updateAllPieGlyphs();
 }
 
-void dlg_XRF::updatePieGlyphParamsInternal()
+void dlg_InSpectr::updatePieGlyphParamsInternal()
 {
 	m_pieGlyphOpacity = (double)sl_pieGlyphsOpacity->value() / sl_pieGlyphsOpacity->maximum();
 	m_pieGlyphSpacing = 1.0 - (double)sl_pieGlyphsSpacing->value() / sl_pieGlyphsSpacing->maximum();
 	m_pieGlyphMagFactor = (double)sl_pieGlyphResolution->value() / sl_pieGlyphResolution->maximum() * 0.7;
 }
 
-void dlg_XRF::pieGlyphsVisualization(int show)
+void dlg_InSpectr::pieGlyphsVisualization(int show)
 {
 	bool isOn = (bool)show;
 	updatePieGlyphParamsInternal();
@@ -1426,7 +1426,7 @@ void dlg_XRF::pieGlyphsVisualization(int show)
 		gb_pieGlyphsSettings->hide();
 }
 
-void dlg_XRF::setSlicerPieGlyphsOn(bool isOn)
+void dlg_InSpectr::setSlicerPieGlyphsOn(bool isOn)
 {
 	if (m_pieGlyphsEnabled == isOn)
 		return;
@@ -1435,14 +1435,14 @@ void dlg_XRF::setSlicerPieGlyphsOn(bool isOn)
 	for (int slicerMode = 0; slicerMode < iASlicerMode::SlicerCount; ++slicerMode)
 	{
 		if (isOn)
-			connect(child->slicer(slicerMode), &iASlicer::sliceNumberChanged, this, &dlg_XRF::updatePieGlyphs);
+			connect(child->slicer(slicerMode), &iASlicer::sliceNumberChanged, this, &dlg_InSpectr::updatePieGlyphs);
 		else
-			disconnect(child->slicer(slicerMode), &iASlicer::sliceNumberChanged, this, &dlg_XRF::updatePieGlyphs);
+			disconnect(child->slicer(slicerMode), &iASlicer::sliceNumberChanged, this, &dlg_InSpectr::updatePieGlyphs);
 	}
 	updateAllPieGlyphs();
 }
 
-void dlg_XRF::updateAllPieGlyphs()
+void dlg_InSpectr::updateAllPieGlyphs()
 {
 	for (int slicerMode = 0; slicerMode < iASlicerMode::SlicerCount; ++slicerMode)
 	{
@@ -1450,7 +1450,7 @@ void dlg_XRF::updateAllPieGlyphs()
 	}
 }
 
-void dlg_XRF::updatePieGlyphs(int slicerMode)
+void dlg_InSpectr::updatePieGlyphs(int slicerMode)
 {
 	const double EPSILON = 0.0015;
 	auto child = dynamic_cast<MdiChild*>(parent());

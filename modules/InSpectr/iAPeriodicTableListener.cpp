@@ -18,58 +18,41 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAPeriodicTableListener.h"
 
-#include <iAModuleInterface.h>
-#include <iAModuleAttachmentToChild.h>
+#include "dlg_InSpectr.h"
+#include "iAElementConstants.h"
 
-#include <vtkSmartPointer.h>
 
-class MainWindow;
-class dlg_periodicTable;
-class dlg_RefSpectra;
-class dlg_SimilarityMap;
-class dlg_XRF;
-class iASlicer;
-class iAIO;
+iAElementSelectionListener::~iAElementSelectionListener()
+{}
 
-class vtkPiecewiseFunction;
+iAPeriodicTableListener::iAPeriodicTableListener(dlg_InSpectr* dlgXRF):
+	m_dlgXRF(dlgXRF)
+{}
 
-class QThread;
-
-class iAXRFAttachment : public iAModuleAttachmentToChild
+void iAPeriodicTableListener::ElementEnter(int elementIdx)
 {
-	Q_OBJECT
+	if (m_dlgXRF->IsElementSelected(elementIdx))
+	{
+		return;
+	}
+	if (m_dlgXRF->ShowElementLines())
+	{
+		m_dlgXRF->AddElementLine(PeriodicTable::elements[elementIdx].shortname.c_str());
+	}
+	if (m_dlgXRF->ShowReferenceSpectra())
+	{
+		m_dlgXRF->AddReferenceSpectrum(m_dlgXRF->GetModelIdx(elementIdx));
+	}
+}
 
-public:
-	iAXRFAttachment( MainWindow * mainWnd, MdiChild * child );
-	~iAXRFAttachment();
-
-private slots:
-	void visualizeXRF( int isOn );
-	void updateXRFOpacity( int value );
-	void updateXRF();
-	void updateXRFVoxelEnergy( int x, int y, int z, int mode );
-	void xrfLoadingDone();
-	void xrfLoadingFailed();
-	void reInitXRF();
-	void initXRF();
-	void deinitXRF();
-	void initXRF( bool enableChannel );
-	bool filter_SimilarityMap();
-	void magicLensToggled( bool isOn );
-	void ioFinished();
-
-protected:
-	void updateSlicerXRFOpacity();
-	QThread* recalculateXRF();
-	void initSlicerXRF( bool enableChannel );
-
-protected:
-	dlg_periodicTable * dlgPeriodicTable;
-	dlg_RefSpectra* dlgRefSpectra;
-	dlg_SimilarityMap * dlgSimilarityMap;
-	dlg_XRF * dlgXRF;
-	iAIO * ioThread;
-	uint m_xrfChannelID;
-};
+void iAPeriodicTableListener::ElementLeave(int elementIdx)
+{
+	if (m_dlgXRF->IsElementSelected(elementIdx))
+	{
+		return;
+	}
+	m_dlgXRF->RemoveElementLine(PeriodicTable::elements[elementIdx].shortname.c_str());
+	m_dlgXRF->RemoveReferenceSpectrum(m_dlgXRF->GetModelIdx(elementIdx));
+}
