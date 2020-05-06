@@ -1417,17 +1417,13 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 						//	featureEvent = trackedFeaturesBackwards.at(layer - 1)->FromUtoV(c.id).at(0).featureEvent;
 						if (m_trackedFeaturesForwards.at(layer + 1)->FromUtoV(c.id).size() > 0)
 						{
-							// featureEvent = ??? otherwise result unused (warning!)
-							m_trackedFeaturesForwards.at(layer + 1)->FromUtoV(c.id).at(0).featureEvent;
-						}
-						else
-						{
-							featureEvent = 0;
+							featureEvent = m_trackedFeaturesForwards.at(layer + 1)->FromUtoV(c.id).at(0).featureEvent;
 						}
 
 						newVertexId = m_graph->AddVertex();
 						m_labels->InsertValue(newVertexId, std::to_string(c.id) +" (" + std::to_string((long long)(1 - c.likelyhood)) + ")");
 						m_nodeLayer->InsertValue(newVertexId, layer + 1);
+
 						m_colorR->InsertValue(newVertexId, m_rgb[featureEvent][0]);
 						m_colorG->InsertValue(newVertexId, m_rgb[featureEvent][1]);
 						m_colorB->InsertValue(newVertexId, m_rgb[featureEvent][2]);
