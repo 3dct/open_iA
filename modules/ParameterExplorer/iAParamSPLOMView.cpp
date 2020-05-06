@@ -99,7 +99,7 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	m_separationSpinBox->setMinimum(0);
 	m_separationSpinBox->setMaximum(m_tableView->Table()->columnCount()-1);
 	m_separationSpinBox->setValue(0);
-	connect(m_separationSpinBox, SIGNAL(valueChanged(int)), this, SLOT(SeparationChanged(int)));
+	connect(m_separationSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAParamSPLOMView::SeparationChanged);
 	for (QString themeName : iAColorThemeManager::instance().availableThemes())
 	{
 		m_separationColors->addItem(themeName);
@@ -108,12 +108,12 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 			m_separationColors->setCurrentText(themeName);
 		}
 	}
-	connect(m_separationColors, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(setColorTheme(const QString &)));
+	connect(m_separationColors, QOverload<QString const &>::of(&QComboBox::currentIndexChanged), this, &iAParamSPLOMView::setColorTheme);
 	QComboBox* lutSourceChoice = new QComboBox();
 	lutSourceChoice->addItem("None");
 	for (int c = 1; c < m_tableView->Table()->columnCount(); ++c) // first col is assumed to be ID/filename
 		lutSourceChoice->addItem(m_tableView->Table()->item(0, c)->text());
-	connect(lutSourceChoice, SIGNAL(currentTextChanged(const QString &)), this, SLOT(SetLUTColumn(const QString &)));
+	connect(lutSourceChoice, &QComboBox::currentTextChanged, this, &iAParamSPLOMView::SetLUTColumn);
 	QWidget* lutSourceLine = new QWidget();
 	lutSourceLine->setLayout(new QHBoxLayout());
 	lutSourceLine->layout()->addWidget(new QLabel("Input Parameter #: "));

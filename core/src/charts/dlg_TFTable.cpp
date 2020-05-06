@@ -79,15 +79,15 @@ void dlg_TFTable::Init()
 	table->verticalHeader()->setDefaultSectionSize( 25 );
 	table->setSelectionBehavior( QAbstractItemView::SelectRows );
 
-	connect( tbChangeColor, SIGNAL( clicked() ), this, SLOT( changeColor() ) );
-	connect( tbAddPoint, SIGNAL( clicked() ), this, SLOT( addPoint() ) );
-	connect( addPnt, SIGNAL( triggered() ), this, SLOT( addPoint() ) );
-	connect( tbRemovePoint, SIGNAL( clicked() ), this, SLOT( removeSelectedPoint() ) );
-	connect( removePnt, SIGNAL( triggered() ), this, SLOT( removeSelectedPoint() ) );
-	connect( tbUpdateHisto, SIGNAL( clicked() ), this, SLOT( updateHistogram() ) );
-	connect( updateHisto, SIGNAL( triggered() ), this, SLOT( updateHistogram() ) );
-	connect( table, SIGNAL( itemClicked( QTableWidgetItem * ) ), this, SLOT( itemClicked( QTableWidgetItem * ) ) );
-	connect( table, SIGNAL( cellChanged( int, int ) ), this, SLOT( cellValueChanged( int, int ) ) );
+	connect(tbChangeColor, &QToolButton::clicked, this, &dlg_TFTable::changeColor);
+	connect(tbAddPoint, &QToolButton::clicked, this, &dlg_TFTable::addPoint);
+	connect(addPnt, &QAction::triggered, this, &dlg_TFTable::addPoint);
+	connect(tbRemovePoint, &QToolButton::clicked, this, &dlg_TFTable::removeSelectedPoint);
+	connect(removePnt, &QAction::triggered, this, &dlg_TFTable::removeSelectedPoint);
+	connect(tbUpdateHisto, &QToolButton::clicked, this, &dlg_TFTable::updateHistogram);
+	connect(updateHisto, &QAction::triggered, this, &dlg_TFTable::updateHistogram);
+	connect(table, &QTableWidget::itemClicked, this, &dlg_TFTable::itemClicked);
+	connect(table, &QTableWidget::cellChanged, this, &dlg_TFTable::cellValueChanged);
 }
 
 void dlg_TFTable::updateTable()

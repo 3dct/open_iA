@@ -50,10 +50,10 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAM
 	ioThread(nullptr),
 	m_xrfChannelID(NotExistingChannel)
 {
-	connect( m_child, SIGNAL( magicLensToggled( bool ) ), this, SLOT( magicLensToggled( bool ) ) );
+	connect(m_child, &MdiChild::magicLensToggled, this, &iAXRFAttachment::magicLensToggled);
 	for (int i = 0; i < 3; ++i)
 	{
-		connect(m_child->slicer(i), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(updateXRFVoxelEnergy(int, int, int, int)));
+		connect(m_child->slicer(i), &iASlicer::oslicerPos, this, &iAXRFAttachment::updateXRFVoxelEnergy);
 	}
 	//TODO: move
 	if (!filter_SimilarityMap())
@@ -85,9 +85,9 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAM
 	ioThread = new iAIO( m_child->logger(), m_child, dlgXRF->GetXRFData()->GetDataPtr() );
 	m_child->setReInitializeRenderWindows( false );
 	m_child->connectIOThreadSignals( ioThread );
-	connect( ioThread, SIGNAL( done() ), this, SLOT( xrfLoadingDone() ) );
-	connect( ioThread, SIGNAL( failed() ), this, SLOT( xrfLoadingFailed() ) );
-	connect( ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ) );
+	connect( ioThread, &iAIO::done, this, &iAXRFAttachment::xrfLoadingDone);
+	connect( ioThread, &iAIO::failed, this, &iAXRFAttachment::xrfLoadingFailed);
+	connect( ioThread, &iAIO::finished, this, &iAXRFAttachment::ioFinished);
 
 	QString extension = QFileInfo( f ).suffix();
 	extension = extension.toUpper();
@@ -246,9 +246,9 @@ void iAXRFAttachment::xrfLoadingDone()
 	}
 	iAWidgetAddHelper wdgtHelp(m_child, m_child->logDockWidget());
 	dlgXRF->init( minEnergy, maxEnergy, haveEnergyLevels, wdgtHelp);
-	connect( dlgXRF->cb_spectralColorImage, SIGNAL( stateChanged( int ) ), this, SLOT( visualizeXRF( int ) ) );
-	connect( dlgXRF->sl_peakOpacity, SIGNAL( valueChanged( int ) ), this, SLOT( updateXRFOpacity( int ) ) );
-	connect( dlgXRF->pb_compute, SIGNAL( clicked() ), this, SLOT( updateXRF() ) );
+	connect( dlgXRF->cb_spectralColorImage, &QCheckBox::stateChanged, this, &iAXRFAttachment::visualizeXRF);
+	connect( dlgXRF->sl_peakOpacity, &QSlider::valueChanged, this, &iAXRFAttachment::updateXRFOpacity);
+	connect( dlgXRF->pb_compute, &QPushButton::clicked, this, &iAXRFAttachment::updateXRF);
 	m_child->tabifyDockWidget( dlgRefSpectra, dlgXRF );
 	dlgSimilarityMap->connectToXRF( dlgXRF );
 	m_child->updateLayout();
@@ -296,14 +296,14 @@ void iAXRFAttachment::initSlicerXRF( bool enableChannel )
 {
 	assert( !m_child->channelData(m_xrfChannelID) );
 	m_child->addMsg(tr("Initializing Spectral Color Image. This may take a while..."));
-	QObject* calcThread = recalculateXRF();
+	auto calcThread = recalculateXRF();
 	if (enableChannel)
 	{
-		QObject::connect( calcThread, SIGNAL( finished() ), this, SLOT( initXRF() ) );
+		QObject::connect(calcThread, &QThread::finished, this, QOverload<>::of(&iAXRFAttachment::initXRF));
 	}
 	else
 	{
-		QObject::connect( calcThread, SIGNAL( finished() ), this, SLOT( deinitXRF() ) );
+		QObject::connect(calcThread, &QThread::finished, this, &iAXRFAttachment::deinitXRF);
 	}
 }
 

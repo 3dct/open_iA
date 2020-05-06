@@ -386,7 +386,7 @@ namespace
 			}
 			iAProgress progress;
 			iACommandLineProgressIndicator progressIndicator(50, quiet);
-			QObject::connect(&progress, SIGNAL(progress(int)), &progressIndicator, SLOT(Progress(int)));
+			QObject::connect(&progress, &iAProgress::progress, &progressIndicator, &iACommandLineProgressIndicator::Progress);
 			filter->setProgress(&progress);
 			if (!filter->checkParameters(parameters))
 			{   // output already happened in CheckParameters via logger

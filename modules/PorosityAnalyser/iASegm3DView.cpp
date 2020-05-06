@@ -231,8 +231,8 @@ iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
 #endif
 	m_renderer->setAxesTransform( m_axesTransform );
 
-	QObject::connect( m_wgt, SIGNAL( rightButtonReleasedSignal() ), m_renderer, SLOT( mouseRightButtonReleasedSlot() ) );
-	QObject::connect( m_wgt, SIGNAL( leftButtonReleasedSignal() ), m_renderer, SLOT( mouseLeftButtonReleasedSlot() ) );
+	QObject::connect(m_wgt, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARenderer::mouseRightButtonReleasedSlot);
+	QObject::connect(m_wgt, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARenderer::mouseLeftButtonReleasedSlot);
 }
 
 iASegm3DViewData::~iASegm3DViewData()
@@ -329,7 +329,8 @@ void iASegm3DViewData::LoadAndApplySettings()
 	volumeSettings.SpecularPower = settings.value("Renderer/rsSpecularPower", 1).toDouble();
 	volumeSettings.RenderMode = settings.value("Renderer/rsRenderMode", 0).toInt();
 
-	m_renderer->applySettings(renderSettings);
+	bool slicerVisibility[3] = { false, false, false };
+	m_renderer->applySettings(renderSettings, slicerVisibility);
 	m_volumeRenderer->applySettings(volumeSettings);
 
 	// TODO: VOLUME: apply volume/bounding box vis.!

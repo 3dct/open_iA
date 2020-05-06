@@ -128,7 +128,7 @@ void iAFeatureScoutModuleInterface::Initialize()
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionFibreScout = new QAction( QObject::tr("FeatureScout"), nullptr );
 	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreScout, false );
-	connect(actionFibreScout, SIGNAL(triggered()), this, SLOT(FeatureScout()));
+	connect(actionFibreScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout);
 	tlbFeatureScout = nullptr;
 }
 
@@ -235,11 +235,11 @@ void iAFeatureScoutModuleInterface::SetupToolbar()
 	}
 	tlbFeatureScout = new iAFeatureScoutToolbar( m_mainWnd );
 	m_mainWnd->addToolBar( Qt::BottomToolBarArea, tlbFeatureScout );
-	connect( tlbFeatureScout->actionLength_Distribution, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
-	connect( tlbFeatureScout->actionMeanObject, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
-	connect( tlbFeatureScout->actionMultiRendering, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
-	connect( tlbFeatureScout->actionOrientation_Rendering, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
-	connect( tlbFeatureScout->actionActivate_SPM, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
+	connect( tlbFeatureScout->actionLength_Distribution, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
+	connect( tlbFeatureScout->actionMeanObject, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
+	connect( tlbFeatureScout->actionMultiRendering, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
+	connect( tlbFeatureScout->actionOrientation_Rendering, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
+	connect( tlbFeatureScout->actionActivate_SPM, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
 	tlbFeatureScout->setVisible( true );
 }
 
@@ -274,7 +274,7 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		return false;
 	}
 	AttachToMdiChild(m_mdiChild);
-	connect(m_mdiChild, SIGNAL(closed()), this, SLOT(onChildClose()));
+	connect(m_mdiChild, &MdiChild::closed, this, &iAFeatureScoutModuleInterface::onChildClose);
 	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
 	if (!attach)
 	{

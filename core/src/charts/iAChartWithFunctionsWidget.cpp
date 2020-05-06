@@ -275,36 +275,36 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 			{
 				QAction *changeColorAction = new QAction(QIcon(":/images/changeColor.png"), tr("Change Color"), this);
 				contextMenu->setDefaultAction(changeColorAction);
-				connect(changeColorAction, SIGNAL(triggered()), this, SLOT(changeColor()));
+				connect(changeColorAction, &QAction::triggered, [this] { changeColor(nullptr); });
 				contextMenu->addAction(changeColorAction);
 			}
 
 			if (func->isDeletable(func->getSelectedPoint()))
 			{
-				contextMenu->addAction(QIcon(":/images/deletePoint.png"), tr("Delete"), this, SLOT(deletePoint()));
+				contextMenu->addAction(QIcon(":/images/deletePoint.png"), tr("Delete"), this, &iAChartWithFunctionsWidget::deletePoint);
 			}
 			contextMenu->addSeparator();
 		}
-		contextMenu->addAction(QIcon(":/images/TFTableView.png"), tr("Transfer Function Table View"), this, SLOT(showTFTable()));
-		contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Load transfer function"), this, SLOT(loadTransferFunction()));
-		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Save transfer function"), this, SLOT(saveTransferFunction()));
-		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Apply transfer function for all"), this, SLOT(applyTransferFunctionForAll()));
+		contextMenu->addAction(QIcon(":/images/TFTableView.png"), tr("Transfer Function Table View"), this, &iAChartWithFunctionsWidget::showTFTable);
+		contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Load transfer function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::loadTransferFunction));
+		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Save transfer function"), this, &iAChartWithFunctionsWidget::saveTransferFunction);
+		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Apply transfer function for all"), this, &iAChartWithFunctionsWidget::applyTransferFunctionForAll);
 		if (m_allowTrfReset)
 		{
-			contextMenu->addAction(QIcon(":/images/resetTrf.png"), tr("Reset transfer function"), this, SLOT(resetTrf()));
+			contextMenu->addAction(QIcon(":/images/resetTrf.png"), tr("Reset transfer function"), this, &iAChartWithFunctionsWidget::resetTrf);
 		}
 		contextMenu->addSeparator();
 	}
 	if (m_enableAdditionalFunctions)
 	{
-		contextMenu->addAction(QIcon(":/images/addBezier.png"), tr("Add bezier function"), this, SLOT(addBezierFunction()));
-		contextMenu->addAction(QIcon(":/images/addGaussian.png"), tr("Add gaussian function"), this, SLOT(addGaussianFunction()));
-		contextMenu->addAction(QIcon(":/images/openFkt.png"), tr("Load functions"), this, SLOT(loadFunctions()));
-		contextMenu->addAction(QIcon(":/images/saveFkt.png"), tr("Save functions"), this, SLOT(saveFunctions()));
+		contextMenu->addAction(QIcon(":/images/addBezier.png"), tr("Add bezier function"), this, &iAChartWithFunctionsWidget::addBezierFunction);
+		contextMenu->addAction(QIcon(":/images/addGaussian.png"), tr("Add gaussian function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::addGaussianFunction));
+		contextMenu->addAction(QIcon(":/images/openFkt.png"), tr("Load functions"), this, &iAChartWithFunctionsWidget::loadFunctions);
+		contextMenu->addAction(QIcon(":/images/saveFkt.png"), tr("Save functions"), this, &iAChartWithFunctionsWidget::saveFunctions);
 
 		if (m_selectedFunction != 0)
 		{
-			contextMenu->addAction(QIcon(":/images/removeFkt.png"), tr("Remove selected function"), this, SLOT(removeFunction()));
+			contextMenu->addAction(QIcon(":/images/removeFkt.png"), tr("Remove selected function"), this, &iAChartWithFunctionsWidget::removeFunction);
 		}
 	}
 }
@@ -719,8 +719,8 @@ void iAChartWithFunctionsWidget::showTFTable()
 		m_TFTable->setAttribute( Qt::WA_DeleteOnClose, true);
 		m_TFTable->show();
 
-		connect(m_TFTable, SIGNAL( destroyed( QObject* ) ), this, SLOT( tfTableIsFinished() ) );
-		connect( this, SIGNAL( updateTFTable() ), m_TFTable, SLOT( updateTable() ) );
+		connect(m_TFTable, &dlg_TFTable::destroyed, this, &iAChartWithFunctionsWidget::tfTableIsFinished);
+		connect(this, &iAChartWithFunctionsWidget::updateTFTable, m_TFTable, &dlg_TFTable::updateTable);
 	}
 }
 

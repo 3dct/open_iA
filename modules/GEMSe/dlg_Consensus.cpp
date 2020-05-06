@@ -158,7 +158,7 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	slLabelVoters->setMaximum(ensembleSize);
 	twSampleResults->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 	twSampleResults->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-	connect(twSampleResults, SIGNAL(itemClicked(QTableWidgetItem *)), this, SLOT(SampledItemClicked(QTableWidgetItem *)));
+	connect(twSampleResults, &QTableWidget::itemClicked, this, &dlg_Consensus::SampledItemClicked);
 }
 
 dlg_Consensus::~dlg_Consensus()
@@ -190,23 +190,23 @@ void dlg_Consensus::EnableUI()
 	slMinRatio->setEnabled(true);
 	slMaxPixelEntropy->setEnabled(true);
 	slLabelVoters->setEnabled(true);
-	connect(pbSample, SIGNAL(clicked()), this, SLOT(Sample()));
-	connect(pbMinAbsPercent_Plot, SIGNAL(clicked()), this, SLOT(MinAbsPlot()));
-	connect(pbMinDiffPercent_Plot, SIGNAL(clicked()), this, SLOT(MinDiffPlot()));
-	connect(pbMinRatio_Plot, SIGNAL(clicked()), this, SLOT(RatioPlot()));
-	connect(pbMaxPixelEntropy_Plot, SIGNAL(clicked()), this, SLOT(MaxPixelEntropyPlot()));
-	connect(pbClusterUncertaintyDice, SIGNAL(clicked()), this, SLOT(ClusterUncertaintyDice()));
-	connect(pbStore, SIGNAL(clicked()), this, SLOT(StoreResult()));
-	connect(pbStoreConfig, SIGNAL(clicked()), this, SLOT(StoreConfig()));
-	connect(pbLoadConfig, SIGNAL(clicked()), this, SLOT(LoadConfig()));
-	connect(pbSTAPLE, SIGNAL(clicked()), this, SLOT(CalcSTAPLE()));
-	connect(pbMajorityVoting, SIGNAL(clicked()), this, SLOT(CalcMajorityVote()));
-	connect(pbProbRuleVote, SIGNAL(clicked()), this, SLOT(CalcProbRuleVote()));
-	connect(slAbsMinPercent, SIGNAL(valueChanged(int)), this, SLOT(AbsMinPercentSlider(int)));
-	connect(slMinDiffPercent, SIGNAL(valueChanged(int)), this, SLOT(MinDiffPercentSlider(int)));
-	connect(slMinRatio, SIGNAL(valueChanged(int)), this, SLOT(MinRatioSlider(int)));
-	connect(slMaxPixelEntropy, SIGNAL(valueChanged(int)), this, SLOT(MaxPixelEntropySlider(int)));
-	connect(slLabelVoters, SIGNAL(valueChanged(int)), this, SLOT(LabelVoters(int)));
+	connect(pbSample, &QPushButton::clicked, this, QOverload<>::of(&dlg_Consensus::Sample));
+	connect(pbMinAbsPercent_Plot, &QPushButton::clicked, this, &dlg_Consensus::MinAbsPlot);
+	connect(pbMinDiffPercent_Plot, &QPushButton::clicked, this, &dlg_Consensus::MinDiffPlot);
+	connect(pbMinRatio_Plot, &QPushButton::clicked, this, &dlg_Consensus::RatioPlot);
+	connect(pbMaxPixelEntropy_Plot, &QPushButton::clicked, this, &dlg_Consensus::MaxPixelEntropyPlot);
+	connect(pbClusterUncertaintyDice, &QPushButton::clicked, this, &dlg_Consensus::ClusterUncertaintyDice);
+	connect(pbStore, &QPushButton::clicked, this, &dlg_Consensus::StoreResult);
+	connect(pbStoreConfig, &QPushButton::clicked, this, &dlg_Consensus::StoreConfig);
+	connect(pbLoadConfig, &QPushButton::clicked, this, &dlg_Consensus::LoadConfig);
+	connect(pbSTAPLE, &QPushButton::clicked, this, &dlg_Consensus::CalcSTAPLE);
+	connect(pbMajorityVoting, &QPushButton::clicked, this, &dlg_Consensus::CalcMajorityVote);
+	connect(pbProbRuleVote, &QPushButton::clicked, this, &dlg_Consensus::CalcProbRuleVote);
+	connect(slAbsMinPercent, &QSlider::valueChanged, this, &dlg_Consensus::AbsMinPercentSlider);
+	connect(slMinDiffPercent, &QSlider::valueChanged, this, &dlg_Consensus::MinDiffPercentSlider);
+	connect(slMinRatio, &QSlider::valueChanged, this, &dlg_Consensus::MinRatioSlider);
+	connect(slMaxPixelEntropy, &QSlider::valueChanged, this, &dlg_Consensus::MaxPixelEntropySlider);
+	connect(slLabelVoters, &QSlider::valueChanged, this, &dlg_Consensus::LabelVoters);
 }
 
 namespace
@@ -1169,7 +1169,7 @@ void dlg_Consensus::AddResult(vtkSmartPointer<vtkTable> table, QString const & t
 	QCheckBox * checkBox = new QCheckBox;
 	//if (i == 3) checkBox->setChecked(true);
 	twSampleResults->setCellWidget(idx, 0, checkBox);
-	connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(CheckBoxStateChanged(int)));
+	connect(checkBox, &QCheckBox::stateChanged, this, &dlg_Consensus::CheckBoxStateChanged);
 	twSampleResults->setItem(idx, 1, new QTableWidgetItem(title));
 	m_checkBoxResultIDMap.insert(checkBox, idx);
 	if (m_results.size() != idx)

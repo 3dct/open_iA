@@ -231,7 +231,7 @@ public slots:
 	void update();
 
 	//! Sets coordinates for line profile
-	bool setArbitraryProfile(int pointInd, double * Pos, bool doClamp = false);
+	bool setArbitraryProfile(int pointInd, double* Pos);
 
 	//! Moves a point of the snake slicer to a new position.
 	void movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
@@ -273,7 +273,7 @@ signals:
 	void msg(QString s);
 	void progress(int);
 	void updateSignal();
-	void clicked(int x, int y, int z);
+	void leftClicked(int x, int y, int z);
 	void rightClicked(int x, int y, int z);
 	void released(int x, int y, int z);
 	void userInteraction();
@@ -434,4 +434,7 @@ private:
 
 	//! Update the position of the raw profile line.
 	void updateRawProfile(double posY);
+
+	//! Sets coordinates for line profile
+	bool setArbitraryProfileWithClamp(int pointInd, double* Pos, bool doClamp);
 };

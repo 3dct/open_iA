@@ -51,11 +51,11 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChi
 
 	QPushButton* pPushButtonOpen(new QPushButton("Open control points file...", pWidget));
 	pPushButtonOpen->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOpenButton));
-	connect(pPushButtonOpen, SIGNAL(clicked()), this, SLOT(slotPushButtonOpen()));
+	connect(pPushButtonOpen, &QPushButton::clicked, this, &iABoneThicknessAttachment::slotPushButtonOpen);
 
 	QPushButton* pPushButtonSave(new QPushButton("Save table to file...", pWidget));
 	pPushButtonSave->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton));
-	connect(pPushButtonSave, SIGNAL(clicked()), this, SLOT(slotPushButtonSave()));
+	connect(pPushButtonSave, &QPushButton::clicked, this, &iABoneThicknessAttachment::slotPushButtonSave);
 
 	QGroupBox* pGroupBoxBound(new QGroupBox("Model Statistics", pWidget));
 	pGroupBoxBound->setFixedHeight(pGroupBoxBound->logicalDpiY() / 2);
@@ -85,7 +85,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChi
 	m_pDoubleSpinBoxSphereRadius->setMaximum(1.0E+6);
 	m_pDoubleSpinBoxSphereRadius->setSingleStep(0.1);
 	m_pDoubleSpinBoxSphereRadius->setValue(m_pBoneThickness->sphereRadius());
-	connect(m_pDoubleSpinBoxSphereRadius, SIGNAL(editingFinished()), this, SLOT(slotDoubleSpinBoxSphereRadius()));
+	connect(m_pDoubleSpinBoxSphereRadius, &QDoubleSpinBox::editingFinished, this, &iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius);
 
 	QLabel* pLabelThicknessMaximum(new QLabel("Maximum thickness:", pGroupBoxSettings));
 	m_pDoubleSpinBoxThicknessMaximum = new QDoubleSpinBox(pGroupBoxSettings);
@@ -93,7 +93,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChi
 	m_pDoubleSpinBoxThicknessMaximum->setMinimum(0.0);
 	m_pDoubleSpinBoxThicknessMaximum->setSingleStep(1.0);
 	m_pDoubleSpinBoxThicknessMaximum->setValue(m_pBoneThickness->thicknessMaximum());
-	connect(m_pDoubleSpinBoxThicknessMaximum, SIGNAL(editingFinished()), this, SLOT(slotDoubleSpinBoxThicknessMaximum()));
+	connect(m_pDoubleSpinBoxThicknessMaximum, &QDoubleSpinBox::editingFinished, this, &iABoneThicknessAttachment::slotDoubleSpinBoxThicknessMaximum);
 
 	QLabel* pLabelSurfaceDistanceMaximum(new QLabel("Maximum surface distance:", pGroupBoxSettings));
 	m_pDoubleSpinBoxSurfaceDistanceMaximum = new QDoubleSpinBox(pGroupBoxSettings);
@@ -101,15 +101,15 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChi
 	m_pDoubleSpinBoxSurfaceDistanceMaximum->setMinimum(0.0);
 	m_pDoubleSpinBoxSurfaceDistanceMaximum->setSingleStep(1.0);
 	m_pDoubleSpinBoxSurfaceDistanceMaximum->setValue(m_pBoneThickness->surfaceDistanceMaximum());
-	connect(m_pDoubleSpinBoxSurfaceDistanceMaximum, SIGNAL(editingFinished()), this, SLOT(slotDoubleSpinBoxSurfaceDistanceMaximum()));
+	connect(m_pDoubleSpinBoxSurfaceDistanceMaximum, &QDoubleSpinBox::editingFinished, this, &iABoneThicknessAttachment::slotDoubleSpinBoxSurfaceDistanceMaximum);
 
 
 	QCheckBox* pCheckBoxTransparency(new QCheckBox("Use transparency", pGroupBoxSettings));
-	connect(pCheckBoxTransparency, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxTransparency(const bool&)));
+	connect(pCheckBoxTransparency, &QCheckBox::clicked, this, &iABoneThicknessAttachment::slotCheckBoxTransparency);
 
 	QCheckBox* pCheckBoxShowThickness(new QCheckBox("Thickness representation", pGroupBoxSettings));
 	pCheckBoxShowThickness->setChecked(m_pBoneThickness->showThickness());
-	connect(pCheckBoxShowThickness, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxShowThickness(const bool&)));
+	connect(pCheckBoxShowThickness, &QCheckBox::clicked, this, &iABoneThicknessAttachment::slotCheckBoxShowThickness);
 
 	QGridLayout* pGridLayoutSettings(new QGridLayout(pGroupBoxSettings));
 	pGridLayoutSettings->addWidget(pLabelSphereRadius, 0, 0, Qt::AlignRight);

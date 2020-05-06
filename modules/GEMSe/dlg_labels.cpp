@@ -56,13 +56,13 @@ dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
 	m_mdiChild(mdiChild),
 	m_labelChannelID(mdiChild->createChannel())
 {
-	connect(pbAdd, SIGNAL(clicked()), this, SLOT(Add()));
-	connect(pbRemove, SIGNAL(clicked()), this, SLOT(Remove()));
-	connect(pbStore, SIGNAL(clicked()), this, SLOT(Store()));
-	connect(pbLoad, SIGNAL(clicked()), this, SLOT(Load()));
-	connect(pbStoreImage, SIGNAL(clicked()), this, SLOT(storeImage()));
-	connect(pbSample, SIGNAL(clicked()), this, SLOT(Sample()));
-	connect(pbClear, SIGNAL(clicked()), this, SLOT(Clear()));
+	connect(pbAdd, &QPushButton::clicked, this, &dlg_labels::Add);
+	connect(pbRemove, &QPushButton::clicked, this, &dlg_labels::Remove);
+	connect(pbStore, &QPushButton::clicked, this, &dlg_labels::Store);
+	connect(pbLoad, &QPushButton::clicked, this, &dlg_labels::Load);
+	connect(pbStoreImage, &QPushButton::clicked, this, &dlg_labels::storeImage);
+	connect(pbSample, &QPushButton::clicked, this, &dlg_labels::Sample);
+	connect(pbClear, &QPushButton::clicked, this, &dlg_labels::Clear);
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
 	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	lvLabels->setModel(m_itemModel);

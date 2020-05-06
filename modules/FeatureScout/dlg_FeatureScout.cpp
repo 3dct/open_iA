@@ -511,7 +511,7 @@ void dlg_FeatureScout::setupViews()
 	QMenu* popup2 = new QMenu(m_pcWidget);
 	popup2->addAction("Add class");
 	popup2->setStyleSheet("font-size: 11px; background-color: #9B9B9B; border: 1px solid black;");
-	connect(popup2, SIGNAL(triggered(QAction*)), this, SLOT(spPopupSelection(QAction*)));
+	connect(popup2, &QMenu::triggered, this, &dlg_FeatureScout::spPopupSelection);
 
 	m_pcConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 	// Gets right button release event (on a parallel coordinates).
@@ -771,24 +771,24 @@ void dlg_FeatureScout::setupConnections()
 	m_objectAdd = new QAction(tr("Add object"), m_classTreeView);
 	m_objectDelete = new QAction(tr("Delete object"), m_classTreeView);
 
-	connect(m_blobRendering, SIGNAL(triggered()), this, SLOT(EnableBlobRendering()));
-	connect(m_blobRemoveRendering, SIGNAL(triggered()), this, SLOT(DisableBlobRendering()));
-	connect(m_saveBlobMovie, SIGNAL(triggered()), this, SLOT(SaveBlobMovie()));
-	connect(m_objectAdd, SIGNAL(triggered()), this, SLOT(addObject()));
-	connect(m_objectDelete, SIGNAL(triggered()), this, SLOT(deleteObject()));
-	connect(m_classTreeView, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
-	connect(this->add_class, SIGNAL(clicked()), this, SLOT(ClassAddButton()));
-	connect(this->save_class, SIGNAL(released()), this, SLOT(ClassSaveButton()));
-	connect(this->load_class, SIGNAL(released()), this, SLOT(ClassLoadButton()));
-	connect(this->delete_class, SIGNAL(clicked()), this, SLOT(ClassDeleteButton()));
-	connect(this->wisetex_save, SIGNAL(released()), this, SLOT(WisetexSaveButton()));
-	connect(this->export_class, SIGNAL(clicked()), this, SLOT(ExportClassButton()));
-	connect(this->csv_dv, SIGNAL(released()), this, SLOT(CsvDVSaveButton()));
+	connect(m_blobRendering, &QAction::triggered, this, &dlg_FeatureScout::EnableBlobRendering);
+	connect(m_blobRemoveRendering, &QAction::triggered, this, &dlg_FeatureScout::DisableBlobRendering);
+	connect(m_saveBlobMovie, &QAction::triggered, this, &dlg_FeatureScout::SaveBlobMovie);
+	connect(m_objectAdd, &QAction::triggered, this, &dlg_FeatureScout::addObject);
+	connect(m_objectDelete, &QAction::triggered, this, &dlg_FeatureScout::deleteObject);
+	connect(m_classTreeView, &QTreeView::customContextMenuRequested, this, &dlg_FeatureScout::showContextMenu);
+	connect(this->add_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassAddButton);
+	connect(this->save_class, &QToolButton::released, this, &dlg_FeatureScout::ClassSaveButton);
+	connect(this->load_class, &QToolButton::released, this, &dlg_FeatureScout::ClassLoadButton);
+	connect(this->delete_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassDeleteButton);
+	connect(this->wisetex_save, &QToolButton::released, this, &dlg_FeatureScout::WisetexSaveButton);
+	connect(this->export_class, &QPushButton::clicked, this, &dlg_FeatureScout::ExportClassButton);
+	connect(this->csv_dv, &QToolButton::released, this, &dlg_FeatureScout::CsvDVSaveButton);
 
-	connect(m_elementTableModel, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(updateVisibility(QStandardItem*)));
-	connect(m_classTreeView, SIGNAL(clicked(QModelIndex)), this, SLOT(classClicked(QModelIndex)));
-	connect(m_classTreeView, SIGNAL(activated(QModelIndex)), this, SLOT(classClicked(QModelIndex)));
-	connect(m_classTreeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(classDoubleClicked(QModelIndex)));
+	connect(m_elementTableModel, &QStandardItemModel::itemChanged, this, &dlg_FeatureScout::updateVisibility);
+	connect(m_classTreeView, &QTreeView::clicked, this, &dlg_FeatureScout::classClicked);
+	connect(m_classTreeView, &QTreeView::activated, this, &dlg_FeatureScout::classClicked);
+	connect(m_classTreeView, &QTreeView::doubleClicked, this, &dlg_FeatureScout::classDoubleClicked);
 
 	connect(m_splom.data(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart);
 	connect(m_splom.data(), &iAFeatureScoutSPLOM::addClass, this, &dlg_FeatureScout::ClassAddButton);
@@ -1133,9 +1133,9 @@ void dlg_FeatureScout::RenderMeanObject()
 	if (!m_dwMO)
 	{
 		m_dwMO = new dlg_MeanObject(this);
-		connect(m_dwMO->pb_ModTF, SIGNAL(clicked()), this, SLOT(modifyMeanObjectTF()));
-		connect(m_dwMO->tb_OpenDataFolder, SIGNAL(clicked()), this, SLOT(browseFolderDialog()));
-		connect(m_dwMO->tb_SaveStl, SIGNAL(clicked()), this, SLOT(saveStl()));
+		connect(m_dwMO->pb_ModTF, &QToolButton::clicked, this, &dlg_FeatureScout::modifyMeanObjectTF);
+		connect(m_dwMO->tb_OpenDataFolder, &QToolButton::clicked, this, &dlg_FeatureScout::browseFolderDialog);
+		connect(m_dwMO->tb_SaveStl, &QToolButton::clicked, this, &dlg_FeatureScout::saveStl);
 
 		// Create a render window and an interactor for all the MObjects
 		CREATE_OLDVTKWIDGET(m_meanObjectWidget);
@@ -1253,7 +1253,7 @@ void dlg_FeatureScout::modifyMeanObjectTF()
 		.arg(m_dwMO->cb_Classes->itemText(m_dwMO->cb_Classes->currentIndex()))
 		.arg(MapObjectTypeToString(m_filterID)));
 	iAChartWithFunctionsWidget* histogram = m_activeChild->histogram();
-	connect(histogram, SIGNAL(updateViews()), this, SLOT(updateMOView()));
+	connect(histogram, &iAChartWithFunctionsWidget::updateViews, this, &dlg_FeatureScout::updateMOView);
 	m_motfView->horizontalLayout->addWidget(histogram);
 	histogram->show();
 	m_motfView->show();
@@ -1289,8 +1289,8 @@ void dlg_FeatureScout::saveStl()
 
 	iAProgress marCubProgress;
 	iAProgress stlWriProgress;
-	connect(&marCubProgress, SIGNAL(progress(int)), this, SLOT(updateMarProgress(int)));
-	connect(&stlWriProgress, SIGNAL(progress(int)), this, SLOT(updateStlProgress(int)));
+	connect(&marCubProgress, &iAProgress::progress, this, &dlg_FeatureScout::updateMarProgress);
+	connect(&stlWriProgress, &iAProgress::progress, this, &dlg_FeatureScout::updateStlProgress);
 
 	auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
 	marCubProgress.observe(moSurface);
@@ -3761,7 +3761,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	{
 		m_dwPP->hide();
 	}
-	connect(m_dwPP->orientationColorMap, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderOrientation()));
+	connect(m_dwPP->orientationColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_FeatureScout::RenderOrientation);
 
 	if (m_visualization == iACsvConfig::UseVolume)
 	{

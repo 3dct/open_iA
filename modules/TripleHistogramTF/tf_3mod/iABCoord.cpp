@@ -18,41 +18,49 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iABCoord.h"
 
-class BarycentricTriangle;
+#include "iABarycentricTriangle.h"
 
-class BCoord
+iABCoord::iABCoord(double alpha, double beta) :
+	m_alpha(alpha), m_beta(beta)
 {
-public:
-	BCoord(double alpha, double beta);
-	BCoord() : BCoord((double)1 / (double)3, (double)1 / (double)3) {}
-	BCoord(BarycentricTriangle triangle, double x, double y);
+}
 
-	double getAlpha() const;
-	double getBeta() const;
-	double getGamma() const;
-	bool isInside() const;
+iABCoord::iABCoord(iABarycentricTriangle triangle, double x, double y)
+{
+	double x1, y1, x2, y2, x3, y3;
+	x1 = triangle.getXa();
+	y1 = triangle.getYa();
+	x2 = triangle.getXb();
+	y2 = triangle.getYb();
+	x3 = triangle.getXc();
+	y3 = triangle.getYc();
 
-	double operator[] (int x) {
-		switch (x) {
-		case 0: return getAlpha();
-		case 1: return getBeta();
-		case 2: return getGamma();
-		default: return 0;
-		}
-	}
+	double x_x3 = x - x3;
+	double y_y3 = y - y3;
+	double det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
 
-	bool operator== (const BCoord that) {
-		return getAlpha() == that.getAlpha() && getBeta() == that.getBeta();
-	}
+	m_alpha = ((y2 - y3) * x_x3 + (x3 - x2) * y_y3) / det;
+	m_beta = ((y3 - y1) * x_x3 + (x1 - x3) * y_y3) / det;
+}
 
-	bool operator!= (const BCoord that) {
-		return getAlpha() != that.getAlpha() || getBeta() != that.getBeta();
-	}
+double iABCoord::getAlpha() const
+{
+	return m_alpha;
+}
 
-private:
-	double m_alpha;
-	double m_beta;
+double iABCoord::getBeta() const
+{
+	return m_beta;
+}
 
-};
+double iABCoord::getGamma() const
+{
+	return 1 - m_alpha - m_beta;
+}
+
+bool iABCoord::isInside() const
+{
+	return m_alpha >= 0 && m_beta >= 0 && m_alpha + m_beta <= 1;
+}

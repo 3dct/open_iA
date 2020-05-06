@@ -34,13 +34,13 @@ iA4DCTFractureVisDockWidget::iA4DCTFractureVisDockWidget( QWidget * parent )
 	, m_data( nullptr )
 {
 	setupUi( this );
-	connect( pbSave, SIGNAL( clicked( ) ), this, SLOT( onSaveButtonClicked( ) ) );
-	connect( pbColorize, SIGNAL( clicked( ) ), this, SLOT( onColorizeButtonClicked( ) ) );
-	connect( cbLowIntensity, SIGNAL( colorChanged( QColor ) ), this, SLOT( onLowIntensityColorChanged( QColor ) ) );
-	connect( cbHighIntensity, SIGNAL( colorChanged( QColor ) ), this, SLOT( onHighIntensityColorChanged( QColor ) ) );
-	connect( cbColor, SIGNAL( colorChanged( QColor ) ), this, SLOT( onColorChanged( QColor ) ) );
-	connect( sAmbient, SIGNAL( valueChanged( int ) ), this, SLOT( onAmbientValueChanged( int ) ) );
-	connect( sOpacity, SIGNAL( valueChanged( int ) ), this, SLOT( onOpacityValueChanged( int ) ) );
+	connect( pbSave, &QPushButton::clicked, this, &iA4DCTFractureVisDockWidget::onSaveButtonClicked);
+	connect( pbColorize, &QPushButton::clicked, this, &iA4DCTFractureVisDockWidget::onColorizeButtonClicked);
+	connect( cbLowIntensity, &iAColorBox::colorChanged, this, &iA4DCTFractureVisDockWidget::onLowIntensityColorChanged);
+	connect( cbHighIntensity, &iAColorBox::colorChanged, this, &iA4DCTFractureVisDockWidget::onHighIntensityColorChanged);
+	connect( cbColor, &iAColorBox::colorChanged, this, &iA4DCTFractureVisDockWidget::onColorChanged);
+	connect( sAmbient, &QSlider::valueChanged, this, &iA4DCTFractureVisDockWidget::onAmbientValueChanged);
+	connect( sOpacity, &QSlider::valueChanged, this, &iA4DCTFractureVisDockWidget::onOpacityValueChanged);
 }
 
 void iA4DCTFractureVisDockWidget::attachTo( iAFractureVisModule * visModule )

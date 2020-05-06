@@ -39,8 +39,10 @@
 #include <QVector>
 #include <QCheckBox>
 
-iAHistogramStack::iAHistogramStack(QWidget* parent, iATripleModalityWidget *tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f)
-	: m_tmw(tripleModalityWidget)
+iAHistogramStack::iAHistogramStack(iATripleModalityWidget* tripleModalityWidget):
+	m_grid(nullptr),
+	m_splitter(nullptr),
+	m_tmw(tripleModalityWidget)
 {
 }
 

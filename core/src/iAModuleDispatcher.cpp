@@ -164,14 +164,14 @@ iAModuleDispatcher::~iAModuleDispatcher()
 	m_loadedModules.clear();
 }
 
-void iAModuleDispatcher::InitializeModuleInterface(iAModuleInterface* m)
+void iAModuleDispatcher::initializeModuleInterface(iAModuleInterface* m)
 {
 	m->SetMainWindow(m_mainWnd);
 	m->SetDispatcher(this);
 	m->Initialize();
 }
 
-iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, QStringList & errorMessages)
+iAModuleInterface* iAModuleDispatcher::loadModuleAndInterface(QFileInfo fi, QStringList & errorMessages)
 {
 	MODULE_HANDLE handle = LoadModule(fi, errorMessages);
 	if (!handle)
@@ -184,7 +184,7 @@ iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, QStr
 		errorMessages << QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath());
 		return nullptr;
 	}
-	InitializeModuleInterface(m);
+	initializeModuleInterface(m);
 	m_loadedModules.push_back(iALoadedModule(fi.completeBaseName(), handle, m));
 	return m;
 }
@@ -200,7 +200,7 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 		loadErrorMessages.clear();
 		for (QFileInfo fi : fList)
 		{
-			if (!LoadModuleAndInterface(fi, loadErrorMessages))
+			if (!loadModuleAndInterface(fi, loadErrorMessages))
 				failed.push_back(fi);
 		}
 		someNewLoaded = failed.size() < fList.size();
@@ -225,7 +225,7 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 		QAction * filterAction = new QAction(QApplication::translate("MainWindow", filter->name().toStdString().c_str(), 0), m_mainWnd);
 		AddActionToMenuAlphabeticallySorted(filterMenu, filterAction);
 		filterAction->setData(i);
-		connect(filterAction, SIGNAL(triggered()), this, SLOT(ExecuteFilter()));
+		connect(filterAction, &QAction::triggered, this, &iAModuleDispatcher::executeFilter);
 	}
 	// enable Tools and Filters only if any modules were loaded that put something into them:
 	m_mainWnd->toolsMenu()->menuAction()->setVisible(m_mainWnd->toolsMenu()->actions().size() > 0);
@@ -237,34 +237,38 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 		QAction * selectAndRunFilterAction = new QAction(QApplication::translate("MainWindow", "Select and Run Filter...", 0), m_mainWnd);
 		AddModuleAction(selectAndRunFilterAction, true);
 		filterMenu->insertAction(filterMenu->actions()[0], selectAndRunFilterAction);
-		connect(selectAndRunFilterAction, SIGNAL(triggered()), this, SLOT(SelectAndRunFilter()));
+		connect(selectAndRunFilterAction, &QAction::triggered, this, &iAModuleDispatcher::selectAndRunFilter);
 	}
 }
 
-void iAModuleDispatcher::ExecuteFilter()
+void iAModuleDispatcher::executeFilter()
 {
 	int filterID = qobject_cast<QAction *>(sender())->data().toInt();
-	RunFilter(filterID);
+	runFilter(filterID);
 }
 
-void iAModuleDispatcher::SelectAndRunFilter()
+void iAModuleDispatcher::selectAndRunFilter()
 {
 	dlg_FilterSelection filterSelection(m_mainWnd);
 	if (filterSelection.exec() == QDialog::Accepted)
-		RunFilter(iAFilterRegistry::filterID(filterSelection.selectedFilterName()));
+	{
+		runFilter(iAFilterRegistry::filterID(filterSelection.selectedFilterName()));
+	}
 }
 
-void iAModuleDispatcher::RunFilter(int filterID)
+void iAModuleDispatcher::runFilter(int filterID)
 {
 	if (filterID == -1)
+	{
 		return;
+	}
 	auto runner = iAFilterRegistry::filterRunner(filterID)->create();
 	m_runningFilters.push_back(runner);
-	connect(runner.data(), SIGNAL(finished()), this, SLOT(RemoveFilter()));
+	connect(runner.data(), &iAFilterRunnerGUI::finished, this, &iAModuleDispatcher::removeFilter);
 	runner->run(iAFilterRegistry::filterFactories()[filterID]->create(), m_mainWnd);
 }
 
-void iAModuleDispatcher::RemoveFilter()
+void iAModuleDispatcher::removeFilter()
 {
 	auto filterRunner = qobject_cast<iAFilterRunnerGUI*>(sender());
 	for (int i = 0; i < m_runningFilters.size(); ++i)

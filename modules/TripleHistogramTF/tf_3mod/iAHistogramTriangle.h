@@ -22,7 +22,7 @@
 
 #include "iAHistogramAbstract.h"
 
-#include "BarycentricTriangle.h"
+#include "iABarycentricTriangle.h"
 
 #include <QPen>
 #include <QRect>
@@ -47,7 +47,7 @@ private:
 	};
 
 public:
-	iAHistogramTriangle(QWidget* parent, iATripleModalityWidget* tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+	iAHistogramTriangle(iATripleModalityWidget* tripleModalityWidget);
 
 	void initialize(QString const names[3]) override;
 	bool isSlicerInteractionEnabled() override { return true; }
@@ -58,13 +58,13 @@ public:
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
-	void resizeEvent(QResizeEvent* event);
+	void resizeEvent(QResizeEvent* event) override;
 
-	void mousePressEvent(QMouseEvent *event) { forwardMouseEvent(event, PRESS); }
-	void mouseMoveEvent(QMouseEvent *event) { forwardMouseEvent(event, MOVE); }
-	void mouseReleaseEvent(QMouseEvent *event) { forwardMouseEvent(event, RELEASE); }
-	void wheelEvent(QWheelEvent *event) { forwardWheelEvent(event); }
-	void contextMenuEvent(QContextMenuEvent *event) { forwardContextMenuEvent(event); }
+	void mousePressEvent(QMouseEvent *event) override { forwardMouseEvent(event, PRESS); }
+	void mouseMoveEvent(QMouseEvent *event) override { forwardMouseEvent(event, MOVE); }
+	void mouseReleaseEvent(QMouseEvent *event) override { forwardMouseEvent(event, RELEASE); }
+	void wheelEvent(QWheelEvent *event) override { forwardWheelEvent(event); }
+	void contextMenuEvent(QContextMenuEvent *event) override { forwardContextMenuEvent(event); }
 
 private slots:
 	void updateSlicers();
@@ -97,7 +97,7 @@ private:
 	QRect m_histogramsRect;
 
 	QTransform m_transformSlicers[3]; // left(A), top(B), right(C) (respectively)
-	BarycentricTriangle m_slicerTriangles[3];
+	iABarycentricTriangle m_slicerTriangles[3];
 	QPainterPath m_slicerClipPaths[3];
 	QBrush m_slicerBackgroundBrush;
 

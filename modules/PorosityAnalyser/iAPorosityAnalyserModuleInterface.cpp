@@ -72,8 +72,8 @@ void iAPorosityAnalyserModuleInterface::Initialize()
 	menuPorosityAnalyser->addAction( actionRunPA );
 
 	//connect signals to slots
-	connect( actionComputeSegmentations, SIGNAL( triggered() ), this, SLOT( computeParameterSpace() ) );
-	connect( actionRunPA, SIGNAL( triggered() ), this, SLOT( launchPorosityAnalyser() ) );
+	connect( actionComputeSegmentations, &QAction::triggered, this, &iAPorosityAnalyserModuleInterface::computeParameterSpace);
+	connect( actionRunPA, &QAction::triggered, this, &iAPorosityAnalyserModuleInterface::launchPorosityAnalyser);
 
 	//Read settings
 	QSettings settings( organisationName, applicationName );
@@ -92,15 +92,15 @@ void iAPorosityAnalyserModuleInterface::Initialize()
 	uiComputeSegm.resultsFolder->setText( m_resultsFolder );
 	uiComputeSegm.datasetsFolder->setText( m_datasetsFolder );
 	uiComputeSegm.pBDatasetPreviewProgress->hide();
-	connect( uiComputeSegm.computerName, SIGNAL( editingFinished() ), this, SLOT( compNameChanged() ) );
-	connect( uiComputeSegm.tbReload, SIGNAL( clicked() ), this, SLOT( loadCSV() ) );
-	connect( uiComputeSegm.tbSave, SIGNAL( clicked() ), this, SLOT( saveCSV() ) );
-	connect( uiComputeSegm.tbOpenCSV, SIGNAL( clicked() ), this, SLOT( browseCSV() ) );
-	connect( uiComputeSegm.tbOpenResultsFolder, SIGNAL( clicked() ), this, SLOT( browserResultsFolder() ) );
-	connect( uiComputeSegm.tbOpenDatasetsFolder, SIGNAL( clicked() ), this, SLOT( browserDatasetsFolder() ) );
-	connect( uiComputeSegm.pbRunCalculations, SIGNAL( clicked() ), this, SLOT( runCalculations() ) );
-	connect( uiComputeSegm.pbShowLogs, SIGNAL( clicked() ), this, SLOT( showHideLogs() ) );
-	connect( uiComputeSegm.tbDatasetPreview, SIGNAL( clicked() ), this, SLOT( generateDatasetPreviews() ) );
+	connect( uiComputeSegm.computerName, &QLineEdit::editingFinished, this, &iAPorosityAnalyserModuleInterface::compNameChanged);
+	connect( uiComputeSegm.tbReload,  &QToolButton::clicked, this, &iAPorosityAnalyserModuleInterface::loadCSV);
+	connect( uiComputeSegm.tbSave, &QToolButton::clicked, this, &iAPorosityAnalyserModuleInterface::saveCSV);
+	connect( uiComputeSegm.tbOpenCSV, &QToolButton::clicked, this, &iAPorosityAnalyserModuleInterface::browseCSV);
+	connect( uiComputeSegm.tbOpenResultsFolder,  &QToolButton::clicked, this, &iAPorosityAnalyserModuleInterface::browserResultsFolder);
+	connect( uiComputeSegm.tbOpenDatasetsFolder, &QToolButton::clicked, this, &iAPorosityAnalyserModuleInterface::browserDatasetsFolder);
+	connect( uiComputeSegm.pbRunCalculations, &QPushButton::clicked, this, &iAPorosityAnalyserModuleInterface::runCalculations);
+	connect( uiComputeSegm.pbShowLogs, &QPushButton::clicked, this, &iAPorosityAnalyserModuleInterface::showHideLogs);
+	connect( uiComputeSegm.tbDatasetPreview, &QToolButton::clicked, this, &iAPorosityAnalyserModuleInterface::generateDatasetPreviews);
 
 	//Table widget functionalities
 	createTableWidgetActions();
@@ -268,10 +268,10 @@ void iAPorosityAnalyserModuleInterface::computeParameterSpace()
 	uiComputeSegm.dragWidget->layout()->addWidget( groupBoxFilters );
 	uiComputeSegm.dragWidget->layout()->addWidget( m_groupBoxPipeline );
 
-	connect( btClearPipeline, SIGNAL( clicked() ), this, SLOT( clearPipeline() ) );
-	connect( btAddPipeline, SIGNAL( clicked() ), this, SLOT( addPipeline() ) );
-	connect( btIncPipeline, SIGNAL( clicked() ), this, SLOT( resizePipeline() ) );
-	connect( btDecPipeline, SIGNAL( clicked() ), this, SLOT( resizePipeline() ) );
+	connect(btClearPipeline, &QPushButton::clicked, this, &iAPorosityAnalyserModuleInterface::clearPipeline);
+	connect(btAddPipeline, &QPushButton::clicked, this,   &iAPorosityAnalyserModuleInterface::addPipeline);
+	connect(btIncPipeline, &QPushButton::clicked, this,   &iAPorosityAnalyserModuleInterface::resizePipeline);
+	connect(btDecPipeline, &QPushButton::clicked, this,   &iAPorosityAnalyserModuleInterface::resizePipeline);
 
 	// Set tooltip style of the table buttons
 	uiComputeSegm.tbRemoveRow->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 1px solid black; }" );
@@ -370,9 +370,9 @@ void iAPorosityAnalyserModuleInterface::browserDatasetsFolder()
 void iAPorosityAnalyserModuleInterface::runCalculations()
 {
 	iARunBatchThread * rbt = new iARunBatchThread( this );
-	connect( rbt, SIGNAL( batchProgress( int ) ), this, SLOT( batchProgress( int ) ) );
-	connect( rbt, SIGNAL( totalProgress( int ) ), this, SLOT( totalProgress( int ) ) );
-	connect( rbt, SIGNAL( currentBatch( QString ) ), this, SLOT( currentBatch( QString ) ) );
+	connect( rbt, &iARunBatchThread::batchProgress, this, &iAPorosityAnalyserModuleInterface::batchProgress);
+	connect( rbt, &iARunBatchThread::totalProgress, this, &iAPorosityAnalyserModuleInterface::totalProgress);
+	connect( rbt, &iARunBatchThread::currentBatch,  this, &iAPorosityAnalyserModuleInterface::currentBatch);
 	rbt->Init(this,
 		m_datasetsFolder,
 		uiComputeSegm.rbNewPipelineDataNoPores->isChecked(),
@@ -691,22 +691,21 @@ void iAPorosityAnalyserModuleInterface::createTableWidgetActions()
 	loadTableFromCSVAction = new QAction( tr( "Load Table" ), this );
 	loadTableFromCSVAction->setShortcut( Qt::CTRL | Qt::Key_L );
 
-	connect( removeRowAction, SIGNAL( triggered() ), this, SLOT( clearTableWidgetItem() ) );
-	connect( uiComputeSegm.tbRemoveRow, SIGNAL( clicked() ), this, SLOT( clearTableWidgetItem() ) );
-	connect( saveTableToCSVAction, SIGNAL( triggered() ), this, SLOT( saveCSV() ) );
-	connect( uiComputeSegm.tbSaveTable, SIGNAL( clicked() ), this, SLOT( saveCSV() ) );
-	connect( loadTableFromCSVAction, SIGNAL( triggered() ), this, SLOT( loadCSV() ) );
-	connect( uiComputeSegm.tbLoadTable, SIGNAL( clicked() ), this, SLOT( loadCSV() ) );
-	connect( uiComputeSegm.tableWidget, SIGNAL( itemClicked( QTableWidgetItem * ) ),
-			 this, SLOT( displayPipelineInSlots( QTableWidgetItem * ) ) );
+	connect( removeRowAction, &QAction::triggered, this, &iAPorosityAnalyserModuleInterface::clearTableWidgetItem);
+	connect( uiComputeSegm.tbRemoveRow, &QToolButton::clicked, this, &iAPorosityAnalyserModuleInterface::clearTableWidgetItem);
+	connect( saveTableToCSVAction, &QAction::triggered, this, &iAPorosityAnalyserModuleInterface::saveCSV);
+	connect( uiComputeSegm.tbSaveTable, &QToolButton::clicked, this, &iAPorosityAnalyserModuleInterface::saveCSV);
+	connect( loadTableFromCSVAction, &QAction::triggered, this, &iAPorosityAnalyserModuleInterface::loadCSV);
+	connect( uiComputeSegm.tbLoadTable, &QToolButton::clicked, this, &iAPorosityAnalyserModuleInterface::loadCSV);
+	connect( uiComputeSegm.tableWidget, &QTableWidget::itemClicked, this, &iAPorosityAnalyserModuleInterface::displayPipelineInSlots);
 }
 
 void iAPorosityAnalyserModuleInterface::generateDatasetPreviews()
 {
 	iADatasetInfo * prev = new iADatasetInfo( this );
-	connect( prev, SIGNAL( finished() ), this, SLOT( datasetPreviewThreadFinished() ) );
-	connect( prev, SIGNAL( started() ), this, SLOT( datasetPreviewThreadStarted() ) );
-	connect( prev, SIGNAL( progress( int ) ), uiComputeSegm.pBDatasetPreviewProgress, SLOT( setValue( int ) ) );
+	connect( prev, &iADatasetInfo::finished, this, &iAPorosityAnalyserModuleInterface::datasetPreviewThreadFinished);
+	connect( prev, &iADatasetInfo::started, this, &iAPorosityAnalyserModuleInterface::datasetPreviewThreadStarted);
+	connect( prev, &iADatasetInfo::progress, uiComputeSegm.pBDatasetPreviewProgress, &QProgressBar::setValue);
 	uiComputeSegm.pBDatasetPreviewProgress->setValue( 0 );
 	prev->start();
 }

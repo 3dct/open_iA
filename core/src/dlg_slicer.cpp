@@ -59,12 +59,12 @@ dlg_slicer::dlg_slicer(iASlicer* slicer):
 	connect(pbSaveStack, &QToolButton::clicked, slicer, &iASlicer::saveImageStack);
 	connect(pbMov, &QToolButton::clicked, slicer, &iASlicer::saveMovie);
 	connect(pbStop, &QToolButton::clicked, slicer, &iASlicer::toggleInteractorState);
-	connect(dsbRotation, SIGNAL(valueChanged(double)), slicer, SLOT(rotateSlice(double)));
-	connect(sbSlice, SIGNAL(valueChanged(int)), this, SLOT(setSliceSpinBox(int)));
-	connect(verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceScrollBar(int)));
+	connect(dsbRotation, QOverload<double>::of(&QDoubleSpinBox::valueChanged), slicer, &iASlicer::rotateSlice);
+	connect(sbSlice, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_slicer::setSliceSpinBox);
+	connect(verticalScrollBar, &QSlider::valueChanged, this, &dlg_slicer::setSliceScrollBar);
 	connect(cbSlabMode, &QCheckBox::toggled, this, &dlg_slicer::setSlabMode);
-	connect(sbSlabThickness, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThickness(int)));
-	connect(cbSlabCompositeMode, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlabCompositeMode(int)));
+	connect(sbSlabThickness, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_slicer::updateSlabThickness);
+	connect(cbSlabCompositeMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_slicer::updateSlabCompositeMode);
 	connect(m_slicer, &iASlicer::sliceRangeChanged, this, &dlg_slicer::updateSliceControls);
 }
 

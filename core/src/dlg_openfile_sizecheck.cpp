@@ -93,16 +93,18 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(QString const & fileName, QWidget
 
 	m_inputDlg->gridLayout->addWidget(m_inputDlg->buttonBox, labels.size() + 2, 0, 1, 1);
 
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeXIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeYIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeZIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_headerSizeIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
-	connect(qobject_cast<QComboBox*>(m_inputDlg->widgetList()[m_voxelSizeIdx]), SIGNAL(currentIndexChanged(int)), this, SLOT(checkFileSize()));
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeXIdx])     , &QLineEdit::textChanged, this, &dlg_openfile_sizecheck::checkFileSize);
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeYIdx])     , &QLineEdit::textChanged, this, &dlg_openfile_sizecheck::checkFileSize);
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeZIdx])     , &QLineEdit::textChanged, this, &dlg_openfile_sizecheck::checkFileSize);
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_headerSizeIdx]), &QLineEdit::textChanged, this, &dlg_openfile_sizecheck::checkFileSize);
+	connect(qobject_cast<QComboBox*>(m_inputDlg->widgetList()[m_voxelSizeIdx]), QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_openfile_sizecheck::checkFileSize);
 
 	checkFileSize();
 
 	if (m_inputDlg->exec() != QDialog::Accepted)
+	{
 		return;
+	}
 
 	for (int i = 0; i < 3; ++i)
 	{

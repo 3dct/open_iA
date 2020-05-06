@@ -68,6 +68,9 @@ ELSE()
 	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: Unknown\\n\"\n")
 ENDIF()
 set (BUILD_INFO "${BUILD_INFO}    \"Targetting ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION}\\n\"\n")
+IF (FLATPAK_BUILD)
+	set (BUILD_INFO "${BUILD_INFO}    \"Flatpak Build\\n\"\n")
+ENDIF()
 
 #-------------------------
 # Output Directories
@@ -346,6 +349,8 @@ IF (WIN32)
 	SET (QT_LIB_DIR "${Qt5_BASEDIR}/bin")
 	# use imported targets for windows plugin:
 	INSTALL (FILES "$<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>" DESTINATION platforms)
+	# install windows vista style plugin:
+	INSTALL (FILES "$<TARGET_FILE:Qt5::QWindowsVistaStylePlugin>" DESTINATION styles)
 ENDIF()
 IF (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
 	IF (EXISTS "${Qt5_BASEDIR}/lib")
@@ -690,7 +695,7 @@ IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL")
 	SET (openiA_VERSION "${openiA_VERSION}-oldOpenGL")
 ENDIF()
 MESSAGE(STATUS "Build version: ${openiA_VERSION}")
-set (BUILD_INFO "${BUILD_INFO}    \"git revision: ${openiA_HASH}\"\n")
+set (BUILD_INFO "${BUILD_INFO}    \"git revision: ${openiA_HASH}\\n\"\n")
 
 ADD_DEFINITIONS(-DUNICODE -D_UNICODE)    # Enable Unicode
 

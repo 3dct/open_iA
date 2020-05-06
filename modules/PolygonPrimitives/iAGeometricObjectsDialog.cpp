@@ -87,7 +87,7 @@ namespace
 iAGeometricObjectsDialog::iAGeometricObjectsDialog(QWidget* parent, Qt::WindowFlags f) :QDialog(parent, f)
 {
 	setupUi(this);
-	connect(pbAddObject, SIGNAL(clicked()), this, SLOT(createObject()));
+	connect(pbAddObject, &QPushButton::clicked, this, &iAGeometricObjectsDialog::createObject);
 	connect(rbSphere, &QRadioButton::toggled, this, &iAGeometricObjectsDialog::updateControls);
 	connect(rbLine, &QRadioButton::toggled, this, &iAGeometricObjectsDialog::updateControls);
 	connect(rbCube, &QRadioButton::toggled, this, &iAGeometricObjectsDialog::updateControls);

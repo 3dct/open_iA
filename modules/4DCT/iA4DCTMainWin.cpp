@@ -63,9 +63,9 @@ iA4DCTMainWin::iA4DCTMainWin( MainWindow* parent /*= 0*/ )
 
 	m_size[0] = 100.; m_size[1] = 100.; m_size[2] = 100.;
 
-	connect( actionAdd, SIGNAL( triggered( ) ), this, SLOT( addButtonClick( ) ) );
-	connect( actionVisualization, SIGNAL( triggered( ) ), this, SLOT( openVisualizationWin( ) ) );
-	connect( actionSave, SIGNAL( triggered( ) ), this, SLOT( save( ) ) );
+	connect( actionAdd, &QAction::triggered, this, &iA4DCTMainWin::addButtonClick);
+	connect( actionVisualization, &QAction::triggered, this, &iA4DCTMainWin::openVisualizationWin);
+	connect( actionSave, &QAction::triggered, this, QOverload<>::of(&iA4DCTMainWin::save));
 }
 
 iA4DCTMainWin::~iA4DCTMainWin( )

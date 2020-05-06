@@ -304,6 +304,8 @@ public:
 
 	bool meshDataMovable();
 	void setMeshDataMovable(bool movable);
+	//! maximize slicer dockwidget with the given mode
+	void maximizeSlicer(int mode);
 
 signals:
 	void rendererDeactivated(int c);
@@ -323,9 +325,6 @@ signals:
 
 public slots:
 	void maximizeRC();
-	void maximizeXY();
-	void maximizeXZ();
-	void maximizeYZ();
 	void updateProgressBar(int i);
 	void hideProgressBar();
 	void initProgressBar();
@@ -377,7 +376,6 @@ private slots:
 	void showModality(int modIdx);
 	void saveFinished();
 	void modalityAdded(int modalityIdx);
-	void rendererCamPos();
 	void resetCamera(bool spacingChanged, double const * newSpacing);
 	void toggleFullScreen();
 	void rendererKeyPressed(int keyCode);
@@ -427,6 +425,7 @@ private:
 	int  currentModality() const;
 	void initModalities();
 	void initVolumeRenderers();
+	void slicerVisibilityChanged(int mode);
 
 	static const unsigned char RC = 0x01;
 	static const unsigned char XY = 0x02;
@@ -514,4 +513,5 @@ private:
 	int m_storedModalityNr;		                              //!< modality nr being stored
 	QMap<QString, QSharedPointer<iAProjectBase>> m_projects;  //!< list of currently active "projects" (i.e. Tools)
 	iAInteractionMode m_interactionMode;                      //!< current interaction mode in slicers/renderer (see iAInteractionMode)
+	bool m_slicerVisibility[3];
 };

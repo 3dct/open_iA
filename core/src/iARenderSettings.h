@@ -47,7 +47,7 @@ public:
 		UseDepthPeeling(true),
 		BackgroundTop("#7FAAFF"),
 		BackgroundBottom("#FFFFFF"),
-		PlaneOpacity(0.8f),
+		PlaneOpacity(1.0),
 		DepthPeels(4)
 	{}
 };

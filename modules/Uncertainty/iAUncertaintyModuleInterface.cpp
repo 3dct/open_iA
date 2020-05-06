@@ -37,12 +37,14 @@ void iAUncertaintyModuleInterface::Initialize()
 
 	REGISTER_FILTER(iACSVtoMHD);
 	if (!m_mainWnd)
+	{
 		return;
+	}
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuSegmentation = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
 	QAction * actionUncertainty = new QAction(QApplication::translate("MainWindow", "Uncertainty Exploration", 0), m_mainWnd );
 	AddActionToMenuAlphabeticallySorted(menuSegmentation, actionUncertainty, false);
-	connect(actionUncertainty, SIGNAL(triggered()), this, SLOT(UncertaintyExploration()));
+	connect(actionUncertainty, &QAction::triggered, this, &iAUncertaintyModuleInterface::UncertaintyExploration);
 }
 
 
@@ -90,12 +92,12 @@ void iAUncertaintyModuleInterface::SetupToolBar()
 		return;
 	}
 	m_toolbar = new iAUncertaintyToolbar("Uncertainty Exploration Toolbar");
-	connect(m_toolbar->action_ToggleTitleBar, SIGNAL(triggered()), this, SLOT(ToggleDockWidgetTitleBars()));
+	connect(m_toolbar->action_ToggleTitleBar, &QAction::triggered, this, &iAUncertaintyModuleInterface::ToggleDockWidgetTitleBars);
 	m_toolbar->action_ToggleSettings->setCheckable(true);
 	m_toolbar->action_ToggleSettings->setChecked(true);
-	connect(m_toolbar->action_ToggleSettings, SIGNAL(triggered()), this, SLOT(ToggleSettings()));
-	connect(m_toolbar->action_CalculateNewSubEnsemble, SIGNAL(triggered()), this, SLOT(CalculateNewSubEnsemble()));
-	connect(m_toolbar->action_WriteFullDataFile, SIGNAL(triggered()), this, SLOT(WriteFullDataFile()));
+	connect(m_toolbar->action_ToggleSettings, &QAction::triggered, this, &iAUncertaintyModuleInterface::ToggleSettings);
+	connect(m_toolbar->action_CalculateNewSubEnsemble, &QAction::triggered, this, &iAUncertaintyModuleInterface::CalculateNewSubEnsemble);
+	connect(m_toolbar->action_WriteFullDataFile, &QAction::triggered, this, &iAUncertaintyModuleInterface::WriteFullDataFile);
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 }
 

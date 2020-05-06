@@ -52,9 +52,9 @@ iAPAQSplom::iAPAQSplom( MainWindow *mWnd, QWidget * parent, Qt::WindowFlags f /*
 	m_csvName("")
 {
 	setWindowFlags(f);
-	m_fixAction = m_contextMenu->addAction( "Fix Point", this, SLOT( fixPoint() ) );
-	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, SLOT( removeFixedPoint() ) );
-	m_detailsToFeatureScoutAction = m_contextMenu->addAction("Detailed View...", this, SLOT(sendToFeatureScout()));
+	m_fixAction = m_contextMenu->addAction( "Fix Point", this, &iAPAQSplom::fixPoint);
+	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, &iAPAQSplom::removeFixedPoint);
+	m_detailsToFeatureScoutAction = m_contextMenu->addAction("Detailed View...", this, &iAPAQSplom::sendToFeatureScout);
 
 	m_detailsToFeatureScoutAction->setVisible(false);
 	m_fixAction->setVisible( false );
@@ -383,7 +383,7 @@ void iAPAQSplom::sendToFeatureScout()
 	if (!this->m_mdiChild)
 		return;
 	this->m_mdiChild->show();
-	connect(m_mdiChild, SIGNAL(histogramAvailable()), this, SLOT(startFeatureScout()));
+	connect(m_mdiChild, &MdiChild::histogramAvailable, this, &iAPAQSplom::startFeatureScout);
 	if (!m_mdiChild->loadFile(mhdName, false))
 	{
 		DEBUG_LOG(QString("File '%1' could not be loaded!").arg(mhdName));
@@ -409,7 +409,7 @@ void iAPAQSplom::startFeatureScout()
 	if (!featureScout)
 		return;
 	featureScout->LoadFeatureScoutWithParams(m_csvName, m_mdiChild);
-	disconnect(m_mdiChild, SIGNAL(histogramAvailable()), this, SLOT(startFeatureScout()));
+	disconnect(m_mdiChild, &MdiChild::histogramAvailable, this, &iAPAQSplom::startFeatureScout);
 }
 
 void iAPAQSplom::removeFixedPoint()

@@ -286,8 +286,8 @@ void iAFiAKErModuleInterface::setupToolBar()
 		return;
 	}
 	m_toolbar = new iAFiAKErToolBar("FiAKEr Toolbar");
-	connect(m_toolbar->action_ToggleTitleBar, SIGNAL(triggered()), this, SLOT(toggleDockWidgetTitleBars()));
-	connect(m_toolbar->action_ToggleSettings, SIGNAL(triggered()), this, SLOT(toggleSettings()));
+	connect(m_toolbar->action_ToggleTitleBar, &QAction::triggered, this, &iAFiAKErModuleInterface::toggleDockWidgetTitleBars);
+	connect(m_toolbar->action_ToggleSettings, &QAction::triggered, this, &iAFiAKErModuleInterface::toggleSettings);
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 }
 

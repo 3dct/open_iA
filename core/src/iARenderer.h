@@ -114,7 +114,10 @@ public:
 	void update();
 	void showHelpers(bool show);
 	void showRPosition(bool show);
-	void showSlicePlanes(bool show);
+	//! show or hide the slice plane for the given axis
+	//! @param axis index of the axis (x..0, y..1, z..2)
+	//! @param show whether to show (true) or hide (false) the given axis slice plane
+	void showSlicePlane(int axis, bool show);
 	//! Updates the position and size of the three slice planes according to the given spacing (and the dimensions of the internally stored image data)
 	//! @param newSpacing the spacing of the dataset.
 	void updateSlicePlanes(double const * newSpacing);
@@ -148,7 +151,10 @@ public:
 	void saveMovie(const QString& fileName, int mode, int qual = 2);	//!< move out of here
 	iARenderObserver * getRenderObserver();
 	void addRenderer(vtkRenderer* renderer);
-	void applySettings(iARenderSettings const & settings);
+	//! apply the given settings to the renderer
+	//! @param settings data holder for all settings.
+	//! @param slicePlaneVisibility initial visibility of the single slice planes (can be modified independently via showSlicePlanes as well).
+	void applySettings(iARenderSettings const & settings, bool slicePlaneVisibility[3]);
 
 	void emitSelectedCells(vtkUnstructuredGrid* selectedCells);
 	void emitNoSelectedCells();

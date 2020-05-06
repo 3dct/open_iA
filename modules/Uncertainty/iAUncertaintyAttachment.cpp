@@ -65,11 +65,11 @@ iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, MdiChild 
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_labelDistributionView, "Label Distribution", "UncLabelDistrView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_uncertaintyDistributionView, "Uncertainty Distribution", "UncUncertaintyDistrView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_ensembleView, "Ensemble View", "UncEnsembleView"));
-	connect(mainWnd, SIGNAL(styleChanged()), m_spatialView, SLOT(StyleChanged()));
-	connect(mainWnd, SIGNAL(styleChanged()), m_memberView, SLOT(StyleChanged()));
-	connect(m_scatterplotView, SIGNAL(SelectionChanged()), m_spatialView, SLOT(UpdateSelection()));
-	connect(m_memberView, SIGNAL(MemberSelected(int)), this, SLOT(MemberSelected(int)));
-	connect(m_ensembleView, SIGNAL(EnsembleSelected(QSharedPointer<iAEnsemble>)), this, SLOT(EnsembleSelected(QSharedPointer<iAEnsemble>)));
+	connect(mainWnd, &MainWindow::styleChanged, m_spatialView, &iASpatialView::StyleChanged);
+	connect(mainWnd, &MainWindow::styleChanged, m_memberView, &iAMemberView::StyleChanged);
+	connect(m_scatterplotView, &iAScatterPlotView::SelectionChanged, m_spatialView, &iASpatialView::UpdateSelection);
+	connect(m_memberView, &iAMemberView::MemberSelected, this, &iAUncertaintyAttachment::MemberSelected);
+	connect(m_ensembleView, &iAEnsembleView::EnsembleSelected, this, &iAUncertaintyAttachment::EnsembleSelected);
 }
 
 
@@ -104,7 +104,7 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 		DEBUG_LOG("Ensemble: Given data file could not be read.");
 		return false;
 	}
-	connect(m_child, SIGNAL(fileLoaded()), this, SLOT(ContinueEnsembleLoading()));
+	connect(m_child, &MdiChild::fileLoaded, this, &iAUncertaintyAttachment::ContinueEnsembleLoading);
 	if (!m_child->loadFile(m_ensembleFile->ModalityFileName(), false))
 	{
 		DEBUG_LOG(QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));

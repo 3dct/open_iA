@@ -354,7 +354,9 @@ void iAChartTransferFunction::moveSelectedPoint(int x, int y)
 void iAChartTransferFunction::changeColor(QMouseEvent *event)
 {
 	if (event != nullptr)
+	{
 		m_selectedPoint = selectPoint(event);
+	}
 
 	if (m_selectedPoint == -1)
 		return;

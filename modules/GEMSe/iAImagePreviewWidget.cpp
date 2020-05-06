@@ -91,8 +91,8 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 		m_slicer->disableInteractor();
 	}
 
-	connect(m_slicer, SIGNAL(clicked()), this, SIGNAL(clicked()));
-	connect(m_slicer, SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
+	connect(m_slicer, &iASlicer::clicked, this, &iAImagePreviewWidget::clicked);
+	connect(m_slicer, &iASlicer::rightClicked, this, &iAImagePreviewWidget::SlicerRightClicked);
 	connect(m_slicer, &iASlicer::oslicerPos, this, &iAImagePreviewWidget::SlicerHovered);
 	connect(m_slicer, &iASlicer::userInteraction, this, &iAImagePreviewWidget::updated);
 	setLayout(new QHBoxLayout);

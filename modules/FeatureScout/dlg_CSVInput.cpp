@@ -143,11 +143,11 @@ void dlg_CSVInput::connectSignals()
 	connect(cmbbox_ColSeparator, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updatePreview);
 	connect(cmbbox_ObjectType, &QComboBox::currentTextChanged, this, &dlg_CSVInput::switchObjectType);
 	connect(cmbbox_Encoding, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updatePreview);
-	connect(cmbbox_VisualizeAs, SIGNAL(currentIndexChanged(int)), this, SLOT(visualizationTypeChanged(int)));
+	connect(cmbbox_VisualizeAs, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_CSVInput::visualizationTypeChanged);
 	connect(buttonBox, &QDialogButtonBox::accepted, this, &dlg_CSVInput::okBtnClicked);
-	connect(ed_SkipLinesStart, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
-	connect(ed_SkipLinesEnd, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
-	connect(sb_PreviewLines, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
+	connect(ed_SkipLinesStart, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_CSVInput::updatePreview);
+	connect(ed_SkipLinesEnd,   QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_CSVInput::updatePreview);
+	connect(sb_PreviewLines,   QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_CSVInput::updatePreview);
 	connect(cb_ComputeStartEnd, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeStartEndChanged);
 	connect(cb_ComputeLength, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeLengthChanged);
 	connect(cb_ComputeAngles, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeAngleChanged);
@@ -158,7 +158,7 @@ void dlg_CSVInput::connectSignals()
 	connect(cb_AdvancedMode, &QCheckBox::stateChanged, this, &dlg_CSVInput::advancedModeToggled);
 	connect(list_ColumnSelection, &QListWidget::itemSelectionChanged, this, &dlg_CSVInput::selectedColsChanged);
 	connect(cb_FixedDiameter, &QCheckBox::stateChanged, this, &dlg_CSVInput::fixedDiameterChanged);
-	connect(sb_FixedDiameter, SIGNAL(valueChanged(double)), this, SLOT(updatePreview()));
+	connect(sb_FixedDiameter, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &dlg_CSVInput::updatePreview);
 }
 
 void dlg_CSVInput::okBtnClicked()

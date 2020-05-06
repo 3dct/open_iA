@@ -90,7 +90,7 @@ dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget *parent /*= 0*/, QDir dat
 	m_mrvBGRen(vtkSmartPointer<vtkRenderer>::New()),
 	m_mrvTxtAct(vtkSmartPointer<vtkTextActor>::New())
 {
-	connect(&m_iMProgress, SIGNAL(progress(int)), this, SLOT(updateIntensityMapperProgress(int)));
+	connect(&m_iMProgress, &iAProgress::progress, this, &dlg_DynamicVolumeLines::updateIntensityMapperProgress);
 	m_mdiChild->renderer()->setAreaPicker();
 
 	m_nonlinearScaledPlot->setObjectName("nonlinear");
@@ -153,7 +153,7 @@ void dlg_DynamicVolumeLines::setupScaledPlot(QCustomPlot *qcp)
 	tb_MinMaxPlot->setMaximumSize(QSize(13, 10));
 	tb_MinMaxPlot->setIcon(QIcon(":/images/minus.png"));
 	tb_MinMaxPlot->setIconSize(QSize(10, 10));
-	connect(tb_MinMaxPlot, SIGNAL(clicked()), this, SLOT(changePlotVisibility()));
+	connect(tb_MinMaxPlot, &QToolButton::clicked, this, &dlg_DynamicVolumeLines::changePlotVisibility);
 
 	PlotsContainer_verticalLayout->addWidget(tb_MinMaxPlot);
 	PlotsContainer_verticalLayout->addWidget(qcp);
@@ -192,22 +192,21 @@ void dlg_DynamicVolumeLines::setupPlotConnections(QCustomPlot *qcp)
 {
 	if (qcp->objectName().contains("nonlinear"))
 	{
-		connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncLinearXAxis(QCPRange)));
-		connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncYAxis(QCPRange)));
-		connect(qcp, SIGNAL(afterReplot()), m_linearScaledPlot, SLOT(replot()));
+		connect(qcp->xAxis, QOverload<QCPRange const &>::of(&QCPAxis::rangeChanged), this, &dlg_DynamicVolumeLines::syncLinearXAxis);
+		connect(qcp->yAxis, QOverload<QCPRange const &>::of(&QCPAxis::rangeChanged), this, &dlg_DynamicVolumeLines::syncYAxis);
+		connect(qcp, &QCustomPlot::afterReplot, [=] { m_linearScaledPlot->replot(QCustomPlot::rpRefreshHint); });
 	}
 	else
 	{
-		connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncNonlinearXAxis(QCPRange)));
-		connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncYAxis(QCPRange)));
-		connect(qcp, SIGNAL(afterReplot()), m_nonlinearScaledPlot, SLOT(replot()));
+		connect(qcp->xAxis, QOverload<QCPRange const&>::of(&QCPAxis::rangeChanged), this, &dlg_DynamicVolumeLines::syncNonlinearXAxis);
+		connect(qcp->yAxis, QOverload<QCPRange const&>::of(&QCPAxis::rangeChanged), this, &dlg_DynamicVolumeLines::syncYAxis);
+		connect(qcp, &QCustomPlot::afterReplot, [=] { m_nonlinearScaledPlot->replot(QCustomPlot::rpRefreshHint); });
 	}
-	connect(qcp, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress(QMouseEvent*)));
-	connect(qcp, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
-	connect(qcp, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseWheel(QWheelEvent*)));
-	connect(qcp, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChangedByUser()));
-	connect(qcp, SIGNAL(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)),
-		this, SLOT(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
+	connect(qcp, &QCustomPlot::mousePress, this, &dlg_DynamicVolumeLines::mousePress);
+	connect(qcp, &QCustomPlot::mouseMove, this, &dlg_DynamicVolumeLines::mouseMove);
+	connect(qcp, &QCustomPlot::mouseWheel, this, &dlg_DynamicVolumeLines::mouseWheel);
+	connect(qcp, &QCustomPlot::selectionChangedByUser, this, &dlg_DynamicVolumeLines::selectionChangedByUser);
+	connect(qcp, &QCustomPlot::legendClick, this, &dlg_DynamicVolumeLines::legendClick);
 }
 
 void dlg_DynamicVolumeLines::setupGUIElements()
@@ -219,8 +218,8 @@ void dlg_DynamicVolumeLines::setupGUIElements()
 	iALinearColorGradientBar *compLvl_colorBar = new iALinearColorGradientBar(this,
 		"Brewer single hue 5c grays", false);
 	m_compLvlLUT = compLvl_colorBar->getLut();
-	connect(this, SIGNAL(compLevelRangeChanged(QVector<double>)),
-		compLvl_colorBar, SLOT(compLevelRangeChanged(QVector<double>)));
+	connect(this, QOverload<QVector<double>>::of(&dlg_DynamicVolumeLines::compLevelRangeChanged),
+		compLvl_colorBar, &iALinearColorGradientBar::compLevelRangeChanged);
 	QVBoxLayout *compLvl_lutLayoutHB = new QVBoxLayout(this);
 	compLvl_lutLayoutHB->setMargin(0);
 	compLvl_lutLayoutHB->addWidget(compLvl_colorBar);
@@ -230,8 +229,8 @@ void dlg_DynamicVolumeLines::setupGUIElements()
 	iALinearColorGradientBar *hist_colorBar = new iALinearColorGradientBar(this,
 		"Extended Black Body", true);
 	m_histLUT = hist_colorBar->getLut();
-	connect(hist_colorBar, SIGNAL(colorMapChanged(vtkSmartPointer<vtkLookupTable>)),
-		this, SLOT(updateHistColorMap(vtkSmartPointer<vtkLookupTable>)));
+	connect(hist_colorBar, &iALinearColorGradientBar::colorMapChanged,
+		this, &dlg_DynamicVolumeLines::updateHistColorMap);
 	QVBoxLayout *hist_lutLayoutHB = new QVBoxLayout(this);
 	hist_lutLayoutHB->setMargin(0);
 	hist_lutLayoutHB->addWidget(hist_colorBar);
@@ -252,24 +251,22 @@ void dlg_DynamicVolumeLines::updateHistColorMap(vtkSmartPointer<vtkLookupTable> 
 
 void dlg_DynamicVolumeLines::setupGUIConnections()
 {
-	connect(pB_Update, SIGNAL(clicked()), this, SLOT(updateDynamicVolumeLines()));
-	connect(cb_showFBP, SIGNAL(stateChanged(int)), this, SLOT(showFBPGraphs()));
-	connect(cb_FBPView, SIGNAL(currentIndexChanged(int)), this, SLOT(updateFBPView()));
-	connect(sl_FBPTransparency, SIGNAL(valueChanged(int)), this, SLOT(setFBPTransparency(int)));
-	connect(sb_BkgrdThr, SIGNAL(valueChanged(double)), this, SLOT(visualize()));
-	connect(cb_BkgrdThrLine, SIGNAL(stateChanged(int)), this, SLOT(showBkgrdThrLine()));
-	connect(sb_nonlinearScalingFactor, SIGNAL(valueChanged(double)), this, SLOT(visualize()));
-	connect(pB_selectCompLevel, SIGNAL(clicked()), this, SLOT(selectCompLevel()));
-	connect(m_linearScaledPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), m_orientationWidget, SLOT(update()));
-	connect(m_linearScaledPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), m_orientationWidget, SLOT(update()));
-	connect(sb_histBinWidth, SIGNAL(valueChanged(int)), this, SLOT(visualize()));
-	connect(sb_subHistBinCnt, SIGNAL(valueChanged(int)), this, SLOT(setSubHistBinCntFlag()));
-	connect(sb_UpperCompLevelThr, SIGNAL(valueChanged(double)), this, SLOT(compLevelRangeChanged()));
-	connect(sb_LowerCompLevelThr, SIGNAL(valueChanged(double)), this, SLOT(compLevelRangeChanged()));
-	connect(m_mdiChild->renderer(), SIGNAL(cellsSelected(vtkPoints*)),
-		this, SLOT(setSelectionForPlots(vtkPoints*)));
-	connect(m_mdiChild->renderer(), SIGNAL(noCellsSelected()),
-		this, SLOT(setNoSelectionForPlots()));
+	connect(pB_Update, &QPushButton::clicked, this, &dlg_DynamicVolumeLines::updateDynamicVolumeLines);
+	connect(cb_showFBP, &QCheckBox::stateChanged, this, &dlg_DynamicVolumeLines::showFBPGraphs);
+	connect(cb_FBPView, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_DynamicVolumeLines::updateFBPView);
+	connect(sl_FBPTransparency, &QSlider::valueChanged, this, &dlg_DynamicVolumeLines::setFBPTransparency);
+	connect(sb_BkgrdThr, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::visualize);
+	connect(cb_BkgrdThrLine, &QCheckBox::stateChanged, this, &dlg_DynamicVolumeLines::showBkgrdThrLine);
+	connect(sb_nonlinearScalingFactor, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::visualize);
+	connect(pB_selectCompLevel, &QPushButton::clicked, this, &dlg_DynamicVolumeLines::selectCompLevel);
+	connect(m_linearScaledPlot->xAxis, QOverload<QCPRange const &>::of(&QCPAxis::rangeChanged), m_orientationWidget, QOverload<>::of(&QWidget::update));
+	connect(m_linearScaledPlot->yAxis, QOverload<QCPRange const &>::of(&QCPAxis::rangeChanged), m_orientationWidget, QOverload<>::of(&QWidget::update));
+	connect(sb_histBinWidth,  QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::visualize);
+	connect(sb_subHistBinCnt, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::setSubHistBinCntFlag);
+	connect(sb_UpperCompLevelThr, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, QOverload<>::of(&dlg_DynamicVolumeLines::compLevelRangeChanged));
+	connect(sb_LowerCompLevelThr, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, QOverload<>::of(&dlg_DynamicVolumeLines::compLevelRangeChanged));
+	connect(m_mdiChild->renderer(), &iARenderer::cellsSelected, this, &dlg_DynamicVolumeLines::setSelectionForPlots);
+	connect(m_mdiChild->renderer(), &iARenderer::noCellsSelected, this, &dlg_DynamicVolumeLines::setNoSelectionForPlots);
 }
 
 void dlg_DynamicVolumeLines::changePlotVisibility()
@@ -317,12 +314,11 @@ void dlg_DynamicVolumeLines::generateHilbertIdx()
 	iAIntensityMapper *im = new iAIntensityMapper(m_iMProgress, m_datasetsDir, PathNameToId[cb_Paths->currentText()],
 		m_DatasetIntensityMap, m_imgDataList, m_minEnsembleIntensity, m_maxEnsembleIntensity);
 	im->moveToThread(thread);
-	connect(thread, SIGNAL(started()), im, SLOT(process()));
-	connect(im, SIGNAL(finished()), thread, SLOT(quit()));
-	connect(im, SIGNAL(finished()), im, SLOT(deleteLater()));
-	connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-	//connect(thread, SIGNAL(finished()), this, SLOT(visualizePath()));		// Debug
-	connect(thread, SIGNAL(finished()), this, SLOT(visualize()));
+	connect(thread, &QThread::started, im, &iAIntensityMapper::process);
+	connect(im, &iAIntensityMapper::finished, thread, &QThread::quit);
+	connect(im, &iAIntensityMapper::finished, im, &iAIntensityMapper::deleteLater);
+	connect(thread, &QThread::finished, thread, &QThread::deleteLater);
+	connect(thread, &QThread::finished, this, &dlg_DynamicVolumeLines::visualize);
 	thread->start();
 }
 

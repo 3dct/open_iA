@@ -28,8 +28,8 @@ iA4DCTDefectVisDockWidget::iA4DCTDefectVisDockWidget( QWidget * parent )
 	: QDockWidget( parent )
 {
 	setupUi( this );
-	connect( cbDefectVis, SIGNAL( colorChanged( QColor ) ), this, SLOT( changeColor( QColor ) ) );
-	connect( sOpacity, SIGNAL( valueChanged( int ) ), this, SLOT( changeOpacity( int ) ) );
+	connect( cbDefectVis, &iAColorBox::colorChanged, this, &iA4DCTDefectVisDockWidget::changeColor);
+	connect( sOpacity, &QSlider::valueChanged, this, &iA4DCTDefectVisDockWidget::changeOpacity);
 }
 
 void iA4DCTDefectVisDockWidget::attachTo( iADefectVisModule * defectVis )

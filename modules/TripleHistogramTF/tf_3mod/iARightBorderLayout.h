@@ -25,33 +25,32 @@
 class QRect;
 class QWidget;
 
-class IBorderItem
+class iAIBorderItem
 {
 public:
-	//IBorderItem() {}
-	//virtual ~IBorderItem(); // TODO: uncomment?
+	virtual ~iAIBorderItem();
 	virtual bool hasWidthForHeight() = 0;
 	virtual int getWidthForHeight(int height) = 0;
 	virtual bool hasHeightForWidth() = 0;
 	virtual int getHeightForWidth(int width) = 0;
 };
 
-class IBorderLayoutItem : public IBorderItem
+class iAIBorderLayoutItem : public iAIBorderItem
 {
 public:
 	virtual QLayoutItem* layoutItem() = 0;
 };
 
-class IBorderWidget : public IBorderItem
+class iAIBorderWidget : public iAIBorderItem
 {
 public:
 	virtual QWidget* widget() = 0;
 };
 
-class SquareBorderWidget : public IBorderWidget
+class iASquareBorderWidget : public iAIBorderWidget
 {
 public:
-	SquareBorderWidget(QWidget* widget) : m_widget(widget) {}
+	iASquareBorderWidget(QWidget* widget) : m_widget(widget) {}
 	bool hasWidthForHeight() override { return true; }
 	int getWidthForHeight(int height) override { return height; }
 	bool hasHeightForWidth() override { return true; }
@@ -63,12 +62,12 @@ private:
 
 };
 
-class BorderLayoutItemWrapper : IBorderLayoutItem
+class BorderLayoutItemWrapper : iAIBorderLayoutItem
 {
 public:
-	BorderLayoutItemWrapper(IBorderItem* rbi, QLayoutItem *layoutItem) : m_rbi(rbi), m_layoutItem(layoutItem) {}
-	BorderLayoutItemWrapper(IBorderWidget* rbw) : m_rbi(rbw), m_layoutItem(new QWidgetItem(rbw->widget())) {}
-	BorderLayoutItemWrapper(IBorderLayoutItem* rbli) : m_rbi(rbli), m_layoutItem(rbli->layoutItem()) {}
+	BorderLayoutItemWrapper(iAIBorderItem* rbi, QLayoutItem *layoutItem) : m_rbi(rbi), m_layoutItem(layoutItem) {}
+	BorderLayoutItemWrapper(iAIBorderWidget* rbw) : m_rbi(rbw), m_layoutItem(new QWidgetItem(rbw->widget())) {}
+	BorderLayoutItemWrapper(iAIBorderLayoutItem* rbli) : m_rbi(rbli), m_layoutItem(rbli->layoutItem()) {}
 	bool hasWidthForHeight() { return m_rbi->hasWidthForHeight(); }
 	int getWidthForHeight(int height) { return m_rbi->getWidthForHeight(height); }
 	bool hasHeightForWidth() { return m_rbi->hasHeightForWidth();  }
@@ -76,19 +75,19 @@ public:
 	QLayoutItem* layoutItem() { return m_layoutItem; }
 
 private:
-	IBorderItem *m_rbi;
+	iAIBorderItem *m_rbi;
 	QLayoutItem *m_layoutItem;
 
 };
 
-class RightBorderLayout : public QLayout
+class iARightBorderLayout : public QLayout
 {
 public:
 	enum Position { Right, Top };
 
-	explicit RightBorderLayout(QWidget *parent, Position pos = Right, int margin = 0, int spacing = -1);
-	RightBorderLayout(int spacing = -1);
-	~RightBorderLayout();
+	explicit iARightBorderLayout(QWidget *parent, Position pos = Right, int margin = 0, int spacing = -1);
+	iARightBorderLayout(int spacing = -1);
+	~iARightBorderLayout();
 
 	void addItem(QLayoutItem *item) override;
 	//void addWidget(QWidget *widget, Position position);
@@ -107,7 +106,7 @@ public:
 	void addWidgetCenter(QLayoutItem *item);
 
 	void setCenterWidget(QWidget* widget);
-	void setBorderWidget(IBorderWidget *rbw);
+	void setBorderWidget(iAIBorderWidget *rbw);
 
 private:
 	enum SizeType { MinimumSize, SizeHint };

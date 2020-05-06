@@ -298,7 +298,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 
 void iAFilterRunnerGUI::connectThreadSignals(MdiChild* mdiChild, iAFilterRunnerGUIThread* thread)
 {
-	connect(thread, SIGNAL(finished()), this, SLOT(filterFinished()));
+	connect(thread, &QThread::finished, this, &iAFilterRunnerGUI::filterFinished);
 	mdiChild->connectThreadSignalsToChildSlots(thread);
 }
 

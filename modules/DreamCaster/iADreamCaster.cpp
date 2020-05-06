@@ -147,46 +147,38 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	isStopped = false;
 
 	ui.setupUi(this);
-	connect(ui.openSTLFile,  SIGNAL(clicked()), this, SLOT(OpenModelSlot()));
-	///connect(ui.tb_openModel,  SIGNAL(clicked()), this, SLOT(OpenModelSlot()));
-	///connect(ui.actionShow_logs,  SIGNAL(triggered()), this, SLOT(ShowLogsSlot()));
-	connect(ui.saveTree,  SIGNAL(clicked()), this, SLOT(SaveTree()));
+	connect(ui.openSTLFile, &QPushButton::clicked, this, &iADreamCaster::OpenModelSlot);
+	connect(ui.saveTree, &QPushButton::clicked, this, &iADreamCaster::SaveTree);
 	logsUi.setupUi(ui.logsWidget);
-	//logs.show();
 	resUi.setupUi(&res);
 	settingsUi.setupUi(&settings);
-	connect(resUi.pb_Save, SIGNAL(clicked()), this, SLOT(SaveResultsSlot()));
-	connect(settingsUi.pb_SaveSettings, SIGNAL(clicked()), this, SLOT(SaveSettingsSlot()));
-	connect(settingsUi.pb_Reset,        SIGNAL(clicked()), this, SLOT(ResetSettingsSlot()));
-	//histUi.setupUi(&hist);
-	//connect(histUi.pb_update,  SIGNAL(clicked()), this, SLOT(UpdateHistogramSlot()));
-	//hist.show();
+	connect(resUi.pb_Save, &QPushButton::clicked, this, &iADreamCaster::SaveResultsSlot);
+	connect(settingsUi.pb_SaveSettings, &QPushButton::clicked, this, &iADreamCaster::SaveSettingsSlot);
+	connect(settingsUi.pb_Reset, &QPushButton::clicked, this, &iADreamCaster::ResetSettingsSlot);
 	initHistograms();
 	modelFileName = "No model opened";
 	setFileName = "";
 	formPainter = new QPainter();
-	//int s = VFRAME_W*VFRAME_H;
-	viewsBuffer = 0;//new Pixel[s];
-	//for ( int i = 0; i < s; i++ ) viewsBuffer[i] = 0;
-	//
+	viewsBuffer = nullptr;
 	comparisonTab = new iAParametersView(stngs.VFRAME_W, stngs.VFRAME_H, ui.w_comparison1, ui.w_comparison2, ui.w_comparison3);
 	//connect heightmaps of parameters on comparison tab to each other
 	for (unsigned int i=0; i<3; i++)
 	{
 		comparisonTab->paramWidgets[i].paintWidget->SetHighlightStyle(qcolYellow, 2.0);
-		connect(comparisonTab->paramWidgets[i].paintWidget, SIGNAL(mouseReleaseEventSignal(int, int)), this, SLOT(ComparisonTabPlacementPickedSlot(int, int)));
+		connect(comparisonTab->paramWidgets[i].paintWidget, QOverload<int,int>::of(&iAPaintWidget::mouseReleaseEventSignal),
+			this, &iADreamCaster::ComparisonTabPlacementPickedSlot);
 		for (unsigned int j = 0; j < 3; j++)
 		{
 			if (i != j)
 			{
-				connect(comparisonTab->paramWidgets[i].paintWidget, SIGNAL(ChangedSignal(double&, double&, double&)),
-					comparisonTab->paramWidgets[j].paintWidget, SLOT(UpdateSlot(double&, double&, double&)));
+				connect(comparisonTab->paramWidgets[i].paintWidget, &iAPaintWidget::ChangedSignal,
+					comparisonTab->paramWidgets[j].paintWidget, &iAPaintWidget::UpdateSlot);
 			}
 		}
 	}
-	//
 	weightingTab = new iACombinedParametersView(ui.w_results, stngs.VFRAME_W, stngs.VFRAME_H);
-	connect(weightingTab->results.paintWidget, SIGNAL(mouseReleaseEventSignal(int, int)), this, SLOT(WeightingResultsPlacementPickedSlot(int, int)));
+	connect(weightingTab->results.paintWidget, QOverload<int, int>::of(&iAPaintWidget::mouseReleaseEventSignal),
+		this, &iADreamCaster::WeightingResultsPlacementPickedSlot);
 	renderPxmp = new QPixmap(stngs.RFRAME_W, stngs.RFRAME_H);
 	float ratio = stngs.RFRAME_H/stngs.RFRAME_W;
 	RenderFrame = new iAPaintWidget(renderPxmp, ui.RenderViewWidget);
@@ -202,8 +194,8 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	ViewsFrame->SetHighlightStyle(qcolYellow, 2.0);
 	stabilityView = new iAStabilityWidget(ui.w_stabilityWidget);
 	stabilityView->setGeometry(0, 0, ui.w_stabilityWidget->geometry().width(), ui.w_stabilityWidget->geometry().height());
-	connect(ViewsFrame, SIGNAL(mouseReleaseEventSignal()), this, SLOT(RenderFrameMouseReleasedSlot()));
-	//
+	connect(ViewsFrame, QOverload<>::of(&iAPaintWidget::mouseReleaseEventSignal), this, &iADreamCaster::RenderFrameMouseReleasedSlot);
+
 	hist = new dlg_histogram_simple(ui.histWidget);
 	hist->setGeometry(0, 0, ui.histWidget->geometry().width(), ui.histWidget->geometry().height());
 
@@ -307,48 +299,46 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	//
 	dcast = this;
 	//CONNECTIONS
-	connect(ui.pb_stop, SIGNAL(clicked()), this, SLOT(StopRenderingSlot()));
-	connect(ui.btnStart, SIGNAL(clicked()), this, SLOT(RenderSingleViewSlot()));
-	connect(ui.btnRenderViews, SIGNAL(clicked()), this, SLOT(RenderViewsSlot()));
-	///connect(ui.tb_new, SIGNAL(clicked()), this, SLOT(NewSetSlot()));
-	///connect(ui.tb_open, SIGNAL(clicked()), this, SLOT(OpenSetSlot()));
-	connect(ui.pbSetPosition, SIGNAL(clicked()), this, SLOT(pbSetPositionSlot()));
-	connect(ui.pb_grab3D, SIGNAL(clicked()), this, SLOT(pbGrab3DSlot()));
-	connect(ui.pbShowResults, SIGNAL(clicked()), this, SLOT(ShowResultsSlot()));
-	connect(ui.tb_opends,  SIGNAL(clicked()), this, SLOT(OpenSetSlot()));
-	connect(ui.tb_specifyds,  SIGNAL(clicked()), this, SLOT(NewSetSlot()));
-	connect(ui.configureSettings, SIGNAL(clicked()), this, SLOT(ConfigureSettingsSlot()));
-	connect(ui.cb_rangeParameter, SIGNAL(currentIndexChanged(int)), this, SLOT(CurrentParameterChangedSlot()));
-	connect(ui.hs_projection, SIGNAL(valueChanged(int)), this, SLOT(ProjectionChangedSlot()));
-	connect(ui.pb_showRays, SIGNAL(clicked()), this, SLOT(ShowRangeRays()));
-	connect(ui.pb_hideRays, SIGNAL(clicked()), this, SLOT(HideRays()));
-	connect(ui.pb_updatePlot, SIGNAL(clicked()), this, SLOT(UpdatePlotSlot()));
-	connect(ui.s_sensitivity, SIGNAL(valueChanged(int)), this, SLOT(SensitivityChangedSlot()));
-	connect(ui.cb_updateStabilityOnMouseMove, SIGNAL(clicked(bool)), this, SLOT(UpdateStabilityOnMouseMoveCheckedSlot()));
-	connect(ui.pb_update, SIGNAL(clicked()), this, SLOT(UpdateHistogramSlot()));
-	connect(ui.s_sensRes, SIGNAL(valueChanged(int)), this, SLOT(StabilityResolutionChangedSlot()));
-	connect(ui.hs_topPlacements, SIGNAL(valueChanged(int)), this, SLOT(TopPlacementsChangedSlot()));
-	connect(ui.s_lowCut1, SIGNAL(valueChanged(int)), this, SLOT(LowCutParam1Slot()));
-	connect(ui.s_lowCut2, SIGNAL(valueChanged(int)), this, SLOT(LowCutParam2Slot()));
-	connect(ui.s_lowCut3, SIGNAL(valueChanged(int)), this, SLOT(LowCutParam3Slot()));
-	connect(ui.pb_updateResults, SIGNAL(clicked()), this, SLOT(UpdateWeightingResultsSlot()));
-	connect(ui.s_lowCutRes, SIGNAL(valueChanged(int)), this, SLOT(LowCutWeightingResSlot()));
-	connect(ui.tb_add, SIGNAL(clicked()), this, SLOT(AddCutFigSlot()));
-	connect(ui.tb_remove, SIGNAL(clicked()), this, SLOT(RemoveCutFigSlot()));
-	connect(ui.listCutFig, SIGNAL(clicked(QModelIndex)), this, SLOT(CutFigPicked()));
-	connect(ui.s_aab_maxx, SIGNAL(valueChanged(int)), this, SLOT(CutFigParametersChanged()));
-	connect(ui.s_aab_maxy, SIGNAL(valueChanged(int)), this, SLOT(CutFigParametersChanged()));
-	connect(ui.s_aab_maxz, SIGNAL(valueChanged(int)), this, SLOT(CutFigParametersChanged()));
-	connect(ui.s_aab_minx, SIGNAL(valueChanged(int)), this, SLOT(CutFigParametersChanged()));
-	connect(ui.s_aab_miny, SIGNAL(valueChanged(int)), this, SLOT(CutFigParametersChanged()));
-	connect(ui.s_aab_minz, SIGNAL(valueChanged(int)), this, SLOT(CutFigParametersChanged()));
-	connect(ui.pb_colorAngles, SIGNAL(clicked()), this, SLOT(ColorBadAngles()));
-	connect(ui.pb_hideColoring, SIGNAL(clicked()), this, SLOT(HideColoring()));
-	connect(ui.push3DView, SIGNAL(clicked()), this, SLOT(maximize3DView()));
-	connect(ui.pushRaycast, SIGNAL(clicked()), this, SLOT(maximizeRC()));
-	connect(ui.pushPlacements, SIGNAL(clicked()), this, SLOT(maximizePlacements()));
-	connect(ui.pushStability, SIGNAL(clicked()), this, SLOT(maximizeStability()));
-	connect(ui.pushMaxTab, SIGNAL(clicked()), this, SLOT(maximizeBottom()));
+	connect(ui.pb_stop, &QPushButton::clicked, this, &iADreamCaster::StopRenderingSlot);
+	connect(ui.btnStart, &QPushButton::clicked, this, &iADreamCaster::RenderSingleViewSlot);
+	connect(ui.btnRenderViews, &QPushButton::clicked, this, &iADreamCaster::RenderViewsSlot);
+	connect(ui.pbSetPosition, &QPushButton::clicked, this, &iADreamCaster::pbSetPositionSlot);
+	connect(ui.pb_grab3D, &QPushButton::clicked, this, &iADreamCaster::pbGrab3DSlot);
+	connect(ui.pbShowResults, &QPushButton::clicked, this, &iADreamCaster::ShowResultsSlot);
+	connect(ui.tb_opends,  &QToolButton::clicked, this, &iADreamCaster::OpenSetSlot);
+	connect(ui.tb_specifyds, &QToolButton::clicked, this, &iADreamCaster::NewSetSlot);
+	connect(ui.configureSettings, &QPushButton::clicked, this, &iADreamCaster::ConfigureSettingsSlot);
+	connect(ui.cb_rangeParameter, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iADreamCaster::CurrentParameterChangedSlot);
+	connect(ui.hs_projection, &QSlider::valueChanged, this, &iADreamCaster::ProjectionChangedSlot);
+	connect(ui.pb_showRays, &QPushButton::clicked, this, &iADreamCaster::ShowRangeRays);
+	connect(ui.pb_hideRays, &QPushButton::clicked, this, &iADreamCaster::HideRays);
+	connect(ui.pb_updatePlot, &QPushButton::clicked, this, &iADreamCaster::UpdatePlotSlot);
+	connect(ui.s_sensitivity, &QSlider::valueChanged, this, &iADreamCaster::SensitivityChangedSlot);
+	connect(ui.cb_updateStabilityOnMouseMove, &QCheckBox::clicked, this, &iADreamCaster::UpdateStabilityOnMouseMoveCheckedSlot);
+	connect(ui.pb_update, &QPushButton::clicked, this, &iADreamCaster::UpdateHistogramSlot);
+	connect(ui.s_sensRes, &QSlider::valueChanged, this, &iADreamCaster::StabilityResolutionChangedSlot);
+	connect(ui.hs_topPlacements, &QSlider::valueChanged, this, &iADreamCaster::TopPlacementsChangedSlot);
+	connect(ui.s_lowCut1, &QSlider::valueChanged, this, &iADreamCaster::LowCutParam1Slot);
+	connect(ui.s_lowCut2, &QSlider::valueChanged, this, &iADreamCaster::LowCutParam2Slot);
+	connect(ui.s_lowCut3, &QSlider::valueChanged, this, &iADreamCaster::LowCutParam3Slot);
+	connect(ui.pb_updateResults, &QPushButton::clicked, this, &iADreamCaster::UpdateWeightingResultsSlot);
+	connect(ui.s_lowCutRes, &QSlider::valueChanged, this, &iADreamCaster::LowCutWeightingResSlot);
+	connect(ui.tb_add, &QToolButton::clicked, this, &iADreamCaster::AddCutFigSlot);
+	connect(ui.tb_remove, &QToolButton::clicked, this, &iADreamCaster::RemoveCutFigSlot);
+	connect(ui.listCutFig, &QListWidget::clicked, this, &iADreamCaster::CutFigPicked);
+	connect(ui.s_aab_maxx, &QSlider::valueChanged, this, &iADreamCaster::CutFigParametersChanged);
+	connect(ui.s_aab_maxy, &QSlider::valueChanged, this, &iADreamCaster::CutFigParametersChanged);
+	connect(ui.s_aab_maxz, &QSlider::valueChanged, this, &iADreamCaster::CutFigParametersChanged);
+	connect(ui.s_aab_minx, &QSlider::valueChanged, this, &iADreamCaster::CutFigParametersChanged);
+	connect(ui.s_aab_miny, &QSlider::valueChanged, this, &iADreamCaster::CutFigParametersChanged);
+	connect(ui.s_aab_minz, &QSlider::valueChanged, this, &iADreamCaster::CutFigParametersChanged);
+	connect(ui.pb_colorAngles, &QPushButton::clicked, this, &iADreamCaster::ColorBadAngles);
+	connect(ui.pb_hideColoring, &QPushButton::clicked, this, &iADreamCaster::HideColoring);
+	connect(ui.push3DView, &QToolButton::clicked, this, &iADreamCaster::maximize3DView);
+	connect(ui.pushRaycast, &QToolButton::clicked, this, &iADreamCaster::maximizeRC);
+	connect(ui.pushPlacements, &QToolButton::clicked, this, &iADreamCaster::maximizePlacements);
+	connect(ui.pushStability, &QToolButton::clicked, this, &iADreamCaster::maximizeStability);
+	connect(ui.pushMaxTab, &QToolButton::clicked, this, &iADreamCaster::maximizeBottom);
 	//restore previous window state
 	QSettings settingsStore;
 	if (settingsStore.contains(SettingsWindowStateKey))
@@ -2688,11 +2678,11 @@ void iADreamCaster::UpdateStabilityOnMouseMoveCheckedSlot()
 {
 	if (ui.cb_updateStabilityOnMouseMove->isChecked())
 	{
-		connect(ViewsFrame, SIGNAL(mouseMoveEventSignal()), this, SLOT(ViewsMouseMoveSlot()));
+		connect(ViewsFrame, &iAPaintWidget::mouseMoveEventSignal, this, &iADreamCaster::ViewsMouseMoveSlot);
 	}
 	else
 	{
-		disconnect(ViewsFrame, SIGNAL(mouseMoveEventSignal()), this, SLOT(ViewsMouseMoveSlot()));
+		disconnect(ViewsFrame, &iAPaintWidget::mouseMoveEventSignal, this, &iADreamCaster::ViewsMouseMoveSlot);
 	}
 }
 

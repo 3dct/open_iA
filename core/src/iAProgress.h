@@ -57,7 +57,7 @@ public:
 	//! Set additional status information.
 	//! @param status the new status to report to the user
 	void setStatus(QString const & status);
-Q_SIGNALS:
+signals:
 	//! Signal emitted whenever the progress has changed.
 	//! Connect this to a method that updates the indication of the current progression to the user.
 	//! @param p the current percentage of progress (number between 0 and 100)

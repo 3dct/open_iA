@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #include "iAAlgorithm.h"
 
-#include "iAConnector.h"
-#include "iALogger.h"
-#include "iAProgress.h"
+#include <iAConnector.h>
+#include <iALogger.h>
+#include <mdichild.h>
+#include <iAProgress.h>
 
 #include <itkTriangleCell.h>
 
@@ -45,9 +46,11 @@ iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALog
 	m_logger(logger)
 {
 	m_connectors.push_back(new iAConnector());
-	if (parent)
-		connect(parent, SIGNAL( rendererDeactivated(int) ), this, SLOT( updateVtkImageData(int) ));
-	connect(m_progressObserver, SIGNAL( progress(int) ), this, SIGNAL( aprogress(int) ));
+	if (parent && qobject_cast<MdiChild*>(parent))
+	{
+		connect(qobject_cast<MdiChild*>(parent), &MdiChild::rendererDeactivated, this, &iAAlgorithm::updateVtkImageData);
+	}
+	connect(m_progressObserver, &iAProgress::progress, this, &iAAlgorithm::aprogress );
 }
 
 iAAlgorithm::~iAAlgorithm()

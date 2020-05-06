@@ -96,7 +96,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 
 	m_splashTimer = new QTimer();
 	m_splashTimer->setSingleShot(true);
-	connect(m_splashTimer, SIGNAL(timeout()), this, SLOT(hideSplashSlot()));
+	connect(m_splashTimer, &QTimer::timeout, this, &MainWindow::hideSplashSlot);
 	m_splashTimer->start(2000);
 
 	m_splashScreen->showMessage("\n      Setup UI...", Qt::AlignTop, QColor(255, 255, 255));
@@ -836,39 +836,51 @@ void MainWindow::loadSlicerSettings(QDomNode slicerSettingsNode)
 QList<QString> MainWindow::mdiWindowTitles()
 {
 	QList<QString> windowTitles;
-	for (MdiChild* mdiChild: mdiChildList())
+	for (MdiChild* mdiChild : mdiChildList())
+	{
 		windowTitles.append(mdiChild->windowTitle());
+	}
 	return windowTitles;
 }
 
 void MainWindow::maxXY()
 {
 	if (activeMdiChild())
-		activeMdiChild()->maximizeXY();
+	{
+		activeMdiChild()->maximizeSlicer(iASlicerMode::XY);
+	}
 }
 
 void MainWindow::maxXZ()
 {
 	if (activeMdiChild())
-		activeMdiChild()->maximizeXZ();
+	{
+		activeMdiChild()->maximizeSlicer(iASlicerMode::XZ);
+	}
 }
 
 void MainWindow::maxYZ()
 {
 	if (activeMdiChild())
-		activeMdiChild()->maximizeYZ();
+	{
+		activeMdiChild()->maximizeSlicer(iASlicerMode::YZ);
+	}
 }
 
 void MainWindow::maxRC()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->maximizeRC();
+	}
 }
 
 void MainWindow::multi()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->multiview();
+	}
 }
 
 void MainWindow::linkViews()
@@ -879,7 +891,9 @@ void MainWindow::linkViews()
 		activeMdiChild()->linkViews(m_defaultSlicerSettings.LinkViews);
 
 		if (m_defaultSlicerSettings.LinkViews)
+		{
 			statusBar()->showMessage(tr("Link Views"), 5000);
+		}
 	}
 }
 
@@ -891,7 +905,9 @@ void MainWindow::linkMDIs()
 		activeMdiChild()->linkMDIs(m_defaultSlicerSettings.LinkMDIs);
 
 		if (m_defaultSlicerSettings.LinkViews)
+		{
 			statusBar()->showMessage(tr("Link MDIs"), 5000);
+		}
 	}
 }
 
@@ -901,11 +917,7 @@ void MainWindow::enableInteraction()
 	{
 		m_defaultSlicerSettings.InteractorsEnabled = actionEnableInteraction->isChecked();
 		activeMdiChild()->enableInteraction(m_defaultSlicerSettings.InteractorsEnabled);
-
-		if (m_defaultSlicerSettings.InteractorsEnabled)
-			statusBar()->showMessage(tr("Interaction Enabled"), 5000);
-		else
-			statusBar()->showMessage(tr("Interaction Disabled"), 5000);
+		statusBar()->showMessage(tr("Interaction %1").arg(m_defaultSlicerSettings.InteractorsEnabled?"Enabled":"Disabled"), 5000);
 	}
 }
 
@@ -946,7 +958,8 @@ void MainWindow::prefs()
 		<< tr("#Log File Name")
 		<< tr("+Looks")
 		<< tr("#Magic lens size")
-		<< tr("#Magic lens frame width"));
+		<< tr("#Magic lens frame width")
+		<< tr("$Logarithmic Histogram y axis"));
 	QStringList looks;
 	QMap<QString, QString> styleNames;
 	styleNames.insert(tr("Dark")      , ":/dark.qss");
@@ -981,7 +994,8 @@ void MainWindow::prefs()
 		<< iAConsole::instance()->logFileName()
 		<< looks
 		<< tr("%1").arg(p.MagicLensSize)
-		<< tr("%1").arg(p.MagicLensFrameWidth);
+		<< tr("%1").arg(p.MagicLensFrameWidth)
+		<< p.HistogramLogarithmicYAxis;
 
 	dlg_commoninput dlg(this, "Preferences", inList, inPara, descr);
 
@@ -1004,9 +1018,12 @@ void MainWindow::prefs()
 		m_defaultPreferences.MagicLensSize = clamp(MinimumMagicLensSize, MaximumMagicLensSize,
 			static_cast<int>(dlg.getDblValue(8)));
 		m_defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getDblValue(9)));
+		m_defaultPreferences.HistogramLogarithmicYAxis = dlg.getCheckValue(10);
 
 		if (activeMdiChild() && activeMdiChild()->editPrefs(m_defaultPreferences))
+		{
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
+		}
 
 		iAConsole::instance()->setLogToFile(logToFile, logFileName, true);
 	}
@@ -1317,7 +1334,9 @@ void MainWindow::rendererCamPosition()
 {
 	int pos = sender()->property("camPosition").toInt();
 	if (activeChild<iAChangeableCameraWidget>())
+	{
 		activeChild<iAChangeableCameraWidget>()->setCamPosition(pos);
+	}
 }
 
 void MainWindow::raycasterAssignIso()
@@ -1328,7 +1347,9 @@ void MainWindow::raycasterAssignIso()
 	{
 		double camOptions[10] = {0};
 		if (activeMdiChild())
+		{
 			activeMdiChild()->camPosition(camOptions);
+		}
 		for(int i = 0; i < sizeMdi; i++)
 		{
 			MdiChild *tmpChild = mdiwindows.at(i);
@@ -1450,15 +1471,25 @@ void MainWindow::wiki()
 {
 	QAction* act = qobject_cast<QAction*>(QObject::sender());
 	if (act->text().contains("Core"))
+	{
 		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Core"));
-	else if(act->text().contains("Filters"))
+	}
+	else if (act->text().contains("Filters"))
+	{
 		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Filters"));
+	}
 	else if (act->text().contains("Tools"))
+	{
 		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Tools"));
+	}
 	else if (act->text().contains("releases"))
+	{
 		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/releases"));
+	}
 	else if (act->text().contains("bug"))
+	{
 		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/issues"));
+	}
 }
 
 void MainWindow::createRecentFileActions()
@@ -1617,16 +1648,18 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	subWin->setOption(QMdiSubWindow::RubberBandMove);
 
 	if (mdiArea->subWindowList().size() < 2)
+	{
 		child->showMaximized();
+	}
 
 	child->setRenderSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 	child->setupSlicers(m_defaultSlicerSettings, false);
 
-	connect( child, SIGNAL( pointSelected() ), this, SLOT( pointSelected() ) );
-	connect( child, SIGNAL( noPointSelected() ), this, SLOT( noPointSelected() ) );
-	connect( child, SIGNAL( endPointSelected() ), this, SLOT( endPointSelected() ) );
-	connect( child, SIGNAL( active() ), this, SLOT( setHistogramFocus() ) );
-	connect( child, SIGNAL( closed() ), this, SLOT( childClosed() ) );
+	connect(child, &MdiChild::pointSelected, this, &MainWindow::pointSelected);
+	connect(child, &MdiChild::noPointSelected, this, &MainWindow::noPointSelected);
+	connect(child, &MdiChild::endPointSelected, this, &MainWindow::endPointSelected);
+	connect(child, &MdiChild::active, this, &MainWindow::setHistogramFocus);
+	connect(child, &MdiChild::closed, this, &MainWindow::childClosed);
 
 	setModuleActionsEnabled( true );
 
@@ -2270,7 +2303,7 @@ void MainWindow::loadArguments(int argc, char** argv)
 			{
 				m_quitTimer = new QTimer();
 				m_quitTimer->setSingleShot(true);
-				connect(m_quitTimer, SIGNAL(timeout()), this, SLOT(quitTimerSlot()));
+				connect(m_quitTimer, &QTimer::timeout, this, &MainWindow::quitTimerSlot);
 				m_quitTimer->start(ms);
 			}
 			else

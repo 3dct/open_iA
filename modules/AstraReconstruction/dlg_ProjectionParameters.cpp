@@ -23,8 +23,8 @@
 dlg_ProjectionParameters::dlg_ProjectionParameters()
 {
 	setupUi(this);
-	connect(AlgorithmType, SIGNAL(currentIndexChanged(int)), this, SLOT(algorithmChanged(int)));
-	connect(CorrectionCenterOfRotation, SIGNAL(stateChanged(int)), this, SLOT(centerOfRotationEnabled(int)));
+	connect(cbAlgorithmType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_ProjectionParameters::algorithmChanged);
+	connect(cbCorrectCenterOfRotation, &QCheckBox::stateChanged, this, &dlg_ProjectionParameters::centerOfRotationEnabled);
 }
 
 
@@ -35,47 +35,47 @@ void dlg_ProjectionParameters::fillProjectionGeometryValues(QString const & proj
 	gbProjectionInput->hide();
 	gbAlgorithm->hide();
 	gbCorrections->hide();
-	ProjGeomType->setCurrentText(projGeomType);
-	ProjGeomDetectorPixelsX->setValue(detColCnt);
-	ProjGeomDetectorPixelsY->setValue(detRowCnt);
-	ProjGeomDetectorSpacingX->setValue(detSpacingX);
-	ProjGeomDetectorSpacingY->setValue(detSpacingY);
-	ProjGeomProjAngleStart->setValue(projAngleStart);
-	ProjGeomProjAngleEnd->setValue(projAngleEnd);
-	ProjGeomProjCount->setValue(projAnglesCount);
-	ProjGeomDistOriginDetector->setValue(distOrigDet);
-	ProjGeomDistOriginSource->setValue(distOrigSource);
+	cbProjGeomType->setCurrentText(projGeomType);
+	sbProjGeomDetectorPixelsX->setValue(detColCnt);
+	sbProjGeomDetectorPixelsY->setValue(detRowCnt);
+	dsbProjGeomDetectorSpacingX->setValue(detSpacingX);
+	dsbProjGeomDetectorSpacingY->setValue(detSpacingY);
+	dsbProjGeomProjAngleStart->setValue(projAngleStart);
+	dsbProjGeomProjAngleEnd->setValue(projAngleEnd);
+	sbProjGeomProjCount->setValue(projAnglesCount);
+	dsbProjGeomDistOriginDetector->setValue(distOrigDet);
+	dsbProjGeomDistOriginSource->setValue(distOrigSource);
 }
 
 
 void dlg_ProjectionParameters::fillProjectionGeometryValues(QString const & projGeomType, double detSpacingX, double detSpacingY,
 	double projAngleStart, double projAngleEnd, double distOrigDet, double distOrigSource)
 {
-	ProjGeomDetectorPixelsLabel->hide();
-	ProjGeomDetectorPixelsX->hide();
-	ProjGeomDetectorPixelsXLabel->hide();
-	ProjGeomDetectorPixelsY->hide();
-	ProjGeomDetectorPixelsYLabel->hide();
-	ProjGeomProjCount->hide();
-	ProjGeomProjCountLabel->hide();
-	ProjGeomType->setCurrentText(projGeomType);
-	ProjGeomDetectorSpacingX->setValue(detSpacingX);
-	ProjGeomDetectorSpacingY->setValue(detSpacingY);
-	ProjGeomProjAngleStart->setValue(projAngleStart);
-	ProjGeomProjAngleEnd->setValue(projAngleEnd);
-	ProjGeomDistOriginDetector->setValue(distOrigDet);
-	ProjGeomDistOriginSource->setValue(distOrigSource);
+	lbProjGeomDetectorPixels->hide();
+	sbProjGeomDetectorPixelsX->hide();
+	lbProjGeomDetectorPixelsX->hide();
+	sbProjGeomDetectorPixelsY->hide();
+	lbProjGeomDetectorPixelsY->hide();
+	sbProjGeomProjCount->hide();
+	lbProjGeomProjCount->hide();
+	cbProjGeomType->setCurrentText(projGeomType);
+	dsbProjGeomDetectorSpacingX->setValue(detSpacingX);
+	dsbProjGeomDetectorSpacingY->setValue(detSpacingY);
+	dsbProjGeomProjAngleStart->setValue(projAngleStart);
+	dsbProjGeomProjAngleEnd->setValue(projAngleEnd);
+	dsbProjGeomDistOriginDetector->setValue(distOrigDet);
+	dsbProjGeomDistOriginSource->setValue(distOrigSource);
 }
 
 
 void dlg_ProjectionParameters::fillVolumeGeometryValues(int dim[3], double spacing[3])
 {
-	VolGeomDimensionX->setValue(dim[0]);
-	VolGeomDimensionY->setValue(dim[1]);
-	VolGeomDimensionZ->setValue(dim[2]);
-	VolGeomSpacingX->setValue(spacing[0]);
-	VolGeomSpacingY->setValue(spacing[1]);
-	VolGeomSpacingZ->setValue(spacing[2]);
+	sbVolGeomDimensionX->setValue(dim[0]);
+	sbVolGeomDimensionY->setValue(dim[1]);
+	sbVolGeomDimensionZ->setValue(dim[2]);
+	dsbVolGeomSpacingX->setValue(spacing[0]);
+	dsbVolGeomSpacingY->setValue(spacing[1]);
+	dsbVolGeomSpacingZ->setValue(spacing[2]);
 }
 
 
@@ -89,28 +89,28 @@ QStringList dlg_ProjectionParameters::GetDimStringList(int const imgDims[3])
 
 void dlg_ProjectionParameters::fillProjInputMapping(int detRowDim, int detColDim, int projAngleDim, const int dim[3])
 {
-	ProjInputDetectorRowDim->addItems(GetDimStringList(dim));
-	ProjInputDetectorRowDim->setCurrentIndex(detRowDim);
-	ProjInputDetectorColDim->addItems(GetDimStringList(dim));
-	ProjInputDetectorColDim->setCurrentIndex(detColDim);
-	ProjInputProjAngleDim->addItems(GetDimStringList(dim));
-	ProjInputProjAngleDim->setCurrentIndex(projAngleDim);
+	cbProjInputDetectorRowDim->addItems(GetDimStringList(dim));
+	cbProjInputDetectorRowDim->setCurrentIndex(detRowDim);
+	cbProjInputDetectorColDim->addItems(GetDimStringList(dim));
+	cbProjInputDetectorColDim->setCurrentIndex(detColDim);
+	cbProjInputProjAngleDim->addItems(GetDimStringList(dim));
+	cbProjInputProjAngleDim->setCurrentIndex(projAngleDim);
 }
 
 
 void dlg_ProjectionParameters::fillAlgorithmValues(int algorithmType, int numberOfIterations, bool initWithFDK)
 {
-	AlgorithmType->setCurrentIndex(algorithmType);
-	AlgorithmIterations->setValue(numberOfIterations);
-	InitWithFDK->setChecked(initWithFDK);
+	cbAlgorithmType->setCurrentIndex(algorithmType);
+	sbAlgorithmIterations->setValue(numberOfIterations);
+	cbInitWithFDK->setChecked(initWithFDK);
 	algorithmChanged(algorithmType);
 }
 
 
 void dlg_ProjectionParameters::fillCorrectionValues(bool correctCenterOfRotation, double correctCenterOfRotationOffset)
-{
-	CorrectionCenterOfRotation->setChecked(correctCenterOfRotation);
-	CorrectionCenterOfRotationOffset->setValue(correctCenterOfRotationOffset);
+{	
+	cbCorrectCenterOfRotation->setChecked(correctCenterOfRotation);
+	dsbCorrectCenterOfRotationOffset->setValue(correctCenterOfRotationOffset);
 	centerOfRotationEnabled(correctCenterOfRotation ? Qt::Checked : Qt::Unchecked);
 }
 
@@ -138,15 +138,15 @@ void dlg_ProjectionParameters::checkCenterOfRotationCorrection(int /*algoIdx*/, 
 
 void dlg_ProjectionParameters::algorithmChanged(int idx)
 {
-	AlgorithmIterations->setVisible(idx > 1); // depends on the order of algorithms!
-	AlgorithmIterationsLabel->setVisible(idx > 1);
-	InitWithFDK->setVisible(idx > 1);
-	checkCenterOfRotationCorrection(idx, CorrectionCenterOfRotation->isChecked());
+	sbAlgorithmIterations->setVisible(idx > 1); // depends on the order of algorithms!
+	lbAlgorithmIterations->setVisible(idx > 1);
+	cbInitWithFDK->setVisible(idx > 1);
+	checkCenterOfRotationCorrection(idx, cbCorrectCenterOfRotation->isChecked());
 }
 
 
 void dlg_ProjectionParameters::centerOfRotationEnabled(int state)
 {
-	CorrectionCenterOfRotationOffset->setEnabled(state == Qt::Checked);
-	checkCenterOfRotationCorrection(AlgorithmType->currentIndex(), state == Qt::Checked);
+	dsbCorrectCenterOfRotationOffset->setEnabled(state == Qt::Checked);
+	checkCenterOfRotationCorrection(cbAlgorithmType->currentIndex(), state == Qt::Checked);
 }

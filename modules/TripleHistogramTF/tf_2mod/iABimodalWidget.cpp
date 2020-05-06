@@ -31,12 +31,12 @@
 #include <QHBoxLayout>
 #include <QSplitter>
 
-iABimodalWidget::iABimodalWidget(QWidget *parent, MdiChild *mdiChild)
-	:
-	iAMultimodalWidget(parent, mdiChild, TWO)
+iABimodalWidget::iABimodalWidget(MdiChild *mdiChild):
+	iAMultimodalWidget(mdiChild, TWO)
 {
-	connect(this, SIGNAL(modalitiesLoaded_beforeUpdate()), this, SLOT(modalitiesLoaded_beforeUpdateSlot()));
-	if (isReady()) {
+	connect(this, &iABimodalWidget::modalitiesLoaded_beforeUpdate, this, &iABimodalWidget::modalitiesLoaded_beforeUpdateSlot);
+	if (isReady())
+	{
 		initialize();
 	}
 }
@@ -98,7 +98,7 @@ void iABimodalWidget::initialize()
 
 	grid->adjustStretch();
 
-	connect(m_slider, SIGNAL(tChanged(double)), this, SLOT(tChanged(double)));
+	connect(m_slider, &iAInterpolationSliderWidget::tChanged, this, &iABimodalWidget::tChanged);
 	tChanged(m_slider->getT());
 
 	m_slider->changeModalities(getModalityImage(0), getModalityImage(1));

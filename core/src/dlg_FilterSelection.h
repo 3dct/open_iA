@@ -36,6 +36,7 @@ public slots:
 	void filterChanged(QString const &);
 	void listSelectionChanged(QListWidgetItem *, QListWidgetItem *);
 private:
-	void enableOKButton();
+	//! check whether one (shown) item is selected, and if it is, show its description and enable OK button.
+	void updateOKAndDescription();
 	int m_curMatches;
 };

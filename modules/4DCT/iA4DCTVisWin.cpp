@@ -104,25 +104,25 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
 	// settings
 	m_dwBoundingBox = new iA4DCTBoundingBoxDockWidget( this );
 	m_dwBoundingBox->setRenderer( m_mainRen );
-	connect( m_dwBoundingBox, SIGNAL( updateRenderWindow( ) ), this, SLOT( updateRenderWindow( ) ) );
+	connect( m_dwBoundingBox, &iA4DCTBoundingBoxDockWidget::updateRenderWindow, this, &iA4DCTVisWin::updateRenderWindow);
 	// fracture vis
 	m_dwFractureVis = new iA4DCTFractureVisDockWidget( this );
 	m_dwFractureVis->setData( m_mainWin->getStageData( ) );
-	connect( m_dwFractureVis, SIGNAL( updateRenderWindow( ) ), this, SLOT( updateRenderWindow( ) ) );
+	connect( m_dwFractureVis, &iA4DCTFractureVisDockWidget::updateRenderWindow, this, &iA4DCTVisWin::updateRenderWindow);
 	// plane
 	m_dwPlane = new iA4DCTPlaneDockWidget( this );
-	connect( m_dwPlane, SIGNAL( updateRenderWindow( ) ), this, SLOT( updateRenderWindow( ) ) );
+	connect( m_dwPlane, &iA4DCTPlaneDockWidget::updateRenderWindow, this, &iA4DCTVisWin::updateRenderWindow);
 	// defect vis
 	m_dwDefectVis = new iA4DCTDefectVisDockWidget( this );
-	connect( m_dwDefectVis, SIGNAL( updateRenderWindow( ) ), this, SLOT( updateRenderWindow( ) ) );
+	connect( m_dwDefectVis, &iA4DCTDefectVisDockWidget::updateRenderWindow, this, &iA4DCTVisWin::updateRenderWindow);
 	// all visualizations view
 	m_dwAllVis = new iA4DCTAllVisualizationsDockWidget( this );
 	m_dwAllVis->setCollection( &m_visModules );
-	connect( m_dwAllVis, SIGNAL( updateVisualizations( ) ), this, SLOT( updateVisualizations( ) ) );
-	connect( m_dwAllVis, SIGNAL( selectedVisModule( iAVisModule * ) ), this, SLOT( selectedVisModule( iAVisModule * ) ) );
+	connect( m_dwAllVis, &iA4DCTAllVisualizationsDockWidget::updateVisualizations, this, &iA4DCTVisWin::updateVisualizations);
+	connect(m_dwAllVis, &iA4DCTAllVisualizationsDockWidget::selectedVisModule, this, &iA4DCTVisWin::selectedVisModule);
 	// region visualization
 	m_dwRegionVis = new iA4DCTRegionViewDockWidget( this );
-	connect( m_dwRegionVis, SIGNAL( updateRenderWindow( ) ), this, SLOT( updateRenderWindow( ) ) );
+	connect( m_dwRegionVis, &iA4DCTRegionViewDockWidget::updateRenderWindow, this, &iA4DCTVisWin::updateRenderWindow);
 
 	// setup dock widget layout
 	setTabPosition( Qt::LeftDockWidgetArea, QTabWidget::North );
@@ -138,32 +138,32 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
 	setToolsDockWidgetsEnabled( false );
 
 	// setup signals
-	connect( m_dwTools->pbDefectViewerAdd, SIGNAL( clicked( ) ), this, SLOT( addDefectView( ) ) );
-	connect( m_dwTools->pbDefectVisAdd, SIGNAL( clicked( ) ), this, SLOT( addDefectVis( ) ) );
-	connect( m_dwTools->pbBoundingBoxAdd, SIGNAL( clicked( ) ), this, SLOT( addBoundingBox( ) ) );
-	connect( m_dwTools->pbFractureViewerAdd, SIGNAL( clicked( ) ), this, SLOT( onExtractButtonClicked( ) ) );
-	connect( m_dwTools->pbFractureViewerLoad, SIGNAL( clicked( ) ), this, SLOT( onLoadButtonClicked( ) ) );
-	connect( m_dwTools->pbSurfaceViewerAdd, SIGNAL( clicked( ) ), this, SLOT( addSurfaceVis( ) ) );
-	connect( m_dwTools->cbBackground, SIGNAL( colorChanged( QColor ) ), this, SLOT( changeBackground( QColor ) ) );
-	connect( actionMagicLens, SIGNAL( toggled( bool ) ), this, SLOT( enableMagicLens( bool ) ) );
-	connect( sStage, SIGNAL( valueChanged( int ) ), this, SLOT( onStageSliderValueChanged( int ) ) );
-	connect( pbFirst, SIGNAL( clicked( ) ), this, SLOT( onFirstButtonClicked( ) ) );
-	connect( pbPrevious, SIGNAL( clicked( ) ), this, SLOT( onPreviousButtonClicked( ) ) );
-	connect( pbNext, SIGNAL( clicked( ) ), this, SLOT( onNextButtonClicked( ) ) );
-	connect( pbLast, SIGNAL( clicked( ) ), this, SLOT( onLastButtonClicked( ) ) );
-	connect( pbPlay, SIGNAL( clicked( bool ) ), this, SLOT( onPlayButtonClicked( bool ) ) );
-	connect( &m_timer, SIGNAL( timeout( ) ), this, SLOT( onNextButtonClicked( ) ) );
-	connect( sbInterval, SIGNAL( valueChanged( int ) ), this, SLOT( onIntervalValueChanged( int ) ) );
-	connect( actionResetCam, SIGNAL( triggered( ) ), this, SLOT( resetCamera( ) ) );
-	connect( actionXYView, SIGNAL( triggered( ) ), this, SLOT( setXYView( ) ) );
-	connect( actionXZView, SIGNAL( triggered( ) ), this, SLOT( setXZView( ) ) );
-	connect( actionYZView, SIGNAL( triggered( ) ), this, SLOT( setYZView( ) ) );
-	connect( actionXYBackView, SIGNAL( triggered( ) ), this, SLOT( setXYBackView( ) ) );
-	connect( actionXZBackView, SIGNAL( triggered( ) ), this, SLOT( setXZBackView( ) ) );
-	connect( actionYZBackView, SIGNAL( triggered( ) ), this, SLOT( setYZBackView( ) ) );
-	connect( actionOrientationMarker, SIGNAL( toggled( bool ) ), this, SLOT( setOrientationWidgetEnabled( bool ) ) );
-	connect( actionOrientationMarker, SIGNAL( toggled( bool ) ), this, SLOT( updateRenderWindow( ) ) );
-	connect( actionSideBySideView, SIGNAL( toggled( bool ) ), this, SLOT( enableSideBySideView( bool ) ) );
+	connect( m_dwTools->pbDefectViewerAdd, &QPushButton::clicked, this, &iA4DCTVisWin::addDefectView);
+	connect( m_dwTools->pbDefectVisAdd, &QPushButton::clicked, this, &iA4DCTVisWin::addDefectVis);
+	connect( m_dwTools->pbBoundingBoxAdd, &QPushButton::clicked, this, &iA4DCTVisWin::addBoundingBox);
+	connect( m_dwTools->pbFractureViewerAdd, &QPushButton::clicked, this, &iA4DCTVisWin::onExtractButtonClicked);
+	connect( m_dwTools->pbFractureViewerLoad, &QPushButton::clicked, this, &iA4DCTVisWin::onLoadButtonClicked);
+	connect( m_dwTools->pbSurfaceViewerAdd, &QPushButton::clicked, this, &iA4DCTVisWin::addSurfaceVis);
+	connect( m_dwTools->cbBackground, &iAColorBox::colorChanged, this, &iA4DCTVisWin::changeBackground);
+	connect( actionMagicLens, &QAction::toggled, this, &iA4DCTVisWin::enableMagicLens);
+	connect( sStage, &QSlider::valueChanged, this, &iA4DCTVisWin::onStageSliderValueChanged);
+	connect( pbFirst, &QPushButton::clicked, this, &iA4DCTVisWin::onFirstButtonClicked);
+	connect( pbPrevious, &QPushButton::clicked, this, &iA4DCTVisWin::onPreviousButtonClicked);
+	connect( pbNext, &QPushButton::clicked, this, &iA4DCTVisWin::onNextButtonClicked);
+	connect( pbLast, &QPushButton::clicked, this, &iA4DCTVisWin::onLastButtonClicked);
+	connect( pbPlay, &QPushButton::clicked, this, &iA4DCTVisWin::onPlayButtonClicked);
+	connect( &m_timer, &QTimer::timeout, this, &iA4DCTVisWin::onNextButtonClicked);
+	connect( sbInterval, QOverload<int>::of(&QSpinBox::valueChanged), this, &iA4DCTVisWin::onIntervalValueChanged);
+	connect( actionResetCam, &QAction::triggered, this, &iA4DCTVisWin::resetCamera);
+	connect( actionXYView, &QAction::triggered, this, &iA4DCTVisWin::setXYView);
+	connect( actionXZView, &QAction::triggered, this, &iA4DCTVisWin::setXZView);
+	connect( actionYZView, &QAction::triggered, this, &iA4DCTVisWin::setYZView);
+	connect( actionXYBackView, &QAction::triggered, this, &iA4DCTVisWin::setXYBackView);
+	connect( actionXZBackView, &QAction::triggered, this, &iA4DCTVisWin::setXZBackView);
+	connect( actionYZBackView, &QAction::triggered, this, &iA4DCTVisWin::setYZBackView);
+	connect( actionOrientationMarker, &QAction::toggled, this, &iA4DCTVisWin::setOrientationWidgetEnabled);
+	connect( actionOrientationMarker, &QAction::toggled, this, &iA4DCTVisWin::updateRenderWindow);
+	connect( actionSideBySideView, &QAction::toggled, this, &iA4DCTVisWin::enableSideBySideView);
 
 	iA4DCTRegionMarkerModule* regionMarker = new iA4DCTRegionMarkerModule;
 	regionMarker->attachTo( m_mainRen );

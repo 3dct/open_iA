@@ -30,14 +30,16 @@ iAFuzzyFeatureTrackingModuleInterface::iAFuzzyFeatureTrackingModuleInterface() {
 void iAFuzzyFeatureTrackingModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
+	{
 		return;
+	}
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionFuzzyFeatureTracking = new QAction( m_mainWnd );
 	actionFuzzyFeatureTracking->setText(QApplication::translate("MainWindow", "Fuzzy Feature Tracking (4DCT)", 0));
 	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionFuzzyFeatureTracking );
 
 	//connect signals to slots
-	connect( actionFuzzyFeatureTracking, SIGNAL( triggered() ), this, SLOT( start_FuzzyFeatureTracking() ) );
+	connect( actionFuzzyFeatureTracking, &QAction::triggered, this, &iAFuzzyFeatureTrackingModuleInterface::start_FuzzyFeatureTracking);
 }
 
 bool iAFuzzyFeatureTrackingModuleInterface::start_FuzzyFeatureTracking()

@@ -57,7 +57,7 @@ iAParamFeaturesView::iAParamFeaturesView(QTableWidget* dataTable):
 		visibleW->setLayout(visibleL);
 		visibleCheckbox->setProperty("featureID", row);
 		visibleCheckbox->setChecked(row != 0);
-		connect(visibleCheckbox, SIGNAL(stateChanged(int)), this, SLOT(VisibleCheckChanged(int)));
+		connect(visibleCheckbox, &QCheckBox::stateChanged, this, &iAParamFeaturesView::VisibleCheckChanged);
 		m_featureTable->setCellWidget(row, ShowColumn, visibleW);
 		auto titleItem = new QTableWidgetItem(dataTable->item(0, row)->text());
 		titleItem->setFlags(titleItem->flags() & ~Qt::ItemIsEditable);
@@ -72,7 +72,7 @@ iAParamFeaturesView::iAParamFeaturesView(QTableWidget* dataTable):
 		invertW->setLayout(invertL);
 		invertCheckbox->setProperty("featureID", row);
 		m_featureTable->setCellWidget(row, InvertColumn, invertW);
-		connect(invertCheckbox, SIGNAL(stateChanged(int)), this, SLOT(InvertCheckChanged(int)));
+		connect(invertCheckbox, &QCheckBox::stateChanged, this, &iAParamFeaturesView::InvertCheckChanged);
 	}
 	m_featureTable->resizeColumnsToContents();
 	setLayout(new QVBoxLayout);

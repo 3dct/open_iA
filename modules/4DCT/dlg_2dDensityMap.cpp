@@ -26,9 +26,9 @@
 dlg_2dDensityMap::dlg_2dDensityMap( QWidget * parent /*= 0 */ )
 	: QDialog( parent )
 {
-	setupUi( this );
-	connect( pbDefect,		SIGNAL( clicked( ) ), this, SLOT( defectButtonClicked( ) ) );
-	connect( pbLabeledImg,	SIGNAL( clicked( ) ), this, SLOT( labeledImgButtonClicked( ) ) );
+	setupUi(this);
+	connect(pbDefect,     &QPushButton::clicked, this, &dlg_2dDensityMap::defectButtonClicked);
+	connect(pbLabeledImg, &QPushButton::clicked, this, &dlg_2dDensityMap::labeledImgButtonClicked);
 	// default parameters
 	cbDefect->setColor( QColor( 255, 0, 0 ) );
 }
