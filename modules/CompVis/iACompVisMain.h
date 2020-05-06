@@ -1,0 +1,28 @@
+#pragma once
+
+#include "mainwindow.h"
+
+#include "iACsvDataStorage.h"
+#include "dlg_VisMainWindow.h"
+
+//QT
+#include"qlist.h"
+
+class iAMultidimensionalScaling;
+
+class iACompVisMain
+{
+   public:
+	iACompVisMain(MainWindow* mainWin);
+	//load the CSV datasets
+	void loadData();
+	
+   private:
+	void calculateMDS();
+
+	dlg_VisMainWindow* m_mainW;
+
+	QList<csvFileData>* m_data;
+
+	iAMultidimensionalScaling* m_mds;
+};
