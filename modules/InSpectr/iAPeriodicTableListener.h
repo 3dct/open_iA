@@ -18,31 +18,18 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAXRFModuleInterface.h"
+#pragma once
 
-#include "iAXRFAttachment.h"
+#include "iAElementSelectionListener.h"
 
-#include <mainwindow.h>
-#include <mdichild.h>
+class dlg_InSpectr;
 
-void iAXRFModuleInterface::Initialize()
+class iAPeriodicTableListener: public iAElementSelectionListener
 {
-	if (!m_mainWnd)
-		return;
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QAction * actionXRF = new QAction( m_mainWnd );
-	actionXRF->setText( QApplication::translate( "MainWindow", "InSpectr", 0 ) );
-	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionXRF );
-	connect(actionXRF, &QAction::triggered, this, &iAXRFModuleInterface::XRF_Visualization);
-}
-
-bool iAXRFModuleInterface::XRF_Visualization()
-{
-	PrepareActiveChild();
-	return AttachToMdiChild( m_mdiChild );
-}
-
-iAModuleAttachmentToChild * iAXRFModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
-{
-	return new iAXRFAttachment( mainWnd, child );
-}
+private:
+	dlg_InSpectr* m_dlgXRF;
+public:
+	iAPeriodicTableListener(dlg_InSpectr* dlgXRF);
+	virtual void ElementEnter(int elementIdx);
+	virtual void ElementLeave(int elementIdx);
+};

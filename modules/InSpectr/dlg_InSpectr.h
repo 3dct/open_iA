@@ -67,11 +67,11 @@ class vtkScalarBarActor;
 
 class QDockWidget;
 
-class dlg_XRF : public dlg_xrfContainer, public iASpectrumFilterListener
+class dlg_InSpectr : public dlg_xrfContainer, public iASpectrumFilterListener
 {
 	Q_OBJECT
 public:
-	dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg_RefSpectra* dlgRefSpectra);
+	dlg_InSpectr(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg_RefSpectra* dlgRefSpectra);
 	void init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 		iAWidgetAddHelper& widgetAddHelper);
 	void InitElementMaps(iAWidgetAddHelper & widgetAddHelper);
