@@ -571,10 +571,6 @@ void iAMultimodalWidget::originalHistogramChanged()
 	}
 }
 
-/** Called when the original transfer function changes
-* RESETS THE COPY (admit numerical imprecision when setting the copy values)
-* => effective / weight = copy
-*/
 void iAMultimodalWidget::updateCopyTransferFunction(int index)
 {
 	if (isReady()) {
@@ -614,10 +610,6 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 	}
 }
 
-/** Called when the copy transfer function changes
-* ADD NODES TO THE EFFECTIVE ONLY (clear and repopulate with adjusted effective values)
-* => copy * weight ~= effective
-*/
 void iAMultimodalWidget::updateOriginalTransferFunction(int index)
 {
 	if (!isReady()) {
@@ -648,10 +640,6 @@ void iAMultimodalWidget::updateOriginalTransferFunction(int index)
 	}
 }
 
-/** Resets the values of all nodes in the effective transfer function using the values present in the
-*     copy of the transfer function, using m_weightCur for the adjustment
-* CHANGES THE NODES OF THE EFFECTIVE ONLY (based on the copy)
-*/
 void iAMultimodalWidget::applyWeights()
 {
 	if (!isReady())

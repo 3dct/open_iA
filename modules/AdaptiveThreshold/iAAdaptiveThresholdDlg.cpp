@@ -503,7 +503,7 @@ void iAAdaptiveThresholdDlg::determineIntersectionAndFinalThreshold()
 		// convert threshold back to min max
 		double resThres = m_thresCalculator.GetResultingThreshold();
 		auto peaks = m_thresCalculator.getThrPeaksVals();
-		double convertedThr = normalizedToMinMax(peaks.getLocalMax(), peaks.getGlobalMax(),resThres);
+		double convertedThr = mapNormTo(peaks.getLocalMax(), peaks.getGlobalMax(),resThres);
 
 		this->ed_maxThresholdRange->setText(QString("%1").arg(convertedThr));
 		m_thresCalculator.SetResultingThreshold(convertedThr);

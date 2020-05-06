@@ -147,8 +147,19 @@ private:
 	int m_timerWait_updateVisualizations;
 	void updateVisualizationsNow();
 	void updateVisualizationsLater();
+
+	//! Called when the original transfer function changes.
+	//! RESETS THE COPY (admit numerical imprecision when setting the copy values)
+	//! => effective / weight = copy
 	void updateCopyTransferFunction(int index);
+	//! Called when the copy transfer function changes
+	//! ADD NODES TO THE EFFECTIVE ONLY (clear and repopulate with adjusted effective values)
+	//! => copy * weight ~= effective
 	void updateOriginalTransferFunction(int index);
+
+	//! Resets the values of all nodes in the effective transfer function using the values present in the
+	//! copy of the transfer function, using m_weightCur for the adjustment
+	//! CHANGES THE NODES OF THE EFFECTIVE ONLY (based on the copy)
 	void applyWeights();
 
 	//! @{ Synced slicer camera helpers
