@@ -238,7 +238,7 @@ void iAThresholdCalcHelper::PeakgreyThresholdNormalization(threshold_defs::iAPar
 	for (double& val: tmp_ranges_x)
 	{
 		//DEBUG_LOG(QString("before %1").arg(val));
-		val = minMaxNormalize(greyThrPeakAir, greyThrPeakMax, val);
+		val = mapToNorm(greyThrPeakAir, greyThrPeakMax, val);
 		//DEBUG_LOG(QString("after %1").arg(val))
 	}
 

@@ -67,7 +67,7 @@ public:
 	//!	@param nCutH a unsigned long long. The number of data points truncated from the upper value end.
 	//!	@return the number of used bins.
 	int CreateHist(float* fImage, unsigned int nPixelH, unsigned int nPixelW, unsigned int nPixelD, int n, float min, float max, bool ConsiderRecoFillZeroes, unsigned long long nCutL, unsigned long long nCutH);
-	
+
 	//! Searches peaks and valleys.
 	//! Searches nPeaks peaks and nPeaks-1 valleys, x-positions and heights per peak and valley are saved in member variables.
 	//! The highest nPeaks peaks found by y'=0 and y''=neg are detected.

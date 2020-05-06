@@ -78,21 +78,21 @@ public slots:
 protected:
 	void updateLUT();
 
-	/** Set selection to SPLOM from VTK array of id-s */
+	//! Set selection to SPLOM from VTK array of id-s.
 	void setSPLOMSelection( vtkIdTypeArray * ids );
 
-	/** Initialize scalar bar widget which shows color coding */
+	//! Initialize scalar bar widget which shows color coding.
 	void initScalarBar();
 
-	/** Active plot indices */
+	//! Active plot indices.
 	vtkVector2i getActivePlotIndices();
 
 protected slots:
 
-	/** Apply lookup table to all the plots in the SPM */
+	//! Apply lookup table to all the plots in the SPM.
 	void applyLookupTable();
 
-	/** When selection of the SPLOM is modified */
+	//! When selection of the SPLOM is modified.
 	void selectionUpdated( std::vector<size_t> const & selInds );
 
 signals:
