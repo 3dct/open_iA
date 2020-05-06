@@ -40,8 +40,8 @@
 #include <QCheckBox>
 
 iAHistogramStack::iAHistogramStack(iATripleModalityWidget* tripleModalityWidget):
-	m_grid(nullptr),
 	m_splitter(nullptr),
+	m_grid(nullptr),
 	m_tmw(tripleModalityWidget)
 {
 }

@@ -281,20 +281,20 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 
 		// NOTE: CAREFUL with "\" -> it is the "line continuation" character
 		// -> if used at end of a single line comment line, it makes next line also a comment!
-		//        /\
-		//       /  \    BIG TRIANGLE
-		//      /    \   bounding box:
-		//     /______\  left, top, right, bottom (, centerX)
+		//        /\     |
+		//       /  \    | BIG TRIANGLE
+		//      /    \   | bounding box:
+		//     /______\  | left, top, right, bottom (, centerX)
 		left = boxLeft + TRIANGLE_LEFT;
 		top = boxTop + TRIANGLE_TOP;
 		right = left + width;
 		bottom = top + height;
 		centerX = left + (width / 2);
 
-		//        /\           /\
-		//       /  \         /__\       ____   SMALL TRIANGLE
-		//      /    \  -->  /\  /\  --> \  /   bounding box: l, t, r, b (, cX)
-		//     /______\     /__\/__\      \/
+		//        /\           /\               |
+		//       /  \         /__\       ____   | SMALL TRIANGLE
+		//      /    \  -->  /\  /\  --> \  /   | bounding box: l, t, r, b (, cX)
+		//     /______\     /__\/__\      \/    |
 		w = width / 2;
 		h = height / 2;
 		l = (left + centerX) / 2;
