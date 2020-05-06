@@ -18,63 +18,60 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAVREnvironment.h"
+#include "iAVROctree.h"
 
-#include "iAVRInteractor.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkPolyData.h"
+#include "vtkActor.h"
+#include "vtkProperty.h"
+#include <iAConsole.h>
 
-#include "iAConsole.h"
-
-#include <vtkOpenVRRenderer.h>
-#include <vtkOpenVRRenderWindow.h>
-#include <vtkOpenVRCamera.h>
-
-#include "iAVRInteractorStyle.h"
-
-iAVREnvironment::iAVREnvironment():
-	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New())
+iAVROctree::iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet):m_renderer(ren),m_dataSet(dataSet),m_actor(vtkSmartPointer<vtkActor>::New())
 {
-	m_renderer->SetBackground(50, 50, 50);
+	m_visible = false;
 }
 
-vtkRenderer* iAVREnvironment::renderer()
+void iAVROctree::generateOctree(QColor col)
 {
-	return m_renderer;
+
+	// Create the octree
+	m_octree =	vtkSmartPointer<vtkOctreePointLocator>::New();
+	m_octree->SetMaximumPointsPerRegion(10);
+	m_octree->SetDataSet(m_dataSet);
+	m_octree->BuildLocator();
+
+	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+	m_octree->GenerateRepresentation(2, polydata);
+
+	vtkSmartPointer<vtkPolyDataMapper> octreeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	octreeMapper->SetInputData(polydata);
+	
+	m_actor->SetMapper(octreeMapper);
+	//m_actor->GetProperty()->SetInterpolationToFlat();
+	m_actor->GetProperty()->SetRepresentationToWireframe();
+	m_actor->GetProperty()->SetColor(col.redF(), col.greenF(), col.blueF());
+	m_actor->GetProperty()->SetLineWidth(6); //ToDo Use TubeFilter?
+	m_actor->PickableOff();
+
+	DEBUG_LOG(QString("Octree visualized"));
 }
 
-void iAVREnvironment::start()
+void iAVROctree::show()
 {
-	static int runningInstances = 0;
-	// "poor man's" check for trying to run two VR sessions in parallel:
-	if (runningInstances >= 1)
+	if (m_visible)
 	{
-		DEBUG_LOG("Cannot start more than one VR session in parallel!");
-		emit finished();
 		return;
 	}
-	++runningInstances;
-	auto renderWindow = vtkSmartPointer<vtkOpenVRRenderWindow>::New();
-	renderWindow->AddRenderer(m_renderer);
-	// MultiSamples needs to be set to 0 to make Volume Rendering work:
-	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
-	renderWindow->SetMultiSamples(0);
-	m_interactor = vtkSmartPointer<iAVRInteractor>::New();
-	m_interactor->SetRenderWindow(renderWindow);
-	//TEST
-	vtkSmartPointer<iAVRInteractorStyle> style = vtkSmartPointer<iAVRInteractorStyle>::New();
-	m_interactor->SetInteractorStyle(style);
-
-	auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
-
-	m_renderer->SetActiveCamera(camera);
-	m_renderer->ResetCamera();
-	renderWindow->Render();
-	m_interactor->Start();
-	--runningInstances;
-	emit finished();
+	m_renderer->AddActor(m_actor);
+	m_visible = true;
 }
 
-void iAVREnvironment::stop()
+void iAVROctree::hide()
 {
-	if (m_interactor)
-		m_interactor->stop();
+	if (!m_visible)
+	{
+		return;
+	}
+	m_renderer->RemoveActor(m_actor);
+	m_visible = false;
 }

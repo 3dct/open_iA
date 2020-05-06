@@ -18,63 +18,34 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAVREnvironment.h"
-
-#include "iAVRInteractor.h"
-
-#include "iAConsole.h"
-
-#include <vtkOpenVRRenderer.h>
-#include <vtkOpenVRRenderWindow.h>
-#include <vtkOpenVRCamera.h>
-
 #include "iAVRInteractorStyle.h"
 
-iAVREnvironment::iAVREnvironment():
-	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New())
+#include <vtkObjectFactory.h>
+#include <iAConsole.h>
+
+vtkStandardNewMacro(iAVRInteractorStyle);
+
+iAVRInteractorStyle::iAVRInteractorStyle():vtkOpenVRInteractorStyle()
 {
-	m_renderer->SetBackground(50, 50, 50);
+	
 }
 
-vtkRenderer* iAVREnvironment::renderer()
+void iAVRInteractorStyle::OnButton3D(vtkEventData* edata)
 {
-	return m_renderer;
-}
+	vtkOpenVRInteractorStyle::OnButton3D(edata);
+	
+	vtkEventDataDevice3D *event = edata->GetAsEventDataDevice3D();
 
-void iAVREnvironment::start()
-{
-	static int runningInstances = 0;
-	// "poor man's" check for trying to run two VR sessions in parallel:
-	if (runningInstances >= 1)
+	// right trigger press/release
+	if (event->GetAction() == vtkEventDataAction::Press)
 	{
-		DEBUG_LOG("Cannot start more than one VR session in parallel!");
-		emit finished();
-		return;
+		ShowBillboard("TEXT CAN BE READ!!");
 	}
-	++runningInstances;
-	auto renderWindow = vtkSmartPointer<vtkOpenVRRenderWindow>::New();
-	renderWindow->AddRenderer(m_renderer);
-	// MultiSamples needs to be set to 0 to make Volume Rendering work:
-	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
-	renderWindow->SetMultiSamples(0);
-	m_interactor = vtkSmartPointer<iAVRInteractor>::New();
-	m_interactor->SetRenderWindow(renderWindow);
-	//TEST
-	vtkSmartPointer<iAVRInteractorStyle> style = vtkSmartPointer<iAVRInteractorStyle>::New();
-	m_interactor->SetInteractorStyle(style);
+	if (event->GetAction() == vtkEventDataAction::Release)
+	{
+		HideBillboard();
+	}
 
-	auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
-
-	m_renderer->SetActiveCamera(camera);
-	m_renderer->ResetCamera();
-	renderWindow->Render();
-	m_interactor->Start();
-	--runningInstances;
-	emit finished();
 }
 
-void iAVREnvironment::stop()
-{
-	if (m_interactor)
-		m_interactor->stop();
-}
+

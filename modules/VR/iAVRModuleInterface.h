@@ -28,6 +28,8 @@
 
 class iA3DCylinderObjectVis;
 class iAVREnvironment;
+class iAVR3DObjectVis; //TEST
+class iAVROctree; //TEST
 
 class vtkTable;
 
@@ -43,6 +45,8 @@ private:
 	bool vrAvailable();
 
 	QSharedPointer<iA3DCylinderObjectVis> m_cylinderVis;
+	QSharedPointer<iAVR3DObjectVis> m_ObjectVis; //TEST
+	QSharedPointer<iAVROctree> m_Octree; //TEST
 	QSharedPointer<iAVREnvironment> m_vrEnv;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	QAction* m_actionVRShowFibers;

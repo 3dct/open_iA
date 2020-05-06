@@ -18,63 +18,52 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAVREnvironment.h"
+#include "iAVR3DObjectVis.h"
 
-#include "iAVRInteractor.h"
+#include "vtkCubeSource.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkProperty.h"
 
-#include "iAConsole.h"
-
-#include <vtkOpenVRRenderer.h>
-#include <vtkOpenVRRenderWindow.h>
-#include <vtkOpenVRCamera.h>
-
-#include "iAVRInteractorStyle.h"
-
-iAVREnvironment::iAVREnvironment():
-	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New())
+iAVR3DObjectVis::iAVR3DObjectVis(vtkRenderer* ren):m_renderer(ren),m_actor(vtkSmartPointer<vtkActor>::New())
 {
-	m_renderer->SetBackground(50, 50, 50);
+	m_visible = false;
 }
 
-vtkRenderer* iAVREnvironment::renderer()
+void iAVR3DObjectVis::show()
 {
-	return m_renderer;
-}
-
-void iAVREnvironment::start()
-{
-	static int runningInstances = 0;
-	// "poor man's" check for trying to run two VR sessions in parallel:
-	if (runningInstances >= 1)
+	if (m_visible)
 	{
-		DEBUG_LOG("Cannot start more than one VR session in parallel!");
-		emit finished();
 		return;
 	}
-	++runningInstances;
-	auto renderWindow = vtkSmartPointer<vtkOpenVRRenderWindow>::New();
-	renderWindow->AddRenderer(m_renderer);
-	// MultiSamples needs to be set to 0 to make Volume Rendering work:
-	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
-	renderWindow->SetMultiSamples(0);
-	m_interactor = vtkSmartPointer<iAVRInteractor>::New();
-	m_interactor->SetRenderWindow(renderWindow);
-	//TEST
-	vtkSmartPointer<iAVRInteractorStyle> style = vtkSmartPointer<iAVRInteractorStyle>::New();
-	m_interactor->SetInteractorStyle(style);
-
-	auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
-
-	m_renderer->SetActiveCamera(camera);
-	m_renderer->ResetCamera();
-	renderWindow->Render();
-	m_interactor->Start();
-	--runningInstances;
-	emit finished();
+	m_renderer->AddActor(m_actor);
+	m_visible = true;
 }
 
-void iAVREnvironment::stop()
+void iAVR3DObjectVis::hide()
 {
-	if (m_interactor)
-		m_interactor->stop();
+	if (!m_visible)
+	{
+		return;
+	}
+	m_renderer->RemoveActor(m_actor);
+	m_visible = false;
+}
+
+void iAVR3DObjectVis::createCube(QColor col)
+{
+	// Create a cube.
+    vtkNew<vtkCubeSource> cube;
+	cube->SetXLength(200.0);
+	cube->SetYLength(200.0);
+	cube->SetZLength(200.0);
+	cube->SetCenter(0.0,0.0,0.0);
+    cube->Update();
+
+    // mapper
+    vtkNew<vtkPolyDataMapper> cubeMapper;
+    cubeMapper->SetInputConnection(cube->GetOutputPort());
+
+    // Actor.
+    m_actor->SetMapper(cubeMapper);
+    m_actor->GetProperty()->SetColor(col.redF(), col.greenF(), col.blueF());
 }

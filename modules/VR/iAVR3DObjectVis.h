@@ -18,63 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAVREnvironment.h"
+#pragma once
 
-#include "iAVRInteractor.h"
+#include <vtkSmartPointer.h>
+#include <vtkRenderer.h>
+#include <vtkActor.h>
+#include <QColor>
 
-#include "iAConsole.h"
-
-#include <vtkOpenVRRenderer.h>
-#include <vtkOpenVRRenderWindow.h>
-#include <vtkOpenVRCamera.h>
-
-#include "iAVRInteractorStyle.h"
-
-iAVREnvironment::iAVREnvironment():
-	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New())
+//! Base class for VR 3D visualizations of primtive objects
+class iAVR3DObjectVis
 {
-	m_renderer->SetBackground(50, 50, 50);
-}
-
-vtkRenderer* iAVREnvironment::renderer()
-{
-	return m_renderer;
-}
-
-void iAVREnvironment::start()
-{
-	static int runningInstances = 0;
-	// "poor man's" check for trying to run two VR sessions in parallel:
-	if (runningInstances >= 1)
-	{
-		DEBUG_LOG("Cannot start more than one VR session in parallel!");
-		emit finished();
-		return;
-	}
-	++runningInstances;
-	auto renderWindow = vtkSmartPointer<vtkOpenVRRenderWindow>::New();
-	renderWindow->AddRenderer(m_renderer);
-	// MultiSamples needs to be set to 0 to make Volume Rendering work:
-	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
-	renderWindow->SetMultiSamples(0);
-	m_interactor = vtkSmartPointer<iAVRInteractor>::New();
-	m_interactor->SetRenderWindow(renderWindow);
-	//TEST
-	vtkSmartPointer<iAVRInteractorStyle> style = vtkSmartPointer<iAVRInteractorStyle>::New();
-	m_interactor->SetInteractorStyle(style);
-
-	auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
-
-	m_renderer->SetActiveCamera(camera);
-	m_renderer->ResetCamera();
-	renderWindow->Render();
-	m_interactor->Start();
-	--runningInstances;
-	emit finished();
-}
-
-void iAVREnvironment::stop()
-{
-	if (m_interactor)
-		m_interactor->stop();
-}
+public:
+	iAVR3DObjectVis(vtkRenderer* ren);
+	void show();
+	void hide();
+	void createCube(QColor col);
+private:
+	vtkSmartPointer<vtkRenderer> m_renderer;
+	vtkSmartPointer<vtkActor> m_actor;
+	bool m_visible;
+};
