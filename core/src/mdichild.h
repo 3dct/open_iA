@@ -162,7 +162,7 @@ public:
 	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...) or channels (createChannel/updateChannel)
 	void setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData);
 	//! Access to "main" polydata object (if any)
-	// TODO: move out of mdi child, into something like an iAModality
+	//! @deprecated move out of mdi child, into something like an iAModality
 	vtkPolyData* polyData();
 	//! Access to the 3D renderer widget
 	iARenderer* renderer();
@@ -408,14 +408,14 @@ private:
 	void snakeNormal(int index, double point[3], double normal[3]);
 
 	//! sets up the IO thread for saving the correct file type for the given filename.
-	//! \return	true if it succeeds, false if it fails.
+	//! @return	true if it succeeds, false if it fails.
 	bool setupSaveIO(QString const & f);
 
 	//! sets up the IO thread for loading the correct file type according to the given filename.
-	//! \return	true if it succeeds, false if it fails.
+	//! @return	true if it succeeds, false if it fails.
 	bool setupLoadIO(QString const & f, bool isStack);
 
-	// adds an algorithm to the list of currently running jobs
+	//! adds an algorithm to the list of currently running jobs
 	void addAlgorithm(iAAlgorithm* thread);
 
 	void setupViewInternal(bool active);
@@ -437,10 +437,12 @@ private:
 	MainWindow * m_mainWnd;
 	QFileInfo m_fileInfo;
 	QString m_curFile, m_path;
-	int m_position[3];            //!< current "position" in image (in voxel indices). TODO: use global coordinates instead of voxel indices
+	//! current "position" in image (in voxel indices).
+	//! @deprecated use global coordinates instead of voxel indices
+	int m_position[3];
 
 	QByteArray m_beforeMaximizeState;
-	QDockWidget * m_whatMaximized;
+	QDockWidget* m_whatMaximized;
 	int m_pbarMaxVal;
 
 	iARenderSettings m_renderSettings;
@@ -466,7 +468,9 @@ private:
 	iAParametricSpline *m_parametricSpline;
 	//! @}
 
-	vtkSmartPointer<vtkImageData> m_imageData;		// TODO: remove - use modality data instead!
+	//! smart pointer to first image data shown in mdiChild.
+	//! @deprecated use modality data instead, will be removed
+	vtkSmartPointer<vtkImageData> m_imageData;
 	vtkPolyData * m_polyData;
 	vtkTransform * m_axesTransform;
 	vtkTransform * m_slicerTransform;
@@ -504,7 +508,9 @@ private:
 	iALogger* m_logger;
 	QByteArray m_initialLayoutState;
 	QString m_layout;
-	vtkSmartPointer<vtkImageData> m_tmpSaveImg;	//< TODO: get rid of this (by introducing smart pointer in iAIO/ iAlgorithm?
+	//! temporary smart pointer to image currently being saved
+	//! @deprecated should be referenced in wherever image is stored, e.g. in iAIO)
+	vtkSmartPointer<vtkImageData> m_tmpSaveImg;
 
 	int m_currentModality;
 	int m_currentComponent;

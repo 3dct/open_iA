@@ -87,37 +87,37 @@ private:
 	unsigned int maxFreq;
 
 	//! Converts the x value of the histogram view to transfer function data
-	//! \param dataX double pointer to save data
-	//! \param viewX X value of the histogram view
+	//! @param dataX double pointer to save data
+	//! @param viewX X value of the histogram view
 	void view2dataX(double *dataX, int viewX);
 
 	//! Converts the y value of the histogram view to transfer function data
-	//! \param dataY double pointer to save data
-	//! \param viewY Y value of the histogram view
+	//! @param dataY double pointer to save data
+	//! @param viewY Y value of the histogram view
 	void view2dataY(double *dataY, int viewY);
 
 	//! Converts the x and y value of the histogram view to transfer function data
-	//! \param dataX double pointer to save data
-	//! \param dataY double pointer to save data
-	//! \param viewX X value of the histogram view
-	//! \param viewY Y value of the histogram view
+	//! @param dataX double pointer to save data
+	//! @param dataY double pointer to save data
+	//! @param viewX X value of the histogram view
+	//! @param viewY Y value of the histogram view
 	void view2data(double *dataX, double *dataY, int viewX, int viewY);
 
 	//! Converts x value of transfer function data to histogram view
-	//! \param viewX int pointer to save view data
-	//! \param dataX X value of the transfer function data
+	//! @param viewX int pointer to save view data
+	//! @param dataX X value of the transfer function data
 	void data2viewX(int *viewX, double dataX, double oldDataRange0 = -1, double oldDataRange1 = -1);
 
 	//! Converts y value of transfer function data to histogram view
-	//! \param viewY int pointer to save view data
-	//! \param dataY Y value of the transfer function data
+	//! @param viewY int pointer to save view data
+	//! @param dataY Y value of the transfer function data
 	void data2viewY(int *viewY, double dataY);
 
 	//! Converts x and y value of transfer function data to histogram view
-	//! \param viewX int pointer to save view data
-	//! \param viewY int pointer to save view data
-	//! \param dataX X value of the transfer function data
-	//! \param dataY Y value of the transfer function data
+	//! @param viewX int pointer to save view data
+	//! @param viewY int pointer to save view data
+	//! @param dataX X value of the transfer function data
+	//! @param dataY Y value of the transfer function data
 	void data2view(int *viewX, int *viewY, double dataX, double dataY);
 
 	void drawBackground(QPainter &painter);
@@ -130,14 +130,14 @@ private:
 	void changeWheelMode(WheelMode mode);
 
 	//! Zooms the histogram view.
-	//! \param value Indicates how big the zoom steps are
-	//! \param x position where to zoom in and out
-	//! \param deltaMode Indicates if the value is used as delta or absolute value
+	//! @param value Indicates how big the zoom steps are
+	//! @param x position where to zoom in and out
+	//! @param deltaMode Indicates if the value is used as delta or absolute value
 	void zoomHistogramView(double value, int x, bool deltaMode);
 
 	//! Zooms the histogram.
-	//! \param value Indicates how big the zoom steps are
-	//! \param deltaMode Indicates if the value is used as delta or absolute value
+	//! @param value Indicates how big the zoom steps are
+	//! @param deltaMode Indicates if the value is used as delta or absolute value
 	void zoomHistogram(double value, bool deltaMode);
 
 public slots:
