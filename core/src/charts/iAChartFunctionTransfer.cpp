@@ -221,7 +221,7 @@ int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 				|| ( lx >= viewX - PIE_RADIUS && lx <= viewX + PIE_RADIUS
 				&& ly >= viewY - PIE_RADIUS && ly <= viewY ) )
 			{
-				// PorosityAnalyser: range slider widget; only handles can get selected (no end points)
+				// FeatureAnalyzer: range slider widget; only handles can get selected (no end points)
 				if ( this->isEndPoint( pointIndex ) )
 					continue;
 
