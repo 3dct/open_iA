@@ -21,6 +21,7 @@
 #include "iASelectionInteractorStyle.h"
 
 #include "iAConsole.h"
+#include "iAMathUtility.h"
 
 #include <vtkAreaPicker.h>
 #include <vtkCellPicker.h>
@@ -48,6 +49,14 @@ namespace
 	QString const SelectModeText("Selection Mode (%1)");
 	QString const DragSelectionMode("Drag Rectangle");
 	QString const ClickSelectionMode("Click Fiber");
+
+	void computeMinMax(int minVal[2], int maxVal[2], int const startPos[2], int const endPos[2], int const size[2])
+	{
+		minVal[0] = clamp(0, size[0] - 1, startPos[0] <= endPos[0] ? startPos[0] : endPos[0]);
+		minVal[1] = clamp(0, size[1] - 1, startPos[1] <= endPos[1] ? startPos[1] : endPos[1]);
+		maxVal[0] = clamp(0, size[0] - 1, endPos[0] > startPos[0] ? endPos[0] : startPos[0]);
+		maxVal[1] = clamp(0, size[1] - 1, endPos[1] > startPos[1] ? endPos[1] : startPos[1]);
+	}
 }
 
 iASelectionProvider::~iASelectionProvider()
@@ -134,30 +143,13 @@ void iASelectionInteractorStyle::pick()
 
 	//find rubber band lower left, upper right and center
 	double rbcenter[3];
-	int* size = this->Interactor->GetRenderWindow()->GetSize();
-	int min[2], max[2];
-	min[0] = m_startPos[0] <= m_endPos[0] ?
-		m_startPos[0] : m_endPos[0];
-	if (min[0] < 0) { min[0] = 0; }
-	if (min[0] >= size[0]) { min[0] = size[0] - 2; }
+	int const* size = this->Interactor->GetRenderWindow()->GetSize();
 
-	min[1] = m_startPos[1] <= m_endPos[1] ?
-		m_startPos[1] : m_endPos[1];
-	if (min[1] < 0) { min[1] = 0; }
-	if (min[1] >= size[1]) { min[1] = size[1] - 2; }
+	int minVal[2], maxVal[2];
+	computeMinMax(minVal, maxVal, m_startPos, m_endPos, size);
 
-	max[0] = m_endPos[0] > m_startPos[0] ?
-		m_endPos[0] : m_startPos[0];
-	if (max[0] < 0) { max[0] = 0; }
-	if (max[0] >= size[0]) { max[0] = size[0] - 2; }
-
-	max[1] = m_endPos[1] > m_startPos[1] ?
-		m_endPos[1] : m_startPos[1];
-	if (max[1] < 0) { max[1] = 0; }
-	if (max[1] >= size[1]) { max[1] = size[1] - 2; }
-
-	rbcenter[0] = (min[0] + max[0]) / 2.0;
-	rbcenter[1] = (min[1] + max[1]) / 2.0;
+	rbcenter[0] = (minVal[0] + maxVal[0]) / 2.0;
+	rbcenter[1] = (minVal[1] + maxVal[1]) / 2.0;
 	rbcenter[2] = 0;
 
 	if (this->State == VTKIS_NONE)
@@ -167,20 +159,18 @@ void iASelectionInteractorStyle::pick()
 
 		vtkAssemblyPath* path = nullptr;
 		rwi->StartPickCallback();
-		vtkAbstractPropPicker* picker =
-			vtkAbstractPropPicker::SafeDownCast(rwi->GetPicker());
+		vtkAbstractPropPicker* picker =	vtkAbstractPropPicker::SafeDownCast(rwi->GetPicker());
 		if (picker != nullptr)
 		{
 			vtkAreaPicker* areaPicker = vtkAreaPicker::SafeDownCast(picker);
 			if (areaPicker != nullptr)
 			{
-				areaPicker->AreaPick(min[0], min[1], max[0], max[1],
+				areaPicker->AreaPick(minVal[0], minVal[1], maxVal[0], maxVal[1],
 					this->CurrentRenderer);
 			}
 			else
 			{
-				picker->Pick(rbcenter[0], rbcenter[1],
-					0.0, this->CurrentRenderer);
+				picker->Pick(rbcenter[0], rbcenter[1], 0.0, this->CurrentRenderer);
 			}
 			path = picker->GetPath();
 		}
@@ -229,16 +219,21 @@ void iASelectionInteractorStyle::pick()
 		vtkPointData* pointData = selected->GetPointData();
 		vtkIdTypeArray* ids = vtkIdTypeArray::SafeDownCast(pointData->GetArray("OriginalIds"));
 		if (!ids)
+		{
 			continue;
-
+		}
 		for (vtkIdType i = 0; i < ids->GetNumberOfTuples(); i++)
 		{
 			size_t objID = ids->GetValue(i);
 			auto it = std::find(resultSel.begin(), resultSel.end(), objID);
 			if (it != resultSel.end() && GetInteractor()->GetAltKey())
-				resultSel.erase( it );
+			{
+				resultSel.erase(it);
+			}
 			else if (it == resultSel.end() && (!GetInteractor()->GetAltKey() || GetInteractor()->GetShiftKey()))
+			{
 				resultSel.push_back(objID);
+			}
 		}
 	}
 	emit selectionChanged();
@@ -271,11 +266,11 @@ void iASelectionInteractorStyle::OnLeftButtonDown()
 		m_endPos[1] = m_startPos[1];
 
 		m_pixelArray->Initialize();
-		m_pixelArray->SetNumberOfComponents(4);
-		int* size = renWin->GetSize();
+		m_pixelArray->SetNumberOfComponents(3);
+		int const* size = renWin->GetSize();
 		m_pixelArray->SetNumberOfTuples(size[0] * size[1]);
 
-		renWin->GetRGBACharPixelData(0, 0, size[0] - 1, size[1] - 1, 1, m_pixelArray);
+		renWin->GetPixelData(0, 0, size[0] - 1, size[1] - 1, 1, m_pixelArray);
 
 		this->FindPokedRenderer(m_startPos[0], m_startPos[1]);
 
@@ -337,34 +332,17 @@ void iASelectionInteractorStyle::OnMouseMove()
 		return;
 	}
 
-	m_endPos[0] = this->Interactor->GetEventPosition()[0];
-	m_endPos[1] = this->Interactor->GetEventPosition()[1];
-	int* size = this->Interactor->GetRenderWindow()->GetSize();
-	if (m_endPos[0] > (size[0] - 1))
-	{
-		m_endPos[0] = size[0] - 1;
-	}
-	if (m_endPos[0] < 0)
-	{
-		m_endPos[0] = 0;
-	}
-	if (m_endPos[1] > (size[1] - 1))
-	{
-		m_endPos[1] = size[1] - 1;
-	}
-	if (m_endPos[1] < 0)
-	{
-		m_endPos[1] = 0;
-	}
+	int const* size = this->Interactor->GetRenderWindow()->GetSize();
+	m_endPos[0] = clamp(0, size[0] - 1, this->Interactor->GetEventPosition()[0]);
+	m_endPos[1] = clamp(0, size[1] - 1, this->Interactor->GetEventPosition()[1]);
 	redrawRubberBand();
 }
 
-//--------------------------------------------------------------------------
 void iASelectionInteractorStyle::OnLeftButtonUp()
 {
 	if (m_interactionMode != imSelect)
 	{
-		//if not in rubber band mode,  let the parent class handle it
+		//if not in rubber band mode, let the parent class handle it
 		this->Superclass::OnLeftButtonUp();
 		return;
 	}
@@ -375,67 +353,46 @@ void iASelectionInteractorStyle::OnLeftButtonUp()
 	}
 
 	//otherwise record the rubber band end coordinate and then fire off a pick
-	if ((m_startPos[0] != m_endPos[0])
-		|| (m_startPos[1] != m_endPos[1]))
+	if (m_startPos[0] != m_endPos[0] || m_startPos[1] != m_endPos[1])
 	{
 		pick();
 	}
 	m_moving = false;
 }
 
-//--------------------------------------------------------------------------
 void iASelectionInteractorStyle::redrawRubberBand()
 {
-	//update the rubber band on the screen
-	int* size = this->Interactor->GetRenderWindow()->GetSize();
+	int const* size = this->Interactor->GetRenderWindow()->GetSize();
 
 	vtkUnsignedCharArray* tmpPixelArray = vtkUnsignedCharArray::New();
 	tmpPixelArray->DeepCopy(m_pixelArray);
 	unsigned char* pixels = tmpPixelArray->GetPointer(0);
 
-	int min[2], max[2];
+	int minVal[2], maxVal[2];
+	computeMinMax(minVal, maxVal, m_startPos, m_endPos, size);
 
-	min[0] = m_startPos[0] <= m_endPos[0] ?
-		m_startPos[0] : m_endPos[0];
-	if (min[0] < 0) { min[0] = 0; }
-	if (min[0] >= size[0]) { min[0] = size[0] - 1; }
-
-	min[1] = m_startPos[1] <= m_endPos[1] ?
-		m_startPos[1] : m_endPos[1];
-	if (min[1] < 0) { min[1] = 0; }
-	if (min[1] >= size[1]) { min[1] = size[1] - 1; }
-
-	max[0] = m_endPos[0] > m_startPos[0] ?
-		m_endPos[0] : m_startPos[0];
-	if (max[0] < 0) { max[0] = 0; }
-	if (max[0] >= size[0]) { max[0] = size[0] - 1; }
-
-	max[1] = m_endPos[1] > m_startPos[1] ?
-		m_endPos[1] : m_startPos[1];
-	if (max[1] < 0) { max[1] = 0; }
-	if (max[1] >= size[1]) { max[1] = size[1] - 1; }
-
-	int i;
-	for (i = min[0]; i <= max[0]; i++)
+	for (int i = minVal[0]; i <= maxVal[0]; i++)
 	{
-		pixels[4 * (min[1] * size[0] + i)] = 255 ^ pixels[4 * (min[1] * size[0] + i)];
-		pixels[4 * (min[1] * size[0] + i) + 1] = 255 ^ pixels[4 * (min[1] * size[0] + i) + 1];
-		pixels[4 * (min[1] * size[0] + i) + 2] = 255 ^ pixels[4 * (min[1] * size[0] + i) + 2];
-		pixels[4 * (max[1] * size[0] + i)] = 255 ^ pixels[4 * (max[1] * size[0] + i)];
-		pixels[4 * (max[1] * size[0] + i) + 1] = 255 ^ pixels[4 * (max[1] * size[0] + i) + 1];
-		pixels[4 * (max[1] * size[0] + i) + 2] = 255 ^ pixels[4 * (max[1] * size[0] + i) + 2];
+		for (int c = 0; c < 3; ++c)
+		{
+			int minIdx = 3 * (minVal[1] * size[0] + i) + c;
+			int maxIdx = 3 * (maxVal[1] * size[0] + i) + c;
+			pixels[minIdx] = 255 ^ pixels[minIdx];
+			pixels[maxIdx] = 255 ^ pixels[maxIdx];
+		}
 	}
-	for (i = min[1] + 1; i < max[1]; i++)
+	for (int i = minVal[1] + 1; i < maxVal[1]; i++)
 	{
-		pixels[4 * (i * size[0] + min[0])] = 255 ^ pixels[4 * (i * size[0] + min[0])];
-		pixels[4 * (i * size[0] + min[0]) + 1] = 255 ^ pixels[4 * (i * size[0] + min[0]) + 1];
-		pixels[4 * (i * size[0] + min[0]) + 2] = 255 ^ pixels[4 * (i * size[0] + min[0]) + 2];
-		pixels[4 * (i * size[0] + max[0])] = 255 ^ pixels[4 * (i * size[0] + max[0])];
-		pixels[4 * (i * size[0] + max[0]) + 1] = 255 ^ pixels[4 * (i * size[0] + max[0]) + 1];
-		pixels[4 * (i * size[0] + max[0]) + 2] = 255 ^ pixels[4 * (i * size[0] + max[0]) + 2];
+		for (int c = 0; c < 3; ++c)
+		{
+			int minIdx = 3 * (i * size[0] + minVal[0]) + c;
+			int maxIdx = 3 * (i * size[0] + maxVal[0]) + c;
+			pixels[minIdx] = 255 ^ pixels[minIdx];
+			pixels[maxIdx] = 255 ^ pixels[maxIdx];
+		}
 	}
 
-	this->Interactor->GetRenderWindow()->SetRGBACharPixelData(0, 0, size[0] - 1, size[1] - 1, pixels, 0);
+	this->Interactor->GetRenderWindow()->SetPixelData(0, 0, size[0] - 1, size[1] - 1, pixels, 1);
 	this->Interactor->GetRenderWindow()->Frame();
 
 	tmpPixelArray->Delete();
@@ -465,7 +422,6 @@ void iASelectionInteractorStyle::setSelectionMode(SelectionMode mode)
 {
 	m_selectionMode = mode;
 	updateModeLabel();
-	m_renWin->Frame();
 }
 
 void iASelectionInteractorStyle::setRenderer(vtkRenderer* renderer)
