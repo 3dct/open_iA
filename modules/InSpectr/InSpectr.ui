@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>XRF</class>
- <widget class="QDockWidget" name="XRF">
+ <class>InSpectr</class>
+ <widget class="QDockWidget" name="InSpectr">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -14,7 +14,7 @@
    <set>QDockWidget::DockWidgetFeatureMask</set>
   </property>
   <property name="windowTitle">
-   <string>XRF Visualization</string>
+   <string>InSpectr</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QHBoxLayout" name="horizontalLayout_10">
