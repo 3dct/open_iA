@@ -1,6 +1,6 @@
 SET (XRF_PRECOMPILE_INCLUDES <algorithm>
 <cassert>
-<dlg_XRF.h>
+<dlg_InSpectr.h>
 <iAAccumulatedXRFData.h>
 <iACharacteristicEnergy.h>
 <iAElementalDecomposition.h>

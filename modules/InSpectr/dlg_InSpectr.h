@@ -25,7 +25,7 @@
 #include "iACharacteristicEnergy.h"
 #include "iASpectrumFilter.h"
 #include "iASpectrumFunction.h"
-#include "ui_XRF.h"
+#include "ui_InSpectr.h"
 
 #include <iARendererManager.h>
 #include <iAVtkWidgetFwd.h>
@@ -38,7 +38,7 @@
 
 #include <vector>
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_XRF>   dlg_xrfContainer;
+typedef iAQTtoUIConnector<QDockWidget, Ui_InSpectr>   dlg_xrfContainer;
 
 class dlg_periodicTable;
 class dlg_RefSpectra;
