@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAMagicLens.h"
 
-#include "defines.h"
+#include "defines.h"    // for DefaultMagicLensSize
 #include "iAConsole.h"
 #include "iAMathUtility.h"
 
