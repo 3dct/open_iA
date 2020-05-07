@@ -67,6 +67,7 @@ class open_iA_Core_API iARenderer: public QObject
 {
 	Q_OBJECT
 public:
+	//! Creates a renderer widget. In order to show something, you need to call initialize too!
 	iARenderer( QObject *parent = nullptr );
 	virtual ~iARenderer( );
 
@@ -247,4 +248,7 @@ private:
 	vtkSmartPointer<vtkCubeSource> m_slicingCube;
 	vtkSmartPointer<vtkPolyDataMapper> m_sliceCubeMapper;
 	vtkSmartPointer<vtkActor> m_sliceCubeActor;
+
+	//! flag indicating whether renderer is initialized
+	bool m_initialized;
 };
