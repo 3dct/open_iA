@@ -717,6 +717,7 @@ void MainWindow::savePreferences(iAXmlSettings &xml)
 {
 	QDomElement preferencesElement = xml.createElement("preferences");
 	preferencesElement.setAttribute("histogramBins", tr("%1").arg(m_defaultPreferences.HistogramBins));
+	preferencesElement.setAttribute("histogramLogarithmicYAxis", tr("%1").arg(m_defaultPreferences.HistogramLogarithmicYAxis));
 	preferencesElement.setAttribute("statisticalExtent", tr("%1").arg(m_defaultPreferences.StatisticalExtent));
 	preferencesElement.setAttribute("compression", tr("%1").arg(m_defaultPreferences.Compression));
 	preferencesElement.setAttribute("printParameters", tr("%1").arg(m_defaultPreferences.PrintParameters));
@@ -730,6 +731,7 @@ void MainWindow::loadPreferences(QDomNode preferencesNode)
 {
 	QDomNamedNodeMap attributes = preferencesNode.attributes();
 	m_defaultPreferences.HistogramBins = attributes.namedItem("histogramBins").nodeValue().toInt();
+	m_defaultPreferences.HistogramLogarithmicYAxis = attributes.namedItem("histogramLogarithmicYAxis").nodeValue().toInt();
 	m_defaultPreferences.StatisticalExtent = attributes.namedItem("statisticalExtent").nodeValue().toDouble();
 	m_defaultPreferences.Compression = attributes.namedItem("compression").nodeValue() == "1";
 	m_defaultPreferences.PrintParameters = attributes.namedItem("printParameters").nodeValue() == "1";
@@ -1794,6 +1796,7 @@ void MainWindow::readSettings()
 	iAPreferences defaultPrefs;
 	m_defaultLayout = settings.value("Preferences/defaultLayout", "").toString();
 	m_defaultPreferences.HistogramBins = settings.value("Preferences/prefHistogramBins", defaultPrefs.HistogramBins).toInt();
+	m_defaultPreferences.HistogramLogarithmicYAxis = settings.value("Preferences/prefHistogramLogarithmicYAxis", defaultPrefs.HistogramLogarithmicYAxis).toBool();
 	m_defaultPreferences.StatisticalExtent = settings.value("Preferences/prefStatExt", defaultPrefs.StatisticalExtent).toInt();
 	m_defaultPreferences.Compression = settings.value("Preferences/prefCompression", defaultPrefs.Compression).toBool();
 	m_defaultPreferences.ResultInNewWindow = settings.value("Preferences/prefResultInNewWindow", defaultPrefs.ResultInNewWindow).toBool();
@@ -1897,6 +1900,7 @@ void MainWindow::writeSettings()
 
 	settings.setValue("Preferences/defaultLayout", m_layout->currentText());
 	settings.setValue("Preferences/prefHistogramBins", m_defaultPreferences.HistogramBins);
+	settings.setValue("Preferences/prefHistogramLogarithmicYAxis", m_defaultPreferences.HistogramLogarithmicYAxis);
 	settings.setValue("Preferences/prefStatExt", m_defaultPreferences.StatisticalExtent);
 	settings.setValue("Preferences/prefCompression", m_defaultPreferences.Compression);
 	settings.setValue("Preferences/prefResultInNewWindow", m_defaultPreferences.ResultInNewWindow);
