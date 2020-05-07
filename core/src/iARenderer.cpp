@@ -270,7 +270,7 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	m_labelRen->InteractiveOff();
 	m_labelRen->UseDepthPeelingOn();
 
-	m_renWin->AlphaBitPlanesOn();
+	m_renWin->SetAlphaBitPlanes(true);
 	m_renWin->LineSmoothingOn();
 	m_renWin->PointSmoothingOn();
 	m_renWin->SetNumberOfLayers(5);
@@ -957,6 +957,9 @@ void iARenderer::applySettings(iARenderSettings const & settings, bool slicePlan
 #endif
 	m_ren->SetMaximumNumberOfPeels(settings.DepthPeels);
 	m_ren->SetUseFXAA(settings.UseFXAA);
+	// potential additional settings:
+	//m_renWin->SetMultiSamples();
+	//m_ren->SetOcclusionRatio(0.0);
 	m_cam->SetParallelProjection(settings.ParallelProjection);
 	QColor bgTop(settings.BackgroundTop);
 	QColor bgBottom(settings.BackgroundBottom);
