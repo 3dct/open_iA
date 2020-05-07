@@ -76,6 +76,7 @@ signals:
 private:
 	void pick();
 	void redrawRubberBand();
+	void updateModeLabel();
 
 	QMap<size_t, std::pair<vtkSmartPointer<vtkPolyData>, vtkSmartPointer<vtkActor> > > m_input;
 	iASelectionProvider * m_selectionProvider;

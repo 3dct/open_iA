@@ -44,8 +44,10 @@ namespace
 {
 	int FontSize = 14;
 	int TextMargin = 2;
-	const char * NavigationModeText = "Navigation Mode (click 's' to switch to Selection Mode)";
-	const char * SelectModeText = "Selection Mode";
+	QString const NavigationModeText("Navigation Mode (click 's' to switch to Selection Mode)");
+	QString const SelectModeText("Selection Mode (%1)");
+	QString const DragSelectionMode("Drag Rectangle");
+	QString const ClickSelectionMode("Click Fiber");
 }
 
 iASelectionProvider::~iASelectionProvider()
@@ -75,6 +77,13 @@ void iASelectionInteractorStyle::setSelectionProvider(iASelectionProvider *selec
 	m_selectionProvider = selectionProvider;
 }
 
+void iASelectionInteractorStyle::updateModeLabel()
+{
+	QString text = m_interactionMode == imNavigate ? NavigationModeText :
+		SelectModeText.arg(m_selectionMode == smDrag ? DragSelectionMode : ClickSelectionMode);
+	m_showModeActor->SetInput(text.toStdString().c_str());
+}
+
 void iASelectionInteractorStyle::OnChar()
 {
 	switch (this->Interactor->GetKeyCode())
@@ -90,7 +99,7 @@ void iASelectionInteractorStyle::OnChar()
 		{
 			m_interactionMode = imNavigate;
 		}
-		m_showModeActor->SetInput(m_interactionMode == imNavigate ? NavigationModeText : SelectModeText);
+		updateModeLabel();
 		break;
 	case 'p':
 	case 'P':
@@ -122,7 +131,6 @@ void iASelectionInteractorStyle::pick()
 		DEBUG_LOG("No selection provider given!");
 		return;
 	}
-
 
 	//find rubber band lower left, upper right and center
 	double rbcenter[3];
@@ -450,12 +458,14 @@ void iASelectionInteractorStyle::assignToRenderWindow(vtkSmartPointer<vtkRenderW
 	m_renWin->GetInteractor()->SetPicker(areaPicker);
 	m_renWin->GetInteractor()->SetInteractorStyle(this);
 	m_renWin->GetRenderers()->GetFirstRenderer()->AddActor2D(m_showModeActor);
-	m_showModeActor->SetInput(NavigationModeText);
+	updateModeLabel();
 }
 
 void iASelectionInteractorStyle::setSelectionMode(SelectionMode mode)
 {
 	m_selectionMode = mode;
+	updateModeLabel();
+	m_renWin->Frame();
 }
 
 void iASelectionInteractorStyle::setRenderer(vtkRenderer* renderer)

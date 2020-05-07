@@ -2832,6 +2832,7 @@ void iAFiAKErController::showSpatialOverviewButton()
 void iAFiAKErController::selectionModeChanged(int mode)
 {
 	m_style->setSelectionMode(static_cast<iASelectionInteractorStyle::SelectionMode>(mode));
+	update3D();
 }
 
 void iAFiAKErController::showSpatialOverview()
