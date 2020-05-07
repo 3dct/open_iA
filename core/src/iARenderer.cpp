@@ -262,7 +262,8 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	m_slicePlaneOpacity(0.8),
 	m_slicingCube(vtkSmartPointer<vtkCubeSource>::New()),
 	m_sliceCubeMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_sliceCubeActor(vtkSmartPointer<vtkActor>::New())
+	m_sliceCubeActor(vtkSmartPointer<vtkActor>::New()),
+	m_initialized(false)
 {
 	m_ren->SetLayer(0);
 	m_labelRen->SetLayer(1);
@@ -403,6 +404,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 		m_slicePlaneActor[s]->GetProperty()->SetOpacity(1.0);
 		m_slicePlaneMapper[s]->Update();
 	}
+	m_initialized = true;
 }
 
 void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd)
@@ -554,6 +556,10 @@ void iARenderer::setupRenderer()
 
 void iARenderer::update()
 {
+	if (!m_initialized)
+	{
+		return;
+	}
 	if (m_polyData)
 	{
 		m_polyMapper->Update();
