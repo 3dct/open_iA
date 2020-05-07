@@ -62,6 +62,8 @@ namespace
 	const int AxisTicksXDefault = 2;
 	const int TickWidth = 6;
 
+	const double LogYMapModeMin = 0.5;
+
 	int requiredDigits(double value)
 	{
 		return (value >= -1.0 && value < 1.0) ?
@@ -309,10 +311,11 @@ void iAChartWidget::createMappers()
 	}
 	else
 	{
-		m_yMapper = QSharedPointer<iAMapper>(new iALogarithmicMapper(m_yBounds[0] > 0 ? m_yBounds[0] : 1, m_yBounds[1], 0, (activeHeight() - 1)*m_yZoom));
-		if (m_yBounds[0] <= 0)
+		m_yMapper = QSharedPointer<iAMapper>(new iALogarithmicMapper(m_yBounds[0] > 0 ? m_yBounds[0] : LogYMapModeMin, m_yBounds[1], 0, (activeHeight() - 1)*m_yZoom));
+		if (m_yBounds[0] < 0)
 		{
-			DEBUG_LOG(QString("Invalid y bounds in chart for logarithmic mapping: minimum=%1 is <= 0, using 1 instead.").arg(m_yBounds[0]));
+			DEBUG_LOG(QString("Invalid y bounds in chart for logarithmic mapping: minimum=%1 is < 0, using %2 instead.")
+				.arg(m_yBounds[0]).arg(LogYMapModeMin));
 		}
 	}
 }
@@ -1107,7 +1110,7 @@ void iAChartWidget::drawAll(QPainter & painter)
 		createMappers();
 	}
 	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, m_xZoom*(activeWidth()-1));
-	m_yMapper->update(m_yMappingMode == Logarithmic && m_yBounds[0] <= 0 ? 1 : m_yBounds[0], m_yBounds[1], 0, m_yZoom*(activeHeight()-1));
+	m_yMapper->update(m_yMappingMode == Logarithmic && m_yBounds[0] <= 0 ? LogYMapModeMin : m_yBounds[0], m_yBounds[1], 0, m_yZoom*(activeHeight()-1));
 	QFontMetrics fm = painter.fontMetrics();
 	m_fontHeight = fm.height();
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
