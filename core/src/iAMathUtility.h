@@ -38,9 +38,9 @@
 //!         max if the given value is bigger or equal to max,
 //!         or the value itself if it is in between min and max
 template <typename T>
-T clamp(T const min, T const max, T const value)
+T clamp(T const minVal, T const maxVal, T const value)
 {
-	return (value < min) ? min : ((value > max) ? max : value);
+	return (value < minVal) ? minVal : ((value > maxVal) ? maxVal : value);
 }
 
 //! Map value from given interval to "norm" interval [0..1].
