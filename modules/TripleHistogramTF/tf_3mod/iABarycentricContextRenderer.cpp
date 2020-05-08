@@ -160,7 +160,6 @@ void iABarycentricContextRenderer::drawImageNow()
 	// TODO: a vector of vectors or another vtkImageData?
 	QVector<QVector<int>> counts = QVector<QVector<int>>(height, QVector<int>(width, 0));
 	int max = 0;
-	int maxx, maxy;
 
 	// Go though the volume (m_barycentricCoordinates) and write to the counts 2D-vector
 	int *dims = m_barycentricCoordinates->GetDimensions();
@@ -180,10 +179,9 @@ void iABarycentricContextRenderer::drawImageNow()
 				cy = cy < 0 ? 0 : (cy >= height ? heightMinusOne : cy);
 
 				int count = counts[cy][cx] + 1;
-				if (count > max) {
+				if (count > max)
+				{
 					max = count;
-					maxx = cx;
-					maxy = cy;
 				}
 				counts[cy][cx] = count;
 
