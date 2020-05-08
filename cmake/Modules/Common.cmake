@@ -536,7 +536,7 @@ endif()
 # Compiler Flags
 #-------------------------
 IF (MSVC)
-	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus")	# set correct __cplusplus
+	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus -wd4068")	# set correct __cplusplus, disable pragma warnings
 	# Reduce size of .pdb files:
 	OPTION (openiA_COMPRESS_PDB "Whether to compress .pdb files to conserve disk space. Default: enabled." ON)
 	IF (openiA_COMPRESS_PDB)
