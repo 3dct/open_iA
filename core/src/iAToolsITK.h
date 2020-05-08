@@ -24,6 +24,8 @@
 #include "io/iAITKIO.h"
 #include "open_iA_Core_export.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-overflow"
 #include <itkCastImageFilter.h>
 #include <itkChangeInformationImageFilter.h>
 #include <itkImageFileReader.h>
@@ -31,6 +33,7 @@
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
 #include <itkRescaleIntensityImageFilter.h>
+#pragma GCC diagnostic pop
 
 #include <QString>
 

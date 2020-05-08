@@ -26,6 +26,8 @@
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-overflow"
 #include <itkBinaryBallStructuringElement.h>
 #include <itkGrayscaleDilateImageFilter.h>
 #include <itkGrayscaleErodeImageFilter.h>
@@ -36,6 +38,7 @@
 #include <itkHessianRecursiveGaussianImageFilter.h>
 #include <itkOpeningByReconstructionImageFilter.h>
 #include <itkClosingByReconstructionImageFilter.h>
+#pragma GCC diagnostic pop
 
 // NOTE: The 'binary' versions of the dilation (e.g., itkBinaryDilateImageFilter), erode, fill hole, opening,
 // and closing filters have been replaced by the 'grayscale' versions of these filters
