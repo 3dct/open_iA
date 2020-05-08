@@ -54,10 +54,10 @@ namespace
 		}
 
 		QString simplifyAlgoName = parameters["Simplification Algorithm"].toString();
+		vtkSmartPointer<vtkPolyDataAlgorithm> result;
 		if (simplifyAlgoName == "Decimate Pro")
 		{
 			auto decimatePro = vtkSmartPointer<vtkDecimatePro>::New();
-			Progress->observe(decimatePro);
 			decimatePro->SetTargetReduction(parameters["Decimation Target"].toDouble());
 			decimatePro->SetPreserveTopology(parameters["Preserve Topology"].toBool());
 
@@ -65,9 +65,7 @@ namespace
 			//decimatePro->SetSplitAngle(10);
 			decimatePro->SetSplitting(parameters["Splitting"].toBool());
 			decimatePro->SetBoundaryVertexDeletion(parameters["Boundary Vertex Deletion"].toBool());
-			decimatePro->SetInputConnection(surfaceFilter->GetOutputPort());
-
-			return decimatePro;
+			result = decimatePro;
 		}
 		else if (simplifyAlgoName == "Quadric Clustering")
 		{
@@ -77,10 +75,28 @@ namespace
 			quadricClustering->SetNumberOfYDivisions(parameters["Cluster divisions"].toUInt());
 			quadricClustering->SetNumberOfZDivisions(parameters["Cluster divisions"].toUInt());
 			quadricClustering->SetInputConnection(surfaceFilter->GetOutputPort());
-			return quadricClustering;
+			result = quadricClustering;
 		}
-		DEBUG_LOG(QString("Unknown simplification algorithm '%1'").arg(simplifyAlgoName));
-		return nullptr;
+		else if (simplifyAlgoName == "Windowed Sinc")
+		{
+			auto windowedSinc = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+			windowedSinc->SetNumberOfIterations  (parameters["Number of Iterations"].toInt());     // 15
+			windowedSinc->SetBoundarySmoothing   (parameters["Boundary Smoothing"].toBool());      // false
+			windowedSinc->SetFeatureEdgeSmoothing(parameters["Feature Edge Smoothing"].toBool());  // false
+			windowedSinc->SetFeatureAngle        (parameters["Feature Angle"].toDouble());         // 120
+			windowedSinc->SetPassBand            (parameters["Pass Band"].toDouble());             // .001
+			windowedSinc->SetNonManifoldSmoothing(parameters["Non-Manifold Smoothing"].toBool());  // true
+			windowedSinc->SetNormalizeCoordinates(parameters["Normalize Coordinates"].toBool());   // true
+			result = windowedSinc;
+		}
+		else
+		{
+			DEBUG_LOG(QString("Unknown simplification algorithm '%1'").arg(simplifyAlgoName));
+			return nullptr;
+		}
+		Progress->observe(result);
+		result->SetInputConnection(surfaceFilter->GetOutputPort());
+		return result;
 	}
 
 	vtkSmartPointer<vtkPolyDataAlgorithm> createSurfaceFilter(QMap<QString, QVariant> const& parameters, vtkSmartPointer<vtkImageData> imgData, iAProgress* Progress)
@@ -209,13 +225,15 @@ iAExtractSurface::iAExtractSurface() :
 		"flying edges algorithm. The mesh is subsequently simplified using either "
 		"a quadric clustering or the DecimatePro algorithm.<br/>"
 		"For more information, see the "
-		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkMarchingCubes.html\">"
+		"<a href=\"https://vtk.org/doc/nightly/html/classvtkMarchingCubes.html\">"
 		"Marching Cubes Filter</a>, the "
-		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkFlyingEdges3D.html\">"
+		"<a href=\"https://vtk.org/doc/nightly/html/classvtkFlyingEdges3D.html\">"
 		"Flying Edges 3D Filter</a>, the "
-		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkDecimatePro.html\">"
-		"Decimate Pro Filter</a>, and the "
-		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkQuadricClustering.html\">"
+		"<a href=\"https://vtk.org/doc/nightly/html/classvtkDecimatePro.html\">"
+		"Decimate Pro Filter</a>, the "
+		"<a href=\"https://vtk.org/doc/nightly/html/classvtkWindowedSincPolyDataFilter.html\">"
+		"Windowed Sinc Poly Data Filter</a>, and the "
+		"<a href=\"https://vtk.org/doc/nightly/html/classvtkQuadricClustering.html\">"
 		"Quadric Clustering Filter</a> in the VTK documentation.")
 {
 	QStringList AlgorithmNames;
@@ -224,17 +242,26 @@ iAExtractSurface::iAExtractSurface() :
 	addParameter("Iso value", Continuous, 1);
 	addParameter("STL output filename", FileNameSave, "");
 	QStringList SimplificationAlgorithms;
-	SimplificationAlgorithms << "Quadric Clustering" << "Decimate Pro" << "None";
+	SimplificationAlgorithms << "Quadric Clustering" << "Decimate Pro" << "Windowed Sinc" << "None";
 	addParameter("Simplification Algorithm", Categorical, SimplificationAlgorithms);
+
+	// Decimate Pro parameters:
 	addParameter("Preserve Topology", Boolean, true);
 	addParameter("Splitting", Boolean, true);
 	addParameter("Boundary Vertex Deletion", Boolean, true);
 	addParameter("Decimation Target", Continuous, 0.9);
+
+	// Quadric Clustering parameters:
 	addParameter("Cluster divisions", Discrete, 128);
-	//addParameter("Smooth windowed sync", Boolean, false);
-	//addParameter("Sinc iterations", Discrete, 1);
-	//addParameter("Smooth poly", Boolean, false);
-	//addParameter("Poly iterations", Discrete, 1);
+
+	// Windowed Sinc parameters:
+	addParameter("Number of Iterations", Discrete, 15);
+	addParameter("Boundary Smoothing", Boolean, false);
+	addParameter("Feature Edge Smoothing", Boolean, false);
+	addParameter("Feature Angle", Continuous, 120.0);
+	addParameter("Pass Band", Continuous, 0.001);
+	addParameter("Non-Manifold Smoothing", Boolean, true);
+	addParameter("Normalize Coordinates", Boolean, true);
 }
 
 void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
