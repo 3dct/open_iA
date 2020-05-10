@@ -33,7 +33,7 @@
 
 
 class iASlicerProfile;
-class iAArbitraryProfileOnSlicer;
+class iASlicerProfileHandles;
 class iAChannelData;
 class iAChannelSlicerData;
 class iAInteractorStyleImage;
@@ -230,8 +230,7 @@ public slots:
 	void setSlabCompositeMode(int compositeMode);
 	void update();
 
-	//! Sets coordinates for line profile
-	bool setArbitraryProfile(int pointInd, double* Pos);
+
 
 	//! Moves a point of the snake slicer to a new position.
 	void movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
@@ -245,7 +244,9 @@ public slots:
 	//! Toggle the "raw" profile mode, i.e. whether the profile is shown on top of the slicer image
 	void setSliceProfileOn(bool isOn);
 	//! Toggle the possibility to move start and end point of the profile
-	void setArbitraryProfileOn(bool isOn);
+	void setProfileHandlesOn(bool isOn);
+	//! Sets coordinates for line profile
+	bool setProfilePoint(int pointInd, double* Pos);
 
 	//! Adds a new spline point to the end of the spline curve.
 	void addPoint(double x, double y, double z);
@@ -261,7 +262,7 @@ private slots:
 signals:
 	void addedPoint(double x, double y, double z);
 	void movedPoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
-	void arbitraryProfileChanged(int pointInd, double * Pos);
+	void profilePointChanged(int pointInd, double * Pos);
 	void deselectedPoint();
 	void switchedMode(int mode);
 	void deletedSnakeLine();
@@ -290,13 +291,13 @@ protected:
 	QMenu *         m_contextMenuMagicLens;      //!< context menu for when magic lens is shown
 	QMenu *         m_contextMenuSnakeSlicer;    //!< context menu for when in snake slice edit mode
 	InteractionMode m_interactionMode;           //!< current edit mode
-	bool            m_isSliceProfEnabled;        //!< if slice profile mode is enabled
-	bool            m_isArbProfEnabled;          //!< if arbitrary profile mode is enabled
 	int             m_xInd, m_yInd, m_zInd;      //!< current position
 	iASnakeSpline * m_snakeSpline;				 //!< holds the visualization data for the points of the snake splicer
 	vtkPoints *     m_worldSnakePoints;          //!< points of the snake slicer (owned by mdichild, not by this slicer)
-	iASlicerProfile	* m_sliceProfile;            //!< implements the raw slice profile
-	iAArbitraryProfileOnSlicer * m_arbProfile;   //!< implements drawing the start and end point of the "arbitrary" profile
+	bool            m_isSliceProfEnabled;        //!< if slice profile mode is enabled
+	iASlicerProfile	* m_sliceProfile;            //!< a slice profile drawn directly on the slicer
+	bool            m_profileHandlesEnabled;     //!< if profile handles are enabled (shown)
+	iASlicerProfileHandles * m_profileHandles;   //!< handles for the start and end point of the profile plot
 
 	void keyPressEvent(QKeyEvent * event) override;
 	void mousePressEvent(QMouseEvent * event) override;
@@ -436,5 +437,5 @@ private:
 	void updateRawProfile(double posY);
 
 	//! Sets coordinates for line profile
-	bool setArbitraryProfileWithClamp(int pointInd, double* Pos, bool doClamp);
+	bool setProfilePointWithClamp(int pointInd, double* Pos, bool doClamp);
 };

@@ -100,7 +100,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_isSmthMaximized(false),
 	m_isUntitled(true),
 	m_isSliceProfileEnabled(false),
-	m_isArbProfileEnabled(false),
+	m_profileHandlesEnabled(false),
 	m_isMagicLensEnabled(false),
 	m_reInitializeRenderWindows(true),
 	m_raycasterInitialized(false),
@@ -1468,15 +1468,15 @@ void MdiChild::setupSlicers(iASlicerSettings const& ss, bool init)
 		// connect signals for making slicers update other views in snake slicers mode:
 		for (int i = 0; i < 3; ++i)
 		{
-			connect(m_slicer[i], &iASlicer::arbitraryProfileChanged, this, &MdiChild::updateProbe);
-			connect(m_slicer[i], &iASlicer::arbitraryProfileChanged, m_renderer, &iARenderer::setArbitraryProfile);
+			connect(m_slicer[i], &iASlicer::profilePointChanged, this, &MdiChild::updateProbe);
+			connect(m_slicer[i], &iASlicer::profilePointChanged, m_renderer, &iARenderer::setProfilePoint);
 			for (int j = 0; j < 3; ++j)
 			{
 				if (i != j)	// connect each slicer's signals to the other slicer's slots, except for its own:
 				{
 					connect(m_slicer[i], &iASlicer::addedPoint, m_slicer[j], &iASlicer::addPoint);
 					connect(m_slicer[i], &iASlicer::movedPoint, m_slicer[j], &iASlicer::movePoint);
-					connect(m_slicer[i], &iASlicer::arbitraryProfileChanged, m_slicer[j], &iASlicer::setArbitraryProfile);
+					connect(m_slicer[i], &iASlicer::profilePointChanged, m_slicer[j], &iASlicer::setProfilePoint);
 					connect(m_slicer[i], &iASlicer::switchedMode, m_slicer[j], &iASlicer::switchInteractionMode);
 					connect(m_slicer[i], &iASlicer::deletedSnakeLine, m_slicer[j], &iASlicer::deleteSnakeLine);
 					connect(m_slicer[i], &iASlicer::deselectedPoint, m_slicer[j], &iASlicer::deselectPoint);
@@ -2249,27 +2249,27 @@ void MdiChild::addProfile()
 	}
 	for (int s = 0; s < 3; ++s)
 	{
-		m_slicer[s]->setArbitraryProfile(0, start);
-		m_slicer[s]->setArbitraryProfile(1, end);
+		m_slicer[s]->setProfilePoint(0, start);
+		m_slicer[s]->setProfilePoint(1, end);
 	}
-	m_renderer->setArbitraryProfile(0, start);
-	m_renderer->setArbitraryProfile(1, end);
+	m_renderer->setProfilePoint(0, start);
+	m_renderer->setProfilePoint(1, end);
 	m_profileProbe->updateProbe(0, start);
 	m_profileProbe->updateProbe(1, end);
 	m_profileProbe->updateData();
 	m_dwProfile = new dlg_profile(this, m_profileProbe->m_profileData, m_profileProbe->rayLength());
 	tabifyDockWidget(m_dwLog, m_dwProfile);
-	connect(m_dwProfile->profileMode, &QCheckBox::toggled, this, &MdiChild::toggleArbitraryProfile);
+	connect(m_dwProfile->profileMode, &QCheckBox::toggled, this, &MdiChild::toggleProfileHandles);
 }
 
-void MdiChild::toggleArbitraryProfile(bool isChecked)
+void MdiChild::toggleProfileHandles(bool isChecked)
 {
-	m_isArbProfileEnabled = (bool)isChecked;
+	m_profileHandlesEnabled = (bool)isChecked;
 	for (int s = 0; s < 3; ++s)
 	{
-		m_slicer[s]->setArbitraryProfileOn(m_isArbProfileEnabled);
+		m_slicer[s]->setProfileHandlesOn(m_profileHandlesEnabled);
 	}
-	m_renderer->setArbitraryProfileOn(m_isArbProfileEnabled);
+	m_renderer->setProfileHandlesOn(m_profileHandlesEnabled);
 }
 
 void MdiChild::updateProbe(int ptIndex, double* newPos)

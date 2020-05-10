@@ -28,12 +28,11 @@ class vtkRenderer;
 class vtkImageData;
 class vtkActor;
 
-//! Shows handles for start and end of a profile line to the given renderer
-// todo: rename to iASlicerProfileHandles
-class iAArbitraryProfileOnSlicer
+//! Shows handles for start and end of a profile line on the given (slicer) renderer.
+class iASlicerProfileHandles
 {
 public:
-	iAArbitraryProfileOnSlicer();
+	iASlicerProfileHandles();
 
 	void addToRenderer(vtkRenderer * ren);
 	void setPointScaling(double scaling);
@@ -48,7 +47,7 @@ public:
 
 protected:
 	double              m_radius;               //!< radius, taking into account image spacing
-	int                 m_arbProfPntInd;        //!< currently selected point of arbitrary profile
+	int                 m_profPntInd;           //!< currently selected point of profile
 	iALineSegment       m_hLine[2], m_vLine[2]; //!< horizontal and vertical lines
 	iALineSegment       m_profLine;             //!< profile line
 	iALinePointers      m_zeroLine;             //!< zero line

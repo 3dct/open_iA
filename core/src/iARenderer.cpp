@@ -428,7 +428,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 	m_sliceCubeActor->SetDragable(false);
 	m_sliceCubeActor->SetVisibility(false);
 
-	setArbitraryProfileOn(false);
+	setProfileHandlesOn(false);
 
 	updateSlicePlanes(m_imageData->GetSpacing());
 	for (int s = 0; s < 3; ++s)
@@ -873,7 +873,7 @@ void iARenderer::mouseLeftButtonReleasedSlot()
 	m_interactor->InvokeEvent(vtkCommand::LeftButtonReleaseEvent);
 }
 
-void iARenderer::setArbitraryProfile(int pointIndex, double * coords)
+void iARenderer::setProfilePoint(int pointIndex, double * coords)
 {
 	m_profileLine[0].setPoint(pointIndex, coords[0], coords[1], coords[2]);
 	m_profileLine[0].mapper->Update();
@@ -903,7 +903,7 @@ void iARenderer::setArbitraryProfile(int pointIndex, double * coords)
 	update();
 }
 
-void iARenderer::setArbitraryProfileOn(bool isOn)
+void iARenderer::setProfileHandlesOn(bool isOn)
 {
 	for (int p = 0; p < NumOfProfileLines; ++p)
 	{

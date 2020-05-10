@@ -174,8 +174,8 @@ signals:
 public slots:
 	void mouseRightButtonReleasedSlot();
 	void mouseLeftButtonReleasedSlot();
-	void setArbitraryProfile(int pointIndex, double * coords);
-	void setArbitraryProfileOn(bool isOn);
+	void setProfilePoint(int pointIndex, double * coords);
+	void setProfileHandlesOn(bool isOn);
 
 private:
 	void initObserver();

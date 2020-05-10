@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAArbitraryProfileOnSlicer.h"
+#include "iASlicerProfileHandles.h"
 
 #include <vtkActor.h>
 #include <vtkDiskSource.h>
@@ -28,9 +28,9 @@
 
 
 
-iAArbitraryProfileOnSlicer::iAArbitraryProfileOnSlicer():
+iASlicerProfileHandles::iASlicerProfileHandles():
 	m_radius(PointRadius),
-	m_arbProfPntInd(-1)
+	m_profPntInd(-1)
 {
 	for (int i = 0; i < 2; i++)
 	{
@@ -64,7 +64,7 @@ iAArbitraryProfileOnSlicer::iAArbitraryProfileOnSlicer():
 	m_points[1].actor->GetProperty()->SetColor(0.0, 0.65, 1.0);
 }
 
-void iAArbitraryProfileOnSlicer::setVisibility( bool isVisible )
+void iASlicerProfileHandles::setVisibility( bool isVisible )
 {
 	m_profLine.actor->SetVisibility(isVisible);
 
@@ -76,7 +76,7 @@ void iAArbitraryProfileOnSlicer::setVisibility( bool isVisible )
 	}
 }
 
-void iAArbitraryProfileOnSlicer::setPointScaling( double scaling )
+void iASlicerProfileHandles::setPointScaling( double scaling )
 {
 	m_radius = PointRadius * scaling;
 	for (vtkIdType i = 0; i < 2; i++)
@@ -85,22 +85,22 @@ void iAArbitraryProfileOnSlicer::setPointScaling( double scaling )
 	}
 }
 
-void iAArbitraryProfileOnSlicer::findSelectedPointIdx( double x, double y )
+void iASlicerProfileHandles::findSelectedPointIdx( double x, double y )
 {
-	m_arbProfPntInd = -1;
+	m_profPntInd = -1;
 	for (int i = 0; i < 2; i++)
 	{
 		double *handlePos = m_points[i].actor->GetPosition();
 		if (x >= handlePos[0] - m_radius && x <= handlePos[0] + m_radius
 			&& y >= handlePos[1] - m_radius && y <= handlePos[1] + m_radius)
 		{
-			m_arbProfPntInd = i;
+			m_profPntInd = i;
 			break;
 		}
 	}
 }
 
-void iAArbitraryProfileOnSlicer::addToRenderer( vtkRenderer * ren )
+void iASlicerProfileHandles::addToRenderer( vtkRenderer * ren )
 {
 	ren->AddActor(m_profLine.actor);
 	for (vtkIdType i=0; i<2; i++)
@@ -111,7 +111,7 @@ void iAArbitraryProfileOnSlicer::addToRenderer( vtkRenderer * ren )
 	}
 }
 
-int iAArbitraryProfileOnSlicer::setup( int pointIdx, double const * pos3d, double const * pos2d, vtkImageData *imgData )
+int iASlicerProfileHandles::setup( int pointIdx, double const * pos3d, double const * pos2d, vtkImageData *imgData )
 {
 	if (pointIdx < 0 || pointIdx>1)
 	{
@@ -142,12 +142,12 @@ int iAArbitraryProfileOnSlicer::setup( int pointIdx, double const * pos3d, doubl
 	return 1;
 }
 
-int iAArbitraryProfileOnSlicer::pointIdx() const
+int iASlicerProfileHandles::pointIdx() const
 {
-	return m_arbProfPntInd;
+	return m_profPntInd;
 }
 
-double const * iAArbitraryProfileOnSlicer::position( int pointIdx)
+double const * iASlicerProfileHandles::position( int pointIdx)
 {
 	return m_positions[pointIdx];
 }
