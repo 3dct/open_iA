@@ -867,8 +867,13 @@ void iASlicer::setPositionMarkerCenter(double x, double y, double z)
 	{
 		double const* spacing = m_channels[0]->output()->GetSpacing();
 		int zIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
-		bool visibility = std::abs(z/spacing[zIdx] - m_sliceNumber) < (m_slabThickness+1);
-		m_positionMarkerActor->SetVisibility(visibility);
+		// we only want to show the position in a small slab around the current slice;
+		// but we also want to make the position marker easy to spot;
+		// so we scale the size of the position marker inversely to the distance to the current slice
+		double scale = 1.0 / std::max(1.0, (std::abs(z / spacing[zIdx] - m_sliceNumber) - (m_slabThickness/2)) / 3 ) * m_ext;
+		m_positionMarkerSrc->SetXLength(scale * spacing[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)]);
+		m_positionMarkerSrc->SetYLength(scale * spacing[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
+		m_positionMarkerActor->SetVisibility(true);
 		m_positionMarkerSrc->SetCenter(x, y, 0);
 		m_positionMarkerMapper->Update();
 		update();
