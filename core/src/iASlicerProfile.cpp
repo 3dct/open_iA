@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iASlicerProfile.h"
 
+#include "iAProfileColors.h"
 #include "iATypedCallHelper.h"
 
 #include <QErrorMessage>
@@ -63,7 +64,7 @@ iASlicerProfile::iASlicerProfile():
 	m_plotMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_plotScaleFactor(0)
 {
-	m_profileLine.actor->GetProperty()->SetColor(0.59, 0.73, 0.94); // 96baf0 / 150, 186, 240
+	m_profileLine.actor->GetProperty()->SetColor(ProfileLineColor.redF(), ProfileLineColor.greenF(), ProfileLineColor.blueF());
 	m_profileLine.actor->GetProperty()->SetLineWidth(3.0);
 	m_profileLine.actor->GetProperty()->SetLineStipplePattern(0x00ff);//0xf0f0
 	m_profileLine.actor->GetProperty()->SetLineStippleRepeatFactor(1);
@@ -75,7 +76,7 @@ iASlicerProfile::iASlicerProfile():
 	m_plotMapper->SetInputData(m_plotPolyData);
 	m_plotActor->SetMapper(m_plotMapper);
 	m_plotActor->GetProperty()->SetOpacity(0.999);
-	m_plotActor->GetProperty()->SetColor(1.0, 0.65, 0.0); // ffa800 / 255, 168, 0
+	m_plotActor->GetProperty()->SetColor(ProfileStartColor.redF(), ProfileStartColor.greenF(), ProfileStartColor.blueF());
 	//m_plotActor->GetProperty()->SetLineWidth(1.5);
 
 	m_plotActorHalo->SetMapper(m_plotMapper);

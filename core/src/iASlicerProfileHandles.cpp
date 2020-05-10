@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iASlicerProfileHandles.h"
 
+#include "iAProfileColors.h"
+
 #include <vtkActor.h>
 #include <vtkDiskSource.h>
 #include <vtkImageData.h>
@@ -40,7 +42,7 @@ iASlicerProfileHandles::iASlicerProfileHandles():
 		}
 	}
 
-	m_profLine.actor->GetProperty()->SetColor(0.59, 0.73, 0.94); // 96baf0 / 150, 186, 240
+	m_profLine.actor->GetProperty()->SetColor(ProfileLineColor.redF(), ProfileLineColor.greenF(), ProfileLineColor.blueF());
 	m_profLine.actor->GetProperty()->SetLineWidth(2.0);
 	m_profLine.actor->GetProperty()->SetLineStipplePattern(0x00ff);//0xf0f0
 	m_profLine.actor->GetProperty()->SetLineStippleRepeatFactor(1);
@@ -56,12 +58,12 @@ iASlicerProfileHandles::iASlicerProfileHandles():
 		m_vLine[i].actor->GetProperty()->SetOpacity(0.3);
 		m_vLine[i].actor->GetProperty()->SetLineWidth(2.0);
 	}
-	m_hLine[0].actor->GetProperty()->SetColor(1.0, 0.65, 0.0);    // ffa800 / 255, 168, 0
-	m_vLine[0].actor->GetProperty()->SetColor(1.0, 0.65, 0.0);
-	m_points[0].actor->GetProperty()->SetColor(1.0, 0.65, 0.0);
-	m_hLine[1].actor->GetProperty()->SetColor(0.0, 0.65, 1.0);    // 00a8ff / 0, 168, 255
-	m_vLine[1].actor->GetProperty()->SetColor(0.0, 0.65, 1.0);
-	m_points[1].actor->GetProperty()->SetColor(0.0, 0.65, 1.0);
+	m_hLine[0] .actor->GetProperty()->SetColor(ProfileStartColor.redF(), ProfileStartColor.greenF(), ProfileStartColor.blueF());
+	m_vLine[0] .actor->GetProperty()->SetColor(ProfileStartColor.redF(), ProfileStartColor.greenF(), ProfileStartColor.blueF());
+	m_points[0].actor->GetProperty()->SetColor(ProfileStartColor.redF(), ProfileStartColor.greenF(), ProfileStartColor.blueF());
+	m_hLine[1] .actor->GetProperty()->SetColor(ProfileEndColor.redF(), ProfileEndColor.greenF(), ProfileEndColor.blueF());
+	m_vLine[1] .actor->GetProperty()->SetColor(ProfileEndColor.redF(), ProfileEndColor.greenF(), ProfileEndColor.blueF());
+	m_points[1].actor->GetProperty()->SetColor(ProfileEndColor.redF(), ProfileEndColor.greenF(), ProfileEndColor.blueF());
 }
 
 void iASlicerProfileHandles::setVisibility( bool isVisible )

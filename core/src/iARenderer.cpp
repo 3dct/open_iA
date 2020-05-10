@@ -25,6 +25,7 @@
 #include "iAChannelData.h"
 #include "iALineSegment.h"
 #include "iAMovieHelper.h"
+#include "iAProfileColors.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
 #include "iASlicerMode.h"
@@ -382,19 +383,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 	{
 		m_profileLine[i].actor->SetPickable(false);
 		m_profileLine[i].actor->SetDragable(false);
-		QColor color;
-		if (i == 0)
-		{
-			color.setRgb(150, 186, 240);
-		}
-		else if (i >= 1 && i <= 3)
-		{
-			color.setRgb(255, 168, 0);
-		}
-		else if (i > 3)
-		{
-			color.setRgb(0, 168, 255);
-		}
+		QColor color = (i == 0) ? ProfileLineColor : (i > 3) ? ProfileEndColor : ProfileStartColor;
 		m_profileLine[i].actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 		m_profileLine[i].actor->GetProperty()->SetLineWidth(2.0);
 		m_profileLine[i].actor->GetProperty()->SetLineStipplePattern(0x00ff);//0xf0f0
@@ -411,8 +400,8 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 	m_profileLineEndPointActor->SetDragable(false);
 	m_profileLineStartPointSource->SetRadius(2 * spacing[0]);
 	m_profileLineEndPointSource->SetRadius(2 * spacing[0]);
-	m_profileLineStartPointActor->GetProperty()->SetColor(1.0, 0.65, 0.0);
-	m_profileLineEndPointActor->GetProperty()->SetColor(0.0, 0.65, 1.0);
+	m_profileLineStartPointActor->GetProperty()->SetColor(ProfileStartColor.redF(), ProfileStartColor.greenF(), ProfileStartColor.blueF());
+	m_profileLineEndPointActor->GetProperty()->SetColor(ProfileEndColor.redF(), ProfileEndColor.greenF(), ProfileEndColor.blueF());
 
 	//slicing cube settings for surface extraction
 	m_sliceCubeMapper->SetInputConnection(m_slicingCube->GetOutputPort());
