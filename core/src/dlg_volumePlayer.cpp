@@ -22,6 +22,7 @@
 
 #include "dlg_commoninput.h"
 #include "iAChannelData.h"
+#include "iAConsole.h"
 #include "iARenderer.h"
 #include "iASlicer.h"
 #include "iAVolumeStack.h"

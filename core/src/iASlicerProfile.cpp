@@ -45,7 +45,7 @@ namespace
 	}
 }
 
-void iASlicerProfile::setVisibility( bool isVisible )
+void iASlicerProfile::setVisibility(bool isVisible)
 {
 	m_profileLine.actor->SetVisibility(isVisible);
 	m_zeroLine.setVisible(isVisible);
@@ -63,7 +63,7 @@ iASlicerProfile::iASlicerProfile():
 	m_plotMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_plotScaleFactor(0)
 {
-	m_profileLine.actor->GetProperty()->SetColor(0.59, 0.73, 0.94);//ffa800//150, 186, 240
+	m_profileLine.actor->GetProperty()->SetColor(0.59, 0.73, 0.94); // 96baf0 / 150, 186, 240
 	m_profileLine.actor->GetProperty()->SetLineWidth(3.0);
 	m_profileLine.actor->GetProperty()->SetLineStipplePattern(0x00ff);//0xf0f0
 	m_profileLine.actor->GetProperty()->SetLineStippleRepeatFactor(1);
@@ -75,7 +75,7 @@ iASlicerProfile::iASlicerProfile():
 	m_plotMapper->SetInputData(m_plotPolyData);
 	m_plotActor->SetMapper(m_plotMapper);
 	m_plotActor->GetProperty()->SetOpacity(0.999);
-	m_plotActor->GetProperty()->SetColor(1.0, 0.65, 0.0);//ffa800
+	m_plotActor->GetProperty()->SetColor(1.0, 0.65, 0.0); // ffa800 / 255, 168, 0
 	//m_plotActor->GetProperty()->SetLineWidth(1.5);
 
 	m_plotActorHalo->SetMapper(m_plotMapper);
@@ -84,7 +84,7 @@ iASlicerProfile::iASlicerProfile():
 	m_plotActorHalo->GetProperty()->SetLineWidth(4);
 }
 
-void iASlicerProfile::addToRenderer( vtkRenderer * ren )
+void iASlicerProfile::addToRenderer(vtkRenderer * ren)
 {
 	ren->AddActor(m_profileLine.actor);
 	m_zeroLine.addToRenderer(ren);
@@ -92,7 +92,7 @@ void iASlicerProfile::addToRenderer( vtkRenderer * ren )
 	ren->AddActor(m_plotActor);
 }
 
-bool iASlicerProfile::updatePosition( double posY, vtkImageData * imgData )
+bool iASlicerProfile::updatePosition(double posY, vtkImageData * imgData)
 {
 	double const * spacing = imgData->GetSpacing();
 	double const * origin  = imgData->GetOrigin();
@@ -102,14 +102,14 @@ bool iASlicerProfile::updatePosition( double posY, vtkImageData * imgData )
 	double startX = origin[0];
 	double endX = origin[0] + profileLength*spacing[0];
 
-	if ( posY < origin[1] || posY >= origin[1] + dimensions[1]*spacing[1] )
+	if (posY < origin[1] || posY >= origin[1] + dimensions[1] * spacing[1])
+	{
 		return false;
+	}
 
 	//setup profile horizontal line
-	m_profileLine.points->SetPoint(	0, startX,	posY, ZCoord);
-	m_profileLine.points->SetPoint(	1, endX,	posY, ZCoord);
-	m_profileLine.lineSource->SetPoint1(m_profileLine.points->GetPoint(0));
-	m_profileLine.lineSource->SetPoint2(m_profileLine.points->GetPoint(1));
+	m_profileLine.setPoint(0, startX, posY, ZCoord);
+	m_profileLine.setPoint(1, endX, posY, ZCoord);
 
 	//plot
 	m_plotPoints->Initialize();
@@ -123,22 +123,32 @@ bool iASlicerProfile::updatePosition( double posY, vtkImageData * imgData )
 	for (int i=0; i<profileLength; i++)//compute range and insert points
 	{
 		VTK_TYPED_CALL(valueAsFloat, scalarType, profileValues, i, curProfVal);
-		if(curProfVal < plotValueRange[0])
+		if (curProfVal < plotValueRange[0])
+		{
 			plotValueRange[0] = curProfVal;
-		if(curProfVal > plotValueRange[1])
+		}
+		if (curProfVal > plotValueRange[1])
+		{
 			plotValueRange[1] = curProfVal;
+		}
 
 		m_plotPolyLine->GetPointIds()->SetId(i,i);
 	}
 
 	if (plotValueRange[1] == plotValueRange[0]) //zero division check
+	{
 		m_plotScaleFactor = 0;
+	}
 	else
-		m_plotScaleFactor = dimensions[1]*spacing[1]/(plotValueRange[1]-plotValueRange[0]);//normalize
+	{
+		m_plotScaleFactor = dimensions[1] * spacing[1] / (plotValueRange[1] - plotValueRange[0]);//normalize
+	}
 
 	float offset = 0;
-	if(plotValueRange[0] < 0)
-		offset = -plotValueRange[0]*m_plotScaleFactor;
+	if (plotValueRange[0] < 0)
+	{
+		offset = -plotValueRange[0] * m_plotScaleFactor;
+	}
 
 	//zero-level pointers
 	double zeroLevelPosY = origin[1] + offset;
@@ -164,7 +174,7 @@ bool iASlicerProfile::updatePosition( double posY, vtkImageData * imgData )
 	return true;
 }
 
-void iASlicerProfile::point( vtkIdType id, double pos_out[3] )
+void iASlicerProfile::point(vtkIdType id, double pos_out[3])
 {
-	m_profileLine.points->GetPoint(id, pos_out);
+	m_profileLine.point(id, pos_out);
 }

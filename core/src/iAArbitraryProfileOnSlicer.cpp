@@ -23,7 +23,6 @@
 #include <vtkActor.h>
 #include <vtkDiskSource.h>
 #include <vtkImageData.h>
-#include <vtkLineSource.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 
@@ -41,7 +40,7 @@ iAArbitraryProfileOnSlicer::iAArbitraryProfileOnSlicer():
 		}
 	}
 
-	m_profLine.actor->GetProperty()->SetColor(0.59, 0.73, 0.94);//ffa800//150, 186, 240
+	m_profLine.actor->GetProperty()->SetColor(0.59, 0.73, 0.94); // 96baf0 / 150, 186, 240
 	m_profLine.actor->GetProperty()->SetLineWidth(2.0);
 	m_profLine.actor->GetProperty()->SetLineStipplePattern(0x00ff);//0xf0f0
 	m_profLine.actor->GetProperty()->SetLineStippleRepeatFactor(1);
@@ -57,10 +56,10 @@ iAArbitraryProfileOnSlicer::iAArbitraryProfileOnSlicer():
 		m_vLine[i].actor->GetProperty()->SetOpacity(0.3);
 		m_vLine[i].actor->GetProperty()->SetLineWidth(2.0);
 	}
-	m_hLine[0].actor->GetProperty()->SetColor(1.0, 0.65, 0.0);
+	m_hLine[0].actor->GetProperty()->SetColor(1.0, 0.65, 0.0);    // ffa800 / 255, 168, 0
 	m_vLine[0].actor->GetProperty()->SetColor(1.0, 0.65, 0.0);
 	m_points[0].actor->GetProperty()->SetColor(1.0, 0.65, 0.0);
-	m_hLine[1].actor->GetProperty()->SetColor(0.0, 0.65, 1.0);
+	m_hLine[1].actor->GetProperty()->SetColor(0.0, 0.65, 1.0);    // 00a8ff / 0, 168, 255
 	m_vLine[1].actor->GetProperty()->SetColor(0.0, 0.65, 1.0);
 	m_points[1].actor->GetProperty()->SetColor(0.0, 0.65, 1.0);
 }
@@ -128,26 +127,13 @@ int iAArbitraryProfileOnSlicer::setup( int pointIdx, double const * pos3d, doubl
 	double * origin		= imgData->GetOrigin();
 	int * dimensions	= imgData->GetDimensions();
 
-	m_profLine.points->SetPoint(pointIdx, pos2d[0], pos2d[1], ZCoord);
+	m_hLine[pointIdx].setPoint(0, origin[0], pos2d[1], ZCoord);
+	m_hLine[pointIdx].setPoint(1, origin[0] + dimensions[0]*spacing[0], pos2d[1], ZCoord);
 
-	m_hLine[pointIdx].points->SetPoint(0, origin[0], pos2d[1], ZCoord);
-	m_hLine[pointIdx].points->SetPoint(1, origin[0] + dimensions[0]*spacing[0], pos2d[1], ZCoord);
-	m_hLine[pointIdx].lineSource->SetPoint1(m_hLine[pointIdx].points->GetPoint(0));
-	m_hLine[pointIdx].lineSource->SetPoint2(m_hLine[pointIdx].points->GetPoint(1));
+	m_vLine[pointIdx].setPoint(0, pos2d[0], origin[1], ZCoord);
+	m_vLine[pointIdx].setPoint(1, pos2d[0], origin[1] + dimensions[1]*spacing[1], ZCoord);
 
-	m_vLine[pointIdx].points->SetPoint(0, pos2d[0], origin[1], ZCoord);
-	m_vLine[pointIdx].points->SetPoint(1, pos2d[0], origin[1] + dimensions[1]*spacing[1], ZCoord);
-	m_vLine[pointIdx].lineSource->SetPoint1(m_vLine[pointIdx].points->GetPoint(0));
-	m_vLine[pointIdx].lineSource->SetPoint2(m_vLine[pointIdx].points->GetPoint(1));
-
-	if (pointIdx == 0)
-	{
-		m_profLine.lineSource->SetPoint1(m_profLine.points->GetPoint(0));
-	}
-	else
-	{
-		m_profLine.lineSource->SetPoint2(m_profLine.points->GetPoint(1));
-	}
+	m_profLine.setPoint(pointIdx, pos2d[0], pos2d[1], ZCoord);
 
 	double currentPos[3]; m_points[pointIdx].actor->GetPosition(currentPos);
 	m_points[pointIdx].actor->SetPosition(pos2d[0], pos2d[1], ZCoord);
