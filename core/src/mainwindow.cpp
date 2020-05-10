@@ -758,6 +758,7 @@ void MainWindow::saveRenderSettings(iAXmlSettings &xml)
 	renderSettingsElement.setAttribute("backgroundBottom", m_defaultRenderSettings.BackgroundBottom);
 	renderSettingsElement.setAttribute("planeOpacity", m_defaultRenderSettings.PlaneOpacity);
 	renderSettingsElement.setAttribute("useFXAA", m_defaultRenderSettings.UseFXAA);
+	renderSettingsElement.setAttribute("multiSamples", m_defaultRenderSettings.MultiSamples);
 	renderSettingsElement.setAttribute("useDepthPeeling", m_defaultRenderSettings.UseDepthPeeling);
 	renderSettingsElement.setAttribute("depthPeels", m_defaultRenderSettings.DepthPeels);
 	renderSettingsElement.setAttribute("linearInterpolation", m_defaultVolumeSettings.LinearInterpolation);
@@ -783,6 +784,7 @@ void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
 	m_defaultRenderSettings.BackgroundBottom = attributes.namedItem("backgroundBottom").nodeValue();
 	m_defaultRenderSettings.PlaneOpacity = attributes.namedItem("planeOpacity").nodeValue().toDouble();
 	m_defaultRenderSettings.UseFXAA = attributes.namedItem("useFXAA").nodeValue() == "1";
+	m_defaultRenderSettings.MultiSamples = attributes.namedItem("multiSamples").nodeValue().toInt();
 	m_defaultRenderSettings.UseDepthPeeling = attributes.namedItem("useDepthPeeling").nodeValue() == "1";
 	m_defaultRenderSettings.DepthPeels = attributes.namedItem("depthPeels").nodeValue().toInt();
 
@@ -1053,6 +1055,7 @@ void MainWindow::renderSettings()
 		<< tr("#Background top")
 		<< tr("#Background bottom")
 		<< tr("$Use FXAA")
+		<< tr("#MultiSamples")
 		<< tr("$Use Depth Peeling")
 		<< tr("#Maximum Depth Peels")
 		<< tr("$Linear interpolation")
@@ -1074,6 +1077,7 @@ void MainWindow::renderSettings()
 		<< renderSettings.BackgroundTop
 		<< renderSettings.BackgroundBottom
 		<< renderSettings.UseFXAA
+		<< renderSettings.MultiSamples
 		<< renderSettings.UseDepthPeeling
 		<< renderSettings.DepthPeels
 		<< volumeSettings.LinearInterpolation
@@ -1102,6 +1106,7 @@ void MainWindow::renderSettings()
 	m_defaultRenderSettings.BackgroundTop = dlg.getText(param++);
 	m_defaultRenderSettings.BackgroundBottom = dlg.getText(param++);
 	m_defaultRenderSettings.UseFXAA = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.MultiSamples = dlg.getIntValue(param++);
 	m_defaultRenderSettings.UseDepthPeeling = dlg.getCheckValue(param++) != 0;
 	m_defaultRenderSettings.DepthPeels = dlg.getIntValue(param++);
 
@@ -1813,6 +1818,7 @@ void MainWindow::readSettings()
 	m_defaultRenderSettings.ShowRPosition = settings.value("Renderer/rsShowRPosition", fallbackRS.ShowRPosition).toBool();
 	m_defaultRenderSettings.ParallelProjection = settings.value("Renderer/rsParallelProjection", fallbackRS.ParallelProjection).toBool();
 	m_defaultRenderSettings.UseFXAA = settings.value("Renderer/rsUseFXAA", fallbackRS.UseFXAA).toBool();
+	m_defaultRenderSettings.MultiSamples = settings.value("Renderer/rsMultiSamples", fallbackRS.MultiSamples).toInt();
 	m_defaultRenderSettings.PlaneOpacity = settings.value("Renderer/rsPlaneOpacity", fallbackRS.PlaneOpacity).toDouble();
 	m_defaultRenderSettings.BackgroundTop = settings.value("Renderer/rsBackgroundTop", fallbackRS.BackgroundTop).toString();
 	m_defaultRenderSettings.BackgroundBottom = settings.value("Renderer/rsBackgroundBottom", fallbackRS.BackgroundBottom).toString();
@@ -1917,6 +1923,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Renderer/rsShowHelpers", m_defaultRenderSettings.ShowHelpers);
 	settings.setValue("Renderer/rsShowRPosition", m_defaultRenderSettings.ShowRPosition);
 	settings.setValue("Renderer/rsUseFXAA", m_defaultRenderSettings.UseFXAA);
+	settings.setValue("Renderer/rsMultiSamples", m_defaultRenderSettings.MultiSamples);
 	settings.setValue("Renderer/rsPlaneOpacity", m_defaultRenderSettings.PlaneOpacity);
 	settings.setValue("Renderer/rsUseDepthPeeling", m_defaultRenderSettings.UseDepthPeeling);
 	settings.setValue("Renderer/rsDepthPeels", m_defaultRenderSettings.DepthPeels);

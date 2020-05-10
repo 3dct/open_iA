@@ -26,16 +26,17 @@ class iARenderSettings
 public:
 	bool
 		ShowSlicers,			//! TODO: VOLUME: move to iAVolumeSettings?
-		ShowSlicePlanes,
-		ShowHelpers,
-		ShowRPosition,
-		ParallelProjection,
-		UseFXAA,
-		UseDepthPeeling;
-	QString BackgroundTop,
-		BackgroundBottom;
-	float PlaneOpacity;
-	int DepthPeels;
+		ShowSlicePlanes,        //!< whether a colored plane is shown for each currently visible slicer)
+		ShowHelpers,            //!< whether axes cube and origin indicator are shown
+		ShowRPosition,          //!< whether red position cube indicator is shown
+		ParallelProjection,     //!< true - use parallel projection, false - use perspective projection
+		UseFXAA,                //!< whether to use FXAA anti-aliasing, if supported
+		UseDepthPeeling;        //!< whether to use depth peeling (improves depth ordering in rendering of multiple objects), if false, alpha blending is used
+	QString BackgroundTop,      //!< top color used in background gradient
+		BackgroundBottom;       //!< bottom color used in background gradient
+	float PlaneOpacity;         //!< opacity of the slice planes enabled via ShowSlicePlanes
+	int DepthPeels,             //!< number of depth peels to use (if enabled via UseDepthPeeling). The more the higher quality, but also slower rendering
+		MultiSamples;           //!< number of multi
 
 	iARenderSettings() :
 		ShowSlicers(false),
@@ -48,6 +49,7 @@ public:
 		BackgroundTop("#7FAAFF"),
 		BackgroundBottom("#FFFFFF"),
 		PlaneOpacity(1.0),
-		DepthPeels(4)
+		DepthPeels(4),
+		MultiSamples(0)
 	{}
 };

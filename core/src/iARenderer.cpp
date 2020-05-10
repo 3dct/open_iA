@@ -957,8 +957,7 @@ void iARenderer::applySettings(iARenderSettings const & settings, bool slicePlan
 #endif
 	m_ren->SetMaximumNumberOfPeels(settings.DepthPeels);
 	m_ren->SetUseFXAA(settings.UseFXAA);
-	// potential additional settings:
-	//m_renWin->SetMultiSamples();
+	m_renWin->SetMultiSamples(settings.MultiSamples);
 	//m_ren->SetOcclusionRatio(0.0);
 	m_cam->SetParallelProjection(settings.ParallelProjection);
 	QColor bgTop(settings.BackgroundTop);
