@@ -856,7 +856,7 @@ void iASlicer::setResliceAxesOrigin(double x, double y, double z)
 	}
 }
 
-void iASlicer::setPositionMarkerCenter(double x, double y)
+void iASlicer::setPositionMarkerCenter(double x, double y, double z)
 {
 	if (!m_decorations)
 	{
@@ -865,7 +865,10 @@ void iASlicer::setPositionMarkerCenter(double x, double y)
 
 	if (m_interactor->GetEnabled() && m_showPositionMarker)
 	{
-		m_positionMarkerActor->SetVisibility(true);
+		double const* spacing = m_channels[0]->output()->GetSpacing();
+		int zIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+		bool visibility = std::abs(z/spacing[zIdx] - m_sliceNumber) < (m_slabThickness+1);
+		m_positionMarkerActor->SetVisibility(visibility);
 		m_positionMarkerSrc->SetCenter(x, y, 0);
 		m_positionMarkerMapper->Update();
 		update();
@@ -1453,8 +1456,8 @@ void iASlicer::printVoxelInformation()
 			int slicerXAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::X),
 				slicerYAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y),
 				slicerZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
-			tmpChild->slicer(m_mode)->setPositionMarkerCenter(m_globalPt[slicerXAxisIdx], m_globalPt[slicerYAxisIdx]);
 			tmpChild->slicer(m_mode)->setIndex(tmpCoord[0], tmpCoord[1], tmpCoord[2]);
+			tmpChild->slicer(m_mode)->setPositionMarkerCenter(m_globalPt[slicerXAxisIdx], m_globalPt[slicerYAxisIdx], m_globalPt[slicerZAxisIdx]);
 			tmpChild->slicerDockWidget(m_mode)->sbSlice->setValue(tmpCoord[slicerZAxisIdx]);
 			tmpChild->slicer(m_mode)->update();
 			strDetails += filePixel(tmpChild->slicer(m_mode), tmpCoord, slicerXAxisIdx, slicerYAxisIdx);
