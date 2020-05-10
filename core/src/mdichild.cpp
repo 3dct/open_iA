@@ -420,11 +420,11 @@ void MdiChild::updateProgressBar(int i)
 
 void MdiChild::updatePositionMarker(int x, int y, int z, int mode)
 {
-	if (!m_slicerSettings.LinkViews)
-	{
-		return;
-	}
 	m_position[0] = x; m_position[1] = y; m_position[2] = z;
+	if (m_renderSettings.ShowRPosition)
+	{
+		m_renderer->setCubeCenter(x, y, z);
+	}
 	double spacing[3];
 	// TODO: Use a separate "display" spacing here instead of the one from the first modality?
 	modality(0)->image()->GetSpacing(spacing);
@@ -434,20 +434,21 @@ void MdiChild::updatePositionMarker(int x, int y, int z, int mode)
 		{
 			continue;
 		}
+		if (m_slicerSettings.LinkViews)
+		{
+			m_slicer[i]->setIndex(x, y, z);
+			m_dwSlicer[i]->sbSlice->setValue(m_position[mapSliceToGlobalAxis(i, iAAxisIndex::Z)]);
+		}
 		if (m_slicerSettings.SingleSlicer.ShowPosition)
 		{
 			int slicerXAxisIdx = mapSliceToGlobalAxis(i, iAAxisIndex::X);
 			int slicerYAxisIdx = mapSliceToGlobalAxis(i, iAAxisIndex::Y);
+			int slicerZAxisIdx = mapSliceToGlobalAxis(i, iAAxisIndex::Z);
 			m_slicer[i]->setPositionMarkerCenter(
 				m_position[slicerXAxisIdx] * spacing[slicerXAxisIdx],
-				m_position[slicerYAxisIdx] * spacing[slicerYAxisIdx]);
+				m_position[slicerYAxisIdx] * spacing[slicerYAxisIdx],
+				m_position[slicerZAxisIdx] * spacing[slicerZAxisIdx]);
 		}
-		m_slicer[i]->setIndex(x, y, z);
-		m_dwSlicer[i]->sbSlice->setValue(m_position[mapSliceToGlobalAxis(i, iAAxisIndex::Z)]);
-	}
-	if (m_renderSettings.ShowRPosition)
-	{
-		m_renderer->setCubeCenter(x, y, z);
 	}
 }
 

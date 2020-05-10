@@ -183,7 +183,7 @@ public:
 	//! Get current slice number
 	int sliceNumber() const;
 	//! Set the position of the position marker (in slicer coordinates).
-	void setPositionMarkerCenter(double x, double y);
+	void setPositionMarkerCenter(double x, double y, double z);
 
 	//! Enable/disable contour lines.
 	void showIsolines(bool s);
@@ -388,7 +388,7 @@ private:
 	//! @}
 
 	iASingleSlicerSettings m_settings;
-	int m_slabThickness;       //! current slab thickness (default = 1, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
+	int m_slabThickness;       //! current slab thickness (default = 0, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
 	int m_slabCompositeMode;   //! current slab mode (how to combine the voxels of the current slab into a single pixel); TODO: move to iASingleslicerSettings?
 
 	//! @{ for indicating current measurement ('m' key)
