@@ -23,7 +23,7 @@
 #include "defines.h"    // for NotExistingChannel
 #include "dlg_commoninput.h"
 #include "dlg_slicer.h"
-#include "iAArbitraryProfileOnSlicer.h"
+#include "iASlicerProfileHandles.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iAConnector.h"
@@ -199,13 +199,13 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_contextMenuMagicLens(nullptr),
 	m_contextMenuSnakeSlicer(nullptr),
 	m_interactionMode(Normal),
-	m_isSliceProfEnabled(false),
-	m_isArbProfEnabled(false),
 	m_xInd(0), m_yInd(0), m_zInd(0),
 	m_snakeSpline(nullptr),
 	m_worldSnakePoints(snakeSlicerPoints),
+	m_isSliceProfEnabled(false),
 	m_sliceProfile(nullptr),
-	m_arbProfile(nullptr),
+	m_profileHandlesEnabled(false),
+	m_profileHandles(nullptr),
 	m_mode(mode),
 	m_decorations(decorations),
 	m_userSetBackground(false),
@@ -288,8 +288,8 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_sliceProfile = new iASlicerProfile();
 		m_sliceProfile->setVisibility(false);
 
-		m_arbProfile = new iAArbitraryProfileOnSlicer();
-		m_arbProfile->setVisibility(false);
+		m_profileHandles = new iASlicerProfileHandles();
+		m_profileHandles->setVisibility(false);
 
 		m_scalarBarWidget = vtkSmartPointer<vtkScalarBarWidget>::New();
 		m_textProperty = vtkSmartPointer<vtkTextProperty>::New();
@@ -423,7 +423,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	if (m_decorations)
 	{
 		m_sliceProfile->addToRenderer(m_ren);
-		m_arbProfile->addToRenderer(m_ren);
+		m_profileHandles->addToRenderer(m_ren);
 	}
 	m_ren->ResetCamera();
 }
@@ -444,7 +444,7 @@ iASlicer::~iASlicer()
 		delete m_contextMenuSnakeSlicer;
 		delete m_contextMenuMagicLens;
 		delete m_sliceProfile;
-		delete m_arbProfile;
+		delete m_profileHandles;
 	}
 }
 
@@ -2081,16 +2081,16 @@ void iASlicer::mousePressEvent(QMouseEvent *event)
 	}
 	if (m_isSliceProfEnabled
 		&& (event->modifiers() == Qt::NoModifier)
-		&& event->button() == Qt::LeftButton)//if slice profile m_viewMode is enabled do all the necessary operations
+		&& event->button() == Qt::LeftButton)  // if slice profile is enabled, do all the necessary operations
 	{
 		updateRawProfile(m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
 	}
 
-	if (m_isArbProfEnabled
+	if (m_profileHandlesEnabled
 		&& (event->modifiers() == Qt::NoModifier)
-		&& event->button() == Qt::LeftButton)//if arbitrary profile m_viewMode is enabled do all the necessary operations
+		&& event->button() == Qt::LeftButton)  // if profile handles are shown, do all the necessary operations
 	{
-		m_arbProfile->findSelectedPointIdx(m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
+		m_profileHandles->findSelectedPointIdx(m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
 	}
 
 	if (m_decorations && m_interactionMode == SnakeEdit && event->button() == Qt::LeftButton)
@@ -2164,22 +2164,22 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 	{
 		updateRawProfile(m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
 	}
-	if (m_isArbProfEnabled)
+	if (m_profileHandlesEnabled)
 	{
-		int arbProfPointIdx = m_arbProfile->pointIdx();
-		if (event->modifiers() == Qt::NoModifier && arbProfPointIdx >= 0)
+		int profilePointIdx = m_profileHandles->pointIdx();
+		if (event->modifiers() == Qt::NoModifier && profilePointIdx >= 0)
 		{
 			if (event->buttons() & Qt::LeftButton)
 			{
-				double const * ptPos = m_arbProfile->position(arbProfPointIdx);
+				double const * ptPos = m_profileHandles->position(profilePointIdx);
 				const int zind = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
 				double globalPos[3];
 				std::copy(m_globalPt, m_globalPt + 3, globalPos);
 				globalPos[zind] = ptPos[zind];
 
-				if (setArbitraryProfileWithClamp(arbProfPointIdx, globalPos, true))
+				if (setProfilePointWithClamp(profilePointIdx, globalPos, true))
 				{
-					emit arbitraryProfileChanged(arbProfPointIdx, globalPos);
+					emit profilePointChanged(profilePointIdx, globalPos);
 				}
 			}
 		}
@@ -2277,12 +2277,12 @@ void iASlicer::updateRawProfile(double posY)
 #endif
 }
 
-bool iASlicer::setArbitraryProfile(int pointInd, double* Pos)
+bool iASlicer::setProfilePoint(int pointInd, double* Pos)
 {
-	return setArbitraryProfileWithClamp(pointInd, Pos, false);
+	return setProfilePointWithClamp(pointInd, Pos, false);
 }
 
-bool iASlicer::setArbitraryProfileWithClamp(int pointInd, double * Pos, bool doClamp)
+bool iASlicer::setProfilePointWithClamp(int pointInd, double * Pos, bool doClamp)
 {
 	if (!m_decorations || !hasChannel(0))
 	{
@@ -2301,7 +2301,7 @@ bool iASlicer::setArbitraryProfileWithClamp(int pointInd, double * Pos, bool doC
 		}
 	}
 	double profileCoord2d[2] = { Pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], Pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)] };
-	if (!m_arbProfile->setup(pointInd, Pos, profileCoord2d, channel(0)->output()))
+	if (!m_profileHandles->setup(pointInd, Pos, profileCoord2d, channel(0)->output()))
 	{
 		return false;
 	}
@@ -2362,14 +2362,14 @@ void iASlicer::setSliceProfileOn(bool isOn)
 	updateRawProfile(channel(0)->output()->GetOrigin()[1]);
 }
 
-void iASlicer::setArbitraryProfileOn(bool isOn)
+void iASlicer::setProfileHandlesOn(bool isOn)
 {
 	if (!m_decorations)
 	{
 		return;
 	}
-	m_isArbProfEnabled = isOn;
-	m_arbProfile->setVisibility(m_isArbProfEnabled);
+	m_profileHandlesEnabled = isOn;
+	m_profileHandles->setVisibility(m_profileHandlesEnabled);
 #if VTK_MAJOR_VERSION < 9
 	GetRenderWindow()->GetInteractor()->Render();
 #else

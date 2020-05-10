@@ -363,7 +363,7 @@ private slots:
 	void setChannel(int ch);
 	void updateRenderWindows(int channels);
 	void updatePositionMarker(int x, int y, int z, int mode);
-	void toggleArbitraryProfile(bool isChecked);
+	void toggleProfileHandles(bool isChecked);
 	void ioFinished();
 	void updateImageProperties();
 	void clearLogs();
@@ -455,7 +455,7 @@ private:
 	bool m_isSmthMaximized;       //!< whether a single dock widget is currently maximized
 	bool m_isUntitled;            //!< whether current content is saved as a file already
 	bool m_isSliceProfileEnabled; //!< whether slice profile, shown in slices, is enabled
-	bool m_isArbProfileEnabled;   //!< whether arbitrary profile, shown in profile widget
+	bool m_profileHandlesEnabled; //!< whether profile handles (profile points) in renderer/slicer are enabled
 	bool m_isMagicLensEnabled;    //!< whether magic lens in slicers is enabled
 	bool m_reInitializeRenderWindows; //! whether render windows need to be reinitialized
 	bool m_raycasterInitialized;  //!< whether renderer is already initialized
