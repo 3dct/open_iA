@@ -35,7 +35,7 @@ class vtkPolyDataMapper;
 class vtkRenderer;
 class vtkImageData;
 
-//! Represents a "raw" profile that can be drawn over an image on a given renderer.
+//! Represents a "raw" profile function drawn over an image on a given renderer.
 class iASlicerProfile
 {
 public:

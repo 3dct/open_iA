@@ -23,6 +23,7 @@
 #include "defines.h"
 #include "iAConsole.h"
 #include "iAChannelData.h"
+#include "iALineSegment.h"
 #include "iAMovieHelper.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
@@ -77,8 +78,16 @@
 #include <QLocale>
 #include <QtGlobal> // for QT_VERSION
 
+#include <cassert>
+
 #define VTKISRBP_ORIENT 0
 #define VTKISRBP_SELECT 1
+
+namespace
+{
+	const int NumOfProfileLines = 7;
+	const double IndicatorsLenMultiplier = 1.3;
+}
 
 static void GetCellCenter(vtkUnstructuredGrid* imageData, const unsigned int cellId,
 	double center[3], double spacing[3]);
@@ -250,9 +259,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	m_plane2(vtkSmartPointer<vtkPlane>::New()),
 	m_plane3(vtkSmartPointer<vtkPlane>::New()),
 	m_moveableAxesActor(vtkSmartPointer<vtkAxesActor>::New()),
-	m_profileLineSource(vtkSmartPointer<vtkLineSource>::New()),
-	m_profileLineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_profileLineActor(vtkSmartPointer<vtkActor>::New()),
 	m_profileLineStartPointSource(vtkSmartPointer<vtkSphereSource>::New()),
 	m_profileLineStartPointMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_profileLineStartPointActor(vtkSmartPointer<vtkActor>::New()),
@@ -265,6 +271,12 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	m_sliceCubeActor(vtkSmartPointer<vtkActor>::New()),
 	m_initialized(false)
 {
+	// fill m_profileLine; cannot do it via  m_profileLine(NumOfProfileLines, iALineSegment()),
+	// since that would insert copies of one iALineSegment, meaning all would reference the same vtk objects...
+	for (int n = 0; n < NumOfProfileLines; ++n)
+	{
+		m_profileLine.push_back(iALineSegment());
+	}
 	m_ren->SetLayer(0);
 	m_labelRen->SetLayer(1);
 	m_labelRen->InteractiveOff();
@@ -318,7 +330,18 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 {
 	m_imageData = ds;
 	setPolyData(pd);
-	double spacing[3];	ds->GetSpacing(spacing);
+	double spacing[3];
+	ds->GetSpacing(spacing);
+
+	iAVec3d spacingVec(spacing);
+	iAVec3d origin(m_imageData->GetOrigin());
+	int const* sizeArr = m_imageData->GetDimensions();
+	iAVec3d sizePx(sizeArr[0], sizeArr[1], sizeArr[2]);
+	iAVec3d size = (sizePx * spacingVec);
+	// for stick out size, we compute average size over all 3 dimensions; maybe use max instead?
+	double stickOutSize = (size[0] + size[1] + size[2]) * (IndicatorsLenMultiplier - 1) / 6;
+	m_stickOutBox[0] = origin - stickOutSize;
+	m_stickOutBox[1] = origin + size + stickOutSize;
 
 	m_interactor = m_renWin->GetInteractor();
 	setPointPicker();
@@ -355,10 +378,29 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 	m_ren->SetActiveCamera(m_cam);
 	setCamPosition( iACameraPosition::PZ );
 
-	m_profileLineMapper->SetInputConnection(m_profileLineSource->GetOutputPort());
-	m_profileLineActor->SetMapper(m_profileLineMapper);
-	m_profileLineActor->SetPickable(false);
-	m_profileLineActor->SetDragable(false);
+	for (int i = 0; i < NumOfProfileLines; ++i)
+	{
+		m_profileLine[i].actor->SetPickable(false);
+		m_profileLine[i].actor->SetDragable(false);
+		QColor color;
+		if (i == 0)
+		{
+			color.setRgb(150, 186, 240);
+		}
+		else if (i >= 1 && i <= 3)
+		{
+			color.setRgb(255, 168, 0);
+		}
+		else if (i > 3)
+		{
+			color.setRgb(0, 168, 255);
+		}
+		m_profileLine[i].actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
+		m_profileLine[i].actor->GetProperty()->SetLineWidth(2.0);
+		m_profileLine[i].actor->GetProperty()->SetLineStipplePattern(0x00ff);//0xf0f0
+		m_profileLine[i].actor->GetProperty()->SetLineStippleRepeatFactor(1);
+		m_profileLine[i].actor->GetProperty()->SetPointSize(2);
+	}
 	m_profileLineStartPointMapper->SetInputConnection(m_profileLineStartPointSource->GetOutputPort());
 	m_profileLineStartPointActor->SetMapper(m_profileLineStartPointMapper);
 	m_profileLineStartPointActor->SetPickable(false);
@@ -367,13 +409,6 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 	m_profileLineEndPointActor->SetMapper(m_profileLineEndPointMapper);
 	m_profileLineEndPointActor->SetPickable(false);
 	m_profileLineEndPointActor->SetDragable(false);
-	m_profileLineActor->GetProperty()->SetColor(0.59, 0.73, 0.94);//ffa800//150, 186, 240
-	m_profileLineActor->GetProperty()->SetLineWidth(2.0);
-	m_profileLineActor->GetProperty()->SetLineStipplePattern(0x00ff);//0xf0f0
-	m_profileLineActor->GetProperty()->SetLineStippleRepeatFactor(1);
-	m_profileLineActor->GetProperty()->SetPointSize(2);
-	m_profileLineActor->SetPickable(false);
-	m_profileLineActor->SetDragable(false);
 	m_profileLineStartPointSource->SetRadius(2 * spacing[0]);
 	m_profileLineEndPointSource->SetRadius(2 * spacing[0]);
 	m_profileLineStartPointActor->GetProperty()->SetColor(1.0, 0.65, 0.0);
@@ -547,7 +582,10 @@ void iARenderer::setupRenderer()
 	m_ren->AddActor(m_cActor);
 	m_ren->AddActor(m_axesActor);
 	m_ren->AddActor(m_moveableAxesActor);
-	m_ren->AddActor(m_profileLineActor);
+	for (int i = 0; i < NumOfProfileLines; ++i)
+	{
+		m_ren->AddActor(m_profileLine[i].actor);
+	}
 	m_ren->AddActor(m_profileLineStartPointActor);
 	m_ren->AddActor(m_profileLineEndPointActor);
 	m_ren->AddActor(m_sliceCubeActor);
@@ -837,18 +875,29 @@ void iARenderer::mouseLeftButtonReleasedSlot()
 
 void iARenderer::setArbitraryProfile(int pointIndex, double * coords)
 {
+	m_profileLine[0].setPoint(pointIndex, coords[0], coords[1], coords[2]);
+	m_profileLine[0].mapper->Update();
+
+	for (int i = 0; i < 3; ++i)
+	{
+		int profLineIdx = (pointIndex * 3) + 1 + i;
+		assert(profLineIdx >= 0 && profLineIdx < NumOfProfileLines);
+		for (int ptIdx = 0; ptIdx < 2; ++ptIdx)
+		{
+			iAVec3d pt(coords);
+			pt[i] = m_stickOutBox[ptIdx][i];
+			m_profileLine[profLineIdx].setPoint(ptIdx, pt[0], pt[1], pt[2]);
+			m_profileLine[profLineIdx].mapper->Update();
+		}
+	}
 	if (pointIndex == 0)
 	{
-		m_profileLineSource->SetPoint1(coords);
 		m_profileLineStartPointSource->SetCenter(coords);
-		m_profileLineMapper->Update();
 		m_profileLineStartPointMapper->Update();
 	}
 	else
 	{
-		m_profileLineSource->SetPoint2(coords);
 		m_profileLineEndPointSource->SetCenter(coords);
-		m_profileLineMapper->Update();
 		m_profileLineEndPointMapper->Update();
 	}
 	update();
@@ -856,9 +905,13 @@ void iARenderer::setArbitraryProfile(int pointIndex, double * coords)
 
 void iARenderer::setArbitraryProfileOn(bool isOn)
 {
-	m_profileLineActor->SetVisibility(isOn);
+	for (int p = 0; p < NumOfProfileLines; ++p)
+	{
+		m_profileLine[p].actor->SetVisibility(isOn);
+	}
 	m_profileLineStartPointActor->SetVisibility(isOn);
 	m_profileLineEndPointActor->SetVisibility(isOn);
+	update();
 }
 
 void iARenderer::initObserver()
@@ -1002,7 +1055,6 @@ void iARenderer::updateSlicePlanes(double const * newSpacing)
 		return;
 	}
 	double const * spc = newSpacing;
-
 	const int * dim = m_imageData->GetDimensions();
 	if (dim[0] == 0 || dim[1] == 0 || dim[2] == 0)
 	{
@@ -1015,13 +1067,12 @@ void iARenderer::updateSlicePlanes(double const * newSpacing)
 	}
 	for (int s = 0; s < 3; ++s)
 	{
-		const double LenMultiplier = 1.3;
 		m_slicePlaneSource[s]->SetXLength((s == iASlicerMode::XY || s == iASlicerMode::XZ) ?
-				LenMultiplier * dim[0] * spc[0] : spc[0]);
+			IndicatorsLenMultiplier * dim[0] * spc[0] : spc[0]);
 		m_slicePlaneSource[s]->SetYLength((s == iASlicerMode::XY || s == iASlicerMode::YZ) ?
-				LenMultiplier * dim[1] * spc[1] : spc[1]);
+			IndicatorsLenMultiplier * dim[1] * spc[1] : spc[1]);
 		m_slicePlaneSource[s]->SetZLength((s == iASlicerMode::XZ || s == iASlicerMode::YZ) ?
-				LenMultiplier * dim[2] * spc[2] : spc[2]);
+			IndicatorsLenMultiplier * dim[2] * spc[2] : spc[2]);
 		m_slicePlaneSource[s]->SetCenter(center);
 	}
 }

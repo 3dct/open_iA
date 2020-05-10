@@ -22,6 +22,8 @@
 
 #include "open_iA_Core_export.h"
 
+#include "iAvec3.h"
+
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkSmartPointer.h>
 
@@ -29,8 +31,8 @@
 
 #include <set>
 #include <vector>
-#include "iAConsole.h"
 
+struct iALineSegment;
 class iARenderSettings;
 class iARenderObserver;
 
@@ -227,9 +229,7 @@ private:
 	//! @}
 
 	//! @{ Line profile
-	vtkSmartPointer<vtkLineSource>     m_profileLineSource;
-	vtkSmartPointer<vtkPolyDataMapper> m_profileLineMapper;
-	vtkSmartPointer<vtkActor>          m_profileLineActor;
+	std::vector<iALineSegment>         m_profileLine;
 	vtkSmartPointer<vtkSphereSource>   m_profileLineStartPointSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_profileLineStartPointMapper;
 	vtkSmartPointer<vtkActor>          m_profileLineStartPointActor;
@@ -239,7 +239,7 @@ private:
 	//! @}
 
 	//! @{ Slice planes
-	vtkSmartPointer<vtkCubeSource>    m_slicePlaneSource[3];
+	vtkSmartPointer<vtkCubeSource>     m_slicePlaneSource[3];
 	vtkSmartPointer<vtkPolyDataMapper> m_slicePlaneMapper[3];
 	vtkSmartPointer<vtkActor>          m_slicePlaneActor[3];
 	float m_slicePlaneOpacity; //!< Slice Plane Opacity
@@ -248,6 +248,9 @@ private:
 	vtkSmartPointer<vtkCubeSource> m_slicingCube;
 	vtkSmartPointer<vtkPolyDataMapper> m_sliceCubeMapper;
 	vtkSmartPointer<vtkActor> m_sliceCubeActor;
+
+	//! bounding box for "stick-out" information (currently used for lines leading to profile points)
+	iAVec3d m_stickOutBox[2];
 
 	//! flag indicating whether renderer is initialized
 	bool m_initialized;

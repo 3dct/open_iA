@@ -28,7 +28,8 @@ class vtkRenderer;
 class vtkImageData;
 class vtkActor;
 
-//! Adds handles for start and end of a profile line to the given renderer
+//! Shows handles for start and end of a profile line to the given renderer
+// todo: rename to iASlicerProfileHandles
 class iAArbitraryProfileOnSlicer
 {
 public:
