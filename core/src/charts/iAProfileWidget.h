@@ -39,11 +39,9 @@ public:
 	iAProfileWidget(QWidget *parent, vtkPolyData* profData, double rayLength, QString yCapt = "Y Axis", QString xCapt = "X Axis");
 	void initialize(vtkPolyData* profData, double rayLength);
 private:
-	vtkPolyData* profileData;
-	double numBin, rayLen;
-	double yDataRange[2];
-	vtkDataArray * scalars;
-	double yHeight;
+	vtkPolyData* m_profileData;
+	vtkDataArray* m_scalars;
+	double m_rayLen, m_numBin, m_yHeight;
 	void drawPlots(QPainter &painter) override;
 	void showDataTooltip(QHelpEvent *event) override;
 signals:

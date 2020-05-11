@@ -39,8 +39,10 @@ public:
 	}
 	void updateProbe(int ptIndex, double const * const newPos)
 	{
-		for (int i=0; i<3; i++)
+		for (int i = 0; i < 3; ++i)
+		{
 			m_positions[ptIndex][i] = newPos[i];
+		}
 		m_lineSrc->SetPoint1(m_positions[0]);
 		m_lineSrc->SetPoint2(m_positions[1]);
 	}
@@ -49,12 +51,14 @@ public:
 		m_probe->Update();
 		m_profileData = m_probe->GetPolyDataOutput();
 	}
-	double rayLength()
+	double rayLength() const
 	{
 		double comps[3] = { m_positions[1][0] - m_positions[0][0], m_positions[1][1] - m_positions[0][1], m_positions[1][2] - m_positions[0][2]};
 		double sqrLen = 0;
-		for (int i=0; i<3; i++)
+		for (int i = 0; i < 3; ++i)
+		{
 			sqrLen += comps[i] * comps[i];
+		}
 		return sqrtl(sqrLen);
 	}
 
