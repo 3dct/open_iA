@@ -26,22 +26,20 @@
 #include "vtkProperty.h"
 #include <iAConsole.h>
 
-iAVROctree::iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet):m_renderer(ren),m_dataSet(dataSet),m_actor(vtkSmartPointer<vtkActor>::New())
+iAVROctree::iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet):m_renderer(ren),m_dataSet(dataSet),m_actor(vtkSmartPointer<vtkActor>::New()),
+m_octree(vtkSmartPointer<vtkOctreePointLocator>::New())
 {
 	m_visible = false;
 }
 
-void iAVROctree::generateOctree(QColor col)
+void iAVROctree::generateOctree(int level, QColor col)
 {
-
-	// Create the octree
-	m_octree =	vtkSmartPointer<vtkOctreePointLocator>::New();
-	m_octree->SetMaximumPointsPerRegion(10);
+	m_octree->SetMaximumPointsPerRegion(25);
 	m_octree->SetDataSet(m_dataSet);
 	m_octree->BuildLocator();
 
 	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
-	m_octree->GenerateRepresentation(2, polydata);
+	m_octree->GenerateRepresentation(level, polydata);
 
 	vtkSmartPointer<vtkPolyDataMapper> octreeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	octreeMapper->SetInputData(polydata);
@@ -49,11 +47,22 @@ void iAVROctree::generateOctree(QColor col)
 	m_actor->SetMapper(octreeMapper);
 	//m_actor->GetProperty()->SetInterpolationToFlat();
 	m_actor->GetProperty()->SetRepresentationToWireframe();
+	//m_actor->GetProperty()->SetRepresentationToPoints();
 	m_actor->GetProperty()->SetColor(col.redF(), col.greenF(), col.blueF());
 	m_actor->GetProperty()->SetLineWidth(6); //ToDo Use TubeFilter?
-	m_actor->PickableOff();
+	//m_actor->PickableOff();
 
 	DEBUG_LOG(QString("Octree visualized"));
+}
+
+void iAVROctree::FindClosestNPoints(int N, const double x[3], vtkIdList* result)
+{
+	m_octree->FindClosestNPoints(N, x, result);
+}
+
+vtkIdType iAVROctree::FindClosestPoint(const double x[3])
+{
+	return m_octree->FindClosestPoint(x);
 }
 
 void iAVROctree::show()

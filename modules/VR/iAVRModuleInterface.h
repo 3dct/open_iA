@@ -26,14 +26,15 @@
 
 #include <QSharedPointer>
 
-class iA3DCylinderObjectVis;
+#include "iAVRMain.h"
+#include "iAVRInteractorStyle.h"
+
 class iAVREnvironment;
-class iAVR3DObjectVis; //TEST
-class iAVROctree; //TEST
 
 class vtkTable;
 
 class QAction;
+
 
 class iAVRModuleInterface : public iAModuleInterface
 {
@@ -43,11 +44,9 @@ public:
 private:
 	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild* child ) override;
 	bool vrAvailable();
-
-	QSharedPointer<iA3DCylinderObjectVis> m_cylinderVis;
-	QSharedPointer<iAVR3DObjectVis> m_ObjectVis; //TEST
-	QSharedPointer<iAVROctree> m_Octree; //TEST
 	QSharedPointer<iAVREnvironment> m_vrEnv;
+	iAVRMain* m_vrMain;
+	vtkSmartPointer<iAVRInteractorStyle> m_style;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	QAction* m_actionVRShowFibers;
 private slots:

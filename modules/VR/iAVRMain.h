@@ -18,66 +18,61 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
+
+#include "vtkSmartPointer.h"
 #include "iAVREnvironment.h"
 
-#include "iAVRInteractor.h"
+#include "vtkEventData.h"
+#include "vtkTable.h"
+#include "vtkDataSet.h"
+#include "vtkProp3D.h"
+#include "iACsvIO.h"
 
-#include "iAConsole.h"
-
-#include <vtkOpenVRRenderer.h>
-#include <vtkOpenVRRenderWindow.h>
-#include <vtkOpenVRCamera.h>
+#include "iAVRInteractorStyle.h"
 
 
-iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_interactor(vtkSmartPointer<iAVRInteractor>::New()), 
-m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New())
-{	
-	m_renderer->SetBackground(50, 50, 50);
-}
+// Enumeration of different interaction options for different Objects
+enum class iAVRInteractionOptions {
+  Unknown = -1,
+  Default,
+  MiniatureModel,
+  Volume,
+  NumberOfOptions
+};
 
-vtkRenderer* iAVREnvironment::renderer()
+// Enumeration of different Operations
+enum class iAVROperations {
+  Unknown = -1,
+  None,
+  SpawnMM,
+  ArrangeObject,
+  WorldGrab,
+  WorldZoom,
+  Slicing,
+  NumberOfOperations
+};
+
+class iAVR3DObjectVis;
+class iA3DCylinderObjectVis;
+class iAVROctree; 
+
+//! Class for  
+class iAVRMain
 {
-	return m_renderer;
-}
-
-iAVRInteractor* iAVREnvironment::interactor()
-{
-	return m_interactor;
-}
-
-void iAVREnvironment::update()
-{
-	m_renderWindow->Render();
-}
-
-void iAVREnvironment::start()
-{
-	static int runningInstances = 0;
-	// "poor man's" check for trying to run two VR sessions in parallel:
-	if (runningInstances >= 1)
-	{
-		DEBUG_LOG("Cannot start more than one VR session in parallel!");
-		emit finished();
-		return;
-	}
-	++runningInstances;
-	m_renderWindow->AddRenderer(m_renderer);
-	// MultiSamples needs to be set to 0 to make Volume Rendering work:
-	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
-	m_renderWindow->SetMultiSamples(0);
-	m_interactor->SetRenderWindow(m_renderWindow);
-	auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
-
-	m_renderer->SetActiveCamera(camera);
-	m_renderer->ResetCamera();
-	m_renderWindow->Render();
-	m_interactor->Start();
-	--runningInstances;
-	emit finished();
-}
-
-void iAVREnvironment::stop()
-{
-	if (m_interactor)
-		m_interactor->stop();
-}
+public:
+	iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io);
+	void startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], vtkProp3D* m_pickedProp); //Press, Touch
+	void endInteraction(); //Release, Untouch
+	int octreeLevel;
+private:
+	iAVREnvironment* m_vrEnv;
+	iAVROctree* m_octree;
+	iAVR3DObjectVis* m_objectVis;
+	iA3DCylinderObjectVis* m_cylinderVis;
+	vtkSmartPointer<iAVRInteractorStyle> m_style;
+	vtkSmartPointer<vtkTable> m_objectTable;
+	vtkSmartPointer<vtkProp3D> m_pickedProp;
+	iACsvIO m_io;
+	
+};

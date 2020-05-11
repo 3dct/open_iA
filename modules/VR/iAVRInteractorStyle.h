@@ -24,18 +24,23 @@
 #include <vtkSmartPointer.h>
 #include "vtkEventData.h"
 
-//! Base Class for specific interactions of different objects 
-//! For the Vive left click is mapped to the trigger and right
-//! click is mapped to pushing the trackpad down.
-class iAVRInteractorStyle: public vtkOpenVRInteractorStyle
+class iAVRMain;
+
+//! Base Class for specific interaction callbacks
+class iAVRInteractorStyle : public vtkOpenVRInteractorStyle
 {
    public:
-	   static iAVRInteractorStyle* New();
-	   vtkTypeMacro(iAVRInteractorStyle, vtkOpenVRInteractorStyle);
+	static iAVRInteractorStyle* New();
+	vtkTypeMacro(iAVRInteractorStyle, vtkOpenVRInteractorStyle);
 
-	   void OnButton3D(vtkEventData* edata) override;
+	void setVRMain(iAVRMain* vrMain);
+
+	void OnButton3D(vtkEventData* edata) override;
 
    protected:
-	   iAVRInteractorStyle();	   
-};
+	iAVRInteractorStyle();
 
+   private:
+	iAVRMain* m_vrMain;
+	double m_eventPosition[3];
+};

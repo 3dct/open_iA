@@ -27,6 +27,7 @@
 class vtkOpenVRRenderer;
 class iAVRInteractor;
 class vtkRenderer;
+class vtkOpenVRRenderWindow;
 
 class iAVREnvironment: public QObject
 {
@@ -34,10 +35,13 @@ class iAVREnvironment: public QObject
 public:
 	iAVREnvironment();
 	vtkRenderer* renderer();
+	iAVRInteractor* interactor();
+	void update();
 	void start();
 	void stop();
 private:
 	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
+	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<iAVRInteractor> m_interactor;
 signals:
 	void finished();

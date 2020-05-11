@@ -22,10 +22,6 @@
 
 #include "iAVRAttachment.h"
 #include "iAVREnvironment.h"
-//TEST
-#include "iAVR3DObjectVis.h"
-#include "iAVROctree.h"
-#include <vtkActorCollection.h>
 
 // FeatureScout - 3D cylinder visualization
 #include "dlg_CSVInput.h"
@@ -40,6 +36,7 @@
 #include <iAVolumeRenderer.h>
 #include <mainwindow.h>
 #include <mdichild.h>
+
 
 #include <openvr.h>
 
@@ -139,30 +136,21 @@ void iAVRModuleInterface::showFibers()
 		return;
 	if (m_vrEnv)
 		return;
+
+	//Create Environment
 	m_vrEnv.reset(new iAVREnvironment());
 	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRModuleInterface::vrDone);
 	m_actionVRShowFibers->setText("Stop Show Fibers");
 
 	m_objectTable = creator.table();
 
-	m_cylinderVis.reset(new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, io.getOutputMapping(), QColor(255, 0, 0), std::map<size_t, std::vector<iAVec3f> >() ));
+	//Create InteractorStyle
+	m_style = vtkSmartPointer<iAVRInteractorStyle>::New();
 
-	//TEST ADD Cube
-	m_ObjectVis.reset(new iAVR3DObjectVis(m_vrEnv->renderer()));
-	m_ObjectVis->createCube(QColor(0, 190, 50, 255));
-
-	//QSharedPointer<iAVR3DObjectVis> m_ObjectVis2;
-	//m_ObjectVis2.reset(new iAVR3DObjectVis(m_vrEnv->renderer()));
-	//m_ObjectVis2->createCube(QColor(0, 40, 195, 255));
-
-	//TEST Add octree
-	m_Octree.reset(new iAVROctree(m_vrEnv->renderer(),m_cylinderVis->getPolyData()));
-	m_Octree->generateOctree(QColor(126, 0, 223, 255));
-
-	m_cylinderVis->show();
-	m_ObjectVis->show();
-	m_Octree->show();
-
+	//Create VR Main
+	DEBUG_LOG("here 1");
+	m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_objectTable, io);
+	DEBUG_LOG("here");
 	m_vrEnv->start();
 
 	m_vrEnv.reset(nullptr);

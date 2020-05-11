@@ -20,32 +20,88 @@
 * ************************************************************************************/
 #include "iAVRInteractorStyle.h"
 
-#include <vtkObjectFactory.h>
 #include <iAConsole.h>
+#include <vtkObjectFactory.h>
+#include "vtkOpenVRRenderWindowInteractor.h"
+#include <vtkPropPicker.h>
+#include <vtkPointPicker.h>
+#include "iAVRMain.h"
+#include "vtkActor.h"
+#include "vtkProperty.h"
+#include "vtkPolyDataMapper.h"
 
 vtkStandardNewMacro(iAVRInteractorStyle);
 
-iAVRInteractorStyle::iAVRInteractorStyle():vtkOpenVRInteractorStyle()
+//Reimplements the Constructor
+iAVRInteractorStyle::iAVRInteractorStyle()
 {
-	
+
+/*	for (int d = 0; d < vtkEventDataNumberOfDevices; ++d)
+	{
+		this->InteractionState[d] = 0; // static_cast<int>(iAVROperations::None)
+		this->InteractionProps[d] = nullptr;
+		this->ClippingPlanes[d] = nullptr;
+
+		for (int i = 0; i < vtkEventDataNumberOfInputs; i++)
+		{
+			this->InputMap[d][i] = -1;
+			//this->ControlsHelpers[d][i] = nullptr;
+		}
+	}
+
+	vtkNew<vtkPolyDataMapper> pdm;
+	this->PickActor->SetMapper(pdm);
+	this->PickActor->GetProperty()->SetLineWidth(4);
+	this->PickActor->GetProperty()->RenderLinesAsTubesOn();
+	this->PickActor->GetProperty()->SetRepresentationToWireframe();
+	this->PickActor->DragableOff();
+
+	this->HoverPickOff();
+	*/
 }
 
+void iAVRInteractorStyle::setVRMain(iAVRMain* vrMain)
+{
+	m_vrMain = vrMain;
+	DEBUG_LOG(QString::number(vrMain->octreeLevel));
+	DEBUG_LOG(QString::number(m_vrMain->octreeLevel));
+}
+
+// Calls, depending on Device - its input and action, the corresponding method
+// Events can occure through left/right Controller and its input (trigger, grip, Trackpad,...) and an Action (Press, Release, Touch,...)
 void iAVRInteractorStyle::OnButton3D(vtkEventData* edata)
 {
-	vtkOpenVRInteractorStyle::OnButton3D(edata);
+	//vtkOpenVRInteractorStyle::OnButton3D(edata);
+    
+	// Used Device
+	vtkEventDataDevice3D* device = edata->GetAsEventDataDevice3D();
+
+	if (!device)
+	{
+		return;
+	}
+
+	//vtkEventDataDeviceInput input = device->GetInput();              // Input Method
+	vtkEventDataAction action = device->GetAction();                 // Action of Input Method
+
+	// TODO Performance?
+	int x = this->Interactor->GetEventPosition()[0];
+	int y = this->Interactor->GetEventPosition()[1];
+	this->FindPokedRenderer(x, y);
+
+	device->GetWorldPosition(m_eventPosition);
+
+	this->FindPickedActor(m_eventPosition, nullptr);
+
+
+	if(action == vtkEventDataAction::Press || action == vtkEventDataAction::Touch)
+	{
+		m_vrMain->startInteraction(device, m_eventPosition, InteractionProp);
+
+	}
+	else if(action == vtkEventDataAction::Release || action == vtkEventDataAction::Untouch)
+	{
+		m_vrMain->endInteraction();
+	}
 	
-	vtkEventDataDevice3D *event = edata->GetAsEventDataDevice3D();
-
-	// right trigger press/release
-	if (event->GetAction() == vtkEventDataAction::Press)
-	{
-		ShowBillboard("TEXT CAN BE READ!!");
-	}
-	if (event->GetAction() == vtkEventDataAction::Release)
-	{
-		HideBillboard();
-	}
-
 }
-
-

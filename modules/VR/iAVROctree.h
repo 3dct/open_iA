@@ -26,12 +26,14 @@
 #include <vtkOctreePointLocator.h>
 #include <QColor>
 
-//! Class for calculation of 3D Octree 
+//! Class for calculation of a 3D Octree 
 class iAVROctree
 {
 public:
 	iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet);
-	void generateOctree(QColor col);
+	void generateOctree(int level, QColor col);
+	void FindClosestNPoints(int N, const double	x[3], vtkIdList* result);
+	vtkIdType FindClosestPoint(const double x[3]);
 	void show();
 	void hide();
 private:
