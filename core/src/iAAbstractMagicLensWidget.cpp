@@ -110,7 +110,7 @@ void iAAbstractMagicLensWidget::mouseMoveEvent( QMouseEvent * event )
 	m_pos[0] = pos[0]; m_pos[1] = pos[1];
 	updateLens( );
 	updateGUI( );
-	emit MouseMoved( );
+	emit mouseMoved();
 #if VTK_MAJOR_VERSION < 9
 	GetRenderWindow()->Render();
 #else

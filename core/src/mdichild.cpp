@@ -135,7 +135,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	setWindowModified(unsavedChanges);
 	setupUi(this);
 	//prepare window for handling dock widgets
-	this->setCentralWidget(nullptr);
+	setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
 
 	//insert default dock widgets and arrange them in a simple layout
@@ -149,7 +149,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_pbar = new QProgressBar(this);
 	m_pbar->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 	m_pbar->setMaximumSize(350, 17);
-	this->statusBar()->addPermanentWidget(m_pbar);
+	statusBar()->addPermanentWidget(m_pbar);
 	m_pbarMaxVal = m_pbar->maximum();
 	m_dwLog = new dlg_logs(this);
 	addDockWidget(Qt::LeftDockWidgetArea, m_dwRenderer);
@@ -1879,11 +1879,11 @@ bool MdiChild::initView(QString const& title)
 
 	if (isVolumeDataLoaded())
 	{
-		this->addImageProperty();
-		if (m_imageData->GetNumberOfScalarComponents() == 1) //No histogram/profile for rgb, rgba or vector pixel type images
-		{
+		addImageProperty();
+		if (m_imageData->GetNumberOfScalarComponents() == 1)
+		{   // No histogram/profile for rgb, rgba or vector pixel type images
 			tabifyDockWidget(m_dwLog, m_dwHistogram);
-			this->addProfile();
+			addProfile();
 		}
 	}
 	else
@@ -1891,8 +1891,6 @@ bool MdiChild::initView(QString const& title)
 		showPoly();
 		hideHistogram();
 	}
-
-	//Load the layout to the child
 	updateLayout();
 
 	return true;
@@ -2075,7 +2073,7 @@ void MdiChild::multiview()
 void MdiChild::hideVolumeWidgets()
 {
 	setVisibility(QList<QWidget*>() << m_dwSlicer[iASlicerMode::XY] << m_dwSlicer[iASlicerMode::XZ] << m_dwSlicer[iASlicerMode::YZ] << m_dwRenderer, false);
-	this->update();
+	update();
 }
 
 void MdiChild::setVisibility(QList<QWidget*> widgets, bool show)
@@ -2298,7 +2296,7 @@ int MdiChild::sliceNumber(int mode) const
 
 void MdiChild::maximizeDockWidget(QDockWidget* dw)
 {
-	m_beforeMaximizeState = this->saveState();
+	m_beforeMaximizeState = saveState();
 	QList<QDockWidget*> dockWidgets = findChildren<QDockWidget*>();
 	for (int i = 0; i < dockWidgets.size(); ++i)
 	{
@@ -2314,7 +2312,7 @@ void MdiChild::maximizeDockWidget(QDockWidget* dw)
 
 void MdiChild::demaximizeDockWidget(QDockWidget* /*dw*/)
 {
-	this->restoreState(m_beforeMaximizeState);
+	restoreState(m_beforeMaximizeState);
 	m_isSmthMaximized = false;
 }
 
@@ -2712,7 +2710,7 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 	if (!findChild<iADockWidgetWrapper*>("Histogram"))
 	{
 		tabifyDockWidget(m_dwLog, m_dwHistogram);
-		this->addProfile();
+		addProfile();
 	}
 	emit histogramAvailable();
 }
