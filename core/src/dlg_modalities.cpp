@@ -72,8 +72,6 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 
 	connect(lwModalities, &QListWidget::itemClicked, this, &dlg_modalities::listClicked);
 	connect(lwModalities, &QListWidget::itemChanged, this, &dlg_modalities::showChecked);
-
-	connect(magicLensWidget, &iAFast3DMagicLensWidget::MouseMoved, this, &dlg_modalities::rendererMouseMoved);
 }
 
 void dlg_modalities::setModalities(QSharedPointer<iAModalityList> modList)
@@ -337,6 +335,7 @@ void dlg_modalities::setInteractionMode(bool manualRegistration)
 
 		if (manualRegistration)
 		{
+			connect(m_magicLensWidget, &iAFast3DMagicLensWidget::mouseMoved, this, &dlg_modalities::rendererMouseMoved);
 			configureInterActorStyles(editModality);
 			m_mdiChild->renderer()->interactor()->SetInteractorStyle(m_manualMoveStyle[iASlicerMode::SlicerCount]);
 			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
@@ -346,6 +345,7 @@ void dlg_modalities::setInteractionMode(bool manualRegistration)
 		}
 		else
 		{
+			disconnect(m_magicLensWidget, &iAFast3DMagicLensWidget::mouseMoved, this, &dlg_modalities::rendererMouseMoved);
 			m_mdiChild->renderer()->setDefaultInteractor();
 			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 			{
