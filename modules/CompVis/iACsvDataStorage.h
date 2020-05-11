@@ -1,5 +1,8 @@
 #pragma once
 
+//Debug
+#include "iAConsole.h"
+
 #include <QString.h>
 #include <qlistview.h>
 
@@ -9,6 +12,29 @@ namespace csvDataType
 {
 	using ValueType = double;
 	using ArrayType = std::vector<std::vector<ValueType>>;
+
+	//initialize with zeros
+	ArrayType* initialize(int columns, int rows);
+	//initialize with random numbers in range [0,1]
+	ArrayType* initializeRandom(int columns, int rows);
+	//calculate the mean of all values
+	double mean(ArrayType* input);
+	// add a number to the array in space
+	void addNumberSelf(ArrayType* input, double value);
+	//multiply a number to the array in space
+	void multiplyNumberSelf(ArrayType* input, double value);
+	//copy the array
+	ArrayType* copy(ArrayType* input);
+	//get the rows of the array
+	int getRows(ArrayType* input);
+	//get the rows of the array
+	int getColumns(ArrayType* input);
+	//copy all elements of input to a new array
+	ArrayType* elementCopy(ArrayType* input);
+	//debug array
+	void debugArrayType(ArrayType* input);
+	//transpose array
+	ArrayType* transpose(ArrayType* input);
 }
 
 struct csvFileData
@@ -16,6 +42,7 @@ struct csvFileData
 	QStringList* header;
 	csvDataType::ArrayType* values;
 };
+
 
 class iACsvDataStorage
 {
@@ -42,6 +69,6 @@ class iACsvDataStorage
 	//list containing all csv-files
 	//data = [[headerOfCSV1,valuesOfCSV1], [headerOfCSV2,valuesOfCSV2],...]
 	//header = [name1,name2,...] --> Strings
-	//values = [ [f1_val1,f1_val2,...], [f2_val1,f2_val2,...]]	
+	//values = [ [f1_val1,f1_val2,...], [f2_val1,f2_val2,...]]
 	QList<csvFileData>* m_data;
 };

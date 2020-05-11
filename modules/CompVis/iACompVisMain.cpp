@@ -14,10 +14,11 @@ iACompVisMain::iACompVisMain(MainWindow* mainWin)
 {
 	loadData();
 	
-	m_mainW = new dlg_VisMainWindow(mainWin);
+	initializeMDS();
+
+	m_mainW = new dlg_VisMainWindow(m_data, m_mds, mainWin);
 	m_mainW->show();
 
-	calculateMDS();
 }
 
 void iACompVisMain::loadData()
@@ -32,7 +33,7 @@ void iACompVisMain::loadData()
 	m_data = dlg->getCsvDataStorage();
 }
 
-void iACompVisMain::calculateMDS()
+void iACompVisMain::initializeMDS()
 {
 	m_mds = new iAMultidimensionalScaling(m_data);
 }

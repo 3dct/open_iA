@@ -14,8 +14,7 @@ iAArcCosineDistance::iAArcCosineDistance(
 
 csvDataType::ArrayType* iAArcCosineDistance::calculateProximityDistance()
 {
-	std::vector<double> vec(m_amountOfCharas);
-	m_distanceMatrix = new csvDataType::ArrayType(m_amountOfElems, vec);
+	m_distanceMatrix = csvDataType::initialize(m_amountOfElems, m_amountOfElems);
 
 	for (int pass1 = 0; pass1 < m_amountOfElems; pass1++)
 	{
@@ -29,13 +28,7 @@ csvDataType::ArrayType* iAArcCosineDistance::calculateProximityDistance()
 	}
 
 	//DEBUG
-	for (int col = 0; col < 1; col++)
-	{
-		for (int row = 0; row < m_amountOfCharas; row++)
-		{
-			DEBUG_LOG(QString::number(m_distanceMatrix->at(col).at(row)));
-		}
-	}
+	//csvDataType::debugArrayType(m_distanceMatrix);
 
 	return m_distanceMatrix;
 }

@@ -18,11 +18,9 @@ class iACompVisMain
 	void loadData();
 	
    private:
-	void calculateMDS();
+	void initializeMDS();
 
 	dlg_VisMainWindow* m_mainW;
-
 	QList<csvFileData>* m_data;
-
 	iAMultidimensionalScaling* m_mds;
 };

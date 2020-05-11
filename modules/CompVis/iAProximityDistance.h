@@ -3,6 +3,9 @@
 #include "iACsvDataStorage.h"
 #include <vector>
 
+/*
+This class represents the original distance matrix
+*/
 class iAProximityDistance
 {
    public:
