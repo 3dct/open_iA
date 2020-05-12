@@ -213,7 +213,7 @@ public:
 	// count the number of appearing of one substing in the string
 	int strstr_cnt(const char *string, const char *substring);
 	// read a single line in csv file
-	char *fgetcsvline(vector<string> &csv_databuf, FILE *fhead);
+	char *fgetcsvline(std::vector<std::string> &csv_databuf, FILE *fhead);
 	// get the position of a substring in a string
 	int substring_index(const char *s1,const char *s2, int pos);
 

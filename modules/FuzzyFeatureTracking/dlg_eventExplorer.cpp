@@ -395,7 +395,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 
 		/*for (int i = 1; i <= numberOfRows; i++)
 		{
-			vector<iAFeatureTrackingCorrespondence> correspondences;
+			std::vector<iAFeatureTrackingCorrespondence> correspondences;
 			if (t > 0)
 				correspondences = ft->FromUtoV(i);
 			else
