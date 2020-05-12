@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1197</width>
-    <height>610</height>
+    <width>1182</width>
+    <height>781</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,16 +20,31 @@
    <bool>true</bool>
   </property>
   <widget class="QWidget" name="centralwidget"/>
-  <widget class="QMenuBar" name="menuBar">
+  <widget class="QMenuBar" name="menuBar_CompVisMainWindow">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1197</width>
+     <width>1182</width>
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuMDS">
+    <property name="title">
+     <string>MDS</string>
+    </property>
+    <addaction name="actionRecalculateMDS"/>
+   </widget>
+   <addaction name="menuMDS"/>
   </widget>
+  <action name="actionRecalculateMDS">
+   <property name="text">
+    <string>Recalculate</string>
+   </property>
+   <property name="toolTip">
+    <string>Recalculate Multdimensional Scaling</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

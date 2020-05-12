@@ -2,7 +2,9 @@
 
 //CompVis
 #include "iAArcCosineDistance.h"
+#include "iASimilarityDistance.h"
 #include "iAMinkowskiDistance.h"
+#include "iAEuclideanDistance.h"
 
 //Debug
 #include "iAConsole.h"
@@ -17,8 +19,6 @@ iAMultidimensionalScaling::iAMultidimensionalScaling(QList<csvFileData>* data) :
 	initializeWeights();
 	initializeMatrixUNormalized();
 	normalizeMatrix();
-
-	
 }
 
 void iAMultidimensionalScaling::initializeWeights()
@@ -30,7 +30,16 @@ void iAMultidimensionalScaling::startMDS(std::vector<double>* weights)
 {
 	m_weights = weights;
 	calculateProximityDistance();
-	calculateMDS(1, 200);
+	calculateMDS(1, 1);
+}
+
+void iAMultidimensionalScaling::setProximityMetric(ProximityMetric proxiName)
+{
+	m_activeProxM = proxiName;
+}
+void iAMultidimensionalScaling::setDistanceMetric(DistanceMetric disName)
+{
+	m_activeDisM = disName;
 }
 
 void iAMultidimensionalScaling::initializeMatrixUNormalized()
@@ -101,9 +110,27 @@ void iAMultidimensionalScaling::normalizeMatrix()
 
 void iAMultidimensionalScaling::calculateProximityDistance()
 {
-	//m_amountofCharas-1 - without the labels
-	iAArcCosineDistance pd(m_weights, m_matrixUNormalized, m_amountOfCharas - 1, m_amountOfElems);
-	m_matrixProximityDis = pd.calculateProximityDistance();
+	if (m_activeProxM == ProximityMetric::ArcCosineDistance)
+	{
+		//m_amountofCharas-1 - without the labels
+		iAArcCosineDistance pd(m_weights, m_matrixUNormalized, m_amountOfCharas - 1, m_amountOfElems);
+		m_matrixProximityDis = pd.calculateProximityDistance();
+	}
+}
+
+iASimilarityDistance* iAMultidimensionalScaling::initializeDistanceMetric()
+{
+	iASimilarityDistance* d;
+	if (m_activeDisM == DistanceMetric::EuclideanDistance)
+	{
+		d = new iAEuclideanDistance();
+	}
+	else if (m_activeDisM == DistanceMetric::MinkowskiDistance)
+	{
+		d = new iAMinkowskiDistance();
+	}
+
+	return d;
 }
 
 void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
@@ -135,8 +162,8 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	csvDataType::ArrayType* B = csvDataType::initialize(amountColsProxM, amountRowsProxM);
 
 	//calculate euclidean distance
-	iAMinkowskiDistance d = iAMinkowskiDistance();
-	D_ = d.calculateEuclideanDis(X, D_);
+	iASimilarityDistance* d = initializeDistanceMetric();
+	D_ = d->calculateSimilarityDistance(X, D_);
 
 	//MDS iteration
 	for (int it = 0; it < iterations; it++)
@@ -184,7 +211,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 		}
 
 		//D_ = calc_D (X);
-		D_ = d.calculateEuclideanDis(X, D_);
+		D_ = d->calculateSimilarityDistance(X, D_);
 
 		//Z = X;
 		Z = csvDataType::elementCopy(X);
@@ -192,10 +219,16 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 
 	m_configuration = X;
 	
+	//DEBUG
 	csvDataType::debugArrayType(m_configuration);
 }
 
 std::vector<double>* iAMultidimensionalScaling::getWeights()
 {
 	return m_weights;
+}
+
+csvDataType::ArrayType* iAMultidimensionalScaling::getResultMatrix()
+{
+	return m_configuration;
 }

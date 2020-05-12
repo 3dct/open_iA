@@ -9,11 +9,16 @@ dlg_VisMainWindow::dlg_VisMainWindow(QList<csvFileData>* data, iAMultidimensiona
 	m_data(data),
 	m_mds(mds)
 {
-	startMDSDialog();
-
+	//setup mainwindow
 	parent->mdiArea->addSubWindow(this);
 	setupUi(this);
 
+	//start mds dialog
+	startMDSDialog();
+
+	//finish mainwindow setup
+	createMenu();
+	this->showMaximized();
 }
 
 void dlg_VisMainWindow::startMDSDialog()
@@ -28,4 +33,9 @@ void dlg_VisMainWindow::startMDSDialog()
 QList<csvFileData>* dlg_VisMainWindow::getData()
 {
 	return m_data;
+}
+
+void dlg_VisMainWindow::createMenu()
+{
+	connect(actionRecalculateMDS, &QAction::triggered, this, &dlg_VisMainWindow::startMDSDialog);
 }

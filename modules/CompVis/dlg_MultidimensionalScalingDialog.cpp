@@ -7,13 +7,12 @@
 #include "qbuttongroup.h"
 #include "qstringlist.h"
 #include <QHeaderView>
+#include "qstring.h"
 
 dlg_MultidimensionalScalingDialog::dlg_MultidimensionalScalingDialog(
 	QList<csvFileData>* data, iAMultidimensionalScaling* mds, QWidget* parent /* = 0,*/, Qt::WindowFlags f /* f = 0*/) :
 	QDialog(parent, f),
 	m_data(data),
-	m_proxiChecks(new QList<QCheckBox*>()),
-	m_disChecks(new QList<QCheckBox*>()),
 	m_weights(mds->getWeights()),
 	m_mds(mds)
 {
@@ -74,15 +73,14 @@ void dlg_MultidimensionalScalingDialog::setupProximityBox()
 {
 	int amount = static_cast<int>(ProximityMetric::NumberOfProximityMetrics);
 	
-	QButtonGroup* group = new QButtonGroup(box_Proximity);
-	group->setExclusive(true);
+	m_proxiGroup = new QButtonGroup(box_Proximity);
+	m_proxiGroup->setExclusive(true);
 
 	for (int i = 0; i < amount; i++)
 	{
 		QCheckBox* dynamic = new QCheckBox(proximityMetric_to_string(i));
-		m_proxiChecks->append(dynamic);
 		layoutProximityMetric->addWidget(dynamic);
-		group->addButton(dynamic);
+		m_proxiGroup->addButton(dynamic);
 	
 		//check the first checkbox
 		if (i == 0)
@@ -96,15 +94,14 @@ void dlg_MultidimensionalScalingDialog::setupDistanceBox()
 {
 	int amount = static_cast<int>(DistanceMetric::NumberOfDistanceMetrics);
 
-	QButtonGroup* group = new QButtonGroup(box_Distance);
-	group->setExclusive(true);
+	m_disGroup = new QButtonGroup(box_Distance);
+	m_disGroup->setExclusive(true);
 
 	for (int i = 0; i < amount; i++)
 	{
 		QCheckBox* dynamic = new QCheckBox(distanceMetric_to_string(i));
-		m_disChecks->append(dynamic);
 		layoutDistanceMetric->addWidget(dynamic);
-		group->addButton(dynamic);
+		m_disGroup->addButton(dynamic);
 
 		//check the first checkbox
 		if (i == 0)
@@ -121,7 +118,15 @@ void dlg_MultidimensionalScalingDialog::connectSignals()
 
 void dlg_MultidimensionalScalingDialog::okBtnClicked()
 {
+	ProximityMetric proxiName = string_to_proximityMetric(m_proxiGroup->checkedButton()->text());
+	m_mds->setProximityMetric(proxiName);
+
+	DistanceMetric disName = string_to_distanceMetric(m_disGroup->checkedButton()->text());
+	m_mds->setDistanceMetric(disName);
+
 	m_mds->startMDS(m_weights);
+
+	accept();
 }
 
 //TODO

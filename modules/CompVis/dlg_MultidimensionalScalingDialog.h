@@ -31,9 +31,11 @@ class dlg_MultidimensionalScalingDialog : public QDialog, public Ui_Multidimensi
 	void checkWeightValues();
 
 	QList<csvFileData>* m_data;
-	QList<QCheckBox*>* m_proxiChecks;
-	QList<QCheckBox*>* m_disChecks;
-
 	std::vector<double>* m_weights;
 	iAMultidimensionalScaling* m_mds;
+
+	QButtonGroup* m_proxiGroup;
+	QButtonGroup* m_disGroup;
+
+	
 };

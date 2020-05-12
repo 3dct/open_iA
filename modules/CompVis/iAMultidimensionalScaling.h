@@ -9,6 +9,8 @@
 #include <iostream>
 
 
+class iASimilarityDistance;
+
 enum class ProximityMetric
 {
 	Unknown = -1,
@@ -22,6 +24,19 @@ static QString proximityMetric_to_string(int i)
 	{
 	case 0: return QString("Arc-Cosine Distance");
 	default: return QString("Invalid ProximityMetric");
+	}
+}
+
+static ProximityMetric string_to_proximityMetric(QString string)
+{
+
+	if (string == QString("Arc-Cosine Distance"))
+	{
+		return ProximityMetric::ArcCosineDistance;
+	}
+	else
+	{
+		return ProximityMetric::Unknown;
 	}
 }
 
@@ -43,12 +58,33 @@ static QString distanceMetric_to_string(int i)
 	}
 }
 
+static DistanceMetric string_to_distanceMetric(QString string)
+{
+	if (string == QString("Euclidean Distance"))
+	{
+		return DistanceMetric::EuclideanDistance;
+	}
+	else if (string == QString("Minkowski Distance"))
+	{
+		return DistanceMetric::MinkowskiDistance;
+	}
+	else
+	{
+		return DistanceMetric::Unknown;
+	}
+}
+
 class iAMultidimensionalScaling
 {
    public:
 	iAMultidimensionalScaling(QList<csvFileData>* data);
 	std::vector<double>* getWeights();
 	void startMDS(std::vector<double>* weights);
+	void setProximityMetric(ProximityMetric proxiName);
+	void setDistanceMetric(DistanceMetric disName);
+
+	//return the result of the mds
+	csvDataType::ArrayType* getResultMatrix();
 
    private:
 	   //initialize weight list
@@ -62,6 +98,9 @@ class iAMultidimensionalScaling
 
 	//2.calculate proximity measure
 	void calculateProximityDistance();
+
+	//3.initialize which similarity metric to use for calculation
+	iASimilarityDistance* initializeDistanceMetric();
 
 	// Multidimensional scaling (MDS) with SMACOF
 	// This code re-implements Michael Bronstein's SMACOF in his Matlab Toolbox for Surface Comparison and Analysis

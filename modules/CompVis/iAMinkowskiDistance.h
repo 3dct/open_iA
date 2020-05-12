@@ -7,5 +7,6 @@ class iAMinkowskiDistance : public iASimilarityDistance
 {
    public:
 	iAMinkowskiDistance();
-	csvDataType::ArrayType* calculateEuclideanDis(csvDataType::ArrayType* dataMatrix, csvDataType::ArrayType* distanceMatrix);
+	csvDataType::ArrayType* calculateSimilarityDistance(
+		csvDataType::ArrayType* dataMatrix, csvDataType::ArrayType* distanceMatrix);
 };
