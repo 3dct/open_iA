@@ -306,14 +306,20 @@ void iAAlgorithm::vtkPolydata_itkMesh(vtkPolyData* polyData, MeshType::Pointer m
 	// First count the total number of triangles from all the triangle strips.
 	unsigned long numberOfTriangles = 0;
 	triangleStrips->InitTraversal();
-	while( triangleStrips->GetNextCell( numberOfCellPoints, cellPoints ) )
-		numberOfTriangles += numberOfCellPoints-2;
+	while (triangleStrips->GetNextCell(numberOfCellPoints, cellPoints))
+	{
+		numberOfTriangles += numberOfCellPoints - 2;
+	}
 
 	vtkCellArray * polygons = polyData->GetPolys();
 	polygons->InitTraversal();
-	while( polygons->GetNextCell( numberOfCellPoints, cellPoints ) )
-		if( numberOfCellPoints == 3 )
-			numberOfTriangles ++;
+	while (polygons->GetNextCell(numberOfCellPoints, cellPoints))
+	{
+		if (numberOfCellPoints == 3)
+		{
+			++numberOfTriangles;
+		}
+	}
 
 	// Reserve memory in the itk::Mesh for all those triangles
 	mesh->GetCells()->Reserve( numberOfTriangles );

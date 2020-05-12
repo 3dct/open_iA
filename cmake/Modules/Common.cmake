@@ -197,12 +197,12 @@ IF (VTK_VERSION_MAJOR LESS 8)
 	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 8.0")
 ENDIF()
 IF (VTK_VERSION_MAJOR LESS 9)
+	MESSAGE(STATUS "    Rendering Backend: ${VTK_RENDERING_BACKEND}") # only VTK < 9 has this option
 	SET (VTK_COMP_PREFIX "vtk")
 ELSE()
 	SET (VTK_RENDERING_BACKEND "OpenGL2")     # peculiarity about VTK 9: it sets VTK_RENDERING_BACKEND to "OpenGL", but for our purposes, it behaves exactly like when previously it was set to OpenGL2. The VTK_RENDERING_BACKEND also isn't exposed as user parameter anymore.
 	SET (VTK_COMP_PREFIX "")
 ENDIF()
-MESSAGE(STATUS "    Rendering Backend: ${VTK_RENDERING_BACKEND}")
 SET (VTK_COMPONENTS
 	${VTK_COMP_PREFIX}FiltersModeling         # for vtkRotationalExtrusionFilter, vtkOutlineFilter
 	${VTK_COMP_PREFIX}InteractionImage        # for vtkImageViewer2
@@ -256,23 +256,22 @@ ENDFUNCTION(ExtractVersion)
 
 IF ( (VTK_MAJOR_VERSION LESS 9 AND vtkRenderingOpenVR_LOADED) OR
 	 (VTK_MAJOR_VERSION GREATER 8 AND RenderingOpenVR IN_LIST VTK_AVAILABLE_COMPONENTS) )
-	MESSAGE(STATUS "    RenderingOpenVR: available")
 	set (VRMESSAGE "enabled")
 	LIST (APPEND VTK_COMPONENTS ${VTK_COMP_PREFIX}RenderingOpenVR)
 	IF (VTK_MAJOR_VERSION LESS 9)
 		STRING(FIND "${vtkRenderingOpenVR_INCLUDE_DIRS}" ";" semicolonpos REVERSE)
 		MATH(EXPR aftersemicolon "${semicolonpos}+1")
-		STRING(SUBSTRING "${vtkRenderingOpenVR_INCLUDE_DIRS}" ${aftersemicolon} -1 OPENVR_PATH_INCLUDE)
-	ELSE()
-		SET(OPENVR_PATH_INCLUDE OpenVR_INCLUDE_DIR)
+		STRING(SUBSTRING "${vtkRenderingOpenVR_INCLUDE_DIRS}" ${aftersemicolon} -1 OpenVR_INCLUDE_DIR)
+	# no else required as VTK >= 9 requires OpenVR_INCLUDE_DIR to be set anyway
 	ENDIF()
-	IF (EXISTS "${OPENVR_PATH_INCLUDE}/openvr.h")
+	IF (EXISTS "${OpenVR_INCLUDE_DIR}/openvr.h")
 		# Parse OpenVR version number:
-		ExtractVersion("${OPENVR_PATH_INCLUDE}/openvr.h" "k_nSteamVRVersionMajor" OPENVR_VERSION_MAJOR)
-		ExtractVersion("${OPENVR_PATH_INCLUDE}/openvr.h" "k_nSteamVRVersionMinor" OPENVR_VERSION_MINOR)
-		ExtractVersion("${OPENVR_PATH_INCLUDE}/openvr.h" "k_nSteamVRVersionBuild" OPENVR_VERSION_BUILD)
+		ExtractVersion("${OpenVR_INCLUDE_DIR}/openvr.h" "k_nSteamVRVersionMajor" OPENVR_VERSION_MAJOR)
+		ExtractVersion("${OpenVR_INCLUDE_DIR}/openvr.h" "k_nSteamVRVersionMinor" OPENVR_VERSION_MINOR)
+		ExtractVersion("${OpenVR_INCLUDE_DIR}/openvr.h" "k_nSteamVRVersionBuild" OPENVR_VERSION_BUILD)
 	ENDIF()
-	STRING(REGEX REPLACE "/headers" "" OPENVR_PATH ${OPENVR_PATH_INCLUDE})
+	MESSAGE(STATUS "    OpenVR: ${OPENVR_VERSION_MAJOR}.${OPENVR_VERSION_MINOR}.${OPENVR_VERSION_BUILD} in ${OpenVR_INCLUDE_DIR} (include dir)")
+	STRING(REGEX REPLACE "/headers" "" OPENVR_PATH ${OpenVR_INCLUDE_DIR})
 	IF (WIN32)
 		SET (OPENVR_LIB_PATH "${OPENVR_PATH}/bin/win64")
 	ELSE ()
