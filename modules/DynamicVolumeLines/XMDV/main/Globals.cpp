@@ -4,17 +4,17 @@
 #include <QFont>
 
 #include <string>
-using namespace std;
 
-Globals::Globals() {
+Globals::Globals()
+{
 	initTextFont();
 	default_file_name1 = "cars.okc";
 	default_file_name2 = "iris.okc";
 	//colorManager = new ColorManager();
 }
 
-
-Globals::~Globals() {
+Globals::~Globals()
+{
 	//SAFE_DELETE(colorManager);
 }
 

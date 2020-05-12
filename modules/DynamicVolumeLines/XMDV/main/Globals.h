@@ -2,8 +2,8 @@
 #define GLOBALS_H_
 
 #include <QFont>
+
 #include <string>
-using namespace std;
 
 class OkcData;
 class ColorManager;
@@ -17,8 +17,8 @@ public:
 	QFont textFont;
 	// The file names for the default datasets that will be opened
 	// at the first time when the XmdvTool are opened.
-	string	default_file_name1;
-	string	default_file_name2;
+	std::string	default_file_name1;
+	std::string	default_file_name2;
 	ColorManager *colorManager;
 
 private:

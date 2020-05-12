@@ -20,7 +20,6 @@
 #include "../OkcDataModifierDimOOO.h"
 #include <map>
 #include <cassert>
-using namespace std;
 
 class OkcDataModifier;
 
@@ -38,7 +37,7 @@ private:
 	// the dataset that this modifier applies to
 	OkcData* m_okcdata;
 	// All pointers to modifiers are stored in this map
-	map<XmdvTool::MODIFIERTYPE, OkcDataModifier*> m_modifiers;
+	std::map<XmdvTool::MODIFIERTYPE, OkcDataModifier*> m_modifiers;
 
 	// The flag to indicate whether the specified modifier is a reference
 	// to a modifier in some other okcdata.  When we copy the data from an OkcData
@@ -50,7 +49,7 @@ private:
 	//    We need to release the memory occupied by modifier in the destructor of OkcDataModifierManager.
 	// m_modifierRefFlag[] = true:  The specified modifier in this OkcData is a reference.
 	//    We cannot release the memory occupied by modifier in the destructor of OkcDataModifierManager.
-	map<XmdvTool::MODIFIERTYPE, bool> m_modifierRefFlag;
+	std::map<XmdvTool::MODIFIERTYPE, bool> m_modifierRefFlag;
 public:
 	void setOkcData(OkcData* okcdata);
 	OkcData* getOkcData();
