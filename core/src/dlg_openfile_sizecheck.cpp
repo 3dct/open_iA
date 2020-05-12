@@ -24,8 +24,6 @@
 #include "io/iARawFileParameters.h"
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
 
-#include <vtkImageReader.h>  // for VTK_FILE_BYTE_ORDER_... constants
-
 #include <QComboBox>
 #include <QFileInfo>
 #include <QLabel>
