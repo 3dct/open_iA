@@ -84,28 +84,24 @@ vtkSmartPointer<vtkImageData> readImage(QString const & filename, bool releaseFl
 	return con.vtkImage();
 }
 
-vtkSmartPointer<vtkImageData> castVTKImage(vtkSmartPointer<vtkImageData> img, int destType)
-{
-	auto cast = vtkSmartPointer<vtkImageCast>::New();
-	cast->SetInputData(img);
-	cast->SetOutputScalarType(destType);
-	return cast->GetOutput();
-}
-
 void writeSingleSliceImage(QString const & filename, vtkImageData* imageData)
 {
 	QFileInfo fi(filename);
 	vtkSmartPointer<vtkImageWriter> writer;
-	if ((QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) == 0) || (QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) == 0)) {
+	if ((QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) == 0) || (QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
+	{
 		writer = vtkSmartPointer<vtkTIFFWriter>::New();
 	}
-	else if (QString::compare(fi.suffix(), "PNG", Qt::CaseInsensitive) == 0) {
+	else if (QString::compare(fi.suffix(), "PNG", Qt::CaseInsensitive) == 0)
+	{
 		writer = vtkSmartPointer<vtkPNGWriter>::New();
 	}
-	else if ((QString::compare(fi.suffix(), "JPG", Qt::CaseInsensitive) == 0) || (QString::compare(fi.suffix(), "JPEG", Qt::CaseInsensitive) == 0)) {
+	else if ((QString::compare(fi.suffix(), "JPG", Qt::CaseInsensitive) == 0) || (QString::compare(fi.suffix(), "JPEG", Qt::CaseInsensitive) == 0))
+	{
 		writer = vtkJPEGWriter::New();
 	}
-	else if (QString::compare(fi.suffix(), "BMP", Qt::CaseInsensitive) == 0) {
+	else if (QString::compare(fi.suffix(), "BMP", Qt::CaseInsensitive) == 0)
+	{
 		writer = vtkBMPWriter::New();
 	}
 	else

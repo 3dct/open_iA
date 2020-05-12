@@ -80,12 +80,6 @@ open_iA_Core_API void writeSingleSliceImage(QString const & filename, vtkImageDa
 //!        or 0 if it's an unknown type
 open_iA_Core_API size_t mapVTKTypeToSize(int vtkType);
 
-//! Cast the given VTK image to another data type.
-//! @param img the input image
-//! @param dstType the VTK type identifier (VTK_INT, VTK_UNSIGNED_CHAR, ...) to cast to
-//! @return a VTK image of the specified type
-open_iA_Core_API vtkSmartPointer<vtkImageData> castVTKImage(vtkSmartPointer<vtkImageData> img, int dstType);
-
 //! Check whether the given type is integer.
 //! @param type a VTK type identifier (VTK_INT, VTK_UNSIGNED_CHAR, ...)
 //! @return true if the given VTK type holds integer numbers,

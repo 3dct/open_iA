@@ -43,7 +43,8 @@ class iAQMeasureRunner : public iAFilterRunnerGUI
 {
 public:
 	static QSharedPointer<iAFilterRunnerGUI> create();
-	void filterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd) override;
+	void filterGUIPreparations(QSharedPointer<iAFilter> filter,
+		MdiChild* mdiChild, MainWindow* mainWnd, QMap<QString, QVariant> const& params) override;
 };
 
 
