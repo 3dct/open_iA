@@ -34,7 +34,7 @@ m_octree(vtkSmartPointer<vtkOctreePointLocator>::New())
 
 void iAVROctree::generateOctree(int level, QColor col)
 {
-	m_octree->SetMaximumPointsPerRegion(25);
+	m_octree->SetMaximumPointsPerRegion(25); // The maximum number of points in a region/octant before it is subdivided
 	m_octree->SetDataSet(m_dataSet);
 	m_octree->BuildLocator();
 
@@ -51,8 +51,6 @@ void iAVROctree::generateOctree(int level, QColor col)
 	m_actor->GetProperty()->SetColor(col.redF(), col.greenF(), col.blueF());
 	m_actor->GetProperty()->SetLineWidth(6); //ToDo Use TubeFilter?
 	//m_actor->PickableOff();
-
-	DEBUG_LOG(QString("Octree visualized"));
 }
 
 void iAVROctree::FindClosestNPoints(int N, const double x[3], vtkIdList* result)
@@ -63,6 +61,16 @@ void iAVROctree::FindClosestNPoints(int N, const double x[3], vtkIdList* result)
 vtkIdType iAVROctree::FindClosestPoint(const double x[3])
 {
 	return m_octree->FindClosestPoint(x);
+}
+
+vtkOctreePointLocator * iAVROctree::getOctree()
+{
+	return m_octree;
+}
+
+int iAVROctree::GetLevel()
+{
+	return m_octree->GetMaxLevel();
 }
 
 void iAVROctree::show()

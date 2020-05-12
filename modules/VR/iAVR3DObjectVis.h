@@ -23,6 +23,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 #include <vtkActor.h>
+#include <vtkDataSet.h>
 #include <QColor>
 
 //! Base class for VR 3D visualizations of primtive objects
@@ -33,8 +34,11 @@ public:
 	void show();
 	void hide();
 	void createCube(QColor col);
+	void createSphere(QColor col);
+	vtkDataSet* getDataSet();
 private:
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	vtkSmartPointer<vtkActor> m_actor;
+	vtkSmartPointer<vtkDataSet> m_dataSet;
 	bool m_visible;
 };

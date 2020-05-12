@@ -63,8 +63,6 @@ iAVRInteractorStyle::iAVRInteractorStyle()
 void iAVRInteractorStyle::setVRMain(iAVRMain* vrMain)
 {
 	m_vrMain = vrMain;
-	DEBUG_LOG(QString::number(vrMain->octreeLevel));
-	DEBUG_LOG(QString::number(m_vrMain->octreeLevel));
 }
 
 // Calls, depending on Device - its input and action, the corresponding method

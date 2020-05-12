@@ -34,6 +34,8 @@ public:
 	void generateOctree(int level, QColor col);
 	void FindClosestNPoints(int N, const double	x[3], vtkIdList* result);
 	vtkIdType FindClosestPoint(const double x[3]);
+	vtkOctreePointLocator* getOctree();
+	int GetLevel();
 	void show();
 	void hide();
 private:

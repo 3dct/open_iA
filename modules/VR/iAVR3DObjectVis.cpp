@@ -21,6 +21,7 @@
 #include "iAVR3DObjectVis.h"
 
 #include "vtkCubeSource.h"
+#include "vtkSphereSource.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
 
@@ -53,17 +54,50 @@ void iAVR3DObjectVis::createCube(QColor col)
 {
 	// Create a cube.
     vtkNew<vtkCubeSource> cube;
-	cube->SetXLength(200.0);
-	cube->SetYLength(200.0);
-	cube->SetZLength(200.0);
-	cube->SetCenter(0.0,0.0,0.0);
+	cube->SetXLength(300.0);
+	cube->SetYLength(300.0);
+	cube->SetZLength(300.0);
+	cube->SetCenter(392,371,1340);
     cube->Update();
 
     // mapper
     vtkNew<vtkPolyDataMapper> cubeMapper;
     cubeMapper->SetInputConnection(cube->GetOutputPort());
 
+	m_dataSet = cubeMapper->GetInput();
+
     // Actor.
-    m_actor->SetMapper(cubeMapper);
+	m_actor->SetMapper(cubeMapper);
     m_actor->GetProperty()->SetColor(col.redF(), col.greenF(), col.blueF());
 }
+
+void iAVR3DObjectVis::createSphere(QColor col)
+{
+	// Create a cube.
+	vtkNew<vtkSphereSource> sphere;
+	sphere->SetPhiResolution(60);
+	sphere->SetThetaResolution(60);
+	sphere->SetRadius(300.0);
+	sphere->SetCenter(392, 371, 1340);
+	sphere->Update();
+
+	// mapper
+	vtkNew<vtkPolyDataMapper> sphereMapper;
+	sphereMapper->SetInputConnection(sphere->GetOutputPort());
+
+	m_dataSet = sphereMapper->GetInput();
+
+	// Actor.
+	m_actor->SetMapper(sphereMapper);
+	m_actor->GetProperty()->SetColor(col.redF(), col.greenF(), col.blueF());
+	m_actor->GetProperty()->SetPointSize(20.0);
+	m_actor->GetProperty()->SetRepresentationToPoints();
+}
+
+vtkDataSet * iAVR3DObjectVis::getDataSet()
+{
+	return m_dataSet;
+}
+
+
+

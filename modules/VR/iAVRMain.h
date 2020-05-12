@@ -74,5 +74,7 @@ private:
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkProp3D> m_pickedProp;
 	iACsvIO m_io;
-	
+
+	vtkIdType getObjectiD(double pos[3]);
+	bool checkEqualArrays(float pos1[3], float pos2[3]);
 };
