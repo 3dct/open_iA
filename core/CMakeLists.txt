@@ -13,6 +13,11 @@ SET (LIB_TYPE SHARED)
 
 # Generate core dll file / shared object:
 add_library(${CORE_LIBRARY_NAME} ${LIB_TYPE} ${open_iA_core_SRCS} ${open_iA_core_QRC} )
+if (VTK_MAJOR_VERSION GREATER 8)
+	vtk_module_autoinit(
+	  TARGETS ${CORE_LIBRARY_NAME}
+	  MODULES ${VTK_LIBRARIES})
+endif()
 TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${QT_LIBRARIES} ${VTK_LIBRARIES} ${ITK_LIBRARIES})
 IF (HDF5_FOUND)
 	# as HDF5 is required only in core, we could link privately, but under Linux this leads

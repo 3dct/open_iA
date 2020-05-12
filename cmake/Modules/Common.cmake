@@ -197,12 +197,12 @@ IF (VTK_VERSION_MAJOR LESS 8)
 	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 8.0")
 ENDIF()
 IF (VTK_VERSION_MAJOR LESS 9)
-	MESSAGE(STATUS "    Rendering Backend: ${VTK_RENDERING_BACKEND}") # only VTK < 9 has this option
 	SET (VTK_COMP_PREFIX "vtk")
 ELSE()
 	SET (VTK_RENDERING_BACKEND "OpenGL2")     # peculiarity about VTK 9: it sets VTK_RENDERING_BACKEND to "OpenGL", but for our purposes, it behaves exactly like when previously it was set to OpenGL2. The VTK_RENDERING_BACKEND also isn't exposed as user parameter anymore.
 	SET (VTK_COMP_PREFIX "")
 ENDIF()
+MESSAGE(STATUS "    Rendering Backend: ${VTK_RENDERING_BACKEND}")
 SET (VTK_COMPONENTS
 	${VTK_COMP_PREFIX}FiltersModeling         # for vtkRotationalExtrusionFilter, vtkOutlineFilter
 	${VTK_COMP_PREFIX}InteractionImage        # for vtkImageViewer2
@@ -657,14 +657,10 @@ IF (MSVC)
 		ENDIF()
 	ENDIF()
 
-	IF (vtkRenderingOpenVR_LOADED)
-		STRING(FIND "${vtkRenderingOpenVR_INCLUDE_DIRS}" ";" semicolonpos REVERSE)
-		math(EXPR aftersemicolon "${semicolonpos}+1")
-		STRING(SUBSTRING "${vtkRenderingOpenVR_INCLUDE_DIRS}" ${aftersemicolon} -1 OPENVR_PATH_INCLUDE)
-		STRING(REGEX REPLACE "/headers" "" OPENVR_PATH ${OPENVR_PATH_INCLUDE})
-		STRING(REGEX REPLACE "/" "\\\\" OPENVR_PATH_WIN ${OPENVR_PATH})
-		SET (OPENVR_LIB_PATH "${OPENVR_PATH_WIN}\\bin\\win64")
-		SET (WinDLLPaths "${OPENVR_LIB_PATH};${WinDLLPaths}")
+	IF ( (VTK_MAJOR_VERSION LESS 9 AND vtkRenderingOpenVR_LOADED) OR
+		(VTK_MAJOR_VERSION GREATER 8 AND RenderingOpenVR IN_LIST VTK_AVAILABLE_COMPONENTS) )
+		STRING(REGEX REPLACE "/" "\\\\" OPENVR_PATH_WIN ${OPENVR_LIB_PATH})
+		SET (WinDLLPaths "${OPENVR_PATH_WIN};${WinDLLPaths}")
 	ENDIF()
 	
 	IF (ELASTIX_LIBRARY_DIRS)
