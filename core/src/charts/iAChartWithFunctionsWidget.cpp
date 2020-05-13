@@ -25,8 +25,9 @@
 #include "iAChartFunctionGaussian.h"
 #include "iAChartFunctionTransfer.h"
 #include "iAConsole.h"
-#include "iAPlotData.h"
+#include "iAMapper.h"
 #include "iAMathUtility.h"
+#include "iAPlotData.h"
 #include "iAXmlSettings.h"
 #include "mdichild.h"
 
@@ -489,7 +490,12 @@ void iAChartWithFunctionsWidget::addBezierFunction()
 
 void iAChartWithFunctionsWidget::addGaussianFunction()
 {
-	addGaussianFunction(contextMenuPos().x(), geometry().width() / 6, (int)((activeHeight() - contextMenuPos().y())*yZoom()));
+	double mean = m_xMapper->dstToSrc(contextMenuPos().x() - xShift() - leftMargin());
+	double sigma = m_xMapper->dstToSrc(geometry().width() / 6);
+	int contextYHeight = activeHeight() - contextMenuPos().y();
+	double maxValue = 1.0 / (sigma * sqrt(2 * vtkMath::Pi()));
+	double multiplier = yMapper().dstToSrc(contextYHeight) / maxValue;
+	addGaussianFunction(mean, sigma, multiplier);
 }
 
 void iAChartWithFunctionsWidget::addGaussianFunction(double mean, double sigma, double multiplier)

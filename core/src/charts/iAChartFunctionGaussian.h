@@ -47,36 +47,16 @@ public:
 	void reset() override;
 	size_t numPoints() const override;
 
-	// additional public functions
 	void setMean(double mean)   { m_mean = mean; }
-	void setMean(int mean)      { m_mean = v2dX(mean); }
 	void setSigma(double sigma) { m_sigma = sigma; }
-	void setSigma(int sigma)    { m_sigma = i2dX(sigma) - i2dX(0); }
 	void setMultiplier(double multiplier) { m_multiplier = multiplier; }
-	void setMultiplier(int multiplier);
 
-	double getMean() { return m_mean; }
-	double getSigma() { return m_sigma; }
-	double getCovariance() { return m_sigma* m_sigma; }
+	double getMean()       { return m_mean; }
+	double getSigma()      { return m_sigma; }
+	double getCovariance() { return m_sigma * m_sigma; }
 	double getMultiplier() { return m_multiplier; }
 
 private:
-
-	// convert view to data
-	double v2dX(int x);
-	double v2dY(int y);
-
-	// convert data to view
-	int d2vX(double x);
-	int d2vY(double y);
-
-	// convert data to image
-	int d2iX(double x);
-	int d2iY(double y);
-
-	// convert image to data
-	double i2dX(int x);
-
 	QColor m_color;
 	int    m_selectedPoint;
 	double m_mean;
