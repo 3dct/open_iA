@@ -60,10 +60,10 @@ void iAProfileWidget::showDataTooltip(QHelpEvent *event)
 	{
 		return;
 	}
-	int xPos = clamp(0, activeWidth() - 1, event->x() - leftMargin());
-	int nthBin = static_cast<int>((((xPos-m_translationX) * m_numBin) / activeWidth()) / m_xZoom);
-	double len = (((xPos-m_translationX) * m_rayLen) / activeWidth()) / m_xZoom;
-	if (nthBin >= m_numBin || xPos == activeWidth() - 1)
+	int xPos = clamp(0, chartWidth() - 1, event->x() - leftMargin());
+	int nthBin = static_cast<int>((((xPos-m_translationX) * m_numBin) / chartWidth()) / m_xZoom);
+	double len = (((xPos-m_translationX) * m_rayLen) / chartWidth()) / m_xZoom;
+	if (nthBin >= m_numBin || xPos == chartWidth() - 1)
 	{
 		nthBin = m_numBin - 1;
 	}
@@ -82,9 +82,9 @@ void iAProfileWidget::drawPlots(QPainter &painter)
 	{
 		return;
 	}
-	double binWidth = (double)(activeWidth()) / m_numBin * m_xZoom;
+	double binWidth = (double)(chartWidth()) / m_numBin * m_xZoom;
 	painter.setPen(QWidget::palette().color(QPalette::Text));
-	double scalingCoef = (double)(activeHeight()-1) / m_yHeight * m_yZoom;
+	double scalingCoef = (double)(chartHeight()-1) / m_yHeight * m_yZoom;
 	for ( int j = 0; j < m_numBin-1; j++ )
 	{
 		double x1 = (int)(j * binWidth);

@@ -479,7 +479,7 @@ void iAChartWithFunctionsWidget::applyTransferFunctionForAll()
 void iAChartWithFunctionsWidget::addBezierFunction()
 {
 	iAChartFunctionBezier *bezier = new iAChartFunctionBezier(this, PredefinedColors()[m_functions.size() % 7]);
-	bezier->addPoint(contextMenuPos().x(), activeHeight()- contextMenuPos().y());
+	bezier->addPoint(contextMenuPos().x(), chartHeight()- contextMenuPos().y());
 	m_selectedFunction = m_functions.size();
 	m_functions.push_back(bezier);
 
@@ -492,7 +492,7 @@ void iAChartWithFunctionsWidget::addGaussianFunction()
 {
 	double mean = m_xMapper->dstToSrc(contextMenuPos().x() - leftMargin() - xShift());
 	double sigma = m_xMapper->dstToSrc(geometry().width() / 6) - xBounds()[0];
-	int contextYHeight = activeHeight() - contextMenuPos().y();
+	int contextYHeight = chartHeight() - contextMenuPos().y();
 	double maxValue = 1.0 / (sigma * sqrt(2 * vtkMath::Pi()));
 	double multiplier = yMapper().dstToSrc(contextYHeight) / maxValue;
 	addGaussianFunction(mean, sigma, multiplier);
@@ -691,11 +691,6 @@ void iAChartWithFunctionsWidget::setTransferFunctions(vtkColorTransferFunction* 
 iAChartFunction *iAChartWithFunctionsWidget::selectedFunction()
 {
 	return m_functions[m_selectedFunction];
-}
-
-int iAChartWithFunctionsWidget::chartHeight() const
-{
-	return geometry().height() - bottomMargin();
 }
 
 std::vector<iAChartFunction*> &iAChartWithFunctionsWidget::functions()

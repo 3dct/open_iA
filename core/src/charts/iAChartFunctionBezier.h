@@ -31,15 +31,6 @@ class QPointF;
 
 class open_iA_Core_API iAChartFunctionBezier : public iAChartFunction
 {
-	QColor m_color;
-
-	int m_selectedPoint;
-	double controlDist;
-	double length;
-	double oppositeLength;
-	std::vector<QPointF> viewPoints;
-	std::vector<QPointF> realPoints;
-
 public:
 	iAChartFunctionBezier(iAChartWithFunctionsWidget *chart, QColor &color, bool reset = true);
 
@@ -62,7 +53,7 @@ public:
 	void mouseReleaseEvent(QMouseEvent *event) override;
 
 	void push_back(double x, double y);
-	std::vector<QPointF> &getPoints() { return realPoints; }
+	std::vector<QPointF> &getPoints() { return m_realPoints; }
 private:
 	bool isFunctionPoint(int point);
 	bool isControlPoint(int point);
@@ -75,15 +66,11 @@ private:
 	int getFunctionPointIndex(int index);
 	double getLength(QPointF start, QPointF end);
 
-	// convert view to data
-	double v2dX(int x);
-	double v2dY(int y);
-
-	// convert data to view
-	int d2vX(double x);
-	int d2vY(double y);
-
-	// convert data to image
-	int d2iX(double x);
-	int d2iY(double y);
+	QColor m_color;
+	int m_selectedPoint;
+	double m_controlDist;
+	double m_length;
+	double m_oppositeLength;
+	std::vector<QPointF> m_viewPoints;
+	std::vector<QPointF> m_realPoints;
 };

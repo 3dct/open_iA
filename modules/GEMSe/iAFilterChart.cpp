@@ -108,14 +108,14 @@ void iAFilterChart::drawAxes(QPainter& painter)
 	{
 		double y1 =  0;
 		double y2 =  ChartColoringHeight;
-		int binWidth = static_cast<int>(std::ceil(mapValue(0.0, static_cast<double>(m_data->numBin()), 0.0, activeWidth()*m_xZoom, static_cast<double>(1))));
+		int binWidth = static_cast<int>(std::ceil(mapValue(0.0, static_cast<double>(m_data->numBin()), 0.0, chartWidth()*m_xZoom, static_cast<double>(1))));
 		for (size_t b = 0; b < m_data->numBin(); ++b)
 		{
 			if (m_binColors[b].alpha() == 0)
 			{
 				continue;
 			}
-			double x1 = mapValue(0.0, static_cast<double>(m_data->numBin()), 0.0, activeWidth()*m_xZoom, static_cast<double>(b));
+			double x1 = mapValue(0.0, static_cast<double>(m_data->numBin()), 0.0, chartWidth()*m_xZoom, static_cast<double>(b));
 
 			QRect rect(x1, y1, binWidth, y2);
 			painter.fillRect(rect, m_binColors[b]);
@@ -156,13 +156,13 @@ iAValueType iAFilterChart::GetRangeType() const
 
 double iAFilterChart::GetMinVisibleBin() const
 {
-	double minVisXBin = mapValue(0.0, activeWidth()*xZoom(), 0.0, static_cast<double>(m_data->numBin()), static_cast<double>(-m_translationX));
+	double minVisXBin = mapValue(0.0, chartWidth()*xZoom(), 0.0, static_cast<double>(m_data->numBin()), static_cast<double>(-m_translationX));
 	return minVisXBin;
 }
 
 double iAFilterChart::GetMaxVisibleBin() const
 {
-	double maxVisXBin = mapValue(0.0, activeWidth()*xZoom(), 0.0, static_cast<double>(m_data->numBin()), static_cast<double>(activeWidth()-m_translationX));
+	double maxVisXBin = mapValue(0.0, chartWidth()*xZoom(), 0.0, static_cast<double>(m_data->numBin()), static_cast<double>(chartWidth()-m_translationX));
 	return maxVisXBin;
 }
 
@@ -238,7 +238,7 @@ void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 			  m_selectedHandle != -1)
 	{
 		int x = event->x() - leftMargin() + m_selectionOffset;
-		if (x < 0 || x-m_translationX > static_cast<int>(activeWidth()*xZoom()) )
+		if (x < 0 || x-m_translationX > static_cast<int>(chartWidth()*xZoom()) )
 		{
 			return;
 		}

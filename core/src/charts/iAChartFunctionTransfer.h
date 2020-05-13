@@ -75,28 +75,20 @@ private:
 	void setPoint(int selectedPoint, int x, int y);
 	void setPointX(int selectedPoint, int x);
 	void setPointY(int selectedPoint, int y);
+	
+	//! convert from pixel coordinate on chart [0..maxDiagPixelHeight] to opacity [0..1]
+	double pixelY2Opacity(int y);
 
-	// convert view to data
-	double v2dX(int x);
-	double v2dY(int y);
-
-	// conver data to view
-	int d2vX(double x, double oldDataRange0 = -1, double oldDataRange1 = -1);
-	int d2vY(double y);
-
-	//convert data to image
-	int d2iX(double x);
-	int d2iY(double y);
+	//! convert from opacity [0..1] to pixel coordinate on chart [0..maxDiagPixelHeight]
+	int opacity2PixelY(double opacity);
 
 	bool m_rangeSliderHandles;
 	int m_selectedPoint;
-
-	QColor          m_color;
-	QColorDialog    *m_colorDlg;
+	QColor m_color;
+	QColorDialog* m_colorDlg;
 	QLinearGradient m_gradient;
-
-	vtkPiecewiseFunction     *m_opacityTF;
-	vtkColorTransferFunction *m_colorTF;
+	vtkPiecewiseFunction* m_opacityTF;
+	vtkColorTransferFunction* m_colorTF;
 
 	static const int PIE_RADIUS = 16;
 	static const int PIE_SIZE = 2 * PIE_RADIUS;
