@@ -35,29 +35,6 @@ vtkStandardNewMacro(iAVRInteractorStyle);
 //Reimplements the Constructor
 iAVRInteractorStyle::iAVRInteractorStyle()
 {
-
-/*	for (int d = 0; d < vtkEventDataNumberOfDevices; ++d)
-	{
-		this->InteractionState[d] = 0; // static_cast<int>(iAVROperations::None)
-		this->InteractionProps[d] = nullptr;
-		this->ClippingPlanes[d] = nullptr;
-
-		for (int i = 0; i < vtkEventDataNumberOfInputs; i++)
-		{
-			this->InputMap[d][i] = -1;
-			//this->ControlsHelpers[d][i] = nullptr;
-		}
-	}
-
-	vtkNew<vtkPolyDataMapper> pdm;
-	this->PickActor->SetMapper(pdm);
-	this->PickActor->GetProperty()->SetLineWidth(4);
-	this->PickActor->GetProperty()->RenderLinesAsTubesOn();
-	this->PickActor->GetProperty()->SetRepresentationToWireframe();
-	this->PickActor->DragableOff();
-
-	this->HoverPickOff();
-	*/
 }
 
 void iAVRInteractorStyle::setVRMain(iAVRMain* vrMain)
@@ -68,12 +45,10 @@ void iAVRInteractorStyle::setVRMain(iAVRMain* vrMain)
 // Calls, depending on Device - its input and action, the corresponding method
 // Events can occure through left/right Controller and its input (trigger, grip, Trackpad,...) and an Action (Press, Release, Touch,...)
 void iAVRInteractorStyle::OnButton3D(vtkEventData* edata)
-{
-	//vtkOpenVRInteractorStyle::OnButton3D(edata);
-    
+{    
 	// Used Device
 	vtkEventDataDevice3D* device = edata->GetAsEventDataDevice3D();
-
+	
 	if (!device)
 	{
 		return;

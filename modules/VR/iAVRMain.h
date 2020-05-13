@@ -28,9 +28,7 @@
 #include "vtkDataSet.h"
 #include "vtkProp3D.h"
 #include "iACsvIO.h"
-
 #include "iAVRInteractorStyle.h"
-
 
 // Enumeration of different interaction options for different Objects
 enum class iAVRInteractionOptions {

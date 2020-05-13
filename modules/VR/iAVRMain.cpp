@@ -32,17 +32,18 @@
 #include "iAVROctree.h"
 #include "vtkPointData.h"
 #include "vtkUnsignedCharArray.h"
-
-
+#include <vtkIdTypeArray.h>
 #include <vtkVertexGlyphFilter.h>
 #include <vtkPolyDataMapper.h>
+
+#include <QColor>
 
 
 iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io): m_vrEnv(vrEnv),
 	m_style(style),	m_objectTable(objectTable),	m_io(io)
 {
 
-	m_cylinderVis = new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, m_io.getOutputMapping(), QColor(100, 100, 100), std::map<size_t, std::vector<iAVec3f> >());
+	m_cylinderVis = new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, m_io.getOutputMapping(), QColor(140,140,140,255), std::map<size_t, std::vector<iAVec3f> >());
 
 	//TEST ADD Cube
 	//m_objectVis = new iAVR3DObjectVis(m_vrEnv->renderer());
@@ -78,29 +79,24 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 
 		if (input == vtkEventDataDeviceInput::TrackPad)
 		{
-			if (octreeLevel >= m_octree->GetLevel())
+
+			if (octreeLevel >= 3)
 			{
 				octreeLevel = 0;
 			}
 			octreeLevel++;
-
-			DEBUG_LOG(QString("Current Octree Level (Max = %1) is |%2|").arg(m_octree->GetLevel()).arg(octreeLevel));
 
 			m_octree->generateOctree(octreeLevel, QColor(126, 0, 223, 255));
 			
 		}
 		if(input == vtkEventDataDeviceInput::Trigger)
 		{
-				DEBUG_LOG(QString("Controller Pos: [%1 -- %2 -- %3] \n")
-					.arg(eventPosition[0])
-					.arg(eventPosition[1])
-					.arg(eventPosition[2]));
+			std::vector<size_t> selection = std::vector<size_t>();
 
 				if (m_pickedProp != nullptr)
 				{
 					// Find the closest points to TestPoint
 					vtkIdType iD = m_octree->FindClosestPoint(eventPosition);
-					DEBUG_LOG(QString("Closest Points are: %1").arg(iD));
 
 					// Get Coord
 					double closestPoint[3];
@@ -115,7 +111,6 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 					// Setup the colors array
 					vtkSmartPointer<vtkUnsignedCharArray> pointData = vtkSmartPointer<vtkUnsignedCharArray>::New();
 					pointData->SetNumberOfComponents(3);
-					pointData->SetName("Colors");
 					pointData->InsertTuple(iD,color);
 					//m_objectVis->getDataSet()->GetPointData()->SetScalars(pointData);
 
@@ -138,16 +133,65 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 					m_vrEnv->renderer()->AddActor(pointsActor);
 
 					vtkIdType rowiD = getObjectiD(closestPoint);
+					DEBUG_LOG(QString("< Single Point ID: %1  >").arg(rowiD));
+					selection.push_back(rowiD);
 
-					DEBUG_LOG(QString("row iD: %1").arg(rowiD));
-
-					m_cylinderVis->renderSingle(rowiD+1, 0, QColor(100, 100, 100, 255), nullptr);
+					// Render specific fiber
+					//m_cylinderVis->renderSingle(rowiD+1, 0, QColor(140, 140, 140, 255), nullptr);
+					m_cylinderVis->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
 
 				}
 				else
 				{
-					DEBUG_LOG(QString("Prop: is null"));
+					//reset View
+					m_cylinderVis->renderSelection(std::vector<size_t>(), 0, QColor(140, 140, 140, 255), nullptr);
 				}
+		}
+
+		if (input == vtkEventDataDeviceInput::ApplicationMenu)
+		{
+
+			std::vector<size_t> selection = std::vector<size_t>();
+
+			if (m_pickedProp != nullptr)
+			{
+				DEBUG_LOG(QString("Get Number of Buckets: %1").arg(m_octree->getOctree()->GetNumberOfBuckets()));
+				DEBUG_LOG(QString("Number of Leaf nodes: %1 \n").arg(m_octree->getOctree()->GetNumberOfLeafNodes()));
+				// Find the closest points to TestPoint
+				//vtkIdType iD = m_octree->FindClosestPoint(eventPosition);
+				//double closestPoint[3];
+				//m_octree->getOctree()->GetDataSet()->GetPoint(iD, closestPoint);
+				
+				int leafRegion = m_octree->getOctree()->GetRegionContainingPoint(eventPosition[0], eventPosition[1], eventPosition[2]);
+				vtkIdTypeArray *points = m_octree->getOctree()->GetPointsInRegion(leafRegion);
+				DEBUG_LOG(QString("Leaf Region iD: %1").arg(leafRegion));
+				
+				//Check if points is null!!
+				if (points == nullptr) {
+					DEBUG_LOG(QString("No points in the region!"));
+					return;
+				}
+
+				DEBUG_LOG(QString("Amount of Points: %1 \n").arg(points->GetSize()));
+				//Check points null!!
+				for (int i = 0; i < points->GetSize(); i++)
+				{
+					double pointCoord[3];
+					m_octree->getOctree()->GetDataSet()->GetPoint(points->GetValue(i), pointCoord);
+
+					vtkIdType rowiD = getObjectiD(pointCoord);
+					selection.push_back(rowiD);
+				}
+				DEBUG_LOG(QString("\nAmount of Points in Selection: %1 ").arg(selection.size()));
+				std::sort(selection.begin(), selection.end());
+				selection.erase(std::unique(selection.begin(), selection.end()), selection.end());
+				m_cylinderVis->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
+			}
+			else
+			{ 
+				//reset View
+				m_cylinderVis->renderSelection(std::vector<size_t>(), 0, QColor(140, 140, 140, 255), nullptr);
+			}
 		}
 	}
 

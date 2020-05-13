@@ -34,7 +34,8 @@ m_octree(vtkSmartPointer<vtkOctreePointLocator>::New())
 
 void iAVROctree::generateOctree(int level, QColor col)
 {
-	m_octree->SetMaximumPointsPerRegion(25); // The maximum number of points in a region/octant before it is subdivided
+	m_octree->SetMaximumPointsPerRegion(12); // The maximum number of points in a region/octant before it is subdivided
+	m_octree->SetMaxLevel(level);
 	m_octree->SetDataSet(m_dataSet);
 	m_octree->BuildLocator();
 
@@ -50,6 +51,7 @@ void iAVROctree::generateOctree(int level, QColor col)
 	//m_actor->GetProperty()->SetRepresentationToPoints();
 	m_actor->GetProperty()->SetColor(col.redF(), col.greenF(), col.blueF());
 	m_actor->GetProperty()->SetLineWidth(6); //ToDo Use TubeFilter?
+	m_actor->GetProperty()->RenderLinesAsTubesOn();
 	//m_actor->PickableOff();
 }
 
