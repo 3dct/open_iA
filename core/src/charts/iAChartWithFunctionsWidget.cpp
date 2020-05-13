@@ -490,8 +490,8 @@ void iAChartWithFunctionsWidget::addBezierFunction()
 
 void iAChartWithFunctionsWidget::addGaussianFunction()
 {
-	double mean = m_xMapper->dstToSrc(contextMenuPos().x() - xShift() - leftMargin());
-	double sigma = m_xMapper->dstToSrc(geometry().width() / 6);
+	double mean = m_xMapper->dstToSrc(contextMenuPos().x() - leftMargin() - xShift());
+	double sigma = m_xMapper->dstToSrc(geometry().width() / 6) - xBounds()[0];
 	int contextYHeight = activeHeight() - contextMenuPos().y();
 	double maxValue = 1.0 / (sigma * sqrt(2 * vtkMath::Pi()));
 	double multiplier = yMapper().dstToSrc(contextYHeight) / maxValue;
