@@ -57,7 +57,9 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(QString const & fileName, QWidget
 	QString selectedType = mapVTKTypeToReadableDataType(rawFileParams.m_scalarType);
 	int selectedIdx = datatype.indexOf(selectedType);
 	if (selectedIdx != -1)
+	{
 		datatype[selectedIdx] = "!" + datatype[selectedIdx];
+	}
 	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
 	byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)];
 	QStringList labels = (QStringList()
@@ -113,9 +115,13 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(QString const & fileName, QWidget
 	rawFileParams.m_headersize = m_inputDlg->getDblValue(9);
 	rawFileParams.m_scalarType = mapReadableDataTypeToVTKType(m_inputDlg->getComboBoxValue(10));
 	if (m_inputDlg->getComboBoxValue(11) == "Little Endian")
+	{
 		rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
+	}
 	else if (m_inputDlg->getComboBoxValue(11) == "Big Endian")
+	{
 		rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
+	}
 	m_accepted = true;
 }
 

@@ -2427,17 +2427,13 @@ void MainWindow::openWithDataTypeConversion()
 	}
 	m_owdtcs = clamp(1u, m_rawFileParams.m_size[2], static_cast<unsigned int>(dlg.inputDlg()->getIntValue(dlg.fixedParams())));
 
-	QSize qwinsize = this->size();
-	double winsize[2];
-	winsize[0] = qwinsize.width();	winsize[1] = qwinsize.height();
-
 	double convPara[11];
 	convPara[0] = m_owdtcmin;   convPara[1] = m_owdtcmax;  convPara[2] = m_owdtcoutmin; convPara[3] = m_owdtcoutmax; convPara[4] =  m_owdtcdov; convPara[5] = m_owdtcxori;
 	convPara[6] = m_owdtcxsize; convPara[7] = m_owdtcyori; convPara[8] = m_owdtcysize;  convPara[9] = m_owdtczori;   convPara[10] = m_owdtczsize;
 	try
 	{
 		dlg_datatypeconversion conversionwidget(this, file, m_rawFileParams,
-			m_owdtcs, m_defaultPreferences.HistogramBins, winsize, convPara);
+			m_owdtcs, m_defaultPreferences.HistogramBins, convPara);
 		if (conversionwidget.exec() != QDialog::Accepted)
 		{
 			return;
@@ -2459,7 +2455,7 @@ void MainWindow::openWithDataTypeConversion()
 		QString finalfilename;
 		if (m_owdtcdov == 0)
 		{
-			finalfilename = conversionwidget.convert(file, m_rawFileParams,
+			finalfilename = conversionwidget.convert(file,
 				mapReadableDataTypeToVTKType(outDataType),
 				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax);
 		}

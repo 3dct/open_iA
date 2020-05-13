@@ -34,6 +34,7 @@
 
 namespace iAITKIO
 {
+	// type definitions - unify with iAITKIO definitions, and with defines.h DIM!
 	static const int m_DIM = 3;
 	typedef itk::ImageBase< m_DIM > ImageBaseType;
 	typedef ImageBaseType::Pointer ImagePointer;
@@ -67,7 +68,9 @@ namespace iAITKIO
 		writer->ReleaseDataFlagOn();
 		std::string encodedFileName = getLocalEncodingFileName(fileName);
 		if (encodedFileName.empty())
+		{
 			return;
+		}
 		writer->SetFileName( encodedFileName.c_str() );
 		writer->SetInput( dynamic_cast<InputImageType *> (image) );
 		writer->SetUseCompression( comp );
