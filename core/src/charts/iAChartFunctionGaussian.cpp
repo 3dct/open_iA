@@ -72,37 +72,28 @@ void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidt
 	double startStep = range / 100;
 	double step = startStep;
 
-	double X1 = chart->xBounds()[0];
-	double X2 = X1;
-	double Y1 = computeGaussValue(m_mean, m_sigma, m_multiplier, X1);
-	double Y2 = Y1;
+	double dataX1 = chart->xBounds()[0];
+	double dataX2 = dataX1;
+	double dataY1 = computeGaussValue(m_mean, m_sigma, m_multiplier, dataX1);
 
-	double smallStep = std::max(6 * m_sigma / 100, 0.25 * chart->xMapper().dstToSrc(1));
-	while (X2 <= chart->xBounds()[1]+step && step > std::numeric_limits<double>::epsilon())
+	double smallStep = std::max(0.05 * m_sigma, chart->xMapper().dstToSrc(1) - chart->xBounds()[0]);
+	while (dataX2 <= chart->xBounds()[1]+step)
 	{
-		Y1 = Y2;
-		Y2 = computeGaussValue(m_mean, m_sigma, m_multiplier, X2);
+		double dataY2 = computeGaussValue(m_mean, m_sigma, m_multiplier, dataX2);
 
-		int x1, y1;
-		x1 = chart->xMapper().srcToDst(X1);
-		y1 = chart->yMapper().srcToDst(Y1);
+		int pixelX1 = chart->xMapper().srcToDst(dataX1);
+		int pixelY1 = chart->yMapper().srcToDst(dataY1);
+		int pixelX2 = chart->xMapper().srcToDst(dataX2);
+		int pixelY2 = chart->yMapper().srcToDst(dataY2);
 
-		int x2, y2;
-		x2 = chart->xMapper().srcToDst(X2);
-		y2 = chart->yMapper().srcToDst(Y2);
+		painter.drawLine(pixelX1, pixelY1, pixelX2, pixelY2);
 
-		painter.drawLine(x1, y1, x2, y2);
-
-		X1 = X2;
-		if (X2 + startStep > m_mean - 3 * m_sigma && X1 < m_mean + 3 * m_sigma)
-		{
-			step = smallStep;
-		}
-		else
-		{
-			step = startStep;
-		}
-		X2 = X1 + step;
+		// smaller steps close to the mean: TODO - use adaptive step sizes?
+		step = std::abs( 0.5*(dataX1+dataX2)+startStep - m_mean) < (5 * m_sigma) ?
+			smallStep : startStep;
+		dataX1 = dataX2;
+		dataY1 = dataY2;
+		dataX2 = dataX1 + step;
 	}
 
 
@@ -143,7 +134,6 @@ void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidt
 		painter.setPen(pen);
 		painter.drawEllipse(x-radius, y-radius, size, size);
 
-		// draw sigma handles with half sizes:
 		pen.setWidth(1);
 		painter.setPen(pen);
 		painter.drawEllipse(lx-radius/2, y-radius/2, size/2, size/2);
@@ -153,8 +143,8 @@ void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidt
 
 int iAChartFunctionGaussian::selectPoint(QMouseEvent *event, int*)
 {
-	int lx = event->x() - chart->leftMargin() + chart->xShift();
-	int ly = chart->geometry().height() - event->y() - chart->bottomMargin();
+	int lx = event->x() - chart->leftMargin() - chart->xShift();
+	int ly = chart->activeHeight() - event->y();
 
 	double meanValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()));
 
@@ -194,23 +184,23 @@ int iAChartFunctionGaussian::selectPoint(QMouseEvent *event, int*)
 
 void iAChartFunctionGaussian::moveSelectedPoint(int x, int y)
 {
-	y = clamp(0, chart->geometry().height() - chart->bottomMargin() - 1, y);
+	y = clamp(0, chart->activeHeight(), y);
 	if (m_selectedPoint != -1)
 	{
 		switch(m_selectedPoint)
 		{
 			case 0:
 			{
-				m_mean = clamp(chart->xBounds()[0], chart->xBounds()[1], chart->xMapper().dstToSrc(x));
+				m_mean = clamp(chart->xBounds()[0], chart->xBounds()[1], chart->xMapper().dstToSrc(x - chart->xShift()));
 			}
 			break;
 			case 1:
 			case 2:
 			{
-				m_sigma = fabs(m_mean - chart->xMapper().dstToSrc(x)) / SigmaHandleFactor;
+				m_sigma = fabs(m_mean - chart->xMapper().dstToSrc(x - chart->xShift())) / SigmaHandleFactor;
 				if (m_sigma <= std::numeric_limits<double>::epsilon())
 				{
-					m_sigma = fabs(m_mean - chart->xMapper().dstToSrc(x + 1));
+					m_sigma = fabs(m_mean - chart->xMapper().dstToSrc(x - chart->xShift() + 1));
 				}
 			}
 		}
