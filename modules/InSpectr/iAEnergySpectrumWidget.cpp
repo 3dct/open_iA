@@ -110,8 +110,8 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 		selectionRubberBand->hide();
 		QRect diagramRect;
 		QRect selectionRect(selectionRubberBand->geometry());     // height-y because we are drawing reversed from actual y direction
-		diagramRect.setTop(    yMapper().dstToSrc(activeHeight() - selectionRect.bottom()) );
-		diagramRect.setBottom( yMapper().dstToSrc(activeHeight() - selectionRect.top()   ) );
+		diagramRect.setTop(    yMapper().dstToSrc(chartHeight() - selectionRect.bottom()) );
+		diagramRect.setBottom( yMapper().dstToSrc(chartHeight() - selectionRect.top()   ) );
 		diagramRect.setLeft(   screenX2DataBin(selectionRect.left()  ) );
 		diagramRect.setRight(  screenX2DataBin(selectionRect.right() ) );
 		diagramRect = diagramRect.normalized();

@@ -61,30 +61,30 @@ void iAChartFunctionGaussian::draw(QPainter &painter)
 
 void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidth)
 {
-	bool active = (chart->selectedFunction() == this);
+	bool active = (m_chart->selectedFunction() == this);
 
 	QPen pen = painter.pen();
 	pen.setColor(color);
 	pen.setWidth(lineWidth);
 	painter.setPen(pen);
 
-	double range = chart->xRange();
+	double range = m_chart->xRange();
 	double startStep = range / 100;
 	double step = startStep;
 
-	double dataX1 = chart->xBounds()[0];
+	double dataX1 = m_chart->xBounds()[0];
 	double dataX2 = dataX1;
 	double dataY1 = computeGaussValue(m_mean, m_sigma, m_multiplier, dataX1);
 
-	double smallStep = std::max(0.05 * m_sigma, chart->xMapper().dstToSrc(1) - chart->xBounds()[0]);
-	while (dataX2 <= chart->xBounds()[1]+step)
+	double smallStep = std::max(0.05 * m_sigma, m_chart->xMapper().dstToSrc(1) - m_chart->xBounds()[0]);
+	while (dataX2 <= m_chart->xBounds()[1]+step)
 	{
 		double dataY2 = computeGaussValue(m_mean, m_sigma, m_multiplier, dataX2);
 
-		int pixelX1 = chart->xMapper().srcToDst(dataX1);
-		int pixelY1 = chart->yMapper().srcToDst(dataY1);
-		int pixelX2 = chart->xMapper().srcToDst(dataX2);
-		int pixelY2 = chart->yMapper().srcToDst(dataY2);
+		int pixelX1 = m_chart->xMapper().srcToDst(dataX1);
+		int pixelY1 = m_chart->yMapper().srcToDst(dataY1);
+		int pixelX2 = m_chart->xMapper().srcToDst(dataX2);
+		int pixelY2 = m_chart->yMapper().srcToDst(dataY2);
 
 		painter.drawLine(pixelX1, pixelY1, pixelX2, pixelY2);
 
@@ -114,10 +114,10 @@ void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidt
 		int x, lx, rx, y;
 		double meanValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()))*m_multiplier;
 
-		x  = chart->xMapper().srcToDst(m_mean);
-		lx = chart->xMapper().srcToDst(m_mean - SigmaHandleFactor * m_sigma);
-		rx = chart->xMapper().srcToDst(m_mean + SigmaHandleFactor * m_sigma);
-		y = chart->yMapper().srcToDst(meanValue);
+		x  = m_chart->xMapper().srcToDst(m_mean);
+		lx = m_chart->xMapper().srcToDst(m_mean - SigmaHandleFactor * m_sigma);
+		rx = m_chart->xMapper().srcToDst(m_mean + SigmaHandleFactor * m_sigma);
+		y = m_chart->yMapper().srcToDst(meanValue);
 
 		painter.drawLine(lx, y, rx, y);
 
@@ -143,16 +143,16 @@ void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidt
 
 int iAChartFunctionGaussian::selectPoint(QMouseEvent *event, int*)
 {
-	int lx = event->x() - chart->leftMargin() - chart->xShift();
-	int ly = chart->activeHeight() - event->y();
+	int lx = event->x() - m_chart->leftMargin() - m_chart->xShift();
+	int ly = m_chart->chartHeight() - event->y();
 
 	double meanValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()));
 
-	int viewXPoint = chart->xMapper().srcToDst(m_mean);
-	int viewYPoint = chart->yMapper().srcToDst(meanValue*m_multiplier);
+	int viewXPoint = m_chart->xMapper().srcToDst(m_mean);
+	int viewYPoint = m_chart->yMapper().srcToDst(meanValue*m_multiplier);
 
-	int viewXLeftSigmaPoint  = chart->xMapper().srcToDst(m_mean - SigmaHandleFactor * m_sigma);
-	int viewXRightSigmaPoint = chart->xMapper().srcToDst(m_mean + SigmaHandleFactor * m_sigma);
+	int viewXLeftSigmaPoint  = m_chart->xMapper().srcToDst(m_mean - SigmaHandleFactor * m_sigma);
+	int viewXRightSigmaPoint = m_chart->xMapper().srcToDst(m_mean + SigmaHandleFactor * m_sigma);
 
 	if (lx >= viewXLeftSigmaPoint - iAChartWithFunctionsWidget::POINT_RADIUS / 2 &&
 		lx <= viewXLeftSigmaPoint + iAChartWithFunctionsWidget::POINT_RADIUS / 2 &&
@@ -184,28 +184,28 @@ int iAChartFunctionGaussian::selectPoint(QMouseEvent *event, int*)
 
 void iAChartFunctionGaussian::moveSelectedPoint(int x, int y)
 {
-	y = clamp(0, chart->activeHeight(), y);
+	y = clamp(0, m_chart->chartHeight()-1, y);
 	if (m_selectedPoint != -1)
 	{
 		switch(m_selectedPoint)
 		{
 			case 0:
 			{
-				m_mean = clamp(chart->xBounds()[0], chart->xBounds()[1], chart->xMapper().dstToSrc(x - chart->xShift()));
+				m_mean = clamp(m_chart->xBounds()[0], m_chart->xBounds()[1], m_chart->xMapper().dstToSrc(x - m_chart->xShift()));
 			}
 			break;
 			case 1:
 			case 2:
 			{
-				m_sigma = fabs(m_mean - chart->xMapper().dstToSrc(x - chart->xShift())) / SigmaHandleFactor;
+				m_sigma = fabs(m_mean - m_chart->xMapper().dstToSrc(x - m_chart->xShift())) / SigmaHandleFactor;
 				if (m_sigma <= std::numeric_limits<double>::epsilon())
 				{
-					m_sigma = fabs(m_mean - chart->xMapper().dstToSrc(x - chart->xShift() + 1));
+					m_sigma = fabs(m_mean - m_chart->xMapper().dstToSrc(x - m_chart->xShift() + 1));
 				}
 			}
 		}
 		double maxValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()));
-		m_multiplier  = chart->yMapper().dstToSrc(y) / maxValue;
+		m_multiplier  = m_chart->yMapper().dstToSrc(y) / maxValue;
 	}
 }
 

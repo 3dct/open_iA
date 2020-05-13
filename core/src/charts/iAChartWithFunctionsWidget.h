@@ -63,8 +63,6 @@ public:
 	//! Get the index of the selected point in the selected function.
 	int selectedFuncPoint() const;
 	bool isFuncEndPoint(int index) const;
-	//! The height of the chart area itself (in pixels), without bottom margin (where the x axis, captions and labels are drawn).
-	int chartHeight() const;
 	//! Set the transfer functions to be displayed on top of the chart.
 	void setTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
 	//! Get the currently selected function.

@@ -39,7 +39,7 @@ public:
 	static const int GAUSSIAN = 1;
 	static const int BEZIER   = 2;
 
-	iAChartFunction(iAChartWithFunctionsWidget* chart) : chart(chart) { }
+	iAChartFunction(iAChartWithFunctionsWidget* chart) : m_chart(chart) { }
 
 	virtual int getType() = 0;
 
@@ -64,5 +64,5 @@ public:
 	virtual void mouseReleaseEvent(QMouseEvent *) {}
 	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *) {}
 
-	iAChartWithFunctionsWidget *chart;
+	iAChartWithFunctionsWidget* m_chart;
 };
