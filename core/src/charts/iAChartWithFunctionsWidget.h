@@ -129,6 +129,9 @@ public slots:
 	void showTFTable();
 	void tfTableIsFinished();
 
+private slots:
+	void selectFunction(size_t functionIndex);
+
 private:
 	bool m_allowTrfReset;
 	bool m_enableAdditionalFunctions;
