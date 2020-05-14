@@ -41,11 +41,11 @@ struct iARawFileParameters
 	double m_spacing[3];
 	//! Default origin of the dataset, typically at the global origin (0, 0, 0).
 	double m_origin[3];
+	//! Size of an optional header (which must be skipped), typically 0.
+	quint64 m_headersize;
 	//! The scalar type used for storing single voxel values, as VTK type specifier.
 	//! See VTK_UNSIGNED_SHORT and other defines at the same place in vtkType.h
 	int  m_scalarType;
-	//! Size of an optional header (which must be skipped), typically 0.
-	quint64 m_headersize;
 	//! The byte order (little endian or big endian) in VTK type constants.
 	//! See VTK_FILE_BYTE_ORDER_ defines in include file <vtkImageReader.h>
 	//! this type is mapped to list index in raw file dialog in mapVTKByteOrderToIdx in dlg_openfile_sizecheck
