@@ -511,9 +511,9 @@ void iAChartFunctionBezier::setViewPoint(int selectedPoint)
 void iAChartFunctionBezier::setOppositeViewPoint(int selectedPoint)
 {
 	int functionPointIndex = getFunctionPointIndex(selectedPoint);
-	int oppositePointIndex = functionPointIndex + (functionPointIndex + 1 == selectedPoint) ? -1 : 1;
+	int oppositePointIndex = functionPointIndex + ((functionPointIndex + 1 == selectedPoint) ? -1 : 1);
 
-	if (oppositePointIndex < 0 || oppositePointIndex >= m_realPoints.size())
+	if (oppositePointIndex < 0 || oppositePointIndex >= static_cast<int>(m_realPoints.size()))
 	{
 		return;
 	}
