@@ -308,6 +308,21 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 		{
 			contextMenu->addAction(QIcon(":/images/removeFkt.png"), tr("Remove selected function"), this, &iAChartWithFunctionsWidget::removeFunction);
 		}
+		if (m_functions.size() > 1)
+		{
+			auto selectionMenu = contextMenu->addMenu("Select function");
+			for (size_t f = 0; f < m_functions.size(); ++f)
+			{
+				int type = m_functions[f]->getType();
+				auto action = selectionMenu->addAction(QString("%1 (%2)").arg(f)
+					.arg(type == iAChartFunction::BEZIER ? "Bezier function" : (
+						type == iAChartFunction::GAUSSIAN ? "Gaussian function" : "Transfer function")),
+					[this, f]() { selectFunction(f); }
+				);
+				action->setCheckable(true);
+				action->setChecked(m_selectedFunction == f);
+			}
+		}
 	}
 }
 
@@ -492,7 +507,7 @@ void iAChartWithFunctionsWidget::addBezierFunction()
 void iAChartWithFunctionsWidget::addGaussianFunction()
 {
 	double mean = m_xMapper->dstToSrc(contextMenuPos().x() - leftMargin() - xShift());
-	double sigma = m_xMapper->dstToSrc(geometry().width() / 6) - xBounds()[0];
+	double sigma = m_xMapper->dstToSrc(geometry().width() / 20) - xBounds()[0];
 	int contextYHeight = chartHeight() - contextMenuPos().y();
 	double maxValue = 1.0 / (sigma * sqrt(2 * vtkMath::Pi()));
 	double multiplier = yMapper().dstToSrc(contextYHeight) / maxValue;
@@ -729,4 +744,10 @@ void iAChartWithFunctionsWidget::showTFTable()
 void iAChartWithFunctionsWidget::tfTableIsFinished()
 {
 	m_TFTable = nullptr;
+}
+
+void iAChartWithFunctionsWidget::selectFunction(size_t functionIndex)
+{
+	m_selectedFunction = functionIndex;
+	update();
 }
