@@ -101,7 +101,7 @@ void iARangeSliderDiagramWidget::drawFunctions( QPainter &painter )
 
 		if (counter == m_selectedFunction)
 		{
-			func->draw(painter, QColor(255, 128, 0, 255), 2);
+			func->draw(painter, QColor(255, 128, 0, 255), iAChartFunction::LineWidthSelected);
 		}
 		else
 		{

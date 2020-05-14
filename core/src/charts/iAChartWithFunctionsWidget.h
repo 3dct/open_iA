@@ -74,13 +74,6 @@ public:
 	//! Set whether the user can add additional functions (Bezier and Gaussian curves), in addition to the standard transfer function.
 	void setEnableAdditionalFunctions(bool enable);
 
-	//! @{ Transfer Function Table dialog related.
-	bool isTFTableCreated() const;
-	void closeTFTable();
-	QPoint getTFTablePos() const;
-	void setTFTablePos(QPoint pos);
-	//! @}
-
 	//! Add a Gaussian function with the given parameters.
 	void addGaussianFunction(double mean, double sigma, double multiplier);
 
