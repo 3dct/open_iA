@@ -46,7 +46,7 @@ iAChartFunctionBezier::iAChartFunctionBezier(iAChartWithFunctionsWidget *chart, 
 
 void iAChartFunctionBezier::draw(QPainter &painter)
 {
-	draw(painter, m_color, 3);
+	draw(painter, m_color, LineWidthUnselected);
 }
 
 void iAChartFunctionBezier::draw(QPainter &painter, QColor penColor, int lineWidth)
@@ -79,9 +79,9 @@ void iAChartFunctionBezier::draw(QPainter &painter, QColor penColor, int lineWid
 			double Y2 = m_realPoints[l].y()*a*a*a + m_realPoints[l + 1].y() * 3 * a*a*b + m_realPoints[l + 2].y() * 3 * a*b*b + m_realPoints[l + 3].y()*b*b*b;
 
 			// Draw the line from point to point (assuming OGL is set up properly)
-			int x1 = m_chart->xMapper().srcToDst(X1) + m_chart->xShift();
+			int x1 = m_chart->xMapper().srcToDst(X1);
 			int y1 = m_chart->yMapper().srcToDst(Y1);
-			int x2 = m_chart->xMapper().srcToDst(X2) + m_chart->xShift();
+			int x2 = m_chart->xMapper().srcToDst(X2);
 			int y2 = m_chart->yMapper().srcToDst(Y2);
 			painter.drawLine(x1, y1, x2, y2);
 
@@ -109,79 +109,45 @@ void iAChartFunctionBezier::draw(QPainter &painter, QColor penColor, int lineWid
 
 		for(int l = 0; l < pointNumber; l+=3)
 		{
-			int x, y;
-			x = m_chart->xMapper().srcToDst(m_realPoints[l].x()) - m_chart->xShift();
-			y = m_chart->yMapper().srcToDst(m_realPoints[l].y());
-
+			int x = m_chart->xMapper().srcToDst(m_realPoints[l].x());
+			int y = m_chart->yMapper().srcToDst(m_realPoints[l].y());
 			if (l-1 > 0)
 			{
-				int x1, y1;
-				x1 = m_chart->xMapper().srcToDst(m_realPoints[l-1].x()) - m_chart->xShift();
-				y1 = m_chart->yMapper().srcToDst(m_realPoints[l-1].y());
-
+				int x1 = m_chart->xMapper().srcToDst(m_realPoints[l-1].x());
+				int y1 = m_chart->yMapper().srcToDst(m_realPoints[l-1].y());
 				painter.drawLine(x, y, x1, y1);
 			}
-
 			if (l+1 < pointNumber)
 			{
-				int x1, y1;
-				x1 = m_chart->xMapper().srcToDst(m_realPoints[l+1].x()) - m_chart->xShift();
-				y1 = m_chart->yMapper().srcToDst(m_realPoints[l+1].y());
-
+				int x1 = m_chart->xMapper().srcToDst(m_realPoints[l+1].x());
+				int y1 = m_chart->yMapper().srcToDst(m_realPoints[l+1].y());
 				painter.drawLine(x, y, x1, y1);
 			}
 		}
 
 		// draw points
-
-		QColor currentColor;
 		QColor redColor = QColor(255, 0, 0, 255);
 		painter.setBrush(QBrush(penColor));
 		painter.setPen(pen);
 
+		int selectionCenter = ((m_selectedPoint+1) / 3) * 3; // center of selected triple of points
 		for(int l = 0; l < pointNumber; l++)
 		{
-			int x, y;
-			x = m_chart->xMapper().srcToDst(m_realPoints[l].x()) - m_chart->xShift();
-			y = m_chart->yMapper().srcToDst(m_realPoints[l].y());
-
-			int radius, size;
-
-			int mod = m_selectedPoint % 3;
-			if ((mod == 0 && (l == m_selectedPoint || l == m_selectedPoint -1 || l == m_selectedPoint +1)) ||
-				(mod == 1 && (l == m_selectedPoint || l == m_selectedPoint -1 || l == m_selectedPoint -2)) ||
-				(mod == 2 && (l == m_selectedPoint || l == m_selectedPoint +1 || l == m_selectedPoint +2)))
-			{
-				currentColor = redColor;
-				radius = iAChartWithFunctionsWidget::POINT_RADIUS;
-				size = iAChartWithFunctionsWidget::POINT_SIZE;
-			}
-			else
-			{
-				currentColor = penColor;
-				radius = iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS;
-				size  = iAChartWithFunctionsWidget::SELECTED_POINT_SIZE;
-			}
-
-			// is function point?
-			if (l % 3 == 0)
-			{
-				pen.setWidth(3);
-				pen.setColor(currentColor);
-				painter.setPen(pen);
-				painter.drawEllipse(x-radius, y-radius, size, size);
-			}
-			// is control point?
-			else
-			{
-				x = m_chart->xMapper().srcToDst(m_viewPoints[l].x()) - m_chart->xShift();
-				y = m_chart->yMapper().srcToDst(m_viewPoints[l].y());
-
-				pen.setWidth(1);
-				pen.setColor(currentColor);
-				painter.setPen(pen);
-				painter.drawEllipse(x-radius/2, y-radius/2, size/2, size/2);
-			}
+			bool selected = std::abs(l - selectionCenter) <= 1;
+			bool isFunctionPoint = (l % 3 == 0); // is it a function point? (if false: control point)
+			QColor currentColor = selected ? redColor : penColor;
+			int sizeRadiusDenominator = isFunctionPoint ? 1 : 2; // control points only shown with half size
+			int radius = (selected ? iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS : iAChartWithFunctionsWidget::POINT_RADIUS) / sizeRadiusDenominator;
+			int size   = (selected ? iAChartWithFunctionsWidget::SELECTED_POINT_SIZE   : iAChartWithFunctionsWidget::POINT_SIZE) / sizeRadiusDenominator;
+			int penWidth = isFunctionPoint ? 1 : 3;
+			double pointX = isFunctionPoint ? m_realPoints[l].x() : m_viewPoints[l].x();
+			double pointY = isFunctionPoint ? m_realPoints[l].y() : m_viewPoints[l].y();
+			int x = m_chart->xMapper().srcToDst(pointX);
+			int y = m_chart->yMapper().srcToDst(pointY);
+			pen.setWidth(penWidth);
+			pen.setColor(currentColor);
+			painter.setPen(pen);
+			painter.drawEllipse(x-radius, y-radius, size, size);
 		}
 	}
 }
@@ -194,19 +160,15 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 	assert(m_realPoints.size() < std::numeric_limits<int>::max());
 	assert(m_viewPoints.size() < std::numeric_limits<int>::max());
 
+	int selectionCenter = ((m_selectedPoint + 1) / 3) * 3; // center of selected triple of points
 	for (size_t pointIndex = 0; pointIndex < m_viewPoints.size(); ++pointIndex)
 	{
+		bool selected = std::abs(static_cast<int>(pointIndex - selectionCenter)) <= 1;
 		int viewX = m_chart->xMapper().srcToDst(m_viewPoints[pointIndex].x()) + m_chart->xShift();
 		int viewY = m_chart->yMapper().srcToDst(m_viewPoints[pointIndex].y());
-
-		if ((pointIndex % 3 == 0 && lx >= viewX-iAChartWithFunctionsWidget::POINT_RADIUS &&
-			lx <= viewX+iAChartWithFunctionsWidget::POINT_RADIUS &&
-			ly >= viewY-iAChartWithFunctionsWidget::POINT_RADIUS &&
-			ly <= viewY+iAChartWithFunctionsWidget::POINT_RADIUS) ||
-			(lx >= viewX-iAChartWithFunctionsWidget::POINT_RADIUS/2 &&
-			lx <= viewX+iAChartWithFunctionsWidget::POINT_RADIUS/2 &&
-			ly >= viewY - iAChartWithFunctionsWidget::POINT_RADIUS / 2 &&
-			ly <= viewY+iAChartWithFunctionsWidget::POINT_RADIUS/2))
+		int pointRadius = (selected ? iAChartWithFunctionsWidget::POINT_RADIUS : iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS)
+			/ ((pointIndex % 3 == 0) ? 1 : 2);
+		if (std::abs(lx - viewX) <= pointRadius && std::abs(ly - viewY) <= pointRadius)
 		{
 			index = static_cast<int>(pointIndex);
 			break;

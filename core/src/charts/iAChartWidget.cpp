@@ -529,7 +529,7 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 			: y + static_cast<int>(0.25*m_fontHeight)                   // write the text centered to the indicator line
 			, text);
 	}
-	painter.drawLine(0, -1, 0, -static_cast<int>(aheight*m_yZoom));
+	painter.drawLine(0, -1, 0, -aheight);
 	//write the y axis label
 	painter.save();
 	painter.rotate(-90);

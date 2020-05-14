@@ -105,7 +105,7 @@ void iAChartWithFunctionsWidget::drawFunctions(QPainter &painter)
 
 		if (counter == m_selectedFunction)
 		{
-			func->draw(painter, QColor(255,128,0,255), 2);
+			func->draw(painter, QColor(255,128,0,255), iAChartFunction::LineWidthSelected);
 		}
 		else
 		{
@@ -724,28 +724,6 @@ void iAChartWithFunctionsWidget::showTFTable()
 		connect(m_TFTable, &dlg_TFTable::destroyed, this, &iAChartWithFunctionsWidget::tfTableIsFinished);
 		connect(this, &iAChartWithFunctionsWidget::updateTFTable, m_TFTable, &dlg_TFTable::updateTable);
 	}
-}
-
-QPoint iAChartWithFunctionsWidget::getTFTablePos() const
-{
-	return m_TFTable->pos();
-}
-
-void iAChartWithFunctionsWidget::setTFTablePos( QPoint pos )
-{
-	m_TFTable->move( pos );
-}
-
-bool iAChartWithFunctionsWidget::isTFTableCreated() const
-{
-	bool created;
-	m_TFTable ? created = true : created = false;
-	return created;
-}
-
-void iAChartWithFunctionsWidget::closeTFTable()
-{
-	m_TFTable->close();
 }
 
 void iAChartWithFunctionsWidget::tfTableIsFinished()

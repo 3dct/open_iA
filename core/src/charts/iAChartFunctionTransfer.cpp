@@ -87,11 +87,11 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 	m_opacityTF->GetNodeValue(0, opacityTFValue);
 	m_colorTF->GetNodeValue(0, colorTFValue);
 
-	int x1 = m_chart->xMapper().srcToDst(opacityTFValue[0]) + m_chart->xShift();
+	int x1 = m_chart->xMapper().srcToDst(opacityTFValue[0]);
 	int y1 = opacity2PixelY(opacityTFValue[1]);
 
 	QColor c; c.setRgbF(colorTFValue[1], colorTFValue[2], colorTFValue[3], 0.588);
-	m_gradient.setColorAt( static_cast<double>(x1) / gradientWidth, c );
+	m_gradient.setColorAt(static_cast<double>(x1) / gradientWidth, c );
 
 	int lastX = x1;
 	for ( int i = 1; i < m_opacityTF->GetSize(); i++)
@@ -99,7 +99,7 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 		m_opacityTF->GetNodeValue(i, opacityTFValue);
 		m_colorTF->GetNodeValue(i, colorTFValue);
 
-		int x2 = m_chart->xMapper().srcToDst(opacityTFValue[0]) + m_chart->xShift();
+		int x2 = m_chart->xMapper().srcToDst(opacityTFValue[0]);
 		if (x2 == lastX)
 		{
 			++x2;
@@ -149,7 +149,7 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 
 		painter.setPen(pen);
 		c.setRgbF(colorTFValue[1], colorTFValue[2], colorTFValue[3], 0.588);
-		m_gradient.setColorAt((double)x2/gradientWidth, c);
+		m_gradient.setColorAt(static_cast<double>(x2) / gradientWidth, c);
 		x1 = x2;
 		y1 = y2;
 	}
@@ -183,7 +183,7 @@ void iAChartTransferFunction::drawOnTop(QPainter &painter)
 	{
 		double gradientWidth = m_chart->chartWidth()*m_chart->xZoom();
 
-		painter.fillRect( 0, 0, gradientWidth, -m_chart->bottomMargin(), m_gradient );
+		painter.fillRect( 0, 1, gradientWidth, -(m_chart->bottomMargin()+1), m_gradient );
 	}
 }
 
@@ -199,19 +199,10 @@ int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 		m_opacityTF->GetNodeValue(pointIndex, pointValue);
 		int viewX = m_chart->xMapper().srcToDst(pointValue[0]);
 		int viewY = opacity2PixelY(pointValue[1]);
-
+		int pointRadius = (pointIndex == m_selectedPoint) ? iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS : iAChartWithFunctionsWidget::POINT_RADIUS;
 		if ( !m_rangeSliderHandles )
 		{
-			if ( ( pointIndex == m_selectedPoint &&
-				lx >= viewX - iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS &&
-				lx <= viewX + iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS &&
-				ly >= viewY - iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS &&
-				ly <= viewY + iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS ) ||
-				(lx >= viewX - iAChartWithFunctionsWidget::POINT_RADIUS &&
-				lx <= viewX + iAChartWithFunctionsWidget::POINT_RADIUS &&
-				ly >= viewY - iAChartWithFunctionsWidget::POINT_RADIUS &&
-				ly <= viewY + iAChartWithFunctionsWidget::POINT_RADIUS ) )
-
+			if (std::abs(lx - viewX) < pointRadius && std::abs(ly - viewY) < pointRadius)
 			{
 				index = pointIndex;
 				break;

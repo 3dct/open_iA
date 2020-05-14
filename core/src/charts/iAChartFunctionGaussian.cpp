@@ -56,7 +56,7 @@ iAChartFunctionGaussian::iAChartFunctionGaussian(iAChartWithFunctionsWidget *cha
 
 void iAChartFunctionGaussian::draw(QPainter &painter)
 {
-	draw(painter, m_color, 3);
+	draw(painter, m_color, LineWidthUnselected);
 }
 
 void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidth)
@@ -89,7 +89,7 @@ void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidt
 		painter.drawLine(pixelX1, pixelY1, pixelX2, pixelY2);
 
 		// smaller steps close to the mean: TODO - use adaptive step sizes?
-		step = std::abs( 0.5*(dataX1+dataX2)+startStep - m_mean) < (5 * m_sigma) ?
+		step = std::abs( 0.5*(dataX1+dataX2)+startStep - m_mean) < (6 * m_sigma) ?
 			smallStep : startStep;
 		dataX1 = dataX2;
 		dataY1 = dataY2;
@@ -154,24 +154,18 @@ int iAChartFunctionGaussian::selectPoint(QMouseEvent *event, int*)
 	int viewXLeftSigmaPoint  = m_chart->xMapper().srcToDst(m_mean - SigmaHandleFactor * m_sigma);
 	int viewXRightSigmaPoint = m_chart->xMapper().srcToDst(m_mean + SigmaHandleFactor * m_sigma);
 
-	if (lx >= viewXLeftSigmaPoint - iAChartWithFunctionsWidget::POINT_RADIUS / 2 &&
-		lx <= viewXLeftSigmaPoint + iAChartWithFunctionsWidget::POINT_RADIUS / 2 &&
-		ly >= viewYPoint - iAChartWithFunctionsWidget::POINT_RADIUS / 2 &&
-		ly <= viewYPoint + iAChartWithFunctionsWidget::POINT_RADIUS / 2)
+	if (std::abs(lx - viewXLeftSigmaPoint) <= iAChartWithFunctionsWidget::POINT_RADIUS / 2 &&
+		std::abs(ly - viewYPoint) <= iAChartWithFunctionsWidget::POINT_RADIUS / 2)
 	{
 		m_selectedPoint = 1;
 	}
-	else if (lx >= viewXRightSigmaPoint - iAChartWithFunctionsWidget::POINT_RADIUS / 2 &&
-		lx <= viewXRightSigmaPoint + iAChartWithFunctionsWidget::POINT_RADIUS / 2 &&
-		ly >= viewYPoint - iAChartWithFunctionsWidget::POINT_RADIUS / 2 &&
-		ly <= viewYPoint + iAChartWithFunctionsWidget::POINT_RADIUS / 2)
+	else if (std::abs(lx - viewXRightSigmaPoint) <= iAChartWithFunctionsWidget::POINT_RADIUS / 2 &&
+		std::abs(ly - viewYPoint)- iAChartWithFunctionsWidget::POINT_RADIUS / 2)
 	{
 		m_selectedPoint = 2;
 	}
-	else if (lx >= viewXPoint - iAChartWithFunctionsWidget::POINT_RADIUS &&
-		lx <= viewXPoint + iAChartWithFunctionsWidget::POINT_RADIUS &&
-		ly >= viewYPoint - iAChartWithFunctionsWidget::POINT_RADIUS &&
-		ly <= viewYPoint + iAChartWithFunctionsWidget::POINT_RADIUS)
+	else if (std::abs(lx - viewXPoint) <= iAChartWithFunctionsWidget::POINT_RADIUS &&
+		std::abs(ly - viewYPoint) <= iAChartWithFunctionsWidget::POINT_RADIUS)
 	{
 		m_selectedPoint = 0;
 	}
