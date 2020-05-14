@@ -36,6 +36,8 @@
 #include <mdichild.h>
 #include <qthelper/iAWidgetAddHelper.h>
 
+#include <itkMacro.h>    // for itk::ExceptionObject
+
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
