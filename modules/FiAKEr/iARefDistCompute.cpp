@@ -34,7 +34,6 @@
 #include <vtkTable.h>
 #include <vtkVariant.h>
 
-#include <QDataStream>
 #include <QDir>
 
 #include <array>
@@ -52,7 +51,6 @@ namespace
 	const int CacheFileVersion2NumberOfMeasures = 20;
 	QString ResultCacheFileIdentifier("FIAKERResultCacheFile");
 	QString AverageCacheFileIdentifier("FIAKERAverageCacheFile");
-	QDataStream::Version CacheFileQtDataStreamVersion(QDataStream::Qt_5_6);
 	//QString CacheFileClosestFibers("ClosestFibers");
 	//QString CacheFileResultPattern("Result%1");
 	quint32 CacheFileVersion(3);

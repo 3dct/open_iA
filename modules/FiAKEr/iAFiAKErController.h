@@ -46,14 +46,18 @@
 class iAFiberResultsCollection;
 class iAFiberCharUIData;
 class iAJobListView;
-class iAMatrixWidget;
 class iAStackedBarChart;
+
+// Sensitivity:
+class iAMatrixWidget;
+class iAParameterListView;
 
 class iA3DColoredPolyObjectVis;
 class iA3DCylinderObjectVis;
 
 class iAChartWidget;
 class iAColorTheme;
+class iACsvVectorTableCreator;
 class iADockWidgetWrapper;
 class iAFileChooserWidget;
 class iAMapper;
@@ -116,15 +120,16 @@ public:
 class iAResultPairInfo
 {
 public:
-	iAResultPairInfo(int measureCount) :
-		avgDissim(measureCount)
-	{}
+	iAResultPairInfo();
+	iAResultPairInfo(int measureCount);
 	// average dissimilarity, per dissimilarity measure
 	QVector<double> avgDissim;
 
 	// for every fiber, and every dissimilarity measure, the n best matching fibers (in descending match quality)
 	QVector<QVector<QVector<iAFiberSimilarity>>> fiberDissim;
 };
+
+using iADissimilarityMatrixType = QVector<QVector<iAResultPairInfo>>;
 
 class iAFiAKErController: public QObject, public iASelectionProvider
 {
@@ -253,6 +258,7 @@ private:
 	QWidget* setupResultListView();
 	QWidget* setupProtocolView();
 	QWidget* setupSelectionView();
+	QWidget* setupMatrixView(iACsvVectorTableCreator& tblCreator, QVector<int> const & measures);
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;
@@ -348,6 +354,11 @@ private:
 	std::vector<SelectionType> m_selections;
 
 	// Sensitivity
-	std::vector<std::vector<iAResultPairInfo>> m_dissimilarityMatrix;
+	iADissimilarityMatrixType m_dissimilarityMatrix;
 	iAMatrixWidget* m_matrixWidget;
+	iAParameterListView* m_parameterListView;
+
+	QString dissimilarityMatrixCacheFileName();
+	bool readDissimilarityMatrixCache(QVector<int>& measures);
+	void writeDissimilarityMatrixCache(QVector<int> const& measures);
 };
