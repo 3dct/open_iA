@@ -32,6 +32,7 @@
 #include "mdichild.h"
 
 #include <vtkColorTransferFunction.h>
+#include <vtkMath.h>
 #include <vtkPiecewiseFunction.h>
 
 #include <QFileDialog>
