@@ -42,8 +42,8 @@
 iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io): m_vrEnv(vrEnv),
 	m_style(style),	m_objectTable(objectTable),	m_io(io)
 {
-
 	m_cylinderVis = new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, m_io.getOutputMapping(), QColor(140,140,140,255), std::map<size_t, std::vector<iAVec3f> >());
+	m_iDMappingThread = std::thread(&iAVRMain::mapAllPointiDs, this);
 
 	//TEST ADD Cube
 	//m_objectVis = new iAVR3DObjectVis(m_vrEnv->renderer());
@@ -66,9 +66,9 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	//m_objectVis->show();
 	m_octree->show();
 
-
 }
 
+//! Defines the action executed for specific controller inputs
 void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], vtkProp3D* m_pickedProp)
 {
 	vtkEventDataDeviceInput input = device->GetInput();  // Input Method
@@ -79,7 +79,6 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 
 		if (input == vtkEventDataDeviceInput::TrackPad)
 		{
-
 			if (octreeLevel >= 3)
 			{
 				octreeLevel = 0;
@@ -87,8 +86,8 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 			octreeLevel++;
 
 			m_octree->generateOctree(octreeLevel, QColor(126, 0, 223, 255));
-			
 		}
+
 		if(input == vtkEventDataDeviceInput::Trigger)
 		{
 			std::vector<size_t> selection = std::vector<size_t>();
@@ -97,7 +96,7 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 				{
 					// Find the closest points to TestPoint
 					vtkIdType iD = m_octree->FindClosestPoint(eventPosition);
-
+					/*
 					// Get Coord
 					double closestPoint[3];
 					m_octree->getOctree()->GetDataSet()->GetPoint(iD, closestPoint);
@@ -131,13 +130,11 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 					pointsActor->GetProperty()->SetPointSize(5);
 					pointsActor->GetProperty()->SetColor(color);
 					m_vrEnv->renderer()->AddActor(pointsActor);
+					*/
 
-					vtkIdType rowiD = getObjectiD(closestPoint);
-					DEBUG_LOG(QString("< Single Point ID: %1  >").arg(rowiD));
+					vtkIdType rowiD = getObjectiD(iD);
 					selection.push_back(rowiD);
 
-					// Render specific fiber
-					//m_cylinderVis->renderSingle(rowiD+1, 0, QColor(140, 140, 140, 255), nullptr);
 					m_cylinderVis->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
 
 				}
@@ -155,16 +152,9 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 
 			if (m_pickedProp != nullptr)
 			{
-				DEBUG_LOG(QString("Get Number of Buckets: %1").arg(m_octree->getOctree()->GetNumberOfBuckets()));
-				DEBUG_LOG(QString("Number of Leaf nodes: %1 \n").arg(m_octree->getOctree()->GetNumberOfLeafNodes()));
-				// Find the closest points to TestPoint
-				//vtkIdType iD = m_octree->FindClosestPoint(eventPosition);
-				//double closestPoint[3];
-				//m_octree->getOctree()->GetDataSet()->GetPoint(iD, closestPoint);
 				
 				int leafRegion = m_octree->getOctree()->GetRegionContainingPoint(eventPosition[0], eventPosition[1], eventPosition[2]);
 				vtkIdTypeArray *points = m_octree->getOctree()->GetPointsInRegion(leafRegion);
-				DEBUG_LOG(QString("Leaf Region iD: %1").arg(leafRegion));
 				
 				//Check if points is null!!
 				if (points == nullptr) {
@@ -172,19 +162,15 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 					return;
 				}
 
-				DEBUG_LOG(QString("Amount of Points: %1 \n").arg(points->GetSize()));
-				//Check points null!!
 				for (int i = 0; i < points->GetSize(); i++)
 				{
-					double pointCoord[3];
-					m_octree->getOctree()->GetDataSet()->GetPoint(points->GetValue(i), pointCoord);
-
-					vtkIdType rowiD = getObjectiD(pointCoord);
+					vtkIdType rowiD = getObjectiD(points->GetValue(i));
 					selection.push_back(rowiD);
 				}
-				DEBUG_LOG(QString("\nAmount of Points in Selection: %1 ").arg(selection.size()));
+
 				std::sort(selection.begin(), selection.end());
 				selection.erase(std::unique(selection.begin(), selection.end()), selection.end());
+
 				m_cylinderVis->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
 			}
 			else
@@ -204,11 +190,61 @@ void iAVRMain::endInteraction()
 	/*Do NOTHING*/;
 }
 
+//! Conputes which polyObject ID (points) belongs to which Object ID in the csv file of the volume
+//! Gets only called internally from thread to store the mapping
+void iAVRMain::mapAllPointiDs()
+{
+	//m_cylinderVis->getPolyData()->GetPoints()->GetPoint(5904); // TEST TEST
+	//DEBUG_LOG(QString("Size of Array #: %1 ").arg(polyPoints->GetData()->GetSize())); //ToDo Why is the Array bigger then GetNumberOfPoints
+
+	vtkPoints* polyPoints = m_cylinderVis->getPolyData()->GetPoints();
+
+	//For all points in vtkPolyData store their pos
+	for (int i = 0; i < polyPoints->GetNumberOfPoints(); i++)
+	{
+		double temp_pos[3];
+		float temp_posf[3];
+
+		polyPoints->GetPoint(i, temp_pos);
+		//Conversion
+		for (int j = 0; j < 3; ++j)
+		{
+			temp_posf[j] = (float)(temp_pos[j]);
+		}
+		
+		// Check csv table
+		for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
+		{
+
+			float startPos[3], endPos[3];
+			for (int k = 0; k < 3; ++k)
+			{
+				startPos[k] = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::StartX + k)).ToFloat();
+				endPos[k] = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::EndX + k)).ToFloat();
+			}
+
+			// If start or end is equal then the poly point gets the corresponding object ID
+			if (checkEqualArrays(temp_posf, startPos) || checkEqualArrays(temp_posf, endPos))
+			{
+				m_pointIDToCsvIndex.insert(std::make_pair(i, row));
+				break;
+			}
+
+		}
+
+	}
+	DEBUG_LOG(QString("Volume Data loaded"));
+	m_iDMappingThreadRunning = false; //Thread ended
+}
+
 //! Looks in the vtkTable for the given position (could be start or end position)
 //! Returns the row iD of the found entrance in the table
-//! Converts double pos to float for use in vtk!
-vtkIdType iAVRMain::getObjectiD(double pos[3])
+//! Converts double pos to float for use in vtk! Returns -1 if point is not found in csv
+vtkIdType iAVRMain::mapSinglePointiD(vtkIdType polyPoint)
 {
+	double pos[3];
+	m_octree->getOctree()->GetDataSet()->GetPoint(polyPoint, pos);
+
 	float posf[3];
 	// Convert to float
 	for (int i = 0; i < 3; ++i)
@@ -233,7 +269,7 @@ vtkIdType iAVRMain::getObjectiD(double pos[3])
 
 	}
 
-	return -10000;
+	return -1;
 }
 
 //! Checks if two pos arrays are the same
@@ -249,3 +285,31 @@ bool iAVRMain::checkEqualArrays(float pos1[3], float pos2[3])
 	return true;
 }
 
+//! If mapping thread has finsihed load data from map, otherwise calculate it
+//! Returns -1 if point is not found in csv
+vtkIdType iAVRMain::getObjectiD(vtkIdType polyPoint)
+{
+	if (!m_iDMappingThreadRunning)
+	{
+		if (m_iDMappingThread.joinable())
+		{
+			m_iDMappingThread.join();
+		}
+
+		if (m_pointIDToCsvIndex.find(polyPoint) != m_pointIDToCsvIndex.end())
+		{
+			return m_pointIDToCsvIndex.at(polyPoint);
+		}
+		else
+		{
+			DEBUG_LOG(QString("Point not found in csv"));
+			return -1;
+		}
+
+	}
+	else
+	{
+		return mapSinglePointiD(polyPoint);
+	}
+
+}

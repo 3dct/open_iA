@@ -30,6 +30,9 @@
 #include "iACsvIO.h"
 #include "iAVRInteractorStyle.h"
 
+#include <unordered_map>
+#include <thread>
+
 // Enumeration of different interaction options for different Objects
 enum class iAVRInteractionOptions {
   Unknown = -1,
@@ -72,7 +75,13 @@ private:
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkProp3D> m_pickedProp;
 	iACsvIO m_io;
+	// Maps poly point IDs to Object IDs in csv file
+	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
+	std::thread m_iDMappingThread;
+	bool m_iDMappingThreadRunning = true;
 
-	vtkIdType getObjectiD(double pos[3]);
+	void mapAllPointiDs();
+	vtkIdType getObjectiD(vtkIdType polyPoint);
+	vtkIdType mapSinglePointiD(vtkIdType polyPoint);
 	bool checkEqualArrays(float pos1[3], float pos2[3]);
 };
