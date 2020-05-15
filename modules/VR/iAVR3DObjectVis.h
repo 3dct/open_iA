@@ -33,8 +33,9 @@ public:
 	iAVR3DObjectVis(vtkRenderer* ren);
 	void show();
 	void hide();
-	void createCube(QColor col);
+	void createCube(QColor col, double size[3], double center[3]);
 	void createSphere(QColor col);
+	void setScale(double x, double y, double z);
 	vtkDataSet* getDataSet();
 private:
 	vtkSmartPointer<vtkRenderer> m_renderer;

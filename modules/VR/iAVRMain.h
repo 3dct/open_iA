@@ -28,7 +28,6 @@
 #include "vtkDataSet.h"
 #include "vtkProp3D.h"
 #include "iACsvIO.h"
-#include "iAVRInteractorStyle.h"
 
 #include <unordered_map>
 #include <thread>
@@ -36,36 +35,38 @@
 // Enumeration of different interaction options for different Objects
 enum class iAVRInteractionOptions {
   Unknown = -1,
-  Default,
+  NoObject,
   MiniatureModel,
   Volume,
-  NumberOfOptions
+  NumberOfInteractionOptions
 };
 
 // Enumeration of different Operations
 enum class iAVROperations {
   Unknown = -1,
   None,
-  SpawnMM,
-  ArrangeObject,
-  WorldGrab,
-  WorldZoom,
-  Slicing,
+  SpawnModelInMiniature,
+  PickSingleFiber,
+  PickFibersinRegion,
+  ChangeOctreeLevel,
+  ResetSelection,
   NumberOfOperations
 };
 
 class iAVR3DObjectVis;
 class iA3DCylinderObjectVis;
 class iAVROctree; 
+class iAVRInteractorStyle;
 
 //! Class for  
 class iAVRMain
 {
 public:
 	iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io);
-	void startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], vtkProp3D* m_pickedProp); //Press, Touch
-	void endInteraction(); //Release, Untouch
+	void startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], vtkProp3D* pickedProp); //Press, Touch
+	void endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], vtkProp3D* pickedProp); //Release, Untouch
 	int octreeLevel;
+
 private:
 	iAVREnvironment* m_vrEnv;
 	iAVROctree* m_octree;
@@ -73,7 +74,7 @@ private:
 	iA3DCylinderObjectVis* m_cylinderVis;
 	vtkSmartPointer<iAVRInteractorStyle> m_style;
 	vtkSmartPointer<vtkTable> m_objectTable;
-	vtkSmartPointer<vtkProp3D> m_pickedProp;
+	//vtkSmartPointer<vtkProp3D> m_pickedProp;
 	iACsvIO m_io;
 	// Maps poly point IDs to Object IDs in csv file
 	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
@@ -84,4 +85,14 @@ private:
 	vtkIdType getObjectiD(vtkIdType polyPoint);
 	vtkIdType mapSinglePointiD(vtkIdType polyPoint);
 	bool checkEqualArrays(float pos1[3], float pos2[3]);
+	void setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation);
+	int getOptionForObject(vtkProp3D* pickedProp);
+
+	//# Methods for interaction #//
+
+	void changeOctreeLevel();
+	void pickSingleFiber(double eventPosition[3]);
+	void pickFibersinRegion(double eventPosition[3]);
+	void resetSelection();
+	void spawnModelInMiniature(double eventPosition[3], bool hide);
 };

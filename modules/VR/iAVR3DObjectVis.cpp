@@ -50,14 +50,14 @@ void iAVR3DObjectVis::hide()
 	m_visible = false;
 }
 
-void iAVR3DObjectVis::createCube(QColor col)
+void iAVR3DObjectVis::createCube(QColor col, double size[3], double center[3])
 {
 	// Create a cube.
     vtkNew<vtkCubeSource> cube;
-	cube->SetXLength(300.0);
-	cube->SetYLength(300.0);
-	cube->SetZLength(300.0);
-	cube->SetCenter(392,371,1340);
+	cube->SetXLength(size[0]);
+	cube->SetYLength(size[0]);
+	cube->SetZLength(size[0]);
+	cube->SetCenter(center);
     cube->Update();
 
     // mapper
@@ -92,6 +92,11 @@ void iAVR3DObjectVis::createSphere(QColor col)
 	m_actor->GetProperty()->SetColor(col.redF(), col.greenF(), col.blueF());
 	m_actor->GetProperty()->SetPointSize(20.0);
 	m_actor->GetProperty()->SetRepresentationToPoints();
+}
+
+void iAVR3DObjectVis::setScale(double x, double y, double z)
+{
+	m_actor->SetScale(x, y, z);
 }
 
 vtkDataSet * iAVR3DObjectVis::getDataSet()

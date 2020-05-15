@@ -23,8 +23,14 @@
 #include <vtkOpenVRInteractorStyle.h>
 #include <vtkSmartPointer.h>
 #include "vtkEventData.h"
+#include "iAVRMain.h"
 
-class iAVRMain;
+#define NUMBER_OF_DEVICES static_cast<int>(vtkEventDataDevice::NumberOfDevices)
+#define NUMBER_OF_INPUTS static_cast<int>(vtkEventDataDeviceInput::NumberOfInputs)
+#define NUMBER_OF_ACTIONS static_cast<int>(vtkEventDataAction::NumberOfActions)
+#define NUMBER_OF_OPTIONS static_cast<int>(iAVRInteractionOptions::NumberOfInteractionOptions)
+
+using inputScheme = std::vector < std::vector < std::vector<std::vector<int>>>>;
 
 //! Base Class for specific interaction callbacks
 class iAVRInteractorStyle : public vtkOpenVRInteractorStyle
@@ -34,8 +40,9 @@ class iAVRInteractorStyle : public vtkOpenVRInteractorStyle
 	vtkTypeMacro(iAVRInteractorStyle, vtkOpenVRInteractorStyle);
 
 	void setVRMain(iAVRMain* vrMain);
-
 	void OnButton3D(vtkEventData* edata) override;
+	inputScheme* getInputScheme();	// returns the vector for the Operation definition
+	std::vector<int>* getActiveInput(); //if >0 then has an action applied
 
    protected:
 	iAVRInteractorStyle();
@@ -43,4 +50,7 @@ class iAVRInteractorStyle : public vtkOpenVRInteractorStyle
    private:
 	iAVRMain* m_vrMain;
 	double m_eventPosition[3];
+	inputScheme* m_inputScheme;
+	std::vector<int>* m_activeInput;
+
 };

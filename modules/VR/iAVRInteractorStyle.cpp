@@ -35,6 +35,14 @@ vtkStandardNewMacro(iAVRInteractorStyle);
 //Reimplements the Constructor
 iAVRInteractorStyle::iAVRInteractorStyle()
 {
+	// Initialize with 0 = None
+	std::vector<int> a(NUMBER_OF_OPTIONS, 0);
+	std::vector<std::vector<int>> b(NUMBER_OF_ACTIONS, a);
+	std::vector < std::vector<std::vector<int>>> c(NUMBER_OF_INPUTS, b);
+	m_inputScheme = new std::vector < std::vector < std::vector<std::vector<int>>>>(NUMBER_OF_DEVICES, c);
+
+	m_activeInput = new std::vector<int>(NUMBER_OF_DEVICES, -1);
+
 }
 
 void iAVRInteractorStyle::setVRMain(iAVRMain* vrMain)
@@ -53,8 +61,8 @@ void iAVRInteractorStyle::OnButton3D(vtkEventData* edata)
 	{
 		return;
 	}
-
-	//vtkEventDataDeviceInput input = device->GetInput();              // Input Method
+	vtkEventDataDevice deviceData = device->GetDevice();			// Controller
+	vtkEventDataDeviceInput input = device->GetInput();              // Input Method
 	vtkEventDataAction action = device->GetAction();                 // Action of Input Method
 
 	// TODO Performance?
@@ -74,7 +82,17 @@ void iAVRInteractorStyle::OnButton3D(vtkEventData* edata)
 	}
 	else if(action == vtkEventDataAction::Release || action == vtkEventDataAction::Untouch)
 	{
-		m_vrMain->endInteraction();
+		m_vrMain->endInteraction(device, m_eventPosition, InteractionProp);
 	}
 	
+}
+
+inputScheme * iAVRInteractorStyle::getInputScheme()
+{
+	return m_inputScheme;
+}
+
+std::vector<int>* iAVRInteractorStyle::getActiveInput()
+{
+	return m_activeInput;
 }
