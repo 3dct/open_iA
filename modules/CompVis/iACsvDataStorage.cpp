@@ -117,8 +117,21 @@ QList<csvFileData>* iACsvDataStorage::getData()
 	return m_data;
 }
 
+/*********************** csvFileData methods ******************************************/
+std::vector<int>* csvFileData::getAmountObjectsEveryDataset(QList<csvFileData>* data)
+{
+	int amountDatasets = data->size();
+	std::vector<int>* result = new std::vector<int>(amountDatasets);
 
-//csvDataType methods
+	for (int i = 0; i < amountDatasets; i++)
+	{
+		result->at(i) = data->at(i).values->size();
+	}
+	
+	return result;
+}
+
+/***********************  csvDataType methods  ******************************************/
 csvDataType::ArrayType* csvDataType::initialize(int columns, int rows)
 {
 	std::vector<double> vec(rows, 0);
@@ -262,6 +275,29 @@ csvDataType::ArrayType* csvDataType::transpose(ArrayType* input)
 	return result;
 }
 
+std::vector<double>* csvDataType::arrayTypeToVector(ArrayType* input)
+{
+	int amountCols = getColumns(input);
+	int amountRows = getRows(input);
+
+	std::vector<double>* result = new std::vector<double>(amountRows);
+
+	if (amountCols <= 0 || amountCols > 1)
+	{
+		return nullptr;
+	}
+
+	for (int col1 = 0; col1 < amountCols; col1++)
+	{
+		for (int r1 = 0; r1 < amountRows; r1++)
+		{
+			result->at(r1) = input->at(col1).at(r1);
+		}
+	}
+
+	return result;
+}
+
 void csvDataType::debugArrayType(ArrayType* input)
 {
 	int amountCols = getColumns(input);
@@ -274,9 +310,10 @@ void csvDataType::debugArrayType(ArrayType* input)
 	for (int col1 = 0; col1 < amountCols; col1++)
 	{
 		DEBUG_LOG("Column " + QString::number(col1) + ":");
-		for (int r1 = 0; r1 < amountRows; r1++)
+		for (int r1 = 0; r1 < input->at(col1).size(); r1++)
 		{
 			DEBUG_LOG("  Row " + QString::number(r1) + ": " + QString::number(input->at(col1).at(r1)));
 		}
 	}
 }
+

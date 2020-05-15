@@ -8,9 +8,14 @@
 
 #include <vector>
 
+
+
 namespace csvDataType
 {
 	using ValueType = double;
+	//ArrayType always has the same length of rows for each column and vice versa
+	//ArrayTpe corresponds to a mxn matrix!
+	//ArrayType != BinType
 	using ArrayType = std::vector<std::vector<ValueType>>;
 
 	//initialize with zeros
@@ -35,14 +40,18 @@ namespace csvDataType
 	void debugArrayType(ArrayType* input);
 	//transpose array
 	ArrayType* transpose(ArrayType* input);
+	//convert 1xm arraytype to vector
+	std::vector<double>* arrayTypeToVector(ArrayType* input);
 }
 
 struct csvFileData
 {
 	QStringList* header;
 	csvDataType::ArrayType* values;
-};
 
+	//returns the amount of objects of each single csv dataset
+	static std::vector<int>* getAmountObjectsEveryDataset(QList<csvFileData>* data);
+};
 
 class iACsvDataStorage
 {

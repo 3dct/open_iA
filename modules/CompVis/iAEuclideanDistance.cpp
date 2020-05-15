@@ -42,8 +42,8 @@ csvDataType::ArrayType* iAEuclideanDistance::calculateSimilarityDistance(
 	}
 
 	//DEBUG
-	//DEBUG_LOG("Euclidean Distance:");
-	//csvDataType::debugArrayType(resultMatrix);
+	DEBUG_LOG("Euclidean Distance:");
+	csvDataType::debugArrayType(resultMatrix);
 
 	return resultMatrix;
 }

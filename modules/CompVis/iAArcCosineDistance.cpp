@@ -1,6 +1,6 @@
 #include "iAArcCosineDistance.h"
 
-#include <cmath>
+#include <math.h>
 
 //Debug
 #include "iAConsole.h"
@@ -22,8 +22,16 @@ csvDataType::ArrayType* iAArcCosineDistance::calculateProximityDistance()
 		{
 			double counter = calculateCounter(m_matrix->at(pass1), m_matrix->at(pass2));
 			double denominator = calculateDenominator(m_matrix->at(pass1), m_matrix->at(pass2));
+			//DEBUG_LOG("counter: " + QString::number(counter));
+			//DEBUG_LOG("denominator: " + QString::number(denominator));
 
-			m_distanceMatrix->at(pass1).at(pass2) = acos(counter / denominator);
+			
+			//DEBUG_LOG(QString("acos(counter / denominator): %1").arg(floor(counter / denominator)));
+			//DEBUG_LOG("acos(counter / denominator): " + QString::number(acos(floor(counter / denominator))));
+			
+			m_distanceMatrix->at(pass1).at(pass2) = acos(floor(counter / denominator));
+			//DEBUG_LOG(
+			//	"m_distanceMatrix->at(pass1).at(pass2): " + QString::number(m_distanceMatrix->at(pass1).at(pass2)));
 		}
 	}
 

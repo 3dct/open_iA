@@ -9,6 +9,8 @@
 //Debug
 #include "iAConsole.h"
 
+#include <algorithm>
+#include <iostream>
 #include <vector>
 
 iAMultidimensionalScaling::iAMultidimensionalScaling(QList<csvFileData>* data) :
@@ -37,6 +39,7 @@ void iAMultidimensionalScaling::setProximityMetric(ProximityMetric proxiName)
 {
 	m_activeProxM = proxiName;
 }
+
 void iAMultidimensionalScaling::setDistanceMetric(DistanceMetric disName)
 {
 	m_activeDisM = disName;
@@ -54,6 +57,12 @@ void iAMultidimensionalScaling::initializeMatrixUNormalized()
 	}
 
 	m_matrixUNormalized = new csvDataType::ArrayType(m_amountOfElems, vec);
+	
+	//DEBUG
+	//DEBUG_LOG("");
+	DEBUG_LOG("m_matrixUNormalized");
+	//csvDataType::debugArrayType(m_matrixUNormalized);
+	//DEBUG_LOG("");
 }
 
 void iAMultidimensionalScaling::normalizeMatrix()
@@ -115,6 +124,12 @@ void iAMultidimensionalScaling::calculateProximityDistance()
 		//m_amountofCharas-1 - without the labels
 		iAArcCosineDistance pd(m_weights, m_matrixUNormalized, m_amountOfCharas - 1, m_amountOfElems);
 		m_matrixProximityDis = pd.calculateProximityDistance();
+
+		//DEBUG
+		//DEBUG_LOG("");
+		DEBUG_LOG("m_matrixProximityDis");
+		//csvDataType::debugArrayType(m_matrixProximityDis);
+		//DEBUG_LOG("");
 	}
 }
 
@@ -164,6 +179,11 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	//calculate euclidean distance
 	iASimilarityDistance* d = initializeDistanceMetric();
 	D_ = d->calculateSimilarityDistance(X, D_);
+	
+	//DEBUG_LOG("");
+	DEBUG_LOG("D_");
+	//csvDataType::debugArrayType(D_);
+	//DEBUG_LOG("");
 
 	//MDS iteration
 	for (int it = 0; it < iterations; it++)
@@ -220,7 +240,10 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	m_configuration = X;
 	
 	//DEBUG
-	csvDataType::debugArrayType(m_configuration);
+	//DEBUG_LOG("");
+	DEBUG_LOG("m_configuration");
+	//csvDataType::debugArrayType(m_configuration);
+	//DEBUG_LOG("");
 }
 
 std::vector<double>* iAMultidimensionalScaling::getWeights()
@@ -231,4 +254,9 @@ std::vector<double>* iAMultidimensionalScaling::getWeights()
 csvDataType::ArrayType* iAMultidimensionalScaling::getResultMatrix()
 {
 	return m_configuration;
+}
+
+QList<csvFileData>* iAMultidimensionalScaling::getCSVFileData()
+{
+	return m_inputData;
 }

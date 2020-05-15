@@ -134,3 +134,4 @@ void dlg_MultidimensionalScalingDialog::checkWeightValues()
 {
 
 }
+

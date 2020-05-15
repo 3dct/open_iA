@@ -10,6 +10,7 @@
 
 
 class iASimilarityDistance;
+class iAHistogramData;
 
 enum class ProximityMetric
 {
@@ -82,12 +83,12 @@ class iAMultidimensionalScaling
 	void startMDS(std::vector<double>* weights);
 	void setProximityMetric(ProximityMetric proxiName);
 	void setDistanceMetric(DistanceMetric disName);
-
+	QList<csvFileData>* getCSVFileData();
 	//return the result of the mds
 	csvDataType::ArrayType* getResultMatrix();
 
    private:
-	   //initialize weight list
+	//initialize weight list
 	void initializeWeights();
 
 	//initialize matrixUNormalized according to the amount of objects in all csvs and all characteritics
@@ -126,7 +127,7 @@ class iAMultidimensionalScaling
 	csvDataType::ArrayType* m_matrixProximityDis;
 	//result of the MDS
 	csvDataType::ArrayType* m_configuration;
-
+	//weights that will be used for each characteristic during the computation, each between [0,100]
 	std::vector<double>* m_weights;
 
 	DistanceMetric m_activeDisM;

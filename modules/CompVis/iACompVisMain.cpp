@@ -9,7 +9,11 @@
 #include "iACompBoxPlot.h"
 #include "iACompHistogramTable.h"
 #include "iACompCorrelationMap.h"
+
 #include "iAMultidimensionalScaling.h"
+
+//iA
+#include "charts/iAHistogramData.h"
 
 //QT
 #include <QMessageBox>
@@ -30,7 +34,7 @@ iACompVisMain::iACompVisMain(MainWindow* mainWin)
 	m_mainW->centralwidget->setLayout(layout1);
 
 	//add histogram table
-	m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_mds->getResultMatrix());
+	m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_mds);
 	layout1->addWidget(m_HistogramTableDockWidget);
 
 	QHBoxLayout* layout2 = new QHBoxLayout;
@@ -69,6 +73,7 @@ void iACompVisMain::loadData()
 void iACompVisMain::initializeMDS()
 {
 	m_mds = new iAMultidimensionalScaling(m_data);
-	
+
 	//todo calculate histogramtable again
 }
+

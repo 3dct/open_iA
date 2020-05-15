@@ -13,6 +13,7 @@ class iACompBarChart;
 class iACompHistogramTable;
 class iACompBoxPlot;
 class iACompCorrelationMap;
+class iAHistogramData;
 
 class iACompVisMain
 {
@@ -27,6 +28,7 @@ class iACompVisMain
 	dlg_VisMainWindow* m_mainW;
 	QList<csvFileData>* m_data;
 	iAMultidimensionalScaling* m_mds;
+	iAHistogramData* m_histData;
 
 	iACompBarChart* m_BarChartDockWidget;
 	iACompHistogramTable* m_HistogramTableDockWidget;
