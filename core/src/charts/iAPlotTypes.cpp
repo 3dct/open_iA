@@ -79,7 +79,9 @@ namespace
 	bool buildLinePolygon(QPolygon & poly, iAPlotData::DataType const * rawData, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper)
 	{
 		if (!rawData)
+		{
 			return false;
+		}
 		for (size_t curBin = startBin; curBin <= endBin; ++curBin)
 		{
 			int curX = xMapper.srcToDst(curBin);
@@ -105,7 +107,9 @@ void iALinePlot::draw(QPainter& painter, double /*binWidth*/, size_t startBin, s
 {
 	QPolygon poly;
 	if (!buildLinePolygon(poly, m_data->rawData(), startBin, endBin, xMapper, yMapper))
+	{
 		return;
+	}
 	QPen pen(painter.pen());
 	pen.setWidth(m_lineWidth);
 	pen.setColor(getColor());
@@ -129,7 +133,9 @@ void iAFilledLinePlot::draw(QPainter& painter, double /*binWidth*/, size_t start
 {
 	QPolygon poly;
 	if (!buildLinePolygon(poly, m_data->rawData(), startBin, endBin, xMapper, yMapper))
+	{
 		return;
+	}
 	poly.insert(0, QPoint(xMapper.srcToDst(startBin - (startBin > 0 ? 1 : 0)), 0));
 	poly.push_back(QPoint(xMapper.srcToDst(endBin), 0));
 	QPainterPath tmpPath;
@@ -155,7 +161,9 @@ void iAStepFunctionPlot::draw(QPainter& painter, double /*binWidth*/, size_t sta
 	QPainterPath tmpPath;
 	iAPlotData::DataType const * rawData = m_data->rawData();
 	if (!rawData)
+	{
 		return;
+	}
 	QPolygon poly;
 	poly.push_back(QPoint(xMapper.srcToDst(startBin), 0));
 	for (size_t curBin = startBin; curBin <= endBin; ++curBin)
@@ -182,7 +190,9 @@ void iABarGraphPlot::draw(QPainter& painter, double binWidth, size_t startBin, s
 {
 	iAPlotData::DataType const * rawData = m_data->rawData();
 	if (!rawData)
+	{
 		return;
+	}
 	int barWidth = static_cast<int>(std::ceil(binWidth)) - m_margin;
 	QColor fillColor = getColor();
 	for (size_t curBin = startBin; curBin <= endBin; ++curBin)
@@ -247,7 +257,9 @@ void iAPlotCollection::clear()
 QSharedPointer<iAPlotData> iAPlotCollection::data()
 {
 	if (m_drawers.size() > 0)
+	{
 		return m_drawers[0]->data();
+	}
 	else
 	{
 		DEBUG_LOG("iAPlotCollection::data() called before any plots were added!");
