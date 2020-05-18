@@ -37,6 +37,7 @@ public:
 	void createSphere(QColor col);
 	void setScale(double x, double y, double z);
 	vtkDataSet* getDataSet();
+	vtkActor* getActor();
 private:
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	vtkSmartPointer<vtkActor> m_actor;

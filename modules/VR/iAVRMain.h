@@ -23,6 +23,7 @@
 #include "vtkSmartPointer.h"
 #include "iAVREnvironment.h"
 
+
 #include "vtkEventData.h"
 #include "vtkTable.h"
 #include "vtkDataSet.h"
@@ -36,6 +37,7 @@
 enum class iAVRInteractionOptions {
   Unknown = -1,
   NoObject,
+  Anywhere,
   MiniatureModel,
   Volume,
   NumberOfInteractionOptions
@@ -76,6 +78,8 @@ private:
 	vtkSmartPointer<vtkTable> m_objectTable;
 	//vtkSmartPointer<vtkProp3D> m_pickedProp;
 	iACsvIO m_io;
+	// Map Actors to iAVRInteractionOptions
+	std::unordered_map<vtkProp3D*, int> m_ActorToOptionID;
 	// Maps poly point IDs to Object IDs in csv file
 	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
 	std::thread m_iDMappingThread;
@@ -87,6 +91,7 @@ private:
 	bool checkEqualArrays(float pos1[3], float pos2[3]);
 	void setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation);
 	int getOptionForObject(vtkProp3D* pickedProp);
+	void addPropToOptionID(vtkProp3D* prop, iAVRInteractionOptions iD);
 
 	//# Methods for interaction #//
 

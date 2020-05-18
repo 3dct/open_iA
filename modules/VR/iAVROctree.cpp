@@ -52,7 +52,7 @@ void iAVROctree::generateOctree(int level, QColor col)
 	m_actor->GetProperty()->SetColor(col.redF(), col.greenF(), col.blueF());
 	m_actor->GetProperty()->SetLineWidth(6); //ToDo Use TubeFilter?
 	m_actor->GetProperty()->RenderLinesAsTubesOn();
-	//m_actor->PickableOff();
+	m_actor->PickableOff();
 }
 
 void iAVROctree::FindClosestNPoints(int N, const double x[3], vtkIdList* result)

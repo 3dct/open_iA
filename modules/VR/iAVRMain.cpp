@@ -23,9 +23,10 @@
 #include <iAConsole.h>
 #include "iAVRInteractor.h"
 #include "vtkRenderer.h"
-#include "vtkActor.h"
 #include "vtkIdList.h"
 #include "vtkProperty.h"
+#include "vtkActor.h"
+#include "vtkPropCollection.h"
 #include "vtkPolyData.h"
 #include "iA3DCylinderObjectVis.h"
 #include "iAVR3DObjectVis.h"
@@ -51,19 +52,23 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	m_vrEnv->interactor()->SetInteractorStyle(m_style);
 
 	//Add Input Mapping
+	//Press, Touch
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Volume, iAVROperations::PickSingleFiber);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::ApplicationMenu, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Volume, iAVROperations::PickFibersinRegion);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::TrackPad, vtkEventDataAction::Press,
-		iAVRInteractionOptions::NoObject, iAVROperations::ChangeOctreeLevel);
+		iAVRInteractionOptions::Anywhere, iAVROperations::ChangeOctreeLevel);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
 		iAVRInteractionOptions::NoObject, iAVROperations::ResetSelection);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::ApplicationMenu, vtkEventDataAction::Press,
 		iAVRInteractionOptions::NoObject, iAVROperations::ResetSelection);
-
 	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::ApplicationMenu, vtkEventDataAction::Press,
 		iAVRInteractionOptions::NoObject, iAVROperations::SpawnModelInMiniature);
+	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::ApplicationMenu, vtkEventDataAction::Press,
+		iAVRInteractionOptions::MiniatureModel, iAVROperations::SpawnModelInMiniature);
+	//Release, Untouch
+
 
 	//Create Cube
 	m_objectVis = new iAVR3DObjectVis(m_vrEnv->renderer());
@@ -76,6 +81,9 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	m_cylinderVis->show();	
 	m_octree->show();
 
+	//Add Actors
+	addPropToOptionID(vtkProp3D::SafeDownCast(m_objectVis->getActor()), iAVRInteractionOptions::MiniatureModel);
+	addPropToOptionID(vtkProp3D::SafeDownCast(m_cylinderVis->getActor()), iAVRInteractionOptions::Volume);
 }
 
 //! Defines the action executed for specific controller inputs
@@ -92,35 +100,40 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 	inputScheme* scheme = m_style->getInputScheme();
 	int operation = scheme->at(deviceID).at(inputID).at(actioniD).at(optionID);
 
+	DEBUG_LOG(QString("Object =  %1").arg(optionID));
+
 	switch (iAVROperations(operation))
 	{
 	case iAVROperations::Unknown:
 		DEBUG_LOG(QString("Unknown Operation!"));
 		break;
 	case iAVROperations::None:
+		//activeInput->at(deviceID) = operation; // For Multitouch
 		break;
 	case iAVROperations::SpawnModelInMiniature:
-		this->spawnModelInMiniature(eventPosition, false);
-		activeInput->at(deviceID) = operation;
+		if(optionID == static_cast<int>(iAVRInteractionOptions::MiniatureModel))
+		{
+			this->spawnModelInMiniature(eventPosition, true);
+		}
+		else
+		{
+			this->spawnModelInMiniature(eventPosition, false);
+		}
 		break;
 	case iAVROperations::PickSingleFiber:
 		this->pickSingleFiber(eventPosition);
-		activeInput->at(deviceID) = operation;
 		break;
 	case iAVROperations::PickFibersinRegion:
 		this->pickFibersinRegion(eventPosition);
-		activeInput->at(deviceID) = operation;
 		break;
 	case iAVROperations::ChangeOctreeLevel:
 		this->changeOctreeLevel();
-		activeInput->at(deviceID) = operation;
 		break;
 	case iAVROperations::ResetSelection:
 		this->resetSelection();
-		activeInput->at(deviceID) = operation;
 		break;
 	}
-
+	//DEBUG_LOG(QString("[START] active Input rc = %1, lc = %2").arg(activeInput->at(1)).arg(activeInput->at(2)));
 	//Update Changes //ToDO: Required? Or is render Selection enough?
 	m_vrEnv->update();
 }
@@ -144,25 +157,10 @@ void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition
 		DEBUG_LOG(QString("Unknown Operation!"));
 		break;
 	case iAVROperations::None:
-		break;
-	case iAVROperations::SpawnModelInMiniature:
-		this->spawnModelInMiniature(eventPosition, true);
-		activeInput->at(deviceID) = static_cast<int>(iAVROperations::None);
-		break;
-	case iAVROperations::PickSingleFiber:
-		activeInput->at(deviceID) = static_cast<int>(iAVROperations::None);
-		break;
-	case iAVROperations::PickFibersinRegion:
-		activeInput->at(deviceID) = static_cast<int>(iAVROperations::None);
-		break;
-	case iAVROperations::ChangeOctreeLevel:
-		activeInput->at(deviceID) = static_cast<int>(iAVROperations::None);
-		break;
-	case iAVROperations::ResetSelection:
-		activeInput->at(deviceID) = operation;
+		//activeInput->at(deviceID) = static_cast<int>(iAVROperations::None); // For Multitouch
 		break;
 	}
-
+	//DEBUG_LOG(QString("[END] active Input rc = %1, lc = %2").arg(activeInput->at(1)).arg(activeInput->at(2)));
 	//Update Changes //ToDO: Required? Or is render Selection enough?
 	m_vrEnv->update();
 }
@@ -266,7 +264,17 @@ void iAVRMain::setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput
 {
 	inputScheme* scheme = m_style->getInputScheme();
 
-	scheme->at(static_cast<int>(device)).at(static_cast<int>(input)).at(static_cast<int>(action)).at(static_cast<int>(options)) = static_cast<int>(operation);
+	if(options == iAVRInteractionOptions::Anywhere) //Apply Operation for every Interaction Option
+	{
+		for(int i=0; i < static_cast<int>(iAVRInteractionOptions::NumberOfInteractionOptions); i++)
+		{
+			scheme->at(static_cast<int>(device)).at(static_cast<int>(input)).at(static_cast<int>(action)).at(static_cast<int>(i)) = static_cast<int>(operation);
+		}
+	}
+	else
+	{
+		scheme->at(static_cast<int>(device)).at(static_cast<int>(input)).at(static_cast<int>(action)).at(static_cast<int>(options)) = static_cast<int>(operation);
+	}
 }
 
 //! Returns which InteractionOption is for the currently picked Object available 
@@ -278,8 +286,18 @@ int iAVRMain::getOptionForObject(vtkProp3D* pickedProp)
 	}
 	else
 	{
-		return static_cast<int>(iAVRInteractionOptions::Volume); //ToDo change Options
+		if(!m_ActorToOptionID.count(pickedProp))
+		{
+			DEBUG_LOG(QString("Picked Object Unknown!"));
+			return -1;
+		}
+		return m_ActorToOptionID.at(pickedProp);
 	}
+}
+
+void iAVRMain::addPropToOptionID(vtkProp3D* prop, iAVRInteractionOptions iD)
+{
+	m_ActorToOptionID.insert(std::make_pair(prop, static_cast<int>(iD)));
 }
 
 //! If mapping thread has finsihed load data from map, otherwise calculate it
@@ -403,8 +421,8 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 {
 	if(!hide)
 	{
-		double size[3] = { 100.0, 100.0, 100.0 };
-		double controllerCenter[3] = { eventPosition[0] + size[0], eventPosition[1] + size[1], eventPosition[2]};
+		double size[3] = { 50.0, 50.0, 50.0 };
+		double controllerCenter[3] = { eventPosition[0] - size[0] / 2, eventPosition[1] + size[1] / 2 , eventPosition[2] - size[2] / 2 };
 		m_objectVis->createCube(QColor(0, 190, 50, 255), size, controllerCenter);
 		m_objectVis->show();
 	}
@@ -412,5 +430,5 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 	{
 		m_objectVis->hide();
 	}
-
 }
+

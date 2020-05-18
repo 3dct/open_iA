@@ -104,5 +104,10 @@ vtkDataSet * iAVR3DObjectVis::getDataSet()
 	return m_dataSet;
 }
 
+vtkActor * iAVR3DObjectVis::getActor()
+{
+	return m_actor;
+}
+
 
 
