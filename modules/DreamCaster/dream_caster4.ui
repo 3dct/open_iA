@@ -185,7 +185,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="dreamcaster.qrc">
+                     <iconset resource="../../core/open_iA.qrc">
                       <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
                     </property>
                     <property name="iconSize">
@@ -301,7 +301,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="dreamcaster.qrc">
+                     <iconset resource="../../core/open_iA.qrc">
                       <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
                     </property>
                     <property name="iconSize">
@@ -692,7 +692,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="dreamcaster.qrc">
+                     <iconset resource="../../core/open_iA.qrc">
                       <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
                     </property>
                     <property name="iconSize">
@@ -792,6 +792,14 @@
                      <property name="autoFillBackground">
                       <bool>true</bool>
                      </property>
+                     <layout class="QVBoxLayout" name="verticalLayout_24">
+                      <property name="spacing">
+                       <number>0</number>
+                      </property>
+                      <property name="margin">
+                       <number>0</number>
+                      </property>
+                     </layout>
                     </widget>
                    </item>
                    <item>
@@ -1251,7 +1259,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="dreamcaster.qrc">
+                     <iconset resource="../../core/open_iA.qrc">
                       <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
                     </property>
                     <property name="iconSize">
@@ -1890,7 +1898,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="dreamcaster.qrc">
+              <iconset resource="../../core/open_iA.qrc">
                <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
              </property>
              <property name="iconSize">
@@ -2482,7 +2490,7 @@
                    <item>
                     <layout class="QVBoxLayout" name="verticalLayout_52">
                      <item>
-                      <widget class="QCheckBox" name="cudaEnabled">
+                      <widget class="QCheckBox" name="cbOpenCLEnabled">
                        <property name="font">
                         <font>
                          <weight>75</weight>
@@ -3148,6 +3156,14 @@
                     <height>0</height>
                    </size>
                   </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_40">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="margin">
+                    <number>0</number>
+                   </property>
+                  </layout>
                  </widget>
                 </item>
                </layout>
@@ -6783,6 +6799,7 @@
  <layoutdefault spacing="6" margin="11"/>
  <resources>
   <include location="dreamcaster.qrc"/>
+  <include location="../../core/open_iA.qrc"/>
  </resources>
  <connections/>
  <slots>
