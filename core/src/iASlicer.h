@@ -76,6 +76,7 @@ class vtkThinPlateSplineTransform;
 class vtkTransform;
 class vtkWorldPointPicker;
 
+class QAction;
 class QMenu;
 class QWidget;
 
@@ -230,8 +231,6 @@ public slots:
 	void setSlabCompositeMode(int compositeMode);
 	void update();
 
-
-
 	//! Moves a point of the snake slicer to a new position.
 	void movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
 
@@ -258,6 +257,9 @@ public slots:
 private slots:
 	void menuCenteredMagicLens();
 	void menuOffsetMagicLens();
+	void toggleLinearInterpolation();
+	void toggleWindowLevelAdjust();
+	void toggleShowTooltip();
 
 signals:
 	void addedPoint(double x, double y, double z);
@@ -288,8 +290,9 @@ signals:
 	void sliceRangeChanged(int minIdx, int maxIdx);
 
 protected:
-	QMenu *         m_contextMenuMagicLens;      //!< context menu for when magic lens is shown
-	QMenu *         m_contextMenuSnakeSlicer;    //!< context menu for when in snake slice edit mode
+	QAction* m_linearInterpolation, * m_toggleWindowLevelAdjust, * m_magicLensCentered,
+		* m_magicLensOffset, * m_deleteSnakeLine, * m_showTooltip;
+	QMenu *         m_contextMenu;               //!< context menu
 	InteractionMode m_interactionMode;           //!< current edit mode
 	int             m_xInd, m_yInd, m_zInd;      //!< current position
 	iASnakeSpline * m_snakeSpline;				 //!< holds the visualization data for the points of the snake splicer
@@ -438,4 +441,5 @@ private:
 
 	//! Sets coordinates for line profile
 	bool setProfilePointWithClamp(int pointInd, double* Pos, bool doClamp);
+	void setLinearInterpolation(bool enabled);
 };
