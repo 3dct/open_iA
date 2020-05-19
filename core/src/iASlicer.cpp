@@ -62,6 +62,7 @@
 #include <vtkImageChangeInformation.h>
 #include <vtkImageData.h>
 #include <vtkImageMapper3D.h>
+#include <vtkImageProperty.h>
 #include <vtkImageResample.h>
 #include <vtkImageReslice.h>
 #include <vtkInteractorStyleImage.h>
@@ -113,14 +114,44 @@ public:
 	static iAInteractorStyleImage *New();
 	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage)
 
-	//! Disable "window-level" and rotation interaction (anything but shift-dragging)
 	void OnLeftButtonDown() override
 	{
+		m_leftButtonDown = true;
+		// if enabled, start "window-level" (click+drag) interaction:
+		if (m_windowLevelAdjustEnabled)
+		{	// mostly copied from base class; but we don't want the "GrabFocus" call there,
+			// that prevents the listeners to be notified of mouse move calls
+			int x = this->Interactor->GetEventPosition()[0];
+			int y = this->Interactor->GetEventPosition()[1];
+
+			this->FindPokedRenderer(x, y);
+			if (this->CurrentRenderer == nullptr)
+			{
+				return;
+			}
+			if (!this->Interactor->GetShiftKey() && !this->Interactor->GetControlKey())
+			{
+				this->WindowLevelStartPosition[0] = x;
+				this->WindowLevelStartPosition[1] = y;
+				this->StartWindowLevel();
+			}
+		}
+
+		// only allow moving the slice (Shift+Drag):
 		if (!this->Interactor->GetShiftKey())
 		{
 			return;
 		}
 		vtkInteractorStyleImage::OnLeftButtonDown();
+	}
+	void OnLeftButtonUp() override
+	{
+		m_leftButtonDown = false;
+		if (this->State == VTKIS_WINDOW_LEVEL)
+		{
+			this->EndWindowLevel();
+		}
+		vtkInteractorStyleImage::OnLeftButtonUp();
 	}
 	//! @{ shift and control + mousewheel are used differently - don't use them for zooming!
 	void OnMouseWheelForward() override
@@ -149,9 +180,21 @@ public:
 		}
 		vtkInteractorStyleImage::OnRightButtonDown();
 	}
-	void SetRightButtonDragZoomEnabled(bool enabled)
+	void setRightButtonDragZoomEnabled(bool enabled)
 	{
 		m_rightButtonDragZoomEnabled = enabled;
+	}
+	void setWindowLevelAdjust(bool enabled)
+	{
+		m_windowLevelAdjustEnabled = enabled;
+	}
+	bool windowLevelAdjustEnabled() const
+	{
+		return m_windowLevelAdjustEnabled;
+	}
+	bool leftButtonDown() const
+	{
+		return m_leftButtonDown;
 	}
 
 	//! @}
@@ -172,6 +215,8 @@ public:
 
 private:
 	bool m_rightButtonDragZoomEnabled = true;
+	bool m_windowLevelAdjustEnabled = false;
+	bool m_leftButtonDown = false;
 };
 
 vtkStandardNewMacro(iAInteractorStyleImage);
@@ -196,8 +241,7 @@ private:
 iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	bool decorations /*= true*/, bool magicLensAvailable /*= true*/, vtkAbstractTransform *transform, vtkPoints* snakeSlicerPoints) :
 	iAVtkWidget(parent),
-	m_contextMenuMagicLens(nullptr),
-	m_contextMenuSnakeSlicer(nullptr),
+	m_contextMenu(new QMenu(this)),
 	m_interactionMode(Normal),
 	m_xInd(0), m_yInd(0), m_zInd(0),
 	m_snakeSpline(nullptr),
@@ -263,28 +307,34 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 
 	updateBackground();
 
+	m_linearInterpolation = m_contextMenu->addAction(tr("Linear Interpolation"), this, &iASlicer::toggleLinearInterpolation);
+	m_linearInterpolation->setCheckable(true);
+	m_toggleWindowLevelAdjust = m_contextMenu->addAction(tr("Adjust Window/Level via Mouse Click+Drag"), this, &iASlicer::toggleWindowLevelAdjust);
+	m_toggleWindowLevelAdjust->setCheckable(true);
+	m_showTooltip = m_contextMenu->addAction(tr("Show Tooltip"), this, &iASlicer::toggleShowTooltip);
+	m_showTooltip->setCheckable(true);
+
 	if (magicLensAvailable)
 	{
 		m_magicLens = QSharedPointer<iAMagicLens>(new iAMagicLens());
 		m_magicLens->setRenderWindow(m_renWin);
 		// setup context menu for the magic lens view options
-		m_contextMenuMagicLens = new QMenu(this);
+		m_contextMenu->addSeparator();
 		QActionGroup * actionGr(new QActionGroup(this));
-		auto centeredLens = m_contextMenuMagicLens->addAction(tr("Centered Magic Lens"), this, &iASlicer::menuCenteredMagicLens);
-		centeredLens->setCheckable(true);
-		centeredLens->setChecked(true);
-		actionGr->addAction(centeredLens);
-		auto offsetLens = m_contextMenuMagicLens->addAction(tr("Offseted Magic Lens"), this, &iASlicer::menuOffsetMagicLens);
-		offsetLens->setCheckable(true);
-		actionGr->addAction(offsetLens);
+		m_magicLensCentered = m_contextMenu->addAction(tr("Centered Magic Lens"), this, &iASlicer::menuCenteredMagicLens);
+		m_magicLensCentered->setCheckable(true);
+		m_magicLensCentered->setChecked(true);
+		actionGr->addAction(m_magicLensCentered);
+		m_magicLensOffset = m_contextMenu->addAction(tr("Offseted Magic Lens"), this, &iASlicer::menuOffsetMagicLens);
+		m_magicLensOffset->setCheckable(true);
+		actionGr->addAction(m_magicLensOffset);
 	}
 
 	if (decorations)
 	{
 		m_snakeSpline = new iASnakeSpline;
-
-		m_contextMenuSnakeSlicer = new QMenu(this);
-		m_contextMenuSnakeSlicer->addAction(QIcon(":/images/loadtrf.png"), tr("Delete Snake Line"), this, &iASlicer::menuDeleteSnakeLine);
+		m_contextMenu->addSeparator();
+		m_deleteSnakeLine = m_contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Delete Snake Line"), this, &iASlicer::menuDeleteSnakeLine);
 		m_sliceProfile = new iASlicerProfile();
 		m_sliceProfile->setVisibility(false);
 
@@ -441,8 +491,7 @@ iASlicer::~iASlicer()
 	if (m_decorations)
 	{
 		delete m_snakeSpline;
-		delete m_contextMenuSnakeSlicer;
-		delete m_contextMenuMagicLens;
+		delete m_contextMenu;
 		delete m_sliceProfile;
 		delete m_profileHandles;
 	}
@@ -553,17 +602,24 @@ void iASlicer::setSliceNumber( int sliceNumber )
 	emit sliceNumberChanged( m_mode, sliceNumber );
 }
 
-void iASlicer::setup( iASingleSlicerSettings const & settings )
+void iASlicer::setLinearInterpolation(bool enabled)
 {
-	m_settings = settings;
 	for (auto channel: m_channels)
 	{
-		channel->setInterpolate(settings.LinearInterpolation);
+		channel->setInterpolate(enabled);
 	}
 	if (m_magicLens)
 	{
-		m_magicLens->setInterpolate(settings.LinearInterpolation);
+		m_magicLens->setInterpolate(enabled);
 	}
+}
+
+void iASlicer::setup( iASingleSlicerSettings const & settings )
+{
+	m_settings = settings;
+	m_linearInterpolation->setChecked(settings.LinearInterpolation);
+	setLinearInterpolation(settings.LinearInterpolation);
+	m_interactorStyle->setWindowLevelAdjust(settings.AdjustWindowLevelEnabled);
 	setMouseCursor(settings.CursorMode);
 	setContours(settings.NumberOfIsoLines, settings.MinIsoValue, settings.MaxIsoValue);
 	showIsolines(settings.ShowIsoLines);
@@ -590,7 +646,7 @@ void iASlicer::setMagicLensEnabled( bool isEnabled )
 		return;
 	}
 	m_magicLens->setEnabled(isEnabled);
-	m_interactorStyle->SetRightButtonDragZoomEnabled(!isEnabled);
+	m_interactorStyle->setRightButtonDragZoomEnabled(!isEnabled);
 	setShowText(!isEnabled);
 	updateMagicLens();
 }
@@ -1409,37 +1465,49 @@ void iASlicer::printVoxelInformation()
 			continue;
 		}
 
-		double const * slicerSpacing = m_channels[channelID]->output()->GetSpacing();
-		int    const * slicerExtent  = m_channels[channelID]->output()->GetExtent();
-		double const * slicerBounds  = m_channels[channelID]->output()->GetBounds();
-		double dcX = (m_slicerPt[0] - slicerBounds[0]) / slicerSpacing[0] + 0.5;
-		double dcY = (m_slicerPt[1] - slicerBounds[2]) / slicerSpacing[1] + 0.5;
-		int cX = static_cast<int>(std::floor(dcX));
-		int cY = static_cast<int>(std::floor(dcY));
+		if (m_interactorStyle->windowLevelAdjustEnabled() && m_interactorStyle->leftButtonDown())
+		{
+			strDetails += QString("%1: window: %2; level: %3")
+				.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))
+				.arg(m_channels[channelID]->imageActor()->GetProperty()->GetColorWindow())
+				.arg(m_channels[channelID]->imageActor()->GetProperty()->GetColorLevel());
+		}
+		else
+		{
+			double const * slicerSpacing = m_channels[channelID]->output()->GetSpacing();
+			int    const * slicerExtent  = m_channels[channelID]->output()->GetExtent();
+			double const * slicerBounds  = m_channels[channelID]->output()->GetBounds();
+			double dcX = (m_slicerPt[0] - slicerBounds[0]) / slicerSpacing[0] + 0.5;
+			double dcY = (m_slicerPt[1] - slicerBounds[2]) / slicerSpacing[1] + 0.5;
+			int cX = static_cast<int>(std::floor(dcX));
+			int cY = static_cast<int>(std::floor(dcY));
 
-		// check image extent; if outside ==> default output
-		if (cX < slicerExtent[0] || cX > slicerExtent[1] || cY < slicerExtent[2] || cY > slicerExtent[3])
-		{
-			continue;
-		}
-		QString valueStr;
-		for (int i = 0; i < m_channels[channelID]->input()->GetNumberOfScalarComponents(); i++)
-		{
-			// TODO:
-			//   - consider slab thickness / print slab projection result
-			double value = m_channels[channelID]->output()->GetScalarComponentAsDouble(cX, cY, 0, i);
-			if (i > 0)
+			// check image extent; if outside ==> default output
+			if (cX < slicerExtent[0] || cX > slicerExtent[1] || cY < slicerExtent[2] || cY > slicerExtent[3])
 			{
-				valueStr += " ";
+				continue;
 			}
-			valueStr += QString::number(value);
+			QString valueStr;
+			for (int i = 0; i < m_channels[channelID]->input()->GetNumberOfScalarComponents(); i++)
+			{
+				// TODO:
+				//   - consider slab thickness / print slab projection result
+				double value = m_channels[channelID]->output()->GetScalarComponentAsDouble(cX, cY, 0, i);
+				if (i > 0)
+				{
+					valueStr += " ";
+				}
+				valueStr += QString::number(value);
+			}
+			double coords[3];
+			computeCoords(coords, channelID);
+			strDetails += QString("%1: %2 [%3 %4 %5]")
+				.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))
+				.arg(valueStr)
+				.arg(static_cast<int>(coords[0])).arg(static_cast<int>(coords[1])).arg(static_cast<int>(coords[2]));
+
 		}
-		double coords[3];
-		computeCoords(coords, channelID);
-		strDetails += QString("%1: %2 [%3 %4 %5]\n")
-			.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))
-			.arg(valueStr)
-			.arg(static_cast<int>(coords[0])).arg(static_cast<int>(coords[1])).arg(static_cast<int>(coords[2]));
+		strDetails += "\n";
 	}
 	if (m_linkedMdiChild)
 	{
@@ -2223,14 +2291,18 @@ void iASlicer::mouseDoubleClickEvent(QMouseEvent* event)
 
 void iASlicer::contextMenuEvent(QContextMenuEvent *event)
 {
-	if (m_magicLens && m_magicLens->isEnabled())
+	m_toggleWindowLevelAdjust->setChecked(m_interactorStyle->windowLevelAdjustEnabled());
+	m_showTooltip->setChecked(m_textInfo->GetActor()->GetVisibility());
+	if (m_magicLens)
 	{
-		m_contextMenuMagicLens->exec(event->globalPos());
+		m_magicLensCentered->setVisible(m_magicLens->isEnabled());
+		m_magicLensOffset->setVisible(m_magicLens->isEnabled());
 	}
-	else if (m_decorations && m_interactionMode == SnakeEdit)
+	if (m_decorations)
 	{
-		m_contextMenuSnakeSlicer->exec(event->globalPos());
+		m_deleteSnakeLine->setVisible(m_interactionMode == SnakeEdit);
 	}
+	m_contextMenu->exec(event->globalPos());
 }
 
 void iASlicer::switchInteractionMode(int mode)
@@ -2449,6 +2521,21 @@ void iASlicer::menuOffsetMagicLens()
 	}
 	m_magicLens->setViewMode(iAMagicLens::OFFSET);
 	updateMagicLens();
+}
+
+void iASlicer::toggleLinearInterpolation()
+{
+	setLinearInterpolation(m_linearInterpolation->isChecked());
+}
+
+void iASlicer::toggleWindowLevelAdjust()
+{
+	m_interactorStyle->setWindowLevelAdjust(!m_interactorStyle->windowLevelAdjustEnabled());
+}
+
+void iASlicer::toggleShowTooltip()
+{
+	m_textInfo->GetActor()->SetVisibility(m_showTooltip->isChecked());
 }
 
 void iASlicer::initializeFisheyeLens(vtkImageReslice* reslicer)

@@ -839,6 +839,7 @@ void MainWindow::saveSlicerSettings(iAXmlSettings &xml)
 	slicerSettingsElement.setAttribute("minIsovalue", m_defaultSlicerSettings.SingleSlicer.MinIsoValue);
 	slicerSettingsElement.setAttribute("maxIsovalue", m_defaultSlicerSettings.SingleSlicer.MaxIsoValue);
 	slicerSettingsElement.setAttribute("linearInterpolation", m_defaultSlicerSettings.SingleSlicer.LinearInterpolation);
+	slicerSettingsElement.setAttribute("adjustWindowLevelEnabled", m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled);
 	slicerSettingsElement.setAttribute("snakeSlices", m_defaultSlicerSettings.SnakeSlices);
 	slicerSettingsElement.setAttribute("linkMDIs", m_defaultSlicerSettings.LinkMDIs);
 	slicerSettingsElement.setAttribute("cursorMode", m_defaultSlicerSettings.SingleSlicer.CursorMode);
@@ -856,7 +857,8 @@ void MainWindow::loadSlicerSettings(QDomNode slicerSettingsNode)
 	m_defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = attributes.namedItem("numberOfIsolines").nodeValue().toInt();
 	m_defaultSlicerSettings.SingleSlicer.MinIsoValue = attributes.namedItem("minIsovalue").nodeValue().toDouble();
 	m_defaultSlicerSettings.SingleSlicer.MaxIsoValue = attributes.namedItem("maxIsovalue").nodeValue().toDouble();
-	m_defaultSlicerSettings.SingleSlicer.LinearInterpolation = attributes.namedItem("linearInterpolation").nodeValue().toDouble();
+	m_defaultSlicerSettings.SingleSlicer.LinearInterpolation = attributes.namedItem("linearInterpolation").nodeValue() == "1";
+	m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled = attributes.namedItem("adjustWindowLevelEnabled").nodeValue() == "1";
 	m_defaultSlicerSettings.SnakeSlices = attributes.namedItem("snakeSlices").nodeValue().toDouble();
 	m_defaultSlicerSettings.LinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
 	m_defaultSlicerSettings.SingleSlicer.CursorMode = attributes.namedItem("cursorMode").nodeValue().toStdString().c_str();
@@ -1191,6 +1193,7 @@ void MainWindow::slicerSettings()
 		<< tr("$Show Position")
 		<< tr("$Show Isolines")
 		<< tr("$Linear Interpolation")
+		<< tr("$Adjust Window/Level via Mouse Click+Drag")
 		<< tr("#Number of Isolines")
 		<< tr("#Min Isovalue")
 		<< tr("#Max Isovalue")
@@ -1215,6 +1218,7 @@ void MainWindow::slicerSettings()
 		<< (slicerSettings.SingleSlicer.ShowPosition ? tr("true") : tr("false"))
 		<< (slicerSettings.SingleSlicer.ShowIsoLines ? tr("true") : tr("false"))
 		<< (slicerSettings.SingleSlicer.LinearInterpolation ? tr("true") : tr("false"))
+		<< (slicerSettings.SingleSlicer.AdjustWindowLevelEnabled ? tr("true") : tr("false"))
 		<< tr("%1").arg(slicerSettings.SingleSlicer.NumberOfIsoLines)
 		<< tr("%1").arg(slicerSettings.SingleSlicer.MinIsoValue)
 		<< tr("%1").arg(slicerSettings.SingleSlicer.MaxIsoValue)
@@ -1231,19 +1235,21 @@ void MainWindow::slicerSettings()
 	{
 		return;
 	}
-	m_defaultSlicerSettings.LinkViews = dlg.getCheckValue(0) != 0;
-	m_defaultSlicerSettings.SingleSlicer.ShowPosition = dlg.getCheckValue(1) != 0;
-	m_defaultSlicerSettings.SingleSlicer.ShowIsoLines = dlg.getCheckValue(2) != 0;
-	m_defaultSlicerSettings.SingleSlicer.LinearInterpolation = dlg.getCheckValue(3) != 0;
-	m_defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = dlg.getIntValue(4);
-	m_defaultSlicerSettings.SingleSlicer.MinIsoValue = dlg.getDblValue(5);
-	m_defaultSlicerSettings.SingleSlicer.MaxIsoValue = dlg.getDblValue(6);
-	m_defaultSlicerSettings.SnakeSlices = dlg.getIntValue(7);
-	m_defaultSlicerSettings.LinkMDIs = dlg.getCheckValue(8) != 0;
-	m_defaultSlicerSettings.SingleSlicer.CursorMode = dlg.getComboBoxValue(9);
-	m_defaultSlicerSettings.SingleSlicer.ShowAxesCaption = dlg.getCheckValue(10) != 0;
-	m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize = dlg.getIntValue(11);
-	m_defaultSlicerSettings.SingleSlicer.ShowTooltip = dlg.getCheckValue(12) != 0;
+	int param = 0;
+	m_defaultSlicerSettings.LinkViews = dlg.getCheckValue(param++) != 0;
+	m_defaultSlicerSettings.SingleSlicer.ShowPosition = dlg.getCheckValue(param++) != 0;
+	m_defaultSlicerSettings.SingleSlicer.ShowIsoLines = dlg.getCheckValue(param++) != 0;
+	m_defaultSlicerSettings.SingleSlicer.LinearInterpolation = dlg.getCheckValue(param++) != 0;
+	m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled = dlg.getCheckValue(param++) != 0;
+	m_defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = dlg.getIntValue(param++);
+	m_defaultSlicerSettings.SingleSlicer.MinIsoValue = dlg.getDblValue(param++);
+	m_defaultSlicerSettings.SingleSlicer.MaxIsoValue = dlg.getDblValue(param++);
+	m_defaultSlicerSettings.SnakeSlices = dlg.getIntValue(param++);
+	m_defaultSlicerSettings.LinkMDIs = dlg.getCheckValue(param++) != 0;
+	m_defaultSlicerSettings.SingleSlicer.CursorMode = dlg.getComboBoxValue(param++);
+	m_defaultSlicerSettings.SingleSlicer.ShowAxesCaption = dlg.getCheckValue(param++) != 0;
+	m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize = dlg.getIntValue(param++);
+	m_defaultSlicerSettings.SingleSlicer.ShowTooltip = dlg.getCheckValue(param++) != 0;
 
 	if (activeMdiChild())
 	{
@@ -1890,6 +1896,7 @@ void MainWindow::readSettings()
 	m_defaultSlicerSettings.SingleSlicer.MinIsoValue = settings.value("Slicer/ssMinIsovalue", fallbackSS.SingleSlicer.MinIsoValue).toDouble();
 	m_defaultSlicerSettings.SingleSlicer.MaxIsoValue = settings.value("Slicer/ssMaxIsovalue", fallbackSS.SingleSlicer.MaxIsoValue).toDouble();
 	m_defaultSlicerSettings.SingleSlicer.LinearInterpolation = settings.value("Slicer/ssImageActorUseInterpolation", fallbackSS.SingleSlicer.LinearInterpolation).toBool();
+	m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled = settings.value("Slicer/ssAdjustWindowLevelEnabled", fallbackSS.SingleSlicer.AdjustWindowLevelEnabled).toBool();
 	m_defaultSlicerSettings.SingleSlicer.CursorMode = settings.value( "Slicer/ssCursorMode", fallbackSS.SingleSlicer.CursorMode).toString();
 	m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize = settings.value("Slicer/toolTipFontSize", fallbackSS.SingleSlicer.ToolTipFontSize).toInt();
 
@@ -1990,6 +1997,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Slicer/ssMinIsovalue", m_defaultSlicerSettings.SingleSlicer.MinIsoValue);
 	settings.setValue("Slicer/ssMaxIsovalue", m_defaultSlicerSettings.SingleSlicer.MaxIsoValue);
 	settings.setValue("Slicer/ssImageActorUseInterpolation", m_defaultSlicerSettings.SingleSlicer.LinearInterpolation);
+	settings.setValue("Slicer/ssAdjustWindowLevelEnabled", m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled);
 	settings.setValue("Slicer/ssSnakeSlices", m_defaultSlicerSettings.SnakeSlices);
 	settings.setValue("Slicer/ssCursorMode", m_defaultSlicerSettings.SingleSlicer.CursorMode);
 	settings.setValue("Slicer/toolTipFontSize", m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize);
