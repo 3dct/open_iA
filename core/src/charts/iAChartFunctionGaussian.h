@@ -30,21 +30,22 @@ class open_iA_Core_API iAChartFunctionGaussian : public iAChartFunction
 public:
 	iAChartFunctionGaussian(iAChartWithFunctionsWidget *chart, QColor &color, bool reset = true);
 
-	int getType() override { return GAUSSIAN; }
+	int getType() const override { return GAUSSIAN; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
 	void drawOnTop(QPainter&) override {}
 	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
-	int getSelectedPoint() override { return 0; }
+	int getSelectedPoint() const override { return 0; }
 	int addPoint(int, int) override { return 0; }
 	void addColorPoint(int, double, double, double) override {}
 	void removePoint(int) override {}
 	void moveSelectedPoint(int x, int y) override;
 	void changeColor(QMouseEvent *) override {}
-	bool isColored() override { return false; }
-	bool isEndPoint(int) override { return true; }
-	bool isDeletable(int) override { return false; }
+	bool isColored() const override { return false; }
+	bool isEndPoint(int) const override { return true; }
+	bool isDeletable(int) const override { return false; }
 	void reset() override;
+	virtual QString name() const override;
 	size_t numPoints() const override;
 
 	void setMean(double mean)   { m_mean = mean; }

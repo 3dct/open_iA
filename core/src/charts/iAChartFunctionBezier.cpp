@@ -334,13 +334,13 @@ void iAChartFunctionBezier::moveSelectedPoint(int x, int y)
 	}
 }
 
-bool iAChartFunctionBezier::isEndPoint(int index)
+bool iAChartFunctionBezier::isEndPoint(int index) const
 {
 	assert(m_realPoints.size() < std::numeric_limits<int>::max());
 	return (index == 0 || index == static_cast<int>(m_realPoints.size())-1);
 }
 
-bool iAChartFunctionBezier::isDeletable(int index)
+bool iAChartFunctionBezier::isDeletable(int index) const
 {
 	return (index % 3 == 0 && !isEndPoint(index));
 }
@@ -364,6 +364,11 @@ void iAChartFunctionBezier::reset()
 	m_realPoints.push_back(QPointF(end, 0.0));
 
 	m_selectedPoint = -1;
+}
+
+QString iAChartFunctionBezier::name() const
+{
+	return QString("Bezier (%1 points)").arg( (m_realPoints.size() + 2) / 3 );
 }
 
 size_t iAChartFunctionBezier::numPoints() const

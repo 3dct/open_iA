@@ -34,21 +34,22 @@ class open_iA_Core_API iAChartFunctionBezier : public iAChartFunction
 public:
 	iAChartFunctionBezier(iAChartWithFunctionsWidget *chart, QColor &color, bool reset = true);
 
-	int getType() override { return BEZIER; }
+	int getType() const override { return BEZIER; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor penColor, int lineWidth) override;
 	void drawOnTop(QPainter&) override {}
 	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
-	int getSelectedPoint() override { return m_selectedPoint; }
+	int getSelectedPoint() const override { return m_selectedPoint; }
 	int addPoint(int x, int y) override;
 	void addColorPoint(int, double, double, double) override {}
 	void removePoint(int index) override;
 	void moveSelectedPoint(int x, int y) override;
 	void changeColor(QMouseEvent *) override{}
-	bool isColored() override { return false; }
-	bool isEndPoint(int index) override;
-	bool isDeletable(int index) override;
+	bool isColored() const override { return false; }
+	bool isEndPoint(int index) const override;
+	bool isDeletable(int index) const override;
 	void reset() override;
+	virtual QString name() const override;
 	size_t numPoints() const override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
 
