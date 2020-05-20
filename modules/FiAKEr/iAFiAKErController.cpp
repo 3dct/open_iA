@@ -1078,12 +1078,15 @@ class iAMatrixWidget: public QWidget
 {
 public:
 	iAMatrixWidget(iADissimilarityMatrixType const & data,
-		std::vector<std::vector<double>> const& paramValues, bool showScalarBar) :
+		std::vector<std::vector<double>> const& paramValues, bool showScalarBar, bool showAxes) :
 		m_data(data),
 		m_paramValues(paramValues),
 		m_sortParam(0),
 		m_dataIdx(0),
-		m_showScalarBar(showScalarBar)
+		m_showScalarBar(showScalarBar),
+		m_showAxes(showAxes)
+		//m_paramName(paramName)
+		//m_quadraticAspectRatio(true)
 	{
 		m_range[0] = m_range[1] = 0;
 	}
@@ -1138,6 +1141,8 @@ private:
 
 		int scalarBarWidth = 20;
 		int scalarBarPadding = 4;
+		int axisPadding = 4;
+		int axisTickHeight = 8;
 
 		QString minStr = dblToStringWithUnits(m_range[0]);
 		QString maxStr = dblToStringWithUnits(m_range[1]);
@@ -1146,47 +1151,138 @@ private:
 #else
 		int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
 #endif
-
-
+		int textHeight = fm.height();
+		int fullScalarBarWidth = m_showScalarBar ? (3 * scalarBarPadding + scalarBarWidth + textWidth) : 0;
+		int axisSize = m_showAxes ? textHeight + 2 * axisPadding + axisTickHeight : 0;
 		int cellPixel = std::max(1,
-			std::min(geometry().height() / static_cast<int>(m_data.size()),
-				(geometry().width() - (3 * scalarBarPadding + scalarBarWidth + textWidth)) / static_cast<int>(m_data.size())));
+			std::min((geometry().height() - axisSize) / static_cast<int>(m_data.size()),
+				(geometry().width() - fullScalarBarWidth - axisSize) / static_cast<int>(m_data.size())));
+		QRect matrixRect(axisSize, axisSize, m_data.size() * cellPixel, m_data.size() * cellPixel);
 		for (size_t x = 0; x < m_data.size(); ++x)
 		{
 			for (size_t y = 0; y < m_data[x].size(); ++y)
 			{
-				QRect rect(static_cast<int>(x * cellPixel), static_cast<int>(y * cellPixel), cellPixel, cellPixel);
+				QRect cellRect(matrixRect.left() + static_cast<int>(x * cellPixel),
+					matrixRect.top() + static_cast<int>(y * cellPixel),
+					cellPixel, cellPixel);
 				double value = m_data[m_sortOrder[x]][m_sortOrder[y]].avgDissim[m_dataIdx];
 				QColor color = m_lut.getQColor(value);
-				p.fillRect(rect, color);
+				p.fillRect(cellRect, color);
 			}
 		}
 
-		if (!m_showScalarBar)
+		if (m_showAxes)
 		{
-			return;
-		}
-		// Draw scalar bar (duplicated from iAQSplom!)
-		QPoint topLeft(geometry().width() - (scalarBarPadding + scalarBarWidth), scalarBarPadding);
+			//p.drawText(axisSize, axisPadding, matrixRect.width(), textHeight, m_paramName);
+			// draw x axis line:
+			int axisPos = axisPadding + axisTickHeight + textHeight;
+			p.drawLine(axisSize, axisPos, axisSize + matrixRect.width(), axisPos);
+			// draw y axis line:
+			p.drawLine(axisPos, axisSize, axisPos, axisSize + matrixRect.height());
+			
+			double prevValue = std::numeric_limits<double>::infinity();
+			const size_t NoRangeStart = std::numeric_limits<size_t>::max();
+			size_t rangeStart = NoRangeStart;
+			auto const& pv = m_paramValues[m_sortParam];
+			for (size_t i = 0; i < m_sortOrder.size(); ++i)
+			{
+				DEBUG_LOG(QString("i: %1, curValue: %2, param[i]: %3").arg(i).arg(prevValue).arg(pv[m_sortOrder[i]]));
+				if (pv[m_sortOrder[i]] != prevValue)
+				{
+					bool rangeStarts = (i < m_sortOrder.size()-1) && pv[m_sortOrder[i]] == pv[m_sortOrder[i + 1]];
+					bool rangeEnds = rangeStart != NoRangeStart;
+					DEBUG_LOG(QString("   CHANGE: started: %1, ended: %2, rangeStart: %3").arg(rangeStarts).arg(rangeEnds).arg(rangeStart != NoRangeStart? QString::number(rangeStart):"none" ));
+					if (rangeEnds)
+					{    // was a previous range started before? if yes, draw label
+						int textStartX = rangeStart * cellPixel;
+						int textBoxWidth = (i - rangeStart + 1) * cellPixel;
+						// x label:
+						p.drawText(axisSize + textStartX, axisPadding, textBoxWidth, textHeight, Qt::AlignCenter, QString::number(prevValue));
+						// y label:
+						p.drawText(axisPadding, axisSize + textStartX, textHeight, textBoxWidth, Qt::AlignCenter, QString::number(prevValue));
+						// draw x tick:
+						p.drawLine(axisSize + (i * cellPixel), axisPadding + textHeight,
+							axisSize + (i * cellPixel), axisPadding + textHeight + axisTickHeight);
+						// draw y tick:
+						p.drawLine(axisPadding + textHeight, axisSize + (i * cellPixel),
+							axisPadding + textHeight + axisTickHeight, axisSize + (i * cellPixel));
+					}
+					if (!rangeStarts)
+					{
+						int tickPos = static_cast<int>((i + 0.5) * cellPixel);
+						// draw x tick:
+						p.drawLine(axisSize + tickPos, axisPadding + textHeight,
+							axisSize+tickPos, axisPadding + textHeight + axisTickHeight);
+						// draw y tick:
+						p.drawLine(axisPadding + textHeight, axisSize + tickPos,
+							axisPadding + textHeight + axisTickHeight, axisSize + tickPos);
+						
+						// x label:
+						p.drawText(axisSize + (i * cellPixel), axisPadding, cellPixel, textHeight, Qt::AlignCenter, QString::number(pv[m_sortOrder[i]]));
+						// y label:
+						p.drawText(axisPadding, axisSize + (i * cellPixel), textHeight, cellPixel, Qt::AlignCenter, QString::number(pv[m_sortOrder[i]]));
+						rangeStart = NoRangeStart;
+					}
+					else
+					{
+						rangeStart = i;
+						if (!rangeEnds)
+						{
+							// draw x tick:
+							p.drawLine(axisSize + (rangeStart * cellPixel), axisPadding + textHeight,
+								axisSize + (rangeStart * cellPixel), axisPadding + textHeight + axisTickHeight);
+							// draw y tick:
+							p.drawLine(axisPadding + textHeight, axisSize + (rangeStart * cellPixel),
+								axisPadding + textHeight + axisTickHeight, axisSize + (rangeStart * cellPixel));
+						}
+					}
+					prevValue = m_paramValues[m_sortParam][m_sortOrder[i]];
+				}
+			}
+			if (rangeStart != std::numeric_limits<size_t>::max())
+			{
+				int tickPos = matrixRect.width();
+				int textBoxWidth = (m_sortOrder.size() - rangeStart) * cellPixel;
+				// draw x tick:
+				p.drawLine(axisSize + tickPos, axisPadding + textHeight,
+					axisSize + tickPos, axisPadding + textHeight + axisTickHeight);
+				// draw y tick:
+				p.drawLine(axisPadding + textHeight, axisSize + tickPos,
+					axisPadding + textHeight + axisTickHeight, axisSize + tickPos);
 
-		QRect colorBarRect(topLeft.x(), topLeft.y(),
-			scalarBarWidth, height() - 2*scalarBarPadding);
-		QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y() + colorBarRect.height());
-		QMap<double, QColor>::iterator it;
-		for (size_t i = 0; i < m_lut.numberOfValues(); ++i)
-		{
-			double rgba[4];
-			m_lut.getTableValue(i, rgba);
-			QColor color(rgba[0] * 255, rgba[1] * 255, rgba[2] * 255, rgba[3] * 255);
-			double key = 1 - (static_cast<double>(i) / (m_lut.numberOfValues() - 1));
-			grad.setColorAt(key, color);
+				// x label:
+				p.drawText(axisSize + static_cast<int>(rangeStart * cellPixel), axisPadding,
+					textBoxWidth, textHeight, Qt::AlignCenter, QString::number(prevValue));
+				// y label:
+				p.drawText(axisPadding, axisSize + static_cast<int>(rangeStart * cellPixel),
+					textHeight, textBoxWidth, Qt::AlignCenter, QString::number(prevValue));
+			}
 		}
-		p.fillRect(colorBarRect, grad);
-		p.drawRect(colorBarRect);
-		// Draw color bar / name of parameter used for coloring
-		int colorBarTextX = topLeft.x() - (textWidth + scalarBarPadding);
-		p.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
-		p.drawText(colorBarTextX, height() - (fm.height() + scalarBarPadding), minStr);
+
+		if (m_showScalarBar)
+		{
+			// Draw scalar bar (duplicated from iAQSplom!)
+			QPoint topLeft(geometry().width() - (scalarBarPadding + scalarBarWidth), scalarBarPadding);
+
+			QRect colorBarRect(topLeft.x(), topLeft.y(),
+				scalarBarWidth, height() - 2 * scalarBarPadding);
+			QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y() + colorBarRect.height());
+			QMap<double, QColor>::iterator it;
+			for (size_t i = 0; i < m_lut.numberOfValues(); ++i)
+			{
+				double rgba[4];
+				m_lut.getTableValue(i, rgba);
+				QColor color(rgba[0] * 255, rgba[1] * 255, rgba[2] * 255, rgba[3] * 255);
+				double key = 1 - (static_cast<double>(i) / (m_lut.numberOfValues() - 1));
+				grad.setColorAt(key, color);
+			}
+			p.fillRect(colorBarRect, grad);
+			p.drawRect(colorBarRect);
+			// Draw color bar / name of parameter used for coloring
+			int colorBarTextX = topLeft.x() - (textWidth + scalarBarPadding);
+			p.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
+			p.drawText(colorBarTextX, height() - (fm.height() + scalarBarPadding), minStr);
+		}
 	}
 	iADissimilarityMatrixType const & m_data;
 	std::vector<std::vector<double>> const & m_paramValues;
@@ -1195,12 +1291,12 @@ private:
 	iALookupTable m_lut;
 	double m_range[2];
 	std::vector<size_t> m_sortOrder;
-	bool m_showScalarBar;
+	bool m_showScalarBar, m_showAxes;
 };
 
 using iADissimilarityMatrixDockContent = iAQTtoUIConnector<QWidget, Ui_DissimilarityMatrix>;
 
-QWidget* iAFiAKErController::setupMatrixView(iACsvVectorTableCreator& tblCreator, QVector<int> const & measures)
+QWidget* iAFiAKErController::setupMatrixView(QStringList paramNames, std::vector<std::vector<double>> const& paramValues, QVector<int> const & measures)
 {
 	iADissimilarityMatrixDockContent* dissimDockContent = new iADissimilarityMatrixDockContent();
 	auto measureNames = getAvailableDissimilarityMeasureNames();
@@ -1210,12 +1306,12 @@ QWidget* iAFiAKErController::setupMatrixView(iACsvVectorTableCreator& tblCreator
 		computedMeasureNames << measureNames[measures[m]];
 	}
 	dissimDockContent->cbMeasure->addItems(computedMeasureNames);
-	dissimDockContent->cbParameter->addItems(tblCreator.header());
+	dissimDockContent->cbParameter->addItems(paramNames);
 	dissimDockContent->cbColorMap->addItems(iALUT::GetColorMapNames());
 	connect(dissimDockContent->cbMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixMeasureChanged);
 	connect(dissimDockContent->cbParameter, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixParameterChanged);
 	connect(dissimDockContent->cbColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixColorMapChanged);
-	m_matrixWidget = new iAMatrixWidget(m_dissimilarityMatrix, tblCreator.table(), true);
+	m_matrixWidget = new iAMatrixWidget(m_dissimilarityMatrix, paramValues, true, true);
 	m_matrixWidget->setSortParameter(0);
 	m_matrixWidget->setData(0);
 	m_matrixWidget->setLookupTable(iALUT::Build(m_matrixWidget->range(), iALUT::GetColorMapNames()[0], 255, 255));
@@ -1254,7 +1350,7 @@ public:
 			paramNameLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 			paramListLayout->addWidget(paramNameLabel, p + 1, NameCol);
 
-			auto paramMatrix = new iAMatrixWidget(dissimMatrix, paramValues, false);
+			auto paramMatrix = new iAMatrixWidget(dissimMatrix, paramValues, false, false);
 			paramMatrix->setSortParameter(p);
 			paramMatrix->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 			paramMatrix->setData(0);
@@ -1381,6 +1477,7 @@ void iAFiAKErController::sensitivitySlot()
 		return;
 	}
 	assert(tblCreator.table().size() > 0 && tblCreator.table()[0].size() == m_data->result.size());
+	m_paramValues = tblCreator.table();
 	m_parameterFile = fileName;
 	// compute pairwise dissimilarities between results:
 	QVector<int> measures;
@@ -1449,11 +1546,11 @@ void iAFiAKErController::sensitivitySlot()
 		}
 		writeDissimilarityMatrixCache(measures);
 	}
-	QWidget* dissimDockContent = setupMatrixView(tblCreator, measures);
+	QWidget* dissimDockContent = setupMatrixView(tblCreator.header(), m_paramValues, measures);
 	m_views.push_back(new iADockWidgetWrapper(dissimDockContent, "Dissimilarity Matrix", "foeMatrix"));
 	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[m_views.size()-1], Qt::Vertical);
 
-	m_parameterListView = new iAParameterListView(tblCreator.header(), tblCreator.table(), m_dissimilarityMatrix);
+	m_parameterListView = new iAParameterListView(tblCreator.header(), m_paramValues, m_dissimilarityMatrix);
 	m_views.push_back(new iADockWidgetWrapper(m_parameterListView, "Parameter View", "foeParameters"));
 	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[m_views.size() - 1], Qt::Vertical);
 

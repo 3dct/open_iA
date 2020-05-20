@@ -258,7 +258,7 @@ private:
 	QWidget* setupResultListView();
 	QWidget* setupProtocolView();
 	QWidget* setupSelectionView();
-	QWidget* setupMatrixView(iACsvVectorTableCreator& tblCreator, QVector<int> const & measures);
+	QWidget* setupMatrixView(QStringList paramNames, std::vector<std::vector<double>> const& paramValues, QVector<int> const & measures);
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;
@@ -278,6 +278,7 @@ private:
 	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame, m_showLines;
 	double m_contextSpacing;
 	QString m_parameterFile; //! (.csv-)file containing eventual parameters used in creating the loaded results
+	std::vector<std::vector<double>> m_paramValues;
 
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 
