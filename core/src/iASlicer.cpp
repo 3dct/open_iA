@@ -307,12 +307,12 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 
 	updateBackground();
 
-	m_linearInterpolation = m_contextMenu->addAction(tr("Linear Interpolation"), this, &iASlicer::toggleLinearInterpolation);
-	m_linearInterpolation->setCheckable(true);
-	m_toggleWindowLevelAdjust = m_contextMenu->addAction(tr("Adjust Window/Level via Mouse Click+Drag"), this, &iASlicer::toggleWindowLevelAdjust);
-	m_toggleWindowLevelAdjust->setCheckable(true);
-	m_showTooltip = m_contextMenu->addAction(tr("Show Tooltip"), this, &iASlicer::toggleShowTooltip);
-	m_showTooltip->setCheckable(true);
+	m_actionLinearInterpolation = m_contextMenu->addAction(tr("Linear Interpolation"), this, &iASlicer::toggleLinearInterpolation);
+	m_actionLinearInterpolation->setCheckable(true);
+	m_actionShowTooltip = m_contextMenu->addAction(tr("Show Tooltip"), this, &iASlicer::toggleShowTooltip);
+	m_actionShowTooltip->setCheckable(true);
+	m_actionToggleWindowLevelAdjust = m_contextMenu->addAction(tr("Adjust Window/Level via Mouse Click+Drag"), this, &iASlicer::toggleWindowLevelAdjust);
+	m_actionToggleWindowLevelAdjust->setCheckable(true);
 
 	if (magicLensAvailable)
 	{
@@ -320,21 +320,22 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_magicLens->setRenderWindow(m_renWin);
 		// setup context menu for the magic lens view options
 		m_contextMenu->addSeparator();
+		// TODO: pass in actionMagicLens2D from MainWindow somehow and add here?
 		QActionGroup * actionGr(new QActionGroup(this));
-		m_magicLensCentered = m_contextMenu->addAction(tr("Centered Magic Lens"), this, &iASlicer::menuCenteredMagicLens);
-		m_magicLensCentered->setCheckable(true);
-		m_magicLensCentered->setChecked(true);
-		actionGr->addAction(m_magicLensCentered);
-		m_magicLensOffset = m_contextMenu->addAction(tr("Offseted Magic Lens"), this, &iASlicer::menuOffsetMagicLens);
-		m_magicLensOffset->setCheckable(true);
-		actionGr->addAction(m_magicLensOffset);
+		m_actionMagicLensCentered = m_contextMenu->addAction(tr("Centered Magic Lens"), this, &iASlicer::menuCenteredMagicLens);
+		m_actionMagicLensCentered->setCheckable(true);
+		m_actionMagicLensCentered->setChecked(true);
+		actionGr->addAction(m_actionMagicLensCentered);
+		m_actionMagicLensOffset = m_contextMenu->addAction(tr("Offseted Magic Lens"), this, &iASlicer::menuOffsetMagicLens);
+		m_actionMagicLensOffset->setCheckable(true);
+		actionGr->addAction(m_actionMagicLensOffset);
 	}
 
 	if (decorations)
 	{
 		m_snakeSpline = new iASnakeSpline;
 		m_contextMenu->addSeparator();
-		m_deleteSnakeLine = m_contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Delete Snake Line"), this, &iASlicer::menuDeleteSnakeLine);
+		m_actionDeleteSnakeLine = m_contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Delete Snake Line"), this, &iASlicer::menuDeleteSnakeLine);
 		m_sliceProfile = new iASlicerProfile();
 		m_sliceProfile->setVisibility(false);
 
@@ -617,7 +618,7 @@ void iASlicer::setLinearInterpolation(bool enabled)
 void iASlicer::setup( iASingleSlicerSettings const & settings )
 {
 	m_settings = settings;
-	m_linearInterpolation->setChecked(settings.LinearInterpolation);
+	m_actionLinearInterpolation->setChecked(settings.LinearInterpolation);
 	setLinearInterpolation(settings.LinearInterpolation);
 	m_interactorStyle->setWindowLevelAdjust(settings.AdjustWindowLevelEnabled);
 	setMouseCursor(settings.CursorMode);
@@ -1456,8 +1457,12 @@ void iASlicer::printVoxelInformation()
 	{
 		setCursor(mouseCursor());
 	}
-	QString strDetails(QString("%1: %2, %3, %4\n").arg(padOrTruncate("Position", MaxNameLength))
-		.arg(m_globalPt[0]).arg(m_globalPt[1]).arg(m_globalPt[2]));
+	QString strDetails;
+	if (!m_interactorStyle->windowLevelAdjustEnabled() || !m_interactorStyle->leftButtonDown())
+	{
+		strDetails = QString("%1: %2, %3, %4\n").arg(padOrTruncate("Position", MaxNameLength))
+			.arg(m_globalPt[0]).arg(m_globalPt[1]).arg(m_globalPt[2]);
+	}
 	for (auto channelID: m_channels.keys())
 	{
 		if (!m_channels[channelID]->isEnabled())
@@ -2291,16 +2296,16 @@ void iASlicer::mouseDoubleClickEvent(QMouseEvent* event)
 
 void iASlicer::contextMenuEvent(QContextMenuEvent *event)
 {
-	m_toggleWindowLevelAdjust->setChecked(m_interactorStyle->windowLevelAdjustEnabled());
-	m_showTooltip->setChecked(m_textInfo->GetActor()->GetVisibility());
+	m_actionToggleWindowLevelAdjust->setChecked(m_interactorStyle->windowLevelAdjustEnabled());
+	m_actionShowTooltip->setChecked(m_textInfo->GetActor()->GetVisibility());
 	if (m_magicLens)
 	{
-		m_magicLensCentered->setVisible(m_magicLens->isEnabled());
-		m_magicLensOffset->setVisible(m_magicLens->isEnabled());
+		m_actionMagicLensCentered->setVisible(m_magicLens->isEnabled());
+		m_actionMagicLensOffset->setVisible(m_magicLens->isEnabled());
 	}
 	if (m_decorations)
 	{
-		m_deleteSnakeLine->setVisible(m_interactionMode == SnakeEdit);
+		m_actionDeleteSnakeLine->setVisible(m_interactionMode == SnakeEdit);
 	}
 	m_contextMenu->exec(event->globalPos());
 }
@@ -2525,7 +2530,7 @@ void iASlicer::menuOffsetMagicLens()
 
 void iASlicer::toggleLinearInterpolation()
 {
-	setLinearInterpolation(m_linearInterpolation->isChecked());
+	setLinearInterpolation(m_actionLinearInterpolation->isChecked());
 }
 
 void iASlicer::toggleWindowLevelAdjust()
@@ -2535,7 +2540,7 @@ void iASlicer::toggleWindowLevelAdjust()
 
 void iASlicer::toggleShowTooltip()
 {
-	m_textInfo->GetActor()->SetVisibility(m_showTooltip->isChecked());
+	m_textInfo->GetActor()->SetVisibility(m_actionShowTooltip->isChecked());
 }
 
 void iASlicer::initializeFisheyeLens(vtkImageReslice* reslicer)
