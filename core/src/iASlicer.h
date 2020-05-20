@@ -290,8 +290,9 @@ signals:
 	void sliceRangeChanged(int minIdx, int maxIdx);
 
 protected:
-	QAction* m_linearInterpolation, * m_toggleWindowLevelAdjust, * m_magicLensCentered,
-		* m_magicLensOffset, * m_deleteSnakeLine, * m_showTooltip;
+	QAction* m_actionLinearInterpolation, * m_actionToggleWindowLevelAdjust,
+		* m_actionMagicLens, * m_actionMagicLensCentered, * m_actionMagicLensOffset,
+		* m_actionDeleteSnakeLine, * m_actionShowTooltip;
 	QMenu *         m_contextMenu;               //!< context menu
 	InteractionMode m_interactionMode;           //!< current edit mode
 	int             m_xInd, m_yInd, m_zInd;      //!< current position
