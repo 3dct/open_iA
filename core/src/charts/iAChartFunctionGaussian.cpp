@@ -210,3 +210,8 @@ size_t iAChartFunctionGaussian::numPoints() const
 {
 	return 3;
 }
+
+QString iAChartFunctionGaussian::name() const
+{
+	return QString("Gaussian (mean=%1, sigma=%2)").arg(m_mean).arg(m_sigma);
+}

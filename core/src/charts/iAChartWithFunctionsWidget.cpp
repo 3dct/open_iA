@@ -313,10 +313,8 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 			auto selectionMenu = contextMenu->addMenu("Select function");
 			for (size_t f = 0; f < m_functions.size(); ++f)
 			{
-				int type = m_functions[f]->getType();
-				auto action = selectionMenu->addAction(QString("%1 (%2)").arg(f)
-					.arg(type == iAChartFunction::BEZIER ? "Bezier function" : (
-						type == iAChartFunction::GAUSSIAN ? "Gaussian function" : "Transfer function")),
+				auto action = selectionMenu->addAction(QString("%1: %2").arg(f)
+					.arg(m_functions[f]->name()),
 					[this, f]() { selectFunction(f); }
 				);
 				action->setCheckable(true);

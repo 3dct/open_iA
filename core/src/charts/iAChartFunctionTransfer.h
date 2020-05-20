@@ -40,22 +40,23 @@ public:
 	iAChartTransferFunction(iAChartWithFunctionsWidget *histogram, QColor color);
 	~iAChartTransferFunction();
 
-	int getType() override { return TRANSFER; }
+	int getType() const override { return TRANSFER; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
 	void drawOnTop(QPainter &painter) override;
 	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
-	int getSelectedPoint() override { return m_selectedPoint; }
+	int getSelectedPoint() const override { return m_selectedPoint; }
 	int addPoint(int x, int y) override;
 	void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) override;
 	void removePoint(int index) override;
 	void moveSelectedPoint(int x, int y) override;
 	void changeColor(QMouseEvent *event) override;
 	void mouseReleaseEventAfterNewPoint(QMouseEvent *event) override;
-	bool isColored() override { return true; }
-	bool isEndPoint(int index) override;
-	bool isDeletable(int index) override;
+	bool isColored() const override { return true; }
+	bool isEndPoint(int index) const override;
+	bool isDeletable(int index) const override;
 	void reset() override;
+	virtual QString name() const override;
 	size_t numPoints() const override;
 
 	vtkPiecewiseFunction* opacityTF() override { return m_opacityTF; }

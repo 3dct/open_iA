@@ -384,14 +384,19 @@ void iAChartTransferFunction::changeColor(QMouseEvent *event)
 	triggerOnChange();
 }
 
-bool iAChartTransferFunction::isEndPoint(int index)
+bool iAChartTransferFunction::isEndPoint(int index) const
 {
 	return index == 0 || index == m_opacityTF->GetSize()-1;
 }
 
-bool iAChartTransferFunction::isDeletable(int index)
+bool iAChartTransferFunction::isDeletable(int index) const
 {
 	return !isEndPoint(index);
+}
+
+QString iAChartTransferFunction::name() const
+{
+	return QString("Transfer function (%1 points)").arg(m_opacityTF->GetSize());
 }
 
 void iAChartTransferFunction::reset()
