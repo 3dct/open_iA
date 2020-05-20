@@ -163,10 +163,10 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 	int selectionCenter = ((m_selectedPoint + 1) / 3) * 3; // center of selected triple of points
 	for (size_t pointIndex = 0; pointIndex < m_viewPoints.size(); ++pointIndex)
 	{
-		bool selected = std::abs(static_cast<int>(pointIndex - selectionCenter)) <= 1;
+		bool selected = std::abs(static_cast<int>(pointIndex) - selectionCenter) <= 1;
 		int viewX = m_chart->xMapper().srcToDst(m_viewPoints[pointIndex].x()) + m_chart->xShift();
 		int viewY = m_chart->yMapper().srcToDst(m_viewPoints[pointIndex].y());
-		int pointRadius = (selected ? iAChartWithFunctionsWidget::POINT_RADIUS : iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS)
+		int pointRadius = (selected ? iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS : iAChartWithFunctionsWidget::POINT_RADIUS)
 			/ ((pointIndex % 3 == 0) ? 1 : 2);
 		if (std::abs(lx - viewX) <= pointRadius && std::abs(ly - viewY) <= pointRadius)
 		{

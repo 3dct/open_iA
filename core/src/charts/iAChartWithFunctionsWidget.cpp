@@ -148,7 +148,7 @@ void iAChartWithFunctionsWidget::mousePressEvent(QMouseEvent *event)
 				m_translationStartX = m_translationX;
 				changeMode(MOVE_VIEW_MODE, event);
 			}
-			else if (!isContextMenuVisible())
+			else
 			{
 				changeMode(MOVE_POINT_MODE, event);
 			}
@@ -195,7 +195,6 @@ void iAChartWithFunctionsWidget::mouseReleaseEvent(QMouseEvent *event)
 		emit updateViews();
 	}
 	m_mode = NO_MODE;
-	m_contextMenuVisible = false;
 	func->mouseReleaseEvent(event);
 }
 
