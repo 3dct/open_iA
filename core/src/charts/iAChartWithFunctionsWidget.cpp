@@ -261,6 +261,10 @@ void iAChartWithFunctionsWidget::keyPressEvent(QKeyEvent *event)
 
 		update();
 	}
+	else if (event->key() == Qt::Key_Delete)
+	{
+		deletePoint();
+	}
 }
 
 void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
@@ -395,7 +399,10 @@ int iAChartWithFunctionsWidget::deletePoint()
 {
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	iAChartFunction *func = *(it + m_selectedFunction);
-
+	if (!func->isDeletable(func->getSelectedPoint()))
+	{
+		return -1;
+	}
 	int selectedPoint = func->getSelectedPoint();
 	func->removePoint(selectedPoint);
 	update();
