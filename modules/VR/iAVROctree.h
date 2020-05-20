@@ -36,6 +36,8 @@ public:
 	vtkIdType FindClosestPoint(const double x[3]);
 	vtkOctreePointLocator* getOctree();
 	int GetLevel();
+	void calculateOctreeRegionSize(double size[3]);
+	void calculateOctreeRegionCenterPos(int regionID, double centerPoint[3]);
 	void show();
 	void hide();
 private:

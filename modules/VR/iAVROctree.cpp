@@ -75,6 +75,31 @@ int iAVROctree::GetLevel()
 	return m_octree->GetMaxLevel();
 }
 
+//! Calculates the size of the first (= 0) Octree leaf node
+void iAVROctree::calculateOctreeRegionSize(double size[3])
+{
+	double bounds[6];
+
+	if (m_octree->GetNumberOfLeafNodes() > 0)
+	{
+		m_octree->GetRegionBounds(0, bounds);
+		size[0] = abs(bounds[1] - bounds[0]);
+		size[1] = abs(bounds[3] - bounds[2]);
+		size[2] = abs(bounds[5] - bounds[4]);
+	}
+}
+
+//! This Method calculates the center point between upper and lower bound of a leaf region.
+void iAVROctree::calculateOctreeRegionCenterPos(int regionID, double centerPoint[3])
+{
+	double bounds[6];
+
+	m_octree->GetRegionBounds(regionID, bounds);
+	centerPoint[0] = bounds[0] + ((bounds[1] - bounds[0]) / 2);
+	centerPoint[1] = bounds[2] + ((bounds[3] - bounds[2]) / 2);
+	centerPoint[2] = bounds[4] + ((bounds[5] - bounds[4]) / 2);
+}
+
 void iAVROctree::show()
 {
 	if (m_visible)

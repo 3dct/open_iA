@@ -24,6 +24,18 @@
 #include "vtkSphereSource.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
+#include "vtkPropAssembly.h"
+#include "vtkIdFilter.h"
+#include "vtkIdTypeArray.h"
+#include "vtkPointData.h"
+#include "vtkCellData.h"
+#include "vtkUnsignedCharArray.h"
+#include "vtkLookupTable.h"
+#include "vtkColorTransferFunction.h"
+#include "vtkNamedColors.h"
+
+#include <iAConsole.h>
+#include <math.h>
 
 iAVR3DObjectVis::iAVR3DObjectVis(vtkRenderer* ren):m_renderer(ren),m_actor(vtkSmartPointer<vtkActor>::New())
 {
@@ -48,6 +60,51 @@ void iAVR3DObjectVis::hide()
 	}
 	m_renderer->RemoveActor(m_actor);
 	m_visible = false;
+}
+
+//! Creates for every region of the octree a cube glyph
+void iAVR3DObjectVis::createModelInMiniature()
+{
+	int leafNodes = m_octree->getOctree()->GetNumberOfLeafNodes();
+	if (leafNodes <= 0)
+	{
+		DEBUG_LOG(QString("The Octree has no leaf node!"));
+		return;
+	}
+	
+	double regionSize[3] = { 0.0, 0.0, 0.0 };
+	m_octree->calculateOctreeRegionSize(regionSize);
+	calculateStartPoints();
+
+	// Create anything you want here, we will use a cube for the demo.
+	vtkSmartPointer<vtkCubeSource> cubeSource =	vtkSmartPointer<vtkCubeSource>::New();
+	cubeSource->SetXLength(regionSize[0]);
+	cubeSource->SetYLength(regionSize[1]);
+	cubeSource->SetZLength(regionSize[2]);
+	cubeSource->Update();
+
+	glyph3Dmapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
+	//glyph3Dmapper->GeneratePointIdsOn(); Not supported as vtkGlyph3DMapper only as vtkGlyph3D
+	glyph3Dmapper->SetSourceConnection(cubeSource->GetOutputPort());
+	glyph3Dmapper->SetInputData(m_cubePolyData);
+	glyph3Dmapper->SetScalarModeToUseCellData();
+	glyph3Dmapper->Update();
+
+	//Append Point/Cell IDs
+	//vtkSmartPointer<vtkIdFilter> iDFilter =	vtkSmartPointer<vtkIdFilter>::New();
+	//iDFilter->SetInputConnection(glyph3Dmapper->GetOutputPort());
+	//iDFilter->SetIdsArrayName("IDs");
+	//iDFilter->PointIdsOn();
+	//iDFilter->CellIdsOn();
+	//iDFilter->FieldDataOn();
+	//iDFilter->Update();
+
+	m_actor->SetMapper(glyph3Dmapper);
+	//m_actor->SetOrigin(m_actor->GetCenter());
+
+	setCubeColor(QColor(20, 20, 200, 255), 0);
+
+	//m_actor->GetProperty()->SetColor(0.0, 1.0, 0.0);
 }
 
 void iAVR3DObjectVis::createCube(QColor col, double size[3], double center[3])
@@ -99,6 +156,40 @@ void iAVR3DObjectVis::setScale(double x, double y, double z)
 	m_actor->SetScale(x, y, z);
 }
 
+void iAVR3DObjectVis::setPos(double x, double y, double z)
+{
+	m_actor->SetPosition(x, y, z);
+}
+
+//! Sets the color (rgba) of a cube in the Miniature Model
+//! The region ID of the octree is used
+void iAVR3DObjectVis::setCubeColor(QColor col, int regionID)
+{
+	unsigned char rgb[4] = {col.red(), col.green(), col.blue(), col.alpha()};
+
+	vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	colors->SetName("colors");
+	colors->SetNumberOfComponents(4);
+
+	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], 0);
+	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], rgb[3]);
+	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], rgb[3]);
+	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], rgb[3]);
+	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], rgb[3]);
+	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], rgb[3]);
+	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], rgb[3]);
+	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], 0);
+
+	m_cubePolyData->GetCellData()->SetScalars(colors); //Cell Data is needed!
+	m_cubePolyData->Modified();
+	glyph3Dmapper->Update();
+}
+
+void iAVR3DObjectVis::setOctree(iAVROctree* octree)
+{
+	m_octree = octree;
+}
+
 vtkDataSet * iAVR3DObjectVis::getDataSet()
 {
 	return m_dataSet;
@@ -107,6 +198,26 @@ vtkDataSet * iAVR3DObjectVis::getDataSet()
 vtkActor * iAVR3DObjectVis::getActor()
 {
 	return m_actor;
+}
+
+//! This Method iterates through all leaf regions of the octree and stores its center point in an vtkPolyData
+void iAVR3DObjectVis::calculateStartPoints()
+{
+	vtkSmartPointer<vtkPoints> cubeStartPoints = vtkSmartPointer<vtkPoints>::New();
+	m_cubePolyData = vtkSmartPointer<vtkPolyData>::New();
+
+	int leafNodes = m_octree->getOctree()->GetNumberOfLeafNodes();
+	
+	for(int i=0; i< leafNodes; i++)
+	{
+		double centerPoint[3];
+		m_octree->calculateOctreeRegionCenterPos(i, centerPoint);
+
+		cubeStartPoints->InsertNextPoint(centerPoint[0], centerPoint[1], centerPoint[2]);
+	
+	}
+
+	m_cubePolyData->SetPoints(cubeStartPoints);
 }
 
 

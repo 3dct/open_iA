@@ -40,6 +40,10 @@
 
 #include <QColor>
 
+//Offsets for the hovering Effect of the Model in Miniature
+#define xOffset -0.2
+#define yOffset 0.1
+#define zOffset -0.2
 
 iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io): m_vrEnv(vrEnv),
 	m_style(style),	m_objectTable(objectTable),	m_io(io)
@@ -55,6 +59,8 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	//Press, Touch
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Volume, iAVROperations::PickSingleFiber);
+	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
+		iAVRInteractionOptions::MiniatureModel, iAVROperations::PickMiMRegion);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::ApplicationMenu, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Volume, iAVROperations::PickFibersinRegion);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::TrackPad, vtkEventDataAction::Press,
@@ -100,8 +106,6 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 	inputScheme* scheme = m_style->getInputScheme();
 	int operation = scheme->at(deviceID).at(inputID).at(actioniD).at(optionID);
 
-	DEBUG_LOG(QString("Object =  %1").arg(optionID));
-
 	switch (iAVROperations(operation))
 	{
 	case iAVROperations::Unknown:
@@ -111,20 +115,16 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 		//activeInput->at(deviceID) = operation; // For Multitouch
 		break;
 	case iAVROperations::SpawnModelInMiniature:
-		if(optionID == static_cast<int>(iAVRInteractionOptions::MiniatureModel))
-		{
-			this->spawnModelInMiniature(eventPosition, true);
-		}
-		else
-		{
-			this->spawnModelInMiniature(eventPosition, false);
-		}
+		this->spawnModelInMiniature(eventPosition, modelInMiniatureActive);
 		break;
 	case iAVROperations::PickSingleFiber:
 		this->pickSingleFiber(eventPosition);
 		break;
 	case iAVROperations::PickFibersinRegion:
 		this->pickFibersinRegion(eventPosition);
+		break;
+	case iAVROperations::PickMiMRegion:
+		this->pickMimRegion(eventPosition);
 		break;
 	case iAVROperations::ChangeOctreeLevel:
 		this->changeOctreeLevel();
@@ -133,6 +133,7 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 		this->resetSelection();
 		break;
 	}
+
 	//DEBUG_LOG(QString("[START] active Input rc = %1, lc = %2").arg(activeInput->at(1)).arg(activeInput->at(2)));
 	//Update Changes //ToDO: Required? Or is render Selection enough?
 	m_vrEnv->update();
@@ -163,6 +164,22 @@ void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition
 	//DEBUG_LOG(QString("[END] active Input rc = %1, lc = %2").arg(activeInput->at(1)).arg(activeInput->at(2)));
 	//Update Changes //ToDO: Required? Or is render Selection enough?
 	m_vrEnv->update();
+}
+
+void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], vtkProp3D * pickedProp)
+{
+	int deviceID = static_cast<int>(device->GetDevice());
+	cPos[deviceID][0] = movePosition[0];
+	cPos[deviceID][1] = movePosition[1];
+	cPos[deviceID][2] = movePosition[2];
+
+	//The Model in Minature follows the left controller
+	if(modelInMiniatureActive && deviceID == static_cast<int>(vtkEventDataDevice::LeftController))
+	{
+		double sideDistance = *(m_objectVis->getActor()->GetYRange());
+		double hoveringOffset[3] = { sideDistance *xOffset, sideDistance * yOffset, sideDistance * zOffset };
+		m_objectVis->setPos(cPos[deviceID][0] + hoveringOffset[0], cPos[deviceID][1] + hoveringOffset[1], cPos[deviceID][2] + hoveringOffset[2]);
+	}
 }
 
 //! Conputes which polyObject ID (points) belongs to which Object ID in the csv file of the volume
@@ -329,6 +346,7 @@ vtkIdType iAVRMain::getObjectiD(vtkIdType polyPoint)
 
 }
 
+//! Increases the current octree level by one until max level and repeats. Recalculates the Model in Miniature Object.
 void iAVRMain::changeOctreeLevel()
 {
 	if (octreeLevel >= 3)
@@ -338,6 +356,7 @@ void iAVRMain::changeOctreeLevel()
 	octreeLevel++;
 
 	m_octree->generateOctree(octreeLevel, QColor(126, 0, 223, 255));
+	m_objectVis->createModelInMiniature();
 }
 
 void iAVRMain::pickSingleFiber(double eventPosition[3])
@@ -412,6 +431,9 @@ void iAVRMain::pickFibersinRegion(double eventPosition[3])
 	m_cylinderVis->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
 	
 }
+void iAVRMain::pickMimRegion(double eventPosition[3])
+{
+}
 void iAVRMain::resetSelection()
 {
 	m_cylinderVis->renderSelection(std::vector<size_t>(), 0, QColor(140, 140, 140, 255), nullptr);
@@ -421,13 +443,25 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 {
 	if(!hide)
 	{
-		double size[3] = { 50.0, 50.0, 50.0 };
-		double controllerCenter[3] = { eventPosition[0] - size[0] / 2, eventPosition[1] + size[1] / 2 , eventPosition[2] - size[2] / 2 };
-		m_objectVis->createCube(QColor(0, 190, 50, 255), size, controllerCenter);
+		modelInMiniatureActive = true;
+		double scale[3] = {0.1, 0.1, 0.1};
+		int controllerID = static_cast<int>(vtkEventDataDevice::LeftController);
+
+		m_objectVis->setOctree(m_octree);
+		m_objectVis->createModelInMiniature();
+		m_objectVis->setScale(scale[0], scale[1], scale[2]);
+
+		double sideDistance = *(m_objectVis->getActor()->GetYRange());
+		double hoveringOffset[3] = { sideDistance * xOffset, sideDistance * yOffset, sideDistance * zOffset };
+		m_objectVis->setPos(cPos[controllerID][0] + hoveringOffset[0], cPos[controllerID][1] + hoveringOffset[1], cPos[controllerID][2] + hoveringOffset[2]);
+		
+		//m_objectVis->setColorCube(QColor(20, 20, 200, 255));
+
 		m_objectVis->show();
 	}
 	else
 	{
+		modelInMiniatureActive = false;
 		m_objectVis->hide();
 	}
 }

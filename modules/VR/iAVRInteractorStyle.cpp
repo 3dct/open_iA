@@ -32,7 +32,7 @@
 
 vtkStandardNewMacro(iAVRInteractorStyle);
 
-//Reimplements the Constructor
+//! Reimplements the Constructor
 iAVRInteractorStyle::iAVRInteractorStyle()
 {
 	// Initialize with 0 = None
@@ -50,8 +50,8 @@ void iAVRInteractorStyle::setVRMain(iAVRMain* vrMain)
 	m_vrMain = vrMain;
 }
 
-// Calls, depending on Device - its input and action, the corresponding method
-// Events can occure through left/right Controller and its input (trigger, grip, Trackpad,...) and an Action (Press, Release, Touch,...)
+//! Calls, depending on Device - its input and action, the corresponding method
+//! Events can occure through left/right Controller and its input (trigger, grip, Trackpad,...) and an Action (Press, Release, Touch,...)
 void iAVRInteractorStyle::OnButton3D(vtkEventData* edata)
 {    
 	// Used Device
@@ -85,6 +85,23 @@ void iAVRInteractorStyle::OnButton3D(vtkEventData* edata)
 		m_vrMain->endInteraction(device, m_eventPosition, InteractionProp);
 	}
 	
+}
+
+//! Is called when a Controller moves. Forwards the event to the main class
+void iAVRInteractorStyle::OnMove3D(vtkEventData * edata)
+{
+	// Used Device
+	vtkEventDataDevice3D* device = edata->GetAsEventDataDevice3D();
+
+	int x = this->Interactor->GetEventPosition()[0];
+	int y = this->Interactor->GetEventPosition()[1];
+	this->FindPokedRenderer(x, y);
+
+	device->GetWorldPosition(m_movePosition);
+	this->FindPickedActor(m_movePosition, nullptr);
+
+	m_vrMain->onMove(device, m_movePosition, InteractionProp);
+
 }
 
 inputScheme * iAVRInteractorStyle::getInputScheme()

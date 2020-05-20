@@ -50,6 +50,7 @@ enum class iAVROperations {
   SpawnModelInMiniature,
   PickSingleFiber,
   PickFibersinRegion,
+  PickMiMRegion,
   ChangeOctreeLevel,
   ResetSelection,
   NumberOfOperations
@@ -67,6 +68,7 @@ public:
 	iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io);
 	void startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], vtkProp3D* pickedProp); //Press, Touch
 	void endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], vtkProp3D* pickedProp); //Release, Untouch
+	void onMove(vtkEventDataDevice3D* device, double movePosition[3], vtkProp3D* pickedProp); //Movement
 	int octreeLevel;
 
 private:
@@ -78,12 +80,17 @@ private:
 	vtkSmartPointer<vtkTable> m_objectTable;
 	//vtkSmartPointer<vtkProp3D> m_pickedProp;
 	iACsvIO m_io;
+	//Current Device Position
+	double cPos[vtkEventDataNumberOfDevices][3];
 	// Map Actors to iAVRInteractionOptions
 	std::unordered_map<vtkProp3D*, int> m_ActorToOptionID;
 	// Maps poly point IDs to Object IDs in csv file
 	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
 	std::thread m_iDMappingThread;
+	// True if the Thread has not joined yet
 	bool m_iDMappingThreadRunning = true;
+	// True if the corresponding actor is visible
+	bool modelInMiniatureActive = false;
 
 	void mapAllPointiDs();
 	vtkIdType getObjectiD(vtkIdType polyPoint);
@@ -98,6 +105,7 @@ private:
 	void changeOctreeLevel();
 	void pickSingleFiber(double eventPosition[3]);
 	void pickFibersinRegion(double eventPosition[3]);
+	void pickMimRegion(double eventPosition[3]);
 	void resetSelection();
 	void spawnModelInMiniature(double eventPosition[3], bool hide);
 };

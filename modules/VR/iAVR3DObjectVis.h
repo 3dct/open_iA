@@ -24,7 +24,12 @@
 #include <vtkRenderer.h>
 #include <vtkActor.h>
 #include <vtkDataSet.h>
+#include <vtkPoints.h>
+#include <vtkPolyData.h>
+#include <vtkGlyph3DMapper.h>
 #include <QColor>
+
+#include "iAVROctree.h"
 
 //! Base class for VR 3D visualizations of primtive objects
 class iAVR3DObjectVis
@@ -33,14 +38,23 @@ public:
 	iAVR3DObjectVis(vtkRenderer* ren);
 	void show();
 	void hide();
+	void createModelInMiniature();
 	void createCube(QColor col, double size[3], double center[3]);
 	void createSphere(QColor col);
 	void setScale(double x, double y, double z);
+	void setPos(double x, double y, double z);
+	void setCubeColor(QColor col, int regionID);
+	void setOctree(iAVROctree* octree);
 	vtkDataSet* getDataSet();
 	vtkActor* getActor();
 private:
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	vtkSmartPointer<vtkActor> m_actor;
 	vtkSmartPointer<vtkDataSet> m_dataSet;
+	vtkSmartPointer<vtkPolyData> m_cubePolyData;
+	vtkSmartPointer<vtkGlyph3DMapper> glyph3Dmapper;
+	iAVROctree* m_octree;
 	bool m_visible;
+
+	void calculateStartPoints();
 };
