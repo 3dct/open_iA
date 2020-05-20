@@ -1067,8 +1067,6 @@ void iASlicer::saveAsImage()
 
 	bool moreThanOneChannel = m_channels.size() > 1;
 	QFileInfo fi(fileName);
-	bool outputTif = (QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
-		(QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) == 0);
 
 	if (moreThanOneChannel)
 	{
@@ -1080,7 +1078,8 @@ void iASlicer::saveAsImage()
 		inList << tr("+Channel (native only exports slice of what's selected here)");
 		inPara << currentChannels;
 	}
-	if (outputTif)
+	if ((QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
+		(QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
 	{
 		inList << tr("$16 bit native output (if disabled, native output will be 8 bit)");
 		inPara << (output16Bit ? tr("true") : tr("false"));
@@ -2753,27 +2752,16 @@ void iASlicer::updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslic
 	// Set position and text for green circle1 actors
 	for (int i = 0; i < m_pointsTarget->GetNumberOfPoints(); ++i)
 	{
-		if (m_mode == iASlicerMode::YZ)
-		{
-			m_circle1List.at(i)->SetCenter(m_pointsTarget->GetPoint(i)[1], m_pointsTarget->GetPoint(i)[2], 0.0);
-			m_circle2List.at(i)->SetCenter(m_pointsSource->GetPoint(i)[1], m_pointsSource->GetPoint(i)[2], 0.0);
-		}
-		if (m_mode == iASlicerMode::XZ)
-		{
-			m_circle1List.at(i)->SetCenter(m_pointsTarget->GetPoint(i)[0], m_pointsTarget->GetPoint(i)[2], 0.0);
-			m_circle2List.at(i)->SetCenter(m_pointsSource->GetPoint(i)[0], m_pointsSource->GetPoint(i)[2], 0.0);
-		}
-		if (m_mode == iASlicerMode::XY)
-		{
-			m_circle1List.at(i)->SetCenter(m_pointsTarget->GetPoint(i)[0], m_pointsTarget->GetPoint(i)[1], 0.0);
-			m_circle2List.at(i)->SetCenter(m_pointsSource->GetPoint(i)[0], m_pointsSource->GetPoint(i)[1], 0.0);
-		}
+		int idx1 = (m_mode == iASlicerMode::YZ) ? 1 : 0;
+		int idx2 = (m_mode == iASlicerMode::XY) ? 1 : 2;
+		m_circle1List.at(i)->SetCenter(m_pointsTarget->GetPoint(i)[idx1], m_pointsTarget->GetPoint(i)[idx2], 0.0);
+		m_circle2List.at(i)->SetCenter(m_pointsSource->GetPoint(i)[idx1], m_pointsSource->GetPoint(i)[idx2], 0.0);
 	}
 
 	m_fisheye->SetCenter(focalPt[0], focalPt[1], 0.0);
 	m_fisheye->SetRadius(lensRadius * reslicer->GetOutput()->GetSpacing()[0]);
 
-	m_fisheyeTransform->SetSourceLandmarks(m_pointsSource); // red
+	m_fisheyeTransform->SetSourceLandmarks(m_pointsSource);  // red
 	m_fisheyeTransform->SetTargetLandmarks(m_pointsTarget);  // green
 
 	reslicer->SetResliceTransform(m_fisheyeTransform);
