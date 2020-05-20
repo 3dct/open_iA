@@ -409,11 +409,16 @@ void iAChartTransferFunction::reset()
 	}
 }
 
+#include "iAPlot.h"
+#include "iAPlotData.h"
+
 void iAChartTransferFunction::TranslateToNewRange(double const oldXRange[2])
 {
 	double newXRange[2];
 	m_opacityTF->GetRange(newXRange);
-	if (dblApproxEqual(newXRange[0], oldXRange[0]) && dblApproxEqual(newXRange[1], oldXRange[1]))
+	double offset = (m_chart->plots().size() > 0 && m_chart->plots()[0]->data()->valueType() == Discrete) ? 0.5 : 0;
+	if (dblApproxEqual(newXRange[0] - offset, oldXRange[0]) &&
+		dblApproxEqual(newXRange[1] + offset, oldXRange[1]))
 	{
 		return;
 	}
