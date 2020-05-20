@@ -148,7 +148,7 @@ void iAChartWithFunctionsWidget::mousePressEvent(QMouseEvent *event)
 				m_translationStartX = m_translationX;
 				changeMode(MOVE_VIEW_MODE, event);
 			}
-			else if (!isContextMenuVisible())
+			else
 			{
 				changeMode(MOVE_POINT_MODE, event);
 			}
@@ -195,7 +195,6 @@ void iAChartWithFunctionsWidget::mouseReleaseEvent(QMouseEvent *event)
 		emit updateViews();
 	}
 	m_mode = NO_MODE;
-	m_contextMenuVisible = false;
 	func->mouseReleaseEvent(event);
 }
 
@@ -262,6 +261,10 @@ void iAChartWithFunctionsWidget::keyPressEvent(QKeyEvent *event)
 
 		update();
 	}
+	else if (event->key() == Qt::Key_Delete)
+	{
+		deletePoint();
+	}
 }
 
 void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
@@ -313,10 +316,8 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 			auto selectionMenu = contextMenu->addMenu("Select function");
 			for (size_t f = 0; f < m_functions.size(); ++f)
 			{
-				int type = m_functions[f]->getType();
-				auto action = selectionMenu->addAction(QString("%1 (%2)").arg(f)
-					.arg(type == iAChartFunction::BEZIER ? "Bezier function" : (
-						type == iAChartFunction::GAUSSIAN ? "Gaussian function" : "Transfer function")),
+				auto action = selectionMenu->addAction(QString("%1: %2").arg(f)
+					.arg(m_functions[f]->name()),
 					[this, f]() { selectFunction(f); }
 				);
 				action->setCheckable(true);
@@ -398,7 +399,10 @@ int iAChartWithFunctionsWidget::deletePoint()
 {
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	iAChartFunction *func = *(it + m_selectedFunction);
-
+	if (!func->isDeletable(func->getSelectedPoint()))
+	{
+		return -1;
+	}
 	int selectedPoint = func->getSelectedPoint();
 	func->removePoint(selectedPoint);
 	update();
@@ -509,8 +513,7 @@ void iAChartWithFunctionsWidget::addGaussianFunction()
 	double mean = m_xMapper->dstToSrc(contextMenuPos().x() - leftMargin() - xShift());
 	double sigma = m_xMapper->dstToSrc(geometry().width() / 20) - xBounds()[0];
 	int contextYHeight = chartHeight() - contextMenuPos().y();
-	double maxValue = 1.0 / (sigma * sqrt(2 * vtkMath::Pi()));
-	double multiplier = yMapper().dstToSrc(contextYHeight) / maxValue;
+	double multiplier = yMapper().dstToSrc(contextYHeight) * (sigma * sqrt(2 * vtkMath::Pi()));
 	addGaussianFunction(mean, sigma, multiplier);
 }
 

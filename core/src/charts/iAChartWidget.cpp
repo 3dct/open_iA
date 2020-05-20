@@ -116,7 +116,6 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_translationStartY( 0 ),
 	m_mode(NO_MODE),
 	m_yMappingMode(Linear),
-	m_contextMenuVisible(false),
 	m_contextMenu(new QMenu(this)),
 	m_showTooltip(true),
 	m_showXAxisLabel(true),
@@ -671,11 +670,6 @@ int iAChartWidget::dataBin2ScreenX(long x) const
 	return static_cast<int>(round(screenX));
 }
 
-bool iAChartWidget::isContextMenuVisible() const
-{
-	return m_contextMenuVisible;
-}
-
 bool iAChartWidget::isTooltipShown() const
 {
 	return m_showTooltip;
@@ -1159,16 +1153,6 @@ void iAChartWidget::clearMarkers()
 	m_xMarker.clear();
 }
 
-void iAChartWidget::keyReleaseEvent(QKeyEvent *event)
-{
-	if (event->key() == Qt::Key_Alt ||
-		event->key() == Qt::Key_AltGr ||
-		event->key() == Qt::Key_Escape)
-	{
-		m_contextMenuVisible = false;
-	}
-}
-
 void iAChartWidget::addContextMenuEntries(QMenu* /*contextMenu*/)
 {}
 
@@ -1185,7 +1169,6 @@ void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)
 	m_contextMenu->addAction(QIcon(":/images/save.png"), tr("Export histogram data"), this, &iAChartWidget::exportData);
 	m_contextMenu->addSeparator();
 	addContextMenuEntries(m_contextMenu);
-	m_contextMenuVisible = true;
 	m_contextMenu->exec(event->globalPos());
 }
 
