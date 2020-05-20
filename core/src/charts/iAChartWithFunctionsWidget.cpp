@@ -513,8 +513,7 @@ void iAChartWithFunctionsWidget::addGaussianFunction()
 	double mean = m_xMapper->dstToSrc(contextMenuPos().x() - leftMargin() - xShift());
 	double sigma = m_xMapper->dstToSrc(geometry().width() / 20) - xBounds()[0];
 	int contextYHeight = chartHeight() - contextMenuPos().y();
-	double maxValue = 1.0 / (sigma * sqrt(2 * vtkMath::Pi()));
-	double multiplier = yMapper().dstToSrc(contextYHeight) / maxValue;
+	double multiplier = yMapper().dstToSrc(contextYHeight) * (sigma * sqrt(2 * vtkMath::Pi()));
 	addGaussianFunction(mean, sigma, multiplier);
 }
 
