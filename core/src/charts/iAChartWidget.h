@@ -182,7 +182,6 @@ protected:
 	//! Main mappers from diagram coordinates to pixel coordinates, for each axis:
 	QSharedPointer<iAMapper> m_xMapper, m_yMapper;
 	AxisMappingType m_yMappingMode;
-	bool m_contextMenuVisible;
 
 	virtual void drawPlots(QPainter& painter);
 	virtual void drawAxes(QPainter& painter);
@@ -204,7 +203,6 @@ protected:
 	void leaveEvent(QEvent *event) override;
 	void paintGL() override;
 	void contextMenuEvent(QContextMenuEvent *event) override;
-	void keyReleaseEvent(QKeyEvent *event) override;
 	bool event(QEvent *event) override;
 	//! @}
 
