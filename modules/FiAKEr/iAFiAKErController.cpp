@@ -1129,6 +1129,22 @@ public:
 		return m_range;
 	}
 private:
+	void drawAxisText(QPainter& p, int textStartX, int textBoxWidth, int textHeight, int outerAxisPadding, double value)
+	{
+		// x label:
+		p.drawText(textStartX, outerAxisPadding, textBoxWidth, textHeight, Qt::AlignCenter, QString::number(value));
+		// y label:
+		p.save();
+		p.translate(outerAxisPadding, textStartX + textBoxWidth);
+		p.rotate(-90);
+		p.drawText(0, 0, textBoxWidth, textHeight, Qt::AlignCenter, QString::number(value));
+		p.restore();
+	}
+	void drawAxisTick(QPainter& p, int axisPos, int outTickDist, int tickPos)
+	{
+		p.drawLine(tickPos, outTickDist, tickPos, axisPos);    // x tick
+		p.drawLine(outTickDist, tickPos, axisPos, tickPos);    // y tick
+	}
 	void paintEvent(QPaintEvent* /*event*/) override
 	{
 		if (!m_lut.initialized())
@@ -1141,8 +1157,9 @@ private:
 
 		int scalarBarWidth = 20;
 		int scalarBarPadding = 4;
-		int axisPadding = 4;
-		int axisTickHeight = 8;
+		int outerAxisPadding = 0;
+		int innerAxisPadding = 4;
+		int axisTickHeight = 5;
 
 		QString minStr = dblToStringWithUnits(m_range[0]);
 		QString maxStr = dblToStringWithUnits(m_range[1]);
@@ -1153,7 +1170,7 @@ private:
 #endif
 		int textHeight = fm.height();
 		int fullScalarBarWidth = m_showScalarBar ? (3 * scalarBarPadding + scalarBarWidth + textWidth) : 0;
-		int axisSize = m_showAxes ? textHeight + 2 * axisPadding + axisTickHeight : 0;
+		int axisSize = m_showAxes ? (textHeight + innerAxisPadding + outerAxisPadding + axisTickHeight) : 0;
 		int cellPixel = std::max(1,
 			std::min((geometry().height() - axisSize) / static_cast<int>(m_data.size()),
 				(geometry().width() - fullScalarBarWidth - axisSize) / static_cast<int>(m_data.size())));
@@ -1175,87 +1192,45 @@ private:
 		{
 			//p.drawText(axisSize, axisPadding, matrixRect.width(), textHeight, m_paramName);
 			// draw x axis line:
-			int axisPos = axisPadding + axisTickHeight + textHeight;
+			int outTickDist = outerAxisPadding + textHeight;
+			int axisPos = outTickDist + axisTickHeight;
 			p.drawLine(axisSize, axisPos, axisSize + matrixRect.width(), axisPos);
 			// draw y axis line:
 			p.drawLine(axisPos, axisSize, axisPos, axisSize + matrixRect.height());
 			
-			double prevValue = std::numeric_limits<double>::infinity();
 			const size_t NoRangeStart = std::numeric_limits<size_t>::max();
+			const double NoValue = std::numeric_limits<double>::infinity();
+			double prevValue = NoValue;
 			size_t rangeStart = NoRangeStart;
 			auto const& pv = m_paramValues[m_sortParam];
-			for (size_t i = 0; i < m_sortOrder.size(); ++i)
+			for (size_t i = 0; i <= m_sortOrder.size(); ++i)
 			{
-				DEBUG_LOG(QString("i: %1, curValue: %2, param[i]: %3").arg(i).arg(prevValue).arg(pv[m_sortOrder[i]]));
-				if (pv[m_sortOrder[i]] != prevValue)
+				double curValue = i < m_sortOrder.size() ? pv[m_sortOrder[i]] : NoValue;
+				if (curValue != prevValue)
 				{
 					bool rangeStarts = (i < m_sortOrder.size()-1) && pv[m_sortOrder[i]] == pv[m_sortOrder[i + 1]];
 					bool rangeEnds = rangeStart != NoRangeStart;
-					DEBUG_LOG(QString("   CHANGE: started: %1, ended: %2, rangeStart: %3").arg(rangeStarts).arg(rangeEnds).arg(rangeStart != NoRangeStart? QString::number(rangeStart):"none" ));
 					if (rangeEnds)
-					{    // was a previous range started before? if yes, draw label
-						int textStartX = rangeStart * cellPixel;
-						int textBoxWidth = (i - rangeStart + 1) * cellPixel;
-						// x label:
-						p.drawText(axisSize + textStartX, axisPadding, textBoxWidth, textHeight, Qt::AlignCenter, QString::number(prevValue));
-						// y label:
-						p.drawText(axisPadding, axisSize + textStartX, textHeight, textBoxWidth, Qt::AlignCenter, QString::number(prevValue));
-						// draw x tick:
-						p.drawLine(axisSize + (i * cellPixel), axisPadding + textHeight,
-							axisSize + (i * cellPixel), axisPadding + textHeight + axisTickHeight);
-						// draw y tick:
-						p.drawLine(axisPadding + textHeight, axisSize + (i * cellPixel),
-							axisPadding + textHeight + axisTickHeight, axisSize + (i * cellPixel));
+					{    // does a previously started range end here? if yes, draw label and end tick
+						drawAxisText(p, axisSize + rangeStart * cellPixel, (i - rangeStart) * cellPixel, textHeight, outerAxisPadding, prevValue);
+						drawAxisTick(p, axisPos, outTickDist, axisSize + (i * cellPixel));
 					}
-					if (!rangeStarts)
-					{
-						int tickPos = static_cast<int>((i + 0.5) * cellPixel);
-						// draw x tick:
-						p.drawLine(axisSize + tickPos, axisPadding + textHeight,
-							axisSize+tickPos, axisPadding + textHeight + axisTickHeight);
-						// draw y tick:
-						p.drawLine(axisPadding + textHeight, axisSize + tickPos,
-							axisPadding + textHeight + axisTickHeight, axisSize + tickPos);
-						
-						// x label:
-						p.drawText(axisSize + (i * cellPixel), axisPadding, cellPixel, textHeight, Qt::AlignCenter, QString::number(pv[m_sortOrder[i]]));
-						// y label:
-						p.drawText(axisPadding, axisSize + (i * cellPixel), textHeight, cellPixel, Qt::AlignCenter, QString::number(pv[m_sortOrder[i]]));
+					if (!rangeStarts && i < m_sortOrder.size())
+					{   // draw tick and label for single cell not belonging to range
+						drawAxisText(p, axisSize + (i * cellPixel), cellPixel, textHeight, outerAxisPadding, curValue);
+						drawAxisTick(p, axisPos, outTickDist, axisSize + static_cast<int>((i + 0.5) * cellPixel));
 						rangeStart = NoRangeStart;
 					}
-					else
+					if (rangeStarts)
 					{
 						rangeStart = i;
 						if (!rangeEnds)
 						{
-							// draw x tick:
-							p.drawLine(axisSize + (rangeStart * cellPixel), axisPadding + textHeight,
-								axisSize + (rangeStart * cellPixel), axisPadding + textHeight + axisTickHeight);
-							// draw y tick:
-							p.drawLine(axisPadding + textHeight, axisSize + (rangeStart * cellPixel),
-								axisPadding + textHeight + axisTickHeight, axisSize + (rangeStart * cellPixel));
+							drawAxisTick(p, axisPos, outTickDist, axisSize + (rangeStart * cellPixel));
 						}
 					}
 					prevValue = m_paramValues[m_sortParam][m_sortOrder[i]];
 				}
-			}
-			if (rangeStart != std::numeric_limits<size_t>::max())
-			{
-				int tickPos = matrixRect.width();
-				int textBoxWidth = (m_sortOrder.size() - rangeStart) * cellPixel;
-				// draw x tick:
-				p.drawLine(axisSize + tickPos, axisPadding + textHeight,
-					axisSize + tickPos, axisPadding + textHeight + axisTickHeight);
-				// draw y tick:
-				p.drawLine(axisPadding + textHeight, axisSize + tickPos,
-					axisPadding + textHeight + axisTickHeight, axisSize + tickPos);
-
-				// x label:
-				p.drawText(axisSize + static_cast<int>(rangeStart * cellPixel), axisPadding,
-					textBoxWidth, textHeight, Qt::AlignCenter, QString::number(prevValue));
-				// y label:
-				p.drawText(axisPadding, axisSize + static_cast<int>(rangeStart * cellPixel),
-					textHeight, textBoxWidth, Qt::AlignCenter, QString::number(prevValue));
 			}
 		}
 
