@@ -31,38 +31,30 @@ class QPointF;
 
 class open_iA_Core_API iAChartFunctionBezier : public iAChartFunction
 {
-	QColor m_color;
-
-	int m_selectedPoint;
-	double controlDist;
-	double length;
-	double oppositeLength;
-	std::vector<QPointF> viewPoints;
-	std::vector<QPointF> realPoints;
-
 public:
 	iAChartFunctionBezier(iAChartWithFunctionsWidget *chart, QColor &color, bool reset = true);
 
-	int getType() override { return BEZIER; }
+	int getType() const override { return BEZIER; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor penColor, int lineWidth) override;
 	void drawOnTop(QPainter&) override {}
 	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
-	int getSelectedPoint() override { return m_selectedPoint; }
+	int getSelectedPoint() const override { return m_selectedPoint; }
 	int addPoint(int x, int y) override;
 	void addColorPoint(int, double, double, double) override {}
 	void removePoint(int index) override;
 	void moveSelectedPoint(int x, int y) override;
 	void changeColor(QMouseEvent *) override{}
-	bool isColored() override { return false; }
-	bool isEndPoint(int index) override;
-	bool isDeletable(int index) override;
+	bool isColored() const override { return false; }
+	bool isEndPoint(int index) const override;
+	bool isDeletable(int index) const override;
 	void reset() override;
+	virtual QString name() const override;
 	size_t numPoints() const override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
 
 	void push_back(double x, double y);
-	std::vector<QPointF> &getPoints() { return realPoints; }
+	std::vector<QPointF> &getPoints() { return m_realPoints; }
 private:
 	bool isFunctionPoint(int point);
 	bool isControlPoint(int point);
@@ -75,15 +67,11 @@ private:
 	int getFunctionPointIndex(int index);
 	double getLength(QPointF start, QPointF end);
 
-	// convert view to data
-	double v2dX(int x);
-	double v2dY(int y);
-
-	// convert data to view
-	int d2vX(double x);
-	int d2vY(double y);
-
-	// convert data to image
-	int d2iX(double x);
-	int d2iY(double y);
+	QColor m_color;
+	int m_selectedPoint;
+	double m_controlDist;
+	double m_length;
+	double m_oppositeLength;
+	std::vector<QPointF> m_viewPoints;
+	std::vector<QPointF> m_realPoints;
 };

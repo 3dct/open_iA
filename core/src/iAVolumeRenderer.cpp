@@ -235,7 +235,6 @@ void iAVolumeRenderer::updateBoundingBox()
 	m_outlineActor->SetPosition(m_volume->GetPosition());
 }
 
-
 vtkSmartPointer<vtkVolume> iAVolumeRenderer::volume()
 {
 	return m_volume;

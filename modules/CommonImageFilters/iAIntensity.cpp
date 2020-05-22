@@ -248,7 +248,7 @@ iARescaleIntensityFilter::iARescaleIntensityFilter() :
 
 // iAShiftScaleIntensityFilter
 
-template<class T> void shiftScale(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<typename T> void shiftScale(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM > InputImageType;
 	typedef itk::Image< T, DIM > OutputImageType;

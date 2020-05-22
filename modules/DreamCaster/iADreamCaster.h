@@ -38,9 +38,10 @@ class vtkPolyDataMapper;
 class vtkRenderer;
 class vtkSTLReader;
 
+class iAChartWidget;
+
 struct iACombinedParametersView;
 class iACutFigList;
-class dlg_histogram_simple;
 class iAEngine;
 class iAPaintWidget;
 struct iAParamWidget;
@@ -66,8 +67,6 @@ public:
 	void log(QString text, bool appendToPrev=false);
 	//! Recreates rendering surface and rendering engine. Loads object. Prepares renderer.
 	void initRaycast();
-	//! Setting default parameters to histograms plot.
-	void initHistograms();
 	//! Update 3D representation of cutting AABBs
 	int updateCutAABVtk();
 	//! Find triangles that are belong to selected features
@@ -93,7 +92,7 @@ private:
 	Ui::ResultsDialog resUi;            //!< Contains GUI of results dialog.
 	Ui::Settings settingsUi;            //!< Contains GUI of settings dialog.
 	//histogram stuff
-	dlg_histogram_simple * hist;
+	iAChartWidget * hist;
 	QWidget settings;                   //!< Qt widget for settings window GUI
 	QDialog res;                        //!< Qt dialog for results dialog GUI
 	iAPaintWidget *RenderFrame;         //!< Widget for raycasted image  visualization
@@ -144,8 +143,6 @@ private:
 	void setPickedPlacement(int indX, int indY, int indZ);
 	//! Change visibility of widgets that can maximize
 	void changeVisibility(int isVisible);
-	//! Bind model data to cuda textures
-	void SetupGPUBuffers();
 	//! Fill dest buffer with colorcoded param values.
 	void fillParamBuffer(unsigned int* dest, int paramInd);
 	//! Reads single render data from current renderings file by indices.
@@ -162,9 +159,9 @@ private:
 	int SetupSettingsFromConfigFile();
 	//! Update staibility widget values
 	int UpdateStabilityWidget();
-	//! Free memory allocated previously for plotData,rotations,plotColumnData, weightedParams
+	//! Free memory allocated previously for rotations, weightedParams
 	void ClearPrevData();
-	//! Allocate memory for plotData, rotations, plotColumnData, weightedParams
+	//! Allocate memory for rotations, weightedParams
 	void AllocateData();
 	//! Update view when another rendering selected
 	void UpdateView();

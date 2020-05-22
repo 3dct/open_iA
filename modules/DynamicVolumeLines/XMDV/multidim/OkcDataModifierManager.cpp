@@ -20,20 +20,23 @@
 //#include "data/cluster/OkcDataModifierClusterEntries.h"
 #include "../main/XmdvTool.h"
 #include <map>
-using namespace std;
 
-OkcDataModifierManager::OkcDataModifierManager() {
+OkcDataModifierManager::OkcDataModifierManager()
+{
 	m_okcdata = 0;
 }
 
-OkcDataModifierManager::OkcDataModifierManager(OkcData* okcdata) {
+OkcDataModifierManager::OkcDataModifierManager(OkcData* okcdata)
+{
 	m_okcdata = okcdata;
 }
 
-OkcDataModifierManager::~OkcDataModifierManager() {
-	map<XmdvTool::MODIFIERTYPE, OkcDataModifier*>::iterator it;
+OkcDataModifierManager::~OkcDataModifierManager()
+{
+	std::map<XmdvTool::MODIFIERTYPE, OkcDataModifier*>::iterator it;
 	// release the memory occupied by all of modifiers
-	for ( it=m_modifiers.begin(); it != m_modifiers.end(); it++ ) {
+	for ( it=m_modifiers.begin(); it != m_modifiers.end(); it++ )
+	{
 		// We only release the memory occupied by those non-reference modifier.
 		if ( !m_modifierRefFlag[ (*it).first ] ) {
 			delete ((*it).second);
@@ -98,8 +101,8 @@ int OkcDataModifierManager::getOrigLine(int line) {
 void OkcDataModifierManager::copyFrom(const OkcDataModifierManager* copy) {
 	m_okcdata = copy->m_okcdata;
 	m_modifiers.clear();
-	map<XmdvTool::MODIFIERTYPE, OkcDataModifier*>::iterator it;
-	map<XmdvTool::MODIFIERTYPE, OkcDataModifier*> copymap;
+	std::map<XmdvTool::MODIFIERTYPE, OkcDataModifier*>::iterator it;
+	std::map<XmdvTool::MODIFIERTYPE, OkcDataModifier*> copymap;
 	copymap = copy->m_modifiers;
 	// copy each modifier
 	for ( it=copymap.begin(); it!=copymap.end(); it++) {

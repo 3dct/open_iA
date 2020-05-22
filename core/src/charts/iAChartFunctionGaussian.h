@@ -30,53 +30,34 @@ class open_iA_Core_API iAChartFunctionGaussian : public iAChartFunction
 public:
 	iAChartFunctionGaussian(iAChartWithFunctionsWidget *chart, QColor &color, bool reset = true);
 
-	int getType() override { return GAUSSIAN; }
+	int getType() const override { return GAUSSIAN; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
 	void drawOnTop(QPainter&) override {}
 	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
-	int getSelectedPoint() override { return 0; }
+	int getSelectedPoint() const override { return 0; }
 	int addPoint(int, int) override { return 0; }
 	void addColorPoint(int, double, double, double) override {}
 	void removePoint(int) override {}
 	void moveSelectedPoint(int x, int y) override;
 	void changeColor(QMouseEvent *) override {}
-	bool isColored() override { return false; }
-	bool isEndPoint(int) override { return true; }
-	bool isDeletable(int) override { return false; }
+	bool isColored() const override { return false; }
+	bool isEndPoint(int) const override { return true; }
+	bool isDeletable(int) const override { return false; }
 	void reset() override;
+	virtual QString name() const override;
 	size_t numPoints() const override;
 
-	// additional public functions
 	void setMean(double mean)   { m_mean = mean; }
-	void setMean(int mean)      { m_mean = v2dX(mean); }
 	void setSigma(double sigma) { m_sigma = sigma; }
-	void setSigma(int sigma)    { m_sigma = i2dX(sigma) - i2dX(0); }
 	void setMultiplier(double multiplier) { m_multiplier = multiplier; }
-	void setMultiplier(int multiplier);
 
-	double getMean() { return m_mean; }
-	double getSigma() { return m_sigma; }
-	double getCovariance() { return m_sigma* m_sigma; }
+	double getMean()       { return m_mean; }
+	double getSigma()      { return m_sigma; }
+	double getCovariance() { return m_sigma * m_sigma; }
 	double getMultiplier() { return m_multiplier; }
 
 private:
-
-	// convert view to data
-	double v2dX(int x);
-	double v2dY(int y);
-
-	// convert data to view
-	int d2vX(double x);
-	int d2vY(double y);
-
-	// convert data to image
-	int d2iX(double x);
-	int d2iY(double y);
-
-	// convert image to data
-	double i2dX(int x);
-
 	QColor m_color;
 	int    m_selectedPoint;
 	double m_mean;

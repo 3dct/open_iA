@@ -57,12 +57,10 @@ public:
 	virtual int bottomMargin() const;
 	//! Retrieve left margin (in pixels).
 	virtual int leftMargin() const;
-	//! Retrieve width of active region of the chart.
-	//! The active region is where plots are drawn, without space for axes (in pixels).
-	virtual int activeWidth()  const;
-	//! Retrieve height of active region of the chart.
-	//! The active region is where plots are drawn, without space for axes (in pixels).
-	virtual int activeHeight() const;
+	//! Retrieve width (in pixels) of the actual chart, i.e. the region where plots are drawn, without space for margins / axes.
+	virtual int chartWidth()  const;
+	//! Retrieve height (in pixels) of the actual chart, i.e. the region where plots are drawn, without space for the margins / axes.
+	virtual int chartHeight() const;
 	//! @{ Retrieve minimum/maximum y data value.
 	iAPlotData::DataType minYDataValue(size_t startPlot = 0) const;
 	iAPlotData::DataType maxYDataValue(size_t startPlot = 0) const;
@@ -184,7 +182,6 @@ protected:
 	//! Main mappers from diagram coordinates to pixel coordinates, for each axis:
 	QSharedPointer<iAMapper> m_xMapper, m_yMapper;
 	AxisMappingType m_yMappingMode;
-	bool m_contextMenuVisible;
 
 	virtual void drawPlots(QPainter& painter);
 	virtual void drawAxes(QPainter& painter);
@@ -206,7 +203,6 @@ protected:
 	void leaveEvent(QEvent *event) override;
 	void paintGL() override;
 	void contextMenuEvent(QContextMenuEvent *event) override;
-	void keyReleaseEvent(QKeyEvent *event) override;
 	bool event(QEvent *event) override;
 	//! @}
 

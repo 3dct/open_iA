@@ -22,6 +22,7 @@
 
 #include "charts/iAChartWithFunctionsWidget.h"
 #include "iAConsole.h"
+#include "iAMapper.h"
 #include "iAMathUtility.h"
 #include "mdichild.h"
 
@@ -54,7 +55,7 @@ iAChartTransferFunction::~iAChartTransferFunction()
 
 void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidth)
 {
-	bool active = (chart->selectedFunction() == this);
+	bool active = (m_chart->selectedFunction() == this);
 
 	QPen pen = painter.pen();
 	pen.setColor(color); pen.setWidth(lineWidth);
@@ -66,8 +67,7 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 	painter.setPen(pen);
 	painter.setBrush(QColor(128, 128, 128, 255));
 
-	QColor c;
-	double gradientWidth = chart->activeWidth()*chart->xZoom();
+	double gradientWidth = m_chart->chartWidth()*m_chart->xZoom();
 
 	m_gradient = QLinearGradient();
 	m_gradient.setStart(0, 0);
@@ -87,12 +87,11 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 	m_opacityTF->GetNodeValue(0, opacityTFValue);
 	m_colorTF->GetNodeValue(0, colorTFValue);
 
-	int x1, y1;
-	x1 = d2iX(opacityTFValue[0]);
-	y1 = d2iY(opacityTFValue[1]);
+	int x1 = m_chart->xMapper().srcToDst(opacityTFValue[0]);
+	int y1 = opacity2PixelY(opacityTFValue[1]);
 
-	c = QColor(colorTFValue[1]*255.0, colorTFValue[2]*255.0, colorTFValue[3]*255.0, 150);
-	m_gradient.setColorAt((double)x1/gradientWidth, c );
+	QColor c; c.setRgbF(colorTFValue[1], colorTFValue[2], colorTFValue[3], 0.588);
+	m_gradient.setColorAt(static_cast<double>(x1) / gradientWidth, c );
 
 	int lastX = x1;
 	for ( int i = 1; i < m_opacityTF->GetSize(); i++)
@@ -100,11 +99,13 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 		m_opacityTF->GetNodeValue(i, opacityTFValue);
 		m_colorTF->GetNodeValue(i, colorTFValue);
 
-		int x2 = d2iX(opacityTFValue[0]);
+		int x2 = m_chart->xMapper().srcToDst(opacityTFValue[0]);
 		if (x2 == lastX)
+		{
 			++x2;
+		}
 		lastX = x2;
-		int y2 = d2iY(opacityTFValue[1]);
+		int y2 = opacity2PixelY(opacityTFValue[1]);
 		painter.drawLine(x1, y1, x2, y2); // draw line
 		if (active)
 		{
@@ -147,8 +148,8 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 		}
 
 		painter.setPen(pen);
-		c = QColor(colorTFValue[1]*255.0, colorTFValue[2]*255.0, colorTFValue[3]*255.0, 150);
-		m_gradient.setColorAt((double)x2/gradientWidth, QColor(c.red(), c.green(), c.blue(), 150));
+		c.setRgbF(colorTFValue[1], colorTFValue[2], colorTFValue[3], 0.588);
+		m_gradient.setColorAt(static_cast<double>(x2) / gradientWidth, c);
 		x1 = x2;
 		y1 = y2;
 	}
@@ -180,35 +181,28 @@ void iAChartTransferFunction::drawOnTop(QPainter &painter)
 {
 	if (m_opacityTF->GetSize() == m_colorTF->GetSize())
 	{
-		double gradientWidth = chart->activeWidth()*chart->xZoom();
+		double gradientWidth = m_chart->chartWidth()*m_chart->xZoom();
 
-		painter.fillRect( 0, 0, gradientWidth, -chart->bottomMargin(), m_gradient );
+		painter.fillRect( 0, 1, gradientWidth, -(m_chart->bottomMargin()+1), m_gradient );
 	}
 }
 
 int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 {
-	int lx = event->x() - chart->leftMargin();
-	int ly = chart->geometry().height() - event->y() - chart->bottomMargin() - chart->yShift();
+	int lx = event->x() - m_chart->leftMargin() - m_chart->xShift();
+	int ly = m_chart->chartHeight() - event->y() - m_chart->yShift();
 	int index = -1;
 
 	double pointValue[4];
 	for (int pointIndex = 0; pointIndex < m_opacityTF->GetSize(); pointIndex++)
 	{
 		m_opacityTF->GetNodeValue(pointIndex, pointValue);
-		int viewX, viewY;
-
-		viewX = d2vX(pointValue[0]);
-		viewY = d2vY(pointValue[1]);
-
+		int viewX = m_chart->xMapper().srcToDst(pointValue[0]);
+		int viewY = opacity2PixelY(pointValue[1]);
+		int pointRadius = (pointIndex == m_selectedPoint) ? iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS : iAChartWithFunctionsWidget::POINT_RADIUS;
 		if ( !m_rangeSliderHandles )
 		{
-			if ( ( pointIndex == m_selectedPoint &&
-				lx >= viewX - iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS && lx <= viewX + iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS &&
-				ly >= viewY - iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS && ly <= viewY + iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS ) ||
-				( lx >= viewX - iAChartWithFunctionsWidget::POINT_RADIUS && lx <= viewX + iAChartWithFunctionsWidget::POINT_RADIUS &&
-				ly >= viewY - iAChartWithFunctionsWidget::POINT_RADIUS && ly <= viewY + iAChartWithFunctionsWidget::POINT_RADIUS ) )
-
+			if (std::abs(lx - viewX) < pointRadius && std::abs(ly - viewY) < pointRadius)
 			{
 				index = pointIndex;
 				break;
@@ -222,8 +216,10 @@ int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 				&& ly >= viewY - PIE_RADIUS && ly <= viewY ) )
 			{
 				// FeatureAnalyzer: range slider widget; only handles can get selected (no end points)
-				if ( this->isEndPoint( pointIndex ) )
+				if (this->isEndPoint(pointIndex))
+				{
 					continue;
+				}
 
 				index = pointIndex;
 				break;
@@ -232,10 +228,7 @@ int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 
 		if (x != nullptr)
 		{
-			if (*x == viewX)
-				*x = lx+1;
-			else
-				*x = lx;
+			*x = (*x == viewX)? lx + 1: lx;
 		}
 	}
 
@@ -246,8 +239,7 @@ int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 
 int iAChartTransferFunction::addPoint(int x, int y)
 {
-	double d[2] = { v2dX(x), v2dY(y) };
-	m_selectedPoint = m_opacityTF->AddPoint(d[0], d[1]);
+	m_selectedPoint = m_opacityTF->AddPoint(m_chart->xMapper().dstToSrc(x - m_chart->xShift()), pixelY2Opacity(y));
 	return m_selectedPoint;
 }
 
@@ -256,15 +248,15 @@ void iAChartTransferFunction::addColorPoint(int x, double red, double green, dou
 	if (red < 0 || green < 0 || blue < 0)
 	{
 		QGradientStops stops = m_gradient.stops();
-		double gradientWidth = chart->activeWidth()*chart->xZoom();
-		double pos = x /gradientWidth;
+		double gradientWidth = m_chart->chartWidth() * m_chart->xZoom();
+		double pos = x / gradientWidth;
 
 		// find stops before and after pos
 		int i = 0;
 		QGradientStop stop = stops.at(0);
 		while (stop.first < pos)
 		{
-			i++;
+			++i;
 			if (i >= stops.size())
 			{
 				break;
@@ -292,33 +284,34 @@ void iAChartTransferFunction::addColorPoint(int x, double red, double green, dou
 		blue = (firstColor.blue()*firstWeight +secondColor.blue()*secondWeight)/255.0;
 	}
 
-	m_colorTF->AddRGBPoint(v2dX(x), red, green, blue);
+	m_colorTF->AddRGBPoint(m_chart->xMapper().dstToSrc(x - m_chart->xShift()), red, green, blue);
 	m_colorTF->Build();
 	triggerOnChange();
 }
 
 void iAChartTransferFunction::removePoint(int index)
 {
-	if (m_opacityTF->GetSize()>2)
+	if (m_opacityTF->GetSize() < 2)
 	{
-		double values[4];
-		m_opacityTF->GetNodeValue(index, values);
-
-		double cvalues[6];
-		m_colorTF->GetNodeValue(index, cvalues);
-		m_opacityTF->RemovePoint(values[0]);
-		m_colorTF->RemovePoint(values[0]);
-		m_colorTF->Build();
-		triggerOnChange();
+		return;
 	}
+	double values[4];
+	m_opacityTF->GetNodeValue(index, values);
+
+	double cvalues[6];
+	m_colorTF->GetNodeValue(index, cvalues);
+	m_opacityTF->RemovePoint(values[0]);
+	m_colorTF->RemovePoint(values[0]);
+	m_colorTF->Build();
+	triggerOnChange();
 }
 
 void iAChartTransferFunction::moveSelectedPoint(int x, int y)
 {
-	if (x > chart->activeWidth()-1) x = chart->activeWidth() - 1;
-	y = clamp(0, chart->geometry().height() - chart->bottomMargin() - 1, y);
+	x = clamp(0, m_chart->chartWidth() - 1, x);
+	y = clamp(0, m_chart->chartHeight() - 1, y);
 
-	double dataX = v2dX(x);
+	double dataX = m_chart->xMapper().dstToSrc(x - m_chart->xShift());
 	if (m_selectedPoint != 0 && m_selectedPoint != m_opacityTF->GetSize()-1)
 	{
 		double nextOpacityTFValue[4];
@@ -329,13 +322,13 @@ void iAChartTransferFunction::moveSelectedPoint(int x, int y)
 
 		if (dataX >= nextOpacityTFValue[0])
 		{
-			int newX = d2vX(nextOpacityTFValue[0]) - 1;
+			int newX = m_chart->xMapper().srcToDst(nextOpacityTFValue[0]) - 1;
 			setPoint(m_selectedPoint, newX, y);
 			setColorPoint(m_selectedPoint, newX);
 		}
 		else if (dataX <= prevOpacityTFValue[0])
 		{
-			int newX = d2vX(prevOpacityTFValue[0]) + 1;
+			int newX = m_chart->xMapper().srcToDst(prevOpacityTFValue[0]) + 1;
 			setPoint(m_selectedPoint, newX, y);
 			setColorPoint(m_selectedPoint, newX);
 		}
@@ -346,7 +339,9 @@ void iAChartTransferFunction::moveSelectedPoint(int x, int y)
 		}
 	}
 	else
+	{
 		setPointY(m_selectedPoint, y);
+	}
 
 	triggerOnChange();
 }
@@ -359,7 +354,9 @@ void iAChartTransferFunction::changeColor(QMouseEvent *event)
 	}
 
 	if (m_selectedPoint == -1)
+	{
 		return;
+	}
 
 	double colorTFValue[6];
 	m_colorTF->GetNodeValue(m_selectedPoint, colorTFValue);
@@ -376,23 +373,30 @@ void iAChartTransferFunction::changeColor(QMouseEvent *event)
 		m_colorDlg->height());
 	*/
 	if (m_colorDlg->exec() != QDialog::Accepted)
+	{
 		return;
+	}
 
 	QColor col = m_colorDlg->selectedColor();
-	setColorPoint(m_selectedPoint, d2vX(colorTFValue[0]), (double)col.red()/255.0, (double)col.green()/255.0, (double)col.blue()/255.0 );
+	setColorPoint(m_selectedPoint, m_chart->xMapper().srcToDst(colorTFValue[0]), col.redF(), col.greenF(), col.blueF());
 	m_colorTF->Modified();
 	m_colorTF->Build();
 	triggerOnChange();
 }
 
-bool iAChartTransferFunction::isEndPoint(int index)
+bool iAChartTransferFunction::isEndPoint(int index) const
 {
 	return index == 0 || index == m_opacityTF->GetSize()-1;
 }
 
-bool iAChartTransferFunction::isDeletable(int index)
+bool iAChartTransferFunction::isDeletable(int index) const
 {
 	return !isEndPoint(index);
+}
+
+QString iAChartTransferFunction::name() const
+{
+	return QString("Transfer function (%1 points)").arg(m_opacityTF->GetSize());
 }
 
 void iAChartTransferFunction::reset()
@@ -400,35 +404,40 @@ void iAChartTransferFunction::reset()
 	if (m_opacityTF && m_colorTF)
 	{
 		m_opacityTF->RemoveAllPoints();
-		m_opacityTF->AddPoint(chart->xBounds()[0], 0.0 );
-		m_opacityTF->AddPoint(chart->xBounds()[1], 1.0 );
+		m_opacityTF->AddPoint(m_chart->xBounds()[0], 0.0 );
+		m_opacityTF->AddPoint(m_chart->xBounds()[1], 1.0 );
 		m_colorTF->RemoveAllPoints();
-		m_colorTF->AddRGBPoint(chart->xBounds()[0], 0.0, 0.0, 0.0 );
-		m_colorTF->AddRGBPoint(chart->xBounds()[1], 1.0, 1.0, 1.0 );
+		m_colorTF->AddRGBPoint(m_chart->xBounds()[0], 0.0, 0.0, 0.0 );
+		m_colorTF->AddRGBPoint(m_chart->xBounds()[1], 1.0, 1.0, 1.0 );
 		m_colorTF->Build();
 		triggerOnChange();
 	}
 }
 
-void iAChartTransferFunction::TranslateToNewRange(double const oldDataRange[2])
+#include "iAPlot.h"
+#include "iAPlotData.h"
+
+void iAChartTransferFunction::TranslateToNewRange(double const oldXRange[2])
 {
-	double min, max;
-	m_opacityTF->GetRange(min, max);
-	for (int i = 0; i < m_opacityTF->GetSize(); i++)
+	double newXRange[2];
+	m_opacityTF->GetRange(newXRange);
+	double offset = (m_chart->plots().size() > 0 && m_chart->plots()[0]->data()->valueType() == Discrete) ? 0.5 : 0;
+	if (dblApproxEqual(newXRange[0] - offset, oldXRange[0]) &&
+		dblApproxEqual(newXRange[1] + offset, oldXRange[1]))
+	{
+		return;
+	}
+	assert(m_opacityTF->GetSize() == m_colorTF->GetSize());
+	for (int i = 0; i < m_opacityTF->GetSize(); ++i)
 	{
 		double opacity[4];
 		m_opacityTF->GetNodeValue(i, opacity);
-		int opacityViewX = d2vX(opacity[0], oldDataRange[0], oldDataRange[1]);
-		opacity[0] = v2dX(opacityViewX);
-		m_opacityTF->SetNodeValue(i, opacity);
-	}
-
-	for (int i = 0; i < m_colorTF->GetSize(); i++)
-	{
 		double color[6];
 		m_colorTF->GetNodeValue(i, color);
-		int colorViewX = d2vX(color[0], oldDataRange[0], oldDataRange[1]);
-		color[0] = v2dX(colorViewX);
+		assert(opacity[0] == color[0]);
+		double newX = mapValue(oldXRange, newXRange, opacity[0]);
+		color[0] = opacity[0] = clamp(newXRange[0], newXRange[1], newX);
+		m_opacityTF->SetNodeValue(i, opacity);
 		m_colorTF->SetNodeValue(i, color);
 	}
 	m_colorTF->Modified();
@@ -477,7 +486,7 @@ void iAChartTransferFunction::setColorPoint(int selectedPoint, double x, double 
 
 void iAChartTransferFunction::setColorPoint(int selectedPoint, int x, double red, double green, double blue)
 {
-	double colorVal[6] = { v2dX(x), red, green, blue, 0.5, 0.0 };
+	double colorVal[6] = { m_chart->xMapper().dstToSrc(x - m_chart->xShift()), red, green, blue, 0.5, 0.0 };
 
 	m_colorTF->SetNodeValue(selectedPoint, colorVal);
 	m_colorTF->Modified();
@@ -494,8 +503,11 @@ void iAChartTransferFunction::setColorPoint(int selectedPoint, int x)
 
 void iAChartTransferFunction::setPoint(int selectedPoint, int x, int y)
 {
-	if (y < 0) y = 0;
-	double opacityVal[4] = { v2dX(x), v2dY(y), 0.0, 0.0 };
+	if (y < 0)
+	{
+		y = 0;
+	}
+	double opacityVal[4] = { m_chart->xMapper().dstToSrc(x - m_chart->xShift()), pixelY2Opacity(y), 0.0, 0.0 };
 	m_opacityTF->SetNodeValue(selectedPoint, opacityVal);
 }
 
@@ -503,7 +515,7 @@ void iAChartTransferFunction::setPointX(int selectedPoint, int x)
 {
 	double opacityTFValues[4];
 	m_opacityTF->GetNodeValue(selectedPoint, opacityTFValues);
-	opacityTFValues[0] = v2dX(x);
+	opacityTFValues[0] = m_chart->xMapper().dstToSrc(x-m_chart->xShift());
 	m_opacityTF->SetNodeValue(selectedPoint, opacityTFValues);
 }
 
@@ -512,46 +524,18 @@ void iAChartTransferFunction::setPointY(int selectedPoint, int y)
 	double opacityTFValues[4];
 	m_opacityTF->GetNodeValue(selectedPoint, opacityTFValues);
 
-	opacityTFValues[1] = v2dY(y);
+	opacityTFValues[1] = pixelY2Opacity(y);
 	m_opacityTF->SetNodeValue(selectedPoint, opacityTFValues);
 }
 
-// TODO: unify somewhere!
-double iAChartTransferFunction::v2dX(int x)
+double iAChartTransferFunction::pixelY2Opacity(int y)
 {
-	double dX = ((double)(x-chart->xShift()) / (double)chart->activeWidth() * chart->xRange()) /chart->xZoom() + chart->xBounds()[0];
-	return clamp(chart->xBounds()[0], chart->xBounds()[1], dX);
+	return mapToNorm(0, m_chart->chartHeight(), y);
 }
 
-// convert from [0..maxDiagPixelHeight] to [0..1]
-double iAChartTransferFunction::v2dY(int y)
+int iAChartTransferFunction::opacity2PixelY(double opacity)
 {
-	return mapToNorm(0, chart->chartHeight(), y);
-}
-
-int iAChartTransferFunction::d2vX(double x, double oldDataRange0, double oldDataRange1)
-{
-	if (oldDataRange0 == -1 && oldDataRange1 == -1)
-		return (int)((x - chart->xBounds()[0]) * (double)chart->activeWidth() / chart->xRange()*chart->xZoom()) +chart->xShift();
-	else
-		return (int)((x -oldDataRange0) * (double)chart->activeWidth() / (oldDataRange1 - oldDataRange0)*chart->xZoom()) +chart->xShift();
-
-}
-
-// convert from [0..1] to [0..maxDiagPixelHeight]
-int iAChartTransferFunction::d2vY(double y)
-{
-	return mapNormTo(0, std::max(0, chart->chartHeight()), y);
-}
-
-int iAChartTransferFunction::d2iX(double x)
-{
-	return d2vX(x) -chart->xShift();
-}
-
-int iAChartTransferFunction::d2iY(double y)
-{
-	return d2vY(y);
+	return mapNormTo(0, std::max(0, m_chart->chartHeight()), opacity);
 }
 
 void iAChartTransferFunction::triggerOnChange()

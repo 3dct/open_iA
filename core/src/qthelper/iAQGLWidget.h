@@ -36,7 +36,9 @@ typedef QSurfaceFormat iAQGLFormat;
 #else
 
 #define WIN32_LEAN_AND_MEAN		// apparently QGLWidget might include windows.h...
+#define VC_EXTRALEAN
 #define NOMINMAX
+
 #include <QGLWidget>
 
 typedef QGLWidget iAQGLWidget;

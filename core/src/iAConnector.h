@@ -34,7 +34,7 @@
 class open_iA_Core_API iAConnector
 {
 public:
-	// Type definitions
+	// Type definitions - unify with iAITKIO definitions, and with defines.h DIM!
 	typedef itk::ImageBase< 3 >					ImageBaseType;
 	typedef ImageBaseType::Pointer				ImagePointer;
 	typedef itk::ImageIOBase::IOComponentType	ITKScalarPixelType;

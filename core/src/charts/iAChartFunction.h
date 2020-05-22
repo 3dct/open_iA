@@ -38,31 +38,36 @@ public:
 	static const int TRANSFER = 0;
 	static const int GAUSSIAN = 1;
 	static const int BEZIER   = 2;
+	
+	static const int LineWidthUnselected = 1;
+	static const int LineWidthSelected   = 2;
 
-	iAChartFunction(iAChartWithFunctionsWidget* chart) : chart(chart) { }
+	iAChartFunction(iAChartWithFunctionsWidget* chart) : m_chart(chart) { }
 
-	virtual int getType() = 0;
+	virtual int getType() const = 0;
 
 	virtual void draw(QPainter &painter) = 0;
 	virtual void draw(QPainter &painter, QColor color, int lineWidth) = 0;
 	virtual void drawOnTop(QPainter &painter) = 0;
 
 	virtual int selectPoint(QMouseEvent *event, int *x = nullptr) = 0;
-	virtual int getSelectedPoint() = 0;
+	virtual int getSelectedPoint() const = 0;
 	virtual int addPoint(int x, int y) = 0;
 	virtual void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) = 0;
 	virtual void removePoint(int index) = 0;
 	virtual void moveSelectedPoint(int x, int y) = 0;
 	virtual void changeColor(QMouseEvent *event) = 0;
 
-	virtual bool isColored() = 0;
-	virtual bool isEndPoint(int index) = 0;
-	virtual bool isDeletable(int index) = 0;
+	virtual bool isColored() const = 0;
+	virtual bool isEndPoint(int index) const = 0;
+	virtual bool isDeletable(int index) const = 0;
 	virtual size_t numPoints() const = 0;
 
 	virtual void reset() = 0;
 	virtual void mouseReleaseEvent(QMouseEvent *) {}
 	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *) {}
 
-	iAChartWithFunctionsWidget *chart;
+	virtual QString name() const = 0;
+
+	iAChartWithFunctionsWidget* m_chart;
 };

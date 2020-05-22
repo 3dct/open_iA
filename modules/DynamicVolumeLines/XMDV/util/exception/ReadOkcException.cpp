@@ -10,7 +10,8 @@
 ReadOkcException::ReadOkcException() throw() {
 }
 
-ReadOkcException::ReadOkcException(string strError)  throw() : exception(){
+ReadOkcException::ReadOkcException(std::string strError)  throw() : std::exception()
+{
     m_strError = strError;
 }
 

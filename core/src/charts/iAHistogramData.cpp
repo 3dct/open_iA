@@ -106,9 +106,11 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 		? Discrete
 		: Continuous;
 	if (info)
+	{
 		*info = iAImageInfo(accumulate->GetVoxelCount(),
 			*accumulate->GetMin(), *accumulate->GetMax(),
 			*accumulate->GetMean(), *accumulate->GetStandardDeviation());
+	}
 
 	return result;
 }
@@ -135,15 +137,23 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(const std::vector<DataTy
 	{
 		minValue = std::numeric_limits<DataType>::max();
 		for (DataType d : histData)
+		{
 			if (d < minValue)
+			{
 				minValue = d;
+			}
+		}
 	}
 	if (std::isinf(maxValue))
 	{
 		maxValue = std::numeric_limits<DataType>::lowest();
 		for (DataType d : histData)
+		{
 			if (d > maxValue)
+			{
 				maxValue = d;
+			}
+		}
 	}
 	result->m_xBounds[0] = minValue;
 	result->m_xBounds[1] = maxValue;
@@ -173,11 +183,17 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(const std::vector<DataTy
 void iAHistogramData::setMaxFreq()
 {
 	if (!m_rawData)
+	{
 		return;
+	}
 	m_yBounds[1] = 1;
-	for (size_t i = 0; i < numBin(); i++ )
+	for (size_t i = 0; i < numBin(); i++)
+	{
 		if (m_rawData[i] > m_yBounds[1])
+		{
 			m_yBounds[1] = m_rawData[i];
+		}
+	}
 }
 
 size_t iAHistogramData::numBin() const

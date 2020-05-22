@@ -25,12 +25,14 @@
 #include "iAChartFunctionGaussian.h"
 #include "iAChartFunctionTransfer.h"
 #include "iAConsole.h"
-#include "iAPlotData.h"
+#include "iAMapper.h"
 #include "iAMathUtility.h"
+#include "iAPlotData.h"
 #include "iAXmlSettings.h"
 #include "mdichild.h"
 
 #include <vtkColorTransferFunction.h>
+#include <vtkMath.h>
 #include <vtkPiecewiseFunction.h>
 
 #include <QFileDialog>
@@ -103,7 +105,7 @@ void iAChartWithFunctionsWidget::drawFunctions(QPainter &painter)
 
 		if (counter == m_selectedFunction)
 		{
-			func->draw(painter, QColor(255,128,0,255), 2);
+			func->draw(painter, QColor(255,128,0,255), iAChartFunction::LineWidthSelected);
 		}
 		else
 		{
@@ -146,7 +148,7 @@ void iAChartWithFunctionsWidget::mousePressEvent(QMouseEvent *event)
 				m_translationStartX = m_translationX;
 				changeMode(MOVE_VIEW_MODE, event);
 			}
-			else if (!isContextMenuVisible())
+			else
 			{
 				changeMode(MOVE_POINT_MODE, event);
 			}
@@ -193,7 +195,6 @@ void iAChartWithFunctionsWidget::mouseReleaseEvent(QMouseEvent *event)
 		emit updateViews();
 	}
 	m_mode = NO_MODE;
-	m_contextMenuVisible = false;
 	func->mouseReleaseEvent(event);
 }
 
@@ -260,6 +261,10 @@ void iAChartWithFunctionsWidget::keyPressEvent(QKeyEvent *event)
 
 		update();
 	}
+	else if (event->key() == Qt::Key_Delete)
+	{
+		deletePoint();
+	}
 }
 
 void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
@@ -305,6 +310,19 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 		if (m_selectedFunction != 0)
 		{
 			contextMenu->addAction(QIcon(":/images/removeFkt.png"), tr("Remove selected function"), this, &iAChartWithFunctionsWidget::removeFunction);
+		}
+		if (m_functions.size() > 1)
+		{
+			auto selectionMenu = contextMenu->addMenu("Select function");
+			for (size_t f = 0; f < m_functions.size(); ++f)
+			{
+				auto action = selectionMenu->addAction(QString("%1: %2").arg(f)
+					.arg(m_functions[f]->name()),
+					[this, f]() { selectFunction(f); }
+				);
+				action->setCheckable(true);
+				action->setChecked(m_selectedFunction == f);
+			}
 		}
 	}
 }
@@ -381,7 +399,10 @@ int iAChartWithFunctionsWidget::deletePoint()
 {
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	iAChartFunction *func = *(it + m_selectedFunction);
-
+	if (!func->isDeletable(func->getSelectedPoint()))
+	{
+		return -1;
+	}
 	int selectedPoint = func->getSelectedPoint();
 	func->removePoint(selectedPoint);
 	update();
@@ -478,7 +499,7 @@ void iAChartWithFunctionsWidget::applyTransferFunctionForAll()
 void iAChartWithFunctionsWidget::addBezierFunction()
 {
 	iAChartFunctionBezier *bezier = new iAChartFunctionBezier(this, PredefinedColors()[m_functions.size() % 7]);
-	bezier->addPoint(contextMenuPos().x(), activeHeight()- contextMenuPos().y());
+	bezier->addPoint(contextMenuPos().x(), chartHeight()- contextMenuPos().y());
 	m_selectedFunction = m_functions.size();
 	m_functions.push_back(bezier);
 
@@ -489,7 +510,11 @@ void iAChartWithFunctionsWidget::addBezierFunction()
 
 void iAChartWithFunctionsWidget::addGaussianFunction()
 {
-	addGaussianFunction(contextMenuPos().x(), geometry().width() / 6, (int)((activeHeight() - contextMenuPos().y())*yZoom()));
+	double mean = m_xMapper->dstToSrc(contextMenuPos().x() - leftMargin() - xShift());
+	double sigma = m_xMapper->dstToSrc(geometry().width() / 20) - xBounds()[0];
+	int contextYHeight = chartHeight() - contextMenuPos().y();
+	double multiplier = yMapper().dstToSrc(contextYHeight) * (sigma * sqrt(2 * vtkMath::Pi()));
+	addGaussianFunction(mean, sigma, multiplier);
 }
 
 void iAChartWithFunctionsWidget::addGaussianFunction(double mean, double sigma, double multiplier)
@@ -687,11 +712,6 @@ iAChartFunction *iAChartWithFunctionsWidget::selectedFunction()
 	return m_functions[m_selectedFunction];
 }
 
-int iAChartWithFunctionsWidget::chartHeight() const
-{
-	return geometry().height() - bottomMargin();
-}
-
 std::vector<iAChartFunction*> &iAChartWithFunctionsWidget::functions()
 {
 	return m_functions;
@@ -724,29 +744,13 @@ void iAChartWithFunctionsWidget::showTFTable()
 	}
 }
 
-QPoint iAChartWithFunctionsWidget::getTFTablePos() const
-{
-	return m_TFTable->pos();
-}
-
-void iAChartWithFunctionsWidget::setTFTablePos( QPoint pos )
-{
-	m_TFTable->move( pos );
-}
-
-bool iAChartWithFunctionsWidget::isTFTableCreated() const
-{
-	bool created;
-	m_TFTable ? created = true : created = false;
-	return created;
-}
-
-void iAChartWithFunctionsWidget::closeTFTable()
-{
-	m_TFTable->close();
-}
-
 void iAChartWithFunctionsWidget::tfTableIsFinished()
 {
 	m_TFTable = nullptr;
+}
+
+void iAChartWithFunctionsWidget::selectFunction(size_t functionIndex)
+{
+	m_selectedFunction = functionIndex;
+	update();
 }

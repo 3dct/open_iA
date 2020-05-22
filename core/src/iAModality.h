@@ -87,13 +87,26 @@ public:
 	QString orientationString();
 	QString positionString();
 
-	int width() const;
-	int height() const;
-	int depth() const;
-	double const * spacing() const;
-	double const * origin() const;
+	int width() const;   //!< The width (in number of voxels) of the dataset.
+	int height() const;  //!< The height (in number of voxels) of the dataset.
+	int depth() const;   //!< The depth (in number of voxels) of the dataset.
+
+	//! Get the voxel spacing of the dataset in each (x,y,z) direction.
+	//! @return array of 3 double values: spacing in x, y and z direction
+	double const* spacing() const;
+	//! Set the voxel spacing of the dataset in each (x,y,z) direction.
 	void setSpacing(double spacing[3]);
+	
+	//! Get the coordinates of the origin (x,y,z).
+	//! @return array of 3 double values: x, y and z coordinate of the dataset origin.
+	double const* origin() const;
+	//! Set the coordinates of the origin (x,y,z).
 	void setOrigin(double origin[3]);
+	
+	//! Get the (axis-aligned) bounding box of the dataset.
+	//! @return array of 6 double values: upper-left-top and lower-right-bottom coordinates (in that order)
+	double const* bounds() const;
+
 	iAImageCoordConverter const & converter() const;
 
 	bool hasRenderFlag(RenderFlag flag) const;

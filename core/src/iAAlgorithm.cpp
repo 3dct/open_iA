@@ -25,11 +25,7 @@
 #include <mdichild.h>
 #include <iAProgress.h>
 
-#include <itkTriangleCell.h>
-
-#include <vtkCellArray.h>
 #include <vtkImageData.h>
-#include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkVersion.h>
 
@@ -188,7 +184,9 @@ bool iAAlgorithm::deleteConnector(iAConnector* c)
 void iAAlgorithm::allocConnectors(int size)
 {
 	while (m_connectors.size() < size)
+	{
 		m_connectors.push_back(new iAConnector());
+	}
 }
 
 iAProgress* iAAlgorithm::ProgressObserver()
@@ -200,174 +198,14 @@ void iAAlgorithm::updateVtkImageData(int ch)
 {	// updates the vtk image data in the mdi child to be the one contained
 	// in the m_connectors[ch].
 	if (m_image == m_connectors[ch]->vtkImage().GetPointer())
+	{
 		return;
+	}
 	m_image->ReleaseData();
 	m_image->Initialize();
 	m_image->DeepCopy(m_connectors[ch]->vtkImage());
 	m_image->CopyInformationFromPipeline(m_connectors[ch]->vtkImage()->GetInformation());
 	m_image->Modified();
-}
-
-void iAAlgorithm::itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* polyData )
-{
-	int numPoints =  mesh->GetNumberOfPoints();
-
-	typedef MeshType::CellsContainerPointer	CellsContainerPointer;
-	typedef MeshType::CellsContainerIterator CellsContainerIterator;
-	typedef MeshType::CellType CellType;
-	typedef MeshType::PointsContainer MeshPointsContainer;
-	typedef MeshType::PointType MeshPointType;
-	typedef MeshPointsContainer::Pointer InputPointsContainerPointer;
-	typedef MeshPointsContainer::Iterator InputPointsContainerIterator;
-	InputPointsContainerPointer myPoints = mesh->GetPoints();
-	InputPointsContainerIterator points = myPoints->Begin();
-	MeshPointType point;
-
-	vtkPoints  * pvtkPoints = vtkPoints::New();
-	vtkCellArray * pvtkPolys = vtkCellArray::New();
-
-	if (numPoints == 0)
-		return;
-
-	pvtkPoints->SetNumberOfPoints(numPoints);
-
-	int idx=0;
-	double vpoint[3];
-	while( points != myPoints->End() )
-	{
-		point = points.Value();
-		vpoint[0]= point[0];
-		vpoint[1]= point[1];
-		vpoint[2]= point[2];
-		pvtkPoints->SetPoint(idx++,vpoint);
-		points++;
-	}
-
-	polyData->SetPoints(pvtkPoints);
-	pvtkPoints->Delete();
-
-	CellsContainerPointer cells = mesh->GetCells();
-	CellsContainerIterator cellIt = cells->Begin();
-	vtkIdType pts[3];
-
-	while ( cellIt != cells->End() )
-	{
-		CellType *nextCell = cellIt->Value();
-		CellType::PointIdIterator pointIt = nextCell->PointIdsBegin();
-		int i;
-
-		switch (nextCell->GetType())
-		{
-		case CellType::VERTEX_CELL:
-		case CellType::LINE_CELL:
-		case CellType::POLYGON_CELL:
-			break;
-		case CellType::TRIANGLE_CELL:
-			i=0;
-			while (pointIt != nextCell->PointIdsEnd() ) {
-				pts[i++] = *pointIt++;
-			}
-			pvtkPolys->InsertNextCell(3,pts);
-			break;
-		default:
-			printf("something \n");
-		}
-		cellIt++;
-	}
-	polyData->SetPolys(pvtkPolys);
-	pvtkPolys->Delete();
-}
-
-void iAAlgorithm::vtkPolydata_itkMesh(vtkPolyData* polyData, MeshType::Pointer mesh)
-{
-	// Transfer the points from the vtkPolyData into the itk::Mesh
-	const unsigned long numberOfPoints = polyData->GetNumberOfPoints();
-	vtkPoints * vtkpoints = polyData->GetPoints();
-
-	mesh->GetPoints()->Reserve( numberOfPoints );
-
-	for( unsigned long p = 0; p < numberOfPoints; p++ )
-	{
-		double * apoint = vtkpoints->GetPoint( p );
-		MeshType::PointType point = MeshType::PointType( apoint );
-		mesh->SetPoint( p, point);
-		mesh->SetPointData( p, 1);
-	}
-
-	// Transfer the cells from the vtkPolyData into the itk::Mesh
-	vtkCellArray * triangleStrips = polyData->GetStrips();
-#if VTK_MAJOR_VERSION < 9
-	vtkIdType * cellPoints;
-#else
-	vtkIdType const  * cellPoints;
-#endif
-	vtkIdType    numberOfCellPoints;
-
-	// First count the total number of triangles from all the triangle strips.
-	unsigned long numberOfTriangles = 0;
-	triangleStrips->InitTraversal();
-	while( triangleStrips->GetNextCell( numberOfCellPoints, cellPoints ) )
-		numberOfTriangles += numberOfCellPoints-2;
-
-	vtkCellArray * polygons = polyData->GetPolys();
-	polygons->InitTraversal();
-	while( polygons->GetNextCell( numberOfCellPoints, cellPoints ) )
-		if( numberOfCellPoints == 3 )
-			numberOfTriangles ++;
-
-	// Reserve memory in the itk::Mesh for all those triangles
-	mesh->GetCells()->Reserve( numberOfTriangles );
-
-	// Copy the triangles from vtkPolyData into the itk::Mesh
-	typedef MeshType::CellType   CellType;
-	typedef itk::TriangleCell< CellType > TriangleCellType;
-
-	int cellId = 0;
-
-	// first copy the triangle strips
-	triangleStrips->InitTraversal();
-	while( triangleStrips->GetNextCell( numberOfCellPoints, cellPoints ) )
-	{
-		unsigned long numberOfTrianglesInStrip = numberOfCellPoints - 2;
-		unsigned long pointIds[3];
-
-		pointIds[0] = cellPoints[0];
-		pointIds[1] = cellPoints[1];
-		pointIds[2] = cellPoints[2];
-
-		for( unsigned long t=0; t < numberOfTrianglesInStrip; t++ )
-		{
-			MeshType::CellAutoPointer c;
-			TriangleCellType * tcell = new TriangleCellType;
-			tcell->SetPointIds( (TriangleCellType::PointIdConstIterator)pointIds );
-			c.TakeOwnership( tcell );
-			mesh->SetCell( cellId, c );
-			cellId++;
-			pointIds[0] = pointIds[1];
-			pointIds[1] = pointIds[2];
-			pointIds[2] = cellPoints[t+3];
-		}
-	}
-
-	// then copy the normal triangles
-	polygons->InitTraversal();
-	while( polygons->GetNextCell( numberOfCellPoints, cellPoints ) )
-	{
-		if( numberOfCellPoints !=3 ) // skip any non-triangle.
-		{
-			continue;
-		}
-		MeshType::CellAutoPointer c;
-		TriangleCellType * t = new TriangleCellType;
-		t->SetPointIds( (TriangleCellType::PointIdConstIterator)cellPoints );
-		c.TakeOwnership( t );
-		mesh->SetCell( cellId, c );
-		cellId++;
-	}
-
-	std::cout << "Mesh  " << std::endl;
-	std::cout << "Number of Points =   " << mesh->GetNumberOfPoints() << std::endl;
-	std::cout << "Number of Cells  =   " << mesh->GetNumberOfCells()  << std::endl;
 }
 
 

@@ -232,7 +232,10 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	{
 		for (size_t p = 0; p < numberOfPeaks; ++p)
 		{
-			filter->m_mdiChild->histogram()->addGaussianFunction(mean[p], std::sqrt(variance[p]), 15);
+			double sigma = std::sqrt(variance[p]);
+			double binDifferenceFactor = static_cast<double>(binCount) / filter->m_mdiChild->preferences().HistogramBins;
+			double multiplier = binDifferenceFactor * vecHist[peaks[p].first] * sigma * sqrt(2 * vtkMath::Pi());
+			filter->m_mdiChild->histogram()->addGaussianFunction(mean[p], sigma, multiplier);
 		}
 	}
 
@@ -314,7 +317,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 
 #include "ImageHistogram.h"
 
-void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QString, QVariant> const & params)
+void computeOrigQ(iAFilter* filter, iAConnector & con, QMap<QString, QVariant> const & params)
 {
 	// some "magic numbers"
 	unsigned int dgauss_size_BINscale = 24;
@@ -322,32 +325,33 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 	double threshold_x = -0.1;
 	double threshold_y = 2;						// one single voxel is no valid class
 
-	vtkSmartPointer<vtkImageData> floatImage;
+	iAConnector floatImage;
 	if (filter->inputPixelType() == itk::ImageIOBase::FLOAT)
 	{
-		floatImage = img;
+		floatImage = con;
 	}
 	else
 	{
-		floatImage = castVTKImage(img, VTK_FLOAT);
+		floatImage.setImage(castImageTo<float>(con.itkImage()));
 	}
 
-	int const * dim = floatImage->GetDimensions();
-	double const * range = floatImage->GetScalarRange();
+	vtkSmartPointer<vtkImageData> img = floatImage.vtkImage();
+	int const * dim = img->GetDimensions();
+	double const * range = img->GetScalarRange();
 	if (range[0] == range[1])
 	{
 		filter->addOutputValue("Q (orig, equ 0)", 0);
 		filter->addOutputValue("Q (orig, equ 1)", 0);
 		return;
 	}
-	float* fImage = static_cast<float*>(floatImage->GetScalarPointer());
+	float* fImage = static_cast<float*>(img->GetScalarPointer());
 	cImageHistogram curHist;
 	curHist.CreateHist(fImage, dim[0], dim[1], dim[2],
 		params["OrigQ Histogram bins"].toInt(), range[0], range[1], false, 0, 0);
 	/*unsigned int Peaks_fnd = */ curHist.DetectPeaksValleys(params["Number of peaks"].toInt(),
 		dgauss_size_BINscale, gauss_size_P2Pscale, threshold_x, threshold_y, false);
 
-	// Calculate histogram quality measures Q using the valley thresholds to seperate classes
+	// Calculate histogram quality measures Q using the valley thresholds to separate classes
 	std::vector<int> thresholds_IDX = curHist.GetValleyThreshold_IDX();
 	std::vector<float> thresholds = curHist.GetValleyThreshold();
 	std::vector<ClassMeasure> classMeasures;
@@ -356,22 +360,20 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 	filter->addOutputValue("Q (orig, equ 0)", Q0);
 	filter->addOutputValue("Q (orig, equ 1)", Q1);
 
-	/*
-	int classNr = 0;
-	for (auto c: classMeasures)
+	if (params["Analyze Peaks"].toBool())
 	{
-		QString peakName(c.UsedForQ == 1 ? "air" : "highest non-air");
-		if (c.UsedForQ == 1 || c.UsedForQ == 2)
+		int classNr = 0;
+		for (auto c : classMeasures)
 		{
-			filter->addOutputValue(QString("Qorig Mean (%1)").arg(peakName), c.mean);
-			filter->addOutputValue(QString("Qorig Sigma (%1)").arg(peakName), c.sigma);
-			filter->addOutputValue(QString("Probability (%1)").arg(peakName), c.probability);
-			filter->addOutputValue(QString("Min (%1)").arg(peakName), c.LowerThreshold);
-			filter->addOutputValue(QString("Max (%1)").arg(peakName), c.UpperThreshold);
+			filter->addOutputValue(QString("Peak %1 Mean").arg(classNr), c.mean);
+			filter->addOutputValue(QString("Peak %1 Sigma").arg(classNr), c.sigma);
+			filter->addOutputValue(QString("Peak %1 Probability").arg(classNr), c.probability);
+			filter->addOutputValue(QString("Peak %1 Min").arg(classNr), c.LowerThreshold);
+			filter->addOutputValue(QString("Peak %1 Max").arg(classNr), c.UpperThreshold);
+			filter->addOutputValue(QString("Peak %1 Usage").arg(classNr), c.UsedForQ);
+			++classNr;
 		}
-		++classNr;
 	}
-	*/
 }
 
 
@@ -384,7 +386,7 @@ void iAQMeasure::performWork(QMap<QString, QVariant> const & parameters)
 	iAConnector extractCon;
 	extractCon.setImage(extractImg);
 	computeQ(this, extractCon.vtkImage(), parameters);
-	computeOrigQ(this, extractCon.vtkImage(), parameters);
+	computeOrigQ(this, extractCon, parameters);
 }
 
 IAFILTER_CREATE(iAQMeasure)
@@ -392,6 +394,9 @@ IAFILTER_CREATE(iAQMeasure)
 iAQMeasure::iAQMeasure() :
 	iAFilter("Image Quality", "Metrics",
 		"Computes the Q metric, as well as optionally a histogram-based Signal-to-noise ratio.<br/>"
+		"If <em>Analyze Peaks</em> is enabled, a new chart will be shown with the computed smoothed histograms and their derivatives, "
+		"and the output will contain information on the determined peaks."
+		"The 'Usage' will show whether a peak was used as air peak (=1), as highest non-air peak (=2) or not at all (other value)."
 		"For more information on the Q metric, see "
 		"<a href=\"http://www.ndt.net/article/ctc2014/papers/273.pdf\">M. Reiter, D. Weiss, C. Gusenbauer, "
 		"J. Kastner, M. Erler, S. Kasperl: Evaluation of a histogram based image quality measure for X-ray "
@@ -412,8 +417,8 @@ iAQMeasure::iAQMeasure() :
 	addParameter("Histogram bin factor"       , Continuous, 0.125, 0.0000001);
 	addParameter("Derivative smoothing factor", Continuous,    64, 0.0000001);
 	addParameter("Minima finding smoothing factor", Continuous, 8, 0.0000001);
-
 	addParameter("OrigQ Histogram bins", Discrete, 512, 2);
+	addParameter("Analyze Peaks", Boolean, false);
 
 	addOutputValue("Histogram-based SNR (highest non-air-peak)");
 	addOutputValue("Q");
@@ -430,13 +435,17 @@ void iAQMeasure::setupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
 
 IAFILTER_RUNNER_CREATE(iAQMeasureRunner);
 
-void iAQMeasureRunner::filterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* /*mainWnd*/)
+void iAQMeasureRunner::filterGUIPreparations(QSharedPointer<iAFilter> filter,
+	MdiChild* mdiChild, MainWindow* /*mainWnd*/, QMap<QString, QVariant> const& params)
 {
-	iAChartWidget * chart = new iAChartWidget(mdiChild, "Intensity", "Frequency");
-	iADockWidgetWrapper* wrapper = new iADockWidgetWrapper(chart, "TestHistogram", "TestHistogram");
-	mdiChild->splitDockWidget(mdiChild->logDockWidget(), wrapper, Qt::Horizontal);
-	iAQMeasure* qfilter = dynamic_cast<iAQMeasure*>(filter.data());
-	qfilter->setupDebugGUI(chart, mdiChild);
+	if (params["Analyze Peaks"].toBool())
+	{
+		iAChartWidget* chart = new iAChartWidget(mdiChild, "Intensity", "Frequency");
+		iADockWidgetWrapper* wrapper = new iADockWidgetWrapper(chart, "TestHistogram", "TestHistogram");
+		mdiChild->splitDockWidget(mdiChild->logDockWidget(), wrapper, Qt::Horizontal);
+		iAQMeasure* qfilter = dynamic_cast<iAQMeasure*>(filter.data());
+		qfilter->setupDebugGUI(chart, mdiChild);
+	}
 }
 
 IAFILTER_CREATE(iASNR)
