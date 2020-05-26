@@ -100,12 +100,16 @@ bool checkOpenGLVersion(QString & msg)
 				"If you are using Remote Desktop, you might be able to get better OpenGL support when using other remote access software "
 				"such as VNC, TeamViewer, NoMachine or similar. "
 #if (defined(VTK_OPENGL2_BACKEND))
-				"You can also use the compatibility version with 'c' suffix, or if you have built yourself, "
-				"compile VTK with 'OpenGL' VTK_RENDERING_BACKEND instead of 'OpenGL2' "
-				"(note that the 'OpenGL' option is only available up until VTK version 8.1.2, it is not available in newer versions). "
+				"You can also compile VTK with 'OpenGL' VTK_RENDERING_BACKEND instead of 'OpenGL2' "
+				"(note that the 'OpenGL' option is only available up until VTK version 8.1.2, it is not available in newer versions).\n\n"
 #endif
 				"It might also help to update the display drivers; "
-				"or if you have the chance, use the program on newer hardware.")
+				"or if you have the chance, use the program on newer hardware."
+#ifndef _WIN32
+				"\n\nIf you are running with MESA OpenGL, you can bypass this warning by setting MESA_GL_VERSION_OVERRIDE to at least %3.%4."
+				" Be warned that this might result in unexpected glitches."
+#endif
+				)
 				.arg(major).arg(minor).arg(minMajor).arg(minMinor);
 			delete context;
 			return false;
