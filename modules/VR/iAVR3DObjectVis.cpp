@@ -33,6 +33,8 @@
 #include "vtkLookupTable.h"
 #include "vtkColorTransferFunction.h"
 #include "vtkNamedColors.h"
+#include "vtkCellPicker.h"
+#include "vtkProp3DCollection.h"
 
 #include <iAConsole.h>
 #include <math.h>
@@ -40,6 +42,7 @@
 iAVR3DObjectVis::iAVR3DObjectVis(vtkRenderer* ren):m_renderer(ren),m_actor(vtkSmartPointer<vtkActor>::New())
 {
 	m_visible = false;
+	defaultColor = QColor(0, 0, 200, 200); // Not fully opaque
 }
 
 void iAVR3DObjectVis::show()
@@ -62,7 +65,7 @@ void iAVR3DObjectVis::hide()
 	m_visible = false;
 }
 
-//! Creates for every region of the octree a cube glyph
+//! Creates for every region of the octree a cube glyph. The cubes are stored in one actor with the set default color.
 void iAVR3DObjectVis::createModelInMiniature()
 {
 	int leafNodes = m_octree->getOctree()->GetNumberOfLeafNodes();
@@ -83,28 +86,29 @@ void iAVR3DObjectVis::createModelInMiniature()
 	cubeSource->SetZLength(regionSize[2]);
 	cubeSource->Update();
 
-	glyph3Dmapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
+	//glyph3Dmapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
 	//glyph3Dmapper->GeneratePointIdsOn(); Not supported as vtkGlyph3DMapper only as vtkGlyph3D
-	glyph3Dmapper->SetSourceConnection(cubeSource->GetOutputPort());
-	glyph3Dmapper->SetInputData(m_cubePolyData);
-	glyph3Dmapper->SetScalarModeToUseCellData();
-	glyph3Dmapper->Update();
+	//glyph3Dmapper->SetSourceConnection(cubeSource->GetOutputPort());
+	//glyph3Dmapper->SetInputData(m_cubePolyData);
+	//glyph3Dmapper->SetScalarModeToUseCellData();
+	//glyph3Dmapper->UseSelectionIdsOn();
+	//glyph3Dmapper->SetSelectionIdArray("OctreeRegionID");
+	//glyph3Dmapper->Update();
 
-	//Append Point/Cell IDs
-	//vtkSmartPointer<vtkIdFilter> iDFilter =	vtkSmartPointer<vtkIdFilter>::New();
-	//iDFilter->SetInputConnection(glyph3Dmapper->GetOutputPort());
-	//iDFilter->SetIdsArrayName("IDs");
-	//iDFilter->PointIdsOn();
-	//iDFilter->CellIdsOn();
-	//iDFilter->FieldDataOn();
-	//iDFilter->Update();
+	glyph3D = vtkSmartPointer<vtkGlyph3D>::New();
+	glyph3D->GeneratePointIdsOn();
+	glyph3D->SetSourceConnection(cubeSource->GetOutputPort());
+	glyph3D->SetInputData(m_cubePolyData);
+	glyph3D->SetColorModeToColorByScalar();
+	glyph3D->SetScaleModeToDataScalingOff();
+	glyph3D->Update();
 
-	m_actor->SetMapper(glyph3Dmapper);
-	//m_actor->SetOrigin(m_actor->GetCenter());
+	// Create a mapper and actor
+	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	glyphMapper->SetInputConnection(glyph3D->GetOutputPort());
 
-	setCubeColor(QColor(20, 20, 200, 255), 0);
-
-	//m_actor->GetProperty()->SetColor(0.0, 1.0, 0.0);
+	m_actor->SetMapper(glyphMapper);
+	m_actor->GetProperty()->SetColor(defaultColor.redF(), defaultColor.greenF(), defaultColor.blueF());
 }
 
 void iAVR3DObjectVis::createCube(QColor col, double size[3], double center[3])
@@ -161,28 +165,79 @@ void iAVR3DObjectVis::setPos(double x, double y, double z)
 	m_actor->SetPosition(x, y, z);
 }
 
+void iAVR3DObjectVis::setOrientation(double x, double y, double z)
+{
+	m_actor->SetOrientation(x, y, z);
+}
+
 //! Sets the color (rgba) of a cube in the Miniature Model
 //! The region ID of the octree is used
 void iAVR3DObjectVis::setCubeColor(QColor col, int regionID)
 {
+	unsigned char default_rgb[4] = { 0, 0, 250, 255 };
 	unsigned char rgb[4] = {col.red(), col.green(), col.blue(), col.alpha()};
 
 	vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	colors->SetName("colors");
 	colors->SetNumberOfComponents(4);
 
-	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], 0);
-	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], rgb[3]);
-	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], rgb[3]);
-	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], rgb[3]);
-	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], rgb[3]);
-	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], rgb[3]);
-	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], rgb[3]);
-	colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], 0);
+	for(int i = 0; i< m_octree->getOctree()->GetNumberOfLeafNodes(); i++)
+	{
+		if(i == regionID)
+		{
+			colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], rgb[3]);
+		}
+		else
+		{
+			colors->InsertNextTuple4(default_rgb[0], default_rgb[1], default_rgb[2], default_rgb[3]);
+		}
+	}
 
-	m_cubePolyData->GetCellData()->SetScalars(colors); //Cell Data is needed!
+	m_cubePolyData->GetPointData()->SetScalars(colors); //If Mapper Cell Data is needed!
 	m_cubePolyData->Modified();
-	glyph3Dmapper->Update();
+	glyph3D->Update();
+}
+
+void iAVR3DObjectVis::setLinearCubeOffset(double offset)
+{
+	if(m_cubePolyData == nullptr)
+	{
+		DEBUG_LOG(QString("No Points to apply offset"));
+		return;
+	}
+
+	double* pos = m_actor->GetCenter();
+	/*
+	for (int i = 0; i < m_cubePolyData->GetNumberOfPoints(); i++)
+	{
+		double* currentPoint = m_cubePolyData->GetPoints()->GetPoint(i);
+		double direction[3];
+		direction[0] = currentPoint[0] - pos[0];
+		direction[1] = currentPoint[1] - pos[1];
+		direction[2] = currentPoint[2] - pos[2];
+		double length = sqrt(pow(direction[0], 2) + pow(direction[1], 2) + pow(direction[2], 2));
+		double normalized[3] = { (direction[0] / length), (direction[1] / length) , (direction[2] / length)};
+		double move[3] = { currentPoint[0] * (normalized[0] * offset), currentPoint[0] * (normalized[1] * offset) , currentPoint[0] * (normalized[2] * offset)};
+
+		m_cubePolyData->GetPoints()->SetPoint(i, move);
+		m_cubePolyData->Modified();
+	}
+	*/
+	DEBUG_LOG(QString("Linear Offset Set"));
+}
+
+vtkIdType iAVR3DObjectVis::getClosestCellID(double pos[3], double eventOrientation[3], vtkPropPicker* interactionPicker)
+{
+	vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
+
+	if(cellPicker->Pick3DRay(pos, eventOrientation, m_renderer) >= 0)
+	{
+		vtkIdType regionId = dynamic_cast<vtkIdTypeArray*>(glyph3D->GetOutput()->GetPointData()->GetArray("InputPointIds"))
+			->GetValue(cellPicker->GetPointId());
+
+		return regionId;
+	}
+	return -1;
 }
 
 void iAVR3DObjectVis::setOctree(iAVROctree* octree)
@@ -200,7 +255,7 @@ vtkActor * iAVR3DObjectVis::getActor()
 	return m_actor;
 }
 
-//! This Method iterates through all leaf regions of the octree and stores its center point in an vtkPolyData
+//! This Method iterates through all leaf regions of the octree and stores its center point and it region iD (field data) in an vtkPolyData
 void iAVR3DObjectVis::calculateStartPoints()
 {
 	vtkSmartPointer<vtkPoints> cubeStartPoints = vtkSmartPointer<vtkPoints>::New();
@@ -214,7 +269,6 @@ void iAVR3DObjectVis::calculateStartPoints()
 		m_octree->calculateOctreeRegionCenterPos(i, centerPoint);
 
 		cubeStartPoints->InsertNextPoint(centerPoint[0], centerPoint[1], centerPoint[2]);
-	
 	}
 
 	m_cubePolyData->SetPoints(cubeStartPoints);

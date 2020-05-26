@@ -30,6 +30,8 @@
 #include <QColor>
 
 #include "iAVROctree.h"
+#include "vtkCellLocator.h"
+#include "vtkPropPicker.h"
 
 //! Base class for VR 3D visualizations of primtive objects
 class iAVR3DObjectVis
@@ -43,16 +45,21 @@ public:
 	void createSphere(QColor col);
 	void setScale(double x, double y, double z);
 	void setPos(double x, double y, double z);
+	void setOrientation(double x, double y, double z);
 	void setCubeColor(QColor col, int regionID);
+	void setLinearCubeOffset(double offset);
+	vtkIdType getClosestCellID(double pos[3], double eventOrientation[3], vtkPropPicker* interactionPicker);
 	void setOctree(iAVROctree* octree);
 	vtkDataSet* getDataSet();
 	vtkActor* getActor();
 private:
+	QColor defaultColor;
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	vtkSmartPointer<vtkActor> m_actor;
 	vtkSmartPointer<vtkDataSet> m_dataSet;
 	vtkSmartPointer<vtkPolyData> m_cubePolyData;
-	vtkSmartPointer<vtkGlyph3DMapper> glyph3Dmapper;
+	vtkSmartPointer<vtkGlyph3D> glyph3D;
+	vtkSmartPointer<vtkCellLocator> cellLocator;
 	iAVROctree* m_octree;
 	bool m_visible;
 

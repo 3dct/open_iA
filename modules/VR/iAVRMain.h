@@ -66,9 +66,9 @@ class iAVRMain
 {
 public:
 	iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io);
-	void startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], vtkProp3D* pickedProp); //Press, Touch
-	void endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], vtkProp3D* pickedProp); //Release, Untouch
-	void onMove(vtkEventDataDevice3D* device, double movePosition[3], vtkProp3D* pickedProp); //Movement
+	void startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp); //Press, Touch
+	void endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4],vtkProp3D* pickedProp); //Release, Untouch
+	void onMove(vtkEventDataDevice3D* device, double movePosition[3], double eventOrientation[4], vtkProp3D* pickedProp); //Movement
 	int octreeLevel;
 
 private:
@@ -105,7 +105,8 @@ private:
 	void changeOctreeLevel();
 	void pickSingleFiber(double eventPosition[3]);
 	void pickFibersinRegion(double eventPosition[3]);
-	void pickMimRegion(double eventPosition[3]);
+	void pickFibersinRegion(int leafRegion);
+	void pickMimRegion(double eventPosition[3], double eventOrientation[4]);
 	void resetSelection();
 	void spawnModelInMiniature(double eventPosition[3], bool hide);
 };

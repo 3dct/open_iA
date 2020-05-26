@@ -52,6 +52,7 @@ class iAVRInteractorStyle : public vtkOpenVRInteractorStyle
    private:
 	iAVRMain* m_vrMain;
 	double m_eventPosition[3];
+	double m_eventOrientation[4];
 	double m_movePosition[3];
 	inputScheme* m_inputScheme;
 	std::vector<int>* m_activeInput;

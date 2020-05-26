@@ -71,18 +71,19 @@ void iAVRInteractorStyle::OnButton3D(vtkEventData* edata)
 	this->FindPokedRenderer(x, y);
 
 	device->GetWorldPosition(m_eventPosition);
+	device->GetWorldOrientation(m_eventOrientation);
 
 	this->FindPickedActor(m_eventPosition, nullptr);
 
 
 	if(action == vtkEventDataAction::Press || action == vtkEventDataAction::Touch)
 	{
-		m_vrMain->startInteraction(device, m_eventPosition, InteractionProp);
+		m_vrMain->startInteraction(device, m_eventPosition, m_eventOrientation, InteractionProp);
 
 	}
 	else if(action == vtkEventDataAction::Release || action == vtkEventDataAction::Untouch)
 	{
-		m_vrMain->endInteraction(device, m_eventPosition, InteractionProp);
+		m_vrMain->endInteraction(device, m_eventPosition, m_eventOrientation, InteractionProp);
 	}
 	
 }
@@ -98,9 +99,11 @@ void iAVRInteractorStyle::OnMove3D(vtkEventData * edata)
 	this->FindPokedRenderer(x, y);
 
 	device->GetWorldPosition(m_movePosition);
+	device->GetWorldOrientation(m_eventOrientation);
+
 	this->FindPickedActor(m_movePosition, nullptr);
 
-	m_vrMain->onMove(device, m_movePosition, InteractionProp);
+	m_vrMain->onMove(device, m_movePosition, m_eventOrientation, InteractionProp);
 
 }
 

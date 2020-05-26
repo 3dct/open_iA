@@ -22,21 +22,23 @@
 
 #include <iAConsole.h>
 #include "iAVRInteractor.h"
+#include "iA3DCylinderObjectVis.h"
+#include "iAVR3DObjectVis.h"
+#include "iAVROctree.h"
+#include "iAVRInteractorStyle.h"
+
 #include "vtkRenderer.h"
 #include "vtkIdList.h"
 #include "vtkProperty.h"
 #include "vtkActor.h"
 #include "vtkPropCollection.h"
 #include "vtkPolyData.h"
-#include "iA3DCylinderObjectVis.h"
-#include "iAVR3DObjectVis.h"
-#include "iAVROctree.h"
 #include "vtkPointData.h"
+#include "vtkAbstractPropPicker.h"
 #include "vtkUnsignedCharArray.h"
-#include <vtkIdTypeArray.h>
-#include <vtkVertexGlyphFilter.h>
-#include <vtkPolyDataMapper.h>
-#include "iAVRInteractorStyle.h"
+#include "vtkIdTypeArray.h"
+#include "vtkVertexGlyphFilter.h"
+#include "vtkPolyDataMapper.h"
 
 #include <QColor>
 
@@ -75,14 +77,14 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 		iAVRInteractionOptions::MiniatureModel, iAVROperations::SpawnModelInMiniature);
 	//Release, Untouch
 
-
-	//Create Cube
-	m_objectVis = new iAVR3DObjectVis(m_vrEnv->renderer());
-
 	//TEST Add octree
 	octreeLevel = 1;
 	m_octree = new iAVROctree(m_vrEnv->renderer(), m_cylinderVis->getPolyData());
 	m_octree->generateOctree(octreeLevel, QColor(126, 0, 223, 255));
+
+	//Create Cube
+	m_objectVis = new iAVR3DObjectVis(m_vrEnv->renderer());
+	m_objectVis->setOctree(m_octree);
 
 	m_cylinderVis->show();	
 	m_octree->show();
@@ -93,7 +95,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 }
 
 //! Defines the action executed for specific controller inputs
-void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], vtkProp3D* pickedProp)
+void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp)
 {
 	int deviceID = static_cast<int>(device->GetDevice()); // Device
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
@@ -124,7 +126,7 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 		this->pickFibersinRegion(eventPosition);
 		break;
 	case iAVROperations::PickMiMRegion:
-		this->pickMimRegion(eventPosition);
+		this->pickMimRegion(eventPosition, eventOrientation);
 		break;
 	case iAVROperations::ChangeOctreeLevel:
 		this->changeOctreeLevel();
@@ -139,7 +141,7 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 	m_vrEnv->update();
 }
 
-void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], vtkProp3D* pickedProp)
+void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp)
 {
 	int deviceID = static_cast<int>(device->GetDevice()); // Device
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
@@ -166,7 +168,7 @@ void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition
 	m_vrEnv->update();
 }
 
-void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], vtkProp3D * pickedProp)
+void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], double eventOrientation[4], vtkProp3D * pickedProp)
 {
 	int deviceID = static_cast<int>(device->GetDevice());
 	cPos[deviceID][0] = movePosition[0];
@@ -178,7 +180,9 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], vtk
 	{
 		double sideDistance = *(m_objectVis->getActor()->GetYRange());
 		double hoveringOffset[3] = { sideDistance *xOffset, sideDistance * yOffset, sideDistance * zOffset };
+
 		m_objectVis->setPos(cPos[deviceID][0] + hoveringOffset[0], cPos[deviceID][1] + hoveringOffset[1], cPos[deviceID][2] + hoveringOffset[2]);
+		
 	}
 }
 
@@ -186,9 +190,6 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], vtk
 //! Gets only called internally from thread to store the mapping
 void iAVRMain::mapAllPointiDs()
 {
-	//m_cylinderVis->getPolyData()->GetPoints()->GetPoint(5904); // TEST TEST
-	//DEBUG_LOG(QString("Size of Array #: %1 ").arg(polyPoints->GetData()->GetSize())); //ToDo Why is the Array bigger then GetNumberOfPoints
-
 	vtkPoints* polyPoints = m_cylinderVis->getPolyData()->GetPoints();
 
 	//For all points in vtkPolyData store their pos
@@ -406,6 +407,7 @@ void iAVRMain::pickSingleFiber(double eventPosition[3])
 	m_cylinderVis->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
 }
 
+//! Picks all fibers in the region clicked by the user.
 void iAVRMain::pickFibersinRegion(double eventPosition[3])
 {
 	std::vector<size_t> selection = std::vector<size_t>();
@@ -431,12 +433,50 @@ void iAVRMain::pickFibersinRegion(double eventPosition[3])
 	m_cylinderVis->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
 	
 }
-void iAVRMain::pickMimRegion(double eventPosition[3])
+
+//! Picks all fibers in the octree region defined by the leaf node ID.
+void iAVRMain::pickFibersinRegion(int leafRegion)
 {
+	std::vector<size_t> selection = std::vector<size_t>();
+	vtkIdTypeArray *points = m_octree->getOctree()->GetPointsInRegion(leafRegion);
+
+	//Check if points is null!!
+	if (points == nullptr) {
+		DEBUG_LOG(QString("No points in the region!"));
+		return;
+	}
+
+	for (int i = 0; i < points->GetSize(); i++)
+	{
+		vtkIdType rowiD = getObjectiD(points->GetValue(i));
+		selection.push_back(rowiD);
+	}
+
+	std::sort(selection.begin(), selection.end());
+	selection.erase(std::unique(selection.begin(), selection.end()), selection.end());
+
+	m_cylinderVis->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
+
 }
+
+void iAVRMain::pickMimRegion(double eventPosition[3], double eventOrientation[4])
+{
+	vtkIdType cellID = m_objectVis->getClosestCellID(eventPosition, eventOrientation, m_style->GetInteractionPicker());
+
+	if(cellID >=0)
+	{
+		m_objectVis->setCubeColor(QColor(255, 5, 5, 255), cellID);
+		//m_objectVis->setLinearCubeOffset(2.0);
+		pickFibersinRegion(cellID);
+	}
+	// Through the cellPicker get at eventPosition the cell of the MiM Region and look if the ID is the same as in the Octree
+	// Then color this region!
+}
+
 void iAVRMain::resetSelection()
 {
 	m_cylinderVis->renderSelection(std::vector<size_t>(), 0, QColor(140, 140, 140, 255), nullptr);
+	m_objectVis->createModelInMiniature();
 }
 
 void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
@@ -444,18 +484,16 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 	if(!hide)
 	{
 		modelInMiniatureActive = true;
-		double scale[3] = {0.1, 0.1, 0.1};
+		double scale[3] = {0.15, 0.15, 0.15};
 		int controllerID = static_cast<int>(vtkEventDataDevice::LeftController);
 
-		m_objectVis->setOctree(m_octree);
+		//m_objectVis->setOctree(m_octree);
 		m_objectVis->createModelInMiniature();
 		m_objectVis->setScale(scale[0], scale[1], scale[2]);
 
 		double sideDistance = *(m_objectVis->getActor()->GetYRange());
 		double hoveringOffset[3] = { sideDistance * xOffset, sideDistance * yOffset, sideDistance * zOffset };
 		m_objectVis->setPos(cPos[controllerID][0] + hoveringOffset[0], cPos[controllerID][1] + hoveringOffset[1], cPos[controllerID][2] + hoveringOffset[2]);
-		
-		//m_objectVis->setColorCube(QColor(20, 20, 200, 255));
 
 		m_objectVis->show();
 	}
