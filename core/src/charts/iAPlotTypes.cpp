@@ -26,6 +26,7 @@
 #include "iAPlotData.h"
 
 #include <QPainter>
+#include <QPainterPath>
 #include <QPolygon>
 
 #include <cmath>
