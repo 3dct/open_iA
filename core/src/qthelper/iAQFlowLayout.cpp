@@ -108,15 +108,17 @@ QLayoutItem *iAQFlowLayout::itemAt(int index) const
 
 QLayoutItem *iAQFlowLayout::takeAt(int index)
 {
-	if (index >= 0 && index < itemList.size())
-		return itemList.takeAt(index);
-	else
-		return 0;
+	return (index >= 0 && index < itemList.size()) ?
+		itemList.takeAt(index): nullptr;
 }
 
 Qt::Orientations iAQFlowLayout::expandingDirections() const
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	return 0;
+#else
+	return QFlags<Qt::Orientation>();
+#endif
 }
 
 bool iAQFlowLayout::hasHeightForWidth() const

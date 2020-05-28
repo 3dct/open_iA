@@ -59,7 +59,11 @@ public:
 	//! A DreamCaster consturctor.
 	//! @param parent parent widget pointer. Default is 0.
 	//! @param flags window flags
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
 	iADreamCaster(QWidget *parent = nullptr, Qt::WindowFlags flags = 0);
+#else
+	iADreamCaster(QWidget* parent = nullptr, Qt::WindowFlags flags = QFlags<Qt::WindowType>());
+#endif
 	~iADreamCaster();
 	//! Loging function. Adds string to log window.
 	//! @param text string containing logging message.
