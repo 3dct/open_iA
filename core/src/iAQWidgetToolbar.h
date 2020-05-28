@@ -32,7 +32,11 @@ class open_iA_Core_API iAQWidgetToolbar : public QWidget
 {
 	Q_OBJECT
 public:
-	explicit iAQWidgetToolbar(QWidget* parent = 0, Qt::WindowFlags f = 0) : QWidget(parent, f) {};
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
+	explicit iAQWidgetToolbar(QWidget* parent = nullptr, Qt::WindowFlags f = 0) : QWidget(parent, f) {};
+#else
+	explicit iAQWidgetToolbar(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>()) : QWidget(parent, f) {};
+#endif
 protected:
 
 	void paintEvent(QPaintEvent *)//needed so that stylesheet can be applied

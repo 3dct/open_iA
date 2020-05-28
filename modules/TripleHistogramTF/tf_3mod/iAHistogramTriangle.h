@@ -24,6 +24,7 @@
 
 #include "iABarycentricTriangle.h"
 
+#include <QPainterPath>
 #include <QPen>
 #include <QRect>
 
