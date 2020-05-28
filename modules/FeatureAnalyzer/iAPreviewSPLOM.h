@@ -29,7 +29,11 @@ class iAPreviewSPLOM : public iAQGLWidget
 	Q_OBJECT
 
 public:
-	iAPreviewSPLOM(QWidget * parent = 0, Qt::WindowFlags f = 0);
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
+	iAPreviewSPLOM(QWidget * parent = nullptr, Qt::WindowFlags f = 0);
+#else
+	iAPreviewSPLOM(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+#endif
 	~iAPreviewSPLOM();
 	void SetPixmap( QPixmap * pxmp );
 	void SetMask( const QPixmap * mask );

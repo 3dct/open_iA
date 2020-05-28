@@ -38,7 +38,11 @@ class iASimpleSlicerWidget : public QWidget
 	Q_OBJECT
 
 public:
-	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+	iASimpleSlicerWidget(QWidget* parent = nullptr, bool enableInteraction = false, Qt::WindowFlags f = 0);
+#else
+	iASimpleSlicerWidget(QWidget* parent = nullptr, bool enableInteraction = false, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+#endif
 	~iASimpleSlicerWidget();
 
 	void setSlicerMode(iASlicerMode slicerMode);

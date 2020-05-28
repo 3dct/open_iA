@@ -315,7 +315,11 @@ void iAScatterPlot::SPLOMWheelEvent( QWheelEvent * event )
 		double delta = ( numDegrees.y() + numDegrees.x() ) * d;
 		double oldScale = m_scale;
 		m_scale *= ( 1 + delta );
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 		QPointF pos = getLocalPos( event->pos() );
+#else
+		QPointF pos = getLocalPos(event->position().toPoint());
+#endif
 		QPointF oldOffset = m_offset;
 		QPointF newOffset = pos - ( pos - oldOffset ) * m_scale / oldScale;
 		QPointF deltaOffset = newOffset - m_offset;
