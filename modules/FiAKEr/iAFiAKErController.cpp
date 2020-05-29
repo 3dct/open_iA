@@ -493,11 +493,11 @@ void iAFiAKErController::setupSettingsView()
 	connect(m_settingsView->cbLinkPreviews, &QCheckBox::stateChanged, this, &iAFiAKErController::linkPreviewsToggled);
 	connect(m_settingsView->cmbboxDistributionPlotType, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, &iAFiAKErController::distributionChartTypeChanged);
-	connect(m_settingsView->cmbboxStackedBarChartColors, QOverload<QString const&>::of(&QComboBox::currentIndexChanged),
+	connect(m_settingsView->cmbboxStackedBarChartColors, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, &iAFiAKErController::stackedBarColorThemeChanged);
-	connect(m_settingsView->cmbboxDistributionColors, QOverload<QString const&>::of(&QComboBox::currentIndexChanged),
+	connect(m_settingsView->cmbboxDistributionColors, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, &iAFiAKErController::distributionColorThemeChanged);
-	connect(m_settingsView->cmbboxResultColors, QOverload<QString const&>::of(&QComboBox::currentIndexChanged),
+	connect(m_settingsView->cmbboxResultColors, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, &iAFiAKErController::resultColorThemeChanged);
 	connect(m_settingsView->pbSensitivity, &QPushButton::clicked, this, &iAFiAKErController::sensitivitySlot);
 }
@@ -972,8 +972,9 @@ void iAFiAKErController::histogramBinsChanged(int value)
 	changeDistributionSource(m_distributionChoice->currentIndex());
 }
 
-void iAFiAKErController::distributionColorThemeChanged(QString const & colorThemeName)
+void iAFiAKErController::distributionColorThemeChanged(int index)
 {
+	QString const colorThemeName = m_settingsView->cmbboxDistributionColors->itemText(index);
 	addInteraction(QString("Changed distribution color theme to '%1'.").arg(colorThemeName));
 	m_colorByThemeName = colorThemeName;
 	changeDistributionSource(m_distributionChoice->currentIndex());
@@ -986,8 +987,9 @@ bool iAFiAKErController::matchQualityVisActive() const
 	return (colorLookupParam >= m_data->spmData->numParams() - 1);
 }
 
-void iAFiAKErController::resultColorThemeChanged(QString const & colorThemeName)
+void iAFiAKErController::resultColorThemeChanged(int index)
 {
+	QString const colorThemeName = m_settingsView->cmbboxResultColors->itemText(index);
 	addInteraction(QString("Changed result color theme to '%1'.").arg(colorThemeName));
 	m_resultColorTheme = iAColorThemeManager::instance().theme(colorThemeName);
 
@@ -1304,8 +1306,9 @@ void iAFiAKErController::dissimMatrixColorMapChanged(int idx)
 	m_matrixWidget->update();
 }
 
-void iAFiAKErController::stackedBarColorThemeChanged(QString const & colorThemeName)
+void iAFiAKErController::stackedBarColorThemeChanged(int index)
 {
+	QString const colorThemeName = m_settingsView->cmbboxStackedBarChartColors->itemText(index);
 	addInteraction(QString("Changed stacked bar color theme to '%1'.").arg(colorThemeName));
 	auto colorTheme = iAColorThemeManager::instance().theme(colorThemeName);
 	m_stackedBarsHeaders->setColorTheme(colorTheme);

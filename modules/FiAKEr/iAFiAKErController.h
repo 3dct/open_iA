@@ -184,9 +184,9 @@ private slots:
 	void selectionModeChanged(int);
 	void distributionChoiceChanged(int index);
 	void histogramBinsChanged(int value);
-	void distributionColorThemeChanged(QString const & colorThemeName);
-	void resultColorThemeChanged(QString const & colorThemeName);
-	void stackedBarColorThemeChanged(QString const & colorThemeName);
+	void distributionColorThemeChanged(int index);
+	void resultColorThemeChanged(int index);
+	void stackedBarColorThemeChanged(int index);
 	void showReferenceInChartToggled();
 	void linkPreviewsToggled();
 	void distributionChartTypeChanged(int);

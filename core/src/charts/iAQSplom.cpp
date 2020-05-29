@@ -321,8 +321,8 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	m_settingsDlg->cbColorTheme->addItems(iALUT::GetColorMapNames());
 	m_settingsDlg->cbColorThemeQual->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsDlg->cbColorThemeQual->setCurrentIndex(1); // to avoid "Black" default theme
-	connect(m_settingsDlg->cbColorTheme, QOverload<QString const &>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorTheme);
-	connect(m_settingsDlg->cbColorThemeQual, QOverload<QString const&>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeQual);
+	connect(m_settingsDlg->cbColorTheme, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeFromComboBox);
+	connect(m_settingsDlg->cbColorThemeQual, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeQual);
 	m_columnPickMenu = m_contextMenu->addMenu("Columns");
 }
 
@@ -2231,6 +2231,11 @@ void iAQSplom::updateColorControls()
 	updateLookupTable();
 }
 
+void iAQSplom::setColorThemeFromComboBox(int index)
+{
+	setColorTheme(m_settingsDlg->cbColorTheme->itemText(index));
+}
+
 void iAQSplom::setColorTheme(QString const & themeName)
 {
 	settings.colorThemeName = themeName;
@@ -2245,8 +2250,9 @@ void iAQSplom::setColorTheme(QString const & themeName)
 	}
 }
 
-void iAQSplom::setColorThemeQual(QString const& themeName)
+void iAQSplom::setColorThemeQual(int index)
 {
+	QString const themeName = m_settingsDlg->cbColorThemeQual->itemText(index);
 	settings.colorThemeQualName = themeName;
 	if (m_settingsDlg->cbColorThemeQual->currentText() != themeName)
 	{
