@@ -682,7 +682,7 @@ void iALabelImageToSeeds::performWork(QMap<QString, QVariant> const& parameters)
 		auto pixelValue = img->GetScalarComponentAsDouble(x, y, z, 0);
 		if (pixelValue != 0)
 		{
-			out << x << " " << y << " " << z << " " << pixelValue << endl;
+			out << x << " " << y << " " << z << " " << pixelValue << Qt::endl;
 		}
 	}
 	f.close();

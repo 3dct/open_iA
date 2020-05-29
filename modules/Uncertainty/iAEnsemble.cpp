@@ -643,7 +643,7 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 					}
 				}
 							// cut last space:
-				out << line.left(line.size()-1) << endl;
+				out << line.left(line.size()-1) << Qt::endl;
 			}
 		}
 	}

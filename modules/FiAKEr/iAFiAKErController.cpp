@@ -1490,7 +1490,7 @@ void iAFiAKErController::exportDissimilarities()
 	{
 		out << "," << measureNames[measureID];
 	}
-	out << endl;
+	out << Qt::endl;
 	QFileInfo fi(fileName);
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -1509,7 +1509,7 @@ void iAFiAKErController::exportDissimilarities()
 				out << "," << avgMeasure[m];
 			}
 		}
-		out << endl;
+		out << Qt::endl;
 
 		if (resultID == m_referenceID)
 		{
@@ -1533,7 +1533,7 @@ void iAFiAKErController::exportDissimilarities()
 					<< "," << measureNames[measureID] << QString(" Dissimilarity %1").arg(i);
 			}
 		}
-		resultOut << endl;
+		resultOut << Qt::endl;
 		for (int fiberID = 0; fiberID < r.refDiffFiber.size(); ++fiberID)
 		{
 			auto& f = r.refDiffFiber[fiberID].dist;
@@ -1545,7 +1545,7 @@ void iAFiAKErController::exportDissimilarities()
 					resultOut << "," << f[m][i].index << "," << f[m][i].dissimilarity;
 				}
 			}
-			resultOut << endl;
+			resultOut << Qt::endl;
 		}
 		resultOutFile.close();
 	}

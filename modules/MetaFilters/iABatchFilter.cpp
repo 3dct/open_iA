@@ -306,7 +306,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			QTextStream textStream(&file);
 			for (QString line : outputBuffer)
 			{
-				textStream << line << endl;
+				textStream << line << Qt::endl;
 			}
 			file.close();
 		}
