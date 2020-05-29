@@ -1626,8 +1626,7 @@ void MainWindow::updateMenus()
 	actionRawProfile->setChecked(hasMdiChild && child->isSliceProfileToggled());
 	QSignalBlocker blockSnakeSlicer(actionSnakeSlicer);
 	actionSnakeSlicer->setChecked(hasMdiChild && child->isSnakeSlicerToggled());
-	QSignalBlocker blockMagicLens2D(actionMagicLens2D);
-	actionMagicLens2D->setChecked(hasMdiChild && child->isMagicLens2DEnabled());
+	updateMagicLens2DCheckState(hasMdiChild && child->isMagicLens2DEnabled());
 	QSignalBlocker blockMagicLens3D(actionMagicLens3D);
 	actionMagicLens3D->setChecked(hasMdiChild && child->isMagicLens3DEnabled());
 
@@ -1665,6 +1664,12 @@ void MainWindow::updateMenus()
 		actionDeletePoint->setEnabled(false);
 		actionChangeColor->setEnabled(false);
 	}
+}
+
+void MainWindow::updateMagicLens2DCheckState(bool enabled)
+{
+	QSignalBlocker blockMagicLens2D(actionMagicLens2D);
+	actionMagicLens2D->setChecked(enabled);
 }
 
 void MainWindow::updateWindowMenu()

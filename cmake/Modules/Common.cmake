@@ -216,7 +216,7 @@ SET (VTK_COMPONENTS
 	${VTK_COMP_PREFIX}RenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
 	${VTK_COMP_PREFIX}ViewsContext2D          # for vtkContextView, vtkContextInteractorStyle
 	${VTK_COMP_PREFIX}ViewsInfovis)           # for vtkGraphItem
-IF (VTK_MAJOR_VERSION LESS 9)
+IF (VTK_MAJOR_VERSION LESS 9) # Modules not required/available anymore in VTK 9:
 	LIST (APPEND VTK_COMPONENTS ${VTK_COMP_PREFIX}RenderingContext${VTK_RENDERING_BACKEND}) # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
 ELSE()
 	# These components are apparently not pulled in automatically anymore in VTK >= 9
