@@ -645,11 +645,11 @@ inline QMap<double, QList<double> > calculateHistogram( QList<double> data, doub
 	for ( int k = 0; k < NumberOfBins; ++k )
 		pops[k] = 0;
 
-	QMap<double, QList<double> > map;
+	QMultiMap<double, QList<double> > map;
 	for ( double bin = 0.0; bin < extents->GetSize(); ++bin )
 	{
 		QList<double> list;
-		map.insertMulti( bin, list );
+		map.insert( bin, list );
 	}
 
 	for ( vtkIdType j = 0; j < in->GetNumberOfTuples(); ++j )
