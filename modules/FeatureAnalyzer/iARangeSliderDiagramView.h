@@ -87,7 +87,7 @@ private:
 	const QTableWidget * m_rawTable;
 	QMap<double, QList<double> > m_histogramMap;
 
-	QMap<QString, QList<double> > prepareData( const QTableWidget * tableData, bool porOrDev, bool statisticMeasurements );
+	QMultiMap<QString, QList<double> > prepareData( const QTableWidget * tableData, bool porOrDev, bool statisticMeasurements );
 	void addTitleLabel();
 	void addComboBoxes();
 	void addOutputLabel();
