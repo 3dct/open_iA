@@ -500,7 +500,12 @@ bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<
 		{
 			continue;
 		}
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 		QStringList valueStrList = line.split(",", QString::SkipEmptyParts);
+#else
+		QStringList valueStrList = line.split(",", Qt::SkipEmptyParts);
+#endif
 		if (valueStrList.size() < 7 || ((valueStrList.size() - 1) % 3) != 0)
 		{
 			DEBUG_LOG(QString("Invalid line in curvedFiberPoints file %1, line %2: %3 - number of elements: %4")
