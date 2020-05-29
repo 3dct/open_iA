@@ -248,7 +248,7 @@ namespace
 			QTextStream textStream(&file);
 			for (QString line : outputBuffer)
 			{
-				textStream << line << endl;
+				textStream << line << Qt::endl;
 			}
 			file.close();
 		}

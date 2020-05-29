@@ -351,7 +351,7 @@ void dlg_samplingSettings::saveSettings()
 	QTextStream stream(&file);
 	for (QString key : settings.keys())
 	{
-		stream << key << KeyValueSeparator << settings[key] << endl;
+		stream << key << KeyValueSeparator << settings[key] << Qt::endl;
 	}
 }
 

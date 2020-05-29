@@ -64,7 +64,7 @@ void iAImageTree::WriteNode(QTextStream & out, QSharedPointer<iAImageTreeNode > 
 	{
 		out << MergeMarker << " " << QString::number(node->GetDistance());
 	}
-	out << endl;
+	out << Qt::endl;
 	for (int c=0; c<node->GetChildCount(); ++c)
 	{
 		WriteNode(out, node->GetChild(c), level+1);
