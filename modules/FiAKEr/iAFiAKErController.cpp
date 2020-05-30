@@ -1490,7 +1490,11 @@ void iAFiAKErController::exportDissimilarities()
 	{
 		out << "," << measureNames[measureID];
 	}
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
 	out << Qt::endl;
+#else
+	out << endl;
+#endif
 	QFileInfo fi(fileName);
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -1509,7 +1513,11 @@ void iAFiAKErController::exportDissimilarities()
 				out << "," << avgMeasure[m];
 			}
 		}
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
 		out << Qt::endl;
+#else
+		out << endl;
+#endif
 
 		if (resultID == m_referenceID)
 		{
@@ -1533,7 +1541,11 @@ void iAFiAKErController::exportDissimilarities()
 					<< "," << measureNames[measureID] << QString(" Dissimilarity %1").arg(i);
 			}
 		}
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
 		resultOut << Qt::endl;
+#else
+		resultOut << endl;
+#endif
 		for (int fiberID = 0; fiberID < r.refDiffFiber.size(); ++fiberID)
 		{
 			auto& f = r.refDiffFiber[fiberID].dist;
@@ -1545,7 +1557,11 @@ void iAFiAKErController::exportDissimilarities()
 					resultOut << "," << f[m][i].index << "," << f[m][i].dissimilarity;
 				}
 			}
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
 			resultOut << Qt::endl;
+#else
+			resultOut << endl;
+#endif
 		}
 		resultOutFile.close();
 	}
