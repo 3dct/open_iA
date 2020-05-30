@@ -248,7 +248,11 @@ namespace
 			QTextStream textStream(&file);
 			for (QString line : outputBuffer)
 			{
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
 				textStream << line << Qt::endl;
+#else
+				textStream << line << endl;
+#endif
 			}
 			file.close();
 		}

@@ -642,8 +642,12 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 						line += QString::number(++curFeature) + ":" + QString::number(m_entropy[e]->GetScalarComponentAsDouble(idx[0], idx[1], idx[2], 0)) + " ";
 					}
 				}
-							// cut last space:
+				       // cut last space:
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
 				out << line.left(line.size()-1) << Qt::endl;
+#else
+				out << line.left(line.size()-1) << endl;
+#endif
 			}
 		}
 	}
