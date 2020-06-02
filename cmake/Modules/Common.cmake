@@ -589,6 +589,9 @@ ENDIF()
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	# Mac OS X specific code
 	MESSAGE (WARNING "You are using MacOS - note that we do not regularly build on Mac OS, expect there to be some errors.")
+
+	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework Cocoa -framework OpenGL")
+	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -framework Cocoa -framework OpenGL")
 ENDIF()
 
 

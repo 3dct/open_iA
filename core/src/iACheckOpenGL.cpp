@@ -23,13 +23,20 @@
 #include <QString>
 #include <QWindow>
 
+//#include <iostream>
+
 bool checkOpenGLVersion(QString & msg)
 {
 	try
 	{
 		QWindow test;
 		QSurfaceFormat fmt;
+#if defined(__APPLE__) && defined(__MACH__)
+		fmt.setVersion(3, 2);
+		fmt.setProfile(QSurfaceFormat::CoreProfile);
+#else
 		fmt.setVersion(1, 0);
+#endif
 		test.setSurfaceType(QWindow::OpenGLSurface);
 		test.setFormat(fmt);
 		auto context = new QOpenGLContext(&test);
@@ -94,6 +101,7 @@ bool checkOpenGLVersion(QString & msg)
 		const int minMajor = 1;
 		const int minMinor = 1;
 #endif
+//		std::cout << "OpenGL version: " << major << "." << minor << std::endl;
 		if (major < minMajor || (major == minMajor && minor < minMinor))
 		{
 			msg = QString("The OpenGL version currently available on your system (%1.%2) is insufficient, required is at least %3.%4.\n\n"
