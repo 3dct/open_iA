@@ -68,6 +68,8 @@
 #include <QtXml/QDomDocument>
 #include <QDesktopServices>
 
+const int MainWindow::MaxRecentFiles;
+
 MainWindow::MainWindow(QString const & appName, QString const & version, QString const & buildInformation, QString const & splashImage ):
 	QMainWindow(),
 	m_moduleDispatcher( new iAModuleDispatcher( this ) ),
