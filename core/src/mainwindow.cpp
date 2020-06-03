@@ -2541,8 +2541,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	QString const& buildInformation, QString const & splashPath, QString const & iconPath)
 {
 	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
-// check if we can do this here maybe?
-	// QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
+	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
 	MainWindow::initResources();
 	QApplication app(argc, argv);
 	QString msg;
@@ -2568,8 +2567,6 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 		return 1;
 	}
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
-// check if this is the correct place! leads to warning on mac OS that it needs to be done earlier (before creation of QApplication)!
-	app.setAttribute(Qt::AA_ShareOpenGLContexts);
 	iAGlobalLogger::setLogger(iAConsole::instance());
 	MainWindow mainWin(appName, version, buildInformation, splashPath);
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
