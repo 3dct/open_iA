@@ -15,7 +15,7 @@ class dlg_CSVReader : public QDialog, public Ui_CSVReader
 	//! Create a new dialog
 	dlg_CSVReader(QWidget* parent = 0, Qt::WindowFlags f = 0);
 
-	QList<csvFileData>* getCsvDataStorage();
+	iACsvDataStorage* getCsvDataStorage();
 	
    private slots:
 	//! On button click for selecting one/several CSV files

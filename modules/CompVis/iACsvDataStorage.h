@@ -63,6 +63,7 @@ class iACsvDataStorage
 	void storeCSVToVectorArray(QList<QStringList>* list);
 	//returns the data of all csv files
 	QList<csvFileData>* getData();
+	QStringList* getDatasetNames();
 
    private:
 	//fill a list with the attribute names

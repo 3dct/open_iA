@@ -64,7 +64,7 @@ void dlg_CSVReader::okBtnClicked()
 	this->accept();
 }
 
-QList<csvFileData>* dlg_CSVReader::getCsvDataStorage()
+iACsvDataStorage* dlg_CSVReader::getCsvDataStorage()
 {
-	return m_dataStorage->getData();
+	return m_dataStorage;
 }

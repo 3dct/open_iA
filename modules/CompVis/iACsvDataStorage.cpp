@@ -112,6 +112,11 @@ void iACsvDataStorage::customizeCSVFile(QList<QStringList>* list)
 	}
 }
 
+QStringList* iACsvDataStorage::getDatasetNames()
+{
+	return m_filenames;
+}
+
 QList<csvFileData>* iACsvDataStorage::getData()
 {
 	return m_data;

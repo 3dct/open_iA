@@ -28,13 +28,13 @@ iACompVisMain::iACompVisMain(MainWindow* mainWin)
 	initializeMDS();
 
 	//open mainwindow with its dockWidgets
-	m_mainW = new dlg_VisMainWindow(m_data, m_mds, mainWin);
+	m_mainW = new dlg_VisMainWindow(m_dataStorage->getData(), m_mds, mainWin);
 
 	QVBoxLayout* layout1 = new QVBoxLayout;
 	m_mainW->centralwidget->setLayout(layout1);
 
 	//add histogram table
-	m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_mds);
+	m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_mds, m_dataStorage);
 	layout1->addWidget(m_HistogramTableDockWidget);
 
 	QHBoxLayout* layout2 = new QHBoxLayout;
@@ -67,12 +67,12 @@ void iACompVisMain::loadData()
 		return;
 	}
 
-	m_data = dlg->getCsvDataStorage();
+	m_dataStorage = dlg->getCsvDataStorage();
 }
 
 void iACompVisMain::initializeMDS()
 {
-	m_mds = new iAMultidimensionalScaling(m_data);
+	m_mds = new iAMultidimensionalScaling(m_dataStorage->getData());
 
 	//todo calculate histogramtable again
 }

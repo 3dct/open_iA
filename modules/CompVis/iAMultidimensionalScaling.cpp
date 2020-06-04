@@ -60,7 +60,7 @@ void iAMultidimensionalScaling::initializeMatrixUNormalized()
 	
 	//DEBUG
 	//DEBUG_LOG("");
-	DEBUG_LOG("m_matrixUNormalized");
+	//DEBUG_LOG("m_matrixUNormalized");
 	//csvDataType::debugArrayType(m_matrixUNormalized);
 	//DEBUG_LOG("");
 }
@@ -127,7 +127,7 @@ void iAMultidimensionalScaling::calculateProximityDistance()
 
 		//DEBUG
 		//DEBUG_LOG("");
-		DEBUG_LOG("m_matrixProximityDis");
+		//DEBUG_LOG("m_matrixProximityDis");
 		//csvDataType::debugArrayType(m_matrixProximityDis);
 		//DEBUG_LOG("");
 	}
@@ -181,7 +181,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	D_ = d->calculateSimilarityDistance(X, D_);
 	
 	//DEBUG_LOG("");
-	DEBUG_LOG("D_");
+	//DEBUG_LOG("D_");
 	//csvDataType::debugArrayType(D_);
 	//DEBUG_LOG("");
 
@@ -241,7 +241,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	
 	//DEBUG
 	//DEBUG_LOG("");
-	DEBUG_LOG("m_configuration");
+	//DEBUG_LOG("m_configuration");
 	//csvDataType::debugArrayType(m_configuration);
 	//DEBUG_LOG("");
 }

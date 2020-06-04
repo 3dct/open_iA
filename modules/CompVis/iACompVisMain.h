@@ -26,7 +26,8 @@ class iACompVisMain
 	void initializeMDS();
 
 	dlg_VisMainWindow* m_mainW;
-	QList<csvFileData>* m_data;
+	iACsvDataStorage* m_dataStorage;
+
 	iAMultidimensionalScaling* m_mds;
 	iAHistogramData* m_histData;
 
