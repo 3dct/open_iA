@@ -21,33 +21,27 @@
 #pragma once
 
 #include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkDataSet.h>
-#include <vtkOctreePointLocator.h>
-#include <vtkPlaneSource.h>
-#include <QColor>
+#include <unordered_map>
 
-//! Class for calculation of a 3D Octree 
-class iAVROctree
+#include "iACsvIO.h"
+#include "vtkTable.h"
+#include "vtkLookupTable.h"
+#include "vtkColorTransferFunction.h"
+
+class iAVRMetrics
 {
 public:
-	iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet);
-	void generateOctreeRepresentation(int level, QColor col);
-	void calculateOctree(int level, int pointsPerRegion);
-	vtkOctreePointLocator* getOctree();
-	void calculateOctreeRegionSize(double size[3]);
-	void calculateOctreeRegionCenterPos(int regionID, double centerPoint[3]);
-	void createOctreeBoundingBoxPlanes(int regionID, std::vector<vtkSmartPointer<vtkPlaneSource>>* planes);
-	void movePointInsideRegion(double point[3], double movedPoint[3]);
-	int getNumberOfLeafeNodes();
-	void show();
-	void hide();
-	vtkActor* getActor();
+	iAVRMetrics(vtkTable* objectTable, iACsvIO io, std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage);
+	void calculateWeightedAverage(int octreeLevel, int feature);
+	vtkLookupTable* calculateLUT(double min, double max);
+
 private:
-	int numberOfLeaveNodes;
-	bool m_visible;
-	vtkSmartPointer<vtkRenderer> m_renderer;
-	vtkSmartPointer<vtkActor> m_actor;
-	vtkSmartPointer<vtkDataSet> m_dataSet;
-	vtkSmartPointer<vtkOctreePointLocator> m_octree;
+	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
+	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
+	//Stores for the chosen [feature] at an [octree level] for every [octree region] the metric value
+	std::vector<std::vector<std::vector<double>>>* m_calculatedStatistic;
+	vtkSmartPointer<vtkTable> m_objectTable;
+	iACsvIO m_io;
+
+	vtkColorTransferFunction* createColorTransferFunction();
 };

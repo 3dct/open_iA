@@ -32,47 +32,36 @@ m_octree(vtkSmartPointer<vtkOctreePointLocator>::New())
 	m_visible = false;
 }
 
-void iAVROctree::generateOctree(int level, QColor col)
+void iAVROctree::generateOctreeRepresentation(int level, QColor col)
 {
-	m_octree->SetMaximumPointsPerRegion(12); // The maximum number of points in a region/octant before it is subdivided
-	m_octree->SetMaxLevel(level);
-	m_octree->SetDataSet(m_dataSet);
-	m_octree->BuildLocator();
-
 	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
 	m_octree->GenerateRepresentation(level, polydata);
 
 	vtkSmartPointer<vtkPolyDataMapper> octreeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	octreeMapper->SetInputData(polydata);
-	
+
 	m_actor->SetMapper(octreeMapper);
-	//m_actor->GetProperty()->SetInterpolationToFlat();
 	m_actor->GetProperty()->SetRepresentationToWireframe();
-	//m_actor->GetProperty()->SetRepresentationToPoints();
 	m_actor->GetProperty()->SetColor(col.redF(), col.greenF(), col.blueF());
-	m_actor->GetProperty()->SetLineWidth(6); //ToDo Use TubeFilter?
+	m_actor->GetProperty()->SetLineWidth(6);
 	m_actor->GetProperty()->RenderLinesAsTubesOn();
-	m_actor->PickableOff();
+	//m_actor->PickableOff();
 }
 
-void iAVROctree::FindClosestNPoints(int N, const double x[3], vtkIdList* result)
+//! The Method calculates the octree for the current level with the given amount of max points in a region
+void iAVROctree::calculateOctree(int level, int pointsPerRegion)
 {
-	m_octree->FindClosestNPoints(N, x, result);
-}
+	m_octree->SetMaximumPointsPerRegion(pointsPerRegion); // The maximum number of points in a region/octant before it is subdivided
+	m_octree->SetMaxLevel(level);
+	m_octree->SetDataSet(m_dataSet);
+	m_octree->BuildLocator();
 
-vtkIdType iAVROctree::FindClosestPoint(const double x[3])
-{
-	return m_octree->FindClosestPoint(x);
+	numberOfLeaveNodes = m_octree->GetNumberOfLeafNodes();
 }
 
 vtkOctreePointLocator * iAVROctree::getOctree()
 {
 	return m_octree;
-}
-
-int iAVROctree::GetLevel()
-{
-	return m_octree->GetMaxLevel();
 }
 
 //! Calculates the size of the first (= 0) Octree leaf node
@@ -100,6 +89,104 @@ void iAVROctree::calculateOctreeRegionCenterPos(int regionID, double centerPoint
 	centerPoint[2] = bounds[4] + ((bounds[5] - bounds[4]) / 2);
 }
 
+//! This Method creates the six Planes defines by the octree bounds of the given leaf region.
+void iAVROctree::createOctreeBoundingBoxPlanes(int regionID, std::vector<vtkSmartPointer<vtkPlaneSource>>* planes)
+{
+	double bounds[6];
+	m_octree->GetRegionBounds(regionID, bounds);
+
+	double xMin = bounds[0];
+	double xMax = bounds[1];
+	double yMin = bounds[2];
+	double yMax = bounds[3];
+	double zMin = bounds[4];
+	double zMax = bounds[5];
+
+	vtkSmartPointer<vtkPlaneSource> planeSource0 = vtkSmartPointer<vtkPlaneSource>::New();
+	planeSource0->SetOrigin(xMin, yMin, zMax);
+	planeSource0->SetPoint1(xMax, yMin, zMax);
+	planeSource0->SetPoint2(xMin, yMax, zMax);
+	planeSource0->Update();
+	planes->push_back(planeSource0);
+
+	vtkSmartPointer<vtkPlaneSource> planeSource1 = vtkSmartPointer<vtkPlaneSource>::New();
+	planeSource1->SetOrigin(xMax, yMin, zMax);
+	planeSource1->SetPoint1(xMax, yMin, zMin);
+	planeSource1->SetPoint2(xMax, yMax, zMax);
+	planeSource1->Update();
+	planes->push_back(planeSource1);
+
+	vtkSmartPointer<vtkPlaneSource> planeSource2 = vtkSmartPointer<vtkPlaneSource>::New();
+	planeSource2->SetOrigin(xMin, yMin, zMin);
+	planeSource2->SetPoint1(xMax, yMin, zMin);
+	planeSource2->SetPoint2(xMin, yMax, zMin);
+	planeSource2->Update();
+	planes->push_back(planeSource2);
+
+	vtkSmartPointer<vtkPlaneSource> planeSource3 = vtkSmartPointer<vtkPlaneSource>::New();
+	planeSource3->SetOrigin(xMin, yMin, zMax);
+	planeSource3->SetPoint1(xMin, yMin, zMin);
+	planeSource3->SetPoint2(xMin, yMax, zMax);
+	planeSource3->Update();
+	planes->push_back(planeSource3);
+
+	vtkSmartPointer<vtkPlaneSource> planeSource4 = vtkSmartPointer<vtkPlaneSource>::New();
+	planeSource4->SetOrigin(xMax, yMin, zMax);
+	planeSource4->SetPoint1(xMax, yMin, zMin);
+	planeSource4->SetPoint2(xMin, yMin, zMax);
+	planeSource4->Update();
+	planes->push_back(planeSource4);
+
+	vtkSmartPointer<vtkPlaneSource> planeSource5 = vtkSmartPointer<vtkPlaneSource>::New();
+	planeSource5->SetOrigin(xMax, yMax, zMax);
+	planeSource5->SetPoint1(xMax, yMax, zMin);
+	planeSource5->SetPoint2(xMin, yMax, zMax);
+	planeSource5->Update();
+	planes->push_back(planeSource5);
+
+}
+
+//! Used for points which are just *barely* outside the bounds of the region. Moves that point so that it is just barely *inside* the bounds
+void iAVROctree::movePointInsideRegion(double point[3], double movedPoint[3])
+{
+	double outerBounds[6];
+	m_octree->GetBounds(outerBounds);
+
+	movedPoint[0] = point[0];
+	movedPoint[1] = point[1];
+	movedPoint[2] = point[2];
+
+	if (point[0] < outerBounds[0])
+	{
+		movedPoint[0] = point[0] + m_octree->GetFudgeFactor();
+	}
+	if (point[0] > outerBounds[1])
+	{
+		movedPoint[0] = point[0] - m_octree->GetFudgeFactor();
+	}
+	if (point[1] < outerBounds[2])
+	{
+		movedPoint[1] = point[1] + m_octree->GetFudgeFactor();
+	}
+	if (point[1] > outerBounds[3])
+	{
+		movedPoint[1] = point[1] - m_octree->GetFudgeFactor();
+	}
+	if (point[2] < outerBounds[4])
+	{
+		movedPoint[2] = point[2] + m_octree->GetFudgeFactor();
+	}
+	if (point[2] > outerBounds[5])
+	{
+		movedPoint[2] = point[2] - m_octree->GetFudgeFactor();
+	}
+}
+
+int iAVROctree::getNumberOfLeafeNodes()
+{
+	return numberOfLeaveNodes;
+}
+
 void iAVROctree::show()
 {
 	if (m_visible)
@@ -118,4 +205,9 @@ void iAVROctree::hide()
 	}
 	m_renderer->RemoveActor(m_actor);
 	m_visible = false;
+}
+
+vtkActor* iAVROctree::getActor()
+{
+	return m_actor;
 }

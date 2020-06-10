@@ -48,7 +48,7 @@ public:
 	void setOrientation(double x, double y, double z);
 	void setCubeColor(QColor col, int regionID);
 	void setLinearCubeOffset(double offset);
-	vtkIdType getClosestCellID(double pos[3], double eventOrientation[3], vtkPropPicker* interactionPicker);
+	vtkIdType getClosestCellID(double pos[3], double eventOrientation[3]);
 	void setOctree(iAVROctree* octree);
 	vtkDataSet* getDataSet();
 	vtkActor* getActor();

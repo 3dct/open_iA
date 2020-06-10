@@ -28,6 +28,8 @@
 #include "vtkTable.h"
 #include "vtkDataSet.h"
 #include "vtkProp3D.h"
+#include "vtkPolyData.h"
+#include <vtkPlaneSource.h>
 #include "iACsvIO.h"
 
 #include <unordered_map>
@@ -61,7 +63,7 @@ class iA3DCylinderObjectVis;
 class iAVROctree; 
 class iAVRInteractorStyle;
 
-//! Class for  
+//!
 class iAVRMain
 {
 public:
@@ -69,13 +71,14 @@ public:
 	void startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp); //Press, Touch
 	void endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4],vtkProp3D* pickedProp); //Release, Untouch
 	void onMove(vtkEventDataDevice3D* device, double movePosition[3], double eventOrientation[4], vtkProp3D* pickedProp); //Movement
-	int octreeLevel;
+	int currentOctreeLevel;
 
 private:
 	iAVREnvironment* m_vrEnv;
-	iAVROctree* m_octree;
+	std::vector<iAVROctree*>* m_octrees;
 	iAVR3DObjectVis* m_objectVis;
 	iA3DCylinderObjectVis* m_cylinderVis;
+	vtkSmartPointer<vtkPolyData> m_extendedCylinderVisData; // Data extended with additional intersection points
 	vtkSmartPointer<iAVRInteractorStyle> m_style;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	//vtkSmartPointer<vtkProp3D> m_pickedProp;
@@ -91,17 +94,25 @@ private:
 	bool m_iDMappingThreadRunning = true;
 	// True if the corresponding actor is visible
 	bool modelInMiniatureActive = false;
+	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
+	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
+	vtkPoints* newIntersectionPoints;
 
 	void mapAllPointiDs();
+	void mapAllPointiDsAndCalculateFiberCoverage();
 	vtkIdType getObjectiD(vtkIdType polyPoint);
 	vtkIdType mapSinglePointiD(vtkIdType polyPoint);
 	bool checkEqualArrays(float pos1[3], float pos2[3]);
 	void setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation);
 	int getOptionForObject(vtkProp3D* pickedProp);
 	void addPropToOptionID(vtkProp3D* prop, iAVRInteractionOptions iD);
+	bool checkIntersectionWithBox(double startPoint[3], double endPoint[3], std::vector<vtkSmartPointer<vtkPlaneSource>>* planes, double bounds[6], double intersection[3]);
+	double calculateFiberCoverage(double startPoint[3], double endPoint[3], double fiberLength);
+	vtkSmartPointer<vtkPoints> getOctreeFiberCoverage(double startPoint[3], double endPoint[3], int octreeLevel, double fiberLength, std::vector<double>* coverageInRegion);
+	void drawPoint(std::vector<double*>* pos, QColor color);
+	void generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyData* dataSet);
 
 	//# Methods for interaction #//
-
 	void changeOctreeLevel();
 	void pickSingleFiber(double eventPosition[3]);
 	void pickFibersinRegion(double eventPosition[3]);

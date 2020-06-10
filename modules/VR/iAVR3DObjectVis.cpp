@@ -226,7 +226,7 @@ void iAVR3DObjectVis::setLinearCubeOffset(double offset)
 	DEBUG_LOG(QString("Linear Offset Set"));
 }
 
-vtkIdType iAVR3DObjectVis::getClosestCellID(double pos[3], double eventOrientation[3], vtkPropPicker* interactionPicker)
+vtkIdType iAVR3DObjectVis::getClosestCellID(double pos[3], double eventOrientation[3])
 {
 	vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
 
