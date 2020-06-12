@@ -5,6 +5,7 @@
 
 //CompVis
 #include "iACompHistogramTable.h"
+#include "iACompVisMain.h"
 
 //VTK
 #include <vtkObjectFactory.h>
@@ -86,8 +87,13 @@ void iACompHistogramTableInteractorStyle::OnKeyRelease()
 		{
 			removeHighlightedCells();
 
+			//forward update to all other charts
+			updateOtherCharts();
+
+			//change in histogram table
 			m_visualization->drawLinearZoom(m_picked, m_visualization->getBins(), m_visualization->getBinsZoomed());
 
+			//reset selection variables
 			m_picked->clear();
 			m_controlBinsInZoomedRows = true;
 		}
@@ -282,7 +288,6 @@ void iACompHistogramTableInteractorStyle::linearZoomInHistogram()
 		m_visualization->drawHistogramTable(bins);
 	}
 }
-
 void iACompHistogramTableInteractorStyle::linearZoomOutHistogram()
 {
 	//linear zooming out on histogram over all bins
@@ -347,4 +352,15 @@ void iACompHistogramTableInteractorStyle::generalZoomOut()
 void iACompHistogramTableInteractorStyle::setIACompHistogramTable(iACompHistogramTable* visualization)
 {
 	m_visualization = visualization;
+}
+
+void iACompHistogramTableInteractorStyle::setIACompVisMain(iACompVisMain* main)
+{
+	m_main = main;
+}
+
+void iACompHistogramTableInteractorStyle::updateOtherCharts()
+{
+	m_visualization->getSelectedData(m_picked);
+	m_main->updateOtherCharts();
 }

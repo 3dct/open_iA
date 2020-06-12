@@ -15,6 +15,7 @@ iACompHistogramTableData::iACompHistogramTableData(iAMultidimensionalScaling* md
 	m_maxVal = *result.second;
 	m_minVal = *result.first;
 
+	//TODO change to bintype!
 	datasets = new csvDataType::ArrayType();
 	amountObjectsEveryDataset = csvFileData::getAmountObjectsEveryDataset(m_mds->getCSVFileData());
 	

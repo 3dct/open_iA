@@ -11,6 +11,7 @@
 #include "iACompCorrelationMap.h"
 
 #include "iAMultidimensionalScaling.h"
+#include "iACoefficientOfVariation.h"
 
 //iA
 #include "charts/iAHistogramData.h"
@@ -26,6 +27,7 @@ iACompVisMain::iACompVisMain(MainWindow* mainWin)
 
 	//calculate MDS
 	initializeMDS();
+	initializeVariationCoefficient();
 
 	//open mainwindow with its dockWidgets
 	m_mainW = new dlg_VisMainWindow(m_dataStorage->getData(), m_mds, mainWin);
@@ -34,7 +36,7 @@ iACompVisMain::iACompVisMain(MainWindow* mainWin)
 	m_mainW->centralwidget->setLayout(layout1);
 
 	//add histogram table
-	m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_mds, m_dataStorage);
+	m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_mds, m_dataStorage, this);
 	layout1->addWidget(m_HistogramTableDockWidget);
 
 	QHBoxLayout* layout2 = new QHBoxLayout;
@@ -48,11 +50,11 @@ iACompVisMain::iACompVisMain(MainWindow* mainWin)
 	layout2->addLayout(layout3);
 
 	//add bar chart
-	m_BarChartDockWidget = new iACompBarChart(mainWin);
+	m_BarChartDockWidget = new iACompBarChart(mainWin, m_cofVar, m_dataStorage);
 	layout3->addWidget(m_BarChartDockWidget);
 
 	//add box plot
-	m_BoxPlotDockWidget = new iACompBoxPlot(mainWin);
+	m_BoxPlotDockWidget = new iACompBoxPlot(mainWin, m_dataStorage);
 	layout3->addWidget(m_BoxPlotDockWidget);
 
 	m_mainW->show();
@@ -77,3 +79,18 @@ void iACompVisMain::initializeMDS()
 	//todo calculate histogramtable again
 }
 
+void iACompVisMain::initializeVariationCoefficient() 
+{
+	m_cofVar = new iACoefficientOfVariation(m_dataStorage);
+}
+
+void iACompVisMain::updateBarChart()
+{
+	//m_cofVar->recalculateCoefficentOfVariation()
+	//m_BarChartDockWidget->updateBarChart();
+}
+
+void iACompVisMain::updateOtherCharts()
+{
+	updateBarChart();
+}

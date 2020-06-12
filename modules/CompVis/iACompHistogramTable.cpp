@@ -4,7 +4,8 @@
 #include "iAConsole.h"
 
 //CompVis
-
+#include "iACompVisOptions.h"
+#include "iACompVisMain.h"
 
 //iA
 #include "mainwindow.h"
@@ -54,14 +55,17 @@
 #include <vtkTextWidget.h>
 #include <vtkVectorText.h>
 
+#include <vtkCamera.h>
+
 #include <algorithm>
 #include <cstring>
 #include <functional>
 
 
 iACompHistogramTable::iACompHistogramTable(
-	MainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* dataStorage) :
+	MainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* dataStorage, iACompVisMain* main) :
 	QDockWidget(parent),
+	m_main(main),
 	m_mds(mds),
 	m_inputData(mds->getCSVFileData()),
 	m_dataStorage(dataStorage),
@@ -96,10 +100,11 @@ void iACompHistogramTable::showEvent(QShowEvent* event)
 {
 	QDockWidget::showEvent(event);
 
-	m_qvtkWidgetHeight = qvtkWidget->height();
-	m_qvtkWidgetWidth = qvtkWidget->width();
-	m_colSize = ((double)m_qvtkWidgetHeight) / ((double)m_amountDatasets);
-	m_rowSize = m_qvtkWidgetWidth;
+	//m_qvtkWidgetHeight = qvtkWidget->height()/qvtkWidget->width();
+	//m_qvtkWidgetWidth = 1; //qvtkWidget->width();
+	screenRatio = ((double)qvtkWidget->height()) / (((double)qvtkWidget->width()*0.9));
+	m_colSize = 9; //*screenRatio; //m_qvtkWidgetHeight; // ((double)m_qvtkWidgetHeight) / ((double)m_amountDatasets);
+	m_rowSize = 16; //m_qvtkWidgetWidth;
 
 	//initialize visualization
 	initializeHistogramTable();
@@ -263,13 +268,8 @@ void iACompHistogramTable::initializeHistogramTable()
 	makeLUTFromCTF();
 
 	vtkSmartPointer<vtkNamedColors> nc = vtkSmartPointer<vtkNamedColors>::New();
-	m_renderer->SetBackground(nc->GetColor3d(backgroundColor).GetData());
+	m_renderer->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
 	m_renderer->SetViewport(0, 0, 0.9, 1);
-
-	vtkSmartPointer<vtkCamera> camera = vtkSmartPointer<vtkCamera>::New();
-	camera->SetPosition(0, 0, 20);
-	camera->SetFocalPoint(0, 0, 0);
-	m_renderer->SetActiveCamera(camera);
 
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	qvtkWidget->SetRenderWindow(renderWindow);
@@ -285,9 +285,21 @@ void iACompHistogramTable::initializeHistogramTable()
 	drawHistogramTable(m_bins);
 
 	m_renderer->ResetCamera();
-	m_renderer->GetActiveCamera()->Zoom(1.0);
-	m_renderer->GetActiveCamera()->ParallelProjectionOn();
-	m_renderer->GetActiveCamera()->Modified();
+	/*vtkSmartPointer<vtkCamera> camera = m_renderer->GetActiveCamera();
+	double viewAngleInDegree = camera->GetViewAngle();
+	//double viewAngleRadians = degreesToRadians(camera->viewAngle());
+	double PI = 3.141592653589793238463;
+	double distance = (m_colSize*m_bins) / ((viewAngleInDegree * PI) / 180);
+
+	camera->SetPosition(camera->GetPosition()[0], camera->GetPosition()[1], distance);
+	camera->SetFocalPoint(camera->GetFocalPoint()[0], camera->GetFocalPoint()[1], 0);
+	camera->Modified();
+	m_renderer->Modified();*/
+	//m_renderer->SetActiveCamera(camera);
+	//m_renderer->GetActiveCamera()->Zoom(1.0);
+	//m_renderer->GetActiveCamera()->ParallelProjectionOn();
+	//m_renderer->GetActiveCamera()->Modified();
+	//m_renderer->Modified();
 
 	qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
 }
@@ -296,12 +308,13 @@ void iACompHistogramTable::drawHistogramTable(int bins)
 {
 	DEBUG_LOG(" ");
 	DEBUG_LOG(" First ");
-	DEBUG_LOG("m_qvtkWidgetHeight: " + QString::number(m_qvtkWidgetHeight));
-	DEBUG_LOG("m_qvtkWidgetWidth: " + QString::number(m_qvtkWidgetWidth));
+	//DEBUG_LOG("m_qvtkWidgetHeight: " + QString::number(m_qvtkWidgetHeight));
+	//DEBUG_LOG("m_qvtkWidgetWidth: " + QString::number(m_qvtkWidgetWidth));
 	DEBUG_LOG("qvtkWidget->height(): " + QString::number(qvtkWidget->height()));
 	DEBUG_LOG("qvtkWidget->width(): " + QString::number(qvtkWidget->width()));
+	DEBUG_LOG("m_colSize: " + QString::number(m_colSize));
 
-	m_colSize = m_qvtkWidgetHeight / m_amountDatasets;
+	//m_colSize = m_qvtkWidgetHeight; //m_qvtkWidgetHeight / m_amountDatasets;
 
 	if (m_renderer->GetViewProps()->GetNumberOfItems() > 0)
 	{
@@ -309,9 +322,11 @@ void iACompHistogramTable::drawHistogramTable(int bins)
 	}
 
 	//draw cells from bottom to top --> so start with last dataset and go to first
-	for (int cols = m_amountDatasets - 1; cols >= 0; cols--)
+	int currCol = 0;
+	for (int dataInd = m_amountDatasets - 1; dataInd >= 0; dataInd--)
 	{
-		drawRow(cols, cols, bins, 0);
+		drawRow(dataInd, currCol, bins, 0);
+		currCol += 1;
 	}
 
 	qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
@@ -323,18 +338,29 @@ void iACompHistogramTable::drawRow(int currDataInd, int currentColumn, int amoun
 	aPlane->SetXResolution(amountOfBins);
 	aPlane->SetYResolution(m_ColForData);
 
+	//double x = m_rowSize;
+	//double y = (-(m_colSize * (currentColumn + 1) + (m_colSize)) + (offset));
+	//aPlane->SetOrigin(-x, y, 0.0);
+	//aPlane->SetPoint1(x, y, 0.0);               //width
+	//aPlane->SetPoint2(-x, y + m_colSize, 0.0);  // height
+	//aPlane->Update();
+
 	double x = m_rowSize;
-	double y = (-(m_colSize * (currentColumn + 1) + (m_colSize)) + (offset));
-	aPlane->SetOrigin(-x, y, 0.0);
+	double y = (m_colSize * currentColumn) + offset;
+	aPlane->SetOrigin(0, y, 0.0);
 	aPlane->SetPoint1(x, y, 0.0);               //width
-	aPlane->SetPoint2(-x, y + m_colSize, 0.0);  // height
+	aPlane->SetPoint2(0, y + m_colSize, 0.0);  // height
 	aPlane->Update();
 
-	//DEBUG_LOG("drawRow");
-	//DEBUG_LOG("origin: " + QString::number(-x) + " " + QString::number(y));
-	//DEBUG_LOG("width: " + QString::number(x) + " " + QString::number(y));
-	//DEBUG_LOG("heigth: " + QString::number(-x) + " " + QString::number(y + (m_colSize)));
-	//DEBUG_LOG("distance in heigth: " + QString::number((y + (m_colSize)) - y));
+	DEBUG_LOG(" ");
+	DEBUG_LOG("drawRow");
+	DEBUG_LOG("currentColumn: " + QString::number(currentColumn));
+	DEBUG_LOG("offset: " + QString::number(offset));
+	DEBUG_LOG("origin: " + QString::number(0) + " " + QString::number(y));
+	DEBUG_LOG("width: " + QString::number(x));
+	DEBUG_LOG("m_colSize: " + QString::number(m_colSize));
+	DEBUG_LOG("y: " + QString::number(y));
+	DEBUG_LOG("heigth: " + QString::number(y + m_colSize));
 
 	vtkSmartPointer<vtkUnsignedCharArray> colorData = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	colorData->SetName("colors");
@@ -360,6 +386,9 @@ void iACompHistogramTable::drawRow(int currDataInd, int currentColumn, int amoun
 void iACompHistogramTable::drawRowZoomedRow(
 	int currentColumn, int amountOfBins, bin::BinType* currentData, double offset)
 {
+	//##### TODO ####
+	//repair non linear zooming --> recalculate whole table with ratio of height/width!!!!!
+
 	int bins = currentData->size();
 	int resultingAmountBins = bins * amountOfBins;
 
@@ -367,11 +396,18 @@ void iACompHistogramTable::drawRowZoomedRow(
 	aPlane->SetXResolution(resultingAmountBins);
 	aPlane->SetYResolution(m_ColForData);
 
+	//double x = m_rowSize;
+	//double y = (-(m_colSize * (currentColumn + 1) + (m_colSize)) + (offset));
+	//aPlane->SetOrigin(-x, y, 0.0);
+	//aPlane->SetPoint1(x, y, 0.0);               //width
+	//aPlane->SetPoint2(-x, y + m_colSize, 0.0);  // height
+	//aPlane->Update();
+
 	double x = m_rowSize;
-	double y = (-(m_colSize * (currentColumn + 1) + (m_colSize)) + (offset));
-	aPlane->SetOrigin(-x, y, 0.0);
+	double y = (m_colSize * currentColumn) + offset;
+	aPlane->SetOrigin(0, y, 0.0);
 	aPlane->SetPoint1(x, y, 0.0);               //width
-	aPlane->SetPoint2(-x, y + m_colSize, 0.0);  // height
+	aPlane->SetPoint2(0, y + m_colSize, 0.0);  // height
 	aPlane->Update();
 
 	vtkSmartPointer<vtkUnsignedCharArray> colorData = vtkSmartPointer<vtkUnsignedCharArray>::New();
@@ -452,7 +488,7 @@ void iACompHistogramTable::drawLinearZoom(Pick::PickedMap* map, int notSelectedB
 	//draw zoomed histogram table
 	m_indexOfZoomedRows->clear();
 
-	m_colSize = m_qvtkWidgetHeight / (m_amountDatasets + map->size());
+	//m_colSize = m_qvtkWidgetHeight; // m_qvtkWidgetHeight / (m_amountDatasets + map->size());
 
 	int currCol = m_amountDatasets + map->size() - 1;
 	double offset = 0;
@@ -486,6 +522,65 @@ void iACompHistogramTable::drawLinearZoom(Pick::PickedMap* map, int notSelectedB
 	}
 
 	qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
+}
+
+void iACompHistogramTable::getSelectedData(Pick::PickedMap* map)
+{
+	//TODO give correct data to main
+	DEBUG_LOG("in selected data!");
+	//first actor contains last dataset
+	vtkSmartPointer<vtkActorCollection> actorList = m_renderer->GetActors();
+
+	QList<bin::BinType*>* binData = m_histData->getBinData();
+	QList<bin::BinType*>* thisZoomedRowData = new QList<bin::BinType*>();
+	std::vector<int>* dataInd = new std::vector<int>();
+
+	int initialNumberOfActors = actorList->GetNumberOfItems();
+	int dataIndex = m_amountDatasets - 1;
+	for (int currDataInd = (actorList->GetNumberOfItems() - 1); currDataInd >= 0; currDataInd--)
+	{
+		vtkSmartPointer<vtkActor> currAct = actorList->GetLastActor();
+		actorList->RemoveItem(currDataInd);
+
+		//when a zoomedRow is next --> ignore it
+		//zoomed
+		std::vector<int>::iterator iter =
+			std::find(m_indexOfZoomedRows->begin(), m_indexOfZoomedRows->end(), currDataInd);
+		if (iter != m_indexOfZoomedRows->end())
+		{
+			continue;
+		}
+
+		//for every row --> for every actor
+		if (map->find(currAct) != map->end())
+		{
+			std::vector<vtkIdType>* pickedCells = map->find(currAct)->second;
+			std::sort(pickedCells->begin(), pickedCells->end(), std::less<long long>());
+
+			bin::BinType* currRow = binData->at((binData->size() - 1) - dataIndex);
+			bin::BinType* newRow = new bin::BinType();
+
+			//look for the selected cells in the current row
+			for (int i = 0; i < pickedCells->size(); i++)
+			{
+				int currBin = pickedCells->at(i);
+				newRow->push_back(currRow->at(currBin));
+			}
+
+			thisZoomedRowData->append(newRow);
+			dataInd->push_back(abs((m_amountDatasets - 1) - dataIndex));
+		}
+
+		dataIndex--;
+	}
+
+	//DEBUG
+	DEBUG_LOG("DEBUGGING");
+	for (int i = 0; i < thisZoomedRowData->size(); i++) 
+	{
+		bin::debugBinType(thisZoomedRowData->at(i));
+	}
+	
 }
 
 void iACompHistogramTable::redrawZoomedRow(int selectedBinNumber)
@@ -628,23 +723,23 @@ void iACompHistogramTable::initializeLegend(vtkSmartPointer<vtkGenericOpenGLRend
 
 	//title properties
 	scalarBar->GetTitleTextProperty()->BoldOn();
-	scalarBar->GetTitleTextProperty()->SetFontSize(20);
+	scalarBar->GetTitleTextProperty()->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
 	scalarBar->GetTitleTextProperty()->SetVerticalJustificationToTop();
 	scalarBar->SetVerticalTitleSeparation(7);
 	scalarBar->GetTitleTextProperty()->Modified();
 
 	//text properties
 	vtkSmartPointer<vtkTextProperty> propL = vtkSmartPointer<vtkTextProperty>::New();
-	propL->SetFontSize(15);
-	propL->SetColor(1.0, 1.0, 1.0);
+	propL->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
+	propL->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TEXT));
 	propL->Modified();
 	scalarBar->SetAnnotationTextProperty(propL);
 
 	// Setup render window, renderer, and interactor
 	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetViewport(0.9, 0, 1, 1);
-	vtkSmartPointer<vtkNamedColors> nc = vtkSmartPointer<vtkNamedColors>::New();
-	renderer->SetBackground(nc->GetColor3d(backgroundColor).GetData());
+	//vtkSmartPointer<vtkNamedColors> nc = vtkSmartPointer<vtkNamedColors>::New();
+	renderer->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
 	renderer->AddActor2D(scalarBar);
 	renderWindow->AddRenderer(renderer);
 }
@@ -658,65 +753,32 @@ void iACompHistogramTable::addDatasetName(int currDataset, double* position)
 	std::string name = filenames->at(currDataset).toLocal8Bit().constData();
 	name.erase(0, name.find_last_of("/\\") + 1);
 
-	vtkSmartPointer<vtkVectorText> textSource = vtkSmartPointer<vtkVectorText>::New();
+	//DEBUG_LOG(QString("Position = %1/ %2/ %3").arg(position[0]).arg(position[1]).arg(position[2]));
+
+	vtkSmartPointer<vtkCoordinate> coord = vtkSmartPointer<vtkCoordinate>::New();
+	coord->SetCoordinateSystemToWorld();
+	coord->SetValue(position);
+	coord->SetViewport(m_renderer);
+	coord->SetCoordinateSystemToViewport();
+	double* transformedCoord = coord->GetComputedValue(m_renderer);
+
+	//DEBUG_LOG(QString("Position after transform = %1/ %2/ %3").arg(transformedCoord[0]).arg(transformedCoord[1]).arg(transformedCoord[2]));
+
+	// Create some text
+	vtkSmartPointer<vtkVectorText> textSource =	vtkSmartPointer<vtkVectorText>::New();
 	textSource->SetText(name.c_str());
-	textSource->Update();
 
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	// Create a mapper
+	vtkSmartPointer<vtkPolyDataMapper> mapper =	vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputConnection(textSource->GetOutputPort());
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetMapper(mapper);
-	actor->GetProperty()->SetColor(1.0, 1.0, 1.0);
 
-	double x = (1 / m_qvtkWidgetWidth) * (std::abs(position[0]) / 100.0);
-	double y = ((std::abs(position[1]) / m_qvtkWidgetHeight) * 100.0) * (m_qvtkWidgetHeight / 100.0);
-	double newPos[3] = {(position[0] - (m_qvtkWidgetWidth*0.5)), (position[1] + (m_colSize*0.5)), position[2]};
-	//double newPos[3] = {x, y, position[2]};
+	// Create a subclass of vtkActor: a vtkFollower that remains facing the camera
+	vtkSmartPointer<vtkActor> follower = vtkSmartPointer<vtkActor>::New();
+	follower->SetMapper(mapper);
+	follower->SetPosition(position[0], position[1], position[2]);
+	//follower->SetScale(10, 10, 10);
 
-	DEBUG_LOG("position: " + QString::number(position[0]) + " " + QString::number(position[1]) + " " +
-			  QString::number(position[2]) + " ");
-	DEBUG_LOG("newPos: " + QString::number(newPos[0]) + " " + QString::number(newPos[1]) + " " +
-			  QString::number(newPos[2]) + " ");
-
-	/*vtkSmartPointer<vtkTextActor> textActor = vtkSmartPointer<vtkTextActor>::New();
-	textActor->SetInput(name.c_str());
-	//textActor->SetPosition(10, 40);
-
-	actor->SetPosition(newPos);
-	actor->Modified();
-
-	textActor->SetPosition(0, newPos[1]);
-	textActor->SetPosition2(70, newPos[1] + 40);
-	//textActor->SetTextScaleModeToProp();
-
-	textActor->GetTextProperty()->SetFontSize(12);
-	textActor->GetTextProperty()->SetColor(1.0, 1.0, 1.0);
-
-	//actor->SetScale((m_qvtkWidgetWidth*0.01));
-	textActor->Modified();*/
-
-	  vtkSmartPointer<vtkCoordinate> coordinate = vtkSmartPointer<vtkCoordinate>::New();
-	coordinate->SetCoordinateSystemToWorld();
-	  coordinate->SetValue(newPos);
-	int* display = coordinate->GetComputedDisplayValue(m_renderer);
-
-	DEBUG_LOG("display: " + QString::number(display[0]) + " " + QString::number(display[1]));
-
-	/*vtkSmartPointer<vtkCaptionActor2D> captionActor = vtkSmartPointer<vtkCaptionActor2D>::New();
-	captionActor->SetCaption(name.c_str());
-	//captionActor->SetAttachmentPoint(newPos);
-	captionActor->SetPosition(display[0], display[1]);
-	captionActor->SetPosition2(display[0] + 70, display[1] + 40);
-	//captionActor->BorderOff();
-	captionActor->GetCaptionTextProperty()->BoldOff();
-	captionActor->GetCaptionTextProperty()->ItalicOff();
-	captionActor->GetCaptionTextProperty()->ShadowOff();
-	captionActor->ThreeDimensionalLeaderOff();
-
-	m_renderer->AddViewProp(captionActor);*/
-
-
-	//m_renderer->AddActor2D(textActor);
+	m_renderer->AddActor(follower);
 }
 
 void iACompHistogramTable::initializeInteraction()
@@ -726,6 +788,7 @@ void iACompHistogramTable::initializeInteraction()
 	style->setIACompHistogramTable(this);
 	style->SetDefaultRenderer(m_renderer);
 	style->SetCurrentRenderer(m_renderer);
+	style->setIACompVisMain(m_main);
 
 	qvtkWidget->GetInteractor()->SetInteractorStyle(style);
 }

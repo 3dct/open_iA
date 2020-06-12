@@ -26,6 +26,8 @@ class vtkGenericOpenGLRenderWindow;
 class vtkPlaneSource;
 class vtkRenderer;
 
+class iACompVisMain;
+
 //testing
 
 class iACompHistogramTableData;
@@ -34,7 +36,7 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 {
 	Q_OBJECT
    public:
-	iACompHistogramTable(MainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* m_dataStorage);
+	iACompHistogramTable(MainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* m_dataStorage, iACompVisMain* main);
 	void showEvent(QShowEvent* event);
 
 	void drawHistogramTable(int bins);
@@ -67,6 +69,8 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	vtkSmartPointer<vtkRenderer> getRenderer();
 	//re-render the widget/visualization
 	void renderWidget();
+
+	void getSelectedData(Pick::PickedMap* map);
 
    private:
 	//calculate the histogram datastructure
@@ -101,6 +105,7 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	// Create the outline
 	vtkSmartPointer<vtkActor> createOutline(vtkDataObject* object, double color[3]);
 
+	iACompVisMain* m_main;
 	iACsvDataStorage* m_dataStorage;
 	std::vector<vtkSmartPointer<vtkActor>>* m_datasetNameActors;
 
@@ -123,8 +128,9 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	//number of subdivisions
 	double m_rowSize;
 
-	int m_qvtkWidgetHeight;
-	int m_qvtkWidgetWidth;
+	//int m_qvtkWidgetHeight;
+	//int m_qvtkWidgetWidth;
+	double screenRatio;
 
 	//each dataset is one plane row
 	const int m_ColForData = 1;
@@ -135,7 +141,6 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	//amount of colors
 	int m_tableSize;
 
-	const std::string backgroundColor = "LightSlateGray";
 
 	std::vector<int>* m_indexOfZoomedRows;
 	//store bin data for zoom of selected rows

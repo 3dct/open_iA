@@ -10,6 +10,7 @@
 
 class iACompHistogramTable;
 class vtkRenderer;
+class iACompVisMain;
 
 namespace Pick
 {
@@ -32,6 +33,7 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 
 	//init iACompHistogramTable
 	void setIACompHistogramTable(iACompHistogramTable* visualization);
+	void setIACompVisMain(iACompVisMain* main);
 
    protected:
 	iACompHistogramTableInteractorStyle();
@@ -58,6 +60,8 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 	//non linear zooming out - zooming out on currently selected bin(s)/row(s)
 	void nonLinearZoomOut();
 
+	void updateOtherCharts();
+
 	iACompHistogramTable* m_visualization;
 	//is a u
 	Pick::PickedMap* m_picked;
@@ -75,4 +79,5 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 	//stores the actors added to display the border of the selected cells
 	//have to be removed before any calculation for zooming can take place!
 	std::vector<vtkSmartPointer<vtkActor>>* m_highlighingActors;
+	iACompVisMain* m_main;
 };

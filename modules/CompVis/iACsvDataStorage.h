@@ -12,11 +12,11 @@
 
 namespace csvDataType
 {
-	using ValueType = double;
+	//using ValueType = double;
 	//ArrayType always has the same length of rows for each column and vice versa
 	//ArrayTpe corresponds to a mxn matrix!
 	//ArrayType != BinType
-	using ArrayType = std::vector<std::vector<ValueType>>;
+	using ArrayType = std::vector<std::vector<double>>;
 
 	//initialize with zeros
 	ArrayType* initialize(int columns, int rows);

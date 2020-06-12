@@ -99,8 +99,8 @@ void iACsvDataStorage::initializeValueArray(
 	for (int t = 0; t < attrCount; t++)
 	{
 		DEBUG_LOG(QString::number(values->at(values->size()-1).at(t)));
-	}
-	*/
+	}*/
+	
 }
 
 void iACsvDataStorage::customizeCSVFile(QList<QStringList>* list)
