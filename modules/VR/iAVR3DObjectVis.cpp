@@ -198,6 +198,23 @@ void iAVR3DObjectVis::setCubeColor(QColor col, int regionID)
 	glyph3D->Update();
 }
 
+//! Colors the whole miniature model with the given rgba values ( between 0.0 and 1.0)
+void iAVR3DObjectVis::applyHeatmapColoring(std::vector<std::vector<double>>* colorPerRegion)
+{
+	vtkSmartPointer<vtkUnsignedCharArray> colorArr = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	colorArr->SetName("colors");
+	colorArr->SetNumberOfComponents(4);
+
+	for (int i = 0; i < colorPerRegion->size(); i++)
+	{
+		colorArr->InsertNextTuple4(colorPerRegion->at(i).at(0)*255, colorPerRegion->at(i).at(1) * 255, colorPerRegion->at(i).at(2) * 255, colorPerRegion->at(i).at(3) * 255);
+	}
+
+	m_cubePolyData->GetPointData()->SetScalars(colorArr);
+	m_cubePolyData->Modified();
+	glyph3D->Update();
+}
+
 void iAVR3DObjectVis::setLinearCubeOffset(double offset)
 {
 	if(m_cubePolyData == nullptr)

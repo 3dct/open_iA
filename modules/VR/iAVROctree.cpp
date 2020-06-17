@@ -24,12 +24,15 @@
 #include "vtkPolyData.h"
 #include "vtkActor.h"
 #include "vtkProperty.h"
+#include "vtkIdTypeArray.h"
 #include <iAConsole.h>
 
 iAVROctree::iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet):m_renderer(ren),m_dataSet(dataSet),m_actor(vtkSmartPointer<vtkActor>::New()),
 m_octree(vtkSmartPointer<vtkOctreePointLocator>::New())
 {
 	m_visible = false;
+	numberOfLeaveNodes = 0;
+	m_fibersInRegion = new std::vector<std::unordered_map<vtkIdType, double>*>();
 }
 
 void iAVROctree::generateOctreeRepresentation(int level, QColor col)
@@ -187,6 +190,21 @@ int iAVROctree::getNumberOfLeafeNodes()
 	return numberOfLeaveNodes;
 }
 
+//! Returns which fibers (ID) lie in which region with coverage of 1. Gets calculated on the first call.
+//! They all lie (independent of their real coverage) to 100% inside the region
+std::vector<std::unordered_map<vtkIdType, double>*>* iAVROctree::getfibersInRegionMapping(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex)
+{
+	if(!m_fibersInRegion->empty())
+	{
+		return m_fibersInRegion;
+	}
+	else
+	{
+		mapFibersToRegion(pointIDToCsvIndex);
+		return m_fibersInRegion;
+	}
+}
+
 void iAVROctree::show()
 {
 	if (m_visible)
@@ -210,4 +228,30 @@ void iAVROctree::hide()
 vtkActor* iAVROctree::getActor()
 {
 	return m_actor;
+}
+
+//! Stores which fibers lie in which region
+//! They all lie (independent of their real coverage) to 100% inside the region
+//! Regions without fibers have no entry
+void iAVROctree::mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex)
+{
+	for(int region = 0; region < numberOfLeaveNodes; region++)
+	{
+		vtkIdTypeArray* points = m_octree->GetPointsInRegion(region);
+		std::unordered_map<vtkIdType, double>* tempMap = new std::unordered_map<vtkIdType, double>();
+		//Check if points is not null!!
+		if (points != nullptr) {
+
+			for (int i = 0; i < points->GetSize(); i++)
+			{
+				vtkIdType fiberiD;
+				if (pointIDToCsvIndex->find(points->GetValue(i)) != pointIDToCsvIndex->end())
+				{
+					fiberiD = pointIDToCsvIndex->at(points->GetValue(i));
+				}
+				tempMap->insert(std::make_pair(fiberiD, 1));
+			}
+		}
+		m_fibersInRegion->push_back(tempMap);
+	}
 }

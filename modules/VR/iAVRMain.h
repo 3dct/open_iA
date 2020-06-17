@@ -22,7 +22,7 @@
 
 #include "vtkSmartPointer.h"
 #include "iAVREnvironment.h"
-
+#include "iAVRMetrics.h"
 
 #include "vtkEventData.h"
 #include "vtkTable.h"
@@ -81,7 +81,7 @@ private:
 	vtkSmartPointer<vtkPolyData> m_extendedCylinderVisData; // Data extended with additional intersection points
 	vtkSmartPointer<iAVRInteractorStyle> m_style;
 	vtkSmartPointer<vtkTable> m_objectTable;
-	//vtkSmartPointer<vtkProp3D> m_pickedProp;
+	iAVRMetrics* fiberMetrics;
 	iACsvIO m_io;
 	//Current Device Position
 	double cPos[vtkEventDataNumberOfDevices][3];
@@ -111,6 +111,8 @@ private:
 	vtkSmartPointer<vtkPoints> getOctreeFiberCoverage(double startPoint[3], double endPoint[3], int octreeLevel, double fiberLength, std::vector<double>* coverageInRegion);
 	void drawPoint(std::vector<double*>* pos, QColor color);
 	void generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyData* dataSet);
+	void calculateMetrics();
+	void updateModelInMiniatureData();
 
 	//# Methods for interaction #//
 	void changeOctreeLevel();

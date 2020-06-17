@@ -41,6 +41,7 @@
 #include "vtkIntersectionPolyDataFilter.h"
 #include "vtkLineSource.h"
 #include "vtkVertexGlyphFilter.h"
+#include "vtkScalarBarActor.h"
 
 #include <QColor>
 
@@ -59,8 +60,8 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	m_style(style),	m_objectTable(objectTable),	m_io(io)
 {
 	m_cylinderVis = new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, m_io.getOutputMapping(), QColor(140,140,140,255), std::map<size_t, std::vector<iAVec3f> >());
-	m_cylinderVis->setShowLines(true);
-	m_cylinderVis->getActor()->GetProperty()->SetLineWidth(4);
+	//m_cylinderVis->setShowLines(true);
+	//m_cylinderVis->getActor()->GetProperty()->SetLineWidth(4);
 
 	//Define Octree
 	currentOctreeLevel = 0;
@@ -68,14 +69,23 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	generateOctrees(OCTREE_MAX_LEVEL, OCTREE_POINTS_PER_REGION, m_cylinderVis->getPolyData());
 	//m_octree->calculateOctree(OCTREE_MAX_LEVEL, OCTREE_POINTS_PER_REGION);
 
+	// For true TranslucentGeometry
+	//https://vtk.org/Wiki/VTK/Examples/Cxx/Visualization/CorrectlyRenderTranslucentGeometry#CorrectlyRenderTranslucentGeometry.cxx
+	//m_vrEnv->renderer()->SetUseDepthPeeling(true);
+	//m_vrEnv->renderer()->SetMaximumNumberOfPeels(2);
+
+	//Initialize Metrics class
+	fiberMetrics = new iAVRMetrics(m_objectTable, m_io, m_octrees);
+
 	//map for the coverage of each fiber (Initialize with MaxLeafNodes in Max Level)
-	std::vector<std::unordered_map<vtkIdType, double>*> tempMap(m_octrees->back()->getNumberOfLeafeNodes(), new std::unordered_map<vtkIdType, double>());
-	m_fiberCoverage = new std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>(OCTREE_MAX_LEVEL + 1, tempMap); //+1 as Level starts at 1 and should end at 3
+	m_fiberCoverage = new std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>();
 
 	//Thread
 	m_iDMappingThread = std::thread(&iAVRMain::mapAllPointiDs, this);
 	//m_iDMappingThread = std::thread(&iAVRMain::mapAllPointiDsAndCalculateFiberCoverage, this);
 	//mapAllPointiDsAndCalculateFiberCoverage();
+	//mapAllPointiDs();
+	//m_iDMappingThreadRunning = false;
 
 	//Add InteractorStyle
 	m_style->setVRMain(this);
@@ -96,13 +106,14 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::ApplicationMenu, vtkEventDataAction::Press,
 		iAVRInteractionOptions::NoObject, iAVROperations::ResetSelection);
 	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::ApplicationMenu, vtkEventDataAction::Press,
-		iAVRInteractionOptions::NoObject, iAVROperations::SpawnModelInMiniature);
+		iAVRInteractionOptions::Anywhere, iAVROperations::SpawnModelInMiniature);
 	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::ApplicationMenu, vtkEventDataAction::Press,
 		iAVRInteractionOptions::MiniatureModel, iAVROperations::SpawnModelInMiniature);
 	//Release, Untouch
 
 	//Create Cube
 	m_objectVis = new iAVR3DObjectVis(m_vrEnv->renderer());
+	m_objectVis->setOctree(m_octrees->at(OCTREE_MIN_LEVEL));
 
 	m_cylinderVis->show();	
 
@@ -227,7 +238,14 @@ void iAVRMain::mapAllPointiDs()
 		m_pointIDToCsvIndex.insert(std::make_pair(m_cylinderVis->getPolyData()->FindPoint(endPos), row));
 	}
 	DEBUG_LOG(QString("Volume Data loaded"));
-	
+
+	//Calculate Fibers in Region
+	for (int i = 0; i < m_octrees->size(); i++)
+	{
+		m_fiberCoverage->push_back(*m_octrees->at(i)->getfibersInRegionMapping(&m_pointIDToCsvIndex));	
+	}
+	DEBUG_LOG(QString("Fibers in Region for every octree calculated"));
+
 	m_iDMappingThreadRunning = false; //Thread ended
 }
 
@@ -708,6 +726,31 @@ void iAVRMain::generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyData
 	if(m_octrees->empty()) DEBUG_LOG(QString("NO OCTREE GENERATED"));
 }
 
+void iAVRMain::calculateMetrics()
+{
+	//Gets only called when thread is finished
+	if(!m_iDMappingThreadRunning){
+		fiberMetrics->setFiberCoverageData(m_fiberCoverage);
+		std::vector<std::vector<double>>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, 9);
+
+		//DEBUG_LOG(QString(">In Main the 1 color is: %1 / %2 / %3 / %4").arg(rgba->at(0).at(0)).arg(rgba->at(0).at(1)).arg(rgba->at(0).at(2)).arg(rgba->at(0).at(3)));
+		//DEBUG_LOG(QString(">In Main the 2 color is: %1 / %2 / %3 / %4").arg(rgba->at(1).at(0)).arg(rgba->at(1).at(1)).arg(rgba->at(1).at(2)).arg(rgba->at(1).at(3)));
+
+		m_objectVis->applyHeatmapColoring(rgba);
+
+		fiberMetrics->getColorBarLegend()->SetTitle("Length");
+		
+	}
+}
+
+//! Updates the data (Octree, Metrics,...) for the current MiM
+void iAVRMain::updateModelInMiniatureData()
+{
+	m_objectVis->setOctree(m_octrees->at(currentOctreeLevel));
+	m_objectVis->createModelInMiniature();
+	calculateMetrics();
+}
+
 //! Increases the current octree level by one until max level and repeats. Recalculates the Model in Miniature Object.
 void iAVRMain::changeOctreeLevel()
 {
@@ -723,8 +766,7 @@ void iAVRMain::changeOctreeLevel()
 	//m_octree->calculateOctree(currentOctreeLevel, OCTREE_POINTS_PER_REGION);
 	m_octrees->at(currentOctreeLevel)->generateOctreeRepresentation(currentOctreeLevel, OCTREE_COLOR);
 	m_octrees->at(currentOctreeLevel)->show();
-	m_objectVis->setOctree(m_octrees->at(currentOctreeLevel));
-	m_objectVis->createModelInMiniature();
+	updateModelInMiniatureData();
 }
 
 void iAVRMain::pickSingleFiber(double eventPosition[3])
@@ -812,19 +854,18 @@ void iAVRMain::pickMimRegion(double eventPosition[3], double eventOrientation[4]
 void iAVRMain::resetSelection()
 {
 	m_cylinderVis->renderSelection(std::vector<size_t>(), 0, QColor(140, 140, 140, 255), nullptr);
-	m_objectVis->createModelInMiniature();
 }
 
 void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 {
+	
 	if(!hide)
 	{
 		modelInMiniatureActive = true;
 		double scale[3] = {0.15, 0.15, 0.15};
 		int controllerID = static_cast<int>(vtkEventDataDevice::LeftController);
 
-		//m_objectVis->setOctree(m_octree);
-		m_objectVis->createModelInMiniature();
+		updateModelInMiniatureData();
 		m_objectVis->setScale(scale[0], scale[1], scale[2]);
 
 		double sideDistance = *(m_objectVis->getActor()->GetYRange());
@@ -832,11 +873,17 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 		m_objectVis->setPos(cPos[controllerID][0] + hoveringOffset[0], cPos[controllerID][1] + hoveringOffset[1], cPos[controllerID][2] + hoveringOffset[2]);
 
 		m_objectVis->show();
+
+		calculateMetrics();
+		fiberMetrics->getColorBarLegend()->GetPositionCoordinate()->SetCoordinateSystemToWorld();
+		fiberMetrics->getColorBarLegend()->GetPositionCoordinate()->SetValue(eventPosition);
+		fiberMetrics->showColorBarLegend(m_vrEnv->renderer());
 	}
 	else
 	{
 		modelInMiniatureActive = false;
 		m_objectVis->hide();
+		fiberMetrics->hideColorBarLegend(m_vrEnv->renderer());
 	}
 }
 

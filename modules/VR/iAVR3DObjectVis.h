@@ -47,6 +47,7 @@ public:
 	void setPos(double x, double y, double z);
 	void setOrientation(double x, double y, double z);
 	void setCubeColor(QColor col, int regionID);
+	void applyHeatmapColoring(std::vector<std::vector<double>>* colorPerRegion);
 	void setLinearCubeOffset(double offset);
 	vtkIdType getClosestCellID(double pos[3], double eventOrientation[3]);
 	void setOctree(iAVROctree* octree);

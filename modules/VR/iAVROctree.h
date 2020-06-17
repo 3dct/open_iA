@@ -25,7 +25,9 @@
 #include <vtkDataSet.h>
 #include <vtkOctreePointLocator.h>
 #include <vtkPlaneSource.h>
+
 #include <QColor>
+#include <unordered_map>
 
 //! Class for calculation of a 3D Octree 
 class iAVROctree
@@ -40,9 +42,11 @@ public:
 	void createOctreeBoundingBoxPlanes(int regionID, std::vector<vtkSmartPointer<vtkPlaneSource>>* planes);
 	void movePointInsideRegion(double point[3], double movedPoint[3]);
 	int getNumberOfLeafeNodes();
+	std::vector<std::unordered_map<vtkIdType, double>*>* getfibersInRegionMapping(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex);
 	void show();
 	void hide();
 	vtkActor* getActor();
+
 private:
 	int numberOfLeaveNodes;
 	bool m_visible;
@@ -50,4 +54,8 @@ private:
 	vtkSmartPointer<vtkActor> m_actor;
 	vtkSmartPointer<vtkDataSet> m_dataSet;
 	vtkSmartPointer<vtkOctreePointLocator> m_octree;
+	//Saves the octree [region] and a  map of its fiber IDs [iD] with their coverage (0.0-1.0)
+	std::vector<std::unordered_map<vtkIdType, double>*>* m_fibersInRegion;
+
+	void mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex);
 };

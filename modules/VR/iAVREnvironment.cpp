@@ -70,6 +70,7 @@ void iAVREnvironment::start()
 
 	m_renderer->SetActiveCamera(camera);
 	m_renderer->ResetCamera();
+	m_renderer->ResetCameraClippingRange();
 	m_renderWindow->Render();
 	m_interactor->Start();
 	--runningInstances;

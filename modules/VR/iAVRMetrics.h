@@ -24,24 +24,45 @@
 #include <unordered_map>
 
 #include "iACsvIO.h"
+#include "iAVROctree.h"
+
 #include "vtkTable.h"
 #include "vtkLookupTable.h"
-#include "vtkColorTransferFunction.h"
+#include "vtkScalarBarActor.h"
+#include "vtkRenderer.h"
 
+//!This class calculates the metrics used in the Model in Miniature Heatmap
 class iAVRMetrics
 {
 public:
-	iAVRMetrics(vtkTable* objectTable, iACsvIO io, std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage);
-	void calculateWeightedAverage(int octreeLevel, int feature);
-	vtkLookupTable* calculateLUT(double min, double max);
+	iAVRMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees);
+	void setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage);
+	std::vector<std::vector<double>>* getHeatmapColoring(int octreeLevel, int feature);
+	vtkSmartPointer<vtkLookupTable> getLut();
+	vtkSmartPointer<vtkScalarBarActor> getColorBarLegend();
+	void showColorBarLegend(vtkRenderer* ren);
+	void hideColorBarLegend(vtkRenderer* ren);
+	
 
 private:
 	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
 	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
-	//Stores for the chosen [feature] at an [octree level] for every [octree region] the metric value
+	//Stores for an [octree level] for choosen [feature] for every [octree region] the metric value
 	std::vector<std::vector<std::vector<double>>>* m_calculatedStatistic;
+	//Stores the for a [feature] the [0] min and the [1] max value from the csv file
+	std::vector<std::vector<double>>* m_minMaxValues;
 	vtkSmartPointer<vtkTable> m_objectTable;
+	vtkSmartPointer<vtkLookupTable> m_lut;
+	vtkSmartPointer<vtkScalarBarActor> m_colorBar;
 	iACsvIO m_io;
+	bool m_colorBarVisible;
+	std::vector<iAVROctree*>* m_octrees;
+	//Stores the info if at a specific octree [level] a specific [feature] is already calculated
+	std::vector<std::vector<bool>>* isAlreadyCalculated;
 
-	vtkColorTransferFunction* createColorTransferFunction();
+	void calculateWeightedAverage(int octreeLevel, int feature);
+	double histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax);
+	vtkSmartPointer<vtkLookupTable> calculateLUT(double min, double max, int tableSize);
+	void storeMinMaxValues();
+
 };

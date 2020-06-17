@@ -20,68 +20,206 @@
 * ************************************************************************************/
 #include "iAVRMetrics.h"
 
+#include <iAConsole.h>
 #include <vtkVariant.h>
+#include <vtkProperty2D.h>
 
-iAVRMetrics::iAVRMetrics(vtkTable* objectTable, iACsvIO io, std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage):m_objectTable(objectTable),
-m_io(io), m_fiberCoverage(fiberCoverage)
+iAVRMetrics::iAVRMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees):m_objectTable(objectTable), m_io(io),
+m_octrees(octrees)
 {
+	//Initilaize vectors
+	isAlreadyCalculated = new std::vector<std::vector<bool>>(m_octrees->size(), std::vector<bool>(iACsvConfig::MappedCount, false));
+	
+	std::vector<double> region = std::vector<double>();
+	std::vector<std::vector<double>> feature = std::vector<std::vector<double>>(iACsvConfig::MappedCount, region);
+	m_calculatedStatistic = new std::vector<std::vector<std::vector<double>>>(m_octrees->size(), feature);
+
+	m_colorBar = vtkSmartPointer<vtkScalarBarActor>::New();
+	m_colorBarVisible = false;
 }
 
-//! Calculates the weighted average of every octree region for a given feature at a given octree level
-//! Calculates:  1/#Fiber * SUM[#Fiber]( Attribut * weight)
+//! Has to be called *before* getting any Metric data
+void iAVRMetrics::setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage)
+{
+	m_fiberCoverage = fiberCoverage;
+}
+
+//! Calculates the weighted average of every octree region for a given feature at a given octree level.
+//! In the first call the metric has to calculate the values, for later calls the metric is saved
+//! Calculates:  1/N * SUM[N]( Attribut * weight)  with N = all Fibers
 void iAVRMetrics::calculateWeightedAverage(int octreeLevel, int feature)
 {
-	for(int region = 0; region < m_fiberCoverage->at(octreeLevel).size(); region++)
-	{
-		double metricResultPerRegion;
-		int fibersInRegion = 0;
-
-		for (auto element : *m_fiberCoverage->at(octreeLevel).at(region))
+	if(!isAlreadyCalculated->at(octreeLevel).at(feature)){
+		
+		for (int region = 0; region < m_fiberCoverage->at(octreeLevel).size(); region++)
 		{
-			double fiberAttribute = m_objectTable->GetValue(element.first, m_io.getOutputMapping()->value(feature)).ToFloat();
-			double weightedAttribute = fiberAttribute * element.second;
-			metricResultPerRegion += weightedAttribute;
-			fibersInRegion++;
+			double metricResultPerRegion = 0;
+			int fibersInRegion = 0;
+
+			for (auto element : *m_fiberCoverage->at(octreeLevel).at(region))
+			{
+				double fiberAttribute = m_objectTable->GetValue(element.first, m_io.getOutputMapping()->value(feature)).ToFloat();
+				double weightedAttribute = fiberAttribute * element.second;
+				metricResultPerRegion += weightedAttribute;
+				fibersInRegion++;
+			}
+			if(fibersInRegion == 0)
+			{
+				fibersInRegion = 1; // Prevent Division by zero
+			}
+			m_calculatedStatistic->at(octreeLevel).at(feature).push_back(metricResultPerRegion / fibersInRegion);
 		}
-		m_calculatedStatistic->at(feature).at(octreeLevel).at(region) = (metricResultPerRegion/ fibersInRegion);
+		isAlreadyCalculated->at(octreeLevel).at(feature) = true;
 	}
 }
 
-vtkLookupTable * iAVRMetrics::calculateLUT(double min, double max)
+//! Returns a rgba coloring (between 0 and 1) vector for every region in the current octree level
+std::vector<std::vector<double>>* iAVRMetrics::getHeatmapColoring(int octreeLevel, int feature)
 {
-	vtkSmartPointer<vtkColorTransferFunction> ctf = createColorTransferFunction();
-	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+	std::vector<std::vector<double>>* heatmapColors = new std::vector<std::vector<double>>();
+	calculateWeightedAverage(octreeLevel, feature);
 
-	lut->SetNumberOfTableValues(7);
-	lut->Build();
+	storeMinMaxValues();
 
-	for (size_t i = 0; i < 8; ++i)
+	double min =  m_minMaxValues->at(feature).at(0);
+	double max = m_minMaxValues->at(feature).at(1);
+
+	calculateLUT(min, max, 8); //8 Colors
+	
+	for (int region = 0; region < m_fiberCoverage->at(octreeLevel).size(); region++)
 	{
-		double *rgb;
-		rgb = ctf->GetColor(static_cast<double>(i) / 8);
-		lut->SetTableValue(i, rgb);
+		std::vector<double> temp = std::vector<double>();
+		double rgba[4] = {0,0,0,1};
+		//double val = histogramNormalization(m_calculatedStatistic->at(octreeLevel).at(feature).at(region),0,1,min,max);
+		double val = m_calculatedStatistic->at(octreeLevel).at(feature).at(region);
+
+		m_lut->GetColor(val, rgba);
+		rgba[3] = m_lut->GetOpacity(val);
+
+		for (int i = 0; i < 4; i++)
+		{
+			temp.push_back(rgba[i]);
+			//temp.push_back(m_lut->MapValue(val)[i]/255);
+		}
+		heatmapColors->push_back(temp);
 	}
-	//Add colors in Method?
-	return nullptr;
+
+	return heatmapColors;
 }
 
-vtkColorTransferFunction* iAVRMetrics::createColorTransferFunction()
+vtkSmartPointer<vtkLookupTable> iAVRMetrics::calculateLUT(double min, double max, int tableSize)
 {
-	vtkSmartPointer<vtkColorTransferFunction> ctf =	vtkSmartPointer<vtkColorTransferFunction>::New();
-	ctf->SetColorSpaceToDiverging();
+	// Color Scheme: https://colorbrewer2.org/?type=diverging&scheme=RdYlBu&n=8 
+	QColor a = QColor(215, 48, 39, 255);
+	QColor b = QColor(244, 109, 67, 255);
+	QColor c = QColor(253, 174, 97, 255);
+	QColor d = QColor(254, 224, 144, 255);
+	QColor e = QColor(224, 243, 248, 255);
+	QColor f = QColor(171, 217, 233, 255);
+	QColor g = QColor(116, 173, 209, 255);
+	QColor h = QColor(69, 117, 180, 255);
 
-	// CREATE some different Color Transferfunctions and add them to a ? vector ?. To let the user choose
-	// With int user can select in calculateLUT the color the want to use
-	// Color: https://colorbrewer2.org/?type=diverging&scheme=RdYlBu&n=8 
+	//vtkSmartPointer<vtkColorTransferFunction> ctf = createColorTransferFunction(min, max);
+	m_lut = vtkSmartPointer<vtkLookupTable>::New();
 
-	ctf->AddRGBPoint(0.0, 215 / 255, 48 / 255, 39 / 255);
-	ctf->AddRGBPoint(1/7, 244 / 255, 109 / 255, 67 / 255);
-	ctf->AddRGBPoint(2/7, 253 / 255, 174 / 255, 97 / 255);
-	ctf->AddRGBPoint(3/7, 254 / 255, 224 / 255, 144 / 255);
-	ctf->AddRGBPoint(4/7, 224 / 255, 243 / 255, 248 / 255);
-	ctf->AddRGBPoint(5/7, 171 / 255, 217 / 255, 233 / 255);
-	ctf->AddRGBPoint(6/7, 116 / 255, 173 / 255, 209 / 255);
-	ctf->AddRGBPoint(7/7, 69 / 255, 117 / 255, 180 / 255);
+	m_lut->SetNumberOfTableValues(tableSize);
+	m_lut->Build();
 
-	return ctf;
+	m_lut->SetTableValue(0, h.redF(), h.greenF(), h.blueF());
+	m_lut->SetTableValue(1, g.redF(), g.greenF(), g.blueF());
+	m_lut->SetTableValue(2, f.redF(), f.greenF(), f.blueF());
+	m_lut->SetTableValue(3, e.redF(), e.greenF(), e.blueF());
+	m_lut->SetTableValue(4, d.redF(), d.greenF(), d.blueF());
+	m_lut->SetTableValue(5, c.redF(), c.greenF(), c.blueF());
+	m_lut->SetTableValue(6, b.redF(), b.greenF(), b.blueF());
+	m_lut->SetTableValue(7, a.redF(), a.greenF(), a.blueF());
+
+	m_lut->SetTableRange(min, max);
+	m_lut->SetBelowRangeColor(1, 1, 1, 1);
+	m_lut->UseBelowRangeColorOn();
+
+	m_colorBar->SetLookupTable(m_lut);
+	m_colorBar->SetNumberOfLabels(8);
+	m_colorBar->DrawBelowRangeSwatchOn();
+
+	return m_lut;
 }
+
+vtkSmartPointer<vtkLookupTable> iAVRMetrics::getLut()
+{
+	return m_lut;
+}
+
+vtkSmartPointer<vtkScalarBarActor> iAVRMetrics::getColorBarLegend()
+{
+	return m_colorBar;
+}
+
+void iAVRMetrics::showColorBarLegend(vtkRenderer* ren)
+{
+	if (m_colorBarVisible)
+	{
+		return;
+	}
+	ren->AddActor2D(m_colorBar);
+	m_colorBarVisible = true;
+}
+
+void iAVRMetrics::hideColorBarLegend(vtkRenderer* ren)
+{
+	if (!m_colorBarVisible)
+	{
+		return;
+	}
+	ren->RemoveActor2D(m_colorBar);
+	m_colorBarVisible = false;
+}
+
+double iAVRMetrics::histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax)
+{
+	double result = ((newMax - newMin) * ((value - oldMin) / (oldMax - oldMin))) + newMin;
+	return result;
+}
+
+void iAVRMetrics::storeMinMaxValues()
+{
+	m_minMaxValues = new std::vector<std::vector<double>>();
+
+	//int numberOfFeatures = m_objectTable->GetNumberOfColumns();
+	int numberOfFeatures = iACsvConfig::MappedCount;
+
+	std::vector<double> minAttribute = std::vector<double>(); //= m_objectTable->GetColumn(feature)->GetVariantValue(0).ToFloat();
+	std::vector<double> maxAttribute = std::vector<double>(); //= minAttribute;
+
+	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
+	{
+		for (int feature = 0; feature < numberOfFeatures; feature++)
+		{
+			//double currentValue = m_objectTable->GetColumn(feature)->GetVariantValue(row).ToFloat();
+			double currentValue = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(feature)).ToFloat();
+
+			//initialize values at first fiber
+			if (row == 0)
+			{
+				minAttribute.push_back(currentValue);
+				maxAttribute.push_back(currentValue);
+			}
+			if (minAttribute[feature] > currentValue)
+			{
+				minAttribute[feature] = currentValue;
+			}
+			if (maxAttribute[feature] < currentValue)
+			{
+				maxAttribute[feature] = currentValue;
+			}
+		}
+	}
+	for (int feature = 0; feature < numberOfFeatures; feature++)
+	{
+		std::vector<double> tempVec = std::vector<double>();
+		tempVec.push_back(minAttribute[feature]);
+		tempVec.push_back(maxAttribute[feature]);
+		m_minMaxValues->push_back(tempVec);
+	}
+}
+
