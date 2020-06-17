@@ -556,8 +556,11 @@ IF (MSVC)
 ELSE()
 	# on MSVC, setting CMAKE_CXX_STANDARD leads to RTK not to compile currently
 	# due to random_shuffle being used (deprecated in C++14, apparently removed in 17 or 20)
-	MESSAGE(STATUS "Aiming for C++20 support.")
-	SET(CMAKE_CXX_STANDARD 20)
+	#MESSAGE(STATUS "Aiming for C++20 support.")
+	#SET(CMAKE_CXX_STANDARD 20)
+	# Enabling C++20 can cause problems as e.g. ITK 5.0.1 is not yet fully C++20 compatible!
+	MESSAGE(STATUS "Aiming for C++17 support.")
+	SET(CMAKE_CXX_STANDARD 17)
 	SET(CMAKE_CXX_EXTENSIONS OFF)
 	# use CMAKE_CXX_STANDARD_REQUIRED? e.g.:
 	# SET (CMAKE_CXX_STANDARD 11)
