@@ -69,51 +69,46 @@ void iAMultidimensionalScaling::normalizeMatrix()
 {
 	std::vector<double> maxValsForCols(m_amountOfCharas);
 
-	//skip first column & row, since these are only label numbers
-	for (int row = 1; row < m_amountOfCharas; row++)
+	//skip first column & row, since these are only label numbers	
+	for (int col = 1; col < m_amountOfCharas; col++)
 	{
-		maxValsForCols[row - 1] = -INFINITY;
+		maxValsForCols[col - 1] = -INFINITY;
 
 		for (int ind = 0; ind < m_inputData->count(); ind++)
 		{
 			csvFileData currDataset = m_inputData->at(ind);
 
 			//find max of each column for all datasets
-			for (int col = 0; col < currDataset.values->size(); col++)
+			for (int row = 0; row < currDataset.values->size(); row++)
 			{
-				double curVal = currDataset.values->at(col).at(row);
-				if (maxValsForCols[row - 1] < curVal)
+				double curVal = currDataset.values->at(row).at(col);
+				if (maxValsForCols[col - 1] < curVal)
 				{
-					maxValsForCols[row - 1] = curVal;
+					maxValsForCols[col - 1] = curVal;
 				}
 			}
 		}
 
-		//DEBUG_LOG("MaxValue for row " + QString::number(row) + " : " + QString::number(maxValsForCols[row - 1]));
-
-		int colU = 0;
 		//normalize column according to maxVal
+		int rowU = 0;
 		for (int ind = 0; ind < m_inputData->count(); ind++)
 		{
 			csvFileData currDataset = m_inputData->at(ind);
 
-			for (int col = 0; col < currDataset.values->size(); col++)
+			for (int row = 0; row < currDataset.values->size(); row++)
 			{
-				double curVal = currDataset.values->at(col).at(row);
-				if (!(maxValsForCols[row - 1] == 0))
+				double curVal = currDataset.values->at(row).at(col);
+				if (!(maxValsForCols[col - 1] == 0))
 				{
-					m_matrixUNormalized->at(colU).at(row - 1) = curVal / maxValsForCols[row - 1];
+					m_matrixUNormalized->at(rowU).at(col - 1) = curVal / maxValsForCols[col - 1];
 				}
 				else
 				{
-					m_matrixUNormalized->at(colU).at(row - 1) = curVal;
+					m_matrixUNormalized->at(rowU).at(col - 1) = curVal;
 				}
-				//DEBUG_LOG(QString::number(m_matrixUNormalized->at(colU).at(row - 1)));
-				colU += 1;
+				rowU += 1;
 			}
 		}
-
-		//DEBUG_LOG(" ");
 	}
 }
 
@@ -150,14 +145,13 @@ iASimilarityDistance* iAMultidimensionalScaling::initializeDistanceMetric()
 
 void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 {
-	m_matrixProximityDis = csvDataType::transpose(m_matrixProximityDis);
-
 	int amountColsProxM = csvDataType::getColumns(m_matrixProximityDis);
 	int amountRowsProxM = csvDataType::getRows(m_matrixProximityDis);
 	
 	//X - configuration of points in Euclidiean space
 	//initialize X with one vector filled with random values between [0,1]
-	csvDataType::ArrayType* X = csvDataType::initializeRandom(dim, amountRowsProxM);
+	csvDataType::ArrayType* X = csvDataType::initializeRandom(amountRowsProxM, dim);
+	csvDataType::debugArrayType(X);
 	// mean value of distance matrix
 	double meanD = csvDataType::mean(m_matrixProximityDis);
 	// move to the center
@@ -173,8 +167,8 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	*/
 
 	csvDataType::ArrayType* Z = csvDataType::copy(X);
-	csvDataType::ArrayType* D_ = csvDataType::initialize(amountColsProxM, amountRowsProxM);
-	csvDataType::ArrayType* B = csvDataType::initialize(amountColsProxM, amountRowsProxM);
+	csvDataType::ArrayType* D_ = csvDataType::initialize(amountRowsProxM, amountColsProxM);
+	csvDataType::ArrayType* B = csvDataType::initialize(amountRowsProxM, amountColsProxM);
 
 	//calculate euclidean distance
 	iASimilarityDistance* d = initializeDistanceMetric();
@@ -193,13 +187,13 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 		{
 			for (int c = 0; c < amountColsProxM; c++)
 			{
-				if ( c == r || std::fabs(D_->at(c).at(r)) < Epsilon)
+				if ( r == c || std::fabs(D_->at(r).at(c)) < Epsilon)
 				{
-					B->at(c).at(r) = 0.0;
+					B->at(r).at(c) = 0.0;
 				}
 				else
 				{
-					B->at(c).at(r) = -m_matrixProximityDis->at(c).at(r) / D_->at(c).at(r);
+					B->at(r).at(c) = -m_matrixProximityDis->at(r).at(c) / D_->at(r).at(c);
 				}
 			}
 		}
@@ -210,7 +204,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 			temp = 0;
 			for (int r = 0; r < amountRowsProxM; r++)
 			{
-				temp += B->at(c).at(r);
+				temp += B->at(r).at(c);
 			}
 
 			B->at(c).at(c) = -temp;
@@ -224,9 +218,9 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 				temp = 0;
 				for (int bCols = 0; bCols < csvDataType::getColumns(B); bCols++)
 				{
-					temp += (B->at(bCols).at(r) * Z->at(xCols).at(bCols));
+					temp += (B->at(r).at(bCols) * Z->at(bCols).at(xCols));
 				}
-				X->at(xCols).at(r) = temp / (double)amountRowsProxM;
+				X->at(r).at(xCols) = temp / (double)amountRowsProxM;
 			}
 		}
 

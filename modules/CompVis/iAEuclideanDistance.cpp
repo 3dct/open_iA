@@ -7,6 +7,7 @@ iAEuclideanDistance::iAEuclideanDistance() : iASimilarityDistance()
 csvDataType::ArrayType* iAEuclideanDistance::calculateSimilarityDistance(
 	csvDataType::ArrayType* dataMatrix, csvDataType::ArrayType* distanceMatrix)
 {
+
 	int amountRows = csvDataType::getRows(distanceMatrix);
 	int amountCols = csvDataType::getColumns(distanceMatrix);
 
@@ -27,9 +28,9 @@ csvDataType::ArrayType* iAEuclideanDistance::calculateSimilarityDistance(
 			temp = 0;
 			for (int c2 = 0; c2 < csvDataType::getColumns(dataMatrix); c2++)
 			{
-				temp += pow(dataMatrix->at(c2).at(r) - dataMatrix->at(c2).at(c), 2);
+				temp += pow(dataMatrix->at(r).at(c2) - dataMatrix->at(c).at(c2), 2);
 			}
-			resultMatrix->at(c).at(r) = std::sqrt(temp);
+			resultMatrix->at(r).at(c) = std::sqrt(temp);
 		}
 	}
 
@@ -37,7 +38,7 @@ csvDataType::ArrayType* iAEuclideanDistance::calculateSimilarityDistance(
 	{
 		for (int c = 0; c < r; c++)
 		{
-			resultMatrix->at(c).at(r) = resultMatrix->at(r).at(c);
+			resultMatrix->at(r).at(c) = resultMatrix->at(c).at(r);
 		}
 	}
 

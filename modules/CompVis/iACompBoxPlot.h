@@ -5,11 +5,14 @@
 #include "ui_CompHistogramTable.h"
 
 #include "vtkSmartPointer.h"
+#include "iACsvDataStorage.h"
 
 class MainWindow;
-class iACsvDataStorage;
 class QVTKOpenGLNativeWidget;
 class vtkContextView;
+class vtkTable;
+
+class vtkRenderer;
 
 //TODO change to ui_boxplot
 class iACompBoxPlot : public QDockWidget, public Ui_CompHistogramTable
@@ -21,8 +24,15 @@ class iACompBoxPlot : public QDockWidget, public Ui_CompHistogramTable
 	void renderWidget();
 
 private:
+
 	iACsvDataStorage* m_dataStorage;
 
 	QVTKOpenGLNativeWidget* m_qvtkWidget;
 	vtkSmartPointer<vtkContextView> m_view;
+
+	std::vector<double>* maxValsAttr;
+	std::vector<double>* minValsAttr;
+	vtkSmartPointer<vtkTable> inputBoxPlotTable;
+
+	vtkSmartPointer<vtkRenderer> legendRenderer;
 };

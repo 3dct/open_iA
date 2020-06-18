@@ -81,26 +81,14 @@ void iACsvDataStorage::initializeHeader(QList<QStringList>* list, QStringList* h
 void iACsvDataStorage::initializeValueArray(
 	QList<QStringList>* list, int const attrCount, csvDataType::ArrayType* values)
 {
-	//start with 1 --> in col 0 the header strings are specified
-	for (int col = 1; col < (list->size()); col++)
+	for (int row = 1; row < (list->size()); row++)
 	{
 		values->push_back(std::vector<double>(attrCount, 0));
-		for (int row = 0; row < attrCount; row++)
+		for (int col = 0; col < attrCount; col++)
 		{
-			values->at(col - 1).at(row) = list->at(col).at(row).toDouble();
+			values->at(row - 1).at(col) = list->at(row).at(col).toDouble();
 		}
 	}
-
-	//DEBUG
-	/*for (int t= 0; t < attrCount; t++)
-	{
-		DEBUG_LOG(QString::number(values->at(0).at(t)));
-	}
-	for (int t = 0; t < attrCount; t++)
-	{
-		DEBUG_LOG(QString::number(values->at(values->size()-1).at(t)));
-	}*/
-	
 }
 
 void iACsvDataStorage::customizeCSVFile(QList<QStringList>* list)
@@ -137,31 +125,31 @@ std::vector<int>* csvFileData::getAmountObjectsEveryDataset(QList<csvFileData>* 
 }
 
 /***********************  csvDataType methods  ******************************************/
-csvDataType::ArrayType* csvDataType::initialize(int columns, int rows)
+csvDataType::ArrayType* csvDataType::initialize(int rows, int columns)
 {
-	std::vector<double> vec(rows, 0);
-	return new csvDataType::ArrayType(columns, vec);
+	std::vector<double> vec(columns, 0);
+	return new csvDataType::ArrayType(rows, vec);
 }
 
-csvDataType::ArrayType* csvDataType::initializeRandom(int columns, int rows)
+csvDataType::ArrayType* csvDataType::initializeRandom(int rows, int columns)
 {
-	ArrayType* result = new ArrayType(columns);
-	for (int c = 0; c < columns; c++)
+	ArrayType* result = new ArrayType(rows);
+	for (int r = 0; r < rows; r++)
 	{
 		int rand1;
 		double rand2;
 
-		std::vector<double> vec(rows);
-		for (int r = 0; r < rows; r++)
+		std::vector<double> vec(columns);
+		for (int c = 0; c < columns; c++)
 		{
 			rand1 = rand() * rand() + rand() * rand() + rand();
 			if (rand1 < 0)
 				rand1 = -rand1;
 			rand2 = double(rand1 % 1000001) / 1000000;
 
-			vec.at(r) = double(rand2);
+			vec.at(c) = double(rand2);
 		}
-		result->at(c) = vec;
+		result->at(r) = vec;
 	}
 
 	return result;
@@ -173,11 +161,12 @@ double csvDataType::mean(ArrayType* input)
 	int columns = getColumns(input);
 
 	double x = 0;
-	for (int c = 0; c < columns; c++)
+
+	for (int r = 0; r < rows; r++)
 	{
-		for (int r = 0; r < rows; r++)
+		for (int c = 0; c < columns; c++)
 		{
-			x += input->at(c).at(r);
+			x += input->at(r).at(c);
 		}
 	}
 
@@ -189,11 +178,11 @@ void csvDataType::addNumberSelf(ArrayType* input, double value)
 	int cols = getColumns(input);
 	int rows = getRows(input);
 
-	for (int c = 0; c < cols; c++)
+	for (int r = 0; r < rows; r++)
 	{
-		for (int r = 0; r < rows; r++)
+		for (int c = 0; c < cols; c++)
 		{
-			input->at(c).at(r) += value;
+			input->at(r).at(c) += value;
 		}
 	}
 }
@@ -203,11 +192,11 @@ void csvDataType::multiplyNumberSelf(ArrayType* input, double value)
 	int cols = getColumns(input);
 	int rows = getRows(input);
 
-	for (int c = 0; c < cols; c++)
+	for (int r = 0; r < rows; r++)
 	{
-		for (int r = 0; r < rows; r++)
+		for (int c = 0; c < cols; c++)
 		{
-			input->at(c).at(r) *= value;
+			input->at(r).at(c) *= value;
 		}
 	}
 }
@@ -217,30 +206,31 @@ csvDataType::ArrayType* csvDataType::copy(ArrayType* input)
 	int cols = getColumns(input);
 	int rows = getRows(input);
 
-	ArrayType* result = initialize(cols, rows);
-	for (int c = 0; c < cols; c++)
+	ArrayType* result = initialize(rows, cols);
+
+	for (int r = 0; r < rows; r++)
 	{
-		for (int r = 0; r < rows; r++)
+		for (int c = 0; c < cols; c++)
 		{
-			result->at(c).at(r) = input->at(c).at(r);
+			result->at(r).at(c) = input->at(r).at(c);
 		}
 	}
 	return result;
 }
 
-int csvDataType::getRows(ArrayType* input)
+int csvDataType::getColumns(ArrayType* input)
 {
 	if (input->size() > 0)
 	{
 		return input->at(0).size();
 	}
 
-	DEBUG_LOG("There is no row inside this column!");
+	DEBUG_LOG("There is no column inside this row!");
 
 	return -1;
 }
 
-int csvDataType::getColumns(ArrayType* input)
+int csvDataType::getRows(ArrayType* input)
 {
 	return input->size();
 }
@@ -249,13 +239,13 @@ csvDataType::ArrayType* csvDataType::elementCopy(ArrayType* input)
 {
 	int cols = getColumns(input);
 	int rows = getRows(input);
-	ArrayType* result = initialize(cols,rows);
+	ArrayType* result = initialize(rows,cols);
 	
-	for (int c = 0; c < cols; c++)
+	for (int r = 0; r < rows; r++)
 	{
-		for (int r = 0; r < rows; r++)
+		for (int c = 0; c < cols; c++)
 		{
-			result->at(c).at(r) = input->at(c).at(r);
+			result->at(r).at(c) = input->at(r).at(c);
 		}
 	}
 
@@ -268,12 +258,12 @@ csvDataType::ArrayType* csvDataType::transpose(ArrayType* input)
 	int amountRows = getRows(input);
 
 	ArrayType* result = initialize(amountRows, amountCols);
-	
-	for (int c = 0; c < amountCols; c++)
+
+	for (int r = 0; r < amountRows; r++)
 	{
-		for (int r = 0; r < amountRows; r++)
+		for (int c = 0; c < amountCols; c++)
 		{
-			result->at(r).at(c) = input->at(c).at(r);
+			result->at(c).at(r) = input->at(r).at(c);
 		}
 	}
 
@@ -292,14 +282,14 @@ std::vector<double>* csvDataType::arrayTypeToVector(ArrayType* input)
 		return nullptr;
 	}
 
-	for (int col1 = 0; col1 < amountCols; col1++)
+	for (int r1 = 0; r1 < amountRows; r1++)
 	{
-		for (int r1 = 0; r1 < amountRows; r1++)
+		for (int col1 = 0; col1 < amountCols; col1++)
 		{
-			result->at(r1) = input->at(col1).at(r1);
+			result->at(r1) = input->at(r1).at(col1);
 		}
-	}
 
+	}
 	return result;
 }
 
@@ -312,12 +302,12 @@ void csvDataType::debugArrayType(ArrayType* input)
 	DEBUG_LOG("Rows: " + QString::number(amountRows));
 
 	DEBUG_LOG("Matrix: ");
-	for (int col1 = 0; col1 < amountCols; col1++)
+	for (int r1 = 0; r1 < amountRows; r1++)
 	{
-		DEBUG_LOG("Column " + QString::number(col1) + ":");
-		for (int r1 = 0; r1 < input->at(col1).size(); r1++)
+		DEBUG_LOG("Row " + QString::number(r1) + ":");
+		for (int col1 = 0; col1 < amountCols; col1++)
 		{
-			DEBUG_LOG("  Row " + QString::number(r1) + ": " + QString::number(input->at(col1).at(r1)));
+			DEBUG_LOG("Column " + QString::number(col1) + ": " + QString::number(input->at(r1).at(col1)));
 		}
 	}
 }
