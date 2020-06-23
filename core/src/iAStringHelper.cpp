@@ -54,10 +54,9 @@ QString quoteString(QString const & str)
 
 QString padOrTruncate(QString const & str, int size)
 {
-	if (str.length() > size)
-		return str.left(size - 2) + "..";
-	else
-		return str.leftJustified(size, ' ');
+	return (str.length() > size) ?
+		(str.left(size - 2) + "..") :
+		str.leftJustified(size, ' ');
 }
 
 QString stripHTML(QString const & html)
@@ -66,24 +65,54 @@ QString stripHTML(QString const & html)
 	return result.remove(QRegExp("<[^>]*>"));
 }
 
+namespace
+{
+	// Large Values:
+	const double OneKilo = 1000;
+	const double OneMega = OneKilo * OneKilo;
+	const double OneGiga = OneKilo * OneMega;
+	const double OneTera = OneKilo * OneGiga;
+	const double OnePeta = OneKilo * OneTera;
+	const size_t UnitCount = 5;
+	const double UnitPrefixLargeVal[UnitCount] = { OnePeta, OneTera, OneGiga, OneMega, OneKilo };
+	const char UnitPrefixLarge[UnitCount] = { 'P', 'T', 'G', 'M', 'K' };
+
+	// Small Values:
+	const double OneMilli = 0.001;
+	const double OneMicro = OneMilli * OneMilli;
+	const double OneNano  = OneMilli * OneMicro;
+	const double OnePico  = OneMilli * OneNano;
+	const double OneFemto = OneMilli * OnePico;
+	const double UnitPrefixSmallVal[UnitCount] = { OneFemto, OnePico, OneNano, OneMicro, OneMilli };
+	const char UnitPrefixSmall[UnitCount] = { 'f', 'p', 'n', 'µ', 'm' };
+}
+
 QString dblToStringWithUnits(double value)
 {
-	if (value < 1.0)
+	// values between -1 and +1:
+	if (value >= -1.0 && value < 1.0)
+	{
+		for (size_t u = 0; u < UnitCount; ++u)
+		{
+			if (value < UnitPrefixSmallVal[u]*OneKilo)
+			{
+				return QString::number(value * UnitPrefixLargeVal[u], 'f',
+					(value < 10 * UnitPrefixSmallVal[u]) ? 2 : ((value < 100 * UnitPrefixSmallVal[u]) ? 1 : 0)) + UnitPrefixSmall[u];
+			}
+		}
 		return QString::number(value, 'g', 3);
-	// also use abbreviations here? 'm', 'µ', 'n', 'p', 'f', ...?
-	else
-		if (value > 1000000000000000)
-			return QString::number(value / 1000000000000000.0, 'f', (value < 10000000000000000) ? 2 : ((value < 100000000000000000) ? 1 : 0)) + "P";
-		else if (value > 1000000000000)
-			return QString::number(value / 1000000000000.0, 'f', (value < 10000000000000) ? 2 : ((value < 100000000000000) ? 1 : 0)) + "T";
-		else if (value > 1000000000)
-			return QString::number(value / 1000000000.0, 'f', (value < 10000000000) ? 2 : ((value < 100000000000) ? 1 : 0)) + "G";
-		else if (value > 1000000)
-			return QString::number(value / 1000000, 'f', (value < 10000000) ? 2 : ((value < 100000000) ? 1 : 0)) + "M";
-		else if (value > 1000)
-			return QString::number(value / 1000, 'f', (value < 10000) ? 2 : ((value < 100000) ? 1 : 0)) + "K";
-		else
-			return QString::number(value, 'g', 3);
+	}
+	// values < -1 or > +1:
+	for (size_t u = 0; u < UnitCount; ++u)
+	{
+		if (value > UnitPrefixLargeVal[u])
+		{
+			return QString::number(value * UnitPrefixSmallVal[u], 'f',
+				(value < 10 * UnitPrefixLargeVal[u]) ? 2 : ((value < 100 * UnitPrefixLargeVal[u]) ? 1 : 0)) + UnitPrefixLarge[u];
+		}
+	}
+	// values between 1 and 1000:
+	return QString::number(value, 'g', 3);
 }
 
 int greatestCommonPrefixLength(QString const & str1, QString const & str2)
