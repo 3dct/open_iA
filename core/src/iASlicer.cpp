@@ -108,11 +108,11 @@
 #include <cassert>
 
 //! Custom interactor style for slicers, for disabling certain vtk interactions we do differently.
-class iAInteractorStyleImage : public vtkInteractorStyleImage
+class iASlicerInteractorStyle : public vtkInteractorStyleImage
 {
 public:
-	static iAInteractorStyleImage *New();
-	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage)
+	static iASlicerInteractorStyle *New();
+	vtkTypeMacro(iASlicerInteractorStyle, vtkInteractorStyleImage);
 
 	void OnLeftButtonDown() override
 	{
@@ -219,7 +219,7 @@ private:
 	bool m_leftButtonDown = false;
 };
 
-vtkStandardNewMacro(iAInteractorStyleImage);
+vtkStandardNewMacro(iASlicerInteractorStyle);
 
 
 //! observer needs to be a separate class; otherwise there is an error when destructing,
@@ -259,7 +259,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_fisheyeRadius(80.0),
 	m_innerFisheyeRadius(70.0),
 	m_interactor(nullptr),
-	m_interactorStyle(iAInteractorStyleImage::New()),
+	m_interactorStyle(iASlicerInteractorStyle::New()),
 	m_renWin(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New()),
 	m_ren(vtkSmartPointer<vtkRenderer>::New()),
 	m_camera(vtkCamera::New()),
