@@ -2,6 +2,7 @@
 
 #include "vtkInteractorStyleTrackballCamera.h"
 #include "vtkSmartPointer.h"
+#include "iACompHistogramTableData.h"
 
 #include <map>
 #include <vector>
@@ -11,6 +12,7 @@
 class iACompHistogramTable;
 class vtkRenderer;
 class iACompVisMain;
+
 
 namespace Pick
 {
@@ -39,11 +41,7 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 	iACompHistogramTableInteractorStyle();
 
    private:	
-	//highlight the selected cells with an outline
-	void highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId);
-	//dehighlight the selected cells with an outline 
-	//(necessary that the renderer only contains the datarows for further calculations)
-	void removeHighlightedCells();
+	
 
 	//general zooming in executed by the camera
 	void generalZoomIn();
@@ -76,8 +74,8 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 	//is always 1 -> only needed for changing the zoom for the camera
 	double m_zoomLevel;
 
-	//stores the actors added to display the border of the selected cells
-	//have to be removed before any calculation for zooming can take place!
-	std::vector<vtkSmartPointer<vtkActor>>* m_highlighingActors;
+
+	QList<bin::BinType*>* m_zoomedRowData;
+
 	iACompVisMain* m_main;
 };

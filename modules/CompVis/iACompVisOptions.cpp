@@ -24,6 +24,18 @@ vtkSmartPointer<vtkUnsignedCharArray> iACompVisOptions::getColorArray(unsigned c
 }
 */
 
+unsigned char* iACompVisOptions::getColorArray(double colors[3])
+{
+	unsigned char result[3];
+
+	for (size_t j = 0; j < 3; ++j)
+	{
+		result[j] = static_cast<unsigned char>(colors[j] * 255);
+	}
+
+	return result;
+}
+
 double* iACompVisOptions::getDoubleArray(const unsigned char colors[3])
 {
 	double result[3];

@@ -40,13 +40,6 @@
 #include <vtkSphereSource.h>
 #include <vtkUnsignedCharArray.h>
 
-#include <vtkDataSetMapper.h>
-#include <vtkExtractSelection.h>
-#include <vtkSelection.h>
-#include <vtkSelectionNode.h>
-#include <vtkTriangleFilter.h>
-#include <vtkUnstructuredGrid.h>
-
 //Qt
 #include <QDockWidget>
 
@@ -60,8 +53,7 @@ iACompHistogramTableInteractorStyle::iACompHistogramTableInteractorStyle() :
 	m_picked(new Pick::PickedMap()),
 	m_controlBinsInZoomedRows(false),
 	m_pointRepresentationOn(false),
-	m_zoomLevel(1),
-	m_highlighingActors(new std::vector<vtkSmartPointer<vtkActor>>())
+	m_zoomLevel(1)
 {
 }
 
@@ -85,13 +77,13 @@ void iACompHistogramTableInteractorStyle::OnKeyRelease()
 	{
 		if (m_picked->size() >= 1)
 		{
-			removeHighlightedCells();
+			m_visualization->removeHighlightedCells();
 
 			//forward update to all other charts
 			updateOtherCharts();
 
 			//change in histogram table
-			m_visualization->drawLinearZoom(m_picked, m_visualization->getBins(), m_visualization->getBinsZoomed());
+			m_visualization->drawLinearZoom(m_picked, m_visualization->getBins(), m_visualization->getBinsZoomed(), m_zoomedRowData);
 
 			//reset selection variables
 			m_picked->clear();
@@ -153,7 +145,7 @@ void iACompHistogramTableInteractorStyle::OnLeftButtonDown()
 				}
 
 				//color selected bin
-				highlightSelectedCell(pickedA, id);
+				m_visualization->highlightSelectedCell(pickedA, id);
 			}
 		}
 	}
@@ -164,59 +156,11 @@ void iACompHistogramTableInteractorStyle::OnLeftButtonDown()
 		m_visualization->setBinsZoomed(m_visualization->getMinBins());
 		m_visualization->clearZoomedRows();
 		m_visualization->removePointRepresentation();
-		removeHighlightedCells();
+		m_visualization->removeHighlightedCells();
 
 		m_controlBinsInZoomedRows = false;
 		m_visualization->drawHistogramTable(m_visualization->getBins());
 	}
-}
-
-void iACompHistogramTableInteractorStyle::highlightSelectedCell(
-	vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId)
-{
-	vtkSmartPointer<vtkAlgorithm> algorithm = pickedActor->GetMapper()->GetInputConnection(0, 0)->GetProducer();
-	vtkSmartPointer<vtkPlaneSource> oldPlane = vtkPlaneSource::SafeDownCast(algorithm);
-
-	vtkSmartPointer<vtkIdTypeArray> ids = vtkSmartPointer<vtkIdTypeArray>::New();
-	ids->SetNumberOfComponents(1);
-	ids->InsertNextValue(pickedCellId);
-
-	vtkSmartPointer<vtkSelectionNode> selectionNode = vtkSmartPointer<vtkSelectionNode>::New();
-	selectionNode->SetFieldType(vtkSelectionNode::CELL);
-	selectionNode->SetContentType(vtkSelectionNode::INDICES);
-	selectionNode->SetSelectionList(ids);
-
-	vtkSmartPointer<vtkSelection> selection = vtkSmartPointer<vtkSelection>::New();
-	selection->AddNode(selectionNode);
-	vtkSmartPointer<vtkExtractSelection> extractSelection = vtkSmartPointer<vtkExtractSelection>::New();
-	extractSelection->SetInputData(0, oldPlane->GetOutputDataObject(0));
-	extractSelection->SetInputData(1, selection);
-	extractSelection->Update();
-
-	vtkSmartPointer<vtkUnstructuredGrid> selected = vtkSmartPointer<vtkUnstructuredGrid>::New();
-	selected->ShallowCopy(extractSelection->GetOutput());
-	vtkSmartPointer<vtkDataSetMapper> selectedMapper = vtkSmartPointer<vtkDataSetMapper>::New();
-	selectedMapper->SetInputData(selected);
-	vtkSmartPointer<vtkActor> selectedActor = vtkSmartPointer<vtkActor>::New();
-	selectedActor->SetMapper(selectedMapper);
-	selectedActor->GetProperty()->EdgeVisibilityOn();
-	selectedActor->GetProperty()->SetEdgeColor(1, 0, 0);
-	selectedActor->GetProperty()->SetLineWidth(1);
-
-	m_highlighingActors->push_back(selectedActor);
-	m_visualization->getRenderer()->AddActor(selectedActor);
-
-	m_visualization->renderWidget();
-}
-
-void iACompHistogramTableInteractorStyle::removeHighlightedCells()
-{
-	for (int i = 0; i < m_highlighingActors->size(); i++)
-	{
-		m_visualization->getRenderer()->RemoveActor(m_highlighingActors->at(i));
-	}
-
-	m_highlighingActors->clear();
 }
 
 void iACompHistogramTableInteractorStyle::OnMiddleButtonDown()
@@ -361,6 +305,6 @@ void iACompHistogramTableInteractorStyle::setIACompVisMain(iACompVisMain* main)
 
 void iACompHistogramTableInteractorStyle::updateOtherCharts()
 {
-	m_visualization->getSelectedData(m_picked);
+	m_zoomedRowData = m_visualization->getSelectedData(m_picked);
 	m_main->updateOtherCharts();
 }

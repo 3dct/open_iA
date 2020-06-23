@@ -22,11 +22,11 @@ class vtkLookupTable;
 class vtkDataObject;
 class vtkActor;
 class vtkUnsignedCharArray;
-class vtkGenericOpenGLRenderWindow;
 class vtkPlaneSource;
 class vtkRenderer;
 
 class iACompVisMain;
+
 
 //testing
 
@@ -46,7 +46,7 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	//map contains the selected actor with its selected bins
 	//selectedBinNumber represents number of bins of all other rows, which were not selected
 	//selectedBinNumber represents number of bins that should be drawn in the zoomed in row
-	void drawLinearZoom(Pick::PickedMap* map, int notSelectedBinNumber, int selectedBinNumber);
+	void drawLinearZoom(Pick::PickedMap* map, int notSelectedBinNumber, int selectedBinNumber, QList<bin::BinType*>* zoomedRowData);
 
 	//redraw the selected bin(s)/row(s) with a specified amount of bins
 	//selectedBinNumber contains the number of bins that should be drawn for each selected bin in the row(s)
@@ -70,7 +70,12 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	//re-render the widget/visualization
 	void renderWidget();
 
-	void getSelectedData(Pick::PickedMap* map);
+	QList<bin::BinType*>* getSelectedData(Pick::PickedMap* map);
+	//highlight the selected cells with an outline
+	void highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId);
+	//dehighlight the selected cells with an outline 
+	//(necessary that the renderer only contains the datarows for further calculations)
+	void iACompHistogramTable::removeHighlightedCells();
 
    private:
 	//calculate the histogram datastructure
@@ -79,31 +84,28 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	//create the color lookuptable
 	void makeLUTFromCTF();
 	//color the planes according to the colors and the amount of elements each bin stores
-	void makeCellData(vtkUnsignedCharArray* colors, int currDataset, int numberOfBins);
-	void makeCellDataForZoom(vtkUnsignedCharArray* colors, bin::BinType* data, int amountOfBins);
-	void calculateCellData(vtkUnsignedCharArray* colors, bin::BinType* data, int amountOfBins);
+	void colorRow(vtkUnsignedCharArray* colors, int currDataset, int numberOfBins);
+	void colorRowForZoom(vtkUnsignedCharArray* colors, bin::BinType* data, int amountOfBins);
+	void colorBinsOfRow(vtkUnsignedCharArray* colors, bin::BinType* data, int amountOfBins);
 
 	//create the histogramTable visualization
 	void initializeHistogramTable();
 	//define the maximum number of elements in a bin for visualization of the table
-	void calculateCellRange();
+	void calculateBinLength();
 	//create the legend
-	void initializeLegend(vtkSmartPointer<vtkGenericOpenGLRenderWindow> renderWindow);
+	void initializeLegend();
 	void addDatasetName(int currDataset, double* position);
 	//create correct label format
 	std::string iACompHistogramTable::initializeLegendLabels(std::string input);
 	//create the interactionstyle
 	void initializeInteraction();
 
-	bool checkCellRange(double value, double low, double high);
 	//round the value to a certain decimal
 	double round_up(double value, int decimal_places);
 
 	void drawRow(int currDataInd, int currentColumn, int amountOfBins, double offset);
-	void drawRowZoomedRow(int currentColumn, int amountOfBins, bin::BinType* currentData, double offset);
+	void drawZoomedRow(int currDataInd, int currentColumn, int amountOfBins, bin::BinType* currentData, double offset);
 
-	// Create the outline
-	vtkSmartPointer<vtkActor> createOutline(vtkDataObject* object, double color[3]);
 
 	iACompVisMain* m_main;
 	iACsvDataStorage* m_dataStorage;
@@ -113,7 +115,7 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	iAMultidimensionalScaling* m_mds;
 	iACompHistogramTableData* m_histData;
 
-	QVTKOpenGLNativeWidget* qvtkWidget;
+	QVTKOpenGLNativeWidget* m_qvtkWidget;
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 
@@ -143,10 +145,16 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 
 
 	std::vector<int>* m_indexOfZoomedRows;
+	std::vector<int>* m_indexOfPickedData;
 	//store bin data for zoom of selected rows
 	QList<bin::BinType*>* zoomedRowData;
 	//amount of bins that are drawn in the selected rows
 	int m_binsZoomed;
 	//stores the actors needed for the point representation
 	std::vector<vtkSmartPointer<vtkActor>>* m_pointRepresentationActors;
+
+
+	//stores the actors added to display the border of the selected cells
+	//have to be removed before any calculation for zooming can take place!
+	std::vector<vtkSmartPointer<vtkActor>>* m_highlighingActors;
 };

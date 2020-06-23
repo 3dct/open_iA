@@ -36,3 +36,4 @@ private:
 
 	vtkSmartPointer<vtkRenderer> legendRenderer;
 };
+

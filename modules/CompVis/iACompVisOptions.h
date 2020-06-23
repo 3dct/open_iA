@@ -21,8 +21,9 @@ struct iACompVisOptions
 	static const int FONTSIZE_TEXT;
 
 	//get an array filled with colors
-	static vtkSmartPointer<vtkUnsignedCharArray> getColorArray(const unsigned char colors[3]);
+	static unsigned char* getColorArray(double colors[3]);
 	static double* getDoubleArray(const unsigned char colors[3]);
+	
 
 	static double histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax);
 

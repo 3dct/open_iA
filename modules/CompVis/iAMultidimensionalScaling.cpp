@@ -151,7 +151,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	//X - configuration of points in Euclidiean space
 	//initialize X with one vector filled with random values between [0,1]
 	csvDataType::ArrayType* X = csvDataType::initializeRandom(amountRowsProxM, dim);
-	csvDataType::debugArrayType(X);
+	//csvDataType::debugArrayType(X);
 	// mean value of distance matrix
 	double meanD = csvDataType::mean(m_matrixProximityDis);
 	// move to the center
