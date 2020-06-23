@@ -36,6 +36,7 @@ public:
 	iAVREnvironment();
 	vtkRenderer* renderer();
 	iAVRInteractor* interactor();
+	vtkOpenVRRenderWindow* renderWindow();
 	void update();
 	void start();
 	void stop();

@@ -30,6 +30,8 @@
 #include "vtkRenderer.h"
 #include "vtkIdList.h"
 #include "vtkProperty.h"
+#include "vtkProperty2D.h"
+#include "vtkTextProperty.h"
 #include "vtkActor.h"
 #include "vtkPropCollection.h"
 #include "vtkPointData.h"
@@ -42,6 +44,8 @@
 #include "vtkLineSource.h"
 #include "vtkVertexGlyphFilter.h"
 #include "vtkScalarBarActor.h"
+#include "vtkOpenVRCamera.h"
+#include "vtkOutlineFilter.h"
 
 #include <QColor>
 
@@ -52,9 +56,9 @@
 #define OCTREE_COLOR QColor(126, 0, 223, 255)
 
 //Offsets for the hovering Effect of the Model in Miniature
-#define xOffset -0.2
-#define yOffset 0.1
-#define zOffset -0.2
+#define X_OFFSET 0
+#define Y_OFFSET 55
+#define Z_OFFSET 0
 
 iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io): m_vrEnv(vrEnv),
 	m_style(style),	m_objectTable(objectTable),	m_io(io)
@@ -75,6 +79,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	//m_vrEnv->renderer()->SetMaximumNumberOfPeels(2);
 
 	//Initialize Metrics class
+	currentFeature = 1;
 	fiberMetrics = new iAVRMetrics(m_objectTable, m_io, m_octrees);
 
 	//map for the coverage of each fiber (Initialize with MaxLeafNodes in Max Level)
@@ -91,6 +96,9 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	m_style->setVRMain(this);
 	m_vrEnv->interactor()->SetInteractorStyle(m_style);
 
+	//Initialize Text Lables
+	m_3DText = new iAVR3DText(m_vrEnv->renderer());
+
 	//Add Input Mapping
 	//Press, Touch
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
@@ -101,6 +109,8 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 		iAVRInteractionOptions::Volume, iAVROperations::PickFibersinRegion);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::TrackPad, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Anywhere, iAVROperations::ChangeOctreeLevel);
+	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::TrackPad, vtkEventDataAction::Press,
+		iAVRInteractionOptions::Anywhere, iAVROperations::ChangeFeature);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
 		iAVRInteractionOptions::NoObject, iAVROperations::ResetSelection);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::ApplicationMenu, vtkEventDataAction::Press,
@@ -110,6 +120,10 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::ApplicationMenu, vtkEventDataAction::Press,
 		iAVRInteractionOptions::MiniatureModel, iAVROperations::SpawnModelInMiniature);
 	//Release, Untouch
+
+	//For Oculus
+	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Joystick, vtkEventDataAction::Press,
+		iAVRInteractionOptions::Anywhere, iAVROperations::ChangeOctreeLevel);
 
 	//Create Cube
 	m_objectVis = new iAVR3DObjectVis(m_vrEnv->renderer());
@@ -128,6 +142,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 }
 
 //! Defines the action executed for specific controller inputs
+//! Position and Orientation are in WorldCoordinates and Orientation is in Degree
 void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp)
 {
 	int deviceID = static_cast<int>(device->GetDevice()); // Device
@@ -167,6 +182,9 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 	case iAVROperations::ResetSelection:
 		this->resetSelection();
 		break;
+	case iAVROperations::ChangeFeature:
+		this->changeFeature();
+		break;
 	}
 
 	//DEBUG_LOG(QString("[START] active Input rc = %1, lc = %2").arg(activeInput->at(1)).arg(activeInput->at(2)));
@@ -203,19 +221,77 @@ void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition
 
 void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], double eventOrientation[4], vtkProp3D * pickedProp)
 {
+	//Currently moved controller
 	int deviceID = static_cast<int>(device->GetDevice());
-	cPos[deviceID][0] = movePosition[0];
-	cPos[deviceID][1] = movePosition[1];
-	cPos[deviceID][2] = movePosition[2];
+
+	double oldcPos[3] = { cPos[deviceID][0], cPos[deviceID][1], cPos[deviceID][2]};
+	double oldcOrie[4] = { cOrie[deviceID][0], cOrie[deviceID][1], cOrie[deviceID][2], cOrie[deviceID][3]}; //W,X,Y,Z
+
+	for (size_t i = 0; i < 3; i++)
+	{
+		//Save Current Pos
+		cPos[deviceID][i] = movePosition[i];
+		//Save Current Pos
+		cOrie[deviceID][i] = eventOrientation[i];
+	}
+	cOrie[deviceID][3] = eventOrientation[3];
+
+	double movementPos[3];
+	double movementOrie[4];
+	movementPos[0] = cPos[deviceID][0] - oldcPos[0];
+	movementPos[1] = cPos[deviceID][1] - oldcPos[1];
+	movementPos[2] = cPos[deviceID][2] - oldcPos[2];
+
+	movementOrie[0] = cOrie[deviceID][0] - oldcOrie[0]; //W
+	movementOrie[1] = cOrie[deviceID][1] - oldcOrie[1]; //X
+	movementOrie[2] = cOrie[deviceID][2] - oldcOrie[2]; //Y
+	movementOrie[3] = cOrie[deviceID][3] - oldcOrie[3]; //Z
 
 	//The Model in Minature follows the left controller
 	if(modelInMiniatureActive && deviceID == static_cast<int>(vtkEventDataDevice::LeftController))
 	{
-		double sideDistance = *(m_objectVis->getActor()->GetYRange());
-		double hoveringOffset[3] = { sideDistance *xOffset, sideDistance * yOffset, sideDistance * zOffset };
+		double* centerPos = m_objectVis->getActor()->GetCenter();
 
-		m_objectVis->setPos(cPos[deviceID][0] + hoveringOffset[0], cPos[deviceID][1] + hoveringOffset[1], cPos[deviceID][2] + hoveringOffset[2]);
-		//Set Orientation!!
+		//Set Orientation!!	
+		double* modellOrientation = m_objectVis->getActor()->GetOrientationWXYZ();
+		modellOrientation[1] = vtkMath::DegreesFromRadians(modellOrientation[1]);
+		modellOrientation[2] = vtkMath::DegreesFromRadians(modellOrientation[2]);
+		modellOrientation[3] = vtkMath::DegreesFromRadians(modellOrientation[3]);
+
+		 //m_objectVis->getActor()->AddOrientation(movementOrie[1] - modellOrientation[1], movementOrie[2] - modellOrientation[2], movementOrie[3] - modellOrientation[3]);
+		 //m_objectVis->getActor()->AddOrientation(cOrie[deviceID][1], cOrie[deviceID][2], cOrie[deviceID][3]);
+		//m_objectVis->getActor()->AddOrientation(0, movementOrie[2], 0);
+		//m_objectVis->getActor()->RotateY(movementOrie[2]);
+
+		//m_objectVis->getActor()->AddPosition(cPos[deviceID][0] - centerPos[0], cPos[deviceID][1] - centerPos[1], cPos[deviceID][2] - centerPos[2]);
+		//m_objectVis->getActor()->AddPosition(cPos[deviceID][0] - centerPos[0], cPos[deviceID][1] - centerPos[1], cPos[deviceID][2] - centerPos[2]);
+		m_objectVis->getActor()->AddPosition(movementPos[0], movementPos[1], movementPos[2]);
+
+		//DEBUG_LOG(QString("Event Orie is: %1 / %2 / %3").arg(cOrie[deviceID][1]).arg(cOrie[deviceID][2]).arg(cOrie[deviceID][3]));
+		//DEBUG_LOG(QString("Miniature Modell Ori is: %1 / %2 / %3").arg(modellOrientation[1]).arg(modellOrientation[2]).arg(modellOrientation[3]));
+		//DEBUG_LOG(QString("Movement Orie is: %1 / %2 / %3").arg(movementOrie[1]).arg(movementOrie[2]).arg(movementOrie[3]));
+		//DEBUG_LOG(QString("Actors new Pos is: %1 / %2 / %3").arg(m_objectVis->getActor()->GetPosition()[0]).arg(m_objectVis->getActor()->GetPosition()[1]).arg(m_objectVis->getActor()->GetPosition()[2]));
+
+		double textPos[3] = { cPos[deviceID][0] - 12, cPos[deviceID][1] + 8, cPos[deviceID][2] - 8};
+		m_3DText->updatePos(textPos);
+
+	}
+
+	if (deviceID == static_cast<int>(vtkEventDataDevice::RightController))
+	{
+
+		double textPos[3] = { cPos[deviceID][0] - 12, cPos[deviceID][1] + 8, cPos[deviceID][2] - 8};
+		m_3DText->updatePos(textPos);
+
+	}
+
+	//Movement of Head
+	if(deviceID == static_cast<int>(vtkEventDataDevice::HeadMountedDisplay))
+	{
+		//double posInfo[7];
+		//calculateTextPosition(5.0, 200, posInfo);
+		//fiberMetrics->getColorBarLegend()->GetPositionCoordinate()->SetCoordinateSystemToWorld();
+		//fiberMetrics->getColorBarLegend()->GetPositionCoordinate()->SetValue(posInfo[0], posInfo[1], posInfo[2]);
 	}
 }
 
@@ -524,6 +600,7 @@ void iAVRMain::setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput
 	{
 		scheme->at(static_cast<int>(device)).at(static_cast<int>(input)).at(static_cast<int>(action)).at(static_cast<int>(options)) = static_cast<int>(operation);
 	}
+	
 }
 
 //! Returns which InteractionOption is for the currently picked Object available 
@@ -620,6 +697,8 @@ bool iAVRMain::checkIntersectionWithBox(double startPoint[3], double endPoint[3]
 			//planeActor->SetMapper(planeMapper);
 			//planeActor->GetProperty()->SetColor(1.0, 0.4, 0.0);
 			//m_vrEnv->renderer()->AddActor(planeActor);
+
+			// t has to be smaller or equal to length of ray
 
 			//Intersection must be in the inside the finite plane
 			if((t > eps) && 
@@ -731,24 +810,82 @@ void iAVRMain::calculateMetrics()
 	//Gets only called when thread is finished
 	if(!m_iDMappingThreadRunning){
 		fiberMetrics->setFiberCoverageData(m_fiberCoverage);
-		std::vector<std::vector<double>>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, 9);
+		std::vector<std::vector<double>>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature);
 
-		//DEBUG_LOG(QString(">In Main the 1 color is: %1 / %2 / %3 / %4").arg(rgba->at(0).at(0)).arg(rgba->at(0).at(1)).arg(rgba->at(0).at(2)).arg(rgba->at(0).at(3)));
-		//DEBUG_LOG(QString(">In Main the 2 color is: %1 / %2 / %3 / %4").arg(rgba->at(1).at(0)).arg(rgba->at(1).at(1)).arg(rgba->at(1).at(2)).arg(rgba->at(1).at(3)));
+		m_objectVis->applyHeatmapColoring(rgba); // Only call when model is calculated (poly data has to be accessible)
 
-		m_objectVis->applyHeatmapColoring(rgba);
+		QString text = QString("Feature: %1").arg(fiberMetrics->getFeatureName(currentFeature));
+		double tempPos[3] = { 0, 0, 0 };
+		m_3DText->draw3DLable(cPos[static_cast<int>(vtkEventDataDevice::LeftController)], text);
+		m_3DText->show();
 
-		fiberMetrics->getColorBarLegend()->SetTitle("Length");
-		
+		fiberMetrics->getColorBarLegend()->SetTitle(fiberMetrics->getFeatureName(currentFeature).toUtf8());
 	}
 }
 
-//! Updates the data (Octree, Metrics,...) for the current MiM
-void iAVRMain::updateModelInMiniatureData()
+//! Returns a double[7] with a position (x,y,z) and an orientation (x,y,z) and a scale
+//! for an comfortable text representation
+void iAVRMain::calculateTextPosition(double fovRatio, double textureMapSize, double posInfo[7])
 {
-	m_objectVis->setOctree(m_octrees->at(currentOctreeLevel));
-	m_objectVis->createModelInMiniature();
-	calculateMetrics();
+	vtkOpenVRRenderWindow* renWin = m_vrEnv->renderWindow();
+
+	if (!renWin || !m_vrEnv->renderer())
+	{
+		DEBUG_LOG(QString("ERROR in calculateTextPosition"))
+	}
+
+	renWin->UpdateHMDMatrixPose();
+	double dop[3];
+	m_vrEnv->renderer()->GetActiveCamera()->GetDirectionOfProjection(dop);
+	double vr[3];
+	double* vup = renWin->GetPhysicalViewUp();
+	double dtmp[3];
+	double vupdot = vtkMath::Dot(dop, vup);
+	if (fabs(vupdot) < 0.999)
+	{
+		dtmp[0] = dop[0] - vup[0] * vupdot;
+		dtmp[1] = dop[1] - vup[1] * vupdot;
+		dtmp[2] = dop[2] - vup[2] * vupdot;
+		vtkMath::Normalize(dtmp);
+	}
+	else
+	{
+		renWin->GetPhysicalViewDirection(dtmp);
+	}
+	vtkMath::Cross(dtmp, vup, vr);
+	vtkNew<vtkMatrix4x4> rot;
+	for (int i = 0; i < 3; ++i)
+	{
+		rot->SetElement(0, i, vr[i]);
+		rot->SetElement(1, i, vup[i]);
+		rot->SetElement(2, i, -dtmp[i]);
+	}
+	rot->Transpose();
+	double orient[3];
+	vtkTransform::GetOrientation(orient, rot);
+
+	double tpos[3];
+	double scale = renWin->GetPhysicalScale();
+	m_vrEnv->renderer()->GetActiveCamera()->GetPosition(tpos);
+	tpos[0] += (0.7 * scale * dop[0] - 0.1 * scale * vr[0] - 0.4 * scale * vup[0]);
+	tpos[1] += (0.7 * scale * dop[1] - 0.1 * scale * vr[1] - 0.4 * scale * vup[1]);
+	tpos[2] += (0.7 * scale * dop[2] - 0.1 * scale * vr[2] - 0.4 * scale * vup[2]);
+
+	// scale should cover 10% of FOV
+	double fov = m_vrEnv->renderer()->GetActiveCamera()->GetViewAngle();
+	double tsize = fovRatio * 2.0 * atan(fov * 0.5); // 10% of fov
+	tsize /= textureMapSize;                             // about 200 pixel texture map
+	scale *= tsize;
+
+	//Gather information
+	posInfo[0] = tpos[0];
+	posInfo[1] = tpos[1];
+	posInfo[2] = tpos[2];
+	posInfo[3] = orient[0];
+	posInfo[4] = orient[1];
+	posInfo[5] = orient[2];
+	posInfo[6] = scale;
+
 }
 
 //! Increases the current octree level by one until max level and repeats. Recalculates the Model in Miniature Object.
@@ -767,6 +904,10 @@ void iAVRMain::changeOctreeLevel()
 	m_octrees->at(currentOctreeLevel)->generateOctreeRepresentation(currentOctreeLevel, OCTREE_COLOR);
 	m_octrees->at(currentOctreeLevel)->show();
 	updateModelInMiniatureData();
+
+	QString text = QString("Octree Level %1").arg(currentOctreeLevel);
+	m_3DText->draw3DLable(cPos[static_cast<int>(vtkEventDataDevice::RightController)], text);
+	m_3DText->show();
 }
 
 void iAVRMain::pickSingleFiber(double eventPosition[3])
@@ -856,33 +997,70 @@ void iAVRMain::resetSelection()
 	m_cylinderVis->renderSelection(std::vector<size_t>(), 0, QColor(140, 140, 140, 255), nullptr);
 }
 
+void iAVRMain::changeFeature()
+{
+	currentFeature++;
+
+	if (currentFeature >= fiberMetrics->getNumberOfFeatures())
+	{
+		currentFeature = 1; // Jump over ID Column
+	}
+	updateModelInMiniatureData();
+}
+
+//! Updates the data (Octree, Metrics,...) and the position for the current MiM
+void iAVRMain::updateModelInMiniatureData()
+{
+	int controllerID = static_cast<int>(vtkEventDataDevice::LeftController);
+	
+	m_objectVis->setOctree(m_octrees->at(currentOctreeLevel));
+	m_objectVis->createModelInMiniature(); //Here a new Octree is calculated
+
+	double* centerPos = m_objectVis->getActor()->GetCenter();
+	m_objectVis->getActor()->AddPosition(cPos[controllerID][0] - centerPos[0], cPos[controllerID][1] - centerPos[1] + Y_OFFSET, cPos[controllerID][2] - centerPos[2]);
+	m_objectVis->getActor()->Modified();
+
+	calculateMetrics();
+}
+
 void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 {
-	
 	if(!hide)
 	{
 		modelInMiniatureActive = true;
-		double scale[3] = {0.15, 0.15, 0.15};
-		int controllerID = static_cast<int>(vtkEventDataDevice::LeftController);
-
 		updateModelInMiniatureData();
-		m_objectVis->setScale(scale[0], scale[1], scale[2]);
 
-		double sideDistance = *(m_objectVis->getActor()->GetYRange());
-		double hoveringOffset[3] = { sideDistance * xOffset, sideDistance * yOffset, sideDistance * zOffset };
-		m_objectVis->setPos(cPos[controllerID][0] + hoveringOffset[0], cPos[controllerID][1] + hoveringOffset[1], cPos[controllerID][2] + hoveringOffset[2]);
+		//m_objectVis->getActor()->SetOrigin(cPos[controllerID][0], cPos[controllerID][1], cPos[controllerID][2]);
+		//m_objectVis->setPos(cPos[controllerID][0], cPos[controllerID][1], cPos[controllerID][2] );
+		//m_objectVis->setPos(cPos[controllerID][0] - originPos[0], cPos[controllerID][1] - originPos[1], cPos[controllerID][2] - originPos[2]);
+
+		/*
+		std::vector<double*>* point = new std::vector<double*>();
+		point->push_back(m_objectVis->getActor()->GetCenter());
+		drawPoint(point, QColor(255,0,0));
+		point = new std::vector<double*>();
+		point->push_back(m_objectVis->getActor()->GetOrigin());
+		drawPoint(point, QColor(0, 255, 0));
+		point = new std::vector<double*>();
+		point->push_back(m_objectVis->getActor()->GetPosition());
+		drawPoint(point, QColor(0, 0, 0));
+		*/
 
 		m_objectVis->show();
+		m_3DText->show();
 
-		calculateMetrics();
+		//DEBUG_LOG(QString("Orientation is: %1 / %2 / %3").arg(m_objectVis->getActor()->GetOrientation()[0]).arg(m_objectVis->getActor()->GetOrientation()[1]).arg(m_objectVis->getActor()->GetOrientation()[2]));
+
 		fiberMetrics->getColorBarLegend()->GetPositionCoordinate()->SetCoordinateSystemToWorld();
 		fiberMetrics->getColorBarLegend()->GetPositionCoordinate()->SetValue(eventPosition);
-		fiberMetrics->showColorBarLegend(m_vrEnv->renderer());
+		//fiberMetrics->getColorBarLegend()->GetPositionCoordinate()->SetValue(m_vrEnv->renderer()->GetActiveCamera()->GetScreenTopRight());
+		//fiberMetrics->showColorBarLegend(m_vrEnv->renderer());
 	}
 	else
 	{
 		modelInMiniatureActive = false;
 		m_objectVis->hide();
+		m_3DText->hide();
 		fiberMetrics->hideColorBarLegend(m_vrEnv->renderer());
 	}
 }

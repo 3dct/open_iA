@@ -51,8 +51,10 @@ public:
 	void setLinearCubeOffset(double offset);
 	vtkIdType getClosestCellID(double pos[3], double eventOrientation[3]);
 	void setOctree(iAVROctree* octree);
-	vtkDataSet* getDataSet();
+	vtkSmartPointer<vtkPolyData> getDataSet();
 	vtkActor* getActor();
+
+	double defaultActorSize[3]; // Initial resize of the cube
 private:
 	QColor defaultColor;
 	vtkSmartPointer<vtkRenderer> m_renderer;

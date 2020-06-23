@@ -18,72 +18,31 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAVREnvironment.h"
+#pragma once
 
-#include "iAVRInteractor.h"
+#include <vtkSmartPointer.h>
+#include <vtkRenderer.h>
+#include "vtkBillboardTextActor3D.h"
+#include "vtkOpenVRControlsHelper.h"
 
-#include "iAConsole.h"
+#include <QString>
 
-#include <vtkOpenVRRenderer.h>
-#include <vtkOpenVRRenderWindow.h>
-#include <vtkOpenVRCamera.h>
-
-
-iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_interactor(vtkSmartPointer<iAVRInteractor>::New()), 
-m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New())
-{	
-	m_renderer->SetBackground(50, 50, 50);
-}
-
-vtkRenderer* iAVREnvironment::renderer()
+//! Creates 3D Labels in the VR Environment
+class iAVR3DText
 {
-	return m_renderer;
-}
+public:
+	iAVR3DText(vtkRenderer* ren);
+	void draw3DLable(double pos[3], QString text);
+	void updatePos(double pos[3]);
+	void drawInputTooltip(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, QString text);
+	void showInputTooltip();
+	void updateInputTooltip();
+	void show();
+	void hide();
 
-iAVRInteractor* iAVREnvironment::interactor()
-{
-	return m_interactor;
-}
-
-vtkOpenVRRenderWindow* iAVREnvironment::renderWindow()
-{
-	return m_renderWindow;
-}
-
-void iAVREnvironment::update()
-{
-	m_renderWindow->Render();
-}
-
-void iAVREnvironment::start()
-{
-	static int runningInstances = 0;
-	// "poor man's" check for trying to run two VR sessions in parallel:
-	if (runningInstances >= 1)
-	{
-		DEBUG_LOG("Cannot start more than one VR session in parallel!");
-		emit finished();
-		return;
-	}
-	++runningInstances;
-	m_renderWindow->AddRenderer(m_renderer);
-	// MultiSamples needs to be set to 0 to make Volume Rendering work:
-	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
-	m_renderWindow->SetMultiSamples(0);
-	m_interactor->SetRenderWindow(m_renderWindow);
-	auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
-
-	m_renderer->SetActiveCamera(camera);
-	m_renderer->ResetCamera();
-	m_renderer->ResetCameraClippingRange();
-	m_renderWindow->Render();
-	m_interactor->Start();
-	--runningInstances;
-	emit finished();
-}
-
-void iAVREnvironment::stop()
-{
-	if (m_interactor)
-		m_interactor->stop();
-}
+private:
+	vtkSmartPointer<vtkRenderer> m_renderer;
+	vtkSmartPointer<vtkBillboardTextActor3D> m_textActor3D;
+	vtkOpenVRControlsHelper* ControlsHelpers[vtkEventDataNumberOfDevices][vtkEventDataNumberOfInputs];
+	bool m_visible;
+};

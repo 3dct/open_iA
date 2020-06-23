@@ -23,13 +23,14 @@
 #include "vtkSmartPointer.h"
 #include "iAVREnvironment.h"
 #include "iAVRMetrics.h"
+#include "iAVR3DText.h"
 
 #include "vtkEventData.h"
 #include "vtkTable.h"
 #include "vtkDataSet.h"
 #include "vtkProp3D.h"
 #include "vtkPolyData.h"
-#include <vtkPlaneSource.h>
+#include "vtkPlaneSource.h"
 #include "iACsvIO.h"
 
 #include <unordered_map>
@@ -55,6 +56,7 @@ enum class iAVROperations {
   PickMiMRegion,
   ChangeOctreeLevel,
   ResetSelection,
+  ChangeFeature,
   NumberOfOperations
 };
 
@@ -81,10 +83,15 @@ private:
 	vtkSmartPointer<vtkPolyData> m_extendedCylinderVisData; // Data extended with additional intersection points
 	vtkSmartPointer<iAVRInteractorStyle> m_style;
 	vtkSmartPointer<vtkTable> m_objectTable;
-	iAVRMetrics* fiberMetrics;
+
+	iAVR3DText* m_3DText;
 	iACsvIO m_io;
+	iAVRMetrics* fiberMetrics;
+	int currentFeature;
 	//Current Device Position
 	double cPos[vtkEventDataNumberOfDevices][3];
+	//Current Device Orientation
+	double cOrie[vtkEventDataNumberOfDevices][4];
 	// Map Actors to iAVRInteractionOptions
 	std::unordered_map<vtkProp3D*, int> m_ActorToOptionID;
 	// Maps poly point IDs to Object IDs in csv file
@@ -113,6 +120,7 @@ private:
 	void generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyData* dataSet);
 	void calculateMetrics();
 	void updateModelInMiniatureData();
+	void calculateTextPosition(double fovRatio, double textureMapSize, double posInfo[7]);
 
 	//# Methods for interaction #//
 	void changeOctreeLevel();
@@ -121,5 +129,6 @@ private:
 	void pickFibersinRegion(int leafRegion);
 	void pickMimRegion(double eventPosition[3], double eventOrientation[4]);
 	void resetSelection();
+	void changeFeature();
 	void spawnModelInMiniature(double eventPosition[3], bool hide);
 };

@@ -35,6 +35,7 @@
 #include "vtkNamedColors.h"
 #include "vtkCellPicker.h"
 #include "vtkProp3DCollection.h"
+#include "vtkMatrix4x4.h"
 
 #include <iAConsole.h>
 #include <math.h>
@@ -42,6 +43,9 @@
 iAVR3DObjectVis::iAVR3DObjectVis(vtkRenderer* ren):m_renderer(ren),m_actor(vtkSmartPointer<vtkActor>::New())
 {
 	m_visible = false;
+	defaultActorSize[0] = 0.15;
+	defaultActorSize[1] = 0.15;
+	defaultActorSize[2] = 0.15;
 	defaultColor = QColor(0, 0, 200, 200); // Not fully opaque
 }
 
@@ -68,6 +72,17 @@ void iAVR3DObjectVis::hide()
 //! Creates for every region of the octree a cube glyph. The cubes are stored in one actor with the set default color.
 void iAVR3DObjectVis::createModelInMiniature()
 {
+	
+	//RESET TO DEFAULT VALUES
+	if (m_actor->GetUserMatrix() != NULL)
+		m_actor->GetUserMatrix()->Identity();
+	m_actor->GetMatrix()->Identity();
+	m_actor->SetOrientation(0, 0, 0);
+	m_actor->SetScale(1,1,1);
+	m_actor->SetPosition(0, 0, 0);
+	m_actor->SetOrigin(0, 0, 0);
+	
+
 	int leafNodes = m_octree->getOctree()->GetNumberOfLeafNodes();
 	if (leafNodes <= 0)
 	{
@@ -108,7 +123,9 @@ void iAVR3DObjectVis::createModelInMiniature()
 	glyphMapper->SetInputConnection(glyph3D->GetOutputPort());
 
 	m_actor->SetMapper(glyphMapper);
+	m_actor->Modified();
 	m_actor->GetProperty()->SetColor(defaultColor.redF(), defaultColor.greenF(), defaultColor.blueF());
+	m_actor->SetScale(defaultActorSize);
 }
 
 void iAVR3DObjectVis::createCube(QColor col, double size[3], double center[3])
@@ -262,9 +279,9 @@ void iAVR3DObjectVis::setOctree(iAVROctree* octree)
 	m_octree = octree;
 }
 
-vtkDataSet * iAVR3DObjectVis::getDataSet()
+vtkSmartPointer<vtkPolyData> iAVR3DObjectVis::getDataSet()
 {
-	return m_dataSet;
+	return m_cubePolyData;
 }
 
 vtkActor * iAVR3DObjectVis::getActor()

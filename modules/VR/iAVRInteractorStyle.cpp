@@ -23,12 +23,15 @@
 #include <iAConsole.h>
 #include <vtkObjectFactory.h>
 #include "vtkOpenVRRenderWindowInteractor.h"
-#include <vtkPropPicker.h>
-#include <vtkPointPicker.h>
+#include "vtkPropPicker.h"
+#include "vtkPointPicker.h"
 #include "iAVRMain.h"
 #include "vtkActor.h"
 #include "vtkProperty.h"
 #include "vtkPolyDataMapper.h"
+#include "vtkOpenVRModel.h"
+
+#include <vtkMath.h>
 
 vtkStandardNewMacro(iAVRInteractorStyle);
 
@@ -40,7 +43,7 @@ iAVRInteractorStyle::iAVRInteractorStyle()
 	std::vector<std::vector<int>> b(NUMBER_OF_ACTIONS, a);
 	std::vector < std::vector<std::vector<int>>> c(NUMBER_OF_INPUTS, b);
 	m_inputScheme = new std::vector < std::vector < std::vector<std::vector<int>>>>(NUMBER_OF_DEVICES, c);
-
+	
 	m_activeInput = new std::vector<int>(NUMBER_OF_DEVICES, -1);
 
 }
@@ -73,13 +76,16 @@ void iAVRInteractorStyle::OnButton3D(vtkEventData* edata)
 	device->GetWorldPosition(m_eventPosition);
 	device->GetWorldOrientation(m_eventOrientation);
 
+	m_eventOrientation[1] = vtkMath::DegreesFromRadians(m_eventOrientation[1]);
+	m_eventOrientation[2] = vtkMath::DegreesFromRadians(m_eventOrientation[2]);
+	m_eventOrientation[3] = vtkMath::DegreesFromRadians(m_eventOrientation[3]);
+
 	this->FindPickedActor(m_eventPosition, nullptr);
 
 
 	if(action == vtkEventDataAction::Press || action == vtkEventDataAction::Touch)
 	{
 		m_vrMain->startInteraction(device, m_eventPosition, m_eventOrientation, InteractionProp);
-
 	}
 	else if(action == vtkEventDataAction::Release || action == vtkEventDataAction::Untouch)
 	{
@@ -101,12 +107,30 @@ void iAVRInteractorStyle::OnMove3D(vtkEventData * edata)
 	device->GetWorldPosition(m_movePosition);
 	device->GetWorldOrientation(m_eventOrientation);
 
+	/* //Orientation?
+	vtkRenderer* ren = this->CurrentRenderer;
+	vtkOpenVRRenderWindow* renWin =
+		vtkOpenVRRenderWindow::SafeDownCast(this->Interactor->GetRenderWindow());
+	vtkOpenVRRenderWindowInteractor* iren =
+		static_cast<vtkOpenVRRenderWindowInteractor*>(this->Interactor);
+
+	vtkOpenVRModel* cmodel = renWin->GetTrackedDeviceModel(device->GetDevice());
+
+	renWin->GetTrackedDevicePose(cmodel->TrackedDevice);
+	*/
+
+	m_eventOrientation[1] = vtkMath::DegreesFromRadians(m_eventOrientation[1]);
+	m_eventOrientation[2] = vtkMath::DegreesFromRadians(m_eventOrientation[2]);
+	m_eventOrientation[3] = vtkMath::DegreesFromRadians(m_eventOrientation[3]);
+
 	this->FindPickedActor(m_movePosition, nullptr);
 
 	m_vrMain->onMove(device, m_movePosition, m_eventOrientation, InteractionProp);
 
 }
 
+//! Returns a vector for the input scheme
+//! For every [device] an [inputID] and its [action] on an selection [option] a specific interaction is specified
 inputScheme * iAVRInteractorStyle::getInputScheme()
 {
 	return m_inputScheme;

@@ -23,6 +23,8 @@
 #include <vtkSmartPointer.h>
 #include <unordered_map>
 
+#include <QString>
+
 #include "iACsvIO.h"
 #include "iAVROctree.h"
 
@@ -42,6 +44,8 @@ public:
 	vtkSmartPointer<vtkScalarBarActor> getColorBarLegend();
 	void showColorBarLegend(vtkRenderer* ren);
 	void hideColorBarLegend(vtkRenderer* ren);
+	int getNumberOfFeatures();
+	QString getFeatureName(int feature);
 	
 
 private:
@@ -59,6 +63,7 @@ private:
 	std::vector<iAVROctree*>* m_octrees;
 	//Stores the info if at a specific octree [level] a specific [feature] is already calculated
 	std::vector<std::vector<bool>>* isAlreadyCalculated;
+	int numberOfFeatures;
 
 	void calculateWeightedAverage(int octreeLevel, int feature);
 	double histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax);

@@ -23,19 +23,25 @@
 #include <iAConsole.h>
 #include <vtkVariant.h>
 #include <vtkProperty2D.h>
+#include <vtkTextProperty.h>
 
 iAVRMetrics::iAVRMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees):m_objectTable(objectTable), m_io(io),
 m_octrees(octrees)
 {
-	//Initilaize vectors
-	isAlreadyCalculated = new std::vector<std::vector<bool>>(m_octrees->size(), std::vector<bool>(iACsvConfig::MappedCount, false));
+	//numberOfFeatures = iACsvConfig::MappedCount;
+	numberOfFeatures = m_objectTable->GetNumberOfColumns();
+
+	//Initialize vectors
+	isAlreadyCalculated = new std::vector<std::vector<bool>>(m_octrees->size(), std::vector<bool>(numberOfFeatures, false));
 	
 	std::vector<double> region = std::vector<double>();
-	std::vector<std::vector<double>> feature = std::vector<std::vector<double>>(iACsvConfig::MappedCount, region);
+	std::vector<std::vector<double>> feature = std::vector<std::vector<double>>(numberOfFeatures, region);
 	m_calculatedStatistic = new std::vector<std::vector<std::vector<double>>>(m_octrees->size(), feature);
 
 	m_colorBar = vtkSmartPointer<vtkScalarBarActor>::New();
 	m_colorBarVisible = false;
+
+
 }
 
 //! Has to be called *before* getting any Metric data
@@ -58,7 +64,8 @@ void iAVRMetrics::calculateWeightedAverage(int octreeLevel, int feature)
 
 			for (auto element : *m_fiberCoverage->at(octreeLevel).at(region))
 			{
-				double fiberAttribute = m_objectTable->GetValue(element.first, m_io.getOutputMapping()->value(feature)).ToFloat();
+				//double fiberAttribute = m_objectTable->GetValue(element.first, m_io.getOutputMapping()->value(feature)).ToFloat();
+				double fiberAttribute = m_objectTable->GetValue(element.first, feature).ToFloat();
 				double weightedAttribute = fiberAttribute * element.second;
 				metricResultPerRegion += weightedAttribute;
 				fibersInRegion++;
@@ -141,6 +148,12 @@ vtkSmartPointer<vtkLookupTable> iAVRMetrics::calculateLUT(double min, double max
 	m_colorBar->SetLookupTable(m_lut);
 	m_colorBar->SetNumberOfLabels(8);
 	m_colorBar->DrawBelowRangeSwatchOn();
+	m_colorBar->GetProperty()->SetLineWidth(5);
+	m_colorBar->GetProperty()->SetColor(0, 0, 0);
+	m_colorBar->GetTitleTextProperty()->SetColor(0, 0, 0);
+	
+	//m_colorBar->SetHeight(0.5);
+	m_colorBar->Modified();
 
 	return m_lut;
 }
@@ -175,6 +188,11 @@ void iAVRMetrics::hideColorBarLegend(vtkRenderer* ren)
 	m_colorBarVisible = false;
 }
 
+int iAVRMetrics::getNumberOfFeatures()
+{
+	return numberOfFeatures;
+}
+
 double iAVRMetrics::histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax)
 {
 	double result = ((newMax - newMin) * ((value - oldMin) / (oldMax - oldMin))) + newMin;
@@ -186,7 +204,6 @@ void iAVRMetrics::storeMinMaxValues()
 	m_minMaxValues = new std::vector<std::vector<double>>();
 
 	//int numberOfFeatures = m_objectTable->GetNumberOfColumns();
-	int numberOfFeatures = iACsvConfig::MappedCount;
 
 	std::vector<double> minAttribute = std::vector<double>(); //= m_objectTable->GetColumn(feature)->GetVariantValue(0).ToFloat();
 	std::vector<double> maxAttribute = std::vector<double>(); //= minAttribute;
@@ -196,7 +213,8 @@ void iAVRMetrics::storeMinMaxValues()
 		for (int feature = 0; feature < numberOfFeatures; feature++)
 		{
 			//double currentValue = m_objectTable->GetColumn(feature)->GetVariantValue(row).ToFloat();
-			double currentValue = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(feature)).ToFloat();
+			//double currentValue = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(feature)).ToFloat();
+			double currentValue = m_objectTable->GetValue(row, feature).ToFloat();
 
 			//initialize values at first fiber
 			if (row == 0)
@@ -221,5 +239,12 @@ void iAVRMetrics::storeMinMaxValues()
 		tempVec.push_back(maxAttribute[feature]);
 		m_minMaxValues->push_back(tempVec);
 	}
+}
+
+QString iAVRMetrics::getFeatureName(int feature)
+{
+	//QString featureName = m_objectTable->GetColumnName(m_io.getOutputMapping()->value(feature));
+	QString featureName = m_objectTable->GetColumnName(feature);
+	return featureName;
 }
 
