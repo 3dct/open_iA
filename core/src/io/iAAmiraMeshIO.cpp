@@ -150,7 +150,11 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	int nextLineBreakPos = header.indexOf("\n", latticePos);
 	int lineSize = nextLineBreakPos - latticePos;
 	QString latticeLine = header.mid(latticePos, lineSize );
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	QStringList latticeTokens = latticeLine.split(" ", QString::SkipEmptyParts);
+#else
+	QStringList latticeTokens = latticeLine.split(" ", Qt::SkipEmptyParts);
+#endif
 
 	// TODO more types?
 	int dataType;

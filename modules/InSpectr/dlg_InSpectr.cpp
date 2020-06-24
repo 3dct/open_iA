@@ -56,17 +56,11 @@
 #include <mdichild.h>
 #include <qthelper/iADockWidgetWrapper.h>
 
-#include <itkLabelStatisticsImageFilter.h>
 #include <itkImageBase.h>
 #include <itkImage.h>
 #include <itkIdentityTransform.h>
-#include <itkMeanSquaresImageToImageMetric.h>
 #include <itkMutualInformationImageToImageMetric.h>
-#include <itkNormalizedCorrelationImageToImageMetric.h>
 #include <itkLinearInterpolateImageFunction.h>
-#include <itkTranslationTransform.h>
-#include <itkExtractImageFilter.h>
-#include <itkImageMaskSpatialObject.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkDiscretizableColorTransferFunction.h>

@@ -1541,7 +1541,9 @@ void iARunBatchThread::generateMasksCSVFile( QString batchDir, QString batchesDi
 
 void iARunBatchThread::run()
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
 	qsrand( QTime::currentTime().msec() );
+#endif
 	m_settingsCSV.clear();
 	iACSVToQTableWidgetConverter::loadCSVFile( m_pmi->CSVFile(), &m_settingsCSV );
 	if( !m_settingsCSV.rowCount() )

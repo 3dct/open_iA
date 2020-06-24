@@ -105,9 +105,6 @@ IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic -fvisibility=hidden")
 	SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic -fvisibility=hidden")
 ENDIF()
-IF( "${CMAKE_SYSTEM_NAME}" MATCHES "Darwin" )
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework OpenGL")
-ENDIF()
 
 # Installation
 IF (WIN32)

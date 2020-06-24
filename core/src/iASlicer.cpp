@@ -108,11 +108,11 @@
 #include <cassert>
 
 //! Custom interactor style for slicers, for disabling certain vtk interactions we do differently.
-class iAInteractorStyleImage : public vtkInteractorStyleImage
+class iASlicerInteractorStyle : public vtkInteractorStyleImage
 {
 public:
-	static iAInteractorStyleImage *New();
-	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage)
+	static iASlicerInteractorStyle *New();
+	vtkTypeMacro(iASlicerInteractorStyle, vtkInteractorStyleImage);
 
 	void OnLeftButtonDown() override
 	{
@@ -219,7 +219,7 @@ private:
 	bool m_leftButtonDown = false;
 };
 
-vtkStandardNewMacro(iAInteractorStyleImage);
+vtkStandardNewMacro(iASlicerInteractorStyle);
 
 
 //! observer needs to be a separate class; otherwise there is an error when destructing,
@@ -259,7 +259,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_fisheyeRadius(80.0),
 	m_innerFisheyeRadius(70.0),
 	m_interactor(nullptr),
-	m_interactorStyle(iAInteractorStyleImage::New()),
+	m_interactorStyle(iASlicerInteractorStyle::New()),
 	m_renWin(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New()),
 	m_ren(vtkSmartPointer<vtkRenderer>::New()),
 	m_camera(vtkCamera::New()),
@@ -314,13 +314,21 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_actionToggleWindowLevelAdjust = m_contextMenu->addAction(tr("Adjust Window/Level via Mouse Click+Drag"), this, &iASlicer::toggleWindowLevelAdjust);
 	m_actionToggleWindowLevelAdjust->setCheckable(true);
 
+	m_actionFisheyeLens = m_contextMenu->addAction(QIcon(":/images/fisheyeLens.png"), tr("Fisheye Lens"), this, &iASlicer::fisheyeLensToggled);
+	m_actionFisheyeLens->setShortcut(Qt::Key_O);
+	m_actionFisheyeLens->setCheckable(true);
+	m_actionFisheyeLens->setChecked(false);
+
 	if (magicLensAvailable)
 	{
 		m_magicLens = QSharedPointer<iAMagicLens>(new iAMagicLens());
 		m_magicLens->setRenderWindow(m_renWin);
 		// setup context menu for the magic lens view options
 		m_contextMenu->addSeparator();
-		// TODO: pass in actionMagicLens2D from MainWindow somehow and add here?
+		m_actionMagicLens = m_contextMenu->addAction(QIcon(":/images/magicLens.png"), tr("Magic Lens"), this, &iASlicer::magicLensToggled);
+		m_actionMagicLens->setCheckable(true);
+		m_actionMagicLens->setChecked(false);
+
 		QActionGroup * actionGr(new QActionGroup(this));
 		m_actionMagicLensCentered = m_contextMenu->addAction(tr("Centered Magic Lens"), this, &iASlicer::menuCenteredMagicLens);
 		m_actionMagicLensCentered->setCheckable(true);
@@ -2043,60 +2051,7 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 	}
 	if (event->key() == Qt::Key_O)
 	{
-		// TODO: fisheye lens on all channels???
-
-		auto reslicer = channel(0)->reslicer();
-		if (!m_fisheyeLensActivated)
-		{
-			m_fisheyeLensActivated = true;
-			reslicer->SetAutoCropOutput(!reslicer->GetAutoCropOutput());
-			ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
-
-			initializeFisheyeLens(reslicer);
-
-			updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-		}
-		else
-		{
-			m_fisheyeLensActivated = false;
-			reslicer->SetAutoCropOutput(!reslicer->GetAutoCropOutput());
-
-			// Clear outdated circles and actors (not needed for final version)
-			for (int i = 0; i < m_circle1ActList.length(); ++i)
-			{
-				ren->RemoveActor(m_circle1ActList.at(i));
-			}
-			//circle1List.clear();
-			m_circle1ActList.clear();
-
-			for (int i = 0; i < m_circle2ActList.length(); ++i)
-			{
-				ren->RemoveActor(m_circle2ActList.at(i));
-			}
-			m_circle2List.clear();
-			m_circle2ActList.clear(); //*/
-
-			ren->RemoveActor(m_fisheyeActor);
-
-			// No fisheye transform
-			double bounds[6];
-			reslicer->GetInformationInput()->GetBounds(bounds);
-			m_pointsTarget->SetNumberOfPoints(4);
-			m_pointsSource->SetNumberOfPoints(4);
-			m_pointsTarget->SetPoint(0, bounds[0], bounds[2], 0); //x_min, y_min, bottom left
-			m_pointsTarget->SetPoint(1, bounds[0], bounds[3], 0); //x_min, y_max, top left
-			m_pointsTarget->SetPoint(2, bounds[1], bounds[3], 0); //x_max, y_max, top right
-			m_pointsTarget->SetPoint(3, bounds[1], bounds[2], 0); //x_max, y_min, bottom right
-			m_pointsSource->SetPoint(0, bounds[0], bounds[2], 0); //x_min, y_min, bottom left
-			m_pointsSource->SetPoint(1, bounds[0], bounds[3], 0); //x_min, y_max, top left
-			m_pointsSource->SetPoint(2, bounds[1], bounds[3], 0); //x_max, y_max, top right
-			m_pointsSource->SetPoint(3, bounds[1], bounds[2], 0); //x_max, y_min, bottom right
-
-			m_fisheyeTransform->SetSourceLandmarks(m_pointsSource);
-			m_fisheyeTransform->SetTargetLandmarks(m_pointsTarget);
-			reslicer->SetResliceTransform(m_fisheyeTransform);
-			update();
-		}
+		fisheyeLensToggled(!m_fisheyeLensActivated);
 	}
 
 	// magnify and unmagnify fisheye lens and distortion radius
@@ -2297,8 +2252,10 @@ void iASlicer::contextMenuEvent(QContextMenuEvent *event)
 {
 	m_actionToggleWindowLevelAdjust->setChecked(m_interactorStyle->windowLevelAdjustEnabled());
 	m_actionShowTooltip->setChecked(m_textInfo->GetActor()->GetVisibility());
+	m_actionFisheyeLens->setChecked(m_fisheyeLensActivated);
 	if (m_magicLens)
 	{
+		m_actionMagicLens->setChecked(m_magicLens->isEnabled());
 		m_actionMagicLensCentered->setVisible(m_magicLens->isEnabled());
 		m_actionMagicLensOffset->setVisible(m_magicLens->isEnabled());
 	}
@@ -2540,6 +2497,63 @@ void iASlicer::toggleWindowLevelAdjust()
 void iASlicer::toggleShowTooltip()
 {
 	m_textInfo->GetActor()->SetVisibility(m_actionShowTooltip->isChecked());
+}
+
+void iASlicer::fisheyeLensToggled(bool enabled)
+{
+	m_fisheyeLensActivated = enabled;
+	vtkRenderer* ren = m_renWin->GetRenderers()->GetFirstRenderer();
+	// TODO: fisheye lens on all channels???
+	auto reslicer = channel(0)->reslicer();
+	if (m_fisheyeLensActivated)
+	{
+		reslicer->SetAutoCropOutput(!reslicer->GetAutoCropOutput());
+		ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
+
+		initializeFisheyeLens(reslicer);
+
+		updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
+	}
+	else
+	{
+		reslicer->SetAutoCropOutput(!reslicer->GetAutoCropOutput());
+
+		// Clear outdated circles and actors (not needed for final version)
+		for (int i = 0; i < m_circle1ActList.length(); ++i)
+		{
+			ren->RemoveActor(m_circle1ActList.at(i));
+		}
+		//circle1List.clear();
+		m_circle1ActList.clear();
+
+		for (int i = 0; i < m_circle2ActList.length(); ++i)
+		{
+			ren->RemoveActor(m_circle2ActList.at(i));
+		}
+		m_circle2List.clear();
+		m_circle2ActList.clear(); //*/
+
+		ren->RemoveActor(m_fisheyeActor);
+
+		// No fisheye transform
+		double bounds[6];
+		reslicer->GetInformationInput()->GetBounds(bounds);
+		m_pointsTarget->SetNumberOfPoints(4);
+		m_pointsSource->SetNumberOfPoints(4);
+		m_pointsTarget->SetPoint(0, bounds[0], bounds[2], 0); //x_min, y_min, bottom left
+		m_pointsTarget->SetPoint(1, bounds[0], bounds[3], 0); //x_min, y_max, top left
+		m_pointsTarget->SetPoint(2, bounds[1], bounds[3], 0); //x_max, y_max, top right
+		m_pointsTarget->SetPoint(3, bounds[1], bounds[2], 0); //x_max, y_min, bottom right
+		m_pointsSource->SetPoint(0, bounds[0], bounds[2], 0); //x_min, y_min, bottom left
+		m_pointsSource->SetPoint(1, bounds[0], bounds[3], 0); //x_min, y_max, top left
+		m_pointsSource->SetPoint(2, bounds[1], bounds[3], 0); //x_max, y_max, top right
+		m_pointsSource->SetPoint(3, bounds[1], bounds[2], 0); //x_max, y_min, bottom right
+
+		m_fisheyeTransform->SetSourceLandmarks(m_pointsSource);
+		m_fisheyeTransform->SetTargetLandmarks(m_pointsTarget);
+		reslicer->SetResliceTransform(m_fisheyeTransform);
+		update();
+	}
 }
 
 void iASlicer::initializeFisheyeLens(vtkImageReslice* reslicer)

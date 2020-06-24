@@ -22,6 +22,8 @@
 
 #include <stdexcept>
 
+#include <itkConfigure.h>    // for ITK_VERSION...
+
 // Requirements:
 // |function| return type must be void
 //
@@ -87,7 +89,9 @@
 		break;                                              \
 	default:                                                \
 		throw itk::ExceptionObject(__FILE__, __LINE__,      \
-			QString("Typed Call: Unknown component type (%1).").arg(itk_scalar_type).toStdString().c_str());\
+			QString("Typed Call: Unknown component type (%1).") \
+				.arg(static_cast<unsigned char>(itk_scalar_type)) \
+				.toStdString().c_str());                    \
 		break;                                              \
 	}                                                       \
 }

@@ -24,6 +24,7 @@
 
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPainterPath>
 
 iATriangleButton::iATriangleButton():
 	m_expanded(false)

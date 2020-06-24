@@ -282,8 +282,8 @@ void iAParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::Threaded
 				{
 					case Equal: votesByLabel[label] += 1.0; break;
 					case LabelBased: votesByLabel[label] += m_inputLabelWeightMap[std::make_pair(label, i)]; break;
-					case Certainty: votesByLabel[label] += (1.0 - entropy);
-					case FBGSBGDiff: votesByLabel[label] += (pixelFBG - pixelSBG);
+					case Certainty: votesByLabel[label] += (1.0 - entropy); break;
+					case FBGSBGDiff: votesByLabel[label] += (pixelFBG - pixelSBG); break;
 				}
 				
 			}

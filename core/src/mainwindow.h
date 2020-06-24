@@ -124,6 +124,14 @@ public:
 	void closeMdiChild(MdiChild* child);
 	void closeAllSubWindows();
 	void updateInteractionModeControls(int mode);
+	void updateMagicLens2DCheckState(bool enabled);
+
+public slots:
+	void loadLayout();
+
+signals:
+	void styleChanged();
+	void fullScreenToggled();
 
 protected:
 	void closeEvent(QCloseEvent *event) override;
@@ -193,13 +201,6 @@ private slots:
 	void endPointSelected();
 	void setHistogramFocus();
 	void consoleVisibilityChanged(bool newVisibility);
-
-public slots:
-	void loadLayout();
-
-signals:
-	void styleChanged();
-	void fullScreenToggled();
 
 private:
 	void connectSignalsToSlots();

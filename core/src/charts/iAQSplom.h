@@ -112,7 +112,11 @@ public:
 		rmAutomatic,       //!< Range is automatically determined from chosen parameter
 		rmManual           //!< Range is manually set via minimum and maximum inputs
 	};
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
 	iAQSplom( QWidget * parent = 0, Qt::WindowFlags f = 0 );
+#else
+	iAQSplom(QWidget* parent = 0, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+#endif
 	~iAQSplom();
 
 	void setData(QSharedPointer<iASPLOMData> data, std::vector<char> const & visibility);                  //! set SPLOM data directly.
@@ -163,8 +167,8 @@ public slots:
 	void setHistogramBins(int bins);                                 //!< set the number of histogram bins
 	void showSettings();                                             //!< Show the settings dialog
 	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
-	void setColorTheme(QString const& themeName);                    //!< Call to adapt color theme used for coloring by a continuous parameter
-	void setColorThemeQual(QString const& themeName);                //!< Call to adapt color theme used for coloring by a qualitative parameter
+	void setColorTheme(QString const & themeName);                   //!< Call to adapt color theme used for coloring by a continuous parameter
+	void setColorThemeQual(int index);                               //!< Call to adapt color theme used for coloring by a qualitative parameter
 	void rangeFromParameter();                                       //!< Call when color range should be determined from parameter
 signals:
 	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
@@ -207,6 +211,7 @@ protected:
 	virtual void addHighlightedPoint(size_t index);                  //!< Keep a point with index always highlighted
 	virtual void removeHighlightedPoint(size_t index);               //!< Remove a point from the highlighted list
 protected slots:
+	void setColorThemeFromComboBox(int index);                       //!< Called when color theme changed via combobox in settings dialog
 	virtual void currentPointUpdated(size_t index);                  //!< When hovered over a new point.
 private:
 	void dataChanged(std::vector<char> visibleParams);               //!< handles changes of the internal data

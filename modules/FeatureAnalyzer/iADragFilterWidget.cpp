@@ -573,10 +573,15 @@ void iADragFilterWidget::mousePressEvent( QMouseEvent *event )
 	if ( !child )
 		return;
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+	if (child->pixmap(Qt::ReturnByValue).isNull())
+		return;
+	QPixmap pixmap = child->pixmap(Qt::ReturnByValue);
+#else
 	if ( !child->pixmap() )
 		return;
-
 	QPixmap pixmap = *child->pixmap();
+#endif
 	QString filtername = child->objectName();
 	QString description = child->toolTip();
 	QByteArray itemData;

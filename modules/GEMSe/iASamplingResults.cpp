@@ -152,6 +152,15 @@ bool iASamplingResults::Store(QString const & fileName,
 	QTextStream out(&paramRangeFile);
 	out.setCodec("UTF-8");
 	QFileInfo fi(paramRangeFile);
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+	out << SMPFileFormatVersion << Qt::endl;
+	out << "Name" << Output::NameSeparator << m_name << Qt::endl;
+	out << "ParameterSet" << Output::NameSeparator << MakeRelative(fi.absolutePath(), parameterSetFileName) << Qt::endl;
+	out << "DerivedOutput" << Output::NameSeparator << MakeRelative(fi.absolutePath(), derivedOutputFileName) << Qt::endl;
+	out << "SamplingMethod" << Output::NameSeparator << m_samplingMethod << Qt::endl;
+	out << "Executable" << Output::NameSeparator << m_executable << Qt::endl;
+	out << "AdditionalArguments" << Output::NameSeparator << m_additionalArguments << Qt::endl;
+#else
 	out << SMPFileFormatVersion << endl;
 	out << "Name" << Output::NameSeparator << m_name << endl;
 	out << "ParameterSet" << Output::NameSeparator << MakeRelative(fi.absolutePath(), parameterSetFileName) << endl;
@@ -159,6 +168,7 @@ bool iASamplingResults::Store(QString const & fileName,
 	out << "SamplingMethod" << Output::NameSeparator << m_samplingMethod << endl;
 	out << "Executable" << Output::NameSeparator << m_executable << endl;
 	out << "AdditionalArguments" << Output::NameSeparator << m_additionalArguments << endl;
+#endif
 	m_attributes->store(out);
 	paramRangeFile.close();
 
@@ -186,7 +196,11 @@ bool iASamplingResults::StoreAttributes(int type, QString const & fileName, bool
 		{
 			outParamSet << m_results[i]->GetID() << iASingleResult::ValueSplitString;
 		}
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+		outParamSet << m_results[i]->ToString(m_attributes, type) << Qt::endl;
+#else
 		outParamSet << m_results[i]->ToString(m_attributes, type) << endl;
+#endif
 	}
 	paramSetFile.close();
 	return true;

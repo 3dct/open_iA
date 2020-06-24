@@ -30,7 +30,11 @@ class iAMeanObjectTFView : public iAMeanObjectTFViewConnector
 {
 	Q_OBJECT
 public:
-	iAMeanObjectTFView( QWidget * parent = 0, Qt::WindowFlags f = 0 )
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
+	iAMeanObjectTFView( QWidget * parent = nullptr, Qt::WindowFlags f = 0 )
+#else
+	iAMeanObjectTFView(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>())
+#endif
 		: iAMeanObjectTFViewConnector( parent, f )
 	{}
 	~iAMeanObjectTFView() {}
