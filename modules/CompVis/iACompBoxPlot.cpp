@@ -30,15 +30,16 @@
 #include "vtkStatisticsAlgorithm.h"
 #include "vtkLookupTable.h"
 #include "vtkVariant.h"
-#include "vtkVariantArray.h"
 
 #include "vtkPlotBox.h"
-#include "vtkChartXY.h"
-#include "vtkBrush.h"
 
 #include "vtkTextActor.h"
+#include "vtkTooltipItem.h"
+#include "vtkContextMouseEvent.h"
 
 #include <string>
+
+vtkStandardNewMacro(iACompBoxPlot::BoxPlotChart);
 
 iACompBoxPlot::iACompBoxPlot(MainWindow* parent, iACsvDataStorage* dataStorage) : 
 	QDockWidget(parent),
@@ -67,12 +68,12 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 {
 	// data preparation
 	QList<csvFileData>* data = m_dataStorage->getData();
-	int numParam = data->at(0).header->size();
-	DEBUG_LOG("numParam = " + QString::number(numParam));
+	int numParam = data->at(0).header->size(); //amount of attributes
 	QStringList* attrNames = m_dataStorage->getData()->at(0).header;
 
 	//create chart (a plot is stored inside a chart)
-	vtkSmartPointer<vtkChartBox> chart = vtkSmartPointer<vtkChartBox>::New();
+	vtkSmartPointer<BoxPlotChart> chart = vtkSmartPointer<BoxPlotChart>::New();
+	chart->setOuterClass(this);
 	chart->Update();
 	m_view->GetScene()->AddItem(chart);
 
@@ -104,63 +105,22 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 		for(int dataInd = 0; dataInd < data->at(i).values->size(); dataInd++)
 		{ //for all values
 			for (int attrInd = 1; attrInd <= numParam; attrInd++) 
-			{//for all attributes
+			{//for all attributes but without the label attribute
 
 				int col = attrInd-1;
 				double val = data->at(i).values->at(dataInd).at(attrInd);
 				
 				inputBoxPlotTable->SetValue(row, col, vtkVariant(val));
-
-				//DEBUG_LOG(" ");
-				//DEBUG_LOG("i = " + QString::number(i));
-				//DEBUG_LOG("dataInd = " + QString::number(dataInd));
-				//DEBUG_LOG("attrInd = " + QString::number(attrInd));
-				//DEBUG_LOG("row = " + QString::number(row));
-				//DEBUG_LOG("col = " + QString::number(col));
-				//DEBUG_LOG("val = " + QString::number(val));
-				//DEBUG_LOG("vtkVariant(val) = " + QString::number(vtkVariant(val).ToDouble()));
-				
 			}
 			row++;
 		}
 	}
 
-	//DEBUG
-	/*for (vtkIdType c = 0; c < inputBoxPlotTable->GetNumberOfColumns(); c++)
-	{
-		for (vtkIdType r = 0; r < inputBoxPlotTable->GetNumberOfRows(); r++)
-		{
-		
-			vtkVariant v = inputBoxPlotTable->GetValue(r, c);
-		
-			if (c== 2) 
-			{
-				DEBUG_LOG("(r,c) = (" + QString::number(r) + "," + QString::number(c) + ") = " + QString::number(v.ToDouble()));
-			}
-		}
-	}*/
-
 	//calculate quartiles
 	vtkSmartPointer<vtkComputeQuartiles> quartiles = vtkSmartPointer<vtkComputeQuartiles>::New();
 	quartiles->SetInputData(vtkStatisticsAlgorithm::INPUT_DATA, inputBoxPlotTable);
 	quartiles->Update();
-
-	vtkSmartPointer<vtkTable> outTable = quartiles->GetOutput();
-
-	/*DEBUG_LOG("");
-	DEBUG_LOG("outTable");
-	//DEBUG
-	for (vtkIdType c = 0; c < outTable->GetNumberOfColumns(); c++)
-	{
-		for (vtkIdType r = 0; r < outTable->GetNumberOfRows(); r++)
-		{
-		
-			vtkVariant v = outTable->GetValue(r, c);
-
-			DEBUG_LOG("(r,c) = (" + QString::number(r) + "," + QString::number(c) + ") = " + QString::number(v.ToDouble()));
-			
-		}
-	}*/
+	outTable = quartiles->GetOutput();
 
 	vtkSmartPointer<vtkTable> normalizedTable = vtkSmartPointer<vtkTable>::New();
 	normalizedTable->DeepCopy(outTable);
@@ -175,20 +135,6 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 			normalizedTable->SetValue(r, c, vtkVariant(newV));
 		}
 	}
-
-	//DEBUG
-	/*for (vtkIdType r = 0; r < normalizedTable->GetNumberOfRows(); r++)
-	{
-		for (vtkIdType c = 0; c < normalizedTable->GetNumberOfColumns(); c++)
-		{
-			vtkVariant v = normalizedTable->GetValue(r, c);
-
-			if (c == 0)
-			{
-				DEBUG_LOG("(r,c) = (" + QString::number(r) + "," + QString::number(c) + ") = " + QString::number(v.ToDouble()));
-			}
-		}
-	}*/
 
 	//create lookup table
 	vtkSmartPointer<vtkLookupTable> lookup = vtkSmartPointer<vtkLookupTable>::New();
@@ -277,4 +223,44 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 void iACompBoxPlot::renderWidget()
 {
 	m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
+}
+
+/************************* INNER CLASS BoxPlotChart *******************************************/
+void iACompBoxPlot::BoxPlotChart::SetTooltipInfo(const vtkContextMouseEvent& mouse,
+	const vtkVector2d &plotPos,
+	vtkIdType seriesIndex, vtkPlot* plot,
+	vtkIdType segmentIndex)
+{
+	if (!this->Tooltip)
+	  {
+		return;
+	  }
+	
+	std::vector<std::string> tokens;
+	
+	for (vtkIdType r = 0; r < m_outerClass->outTable->GetNumberOfRows(); r++)
+	{
+		vtkVariant v = m_outerClass->outTable->GetValue(r, plotPos.GetX());
+		tokens.push_back(v.ToString());
+	}
+
+	vtkStdString tooltipLabel = 
+		"Minimum = " + tokens.at(0) + "\n" +
+		"First quartile = " + tokens.at(1) + "\n" + 
+		"Median = " + tokens.at(2) + "\n" + 
+		"Third quartile = " + tokens.at(3) + "\n" + 
+		"Maximum = " + tokens.at(4);
+
+  // Set the tooltip
+  this->Tooltip->SetText(tooltipLabel);
+  this->Tooltip->SetPosition(mouse.GetScreenPos()[0] + 2, mouse.GetScreenPos()[1] + 2);
+}
+
+void iACompBoxPlot::BoxPlotChart::setOuterClass(iACompBoxPlot * outerClass)
+{
+	m_outerClass = outerClass;
+}
+
+iACompBoxPlot::BoxPlotChart::BoxPlotChart()
+{
 }

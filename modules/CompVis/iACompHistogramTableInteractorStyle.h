@@ -12,7 +12,7 @@
 class iACompHistogramTable;
 class vtkRenderer;
 class iACompVisMain;
-
+class vtkPropPicker;
 
 namespace Pick
 {
@@ -42,7 +42,6 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 
    private:	
 	
-
 	//general zooming in executed by the camera
 	void generalZoomIn();
 	//general zooming out executed by the camera
@@ -59,6 +58,9 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 	void nonLinearZoomOut();
 
 	void updateOtherCharts();
+
+	//set the picklist for the propPicker to only pick original row actors
+	void setPickList(std::vector<vtkSmartPointer<vtkActor>>* originalRowActors);
 
 	iACompHistogramTable* m_visualization;
 	//is a u
@@ -78,4 +80,6 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 	QList<bin::BinType*>* m_zoomedRowData;
 
 	iACompVisMain* m_main;
+
+	vtkSmartPointer<vtkPropPicker> m_actorPicker;
 };

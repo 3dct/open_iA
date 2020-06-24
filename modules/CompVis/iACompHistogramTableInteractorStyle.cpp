@@ -53,7 +53,8 @@ iACompHistogramTableInteractorStyle::iACompHistogramTableInteractorStyle() :
 	m_picked(new Pick::PickedMap()),
 	m_controlBinsInZoomedRows(false),
 	m_pointRepresentationOn(false),
-	m_zoomLevel(1)
+	m_zoomLevel(1),
+	m_actorPicker(vtkSmartPointer<vtkPropPicker>::New())
 {
 }
 
@@ -97,6 +98,9 @@ void iACompHistogramTableInteractorStyle::OnLeftButtonDown()
 	//select rows & bins which should be zoomed
 	if (this->GetInteractor()->GetShiftKey())
 	{
+		//set pick list
+		setPickList(m_visualization->getOriginalRowActors());
+
 		// Get the location of the click (in window coordinates)
 		int* pos = this->GetInteractor()->GetEventPosition();
 		this->FindPokedRenderer(pos[0], pos[1]);
@@ -111,12 +115,12 @@ void iACompHistogramTableInteractorStyle::OnLeftButtonDown()
 			return;
 		}
 
-		vtkSmartPointer<vtkPropPicker> actorPicker = vtkSmartPointer<vtkPropPicker>::New();
-		int is = actorPicker->Pick(pos[0], pos[1], 0, currentRenderer);
+		
+		int is = m_actorPicker->Pick(pos[0], pos[1], 0, currentRenderer);
 
 		if (is != 0)
 		{
-			vtkSmartPointer<vtkActor> pickedA = actorPicker->GetActor();
+			vtkSmartPointer<vtkActor> pickedA = m_actorPicker->GetActor();
 
 			if (pickedA != NULL)
 			{
@@ -154,7 +158,6 @@ void iACompHistogramTableInteractorStyle::OnLeftButtonDown()
 		//reset visualization when clicked anywhere
 		m_picked->clear();
 		m_visualization->setBinsZoomed(m_visualization->getMinBins());
-		m_visualization->clearZoomedRows();
 		m_visualization->removePointRepresentation();
 		m_visualization->removeHighlightedCells();
 
@@ -307,4 +310,16 @@ void iACompHistogramTableInteractorStyle::updateOtherCharts()
 {
 	m_zoomedRowData = m_visualization->getSelectedData(m_picked);
 	m_main->updateOtherCharts();
+}
+
+void iACompHistogramTableInteractorStyle::setPickList(std::vector<vtkSmartPointer<vtkActor>>* originalRowActors)
+{
+	m_actorPicker->InitializePickList();
+
+	for (int i = 0; i < originalRowActors->size(); i++)
+	{
+		m_actorPicker->AddPickList(originalRowActors->at(i));
+	}
+
+	m_actorPicker->SetPickFromList(true);
 }

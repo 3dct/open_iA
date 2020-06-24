@@ -13,12 +13,16 @@ struct iACompVisOptions
 {
 	static const unsigned char BACKGROUNDCOLOR_GREY[3];
 	static const unsigned char BACKGROUNDCOLOR_WHITE[3];
+	static const unsigned char HIGHLIGHTCOLOR_BLACK[3];
+	static const unsigned char HIGHLIGHTCOLOR_GREEN[3];
 	
 	static const unsigned char FONTCOLOR_TITLE[3];
 	static const int FONTSIZE_TITLE;
 	
 	static const unsigned char FONTCOLOR_TEXT[3];
 	static const int FONTSIZE_TEXT;
+
+	static const int LINE_WIDTH;
 
 	//get an array filled with colors
 	static unsigned char* getColorArray(double colors[3]);

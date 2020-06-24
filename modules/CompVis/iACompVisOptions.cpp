@@ -5,6 +5,8 @@
 
 const unsigned char iACompVisOptions::BACKGROUNDCOLOR_GREY[3] = {128, 128, 128 };
 const unsigned char iACompVisOptions::BACKGROUNDCOLOR_WHITE[3] = { 255, 255, 255};
+const unsigned char iACompVisOptions::HIGHLIGHTCOLOR_BLACK[3] = { 0, 0, 0 };
+const unsigned char iACompVisOptions::HIGHLIGHTCOLOR_GREEN[3] = { 80, 165, 54 };
 
 const unsigned char iACompVisOptions::FONTCOLOR_TITLE[3] = {255, 255, 255};
 const int iACompVisOptions::FONTSIZE_TITLE = 20;
@@ -12,17 +14,7 @@ const int iACompVisOptions::FONTSIZE_TITLE = 20;
 const unsigned char iACompVisOptions::FONTCOLOR_TEXT[3] = { 255, 255, 255 };
 const int iACompVisOptions::FONTSIZE_TEXT = 13;
 
-/*
-vtkSmartPointer<vtkUnsignedCharArray> iACompVisOptions::getColorArray(unsigned char colors[3])
-{
-	vtkSmartPointer<vtkUnsignedCharArray> result = vtkSmartPointer<vtkUnsignedCharArray>::New();
-	result->SetName("colors");
-	result->SetNumberOfComponents(3);
-
-	result->InsertNextValue(colors);
-	return result;
-}
-*/
+const int iACompVisOptions::LINE_WIDTH = 2;
 
 unsigned char* iACompVisOptions::getColorArray(double colors[3])
 {
