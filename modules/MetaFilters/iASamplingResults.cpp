@@ -21,7 +21,6 @@
 #include "iASamplingResults.h"
 
 #include "iAAttributes.h"
-#include "iAGEMSeConstants.h"
 #include "iASingleResult.h"
 
 #include <iAAttributeDescriptor.h>
@@ -32,6 +31,11 @@
 #include <QTextStream>
 #include <QFileInfo>
 
+namespace
+{
+	const QString SMPFileVersion("v8");
+	const QString SMPFileFormatVersion("Sampling File " + SMPFileVersion);
+}
 
 iASamplingResults::iASamplingResults(
 	QSharedPointer<iAAttributes> attr,
@@ -80,7 +84,7 @@ namespace
 	}
 }
 
-QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFileName, int datasetID)
+QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFileName, int datasetID)
 {
 	QFile file(smpFileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -125,7 +129,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFil
 	QSharedPointer<iASamplingResults> result(new iASamplingResults(
 		attributes, samplingMethod, fileInfo.absolutePath(), executable, additionalArguments, name, datasetID));
 	file.close();
-	if (result->LoadInternal(MakeAbsolute(fileInfo.absolutePath(), parameterSetFileName),
+	if (result->loadInternal(MakeAbsolute(fileInfo.absolutePath(), parameterSetFileName),
 		MakeAbsolute(fileInfo.absolutePath(), derivedOutputFileName)))
 	{
 		result->m_fileName = smpFileName;
@@ -136,7 +140,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFil
 }
 
 
-bool iASamplingResults::Store(QString const & fileName,
+bool iASamplingResults::store(QString const & fileName,
 	QString const & parameterSetFileName,
 	QString const & derivedOutputFileName)
 {
@@ -174,14 +178,11 @@ bool iASamplingResults::Store(QString const & fileName,
 
 	m_fileName = fileName;
 
-	return StoreAttributes(iAAttributeDescriptor::Parameter, parameterSetFileName, true) &&
-		StoreAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
-
-
-	return true;
+	return storeAttributes(iAAttributeDescriptor::Parameter, parameterSetFileName, true) &&
+		storeAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
 }
 
-bool iASamplingResults::StoreAttributes(int type, QString const & fileName, bool id)
+bool iASamplingResults::storeAttributes(int type, QString const & fileName, bool id)
 {
 	QFile paramSetFile(fileName);
 	if (!paramSetFile.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -194,19 +195,19 @@ bool iASamplingResults::StoreAttributes(int type, QString const & fileName, bool
 	{
 		if (id)
 		{
-			outParamSet << m_results[i]->GetID() << iASingleResult::ValueSplitString;
+			outParamSet << m_results[i]->id() << iASingleResult::ValueSplitString;
 		}
 #if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-		outParamSet << m_results[i]->ToString(m_attributes, type) << Qt::endl;
+		outParamSet << m_results[i]->toString(m_attributes, type) << Qt::endl;
 #else
-		outParamSet << m_results[i]->ToString(m_attributes, type) << endl;
+		outParamSet << m_results[i]->toString(m_attributes, type) << endl;
 #endif
 	}
 	paramSetFile.close();
 	return true;
 }
 
-bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QString const & derivedOutputFileName)
+bool iASamplingResults::loadInternal(QString const & parameterSetFileName, QString const & derivedOutputFileName)
 {
 	m_parameterSetFile = parameterSetFileName;
 	QFile paramFile(parameterSetFileName);
@@ -241,7 +242,7 @@ bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QStri
 			attribLine = paramLine + iASingleResult::ValueSplitString + derivedOutLine;
 		}
 		lineNr++;
-		QSharedPointer<iASingleResult> result = iASingleResult::Create(
+		QSharedPointer<iASingleResult> result = iASingleResult::create(
 			// for now, assemble attributes from two files (could be merged in one)
 			attribLine,
 			*this,
@@ -270,23 +271,28 @@ int iASamplingResults::size() const
 }
 
 
-QSharedPointer<iASingleResult> iASamplingResults::Get(int i) const
+QSharedPointer<iASingleResult> iASamplingResults::get(int i) const
 {
 	return m_results[i];
 }
 
 
-void iASamplingResults::AddResult(QSharedPointer<iASingleResult> result)
+void iASamplingResults::addResult(QSharedPointer<iASingleResult> result)
 {
 	m_results.push_back(result);
 }
 
-QVector<QSharedPointer<iASingleResult> > const & iASamplingResults::GetResults() const
+QVector<QSharedPointer<iASingleResult> > const & iASamplingResults::members() const
 {
 	return m_results;
 }
 
-QSharedPointer<iAAttributes> iASamplingResults::GetAttributes() const
+void iASamplingResults::setMembers(QVector<QSharedPointer<iASingleResult> > const& members)
+{
+	m_results = members;
+}
+
+QSharedPointer<iAAttributes> iASamplingResults::attributes() const
 {
 	return m_attributes;
 }
@@ -298,33 +304,33 @@ QString iASamplingResults::name() const
 }
 
 
-QString iASamplingResults::GetFileName() const
+QString iASamplingResults::fileName() const
 {
 	return m_fileName;
 }
 
 
-QString iASamplingResults::GetPath(int id) const
+QString iASamplingResults::path(int id) const
 {
 	return m_path + "/sample" + QString::number(id);
 }
 
-QString iASamplingResults::GetPath() const
+QString iASamplingResults::path() const
 {
 	return m_path;
 }
 
-QString iASamplingResults::GetExecutable() const
+QString iASamplingResults::executable() const
 {
 	return m_executable;
 }
 
-QString iASamplingResults::GetAdditionalArguments() const
+QString iASamplingResults::additionalArguments() const
 {
 	return m_additionalArguments;
 }
 
-int iASamplingResults::GetID() const
+int iASamplingResults::id() const
 {
 	return m_id;
 }

@@ -23,7 +23,7 @@
 #include <QWidget>
 
 class iAEnsemble;
-class iAMember;
+class iASingleResult;
 
 class QCustomPlot;
 class QCPBars;

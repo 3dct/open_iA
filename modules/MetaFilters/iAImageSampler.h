@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "MetaFilters_export.h"
+
 #include "iAAbortListener.h"
 #include "iADurationEstimator.h"
 #include "iAParameterGenerator.h"
@@ -38,7 +40,7 @@ class iASingleResult;
 class iADerivedOutputCalculator;
 class iACommandRunner;
 
-class iAImageSampler: public QThread, public iADurationEstimator, public iAAbortListener
+class MetaFilters_API iAImageSampler: public QThread, public iADurationEstimator, public iAAbortListener
 {
 	Q_OBJECT
 public:
@@ -59,12 +61,12 @@ public:
 		bool separateOutputDir,
 		bool calculateChar,
 		int samplingID);
-	QSharedPointer<iASamplingResults> GetResults();
+	QSharedPointer<iASamplingResults> results();
 	void run() override;
 	double elapsed() const override;
 	double estimatedTimeRemaining() const override;
 	void abort() override;
-	bool IsAborted();
+	bool isAborted();
 signals:
 	void Progress(int);
 	void Status(QString const &);

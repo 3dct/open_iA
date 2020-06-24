@@ -20,64 +20,53 @@
 * ************************************************************************************/
 #pragma once
 
-#include <io/iAITKIO.h> // TODO: replace?
+#include "MetaFilters_export.h"
 
-#include <QSharedPointer>
-#include <QString>
-#include <QVector>
+#include "iAParameterGenerator.h"
 
-class iAAttributes;
-class iASamplingResults;
-
-typedef itk::Image<double, 3> DoubleImage;
-
-class iAMember
+class iARandomParameterGenerator: public iAParameterGenerator
 {
 public:
-
-	//! create from string
-	static QSharedPointer<iAMember> Create(
-		QString const & line,
-		iASamplingResults const & sampling,
-		QSharedPointer<iAAttributes> attributes);
-
-	static QSharedPointer<iAMember> Create(
-		int id,
-		iASamplingResults const & sampling,
-		QVector<double> const & parameter,
-		QString const & fileName);
-
-	//! retrieve all attritutes of the given type as string
-	//! (such as can be passed into Create method above)
-	QString ToString(QSharedPointer<iAAttributes> attributes, int type);
-
-	//! retrieve labelled image
-	iAITKIO::ImagePointer const LabelImage();
-
-	//! get attribute (parameter or characteristic)
-	double Attribute(int id) const;
-
-	//! set attribute (parameter or characteristic)
-	void SetAttribute(int id, double value);
-
-	int ID();
-
-	QVector<DoubleImage::Pointer> ProbabilityImgs(int labelCount);
-
-	bool ProbabilityAvailable() const;
-
-	int DatasetID() const;
-	QSharedPointer<iAAttributes> Attributes() const;
-private:
-	//! constructor; use static Create methods instead!
-	iAMember(int id, iASamplingResults const & sampling);
-	//! for now, value-type agnostic storage of values:
-	QVector<double> m_attributeValues;
-	iASamplingResults const & m_sampling;
-	int m_id;
-	QString m_fileName;
-
-	QString LabelPath() const;
-	QString ProbabilityPath(int label) const;
-	QString Folder() const;
+	QString name() const override;
+	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
 };
+
+class iALatinHypercubeParameterGenerator: public iAParameterGenerator
+{
+public:
+	QString name() const override;
+	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+};
+
+//! as all parameter values are supposed to be equally spaced,
+//! and the number of values equally distributed among all parameters,
+//! this algorithm will typically give less than the specified amount of samples
+class iACartesianGridParameterGenerator : public iAParameterGenerator
+{
+public:
+	QString name() const override;
+	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+};
+
+//! Generates parameters around middle of given range for each parameter
+//! for linear range, equivalent to Cartesian Grid sampler;
+//! for logarithmic range, it starts in the middle, and expands outward
+class iASensitivityParameterGenerator : public iAParameterGenerator
+{
+public:
+	QString name() const override;
+	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+};
+
+class MetaFilters_API iASelectionParameterGenerator : public iAParameterGenerator
+{
+public:
+	iASelectionParameterGenerator(QString const & name, ParameterSetsPointer parameterSets);
+	virtual QString name() const;
+	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
+private:
+	QString m_name;
+	ParameterSetsPointer m_parameterSets;
+};
+
+QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators();

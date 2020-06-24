@@ -141,10 +141,6 @@ struct DefaultColors
 	static const QBrush CaptionBrush;
 };
 
-
-const QString SMPFileVersion("v8");
-const QString SMPFileFormatVersion("Sampling File " + SMPFileVersion);
-
 enum iARepresentativeType
 {
 	Difference,

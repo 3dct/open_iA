@@ -21,8 +21,8 @@
 #include "iAEnsemble.h"
 
 #include "iAEnsembleDescriptorFile.h"
-#include "iAMember.h"
 #include "iASamplingResults.h"
+#include "iASingleResult.h"
 
 #include <iAConnector.h>
 #include <iAConsole.h>
@@ -78,14 +78,14 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 }
 
 QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
-	QVector<QSharedPointer<iAMember> > member,
+	QVector<QSharedPointer<iASingleResult> > member,
 	QSharedPointer<iASamplingResults> superSet,	int labelCount, QString const & cachePath, int id,
 	IntImage::Pointer reference)
 {
 	QSharedPointer<iAEnsemble> result(new iAEnsemble(entropyBinCount));
-	QSharedPointer<iASamplingResults> samplingResults(new iASamplingResults(superSet->Attributes(),
-		"Subset", superSet->Path(), superSet->Executable(), superSet->AdditionalArguments(), superSet->name(), id));
-	samplingResults->SetMembers(member);
+	QSharedPointer<iASamplingResults> samplingResults(new iASamplingResults(superSet->attributes(),
+		"Subset", superSet->path(), superSet->executable(), superSet->additionalArguments(), superSet->name(), id));
+	samplingResults->setMembers(member);
 	result->m_samplings.push_back(samplingResults);
 	result->m_cachePath = cachePath;
 	result->m_labelCount = labelCount;
@@ -410,7 +410,7 @@ void iAEnsemble::CreateUncertaintyImages()
 	try
 	{
 		// also load slice images here?
-		if (m_samplings.size() == 0 || m_samplings[0]->Members().size() == 0)
+		if (m_samplings.size() == 0 || m_samplings[0]->members().size() == 0)
 		{
 			DEBUG_LOG("No samplings or no members found!");
 			return;
@@ -423,7 +423,7 @@ void iAEnsemble::CreateUncertaintyImages()
 		size_t count = 0;
 		for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 		{
-			count += sampling->Members().size();
+			count += sampling->members().size();
 		}
 		double factor = 1.0 / count;
 
@@ -437,9 +437,9 @@ void iAEnsemble::CreateUncertaintyImages()
 			m_labelDistr.clear();
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 			{
-				for (QSharedPointer<iAMember> member : sampling->Members())
+				for (QSharedPointer<iASingleResult> member : sampling->members())
 				{
-					iAITKIO::ImagePointer labelBaseImg = member->LabelImage();
+					iAITKIO::ImagePointer labelBaseImg = member->labelImage();
 					auto intlabelImg = dynamic_cast<IntImage*>(labelBaseImg.GetPointer());
 					if (m_labelDistr.empty())
 					{	// initialize empty sums:
@@ -491,9 +491,9 @@ void iAEnsemble::CreateUncertaintyImages()
 			double numberOfPixels = size[0] * size[1] * size[2];
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 			{
-				for (QSharedPointer<iAMember> member : sampling->Members())
+				for (QSharedPointer<iASingleResult> member : sampling->members())
 				{
-					QVector<DoubleImage::Pointer> probImgs = member->ProbabilityImgs(m_labelCount);
+					QVector<DoubleImage::Pointer> probImgs = member->probabilityImgs(m_labelCount);
 					auto memberEntropy = CalculateEntropyImage<DoubleImage>(probImgs);
 					double sum = 0;
 					itk::ImageRegionConstIterator<DoubleImage> it(memberEntropy, memberEntropy->GetLargestPossibleRegion());
@@ -535,9 +535,9 @@ void iAEnsemble::CreateUncertaintyImages()
 			m_neighbourhoodAvgEntropy3x3 = createImage<DoubleImage>(size, spacing);
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 			{
-				for (QSharedPointer<iAMember> member : sampling->Members())
+				for (QSharedPointer<iASingleResult> member : sampling->members())
 				{
-					auto labelImgOrig = member->LabelImage();
+					auto labelImgOrig = member->labelImage();
 					auto labelImg = dynamic_cast<IntImage*>(labelImgOrig.GetPointer());
 					DoubleImage::Pointer neighbourEntropyImg3x3 = NeighbourhoodEntropyImage(labelImg, m_labelCount, 1, size, spacing);
 					AddImageInPlace(m_neighbourhoodAvgEntropy3x3, neighbourEntropyImg3x3);
@@ -579,12 +579,12 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 	QVector<QVector<DoubleImage::Pointer>> memberProbImageCache;
 	for (auto s : m_samplings)
 	{
-		for (auto m : s->Members())
+		for (auto m : s->members())
 		{
-			auto itkImg = m->LabelImage();
+			auto itkImg = m->labelImage();
 			memberImageCache.push_back(itkImg);
 
-			auto prob = m->ProbabilityImgs(LabelCount());
+			auto prob = m->probabilityImgs(LabelCount());
 			memberProbImageCache.push_back(prob);
 		}
 	}
@@ -690,7 +690,7 @@ bool iAEnsemble::LoadSampling(QString const & fileName, int id)
 		DEBUG_LOG("No filename given, not loading.");
 		return false;
 	}
-	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::Load(fileName, id);
+	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::load(fileName, id);
 	if (!samplingResults)
 	{
 		DEBUG_LOG("Loading Sampling failed.");
@@ -738,18 +738,18 @@ size_t iAEnsemble::MemberCount() const
 	return m_memberEntropyAvg.size();
 }
 
-QSharedPointer<iAMember> const iAEnsemble::Member(size_t memberIdx) const
+QSharedPointer<iASingleResult> const iAEnsemble::Member(size_t memberIdx) const
 {
 	for (int s=0; s<m_samplings.size(); ++s)
 	{
-		assert(m_samplings[s]->Size() > 0);
-		if (memberIdx < static_cast<size_t>(m_samplings[s]->Size()))
+		assert(m_samplings[s]->size() > 0);
+		if (memberIdx < static_cast<size_t>(m_samplings[s]->size()))
 		{
-			return m_samplings[s]->Get(memberIdx);
+			return m_samplings[s]->get(memberIdx);
 		}
-		memberIdx -= m_samplings[s]->Size();
+		memberIdx -= m_samplings[s]->size();
 	}
-	return QSharedPointer<iAMember>();
+	return QSharedPointer<iASingleResult>();
 }
 
 std::vector<double> const & iAEnsemble::MemberAttribute(size_t idx) const
@@ -774,7 +774,7 @@ QString const & iAEnsemble::CachePath() const
 
 QSharedPointer<iAEnsemble> iAEnsemble::AddSubEnsemble(QVector<int> memberIDs, int newEnsembleID)
 {
-	QVector<QSharedPointer<iAMember> > members;
+	QVector<QSharedPointer<iASingleResult> > members;
 	for (int memberID : memberIDs)
 	{
 		members.push_back(Member(memberID));
@@ -801,7 +801,7 @@ int iAEnsemble::ID() const
 	{
 		DEBUG_LOG("Ensemble with more than one sampling -> could make problems with ensemble IDs (1:1 mapping currently from Sampling ID to Ensemble ID!)");
 	}
-	return m_samplings[0]->ID();
+	return m_samplings[0]->id();
 }
 
 QSharedPointer<iAEnsembleDescriptorFile> iAEnsemble::EnsembleFile()

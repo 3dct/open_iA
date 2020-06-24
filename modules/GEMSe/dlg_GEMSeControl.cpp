@@ -25,7 +25,6 @@
 #include "dlg_Consensus.h"
 #include "dlg_progress.h"
 #include "dlg_samplings.h"
-#include "dlg_samplingSettings.h"
 #include "iAAttributes.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageTree.h"
@@ -35,6 +34,8 @@
 #include "iAImageClusterer.h"
 #include "iASamplingResults.h"
 #include "iASEAFile.h"
+
+#include <dlg_samplingSettings.h>
 
 #include <dlg_commoninput.h>
 #include <dlg_modalities.h>
@@ -218,8 +219,8 @@ void dlg_GEMSeControl::startSampling()
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 		mdiChild->tabifyDockWidget(this, m_dlgProgress);
 		connect(m_sampler.data(), &iAImageSampler::finished, this, &dlg_GEMSeControl::samplingFinished);
-		connect(m_sampler.data(), &iAImageSampler::Progress, m_dlgProgress, &dlg_progress::setProgress );
-		connect(m_sampler.data(), &iAImageSampler::Status, m_dlgProgress, &dlg_progress::setStatus );
+		connect(m_sampler.data(), &iAImageSampler::Progress, m_dlgProgress, &dlg_progress::setProgress);
+		connect(m_sampler.data(), &iAImageSampler::Status, m_dlgProgress, &dlg_progress::setStatus);
 
 		// trigger parameter set creation & sampling (in foreground with progress bar for now)
 		m_sampler->start();
@@ -264,7 +265,7 @@ bool dlg_GEMSeControl::loadSampling(QString const & fileName, int labelCount, in
 		DEBUG_LOG("No filename given, not loading.");
 		return false;
 	}
-	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::Load(fileName, datasetID);
+	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::load(fileName, datasetID);
 	if (!samplingResults)
 	{
 		DEBUG_LOG("Loading Sampling failed.");
@@ -280,18 +281,18 @@ bool dlg_GEMSeControl::loadSampling(QString const & fileName, int labelCount, in
 void dlg_GEMSeControl::samplingFinished()
 {
 	// retrieve results from sampler
-	QSharedPointer<iASamplingResults> samplingResults = m_sampler->GetResults();
+	QSharedPointer<iASamplingResults> samplingResults = m_sampler->results();
 	delete m_dlgProgress;
 	m_dlgProgress = 0;
 
-	if (!samplingResults || m_sampler->IsAborted())
+	if (!samplingResults || m_sampler->isAborted())
 	{
 		m_sampler.clear();
 		return;
 	}
 	m_sampler.clear();
 	m_dlgSamplings->Add(samplingResults);
-	samplingResults->Store(
+	samplingResults->store(
 		m_outputFolder + "/" + iASEAFile::DefaultSMPFileName,
 		m_outputFolder + "/" + iASEAFile::DefaultSPSFileName,
 		m_outputFolder + "/" + iASEAFile::DefaultCHRFileName);
@@ -393,7 +394,7 @@ void dlg_GEMSeControl::calculateClustering()
 		QSharedPointer<iASamplingResults> sampling = m_dlgSamplings->GetSampling(samplingIdx);
 		for (int sampleIdx = 0; sampleIdx < sampling->size(); ++sampleIdx)
 		{
-			m_clusterer->AddImage(sampling->Get(sampleIdx));
+			m_clusterer->AddImage(sampling->get(sampleIdx));
 		}
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
@@ -479,7 +480,7 @@ void dlg_GEMSeControl::saveGEMSeProject(QString const & fileName, QString const 
 	QMap<int, QString> samplingFilenames;
 	for (QSharedPointer<iASamplingResults> sampling : *m_dlgSamplings->GetSamplings())
 	{
-		samplingFilenames.insert(sampling->GetID(), sampling->GetFileName());
+		samplingFilenames.insert(sampling->id(), sampling->fileName());
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 	iASEAFile seaFile(
@@ -502,7 +503,7 @@ void dlg_GEMSeControl::saveProject(QSettings & metaFile, QString const & fileNam
 	QMap<int, QString> samplingFilenames;
 	for (QSharedPointer<iASamplingResults> sampling : *m_dlgSamplings->GetSamplings())
 	{
-		samplingFilenames.insert(sampling->GetID(), sampling->GetFileName());
+		samplingFilenames.insert(sampling->id(), sampling->fileName());
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 	iASEAFile seaFile(
@@ -676,10 +677,10 @@ void dlg_GEMSeControl::saveDerivedOutput(
 		return;
 	}
 	QTextStream out(&paramRangeFile);
-	results->GetAttributes()->store(out);
+	results->attributes()->store(out);
 
 	// store derived output:
-	results->StoreAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
+	results->storeAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
 }
 
 void dlg_GEMSeControl::exportAttributeRangeRanking()

@@ -20,7 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <io/iAITKIO.h> // TODO: replace?
+#include "MetaFilters_export.h"
+
+#include <iAITKImageTypes.h>
 
 #include <QSharedPointer>
 #include <QString>
@@ -29,17 +31,17 @@
 class iAAttributes;
 class iASamplingResults;
 
-class iASingleResult
+class MetaFilters_API iASingleResult
 {
 public:
 	static const QString ValueSplitString;
 	//! create from string
-	static QSharedPointer<iASingleResult> Create(
+	static QSharedPointer<iASingleResult> create(
 		QString const & line,
 		iASamplingResults const & sampling,
 		QSharedPointer<iAAttributes> attributes);
 
-	static QSharedPointer<iASingleResult> Create(
+	static QSharedPointer<iASingleResult> create(
 		int id,
 		iASamplingResults const & sampling,
 		QVector<double> const & parameter,
@@ -47,35 +49,40 @@ public:
 
 	//! retrieve all attritutes of the given type as string
 	//! (such as can be passed into Create method above)
-	QString ToString(QSharedPointer<iAAttributes> attributes, int type);
+	QString toString(QSharedPointer<iAAttributes> attributes, int type);
 
 	//! retrieve labelled image
-	iAITKIO::ImagePointer const GetLabelledImage();
+	iAITKIO::ImagePointer const labelImage();
 
 	//! discards full detail images from memory
 	// TODO: check if that can be done automatically somehow
-	void DiscardDetails();
+	void discardDetails();
 
-	void DiscardProbability();
+	void discardProbability();
 
 	//! get attribute (parameter or characteristic)
-	double GetAttribute(int id) const;
+	double attribute(int id) const;
 
 	//! set attribute (parameter or characteristic)
-	void SetAttribute(int id, double value);
+	void setAttribute(int id, double value);
 
-	int GetID();
+	//! returns the ID of the single result
+	int id() const;
 
-	iAITKIO::ImagePointer GetProbabilityImg(int l);
+	//! loads a single probability image with the  given index
+	iAITKIO::ImagePointer probabilityImg(int l);
 
-	bool ProbabilityAvailable() const;
+	//! loads all probability images (given the number of them) and returns them as QVector
+	QVector<ProbabilityImagePointer> iASingleResult::probabilityImgs(int labelCount);
 
-	void SetLabelImage(iAITKIO::ImagePointer labelImg);
+	bool probabilityAvailable() const;
 
-	void AddProbabilityImages(QVector<iAITKIO::ImagePointer> & probImgs);
+	void setLabelImage(iAITKIO::ImagePointer labelImg);
 
-	int GetDatasetID() const;
-	QSharedPointer<iAAttributes> GetAttributes() const;
+	void addProbabilityImages(QVector<iAITKIO::ImagePointer> & probImgs);
+
+	int datasetID() const;
+	QSharedPointer<iAAttributes> attributes() const;
 private:
 	//! constructor; use static Create methods instead!
 	iASingleResult(int id, iASamplingResults const & sampling);
@@ -87,9 +94,9 @@ private:
 	QVector<iAITKIO::ImagePointer> m_probabilityImg;
 	QString m_fileName;
 
-	bool LoadLabelImage();
+	bool loadLabelImage();
 
-	QString GetLabelPath() const;
-	QString GetProbabilityPath(int label) const;
-	QString GetFolder() const;
+	QString labelPath() const;
+	QString probabilityPath(int label) const;
+	QString folder() const;
 };

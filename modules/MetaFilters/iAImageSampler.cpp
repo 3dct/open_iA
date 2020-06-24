@@ -250,11 +250,11 @@ void iAImageSampler::computationFinished()
 	}
 	ParameterSet const & param = m_parameterSets->at(id);
 
-	QSharedPointer<iASingleResult> result = iASingleResult::Create(id, *m_results.data(), param,
+	QSharedPointer<iASingleResult> result = iASingleResult::create(id, *m_results.data(), param,
 		m_outputBaseDir + "/sample" + QString::number(id) + +"/label.mhd");
 
-	result->SetAttribute(m_parameterCount+2, computationTime);
-	m_results->GetAttributes()->at(m_parameterCount+2)->adjustMinMax(computationTime);
+	result->setAttribute(m_parameterCount+2, computationTime);
+	m_results->attributes()->at(m_parameterCount+2)->adjustMinMax(computationTime);
 
 	if (m_calculateCharacteristics)
 	{
@@ -269,9 +269,9 @@ void iAImageSampler::computationFinished()
 		QString sampleMetaFile = m_outputBaseDir + "/" + m_parameterRangeFile;
 		QString parameterSetFile = m_outputBaseDir + "/" + m_parameterSetFile;
 		QString derivedOutputFile = m_outputBaseDir + "/" + m_derivedOutputFile;
-		m_results->AddResult(result);
+		m_results->addResult(result);
 		emit Progress((100 * m_results->size()) / m_parameterSets->size());
-		if (!m_results->Store(sampleMetaFile, parameterSetFile, derivedOutputFile))
+		if (!m_results->store(sampleMetaFile, parameterSetFile, derivedOutputFile))
 		{
 			DEBUG_LOG("Error writing parameter file.");
 		}
@@ -300,16 +300,16 @@ void iAImageSampler::derivedOutputFinished()
 	}
 
 	QSharedPointer<iASingleResult> result = m_runningDerivedOutput[charactCalc];
-	m_results->GetAttributes()->at(m_parameterCount)->adjustMinMax(result->GetAttribute(m_parameterCount));
-	m_results->GetAttributes()->at(m_parameterCount+1)->adjustMinMax(result->GetAttribute(m_parameterCount+1));
+	m_results->attributes()->at(m_parameterCount)->adjustMinMax(result->attribute(m_parameterCount));
+	m_results->attributes()->at(m_parameterCount+1)->adjustMinMax(result->attribute(m_parameterCount+1));
 
 	// TODO: pass in from somewhere! Or don't store here at all? but what in case of a power outage/error?
-	QString sampleMetaFile      = m_outputBaseDir + "/" + m_parameterRangeFile;
-	QString parameterSetFile    = m_outputBaseDir + "/" + m_parameterSetFile;
+	QString sampleMetaFile    = m_outputBaseDir + "/" + m_parameterRangeFile;
+	QString parameterSetFile  = m_outputBaseDir + "/" + m_parameterSetFile;
 	QString derivedOutputFile = m_outputBaseDir + "/" + m_derivedOutputFile;
-	m_results->AddResult(result);
+	m_results->addResult(result);
 	emit Progress((100*m_results->size()) / m_parameterSets->size());
-	if (!m_results->Store(sampleMetaFile, parameterSetFile, derivedOutputFile))
+	if (!m_results->store(sampleMetaFile, parameterSetFile, derivedOutputFile))
 	{
 		DEBUG_LOG("Error writing parameter file.");
 	}
@@ -333,7 +333,7 @@ double iAImageSampler::estimatedTimeRemaining() const
 	;
 }
 
-QSharedPointer<iASamplingResults> iAImageSampler::GetResults()
+QSharedPointer<iASamplingResults> iAImageSampler::results()
 {
 	return m_results;
 }
@@ -344,7 +344,7 @@ void iAImageSampler::abort()
 	m_aborted = true;
 }
 
-bool iAImageSampler::IsAborted()
+bool iAImageSampler::isAborted()
 {
 	return m_aborted;
 }

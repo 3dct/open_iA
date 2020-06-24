@@ -60,13 +60,13 @@ ClusterImageType const iAImageTreeLeaf::GetRepresentativeImage(int /*type*/, Lab
 	{
 		return ClusterImageType();
 	}
-	return m_singleResult->GetLabelledImage();
+	return m_singleResult->labelImage();
 }
 
 
 void iAImageTreeLeaf::DiscardDetails() const
 {
-	m_singleResult->DiscardDetails();
+	m_singleResult->discardDetails();
 }
 
 
@@ -79,25 +79,25 @@ QSharedPointer<iAImageTreeNode > iAImageTreeLeaf::GetChild(int /*idx*/) const
 
 ClusterIDType iAImageTreeLeaf::GetID() const
 {
-	return m_singleResult->GetID();
+	return m_singleResult->id();
 }
 
 
 ClusterImageType const iAImageTreeLeaf::GetLargeImage() const
 {
-	return m_singleResult->GetLabelledImage();
+	return m_singleResult->labelImage();
 }
 
 
 double iAImageTreeLeaf::GetAttribute(int id) const
 {
-	return m_singleResult->GetAttribute(id);
+	return m_singleResult->attribute(id);
 }
 
 
 void iAImageTreeLeaf::SetAttribute(int id, double value)
 {
-	m_singleResult->SetAttribute(id, value);
+	m_singleResult->setAttribute(id, value);
 }
 
 int iAImageTreeLeaf::GetFilteredSize() const
@@ -122,7 +122,7 @@ LabelPixelHistPtr iAImageTreeLeaf::UpdateLabelDistribution() const
 {
 	LabelPixelHistPtr result(new LabelPixelHistogram());
 	// initialize
-	LabelImageType* img = dynamic_cast<LabelImageType*>(m_singleResult->GetLabelledImage().GetPointer());
+	LabelImageType* img = dynamic_cast<LabelImageType*>(m_singleResult->labelImage().GetPointer());
 	LabelImageType::SizeType size = img->GetLargestPossibleRegion().GetSize();
 	for (int l = 0; l < m_labelCount; ++l)
 	{
@@ -153,14 +153,14 @@ LabelPixelHistPtr iAImageTreeLeaf::UpdateLabelDistribution() const
 CombinedProbPtr iAImageTreeLeaf::UpdateProbabilities() const
 {
 	CombinedProbPtr result(new CombinedProbability());
-	if (!m_singleResult->ProbabilityAvailable())
+	if (!m_singleResult->probabilityAvailable())
 	{
 		return result;
 	}
 	for (int i = 0; i < m_labelCount; ++i)
 	{
 		// TODO: probably very problematic regarding memory leaks!!!!!
-		result->prob.push_back(dynamic_cast<ProbabilityImageType*>(m_singleResult->GetProbabilityImg(i).GetPointer()));
+		result->prob.push_back(dynamic_cast<ProbabilityImageType*>(m_singleResult->probabilityImg(i).GetPointer()));
 	}
 	result->count = 1;
 	return result;
@@ -169,25 +169,25 @@ CombinedProbPtr iAImageTreeLeaf::UpdateProbabilities() const
 
 double iAImageTreeLeaf::GetProbabilityValue(int l, int x, int y, int z) const
 {
-	if (!m_singleResult->ProbabilityAvailable())
+	if (!m_singleResult->probabilityAvailable())
 	{
 		return 0;
 	}
 	itk::Index<3> idx; idx[0] = x; idx[1] = y; idx[2] = z;
 	// probably very inefficient - dynamic cast involved!
-	return dynamic_cast<ProbabilityImageType*>(m_singleResult->GetProbabilityImg(l).GetPointer())->GetPixel(idx);
+	return dynamic_cast<ProbabilityImageType*>(m_singleResult->probabilityImg(l).GetPointer())->GetPixel(idx);
 }
 
 
 int iAImageTreeLeaf::GetDatasetID() const
 {
-	return m_singleResult->GetDatasetID();
+	return m_singleResult->datasetID();
 }
 
 
 QSharedPointer<iAAttributes> iAImageTreeLeaf::GetAttributes() const
 {
-	return m_singleResult->GetAttributes();
+	return m_singleResult->attributes();
 }
 
 void iAImageTreeLeaf::GetMinMax(int chartID, double & min, double & max,

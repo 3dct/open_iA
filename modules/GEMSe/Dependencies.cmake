@@ -1,4 +1,6 @@
 SET( DEPENDENCIES_IA_TOOLKIT_DIRS
-	Entropy
 	LabelVoting
+)
+SET (DEPENDENCIES_MODULES_NEW
+	MetaFilters
 )

@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAMember.h"
+#include "iASingleResult.h"
 
 #include "iAAttributes.h"
 #include "iASamplingResults.h"
@@ -33,28 +33,41 @@
 #include <QFile>
 #include <QFileInfo>
 
-QSharedPointer<iAMember> iAMember::Create(
+const QString iASingleResult::ValueSplitString(",");
+
+QSharedPointer<iASingleResult> iASingleResult::create(
 	QString const & line,
 	iASamplingResults const & sampling,
 	QSharedPointer<iAAttributes> attributes)
 {
-	QStringList tokens = line.split(iAAttributeDescriptor::ValueSplitString);
+	QStringList tokens = line.split(ValueSplitString);
 
 	bool ok = false;
 	int id = tokens[0].toInt(&ok);
 	if (!ok)
 	{
-		DEBUG_LOG(QString("Invalid result ID: %1").arg(id));
-		return QSharedPointer<iAMember>();
+		// legacy format: split string " ":
+		QRegExp sep("(,| )");
+		tokens = line.split(sep);
+		id = tokens[0].toInt(&ok);
+		if (!ok)
+		{
+			DEBUG_LOG(QString("Invalid result ID: %1").arg(tokens[0]));
+			return QSharedPointer<iASingleResult>();
+		}
+		else
+		{
+			DEBUG_LOG("Legacy format .sps/.chr files detected, consider replacing ' ' by ',' in those files!");
+		}
 	}
-	QSharedPointer<iAMember> result(new iAMember(
+	QSharedPointer<iASingleResult> result(new iASingleResult(
 		id,
 		sampling
 	));
 	if (tokens.size() < attributes->size()+1) // +1 for ID
 	{
 		DEBUG_LOG(QString("Invalid token count(=%1), expected %2").arg(tokens.size()).arg(attributes->size()+1));
-		return QSharedPointer<iAMember>();
+		return QSharedPointer<iASingleResult>();
 	}
 	for (int i = 0; i < attributes->size(); ++i)
 	{
@@ -76,35 +89,34 @@ QSharedPointer<iAMember> iAMember::Create(
 		if (!ok)
 		{
 			DEBUG_LOG(QString("Could not parse attribute value # %1: '%2' (type=%3).").arg(i).arg(curToken).arg((valueType==Continuous?"Continuous": valueType == Discrete? "Discrete":"Categorical")));
-			return QSharedPointer<iAMember>();
+			return QSharedPointer<iASingleResult>();
 		}
 		result->m_attributeValues.push_back(value);
 	}
 	if (tokens.size() > attributes->size() + 1) // fileName at end
 	{
-		result->m_fileName = MakeAbsolute(sampling.Path(), tokens[attributes->size() + 1]);
+		result->m_fileName = MakeAbsolute(sampling.path(), tokens[attributes->size() + 1]);
 	}
 	else
 	{
-		result->m_fileName = result->Folder() + "/label.mhd";
+		result->m_fileName = result->folder() + "/label.mhd";
 	}
 	return result;
 }
 
-QSharedPointer<iAMember> iAMember::Create(
+QSharedPointer<iASingleResult> iASingleResult::create(
 	int id,
 	iASamplingResults const & sampling,
 	QVector<double> const & parameter,
 	QString const & fileName)
 {
-	QSharedPointer<iAMember> result(new iAMember(id, sampling));
+	QSharedPointer<iASingleResult> result(new iASingleResult(id, sampling));
 	result->m_attributeValues = parameter;
 	result->m_fileName = fileName;
 	return result;
 }
 
-
-QString iAMember::ToString(QSharedPointer<iAAttributes> attributes, int type)
+QString iASingleResult::toString(QSharedPointer<iAAttributes> attributes, int type)
 {
 	QString result;
 	if (attributes->size() != m_attributeValues.size())
@@ -118,7 +130,7 @@ QString iAMember::ToString(QSharedPointer<iAAttributes> attributes, int type)
 		{
 			if (!result.isEmpty())
 			{
-				result += iAAttributeDescriptor::ValueSplitString;
+				result += ValueSplitString;
 			}
 			if (attributes->at(i)->nameMapper())
 			{
@@ -134,46 +146,62 @@ QString iAMember::ToString(QSharedPointer<iAAttributes> attributes, int type)
 	}
 	if (type == iAAttributeDescriptor::DerivedOutput)
 	{
-		result += iAAttributeDescriptor::ValueSplitString + MakeRelative(m_sampling.Path(), m_fileName);
+		result += ValueSplitString + MakeRelative(m_sampling.path(), m_fileName);
 	}
 	return result;
 }
 
-
-iAMember::iAMember(int id, iASamplingResults const & sampling):
+iASingleResult::iASingleResult(int id, iASamplingResults const & sampling):
 	m_sampling(sampling),
 	m_id(id)
 {
 }
 
-int iAMember::ID()
+iAITKIO::ImagePointer const iASingleResult::labelImage()
 {
-	return m_id;
+	if (!m_labelImg)
+	{
+		loadLabelImage();
+	}
+	return m_labelImg;
 }
 
-iAITKIO::ImagePointer const iAMember::LabelImage()
+bool iASingleResult::loadLabelImage()
 {
 	iAITKIO::ScalarPixelType pixelType;
-	QFileInfo f(LabelPath());
+	QFileInfo f(labelPath());
 	if (!f.exists() || f.isDir())
 	{
-		DEBUG_LOG(QString("Label Image %1 does not exist, or is not a file!").arg(LabelPath()));
-		return iAITKIO::ImagePointer();
+		DEBUG_LOG(QString("Label Image %1 does not exist, or is not a file!").arg(labelPath()));
+		return false;
 	}
-	iAITKIO::ImagePointer labelImg = iAITKIO::readFile(LabelPath(), pixelType, false);
+	m_labelImg = iAITKIO::readFile(labelPath(), pixelType, false);
 	if (pixelType != itk::ImageIOBase::INT)
 	{
-		labelImg = castImageTo<int>(labelImg);
+		m_labelImg = castImageTo<int>(m_labelImg);
 	}
-	return labelImg;
+	return (m_labelImg);
 }
 
-double iAMember::Attribute(int id) const
+void iASingleResult::discardDetails()
+{
+	m_labelImg = nullptr;
+}
+
+void iASingleResult::discardProbability()
+{
+	for (int i = 0; i < m_probabilityImg.size(); ++i)
+	{
+		m_probabilityImg[i] = nullptr;
+	}
+}
+
+double iASingleResult::attribute(int id) const
 {
 	return m_attributeValues[id];
 }
 
-void iAMember::SetAttribute(int id, double value)
+void iASingleResult::setAttribute(int id, double value)
 {
 	if (id >= m_attributeValues.size())
 	{
@@ -183,52 +211,86 @@ void iAMember::SetAttribute(int id, double value)
 	m_attributeValues[id] = value;
 }
 
-QVector<DoubleImage::Pointer> iAMember::ProbabilityImgs(int labelCount)
+iAITKIO::ImagePointer iASingleResult::probabilityImg(int label)
 {
-	QVector<DoubleImage::Pointer> probabilityImg(labelCount);
-	for (int l=0; l<labelCount; ++l)
+	if (m_probabilityImg.size() <= label)
 	{
-		QString probFile(ProbabilityPath(l));
+		m_probabilityImg.resize(label +1);
+	}
+	if (!m_probabilityImg[label])
+	{
+		QString probFile(probabilityPath(label));
 		if (!QFile::exists(probFile))
 		{
 			throw std::runtime_error(QString("File %1 does not exist!").arg(probFile).toStdString().c_str());
 		}
 		iAITKIO::ScalarPixelType pixelType;
-		probabilityImg[l] = dynamic_cast<DoubleImage*>(iAITKIO::readFile(probFile, pixelType, false).GetPointer());
+		m_probabilityImg[label] = iAITKIO::readFile(probFile, pixelType, false);
+	}
+	return m_probabilityImg[label];
+}
+
+QVector<ProbabilityImagePointer> iASingleResult::probabilityImgs(int labelCount)
+{
+	QVector<ProbabilityImagePointer> probabilityImg(labelCount);
+	for (int l = 0; l < labelCount; ++l)
+	{
+		QString probFile(probabilityPath(l));
+		if (!QFile::exists(probFile))
+		{
+			throw std::runtime_error(QString("File %1 does not exist!").arg(probFile).toStdString().c_str());
+		}
+		iAITKIO::ScalarPixelType pixelType;
+		probabilityImg[l] = dynamic_cast<ProbabilityImageType*>(iAITKIO::readFile(probFile, pixelType, false).GetPointer());
 	}
 	return probabilityImg;
 }
 
-bool iAMember::ProbabilityAvailable() const
+bool iASingleResult::probabilityAvailable() const
 {
-	QString probFile(ProbabilityPath(0));
+	if (m_probabilityImg.size() > 0)
+		return true;
+
+	QString probFile(probabilityPath(0));
 	return QFile::exists(probFile);
 }
 
-
-QString iAMember::Folder() const
+void iASingleResult::setLabelImage(iAITKIO::ImagePointer labelImg)
 {
-	return m_sampling.Path(m_id);
+	m_labelImg = labelImg;
 }
 
+void iASingleResult::addProbabilityImages(QVector<iAITKIO::ImagePointer> & probImgs)
+{
+	m_probabilityImg = probImgs;
+}
 
-QString iAMember::LabelPath() const
+QString iASingleResult::folder() const
+{
+	return m_sampling.path(m_id);
+}
+
+QString iASingleResult::labelPath() const
 {
 	return m_fileName;
 }
 
-QString iAMember::ProbabilityPath(int label) const
+QString iASingleResult::probabilityPath(int label) const
 {
-	return QString("%1/prob%2.mhd").arg(Folder()).arg(label);
+	return QString("%1/prob%2.mhd").arg(folder()).arg(label);
 }
 
-
-int iAMember::DatasetID() const
+int iASingleResult::id() const
 {
-	return m_sampling.ID();
+	return m_id;
 }
 
-QSharedPointer<iAAttributes> iAMember::Attributes() const
+int iASingleResult::datasetID() const
 {
-	return m_sampling.Attributes();
+	return m_sampling.id();
+}
+
+QSharedPointer<iAAttributes> iASingleResult::attributes() const
+{
+	return m_sampling.attributes();
 }

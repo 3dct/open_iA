@@ -20,14 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
+#include "MetaFilters_export.h"
+
 #include <QSharedPointer>
 #include <QString>
 #include <QVector>
 
 class iAAttributes;
-class iAMember;
+class iASingleResult;
 
-class iASamplingResults
+class MetaFilters_API iASamplingResults
 {
 public:
 	iASamplingResults(
@@ -39,27 +41,27 @@ public:
 		QString const & name,
 		int id
 	);
-	static QSharedPointer<iASamplingResults> Load(QString const & metaFileName, int datasetID);
-	bool Store(QString const & smpFileName,
+	static QSharedPointer<iASamplingResults> load(QString const & metaFileName, int datasetID);
+	bool store(QString const & smpFileName,
 		QString const & parameterSetFileName,
 		QString const & derivedOutputFileName);
-	int Size() const;
-	QSharedPointer<iAMember> Get(int i) const;
-	void AddResult(QSharedPointer<iAMember> result);
-	QVector<QSharedPointer<iAMember> > const & Members() const;
-	void SetMembers(QVector<QSharedPointer<iAMember> > const & members);
-	QSharedPointer<iAAttributes> Attributes() const;
+	int size() const;
+	QSharedPointer<iASingleResult> get(int i) const;
+	void addResult(QSharedPointer<iASingleResult> result);
+	QVector<QSharedPointer<iASingleResult> > const & members() const;
+	void setMembers(QVector<QSharedPointer<iASingleResult> > const& members);
+	QSharedPointer<iAAttributes> attributes() const;
 	QString name() const;
-	QString FileName() const;
-	QString Path(int id) const;
-	QString Path() const;
-	QString Executable() const;
-	QString AdditionalArguments() const;
-	int ID() const;
-	bool StoreAttributes(int type, QString const & fileName, bool id);
+	QString fileName() const;
+	QString path(int id) const;
+	QString path() const;
+	QString executable() const;
+	QString additionalArguments() const;
+	int id() const;
+	bool storeAttributes(int type, QString const & fileName, bool id);
 private:
 	QSharedPointer<iAAttributes> m_attributes;
-	QVector<QSharedPointer<iAMember> > m_results;
+	QVector<QSharedPointer<iASingleResult> > m_results;
 	QString m_name;           //!< name of this sampling
 	QString m_parameterSetFile;//!<the name of the file containing the parameter sets
 	QString m_derivedOutputFile;//!<the name of the file containing the derived outputs
@@ -70,7 +72,7 @@ private:
 	QString m_additionalArguments; //!< additional parameters passed to the executable
 	int m_id;
 
-	bool LoadInternal(QString const & parameterSetFileName, QString const & derivedOutputFileName);
+	bool loadInternal(QString const & parameterSetFileName, QString const & derivedOutputFileName);
 };
 
 typedef QSharedPointer<iASamplingResults> SamplingResultPtr;

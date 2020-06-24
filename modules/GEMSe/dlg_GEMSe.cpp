@@ -191,8 +191,8 @@ void dlg_GEMSe::CreateMapper()
 	{
 		QSharedPointer<iASamplingResults> sampling = m_samplings->at(samplingIdx);
 		m_pipelineNames.push_back(sampling->name());
-		int datasetID = sampling->GetID();
-		QSharedPointer<iAAttributes> attributes = sampling->GetAttributes();
+		int datasetID = sampling->id();
+		QSharedPointer<iAAttributes> attributes = sampling->attributes();
 		for (int attributeID = 0; attributeID < attributes->size(); ++attributeID)
 		{
 			int chartID = -1;
@@ -646,9 +646,9 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 			// add mappings:
 			for (int sampleIdx = 0; sampleIdx < m_samplings->size(); ++sampleIdx)
 			{
-				QSharedPointer<iAAttributes> attribs = m_samplings->at(sampleIdx)->GetAttributes();
+				QSharedPointer<iAAttributes> attribs = m_samplings->at(sampleIdx)->attributes();
 				int attributeID = attribs->size();
-				int datasetID = m_samplings->at(sampleIdx)->GetID();
+				int datasetID = m_samplings->at(sampleIdx)->id();
 				attribs->add(measure);
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
 			}

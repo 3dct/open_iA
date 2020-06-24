@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #include "iADerivedOutputCalculator.h"
 
-#include "iAAttributes.h"
-#include "iAImageTreeNode.h"
+#include <iAAttributes.h>
+#include <iAITKImageTypes.h>
+
 #include "iASingleResult.h"
 
 // Toolkit/Entropy
@@ -49,7 +50,6 @@ iADerivedOutputCalculator::iADerivedOutputCalculator(
 	m_labelCount(labelCount)
 {}
 
-
 void iADerivedOutputCalculator::run()
 {
 	try
@@ -58,16 +58,16 @@ void iADerivedOutputCalculator::run()
 		typedef itk::ScalarConnectedComponentImageFilter <LabelImageType, OutputImageType > ConnectedComponentImageFilterType;
 		ConnectedComponentImageFilterType::Pointer connected = ConnectedComponentImageFilterType::New();
 		connected->SetDistanceThreshold(0);
-		if (m_result->GetLabelledImage().IsNull())
+		if (m_result->labelImage().IsNull())
 		{
 			DEBUG_LOG("Labelled Image is null");
 			m_success = false;
 			return;
 		}
-		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(m_result->GetLabelledImage().GetPointer());
+		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(m_result->labelImage().GetPointer());
 		connected->SetInput(lblImg);
 		connected->Update();
-		m_result->DiscardDetails();
+		m_result->discardDetails();
 		typedef itk::RelabelComponentImageFilter <OutputImageType, OutputImageType >
 			RelabelFilterType;
 		RelabelFilterType::Pointer relabel = RelabelFilterType::New();
@@ -75,16 +75,16 @@ void iADerivedOutputCalculator::run()
 		//relabel->SetSortByObjectSize(false);
 		relabel->Update();
 		int objCount = relabel->GetNumberOfObjects();
-		m_result->SetAttribute(m_objCountIdx, objCount);
+		m_result->setAttribute(m_objCountIdx, objCount);
 
-		if (m_result->ProbabilityAvailable())
+		if (m_result->probabilityAvailable())
 		{
 			//typedef itk::ImageRegionConstIterator<ProbabilityImageType> ConstDblIt;
 			typedef iAEntropyImageFilter<ProbabilityImageType, ProbabilityImageType> EntropyFilter;
 			auto entropyFilter = EntropyFilter::New();
 			for (int i = 0; i < m_labelCount; ++i)
 			{
-				ProbabilityImageType* probImg = dynamic_cast<ProbabilityImageType*>(m_result->GetProbabilityImg(i).GetPointer());
+				ProbabilityImageType* probImg = dynamic_cast<ProbabilityImageType*>(m_result->probabilityImg(i).GetPointer());
 				entropyFilter->SetInput(i, probImg);
 			}
 			entropyFilter->SetNormalize(true);
@@ -96,10 +96,11 @@ void iADerivedOutputCalculator::run()
 				DEBUG_LOG("AverageEntropy was infinity! Setting to -1")
 				avgEntropy = -1;
 			}
-			m_result->SetAttribute(m_avgUncIdx, avgEntropy);
-			m_result->DiscardProbability();
+			m_result->setAttribute(m_avgUncIdx, avgEntropy);
+			m_result->discardProbability();
 		}
-	} catch (std::exception & e)
+	}
+	catch (std::exception & e)
 	{
 		DEBUG_LOG(QString("An exception occured while computing derived output: %1").arg(e.what()));
 		m_success = false;

@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 #include <iAAttributeDescriptor.h>
 #include <iAValueType.h>
 
@@ -30,7 +32,7 @@ class iANameMapper;
 
 class QTextStream;
 
-class iAAttributes
+class open_iA_Core_API iAAttributes
 {
 public:
 	static QSharedPointer<iAAttributes> create(QTextStream & in);

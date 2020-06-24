@@ -22,6 +22,8 @@
 
 #include "ui_samplingSettings.h"
 
+#include "MetaFilters_export.h"
+
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <QMap>
@@ -84,7 +86,7 @@ private:
 	void deleteGUIComponents() override;
 };
 
-class dlg_samplingSettings : public dlg_samplingSettingsUI
+class MetaFilters_API dlg_samplingSettings : public dlg_samplingSettingsUI
 {
 	Q_OBJECT
 public:
