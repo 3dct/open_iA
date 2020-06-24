@@ -43,7 +43,10 @@
 
 // slicer
 #include "iASlicerProfile.h"
+#include "iASlicerSettings.h"
+#include "iASlicerInteractorStyle.h"
 #include "iASlicerProfileHandles.h"
+#include "iASlicerSettings.h"
 #include "iASnakeSpline.h"
 #include "iAVtkText.h"
 
@@ -64,7 +67,6 @@
 #include <vtkImageData.h>
 #include <vtkImageProperty.h>
 #include <vtkImageReslice.h>
-#include <vtkInteractorStyleImage.h>
 #include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
@@ -102,120 +104,6 @@
 #include <QtGlobal> // for QT_VERSION
 
 #include <cassert>
-
-//! Custom interactor style for slicers, for disabling certain vtk interactions we do differently.
-class iASlicerInteractorStyle : public vtkInteractorStyleImage
-{
-public:
-	static iASlicerInteractorStyle *New();
-	vtkTypeMacro(iASlicerInteractorStyle, vtkInteractorStyleImage);
-
-	void OnLeftButtonDown() override
-	{
-		m_leftButtonDown = true;
-		// if enabled, start "window-level" (click+drag) interaction:
-		if (m_windowLevelAdjustEnabled)
-		{	// mostly copied from base class; but we don't want the "GrabFocus" call there,
-			// that prevents the listeners to be notified of mouse move calls
-			int x = this->Interactor->GetEventPosition()[0];
-			int y = this->Interactor->GetEventPosition()[1];
-
-			this->FindPokedRenderer(x, y);
-			if (this->CurrentRenderer == nullptr)
-			{
-				return;
-			}
-			if (!this->Interactor->GetShiftKey() && !this->Interactor->GetControlKey())
-			{
-				this->WindowLevelStartPosition[0] = x;
-				this->WindowLevelStartPosition[1] = y;
-				this->StartWindowLevel();
-			}
-		}
-
-		// only allow moving the slice (Shift+Drag):
-		if (!this->Interactor->GetShiftKey())
-		{
-			return;
-		}
-		vtkInteractorStyleImage::OnLeftButtonDown();
-	}
-	void OnLeftButtonUp() override
-	{
-		m_leftButtonDown = false;
-		if (this->State == VTKIS_WINDOW_LEVEL)
-		{
-			this->EndWindowLevel();
-		}
-		vtkInteractorStyleImage::OnLeftButtonUp();
-	}
-	//! @{ shift and control + mousewheel are used differently - don't use them for zooming!
-	void OnMouseWheelForward() override
-	{
-		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
-		{
-			return;
-		}
-		vtkInteractorStyleImage::OnMouseWheelForward();
-	}
-	void OnMouseWheelBackward() override
-	{
-		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
-		{
-			return;
-		}
-		vtkInteractorStyleImage::OnMouseWheelBackward();
-	}
-	//! @}
-	//! @{ Conditionally disable zooming via right button dragging
-	void OnRightButtonDown() override
-	{
-		if (!m_rightButtonDragZoomEnabled)
-		{
-			return;
-		}
-		vtkInteractorStyleImage::OnRightButtonDown();
-	}
-	void setRightButtonDragZoomEnabled(bool enabled)
-	{
-		m_rightButtonDragZoomEnabled = enabled;
-	}
-	void setWindowLevelAdjust(bool enabled)
-	{
-		m_windowLevelAdjustEnabled = enabled;
-	}
-	bool windowLevelAdjustEnabled() const
-	{
-		return m_windowLevelAdjustEnabled;
-	}
-	bool leftButtonDown() const
-	{
-		return m_leftButtonDown;
-	}
-
-	//! @}
-	/*
-	virtual void OnChar()
-	{
-		vtkRenderWindowInteractor *rwi = this->Interactor;
-		switch (rwi->GetKeyCode())
-		{ // disable 'picking' action on p
-		case 'P':
-		case 'p':
-			break;
-		default:
-			vtkInteractorStyleImage::OnChar();
-		}
-	}
-	*/
-
-private:
-	bool m_rightButtonDragZoomEnabled = true;
-	bool m_windowLevelAdjustEnabled = false;
-	bool m_leftButtonDown = false;
-};
-
-vtkStandardNewMacro(iASlicerInteractorStyle);
 
 
 //! observer needs to be a separate class; otherwise there is an error when destructing,
@@ -306,9 +194,23 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_actionLinearInterpolation = m_contextMenu->addAction(tr("Linear Interpolation"), this, &iASlicerImpl::toggleLinearInterpolation);
 	m_actionLinearInterpolation->setCheckable(true);
 	m_actionShowTooltip = m_contextMenu->addAction(tr("Show Tooltip"), this, &iASlicerImpl::toggleShowTooltip);
-	m_actionShowTooltip->setCheckable(true);
-	m_actionToggleWindowLevelAdjust = m_contextMenu->addAction(tr("Adjust Window/Level via Mouse Click+Drag"), this, &iASlicerImpl::toggleWindowLevelAdjust);
+	
+	m_contextMenu->addSeparator();
+	m_actionToggleWindowLevelAdjust = new QAction(tr("Adjust Window/Level via Click+Drag"), m_contextMenu);
 	m_actionToggleWindowLevelAdjust->setCheckable(true);
+	m_contextMenu->addAction(m_actionToggleWindowLevelAdjust);
+	m_actionToggleRegionTransferFunction = new QAction(tr("Set Transfer function for region via Click+Drag"), m_contextMenu);
+	m_actionToggleRegionTransferFunction->setCheckable(true);
+	m_contextMenu->addAction(m_actionToggleRegionTransferFunction);
+	m_actionToggleNormalInteraction = new QAction(tr("Set Normal Interaction Mode"), m_contextMenu);
+	m_actionToggleNormalInteraction->setCheckable(true);
+	m_contextMenu->addAction(m_actionToggleNormalInteraction);
+	m_actionInteractionMode = new QActionGroup(m_contextMenu);
+	m_actionInteractionMode->addAction(m_actionToggleNormalInteraction);
+	m_actionInteractionMode->addAction(m_actionToggleRegionTransferFunction);
+	m_actionInteractionMode->addAction(m_actionToggleWindowLevelAdjust);
+	connect(m_actionInteractionMode, &QActionGroup::triggered, this, &iASlicerImpl::toggleInteractionMode);
+	m_contextMenu->addSeparator();
 
 	m_actionFisheyeLens = m_contextMenu->addAction(QIcon(":/images/fisheyeLens.png"), tr("Fisheye Lens"), this, &iASlicerImpl::fisheyeLensToggled);
 	m_actionFisheyeLens->setShortcut(Qt::Key_O);
@@ -622,7 +524,10 @@ void iASlicerImpl::setup( iASingleSlicerSettings const & settings )
 	m_settings = settings;
 	m_actionLinearInterpolation->setChecked(settings.LinearInterpolation);
 	setLinearInterpolation(settings.LinearInterpolation);
-	m_interactorStyle->setWindowLevelAdjust(settings.AdjustWindowLevelEnabled);
+	m_interactorStyle->setInteractionMode(
+		settings.AdjustWindowLevelEnabled ? iASlicerInteractorStyle::imWindowLevelAdjust :
+		iASlicerInteractorStyle::imNormal
+	);
 	setMouseCursor(settings.CursorMode);
 	setContours(settings.NumberOfIsoLines, settings.MinIsoValue, settings.MaxIsoValue);
 	showIsolines(settings.ShowIsoLines);
@@ -1462,7 +1367,7 @@ void iASlicerImpl::printVoxelInformation()
 	}
 	bool infoAvailable = false;
 	QString strDetails;
-	if (!m_interactorStyle->windowLevelAdjustEnabled() || !m_interactorStyle->leftButtonDown())
+	if (m_interactorStyle->interactionMode() != iASlicerInteractorStyle::imWindowLevelAdjust || !m_interactorStyle->leftButtonDown())
 	{
 		strDetails = QString("%1: %2, %3, %4\n").arg(padOrTruncate("Position", MaxNameLength))
 			.arg(m_globalPt[0]).arg(m_globalPt[1]).arg(m_globalPt[2]);
@@ -1474,7 +1379,7 @@ void iASlicerImpl::printVoxelInformation()
 			continue;
 		}
 
-		if (m_interactorStyle->windowLevelAdjustEnabled() && m_interactorStyle->leftButtonDown())
+		if (m_interactorStyle->interactionMode() == iASlicerInteractorStyle::imWindowLevelAdjust && m_interactorStyle->leftButtonDown())
 		{
 			infoAvailable = true;
 			strDetails += QString("%1: window: %2; level: %3")
@@ -2242,7 +2147,9 @@ void iASlicerImpl::mouseDoubleClickEvent(QMouseEvent* event)
 
 void iASlicerImpl::contextMenuEvent(QContextMenuEvent *event)
 {
-	m_actionToggleWindowLevelAdjust->setChecked(m_interactorStyle->windowLevelAdjustEnabled());
+	m_actionToggleWindowLevelAdjust->setChecked(m_interactorStyle->interactionMode() == iASlicerInteractorStyle::imWindowLevelAdjust);
+	m_actionToggleRegionTransferFunction->setChecked(m_interactorStyle->interactionMode() == iASlicerInteractorStyle::imRegionSelect);
+	m_actionToggleNormalInteraction->setChecked(m_interactorStyle->interactionMode() == iASlicerInteractorStyle::imNormal);
 	m_actionShowTooltip->setChecked(m_settings.ShowTooltip);
 	m_actionFisheyeLens->setChecked(m_fisheyeLensActivated);
 	if (m_magicLens)
@@ -2481,9 +2388,14 @@ void iASlicerImpl::toggleLinearInterpolation()
 	setLinearInterpolation(m_actionLinearInterpolation->isChecked());
 }
 
-void iASlicerImpl::toggleWindowLevelAdjust()
+void iASlicerImpl::toggleInteractionMode(QAction * )
 {
-	m_interactorStyle->setWindowLevelAdjust(!m_interactorStyle->windowLevelAdjustEnabled());
+	m_interactorStyle->setInteractionMode(
+		m_actionToggleWindowLevelAdjust->isChecked() ?
+			iASlicerInteractorStyle::imWindowLevelAdjust :
+			m_actionToggleRegionTransferFunction->isChecked() ?
+				iASlicerInteractorStyle::imRegionSelect :
+				iASlicerInteractorStyle::imNormal);
 }
 
 void iASlicerImpl::toggleShowTooltip()

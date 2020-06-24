@@ -53,6 +53,23 @@ bool inRange(T const* range, T const value)
 	return range[0] <= value && value <= range[1];
 }
 
+//! for numVal entries in two arrays, compute component-wise minimum and maximum
+//! @param minVal array with numVal entries, will hold the minimum value for each component in given val1/val2 array
+//! @param maxVal array with numVal entries, will hold the maximum value for each component in given val1/val2 array
+//! @param val1 array with numVal entries
+//! @param val2 array with numVal entries
+//! @param size
+//! @param numVal number of values in minVal, maxVal, val1, val2, and size
+template <typename T>
+void computeMinMax(T* minVal, T* maxVal, T const* val1, T const* val2, T const * size, int numVal)
+{
+	for (int c = 0; c < numVal; ++c)
+	{
+		minVal[c] = clamp(0, size[c] - 1, val1[c] <= val2[c] ? val1[c] : val2[c]);
+		maxVal[c] = clamp(0, size[c] - 1, val1[c] <= val2[c] ? val2[c] : val1[c]);
+	}
+}
+
 //! Map value from given interval to "norm" interval [0..1].
 //! if min is bigger than max, a reverse mapping is applied
 //! @param minSrcVal minimum value of source interval
