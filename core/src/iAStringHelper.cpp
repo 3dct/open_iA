@@ -75,7 +75,7 @@ namespace
 	const double OnePeta = OneKilo * OneTera;
 	const size_t UnitCount = 5;
 	const double UnitPrefixLargeVal[UnitCount] = { OnePeta, OneTera, OneGiga, OneMega, OneKilo };
-	const char UnitPrefixLarge[UnitCount] = { 'P', 'T', 'G', 'M', 'K' };
+	const QString UnitPrefixLarge[UnitCount] = { "P", "T", "G", "M", "K" };
 
 	// Small Values:
 	const double OneMilli = 0.001;
@@ -84,7 +84,7 @@ namespace
 	const double OnePico  = OneMilli * OneNano;
 	const double OneFemto = OneMilli * OnePico;
 	const double UnitPrefixSmallVal[UnitCount] = { OneFemto, OnePico, OneNano, OneMicro, OneMilli };
-	const char UnitPrefixSmall[UnitCount] = { 'f', 'p', 'n', 'µ', 'm' };
+	const QString UnitPrefixSmall[UnitCount] = { "f", "p", "n", "µ", "m" };
 }
 
 QString dblToStringWithUnits(double value)
