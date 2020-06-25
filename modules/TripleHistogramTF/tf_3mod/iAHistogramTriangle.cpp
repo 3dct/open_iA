@@ -99,7 +99,7 @@ void iAHistogramTriangle::initialize(QString const /*names*/[3])
 	m_fClear = true;
 	update();
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
+#if (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
 	for (int i = 0; i < 3; i++)
 	{
 		connect(m_tmw->w_slicer(i)->getSlicer(), &iASlicer::resized, this, &iAHistogramTriangle::glresized);
