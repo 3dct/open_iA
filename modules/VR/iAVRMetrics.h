@@ -30,6 +30,7 @@
 
 #include "vtkTable.h"
 #include "vtkLookupTable.h"
+#include "vtkActor.h"
 #include "vtkScalarBarActor.h"
 #include "vtkRenderer.h"
 
@@ -37,13 +38,15 @@
 class iAVRMetrics
 {
 public:
-	iAVRMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees);
+	iAVRMetrics(vtkRenderer* renderer, vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees);
 	void setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage);
 	std::vector<std::vector<double>>* getHeatmapColoring(int octreeLevel, int feature);
 	vtkSmartPointer<vtkLookupTable> getLut();
-	vtkSmartPointer<vtkScalarBarActor> getColorBarLegend();
-	void showColorBarLegend(vtkRenderer* ren);
-	void hideColorBarLegend(vtkRenderer* ren);
+	void calculateColorBarLegend();
+	vtkSmartPointer<vtkScalarBarActor> getColorBar();
+	void setColorBarLegendTitle(const char* title);
+	void showColorBarLegend();
+	void hideColorBarLegend();
 	int getNumberOfFeatures();
 	QString getFeatureName(int feature);
 	
@@ -59,6 +62,7 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkScalarBarActor> m_colorBar;
 	iACsvIO m_io;
+	vtkSmartPointer<vtkRenderer> m_renderer;
 	bool m_colorBarVisible;
 	std::vector<iAVROctree*>* m_octrees;
 	//Stores the info if at a specific octree [level] a specific [feature] is already calculated

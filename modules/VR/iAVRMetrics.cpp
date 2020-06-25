@@ -24,8 +24,12 @@
 #include <vtkVariant.h>
 #include <vtkProperty2D.h>
 #include <vtkTextProperty.h>
+#include <vtkAssembly.h>
+#include <vtkPlaneSource.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 
-iAVRMetrics::iAVRMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees):m_objectTable(objectTable), m_io(io),
+iAVRMetrics::iAVRMetrics(vtkRenderer* renderer, vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees):m_renderer(renderer), m_objectTable(objectTable), m_io(io),
 m_octrees(octrees)
 {
 	//numberOfFeatures = iACsvConfig::MappedCount;
@@ -40,8 +44,6 @@ m_octrees(octrees)
 
 	m_colorBar = vtkSmartPointer<vtkScalarBarActor>::New();
 	m_colorBarVisible = false;
-
-
 }
 
 //! Has to be called *before* getting any Metric data
@@ -145,15 +147,7 @@ vtkSmartPointer<vtkLookupTable> iAVRMetrics::calculateLUT(double min, double max
 	m_lut->SetBelowRangeColor(1, 1, 1, 1);
 	m_lut->UseBelowRangeColorOn();
 
-	m_colorBar->SetLookupTable(m_lut);
-	m_colorBar->SetNumberOfLabels(8);
-	m_colorBar->DrawBelowRangeSwatchOn();
-	m_colorBar->GetProperty()->SetLineWidth(5);
-	m_colorBar->GetProperty()->SetColor(0, 0, 0);
-	m_colorBar->GetTitleTextProperty()->SetColor(0, 0, 0);
-	
-	//m_colorBar->SetHeight(0.5);
-	m_colorBar->Modified();
+	calculateColorBarLegend();
 
 	return m_lut;
 }
@@ -163,28 +157,54 @@ vtkSmartPointer<vtkLookupTable> iAVRMetrics::getLut()
 	return m_lut;
 }
 
-vtkSmartPointer<vtkScalarBarActor> iAVRMetrics::getColorBarLegend()
+void iAVRMetrics::calculateColorBarLegend()
+{
+	m_colorBar->SetLookupTable(m_lut);
+	m_colorBar->SetNumberOfLabels(8);
+	m_colorBar->DrawBelowRangeSwatchOn();
+	m_colorBar->DrawBackgroundOn();
+	m_colorBar->DrawFrameOn();
+	m_colorBar->GetFrameProperty()->SetLineWidth(5);
+	m_colorBar->GetFrameProperty()->SetColor(0.4, 0.4, 0.4);
+	m_colorBar->SetTextPad(2);
+	m_colorBar->SetVerticalTitleSeparation(2);
+	m_colorBar->GetBackgroundProperty()->SetColor(0.4, 0.4, 0.4);
+	m_colorBar->GetProperty()->SetLineWidth(4);
+	m_colorBar->GetProperty()->SetColor(1, 1, 1);
+	m_colorBar->GetTitleTextProperty()->SetColor(1, 1, 1);
+	m_colorBar->GetTitleTextProperty()->SetFontSize(10);
+	m_colorBar->SetHeight(0.3);
+
+	m_colorBar->Modified();
+}
+
+vtkSmartPointer<vtkScalarBarActor> iAVRMetrics::getColorBar()
 {
 	return m_colorBar;
 }
 
-void iAVRMetrics::showColorBarLegend(vtkRenderer* ren)
+void iAVRMetrics::setColorBarLegendTitle(const char* title)
+{
+	m_colorBar->SetTitle(title);
+}
+
+void iAVRMetrics::showColorBarLegend()
 {
 	if (m_colorBarVisible)
 	{
 		return;
 	}
-	ren->AddActor2D(m_colorBar);
+	m_renderer->AddActor2D(m_colorBar);
 	m_colorBarVisible = true;
 }
 
-void iAVRMetrics::hideColorBarLegend(vtkRenderer* ren)
+void iAVRMetrics::hideColorBarLegend()
 {
 	if (!m_colorBarVisible)
 	{
 		return;
 	}
-	ren->RemoveActor2D(m_colorBar);
+	m_renderer->RemoveActor2D(m_colorBar);
 	m_colorBarVisible = false;
 }
 

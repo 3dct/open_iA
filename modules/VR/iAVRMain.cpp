@@ -46,6 +46,7 @@
 #include "vtkScalarBarActor.h"
 #include "vtkOpenVRCamera.h"
 #include "vtkOutlineFilter.h"
+#include "vtkBorderRepresentation.h"
 
 #include <QColor>
 
@@ -57,12 +58,13 @@
 
 //Offsets for the hovering Effect of the Model in Miniature
 #define X_OFFSET 0
-#define Y_OFFSET 55
+#define Y_OFFSET 60
 #define Z_OFFSET 0
 
 iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io): m_vrEnv(vrEnv),
 	m_style(style),	m_objectTable(objectTable),	m_io(io)
 {
+	currentMiMDisplacementType = 0;
 	m_cylinderVis = new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, m_io.getOutputMapping(), QColor(140,140,140,255), std::map<size_t, std::vector<iAVec3f> >());
 	//m_cylinderVis->setShowLines(true);
 	//m_cylinderVis->getActor()->GetProperty()->SetLineWidth(4);
@@ -71,7 +73,6 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	currentOctreeLevel = 0;
 	m_octrees = new std::vector<iAVROctree*>();
 	generateOctrees(OCTREE_MAX_LEVEL, OCTREE_POINTS_PER_REGION, m_cylinderVis->getPolyData());
-	//m_octree->calculateOctree(OCTREE_MAX_LEVEL, OCTREE_POINTS_PER_REGION);
 
 	// For true TranslucentGeometry
 	//https://vtk.org/Wiki/VTK/Examples/Cxx/Visualization/CorrectlyRenderTranslucentGeometry#CorrectlyRenderTranslucentGeometry.cxx
@@ -80,7 +81,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 
 	//Initialize Metrics class
 	currentFeature = 1;
-	fiberMetrics = new iAVRMetrics(m_objectTable, m_io, m_octrees);
+	fiberMetrics = new iAVRMetrics(m_vrEnv->renderer(), m_objectTable, m_io, m_octrees);
 
 	//map for the coverage of each fiber (Initialize with MaxLeafNodes in Max Level)
 	m_fiberCoverage = new std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>();
@@ -96,8 +97,13 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	m_style->setVRMain(this);
 	m_vrEnv->interactor()->SetInteractorStyle(m_style);
 
-	//Initialize Text Lables
-	m_3DText = new iAVR3DText(m_vrEnv->renderer());
+	//Initialize Text Lables vector
+	m_3DTextLabels = new std::vector<iAVR3DText*>();
+	m_3DTextLabels->push_back(new iAVR3DText(m_vrEnv->renderer()));// [0] for Octree level change
+	m_3DTextLabels->push_back(new iAVR3DText(m_vrEnv->renderer()));// [1] for feature change
+
+	//Initialize Dashboard
+	m_dashboard = new iAVRDashboard(m_vrEnv);
 
 	//Add Input Mapping
 	//Press, Touch
@@ -105,20 +111,24 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 		iAVRInteractionOptions::Volume, iAVROperations::PickSingleFiber);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
 		iAVRInteractionOptions::MiniatureModel, iAVROperations::PickMiMRegion);
+	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
+		iAVRInteractionOptions::NoObject, iAVROperations::ResetSelection);
+	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
+		iAVRInteractionOptions::Anywhere, iAVROperations::ExplodeMiM);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::ApplicationMenu, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Volume, iAVROperations::PickFibersinRegion);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::TrackPad, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Anywhere, iAVROperations::ChangeOctreeLevel);
 	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::TrackPad, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Anywhere, iAVROperations::ChangeFeature);
-	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
-		iAVRInteractionOptions::NoObject, iAVROperations::ResetSelection);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::ApplicationMenu, vtkEventDataAction::Press,
 		iAVRInteractionOptions::NoObject, iAVROperations::ResetSelection);
 	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::ApplicationMenu, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Anywhere, iAVROperations::SpawnModelInMiniature);
 	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::ApplicationMenu, vtkEventDataAction::Press,
 		iAVRInteractionOptions::MiniatureModel, iAVROperations::SpawnModelInMiniature);
+	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::Grip, vtkEventDataAction::Press,
+		iAVRInteractionOptions::Anywhere, iAVROperations::ChangeMiMDisplacementType);
 	//Release, Untouch
 
 	//For Oculus
@@ -185,6 +195,12 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 	case iAVROperations::ChangeFeature:
 		this->changeFeature();
 		break;
+	case iAVROperations::ExplodeMiM:
+		this->explodeMiM(currentMiMDisplacementType);
+		break;
+	case iAVROperations::ChangeMiMDisplacementType:
+		this->ChangeMiMDisplacementType();
+		break;
 	}
 
 	//DEBUG_LOG(QString("[START] active Input rc = %1, lc = %2").arg(activeInput->at(1)).arg(activeInput->at(2)));
@@ -247,51 +263,61 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 	movementOrie[2] = cOrie[deviceID][2] - oldcOrie[2]; //Y
 	movementOrie[3] = cOrie[deviceID][3] - oldcOrie[3]; //Z
 
-	//The Model in Minature follows the left controller
-	if(modelInMiniatureActive && deviceID == static_cast<int>(vtkEventDataDevice::LeftController))
+	//Movement of Left controller
+	if(deviceID == static_cast<int>(vtkEventDataDevice::LeftController))
 	{
-		double* centerPos = m_objectVis->getActor()->GetCenter();
+		//For active Model in Minature MiM
+		if(modelInMiniatureActive)
+		{
+			double* centerPos = m_objectVis->getActor()->GetCenter();
 
-		//Set Orientation!!	
-		double* modellOrientation = m_objectVis->getActor()->GetOrientationWXYZ();
-		modellOrientation[1] = vtkMath::DegreesFromRadians(modellOrientation[1]);
-		modellOrientation[2] = vtkMath::DegreesFromRadians(modellOrientation[2]);
-		modellOrientation[3] = vtkMath::DegreesFromRadians(modellOrientation[3]);
+			//Set Orientation!!	
+			double* modellOrientation = m_objectVis->getActor()->GetOrientationWXYZ();
+			modellOrientation[1] = vtkMath::DegreesFromRadians(modellOrientation[1]);
+			modellOrientation[2] = vtkMath::DegreesFromRadians(modellOrientation[2]);
+			modellOrientation[3] = vtkMath::DegreesFromRadians(modellOrientation[3]);
 
-		 //m_objectVis->getActor()->AddOrientation(movementOrie[1] - modellOrientation[1], movementOrie[2] - modellOrientation[2], movementOrie[3] - modellOrientation[3]);
-		 //m_objectVis->getActor()->AddOrientation(cOrie[deviceID][1], cOrie[deviceID][2], cOrie[deviceID][3]);
-		//m_objectVis->getActor()->AddOrientation(0, movementOrie[2], 0);
-		//m_objectVis->getActor()->RotateY(movementOrie[2]);
+			 //m_objectVis->getActor()->AddOrientation(movementOrie[1] - modellOrientation[1], movementOrie[2] - modellOrientation[2], movementOrie[3] - modellOrientation[3]);
+			 //m_objectVis->getActor()->AddOrientation(cOrie[deviceID][1], cOrie[deviceID][2], cOrie[deviceID][3]);
+			//m_objectVis->getActor()->AddOrientation(0, movementOrie[2], 0);
+			//m_objectVis->getActor()->RotateY(movementOrie[2]);
 
-		//m_objectVis->getActor()->AddPosition(cPos[deviceID][0] - centerPos[0], cPos[deviceID][1] - centerPos[1], cPos[deviceID][2] - centerPos[2]);
-		//m_objectVis->getActor()->AddPosition(cPos[deviceID][0] - centerPos[0], cPos[deviceID][1] - centerPos[1], cPos[deviceID][2] - centerPos[2]);
-		m_objectVis->getActor()->AddPosition(movementPos[0], movementPos[1], movementPos[2]);
+			//m_objectVis->getActor()->AddPosition(cPos[deviceID][0] - centerPos[0], cPos[deviceID][1] - centerPos[1], cPos[deviceID][2] - centerPos[2]);
+			//m_objectVis->getActor()->AddPosition(cPos[deviceID][0] - centerPos[0], cPos[deviceID][1] - centerPos[1], cPos[deviceID][2] - centerPos[2]);
+			m_objectVis->getActor()->AddPosition(movementPos[0], movementPos[1], movementPos[2]);
 
-		//DEBUG_LOG(QString("Event Orie is: %1 / %2 / %3").arg(cOrie[deviceID][1]).arg(cOrie[deviceID][2]).arg(cOrie[deviceID][3]));
-		//DEBUG_LOG(QString("Miniature Modell Ori is: %1 / %2 / %3").arg(modellOrientation[1]).arg(modellOrientation[2]).arg(modellOrientation[3]));
-		//DEBUG_LOG(QString("Movement Orie is: %1 / %2 / %3").arg(movementOrie[1]).arg(movementOrie[2]).arg(movementOrie[3]));
-		//DEBUG_LOG(QString("Actors new Pos is: %1 / %2 / %3").arg(m_objectVis->getActor()->GetPosition()[0]).arg(m_objectVis->getActor()->GetPosition()[1]).arg(m_objectVis->getActor()->GetPosition()[2]));
+			//DEBUG_LOG(QString("Event Orie is: %1 / %2 / %3").arg(cOrie[deviceID][1]).arg(cOrie[deviceID][2]).arg(cOrie[deviceID][3]));
+			//DEBUG_LOG(QString("Miniature Modell Ori is: %1 / %2 / %3").arg(modellOrientation[1]).arg(modellOrientation[2]).arg(modellOrientation[3]));
+			//DEBUG_LOG(QString("Movement Orie is: %1 / %2 / %3").arg(movementOrie[1]).arg(movementOrie[2]).arg(movementOrie[3]));
+			//DEBUG_LOG(QString("Actors new Pos is: %1 / %2 / %3").arg(m_objectVis->getActor()->GetPosition()[0]).arg(m_objectVis->getActor()->GetPosition()[1]).arg(m_objectVis->getActor()->GetPosition()[2]));
+		}
 
-		double textPos[3] = { cPos[deviceID][0] - 12, cPos[deviceID][1] + 8, cPos[deviceID][2] - 8};
-		m_3DText->updatePos(textPos);
-
+		double lcPos[3] = { cPos[deviceID][0], cPos[deviceID][1] - 24, cPos[deviceID][2]};
+		m_3DTextLabels->at(1)->setLabelPos(lcPos);
+		m_3DTextLabels->at(1)->moveInEyeDir(25, 25, 25);
 	}
 
+	//Movement of Right controller
 	if (deviceID == static_cast<int>(vtkEventDataDevice::RightController))
 	{
-
-		double textPos[3] = { cPos[deviceID][0] - 12, cPos[deviceID][1] + 8, cPos[deviceID][2] - 8};
-		m_3DText->updatePos(textPos);
-
+		double rcPos[3] = { cPos[deviceID][0], cPos[deviceID][1] - 22, cPos[deviceID][2]};
+		m_3DTextLabels->at(0)->setLabelPos(rcPos);
+		m_3DTextLabels->at(0)->moveInEyeDir(24, 24, 24);
 	}
 
 	//Movement of Head
 	if(deviceID == static_cast<int>(vtkEventDataDevice::HeadMountedDisplay))
 	{
-		//double posInfo[7];
-		//calculateTextPosition(5.0, 200, posInfo);
-		//fiberMetrics->getColorBarLegend()->GetPositionCoordinate()->SetCoordinateSystemToWorld();
-		//fiberMetrics->getColorBarLegend()->GetPositionCoordinate()->SetValue(posInfo[0], posInfo[1], posInfo[2]);
+		vtkSmartPointer<vtkCoordinate> coord = vtkSmartPointer<vtkCoordinate>::New();
+		double *pos = m_vrEnv->renderer()->GetViewPoint();
+		coord->SetCoordinateSystemToWorld();
+		coord->SetValue(cPos[deviceID]);
+		coord->SetCoordinateSystemToPose();
+
+		// Try it with Pose ?!
+		fiberMetrics->getColorBar()->GetPositionCoordinate()->SetCoordinateSystemToPose();
+		fiberMetrics->getColorBar()->Modified();
+		fiberMetrics->getColorBar()->GetPositionCoordinate()->SetValue(coord->GetValue()[0], coord->GetValue()[1], coord->GetValue()[2]);
 	}
 }
 
@@ -815,11 +841,10 @@ void iAVRMain::calculateMetrics()
 		m_objectVis->applyHeatmapColoring(rgba); // Only call when model is calculated (poly data has to be accessible)
 
 		QString text = QString("Feature: %1").arg(fiberMetrics->getFeatureName(currentFeature));
-		double tempPos[3] = { 0, 0, 0 };
-		m_3DText->draw3DLable(cPos[static_cast<int>(vtkEventDataDevice::LeftController)], text);
-		m_3DText->show();
+		
+		m_3DTextLabels->at(1)->create3DLabel(text);
 
-		fiberMetrics->getColorBarLegend()->SetTitle(fiberMetrics->getFeatureName(currentFeature).toUtf8());
+		fiberMetrics->setColorBarLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
 	}
 }
 
@@ -906,8 +931,9 @@ void iAVRMain::changeOctreeLevel()
 	updateModelInMiniatureData();
 
 	QString text = QString("Octree Level %1").arg(currentOctreeLevel);
-	m_3DText->draw3DLable(cPos[static_cast<int>(vtkEventDataDevice::RightController)], text);
-	m_3DText->show();
+	m_3DTextLabels->at(0)->create3DLabel(text);
+	m_3DTextLabels->at(0)->show();
+	m_3DTextLabels->at(1)->hide();
 }
 
 void iAVRMain::pickSingleFiber(double eventPosition[3])
@@ -930,7 +956,7 @@ void iAVRMain::pickFibersinRegion(double eventPosition[3])
 	int leafRegion = m_octrees->at(currentOctreeLevel)->getOctree()->GetRegionContainingPoint(eventPosition[0], eventPosition[1], eventPosition[2]);
 	vtkIdTypeArray *points = m_octrees->at(currentOctreeLevel)->getOctree()->GetPointsInRegion(leafRegion);
 
-	//Check if points is null!!
+	//Check if points are null!!
 	if (points == nullptr) {
 		DEBUG_LOG(QString("No points in the region!"));
 		return;
@@ -951,8 +977,7 @@ void iAVRMain::pickFibersinRegion(double eventPosition[3])
 	std::sort(selection.begin(), selection.end());
 	selection.erase(std::unique(selection.begin(), selection.end()), selection.end());
 
-	m_cylinderVis->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
-	
+	m_cylinderVis->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);	
 }
 
 //! Picks all fibers in the octree region defined by the leaf node ID.
@@ -986,8 +1011,12 @@ void iAVRMain::pickMimRegion(double eventPosition[3], double eventOrientation[4]
 
 	if(cellID >=0)
 	{
-		m_objectVis->setCubeColor(QColor(255, 5, 5, 255), cellID);
-		//m_objectVis->setLinearCubeOffset(2.0);
+		if (!m_iDMappingThreadRunning) {
+			std::vector<std::vector<double>>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature);
+			m_objectVis->applyHeatmapColoring(rgba); //Reset
+		}
+
+		m_objectVis->setCubeColor(OCTREE_COLOR, cellID);
 		pickFibersinRegion(cellID);
 	}
 }
@@ -1006,6 +1035,9 @@ void iAVRMain::changeFeature()
 		currentFeature = 1; // Jump over ID Column
 	}
 	updateModelInMiniatureData();
+
+	m_3DTextLabels->at(1)->show();
+	m_3DTextLabels->at(0)->hide();
 }
 
 //! Updates the data (Octree, Metrics,...) and the position for the current MiM
@@ -1047,21 +1079,70 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 		*/
 
 		m_objectVis->show();
-		m_3DText->show();
 
 		//DEBUG_LOG(QString("Orientation is: %1 / %2 / %3").arg(m_objectVis->getActor()->GetOrientation()[0]).arg(m_objectVis->getActor()->GetOrientation()[1]).arg(m_objectVis->getActor()->GetOrientation()[2]));
 
-		fiberMetrics->getColorBarLegend()->GetPositionCoordinate()->SetCoordinateSystemToWorld();
-		fiberMetrics->getColorBarLegend()->GetPositionCoordinate()->SetValue(eventPosition);
+		//fiberMetrics->getColorBar()->GetPositionCoordinate()->SetCoordinateSystemToWorld();
+		//fiberMetrics->getColorBar()->GetPositionCoordinate()->SetValue(eventPosition[0], eventPosition[1], eventPosition[2]);
+		//fiberMetrics->getColorBar()->Modified();
+
 		//fiberMetrics->getColorBarLegend()->GetPositionCoordinate()->SetValue(m_vrEnv->renderer()->GetActiveCamera()->GetScreenTopRight());
-		//fiberMetrics->showColorBarLegend(m_vrEnv->renderer());
+		
+		//fiberMetrics->showColorBarLegend();
+		
 	}
 	else
 	{
 		modelInMiniatureActive = false;
 		m_objectVis->hide();
-		m_3DText->hide();
-		fiberMetrics->hideColorBarLegend(m_vrEnv->renderer());
+		fiberMetrics->hideColorBarLegend();
 	}
+}
+
+void iAVRMain::explodeMiM(int currentMiMDisplacementType)
+{
+	double offset = 50;
+
+	switch (currentMiMDisplacementType)
+	{
+	case -1:
+		DEBUG_LOG(QString("Unknown Displacement!"));
+		break;
+	case 0:
+		m_objectVis->applyLinearCubeOffset(offset);
+		break;
+	case 1:
+		m_objectVis->applyRelativeCubeOffset(offset);
+		break;
+	case 2:
+		m_objectVis->apply4RegionCubeOffset(offset);
+		break;
+	}
+}
+
+void iAVRMain::ChangeMiMDisplacementType()
+{
+	currentMiMDisplacementType++;
+
+	if(currentMiMDisplacementType >= 2)
+	{
+		currentMiMDisplacementType = 0;
+	}
+
+	switch (currentMiMDisplacementType)
+	{
+	case 0:
+		m_3DTextLabels->at(1)->create3DLabel(QString("LinearCubeOffset"));
+		break;
+	case 1:
+		m_3DTextLabels->at(1)->create3DLabel(QString("RelativeCubeOffset"));
+		break;
+	case 2:
+		m_3DTextLabels->at(1)->create3DLabel(QString("4RegionCubeOffset"));
+		break;
+	}
+
+	m_3DTextLabels->at(1)->show();
+	m_3DTextLabels->at(0)->hide();	
 }
 

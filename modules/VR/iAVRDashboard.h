@@ -21,42 +21,20 @@
 #pragma once
 
 #include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkDataSet.h>
-#include <vtkOctreePointLocator.h>
-#include <vtkPlaneSource.h>
+#include <vtkOpenVRRenderWindow.h>
+#include <vtkOpenVROverlay.h>
+#include <vtkOpenVRDefaultOverlay.h>
 
-#include <QColor>
-#include <unordered_map>
+#include "iAVREnvironment.h"
 
-//! Class for calculation of a 3D Octree 
-class iAVROctree
+//! Creates a Dashboard for the VR Environment
+class iAVRDashboard
 {
 public:
-	iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet);
-	void generateOctreeRepresentation(int level, QColor col);
-	void calculateOctree(int level, int pointsPerRegion);
-	vtkOctreePointLocator* getOctree();
-	void calculateOctreeRegionSize(double size[3]);
-	void calculateOctreeCenterPos(double centerPoint[3]);
-	void calculateOctreeRegionCenterPos(int regionID, double centerPoint[3]);
-	void createOctreeBoundingBoxPlanes(int regionID, std::vector<vtkSmartPointer<vtkPlaneSource>>* planes);
-	void movePointInsideRegion(double point[3], double movedPoint[3]);
-	int getNumberOfLeafeNodes();
-	std::vector<std::unordered_map<vtkIdType, double>*>* getfibersInRegionMapping(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex);
-	void show();
-	void hide();
-	vtkActor* getActor();
+	iAVRDashboard(iAVREnvironment* vrEnv);
+	void spawnDashboard();
 
 private:
-	int numberOfLeaveNodes;
-	bool m_visible;
-	vtkSmartPointer<vtkRenderer> m_renderer;
-	vtkSmartPointer<vtkActor> m_actor;
-	vtkSmartPointer<vtkDataSet> m_dataSet;
-	vtkSmartPointer<vtkOctreePointLocator> m_octree;
-	//Saves the octree [region] and a  map of its fiber IDs [iD] with their coverage (0.0-1.0)
-	std::vector<std::unordered_map<vtkIdType, double>*>* m_fibersInRegion;
-
-	void mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex);
+	iAVREnvironment* m_vrEnv;
+	vtkSmartPointer<vtkOpenVRDefaultOverlay> m_overlay;
 };

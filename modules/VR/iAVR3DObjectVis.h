@@ -48,7 +48,9 @@ public:
 	void setOrientation(double x, double y, double z);
 	void setCubeColor(QColor col, int regionID);
 	void applyHeatmapColoring(std::vector<std::vector<double>>* colorPerRegion);
-	void setLinearCubeOffset(double offset);
+	void applyLinearCubeOffset(double offset);
+	void applyRelativeCubeOffset(double offset);
+	void apply4RegionCubeOffset(double offset);
 	vtkIdType getClosestCellID(double pos[3], double eventOrientation[3]);
 	void setOctree(iAVROctree* octree);
 	vtkSmartPointer<vtkPolyData> getDataSet();
@@ -63,8 +65,10 @@ private:
 	vtkSmartPointer<vtkPolyData> m_cubePolyData;
 	vtkSmartPointer<vtkGlyph3D> glyph3D;
 	vtkSmartPointer<vtkCellLocator> cellLocator;
+	vtkSmartPointer<vtkUnsignedCharArray> currentColorArr;
 	iAVROctree* m_octree;
 	bool m_visible;
 
 	void calculateStartPoints();
+	void iAVR3DObjectVis::drawPoint(std::vector<double*>* pos, QColor color);
 };

@@ -36,8 +36,10 @@
 #include "vtkCellPicker.h"
 #include "vtkProp3DCollection.h"
 #include "vtkMatrix4x4.h"
+#include "vtkVertexGlyphFilter.h"
 
 #include <iAConsole.h>
+#include <iAvec3.h>
 #include <math.h>
 
 iAVR3DObjectVis::iAVR3DObjectVis(vtkRenderer* ren):m_renderer(ren),m_actor(vtkSmartPointer<vtkActor>::New())
@@ -46,7 +48,11 @@ iAVR3DObjectVis::iAVR3DObjectVis(vtkRenderer* ren):m_renderer(ren),m_actor(vtkSm
 	defaultActorSize[0] = 0.15;
 	defaultActorSize[1] = 0.15;
 	defaultActorSize[2] = 0.15;
-	defaultColor = QColor(0, 0, 200, 200); // Not fully opaque
+	currentColorArr = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	currentColorArr->SetName("colors");
+	currentColorArr->SetNumberOfComponents(4);
+
+	defaultColor = QColor(0, 0, 200, 255);
 }
 
 void iAVR3DObjectVis::show()
@@ -69,7 +75,7 @@ void iAVR3DObjectVis::hide()
 	m_visible = false;
 }
 
-//! Creates for every region of the octree a cube glyph. The cubes are stored in one actor with the set default color.
+//! Creates for every region of the octree a cube glyph. The cubes are stored in one actor.
 void iAVR3DObjectVis::createModelInMiniature()
 {
 	
@@ -187,79 +193,160 @@ void iAVR3DObjectVis::setOrientation(double x, double y, double z)
 	m_actor->SetOrientation(x, y, z);
 }
 
-//! Sets the color (rgba) of a cube in the Miniature Model
+//! Sets the color (rgba) of one cube in the Miniature Model. The other colors stay the same.
 //! The region ID of the octree is used
 void iAVR3DObjectVis::setCubeColor(QColor col, int regionID)
 {
-	unsigned char default_rgb[4] = { 0, 0, 250, 255 };
 	unsigned char rgb[4] = {col.red(), col.green(), col.blue(), col.alpha()};
 
-	vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-	colors->SetName("colors");
-	colors->SetNumberOfComponents(4);
+	currentColorArr->SetTuple4(regionID, rgb[0], rgb[1], rgb[2], rgb[3]);
 
-	for(int i = 0; i< m_octree->getOctree()->GetNumberOfLeafNodes(); i++)
-	{
-		if(i == regionID)
-		{
-			colors->InsertNextTuple4(rgb[0], rgb[1], rgb[2], rgb[3]);
-		}
-		else
-		{
-			colors->InsertNextTuple4(default_rgb[0], default_rgb[1], default_rgb[2], default_rgb[3]);
-		}
-	}
-
-	m_cubePolyData->GetPointData()->SetScalars(colors); //If Mapper Cell Data is needed!
+	m_cubePolyData->GetCellData()->SetScalars(currentColorArr); //If GlyphMapper Cell Data is needed!
 	m_cubePolyData->Modified();
 	glyph3D->Update();
 }
 
-//! Colors the whole miniature model with the given rgba values ( between 0.0 and 1.0)
+//! Colors the whole miniature model with the given vector of rgba values ( between 0.0 and 1.0)
+//! Resets the current color of all cubes with the new colors!
 void iAVR3DObjectVis::applyHeatmapColoring(std::vector<std::vector<double>>* colorPerRegion)
 {
-	vtkSmartPointer<vtkUnsignedCharArray> colorArr = vtkSmartPointer<vtkUnsignedCharArray>::New();
-	colorArr->SetName("colors");
-	colorArr->SetNumberOfComponents(4);
+	currentColorArr = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	currentColorArr->SetName("colors");
+	currentColorArr->SetNumberOfComponents(4);
 
 	for (int i = 0; i < colorPerRegion->size(); i++)
 	{
-		colorArr->InsertNextTuple4(colorPerRegion->at(i).at(0)*255, colorPerRegion->at(i).at(1) * 255, colorPerRegion->at(i).at(2) * 255, colorPerRegion->at(i).at(3) * 255);
+		currentColorArr->InsertNextTuple4(colorPerRegion->at(i).at(0)*255, colorPerRegion->at(i).at(1) * 255, colorPerRegion->at(i).at(2) * 255, colorPerRegion->at(i).at(3) * 255);
 	}
 
-	m_cubePolyData->GetPointData()->SetScalars(colorArr);
+	m_cubePolyData->GetPointData()->SetScalars(currentColorArr);
 	m_cubePolyData->Modified();
 	glyph3D->Update();
 }
 
-void iAVR3DObjectVis::setLinearCubeOffset(double offset)
+//! This Method calculates the direction from the MiM center to its single cubes and shifts the cubes from the center away
+//! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
+void iAVR3DObjectVis::applyLinearCubeOffset(double offset)
 {
 	if(m_cubePolyData == nullptr)
 	{
 		DEBUG_LOG(QString("No Points to apply offset"));
 		return;
 	}
-
-	double* pos = m_actor->GetCenter();
-	/*
-	for (int i = 0; i < m_cubePolyData->GetNumberOfPoints(); i++)
+	
+	double centerPoint[3];
+	m_octree->calculateOctreeCenterPos(centerPoint);
+	iAVec3d centerPos = iAVec3d(centerPoint);
+	
+	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
 	{
-		double* currentPoint = m_cubePolyData->GetPoints()->GetPoint(i);
-		double direction[3];
-		direction[0] = currentPoint[0] - pos[0];
-		direction[1] = currentPoint[1] - pos[1];
-		direction[2] = currentPoint[2] - pos[2];
-		double length = sqrt(pow(direction[0], 2) + pow(direction[1], 2) + pow(direction[2], 2));
-		double normalized[3] = { (direction[0] / length), (direction[1] / length) , (direction[2] / length)};
-		double move[3] = { currentPoint[0] * (normalized[0] * offset), currentPoint[0] * (normalized[1] * offset) , currentPoint[0] * (normalized[2] * offset)};
+		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
+		iAVec3d normDirection = currentPoint - centerPos;
+		normDirection.normalize();
+		
+		iAVec3d move = normDirection * offset;
+		iAVec3d newPoint = currentPoint + move;
 
-		m_cubePolyData->GetPoints()->SetPoint(i, move);
-		m_cubePolyData->Modified();
+		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
 	}
-	*/
-	DEBUG_LOG(QString("Linear Offset Set"));
+	m_cubePolyData->Modified();
 }
 
+//! This Method calculates the direction from the MiM center to its single cubes and shifts the cubes from the center away
+//! The shifts is scaled non-linear by the length from the center to the cube
+//! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
+void iAVR3DObjectVis::applyRelativeCubeOffset(double offset)
+{
+	if (m_cubePolyData == nullptr)
+	{
+		DEBUG_LOG(QString("No Points to apply offset"));
+		return;
+	}
+
+	double maxLength = 0;
+	double centerPoint[3];
+	m_octree->calculateOctreeCenterPos(centerPoint);
+	iAVec3d centerPos = iAVec3d(centerPoint);
+
+	// Get max length
+	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
+	{
+		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
+		iAVec3d direction = currentPoint - centerPos;
+		double length = direction.length();
+
+		if (length > maxLength) maxLength = length;
+	}
+
+	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
+	{
+		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
+		iAVec3d normDirection = currentPoint - centerPos;
+		double currentLength = normDirection.length();
+		normDirection.normalize();
+
+		iAVec3d move = normDirection * offset * (currentLength/maxLength);
+		iAVec3d newPoint = currentPoint + move;
+
+		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
+	}
+	m_cubePolyData->Modified();
+}
+
+//! This Method calculates a position depending shift of the cubes from the MiM center outwards.
+//! The cubes are moved in its 4 direction from the center (left, right, up, down).
+//! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
+void iAVR3DObjectVis::apply4RegionCubeOffset(double offset)
+{
+	if (m_cubePolyData == nullptr)
+	{
+		DEBUG_LOG(QString("No Points to apply offset"));
+		return;
+	}
+
+	double centerPoint[3];
+	m_octree->calculateOctreeCenterPos(centerPoint);
+	iAVec3d centerPos = iAVec3d(centerPoint);
+	iAVec3d newPoint;
+
+	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
+	{
+		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
+		newPoint = currentPoint;
+
+		// X
+		if(currentPoint[0] < centerPos[0])
+		{
+			newPoint[0] = currentPoint[0] - offset;
+		}
+		if (currentPoint[0] > centerPos[0])
+		{
+			newPoint[0] = currentPoint[0] + offset;
+		}
+		// Y
+		if (currentPoint[1] < centerPos[1])
+		{
+			newPoint[1] = currentPoint[1] - offset;
+		}
+		if (currentPoint[1] > centerPos[1])
+		{
+			newPoint[1] = currentPoint[1] + offset;
+		}
+		// Z
+		if (currentPoint[2] < centerPos[2])
+		{
+			newPoint[2] = currentPoint[2] - offset;
+		}
+		if (currentPoint[2] > centerPos[2])
+		{
+			newPoint[2] = currentPoint[2] + offset;
+		}
+		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
+	}
+	m_cubePolyData->Modified();
+}
+
+//! This Method returns the closest cell of the MiM which gets intersected by a ray  
 vtkIdType iAVR3DObjectVis::getClosestCellID(double pos[3], double eventOrientation[3])
 {
 	vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
@@ -289,7 +376,7 @@ vtkActor * iAVR3DObjectVis::getActor()
 	return m_actor;
 }
 
-//! This Method iterates through all leaf regions of the octree and stores its center point and it region iD (field data) in an vtkPolyData
+//! This Method iterates through all leaf regions of the octree and stores its center point in an vtkPolyData
 void iAVR3DObjectVis::calculateStartPoints()
 {
 	vtkSmartPointer<vtkPoints> cubeStartPoints = vtkSmartPointer<vtkPoints>::New();
@@ -308,5 +395,30 @@ void iAVR3DObjectVis::calculateStartPoints()
 	m_cubePolyData->SetPoints(cubeStartPoints);
 }
 
+//! Test method inserts colored point at given Position
+void iAVR3DObjectVis::drawPoint(std::vector<double*>* pos, QColor color)
+{
+	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
+	for (int i = 0; i < pos->size(); i++)
+	{
+		points->InsertNextPoint(pos->at(i));
+	}
+
+	vtkSmartPointer<vtkPolyData> pointsPolydata = vtkSmartPointer<vtkPolyData>::New();
+	pointsPolydata->SetPoints(points);
+
+	vtkSmartPointer<vtkVertexGlyphFilter> vertexGlyphFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
+	vertexGlyphFilter->AddInputData(pointsPolydata);
+	vertexGlyphFilter->Update();
+
+	vtkSmartPointer<vtkPolyDataMapper> pointsMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	pointsMapper->SetInputConnection(vertexGlyphFilter->GetOutputPort());
+	vtkSmartPointer<vtkActor> pointsActor = vtkSmartPointer<vtkActor>::New();
+	pointsActor->SetMapper(pointsMapper);
+	pointsActor->GetProperty()->SetPointSize(8);
+	pointsActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
+	m_renderer->AddActor(pointsActor);
+
+}
 

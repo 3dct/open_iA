@@ -21,7 +21,10 @@
 #include "iAVR3DText.h"
 
 #include <iAConsole.h>
+#include <iAvec3.h>
+
 #include "vtkTextProperty.h"
+#include "vtkCamera.h"
 
 iAVR3DText::iAVR3DText(vtkRenderer* ren): m_renderer(ren)
 {
@@ -57,20 +60,21 @@ void iAVR3DText::hide()
 	m_visible = false;
 }
 
-void iAVR3DText::draw3DLable(double pos[3], QString text)
+void iAVR3DText::create3DLabel(QString text)
 {
-	m_textActor3D->SetPosition(pos);
 	m_textActor3D->SetScale(1,1,1);
 	m_textActor3D->SetInput(text.toUtf8());
 
+	m_textActor3D->GetTextProperty()->SetJustificationToCentered();
 	m_textActor3D->GetTextProperty()->SetFrame(1);
-	m_textActor3D->GetTextProperty()->SetFrameColor(1.0, 1.0, 1.0);
+	m_textActor3D->GetTextProperty()->SetFrameColor(0.6, 0.6, 0.6);
+	m_textActor3D->GetTextProperty()->SetFrameWidth(4);
 	m_textActor3D->GetTextProperty()->SetBackgroundOpacity(1.0);
-	m_textActor3D->GetTextProperty()->SetBackgroundColor(0.0, 0.0, 0.0);
-	m_textActor3D->GetTextProperty()->SetFontSize(30);
+	m_textActor3D->GetTextProperty()->SetBackgroundColor(0.4, 0.4, 0.4);
+	m_textActor3D->GetTextProperty()->SetFontSize(32);
 }
 
-void iAVR3DText::updatePos(double pos[3])
+void iAVR3DText::setLabelPos(double pos[3])
 {
 	m_textActor3D->SetPosition(pos);
 }
@@ -139,6 +143,16 @@ void iAVR3DText::drawInputTooltip(vtkEventDataDevice device, vtkEventDataDeviceI
 	}
 }
 
+void iAVR3DText::moveInEyeDir(double x, double y, double z)
+{
+	iAVec3d eye = iAVec3d(m_renderer->GetActiveCamera()->GetPosition());
+	iAVec3d currentPos = iAVec3d(m_textActor3D->GetPosition());
+	iAVec3d normDir = eye - currentPos;
+	normDir.normalize();
+
+	m_textActor3D->AddPosition(normDir[0] *x, normDir[1] * y, normDir[2] * z);
+}
+
 void iAVR3DText::showInputTooltip()
 {
 	for (int d = 0; d < vtkEventDataNumberOfDevices; ++d)
@@ -170,3 +184,4 @@ void iAVR3DText::updateInputTooltip()
 		}
 	}
 }
+

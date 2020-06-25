@@ -24,6 +24,7 @@
 #include "iAVREnvironment.h"
 #include "iAVRMetrics.h"
 #include "iAVR3DText.h"
+#include "iAVRDashboard.h"
 
 #include "vtkEventData.h"
 #include "vtkTable.h"
@@ -32,6 +33,8 @@
 #include "vtkPolyData.h"
 #include "vtkPlaneSource.h"
 #include "iACsvIO.h"
+#include "vtkScalarBarWidget.h"
+#include "vtkOpenVRPanelWidget.h"
 
 #include <unordered_map>
 #include <thread>
@@ -57,6 +60,8 @@ enum class iAVROperations {
   ChangeOctreeLevel,
   ResetSelection,
   ChangeFeature,
+  ExplodeMiM,
+  ChangeMiMDisplacementType,
   NumberOfOperations
 };
 
@@ -84,10 +89,12 @@ private:
 	vtkSmartPointer<iAVRInteractorStyle> m_style;
 	vtkSmartPointer<vtkTable> m_objectTable;
 
-	iAVR3DText* m_3DText;
+	std::vector<iAVR3DText*>* m_3DTextLabels;
+	iAVRDashboard* m_dashboard;
 	iACsvIO m_io;
 	iAVRMetrics* fiberMetrics;
 	int currentFeature;
+	int currentMiMDisplacementType;
 	//Current Device Position
 	double cPos[vtkEventDataNumberOfDevices][3];
 	//Current Device Orientation
@@ -131,4 +138,6 @@ private:
 	void resetSelection();
 	void changeFeature();
 	void spawnModelInMiniature(double eventPosition[3], bool hide);
+	void explodeMiM(int displacementType);
+	void ChangeMiMDisplacementType();
 };

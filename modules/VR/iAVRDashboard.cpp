@@ -18,45 +18,20 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAVRDashboard.h"
 
-#include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkDataSet.h>
-#include <vtkOctreePointLocator.h>
-#include <vtkPlaneSource.h>
+#include <iAConsole.h>
 
-#include <QColor>
-#include <unordered_map>
-
-//! Class for calculation of a 3D Octree 
-class iAVROctree
+iAVRDashboard::iAVRDashboard(iAVREnvironment* vrEnv) : m_vrEnv(vrEnv)
 {
-public:
-	iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet);
-	void generateOctreeRepresentation(int level, QColor col);
-	void calculateOctree(int level, int pointsPerRegion);
-	vtkOctreePointLocator* getOctree();
-	void calculateOctreeRegionSize(double size[3]);
-	void calculateOctreeCenterPos(double centerPoint[3]);
-	void calculateOctreeRegionCenterPos(int regionID, double centerPoint[3]);
-	void createOctreeBoundingBoxPlanes(int regionID, std::vector<vtkSmartPointer<vtkPlaneSource>>* planes);
-	void movePointInsideRegion(double point[3], double movedPoint[3]);
-	int getNumberOfLeafeNodes();
-	std::vector<std::unordered_map<vtkIdType, double>*>* getfibersInRegionMapping(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex);
-	void show();
-	void hide();
-	vtkActor* getActor();
+	m_overlay = vtkSmartPointer<vtkOpenVRDefaultOverlay>::New();
+}
 
-private:
-	int numberOfLeaveNodes;
-	bool m_visible;
-	vtkSmartPointer<vtkRenderer> m_renderer;
-	vtkSmartPointer<vtkActor> m_actor;
-	vtkSmartPointer<vtkDataSet> m_dataSet;
-	vtkSmartPointer<vtkOctreePointLocator> m_octree;
-	//Saves the octree [region] and a  map of its fiber IDs [iD] with their coverage (0.0-1.0)
-	std::vector<std::unordered_map<vtkIdType, double>*>* m_fibersInRegion;
-
-	void mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex);
-};
+void iAVRDashboard::spawnDashboard()
+{
+	DEBUG_LOG(QString("SPAWNING OVERLAY"));
+	//m_overlay->Create(m_vrEnv->renderWindow());
+	//m_overlay->Render();
+	m_vrEnv->renderWindow()->SetDashboardOverlay(m_overlay);
+	m_vrEnv->renderWindow()->RenderOverlay();
+}
