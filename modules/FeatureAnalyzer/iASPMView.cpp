@@ -179,7 +179,7 @@ void iASPMView::updateLUT()
 	}
 	double rgba[4];
 	vtkIdType lutColCnt = m_lut->GetNumberOfTableValues();
-#if (VTK_MAJOR_VERSION > 8 || (VTK_MAJOR_VERSION == 8 && VTK_MINOR_VERSION > 0))
+#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 1, 0))
 	m_lut->SetRange(m_splom->lookupTable()->getRange());
 #else
 	double range[2];

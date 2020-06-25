@@ -1625,7 +1625,7 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRan
 		addData(ctf, viridis_data, 256);
 		break;
 	}
-#if (VTK_MAJOR_VERSION == 8 && VTK_MINOR_VERSION == 0)
+#if VTK_VERSION_NUMBER <= VTK_VERSION_CHECK(8, 0, 0)
 	double lutRangeNonConst[2];
 	std::copy(lutRange, lutRange + 2, lutRangeNonConst);
 	pLUT->SetRange(lutRangeNonConst);

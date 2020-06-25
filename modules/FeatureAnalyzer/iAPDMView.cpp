@@ -39,10 +39,14 @@
 
 void SetWidgetSelectionStyle(QWidget * w, bool isSelected)
 {
-	if( isSelected )
-		w->setStyleSheet( "background-color:black;" );
+	if (isSelected)
+	{
+		w->setStyleSheet("background-color:black;");
+	}
 	else
-		w->setStyleSheet( "background-color:white;" );
+	{
+		w->setStyleSheet("background-color:white;");
+	}
 }
 
 iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
@@ -112,90 +116,100 @@ void iAPDMView::SetData( const iABPMData * bpData, const iAHMData * hmData )
 void iAPDMView::UpdateTableDeviation()
 {
 	ShowDeviationControls( true );
-	for( int i = 0; i < m_filters->size(); ++i )
-		for( int j = 0; j < m_datasets->size(); ++j )
+	for (int i = 0; i < m_filters->size(); ++i)
+	{
+		for (int j = 0; j < m_datasets->size(); ++j)
 		{
-			QWidget * wgt = new QWidget( 0 );
+			QWidget* wgt = new QWidget(0);
 
 			QString datasetName = (*m_datasets)[j];
-			double gt = (*m_gtPorosityMap).find( datasetName ).value();// Ground truth
+			double gt = (*m_gtPorosityMap).find(datasetName).value();// Ground truth
 			double med = (*m_boxPlots)[i][j].med;	//median value
 			double deviation = med - gt;
-			QString tip = "Dev: " + QString::number( deviation ) + " Med:" + QString::number( med ) + " Ref:" + QString::number( gt );
+			QString tip = "Dev: " + QString::number(deviation) + " Med:" + QString::number(med) + " Ref:" + QString::number(gt);
 			double rgb[3];
-			m_lut->GetColor( deviation, rgb );
+			m_lut->GetColor(deviation, rgb);
 			int irgb[3] = { static_cast<int>(rgb[0] * 255), static_cast<int>(rgb[1] * 255), static_cast<int>(rgb[2] * 255) };
-			wgt->setStyleSheet( "background-color:rgb(" + QString::number( irgb[0] ) + "," + QString::number( irgb[1] ) + "," + QString::number( irgb[2] ) + ");" );
-			wgt->setToolTip( tip );
-			wgt->setStatusTip( tip );
-			addWidgetToTable( j + 1, i + 1, wgt );
+			wgt->setStyleSheet("background-color:rgb(" + QString::number(irgb[0]) + "," + QString::number(irgb[1]) + "," + QString::number(irgb[2]) + ");");
+			wgt->setToolTip(tip);
+			wgt->setStatusTip(tip);
+			addWidgetToTable(j + 1, i + 1, wgt);
 		}
+	}
 }
 
 void iAPDMView::UpdateTableBoxPlot()
 {
 	ShowPorosityRangeControls( true );
-	for( int i = 0; i < m_filters->size(); ++i )
-		for( int j = 0; j < m_datasets->size(); ++j )
+	for (int i = 0; i < m_filters->size(); ++i)
+	{
+		for (int j = 0; j < m_datasets->size(); ++j)
 		{
-			QCustomPlot * customPlot = new QCustomPlot( 0 );
+			QCustomPlot* customPlot = new QCustomPlot(0);
 			// create empty statistical box plottables:
-			QCPStatisticalBox *sample1 = new QCPStatisticalBox( customPlot->yAxis, customPlot->xAxis );
-			QBrush boxBrush( QColor( 60, 60, 255, 100 ) );
-			boxBrush.setStyle( Qt::Dense6Pattern ); // make it look oldschool
-			sample1->setBrush( boxBrush );
-			customPlot->setInteractions( QCP::iRangeDrag | QCP::iRangeZoom );
-			customPlot->setMinimumWidth( 250 );
-			customPlot->setMinimumHeight( 80 );
+			QCPStatisticalBox* sample1 = new QCPStatisticalBox(customPlot->yAxis, customPlot->xAxis);
+			QBrush boxBrush(QColor(60, 60, 255, 100));
+			boxBrush.setStyle(Qt::Dense6Pattern); // make it look oldschool
+			sample1->setBrush(boxBrush);
+			customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+			customPlot->setMinimumWidth(250);
+			customPlot->setMinimumHeight(80);
 
 			// set data:
-			sample1->addData( 1, ( *m_boxPlots )[i][j].min,
-				( *m_boxPlots )[i][j].q25, ( *m_boxPlots )[i][j].med,
-				( *m_boxPlots )[i][j].q75, ( *m_boxPlots )[i][j].max,
-				QVector<double>::fromList( ( *m_boxPlots )[i][j].outliers ) );
+			sample1->addData(1, (*m_boxPlots)[i][j].min,
+				(*m_boxPlots)[i][j].q25, (*m_boxPlots)[i][j].med,
+				(*m_boxPlots)[i][j].q75, (*m_boxPlots)[i][j].max,
+				QVector<double>::fromList((*m_boxPlots)[i][j].outliers));
 
 			// Fetch ground truth data
 			QVector<double> valueData;
 			QMap<double, QList<double> > map = (*m_histogramPlots)[i][j].histoBinMap;
-			for( double idx = 0; idx < map.size(); ++idx )
-				valueData << map.find( idx ).value().size();
+			for (double idx = 0; idx < map.size(); ++idx)
+			{
+				valueData << map.find(idx).value().size();
+			}
 			// Ground truth line
 			QVector<double> xGroundTruth; QVector<double> yGroundTruth;
 			QString datasetName = (*m_datasets)[j];
-			xGroundTruth << (*m_gtPorosityMap).find( datasetName ).value();
+			xGroundTruth << (*m_gtPorosityMap).find(datasetName).value();
 			yGroundTruth << 1.4;
-			QCPGraph * gtGraph = customPlot->addGraph();
-			gtGraph->setData( xGroundTruth, yGroundTruth );
-			gtGraph->setLineStyle( QCPGraph::lsImpulse );
-			gtGraph->setPen( QPen( QColor( Qt::red ), 1.2, Qt::DashLine ) );
-			gtGraph->setBrush( QBrush( QColor( 60, 60, 255, 100 ), Qt::Dense6Pattern ) );
+			QCPGraph* gtGraph = customPlot->addGraph();
+			gtGraph->setData(xGroundTruth, yGroundTruth);
+			gtGraph->setLineStyle(QCPGraph::lsImpulse);
+			gtGraph->setPen(QPen(QColor(Qt::red), 1.2, Qt::DashLine));
+			gtGraph->setBrush(QBrush(QColor(60, 60, 255, 100), Qt::Dense6Pattern));
 
 			// prepare manual y axis labels:
-			customPlot->yAxis->setTicks( false );
-			customPlot->yAxis->setTickLabels( false );
-			customPlot->yAxis->setVisible( false );
+			customPlot->yAxis->setTicks(false);
+			customPlot->yAxis->setTickLabels(false);
+			customPlot->yAxis->setVisible(false);
 
 			// prepare axes:
-			customPlot->xAxis->setLabel( "Porosity" );
+			customPlot->xAxis->setLabel("Porosity");
 			customPlot->rescaleAxes();
-			customPlot->yAxis->scaleRange( 1.7, customPlot->yAxis->range().center() );
+			customPlot->yAxis->scaleRange(1.7, customPlot->yAxis->range().center());
 			QString str = cbPorosityRange->currentText();
-			if ( !str.contains( "%" ) )	// ROI Porosity Range
+			if (!str.contains("%"))	// ROI Porosity Range
 			{
-				double offset = ( *m_boxPlots )[i][j].range[1] - ( *m_boxPlots )[i][j].range[0]; offset *= 0.1;
-				double xRange[2] = { ( *m_boxPlots )[i][j].range[0], ( *m_boxPlots )[i][j].range[1] };
-				if ( xGroundTruth[0] < xRange[0] )
+				double offset = (*m_boxPlots)[i][j].range[1] - (*m_boxPlots)[i][j].range[0]; offset *= 0.1;
+				double xRange[2] = { (*m_boxPlots)[i][j].range[0], (*m_boxPlots)[i][j].range[1] };
+				if (xGroundTruth[0] < xRange[0])
+				{
 					xRange[0] = xGroundTruth[0];
-				if ( xGroundTruth[0] > xRange[1] )
+				}
+				if (xGroundTruth[0] > xRange[1])
+				{
 					xRange[1] = xGroundTruth[0];
-				customPlot->xAxis->setRange( xRange[0] - offset, xRange[1] + offset );
+				}
+				customPlot->xAxis->setRange(xRange[0] - offset, xRange[1] + offset);
 			}
 			else
 			{
-				customPlot->xAxis->setRange( 0.0, str.section( "%", 0, 0 ).toDouble() );
+				customPlot->xAxis->setRange(0.0, str.section("%", 0, 0).toDouble());
 			}
-			addWidgetToTable( j + 1, i + 1, customPlot );
+			addWidgetToTable(j + 1, i + 1, customPlot);
 		}
+	}
 }
 
 void iAPDMView::UpdateTableHistogram()
@@ -266,10 +280,14 @@ void iAPDMView::UpdateTableHistogram()
 			{
 				double offset = ( *m_histogramPlots )[i][j].range[1] - ( *m_histogramPlots )[i][j].range[0]; offset *= 0.1;
 				double xRange[2] = { ( *m_histogramPlots )[i][j].range[0], ( *m_histogramPlots )[i][j].range[1] };
-				if ( xGroundTruth[0] < xRange[0] )
+				if (xGroundTruth[0] < xRange[0])
+				{
 					xRange[0] = xGroundTruth[0];
-				if ( xGroundTruth[0] > xRange[1] )
+				}
+				if (xGroundTruth[0] > xRange[1])
+				{
 					xRange[1] = xGroundTruth[0];
+				}
 				customPlot->xAxis->setRange( xRange[0] - offset, xRange[1] + offset );
 			}
 			else
@@ -300,8 +318,10 @@ void iAPDMView::UpdateTable()
 		twi->setToolTip( rfn );
 		tableWidget->setItem( 0, i + 1, twi );
 	}
-	for( int i = 0; i < m_datasets->size(); ++i )
-		tableWidget->setItem( i + 1, 0, new QTableWidgetItem( (*m_datasets)[i] ) );
+	for (int i = 0; i < m_datasets->size(); ++i)
+	{
+		tableWidget->setItem(i + 1, 0, new QTableWidgetItem((*m_datasets)[i]));
+	}
 	ShowDeviationControls( false );
 	ShowPorosityRangeControls( false );
 	UpdateRepresentation();
@@ -312,19 +332,23 @@ void iAPDMView::UpdateTable()
 
 void iAPDMView::FitTable()
 {
-	if( cbRepresentation->currentIndex() == 0 )
-		switch( cbTableFit->currentIndex() )
+	if (cbRepresentation->currentIndex() == 0)
+	{
+		switch (cbTableFit->currentIndex())
 		{
-			case 0: //Fit to Text
-				tableWidget->resizeColumnsToContents();
-				break;
-			case 1: //Minimize
-				for( int nCol = 1; nCol < tableWidget->colorCount(); nCol++ )
-					tableWidget->setColumnWidth( nCol, 24 );
-				break;
+		case 0: //Fit to Text
+			tableWidget->resizeColumnsToContents();
+			break;
+		case 1: //Minimize
+			for (int nCol = 1; nCol < tableWidget->colorCount(); nCol++)
+				tableWidget->setColumnWidth(nCol, 24);
+			break;
 		}
+	}
 	else
+	{
 		tableWidget->resizeColumnsToContents();
+	}
 }
 
 void iAPDMView::UpdateRepresentation()
@@ -347,10 +371,14 @@ void iAPDMView::HighlightSelected( QObject * obj )
 {
 	QModelIndex index = m_indices[obj];
 	bool isSelected = m_selectedIndices.contains( index );
-	if( isSelected )
-		m_selectedIndices.removeOne( index );
+	if (isSelected)
+	{
+		m_selectedIndices.removeOne(index);
+	}
 	else
-		m_selectedIndices.push_back( index );
+	{
+		m_selectedIndices.push_back(index);
+	}
 	SetWidgetSelectionStyle( (QWidget*)obj->parent(), !isSelected );
 }
 

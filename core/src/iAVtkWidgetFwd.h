@@ -24,12 +24,12 @@
 
 #include <QtGlobal>
 
-#if (VTK_MAJOR_VERSION > 8 || (VTK_MAJOR_VERSION == 8 && VTK_MINOR_VERSION >= 2) && (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)) )
+#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0) && (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)) )
 	class QVTKOpenGLNativeWidget;
 	typedef QVTKOpenGLNativeWidget iAVtkWidget;
 	typedef QVTKOpenGLNativeWidget iAVtkOldWidget;
 #else
-	#if (VTK_MAJOR_VERSION == 8 && VTK_MINOR_VERSION < 2 && (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)) )
+	#if (VTK_VERSION_NUMBER < VTK_VERSION_CHECK(8, 2, 0) && (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)) )
 		class QVTKOpenGLWidget;
 		typedef QVTKOpenGLWidget iAVtkWidget;
 		typedef QVTKOpenGLWidget iAVtkOldWidget;

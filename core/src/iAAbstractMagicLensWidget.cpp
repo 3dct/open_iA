@@ -33,6 +33,7 @@
 #include <vtkProperty2D.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
+#include <vtkVersion.h>
 
 const double iAAbstractMagicLensWidget::OFFSET_VAL = 20.;
 
