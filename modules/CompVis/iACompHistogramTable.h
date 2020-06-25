@@ -24,6 +24,7 @@ class vtkActor;
 class vtkUnsignedCharArray;
 class vtkPlaneSource;
 class vtkRenderer;
+class vtkPoints;
 
 class iACompVisMain;
 
@@ -121,9 +122,12 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	//draw the line from each selected cell of the original row plane to the zoomed row plane and border the bins in the zoomed row accrodingly
 	void drawLineBetweenRowAndZoomedRow(vtkSmartPointer<vtkPlaneSource> zoomedRowPlane, vtkSmartPointer<vtkPlaneSource> originalRowPlane, std::vector<vtkIdType>* cellIdsOriginalPlane);
 	//draw a line from start- to endPoint with a certain color and width
-	void drawLine(double* startPoint, double* endPoint, double lineColor[3], int lineWidth);
+	vtkSmartPointer<vtkActor> drawLine(double* startPoint, double* endPoint, double lineColor[3], double lineWidth);
 	//draw a polyline according to specified points with a certain color and width
-	void drawPolyLine(vtkSmartPointer<vtkPoints> points, double lineColor[3], int lineWidth);
+	vtkSmartPointer<vtkActor> drawPolyLine(vtkSmartPointer<vtkPoints> points, double lineColor[3], double lineWidth);
+	vtkSmartPointer<vtkActor> drawPoints(vtkSmartPointer<vtkPoints> points, double color[3], double radius, double lineColor[3], double lineWidth);
+
+	vtkSmartPointer<vtkPoints> calculatePointPosition(std::vector<double> dataPoints, double newMinX, double newMaxX, double y);
 
 	//calculate the height and width each row can have to fit into the screen
 	void calculateRowWidthAndHeight(double width, double heigth, double numberOfDatasets);
@@ -176,17 +180,24 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	//stores the actors that contain the zoomed rows
 	std::vector<vtkSmartPointer<vtkActor>>* m_zoomedPlaneActors;
 
+	std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkActor>>* originalPlaneZoomedPlanePair;
+	std::map<vtkSmartPointer<vtkActor>, int>* originalPlaneIndexPair;
+
 	//stores the actors added to display the border of the selected cells
 	//have to be removed before any calculation for zooming can take place!
 	std::vector<vtkSmartPointer<vtkActor>>* m_highlighingActors;
 
 	//stores for each picked actor/row the id of the cells that were picked
+	//for each id stored in m_indexOfPickedRow, here the ids of the picked cells are stored
 	std::map<int, std::vector<vtkIdType>*>* m_pickedCellsforPickedRow;
 
 	//stores the order of the row which was picked
-	std::vector<int>* m_indexOfPickedData;
+	std::vector<int>* m_indexOfPickedRow;
 
 	//store bin data of selected rows that will be zoomed
+	//each entry in the list represents a row, where any cell(or several) were selected.
+	//the first entry is the most upper row that was selected, the ordering is then descending.
+	//each entry has as many bins as cells were selected for this row
 	QList<bin::BinType*>* m_zoomedRowData;
 
 };

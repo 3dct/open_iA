@@ -47,6 +47,9 @@
 #include <vtkAlgorithmOutput.h>
 #include <vtkLineSource.h>
 #include <vtkPolyLine.h>
+#include <vtkRegularPolygonSource.h>
+#include <vtkSphereSource.h>
+#include <vtkGlyph2D.h>
 
 #include <vtkBillboardTextActor3D.h>
 #include <vtkCaptionActor2D.h>
@@ -65,9 +68,11 @@
 #include <vtkTriangleFilter.h>
 #include <vtkUnstructuredGrid.h>
 
+#include <vtkShrinkPolyData.h>
 #include <algorithm>
 #include <cstring>
 #include <functional>
+#include <vector>
 
 
 iACompHistogramTable::iACompHistogramTable(
@@ -85,7 +90,8 @@ iACompHistogramTable::iACompHistogramTable(
 	m_datasetNameActors(new std::vector<vtkSmartPointer<vtkActor>>()),
 	m_highlighingActors(new std::vector<vtkSmartPointer<vtkActor>>()),
 	m_originalPlaneActors(new std::vector<vtkSmartPointer<vtkActor>>()),
-	m_zoomedPlaneActors(new std::vector<vtkSmartPointer<vtkActor>>())
+	m_zoomedPlaneActors(new std::vector<vtkSmartPointer<vtkActor>>()),
+	originalPlaneZoomedPlanePair(new std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkActor>>())
 {
 	//initialize GUI
 	setupUi(this);
@@ -166,13 +172,12 @@ void iACompHistogramTable::drawHistogramTable(int bins)
 void iACompHistogramTable::drawLinearZoom(Pick::PickedMap* map, int notSelectedBinNumber, int selectedBinNumber, QList<bin::BinType*>* zoomedRowData)
 {
 	QList<bin::BinType*>* thisZoomedRowData = bin::DeepCopy(zoomedRowData);
-	//store bin data for zoom of selected rows
-	m_zoomedRowData = bin::DeepCopy(zoomedRowData);
 
 	//draw zoomed histogram table new
 	m_renderer->RemoveAllViewProps();
 	m_originalPlaneActors->clear();
 	m_zoomedPlaneActors->clear();
+	originalPlaneZoomedPlanePair->clear();
 
 	int currCol = 0;
 	double offset = 0;
@@ -190,8 +195,8 @@ void iACompHistogramTable::drawLinearZoom(Pick::PickedMap* map, int notSelectedB
 	for (int indData = (m_amountDatasets - 1); indData >= 0; indData--)
 	{
 		//check for additional row
-		std::vector<int>::iterator it = std::find(m_indexOfPickedData->begin(), m_indexOfPickedData->end(), indData);
-		if (it != m_indexOfPickedData->end())
+		std::vector<int>::iterator it = std::find(m_indexOfPickedRow->begin(), m_indexOfPickedRow->end(), indData);
+		if (it != m_indexOfPickedRow->end())
 		{
 			if (currCol != 0 && !offsetAlreadyAdded) 
 			{//do not add a offset when the zoomed row is the undermost
@@ -227,12 +232,12 @@ void iACompHistogramTable::drawLinearZoom(Pick::PickedMap* map, int notSelectedB
 
 				//draw line border
 				drawLineBetweenRowAndZoomedRow(zoomedPlane, originalPlane, cellIds);
-
 			}
 
 			offset = offset + distance;
 			addedRow = false;
 			offsetAlreadyAdded = true;
+			originalPlaneZoomedPlanePair->insert({ m_originalPlaneActors->at(m_originalPlaneActors->size() - 1), m_zoomedPlaneActors->at(m_zoomedPlaneActors->size() - 1) });
 		}
 		else
 		{
@@ -361,7 +366,6 @@ void iACompHistogramTable::redrawZoomedRow(int selectedBinNumber)
 		colorData->SetNumberOfComponents(3);
 
 		colorRowForZoom(colorData, m_zoomedRowData->at((m_zoomedRowData->size() - 1) - curSelectedActorId), selectedBinNumber);
-
 		plane->GetOutput()->GetCellData()->SetScalars(colorData);
 
 		// Setup actor and mapper
@@ -379,63 +383,108 @@ void iACompHistogramTable::redrawZoomedRow(int selectedBinNumber)
 
 void iACompHistogramTable::drawPointRepresentation()
 {
-	int curSelectedActorId = 0;
+	std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkActor>>::iterator it;
+	int diff = (m_amountDatasets - 1);
+	int zoomedRowDataInd = m_zoomedRowData->size()-1;
 
-	for (int currDataInd = 0; currDataInd < m_zoomedPlaneActors->size(); currDataInd++)
+	for (int indData = (m_amountDatasets - 1); indData >= 0; indData--)
 	{
-		vtkSmartPointer<vtkActor> currAct = m_zoomedPlaneActors->at(currDataInd);
+		int rowInd = diff - indData;
+		
+		it = originalPlaneZoomedPlanePair->find(m_originalPlaneActors->at(rowInd));
+		if(it != originalPlaneZoomedPlanePair->end())
+		{
+			vtkSmartPointer<vtkActor> originalRowAct = it->first;
+			vtkSmartPointer<vtkActor> zoomedRowAct = it->second;
 
-			vtkSmartPointer<vtkAlgorithm> algorithm = currAct->GetMapper()->GetInputConnection(0, 0)->GetProducer();
-			vtkSmartPointer<vtkPlaneSource> oldPlane = vtkPlaneSource::SafeDownCast(algorithm);
-			double xmin = oldPlane->GetOrigin()[0];
-			double xmax = oldPlane->GetPoint1()[0];
-			double ymin = oldPlane->GetOrigin()[1];
-			double ymax = oldPlane->GetPoint2()[1];
+			vtkSmartPointer<vtkAlgorithm> algorithm1 = originalRowAct->GetMapper()->GetInputConnection(0, 0)->GetProducer();
+			vtkSmartPointer<vtkPlaneSource> originalPlane = vtkPlaneSource::SafeDownCast(algorithm1);
 
-			//set plane
-			vtkSmartPointer<vtkPlaneSource> pointPlane = vtkSmartPointer<vtkPlaneSource>::New();
-			pointPlane->SetXResolution(1);
-			pointPlane->SetYResolution(1);
+			vtkSmartPointer<vtkAlgorithm> algorithm = zoomedRowAct->GetMapper()->GetInputConnection(0, 0)->GetProducer();
+			vtkSmartPointer<vtkPlaneSource> zoomedPlane = vtkPlaneSource::SafeDownCast(algorithm);
 
-			pointPlane->SetOrigin(oldPlane->GetOrigin());
-			pointPlane->SetPoint1(oldPlane->GetPoint1());
-			pointPlane->SetPoint2(oldPlane->GetPoint2());
-			pointPlane->Update();
+			double xmin = zoomedPlane->GetOrigin()[0];
+			double xmax = zoomedPlane->GetPoint1()[0];
+			double ymin = zoomedPlane->GetOrigin()[1];
+			double ymax = zoomedPlane->GetPoint2()[1];
+			double width = xmax - xmin;
+			
+			auto iter = m_pickedCellsforPickedRow->find(indData);
+			if (iter == m_pickedCellsforPickedRow->end()) { continue; }
+		
+			std::vector<vtkIdType>* pickedCells = iter->second;
+			double binLength = width / ((double)pickedCells->size());
+			
+			for (int cellId = 0; cellId < pickedCells->size(); cellId++)
+			{
+				//set plane
+				vtkSmartPointer<vtkPlaneSource> pointPlane = vtkSmartPointer<vtkPlaneSource>::New();
+				pointPlane->SetXResolution(1);
+				pointPlane->SetYResolution(1);
 
-			vtkSmartPointer<vtkPolyDataMapper> planeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-			planeMapper->SetInputConnection(pointPlane->GetOutputPort());
-			planeMapper->SetScalarModeToUseCellData();
-			planeMapper->Update();
+				double newXMin = xmin + (binLength* cellId);
+				double newXMax = newXMin + binLength;
 
-			vtkSmartPointer<vtkActor> planeActor = vtkSmartPointer<vtkActor>::New();
-			planeActor->SetMapper(planeMapper);
-			m_pointRepresentationActors->push_back(planeActor);
+				pointPlane->SetOrigin(newXMin, ymin, 0.0);
+				pointPlane->SetPoint1(newXMax, ymin, 0.0);
+				pointPlane->SetPoint2(newXMin, ymax, 0.0);
+				pointPlane->Update();
 
-			//set black line
-			double startP[3] = {xmin, ymin + ((ymax - ymin) / 2.0), 0.0};
-			double endP[3] = {xmax, ymin + ((ymax - ymin) / 2.0), 0.0};
-			vtkSmartPointer<vtkLineSource> lineSource = vtkSmartPointer<vtkLineSource>::New();
-			lineSource->SetPoint1(startP);
-			lineSource->SetPoint2(endP);
-			lineSource->Update();
+				vtkSmartPointer<vtkPolyDataMapper> planeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+				planeMapper->SetInputConnection(pointPlane->GetOutputPort());
+				planeMapper->SetScalarModeToUseCellData();
+				planeMapper->Update();
 
-			vtkSmartPointer<vtkPolyDataMapper> lineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-			lineMapper->SetInputConnection(lineSource->GetOutputPort());
-			vtkSmartPointer<vtkActor> lineActor = vtkSmartPointer<vtkActor>::New();
-			lineActor->SetMapper(lineMapper);
-			lineActor->GetProperty()->SetLineWidth(4);
-			lineActor->GetProperty()->SetColor(0, 0, 1);
+				vtkSmartPointer<vtkActor> planeActor = vtkSmartPointer<vtkActor>::New();
+				planeActor->SetMapper(planeMapper);
+				planeActor->GetProperty()->SetEdgeVisibility(true);
+				double col[3];
+				col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[0];
+				col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[1];
+				col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[2];
+				planeActor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
+				m_pointRepresentationActors->push_back(planeActor);
+				m_renderer->AddActor(planeActor);
 
-			m_pointRepresentationActors->push_back(lineActor);
+				//set middle line
+				double startP[3] = { newXMin, ymin + ((ymax - ymin) / 2.0), 0.0 };
+				double endP[3] = { newXMax, ymin + ((ymax - ymin) / 2.0), 0.0 };
+				double col1[3];
+				col1[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
+				col1[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
+				col1[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+				vtkSmartPointer<vtkActor> lineActor = drawLine(startP, endP , col1, 2);
+				lineActor->GetProperty()->SetOpacity(0.1);
+				lineActor->Modified();
+				m_pointRepresentationActors->push_back(lineActor);
+				
+				//draw indiviudal data points
+				double radius = (m_colSize*0.5)*0.25;
+				double lineWidth = 1;
+				double circleColor[3];
+				circleColor[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
+				circleColor[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
+				circleColor[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+				double lineColor[3];
+				lineColor[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[0];
+				lineColor[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[1];
+				lineColor[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[2];
 
-			//#### TODO DRAW POINTS with VertexGlyphFilter ####
-			//get data -> histogram data and according to points get coordinates for drawing
+				std::vector<double> data = m_zoomedRowData->at(zoomedRowDataInd)->at(cellId);
+				double newY = ymin + ((ymax - ymin) / 2.0);
+				//(newXMin + radius) --> so that min & max points do not lie on border
+				vtkSmartPointer<vtkPoints> points = calculatePointPosition(data, (newXMin + radius), (newXMax - radius), newY);
+				if (points == nullptr)
+				{
+					continue;
+				}
 
-	}
-
-	for (unsigned int i = 0; i < m_pointRepresentationActors->size(); i++)
-	{
-		m_renderer->AddActor(m_pointRepresentationActors->at(i));
+				vtkSmartPointer<vtkActor> pointActor = drawPoints(points, circleColor, radius, lineColor, lineWidth);
+				m_pointRepresentationActors->push_back(pointActor);
+				
+			}
+			zoomedRowDataInd--;
+		}
 	}
 
 	renderWidget();
@@ -449,6 +498,27 @@ void iACompHistogramTable::removePointRepresentation()
 	}
 
 	m_pointRepresentationActors->clear();
+}
+
+vtkSmartPointer<vtkPoints> iACompHistogramTable::calculatePointPosition(std::vector<double> dataPoints, double newMinX, double newMaxX, double y)
+{
+	if(dataPoints.size() == 0)
+	{ //when the list is empty
+		return nullptr;
+	}
+
+	vtkSmartPointer<vtkPoints> result = vtkSmartPointer<vtkPoints>::New();
+	auto minMax = std::minmax_element(dataPoints.begin(), dataPoints.end());
+	double min = *minMax.first;
+	double max = *minMax.second;
+
+	for (int i = 0; i < dataPoints.size(); i++)
+	{
+		double x = iACompVisOptions::histogramNormalization(dataPoints.at(i), newMinX, newMaxX, min, max);
+		result->InsertNextPoint(x,y,0.0);
+	}
+
+	return result;
 }
 
 void iACompHistogramTable::drawLineBetweenRowAndZoomedRow(vtkSmartPointer<vtkPlaneSource> zoomedRowPlane, vtkSmartPointer<vtkPlaneSource> originalRowPlane, std::vector<vtkIdType>* cellIdsOriginalPlane)
@@ -518,7 +588,7 @@ void iACompHistogramTable::drawLineBetweenRowAndZoomedRow(vtkSmartPointer<vtkPla
 	}
 }
 
-void iACompHistogramTable::drawLine(double* startPoint, double* endPoint, double lineColor[3], int lineWidth)
+vtkSmartPointer<vtkActor> iACompHistogramTable::drawLine(double* startPoint, double* endPoint, double lineColor[3], double lineWidth)
 {
 	vtkSmartPointer<vtkLineSource> lineSource = vtkSmartPointer<vtkLineSource>::New();
 	lineSource->SetPoint1(startPoint);
@@ -534,9 +604,11 @@ void iACompHistogramTable::drawLine(double* startPoint, double* endPoint, double
 	lineActor->GetProperty()->SetLineWidth(lineWidth);
 	lineActor->GetProperty()->RenderLinesAsTubesOn();
 	m_renderer->AddActor(lineActor);
+
+	return lineActor;
 }
 
-void iACompHistogramTable::drawPolyLine(vtkSmartPointer<vtkPoints> points, double lineColor[3], int lineWidth)
+vtkSmartPointer<vtkActor> iACompHistogramTable::drawPolyLine(vtkSmartPointer<vtkPoints> points, double lineColor[3], double lineWidth)
 {
 	vtkSmartPointer<vtkPolyLine> polyLine = vtkSmartPointer<vtkPolyLine>::New();
 	polyLine->GetPointIds()->SetNumberOfIds(points->GetNumberOfPoints());
@@ -561,6 +633,42 @@ void iACompHistogramTable::drawPolyLine(vtkSmartPointer<vtkPoints> points, doubl
 	polyLineActor->GetProperty()->SetLineWidth(lineWidth);
 
 	m_renderer->AddActor(polyLineActor);
+
+	return polyLineActor;
+}
+
+vtkSmartPointer<vtkActor> iACompHistogramTable::drawPoints(vtkSmartPointer<vtkPoints> points, double color[3], double radius, double lineColor[3], double lineWidth)
+{
+	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+	polydata->SetPoints(points);
+
+	vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
+	sphereSource->SetRadius(radius);
+	/*vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
+	polygonSource->SetNumberOfSides(50);
+	polygonSource->SetRadius(radius);
+	polygonSource->Update();*/
+
+	vtkSmartPointer<vtkGlyph2D> glyph2D = vtkSmartPointer<vtkGlyph2D>::New();
+	//glyph2D->SetSourceConnection(polygonSource->GetOutputPort());
+	glyph2D->SetSourceConnection(sphereSource->GetOutputPort());
+	glyph2D->SetInputData(polydata);
+	glyph2D->Update();
+
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputConnection(glyph2D->GetOutputPort());
+	mapper->Update();
+
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+	actor->GetProperty()->SetColor(color[0], color[1], color[2]);
+	//actor->GetProperty()->SetEdgeVisibility(true);
+	actor->GetProperty()->SetLineWidth(lineWidth);
+	actor->GetProperty()->SetEdgeColor(lineColor[0], lineColor[1], lineColor[2]);
+
+	m_renderer->AddActor(actor);
+
+	return actor;
 }
 
 void iACompHistogramTable::renderWidget()
@@ -883,7 +991,7 @@ QList<bin::BinType*>* iACompHistogramTable::getSelectedData(Pick::PickedMap* map
 	QList<bin::BinType*>* binData = m_histData->getBinData();
 
 	QList<bin::BinType*>* thisZoomedRowData = new QList<bin::BinType*>();
-	m_indexOfPickedData = new std::vector<int>();
+	m_indexOfPickedRow = new std::vector<int>();
 	m_pickedCellsforPickedRow = new std::map<int, std::vector<vtkIdType>*>();
 
 	int dataIndex = m_amountDatasets - 1;
@@ -909,7 +1017,7 @@ QList<bin::BinType*>* iACompHistogramTable::getSelectedData(Pick::PickedMap* map
 
 			thisZoomedRowData->append(newRow);
 
-			m_indexOfPickedData->push_back(abs((m_amountDatasets - 1) - dataIndex));
+			m_indexOfPickedRow->push_back(abs((m_amountDatasets - 1) - dataIndex));
 			m_pickedCellsforPickedRow->insert({ abs((m_amountDatasets - 1) - dataIndex), pickedCells});
 		}
 
@@ -917,11 +1025,14 @@ QList<bin::BinType*>* iACompHistogramTable::getSelectedData(Pick::PickedMap* map
 	}
 
 	//DEBUG
-	/*DEBUG_LOG("DEBUGGING");
+	DEBUG_LOG("DEBUGGING");
 	for (int i = 0; i < thisZoomedRowData->size(); i++)
 	{
 		bin::debugBinType(thisZoomedRowData->at(i));
-	}*/
+	}
+
+	//store zoomed data as bin structure
+	m_zoomedRowData = bin::DeepCopy(thisZoomedRowData);
 
 	return thisZoomedRowData;
 }

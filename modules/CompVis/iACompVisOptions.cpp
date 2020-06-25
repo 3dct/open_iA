@@ -14,7 +14,7 @@ const int iACompVisOptions::FONTSIZE_TITLE = 20;
 const unsigned char iACompVisOptions::FONTCOLOR_TEXT[3] = { 255, 255, 255 };
 const int iACompVisOptions::FONTSIZE_TEXT = 13;
 
-const int iACompVisOptions::LINE_WIDTH = 2;
+const int iACompVisOptions::LINE_WIDTH = 3;
 
 unsigned char* iACompVisOptions::getColorArray(double colors[3])
 {
