@@ -18,19 +18,28 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAMetaFiltersModuleInterface.h"
+#pragma once
 
-#include "iABatchFilter.h"
-#include "iAPatchFilter.h"
-#include "iASampleFilter.h"
-#include "iAStackReaderFilter.h"
+#include "iAFilter.h"
+#include "iAFilterRunnerGUI.h"
 
-#include <iAFilterRegistry.h>
+class iASampleParameters;
 
-void iAMetaFiltersModuleInterface::Initialize()
+class iASampleFilter : public iAFilter
 {
-	REGISTER_FILTER(iABatchFilter);
-	REGISTER_FILTER(iAPatchFilter);
-	REGISTER_FILTER_WITH_RUNNER(iASampleFilter, iASampleFilterRunner);
-	REGISTER_FILTER(iAStackReaderFilter);
-}
+public:
+	static QSharedPointer<iASampleFilter> create();
+	void setParameters(QSharedPointer<iASampleParameters> p);
+private:
+	void performWork(QMap<QString, QVariant> const& parameters) override;
+	iASampleFilter();
+	QSharedPointer<iASampleParameters> m_p;
+};
+
+class iASampleFilterRunner : public iAFilterRunnerGUI
+{
+public:
+	static QSharedPointer<iAFilterRunnerGUI> create();
+	bool askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant>& paramValues,
+		MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput) override;
+};

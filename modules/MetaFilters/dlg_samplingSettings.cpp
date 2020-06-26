@@ -40,21 +40,12 @@
 #include <cassert>
 
 dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
-	QSharedPointer<iAModalityList const> modalities,
-	QMap<QString, QString> const & values):
-	dlg_samplingSettingsUI(parentWidget)
+	int inputImageCount,
+	iAParameterMap const & values):
+	dlg_samplingSettingsUI(parentWidget),
+	m_inputImageCount(inputImageCount)
 {
-	assert(modalities->size() > 0);
-	QSharedPointer<iAModality const> mod0 = modalities->get(0);
-	m_modalityCount = modalities->size();
-	m_imagePixelCount = mod0->height() * mod0->width() * mod0->depth();
-
-	// assemble modality parameter input on the fly:
-
-	QGridLayout* gridLay = dynamic_cast<QGridLayout*>(layout());
-	m_startLine = gridLay->rowCount()-2;
-
-	gridLay->addWidget(wdButtonBar, m_startLine+1, 0, 1, 4);
+	m_startLine = parameterLayout->rowCount();
 
 	cbSamplingMethod->clear();
 	auto & paramGens = GetParameterGenerators();
@@ -77,55 +68,55 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	connect (pbCancel, &QPushButton::clicked, this, &dlg_samplingSettings::reject);
 };
 
-
-// methods for storing and loading all settings values:
-// {
-
-bool setTextValue(QMap<QString, QString> values, QString name, QLineEdit* edit)
+namespace
 {
-	if (values.contains(name))
+	// TODO: use generalized loadSettings (currently in iAFIAKERController) instead?
+	bool setTextValue(iAParameterMap const& values, QString const& name, QLineEdit* edit)
 	{
-		edit->setText(values[name]);
-		return true;
-	}
-	return false;
-}
-
-void setSpinBoxValue(QMap<QString, QString> values, QString name, QSpinBox* edit)
-{
-	if (values.contains(name))
-	{
-		bool ok;
-		int value = values[name].toInt(&ok);
-		if (!ok)
+		if (values.contains(name))
 		{
-			DEBUG_LOG(QString("Invalid value '%1' for input '%2'").arg(values[name]).arg(name));
-			return;
+			edit->setText(values[name].toString());
+			return true;
 		}
-		edit->setValue(value);
+		return false;
 	}
-}
 
-void setCheckValue(QMap<QString, QString> values, QString name, QCheckBox* checkBox)
-{
-	if (values.contains(name))
+	void setSpinBoxValue(iAParameterMap const& values, QString name, QSpinBox* edit)
 	{
-		checkBox->setChecked(values[name] == "true");
-	}
-}
-
-void setComboBoxValue(QMap<QString, QString> values, QString name, QComboBox* comboBox)
-{
-	if (values.contains(name))
-	{
-		bool ok;
-		int idx = values[name].toInt(&ok);
-		if (!ok)
+		if (values.contains(name))
 		{
-			DEBUG_LOG(QString("Invalid value '%1' for input '%2'").arg(values[name]).arg(name));
-			return;
+			bool ok;
+			int value = values[name].toInt(&ok);
+			if (!ok)
+			{
+				DEBUG_LOG(QString("Invalid value '%1' for input '%2'").arg(values[name].toString()).arg(name));
+				return;
+			}
+			edit->setValue(value);
 		}
-		comboBox->setCurrentIndex(idx);
+	}
+
+	void setCheckValue(iAParameterMap const& values, QString const& name, QCheckBox* checkBox)
+	{
+		if (values.contains(name))
+		{
+			checkBox->setChecked(values[name] == "true");
+		}
+	}
+
+	void setComboBoxValue(iAParameterMap values, QString const& name, QComboBox* comboBox)
+	{
+		if (values.contains(name))
+		{
+			bool ok;
+			int idx = values[name].toInt(&ok);
+			if (!ok)
+			{
+				DEBUG_LOG(QString("Invalid value '%1' for input '%2'").arg(values[name].toString()).arg(name));
+				return;
+			}
+			comboBox->setCurrentIndex(idx);
+		}
 	}
 }
 
@@ -135,7 +126,7 @@ void iAParameterInputs::deleteGUI()
 	deleteGUIComponents();
 }
 
-void iANumberParameterInputs::retrieveInputValues(QMap<QString, QString> & values)
+void iANumberParameterInputs::retrieveInputValues(iAParameterMap & values)
 {
 	QString name(label->text());
 	values.insert(QString("%1 From").arg(name), from->text());
@@ -146,7 +137,7 @@ void iANumberParameterInputs::retrieveInputValues(QMap<QString, QString> & value
 	}
 }
 
-void iANumberParameterInputs::changeInputValues(QMap<QString, QString> const & values)
+void iANumberParameterInputs::changeInputValues(iAParameterMap const & values)
 {
 	QString name(label->text());
 	setTextValue(values, QString("%1 From").arg(name), from);
@@ -218,18 +209,20 @@ QString iACategoryParameterInputs::featureString()
 	return result;
 }
 
-void iACategoryParameterInputs::retrieveInputValues(QMap<QString, QString> & values)
+void iACategoryParameterInputs::retrieveInputValues(iAParameterMap & values)
 {
 	QString name(label->text());
 	values.insert(name, featureString());
 }
 
-void iACategoryParameterInputs::changeInputValues(QMap<QString, QString> const & values)
+void iACategoryParameterInputs::changeInputValues(iAParameterMap const & values)
 {
 	QString name(label->text());
 	if (!values.contains(name))
+	{
 		return;
-	QStringList enabledOptions = values[name].split(",");
+	}
+	QStringList enabledOptions = values[name].toString().split(",");
 	int curOption = 0;
 	for (int i = 0; i < m_features.size() && curOption < enabledOptions.size(); ++i)
 	{	// short names? descriptor->nameMapper()->GetShortName(i + descriptor->Min())
@@ -277,7 +270,7 @@ QSharedPointer<iAAttributeDescriptor> iACategoryParameterInputs::currentDescript
 
 }
 
-void dlg_samplingSettings::setInputsFromMap(QMap<QString, QString> const & values)
+void dlg_samplingSettings::setInputsFromMap(iAParameterMap const & values)
 {
 	setTextValue(values, "Executable", leExecutable);
 	setTextValue(values, "AdditionalArguments", leAdditionalArguments);
@@ -301,7 +294,7 @@ void dlg_samplingSettings::setInputsFromMap(QMap<QString, QString> const & value
 }
 
 
-void dlg_samplingSettings::GetValues(QMap<QString, QString> & values) const
+void dlg_samplingSettings::getValues(iAParameterMap & values) const
 {
 	values.clear();
 	values.insert("Executable", leExecutable->text());
@@ -337,10 +330,11 @@ void dlg_samplingSettings::saveSettings()
 		QString(),
 		"Sampling Settings File (*.ssf);;");
 	if (fileName.isEmpty())
+	{
 		return;
-	QMap<QString, QString> settings;
-	GetValues(settings);
-
+	}
+	iAParameterMap settings;
+	getValues(settings);
 
 	QFile file(fileName);
 	if (!file.open(QIODevice::WriteOnly))
@@ -352,9 +346,9 @@ void dlg_samplingSettings::saveSettings()
 	for (QString key : settings.keys())
 	{
 #if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-		stream << key << KeyValueSeparator << settings[key] << Qt::endl;
+		stream << key << KeyValueSeparator << settings[key].toString() << Qt::endl;
 #else
-		stream << key << KeyValueSeparator << settings[key] << endl;
+		stream << key << KeyValueSeparator << settings[key].toString() << endl;
 #endif
 	}
 }
@@ -368,7 +362,7 @@ void dlg_samplingSettings::loadSettings()
 		"Sampling Settings File (*.ssf);;");
 	if (fileName.isEmpty())
 		return;
-	QMap<QString, QString> settings;
+	iAParameterMap settings;
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly))
 	{
@@ -394,7 +388,7 @@ void dlg_samplingSettings::loadSettings()
 
 // }
 
-QSharedPointer<iAParameterGenerator> dlg_samplingSettings::GetGenerator()
+QSharedPointer<iAParameterGenerator> dlg_samplingSettings::generator()
 {
 	return GetParameterGenerators()[cbSamplingMethod->currentIndex()];
 }
@@ -503,13 +497,13 @@ void dlg_samplingSettings::loadDescriptor(QString const & fileName)
 	}
 	m_paramInputs.clear();
 	int curGridLine = m_startLine+1;
-	QGridLayout* gridLay = dynamic_cast<QGridLayout*>(layout());
+	QGridLayout* gridLay = parameterLayout;
 	for (int i = 0; i < m_descriptor->size(); ++i)
 	{
 		QString pName(m_descriptor->at(i)->name());
 		if (pName.startsWith("Mod "))
 		{
-			for (int m = 0; m < m_modalityCount; ++m)
+			for (int m = 0; m < m_inputImageCount; ++m)
 			{
 				QSharedPointer<iAParameterInputs> pInput = CreateParameterLine(QString("Mod %1 ").arg(m) +
 					pName.right(pName.length() - 4),
@@ -536,7 +530,7 @@ void dlg_samplingSettings::loadDescriptor(QString const & fileName)
 }
 
 
-QSharedPointer<iAAttributes> dlg_samplingSettings::GetAttributes()
+QSharedPointer<iAAttributes> dlg_samplingSettings::parameterRanges()
 {
 	QSharedPointer<iAAttributes> result(new iAAttributes);
 	for (int l = 0; l < m_paramInputs.size(); ++l)
@@ -560,29 +554,29 @@ void dlg_samplingSettings::chooseOutputFolder()
 }
 
 
-QString dlg_samplingSettings::GetOutputFolder() const
+QString dlg_samplingSettings::outputFolder() const
 {
 	QString outDir = leOutputFolder->text();
 	return outDir.replace("\\", "/");
 }
 
 
-QString dlg_samplingSettings::GetAdditionalArguments() const
+QString dlg_samplingSettings::additionalArguments() const
 {
 	return leAdditionalArguments->text();
 }
 
-QString dlg_samplingSettings::GetPipelineName() const
+QString dlg_samplingSettings::algorithmName() const
 {
 	return lePipelineName->text();
 }
 
-QString dlg_samplingSettings::GetExecutable() const
+QString dlg_samplingSettings::executable() const
 {
 	return leExecutable->text();
 }
 
-int dlg_samplingSettings::GetSampleCount() const
+int dlg_samplingSettings::sampleCount() const
 {
 	return sbNumberOfSamples->value();
 }
@@ -592,17 +586,17 @@ int dlg_samplingSettings::labelCount() const
 	return sbLabelCount->value();
 }
 
-QString dlg_samplingSettings::GetImageBaseName() const
+QString dlg_samplingSettings::outBaseName() const
 {
 	return leImageBaseName->text();
 }
 
-bool dlg_samplingSettings::GetSeparateFolder() const
+bool dlg_samplingSettings::useSeparateFolder() const
 {
 	return cbSeparateFolder->isChecked();
 }
 
-bool dlg_samplingSettings::GetCalcChar() const
+bool dlg_samplingSettings::computeDerivedOutput() const
 {
 	return cbCalcChar->isChecked();
 }

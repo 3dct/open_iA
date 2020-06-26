@@ -182,12 +182,12 @@ void dlg_GEMSeControl::startSampling()
 		QMessageBox::warning(this, "GEMSe", "Another sampler still running / dialog is still open...");
 		return;
 	}
-	m_dlgSamplingSettings = new dlg_samplingSettings(this, m_dlgModalities->modalities(), m_samplingSettings);
+	m_dlgSamplingSettings = new dlg_samplingSettings(this, m_dlgModalities->modalities()->size(), m_samplingSettings);
 	if (m_dlgSamplingSettings->exec() == QDialog::Accepted)
 	{
 		// get parameter ranges
-		QSharedPointer<iAAttributes> parameters = m_dlgSamplingSettings->GetAttributes();
-		m_outputFolder = m_dlgSamplingSettings->GetOutputFolder();
+		QSharedPointer<iAAttributes> parameterRanges = m_dlgSamplingSettings->parameterRanges();
+		m_outputFolder = m_dlgSamplingSettings->outputFolder();
 		QDir outputFolder(m_outputFolder);
 		outputFolder.mkpath(".");
 		if (m_dlgSamplingSettings->labelCount() < 2)
@@ -199,20 +199,20 @@ void dlg_GEMSeControl::startSampling()
 		m_simpleLabelInfo->setLabelCount(m_dlgSamplingSettings->labelCount());
 		m_sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
 			m_dlgModalities->modalities(),
-			parameters,
-			m_dlgSamplingSettings->GetGenerator(),
-			m_dlgSamplingSettings->GetSampleCount(),
+			parameterRanges,
+			m_dlgSamplingSettings->generator(),
+			m_dlgSamplingSettings->sampleCount(),
 			m_dlgSamplingSettings->labelCount(),
 			m_outputFolder,
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
-			m_dlgSamplingSettings->GetExecutable(),
-			m_dlgSamplingSettings->GetAdditionalArguments(),
-			m_dlgSamplingSettings->GetPipelineName(),
-			m_dlgSamplingSettings->GetImageBaseName(),
-			m_dlgSamplingSettings->GetSeparateFolder(),
-			m_dlgSamplingSettings->GetCalcChar(),
+			m_dlgSamplingSettings->executable(),
+			m_dlgSamplingSettings->additionalArguments(),
+			m_dlgSamplingSettings->algorithmName(),
+			m_dlgSamplingSettings->outBaseName(),
+			m_dlgSamplingSettings->useSeparateFolder(),
+			m_dlgSamplingSettings->computeDerivedOutput(),
 			m_dlgSamplings->GetSamplings()->size()
 		));
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
@@ -224,7 +224,7 @@ void dlg_GEMSeControl::startSampling()
 
 		// trigger parameter set creation & sampling (in foreground with progress bar for now)
 		m_sampler->start();
-		m_dlgSamplingSettings->GetValues(m_samplingSettings);
+		m_dlgSamplingSettings->getValues(m_samplingSettings);
 	}
 	delete m_dlgSamplingSettings;
 	m_dlgSamplingSettings = 0;
