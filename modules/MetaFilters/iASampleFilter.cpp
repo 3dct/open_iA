@@ -58,21 +58,21 @@ iASampleFilter::iASampleFilter() :
 	iAFilter("Sample Filter", "Image Ensembles",
 		"Sample any internal filter or external algorithm<br/>", 1, 0)
 {
-	addParameter("Algorithm Name", String, "");
+	addParameter("Algorithm name", String, "");
 	QStringList algorithmTypes;
 	algorithmTypes << "BuiltIn" << "External";
-	addParameter("Algorithm Type", Categorical, algorithmTypes);
+	addParameter("Algorithm type", Categorical, algorithmTypes);
 	addParameter("Filter", FilterName, "Image Quality");
 	addParameter("Executable", FileNameOpen, "");
-	addParameter("Parameter Descriptor", FileNameOpen, "");
-	addParameter("Additional Arguments", String, "");
+	addParameter("Parameter descriptor", FileNameOpen, "");
+	addParameter("Additional arguments", String, "");
 	QStringList samplingMethods;
 	auto& paramGens = GetParameterGenerators();
 	for (QSharedPointer<iAParameterGenerator> paramGen : paramGens)
 	{
 		samplingMethods << paramGen->name();
 	}
-	addParameter("Sampling Method", Categorical, samplingMethods);
+	addParameter("Sampling method", Categorical, samplingMethods);
 	addParameter("Number of samples", Discrete, 100);
 	addParameter("Output folder", Folder, "C:/sampling");
 	addParameter("Base name", FileNameSave, "sample.mhd");

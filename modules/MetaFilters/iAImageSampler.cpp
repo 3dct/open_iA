@@ -45,7 +45,7 @@ iAPerformanceTimer m_computationTimer;
 
 iAImageSampler::iAImageSampler(
 		QSharedPointer<iAModalityList const> modalities,
-		QSharedPointer<iAAttributes> parameters,
+		QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAParameterGenerator> sampleGenerator,
 		int sampleCount,
 		int labelCount,
@@ -61,7 +61,7 @@ iAImageSampler::iAImageSampler(
 		bool calculateChar,
 		int samplingID) :
 	m_modalities(modalities),
-	m_parameters(parameters),
+	m_parameterRanges(parameterRanges),
 	m_sampleGenerator(sampleGenerator),
 	m_sampleCount(sampleCount),
 	m_labelCount(labelCount),
@@ -103,7 +103,7 @@ void iAImageSampler::run()
 		DEBUG_LOG("Executable doesn't exist!");
 		return;
 	}
-	if (m_parameters->size() == 0)
+	if (m_parameterRanges->size() == 0)
 	{
 		DEBUG_LOG("Algorithm has no parameters, nothing to sample!");
 		return;
@@ -111,16 +111,16 @@ void iAImageSampler::run()
 	DEBUG_LOG("");
 	DEBUG_LOG("---------- SAMPLING STARTED ----------");
 	StatusMsg("Generating sampling parameter sets...");
-	m_parameterSets = m_sampleGenerator->GetParameterSets(m_parameters, m_sampleCount);
+	m_parameterSets = m_sampleGenerator->GetParameterSets(m_parameterRanges, m_sampleCount);
 	if (!m_parameterSets)
 	{
 		DEBUG_LOG("No Parameters available!");
 		return;
 	}
-	m_parameterCount = m_parameters->count(iAAttributeDescriptor::Parameter);
+	m_parameterCount = m_parameterRanges->count(iAAttributeDescriptor::Parameter);
 
 	QStringList additionalArgumentList = splitPossiblyQuotedString(m_additionalArguments);
-	if (m_parameters->find("Object Count") == -1)
+	if (m_parameterRanges->find("Object Count") == -1)
 	{
 		// add derived output to the attributes (which we want to set during sampling):
 		QSharedPointer<iAAttributeDescriptor> objectCountAttr(new iAAttributeDescriptor(
@@ -129,13 +129,13 @@ void iAImageSampler::run()
 			"Average Uncertainty", iAAttributeDescriptor::DerivedOutput, Continuous));
 		QSharedPointer<iAAttributeDescriptor> timeAttr(new iAAttributeDescriptor(
 			"Performance", iAAttributeDescriptor::DerivedOutput, Continuous));
-		m_parameters->add(objectCountAttr);
-		m_parameters->add(avgUncertaintyAttr);
-		m_parameters->add(timeAttr);
+		m_parameterRanges->add(objectCountAttr);
+		m_parameterRanges->add(avgUncertaintyAttr);
+		m_parameterRanges->add(timeAttr);
 	}
 
 	m_results = QSharedPointer<iASamplingResults>(new iASamplingResults(
-		m_parameters,
+		m_parameterRanges,
 		m_sampleGenerator->name(),
 		m_outputBaseDir,
 		m_executable,
@@ -184,7 +184,7 @@ void iAImageSampler::run()
 		for (int i = 0; i < m_parameterCount; ++i)
 		{
 			QString value;
-			switch (m_parameters->at(i)->valueType())
+			switch (m_parameterRanges->at(i)->valueType())
 			{
 			default:
 			case Continuous:
@@ -194,7 +194,7 @@ void iAImageSampler::run()
 				value = QString::number(static_cast<long>(paramSet.at(i)));
 				break;
 			case Categorical:
-				value = m_parameters->at(i)->nameMapper()->name(static_cast<long>(paramSet.at(i)));
+				value = m_parameterRanges->at(i)->nameMapper()->name(static_cast<long>(paramSet.at(i)));
 				break;
 			}
 			argumentList << value;

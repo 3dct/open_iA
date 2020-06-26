@@ -41,10 +41,21 @@
 
 dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	int inputImageCount,
-	iAParameterMap const & values):
+	iASettings const & values):
 	dlg_samplingSettingsUI(parentWidget),
 	m_inputImageCount(inputImageCount)
 {
+	m_widgetMap.insert("Executable", leExecutable);
+	m_widgetMap.insert("Additional arguments", leAdditionalArguments);
+	m_widgetMap.insert("Output folder", leOutputFolder);
+	m_widgetMap.insert("Algorithm name", lePipelineName);
+	m_widgetMap.insert("Number of samples", sbNumberOfSamples);
+	m_widgetMap.insert("Sampling method", cbSamplingMethod);
+	m_widgetMap.insert("SubfolderPerSample", cbSeparateFolder);
+	m_widgetMap.insert("Compute derived output", cbCalcChar);
+	m_widgetMap.insert("ImageBaseName", leImageBaseName);
+	m_widgetMap.insert("Number of labels", sbLabelCount);
+
 	m_startLine = parameterLayout->rowCount();
 
 	cbSamplingMethod->clear();
@@ -70,8 +81,7 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 
 namespace
 {
-	// TODO: use generalized loadSettings (currently in iAFIAKERController) instead?
-	bool setTextValue(iAParameterMap const& values, QString const& name, QLineEdit* edit)
+	bool setTextValue(iASettings const& values, QString const& name, QLineEdit* edit)
 	{
 		if (values.contains(name))
 		{
@@ -81,41 +91,11 @@ namespace
 		return false;
 	}
 
-	void setSpinBoxValue(iAParameterMap const& values, QString name, QSpinBox* edit)
-	{
-		if (values.contains(name))
-		{
-			bool ok;
-			int value = values[name].toInt(&ok);
-			if (!ok)
-			{
-				DEBUG_LOG(QString("Invalid value '%1' for input '%2'").arg(values[name].toString()).arg(name));
-				return;
-			}
-			edit->setValue(value);
-		}
-	}
-
-	void setCheckValue(iAParameterMap const& values, QString const& name, QCheckBox* checkBox)
+	void setCheckValue(iASettings const& values, QString const& name, QCheckBox* checkBox)
 	{
 		if (values.contains(name))
 		{
 			checkBox->setChecked(values[name] == "true");
-		}
-	}
-
-	void setComboBoxValue(iAParameterMap values, QString const& name, QComboBox* comboBox)
-	{
-		if (values.contains(name))
-		{
-			bool ok;
-			int idx = values[name].toInt(&ok);
-			if (!ok)
-			{
-				DEBUG_LOG(QString("Invalid value '%1' for input '%2'").arg(values[name].toString()).arg(name));
-				return;
-			}
-			comboBox->setCurrentIndex(idx);
 		}
 	}
 }
@@ -126,7 +106,7 @@ void iAParameterInputs::deleteGUI()
 	deleteGUIComponents();
 }
 
-void iANumberParameterInputs::retrieveInputValues(iAParameterMap & values)
+void iANumberParameterInputs::retrieveInputValues(iASettings & values)
 {
 	QString name(label->text());
 	values.insert(QString("%1 From").arg(name), from->text());
@@ -137,7 +117,7 @@ void iANumberParameterInputs::retrieveInputValues(iAParameterMap & values)
 	}
 }
 
-void iANumberParameterInputs::changeInputValues(iAParameterMap const & values)
+void iANumberParameterInputs::changeInputValues(iASettings const & values)
 {
 	QString name(label->text());
 	setTextValue(values, QString("%1 From").arg(name), from);
@@ -209,13 +189,13 @@ QString iACategoryParameterInputs::featureString()
 	return result;
 }
 
-void iACategoryParameterInputs::retrieveInputValues(iAParameterMap & values)
+void iACategoryParameterInputs::retrieveInputValues(iASettings & values)
 {
 	QString name(label->text());
 	values.insert(name, featureString());
 }
 
-void iACategoryParameterInputs::changeInputValues(iAParameterMap const & values)
+void iACategoryParameterInputs::changeInputValues(iASettings const & values)
 {
 	QString name(label->text());
 	if (!values.contains(name))
@@ -270,20 +250,11 @@ QSharedPointer<iAAttributeDescriptor> iACategoryParameterInputs::currentDescript
 
 }
 
-void dlg_samplingSettings::setInputsFromMap(iAParameterMap const & values)
+void dlg_samplingSettings::setInputsFromMap(iASettings const & values)
 {
-	setTextValue(values, "Executable", leExecutable);
-	setTextValue(values, "AdditionalArguments", leAdditionalArguments);
-	setTextValue(values, "OutputFolder", leOutputFolder);
-	setTextValue(values, "PipelineName", lePipelineName);
-	setSpinBoxValue(values, "LabelCount", sbLabelCount);
-	setSpinBoxValue(values, "NumberOfSamples", sbNumberOfSamples);
-	setComboBoxValue(values, "SamplingMethod", cbSamplingMethod);
-	setCheckValue(values, "SubfolderPerSample", cbSeparateFolder);
-	setCheckValue(values, "CalculateCharacteristics", cbCalcChar);
-	setTextValue(values, "ImageBaseName", leImageBaseName);
-
-	if (setTextValue(values, "ParameterDescriptor", leParamDescriptor))
+	::loadSettings(values, m_widgetMap);
+	
+	if (values.contains("Parameter descriptor"))
 	{
 		parameterDescriptorChanged();
 		for (int i = 0; i < m_paramInputs.size(); ++i)
@@ -294,20 +265,10 @@ void dlg_samplingSettings::setInputsFromMap(iAParameterMap const & values)
 }
 
 
-void dlg_samplingSettings::getValues(iAParameterMap & values) const
+void dlg_samplingSettings::getValues(iASettings & values) const
 {
 	values.clear();
-	values.insert("Executable", leExecutable->text());
-	values.insert("AdditionalArguments", leAdditionalArguments->text());
-	values.insert("OutputFolder", leOutputFolder->text());
-	values.insert("PipelineName", lePipelineName->text());
-	values.insert("LabelCount", sbLabelCount->text());
-	values.insert("NumberOfSamples", sbNumberOfSamples->text());
-	values.insert("ParameterDescriptor", leParamDescriptor->text());
-	values.insert("SamplingMethod", QString("%1").arg(cbSamplingMethod->currentIndex()));
-	values.insert("SubfolderPerSample", cbSeparateFolder->isChecked()? "true" : "false");
-	values.insert("CalculateCharacteristics", cbCalcChar->isChecked() ? "true" : "false");
-	values.insert("ImageBaseName", leImageBaseName->text());
+	::saveSettings(values, m_widgetMap);
 
 	for (int i = 0; i < m_paramInputs.size(); ++i)
 	{
@@ -333,7 +294,7 @@ void dlg_samplingSettings::saveSettings()
 	{
 		return;
 	}
-	iAParameterMap settings;
+	iASettings settings;
 	getValues(settings);
 
 	QFile file(fileName);
@@ -362,7 +323,7 @@ void dlg_samplingSettings::loadSettings()
 		"Sampling Settings File (*.ssf);;");
 	if (fileName.isEmpty())
 		return;
-	iAParameterMap settings;
+	iASettings settings;
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly))
 	{

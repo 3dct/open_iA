@@ -46,7 +46,7 @@ class MetaFilters_API iAImageSampler: public QThread, public iADurationEstimator
 public:
 	iAImageSampler(
 		QSharedPointer<iAModalityList const> modalities,
-		QSharedPointer<iAAttributes> range,
+		QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAParameterGenerator> sampleGenerator,
 		int sampleCount,
 		int labelCount,
@@ -74,7 +74,7 @@ private:
 	//! @{
 	//! input
 	QSharedPointer<iAModalityList const> m_modalities;
-	QSharedPointer<iAAttributes> m_parameters;
+	QSharedPointer<iAAttributes> m_parameterRanges;
 	QSharedPointer<iAParameterGenerator> m_sampleGenerator;
 	int m_sampleCount;
 	int m_labelCount;

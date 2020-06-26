@@ -22,12 +22,13 @@
 
 #include "open_iA_Core_export.h"
 
-#include <QHash>
+// TODO: replace with QHash?
+#include <QMap>
 
 class QSettings;
 class QVariant;
 
-typedef QHash<QString, QVariant> iASettings;
+typedef QMap<QString, QVariant> iASettings;
 
 //! Retrieve a map of all values in (the current group of) a given QSettings object.
 //! @param settings the QSettings object to load all settings from
