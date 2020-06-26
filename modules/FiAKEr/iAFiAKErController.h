@@ -34,6 +34,7 @@
 #include <iASettings.h>
 #include <iAVtkWidget.h>
 #include <qthelper/iAQTtoUIConnector.h>
+#include <qthelper/iAWidgetSettingsMapper.h>
 
 #include <vtkSmartPointer.h>
 
@@ -91,10 +92,6 @@ class QStandardItemModel;
 class QTimer;
 class QTreeView;
 class QVBoxLayout;
-
-// To be able to put non-QObject derived class in settingsWidgetMap
-class iAQCheckBoxVector: public QObject, public QVector<QCheckBox*> { };
-class iAQLineEditVector: public QObject, public QVector<QLineEdit*> { };
 
 class iAVtkQtWidget;
 class iAFixedAspectWidget;
