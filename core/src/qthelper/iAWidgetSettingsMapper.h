@@ -34,6 +34,20 @@ class iAQLineEditVector : public QObject, public QVector<QLineEdit*> { };
 
 using iAWidgetMap = QMap<QString, QObject*>;
 
+//! Takes values from given settings object and applies them to the respective widget
+//! mapped to in the given settings-widget-map.
+//! @param settings a hash map containing one key-value pair per setting stored in it
+//! @param settingsWidgetMap maps from a settings key to the widget which represents this setting in the GUI
 open_iA_Core_API void loadSettings(iASettings const& settings, iAWidgetMap const& settingsWidgetMap);
+
+//! Looks at the current value of the GUI elements given in the settings-widget-map,
+//! and stores it under the respective keys in the settings object.
+//! @param settings a QSettings object for storing the values from the GUI.
+//! @param settingsWidgetMap maps from a settings key to the widget which represents this setting in the GUI.
 open_iA_Core_API void saveSettings(QSettings& settings, iAWidgetMap const& settingsWidgetMap);
+
+//! Looks at the current value of the GUI elements given in the settings-widget-map,
+//! and stores it under the respective keys in the settings object.
+//! @param settings a hash map for storing the values from the GUI.
+//! @param settingsWidgetMap maps from a settings key to the widget which represents this setting in the GUI.
 open_iA_Core_API void saveSettings(iASettings& settings, iAWidgetMap const& settingsWidgetMap);

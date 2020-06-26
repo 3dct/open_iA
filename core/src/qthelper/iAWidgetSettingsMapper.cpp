@@ -42,27 +42,47 @@ void loadSettings(iASettings const& settings, iAWidgetMap const& settingsWidgetM
 				{
 					qobject_cast<QComboBox*>(w)->setCurrentIndex(idx);
 				}
-				// error check?
+				else
+				{
+					DEBUG_LOG(QString("Invalid value '%1' for input '%2'").arg(settings.value(key).toString()).arg(key));
+				}
 			}
 			else if (qobject_cast<QCheckBox*>(w))
 			{
-				// error check?
 				qobject_cast<QCheckBox*>(w)->setChecked(settings.value(key).toBool());
 			}
 			else if (qobject_cast<QSlider*>(w))
 			{
-				// error check?
-				qobject_cast<QSlider*>(w)->setValue(settings.value(key).toInt());
+				bool ok;
+				int value = settings.value(key).toInt(&ok);
+				if (!ok)
+				{
+					DEBUG_LOG(QString("Invalid value '%1' for input '%2': cannot convert to int!").arg(settings.value(key).toString()).arg(key));
+					continue;
+				}
+				qobject_cast<QSlider*>(w)->setValue(value);
 			}
 			else if (qobject_cast<QDoubleSpinBox*>(w))
 			{
-				// error check?
-				qobject_cast<QDoubleSpinBox*>(w)->setValue(settings.value(key).toDouble());
+				bool ok;
+				double value = settings.value(key).toDouble(&ok);
+				if (!ok)
+				{
+					DEBUG_LOG(QString("Invalid value '%1' for input '%2': cannot convert to double!").arg(settings.value(key).toString()).arg(key));
+					continue;
+				}
+				qobject_cast<QDoubleSpinBox*>(w)->setValue(value);
 			}
 			else if (qobject_cast<QSpinBox*>(w))
 			{
-				// error check?
-				qobject_cast<QSpinBox*>(w)->setValue(settings.value(key).toInt());
+				bool ok;
+				int value = settings.value(key).toInt(&ok);
+				if (!ok)
+				{
+					DEBUG_LOG(QString("Invalid value '%1' for input '%2': cannot convert to int!").arg(settings.value(key).toString()).arg(key));
+					continue;
+				}
+				qobject_cast<QSpinBox*>(w)->setValue(value);
 			}
 			else if (qobject_cast<QLineEdit*>(w))
 			{
@@ -232,10 +252,12 @@ void internalSaveSettings(iAInternalSettingsWrapper& settings, iAWidgetMap const
 
 void saveSettings(QSettings& settings, iAWidgetMap const& settingsWidgetMap)
 {
-	internalSaveSettings(iAQSettingsWrapper(settings), settingsWidgetMap);
+	iAQSettingsWrapper settingsWrapper(settings);
+	internalSaveSettings(settingsWrapper, settingsWidgetMap);
 }
 
 void saveSettings(iASettings& settings, iAWidgetMap const& settingsWidgetMap)
 {
-	internalSaveSettings(iASettingsWrapper(settings), settingsWidgetMap);
+	iASettingsWrapper settingsWrapper(settings);
+	internalSaveSettings(settingsWrapper, settingsWidgetMap);
 }

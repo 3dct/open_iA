@@ -282,7 +282,7 @@ private:
 	vtkSmartPointer<vtkActor> m_sampleActor;
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
-	QMap<QString, QObject*> m_settingsWidgetMap;
+	iAWidgetMap m_settingsWidgetMap;
 
 	// The different views and their elements:
 	std::vector<iADockWidgetWrapper*> m_views;
