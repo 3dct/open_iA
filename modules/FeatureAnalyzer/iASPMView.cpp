@@ -57,7 +57,6 @@
 #include <vtkSelectionNode.h>
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
-#include <vtkVersion.h>
 
 #include <QCheckBox>
 #include <QDebug>
@@ -113,7 +112,7 @@ void iASPMView::initScalarBar()
 	m_sbActor->SetLookupTable( m_lut );
 	m_sbActor->SetTitle( "Color Map" );
 	m_sbActor->VisibilityOff();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_SBQVTKWidget->GetRenderWindow()->AddRenderer( m_sbRen );
 #else
 	m_SBQVTKWidget->renderWindow()->AddRenderer( m_sbRen );
@@ -154,7 +153,7 @@ void iASPMView::applyLookupTable()
 	updateLUT();
 	m_sbActor->SetLookupTable( m_lut );
 	m_sbActor->SetTitle( m_splom->data()->parameterName(m_splom->colorLookupParam()).toStdString().c_str() );
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_SBQVTKWidget->GetRenderWindow()->Render();
 #else
 	m_SBQVTKWidget->renderWindow()->Render();

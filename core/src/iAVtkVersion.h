@@ -18,16 +18,18 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAVtkQtWidget.h"
+#pragma once
 
-#include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkVersion.h>
 
-void iAVtkQtWidget::updateAll()
-{
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	GetRenderWindow()->Render();
-#else
-	renderWindow()->Render();
+// Define VTK_VERSION_CHECK and VTK_VERSION number for easier version checking
+// not defined in VTK < 9.0.0
+
+#if VTK_MAJOR_VERSION < 9
+
+#define VTK_VERSION_CHECK(major, minor, build)                                                     \
+  (10000000000ULL * major + 100000000ULL * minor + build)
+#define VTK_VERSION_NUMBER                                                                         \
+  VTK_VERSION_CHECK(VTK_MAJOR_VERSION, VTK_MINOR_VERSION, VTK_BUILD_VERSION)
+
 #endif
-	update();
-}

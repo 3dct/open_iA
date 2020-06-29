@@ -21,6 +21,7 @@
 #include "iAFast3DMagicLensWidget.h"
 
 #include "iAConsole.h"
+#include "iAVtkVersion.h"
 
 #include <QVTKInteractor.h>
 #include <vtkActor2D.h>
@@ -36,7 +37,6 @@
 #include <vtkProperty2D.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
-#include <vtkVersion.h>
 
 #include <QMouseEvent>
 
@@ -56,7 +56,7 @@ void iAFast3DMagicLensWidget::updateLens()
 	iAAbstractMagicLensWidget::updateLens();
 	// preparations
 
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	if (GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
 #else
 	if (renderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
@@ -65,7 +65,7 @@ void iAFast3DMagicLensWidget::updateLens()
 		return;
 	}
 
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	vtkCamera * mainCam = GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 #else
 	vtkCamera * mainCam = renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
@@ -81,7 +81,7 @@ void iAFast3DMagicLensWidget::updateLens()
 		magicLensCam->UseOffAxisProjectionOn();
 	}
 
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	int * pos = GetInteractor()->GetEventPosition();
 #else
 	int * pos = interactor()->GetEventPosition();
@@ -106,7 +106,7 @@ void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 {
 	iAVtkWidget::resizeEvent( event );
 
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	if (GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
 #else
 	if (renderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
@@ -115,7 +115,7 @@ void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 		return;
 	}
 						// TODO: VOLUME: find better way to get "main" renderer here!
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	vtkCamera * mainCam = GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 #else
 	vtkCamera * mainCam = renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();

@@ -40,7 +40,6 @@
 #include <vtkRenderer.h>
 #include <vtkUnsignedCharArray.h>
 #include <vtkTriangle.h>
-#include <vtkVersion.h>
 
 #include <QVector>
 

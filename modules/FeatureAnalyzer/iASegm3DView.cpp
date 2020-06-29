@@ -30,6 +30,7 @@
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeSettings.h>
+#include <iAVtkVersion.h>
 
 #include <vtkActor.h>
 #include <vtkCamera.h>
@@ -224,7 +225,7 @@ iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
 	m_wireActor->GetProperty()->SetSpecular( 0.0 );
 	m_renderer->renderer()->AddActor( m_wireActor );
 
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_wgt->SetRenderWindow( (vtkGenericOpenGLRenderWindow* )m_renderer->renderWindow() );
 #else
 	m_wgt->setRenderWindow((vtkGenericOpenGLRenderWindow*)m_renderer->renderWindow());

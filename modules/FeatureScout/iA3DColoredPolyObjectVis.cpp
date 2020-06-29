@@ -35,7 +35,6 @@
 #include <vtkRendererCollection.h>
 #include <vtkTable.h>
 #include <vtkUnsignedCharArray.h>
-#include <vtkVersion.h>
 
 namespace
 {

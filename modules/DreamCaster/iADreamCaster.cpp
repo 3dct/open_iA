@@ -20,10 +20,6 @@
 * ************************************************************************************/
 #include "iADreamCaster.h"
 
-#include <charts/iAPlotTypes.h>
-#include <charts/iAChartWidget.h>
-#include <charts/iAHistogramData.h>
-
 #include "iAComparisonAndWeighting.h"
 #include "raycast/include/iACutFigList.h"
 #include "raycast/include/iARayTracer.h"
@@ -36,6 +32,9 @@
 #include "iAPaintWidget.h"
 #include "iAStabilityWidget.h"
 
+#include <charts/iAPlotTypes.h>
+#include <charts/iAChartWidget.h>
+#include <charts/iAHistogramData.h>
 #include <iAVtkWidget.h>
 #include <io/iAFileUtils.h>
 
@@ -214,7 +213,7 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	ui.gridLayout_4->addWidget(qvtkPlot3d);
 	ui.gridLayout_1->addWidget(qvtkWeighing);
 
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkWidget->GetRenderWindow()->AddRenderer(ren);
 #else
 	qvtkWidget->renderWindow()->AddRenderer(ren);
@@ -237,7 +236,7 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	depthSort = 0;
 	vtkInteractorStyleSwitch *style = vtkInteractorStyleSwitch::New();
 	style->SetCurrentStyleToTrackballCamera();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkWidget->GetInteractor()->SetInteractorStyle(style);
 #else
 	qvtkWidget->interactor()->SetInteractorStyle(style);
@@ -317,7 +316,7 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	plot3d->GetRenderer()->SetBackground2(0.5, 0.66666666666666666666666666666667, 1);
 	vtkInteractorStyleSwitch *cube_style = vtkInteractorStyleSwitch::New();
 	cube_style->SetCurrentStyleToTrackballCamera();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkPlot3d->GetRenderWindow()->AddRenderer(plot3d->GetRenderer());
 	qvtkPlot3d->GetInteractor()->SetInteractorStyle(cube_style);
 #else
@@ -329,7 +328,7 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	plot3d->Update();
 	//TODO: callback not used?
 	vtkCallbackCommand* callback = vtkCallbackCommand::New();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkPlot3d->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, callback, 1.0);
 #else
 	qvtkPlot3d->renderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, callback, 1.0);
@@ -339,14 +338,14 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	plot3dWeighting = new iAPlot3DVtk;
 	plot3dWeighting->GetRenderer()->SetBackground(stngs.BG_COL_R/255.0, stngs.BG_COL_G/255.0, stngs.BG_COL_B/255.0);//(0,0,0);//
 	plot3dWeighting->GetRenderer()->SetBackground2(0.5, 0.66666666666666666666666666666667, 1);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkWeighing->GetRenderWindow()->AddRenderer(plot3dWeighting->GetRenderer());
 #else
 	qvtkWeighing->renderWindow()->AddRenderer(plot3dWeighting->GetRenderer());
 #endif
 	vtkInteractorStyleSwitch *cube_style2 = vtkInteractorStyleSwitch::New();
 	cube_style2->SetCurrentStyleToTrackballCamera();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkWeighing->GetInteractor()->SetInteractorStyle(cube_style2);
 #else
 	qvtkWeighing->interactor()->SetInteractorStyle(cube_style2);
@@ -355,7 +354,7 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	plot3dWeighting->SetPalette(100, stngs.COL_RANGE_MIN_R, stngs.COL_RANGE_MIN_G, stngs.COL_RANGE_MIN_B, stngs.COL_RANGE_MAX_R, stngs.COL_RANGE_MAX_G, stngs.COL_RANGE_MAX_B);
 	plot3dWeighting->Update();
 
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkPlot3d->GetRenderWindow()->Render();
 #else
 	qvtkPlot3d->renderWindow()->Render();

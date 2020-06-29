@@ -22,8 +22,6 @@
 
 #include "iABarycentricTriangle.h"
 
-#include <vtkVersion.h>
-
 #include <QPainter>
 #include <QImage>
 #include <QTimer>

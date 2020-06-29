@@ -20,6 +20,9 @@
 * ************************************************************************************/
 #include "iA4DCTVisWin.h"
 
+#include <iAMagicLens.h>
+#include <iAVtkVersion.h>
+
 #include "dlg_4DCTFileOpen.h"
 #include "dlg_regionView.h"
 #include "iA4DCTAllVisualizationsDockWidget.h"
@@ -36,7 +39,6 @@
 #include "iABoundingBoxVisModule.h"
 #include "iADefectVisModule.h"
 #include "iAFractureVisModule.h"
-#include "iAMagicLens.h"
 #include "iAMhdFileInfo.h"
 #include "iAPlaneVisModule.h"
 #include "iARegionVisModule.h"
@@ -87,7 +89,7 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
 	m_mainRen->SetLayer( 0 );
 	m_mainRen->SetBackground( 0.5, 0.5, 0.5 );
 	m_mainRen->InteractiveOn( );
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkWidget->GetRenderWindow( )->AddRenderer( m_mainRen );
 #else
 	qvtkWidget->renderWindow()->AddRenderer(m_mainRen);
@@ -201,7 +203,7 @@ void iA4DCTVisWin::setNumberOfStages( int number )
 
 void iA4DCTVisWin::updateRenderWindow( )
 {
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkWidget->GetRenderWindow( )->Render( );
 #else
 	qvtkWidget->renderWindow()->Render();
@@ -495,7 +497,7 @@ void iA4DCTVisWin::enableMagicLens( bool enable )
 void iA4DCTVisWin::resetCamera( )
 {
 	m_mainRen->ResetCamera( );
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkWidget->GetRenderWindow( )->Render( );
 #else
 	qvtkWidget->renderWindow()->Render();
@@ -582,7 +584,7 @@ void iA4DCTVisWin::changeBackground( QColor col )
 
 void iA4DCTVisWin::enableSideBySideView( bool enabled )
 {
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkWidget->GetRenderWindow( )->GetRenderers( )->RemoveAllItems( );
 #else
 	qvtkWidget->renderWindow()->GetRenderers()->RemoveAllItems();
@@ -594,7 +596,7 @@ void iA4DCTVisWin::enableSideBySideView( bool enabled )
 		double start = 0.;
 
 		vtkSmartPointer<vtkRenderer> screenRen = vtkSmartPointer<vtkRenderer>::New( );
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		qvtkWidget->GetRenderWindow( )->AddRenderer( screenRen );
 #else
 		qvtkWidget->renderWindow()->AddRenderer(screenRen);
@@ -612,7 +614,7 @@ void iA4DCTVisWin::enableSideBySideView( bool enabled )
 
 			//ren->SetActiveCamera( m_mainRen->GetActiveCamera( ) );
 			ren->SetActiveCamera( cam );
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			qvtkWidget->GetRenderWindow( )->AddRenderer( ren );
 #else
 			qvtkWidget->renderWindow()->AddRenderer(ren);
@@ -633,7 +635,7 @@ void iA4DCTVisWin::enableSideBySideView( bool enabled )
 	}
 	else
 	{
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		qvtkWidget->GetRenderWindow( )->AddRenderer( m_mainRen );
 #else
 		qvtkWidget->renderWindow()->AddRenderer(m_mainRen);

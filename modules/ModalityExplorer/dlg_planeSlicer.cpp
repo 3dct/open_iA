@@ -36,7 +36,7 @@ dlg_planeSlicer::dlg_planeSlicer() :
 	m_vtkWidget(new iAVtkWidget(this))
 {
 	m_renderer = vtkSmartPointer<vtkOpenGLRenderer>::New();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_vtkWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	m_vtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
 #else

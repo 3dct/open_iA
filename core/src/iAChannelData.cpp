@@ -33,7 +33,6 @@
 #include <vtkProperty.h>
 #include <vtkScalarsToColors.h>
 #include <vtkTransform.h>
-#include <vtkVersion.h>
 
 #include <QObject>
 #include <QString>

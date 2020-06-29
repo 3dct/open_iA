@@ -29,6 +29,7 @@
 #include "iAToolsVTK.h"
 #include "iATransferFunction.h"    // for GetDefault... functions
 #include "iATypedCallHelper.h"
+#include "iAVtkVersion.h"
 #include "iAVtkWidget.h"
 #include "io/iARawFileParameters.h"
 
@@ -51,7 +52,6 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
-#include <vtkVersion.h>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -329,7 +329,7 @@ QVBoxLayout* setupSliceWidget(iAVtkWidget* &widget, vtkSmartPointer<vtkPlaneSour
 	widget->setMinimumHeight(50);
 	widget->setWindowTitle(QString("%1 Plane").arg(name));
 	auto window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	widget->SetRenderWindow(window);
 #else
 	widget->setRenderWindow(window);
@@ -651,7 +651,7 @@ void dlg_datatypeconversion::updateROI( )
 	m_yzroiSource->SetPoint1(-0.5*m_spacing[1] + m_roi[1]*m_spacing[1]+m_roi[4]*m_spacing[1], -0.5*m_spacing[2] + m_roi[2]*m_spacing[2], 0);
 	m_yzroiSource->SetPoint2(-0.5*m_spacing[1] + m_roi[1]*m_spacing[1], -0.5*m_spacing[2] + m_roi[2]+m_roi[5], 0);
 
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_xyWidget->GetRenderWindow()->Render();
 	m_xyWidget->update();
 	m_xzWidget->GetRenderWindow()->Render();

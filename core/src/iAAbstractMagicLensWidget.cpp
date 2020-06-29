@@ -21,6 +21,7 @@
 #include "iAAbstractMagicLensWidget.h"
 
 #include "defines.h" // for DefaultMagicLensSize
+#include "iAVtkVersion.h"
 
 #include <QVTKInteractor.h>
 #include <vtkActor2D.h>
@@ -33,7 +34,6 @@
 #include <vtkProperty2D.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
-#include <vtkVersion.h>
 
 const double iAAbstractMagicLensWidget::OFFSET_VAL = 20.;
 
@@ -53,7 +53,7 @@ void iAAbstractMagicLensWidget::magicLensOn( )
 {
 	m_magicLensEnabled = true;
 	setCursor( Qt::BlankCursor );
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	GetRenderWindow()->AddRenderer(m_lensRen);
 	GetRenderWindow()->AddRenderer(m_GUIRen);
 	GetRenderWindow()->Render();
@@ -68,7 +68,7 @@ void iAAbstractMagicLensWidget::magicLensOff( )
 {
 	m_magicLensEnabled = false;
 	setCursor( Qt::ArrowCursor );
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	GetRenderWindow()->RemoveRenderer(m_lensRen);
 	GetRenderWindow()->RemoveRenderer(m_GUIRen);
 	GetRenderWindow()->Render();
@@ -103,7 +103,7 @@ void iAAbstractMagicLensWidget::setViewMode( ViewMode mode )
 void iAAbstractMagicLensWidget::mouseMoveEvent( QMouseEvent * event )
 {
 	iAVtkWidget::mouseMoveEvent( event );
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	int* pos = GetInteractor()->GetEventPosition();
 #else
 	int* pos = interactor()->GetEventPosition();
@@ -112,7 +112,7 @@ void iAAbstractMagicLensWidget::mouseMoveEvent( QMouseEvent * event )
 	updateLens( );
 	updateGUI( );
 	emit mouseMoved();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	GetRenderWindow()->Render();
 #else
 	renderWindow()->Render();
@@ -121,7 +121,7 @@ void iAAbstractMagicLensWidget::mouseMoveEvent( QMouseEvent * event )
 
 void iAAbstractMagicLensWidget::updateLens( )
 {
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	if( GetRenderWindow( )->GetRenderers( )->GetNumberOfItems( ) <= 0 )
 #else
 	if( renderWindow( )->GetRenderers( )->GetNumberOfItems( ) <= 0 )
@@ -217,7 +217,7 @@ void iAAbstractMagicLensWidget::updateGUI( )
 // input points: xmin, ymin, xmax, ymax
 void iAAbstractMagicLensWidget::getViewportPoints( double points[4] )
 {
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	int * winSize = GetRenderWindow( )->GetSize( );
 #else
 	int * winSize = renderWindow( )->GetSize( );
@@ -244,7 +244,7 @@ void iAAbstractMagicLensWidget::getViewportPoints( double points[4] )
 
 void iAAbstractMagicLensWidget::SetMainRenderWindow( vtkGenericOpenGLRenderWindow* renWin )
 {
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	SetRenderWindow(renWin);
 #else
 	setRenderWindow(renWin);

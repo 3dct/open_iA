@@ -58,6 +58,7 @@
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 #include <io/iAFileChooserWidget.h>
+#include <iAVtkVersion.h>
 #include <io/iAIOProvider.h>
 #include <io/iAITKIO.h>
 #include <mainwindow.h>
@@ -84,7 +85,6 @@
 #include <vtkRenderer.h>
 #include <vtkTable.h>
 #include <vtkUnsignedCharArray.h>
-#include <vtkVersion.h>
 #include <vtkVertexGlyphFilter.h>
 
 #include <QButtonGroup>
@@ -343,7 +343,7 @@ void iAFiAKErController::resultsLoaded()
 void iAFiAKErController::setupMain3DView()
 {
 	m_main3DWidget = m_mdiChild->renderDockWidget()->vtkWidgetRC;
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	auto renWin = m_main3DWidget->GetRenderWindow();
 #else
 	auto renWin = m_main3DWidget->renderWindow();
@@ -722,7 +722,7 @@ QWidget* iAFiAKErController::setupResultListView()
 			ren->SetUseDepthPeeling(true);
 			ren->SetMaximumNumberOfPeels(10);
 			renWin->AddRenderer(ren);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			ui.vtkWidget->SetRenderWindow(renWin);
 #else
 			ui.vtkWidget->setRenderWindow(renWin);
@@ -734,7 +734,7 @@ QWidget* iAFiAKErController::setupResultListView()
 			ren->ResetCamera();
 			ui.previewWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
 			connect(ui.previewWidget, &iAFixedAspectWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			connect(ui.vtkWidget, &iAVtkWidget::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
 #else
 #ifndef _MSC_VER
@@ -2355,7 +2355,7 @@ void iAFiAKErController::updateFiberContext()
 {
 	for (auto actor : m_contextActors)
 	{
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
 #else
 		m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
@@ -2404,7 +2404,7 @@ void iAFiAKErController::updateFiberContext()
 				if (!m_mergeContextBoxes)
 				{
 					auto actor = getCubeActor(minCoord, maxCoord);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 					m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
 #else
 					m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
@@ -2416,7 +2416,7 @@ void iAFiAKErController::updateFiberContext()
 		if (m_mergeContextBoxes)
 		{
 			auto actor = getCubeActor(minCoord, maxCoord);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
 #else
 			m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
@@ -2437,7 +2437,7 @@ namespace
 		if (ui.previewWidget && ui.vtkWidget)
 		{
 			ui.previewWidget->setBackgroundColor(color);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
 #else
 			ui.vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
@@ -2941,7 +2941,7 @@ void iAFiAKErController::changeReferenceDisplay()
 
 	if (m_refLineActor)
 	{
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
 #else
 		m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
@@ -3137,7 +3137,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	m_refLineActor = vtkSmartPointer<vtkActor>::New();
 	m_refLineActor->SetMapper(mapper);
 	m_refLineActor->GetProperty()->SetLineWidth(2);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_refLineActor);
 #else
 	m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_refLineActor);
@@ -3234,7 +3234,7 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 	m_sampleActor->SetMapper(sampleMapper);
 	sampleMapper->Update();
 	m_sampleActor->GetProperty()->SetPointSize(2);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
 #else
 	m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
@@ -3258,7 +3258,7 @@ void iAFiAKErController::hideSamplePointsPrivate()
 {
 	if (m_sampleActor)
 	{
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
 #else
 		m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
@@ -3373,7 +3373,7 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 
 void iAFiAKErController::update3D()
 {
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_main3DWidget->GetRenderWindow()->Render();
 #else
 	m_main3DWidget->renderWindow()->Render();
@@ -3403,7 +3403,7 @@ void iAFiAKErController::applyRenderSettings()
 
 		if (m_resultUIs[resultID].vtkWidget)
 		{
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			auto ren = m_resultUIs[resultID].vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 #else
 			auto ren = m_resultUIs[resultID].vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer();
@@ -3446,7 +3446,7 @@ void iAFiAKErController::linkPreviewsToggled()
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & ui = m_resultUIs[resultID];
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		auto ren = ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 #else
 		auto ren = ui.vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer();
