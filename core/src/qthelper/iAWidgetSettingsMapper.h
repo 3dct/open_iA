@@ -26,10 +26,12 @@
 
 #include <QCheckBox>
 #include <QLineEdit>
+//#include <QRadioButton>
 #include <QSettings>
 
-// To be able to put non-QObject derived class in settingsWidgetMap
+// To be able to put non-QObject derived class in iAWidgetMap
 class iAQCheckBoxVector : public QObject, public QVector<QCheckBox*> { };
+//class iAQRadioButtonVector : public QObject, public QVector<QCheckBox*> { };
 class iAQLineEditVector : public QObject, public QVector<QLineEdit*> { };
 
 using iAWidgetMap = QMap<QString, QObject*>;

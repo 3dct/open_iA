@@ -25,6 +25,7 @@
 
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QPushButton>
 #include <QSlider>
 #include <QSpinBox>
 
@@ -87,6 +88,10 @@ void loadSettings(iASettings const& settings, iAWidgetMap const& settingsWidgetM
 			else if (qobject_cast<QLineEdit*>(w))
 			{
 				qobject_cast<QLineEdit*>(w)->setText(settings[key].toString());
+			}
+			else if (qobject_cast<QPushButton*>(w))
+			{
+				qobject_cast<QPushButton*>(w)->setText(settings[key].toString());
 			}
 			else if (qobject_cast<iAFileChooserWidget*>(w))
 			{
@@ -215,6 +220,10 @@ void internalSaveSettings(iAInternalSettingsWrapper& settings, iAWidgetMap const
 		else if (qobject_cast<QLineEdit*>(w))
 		{
 			settings.setValue(key, qobject_cast<QLineEdit*>(w)->text());
+		}
+		else if (qobject_cast<QPushButton*>(w))
+		{
+			settings.setValue(key, qobject_cast<QPushButton*>(w)->text());
 		}
 		else if (qobject_cast<iAFileChooserWidget*>(w))
 		{
