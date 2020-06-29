@@ -13,6 +13,8 @@ class MainWindow;
 class QVTKOpenGLNativeWidget;
 class vtkContextView;
 class vtkTable;
+class vtkTextActor;
+class vtkPlotBox;
 
 class vtkRenderer;
 
@@ -24,6 +26,8 @@ class iACompBoxPlot : public QDockWidget, public Ui_CompHistogramTable
 	iACompBoxPlot(MainWindow* parent, iACsvDataStorage* dataStorage);
 	void showEvent(QShowEvent* event);
 	void renderWidget();
+	void updateLegend();
+	void setOrderedPositions(std::vector<double>* orderedPositions);
 
 private:
 
@@ -38,7 +42,13 @@ private:
 	vtkSmartPointer<vtkTable> inputBoxPlotTable;
 	//stores the minimum, first quartile, median, third quartile and maximum of the real values
 	vtkSmartPointer<vtkTable> outTable;
-	
+	//new positions calculated from bar chart
+	std::vector<double>* m_orderedPositions;
+
+	int m_numberOfAttr;
+	std::vector<vtkSmartPointer<vtkTextActor>>* m_legendAttributes;
+
+
 	//inner class
 	class BoxPlotChart : public vtkChartBox
 	{
@@ -51,6 +61,8 @@ private:
 				vtkIdType seriesIndex, vtkPlot* plot,
 				vtkIdType segmentIndex);
 
+			void Update();
+
 			void setOuterClass(iACompBoxPlot* outerClass);
 
 	protected:
@@ -61,6 +73,9 @@ private:
 
 	};
 
+	vtkSmartPointer<BoxPlotChart> chart;
+	vtkSmartPointer<vtkPlotBox> box;
+	bool finishedInitalization;
 };
 
 

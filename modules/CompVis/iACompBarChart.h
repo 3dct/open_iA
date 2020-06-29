@@ -32,6 +32,8 @@ class iACompBarChart : public QDockWidget, public Ui_CompBarChart
 
 	void updateBarChart(std::vector<double>* coefficients);
 
+	std::vector<double>* getOrderedPositions();
+
 private:
 	vtkSmartPointer<vtkDoubleArray> vectorToVtkDataArray(std::vector<double>* input, const char* name);
 	//return array with indices of the length of the input vector
@@ -48,4 +50,9 @@ private:
 	vtkSmartPointer<vtkRenderer> m_renderer;
 
 	vtkSmartPointer<vtkContextView> m_view;
+
+	std::vector<double>* coefficients;
+	QStringList* attrNames;
+
+	std::vector<double>* orderedPositions;
 };

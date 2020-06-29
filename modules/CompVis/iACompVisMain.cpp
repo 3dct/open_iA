@@ -55,6 +55,7 @@ iACompVisMain::iACompVisMain(MainWindow* mainWin)
 
 	//add box plot
 	m_BoxPlotDockWidget = new iACompBoxPlot(mainWin, m_dataStorage);
+	m_BoxPlotDockWidget->setOrderedPositions(m_BarChartDockWidget->getOrderedPositions());
 	layout3->addWidget(m_BoxPlotDockWidget);
 
 	m_mainW->show();

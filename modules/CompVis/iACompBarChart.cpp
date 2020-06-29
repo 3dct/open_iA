@@ -30,7 +30,8 @@ iACompBarChart::iACompBarChart(MainWindow* parent, iACoefficientOfVariation* coe
 	QDockWidget(parent), 
 	m_coeffVar(coeffVar),
 	m_dataStorage(dataStorage),
-	m_renderer(vtkSmartPointer<vtkRenderer>::New())
+	m_renderer(vtkSmartPointer<vtkRenderer>::New()),
+	orderedPositions(new std::vector<double>())
 {
 	//todo add interaction
 	setupUi(this);
@@ -45,20 +46,19 @@ iACompBarChart::iACompBarChart(MainWindow* parent, iACoefficientOfVariation* coe
 	m_view = vtkSmartPointer<vtkContextView>::New();
 	m_view->SetRenderWindow(m_qvtkWidget->GetRenderWindow());
 	m_view->SetInteractor(m_qvtkWidget->GetInteractor());
-	
-}
 
-void iACompBarChart::showEvent(QShowEvent* event)
-{
 	//data preparation
-	QStringList* attrNames = m_dataStorage->getData()->at(0).header;
+	attrNames = m_dataStorage->getData()->at(0).header;
 	std::vector<double>* coefficientsOriginal = m_coeffVar->getCoefficientOfVariation();
 	removeLabelAttribute(coefficientsOriginal, attrNames);
 
 	//change interval from [0,1] to [0,100]
-	std::vector<double>* coefficients = changeInterval(coefficientsOriginal, 100.0, 0.0, 1.0, 0.0);
-	std::vector<double>* newPos = sortWithMemory(coefficients);
+	coefficients = changeInterval(coefficientsOriginal, 100.0, 0.0, 1.0, 0.0);
+	orderedPositions = sortWithMemory(coefficients);
+}
 
+void iACompBarChart::showEvent(QShowEvent* event)
+{
 	// Set up a 2D scene, add an XY chart to it
 	vtkSmartPointer<vtkChartXY> chart = vtkSmartPointer<vtkChartXY>::New();
 	m_view->GetScene()->AddItem(chart);
@@ -98,7 +98,7 @@ void iACompBarChart::showEvent(QShowEvent* event)
 	for (int i = 0; i < coefficients->size(); i++)
 	{
 		labelInd->InsertNextValue(i+1); //start with 1 so that the first bar is not drawn inside y-axis
-		labelStrings->InsertNextValue(attrNames->at(newPos->at(i)).toStdString());
+		labelStrings->InsertNextValue(attrNames->at(orderedPositions->at(i)).toStdString());
 	}
 
 	axisBottom->SetCustomTickPositions(labelInd, labelStrings);
@@ -208,4 +208,9 @@ void iACompBarChart::removeLabelAttribute(std::vector<double>* input, QStringLis
 void iACompBarChart::renderWidget()
 {
 	m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
+}
+
+std::vector<double>* iACompBarChart::getOrderedPositions()
+{
+	return orderedPositions;
 }

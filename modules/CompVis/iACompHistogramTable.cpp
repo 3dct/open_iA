@@ -114,7 +114,9 @@ iACompHistogramTable::iACompHistogramTable(
 	//setup rendering environment
 	m_renderer->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
 	m_renderer->SetViewport(0, 0, 0.8, 1);
+	m_renderer->SetUseFXAA(true);
 	m_qvtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
+
 }
 
 void iACompHistogramTable::showEvent(QShowEvent* event)
@@ -281,9 +283,9 @@ vtkSmartPointer<vtkPlaneSource> iACompHistogramTable::drawRow(int currDataInd, i
 	actor->SetMapper(mapper);
 	actor->GetProperty()->EdgeVisibilityOn();
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE)[2];
+	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0]; //iACompVisOptions::BACKGROUNDCOLOR_WHITE
+	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1]; //iACompVisOptions::BACKGROUNDCOLOR_WHITE
+	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2]; //iACompVisOptions::BACKGROUNDCOLOR_WHITE
 	actor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
 	m_renderer->AddActor(actor);
 
@@ -330,9 +332,9 @@ vtkSmartPointer<vtkPlaneSource> iACompHistogramTable::drawZoomedRow(
 	actor->SetMapper(mapper);
 	actor->GetProperty()->EdgeVisibilityOn();
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE)[2];
+	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0]; //iACompVisOptions::BACKGROUNDCOLOR_WHITE
+	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1]; //iACompVisOptions::BACKGROUNDCOLOR_WHITE
+	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2]; //iACompVisOptions::BACKGROUNDCOLOR_WHITE
 	actor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
 	actor->GetProperty()->SetLineWidth(1);
 
@@ -692,8 +694,8 @@ void iACompHistogramTable::makeLUTFromCTF()
 	ctf->AddRGBPoint(0.9, red.redF(), red.greenF(), red.blueF());
 	ctf->AddRGBPoint(0.0, white.redF(), white.greenF(), white.blueF());*/
 
-	//sequential coloring from red to yellow to blue
-	QColor c1 = QColor(165, 0, 38);
+	//diverging coloring from red to yellow to blue
+	/*QColor c1 = QColor(165, 0, 38);
 	QColor c2 = QColor(215, 48, 39);
 	QColor c3 = QColor(244, 109, 67);
 	QColor c4 = QColor(253, 174, 97);
@@ -702,7 +704,30 @@ void iACompHistogramTable::makeLUTFromCTF()
 	QColor c7 = QColor(171, 217, 233);
 	QColor c8 = QColor(116, 173, 209);
 	QColor c9 = QColor(69, 117, 180);
-	QColor c10 = QColor(49, 54, 149);
+	QColor c10 = QColor(49, 54, 149);*/
+
+	//sequential pink to green/bluish in pastel
+	/*QColor c1 = QColor(47, 117, 131);
+	QColor c2 = QColor(55, 136, 153);
+	QColor c3 = QColor(109, 177, 190);
+	QColor c4 = QColor(144, 158, 195);
+	QColor c5 = QColor(162, 148, 201);
+	QColor c6 = QColor(188, 178, 215);
+	QColor c7 = QColor(208, 185, 205);
+	QColor c8 = QColor(203, 149, 192);
+	QColor c9 = QColor(234, 185, 214);
+	QColor c10 = QColor(255, 255, 255);*/
+
+	QColor c1 = QColor(77, 0, 23);
+	QColor c2 = QColor(128, 0, 38);
+	QColor c3 = QColor(189, 0, 38);
+	QColor c4 = QColor(227, 26, 28);
+	QColor c5 = QColor(252, 78, 42);
+	QColor c6 = QColor(253, 141, 60);
+	QColor c7 = QColor(254, 178, 76);
+	QColor c8 = QColor(254, 217, 118);
+	QColor c9 = QColor(255, 237, 160);
+	QColor c10 = QColor(255, 255, 204);
 
 	ctf->AddRGBPoint(1.0, c1.redF(), c1.greenF(), c1.blueF());
 	ctf->AddRGBPoint(0.9, c1.redF(), c1.greenF(), c1.blueF());

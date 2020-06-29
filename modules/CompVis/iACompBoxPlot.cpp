@@ -36,6 +36,18 @@
 #include "vtkTextActor.h"
 #include "vtkTooltipItem.h"
 #include "vtkContextMouseEvent.h"
+#include "vtkProperty2D.h"
+
+#include "vtkCellArray.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkPoints.h"
+#include "vtkPolyData.h"
+#include "vtkActor.h"
+#include "vtkProperty.h"
+#include "vtkRegularPolygonSource.h"
+#include  "vtkCoordinate.h"
+#include  "vtkActor2D.h"
+#include "vtkPolyDataMapper2D.h"
 
 #include <string>
 
@@ -46,7 +58,10 @@ iACompBoxPlot::iACompBoxPlot(MainWindow* parent, iACsvDataStorage* dataStorage) 
 	m_dataStorage(dataStorage),
 	maxValsAttr(new std::vector<double>()),
 	minValsAttr(new std::vector<double>()),
-	inputBoxPlotTable(vtkSmartPointer<vtkTable>::New())
+	inputBoxPlotTable(vtkSmartPointer<vtkTable>::New()),
+	m_legendAttributes(new std::vector<vtkSmartPointer<vtkTextActor>>()),
+	m_numberOfAttr(0),
+	finishedInitalization(false)
 {
 	setupUi(this);
 
@@ -68,11 +83,11 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 {
 	// data preparation
 	QList<csvFileData>* data = m_dataStorage->getData();
-	int numParam = data->at(0).header->size(); //amount of attributes
+	m_numberOfAttr = data->at(0).header->size(); //amount of attributes
 	QStringList* attrNames = m_dataStorage->getData()->at(0).header;
 
 	//create chart (a plot is stored inside a chart)
-	vtkSmartPointer<BoxPlotChart> chart = vtkSmartPointer<BoxPlotChart>::New();
+	chart = vtkSmartPointer<BoxPlotChart>::New();
 	chart->setOuterClass(this);
 	chart->Update();
 	m_view->GetScene()->AddItem(chart);
@@ -81,7 +96,7 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	vtkSmartPointer<vtkStringArray> labels = vtkSmartPointer<vtkStringArray>::New();
 	
 	//set amount of attributes
-	for (int i = 0; i < numParam; i++)
+	for (int i = 0; i < m_numberOfAttr; i++)
 	{
 		labels->InsertNextValue(attrNames->at(i).toStdString());
 
@@ -104,12 +119,14 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	{//for all datasets
 		for(int dataInd = 0; dataInd < data->at(i).values->size(); dataInd++)
 		{ //for all values
-			for (int attrInd = 1; attrInd <= numParam; attrInd++) 
+			//for (int attrInd = 1; attrInd <= m_numberOfAttr; attrInd++)
+			for (int attrInd = 1; attrInd < m_numberOfAttr; attrInd++)
 			{//for all attributes but without the label attribute
 
 				int col = attrInd-1;
-				double val = data->at(i).values->at(dataInd).at(attrInd);
-				
+				int newCol = m_orderedPositions->at(attrInd);
+				double val = data->at(i).values->at(dataInd).at(m_orderedPositions->at(col)+1);
+
 				inputBoxPlotTable->SetValue(row, col, vtkVariant(val));
 			}
 			row++;
@@ -121,7 +138,7 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	quartiles->SetInputData(vtkStatisticsAlgorithm::INPUT_DATA, inputBoxPlotTable);
 	quartiles->Update();
 	outTable = quartiles->GetOutput();
-
+	
 	vtkSmartPointer<vtkTable> normalizedTable = vtkSmartPointer<vtkTable>::New();
 	normalizedTable->DeepCopy(outTable);
 
@@ -149,7 +166,7 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	lookup->SetTableValue(1, col[0], col[1], col[2]);
 
 	//create box plot
-	vtkSmartPointer<vtkPlotBox> box = vtkSmartPointer<vtkPlotBox>::New();
+	box = vtkSmartPointer<vtkPlotBox>::New();
 	box->SetInputData(normalizedTable);
 	box->SetLookupTable(lookup);
 	
@@ -161,7 +178,7 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	renderWidget();
 
 	//set size of chart
-	chart->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.4));
+	chart->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3)); //0.4
 	chart->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
 	chart->Update();
 
@@ -193,16 +210,13 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	axisLeft->SetNumberOfTicks(5);
 
 	//for each column draw a legend
-	for (int i = 0; i <= numParam; i++)
+	double offset = 1.0;
+	double factor = offset/ ((double)(m_numberOfAttr -1));
+	for (int i = 0; i < m_numberOfAttr; i++)
 	{
-		float xPos = chart->GetXPosition(i) + (box->GetBoxWidth()*0.5);
-		double pos = ((double)xPos) / ((double)m_qvtkWidget->width());
-
 		vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
-		legend->SetTextScaleModeToNone();
-		legend->SetInput(labels->GetValue(i));
-		legend->GetPositionCoordinate()->SetCoordinateSystemToNormalizedDisplay();
-		legend->GetPositionCoordinate()->SetValue(pos, 0.3);
+		legend->SetTextScaleModeToNone();	
+		legend->SetInput(labels->GetValue(m_orderedPositions->at(i))); //reordered positions
 
 		vtkSmartPointer<vtkTextProperty> legendProperty = legend->GetTextProperty();
 		legendProperty->BoldOff();
@@ -210,19 +224,71 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 		legendProperty->ShadowOff();
 		legendProperty->SetFontFamilyToArial();
 		legendProperty->SetColor(0, 0, 0);
-		legendProperty->SetOrientation(25);
+		legendProperty->SetOrientation(20);
 		legendProperty->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
-		legendProperty->SetVerticalJustificationToCentered(); 
 		legendProperty->SetJustification(VTK_TEXT_RIGHT);
+		legendProperty->SetVerticalJustificationToTop();
 		legendProperty->Modified();
+	
+		float x = chart->GetXPosition(i) + (box->GetBoxWidth()*offset);
+		legend->GetPositionCoordinate()->SetCoordinateSystemToDisplay();
+		legend->GetPositionCoordinate()->SetValue(x, m_qvtkWidget->height()*0.27);
+		legend->Modified();
 
 		m_view->GetRenderer()->AddActor(legend);
+		m_legendAttributes->push_back(legend);
+
+		//TESTING
+		/*DEBUG_LOG("chart->GetXPosition(i) = (" + QString::number(chart->GetXPosition(i)) + ")");
+		DEBUG_LOG("(box->GetBoxWidth()*0.5) = (" + QString::number((box->GetBoxWidth() * offset)) + ")");
+
+		vtkSmartPointer<vtkRegularPolygonSource> point = vtkSmartPointer<vtkRegularPolygonSource>::New();
+		point->SetNumberOfSides(50);
+		point->SetRadius(1);
+		point->SetCenter(x, m_qvtkWidget->height()*0.25, 0);
+
+		// Visualize
+		vtkSmartPointer<vtkPolyDataMapper2D> mapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
+		mapper->SetInputConnection(point->GetOutputPort());
+
+		vtkSmartPointer<vtkActor2D> actor = vtkSmartPointer<vtkActor2D>::New();
+		actor->SetMapper(mapper);
+		actor->GetProperty()->SetColor(1, 0, 0);
+		m_view->GetRenderer()->AddActor2D(actor);*/
+		
+
+		offset = offset - factor;
+	}
+
+	finishedInitalization = true;
+}
+
+void iACompBoxPlot::updateLegend()
+{
+	double offset = 1.0;
+	double factor = offset / ((double)(m_numberOfAttr - 1));
+
+	for (int i = 0; i < m_numberOfAttr; i++)
+	{
+		float x = chart->GetXPosition(i) + (box->GetBoxWidth()*offset);
+		vtkSmartPointer<vtkTextActor> legend = m_legendAttributes->at(i);
+		legend->GetPositionCoordinate()->SetCoordinateSystemToDisplay();
+		legend->GetPositionCoordinate()->SetValue(x, m_qvtkWidget->height()*0.27);
+
+		legend->Modified();
+
+		offset = offset - factor;
 	}
 }
 
 void iACompBoxPlot::renderWidget()
 {
 	m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
+}
+
+void iACompBoxPlot::setOrderedPositions(std::vector<double>* orderedPositions)
+{
+	m_orderedPositions = orderedPositions;
 }
 
 /************************* INNER CLASS BoxPlotChart *******************************************/
@@ -254,6 +320,24 @@ void iACompBoxPlot::BoxPlotChart::SetTooltipInfo(const vtkContextMouseEvent& mou
   // Set the tooltip
   this->Tooltip->SetText(tooltipLabel);
   this->Tooltip->SetPosition(mouse.GetScreenPos()[0] + 2, mouse.GetScreenPos()[1] + 2);
+}
+
+void iACompBoxPlot::BoxPlotChart::Update()
+{
+	/*if (m_outerClass->finishedInitalization)
+	{
+		m_outerClass->chart->SetPoint1(m_outerClass->m_qvtkWidget->width()*0.0, (m_outerClass->m_qvtkWidget->height()*0.3)); //0.4
+		m_outerClass->chart->SetPoint2(m_outerClass->m_qvtkWidget->width()*0.75, (m_outerClass->m_qvtkWidget->height())*0.85);
+		m_outerClass->chart->Modified();
+	}*/
+	
+	vtkChartBox::Update();
+
+	if(m_outerClass->finishedInitalization)
+	{
+		//m_outerClass->updateLegend();
+	}
+
 }
 
 void iACompBoxPlot::BoxPlotChart::setOuterClass(iACompBoxPlot * outerClass)
