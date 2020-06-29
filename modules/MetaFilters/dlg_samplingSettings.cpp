@@ -22,6 +22,7 @@
 
 #include "iAAttributes.h"
 #include "iAParameterGeneratorImpl.h"
+#include "iASampleParameterNames.h"
 
 #include <iAAttributeDescriptor.h>
 #include <iAConsole.h>
@@ -45,16 +46,19 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	dlg_samplingSettingsUI(parentWidget),
 	m_inputImageCount(inputImageCount)
 {
-	m_widgetMap.insert("Executable", leExecutable);
-	m_widgetMap.insert("Additional arguments", leAdditionalArguments);
-	m_widgetMap.insert("Output folder", leOutputFolder);
-	m_widgetMap.insert("Algorithm name", lePipelineName);
-	m_widgetMap.insert("Number of samples", sbNumberOfSamples);
-	m_widgetMap.insert("Sampling method", cbSamplingMethod);
-	m_widgetMap.insert("SubfolderPerSample", cbSeparateFolder);
-	m_widgetMap.insert("Compute derived output", cbCalcChar);
-	m_widgetMap.insert("ImageBaseName", leImageBaseName);
-	m_widgetMap.insert("Number of labels", sbLabelCount);
+	m_widgetMap.insert(spnAlgorithmName, lePipelineName);
+	//m_widgetMap.insert(spnAlgorithmType, rgAlgorithmType);
+	//m_widgetMap.insert(spnFilter, pbFilterSelect);
+	m_widgetMap.insert(spnExecutable, leExecutable);
+	m_widgetMap.insert(spnParameterDescriptor, leParamDescriptor);
+	m_widgetMap.insert(spnAdditionalArguments, leAdditionalArguments);
+	m_widgetMap.insert(spnSamplingMethod, cbSamplingMethod);
+	m_widgetMap.insert(spnNumberOfSamples, sbNumberOfSamples);
+	m_widgetMap.insert(spnOutputFolder, leOutputFolder);
+	m_widgetMap.insert(spnBaseName, leImageBaseName);
+	m_widgetMap.insert(spnSubfolderPerSample, cbSeparateFolder);
+	m_widgetMap.insert(spnComputeDerivedOutput, cbCalcChar);
+	m_widgetMap.insert(spnNumberOfLabels, sbLabelCount);
 
 	m_startLine = parameterLayout->rowCount();
 
@@ -97,6 +101,52 @@ namespace
 		{
 			checkBox->setChecked(values[name] == "true");
 		}
+	}
+	QString const KeyValueSeparator(": ");
+
+	QSharedPointer<iAParameterInputs> createParameterLine(
+		QString const& pName,
+		QSharedPointer<iAAttributeDescriptor> descriptor,
+		QGridLayout* gridLay,
+		int curGridLine)
+	{
+		QSharedPointer<iAParameterInputs> result;
+
+		if (descriptor->valueType() == Categorical)
+		{
+			auto categoryInputs = new iACategoryParameterInputs();
+			QWidget* w = new QWidget();
+			QGridLayout* checkGridLay = new QGridLayout();
+			for (int categoryIdx = descriptor->min(); categoryIdx <= descriptor->max(); ++categoryIdx)
+			{
+				QCheckBox* checkBox = new QCheckBox(descriptor->nameMapper()->name(categoryIdx));
+				categoryInputs->m_features.push_back(checkBox);
+				checkGridLay->addWidget(checkBox, (categoryIdx - descriptor->min()) / 3, static_cast<int>(categoryIdx - descriptor->min()) % 3);
+			}
+			w->setLayout(checkGridLay);
+			gridLay->addWidget(w, curGridLine, 1, 1, 3);
+			result = QSharedPointer<iAParameterInputs>(categoryInputs);
+		}
+		else
+		{
+			auto numberInputs = new iANumberParameterInputs();
+			numberInputs->from = new QLineEdit(QString::number(descriptor->min(),
+				descriptor->valueType() != Continuous ? 'd' : 'g',
+				descriptor->valueType() != Continuous ? 0 : 6));
+			numberInputs->to = new QLineEdit(QString::number(descriptor->max(),
+				descriptor->valueType() != Continuous ? 'd' : 'g',
+				descriptor->valueType() != Continuous ? 0 : 6));
+			gridLay->addWidget(numberInputs->from, curGridLine, 1);
+			gridLay->addWidget(numberInputs->to, curGridLine, 2);
+			numberInputs->logScale = new QCheckBox("Log Scale");
+			numberInputs->logScale->setChecked(descriptor->isLogScale());
+			gridLay->addWidget(numberInputs->logScale, curGridLine, 3);
+			result = QSharedPointer<iAParameterInputs>(numberInputs);
+		}
+		result->label = new QLabel(pName);
+		gridLay->addWidget(result->label, curGridLine, 0);
+		result->descriptor = descriptor;
+		return result;
 	}
 }
 
@@ -264,24 +314,19 @@ void dlg_samplingSettings::setInputsFromMap(iASettings const & values)
 	}
 }
 
-
 void dlg_samplingSettings::getValues(iASettings & values) const
 {
 	values.clear();
 	::saveSettings(values, m_widgetMap);
 
+	// only external at the moment, make sure it is set:
+	values["Algorithm type"] = "External";
+	
 	for (int i = 0; i < m_paramInputs.size(); ++i)
 	{
 		m_paramInputs[i]->retrieveInputValues(values);
 	}
 }
-
-
-namespace
-{
-	QString const KeyValueSeparator(": ");
-}
-
 
 void dlg_samplingSettings::saveSettings()
 {
@@ -294,6 +339,7 @@ void dlg_samplingSettings::saveSettings()
 	{
 		return;
 	}
+	// TODO: common iASettings storage framework?
 	iASettings settings;
 	getValues(settings);
 
@@ -346,15 +392,6 @@ void dlg_samplingSettings::loadSettings()
 	setInputsFromMap(settings);
 }
 
-
-// }
-
-QSharedPointer<iAParameterGenerator> dlg_samplingSettings::generator()
-{
-	return GetParameterGenerators()[cbSamplingMethod->currentIndex()];
-}
-
-
 void dlg_samplingSettings::chooseParameterDescriptor()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Parameter Descriptor"),
@@ -366,7 +403,6 @@ void dlg_samplingSettings::chooseParameterDescriptor()
 	}
 	loadDescriptor(leParamDescriptor->text());
 }
-
 
 void dlg_samplingSettings::chooseExecutable()
 {
@@ -383,51 +419,6 @@ void dlg_samplingSettings::parameterDescriptorChanged()
 {
 	// load parameter descriptor from file
 	loadDescriptor(leParamDescriptor->text());
-}
-
-QSharedPointer<iAParameterInputs> CreateParameterLine(
-	QString const & pName,
-	QSharedPointer<iAAttributeDescriptor> descriptor,
-	QGridLayout* gridLay,
-	int curGridLine)
-{
-	QSharedPointer<iAParameterInputs> result;
-
-	if (descriptor->valueType() == Categorical)
-	{
-		auto categoryInputs = new iACategoryParameterInputs();
-		QWidget* w = new QWidget();
-		QGridLayout* checkGridLay = new QGridLayout();
-		for (int categoryIdx = descriptor->min(); categoryIdx <= descriptor->max(); ++categoryIdx)
-		{
-			QCheckBox* checkBox = new QCheckBox(descriptor->nameMapper()->name(categoryIdx));
-			categoryInputs->m_features.push_back(checkBox);
-			checkGridLay->addWidget(checkBox, (categoryIdx - descriptor->min()) / 3, static_cast<int>(categoryIdx - descriptor->min()) % 3);
-		}
-		w->setLayout(checkGridLay);
-		gridLay->addWidget(w, curGridLine, 1, 1, 3);
-		result = QSharedPointer<iAParameterInputs>(categoryInputs);
-	}
-	else
-	{
-		auto numberInputs = new iANumberParameterInputs();
-		numberInputs->from = new QLineEdit(QString::number(descriptor->min(),
-			descriptor->valueType() != Continuous? 'd' : 'g',
-			descriptor->valueType() != Continuous ? 0 : 6));
-		numberInputs->to = new QLineEdit(QString::number(descriptor->max(),
-			descriptor->valueType() != Continuous ? 'd' : 'g',
-			descriptor->valueType() != Continuous ? 0 : 6));
-		gridLay->addWidget(numberInputs->from, curGridLine, 1);
-		gridLay->addWidget(numberInputs->to, curGridLine, 2);
-		numberInputs->logScale = new QCheckBox("Log Scale");
-		numberInputs->logScale->setChecked(descriptor->isLogScale());
-		gridLay->addWidget(numberInputs->logScale, curGridLine, 3);
-		result = QSharedPointer<iAParameterInputs>(numberInputs);
-	}
-	result->label = new QLabel(pName);
-	gridLay->addWidget(result->label, curGridLine, 0);
-	result->descriptor = descriptor;
-	return result;
 }
 
 void dlg_samplingSettings::loadDescriptor(QString const & fileName)
@@ -466,7 +457,7 @@ void dlg_samplingSettings::loadDescriptor(QString const & fileName)
 		{
 			for (int m = 0; m < m_inputImageCount; ++m)
 			{
-				QSharedPointer<iAParameterInputs> pInput = CreateParameterLine(QString("Mod %1 ").arg(m) +
+				QSharedPointer<iAParameterInputs> pInput = createParameterLine(QString("Mod %1 ").arg(m) +
 					pName.right(pName.length() - 4),
 					m_descriptor->at(i),
 					gridLay,
@@ -477,7 +468,7 @@ void dlg_samplingSettings::loadDescriptor(QString const & fileName)
 		}
 		else
 		{
-			QSharedPointer<iAParameterInputs> pInput = CreateParameterLine(
+			QSharedPointer<iAParameterInputs> pInput = createParameterLine(
 				pName,
 				m_descriptor->at(i),
 				gridLay,
@@ -490,7 +481,6 @@ void dlg_samplingSettings::loadDescriptor(QString const & fileName)
 	m_descriptorFileName = fileName;
 }
 
-
 QSharedPointer<iAAttributes> dlg_samplingSettings::parameterRanges()
 {
 	QSharedPointer<iAAttributes> result(new iAAttributes);
@@ -500,7 +490,6 @@ QSharedPointer<iAAttributes> dlg_samplingSettings::parameterRanges()
 	}
 	return result;
 }
-
 
 void dlg_samplingSettings::chooseOutputFolder()
 {
@@ -512,52 +501,4 @@ void dlg_samplingSettings::chooseOutputFolder()
 	{
 		leOutputFolder->setText(outFolder);
 	}
-}
-
-
-QString dlg_samplingSettings::outputFolder() const
-{
-	QString outDir = leOutputFolder->text();
-	return outDir.replace("\\", "/");
-}
-
-
-QString dlg_samplingSettings::additionalArguments() const
-{
-	return leAdditionalArguments->text();
-}
-
-QString dlg_samplingSettings::algorithmName() const
-{
-	return lePipelineName->text();
-}
-
-QString dlg_samplingSettings::executable() const
-{
-	return leExecutable->text();
-}
-
-int dlg_samplingSettings::sampleCount() const
-{
-	return sbNumberOfSamples->value();
-}
-
-int dlg_samplingSettings::labelCount() const
-{
-	return sbLabelCount->value();
-}
-
-QString dlg_samplingSettings::outBaseName() const
-{
-	return leImageBaseName->text();
-}
-
-bool dlg_samplingSettings::useSeparateFolder() const
-{
-	return cbSeparateFolder->isChecked();
-}
-
-bool dlg_samplingSettings::computeDerivedOutput() const
-{
-	return cbCalcChar->isChecked();
 }

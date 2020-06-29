@@ -23,6 +23,8 @@
 #include "dlg_GEMSe.h"
 #include "dlg_samplings.h"
 #include "iAImageTreeNode.h"
+#include "iAModality.h"
+#include "iAModalityList.h"
 #include "iASamplingResults.h"
 #include "iASingleResult.h"
 
@@ -987,8 +989,14 @@ void dlg_Consensus::LoadConfig()
 		QSharedPointer<iASelectionParameterGenerator> generator(
 			new iASelectionParameterGenerator(QString("Holdout Comparison, Algorithm %1").arg(s),
 				parameterSets));
+		QStringList fileNames;
+		auto datasets = m_mdiChild->modalities();
+		for (int i = 0; i < datasets->size(); ++i)
+		{
+			fileNames << datasets->get(i)->fileName();
+		}
 		auto sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
-			m_mdiChild->modalities(),
+			fileNames,
 			samplingResults->attributes(),
 			generator,
 			0,

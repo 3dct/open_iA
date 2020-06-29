@@ -23,17 +23,23 @@
 #include "iAFilter.h"
 #include "iAFilterRunnerGUI.h"
 
-class iASampleParameters;
+class iAAttributes;
 
 class iASampleFilter : public iAFilter
 {
 public:
 	static QSharedPointer<iASampleFilter> create();
-	void setParameters(QSharedPointer<iASampleParameters> p);
+	void setParameters(QStringList fileNames, QSharedPointer<iAAttributes> parameterRanges,
+		QString const & parameterRangeFile, QString const & parameterSetFile, QString const & derivedOutFile, int samplingID);
 private:
 	void performWork(QMap<QString, QVariant> const& parameters) override;
 	iASampleFilter();
-	QSharedPointer<iASampleParameters> m_p;
+	QStringList m_fileNames;
+	QSharedPointer<iAAttributes> m_parameterRanges;
+	QString m_parameterRangeFile,
+		m_parameterSetFile,
+		m_derivedOutFile;
+	int m_samplingID;
 };
 
 class iASampleFilterRunner : public iAFilterRunnerGUI

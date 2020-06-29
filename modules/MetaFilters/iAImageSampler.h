@@ -34,7 +34,6 @@
 #include <QThread>
 
 class iAAttributes;
-class iAModalityList;
 class iASamplingResults;
 class iASingleResult;
 class iADerivedOutputCalculator;
@@ -45,7 +44,7 @@ class MetaFilters_API iAImageSampler: public QThread, public iADurationEstimator
 	Q_OBJECT
 public:
 	iAImageSampler(
-		QSharedPointer<iAModalityList const> modalities,
+		QStringList fileNames,
 		QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAParameterGenerator> sampleGenerator,
 		int sampleCount,
@@ -73,7 +72,7 @@ signals:
 private:
 	//! @{
 	//! input
-	QSharedPointer<iAModalityList const> m_modalities;
+	QStringList m_fileNames;
 	QSharedPointer<iAAttributes> m_parameterRanges;
 	QSharedPointer<iAParameterGenerator> m_sampleGenerator;
 	int m_sampleCount;

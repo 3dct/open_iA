@@ -518,6 +518,25 @@ QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators()
 }
 
 
+QSharedPointer<iAParameterGenerator> GetParameterGenerator(QString const& name)
+{
+	QSharedPointer<iAParameterGenerator> result;
+	auto & paramGens = GetParameterGenerators();
+	for (QSharedPointer<iAParameterGenerator> paramGen : paramGens)
+	{
+		if (paramGen->name() == name)
+		{
+			result = paramGen;
+		}
+	}
+	if (!result)
+	{
+		DEBUG_LOG(QString("Could not find parameter generator '%1'").arg(name));
+	}
+	return result;
+}
+
+
 iASelectionParameterGenerator::iASelectionParameterGenerator(QString const & name, ParameterSetsPointer parameterSets):
 	m_name(name),
 	m_parameterSets(parameterSets)

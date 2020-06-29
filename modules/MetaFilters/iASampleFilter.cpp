@@ -23,6 +23,7 @@
 #include "dlg_samplingSettings.h"
 #include "iAImageSampler.h"
 #include "iAParameterGeneratorImpl.h"
+#include "iASampleParameterNames.h"
 
 #include <iAConsole.h>
 #include <iAModalityList.h>
@@ -32,75 +33,60 @@
 #include <QDir>
 
 
-class iASampleParameters
-{
-public:
-	QSharedPointer<iAModalityList const> modalities;
-	QSharedPointer<iAAttributes> parameterRanges;
-	QSharedPointer<iAParameterGenerator> sampleGenerator;
-	int sampleCount;
-	int labelCount;
-	QString outputFolder,
-		parameterRangeFile,
-		parameterSetFile,
-		derivedOutputFile,
-		executable,
-		additionalArguments,
-		algorithmName,
-		outBaseName;
-	bool useSeparateOutputFolder, computeDerivedOutput;
-	int samplingID;
-};
-
 IAFILTER_CREATE(iASampleFilter)
 
 iASampleFilter::iASampleFilter() :
 	iAFilter("Sample Filter", "Image Ensembles",
 		"Sample any internal filter or external algorithm<br/>", 1, 0)
 {
-	addParameter("Algorithm name", String, "");
+	addParameter(spnAlgorithmName, String, "");
 	QStringList algorithmTypes;
 	algorithmTypes << "BuiltIn" << "External";
-	addParameter("Algorithm type", Categorical, algorithmTypes);
-	addParameter("Filter", FilterName, "Image Quality");
-	addParameter("Executable", FileNameOpen, "");
-	addParameter("Parameter descriptor", FileNameOpen, "");
-	addParameter("Additional arguments", String, "");
+	addParameter(spnAlgorithmType, Categorical, algorithmTypes);
+	addParameter(spnFilter, FilterName, "Image Quality");
+	addParameter(spnExecutable, FileNameOpen, "");
+	addParameter(spnParameterDescriptor, FileNameOpen, "");
+	addParameter(spnAdditionalArguments, String, "");
 	QStringList samplingMethods;
 	auto& paramGens = GetParameterGenerators();
 	for (QSharedPointer<iAParameterGenerator> paramGen : paramGens)
 	{
 		samplingMethods << paramGen->name();
 	}
-	addParameter("Sampling method", Categorical, samplingMethods);
-	addParameter("Number of samples", Discrete, 100);
-	addParameter("Output folder", Folder, "C:/sampling");
-	addParameter("Base name", FileNameSave, "sample.mhd");
-	addParameter("Subfolder per sample", Boolean, false);
-	addParameter("Compute derived output", Boolean, false);
-	addParameter("Number of labels", Discrete, 2);
+	addParameter(spnSamplingMethod, Categorical, samplingMethods);
+	addParameter(spnNumberOfSamples, Discrete, 100);
+	addParameter(spnOutputFolder, Folder, "C:/sampling");
+	addParameter(spnBaseName, FileNameSave, "sample.mhd");
+	addParameter(spnSubfolderPerSample, Boolean, false);
+	addParameter(spnComputeDerivedOutput, Boolean, false);
+	addParameter(spnNumberOfLabels, Discrete, 2);
 }
 
 void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 {
 	// ITK_TYPED_CALL(sample, inputPixelType(), this, parameters);
+	auto parameterSetGenerator = GetParameterGenerator(parameters["Sampling method"].toString());
+	if (!parameterSetGenerator)
+	{
+		return;
+	}
 	iAImageSampler sampler(
-		m_p->modalities,
-		m_p->parameterRanges,
-		m_p->sampleGenerator,
-		m_p->sampleCount,
-		m_p->labelCount,
-		m_p->outputFolder,
-		m_p->parameterRangeFile,
-		m_p->parameterSetFile,
-		m_p->derivedOutputFile,
-		m_p->executable,
-		m_p->additionalArguments,
-		m_p->algorithmName,
-		m_p->outBaseName,
-		m_p->useSeparateOutputFolder,
-		m_p->computeDerivedOutput,
-		m_p->samplingID
+		m_fileNames,
+		m_parameterRanges,
+		parameterSetGenerator,
+		parameters[spnNumberOfSamples].toInt(),
+		parameters[spnNumberOfLabels].toInt(),
+		parameters[spnOutputFolder].toString(),
+		m_parameterRangeFile,
+		m_parameterSetFile,
+		m_derivedOutFile,
+		parameters[spnExecutable].toString(),
+		parameters[spnAdditionalArguments].toString(),
+		parameters[spnAlgorithmName].toString(),
+		parameters[spnBaseName].toString(),
+		parameters[spnSubfolderPerSample].toBool(),
+		parameters[spnComputeDerivedOutput].toBool(),
+		m_samplingID
 	);
 	/*
 	m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
@@ -115,11 +101,18 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 	sampler.run();
 }
 
-void iASampleFilter::setParameters(QSharedPointer<iASampleParameters> p)
+void iASampleFilter::setParameters(QStringList fileNames, QSharedPointer<iAAttributes> parameterRanges,
+	QString const& parameterRangeFile, QString const& parameterSetFile, QString const& derivedOutFile, int samplingID)
 {
-	m_p = p;
-}
+	// TODO: get parameter ranges and filenames in cmd/gui-agnostical way?
+	m_fileNames = fileNames;
+	m_parameterRanges = parameterRanges;
 
+	m_parameterRangeFile = parameterRangeFile;
+	m_parameterSetFile = parameterSetFile;
+	m_derivedOutFile = derivedOutFile;
+	m_samplingID = samplingID;
+}
 
 
 
@@ -143,35 +136,20 @@ bool iASampleFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QMa
 	}
 
 	dlg.getValues(parameters);
-	// get parameter ranges
-	QSharedPointer<iASampleParameters> p(new iASampleParameters());
-	p->outputFolder = dlg.outputFolder();
-	QDir outputFolder(p->outputFolder);
+	QDir outputFolder(parameters["Output folder"].toString());
 	outputFolder.mkpath(".");
-	if (dlg.computeDerivedOutput() && dlg.labelCount() < 2)
+	if (parameters["Compute derived output"].toBool() && parameters["Number of labels"].toInt() < 2)
 	{
-		DEBUG_LOG("Label Count must not be smaller than 2!");
+		DEBUG_LOG("'Number of labels' must not be smaller than 2!");
 		return false;
 	}
-	p->labelCount = dlg.labelCount();
-	p->parameterRanges = dlg.parameterRanges();
-	p->sampleGenerator = dlg.generator();
-	p->sampleCount = dlg.sampleCount();
-	p->executable =	dlg.executable();
-	p->additionalArguments = dlg.additionalArguments();
-	p->algorithmName = dlg.algorithmName();
-	p->outBaseName = dlg.outBaseName();
-	p->useSeparateOutputFolder = dlg.useSeparateFolder();
-	p->computeDerivedOutput = dlg.computeDerivedOutput();
-	// TOOD: 
-	// iASEAFile::DefaultSMPFileName,
-	// iASEAFile::DefaultSPSFileName,
-	// iASEAFile::DefaultCHRFileName,
-	p->parameterRangeFile = dlg.outBaseName() + "-parameterRanges.csv";
-	p->parameterSetFile = dlg.outBaseName() + "-parameterSets.csv";
-	p->derivedOutputFile = dlg.outBaseName() + "-derivedOutput.csv";
-	// TODO: check if ID is needed ?
-	p->samplingID = 0; 
-	sampleFilter->setParameters(p);
+	auto parameterRanges = dlg.parameterRanges();
+	QString outBaseName = parameters["Base name"].toString();
+	QString parameterRangeFile = outBaseName + "-parameterRanges.csv";  // iASEAFile::DefaultSMPFileName,
+	QString parameterSetFile = outBaseName + "-parameterSets.csv";		// iASEAFile::DefaultSPSFileName,
+	QString derivedOutputFile = outBaseName + "-derivedOutput.csv";		// iASEAFile::DefaultCHRFileName,
+	QStringList fileNames;
+	int SamplingID = 0;
+	sampleFilter->setParameters(fileNames, parameterRanges, parameterRangeFile, parameterSetFile, derivedOutputFile, SamplingID);
 	return true;
 }

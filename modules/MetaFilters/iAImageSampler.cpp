@@ -44,7 +44,7 @@ const int CONCURRENT_COMPUTATION_RUNS = 1;
 iAPerformanceTimer m_computationTimer;
 
 iAImageSampler::iAImageSampler(
-		QSharedPointer<iAModalityList const> modalities,
+		QStringList fileNames,
 		QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAParameterGenerator> sampleGenerator,
 		int sampleCount,
@@ -60,7 +60,7 @@ iAImageSampler::iAImageSampler(
 		bool separateOutputDir,
 		bool calculateChar,
 		int samplingID) :
-	m_modalities(modalities),
+	m_fileNames(fileNames),
 	m_parameterRanges(parameterRanges),
 	m_sampleGenerator(sampleGenerator),
 	m_sampleCount(sampleCount),
@@ -176,9 +176,9 @@ void iAImageSampler::run()
 		argumentList << additionalArgumentList;
 		argumentList << outputFile;
 
-		for (int i = 0; i < m_modalities->size(); ++i)
+		for (QString fileName: m_fileNames)
 		{
-			argumentList << QString("%1").arg(m_modalities->get(i)->fileName()) ;
+			argumentList << fileName;
 		}
 
 		for (int i = 0; i < m_parameterCount; ++i)
@@ -201,7 +201,7 @@ void iAImageSampler::run()
 		}
 		iACommandRunner* cmd = new iACommandRunner(m_executable, argumentList);
 
-		QSharedPointer<iAModality const> mod0 = m_modalities->get(0);
+		//QSharedPointer<iAModality const> mod0 = m_modalities->get(0);
 
 		m_runningComputation.insert(cmd, m_curLoop);
 		connect(cmd, &iACommandRunner::finished, this, &iAImageSampler::computationFinished );

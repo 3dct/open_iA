@@ -94,18 +94,8 @@ class MetaFilters_API dlg_samplingSettings : public dlg_samplingSettingsUI
 public:
 	dlg_samplingSettings(QWidget *parentWidget, int inputImageCount,
 		iASettings const & values);
-	QSharedPointer<iAParameterGenerator> generator();
 	QSharedPointer<iAAttributes> parameterRanges();
-	QString outputFolder() const;
-	QString executable() const;
-	QString additionalArguments() const;
-	QString algorithmName() const;
-	int sampleCount() const;
-	int labelCount() const;
 	void getValues(iASettings & values) const;
-	QString outBaseName() const;
-	bool useSeparateFolder() const;
-	bool computeDerivedOutput() const;
 private slots:
 	void chooseOutputFolder();
 	void chooseParameterDescriptor();

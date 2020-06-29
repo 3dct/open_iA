@@ -25,20 +25,24 @@
 #include "dlg_Consensus.h"
 #include "dlg_progress.h"
 #include "dlg_samplings.h"
-#include "iAAttributes.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageTree.h"
 #include "iAImageTreeLeaf.h" // for VisitLeafs
-#include "iAImageSampler.h"
 #include "iALabelInfo.h"
 #include "iAImageClusterer.h"
-#include "iASamplingResults.h"
 #include "iASEAFile.h"
 
+// MetaFilters
+#include <iAImageSampler.h>
+#include <iAParameterGeneratorImpl.h>
+#include <iASamplingResults.h>
+#include <iASampleParameterNames.h>
 #include <dlg_samplingSettings.h>
 
+// core
 #include <dlg_commoninput.h>
 #include <dlg_modalities.h>
+#include <iAAttributes.h>
 #include <iAAttributeDescriptor.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
@@ -185,34 +189,46 @@ void dlg_GEMSeControl::startSampling()
 	m_dlgSamplingSettings = new dlg_samplingSettings(this, m_dlgModalities->modalities()->size(), m_samplingSettings);
 	if (m_dlgSamplingSettings->exec() == QDialog::Accepted)
 	{
-		// get parameter ranges
 		QSharedPointer<iAAttributes> parameterRanges = m_dlgSamplingSettings->parameterRanges();
-		m_outputFolder = m_dlgSamplingSettings->outputFolder();
+		m_dlgSamplingSettings->getValues(m_samplingSettings);
+		m_outputFolder = m_samplingSettings["Output folder"].toString();
 		QDir outputFolder(m_outputFolder);
 		outputFolder.mkpath(".");
-		if (m_dlgSamplingSettings->labelCount() < 2)
+		if (m_samplingSettings["Compute derived output"].toBool() &&
+			m_samplingSettings["Number of labels"].toInt() < 2)
 		{
 			DEBUG_LOG("Label Count must not be smaller than 2!");
 			QMessageBox::warning(this, "GEMSe", "Label Count must not be smaller than 2!");
 			return;
 		}
-		m_simpleLabelInfo->setLabelCount(m_dlgSamplingSettings->labelCount());
+		m_simpleLabelInfo->setLabelCount(m_samplingSettings["Number of labels"].toInt());
+		QStringList fileNames;
+		auto datasets = m_dlgModalities->modalities();
+		for (int i = 0; i < datasets->size(); ++i)
+		{
+			fileNames << datasets->get(i)->fileName();
+		}
+		auto parameterSetGenerator = GetParameterGenerator(m_samplingSettings[spnSamplingMethod].toString());
+		if (!parameterSetGenerator)
+		{
+			return;
+		}
 		m_sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
-			m_dlgModalities->modalities(),
+			fileNames,
 			parameterRanges,
-			m_dlgSamplingSettings->generator(),
-			m_dlgSamplingSettings->sampleCount(),
-			m_dlgSamplingSettings->labelCount(),
-			m_outputFolder,
+			parameterSetGenerator,
+			m_samplingSettings[spnNumberOfSamples].toInt(),
+			m_samplingSettings[spnNumberOfLabels].toInt(),
+			m_samplingSettings[spnOutputFolder].toString(),
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
-			m_dlgSamplingSettings->executable(),
-			m_dlgSamplingSettings->additionalArguments(),
-			m_dlgSamplingSettings->algorithmName(),
-			m_dlgSamplingSettings->outBaseName(),
-			m_dlgSamplingSettings->useSeparateFolder(),
-			m_dlgSamplingSettings->computeDerivedOutput(),
+			m_samplingSettings[spnExecutable].toString(),
+			m_samplingSettings[spnAdditionalArguments].toString(),
+			m_samplingSettings[spnAlgorithmName].toString(),
+			m_samplingSettings[spnBaseName].toString(),
+			m_samplingSettings[spnSubfolderPerSample].toBool(),
+			m_samplingSettings[spnComputeDerivedOutput].toBool(),
 			m_dlgSamplings->GetSamplings()->size()
 		));
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
@@ -224,7 +240,6 @@ void dlg_GEMSeControl::startSampling()
 
 		// trigger parameter set creation & sampling (in foreground with progress bar for now)
 		m_sampler->start();
-		m_dlgSamplingSettings->getValues(m_samplingSettings);
 	}
 	delete m_dlgSamplingSettings;
 	m_dlgSamplingSettings = 0;
@@ -530,7 +545,9 @@ void dlg_GEMSeControl::EnableClusteringDependantUI()
 		m_dlgConsensus = new dlg_Consensus(mdiChild, m_dlgGEMSe, m_simpleLabelInfo->count(), m_outputFolder,
 			m_dlgSamplings);
 		if (m_refImg)
+		{
 			m_dlgConsensus->SetGroundTruthImage(m_refImg);
+		}
 		mdiChild->splitDockWidget(this, m_dlgConsensus, Qt::Vertical);
 	}
 }
@@ -614,7 +631,9 @@ void dlg_GEMSeControl::loadRefImgSlot()
 		iAIOProvider::MetaImages
 	);
 	if (refFileName.isEmpty())
+	{
 		return;
+	}
 	loadRefImg(refFileName);
 }
 
@@ -734,21 +753,27 @@ void dlg_GEMSeControl::freeMemory()
 void dlg_GEMSeControl::setProbabilityProbing(int state)
 {
 	if (!m_dlgGEMSe)
+	{
 		return;
+	}
 	m_dlgGEMSe->SetProbabilityProbing(state == Qt::Checked);
 }
 
 void dlg_GEMSeControl::setCorrectnessUncertainty(int state)
 {
 	if (!m_dlgGEMSe)
+	{
 		return;
+	}
 	m_dlgGEMSe->SetCorrectnessUncertaintyOverlay(state == Qt::Checked);
 }
 
 void dlg_GEMSeControl::dataTFChanged()
 {
 	if (!m_dlgGEMSe)
+	{
 		return;
+	}
 	m_dlgGEMSe->DataTFChanged();
 }
 

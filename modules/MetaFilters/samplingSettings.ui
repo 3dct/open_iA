@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>660</width>
+    <width>575</width>
     <height>498</height>
    </rect>
   </property>
@@ -285,9 +285,6 @@
         </property>
         <property name="text">
          <string># of Labels</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>

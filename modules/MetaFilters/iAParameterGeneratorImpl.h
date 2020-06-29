@@ -69,4 +69,5 @@ private:
 	ParameterSetsPointer m_parameterSets;
 };
 
-QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators();
+MetaFilters_API QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators();
+MetaFilters_API QSharedPointer<iAParameterGenerator> GetParameterGenerator(QString const& name);
