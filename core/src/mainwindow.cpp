@@ -51,7 +51,6 @@
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkSmartVolumeMapper.h>
-#include <vtkVersion.h>
 
 #include <QCloseEvent>
 #include <QDragEnterEvent>

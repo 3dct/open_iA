@@ -27,7 +27,6 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
-#include <vtkVersion.h>
 
 class iASpline
 {

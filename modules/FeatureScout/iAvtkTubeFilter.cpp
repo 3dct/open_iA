@@ -12,6 +12,8 @@
 =========================================================================*/
 #include "iAvtkTubeFilter.h"
 
+#include <iAVtkVersion.h>
+
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
 #include <vtkFloatArray.h>
@@ -22,7 +24,6 @@
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyLine.h>
-#include <vtkVersion.h>
 
 #include <algorithm>
 
@@ -125,7 +126,7 @@ int iAvtkTubeFilter::RequestData(
   vtkCellArray *newStrips;
   vtkIdType npts = 0;
 
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
   vtkIdType *pts = nullptr;
 #else
   const vtkIdType* ptsOrig = nullptr;
@@ -255,7 +256,7 @@ int iAvtkTubeFilter::RequestData(
   // the line cellIds start after the last vert cellId
   inCellId = input->GetNumberOfVerts();
   for (inLines->InitTraversal();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
        inLines->GetNextCell(npts,pts) && !abort; inCellId++)
 #else
        inLines->GetNextCell(npts,ptsOrig) && !abort; inCellId++)
@@ -264,7 +265,7 @@ int iAvtkTubeFilter::RequestData(
     this->UpdateProgress((double)inCellId/numLines);
     abort = this->GetAbortExecute();
 
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
     // remove degenerate lines to avoid warnings
     npts = static_cast<vtkIdType>(std::unique(pts, pts + npts, IdPointsEqual(inPts)) -
            pts);

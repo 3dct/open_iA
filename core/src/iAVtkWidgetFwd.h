@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkVersion.h>
+#include "iAVtkVersion.h"
 
 #include <QtGlobal>
 

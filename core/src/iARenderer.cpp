@@ -69,7 +69,6 @@
 #include <vtkTextProperty.h>
 #include <vtkTransform.h>
 #include <vtkUnstructuredGrid.h>
-#include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
 
 #include <QApplication>

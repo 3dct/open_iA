@@ -34,7 +34,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkTexture.h>
 #include <vtkTubeFilter.h>
-#include <vtkVersion.h>
 
 
 #include <vtkQImageToImageSource.h>

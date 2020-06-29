@@ -45,7 +45,7 @@ iAPCView::iAPCView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	PCContainer->setLayout( layoutHB );
 
 	m_view->GetScene()->AddItem( m_chart );
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_view->SetInteractor( m_widget->GetInteractor() );
 #else
 	m_view->SetInteractor( m_widget->interactor() );
@@ -54,7 +54,7 @@ iAPCView::iAPCView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_view->GetRenderWindow()->PointSmoothingOn();
 	m_view->GetRenderWindow()->PolygonSmoothingOn();
 
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_widget->SetRenderWindow( m_view->GetRenderWindow() );
 #else
 	m_widget->setRenderWindow( m_view->GetRenderWindow() );

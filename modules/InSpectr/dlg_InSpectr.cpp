@@ -206,7 +206,7 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	CREATE_OLDVTKWIDGET(m_colormapWidget);
 	horizontalLayout_8->insertWidget(0, m_colormapWidget);
 	vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_colormapWidget->GetRenderWindow()->AddRenderer(m_colormapRen);
 	m_colormapWidget->GetInteractor()->SetInteractorStyle(style);
 #else
@@ -234,7 +234,7 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	m_colormapScalarBarActor->SetPosition2(1.0, 0.93);
 
 	m_colormapRen->AddActor2D(m_colormapScalarBarActor);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_colormapWidget->GetRenderWindow()->Render();
 #else
 	m_colormapWidget->renderWindow()->Render();
@@ -438,7 +438,7 @@ void dlg_InSpectr::initSpectraOverlay()
 		numBin,
 		sensVal, sensMax, threshVal, threshMax, smoothFade);
 	m_spectrumDiagram->addImageOverlay(m_spectraHistogramImage);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_colormapWidget->GetRenderWindow()->Render();
 #else
 	m_colormapWidget->renderWindow()->Render();

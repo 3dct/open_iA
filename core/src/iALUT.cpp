@@ -22,12 +22,12 @@
 #include "iALUT.h"
 
 #include "iALookupTable.h"
+#include "iAVtkVersion.h"
 
 #include <QColor>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>
-#include <vtkVersion.h>
 
 const QStringList colormaps = QStringList()
 	<< "Diverging blue-gray-red"

@@ -76,7 +76,7 @@ iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_sbActor->SetOrientationToHorizontal();
 	m_sbActor->SetLookupTable( m_lut );
 	m_sbActor->SetTitle( "Deviation from reference porosity (%)" );
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_sbWidget->GetRenderWindow()->AddRenderer( m_sbRen );
 #else
 	m_sbWidget->renderWindow()->AddRenderer( m_sbRen );

@@ -64,7 +64,7 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 
 	CREATE_OLDVTKWIDGET(graphWidget);
 	this->horizontalLayout->addWidget(graphWidget);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	graphWidget->GetRenderWindow()->AddRenderer(m_renderer);
 #else
 	graphWidget->renderWindow()->AddRenderer(m_renderer);
@@ -75,7 +75,7 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 
 	m_interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 	m_interactor->SetInteractorStyle(m_interactorStyle);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_interactor->SetRenderWindow(graphWidget->GetRenderWindow());
 	graphWidget->GetRenderWindow()->Render();
 #else
@@ -94,7 +94,7 @@ void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, size_t numRanks,
 	vtkNew<vtkPoints> points;
 	iAVtkGraphDrawer graphDrawer;
 	//graphDrawer.setMaxIteration(MAX_ITERATIONS);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	graphDrawer.createLayout(points.GetPointer(), m_graph, graphWidget->GetRenderWindow()->GetSize(), numRanks);
 #else
 	graphDrawer.createLayout(points.GetPointer(), m_graph, graphWidget->renderWindow()->GetSize(), numRanks);
@@ -103,7 +103,7 @@ void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, size_t numRanks,
 
 	m_graphItem->SetGraph(m_graph);
 	m_graphItem->Update();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	graphWidget->GetRenderWindow()->Render();
 #else
 	graphWidget->renderWindow()->Render();

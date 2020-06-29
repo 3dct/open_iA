@@ -46,7 +46,6 @@
 #include <vtkCubeAxesActor2D.h>
 #include <vtkPointData.h>
 #include <vtkConeSource.h>
-#include <vtkVersion.h>
 
 iAPlot3DVtk::iAPlot3DVtk():
 					m_correctTransparency(0),
