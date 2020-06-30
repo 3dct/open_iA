@@ -46,16 +46,11 @@ public:
 	std::vector<std::vector<double>>* getHeatmapColoring(int octreeLevel, int feature);
 	vtkSmartPointer<vtkLookupTable> getLut();
 	void calculateColorBarLegend();
-	vtkSmartPointer<vtkScalarBarActor> getColorBar();
-	void setColorBarLegendTitle(const char* title);
 	void showColorBarLegend();
 	void hideColorBarLegend();
 	int getNumberOfFeatures();
 	QString getFeatureName(int feature);
-	void moveColorBarLegendInEyeDir(double x, double y, double z);
-	vtkSmartPointer<vtkTexture> generateColorBarLegendTexture();
-	void calculateOwnColorBarLegend();
-	void moveColorBar(double *pos);
+	void moveColorBarLegend(double *pos);
 
 private:
 	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
@@ -66,7 +61,6 @@ private:
 	std::vector<std::vector<double>>* m_minMaxValues;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkLookupTable> m_lut;
-	vtkSmartPointer<vtkScalarBarActor> m_colorBar;
 	vtkSmartPointer<vtkActor> m_ownColorBar;
 	vtkSmartPointer<vtkTextActor3D> textSource;
 	vtkSmartPointer<vtkRenderer> m_renderer;

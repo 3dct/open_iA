@@ -298,7 +298,7 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 			//DEBUG_LOG(QString("Actors new Pos is: %1 / %2 / %3").arg(m_objectVis->getActor()->GetPosition()[0]).arg(m_objectVis->getActor()->GetPosition()[1]).arg(m_objectVis->getActor()->GetPosition()[2]));
 		
 			double colorLegendlcPos[3] = { cPos[deviceID][0] + 40, cPos[deviceID][1], cPos[deviceID][2]};
-			fiberMetrics->moveColorBar(colorLegendlcPos);
+			fiberMetrics->moveColorBarLegend(colorLegendlcPos);
 		}
 
 		double lcPos[3] = { cPos[deviceID][0], cPos[deviceID][1] - 24, cPos[deviceID][2]};
@@ -842,6 +842,8 @@ void iAVRMain::calculateMetrics()
 	//Gets only called when thread is finished
 	if(!m_iDMappingThreadRunning){
 		fiberMetrics->setFiberCoverageData(m_fiberCoverage);
+		fiberMetrics->hideColorBarLegend();
+
 		std::vector<std::vector<double>>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature);
 
 		m_objectVis->applyHeatmapColoring(rgba); // Only call when model is calculated (poly data has to be accessible)
@@ -849,8 +851,9 @@ void iAVRMain::calculateMetrics()
 		QString text = QString("Feature: %1").arg(fiberMetrics->getFeatureName(currentFeature));
 		
 		m_3DTextLabels->at(1)->create3DLabel(text);
-
-		fiberMetrics->setColorBarLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
+		
+		fiberMetrics->showColorBarLegend();
+		//fiberMetrics->setColorBarLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
 	}
 }
 
@@ -1125,8 +1128,7 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 		
 		//fiberMetrics->showColorBarLegend();
 
-		fiberMetrics->generateColorBarLegendTexture();
-		fiberMetrics->calculateOwnColorBarLegend();
+		fiberMetrics->showColorBarLegend();
 	}
 	else
 	{
