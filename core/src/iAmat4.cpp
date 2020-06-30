@@ -23,13 +23,27 @@
 #include <utility>
 #include <cmath>
 
-iAMat4::iAMat4 ( float v )
+iAMat4::iAMat4(float v)
 {
-	for ( int i = 0; i < 4; i++)
-		for ( int j = 0; j < 4; j++)
-			x [i][j] = (i == j) ? v : 0.0f;
-
+	for (int i = 0; i < Rows; i++)
+	{
+		for (int j = 0; j < Cols; j++)
+		{
+			x[i][j] = (i == j) ? v : 0.0f;
+		}
+	}
 	x [3][3] = 1;
+}
+
+iAMat4::iAMat4(const iAMat4& m)
+{
+	std::copy(&m.x[0][0], &m.x[0][0] + Rows*Cols, &x[0][0]);
+}
+
+iAMat4& iAMat4::operator=(iAMat4 const & m)
+{
+	std::copy(&m.x[0][0], &m.x[0][0] + Rows * Cols, &x[0][0]);
+	return *this;
 }
 
 void iAMat4::invert ()
@@ -38,8 +52,7 @@ void iAMat4::invert ()
 
 	for ( int i = 0; i < 4; i++ )
 	{
-		float	d = x [i][i];
-
+		float d = x [i][i];
 		if ( d != 1.0)
 		{
 			for ( int j = 0; j < 4; j++ )
@@ -72,35 +85,53 @@ void iAMat4::invert ()
 
 void iAMat4::transpose()
 {
-	for ( int i = 0; i < 4; i++ )
-		for ( int j = i; j < 4; j++ )
-			if ( i != j )
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = i; j < 4; j++)
+		{
+			if (i != j)
+			{
 				std::swap(x[i][j], x[j][i]);
+			}
+		}
+	}
 }
 
 iAMat4& iAMat4::operator += ( const iAMat4& a )
 {
-	for ( int i = 0; i < 4; i++ )
-		for ( int j = 0; j < 4; j++ )
-			x [i][j] += a.x [i][j];
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			x[i][j] += a.x[i][j];
+		}
+	}
 
 	return *this;
 }
 
 iAMat4& iAMat4::operator -= ( const iAMat4& a )
 {
-	for ( int i = 0; i < 4; i++ )
-		for ( int j = 0; j < 4; j++ )
-			x [i][j] -= a.x [i][j];
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			x[i][j] -= a.x[i][j];
+		}
+	}
 
 	return *this;
 }
 
 iAMat4& iAMat4::operator *= ( float v )
 {
-	for ( int i = 0; i < 4; i++ )
-		for ( int j = 0; j < 4; j++ )
-			x [i][j] *= v;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			x[i][j] *= v;
+		}
+	}
 
 	return *this;
 }
@@ -108,65 +139,88 @@ iAMat4& iAMat4::operator *= ( float v )
 iAMat4& iAMat4::operator *= ( const iAMat4& a )
 {
 	iAMat4 res ( *this );
-	for ( int i = 0; i < 4; i++ )
-		for ( int j = 0; j < 4; j++ )
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
 		{
 			float sum = 0;
-			for ( int k = 0; k < 4; k++ )
-				sum += res.x [i][k] * a.x [k][j];
-			x [i][j] = sum;
+			for (int k = 0; k < 4; k++)
+			{
+				sum += res.x[i][k] * a.x[k][j];
+			}
+			x[i][j] = sum;
 		}
+	}
 	return *this;
 }
 
 iAMat4 operator + ( const iAMat4& a, const iAMat4& b )
 {
 	iAMat4 res;
-	for ( int i = 0; i < 4; i++ )
-		for ( int j = 0; j < 4; j++ )
-			res.x [i][j] = a.x [i][j] + b.x [i][j];
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			res.x[i][j] = a.x[i][j] + b.x[i][j];
+		}
+	}
 	return res;
 }
 
 iAMat4 operator - ( const iAMat4& a, const iAMat4& b )
 {
 	iAMat4 res;
-	for ( int i = 0; i < 4; i++ )
-		for ( int j = 0; j < 4; j++ )
-			res.x [i][j] = a.x [i][j] - b.x [i][j];
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			res.x[i][j] = a.x[i][j] - b.x[i][j];
+		}
+	}
 	return res;
 }
 
 iAMat4 operator * ( const iAMat4& a, const iAMat4& b )
 {
 	iAMat4 res;
-	for ( int i = 0; i < 4; i++ )
-		for ( int j = 0; j < 4; j++ )
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
 		{
 			float sum = 0;
-			for ( int k = 0; k < 4; k++ )
-				sum += a.x [i][k] * b.x [k][j];
-			res.x [i][j] = sum;
+			for (int k = 0; k < 4; k++)
+			{
+				sum += a.x[i][k] * b.x[k][j];
+			}
+			res.x[i][j] = sum;
 		}
+	}
 	return res;
 }
 
 iAMat4 operator * ( const iAMat4& a, float v )
 {
 	iAMat4 res;
-	for ( int i = 0; i < 4; i++ )
-		for ( int j = 0; j < 4; j++ )
-			res.x [i][j] = a.x [i][j] * v;
-
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			res.x[i][j] = a.x[i][j] * v;
+		}
+	}
 	return res;
 }
 
 iAMat4 operator * ( float v, const iAMat4& a )
 {
 	iAMat4 res;
-	for ( int i = 0; i < 4; i++ )
-		for ( int j = 0; j < 4; j++ )
-			res.x [i][j] = a.x [i][j] * v;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			res.x[i][j] = a.x[i][j] * v;
+		}
+	}
 	return res;
 }
 
@@ -179,8 +233,10 @@ iAVec3f operator * ( const iAMat4& m, const iAVec3f & v )
 	);
 	float denom = m.x [3][0] * v.x() + m.x [3][1] * v.y() +  m.x [3][2] * v.z() + m.x [3][3];
 
-	if ( denom != 1.0 )
+	if (denom != 1.0)
+	{
 		res = res / denom;
+	}
 
 	return res;
 }
