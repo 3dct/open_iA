@@ -1385,10 +1385,10 @@ void MainWindow::toggleMagicLens3D(bool isChecked)
 
 void MainWindow::rendererCamPosition()
 {
-	int pos = sender()->property("camPosition").toInt();
-	if (activeChild<iAChangeableCameraWidget>())
+	if (activeMdiChild())
 	{
-		activeChild<iAChangeableCameraWidget>()->setCamPosition(pos);
+		int pos = sender()->property("camPosition").toInt();
+		activeMdiChild()->setCamPosition(pos);
 	}
 }
 
@@ -1595,14 +1595,13 @@ void MainWindow::updateMenus()
 	actionInteractionModeCamera->setEnabled(hasMdiChild);
 	actionInteractionModeRegistration->setEnabled(hasMdiChild);
 
-	bool hasChangeableRenderer = activeChild<iAChangeableCameraWidget>();
-	actionViewXDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionViewmXDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionViewYDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionViewmYDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionViewZDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionViewmZDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionIsometricViewInRaycaster->setEnabled(hasChangeableRenderer);
+	actionViewXDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewmXDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewYDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewmYDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewZDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewmZDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionIsometricViewInRaycaster->setEnabled(hasMdiChild);
 	actionAssignView->setEnabled(hasMdiChild);
 	actionLoadCameraSettings->setEnabled(hasMdiChild);
 	actionSaveCameraSettings->setEnabled(hasMdiChild);

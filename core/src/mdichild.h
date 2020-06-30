@@ -22,7 +22,6 @@
 
 //#include "defines.h"
 #include "qthelper/iAQTtoUIConnector.h"
-#include "iAChangeableCameraWidget.h"
 #include "iAPreferences.h"
 #include "iARenderSettings.h"
 #include "iASavableProject.h"
@@ -86,7 +85,7 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
 //! Child window of MainWindow's mdi area for showing a volume or mesh dataset.
 //! Some tools in the modules attach to MdiChild's to enhance their functionality.
-class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild, public iAChangeableCameraWidget, public iASavableProject
+class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild, public iASavableProject
 {
 	Q_OBJECT
 public:
@@ -346,7 +345,7 @@ public slots:
 	void camPosition(double * camOptions);
 	//! Calls the setCamPosition function of iARenderer (described there in more detail).
 	//! @param pos set one of the predefined camera positions
-	void setCamPosition(int pos) override;
+	void setCamPosition(int pos);
 	//! Calls the setCamPosition function of iARenderer (described there in more detail).
 	//! @param camOptions All informations of the camera stored in a double array
 	//! @param rsParallelProjection boolean variable to determine if parallel projection option on.
