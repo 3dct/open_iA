@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iASavableProject.h"
 
-#include "iAChangeableCameraWidget.h" // TODO: disentangle - but no separate file!
 #include <io/iAIOProvider.h>
 
 #include <QApplication>
@@ -48,7 +47,4 @@ QString const& iASavableProject::fileName() const
 }
 
 iASavableProject::~iASavableProject()
-{}
-
-iAChangeableCameraWidget::~iAChangeableCameraWidget()
 {}
