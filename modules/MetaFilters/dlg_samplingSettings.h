@@ -103,6 +103,7 @@ private slots:
 	void parameterDescriptorChanged();
 	void saveSettings();
 	void loadSettings();
+	void runClicked();
 private:
 	void setInputsFromMap(iASettings const & values);
 	void loadDescriptor(QString const & fileName);

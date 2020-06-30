@@ -108,6 +108,11 @@ void iAImageSampler::run()
 		DEBUG_LOG("Algorithm has no parameters, nothing to sample!");
 		return;
 	}
+	if (m_fileNames.size() == 0)
+	{
+		DEBUG_LOG("No input given!");
+		return;
+	}
 	DEBUG_LOG("");
 	DEBUG_LOG("---------- SAMPLING STARTED ----------");
 	StatusMsg("Generating sampling parameter sets...");

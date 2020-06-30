@@ -33,10 +33,8 @@
 
 #include <QCheckBox>
 #include <QFileDialog>
-#include <QMimeData>
-#include <QShortcut>
+#include <QMessageBox>
 #include <QTextStream>
-#include <QStandardItemModel>
 
 #include <cassert>
 
@@ -79,17 +77,20 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	connect(pbSaveSettings, &QPushButton::clicked, this, &dlg_samplingSettings::saveSettings);
 	connect(pbLoadSettings, &QPushButton::clicked, this, &dlg_samplingSettings::loadSettings);
 
-	connect (pbRun, &QPushButton::clicked, this, &dlg_samplingSettings::accept);
+	connect (pbRun, &QPushButton::clicked, this, &dlg_samplingSettings::runClicked);
 	connect (pbCancel, &QPushButton::clicked, this, &dlg_samplingSettings::reject);
 };
 
 namespace
 {
+	int ContinuousPrecision = 6;
 	bool setTextValue(iASettings const& values, QString const& name, QLineEdit* edit)
 	{
 		if (values.contains(name))
 		{
-			edit->setText(values[name].toString());
+			auto & v = values[name];
+			QString txt = (v.type() == QVariant::Double) ? QString::number(v.toDouble(), 'g', ContinuousPrecision) : v.toString();
+			edit->setText(txt);
 			return true;
 		}
 		return false;
@@ -111,7 +112,7 @@ namespace
 		int curGridLine)
 	{
 		QSharedPointer<iAParameterInputs> result;
-
+		// merge with common input / iAParameter dlg ?
 		if (descriptor->valueType() == Categorical)
 		{
 			auto categoryInputs = new iACategoryParameterInputs();
@@ -127,21 +128,25 @@ namespace
 			gridLay->addWidget(w, curGridLine, 1, 1, 3);
 			result = QSharedPointer<iAParameterInputs>(categoryInputs);
 		}
-		else
+		else if (descriptor->valueType() == Continuous || descriptor->valueType() == Discrete)
 		{
 			auto numberInputs = new iANumberParameterInputs();
 			numberInputs->from = new QLineEdit(QString::number(descriptor->min(),
 				descriptor->valueType() != Continuous ? 'd' : 'g',
-				descriptor->valueType() != Continuous ? 0 : 6));
+				descriptor->valueType() != Continuous ? 0 : ContinuousPrecision));
 			numberInputs->to = new QLineEdit(QString::number(descriptor->max(),
 				descriptor->valueType() != Continuous ? 'd' : 'g',
-				descriptor->valueType() != Continuous ? 0 : 6));
+				descriptor->valueType() != Continuous ? 0 : ContinuousPrecision));
 			gridLay->addWidget(numberInputs->from, curGridLine, 1);
 			gridLay->addWidget(numberInputs->to, curGridLine, 2);
 			numberInputs->logScale = new QCheckBox("Log Scale");
 			numberInputs->logScale->setChecked(descriptor->isLogScale());
 			gridLay->addWidget(numberInputs->logScale, curGridLine, 3);
 			result = QSharedPointer<iAParameterInputs>(numberInputs);
+		}
+		else
+		{
+			DEBUG_LOG(QString("Don't know how to handle parameters with type %1").arg(descriptor->valueType()));
 		}
 		result->label = new QLabel(pName);
 		gridLay->addWidget(result->label, curGridLine, 0);
@@ -155,6 +160,7 @@ void iAParameterInputs::deleteGUI()
 	delete label;
 	deleteGUIComponents();
 }
+
 
 void iANumberParameterInputs::retrieveInputValues(iASettings & values)
 {
@@ -219,6 +225,7 @@ QSharedPointer<iAAttributeDescriptor> iANumberParameterInputs::currentDescriptor
 	}
 	return desc;
 }
+
 
 QString iACategoryParameterInputs::featureString()
 {
@@ -300,6 +307,7 @@ QSharedPointer<iAAttributeDescriptor> iACategoryParameterInputs::currentDescript
 
 }
 
+
 void dlg_samplingSettings::setInputsFromMap(iASettings const & values)
 {
 	::loadSettings(values, m_widgetMap);
@@ -368,7 +376,9 @@ void dlg_samplingSettings::loadSettings()
 		QString(),
 		"Sampling Settings File (*.ssf);;");
 	if (fileName.isEmpty())
+	{
 		return;
+	}
 	iASettings settings;
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly))
@@ -501,4 +511,34 @@ void dlg_samplingSettings::chooseOutputFolder()
 	{
 		leOutputFolder->setText(outFolder);
 	}
+}
+
+void dlg_samplingSettings::runClicked()
+{
+	QString minStr = QString::number(std::numeric_limits<double>::lowest(), 'g', ContinuousPrecision);
+	QString maxStr = QString::number(std::numeric_limits<double>::max(), 'g', ContinuousPrecision);
+	QString msg;
+	for (int l = 0; l < m_paramInputs.size(); ++l)
+	{
+		auto desc = m_paramInputs[l]->currentDescriptor();
+		if (desc->valueType() == Continuous || desc->valueType() == Discrete)
+		{
+			auto curMinStr = QString::number(desc->min(), 'g'),
+			     curMaxStr = QString::number(desc->max(), 'g');
+			if ( !std::isfinite(desc->min()) || minStr == curMinStr)
+			{
+				msg += QString("Parameter '%1': invalid minimum value!").arg(desc->name()).arg(desc->min());
+			}
+			if ( !std::isfinite(desc->max()) || maxStr == curMaxStr)
+			{
+				msg += QString("Parameter '%1': invalid maximum value!").arg(desc->name()).arg(desc->max());
+			}
+		}
+	}
+	if (!msg.isEmpty())
+	{
+		QMessageBox::warning(this, "Invalid input", msg);
+		return;
+	}
+	accept();
 }

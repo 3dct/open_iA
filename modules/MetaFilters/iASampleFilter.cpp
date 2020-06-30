@@ -27,6 +27,7 @@
 
 #include <iAConsole.h>
 #include <iAModalityList.h>
+#include <iAModality.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 
@@ -149,6 +150,11 @@ bool iASampleFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QMa
 	QString parameterSetFile = outBaseName + "-parameterSets.csv";		// iASEAFile::DefaultSPSFileName,
 	QString derivedOutputFile = outBaseName + "-derivedOutput.csv";		// iASEAFile::DefaultCHRFileName,
 	QStringList fileNames;
+	auto datasets = sourceMdi->modalities();
+	for (int m = 0; m < datasets->size(); ++m)
+	{
+		fileNames << datasets->get(m)->fileName();
+	}
 	int SamplingID = 0;
 	sampleFilter->setParameters(fileNames, parameterRanges, parameterRangeFile, parameterSetFile, derivedOutputFile, SamplingID);
 	return true;
