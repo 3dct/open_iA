@@ -86,8 +86,10 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	void makeLUTFromCTF();
 	//color the planes according to the colors and the amount of elements each bin stores
 	void colorRow(vtkUnsignedCharArray* colors, int currDataset, int numberOfBins);
-	void colorRowForZoom(vtkUnsignedCharArray* colors, bin::BinType* data, int amountOfBins);
+	void colorRowForZoom(vtkUnsignedCharArray* colors, int currBin, bin::BinType* data, int amountOfBins);
 	void colorBinsOfRow(vtkUnsignedCharArray* colors, bin::BinType* data, int amountOfBins);
+
+	
 
 	//create the histogramTable visualization
 	void initializeHistogramTable();
@@ -95,6 +97,7 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	void calculateBinLength();
 	//create the legend
 	void initializeLegend();
+	//add the name of the dataset left beside its correpsonding row
 	void addDatasetName(int currDataset, double* position);
 	//create correct label format
 	std::string iACompHistogramTable::initializeLegendLabels(std::string input);
@@ -117,10 +120,12 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	//amountOfBins: contains the number how many bins are drawn per selected cell in the original plane
 	//currentData is: the data of the selected cell in the original plane
 	//offset contains: the offset by how much the zoomed plane will be drawn above the previous plane
-	vtkSmartPointer<vtkPlaneSource> drawZoomedRow(int currDataInd, int currentColumn, int amountOfBins, bin::BinType* currentData, double offset);
-
+	std::vector<vtkSmartPointer<vtkPlaneSource>>* drawZoomedRow(int currDataInd, int currentColumn, int amountOfBins, bin::BinType* currentData, double offsetHeight, std::vector<vtkIdType>* cellIdsOriginalPlane);
+	
+	vtkSmartPointer<vtkPlaneSource> drawZoomedPlanes(int bins, double startX, double startY, double endX, double endY, int currBinIndex, bin::BinType* currentData);
+	
 	//draw the line from each selected cell of the original row plane to the zoomed row plane and border the bins in the zoomed row accrodingly
-	void drawLineBetweenRowAndZoomedRow(vtkSmartPointer<vtkPlaneSource> zoomedRowPlane, vtkSmartPointer<vtkPlaneSource> originalRowPlane, std::vector<vtkIdType>* cellIdsOriginalPlane);
+	void drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPointer<vtkPlaneSource>>* zoomedRowPlanes, vtkSmartPointer<vtkPlaneSource> originalRowPlane, std::vector<vtkIdType>* cellIdsOriginalPlane);
 	//draw a line from start- to endPoint with a certain color and width
 	vtkSmartPointer<vtkActor> drawLine(double* startPoint, double* endPoint, double lineColor[3], double lineWidth);
 	//draw a polyline according to specified points with a certain color and width
@@ -180,7 +185,7 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	//stores the actors that contain the zoomed rows
 	std::vector<vtkSmartPointer<vtkActor>>* m_zoomedPlaneActors;
 
-	std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkActor>>* originalPlaneZoomedPlanePair;
+	std::map<vtkSmartPointer<vtkActor>, std::vector< vtkSmartPointer<vtkActor> >* >* originalPlaneZoomedPlanePair;
 	std::map<vtkSmartPointer<vtkActor>, int>* originalPlaneIndexPair;
 
 	//stores the actors added to display the border of the selected cells
