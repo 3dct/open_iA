@@ -21,6 +21,9 @@
 #pragma once
 
 #include <vtkSmartPointer.h>
+#include <vtkTexture.h>
+#include <vtkActor.h>
+#include <vtkSkybox.h>
 
 #include <QObject>
 
@@ -40,10 +43,19 @@ public:
 	void update();
 	void start();
 	void stop();
+	void createLightKit();
 private:
 	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
 	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<iAVRInteractor> m_interactor;
+	vtkSmartPointer<vtkSkybox> skyboxActor;
+	vtkSmartPointer<vtkActor> floorActor;
+
+	void createSkybox(int skyboxImage);
+	vtkSmartPointer<vtkTexture> ReadCubeMap(std::string const& folderPath,
+		std::string const& fileRoot,
+		std::string const& ext, int const& key);
+
 signals:
 	void finished();
 };

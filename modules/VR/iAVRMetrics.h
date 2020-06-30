@@ -27,12 +27,15 @@
 
 #include "iACsvIO.h"
 #include "iAVROctree.h"
+#include "iAVR3DText.h"
 
 #include "vtkTable.h"
 #include "vtkLookupTable.h"
 #include "vtkActor.h"
 #include "vtkScalarBarActor.h"
 #include "vtkRenderer.h"
+#include "vtkTexture.h"
+#include "vtkTextActor3D.h"
 
 //!This class calculates the metrics used in the Model in Miniature Heatmap
 class iAVRMetrics
@@ -49,7 +52,10 @@ public:
 	void hideColorBarLegend();
 	int getNumberOfFeatures();
 	QString getFeatureName(int feature);
-	
+	void moveColorBarLegendInEyeDir(double x, double y, double z);
+	vtkSmartPointer<vtkTexture> generateColorBarLegendTexture();
+	void calculateOwnColorBarLegend();
+	void moveColorBar(double *pos);
 
 private:
 	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
@@ -61,8 +67,11 @@ private:
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkScalarBarActor> m_colorBar;
-	iACsvIO m_io;
+	vtkSmartPointer<vtkActor> m_ownColorBar;
+	vtkSmartPointer<vtkTextActor3D> textSource;
 	vtkSmartPointer<vtkRenderer> m_renderer;
+	iACsvIO m_io;
+	std::vector<iAVR3DText*>* m_3DLabels;
 	bool m_colorBarVisible;
 	std::vector<iAVROctree*>* m_octrees;
 	//Stores the info if at a specific octree [level] a specific [feature] is already calculated

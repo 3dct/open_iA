@@ -57,6 +57,7 @@ enum class iAVROperations {
   PickSingleFiber,
   PickFibersinRegion,
   PickMiMRegion,
+  MultiPickMiMRegion,
   ChangeOctreeLevel,
   ResetSelection,
   ChangeFeature,
@@ -95,6 +96,7 @@ private:
 	iAVRMetrics* fiberMetrics;
 	int currentFeature;
 	int currentMiMDisplacementType;
+	std::vector<vtkIdType>* multiPickIDs;
 	//Current Device Position
 	double cPos[vtkEventDataNumberOfDevices][3];
 	//Current Device Orientation
@@ -128,6 +130,7 @@ private:
 	void calculateMetrics();
 	void updateModelInMiniatureData();
 	void calculateTextPosition(double fovRatio, double textureMapSize, double posInfo[7]);
+	void colorMiMCubes(std::vector<vtkIdType>* regionIDs);
 
 	//# Methods for interaction #//
 	void changeOctreeLevel();
@@ -135,6 +138,7 @@ private:
 	void pickFibersinRegion(double eventPosition[3]);
 	void pickFibersinRegion(int leafRegion);
 	void pickMimRegion(double eventPosition[3], double eventOrientation[4]);
+	void multiPickMiMRegion(double eventPosition[3], double eventOrientation[4], bool multiPickFinished);
 	void resetSelection();
 	void changeFeature();
 	void spawnModelInMiniature(double eventPosition[3], bool hide);

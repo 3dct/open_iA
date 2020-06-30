@@ -46,7 +46,7 @@
 #include "vtkScalarBarActor.h"
 #include "vtkOpenVRCamera.h"
 #include "vtkOutlineFilter.h"
-#include "vtkBorderRepresentation.h"
+#include <vtkTexture.h>
 
 #include <QColor>
 
@@ -66,8 +66,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 {
 	currentMiMDisplacementType = 0;
 	m_cylinderVis = new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, m_io.getOutputMapping(), QColor(140,140,140,255), std::map<size_t, std::vector<iAVec3f> >());
-	//m_cylinderVis->setShowLines(true);
-	//m_cylinderVis->getActor()->GetProperty()->SetLineWidth(4);
+	m_cylinderVis->getActor()->SetPosition(0,1,1);
 
 	//Define Octree
 	currentOctreeLevel = 0;
@@ -78,6 +77,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	//https://vtk.org/Wiki/VTK/Examples/Cxx/Visualization/CorrectlyRenderTranslucentGeometry#CorrectlyRenderTranslucentGeometry.cxx
 	//m_vrEnv->renderer()->SetUseDepthPeeling(true);
 	//m_vrEnv->renderer()->SetMaximumNumberOfPeels(2);
+	//m_vrEnv->renderer()->SetUseFXAA(true);
 
 	//Initialize Metrics class
 	currentFeature = 1;
@@ -96,6 +96,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	//Add InteractorStyle
 	m_style->setVRMain(this);
 	m_vrEnv->interactor()->SetInteractorStyle(m_style);
+	multiPickIDs = new std::vector<vtkIdType>();
 
 	//Initialize Text Lables vector
 	m_3DTextLabels = new std::vector<iAVR3DText*>();
@@ -127,6 +128,8 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 		iAVRInteractionOptions::Anywhere, iAVROperations::SpawnModelInMiniature);
 	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::ApplicationMenu, vtkEventDataAction::Press,
 		iAVRInteractionOptions::MiniatureModel, iAVROperations::SpawnModelInMiniature);
+	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Grip, vtkEventDataAction::Press,
+		iAVRInteractionOptions::Anywhere, iAVROperations::MultiPickMiMRegion);
 	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::Grip, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Anywhere, iAVROperations::ChangeMiMDisplacementType);
 	//Release, Untouch
@@ -172,7 +175,6 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 		DEBUG_LOG(QString("Unknown Operation!"));
 		break;
 	case iAVROperations::None:
-		//activeInput->at(deviceID) = operation; // For Multitouch
 		break;
 	case iAVROperations::SpawnModelInMiniature:
 		this->spawnModelInMiniature(eventPosition, modelInMiniatureActive);
@@ -185,6 +187,10 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 		break;
 	case iAVROperations::PickMiMRegion:
 		this->pickMimRegion(eventPosition, eventOrientation);
+		break;
+	case iAVROperations::MultiPickMiMRegion:
+		//activeInput->at(deviceID) = operation; // For Multitouch
+		this->multiPickMiMRegion(eventPosition, eventOrientation, false);
 		break;
 	case iAVROperations::ChangeOctreeLevel:
 		this->changeOctreeLevel();
@@ -290,6 +296,9 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 			//DEBUG_LOG(QString("Miniature Modell Ori is: %1 / %2 / %3").arg(modellOrientation[1]).arg(modellOrientation[2]).arg(modellOrientation[3]));
 			//DEBUG_LOG(QString("Movement Orie is: %1 / %2 / %3").arg(movementOrie[1]).arg(movementOrie[2]).arg(movementOrie[3]));
 			//DEBUG_LOG(QString("Actors new Pos is: %1 / %2 / %3").arg(m_objectVis->getActor()->GetPosition()[0]).arg(m_objectVis->getActor()->GetPosition()[1]).arg(m_objectVis->getActor()->GetPosition()[2]));
+		
+			double colorLegendlcPos[3] = { cPos[deviceID][0] + 40, cPos[deviceID][1], cPos[deviceID][2]};
+			fiberMetrics->moveColorBar(colorLegendlcPos);
 		}
 
 		double lcPos[3] = { cPos[deviceID][0], cPos[deviceID][1] - 24, cPos[deviceID][2]};
@@ -308,16 +317,13 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 	//Movement of Head
 	if(deviceID == static_cast<int>(vtkEventDataDevice::HeadMountedDisplay))
 	{
-		vtkSmartPointer<vtkCoordinate> coord = vtkSmartPointer<vtkCoordinate>::New();
-		double *pos = m_vrEnv->renderer()->GetViewPoint();
-		coord->SetCoordinateSystemToWorld();
-		coord->SetValue(cPos[deviceID]);
-		coord->SetCoordinateSystemToPose();
-
-		// Try it with Pose ?!
-		fiberMetrics->getColorBar()->GetPositionCoordinate()->SetCoordinateSystemToPose();
+		/*
+		double* focalPoint = m_vrEnv->renderer()->GetActiveCamera()->GetFocalPoint();
+		fiberMetrics->getColorBar()->GetPositionCoordinate()->SetCoordinateSystemToWorld();
+		fiberMetrics->getColorBar()->GetPositionCoordinate()->SetValue(focalPoint[0], focalPoint[1], focalPoint[2]);
 		fiberMetrics->getColorBar()->Modified();
-		fiberMetrics->getColorBar()->GetPositionCoordinate()->SetValue(coord->GetValue()[0], coord->GetValue()[1], coord->GetValue()[2]);
+		*/
+		//fiberMetrics->moveColorBarLegendInEyeDir(movementPos[0], movementPos[1], movementPos[2]);
 	}
 }
 
@@ -913,6 +919,21 @@ void iAVRMain::calculateTextPosition(double fovRatio, double textureMapSize, dou
 
 }
 
+void iAVRMain::colorMiMCubes(std::vector<vtkIdType>* regionIDs)
+{
+	if (!m_iDMappingThreadRunning) {
+		
+		std::vector<std::vector<double>>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature);
+		m_objectVis->applyHeatmapColoring(rgba); //Reset
+	
+		for (int i = 0; i < regionIDs->size(); i++)
+		{
+			m_objectVis->setCubeColor(OCTREE_COLOR, regionIDs->at(i));
+			pickFibersinRegion(regionIDs->at(i));
+		}
+	}
+}
+
 //! Increases the current octree level by one until max level and repeats. Recalculates the Model in Miniature Object.
 void iAVRMain::changeOctreeLevel()
 {
@@ -1011,14 +1032,28 @@ void iAVRMain::pickMimRegion(double eventPosition[3], double eventOrientation[4]
 
 	if(cellID >=0)
 	{
-		if (!m_iDMappingThreadRunning) {
-			std::vector<std::vector<double>>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature);
-			m_objectVis->applyHeatmapColoring(rgba); //Reset
-		}
-
-		m_objectVis->setCubeColor(OCTREE_COLOR, cellID);
-		pickFibersinRegion(cellID);
+		std::vector<vtkIdType>* iD = new std::vector<vtkIdType>();
+		iD->push_back(cellID);
+		colorMiMCubes(iD);
 	}
+}
+
+void iAVRMain::multiPickMiMRegion(double eventPosition[3], double eventOrientation[4], bool multiPickFinished)
+{
+	fiberMetrics->hideColorBarLegend();
+	
+	//vtkIdType cellID = m_objectVis->getClosestCellID(eventPosition, eventOrientation);
+
+	//if (cellID >= 0)
+	//{
+	//	multiPickIDs->push_back(cellID);
+	//}
+	//if(multiPickFinished)
+	//{
+	//	colorMiMCubes(multiPickIDs);
+	//	multiPickIDs->clear();
+	//}
+	
 }
 
 void iAVRMain::resetSelection()
@@ -1089,7 +1124,9 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 		//fiberMetrics->getColorBarLegend()->GetPositionCoordinate()->SetValue(m_vrEnv->renderer()->GetActiveCamera()->GetScreenTopRight());
 		
 		//fiberMetrics->showColorBarLegend();
-		
+
+		fiberMetrics->generateColorBarLegendTexture();
+		fiberMetrics->calculateOwnColorBarLegend();
 	}
 	else
 	{
@@ -1124,7 +1161,7 @@ void iAVRMain::ChangeMiMDisplacementType()
 {
 	currentMiMDisplacementType++;
 
-	if(currentMiMDisplacementType >= 2)
+	if(currentMiMDisplacementType > 2)
 	{
 		currentMiMDisplacementType = 0;
 	}

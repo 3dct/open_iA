@@ -27,12 +27,19 @@
 #include <vtkOpenVRRenderer.h>
 #include <vtkOpenVRRenderWindow.h>
 #include <vtkOpenVRCamera.h>
-
+#include <vtkPNGReader.h>
+#include <vtkJPEGReader.h>
+#include <vtkEquirectangularToCubeMapTexture.h>
+#include <vtkImageFlip.h>
+#include <vtkLight.h>
+#include <vtkLightKit.h>
 
 iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_interactor(vtkSmartPointer<iAVRInteractor>::New()), 
 m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New())
 {	
-	m_renderer->SetBackground(50, 50, 50);
+	createSkybox(1);
+	createLightKit();
+	m_renderer->SetShowFloor(true);
 }
 
 vtkRenderer* iAVREnvironment::renderer()
@@ -87,3 +94,74 @@ void iAVREnvironment::stop()
 	if (m_interactor)
 		m_interactor->stop();
 }
+
+void iAVREnvironment::createLightKit()
+{
+	vtkSmartPointer<vtkLightKit> light = vtkSmartPointer<vtkLightKit>::New();
+	light->SetKeyLightIntensity(0.85);
+	light->AddLightsToRenderer(m_renderer);
+}
+
+void iAVREnvironment::createSkybox(int skyboxImage)
+{
+	const std::string chosenSkybox = QString("/skybox%1/").arg(skyboxImage).toUtf8();
+	//auto cubemap = ReadCubeMap("C:/FHTools/open_iA/src/modules/VR/images", chosenSkybox, ".png", 0);
+
+	// Load the skybox
+	// Read it again as there is no deep copy for vtkTexture
+	auto skybox = ReadCubeMap("C:/FHTools/open_iA/src/modules/VR/images", chosenSkybox, ".png", 0);
+	skybox->InterpolateOn();
+	skybox->RepeatOff();
+	skybox->EdgeClampOn();
+
+	//m_renderer->UseImageBasedLightingOn();
+	//m_renderer->SetEnvironmentTexture(cubemap);
+
+	skyboxActor = vtkSmartPointer<vtkSkybox>::New();
+	skyboxActor->SetTexture(skybox);
+	m_renderer->AddActor(skyboxActor);
+}
+
+vtkSmartPointer<vtkTexture> iAVREnvironment::ReadCubeMap(std::string const& folderPath,
+	std::string const& fileRoot,
+	std::string const& ext, int const& key)
+{
+	// A map of cube map naming conventions and the corresponding file name
+	// components.
+	std::map<int, std::vector<std::string>> fileNames{
+		{0, {"right", "left", "top", "bottom", "front", "back"}},
+		{1, {"posx", "negx", "posy", "negy", "posz", "negz"}},
+		{2, {"-px", "-nx", "-py", "-ny", "-pz", "-nz"}},
+		{3, {"0", "1", "2", "3", "4", "5"}} };
+	std::vector<std::string> fns;
+	if (fileNames.count(key))
+	{
+		fns = fileNames.at(key);
+	}
+	else
+	{
+		std::cerr << "ReadCubeMap(): invalid key, unable to continue." << std::endl;
+		std::exit(EXIT_FAILURE);
+	}
+	auto texture = vtkSmartPointer<vtkTexture>::New();
+	texture->CubeMapOn();
+	// Build the file names.
+	std::for_each(fns.begin(), fns.end(),
+		[&folderPath, &fileRoot, &ext](std::string& f) {
+		f = folderPath + fileRoot + f + ext;
+	});
+	auto i = 0;
+	for (auto const& fn : fns)
+	{
+		auto imgReader = vtkSmartPointer<vtkPNGReader>::New();
+		imgReader->SetFileName(fn.c_str());
+
+		auto flip = vtkSmartPointer<vtkImageFlip>::New();
+		flip->SetInputConnection(imgReader->GetOutputPort());
+		flip->SetFilteredAxis(1); // flip y axis
+		texture->SetInputConnection(i, flip->GetOutputPort(0));
+		++i;
+	}
+	return texture;
+}
+

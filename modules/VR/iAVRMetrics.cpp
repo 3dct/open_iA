@@ -28,6 +28,12 @@
 #include <vtkPlaneSource.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkCamera.h>
+#include <vtkRenderWindow.h>
+#include <vtkWindowToImageFilter.h>
+#include <vtkPlaneSource.h>
+#include <vtkCellData.h>
+#include <vtkBillboardTextActor3D.h>
 
 iAVRMetrics::iAVRMetrics(vtkRenderer* renderer, vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees):m_renderer(renderer), m_objectTable(objectTable), m_io(io),
 m_octrees(octrees)
@@ -172,8 +178,9 @@ void iAVRMetrics::calculateColorBarLegend()
 	m_colorBar->GetProperty()->SetLineWidth(4);
 	m_colorBar->GetProperty()->SetColor(1, 1, 1);
 	m_colorBar->GetTitleTextProperty()->SetColor(1, 1, 1);
-	m_colorBar->GetTitleTextProperty()->SetFontSize(10);
-	m_colorBar->SetHeight(0.3);
+	m_colorBar->GetTitleTextProperty()->SetFontSize(14);
+	//m_colorBar->SetHeight(0.3);
+	//m_colorBar->SetWidth(0.1);
 
 	m_colorBar->Modified();
 }
@@ -266,5 +273,166 @@ QString iAVRMetrics::getFeatureName(int feature)
 	//QString featureName = m_objectTable->GetColumnName(m_io.getOutputMapping()->value(feature));
 	QString featureName = m_objectTable->GetColumnName(feature);
 	return featureName;
+}
+
+void iAVRMetrics::moveColorBarLegendInEyeDir(double x, double y, double z)
+{
+	iAVec3d eye = iAVec3d(m_renderer->GetActiveCamera()->GetPosition());
+	iAVec3d currentPos = iAVec3d(m_colorBar->GetPosition());
+	iAVec3d normDir = eye - currentPos;
+	normDir.normalize();
+
+	normDir[0] = normDir[0] * x;
+	normDir[1] = normDir[1] * y;
+	normDir[2] = normDir[2] * z;
+
+	m_colorBar->GetPositionCoordinate()->SetCoordinateSystemToWorld();
+	m_colorBar->GetPositionCoordinate()->SetValue(currentPos[0] + normDir[0], currentPos[1] + normDir[1], currentPos[2] + normDir[2]);
+}
+
+vtkSmartPointer<vtkTexture> iAVRMetrics::generateColorBarLegendTexture()
+{
+	vtkSmartPointer<vtkRenderWindow> renderWindow =	vtkSmartPointer<vtkRenderWindow>::New();
+	vtkSmartPointer<vtkRenderer> renderer =	vtkSmartPointer<vtkRenderer>::New();
+
+	m_colorBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+	m_colorBar->GetPositionCoordinate()->SetValue(0.5,0,0);
+
+	renderWindow->AddRenderer(renderer);
+	renderer->AddActor(m_colorBar);
+	renderer->ResetCamera();
+	renderWindow->Render();
+	renderer->Render();
+
+	vtkSmartPointer<vtkWindowToImageFilter> wti = vtkSmartPointer<vtkWindowToImageFilter>::New();
+	wti->SetInput(renderWindow);
+	wti->Update();
+
+	vtkSmartPointer<vtkTexture> texture = vtkSmartPointer<vtkTexture>::New();
+	texture->SetInputConnection(wti->GetOutputPort());
+	texture->InterpolateOn();
+
+	// Create a plane
+	vtkSmartPointer<vtkPlaneSource> plane =
+		vtkSmartPointer<vtkPlaneSource>::New();
+	plane->SetCenter(0.0, 0.0, 0.0);
+	plane->SetNormal(0.0, 0.0, 1.0);
+
+	vtkSmartPointer<vtkPolyDataMapper> planeMapper =
+		vtkSmartPointer<vtkPolyDataMapper>::New();
+	planeMapper->SetInputConnection(plane->GetOutputPort());
+
+	vtkSmartPointer<vtkActor> texturedPlane =
+		vtkSmartPointer<vtkActor>::New();
+	texturedPlane->SetMapper(planeMapper);
+	texturedPlane->SetTexture(texture);
+	texturedPlane->SetScale(100,100,100);
+
+	//m_renderer->AddActor(texturedPlane);
+
+	return texture;
+}
+
+void iAVRMetrics::calculateOwnColorBarLegend()
+{
+	vtkSmartPointer<vtkPlaneSource> colorBarPlane = vtkSmartPointer<vtkPlaneSource>::New();
+	colorBarPlane->SetXResolution(1);
+	colorBarPlane->SetYResolution(m_lut->GetNumberOfAvailableColors());
+
+	colorBarPlane->SetOrigin(0, 0, 0.0);
+	colorBarPlane->SetPoint1(35, 0, 0.0); //width
+	colorBarPlane->SetPoint2(0, 100, 0.0); // height
+	colorBarPlane->Update();
+
+	vtkSmartPointer<vtkUnsignedCharArray> colorData = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	colorData->SetName("colors");
+	colorData->SetNumberOfComponents(4);
+
+	m_3DLabels = new std::vector<iAVR3DText*>();
+
+	double min = m_lut->GetTableRange()[0];
+	double max = m_lut->GetTableRange()[1];
+	double subRange = (max - min) / (m_lut->GetNumberOfAvailableColors() - 1);
+
+	QString text = "";
+
+	for (int i = 0; i < m_lut->GetNumberOfAvailableColors(); i++)
+	{
+
+		double rgba[4];
+		double value = min + (subRange * i);
+
+		//Text Label
+		//m_3DLabels->push_back(new iAVR3DText(m_renderer));
+		//m_3DLabels->at(i)->create3DLabel(QString("- %1").arg(value));
+		if(i == m_lut->GetNumberOfAvailableColors()-1)
+		{
+			text.append(QString("- %1").arg(value));
+		}
+		else
+		{
+			text.append(QString("- %1\n").arg(value));
+		}
+		//Color
+		m_lut->GetIndexedColor(i, rgba);
+		colorData->InsertNextTuple4(rgba[0] * 255, rgba[1] * 255, rgba[2] * 255, rgba[3] * 255);
+	}
+
+	colorBarPlane->GetOutput()->GetCellData()->SetScalars(colorData);
+	colorBarPlane->Update();
+
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputConnection(colorBarPlane->GetOutputPort());
+	mapper->SetScalarModeToUseCellData();
+	mapper->Update();
+
+	m_ownColorBar = vtkSmartPointer<vtkActor>::New();
+	m_ownColorBar->SetMapper(mapper);
+	m_ownColorBar->GetProperty()->EdgeVisibilityOn();
+
+	m_ownColorBar->GetProperty()->SetLineWidth(3);
+	m_renderer->AddActor(m_ownColorBar);
+	m_renderer->Render();
+
+	// Create text
+	textSource = vtkSmartPointer<vtkTextActor3D>::New();
+	textSource->SetInput(text.toUtf8());
+	textSource->GetTextProperty()->SetColor(0,0,0);
+	textSource->GetTextProperty()->SetBackgroundColor(0.6, 0.6, 0.6);
+	textSource->GetTextProperty()->SetBackgroundOpacity(1.0);
+	textSource->GetTextProperty()->SetFontSize(16);
+
+	double actorBounds[6];
+	double pos[3] = { 0, 0, 0 };
+	m_ownColorBar->GetBounds(actorBounds);
+	// ((maxY - minY) / #Labels) and then /2 for the center of a row
+	double subScale = ((actorBounds[3] - actorBounds[2]) / (m_lut->GetNumberOfAvailableColors() - 1));
+
+	textSource->SetPosition(actorBounds[1] + 1, actorBounds[2] + 1, -1);
+	textSource->SetScale(0.9, 0.72, 1);
+	m_renderer->AddActor(textSource);
+
+	/*
+	for (int i = 0; i < m_lut->GetNumberOfAvailableColors(); i++)
+	{
+		
+		pos[0] = actorBounds[1]; // Right edge
+		pos[1] = actorBounds[2] + (subScale * i); // center of every row actorBounds[2] = minY
+		pos[2] = actorBounds[4]; // z min
+
+		m_3DLabels->at(i)->setLabelPos(pos);
+		m_3DLabels->at(i)->show();
+	}
+	*/
+}
+
+void iAVRMetrics::moveColorBar(double* pos)
+{
+	double actorBounds[6];
+	m_ownColorBar->GetBounds(actorBounds);
+
+	textSource->SetPosition(actorBounds[1] + 1, actorBounds[2] + 1, actorBounds[4] - 1);
+	m_ownColorBar->SetPosition(pos);
+
 }
 
