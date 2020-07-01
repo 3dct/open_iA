@@ -79,6 +79,8 @@
 #include <QElapsedTimer>
 #include <QFileDialog>
 
+#include <algorithm>    // for std::fill
+
 #define DEG_IN_PI  180
 #define DEG2RAD M_PI/DEG_IN_PI
 
@@ -617,7 +619,7 @@ void iADreamCaster::RenderViewsSlot()
 	}
 	int s = renderCntX* renderCntZ;
 	viewsBuffer = new unsigned int[s];
-	memset(viewsBuffer, 0, s*sizeof(viewsBuffer[0]));
+	std::fill(viewsBuffer, viewsBuffer+s, 0);
 	AllocateData();
 
 	unsigned int curRend=0;
@@ -1661,7 +1663,7 @@ void iADreamCaster::UpdatePlotSlot()
 	}
 	int s = renderCntX * renderCntZ;
 	viewsBuffer = new unsigned int[s];
-	memset(viewsBuffer, 0, s*sizeof(viewsBuffer[0]));
+	std::fill(viewsBuffer, viewsBuffer+s, 0);
 
 	AllocateData();
 	unsigned int raysSize;
