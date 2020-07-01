@@ -122,6 +122,28 @@ QString arrayToString(T const * arr, size_t size, QString const & sep = " ")
 	return result;
 }
 
+//! Split a string with multiple values, and put values into a container.
+//! @param val a container (required to have an operator[] to set elements).
+//! @param str the string to be split.
+//! @param sep the separator between values.
+template <typename T, typename TVal, int Nval>
+void valuesFromString(T& val, QString const & str, QString const & sep = " ")
+{
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+	QStringList list = str.split(sep, QString::SkipEmptyParts);
+#else
+	QStringList list = str.split(sep, Qt::SkipEmptyParts);
+#endif
+	if (list.size() >= Nval)
+	{
+		for (int j = 0; j < Nval; j++)
+		{
+			val[j] = static_cast<TVal>(list.at(j).toDouble());
+		}
+	}
+	// else report error?
+}
+
 //! Pads or truncates the given string to the given size.
 //!
 //! If the string given in name is longer than the specified size, the string is truncated
