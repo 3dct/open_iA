@@ -51,12 +51,13 @@ public:
 	//! observe a VTK algorithm (and pass on its progress report)
 	//! @param caller the VTK algorithm to observe
 	void observe( vtkAlgorithm* caller );
-	//! Trigger a progress event manually.
-	//! @param p the current percentage of progress (number between 0 and 100)
-	void emitProgress(int p);
 	//! Set additional status information.
 	//! @param status the new status to report to the user
 	void setStatus(QString const & status);
+public slots:
+	//! Trigger a progress event manually.
+	//! @param p the current percentage of progress (number between 0 and 100)
+	void emitProgress(int p);
 signals:
 	//! Signal emitted whenever the progress has changed.
 	//! Connect this to a method that updates the indication of the current progression to the user.
