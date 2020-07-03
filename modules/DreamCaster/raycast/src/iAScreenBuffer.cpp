@@ -21,27 +21,27 @@
 #include "../include/iADreamCasterCommon.h"
 #include "../include/iAScreenBuffer.h"
 
+#include <algorithm>    // for std::fill
+
 //namespace Raytracer {
 
-iAScreenBuffer::iAScreenBuffer( int a_Width, int a_Height ) :
-	m_Width( a_Width ),
-	m_Height( a_Height )
+iAScreenBuffer::iAScreenBuffer(int width, int height) :
+	m_width(width),
+	m_height(height),
+	m_bufSize(m_width* m_height)
 {
-	m_Buffer = new unsigned int[a_Width * a_Height];
-	m_buffSize = m_Width * m_Height * sizeof(m_Buffer[0]);
+	m_buffer = new unsigned int[m_bufSize];
 	clear();
-	//memset(m_Buffer, 0, a_Width * a_Height);
 }
 
 iAScreenBuffer::~iAScreenBuffer()
 {
-	if(m_Buffer)
-		delete [] m_Buffer;
+	delete[] m_buffer;
 }
 
 void iAScreenBuffer::clear()
 {
-	memset(m_Buffer, 0, m_buffSize);
+	std::fill(m_buffer, m_buffer + m_bufSize, 0);
 }
 
 //}; // namespace Raytracer
