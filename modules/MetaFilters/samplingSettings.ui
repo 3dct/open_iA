@@ -549,6 +549,16 @@
      </layout>
     </widget>
    </item>
+   <item row="2" column="0" colspan="4">
+    <widget class="QCheckBox" name="cbAbortOnError">
+     <property name="text">
+      <string>Abort sampling if any error occurs</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <tabstops>

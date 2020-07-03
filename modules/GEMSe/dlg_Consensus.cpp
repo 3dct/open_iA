@@ -1011,6 +1011,7 @@ void dlg_Consensus::LoadConfig()
 			"label.mhd",
 			true,
 			true,
+			true,
 			lastSamplingID+s
 		));
 		m_queuedSamplers.push_back(sampler);
@@ -1025,8 +1026,8 @@ void dlg_Consensus::StartNextSampler()
 	connect(m_currentSampler.data(), &iAImageSampler::finished, this, &dlg_Consensus::samplerFinished);
 
 	m_dlgProgress = new dlg_progress(this, m_currentSampler, m_currentSampler, "Sampling Progress");
-	connect(m_currentSampler.data(), &iAImageSampler::Progress, m_dlgProgress, &dlg_progress::setProgress);
-	connect(m_currentSampler.data(), &iAImageSampler::Status, m_dlgProgress, &dlg_progress::setStatus);
+	connect(m_currentSampler.data(), &iAImageSampler::progress, m_dlgProgress, &dlg_progress::setProgress);
+	connect(m_currentSampler.data(), &iAImageSampler::status, m_dlgProgress, &dlg_progress::setStatus);
 	m_mdiChild->tabifyDockWidget(this, m_dlgProgress);
 
 	m_currentSampler->start();

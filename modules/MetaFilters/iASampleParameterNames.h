@@ -12,4 +12,5 @@ const QString spnOutputFolder("Output folder");
 const QString spnBaseName("Base name");
 const QString spnSubfolderPerSample("Subfolder per sample");
 const QString spnComputeDerivedOutput("Compute derived output");
+const QString spnAbortOnError("Abort on errors");
 const QString spnNumberOfLabels("Number of labels");

@@ -28,6 +28,7 @@
 #include <iAConsole.h>
 #include <iAModalityList.h>
 #include <iAModality.h>
+#include <iAProgress.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 
@@ -60,6 +61,7 @@ iASampleFilter::iASampleFilter() :
 	addParameter(spnBaseName, FileNameSave, "sample.mhd");
 	addParameter(spnSubfolderPerSample, Boolean, false);
 	addParameter(spnComputeDerivedOutput, Boolean, false);
+	addParameter(spnAbortOnError, Boolean, true);
 	addParameter(spnNumberOfLabels, Discrete, 2);
 }
 
@@ -87,19 +89,15 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 		parameters[spnBaseName].toString(),
 		parameters[spnSubfolderPerSample].toBool(),
 		parameters[spnComputeDerivedOutput].toBool(),
+		parameters[spnAbortOnError].toBool(),
 		m_samplingID
 	);
-	/*
-	m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	mdiChild->tabifyDockWidget(this, m_dlgProgress);
-	connect(m_sampler.data(), &iAImageSampler::finished, this, &dlg_GEMSeControl::samplingFinished);
-	connect(m_sampler.data(), &iAImageSampler::Progress, m_dlgProgress, &dlg_progress::setProgress);
-	connect(m_sampler.data(), &iAImageSampler::Status, m_dlgProgress, &dlg_progress::setStatus);
-
-	*/
-	// trigger parameter set creation & sampling (in foreground with progress bar for now)
-	sampler.run();
+	QObject::connect(&sampler, &iAImageSampler::progress, progress(), &iAProgress::emitProgress);
+	//connect(&sampler, &iAImageSampler::status, ...);
+	QEventLoop loop;
+	QObject::connect(&sampler, &iAImageSampler::finished, &loop, &QEventLoop::quit);
+	sampler.start();  //< returns as soon as first sampling run is started,
+	loop.exec();	  //< so wait for finished event
 }
 
 void iASampleFilter::setParameters(QStringList fileNames, QSharedPointer<iAAttributes> parameterRanges,

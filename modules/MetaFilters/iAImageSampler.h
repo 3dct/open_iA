@@ -39,7 +39,7 @@ class iASingleResult;
 class iADerivedOutputCalculator;
 class iACommandRunner;
 
-class MetaFilters_API iAImageSampler: public QThread, public iADurationEstimator, public iAAbortListener
+class MetaFilters_API iAImageSampler: public QObject, public iADurationEstimator, public iAAbortListener
 {
 	Q_OBJECT
 public:
@@ -59,16 +59,18 @@ public:
 		QString const & imageBaseName,
 		bool separateOutputDir,
 		bool calculateChar,
+		bool abortOnError,
 		int samplingID);
 	QSharedPointer<iASamplingResults> results();
-	void run() override;
+	void start();
 	double elapsed() const override;
 	double estimatedTimeRemaining() const override;
 	void abort() override;
 	bool isAborted();
 signals:
-	void Progress(int);
-	void Status(QString const &);
+	void progress(int);
+	void status(QString const &);
+	void finished();
 private:
 	//! @{
 	//! input
@@ -92,8 +94,11 @@ private:
 	bool m_calculateCharacteristics;
 	//! @}
 
-	int m_curLoop;
+	int m_curSample;
 	bool m_aborted;
+	//! set to true if sampling should be aborted if an error is encountered,
+	//! set to false to continue sampling with next parameter set
+	bool m_abortOnError;
 
 	//! @{
 	//! Performance Measurement
@@ -108,12 +113,14 @@ private:
 	QMap<iADerivedOutputCalculator*, QSharedPointer<iASingleResult> > m_runningDerivedOutput;
 
 	QSharedPointer<iASamplingResults> m_results;
-	QMutex m_mutex;
-	int m_runningOperations;
 	int m_parameterCount;
 	int m_samplingID;
+	
+	QStringList m_additionalArgumentList;
+	int m_numDigits;
 
-	void StatusMsg(QString const & msg);
+	void newSamplingRun();
+	void statusMsg(QString const & msg);
 private slots:
 	void computationFinished();
 	void derivedOutputFinished();

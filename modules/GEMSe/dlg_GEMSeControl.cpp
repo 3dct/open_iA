@@ -229,14 +229,15 @@ void dlg_GEMSeControl::startSampling()
 			m_samplingSettings[spnBaseName].toString(),
 			m_samplingSettings[spnSubfolderPerSample].toBool(),
 			m_samplingSettings[spnComputeDerivedOutput].toBool(),
+			m_samplingSettings[spnAbortOnError].toBool(),
 			m_dlgSamplings->GetSamplings()->size()
 		));
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 		mdiChild->tabifyDockWidget(this, m_dlgProgress);
 		connect(m_sampler.data(), &iAImageSampler::finished, this, &dlg_GEMSeControl::samplingFinished);
-		connect(m_sampler.data(), &iAImageSampler::Progress, m_dlgProgress, &dlg_progress::setProgress);
-		connect(m_sampler.data(), &iAImageSampler::Status, m_dlgProgress, &dlg_progress::setStatus);
+		connect(m_sampler.data(), &iAImageSampler::progress, m_dlgProgress, &dlg_progress::setProgress);
+		connect(m_sampler.data(), &iAImageSampler::status, m_dlgProgress, &dlg_progress::setStatus);
 
 		// trigger parameter set creation & sampling (in foreground with progress bar for now)
 		m_sampler->start();
