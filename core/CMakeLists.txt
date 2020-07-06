@@ -1,9 +1,6 @@
 FILE( GLOB_RECURSE open_iA_core_SRCS "src/*.cpp" "src/*.h" )
-FILE( GLOB_RECURSE open_iA_core_test_srcs "src/*Test.cpp" "test/*.cpp")
-IF ( NOT "${open_iA_core_test_srcs}" STREQUAL "" )
-	LIST( REMOVE_ITEM open_iA_core_SRCS ${open_iA_core_test_srcs} )
-ENDIF ()
 FILE( GLOB_RECURSE open_iA_core_UI "src/*.ui" )
+FILE( GLOB_RECURSE open_iA_core_test_srcs "test/*.cpp")
 SET( open_iA_core_QRC open_iA.qrc)
 
 QT5_WRAP_UI( open_iA_core_SRCS ${open_iA_core_UI})
@@ -66,8 +63,11 @@ ENDIF()
 
 
 IF (openiA_TESTING_ENABLED)
+
+	# CMAKE_CURRENT_BINARY_DIR include required for open_iA_Core_export.h
+
 	# StringHelperTest
-	ADD_EXECUTABLE(StringHelperTest src/iAStringHelperTest.cpp src/iAStringHelper.cpp)
+	ADD_EXECUTABLE(StringHelperTest test/iAStringHelperTest.cpp src/iAStringHelper.cpp)
 	TARGET_INCLUDE_DIRECTORIES(StringHelperTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 	TARGET_LINK_LIBRARIES(StringHelperTest PRIVATE ${QT_LIBRARIES})
 	target_compile_definitions(StringHelperTest PRIVATE NO_DLL_LINKAGE)
@@ -78,19 +78,19 @@ IF (openiA_TESTING_ENABLED)
 	ENDIF()
 
 	# Vec3Test
-	ADD_EXECUTABLE(Vec3Test src/iAVec3Test.cpp)
-	TARGET_INCLUDE_DIRECTORIES(Vec3Test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
+	ADD_EXECUTABLE(Vec3Test test/iAVec3Test.cpp)
+	TARGET_INCLUDE_DIRECTORIES(Vec3Test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 	target_compile_definitions(Vec3Test PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME Vec3Test COMMAND Vec3Test)
 	
-	ADD_EXECUTABLE(MathUtilTest src/iAMathUtilityTest.cpp src/iAMathUtility.cpp)
+	ADD_EXECUTABLE(MathUtilTest test/iAMathUtilityTest.cpp src/iAMathUtility.cpp)
 	TARGET_INCLUDE_DIRECTORIES(MathUtilTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 	TARGET_LINK_LIBRARIES(MathUtilTest PRIVATE ${VTK_LIBRARIES})
 	target_compile_definitions(MathUtilTest PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME MathUtilTest COMMAND MathUtilTest)
 
-	ADD_EXECUTABLE(FunctionalBoxplotTest test/FunctionalBoxplotTest.cpp)
-	TARGET_INCLUDE_DIRECTORIES(FunctionalBoxplotTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
+	ADD_EXECUTABLE(FunctionalBoxplotTest test/iAFunctionalBoxplotTest.cpp)
+	TARGET_INCLUDE_DIRECTORIES(FunctionalBoxplotTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 	target_compile_definitions(FunctionalBoxplotTest PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME FunctionalBoxplotTest COMMAND FunctionalBoxplotTest)
 
