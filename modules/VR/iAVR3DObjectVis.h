@@ -47,7 +47,7 @@ public:
 	void setPos(double x, double y, double z);
 	void setOrientation(double x, double y, double z);
 	void setCubeColor(QColor col, int regionID);
-	void applyHeatmapColoring(std::vector<std::vector<double>>* colorPerRegion);
+	void applyHeatmapColoring(std::vector<QColor>* colorPerRegion);
 	void applyLinearCubeOffset(double offset);
 	void applyRelativeCubeOffset(double offset);
 	void apply4RegionCubeOffset(double offset);

@@ -26,8 +26,12 @@
 #include <vtkOctreePointLocator.h>
 #include <vtkPlaneSource.h>
 
+#include <iAvec3.h>
+
 #include <QColor>
 #include <unordered_map>
+
+class vtkModifiedBSPTree;
 
 //! Class for calculation of a 3D Octree 
 class iAVROctree
@@ -40,7 +44,7 @@ public:
 	void calculateOctreeRegionSize(double size[3]);
 	void calculateOctreeCenterPos(double centerPoint[3]);
 	void calculateOctreeRegionCenterPos(int regionID, double centerPoint[3]);
-	void createOctreeBoundingBoxPlanes(int regionID, std::vector<vtkSmartPointer<vtkPlaneSource>>* planes);
+	void createOctreeBoundingBoxPlanes(int regionID, std::vector<std::vector<iAVec3d>>* planePoints);
 	void movePointInsideRegion(double point[3], double movedPoint[3]);
 	int getNumberOfLeafeNodes();
 	std::vector<std::unordered_map<vtkIdType, double>*>* getfibersInRegionMapping(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex);

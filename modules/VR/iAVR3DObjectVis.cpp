@@ -208,7 +208,7 @@ void iAVR3DObjectVis::setCubeColor(QColor col, int regionID)
 
 //! Colors the whole miniature model with the given vector of rgba values ( between 0.0 and 1.0)
 //! Resets the current color of all cubes with the new colors!
-void iAVR3DObjectVis::applyHeatmapColoring(std::vector<std::vector<double>>* colorPerRegion)
+void iAVR3DObjectVis::applyHeatmapColoring(std::vector<QColor>* colorPerRegion)
 {
 	currentColorArr = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	currentColorArr->SetName("colors");
@@ -216,7 +216,7 @@ void iAVR3DObjectVis::applyHeatmapColoring(std::vector<std::vector<double>>* col
 
 	for (int i = 0; i < colorPerRegion->size(); i++)
 	{
-		currentColorArr->InsertNextTuple4(colorPerRegion->at(i).at(0)*255, colorPerRegion->at(i).at(1) * 255, colorPerRegion->at(i).at(2) * 255, colorPerRegion->at(i).at(3) * 255);
+		currentColorArr->InsertNextTuple4(colorPerRegion->at(i).red(), colorPerRegion->at(i).green(), colorPerRegion->at(i).blue(), colorPerRegion->at(i).alpha());
 	}
 
 	m_cubePolyData->GetPointData()->SetScalars(currentColorArr);

@@ -47,6 +47,8 @@
 #include "vtkOpenVRCamera.h"
 #include "vtkOutlineFilter.h"
 #include <vtkTexture.h>
+#include "vtkOpenVRModel.h"
+#include <vtkArrowSource.h>
 
 #include <QColor>
 
@@ -58,7 +60,7 @@
 
 //Offsets for the hovering Effect of the Model in Miniature
 #define X_OFFSET 0
-#define Y_OFFSET 60
+#define Y_OFFSET 90
 #define Z_OFFSET 0
 
 iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io): m_vrEnv(vrEnv),
@@ -66,12 +68,15 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 {
 	currentMiMDisplacementType = 0;
 	m_cylinderVis = new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, m_io.getOutputMapping(), QColor(140,140,140,255), std::map<size_t, std::vector<iAVec3f> >());
-	m_cylinderVis->getActor()->SetPosition(0,1,1);
+	//m_cylinderVis->setShowLines(true);
+	//m_cylinderVis->getActor()->GetProperty()->SetLineWidth(2);
 
 	//Define Octree
 	currentOctreeLevel = 0;
 	m_octrees = new std::vector<iAVROctree*>();
 	generateOctrees(OCTREE_MAX_LEVEL, OCTREE_POINTS_PER_REGION, m_cylinderVis->getPolyData());
+	m_octrees->at(currentOctreeLevel)->generateOctreeRepresentation(currentOctreeLevel, OCTREE_COLOR);
+	m_octrees->at(currentOctreeLevel)->show();
 
 	// For true TranslucentGeometry
 	//https://vtk.org/Wiki/VTK/Examples/Cxx/Visualization/CorrectlyRenderTranslucentGeometry#CorrectlyRenderTranslucentGeometry.cxx
@@ -83,12 +88,13 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	currentFeature = 1;
 	fiberMetrics = new iAVRMetrics(m_vrEnv->renderer(), m_objectTable, m_io, m_octrees);
 
-	//map for the coverage of each fiber (Initialize with MaxLeafNodes in Max Level)
+	//map for the coverage of each fiber in every octree level and region
 	m_fiberCoverage = new std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>();
 
 	//Thread
-	m_iDMappingThread = std::thread(&iAVRMain::mapAllPointiDs, this);
-	//m_iDMappingThread = std::thread(&iAVRMain::mapAllPointiDsAndCalculateFiberCoverage, this);
+	//m_iDMappingThread = std::thread(&iAVRMain::mapAllPointiDs, this);
+	m_iDMappingThread = std::thread(&iAVRMain::mapAllPointiDsAndCalculateFiberCoverage, this);
+	
 	//mapAllPointiDsAndCalculateFiberCoverage();
 	//mapAllPointiDs();
 	//m_iDMappingThreadRunning = false;
@@ -102,6 +108,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	m_3DTextLabels = new std::vector<iAVR3DText*>();
 	m_3DTextLabels->push_back(new iAVR3DText(m_vrEnv->renderer()));// [0] for Octree level change
 	m_3DTextLabels->push_back(new iAVR3DText(m_vrEnv->renderer()));// [1] for feature change
+	m_3DTextLabels->push_back(new iAVR3DText(m_vrEnv->renderer()));// [2] for Alerts
 
 	//Initialize Dashboard
 	m_dashboard = new iAVRDashboard(m_vrEnv);
@@ -246,6 +253,7 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 	//Currently moved controller
 	int deviceID = static_cast<int>(device->GetDevice());
 
+	double oldFocalPoint[3] = {focalPoint[0], focalPoint[1], focalPoint[2]};
 	double oldcPos[3] = { cPos[deviceID][0], cPos[deviceID][1], cPos[deviceID][2]};
 	double oldcOrie[4] = { cOrie[deviceID][0], cOrie[deviceID][1], cOrie[deviceID][2], cOrie[deviceID][3]}; //W,X,Y,Z
 
@@ -269,6 +277,29 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 	movementOrie[2] = cOrie[deviceID][2] - oldcOrie[2]; //Y
 	movementOrie[3] = cOrie[deviceID][3] - oldcOrie[3]; //Z
 
+	//Movement of Head
+	if (deviceID == static_cast<int>(vtkEventDataDevice::HeadMountedDisplay))
+	{
+		double* headOrientation = m_vrEnv->renderer()->GetActiveCamera()->GetOrientation();
+
+		//DEBUG_LOG(QString("Event Orie is: %1 / %2 / %3").arg(cOrie[deviceID][1]).arg(cOrie[deviceID][2]).arg(cOrie[deviceID][3]));
+		//DEBUG_LOG(QString("> Head Orie is: %1 / %2 / %3").arg(headOrientation[0]).arg(headOrientation[1]).arg(headOrientation[2]));
+
+		double* tempFocalPos = m_vrEnv->renderer()->GetActiveCamera()->GetFocalPoint();
+		focalPoint[0] = tempFocalPos[0];
+		focalPoint[1] = tempFocalPos[1];
+		focalPoint[2] = tempFocalPos[2];
+
+		double rotation[3] = { 0,0,0 };
+		rotation[0] = oldFocalPoint[0] - focalPoint[0]; //X
+		rotation[1] = oldFocalPoint[1] - focalPoint[1]; //Y
+		rotation[2] = oldFocalPoint[2] - focalPoint[2]; //Z
+
+		m_3DTextLabels->at(2)->setLabelPos(tempFocalPos);
+
+		//fiberMetrics->rotateColorBarLegend(0, -movementOrie[0], 0);
+	}
+
 	//Movement of Left controller
 	if(deviceID == static_cast<int>(vtkEventDataDevice::LeftController))
 	{
@@ -286,7 +317,6 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 			 //m_objectVis->getActor()->AddOrientation(movementOrie[1] - modellOrientation[1], movementOrie[2] - modellOrientation[2], movementOrie[3] - modellOrientation[3]);
 			 //m_objectVis->getActor()->AddOrientation(cOrie[deviceID][1], cOrie[deviceID][2], cOrie[deviceID][3]);
 			//m_objectVis->getActor()->AddOrientation(0, movementOrie[2], 0);
-			//m_objectVis->getActor()->RotateY(movementOrie[2]);
 
 			//m_objectVis->getActor()->AddPosition(cPos[deviceID][0] - centerPos[0], cPos[deviceID][1] - centerPos[1], cPos[deviceID][2] - centerPos[2]);
 			//m_objectVis->getActor()->AddPosition(cPos[deviceID][0] - centerPos[0], cPos[deviceID][1] - centerPos[1], cPos[deviceID][2] - centerPos[2]);
@@ -297,7 +327,7 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 			//DEBUG_LOG(QString("Movement Orie is: %1 / %2 / %3").arg(movementOrie[1]).arg(movementOrie[2]).arg(movementOrie[3]));
 			//DEBUG_LOG(QString("Actors new Pos is: %1 / %2 / %3").arg(m_objectVis->getActor()->GetPosition()[0]).arg(m_objectVis->getActor()->GetPosition()[1]).arg(m_objectVis->getActor()->GetPosition()[2]));
 		
-			double colorLegendlcPos[3] = { cPos[deviceID][0] + 40, cPos[deviceID][1], cPos[deviceID][2]};
+			double colorLegendlcPos[3] = { cPos[deviceID][0] + 70, cPos[deviceID][1] - 50, cPos[deviceID][2] + 10};
 			fiberMetrics->moveColorBarLegend(colorLegendlcPos);
 		}
 
@@ -312,18 +342,6 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 		double rcPos[3] = { cPos[deviceID][0], cPos[deviceID][1] - 22, cPos[deviceID][2]};
 		m_3DTextLabels->at(0)->setLabelPos(rcPos);
 		m_3DTextLabels->at(0)->moveInEyeDir(24, 24, 24);
-	}
-
-	//Movement of Head
-	if(deviceID == static_cast<int>(vtkEventDataDevice::HeadMountedDisplay))
-	{
-		/*
-		double* focalPoint = m_vrEnv->renderer()->GetActiveCamera()->GetFocalPoint();
-		fiberMetrics->getColorBar()->GetPositionCoordinate()->SetCoordinateSystemToWorld();
-		fiberMetrics->getColorBar()->GetPositionCoordinate()->SetValue(focalPoint[0], focalPoint[1], focalPoint[2]);
-		fiberMetrics->getColorBar()->Modified();
-		*/
-		//fiberMetrics->moveColorBarLegendInEyeDir(movementPos[0], movementPos[1], movementPos[2]);
 	}
 }
 
@@ -350,7 +368,7 @@ void iAVRMain::mapAllPointiDs()
 	//Calculate Fibers in Region
 	for (int i = 0; i < m_octrees->size(); i++)
 	{
-		m_fiberCoverage->push_back(*m_octrees->at(i)->getfibersInRegionMapping(&m_pointIDToCsvIndex));	
+		m_fiberCoverage->push_back(*m_octrees->at(i)->getfibersInRegionMapping(&m_pointIDToCsvIndex));
 	}
 	DEBUG_LOG(QString("Fibers in Region for every octree calculated"));
 
@@ -362,9 +380,25 @@ void iAVRMain::mapAllPointiDs()
 //! Gets only called internally from thread to store the mapping
 void iAVRMain::mapAllPointiDsAndCalculateFiberCoverage()	//TODO Replaces the mapAllPointiDs Method (+thread)
 {
+
 	//m_extendedCylinderVisData = vtkSmartPointer<vtkPolyData>::New();
 	//m_extendedCylinderVisData = m_cylinderVis->getPolyData();
 	//m_extendedCylinderVisData->DeepCopy(m_cylinderVis->getPolyData()); // Use copy of volume data
+	int count = 0;
+
+	//Initialize new Vectors
+	for (int level = 0; level < m_octrees->size(); level++)
+	{
+		//Initialize the region vec for every level
+		m_fiberCoverage->push_back(std::vector<std::unordered_map<vtkIdType, double>*>());
+		
+		for (int i = 0; i < m_octrees->at(level)->getNumberOfLeafeNodes(); i++)
+		{
+			//Initialize a vec of Maps for every region
+			m_fiberCoverage->at(level).push_back(new std::unordered_map<vtkIdType, double>());
+		}
+
+	}	
 
 	// For every fiber in csv table
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
@@ -382,51 +416,52 @@ void iAVRMain::mapAllPointiDsAndCalculateFiberCoverage()	//TODO Replaces the map
 		// Insert polyObject ID of End Point
 		m_pointIDToCsvIndex.insert(std::make_pair(m_cylinderVis->getPolyData()->FindPoint(endPos), row));
 
+		vtkSmartPointer<vtkPoints> intersectionPoints = vtkSmartPointer<vtkPoints>::New();
+
 		//For every Octree Level
-		//for(int level = OCTREE_MIN_LEVEL; level <= m_octrees->size(); level++)
-		for (int level = OCTREE_MIN_LEVEL; level <= 1; level++)
+		//for (int level = OCTREE_MIN_LEVEL; level <= 1; level++)
+		for (int level = 0; level < m_octrees->size(); level++)
 		{
 
-			DEBUG_LOG(QString("## Level Number: %1 ##").arg(level));
-			//DEBUG_LOG(QString("startPos: %1 | %2 | %3").arg(startPos[0]).arg(startPos[1]).arg(startPos[2]));
-			//DEBUG_LOG(QString("endPos: %1 | %2 | %3").arg(endPos[0]).arg(endPos[1]).arg(endPos[2]));
-
-			double fiberLength = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::Length)).ToFloat();
-			std::vector<double>* coverageInRegion = new std::vector<double>();
-			vtkSmartPointer<vtkPoints> intersectionPoints = vtkSmartPointer<vtkPoints>::New();
-
-			intersectionPoints = getOctreeFiberCoverage(startPos, endPos, level, fiberLength, coverageInRegion);
-
-			if (intersectionPoints == nullptr)
+			//Skip intersection test on lowest Octree level
+			if(level == 0)
 			{
-				DEBUG_LOG(QString("!! vtkPoints is null..."));
+				//Every fiber is 100% in the one region
+				m_fiberCoverage->at(0).at(0)->insert(std::make_pair(row, 1.0));
 			}
 			else
 			{
-				DEBUG_LOG(QString("#################################################"));
-				DEBUG_LOG(QString("# |%1| Intersections for fiber |%2| at level %3 #").arg(intersectionPoints->GetNumberOfPoints()).arg(row).arg(level));
-				DEBUG_LOG(QString("#################################################\n"));
+				double fiberLength = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::Length)).ToFloat();
+				//std::vector<std::unordered_map<vtkIdType, double>*> coverageInRegion = std::vector<std::unordered_map<vtkIdType, double>*>();
+				//m_fiberCoverage->push_back(coverageInRegion);
+
+				intersectionPoints = getOctreeFiberCoverage(startPos, endPos, level, row, fiberLength);
+				count += intersectionPoints->GetNumberOfPoints();
+
+				if (intersectionPoints == nullptr)
+				{
+					DEBUG_LOG(QString("!! vtkPoints is null..."));
+				}
 			}
-
-			//m_fiberCoverage->at(level).at(region)->insert(std::make_pair(row, coverage));
-
 			//ADD the new Points to the Polydata and the Mapping
 			//m_extendedCylinderVisData->GetPoints()->InsertNextPoint(intersectionPoint);
 			// bzw. m_extendedCylinderVisData->SetPoints(intersectionPoints)
 			//m_extendedCylinderVisData->GetPoints()->Modified();
 			//m_pointIDToCsvIndex.insert(std::make_pair(m_extendedCylinderVisData->FindPoint(intersectionPoint), row));
-
-			
-		}
-	}
 	
+		}
+		
+	}
+
+	//m_3DTextLabels->at(2)->create3DLabel("Volume loading has finished!");
+	//m_3DTextLabels->at(2)->show();
+
 	DEBUG_LOG(QString("Volume Data loaded with Method 2"));
 	m_iDMappingThreadRunning = false; //Thread ended
 }
 
-//!
 //! The calculated intersection points are returned as vtkPoints
-vtkSmartPointer<vtkPoints> iAVRMain::getOctreeFiberCoverage(double startPoint[3], double endPoint[3], int octreeLevel, double fiberLength, std::vector<double>* coverageInRegion)
+vtkSmartPointer<vtkPoints> iAVRMain::getOctreeFiberCoverage(double startPoint[3], double endPoint[3], int octreeLevel, int fiber, double fiberLength)
 {
 	vtkSmartPointer<vtkPoints> additionalIntersectionPoints = vtkSmartPointer<vtkPoints>::New();
 
@@ -448,21 +483,15 @@ vtkSmartPointer<vtkPoints> iAVRMain::getOctreeFiberCoverage(double startPoint[3]
 		endPointInsideRegion = m_octrees->at(octreeLevel)->getOctree()->GetRegionContainingPoint(insideEndPoint[0], insideEndPoint[1], insideEndPoint[2]);
 	}
 
-	coverageInRegion = new std::vector<double>(0.0, leafNodes);
-
 	for (int region = 0; region < leafNodes; region++)
 	{
 		double lastIntersection[3] = { -1, -1, -1 };
 		int pointsInRegion = 0;
 		double bounds[6];
-		std::vector<vtkSmartPointer<vtkPlaneSource>>* planes = new std::vector<vtkSmartPointer<vtkPlaneSource>>();
-		m_octrees->at(octreeLevel)->createOctreeBoundingBoxPlanes(region, planes);
+		std::vector<std::vector<iAVec3d>>* planePoints = new std::vector<std::vector<iAVec3d>>();
+		m_octrees->at(octreeLevel)->createOctreeBoundingBoxPlanes(region, planePoints);
 		m_octrees->at(octreeLevel)->getOctree()->GetRegionBounds(region, bounds);
 
-		DEBUG_LOG(QString("\n## Region Number: %1 ##\n").arg(region));
-		DEBUG_LOG(QString("StartPoint in Region |%1| and EndPoint in Region |%2|").arg(startPointInsideRegion).arg(endPointInsideRegion));
-		std::vector<double*>* point = new std::vector<double*>();
-		
 		//The ray between start to endpoint can only intersect 2 times with a octree region bounding box
 		while (pointsInRegion < 2)
 		{
@@ -470,74 +499,69 @@ vtkSmartPointer<vtkPoints> iAVRMain::getOctreeFiberCoverage(double startPoint[3]
 
 			if (startPointInsideRegion == region && endPointInsideRegion == region)
 			{
-				double coverage = calculateFiberCoverage(startPoint, endPoint, fiberLength);
+				//double coverage = calculateFiberCoverage(startPoint, endPoint, fiberLength);
+				m_fiberCoverage->at(octreeLevel).at(region)->insert(std::make_pair(fiber, 1.0));
 				pointsInRegion = 2;
-				coverageInRegion->push_back(coverage);
-				break;
+				return additionalIntersectionPoints; // whole fiber is in one region -> no intersection possible
 			}
 			else if (startPointInsideRegion == region)
 			{
-				DEBUG_LOG(QString("StartPoint is in Region"));
-				if (checkIntersectionWithBox(startPoint, endPoint, planes, bounds, intersectionPoint))
+				if (checkIntersectionWithBox(startPoint, endPoint, planePoints, bounds, intersectionPoint))
 				{
 					additionalIntersectionPoints->InsertNextPoint(intersectionPoint);
 					double coverage = calculateFiberCoverage(startPoint, intersectionPoint, fiberLength);
 					pointsInRegion = 2;
-					coverageInRegion->push_back(coverage);
-					DEBUG_LOG(QString(">> PLANE HIT! at %1 | %2 | %3 <").arg(intersectionPoint[0]).arg(intersectionPoint[1]).arg(intersectionPoint[2]));
-					point->push_back(intersectionPoint);
+					m_fiberCoverage->at(octreeLevel).at(region)->insert(std::make_pair(fiber, coverage));
 					break;
 				}
 				else
 				{
 					// startpoint and Intersection point are the same position (lie on same boundary but are in different regions for the octree)
-					DEBUG_LOG(QString("Worst case (start) - break"));
 					break;
 				}
 			}
 			else if (endPointInsideRegion == region)
 			{
-				DEBUG_LOG(QString("Endpoint is in Region"));
-				if (checkIntersectionWithBox(endPoint, startPoint, planes, bounds, intersectionPoint))
+				if (checkIntersectionWithBox(endPoint, startPoint, planePoints, bounds, intersectionPoint))
 				{
 					additionalIntersectionPoints->InsertNextPoint(intersectionPoint);
 					double coverage = calculateFiberCoverage(intersectionPoint, endPoint, fiberLength);
 					pointsInRegion = 2;
-					coverageInRegion->push_back(coverage);
-					DEBUG_LOG(QString(">> PLANE HIT! at %1 | %2 | %3 <").arg(intersectionPoint[0]).arg(intersectionPoint[1]).arg(intersectionPoint[2]));
-					point->push_back(intersectionPoint);
+					m_fiberCoverage->at(octreeLevel).at(region)->insert(std::make_pair(fiber, coverage));
 					break;
 				}
 				else
 				{
 					// endPoint and Intersection point are the same position (lie on same boundary but are in different regions for the octree)
-					DEBUG_LOG(QString("Worst case (end) - break"));
 					break;
 				}
 			}
 			else
 			{
-				DEBUG_LOG(QString("Looking for two points!!!!"));
 				//When a second point was found...
 				if (pointsInRegion > 0)
 				{
-					if (checkIntersectionWithBox(lastIntersection, endPoint, planes, bounds, intersectionPoint))
+					if (checkIntersectionWithBox(lastIntersection, endPoint, planePoints, bounds, intersectionPoint))
 					{
 						additionalIntersectionPoints->InsertNextPoint(lastIntersection);
 						additionalIntersectionPoints->InsertNextPoint(intersectionPoint);
 						double coverage = calculateFiberCoverage(lastIntersection, intersectionPoint, fiberLength);
 						pointsInRegion = 2;
-						coverageInRegion->push_back(coverage);
-						DEBUG_LOG(QString(">> PLANE HIT 1! at %1 | %2 | %3 <").arg(lastIntersection[0]).arg(lastIntersection[1]).arg(lastIntersection[2]));
-						DEBUG_LOG(QString(">> PLANE HIT 2! at %1 | %2 | %3 <").arg(intersectionPoint[0]).arg(intersectionPoint[1]).arg(intersectionPoint[2]));
-						point->push_back(lastIntersection);
-						point->push_back(intersectionPoint);
+						m_fiberCoverage->at(octreeLevel).at(region)->insert(std::make_pair(fiber, coverage));
+						break;
+					}
+					else if (checkIntersectionWithBox(lastIntersection, startPoint, planePoints, bounds, intersectionPoint))
+					{
+						additionalIntersectionPoints->InsertNextPoint(lastIntersection);
+						additionalIntersectionPoints->InsertNextPoint(intersectionPoint);
+						double coverage = calculateFiberCoverage(lastIntersection, intersectionPoint, fiberLength);
+						pointsInRegion = 2;
+						m_fiberCoverage->at(octreeLevel).at(region)->insert(std::make_pair(fiber, coverage));
 						break;
 					}
 					else
 					{
 						//Corner Point with no second point in region
-						DEBUG_LOG(QString("Worst case (second point) - break"));
 						break;
 					}
 
@@ -545,7 +569,7 @@ vtkSmartPointer<vtkPoints> iAVRMain::getOctreeFiberCoverage(double startPoint[3]
 				else // look if there is a intersection with a region outside of the startPoint/endPoint region
 				{
 					
-					if (checkIntersectionWithBox(startPoint, endPoint, planes, bounds, intersectionPoint))
+					if (checkIntersectionWithBox(startPoint, endPoint, planePoints, bounds, intersectionPoint))
 					{
 						pointsInRegion += 1;
 						lastIntersection[0] = intersectionPoint[0];
@@ -561,9 +585,6 @@ vtkSmartPointer<vtkPoints> iAVRMain::getOctreeFiberCoverage(double startPoint[3]
 				}
 			}
 		}
-		if (region % 3 == 0) drawPoint(point, QColor(255,0,0));
-		if (region % 3 == 1) drawPoint(point, QColor(0, 255, 0));
-		if (region % 3 == 2) drawPoint(point, QColor(0, 0, 255));
 	}
 
 	return additionalIntersectionPoints;
@@ -658,49 +679,28 @@ void iAVRMain::addPropToOptionID(vtkProp3D* prop, iAVRInteractionOptions iD)
 	m_ActorToOptionID.insert(std::make_pair(prop, static_cast<int>(iD)));
 }
 
-bool iAVRMain::checkIntersectionWithBox(double startPoint[3], double endPoint[3], std::vector<vtkSmartPointer<vtkPlaneSource>>* planes, double bounds[6], double intersection[3])
+bool iAVRMain::checkIntersectionWithBox(double startPoint[3], double endPoint[3], std::vector<std::vector<iAVec3d>>* planePoints, double bounds[6], double intersection[3])
 {
 	double eps = 0.00001;
 
 	iAVec3d p0 = iAVec3d(startPoint);
 	iAVec3d p1 = iAVec3d(endPoint);
 	iAVec3d ray = p1 - p0;
-	iAVec3d ray_normalized = ray;
+	iAVec3d ray_normalized = p1 - p0;
 	ray_normalized.normalize();
 
-	//if (ray.length() < eps) return false; // startPoint == endPoint
-
-	for (int i = 0; i < planes->size(); i++)
+	for (int i = 0; i < 6; i++)
 	{
-		iAVec3d normal = iAVec3d(planes->at(i)->GetNormal());
-		//DEBUG_LOG(QString("normal = %1 | %2 | %3 ").arg(normal[0]).arg(normal[1]).arg(normal[2]));
+		//Calculate Plane Normal (origin - point 1,2)
+		iAVec3d pointOnPlaneOrigin = iAVec3d(planePoints->at(i).at(0));
+		iAVec3d planeVec1 = planePoints->at(i).at(1) - pointOnPlaneOrigin;
+		iAVec3d planeVec2 = planePoints->at(i).at(2) - pointOnPlaneOrigin;
+		
+		iAVec3d normal = crossProduct(planeVec1, planeVec2);
 		normal.normalize();
-		iAVec3d pointOnPlaneOrigin = iAVec3d(planes->at(i)->GetOrigin()); 
-		iAVec3d pointOnPlane1 = iAVec3d(planes->at(i)->GetPoint1());
-		iAVec3d pointOnPlane2 = iAVec3d(planes->at(i)->GetPoint2());
-		iAVec3d planeCenter = iAVec3d(planes->at(i)->GetCenter());
 
-		//DEBUG_LOG(QString("origin %1 | %2 | normal %3 |  %4 \n").arg(pointOnPlaneOrigin[0]).arg(pointOnPlaneOrigin[1]).arg(normal[0]).arg(normal[1]));
-		//DEBUG_LOG(QString("startPos %1 | %2 | %3 \n").arg(startPos[0]).arg(startPos[1]).arg(startPos[2]));
-		//DEBUG_LOG(QString("endPos %1 | %2 | %3 \n").arg(endPos[0]).arg(endPos[1]).arg(endPos[2]));
-
-		//DEBUG_LOG(QString("ray %1 | %2 | %3 \n").arg(ray[0]).arg(ray[1]).arg(ray[2]));
-		//DEBUG_LOG(QString("ray_normalized %1 | %2 | %3 \n").arg(ray_normalized[0]).arg(ray_normalized[1]).arg(ray_normalized[2]));
-		//vtkSmartPointer<vtkLineSource> raySource = vtkSmartPointer<vtkLineSource>::New();
-		//raySource->SetPoint1(startPoint);
-		//raySource->SetPoint2(endPoint);
-		//raySource->Update();
-		//vtkSmartPointer<vtkPolyDataMapper> rayMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		//rayMapper->SetInputConnection(raySource->GetOutputPort());
-		//vtkSmartPointer<vtkActor> rayActor = vtkSmartPointer<vtkActor>::New();
-		//rayActor->SetMapper(rayMapper);
-		//rayActor->GetProperty()->SetRenderLinesAsTubes(true);
-		//rayActor->GetProperty()->SetColor(1.0, 0.0, 0.7);
-		//rayActor->GetProperty()->SetLineWidth(2);
-		//m_vrEnv->renderer()->AddActor(rayActor);
-	
 		if (abs(dotProduct(normal, ray_normalized)) > eps) { // If false -> the line is parallel to the plane
-			iAVec3d difference = planeCenter - p0;
+			iAVec3d difference = pointOnPlaneOrigin - p0;
 
 			// Compute the t value for the directed line ray intersecting the plane
 			double t = dotProduct(difference, normal) / dotProduct(normal, ray_normalized);
@@ -710,43 +710,15 @@ bool iAVRMain::checkIntersectionWithBox(double startPoint[3], double endPoint[3]
 			intersection[1] = p0[1] + (ray_normalized[1] * t);
 			intersection[2] = p0[2] + (ray_normalized[2] * t);
 			
-			// Intersection point is start or end point
-			//iAVec3d intersectionPos = iAVec3d(intersection);
-			//if (((p0 - intersectionPos).length() < eps) || ((p1 - intersectionPos).length() < eps))
-			//{
-			//	continue;
-			//}
-
-			//DEBUG_LOG(QString("t = %1 ").arg(t));
-
-			//DEBUG_LOG(QString("origin = %1 | %2 | %3 ").arg(pointOnPlaneOrigin[0]).arg(pointOnPlaneOrigin[1]).arg(pointOnPlaneOrigin[2]));
-			//DEBUG_LOG(QString("point 1 = %1 | %2 | %3 ").arg(pointOnPlane1[0]).arg(pointOnPlane1[1]).arg(pointOnPlane1[2]));
-			//DEBUG_LOG(QString("point 2 = %1 | %2 | %3 ").arg(pointOnPlane2[0]).arg(pointOnPlane2[1]).arg(pointOnPlane2[2]));
-
-			//vtkSmartPointer<vtkPolyDataMapper> planeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-			//planeMapper->SetInputConnection(planes->at(i)->GetOutputPort());
-			//vtkSmartPointer<vtkActor> planeActor = vtkSmartPointer<vtkActor>::New();
-			//planeActor->SetMapper(planeMapper);
-			//planeActor->GetProperty()->SetColor(1.0, 0.4, 0.0);
-			//m_vrEnv->renderer()->AddActor(planeActor);
-
-			// t has to be smaller or equal to length of ray
-
+			// t has to be smaller or equal to length of ray and bigger then 0
 			//Intersection must be in the inside the finite plane
-			if((t > eps) && 
+			if((t > 0) && (t <= ray.length()) &&
 				(intersection[0] <= bounds[1]) && (intersection[0] >= bounds[0]) &&
 				(intersection[1] <= bounds[3]) && (intersection[1] >= bounds[2]) &&
 				(intersection[2] <= bounds[5]) && (intersection[2] >= bounds[4]))
 			{
-	
-				//DEBUG_LOG(QString(">> PLANE HIT! at %1 | %2 | %3 <").arg(intersection[0]).arg(intersection[1]).arg(intersection[2]));
-
 				return true;
-			
 			}
-
-			//DEBUG_LOG(QString(">> NO INTERSECTION FOUND at  %1 | %2 | %3").arg(intersection[0]).arg(intersection[1]).arg(intersection[2]));
-
 		}
 	}
 	return false;
@@ -759,9 +731,11 @@ double iAVRMain::calculateFiberCoverage(double startPoint[3], double endPoint[3]
 	{
 		vectorBetweenStartAndEnd[i] = (endPoint[i] - startPoint[i]);
 	}
+
 	double coverage = sqrt(pow(vectorBetweenStartAndEnd[0], 2) + pow(vectorBetweenStartAndEnd[1], 2) + pow(vectorBetweenStartAndEnd[2], 2));
-	
-	return coverage/fiberLength;
+	double ratio = coverage / fiberLength;
+
+	return ratio;
 }
 
 //! Test method inserts colored point at given Position
@@ -785,7 +759,7 @@ void iAVRMain::drawPoint(std::vector<double*>* pos, QColor color)
 	pointsMapper->SetInputConnection(vertexGlyphFilter->GetOutputPort());
 	vtkSmartPointer<vtkActor> pointsActor = vtkSmartPointer<vtkActor>::New();
 	pointsActor->SetMapper(pointsMapper);
-	pointsActor->GetProperty()->SetPointSize(8);
+	pointsActor->GetProperty()->SetPointSize(9);
 	pointsActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 	m_vrEnv->renderer()->AddActor(pointsActor);
 
@@ -844,89 +818,27 @@ void iAVRMain::calculateMetrics()
 		fiberMetrics->setFiberCoverageData(m_fiberCoverage);
 		fiberMetrics->hideColorBarLegend();
 
-		std::vector<std::vector<double>>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature);
+		std::vector<QColor>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature, 1);
 
-		m_objectVis->applyHeatmapColoring(rgba); // Only call when model is calculated (poly data has to be accessible)
+		if (modelInMiniatureActive) 
+		{
+			m_objectVis->applyHeatmapColoring(rgba); // Only call when model is calculated (poly data has to be accessible)
 
-		QString text = QString("Feature: %1").arg(fiberMetrics->getFeatureName(currentFeature));
-		
-		m_3DTextLabels->at(1)->create3DLabel(text);
-		
-		fiberMetrics->showColorBarLegend();
+			QString text = QString("Feature: %1").arg(fiberMetrics->getFeatureName(currentFeature));
+			m_3DTextLabels->at(1)->create3DLabel(text);
+
+			fiberMetrics->showColorBarLegend();
+			fiberMetrics->setLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
+		}
 		//fiberMetrics->setColorBarLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
 	}
-}
-
-//! Returns a double[7] with a position (x,y,z) and an orientation (x,y,z) and a scale
-//! for an comfortable text representation
-void iAVRMain::calculateTextPosition(double fovRatio, double textureMapSize, double posInfo[7])
-{
-	vtkOpenVRRenderWindow* renWin = m_vrEnv->renderWindow();
-
-	if (!renWin || !m_vrEnv->renderer())
-	{
-		DEBUG_LOG(QString("ERROR in calculateTextPosition"))
-	}
-
-	renWin->UpdateHMDMatrixPose();
-	double dop[3];
-	m_vrEnv->renderer()->GetActiveCamera()->GetDirectionOfProjection(dop);
-	double vr[3];
-	double* vup = renWin->GetPhysicalViewUp();
-	double dtmp[3];
-	double vupdot = vtkMath::Dot(dop, vup);
-	if (fabs(vupdot) < 0.999)
-	{
-		dtmp[0] = dop[0] - vup[0] * vupdot;
-		dtmp[1] = dop[1] - vup[1] * vupdot;
-		dtmp[2] = dop[2] - vup[2] * vupdot;
-		vtkMath::Normalize(dtmp);
-	}
-	else
-	{
-		renWin->GetPhysicalViewDirection(dtmp);
-	}
-	vtkMath::Cross(dtmp, vup, vr);
-	vtkNew<vtkMatrix4x4> rot;
-	for (int i = 0; i < 3; ++i)
-	{
-		rot->SetElement(0, i, vr[i]);
-		rot->SetElement(1, i, vup[i]);
-		rot->SetElement(2, i, -dtmp[i]);
-	}
-	rot->Transpose();
-	double orient[3];
-	vtkTransform::GetOrientation(orient, rot);
-
-	double tpos[3];
-	double scale = renWin->GetPhysicalScale();
-	m_vrEnv->renderer()->GetActiveCamera()->GetPosition(tpos);
-	tpos[0] += (0.7 * scale * dop[0] - 0.1 * scale * vr[0] - 0.4 * scale * vup[0]);
-	tpos[1] += (0.7 * scale * dop[1] - 0.1 * scale * vr[1] - 0.4 * scale * vup[1]);
-	tpos[2] += (0.7 * scale * dop[2] - 0.1 * scale * vr[2] - 0.4 * scale * vup[2]);
-
-	// scale should cover 10% of FOV
-	double fov = m_vrEnv->renderer()->GetActiveCamera()->GetViewAngle();
-	double tsize = fovRatio * 2.0 * atan(fov * 0.5); // 10% of fov
-	tsize /= textureMapSize;                             // about 200 pixel texture map
-	scale *= tsize;
-
-	//Gather information
-	posInfo[0] = tpos[0];
-	posInfo[1] = tpos[1];
-	posInfo[2] = tpos[2];
-	posInfo[3] = orient[0];
-	posInfo[4] = orient[1];
-	posInfo[5] = orient[2];
-	posInfo[6] = scale;
-
 }
 
 void iAVRMain::colorMiMCubes(std::vector<vtkIdType>* regionIDs)
 {
 	if (!m_iDMappingThreadRunning) {
 		
-		std::vector<std::vector<double>>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature);
+		std::vector<QColor>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature, 1);
 		m_objectVis->applyHeatmapColoring(rgba); //Reset
 	
 		for (int i = 0; i < regionIDs->size(); i++)
@@ -969,6 +881,11 @@ void iAVRMain::pickSingleFiber(double eventPosition[3])
 	vtkIdType rowiD = getObjectiD(iD);
 	selection.push_back(rowiD);
 
+	double pos[3];
+	m_octrees->at(currentOctreeLevel)->getOctree()->GetDataSet()->GetPoint(iD, pos); //For Debug
+	
+	DEBUG_LOG(QString("Fiber %1 in Region %2").arg(rowiD).arg(m_octrees->at(currentOctreeLevel)->getOctree()->GetRegionContainingPoint(pos[0], pos[1], pos[2])));
+
 	m_cylinderVis->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
 }
 
@@ -995,7 +912,7 @@ void iAVRMain::pickFibersinRegion(double eventPosition[3])
 
 		double pos[3];
 		m_octrees->at(currentOctreeLevel)->getOctree()->GetDataSet()->GetPoint(points->GetValue(i), pos);
-		//DEBUG_LOG(QString("Fiber (%1) has Coord.: <%2 | %3 | %4>").arg(i).arg(pos[0]).arg(pos[1]).arg(pos[2]));
+		DEBUG_LOG(QString("Fiber (%1) has Coord.: <%2 | %3 | %4>").arg(i).arg(pos[0]).arg(pos[1]).arg(pos[2]));
 	}
 
 	std::sort(selection.begin(), selection.end());
@@ -1043,7 +960,6 @@ void iAVRMain::pickMimRegion(double eventPosition[3], double eventOrientation[4]
 
 void iAVRMain::multiPickMiMRegion(double eventPosition[3], double eventOrientation[4], bool multiPickFinished)
 {
-	fiberMetrics->hideColorBarLegend();
 	
 	//vtkIdType cellID = m_objectVis->getClosestCellID(eventPosition, eventOrientation);
 

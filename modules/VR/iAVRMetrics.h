@@ -43,7 +43,7 @@ class iAVRMetrics
 public:
 	iAVRMetrics(vtkRenderer* renderer, vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees);
 	void setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage);
-	std::vector<std::vector<double>>* getHeatmapColoring(int octreeLevel, int feature);
+	std::vector<QColor>* getHeatmapColoring(int octreeLevel, int feature, int valueMapping);
 	vtkSmartPointer<vtkLookupTable> getLut();
 	void calculateColorBarLegend();
 	void showColorBarLegend();
@@ -51,6 +51,8 @@ public:
 	int getNumberOfFeatures();
 	QString getFeatureName(int feature);
 	void moveColorBarLegend(double *pos);
+	void rotateColorBarLegend(double x, double y, double z);
+	void setLegendTitle(QString title);
 
 private:
 	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
@@ -61,8 +63,9 @@ private:
 	std::vector<std::vector<double>>* m_minMaxValues;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkLookupTable> m_lut;
-	vtkSmartPointer<vtkActor> m_ownColorBar;
+	vtkSmartPointer<vtkActor> m_ColorBar;
 	vtkSmartPointer<vtkTextActor3D> textSource;
+	vtkSmartPointer<vtkTextActor3D> titleTextSource;
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	iACsvIO m_io;
 	std::vector<iAVR3DText*>* m_3DLabels;

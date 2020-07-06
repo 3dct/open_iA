@@ -48,6 +48,13 @@ m_octrees(octrees)
 	std::vector<std::vector<double>> feature = std::vector<std::vector<double>>(numberOfFeatures, region);
 	m_calculatedStatistic = new std::vector<std::vector<std::vector<double>>>(m_octrees->size(), feature);
 
+
+	storeMinMaxValues();
+
+	titleTextSource = vtkSmartPointer<vtkTextActor3D>::New();
+	textSource = vtkSmartPointer<vtkTextActor3D>::New();
+	m_ColorBar = vtkSmartPointer<vtkActor>::New();
+
 	m_colorBarVisible = false;
 }
 
@@ -59,21 +66,28 @@ void iAVRMetrics::setFiberCoverageData(std::vector<std::vector<std::unordered_ma
 
 //! Calculates the weighted average of every octree region for a given feature at a given octree level.
 //! In the first call the metric has to calculate the values, for later calls the metric is saved
-//! Calculates:  1/N * SUM[N]( Attribut * weight)  with N = all Fibers
+//! Calculates:  1/N * SUM[N]( Attribut * weight)  with N = all Fibers in the region
 void iAVRMetrics::calculateWeightedAverage(int octreeLevel, int feature)
 {
 	if(!isAlreadyCalculated->at(octreeLevel).at(feature)){
-		
+
+		//DEBUG_LOG(QString("Possible Regions: %1\n").arg(m_fiberCoverage->at(octreeLevel).size()));
+
 		for (int region = 0; region < m_fiberCoverage->at(octreeLevel).size(); region++)
 		{
 			double metricResultPerRegion = 0;
 			int fibersInRegion = 0;
+			//DEBUG_LOG(QString(">>> REGION %1 <<<\n").arg(region));
+
 
 			for (auto element : *m_fiberCoverage->at(octreeLevel).at(region))
 			{
+				//DEBUG_LOG(QString("[%1] --- %2 \%").arg(element.first).arg(element.second));
+				
 				//double fiberAttribute = m_objectTable->GetValue(element.first, m_io.getOutputMapping()->value(feature)).ToFloat();
 				double fiberAttribute = m_objectTable->GetValue(element.first, feature).ToFloat();
 				double weightedAttribute = fiberAttribute * element.second;
+
 				metricResultPerRegion += weightedAttribute;
 				fibersInRegion++;
 			}
@@ -81,6 +95,9 @@ void iAVRMetrics::calculateWeightedAverage(int octreeLevel, int feature)
 			{
 				fibersInRegion = 1; // Prevent Division by zero
 			}
+			
+			//DEBUG_LOG(QString("Region [%1] --- %2 \%\n").arg(region).arg(metricResultPerRegion / fibersInRegion));
+			
 			m_calculatedStatistic->at(octreeLevel).at(feature).push_back(metricResultPerRegion / fibersInRegion);
 		}
 		isAlreadyCalculated->at(octreeLevel).at(feature) = true;
@@ -88,34 +105,44 @@ void iAVRMetrics::calculateWeightedAverage(int octreeLevel, int feature)
 }
 
 //! Returns a rgba coloring (between 0 and 1) vector for every region in the current octree level
-std::vector<std::vector<double>>* iAVRMetrics::getHeatmapColoring(int octreeLevel, int feature)
+//! Value mapping defines which min/max values are taken. 
+//! 0: min/max Fiber Attribute
+//! 1: min/max Region Value
+std::vector<QColor>* iAVRMetrics::getHeatmapColoring(int octreeLevel, int feature, int valueMapping)
 {
-	std::vector<std::vector<double>>* heatmapColors = new std::vector<std::vector<double>>();
+	std::vector<QColor>* heatmapColors = new std::vector<QColor>(m_fiberCoverage->at(octreeLevel).size(), QColor());
 	calculateWeightedAverage(octreeLevel, feature);
 
-	storeMinMaxValues();
+	double min = -1;
+	double max = -1;
 
-	double min =  m_minMaxValues->at(feature).at(0);
-	double max = m_minMaxValues->at(feature).at(1);
+	if (valueMapping == 0)
+	{
+		min = m_minMaxValues->at(feature).at(0);
+		max = m_minMaxValues->at(feature).at(1);
+	}
+	else if (valueMapping == 1)
+	{
+		auto minMax = std::minmax_element(m_calculatedStatistic->at(octreeLevel).at(feature).begin(), m_calculatedStatistic->at(octreeLevel).at(feature).end());
+		min = *minMax.first;
+		max = *minMax.second;
+	}
+	else
+	{
+		DEBUG_LOG(QString("Mapping type not found"));
+	}
 
 	calculateLUT(min, max, 8); //8 Colors
-	
+
 	for (int region = 0; region < m_fiberCoverage->at(octreeLevel).size(); region++)
 	{
-		std::vector<double> temp = std::vector<double>();
-		double rgba[4] = {0,0,0,1};
+		
+		double rgba[3] = {0,0,0};
 		//double val = histogramNormalization(m_calculatedStatistic->at(octreeLevel).at(feature).at(region),0,1,min,max);
 		double val = m_calculatedStatistic->at(octreeLevel).at(feature).at(region);
-
 		m_lut->GetColor(val, rgba);
-		rgba[3] = m_lut->GetOpacity(val);
 
-		for (int i = 0; i < 4; i++)
-		{
-			temp.push_back(rgba[i]);
-			//temp.push_back(m_lut->MapValue(val)[i]/255);
-		}
-		heatmapColors->push_back(temp);
+		heatmapColors->at(region).setRgbF(rgba[0], rgba[1], rgba[2], m_lut->GetOpacity(val));
 	}
 
 	return heatmapColors;
@@ -164,6 +191,9 @@ vtkSmartPointer<vtkLookupTable> iAVRMetrics::getLut()
 
 void iAVRMetrics::calculateColorBarLegend()
 {
+	//Remove old colorBar
+	hideColorBarLegend();
+
 	vtkSmartPointer<vtkPlaneSource> colorBarPlane = vtkSmartPointer<vtkPlaneSource>::New();
 	colorBarPlane->SetXResolution(1);
 	colorBarPlane->SetYResolution(m_lut->GetNumberOfAvailableColors());
@@ -189,7 +219,7 @@ void iAVRMetrics::calculateColorBarLegend()
 	{
 
 		double rgba[4];
-		double value = min + (subRange * i);
+		double value = max - (subRange * i);
 
 		//Text Label
 		//m_3DLabels->push_back(new iAVR3DText(m_renderer));
@@ -215,11 +245,18 @@ void iAVRMetrics::calculateColorBarLegend()
 	mapper->SetScalarModeToUseCellData();
 	mapper->Update();
 
-	m_ownColorBar = vtkSmartPointer<vtkActor>::New();
-	m_ownColorBar->SetMapper(mapper);
-	m_ownColorBar->GetProperty()->EdgeVisibilityOn();
+	m_ColorBar = vtkSmartPointer<vtkActor>::New();
+	m_ColorBar->SetMapper(mapper);
+	m_ColorBar->GetProperty()->EdgeVisibilityOn();
 
-	m_ownColorBar->GetProperty()->SetLineWidth(3);
+	m_ColorBar->GetProperty()->SetLineWidth(3);
+
+	//title
+	titleTextSource = vtkSmartPointer<vtkTextActor3D>::New();
+	titleTextSource->GetTextProperty()->SetColor(0, 0, 0);
+	titleTextSource->GetTextProperty()->SetBackgroundColor(0.6, 0.6, 0.6);
+	titleTextSource->GetTextProperty()->SetBackgroundOpacity(1.0);
+	titleTextSource->GetTextProperty()->SetFontSize(20);
 
 	// Create text
 	textSource = vtkSmartPointer<vtkTextActor3D>::New();
@@ -231,12 +268,14 @@ void iAVRMetrics::calculateColorBarLegend()
 
 	double actorBounds[6];
 	double pos[3] = { 0, 0, 0 };
-	m_ownColorBar->GetBounds(actorBounds);
+	m_ColorBar->GetBounds(actorBounds);
 	// ((maxY - minY) / #Labels) and then /2 for the center of a row
 	double subScale = ((actorBounds[3] - actorBounds[2]) / (m_lut->GetNumberOfAvailableColors() - 1));
 
 	textSource->SetPosition(actorBounds[1] + 1, actorBounds[2] + 1, -1);
 	textSource->SetScale(0.9, 0.72, 1);
+
+	titleTextSource->SetPosition(actorBounds[0] + 1, actorBounds[3] + 5, 0);
 }
 
 void iAVRMetrics::showColorBarLegend()
@@ -245,8 +284,9 @@ void iAVRMetrics::showColorBarLegend()
 	{
 		return;
 	}
-	m_renderer->AddActor(m_ownColorBar);
+	m_renderer->AddActor(m_ColorBar);
 	m_renderer->AddActor(textSource);
+	m_renderer->AddActor(titleTextSource);
 	m_colorBarVisible = true;
 }
 
@@ -256,8 +296,9 @@ void iAVRMetrics::hideColorBarLegend()
 	{
 		return;
 	}
-	m_renderer->RemoveActor(m_ownColorBar);
+	m_renderer->RemoveActor(m_ColorBar);
 	m_renderer->RemoveActor(textSource);
+	m_renderer->RemoveActor(titleTextSource);
 	m_colorBarVisible = false;
 }
 
@@ -324,10 +365,22 @@ QString iAVRMetrics::getFeatureName(int feature)
 void iAVRMetrics::moveColorBarLegend(double* pos)
 {
 	double actorBounds[6];
-	m_ownColorBar->GetBounds(actorBounds);
+	m_ColorBar->GetBounds(actorBounds);
 
 	textSource->SetPosition(actorBounds[1] + 1, actorBounds[2] + 1, actorBounds[4] - 1);
-	m_ownColorBar->SetPosition(pos);
+	titleTextSource->SetPosition(actorBounds[0] + 1, actorBounds[3] + 5, actorBounds[4] - 1);
+	m_ColorBar->SetPosition(pos);
+}
 
+void iAVRMetrics::rotateColorBarLegend(double x, double y, double z)
+{
+	titleTextSource->AddOrientation(x, y, z);
+	textSource->AddOrientation(x, y, z);
+	m_ColorBar->AddOrientation(x, y, z);
+}
+
+void iAVRMetrics::setLegendTitle(QString title)
+{
+	titleTextSource->SetInput(title.toUtf8());
 }
 

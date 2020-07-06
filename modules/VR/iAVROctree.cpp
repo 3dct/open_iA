@@ -27,6 +27,7 @@
 #include "vtkIdTypeArray.h"
 #include <iAConsole.h>
 
+
 iAVROctree::iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet):m_renderer(ren),m_dataSet(dataSet),m_actor(vtkSmartPointer<vtkActor>::New()),
 m_octree(vtkSmartPointer<vtkOctreePointLocator>::New())
 {
@@ -104,7 +105,8 @@ void iAVROctree::calculateOctreeRegionCenterPos(int regionID, double centerPoint
 }
 
 //! This Method creates the six Planes defines by the octree bounds of the given leaf region.
-void iAVROctree::createOctreeBoundingBoxPlanes(int regionID, std::vector<vtkSmartPointer<vtkPlaneSource>>* planes)
+//! The vec is defined as six [planes] (0-5) with respectively 3 points (origin, point 1, point 2)
+void iAVROctree::createOctreeBoundingBoxPlanes(int regionID, std::vector<std::vector<iAVec3d>>* planePoints)
 {
 	double bounds[6];
 	m_octree->GetRegionBounds(regionID, bounds);
@@ -116,48 +118,49 @@ void iAVROctree::createOctreeBoundingBoxPlanes(int regionID, std::vector<vtkSmar
 	double zMin = bounds[4];
 	double zMax = bounds[5];
 
-	vtkSmartPointer<vtkPlaneSource> planeSource0 = vtkSmartPointer<vtkPlaneSource>::New();
-	planeSource0->SetOrigin(xMin, yMin, zMax);
-	planeSource0->SetPoint1(xMax, yMin, zMax);
-	planeSource0->SetPoint2(xMin, yMax, zMax);
-	planeSource0->Update();
-	planes->push_back(planeSource0);
+	std::vector<iAVec3d> tempPos = std::vector<iAVec3d>();
 
-	vtkSmartPointer<vtkPlaneSource> planeSource1 = vtkSmartPointer<vtkPlaneSource>::New();
-	planeSource1->SetOrigin(xMax, yMin, zMax);
-	planeSource1->SetPoint1(xMax, yMin, zMin);
-	planeSource1->SetPoint2(xMax, yMax, zMax);
-	planeSource1->Update();
-	planes->push_back(planeSource1);
+	//Plane 1
+	tempPos.push_back(iAVec3d(xMin, yMin, zMax)); //origin
+	tempPos.push_back(iAVec3d(xMax, yMin, zMax)); //point 1
+	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2 
+	planePoints->push_back(tempPos);
+	tempPos.clear();
 
-	vtkSmartPointer<vtkPlaneSource> planeSource2 = vtkSmartPointer<vtkPlaneSource>::New();
-	planeSource2->SetOrigin(xMin, yMin, zMin);
-	planeSource2->SetPoint1(xMax, yMin, zMin);
-	planeSource2->SetPoint2(xMin, yMax, zMin);
-	planeSource2->Update();
-	planes->push_back(planeSource2);
+	//Plane 2
+	tempPos.push_back(iAVec3d(xMax, yMin, zMax)); //origin
+	tempPos.push_back(iAVec3d(xMax, yMin, zMin)); //point 1
+	tempPos.push_back(iAVec3d(xMax, yMax, zMax)); //point 2 
+	planePoints->push_back(tempPos);
+	tempPos.clear();
 
-	vtkSmartPointer<vtkPlaneSource> planeSource3 = vtkSmartPointer<vtkPlaneSource>::New();
-	planeSource3->SetOrigin(xMin, yMin, zMax);
-	planeSource3->SetPoint1(xMin, yMin, zMin);
-	planeSource3->SetPoint2(xMin, yMax, zMax);
-	planeSource3->Update();
-	planes->push_back(planeSource3);
+	//Plane 3
+	tempPos.push_back(iAVec3d(xMin, yMin, zMin)); //origin
+	tempPos.push_back(iAVec3d(xMax, yMin, zMin)); //point 1
+	tempPos.push_back(iAVec3d(xMin, yMax, zMin)); //point 2 
+	planePoints->push_back(tempPos);
+	tempPos.clear();
 
-	vtkSmartPointer<vtkPlaneSource> planeSource4 = vtkSmartPointer<vtkPlaneSource>::New();
-	planeSource4->SetOrigin(xMax, yMin, zMax);
-	planeSource4->SetPoint1(xMax, yMin, zMin);
-	planeSource4->SetPoint2(xMin, yMin, zMax);
-	planeSource4->Update();
-	planes->push_back(planeSource4);
+	//Plane 4
+	tempPos.push_back(iAVec3d(xMin, yMin, zMax)); //origin
+	tempPos.push_back(iAVec3d(xMin, yMin, zMin)); //point 1
+	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2 
+	planePoints->push_back(tempPos);
+	tempPos.clear();
 
-	vtkSmartPointer<vtkPlaneSource> planeSource5 = vtkSmartPointer<vtkPlaneSource>::New();
-	planeSource5->SetOrigin(xMax, yMax, zMax);
-	planeSource5->SetPoint1(xMax, yMax, zMin);
-	planeSource5->SetPoint2(xMin, yMax, zMax);
-	planeSource5->Update();
-	planes->push_back(planeSource5);
+	//Plane 5
+	tempPos.push_back(iAVec3d(xMax, yMin, zMax)); //origin
+	tempPos.push_back(iAVec3d(xMax, yMin, zMin)); //point 1
+	tempPos.push_back(iAVec3d(xMin, yMin, zMax)); //point 2 
+	planePoints->push_back(tempPos);
+	tempPos.clear();
 
+	//Plane 6
+	tempPos.push_back(iAVec3d(xMax, yMax, zMax)); //origin
+	tempPos.push_back(iAVec3d(xMax, yMax, zMin)); //point 1
+	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2 
+	planePoints->push_back(tempPos);
+	tempPos.clear();
 }
 
 //! Used for points which are just *barely* outside the bounds of the region. Moves that point so that it is just barely *inside* the bounds
@@ -241,7 +244,7 @@ vtkActor* iAVROctree::getActor()
 	return m_actor;
 }
 
-//! Stores which fibers lie in which region
+//! Stores which fibers lie in which region. Therfore all pointIds inside a region are taken and mapped to its fiber ID. 
 //! They all lie (independent of their real coverage) to 100% inside the region
 //! Regions without fibers have no entry
 void iAVROctree::mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex)

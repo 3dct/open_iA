@@ -101,6 +101,8 @@ private:
 	double cPos[vtkEventDataNumberOfDevices][3];
 	//Current Device Orientation
 	double cOrie[vtkEventDataNumberOfDevices][4];
+	//Current Focal Point
+	double focalPoint[3];
 	// Map Actors to iAVRInteractionOptions
 	std::unordered_map<vtkProp3D*, int> m_ActorToOptionID;
 	// Maps poly point IDs to Object IDs in csv file
@@ -122,14 +124,13 @@ private:
 	void setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation);
 	int getOptionForObject(vtkProp3D* pickedProp);
 	void addPropToOptionID(vtkProp3D* prop, iAVRInteractionOptions iD);
-	bool checkIntersectionWithBox(double startPoint[3], double endPoint[3], std::vector<vtkSmartPointer<vtkPlaneSource>>* planes, double bounds[6], double intersection[3]);
+	bool checkIntersectionWithBox(double startPoint[3], double endPoint[3], std::vector<std::vector<iAVec3d>>* planePoints, double bounds[6], double intersection[3]);
 	double calculateFiberCoverage(double startPoint[3], double endPoint[3], double fiberLength);
-	vtkSmartPointer<vtkPoints> getOctreeFiberCoverage(double startPoint[3], double endPoint[3], int octreeLevel, double fiberLength, std::vector<double>* coverageInRegion);
+	vtkSmartPointer<vtkPoints> getOctreeFiberCoverage(double startPoint[3], double endPoint[3], int octreeLevel, int fiber, double fiberLength);
 	void drawPoint(std::vector<double*>* pos, QColor color);
 	void generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyData* dataSet);
 	void calculateMetrics();
 	void updateModelInMiniatureData();
-	void calculateTextPosition(double fovRatio, double textureMapSize, double posInfo[7]);
 	void colorMiMCubes(std::vector<vtkIdType>* regionIDs);
 
 	//# Methods for interaction #//
