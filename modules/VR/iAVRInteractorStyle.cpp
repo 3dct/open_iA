@@ -82,7 +82,6 @@ void iAVRInteractorStyle::OnButton3D(vtkEventData* edata)
 
 	this->FindPickedActor(m_eventPosition, nullptr);
 
-
 	if(action == vtkEventDataAction::Press || action == vtkEventDataAction::Touch)
 	{
 		m_vrMain->startInteraction(device, m_eventPosition, m_eventOrientation, InteractionProp);
@@ -139,4 +138,25 @@ inputScheme * iAVRInteractorStyle::getInputScheme()
 std::vector<int>* iAVRInteractorStyle::getActiveInput()
 {
 	return m_activeInput;
+}
+
+//! Calculates the vector of the diagonals in the touchpad "square" and returns if the position is Up, Right, Down or left on the pad.
+//! The touchpad forms a square from (-1,-1) to (1,1)
+iAVRTouchpadPosition iAVRInteractorStyle::getTouchedPadSide(float position[3])
+{
+	vtkVector2f p0 = vtkVector2f(-1,-1);
+	vtkVector2f p1 = vtkVector2f(1, 1);
+
+	vtkVector2f q0 = vtkVector2f(1, -1);
+	vtkVector2f q1 = vtkVector2f(-1, 1);
+
+	float sideOfDiag1 = ((p1.GetX() - p0.GetX()) * (position[1] - p0.GetY()) - (p1.GetY() - p0.GetY()) * (position[0] - p0.GetX()));
+	float sideOfDiag2 = ((q1.GetX() - q0.GetX()) * (position[1] - q0.GetY()) - (q1.GetY() - q0.GetY()) * (position[0] - q0.GetX()));
+
+	if (sideOfDiag1 > 0 && sideOfDiag2 > 0) return iAVRTouchpadPosition::Left;
+	if (sideOfDiag1 > 0 && sideOfDiag2 < 0) return iAVRTouchpadPosition::Up;
+	if (sideOfDiag1 < 0 && sideOfDiag2 > 0) return iAVRTouchpadPosition::Down;
+	if (sideOfDiag1 < 0 && sideOfDiag2 < 0) return iAVRTouchpadPosition::Right;
+
+	return iAVRTouchpadPosition::Unknown;
 }

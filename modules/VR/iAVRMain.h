@@ -103,6 +103,8 @@ private:
 	double cOrie[vtkEventDataNumberOfDevices][4];
 	//Current Focal Point
 	double focalPoint[3];
+	//Current touchpad Position
+	float touchPadPosition[3];
 	// Map Actors to iAVRInteractionOptions
 	std::unordered_map<vtkProp3D*, int> m_ActorToOptionID;
 	// Maps poly point IDs to Object IDs in csv file

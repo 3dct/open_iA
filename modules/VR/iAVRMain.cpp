@@ -165,6 +165,8 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 //! Position and Orientation are in WorldCoordinates and Orientation is in Degree
 void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp)
 {
+	m_vrEnv->interactor()->GetTouchPadPosition(device->GetDevice(), device->GetInput(), touchPadPosition);
+
 	int deviceID = static_cast<int>(device->GetDevice()); // Device
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
 	int actioniD = static_cast<int>(device->GetAction());     // Action of Input Method
@@ -329,6 +331,7 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 		
 			double colorLegendlcPos[3] = { cPos[deviceID][0] + 70, cPos[deviceID][1] - 50, cPos[deviceID][2] + 10};
 			fiberMetrics->moveColorBarLegend(colorLegendlcPos);
+			fiberMetrics->showColorBarLegend();
 		}
 
 		double lcPos[3] = { cPos[deviceID][0], cPos[deviceID][1] - 24, cPos[deviceID][2]};
@@ -827,10 +830,8 @@ void iAVRMain::calculateMetrics()
 			QString text = QString("Feature: %1").arg(fiberMetrics->getFeatureName(currentFeature));
 			m_3DTextLabels->at(1)->create3DLabel(text);
 
-			fiberMetrics->showColorBarLegend();
 			fiberMetrics->setLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
 		}
-		//fiberMetrics->setColorBarLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
 	}
 }
 
@@ -854,13 +855,16 @@ void iAVRMain::changeOctreeLevel()
 {
 	m_octrees->at(currentOctreeLevel)->hide(); // Hide old octree
 	
-	currentOctreeLevel++;
-
-	if (currentOctreeLevel >= m_octrees->size() || currentOctreeLevel < OCTREE_MIN_LEVEL)
-	{		
-		currentOctreeLevel = OCTREE_MIN_LEVEL;
+	switch(m_style->getTouchedPadSide(touchPadPosition))
+	{
+	case iAVRTouchpadPosition::Up:
+		if (currentOctreeLevel < m_octrees->size()-1)	currentOctreeLevel++;
+		break;
+	case iAVRTouchpadPosition::Down:
+		if (currentOctreeLevel > OCTREE_MIN_LEVEL)	currentOctreeLevel--;
+		break;
 	}
-
+	
 	//m_octree->calculateOctree(currentOctreeLevel, OCTREE_POINTS_PER_REGION);
 	m_octrees->at(currentOctreeLevel)->generateOctreeRepresentation(currentOctreeLevel, OCTREE_COLOR);
 	m_octrees->at(currentOctreeLevel)->show();
@@ -982,12 +986,17 @@ void iAVRMain::resetSelection()
 
 void iAVRMain::changeFeature()
 {
-	currentFeature++;
 
-	if (currentFeature >= fiberMetrics->getNumberOfFeatures())
+	switch (m_style->getTouchedPadSide(touchPadPosition))
 	{
-		currentFeature = 1; // Jump over ID Column
+	case iAVRTouchpadPosition::Up:
+		if (currentFeature < fiberMetrics->getNumberOfFeatures() - 1)	currentFeature++;
+		break;
+	case iAVRTouchpadPosition::Down:
+		if (currentFeature > 0)	currentFeature--;
+		break;
 	}
+
 	updateModelInMiniatureData();
 
 	m_3DTextLabels->at(1)->show();
@@ -1016,34 +1025,9 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 		modelInMiniatureActive = true;
 		updateModelInMiniatureData();
 
-		//m_objectVis->getActor()->SetOrigin(cPos[controllerID][0], cPos[controllerID][1], cPos[controllerID][2]);
-		//m_objectVis->setPos(cPos[controllerID][0], cPos[controllerID][1], cPos[controllerID][2] );
-		//m_objectVis->setPos(cPos[controllerID][0] - originPos[0], cPos[controllerID][1] - originPos[1], cPos[controllerID][2] - originPos[2]);
-
-		/*
-		std::vector<double*>* point = new std::vector<double*>();
-		point->push_back(m_objectVis->getActor()->GetCenter());
-		drawPoint(point, QColor(255,0,0));
-		point = new std::vector<double*>();
-		point->push_back(m_objectVis->getActor()->GetOrigin());
-		drawPoint(point, QColor(0, 255, 0));
-		point = new std::vector<double*>();
-		point->push_back(m_objectVis->getActor()->GetPosition());
-		drawPoint(point, QColor(0, 0, 0));
-		*/
-
 		m_objectVis->show();
 
-		//DEBUG_LOG(QString("Orientation is: %1 / %2 / %3").arg(m_objectVis->getActor()->GetOrientation()[0]).arg(m_objectVis->getActor()->GetOrientation()[1]).arg(m_objectVis->getActor()->GetOrientation()[2]));
-
-		//fiberMetrics->getColorBar()->GetPositionCoordinate()->SetCoordinateSystemToWorld();
-		//fiberMetrics->getColorBar()->GetPositionCoordinate()->SetValue(eventPosition[0], eventPosition[1], eventPosition[2]);
-		//fiberMetrics->getColorBar()->Modified();
-
-		//fiberMetrics->getColorBarLegend()->GetPositionCoordinate()->SetValue(m_vrEnv->renderer()->GetActiveCamera()->GetScreenTopRight());
-		
-		//fiberMetrics->showColorBarLegend();
-
+		fiberMetrics->moveColorBarLegend(eventPosition);
 		fiberMetrics->showColorBarLegend();
 	}
 	else

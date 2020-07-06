@@ -32,6 +32,15 @@
 
 using inputScheme = std::vector < std::vector < std::vector<std::vector<int>>>>;
 
+// Enumeration for Touchpad positions
+enum class iAVRTouchpadPosition {
+	Unknown = -1,
+	Up,
+	Right,
+	Down,
+	Left
+};
+
 //! Base Class for specific interaction callbacks
 class iAVRInteractorStyle : public vtkOpenVRInteractorStyle
 {
@@ -45,6 +54,7 @@ class iAVRInteractorStyle : public vtkOpenVRInteractorStyle
 
 	inputScheme* getInputScheme();	// returns the vector for the Operation definition
 	std::vector<int>* getActiveInput(); //if >0 then has an action applied
+	iAVRTouchpadPosition getTouchedPadSide(float position[3]);
 
    protected:
 	iAVRInteractorStyle();
