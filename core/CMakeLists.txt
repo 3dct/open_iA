@@ -1,5 +1,5 @@
 FILE( GLOB_RECURSE open_iA_core_SRCS "src/*.cpp" "src/*.h" )
-FILE( GLOB_RECURSE open_iA_core_test_srcs "src/*Test.cpp" "src/*Test.cxx" )
+FILE( GLOB_RECURSE open_iA_core_test_srcs "src/*Test.cpp" "test/*.cpp")
 IF ( NOT "${open_iA_core_test_srcs}" STREQUAL "" )
 	LIST( REMOVE_ITEM open_iA_core_SRCS ${open_iA_core_test_srcs} )
 ENDIF ()
@@ -89,10 +89,16 @@ IF (openiA_TESTING_ENABLED)
 	target_compile_definitions(MathUtilTest PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME MathUtilTest COMMAND MathUtilTest)
 
+	ADD_EXECUTABLE(FunctionalBoxplotTest test/FunctionalBoxplotTest.cpp)
+	TARGET_INCLUDE_DIRECTORIES(FunctionalBoxplotTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
+	target_compile_definitions(FunctionalBoxplotTest PRIVATE NO_DLL_LINKAGE)
+	ADD_TEST(NAME FunctionalBoxplotTest COMMAND FunctionalBoxplotTest)
+
 	IF (openiA_USE_IDE_FOLDERS)
 		SET_PROPERTY(TARGET StringHelperTest PROPERTY FOLDER "Tests")
 		SET_PROPERTY(TARGET Vec3Test PROPERTY FOLDER "Tests")
 		SET_PROPERTY(TARGET MathUtilTest PROPERTY FOLDER "Tests")
+		SET_PROPERTY(TARGET FunctionalBoxplotTest PROPERTY FOLDER "Tests")
 	ENDIF()
 
 ENDIF()
