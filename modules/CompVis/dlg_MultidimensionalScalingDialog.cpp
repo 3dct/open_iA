@@ -42,8 +42,8 @@ void dlg_MultidimensionalScalingDialog::setupWeigthTable()
 	tableWeightsWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
 	//calculate weight
-	double sumOfWeights = 100;
-	std::vector<double>* indivWeight;
+	//double sumOfWeights = 100;
+	//std::vector<double>* indivWeight;
 	if (m_weights->size() == 0)
 	{
 		m_weights = new std::vector<double>(amountElems, 100 / (amountElems)); 

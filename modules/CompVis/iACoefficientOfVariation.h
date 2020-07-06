@@ -1,7 +1,7 @@
 #pragma once
 
 //CompVis
-#include "iACsvDataStorage.h";
+#include "iACsvDataStorage.h"
 
 /*
 The coefficient of variation (CV) is defined as the ratio of the standard deviation σ to the mean μ, c(v) = σ/μ.

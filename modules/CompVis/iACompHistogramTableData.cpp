@@ -71,7 +71,7 @@ QList<bin::BinType*>* iACompHistogramTableData::calculateBins(int numberOfBins)
 
 bin::BinType* iACompHistogramTableData::calculateBins(bin::BinType* data, int currData, int numberOfBins)
 {	
-	int amountVals = data->at(currData).size();
+	size_t amountVals = data->at(currData).size();
 
 	if (amountVals == 0)
 	{
@@ -89,7 +89,7 @@ bin::BinType* iACompHistogramTableData::calculateBins(bin::BinType* data, int cu
 
 	bin::BinType* bins = bin::initialize(numberOfBins);
 
-	for (int v = 0; v < amountVals; v++)
+	for (size_t v = 0; v < amountVals; v++)
 	{
 		for (int b = 0; b < numberOfBins; b++)
 		{

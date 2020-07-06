@@ -115,7 +115,11 @@ iACompHistogramTable::iACompHistogramTable(
 	m_renderer->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
 	m_renderer->SetViewport(0, 0, 0.8, 1);
 	m_renderer->SetUseFXAA(true);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_qvtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
+#else
+	m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
+#endif
 
 }
 
@@ -807,7 +811,11 @@ vtkSmartPointer<vtkActor> iACompHistogramTable::drawPoints(vtkSmartPointer<vtkPo
 
 void iACompHistogramTable::renderWidget()
 {
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
+#else
+	m_qvtkWidget->renderWindow()->GetInteractor()->Render();
+#endif
 }
 
 /******************************************  Coloring (LookupTable)  **********************************/
@@ -1046,7 +1054,11 @@ void iACompHistogramTable::initializeLegend()
 	renderer->SetViewport(0.8, 0, 1, 1);
 	renderer->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
 	renderer->AddActor2D(scalarBar);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_qvtkWidget->GetRenderWindow()->AddRenderer(renderer);
+#else
+	m_qvtkWidget->renderWindow()->AddRenderer(renderer);
+#endif
 }
 
 std::string iACompHistogramTable::initializeLegendLabels(std::string input)
@@ -1101,8 +1113,11 @@ void iACompHistogramTable::initializeInteraction()
 	style->SetDefaultRenderer(m_renderer);
 	style->SetCurrentRenderer(m_renderer);
 	style->setIACompVisMain(m_main);
-
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_qvtkWidget->GetInteractor()->SetInteractorStyle(style);
+#else
+	m_qvtkWidget->interactor()->SetInteractorStyle(style);
+#endif
 }
 
 /******************************************  Getter & Setter ******************************************/

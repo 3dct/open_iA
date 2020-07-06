@@ -44,8 +44,13 @@ iACompBarChart::iACompBarChart(MainWindow* parent, iACoefficientOfVariation* coe
 	layout->addWidget(m_qvtkWidget);
 
 	m_view = vtkSmartPointer<vtkContextView>::New();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_view->SetRenderWindow(m_qvtkWidget->GetRenderWindow());
 	m_view->SetInteractor(m_qvtkWidget->GetInteractor());
+#else
+	m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
+	m_view->SetInteractor(m_qvtkWidget->interactor());
+#endif
 
 	//data preparation
 	attrNames = m_dataStorage->getData()->at(0).header;
@@ -207,7 +212,11 @@ void iACompBarChart::removeLabelAttribute(std::vector<double>* input, QStringLis
 
 void iACompBarChart::renderWidget()
 {
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
+#else
+	m_qvtkWidget->renderWindow()->GetInteractor()->Render();
+#endif
 }
 
 std::vector<double>* iACompBarChart::getOrderedPositions()

@@ -24,7 +24,7 @@ unsigned char* iACompVisOptions::getColorArray(double colors[3])
 	{
 		result[j] = static_cast<unsigned char>(colors[j] * 255);
 	}
-
+	// TODO: Check - dangerous - returning address of local variable!
 	return result;
 }
 
@@ -40,6 +40,7 @@ double* iACompVisOptions::getDoubleArray(const unsigned char colors[3])
 	result[1] = histogramNormalization(help[1], 0.0, 1.0, 0.0, 255);
 	result[2] = histogramNormalization(help[2], 0.0, 1.0, 0.0, 255);
 
+	// TODO: Check - dangerous - returning address of local variable!
 	return result;
 }
 

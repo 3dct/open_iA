@@ -34,9 +34,9 @@ void iACoefficientOfVariation::initializeAttributeArray(QList<csvFileData>* inpu
 
 		for (int datasetInd = 0; datasetInd < amountDatasets; datasetInd++)
 		{ //for all datasets
-			int amountObjects = input->at(datasetInd).values->size();
+			size_t amountObjects = input->at(datasetInd).values->size();
 
-			for (int objInd = 0; objInd < amountObjects; objInd++)
+			for (size_t objInd = 0; objInd < amountObjects; objInd++)
 			{ //for all objects in each dataset
 				csvDataType::ArrayType* vals = input->at(datasetInd).values;
 				attr.push_back(vals->at(objInd).at(attrInd));

@@ -216,6 +216,7 @@ ELSE()
 	# These components are apparently not pulled in automatically anymore in VTK >= 9
 	LIST (APPEND VTK_COMPONENTS
 		ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, PorosityAnalyzer
+		CommonColor                 # required for CompVis
 		CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
 		GUISupportQt                # for QVTKOpenGLNativeWidget
 		FiltersExtraction           # for vtkExtractGeometry, used in FIAKER - iASelectionInteractorStyle
