@@ -258,7 +258,6 @@ QSharedPointer<iAAttributeDescriptor> iANumberParameterInputs::currentDescriptor
 		pName,
 		iAAttributeDescriptor::Parameter,
 		descriptor->valueType()));
-	desc->setNameMapper(descriptor->nameMapper());	// might not be needed, namemapper should only be necessary for categorical attributes
 	adjustMinMax(desc, from->text());
 	adjustMinMax(desc, to->text());
 	if (logScale)
@@ -346,8 +345,7 @@ QSharedPointer<iAAttributeDescriptor> iACategoryParameterInputs::currentDescript
 			names.append(f->text());
 		}
 	}
-	QSharedPointer<iAListNameMapper> nameMapper(new iAListNameMapper(names));
-	desc->setNameMapper(nameMapper);
+	desc->setDefaultValue(names);
 	desc->adjustMinMax(0);
 	desc->adjustMinMax(names.size() - 1);
 	return desc;

@@ -24,8 +24,6 @@
 #include "iAListNameMapper.h"
 #include "iAStringHelper.h"
 
-const QString iAAttributeDescriptor::ValueSplitString(",");
-
 namespace
 {
 	const QString AttributeSplitString("\t");
@@ -115,7 +113,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 		QStringList categories = defTokens[3].split(CategoricalValueSplitString);
 		result->m_min = 0;
 		result->m_max = categories.size()-1;
-		result->m_nameMapper = QSharedPointer<iAListNameMapper>(new iAListNameMapper(categories));
+		result->m_defaultValue = categories;
 		if (defTokens.size() > 5)
 		{
 			DEBUG_LOG(QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
@@ -129,8 +127,8 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::createParam(
 	QVariant defaultValue, double min, double max)
 {
 	auto result = QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(name, Parameter, valueType));
-	result->m_min = min;
-	result->m_max = max;
+	result->m_min = valueType == Categorical ? 0 : min;
+	result->m_max = valueType == Categorical ? defaultValue.toStringList().size() : max;
 	result->m_defaultValue = defaultValue;
 	return result;
 }
@@ -157,29 +155,7 @@ QString iAAttributeDescriptor::toString() const
 	}
 	else if (valueType() == iAValueType::Categorical)
 	{
-		if (!m_nameMapper)
-		{
-			DEBUG_LOG("nameMapper nullptr for categorical attribute!\n");
-			for (int i = min(); i <= max(); ++i)
-			{
-				result += QString::number(i);
-				if (i < max())
-				{
-					result += CategoricalValueSplitString;
-				}
-			}
-		}
-		else
-		{
-			for (int i = min(); i <= max(); ++i)
-			{
-				result += m_nameMapper->name(i);
-				if (i < m_nameMapper->size() - 1)
-				{
-					result += CategoricalValueSplitString;
-				}
-			}
-		}
+		result += m_defaultValue.toStringList().join(CategoricalValueSplitString);
 	}
 	return result + "\n";
 }
@@ -267,10 +243,9 @@ bool iAAttributeDescriptor::coversWholeRange(double min, double max) const
 
 QSharedPointer<iANameMapper> iAAttributeDescriptor::nameMapper() const
 {
+	if (!m_nameMapper)
+	{
+		m_nameMapper = QSharedPointer<iAListNameMapper>(new iAListNameMapper(m_defaultValue.toStringList()));
+	}
 	return m_nameMapper;
-}
-
-void iAAttributeDescriptor::setNameMapper(QSharedPointer<iANameMapper> mapper)
-{
-	m_nameMapper = mapper;
 }
