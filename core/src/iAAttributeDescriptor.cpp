@@ -128,7 +128,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::createParam(
 {
 	auto result = QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(name, Parameter, valueType));
 	result->m_min = valueType == Categorical ? 0 : min;
-	result->m_max = valueType == Categorical ? defaultValue.toStringList().size() : max;
+	result->m_max = valueType == Categorical ? defaultValue.toStringList().size()-1 : max;
 	result->m_defaultValue = defaultValue;
 	return result;
 }
