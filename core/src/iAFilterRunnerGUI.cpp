@@ -123,11 +123,11 @@ void iAFilterRunnerGUI::storeParameters(QSharedPointer<iAFilter> filter, QMap<QS
 bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
 	MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput)
 {
-	QVector<pParameter> dlgParams;
+	iAAttributes dlgParams;
 	bool showROI = false;	// TODO: find better way to check this?
 	for (auto filterParam : filter->parameters())
 	{
-		pParameter p(filterParam->clone());
+		QSharedPointer<iAAttributeDescriptor> p(filterParam->clone());
 		if (p->valueType() == Categorical)
 		{
 			QStringList comboValues = p->defaultValue().toStringList();

@@ -697,7 +697,7 @@ void dlg_GEMSeControl::saveDerivedOutput(
 		return;
 	}
 	QTextStream out(&paramRangeFile);
-	results->attributes()->store(out);
+	storeAttributes(out, *results->attributes().data());
 
 	// store derived output:
 	results->storeAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);

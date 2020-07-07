@@ -23,26 +23,15 @@
 #include "open_iA_Core_export.h"
 
 #include <iAAttributeDescriptor.h>
-#include <iAValueType.h>
 
 #include <QVector>
 #include <QSharedPointer>
 
-class iANameMapper;
-
 class QTextStream;
 
-class open_iA_Core_API iAAttributes
-{
-public:
-	static QSharedPointer<iAAttributes> create(QTextStream & in);
-	int size() const;
-	QSharedPointer<iAAttributeDescriptor const> at(int idx) const;
-	QSharedPointer<iAAttributeDescriptor> at(int idx);
-	void add(QSharedPointer<iAAttributeDescriptor> range);
-	void store(QTextStream & out);
-	int find(QString const & name);
-	int count(iAAttributeDescriptor::iAAttributeType type=iAAttributeDescriptor::None) const;
-private:
-	QVector<QSharedPointer<iAAttributeDescriptor> > m_attributes;
-};
+using iAAttributes = QVector<QSharedPointer<iAAttributeDescriptor>>;
+
+open_iA_Core_API QSharedPointer<iAAttributes> createAttributes(QTextStream& in);
+open_iA_Core_API void storeAttributes(QTextStream& out, iAAttributes const& attributes);
+open_iA_Core_API int findAttribute(iAAttributes const& attributes, QString const& name);
+open_iA_Core_API int countAttributes(iAAttributes const& attributes, iAAttributeDescriptor::iAAttributeType type = iAAttributeDescriptor::None);

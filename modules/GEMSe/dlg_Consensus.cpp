@@ -282,8 +282,8 @@ void dlg_Consensus::SelectionUncertaintyDice(
 
 	for (int i = 0; i < selection.size(); ++i)
 	{
-		int avgUncIdx = selection[i]->attributes()->find("Average Uncertainty");
-		int diceIdx   = selection[i]->attributes()->find("Dice");
+		int avgUncIdx = findAttribute(*selection[i]->attributes().data(), "Average Uncertainty");
+		int diceIdx = findAttribute(*selection[i]->attributes().data(), "Dice");
 		double unc    = selection[i]->attribute(avgUncIdx);
 		double dice   = selection[i]->attribute(diceIdx);
 		table->SetValue(i, 0, unc);
@@ -317,7 +317,7 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 			std::vector<InputDice> memberDice;
 			for (int m = 0; m < selection.size(); ++m)
 			{
-				int attributeID = selection[m]->attributes()->find(QString("Dice %1").arg(l));
+				int attributeID = findAttribute(*selection[m]->attributes().data(), QString("Dice %1").arg(l));
 				if (attributeID == -1)
 				{
 					DEBUG_LOG(QString("Attribute 'Dice %1' not found, aborting!").arg(l));
@@ -346,7 +346,7 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 		{
 			for (int m = 0; m < selection.size(); ++m)
 			{
-				int attributeID = selection[m]->attributes()->find(QString("Dice %1").arg(l));
+				int attributeID = findAttribute(*selection[m]->attributes().data(), QString("Dice %1").arg(l));
 				if (attributeID == -1)
 				{
 					DEBUG_LOG(QString("Attribute 'Dice %1' not found, aborting!").arg(l));
@@ -763,7 +763,7 @@ void dlg_Consensus::StoreConfig()
 		for (int s = 0; s < sampling->size(); ++s)
 		{
 			auto r = sampling->get(s);
-			int derivedOutID = r->attributes()->find(DerivedOutputName);
+			int derivedOutID = findAttribute(*r->attributes().data(), DerivedOutputName);
 			runs.push_back(std::make_tuple(r->datasetID(), r->id(), r->attribute(derivedOutID)));
 		}
 	}
@@ -806,7 +806,7 @@ void dlg_Consensus::StoreConfig()
 			for (int m = 0; m < selection.size(); ++m)
 			{
 				QString derivedOutName(QString("%1 %2").arg(DerivedOutputName).arg(l));
-				int attributeID = selection[m]->attributes()->find(derivedOutName);
+				int attributeID = findAttribute(*selection[m]->attributes().data(), derivedOutName);
 				if (attributeID == -1)
 				{
 					DEBUG_LOG(QString("Attribute '%1' not found!").arg(derivedOutName));
@@ -1091,7 +1091,7 @@ void dlg_Consensus::samplerFinished()
 		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
 		{
 			measure->resetMinMax();
-			attributes->add(measure);
+			attributes->push_back(measure);
 		}
 		for (int m = 0; m < m_comparisonSamplingResults[s]->size(); ++m)
 		{
@@ -1130,7 +1130,7 @@ void dlg_Consensus::samplerFinished()
 			// }
 			for (int i = 0; i<measures.size(); ++i)
 			{
-				int attributeID = attributes->find(measures[i]->name());
+				int attributeID = findAttribute(*attributes.data(), measures[i]->name());
 				m_comparisonSamplingResults[s]->get(m)->setAttribute(attributeID, measureValues[i]);
 				attributes->at(attributeID)->adjustMinMax(measureValues[i]);
 			}

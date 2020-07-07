@@ -23,7 +23,6 @@
 #include <QSharedPointer>
 #include <QThread>
 
-class iAAttributes;
 class iASingleResult;
 
 class QString;

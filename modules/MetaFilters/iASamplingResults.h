@@ -22,11 +22,12 @@
 
 #include "MetaFilters_export.h"
 
+#include <iAAttributes.h>
+
 #include <QSharedPointer>
 #include <QString>
 #include <QVector>
 
-class iAAttributes;
 class iASingleResult;
 
 class MetaFilters_API iASamplingResults

@@ -24,13 +24,13 @@
 
 #include "MetaFilters_export.h"
 
+#include <iAAttributes.h>
 #include <iASettings.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iAWidgetSettingsMapper.h>
 
 #include <QMap>
 
-class iAAttributes;
 class iAAttributeDescriptor;
 class iAModalityList;
 class iAParameterGenerator;

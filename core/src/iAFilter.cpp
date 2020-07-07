@@ -65,7 +65,7 @@ QString iAFilter::description() const
 	return m_description;
 }
 
-QVector<pParameter> const & iAFilter::parameters() const
+iAAttributes const & iAFilter::parameters() const
 {
 	return m_parameters;
 }

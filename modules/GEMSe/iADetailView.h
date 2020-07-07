@@ -23,6 +23,7 @@
 #include "iAChartFilter.h"   // for iAResultFilter
 #include "iAImageTreeNode.h" // for LabelImagePointer
 
+#include <iAAttributes.h>
 #include <io/iAITKIO.h> // TODO: replace?
 
 #include <vtkSmartPointer.h>
@@ -37,7 +38,6 @@ class QSplitter;
 class QStandardItemModel;
 class QTextEdit;
 
-class iAAttributes;
 class iAChannelData;
 class iAChartAttributeMapper;
 class iAColorTheme;

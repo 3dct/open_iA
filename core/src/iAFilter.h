@@ -22,7 +22,7 @@
 
 #include "open_iA_Core_export.h"
 
-#include "iAValueType.h"
+#include "iAAttributes.h"
 
 #include <itkImageBase.h>
 #include <itkImageIOBase.h>
@@ -38,12 +38,9 @@
 
 class vtkImageData;
 
-class iAAttributeDescriptor;
 class iAConnector;
 class iALogger;
 class iAProgress;
-
-typedef QSharedPointer<iAAttributeDescriptor> pParameter;
 
 //! Base class for image filters
 //! Derived classes should:
@@ -93,7 +90,7 @@ public:
 	//! Retrieve the filter description
 	QString description() const;
 	//! Retrieve a list of the filter parameters
-	QVector<pParameter> const & parameters() const;
+	iAAttributes const & parameters() const;
 	//! Set the logger to be used for status output / error messages
 	void setLogger(iALogger* logger);
 	//! Set the facility  for progress reporting
@@ -205,7 +202,7 @@ private:
 	//! The logger
 	iALogger* m_log;
 	//! Describes the parameters of the algorithm
-	QVector<pParameter> m_parameters;
+	iAAttributes m_parameters;
 	//! Names for the output values of the algorithm
 	QVector<QString> m_outputValueNames;
 	//! Names for the input images of the algorithm

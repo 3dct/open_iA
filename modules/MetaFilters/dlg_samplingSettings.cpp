@@ -446,7 +446,7 @@ void dlg_samplingSettings::loadDescriptor(QString const & fileName)
 		return;
 	}
 	QTextStream in(&file);
-	m_descriptor = iAAttributes::create(in);
+	m_descriptor = createAttributes(in);
 
 	// TODO: store values from previous descriptor?
 	for (int i = 0; i < m_paramInputs.size(); ++i)
@@ -497,7 +497,7 @@ QSharedPointer<iAAttributes> dlg_samplingSettings::parameterRanges()
 	QSharedPointer<iAAttributes> result(new iAAttributes);
 	for (int l = 0; l < m_paramInputs.size(); ++l)
 	{
-		result->add(m_paramInputs[l]->currentDescriptor());
+		result->push_back(m_paramInputs[l]->currentDescriptor());
 	}
 	return result;
 }

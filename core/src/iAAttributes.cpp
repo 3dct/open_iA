@@ -20,11 +20,9 @@
 * ************************************************************************************/
 #include "iAAttributes.h"
 
-#include <iAAttributeDescriptor.h>
-
 #include <QTextStream>
 
-QSharedPointer<iAAttributes> iAAttributes::create(QTextStream & in)
+QSharedPointer<iAAttributes> createAttributes(QTextStream & in)
 {
 	QSharedPointer<iAAttributes> result(new iAAttributes);
 	while (!in.atEnd())
@@ -34,7 +32,7 @@ QSharedPointer<iAAttributes> iAAttributes::create(QTextStream & in)
 			iAAttributeDescriptor::create(line);
 		if (descriptor)
 		{
-			result->m_attributes.push_back(descriptor);
+			result->push_back(descriptor);
 		}
 		else
 		{
@@ -44,41 +42,19 @@ QSharedPointer<iAAttributes> iAAttributes::create(QTextStream & in)
 	return result;
 }
 
-int iAAttributes::size() const
+void storeAttributes(QTextStream & out, iAAttributes const & attributes)
 {
-	return m_attributes.size();
-}
-
-
-QSharedPointer<iAAttributeDescriptor> iAAttributes::at(int idx)
-{
-	return m_attributes[idx];
-}
-
-QSharedPointer<iAAttributeDescriptor const> iAAttributes::at(int idx) const
-{
-	return m_attributes[idx];
-}
-
-
-void iAAttributes::add(QSharedPointer<iAAttributeDescriptor> range)
-{
-	m_attributes.push_back(range);
-}
-
-void iAAttributes::store(QTextStream & out)
-{
-	for (int i = 0; i < m_attributes.size(); ++i)
+	for (int i = 0; i < attributes.size(); ++i)
 	{
-		out << m_attributes[i]->toString();
+		out << attributes[i]->toString();
 	}
 }
 
-int iAAttributes::find(QString const & name)
+int findAttribute(iAAttributes const& attributes, QString const & name)
 {
-	for (int i = 0; i < m_attributes.size(); ++i)
+	for (int i = 0; i < attributes.size(); ++i)
 	{
-		if (m_attributes[i]->name() == name)
+		if (attributes[i]->name() == name)
 		{
 			return i;
 		}
@@ -86,13 +62,12 @@ int iAAttributes::find(QString const & name)
 	return -1;
 }
 
-
-int iAAttributes::count(iAAttributeDescriptor::iAAttributeType type) const
+int countAttributes(iAAttributes const& attributes, iAAttributeDescriptor::iAAttributeType type)
 {
 	int count = 0;
-	for (int i = 0; i < m_attributes.size(); ++i)
+	for (int i = 0; i < attributes.size(); ++i)
 	{
-		if (type == iAAttributeDescriptor::None	|| m_attributes[i]->attribType() == type)
+		if (type == iAAttributeDescriptor::None	|| attributes[i]->attribType() == type)
 		{
 			count++;
 		}

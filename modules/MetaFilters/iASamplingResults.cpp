@@ -125,7 +125,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFil
 		DEBUG_LOG("Executable and/or AdditionalArguments missing in sampling descriptor!");
 	}
 
-	QSharedPointer<iAAttributes> attributes = iAAttributes::create(in);
+	QSharedPointer<iAAttributes> attributes = createAttributes(in);
 	QSharedPointer<iASamplingResults> result(new iASamplingResults(
 		attributes, samplingMethod, fileInfo.absolutePath(), executable, additionalArguments, name, datasetID));
 	file.close();
@@ -173,7 +173,7 @@ bool iASamplingResults::store(QString const & fileName,
 	out << "Executable" << Output::NameSeparator << m_executable << endl;
 	out << "AdditionalArguments" << Output::NameSeparator << m_additionalArguments << endl;
 #endif
-	m_attributes->store(out);
+	::storeAttributes(out, *m_attributes.data());
 	paramRangeFile.close();
 
 	m_fileName = fileName;

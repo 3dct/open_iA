@@ -27,6 +27,7 @@
 #include "iAGEMSeConstants.h"
 #include "iAImageTreeNode.h"
 
+#include <iAAttributes.h>
 #include <iASlicerMode.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
@@ -34,7 +35,6 @@
 
 #include <QVector>
 
-class iAAttributes;
 class iACameraWidget;
 class iAColorTheme;
 class iADetailView;

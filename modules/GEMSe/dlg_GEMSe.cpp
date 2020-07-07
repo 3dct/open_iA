@@ -203,7 +203,7 @@ void dlg_GEMSe::CreateMapper()
 				attribute->attribType() ==
 				iAAttributeDescriptor::DerivedOutput) // at the moment for derived output only
 			{
-				chartID = m_chartAttributes->find(attribute->name());
+				chartID = findAttribute(*m_chartAttributes.data(), attribute->name());
 			}
 			if (chartID != -1)
 			{	// reuse existing chart, only add mapping:
@@ -214,7 +214,7 @@ void dlg_GEMSe::CreateMapper()
 			}
 			else
 			{	// add chart and mapping:
-				m_chartAttributes->add(attribute);
+				m_chartAttributes->push_back(attribute);
 				chartID = nextChartID;
 				nextChartID++;
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
@@ -619,7 +619,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		return;
 	}
 	int labelCount = m_treeView->GetTree()->labelCount();
-	m_MeasureChartIDStart = m_chartAttributes->find("Dice");
+	m_MeasureChartIDStart = findAttribute(*m_chartAttributes.data(), "Dice");
 	if (m_MeasureChartIDStart == -1)
 	{
 		QVector<QSharedPointer<iAAttributeDescriptor> > measures;
@@ -642,14 +642,14 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
 		{
 			int chartID = m_chartAttributes->size();
-			m_chartAttributes->add(measure);
+			m_chartAttributes->push_back(measure);
 			// add mappings:
 			for (int sampleIdx = 0; sampleIdx < m_samplings->size(); ++sampleIdx)
 			{
 				QSharedPointer<iAAttributes> attribs = m_samplings->at(sampleIdx)->attributes();
 				int attributeID = attribs->size();
 				int datasetID = m_samplings->at(sampleIdx)->id();
-				attribs->add(measure);
+				attribs->push_back(measure);
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
 			}
 		}

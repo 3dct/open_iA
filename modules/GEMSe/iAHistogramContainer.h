@@ -20,13 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
+#include <iAAttributes.h>
+
 #include <QMap>
 #include <QSet>
 #include <QSharedPointer>
 #include <QSplitter>
 #include <QVector>
 
-class iAAttributes;
 class iAChartAttributeMapper;
 class iAChartFilter;
 class iAClusterAttribChart;

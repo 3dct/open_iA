@@ -20,10 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAAttributes.h"
 #include "iAFilter.h"
 #include "iAFilterRunnerGUI.h"
-
-class iAAttributes;
 
 class iASampleFilter : public iAFilter
 {

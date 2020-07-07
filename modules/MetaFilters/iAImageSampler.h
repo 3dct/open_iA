@@ -26,6 +26,7 @@
 #include "iADurationEstimator.h"
 #include "iAParameterGenerator.h"
 
+#include <iAAttributes.h>
 #include <iAPerformanceHelper.h>
 
 #include <QMap>
@@ -33,7 +34,6 @@
 #include <QSharedPointer>
 #include <QThread>
 
-class iAAttributes;
 class iASamplingResults;
 class iASingleResult;
 class iADerivedOutputCalculator;
