@@ -629,11 +629,17 @@ void dlg_samplingSettings::runClicked()
 			     curMaxStr = QString::number(desc->max(), 'g');
 			if ( !std::isfinite(desc->min()) || minStr == curMinStr)
 			{
-				msg += QString("Parameter '%1': invalid minimum value!").arg(desc->name()).arg(desc->min());
+				msg += QString("Parameter '%1': invalid minimum value!").arg(desc->name());
 			}
 			if ( !std::isfinite(desc->max()) || maxStr == curMaxStr)
 			{
-				msg += QString("Parameter '%1': invalid maximum value!").arg(desc->name()).arg(desc->max());
+				msg += QString("Parameter '%1': invalid maximum value!").arg(desc->name());
+			}
+			if (desc->min() > desc->max())
+			{
+				msg += QString("Parameter '%1': Minimum value must be smaller than or equal to maximum "
+					"(current minimum %2 is bigger than maximum %3)!").arg(desc->name())
+					.arg(desc->min()).arg(desc->max());
 			}
 		}
 	}
