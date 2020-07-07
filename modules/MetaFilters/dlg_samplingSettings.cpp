@@ -642,6 +642,10 @@ void dlg_samplingSettings::runClicked()
 					.arg(desc->min()).arg(desc->max());
 			}
 		}
+		if (desc->valueType() == Categorical && desc->defaultValue().toString().size() == 0)
+		{
+			msg += QString("Parameter '%1': Currently, no value is selected; you must select at least one value!").arg(desc->name());
+		}
 	}
 	if (rbBuiltIn->isChecked() && pbFilterSelect->text() == SelectFilterDefaultText)
 	{
