@@ -33,6 +33,7 @@
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iANameMapper.h>
+#include <qthelper/iAQFlowLayout.h>
 
 #include <QCheckBox>
 #include <QFileDialog>
@@ -127,28 +128,34 @@ namespace
 	{
 		QSharedPointer<iAParameterInputs> result;
 		// merge with common input / iAParameter dlg ?
-		if (descriptor->valueType() == Categorical)
+		bool isCategorical = descriptor->valueType() == Categorical;
+		if (isCategorical || descriptor->valueType() == Boolean)
 		{
 			auto categoryInputs = new iACategoryParameterInputs();
 			QWidget* w = new QWidget();
-			QGridLayout* checkGridLay = new QGridLayout();
-			for (int categoryIdx = descriptor->min(); categoryIdx <= descriptor->max(); ++categoryIdx)
+			iAQFlowLayout* checkLay = new iAQFlowLayout();
+			int minVal = isCategorical ? descriptor->min() : 0,
+			    maxVal = isCategorical ? descriptor->max() : 1;
+			for (int categoryIdx = minVal; categoryIdx <= maxVal; ++categoryIdx)
 			{
-				QCheckBox* checkBox = new QCheckBox(descriptor->nameMapper()->name(categoryIdx));
+				QString title = isCategorical ? descriptor->nameMapper()->name(categoryIdx) : categoryIdx == 0 ? "false" : "true";
+				QCheckBox* checkBox = new QCheckBox(title);
 				categoryInputs->m_features.push_back(checkBox);
-				checkGridLay->addWidget(checkBox, (categoryIdx - descriptor->min()) / 3, static_cast<int>(categoryIdx - descriptor->min()) % 3);
+				checkLay->addWidget(checkBox);
 			}
-			w->setLayout(checkGridLay);
+			w->setLayout(checkLay);
 			gridLay->addWidget(w, curGridLine, 1, 1, 3);
 			result = QSharedPointer<iAParameterInputs>(categoryInputs);
 		}
 		else if (descriptor->valueType() == Continuous || descriptor->valueType() == Discrete)
 		{
 			auto numberInputs = new iANumberParameterInputs();
-			numberInputs->from = new QLineEdit(QString::number(descriptor->min(),
+			numberInputs->from = new QLineEdit(QString::number(
+				descriptor->min() == std::numeric_limits<double>::lowest()? 0 : descriptor->min(),
 				descriptor->valueType() != Continuous ? 'd' : 'g',
 				descriptor->valueType() != Continuous ? 0 : ContinuousPrecision));
-			numberInputs->to = new QLineEdit(QString::number(descriptor->max(),
+			numberInputs->to = new QLineEdit(QString::number(
+				descriptor->max() == std::numeric_limits<double>::max() ? 0 : descriptor->max(),
 				descriptor->valueType() != Continuous ? 'd' : 'g',
 				descriptor->valueType() != Continuous ? 0 : ContinuousPrecision));
 			gridLay->addWidget(numberInputs->from, curGridLine, 1);
@@ -314,7 +321,7 @@ void iACategoryParameterInputs::changeInputValues(iASettings const & values)
 QSharedPointer<iAAttributeDescriptor> iACategoryParameterInputs::currentDescriptor()
 {
 	QString pName(label->text());
-	assert(descriptor->valueType() == Categorical);
+	assert(descriptor->valueType() == Categorical || descriptor->valueType() == Boolean);
 	QSharedPointer<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
 		pName,
 		iAAttributeDescriptor::Parameter,
