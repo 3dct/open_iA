@@ -88,10 +88,12 @@ int iAQFlowLayout::horizontalSpacing() const
 
 int iAQFlowLayout::verticalSpacing() const
 {
-	if (m_vSpace >= 0) {
+	if (m_vSpace >= 0)
+	{
 		return m_vSpace;
 	}
-	else {
+	else
+	{
 		return smartSpacing(QStyle::PM_LayoutVerticalSpacing);
 	}
 }
@@ -168,14 +170,19 @@ int iAQFlowLayout::doLayout(const QRect &rect, bool testOnly) const
 		QWidget *wid = item->widget();
 		int spaceX = horizontalSpacing();
 		if (spaceX == -1)
+		{
 			spaceX = wid->style()->layoutSpacing(
 				QSizePolicy::PushButton, QSizePolicy::PushButton, Qt::Horizontal);
+		}
 		int spaceY = verticalSpacing();
 		if (spaceY == -1)
+		{
 			spaceY = wid->style()->layoutSpacing(
 				QSizePolicy::PushButton, QSizePolicy::PushButton, Qt::Vertical);
+		}
 		int nextX = x + item->sizeHint().width() + spaceX;
-		if (nextX - spaceX > effectiveRect.right() && lineHeight > 0) {
+		if (nextX - spaceX > effectiveRect.right() && lineHeight > 0)
+		{
 			x = effectiveRect.x();
 			y = y + lineHeight + spaceY;
 			nextX = x + item->sizeHint().width() + spaceX;
@@ -183,24 +190,30 @@ int iAQFlowLayout::doLayout(const QRect &rect, bool testOnly) const
 		}
 
 		if (!testOnly)
+		{
 			item->setGeometry(QRect(QPoint(x, y), item->sizeHint()));
+		}
 
 		x = nextX;
 		lineHeight = qMax(lineHeight, item->sizeHint().height());
 	}
 	return y + lineHeight - rect.y() + bottom;
 }
+
 int iAQFlowLayout::smartSpacing(QStyle::PixelMetric pm) const
 {
 	QObject *parent = this->parent();
-	if (!parent) {
+	if (!parent)
+	{
 		return -1;
 	}
-	else if (parent->isWidgetType()) {
+	else if (parent->isWidgetType())
+	{
 		QWidget *pw = static_cast<QWidget *>(parent);
 		return pw->style()->pixelMetric(pm, 0, pw);
 	}
-	else {
+	else
+	{
 		return static_cast<QLayout *>(parent)->spacing();
 	}
 }

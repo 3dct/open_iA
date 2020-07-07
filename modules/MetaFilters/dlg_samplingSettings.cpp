@@ -328,8 +328,6 @@ QSharedPointer<iAAttributeDescriptor> iACategoryParameterInputs::currentDescript
 		}
 	}
 	desc->setDefaultValue(names);
-	desc->adjustMinMax(0);
-	desc->adjustMinMax(names.size() - 1);
 	return desc;
 }
 

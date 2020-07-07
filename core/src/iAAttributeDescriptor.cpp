@@ -219,6 +219,11 @@ QVariant iAAttributeDescriptor::defaultValue() const
 void iAAttributeDescriptor::setDefaultValue(QVariant v)
 {
 	m_defaultValue = v;
+	if (valueType() == Categorical)
+	{
+		m_min = 0;
+		m_max = v.toStringList().size() - 1;
+	}
 }
 
 QString const & iAAttributeDescriptor::name() const
