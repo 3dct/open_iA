@@ -411,9 +411,9 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QRadioButton" name="radioButton_2">
+       <widget class="QRadioButton" name="rbBuiltIn">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
          <string>Built-in</string>
@@ -445,7 +445,7 @@
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QRadioButton" name="radioButton">
+       <widget class="QRadioButton" name="rbExternal">
         <property name="text">
          <string>External</string>
         </property>

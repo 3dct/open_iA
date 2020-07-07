@@ -24,8 +24,11 @@
 #include "iAParameterGeneratorImpl.h"
 #include "iASampleParameterNames.h"
 
+#include <dlg_FilterSelection.h>
 #include <iAAttributeDescriptor.h>
 #include <iAConsole.h>
+#include <iAFilter.h>
+#include <iAFilterRegistry.h>
 #include <iAListNameMapper.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
@@ -44,9 +47,15 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	dlg_samplingSettingsUI(parentWidget),
 	m_inputImageCount(inputImageCount)
 {
+	// to make sure that the radio button text matches the available options of the filter:
+	rbBuiltIn->setText(atBuiltIn);
+	rbExternal->setText(atExternal);
+
+	m_rgAlgorithmType.push_back(rbBuiltIn);
+	m_rgAlgorithmType.push_back(rbExternal);
 	m_widgetMap.insert(spnAlgorithmName, lePipelineName);
-	//m_widgetMap.insert(spnAlgorithmType, rgAlgorithmType);
-	//m_widgetMap.insert(spnFilter, pbFilterSelect);
+	m_widgetMap.insert(spnAlgorithmType, &m_rgAlgorithmType);
+	m_widgetMap.insert(spnFilter, pbFilterSelect);
 	m_widgetMap.insert(spnExecutable, leExecutable);
 	m_widgetMap.insert(spnParameterDescriptor, leParamDescriptor);
 	m_widgetMap.insert(spnAdditionalArguments, leAdditionalArguments);
@@ -77,6 +86,9 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	connect(pbChooseExecutable, &QPushButton::clicked, this, &dlg_samplingSettings::chooseExecutable);
 	connect(pbSaveSettings, &QPushButton::clicked, this, &dlg_samplingSettings::saveSettings);
 	connect(pbLoadSettings, &QPushButton::clicked, this, &dlg_samplingSettings::loadSettings);
+	connect(rbBuiltIn, &QRadioButton::toggled, this, &dlg_samplingSettings::algoTypeChanged);
+	connect(rbExternal, &QRadioButton::toggled, this, &dlg_samplingSettings::algoTypeChanged);
+	connect(pbFilterSelect, &QPushButton::clicked, this, &dlg_samplingSettings::selectFilter);
 
 	connect (pbRun, &QPushButton::clicked, this, &dlg_samplingSettings::runClicked);
 	connect (pbCancel, &QPushButton::clicked, this, &dlg_samplingSettings::reject);
@@ -85,6 +97,7 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 namespace
 {
 	int ContinuousPrecision = 6;
+	const QString SelectFilterDefaultText("Select Filter ...");
 	bool setTextValue(iASettings const& values, QString const& name, QLineEdit* edit)
 	{
 		if (values.contains(name))
@@ -147,7 +160,11 @@ namespace
 		}
 		else
 		{
-			DEBUG_LOG(QString("Don't know how to handle parameters with type %1").arg(descriptor->valueType()));
+			auto otherInputs = new iAOtherParameterInputs();
+			otherInputs->m_valueEdit->setText(descriptor->defaultValue().toString());
+			gridLay->addWidget(otherInputs->m_valueEdit, curGridLine, 1, 1, 3);
+			result = QSharedPointer<iAParameterInputs>(otherInputs);
+			// DEBUG_LOG(QString("Don't know how to handle parameters with type %1").arg(descriptor->valueType()));
 		}
 		result->label = new QLabel(pName);
 		gridLay->addWidget(result->label, curGridLine, 0);
@@ -156,12 +173,36 @@ namespace
 	}
 }
 
+
+iAParameterInputs::iAParameterInputs() :
+	label(nullptr)
+{}
+
+iAParameterInputs::~iAParameterInputs()
+{
+	delete label;
+}
+
 void iAParameterInputs::deleteGUI()
 {
 	delete label;
 	deleteGUIComponents();
 }
 
+
+iANumberParameterInputs::iANumberParameterInputs() :
+	iAParameterInputs(),
+	from(nullptr),
+	to(nullptr),
+	logScale(nullptr)
+{}
+
+iANumberParameterInputs::~iANumberParameterInputs()
+{
+	delete from;
+	delete to;
+	delete logScale;
+}
 
 void iANumberParameterInputs::retrieveInputValues(iASettings & values)
 {
@@ -228,6 +269,11 @@ QSharedPointer<iAAttributeDescriptor> iANumberParameterInputs::currentDescriptor
 }
 
 
+iACategoryParameterInputs::~iACategoryParameterInputs()
+{
+	deleteGUIComponents();
+}
+
 QString iACategoryParameterInputs::featureString()
 {
 	QString result;
@@ -278,9 +324,9 @@ void iACategoryParameterInputs::changeInputValues(iASettings const & values)
 
 void iACategoryParameterInputs::deleteGUIComponents()
 {
-	for (int i = 0; i < m_features.size(); ++i)
+	for (auto f: m_features)
 	{
-		delete m_features[i];
+		delete f;
 	}
 }
 
@@ -293,43 +339,99 @@ QSharedPointer<iAAttributeDescriptor> iACategoryParameterInputs::currentDescript
 		iAAttributeDescriptor::Parameter,
 		descriptor->valueType()));
 	QStringList names;
-	for (int i = 0; i < m_features.size(); ++i)
+	for (auto f : m_features)
 	{
-		if (m_features[i]->isChecked())
+		if (f->isChecked())
 		{
-			names.append(m_features[i]->text());
+			names.append(f->text());
 		}
 	}
 	QSharedPointer<iAListNameMapper> nameMapper(new iAListNameMapper(names));
 	desc->setNameMapper(nameMapper);
 	desc->adjustMinMax(0);
-	desc->adjustMinMax(names.size()-1);
+	desc->adjustMinMax(names.size() - 1);
 	return desc;
+}
 
+
+iAOtherParameterInputs::iAOtherParameterInputs() :
+	m_valueEdit(new QLineEdit)
+{}
+
+iAOtherParameterInputs::~iAOtherParameterInputs()
+{
+	delete m_valueEdit;
+}
+
+void iAOtherParameterInputs::retrieveInputValues(iASettings& values)
+{
+	QString name(label->text());
+	values.insert(name, m_valueEdit->text());
+}
+
+void iAOtherParameterInputs::changeInputValues(iASettings const& values)
+{
+	QString name(label->text());
+	if (values.contains(name))
+	{
+		m_valueEdit->setText(values[name].toString());
+	}
+}
+
+QSharedPointer<iAAttributeDescriptor> iAOtherParameterInputs::currentDescriptor()
+{
+	QString pName(label->text());
+	QSharedPointer<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
+		pName,
+		iAAttributeDescriptor::Parameter,
+		descriptor->valueType()));
+	desc->setDefaultValue(m_valueEdit->text());
+	return desc;
+}
+
+void iAOtherParameterInputs::deleteGUIComponents()
+{
+	delete m_valueEdit;
 }
 
 
 void dlg_samplingSettings::setInputsFromMap(iASettings const & values)
 {
 	::loadSettings(values, m_widgetMap);
-	
-	if (values.contains("Parameter descriptor"))
+	auto algoType = values[spnAlgorithmType].toString();
+	if (algoType == atExternal && values.contains(spnParameterDescriptor))
 	{
 		parameterDescriptorChanged();
-		for (int i = 0; i < m_paramInputs.size(); ++i)
-		{
-			m_paramInputs[i]->changeInputValues(values);
-		}
+	}
+	else if (algoType == atBuiltIn)
+	{
+		setParametersFromFilter(values[spnFilter].toString());
+	}
+	if (!values.contains(spnFilter) || values[spnFilter].toString().isEmpty())
+	{
+		pbFilterSelect->setText(SelectFilterDefaultText);
 	}
 }
 
-void dlg_samplingSettings::getValues(iASettings & values) const
+void dlg_samplingSettings::algoTypeChanged()
+{
+	bool isExternal = rbExternal->isChecked();
+	pbFilterSelect->setEnabled(!isExternal);
+	leExecutable->setEnabled(isExternal);
+	pbChooseExecutable->setEnabled(isExternal);
+	leParamDescriptor->setEnabled(isExternal);
+	pbChooseParameterDescriptor->setEnabled(isExternal);
+	leAdditionalArguments->setEnabled(isExternal);
+}
+
+void dlg_samplingSettings::getValues(iASettings& values) const
 {
 	values.clear();
 	::saveSettings(values, m_widgetMap);
-
-	// only external at the moment, make sure it is set:
-	values["Algorithm type"] = "External";
+	if (values[spnFilter].toString() == SelectFilterDefaultText)
+	{
+		values[spnFilter] = "";
+	}
 	
 	for (int i = 0; i < m_paramInputs.size(); ++i)
 	{
@@ -403,6 +505,19 @@ void dlg_samplingSettings::loadSettings()
 	setInputsFromMap(settings);
 }
 
+void dlg_samplingSettings::selectFilter()
+{
+	QPushButton* sender = qobject_cast<QPushButton*>(QObject::sender());
+	dlg_FilterSelection filterSelectionDlg(this, sender->text());
+	if (!filterSelectionDlg.exec())
+	{
+		return;
+	}
+	QString filterName = filterSelectionDlg.selectedFilterName();
+	sender->setText(filterName);
+	setParametersFromFilter(filterName);
+}
+
 void dlg_samplingSettings::chooseParameterDescriptor()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Parameter Descriptor"),
@@ -412,7 +527,7 @@ void dlg_samplingSettings::chooseParameterDescriptor()
 	{
 		leParamDescriptor->setText(fileName);
 	}
-	loadDescriptor(leParamDescriptor->text());
+	setParametersFromFile(leParamDescriptor->text());
 }
 
 void dlg_samplingSettings::chooseExecutable()
@@ -429,14 +544,13 @@ void dlg_samplingSettings::chooseExecutable()
 void dlg_samplingSettings::parameterDescriptorChanged()
 {
 	// load parameter descriptor from file
-	loadDescriptor(leParamDescriptor->text());
+	setParametersFromFile(leParamDescriptor->text());
 }
 
-void dlg_samplingSettings::loadDescriptor(QString const & fileName)
+void dlg_samplingSettings::setParametersFromFile(QString const& fileName)
 {
-	if (fileName == m_descriptorFileName)
-	{
-		// same filename as before, we don't need to load again
+	if (fileName == m_lastParamsFileName)
+	{	// nothing changed, we don't need to load again
 		return;
 	}
 	QFile file(fileName);
@@ -446,14 +560,33 @@ void dlg_samplingSettings::loadDescriptor(QString const & fileName)
 		return;
 	}
 	QTextStream in(&file);
-	m_descriptor = createAttributes(in);
+	auto attributes = createAttributes(in);
+	setParameters(*attributes.data());
+	m_lastParamsFileName = fileName;
+	m_lastFilterName.clear();  // if we change to built-in, it should reload parameters
+}
 
-	// TODO: store values from previous descriptor?
+
+void dlg_samplingSettings::setParametersFromFilter(QString const& filterName)
+{
+	if (filterName == m_lastFilterName)
+	{	// nothing changed, we don't need to load again
+		return;
+	}
+	auto filter = iAFilterRegistry::filter(filterName);
+	auto params = filter->parameters();
+	setParameters(params);
+	m_lastFilterName = filterName;
+	m_lastParamsFileName.clear();   // if we change to external, it should reload parameters
+}
+
+void dlg_samplingSettings::setParameters(iAAttributes const& params)
+{
 	for (int i = 0; i < m_paramInputs.size(); ++i)
 	{
 		m_paramInputs[i]->deleteGUI();
 	}
-	if (m_descriptor->size() == 0)
+	if (params.size() == 0)
 	{
 		DEBUG_LOG("Invalid descriptor file!");
 		return;
@@ -461,16 +594,16 @@ void dlg_samplingSettings::loadDescriptor(QString const & fileName)
 	m_paramInputs.clear();
 	int curGridLine = m_startLine+1;
 	QGridLayout* gridLay = parameterLayout;
-	for (int i = 0; i < m_descriptor->size(); ++i)
+	for (int i = 0; i < params.size(); ++i)
 	{
-		QString pName(m_descriptor->at(i)->name());
+		QString pName(params[i]->name());
 		if (pName.startsWith("Mod "))
 		{
 			for (int m = 0; m < m_inputImageCount; ++m)
 			{
 				QSharedPointer<iAParameterInputs> pInput = createParameterLine(QString("Mod %1 ").arg(m) +
 					pName.right(pName.length() - 4),
-					m_descriptor->at(i),
+					params[i],
 					gridLay,
 					curGridLine);
 				curGridLine++;
@@ -481,15 +614,13 @@ void dlg_samplingSettings::loadDescriptor(QString const & fileName)
 		{
 			QSharedPointer<iAParameterInputs> pInput = createParameterLine(
 				pName,
-				m_descriptor->at(i),
+				params[i],
 				gridLay,
 				curGridLine);
 			curGridLine++;
 			m_paramInputs.push_back(pInput);
 		}
 	}
-	gridLay->addWidget(wdButtonBar, curGridLine, 0, 1, 4);
-	m_descriptorFileName = fileName;
 }
 
 QSharedPointer<iAAttributes> dlg_samplingSettings::parameterRanges()
@@ -535,6 +666,14 @@ void dlg_samplingSettings::runClicked()
 				msg += QString("Parameter '%1': invalid maximum value!").arg(desc->name()).arg(desc->max());
 			}
 		}
+	}
+	if (rbBuiltIn->isChecked() && pbFilterSelect->text() == SelectFilterDefaultText)
+	{
+		msg += "Built-in sampling: No filter selected!";
+	}
+	else if (rbExternal->isChecked() && leExecutable->text().isEmpty() || leParamDescriptor->text().isEmpty())
+	{
+		msg += "External sampling: No executable and/or parameter descriptor chosen!";
 	}
 	if (!msg.isEmpty())
 	{

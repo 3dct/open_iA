@@ -43,7 +43,7 @@ iASampleFilter::iASampleFilter() :
 {
 	addParameter(spnAlgorithmName, String, "");
 	QStringList algorithmTypes;
-	algorithmTypes << "BuiltIn" << "External";
+	algorithmTypes << atBuiltIn << atExternal;
 	addParameter(spnAlgorithmType, Categorical, algorithmTypes);
 	addParameter(spnFilter, FilterName, "Image Quality");
 	addParameter(spnExecutable, FileNameOpen, "");

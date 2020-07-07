@@ -38,17 +38,16 @@ class iAParameterGenerator;
 class QCheckBox;
 class QShortcut;
 
+
 using dlg_samplingSettingsUI = iAQTtoUIConnector<QDialog, Ui_samplingSettings>;
 
 class iAParameterInputs
 {
 public:
-	virtual ~iAParameterInputs() {}
+	virtual ~iAParameterInputs();
 	QLabel* label;
 	QSharedPointer<iAAttributeDescriptor> descriptor;
-	iAParameterInputs():
-		label(0)
-	{}
+	iAParameterInputs();
 	virtual void retrieveInputValues(iASettings & values) =0;
 	virtual void changeInputValues(iASettings const & values) =0;
 	void deleteGUI();
@@ -63,12 +62,8 @@ public:
 	QLineEdit* from;
 	QLineEdit* to;
 	QCheckBox* logScale;
-	iANumberParameterInputs():
-		iAParameterInputs(),
-		from(0),
-		to(0),
-		logScale(0)
-	{}
+	iANumberParameterInputs();
+	~iANumberParameterInputs();
 	void retrieveInputValues(iASettings& values) override;
 	void changeInputValues(iASettings const & values) override;
 	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
@@ -79,10 +74,24 @@ private:
 class iACategoryParameterInputs : public iAParameterInputs
 {
 public:
+	~iACategoryParameterInputs();
 	QVector<QCheckBox*> m_features;
 	QString featureString();
 	void retrieveInputValues(iASettings& values) override;
 	void changeInputValues(iASettings const & values) override;
+	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
+private:
+	void deleteGUIComponents() override;
+};
+
+class iAOtherParameterInputs: public iAParameterInputs
+{
+public:
+	QLineEdit* m_valueEdit;
+	iAOtherParameterInputs();
+	~iAOtherParameterInputs();
+	void retrieveInputValues(iASettings& values) override;
+	void changeInputValues(iASettings const& values) override;
 	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
 private:
 	void deleteGUIComponents() override;
@@ -103,15 +112,19 @@ private slots:
 	void parameterDescriptorChanged();
 	void saveSettings();
 	void loadSettings();
+	void algoTypeChanged();
+	void selectFilter();
 	void runClicked();
 private:
 	void setInputsFromMap(iASettings const & values);
-	void loadDescriptor(QString const & fileName);
+	void setParameters(iAAttributes const & params);
+	void setParametersFromFilter(QString const& filterName);
+	void setParametersFromFile(QString const& fileName);
 
 	int m_startLine;
 	int m_inputImageCount;
-	QSharedPointer<iAAttributes> m_descriptor;
-	QString m_descriptorFileName;
+	QString m_lastParamsFileName, m_lastFilterName;
 	QVector<QSharedPointer<iAParameterInputs> > m_paramInputs;
 	iAWidgetMap m_widgetMap;
+	iAQRadioButtonVector m_rgAlgorithmType;
 };
