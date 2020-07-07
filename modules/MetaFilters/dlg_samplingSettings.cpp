@@ -183,12 +183,6 @@ iAParameterInputs::~iAParameterInputs()
 	delete label;
 }
 
-void iAParameterInputs::deleteGUI()
-{
-	delete label;
-	deleteGUIComponents();
-}
-
 
 iANumberParameterInputs::iANumberParameterInputs() :
 	iAParameterInputs(),
@@ -224,13 +218,6 @@ void iANumberParameterInputs::changeInputValues(iASettings const & values)
 	{
 		setCheckValue(values, QString("%1 Log").arg(name), logScale);
 	}
-}
-
-void iANumberParameterInputs::deleteGUIComponents()
-{
-	delete from;
-	delete to;
-	delete logScale;
 }
 
 void adjustMinMax(QSharedPointer<iAAttributeDescriptor> desc, QString valueText)
@@ -270,7 +257,10 @@ QSharedPointer<iAAttributeDescriptor> iANumberParameterInputs::currentDescriptor
 
 iACategoryParameterInputs::~iACategoryParameterInputs()
 {
-	deleteGUIComponents();
+	for (auto f : m_features)
+	{
+		delete f;
+	}
 }
 
 QString iACategoryParameterInputs::featureString()
@@ -318,14 +308,6 @@ void iACategoryParameterInputs::changeInputValues(iASettings const & values)
 	if (curOption != enabledOptions.size())
 	{
 		DEBUG_LOG(QString("Inconsistent state: not all stored, enabled options found for parameter '%1'").arg(name));
-	}
-}
-
-void iACategoryParameterInputs::deleteGUIComponents()
-{
-	for (auto f: m_features)
-	{
-		delete f;
 	}
 }
 
@@ -385,11 +367,6 @@ QSharedPointer<iAAttributeDescriptor> iAOtherParameterInputs::currentDescriptor(
 		descriptor->valueType()));
 	desc->setDefaultValue(m_valueEdit->text());
 	return desc;
-}
-
-void iAOtherParameterInputs::deleteGUIComponents()
-{
-	delete m_valueEdit;
 }
 
 
@@ -580,29 +557,19 @@ void dlg_samplingSettings::setParametersFromFilter(QString const& filterName)
 
 void dlg_samplingSettings::setParameters(iAAttributes const& params)
 {
-	for (int i = 0; i < m_paramInputs.size(); ++i)
-	{
-		m_paramInputs[i]->deleteGUI();
-	}
-	if (params.size() == 0)
-	{
-		DEBUG_LOG("Invalid descriptor file!");
-		return;
-	}
 	m_paramInputs.clear();
 	int curGridLine = m_startLine+1;
-	QGridLayout* gridLay = parameterLayout;
-	for (int i = 0; i < params.size(); ++i)
+	for (auto p: params)
 	{
-		QString pName(params[i]->name());
+		QString pName(p->name());
 		if (pName.startsWith("Mod "))
 		{
 			for (int m = 0; m < m_inputImageCount; ++m)
 			{
 				QSharedPointer<iAParameterInputs> pInput = createParameterLine(QString("Mod %1 ").arg(m) +
 					pName.right(pName.length() - 4),
-					params[i],
-					gridLay,
+					p,
+					parameterLayout,
 					curGridLine);
 				curGridLine++;
 				m_paramInputs.push_back(pInput);
@@ -612,8 +579,8 @@ void dlg_samplingSettings::setParameters(iAAttributes const& params)
 		{
 			QSharedPointer<iAParameterInputs> pInput = createParameterLine(
 				pName,
-				params[i],
-				gridLay,
+				p,
+				parameterLayout,
 				curGridLine);
 			curGridLine++;
 			m_paramInputs.push_back(pInput);

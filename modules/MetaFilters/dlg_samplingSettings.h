@@ -44,16 +44,13 @@ using dlg_samplingSettingsUI = iAQTtoUIConnector<QDialog, Ui_samplingSettings>;
 class iAParameterInputs
 {
 public:
-	virtual ~iAParameterInputs();
 	QLabel* label;
 	QSharedPointer<iAAttributeDescriptor> descriptor;
 	iAParameterInputs();
+	virtual ~iAParameterInputs();
 	virtual void retrieveInputValues(iASettings & values) =0;
 	virtual void changeInputValues(iASettings const & values) =0;
-	void deleteGUI();
 	virtual QSharedPointer<iAAttributeDescriptor> currentDescriptor() = 0;
-private:
-	virtual void deleteGUIComponents() = 0;
 };
 
 class iANumberParameterInputs: public iAParameterInputs
@@ -67,21 +64,17 @@ public:
 	void retrieveInputValues(iASettings& values) override;
 	void changeInputValues(iASettings const & values) override;
 	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
-private:
-	void deleteGUIComponents() override;
 };
 
 class iACategoryParameterInputs : public iAParameterInputs
 {
 public:
-	~iACategoryParameterInputs();
 	QVector<QCheckBox*> m_features;
+	~iACategoryParameterInputs();
 	QString featureString();
 	void retrieveInputValues(iASettings& values) override;
 	void changeInputValues(iASettings const & values) override;
 	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
-private:
-	void deleteGUIComponents() override;
 };
 
 class iAOtherParameterInputs: public iAParameterInputs
@@ -93,8 +86,6 @@ public:
 	void retrieveInputValues(iASettings& values) override;
 	void changeInputValues(iASettings const& values) override;
 	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
-private:
-	void deleteGUIComponents() override;
 };
 
 class MetaFilters_API dlg_samplingSettings : public dlg_samplingSettingsUI
