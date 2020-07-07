@@ -146,6 +146,15 @@ void loadSettings(iASettings const& settings, iAWidgetMap const& settingsWidgetM
 					}
 				}
 			}
+			else if (dynamic_cast<iAQRadioButtonVector*>(w))
+			{
+				auto& radioButtonVector = *dynamic_cast<iAQRadioButtonVector*>(w);
+				QString value = settings.value(key).toString();
+				for (auto radioButton : radioButtonVector)
+				{
+					radioButton->setChecked(radioButton->text() == value);
+				}
+			}
 			else
 			{
 				DEBUG_LOG(QString("Widget type for key=%1 unknown!").arg(key));
@@ -251,6 +260,20 @@ void internalSaveSettings(iAInternalSettingsWrapper& settings, iAWidgetMap const
 				}
 			}
 			settings.setValue(key, values.join(","));
+		}
+		else if (dynamic_cast<iAQRadioButtonVector*>(w))
+		{
+			auto& list = *dynamic_cast<iAQRadioButtonVector*>(w);
+			QString value;
+			for (auto rb: list)
+			{
+				if (rb->isChecked())
+				{
+					value = rb->text();
+					break;
+				}
+			}
+			settings.setValue(key, value);
 		}
 		else
 		{
