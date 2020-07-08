@@ -25,6 +25,7 @@
 #include "iADerivedOutputCalculator.h"
 #include "iAParameterGenerator.h"
 #include "iASingleResult.h"
+#include "iASampleParameterNames.h"
 #include "iASamplingResults.h"
 
 #include <iAAttributeDescriptor.h>
@@ -45,40 +46,22 @@ iAPerformanceTimer m_computationTimer;
 
 iAImageSampler::iAImageSampler(
 		QStringList fileNames,
+		QMap<QString, QVariant> const & parameters,
 		QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAParameterGenerator> sampleGenerator,
-		int sampleCount,
-		int labelCount,
-		QString const & outputBaseDir,
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
 		QString const & derivedOutputFile,
-		QString const & computationExecutable,
-		QString const & additionalArguments,
-		QString const & pipelineName,
-		QString const & imageBaseName,
-		bool separateOutputDir,
-		bool calculateChar,
-		bool abortOnError,
 		int samplingID) :
 	m_fileNames(fileNames),
+	m_parameters(parameters),
 	m_parameterRanges(parameterRanges),
 	m_sampleGenerator(sampleGenerator),
-	m_sampleCount(sampleCount),
-	m_labelCount(labelCount),
-	m_executable(computationExecutable),
-	m_additionalArguments(additionalArguments),
-	m_outputBaseDir(outputBaseDir),
-	m_pipelineName(pipelineName),
 	m_parameterRangeFile(parameterRangeFile),
 	m_parameterSetFile  (parameterSetFile),
 	m_derivedOutputFile (derivedOutputFile),
-	m_imageBaseName(imageBaseName),
-	m_separateOutputDir(separateOutputDir),
-	m_calculateCharacteristics(calculateChar),
 	m_curSample(0),
 	m_aborted(false),
-	m_abortOnError(abortOnError),
 	m_computationDuration(0),
 	m_derivedOutputDuration(0),
 	m_samplingID(samplingID)
@@ -119,67 +102,83 @@ void iAImageSampler::newSamplingRun()
 	}
 	statusMsg(QString("Sampling run %1.").arg(m_curSample));
 	ParameterSet const& paramSet = m_parameterSets->at(m_curSample);
-	QString outputDirectory = m_separateOutputDir ?
-		m_outputBaseDir + "/sample" + QString::number(m_curSample) :
-		m_outputBaseDir;
+	QString outputDirectory(m_parameters[spnOutputFolder].toString());
+	if (m_parameters[spnSubfolderPerSample].toBool())
+	{
+		outputDirectory = outputDirectory + "/sample" + QString::number(m_curSample);
+	}
 	QDir d(QDir::root());
 	if (!QDir(outputDirectory).exists() && !d.mkpath(outputDirectory))
 	{
 		statusMsg(QString("Could not create output directory '%1'").arg(outputDirectory));
 		return;
 	}
-	QFileInfo fi(m_imageBaseName);
-	QString outputFile = outputDirectory + "/" + (m_separateOutputDir ?
-		m_imageBaseName :
+	QFileInfo fi(m_parameters[spnBaseName].toString());
+	QString outputFile = outputDirectory + "/" + (m_parameters[spnSubfolderPerSample].toBool() ?
+		m_parameters[spnBaseName].toString() :
 		QString("%1%2%3").arg(fi.baseName()).arg(m_curSample, m_numDigits, 10, QChar('0')).arg(
 			fi.completeSuffix().size() > 0 ? QString(".%1").arg(fi.completeSuffix()) : QString(""))
 		);
-	QStringList argumentList;
-	argumentList << m_additionalArgumentList;
-	argumentList << outputFile;
 
-	for (QString fileName : m_fileNames)
+	if (m_parameters[spnAlgorithmType].toString() == atBuiltIn)
 	{
-		argumentList << fileName;
+		// TODO
 	}
-
-	for (int i = 0; i < m_parameterCount; ++i)
+	else if (m_parameters[spnAlgorithmType].toString() == atExternal)
 	{
-		QString value;
-		switch (m_parameterRanges->at(i)->valueType())
+		QStringList argumentList;
+		argumentList << m_additionalArgumentList;
+		argumentList << outputFile;
+
+		for (QString fileName : m_fileNames)
 		{
-		default:
-		case Continuous:
-			value = QString::number(paramSet.at(i), 'g', 12);
-			break;
-		case Discrete:
-			value = QString::number(static_cast<long>(paramSet.at(i)));
-			break;
-		case Categorical:
-			value = m_parameterRanges->at(i)->nameMapper()->name(static_cast<long>(paramSet.at(i)));
-			break;
+			argumentList << fileName;
 		}
-		argumentList << value;
-	}
-	iACommandRunner* cmd = new iACommandRunner(m_executable, argumentList);
 
-	m_runningComputation.insert(cmd, m_curSample);
-	connect(cmd, &iACommandRunner::finished, this, &iAImageSampler::computationFinished);
-	cmd->start();
+		for (int i = 0; i < m_parameterCount; ++i)
+		{
+			QString value;
+			switch (m_parameterRanges->at(i)->valueType())
+			{
+			default:
+			case Continuous:
+				value = QString::number(paramSet.at(i), 'g', 12);
+				break;
+			case Discrete:
+				value = QString::number(static_cast<long>(paramSet.at(i)));
+				break;
+			case Categorical:
+				value = m_parameterRanges->at(i)->nameMapper()->name(static_cast<long>(paramSet.at(i)));
+				break;
+			}
+			argumentList << value;
+		}
+		iACommandRunner* cmd = new iACommandRunner(m_parameters[spnExecutable].toString(), argumentList);
+
+		m_runningComputation.insert(cmd, m_curSample);
+		connect(cmd, &iACommandRunner::finished, this, &iAImageSampler::computationFinished);
+		cmd->start();
+	}
 	++m_curSample;
 }
 
 void iAImageSampler::start()
 {
 	m_overallTimer.start();
-	if (!QFile(m_executable).exists())
-	{
-		statusMsg("Executable doesn't exist!");
-		return;
-	}
 	if (m_parameterRanges->size() == 0)
 	{
 		statusMsg("Algorithm has no parameters, nothing to sample!");
+		return;
+	}
+	if (m_parameters[spnAlgorithmType].toString() != atBuiltIn &&
+		m_parameters[spnAlgorithmType].toString() != atExternal)
+	{
+		statusMsg(QString("Unknown algorithm type '%1'").arg(m_parameters[spnAlgorithmType].toString()));
+		return;
+	}
+	if (m_parameters[spnAlgorithmType].toString() == atExternal && !QFile(m_parameters[spnExecutable].toString()).exists())
+	{
+		statusMsg(QString("Executable '%1' doesn't exist!").arg(m_parameters[spnExecutable].toString()));
 		return;
 	}
 	if (m_fileNames.size() == 0)
@@ -190,7 +189,7 @@ void iAImageSampler::start()
 	statusMsg("");
 	statusMsg("---------- SAMPLING STARTED ----------");
 	statusMsg("Generating sampling parameter sets...");
-	m_parameterSets = m_sampleGenerator->GetParameterSets(m_parameterRanges, m_sampleCount);
+	m_parameterSets = m_sampleGenerator->GetParameterSets(m_parameterRanges, m_parameters[spnNumberOfSamples].toInt());
 	if (!m_parameterSets)
 	{
 		statusMsg("No Parameters available!");
@@ -198,7 +197,7 @@ void iAImageSampler::start()
 	}
 	m_parameterCount = countAttributes(*m_parameterRanges.data(), iAAttributeDescriptor::Parameter);
 
-	m_additionalArgumentList = splitPossiblyQuotedString(m_additionalArguments);
+	m_additionalArgumentList = splitPossiblyQuotedString(m_parameters[spnAdditionalArguments].toString());
 	if (findAttribute(*m_parameterRanges.data(), "Object Count") == -1)
 	{
 		// add derived output to the attributes (which we want to set during sampling):
@@ -216,10 +215,10 @@ void iAImageSampler::start()
 	m_results = QSharedPointer<iASamplingResults>(new iASamplingResults(
 		m_parameterRanges,
 		m_sampleGenerator->name(),
-		m_outputBaseDir,
-		m_executable,
-		m_additionalArguments,
-		m_pipelineName,
+		m_parameters[spnOutputFolder].toString(),
+		m_parameters[spnExecutable].toString(),
+		m_parameters[spnAdditionalArguments].toString(),
+		m_parameters[spnAlgorithmName].toString(),
 		m_samplingID));
 
 	m_numDigits = std::floor(std::log10(std::abs(m_parameterSets->size()))) + 1;  // number of required digits for number >= 1
@@ -247,7 +246,7 @@ void iAImageSampler::computationFinished()
 	if (!cmd->success())
 	{
 		statusMsg("Computation was NOT successful.");
-		if (m_abortOnError)
+		if (m_parameters[spnAbortOnError].toBool())
 		{
 			statusMsg("Aborting, since the user requested to abort on errors.");
 			m_aborted = true;
@@ -260,25 +259,27 @@ void iAImageSampler::computationFinished()
 	}
 	ParameterSet const & param = m_parameterSets->at(id);
 
+	// TODO: check/change: the filename here should probably match outputFile from newSamplingRun, or be removed?
 	QSharedPointer<iASingleResult> result = iASingleResult::create(id, *m_results.data(), param,
-		m_outputBaseDir + "/sample" + QString::number(id) + +"/label.mhd");
+		m_parameters[spnOutputFolder].toString() + "/sample" + QString::number(id) + +"/label.mhd");
 
 	result->setAttribute(m_parameterCount+2, computationTime);
 	m_results->attributes()->at(m_parameterCount+2)->adjustMinMax(computationTime);
 
-	if (m_calculateCharacteristics)
+	if (m_parameters[spnComputeDerivedOutput].toBool())
 	{
-		// TODO: use external programs to calculate derived output!
-		iADerivedOutputCalculator * newCharCalc = new iADerivedOutputCalculator(result, m_parameterCount, m_parameterCount + 1, m_labelCount);
+		// TODO: use external programs / built-in filters to calculate derived output
+		iADerivedOutputCalculator * newCharCalc = new iADerivedOutputCalculator(result, m_parameterCount, m_parameterCount + 1,
+			m_parameters[spnNumberOfLabels].toInt());
 		m_runningDerivedOutput.insert(newCharCalc, result);
 		connect(newCharCalc, &iADerivedOutputCalculator::finished, this, &iAImageSampler::derivedOutputFinished);
 		newCharCalc->start();
 	}
 	else
 	{
-		QString sampleMetaFile = m_outputBaseDir + "/" + m_parameterRangeFile;
-		QString parameterSetFile = m_outputBaseDir + "/" + m_parameterSetFile;
-		QString derivedOutputFile = m_outputBaseDir + "/" + m_derivedOutputFile;
+		QString sampleMetaFile = m_parameters[spnOutputFolder].toString() + "/" + m_parameterRangeFile;
+		QString parameterSetFile = m_parameters[spnOutputFolder].toString() + "/" + m_parameterSetFile;
+		QString derivedOutputFile = m_parameters[spnOutputFolder].toString() + "/" + m_derivedOutputFile;
 		m_results->addResult(result);
 		emit progress((100 * m_results->size()) / m_parameterSets->size());
 		if (!m_results->store(sampleMetaFile, parameterSetFile, derivedOutputFile))
@@ -309,9 +310,9 @@ void iAImageSampler::derivedOutputFinished()
 	m_results->attributes()->at(m_parameterCount+1)->adjustMinMax(result->attribute(m_parameterCount+1));
 
 	// TODO: pass in from somewhere! Or don't store here at all? but what in case of a power outage/error?
-	QString sampleMetaFile    = m_outputBaseDir + "/" + m_parameterRangeFile;
-	QString parameterSetFile  = m_outputBaseDir + "/" + m_parameterSetFile;
-	QString derivedOutputFile = m_outputBaseDir + "/" + m_derivedOutputFile;
+	QString sampleMetaFile    = m_parameters[spnOutputFolder].toString() + "/" + m_parameterRangeFile;
+	QString parameterSetFile  = m_parameters[spnOutputFolder].toString() + "/" + m_parameterSetFile;
+	QString derivedOutputFile = m_parameters[spnOutputFolder].toString() + "/" + m_derivedOutputFile;
 	m_results->addResult(result);
 	emit progress((100*m_results->size()) / m_parameterSets->size());
 	if (!m_results->store(sampleMetaFile, parameterSetFile, derivedOutputFile))

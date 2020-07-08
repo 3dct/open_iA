@@ -39,7 +39,9 @@ IAFILTER_CREATE(iASampleFilter)
 
 iASampleFilter::iASampleFilter() :
 	iAFilter("Sample Filter", "Image Ensembles",
-		"Sample any internal filter or external algorithm<br/>", 1, 0)
+		"Sample any internal filter or external algorithm.<br/>"
+		"If <em>Abort on error</em> is set to true, sampling is aborted if any error is encountered, "
+		"otherwise sampling continues with the next parameter set", 1, 0)
 {
 	addParameter(spnAlgorithmName, String, "");
 	QStringList algorithmTypes;
@@ -75,21 +77,12 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 	}
 	iAImageSampler sampler(
 		m_fileNames,
+		parameters,
 		m_parameterRanges,
 		parameterSetGenerator,
-		parameters[spnNumberOfSamples].toInt(),
-		parameters[spnNumberOfLabels].toInt(),
-		parameters[spnOutputFolder].toString(),
 		m_parameterRangeFile,
 		m_parameterSetFile,
 		m_derivedOutFile,
-		parameters[spnExecutable].toString(),
-		parameters[spnAdditionalArguments].toString(),
-		parameters[spnAlgorithmName].toString(),
-		parameters[spnBaseName].toString(),
-		parameters[spnSubfolderPerSample].toBool(),
-		parameters[spnComputeDerivedOutput].toBool(),
-		parameters[spnAbortOnError].toBool(),
 		m_samplingID
 	);
 	QObject::connect(&sampler, &iAImageSampler::progress, progress(), &iAProgress::emitProgress);

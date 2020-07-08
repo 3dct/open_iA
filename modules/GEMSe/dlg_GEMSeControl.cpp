@@ -215,21 +215,12 @@ void dlg_GEMSeControl::startSampling()
 		}
 		m_sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
 			fileNames,
+			m_samplingSettings,
 			parameterRanges,
 			parameterSetGenerator,
-			m_samplingSettings[spnNumberOfSamples].toInt(),
-			m_samplingSettings[spnNumberOfLabels].toInt(),
-			m_samplingSettings[spnOutputFolder].toString(),
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
-			m_samplingSettings[spnExecutable].toString(),
-			m_samplingSettings[spnAdditionalArguments].toString(),
-			m_samplingSettings[spnAlgorithmName].toString(),
-			m_samplingSettings[spnBaseName].toString(),
-			m_samplingSettings[spnSubfolderPerSample].toBool(),
-			m_samplingSettings[spnComputeDerivedOutput].toBool(),
-			m_samplingSettings[spnAbortOnError].toBool(),
 			m_dlgSamplings->GetSamplings()->size()
 		));
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");

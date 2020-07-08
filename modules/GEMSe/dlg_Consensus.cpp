@@ -38,6 +38,7 @@
 #include <iAColorTheme.h>
 #include <iAConsole.h>
 #include <iALookupTable.h>
+#include <iASampleParameterNames.h>
 #include <iAToolsITK.h>
 #include <iAVtkWidget.h>
 #include <io/iAFileUtils.h>
@@ -995,23 +996,28 @@ void dlg_Consensus::LoadConfig()
 		{
 			fileNames << datasets->get(i)->fileName();
 		}
+		m_samplerParameters.push_back(QMap<QString, QVariant>());
+		auto & params = m_samplerParameters[m_samplerParameters.size() - 1];
+		params.insert(spnNumberOfSamples, 0); // iASelectionParameterGenerator doesn't need this parameter
+		params.insert(spnSamplingMethod, generator->name());
+		params.insert(spnNumberOfLabels, m_labelCount);
+		params.insert(spnOutputFolder, outputFolder);
+		params.insert(spnExecutable, executable);
+		params.insert(spnAdditionalArguments, additionalParameters);
+		params.insert(spnAlgorithmType, atExternal);
+		params.insert(spnAlgorithmName, samplingResults->name());
+		params.insert(spnBaseName, "label.mhd");
+		params.insert(spnSubfolderPerSample, true);
+		params.insert(spnComputeDerivedOutput, true);
+		params.insert(spnAbortOnError, true);
 		auto sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
 			fileNames,
+			params,
 			samplingResults->attributes(),
 			generator,
-			0,
-			m_labelCount,
-			outputFolder,
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
-			executable,
-			additionalParameters,
-			samplingResults->name(),
-			"label.mhd",
-			true,
-			true,
-			true,
 			lastSamplingID+s
 		));
 		m_queuedSamplers.push_back(sampler);
