@@ -42,6 +42,7 @@
 #include "iAStringHelper.h"
 #include "iAToolsITK.h"
 #include "iAToolsVTK.h"
+#include "iAVtkVersion.h"
 #include "iAWrapperText.h"
 #include "io/iAIOProvider.h"
 #include "mainwindow.h"
@@ -89,7 +90,6 @@
 #include <vtkTextProperty.h>
 #include <vtkThinPlateSplineTransform.h>
 #include <vtkTransform.h>
-#include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
 #include <vtkWorldPointPicker.h>
 
@@ -108,11 +108,11 @@
 #include <cassert>
 
 //! Custom interactor style for slicers, for disabling certain vtk interactions we do differently.
-class iAInteractorStyleImage : public vtkInteractorStyleImage
+class iASlicerInteractorStyle : public vtkInteractorStyleImage
 {
 public:
-	static iAInteractorStyleImage *New();
-	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage)
+	static iASlicerInteractorStyle *New();
+	vtkTypeMacro(iASlicerInteractorStyle, vtkInteractorStyleImage);
 
 	void OnLeftButtonDown() override
 	{
@@ -219,7 +219,7 @@ private:
 	bool m_leftButtonDown = false;
 };
 
-vtkStandardNewMacro(iAInteractorStyleImage);
+vtkStandardNewMacro(iASlicerInteractorStyle);
 
 
 //! observer needs to be a separate class; otherwise there is an error when destructing,
@@ -259,7 +259,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_fisheyeRadius(80.0),
 	m_innerFisheyeRadius(70.0),
 	m_interactor(nullptr),
-	m_interactorStyle(iAInteractorStyleImage::New()),
+	m_interactorStyle(iASlicerInteractorStyle::New()),
 	m_renWin(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New()),
 	m_ren(vtkSmartPointer<vtkRenderer>::New()),
 	m_camera(vtkCamera::New()),
@@ -281,7 +281,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_renWin->PointSmoothingOn();
 	// Turned off, because of gray strokes e.g., on scalarBarActors. Only on NVIDIA graphic cards:
 	m_renWin->PolygonSmoothingOff();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	SetRenderWindow(m_renWin);
 #else
 	setRenderWindow(m_renWin);
@@ -2291,7 +2291,7 @@ void iASlicer::addPoint(double xPos, double yPos, double zPos)
 	m_snakeSpline->addPoint(x, y);
 
 	// render slice view
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	GetRenderWindow()->GetInteractor()->Render();
 #else
 	renderWindow()->GetInteractor()->Render();
@@ -2311,7 +2311,7 @@ void iASlicer::updateRawProfile(double posY)
 		return;
 	}
 	// render slice view
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	GetRenderWindow()->GetInteractor()->Render();
 #else
 	renderWindow()->GetInteractor()->Render();
@@ -2346,7 +2346,7 @@ bool iASlicer::setProfilePointWithClamp(int pointInd, double * Pos, bool doClamp
 	{
 		return false;
 	}
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	GetRenderWindow()->GetInteractor()->Render();
 #else
 	renderWindow()->GetInteractor()->Render();
@@ -2371,7 +2371,7 @@ void iASlicer::movePoint(size_t selectedPointIndex, double xPos, double yPos, do
 		m_snakeSpline->movePoint(selectedPointIndex, x, y);
 
 		// render slice view
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		GetRenderWindow()->GetInteractor()->Render();
 #else
 		renderWindow()->GetInteractor()->Render();
@@ -2411,7 +2411,7 @@ void iASlicer::setProfileHandlesOn(bool isOn)
 	}
 	m_profileHandlesEnabled = isOn;
 	m_profileHandles->setVisibility(m_profileHandlesEnabled);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	GetRenderWindow()->GetInteractor()->Render();
 #else
 	renderWindow()->GetInteractor()->Render();
@@ -2558,7 +2558,7 @@ void iASlicer::fisheyeLensToggled(bool enabled)
 
 void iASlicer::initializeFisheyeLens(vtkImageReslice* reslicer)
 {
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 #else
 	vtkRenderer * ren = renderWindow()->GetRenderers()->GetFirstRenderer();

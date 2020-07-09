@@ -131,7 +131,10 @@ namespace
 			sourcePos += shiftVec;
 			detectorCenter += shiftVec;
 
-			if (!vectors.isEmpty()) vectors += ",";
+			if (!vectors.isEmpty())
+			{
+				vectors += ",";
+			}
 			vectors += QString("%1,%2,%3,%4,%5,%6,%7,%8,%9,%10,%11,%12")
 				.arg(sourcePos.x()).arg(sourcePos.y()).arg(sourcePos.z())
 				.arg(detectorCenter.x()).arg(detectorCenter.y()).arg(detectorCenter.z())
@@ -199,38 +202,37 @@ namespace
 		int deviceCount = 0;
 		cudaGetDeviceCount(&deviceCount);
 		if (deviceCount == 0)
-			return false;
-		// TODO: Allow choosing which device(s) to use!
-		else
 		{
-			/*
-			size_t mostMem = 0;	int idx = -1;
-			for (int dev = 0; dev < deviceCount; dev++)
-			{
-				cudaDeviceProp deviceProp;
-				cudaGetDeviceProperties(&deviceProp, dev);
-				DEBUG_LOG(QString("%1. Compute Capability: %2.%3. Clock Rate (kHz): %5. Memory Clock Rate (kHz): %6. Memory Bus Width (bits): %7. Concurrent kernels: %8. Total memory: %9.")
-					.arg(deviceProp.name)
-					.arg(deviceProp.major)
-					.arg(deviceProp.minor)
-					.arg(deviceProp.clockRate)
-					.arg(deviceProp.memoryClockRate)
-					.arg(deviceProp.memoryBusWidth)
-					.arg(deviceProp.concurrentKernels)
-					.arg(deviceProp.totalGlobalMem)
-				);
-				if (deviceProp.totalGlobalMem > mostMem)
-				{
-					mostMem = deviceProp.totalGlobalMem;
-					idx = dev;
-				}
-			}
-			astra::SGPUParams gpuParams;
-			gpuParams.GPUIndices.push_back(idx);
-			gpuParams.memory = mostMem ;
-			astra::CCompositeGeometryManager::setGlobalGPUParams(gpuParams);
-			*/
+			return false;
 		}
+		// TODO: Allow choosing which device(s) to use!
+		/*
+		size_t mostMem = 0;	int idx = -1;
+		for (int dev = 0; dev < deviceCount; dev++)
+		{
+			cudaDeviceProp deviceProp;
+			cudaGetDeviceProperties(&deviceProp, dev);
+			DEBUG_LOG(QString("%1. Compute Capability: %2.%3. Clock Rate (kHz): %5. Memory Clock Rate (kHz): %6. Memory Bus Width (bits): %7. Concurrent kernels: %8. Total memory: %9.")
+				.arg(deviceProp.name)
+				.arg(deviceProp.major)
+				.arg(deviceProp.minor)
+				.arg(deviceProp.clockRate)
+				.arg(deviceProp.memoryClockRate)
+				.arg(deviceProp.memoryBusWidth)
+				.arg(deviceProp.concurrentKernels)
+				.arg(deviceProp.totalGlobalMem)
+			);
+			if (deviceProp.totalGlobalMem > mostMem)
+			{
+				mostMem = deviceProp.totalGlobalMem;
+				idx = dev;
+			}
+		}
+		astra::SGPUParams gpuParams;
+		gpuParams.GPUIndices.push_back(idx);
+		gpuParams.memory = mostMem ;
+		astra::CCompositeGeometryManager::setGlobalGPUParams(gpuParams);
+		*/
 		return true;
 	}
 
@@ -238,7 +240,9 @@ namespace
 	{
 		static QStringList algorithms;
 		if (algorithms.empty())
+		{
 			algorithms << "BP" << "FDK" << "SIRT" << "CGLS";
+		}
 		return algorithms;
 	}
 
@@ -579,13 +583,15 @@ void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, MainWindow* mainW
 	{
 		QMessageBox::warning(mainWnd, "ASTRA",
 			"ASTRA toolbox operations require a CUDA-capable device, but no CUDA device was found."
-			"In case this machine has an NVidia card, please install the latest driver!");
+			"In case this machine has an NVidia card, it might help to install the latest driver!");
 		return;
 	}
 	astra::CLogger::setOutputScreen(1, astra::LOG_INFO);
 	bool success = astra::CLogger::setCallbackScreen(astraLogCallback);
 	if (!success)
+	{
 		DEBUG_LOG("Setting Astra log callback failed!");
+	}
 	iAFilterRunnerGUI::run(filter, mainWnd);
 }
 
@@ -635,7 +641,9 @@ bool iAASTRAFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QMap
 			parameters[ProjAngleDim].toInt(),
 			inputDim);
 		if (parameters[AlgoType].toString().isEmpty())
+		{
 			parameters[AlgoType] = algorithmStrings()[1];
+		}
 		dlg.fillAlgorithmValues(mapAlgoStringToIndex(parameters[AlgoType].toString()),
 			parameters[NumberOfIterations].toUInt(),
 			parameters[InitWithFDK].toBool());
@@ -643,7 +651,9 @@ bool iAASTRAFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QMap
 			parameters[CenterOfRotOfs].toDouble());
 	}
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return false;
+	}
 
 	parameters[ProjGeometry] = dlg.cbProjGeomType->currentText();
 	parameters[DetSpcX] = dlg.dsbProjGeomDetectorSpacingX->value();

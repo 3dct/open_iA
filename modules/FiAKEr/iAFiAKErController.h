@@ -21,7 +21,6 @@
 #pragma once
 
 // FiAKEr:
-#include "iAChangeableCameraWidget.h"
 #include "iAFiberCharData.h"            // for iAFiberSimilarity -> REFACTOR!!!
 #include "iASavableProject.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider

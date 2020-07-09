@@ -23,20 +23,27 @@
 #include "iAvec3.h"
 #include "open_iA_Core_export.h"
 
-#include <memory.h>    // for memcpy
-
 //! Class representing a 4x4 float matrix.
 class open_iA_Core_API iAMat4
 {
 public:
-	float x [4][4];
+	static const int Rows = 4;
+	static const int Cols = 4;
+	float x [Rows][Cols];
 
+	//! Create a matrix (with uninitialized values!).
 	iAMat4 () {}
-	iAMat4 ( float );
-	iAMat4 ( const iAMat4& m )
-	{
-		memcpy ( & x [0][0], &m.x [0][0], 16*sizeof ( float ) );
-	}
+	//! Create a matrix with the given value in the diagonal places (0-2), 1 in 3rd diagonal place, and 0 in the other places.
+	//! Example: iAMat4(0.5) would give
+	//! 0.5 0   0   0
+	//! 0   0.5 0   0
+	//! 0   0   0.5 0
+	//! 0   0   0   1
+	explicit iAMat4 (float v);
+	//! Create new matrix, copying given matrix values.
+	iAMat4(const iAMat4& m);
+	//! Assign values from existing matrix.
+	iAMat4& operator= (iAMat4 const& m);
 
 	iAMat4& operator += ( const iAMat4& );
 	iAMat4& operator -= ( const iAMat4& );

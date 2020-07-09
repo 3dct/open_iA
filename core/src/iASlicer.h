@@ -36,11 +36,11 @@ class iASlicerProfile;
 class iASlicerProfileHandles;
 class iAChannelData;
 class iAChannelSlicerData;
-class iAInteractorStyleImage;
 class iAMagicLens;
 class iARulerWidget;
 class iASingleSlicerSettings;
 class iASlicer;
+class iASlicerInteractorStyle;
 class iASnakeSpline;
 class iAWrapperText;
 class MdiChild;
@@ -368,7 +368,7 @@ private:
 	//! @}
 
 	vtkRenderWindowInteractor * m_interactor;  //!< FIXME: only convenience to access interactor of underlying QVTKOpenGLNativeWidget!
-	iAInteractorStyleImage * m_interactorStyle;
+	iASlicerInteractorStyle * m_interactorStyle;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renWin;
 	vtkSmartPointer<vtkRenderer> m_ren;
 	vtkCamera * m_camera; // TODO: smart pointer?

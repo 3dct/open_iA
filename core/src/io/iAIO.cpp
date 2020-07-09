@@ -63,7 +63,6 @@
 #include <vtkStringArray.h>
 #include <vtkTable.h>
 #include <vtkTIFFReader.h>
-#include <vtkVersion.h>
 #include <vtkXMLImageDataReader.h>
 #include <vtkGenericDataObjectReader.h>
 #include <vtkRectilinearGrid.h>
