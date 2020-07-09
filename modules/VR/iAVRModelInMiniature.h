@@ -22,51 +22,56 @@
 
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
+#include <vtkActor.h>
 #include <vtkDataSet.h>
-#include <vtkOctreePointLocator.h>
-#include <vtkPlaneSource.h>
-
-#include <iAvec3.h>
-
+#include <vtkPoints.h>
+#include <vtkPolyData.h>
+#include <vtkGlyph3DMapper.h>
 #include <QColor>
-#include <unordered_map>
 
-class vtkModifiedBSPTree;
+#include "iAVROctree.h"
+#include "vtkCellLocator.h"
+#include "vtkPropPicker.h"
 
-//! Class for calculation of a 3D Octree 
-class iAVROctree
+//! Base class for the abstract 3D Model in Miniature visualization
+class iAVRModelInMiniature
 {
 public:
-	iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet);
-	void generateOctreeRepresentation(int level, QColor col);
-	void calculateOctree(int level, int pointsPerRegion);
-	void setDataset(vtkDataSet* dataSet);
-	vtkOctreePointLocator* getOctree();
-	void calculateOctreeRegionSize(double size[3]);
-	void calculateOctreeCenterPos(double centerPoint[3]);
-	void calculateOctreeRegionCenterPos(int regionID, double centerPoint[3]);
-	void createOctreeBoundingBoxPlanes(int regionID, std::vector<std::vector<iAVec3d>>* planePoints);
-	void movePointInsideRegion(double point[3], double movedPoint[3]);
-	int getNumberOfLeafeNodes();
-	double getMaxDistanceOctCenterToRegionCenter();
-	std::vector<std::unordered_map<vtkIdType, double>*>* getfibersInRegionMapping(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex);
-	int getLevel();
+	iAVRModelInMiniature(vtkRenderer* ren);
 	void show();
 	void hide();
+	void createModelInMiniature();
+	void setScale(double x, double y, double z);
+	void setPos(double x, double y, double z);
+	void addPos(double x, double y, double z);
+	void setOrientation(double x, double y, double z);
+	void setCubeColor(QColor col, int regionID);
+	void applyHeatmapColoring(std::vector<QColor>* colorPerRegion);
+	void applyLinearCubeOffset(double offset);
+	void applyRelativeCubeOffset(double offset);
+	void apply4RegionCubeOffset(double offset);
+	vtkIdType getClosestCellID(double pos[3], double eventOrientation[3]);
+	void setOctree(iAVROctree* octree);
+	vtkSmartPointer<vtkPolyData> getDataSet();
 	vtkActor* getActor();
+	void highlightGlyphs(std::vector<vtkIdType>* regionIDs);
+	void removeHighlightedGlyphs();
 
+	double defaultActorSize[3]; // Initial resize of the cube
 private:
-	int numberOfLeaveNodes;
-	double m_maxDistanceOctCenterToRegionCenter;
-	bool m_visible;
-	int m_level;
+	QColor defaultColor;
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	vtkSmartPointer<vtkActor> m_actor;
+	vtkSmartPointer<vtkActor> m_activeActor;
 	vtkSmartPointer<vtkDataSet> m_dataSet;
-	vtkSmartPointer<vtkOctreePointLocator> m_octree;
-	//Saves the octree [region] and a  map of its fiber IDs [iD] with their coverage (0.0-1.0)
-	std::vector<std::unordered_map<vtkIdType, double>*>* m_fibersInRegion;
+	vtkSmartPointer<vtkPolyData> m_cubePolyData;
+	vtkSmartPointer<vtkGlyph3D> glyph3D;
+	vtkSmartPointer<vtkGlyph3D> activeGlyph3D;
+	vtkSmartPointer<vtkCellLocator> cellLocator;
+	vtkSmartPointer<vtkUnsignedCharArray> currentColorArr;
+	iAVROctree* m_octree;
+	bool m_visible;
 
-	void mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex);
-	double calculateDistanceOctCenterToRegionCenter();
+	void calculateStartPoints();
+	void iAVRModelInMiniature::drawPoint(std::vector<double*>* pos, QColor color);
 };

@@ -33,6 +33,7 @@ m_octree(vtkSmartPointer<vtkOctreePointLocator>::New())
 {
 	m_visible = false;
 	numberOfLeaveNodes = 0;
+	m_maxDistanceOctCenterToRegionCenter = -1;
 	m_fibersInRegion = new std::vector<std::unordered_map<vtkIdType, double>*>();
 }
 
@@ -61,6 +62,12 @@ void iAVROctree::calculateOctree(int level, int pointsPerRegion)
 	m_octree->BuildLocator();
 
 	numberOfLeaveNodes = m_octree->GetNumberOfLeafNodes();
+	m_level = level;
+}
+
+void iAVROctree::setDataset(vtkDataSet* dataSet)
+{
+	m_dataSet = dataSet;
 }
 
 vtkOctreePointLocator * iAVROctree::getOctree()
@@ -118,7 +125,9 @@ void iAVROctree::createOctreeBoundingBoxPlanes(int regionID, std::vector<std::ve
 	double zMin = bounds[4];
 	double zMax = bounds[5];
 
-	std::vector<iAVec3d> tempPos = std::vector<iAVec3d>();
+	auto tempPos = std::vector<iAVec3d>();
+	tempPos.reserve(3);
+	planePoints->reserve(6);
 
 	//Plane 1
 	tempPos.push_back(iAVec3d(xMin, yMin, zMax)); //origin
@@ -160,7 +169,6 @@ void iAVROctree::createOctreeBoundingBoxPlanes(int regionID, std::vector<std::ve
 	tempPos.push_back(iAVec3d(xMax, yMax, zMin)); //point 1
 	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2 
 	planePoints->push_back(tempPos);
-	tempPos.clear();
 }
 
 //! Used for points which are just *barely* outside the bounds of the region. Moves that point so that it is just barely *inside* the bounds
@@ -204,6 +212,21 @@ int iAVROctree::getNumberOfLeafeNodes()
 	return numberOfLeaveNodes;
 }
 
+//! Returns the maximum lenght from the octree center to any of its regions. Gets calculated at first call
+double iAVROctree::getMaxDistanceOctCenterToRegionCenter()
+{
+	if(m_maxDistanceOctCenterToRegionCenter != -1)
+	{
+		return m_maxDistanceOctCenterToRegionCenter;
+	}
+	else
+	{
+		m_maxDistanceOctCenterToRegionCenter = calculateDistanceOctCenterToRegionCenter();
+		return m_maxDistanceOctCenterToRegionCenter;
+	}
+	
+}
+
 //! Returns which fibers (ID) lie in which region with coverage of 1. Gets calculated on the first call.
 //! They all lie (independent of their real coverage) to 100% inside the region
 std::vector<std::unordered_map<vtkIdType, double>*>* iAVROctree::getfibersInRegionMapping(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex)
@@ -217,6 +240,11 @@ std::vector<std::unordered_map<vtkIdType, double>*>* iAVROctree::getfibersInRegi
 		mapFibersToRegion(pointIDToCsvIndex);
 		return m_fibersInRegion;
 	}
+}
+
+int iAVROctree::getLevel()
+{
+	return m_level;
 }
 
 void iAVROctree::show()
@@ -268,4 +296,25 @@ void iAVROctree::mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType>* poi
 		}
 		m_fibersInRegion->push_back(tempMap);
 	}
+}
+
+double iAVROctree::calculateDistanceOctCenterToRegionCenter()
+{
+	double maxLength = 0;
+	double centerPoint[3];
+	double regionCenterPoint[3];
+	calculateOctreeCenterPos(centerPoint);
+	iAVec3d centerPos = iAVec3d(centerPoint);
+
+	for (int region = 0; region < getNumberOfLeafeNodes(); region++)
+	{
+		calculateOctreeRegionCenterPos(region, regionCenterPoint);
+
+		iAVec3d currentRegionCenterPoint = iAVec3d(regionCenterPoint);
+		iAVec3d direction = currentRegionCenterPoint - centerPos;
+		double length = direction.length();
+		if (length > maxLength) maxLength = length;		// Get max length
+	}
+
+	return maxLength;
 }

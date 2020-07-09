@@ -22,6 +22,7 @@
 
 #include <vtkSmartPointer.h>
 #include <unordered_map>
+#include <thread>
 
 #include <QString>
 
@@ -45,6 +46,7 @@ public:
 	void setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage);
 	std::vector<QColor>* getHeatmapColoring(int octreeLevel, int feature, int valueMapping);
 	vtkSmartPointer<vtkLookupTable> getLut();
+	std::vector<std::vector<std::vector<vtkIdType>>>* getMaxCoverageFiberPerRegion();
 	void calculateColorBarLegend();
 	void showColorBarLegend();
 	void hideColorBarLegend();
@@ -53,10 +55,13 @@ public:
 	void moveColorBarLegend(double *pos);
 	void rotateColorBarLegend(double x, double y, double z);
 	void setLegendTitle(QString title);
+	
 
 private:
 	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
 	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
+	//Stores for the [octree level] in an [octree region] the fibers which have the max coverage (Every Fiber can only be in one region)
+	std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage;
 	//Stores for an [octree level] for choosen [feature] for every [octree region] the metric value
 	std::vector<std::vector<std::vector<double>>>* m_calculatedStatistic;
 	//Stores the for a [feature] the [0] min and the [1] max value from the csv file
@@ -79,5 +84,6 @@ private:
 	double histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax);
 	vtkSmartPointer<vtkLookupTable> calculateLUT(double min, double max, int tableSize);
 	void storeMinMaxValues();
-
+	void calculateMaxCoverageFiberPerRegion();
+	void findBiggestCoverage(int level, int fiber);
 };

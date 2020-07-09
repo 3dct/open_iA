@@ -23,52 +23,44 @@
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 #include <vtkActor.h>
+#include <vtkTable.h>
 #include <vtkDataSet.h>
-#include <vtkPoints.h>
 #include <vtkPolyData.h>
-#include <vtkGlyph3DMapper.h>
+
 #include <QColor>
+#include <QStandardItem>
 
+#include <unordered_map>
+
+#include "iACsvIO.h"
 #include "iAVROctree.h"
-#include "vtkCellLocator.h"
-#include "vtkPropPicker.h"
 
-//! Base class for VR 3D visualizations of primtive objects
-class iAVR3DObjectVis
+class iA3DCylinderObjectVis;
+
+//! 
+class iAVRVolume
 {
 public:
-	iAVR3DObjectVis(vtkRenderer* ren);
+	iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io);
+	void setOctrees(iAVROctree* octree);
+	void setMappers(std::unordered_map<vtkIdType, vtkIdType> pointIDToCsvIndex, std::unordered_multimap<vtkIdType, vtkIdType> csvIndexToPointID);
 	void show();
 	void hide();
-	void createModelInMiniature();
-	void createCube(QColor col, double size[3], double center[3]);
-	void createSphere(QColor col);
-	void setScale(double x, double y, double z);
-	void setPos(double x, double y, double z);
-	void setOrientation(double x, double y, double z);
-	void setCubeColor(QColor col, int regionID);
-	void applyHeatmapColoring(std::vector<QColor>* colorPerRegion);
-	void applyLinearCubeOffset(double offset);
-	void applyRelativeCubeOffset(double offset);
-	void apply4RegionCubeOffset(double offset);
-	vtkIdType getClosestCellID(double pos[3], double eventOrientation[3]);
-	void setOctree(iAVROctree* octree);
-	vtkSmartPointer<vtkPolyData> getDataSet();
-	vtkActor* getActor();
+	vtkSmartPointer<vtkPolyData> getPolyData();
+	vtkSmartPointer<vtkActor> getActor();
+	void renderSelection(std::vector<size_t> const& sortedSelInds, int classID, QColor const& classColor, QStandardItem* activeClassItem);
+	void createNewVolume(std::vector<size_t> fiberIDs);
+	void moveRegions(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset);
+	void moveFibersbyAllCoveredRegions(double offset);
 
-	double defaultActorSize[3]; // Initial resize of the cube
 private:
-	QColor defaultColor;
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	vtkSmartPointer<vtkActor> m_actor;
-	vtkSmartPointer<vtkDataSet> m_dataSet;
-	vtkSmartPointer<vtkPolyData> m_cubePolyData;
-	vtkSmartPointer<vtkGlyph3D> glyph3D;
-	vtkSmartPointer<vtkCellLocator> cellLocator;
-	vtkSmartPointer<vtkUnsignedCharArray> currentColorArr;
+	iA3DCylinderObjectVis* m_cylinderVis;
+	vtkSmartPointer<vtkTable> m_objectTable;
 	iAVROctree* m_octree;
+	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
+	std::unordered_multimap<vtkIdType, vtkIdType> m_csvIndexToPointID;
+	iACsvIO m_io;
 	bool m_visible;
-
-	void calculateStartPoints();
-	void iAVR3DObjectVis::drawPoint(std::vector<double*>* pos, QColor color);
 };

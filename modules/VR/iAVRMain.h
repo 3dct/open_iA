@@ -25,6 +25,7 @@
 #include "iAVRMetrics.h"
 #include "iAVR3DText.h"
 #include "iAVRDashboard.h"
+#include "iAVRVolume.h"
 
 #include "vtkEventData.h"
 #include "vtkTable.h"
@@ -33,7 +34,6 @@
 #include "vtkPolyData.h"
 #include "vtkPlaneSource.h"
 #include "iACsvIO.h"
-#include "vtkScalarBarWidget.h"
 #include "vtkOpenVRPanelWidget.h"
 
 #include <unordered_map>
@@ -58,16 +58,14 @@ enum class iAVROperations {
   PickFibersinRegion,
   PickMiMRegion,
   MultiPickMiMRegion,
-  ChangeOctreeLevel,
+  ChangeOctreeAndMetric,
   ResetSelection,
-  ChangeFeature,
   ExplodeMiM,
   ChangeMiMDisplacementType,
   NumberOfOperations
 };
 
-class iAVR3DObjectVis;
-class iA3DCylinderObjectVis;
+class iAVRModelInMiniature;
 class iAVROctree; 
 class iAVRInteractorStyle;
 
@@ -84,8 +82,8 @@ public:
 private:
 	iAVREnvironment* m_vrEnv;
 	std::vector<iAVROctree*>* m_octrees;
-	iAVR3DObjectVis* m_objectVis;
-	iA3DCylinderObjectVis* m_cylinderVis;
+	iAVRModelInMiniature* m_modelInMiniature;
+	iAVRVolume* m_volume;
 	vtkSmartPointer<vtkPolyData> m_extendedCylinderVisData; // Data extended with additional intersection points
 	vtkSmartPointer<iAVRInteractorStyle> m_style;
 	vtkSmartPointer<vtkTable> m_objectTable;
@@ -105,10 +103,16 @@ private:
 	double focalPoint[3];
 	//Current touchpad Position
 	float touchPadPosition[3];
+	// Active Input Saves the current applied Input in case Multiinput is requires
+	std::vector<int>* activeInput;
 	// Map Actors to iAVRInteractionOptions
 	std::unordered_map<vtkProp3D*, int> m_ActorToOptionID;
 	// Maps poly point IDs to Object IDs in csv file
 	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
+	// Maps Object IDs in csv file to their poly point IDs (1 fiber has 2 points)
+	std::unordered_multimap<vtkIdType, vtkIdType> m_csvIndexToPointID;
+	// Stores for every fiber iD the region of its start point to 
+	std::unordered_map<vtkIdType, vtkIdType> m_fiberInRegion;
 	std::thread m_iDMappingThread;
 	// True if the Thread has not joined yet
 	bool m_iDMappingThreadRunning = true;
@@ -136,15 +140,14 @@ private:
 	void colorMiMCubes(std::vector<vtkIdType>* regionIDs);
 
 	//# Methods for interaction #//
-	void changeOctreeLevel();
+	void changeOctreeAndMetric();
 	void pickSingleFiber(double eventPosition[3]);
 	void pickFibersinRegion(double eventPosition[3]);
 	void pickFibersinRegion(int leafRegion);
 	void pickMimRegion(double eventPosition[3], double eventOrientation[4]);
-	void multiPickMiMRegion(double eventPosition[3], double eventOrientation[4], bool multiPickFinished);
+	void multiPickMiMRegion();
 	void resetSelection();
-	void changeFeature();
 	void spawnModelInMiniature(double eventPosition[3], bool hide);
-	void explodeMiM(int displacementType);
+	void explodeMiM(int displacementType, double offset);
 	void ChangeMiMDisplacementType();
 };

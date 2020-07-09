@@ -35,6 +35,7 @@
 #include <vtkCellData.h>
 #include <vtkBillboardTextActor3D.h>
 
+
 iAVRMetrics::iAVRMetrics(vtkRenderer* renderer, vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees):m_renderer(renderer), m_objectTable(objectTable), m_io(io),
 m_octrees(octrees)
 {
@@ -47,7 +48,7 @@ m_octrees(octrees)
 	std::vector<double> region = std::vector<double>();
 	std::vector<std::vector<double>> feature = std::vector<std::vector<double>>(numberOfFeatures, region);
 	m_calculatedStatistic = new std::vector<std::vector<std::vector<double>>>(m_octrees->size(), feature);
-
+	m_maxCoverage = new std::vector<std::vector<std::vector<vtkIdType>>>();
 
 	storeMinMaxValues();
 
@@ -187,6 +188,18 @@ vtkSmartPointer<vtkLookupTable> iAVRMetrics::calculateLUT(double min, double max
 vtkSmartPointer<vtkLookupTable> iAVRMetrics::getLut()
 {
 	return m_lut;
+}
+
+std::vector<std::vector<std::vector<vtkIdType>>>* iAVRMetrics::getMaxCoverageFiberPerRegion()
+{
+	if(m_maxCoverage->empty()){
+		calculateMaxCoverageFiberPerRegion();
+		return m_maxCoverage;
+	}
+	else
+	{
+		return m_maxCoverage;
+	}
 }
 
 void iAVRMetrics::calculateColorBarLegend()
@@ -352,6 +365,61 @@ void iAVRMetrics::storeMinMaxValues()
 		tempVec.push_back(minAttribute[feature]);
 		tempVec.push_back(maxAttribute[feature]);
 		m_minMaxValues->push_back(tempVec);
+	}
+}
+
+//! Returns a vector which stores for each fiber its region with the strongest coverage fo every level
+//! So every fiber is only stored once for a level!
+void iAVRMetrics::calculateMaxCoverageFiberPerRegion()
+{
+	//Initialize new Vectors
+	for (int level = 0; level < m_fiberCoverage->size(); level++)
+	{
+		//Initialize the region vec for every level
+		m_maxCoverage->push_back(std::vector<std::vector<vtkIdType>>());
+
+		for (int region = 0; region < m_fiberCoverage->at(level).size(); region++)
+		{
+			//Initialize a vec of IDs for every region
+			m_maxCoverage->at(level).push_back(std::vector<vtkIdType>());
+		}
+
+	}
+	
+	for (int level = 0; level < m_fiberCoverage->size(); level++)
+	{
+		for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
+		{
+			findBiggestCoverage(level, row);
+		}
+
+	}
+}
+
+//! Returns the biggest coverage value for a specific fiber over all regions at the given octree level
+//! Uses Threads
+void iAVRMetrics::findBiggestCoverage(int level, int fiber)
+{
+	double currentMaxCoverage = 0;
+	int regionWithMaxCoverage = 0;
+
+	for (int region = 0; region < m_fiberCoverage->at(level).size(); region++)
+	{
+		auto it = m_fiberCoverage->at(level).at(region)->find(fiber);
+		//If fiber has a coverage...
+		if (it != m_fiberCoverage->at(level).at(region)->end())
+		{
+			if (currentMaxCoverage < it->second)
+			{
+				currentMaxCoverage = it->second;
+				regionWithMaxCoverage = region;
+			}
+		}
+	}
+
+	if (currentMaxCoverage > 0)
+	{
+		m_maxCoverage->at(level).at(regionWithMaxCoverage).push_back(fiber);
 	}
 }
 

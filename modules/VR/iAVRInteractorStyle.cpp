@@ -45,7 +45,6 @@ iAVRInteractorStyle::iAVRInteractorStyle()
 	m_inputScheme = new std::vector < std::vector < std::vector<std::vector<int>>>>(NUMBER_OF_DEVICES, c);
 	
 	m_activeInput = new std::vector<int>(NUMBER_OF_DEVICES, -1);
-
 }
 
 void iAVRInteractorStyle::setVRMain(iAVRMain* vrMain)
