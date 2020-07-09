@@ -22,7 +22,9 @@
 #include "vtkAxis.h"
 #include "vtkTextProperty.h"
 
+#include <iAVtkVersion.h>
 #include "mainwindow.h"
+
 #include <vector>
 #include <algorithm>
 

@@ -8,6 +8,7 @@
 #include "iACompVisMain.h"
 
 //iA
+#include <iAVtkVersion.h>
 #include "mainwindow.h"
 
 //Qt
