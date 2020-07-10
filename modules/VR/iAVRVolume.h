@@ -20,47 +20,47 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkActor.h>
-#include <vtkTable.h>
-#include <vtkDataSet.h>
-#include <vtkPolyData.h>
+#include "iAVRCubicRepresentation.h"
+#include "iACsvIO.h"
 
-#include <QColor>
+#include <vtkTable.h>
+
 #include <QStandardItem>
 
 #include <unordered_map>
 
-#include "iACsvIO.h"
-#include "iAVROctree.h"
-
 class iA3DCylinderObjectVis;
 
-//! 
-class iAVRVolume
+//! Class which represents the rendered volume
+class iAVRVolume: public iAVRCubicRepresentation
 {
 public:
 	iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io);
-	void setOctrees(iAVROctree* octree);
+	void resetVolume();
+	void showVolume();
+	void hideVolume();
+	void showRegionLinks();
+	void hideRegionLinks();
+	vtkSmartPointer<vtkActor> getVolumeActor();
 	void setMappers(std::unordered_map<vtkIdType, vtkIdType> pointIDToCsvIndex, std::unordered_multimap<vtkIdType, vtkIdType> csvIndexToPointID);
-	void show();
-	void hide();
-	vtkSmartPointer<vtkPolyData> getPolyData();
-	vtkSmartPointer<vtkActor> getActor();
+	vtkSmartPointer<vtkPolyData> getVolumeData();
+	void createOctreeBoundingBox();
 	void renderSelection(std::vector<size_t> const& sortedSelInds, int classID, QColor const& classColor, QStandardItem* activeClassItem);
 	void createNewVolume(std::vector<size_t> fiberIDs);
 	void moveRegions(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset);
 	void moveFibersbyAllCoveredRegions(double offset);
+	void moveBoundingBox(double offset);
+	void moveBoundingBoxRelative(double offset);
+	void createRegionLinks();
 
 private:
-	vtkSmartPointer<vtkRenderer> m_renderer;
-	vtkSmartPointer<vtkActor> m_actor;
+	vtkSmartPointer<vtkActor> m_volumeActor;
+	vtkSmartPointer<vtkActor> m_RegionLinksActor;
 	iA3DCylinderObjectVis* m_cylinderVis;
 	vtkSmartPointer<vtkTable> m_objectTable;
-	iAVROctree* m_octree;
 	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
 	std::unordered_multimap<vtkIdType, vtkIdType> m_csvIndexToPointID;
 	iACsvIO m_io;
-	bool m_visible;
+	bool m_volumeVisible;
+	bool m_regionLinksVisible;
 };

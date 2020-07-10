@@ -22,6 +22,7 @@
 
 #include "vtkPolyDataMapper.h"
 #include "vtkPolyData.h"
+#include "vtkPointData.h"
 #include "vtkActor.h"
 #include "vtkProperty.h"
 #include "vtkIdTypeArray.h"
@@ -34,6 +35,7 @@ m_octree(vtkSmartPointer<vtkOctreePointLocator>::New())
 	m_visible = false;
 	numberOfLeaveNodes = 0;
 	m_maxDistanceOctCenterToRegionCenter = -1;
+	m_maxDistanceOctCenterToFiber = -1;
 	m_fibersInRegion = new std::vector<std::unordered_map<vtkIdType, double>*>();
 }
 
@@ -48,7 +50,7 @@ void iAVROctree::generateOctreeRepresentation(int level, QColor col)
 	m_actor->SetMapper(octreeMapper);
 	m_actor->GetProperty()->SetRepresentationToWireframe();
 	m_actor->GetProperty()->SetColor(col.redF(), col.greenF(), col.blueF());
-	m_actor->GetProperty()->SetLineWidth(6);
+	m_actor->GetProperty()->SetLineWidth(5);
 	m_actor->GetProperty()->RenderLinesAsTubesOn();
 	//m_actor->PickableOff();
 }
@@ -223,8 +225,20 @@ double iAVROctree::getMaxDistanceOctCenterToRegionCenter()
 	{
 		m_maxDistanceOctCenterToRegionCenter = calculateDistanceOctCenterToRegionCenter();
 		return m_maxDistanceOctCenterToRegionCenter;
+	}	
+}
+
+double iAVROctree::getMaxDistanceOctCenterToFiber()
+{
+	if (m_maxDistanceOctCenterToFiber != -1)
+	{
+		return m_maxDistanceOctCenterToFiber;
 	}
-	
+	else
+	{
+		m_maxDistanceOctCenterToFiber = calculateDistanceOctCenterToRegionCenter();
+		return m_maxDistanceOctCenterToFiber;
+	}
 }
 
 //! Returns which fibers (ID) lie in which region with coverage of 1. Gets calculated on the first call.
@@ -318,3 +332,24 @@ double iAVROctree::calculateDistanceOctCenterToRegionCenter()
 
 	return maxLength;
 }
+
+double iAVROctree::calculateDistanceOctCenterToFiber()
+{
+	double maxLength = 0;
+	double centerPoint[3];
+	calculateOctreeCenterPos(centerPoint);
+	iAVec3d centerPos = iAVec3d(centerPoint);
+
+	// Get max length
+	for (int i = 0; i < m_octree->GetDataSet()->GetNumberOfPoints(); i++)
+	{
+		iAVec3d currentPoint = iAVec3d(m_octree->GetDataSet()->GetPoint(i));
+		iAVec3d direction = currentPoint - centerPos;
+		double length = direction.length();
+
+		if (length > maxLength) maxLength = length;
+	}
+
+	return maxLength;
+}
+

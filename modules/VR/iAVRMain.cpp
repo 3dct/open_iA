@@ -75,7 +75,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	//Define Octree
 	currentOctreeLevel = 0;
 	m_octrees = new std::vector<iAVROctree*>();
-	generateOctrees(OCTREE_MAX_LEVEL, OCTREE_POINTS_PER_REGION, m_volume->getPolyData());
+	generateOctrees(OCTREE_MAX_LEVEL, OCTREE_POINTS_PER_REGION, m_volume->getVolumeData());
 	m_octrees->at(currentOctreeLevel)->generateOctreeRepresentation(currentOctreeLevel, OCTREE_COLOR);
 	m_octrees->at(currentOctreeLevel)->show();
 
@@ -88,7 +88,6 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	//Initialize Metrics class
 	currentFeature = 1;
 	fiberMetrics = new iAVRMetrics(m_vrEnv->renderer(), m_objectTable, m_io, m_octrees);
-
 	//map for the coverage of each fiber in every octree level and region
 	m_fiberCoverage = new std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>();
 
@@ -156,12 +155,14 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	m_modelInMiniature->setOctree(m_octrees->at(OCTREE_MIN_LEVEL));
 
 	//m_cylinderVis->show();
-	m_volume->setOctrees(m_octrees->at(OCTREE_MIN_LEVEL));
+	m_volume->setOctree(m_octrees->at(OCTREE_MIN_LEVEL));
+	m_volume->showVolume();
 	m_volume->show();
 
 	//Add Actors
 	addPropToOptionID(vtkProp3D::SafeDownCast(m_modelInMiniature->getActor()), iAVRInteractionOptions::MiniatureModel);
 	addPropToOptionID(vtkProp3D::SafeDownCast(m_volume->getActor()), iAVRInteractionOptions::Volume);
+	addPropToOptionID(vtkProp3D::SafeDownCast(m_volume->getVolumeActor()), iAVRInteractionOptions::Volume);
 	for(int i = 0; i < m_octrees->size(); i++)
 	{
 		addPropToOptionID(vtkProp3D::SafeDownCast(m_octrees->at(i)->getActor()), iAVRInteractionOptions::Volume); //Octree counts as Volume
@@ -180,7 +181,7 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 	int actioniD = static_cast<int>(device->GetAction()); // Action of Input Method
 	int optionID = getOptionForObject(pickedProp);
 
-	if (optionID == -1) return;
+	//if (optionID == -1) return;
 
 	inputScheme* scheme = m_style->getInputScheme();
 	int operation = scheme->at(deviceID).at(inputID).at(actioniD).at(optionID);
@@ -205,7 +206,6 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 		this->pickMimRegion(eventPosition, eventOrientation);
 		break;
 	case iAVROperations::MultiPickMiMRegion:	
-		//m_volume->moveRegions(30);
 		activeInput->at(deviceID) = static_cast<int>(iAVROperations::MultiPickMiMRegion); // For Multitouch
 		break;
 	case iAVROperations::ChangeOctreeAndMetric:
@@ -215,7 +215,7 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 		this->resetSelection();
 		break;
 	case iAVROperations::ExplodeMiM:
-		this->explodeMiM(currentMiMDisplacementType, 50);
+		this->explodeMiM(currentMiMDisplacementType, 40);
 		break;
 	case iAVROperations::ChangeMiMDisplacementType:
 		this->ChangeMiMDisplacementType();
@@ -237,7 +237,7 @@ void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition
 	// Active Input Saves the current applied operation in case Multiinput is requires
 	//std::vector<int>* activeInput = m_style->getActiveInput();
 
-	if (optionID == -1) return;
+	//if (optionID == -1) return;
 
 	inputScheme* scheme = m_style->getInputScheme();
 	int operation = scheme->at(deviceID).at(inputID).at(actioniD).at(optionID);
@@ -373,12 +373,12 @@ void iAVRMain::mapAllPointiDs()
 		}
 
 		// Insert polyObject ID of Start Point and End Point
-		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getPolyData()->FindPoint(startPos), row));
-		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getPolyData()->FindPoint(endPos), row));
+		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getVolumeData()->FindPoint(startPos), row));
+		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getVolumeData()->FindPoint(endPos), row));
 
 		// Insert fiber id with its Start Point and End Point
-		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getPolyData()->FindPoint(startPos)));
-		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getPolyData()->FindPoint(endPos)));
+		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getVolumeData()->FindPoint(startPos)));
+		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getVolumeData()->FindPoint(endPos)));
 	}
 	DEBUG_LOG(QString("Volume Data loaded"));
 
@@ -389,6 +389,7 @@ void iAVRMain::mapAllPointiDs()
 	}
 	DEBUG_LOG(QString("Fibers in Region for every octree calculated"));
 
+	fiberMetrics->setFiberCoverageData(m_fiberCoverage);
 	m_iDMappingThreadRunning = false; //Thread ended
 }
 
@@ -429,12 +430,12 @@ void iAVRMain::mapAllPointiDsAndCalculateFiberCoverage()	//TODO Replaces the map
 		}
 
 		// Insert polyObject ID of Start Point and End Point
-		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getPolyData()->FindPoint(startPos), row));
-		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getPolyData()->FindPoint(endPos), row));
+		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getVolumeData()->FindPoint(startPos), row));
+		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getVolumeData()->FindPoint(endPos), row));
 
 		// Insert fiber id with its Start Point and End Point
-		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getPolyData()->FindPoint(startPos)));
-		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getPolyData()->FindPoint(endPos)));
+		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getVolumeData()->FindPoint(startPos)));
+		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getVolumeData()->FindPoint(endPos)));
 
 		vtkSmartPointer<vtkPoints> intersectionPoints = vtkSmartPointer<vtkPoints>::New();
 
@@ -476,6 +477,7 @@ void iAVRMain::mapAllPointiDsAndCalculateFiberCoverage()	//TODO Replaces the map
 	//m_3DTextLabels->at(2)->create3DLabel("Volume loading has finished!");
 	//m_3DTextLabels->at(2)->show();
 	m_volume->setMappers(m_pointIDToCsvIndex, m_csvIndexToPointID);
+	fiberMetrics->setFiberCoverageData(m_fiberCoverage);
 	DEBUG_LOG(QString("Volume Data loaded with Method 2"));
 	m_iDMappingThreadRunning = false; //Thread ended
 }
@@ -688,7 +690,7 @@ int iAVRMain::getOptionForObject(vtkProp3D* pickedProp)
 		if(!m_ActorToOptionID.count(pickedProp))
 		{
 			DEBUG_LOG(QString("Picked Object Unknown!"));
-			return -1;
+			return static_cast<int>(iAVRInteractionOptions::NoInteractions);
 		}
 		return m_ActorToOptionID.at(pickedProp);
 	}
@@ -835,7 +837,6 @@ void iAVRMain::calculateMetrics()
 {
 	//Gets only called when thread is finished
 	if(!m_iDMappingThreadRunning){
-		fiberMetrics->setFiberCoverageData(m_fiberCoverage);
 		fiberMetrics->hideColorBarLegend();
 
 		std::vector<QColor>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature, 1);
@@ -869,39 +870,54 @@ void iAVRMain::colorMiMCubes(std::vector<vtkIdType>* regionIDs)
 //! Increases/Decreases the current octree level and feature. Recalculates the Model in Miniature Object.
 void iAVRMain::changeOctreeAndMetric()
 {
-	m_octrees->at(currentOctreeLevel)->hide(); // Hide old octree
-	QString text = QString("Octree Level %1").arg(currentOctreeLevel);
+	iAVRTouchpadPosition touchpadPos = m_style->getTouchedPadSide(touchPadPosition);
 
-	switch(m_style->getTouchedPadSide(touchPadPosition))
-	{
-	case iAVRTouchpadPosition::Up:
-		if (currentOctreeLevel < m_octrees->size()-1)	currentOctreeLevel++;
+	if (touchpadPos == iAVRTouchpadPosition::Up || touchpadPos == iAVRTouchpadPosition::Down) {
+
+		QString text = QString("Octree Level %1").arg(currentOctreeLevel);
+		m_octrees->at(currentOctreeLevel)->hide(); // Hide old octree
+		m_volume->hide();
+		m_volume->hideRegionLinks();
+		m_volume->hideVolume();
+		m_volume->resetVolume();
+
+		if (touchpadPos == iAVRTouchpadPosition::Up)
+		{
+			if (currentOctreeLevel < m_octrees->size() - 1)	currentOctreeLevel++;
+		}
+		if (touchpadPos == iAVRTouchpadPosition::Down)
+		{
+			if (currentOctreeLevel > OCTREE_MIN_LEVEL)	currentOctreeLevel--;
+		}
+
 		m_3DTextLabels->at(0)->create3DLabel(text);
 		m_3DTextLabels->at(0)->show();
 		m_3DTextLabels->at(1)->hide();
-		break;
-	case iAVRTouchpadPosition::Down:
-		if (currentOctreeLevel > OCTREE_MIN_LEVEL)	currentOctreeLevel--;
-		m_3DTextLabels->at(0)->create3DLabel(text);
-		m_3DTextLabels->at(0)->show();
-		m_3DTextLabels->at(1)->hide();
-		break;
-	case iAVRTouchpadPosition::Right:
-		if (currentFeature < fiberMetrics->getNumberOfFeatures() - 1)	currentFeature++;
-		m_3DTextLabels->at(1)->show();
-		m_3DTextLabels->at(0)->hide();
-		break;
-	case iAVRTouchpadPosition::Left:
-		if (currentFeature > 0)	currentFeature--;
-		m_3DTextLabels->at(1)->show();
-		m_3DTextLabels->at(0)->hide();
-		break;
+
+		//m_octrees->at(currentOctreeLevel)->generateOctreeRepresentation(currentOctreeLevel, OCTREE_COLOR);
+		//m_octrees->at(currentOctreeLevel)->show();
+
+		m_volume->setOctree(m_octrees->at(currentOctreeLevel));
+		m_volume->createOctreeBoundingBox();
+		m_volume->show();
+		m_volume->showVolume();
 	}
+	else if (touchpadPos == iAVRTouchpadPosition::Right || touchpadPos == iAVRTouchpadPosition::Left){
 	
-	//m_octree->calculateOctree(currentOctreeLevel, OCTREE_POINTS_PER_REGION);
-	m_octrees->at(currentOctreeLevel)->generateOctreeRepresentation(currentOctreeLevel, OCTREE_COLOR);
-	m_octrees->at(currentOctreeLevel)->show();
-	m_volume->setOctrees(m_octrees->at(currentOctreeLevel));
+		if (touchpadPos == iAVRTouchpadPosition::Right)
+		{
+			if (currentFeature < fiberMetrics->getNumberOfFeatures() - 1)	currentFeature++;
+			m_octrees->at(currentOctreeLevel)->show();
+		}
+		if (touchpadPos == iAVRTouchpadPosition::Left)
+		{
+			if (currentFeature > 0)	currentFeature--;
+			m_octrees->at(currentOctreeLevel)->hide();
+		}
+
+		m_3DTextLabels->at(1)->show();
+		m_3DTextLabels->at(0)->hide();
+	}
 
 	updateModelInMiniatureData();
 }
@@ -936,7 +952,7 @@ void iAVRMain::pickFibersinRegion(double eventPosition[3])
 		return;
 	}
 
-	//DEBUG_LOG(QString("Region clicked: %1 which has %2 fibers").arg(leafRegion).arg(points->GetSize()));
+	DEBUG_LOG(QString("\nRegion clicked: %1 which has %2 fibers").arg(leafRegion).arg(points->GetSize()));
 
 	for (int i = 0; i < points->GetSize(); i++)
 	{
@@ -1035,8 +1051,11 @@ void iAVRMain::multiPickMiMRegion()
 void iAVRMain::resetSelection()
 {
 	m_volume->renderSelection(std::vector<size_t>(), 0, QColor(140, 140, 140, 255), nullptr);
-	std::vector<QColor>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature, 1);
-	m_modelInMiniature->applyHeatmapColoring(rgba); //Reset Color
+	if(modelInMiniatureActive)
+	{
+		std::vector<QColor>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature, 1);
+		m_modelInMiniature->applyHeatmapColoring(rgba); //Reset Color
+	}
 }
 
 //! Updates the data (Octree, Metrics,...) and the position for the current MiM
@@ -1048,6 +1067,8 @@ void iAVRMain::updateModelInMiniatureData()
 	m_modelInMiniature->createModelInMiniature(); //Here a new Octree is calculated
 
 	double* centerPos = m_modelInMiniature->getActor()->GetCenter();
+	//double scale = m_vrEnv->interactor()->GetPhysicalScale();
+	//double shiftY = Y_OFFSET / scale;
 	m_modelInMiniature->getActor()->AddPosition(cPos[controllerID][0] - centerPos[0], cPos[controllerID][1] - centerPos[1] + Y_OFFSET, cPos[controllerID][2] - centerPos[2]);
 	m_modelInMiniature->getActor()->Modified();
 
@@ -1107,7 +1128,12 @@ void iAVRMain::explodeMiM(int currentMiMDisplacementType, double offset)
 		break;
 	}
 	if (!m_iDMappingThreadRunning) {
+		offset = offset / 2; //slower Displacement for volume
+		//m_volume->moveFibersbyAllCoveredRegions(offset);
 		m_volume->moveRegions(fiberMetrics->getMaxCoverageFiberPerRegion(), offset);
+		m_volume->moveBoundingBoxRelative(offset);
+		m_volume->createRegionLinks();
+		m_volume->showRegionLinks();
 	}
 }
 

@@ -26,6 +26,7 @@
 #include "iAVR3DText.h"
 #include "iAVRDashboard.h"
 #include "iAVRVolume.h"
+#include "iACsvIO.h"
 
 #include "vtkEventData.h"
 #include "vtkTable.h"
@@ -33,8 +34,6 @@
 #include "vtkProp3D.h"
 #include "vtkPolyData.h"
 #include "vtkPlaneSource.h"
-#include "iACsvIO.h"
-#include "vtkOpenVRPanelWidget.h"
 
 #include <unordered_map>
 #include <thread>
@@ -42,6 +41,7 @@
 // Enumeration of different interaction options for different Objects
 enum class iAVRInteractionOptions {
   Unknown = -1,
+  NoInteractions,
   NoObject,
   Anywhere,
   MiniatureModel,

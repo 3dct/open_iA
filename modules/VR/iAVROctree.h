@@ -31,8 +31,6 @@
 #include <QColor>
 #include <unordered_map>
 
-class vtkModifiedBSPTree;
-
 //! Class for calculation of a 3D Octree 
 class iAVROctree
 {
@@ -49,6 +47,7 @@ public:
 	void movePointInsideRegion(double point[3], double movedPoint[3]);
 	int getNumberOfLeafeNodes();
 	double getMaxDistanceOctCenterToRegionCenter();
+	double getMaxDistanceOctCenterToFiber();
 	std::vector<std::unordered_map<vtkIdType, double>*>* getfibersInRegionMapping(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex);
 	int getLevel();
 	void show();
@@ -58,6 +57,7 @@ public:
 private:
 	int numberOfLeaveNodes;
 	double m_maxDistanceOctCenterToRegionCenter;
+	double m_maxDistanceOctCenterToFiber;
 	bool m_visible;
 	int m_level;
 	vtkSmartPointer<vtkRenderer> m_renderer;
@@ -69,4 +69,5 @@ private:
 
 	void mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex);
 	double calculateDistanceOctCenterToRegionCenter();
+	double calculateDistanceOctCenterToFiber();
 };

@@ -21,10 +21,8 @@
 #include "iAVRModelInMiniature.h"
 
 #include "vtkCubeSource.h"
-#include "vtkSphereSource.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
-#include "vtkPropAssembly.h"
 #include "vtkIdFilter.h"
 #include "vtkIdTypeArray.h"
 #include "vtkPointData.h"
@@ -43,9 +41,8 @@
 #include <iAvec3.h>
 #include <math.h>
 
-iAVRModelInMiniature::iAVRModelInMiniature(vtkRenderer* ren):m_renderer(ren),m_actor(vtkSmartPointer<vtkActor>::New())
+iAVRModelInMiniature::iAVRModelInMiniature(vtkRenderer* ren):iAVRCubicRepresentation{ren}
 {
-	m_visible = false;
 	defaultActorSize[0] = 0.15;
 	defaultActorSize[1] = 0.15;
 	defaultActorSize[2] = 0.15;
@@ -53,29 +50,7 @@ iAVRModelInMiniature::iAVRModelInMiniature(vtkRenderer* ren):m_renderer(ren),m_a
 	currentColorArr->SetName("colors");
 	currentColorArr->SetNumberOfComponents(4);
 
-	m_activeActor = vtkSmartPointer<vtkActor>::New();
-
 	defaultColor = QColor(0, 0, 200, 255);
-}
-
-void iAVRModelInMiniature::show()
-{
-	if (m_visible)
-	{
-		return;
-	}
-	m_renderer->AddActor(m_actor);
-	m_visible = true;
-}
-
-void iAVRModelInMiniature::hide()
-{
-	if (!m_visible)
-	{
-		return;
-	}
-	m_renderer->RemoveActor(m_actor);
-	m_visible = false;
 }
 
 //! Creates for every region of the octree a cube glyph. The cubes are stored in one actor.
@@ -122,13 +97,14 @@ void iAVRModelInMiniature::createModelInMiniature()
 	glyph3D->SetInputData(m_cubePolyData);
 	glyph3D->SetColorModeToColorByScalar();
 	glyph3D->SetScaleModeToDataScalingOff();
+	//glyph3D->OrientOn();
 	glyph3D->Update();
 
 	// Create a mapper and actor
 	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	glyphMapper->SetInputConnection(glyph3D->GetOutputPort());
 
-	applyRelativeCubeOffset(1);
+	applyRelativeCubeOffset(2.5);
 
 	m_actor->SetMapper(glyphMapper);
 	m_actor->Modified();
@@ -313,36 +289,6 @@ void iAVRModelInMiniature::apply4RegionCubeOffset(double offset)
 	m_cubePolyData->Modified();
 }
 
-//! This Method returns the closest cell of the MiM which gets intersected by a ray  
-vtkIdType iAVRModelInMiniature::getClosestCellID(double pos[3], double eventOrientation[3])
-{
-	vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
-
-	if(cellPicker->Pick3DRay(pos, eventOrientation, m_renderer) >= 0)
-	{
-		vtkIdType regionId = dynamic_cast<vtkIdTypeArray*>(glyph3D->GetOutput()->GetPointData()->GetArray("InputPointIds"))
-			->GetValue(cellPicker->GetPointId());
-
-		return regionId;
-	}
-	return -1;
-}
-
-void iAVRModelInMiniature::setOctree(iAVROctree* octree)
-{
-	m_octree = octree;
-}
-
-vtkSmartPointer<vtkPolyData> iAVRModelInMiniature::getDataSet()
-{
-	return m_cubePolyData;
-}
-
-vtkActor * iAVRModelInMiniature::getActor()
-{
-	return m_actor;
-}
-
 void iAVRModelInMiniature::highlightGlyphs(std::vector<vtkIdType>* regionIDs)
 {
 	vtkSmartPointer<vtkPolyData> activeData = vtkSmartPointer<vtkPolyData>::New();
@@ -392,50 +338,3 @@ void iAVRModelInMiniature::removeHighlightedGlyphs()
 {
 	m_renderer->RemoveActor(m_activeActor);
 }
-
-//! This Method iterates through all leaf regions of the octree and stores its center point in an vtkPolyData
-void iAVRModelInMiniature::calculateStartPoints()
-{
-	vtkSmartPointer<vtkPoints> cubeStartPoints = vtkSmartPointer<vtkPoints>::New();
-	m_cubePolyData = vtkSmartPointer<vtkPolyData>::New();
-
-	int leafNodes = m_octree->getOctree()->GetNumberOfLeafNodes();
-	
-	for(int i=0; i< leafNodes; i++)
-	{
-		double centerPoint[3];
-		m_octree->calculateOctreeRegionCenterPos(i, centerPoint);
-
-		cubeStartPoints->InsertNextPoint(centerPoint[0], centerPoint[1], centerPoint[2]);
-	}
-
-	m_cubePolyData->SetPoints(cubeStartPoints);
-}
-
-//! Test method inserts colored point at given Position
-void iAVRModelInMiniature::drawPoint(std::vector<double*>* pos, QColor color)
-{
-	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-
-	for (int i = 0; i < pos->size(); i++)
-	{
-		points->InsertNextPoint(pos->at(i));
-	}
-
-	vtkSmartPointer<vtkPolyData> pointsPolydata = vtkSmartPointer<vtkPolyData>::New();
-	pointsPolydata->SetPoints(points);
-
-	vtkSmartPointer<vtkVertexGlyphFilter> vertexGlyphFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
-	vertexGlyphFilter->AddInputData(pointsPolydata);
-	vertexGlyphFilter->Update();
-
-	vtkSmartPointer<vtkPolyDataMapper> pointsMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	pointsMapper->SetInputConnection(vertexGlyphFilter->GetOutputPort());
-	vtkSmartPointer<vtkActor> pointsActor = vtkSmartPointer<vtkActor>::New();
-	pointsActor->SetMapper(pointsMapper);
-	pointsActor->GetProperty()->SetPointSize(8);
-	pointsActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
-	m_renderer->AddActor(pointsActor);
-
-}
-

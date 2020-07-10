@@ -20,33 +20,43 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAVRCubicRepresentation.h"
-
-#include <vtkPoints.h>
+#include <vtkSmartPointer.h>
+#include <vtkRenderer.h>
+#include <vtkActor.h>
 #include <vtkPolyData.h>
-#include <vtkGlyph3DMapper.h>
+#include <vtkDataSet.h>
+#include <vtkGlyph3D.h>
+
+#include "iAVROctree.h"
+
 #include <QColor>
 
-//! Class for the abstract 3D Model in Miniature visualization
-class iAVRModelInMiniature: public iAVRCubicRepresentation
+//! Base class for Objects which are represented through cubes (octree shape)
+class iAVRCubicRepresentation
 {
 public:
-	iAVRModelInMiniature(vtkRenderer* ren);
-	void createModelInMiniature();
-	void setScale(double x, double y, double z);
-	void setPos(double x, double y, double z);
-	void addPos(double x, double y, double z);
-	void setOrientation(double x, double y, double z);
-	void setCubeColor(QColor col, int regionID);
-	void applyHeatmapColoring(std::vector<QColor>* colorPerRegion);
-	void applyLinearCubeOffset(double offset);
-	void applyRelativeCubeOffset(double offset);
-	void apply4RegionCubeOffset(double offset);
-	void highlightGlyphs(std::vector<vtkIdType>* regionIDs);
-	void removeHighlightedGlyphs();
+	iAVRCubicRepresentation(vtkRenderer* ren);
 
-	double defaultActorSize[3]; // Initial resize of the cube
+	void setOctree(iAVROctree* octree);
+	void show();
+	void hide();
+	vtkSmartPointer<vtkActor> getActor();
+	vtkSmartPointer<vtkPolyData> getDataSet();
+	vtkIdType getClosestCellID(double pos[3], double eventOrientation[3]);
+
 private:
-	QColor defaultColor;
-	vtkSmartPointer<vtkUnsignedCharArray> currentColorArr;
+	
+
+protected:
+	vtkSmartPointer<vtkRenderer> m_renderer;
+	vtkSmartPointer<vtkActor> m_actor;
+	vtkSmartPointer<vtkActor> m_activeActor;
+	vtkSmartPointer<vtkPolyData> m_cubePolyData;
+	vtkSmartPointer<vtkGlyph3D> glyph3D;
+	vtkSmartPointer<vtkGlyph3D> activeGlyph3D;
+	iAVROctree* m_octree;
+	bool m_visible;
+
+	void calculateStartPoints();
+	void drawPoint(std::vector<double*>* pos, QColor color);
 };
