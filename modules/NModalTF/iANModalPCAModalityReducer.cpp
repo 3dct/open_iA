@@ -24,6 +24,7 @@
 #include <defines.h> // for DIM
 #include "iAModality.h"
 #include "iATypedCallHelper.h"
+
 #ifndef NDEBUG
 #include "iAToolsITK.h"
 #endif
@@ -31,6 +32,8 @@
 #include <vtkImageData.h>
 
 #include <itkImagePCAShapeModelEstimator.h>
+#include <itkImageRegionIterator.h>
+#include <itkImageRegionConstIterator.h>
 
 // Input modalities (volumes) must have the exact same dimensions
 QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(QList<QSharedPointer<iAModality>> modalities) {
@@ -45,7 +48,8 @@ QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(QList<QShar
 	}
 
 	// Go!
-	ITK_TYPED_CALL(itkPCA, connectors[0].itkScalarPixelType(), connectors);
+	//ITK_TYPED_CALL(itkPCA, connectors[0].itkScalarPixelType(), connectors);
+	ITK_TYPED_CALL(ownPCA, connectors[0].itkScalarPixelType(), connectors);
 
 	// Set up output list
 	modalities = QList<QSharedPointer<iAModality>>();
@@ -90,13 +94,19 @@ void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector> &c) {
 	for (int i = 0; i < inputSize; i++) {
 
 #ifndef NDEBUG
-		storeImage2(c[i].itkImage(), "pca_input_" + QString::number(i) + ".mhd", true);
+		storeImage2(c[i].itkImage(), "pca_input_itk_" + QString::number(i) + ".mhd", true);
+		storeImage2(dynamic_cast<ImageType *>(c[i].itkImage()), "pca_input_itkcast_" + QString::number(i) + ".mhd", true);
 #endif
 
 		pca->SetInput(i, dynamic_cast<ImageType *>(c[i].itkImage()));
 	}
 
 	pca->Update();
+
+	// Debug. TODO: remove
+	PCASMEType::VectorOfDoubleType eigenValues = pca->GetEigenValues();
+	double sv_mean = sqrt(eigenValues[0]);
+	printf("sv_mean = %d\n", sv_mean);
 
 	auto count = pca->GetNumberOfOutputs();
 
@@ -111,5 +121,191 @@ void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector> &c) {
 #endif
 
 		c[i].setImage(pca->GetOutput(i));
+	}
+}
+
+#ifndef NDEBUG
+#define DEBUG_LOG_MATRIX(matrix) \
+	for (int i = 0; i < numInputs; i++) { \
+		auto row = matrix.get_row(i); \
+		QString str = ""; \
+		for (int j = 0; j < row.size(); j++) { \
+			str += QString::number(row[j]) + "     "; \
+		} \
+		DEBUG_LOG(str); \
+	}
+#else
+#define DEBUG_LOG_MATRIX(matrix)
+#endif
+
+template<class T>
+void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
+	typedef itk::Image<T, DIM> ImageType;
+
+	assert(c.size() > 0);
+
+	int numInputs = c.size();
+	int numOutputs = std::min((int)c.size(), maxOutputLength());
+
+	auto itkImg0 = c[0].itkImage();
+
+	using ImageConstIterator = itk::ImageRegionConstIterator<ImageType>;
+	using ImageIterator = itk::ImageRegionIterator<ImageType>;
+
+	// Set up iterators
+	std::vector<ImageType::ConstPointer> inputs;
+	std::vector<ImageConstIterator> iterators;
+	inputs.resize(numInputs);
+	iterators.resize(numInputs);
+	for (int i = 0; i < numInputs; i++) {
+		inputs[i] = dynamic_cast<const ImageType *>(c[i].itkImage());
+		iterators[i] = ImageConstIterator(inputs[i], inputs[i]->GetBufferedRegion());
+		iterators[i].GoToBegin();
+
+#ifndef NDEBUG
+		storeImage2(c[i].itkImage(), "pca_input_itk_" + QString::number(i) + ".mhd", true);
+		storeImage2(dynamic_cast<ImageType *>(c[i].itkImage()), "pca_input_itkcast_" + QString::number(i) + ".mhd", true);
+#endif
+	}
+
+	auto size = inputs[0]->GetBufferedRegion().GetSize();
+
+	// Set up matrices
+	unsigned int numVoxels = 1;
+	for (unsigned int dim_i = 0; dim_i < DIM; dim_i++) {
+		numVoxels *= size[dim_i];
+	}
+
+	// Calculate means
+	vnl_vector<double> means;
+	means.set_size(numVoxels);
+	means.fill(0);
+	for (unsigned int img_i = 0; img_i < numInputs; img_i++) {
+		auto ite = iterators[img_i];
+		for (unsigned int i = 0; i < numVoxels; i++) {
+			means[i] += ite.Get();
+			++ite;
+		}
+	}
+	means /= numInputs;
+
+	// Calculate inner product (lower triangle) (for covariance matrix)
+	vnl_matrix<double> innerProd;
+	innerProd.set_size(numInputs, numInputs);
+	innerProd.fill(0);
+	for (unsigned int ix = 0; ix < numInputs; ix++) {
+		for (unsigned int iy = 0; iy < ix; iy++) {
+			auto itex = iterators[ix];
+			auto itey = iterators[iy];
+			for (unsigned int i = 0; i < numVoxels; i++) {
+				auto mx = itex.Get() - means[i];
+				auto my = itey.Get() - means[i];
+				innerProd[ix][iy] += (mx * my); // Product takes place!
+				++itex;
+				++itey;
+			}
+		}
+	}
+
+	// Fill upper triangle (make symmetric)
+	for (unsigned int ix = 0; ix < (numInputs - 1); ix++) {
+		for (unsigned int iy = ix + 1; iy < numInputs; iy++) {
+			innerProd[ix][iy] = innerProd[iy][ix];
+		}
+	}
+	if (numInputs - 1 != 0) {
+		innerProd /= (numInputs - 1);
+	} else {
+		innerProd.fill(0);
+	}
+
+	// Solve eigenproblem
+	vnl_matrix<double> eye(numInputs, numInputs); // (eye)dentity matrix
+	eye.set_identity();
+	DEBUG_LOG_MATRIX(innerProd);
+	DEBUG_LOG_MATRIX(eye);
+	vnl_generalized_eigensystem evecs_evals_innerProd(innerProd, eye);
+	auto evecs_innerProd = evecs_evals_innerProd.V;
+	//auto evals_innerProd = evecs_evals_innerProd.D.diagonal();
+
+	DEBUG_LOG_MATRIX(evecs_innerProd);
+	
+	vnl_matrix<double> reconstructed(numVoxels, numOutputs);
+	reconstructed.fill(0);
+
+	// Transform images to principal components
+	for (unsigned int img_i = 0; img_i < numInputs; img_i++) {
+		auto ite = iterators[img_i];
+		for (unsigned int i = 0; i < numVoxels; i++) {
+			auto vox = ite.Get();
+			for (unsigned int vec_i = 0; vec_i < numOutputs; vec_i++) {
+
+				// Flipped because VNL sorts eigenvectors in ascending order
+				unsigned int rec_i = numOutputs - 1 - vec_i;
+				auto evec_elem = evecs_innerProd[img_i][rec_i];
+
+				reconstructed[i][vec_i] += (vox * evec_elem);
+			}
+			++ite;
+		}
+	}
+
+	for (int vec_i = 0; vec_i < numOutputs; vec_i++) {
+		double max_val = -DBL_MAX;
+		double min_val = DBL_MAX;
+		auto col = reconstructed.get_column(vec_i);
+		for (int i = 0; i < numVoxels; i++) {
+			auto rec = col[i];
+			max_val = max_val > rec ? max_val : rec;
+			min_val = min_val < rec ? min_val : rec;
+		}
+		col = (col - min_val) / (max_val - min_val) * 65536.0;
+		reconstructed.set_column(vec_i, col);
+	}
+
+	// Create outputs
+	/*std::vector<ImageType::Pointer> outputs(numOutputs);
+	for (int i = 0; i < numOutputs; i++) {
+		outputs[i] = ImageType::New();
+
+		ImageType::RegionType region;
+		region.SetSize(itkImg0->GetLargestPossibleRegion().GetSize());
+		region.SetIndex(itkImg0->GetLargestPossibleRegion().GetIndex());
+
+		//outputs[i]->SetRegions(itkImg0->GetLargestPossibleRegion());
+		outputs[i]->SetRegions(region);
+		outputs[i]->Allocate();
+	}*/
+
+	// Reshape reconstructed vectors into image
+	c.resize(numOutputs);
+	for (unsigned int out_i = 0; out_i < numOutputs; out_i++) {
+		auto recvec = reconstructed.get_column(out_i);
+
+		auto output = ImageType::New();
+		ImageType::RegionType region;
+		region.SetSize(itkImg0->GetLargestPossibleRegion().GetSize());
+		region.SetIndex(itkImg0->GetLargestPossibleRegion().GetIndex());
+		output->SetRegions(region);
+		output->Allocate();
+		auto ite = ImageIterator(output, region);
+
+		unsigned int i = 0;
+		ite.GoToBegin();
+		while (!ite.IsAtEnd()) {
+
+			double rec = recvec[i];
+			ImageType::PixelType rec_cast = static_cast<typename ImageType::PixelType>(rec);
+			ite.Set(rec_cast);
+
+			++ite;
+			++i;
+		}
+
+#ifndef NDEBUG
+		storeImage2(output, "pca_output_before_conversion_" + QString::number(out_i) + ".mhd", true);
+#endif
+
+		c[out_i].setImage(output);
 	}
 }

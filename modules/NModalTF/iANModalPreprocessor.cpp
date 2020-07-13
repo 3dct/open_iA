@@ -42,13 +42,13 @@ iANModalPreprocessor::iANModalPreprocessor(MdiChild *mdiChild) :
 
 namespace {
 	inline bool promptReduceNumOfModalitiesFirst() {
-		return false; // TODO
+		return true; // TODO
 	}
 	inline bool promptReduceNumOfModalitiesSecond() {
 		return false; // TODO
 	}
 	inline bool promptRemoveBackground() {
-		return true; // TODO
+		return false; // TODO
 	}
 }
 

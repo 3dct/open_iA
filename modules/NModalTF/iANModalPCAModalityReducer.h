@@ -34,6 +34,6 @@ class iANModalPCAModalityReducer : public iANModalModalityReducer
 	QList<QSharedPointer<iAModality>> reduce(QList<QSharedPointer<iAModality>>) override;
 
    private:
-	template <class T>
-	void itkPCA(std::vector<iAConnector>& connectors);
+	template <class T> void itkPCA(std::vector<iAConnector>& connectors);
+	template <class T> void ownPCA(std::vector<iAConnector>& connectors);
 };
