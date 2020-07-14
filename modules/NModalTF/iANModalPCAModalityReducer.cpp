@@ -200,19 +200,24 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 	vnl_matrix<double> innerProd;
 	innerProd.set_size(numInputs, numInputs);
 	innerProd.fill(0);
-	for (unsigned int ix = 0; ix < numInputs; ix++) {
-		for (unsigned int iy = 0; iy < ix; iy++) {
-			//auto itex = iterators[ix];
-			//auto itey = iterators[iy];
-			for (unsigned int i = 0; i < numVoxels; i++) {
-				//auto mx = itex.Get() - means[i];
-				//auto my = itey.Get() - means[i];
-				auto mx = inputs[ix][i] - means[ix];
-				auto my = inputs[iy][i] - means[iy];
-				innerProd[ix][iy] += (mx * my); // Product takes place!
-				//++itex;
-				//++itey;
-			}
+	for (int ix = 0; ix < numInputs; ix++) {
+		for (int iy = 0; iy < ix; iy++) {
+#pragma omp parallel
+			{
+				double innerProd_thread = 0;
+#pragma omp for
+				for (int i = 0; i < numVoxels; i++) {
+					auto mx = inputs[ix][i] - means[ix];
+					auto my = inputs[iy][i] - means[iy];
+					//innerProd[ix][iy] += (mx * my); // Product takes place!
+					innerProd_thread += (mx * my);
+				}
+#pragma omp single
+				innerProd[ix][iy] = 0;
+#pragma omp barrier
+#pragma omp atomic
+				innerProd[ix][iy] += innerProd_thread;
+			} // end of parallel block
 		}
 	}
 
