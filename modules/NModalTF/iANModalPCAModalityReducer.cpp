@@ -222,8 +222,8 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 	}
 
 	// Fill upper triangle (make symmetric)
-	for (unsigned int ix = 0; ix < (numInputs - 1); ix++) {
-		for (unsigned int iy = ix + 1; iy < numInputs; iy++) {
+	for (int ix = 0; ix < (numInputs - 1); ix++) {
+		for (int iy = ix + 1; iy < numInputs; iy++) {
 			innerProd[ix][iy] = innerProd[iy][ix];
 		}
 	}
@@ -246,34 +246,39 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 
 	DEBUG_LOG_MATRIX(evecs_innerProd, "Eigenvectors");
 	
-	vnl_matrix<double> reconstructed(numVoxels, numOutputs);
-	reconstructed.fill(0);
-
-	// Transform images to principal components
-	for (unsigned int img_i = 0; img_i < numInputs; img_i++) {
-		//auto ite = iterators[img_i];
-		for (unsigned int i = 0; i < numVoxels; i++) {
-			//auto vox = ite.Get();
-			auto vox = inputs[img_i][i];
-			for (unsigned int vec_i = 0; vec_i < numOutputs; vec_i++) {
-				auto evec_elem = evecs_innerProd[img_i][vec_i];
-				reconstructed[i][vec_i] += (vox * evec_elem);
-			}
-			//++ite;
+	// Initialize the reconstructed matrix (with zeros)
+	vnl_matrix<double> reconstructed(numOutputs, numVoxels);
+	for (int row_i = 0; row_i < numOutputs; row_i++) {
+#pragma omp parallel for
+		for (int col_i = 0; col_i < numVoxels; col_i++) {
+			reconstructed[row_i][col_i] = 0;
 		}
 	}
 
+	// Transform images to principal components
+	for (int row_i = 0; row_i < numInputs; row_i++) {
+		for (int vec_i = 0; vec_i < numOutputs; vec_i++) {
+			auto evec_elem = evecs_innerProd[row_i][vec_i];
+#pragma omp parallel for
+			for (int col_i = 0; col_i < numVoxels; col_i++) {
+				auto voxel_value = inputs[row_i][col_i];
+				reconstructed[vec_i][col_i] += (voxel_value * evec_elem);
+			}
+		}
+	}
+
+	// Normalize row-wise (i.e. image-wise) to range 0..1
 	for (int vec_i = 0; vec_i < numOutputs; vec_i++) {
 		double max_val = -DBL_MAX;
 		double min_val = DBL_MAX;
-		auto col = reconstructed.get_column(vec_i);
+		auto col = reconstructed.get_row(vec_i);
 		for (int i = 0; i < numVoxels; i++) {
 			auto rec = col[i];
 			max_val = max_val > rec ? max_val : rec;
 			min_val = min_val < rec ? min_val : rec;
 		}
 		col = (col - min_val) / (max_val - min_val) * 65536.0;
-		reconstructed.set_column(vec_i, col);
+		reconstructed.set_row(vec_i, col);
 	}
 
 	// Create outputs
@@ -293,7 +298,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 	// Reshape reconstructed vectors into image
 	c.resize(numOutputs);
 	for (unsigned int out_i = 0; out_i < numOutputs; out_i++) {
-		auto recvec = reconstructed.get_column(out_i);
+		auto recvec = reconstructed.get_row(out_i);
 
 		auto output = ImageType::New();
 		ImageType::RegionType region;
