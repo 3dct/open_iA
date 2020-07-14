@@ -127,6 +127,7 @@ void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector> &c) {
 #ifndef NDEBUG
 #define DEBUG_LOG_MATRIX(matrix, string) \
 	{ QString str = string; \
+	str += "\n"; \
 	for (int i = 0; i < numInputs; i++) { \
 		auto row = matrix.get_row(i); \
 		for (int j = 0; j < row.size(); j++) { \
@@ -150,42 +151,42 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 
 	auto itkImg0 = c[0].itkImage();
 
-	using ImageConstIterator = itk::ImageRegionConstIterator<ImageType>;
-	using ImageIterator = itk::ImageRegionIterator<ImageType>;
-
-	// Set up iterators
-	std::vector<ImageType::ConstPointer> inputs;
-	std::vector<ImageConstIterator> iterators;
-	inputs.resize(numInputs);
-	iterators.resize(numInputs);
-	for (int i = 0; i < numInputs; i++) {
-		inputs[i] = dynamic_cast<const ImageType *>(c[i].itkImage());
-		iterators[i] = ImageConstIterator(inputs[i], inputs[i]->GetBufferedRegion());
-		iterators[i].GoToBegin();
-
-#ifndef NDEBUG
-		storeImage2(c[i].itkImage(), "pca_input_itk_" + QString::number(i) + ".mhd", true);
-		storeImage2(dynamic_cast<ImageType *>(c[i].itkImage()), "pca_input_itkcast_" + QString::number(i) + ".mhd", true);
-#endif
-	}
-
-	auto size = inputs[0]->GetBufferedRegion().GetSize();
-
-	// Set up matrices
+	auto size = itkImg0->GetBufferedRegion().GetSize();
 	unsigned int numVoxels = 1;
 	for (unsigned int dim_i = 0; dim_i < DIM; dim_i++) {
 		numVoxels *= size[dim_i];
 	}
+
+	// Set up iterators
+	vnl_matrix<double> inputs(numInputs, numVoxels);
+	for (int row_i = 0; row_i < numInputs; row_i++) {
+		auto input = dynamic_cast<const ImageType *>(c[row_i].itkImage());
+		auto iterator = itk::ImageRegionConstIterator<ImageType>(input, input->GetBufferedRegion());
+		iterator.GoToBegin();
+
+		for (int col_i = 0; col_i < numVoxels; col_i++) {
+			inputs[row_i][col_i] = iterator.Get();
+			++iterator;
+		}
+
+#ifndef NDEBUG
+		storeImage2(c[row_i].itkImage(), "pca_input_itk_" + QString::number(row_i) + ".mhd", true);
+		storeImage2(dynamic_cast<ImageType *>(c[row_i].itkImage()), "pca_input_itkcast_" + QString::number(row_i) + ".mhd", true);
+#endif
+	}
+
+	
 
 	// Calculate means
 	vnl_vector<double> means;
 	means.set_size(numVoxels);
 	means.fill(0);
 	for (unsigned int img_i = 0; img_i < numInputs; img_i++) {
-		auto ite = iterators[img_i];
+		//auto ite = iterators[img_i];
 		for (unsigned int i = 0; i < numVoxels; i++) {
-			means[i] += ite.Get();
-			++ite;
+			//means[i] += ite.Get();
+			//++ite;
+			means[i] = inputs[img_i][i];
 		}
 	}
 	means /= numInputs;
@@ -196,14 +197,16 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 	innerProd.fill(0);
 	for (unsigned int ix = 0; ix < numInputs; ix++) {
 		for (unsigned int iy = 0; iy < ix; iy++) {
-			auto itex = iterators[ix];
-			auto itey = iterators[iy];
+			//auto itex = iterators[ix];
+			//auto itey = iterators[iy];
 			for (unsigned int i = 0; i < numVoxels; i++) {
-				auto mx = itex.Get() - means[i];
-				auto my = itey.Get() - means[i];
+				//auto mx = itex.Get() - means[i];
+				//auto my = itey.Get() - means[i];
+				auto mx = inputs[ix][i] - means[i];
+				auto my = inputs[iy][i] - means[i];
 				innerProd[ix][iy] += (mx * my); // Product takes place!
-				++itex;
-				++itey;
+				//++itex;
+				//++itey;
 			}
 		}
 	}
@@ -227,7 +230,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 	DEBUG_LOG_MATRIX(eye, "Identity");
 	vnl_generalized_eigensystem evecs_evals_innerProd(innerProd, eye);
 	auto evecs_innerProd = evecs_evals_innerProd.V;
-	//evecs_innerProd.fliplr(); // Flipped because VNL sorts eigenvectors in ascending order
+	evecs_innerProd.fliplr(); // Flipped because VNL sorts eigenvectors in ascending order
 	if (numInputs != numOutputs) evecs_innerProd.extract(numInputs, numOutputs); // Keep only 'numOutputs' columns
 	//auto evals_innerProd = evecs_evals_innerProd.D.diagonal();
 
@@ -238,14 +241,15 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 
 	// Transform images to principal components
 	for (unsigned int img_i = 0; img_i < numInputs; img_i++) {
-		auto ite = iterators[img_i];
+		//auto ite = iterators[img_i];
 		for (unsigned int i = 0; i < numVoxels; i++) {
-			auto vox = ite.Get();
+			//auto vox = ite.Get();
+			auto vox = inputs[img_i][i];
 			for (unsigned int vec_i = 0; vec_i < numOutputs; vec_i++) {
 				auto evec_elem = evecs_innerProd[img_i][vec_i];
 				reconstructed[i][vec_i] += (vox * evec_elem);
 			}
-			++ite;
+			//++ite;
 		}
 	}
 
@@ -287,7 +291,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 		region.SetIndex(itkImg0->GetLargestPossibleRegion().GetIndex());
 		output->SetRegions(region);
 		output->Allocate();
-		auto ite = ImageIterator(output, region);
+		auto ite = itk::ImageRegionIterator<ImageType>(output, region);
 
 		unsigned int i = 0;
 		ite.GoToBegin();
