@@ -178,15 +178,21 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 	// Calculate means
 	vnl_vector<double> means;
 	means.set_size(numInputs);
-	means.fill(0);
 	for (int img_i = 0; img_i < numInputs; img_i++) {
-		//double mean = 0;
-		for (int i = 0; i < numVoxels; i++) {
-			means[img_i] += inputs[img_i][i];
-			//mean += inputs[img_i][i];
-		}
-		//means[i] = 0;
-		//means[i] += mean;
+#pragma omp parallel
+		{
+			double mean = 0;
+#pragma omp for
+			for (int i = 0; i < numVoxels; i++) {
+				//means[img_i] += inputs[img_i][i];
+				mean += inputs[img_i][i];
+			}
+#pragma omp single
+			means[img_i] = 0;
+#pragma omp barrier
+#pragma omp atomic
+			means[img_i] += mean;
+		} // end of parallel block
 		means[img_i] /= numVoxels;
 	}
 
