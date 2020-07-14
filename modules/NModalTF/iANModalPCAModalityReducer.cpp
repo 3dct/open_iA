@@ -125,15 +125,16 @@ void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector> &c) {
 }
 
 #ifndef NDEBUG
-#define DEBUG_LOG_MATRIX(matrix) \
+#define DEBUG_LOG_MATRIX(matrix, string) \
+	{ QString str = string; \
 	for (int i = 0; i < numInputs; i++) { \
 		auto row = matrix.get_row(i); \
-		QString str = ""; \
 		for (int j = 0; j < row.size(); j++) { \
 			str += QString::number(row[j]) + "     "; \
 		} \
-		DEBUG_LOG(str); \
-	}
+		str += "\n"; \
+	} \
+	DEBUG_LOG(str); }
 #else
 #define DEBUG_LOG_MATRIX(matrix)
 #endif
@@ -222,13 +223,15 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 	// Solve eigenproblem
 	vnl_matrix<double> eye(numInputs, numInputs); // (eye)dentity matrix
 	eye.set_identity();
-	DEBUG_LOG_MATRIX(innerProd);
-	DEBUG_LOG_MATRIX(eye);
+	DEBUG_LOG_MATRIX(innerProd, "Inner product");
+	DEBUG_LOG_MATRIX(eye, "Identity");
 	vnl_generalized_eigensystem evecs_evals_innerProd(innerProd, eye);
 	auto evecs_innerProd = evecs_evals_innerProd.V;
+	//evecs_innerProd.fliplr(); // Flipped because VNL sorts eigenvectors in ascending order
+	if (numInputs != numOutputs) evecs_innerProd.extract(numInputs, numOutputs); // Keep only 'numOutputs' columns
 	//auto evals_innerProd = evecs_evals_innerProd.D.diagonal();
 
-	DEBUG_LOG_MATRIX(evecs_innerProd);
+	DEBUG_LOG_MATRIX(evecs_innerProd, "Eigenvectors");
 	
 	vnl_matrix<double> reconstructed(numVoxels, numOutputs);
 	reconstructed.fill(0);
