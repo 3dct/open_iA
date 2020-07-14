@@ -157,7 +157,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 		numVoxels *= size[dim_i];
 	}
 
-	// Set up iterators
+	// Set up input matrix
 	vnl_matrix<double> inputs(numInputs, numVoxels);
 	for (int row_i = 0; row_i < numInputs; row_i++) {
 		auto input = dynamic_cast<const ImageType *>(c[row_i].itkImage());
@@ -175,21 +175,20 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 #endif
 	}
 
-	
-
 	// Calculate means
 	vnl_vector<double> means;
-	means.set_size(numVoxels);
+	means.set_size(numInputs);
 	means.fill(0);
-	for (unsigned int img_i = 0; img_i < numInputs; img_i++) {
-		//auto ite = iterators[img_i];
-		for (unsigned int i = 0; i < numVoxels; i++) {
-			//means[i] += ite.Get();
-			//++ite;
-			means[i] = inputs[img_i][i];
+	for (int img_i = 0; img_i < numInputs; img_i++) {
+		//double mean = 0;
+		for (int i = 0; i < numVoxels; i++) {
+			means[img_i] += inputs[img_i][i];
+			//mean += inputs[img_i][i];
 		}
+		//means[i] = 0;
+		//means[i] += mean;
+		means[img_i] /= numVoxels;
 	}
-	means /= numInputs;
 
 	// Calculate inner product (lower triangle) (for covariance matrix)
 	vnl_matrix<double> innerProd;
@@ -202,8 +201,8 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 			for (unsigned int i = 0; i < numVoxels; i++) {
 				//auto mx = itex.Get() - means[i];
 				//auto my = itey.Get() - means[i];
-				auto mx = inputs[ix][i] - means[i];
-				auto my = inputs[iy][i] - means[i];
+				auto mx = inputs[ix][i] - means[ix];
+				auto my = inputs[iy][i] - means[iy];
 				innerProd[ix][iy] += (mx * my); // Product takes place!
 				//++itex;
 				//++itey;
