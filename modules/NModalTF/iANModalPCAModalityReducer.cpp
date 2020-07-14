@@ -242,11 +242,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 		for (unsigned int i = 0; i < numVoxels; i++) {
 			auto vox = ite.Get();
 			for (unsigned int vec_i = 0; vec_i < numOutputs; vec_i++) {
-
-				// Flipped because VNL sorts eigenvectors in ascending order
-				unsigned int rec_i = numOutputs - 1 - vec_i;
-				auto evec_elem = evecs_innerProd[img_i][rec_i];
-
+				auto evec_elem = evecs_innerProd[img_i][vec_i];
 				reconstructed[i][vec_i] += (vox * evec_elem);
 			}
 			++ite;
