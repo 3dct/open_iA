@@ -152,7 +152,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 	auto itkImg0 = c[0].itkImage();
 
 	auto size = itkImg0->GetBufferedRegion().GetSize();
-	unsigned int numVoxels = 1;
+	int numVoxels = 1;
 	for (unsigned int dim_i = 0; dim_i < DIM; dim_i++) {
 		numVoxels *= size[dim_i];
 	}
@@ -271,29 +271,33 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 	for (int vec_i = 0; vec_i < numOutputs; vec_i++) {
 		double max_val = -DBL_MAX;
 		double min_val = DBL_MAX;
-		auto col = reconstructed.get_row(vec_i);
-		for (int i = 0; i < numVoxels; i++) {
-			auto rec = col[i];
-			max_val = max_val > rec ? max_val : rec;
-			min_val = min_val < rec ? min_val : rec;
-		}
-		col = (col - min_val) / (max_val - min_val) * 65536.0;
-		reconstructed.set_row(vec_i, col);
+#pragma omp parallel
+		{
+			double max_thread = -DBL_MAX;
+			double min_thread = DBL_MAX;
+#pragma omp for
+			for (int i = 0; i < numVoxels; i++) {
+				auto rec = reconstructed[vec_i][i];
+				//max_val = max_val > rec ? max_val : rec;
+				//min_val = min_val < rec ? min_val : rec;
+				max_thread = max_thread > rec ? max_thread : rec;
+				min_thread = min_thread < rec ? min_thread : rec;
+			}
+
+#pragma omp critical // Unfortunatelly, no atomic max :(
+			max_val = max_thread > max_val ? max_thread : max_val;
+#pragma omp critical // Unfortunatelly, no atomic min :(
+			min_val = min_thread < min_val ? min_thread : min_val;
+
+#pragma omp barrier
+
+#pragma omp for
+			for (int i = 0; i < numVoxels; i++) {
+				auto old = reconstructed[vec_i][i];
+				reconstructed[vec_i][i] = (old - min_val) / (max_val - min_val) * 65536.0;
+			}
+		} // end of parallel block
 	}
-
-	// Create outputs
-	/*std::vector<ImageType::Pointer> outputs(numOutputs);
-	for (int i = 0; i < numOutputs; i++) {
-		outputs[i] = ImageType::New();
-
-		ImageType::RegionType region;
-		region.SetSize(itkImg0->GetLargestPossibleRegion().GetSize());
-		region.SetIndex(itkImg0->GetLargestPossibleRegion().GetIndex());
-
-		//outputs[i]->SetRegions(itkImg0->GetLargestPossibleRegion());
-		outputs[i]->SetRegions(region);
-		outputs[i]->Allocate();
-	}*/
 
 	// Reshape reconstructed vectors into image
 	c.resize(numOutputs);
