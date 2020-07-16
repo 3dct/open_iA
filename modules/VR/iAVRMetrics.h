@@ -55,6 +55,7 @@ public:
 	void moveColorBarLegend(double *pos);
 	void rotateColorBarLegend(double x, double y, double z);
 	void setLegendTitle(QString title);
+	std::vector<std::vector<std::vector<double>>>* getJaccardIndex(int level);
 	
 
 private:
@@ -66,6 +67,8 @@ private:
 	std::vector<std::vector<std::vector<double>>>* m_calculatedStatistic;
 	//Stores the for a [feature] the [0] min and the [1] max value from the csv file
 	std::vector<std::vector<double>>* m_minMaxValues;
+	//Stores for the [octree level] in an [octree region] its Jaccard index to another [octree region]
+	std::vector<std::vector<std::vector<double>>>* m_jaccardValues;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkActor> m_ColorBar;
@@ -86,4 +89,8 @@ private:
 	void storeMinMaxValues();
 	void calculateMaxCoverageFiberPerRegion();
 	void findBiggestCoverage(int level, int fiber);
+	void calculateJaccardIndex(int level);
+	double calculateJaccardIndex(int level, int region1, int region2);
+	double calculateJaccardDistance(int level, int region1, int region2);
+	double calculateSinglePurity(int level, int region);
 };

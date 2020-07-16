@@ -20,8 +20,7 @@
 * ************************************************************************************/
 #include "iAVROctree.h"
 
-#include "vtkPolyDataMapper.h"
-#include "vtkPolyData.h"
+#include <vtkPolyDataMapper.h>
 #include "vtkPointData.h"
 #include "vtkActor.h"
 #include "vtkProperty.h"
@@ -65,6 +64,8 @@ void iAVROctree::calculateOctree(int level, int pointsPerRegion)
 
 	numberOfLeaveNodes = m_octree->GetNumberOfLeafNodes();
 	m_level = level;
+	m_boundingBoxes = vtkSmartPointer<vtkPolyData>::New();
+	m_octree->GenerateRepresentation(m_level, m_boundingBoxes);
 }
 
 void iAVROctree::setDataset(vtkDataSet* dataSet)
@@ -77,14 +78,14 @@ vtkOctreePointLocator * iAVROctree::getOctree()
 	return m_octree;
 }
 
-//! Calculates the size of the first (= 0) Octree leaf node
-void iAVROctree::calculateOctreeRegionSize(double size[3])
+//! Calculates the size of Octree leaf node
+void iAVROctree::calculateOctreeRegionSize(int regionID, double size[3])
 {
 	double bounds[6];
 
-	if (m_octree->GetNumberOfLeafNodes() > 0)
+	if (m_octree->GetNumberOfLeafNodes() >= regionID)
 	{
-		m_octree->GetRegionBounds(0, bounds);
+		m_octree->GetRegionBounds(regionID, bounds);
 		size[0] = abs(bounds[1] - bounds[0]);
 		size[1] = abs(bounds[3] - bounds[2]);
 		size[2] = abs(bounds[5] - bounds[4]);
@@ -259,6 +260,11 @@ std::vector<std::unordered_map<vtkIdType, double>*>* iAVROctree::getfibersInRegi
 int iAVROctree::getLevel()
 {
 	return m_level;
+}
+
+vtkSmartPointer<vtkPolyData> iAVROctree::getBoundingBoxes()
+{
+	return m_boundingBoxes;
 }
 
 void iAVROctree::show()

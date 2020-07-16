@@ -49,6 +49,7 @@ m_octrees(octrees)
 	std::vector<std::vector<double>> feature = std::vector<std::vector<double>>(numberOfFeatures, region);
 	m_calculatedStatistic = new std::vector<std::vector<std::vector<double>>>(m_octrees->size(), feature);
 	m_maxCoverage = new std::vector<std::vector<std::vector<vtkIdType>>>();
+	m_jaccardValues = new std::vector<std::vector<std::vector<double>>>(m_octrees->size());
 
 	storeMinMaxValues();
 
@@ -320,6 +321,50 @@ int iAVRMetrics::getNumberOfFeatures()
 	return numberOfFeatures;
 }
 
+QString iAVRMetrics::getFeatureName(int feature)
+{
+	//QString featureName = m_objectTable->GetColumnName(m_io.getOutputMapping()->value(feature));
+	QString featureName = m_objectTable->GetColumnName(feature);
+	return featureName;
+}
+
+void iAVRMetrics::moveColorBarLegend(double* pos)
+{
+	double actorBounds[6];
+	m_ColorBar->GetBounds(actorBounds);
+
+	textSource->SetPosition(actorBounds[1] + 1, actorBounds[2] + 1, actorBounds[4] - 1);
+	titleTextSource->SetPosition(actorBounds[0] + 1, actorBounds[3] + 5, actorBounds[4] - 1);
+	m_ColorBar->SetPosition(pos);
+}
+
+void iAVRMetrics::rotateColorBarLegend(double x, double y, double z)
+{
+	titleTextSource->AddOrientation(x, y, z);
+	textSource->AddOrientation(x, y, z);
+	m_ColorBar->AddOrientation(x, y, z);
+}
+
+void iAVRMetrics::setLegendTitle(QString title)
+{
+	titleTextSource->SetInput(title.toUtf8());
+}
+
+std::vector<std::vector<std::vector<double>>>* iAVRMetrics::getJaccardIndex(int level)
+{
+	if(m_jaccardValues->at(level).empty())
+	{
+		calculateJaccardIndex(level);
+		return m_jaccardValues;
+	}
+	else
+	{
+		return m_jaccardValues;
+	}
+	
+}
+
+
 double iAVRMetrics::histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax)
 {
 	double result = ((newMax - newMin) * ((value - oldMin) / (oldMax - oldMin))) + newMin;
@@ -423,32 +468,67 @@ void iAVRMetrics::findBiggestCoverage(int level, int fiber)
 	}
 }
 
-QString iAVRMetrics::getFeatureName(int feature)
+void iAVRMetrics::calculateJaccardIndex(int level)
 {
-	//QString featureName = m_objectTable->GetColumnName(m_io.getOutputMapping()->value(feature));
-	QString featureName = m_objectTable->GetColumnName(feature);
-	return featureName;
+	for (int region = 0; region < m_fiberCoverage->at(level).size(); region++)
+	{
+		m_jaccardValues->at(level).push_back(std::vector<double>());
+
+		// If only one Region
+		if(m_fiberCoverage->at(level).size() == 1)
+		{
+			m_jaccardValues->at(level).at(region).push_back(1);
+			return;
+		}
+
+		for (int region2 = 0; region2 < m_fiberCoverage->at(level).size(); region2++)
+		{
+			auto index = calculateJaccardIndex(level, region, region2);
+			m_jaccardValues->at(level).at(region).push_back(index);
+
+			//DEBUG_LOG(QString("jaccardValue for [%1][%2] is %3").arg(region).arg(region2).arg(m_jaccardValues->at(level).at(region).at(region2)));
+		}
+	}
 }
 
-void iAVRMetrics::moveColorBarLegend(double* pos)
+//! Calculates the size of the intersection divided by the size of the union of the chosen regions
+//! Gets calculated from the fiber intersection data. Value lies between 0 and 1.
+//! Returns 1 if the region are the same
+double iAVRMetrics::calculateJaccardIndex(int level, int region1, int region2)
 {
-	double actorBounds[6];
-	m_ColorBar->GetBounds(actorBounds);
+	if (region1 == region2) return 1.0;
 
-	textSource->SetPosition(actorBounds[1] + 1, actorBounds[2] + 1, actorBounds[4] - 1);
-	titleTextSource->SetPosition(actorBounds[0] + 1, actorBounds[3] + 5, actorBounds[4] - 1);
-	m_ColorBar->SetPosition(pos);
+	auto fibersInRegion1 = m_fiberCoverage->at(level).at(region1);
+	auto fibersInRegion2 = m_fiberCoverage->at(level).at(region2);
+
+	double sizeRegion1 = fibersInRegion1->size();
+	double sizeRegion2 = fibersInRegion2->size();
+
+	if (sizeRegion1 == 0 || sizeRegion2 == 0) return 0.0;
+
+	double sizeintersection = 0;
+
+	for (auto fiber : *fibersInRegion1)
+	{
+		if(fibersInRegion2->count(fiber.first) == 1)
+		{
+			sizeintersection++;
+		}
+	}
+
+	double jaccard_index = sizeintersection / (sizeRegion1 + sizeRegion2 - sizeintersection);
+
+	return jaccard_index;
 }
 
-void iAVRMetrics::rotateColorBarLegend(double x, double y, double z)
+//! Measures the dissimilarity (1 - jaccard index)
+double iAVRMetrics::calculateJaccardDistance(int level, int region1, int region2)
 {
-	titleTextSource->AddOrientation(x, y, z);
-	textSource->AddOrientation(x, y, z);
-	m_ColorBar->AddOrientation(x, y, z);
+	return 1 - calculateJaccardIndex(level, region1, region2);
 }
 
-void iAVRMetrics::setLegendTitle(QString title)
+//! Calculates a special form of cluster Purity.
+double iAVRMetrics::calculateSinglePurity(int level, int region)
 {
-	titleTextSource->SetInput(title.toUtf8());
+	return 0.0;
 }
-

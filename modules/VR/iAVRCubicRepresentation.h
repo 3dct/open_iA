@@ -26,23 +26,36 @@
 #include <vtkPolyData.h>
 #include <vtkDataSet.h>
 #include <vtkGlyph3D.h>
+#include <vtkDoubleArray.h>
+#include <vtkUnsignedCharArray.h>
 
 #include "iAVROctree.h"
 
 #include <QColor>
+#include <unordered_map>
 
 //! Base class for Objects which are represented through cubes (octree shape)
 class iAVRCubicRepresentation
 {
 public:
 	iAVRCubicRepresentation(vtkRenderer* ren);
-
 	void setOctree(iAVROctree* octree);
+	virtual void createCubeModel();
 	void show();
 	void hide();
+	void setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage);
 	vtkSmartPointer<vtkActor> getActor();
 	vtkSmartPointer<vtkPolyData> getDataSet();
 	vtkIdType getClosestCellID(double pos[3], double eventOrientation[3]);
+	void setCubeColor(QColor col, int regionID);
+	void applyHeatmapColoring(std::vector<QColor>* colorPerRegion);
+	void highlightGlyphs(std::vector<vtkIdType>* regionIDs);
+	void removeHighlightedGlyphs();
+	void redrawHighlightedGlyphs();
+
+	void applyLinearCubeOffset(double offset);
+	void applyRelativeCubeOffset(double offset);
+	void apply4RegionCubeOffset(double offset);
 
 private:
 	
@@ -55,7 +68,16 @@ protected:
 	vtkSmartPointer<vtkGlyph3D> glyph3D;
 	vtkSmartPointer<vtkGlyph3D> activeGlyph3D;
 	iAVROctree* m_octree;
+	vtkSmartPointer<vtkDoubleArray> glyphScales;
+	vtkSmartPointer<vtkUnsignedCharArray> glyphColor;
+	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
+	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
+	//Currently selected cubes
+	std::vector<vtkIdType> activeRegions;
+	QColor defaultColor;
 	bool m_visible;
+	bool m_highlightVisible;
+	double defaultActorSize[3]; // Initial resize of all cube
 
 	void calculateStartPoints();
 	void drawPoint(std::vector<double*>* pos, QColor color);

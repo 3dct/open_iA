@@ -27,22 +27,25 @@
 #include <vtkDataSet.h>
 #include <vtkPointData.h>
 #include <vtkMapper.h>
-#include <vtkCubeSource.h>
-#include <vtkMatrix4x4.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkCellData.h>
 #include <vtkCellArray.h>
 #include <vtkLine.h>
+#include <vtkTubeFilter.h>
+#include <vtkDoubleArray.h>
+#include <vtkUnsignedCharArray.h>
 
 iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io) :m_objectTable(objectTable), m_io(io), iAVRCubicRepresentation{ren}
 {
+	defaultColor = QColor(126, 0, 223, 255);
 	m_volumeActor = vtkSmartPointer<vtkActor>::New();
 	m_RegionLinksActor = vtkSmartPointer<vtkActor>::New();
 
 	m_volumeVisible = false;
 	m_regionLinksVisible = false;
 
-	m_cylinderVis = new iA3DCylinderObjectVis(m_renderer, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), std::map<size_t, std::vector<iAVec3f> >());
+	m_cylinderVis = new iA3DCylinderObjectVis(m_renderer, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), std::map<size_t, std::vector<iAVec3f> >());	
 	m_volumeActor = m_cylinderVis->getActor();
 }
 
@@ -108,52 +111,23 @@ vtkSmartPointer<vtkPolyData> iAVRVolume::getVolumeData()
 	return m_cylinderVis->getPolyData();
 }
 
-void iAVRVolume::createOctreeBoundingBox()
+void iAVRVolume::createCubeModel()
 {
-	//RESET TO DEFAULT VALUES
-	if (m_actor->GetUserMatrix() != NULL)
-		m_actor->GetUserMatrix()->Identity();
-	m_actor->GetMatrix()->Identity();
-	m_actor->SetOrientation(0, 0, 0);
-	m_actor->SetScale(1, 1, 1);
-	m_actor->SetPosition(0, 0, 0);
-	m_actor->SetOrigin(0, 0, 0);
+	iAVRCubicRepresentation::createCubeModel();
 
-	int leafNodes = m_octree->getOctree()->GetNumberOfLeafNodes();
-	if (leafNodes <= 0)
-	{
-		DEBUG_LOG(QString("The Octree has no leaf node!"));
-		return;
-	}
+	//m_actor->GetMapper()->SetScalarVisibility(false);
+	m_actor->GetMapper()->ScalarVisibilityOn();
+	m_actor->GetMapper()->SetScalarModeToUsePointFieldData();
+	m_actor->GetMapper()->SelectColorArray("colors");
 
-	double regionSize[3] = { 0.0, 0.0, 0.0 };
-	m_octree->calculateOctreeRegionSize(regionSize);
-	calculateStartPoints();
-
-	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
-	cubeSource->SetXLength(regionSize[0]);
-	cubeSource->SetYLength(regionSize[1]);
-	cubeSource->SetZLength(regionSize[2]);
-	cubeSource->Update();
-
-	glyph3D = vtkSmartPointer<vtkGlyph3D>::New();
-	glyph3D->GeneratePointIdsOn();
-	glyph3D->SetSourceConnection(cubeSource->GetOutputPort());
-	glyph3D->SetInputData(m_cubePolyData);
-	glyph3D->SetColorModeToColorByScalar();
-	glyph3D->SetScaleModeToDataScalingOff();
-	glyph3D->Update();
-
-	// Create a mapper and actor
-	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	glyphMapper->SetInputConnection(glyph3D->GetOutputPort());
-
-	m_actor->SetMapper(glyphMapper);
-	m_actor->Modified();
+	std::vector<QColor>* color = new std::vector<QColor>(m_octree->getNumberOfLeafeNodes(), defaultColor);
+	applyHeatmapColoring(color);
+	
+	m_actor->GetProperty()->SetColor(defaultColor.redF(), defaultColor.greenF(), defaultColor.blueF());
 	m_actor->GetProperty()->SetRepresentationToWireframe();
 	m_actor->GetProperty()->SetRenderLinesAsTubes(true);
-	m_actor->GetProperty()->SetLineWidth(6);
-	m_actor->GetProperty()->SetColor(0.6, 0.8, 0.2);
+	m_actor->GetProperty()->SetLineWidth(4);
+	m_actor->Modified();
 
 }
 
@@ -202,9 +176,10 @@ void iAVRVolume::createNewVolume(std::vector<size_t> fiberIDs)
 	show();
 }
 
-//! Moves each octree region and its fiber from the octree center away
+//! Moves all fibers from the octree center away.
+//! The fibers belong to the region in which they have their maximum coverage
 //! Should only be called if the mappers are set!
-void iAVRVolume::moveRegions(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset)
+void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset)
 {
 	double maxLength = m_octree->getMaxDistanceOctCenterToRegionCenter();// m_octree->getMaxDistanceOctCenterToFiber();
 	double centerPoint[3];
@@ -254,7 +229,8 @@ void iAVRVolume::moveRegions(std::vector<std::vector<std::vector<vtkIdType>>>* m
 	//m_octree->getOctree()->Modified();
 }
 
-//! Moves each octree region and its fiber from the octree center away
+//! Moves all fibers from the octree center away.
+//! The fibers belong to every region in which they have a coverage
 //! Should only be called if the mappers are set!
 void iAVRVolume::moveFibersbyAllCoveredRegions(double offset)
 {
@@ -263,8 +239,6 @@ void iAVRVolume::moveFibersbyAllCoveredRegions(double offset)
 	double regionCenterPoint[3];
 	m_octree->calculateOctreeCenterPos(centerPoint);
 	iAVec3d centerPos = iAVec3d(centerPoint);
-
-	std::vector<std::unordered_map<vtkIdType, double>*>* fiberCoverage = m_octree->getfibersInRegionMapping(&m_pointIDToCsvIndex);
 
 	//for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
 	//{
@@ -280,27 +254,23 @@ void iAVRVolume::moveFibersbyAllCoveredRegions(double offset)
 	{
 		//DEBUG_LOG(QString("\n<< REGION %1 >>").arg(region));
 
-		for (auto element : *fiberCoverage->at(region))
+		for (auto element : *m_fiberCoverage->at(m_octree->getLevel()).at(region))
 		{
-			//DEBUG_LOG(QString("\n\nFiber <%1> is in Region").arg(element.first));
 
-			auto findKeys = m_csvIndexToPointID.equal_range(element.first);
-			for (auto it = findKeys.first; it != findKeys.second; ++it) {
+			iAVec3d currentPoint = iAVec3d(m_cylinderVis->getPolyData()->GetPoint(element.first));
 
-				//DEBUG_LOG(QString("It has PolyPointID %1").arg(it->second));
-				iAVec3d currentPoint = iAVec3d(m_cylinderVis->getPolyData()->GetPoint(it->second));
+			m_octree->calculateOctreeRegionCenterPos(region, regionCenterPoint);
+			iAVec3d currentRegionCenterPoint = iAVec3d(regionCenterPoint);
+			iAVec3d normDirection = currentRegionCenterPoint - centerPos;
+			double currentLength = normDirection.length();
+			normDirection.normalize();
 
-				m_octree->calculateOctreeRegionCenterPos(region, regionCenterPoint);
-				iAVec3d currentRegionCenterPoint = iAVec3d(regionCenterPoint);
-				iAVec3d normDirection = currentRegionCenterPoint - centerPos;
-				double currentLength = normDirection.length();
-				normDirection.normalize();
+			//Offset gets smaller with coverage
+			iAVec3d move = normDirection * offset * element.second;// *(currentLength / maxLength);
+			iAVec3d newPoint = currentPoint + move;
 
-				iAVec3d move = normDirection * offset * (currentLength / maxLength);
-				iAVec3d newPoint = currentPoint + move;
+			m_cylinderVis->getPolyData()->GetPoints()->SetPoint(element.first, newPoint.data());
 
-				m_cylinderVis->getPolyData()->GetPoints()->SetPoint(it->second, newPoint.data());
-			}
 		}
 
 	}
@@ -308,96 +278,79 @@ void iAVRVolume::moveFibersbyAllCoveredRegions(double offset)
 	//m_octree->getOctree()->Modified();
 }
 
-void iAVRVolume::moveBoundingBox(double offset)
+void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric)
 {
-	if (m_cubePolyData == nullptr)
-	{
-		DEBUG_LOG(QString("No Points to apply offset"));
-		return;
-	}
+	double radiusFactor = 5.0;
+	double drawFactor = 0.3;
 
-	double centerPoint[3];
-	m_octree->calculateOctreeCenterPos(centerPoint);
-	iAVec3d centerPos = iAVec3d(centerPoint);
-
-	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
-	{
-		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
-		iAVec3d normDirection = currentPoint - centerPos;
-		normDirection.normalize();
-
-		iAVec3d move = normDirection * offset;
-		iAVec3d newPoint = currentPoint + move;
-
-		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
-	}
-	m_cubePolyData->Modified();
-}
-
-void iAVRVolume::moveBoundingBoxRelative(double offset)
-{
-	if (m_cubePolyData == nullptr)
-	{
-		DEBUG_LOG(QString("No Points to apply offset"));
-		return;
-	}
-
-	double maxLength = 0;
-	double centerPoint[3];
-	m_octree->calculateOctreeCenterPos(centerPoint);
-	iAVec3d centerPos = iAVec3d(centerPoint);
-
-	// Get max length
-	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
-	{
-		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
-		iAVec3d direction = currentPoint - centerPos;
-		double length = direction.length();
-
-		if (length > maxLength) maxLength = length;
-	}
-
-	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
-	{
-		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
-		iAVec3d normDirection = currentPoint - centerPos;
-		double currentLength = normDirection.length();
-		normDirection.normalize();
-
-		iAVec3d move = normDirection * offset * (currentLength / maxLength);
-		iAVec3d newPoint = currentPoint + move;
-
-		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
-	}
-	m_cubePolyData->Modified();
-}
-
-void iAVRVolume::createRegionLinks()
-{
-	vtkSmartPointer<vtkPolyData> linesPolyData = vtkSmartPointer<vtkPolyData>::New();
-	linesPolyData->SetPoints(m_cubePolyData->GetPoints());
+	vtkSmartPointer<vtkPoints> linePoints = vtkSmartPointer<vtkPoints>::New();
+	vtkSmartPointer<vtkPolyData> linePolyData = vtkSmartPointer<vtkPolyData>::New();
 	vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
 
-	for (int i = 0; i < m_cubePolyData->GetNumberOfPoints(); i++)
+	int numbPoints = m_cubePolyData->GetNumberOfPoints();
+
+	auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
+	//tubeRadius->SetNumberOfTuples(m_cubePolyData->GetNumberOfPoints());
+	tubeRadius->SetNumberOfComponents(1);
+	tubeRadius->SetName("TubeRadius");
+
+	/*auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	colors->SetName("Colors");
+	colors->SetNumberOfComponents(3);
+	colors->SetNumberOfTuples(m_cubePolyData->GetNumberOfPoints());*/
+	vtkIdType pointID = 0;
+
+	for (int i = 0; i < numbPoints; i++)
 	{
-		for (int j = 0 + i; j < m_cubePolyData->GetNumberOfPoints(); j++)
+		double radius = 0.0;
+		for (int j = i + 1; j < numbPoints; j++)
 		{
-			vtkSmartPointer<vtkLine> l = vtkSmartPointer<vtkLine>::New();
-			l->GetPointIds()->SetId(0, i);
-			l->GetPointIds()->SetId(1, j);
-			lines->InsertNextCell(l);
+			radius = similarityMetric->at(m_octree->getLevel()).at(i).at(j);
+			if (radius > drawFactor)
+			{
+				linePoints->InsertNextPoint(m_cubePolyData->GetPoint(i));
+				linePoints->InsertNextPoint(m_cubePolyData->GetPoint(j));
+
+				auto l = vtkSmartPointer<vtkLine>::New();
+				l->GetPointIds()->SetId(0, pointID);
+				l->GetPointIds()->SetId(1, pointID+1);
+				lines->InsertNextCell(l);
+				tubeRadius->InsertNextTuple1(radius * radiusFactor);
+				tubeRadius->InsertNextTuple1(radius * radiusFactor);
+
+				pointID+= 2;
+				//tubeRadius->SetTuple1(i, radius * radiusFactor);
+				//tubeRadius->SetTuple1(j, radius * radiusFactor);
+			}
 		}
+		
 	}
-	linesPolyData->SetLines(lines);
+	linePolyData->SetPoints(linePoints);
+	linePolyData->SetLines(lines);
+	//linePolyData->GetCellData()->AddArray(tubeRadius);
+	//linePolyData->GetCellData()->SetActiveScalars("TubeRadius");
+	linePolyData->GetPointData()->AddArray(tubeRadius);
+	linePolyData->GetPointData()->SetActiveScalars("TubeRadius");
+
+	vtkSmartPointer<vtkTubeFilter> tubeFilter =	vtkSmartPointer<vtkTubeFilter>::New();
+	tubeFilter->SetInputData(linePolyData);
+	tubeFilter->SetNumberOfSides(8);
+	//tubeFilter->SetRadius(0.01);
+	tubeFilter->SidesShareVerticesOff();
+	tubeFilter->CappingOn();
+	//tubeFilter->SetVaryRadiusToVaryRadiusByScalar();
+	tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
+	//tubeFilter->Update();
 
 	// Create a mapper and actor
 	vtkSmartPointer<vtkPolyDataMapper> lineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	lineMapper->SetInputData(linesPolyData);
+	lineMapper->SetInputConnection(tubeFilter->GetOutputPort());
+	lineMapper->ScalarVisibilityOff();
 
 	m_RegionLinksActor->SetMapper(lineMapper);
-	m_RegionLinksActor->Modified();
-	m_RegionLinksActor->GetProperty()->SetRenderLinesAsTubes(true);
-	m_RegionLinksActor->GetProperty()->SetLineWidth(3);
+	m_RegionLinksActor->SetPickable(false);
+	//m_RegionLinksActor->GetProperty()->SetRenderLinesAsTubes(true);
+	//m_RegionLinksActor->GetProperty()->SetLineWidth(3);
 	m_RegionLinksActor->GetProperty()->SetColor(0.980, 0.607, 0);
 	//m_RegionLinksActor->GetProperty()->SetOpacity(0.7);
 }

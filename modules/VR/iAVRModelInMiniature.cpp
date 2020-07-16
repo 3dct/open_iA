@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAVRModelInMiniature.h"
 
-#include "vtkCubeSource.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
 #include "vtkIdFilter.h"
@@ -33,9 +32,9 @@
 #include "vtkNamedColors.h"
 #include "vtkCellPicker.h"
 #include "vtkProp3DCollection.h"
-#include "vtkMatrix4x4.h"
 #include "vtkVertexGlyphFilter.h"
 #include <vtkAlgorithmOutput.h>
+#include <vtkCubeSource.h>
 
 #include <iAConsole.h>
 #include <iAvec3.h>
@@ -46,70 +45,21 @@ iAVRModelInMiniature::iAVRModelInMiniature(vtkRenderer* ren):iAVRCubicRepresenta
 	defaultActorSize[0] = 0.15;
 	defaultActorSize[1] = 0.15;
 	defaultActorSize[2] = 0.15;
-	currentColorArr = vtkSmartPointer<vtkUnsignedCharArray>::New();
-	currentColorArr->SetName("colors");
-	currentColorArr->SetNumberOfComponents(4);
-
-	defaultColor = QColor(0, 0, 200, 255);
 }
 
 //! Creates for every region of the octree a cube glyph. The cubes are stored in one actor.
-void iAVRModelInMiniature::createModelInMiniature()
+void iAVRModelInMiniature::createCubeModel()
 {
-	//RESET TO DEFAULT VALUES
-	if (m_actor->GetUserMatrix() != NULL)
-		m_actor->GetUserMatrix()->Identity();
-	m_actor->GetMatrix()->Identity();
-	m_actor->SetOrientation(0, 0, 0);
-	m_actor->SetScale(1,1,1);
-	m_actor->SetPosition(0, 0, 0);
-	m_actor->SetOrigin(0, 0, 0);
-	
-	int leafNodes = m_octree->getOctree()->GetNumberOfLeafNodes();
-	if (leafNodes <= 0)
-	{
-		DEBUG_LOG(QString("The Octree has no leaf node!"));
-		return;
-	}
-	
-	double regionSize[3] = { 0.0, 0.0, 0.0 };
-	m_octree->calculateOctreeRegionSize(regionSize);
-	calculateStartPoints();
+	iAVRCubicRepresentation::createCubeModel();
 
-	vtkSmartPointer<vtkCubeSource> cubeSource =	vtkSmartPointer<vtkCubeSource>::New();
-	cubeSource->SetXLength(regionSize[0]);
-	cubeSource->SetYLength(regionSize[1]);
-	cubeSource->SetZLength(regionSize[2]);
-	cubeSource->Update();
+	applyRelativeCubeOffset(2.8);
 
-	//glyph3Dmapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
-	//glyph3Dmapper->GeneratePointIdsOn(); Not supported as vtkGlyph3DMapper only as vtkGlyph3D
-	//glyph3Dmapper->SetSourceConnection(cubeSource->GetOutputPort());
-	//glyph3Dmapper->SetInputData(m_cubePolyData);
-	//glyph3Dmapper->SetScalarModeToUseCellData();
-	//glyph3Dmapper->UseSelectionIdsOn();
-	//glyph3Dmapper->SetSelectionIdArray("OctreeRegionID");
-	//glyph3Dmapper->Update();
+	m_actor->GetMapper()->ScalarVisibilityOn();
+	m_actor->GetMapper()->SetScalarModeToUsePointFieldData();
+	m_actor->GetMapper()->SelectColorArray("colors");
 
-	glyph3D = vtkSmartPointer<vtkGlyph3D>::New();
-	glyph3D->GeneratePointIdsOn();
-	glyph3D->SetSourceConnection(cubeSource->GetOutputPort());
-	glyph3D->SetInputData(m_cubePolyData);
-	glyph3D->SetColorModeToColorByScalar();
-	glyph3D->SetScaleModeToDataScalingOff();
-	//glyph3D->OrientOn();
-	glyph3D->Update();
-
-	// Create a mapper and actor
-	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	glyphMapper->SetInputConnection(glyph3D->GetOutputPort());
-
-	applyRelativeCubeOffset(2.5);
-
-	m_actor->SetMapper(glyphMapper);
-	m_actor->Modified();
-	m_actor->GetProperty()->SetColor(defaultColor.redF(), defaultColor.greenF(), defaultColor.blueF());
 	m_actor->SetScale(defaultActorSize);
+	m_actor->Modified();
 }
 
 void iAVRModelInMiniature::setScale(double x, double y, double z)
@@ -131,210 +81,4 @@ void iAVRModelInMiniature::addPos(double x, double y, double z)
 void iAVRModelInMiniature::setOrientation(double x, double y, double z)
 {
 	m_actor->SetOrientation(x, y, z);
-}
-
-//! Sets the color (rgba) of one cube in the Miniature Model. The other colors stay the same.
-//! The region ID of the octree is used
-void iAVRModelInMiniature::setCubeColor(QColor col, int regionID)
-{
-	unsigned char rgb[4] = {col.red(), col.green(), col.blue(), col.alpha()};
-
-	currentColorArr->SetTuple4(regionID, rgb[0], rgb[1], rgb[2], rgb[3]);
-
-	m_cubePolyData->GetCellData()->SetScalars(currentColorArr); //If GlyphMapper Cell Data is needed!
-	m_cubePolyData->Modified();
-	glyph3D->Update();
-}
-
-//! Colors the whole miniature model with the given vector of rgba values ( between 0.0 and 1.0)
-//! Resets the current color of all cubes with the new colors!
-void iAVRModelInMiniature::applyHeatmapColoring(std::vector<QColor>* colorPerRegion)
-{
-	//Remove possible highlights
-	removeHighlightedGlyphs();
-
-	currentColorArr = vtkSmartPointer<vtkUnsignedCharArray>::New();
-	currentColorArr->SetName("colors");
-	currentColorArr->SetNumberOfComponents(4);
-
-	for (int i = 0; i < colorPerRegion->size(); i++)
-	{
-		currentColorArr->InsertNextTuple4(colorPerRegion->at(i).red(), colorPerRegion->at(i).green(), colorPerRegion->at(i).blue(), colorPerRegion->at(i).alpha());
-	}
-
-	m_cubePolyData->GetPointData()->SetScalars(currentColorArr);
-	m_cubePolyData->Modified();
-	glyph3D->Update();
-}
-
-//! This Method calculates the direction from the MiM center to its single cubes and shifts the cubes from the center away
-//! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
-void iAVRModelInMiniature::applyLinearCubeOffset(double offset)
-{
-	if(m_cubePolyData == nullptr)
-	{
-		DEBUG_LOG(QString("No Points to apply offset"));
-		return;
-	}
-	
-	double centerPoint[3];
-	m_octree->calculateOctreeCenterPos(centerPoint);
-	iAVec3d centerPos = iAVec3d(centerPoint);
-	
-	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
-	{
-		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
-		iAVec3d normDirection = currentPoint - centerPos;
-		normDirection.normalize();
-		
-		iAVec3d move = normDirection * offset;
-		iAVec3d newPoint = currentPoint + move;
-
-		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
-	}
-	m_cubePolyData->Modified();
-}
-
-//! This Method calculates the direction from the MiM center to its single cubes and shifts the cubes from the center away
-//! The shifts is scaled non-linear by the length from the center to the cube
-//! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
-void iAVRModelInMiniature::applyRelativeCubeOffset(double offset)
-{
-	if (m_cubePolyData == nullptr)
-	{
-		DEBUG_LOG(QString("No Points to apply offset"));
-		return;
-	}
-
-	double maxLength = 0;
-	double centerPoint[3];
-	m_octree->calculateOctreeCenterPos(centerPoint);
-	iAVec3d centerPos = iAVec3d(centerPoint);
-
-	// Get max length
-	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
-	{
-		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
-		iAVec3d direction = currentPoint - centerPos;
-		double length = direction.length();
-
-		if (length > maxLength) maxLength = length;
-	}
-
-	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
-	{
-		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
-		iAVec3d normDirection = currentPoint - centerPos;
-		double currentLength = normDirection.length();
-		normDirection.normalize();
-
-		iAVec3d move = normDirection * offset * (currentLength/maxLength);
-		iAVec3d newPoint = currentPoint + move;
-
-		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
-	}
-	m_cubePolyData->Modified();
-}
-
-//! This Method calculates a position depending shift of the cubes from the MiM center outwards.
-//! The cubes are moved in its 4 direction from the center (left, right, up, down).
-//! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
-void iAVRModelInMiniature::apply4RegionCubeOffset(double offset)
-{
-	if (m_cubePolyData == nullptr)
-	{
-		DEBUG_LOG(QString("No Points to apply offset"));
-		return;
-	}
-
-	double centerPoint[3];
-	m_octree->calculateOctreeCenterPos(centerPoint);
-	iAVec3d centerPos = iAVec3d(centerPoint);
-	iAVec3d newPoint;
-
-	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
-	{
-		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
-		newPoint = currentPoint;
-
-		// X
-		if(currentPoint[0] < centerPos[0])
-		{
-			newPoint[0] = currentPoint[0] - offset;
-		}
-		if (currentPoint[0] > centerPos[0])
-		{
-			newPoint[0] = currentPoint[0] + offset;
-		}
-		// Y
-		if (currentPoint[1] < centerPos[1])
-		{
-			newPoint[1] = currentPoint[1] - offset;
-		}
-		if (currentPoint[1] > centerPos[1])
-		{
-			newPoint[1] = currentPoint[1] + offset;
-		}
-		// Z
-		if (currentPoint[2] < centerPos[2])
-		{
-			newPoint[2] = currentPoint[2] - offset;
-		}
-		if (currentPoint[2] > centerPos[2])
-		{
-			newPoint[2] = currentPoint[2] + offset;
-		}
-		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
-	}
-	m_cubePolyData->Modified();
-}
-
-void iAVRModelInMiniature::highlightGlyphs(std::vector<vtkIdType>* regionIDs)
-{
-	vtkSmartPointer<vtkPolyData> activeData = vtkSmartPointer<vtkPolyData>::New();
-	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-	activeGlyph3D = vtkSmartPointer<vtkGlyph3D>::New();
-
-	for (int i = 0; i < regionIDs->size(); i++)
-	{
-		int iD = regionIDs->at(i);
-		points->InsertNextPoint(glyph3D->GetPolyDataInput(0)->GetPoint(iD));
-	}
-
-	activeData->SetPoints(points);
-
-	double regionSize[3] = { 0.0, 0.0, 0.0 };
-	m_octree->calculateOctreeRegionSize(regionSize);
-	//calculateStartPoints();
-
-	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
-	cubeSource->SetXLength(regionSize[0]);
-	cubeSource->SetYLength(regionSize[1]);
-	cubeSource->SetZLength(regionSize[2]);
-	cubeSource->Update();
-
-	activeGlyph3D->SetSourceConnection(cubeSource->GetOutputPort());
-	activeGlyph3D->SetInputData(activeData);
-	
-	//// Create a mapper and actor
-	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	glyphMapper->SetInputConnection(activeGlyph3D->GetOutputPort());
-
-	m_activeActor->SetMapper(glyphMapper);
-	m_activeActor->Modified();
-	////m_activeActor->GetProperty()->EdgeVisibilityOn();
-	////m_activeActor->GetProperty()->SetEdgeColor(0,0,0);
-	m_activeActor->GetProperty()->SetRepresentationToWireframe();
-	m_activeActor->GetProperty()->SetRenderLinesAsTubes(true);
-	m_activeActor->GetProperty()->SetLineWidth(12);
-	m_activeActor->GetProperty()->SetColor(0, 0, 0);
-	m_activeActor->SetScale(defaultActorSize);
-	m_activeActor->SetPosition(m_actor->GetPosition());
-	m_activeActor->PickableOff();
-	m_renderer->AddActor(m_activeActor);
-}
-
-void iAVRModelInMiniature::removeHighlightedGlyphs()
-{
-	m_renderer->RemoveActor(m_activeActor);
 }

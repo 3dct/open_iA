@@ -138,11 +138,12 @@ private:
 	void calculateMetrics();
 	void updateModelInMiniatureData();
 	void colorMiMCubes(std::vector<vtkIdType>* regionIDs);
+	void drawFloor();
 
 	//# Methods for interaction #//
 	void changeOctreeAndMetric();
 	void pickSingleFiber(double eventPosition[3]);
-	void pickFibersinRegion(double eventPosition[3]);
+	void pickFibersinRegion(double eventPosition[3], double eventOrientation[4]);
 	void pickFibersinRegion(int leafRegion);
 	void pickMimRegion(double eventPosition[3], double eventOrientation[4]);
 	void multiPickMiMRegion();

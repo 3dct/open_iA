@@ -98,7 +98,7 @@ void iAVREnvironment::stop()
 void iAVREnvironment::createLightKit()
 {
 	vtkSmartPointer<vtkLightKit> light = vtkSmartPointer<vtkLightKit>::New();
-	light->SetKeyLightIntensity(0.85);
+	light->SetKeyLightIntensity(0.88);
 	light->AddLightsToRenderer(m_renderer);
 }
 

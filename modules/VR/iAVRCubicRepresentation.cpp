@@ -29,16 +29,70 @@
 #include <vtkAlgorithmOutput.h>
 #include "vtkPointData.h"
 #include "vtkProperty.h"
-
+#include "vtkMatrix4x4.h"
+#include "vtkCubeSource.h"
 
 iAVRCubicRepresentation::iAVRCubicRepresentation(vtkRenderer* ren) :m_renderer(ren), m_actor(vtkSmartPointer<vtkActor>::New()), m_activeActor(vtkSmartPointer<vtkActor>::New())
 {
+	defaultColor = QColor(0, 0, 200, 255);
+
+	activeRegions = std::vector<vtkIdType>();
+
+	defaultActorSize[0] = 1;
+	defaultActorSize[1] = 1;
+	defaultActorSize[2] = 1;
+
 	m_visible = false;
+	m_highlightVisible = false;
+
+	glyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	glyphColor->SetName("colors");
+	glyphColor->SetNumberOfComponents(4);
+
+	glyphScales = vtkSmartPointer<vtkDoubleArray>::New();
+	glyphScales->SetName("scales");
+	glyphScales->SetNumberOfComponents(3);
 }
 
 void iAVRCubicRepresentation::setOctree(iAVROctree* octree)
 {
 	m_octree = octree;
+}
+
+void iAVRCubicRepresentation::createCubeModel()
+{
+	//RESET TO DEFAULT VALUES
+	if (m_actor->GetUserMatrix() != NULL)
+		m_actor->GetUserMatrix()->Identity();
+	m_actor->GetMatrix()->Identity();
+	m_actor->SetOrientation(0, 0, 0);
+	m_actor->SetScale(1, 1, 1);
+	m_actor->SetPosition(0, 0, 0);
+	m_actor->SetOrigin(0, 0, 0);
+
+	int leafNodes = m_octree->getOctree()->GetNumberOfLeafNodes();
+	if (leafNodes <= 0)
+	{
+		DEBUG_LOG(QString("The Octree has no leaf nodes!"));
+		return;
+	}
+
+	calculateStartPoints();
+
+	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+
+	glyph3D = vtkSmartPointer<vtkGlyph3D>::New();
+	glyph3D->GeneratePointIdsOn();
+	glyph3D->SetSourceConnection(cubeSource->GetOutputPort());
+	glyph3D->SetInputData(m_cubePolyData);
+	glyph3D->SetScaleModeToScaleByScalar();
+
+	// Create a mapper and actor
+	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	glyphMapper->SetInputConnection(glyph3D->GetOutputPort());
+
+	m_actor->SetMapper(glyphMapper);
+	m_actor->GetProperty()->SetColor(defaultColor.redF(), defaultColor.greenF(), defaultColor.blueF());
 }
 
 void iAVRCubicRepresentation::show()
@@ -59,6 +113,11 @@ void iAVRCubicRepresentation::hide()
 	}
 	m_renderer->RemoveActor(m_actor);
 	m_visible = false;
+}
+
+void iAVRCubicRepresentation::setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage)
+{
+	m_fiberCoverage = fiberCoverage;
 }
 
 vtkSmartPointer<vtkActor> iAVRCubicRepresentation::getActor()
@@ -86,32 +145,136 @@ vtkIdType iAVRCubicRepresentation::getClosestCellID(double pos[3], double eventO
 	return -1;
 }
 
+//! Sets the color (rgba) of one cube in the Miniature Model. The other colors stay the same.
+//! The region ID of the octree is used
+void iAVRCubicRepresentation::setCubeColor(QColor col, int regionID)
+{
+	unsigned char rgb[4] = { col.red(), col.green(), col.blue(), col.alpha() };
+
+	glyphColor->SetTuple4(regionID, rgb[0], rgb[1], rgb[2], rgb[3]);
+
+	m_cubePolyData->GetPointData()->AddArray(glyphColor);
+}
+
+//! Colors the whole miniature model with the given vector of rgba values ( between 0.0 and 1.0)
+//! Resets the current color of all cubes with the new colors!
+void iAVRCubicRepresentation::applyHeatmapColoring(std::vector<QColor>* colorPerRegion)
+{
+	//Remove possible highlights
+	removeHighlightedGlyphs();
+
+	glyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	glyphColor->SetName("colors");
+	glyphColor->SetNumberOfComponents(4);
+
+	for (int i = 0; i < colorPerRegion->size(); i++)
+	{
+		glyphColor->InsertNextTuple4(colorPerRegion->at(i).red(), colorPerRegion->at(i).green(), colorPerRegion->at(i).blue(), colorPerRegion->at(i).alpha());
+	}
+
+	m_cubePolyData->GetPointData()->AddArray(glyphColor);
+}
+
+void iAVRCubicRepresentation::highlightGlyphs(std::vector<vtkIdType>* regionIDs)
+{
+	if (!regionIDs->empty())
+	{
+		activeRegions = *regionIDs;
+
+		vtkSmartPointer<vtkPolyData> activeData = vtkSmartPointer<vtkPolyData>::New();
+		vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+		activeGlyph3D = vtkSmartPointer<vtkGlyph3D>::New();
+
+		vtkSmartPointer<vtkDoubleArray> activeGlyphScales = vtkSmartPointer<vtkDoubleArray>::New();
+		activeGlyphScales->SetName("scales");
+		activeGlyphScales->SetNumberOfComponents(3);
+
+		for (int i = 0; i < regionIDs->size(); i++)
+		{
+			int iD = regionIDs->at(i);
+			points->InsertNextPoint(m_cubePolyData->GetPoint(iD));
+
+			double* regionSize = glyphScales->GetTuple3(iD);
+			activeGlyphScales->InsertNextTuple3(regionSize[0], regionSize[1], regionSize[2]);
+		}
+		activeData->SetPoints(points);
+		activeData->GetPointData()->SetScalars(activeGlyphScales);
+
+		vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+
+		activeGlyph3D->SetSourceConnection(cubeSource->GetOutputPort());
+		activeGlyph3D->SetInputData(activeData);
+		activeGlyph3D->SetScaleModeToScaleByScalar();
+
+		// Create a mapper and actor
+		vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		glyphMapper->SetInputConnection(activeGlyph3D->GetOutputPort());
+
+		m_activeActor->SetMapper(glyphMapper);
+		m_activeActor->GetMapper()->SetScalarVisibility(false); //Don't use scalars for color
+		m_activeActor->GetProperty()->SetRepresentationToWireframe();
+		m_activeActor->GetProperty()->SetRenderLinesAsTubes(true);
+		m_activeActor->GetProperty()->SetLineWidth(12);
+		m_activeActor->GetProperty()->SetColor(0, 0, 0);
+		m_activeActor->SetScale(defaultActorSize);
+		m_activeActor->SetPosition(m_actor->GetPosition());
+		m_activeActor->PickableOff();
+		m_activeActor->Modified();
+
+		m_renderer->AddActor(m_activeActor);
+		m_highlightVisible = true;
+	}
+}
+
+void iAVRCubicRepresentation::removeHighlightedGlyphs()
+{
+	if (!m_highlightVisible)
+	{
+		return;
+	}
+	m_renderer->RemoveActor(m_activeActor);
+	activeRegions.clear();
+	m_highlightVisible = false;
+}
+
+void iAVRCubicRepresentation::redrawHighlightedGlyphs()
+{
+	highlightGlyphs(&activeRegions);
+}
+
 //! This Method iterates through all leaf regions of the octree and stores its center point in an vtkPolyData
+//! It also calculates the region size and adds the scalar array for it
 void iAVRCubicRepresentation::calculateStartPoints()
 {
 	vtkSmartPointer<vtkPoints> cubeStartPoints = vtkSmartPointer<vtkPoints>::New();
 	m_cubePolyData = vtkSmartPointer<vtkPolyData>::New();
 
+	glyphScales = vtkSmartPointer<vtkDoubleArray>::New();
+	glyphScales->SetName("scales");
+	glyphScales->SetNumberOfComponents(3);
+
 	int leafNodes = m_octree->getOctree()->GetNumberOfLeafNodes();
 
 	for (int i = 0; i < leafNodes; i++)
 	{
-
-		//vtkIdTypeArray* points = m_octree->getOctree()->GetPointsInRegion(i);
-
-		////If points are null skip this 'empty' cube
-		//if (points->GetNumberOfValues() == 0) {
-		//	DEBUG_LOG(QString("EMPTY Cube in Region %1 found").arg(i));
-		//	continue;
-		//}
-
 		double centerPoint[3];
 		m_octree->calculateOctreeRegionCenterPos(i, centerPoint);
 
+		//If regions have no coverage resize this 'empty' cube to zero
+		if (!m_fiberCoverage->at(m_octree->getLevel()).at(i)->empty()){
+			double regionSize[3];
+			m_octree->calculateOctreeRegionSize(i, regionSize);
+			glyphScales->InsertNextTuple3(regionSize[0], regionSize[1], regionSize[2]);
+		}
+		else
+		{
+			glyphScales->InsertNextTuple3(0, 0, 0);
+		}
 		cubeStartPoints->InsertNextPoint(centerPoint[0], centerPoint[1], centerPoint[2]);
 	}
 
 	m_cubePolyData->SetPoints(cubeStartPoints);
+	m_cubePolyData->GetPointData()->SetScalars(glyphScales);
 }
 
 //! Test method inserts colored point at given Position
@@ -138,5 +301,129 @@ void iAVRCubicRepresentation::drawPoint(std::vector<double*>* pos, QColor color)
 	pointsActor->GetProperty()->SetPointSize(8);
 	pointsActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 	m_renderer->AddActor(pointsActor);
+}
 
+//! This Method calculates the direction from the center to its single cubes and shifts the cubes from the center away
+//! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
+void iAVRCubicRepresentation::applyLinearCubeOffset(double offset)
+{
+	if (m_cubePolyData == nullptr)
+	{
+		DEBUG_LOG(QString("No Points to apply offset"));
+		return;
+	}
+
+	double centerPoint[3];
+	m_octree->calculateOctreeCenterPos(centerPoint);
+	iAVec3d centerPos = iAVec3d(centerPoint);
+
+	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
+	{
+		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
+		iAVec3d normDirection = currentPoint - centerPos;
+		normDirection.normalize();
+
+		iAVec3d move = normDirection * offset;
+		iAVec3d newPoint = currentPoint + move;
+
+		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
+	}
+	m_cubePolyData->Modified();
+	redrawHighlightedGlyphs();
+}
+
+//! This Method calculates the direction from the center to its single cubes and shifts the cubes from the center away
+//! The shifts is scaled non-linear by the length from the center to the cube
+//! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
+void iAVRCubicRepresentation::applyRelativeCubeOffset(double offset)
+{
+	if (m_cubePolyData == nullptr)
+	{
+		DEBUG_LOG(QString("No Points to apply offset"));
+		return;
+	}
+
+	double maxLength = 0;
+	double centerPoint[3];
+	m_octree->calculateOctreeCenterPos(centerPoint);
+	iAVec3d centerPos = iAVec3d(centerPoint);
+
+	// Get max length
+	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
+	{
+		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
+		iAVec3d direction = currentPoint - centerPos;
+		double length = direction.length();
+
+		if (length > maxLength) maxLength = length;
+	}
+
+	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
+	{
+		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
+		iAVec3d normDirection = currentPoint - centerPos;
+		double currentLength = normDirection.length();
+		normDirection.normalize();
+
+		iAVec3d move = normDirection * offset * (currentLength / maxLength);
+		iAVec3d newPoint = currentPoint + move;
+
+		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
+	}
+	m_cubePolyData->Modified();
+	redrawHighlightedGlyphs();
+}
+
+//! This Method calculates a position depending shift of the cubes from the center outwards.
+//! The cubes are moved in its 4 direction from the center (left, right, up, down).
+//! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
+void iAVRCubicRepresentation::apply4RegionCubeOffset(double offset)
+{
+	if (m_cubePolyData == nullptr)
+	{
+		DEBUG_LOG(QString("No Points to apply offset"));
+		return;
+	}
+
+	double centerPoint[3];
+	m_octree->calculateOctreeCenterPos(centerPoint);
+	iAVec3d centerPos = iAVec3d(centerPoint);
+	iAVec3d newPoint;
+
+	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
+	{
+		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
+		newPoint = currentPoint;
+
+		// X
+		if (currentPoint[0] < centerPos[0])
+		{
+			newPoint[0] = currentPoint[0] - offset;
+		}
+		if (currentPoint[0] > centerPos[0])
+		{
+			newPoint[0] = currentPoint[0] + offset;
+		}
+		// Y
+		if (currentPoint[1] < centerPos[1])
+		{
+			newPoint[1] = currentPoint[1] - offset;
+		}
+		if (currentPoint[1] > centerPos[1])
+		{
+			newPoint[1] = currentPoint[1] + offset;
+		}
+		// Z
+		if (currentPoint[2] < centerPos[2])
+		{
+			newPoint[2] = currentPoint[2] - offset;
+		}
+		if (currentPoint[2] > centerPos[2])
+		{
+			newPoint[2] = currentPoint[2] + offset;
+		}
+		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
+	}
+	m_cubePolyData->Modified();
+	redrawHighlightedGlyphs();
 }

@@ -25,6 +25,7 @@
 #include <vtkDataSet.h>
 #include <vtkOctreePointLocator.h>
 #include <vtkPlaneSource.h>
+#include <vtkPolyData.h>
 
 #include <iAvec3.h>
 
@@ -40,7 +41,7 @@ public:
 	void calculateOctree(int level, int pointsPerRegion);
 	void setDataset(vtkDataSet* dataSet);
 	vtkOctreePointLocator* getOctree();
-	void calculateOctreeRegionSize(double size[3]);
+	void calculateOctreeRegionSize(int regionID, double size[3]);
 	void calculateOctreeCenterPos(double centerPoint[3]);
 	void calculateOctreeRegionCenterPos(int regionID, double centerPoint[3]);
 	void createOctreeBoundingBoxPlanes(int regionID, std::vector<std::vector<iAVec3d>>* planePoints);
@@ -50,6 +51,7 @@ public:
 	double getMaxDistanceOctCenterToFiber();
 	std::vector<std::unordered_map<vtkIdType, double>*>* getfibersInRegionMapping(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex);
 	int getLevel();
+	vtkSmartPointer<vtkPolyData> getBoundingBoxes();
 	void show();
 	void hide();
 	vtkActor* getActor();
@@ -64,6 +66,7 @@ private:
 	vtkSmartPointer<vtkActor> m_actor;
 	vtkSmartPointer<vtkDataSet> m_dataSet;
 	vtkSmartPointer<vtkOctreePointLocator> m_octree;
+	vtkSmartPointer<vtkPolyData> m_boundingBoxes;
 	//Saves the octree [region] and a  map of its fiber IDs [iD] with their coverage (0.0-1.0)
 	std::vector<std::unordered_map<vtkIdType, double>*>* m_fibersInRegion;
 

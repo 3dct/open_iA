@@ -29,6 +29,7 @@
 
 #include <unordered_map>
 
+
 class iA3DCylinderObjectVis;
 
 //! Class which represents the rendered volume
@@ -39,19 +40,17 @@ public:
 	void resetVolume();
 	void showVolume();
 	void hideVolume();
+	void createCubeModel() override;
 	void showRegionLinks();
 	void hideRegionLinks();
 	vtkSmartPointer<vtkActor> getVolumeActor();
 	void setMappers(std::unordered_map<vtkIdType, vtkIdType> pointIDToCsvIndex, std::unordered_multimap<vtkIdType, vtkIdType> csvIndexToPointID);
 	vtkSmartPointer<vtkPolyData> getVolumeData();
-	void createOctreeBoundingBox();
 	void renderSelection(std::vector<size_t> const& sortedSelInds, int classID, QColor const& classColor, QStandardItem* activeClassItem);
 	void createNewVolume(std::vector<size_t> fiberIDs);
-	void moveRegions(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset);
+	void moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset);
 	void moveFibersbyAllCoveredRegions(double offset);
-	void moveBoundingBox(double offset);
-	void moveBoundingBoxRelative(double offset);
-	void createRegionLinks();
+	void createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric);
 
 private:
 	vtkSmartPointer<vtkActor> m_volumeActor;

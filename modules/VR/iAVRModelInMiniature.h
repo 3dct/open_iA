@@ -32,21 +32,12 @@ class iAVRModelInMiniature: public iAVRCubicRepresentation
 {
 public:
 	iAVRModelInMiniature(vtkRenderer* ren);
-	void createModelInMiniature();
+	void createCubeModel() override;
 	void setScale(double x, double y, double z);
 	void setPos(double x, double y, double z);
 	void addPos(double x, double y, double z);
 	void setOrientation(double x, double y, double z);
-	void setCubeColor(QColor col, int regionID);
-	void applyHeatmapColoring(std::vector<QColor>* colorPerRegion);
-	void applyLinearCubeOffset(double offset);
-	void applyRelativeCubeOffset(double offset);
-	void apply4RegionCubeOffset(double offset);
-	void highlightGlyphs(std::vector<vtkIdType>* regionIDs);
-	void removeHighlightedGlyphs();
 
-	double defaultActorSize[3]; // Initial resize of the cube
 private:
-	QColor defaultColor;
-	vtkSmartPointer<vtkUnsignedCharArray> currentColorArr;
+
 };
