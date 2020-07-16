@@ -206,8 +206,8 @@ vtkSmartPointer<vtkImageData> iANModalDilationBackgroundRemover::removeBackgroun
 	int loThresh = 0;
 	int regionCountGoal = 1;
 
-	bool success = selectModalityAndThreshold(nullptr, modalities, upThresh, selectedMod);
-	if (!success)
+	bool skipped = !selectModalityAndThreshold(nullptr, modalities, upThresh, selectedMod);
+	if (skipped)
 	{
 		return nullptr;
 	}
@@ -226,7 +226,7 @@ vtkSmartPointer<vtkImageData> iANModalDilationBackgroundRemover::removeBackgroun
 		return nullptr;
 	}
 
-	success = iterativeDilation(m_itkTempImg, regionCountGoal);
+	bool success = iterativeDilation(m_itkTempImg, regionCountGoal);
 	if (success)
 	{
 		conn.setImage(m_itkTempImg);
@@ -290,7 +290,7 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 	layout->addWidget(thresholdWidget);
 	layout->setStretchFactor(thresholdWidget, 0);
 
-	QWidget *footerWidget = iANModalDisplay::createOkCancelFooter(dialog);
+	QWidget *footerWidget = iANModalDisplay::createOkSkipFooter(dialog);
 	layout->addWidget(footerWidget);
 	layout->setStretchFactor(footerWidget, 0);
 

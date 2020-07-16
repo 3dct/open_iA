@@ -27,29 +27,28 @@
 #include "iANModalDilationBackgroundRemover.h"
 
 // Modality reducers
-#include "iANModalManualModalityReducer.h"
 #include "iANModalPCAModalityReducer.h"
 
+#include "iANModalDisplay.h"
 #include "iAModality.h"
 
 #include <vtkImageData.h>
+
+#include <QComboBox>
+#include <QTextEdit>
+
+namespace {
+	class PassthroughReducer : public iANModalModalityReducer {
+		QList<QSharedPointer<iAModality>> reduce(QList<QSharedPointer<iAModality>> inputModalities) {
+			return inputModalities;
+		}
+	};
+}
 
 iANModalPreprocessor::iANModalPreprocessor(MdiChild *mdiChild) :
 	m_mdiChild(mdiChild)
 {
 
-}
-
-namespace {
-	inline bool promptReduceNumOfModalitiesFirst() {
-		return true; // TODO
-	}
-	inline bool promptReduceNumOfModalitiesSecond() {
-		return false; // TODO
-	}
-	inline bool promptRemoveBackground() {
-		return false; // TODO
-	}
 }
 
 iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPointer<iAModality>> modalities) {
@@ -60,42 +59,49 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPoint
 	groupModalities(modalities, groups);
 	modalities = chooseGroup(groups);
 
-	if (promptReduceNumOfModalitiesFirst()) {
-		// if number of modalities is to be reduced before background removal
-		modalities = chooseModalityReducer()->reduce(modalities);
-		if (modalities.empty()) return Output(false);
-		if (promptRemoveBackground()) {
-			auto mask = chooseBackgroundRemover()->removeBackground(modalities);
-			if (mask == nullptr) return Output(false);
-			output.mask = mask;
-		}
+	// Step 1: Dimensionality reduction 1
+	modalities = chooseModalityReducer()->reduce(modalities);
+	if (modalities.empty()) {
+		// TODO
+		return Output(false);
 	}
-	else
-	{
-		// if number of modalities is to be reduced after background removal
-		if (promptRemoveBackground()) {
-			auto mask = chooseBackgroundRemover()->removeBackground(modalities);
-			if (mask == nullptr) return Output(false);
-			output.mask = mask;
-		}
 
-		auto reducer = chooseModalityReducer();
-		if (modalities.size() > reducer->maxOutputLength() || promptReduceNumOfModalitiesSecond()) {
-			// if we have more modalities than allowed, force reduction
-			modalities = reducer->reduce(modalities);
-			if (modalities.empty()) return Output(false);
-		}
+	// Step 2: Remove background
+	auto mask = chooseBackgroundRemover()->removeBackground(modalities);
+	if (mask == nullptr) {
+		// TODO
+		return Output(false);
 	}
+
+	// TODO set modality voxel to zero everywhere where mask is 1
+
+	// Step 3: Dimensionality reduction 2
+	// TODO
 
 	output.modalities = modalities;
+	output.mask = mask;
 
 	return output;
 }
 
 QSharedPointer<iANModalModalityReducer> iANModalPreprocessor::chooseModalityReducer() {
-	// TODO
-	//return QSharedPointer<iANModalModalityReducer>(new iANModalManualModalityReducer());
-	return QSharedPointer<iANModalModalityReducer>(new iANModalPCAModalityReducer());
+	
+	const QString PCA = "PCA";
+	const QString NONE = "None";
+
+	auto sel = new iANModalPreprocessorSelector();
+	sel->addOption(PCA, {PCA, "todo"});
+	sel->addOption(NONE, {NONE, "Skip modality reduction and use any four modalities" });
+	QString selection = sel->exec();
+	sel->deleteLater();
+
+	if (selection == NONE) {
+		return QSharedPointer<PassthroughReducer>(new PassthroughReducer());
+	} else if (selection == PCA) {
+		return QSharedPointer<iANModalModalityReducer>(new iANModalPCAModalityReducer());
+	} else {
+		return nullptr;
+	}
 }
 
 QSharedPointer<iANModalBackgroundRemover> iANModalPreprocessor::chooseBackgroundRemover() {
@@ -122,4 +128,53 @@ void iANModalPreprocessor::groupModalities(QList<QSharedPointer<iAModality>> mod
 QList<QSharedPointer<iAModality>> iANModalPreprocessor::chooseGroup(QList<ModalitiesGroup> groups) {
 	// TODO
 	return groups[0].modalities;
+}
+
+
+// iANModalPreprocessorSelector ------------------------------------------------------------
+
+iANModalPreprocessorSelector::iANModalPreprocessorSelector() {
+	m_dialog = new QDialog();
+	QVBoxLayout *layout = new QVBoxLayout(m_dialog);
+
+	m_comboBox = new QComboBox(m_dialog);
+	//QObject::connect(m_comboBox, &QComboBox::currentTextChanged, this, &PreprocessorSelector::updateText);
+	connect(m_comboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(updateText()));
+
+	m_label = new QLabel(m_dialog);
+
+	m_textEdit = new QTextEdit(m_dialog);
+	m_textEdit->setEnabled(false);
+
+	QWidget *footer = iANModalDisplay::createOkCancelFooter(m_dialog);
+
+	layout->addWidget(m_comboBox);
+	layout->addWidget(m_label);
+	layout->addWidget(m_textEdit);
+	layout->addWidget(footer);
+}
+
+void iANModalPreprocessorSelector::addOption(QString displayName, iANModalPreprocessorSelector::Option option) {
+	m_comboBox->addItem(displayName);
+	m_options.insert(displayName, option);
+	if (m_comboBox->count() == 1) {
+		m_comboBox->setCurrentIndex(0);
+		m_label->setText(option.name);
+		m_textEdit->setText(option.description);
+	}
+}
+
+QString iANModalPreprocessorSelector::exec() {
+	auto code = m_dialog->exec();
+	if (code == QDialog::Rejected) {
+		return QString();
+	}
+	return m_comboBox->currentText();
+}
+
+void iANModalPreprocessorSelector::updateText() {
+	QString selected = m_comboBox->currentText();
+	iANModalPreprocessorSelector::Option option = m_options.value(selected);
+	m_label->setText(option.name);
+	m_textEdit->setText(option.description);
 }

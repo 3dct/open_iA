@@ -169,14 +169,14 @@ QList<QSharedPointer<iAModality>> iANModalDisplay::selectModalities(
 	return display->selection();
 }
 
-QWidget* iANModalDisplay::createOkCancelFooter(QDialog *dialog) {
+QWidget* iANModalDisplay::_createFooter(QDialog *dialog, QString acceptText, QString rejectText) {
 	auto footerWigdet = new QWidget(dialog);
 	auto footerLabel = new QLabel(footerWigdet);
 	auto footerLayout = new QHBoxLayout(footerWigdet); {
-		auto footerOK = new QPushButton("OK");
+		auto footerOK = new QPushButton(acceptText);
 		QObject::connect(footerOK, SIGNAL(clicked()), dialog, SLOT(accept()));
 
-		auto footerCancel = new QPushButton("Cancel");
+		auto footerCancel = new QPushButton(rejectText);
 		QObject::connect(footerCancel, SIGNAL(clicked()), dialog, SLOT(reject()));
 
 		footerLayout->addWidget(footerLabel);

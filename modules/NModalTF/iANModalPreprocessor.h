@@ -27,11 +27,14 @@
 #include <QList>
 #include <QSharedPointer>
 
-class vtkImageData;
-
 class iAModality;
 class iANModalModalityReducer;
 class iANModalBackgroundRemover;
+
+class vtkImageData;
+
+class QComboBox;
+class QTextEdit;
 
 class iANModalPreprocessor {
 
@@ -64,6 +67,28 @@ private:
 	bool areModalitiesCompatible(QSharedPointer<iAModality>, QSharedPointer <iAModality>);
 	void groupModalities(QList<QSharedPointer<iAModality>>, QList<ModalitiesGroup> &output);
 	QList<QSharedPointer<iAModality>> chooseGroup(QList<ModalitiesGroup>);
+};
 
+class iANModalPreprocessorSelector : public QObject {
+	Q_OBJECT
 
+public:
+	struct Option {
+		QString name;
+		QString description;
+	};
+
+	iANModalPreprocessorSelector();
+	void addOption(QString displayName, Option option);
+	QString exec();
+
+private:
+	QDialog *m_dialog;
+	QComboBox *m_comboBox;
+	QLabel *m_label;
+	QTextEdit *m_textEdit;
+	QMap<QString, Option> m_options;
+
+private slots:
+	void updateText();
 };

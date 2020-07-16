@@ -77,7 +77,8 @@ public:
 		return selectModalities(display, 1, 1, footer, dialogParent)[0];
 	};
 
-	static QWidget* createOkCancelFooter(QDialog *dialog);
+	static QWidget* createOkCancelFooter(QDialog *dialog) { return _createFooter(dialog, "OK", "Cancel"); }
+	static QWidget* createOkSkipFooter(QDialog *dialog) { return _createFooter(dialog, "OK", "Skip"); }
 
 private:
 	QList<QSharedPointer<iAModality>> m_modalities;
@@ -91,6 +92,7 @@ private:
 	MdiChild *m_mdiChild;
 
 	QWidget* _createSlicerContainer(iASlicer* slicer, QSharedPointer<iAModality> mod, QButtonGroup* group, bool checked);
+	static QWidget* _createFooter(QDialog *dialog, QString acceptText, QString rejectText);
 
 	void setModalitySelected(QSharedPointer<iAModality> mod, QAbstractButton *button);
 	bool isSelectionValid();
