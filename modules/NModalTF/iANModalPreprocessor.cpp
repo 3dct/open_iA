@@ -43,6 +43,12 @@ namespace {
 			return inputModalities;
 		}
 	};
+
+	class PassthroughBackgroundRemover : public iANModalBackgroundRemover {
+		vtkSmartPointer<vtkImageData> removeBackground(QList<QSharedPointer<iAModality>>) {
+			return nullptr;
+		}
+	};
 }
 
 iANModalPreprocessor::iANModalPreprocessor(MdiChild *mdiChild) :
@@ -68,10 +74,6 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPoint
 
 	// Step 2: Remove background
 	auto mask = chooseBackgroundRemover()->removeBackground(modalities);
-	if (mask == nullptr) {
-		// TODO
-		return Output(false);
-	}
 
 	// TODO set modality voxel to zero everywhere where mask is 1
 
@@ -90,7 +92,7 @@ QSharedPointer<iANModalModalityReducer> iANModalPreprocessor::chooseModalityRedu
 	const QString NONE = "None";
 
 	auto sel = new iANModalPreprocessorSelector();
-	sel->addOption(PCA, {PCA, "todo"});
+	sel->addOption(PCA, {PCA, ""}); // TODO write description
 	sel->addOption(NONE, {NONE, "Skip modality reduction and use any four modalities" });
 	QString selection = sel->exec();
 	sel->deleteLater();
@@ -105,8 +107,23 @@ QSharedPointer<iANModalModalityReducer> iANModalPreprocessor::chooseModalityRedu
 }
 
 QSharedPointer<iANModalBackgroundRemover> iANModalPreprocessor::chooseBackgroundRemover() {
-	// TODO
-	return QSharedPointer<iANModalBackgroundRemover>(new iANModalDilationBackgroundRemover(m_mdiChild));
+	
+	const QString CLOSING = "Morphological Closing";
+	const QString NONE = "None";
+
+	auto sel = new iANModalPreprocessorSelector();
+	sel->addOption(CLOSING, {CLOSING, ""}); // TODO write description
+	sel->addOption(NONE, {NONE, "Skip background removal (do not remove background)"});
+	QString selection = sel->exec();
+	sel->deleteLater();
+
+	if (selection == NONE) {
+		return QSharedPointer<PassthroughBackgroundRemover>(new PassthroughBackgroundRemover());
+	} else if (selection == CLOSING) {
+		return QSharedPointer<iANModalBackgroundRemover>(new iANModalDilationBackgroundRemover(m_mdiChild));
+	} else {
+		return nullptr;
+	}
 }
 
 bool iANModalPreprocessor::areModalitiesCompatible(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2) {

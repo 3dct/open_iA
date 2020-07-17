@@ -57,11 +57,9 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 	// Other widgets
 	QLabel *labelTitle = new QLabel("n-Modal Transfer Function");
 	m_labelsWidget = new iANModalLabelsWidget();
-	
-	// Settings
-	//labelTitle->setSizePolicy(QSizePolicy::Minimum); // DOESN'T WORK!!! WHY???
 
 	QPushButton *buttonRefreshModalities = new QPushButton("Refresh modalities");
+	buttonRefreshModalities->setEnabled(false);
 
 	layoutMain->addWidget(widgetTop);
 	layoutMain->addWidget(m_labelsWidget);
@@ -93,11 +91,11 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 		modalities.append(list->get(i));
 	}
 
-	m_preprocessor = new iANModalPreprocessor(mdiChild);
+	m_preprocessor = QSharedPointer<iANModalPreprocessor>(new iANModalPreprocessor(mdiChild));
 	auto output = m_preprocessor->preprocess(modalities);
 
 	if (!output.valid) {
-		// TODO
+		// TODO do not proceed
 	}
 
 	m_c->setModalities(output.modalities);

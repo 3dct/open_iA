@@ -32,6 +32,7 @@
 #include "iAChannelSlicerData.h"
 #include "iAChannelData.h"
 #include "mdichild.h"
+//#include "iAChartWithFunctionsWidget.h" // Why doesn't it work?
 
 #include <vtkImageData.h>
 #include <vtkColorTransferFunction.h>
@@ -79,10 +80,6 @@ void iANModalController::reinitialize() {
 }
 
 void iANModalController::_initialize() {
-
-	// TODO: group modalities by dimension
-	// TODO: promt user to select a group
-
 	assert(countModalities() <= 4); // VTK limit. TODO: don't hard-code
 
 	for (auto slicer : m_slicers) {
@@ -97,7 +94,7 @@ void iANModalController::_initialize() {
 		auto slicer = _initializeSlicer(modality);
 		int id = m_dlg_labels->addSlicer(
 			slicer,
-			"noname",
+			modality->name(),
 			modality->image()->GetExtent(),
 			modality->image()->GetSpacing(),
 			m_slicerChannel_label);
@@ -276,7 +273,9 @@ inline void iANModalController::applyVolumeSettings() {
 
 int iANModalController::countModalities() {
 	// Cannot be larger than 4 because of VTK limit
-	return m_modalities.size();
+	int numModalities = m_modalities.size();
+	assert(numModalities <= 4); // Bad: '4' is hard-coded. TODO: improve
+	return numModalities;
 }
 
 bool iANModalController::_checkModalities(QList<QSharedPointer<iAModality>> modalities) {
@@ -366,6 +365,8 @@ void iANModalController::updateLabels(QList<iANModalLabel> labelsList) {
 			auto c = label.color;
 			auto o = label.opacity;
 
+			//DEBUG_LOG("updating at " + QString::number(seed.scalar));
+
 			colorTf->RemovePoint(seed.scalar);
 			colorTf->AddRGBPoint(seed.scalar, c.redF(), c.greenF(), c.blueF());
 
@@ -373,6 +374,7 @@ void iANModalController::updateLabels(QList<iANModalLabel> labelsList) {
 			opacityTf->AddPoint(seed.scalar, o);
 		}
 	}
+	//m_mdiChild->histogram()->updateTrf(); // TODO include iAChartWithFunctionsWidget.h
 }
 
 void iANModalController::addSeeds(QList<iANModalSeed> seeds, iANModalLabel label) {
@@ -393,6 +395,8 @@ void iANModalController::addSeeds(QList<iANModalSeed> seeds, iANModalLabel label
 
 		seed.labelId = label.id;
 		seed.scalar = scalar;
+
+		//DEBUG_LOG(QString("adding ") + QString::number(seeds.size()) + QString(" seed(s). one at ") + QString::number(seed.scalar));
 
 		auto c = label.color;
 		auto o = label.opacity;
@@ -434,6 +438,7 @@ void iANModalController::removeSeeds(int labelId) {
 
 void iANModalController::update() {
 	m_mdiChild->renderer()->update();
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < 3; ++i) { // 3 hardcoded TODO improve
 		m_mdiChild->slicer(i)->update();
+	}
 }

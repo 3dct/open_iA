@@ -44,7 +44,7 @@ public:
 
 private:
 	iANModalController *m_c;
-	iANModalPreprocessor *m_preprocessor;
+	QSharedPointer<iANModalPreprocessor> m_preprocessor;
 	MdiChild *m_mdiChild;
 
 	QGridLayout *m_layoutSlicersGrid;
