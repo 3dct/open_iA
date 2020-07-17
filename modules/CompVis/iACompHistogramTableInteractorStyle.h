@@ -42,6 +42,11 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 
    private:	
 	
+	std::map<int, std::vector<double>>* calculatePickedObjects(QList<bin::BinType*>* zoomedRowData);
+
+	//reformats picked object such that the other charts can work with it
+	csvDataType::ArrayType* formatPickedObjects(QList<std::vector<csvDataType::ArrayType*>*>* zoomedRowData);
+
 	//general zooming in executed by the camera
 	void generalZoomIn();
 	//general zooming out executed by the camera
@@ -58,6 +63,7 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 	void nonLinearZoomOut();
 
 	void updateOtherCharts();
+	void resetOtherCharts();
 
 	//set the picklist for the propPicker to only pick original row actors
 	void setPickList(std::vector<vtkSmartPointer<vtkActor>>* originalRowActors);

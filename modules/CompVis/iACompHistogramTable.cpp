@@ -74,6 +74,8 @@
 #include <functional>
 #include <vector>
 
+#include <tuple>
+
 
 iACompHistogramTable::iACompHistogramTable(
 	MainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* dataStorage, iACompVisMain* main) :
@@ -146,6 +148,14 @@ void iACompHistogramTable::calculateRowWidthAndHeight(double width, double heigt
 		m_colSize = (screenRatio / numberOfDatasets);
 		m_rowSize = 1;
 	}
+}
+
+/******************************************  Ordering/Ranking  **********************************/
+
+void iACompHistogramTable::drawHistogramTableInAscendingOrder(int bins)
+{
+	std::vector<int>* amountObjectsEveryDataset = csvFileData::getAmountObjectsEveryDataset(m_inputData);
+
 }
 
 /******************************************  Rendering  **********************************************/
@@ -1152,18 +1162,35 @@ double iACompHistogramTable::round_up(double value, int decimal_places)
 	return std::ceil(value * multiplier) / multiplier;
 }
 
+std::vector<int>* iACompHistogramTable::getIndexOfPickedRows()
+{
+	return m_indexOfPickedRow;
+}
+
+std::vector<int>* iACompHistogramTable::getAmountObjectsEveryDataset()
+{
+	return csvFileData::getAmountObjectsEveryDataset(m_dataStorage->getData());
+}
+
 /******************************************  Data Caculation  **********************************************/
 void iACompHistogramTable::calculateHistogramTable()
 {
-	m_histData = new iACompHistogramTableData(m_mds);
+	m_histData = new iACompHistogramTableData(m_mds, m_dataStorage);
 }
 
 /******************************************  Interaction  **********************************************/
-QList<bin::BinType*>* iACompHistogramTable::getSelectedData(Pick::PickedMap* map)
+std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> iACompHistogramTable::getSelectedData(Pick::PickedMap* map)
 {
+	//stores object attributes
+	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjects = new QList<std::vector<csvDataType::ArrayType*>*>();
+	//stores MDS values
+	QList<bin::BinType*>* thisZoomedRowData = new QList<bin::BinType*>();
+
+	//get for all datasets each bin with its objects attributes (label,...)
+	QList<std::vector<csvDataType::ArrayType*>*>* objectsPerBin = m_histData->getObjectsPerBin();
+	//get for all dataset each bin with its MDS values
 	QList<bin::BinType*>* binData = m_histData->getBinData();
 
-	QList<bin::BinType*>* thisZoomedRowData = new QList<bin::BinType*>();
 	m_indexOfPickedRow = new std::vector<int>();
 	m_pickedCellsforPickedRow = new std::map<int, std::vector<vtkIdType>*>();
 
@@ -1178,17 +1205,24 @@ QList<bin::BinType*>* iACompHistogramTable::getSelectedData(Pick::PickedMap* map
 			std::vector<vtkIdType>* pickedCells = map->find(currAct)->second;
 			std::sort(pickedCells->begin(), pickedCells->end(), std::less<long long>());
 
-			bin::BinType* currRow = binData->at((binData->size() - 1) - dataIndex);
-			bin::BinType* newRow = new bin::BinType();
+			//store Ids
+			std::vector<csvDataType::ArrayType*>* currRowIds = objectsPerBin->at((objectsPerBin->size() - 1) - dataIndex);
+			std::vector<csvDataType::ArrayType*>* newRowIds = new std::vector<csvDataType::ArrayType*>();
+
+			//store MDS values
+			bin::BinType* currRowMDS = binData->at((binData->size() - 1) - dataIndex);
+			bin::BinType* newRowMDS = new bin::BinType();
 
 			//look for the selected cells in the current row
 			for (int i = 0; i < pickedCells->size(); i++)
 			{
 				int currBin = pickedCells->at(i);
-				newRow->push_back(currRow->at(currBin));
+				newRowIds->push_back(currRowIds->at(currBin));
+				newRowMDS->push_back(currRowMDS->at(currBin));
 			}
 
-			thisZoomedRowData->append(newRow);
+			selectedObjects->append(newRowIds);
+			thisZoomedRowData->append(newRowMDS);
 
 			m_indexOfPickedRow->push_back(abs((m_amountDatasets - 1) - dataIndex));
 			m_pickedCellsforPickedRow->insert({ abs((m_amountDatasets - 1) - dataIndex), pickedCells});
@@ -1204,10 +1238,17 @@ QList<bin::BinType*>* iACompHistogramTable::getSelectedData(Pick::PickedMap* map
 		bin::debugBinType(thisZoomedRowData->at(i));
 	}*/
 
+	/*DEBUG_LOG("DEBUGGING");
+	for (int i = 0; i < selectedObjects->size(); i++)
+	{
+		bin::debugBinType(selectedObjects->at(i));
+	}*/
+
 	//store zoomed data as bin structure
 	m_zoomedRowData = bin::DeepCopy(thisZoomedRowData);
 
-	return thisZoomedRowData;
+	auto tuple = std::make_tuple(thisZoomedRowData, selectedObjects);
+	return tuple;
 }
 
 void iACompHistogramTable::highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId)
@@ -1260,3 +1301,4 @@ void iACompHistogramTable::removeHighlightedCells()
 
 	m_highlighingActors->clear();
 }
+

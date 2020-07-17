@@ -40,6 +40,11 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	iACompHistogramTable(MainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* m_dataStorage, iACompVisMain* main);
 	void showEvent(QShowEvent* event);
 
+
+	//draw Histogram table with rows ordered ascending to its amount of objects
+	void drawHistogramTableInAscendingOrder(int bins);
+
+	//draw initial Histogram Table
 	void drawHistogramTable(int bins);
 	
 	//draws the selected row and bins
@@ -63,6 +68,9 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	const int getMinBins();
 	const int getMaxBins();
 
+	std::vector<int>* getIndexOfPickedRows();
+	std::vector<int>* getAmountObjectsEveryDataset();
+
 	//return the actors representing the original rows
 	std::vector<vtkSmartPointer<vtkActor>>* getOriginalRowActors();
 
@@ -70,8 +78,10 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	vtkSmartPointer<vtkRenderer> getRenderer();
 	//re-render the widget/visualization
 	void renderWidget();
-
-	QList<bin::BinType*>* getSelectedData(Pick::PickedMap* map);
+	
+	//get the selected dataset with its MDS values
+	// and the selected dataset with its object IDs
+	std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> getSelectedData(Pick::PickedMap* map);
 	//highlight the selected cells with an outline
 	void highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId);
 	//dehighlight the selected cells with an outline 
@@ -89,7 +99,6 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	void colorRowForZoom(vtkUnsignedCharArray* colors, int currBin, bin::BinType* data, int amountOfBins);
 	void colorBinsOfRow(vtkUnsignedCharArray* colors, bin::BinType* data, int amountOfBins);
 
-	
 
 	//create the histogramTable visualization
 	void initializeHistogramTable();
@@ -136,7 +145,6 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 
 	//calculate the height and width each row can have to fit into the screen
 	void calculateRowWidthAndHeight(double width, double heigth, double numberOfDatasets);
-
 
 	iACompVisMain* m_main;
 	iACsvDataStorage* m_dataStorage;

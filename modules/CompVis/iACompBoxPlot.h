@@ -24,12 +24,28 @@ class iACompBoxPlot : public QDockWidget, public Ui_CompHistogramTable
 	Q_OBJECT
    public:
 	iACompBoxPlot(MainWindow* parent, iACsvDataStorage* dataStorage);
+	
 	void showEvent(QShowEvent* event);
+	
 	void renderWidget();
+	
 	void updateLegend();
+	
 	void setOrderedPositions(std::vector<double>* orderedPositions);
 
+	void updateBoxPlot(csvDataType::ArrayType* selectedData, std::vector<double>* selected_orderedPositions);
+	void resetBoxPlot();
+
 private:
+
+	//calculate the median of the given vector iterator
+	double median(std::vector<double>::const_iterator begin, std::vector<double>::const_iterator end);
+	//calcuate quartiles of the vector v
+	std::vector<double>* calcualteQuartiles(std::vector<double> v);
+	//calcuate quartiles of the table with VTK
+	vtkSmartPointer<vtkTable> calcualteVTKQuartiles(vtkSmartPointer<vtkTable> input);
+	//bring the values of the input table in the interval [0,1]
+	vtkSmartPointer<vtkTable> normalizeTable(vtkSmartPointer<vtkTable> input);
 
 	iACsvDataStorage* m_dataStorage;
 
@@ -38,16 +54,21 @@ private:
 
 	std::vector<double>* maxValsAttr;
 	std::vector<double>* minValsAttr;
+
 	//table containing all values
 	vtkSmartPointer<vtkTable> inputBoxPlotTable;
 	//stores the minimum, first quartile, median, third quartile and maximum of the real values
 	vtkSmartPointer<vtkTable> outTable;
+	//stores the values of outTable in the interval [0,1]
+	vtkSmartPointer<vtkTable> normalizedTable;
+
+	vtkSmartPointer<vtkTable> currentQuartileTable;
+
 	//new positions calculated from bar chart
 	std::vector<double>* m_orderedPositions;
 
 	int m_numberOfAttr;
 	std::vector<vtkSmartPointer<vtkTextActor>>* m_legendAttributes;
-
 
 	//inner class
 	class BoxPlotChart : public vtkChartBox

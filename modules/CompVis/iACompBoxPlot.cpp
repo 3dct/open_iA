@@ -25,6 +25,7 @@
 #include "vtkDoubleArray.h"
 #include "vtkStringArray.h"
 #include "vtkIntArray.h"
+#include "vtkVariantArray.h"
 
 #include "vtkComputeQuartiles.h"
 #include "vtkStatisticsAlgorithm.h"
@@ -61,6 +62,7 @@ iACompBoxPlot::iACompBoxPlot(MainWindow* parent, iACsvDataStorage* dataStorage) 
 	inputBoxPlotTable(vtkSmartPointer<vtkTable>::New()),
 	m_legendAttributes(new std::vector<vtkSmartPointer<vtkTextActor>>()),
 	m_numberOfAttr(0),
+	currentQuartileTable(vtkSmartPointer<vtkTable>::New()),
 	finishedInitalization(false)
 {
 	setupUi(this);
@@ -94,38 +96,37 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 
 	// Set the labels
 	vtkSmartPointer<vtkStringArray> labels = vtkSmartPointer<vtkStringArray>::New();
-	
+
 	//set amount of attributes
 	for (int i = 0; i < m_numberOfAttr; i++)
 	{
 		labels->InsertNextValue(attrNames->at(i).toStdString());
 
-		vtkSmartPointer<vtkIntArray> arrIndex = vtkSmartPointer<vtkIntArray>::New();
+		vtkSmartPointer<vtkDoubleArray> arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
 		arrIndex->SetName(attrNames->at(i).toStdString().c_str());
 		inputBoxPlotTable->AddColumn(arrIndex);
 	}
 
 	//calculate amount of objects(fibers)/rows
 	int numberOfRows = 0;
-	for(int i = 0; i < data->size(); i++)
+	for (int i = 0; i < data->size(); i++)
 	{
 		numberOfRows += csvDataType::getRows(data->at(i).values);
 	}
 	inputBoxPlotTable->SetNumberOfRows(numberOfRows);
-	
+
 	int row = 0;
 	//fill table with data
 	for (int i = 0; i < data->size(); i++)
 	{//for all datasets
-		for(int dataInd = 0; dataInd < data->at(i).values->size(); dataInd++)
+		for (int dataInd = 0; dataInd < data->at(i).values->size(); dataInd++)
 		{ //for all values
 			//for (int attrInd = 1; attrInd <= m_numberOfAttr; attrInd++)
 			for (int attrInd = 1; attrInd < m_numberOfAttr; attrInd++)
 			{//for all attributes but without the label attribute
 
-				int col = attrInd-1;
-				int newCol = m_orderedPositions->at(attrInd);
-				double val = data->at(i).values->at(dataInd).at(m_orderedPositions->at(col)+1);
+				int col = attrInd - 1;
+				double val = data->at(i).values->at(dataInd).at(m_orderedPositions->at(col) + 1);
 
 				inputBoxPlotTable->SetValue(row, col, vtkVariant(val));
 			}
@@ -134,24 +135,12 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	}
 
 	//calculate quartiles
-	vtkSmartPointer<vtkComputeQuartiles> quartiles = vtkSmartPointer<vtkComputeQuartiles>::New();
-	quartiles->SetInputData(vtkStatisticsAlgorithm::INPUT_DATA, inputBoxPlotTable);
-	quartiles->Update();
-	outTable = quartiles->GetOutput();
-	
-	vtkSmartPointer<vtkTable> normalizedTable = vtkSmartPointer<vtkTable>::New();
-	normalizedTable->DeepCopy(outTable);
+	outTable = calcualteVTKQuartiles(inputBoxPlotTable);
+	currentQuartileTable->DeepCopy(outTable);
+	currentQuartileTable->Modified();
 
 	//normalize quartiles in the interval [0,1]
-	for (vtkIdType c = 0; c < outTable->GetNumberOfColumns(); c++)
-	{
-		for (vtkIdType r = 0; r < outTable->GetNumberOfRows(); r++)
-		{
-			vtkVariant v = outTable->GetValue(r, c);
-			double newV = iACompVisOptions::histogramNormalization(v.ToDouble(), 0.0, 1.0, outTable->GetValue(0, c).ToDouble(), outTable->GetValue(outTable->GetNumberOfRows()-1, c).ToDouble());
-			normalizedTable->SetValue(r, c, vtkVariant(newV));
-		}
-	}
+	normalizedTable = normalizeTable(outTable);
 
 	//create lookup table
 	vtkSmartPointer<vtkLookupTable> lookup = vtkSmartPointer<vtkLookupTable>::New();
@@ -169,7 +158,7 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	box = vtkSmartPointer<vtkPlotBox>::New();
 	box->SetInputData(normalizedTable);
 	box->SetLookupTable(lookup);
-	
+
 	chart->SetPlot(box);
 	chart->SetColumnVisibilityAll(true);
 	chart->Update();
@@ -178,7 +167,7 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	renderWidget();
 
 	//set size of chart
-	chart->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3)); //0.4
+	chart->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
 	chart->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
 	chart->Update();
 
@@ -191,7 +180,7 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	chart->GetTitleProperties()->SetFontFamilyToArial();
 	chart->GetTitleProperties()->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
 	chart->GetTitleProperties()->Modified();
-	
+
 	//create y axis
 	vtkAxis *axisLeft = chart->GetYAxis();
 	axisLeft->SetBehavior(1);
@@ -211,11 +200,11 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 
 	//for each column draw a legend
 	double offset = 1.0;
-	double factor = offset/ ((double)(m_numberOfAttr -1));
+	double factor = offset / ((double)(m_numberOfAttr - 1));
 	for (int i = 0; i < m_numberOfAttr; i++)
 	{
 		vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
-		legend->SetTextScaleModeToNone();	
+		legend->SetTextScaleModeToNone();
 		legend->SetInput(labels->GetValue(m_orderedPositions->at(i))); //reordered positions
 
 		vtkSmartPointer<vtkTextProperty> legendProperty = legend->GetTextProperty();
@@ -229,7 +218,7 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 		legendProperty->SetJustification(VTK_TEXT_RIGHT);
 		legendProperty->SetVerticalJustificationToTop();
 		legendProperty->Modified();
-	
+
 		float x = chart->GetXPosition(i) + (box->GetBoxWidth()*offset);
 		legend->GetPositionCoordinate()->SetCoordinateSystemToDisplay();
 		legend->GetPositionCoordinate()->SetValue(x, m_qvtkWidget->height()*0.27);
@@ -255,12 +244,195 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 		actor->SetMapper(mapper);
 		actor->GetProperty()->SetColor(1, 0, 0);
 		m_view->GetRenderer()->AddActor2D(actor);*/
-		
+
 
 		offset = offset - factor;
 	}
 
 	finishedInitalization = true;
+}
+
+void iACompBoxPlot::renderWidget()
+{
+	m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
+}
+
+void iACompBoxPlot::setOrderedPositions(std::vector<double>* orderedPositions)
+{
+	m_orderedPositions = orderedPositions;
+}
+
+double iACompBoxPlot::median(std::vector<double>::const_iterator begin, std::vector<double>::const_iterator end)
+{
+	int len = end - begin;
+	auto it = begin + len / 2;
+	double m = *it;
+
+	if ((len % 2) == 0)
+	{
+		m = (m + *(--it)) / 2;
+	}
+	return m;
+}
+
+std::vector<double>* iACompBoxPlot::calcualteQuartiles(std::vector<double> v)
+{
+	std::vector<double>* result = new std::vector<double>();
+
+	//sort input vector!
+	std::sort(v.begin(), v.end());
+
+	auto it_second_half = v.cbegin() + v.size() / 2;
+	auto it_first_half = it_second_half;
+	if ((v.size() % 2) == 0) --it_first_half;
+
+	
+	double q1 = median(v.begin(), it_first_half);
+	double q2 = median(v.begin(), v.end());
+	double q3 = median(it_second_half, v.end());
+
+	result->push_back(q1);
+	result->push_back(q2);
+	result->push_back(q3);
+	return result;
+}
+
+vtkSmartPointer<vtkTable> iACompBoxPlot::calcualteVTKQuartiles(vtkSmartPointer<vtkTable> input)
+{
+	vtkSmartPointer<vtkComputeQuartiles> quartiles = vtkSmartPointer<vtkComputeQuartiles>::New();
+	quartiles->SetInputData(vtkStatisticsAlgorithm::INPUT_DATA, input);
+	quartiles->Update();
+
+	return quartiles->GetOutput();
+}
+
+vtkSmartPointer<vtkTable> iACompBoxPlot::normalizeTable(vtkSmartPointer<vtkTable> input)
+{
+	vtkSmartPointer<vtkTable> normalizedTable = vtkSmartPointer<vtkTable>::New();
+	normalizedTable->DeepCopy(input);
+
+	//normalize quartiles in the interval [0,1]
+	for (vtkIdType c = 0; c < input->GetNumberOfColumns(); c++)
+	{
+		for (vtkIdType r = 0; r < input->GetNumberOfRows(); r++)
+		{
+			vtkVariant v = input->GetValue(r, c);
+			double newV = iACompVisOptions::histogramNormalization(v.ToDouble(), 0.0, 1.0, input->GetValue(0, c).ToDouble(), input->GetValue(input->GetNumberOfRows() - 1, c).ToDouble());
+			normalizedTable->SetValue(r, c, vtkVariant(newV));
+		}
+	}
+
+	return normalizedTable;
+}
+
+/******************************************  Update Methods  **********************************/
+
+void iACompBoxPlot::updateBoxPlot(csvDataType::ArrayType* selectedData, std::vector<double>* selected_orderedPositions)
+{	
+	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
+	vtkSmartPointer<vtkTable> selectedNormalizedTable = vtkSmartPointer<vtkTable>::New();
+
+	// Set the labels
+	QStringList* attrNames = m_dataStorage->getData()->at(0).header;
+	vtkSmartPointer<vtkStringArray> labels = vtkSmartPointer<vtkStringArray>::New();
+
+	//set amount of attributes
+	for (int i = 0; i < m_numberOfAttr; i++)
+	{
+		labels->InsertNextValue(attrNames->at(i).toStdString());
+
+		vtkSmartPointer<vtkDoubleArray> arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
+		arrIndex->SetName(attrNames->at(i).toStdString().c_str());
+		table->AddColumn(arrIndex);
+	}
+
+	if(selectedData->size() == 0)
+	{// no data -> draw empty box plot
+		table->SetNumberOfRows(m_numberOfAttr);
+		
+		for (int col = 0; col < m_numberOfAttr; col++)
+		{//for each attribute
+
+			vtkSmartPointer<vtkDoubleArray> arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
+			arrIndex->SetName(attrNames->at(col).toStdString().c_str());
+			for (int row = 0; row < 5; row++)
+			{
+				arrIndex->InsertNextValue(0.0);
+			}
+			selectedNormalizedTable->AddColumn(arrIndex);
+		}
+	}
+	else
+	{
+		//calculate amount of objects(fibers)/rows
+		table->SetNumberOfRows(selectedData->at(0).size());
+
+		//fill table with data
+		for (int col = 1; col < selectedData->size(); col++)
+		{//for each attribute
+			for (int row = 0; row < selectedData->at(col).size(); row++)
+			{
+				int colNew = col - 1;
+				table->SetValue(row, colNew, selectedData->at(selected_orderedPositions->at(colNew) + 1).at(row));
+			}
+		}
+
+		//calculate quartiles
+		vtkSmartPointer<vtkTable> quartileTable = calcualteVTKQuartiles(table);
+		currentQuartileTable->DeepCopy(quartileTable);
+		currentQuartileTable->Modified();
+
+		//normalize quartiles in the interval [0,1]
+		selectedNormalizedTable = normalizeTable(quartileTable);
+	}
+
+	box->SetInputData(selectedNormalizedTable);
+	box->Modified();
+
+	chart->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
+	chart->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
+	chart->Update();
+
+	for (int i = 0; i < m_legendAttributes->size(); i++)
+	{
+		vtkSmartPointer<vtkTextActor> legend = m_legendAttributes->at(i);
+		legend->SetInput(labels->GetValue(selected_orderedPositions->at(i)));
+		legend->Modified();
+	}
+
+	renderWidget();
+}
+
+void iACompBoxPlot::resetBoxPlot()
+{
+	// Set the labels
+	QStringList* attrNames = m_dataStorage->getData()->at(0).header;
+	vtkSmartPointer<vtkStringArray> labels = vtkSmartPointer<vtkStringArray>::New();
+
+	for (int i = 0; i < m_numberOfAttr; i++)
+	{
+		labels->InsertNextValue(attrNames->at(i).toStdString());
+	}
+
+	currentQuartileTable->DeepCopy(outTable);
+	currentQuartileTable->Modified();
+
+	//set data
+	box->SetInputData(normalizedTable);
+	box->Modified();
+
+	chart->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
+	chart->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
+	chart->Update();
+
+	for (int i = 0; i < m_legendAttributes->size(); i++)
+	{
+		vtkSmartPointer<vtkTextActor> legend = m_legendAttributes->at(i);
+		legend->SetInput(labels->GetValue(m_orderedPositions->at(i)));
+		legend->Modified();
+	}
+
+	renderWidget();
 }
 
 void iACompBoxPlot::updateLegend()
@@ -281,16 +453,6 @@ void iACompBoxPlot::updateLegend()
 	}
 }
 
-void iACompBoxPlot::renderWidget()
-{
-	m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
-}
-
-void iACompBoxPlot::setOrderedPositions(std::vector<double>* orderedPositions)
-{
-	m_orderedPositions = orderedPositions;
-}
-
 /************************* INNER CLASS BoxPlotChart *******************************************/
 void iACompBoxPlot::BoxPlotChart::SetTooltipInfo(const vtkContextMouseEvent& mouse,
 	const vtkVector2d &plotPos,
@@ -304,9 +466,9 @@ void iACompBoxPlot::BoxPlotChart::SetTooltipInfo(const vtkContextMouseEvent& mou
 	
 	std::vector<std::string> tokens;
 	
-	for (vtkIdType r = 0; r < m_outerClass->outTable->GetNumberOfRows(); r++)
+	for (vtkIdType r = 0; r < m_outerClass->currentQuartileTable->GetNumberOfRows(); r++)
 	{
-		vtkVariant v = m_outerClass->outTable->GetValue(r, plotPos.GetX());
+		vtkVariant v = m_outerClass->currentQuartileTable->GetValue(r, plotPos.GetX());
 		tokens.push_back(v.ToString());
 	}
 

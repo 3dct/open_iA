@@ -2,6 +2,7 @@
 
 //CompVis
 #include "iACsvDataStorage.h";
+#include "iACompHistogramTableData.h"
 
 /*
 The coefficient of variation (CV) is defined as the ratio of the standard deviation σ to the mean μ, c(v) = σ/μ.
@@ -11,23 +12,28 @@ class iACoefficientOfVariation
 {
 public:
 	iACoefficientOfVariation(iACsvDataStorage* dataStorage);
-	void calculateVariationCoefficient();
 
-	//returns the latest result of the coefficient of variation calculation
+	//calculates the coefficient of variation
+	std::vector<double>* calculateVariationCoefficient(csvDataType::ArrayType* arrayOfAttributes);
+
+	//returns the coefficient of variation for all values of all datasets
 	std::vector<double>* getCoefficientOfVariation();
-	size_t getNumberofAttributes();
 
 	//recalculate the coefficient of variation with the values inside input
-	std::vector<double>* recalculateCoefficentOfVariation(QList<csvFileData>* input);
+	std::vector<double>* recalculateCoefficentOfVariation(csvDataType::ArrayType* selectedData);
 
 private:
 
 	//store all values of each attribute in a vector
 	void initializeAttributeArray(QList<csvFileData>* input, csvDataType::ArrayType* result);
+	//store all values of each attribute in a vector
+	void initializeAttributeArray(csvDataType::ArrayType* selectedData, csvDataType::ArrayType* result);
+
 	double calculateStandardDeviation(std::vector<double>* input, double mean);
 	double calculateMean(std::vector<double>* input);
 
-	//result of the coefficent of variation
+	//result of the coefficent of variation for all values of all datasets
+	//stored after the first initialization to save calculation time
 	std::vector<double>* m_coeffOfVar;
 	std::vector<double>* m_maxValForEachAttr;
 	std::vector<double>* m_minValForEachAttr;
