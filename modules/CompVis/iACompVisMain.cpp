@@ -32,7 +32,7 @@ iACompVisMain::iACompVisMain(MainWindow* mainWin)
 	initializeCorrelationCoefficient();
 
 	//open mainwindow with its dockWidgets
-	m_mainW = new dlg_VisMainWindow(m_dataStorage->getData(), m_mds, mainWin);
+	m_mainW = new dlg_VisMainWindow(m_dataStorage->getData(), m_mds, mainWin, this);
 
 	QVBoxLayout* layout1 = new QVBoxLayout;
 	m_mainW->centralwidget->setLayout(layout1);
@@ -91,6 +91,22 @@ void iACompVisMain::initializeVariationCoefficient()
 void iACompVisMain::initializeCorrelationCoefficient()
 {
 	m_corCoeff = new iACorrelationCoefficient(m_dataStorage);
+}
+
+/******************************************  Order Methods  **********************************/
+void iACompVisMain::orderHistogramTableAscending()
+{
+	m_HistogramTableDockWidget->drawHistogramTableInAscendingOrder(m_HistogramTableDockWidget->getBins());
+}
+
+void iACompVisMain::orderHistogramTableDescending()
+{
+	m_HistogramTableDockWidget->drawHistogramTableInDescendingOrder(m_HistogramTableDockWidget->getBins());
+}
+
+void iACompVisMain::orderHistogramTableAsLoaded()
+{
+	m_HistogramTableDockWidget->drawHistogramTableInOriginalOrder(m_HistogramTableDockWidget->getBins());
 }
 
 /******************************************  Update Methods  **********************************/

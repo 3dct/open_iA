@@ -56,6 +56,7 @@ iACompHistogramTableInteractorStyle::iACompHistogramTableInteractorStyle() :
 	m_zoomLevel(1),
 	m_actorPicker(vtkSmartPointer<vtkPropPicker>::New())
 {
+	m_actorPicker->SetPickFromList(true);
 }
 
 void iACompHistogramTableInteractorStyle::OnKeyPress()
@@ -176,9 +177,35 @@ void iACompHistogramTableInteractorStyle::OnMiddleButtonDown()
 
 void iACompHistogramTableInteractorStyle::OnRightButtonDown()
 {
-	DEBUG_LOG("Pressed right mouse button.");
-	// Forward events
-	//vtkInteractorStyleTrackballCamera::OnRightButtonDown();
+	
+	setPickList(m_visualization->getOriginalRowActors());
+
+	int* pos = this->GetInteractor()->GetEventPosition();
+	/*this->FindPokedRenderer(pos[0], pos[1]);
+	auto currentRenderer = this->GetDefaultRenderer();
+	if (currentRenderer == nullptr)
+	{
+		return;
+	}
+	
+	DEBUG_LOG("Here");
+
+	if (((pos[0] >= currentRenderer->GetSize()[0]) || (pos[1] >= currentRenderer->GetSize()[1])))
+	{
+		return;
+	}
+*/
+
+	//int is = m_actorPicker->Pick(pos[0], pos[1], 0, currentRenderer)
+	int is = m_actorPicker->Pick(pos[0], pos[1], 0, m_visualization->getRenderer());
+
+	if (is != 0)
+	{
+		vtkSmartPointer<vtkActor> pickedA = m_actorPicker->GetActor();
+		m_visualization->highlightSelectedRow(pickedA);
+
+		m_visualization->drawHistogramTableAccordingToSimilarity(m_visualization->getBins(), pickedA);
+	}
 }
 
 void iACompHistogramTableInteractorStyle::OnMouseWheelForward()
@@ -372,7 +399,7 @@ void iACompHistogramTableInteractorStyle::setPickList(std::vector<vtkSmartPointe
 		m_actorPicker->AddPickList(originalRowActors->at(i));
 	}
 
-	m_actorPicker->SetPickFromList(true);
+	//m_actorPicker->SetPickFromList(true);
 }
 
 csvDataType::ArrayType* iACompHistogramTableInteractorStyle::formatPickedObjects(QList<std::vector<csvDataType::ArrayType*>*>* zoomedRowData)

@@ -26,8 +26,13 @@ class iACompVisMain
 {
    public:
 	iACompVisMain(MainWindow* mainWin);
+
 	//load the CSV datasets
 	void loadData();
+
+	void orderHistogramTableAscending();
+	void orderHistogramTableDescending();
+	void orderHistogramTableAsLoaded();
 
 	//update all charts according to the Histogram Table selection
 	//zoomedRowData stores bin data of selected rows that will be zoomed.
@@ -49,6 +54,7 @@ class iACompVisMain
 	void initializeMDS();
 	void initializeVariationCoefficient();
 	void initializeCorrelationCoefficient();
+
 
 	dlg_VisMainWindow* m_mainW;
 	iACsvDataStorage* m_dataStorage;
