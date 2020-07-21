@@ -56,6 +56,9 @@ public:
 	void rotateColorBarLegend(double x, double y, double z);
 	void setLegendTitle(QString title);
 	std::vector<std::vector<std::vector<double>>>* getJaccardIndex(int level);
+	void createMIPPanels(int octreeLevel, int feature);
+	void hideMIPPanels();
+
 	
 
 private:
@@ -74,6 +77,8 @@ private:
 	vtkSmartPointer<vtkActor> m_ColorBar;
 	vtkSmartPointer<vtkTextActor3D> textSource;
 	vtkSmartPointer<vtkTextActor3D> titleTextSource;
+	vtkSmartPointer<vtkActor> mipPanel;
+	std::vector<vtkPolyData*> mipPlanes;
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	iACsvIO m_io;
 	std::vector<iAVR3DText*>* m_3DLabels;
@@ -92,5 +97,5 @@ private:
 	void calculateJaccardIndex(int level);
 	double calculateJaccardIndex(int level, int region1, int region2);
 	double calculateJaccardDistance(int level, int region1, int region2);
-	double calculateSinglePurity(int level, int region);
+	std::vector<QColor>* calculateMIPColoring(int direction, int level, int feature);
 };

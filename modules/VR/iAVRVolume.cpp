@@ -45,14 +45,14 @@ iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io) :m_o
 	m_volumeVisible = false;
 	m_regionLinksVisible = false;
 
-	m_cylinderVis = new iA3DCylinderObjectVis(m_renderer, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), std::map<size_t, std::vector<iAVec3f> >());	
-	m_volumeActor = m_cylinderVis->getActor();
+	resetVolume();
 }
 
 void iAVRVolume::resetVolume()
 {
 	m_cylinderVis = new iA3DCylinderObjectVis(m_renderer, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), std::map<size_t, std::vector<iAVec3f> >());
 	m_volumeActor = m_cylinderVis->getActor();
+	m_volumeActor->AddPosition(1,200,1);
 }
 
 void iAVRVolume::showVolume()

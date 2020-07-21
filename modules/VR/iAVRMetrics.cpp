@@ -34,7 +34,13 @@
 #include <vtkPlaneSource.h>
 #include <vtkCellData.h>
 #include <vtkBillboardTextActor3D.h>
-
+#include <vtkGlyph3D.h>
+#include <vtkDoubleArray.h>
+#include <vtkPointData.h>
+#include <vtkAppendPolyData.h>
+#include <vtkDataSetMapper.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 
 iAVRMetrics::iAVRMetrics(vtkRenderer* renderer, vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees):m_renderer(renderer), m_objectTable(objectTable), m_io(io),
 m_octrees(octrees)
@@ -50,6 +56,8 @@ m_octrees(octrees)
 	m_calculatedStatistic = new std::vector<std::vector<std::vector<double>>>(m_octrees->size(), feature);
 	m_maxCoverage = new std::vector<std::vector<std::vector<vtkIdType>>>();
 	m_jaccardValues = new std::vector<std::vector<std::vector<double>>>(m_octrees->size());
+
+	mipPlanes = std::vector<vtkPolyData*>();
 
 	storeMinMaxValues();
 
@@ -330,19 +338,21 @@ QString iAVRMetrics::getFeatureName(int feature)
 
 void iAVRMetrics::moveColorBarLegend(double* pos)
 {
+	m_ColorBar->SetPosition(pos);
+
 	double actorBounds[6];
 	m_ColorBar->GetBounds(actorBounds);
 
 	textSource->SetPosition(actorBounds[1] + 1, actorBounds[2] + 1, actorBounds[4] - 1);
 	titleTextSource->SetPosition(actorBounds[0] + 1, actorBounds[3] + 5, actorBounds[4] - 1);
-	m_ColorBar->SetPosition(pos);
+	
 }
 
 void iAVRMetrics::rotateColorBarLegend(double x, double y, double z)
 {
-	titleTextSource->AddOrientation(x, y, z);
-	textSource->AddOrientation(x, y, z);
 	m_ColorBar->AddOrientation(x, y, z);
+	titleTextSource->AddOrientation(x, y, z);
+	textSource->AddOrientation(x, y, z);	
 }
 
 void iAVRMetrics::setLegendTitle(QString title)
@@ -362,6 +372,67 @@ std::vector<std::vector<std::vector<double>>>* iAVRMetrics::getJaccardIndex(int 
 		return m_jaccardValues;
 	}
 	
+}
+
+//! Creates a plane for every possible MIP Projection (six planes)
+//! The plane cells start at the lower left cell depending on the origin Point of the Plane
+void iAVRMetrics::createMIPPanels(int octreeLevel, int feature)
+{
+	int gridSize = pow(2, octreeLevel);
+	double direction[6] = {1,1,-1,-1,-1,1}; //normals
+	int viewPlane[6] = {0,2,0,2,1,1}; //x,y,z
+
+	std::vector<std::vector<iAVec3d>>* planePoints = new std::vector<std::vector<iAVec3d>>();
+	m_octrees->at(octreeLevel)->createOctreeBoundingBoxPlanes(planePoints);
+
+	vtkSmartPointer<vtkAppendPolyData> appendFilter =	vtkSmartPointer<vtkAppendPolyData>::New();
+
+	for (int i = 0; i < 6; i++)
+	{
+		vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
+		plane->SetXResolution(gridSize);
+		plane->SetYResolution(gridSize);
+		plane->SetOrigin(planePoints->at(i).at(0).data());
+		plane->SetPoint1(planePoints->at(i).at(1).data());
+		plane->SetPoint2(planePoints->at(i).at(2).data());
+		plane->Push(600 * direction[i]);
+		plane->Update();
+
+		vtkSmartPointer<vtkUnsignedCharArray> colorData = vtkSmartPointer<vtkUnsignedCharArray>::New();
+		colorData->SetName("colors");
+		colorData->SetNumberOfComponents(4);
+
+		std::vector<QColor>* col = calculateMIPColoring(viewPlane[i], octreeLevel, feature);
+		//for (int region = 0; region < m_fiberCoverage->at(octreeLevel).size(); region++)
+		for (int gridCell = 0; gridCell < gridSize * gridSize; gridCell++)
+		{
+			colorData->InsertNextTuple4(col->at(gridCell).red(), col->at(gridCell).green(), col->at(gridCell).blue(), col->at(gridCell).alpha());
+		}
+
+		plane->GetOutput()->GetCellData()->SetScalars(colorData);
+
+		mipPlanes.push_back(plane->GetOutput());
+		appendFilter->AddInputData(plane->GetOutput());
+	}
+
+	vtkSmartPointer<vtkPolyDataMapper> mapper =	vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputConnection(appendFilter->GetOutputPort());
+
+	mipPanel = vtkSmartPointer<vtkActor>::New();
+	mipPanel->SetMapper(mapper);
+	mipPanel->PickableOff();
+	mipPanel->GetProperty()->EdgeVisibilityOn();
+	mipPanel->GetProperty()->SetLineWidth(4);
+	
+	m_renderer->AddActor(mipPanel);
+
+	//double scale = m_vrEnv->interactor()->GetPhysicalScale();
+	//double *trans = m_vrEnv->interactor()->GetPhysicalTranslation(m_vrEnv->renderer()->GetActiveCamera());
+}
+
+void iAVRMetrics::hideMIPPanels()
+{
+	m_renderer->RemoveActor(mipPanel);
 }
 
 
@@ -527,8 +598,32 @@ double iAVRMetrics::calculateJaccardDistance(int level, int region1, int region2
 	return 1 - calculateJaccardIndex(level, region1, region2);
 }
 
-//! Calculates a special form of cluster Purity.
-double iAVRMetrics::calculateSinglePurity(int level, int region)
+//! Calculates the maximum Intensity Projection for the chosen feature and direction (x = 0, y = 1, z = 2)
+//! Saves the color for the maximum value found by shooting a parallel ray through a cube row.
+std::vector<QColor>* iAVRMetrics::calculateMIPColoring(int direction, int level, int feature)
 {
-	return 0.0;
+	int gridSize = pow(2, level);
+	std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>> *regionsInLine = m_octrees->at(level)->getRegionsInLineOfRay();
+	std::vector<QColor>* mipColors = new std::vector<QColor>();
+	mipColors->reserve(gridSize * gridSize);
+
+	for (int y = 0; y < gridSize; y++)
+	{
+		for (int x = 0; x < gridSize; x++)
+		{
+			double val = 0;
+			double rgb[3] = { 0,0,0 };
+
+			for(auto region : regionsInLine->at(direction).at(y).at(x))
+			{
+				double temp = m_calculatedStatistic->at(level).at(feature).at(region);
+				if (val < temp) val = temp;
+			}
+			m_lut->GetColor(val, rgb);
+
+			mipColors->push_back(QColor(rgb[0]*255, rgb[1] * 255, rgb[2] * 255, m_lut->GetOpacity(val) * 255));
+		}
+	}
+
+	return mipColors;
 }

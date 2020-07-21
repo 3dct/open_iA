@@ -36,6 +36,7 @@ m_octree(vtkSmartPointer<vtkOctreePointLocator>::New())
 	m_maxDistanceOctCenterToRegionCenter = -1;
 	m_maxDistanceOctCenterToFiber = -1;
 	m_fibersInRegion = new std::vector<std::unordered_map<vtkIdType, double>*>();
+	m_regionsInLine = new std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>>();
 }
 
 void iAVROctree::generateOctreeRepresentation(int level, QColor col)
@@ -120,6 +121,66 @@ void iAVROctree::createOctreeBoundingBoxPlanes(int regionID, std::vector<std::ve
 {
 	double bounds[6];
 	m_octree->GetRegionBounds(regionID, bounds);
+
+	double xMin = bounds[0];
+	double xMax = bounds[1];
+	double yMin = bounds[2];
+	double yMax = bounds[3];
+	double zMin = bounds[4];
+	double zMax = bounds[5];
+
+	auto tempPos = std::vector<iAVec3d>();
+	tempPos.reserve(3);
+	planePoints->reserve(6);
+
+	//Plane 1
+	tempPos.push_back(iAVec3d(xMin, yMin, zMax)); //origin
+	tempPos.push_back(iAVec3d(xMax, yMin, zMax)); //point 1
+	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2 
+	planePoints->push_back(tempPos);
+	tempPos.clear();
+
+	//Plane 2
+	tempPos.push_back(iAVec3d(xMax, yMin, zMax)); //origin
+	tempPos.push_back(iAVec3d(xMax, yMin, zMin)); //point 1
+	tempPos.push_back(iAVec3d(xMax, yMax, zMax)); //point 2 
+	planePoints->push_back(tempPos);
+	tempPos.clear();
+
+	//Plane 3
+	tempPos.push_back(iAVec3d(xMin, yMin, zMin)); //origin
+	tempPos.push_back(iAVec3d(xMax, yMin, zMin)); //point 1
+	tempPos.push_back(iAVec3d(xMin, yMax, zMin)); //point 2 
+	planePoints->push_back(tempPos);
+	tempPos.clear();
+
+	//Plane 4
+	tempPos.push_back(iAVec3d(xMin, yMin, zMax)); //origin
+	tempPos.push_back(iAVec3d(xMin, yMin, zMin)); //point 1
+	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2 
+	planePoints->push_back(tempPos);
+	tempPos.clear();
+
+	//Plane 5
+	tempPos.push_back(iAVec3d(xMax, yMin, zMax)); //origin
+	tempPos.push_back(iAVec3d(xMax, yMin, zMin)); //point 1
+	tempPos.push_back(iAVec3d(xMin, yMin, zMax)); //point 2 
+	planePoints->push_back(tempPos);
+	tempPos.clear();
+
+	//Plane 6
+	tempPos.push_back(iAVec3d(xMax, yMax, zMax)); //origin
+	tempPos.push_back(iAVec3d(xMax, yMax, zMin)); //point 1
+	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2 
+	planePoints->push_back(tempPos);
+}
+
+//! This Method creates the six Planes defined by the bounds of the whole octree .
+//! The vec is defined as six [planes] (0-5) with respectively 3 points (origin, point 1, point 2)
+void iAVROctree::createOctreeBoundingBoxPlanes(std::vector<std::vector<iAVec3d>>* planePoints)
+{
+	double bounds[6];
+	m_octree->GetBounds(bounds);
 
 	double xMin = bounds[0];
 	double xMax = bounds[1];
@@ -292,6 +353,23 @@ vtkActor* iAVROctree::getActor()
 	return m_actor;
 }
 
+//! Returns a vector for each projection on an plane (x,y,z) and each grid cell beginning on lower left cell (0,0).
+//! Grid size is 2^L x 2^L x 2^L (L = Level of Octree).
+//! For each cell a list of all traversed cubes is stored. Attention: In case a cube could not be splitted in later octree levels 
+//! the list will contain this region multiple times.
+std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>>* iAVROctree::getRegionsInLineOfRay()
+{
+	if (!m_regionsInLine->empty())
+	{
+		return m_regionsInLine;
+	}
+	else
+	{
+		calculateRayThroughCubeRow();
+		return m_regionsInLine;
+	}
+}
+
 //! Stores which fibers lie in which region. Therfore all pointIds inside a region are taken and mapped to its fiber ID. 
 //! They all lie (independent of their real coverage) to 100% inside the region
 //! Regions without fibers have no entry
@@ -357,5 +435,62 @@ double iAVROctree::calculateDistanceOctCenterToFiber()
 	}
 
 	return maxLength;
+}
+
+//! Calculates which cubes a ray would traverse in x, y, z direction in an straight line
+//! The corresponding vector consists of an vector for each projection on an plane (x,y,z) and each grid cell.
+//! The start grid cells depend on the origin Point of the Plane drawn in iAVRMetrics.
+//! For each cell a list of all traversed cubes is stored. Attention: In case a cube could not be splitted in later octree levels 
+//! the list will contain this region multiple times.
+void iAVROctree::calculateRayThroughCubeRow()
+{
+	double bounds[6];
+	m_octree->GetBounds(bounds);
+
+	int rowSize = pow(2, getLevel());
+	int rowSizeMinus1 = rowSize - 1;
+	std::vector<std::forward_list<vtkIdType>> row = std::vector<std::forward_list<vtkIdType>>(rowSize);
+	std::vector<std::vector<std::forward_list<vtkIdType>>> column = std::vector<std::vector<std::forward_list<vtkIdType>>>(rowSize, row);
+	m_regionsInLine = new std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>>(3, column);
+
+	double xMin = bounds[0];
+	double xMax = bounds[1];
+	double xRange = xMax - xMin;
+	double xSteps = xRange / rowSize;
+
+	double yMin = bounds[2];
+	double yMax = bounds[3];
+	double yRange = yMax - yMin;
+	double ySteps = yRange / rowSize;
+
+	double zMin = bounds[4];
+	double zMax = bounds[5];
+	double zRange = zMax - zMin;
+	double zSteps = zRange / rowSize;
+
+	int columnCount = 0;
+	for (int y = yMin + ySteps; y < yMax; y += ySteps)
+	{
+		int rowCount = 0;
+		for (int x = xMin + xSteps; x < xMax; x += xSteps)
+		{
+			int depthCount = 0;
+
+			for (int z = zMin + zSteps; z < zMax; z += zSteps)
+			{
+				vtkIdType region = m_octree->GetRegionContainingPoint(x - (xSteps / 2), y - (ySteps / 2), z - (zSteps / 2));
+
+				//x direction
+				m_regionsInLine->at(0).at(columnCount).at(rowCount).push_front(region); 
+				//y direction
+				m_regionsInLine->at(1).at(rowSizeMinus1 - rowCount).at(rowSizeMinus1 - depthCount).push_front(region); 
+				//z direction
+				m_regionsInLine->at(2).at(columnCount).at(rowSizeMinus1 - depthCount).push_front(region);
+				depthCount++;
+			}	
+			rowCount++;
+		}
+		columnCount++;
+	}
 }
 

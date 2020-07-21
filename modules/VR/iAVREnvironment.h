@@ -49,7 +49,6 @@ private:
 	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<iAVRInteractor> m_interactor;
 	vtkSmartPointer<vtkSkybox> skyboxActor;
-	vtkSmartPointer<vtkActor> floorActor;
 
 	void createSkybox(int skyboxImage);
 	vtkSmartPointer<vtkTexture> ReadCubeMap(std::string const& folderPath,

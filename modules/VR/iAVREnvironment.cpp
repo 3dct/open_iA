@@ -39,7 +39,7 @@ m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New())
 {	
 	createSkybox(1);
 	createLightKit();
-	m_renderer->SetShowFloor(true);
+	//m_renderer->SetShowFloor(true);
 }
 
 vtkRenderer* iAVREnvironment::renderer()

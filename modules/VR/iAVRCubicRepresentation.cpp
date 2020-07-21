@@ -31,6 +31,7 @@
 #include "vtkProperty.h"
 #include "vtkMatrix4x4.h"
 #include "vtkCubeSource.h"
+#include "iAVR3DText.h"
 
 iAVRCubicRepresentation::iAVRCubicRepresentation(vtkRenderer* ren) :m_renderer(ren), m_actor(vtkSmartPointer<vtkActor>::New()), m_activeActor(vtkSmartPointer<vtkActor>::New())
 {
@@ -130,10 +131,11 @@ vtkSmartPointer<vtkPolyData> iAVRCubicRepresentation::getDataSet()
 	return m_cubePolyData;
 }
 
-//! This Method returns the closest cell of the MiM which gets intersected by a ray  
+//! This Method returns the closest cell of the Cube which gets intersected by a ray  
 vtkIdType iAVRCubicRepresentation::getClosestCellID(double pos[3], double eventOrientation[3])
 {
 	vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
+	cellPicker->AddPickList(m_actor);
 
 	if (cellPicker->Pick3DRay(pos, eventOrientation, m_renderer) >= 0)
 	{
@@ -246,6 +248,7 @@ void iAVRCubicRepresentation::redrawHighlightedGlyphs()
 //! It also calculates the region size and adds the scalar array for it
 void iAVRCubicRepresentation::calculateStartPoints()
 {
+	int count = 0;
 	vtkSmartPointer<vtkPoints> cubeStartPoints = vtkSmartPointer<vtkPoints>::New();
 	m_cubePolyData = vtkSmartPointer<vtkPolyData>::New();
 
@@ -260,11 +263,17 @@ void iAVRCubicRepresentation::calculateStartPoints()
 		double centerPoint[3];
 		m_octree->calculateOctreeRegionCenterPos(i, centerPoint);
 
+		//iAVR3DText text = iAVR3DText(m_renderer);
+		//text.create3DLabel(QString("Region %1").arg(i));
+		//text.setLabelPos(centerPoint);
+		//if(m_octree->getLevel() == 2) text.show();
+
 		//If regions have no coverage resize this 'empty' cube to zero
 		if (!m_fiberCoverage->at(m_octree->getLevel()).at(i)->empty()){
 			double regionSize[3];
 			m_octree->calculateOctreeRegionSize(i, regionSize);
 			glyphScales->InsertNextTuple3(regionSize[0], regionSize[1], regionSize[2]);
+			count++;
 		}
 		else
 		{
@@ -272,7 +281,7 @@ void iAVRCubicRepresentation::calculateStartPoints()
 		}
 		cubeStartPoints->InsertNextPoint(centerPoint[0], centerPoint[1], centerPoint[2]);
 	}
-
+	
 	m_cubePolyData->SetPoints(cubeStartPoints);
 	m_cubePolyData->GetPointData()->SetScalars(glyphScales);
 }

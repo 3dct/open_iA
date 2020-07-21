@@ -480,6 +480,12 @@ void iAVRMain::mapAllPointiDsAndCalculateFiberCoverage()
 	m_volume->setFiberCoverageData(m_fiberCoverage);
 	m_modelInMiniature->setFiberCoverageData(m_fiberCoverage);
 	fiberMetrics->setFiberCoverageData(m_fiberCoverage);
+
+	for (int level = 1; level < m_octrees->size(); level++)
+	{
+		m_octrees->at(level)->getRegionsInLineOfRay();
+	}
+
 	DEBUG_LOG(QString("Volume Data loaded and Intersection test finished"));
 	m_iDMappingThreadRunning = false; //Thread ended
 }
@@ -840,6 +846,7 @@ void iAVRMain::calculateMetrics()
 	//Gets only called when thread is finished
 	if(!m_iDMappingThreadRunning){
 		fiberMetrics->hideColorBarLegend();
+		fiberMetrics->hideMIPPanels();
 
 		std::vector<QColor>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature, 1);
 
@@ -851,6 +858,8 @@ void iAVRMain::calculateMetrics()
 			m_3DTextLabels->at(1)->create3DLabel(text);
 
 			fiberMetrics->setLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
+
+			fiberMetrics->createMIPPanels(currentOctreeLevel, currentFeature);
 		}
 	}
 }
@@ -869,84 +878,6 @@ void iAVRMain::colorMiMCubes(std::vector<vtkIdType>* regionIDs)
 	}
 }
 
-void iAVRMain::drawFloor()
-{
-	vtkSmartPointer<vtkActor> floorActor = vtkSmartPointer<vtkActor>::New();
-	floorActor->PickableOff();
-
-	//vtkSmartPointer<vtkPolyDataMapper> pdm = vtkSmartPointer<vtkPolyDataMapper>::New();
-	//floorActor->SetMapper(pdm);
-
-	double bounds[6];
-	m_octrees->at(currentOctreeLevel)->getOctree()->GetBounds(bounds);
-
-	double xMin = bounds[0];
-	double xMax = bounds[1];
-	double yMin = bounds[2];
-	double yMax = bounds[3];
-	double zMin = bounds[4];
-	double zMax = bounds[5];
-
-	vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
-	//pdm->SetInputConnection(plane->GetOutputPort());
-
-	int gridSize = pow(2, currentOctreeLevel);
-
-	plane->SetXResolution(gridSize);
-	plane->SetYResolution(gridSize);
-	plane->SetOrigin(xMin, yMin, zMax);
-	plane->SetPoint1(xMax, yMin, zMax);
-	plane->SetPoint2(xMin, yMax, zMax);
-
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	mapper->SetInputConnection(plane->GetOutputPort());
-	mapper->SetScalarModeToUseCellData();
-	mapper->Update();
-
-	floorActor->SetMapper(mapper);
-	floorActor->GetProperty()->EdgeVisibilityOn();
-	floorActor->GetProperty()->SetLineWidth(3);
-	m_vrEnv->renderer()->AddActor(floorActor);
-
-	//vtkNew<vtkTransform> tf;
-	//tf->Identity();
-	//floorActor->SetUserTransform(tf);
-
-	//vtkNew<vtkTexture> texture;
-	//floorActor->SetTexture(texture);
-
-	//// build a grid fading off in the distance
-	//vtkNew<vtkImageCanvasSource2D> grid;
-	//grid->SetScalarTypeToUnsignedChar();
-	//grid->SetNumberOfScalarComponents(4);
-	//grid->SetExtent(0, 511, 0, 511, 0, 0);
-	//int divisions = m_octrees->at(currentOctreeLevel)->getNumberOfLeafeNodes()/4;
-	//int divSize = 512 / divisions;
-	//double alpha = 1.0;
-	//for (int i = 0; i < divisions; i++)
-	//{
-	//	for (int j = 0; j < divisions; j++)
-	//	{
-	//		if(j%2 == 0) grid->SetDrawColor(255, 50, 50, 255 * alpha);
-	//		else grid->SetDrawColor(255, 255, 255, 255 * alpha);
-	//		grid->FillBox(i * divSize, (i + 1) * divSize - 1, j * divSize, (j + 1) * divSize - 1);
-	//		grid->SetDrawColor(230, 230, 230, 255 * alpha);
-	//		grid->DrawSegment(i * divSize, j * divSize, (i + 1) * divSize - 1, j * divSize);
-	//		grid->DrawSegment(i * divSize, j * divSize, i * divSize, (j + 1) * divSize - 1);
-	//	}
-	//}
-
-	//double scale = m_vrEnv->interactor()->GetPhysicalScale();
-	//double *trans = m_vrEnv->interactor()->GetPhysicalTranslation(m_vrEnv->renderer()->GetActiveCamera());
-
-	//texture->SetInputConnection(grid->GetOutputPort());
-	//floorActor->SetUseBounds(false);
-	//floorActor->AddPosition(0, 0, -trans[2]);
-	////floorActor->AddPosition(-trans[0], -trans[1], -trans[2]);
-	////floorActor->SetScale(scale);
-	//m_vrEnv->renderer()->AddActor(floorActor);
-}
-
 //! Increases/Decreases the current octree level and feature. Recalculates the Model in Miniature Object.
 void iAVRMain::changeOctreeAndMetric()
 {
@@ -954,7 +885,6 @@ void iAVRMain::changeOctreeAndMetric()
 
 	if (touchpadPos == iAVRTouchpadPosition::Up || touchpadPos == iAVRTouchpadPosition::Down) {
 
-		QString text = QString("Octree Level %1").arg(currentOctreeLevel);
 		m_octrees->at(currentOctreeLevel)->hide(); // Hide old octree
 		m_volume->hide();
 		m_volume->hideRegionLinks();
@@ -971,6 +901,7 @@ void iAVRMain::changeOctreeAndMetric()
 			if (currentOctreeLevel > OCTREE_MIN_LEVEL)	currentOctreeLevel--;
 		}
 
+		QString text = QString("Octree Level %1").arg(currentOctreeLevel);
 		m_3DTextLabels->at(0)->create3DLabel(text);
 		m_3DTextLabels->at(0)->show();
 		m_3DTextLabels->at(1)->hide();
@@ -999,7 +930,6 @@ void iAVRMain::changeOctreeAndMetric()
 		m_3DTextLabels->at(1)->show();
 		m_3DTextLabels->at(0)->hide();
 	}
-
 	updateModelInMiniatureData();
 }
 
@@ -1024,8 +954,10 @@ void iAVRMain::pickFibersinRegion(double eventPosition[3], double eventOrientati
 {
 	vtkIdType cellID = m_modelInMiniature->getClosestCellID(eventPosition, eventOrientation);
 
-	if (cellID >= 0)
+	//ToDO current fiber cells instead of only region cells can be detected (use picking List?)
+	if (cellID >= 0 && cellID <= m_octrees->at(currentOctreeLevel)->getNumberOfLeafeNodes())
 	{
+		DEBUG_LOG(QString("Picked region %1 :").arg(cellID));
 		pickFibersinRegion(cellID);
 	}
 }
@@ -1035,8 +967,8 @@ void iAVRMain::pickFibersinRegion(int leafRegion)
 {
 	std::vector<size_t> selection = std::vector<size_t>();
 
-	//DEBUG_LOG(QString("Fibers in region %1 :").arg(leafRegion));
-	for (auto fiber : *m_fiberCoverage->at(currentOctreeLevel).at(leafRegion)){
+	
+	for (auto fiber : *m_fiberCoverage->at(currentOctreeLevel).at(leafRegion)) {
 		//DEBUG_LOG(QString("Nr. [%1]").arg(fiber.first));
 		selection.push_back(fiber.first);
 	}
@@ -1048,7 +980,6 @@ void iAVRMain::pickFibersinRegion(int leafRegion)
 
 	multiPickIDs->clear();
 	m_volume->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
-
 }
 
 void iAVRMain::pickMimRegion(double eventPosition[3], double eventOrientation[4])
@@ -1102,6 +1033,7 @@ void iAVRMain::resetSelection()
 		m_modelInMiniature->applyHeatmapColoring(rgba); //Reset Color
 		m_modelInMiniature->removeHighlightedGlyphs();
 		m_volume->removeHighlightedGlyphs();
+		fiberMetrics->hideMIPPanels();
 	}
 }
 
@@ -1184,6 +1116,7 @@ void iAVRMain::explodeMiM(int currentMiMDisplacementType, double offset)
 			m_volume->apply4RegionCubeOffset(offset);
 			break;
 		}
+		fiberMetrics->hideMIPPanels();
 		m_volume->createRegionLinks(fiberMetrics->getJaccardIndex(currentOctreeLevel));
 		m_volume->showRegionLinks();
 	}
