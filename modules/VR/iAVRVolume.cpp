@@ -22,6 +22,8 @@
 
 #include <iAConsole.h>
 #include <iA3DCylinderObjectVis.h>
+#include <iAVRMetrics.h>
+
 #include <vtkVariantArray.h>
 #include <vtkFloatArray.h>
 #include <vtkDataSet.h>
@@ -35,12 +37,15 @@
 #include <vtkTubeFilter.h>
 #include <vtkDoubleArray.h>
 #include <vtkUnsignedCharArray.h>
+#include <vtkCleanPolyData.h>
+#include <vtkCubeSource.h>
 
 iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io) :m_objectTable(objectTable), m_io(io), iAVRCubicRepresentation{ren}
 {
 	defaultColor = QColor(126, 0, 223, 255);
 	m_volumeActor = vtkSmartPointer<vtkActor>::New();
 	m_RegionLinksActor = vtkSmartPointer<vtkActor>::New();
+	m_RegionNodesActor = vtkSmartPointer<vtkActor>::New();
 
 	m_volumeVisible = false;
 	m_regionLinksVisible = false;
@@ -52,7 +57,7 @@ void iAVRVolume::resetVolume()
 {
 	m_cylinderVis = new iA3DCylinderObjectVis(m_renderer, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), std::map<size_t, std::vector<iAVec3f> >());
 	m_volumeActor = m_cylinderVis->getActor();
-	m_volumeActor->AddPosition(1,200,1);
+	//m_volumeActor->AddPosition(1,200,1);
 }
 
 void iAVRVolume::showVolume()
@@ -82,6 +87,7 @@ void iAVRVolume::showRegionLinks()
 		return;
 	}
 	m_renderer->AddActor(m_RegionLinksActor);
+	m_renderer->AddActor(m_RegionNodesActor);
 	m_regionLinksVisible = true;
 }
 
@@ -92,6 +98,7 @@ void iAVRVolume::hideRegionLinks()
 		return;
 	}
 	m_renderer->RemoveActor(m_RegionLinksActor);
+	m_renderer->RemoveActor(m_RegionNodesActor);
 	m_regionLinksVisible = false;
 }
 
@@ -278,13 +285,12 @@ void iAVRVolume::moveFibersbyAllCoveredRegions(double offset)
 	//m_octree->getOctree()->Modified();
 }
 
-void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric)
+void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions)
 {
-	double radiusFactor = 5.0;
-	double drawFactor = 0.3;
+	double drawFactor = 0;
 
 	vtkSmartPointer<vtkPoints> linePoints = vtkSmartPointer<vtkPoints>::New();
-	vtkSmartPointer<vtkPolyData> linePolyData = vtkSmartPointer<vtkPolyData>::New();
+	m_linePolyData = vtkSmartPointer<vtkPolyData>::New();
 	vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
 
 	int numbPoints = m_cubePolyData->GetNumberOfPoints();
@@ -315,8 +321,10 @@ void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>
 				l->GetPointIds()->SetId(0, pointID);
 				l->GetPointIds()->SetId(1, pointID+1);
 				lines->InsertNextCell(l);
-				tubeRadius->InsertNextTuple1(radius * radiusFactor);
-				tubeRadius->InsertNextTuple1(radius * radiusFactor);
+
+				double lineThicknessLog = iAVRMetrics::histogramNormalizationExpo(radius, 1, 9, 0, 1);
+				tubeRadius->InsertNextTuple1(lineThicknessLog);
+				tubeRadius->InsertNextTuple1(lineThicknessLog);
 
 				pointID+= 2;
 				//tubeRadius->SetTuple1(i, radius * radiusFactor);
@@ -325,15 +333,16 @@ void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>
 		}
 		
 	}
-	linePolyData->SetPoints(linePoints);
-	linePolyData->SetLines(lines);
+	m_linePolyData->SetPoints(linePoints);
+	m_linePolyData->SetLines(lines);
+
 	//linePolyData->GetCellData()->AddArray(tubeRadius);
 	//linePolyData->GetCellData()->SetActiveScalars("TubeRadius");
-	linePolyData->GetPointData()->AddArray(tubeRadius);
-	linePolyData->GetPointData()->SetActiveScalars("TubeRadius");
+	m_linePolyData->GetPointData()->AddArray(tubeRadius);
+	m_linePolyData->GetPointData()->SetActiveScalars("TubeRadius");
 
 	vtkSmartPointer<vtkTubeFilter> tubeFilter =	vtkSmartPointer<vtkTubeFilter>::New();
-	tubeFilter->SetInputData(linePolyData);
+	tubeFilter->SetInputData(m_linePolyData);
 	tubeFilter->SetNumberOfSides(8);
 	//tubeFilter->SetRadius(0.01);
 	tubeFilter->SidesShareVerticesOff();
@@ -353,4 +362,56 @@ void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>
 	//m_RegionLinksActor->GetProperty()->SetLineWidth(3);
 	m_RegionLinksActor->GetProperty()->SetColor(0.980, 0.607, 0);
 	//m_RegionLinksActor->GetProperty()->SetOpacity(0.7);
+
+	createRegionNodes(maxFibersInRegions);
+}
+
+void iAVRVolume::createRegionNodes(double maxFibersInRegions)
+{
+	vtkSmartPointer<vtkPolyData> regionNodes = vtkSmartPointer<vtkPolyData>::New();
+	regionNodes->ShallowCopy(m_cubePolyData);
+	//vtkSmartPointer<vtkCleanPolyData> cleanPolyData = vtkSmartPointer<vtkCleanPolyData>::New();
+	//cleanPolyData->SetInputData(m_linePolyData);
+	//cleanPolyData->Update();
+	//regionNodes = cleanPolyData->GetOutput();
+
+	vtkSmartPointer<vtkDoubleArray> nodeGlyphScales = vtkSmartPointer<vtkDoubleArray>::New();
+	nodeGlyphScales->SetName("scales");
+	nodeGlyphScales->SetNumberOfComponents(3);
+
+	DEBUG_LOG(QString(">\n"));
+
+	for (int p = 0; p < regionNodes->GetNumberOfPoints(); p++)
+	{
+		double fibersInRegion = (double)(m_fiberCoverage->at(m_octree->getLevel()).at(p)->size());	
+		double sizeLog = 0;
+		if(fibersInRegion > 0)
+		{
+			sizeLog = iAVRMetrics::histogramNormalizationExpo(fibersInRegion, 17, 130, 1, maxFibersInRegions);
+		}
+		nodeGlyphScales->InsertNextTuple3(sizeLog, sizeLog, sizeLog);
+	}
+
+	regionNodes->GetPointData()->SetScalars(nodeGlyphScales);
+	//regionNodes->GetPointData()->AddArray(glyphColor);
+
+	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+	
+	vtkSmartPointer<vtkGlyph3D> nodeGlyph3D = vtkSmartPointer<vtkGlyph3D>::New();
+	nodeGlyph3D->SetSourceConnection(cubeSource->GetOutputPort());
+	nodeGlyph3D->SetInputData(regionNodes);
+	nodeGlyph3D->SetScaleModeToScaleByScalar();
+
+	// Create a mapper and actor
+	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	glyphMapper->SetInputConnection(nodeGlyph3D->GetOutputPort());
+
+	m_RegionNodesActor->SetMapper(glyphMapper);
+	//m_RegionNodesActor->GetMapper()->ScalarVisibilityOn();
+	//m_RegionNodesActor->GetMapper()->SetScalarModeToUsePointFieldData();
+	//m_RegionNodesActor->GetMapper()->SelectColorArray("colors");
+	m_RegionNodesActor->GetMapper()->ScalarVisibilityOff();
+	m_RegionNodesActor->GetProperty()->SetColor(0.95, 0.32, 0);
+	m_RegionNodesActor->PickableOff();
+	m_RegionNodesActor->Modified();
 }

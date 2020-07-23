@@ -56,6 +56,7 @@ m_octrees(octrees)
 	m_calculatedStatistic = new std::vector<std::vector<std::vector<double>>>(m_octrees->size(), feature);
 	m_maxCoverage = new std::vector<std::vector<std::vector<vtkIdType>>>();
 	m_jaccardValues = new std::vector<std::vector<std::vector<double>>>(m_octrees->size());
+	m_maxNumberOffibersInRegions = new std::vector<double>();
 
 	mipPlanes = std::vector<vtkPolyData*>();
 
@@ -360,11 +361,11 @@ void iAVRMetrics::setLegendTitle(QString title)
 	titleTextSource->SetInput(title.toUtf8());
 }
 
-std::vector<std::vector<std::vector<double>>>* iAVRMetrics::getJaccardIndex(int level)
+std::vector<std::vector<std::vector<double>>>* iAVRMetrics::getWeightedJaccardIndex(int level)
 {
 	if(m_jaccardValues->at(level).empty())
 	{
-		calculateJaccardIndex(level);
+		calculateJaccardIndex(level, true);
 		return m_jaccardValues;
 	}
 	else
@@ -435,11 +436,30 @@ void iAVRMetrics::hideMIPPanels()
 	m_renderer->RemoveActor(mipPanel);
 }
 
+double iAVRMetrics::getMaxNumberOfFibersInRegion(int level)
+{
+	if (m_maxNumberOffibersInRegions->empty())
+	{
+		calculateMaxNumberOfFibersInRegion();
+	}
+
+	return m_maxNumberOffibersInRegions->at(level);
+}
+
 
 double iAVRMetrics::histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax)
 {
 	double result = ((newMax - newMin) * ((value - oldMin) / (oldMax - oldMin))) + newMin;
 	return result;
+}
+
+double iAVRMetrics::histogramNormalizationExpo(double value, double newMin, double newMax, double oldMin, double oldMax)
+{
+	newMin = log(newMin);
+	newMax = log(newMax);
+
+	double result = ((newMax - newMin) * ((value - oldMin) / (oldMax - oldMin))) + newMin;
+	return exp(result);
 }
 
 void iAVRMetrics::storeMinMaxValues()
@@ -539,7 +559,7 @@ void iAVRMetrics::findBiggestCoverage(int level, int fiber)
 	}
 }
 
-void iAVRMetrics::calculateJaccardIndex(int level)
+void iAVRMetrics::calculateJaccardIndex(int level, bool weighted)
 {
 	for (int region = 0; region < m_fiberCoverage->at(level).size(); region++)
 	{
@@ -554,10 +574,22 @@ void iAVRMetrics::calculateJaccardIndex(int level)
 
 		for (int region2 = 0; region2 < m_fiberCoverage->at(level).size(); region2++)
 		{
-			auto index = calculateJaccardIndex(level, region, region2);
+			double index = 0;
+
+			if(weighted)
+			{
+				//index = calculateWeightedJaccardIndex(level, region, region2);
+				index = calculateJaccardIndex(level, region, region2);
+			}
+			else
+			{
+				index = calculateJaccardIndex(level, region, region2);
+			}
+
 			m_jaccardValues->at(level).at(region).push_back(index);
 
-			//DEBUG_LOG(QString("jaccardValue for [%1][%2] is %3").arg(region).arg(region2).arg(m_jaccardValues->at(level).at(region).at(region2)));
+			//DEBUG_LOG(QString("jaccardValue for [%1][%2] is %3").arg(region).arg(region2).arg(test));
+			//DEBUG_LOG(QString("Weighted jaccardValue for [%1][%2] is %3\n").arg(region).arg(region2).arg(m_jaccardValues->at(level).at(region).at(region2)));
 		}
 	}
 }
@@ -590,6 +622,58 @@ double iAVRMetrics::calculateJaccardIndex(int level, int region1, int region2)
 	double jaccard_index = sizeintersection / (sizeRegion1 + sizeRegion2 - sizeintersection);
 
 	return jaccard_index;
+}
+
+//! Calculates the size of the intersection divided by the size of the union of the chosen regions
+//! Uses the coverage of each fiber from the intersection data as weights. Value lies between 0 and 1.
+//! Returns 1 if the region are the same
+double iAVRMetrics::calculateWeightedJaccardIndex(int level, int region1, int region2)
+{
+	if (region1 == region2) return 1.0;
+
+	auto fibersInRegion1 = m_fiberCoverage->at(level).at(region1);
+	auto fibersInRegion2 = m_fiberCoverage->at(level).at(region2);
+
+	double sizeRegion1 = fibersInRegion1->size();
+	double sizeRegion2 = fibersInRegion2->size();
+	double sizeShared = 0;
+
+	if (sizeRegion1 == 0 || sizeRegion2 == 0) return 0.0;
+
+	double fibersOfRegion1 = 0;
+	double fibersOfRegion2 = 0;
+	double sharedfibers = 0;
+
+	//Count in region 1 the shared fibers (to region2), save them combined and individual and then delete them...
+	for (auto fiber : *fibersInRegion1)
+	{
+		fibersOfRegion1 += fiber.second;
+
+		if (fibersInRegion2->count(fiber.first) == 1)
+		{
+			sizeShared++;
+			sharedfibers += fiber.second;
+			sharedfibers += fibersInRegion2->at(fiber.first);
+		}
+	}
+
+	if (sharedfibers == 0) return 0.0; // nothing in common
+
+	//.. then sum up the remaining
+	for (auto fiber : *fibersInRegion2)
+	{
+		fibersOfRegion2 += fiber.second;
+	}
+
+	//Divide to stay between 0 and 1
+	//sharedfibers = sharedfibers / sizeShared;
+	//fibersOfRegion1 = fibersOfRegion1 / sizeRegion1;
+	//fibersOfRegion2 = fibersOfRegion2 / sizeRegion2;
+
+	double weightedJaccard_index = sharedfibers / ((fibersOfRegion1 + fibersOfRegion2))/(sizeRegion1+ sizeRegion2);
+	//double weightedJaccard_index = sharedfibers / (fibersOfRegion1 + fibersOfRegion2 - sharedfibers);
+
+	return weightedJaccard_index;
 }
 
 //! Measures the dissimilarity (1 - jaccard index)
@@ -626,4 +710,20 @@ std::vector<QColor>* iAVRMetrics::calculateMIPColoring(int direction, int level,
 	}
 
 	return mipColors;
+}
+
+void iAVRMetrics::calculateMaxNumberOfFibersInRegion()
+{
+	for (int level = 0; level < m_octrees->size(); level++)
+	{
+		double numberOfFibers = 0;
+
+		for (int region = 0; region < m_fiberCoverage->at(level).size(); region++)
+		{
+			auto fibers = m_fiberCoverage->at(level).at(region)->size();
+
+			if (numberOfFibers < fibers) numberOfFibers = fibers;
+		}
+		m_maxNumberOffibersInRegions->push_back(numberOfFibers);
+	}
 }

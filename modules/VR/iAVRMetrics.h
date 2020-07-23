@@ -55,11 +55,13 @@ public:
 	void moveColorBarLegend(double *pos);
 	void rotateColorBarLegend(double x, double y, double z);
 	void setLegendTitle(QString title);
-	std::vector<std::vector<std::vector<double>>>* getJaccardIndex(int level);
+	std::vector<std::vector<std::vector<double>>>* getWeightedJaccardIndex(int level);
 	void createMIPPanels(int octreeLevel, int feature);
 	void hideMIPPanels();
+	double getMaxNumberOfFibersInRegion(int level);
 
-	
+	static double histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax);
+	static double histogramNormalizationExpo(double value, double newMin, double newMax, double oldMin, double oldMax);
 
 private:
 	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
@@ -72,6 +74,8 @@ private:
 	std::vector<std::vector<double>>* m_minMaxValues;
 	//Stores for the [octree level] in an [octree region] its Jaccard index to another [octree region]
 	std::vector<std::vector<std::vector<double>>>* m_jaccardValues;
+	//Stores for the [octree level] the max amount of fibers which lie in an octree region
+	std::vector<double>* m_maxNumberOffibersInRegions;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkActor> m_ColorBar;
@@ -89,13 +93,14 @@ private:
 	int numberOfFeatures;
 
 	void calculateWeightedAverage(int octreeLevel, int feature);
-	double histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax);
 	vtkSmartPointer<vtkLookupTable> calculateLUT(double min, double max, int tableSize);
 	void storeMinMaxValues();
 	void calculateMaxCoverageFiberPerRegion();
 	void findBiggestCoverage(int level, int fiber);
-	void calculateJaccardIndex(int level);
+	void calculateJaccardIndex(int level, bool weighted);
 	double calculateJaccardIndex(int level, int region1, int region2);
+	double calculateWeightedJaccardIndex(int level, int region1, int region2);
 	double calculateJaccardDistance(int level, int region1, int region2);
 	std::vector<QColor>* calculateMIPColoring(int direction, int level, int feature);
+	void calculateMaxNumberOfFibersInRegion();
 };

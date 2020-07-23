@@ -1033,7 +1033,7 @@ void iAVRMain::resetSelection()
 		m_modelInMiniature->applyHeatmapColoring(rgba); //Reset Color
 		m_modelInMiniature->removeHighlightedGlyphs();
 		m_volume->removeHighlightedGlyphs();
-		fiberMetrics->hideMIPPanels();
+		//fiberMetrics->hideMIPPanels();
 	}
 }
 
@@ -1078,7 +1078,7 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 
 void iAVRMain::explodeMiM(int currentMiMDisplacementType, double offset)
 {
-	if(modelInMiniatureActive)
+	if(modelInMiniatureActive && currentOctreeLevel > 0)
 	{
 		switch (m_style->getTouchedPadSide(touchPadPosition))
 		{
@@ -1089,10 +1089,14 @@ void iAVRMain::explodeMiM(int currentMiMDisplacementType, double offset)
 			offset = offset * -1;
 			break;
 		case iAVRTouchpadPosition::Left:
-			m_volume->hide();
+			m_volume->show();
+			m_volume->renderSelection(std::vector<size_t>(), 0, QColor(140, 140, 140, 255), nullptr);
+			m_volume->hideRegionLinks();
 			return;
 		case iAVRTouchpadPosition::Right:
-			m_volume->show();
+			m_volume->hide();
+			m_volume->renderSelection(std::vector<size_t>(1,0), 0, QColor(140, 140, 140, 32), nullptr);
+			m_volume->showRegionLinks();
 			return;
 		}
 
@@ -1109,7 +1113,8 @@ void iAVRMain::explodeMiM(int currentMiMDisplacementType, double offset)
 		case 1:
 			m_modelInMiniature->applyLinearCubeOffset(offset);
 			m_volume->applyLinearCubeOffset(offset);
-			m_volume->moveFibersbyAllCoveredRegions(offset);
+			m_volume->moveFibersByMaxCoverage(fiberMetrics->getMaxCoverageFiberPerRegion(), offset);
+			//m_volume->moveFibersbyAllCoveredRegions(offset);
 			break;
 		case 2:
 			m_modelInMiniature->apply4RegionCubeOffset(offset);
@@ -1117,8 +1122,7 @@ void iAVRMain::explodeMiM(int currentMiMDisplacementType, double offset)
 			break;
 		}
 		fiberMetrics->hideMIPPanels();
-		m_volume->createRegionLinks(fiberMetrics->getJaccardIndex(currentOctreeLevel));
-		m_volume->showRegionLinks();
+		m_volume->createRegionLinks(fiberMetrics->getWeightedJaccardIndex(currentOctreeLevel), fiberMetrics->getMaxNumberOfFibersInRegion(currentOctreeLevel));
 	}
 }
 

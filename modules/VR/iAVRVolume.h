@@ -50,16 +50,19 @@ public:
 	void createNewVolume(std::vector<size_t> fiberIDs);
 	void moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset);
 	void moveFibersbyAllCoveredRegions(double offset);
-	void createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric);
+	void createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions);
 
 private:
 	vtkSmartPointer<vtkActor> m_volumeActor;
 	vtkSmartPointer<vtkActor> m_RegionLinksActor;
+	vtkSmartPointer<vtkActor> m_RegionNodesActor;
 	iA3DCylinderObjectVis* m_cylinderVis;
 	vtkSmartPointer<vtkTable> m_objectTable;
+	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
 	std::unordered_multimap<vtkIdType, vtkIdType> m_csvIndexToPointID;
 	iACsvIO m_io;
 	bool m_volumeVisible;
 	bool m_regionLinksVisible;
+	void createRegionNodes(double maxFibersInRegions);
 };
