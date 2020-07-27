@@ -224,6 +224,7 @@ ELSE()
 		FiltersHybrid               # for vtkDepthSortPolyData used in 4DCT, DreamCaster, FeatureScout, vtkPolyDataSilhouette used in FeatureScout
 		FiltersStatistics           # for vtkDataSetSurfaceFilter used in BoneThickness - iABoneThickness
 		ImagingHybrid               # for vtkSampleFunction.h used in FeatureScout - iABlobCluster
+		InfovisLayout               # for vtkGraphLayoutStrategy used in CompVis
 		IOXML                       # for vtkXMLImageDataReader used in iAIO
 	)
 ENDIF()
