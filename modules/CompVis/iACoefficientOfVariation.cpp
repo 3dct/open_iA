@@ -1,5 +1,7 @@
 #include "iACoefficientOfVariation.h"
 
+#include "iACompHistogramTableData.h"
+
 //DEBUG
 #include "iAConsole.h"
 
@@ -12,14 +14,17 @@ iACoefficientOfVariation::iACoefficientOfVariation(iACsvDataStorage* dataStorage
 	m_minValForEachAttr(new std::vector<double>())
 {
 	initializeAttributeArray(m_inputData, m_attributeArray);
-	calculateVariationCoefficient();	
+	m_coeffOfVar = calculateVariationCoefficient(m_attributeArray);
 }
 
-std::vector<double>* iACoefficientOfVariation::recalculateCoefficentOfVariation(QList<csvFileData>* input)
+std::vector<double>* iACoefficientOfVariation::recalculateCoefficentOfVariation(csvDataType::ArrayType* selectedData)
 {
-	initializeAttributeArray(input, m_attributeArray);
-	calculateVariationCoefficient();
-	return getCoefficientOfVariation();
+	return calculateVariationCoefficient(selectedData);;
+}
+
+void iACoefficientOfVariation::initializeAttributeArray(csvDataType::ArrayType* selectedData, csvDataType::ArrayType* result)
+{
+	m_attributeArray = selectedData;
 }
 
 void iACoefficientOfVariation::initializeAttributeArray(QList<csvFileData>* input, csvDataType::ArrayType* result)
@@ -47,32 +52,50 @@ void iACoefficientOfVariation::initializeAttributeArray(QList<csvFileData>* inpu
 	}
 }
 
-void iACoefficientOfVariation::calculateVariationCoefficient()
+std::vector<double>* iACoefficientOfVariation::calculateVariationCoefficient(csvDataType::ArrayType* arrayOfAttributes)
 {	
-	for (int attrInd = 0; attrInd < m_attributeArray->size(); attrInd++) 
+	std::vector<double>* resultCoeff = new std::vector<double>();
+
+	for (int attrInd = 0; attrInd < arrayOfAttributes->size(); attrInd++)
 	{
-		std::vector<double>* currAttr = &(m_attributeArray->at(attrInd));
-		auto result = std::minmax_element(currAttr->begin(), currAttr->end());
-
-		m_maxValForEachAttr->push_back(*result.second);
-		m_minValForEachAttr->push_back(*result.first);
-
-		double mean = calculateMean(currAttr);
-		double standardDev = calculateStandardDeviation(currAttr, mean);
-		
-		double variationCoeff = (standardDev / mean);
 		double variationCoeffEmpirical;
 
-		if(mean == 0)
-		{
+		if (arrayOfAttributes->at(attrInd).size() == 0)
+		{//there are no values
 			variationCoeffEmpirical = 0;
-		}else
-		{
-			variationCoeffEmpirical = variationCoeff / std::sqrt(m_attributeArray->at(attrInd).size());
-		}
 
-		m_coeffOfVar->push_back(variationCoeffEmpirical);
+		}else if(arrayOfAttributes->at(attrInd).size() == 1)
+		{//there is only one value
+			variationCoeffEmpirical = 1;
+		}
+		else
+		{//real calculation with more than 1 value
+			std::vector<double>* currAttr = &(arrayOfAttributes->at(attrInd));
+			auto result = std::minmax_element(currAttr->begin(), currAttr->end());
+
+			m_maxValForEachAttr->push_back(*result.second);
+			m_minValForEachAttr->push_back(*result.first);
+
+			double mean = calculateMean(currAttr);
+			double standardDev = calculateStandardDeviation(currAttr, mean);
+
+			double variationCoeff = (standardDev / mean);
+			variationCoeffEmpirical;
+
+			if (mean == 0)
+			{
+				variationCoeffEmpirical = 0;
+			}
+			else
+			{
+				variationCoeffEmpirical = variationCoeff / std::sqrt(arrayOfAttributes->at(attrInd).size());
+			}
+		}
+	
+		resultCoeff->push_back(variationCoeffEmpirical);
 	}
+
+	return resultCoeff;
 }
 
 double iACoefficientOfVariation::calculateStandardDeviation(std::vector<double>* input, double mean)
@@ -100,9 +123,4 @@ double iACoefficientOfVariation::calculateMean(std::vector<double>* input)
 std::vector<double>* iACoefficientOfVariation::getCoefficientOfVariation()
 {
 	return m_coeffOfVar;
-}
-
-size_t iACoefficientOfVariation::getNumberofAttributes()
-{
-	return m_attributeArray->size();
 }

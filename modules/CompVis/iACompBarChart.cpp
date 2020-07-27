@@ -33,6 +33,7 @@ iACompBarChart::iACompBarChart(MainWindow* parent, iACoefficientOfVariation* coe
 	m_coeffVar(coeffVar),
 	m_dataStorage(dataStorage),
 	m_renderer(vtkSmartPointer<vtkRenderer>::New()),
+	chart(vtkSmartPointer<vtkChartXY>::New()),
 	orderedPositions(new std::vector<double>())
 {
 	//todo add interaction
@@ -67,7 +68,7 @@ iACompBarChart::iACompBarChart(MainWindow* parent, iACoefficientOfVariation* coe
 void iACompBarChart::showEvent(QShowEvent* event)
 {
 	// Set up a 2D scene, add an XY chart to it
-	vtkSmartPointer<vtkChartXY> chart = vtkSmartPointer<vtkChartXY>::New();
+	chart = vtkSmartPointer<vtkChartXY>::New();
 	m_view->GetScene()->AddItem(chart);
 
 	// Create table for data
@@ -151,11 +152,6 @@ void iACompBarChart::showEvent(QShowEvent* event)
 	this->renderWidget();	
 }
 
-void iACompBarChart::updateBarChart(std::vector<double>* coefficients)
-{
-	//TODO implement update!
-}
-
 std::vector<double>* iACompBarChart::changeInterval(std::vector<double>* input, double newMax, double newMin, double oldMax, double oldMin)
 {
 	std::vector<double>* result = new std::vector<double>(input->size(), 0);
@@ -221,7 +217,101 @@ void iACompBarChart::renderWidget()
 #endif
 }
 
+/******************************************  Getter Methods  **********************************************/
+
 std::vector<double>* iACompBarChart::getOrderedPositions()
 {
 	return orderedPositions;
+}
+
+std::vector<double>* iACompBarChart::getSelectedOrderedPositions()
+{
+	return selected_orderedPositions;
+}
+
+/******************************************  Update Methods  **********************************************/
+
+void iACompBarChart::updateBarChart(std::vector<double>* coefficientsOriginal)
+{
+	std::vector<double>* coefficientsSelected = new std::vector<double>();
+
+	if(coefficientsOriginal->size() == 0)
+	{ // no data -> draw empty bar chart
+
+		for(int i = 0; i < attrNames->size(); i++)
+		{
+			coefficientsSelected->push_back(0);
+		}
+
+	}else
+	{
+		//delete label column
+		coefficientsOriginal->erase(coefficientsOriginal->begin());
+
+		//change interval from [0,1] to [0,100]
+		coefficientsSelected = changeInterval(coefficientsOriginal, 100.0, 0.0, 1.0, 0.0);
+	}
+
+	selected_orderedPositions = sortWithMemory(coefficientsSelected);
+
+	// Create table for data
+	char* coeffName = "Coefficients";
+	char* indName = "Indices";
+	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
+	table->AddColumn(getIndexArray(coefficientsSelected, indName));
+	table->AddColumn(vectorToVtkDataArray(coefficientsSelected, coeffName));
+
+	//update chart
+	vtkPlotBar *bar = vtkPlotBar::SafeDownCast(chart->GetPlot(0));
+	bar->SetInputData(table);
+	bar->Modified();
+
+	//labels on bottom axis
+	vtkSmartPointer<vtkDoubleArray> labelInd = vtkSmartPointer<vtkDoubleArray>::New();
+	vtkSmartPointer<vtkStringArray> labelStrings = vtkSmartPointer<vtkStringArray>::New();
+
+	for (int i = 0; i < coefficientsSelected->size(); i++)
+	{
+		labelInd->InsertNextValue(i + 1); //start with 1 so that the first bar is not drawn inside y-axis
+		labelStrings->InsertNextValue(attrNames->at(selected_orderedPositions->at(i)).toStdString());
+	}
+
+	vtkAxis *axisBottom = chart->GetAxis(vtkAxis::BOTTOM);
+	axisBottom->SetCustomTickPositions(labelInd, labelStrings);
+	axisBottom->Modified();
+
+	chart->Update();
+	renderWidget();
+}
+
+void iACompBarChart::resetBarChart()
+{
+	// Create table for data
+	char* coeffName = "Coefficients";
+	char* indName = "Indices";
+	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
+	table->AddColumn(getIndexArray(coefficients, indName));
+	table->AddColumn(vectorToVtkDataArray(coefficients, coeffName));
+
+	//update chart
+	vtkPlotBar *bar = vtkPlotBar::SafeDownCast(chart->GetPlot(0));
+	bar->SetInputData(table);
+	bar->Modified();
+
+	//labels on bottom axis
+	vtkSmartPointer<vtkDoubleArray> labelInd = vtkSmartPointer<vtkDoubleArray>::New();
+	vtkSmartPointer<vtkStringArray> labelStrings = vtkSmartPointer<vtkStringArray>::New();
+
+	for (int i = 0; i < coefficients->size(); i++)
+	{
+		labelInd->InsertNextValue(i + 1); //start with 1 so that the first bar is not drawn inside y-axis
+		labelStrings->InsertNextValue(attrNames->at(orderedPositions->at(i)).toStdString());
+	}
+
+	vtkAxis *axisBottom = chart->GetAxis(vtkAxis::BOTTOM);
+	axisBottom->SetCustomTickPositions(labelInd, labelStrings);
+	axisBottom->Modified();
+
+	chart->Update();
+	renderWidget();
 }

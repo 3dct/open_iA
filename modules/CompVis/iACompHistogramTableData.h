@@ -26,7 +26,7 @@ struct bin
 class iACompHistogramTableData
 {
    public:
-	iACompHistogramTableData(iAMultidimensionalScaling* mds);
+	iACompHistogramTableData(iAMultidimensionalScaling* mds, iACsvDataStorage* dataStorage);
 	//returns the bin datastructure for all datasets
 	QList<bin::BinType*>* getBinData();
 	//returns the value of the maximum value in the whole dataset
@@ -35,6 +35,9 @@ class iACompHistogramTableData
 	double getMinVal();
 	//returns the maximum amount of numbers in all bins --> i.e. there are maximum 5 values in one bin
 	int getMaxAmountInAllBins();
+
+	//get the fibers stored per bin per dataset/(row)
+	QList<std::vector<csvDataType::ArrayType*>*>* getObjectsPerBin();
 	
 	//calcualtes the bin datastructure for all datasets/rows
 	QList<bin::BinType*>* calculateBins(int numberOfBins);
@@ -49,6 +52,8 @@ class iACompHistogramTableData
 
 	//conatins the calcuation of the Multdimensional Scaling
 	iAMultidimensionalScaling* m_mds;
+	iACsvDataStorage* m_dataStorage;
+
 	//maximum value in all datasets
 	double m_maxVal;
 	//minimum value in all datasets
@@ -62,7 +67,13 @@ class iACompHistogramTableData
 	//i.e. dataset_1 stores 10 objects...
 	std::vector<int>* amountObjectsEveryDataset;
 	//array where the size of the rows is not always the same
-	csvDataType::ArrayType* datasets;
+	bin::BinType* datasets;
+	
 	//stores the bin data for all datasets
+	//contains the values of the MDS
 	QList<bin::BinType*>* binData;
+
+	//stores the fiber ids for all datasets according to their bin
+	//contains the attributes of the selected objects (fibers,...) like Id,...
+	QList<std::vector<csvDataType::ArrayType*>*>* binDataObjects;
 };

@@ -1,4 +1,5 @@
 #include "iACompHistogramTableInteractorStyle.h"
+#include <vtkObjectFactory.h> //for macro!
 
 //Debug
 #include "iAConsole.h"
@@ -8,7 +9,6 @@
 #include "iACompVisMain.h"
 
 //VTK
-#include <vtkObjectFactory.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSmartPointer.h>
@@ -43,8 +43,8 @@
 //Qt
 #include <QDockWidget>
 
-//testing
-#include <vtkCoordinate.h>
+
+#include <tuple>
 
 
 vtkStandardNewMacro(iACompHistogramTableInteractorStyle);
@@ -56,6 +56,7 @@ iACompHistogramTableInteractorStyle::iACompHistogramTableInteractorStyle() :
 	m_zoomLevel(1),
 	m_actorPicker(vtkSmartPointer<vtkPropPicker>::New())
 {
+	m_actorPicker->SetPickFromList(true);
 }
 
 void iACompHistogramTableInteractorStyle::OnKeyPress()
@@ -82,7 +83,7 @@ void iACompHistogramTableInteractorStyle::OnKeyRelease()
 
 			//forward update to all other charts
 			updateOtherCharts();
-
+			
 			//change in histogram table
 			m_visualization->drawLinearZoom(m_picked, m_visualization->getBins(), m_visualization->getBinsZoomed(), m_zoomedRowData);
 
@@ -163,6 +164,8 @@ void iACompHistogramTableInteractorStyle::OnLeftButtonDown()
 
 		m_controlBinsInZoomedRows = false;
 		m_visualization->drawHistogramTable(m_visualization->getBins());
+
+		resetOtherCharts();
 	}
 }
 
@@ -174,9 +177,35 @@ void iACompHistogramTableInteractorStyle::OnMiddleButtonDown()
 
 void iACompHistogramTableInteractorStyle::OnRightButtonDown()
 {
-	DEBUG_LOG("Pressed right mouse button.");
-	// Forward events
-	//vtkInteractorStyleTrackballCamera::OnRightButtonDown();
+	
+	setPickList(m_visualization->getOriginalRowActors());
+
+	int* pos = this->GetInteractor()->GetEventPosition();
+	/*this->FindPokedRenderer(pos[0], pos[1]);
+	auto currentRenderer = this->GetDefaultRenderer();
+	if (currentRenderer == nullptr)
+	{
+		return;
+	}
+	
+	DEBUG_LOG("Here");
+
+	if (((pos[0] >= currentRenderer->GetSize()[0]) || (pos[1] >= currentRenderer->GetSize()[1])))
+	{
+		return;
+	}
+*/
+
+	//int is = m_actorPicker->Pick(pos[0], pos[1], 0, currentRenderer)
+	int is = m_actorPicker->Pick(pos[0], pos[1], 0, m_visualization->getRenderer());
+
+	if (is != 0)
+	{
+		vtkSmartPointer<vtkActor> pickedA = m_actorPicker->GetActor();
+		m_visualization->highlightSelectedRow(pickedA);
+
+		m_visualization->drawHistogramTableAccordingToSimilarity(m_visualization->getBins(), pickedA);
+	}
 }
 
 void iACompHistogramTableInteractorStyle::OnMouseWheelForward()
@@ -308,8 +337,57 @@ void iACompHistogramTableInteractorStyle::setIACompVisMain(iACompVisMain* main)
 
 void iACompHistogramTableInteractorStyle::updateOtherCharts()
 {
-	m_zoomedRowData = m_visualization->getSelectedData(m_picked);
-	m_main->updateOtherCharts();
+	QList<bin::BinType*>* zoomedRowDataMDS;
+	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes;
+	
+	//calculate the fiberIds per selected cells & the mds values per selected cells
+	std::tie(zoomedRowDataMDS, selectedObjectAttributes) = m_visualization->getSelectedData(m_picked);
+	m_zoomedRowData = zoomedRowDataMDS;
+
+	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
+	csvDataType::ArrayType* selectedData = formatPickedObjects(selectedObjectAttributes);
+
+	std::map<int, std::vector<double>>* pickStatistic = calculatePickedObjects(zoomedRowDataMDS);
+
+	m_main->updateOtherCharts(selectedData, pickStatistic);
+}
+
+std::map<int, std::vector<double>>* iACompHistogramTableInteractorStyle::calculatePickedObjects(QList<bin::BinType*>* zoomedRowData)
+{
+	std::map<int, std::vector<double>>* statisticForDatasets = new std::map<int, std::vector<double>>();
+
+	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
+	//get number of all object in this dataset
+	std::vector<int>* amountObjectsEveryDataset = m_visualization->getAmountObjectsEveryDataset();
+
+	for(int i = 0; i < zoomedRowData->size(); i++)
+	{
+		std::vector<double> container = std::vector<double>(2, 0);
+		double totalNumber = 0;
+		double pickedNumber = 0;
+
+		//get total number of object of the picked dataset
+		totalNumber = amountObjectsEveryDataset->at(indexOfPickedRows->at(i));
+
+		//get number of picked objects
+		bin::BinType* bins = zoomedRowData->at(i);
+		for (int binInd = 0; binInd < bins->size(); binInd++)
+		{ //sum over all bins to get amount of picked objects
+			pickedNumber += bins->at(binInd).size();
+		}
+
+		container.at(0) = totalNumber;
+		container.at(1) = pickedNumber;
+
+		statisticForDatasets->insert({ indexOfPickedRows->at(i), container});
+	}
+
+	return statisticForDatasets;
+}
+
+void iACompHistogramTableInteractorStyle::resetOtherCharts()
+{	
+	m_main->resetOtherCharts();
 }
 
 void iACompHistogramTableInteractorStyle::setPickList(std::vector<vtkSmartPointer<vtkActor>>* originalRowActors)
@@ -321,5 +399,75 @@ void iACompHistogramTableInteractorStyle::setPickList(std::vector<vtkSmartPointe
 		m_actorPicker->AddPickList(originalRowActors->at(i));
 	}
 
-	m_actorPicker->SetPickFromList(true);
+	//m_actorPicker->SetPickFromList(true);
+}
+
+csvDataType::ArrayType* iACompHistogramTableInteractorStyle::formatPickedObjects(QList<std::vector<csvDataType::ArrayType*>*>* zoomedRowData)
+{
+	csvDataType::ArrayType* result = new csvDataType::ArrayType();
+
+	/*DEBUG_LOG("++++++++++++++++++++++++");
+	//DEBUG
+	for (int i = 0; i < zoomedRowData->size(); i++)
+	{ //datasets
+		for (int k = 0; k < zoomedRowData->at(i)->size(); k++)
+		{ //bins
+
+			csvDataType::ArrayType* data = zoomedRowData->at(i)->at(k);
+
+			for (int j = 0; j < data->size(); j++)
+			{
+				DEBUG_LOG("fiberLabelId = " + QString::number(data->at(j).at(0)) + " --> at Bin: " + QString::number(k));
+			}
+
+		}
+	}
+	DEBUG_LOG("++++++++++++++++++++++++");*/
+
+	//TODO recalculate attribute array with correct values!!!
+	int amountDatasets = zoomedRowData->size();
+
+	if(amountDatasets == 0 || (zoomedRowData->at(0)->size() == 0) || (zoomedRowData->at(0)->at(0)->size() == 0))
+	{ //when selecting empty cell
+		return result;
+	}
+
+	int amountAttributes = zoomedRowData->at(0)->at(0)->at(0).size();
+
+	for (int attrInd = 0; attrInd < amountAttributes; attrInd++)
+	{ //for all attributes
+		std::vector<double> attr = std::vector<double>();
+
+		for (int datasetInd = 0; datasetInd < amountDatasets; datasetInd++)
+		{ //for the datasets that were picked
+			int amountBins = zoomedRowData->at(datasetInd)->size();
+			//DEBUG_LOG("amountBins = " + QString::number(amountBins));
+
+			for (int binId = 0; binId < amountBins; binId++)
+			{ //for the bins that were picked
+
+				int amountVals = zoomedRowData->at(datasetInd)->at(binId)->size();
+				//DEBUG_LOG("Fibers = " + QString::number(amountVals));
+
+				for (int objInd = 0; objInd < amountVals; objInd++)
+				{
+					csvDataType::ArrayType* vals = zoomedRowData->at(datasetInd)->at(binId);
+					attr.push_back(vals->at(objInd).at(attrInd));
+
+					//DEBUG_LOG("Attribute " + QString::number(attrInd) + " with " + QString::number(vals->at(objInd).at(attrInd)) + " values");
+				}
+			}
+		}
+
+		result->push_back(attr);
+	}
+
+	//DEBUG
+	/*for (int i = 0; i < result->size(); i++)
+	{
+		std::vector<double> attr = result->at(i);
+		DEBUG_LOG("Attr " + QString::number(i) + " has " + QString::number(attr.size()) + " fibers");
+	}*/
+
+	return result;
 }

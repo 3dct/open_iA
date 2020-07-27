@@ -40,6 +40,16 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	iACompHistogramTable(MainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* m_dataStorage, iACompVisMain* main);
 	void showEvent(QShowEvent* event);
 
+	//draw Histogram table according to the similiarity values calculated for a picked row
+	void drawHistogramTableAccordingToSimilarity(int bins, vtkSmartPointer<vtkActor> referenceData);
+	//draw Histogram table with rows ordered ascending to its amount of objects
+	void drawHistogramTableInAscendingOrder(int bins);
+	//draw Histogram table with rows ordered descending to its amount of objects
+	void drawHistogramTableInDescendingOrder(int bins);
+	//draw Histogram table with rows ordered according to loading the datasets
+	void drawHistogramTableInOriginalOrder(int bins);
+
+	//draw initial Histogram Table
 	void drawHistogramTable(int bins);
 	
 	//draws the selected row and bins
@@ -63,6 +73,9 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	const int getMinBins();
 	const int getMaxBins();
 
+	std::vector<int>* getIndexOfPickedRows();
+	std::vector<int>* getAmountObjectsEveryDataset();
+
 	//return the actors representing the original rows
 	std::vector<vtkSmartPointer<vtkActor>>* getOriginalRowActors();
 
@@ -70,13 +83,16 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	vtkSmartPointer<vtkRenderer> getRenderer();
 	//re-render the widget/visualization
 	void renderWidget();
-
-	QList<bin::BinType*>* getSelectedData(Pick::PickedMap* map);
+	
+	//get the selected dataset with its MDS values
+	// and the selected dataset with its object IDs
+	std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> getSelectedData(Pick::PickedMap* map);
 	//highlight the selected cells with an outline
 	void highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId);
+	void highlightSelectedRow(vtkSmartPointer<vtkActor> pickedActor);
 	//dehighlight the selected cells with an outline 
 	//(necessary that the renderer only contains the datarows for further calculations)
-	void iACompHistogramTable::removeHighlightedCells();
+	void removeHighlightedCells();
 
    private:
 	//calculate the histogram datastructure
@@ -89,7 +105,6 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	void colorRowForZoom(vtkUnsignedCharArray* colors, int currBin, bin::BinType* data, int amountOfBins);
 	void colorBinsOfRow(vtkUnsignedCharArray* colors, bin::BinType* data, int amountOfBins);
 
-	
 
 	//create the histogramTable visualization
 	void initializeHistogramTable();
@@ -103,9 +118,16 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	std::string iACompHistogramTable::initializeLegendLabels(std::string input);
 	//create the interactionstyle
 	void initializeInteraction();
+	//initialize the order of the datasets from the last to the first
+	void initializeOrderOfIndices();
 
 	//round the value to a certain decimal
 	double round_up(double value, int decimal_places);
+	//sorts the input vector according to the given orderStyle ascending(0) or descending(1)
+	std::vector<int>* sortWithMemory(std::vector<int> input, int orderStyle);
+	std::vector<int>* sortWithMemory(std::vector<double> input, int orderStyle);
+	std::vector<int>* reorderAccordingTo(std::vector<int>* newPositions);
+	double calculateChiSquaredMetric(bin::BinType* observedFrequency, bin::BinType* expectedFrequency);
 
 	//draw each row from bottom to top --> the higher the column number, the further on the top it is drawn
 	//currDataInd: contains the index to the current datastructure
@@ -136,7 +158,6 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 
 	//calculate the height and width each row can have to fit into the screen
 	void calculateRowWidthAndHeight(double width, double heigth, double numberOfDatasets);
-
 
 	iACompVisMain* m_main;
 	iACsvDataStorage* m_dataStorage;
@@ -186,7 +207,7 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	std::vector<vtkSmartPointer<vtkActor>>* m_zoomedPlaneActors;
 
 	std::map<vtkSmartPointer<vtkActor>, std::vector< vtkSmartPointer<vtkActor> >* >* originalPlaneZoomedPlanePair;
-	std::map<vtkSmartPointer<vtkActor>, int>* originalPlaneIndexPair;
+	
 
 	//stores the actors added to display the border of the selected cells
 	//have to be removed before any calculation for zooming can take place!
@@ -204,5 +225,16 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	//the first entry is the most upper row that was selected, the ordering is then descending.
 	//each entry has as many bins as cells were selected for this row
 	QList<bin::BinType*>* m_zoomedRowData;
+
+	//stores the order of the indices of each dataset
+	//each dataset has an index between 0 and amountOfDatasets-1
+	//initially the last dataset is stored first, descendingly
+	std::vector<int>* m_orderOfIndicesDatasets;
+	//stores for each row which dataset is currently drawn inside
+	std::map<vtkSmartPointer<vtkActor>, int>* m_rowDataIndexPair;
+
+	//stores the ORIGINAL order of the indices of each dataset
+	std::vector<int>* m_originalOrderOfIndicesDatasets;
+	
 
 };

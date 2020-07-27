@@ -35,7 +35,17 @@
     </property>
     <addaction name="actionRecalculateMDS"/>
    </widget>
+   <widget class="QMenu" name="menuOrdering">
+    <property name="title">
+     <string>Ordering</string>
+    </property>
+    <addaction name="actionAscending_to_Number_of_Objects"/>
+    <addaction name="actionDescending_to_Number_of_Objects"/>
+    <addaction name="separator"/>
+    <addaction name="actionAs_Loaded"/>
+   </widget>
    <addaction name="menuMDS"/>
+   <addaction name="menuOrdering"/>
   </widget>
   <action name="actionRecalculateMDS">
    <property name="text">
@@ -43,6 +53,21 @@
    </property>
    <property name="toolTip">
     <string>Recalculate Multdimensional Scaling</string>
+   </property>
+  </action>
+  <action name="actionAscending_to_Number_of_Objects">
+   <property name="text">
+    <string>Ascending to Number of Objects</string>
+   </property>
+  </action>
+  <action name="actionDescending_to_Number_of_Objects">
+   <property name="text">
+    <string>Descending to Number of Objects</string>
+   </property>
+  </action>
+  <action name="actionAs_Loaded">
+   <property name="text">
+    <string>As Loaded</string>
    </property>
   </action>
  </widget>
