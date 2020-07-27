@@ -159,3 +159,27 @@ iAVRTouchpadPosition iAVRInteractorStyle::getTouchedPadSide(float position[3])
 
 	return iAVRTouchpadPosition::Unknown;
 }
+
+iAVRViewDirection iAVRInteractorStyle::getViewDirection(double viewDir[3])
+{
+	double maxVal = 0;
+	int maxDir = -1;
+
+	for (int i = 0; i < 3; i++)
+	{
+		if(maxVal < abs(viewDir[i]))
+		{
+			maxVal = abs(viewDir[i]);
+			maxDir = i;
+		}
+	}
+
+	if (maxDir == 0 && viewDir[maxDir] > 0) return iAVRViewDirection::Right;
+	if (maxDir == 0 && viewDir[maxDir] < 0) return iAVRViewDirection::Left;
+	if (maxDir == 1 && viewDir[maxDir] > 0) return iAVRViewDirection::Up;
+	if (maxDir == 1 && viewDir[maxDir] < 0) return iAVRViewDirection::Down;
+	if (maxDir == 2 && viewDir[maxDir] > 0) return iAVRViewDirection::Backwards;
+	if (maxDir == 2 && viewDir[maxDir] < 0) return iAVRViewDirection::Forward;
+
+	return iAVRViewDirection::Unknown;
+}

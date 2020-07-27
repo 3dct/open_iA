@@ -20,54 +20,31 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAVRCubicRepresentation.h"
-#include "iACsvIO.h"
-
-#include <vtkTable.h>
-
-#include <QStandardItem>
-
-#include <unordered_map>
-
+#include <vtkSmartPointer.h>
+#include <vtkRenderer.h>
+#include <vtkSliderWidget.h>
+#include <vtkSliderRepresentation3D.h>
 #include <vtkRenderWindowInteractor.h>
 
-class iA3DCylinderObjectVis;
+#include <QString>
 
-//! Class which represents the rendered volume
-class iAVRVolume: public iAVRCubicRepresentation
+//! Creates 3D Sliders in the VR Environment
+class iAVRSlider
 {
 public:
-	iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io);
-	void resetVolume();
-	void showVolume();
-	void hideVolume();
-	void createCubeModel() override;
-	void showRegionLinks();
-	void hideRegionLinks();
-	vtkSmartPointer<vtkActor> getVolumeActor();
-	void setMappers(std::unordered_map<vtkIdType, vtkIdType> pointIDToCsvIndex, std::unordered_multimap<vtkIdType, vtkIdType> csvIndexToPointID);
-	vtkSmartPointer<vtkPolyData> getVolumeData();
-	void renderSelection(std::vector<size_t> const& sortedSelInds, int classID, QColor const& classColor, QStandardItem* activeClassItem);
-	void createNewVolume(std::vector<size_t> fiberIDs);
-	void moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset);
-	void moveFibersbyAllCoveredRegions(double offset);
-	void createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions);
-	void filterRegionLinks();
-	double getJaccardFilterVal();
+	iAVRSlider(vtkRenderer* ren, vtkRenderWindowInteractor* interactor);
+	void createSlider(double minValue, double maxValue, QString title = "Slider");
+	void show();
+	void hide();
+	void setPosition(double x, double y, double z);
+	void setTitel(QString title);
+	void setValue(double val);
+	double getValue();
 
 private:
-	vtkSmartPointer<vtkActor> m_volumeActor;
-	vtkSmartPointer<vtkActor> m_RegionLinksActor;
-	vtkSmartPointer<vtkActor> m_RegionNodesActor;
-	iA3DCylinderObjectVis* m_cylinderVis;
-	vtkSmartPointer<vtkTable> m_objectTable;
-	vtkSmartPointer<vtkPolyData> m_linePolyData;
-	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
-	std::unordered_multimap<vtkIdType, vtkIdType> m_csvIndexToPointID;
-	iACsvIO m_io;
-	bool m_volumeVisible;
-	bool m_regionLinksVisible;
-	double m_regionLinkDrawRadius;
-
-	void createRegionNodes(double maxFibersInRegions);
+	vtkSmartPointer<vtkRenderer> m_renderer;
+	vtkSmartPointer<vtkRenderWindowInteractor> m_interactor;
+	vtkSmartPointer<vtkSliderRepresentation3D> m_sliderRep;
+	vtkSmartPointer<vtkSliderWidget> m_sliderWidget;
+	bool m_visible;
 };

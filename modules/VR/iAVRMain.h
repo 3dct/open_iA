@@ -62,12 +62,14 @@ enum class iAVROperations {
   ResetSelection,
   ExplodeMiM,
   ChangeMiMDisplacementType,
+  ChangeRegionLinks,
   NumberOfOperations
 };
 
 class iAVRModelInMiniature;
 class iAVROctree; 
 class iAVRInteractorStyle;
+class iAVRSlider;
 
 //!
 class iAVRMain
@@ -89,6 +91,7 @@ private:
 	vtkSmartPointer<vtkTable> m_objectTable;
 
 	std::vector<iAVR3DText*>* m_3DTextLabels;
+	iAVRSlider* m_slider;
 	iAVRDashboard* m_dashboard;
 	iACsvIO m_io;
 	iAVRMetrics* fiberMetrics;
@@ -101,6 +104,8 @@ private:
 	double cOrie[vtkEventDataNumberOfDevices][4];
 	//Current Focal Point
 	double focalPoint[3];
+	//Current view direction of the head
+	int viewDirection;
 	//Current touchpad Position
 	float touchPadPosition[3];
 	// Active Input Saves the current applied Input in case Multiinput is requires
@@ -127,6 +132,7 @@ private:
 	vtkIdType getObjectiD(vtkIdType polyPoint);
 	vtkIdType mapSinglePointiD(vtkIdType polyPoint);
 	bool checkEqualArrays(float pos1[3], float pos2[3]);
+	bool checkEqualArrays(double pos1[3], double pos2[3]);
 	void setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation);
 	int getOptionForObject(vtkProp3D* pickedProp);
 	void addPropToOptionID(vtkProp3D* prop, iAVRInteractionOptions iD);
@@ -138,7 +144,6 @@ private:
 	void calculateMetrics();
 	void updateModelInMiniatureData();
 	void colorMiMCubes(std::vector<vtkIdType>* regionIDs);
-	void drawFloor();
 
 	//# Methods for interaction #//
 	void changeOctreeAndMetric();

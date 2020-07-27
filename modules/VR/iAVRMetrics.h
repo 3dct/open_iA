@@ -57,6 +57,7 @@ public:
 	void setLegendTitle(QString title);
 	std::vector<std::vector<std::vector<double>>>* getWeightedJaccardIndex(int level);
 	void createMIPPanels(int octreeLevel, int feature);
+	void createSingleMIPPanel(int octreeLevel, int feature, int viewDir);
 	void hideMIPPanels();
 	double getMaxNumberOfFibersInRegion(int level);
 

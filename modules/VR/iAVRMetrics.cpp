@@ -21,6 +21,7 @@
 #include "iAVRMetrics.h"
 
 #include <iAConsole.h>
+
 #include <vtkVariant.h>
 #include <vtkProperty2D.h>
 #include <vtkTextProperty.h>
@@ -396,7 +397,7 @@ void iAVRMetrics::createMIPPanels(int octreeLevel, int feature)
 		plane->SetOrigin(planePoints->at(i).at(0).data());
 		plane->SetPoint1(planePoints->at(i).at(1).data());
 		plane->SetPoint2(planePoints->at(i).at(2).data());
-		plane->Push(600 * direction[i]);
+		plane->Push(620 * direction[i]);
 		plane->Update();
 
 		vtkSmartPointer<vtkUnsignedCharArray> colorData = vtkSmartPointer<vtkUnsignedCharArray>::New();
@@ -422,13 +423,62 @@ void iAVRMetrics::createMIPPanels(int octreeLevel, int feature)
 	mipPanel = vtkSmartPointer<vtkActor>::New();
 	mipPanel->SetMapper(mapper);
 	mipPanel->PickableOff();
+	mipPanel->GetProperty()->SetOpacity(0.65);
 	mipPanel->GetProperty()->EdgeVisibilityOn();
 	mipPanel->GetProperty()->SetLineWidth(4);
 	
 	m_renderer->AddActor(mipPanel);
+}
 
-	//double scale = m_vrEnv->interactor()->GetPhysicalScale();
-	//double *trans = m_vrEnv->interactor()->GetPhysicalTranslation(m_vrEnv->renderer()->GetActiveCamera());
+//! Creates a plane for the MIP Projection for the current viewed direction
+//! The plane cells start at the lower left cell depending on the origin Point of the Plane
+void iAVRMetrics::createSingleMIPPanel(int octreeLevel, int feature, int viewDir)
+{
+	hideMIPPanels();
+
+	int gridSize = pow(2, octreeLevel);
+	double direction[6] = { 1,1,-1,-1,-1,1 }; //normals
+	int viewPlane[6] = { 0,2,0,2,1,1 }; //x,y,z
+
+	std::vector<std::vector<iAVec3d>>* planePoints = new std::vector<std::vector<iAVec3d>>();
+	m_octrees->at(octreeLevel)->createOctreeBoundingBoxPlanes(planePoints);
+
+	vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
+	plane->SetXResolution(gridSize);
+	plane->SetYResolution(gridSize);
+	plane->SetOrigin(planePoints->at(viewDir).at(0).data());
+	plane->SetPoint1(planePoints->at(viewDir).at(1).data());
+	plane->SetPoint2(planePoints->at(viewDir).at(2).data());
+	plane->Push(610 * direction[viewDir]);
+	plane->Update();
+
+	vtkSmartPointer<vtkUnsignedCharArray> colorData = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	colorData->SetName("colors");
+	colorData->SetNumberOfComponents(4);
+
+	std::vector<QColor>* col = calculateMIPColoring(viewPlane[viewDir], octreeLevel, feature);
+	//for (int region = 0; region < m_fiberCoverage->at(octreeLevel).size(); region++)
+	for (int gridCell = 0; gridCell < gridSize * gridSize; gridCell++)
+	{
+		colorData->InsertNextTuple4(col->at(gridCell).red(), col->at(gridCell).green(), col->at(gridCell).blue(), col->at(gridCell).alpha());
+	}
+
+	plane->GetOutput()->GetCellData()->SetScalars(colorData);
+
+	mipPlanes.push_back(plane->GetOutput());
+	
+
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputData(plane->GetOutput());
+
+	mipPanel = vtkSmartPointer<vtkActor>::New();
+	mipPanel->SetMapper(mapper);
+	mipPanel->PickableOff();
+	mipPanel->GetProperty()->SetOpacity(0.65);
+	mipPanel->GetProperty()->EdgeVisibilityOn();
+	mipPanel->GetProperty()->SetLineWidth(4);
+
+	m_renderer->AddActor(mipPanel);
 }
 
 void iAVRMetrics::hideMIPPanels()

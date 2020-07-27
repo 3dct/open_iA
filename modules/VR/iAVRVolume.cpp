@@ -40,6 +40,7 @@
 #include <vtkCleanPolyData.h>
 #include <vtkCubeSource.h>
 
+
 iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io) :m_objectTable(objectTable), m_io(io), iAVRCubicRepresentation{ren}
 {
 	defaultColor = QColor(126, 0, 223, 255);
@@ -49,6 +50,7 @@ iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io) :m_o
 
 	m_volumeVisible = false;
 	m_regionLinksVisible = false;
+	m_regionLinkDrawRadius = 0.9;
 
 	resetVolume();
 }
@@ -287,8 +289,6 @@ void iAVRVolume::moveFibersbyAllCoveredRegions(double offset)
 
 void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions)
 {
-	double drawFactor = 0;
-
 	vtkSmartPointer<vtkPoints> linePoints = vtkSmartPointer<vtkPoints>::New();
 	m_linePolyData = vtkSmartPointer<vtkPolyData>::New();
 	vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
@@ -312,7 +312,8 @@ void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>
 		for (int j = i + 1; j < numbPoints; j++)
 		{
 			radius = similarityMetric->at(m_octree->getLevel()).at(i).at(j);
-			if (radius > drawFactor)
+			
+			if (radius > m_regionLinkDrawRadius)
 			{
 				linePoints->InsertNextPoint(m_cubePolyData->GetPoint(i));
 				linePoints->InsertNextPoint(m_cubePolyData->GetPoint(j));
@@ -327,8 +328,6 @@ void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>
 				tubeRadius->InsertNextTuple1(lineThicknessLog);
 
 				pointID+= 2;
-				//tubeRadius->SetTuple1(i, radius * radiusFactor);
-				//tubeRadius->SetTuple1(j, radius * radiusFactor);
 			}
 		}
 		
@@ -379,8 +378,6 @@ void iAVRVolume::createRegionNodes(double maxFibersInRegions)
 	nodeGlyphScales->SetName("scales");
 	nodeGlyphScales->SetNumberOfComponents(3);
 
-	DEBUG_LOG(QString(">\n"));
-
 	for (int p = 0; p < regionNodes->GetNumberOfPoints(); p++)
 	{
 		double fibersInRegion = (double)(m_fiberCoverage->at(m_octree->getLevel()).at(p)->size());	
@@ -414,4 +411,18 @@ void iAVRVolume::createRegionNodes(double maxFibersInRegions)
 	m_RegionNodesActor->GetProperty()->SetColor(0.95, 0.32, 0);
 	m_RegionNodesActor->PickableOff();
 	m_RegionNodesActor->Modified();
+}
+
+//! Cycles between values from 0.9 to 0
+void iAVRVolume::filterRegionLinks()
+{
+	double step = 0.18;
+
+	m_regionLinkDrawRadius -= step;
+	if (m_regionLinkDrawRadius <= 0) m_regionLinkDrawRadius = 0.9;
+}
+
+double iAVRVolume::getJaccardFilterVal()
+{
+	return m_regionLinkDrawRadius;
 }

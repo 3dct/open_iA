@@ -18,65 +18,80 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAVRSlider.h"
 
-#include <vtkOpenVRInteractorStyle.h>
-#include <vtkSmartPointer.h>
-#include "vtkEventData.h"
-#include "iAVRMain.h"
+#include <iAConsole.h>
 
-#define NUMBER_OF_DEVICES static_cast<int>(vtkEventDataDevice::NumberOfDevices)
-#define NUMBER_OF_INPUTS static_cast<int>(vtkEventDataDeviceInput::NumberOfInputs)
-#define NUMBER_OF_ACTIONS static_cast<int>(vtkEventDataAction::NumberOfActions)
-#define NUMBER_OF_OPTIONS static_cast<int>(iAVRInteractionOptions::NumberOfInteractionOptions)
-
-using inputScheme = std::vector < std::vector < std::vector<std::vector<int>>>>;
-
-// Enumeration for Touchpad positions
-enum class iAVRTouchpadPosition {
-	Unknown = -1,
-	Up,
-	Right,
-	Down,
-	Left
-};
-
-// Enumeration for head view directions
-enum class iAVRViewDirection {
-	Unknown = -1,
-	Backwards,
-	Right,
-	Forward,
-	Left,
-	Down,
-	Up
-};
-
-//! Base Class for specific interaction callbacks
-class iAVRInteractorStyle : public vtkOpenVRInteractorStyle
+iAVRSlider::iAVRSlider(vtkRenderer* ren, vtkRenderWindowInteractor* interactor) : m_renderer(ren), m_interactor(interactor)
 {
-   public:
-	static iAVRInteractorStyle* New();
-	vtkTypeMacro(iAVRInteractorStyle, vtkOpenVRInteractorStyle);
+	m_sliderRep = vtkSmartPointer<vtkSliderRepresentation3D>::New();
+	m_sliderWidget = vtkSmartPointer<vtkSliderWidget>::New();
 
-	void setVRMain(iAVRMain* vrMain);
-	void OnButton3D(vtkEventData* edata) override;
-	void OnMove3D(vtkEventData* edata) override;
+	m_sliderWidget->SetInteractor(m_interactor);
+	m_sliderWidget->SetRepresentation(m_sliderRep);
+	m_sliderWidget->EnabledOn();
+	m_interactor->Start();
 
-	inputScheme* getInputScheme();	// returns the vector for the Operation definition
-	std::vector<int>* getActiveInput(); //if >0 then has an action applied
-	iAVRTouchpadPosition getTouchedPadSide(float position[3]);
-	iAVRViewDirection getViewDirection(double viewDir[3]);
+	m_visible = false;
+}
 
-   protected:
-	iAVRInteractorStyle();
+void iAVRSlider::createSlider(double minValue, double maxValue, QString title)
+{
+	
+	m_sliderRep->SetMinimumValue(minValue);
+	m_sliderRep->SetMaximumValue(maxValue);
+	m_sliderRep->SetTitleText(title.toUtf8());
+	m_sliderRep->SetTubeWidth(0.06);
+	m_sliderRep->SetSliderWidth(0.1);
+	//m_sliderRep->SetEndCapWidth(0.15);
+	m_sliderRep->SetSliderLength(0.06);
+	//m_sliderRep->SetEndCapLength(0.03);
+	m_sliderWidget->SetAnimationModeToAnimate();
+	
+}
 
-   private:
-	iAVRMain* m_vrMain;
-	double m_eventPosition[3];
-	double m_eventOrientation[4];
-	double m_movePosition[3];
-	inputScheme* m_inputScheme;
-	std::vector<int>* m_activeInput;
+void iAVRSlider::show()
+{
+	if (m_visible)
+	{
+		return;
+	}
+	m_sliderWidget->EnabledOn();
+	m_visible = true;
+}
 
-};
+void iAVRSlider::hide()
+{
+	if (!m_visible)
+	{
+		return;
+	}
+	m_sliderWidget->EnabledOff();
+	m_visible = false;
+}
+
+void iAVRSlider::setPosition(double x, double y, double z)
+{
+	double length = 110.0;
+	double shift = length / 2.0;
+
+	m_sliderRep->GetPoint1Coordinate()->SetCoordinateSystemToWorld();
+	m_sliderRep->GetPoint1Coordinate()->SetValue(x - shift, y, z);
+	m_sliderRep->GetPoint2Coordinate()->SetCoordinateSystemToWorld();
+	m_sliderRep->GetPoint2Coordinate()->SetValue(x + shift, y, z);
+}
+
+void iAVRSlider::setTitel(QString title)
+{
+	m_sliderRep->SetTitleText(title.toUtf8());
+}
+
+void iAVRSlider::setValue(double val)
+{
+	m_sliderRep->SetValue(val);
+}
+
+double iAVRSlider::getValue()
+{
+	return m_sliderRep->GetValue();
+}
