@@ -27,6 +27,7 @@
 
 #ifndef NDEBUG
 #include "iAToolsITK.h"
+#include "iAPerformanceHelper.h" // TODO
 #endif
 
 #include <vtkImageData.h>
@@ -175,6 +176,16 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 #endif
 	}
 
+#ifndef NDEBUG
+	int numThreads;
+#pragma omp parallel
+	{
+#pragma omp single
+		numThreads = omp_get_num_threads();
+	}
+	DEBUG_LOG(QString::number(numThreads) + " threads available");
+#endif
+
 	// Calculate means
 	vnl_vector<double> means;
 	means.set_size(numInputs);
@@ -237,7 +248,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 	vnl_matrix<double> eye(numInputs, numInputs); // (eye)dentity matrix
 	eye.set_identity();
 	DEBUG_LOG_MATRIX(innerProd, "Inner product");
-	DEBUG_LOG_MATRIX(eye, "Identity");
+	//DEBUG_LOG_MATRIX(eye, "Identity");
 	vnl_generalized_eigensystem evecs_evals_innerProd(innerProd, eye);
 	auto evecs_innerProd = evecs_evals_innerProd.V;
 	evecs_innerProd.fliplr(); // Flipped because VNL sorts eigenvectors in ascending order
@@ -256,6 +267,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 	}
 
 	// Transform images to principal components
+
 	for (int row_i = 0; row_i < numInputs; row_i++) {
 		for (int vec_i = 0; vec_i < numOutputs; vec_i++) {
 			auto evec_elem = evecs_innerProd[row_i][vec_i];
@@ -309,6 +321,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 		region.SetSize(itkImg0->GetLargestPossibleRegion().GetSize());
 		region.SetIndex(itkImg0->GetLargestPossibleRegion().GetIndex());
 		output->SetRegions(region);
+		output->SetSpacing(itkImg0->GetSpacing());
 		output->Allocate();
 		auto ite = itk::ImageRegionIterator<ImageType>(output, region);
 

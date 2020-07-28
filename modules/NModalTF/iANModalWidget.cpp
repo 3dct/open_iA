@@ -72,7 +72,7 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 	connect(buttonRefreshModalities, SIGNAL(clicked()), this, SLOT(onButtonRefreshModalitiesClicked()));
 
 	connect(m_labelsWidget, SIGNAL(labelOpacityChanged(int)), this, SLOT(onLabelOpacityChanged(int)));
-	connect(m_labelsWidget, SIGNAL(labelRemoverStateChanged(int)), this, SLOT(onLabelRemoverStateChanged(int)));
+	//connect(m_labelsWidget, &iANModalLabelsWidget::labelRemoverStateChanged, this, &iANModalWidget::onLabelRemoverStateChanged);
 
 	connect(m_c, SIGNAL(allSlicersInitialized()), this, SLOT(onAllSlicersInitialized()));
 	connect(m_c, SIGNAL(allSlicersReinitialized()), this, SLOT(onAllSlicersReinitialized()));
@@ -98,12 +98,25 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 		// TODO do not proceed
 	}
 
-	m_c->setModalities(output.modalities);
+
+	//auto modList = QSharedPointer<iAModalityList>(new iAModalityList());
+	auto modList = QList<QSharedPointer<iAModality>>();
+	int numMods = output.modalities.size();
+	for (auto mod : output.modalities) {
+		//modList->add(mod);
+		m_mdiChild->modalitiesDockWidget()->addModality(mod->image(), mod->name());
+		auto modNew = m_mdiChild->modality(numMods++);
+		modList.append(modNew);
+	}
+	//m_mdiChild->setModalities(modList);
+
+	//m_c->setModalities(output.modalities);
+	m_c->setModalities(modList);
 	m_c->initialize();
 }
 
 void iANModalWidget::onButtonRefreshModalitiesClicked() {
-	auto list = m_mdiChild->modalities();
+	/*auto list = m_mdiChild->modalities();
 	QList<QSharedPointer<iAModality>> modalities;
 	for (int i = 0; i < list->size(); i++) {
 		modalities.append(list->get(i));
@@ -112,7 +125,7 @@ void iANModalWidget::onButtonRefreshModalitiesClicked() {
 	auto output = m_preprocessor->preprocess(modalities);
 
 	m_c->setModalities(output.modalities);
-	m_c->reinitialize();
+	m_c->reinitialize();*/
 }
 
 namespace {

@@ -52,6 +52,7 @@ public:
 	void initialize();
 
 	int countModalities();
+	bool setMask(vtkSmartPointer<vtkImageData> mask);
 	bool setModalities(QList<QSharedPointer<iAModality>> modalities);
 	void reinitialize();
 
@@ -72,6 +73,8 @@ private:
 	void _initializeMainSlicers();
 	bool _checkModalities(QList<QSharedPointer<iAModality>> modalities);
 	bool _matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2);
+	void _updateMainSlicers();
+
 	QList<QSharedPointer<iAModality>> m_modalities;
 	QMap<int, QSharedPointer<iAModality>> m_mapOverlayImageId2modality;
 	QList<uint> m_channelIds;
@@ -87,8 +90,6 @@ private:
 
 	QSet<iANModalSeed> m_seeds;
 	int m_maxLabelId = -1;
-
-	void resetTf();
 
 	void applyVolumeSettings();
 

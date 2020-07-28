@@ -43,7 +43,6 @@ namespace {
 			return inputModalities;
 		}
 	};
-
 	class PassthroughBackgroundRemover : public iANModalBackgroundRemover {
 		vtkSmartPointer<vtkImageData> removeBackground(QList<QSharedPointer<iAModality>>) {
 			return nullptr;
@@ -65,7 +64,7 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPoint
 	groupModalities(modalities, groups);
 	modalities = chooseGroup(groups);
 
-	// Step 1: Dimensionality reduction 1
+	// Step 1: Dimensionality reduction
 	modalities = chooseModalityReducer()->reduce(modalities);
 	if (modalities.empty()) {
 		// TODO
@@ -77,7 +76,7 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPoint
 
 	// TODO set modality voxel to zero everywhere where mask is 1
 
-	// Step 3: Dimensionality reduction 2
+	// Step 3: Dimensionality reduction (again!)
 	// TODO
 
 	output.modalities = modalities;

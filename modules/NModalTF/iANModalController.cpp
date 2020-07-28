@@ -33,6 +33,7 @@
 #include "iAChannelData.h"
 #include "mdichild.h"
 //#include "iAChartWithFunctionsWidget.h" // Why doesn't it work?
+#include "dlg_modalities.h"
 
 #include <vtkImageData.h>
 #include <vtkColorTransferFunction.h>
@@ -236,12 +237,12 @@ inline void iANModalController::_initializeCombinedVol() {
 	m_combinedVolRenderer->AddVolume(m_combinedVol);
 	//m_combinedVolRenderer->ResetCamera();
 
-	/*for (int i = 0; i < countModalities(); ++i) {
+	for (int i = 0; i < countModalities(); ++i) {
 		QSharedPointer<iAVolumeRenderer> renderer = m_modalities[i]->renderer();
 		if (renderer && renderer->isRendered())
 			renderer->remove();
 	}
-	m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);*/
+	m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);
 }
 
 inline void iANModalController::applyVolumeSettings() {
@@ -306,12 +307,18 @@ bool iANModalController::_matchModalities(QSharedPointer<iAModality> m1, QShared
 	return true;
 }
 
+bool iANModalController::setMask(vtkSmartPointer<vtkImageData> mask) {
+	return false;
+}
+
 bool iANModalController::setModalities(QList<QSharedPointer<iAModality>> modalities) {
 	if (!_checkModalities(modalities)) {
 		return false;
 	}
 
-	for (auto modality : m_modalities) {
+	
+
+	for (auto modality : modalities) {
 		double range[2];
 		modality->image()->GetScalarRange(range);
 		double min = range[0];
@@ -327,14 +334,9 @@ bool iANModalController::setModalities(QList<QSharedPointer<iAModality>> modalit
 		tf->opacityTF()->AddPoint(min, 0.0);
 		tf->opacityTF()->AddPoint(max, 0.0);
 	}
-	resetTf();
 
 	m_modalities = modalities;
 	return true;
-}
-
-void iANModalController::resetTf() {
-
 }
 
 void iANModalController::updateLabel(iANModalLabel label) {
@@ -362,8 +364,10 @@ void iANModalController::updateLabels(QList<iANModalLabel> labelsList) {
 			auto opacityTf = modality->transfer()->opacityTF();
 
 			auto label = labels[seed.labelId];
-			auto c = label.color;
 			auto o = label.opacity;
+			auto c = o == 0
+				? QColor(0, 0, 0)
+				: label.color;
 
 			//DEBUG_LOG("updating at " + QString::number(seed.scalar));
 
@@ -424,6 +428,7 @@ void iANModalController::removeSeeds(QList<iANModalSeed> seeds) {
 }
 
 void iANModalController::removeSeeds(int labelId) {
+	// raises an exception. TODO fix!
 	for (auto seed : m_seeds) {
 		if (seed.labelId == labelId) {
 			auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
@@ -437,7 +442,101 @@ void iANModalController::removeSeeds(int labelId) {
 }
 
 void iANModalController::update() {
+	m_mdiChild->redrawHistogram();
 	m_mdiChild->renderer()->update();
+	_updateMainSlicers();
+}
+
+void iANModalController::_updateMainSlicers() {
+	// TODO
+	/*
+	iASlicer* slicerArray[] = {
+		m_mdiChild->slicer(iASlicerMode::YZ),
+		m_mdiChild->slicer(iASlicerMode::XY),
+		m_mdiChild->slicer(iASlicerMode::XZ)
+	};
+
+	for (int mainSlicerIndex = 0; mainSlicerIndex < 3; mainSlicerIndex++) {
+
+		auto slicer = slicerArray[mainSlicerIndex];
+
+		vtkSmartPointer<vtkImageData> slicersColored[3];
+		vtkSmartPointer<vtkImageData> slicerInput[3];
+		vtkPiecewiseFunction* slicerOpacity[3];
+		for (int modalityIndex = 0; modalityIndex < m_numOfMod; modalityIndex++) {
+			auto channel = slicer->channel(m_channelID[modalityIndex]);
+			slicer->setChannelOpacity(m_channelID[modalityIndex], 0);
+
+			// This changes everytime the TF changes!
+			auto imgMod = channel->reslicer()->GetOutput();
+			slicerInput[modalityIndex] = imgMod;
+			slicerOpacity[modalityIndex] = channel->opacityTF();
+
+			// Source: https://vtk.org/Wiki/VTK/Examples/Cxx/Images/ImageMapToColors
+			// This changes everytime the TF changes!
+			auto scalarValuesToColors = vtkSmartPointer<vtkImageMapToColors>::New(); // Will it work?
+			//scalarValuesToColors->SetLookupTable(channel->m_lut);
+			scalarValuesToColors->SetLookupTable(channel->colorTF());
+			scalarValuesToColors->SetInputData(imgMod);
+			scalarValuesToColors->Update();
+			slicersColored[modalityIndex] = scalarValuesToColors->GetOutput();
+		}
+		auto imgOut = m_slicerImages[mainSlicerIndex];
+
+		// if you want to try out alternative using buffers below, start commenting out here
+		auto w = getWeights();
+		FOR_VTKIMG_PIXELS(imgOut, x, y, z) {
+
+			float modRGB[3][3];
+			float weight[3];
+			float weightSum = 0;
+			for (int mod = 0; mod < m_numOfMod; ++mod)
+			{
+				// compute weight for this modality:
+				weight[mod] = w[mod];
+				if (m_checkBox_weightByOpacity->isChecked())
+				{
+					float intensity = slicerInput[mod]->GetScalarComponentAsFloat(x, y, z, 0);
+					double opacity = slicerOpacity[mod]->GetValue(intensity);
+					weight[mod] *= std::max(m_minimumWeight, opacity);
+
+				}
+				weightSum += weight[mod];
+				// get color of this modality:
+				for (int component = 0; component < 3; ++component)
+					modRGB[mod][component] = (mod >= m_numOfMod) ? 0
+					: slicersColored[mod]->GetScalarComponentAsFloat(x, y, z, component);
+			}
+			// "normalize" weights (i.e., make their sum equal to 1):
+			if (weightSum == 0)
+			{
+				for (int mod = 0; mod < m_numOfMod; ++mod)
+					weight[mod] = 1 / m_numOfMod;
+			}
+			else
+			{
+				for (int mod = 0; mod < m_numOfMod; ++mod)
+					weight[mod] /= weightSum;
+			}
+			// compute and set final color values:
+			for (int component = 0; component < 3; ++component)
+			{
+				float value = 0;
+				for (int mod = 0; mod < m_numOfMod; ++mod)
+					value += modRGB[mod][component] * weight[mod];
+				imgOut->SetScalarComponentFromFloat(x, y, z, component, value);
+			}
+			float a = 255; // Max alpha!
+			imgOut->SetScalarComponentFromFloat(x, y, z, 3, a);
+		}
+
+		// Sets the INPUT image which will be sliced again, but we have a sliced image already
+		//m_mdiChild->getSlicerDataYZ()->changeImageData(imgOut);
+		imgOut->Modified();
+		slicer->channel(0)->imageActor()->SetInputData(imgOut);
+	}
+	*/
+
 	for (int i = 0; i < 3; ++i) { // 3 hardcoded TODO improve
 		m_mdiChild->slicer(i)->update();
 	}
