@@ -216,7 +216,7 @@ ELSE()
 	# These components are apparently not pulled in automatically anymore in VTK >= 9
 	LIST (APPEND VTK_COMPONENTS
 		ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, PorosityAnalyzer
-		CommonColor                 # required for CompVis
+		CommonColor                 # for vtkNamedColors, vtkColorSeries, used in CompVis
 		CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
 		GUISupportQt                # for QVTKOpenGLNativeWidget
 		FiltersExtraction           # for vtkExtractGeometry, used in FIAKER - iASelectionInteractorStyle
@@ -226,6 +226,15 @@ ELSE()
 		ImagingHybrid               # for vtkSampleFunction.h used in FeatureScout - iABlobCluster
 		InfovisLayout               # for vtkGraphLayoutStrategy used in CompVis
 		IOXML                       # for vtkXMLImageDataReader used in iAIO
+		RenderingContext2D
+		RenderingCore
+		RenderingFreeType
+		RenderingGL2PSOpenGL2
+		RenderingLabel
+		RenderingLOD
+		RenderingOpenGL2
+		RenderingUI
+		ViewsContext2D              # for preventing crash in CompVis
 	)
 ENDIF()
 IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
