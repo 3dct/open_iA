@@ -30,7 +30,6 @@ class open_iA_Core_API iAChartFunctionGaussian : public iAChartFunction
 public:
 	iAChartFunctionGaussian(iAChartWithFunctionsWidget *chart, QColor &color, bool reset = true);
 
-	int getType() const override { return GAUSSIAN; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
 	void drawOnTop(QPainter&) override {}

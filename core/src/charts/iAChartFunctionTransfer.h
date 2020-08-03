@@ -40,9 +40,6 @@ Q_OBJECT
 public:
 	iAChartTransferFunction(iAChartWithFunctionsWidget *histogram, QColor color);
 
-	//! retrieve type of class
-	//! @deprecated use inheritance concepts instead!
-	int getType() const override { return TRANSFER; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
 	void drawOnTop(QPainter &painter) override;

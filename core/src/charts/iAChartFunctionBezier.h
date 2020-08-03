@@ -34,7 +34,6 @@ class open_iA_Core_API iAChartFunctionBezier : public iAChartFunction
 public:
 	iAChartFunctionBezier(iAChartWithFunctionsWidget *chart, QColor &color, bool reset = true);
 
-	int getType() const override { return BEZIER; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor penColor, int lineWidth) override;
 	void drawOnTop(QPainter&) override {}

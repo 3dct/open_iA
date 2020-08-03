@@ -639,36 +639,30 @@ void iAChartWithFunctionsWidget::saveProbabilityFunctions(iAXmlSettings &xml)
 	// add new function nodes
 	for (unsigned int f = 1; f < m_functions.size(); ++f)
 	{
-		switch (m_functions[f]->getType())
+		if (dynamic_cast<iAChartFunctionBezier*>(m_functions[f]))
 		{
-			case iAChartFunction::BEZIER:
+			QDomElement bezierElement = xml.createElement("bezier", functionsNode);
+			auto bezier = dynamic_cast<iAChartFunctionBezier*>(m_functions[f]);
+			std::vector<QPointF> points = bezier->getPoints();
+			std::vector<QPointF>::iterator it = points.begin();
+			while (it != points.end())
 			{
-				QDomElement bezierElement = xml.createElement("bezier", functionsNode);
-				std::vector<QPointF> points = ((iAChartFunctionBezier*)m_functions[f])->getPoints();
-				std::vector<QPointF>::iterator it = points.begin();
-				while (it != points.end())
-				{
-					QPointF point = *it;
-					QDomElement nodeElement = xml.createElement("node", bezierElement);
-					nodeElement.setAttribute("value", tr("%1").arg(point.x()));
-					nodeElement.setAttribute("fktValue", tr("%1").arg(point.y()));
-					++it;
-				}
-				break;
+				QPointF point = *it;
+				QDomElement nodeElement = xml.createElement("node", bezierElement);
+				nodeElement.setAttribute("value", tr("%1").arg(point.x()));
+				nodeElement.setAttribute("fktValue", tr("%1").arg(point.y()));
+				++it;
 			}
-			case iAChartFunction::GAUSSIAN:
-			{
-				QDomElement gaussianElement = xml.createElement("gaussian", functionsNode);
-				iAChartFunctionGaussian * gaussian = (iAChartFunctionGaussian*)m_functions[f];
-				gaussianElement.setAttribute("mean", tr("%1").arg(gaussian->getMean()));
-				gaussianElement.setAttribute("sigma", tr("%1").arg(gaussian->getSigma()));
-				gaussianElement.setAttribute("multiplier", tr("%1").arg(gaussian->getMultiplier()));
-				break;
-			}
-			default:
-			// unknown function type, do nothing
-				break;
 		}
+		else if (dynamic_cast<iAChartFunctionGaussian*>(m_functions[f]))
+		{
+			QDomElement gaussianElement = xml.createElement("gaussian", functionsNode);
+			auto gaussian = dynamic_cast<iAChartFunctionGaussian*>(m_functions[f]);
+			gaussianElement.setAttribute("mean", tr("%1").arg(gaussian->getMean()));
+			gaussianElement.setAttribute("sigma", tr("%1").arg(gaussian->getSigma()));
+			gaussianElement.setAttribute("multiplier", tr("%1").arg(gaussian->getMultiplier()));
+		}
+		// otherwise: unknown function type, do nothing
 	}
 }
 
