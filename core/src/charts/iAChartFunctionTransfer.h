@@ -32,7 +32,7 @@ class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 
 //! Class representing a transfer function in a histogram chart.
-//! Draws itself, and allows adding, removing and modifying point (color and opacity):
+//! Draws itself, and allows adding, removing and modifying point (color and opacity).
 class open_iA_Core_API iAChartTransferFunction : public iAChartFunction, public iATransferFunction
 {
 Q_OBJECT

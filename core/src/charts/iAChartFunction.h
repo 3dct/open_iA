@@ -31,6 +31,7 @@ class QMouseEvent;
 class QPainter;
 class iAChartWithFunctionsWidget;
 
+//! Abstract base class for representing some kind of function in an an iAChartWithFunctionsWidget.
 class open_iA_Core_API iAChartFunction: public QObject
 {
 	Q_OBJECT

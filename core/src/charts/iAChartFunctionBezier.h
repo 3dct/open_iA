@@ -29,6 +29,8 @@
 
 class QPointF;
 
+//! Class representing a bezier curve in an iAChartWithFunctionsWidget.
+//! Draws itself, and allows adding, removing and modifying points (and their directions).
 class open_iA_Core_API iAChartFunctionBezier : public iAChartFunction
 {
 public:
