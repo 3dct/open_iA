@@ -259,7 +259,11 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 
 void iACompBoxPlot::renderWidget()
 {
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
+#else
+	m_qvtkWidget->renderWindow()->GetInteractor()->Render();
+#endif
 }
 
 void iACompBoxPlot::setOrderedPositions(std::vector<double>* orderedPositions)

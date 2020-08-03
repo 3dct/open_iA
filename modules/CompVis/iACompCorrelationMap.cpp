@@ -99,10 +99,15 @@ iACompCorrelationMap::iACompCorrelationMap(MainWindow* parent, iACorrelationCoef
 
 	m_renderer->SetViewport(0, 0, 0.8, 1);
 	m_renderer->SetUseFXAA(true);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_qvtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
-
 	m_graphLayoutView->SetRenderWindow(m_qvtkWidget->GetRenderWindow());
 	m_graphLayoutView->SetInteractor(m_qvtkWidget->GetInteractor());
+#else
+	m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
+	m_graphLayoutView->SetRenderWindow(m_qvtkWidget->renderWindow());
+	m_graphLayoutView->SetInteractor(m_qvtkWidget->interactor());
+#endif
 	
 	vtkSmartPointer<GraphInteractorStyle> style = vtkSmartPointer<GraphInteractorStyle>::New();
 	style->setGraphLayoutView(m_graphLayoutView);
@@ -134,7 +139,11 @@ void iACompCorrelationMap::showEvent(QShowEvent* event)
 
 void iACompCorrelationMap::renderWidget()
 {
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
+#else
+	m_qvtkWidget->renderWindow()->GetInteractor()->Render();
+#endif
 }
 
 void iACompCorrelationMap::initializeCorrelationMap()
@@ -392,7 +401,11 @@ void iACompCorrelationMap::initializeLegend(int numberOfLabels)
 	renderer->SetViewport(0.80, 0, 1, 1);
 	renderer->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE));
 	renderer->AddActor2D(scalarBar);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_qvtkWidget->GetRenderWindow()->AddRenderer(renderer);
+#else
+	m_qvtkWidget->renderWindow()->AddRenderer(renderer);
+#endif
 
 //	scalarBar->Modified();
 //	renderer->ResetCamera();

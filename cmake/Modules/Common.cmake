@@ -224,7 +224,6 @@ IF (VTK_MAJOR_VERSION GREATER_EQUAL 9)
 		ImagingHybrid               # for vtkSampleFunction.h used in FeatureScout - iABlobCluster
 		InfovisLayout               # for vtkGraphLayoutStrategy used in CompVis
 		IOXML                       # for vtkXMLImageDataReader used in iAIO
-		RenderingContext2D          # for making vtkContext2D::GetDevice return something else than nullptr
 	)
 ENDIF()
 IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
