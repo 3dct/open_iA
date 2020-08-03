@@ -44,6 +44,8 @@ public:
 
 	iAChartFunction(iAChartWithFunctionsWidget* chart) : m_chart(chart) { }
 
+	//! retrieve type of class
+	//! @deprecated use inheritance concepts instead!
 	virtual int getType() const = 0;
 
 	virtual void draw(QPainter &painter) = 0;
