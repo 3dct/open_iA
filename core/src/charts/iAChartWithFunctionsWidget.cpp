@@ -341,6 +341,7 @@ void iAChartWithFunctionsWidget::changeMode(int newMode, QMouseEvent *event)
 			iAChartFunction *func = *(it + m_selectedFunction);
 			int x = event->x() - leftMargin();
 			int y = geometry().height() - event->y() -bottomMargin();
+			// TODO: check whether/why we need to pass in x here!
 			int selectedPoint = func->selectPoint(event, &x);
 
 			// don't do anything if outside of diagram region:

@@ -226,6 +226,14 @@ int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 			}
 		}
 
+		// TODO: determine what the use of the following block is.
+		// from a cursory glance: it sets x to the pixel position of the event + 1,
+		// if current x is equal to center pixel position of current point
+		// Questions:
+		//     - why does this happen in every loop, not only if current point is selected one?
+		//     - what's the use of the +1 / not +1 distinction?
+		//     - seems to be skipped for the actually selected point (because of break)...?
+		//     - never called if selected point is first one?
 		if (x != nullptr)
 		{
 			*x = (*x == viewX)? lx + 1: lx;
@@ -319,24 +327,17 @@ void iAChartTransferFunction::moveSelectedPoint(int x, int y)
 
 		m_opacityTF->GetNodeValue(m_selectedPoint+1, nextOpacityTFValue);
 		m_opacityTF->GetNodeValue(m_selectedPoint-1, prevOpacityTFValue);
-
+		int newX = x;
 		if (dataX >= nextOpacityTFValue[0])
 		{
-			int newX = m_chart->xMapper().srcToDst(nextOpacityTFValue[0]) - 1;
-			setPoint(m_selectedPoint, newX, y);
-			setColorPoint(m_selectedPoint, newX);
+			newX = m_chart->xMapper().srcToDst(nextOpacityTFValue[0]) - 1;
 		}
 		else if (dataX <= prevOpacityTFValue[0])
 		{
-			int newX = m_chart->xMapper().srcToDst(prevOpacityTFValue[0]) + 1;
-			setPoint(m_selectedPoint, newX, y);
-			setColorPoint(m_selectedPoint, newX);
+			newX = m_chart->xMapper().srcToDst(prevOpacityTFValue[0]) + 1;
 		}
-		else
-		{
-			setPoint(m_selectedPoint, x, y);
-			setColorPoint(m_selectedPoint, x);
-		}
+		setPoint(m_selectedPoint, newX, y);
+		setColorPoint(m_selectedPoint, newX);
 	}
 	else
 	{
