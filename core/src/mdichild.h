@@ -224,7 +224,6 @@ public:
 	//! Remove channel in all slicers.
 	void removeChannel(uint id);
 
-
 	iAChannelData * channelData(uint id);
 	iAChannelData const * channelData(uint id) const;
 	void initChannelRenderer(uint id, bool use3D, bool enableChannel = true);
