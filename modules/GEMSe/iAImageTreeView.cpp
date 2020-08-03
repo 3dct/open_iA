@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -32,16 +32,15 @@
 #include <QPainter>
 
 iAImageTreeView::iAImageTreeView(
-	QWidget* parent,
-	QSharedPointer<iAImageTree > tree,
-	iAPreviewWidgetPool * previewPool,
-	int representativeType)
-:
+		QWidget* parent,
+		QSharedPointer<iAImageTree > tree,
+		iAPreviewWidgetPool * previewPool,
+		int representativeType):
 	QWidget(parent),
-	m_imageTree(tree),
 	m_highlightSubtree(false),
-	m_previewPool(previewPool),
+	m_imageTree(tree),
 	m_autoShrink(true),
+	m_previewPool(previewPool),
 	m_iconSize(TreePreviewSize),
 	m_representativeType(representativeType)
 {
@@ -235,7 +234,7 @@ int iAImageTreeView::LayoutNode(QSharedPointer<iAImageTreeNode > node, int nodeN
 		return nodeNumber;
 	}
 	nodeWidget->UpdateShrinkStatus(m_refImg);
-	
+
 	int left = TreePadding + level * TreeLevelIndent;
 	int top = TreePadding + (nodeNumber-shrinkedNodes) * (TreeClusterPadding+m_iconSize) +
 							shrinkedNodes * (TreeClusterShrinkedHeight+TreeClusterPadding);
@@ -413,7 +412,7 @@ bool iAImageTreeView::JumpToNode(iAImageTreeNode const * cluster, int stepLimit)
 		DEBUG_LOG("JumpToNode: Couldn't find given cluster!");
 		return false;
 	}
-	
+
 	//QList<iAImageTreeNode const *> path(pathStack.toList());
 
 	int steps = 0;

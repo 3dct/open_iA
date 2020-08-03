@@ -147,9 +147,9 @@ KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     {
     m_OldCentroids[i] = this->m_Centroids[i];
 
-    m_CentroidsNumerator[i] = CentroidNumericTraitsType::Zero;
+    m_CentroidsNumerator[i] = CentroidNumericTraitsType::ZeroValue();
     }
-  m_CentroidsDenominator.Fill(CentroidValueNumericTraitsType::Zero);
+  m_CentroidsDenominator.Fill(CentroidValueNumericTraitsType::ZeroValue());
 }
 
 
@@ -188,10 +188,10 @@ KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
   // of centroid expression.
   CentroidArrayType
     tempThreadCentroidsNumerator( this->m_NumberOfClasses,
-                                  CentroidNumericTraitsType::Zero );
+                                  CentroidNumericTraitsType::ZeroValue());
   Array< CentroidValueType >
     tempThreadCentroidsDenominator(this->m_NumberOfClasses);
-  tempThreadCentroidsDenominator.Fill(CentroidValueNumericTraitsType::Zero);
+  tempThreadCentroidsDenominator.Fill(CentroidValueNumericTraitsType::ZeroValue());
 
   typename StructuringElementType::ConstIterator nit;
   StructuringElementRadiusType radiusStructEl;
@@ -271,14 +271,14 @@ KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
       }
 
     tmpNeighborhoodFactorOfMemberships.Fill(
-      MembershipValueNumericTraitsType::Zero );
+      MembershipValueNumericTraitsType::ZeroValue());
     for (i = 0; i < this->m_NumberOfClasses; i++)
       {
       tmpNeighborhoodFactorOfCentroidsNumerator[i] =
-        CentroidNumericTraitsType::Zero;
+        CentroidNumericTraitsType::ZeroValue();
       }
     tmpNeighborhoodFactorOfCentroidsDenominator.Fill(
-      CentroidValueNumericTraitsType::Zero );
+      CentroidValueNumericTraitsType::ZeroValue());
 
     // Iterate over the neighborhood to perform some calculations. These
     // calculations are used later in membership and centroid expressions.
@@ -327,7 +327,7 @@ KFCMSClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     penaltyFactor = (numberOfNeighbors == 0) ?
                     0 : m_Alpha / ((double) numberOfNeighbors);
 
-    membershipDenominator = MembershipValueNumericTraitsType::Zero;
+    membershipDenominator = MembershipValueNumericTraitsType::ZeroValue();
 
     // Perform some calculations for the memberships.
     for (i = 0; i < this->m_NumberOfClasses; i++)

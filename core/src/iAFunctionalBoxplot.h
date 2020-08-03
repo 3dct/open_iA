@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -262,7 +262,7 @@ public:
 				result += 1;
 			}
 		}
-	
+
 		return result;
 	}
 };
@@ -287,9 +287,6 @@ iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunctio
 	{
 		bandDepth[i] = 0;
 	}
-
-	typedef std::vector<iAFunction<unsigned int, unsigned int> >::const_iterator FuncIt;
-	typedef std::vector<iAFunctionBand<unsigned int, unsigned int> >::const_iterator BandIt;
 
 	// set up sampling:
 
@@ -318,13 +315,14 @@ iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunctio
 	//double normalizeFactor = (2 * funcStepCnt * funcStepCnt * argStepCnt) /
 	//	(functions.size()*(functions.size()-1)*(argMax-argMin+1));
 	double normalizeFactor = 1.0;
-
+	assert(functions.size() <= static_cast<size_t>(std::numeric_limits<long>::max()));
+	long longFuncSize = static_cast<long>(functions.size());
 #pragma omp parallel for
-	for (long func_nr = 0; func_nr < functions.size(); ++func_nr)
+	for (long func_nr = 0; func_nr < longFuncSize; ++func_nr)
 	{
-		for (long func1=0; func1 < functions.size()-1; func1 += funcStepSize)
+		for (long func1=0; func1 < longFuncSize -1; func1 += funcStepSize)
 		{
-			for (long func2=func1+1; func2 < functions.size(); func2 += funcStepSize)
+			for (long func2=func1+1; func2 < longFuncSize; func2 += funcStepSize)
 			{
 				if (func_nr != func1 && func_nr != func2)
 				{

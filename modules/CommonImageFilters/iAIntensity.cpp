@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -248,7 +248,7 @@ iARescaleIntensityFilter::iARescaleIntensityFilter() :
 
 // iAShiftScaleIntensityFilter
 
-template<class T> void shiftScale(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<typename T> void shiftScale(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM > InputImageType;
 	typedef itk::Image< T, DIM > OutputImageType;
@@ -366,7 +366,7 @@ iAAddFilter::iAAddFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AddImageFilter.html\">"
 		"Add Image Filter</a> in the ITK documentation.", 2)
 {	// no parameters
-	setInputName(1, "Second image");
+	setInputName(1u, "Second image");
 }
 
 
@@ -402,7 +402,7 @@ iASubtractFilter::iASubtractFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1SubtractImageFilter.html\">"
 		"Subtract Image Filter</a> in the ITK documentation.", 2)
 {	// no parameters
-	setInputName(1, "Additional image");
+	setInputName(1u, "Additional image");
 }
 
 
@@ -444,7 +444,7 @@ iADifferenceFilter::iADifferenceFilter() :
 {
 	addParameter("Difference threshold", Continuous, 0);
 	addParameter("Tolerance radius", Continuous, 0);
-	setInputName(1, "Additional image");
+	setInputName(1u, "Additional image");
 }
 
 
@@ -481,7 +481,7 @@ iAMaskIntensityFilter::iAMaskIntensityFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1MaskImageFilter.html\">"
 		"Mask Image Filter</a> in the ITK documentation.", 2)
 {	// no parameters
-	setInputName(1, "Mask image");
+	setInputName(1u, "Mask image");
 }
 
 
@@ -545,5 +545,5 @@ iAHistogramMatchingFilter::iAHistogramMatchingFilter() :
 	addParameter("Threshold at mean intensity", Boolean, true);
 	addParameter("Number of histogram levels", Continuous, 256);
 	addParameter("Number of match points", Continuous, 1);
-	setInputName(1, "Reference image");
+	setInputName(1u, "Reference image");
 }

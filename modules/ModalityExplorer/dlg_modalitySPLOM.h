@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,6 +29,7 @@
 
 class iAModalityList;
 class iAQSplom;
+class iASPLOMData;
 class QTableWidget;
 
 class vtkColorTransferFunction;
@@ -47,8 +48,7 @@ private slots:
 	void SplomSelection(std::vector<size_t> const &);
 private:
 	iAQSplom* m_splom;
-	QTableWidget* m_voxelData;
-	vtkSmartPointer<vtkLookupTable> m_lut;
+	QSharedPointer<iASPLOMData> m_data;
 	int m_extent[6];
 	double m_spacing[3];
 	double m_origin[3];

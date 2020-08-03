@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -33,14 +33,14 @@
 
 
 class iASlicerProfile;
-class iAArbitraryProfileOnSlicer;
+class iASlicerProfileHandles;
 class iAChannelData;
 class iAChannelSlicerData;
-class iAInteractorStyleImage;
 class iAMagicLens;
 class iARulerWidget;
 class iASingleSlicerSettings;
 class iASlicer;
+class iASlicerInteractorStyle;
 class iASnakeSpline;
 class iAWrapperText;
 class MdiChild;
@@ -76,6 +76,7 @@ class vtkThinPlateSplineTransform;
 class vtkTransform;
 class vtkWorldPointPicker;
 
+class QAction;
 class QMenu;
 class QWidget;
 
@@ -183,7 +184,7 @@ public:
 	//! Get current slice number
 	int sliceNumber() const;
 	//! Set the position of the position marker (in slicer coordinates).
-	void setPositionMarkerCenter(double x, double y);
+	void setPositionMarkerCenter(double x, double y, double z);
 
 	//! Enable/disable contour lines.
 	void showIsolines(bool s);
@@ -230,9 +231,6 @@ public slots:
 	void setSlabCompositeMode(int compositeMode);
 	void update();
 
-	//! Sets coordinates for line profile
-	bool setArbitraryProfile(int pointInd, double * Pos, bool doClamp = false);
-
 	//! Moves a point of the snake slicer to a new position.
 	void movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
 
@@ -245,7 +243,9 @@ public slots:
 	//! Toggle the "raw" profile mode, i.e. whether the profile is shown on top of the slicer image
 	void setSliceProfileOn(bool isOn);
 	//! Toggle the possibility to move start and end point of the profile
-	void setArbitraryProfileOn(bool isOn);
+	void setProfileHandlesOn(bool isOn);
+	//! Sets coordinates for line profile
+	bool setProfilePoint(int pointInd, double* Pos);
 
 	//! Adds a new spline point to the end of the spline curve.
 	void addPoint(double x, double y, double z);
@@ -257,11 +257,15 @@ public slots:
 private slots:
 	void menuCenteredMagicLens();
 	void menuOffsetMagicLens();
+	void toggleLinearInterpolation();
+	void toggleWindowLevelAdjust();
+	void toggleShowTooltip();
+	void fisheyeLensToggled(bool enabled);
 
 signals:
 	void addedPoint(double x, double y, double z);
 	void movedPoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
-	void arbitraryProfileChanged(int pointInd, double * Pos);
+	void profilePointChanged(int pointInd, double * Pos);
 	void deselectedPoint();
 	void switchedMode(int mode);
 	void deletedSnakeLine();
@@ -273,7 +277,7 @@ signals:
 	void msg(QString s);
 	void progress(int);
 	void updateSignal();
-	void clicked(int x, int y, int z);
+	void leftClicked(int x, int y, int z);
 	void rightClicked(int x, int y, int z);
 	void released(int x, int y, int z);
 	void userInteraction();
@@ -285,18 +289,21 @@ signals:
 	//! @param sliceNumber number of the slice that was switched to
 	void sliceNumberChanged(int mode, int sliceNumber);
 	void sliceRangeChanged(int minIdx, int maxIdx);
+	void magicLensToggled(bool enabled);
 
 protected:
-	QMenu *         m_contextMenuMagicLens;      //!< context menu for when magic lens is shown
-	QMenu *         m_contextMenuSnakeSlicer;    //!< context menu for when in snake slice edit mode
+	QAction* m_actionLinearInterpolation, * m_actionToggleWindowLevelAdjust, * m_actionFisheyeLens,
+		* m_actionMagicLens, * m_actionMagicLensCentered, * m_actionMagicLensOffset,
+		* m_actionDeleteSnakeLine, * m_actionShowTooltip;
+	QMenu *         m_contextMenu;               //!< context menu
 	InteractionMode m_interactionMode;           //!< current edit mode
-	bool            m_isSliceProfEnabled;        //!< if slice profile mode is enabled
-	bool            m_isArbProfEnabled;          //!< if arbitrary profile mode is enabled
 	int             m_xInd, m_yInd, m_zInd;      //!< current position
 	iASnakeSpline * m_snakeSpline;				 //!< holds the visualization data for the points of the snake splicer
 	vtkPoints *     m_worldSnakePoints;          //!< points of the snake slicer (owned by mdichild, not by this slicer)
-	iASlicerProfile	* m_sliceProfile;            //!< implements the raw slice profile
-	iAArbitraryProfileOnSlicer * m_arbProfile;   //!< implements drawing the start and end point of the "arbitrary" profile
+	bool            m_isSliceProfEnabled;        //!< if slice profile mode is enabled
+	iASlicerProfile	* m_sliceProfile;            //!< a slice profile drawn directly on the slicer
+	bool            m_profileHandlesEnabled;     //!< if profile handles are enabled (shown)
+	iASlicerProfileHandles * m_profileHandles;   //!< handles for the start and end point of the profile plot
 
 	void keyPressEvent(QKeyEvent * event) override;
 	void mousePressEvent(QMouseEvent * event) override;
@@ -360,8 +367,8 @@ private:
 	QList<vtkSmartPointer<vtkActor>> m_circle2ActList;
 	//! @}
 
-	vtkRenderWindowInteractor * m_interactor;
-	iAInteractorStyleImage * m_interactorStyle;
+	vtkRenderWindowInteractor * m_interactor;  //!< FIXME: only convenience to access interactor of underlying QVTKOpenGLNativeWidget!
+	iASlicerInteractorStyle * m_interactorStyle;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renWin;
 	vtkSmartPointer<vtkRenderer> m_ren;
 	vtkCamera * m_camera; // TODO: smart pointer?
@@ -387,7 +394,7 @@ private:
 	//! @}
 
 	iASingleSlicerSettings m_settings;
-	int m_slabThickness;       //! current slab thickness (default = 1, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
+	int m_slabThickness;       //! current slab thickness (default = 0, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
 	int m_slabCompositeMode;   //! current slab mode (how to combine the voxels of the current slab into a single pixel); TODO: move to iASingleslicerSettings?
 
 	//! @{ for indicating current measurement ('m' key)
@@ -434,4 +441,8 @@ private:
 
 	//! Update the position of the raw profile line.
 	void updateRawProfile(double posY);
+
+	//! Sets coordinates for line profile
+	bool setProfilePointWithClamp(int pointInd, double* Pos, bool doClamp);
+	void setLinearInterpolation(bool enabled);
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -101,7 +101,7 @@ void iAParamHistogramData::visitNode(iAImageTreeNode const * node,
 	});
 }
 
-double iAParamHistogramData::binStart(int binNr) const
+double iAParamHistogramData::binStart(size_t binNr) const
 {
 	if (!m_log)
 	{
@@ -109,7 +109,7 @@ double iAParamHistogramData::binStart(int binNr) const
 	}
 	double minLog = std::floor(LogFunc(m_xBounds[0]));
 	double maxLog = std::ceil (LogFunc(m_xBounds[1]));
-	double valueLog = mapValue(0, static_cast<int>(m_numBin), minLog, maxLog, binNr);
+	double valueLog = mapValue(static_cast<size_t>(0), m_numBin, minLog, maxLog, binNr);
 	return std::pow(LogBase, valueLog);
 }
 

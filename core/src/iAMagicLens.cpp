@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAMagicLens.h"
 
-#include "defines.h"
+#include "defines.h"    // for DefaultMagicLensSize
 #include "iAConsole.h"
 #include "iAMathUtility.h"
 
@@ -35,7 +35,6 @@
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
 #include <vtkPolyData.h>
-#include <vtkPolyDataMapper2D.h>
 #include <vtkPolyLine.h>
 #include <vtkProperty2D.h>
 #include <vtkRenderer.h>
@@ -44,7 +43,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
-#include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
 
 #include <QSharedPointer>
@@ -261,17 +259,17 @@ void iALensData::render()
 iAMagicLens::iAMagicLens() :
 	m_isEnabled(false),
 	m_isInitialized(false),
+	m_maxLensCount(1),
 	m_size(DefaultMagicLensSize),
 	m_frameWidth(DefaultFrameWidth),
-	m_maxLensCount(1),
 	m_interpolate(false),
 	m_viewMode(CENTERED),
 	m_opacity(1.0),
+	m_renderWindow(nullptr),
 	m_srcWindowData(vtkSmartPointer<vtkPolyData>::New()),
 	m_srcWindowMapper(vtkSmartPointer<vtkPolyDataMapper2D>::New()),
 	m_srcWindowActor(vtkSmartPointer<vtkActor2D>::New()),
-	m_srcWindowRenderer(vtkSmartPointer<vtkRenderer>::New()),
-	m_renderWindow(nullptr)
+	m_srcWindowRenderer(vtkSmartPointer<vtkRenderer>::New())
 {
 	m_srcWindowMapper->SetInputData(m_srcWindowData);
 	m_srcWindowActor->GetProperty()->SetColor(1., 1., 1.);

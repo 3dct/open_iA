@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -63,7 +63,6 @@
 #include <vtkStringArray.h>
 #include <vtkTable.h>
 #include <vtkTIFFReader.h>
-#include <vtkVersion.h>
 #include <vtkXMLImageDataReader.h>
 #include <vtkGenericDataObjectReader.h>
 #include <vtkRectilinearGrid.h>
@@ -76,6 +75,8 @@
 #include <QTextStream>
 
 #ifdef USE_HDF5
+// for now, let's use HDF5 1.10 API:
+#define H5_USE_110_API
 #include <hdf5.h>
 #include <QStack>
 #endif
@@ -106,9 +107,13 @@ void read_raw_image_template (iARawFileParameters const & params,
 		io->SetOrigin(i, params.m_origin[i]);
 	}
 	if (params.m_byteOrder == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN)
+	{
 		io->SetByteOrderToLittleEndian();
+	}
 	else
+	{
 		io->SetByteOrderToBigEndian();
+	}
 
 	typedef itk::Image< T, DIM>   InputImageType;
 	typedef itk::ImageFileReader<InputImageType> ReaderType;
@@ -345,7 +350,7 @@ void iAIO::readHDF5File()
 		.arg(rank);
 	for (int i = 0; i < rank; ++i)
 	{
-		caption += QString("%1%2").arg(hdf5Dims[i]).arg((hdf5Dims[i] != maxdims[i]) ? QString("%1").arg(maxdims[i]) : QString());
+		caption += QString::number(hdf5Dims[i]);
 		if (i < rank - 1) caption += " x ";
 	}
 	DEBUG_LOG(caption);
@@ -378,9 +383,9 @@ void iAIO::readHDF5File()
 	H5Fclose(file);
 
 	vtkSmartPointer<vtkImageImport> imgImport = vtkSmartPointer<vtkImageImport>::New();
-	imgImport->SetDataSpacing(m_hdf5Spacing[0], m_hdf5Spacing[1], m_hdf5Spacing[2]);
+	imgImport->SetDataSpacing(m_hdf5Spacing[2], m_hdf5Spacing[1], m_hdf5Spacing[0]);
 	imgImport->SetDataOrigin(0, 0, 0);
-	imgImport->SetWholeExtent(0, dim[0]-1, 0, dim[1]-1, 0, dim[2]-1);
+	imgImport->SetWholeExtent(0, dim[2]-1, 0, dim[1]-1, 0, dim[0]-1);
 	imgImport->SetDataExtentToWholeExtent();
 	imgImport->SetDataScalarType(vtkType);
 	imgImport->SetNumberOfScalarComponents(1);
@@ -553,11 +558,17 @@ const int OTHER = 2;
 int group_check(struct opdata *od, haddr_t target_addr)
 {
 	if (od->addr == target_addr)
+	{
 		return 1;       /* Addresses match */
+	}
 	else if (!od->recurs)
+	{
 		return 0;       /* Root group reached with no matches */
+	}
 	else
+	{
 		return group_check(od->prev, target_addr);
+	}
 	/* Recursively examine the next node */
 }
 
@@ -572,12 +583,14 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t * /*info*/,
 	bool group = false;
 	int vtkType = -1;
 	int rank = 0;
-	switch (infobuf.type) {
+	switch (infobuf.type)
+	{
 	case H5O_TYPE_GROUP:
 		caption = QString("Group: %1").arg(name);
 		group = true;
 		break;
-	case H5O_TYPE_DATASET: {
+	case H5O_TYPE_DATASET:
+		{
 		hid_t dset = H5Dopen(loc_id, name, H5P_DEFAULT);
 		if (dset == -1)
 		{
@@ -613,7 +626,7 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t * /*info*/,
 		status = H5Sclose(space);
 		status = H5Dclose(dset);
 		break;
-	}
+		}
 	case H5O_TYPE_NAMED_DATATYPE:
 		caption = QString("Datatype: %1").arg(name);
 		break;
@@ -942,17 +955,17 @@ void iAIO::readVTKFile()
 	// Get all data from the file
 	auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
 	reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
-	reader->Update();				
-		
+	reader->Update();
+
 	// All of the standard data types can be checked and obtained like this:
 	if (reader->IsFilePolyData())
 	{
 		DEBUG_LOG("output is a polydata");
-						
+
 		getVtkPolyData()->DeepCopy(reader->GetPolyDataOutput());
 		printSTLFileInfos();
 		addMsg(tr("File loaded."));
-						
+
 	}
 	else if (reader->IsFileRectilinearGrid())
 	{
@@ -1673,18 +1686,22 @@ void iAIO::storeIOSettings()
 void iAIO::loadIOSettings()
 {
 	QSettings settings;
-	m_rawFileParams.m_origin[0] = settings.value("IO/rawOriginX").toDouble();
-	m_rawFileParams.m_origin[1] = settings.value("IO/rawOriginY").toDouble();
-	m_rawFileParams.m_origin[2] = settings.value("IO/rawOriginZ").toDouble();
-	m_rawFileParams.m_spacing[0] = settings.value("IO/rawSpaceX", 1).toDouble();	if (m_rawFileParams.m_spacing[0] == 0) m_rawFileParams.m_spacing[0] = 1;
-	m_rawFileParams.m_spacing[1] = settings.value("IO/rawSpaceY", 1).toDouble();	if (m_rawFileParams.m_spacing[1] == 0) m_rawFileParams.m_spacing[1] = 1;
-	m_rawFileParams.m_spacing[2] = settings.value("IO/rawSpaceZ", 1).toDouble();	if (m_rawFileParams.m_spacing[2] == 0) m_rawFileParams.m_spacing[2] = 1;
-	m_rawFileParams.m_size[0] = settings.value("IO/rawSizeX").toInt();
-	m_rawFileParams.m_size[1] = settings.value("IO/rawSizeY").toInt();
-	m_rawFileParams.m_size[2] = settings.value("IO/rawSizeZ").toInt();
-	m_rawFileParams.m_scalarType = settings.value("IO/rawScalar", 2).toInt(); // default data type: unsigned char
-	m_rawFileParams.m_byteOrder = settings.value("IO/rawByte", 0).toInt();    // default byte order: little endian
-	m_rawFileParams.m_headersize = settings.value("IO/rawHeader").toInt();
+	iARawFileParameters defaultRawParams;
+	m_rawFileParams.m_origin[0] = settings.value("IO/rawOriginX", defaultRawParams.m_origin[0]).toDouble();
+	m_rawFileParams.m_origin[1] = settings.value("IO/rawOriginY", defaultRawParams.m_origin[1]).toDouble();
+	m_rawFileParams.m_origin[2] = settings.value("IO/rawOriginZ", defaultRawParams.m_origin[2]).toDouble();
+	m_rawFileParams.m_spacing[0] = settings.value("IO/rawSpaceX", defaultRawParams.m_spacing[0]).toDouble();
+	if (m_rawFileParams.m_spacing[0] == 0) m_rawFileParams.m_spacing[0] = 1;
+	m_rawFileParams.m_spacing[1] = settings.value("IO/rawSpaceY", defaultRawParams.m_spacing[1]).toDouble();
+	if (m_rawFileParams.m_spacing[1] == 0) m_rawFileParams.m_spacing[1] = 1;
+	m_rawFileParams.m_spacing[2] = settings.value("IO/rawSpaceZ", defaultRawParams.m_spacing[2]).toDouble();
+	if (m_rawFileParams.m_spacing[2] == 0) m_rawFileParams.m_spacing[2] = 1;
+	m_rawFileParams.m_size[0] = settings.value("IO/rawSizeX", defaultRawParams.m_size[0]).toInt();
+	m_rawFileParams.m_size[1] = settings.value("IO/rawSizeY", defaultRawParams.m_size[1]).toInt();
+	m_rawFileParams.m_size[2] = settings.value("IO/rawSizeZ", defaultRawParams.m_size[2]).toInt();
+	m_rawFileParams.m_scalarType = settings.value("IO/rawScalar", defaultRawParams.m_scalarType).toInt();
+	m_rawFileParams.m_byteOrder = settings.value("IO/rawByte", defaultRawParams.m_byteOrder).toInt();
+	m_rawFileParams.m_headersize = settings.value("IO/rawHeader", defaultRawParams.m_headersize).toInt();
 }
 
 void iAIO::printSTLFileInfos()

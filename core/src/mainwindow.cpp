@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,14 +20,14 @@
 * ************************************************************************************/
 #include "mainwindow.h"
 
-#include "charts/iADiagramFctWidget.h"
+#include "charts/iAChartFunctionBezier.h"
+#include "charts/iAChartFunctionGaussian.h"
+#include "charts/iAChartFunctionTransfer.h"
+#include "charts/iAChartWithFunctionsWidget.h"
 #include "defines.h"
 #include "dlg_commoninput.h"
 #include "dlg_datatypeconversion.h"
 #include "dlg_openfile_sizecheck.h"
-#include "iAChartFunctionBezier.h"
-#include "iAChartFunctionGaussian.h"
-#include "iAChartFunctionTransfer.h"
 #include "iACheckOpenGL.h"
 #include "iAConsole.h"
 #include "iALogger.h"
@@ -51,7 +51,6 @@
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkSmartVolumeMapper.h>
-#include <vtkVersion.h>
 
 #include <QCloseEvent>
 #include <QDragEnterEvent>
@@ -68,11 +67,13 @@
 #include <QtXml/QDomDocument>
 #include <QDesktopServices>
 
-MainWindow::MainWindow(QString const & appName, QString const & version, QString const & splashImage )
-:
+const int MainWindow::MaxRecentFiles;
+
+MainWindow::MainWindow(QString const & appName, QString const & version, QString const & buildInformation, QString const & splashImage ):
 	QMainWindow(),
 	m_moduleDispatcher( new iAModuleDispatcher( this ) ),
-	m_gitVersion(version)
+	m_gitVersion(version),
+	m_buildInformation(buildInformation)
 {
 	setupUi(this);
 	setAcceptDrops(true);
@@ -96,7 +97,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 
 	m_splashTimer = new QTimer();
 	m_splashTimer->setSingleShot(true);
-	connect(m_splashTimer, SIGNAL(timeout()), this, SLOT(hideSplashSlot()));
+	connect(m_splashTimer, &QTimer::timeout, this, &MainWindow::hideSplashSlot);
 	m_splashTimer->start(2000);
 
 	m_splashScreen->showMessage("\n      Setup UI...", Qt::AlignTop, QColor(255, 255, 255));
@@ -163,8 +164,10 @@ void MainWindow::quitTimerSlot()
 bool MainWindow::keepOpen()
 {
 	bool childHasChanges = false;
-	for (MdiChild* mdiChild: mdiChildList())
+	for (MdiChild* mdiChild : mdiChildList())
+	{
 		childHasChanges |= mdiChild->isWindowModified();
+	}
 	if (childHasChanges)
 	{
 		auto reply = QMessageBox::question(this, "Unsaved changes",
@@ -176,8 +179,10 @@ bool MainWindow::keepOpen()
 		}
 		else
 		{ // avoid individual questions for each window
-			for (MdiChild* mdiChild: mdiChildList())
+			for (MdiChild* mdiChild : mdiChildList())
+			{
 				mdiChild->setWindowModified(false);
+			}
 		}
 	}
 	return false;
@@ -250,7 +255,9 @@ void MainWindow::openRaw()
 	);
 
 	if (fileName.isEmpty())
+	{
 		return;
+	}
 
 	MdiChild *child = createMdiChild(false);
 	QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
@@ -294,7 +301,9 @@ void MainWindow::openRecentFile()
 {
 	QAction *action = qobject_cast<QAction *>(sender());
 	if (!action)
+	{
 		return;
+	}
 
 	QString fileName = action->data().toString();
 	loadFile(fileName);
@@ -316,7 +325,9 @@ void MainWindow::loadFile(QString const & fileName)
 void MainWindow::loadFile(QString fileName, bool isStack)
 {
 	if (fileName.isEmpty())
+	{
 		return;
+	}
 	statusBar()->showMessage(tr("Loading data..."), 5000);
 	QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
 	m_path = t;
@@ -338,9 +349,12 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 			else if (ret == QMessageBox::No)
 			{
 				MdiChild *child = createMdiChild(false);
-				if (child->loadFile(fileName, false)) {
+				if (child->loadFile(fileName, false))
+				{
 					child->show();
-				} else {
+				}
+				else
+				{
 					statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
 					child->close();
 				}
@@ -353,7 +367,7 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 		QSettings projectFile(fileName, QSettings::IniFormat);
 		projectFile.setIniCodec("UTF-8");
 		// TODO: asynchronous loading, merge with mdichild: loadFile project init parts
-		if (!projectFile.value("UseMdiChild", false).toBool())
+		if (projectFile.contains("UseMdiChild") && !projectFile.value("UseMdiChild", false).toBool())
 		{
 			auto registeredProjects = iAProjectRegistry::projectKeys();
 			auto projectFileGroups = projectFile.childGroups();
@@ -374,7 +388,8 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 	}
 	// Todo: hook for plugins?
 	MdiChild *child = createMdiChild(false);
-	if (child->loadFile(fileName, isStack)) {
+	if (child->loadFile(fileName, isStack))
+	{
 		child->show();
 	}
 	else
@@ -395,13 +410,17 @@ void MainWindow::loadFiles(QStringList fileNames)
 void MainWindow::save()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->save();
+	}
 }
 
 void MainWindow::saveAs()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->saveAs();
+	}
 }
 
 bool MainWindow::saveSettings()
@@ -443,20 +462,33 @@ bool MainWindow::saveSettings()
 			iAXmlSettings xml;
 
 			if (m_spCamera)
+			{
 				saveCamera(xml);
+			}
 			if (m_spSliceViews)
+			{
 				saveSliceViews(xml);
+			}
 			if (m_spTransferFunction && activeMdiChild()->histogram())
-				xml.saveTransferFunction((iAChartTransferFunction*)activeMdiChild()->functions()[0]);
+			{
+				xml.saveTransferFunction(dynamic_cast<iAChartTransferFunction*>(activeMdiChild()->functions()[0]));
+			}
 			if (m_spProbabilityFunctions && activeMdiChild()->histogram())
+			{
 				activeMdiChild()->histogram()->saveProbabilityFunctions(xml);
+			}
 			if (m_spPreferences)
+			{
 				savePreferences(xml);
+			}
 			if (m_spRenderSettings)
+			{
 				saveRenderSettings(xml);
+			}
 			if (m_spSlicerSettings)
+			{
 				saveSlicerSettings(xml);
-
+			}
 			xml.save(fileName);
 		}
 	}
@@ -467,7 +499,7 @@ void MainWindow::loadSettings()
 {
 	QString filePath = activeMdiChild()->currentFile();
 	filePath.truncate(filePath.lastIndexOf('/'));
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath, tr("XML (*.xml)"));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -501,13 +533,13 @@ void MainWindow::loadSettings()
 
 	QStringList inList = QStringList();
 	QList<QVariant> inPara;
-	if (camera)               { inList << tr("$Camera");                inPara << tr("%1").arg(m_lpCamera ? tr("true") : tr("false")); }
-	if (sliceViews)           { inList << tr("$Slice Views");           inPara << tr("%1").arg(m_lpSliceViews ? tr("true") : tr("false")); }
-	if (transferFunction)     { inList << tr("$Transfer Function");     inPara << tr("%1").arg(m_lpTransferFunction ? tr("true") : tr("false")); }
+	if (camera) { inList << tr("$Camera");                inPara << tr("%1").arg(m_lpCamera ? tr("true") : tr("false")); }
+	if (sliceViews) { inList << tr("$Slice Views");           inPara << tr("%1").arg(m_lpSliceViews ? tr("true") : tr("false")); }
+	if (transferFunction) { inList << tr("$Transfer Function");     inPara << tr("%1").arg(m_lpTransferFunction ? tr("true") : tr("false")); }
 	if (probabilityFunctions) { inList << tr("$Probability Functions"); inPara << tr("%1").arg(m_lpProbabilityFunctions ? tr("true") : tr("false")); }
-	if (preferences)          { inList << tr("$Preferences");           inPara << tr("%1").arg(m_lpPreferences ? tr("true") : tr("false")); }
-	if (renderSettings)       { inList << tr("$Render Settings");       inPara << tr("%1").arg(m_lpRenderSettings ? tr("true") : tr("false")); }
-	if (slicerSettings)       { inList << tr("$Slice Settings");        inPara << tr("%1").arg(m_lpSlicerSettings ? tr("true") : tr("false")); }
+	if (preferences) { inList << tr("$Preferences");           inPara << tr("%1").arg(m_lpPreferences ? tr("true") : tr("false")); }
+	if (renderSettings) { inList << tr("$Render Settings");       inPara << tr("%1").arg(m_lpRenderSettings ? tr("true") : tr("false")); }
+	if (slicerSettings) { inList << tr("$Slice Settings");        inPara << tr("%1").arg(m_lpSlicerSettings ? tr("true") : tr("false")); }
 
 	dlg_commoninput dlg(this, "Load Settings", inList, inPara, nullptr);
 
@@ -516,17 +548,17 @@ void MainWindow::loadSettings()
 		return;
 	}
 	int index = 0;
-	if (camera)               { dlg.getCheckValue(index++) == 0 ? m_lpCamera = false               : m_lpCamera = true; }
-	if (sliceViews)           { dlg.getCheckValue(index++) == 0 ? m_lpSliceViews = false           : m_lpSliceViews = true; }
-	if (transferFunction)     { dlg.getCheckValue(index++) == 0 ? m_lpTransferFunction = false     : m_lpTransferFunction = true; }
+	if (camera) { dlg.getCheckValue(index++) == 0 ? m_lpCamera = false : m_lpCamera = true; }
+	if (sliceViews) { dlg.getCheckValue(index++) == 0 ? m_lpSliceViews = false : m_lpSliceViews = true; }
+	if (transferFunction) { dlg.getCheckValue(index++) == 0 ? m_lpTransferFunction = false : m_lpTransferFunction = true; }
 	if (probabilityFunctions) { dlg.getCheckValue(index++) == 0 ? m_lpProbabilityFunctions = false : m_lpProbabilityFunctions = true; }
-	if (preferences)          { dlg.getCheckValue(index++) == 0 ? m_lpPreferences = false          : m_lpPreferences = true; }
-	if (renderSettings)       { dlg.getCheckValue(index++) == 0 ? m_lpRenderSettings = false       : m_lpRenderSettings = true; }
-	if (slicerSettings)       { dlg.getCheckValue(index++) == 0 ? m_lpSlicerSettings = false       : m_lpSlicerSettings = true; }
+	if (preferences) { dlg.getCheckValue(index++) == 0 ? m_lpPreferences = false : m_lpPreferences = true; }
+	if (renderSettings) { dlg.getCheckValue(index++) == 0 ? m_lpRenderSettings = false : m_lpRenderSettings = true; }
+	if (slicerSettings) { dlg.getCheckValue(index++) == 0 ? m_lpSlicerSettings = false : m_lpSlicerSettings = true; }
 
 	if (m_lpProbabilityFunctions)
 	{
-		std::vector<iAChartFunction*> &functions = activeMdiChild()->functions();
+		std::vector<iAChartFunction*>& functions = activeMdiChild()->functions();
 		for (unsigned int i = 1; i < functions.size(); i++)
 		{
 			delete functions.back();
@@ -535,23 +567,37 @@ void MainWindow::loadSettings()
 	}
 
 	if (m_lpCamera)
+	{
 		loadCamera(xml);
+	}
 	if (m_lpSliceViews && xml.hasElement("sliceViews"))
+	{
 		loadSliceViews(xml.node("sliceViews"));
+	}
 	if (activeMdiChild()->histogram())
 	{
 		if (m_lpTransferFunction)
+		{
 			activeMdiChild()->histogram()->loadTransferFunction(xml.documentElement().namedItem("functions"));
+		}
 		if (m_lpProbabilityFunctions)
+		{
 			activeMdiChild()->histogram()->loadProbabilityFunctions(xml);
+		}
 		activeMdiChild()->redrawHistogram();
 	}
 	if (m_lpPreferences && xml.hasElement("preferences"))
+	{
 		loadPreferences(xml.node("preferences"));
+	}
 	if (m_lpRenderSettings && xml.hasElement("renderSettings"))
+	{
 		loadRenderSettings(xml.node("renderSettings"));
+	}
 	if (m_lpSlicerSettings && xml.hasElement("slicerSettings"))
+	{
 		loadSlicerSettings(xml.node("slicerSettings"));
+	}
 }
 
 void MainWindow::saveCamera(iAXmlSettings & xml)
@@ -565,7 +611,9 @@ bool MainWindow::loadCamera(iAXmlSettings & xml)
 {
 	vtkCamera *camera = activeMdiChild()->renderer()->renderer()->GetActiveCamera();
 	if (!xml.hasElement("camera"))
+	{
 		return false;
+	}
 	loadCamera(xml.node("camera"), camera);
 
 	double allBounds[6];
@@ -577,8 +625,10 @@ bool MainWindow::loadCamera(iAXmlSettings & xml)
 void MainWindow::saveSliceViews(iAXmlSettings & xml)
 {
 	QDomNode sliceViewsNode = xml.createElement("sliceViews");
-	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+	{
 		saveSliceView(xml.document(), sliceViewsNode, activeMdiChild()->slicer(i)->camera(), slicerModeString(i));
+	}
 }
 
 void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkCamera *cam, QString const & elemStr)
@@ -696,6 +746,7 @@ void MainWindow::savePreferences(iAXmlSettings &xml)
 {
 	QDomElement preferencesElement = xml.createElement("preferences");
 	preferencesElement.setAttribute("histogramBins", tr("%1").arg(m_defaultPreferences.HistogramBins));
+	preferencesElement.setAttribute("histogramLogarithmicYAxis", tr("%1").arg(m_defaultPreferences.HistogramLogarithmicYAxis));
 	preferencesElement.setAttribute("statisticalExtent", tr("%1").arg(m_defaultPreferences.StatisticalExtent));
 	preferencesElement.setAttribute("compression", tr("%1").arg(m_defaultPreferences.Compression));
 	preferencesElement.setAttribute("printParameters", tr("%1").arg(m_defaultPreferences.PrintParameters));
@@ -709,6 +760,7 @@ void MainWindow::loadPreferences(QDomNode preferencesNode)
 {
 	QDomNamedNodeMap attributes = preferencesNode.attributes();
 	m_defaultPreferences.HistogramBins = attributes.namedItem("histogramBins").nodeValue().toInt();
+	m_defaultPreferences.HistogramLogarithmicYAxis = attributes.namedItem("histogramLogarithmicYAxis").nodeValue().toInt();
 	m_defaultPreferences.StatisticalExtent = attributes.namedItem("statisticalExtent").nodeValue().toDouble();
 	m_defaultPreferences.Compression = attributes.namedItem("compression").nodeValue() == "1";
 	m_defaultPreferences.PrintParameters = attributes.namedItem("printParameters").nodeValue() == "1";
@@ -733,6 +785,11 @@ void MainWindow::saveRenderSettings(iAXmlSettings &xml)
 	renderSettingsElement.setAttribute("parallelProjection", m_defaultRenderSettings.ParallelProjection);
 	renderSettingsElement.setAttribute("backgroundTop", m_defaultRenderSettings.BackgroundTop);
 	renderSettingsElement.setAttribute("backgroundBottom", m_defaultRenderSettings.BackgroundBottom);
+	renderSettingsElement.setAttribute("planeOpacity", m_defaultRenderSettings.PlaneOpacity);
+	renderSettingsElement.setAttribute("useFXAA", m_defaultRenderSettings.UseFXAA);
+	renderSettingsElement.setAttribute("multiSamples", m_defaultRenderSettings.MultiSamples);
+	renderSettingsElement.setAttribute("useDepthPeeling", m_defaultRenderSettings.UseDepthPeeling);
+	renderSettingsElement.setAttribute("depthPeels", m_defaultRenderSettings.DepthPeels);
 	renderSettingsElement.setAttribute("linearInterpolation", m_defaultVolumeSettings.LinearInterpolation);
 	renderSettingsElement.setAttribute("shading", m_defaultVolumeSettings.Shading);
 	renderSettingsElement.setAttribute("sampleDistance", m_defaultVolumeSettings.SampleDistance);
@@ -754,6 +811,11 @@ void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
 	m_defaultRenderSettings.ParallelProjection = attributes.namedItem("parallelProjection").nodeValue() == "1";
 	m_defaultRenderSettings.BackgroundTop = attributes.namedItem("backgroundTop").nodeValue();
 	m_defaultRenderSettings.BackgroundBottom = attributes.namedItem("backgroundBottom").nodeValue();
+	m_defaultRenderSettings.PlaneOpacity = attributes.namedItem("planeOpacity").nodeValue().toDouble();
+	m_defaultRenderSettings.UseFXAA = attributes.namedItem("useFXAA").nodeValue() == "1";
+	m_defaultRenderSettings.MultiSamples = attributes.namedItem("multiSamples").nodeValue().toInt();
+	m_defaultRenderSettings.UseDepthPeeling = attributes.namedItem("useDepthPeeling").nodeValue() == "1";
+	m_defaultRenderSettings.DepthPeels = attributes.namedItem("depthPeels").nodeValue().toInt();
 
 	m_defaultVolumeSettings.LinearInterpolation = attributes.namedItem("linearInterpolation").nodeValue() == "1";
 	m_defaultVolumeSettings.Shading = attributes.namedItem("shading").nodeValue() == "1";
@@ -778,6 +840,7 @@ void MainWindow::saveSlicerSettings(iAXmlSettings &xml)
 	slicerSettingsElement.setAttribute("minIsovalue", m_defaultSlicerSettings.SingleSlicer.MinIsoValue);
 	slicerSettingsElement.setAttribute("maxIsovalue", m_defaultSlicerSettings.SingleSlicer.MaxIsoValue);
 	slicerSettingsElement.setAttribute("linearInterpolation", m_defaultSlicerSettings.SingleSlicer.LinearInterpolation);
+	slicerSettingsElement.setAttribute("adjustWindowLevelEnabled", m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled);
 	slicerSettingsElement.setAttribute("snakeSlices", m_defaultSlicerSettings.SnakeSlices);
 	slicerSettingsElement.setAttribute("linkMDIs", m_defaultSlicerSettings.LinkMDIs);
 	slicerSettingsElement.setAttribute("cursorMode", m_defaultSlicerSettings.SingleSlicer.CursorMode);
@@ -795,7 +858,8 @@ void MainWindow::loadSlicerSettings(QDomNode slicerSettingsNode)
 	m_defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = attributes.namedItem("numberOfIsolines").nodeValue().toInt();
 	m_defaultSlicerSettings.SingleSlicer.MinIsoValue = attributes.namedItem("minIsovalue").nodeValue().toDouble();
 	m_defaultSlicerSettings.SingleSlicer.MaxIsoValue = attributes.namedItem("maxIsovalue").nodeValue().toDouble();
-	m_defaultSlicerSettings.SingleSlicer.LinearInterpolation = attributes.namedItem("linearInterpolation").nodeValue().toDouble();
+	m_defaultSlicerSettings.SingleSlicer.LinearInterpolation = attributes.namedItem("linearInterpolation").nodeValue() == "1";
+	m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled = attributes.namedItem("adjustWindowLevelEnabled").nodeValue() == "1";
 	m_defaultSlicerSettings.SnakeSlices = attributes.namedItem("snakeSlices").nodeValue().toDouble();
 	m_defaultSlicerSettings.LinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
 	m_defaultSlicerSettings.SingleSlicer.CursorMode = attributes.namedItem("cursorMode").nodeValue().toStdString().c_str();
@@ -807,39 +871,51 @@ void MainWindow::loadSlicerSettings(QDomNode slicerSettingsNode)
 QList<QString> MainWindow::mdiWindowTitles()
 {
 	QList<QString> windowTitles;
-	for (MdiChild* mdiChild: mdiChildList())
+	for (MdiChild* mdiChild : mdiChildList())
+	{
 		windowTitles.append(mdiChild->windowTitle());
+	}
 	return windowTitles;
 }
 
 void MainWindow::maxXY()
 {
 	if (activeMdiChild())
-		activeMdiChild()->maximizeXY();
+	{
+		activeMdiChild()->maximizeSlicer(iASlicerMode::XY);
+	}
 }
 
 void MainWindow::maxXZ()
 {
 	if (activeMdiChild())
-		activeMdiChild()->maximizeXZ();
+	{
+		activeMdiChild()->maximizeSlicer(iASlicerMode::XZ);
+	}
 }
 
 void MainWindow::maxYZ()
 {
 	if (activeMdiChild())
-		activeMdiChild()->maximizeYZ();
+	{
+		activeMdiChild()->maximizeSlicer(iASlicerMode::YZ);
+	}
 }
 
 void MainWindow::maxRC()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->maximizeRC();
+	}
 }
 
 void MainWindow::multi()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->multiview();
+	}
 }
 
 void MainWindow::linkViews()
@@ -850,7 +926,9 @@ void MainWindow::linkViews()
 		activeMdiChild()->linkViews(m_defaultSlicerSettings.LinkViews);
 
 		if (m_defaultSlicerSettings.LinkViews)
+		{
 			statusBar()->showMessage(tr("Link Views"), 5000);
+		}
 	}
 }
 
@@ -862,7 +940,9 @@ void MainWindow::linkMDIs()
 		activeMdiChild()->linkMDIs(m_defaultSlicerSettings.LinkMDIs);
 
 		if (m_defaultSlicerSettings.LinkViews)
+		{
 			statusBar()->showMessage(tr("Link MDIs"), 5000);
+		}
 	}
 }
 
@@ -872,11 +952,7 @@ void MainWindow::enableInteraction()
 	{
 		m_defaultSlicerSettings.InteractorsEnabled = actionEnableInteraction->isChecked();
 		activeMdiChild()->enableInteraction(m_defaultSlicerSettings.InteractorsEnabled);
-
-		if (m_defaultSlicerSettings.InteractorsEnabled)
-			statusBar()->showMessage(tr("Interaction Enabled"), 5000);
-		else
-			statusBar()->showMessage(tr("Interaction Disabled"), 5000);
+		statusBar()->showMessage(tr("Interaction %1").arg(m_defaultSlicerSettings.InteractorsEnabled?"Enabled":"Disabled"), 5000);
 	}
 }
 
@@ -889,9 +965,13 @@ void MainWindow::toggleFullScreen()
 {
 	bool fullScreen = actionFullScreenMode->isChecked();
 	if (fullScreen)
+	{
 		showFullScreen();
+	}
 	else
+	{
 		showNormal();
+	}
 	emit fullScreenToggled();
 }
 
@@ -899,9 +979,13 @@ void MainWindow::toggleMenu()
 {
 	bool showMenu = actionShowMenu->isChecked();
 	if (showMenu)
+	{
 		menubar->show();
+	}
 	else
+	{
 		menubar->hide();
+	}
 }
 
 void MainWindow::prefs()
@@ -917,7 +1001,8 @@ void MainWindow::prefs()
 		<< tr("#Log File Name")
 		<< tr("+Looks")
 		<< tr("#Magic lens size")
-		<< tr("#Magic lens frame width"));
+		<< tr("#Magic lens frame width")
+		<< tr("$Logarithmic Histogram y axis"));
 	QStringList looks;
 	QMap<QString, QString> styleNames;
 	styleNames.insert(tr("Dark")      , ":/dark.qss");
@@ -952,14 +1037,15 @@ void MainWindow::prefs()
 		<< iAConsole::instance()->logFileName()
 		<< looks
 		<< tr("%1").arg(p.MagicLensSize)
-		<< tr("%1").arg(p.MagicLensFrameWidth);
+		<< tr("%1").arg(p.MagicLensFrameWidth)
+		<< p.HistogramLogarithmicYAxis;
 
 	dlg_commoninput dlg(this, "Preferences", inList, inPara, descr);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
-		m_defaultPreferences.HistogramBins = (int)dlg.getDblValue(0);
-		m_defaultPreferences.StatisticalExtent = (int)dlg.getDblValue(1);
+		m_defaultPreferences.HistogramBins = dlg.getIntValue(0);
+		m_defaultPreferences.StatisticalExtent = dlg.getIntValue(1);
 		m_defaultPreferences.Compression = dlg.getCheckValue(2) != 0;
 		m_defaultPreferences.PrintParameters = dlg.getCheckValue(3) != 0;
 		m_defaultPreferences.ResultInNewWindow = dlg.getCheckValue(4) != 0;
@@ -975,9 +1061,12 @@ void MainWindow::prefs()
 		m_defaultPreferences.MagicLensSize = clamp(MinimumMagicLensSize, MaximumMagicLensSize,
 			static_cast<int>(dlg.getDblValue(8)));
 		m_defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getDblValue(9)));
+		m_defaultPreferences.HistogramLogarithmicYAxis = dlg.getCheckValue(10);
 
 		if (activeMdiChild() && activeMdiChild()->editPrefs(m_defaultPreferences))
+		{
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
+		}
 
 		iAConsole::instance()->setLogToFile(logToFile, logFileName, true);
 	}
@@ -985,17 +1074,15 @@ void MainWindow::prefs()
 
 void MainWindow::renderSettings()
 {
-	MdiChild *child = activeMdiChild();
-
-	QString t = tr("true");
-	QString f = tr("false");
-
-	iARenderSettings const & renderSettings = child->renderSettings();
-	iAVolumeSettings const & volumeSettings = child->volumeSettings();
+	QString dlgTitle = activeMdiChild()? (activeMdiChild()->windowTitle() + " - renderer setings") : "Default renderer settings";
+	iARenderSettings renderSettings = activeMdiChild() ? activeMdiChild()->renderSettings() : m_defaultRenderSettings;
+	iAVolumeSettings volumeSettings = activeMdiChild() ? activeMdiChild()->volumeSettings() : m_defaultVolumeSettings;
 
 	QStringList renderTypes;
 	for (int mode : RenderModeMap().keys())
+	{
 		renderTypes << ((mode == volumeSettings.RenderMode) ? QString("!") : QString()) + RenderModeMap().value(mode);
+	}
 
 	QStringList inList;
 	inList
@@ -1007,6 +1094,9 @@ void MainWindow::renderSettings()
 		<< tr("#Background top")
 		<< tr("#Background bottom")
 		<< tr("$Use FXAA")
+		<< tr("#MultiSamples")
+		<< tr("$Use Depth Peeling")
+		<< tr("#Maximum Depth Peels")
 		<< tr("$Linear interpolation")
 		<< tr("$Shading")
 		<< tr("#Sample distance")
@@ -1018,37 +1108,46 @@ void MainWindow::renderSettings()
 		<< tr("#Slice plane opacity");
 
 	QList<QVariant> inPara;
-	inPara << (renderSettings.ShowSlicers ? t : f)
-		<< (renderSettings.ShowSlicePlanes ? t : f)
-		<< (renderSettings.ShowHelpers ? t : f)
-		<< (renderSettings.ShowRPosition ? t : f)
-		<< (renderSettings.ParallelProjection ? t : f)
-		<< tr("%1").arg(renderSettings.BackgroundTop)
-		<< tr("%1").arg(renderSettings.BackgroundBottom)
-		<< (renderSettings.UseFXAA ? t : f)
-		<< (volumeSettings.LinearInterpolation ? t : f)
-		<< (volumeSettings.Shading ? t : f)
-		<< tr("%1").arg(volumeSettings.SampleDistance)
-		<< tr("%1").arg(volumeSettings.AmbientLighting)
-		<< tr("%1").arg(volumeSettings.DiffuseLighting)
-		<< tr("%1").arg(volumeSettings.SpecularLighting)
-		<< tr("%1").arg(volumeSettings.SpecularPower)
+	inPara << renderSettings.ShowSlicers
+		<< renderSettings.ShowSlicePlanes
+		<< renderSettings.ShowHelpers
+		<< renderSettings.ShowRPosition
+		<< renderSettings.ParallelProjection
+		<< renderSettings.BackgroundTop
+		<< renderSettings.BackgroundBottom
+		<< renderSettings.UseFXAA
+		<< renderSettings.MultiSamples
+		<< renderSettings.UseDepthPeeling
+		<< renderSettings.DepthPeels
+		<< volumeSettings.LinearInterpolation
+		<< volumeSettings.Shading
+		<< volumeSettings.SampleDistance
+		<< volumeSettings.AmbientLighting
+		<< volumeSettings.DiffuseLighting
+		<< volumeSettings.SpecularLighting
+		<< volumeSettings.SpecularPower
 		<< renderTypes
-		<< tr("%1").arg(renderSettings.PlaneOpacity);
+		<< renderSettings.PlaneOpacity;
 
-	dlg_commoninput dlg(this, "Renderer settings", inList, inPara, nullptr);
+	dlg_commoninput dlg(this, dlgTitle, inList, inPara, nullptr);
 
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 
-	m_defaultRenderSettings.ShowSlicers = dlg.getCheckValue(0) != 0;
-	m_defaultRenderSettings.ShowSlicePlanes = dlg.getCheckValue(1) != 0;
-	m_defaultRenderSettings.ShowHelpers = dlg.getCheckValue(2) != 0;
-	m_defaultRenderSettings.ShowRPosition = dlg.getCheckValue(3) != 0;
-	m_defaultRenderSettings.ParallelProjection = dlg.getCheckValue(4) != 0;
-	m_defaultRenderSettings.BackgroundTop = dlg.getText(5);
-	m_defaultRenderSettings.BackgroundBottom = dlg.getText(6);
-	m_defaultRenderSettings.UseFXAA = dlg.getCheckValue(7) !=0;
+	int param = 0;
+	m_defaultRenderSettings.ShowSlicers = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.ShowSlicePlanes = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.ShowHelpers = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.ShowRPosition = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.ParallelProjection = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.BackgroundTop = dlg.getText(param++);
+	m_defaultRenderSettings.BackgroundBottom = dlg.getText(param++);
+	m_defaultRenderSettings.UseFXAA = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.MultiSamples = dlg.getIntValue(param++);
+	m_defaultRenderSettings.UseDepthPeeling = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.DepthPeels = dlg.getIntValue(param++);
 
 	QColor bgTop(m_defaultRenderSettings.BackgroundTop);
 	QColor bgBottom(m_defaultRenderSettings.BackgroundBottom);
@@ -1063,29 +1162,26 @@ void MainWindow::renderSettings()
 		m_defaultRenderSettings.BackgroundBottom = bgTop.name();
 	}
 
-	m_defaultVolumeSettings.LinearInterpolation = dlg.getCheckValue(8) != 0;
-	m_defaultVolumeSettings.Shading = dlg.getCheckValue(9) != 0;
-	m_defaultVolumeSettings.SampleDistance = dlg.getDblValue(10);
-	m_defaultVolumeSettings.AmbientLighting = dlg.getDblValue(11);
-	m_defaultVolumeSettings.DiffuseLighting = dlg.getDblValue(12);
-	m_defaultVolumeSettings.SpecularLighting = dlg.getDblValue(13);
-	m_defaultVolumeSettings.SpecularPower = dlg.getDblValue(14);
-	m_defaultVolumeSettings.RenderMode = mapRenderModeToEnum(dlg.getComboBoxValue(15));
+	m_defaultVolumeSettings.LinearInterpolation = dlg.getCheckValue(param++) != 0;
+	m_defaultVolumeSettings.Shading = dlg.getCheckValue(param++) != 0;
+	m_defaultVolumeSettings.SampleDistance = dlg.getDblValue(param++);
+	m_defaultVolumeSettings.AmbientLighting = dlg.getDblValue(param++);
+	m_defaultVolumeSettings.DiffuseLighting = dlg.getDblValue(param++);
+	m_defaultVolumeSettings.SpecularLighting = dlg.getDblValue(param++);
+	m_defaultVolumeSettings.SpecularPower = dlg.getDblValue(param++);
+	m_defaultVolumeSettings.RenderMode = mapRenderModeToEnum(dlg.getComboBoxValue(param++));
 
-	m_defaultRenderSettings.PlaneOpacity = dlg.getDblValue(16);
+	m_defaultRenderSettings.PlaneOpacity = dlg.getDblValue(param++);
 
-	if (activeMdiChild() && activeMdiChild()->editRendererSettings(
-		m_defaultRenderSettings,
-		m_defaultVolumeSettings))
+	if (activeMdiChild())
 	{
-		statusBar()->showMessage(tr("Changed renderer settings"), 5000);
+		activeMdiChild()->editRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 	}
+	statusBar()->showMessage(tr("Changed renderer settings"), 5000);
 }
 
 void MainWindow::slicerSettings()
 {
-	MdiChild *child = activeMdiChild();
-
 	const QStringList mouseCursorModes = QStringList()\
 		<< "Crosshair default" \
 		<< "Crosshair thick red"	<< "Crosshair thin red" \
@@ -1098,6 +1194,7 @@ void MainWindow::slicerSettings()
 		<< tr("$Show Position")
 		<< tr("$Show Isolines")
 		<< tr("$Linear Interpolation")
+		<< tr("$Adjust Window/Level via Mouse Click+Drag")
 		<< tr("#Number of Isolines")
 		<< tr("#Min Isovalue")
 		<< tr("#Max Isovalue")
@@ -1108,16 +1205,21 @@ void MainWindow::slicerSettings()
 		<< tr("#Tooltip Font Size (pt)")
 		<< tr("$Show Tooltip")
 		);
+	
+	QString dlgTitle = activeMdiChild() ? (activeMdiChild()->windowTitle() + " - slicer setings") : "Default slicer settings";
+	iASlicerSettings const & slicerSettings = activeMdiChild() ? activeMdiChild()->slicerSettings() : m_defaultSlicerSettings;
 
-	iASlicerSettings const & slicerSettings = child->slicerSettings();
 	QStringList mouseCursorTypes;
-	foreach( QString mode, mouseCursorModes )
-		mouseCursorTypes << ( ( mode == slicerSettings.SingleSlicer.CursorMode ) ? QString( "!" ) : QString() ) + mode;
+	for (QString mode : mouseCursorModes)
+	{
+		mouseCursorTypes << ((mode == slicerSettings.SingleSlicer.CursorMode) ? QString("!") : QString()) + mode;
+	}
 
 	QList<QVariant> inPara; 	inPara  << (slicerSettings.LinkViews ? tr("true") : tr("false"))
 		<< (slicerSettings.SingleSlicer.ShowPosition ? tr("true") : tr("false"))
 		<< (slicerSettings.SingleSlicer.ShowIsoLines ? tr("true") : tr("false"))
 		<< (slicerSettings.SingleSlicer.LinearInterpolation ? tr("true") : tr("false"))
+		<< (slicerSettings.SingleSlicer.AdjustWindowLevelEnabled ? tr("true") : tr("false"))
 		<< tr("%1").arg(slicerSettings.SingleSlicer.NumberOfIsoLines)
 		<< tr("%1").arg(slicerSettings.SingleSlicer.MinIsoValue)
 		<< tr("%1").arg(slicerSettings.SingleSlicer.MaxIsoValue)
@@ -1128,27 +1230,33 @@ void MainWindow::slicerSettings()
 		<< QString("%1").arg(slicerSettings.SingleSlicer.ToolTipFontSize)
 		<< (slicerSettings.SingleSlicer.ShowTooltip ? tr("true") : tr("false"));
 
-	dlg_commoninput dlg(this, "Slicer settings", inList, inPara, nullptr);
+	dlg_commoninput dlg(this, dlgTitle, inList, inPara, nullptr);
 
-	if (dlg.exec() == QDialog::Accepted)
+	if (dlg.exec() != QDialog::Accepted)
 	{
-		m_defaultSlicerSettings.LinkViews = dlg.getCheckValue(0) != 0;
-		m_defaultSlicerSettings.SingleSlicer.ShowPosition = dlg.getCheckValue(1) != 0;
-		m_defaultSlicerSettings.SingleSlicer.ShowIsoLines = dlg.getCheckValue(2) != 0;
-		m_defaultSlicerSettings.SingleSlicer.LinearInterpolation = dlg.getCheckValue(3) != 0;
-		m_defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = dlg.getIntValue(4);
-		m_defaultSlicerSettings.SingleSlicer.MinIsoValue = dlg.getDblValue(5);
-		m_defaultSlicerSettings.SingleSlicer.MaxIsoValue = dlg.getDblValue(6);
-		m_defaultSlicerSettings.SnakeSlices = dlg.getIntValue(7);
-		m_defaultSlicerSettings.LinkMDIs = dlg.getCheckValue(8) != 0;
-		m_defaultSlicerSettings.SingleSlicer.CursorMode = dlg.getComboBoxValue(9);
-		m_defaultSlicerSettings.SingleSlicer.ShowAxesCaption = dlg.getCheckValue(10) != 0;
-		m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize = dlg.getIntValue(11);
-		m_defaultSlicerSettings.SingleSlicer.ShowTooltip = dlg.getCheckValue(12) != 0;
-
-		if (activeMdiChild() && activeMdiChild()->editSlicerSettings(m_defaultSlicerSettings))
-			statusBar()->showMessage(tr("Edit slicer settings"), 5000);
+		return;
 	}
+	int param = 0;
+	m_defaultSlicerSettings.LinkViews = dlg.getCheckValue(param++) != 0;
+	m_defaultSlicerSettings.SingleSlicer.ShowPosition = dlg.getCheckValue(param++) != 0;
+	m_defaultSlicerSettings.SingleSlicer.ShowIsoLines = dlg.getCheckValue(param++) != 0;
+	m_defaultSlicerSettings.SingleSlicer.LinearInterpolation = dlg.getCheckValue(param++) != 0;
+	m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled = dlg.getCheckValue(param++) != 0;
+	m_defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = dlg.getIntValue(param++);
+	m_defaultSlicerSettings.SingleSlicer.MinIsoValue = dlg.getDblValue(param++);
+	m_defaultSlicerSettings.SingleSlicer.MaxIsoValue = dlg.getDblValue(param++);
+	m_defaultSlicerSettings.SnakeSlices = dlg.getIntValue(param++);
+	m_defaultSlicerSettings.LinkMDIs = dlg.getCheckValue(param++) != 0;
+	m_defaultSlicerSettings.SingleSlicer.CursorMode = dlg.getComboBoxValue(param++);
+	m_defaultSlicerSettings.SingleSlicer.ShowAxesCaption = dlg.getCheckValue(param++) != 0;
+	m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize = dlg.getIntValue(param++);
+	m_defaultSlicerSettings.SingleSlicer.ShowTooltip = dlg.getCheckValue(param++) != 0;
+
+	if (activeMdiChild())
+	{
+		activeMdiChild()->editSlicerSettings(m_defaultSlicerSettings);
+	}
+	statusBar()->showMessage(tr("Changed slicer settings"), 5000);
 }
 
 void MainWindow::loadTransferFunction()
@@ -1156,9 +1264,13 @@ void MainWindow::loadTransferFunction()
 	if (activeMdiChild())
 	{
 		if (activeMdiChild()->loadTransferFunction())
+		{
 			statusBar()->showMessage(tr("Loaded transfer function successfully"), 5000);
+		}
 		else
+		{
 			statusBar()->showMessage(tr("Loading transfer function failed"), 5000);
+		}
 	}
 }
 
@@ -1167,9 +1279,13 @@ void MainWindow::saveTransferFunctionSlot()
 	if (activeMdiChild())
 	{
 		if (activeMdiChild()->saveTransferFunction())
+		{
 			statusBar()->showMessage(tr("Saved transfer function successfully"), 5000);
+		}
 		else
+		{
 			statusBar()->showMessage(tr("Saving transfer function failed"), 5000);
+		}
 	}
 }
 
@@ -1185,44 +1301,95 @@ void MainWindow::deletePoint()
 void MainWindow::changeColor()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->changeColor();
+	}
 }
 
 void MainWindow::resetView()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->resetView();
+	}
 }
 
 void MainWindow::resetTrf()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->resetTrf();
+	}
+}
+
+void MainWindow::changeInteractionMode(bool isChecked)
+{
+	if (activeMdiChild())
+	{
+		QAction* a = qobject_cast<QAction*>(sender());
+		MdiChild::iAInteractionMode mode =
+			(a == actionInteractionModeCamera) ?
+			(isChecked ? MdiChild::imCamera : MdiChild::imRegistration) :
+			(isChecked ? MdiChild::imRegistration : MdiChild::imCamera);
+		activeMdiChild()->setInteractionMode(mode);
+	}
+}
+
+void MainWindow::updateInteractionModeControls(int mode)
+{
+	QSignalBlocker b1(actionInteractionModeRegistration),
+		b2(actionInteractionModeCamera);
+	actionInteractionModeCamera->setChecked(mode == MdiChild::imCamera);
+	actionInteractionModeRegistration->setChecked(mode == MdiChild::imRegistration);
+}
+
+void MainWindow::meshDataMovable(bool isChecked)
+{
+	if (activeMdiChild())
+	{
+		activeMdiChild()->setMeshDataMovable(isChecked);
+	}
 }
 
 void MainWindow::toggleSnakeSlicer(bool isChecked)
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->toggleSnakeSlicer(isChecked);
+	}
 }
 
 void MainWindow::toggleSliceProfile(bool isChecked)
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->toggleSliceProfile(isChecked);
+	}
 }
 
 void MainWindow::toggleMagicLens( bool isChecked )
 {
 	if (activeMdiChild())
-		activeMdiChild()->toggleMagicLens(isChecked);
+	{
+		activeMdiChild()->toggleMagicLens2D(isChecked);
+	}
+}
+
+void MainWindow::toggleMagicLens3D(bool isChecked)
+{
+	if (activeMdiChild())
+	{
+		activeMdiChild()->toggleMagicLens3D(isChecked);
+	}
 }
 
 void MainWindow::rendererCamPosition()
 {
-	int pos = sender()->property("camPosition").toInt();
-	if (activeChild<iAChangeableCameraWidget>())
-		activeChild<iAChangeableCameraWidget>()->setCamPosition(pos);
+	if (activeMdiChild())
+	{
+		int pos = sender()->property("camPosition").toInt();
+		activeMdiChild()->setCamPosition(pos);
+	}
 }
 
 void MainWindow::raycasterAssignIso()
@@ -1233,7 +1400,9 @@ void MainWindow::raycasterAssignIso()
 	{
 		double camOptions[10] = {0};
 		if (activeMdiChild())
+		{
 			activeMdiChild()->camPosition(camOptions);
+		}
 		for(int i = 0; i < sizeMdi; i++)
 		{
 			MdiChild *tmpChild = mdiwindows.at(i);
@@ -1330,7 +1499,9 @@ void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 			iAChartFunctionBezier * oldBezier = (iAChartFunctionBezier*)curFunc;
 			iAChartFunctionBezier * newBezier = new iAChartFunctionBezier(newChild->histogram(), PredefinedColors()[i % 7]);
 			for (unsigned int j = 0; j < oldBezier->getPoints().size(); ++j)
+			{
 				newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());
+			}
 			newChild->functions().push_back(newBezier);
 		}
 		break;
@@ -1343,22 +1514,37 @@ void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 void MainWindow::about()
 {
 	m_splashScreen->show();
-	m_splashScreen->showMessage(tr("\n      Version: %1").arg (m_gitVersion), Qt::AlignTop, QColor(255, 255, 255));
+	m_splashScreen->showMessage(QString("\n      Version: %1").arg(m_gitVersion), Qt::AlignTop, QColor(255, 255, 255));
+}
+
+void MainWindow::buildInformation()
+{
+	QMessageBox::information(this, "Build Information", m_buildInformation, QMessageBox::Ok);
 }
 
 void MainWindow::wiki()
 {
 	QAction* act = qobject_cast<QAction*>(QObject::sender());
 	if (act->text().contains("Core"))
+	{
 		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Core"));
-	else if(act->text().contains("Filters"))
+	}
+	else if (act->text().contains("Filters"))
+	{
 		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Filters"));
+	}
 	else if (act->text().contains("Tools"))
+	{
 		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Tools"));
+	}
 	else if (act->text().contains("releases"))
+	{
 		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/releases"));
+	}
 	else if (act->text().contains("bug"))
+	{
 		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/issues"));
+	}
 }
 
 void MainWindow::createRecentFileActions()
@@ -1399,21 +1585,23 @@ void MainWindow::updateMenus()
 	actionLinkViews->setEnabled(hasMdiChild);
 	actionLinkMdis->setEnabled(hasMdiChild);
 	actionEnableInteraction->setEnabled(hasMdiChild);
-	actionRendererSettings->setEnabled(hasMdiChild);
-	actionSlicerSettings->setEnabled(hasMdiChild);
 	actionLoadTransferFunction->setEnabled(hasMdiChild);
 	actionSaveTransferFunction->setEnabled(hasMdiChild);
 	actionSnakeSlicer->setEnabled(hasMdiChild);
-	actionMagicLens->setEnabled(hasMdiChild);
+	actionMagicLens2D->setEnabled(hasMdiChild);
+	actionMagicLens3D->setEnabled(hasMdiChild);
 
-	bool hasChangeableRenderer = activeChild<iAChangeableCameraWidget>();
-	actionViewXDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionViewmXDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionViewYDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionViewmYDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionViewZDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionViewmZDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionIsometricViewInRaycaster->setEnabled(hasChangeableRenderer);
+	actionMeshDataMovable->setEnabled(hasMdiChild);
+	actionInteractionModeCamera->setEnabled(hasMdiChild);
+	actionInteractionModeRegistration->setEnabled(hasMdiChild);
+
+	actionViewXDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewmXDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewYDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewmYDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewZDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewmZDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionIsometricViewInRaycaster->setEnabled(hasMdiChild);
 	actionAssignView->setEnabled(hasMdiChild);
 	actionLoadCameraSettings->setEnabled(hasMdiChild);
 	actionSaveCameraSettings->setEnabled(hasMdiChild);
@@ -1425,6 +1613,22 @@ void MainWindow::updateMenus()
 	actionResetLayout->setEnabled(hasMdiChild);
 	actionDeleteLayout->setEnabled(hasMdiChild);
 	actionChildStatusBar->setEnabled(hasMdiChild);
+
+	// Update checked states of actions:
+	auto child = activeMdiChild();
+	QSignalBlocker movableBlock(actionMeshDataMovable);
+	actionMeshDataMovable->setChecked(hasMdiChild && child->meshDataMovable());
+	QSignalBlocker interactionModeCameraBlock(actionInteractionModeCamera);
+	actionInteractionModeCamera->setChecked(hasMdiChild && child->interactionMode() == MdiChild::imCamera);
+	QSignalBlocker interactionModeRegistrationBlock(actionInteractionModeRegistration);
+	actionInteractionModeRegistration->setChecked(hasMdiChild && child->interactionMode() == MdiChild::imRegistration);
+	QSignalBlocker blockSliceProfile(actionRawProfile);
+	actionRawProfile->setChecked(hasMdiChild && child->isSliceProfileToggled());
+	QSignalBlocker blockSnakeSlicer(actionSnakeSlicer);
+	actionSnakeSlicer->setChecked(hasMdiChild && child->isSnakeSlicerToggled());
+	updateMagicLens2DCheckState(hasMdiChild && child->isMagicLens2DEnabled());
+	QSignalBlocker blockMagicLens3D(actionMagicLens3D);
+	actionMagicLens3D->setChecked(hasMdiChild && child->isMagicLens3DEnabled());
 
 	updateRecentFileActions();
 
@@ -1449,7 +1653,9 @@ void MainWindow::updateMenus()
 		// set current application working directory to the one where the file is in (as default directory, e.g. for file open)
 		// see also MdiChild::setCurrentFile
 		if (!activeMdiChild()->filePath().isEmpty())
+		{
 			QDir::setCurrent(activeMdiChild()->filePath());
+		}
 		//??if (activeMdiChild())
 		//	histogramToolbar->setEnabled(activeMdiChild()->getTabIndex() == 1 && !activeMdiChild()->isMaximized());
 	}
@@ -1460,18 +1666,27 @@ void MainWindow::updateMenus()
 	}
 }
 
+void MainWindow::updateMagicLens2DCheckState(bool enabled)
+{
+	QSignalBlocker blockMagicLens2D(actionMagicLens2D);
+	actionMagicLens2D->setChecked(enabled);
+}
+
 void MainWindow::updateWindowMenu()
 {
 	QList<MdiChild *> windows = mdiChildList();
 
-	for (int i = 0; i < windows.size(); ++i) {
+	for (int i = 0; i < windows.size(); ++i)
+	{
 		MdiChild *child = windows.at(i);
-
 		QString text;
-		if (i < 9) {
+		if (i < 9)
+		{
 			text = tr("&%1 %2").arg(i + 1)
 				.arg(child->userFriendlyCurrentFile());
-		} else {
+		}
+		else
+		{
 			text = tr("%1 %2").arg(i + 1)
 				.arg(child->userFriendlyCurrentFile());
 		}
@@ -1490,16 +1705,18 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	subWin->setOption(QMdiSubWindow::RubberBandMove);
 
 	if (mdiArea->subWindowList().size() < 2)
+	{
 		child->showMaximized();
+	}
 
 	child->setRenderSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 	child->setupSlicers(m_defaultSlicerSettings, false);
 
-	connect( child, SIGNAL( pointSelected() ), this, SLOT( pointSelected() ) );
-	connect( child, SIGNAL( noPointSelected() ), this, SLOT( noPointSelected() ) );
-	connect( child, SIGNAL( endPointSelected() ), this, SLOT( endPointSelected() ) );
-	connect( child, SIGNAL( active() ), this, SLOT( setHistogramFocus() ) );
-	connect( child, SIGNAL( closed() ), this, SLOT( childClosed() ) );
+	connect(child, &MdiChild::pointSelected, this, &MainWindow::pointSelected);
+	connect(child, &MdiChild::noPointSelected, this, &MainWindow::noPointSelected);
+	connect(child, &MdiChild::endPointSelected, this, &MainWindow::endPointSelected);
+	connect(child, &MdiChild::active, this, &MainWindow::setHistogramFocus);
+	connect(child, &MdiChild::closed, this, &MainWindow::childClosed);
 
 	setModuleActionsEnabled( true );
 
@@ -1510,7 +1727,9 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 void MainWindow::closeMdiChild(MdiChild* child)
 {
 	if (!child)
+	{
 		return;
+	}
 	QMdiSubWindow* subWin = qobject_cast<QMdiSubWindow*>(child->parent());
 	delete subWin;
 }
@@ -1531,7 +1750,9 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionSaveSettings, &QAction::triggered, this, &MainWindow::saveSettings);
 	connect(actionExit, &QAction::triggered, qApp, &QApplication::closeAllWindows);
 	for (int i = 0; i < MaxRecentFiles; ++i)
+	{
 		connect(m_recentFileActs[i], &QAction::triggered, this, &MainWindow::openRecentFile);
+	}
 
 	// "Edit" menu entries:
 	connect(actionPreferences, &QAction::triggered, this, &MainWindow::prefs);
@@ -1543,6 +1764,9 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionDeletePoint, &QAction::triggered, this, &MainWindow::deletePoint);
 	connect(actionResetView, &QAction::triggered, this, &MainWindow::resetView);
 	connect(actionResetFunction, &QAction::triggered, this, &MainWindow::resetTrf);
+	connect(actionInteractionModeRegistration, &QAction::triggered, this, &MainWindow::changeInteractionMode);
+	connect(actionInteractionModeCamera, &QAction::triggered, this, &MainWindow::changeInteractionMode);
+	connect(actionMeshDataMovable, &QAction::triggered, this, &MainWindow::meshDataMovable);
 
 	// "Views" menu entries:
 	connect(actionXY, &QAction::triggered, this, &MainWindow::maxXY);
@@ -1580,6 +1804,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionReleases, &QAction::triggered, this, &MainWindow::wiki);
 	connect(actionBug, &QAction::triggered, this, &MainWindow::wiki);
 	connect(actionAbout, &QAction::triggered, this, &MainWindow::about);
+	connect(actionBuildInformation, &QAction::triggered, this, &MainWindow::buildInformation);
 
 	// Renderer toolbar:
 	connect(actionViewXDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::rendererCamPosition);
@@ -1598,22 +1823,22 @@ void MainWindow::connectSignalsToSlots()
 	actionIsometricViewInRaycaster->setProperty("camPosition", iACameraPosition::Iso);
 
 	// Camera toolbar:
-	connect(actionAssignView, &QAction::triggered, this, &MainWindow::raycasterAssignIso);
+	connect(actionAssignView,   &QAction::triggered, this, &MainWindow::raycasterAssignIso);
 	connect(actionSaveCameraSettings, &QAction::triggered, this, &MainWindow::raycasterSaveCameraSettings);
 	connect(actionLoadCameraSettings, &QAction::triggered, this, &MainWindow::raycasterLoadCameraSettings);
 
 	// Snake slicer toolbar
-	connect(actionSnakeSlicer, &QAction::toggled, this, &MainWindow::toggleSnakeSlicer);
-	connect(actionRawProfile, &QAction::toggled, this, &MainWindow::toggleSliceProfile);
-	connect(actionMagicLens, &QAction::toggled, this, &MainWindow::toggleMagicLens);
+	connect(actionSnakeSlicer,  &QAction::toggled, this, &MainWindow::toggleSnakeSlicer);
+	connect(actionRawProfile,   &QAction::toggled, this, &MainWindow::toggleSliceProfile);
+	connect(actionMagicLens2D,  &QAction::toggled, this, &MainWindow::toggleMagicLens);
+	connect(actionMagicLens3D,  &QAction::triggered, this, &MainWindow::toggleMagicLens3D);
 
 	// Layout toolbar menu entries
-	connect(actionSaveLayout, &QAction::triggered, this, &MainWindow::saveLayout);
-	connect(actionLoadLayout, &QAction::triggered, this, &MainWindow::loadLayout);
+	connect(actionSaveLayout,   &QAction::triggered, this, &MainWindow::saveLayout);
+	connect(actionLoadLayout,   &QAction::triggered, this, &MainWindow::loadLayout);
 	connect(actionDeleteLayout, &QAction::triggered, this, &MainWindow::deleteLayout);
-	connect(actionResetLayout, &QAction::triggered, this, &MainWindow::resetLayout);
+	connect(actionResetLayout,  &QAction::triggered, this, &MainWindow::resetLayout);
 
-	connect(mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::childActivatedSlot);
 	connect(mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::updateMenus);
 
 	consoleVisibilityChanged(iAConsole::instance()->isVisible());
@@ -1627,13 +1852,15 @@ void MainWindow::readSettings()
 
 	m_qssName = settings.value("qssName", ":/bright.qss").toString();
 
+	iAPreferences defaultPrefs;
 	m_defaultLayout = settings.value("Preferences/defaultLayout", "").toString();
-	m_defaultPreferences.HistogramBins = settings.value("Preferences/prefHistogramBins", DefaultHistogramBins).toInt();
-	m_defaultPreferences.StatisticalExtent = settings.value("Preferences/prefStatExt", 3).toInt();
-	m_defaultPreferences.Compression = settings.value("Preferences/prefCompression", true).toBool();
-	m_defaultPreferences.ResultInNewWindow = settings.value("Preferences/prefResultInNewWindow", true).toBool();
-	m_defaultPreferences.MagicLensSize = settings.value("Preferences/prefMagicLensSize", DefaultMagicLensSize).toInt();
-	m_defaultPreferences.MagicLensFrameWidth = settings.value("Preferences/prefMagicLensFrameWidth", 3).toInt();
+	m_defaultPreferences.HistogramBins = settings.value("Preferences/prefHistogramBins", defaultPrefs.HistogramBins).toInt();
+	m_defaultPreferences.HistogramLogarithmicYAxis = settings.value("Preferences/prefHistogramLogarithmicYAxis", defaultPrefs.HistogramLogarithmicYAxis).toBool();
+	m_defaultPreferences.StatisticalExtent = settings.value("Preferences/prefStatExt", defaultPrefs.StatisticalExtent).toInt();
+	m_defaultPreferences.Compression = settings.value("Preferences/prefCompression", defaultPrefs.Compression).toBool();
+	m_defaultPreferences.ResultInNewWindow = settings.value("Preferences/prefResultInNewWindow", defaultPrefs.ResultInNewWindow).toBool();
+	m_defaultPreferences.MagicLensSize = settings.value("Preferences/prefMagicLensSize", defaultPrefs.MagicLensSize).toInt();
+	m_defaultPreferences.MagicLensFrameWidth = settings.value("Preferences/prefMagicLensFrameWidth", defaultPrefs.MagicLensFrameWidth).toInt();
 	bool prefLogToFile = settings.value("Preferences/prefLogToFile", false).toBool();
 	QString logFileName = settings.value("Preferences/prefLogFile", "debug.log").toString();
 	iAConsole::instance()->setLogToFile(prefLogToFile, logFileName);
@@ -1644,8 +1871,13 @@ void MainWindow::readSettings()
 	m_defaultRenderSettings.ShowHelpers = settings.value("Renderer/rsShowHelpers", fallbackRS.ShowHelpers).toBool();
 	m_defaultRenderSettings.ShowRPosition = settings.value("Renderer/rsShowRPosition", fallbackRS.ShowRPosition).toBool();
 	m_defaultRenderSettings.ParallelProjection = settings.value("Renderer/rsParallelProjection", fallbackRS.ParallelProjection).toBool();
+	m_defaultRenderSettings.UseFXAA = settings.value("Renderer/rsUseFXAA", fallbackRS.UseFXAA).toBool();
+	m_defaultRenderSettings.MultiSamples = settings.value("Renderer/rsMultiSamples", fallbackRS.MultiSamples).toInt();
+	m_defaultRenderSettings.PlaneOpacity = settings.value("Renderer/rsPlaneOpacity", fallbackRS.PlaneOpacity).toDouble();
 	m_defaultRenderSettings.BackgroundTop = settings.value("Renderer/rsBackgroundTop", fallbackRS.BackgroundTop).toString();
 	m_defaultRenderSettings.BackgroundBottom = settings.value("Renderer/rsBackgroundBottom", fallbackRS.BackgroundBottom).toString();
+	m_defaultRenderSettings.UseDepthPeeling = settings.value("Renderer/rsUseDepthPeeling", fallbackRS.UseDepthPeeling).toBool();
+	m_defaultRenderSettings.DepthPeels = settings.value("Renderer/rsDepthPeels", fallbackRS.DepthPeels).toInt();
 
 	iAVolumeSettings fallbackVS;
 	m_defaultVolumeSettings.LinearInterpolation = settings.value("Renderer/rsLinearInterpolation", fallbackVS.LinearInterpolation).toBool();
@@ -1669,6 +1901,7 @@ void MainWindow::readSettings()
 	m_defaultSlicerSettings.SingleSlicer.MinIsoValue = settings.value("Slicer/ssMinIsovalue", fallbackSS.SingleSlicer.MinIsoValue).toDouble();
 	m_defaultSlicerSettings.SingleSlicer.MaxIsoValue = settings.value("Slicer/ssMaxIsovalue", fallbackSS.SingleSlicer.MaxIsoValue).toDouble();
 	m_defaultSlicerSettings.SingleSlicer.LinearInterpolation = settings.value("Slicer/ssImageActorUseInterpolation", fallbackSS.SingleSlicer.LinearInterpolation).toBool();
+	m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled = settings.value("Slicer/ssAdjustWindowLevelEnabled", fallbackSS.SingleSlicer.AdjustWindowLevelEnabled).toBool();
 	m_defaultSlicerSettings.SingleSlicer.CursorMode = settings.value( "Slicer/ssCursorMode", fallbackSS.SingleSlicer.CursorMode).toString();
 	m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize = settings.value("Slicer/toolTipFontSize", fallbackSS.SingleSlicer.ToolTipFontSize).toInt();
 
@@ -1728,6 +1961,7 @@ void MainWindow::writeSettings()
 
 	settings.setValue("Preferences/defaultLayout", m_layout->currentText());
 	settings.setValue("Preferences/prefHistogramBins", m_defaultPreferences.HistogramBins);
+	settings.setValue("Preferences/prefHistogramLogarithmicYAxis", m_defaultPreferences.HistogramLogarithmicYAxis);
 	settings.setValue("Preferences/prefStatExt", m_defaultPreferences.StatisticalExtent);
 	settings.setValue("Preferences/prefCompression", m_defaultPreferences.Compression);
 	settings.setValue("Preferences/prefResultInNewWindow", m_defaultPreferences.ResultInNewWindow);
@@ -1743,6 +1977,11 @@ void MainWindow::writeSettings()
 	settings.setValue("Renderer/rsBackgroundBottom", m_defaultRenderSettings.BackgroundBottom);
 	settings.setValue("Renderer/rsShowHelpers", m_defaultRenderSettings.ShowHelpers);
 	settings.setValue("Renderer/rsShowRPosition", m_defaultRenderSettings.ShowRPosition);
+	settings.setValue("Renderer/rsUseFXAA", m_defaultRenderSettings.UseFXAA);
+	settings.setValue("Renderer/rsMultiSamples", m_defaultRenderSettings.MultiSamples);
+	settings.setValue("Renderer/rsPlaneOpacity", m_defaultRenderSettings.PlaneOpacity);
+	settings.setValue("Renderer/rsUseDepthPeeling", m_defaultRenderSettings.UseDepthPeeling);
+	settings.setValue("Renderer/rsDepthPeels", m_defaultRenderSettings.DepthPeels);
 
 	settings.setValue("Renderer/rsLinearInterpolation", m_defaultVolumeSettings.LinearInterpolation);
 	settings.setValue("Renderer/rsShading", m_defaultVolumeSettings.Shading);
@@ -1763,6 +2002,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Slicer/ssMinIsovalue", m_defaultSlicerSettings.SingleSlicer.MinIsoValue);
 	settings.setValue("Slicer/ssMaxIsovalue", m_defaultSlicerSettings.SingleSlicer.MaxIsoValue);
 	settings.setValue("Slicer/ssImageActorUseInterpolation", m_defaultSlicerSettings.SingleSlicer.LinearInterpolation);
+	settings.setValue("Slicer/ssAdjustWindowLevelEnabled", m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled);
 	settings.setValue("Slicer/ssSnakeSlices", m_defaultSlicerSettings.SnakeSlices);
 	settings.setValue("Slicer/ssCursorMode", m_defaultSlicerSettings.SingleSlicer.CursorMode);
 	settings.setValue("Slicer/toolTipFontSize", m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize);
@@ -1817,8 +2057,9 @@ void MainWindow::setCurrentFile(const QString &fileName)
 	files.prepend(fileName);
 
 	while (files.size() > MaxRecentFiles)
+	{
 		files.removeLast();
-
+	}
 	settings.setValue("recentFileList", files);
 
 	updateRecentFileActions();
@@ -1849,20 +2090,25 @@ void MainWindow::updateRecentFileActions()
 		QString fileName = it.next();
 		QFileInfo fi(fileName);
 		if (!fi.exists())
+		{
 			it.remove();
+		}
 	}
 	settings.setValue("recentFileList", files);
 
-	int numRecentFiles = qMin(files.size(), (int)MaxRecentFiles);
+	int numRecentFiles = qMin(files.size(), MaxRecentFiles);
 
-	for (int i = 0; i < numRecentFiles; ++i) {
+	for (int i = 0; i < numRecentFiles; ++i)
+	{
 		QString text = tr("&%1 %2").arg(i + 1).arg(fileNameOnly(files[i]));
 		m_recentFileActs[i]->setText(text);
 		m_recentFileActs[i]->setData(files[i]);
 		m_recentFileActs[i]->setVisible(true);
 	}
 	for (int j = numRecentFiles; j < MaxRecentFiles; ++j)
+	{
 		m_recentFileActs[j]->setVisible(false);
+	}
 
 	m_separatorAct->setVisible(numRecentFiles > 0);
 }
@@ -1896,16 +2142,22 @@ MdiChild* MainWindow::findMdiChild(const QString &fileName)
 {
 	QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
 
-	for (MdiChild* mdiChild: mdiChildList())
+	for (MdiChild* mdiChild : mdiChildList())
+	{
 		if (mdiChild->currentFile() == canonicalFilePath)
+		{
 			return mdiChild;
+		}
+	}
 	return nullptr;
 }
 
 void MainWindow::setActiveSubWindow(QWidget *window)
 {
 	if (!window)
+	{
 		return;
+	}
 	mdiArea->setActiveSubWindow(qobject_cast<QMdiSubWindow *>(window));
 }
 
@@ -1930,7 +2182,9 @@ void MainWindow::endPointSelected()
 void MainWindow::setHistogramFocus()
 {
 	if (activeMdiChild())
+	{
 		activeMdiChild()->setHistogramFocus();
+	}
 }
 
 void MainWindow::consoleVisibilityChanged(bool newVisibility)
@@ -1942,20 +2196,6 @@ void MainWindow::consoleVisibilityChanged(bool newVisibility)
 QList<MdiChild*> MainWindow::mdiChildList(QMdiArea::WindowOrder order)
 {
 	return childList<MdiChild>(order);
-}
-
-void MainWindow::childActivatedSlot(QMdiSubWindow *wnd)
-{
-	MdiChild * activeChild = activeMdiChild();
-	if (activeChild && wnd)
-	{
-		QSignalBlocker blockSliceProfile(actionRawProfile);
-		actionRawProfile->setChecked(activeChild->isSliceProfileToggled());
-		QSignalBlocker blockSnakeSlicer(actionSnakeSlicer);
-		actionSnakeSlicer->setChecked(activeChild->isSnakeSlicerToggled());
-		QSignalBlocker blockMagicLens(actionMagicLens);
-		actionMagicLens->setChecked(activeChild->isMagicLensToggled());
-	}
 }
 
 void MainWindow::applyQSS()
@@ -2099,16 +2339,22 @@ void MainWindow::childClosed()
 {
 	MdiChild * sender = dynamic_cast<MdiChild*> (QObject::sender());
 	if (!sender)
+	{
 		return;
+	}
 	// magic lens size can be modified in the slicers as well; make sure to store this change:
 	m_defaultPreferences.MagicLensSize = sender->magicLensSize();
 	if( mdiArea->subWindowList().size() == 1 )
 	{
 		MdiChild * child = dynamic_cast<MdiChild*> ( mdiArea->subWindowList().at( 0 )->widget() );
-		if(!child)
+		if (!child)
+		{
 			return;
-		if( child == sender )
-			setModuleActionsEnabled( false );
+		}
+		if (child == sender)
+		{
+			setModuleActionsEnabled(false);
+		}
 	}
 }
 
@@ -2116,8 +2362,17 @@ void MainWindow::saveProject()
 {
 	iASavableProject * child = activeChild<iASavableProject>();
 	if (!child)
+	{
 		return;
-	child->saveProject();
+	}
+	if (!child->saveProject(m_path))
+	{
+		QMessageBox::warning(this, "Save Project", "Saving project was aborted!");
+	}
+	else
+	{
+		setCurrentFile(child->fileName());
+	}
 }
 
 void MainWindow::loadArguments(int argc, char** argv)
@@ -2134,7 +2389,7 @@ void MainWindow::loadArguments(int argc, char** argv)
 			{
 				m_quitTimer = new QTimer();
 				m_quitTimer->setSingleShot(true);
-				connect(m_quitTimer, SIGNAL(timeout()), this, SLOT(quitTimerSlot()));
+				connect(m_quitTimer, &QTimer::timeout, this, &MainWindow::quitTimerSlot);
 				m_quitTimer->start(ms);
 			}
 			else
@@ -2143,7 +2398,9 @@ void MainWindow::loadArguments(int argc, char** argv)
 			}
 		}
 		else
+		{
 			files << QString::fromLocal8Bit(argv[a]);
+		}
 	}
 	loadFiles(files);
 }
@@ -2169,7 +2426,9 @@ void MainWindow::openWithDataTypeConversion()
 		iAIOProvider::GetSupportedLoadFormats()
 	);
 	if (file.isEmpty())
+	{
 		return;
+	}
 
 	QStringList additionalLabels = (QStringList() << tr("#Slice sample rate"));
 	QList<QVariant> additionalValues = (QList<QVariant>() << tr("%1").arg(m_owdtcs));
@@ -2181,19 +2440,17 @@ void MainWindow::openWithDataTypeConversion()
 	}
 	m_owdtcs = clamp(1u, m_rawFileParams.m_size[2], static_cast<unsigned int>(dlg.inputDlg()->getIntValue(dlg.fixedParams())));
 
-	QSize qwinsize = this->size();
-	double winsize[2];
-	winsize[0] = qwinsize.width();	winsize[1] = qwinsize.height();
-
 	double convPara[11];
 	convPara[0] = m_owdtcmin;   convPara[1] = m_owdtcmax;  convPara[2] = m_owdtcoutmin; convPara[3] = m_owdtcoutmax; convPara[4] =  m_owdtcdov; convPara[5] = m_owdtcxori;
 	convPara[6] = m_owdtcxsize; convPara[7] = m_owdtcyori; convPara[8] = m_owdtcysize;  convPara[9] = m_owdtczori;   convPara[10] = m_owdtczsize;
 	try
 	{
 		dlg_datatypeconversion conversionwidget(this, file, m_rawFileParams,
-			m_owdtcs, m_defaultPreferences.HistogramBins, winsize, convPara);
+			m_owdtcs, m_defaultPreferences.HistogramBins, convPara);
 		if (conversionwidget.exec() != QDialog::Accepted)
+		{
 			return;
+		}
 
 		QString outDataType = conversionwidget.getDataType();
 		m_owdtcmin = conversionwidget.getRangeLower();   m_owdtcmax = conversionwidget.getRangeUpper();
@@ -2211,7 +2468,7 @@ void MainWindow::openWithDataTypeConversion()
 		QString finalfilename;
 		if (m_owdtcdov == 0)
 		{
-			finalfilename = conversionwidget.convert(file, m_rawFileParams,
+			finalfilename = conversionwidget.convert(file,
 				mapReadableDataTypeToVTKType(outDataType),
 				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax);
 		}
@@ -2243,7 +2500,9 @@ void MainWindow::loadTLGICTData(QString const & baseDirectory)
 {
 	iATLGICTLoader* tlgictLoader = new iATLGICTLoader();
 	if (!tlgictLoader->setup(baseDirectory, this))
+	{
 		return;
+	}
 	tlgictLoader->start(createMdiChild(false));
 	// tlgictLoader will delete itself when finished!
 }
@@ -2277,9 +2536,10 @@ void MainWindow::initResources()
 }
 
 int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString const & version,
-	QString const & splashPath, QString const & iconPath)
+	QString const& buildInformation, QString const & splashPath, QString const & iconPath)
 {
 	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
+	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
 	MainWindow::initResources();
 	QApplication app(argc, argv);
 	QString msg;
@@ -2305,9 +2565,8 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 		return 1;
 	}
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
-	app.setAttribute(Qt::AA_ShareOpenGLContexts);
 	iAGlobalLogger::setLogger(iAConsole::instance());
-	MainWindow mainWin(appName, version, splashPath);
+	MainWindow mainWin(appName, version, buildInformation, splashPath);
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
 	mainWin.loadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!

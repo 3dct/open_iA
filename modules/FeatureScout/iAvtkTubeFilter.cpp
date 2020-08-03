@@ -12,6 +12,8 @@
 =========================================================================*/
 #include "iAvtkTubeFilter.h"
 
+#include <iAVtkVersion.h>
+
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
 #include <vtkFloatArray.h>
@@ -122,7 +124,13 @@ int iAvtkTubeFilter::RequestData(
   vtkIdType i;
   double range[2], maxSpeed=0;
   vtkCellArray *newStrips;
-  vtkIdType npts=0, *pts=nullptr;
+  vtkIdType npts = 0;
+
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+  vtkIdType *pts = nullptr;
+#else
+  const vtkIdType* ptsOrig = nullptr;
+#endif
   vtkIdType offset=0;
   vtkFloatArray *newTCoords=nullptr;
   int abort=0;
@@ -248,14 +256,32 @@ int iAvtkTubeFilter::RequestData(
   // the line cellIds start after the last vert cellId
   inCellId = input->GetNumberOfVerts();
   for (inLines->InitTraversal();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
        inLines->GetNextCell(npts,pts) && !abort; inCellId++)
+#else
+       inLines->GetNextCell(npts,ptsOrig) && !abort; inCellId++)
+#endif
   {
     this->UpdateProgress((double)inCellId/numLines);
     abort = this->GetAbortExecute();
 
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
     // remove degenerate lines to avoid warnings
     npts = static_cast<vtkIdType>(std::unique(pts, pts + npts, IdPointsEqual(inPts)) -
            pts);
+#else
+    // Make a copy of point indices to avoid modfiying input polydata cells
+    // while removing degenerate lines.
+    if (npts < 2)
+    {
+        continue; // skip tubing this polyline
+    }
+    std::vector<vtkIdType> ptsCopy(ptsOrig, ptsOrig + npts);
+    vtkIdType* pts = ptsCopy.data();
+
+    // remove degenerate lines to avoid warnings
+    npts = static_cast<vtkIdType>(std::unique(pts, pts + npts, IdPointsEqual(inPts)) - pts);
+#endif
     if (npts < 2)
     {
       continue; //skip tubing this polyline

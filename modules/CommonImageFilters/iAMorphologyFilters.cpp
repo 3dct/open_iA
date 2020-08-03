@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,6 +26,8 @@
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-overflow"
 #include <itkBinaryBallStructuringElement.h>
 #include <itkGrayscaleDilateImageFilter.h>
 #include <itkGrayscaleErodeImageFilter.h>
@@ -36,9 +38,10 @@
 #include <itkHessianRecursiveGaussianImageFilter.h>
 #include <itkOpeningByReconstructionImageFilter.h>
 #include <itkClosingByReconstructionImageFilter.h>
+#pragma GCC diagnostic pop
 
 // NOTE: The 'binary' versions of the dilation (e.g., itkBinaryDilateImageFilter), erode, fill hole, opening,
-// and closing filters have been replaced by the 'grayscale' versions of these filters 
+// and closing filters have been replaced by the 'grayscale' versions of these filters
 // (e.g., itkGrayscaleDilateImageFilter), because of convenience (more data types supported) and performance (parallelization).
 
 namespace
@@ -280,7 +283,7 @@ iAClosingByReconstruction::iAClosingByReconstruction() :
 		"The closing by reconstruction of an image <f> is defined as:"
 		"ClosingByReconstruction(f) = ErosionByReconstruction(f, Dilation(f)).<br/><br/> "
 
-		"losing by reconstruction not only preserves structures preserved by the dilation, <br/>" 
+		"losing by reconstruction not only preserves structures preserved by the dilation, <br/>"
 		"but also levels raises the contrast of the darkest regions. If PreserveIntensities <br/>"
 		"is on, a subsequent reconstruction by dilation using a marker image that is the original image for all unaffected pixels<br/>"
 		"For more information, see the "

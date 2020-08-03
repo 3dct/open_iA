@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,6 +24,8 @@
 #include "io/iAITKIO.h"
 #include "open_iA_Core_export.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-overflow"
 #include <itkCastImageFilter.h>
 #include <itkChangeInformationImageFilter.h>
 #include <itkImageFileReader.h>
@@ -31,6 +33,7 @@
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
 #include <itkRescaleIntensityImageFilter.h>
+#pragma GCC diagnostic pop
 
 #include <QString>
 
@@ -40,7 +43,7 @@ open_iA_Core_API itk::ImageIOBase::IOComponentType itkScalarPixelType(iAITKIO::I
 open_iA_Core_API itk::ImageIOBase::IOPixelType itkPixelType( iAITKIO::ImagePointer image );
 open_iA_Core_API iAITKIO::ImagePointer allocateImage(iAITKIO::ImagePointer img);
 open_iA_Core_API iAITKIO::ImagePointer allocateImage(int const size[iAITKIO::m_DIM], double const spacing[iAITKIO::m_DIM], itk::ImageIOBase::IOComponentType type);
-open_iA_Core_API void storeImage(iAITKIO::ImagePointer image, QString const & filename, bool useCompression);
+open_iA_Core_API void storeImage(iAITKIO::ImagePtr image, QString const & filename, bool useCompression);
 
 //! @{
 //! Generic access to pixels of any ITK image as double.
@@ -130,7 +133,7 @@ typename TImage::Pointer createImage(typename TImage::Pointer otherImg)
 }
 
 template <typename TImage>
-void storeImage(TImage * image, QString const & filename, bool useCompression = true)
+void storeImageOfType(TImage * image, QString const & filename, bool useCompression = true)
 {
 	typename itk::ImageFileWriter<TImage>::Pointer writer = itk::ImageFileWriter<TImage>::New();
 	try

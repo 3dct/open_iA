@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -64,9 +64,12 @@ void FindFiles(QString const & directory, QStringList const & nameFilters, bool 
 		QString fileName = it.next();
 		if (fileName == "." || fileName == ".." ||
 			(QFileInfo(fileName).isDir() && !filesFolders.testFlag(Folders)) )
+		{
 			continue;
+		}
 		filesOut.append(fileName);
 	}
+	filesOut.sort();
 }
 
 std::string getLocalEncodingFileName(QString const & fileName)

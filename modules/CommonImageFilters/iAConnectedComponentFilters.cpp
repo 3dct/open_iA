@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -33,7 +33,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-template<class T> 
+template<class T>
 void connectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
@@ -68,7 +68,7 @@ iAConnectedComponents::iAConnectedComponents() :
 }
 
 
-template<class T> 
+template<class T>
 void scalarConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
@@ -101,7 +101,7 @@ iAScalarConnectedComponents::iAScalarConnectedComponents() :
 }
 
 
-template<class T> 
+template<class T>
 void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
@@ -115,7 +115,7 @@ void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const
 	if (parameters["Write labels to file"].toBool())
 	{
 		long int no_of_Objects = rccFilter->GetNumberOfObjects();
-		ofstream myfile;
+		std::ofstream myfile;
 		myfile.open(getLocalEncodingFileName(parameters["Label file"].toString()));
 		myfile << " Total Objects " << "," << no_of_Objects << endl;
 		myfile << "Object Number" << "," << "Object Size (PhysicalUnits)" << endl;

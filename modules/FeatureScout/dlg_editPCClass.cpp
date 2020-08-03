@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -76,11 +76,10 @@ dlg_editPCClass::~dlg_editPCClass()
 
 void dlg_editPCClass::setupConnections()
 {
-	connect(colorButton, SIGNAL(clicked()), this, SLOT(getColorDialog()));
-	connect(nameEdit, SIGNAL(textChanged(QString)), this, SLOT(notifyTextChanged()));
-
-	connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-	connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+	connect(colorButton, &QPushButton::clicked, this, &dlg_editPCClass::getColorDialog);
+	connect(nameEdit, &QLineEdit::textChanged, this, &dlg_editPCClass::notifyTextChanged);
+	connect(buttonBox, &QDialogButtonBox::accepted, this, &dlg_editPCClass::accept);
+	connect(buttonBox, &QDialogButtonBox::rejected, this, &dlg_editPCClass::reject);
 }
 
 QString dlg_editPCClass::getClassInfo(QWidget *parent, const QString &title, const QString &text, QColor *color, bool *ok)

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,7 +29,7 @@ class QLabel;
 
 class MdiChild;
 class iATripleModalityWidget;
-class BCoord;
+class iABCoord;
 
 class vtkSmartVolumeMapper;
 class vtkVolume;
@@ -41,7 +41,11 @@ class dlg_tf_3mod : public QDockWidget
 	Q_OBJECT
 
 public:
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	dlg_tf_3mod(MdiChild* parent, Qt::WindowFlags f = 0);
+#else
+	dlg_tf_3mod(MdiChild* parent, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+#endif
 
 private:
 	iATripleModalityWidget *m_tripleModalityWidget;

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -76,7 +76,7 @@ void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvT
 	matrix->settings.enableColorSettings = true;
 	connect(matrix, &iAQSplom::selectionModified, this, &iAFeatureScoutSPLOM::selectionModified);
 	connect(matrix, &iAQSplom::parameterVisibilityChanged, this, &iAFeatureScoutSPLOM::parameterVisibilityChanged);
-	connect(matrix, SIGNAL(lookupTableChanged()), this, SLOT(lookupTableChanged()));
+	connect(matrix, &iAQSplom::lookupTableChanged, this, &iAFeatureScoutSPLOM::lookupTableChanged);
 
 	QAction* addClass = new QAction(QObject::tr("Add class"), nullptr);
 	connect(addClass, &QAction::triggered, this, &iAFeatureScoutSPLOM::addClass);
@@ -86,13 +86,15 @@ void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvT
 void iAFeatureScoutSPLOM::multiClassRendering(QList<QColor> const & colors)
 {
 	if (!matrix)
+	{
 		return;
+	}
 	matrix->resetFilter();
 	iALookupTable lookupTable;
 	lookupTable.allocate(colors.size());
 	lookupTable.setRange(0, colors.size() - 1);
-	for (size_t c = 0; c < colors.size(); ++c)
-		lookupTable.setColor(c, colors.at(c));
+	for (int c = 0; c < colors.size(); ++c)
+		lookupTable.setColor(static_cast<size_t>(c), colors.at(c));
 	matrix->setLookupTable(lookupTable, matrix->data()->numParams()-1 );
 }
 

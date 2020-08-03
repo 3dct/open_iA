@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,6 +29,9 @@ char const * const TransformNames[3] = {
 	"Gaussian"
 };
 
+iANormalizer::~iANormalizer()
+{}
+
 iADistanceType iANoNormalizer::Normalize(iADistanceType d) const
 {
 	return d;
@@ -38,7 +41,7 @@ void iANoNormalizer::SetMaxValue(iADistanceType )
 {
 }
 
-char const * const iANoNormalizer::name() const
+char const * iANoNormalizer::name() const
 {
 	return TransformNames[nmNone];
 }
@@ -62,7 +65,7 @@ iADistanceType iALinearNormalizer::Normalize(iADistanceType d) const
 	return d * m_normalizeFactor;
 }
 
-char const * const iALinearNormalizer::name() const
+char const * iALinearNormalizer::name() const
 {
 	return TransformNames[nmLinear];
 }
@@ -95,7 +98,7 @@ void iAGaussianNormalizer::SetMaxValue(iADistanceType maxValue)
 	UpdateValueFactor();
 }
 
-char const * const iAGaussianNormalizer::name() const
+char const * iAGaussianNormalizer::name() const
 {
 	return TransformNames[nmGaussian];
 }
@@ -115,7 +118,7 @@ QSharedPointer<iANormalizer> CreateNormalizer(QString const & name, double beta)
 }
 
 
-char const * const * const GetNormalizerNames()
+char const * const * GetNormalizerNames()
 {
 	return TransformNames;
 }

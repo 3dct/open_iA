@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -65,7 +65,7 @@ open_iA_Core_API void storeImage(vtkSmartPointer<vtkImageData> image, QString co
 //! Read an image from disk into a VTK image.
 //! @param filename the name of the file to read.
 //! @param releaseFlag whether the ITK release flag should be set on the ITK image reader
-//! @return the vtk image as read from the given file 
+//! @return the vtk image as read from the given file
 open_iA_Core_API vtkSmartPointer<vtkImageData> readImage(QString const & filename, bool releaseFlag);
 
 //! Write a single slice image to a common 2D picture format
@@ -79,12 +79,6 @@ open_iA_Core_API void writeSingleSliceImage(QString const & filename, vtkImageDa
 //! @return the size in bytes of the given type (VTK_CHAR -> 1, ...),
 //!        or 0 if it's an unknown type
 open_iA_Core_API size_t mapVTKTypeToSize(int vtkType);
-
-//! Cast the given VTK image to another data type.
-//! @param img the input image
-//! @param dstType the VTK type identifier (VTK_INT, VTK_UNSIGNED_CHAR, ...) to cast to
-//! @return a VTK image of the specified type
-open_iA_Core_API vtkSmartPointer<vtkImageData> castVTKImage(vtkSmartPointer<vtkImageData> img, int dstType);
 
 //! Check whether the given type is integer.
 //! @param type a VTK type identifier (VTK_INT, VTK_UNSIGNED_CHAR, ...)

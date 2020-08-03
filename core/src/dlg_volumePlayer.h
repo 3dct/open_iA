@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -85,10 +85,13 @@ private:
 	bool				m_multiChannelIsInitialized;
 	std::vector<uint>   m_channelID;
 
-Q_SIGNALS:
+signals:
 	void update(int index, bool isApplyForAll=false);
 	void setAllSelected(int c=0);
 	void editSpeed();
+
+public slots:
+	void applyForAll();
 
 protected slots:
 	void nextVolume();
@@ -105,7 +108,6 @@ protected slots:
 	void fileNameActive();
 	void spacingActive();
 	void dimensionsActive();
-	void applyForAll();
 	void blendingStateChanged(int state);
 	void enableVolume(int state);
 };

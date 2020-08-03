@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,7 +29,7 @@ iA3DNoVis::iA3DNoVis():iA3DObjectVis(nullptr, nullptr, QSharedPointer<QMap<uint,
 void iA3DNoVis::renderSelection(std::vector<size_t> const & /*sortedSelInds*/, int /*classID*/, QColor const & /*classColor*/, QStandardItem* /*activeClassItem*/)
 {}
 
-void iA3DNoVis::renderSingle(int /*labelID*/, int /*classID*/, QColor const & /*classColor*/, QStandardItem* /*activeClassItem*/)
+void iA3DNoVis::renderSingle(IndexType /*selectedObjID*/, int /*classID*/, QColor const & /*classColor*/, QStandardItem* /*activeClassItem*/)
 {}
 
 void iA3DNoVis::multiClassRendering(QList<QColor> const & /*classColors*/, QStandardItem* /*rootItem*/, double /*alpha*/)

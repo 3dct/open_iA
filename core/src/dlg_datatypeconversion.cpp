@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,6 +29,7 @@
 #include "iAToolsVTK.h"
 #include "iATransferFunction.h"    // for GetDefault... functions
 #include "iATypedCallHelper.h"
+#include "iAVtkVersion.h"
 #include "iAVtkWidget.h"
 #include "io/iARawFileParameters.h"
 
@@ -216,10 +217,9 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 	const int elemCount = 1;
 	fseek ( pFile , 0 , SEEK_SET );
 	std::fill(histptr, histptr + static_cast<size_t>(numBins), 0);
-	size_t result;
 	while (loop)
 	{
-		result = fread (reinterpret_cast<char*>(&buffer),datatypesize, elemCount, pFile);
+		/*size_t result =*/ fread (reinterpret_cast<char*>(&buffer),datatypesize, elemCount, pFile);
 		size_t binIdx = clamp(static_cast<size_t>(0), numBins-1, static_cast<size_t>((buffer-minVal)/discretization));
 		iter.Set(buffer);
 		++iter;
@@ -283,13 +283,12 @@ template<class T> void DataTypeConversionROI_template(QString const & filename, 
 
 	bool loop = true;
 	typename InputImageType::PixelType buffer;
-	size_t result;
 	const int elemCount = 1;
 	// copy the file into the buffer:
 	fseek ( pFile , 0 , SEEK_SET );
 	while (loop)
 	{
-		result = fread (reinterpret_cast<char*>(&buffer), sizeof(buffer), elemCount, pFile);
+		size_t result = fread (reinterpret_cast<char*>(&buffer), sizeof(buffer), elemCount, pFile);
 		if ( result == elemCount )
 		{
 			iter.Set(buffer);
@@ -330,7 +329,11 @@ QVBoxLayout* setupSliceWidget(iAVtkWidget* &widget, vtkSmartPointer<vtkPlaneSour
 	widget->setMinimumHeight(50);
 	widget->setWindowTitle(QString("%1 Plane").arg(name));
 	auto window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	widget->SetRenderWindow(window);
+#else
+	widget->setRenderWindow(window);
+#endif
 
 	auto color = vtkSmartPointer<vtkImageMapToColors>::New();
 	auto table = defaultColorTF(image->vtkImage()->GetScalarRange());
@@ -379,7 +382,7 @@ QVBoxLayout* setupSliceWidget(iAVtkWidget* &widget, vtkSmartPointer<vtkPlaneSour
 }
 
 dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & filename, iARawFileParameters const & p,
-	unsigned int zSkip, size_t numBins, double* /*c*/, double* inPara) : QDialog (parent)
+	unsigned int zSkip, size_t numBins, double* inPara) : QDialog (parent)
 {
 	setupUi(this);
 
@@ -526,12 +529,12 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 
 	verticalLayout->addWidget(buttonBox);
 
-	connect(leXOrigin, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(leXSize, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(leYOrigin, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(leYSize, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(leZOrigin, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(leZSize, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
+	connect(leXOrigin, &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
+	connect(leXSize,   &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
+	connect(leYOrigin, &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
+	connect(leYSize,   &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
+	connect(leZOrigin, &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
+	connect(leZSize,   &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
 }
 
 dlg_datatypeconversion::~dlg_datatypeconversion()
@@ -568,63 +571,49 @@ void dlg_datatypeconversion::createHistogram(iAPlotData::DataType* histbinlist, 
 	verticalLayout->addWidget(chart);
 }
 
-// read binary and perform shift+scale
-// TODO: implement with itk filters - benefits: parallelized; probably better reading than in chunks of 1 voxel
-template <typename T>
-void loadBinary(FILE* pFile, vtkImageData* imageData, float shift, float scale, double &minout, double &maxout)
+// unify with iAIntensity shiftScale?
+
+void convertRange(vtkImageData* inImg, vtkImageData* outImg, double minrange, double maxrange, double minout, double maxout)
 {
-	T buffer;
-	fseek(pFile, 0, SEEK_SET);
-	int* dims = imageData->GetDimensions();
+	int* dims = inImg->GetDimensions();
 	for (int z = 0; z < dims[2]; z++)
 	{
 		for (int y = 0; y<dims[1]; y++)
 		{
 			for (int x = 0; x<dims[0]; x++)
 			{
-				/*size_t result =*/ fread(reinterpret_cast<char*>(&buffer), sizeof(buffer), 1, pFile);
-				double value = buffer * scale + shift;
-				value = (value > maxout) ? maxout : value;
-				value = (value < minout) ? minout : value;
-				imageData->SetScalarComponentFromDouble(x, y, z, 0, value);
+				double inValue = inImg->GetScalarComponentAsDouble(x, y, z, 0);
+				double outValue = mapValue(minrange, maxrange, minout, maxout, inValue);
+				outImg->SetScalarComponentFromDouble(x, y, z, 0, outValue);
 			}
 		}
 	}
 }
 
-QString dlg_datatypeconversion::convert( QString const & filename,
-	iARawFileParameters const & p, int outdatatype, double minrange,
+QString writeScaledImage(QString const& filename, QString const & suffix,
+	vtkImageData* inImg, int outdatatype, double minrange,
 	double maxrange, double minout, double maxout)
 {
-	float scale = 0;
-	//scale and shift calculator
-	if ( minrange != maxrange )
-	{   scale = ( maxout - minout ) / ( maxrange - minrange );	}
-	else if ( maxrange != 0 )
-	{	//m_Scale = ( maxout - minout ) / minrange );
-	}
-	else
-	{
-		scale = 0.0;
-	}
-	float shift = ( minout - minrange ) * scale;
-	FILE * pFile = openFile(filename);
-	vtkImageData* imageData = vtkImageData::New();
-	// Setup the image
-	imageData->SetDimensions(p.m_size[0], p.m_size[1], p.m_size[2]);
-	imageData->AllocateScalars(outdatatype, 1);
-	//loading of datatype
-	VTK_TYPED_CALL(loadBinary, p.m_scalarType, pFile, imageData, shift, scale, minout, maxout);
-	fclose(pFile);
-
+	vtkSmartPointer<vtkImageData> outImg = allocateImage(outdatatype, inImg->GetDimensions(), inImg->GetSpacing());
+	convertRange(inImg, outImg, minrange, maxrange, minout, maxout);
 	QString outputFileName(filename);
-	outputFileName.chop(4);
-	outputFileName.append("-DT.mhd");
-	vtkMetaImageWriter* metaImageWriter = vtkMetaImageWriter::New();
-	metaImageWriter->SetFileName(getLocalEncodingFileName(outputFileName).c_str());
-	metaImageWriter->SetInputData(imageData);
-	metaImageWriter->Write();
+	outputFileName.chop(4); // assuming current name has 3 characters...?
+	outputFileName.append(suffix);
+	iAConnector outCon;
+	outCon.setImage(outImg);
+	iAITKIO::writeFile(outputFileName, outCon.itkImage(), outCon.itkScalarPixelType());
 	return outputFileName;
+}
+
+QString dlg_datatypeconversion::convert( QString const & filename,
+	int outdatatype, double minrange,
+	double maxrange, double minout, double maxout)
+{
+	iAITKIO::ScalarPixelType pixType;
+	auto inImg = iAITKIO::readFile(filename, pixType, true);
+	iAConnector con;
+	con.setImage(inImg);
+	return writeScaledImage(filename, "-DT.mhd", con.vtkImage(), outdatatype, minrange, maxrange, minout, maxout);
 }
 
 QString dlg_datatypeconversion::convertROI(QString const & filename,
@@ -632,49 +621,7 @@ QString dlg_datatypeconversion::convertROI(QString const & filename,
 	double maxrange, double minout, double maxout, double* roi)
 {
 	DataTypeConversionROI(filename, p, roi);
-	double scale = 0;
-	//scale and shift calculator
-	if ( minrange != maxrange )
-		scale = ( maxout - minout ) / ( maxrange - minrange );
-	else if ( maxrange != 0 )
-	{	//m_Scale = ( maxout - minout ) / minrange );
-	}
-	else
-		scale = 0.0;
-
-	double shift = ( minout - minrange ) * scale;
-
-	FILE * pFile = openFile(filename);
-	fclose(pFile);
-
-	vtkImageData* imageData = vtkImageData::New();
-	// Setup the image
-	imageData->SetDimensions(roi[1], roi[3], roi[5]);
-	imageData->AllocateScalars(outdatatype, 1);
-	int* dims = imageData->GetDimensions();
-	for (int z=0; z<dims[2]; z++)
-	{
-		for (int y=0; y<dims[1]; y++)
-		{
-			for (int x=0; x<dims[0]; x++)
-			{
-				double buffer = m_roiimage->vtkImage()->GetScalarComponentAsDouble(x,y,z,0);
-				double value  =  buffer * scale + shift;
-				value = ( value > maxout ) ? maxout : value;
-				value = ( value < minout ) ? minout : value;
-				imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-			}// for x
-		}// for y
-	}//for z
-
-	QString outputFileName(filename);
-	outputFileName.chop(4);
-	outputFileName.append("-DT-roi.mhd");
-	vtkMetaImageWriter* metaImageWriter = vtkMetaImageWriter::New();
-	metaImageWriter->SetFileName( getLocalEncodingFileName(outputFileName).c_str());
-	metaImageWriter->SetInputData(imageData);
-	metaImageWriter->Write();
-	return outputFileName;
+	return writeScaledImage(filename, "-DT-roi.mhd", m_roiimage->vtkImage(), outdatatype, minrange, maxrange, minout, maxout);
 }
 
 
@@ -704,11 +651,19 @@ void dlg_datatypeconversion::updateROI( )
 	m_yzroiSource->SetPoint1(-0.5*m_spacing[1] + m_roi[1]*m_spacing[1]+m_roi[4]*m_spacing[1], -0.5*m_spacing[2] + m_roi[2]*m_spacing[2], 0);
 	m_yzroiSource->SetPoint2(-0.5*m_spacing[1] + m_roi[1]*m_spacing[1], -0.5*m_spacing[2] + m_roi[2]+m_roi[5], 0);
 
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_xyWidget->GetRenderWindow()->Render();
 	m_xyWidget->update();
 	m_xzWidget->GetRenderWindow()->Render();
 	m_xzWidget->update();
 	m_yzWidget->GetRenderWindow()->Render();
+#else
+	m_xyWidget->renderWindow()->Render();
+	m_xyWidget->update();
+	m_xzWidget->renderWindow()->Render();
+	m_xzWidget->update();
+	m_yzWidget->renderWindow()->Render();
+#endif
 	m_yzWidget->update();
 }
 

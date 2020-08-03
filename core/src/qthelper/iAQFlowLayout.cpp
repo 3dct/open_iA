@@ -108,15 +108,17 @@ QLayoutItem *iAQFlowLayout::itemAt(int index) const
 
 QLayoutItem *iAQFlowLayout::takeAt(int index)
 {
-	if (index >= 0 && index < itemList.size())
-		return itemList.takeAt(index);
-	else
-		return 0;
+	return (index >= 0 && index < itemList.size()) ?
+		itemList.takeAt(index): nullptr;
 }
 
 Qt::Orientations iAQFlowLayout::expandingDirections() const
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	return 0;
+#else
+	return QFlags<Qt::Orientation>();
+#endif
 }
 
 bool iAQFlowLayout::hasHeightForWidth() const
@@ -144,10 +146,10 @@ QSize iAQFlowLayout::sizeHint() const
 QSize iAQFlowLayout::minimumSize() const
 {
 	QSize size;
-	QLayoutItem *item;
-	foreach(item, itemList)
+	for (QLayoutItem* item : itemList)
+	{
 		size = size.expandedTo(item->minimumSize());
-
+	}
 	size += QSize(2 * margin(), 2 * margin());
 	return size;
 }
@@ -161,8 +163,8 @@ int iAQFlowLayout::doLayout(const QRect &rect, bool testOnly) const
 	int y = effectiveRect.y();
 	int lineHeight = 0;
 
-	QLayoutItem *item;
-	foreach(item, itemList) {
+	for (QLayoutItem* item : itemList)
+	{
 		QWidget *wid = item->widget();
 		int spaceX = horizontalSpacing();
 		if (spaceX == -1)

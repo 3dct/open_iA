@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -33,7 +33,6 @@
 #include <vtkProperty.h>
 #include <vtkScalarsToColors.h>
 #include <vtkTransform.h>
-#include <vtkVersion.h>
 
 #include <QObject>
 #include <QString>
@@ -45,16 +44,22 @@
 
 
 iAChannelData::iAChannelData():
-	m_oTF(nullptr),
-	m_cTF(nullptr),
 	m_enabled(false),
 	m_opacity(1.0),
 	m_threeD(false),
-	m_similarityRenderingEnabled(false)
+	m_similarityRenderingEnabled(false),
+	m_cTF(nullptr),
+	m_oTF(nullptr)
 {}
 
 iAChannelData::iAChannelData(QString const & name, vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf):
-	m_image(image), m_cTF(ctf), m_oTF(otf),
+	m_enabled(false),
+	m_opacity(1.0),
+	m_threeD(false),
+	m_similarityRenderingEnabled(false),
+	m_image(image),
+	m_cTF(ctf),
+	m_oTF(otf),
 	m_name(name)
 {}
 

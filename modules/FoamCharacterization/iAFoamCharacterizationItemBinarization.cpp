@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -81,7 +81,7 @@ void iAFoamCharacterizationItemBinarization::execute()
 		break;
 
 		default:
-		executeOtzu(); 
+		executeOtzu();
 		break;
 	}
 
@@ -101,7 +101,7 @@ void iAFoamCharacterizationItemBinarization::executeBinarization()
 	iAConnector con;
 	con.setImage(m_pImageData);
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
+	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
 	auto filter = iAFilterRegistry::filter("Binary Thresholding");
 	filter->setLogger(iAConsoleLogger::get());
 	filter->setProgress(pObserver.data());
@@ -121,7 +121,7 @@ void iAFoamCharacterizationItemBinarization::executeOtzu()
 	iAConnector con;
 	con.setImage(m_pImageData);
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
+	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
 	auto filter = iAFilterRegistry::filter("Otsu Threshold");
 	filter->setLogger(iAConsoleLogger::get());
 	filter->setProgress(pObserver.data());
@@ -179,7 +179,7 @@ void iAFoamCharacterizationItemBinarization::open(QFile* _pFileOpen)
 	_pFileOpen->read((char*)&m_usUpperThreshold, sizeof(m_usUpperThreshold));
 	_pFileOpen->read((char*)&m_uiOtzuHistogramBins, sizeof(m_uiOtzuHistogramBins));
 	_pFileOpen->read((char*)&m_bIsMask, sizeof(m_bIsMask));
-	
+
 	setItemText();
 }
 

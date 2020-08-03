@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -19,6 +19,9 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iAVectorTypeImpl.h"
+
+iAVectorType::~iAVectorType()
+{}
 
 iAVectorDataType iAVectorType::operator[](size_t channelIdx) const
 {
@@ -42,25 +45,8 @@ QSharedPointer<iAVectorType const> iAVectorType::normalized() const
 
 
 
-
-iAPixelVector::iAPixelVector(iAVectorArray const & data, size_t voxelIdx):
-	m_data(data),
-	m_voxelIdx(voxelIdx)
+iAStandaloneVector::~iAStandaloneVector()
 {}
-
-iAVectorDataType iAPixelVector::get(size_t channelIdx) const
-{
-	iAVectorDataType value = m_data.get(m_voxelIdx, channelIdx);
-	return value;
-}
-
-iAVectorType::IndexType iAPixelVector::size() const
-{
-	return m_data.channelCount();
-}
-
-
-
 
 iAStandaloneVector::iAStandaloneVector(IndexType size):
 	m_data(size)
@@ -79,4 +65,25 @@ iAVectorType::IndexType iAStandaloneVector::size() const
 void iAStandaloneVector::set(iAVectorType::IndexType idx, iAVectorDataType value)
 {
 	m_data[idx] = value;
+}
+
+
+
+iAPixelVector::~iAPixelVector()
+{}
+
+iAPixelVector::iAPixelVector(iAVectorArray const& data, size_t voxelIdx) :
+	m_data(data),
+	m_voxelIdx(voxelIdx)
+{}
+
+iAVectorDataType iAPixelVector::get(size_t channelIdx) const
+{
+	iAVectorDataType value = m_data.get(m_voxelIdx, channelIdx);
+	return value;
+}
+
+iAVectorType::IndexType iAPixelVector::size() const
+{
+	return m_data.channelCount();
 }

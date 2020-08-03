@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -41,15 +41,14 @@ private:
 	void addVerticesToOrder(iAGraph::idType headerVert, OrderType& order);
 	void wmedian(OrderType& order, bool forwardTraversal);
 	float medianValue(iAGraph::idType vert, OrderType& order, bool forwardTraversal);
-	std::vector<int> getAdjacentPositions(iAGraph::idType vert, OrderType& order, bool forwardTraversal);
+	std::vector<size_t> getAdjacentPositions(iAGraph::idType vert, OrderType& order, bool forwardTraversal);
 	void transpose(OrderType& order, bool forwardTraversal);
 	int numberOfCrossing(OrderType& order);
-	int numberOfCrossing(OrderType& order, int rank, int pos1, int pos2, bool forwardTraversal);
+	int numberOfCrossing(OrderType& order, size_t rank, size_t pos1, size_t pos2, bool forwardTraversal);
 
 	int m_maxIteration;
 	OrderType m_order;
 	iAGraph* m_graph;
 	iAGraphStat m_graphStat;
-	int m_ranks;
 };
 

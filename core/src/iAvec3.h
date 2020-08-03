@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -121,9 +121,11 @@ template <typename T1, typename T2> iAVec3T<T1> operator / (const iAVec3T<T1>& u
 template <typename T1, typename T2> iAVec3T<T1> operator / (const iAVec3T<T1>& u, const iAVec3T<T2>& v);
 //! @}
 
-//! alias for dot product (deprecated!)
+//! Compute dot product.
+//! @deprecated use dotProduct(...) instead!
 template <typename T1, typename T2> T1 operator & (const iAVec3T<T1>& u, const iAVec3T<T2>& v);
-//! alias for cross product (deprecated!)
+//! Compute cross product.
+//! @deprecated use crossProduct(...) instead!
 template <typename T1, typename T2> iAVec3T<T1> operator ^ (const iAVec3T<T1>& u, const iAVec3T<T2>& v);
 
 

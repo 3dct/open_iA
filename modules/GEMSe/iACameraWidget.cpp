@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -90,8 +90,8 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 		*/
 
 		gridLay->addWidget(m_sliceViews[i], GridSlicerMap[i].x(), GridSlicerMap[i].y());
-		connect(m_sliceViews[i], SIGNAL(clicked()), this, SLOT( MiniSlicerClicked() ));
-		connect(m_sliceViews[i], SIGNAL(updated()), this, SLOT( MiniSlicerUpdated() ));
+		connect(m_sliceViews[i], &iAImagePreviewWidget::clicked, this, &iACameraWidget::MiniSlicerClicked);
+		connect(m_sliceViews[i], &iAImagePreviewWidget::updated, this, &iACameraWidget::MiniSlicerUpdated);
 		m_sliceViews[i]->resetCamera();
 	}
 	miniSlicerContainer->setLayout(gridLay);
@@ -107,7 +107,7 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 	setLayout(mainLay);
 	updateScrollBar(m_sliceViews[static_cast<int>(InitialSlicerMode)]->sliceNumber());
 
-	connect(m_sliceScrollBar, SIGNAL(valueChanged(int)), this, SLOT(ScrollBarChanged(int)));
+	connect(m_sliceScrollBar, &QScrollBar::valueChanged, this, &iACameraWidget::ScrollBarChanged);
 }
 
 void iACameraWidget::updateScrollBar(int sliceNumber)
@@ -186,7 +186,7 @@ void iACameraWidget::showImage(vtkSmartPointer<vtkImageData> imgData)
 		DEBUG_LOG("CameraWidget: image data is nullptr!\n");
 		return;
 	}
-	
+
 	for (int i=0; i<SLICE_VIEW_COUNT; ++i)
 	{
 		m_sliceViews[i]->setImage(imgData, false, false);

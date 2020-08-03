@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,16 +24,11 @@
 #include "iATransferFunction.h"
 #include "iAVolumeSettings.h"
 
+#include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
-#include <vtkOutlineFilter.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRendererCollection.h>
-#include <vtkSmartVolumeMapper.h>
-#include <vtkVolume.h>
-#include <vtkVolumeProperty.h>
-#include "vtkColorTransferFunction.h"
 
 bool IsFlat(int extent[6])
 {
@@ -46,14 +41,14 @@ iAVolumeRenderer::iAVolumeRenderer(
 	iATransferFunction * transfer,
 	vtkSmartPointer<vtkImageData> imgData)
 :
-	m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
 	m_volume(vtkSmartPointer<vtkVolume>::New()),
+	m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
 	m_volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
+	m_currentRenderer(nullptr),
 	m_outlineFilter(vtkSmartPointer<vtkOutlineFilter>::New()),
 	m_outlineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_outlineActor(vtkSmartPointer<vtkActor>::New()),
-	m_currentRenderer(0),
-	m_currentBoundingBoxRenderer(0)
+	m_currentBoundingBoxRenderer(nullptr)
 {
 	m_isFlat = IsFlat(imgData->GetExtent());
 	if (!m_isFlat)
@@ -76,7 +71,9 @@ void iAVolumeRenderer::setImage(iATransferFunction * transfer, vtkSmartPointer<v
 {
 	m_isFlat = IsFlat(imgData->GetExtent());
 	if (m_isFlat)
+	{
 		return;
+	}
 	m_volMapper->SetInputData(imgData);
 	if ( imgData->GetNumberOfScalarComponents() > 1 )
 	{
@@ -93,40 +90,6 @@ void iAVolumeRenderer::setImage(iATransferFunction * transfer, vtkSmartPointer<v
 		}
 		m_volProp->SetColor(0, transfer->colorTF());
 		m_volProp->SetScalarOpacity(0, transfer->opacityTF());
-	}
-	m_volProp->Modified();
-	m_outlineFilter->SetInputData(imgData);
-	update();
-}
-
-void iAVolumeRenderer::setImage(vtkImageData * imgData)
-{
-	DEBUG_LOG("update image"); 
-	vtkSmartPointer<vtkColorTransferFunction>volumeColor =
-		vtkSmartPointer<vtkColorTransferFunction>::New();
-
-	volumeColor->AddRGBPoint(0, 0.0, 0.0, 0.0);
-	volumeColor->AddRGBPoint(500, 1.0, 0.5, 0.3);
-	volumeColor->AddRGBPoint(1000, 1.0, 0.5, 0.3);
-	volumeColor->AddRGBPoint(1150, 1.0, 1.0, 0.9);
-	m_isFlat = IsFlat(imgData->GetExtent());
-	if (m_isFlat)
-		return;
-	m_volMapper->SetInputData(imgData);
-	if (imgData->GetNumberOfScalarComponents() > 1)
-	{
-		m_volMapper->SetBlendModeToComposite();
-		m_volProp->SetIndependentComponents(0);
-	}
-	else
-	{
-		if (m_volSettings.ScalarOpacityUnitDistance < 0)
-		{
-			m_volSettings.ScalarOpacityUnitDistance = imgData->GetSpacing()[0];
-			m_volProp->SetScalarOpacityUnitDistance(imgData->GetSpacing()[0]);
-		}
-		m_volProp->SetColor(0, volumeColor);
-		//m_volProp->SetScalarOpacity(0, transfer->opacityTF());
 	}
 	m_volProp->Modified();
 	m_outlineFilter->SetInputData(imgData);
@@ -152,7 +115,9 @@ const iAVolumeSettings& iAVolumeRenderer::volumeSettings() const
 void iAVolumeRenderer::applySettings(iAVolumeSettings const & vs)
 {
 	if (m_isFlat)
+	{
 		return;
+	}
 	m_volSettings = vs;
 	m_volProp->SetAmbient(vs.AmbientLighting);
 	m_volProp->SetDiffuse(vs.DiffuseLighting);
@@ -161,9 +126,13 @@ void iAVolumeRenderer::applySettings(iAVolumeSettings const & vs)
 	m_volProp->SetInterpolationType(vs.LinearInterpolation);
 	m_volProp->SetShade(vs.Shading);
 	if (vs.ScalarOpacityUnitDistance > 0)
+	{
 		m_volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
+	}
 	else
+	{
 		m_volSettings.ScalarOpacityUnitDistance = m_volProp->GetScalarOpacityUnitDistance();
+	}
 	m_volMapper->SetRequestedRenderMode(vs.RenderMode);
 #ifdef VTK_OPENGL2_BACKEND
 	m_volMapper->SetSampleDistance(vs.SampleDistance);
@@ -207,7 +176,9 @@ void iAVolumeRenderer::addTo(vtkRenderer* r)
 		}
 	}
 	if (m_isFlat)
+	{
 		return;
+	}
 	r->AddVolume(m_volume);
 	m_currentRenderer = r;
 }
@@ -217,7 +188,9 @@ void iAVolumeRenderer::remove()
 	if (!m_currentRenderer)
 	{
 		if (!m_isFlat)
+		{
 			DEBUG_LOG("RemoveFromWindow called on VolumeRenderer which was not attached to a window!");
+		}
 		return;
 	}
 	m_currentRenderer->RemoveVolume(m_volume);
@@ -245,7 +218,9 @@ void iAVolumeRenderer::addBoundingBoxTo(vtkRenderer* w)
 void iAVolumeRenderer::removeBoundingBox()
 {
 	if (!m_currentBoundingBoxRenderer)
+	{
 		return;
+	}
 	m_currentBoundingBoxRenderer->RemoveActor(m_outlineActor);
 	m_currentBoundingBoxRenderer = nullptr;
 }
@@ -253,11 +228,12 @@ void iAVolumeRenderer::removeBoundingBox()
 void iAVolumeRenderer::updateBoundingBox()
 {
 	if (!m_currentBoundingBoxRenderer)
+	{
 		return;
+	}
 	m_outlineActor->SetOrientation(m_volume->GetOrientation());
 	m_outlineActor->SetPosition(m_volume->GetPosition());
 }
-
 
 vtkSmartPointer<vtkVolume> iAVolumeRenderer::volume()
 {
@@ -272,7 +248,9 @@ vtkRenderer* iAVolumeRenderer::currentRenderer()
 void iAVolumeRenderer::update()
 {
 	if (m_isFlat)
+	{
 		return;
+	}
 	m_volume->Modified();
 	m_volume->Update();
 	m_volMapper->Modified();
@@ -284,7 +262,9 @@ void iAVolumeRenderer::update()
 void iAVolumeRenderer::setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3)
 {
 	if (m_isFlat)
+	{
 		return;
+	}
 	m_volMapper->AddClippingPlane(p1);
 	m_volMapper->AddClippingPlane(p2);
 	m_volMapper->AddClippingPlane(p3);
@@ -293,7 +273,9 @@ void iAVolumeRenderer::setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3
 void iAVolumeRenderer::removeCuttingPlanes()
 {
 	if (m_isFlat)
+	{
 		return;
+	}
 	m_volMapper->RemoveAllClippingPlanes();
 }
 
@@ -301,7 +283,9 @@ void iAVolumeRenderer::removeCuttingPlanes()
 void iAVolumeRenderer::showVolume(bool visible)
 {
 	if (m_isFlat)
+	{
 		return;
+	}
 	m_volume->SetVisibility(visible);
 }
 

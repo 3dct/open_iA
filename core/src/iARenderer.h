@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,6 +22,8 @@
 
 #include "open_iA_Core_export.h"
 
+#include "iAvec3.h"
+
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkSmartPointer.h>
 
@@ -29,8 +31,8 @@
 
 #include <set>
 #include <vector>
-#include "iAConsole.h"
 
+struct iALineSegment;
 class iARenderSettings;
 class iARenderObserver;
 
@@ -51,7 +53,6 @@ class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
 class vtkPicker;
 class vtkPlane;
-class vtkPlaneSource;
 class vtkPoints;
 class vtkPolyData;
 class vtkPolyDataMapper;
@@ -68,6 +69,7 @@ class open_iA_Core_API iARenderer: public QObject
 {
 	Q_OBJECT
 public:
+	//! Creates a renderer widget. In order to show something, you need to call initialize too!
 	iARenderer( QObject *parent = nullptr );
 	virtual ~iARenderer( );
 
@@ -115,7 +117,10 @@ public:
 	void update();
 	void showHelpers(bool show);
 	void showRPosition(bool show);
-	void showSlicePlanes(bool show);
+	//! show or hide the slice plane for the given axis
+	//! @param axis index of the axis (x..0, y..1, z..2)
+	//! @param show whether to show (true) or hide (false) the given axis slice plane
+	void showSlicePlane(int axis, bool show);
 	//! Updates the position and size of the three slice planes according to the given spacing (and the dimensions of the internally stored image data)
 	//! @param newSpacing the spacing of the dataset.
 	void updateSlicePlanes(double const * newSpacing);
@@ -143,14 +148,17 @@ public:
 
 	//sets bounds of the slicing volume, using the spacing of image
 	void setSlicingBounds(const int roi[6], const double *spacing);
-	
+
 	void setCubeVisible(bool visible); //Visibility of the slice cube
-	
+
 	void saveMovie(const QString& fileName, int mode, int qual = 2);	//!< move out of here
 	iARenderObserver * getRenderObserver();
 	void addRenderer(vtkRenderer* renderer);
-	void applySettings(iARenderSettings const & settings);
-	
+	//! apply the given settings to the renderer
+	//! @param settings data holder for all settings.
+	//! @param slicePlaneVisibility initial visibility of the single slice planes (can be modified independently via showSlicePlanes as well).
+	void applySettings(iARenderSettings const & settings, bool slicePlaneVisibility[3]);
+
 	void emitSelectedCells(vtkUnstructuredGrid* selectedCells);
 	void emitNoSelectedCells();
 
@@ -166,8 +174,8 @@ signals:
 public slots:
 	void mouseRightButtonReleasedSlot();
 	void mouseLeftButtonReleasedSlot();
-	void setArbitraryProfile(int pointIndex, double * coords);
-	void setArbitraryProfileOn(bool isOn);
+	void setProfilePoint(int pointIndex, double * coords);
+	void setProfileHandlesOn(bool isOn);
 
 private:
 	void initObserver();
@@ -219,11 +227,9 @@ private:
 	vtkTransform* m_moveableAxesTransform;
 	vtkSmartPointer<vtkAxesActor> m_moveableAxesActor;
 	//! @}
-	
+
 	//! @{ Line profile
-	vtkSmartPointer<vtkLineSource>     m_profileLineSource;
-	vtkSmartPointer<vtkPolyDataMapper> m_profileLineMapper;
-	vtkSmartPointer<vtkActor>          m_profileLineActor;
+	std::vector<iALineSegment>         m_profileLine;
 	vtkSmartPointer<vtkSphereSource>   m_profileLineStartPointSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_profileLineStartPointMapper;
 	vtkSmartPointer<vtkActor>          m_profileLineStartPointActor;
@@ -233,7 +239,7 @@ private:
 	//! @}
 
 	//! @{ Slice planes
-	vtkSmartPointer<vtkPlaneSource>    m_slicePlaneSource[3];
+	vtkSmartPointer<vtkCubeSource>     m_slicePlaneSource[3];
 	vtkSmartPointer<vtkPolyDataMapper> m_slicePlaneMapper[3];
 	vtkSmartPointer<vtkActor>          m_slicePlaneActor[3];
 	float m_slicePlaneOpacity; //!< Slice Plane Opacity
@@ -242,4 +248,10 @@ private:
 	vtkSmartPointer<vtkCubeSource> m_slicingCube;
 	vtkSmartPointer<vtkPolyDataMapper> m_sliceCubeMapper;
 	vtkSmartPointer<vtkActor> m_sliceCubeActor;
+
+	//! bounding box for "stick-out" information (currently used for lines leading to profile points)
+	iAVec3d m_stickOutBox[2];
+
+	//! flag indicating whether renderer is initialized
+	bool m_initialized;
 };

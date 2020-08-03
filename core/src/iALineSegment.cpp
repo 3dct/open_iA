@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,17 +26,37 @@
 #include <vtkPolyDataMapper.h>
 
 iALineSegment::iALineSegment():
-	points(vtkSmartPointer<vtkPoints>::New()),
-	lineSource(vtkSmartPointer<vtkLineSource>::New()),
+	actor(vtkSmartPointer<vtkActor>::New()),
 	mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	actor(vtkSmartPointer<vtkActor>::New())
+	lineSource(vtkSmartPointer<vtkLineSource>::New())
 {
-	points->Allocate(2);
-	points->SetPoint(0, 0,0,0);
-	points->SetPoint(1, 1,1,1);
-	lineSource->SetPoint1(points->GetPoint(0));
-	lineSource->SetPoint2(points->GetPoint(1));
+	lineSource->SetPoint1(0, 0, 0);
+	lineSource->SetPoint2(1, 1, 1);
 	lineSource->SetResolution(1);
 	mapper->SetInputConnection(lineSource->GetOutputPort());
 	actor->SetMapper(mapper);
+}
+
+void iALineSegment::setPoint(int idx, double x, double y, double z)
+{
+	if (idx == 0)
+	{
+		lineSource->SetPoint1(x, y, z);
+	}
+	else
+	{
+		lineSource->SetPoint2(x, y, z);
+	}
+}
+
+void iALineSegment::point(int idx, double* point_out)
+{
+	if (idx == 0)
+	{
+		lineSource->GetPoint1(point_out);
+	}
+	else
+	{
+		lineSource->GetPoint2(point_out);
+	}
 }

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -38,7 +38,11 @@ class iASimpleSlicerWidget : public QWidget
 	Q_OBJECT
 
 public:
-	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+	iASimpleSlicerWidget(QWidget* parent = nullptr, bool enableInteraction = false, Qt::WindowFlags f = 0);
+#else
+	iASimpleSlicerWidget(QWidget* parent = nullptr, bool enableInteraction = false, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+#endif
 	~iASimpleSlicerWidget();
 
 	void setSlicerMode(iASlicerMode slicerMode);
@@ -47,8 +51,8 @@ public:
 	void setSliceNumber(int sliceNumber);
 	int getSliceNumber();
 
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
+	bool hasHeightForWidth() const override;
+	int heightForWidth(int width) const override;
 
 	void applySettings(iASingleSlicerSettings const & settings);
 	void changeModality(QSharedPointer<iAModality> modality);

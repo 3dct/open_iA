@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -59,9 +59,9 @@ class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
 	Q_OBJECT
 
 public:
-	MainWindow(QString const & appName, QString const & version, QString const & splashImage);
-	~MainWindow();
-	static int runGUI(int argc, char * argv[], QString const & appName, QString const & version,
+	MainWindow(QString const & appName, QString const & version, QString const& buildInformation, QString const & splashImage);
+	~MainWindow() override;
+	static int runGUI(int argc, char * argv[], QString const & appName, QString const & version, QString const& buildInformation,
 		QString const & splashPath, QString const & iconPath);
 	static void initResources();
 
@@ -119,10 +119,19 @@ public:
 	QMdiSubWindow* addSubWindow(QWidget * child);
 	void loadArguments(int argc, char** argv);
 	iAPreferences const & getDefaultPreferences() const;
-	iAModuleDispatcher& getModuleDispatcher() const; 
+	iAModuleDispatcher& getModuleDispatcher() const;
 	MdiChild *createMdiChild(bool unsavedChanges);
 	void closeMdiChild(MdiChild* child);
 	void closeAllSubWindows();
+	void updateInteractionModeControls(int mode);
+	void updateMagicLens2DCheckState(bool enabled);
+
+public slots:
+	void loadLayout();
+
+signals:
+	void styleChanged();
+	void fullScreenToggled();
 
 protected:
 	void closeEvent(QCloseEvent *event) override;
@@ -163,8 +172,11 @@ private slots:
 	void changeColor();
 	void resetView();
 	void resetTrf();
+	void changeInteractionMode(bool isChecked);
+	void meshDataMovable(bool isChecked);
 	void toggleSnakeSlicer(bool isChecked);
 	void toggleMagicLens(bool isChecked);
+	void toggleMagicLens3D(bool isChecked);
 	void rendererCamPosition();
 	void raycasterAssignIso();
 	void raycasterSaveCameraSettings();
@@ -175,12 +187,12 @@ private slots:
 	void toggleChildStatusBar();
 	void toggleToolbar();
 	void about();
+	void buildInformation();
 	void wiki();
 	void saveLayout();
 	void resetLayout();
 	void deleteLayout();
 	void toggleSliceProfile(bool isChecked);
-	void childActivatedSlot(QMdiSubWindow *wnd);
 	void updateMenus();
 	void updateWindowMenu();
 	void setActiveSubWindow(QWidget *window);
@@ -189,13 +201,6 @@ private slots:
 	void endPointSelected();
 	void setHistogramFocus();
 	void consoleVisibilityChanged(bool newVisibility);
-
-public slots:
-	void loadLayout();
-
-signals:
-	void styleChanged();
-	void fullScreenToggled();
 
 private:
 	void connectSignalsToSlots();
@@ -242,17 +247,19 @@ private:
 	QComboBox * m_layout;
 	QScopedPointer<iAModuleDispatcher> m_moduleDispatcher;
 	QStringList m_layoutNames;
-	QString m_gitVersion;
+	QString m_gitVersion, m_buildInformation;
 };
 
 template <typename T> QList<T*> MainWindow::childList(QMdiArea::WindowOrder order)
 {
 	QList<T*> res;
-	foreach(QMdiSubWindow *window, mdiArea->subWindowList(order))
+	for (QMdiSubWindow *window: mdiArea->subWindowList(order))
 	{
 		T * child = dynamic_cast<T*>(window->widget());
 		if (child)
+		{
 			res.append(child);
+		}
 	}
 	return res;
 }
@@ -261,6 +268,8 @@ template <typename T> T * MainWindow::activeChild()
 {
 	int subWndCnt = childList<T>().size();
 	if (subWndCnt > 0)
+	{
 		return childList<T>(QMdiArea::ActivationHistoryOrder).last();
+	}
 	return nullptr;
 }

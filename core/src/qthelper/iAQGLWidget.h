@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,11 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkVersion.h>
-
 #include <QtGlobal>
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
+#if (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
 
 #include <QOpenGLWidget>
 
@@ -36,7 +34,9 @@ typedef QSurfaceFormat iAQGLFormat;
 #else
 
 #define WIN32_LEAN_AND_MEAN		// apparently QGLWidget might include windows.h...
+#define VC_EXTRALEAN
 #define NOMINMAX
+
 #include <QGLWidget>
 
 typedef QGLWidget iAQGLWidget;

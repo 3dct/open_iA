@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,7 +29,6 @@
 #include "iATypedCallHelper.h"
 #include "iAVolumeRenderer.h"
 
-#include <vtkImageData.h>
 #include <vtkVolume.h>
 
 #include <cassert>
@@ -37,24 +36,25 @@
 
 iAModality::iAModality(QString const & name, QString const & filename, int channel,
 	vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
+	m_VolSettingsSavedStatus(false),
 	m_name(name),
 	m_filename(filename),
-	m_renderFlags(renderFlags),
 	m_channel(channel),
-	m_imgs(1),
-	m_VolSettingsSavedStatus(false),
-	m_channelID(NotExistingChannel)
+	m_renderFlags(renderFlags),
+	m_channelID(NotExistingChannel),
+	m_slicerOpacity(1),
+	m_imgs(1)
 {
 	setData(imgData);
 }
 
 iAModality::iAModality(QString const & name, QString const & filename, std::vector<vtkSmartPointer<vtkImageData> > imgs, int renderFlags) :
+	m_VolSettingsSavedStatus(false),
 	m_name(name),
 	m_filename(filename),
-	m_renderFlags(renderFlags),
 	m_channel(-1),
-	m_imgs(imgs),
-	m_VolSettingsSavedStatus(false)
+	m_renderFlags(renderFlags),
+	m_imgs(imgs)
 {
 	setData(imgs[0]);
 }
@@ -74,12 +74,12 @@ int iAModality::channel() const
 	return m_channel;
 }
 
-int iAModality::componentCount() const
+size_t iAModality::componentCount() const
 {
 	return m_imgs.size();
 }
 
-vtkSmartPointer<vtkImageData> iAModality::component(int componentIdx) const
+vtkSmartPointer<vtkImageData> iAModality::component(size_t componentIdx) const
 {
 	return m_imgs[componentIdx];
 }
@@ -174,7 +174,6 @@ bool iAModality::hasRenderFlag(RenderFlag loc) const
 {
 	return (m_renderFlags & loc) == loc;
 }
-
 
 int iAModality::renderFlags() const
 {

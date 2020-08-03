@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -126,8 +126,10 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		inputImages.push_back(newCon);
 	}
 
-	for (int i=0; i<filterParamStrs.size(); ++i)
+	for (int i = 0; i < filterParamStrs.size(); ++i)
+	{
 		filterParams.insert(filter->parameters()[i]->name(), filterParamStrs[i]);
+	}
 
 	QString outputFile = parameters["Output csv file"].toString();
 	QStringList outputBuffer;
@@ -138,7 +140,9 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		{
 			QTextStream textStream(&file);
 			while (!textStream.atEnd())
+			{
 				outputBuffer << textStream.readLine();
+			}
 			file.close();
 		}
 	}
@@ -147,7 +151,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 	filter->setLogger(logger());
 
 	QStringList filters = parameters["File mask"].toString().split(";");
-	
+
 	if (!QFileInfo(batchDir).exists() || !QFileInfo(batchDir).isDir())
 	{
 		addMsg("Path given as 'Image folder' either does not exist or is not a folder!");
@@ -156,9 +160,13 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 	QStringList files;
 	QFlags<FilesFolders> filesFolders;
 	if (parameters["Work on"].toString().contains("Files"))
+	{
 		filesFolders |= Files;
+	}
 	else if (parameters["Work on"].toString().contains("Folders"))
+	{
 		filesFolders |= Folders;
+	}
 	FindFiles(batchDir, filters, parameters["Recursive"].toBool(), files, filesFolders);
 	QString outDir(parameters["Output directory"].toString());
 	if (!outDir.isEmpty())
@@ -179,11 +187,13 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		}
 	}
 	else
+	{
 		outDir = batchDir;
+	}
 	QString outSuffix = parameters["Output suffix"].toString();
 	bool overwrite = parameters["Overwrite output"].toBool();
 	bool useCompression = parameters["Compress output"].toBool();
-	size_t curLine = 0;
+	int curLine = 0;
 	for (QString fileName : files)
 	{
 		try
@@ -215,7 +225,9 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			{
 				QStringList captions;
 				if (parameters["Add filename"].toBool())
+				{
 					captions << "filename";
+				}
 				for (auto outValue : filter->outputValues())
 				{
 					QString curCap(outValue.first);
@@ -223,12 +235,16 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 					captions << curCap;
 				}
 				if (outputBuffer.empty())
+				{
 					outputBuffer.append("");
+				}
 				outputBuffer[0] += (outputBuffer[0].isEmpty() || captions.empty() ? "" : ",") + captions.join(",");
 				++curLine;
 			}
 			if (curLine >= outputBuffer.size())
+			{
 				outputBuffer.append("");
+			}
 			QStringList values;
 			QString relFileName = MakeRelative(batchDir, fileName);
 			if (parameters["Add filename"].toBool())
@@ -236,7 +252,9 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 				values << relFileName;
 			}
 			for (auto outValue : filter->outputValues())
+			{
 				values.append(outValue.second.toString());
+			}
 			QString textToAdd = (outputBuffer[curLine].isEmpty() || values.empty() ? "" : ",") + values.join(",");
 			outputBuffer[curLine] += textToAdd;
 			++curLine;
@@ -258,18 +276,24 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 					++overwriteSuffix;
 				}
 				if (!QDir(fi.absolutePath()).exists() && !QDir(fi.absolutePath()).mkpath("."))
+				{
 					addMsg(QString("Error creating output directory %1, skipping writing output file %2")
 						.arg(fi.absolutePath()).arg(outName));
+				}
 				else
+				{
 					iAITKIO::writeFile(outName, filter->output()[o]->itkImage(),
 						filter->output()[o]->itkScalarPixelType(), useCompression);
+				}
 			}
 		}
 		catch (std::exception & e)
 		{
 			DEBUG_LOG(QString("Batch processing: Error while processing file '%1': %2").arg(fileName).arg(e.what()));
 			if (!parameters["Continue on error"].toBool())
+			{
 				throw e;
+			}
 		}
 		progress()->emitProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
 	}
@@ -282,7 +306,11 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			QTextStream textStream(&file);
 			for (QString line : outputBuffer)
 			{
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+				textStream << line << Qt::endl;
+#else
 				textStream << line << endl;
+#endif
 			}
 			file.close();
 		}

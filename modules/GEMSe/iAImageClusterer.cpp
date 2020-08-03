@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -105,8 +105,8 @@ class DiagonalMatrix
 {
 public:
 	DiagonalMatrix(int side):
-		m_storageSize(triangularNumber(side)),
 		m_side(side),
+		m_storageSize(triangularNumber(side)),
 		m_values(new ValueType[m_storageSize])
 	{
 		for (int i=0; i<m_storageSize; ++i)
@@ -348,7 +348,7 @@ void iAImageClusterer::run()
 #ifdef CLUSTER_DEBUGGING
 		distFile << distFileLine.str() << std::endl;
 #endif
-		emit Progress(SplitFactorDistanceCalc * 
+		emit Progress(SplitFactorDistanceCalc *
 			(static_cast<double>(sumUpToDiff(m_images.size(), m_currImage))/ sumUpTo(m_images.size())) );
 	}
 	//distances.prettyPrint();
@@ -412,9 +412,9 @@ void iAImageClusterer::run()
 		m_images[idx.second]->SetParent(lastNode);
 		m_images[idx.first ]->DiscardDetails();
 		m_images[idx.second]->DiscardDetails();
-		
+
 		m_images.push_back(lastNode);
-		
+
 		// recalculate distances:
 		int newItemIdx = m_images.size()-1;
 #ifdef CLUSTER_DEBUGGING

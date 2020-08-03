@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -41,8 +41,8 @@ enum MeasureIndices
 };
 
 int GetDistanceMeasureCount();
-char const * const * const GetDistanceMeasureNames();
-char const * const * const GetShortMeasureNames();
+char const * const * GetDistanceMeasureNames();
+char const * const * GetShortMeasureNames();
 QSharedPointer<iAVectorDistance> GetDistanceMeasure(QString const & distFuncName);
 QSharedPointer<iAVectorDistance> GetDistanceMeasureFromShortName(QString const & distFuncName);
 
@@ -124,7 +124,7 @@ class iANullDistance: public iAVectorDistance
 public:
 	virtual char const * name() const { return "Null Dist."; }
 	virtual char const * GetShortName() const { return "null"; }
-	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const { return 0; }
+	virtual double GetDistance(QSharedPointer<iAVectorType const> /*spec1*/, QSharedPointer<iAVectorType const> /*spec2*/) const { return 0; }
 };
 
 /*

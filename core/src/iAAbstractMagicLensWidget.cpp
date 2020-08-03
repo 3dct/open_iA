@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -21,6 +21,7 @@
 #include "iAAbstractMagicLensWidget.h"
 
 #include "defines.h" // for DefaultMagicLensSize
+#include "iAVtkVersion.h"
 
 #include <QVTKInteractor.h>
 #include <vtkActor2D.h>
@@ -37,11 +38,12 @@
 const double iAAbstractMagicLensWidget::OFFSET_VAL = 20.;
 
 iAAbstractMagicLensWidget::iAAbstractMagicLensWidget( QWidget * parent /*= 0 */ )
-	: iAVtkWidget( parent )
-	, m_lensRen{ vtkSmartPointer<vtkRenderer>::New( ) }
-	, m_GUIRen{ vtkSmartPointer<vtkRenderer>::New( ) }
-	, m_GUIActor { vtkSmartPointer<vtkActor2D>::New() }
-	, m_viewMode( iAAbstractMagicLensWidget::OFFSET )
+	: iAVtkWidget( parent ),
+	m_lensRen{ vtkSmartPointer<vtkRenderer>::New( ) },
+	m_GUIRen{ vtkSmartPointer<vtkRenderer>::New( ) },
+	m_GUIActor { vtkSmartPointer<vtkActor2D>::New() },
+	m_viewMode( iAAbstractMagicLensWidget::OFFSET ),
+	m_magicLensEnabled(false)
 { }
 
 iAAbstractMagicLensWidget::~iAAbstractMagicLensWidget( )
@@ -49,18 +51,37 @@ iAAbstractMagicLensWidget::~iAAbstractMagicLensWidget( )
 
 void iAAbstractMagicLensWidget::magicLensOn( )
 {
+	m_magicLensEnabled = true;
 	setCursor( Qt::BlankCursor );
-	GetRenderWindow( )->AddRenderer( m_lensRen );
-	GetRenderWindow( )->AddRenderer( m_GUIRen );
-	GetRenderWindow( )->Render( );
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	GetRenderWindow()->AddRenderer(m_lensRen);
+	GetRenderWindow()->AddRenderer(m_GUIRen);
+	GetRenderWindow()->Render();
+#else
+	renderWindow()->AddRenderer(m_lensRen);
+	renderWindow()->AddRenderer(m_GUIRen);
+	renderWindow()->Render();
+#endif
 }
 
 void iAAbstractMagicLensWidget::magicLensOff( )
 {
+	m_magicLensEnabled = false;
 	setCursor( Qt::ArrowCursor );
-	GetRenderWindow( )->RemoveRenderer( m_lensRen );
-	GetRenderWindow( )->RemoveRenderer( m_GUIRen );
-	GetRenderWindow( )->Render( );
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	GetRenderWindow()->RemoveRenderer(m_lensRen);
+	GetRenderWindow()->RemoveRenderer(m_GUIRen);
+	GetRenderWindow()->Render();
+#else
+	renderWindow()->RemoveRenderer(m_lensRen);
+	renderWindow()->RemoveRenderer(m_GUIRen);
+	renderWindow()->Render();
+#endif
+}
+
+bool iAAbstractMagicLensWidget::isMagicLensEnabled() const
+{
+	return m_magicLensEnabled;
 }
 
 void iAAbstractMagicLensWidget::setLensSize( int sizeX, int sizeY )
@@ -82,17 +103,29 @@ void iAAbstractMagicLensWidget::setViewMode( ViewMode mode )
 void iAAbstractMagicLensWidget::mouseMoveEvent( QMouseEvent * event )
 {
 	iAVtkWidget::mouseMoveEvent( event );
-	int * pos = GetInteractor( )->GetEventPosition( );
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	int* pos = GetInteractor()->GetEventPosition();
+#else
+	int* pos = interactor()->GetEventPosition();
+#endif
 	m_pos[0] = pos[0]; m_pos[1] = pos[1];
 	updateLens( );
 	updateGUI( );
-	emit MouseMoved( );
-	GetRenderWindow( )->Render( );
+	emit mouseMoved();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	GetRenderWindow()->Render();
+#else
+	renderWindow()->Render();
+#endif
 }
 
 void iAAbstractMagicLensWidget::updateLens( )
 {
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	if( GetRenderWindow( )->GetRenderers( )->GetNumberOfItems( ) <= 0 )
+#else
+	if( renderWindow( )->GetRenderers( )->GetNumberOfItems( ) <= 0 )
+#endif
 		return;
 	double points[4];
 	getViewportPoints( points );
@@ -184,7 +217,11 @@ void iAAbstractMagicLensWidget::updateGUI( )
 // input points: xmin, ymin, xmax, ymax
 void iAAbstractMagicLensWidget::getViewportPoints( double points[4] )
 {
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	int * winSize = GetRenderWindow( )->GetSize( );
+#else
+	int * winSize = renderWindow( )->GetSize( );
+#endif
 	switch( m_viewMode )
 	{
 	case ViewMode::CENTERED:
@@ -207,7 +244,11 @@ void iAAbstractMagicLensWidget::getViewportPoints( double points[4] )
 
 void iAAbstractMagicLensWidget::SetMainRenderWindow( vtkGenericOpenGLRenderWindow* renWin )
 {
-	SetRenderWindow( renWin );
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	SetRenderWindow(renWin);
+#else
+	setRenderWindow(renWin);
+#endif
 
 	// TODO: VOLUME: move somewhere else?
 	renWin->SetNumberOfLayers( 5 );

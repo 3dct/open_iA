@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -60,9 +60,9 @@ void iAModuleInterface::SetDispatcher( iAModuleDispatcher * dispatcher )
 }
 
 iAModuleInterface::iAModuleInterface():
+	m_mainWnd(nullptr),
 	m_dispatcher(nullptr),
-	m_mdiChild(nullptr),
-	m_mainWnd(nullptr)
+	m_mdiChild(nullptr)
 {}
 
 void iAModuleInterface::PrepareActiveChild()
@@ -146,18 +146,22 @@ bool iAModuleInterface::AttachToMdiChild( MdiChild * child )
 {
 	//check if already attached
 	m_mdiChild = child;
-	if( isAttached() )
+	if (isAttached())
+	{
 		return false;
+	}
 	//create attachment
 	try
 	{
 		iAModuleAttachmentToChild * attachment = CreateAttachment( m_mainWnd, child );
-		if( !attachment )
+		if (!attachment)
+		{
 			return false;
+		}
 		//add an attachment
 		m_attachments.push_back( attachment );
-		connect( child, SIGNAL( closed() ), this, SLOT( attachedChildClosed() ) );
-		connect ( attachment, SIGNAL( detach() ), this, SLOT (detach() ) );
+		connect(child, &MdiChild::closed, this, &iAModuleInterface::attachedChildClosed);
+		connect(attachment, &iAModuleAttachmentToChild::detach, this, &iAModuleInterface::detach);
 	}
 	catch( itk::ExceptionObject &excep )
 	{  // check why we catch an ITK exception here! in the attachment initialization, no ITK filters should be called...

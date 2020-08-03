@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -79,12 +79,12 @@ int iASimpleSlicerWidget::getSliceNumber()
 	return m_slicer->sliceNumber();
 }
 
-bool iASimpleSlicerWidget::hasHeightForWidth()
+bool iASimpleSlicerWidget::hasHeightForWidth() const
 {
 	return true;
 }
 
-int iASimpleSlicerWidget::heightForWidth(int width)
+int iASimpleSlicerWidget::heightForWidth(int width) const
 {
 	return width;
 }
@@ -113,7 +113,6 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 
 	double xc = origin[0] + 0.5*(extent[0] + extent[1])*spacing[0];
 	double yc = origin[1] + 0.5*(extent[2] + extent[3])*spacing[1];
-	double xd = (extent[1] - extent[0] + 1)*spacing[0];
 	double yd = (extent[3] - extent[2] + 1)*spacing[1];
 
 	vtkCamera *camera = m_slicer->camera();

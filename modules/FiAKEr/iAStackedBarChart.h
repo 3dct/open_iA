@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -52,9 +52,11 @@ public:
 	void setDoStack(bool doStack);
 	size_t numberOfBars() const;
 	void setBackgroundColor(QColor const & color);
+	double weightedSum() const;
 signals:
 	void switchedStackMode(bool mode);
 	void weightsChanged(std::vector<double> const & weights);
+	void doubleClicked();
 public slots:
 	void setWeights(std::vector<double> const & weights);
 private slots:
@@ -66,10 +68,10 @@ private:
 	void mousePressEvent(QMouseEvent* ev) override;
 	void mouseReleaseEvent(QMouseEvent* ev) override;
 	void mouseMoveEvent(QMouseEvent* ev) override;
+	void mouseDoubleClickEvent(QMouseEvent* e) override;
 	//! @}
-	const int DividerRange = 2;
 
-	int dividerWithinRange(int x) const;
+	size_t dividerWithinRange(int x) const;
 	int barWidth(iABarData const & bar) const;
 	void normalizeWeights();
 
@@ -78,9 +80,9 @@ private:
 	iAColorTheme const * m_theme;
 	QMenu* m_contextMenu;
 	bool m_header, m_stack;
-	int m_resizeBar;
+	size_t m_resizeBar;
 	int m_resizeStartX;
-	double m_resizeWidth, m_resizeFullWidth;
+	double m_resizeWidth;
 	std::vector<iABarData> m_resizeBars;
 	QColor m_bgColor;
 };

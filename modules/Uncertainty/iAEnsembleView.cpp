@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -30,7 +30,7 @@ iAEnsembleView::iAEnsembleView():
 	layout()->setSpacing(0);
 	layout()->setContentsMargins(4, 4, 4, 4);
 	layout()->addWidget(m_list);
-	connect(m_list, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(EnsembleDblClicked(QListWidgetItem*)));
+	connect(m_list, &QListWidget::itemDoubleClicked, this, &iAEnsembleView::EnsembleDblClicked);
 }
 
 

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "defines.h"
+#include "defines.h" // for DefaultMagicLensSize
 
 //! Collection of generic open_iA program preferences.
 class iAPreferences
@@ -32,15 +32,17 @@ public:
 		MagicLensFrameWidth;
 	bool Compression,
 		ResultInNewWindow,
-		PrintParameters;
+		PrintParameters,
+		HistogramLogarithmicYAxis;
 		//LogToFile;
 	iAPreferences():
-		HistogramBins(DefaultHistogramBins),
+		HistogramBins(2048),
 		StatisticalExtent(3),
 		MagicLensSize(DefaultMagicLensSize),
 		MagicLensFrameWidth(3),
 		Compression(true),
 		ResultInNewWindow(true),
-		PrintParameters(true)
+		PrintParameters(true),
+		HistogramLogarithmicYAxis(false)
 	{}
 };

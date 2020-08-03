@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -30,7 +30,8 @@ public:
 		ShowIsoLines,
 		ShowPosition,
 		ShowAxesCaption,
-		ShowTooltip;
+		ShowTooltip,
+		AdjustWindowLevelEnabled;
 	double MinIsoValue, MaxIsoValue;
 	int NumberOfIsoLines,
 		ToolTipFontSize;
@@ -42,6 +43,7 @@ public:
 		ShowPosition(false),
 		ShowAxesCaption(false),
 		ShowTooltip(true),
+		AdjustWindowLevelEnabled(false),
 		MinIsoValue(20000),
 		MaxIsoValue(40000),
 		NumberOfIsoLines(5),

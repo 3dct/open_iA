@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -28,6 +28,7 @@
 
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
 #define NOMINMAX
 #include <windows.h> // for HINSTANCE / LPCWSTR
 #endif
@@ -87,18 +88,18 @@ public:
 	QMenu * getMenuWithTitle(QMenu * parentMenu, QString const & title, bool isDisablable = true);
 	void AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable = true);
 private slots:
-	void ExecuteFilter();
-	void RemoveFilter();
-	void SelectAndRunFilter();
+	void executeFilter();
+	void removeFilter();
+	void selectAndRunFilter();
 private:
 	MainWindow * m_mainWnd;
 	QVector < iAModuleAction > m_moduleActions;
 	QVector < iALoadedModule > m_loadedModules;
 	QVector< QSharedPointer<iAFilterRunnerGUI> > m_runningFilters;
 	QString m_rootPath;
-	iAModuleInterface* LoadModuleAndInterface(QFileInfo fi, QStringList & errorMessages);
-	void InitializeModuleInterface(iAModuleInterface* m);
-	void RunFilter(int filterID);
+	iAModuleInterface* loadModuleAndInterface(QFileInfo fi, QStringList & errorMessages);
+	void initializeModuleInterface(iAModuleInterface* m);
+	void runFilter(int filterID);
 };
 
 template <typename T> T* iAModuleDispatcher::GetModule()

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -54,8 +54,8 @@ iAMemberView::iAMemberView():
 	layout()->addWidget(m_plot);
 	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_plot->setMultiSelectModifier(Qt::ShiftModifier);
-	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(ChartMousePress(QMouseEvent *)));
-	connect(m_plot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseWheel(QWheelEvent*)));
+	connect(m_plot, &QCustomPlot::mousePress, this, &iAMemberView::ChartMousePress);
+	connect(m_plot, &QCustomPlot::mouseWheel, this, &iAMemberView::mouseWheel);
 }
 
 void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
@@ -98,8 +98,8 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 	m_plot->axisRect()->setRangeZoom(Qt::Horizontal); // and zooming in horizontal direction
 	mean->setData(ticks, meanData);
 
-	connect(mean, SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(SelectionChanged(QCPDataSelection const &)));
-	connect(m_plot->xAxis, SIGNAL(rangeChanged(const QCPRange &)), this, SLOT(ChangedRange(QCPRange const &)));
+	connect(mean, QOverload<QCPDataSelection const&>::of(&QCPBars::selectionChanged), this, &iAMemberView::SelectionChanged);
+	connect(m_plot->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, &iAMemberView::ChangedRange);
 
 	StyleChanged();
 	m_plot->replot();

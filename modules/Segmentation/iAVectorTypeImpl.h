@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -35,8 +35,9 @@ private:
 	std::vector<iAVectorDataType> m_data;
 public:
 	iAStandaloneVector(IndexType size);
-	virtual iAVectorDataType get(size_t channelIdx) const;
-	virtual IndexType size() const;
+	~iAStandaloneVector() override;
+	virtual iAVectorDataType get(size_t channelIdx) const override;
+	virtual IndexType size() const override;
 	void set(IndexType, iAVectorDataType);
 };
 
@@ -49,7 +50,8 @@ private:
 	iAVectorArray const & m_data;
 	size_t m_voxelIdx;
 public:
+	~iAPixelVector() override;
 	iAPixelVector(iAVectorArray const & data, size_t voxelIdx);
-	iAVectorDataType get(size_t channelIdx) const;
-	IndexType size() const;
+	iAVectorDataType get(size_t channelIdx) const override;
+	IndexType size() const override;
 };

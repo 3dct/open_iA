@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -62,7 +62,7 @@ private:
 	QSharedPointer<iAParamHistogramData> m_data;
 	QSharedPointer<iANameMapper> m_nameMapper;
 	double m_markedLocation;
-	QVector<QColor> m_binColors;
+	std::vector<QColor> m_binColors;
 	double m_minSliderPos, m_maxSliderPos;
 	int m_selectedHandle;
 	int m_selectionOffset;

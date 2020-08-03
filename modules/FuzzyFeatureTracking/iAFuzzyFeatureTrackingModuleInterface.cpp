@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -30,14 +30,16 @@ iAFuzzyFeatureTrackingModuleInterface::iAFuzzyFeatureTrackingModuleInterface() {
 void iAFuzzyFeatureTrackingModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
+	{
 		return;
+	}
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionFuzzyFeatureTracking = new QAction( m_mainWnd );
 	actionFuzzyFeatureTracking->setText(QApplication::translate("MainWindow", "Fuzzy Feature Tracking (4DCT)", 0));
 	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionFuzzyFeatureTracking );
 
 	//connect signals to slots
-	connect( actionFuzzyFeatureTracking, SIGNAL( triggered() ), this, SLOT( start_FuzzyFeatureTracking() ) );
+	connect( actionFuzzyFeatureTracking, &QAction::triggered, this, &iAFuzzyFeatureTrackingModuleInterface::start_FuzzyFeatureTracking);
 }
 
 bool iAFuzzyFeatureTrackingModuleInterface::start_FuzzyFeatureTracking()

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,7 +26,11 @@ template <typename QtContainerType, typename uiType>
 class iAQTtoUIConnector : public QtContainerType, public uiType
 {
 public:
-	iAQTtoUIConnector( QWidget * parent = 0, Qt::WindowFlags f = 0 ) : QtContainerType( parent, f )
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
+	iAQTtoUIConnector( QWidget * parent = nullptr, Qt::WindowFlags f = 0 ) : QtContainerType( parent, f )
+#else
+	iAQTtoUIConnector(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>()) : QtContainerType(parent, f)
+#endif
 	{
 		this->setupUi(this);
 	}
@@ -36,7 +40,7 @@ template <typename uiType>
 class iAQTtoUIConnector<QToolBar, uiType> : public QToolBar, public uiType
 {
 public:
-	iAQTtoUIConnector(QString const & title, QWidget * parent = 0) : QToolBar(title, parent)
+	iAQTtoUIConnector(QString const & title, QWidget * parent = nullptr) : QToolBar(title, parent)
 	{
 		this->setupUi(this);
 	}

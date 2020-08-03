@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -46,8 +46,19 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 	int id = tokens[0].toInt(&ok);
 	if (!ok)
 	{
-		DEBUG_LOG(QString("Invalid result ID: %1").arg(tokens[0]));
-		return QSharedPointer<iASingleResult>();
+		// legacy format: split string " ":
+		QRegExp sep("(,| )");
+		tokens = line.split(sep);
+		id = tokens[0].toInt(&ok);
+		if (!ok)
+		{
+			DEBUG_LOG(QString("Invalid result ID: %1").arg(tokens[0]));
+			return QSharedPointer<iASingleResult>();
+		}
+		else
+		{
+			DEBUG_LOG("Legacy format .sps/.chr files detected, consider replacing ' ' by ',' in those files!");
+		}
 	}
 	QSharedPointer<iASingleResult> result(new iASingleResult(
 		id,
@@ -143,8 +154,8 @@ QString iASingleResult::ToString(QSharedPointer<iAAttributes> attributes, int ty
 
 
 iASingleResult::iASingleResult(int id, iASamplingResults const & sampling):
-	m_id(id),
-	m_sampling(sampling)
+	m_sampling(sampling),
+	m_id(id)
 {
 }
 

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -46,7 +46,7 @@ class iAFiberSimilarity
 {
 public:
 	quint64 index;
-	double similarity;
+	double dissimilarity;
 	friend bool operator<(iAFiberSimilarity const & a, iAFiberSimilarity const & b);
 };
 
@@ -68,7 +68,7 @@ QDataStream &operator>>(QDataStream &in, iARefDiffFiberStepData &s);
 class iARefDiffFiberData
 {
 public:
-	//! differences to reference fiber, one per diff/similarity measure
+	//! stepwise differences to reference fiber, one per diff/similarity measure (and internally then per step)
 	QVector<iARefDiffFiberStepData> diff;
 	//! dist to ref fibers: for each similarity measure, in order of ascending difference
 	QVector<QVector<iAFiberSimilarity> > dist;
@@ -81,7 +81,6 @@ QDataStream &operator>>(QDataStream &in, iARefDiffFiberData &s);
 class iAFiberCharData
 {
 public:
-	static const int FiberValueCount = 13;
 	//! the fiber data as vtkTable, mainly for the 3d visualization:
 	vtkSmartPointer<vtkTable> table;
 	//! mapping of the columns in m_resultTable
@@ -105,7 +104,7 @@ public:
 	//! comparison data to reference for each fiber
 	QVector<iARefDiffFiberData> refDiffFiber;
 	//! for each similarity measure, the average over all fibers
-	QVector<double> avgDifference;
+	QVector<double> avgDifference;  // rename -> avgDissimilarity
 };
 
 //! A collection of multiple results from one or more fiber reconstruction algorithms.
@@ -124,7 +123,7 @@ public:
 	size_t minFiberCount, maxFiberCount;
 // { TODO: make private ?
 	//! maximum of optimization steps in all results
-	int optimStepMax;
+	size_t optimStepMax;
 	//! results folder
 	QString folder;
 	//! shift applied to each step
@@ -137,6 +136,12 @@ public:
 	QVector<double> avgRefFiberMatch;
 	//! for each difference/similarity measure, the maximum value over all results:
 	QVector<double> maxAvgDifference;
+
+	//! IDs of the computed dissimilarity measures (ref. to position in getAvailableDissimilarityMeasures / switch in getDissimilarity
+	QVector<qulonglong> m_measures;
+
+	//! mapping for the resultID and projection error column:
+	uint m_resultIDColumn, m_projectionErrorColumn;
 
 // Methods:
 	bool loadData(QString const & path, iACsvConfig const & config, double stepShift, iAProgress * progress);

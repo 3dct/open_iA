@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -86,8 +86,8 @@ private slots:
 	void dataAvailable();
 	void modalitySelected(int modalityIdx);
 	void SetIconSize(int newSize);
-	void setColorTheme(const QString &);
-	void SetRepresentative(const QString &);
+	void setColorTheme(int index);
+	void setRepresentative(int index);
 	void loadRefImgSlot();
 	void setMagicLensCount(int);
 	void freeMemory();
@@ -103,7 +103,7 @@ private:
 		QString const & attributeDescriptorOutputFileName,
 		QSharedPointer<iASamplingResults> results);
 
-	
+
 	dlg_modalities*                      m_dlgModalities;
 	dlg_samplingSettings*                m_dlgSamplingSettings;
 	dlg_progress*						 m_dlgProgress;
@@ -116,7 +116,7 @@ private:
 	QSharedPointer<iAImageClusterer>     m_clusterer;
 
 	QString								 m_outputFolder;
-	
+
 	QString                              m_cltFile;
 	QString                              m_m_metaFileName;
 	QSharedPointer<iASimpleLabelInfo>    m_simpleLabelInfo;

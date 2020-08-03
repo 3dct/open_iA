@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -35,7 +35,7 @@ class vtkPolyDataMapper;
 class vtkRenderer;
 class vtkImageData;
 
-//! Represents a "raw" profile that can be drawn over an image on a given renderer.
+//! Represents a "raw" profile function drawn over an image on a given renderer.
 class iASlicerProfile
 {
 public:

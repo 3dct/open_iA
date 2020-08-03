@@ -83,9 +83,9 @@ FCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
     {
     m_OldCentroids[i] = this->m_Centroids[i];
 
-    m_CentroidsNumerator[i] = CentroidNumericTraitsType::Zero;
+    m_CentroidsNumerator[i] = CentroidNumericTraitsType::ZeroValue();
     }
-  m_CentroidsDenominator.Fill(CentroidValueNumericTraitsType::Zero);
+  m_CentroidsDenominator.Fill(CentroidValueNumericTraitsType::ZeroValue());
 }
 
 
@@ -113,10 +113,10 @@ FCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
   // of centroid expression.
   CentroidArrayType
     tempThreadCentroidsNumerator( this->m_NumberOfClasses,
-                                  CentroidNumericTraitsType::Zero );
+                                  CentroidNumericTraitsType::ZeroValue() );
   Array< CentroidValueType >
     tempThreadCentroidsDenominator(this->m_NumberOfClasses);
-  tempThreadCentroidsDenominator.Fill(CentroidValueNumericTraitsType::Zero);
+  tempThreadCentroidsDenominator.Fill(CentroidValueNumericTraitsType::ZeroValue());
 
   // Iterator over the internal image used by the algorithm. This image is
   // obtained by converting the pixels of the input image to the type of
@@ -169,7 +169,7 @@ FCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
       distanceOfNumerator = m_DistanceMetric->Evaluate( this->m_Centroids[i],
                                                         currentPixel );
 
-      tmpMembershipValue = MembershipValueNumericTraitsType::Zero;
+      tmpMembershipValue = MembershipValueNumericTraitsType::ZeroValue();
 
       for (j = 0; j < this->m_NumberOfClasses; j++)
         {

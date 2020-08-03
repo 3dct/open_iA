@@ -36,7 +36,9 @@
 #include "itkMirrorPadImageFilter.h"
 
 #include "onnxruntime_cxx_api.h"
-#include "cuda_provider_factory.h"
+//#include "cuda_provider_factory.h"
+
+#include "dml_provider_factory.h"
 
 
 
@@ -77,12 +79,17 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 	// initialize session options if needed
 	Ort::SessionOptions session_options;
-	session_options.SetIntraOpNumThreads(1);
+	//session_options.SetIntraOpNumThreads(1);
+	session_options.DisableMemPattern();
+	session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
 
 	// If onnxruntime.dll is built with CUDA enabled, we can uncomment out this line to use CUDA for this
 	// session (we also need to include cuda_provider_factory.h above which defines it)
 	
-	OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0);
+	//OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0);
+
+	OrtSessionOptionsAppendExecutionProvider_DML(session_options, parameters["GPU"].toInt());
+	
 
 	// Sets graph optimization level
 	// Available levels are
@@ -226,10 +233,12 @@ iAai::iAai() :
 	iAFilter("AI", "Segmentation",
 		"Uses deep learning model for segmentation<br/>"
 		"ONNX Runtime is used for execution of the net"
-		"<a href=\"https://github.com/microsoft/onnxruntime\">")
+		"<a href=\"https://github.com/microsoft/onnxruntime\">"
+		"GPU select gpu should be used by DirectML (0 -> Default GPU)")
 {
 
 	addParameter("OnnxFile", FileNameOpen);
+	addParameter("GPU", Discrete,0);
 
 }
 

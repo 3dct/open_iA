@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -282,8 +282,8 @@ void iAParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::Threaded
 				{
 					case Equal: votesByLabel[label] += 1.0; break;
 					case LabelBased: votesByLabel[label] += m_inputLabelWeightMap[std::make_pair(label, i)]; break;
-					case Certainty: votesByLabel[label] += (1.0 - entropy);
-					case FBGSBGDiff: votesByLabel[label] += (pixelFBG - pixelSBG);
+					case Certainty: votesByLabel[label] += (1.0 - entropy); break;
+					case FBGSBGDiff: votesByLabel[label] += (pixelFBG - pixelSBG); break;
 				}
 				
 			}

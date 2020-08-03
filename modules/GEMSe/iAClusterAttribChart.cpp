@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -54,7 +54,7 @@ iAClusterAttribChart::iAClusterAttribChart(
 	m_checkbox->setFont(f);
 	m_checkbox->setMinimumWidth(10);
 	mainLayout->addWidget(m_checkbox);
-	connect(m_checkbox, SIGNAL(toggled(bool)), this, SIGNAL(Toggled(bool)));
+	connect(m_checkbox, &QCheckBox::toggled, this, &iAClusterAttribChart::Toggled);
 
 	m_charts = new iAFilterChart(this, caption, data, nameMapper);
 	m_charts->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -62,8 +62,8 @@ iAClusterAttribChart::iAClusterAttribChart(
 
 	setLayout(mainLayout);
 
-	connect(m_charts, SIGNAL(dblClicked()), this,  SIGNAL(ChartDblClicked()));
-	connect(m_charts, SIGNAL(selectionChanged()), this, SLOT(SelectionChanged()));
+	connect(m_charts, &iAFilterChart::dblClicked, this, &iAClusterAttribChart::ChartDblClicked);
+	connect(m_charts, &iAFilterChart::selectionChanged, this, &iAClusterAttribChart::SelectionChanged);
 }
 
 void iAClusterAttribChart::SetAdditionalDrawer(QSharedPointer<iAPlot>& drawer, QSharedPointer<iAPlot> newDrawer)
@@ -77,15 +77,15 @@ void iAClusterAttribChart::SetAdditionalDrawer(QSharedPointer<iAPlot>& drawer, Q
 	m_charts->update();
 }
 
-void iAClusterAttribChart::SetFilteredData(QSharedPointer<iAParamHistogramData> data)
+void iAClusterAttribChart::SetFilteredData(QSharedPointer<iAParamHistogramData> newData)
 {
-	SetAdditionalDrawer(m_filteredDrawer, m_charts->GetDrawer(data, DefaultColors::FilteredChartColor));
+	SetAdditionalDrawer(m_filteredDrawer, m_charts->GetDrawer(newData, DefaultColors::FilteredChartColor));
 }
 
 void iAClusterAttribChart::ClearClusterData()
 {
 	m_charts->RemoveMarker();
-	foreach (QSharedPointer<iAPlot> drawer, m_clusterDrawer)
+	for (QSharedPointer<iAPlot> drawer: m_clusterDrawer)
 	{
 		m_charts->removePlot(drawer);
 	}
@@ -117,15 +117,15 @@ QColor iAClusterAttribChart::GetClusterColor(int nr) const
 	return DefaultColors::ClusterChartColor[nr];
 }
 
-void iAClusterAttribChart::AddClusterData(QSharedPointer<iAParamHistogramData> data)
+void iAClusterAttribChart::AddClusterData(QSharedPointer<iAParamHistogramData> newData)
 {
-	m_clusterDrawer.push_back(m_charts->GetDrawer(data, GetClusterColor(m_clusterDrawer.size())));
+	m_clusterDrawer.push_back(m_charts->GetDrawer(newData, GetClusterColor(m_clusterDrawer.size())));
 	m_charts->addPlot(m_clusterDrawer[m_clusterDrawer.size()-1]);
 }
 
-void iAClusterAttribChart::SetFilteredClusterData(QSharedPointer<iAParamHistogramData> data)
+void iAClusterAttribChart::SetFilteredClusterData(QSharedPointer<iAParamHistogramData> filteredData)
 {
-	SetAdditionalDrawer(m_filteredClusterDrawer, m_charts->GetDrawer(data, DefaultColors::FilteredClusterChartColor));
+	SetAdditionalDrawer(m_filteredClusterDrawer, m_charts->GetDrawer(filteredData, DefaultColors::FilteredClusterChartColor));
 }
 
 void iAClusterAttribChart::SetSpanValues(double minValue, double maxValue)

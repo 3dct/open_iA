@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,7 +22,6 @@
 
 //#include "defines.h"
 #include "qthelper/iAQTtoUIConnector.h"
-#include "iAChangeableCameraWidget.h"
 #include "iAPreferences.h"
 #include "iARenderSettings.h"
 #include "iASavableProject.h"
@@ -66,7 +65,7 @@ class dlg_slicer;
 class dlg_volumePlayer;
 class iAAlgorithm;
 class iAChannelData;
-class iADiagramFctWidget;
+class iAChartWithFunctionsWidget;
 class iADockWidgetWrapper;
 class iAIO;
 class iALogger;
@@ -86,10 +85,15 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
 //! Child window of MainWindow's mdi area for showing a volume or mesh dataset.
 //! Some tools in the modules attach to MdiChild's to enhance their functionality.
-class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild, public iAChangeableCameraWidget, public iASavableProject
+class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild, public iASavableProject
 {
 	Q_OBJECT
 public:
+	enum iAInteractionMode
+	{
+		imCamera,
+		imRegistration
+	};
 	MdiChild(MainWindow * mainWnd, iAPreferences const & preferences, bool unsavedChanges);
 	~MdiChild();
 
@@ -157,7 +161,7 @@ public:
 	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...) or channels (createChannel/updateChannel)
 	void setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData);
 	//! Access to "main" polydata object (if any)
-	// TODO: move out of mdi child, into something like an iAModality
+	//! @deprecated move out of mdi child, into something like an iAModality
 	vtkPolyData* polyData();
 	//! Access to the 3D renderer widget
 	iARenderer* renderer();
@@ -188,7 +192,7 @@ public:
 	bool linkedViews() const;   //!< Whether this child has the linked views feature enabled
 	std::vector<iAChartFunction*> &functions();
 	void redrawHistogram();
-	iADiagramFctWidget* histogram();
+	iAChartWithFunctionsWidget* histogram();
 
 	int selectedFuncPoint();
 	int isFuncEndPoint(int index);
@@ -211,16 +215,16 @@ public:
 	void updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, bool enable);
 	//! Update opacity of the given channel ID.
 	void updateChannelOpacity(uint id, double opacity);
-	
+
 	void setChannelRenderingEnabled(uint, bool enabled);
-	
+
 	//! Enable / disable a channel in all slicers.
 	void setSlicerChannelEnabled(uint id, bool enabled);
 
 	//! Remove channel in all slicers.
 	void removeChannel(uint id);
 
-	
+
 	iAChannelData * channelData(uint id);
 	iAChannelData const * channelData(uint id) const;
 	void initChannelRenderer(uint id, bool use3D, bool enableChannel = true);
@@ -229,8 +233,10 @@ public:
 
 
 	//! @{ Magic Lens
-	void toggleMagicLens(bool isEnabled);
-	bool isMagicLensToggled(void) const;
+	void toggleMagicLens2D(bool isEnabled);
+	void toggleMagicLens3D(bool isEnabled);
+	bool isMagicLens2DEnabled() const;
+	bool isMagicLens3DEnabled() const;
 	void setMagicLensInput(uint id);
 	void setMagicLensEnabled(bool isOn);
 	void reInitMagicLens(uint id, QString const & name, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf);
@@ -264,11 +270,11 @@ public:
 
 	//! Checks whether the main image data is fully loaded.
 	bool isFullyLoaded() const;
-	//! Ask for a project file name and store in that project file:
+	//! Store current situation in the given project file:
 	//!    - loaded files and their transfer functions, when old project file (.mod) is chosen
 	//!    - configuration of opened tools (which support it), when new project file (.iaproj) is chosen
 	//!      (to be extended to modalities and TFs soon)
-	void doSaveProject() override;
+	bool doSaveProject(QString const& projectFileName) override;
 	//! Save all currently loaded files into a project with the given file name.
 	void saveProject(QString const & fileName);
 	//! Whether volume data is loaded (only checks filename and volume dimensions).
@@ -292,6 +298,14 @@ public:
 	void addProject(QString const & key, QSharedPointer<iAProjectBase> project);
 	QMap<QString, QSharedPointer<iAProjectBase> > const & projects();
 
+	iAInteractionMode interactionMode() const;
+	void setInteractionMode(iAInteractionMode mode);
+
+	bool meshDataMovable();
+	void setMeshDataMovable(bool movable);
+	//! maximize slicer dockwidget with the given mode
+	void maximizeSlicer(int mode);
+
 signals:
 	void rendererDeactivated(int c);
 	void pointSelected();
@@ -310,9 +324,6 @@ signals:
 
 public slots:
 	void maximizeRC();
-	void maximizeXY();
-	void maximizeXZ();
-	void maximizeYZ();
 	void updateProgressBar(int i);
 	void hideProgressBar();
 	void initProgressBar();
@@ -334,7 +345,7 @@ public slots:
 	void camPosition(double * camOptions);
 	//! Calls the setCamPosition function of iARenderer (described there in more detail).
 	//! @param pos set one of the predefined camera positions
-	void setCamPosition(int pos) override;
+	void setCamPosition(int pos);
 	//! Calls the setCamPosition function of iARenderer (described there in more detail).
 	//! @param camOptions All informations of the camera stored in a double array
 	//! @param rsParallelProjection boolean variable to determine if parallel projection option on.
@@ -351,7 +362,7 @@ private slots:
 	void setChannel(int ch);
 	void updateRenderWindows(int channels);
 	void updatePositionMarker(int x, int y, int z, int mode);
-	void toggleArbitraryProfile(bool isChecked);
+	void toggleProfileHandles(bool isChecked);
 	void ioFinished();
 	void updateImageProperties();
 	void clearLogs();
@@ -364,11 +375,10 @@ private slots:
 	void showModality(int modIdx);
 	void saveFinished();
 	void modalityAdded(int modalityIdx);
-	void rendererCamPos();
 	void resetCamera(bool spacingChanged, double const * newSpacing);
-
-
-	
+	void toggleFullScreen();
+	void rendererKeyPressed(int keyCode);
+	void styleChanged();
 
 private:
 	void closeEvent(QCloseEvent *event) override;
@@ -395,17 +405,16 @@ private:
 	void connectSignalsToSlots();
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void snakeNormal(int index, double point[3], double normal[3]);
-	//void updateReslicer(double point[3], double normal[3], int mode);
 
 	//! sets up the IO thread for saving the correct file type for the given filename.
-	//! \return	true if it succeeds, false if it fails.
+	//! @return	true if it succeeds, false if it fails.
 	bool setupSaveIO(QString const & f);
 
 	//! sets up the IO thread for loading the correct file type according to the given filename.
-	//! \return	true if it succeeds, false if it fails.
+	//! @return	true if it succeeds, false if it fails.
 	bool setupLoadIO(QString const & f, bool isStack);
 
-	// adds an algorithm to the list of currently running jobs
+	//! adds an algorithm to the list of currently running jobs
 	void addAlgorithm(iAAlgorithm* thread);
 
 	void setupViewInternal(bool active);
@@ -415,6 +424,7 @@ private:
 	int  currentModality() const;
 	void initModalities();
 	void initVolumeRenderers();
+	void slicerVisibilityChanged(int mode);
 
 	static const unsigned char RC = 0x01;
 	static const unsigned char XY = 0x02;
@@ -426,10 +436,12 @@ private:
 	MainWindow * m_mainWnd;
 	QFileInfo m_fileInfo;
 	QString m_curFile, m_path;
-	int m_position[3];            //!< current "position" in image (in voxel indices). TODO: use global coordinates instead of voxel indices
+	//! current "position" in image (in voxel indices).
+	//! @deprecated use global coordinates instead of voxel indices
+	int m_position[3];
 
 	QByteArray m_beforeMaximizeState;
-	QDockWidget * m_whatMaximized;
+	QDockWidget* m_whatMaximized;
 	int m_pbarMaxVal;
 
 	iARenderSettings m_renderSettings;
@@ -442,7 +454,7 @@ private:
 	bool m_isSmthMaximized;       //!< whether a single dock widget is currently maximized
 	bool m_isUntitled;            //!< whether current content is saved as a file already
 	bool m_isSliceProfileEnabled; //!< whether slice profile, shown in slices, is enabled
-	bool m_isArbProfileEnabled;   //!< whether arbitrary profile, shown in profile widget
+	bool m_profileHandlesEnabled; //!< whether profile handles (profile points) in renderer/slicer are enabled
 	bool m_isMagicLensEnabled;    //!< whether magic lens in slicers is enabled
 	bool m_reInitializeRenderWindows; //! whether render windows need to be reinitialized
 	bool m_raycasterInitialized;  //!< whether renderer is already initialized
@@ -455,7 +467,9 @@ private:
 	iAParametricSpline *m_parametricSpline;
 	//! @}
 
-	vtkSmartPointer<vtkImageData> m_imageData;		// TODO: remove - use modality data instead!
+	//! smart pointer to first image data shown in mdiChild.
+	//! @deprecated use modality data instead, will be removed
+	vtkSmartPointer<vtkImageData> m_imageData;
 	vtkPolyData * m_polyData;
 	vtkTransform * m_axesTransform;
 	vtkTransform * m_slicerTransform;
@@ -466,7 +480,7 @@ private:
 	QList<int> m_checkedList;
 	iAIO* m_ioThread;
 
-	iADiagramFctWidget * m_histogram;
+	iAChartWithFunctionsWidget * m_histogram;
 	QSharedPointer<iAPlot> m_histogramPlot;
 
 	//! @{ dock widgets
@@ -493,13 +507,16 @@ private:
 	iALogger* m_logger;
 	QByteArray m_initialLayoutState;
 	QString m_layout;
-	vtkSmartPointer<vtkImageData> m_tmpSaveImg;	//< TODO: get rid of this (by introducing smart pointer in iAIO/ iAlgorithm?
+	//! temporary smart pointer to image currently being saved
+	//! @deprecated should be referenced in wherever image is stored, e.g. in iAIO)
+	vtkSmartPointer<vtkImageData> m_tmpSaveImg;
 
 	int m_currentModality;
 	int m_currentComponent;
 	int m_currentHistogramModality;
 	bool m_initVolumeRenderers;
-	int m_storedModalityNr;		//!< modality nr being stored
-
-	QMap<QString, QSharedPointer<iAProjectBase>> m_projects;
+	int m_storedModalityNr;		                              //!< modality nr being stored
+	QMap<QString, QSharedPointer<iAProjectBase>> m_projects;  //!< list of currently active "projects" (i.e. Tools)
+	iAInteractionMode m_interactionMode;                      //!< current interaction mode in slicers/renderer (see iAInteractionMode)
+	bool m_slicerVisibility[3];
 };

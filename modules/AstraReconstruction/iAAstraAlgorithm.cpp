@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -131,7 +131,10 @@ namespace
 			sourcePos += shiftVec;
 			detectorCenter += shiftVec;
 
-			if (!vectors.isEmpty()) vectors += ",";
+			if (!vectors.isEmpty())
+			{
+				vectors += ",";
+			}
 			vectors += QString("%1,%2,%3,%4,%5,%6,%7,%8,%9,%10,%11,%12")
 				.arg(sourcePos.x()).arg(sourcePos.y()).arg(sourcePos.z())
 				.arg(detectorCenter.x()).arg(detectorCenter.y()).arg(detectorCenter.z())
@@ -178,13 +181,12 @@ namespace
 		T* imgBuf = static_cast<T*>(img->GetScalarPointer());
 		int * dim = img->GetDimensions();
 		size_t inIdx = 0;
-		for (size_t z = 0; z < dim[2]; ++z)
+		for (size_t z = 0; z < static_cast<size_t>(dim[2]); ++z)
 		{
-			for (size_t y = 0; y < dim[1]; ++y)
+			for (int y = 0; y < dim[1]; ++y)
 			{
 #pragma omp parallel for
-				for (long long x = 0; x < dim[0]; ++x)
-
+				for (int x = 0; x < dim[0]; ++x)
 				{
 					size_t outIdx = y + ((x + z * dim[0]) * dim[1]);
 					buf[outIdx] = static_cast<float>(imgBuf[inIdx + x]);
@@ -200,38 +202,37 @@ namespace
 		int deviceCount = 0;
 		cudaGetDeviceCount(&deviceCount);
 		if (deviceCount == 0)
-			return false;
-		// TODO: Allow choosing which device(s) to use!
-		else
 		{
-			/*
-			size_t mostMem = 0;	int idx = -1;
-			for (int dev = 0; dev < deviceCount; dev++)
-			{
-				cudaDeviceProp deviceProp;
-				cudaGetDeviceProperties(&deviceProp, dev);
-				DEBUG_LOG(QString("%1. Compute Capability: %2.%3. Clock Rate (kHz): %5. Memory Clock Rate (kHz): %6. Memory Bus Width (bits): %7. Concurrent kernels: %8. Total memory: %9.")
-					.arg(deviceProp.name)
-					.arg(deviceProp.major)
-					.arg(deviceProp.minor)
-					.arg(deviceProp.clockRate)
-					.arg(deviceProp.memoryClockRate)
-					.arg(deviceProp.memoryBusWidth)
-					.arg(deviceProp.concurrentKernels)
-					.arg(deviceProp.totalGlobalMem)
-				);
-				if (deviceProp.totalGlobalMem > mostMem)
-				{
-					mostMem = deviceProp.totalGlobalMem;
-					idx = dev;
-				}
-			}
-			astra::SGPUParams gpuParams;
-			gpuParams.GPUIndices.push_back(idx);
-			gpuParams.memory = mostMem ;
-			astra::CCompositeGeometryManager::setGlobalGPUParams(gpuParams);
-			*/
+			return false;
 		}
+		// TODO: Allow choosing which device(s) to use!
+		/*
+		size_t mostMem = 0;	int idx = -1;
+		for (int dev = 0; dev < deviceCount; dev++)
+		{
+			cudaDeviceProp deviceProp;
+			cudaGetDeviceProperties(&deviceProp, dev);
+			DEBUG_LOG(QString("%1. Compute Capability: %2.%3. Clock Rate (kHz): %5. Memory Clock Rate (kHz): %6. Memory Bus Width (bits): %7. Concurrent kernels: %8. Total memory: %9.")
+				.arg(deviceProp.name)
+				.arg(deviceProp.major)
+				.arg(deviceProp.minor)
+				.arg(deviceProp.clockRate)
+				.arg(deviceProp.memoryClockRate)
+				.arg(deviceProp.memoryBusWidth)
+				.arg(deviceProp.concurrentKernels)
+				.arg(deviceProp.totalGlobalMem)
+			);
+			if (deviceProp.totalGlobalMem > mostMem)
+			{
+				mostMem = deviceProp.totalGlobalMem;
+				idx = dev;
+			}
+		}
+		astra::SGPUParams gpuParams;
+		gpuParams.GPUIndices.push_back(idx);
+		gpuParams.memory = mostMem ;
+		astra::CCompositeGeometryManager::setGlobalGPUParams(gpuParams);
+		*/
 		return true;
 	}
 
@@ -239,7 +240,9 @@ namespace
 	{
 		static QStringList algorithms;
 		if (algorithms.empty())
+		{
 			algorithms << "BP" << "FDK" << "SIRT" << "CGLS";
+		}
 		return algorithms;
 	}
 
@@ -350,14 +353,14 @@ void iAASTRAForwardProject::performWork(QMap<QString, QVariant> const & paramete
 	size_t imgIndex = 0;
 	unsigned int projAngleCount = parameters[ProjAngleCnt].toUInt();
 	unsigned int detectorColCnt = parameters[DetColCnt].toUInt();
-	for (size_t z = 0; z < projDim[2]; ++z)
+	for (size_t z = 0; z < static_cast<size_t>(projDim[2]); ++z)
 	{
-		for (size_t y = 0; y < projDim[1]; ++y)
+		for (int y = 0; y < projDim[1]; ++y)
 		{
 			size_t startIdx = ((y * projDim[2]) + (projAngleCount - z - 1)) * projDim[0];
 			astra::float32* row = &(projData[startIdx]);
 #pragma omp parallel for
-			for (long long x = 0; x < projDim[0]; ++x)
+			for (int x = 0; x < projDim[0]; ++x)
 			{
 				projImgBuf[imgIndex + x] = row[detectorColCnt - x - 1];
 			}
@@ -410,14 +413,14 @@ void swapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int 
 	int detColDimIdx = detColDim % 3;		// only do modulus once before loop
 	int detRowDimIdx = detRowDim % 3;
 	int projAngleDimIdx = projAngleDim % 3;
-	size_t idx[3];
+	int idx[3];
 	size_t imgBufIdx = 0;
 	for (idx[2] = 0; idx[2] < dim[2]; ++idx[2])
 	{
 		for (idx[1] = 0; idx[1] < dim[1]; ++idx[1])
 		{
 #pragma omp parallel for
-			for (long long x = 0; x < dim[0]; ++x)
+			for (int x = 0; x < dim[0]; ++x)
 			{
 				idx[0] = x;
 				size_t detCol    = idx[detColDimIdx];     if (detColDim >= 3)    { detCol    = dim[detColDimIdx]    - detCol    - 1; }
@@ -539,9 +542,9 @@ void iAASTRAReconstruct::performWork(QMap<QString, QVariant> const & parameters)
 	size_t imgIndex = 0;
 	size_t sliceOffset = static_cast<size_t>(volDim[1]) * volDim[0];
 	astra::float32* slice = volumeData->getData();
-	for (size_t z = 0; z < volDim[2]; ++z)
+	for (size_t z = 0; z < static_cast<size_t>(volDim[2]); ++z)
 	{
-		for (size_t y = 0; y < volDim[1]; ++y)
+		for (int y = 0; y < volDim[1]; ++y)
 		{
 #pragma omp parallel for
 			for (long long x = 0; x < volDim[0]; ++x)
@@ -580,13 +583,15 @@ void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, MainWindow* mainW
 	{
 		QMessageBox::warning(mainWnd, "ASTRA",
 			"ASTRA toolbox operations require a CUDA-capable device, but no CUDA device was found."
-			"In case this machine has an NVidia card, please install the latest driver!");
+			"In case this machine has an NVidia card, it might help to install the latest driver!");
 		return;
 	}
 	astra::CLogger::setOutputScreen(1, astra::LOG_INFO);
 	bool success = astra::CLogger::setCallbackScreen(astraLogCallback);
 	if (!success)
+	{
 		DEBUG_LOG("Setting Astra log callback failed!");
+	}
 	iAFilterRunnerGUI::run(filter, mainWnd);
 }
 
@@ -636,7 +641,9 @@ bool iAASTRAFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QMap
 			parameters[ProjAngleDim].toInt(),
 			inputDim);
 		if (parameters[AlgoType].toString().isEmpty())
+		{
 			parameters[AlgoType] = algorithmStrings()[1];
+		}
 		dlg.fillAlgorithmValues(mapAlgoStringToIndex(parameters[AlgoType].toString()),
 			parameters[NumberOfIterations].toUInt(),
 			parameters[InitWithFDK].toBool());
@@ -644,37 +651,39 @@ bool iAASTRAFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QMap
 			parameters[CenterOfRotOfs].toDouble());
 	}
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return false;
+	}
 
-	parameters[ProjGeometry] = dlg.ProjGeomType->currentText();
-	parameters[DetSpcX] = dlg.ProjGeomDetectorSpacingX->value();
-	parameters[DetSpcY] = dlg.ProjGeomDetectorSpacingY->value();
-	parameters[ProjAngleStart] = dlg.ProjGeomProjAngleStart->value();
-	parameters[ProjAngleEnd] = dlg.ProjGeomProjAngleEnd->value();
-	parameters[DstOrigDet] = dlg.ProjGeomDistOriginDetector->value();
-	parameters[DstOrigSrc] = dlg.ProjGeomDistOriginSource->value();
+	parameters[ProjGeometry] = dlg.cbProjGeomType->currentText();
+	parameters[DetSpcX] = dlg.dsbProjGeomDetectorSpacingX->value();
+	parameters[DetSpcY] = dlg.dsbProjGeomDetectorSpacingY->value();
+	parameters[ProjAngleStart] = dlg.dsbProjGeomProjAngleStart->value();
+	parameters[ProjAngleEnd] = dlg.dsbProjGeomProjAngleEnd->value();
+	parameters[DstOrigDet] = dlg.dsbProjGeomDistOriginDetector->value();
+	parameters[DstOrigSrc] = dlg.dsbProjGeomDistOriginSource->value();
 	if (filter->name() == "ASTRA Forward Projection")
 	{
-		parameters[DetRowCnt] = dlg.ProjGeomDetectorPixelsY->value();
-		parameters[DetColCnt] = dlg.ProjGeomDetectorPixelsX->value();
-		parameters[ProjAngleCnt] = dlg.ProjGeomProjCount->value();
+		parameters[DetRowCnt] = dlg.sbProjGeomDetectorPixelsY->value();
+		parameters[DetColCnt] = dlg.sbProjGeomDetectorPixelsX->value();
+		parameters[ProjAngleCnt] = dlg.sbProjGeomProjCount->value();
 	}
 	else    // Reconstruction:
 	{
-		int detRowDim = dlg.ProjInputDetectorRowDim->currentIndex();
-		int detColDim = dlg.ProjInputDetectorColDim->currentIndex();
-		int projAngleDim = dlg.ProjInputProjAngleDim->currentIndex();
-		parameters[VolDimX] = dlg.VolGeomDimensionX->value();
-		parameters[VolDimY] = dlg.VolGeomDimensionY->value();
-		parameters[VolDimZ] = dlg.VolGeomDimensionZ->value();
-		parameters[VolSpcX] = dlg.VolGeomSpacingX->value();
-		parameters[VolSpcY] = dlg.VolGeomSpacingY->value();
-		parameters[VolSpcZ] = dlg.VolGeomSpacingZ->value();
-		parameters[AlgoType] = mapAlgoIndexToString(dlg.AlgorithmType->currentIndex());
-		parameters[NumberOfIterations] = dlg.AlgorithmIterations->value();
-		parameters[InitWithFDK] = dlg.InitWithFDK->isChecked();
-		parameters[CenterOfRotCorr] = dlg.CorrectionCenterOfRotation->isChecked();
-		parameters[CenterOfRotOfs] = dlg.CorrectionCenterOfRotationOffset->value();
+		int detRowDim = dlg.cbProjInputDetectorRowDim->currentIndex();
+		int detColDim = dlg.cbProjInputDetectorColDim->currentIndex();
+		int projAngleDim = dlg.cbProjInputProjAngleDim->currentIndex();
+		parameters[VolDimX] = dlg.sbVolGeomDimensionX->value();
+		parameters[VolDimY] = dlg.sbVolGeomDimensionY->value();
+		parameters[VolDimZ] = dlg.sbVolGeomDimensionZ->value();
+		parameters[VolSpcX] = dlg.dsbVolGeomSpacingX->value();
+		parameters[VolSpcY] = dlg.dsbVolGeomSpacingY->value();
+		parameters[VolSpcZ] = dlg.dsbVolGeomSpacingZ->value();
+		parameters[AlgoType] = mapAlgoIndexToString(dlg.cbAlgorithmType->currentIndex());
+		parameters[NumberOfIterations] = dlg.sbAlgorithmIterations->value();
+		parameters[InitWithFDK] = dlg.cbInitWithFDK->isChecked();
+		parameters[CenterOfRotCorr] = dlg.cbCorrectCenterOfRotation->isChecked();
+		parameters[CenterOfRotOfs] = dlg.dsbCorrectCenterOfRotationOffset->value();
 		if ((detColDim % 3) == (detRowDim % 3) || (detColDim % 3) == (projAngleDim % 3) || (detRowDim % 3) == (projAngleDim % 3))
 		{
 			QMessageBox::warning(mainWnd, "ASTRA", "One of the axes (x, y, z) has been specified for more than one usage out of "

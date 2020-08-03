@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -45,7 +45,7 @@ iAFoamCharacterizationDialogFilter::iAFoamCharacterizationDialogFilter
 	m_pComboBox2->addItem("Median", 2);
 	m_pComboBox2->addItem("Non-local means", 3);
 	m_pComboBox2->setWhatsThis("Choose the filter type.");
-	connect(m_pComboBox2, SIGNAL(currentIndexChanged(const int&)), this, SLOT(slotComboBox2(const int&)));
+	connect(m_pComboBox2, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFoamCharacterizationDialogFilter::slotComboBox2);
 
 	m_pWidgetAnisotropic = new QWidget(m_pGroupBox2);
 

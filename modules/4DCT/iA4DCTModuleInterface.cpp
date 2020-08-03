@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -64,31 +64,34 @@ iA4DCTModuleInterface::~iA4DCTModuleInterface( )
 void iA4DCTModuleInterface::Initialize( )
 {
 	if (!m_mainWnd)
+	{
 		return;
+	}
+	Q_INIT_RESOURCE(4DCT);
 	QMenu* toolsMenu = m_mainWnd->toolsMenu( );
 	QMenu* menu4DCT = getMenuWithTitle(toolsMenu, tr("4DCT"), false);
 
 	QAction * newProj = new QAction(tr("New 4DCT project"), nullptr );
 	newProj->setShortcut(QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_N ));
-	connect( newProj, SIGNAL( triggered() ), this, SLOT( newProj() ) );
+	connect( newProj, &QAction::triggered, this, &iA4DCTModuleInterface::newProj);
 	menu4DCT->addAction( newProj );
 
 	QAction * openProj = new QAction(tr("Open 4DCT project"), nullptr );
 	openProj->setShortcut(QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_O ));
-	connect( openProj, SIGNAL( triggered() ), this, SLOT( openProj() ) );
+	connect( openProj, &QAction::triggered, this, &iA4DCTModuleInterface::openProj);
 	menu4DCT->addAction( openProj );
 
 	QAction* saveProj = new QAction(tr("Save 4DCT project"), nullptr);
 	saveProj->setShortcut(QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_S ));
-	connect( saveProj, SIGNAL( triggered() ), this, SLOT( saveProj() ) );
+	connect( saveProj, &QAction::triggered, this, &iA4DCTModuleInterface::saveProj);
 	menu4DCT->addAction( saveProj );
 
 	QAction* featureExtraction = new QAction(tr("Extract features to file"), nullptr);
-	connect( featureExtraction, SIGNAL( triggered() ), this, SLOT( extractFeaturesToFile() ) );
+	connect( featureExtraction, &QAction::triggered, this, &iA4DCTModuleInterface::extractFeaturesToFile);
 	menu4DCT->addAction( featureExtraction );
 
 	QAction* defectClassification = new QAction(tr("Defect classification"), nullptr);
-	connect( defectClassification, SIGNAL( triggered() ), this, SLOT( defectClassification() ) );
+	connect( defectClassification, &QAction::triggered, this, &iA4DCTModuleInterface::defectClassification);
 	menu4DCT->addAction( defectClassification );
 }
 

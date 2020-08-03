@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -52,7 +52,7 @@ iADifferenceMarker::iADifferenceMarker():
 		"this same value will be used in the output image as well.", 2)
 {
 	addParameter("Difference marker value", Continuous);
-	setInputName(1, "Difference to");
+	setInputName(1u, "Difference to");
 }
 
 void iADifferenceMarker::performWork(QMap<QString, QVariant> const & params)
@@ -80,12 +80,15 @@ void iAGEMSeModuleInterface::Initialize()
 	REGISTER_FILTER(iADifferenceMarker);
 
 	if (!m_mainWnd)
+	{
 		return;
+	}
+	Q_INIT_RESOURCE(GEMSe);
 
 	iAProjectRegistry::addProject<iAGEMSeProject>(iAGEMSeProject::ID);
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, tr( "Image Ensembles" ), false );
-	
+
 	QAction * actionGEMSe = new QAction( tr("GEMSe"), nullptr);
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionGEMSe, true);
 	connect(actionGEMSe, &QAction::triggered, this, &iAGEMSeModuleInterface::startGEMSe);

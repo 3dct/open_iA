@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -74,7 +74,8 @@ public:
 	static QSharedPointer<iAFilterRunnerGUI> create();
 
 	//! do any potentially necessary GUI preparations (directly before the filter is run)
-	virtual void filterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd);
+	virtual void filterGUIPreparations(QSharedPointer<iAFilter> filter,
+		MdiChild* mdiChild, MainWindow* mainWnd, QMap<QString, QVariant> const& params);
 
 	//! Main run method. Calls all the other (non-static) methods in this class.
 	//! Override only if you want to change the whole way the filter running works;
@@ -107,7 +108,7 @@ public:
 	//! @param paramValues the parameters and their values
 	//! @return a map containing for each parameter name the stored value, as set
 	//!     by the user
-	virtual void StoreParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues);
+	virtual void storeParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues);
 
 	//! Connect the filter thread to the appropriate signals. If you override this,
 	//! you probably will want to still make sure to call this method to make sure

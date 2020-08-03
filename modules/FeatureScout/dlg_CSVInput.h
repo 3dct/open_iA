@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -35,7 +35,11 @@ class FeatureScout_API dlg_CSVInput : public QDialog, public Ui_CsvInput
 Q_OBJECT
 public:
 	//! Create a new dialog, all parameters are optional
-	dlg_CSVInput(bool volumeDataAvailable, QWidget * parent = 0, Qt::WindowFlags f = 0);
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
+	dlg_CSVInput(bool volumeDataAvailable, QWidget * parent = nullptr, Qt::WindowFlags f = 0);
+#else
+	dlg_CSVInput(bool volumeDataAvailable, QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+#endif
 	//! Set the internal path (used when choosing a csv file) to the one given as parameter
 	void setPath(QString const & path);
 	//! Set the file name input to the one given as parameter
@@ -47,9 +51,9 @@ public:
 	//! Loads settings from registry for a given format name, into a given config object
 	static bool loadFormatFromRegistry(const QString & formatName, iACsvConfig & dest);
 private slots:
-	//! On button click for selecting CSV file 
+	//! On button click for selecting CSV file
 	void selectFileBtnClicked();
-	//! On button click for selecting curved CSV file 
+	//! On button click for selecting curved CSV file
 	void selectCurvedFileBtnClicked();
 	//! when checkbox for curved fiber info
 	void curvedFiberInfoChanged();

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -45,7 +45,6 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
-#include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
 
 #include <QSettings>
@@ -63,32 +62,32 @@ namespace
 
 
 // Constructor
-iABlobManager::iABlobManager( void )
-	:m_range( 3000 ),
-	m_overlapThreshold( 100 ),
-	m_blurVariance( 32.0 ),
-	m_boundsProtrusionCoef( 1 ),
-	m_isSmoothingEnabled( true ),
-	m_isGaussianBlurEnabled( true ),
-	m_isSilhoetteEnabled( true ),
-	m_isBlobBodyEnabled( true ),
-	m_isLabelingEnabled( true ),
-	m_blobOpacity( 0.3 ),
-	m_silhouetteOpacity( 0.8 ),
-	m_depthPeelingEnabled( true ),
-	m_blobRen( 0 ),
-	m_labelRen( 0 )
+iABlobManager::iABlobManager( void ):
+	m_imageMask(vtkSmartPointer<vtkImageData>::New()),
+	m_blurVariance(32.0),
+	m_overlappingEnabled(false),
+	m_isSmoothingEnabled(true),
+	m_isGaussianBlurEnabled(true),
+	m_isSilhoetteEnabled(true),
+	m_isLabelingEnabled(true),
+	m_isBlobBodyEnabled(true),
+	m_range(3000),
+	m_boundsProtrusionCoef(1),
+	m_depthPeelingEnabled(true),
+	m_overlapThreshold(100),
+	m_blobOpacity(0.3),
+	m_silhouetteOpacity(0.8),
+	m_blobRen(nullptr),
+	m_labelRen(nullptr),
+	m_appendedBlobsPD(vtkSmartPointer<vtkAppendPolyData>::New()),
+	m_blobsLT(vtkSmartPointer<vtkLookupTable>::New()),
+	m_blobsDepthSort(vtkSmartPointer<vtkDepthSortPolyData>::New()),
+	m_blobsMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_blobsActor(vtkSmartPointer<vtkActor>::New()),
+	m_silhouette(vtkSmartPointer<vtkPolyDataSilhouette>::New()),
+	m_silhouetteMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_silhouetteActor(vtkSmartPointer<vtkActor>::New())
 {
-	m_imageMask = vtkSmartPointer<vtkImageData>::New();
-	m_appendedBlobsPD = vtkSmartPointer<vtkAppendPolyData>::New();
-	m_blobsLT = vtkSmartPointer<vtkLookupTable>::New();
-	m_blobsDepthSort = vtkSmartPointer<vtkDepthSortPolyData>::New();
-	m_blobsMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	m_blobsActor = vtkSmartPointer<vtkActor>::New();
-	m_silhouette = vtkSmartPointer<vtkPolyDataSilhouette>::New();
-	m_silhouetteMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	m_silhouetteActor = vtkSmartPointer<vtkActor>::New();
-
 	QSettings settings;
 	m_depthPeelingEnabled = settings.value( DepthPeelingKey, true ).toBool();
 }
@@ -104,8 +103,10 @@ void iABlobManager::Update( void )
 		m_blobsList[i]->Update();
 	}
 
-	if ( m_overlappingEnabled )
+	if (m_overlappingEnabled)
+	{
 		SmartOverlapping();
+	}
 
 	if ( m_depthPeelingEnabled )
 	{

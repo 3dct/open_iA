@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,7 +24,7 @@
 
 iAMdiChildLogger::iAMdiChildLogger(MdiChild* mdiChild)
 {
-	connect(this, SIGNAL(logSignal(QString)), mdiChild, SLOT(addMsg(QString)));
+	connect(this, &iAMdiChildLogger::logSignal, mdiChild, &MdiChild::addMsg);
 }
 
 void iAMdiChildLogger::log(QString const & msg)

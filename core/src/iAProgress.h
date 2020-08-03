@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -57,7 +57,7 @@ public:
 	//! Set additional status information.
 	//! @param status the new status to report to the user
 	void setStatus(QString const & status);
-Q_SIGNALS:
+signals:
 	//! Signal emitted whenever the progress has changed.
 	//! Connect this to a method that updates the indication of the current progression to the user.
 	//! @param p the current percentage of progress (number between 0 and 100)

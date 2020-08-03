@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -58,13 +58,15 @@ void pca(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	auto pcaFilter = EstimatorType::New();
 	pcaFilter->SetNumberOfTrainingImages(filter->input().size());
 	pcaFilter->SetNumberOfPrincipalComponentsRequired(parameters["Cutoff"].toUInt());
-	for (unsigned int k = 0; k < filter->input().size(); k++)
-		pcaFilter->SetInput(k, dynamic_cast<ImageType*>(filter->input()[k]->itkImage()));
+	for (int k = 0; k < filter->input().size(); k++)
+	{
+		pcaFilter->SetInput(static_cast<unsigned int>(k), dynamic_cast<ImageType*>(filter->input()[k]->itkImage()));
+	}
 	pcaFilter->Update();
 	auto scaler = ScaleType::New();
 	auto v = pcaFilter->GetEigenValues();
 	double sv_mean = sqrt(v[0]);
-	for (int o = 0; o < parameters["Cutoff"].toUInt() + 1; ++o)
+	for (size_t o = 0; o < static_cast<size_t>(parameters["Cutoff"].toUInt() + 1); ++o)
 	{
 		double sv = sqrt(v[o]);
 		double sv_n = sv / sv_mean;

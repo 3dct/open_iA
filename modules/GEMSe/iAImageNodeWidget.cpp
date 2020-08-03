@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -41,13 +41,13 @@ iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
 	int representativeType)
 :
 	QWidget(parent),
-	m_cluster(treeNode),
 	m_shrinkedAuto(shrinkAuto),
 	m_shrinkStatus(shrinkAuto || treeNode->GetFilteredSize() == 0),
+	m_cluster(treeNode),
+	m_imageView(nullptr),
+	m_expandButton(nullptr),
 	m_infoLabel(new QLabel(this)),
-	m_expandButton(0),
 	m_previewPool(previewPool),
-	m_imageView(0),
 	m_representativeType(representativeType)
 {
 	setStyleSheet("background-color: transparent;");
@@ -64,7 +64,7 @@ iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
 	m_leftLayout = new QVBoxLayout();
 	m_leftLayout->setSpacing(0);
 	m_leftLayout->setMargin(0);
-	
+
 	m_leftLayout->addWidget(m_infoLabel);
 	m_leftLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 
@@ -74,7 +74,7 @@ iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
 		m_expandButton->setFixedSize(TreeButtonWidth, TreeButtonHeight);
 		m_expandButton->setContentsMargins(QMargins(0, 0, 0, 0));
 		m_leftLayout->addWidget(m_expandButton);
-		connect(m_expandButton, SIGNAL(clicked()), this, SLOT(ExpandButtonClicked()));
+		connect(m_expandButton, &iATriangleButton::clicked, this, &iAImageNodeWidget::ExpandButtonClicked);
 	}
 	leftContainer->setLayout(m_leftLayout);
 
@@ -101,9 +101,9 @@ bool iAImageNodeWidget::CreatePreview(LabelImagePointer refImg)
 		return false;
 	}
 	UpdateRepresentative(refImg);
-	connect(m_imageView, SIGNAL(clicked()), this, SIGNAL(ImageClicked()));
-	connect(m_imageView, SIGNAL(rightClicked()), this, SIGNAL(ImageRightClicked()));
-	connect(m_imageView, SIGNAL(updated()), this, SIGNAL(updated()) );
+	connect(m_imageView, &iAImagePreviewWidget::clicked, this, &iAImageNodeWidget::ImageClicked);
+	connect(m_imageView, &iAImagePreviewWidget::rightClicked, this, &iAImageNodeWidget::ImageRightClicked);
+	connect(m_imageView, &iAImagePreviewWidget::updated, this, &iAImageNodeWidget::updated);
 	m_mainLayout->addWidget(m_imageView);
 	return true;
 }
@@ -112,9 +112,9 @@ void iAImageNodeWidget::ReturnPreview()
 {
 	m_imageView->hide();
 	m_mainLayout->removeWidget(m_imageView);
-	disconnect(m_imageView, SIGNAL(clicked()), this, SIGNAL(ImageClicked()));
-	disconnect(m_imageView, SIGNAL(rightClicked()), this, SIGNAL(ImageRightClicked()));
-	disconnect(m_imageView, SIGNAL(updated()),   this, SIGNAL(updated()) );
+	disconnect(m_imageView, &iAImagePreviewWidget::clicked, this, &iAImageNodeWidget::ImageClicked);
+	disconnect(m_imageView, &iAImagePreviewWidget::rightClicked, this, &iAImageNodeWidget::ImageRightClicked);
+	disconnect(m_imageView, &iAImagePreviewWidget::updated, this, &iAImageNodeWidget::updated);
 	m_previewPool->returnWidget(m_imageView);
 	m_imageView = 0;
 	m_cluster->DiscardDetails();
@@ -196,12 +196,11 @@ void iAImageNodeWidget::paintEvent(QPaintEvent * e)
 		m_infoLabel->setText(QString::number(m_cluster->GetClusterSize()));
 	}
 	QWidget::paintEvent(e);
+	/*
 	QPainter p(this);
 	QRect g(geometry());
-	/*
 	p.fillRect(g, QColor(230, 230, 230));
 	*/
-
 }
 
 void iAImageNodeWidget::mouseReleaseEvent(QMouseEvent * ev)

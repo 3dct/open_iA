@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -116,7 +116,7 @@ iAConfidenceConnectedRegionGrow::iAConfidenceConnectedRegionGrow() :
 	addParameter("Multiplier", Continuous, 2.5, std::numeric_limits<double>::epsilon()); // needs to be bigger than 0
 	addParameter("Number of iterations", Discrete, 100, 1);
 	addParameter("Replace value", Continuous, 1.0);
-	setInputName(1, "Mask image");
+	setInputName(1u, "Mask image");
 }
 
 
@@ -156,7 +156,7 @@ iAConnectedThresholdRegionGrow::iAConnectedThresholdRegionGrow() :
 	addParameter("Lower connection threshold", Continuous, 0.0);
 	addParameter("Upper connection threshold", Continuous, 0.0);
 	addParameter("Replace value", Continuous, 1.0);
-	setInputName(1, "Mask image");
+	setInputName(1u, "Mask image");
 }
 
 
@@ -203,7 +203,7 @@ iANeighborhoodConnectedRegionGrow::iANeighborhoodConnectedRegionGrow() :
 	addParameter("Lower connection threshold", Continuous, 0.0);
 	addParameter("Upper connection threshold", Continuous, 0.0);
 	addParameter("Replace value", Continuous, 1.0);
-	setInputName(1, "Mask image");
+	setInputName(1u, "Mask image");
 }
 
 

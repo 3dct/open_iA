@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,6 +22,9 @@
 
 #include "iAGraphWeights.h"
 #include "iAImageGraph.h"
+#ifndef NDEBUG
+#include "iAMathUtility.h"    // for dblApproxEqual used in assert
+#endif
 #include "iANormalizerImpl.h"
 #include "iAVectorArrayImpl.h"
 #include "iAVectorDistanceImpl.h"
@@ -227,7 +230,7 @@ namespace
 iARandomWalker::iARandomWalker() :
 	iAFilter("Random Walker", "Segmentation/Graph-based",
 		"Computes the Random Walker segmentation.<br/>" +
-		CommonRWParameterDescription + 
+		CommonRWParameterDescription +
 		"As <em>Seeds</em>, specify text with one seed point per line in the following format:"
 		"<pre>x y z label</pre>"
 		"where x, y and z are the coordinates (set z = 0 for 2D images) and label is the index of the label "
@@ -294,7 +297,7 @@ void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 
 	IndexMap seedMap;
 	QSet<int> labelSet;
-	for (iAVertexIndexType seedIdx = 0; seedIdx < seeds->size(); ++seedIdx)
+	for (iAVertexIndexType seedIdx = 0; seedIdx < static_cast<iAVertexIndexType>(seeds->size()); ++seedIdx)
 	{
 		seedMap.insert(imageGraph.converter().indexFromCoordinates(seeds->at(seedIdx).first), seedIdx);
 		labelSet.insert(seeds->at(seedIdx).second);
@@ -388,7 +391,7 @@ void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 	for (int i = 0; i<labelCount; ++i)
 	{
 		VectorType boundary(seedCount);
-		for (iAVertexIndexType seedIdx = 0; seedIdx < seeds->size(); ++seedIdx)
+		for (iAVertexIndexType seedIdx = 0; seedIdx < static_cast<iAVertexIndexType>(seeds->size()); ++seedIdx)
 		{
 			boundary[seedIdx] = seeds->at(seedIdx).second == i;
 		}
@@ -413,11 +416,11 @@ void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 	}
 	auto labelImg = CreateLabelImage(dim, spc, probImgs, labelCount);
 	addOutput(labelImg);
-	setOutputName(0, "Label Image");
+	setOutputName(0u, "Label Image");
 	for (int i = 0; i < labelCount; ++i)
 	{
 		addOutput(probImgs[i]);
-		setOutputName(1+i, QString("Probability image label %1").arg(i));
+		setOutputName(static_cast<unsigned int>(1+i), QString("Probability image label %1").arg(i));
 	}
 }
 
@@ -450,9 +453,6 @@ iAExtendedRandomWalker::iAExtendedRandomWalker() :
 
 IAFILTER_CREATE(iAExtendedRandomWalker)
 
-
-const double EPSILON = 1e-6;
-
 void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 {
 	int const * dim = input()[0]->vtkImage()->GetDimensions();
@@ -460,7 +460,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 	QVector<iARWInputChannel> inputChannels;
 	iARWInputChannel inputChannel;
 	auto vtkPixelAccess = QSharedPointer<iAvtkPixelVectorArray>(new iAvtkPixelVectorArray(dim));
-	for (int i = 0; i < firstInputChannels(); ++i)
+	for (int i = 0; static_cast<unsigned int>(i) < firstInputChannels(); ++i)
 	{
 		vtkPixelAccess->AddImage(input()[i]->vtkImage());
 	}
@@ -516,7 +516,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 	// if my thinking is correct it should be enough to add the weight factor to each entry,
 	// since for one voxel, the probabilities for all labels should add up to 1!
 	int labelCount = priorModel.size();
-	for (iAVoxelIndexType voxelIdx = 0; voxelIdx < vertexCount; ++voxelIdx)
+	for (iAVoxelIndexType voxelIdx = 0; static_cast<unsigned int>(voxelIdx) < vertexCount; ++voxelIdx)
 	{
 		double sum = 0;
 
@@ -533,7 +533,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 			double value = priorModel[labelIdx]->vtkImage()->GetScalarComponentAsDouble(coord.x, coord.y, coord.z, 0);
 			sum += value;
 		}
-		assert (std::abs(sum-1.0) < EPSILON);
+		assert (dblApproxEqual(sum, 1.0, 1e-6) );
 		//if (std::abs(sum-1.0) >= EPSILON)
 		//{
 		//priorNormalized = false;
@@ -585,7 +585,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 	{
 		VectorType priorForLabel(vertexCount);
 		// fill from image
-		for (iAVoxelIndexType voxelIdx = 0; voxelIdx < vertexCount; ++ voxelIdx)
+		for (iAVoxelIndexType voxelIdx = 0; static_cast<unsigned int>(voxelIdx) < vertexCount; ++ voxelIdx)
 		{
 			//PriorModelImageType::IndexType idx;
 			iAImageCoordinate coord = imageGraph.converter().coordinatesFromIndex(voxelIdx);
@@ -603,7 +603,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 #else
 		vnl_sparse_matrix_linear_system<double> problem(A, priorForLabel);
 		vnl_lsqr solver(problem);
-		int returnCode = solver.minimize(x);
+		/*int returnCode =*/ solver.minimize(x);
 		// in case sparse LU should be used, do this instead:
 		//linear_solver.solve(priorForLabel, &x);
 #endif
@@ -615,11 +615,11 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 	// create labelled image (as value at k = arg l max(p_l^k) for each pixel k)
 	auto labelImg = CreateLabelImage(dim, spc, probImgs, labelCount);
 	addOutput(labelImg);
-	setOutputName(0, "Label Image");
+	setOutputName(0u, "Label Image");
 	for (int i = 0; i < labelCount; ++i)
 	{
 		addOutput(probImgs[i]);
-		setOutputName(1 + i, QString("Probability image label %1").arg(i));
+		setOutputName(static_cast<unsigned int>(1 + i), QString("Probability image label %1").arg(i));
 	}
 }
 
@@ -682,7 +682,11 @@ void iALabelImageToSeeds::performWork(QMap<QString, QVariant> const& parameters)
 		auto pixelValue = img->GetScalarComponentAsDouble(x, y, z, 0);
 		if (pixelValue != 0)
 		{
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+			out << x << " " << y << " " << z << " " << pixelValue << Qt::endl;
+#else
 			out << x << " " << y << " " << z << " " << pixelValue << endl;
+#endif
 		}
 	}
 	f.close();

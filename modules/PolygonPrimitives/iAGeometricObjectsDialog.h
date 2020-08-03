@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -31,21 +31,31 @@ class vtkOpenGLRenderer;
 class QColor;
 class QString;
 
+#include <vtkSmartPointer.h>
+
+class vtkPolyDataAlgorithm;
+
 class iAGeometricObjectsDialog : public QDialog, Ui_PolygonPrimitives
 {
 Q_OBJECT
 
 public:
-	iAGeometricObjectsDialog(QWidget* parent = 0, Qt::WindowFlags f = 0);
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+	iAGeometricObjectsDialog(QWidget* parent = nullptr, Qt::WindowFlags f = 0);
+#else
+	iAGeometricObjectsDialog(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+#endif
 	void setMDIChild(MdiChild* child);
 
 private slots:
 	void createObject();
+	void updateControls();
+	void opacityChanged(int newValue);
 
 private:
-	void readLineData  (vtkOpenGLRenderer* oglrenderer, QColor const & color);
-	void readSphereData(vtkOpenGLRenderer* oglrenderer, QColor const & color);
-	void readCubeData  (vtkOpenGLRenderer* oglrenderer, QColor const & color);
+	vtkSmartPointer<vtkPolyDataAlgorithm> createLineSource ();
+	vtkSmartPointer<vtkPolyDataAlgorithm> createSphereSource();
+	vtkSmartPointer<vtkPolyDataAlgorithm> createCubeSource ();
 
 	MdiChild *m_child;
 };

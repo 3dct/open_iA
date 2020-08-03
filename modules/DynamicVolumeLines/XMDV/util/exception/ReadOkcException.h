@@ -10,23 +10,18 @@
 
 #include <exception>
 #include <string>
-using namespace std;
 
-/*
- * This class represents the exception
- * during reading Okc file
- */
-
-class ReadOkcException : public exception {
+//! This class represents an exception during reading Okc file
+class ReadOkcException : public std::exception {
 public:
 	virtual ~ReadOkcException() throw();
 
 private:
 	ReadOkcException() throw(); // not meant to be called
-	string m_strError;
+	std::string m_strError;
 
 public:
-	ReadOkcException(string strError) throw();
+	ReadOkcException(std::string strError) throw();
 	const char* what() const throw();
 };
 

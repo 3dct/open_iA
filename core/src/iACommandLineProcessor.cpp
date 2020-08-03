@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -38,8 +38,8 @@
 #include <iostream>
 
 iACommandLineProgressIndicator::iACommandLineProgressIndicator(int numberOfSteps, bool quiet) :
-	m_numberOfDots(clamp(1, 100, numberOfSteps)),
 	m_lastDots(0),
+	m_numberOfDots(clamp(1, 100, numberOfSteps)),
 	m_quiet(quiet)
 {
 	if (!quiet)
@@ -51,7 +51,9 @@ iACommandLineProgressIndicator::iACommandLineProgressIndicator(int numberOfSteps
 void iACommandLineProgressIndicator::Progress(int percent)
 {
 	if (m_quiet)
+	{
 		return;
+	}
 	int curDots = percent * m_numberOfDots / 100;
 	if (curDots > m_lastDots)
 	{
@@ -111,7 +113,10 @@ namespace
 				{
 					std::cout << " max=" << p->max();
 				}
-			case Boolean:		// intentional fall-through!
+#if __cplusplus >= 201703L
+				[[fallthrough]];  // intentional fall-through
+#endif
+			case Boolean:
 				std::cout << " default=" << p->defaultValue().toString().toStdString();
 				break;
 			case Categorical:
@@ -156,6 +161,18 @@ namespace
 				std::cout << "    " << filter->inputName(i).toStdString() << std::endl;
 			}
 		}
+		if (filter->outputCount() == 0)
+		{
+			std::cout << "No output images." << std::endl;
+		}
+		else
+		{
+			std::cout << "Output images:" << std::endl;
+			for (int i = 0; i < filter->outputCount(); ++i)
+			{
+				std::cout << "    " << filter->outputName(i).toStdString() << std::endl;
+			}
+		}
 	}
 
 	void PrintParameterDescriptor(QString filterName)
@@ -172,9 +189,13 @@ namespace
 			std::cout << p->name().toStdString() << "\tParameter\t"
 					<< ValueType2Str(p->valueType()).toStdString() << "\t";
 			if (p->valueType() == Continuous || p->valueType() == Discrete)
+			{
 				std::cout << p->min() << "\t" << p->max() << "\tLinear";
+			}
 			else if (p->valueType() == Categorical)
+			{
 				std::cout << "\t" << p->defaultValue().toStringList().join(",").toStdString();
+			}
 			std::cout << std::endl;
 		}
 	}
@@ -365,7 +386,7 @@ namespace
 			}
 			iAProgress progress;
 			iACommandLineProgressIndicator progressIndicator(50, quiet);
-			QObject::connect(&progress, SIGNAL(progress(int)), &progressIndicator, SLOT(Progress(int)));
+			QObject::connect(&progress, &iAProgress::progress, &progressIndicator, &iACommandLineProgressIndicator::Progress);
 			filter->setProgress(&progress);
 			if (!filter->checkParameters(parameters))
 			{   // output already happened in CheckParameters via logger
@@ -404,9 +425,11 @@ namespace
 				}
 				iAITKIO::writeFile(outFileName, filter->output()[o]->itkImage(), filter->output()[o]->itkScalarPixelType(), compress);
 			}
-			for (auto outputValue: filter->outputValues())
+			for (auto outputValue : filter->outputValues())
+			{
 				std::cout << outputValue.first.toStdString() << ": "
 					<< outputValue.second.toString().toStdString() << std::endl;
+			}
 
 			return 0;
 		}

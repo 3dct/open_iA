@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -35,7 +35,7 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
 
-const int MAX_ITERATIONS		= 24;
+//const int MAX_ITERATIONS		= 24;
 const double BACKGROUND[3]		= {1, 1, 1};
 
 dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
@@ -64,32 +64,48 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 
 	CREATE_OLDVTKWIDGET(graphWidget);
 	this->horizontalLayout->addWidget(graphWidget);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	graphWidget->GetRenderWindow()->AddRenderer(m_renderer);
+#else
+	graphWidget->renderWindow()->AddRenderer(m_renderer);
+#endif
 
 	m_interactorStyle = vtkSmartPointer<vtkContextInteractorStyle>::New();
 	m_interactorStyle->SetScene(m_contextScene);
 
 	m_interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 	m_interactor->SetInteractorStyle(m_interactorStyle);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_interactor->SetRenderWindow(graphWidget->GetRenderWindow());
-
 	graphWidget->GetRenderWindow()->Render();
+#else
+	m_interactor->SetRenderWindow(graphWidget->renderWindow());
+	graphWidget->renderWindow()->Render();
+#endif
 }
 
-void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, int nunRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId)
+void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, size_t numRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> /*graphToTableId*/)
 {
 	if(g->GetNumberOfVertices() < 1) return;
 
 	this->m_graph = g;
 	this->m_nodesToLayers = nodesToLayers;
 
-	vtkNew<vtkPoints> points;	
+	vtkNew<vtkPoints> points;
 	iAVtkGraphDrawer graphDrawer;
 	//graphDrawer.setMaxIteration(MAX_ITERATIONS);
-	graphDrawer.createLayout(points.GetPointer(), m_graph, graphWidget->GetRenderWindow()->GetSize(), nunRanks);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	graphDrawer.createLayout(points.GetPointer(), m_graph, graphWidget->GetRenderWindow()->GetSize(), numRanks);
+#else
+	graphDrawer.createLayout(points.GetPointer(), m_graph, graphWidget->renderWindow()->GetSize(), numRanks);
+#endif
 	m_graph->SetPoints(points.GetPointer());
-	
+
 	m_graphItem->SetGraph(m_graph);
 	m_graphItem->Update();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	graphWidget->GetRenderWindow()->Render();
+#else
+	graphWidget->renderWindow()->Render();
+#endif
 }

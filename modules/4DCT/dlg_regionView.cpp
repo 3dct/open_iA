@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,15 +26,17 @@ dlg_regionView::dlg_regionView( QWidget * parent )
 	: QDialog( parent )
 {
 	setupUi( this );
-	connect( pbSelectImage, SIGNAL( clicked( ) ), this, SLOT( onSelectButtonClicked( ) ) );
+	connect( pbSelectImage, &QPushButton::clicked, this, &dlg_regionView::onSelectButtonClicked);
 }
 
 void dlg_regionView::onSelectButtonClicked( )
 {
 	dlg_4DCTFileOpen dialog( this );
 	dialog.setData( m_data );
-	if( dialog.exec( ) != QDialog::Accepted )
+	if (dialog.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 	m_file = dialog.getFile( );
 	lFilename->setText( m_file.Name );
 }

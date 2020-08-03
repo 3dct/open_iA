@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,6 +29,7 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkPointData.h>
 #include <vtkTable.h>
+#include <vtkUnsignedCharArray.h>
 
 iA3DEllipseObjectVis::iA3DEllipseObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 	QColor const & color, int phiRes, int thetaRes) :
@@ -82,12 +83,12 @@ QString iA3DEllipseObjectVis::visualizationStatistics() const
 		.arg(m_fullPoly->GetNumberOfPoints());
 }
 
-int iA3DEllipseObjectVis::objectStartPointIdx(int objIdx) const
+iA3DColoredPolyObjectVis::IndexType iA3DEllipseObjectVis::objectStartPointIdx(IndexType objIdx) const
 {
 	return objIdx * m_pointsPerEllipse;
 }
 
-int iA3DEllipseObjectVis::objectPointCount(int /*objIdx*/) const
+iA3DColoredPolyObjectVis::IndexType iA3DEllipseObjectVis::objectPointCount(IndexType /*objIdx*/) const
 {
 	return m_pointsPerEllipse;
 }

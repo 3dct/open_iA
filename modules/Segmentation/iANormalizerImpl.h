@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -43,7 +43,7 @@ class iANoNormalizer: public iANormalizer
 public:
 	virtual iADistanceType Normalize(iADistanceType d) const;
 	virtual void SetMaxValue(iADistanceType d);
-	virtual char const * const name() const;
+	virtual char const * name() const;
 };
 
 class iALinearNormalizer: public iANormalizer
@@ -52,7 +52,7 @@ public:
 	iALinearNormalizer();
 	virtual iADistanceType Normalize(iADistanceType d) const;
 	virtual void SetMaxValue(iADistanceType d);
-	virtual char const * const name() const;
+	virtual char const * name() const;
 private:
 	iADistanceType m_normalizeFactor;
 };
@@ -63,7 +63,7 @@ public:
 	iAGaussianNormalizer();
 	virtual iADistanceType Normalize(iADistanceType d) const;
 	virtual void SetMaxValue(iADistanceType d);
-	virtual char const * const name() const;
+	virtual char const * name() const;
 	void SetBeta(double beta);
 private:
 	double m_beta;
@@ -73,5 +73,5 @@ private:
 	void UpdateValueFactor();
 };
 
-char const * const * const GetNormalizerNames();
+char const * const * GetNormalizerNames();
 QSharedPointer<iANormalizer> CreateNormalizer(QString const & name, double beta);

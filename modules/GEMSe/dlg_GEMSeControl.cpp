@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -125,13 +125,13 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	iAColorTheme const * colorTheme
 ):
 	dlg_GEMSeControlUI(parentWidget),
-	m_dlgSamplingSettings(0),
-	m_dlgProgress(0),
-	m_dlgConsensus(0),
-	m_dlgGEMSe(dlgGEMSe),
 	m_dlgModalities(dlgModalities),
+	m_dlgSamplingSettings(nullptr),
+	m_dlgProgress(nullptr),
+	m_dlgGEMSe(dlgGEMSe),
 	m_dlgLabels(dlgLabels),
 	m_dlgSamplings(dlgSamplings),
+	m_dlgConsensus(nullptr),
 	m_simpleLabelInfo(new iASimpleLabelInfo())
 
 {
@@ -155,16 +155,16 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(m_dlgModalities, &dlg_modalities::modalityAvailable, this, &dlg_GEMSeControl::dataAvailable);
 	connect(m_dlgModalities, &dlg_modalities::modalitySelected, this, &dlg_GEMSeControl::modalitySelected);
 
-	connect(sbClusterViewPreviewSize, SIGNAL(valueChanged(int)), this, SLOT(SetIconSize(int)));
-	connect(sbMagicLensCount, SIGNAL(valueChanged(int)), this, SLOT(setMagicLensCount(int)));
-	connect(cbColorThemes, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(setColorTheme(const QString &)));
-	connect(cbRepresentative, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetRepresentative(const QString &)));
+	connect(sbClusterViewPreviewSize, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_GEMSeControl::SetIconSize);
+	connect(sbMagicLensCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_GEMSeControl::setMagicLensCount);
+	connect(cbColorThemes, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_GEMSeControl::setColorTheme);
+	connect(cbRepresentative, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_GEMSeControl::setRepresentative);
 	connect(cbProbabilityProbing, &QCheckBox::stateChanged, this, &dlg_GEMSeControl::setProbabilityProbing);
 	connect(cbCorrectnessUncertainty, &QCheckBox::stateChanged, this, &dlg_GEMSeControl::setCorrectnessUncertainty);
 
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 	connect(mdiChild, &MdiChild::transferFunctionChanged, this, &dlg_GEMSeControl::dataTFChanged);
-	
+
 	dataAvailable();
 }
 
@@ -220,7 +220,7 @@ void dlg_GEMSeControl::startSampling()
 		connect(m_sampler.data(), &iAImageSampler::finished, this, &dlg_GEMSeControl::samplingFinished);
 		connect(m_sampler.data(), &iAImageSampler::Progress, m_dlgProgress, &dlg_progress::setProgress );
 		connect(m_sampler.data(), &iAImageSampler::Status, m_dlgProgress, &dlg_progress::setStatus );
-		
+
 		// trigger parameter set creation & sampling (in foreground with progress bar for now)
 		m_sampler->start();
 		m_dlgSamplingSettings->GetValues(m_samplingSettings);
@@ -552,7 +552,7 @@ void ExportClusterIDs(QSharedPointer<iAImageTreeNode> node, std::ostream & out)
 {
 	VisitLeafs(node.data(), [&](iAImageTreeLeaf const * leaf)
 	{
-		static int curr = 0;
+		//static int curr = 0;
 		out << leaf->GetDatasetID() << "\t" << leaf->GetID() << "\n";
 	});
 }
@@ -576,16 +576,18 @@ void dlg_GEMSeControl::SetIconSize(int newSize)
 	m_dlgGEMSe->SetIconSize(newSize);
 }
 
-void dlg_GEMSeControl::setColorTheme(const QString &themeName)
+void dlg_GEMSeControl::setColorTheme(int index)
 {
+	QString const themeName = cbColorThemes->itemText(index);
 	iAColorTheme const * theme = iAColorThemeManager::instance().theme(themeName);
 	m_dlgLabels->setColorTheme(theme);
 	m_simpleLabelInfo->setColorTheme(theme);
 	m_dlgGEMSe->setColorTheme(theme, m_simpleLabelInfo.data());
 }
 
-void dlg_GEMSeControl::SetRepresentative(const QString & reprType)
+void dlg_GEMSeControl::setRepresentative(int index)
 {
+	QString const reprType = cbRepresentative->itemText(index);
 	// Difference
 	// Average Entropy
 	// Label Distribution

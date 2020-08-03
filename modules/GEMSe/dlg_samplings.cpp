@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -28,8 +28,8 @@ dlg_samplings::dlg_samplings():
 	m_itemModel(new QStandardItemModel()),
 	m_samplings(new QVector<SamplingResultPtr>())
 {
-	connect(pbAdd, SIGNAL(clicked()), this, SIGNAL(AddSampling()));
-	connect(pbRemove, SIGNAL(clicked()), this, SLOT(Remove()));
+	connect(pbAdd, &QPushButton::clicked, this, &dlg_samplings::AddSampling);
+	connect(pbRemove, &QPushButton::clicked, this, &dlg_samplings::Remove);
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Samplings"));
 	lvSamplings->setModel(m_itemModel);
 }

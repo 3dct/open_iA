@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -84,28 +84,24 @@ vtkSmartPointer<vtkImageData> readImage(QString const & filename, bool releaseFl
 	return con.vtkImage();
 }
 
-vtkSmartPointer<vtkImageData> castVTKImage(vtkSmartPointer<vtkImageData> img, int destType)
-{
-	auto cast = vtkSmartPointer<vtkImageCast>::New();
-	cast->SetInputData(img);
-	cast->SetOutputScalarType(destType);
-	return cast->GetOutput();
-}
-
 void writeSingleSliceImage(QString const & filename, vtkImageData* imageData)
 {
 	QFileInfo fi(filename);
 	vtkSmartPointer<vtkImageWriter> writer;
-	if ((QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) == 0) || (QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) == 0)) {
+	if ((QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) == 0) || (QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
+	{
 		writer = vtkSmartPointer<vtkTIFFWriter>::New();
 	}
-	else if (QString::compare(fi.suffix(), "PNG", Qt::CaseInsensitive) == 0) {
+	else if (QString::compare(fi.suffix(), "PNG", Qt::CaseInsensitive) == 0)
+	{
 		writer = vtkSmartPointer<vtkPNGWriter>::New();
 	}
-	else if ((QString::compare(fi.suffix(), "JPG", Qt::CaseInsensitive) == 0) || (QString::compare(fi.suffix(), "JPEG", Qt::CaseInsensitive) == 0)) {
+	else if ((QString::compare(fi.suffix(), "JPG", Qt::CaseInsensitive) == 0) || (QString::compare(fi.suffix(), "JPEG", Qt::CaseInsensitive) == 0))
+	{
 		writer = vtkJPEGWriter::New();
 	}
-	else if (QString::compare(fi.suffix(), "BMP", Qt::CaseInsensitive) == 0) {
+	else if (QString::compare(fi.suffix(), "BMP", Qt::CaseInsensitive) == 0)
+	{
 		writer = vtkBMPWriter::New();
 	}
 	else
@@ -147,7 +143,7 @@ size_t mapVTKTypeToSize(int vtkType)
 	case VTK_FLOAT:         return sizeof(float);
 	case VTK_DOUBLE:        return sizeof(double);
 	default:                return 0;
-	}	
+	}
 }
 
 namespace

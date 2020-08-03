@@ -1,3 +1,23 @@
+/*************************************  open_iA  ************************************ *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
+* *********************************************************************************** *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* *********************************************************************************** *
+* This program is free software: you can redistribute it and/or modify it under the   *
+* terms of the GNU General Public License as published by the Free Software           *
+* Foundation, either version 3 of the License, or (at your option) any later version. *
+*                                                                                     *
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+*                                                                                     *
+* You should have received a copy of the GNU General Public License along with this   *
+* program.  If not, see http://www.gnu.org/licenses/                                  *
+* *********************************************************************************** *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* ************************************************************************************/
 #pragma once
 
 #include <itkImageToImageFilter.h>
@@ -35,9 +55,9 @@ public:
 	//! @param lowIntensity taken as the range to calculate the low intensity.
 	void SetCentre(double lowIntensity);
 
-	//! Set number of histogram bins.
-	//! @param bin the number of bins in histogram.
-	void SetBins(double bin);
+	//! Set number of values in a histogram bin.
+	//! @param bin the number of values in a histogram bin.
+	void SetBinWidth(double binWidth);
 
 	//! Get maximum distance threshold.
 	//! @return t an int, which is the maximum distance threshold.
@@ -61,13 +81,12 @@ private:
 	iAMaximumDistanceFilter(Self&);
 	void operator=(const Self&);
 
-	typename BTIFType::Pointer     m_BTIFFilter;
+	typename BTIFType::Pointer m_BTIFFilter;
 
-	PixelType m_Threshold, m_intensity, m_first_value, m_last_value;
-	PixelType m_i, m_start, m_end, m_high_intensity, m_low_intensity, m_centre;
-	double m_Bins;
-	int m_high_freq, m_low_freq;
-	ImageConstPointer m_InImage;
+	PixelType m_Threshold;
+	int m_high_intensity, m_low_intensity, m_centre;
+	double m_binWidth;
+	ImageConstPointer m_inImage;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

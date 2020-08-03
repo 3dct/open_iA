@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -36,8 +36,13 @@ dlg_planeSlicer::dlg_planeSlicer() :
 	m_vtkWidget(new iAVtkWidget(this))
 {
 	m_renderer = vtkSmartPointer<vtkOpenGLRenderer>::New();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_vtkWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	m_vtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
+#else
+	m_vtkWidget->setRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
+	m_vtkWidget->renderWindow()->AddRenderer(m_renderer);
+#endif
 	slicer->layout()->addWidget(m_vtkWidget);
 	m_renderer->SetBackground(1, 1, 1);
 
@@ -62,7 +67,7 @@ int dlg_planeSlicer::AddImage(vtkSmartPointer<vtkImageData> image, vtkSmartPoint
 	mapper->SetInputConnection(map->GetOutputPort());
 
 	m_images.push_back(imageSlice);
-	
+
 	m_renderer->AddViewProp(imageSlice);
 
 	return m_images.size() - 1;

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,10 +22,12 @@
 
 #include "open_iA_Core_export.h"
 
+#include <algorithm>  // for stable_sort
 #include <cassert>
-#include <cmath>   // for ceil/floor
-#include <cstddef> // for size_t
-#include <limits>  // for std::numeric_limits
+#include <cmath>      // for ceil/floor
+#include <cstddef>    // for size_t
+#include <limits>     // for std::numeric_limits
+#include <numeric>    // for std::accumulate, std::iota
 #include <vector>
 
 //! Make sure the given value is inside the given range.
@@ -36,21 +38,22 @@
 //!         max if the given value is bigger or equal to max,
 //!         or the value itself if it is in between min and max
 template <typename T>
-T clamp(T const min, T const max, T const value)
+T clamp(T const minVal, T const maxVal, T const value)
 {
-	return (value < min) ? min : ((value > max) ? max : value);
+	return (value < minVal) ? minVal : ((value > maxVal) ? maxVal : value);
 }
 
-/**
- * apply minmax normalization
- * if min is bigger than max, a reverse mapping is applied
- * @param minSrcVal minimum value of source interval
- * @param maxSrcVal maximum value of source interval
- * @param value a value in source interval
- * @return the corresponding mapped value = (value - minSrcVal) / (maxSrcVal - minSrcVal)
- */
+//! Map value from given interval to "norm" interval [0..1].
+//! if min is bigger than max, a reverse mapping is applied
+//! @param minSrcVal minimum value of source interval
+//! @param maxSrcVal maximum value of source interval
+//! @param value a value in source interval
+//! @return the corresponding mapped value = (value - minSrcVal) / (maxSrcVal - minSrcVal)
+//!         Note that if the input value is not between minSrcVal and maxSrcVal,
+//!         the return value is NOT guaranteed to be in the interval 0..1. If you require
+//!         the return value to be in that interval, use mapToNorm instead!
 template <typename SrcType>
-double minMaxNormalize(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value)
+double mapToNormNoClamp(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value)
 {
 	//assert (value >= minSrcVal && value <= maxSrcVal);
 	SrcType range = maxSrcVal - minSrcVal;
@@ -62,48 +65,21 @@ double minMaxNormalize(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType
 	return returnVal;
 }
 
-
-//map back from min max transformation 0 MIn , 1: min to original min max
-template<typename SrcType>
-double normalizedToMinMax(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value) {
-	double res = static_cast<double> ((value * (maxSrcVal - minSrcVal) + minSrcVal));
-	return res; 
-}
-
-
-//template<typename SrcType>
-//double minMaxShift(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value) {
-//	
-//	double val = minMaxNormalize(minSrcVal, maxSrcVal, value); 
-//
-//}
-
-/**
- * map value from given interval to "norm" interval [0..1]
- * if min is bigger than max, a reverse mapping is applied
- * @param minSrcVal minimum value of source interval
- * @param maxSrcVal maximum value of source interval
- * @param value a value in source interval
- * @return if norm was in interval [minSrcVal..maxSrcVal], the
- *     corresponding mapped value in interval [0..1]
- */
+//! Map value from given interval to "norm" interval [0..1].
+//! if min is bigger than max, a reverse mapping is applied
+//! @param minSrcVal minimum value of source interval
+//! @param maxSrcVal maximum value of source interval
+//! @param value a value in source interval
+//! @return the corresponding mapped value in interval [0..1]
+//!     (0 if input value < minSrcVal, 1 if input value > maxSrcVal)
 template <typename SrcType>
 double mapToNorm(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value)
 {
-	double returnVal = minMaxNormalize(minSrcVal, maxSrcVal, value);
+	double returnVal = mapToNormNoClamp(minSrcVal, maxSrcVal, value);
 	//assert(returnVal >= 0 && returnVal <= 1);
 	return clamp(0.0, 1.0, returnVal);
 }
 
-/*
-template <typename T>
-inline T get_t(const T& v, const T& rangeStart, const T& rangeLen)
-{
-	if (rangeLen == 0)
-		return rangeStart;
-	return (v - rangeStart) / rangeLen;
-}
-*/
 
 //! Map values from a given range to the "normalized" range [0..1].
 //! if min is bigger than max, a reverse mapping is applied
@@ -140,9 +116,13 @@ DstType mapNormTo(DstType minDstVal, DstType maxDstVal, double norm)
 	{
 		returnVal = norm * (maxDstVal - minDstVal) + minDstVal;
 	}
-	if ( minDstVal > maxDstVal )
-		std::swap( minDstVal, maxDstVal );
+#ifndef NDEBUG
+	if (minDstVal > maxDstVal)
+	{
+		std::swap(minDstVal, maxDstVal);
+	}
 	assert (returnVal >= minDstVal && returnVal <= maxDstVal);
+#endif
 	return returnVal;
 }
 
@@ -230,8 +210,14 @@ open_iA_Core_API double standardDeviation(FuncType const & func, double meanVal 
 open_iA_Core_API double covariance(FuncType const & func1, FuncType const & func2,
 	double mean1 = std::numeric_limits<double>::infinity(), double mean2 = std::numeric_limits<double>::infinity(), bool correctDF = true);
 
+//! Compute ranks for a given list of values.
+open_iA_Core_API FuncType getNormedRanks(FuncType const& func);
+
 //! Calculate the Pearson's correlation coefficient between two functions.
 open_iA_Core_API double pearsonsCorrelationCoefficient(FuncType const & func1, FuncType const & func2);
+
+//! Calculate the Spearman's correlation coefficient between two functions.
+open_iA_Core_API double spearmansCorrelationCoefficient(FuncType const& func1, FuncType const& func2);
 
 //! Checks whether two real values are equal, given a certain tolerance.
 //! inspired by https://stackoverflow.com/a/41405501/671366
@@ -244,4 +230,22 @@ bool dblApproxEqual(RealType a, RealType b, RealType tolerance = std::numeric_li
 	// return true;
 	// TODO: Test!
 	//return ((a>1 || b>1) && (diff < std::max(std::fabs(a), std::abs(b)) * tolerance));
+}
+
+// source: https://stackoverflow.com/questions/1577475/c-sorting-and-keeping-track-of-indexes
+template <typename T>
+std::vector<size_t> sort_indexes(const std::vector<T>& v)
+{
+	// initialize original index locations
+	std::vector<size_t> idx(v.size());
+	iota(idx.begin(), idx.end(), 0);
+
+	// sort indexes based on comparing values in v
+	// using std::stable_sort instead of std::sort
+	// to avoid unnecessary index re-orderings
+	// when v contains elements of equal values
+	std::stable_sort(idx.begin(), idx.end(),
+		[&v](size_t i1, size_t i2) {return v[i1] < v[i2]; });
+
+	return idx;
 }

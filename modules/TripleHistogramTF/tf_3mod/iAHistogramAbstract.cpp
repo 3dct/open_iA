@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,17 +23,17 @@
 #include "iAHistogramStack.h"
 #include "iAHistogramTriangle.h"
 
-iAHistogramAbstract* iAHistogramAbstract::buildHistogramAbstract(iAHistogramAbstractType type, iATripleModalityWidget *tmw, MdiChild *mdiChild, Qt::WindowFlags f) {
+iAHistogramAbstract* iAHistogramAbstract::buildHistogramAbstract(iAHistogramAbstractType type, iATripleModalityWidget *tmw) {
 	switch (type) {
 	case STACK:
-		return new iAHistogramStack(tmw, tmw, mdiChild, f);
+		return new iAHistogramStack(tmw);
 
 	case TRIANGLE:
-		return new iAHistogramTriangle(tmw, tmw, mdiChild, f);
+		return new iAHistogramTriangle(tmw);
 	}
 
 	throw "Unexpected type";
 }
 
-void iAHistogramAbstract::updateModalityNames(QString const names[3])
+void iAHistogramAbstract::updateModalityNames(QString const /*names*/[3])
 {}

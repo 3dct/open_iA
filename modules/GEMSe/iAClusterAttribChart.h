@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -50,7 +50,7 @@ public:
 	iAValueType GetRangeType() const;
 	double GetMaxYValue() const;
 	void SetMaxYAxisValue(double val);
-	
+
 	void SetSpanValues(double minValue, double maxValue);
 	void ResetSpan();
 	double mapValueToBin(double value) const;
@@ -66,7 +66,7 @@ private slots:
 private:
 	void SetAdditionalDrawer(QSharedPointer<iAPlot>& drawer, QSharedPointer<iAPlot> newDrawer);
 	QColor GetClusterColor(int nr) const;
-	
+
 	iAFilterChart*  m_charts;
 	QCheckBox*     m_checkbox;
 	int    m_ID;
@@ -75,6 +75,6 @@ private:
 	QSharedPointer<iAPlot> m_filteredClusterDrawer;
 	int	           m_oldMin;
 	int	           m_oldMax;
-	
+
 	QSharedPointer<iAParamHistogramData> m_filteredClusterData;
 };

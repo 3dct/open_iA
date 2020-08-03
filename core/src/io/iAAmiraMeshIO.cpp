@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -57,8 +57,8 @@ typedef char RawDataType;
 
 int decodeRLE(RawDataType* in, size_t inLength, RawDataType* out, size_t maxOutLength)
 {
-	int curOutStart = 0;
-	for (int curInIdx = 0; curInIdx < inLength; ++curInIdx)
+	size_t curOutStart = 0;
+	for (size_t curInIdx = 0; curInIdx < inLength; ++curInIdx)
 	{
 		int len = in[curInIdx];  // block length
 		char c = in[curInIdx + 1]; // character
@@ -83,7 +83,8 @@ int decodeRLE(RawDataType* in, size_t inLength, RawDataType* out, size_t maxOutL
 		}
 		curOutStart += len;
 	}
-	return curOutStart;
+	assert(curOutStart <= std::numeric_limits<int>::max());
+	return static_cast<int>(curOutStart);
 }
 
 namespace
@@ -149,7 +150,11 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	int nextLineBreakPos = header.indexOf("\n", latticePos);
 	int lineSize = nextLineBreakPos - latticePos;
 	QString latticeLine = header.mid(latticePos, lineSize );
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	QStringList latticeTokens = latticeLine.split(" ", QString::SkipEmptyParts);
+#else
+	QStringList latticeTokens = latticeLine.split(" ", Qt::SkipEmptyParts);
+#endif
 
 	// TODO more types?
 	int dataType;
@@ -217,9 +222,9 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	//Set the file pointer to the beginning of "# Data section follows"
 	bool err = fseek(fp, idxStartData, SEEK_SET) != 0;
 	//Consume this line, which is "# Data section follows"
-	err |= fgets(buffer, MaxHeaderSize, fp) == 0;
+	err |= fgets(buffer, MaxHeaderSize, fp) == nullptr;
 	//Consume the next line, which is "@1"
-	err |= fgets(buffer, MaxHeaderSize, fp) == 0;
+	err |= fgets(buffer, MaxHeaderSize, fp) == nullptr;
 	if (err)
 	{
 		fclose(fp);
@@ -291,7 +296,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 			{
 				//Note: Random access to the value (of the first component) of the grid point (x,y,z):
 				// pData[((z * yDim + y) * xDim + x) * NumComponents]
-				assert(((z * yDim + y) * xDim + x) * NumComponents == Idx * NumComponents);
+				assert(((static_cast<size_t>(z) * yDim + y) * xDim + x) * NumComponents == Idx * NumComponents);
 				for (int c = 0; c<NumComponents; c++)
 				{
 					float pixelValue = 0;
@@ -363,17 +368,6 @@ void iAAmiraMeshIO::Write(QString const & filename, vtkImageData* img)
 	stream << "# Data section follows\n";
 	stream << "@1\n";
 	stream.flush();
-
-	int dataTypeSize = 0;
-	switch(vtkType)
-	{
-	case VTK_UNSIGNED_CHAR:
-		dataTypeSize = sizeof(unsigned char);
-		break;
-	case VTK_FLOAT:
-		dataTypeSize = sizeof(float);
-		break;
-	}
 
 	file.write(headerData);
 	for (int z = 0; z < d; z++)

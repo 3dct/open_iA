@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -54,7 +54,6 @@ typedef itk::Image<RealType, DIM> RealImageType;
 
 template<class T> void medianFilter(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::MedianImageFilter<RealImageType, RealImageType > FilterType;
 	auto realImage = castImageTo<RealType>(filter->input()[0]->itkImage());
 	auto medianFilter = FilterType::New();
@@ -158,7 +157,7 @@ iARecursiveGaussian::iARecursiveGaussian() :
 
 
 
-template<class T> 
+template<class T>
 void discreteGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;

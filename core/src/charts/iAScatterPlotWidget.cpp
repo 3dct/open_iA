@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAScatterPlotWidget.h"
 
+#include "iAConsole.h"
 #include "iALookupTable.h"
 #include "iAScatterPlot.h"
 #include "iAScatterPlotSelectionHandler.h"
@@ -30,6 +31,9 @@
 
 #include <QMouseEvent>
 #include <QPainter>
+
+iAScatterPlotSelectionHandler::~iAScatterPlotSelectionHandler()
+{}
 
 class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
 {
@@ -92,6 +96,12 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), this);
 	m_scatterplot->settings.selectionEnabled = true;
 	data->updateRanges();
+	if (data->numPoints() > std::numeric_limits<int>::max())
+	{
+		DEBUG_LOG(QString("Number of points (%1) larger than supported (%2)")
+			.arg(data->numPoints())
+			.arg(std::numeric_limits<int>::max()));
+	}
 	m_scatterplot->setData(0, 1, data);
 }
 
@@ -193,8 +203,14 @@ int iAScatterPlotWidget::PaddingBottom()
 
 void iAScatterPlotWidget::wheelEvent(QWheelEvent * event)
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&
 		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom()))
+#else
+	QPointF p = event->position();
+	if (p.x() >= PaddingLeft() && p.x() <= (width() - PaddingRight) &&
+		p.y() >= PaddingTop && p.y() <= (height() - PaddingBottom()))
+#endif
 	{
 		m_scatterplot->SPLOMWheelEvent(event);
 		update();

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -30,10 +30,10 @@
 
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
 	unsigned int requiredInputs, unsigned int outputCount) :
+	m_log(iAStdOutLogger::get()),
 	m_name(name),
 	m_category(category),
 	m_description(description),
-	m_log(iAStdOutLogger::get()),
 	m_requiredInputs(requiredInputs),
 	m_outputCount(outputCount),
 	m_firstInputChannels(1)
@@ -320,7 +320,7 @@ iALogger* iAFilter::logger()
 	return m_log;
 }
 
-QString iAFilter::inputName(int i) const
+QString iAFilter::inputName(unsigned int i) const
 {
 	if (m_inputNames.contains(i))
 	{
@@ -332,12 +332,12 @@ QString iAFilter::inputName(int i) const
 	}
 }
 
-void iAFilter::setInputName(int i, QString const & name)
+void iAFilter::setInputName(unsigned int i, QString const & name)
 {
 	m_inputNames.insert(i, name);
 }
 
-QString iAFilter::outputName(int i, QString defaultName) const
+QString iAFilter::outputName(unsigned int i, QString defaultName) const
 {
 	if (m_outputNames.contains(i))
 	{
@@ -356,7 +356,7 @@ QString iAFilter::outputName(int i, QString defaultName) const
 	}
 }
 
-void iAFilter::setOutputName(int i, QString const & name)
+void iAFilter::setOutputName(unsigned int i, QString const & name)
 {
 	m_outputNames.insert(i, name);
 }

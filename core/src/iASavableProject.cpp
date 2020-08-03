@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,15 +20,31 @@
 * ************************************************************************************/
 #include "iASavableProject.h"
 
-#include "iAChangeableCameraWidget.h" // TODO: disentangle - but no separate file!
+#include <io/iAIOProvider.h>
 
-void iASavableProject::saveProject()
+#include <QApplication>
+#include <QFileDialog>
+#include <QMessageBox>
+
+bool iASavableProject::saveProject(QString const & basePath)
 {
-	doSaveProject();
+	QString projectFileName = QFileDialog::getSaveFileName(
+		QApplication::activeWindow(),
+		QCoreApplication::translate("MainWindow", "Select Output File"),
+		basePath,
+		iAIOProvider::NewProjectFileTypeFilter + iAIOProvider::ProjectFileTypeFilter);
+	if (projectFileName.isEmpty())
+	{
+		return false;
+	}
+	m_fileName = projectFileName;
+	return doSaveProject(projectFileName);
+}
+
+QString const& iASavableProject::fileName() const
+{
+	return m_fileName;
 }
 
 iASavableProject::~iASavableProject()
-{}
-
-iAChangeableCameraWidget::~iAChangeableCameraWidget()
 {}

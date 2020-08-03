@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -109,7 +109,7 @@ iAModalityList::iAModalityList() :
 
 bool iAModalityList::modalityExists(QString const & filename, int channel) const
 {
-	foreach(QSharedPointer<iAModality> mod, m_modalitiesActive)
+	for (QSharedPointer<iAModality> mod: m_modalitiesActive)
 	{
 		if (mod->fileName() == filename && mod->channel() == channel)
 		{
@@ -224,7 +224,7 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 	if (!settings.contains(FileVersionKey) ||
 		settings.value(FileVersionKey).toString() != ModFileVersion)
 	{
-		DEBUG_LOG(QString("Invalid project file version (was %1, expected %2! Trying to parse anyway, but expect failures.")
+		DEBUG_LOG(QString("Invalid project file version (was %1, expected %2)! Trying to parse anyway, but expect failures.")
 			.arg(settings.contains(FileVersionKey) ? settings.value(FileVersionKey).toString() : "not set")
 			.arg(ModFileVersion));
 		return false;
@@ -319,6 +319,7 @@ void iAModalityList::applyCameraSettings(vtkCamera* camera)
 	m_camSettingsAvailable = false;
 }
 
+/*
 namespace
 {
 	QString GetMeasurementString(QSharedPointer<iAModality> mod)
@@ -331,6 +332,7 @@ namespace
 			QString::number(mod->spacing()[2]) + ")";
 	}
 }
+*/
 
 void iAModalityList::add(QSharedPointer<iAModality> mod)
 {
@@ -413,7 +415,7 @@ ModalityCollection iAModalityList::load(QString const & filename, QString const 
 	io.start();
 	io.wait();
 	QString nameBase = name.isEmpty() ? fileInfo.baseName() : name;
-	if (volumes.size() > 1 && (channel < 0 || channel > volumes.size()))
+	if (volumes.size() > 1 && (channel < 0 || static_cast<size_t>(channel) > volumes.size()))
 	{
 		if (split) // load one modality for each channel
 		{

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -90,7 +90,7 @@ double iALogarithmicMapper::srcToDst(double srcVal) const
 {
 	if (srcVal <= 0)
 	{
-		DEBUG_LOG(QString("Value %1 cannot be logarithmically mapped as it is <= 0!").arg(srcVal));
+		//DEBUG_LOG(QString("Value %1 cannot be logarithmically mapped as it is <= 0!").arg(srcVal));
 		return 0;
 	}
 	double srcLog = clamp(m_srcMinLog, m_srcMaxLog, LogFunc(srcVal));

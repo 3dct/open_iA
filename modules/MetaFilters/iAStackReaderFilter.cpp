@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -143,7 +143,7 @@ void iAStackReaderFilter::performWork(QMap<QString, QVariant> const & parameters
 IAFILTER_CREATE(iAStackReaderFilter)
 
 iAStackReaderFilter::iAStackReaderFilter() :
-	iAFilter("Image Stack Reader", "Readers",
+	iAFilter("Image Stack Reader", "Input",
 		"Read an image stack.<br/>"
 		"Minimum and maximum index are automatically determined "
 		"from the given folder name, spacing and datatype can be adapted.", 0, 1)

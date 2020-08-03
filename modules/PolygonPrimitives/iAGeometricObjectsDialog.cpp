@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,6 +22,7 @@
 
 #include <iAConsole.h>
 #include <iARenderer.h>
+#include <iAvec3.h>
 #include <mdichild.h>
 
 #include <vtkLineSource.h>
@@ -37,74 +38,63 @@
 
 namespace
 {
-	vtkSmartPointer<vtkActor> createActor()
+	/*
+	class iAPolyObject
 	{
-		auto actor = vtkSmartPointer<vtkActor>::New();
-		actor->SetDragable(false);
-		actor->SetPickable(false);
-		return actor;
-	}
+		vtkSmartPointer<vtkPolyDataAlgorithm> createObject()
+	};
 
-	void createAndRenderLine(vtkOpenGLRenderer* renderer, double x1, double y1, double z1,
-		double x2, double y2, double z2, double lnWithd, QColor const& color)
+	iAPolyObject* createObject(int type)
 	{
-		if (lnWithd <= 0)
-		{
-			DEBUG_LOG("Line width must be bigger than 0!");
-			return;
-		}
+		switch (type)
+	}
+	*/
+
+	vtkSmartPointer<vtkPolyDataAlgorithm> createLine(iAVec3d & pt1, iAVec3d & pt2)
+	{
 		auto lineSource = vtkSmartPointer<vtkLineSource>::New();
-		lineSource->SetPoint1(x1, y1, z1);
-		lineSource->SetPoint2(x2, y2, z2);
-		auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		mapper->SetInputConnection(lineSource->GetOutputPort());
-		auto actor = createActor();
-		actor->SetOrigin(0, 0, 0);
-		actor->SetOrientation(0, 0, 0);
-		auto lineProp = actor->GetProperty();
-		lineProp->SetLineWidth(lnWithd);
-		lineProp->SetColor(color.redF(), color.greenF(), color.blueF());
-		actor->SetMapper(mapper);
-		renderer->AddActor(actor);
+		lineSource->SetPoint1(pt1.data()); // VTK problem: should take const data!
+		lineSource->SetPoint2(pt2.data());
+		return lineSource;
 	}
 
-	void createAndRenderSphere(vtkOpenGLRenderer* renderer, double xm, double ym, double zm, double radius,
-		QColor const& color)
+	vtkSmartPointer<vtkPolyDataAlgorithm> createSphere(iAVec3d & center, double radius)
 	{
 		auto sphereSource = vtkSmartPointer<vtkSphereSource>::New();
-		sphereSource->SetCenter(xm, ym, zm);
+		sphereSource->SetCenter(center.data());
 		sphereSource->SetRadius(radius);
-		auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		mapper->SetInputConnection(sphereSource->GetOutputPort());
-		auto actor = createActor();
-		auto sphereProp = actor->GetProperty();
-		sphereProp->SetLineWidth(100.0);
-		sphereProp->SetColor(color.redF(), color.greenF(), color.blueF());
-		actor->SetMapper(mapper);
-		renderer->AddActor(actor);
+		return sphereSource;
 	}
 
-	void createAndRenderCube(vtkOpenGLRenderer* renderer, double xmin, double ymin, double zmin,
-		double xmax, double ymax, double zmax, QColor const& color)
+	vtkSmartPointer<vtkPolyDataAlgorithm> createCube(iAVec3d & ptmin, iAVec3d & ptmax)
 	{
 		auto cubeSource = vtkSmartPointer<vtkCubeSource>::New();
-		cubeSource->SetBounds(xmin, xmax, ymin, ymax, zmin, zmax);
-		auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		mapper->SetInputConnection(cubeSource->GetOutputPort());
-		auto actor = createActor();
-		auto cubeProp = actor->GetProperty();
-		/*sphereProp->SetLineWidth(100.0);*/
-		cubeProp->SetColor(color.redF(), color.greenF(), color.blueF());
-		actor->SetMapper(mapper);
-		renderer->AddActor(actor);
+		cubeSource->SetBounds(ptmin.x(), ptmax.x(), ptmin.y(), ptmax.y(), ptmin.z(), ptmax.z());
+		return cubeSource;
 	}
 
+	bool readPointData(iAVec3d & pt, QString coords[3])
+	{
+		bool ok[3];
+		for (size_t i=0; i<3; ++i)
+		{
+			pt[i] = coords[i].toDouble(&ok[i]);
+		}
+		return ok[0] && ok[1] && ok[2];
+	}
 }
 
 iAGeometricObjectsDialog::iAGeometricObjectsDialog(QWidget* parent, Qt::WindowFlags f) :QDialog(parent, f)
 {
 	setupUi(this);
-	connect(btn_addObj, SIGNAL(clicked()), this, SLOT(createObject()));
+	connect(pbAddObject, &QPushButton::clicked, this, &iAGeometricObjectsDialog::createObject);
+	connect(rbSphere, &QRadioButton::toggled, this, &iAGeometricObjectsDialog::updateControls);
+	connect(rbLine, &QRadioButton::toggled, this, &iAGeometricObjectsDialog::updateControls);
+	connect(rbCube, &QRadioButton::toggled, this, &iAGeometricObjectsDialog::updateControls);
+	connect(cbWireframe, &QCheckBox::toggled, this, &iAGeometricObjectsDialog::updateControls);
+	connect(slOpacity, &QSlider::valueChanged, this, &iAGeometricObjectsDialog::opacityChanged);
+	connect(pbClose, &QPushButton::clicked, this, &iAGeometricObjectsDialog::accept);
+	updateControls();
 }
 
 void iAGeometricObjectsDialog::setMDIChild(MdiChild* child)
@@ -119,85 +109,148 @@ void iAGeometricObjectsDialog::setMDIChild(MdiChild* child)
 
 void iAGeometricObjectsDialog::createObject()
 {
-	if (!m_child) return;
+	if (!m_child)
+	{
+		return;
+	}
 	auto renderer = m_child->renderer();
-	if (!renderer) return;
 	auto oglRenderer = renderer->renderer();
-	if (!oglRenderer) return;
-	bool sphereChecked = this->rdBtn_Sphere->isChecked();
-	bool lineChecked = this->rdBtn_Line->isChecked();
-	//bool cubeChecked = this->rdBtn_Cube->isChecked();
+	bool sphereChecked = rbSphere->isChecked();
+	bool lineChecked   = rbLine->isChecked();
+	bool cubeChecked   = rbCube->isChecked();
 
-	auto colorStr = this->cmbBox_col->currentText();
+	auto colorStr = cbColor->currentText();
 	QColor color(colorStr);
-
+	float lineWidth = 0;
+	if (cbWireframe->isChecked() || lineChecked)
+	{
+		bool check_width;
+		lineWidth = edLineWidth->text().toFloat(&check_width);
+		if (lineWidth <= 0)
+		{
+			QMessageBox::warning(this, "Object", "Line width must be bigger than 0!");
+			return;
+		}
+	}
+	double opacity = slOpacity->value() / 10.0;
+	vtkSmartPointer<vtkPolyDataAlgorithm> source;
 	if (lineChecked)
 	{
-		readLineData(oglRenderer, color);
+		source = createLineSource();
 	}
 	else if (sphereChecked)
 	{
-		readSphereData(oglRenderer, color);
+		source = createSphereSource();
 	}
-	else
+	else if (cubeChecked)
 	{
-		readCubeData(oglRenderer, color);
+		source = createCubeSource();
 	}
+	if (!source)
+	{
+		return;
+	}
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputConnection(source->GetOutputPort());
+	auto actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetDragable(false);
+	actor->SetPickable(false);
+	actor->SetOrigin(0, 0, 0);
+	actor->SetOrientation(0, 0, 0);
+	auto prop = actor->GetProperty();
+	if (cbWireframe->isChecked() || lineChecked)
+	{
+		prop->SetLineWidth(lineWidth);
+		prop->SetRepresentationToWireframe();
+	}
+	prop->SetColor(color.redF(), color.greenF(), color.blueF());
+	prop->SetOpacity(opacity);
+	actor->SetMapper(mapper);
+	oglRenderer->AddActor(actor);
 	renderer->update();
 }
 
-void iAGeometricObjectsDialog::readLineData(vtkOpenGLRenderer* oglRenderer, QColor const & color)
+void iAGeometricObjectsDialog::updateControls()
 {
-	bool check_x1, check_x2, check_y1, check_y2, check_z1, check_z2, check_thickness;
-	double x1 = this->ed_x1->text().toDouble(&check_x1);
-	double x2 = this->ed_x2->text().toDouble(&check_x2);
-	double y1 = this->ed_y1->text().toDouble(&check_y1);
-	double y2 = this->ed_y2->text().toDouble(&check_y2);
-	double z1 = this->ed_z1->text().toDouble(&check_z1);
-	double z2 = this->ed_z2->text().toDouble(&check_z2);
-	double thickness = this->ed_Thickness->text().toDouble(&check_thickness);
-	if (!check_x1 || !check_x2 || !check_y1 || !check_y2 || !check_z1 || !check_z2 || !check_thickness)
+	bool sphereChecked = rbSphere->isChecked();
+	bool lineChecked   = rbLine->isChecked();
+	bool cubeChecked   = rbCube->isChecked();
+
+	lbPt3 ->setVisible(false);
+	edPt3x->setVisible(false);
+	edPt3y->setVisible(false);
+	edPt3z->setVisible(false);
+	lbPt2 ->setVisible(!sphereChecked);
+	edPt2x->setVisible(!sphereChecked);
+	edPt2y->setVisible(!sphereChecked);
+	edPt2z->setVisible(!sphereChecked);
+	cbWireframe->setVisible(!lineChecked);
+	edLineWidth->setVisible(lineChecked || cbWireframe->isChecked());
+	lbLineWidth->setVisible(lineChecked || cbWireframe->isChecked());
+	lbRadius->setVisible(sphereChecked);
+	edRadius->setVisible(sphereChecked);
+	if (sphereChecked)
 	{
-		QMessageBox msgBox;
-		msgBox.setText("Please enter valid coordinates for every element.");
-		msgBox.exec();
-		return;
+		lbPt1->setText("Center");
 	}
-	createAndRenderLine(oglRenderer, x1, y1, z1, x2, y2, z2, thickness, color);
+	else if (lineChecked)
+	{
+		lbPt1->setText("Start");
+		lbPt2->setText("End");
+	}
+	else if (cubeChecked)
+	{
+		lbPt1->setText("Min");
+		lbPt2->setText("Max");
+	}
 }
 
-void iAGeometricObjectsDialog::readSphereData(vtkOpenGLRenderer* oglRenderer, QColor const & color)
+void iAGeometricObjectsDialog::opacityChanged(int newValue)
 {
-	bool check_xm, check_ym, check_zm, check_radius;
-	double xm = ed_SphereXm->text().toDouble(&check_xm);
-	double ym = ed_SphereYm->text().toDouble(&check_ym);
-	double zm = ed_SphereZm->text().toDouble(&check_zm);
-	double radius = ed_Thickness->text().toDouble(&check_radius);
-	if (!check_xm || !check_ym || !check_zm || !check_radius)
-	{
-		QMessageBox msgBox;
-		msgBox.setText("Please enter valid coordinates for every element.");
-		msgBox.exec();
-		return;
-	}
-	createAndRenderSphere(oglRenderer, xm, ym, zm, radius, color);
+	lbOpacityValue->setText(QString("%1").arg(newValue/10.0, 0, 'f', 1) );
 }
 
-void iAGeometricObjectsDialog::readCubeData(vtkOpenGLRenderer* oglRenderer, QColor const& color)
+vtkSmartPointer<vtkPolyDataAlgorithm> iAGeometricObjectsDialog::createLineSource()
 {
-	bool check_xmax, check_xmin, check_ymin, check_ymax, check_zmax, check_zmin;
-	double xmin = this->ed_cubeXmin->text().toDouble(&check_xmin);
-	double xmax = this->ed_cubeXmax->text().toDouble(&check_xmax);
-	double ymin = this->ed_cubeYmin->text().toDouble(&check_ymin);
-	double ymax = this->ed_cubeYmax->text().toDouble(&check_ymax);
-	double zmin = this->ed_cubeZmin->text().toDouble(&check_zmin);
-	double zmax = this->ed_cubeZmax->text().toDouble(&check_zmax);
-	if (!check_xmin || !check_xmax || !check_ymin || !check_ymax || !check_zmin || !check_zmax)
+	iAVec3d pt1, pt2;
+	QString pt1str[3] = {edPt1x->text(), edPt1y->text(), edPt1z->text()};
+	QString pt2str[3] = {edPt2x->text(), edPt2y->text(), edPt2z->text()};
+	bool pt1OK = readPointData(pt1, pt1str);
+	bool pt2OK = readPointData(pt2, pt2str);
+	if (!pt1OK || !pt2OK)
 	{
-		QMessageBox msgBox;
-		msgBox.setText("Please enter valid coordinates for every element.");
-		msgBox.exec();
-		return;
+		QMessageBox::warning(this, "Object", "Please enter valid coordinates for every element.");
+		return vtkSmartPointer<vtkPolyDataAlgorithm>();
 	}
-	createAndRenderCube(oglRenderer, xmin, ymin, zmin, xmax, ymax, zmax, color);
+	return createLine(pt1, pt2);
+}
+
+vtkSmartPointer<vtkPolyDataAlgorithm> iAGeometricObjectsDialog::createSphereSource()
+{
+	bool check_radius;
+	iAVec3d pt1;
+	QString pt1str[3] = {edPt1x->text(), edPt1y->text(), edPt1z->text()};
+	bool pt1OK = readPointData(pt1, pt1str);
+	double radius = edRadius->text().toDouble(&check_radius);
+	if (!pt1OK || !check_radius)
+	{
+		QMessageBox::warning(this, "Object", "Please enter valid coordinates for every element.");
+		return vtkSmartPointer<vtkPolyDataAlgorithm>();
+	}
+	return createSphere(pt1, radius);
+}
+
+vtkSmartPointer<vtkPolyDataAlgorithm> iAGeometricObjectsDialog::createCubeSource()
+{
+	iAVec3d pt1, pt2;
+	QString pt1str[3] = {edPt1x->text(), edPt1y->text(), edPt1z->text()};
+	QString pt2str[3] = {edPt2x->text(), edPt2y->text(), edPt2z->text()};
+	bool pt1OK = readPointData(pt1, pt1str);
+	bool pt2OK = readPointData(pt2, pt2str);
+	if (!pt1OK || !pt2OK)
+	{
+		QMessageBox::warning(this, "Object", "Please enter valid coordinates for every element.");
+		return vtkSmartPointer<vtkPolyDataAlgorithm>();
+	}
+	return createCube(pt1, pt2);
 }

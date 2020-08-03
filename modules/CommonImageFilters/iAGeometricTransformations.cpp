@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -52,11 +52,17 @@ template<typename T> void resampler(iAFilter* filter, QMap<QString, QVariant> co
 	typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
 	auto resampler = ResampleFilterType::New();
 	typename ResampleFilterType::OriginPointType origin;
-	origin[0] = parameters["Origin X"].toUInt(); origin[1] = parameters["Origin Y"].toUInt(); origin[2] = parameters["Origin Z"].toUInt();
+	origin[0] = parameters["Origin X"].toUInt();
+	origin[1] = parameters["Origin Y"].toUInt();
+	origin[2] = parameters["Origin Z"].toUInt();
 	typename ResampleFilterType::SpacingType spacing;
-	spacing[0] = parameters["Spacing X"].toDouble(); spacing[1] = parameters["Spacing Y"].toDouble(); spacing[2] = parameters["Spacing Z"].toDouble();
+	spacing[0] = parameters["Spacing X"].toDouble();
+	spacing[1] = parameters["Spacing Y"].toDouble();
+	spacing[2] = parameters["Spacing Z"].toDouble();
 	typename ResampleFilterType::SizeType size;
-	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
+	size[0] = parameters["Size X"].toUInt();
+	size[1] = parameters["Size Y"].toUInt();
+	size[2] = parameters["Size Z"].toUInt();
 	QString interpolatorName = parameters["Interpolator"].toString();
 	if (interpolatorName == InterpLinear)
 	{

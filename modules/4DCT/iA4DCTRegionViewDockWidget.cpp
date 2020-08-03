@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,11 +27,11 @@ iA4DCTRegionViewDockWidget::iA4DCTRegionViewDockWidget( QWidget * parent )
 	, m_visModule( nullptr )
 {
 	setupUi( this );
-	connect( sSilhoetteWidth, SIGNAL( valueChanged( int ) ), this, SLOT( onSilhoetteWidthChanged( int ) ) );
-	connect( sSilhoetteOpacity, SIGNAL( valueChanged( int ) ), this, SLOT( onSilhoetteOpacityChanged( int ) ) );
-	connect( sSurfaceOpacity, SIGNAL( valueChanged( int ) ), this, SLOT( onSurfaceOpacityChanged( int ) ) );
-	connect( cbSilhoetteColor, SIGNAL( colorChanged( QColor ) ), this, SLOT( onSilhoetteColorChanged( QColor ) ) );
-	connect( cbSurfaceColor, SIGNAL( colorChanged( QColor ) ), this, SLOT( onSurfaceColorChanged( QColor ) ) );
+	connect( sSilhoetteWidth, &QSlider::valueChanged, this, &iA4DCTRegionViewDockWidget::onSilhoetteWidthChanged);
+	connect( sSilhoetteOpacity, &QSlider::valueChanged, this, &iA4DCTRegionViewDockWidget::onSilhoetteOpacityChanged);
+	connect( sSurfaceOpacity, &QSlider::valueChanged, this, &iA4DCTRegionViewDockWidget::onSurfaceOpacityChanged);
+	connect( cbSilhoetteColor, &iAColorBox::colorChanged, this, &iA4DCTRegionViewDockWidget::onSilhoetteColorChanged);
+	connect( cbSurfaceColor, &iAColorBox::colorChanged, this, &iA4DCTRegionViewDockWidget::onSurfaceColorChanged);
 }
 
 void iA4DCTRegionViewDockWidget::attachTo( iARegionVisModule * visModule )

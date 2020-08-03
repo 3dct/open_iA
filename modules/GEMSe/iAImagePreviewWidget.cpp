@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -60,17 +60,17 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 	iASlicerMode mode, int labelCount, bool magicLens):
 	QWidget(parent),
 	m_isLabelImage(isLabel),
-	m_conn(0),
 	m_empty(true),
 	m_enableInteractions(commonCamera),
+	m_conn(nullptr),
+	m_slicerTransform(vtkTransform::New()),
 	m_title(title),
 	m_commonCamera(commonCamera),
 	m_labelCount(labelCount),
 	m_sliceNumber(SliceNumberNotSet),
 	m_mode(mode),
 	m_aspectRatio(1.0),
-	m_colorTheme(nullptr),
-	m_slicerTransform(vtkTransform::New())
+	m_colorTheme(nullptr)
 {
 	m_slicer = new iASlicer(this, mode, false, magicLens, m_slicerTransform);
 	m_slicer->setup(iASingleSlicerSettings());
@@ -91,8 +91,8 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 		m_slicer->disableInteractor();
 	}
 
-	connect(m_slicer, SIGNAL(clicked()), this, SIGNAL(clicked()));
-	connect(m_slicer, SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
+	connect(m_slicer, &iASlicer::clicked, this, &iAImagePreviewWidget::clicked);
+	connect(m_slicer, &iASlicer::rightClicked, this, &iAImagePreviewWidget::SlicerRightClicked);
 	connect(m_slicer, &iASlicer::oslicerPos, this, &iAImagePreviewWidget::SlicerHovered);
 	connect(m_slicer, &iASlicer::userInteraction, this, &iAImagePreviewWidget::updated);
 	setLayout(new QHBoxLayout);
@@ -300,12 +300,14 @@ QSize iAImagePreviewWidget::sizeHint() const
 }
 
 
+/*
 #include <QResizeEvent>
 
 namespace
 {
 	const int Tolerance = 0;
 }
+*/
 
 void iAImagePreviewWidget::resizeEvent(QResizeEvent * /*event*/)
 {

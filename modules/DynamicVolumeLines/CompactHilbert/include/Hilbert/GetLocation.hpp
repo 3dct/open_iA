@@ -26,7 +26,7 @@
 
 namespace Hilbert
 {
-	
+
 	template<class P,class I>
 	H_INLINE
 	void
@@ -44,19 +44,19 @@ namespace Hilbert
     {
 #define GETLOC_CASE(i)		case (i+1): if (p[jo+i].racks()[ir]&im) l|=(FBV1<<i)
 #define GETLOC_CASE2(i) \
-			GETLOC_CASE(i+1); \
+			GETLOC_CASE((i+1)); \
 			GETLOC_CASE(i)
 #define GETLOC_CASE4(i) \
-			GETLOC_CASE2(i+2); \
+			GETLOC_CASE2((i+2)); \
 			GETLOC_CASE2(i)
 #define GETLOC_CASE8(i) \
-			GETLOC_CASE4(i+4); \
+			GETLOC_CASE4((i+4)); \
 			GETLOC_CASE4(i)
 #define GETLOC_CASE16(i) \
-			GETLOC_CASE8(i+8); \
+			GETLOC_CASE8((i+8)); \
 			GETLOC_CASE8(i)
 #define GETLOC_CASE32(i) \
-			GETLOC_CASE16(i+16); \
+			GETLOC_CASE16((i+16)); \
 			GETLOC_CASE16(i)
 #if FBV_BITS == 64
 			GETLOC_CASE32(32);
@@ -65,8 +65,8 @@ namespace Hilbert
 		}
 		return;
 	}
-	
-	
+
+
 	template<class P,class I>
 	H_INLINE
 	void
@@ -81,10 +81,10 @@ namespace Hilbert
 		for ( j = n-1; j >= 0; --j )
 			l.setBit(j,p[j].getBit(i));
 		return;*/
-		
+
 		int j, jo, ir;
 		FBV_UINT im;
-		
+
 		if ( P::type() == eBig )
 		{
 			ir = i / FBV_BITS;
@@ -95,7 +95,7 @@ namespace Hilbert
 			ir = 0;
 			im = FBV1 << i;
 		}
-		
+
 		j = 0;
 		jo = 0;
 		if ( I::type() == eBig )
@@ -104,10 +104,10 @@ namespace Hilbert
 				_getLocation<P,I>(p,jo,FBV_BITS,ir,im,l.racks()[j]);
 		}
 		_getLocation<P,I>(p,jo,n-jo,ir,im,l.racks()[j]);
-		
+
 		return;
 	}
-	
+
 };
 
 

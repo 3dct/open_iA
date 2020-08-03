@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -52,17 +52,17 @@
 dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
 	m_itemModel(new QStandardItemModel()),
 	m_colorTheme(colorTheme),
-	m_mdiChild(mdiChild),
 	m_maxColor(0),
+	m_mdiChild(mdiChild),
 	m_labelChannelID(mdiChild->createChannel())
 {
-	connect(pbAdd, SIGNAL(clicked()), this, SLOT(Add()));
-	connect(pbRemove, SIGNAL(clicked()), this, SLOT(Remove()));
-	connect(pbStore, SIGNAL(clicked()), this, SLOT(Store()));
-	connect(pbLoad, SIGNAL(clicked()), this, SLOT(Load()));
-	connect(pbStoreImage, SIGNAL(clicked()), this, SLOT(storeImage()));
-	connect(pbSample, SIGNAL(clicked()), this, SLOT(Sample()));
-	connect(pbClear, SIGNAL(clicked()), this, SLOT(Clear()));
+	connect(pbAdd, &QPushButton::clicked, this, &dlg_labels::Add);
+	connect(pbRemove, &QPushButton::clicked, this, &dlg_labels::Remove);
+	connect(pbStore, &QPushButton::clicked, this, &dlg_labels::Store);
+	connect(pbLoad, &QPushButton::clicked, this, &dlg_labels::Load);
+	connect(pbStoreImage, &QPushButton::clicked, this, &dlg_labels::storeImage);
+	connect(pbSample, &QPushButton::clicked, this, &dlg_labels::Sample);
+	connect(pbClear, &QPushButton::clicked, this, &dlg_labels::Clear);
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
 	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	lvLabels->setModel(m_itemModel);
@@ -296,14 +296,14 @@ bool dlg_labels::load(QString const & filename)
 	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-	{	
+	{
 		DEBUG_LOG(QString("Seed file loading: Failed to open file '%1'!").arg(filename));
 		return false;
 	}
 	QXmlStreamReader stream(&file);
 	stream.readNext();
 	int curLabelRow = -1;
-	
+
 	bool enableStoreBtn = false;
 	while (!stream.atEnd())
 	{
@@ -371,7 +371,7 @@ bool dlg_labels::store(QString const & filename, bool extendedFormat)
 {
 	QFile file(filename);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-	{	
+	{
 		QMessageBox::warning(this, "GEMSe", "Seed file storing: Failed to open file '" + filename + "'!");
 		return false;
 	}
@@ -404,7 +404,7 @@ bool dlg_labels::store(QString const & filename, bool extendedFormat)
 				for (int m = 0; m < modalities->size(); ++m)
 				{
 					auto mod = modalities->get(m);
-					for (int c = 0; c < mod->componentCount(); ++c)
+					for (size_t c = 0; c < mod->componentCount(); ++c)
 					{
 						double value = mod->component(c)->GetScalarComponentAsDouble(x, y, z, 0);
 						stream.writeStartElement("Value");
@@ -565,7 +565,7 @@ void dlg_labels::Sample()
 			numOfSeedsPerLabel[i] = minNumOfSeeds;
 		}
 	}
-	
+
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> xDist(0, img->GetDimensions()[0] - 1);

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -34,9 +34,9 @@ iA4DCTListView::iA4DCTListView( QWidget* parent/*=0*/ ) :
 	QListView( parent )
 {
 	m_actOpen = new QAction( tr( "Open file" ), this );
-	connect( m_actOpen, SIGNAL( triggered( ) ), this, SLOT( openFile( ) ) );
+	connect( m_actOpen, &QAction::triggered, this, &iA4DCTListView::openFile);
 	m_actNew = new QAction( tr( "Add new file" ), this );
-	connect( m_actNew, SIGNAL( triggered( ) ), this, SLOT( addFile( ) ) );
+	connect( m_actNew, &QAction::triggered, this, &iA4DCTListView::addFile);
 
 	m_menu = new QMenu( this );
 	m_menu->addAction( m_actOpen );

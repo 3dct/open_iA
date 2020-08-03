@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,6 +26,8 @@
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-overflow"
 #include <itkCastImageFilter.h>
 #include <itkConvolutionImageFilter.h>
 #include <itkFFTConvolutionImageFilter.h>
@@ -33,7 +35,7 @@
 #include <itkNormalizedCorrelationImageFilter.h>
 #include <itkPipelineMonitorImageFilter.h>
 #include <itkStreamingImageFilter.h>
-
+#pragma GCC diagnostic pop
 
 template<class T> void convolution(iAFilter* filter)
 {
@@ -73,7 +75,7 @@ iAConvolution::iAConvolution() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ConvolutionImageFilter.html\">"
 		"Convolution Filter</a> in the ITK documentation.", 2)
 {
-	setInputName(1, "Kernel image");
+	setInputName(1u, "Kernel image");
 }
 
 // FFT-based convolution instead of spatial domain convolution
@@ -115,7 +117,7 @@ iAFFTConvolution::iAFFTConvolution() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FFTConvolutionImageFilter.html\">"
 		"FFT Convolution Filter</a> in the ITK documentation.", 2)
 {
-	setInputName(1, "Kernel image");
+	setInputName(1u, "Kernel image");
 }
 
 template<class T> void correlation(iAFilter* filter)
@@ -166,7 +168,7 @@ iACorrelation::iACorrelation() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1NormalizedCorrelationImageFilter.html\">"
 		"Normalized Correlation Filter</a> in the ITK documentation.", 2)
 {
-	setInputName(1, "Template image");
+	setInputName(1u, "Template image");
 }
 
 //NCC calculation using fft
@@ -215,7 +217,7 @@ iAFFTCorrelation::iAFFTCorrelation() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FFTNormalizedCorrelationImageFilter.html\">"
 		"FFT Normalized Correlation Filter</a> in the ITK documentation.")
 {
-	setInputName(1, "Template image");
+	setInputName(1u, "Template image");
 }
 
 template<class T> void streamed_fft_correlation(iAFilter* filter)
@@ -276,5 +278,5 @@ iAStreamedFFTCorrelation::iAStreamedFFTCorrelation() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1StreamingImageFilter.html\">"
 		"Streaming Filters</a> in the ITK documentation.", 2)
 {
-	setInputName(1, "Template image");
+	setInputName(1u, "Template image");
 }
