@@ -67,7 +67,7 @@ public:
 	void setColorFunction(vtkColorTransferFunction *colorTF) { m_colorTF = colorTF; }
 	void triggerOnChange();
 signals:
-	void Changed();
+	void changed();
 private:
 	void setPointColor(int selectedPoint, double chartX, double red, double green, double blue);
 	void setPointOpacity(int selectedPoint, int pixelX, int pixelY);

@@ -485,7 +485,7 @@ int iAChartTransferFunction::opacity2PixelY(double opacity)
 
 void iAChartTransferFunction::triggerOnChange()
 {
-	emit Changed();
+	emit changed();
 }
 
 size_t iAChartTransferFunction::numPoints() const
