@@ -286,7 +286,7 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, &iAChartWithFunctionsWidget::noPointSelected, this, &MdiChild::noPointSelected);
 	connect(m_histogram, &iAChartWithFunctionsWidget::endPointSelected, this, &MdiChild::endPointSelected);
 	connect(m_histogram, &iAChartWithFunctionsWidget::active, this, &MdiChild::active);
-	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), &iAChartTransferFunction::Changed, this, &MdiChild::modalityTFChanged);
+	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), &iAChartTransferFunction::changed, this, &MdiChild::modalityTFChanged);
 
 	connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateImageProperties);
 	connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateViews);

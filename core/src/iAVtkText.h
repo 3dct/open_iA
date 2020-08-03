@@ -20,49 +20,43 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAChartFunction.h"
-#include "open_iA_Core_export.h"
+#include <vtkObject.h>
+#include <vtkSmartPointer.h>
 
-#include <QColor>
+class vtkRenderer;
+class vtkTextMapper;
+class vtkActor2D;
 
-//! Class representing a Gaussian function in an iAChartWithFunctionsWidget.
-//! Draws itself, and allows modifying its mean, sigma, "multiplier" (i.e. its height).
-//! Can be used e.g. for fitting Gaussian curves to histogram peaks.
-class open_iA_Core_API iAChartFunctionGaussian : public iAChartFunction
-{
+//! Wraps the vtk classes required to display a text.
+class iAVtkText : public vtkObject {
+
 public:
-	iAChartFunctionGaussian(iAChartWithFunctionsWidget *chart, QColor &color, bool reset = true);
+	static iAVtkText* New();
 
-	void draw(QPainter &painter) override;
-	void draw(QPainter &painter, QColor color, int lineWidth) override;
-	void drawOnTop(QPainter&) override {}
-	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
-	int getSelectedPoint() const override { return 0; }
-	int addPoint(int, int) override { return 0; }
-	void addColorPoint(int, double, double, double) override {}
-	void removePoint(int) override {}
-	void moveSelectedPoint(int x, int y) override;
-	void changeColor(QMouseEvent *) override {}
-	bool isColored() const override { return false; }
-	bool isEndPoint(int) const override { return true; }
-	bool isDeletable(int) const override { return false; }
-	void reset() override;
-	virtual QString name() const override;
-	size_t numPoints() const override;
+	//! Set the text to a fixed position in the scene.
+	void setPosition(double x, double y);
 
-	void setMean(double mean)   { m_mean = mean; }
-	void setSigma(double sigma) { m_sigma = sigma; }
-	void setMultiplier(double multiplier) { m_multiplier = multiplier; }
+	//! Add the text to the scene.
+	void addToScene(vtkRenderer* renderer);
 
-	double getMean()       { return m_mean; }
-	double getSigma()      { return m_sigma; }
-	double getCovariance() { return m_sigma * m_sigma; }
-	double getMultiplier() { return m_multiplier; }
+	//! Hide or show the text.
+	void show(bool show);
+
+	//! determine whether text is currently shown
+	bool isShown() const;
+
+	//! Set the text.
+	void setText(const char* text);
+
+	//! Set the size of the text
+	void setFontSize(int fontSize);
 
 private:
-	QColor m_color;
-	int    m_selectedPoint;
-	double m_mean;
-	double m_sigma;
-	double m_multiplier;
+	vtkSmartPointer<vtkTextMapper> m_textMapper;
+	vtkSmartPointer<vtkActor2D> m_actor;
+private:
+	iAVtkText(const iAVtkText&) = delete;
+	void operator=(const iAVtkText&) = delete;
+protected:
+	iAVtkText();
 };

@@ -42,7 +42,7 @@ class iASingleSlicerSettings;
 class iASlicer;
 class iASlicerInteractorStyle;
 class iASnakeSpline;
-class iAWrapperText;
+class iAVtkText;
 class MdiChild;
 
 class vtkAbstractTransform;
@@ -317,7 +317,8 @@ protected:
 	void updateBackground();
 	void printVoxelInformation();
 	void executeKeyPressEvent();
-	void defaultOutput();
+	// defaultOutput currently unused - maybe remove? previously used when outside of image dimensions
+	// void defaultOutput();
 
 	//!	This function is used to check whether any agreeable maximum gradient is near the given point.
 	//!	The ROI is 2 voxels on all four direction. if yes move to the closest maximum gradient.
@@ -384,7 +385,7 @@ private:
 	vtkSmartPointer<vtkLogoRepresentation> m_logoRep;
 	vtkSmartPointer<vtkQImageToImageSource> m_logoImage;
 
-	vtkSmartPointer<iAWrapperText> m_textInfo;
+	vtkSmartPointer<iAVtkText> m_textInfo;
 	vtkSmartPointer<iARulerWidget> m_rulerWidget;
 
 	//! @{ position marker / statistical extent

@@ -18,62 +18,61 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAVtkText.h"
 
-#include "vtkObject.h"
+#include <vtkActor2D.h>
+#include <vtkObjectFactory.h>
+#include <vtkRenderer.h>
+#include <vtkTextMapper.h>
+#include <vtkTextProperty.h>
 
-class vtkRenderer;
-class vtkTextMapper;
-class vtkTextProperty;
-class vtkActor2D;
+vtkStandardNewMacro(iAVtkText);
 
+iAVtkText::iAVtkText():
+	m_textMapper(vtkSmartPointer<vtkTextMapper>::New()),
+	m_actor(vtkSmartPointer<vtkActor2D>::New())
+{
+	m_textMapper->SetInput("");
 
-class iAWrapperText : public vtkObject {
+	vtkTextProperty* pProperty = m_textMapper->GetTextProperty();
+	pProperty->SetBold(1);
+	pProperty->SetFontSize(10);
+	pProperty->SetShadow(1);
+	pProperty->SetFontFamily(VTK_COURIER);
+	pProperty->SetColor(0.5, 0.65, 0.86);
+	pProperty->SetJustification(VTK_TEXT_LEFT);
+	pProperty->SetVerticalJustification(VTK_TEXT_CENTERED);
 
-	public:
-		static iAWrapperText *New();
+	m_actor->SetMapper(m_textMapper);
+}
 
-		// Just pass the current window size and the text will center itself.
-		void SetParentWindowSize(int cxWin, int cyWin);
+void iAVtkText::addToScene(vtkRenderer* renderer)
+{
+	renderer->AddActor(m_actor);
+	m_textMapper->GetTextProperty()->SetOpacity(1.0);
+}
 
-		// Add the to the scene.
-		void AddToScene(vtkRenderer *pParentRenderer);
+void iAVtkText::setPosition(double x, double y)
+{
+	m_actor->SetPosition(x, y);
+}
 
-		// Hide or show the text.
-		void Show(int bShow);
+void iAVtkText::setText(const char* text)
+{
+	m_textMapper->SetInput(text);
+}
 
-		// Set the text.
-		void SetText(const char *pszText);
+void iAVtkText::setFontSize(int fontSize)
+{
+	m_textMapper->GetTextProperty()->SetFontSize(fontSize);
+}
 
-		// Set the position of the text.
-		void SetPosition(int nPosition);
+void iAVtkText::show(bool show)
+{
+	m_actor->SetVisibility(show);
+}
 
-		// Get a pointer to the internal text mapper.
-		vtkTextMapper* GetTextMapper() { return m_TextMapper; }
-		vtkActor2D* GetActor() { return m_Actor; }
-
-		enum {
-			POS_CENTER,
-			POS_UPPER_LEFT,
-			POS_UPPER_RIGHT,
-			POS_LOWER_RIGHT,
-			POS_LOWER_LEFT
-		};
-
-	private:
-
-		// Combine a text mapper with an actor.
-		vtkTextMapper *m_TextMapper;
-		vtkActor2D    *m_Actor;
-
-		int m_cxWin, m_cyWin;
-		int m_nPositionType;
-
-	private:
-		iAWrapperText(const iAWrapperText&); // Not implemented
-		void operator=(const iAWrapperText&); // Not implemented
-
-	protected:
-		iAWrapperText();
-		~iAWrapperText();
-};
+bool iAVtkText::isShown() const
+{
+	return m_actor->GetVisibility();
+}

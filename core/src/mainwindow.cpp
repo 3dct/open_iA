@@ -1481,33 +1481,28 @@ void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 	std::vector<iAChartFunction*> const & oldChildFunctions = oldChild->functions();
 	for (unsigned int i = 1; i < oldChildFunctions.size(); ++i)
 	{
+		// TODO: implement a "clone" function to avoid dynamic_cast here?
 		iAChartFunction *curFunc = oldChildFunctions[i];
-		switch (curFunc->getType())
+		if (dynamic_cast<iAChartFunctionGaussian*>(curFunc))
 		{
-		case iAChartFunction::GAUSSIAN:
-		{
-			iAChartFunctionGaussian * oldGaussian = (iAChartFunctionGaussian*)curFunc;
-			iAChartFunctionGaussian * newGaussian = new iAChartFunctionGaussian(newChild->histogram(), PredefinedColors()[i % 7]);
+			auto oldGaussian = dynamic_cast<iAChartFunctionGaussian*>(curFunc);
+			auto newGaussian = new iAChartFunctionGaussian(newChild->histogram(), PredefinedColors()[i % 7]);
 			newGaussian->setMean(oldGaussian->getMean());
 			newGaussian->setMultiplier(oldGaussian->getMultiplier());
 			newGaussian->setSigma(oldGaussian->getSigma());
 			newChild->functions().push_back(newGaussian);
 		}
-		break;
-		case iAChartFunction::BEZIER:
+		else if (dynamic_cast<iAChartFunctionBezier*>(curFunc))
 		{
-			iAChartFunctionBezier * oldBezier = (iAChartFunctionBezier*)curFunc;
-			iAChartFunctionBezier * newBezier = new iAChartFunctionBezier(newChild->histogram(), PredefinedColors()[i % 7]);
+			auto oldBezier = dynamic_cast<iAChartFunctionBezier*>(curFunc);
+			auto newBezier = new iAChartFunctionBezier(newChild->histogram(), PredefinedColors()[i % 7]);
 			for (unsigned int j = 0; j < oldBezier->getPoints().size(); ++j)
 			{
 				newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());
 			}
 			newChild->functions().push_back(newBezier);
 		}
-		break;
-		default:	// unknown function type, do nothing
-			break;
-		}
+		// otherwise: unknown function type, do nothing
 	}
 }
 

@@ -31,20 +31,15 @@ class QMouseEvent;
 class QPainter;
 class iAChartWithFunctionsWidget;
 
+//! Abstract base class for representing some kind of function in an an iAChartWithFunctionsWidget.
 class open_iA_Core_API iAChartFunction: public QObject
 {
 	Q_OBJECT
 public:
-	static const int TRANSFER = 0;
-	static const int GAUSSIAN = 1;
-	static const int BEZIER   = 2;
-	
 	static const int LineWidthUnselected = 1;
 	static const int LineWidthSelected   = 2;
 
 	iAChartFunction(iAChartWithFunctionsWidget* chart) : m_chart(chart) { }
-
-	virtual int getType() const = 0;
 
 	virtual void draw(QPainter &painter) = 0;
 	virtual void draw(QPainter &painter, QColor color, int lineWidth) = 0;
