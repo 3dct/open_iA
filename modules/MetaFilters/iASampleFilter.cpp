@@ -64,6 +64,7 @@ iASampleFilter::iASampleFilter() :
 	addParameter(spnSubfolderPerSample, Boolean, false);
 	addParameter(spnComputeDerivedOutput, Boolean, false);
 	addParameter(spnAbortOnError, Boolean, true);
+	addParameter(spnCompressOutput, Boolean, true);
 	addParameter(spnNumberOfLabels, Discrete, 2);
 }
 

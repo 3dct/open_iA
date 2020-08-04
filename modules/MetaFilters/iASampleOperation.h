@@ -20,13 +20,25 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QString>
+#include <iAPerformanceHelper.h>
 
-class iASampleOperation
+#include <QString>
+#include <QThread>
+
+class iASampleOperation: public QThread
 {
 public:
+	iASampleOperation();
 	virtual ~iASampleOperation();
 	virtual QString output() const = 0;
-	virtual bool success() const = 0;
-	virtual double duration() const = 0;
+	bool success() const;
+	iAPerformanceTimer::DurationType duration() const;
+protected:
+	virtual void performWork() =0;
+	void setSuccess(bool success);
+private:
+	void run() override;
+	iAPerformanceTimer m_timer;
+	iAPerformanceTimer::DurationType m_duration;
+	bool m_success;
 };

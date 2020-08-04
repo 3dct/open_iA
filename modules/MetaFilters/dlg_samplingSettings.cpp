@@ -66,6 +66,7 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	m_widgetMap.insert(spnBaseName, leImageBaseName);
 	m_widgetMap.insert(spnSubfolderPerSample, cbSeparateFolder);
 	m_widgetMap.insert(spnAbortOnError, cbAbortOnError);
+	m_widgetMap.insert(spnCompressOutput, cbCompressOutput);
 	m_widgetMap.insert(spnComputeDerivedOutput, cbCalcChar);
 	m_widgetMap.insert(spnNumberOfLabels, sbLabelCount);
 

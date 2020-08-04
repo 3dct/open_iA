@@ -18,59 +18,33 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iACommandRunner.h"
+#include "iASampleOperation.h"
 
-#include <iAConsole.h>
+iASampleOperation::iASampleOperation():
+	m_success(false)
+{}
 
-#include <QFileInfo>
+iASampleOperation::~iASampleOperation()
+{}
 
-iACommandRunner::iACommandRunner(QString const & executable, QStringList const & arguments) :
-	m_executable(executable),
-	m_arguments(arguments)
+void iASampleOperation::run()
 {
+	m_timer.start();
+	performWork();
+	m_duration = m_timer.elapsed();
 }
 
-void iACommandRunner::performWork()
+iAPerformanceTimer::DurationType iASampleOperation::duration() const
 {
-	QProcess myProcess;
-	myProcess.setProgram(m_executable);
-	QFileInfo fi(m_executable);
-	myProcess.setWorkingDirectory(fi.absolutePath());
-	myProcess.setArguments(m_arguments);
-	DEBUG_LOG(QString("Running '%1' with arguments '%2'").arg(m_executable).arg(m_arguments.join(" ")));
-	myProcess.setProcessChannelMode(QProcess::MergedChannels);
-	connect(&myProcess, &QProcess::errorOccurred, this, &iACommandRunner::errorOccured);
-	myProcess.start();
-	myProcess.waitForFinished(-1);
-	if (myProcess.exitStatus() != QProcess::NormalExit)
-	{
-		DEBUG_LOG("Program crashed!");
-	}
-	else
-	{
-		int statusCode = myProcess.exitCode();
-		setSuccess(statusCode == 0);
-		if (!success())
-		{
-			DEBUG_LOG(QString("Program exited with status code %1").arg(myProcess.exitCode()));
-		}
-	}
-	m_output = myProcess.readAllStandardOutput();
-	m_output.replace("\r", "");
+	return m_duration;
 }
 
-void iACommandRunner::errorOccured(QProcess::ProcessError p)
+bool iASampleOperation::success() const
 {
-	DEBUG_LOG(QString("CommandRunner: An error has occured %1").arg
-	(p == QProcess::FailedToStart ? "failed to start" :
-		p == QProcess::Crashed ? "Crashed" :
-		p == QProcess::Timedout ? "Timedout" :
-		p == QProcess::ReadError ? "Read Error" :
-		p == QProcess::WriteError ? "Write Error" :
-		"Unknown Error"));
+	return m_success;
 }
 
-QString iACommandRunner::output() const
+void iASampleOperation::setSuccess(bool success)
 {
-	return m_output;
+	m_success = success;
 }

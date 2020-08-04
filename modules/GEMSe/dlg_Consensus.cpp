@@ -1004,6 +1004,7 @@ void dlg_Consensus::LoadConfig()
 		params.insert(spnSubfolderPerSample, true);
 		params.insert(spnComputeDerivedOutput, true);
 		params.insert(spnAbortOnError, true);
+		params.insert(spnCompressOutput, true);
 		auto sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
 			m_mdiChild->modalities(),
 			params,

@@ -22,27 +22,19 @@
 
 #include "iASampleOperation.h"
 
-#include <iAPerformanceHelper.h>
-
 #include <QProcess>
-#include <QThread>
 
-class iACommandRunner : public QThread, public iASampleOperation
+class iACommandRunner : public iASampleOperation
 {
 	Q_OBJECT
 public:
 	iACommandRunner(QString const & executable, QStringList const & arguments);
-	void run();
-	iAPerformanceTimer::DurationType duration() const override;
 	QString output() const override;
-	bool success() const override;
 private slots:
 	void errorOccured(QProcess::ProcessError);
 private:
+	void performWork() override;
 	QString m_executable;
 	QStringList m_arguments;
-	iAPerformanceTimer m_timer;
-	iAPerformanceTimer::DurationType m_duration;
 	QString m_output;
-	bool m_success;
 };

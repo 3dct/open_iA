@@ -13,6 +13,7 @@ const QString spnBaseName("Base name");
 const QString spnSubfolderPerSample("Subfolder per sample");
 const QString spnComputeDerivedOutput("Compute derived output");
 const QString spnAbortOnError("Abort on errors");
+const QString spnCompressOutput("Compress Output");
 const QString spnNumberOfLabels("Number of labels");
 // Valid values for algorithm type parameter:
 const QString atBuiltIn("Built-in");

@@ -30,6 +30,7 @@
 #include "iASamplingResults.h"
 
 #include <iAAttributeDescriptor.h>
+#include <iAConnector.h>
 #include <iAConsole.h>
 #include <iAImageCoordinate.h>
 #include <iAModality.h>
@@ -42,9 +43,6 @@
 #include <QTextStream>
 
 const int CONCURRENT_COMPUTATION_RUNS = 1;
-
-iASampleOperation::~iASampleOperation()
-{}
 
 
 iAPerformanceTimer m_computationTimer;
@@ -124,14 +122,17 @@ void iAImageSampler::newSamplingRun()
 		QString("%1%2%3").arg(fi.baseName()).arg(m_curSample, m_numDigits, 10, QChar('0')).arg(
 			fi.completeSuffix().size() > 0 ? QString(".%1").arg(fi.completeSuffix()) : QString(""))
 		);
-
+	iASampleOperation* op(nullptr);
 	if (m_parameters[spnAlgorithmType].toString() == atBuiltIn)
 	{
 		QVector<iAConnector*> input; // TODO - pass in...?
-		iASampleFilterRunner* cmd = new iASampleFilterRunner(m_parameters, input);
-		m_runningComputation.insert(cmd, m_curSample);
-		connect(cmd, &iASampleFilterRunner::finished, this, &iAImageSampler::computationFinished);
-		cmd->start();
+		for (int m = 0; m < m_datasets->size(); ++m)
+		{
+			auto con = new iAConnector();
+			con->setImage(m_datasets->get(m)->image());
+			input.push_back(con);
+		}
+		op = new iASampleFilterRunner(m_parameters, input, outputFile);
 	}
 	else if (m_parameters[spnAlgorithmType].toString() == atExternal)
 	{
@@ -162,11 +163,16 @@ void iAImageSampler::newSamplingRun()
 			}
 			argumentList << value;
 		}
-		iACommandRunner* cmd = new iACommandRunner(m_parameters[spnExecutable].toString(), argumentList);
-		m_runningComputation.insert(cmd, m_curSample);
-		connect(cmd, &iACommandRunner::finished, this, &iAImageSampler::computationFinished);
-		cmd->start();
+		op = new iACommandRunner(m_parameters[spnExecutable].toString(), argumentList);
 	}
+	if (!op)
+	{
+		statusMsg("Invalid configuration - neither Built-in nor external sampling operation were created!");
+		return;
+	}
+	m_runningComputation.insert(op, m_curSample);
+	connect(op, &iASampleFilterRunner::finished, this, &iAImageSampler::computationFinished);
+	op->start();
 	++m_curSample;
 }
 

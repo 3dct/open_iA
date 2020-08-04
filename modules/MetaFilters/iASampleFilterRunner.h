@@ -24,21 +24,21 @@
 
 #include <QMap>
 #include <QString>
-#include <QThread>
 
 class iAConnector;
 
-class iASampleFilterRunner : public QThread, public iASampleOperation
+class iASampleFilterRunner : public iASampleOperation
 {
 	Q_OBJECT
 public:
 	iASampleFilterRunner(QMap<QString, QVariant> const& parameters,
-		QVector<iAConnector*> input);
+		QVector<iAConnector*> input,
+		QString const& outputFileName);
 	QString output() const override;
-	bool success() const override;
-	double duration() const override;
 private:
-	void run() override;
-	QMap<QString, QVariant> const& m_parameters;
+	void performWork() override;
+	QMap<QString, QVariant> const & m_parameters;
 	QVector<iAConnector*> m_input;
+	QString m_outputFileName;
+	bool m_success;
 };
