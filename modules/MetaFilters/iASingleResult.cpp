@@ -107,7 +107,7 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 QSharedPointer<iASingleResult> iASingleResult::create(
 	int id,
 	iASamplingResults const & sampling,
-	QVector<double> const & parameter,
+	QVector<QVariant> const & parameter,
 	QString const & fileName)
 {
 	QSharedPointer<iASingleResult> result(new iASingleResult(id, sampling));
@@ -134,13 +134,13 @@ QString iASingleResult::toString(QSharedPointer<iAAttributes> attributes, int ty
 			}
 			if (attributes->at(i)->nameMapper())
 			{
-				result += attributes->at(i)->nameMapper()->name(m_attributeValues[i]);
+				result += attributes->at(i)->nameMapper()->name(m_attributeValues[i].toInt());
 			}
 			else
 			{
 				result += (attributes->at(i)->valueType() == iAValueType::Discrete) ?
-					QString::number(static_cast<int>(m_attributeValues[i])) :
-					QString::number(m_attributeValues[i]);
+					QString::number(m_attributeValues[i].toInt()) :
+					m_attributeValues[i].toString();
 			}
 		}
 	}
@@ -198,7 +198,7 @@ void iASingleResult::discardProbability()
 
 double iASingleResult::attribute(int id) const
 {
-	return m_attributeValues[id];
+	return m_attributeValues[id].toDouble();
 }
 
 void iASingleResult::setAttribute(int id, double value)

@@ -25,7 +25,7 @@
 #include <QSharedPointer>
 #include <QVector>
 
-typedef QVector<double> ParameterSet;
+typedef QVector<QVariant> ParameterSet;
 typedef QVector<ParameterSet> ParameterSets;
 typedef QSharedPointer<ParameterSets> ParameterSetsPointer;
 

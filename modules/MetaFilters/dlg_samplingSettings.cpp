@@ -388,6 +388,7 @@ void dlg_samplingSettings::setInputsFromMap(iASettings const & values)
 	{
 		setParametersFromFilter(values[spnFilter].toString());
 	}
+	algoTypeChanged();
 	if (!values.contains(spnFilter) || values[spnFilter].toString().isEmpty())
 	{
 		pbFilterSelect->setText(SelectFilterDefaultText);

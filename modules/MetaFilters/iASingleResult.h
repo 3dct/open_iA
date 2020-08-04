@@ -44,7 +44,7 @@ public:
 	static QSharedPointer<iASingleResult> create(
 		int id,
 		iASamplingResults const & sampling,
-		QVector<double> const & parameter,
+		QVector<QVariant> const & parameter,
 		QString const & fileName);
 
 	//! retrieve all attritutes of the given type as string
@@ -86,8 +86,7 @@ public:
 private:
 	//! constructor; use static Create methods instead!
 	iASingleResult(int id, iASamplingResults const & sampling);
-	//! for now, value-type agnostic storage of values:
-	QVector<double> m_attributeValues;
+	QVector<QVariant> m_attributeValues;
 	iASamplingResults const & m_sampling;
 	int m_id;
 	iAITKIO::ImagePointer m_labelImg;

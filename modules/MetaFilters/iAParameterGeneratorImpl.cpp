@@ -300,7 +300,7 @@ ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QShare
 
 	// for each parameter, create a "range", dividing its interval into sampleCount pieces
 	QVector<QSharedPointer<RandomGenerator> > random;
-	QVector<QVector<double> > sampleValues;
+	ParameterSets sampleValues;
 
 	MyExtDblRandom dblRand;
 	for (int p = 0; p < parameter->size(); ++p)
@@ -312,12 +312,13 @@ ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QShare
 			sampleCount,
 			valueType);
 
-		sampleValues.push_back(QVector<double>());
+		sampleValues.push_back(ParameterSet());
 		// iterate over sampleCount, and for each parameter, create one value per piece
 		for (int s = 0; s < sampleCount; ++s)
 		{
 			// TODO: special handling for log? otherwise within the piece, we have linear distribution
-			double value = dblRand.next(range->min(s), range->max(s));
+			double value = range->min(s) == range->max(s) ? range->min(s) :
+				dblRand.next(range->min(s), range->max(s));
 			if (valueType == Discrete || valueType == Categorical)
 			{
 				value = static_cast<int>(value);
@@ -453,7 +454,7 @@ ParameterSetsPointer iASensitivityParameterGenerator::GetParameterSets(QSharedPo
 	{
 		offsetFactors.push_back(getSensitivityValue(i) / maxSensitivityValue);
 	}
-	QVector<QVector<double>> allValues(parameter->size());
+	ParameterSets allValues(parameter->size());
 	for (int p = 0; p < parameter->size(); ++p)
 	{
 		allValues[p].resize(samplesPerParameter);

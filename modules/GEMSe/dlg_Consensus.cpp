@@ -963,7 +963,7 @@ void dlg_Consensus::LoadConfig()
 				{
 					m_comparisonMVIDs[s].push_back(parameterSets->size());
 				}
-				QVector<double> singleParameterSet;
+				QVector<QVariant> singleParameterSet;
 				for (int p = 0; p < samplingResults->attributes()->size(); ++p)
 				{
 					if (samplingResults->attributes()->at(p)->attribType() == iAAttributeDescriptor::Parameter)

@@ -150,15 +150,17 @@ void iAImageSampler::newSamplingRun()
 			QString value;
 			switch (m_parameterRanges->at(i)->valueType())
 			{
-			default:
 			case Continuous:
-				value = QString::number(paramSet.at(i), 'g', 12);
+				value = QString::number(paramSet.at(i).toDouble(), 'g', 12);
 				break;
 			case Discrete:
-				value = QString::number(static_cast<long>(paramSet.at(i)));
+				value = QString::number(paramSet.at(i).toInt());
 				break;
 			case Categorical:
-				value = m_parameterRanges->at(i)->nameMapper()->name(static_cast<long>(paramSet.at(i)));
+				value = m_parameterRanges->at(i)->nameMapper()->name(paramSet.at(i).toInt());
+				break;
+			default:
+				value = paramSet.at(i).toString();
 				break;
 			}
 			argumentList << value;
