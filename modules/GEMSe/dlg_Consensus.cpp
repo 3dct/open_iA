@@ -990,12 +990,6 @@ void dlg_Consensus::LoadConfig()
 		QSharedPointer<iASelectionParameterGenerator> generator(
 			new iASelectionParameterGenerator(QString("Holdout Comparison, Algorithm %1").arg(s),
 				parameterSets));
-		QStringList fileNames;
-		auto datasets = m_mdiChild->modalities();
-		for (int i = 0; i < datasets->size(); ++i)
-		{
-			fileNames << datasets->get(i)->fileName();
-		}
 		m_samplerParameters.push_back(QMap<QString, QVariant>());
 		auto & params = m_samplerParameters[m_samplerParameters.size() - 1];
 		params.insert(spnNumberOfSamples, 0); // iASelectionParameterGenerator doesn't need this parameter
@@ -1011,7 +1005,7 @@ void dlg_Consensus::LoadConfig()
 		params.insert(spnComputeDerivedOutput, true);
 		params.insert(spnAbortOnError, true);
 		auto sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
-			fileNames,
+			m_mdiChild->modalities(),
 			params,
 			samplingResults->attributes(),
 			generator,

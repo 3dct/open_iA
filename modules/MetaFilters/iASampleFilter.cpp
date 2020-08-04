@@ -76,7 +76,7 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 		return;
 	}
 	iAImageSampler sampler(
-		m_fileNames,
+		m_input,
 		parameters,
 		m_parameterRanges,
 		parameterSetGenerator,
@@ -93,11 +93,11 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 	loop.exec();	  //< so wait for finished event
 }
 
-void iASampleFilter::setParameters(QStringList fileNames, QSharedPointer<iAAttributes> parameterRanges,
+void iASampleFilter::setParameters(QSharedPointer<iAModalityList> input, QSharedPointer<iAAttributes> parameterRanges,
 	QString const& parameterRangeFile, QString const& parameterSetFile, QString const& derivedOutFile, int samplingID)
 {
 	// TODO: get parameter ranges and filenames in cmd/gui-agnostical way?
-	m_fileNames = fileNames;
+	m_input = input;
 	m_parameterRanges = parameterRanges;
 
 	m_parameterRangeFile = parameterRangeFile;
@@ -140,13 +140,8 @@ bool iASampleFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QMa
 	QString parameterRangeFile = outBaseName + "-parameterRanges.csv";  // iASEAFile::DefaultSMPFileName,
 	QString parameterSetFile = outBaseName + "-parameterSets.csv";		// iASEAFile::DefaultSPSFileName,
 	QString derivedOutputFile = outBaseName + "-derivedOutput.csv";		// iASEAFile::DefaultCHRFileName,
-	QStringList fileNames;
-	auto datasets = sourceMdi->modalities();
-	for (int m = 0; m < datasets->size(); ++m)
-	{
-		fileNames << datasets->get(m)->fileName();
-	}
+
 	int SamplingID = 0;
-	sampleFilter->setParameters(fileNames, parameterRanges, parameterRangeFile, parameterSetFile, derivedOutputFile, SamplingID);
+	sampleFilter->setParameters(sourceMdi->modalities(), parameterRanges, parameterRangeFile, parameterSetFile, derivedOutputFile, SamplingID);
 	return true;
 }

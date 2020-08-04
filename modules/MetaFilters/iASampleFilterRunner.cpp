@@ -1,3 +1,4 @@
+
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
@@ -18,35 +19,53 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iASampleFilterRunner.h"
 
-#include "iAAttributes.h"
+#include "iASampleParameterNames.h"
+
+#include "iAConsole.h"
 #include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
+#include "iAFilterRegistry.h"
 
-class iAModalityList;
-
-class iASampleFilter : public iAFilter
+iASampleFilterRunner::iASampleFilterRunner(
+	QMap<QString, QVariant> const& parameters,
+	QVector<iAConnector*> input):
+	m_parameters(parameters),
+	m_input(input)
 {
-public:
-	static QSharedPointer<iASampleFilter> create();
-	void setParameters(QSharedPointer<iAModalityList> input, QSharedPointer<iAAttributes> parameterRanges,
-		QString const & parameterRangeFile, QString const & parameterSetFile, QString const & derivedOutFile, int samplingID);
-private:
-	void performWork(QMap<QString, QVariant> const& parameters) override;
-	iASampleFilter();
-	QSharedPointer<iAModalityList> m_input;
-	QSharedPointer<iAAttributes> m_parameterRanges;
-	QString m_parameterRangeFile,
-		m_parameterSetFile,
-		m_derivedOutFile;
-	int m_samplingID;
-};
+	assert(m_parameters[spnAlgorithmType].toString() == atBuiltIn);
+}
 
-class iASampleFilterRunner : public iAFilterRunnerGUI
+QString iASampleFilterRunner::output() const
 {
-public:
-	static QSharedPointer<iAFilterRunnerGUI> create();
-	bool askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant>& paramValues,
-		MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput) override;
-};
+	return "";
+}
+
+bool iASampleFilterRunner::success() const
+{
+	return true;
+}
+
+double iASampleFilterRunner::duration() const
+{
+	return 0.0;
+}
+
+void iASampleFilterRunner::run()
+{
+	QString filterName = m_parameters[spnFilter].toString();
+	auto filter = iAFilterRegistry::filter(filterName);
+	if (!filter)
+	{
+		QString msg = QString("Filter '%1' does not exist!").arg(filterName);
+		DEBUG_LOG(msg);
+		return;
+	}
+	for (auto in : m_input)
+	{
+		filter->addInput(in);
+	}
+	//QObject::connect(&progress, &iAProgress::progress, ... , &::progress);
+	//filter->setProgress(&progress);
+	filter->run(m_parameters);
+}

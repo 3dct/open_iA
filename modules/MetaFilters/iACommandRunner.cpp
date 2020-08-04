@@ -24,8 +24,8 @@
 
 #include <QFileInfo>
 
-iACommandRunner::iACommandRunner(QString const & executable, QStringList const & arguments)
-	:m_executable(executable),
+iACommandRunner::iACommandRunner(QString const & executable, QStringList const & arguments) :
+	m_executable(executable),
 	m_arguments(arguments)
 {
 }

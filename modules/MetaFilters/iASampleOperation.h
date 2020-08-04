@@ -20,33 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAttributes.h"
-#include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
+#include <QString>
 
-class iAModalityList;
-
-class iASampleFilter : public iAFilter
+class iASampleOperation
 {
 public:
-	static QSharedPointer<iASampleFilter> create();
-	void setParameters(QSharedPointer<iAModalityList> input, QSharedPointer<iAAttributes> parameterRanges,
-		QString const & parameterRangeFile, QString const & parameterSetFile, QString const & derivedOutFile, int samplingID);
-private:
-	void performWork(QMap<QString, QVariant> const& parameters) override;
-	iASampleFilter();
-	QSharedPointer<iAModalityList> m_input;
-	QSharedPointer<iAAttributes> m_parameterRanges;
-	QString m_parameterRangeFile,
-		m_parameterSetFile,
-		m_derivedOutFile;
-	int m_samplingID;
-};
-
-class iASampleFilterRunner : public iAFilterRunnerGUI
-{
-public:
-	static QSharedPointer<iAFilterRunnerGUI> create();
-	bool askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant>& paramValues,
-		MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput) override;
+	virtual ~iASampleOperation();
+	virtual QString output() const = 0;
+	virtual bool success() const = 0;
+	virtual double duration() const = 0;
 };

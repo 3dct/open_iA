@@ -202,19 +202,13 @@ void dlg_GEMSeControl::startSampling()
 			return;
 		}
 		m_simpleLabelInfo->setLabelCount(m_samplingSettings["Number of labels"].toInt());
-		QStringList fileNames;
-		auto datasets = m_dlgModalities->modalities();
-		for (int i = 0; i < datasets->size(); ++i)
-		{
-			fileNames << datasets->get(i)->fileName();
-		}
 		auto parameterSetGenerator = GetParameterGenerator(m_samplingSettings[spnSamplingMethod].toString());
 		if (!parameterSetGenerator)
 		{
 			return;
 		}
 		m_sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
-			fileNames,
+			m_dlgModalities->modalities(),
 			m_samplingSettings,
 			parameterRanges,
 			parameterSetGenerator,

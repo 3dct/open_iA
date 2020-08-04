@@ -25,6 +25,7 @@
 #include "iADerivedOutputCalculator.h"
 #include "iAParameterGenerator.h"
 #include "iASingleResult.h"
+#include "iASampleFilterRunner.h"
 #include "iASampleParameterNames.h"
 #include "iASamplingResults.h"
 
@@ -42,10 +43,14 @@
 
 const int CONCURRENT_COMPUTATION_RUNS = 1;
 
+iASampleOperation::~iASampleOperation()
+{}
+
+
 iAPerformanceTimer m_computationTimer;
 
 iAImageSampler::iAImageSampler(
-		QStringList fileNames,
+		QSharedPointer<iAModalityList> dataset,
 		QMap<QString, QVariant> const & parameters,
 		QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAParameterGenerator> sampleGenerator,
@@ -53,7 +58,7 @@ iAImageSampler::iAImageSampler(
 		QString const & parameterSetFile,
 		QString const & derivedOutputFile,
 		int samplingID) :
-	m_fileNames(fileNames),
+	m_datasets(dataset),
 	m_parameters(parameters),
 	m_parameterRanges(parameterRanges),
 	m_sampleGenerator(sampleGenerator),
@@ -122,7 +127,11 @@ void iAImageSampler::newSamplingRun()
 
 	if (m_parameters[spnAlgorithmType].toString() == atBuiltIn)
 	{
-		// TODO
+		QVector<iAConnector*> input; // TODO - pass in...?
+		iASampleFilterRunner* cmd = new iASampleFilterRunner(m_parameters, input);
+		m_runningComputation.insert(cmd, m_curSample);
+		connect(cmd, &iASampleFilterRunner::finished, this, &iAImageSampler::computationFinished);
+		cmd->start();
 	}
 	else if (m_parameters[spnAlgorithmType].toString() == atExternal)
 	{
@@ -130,9 +139,9 @@ void iAImageSampler::newSamplingRun()
 		argumentList << m_additionalArgumentList;
 		argumentList << outputFile;
 
-		for (QString fileName : m_fileNames)
+		for (int m = 0; m < m_datasets->size(); ++m)
 		{
-			argumentList << fileName;
+			argumentList << m_datasets->get(m)->fileName();
 		}
 
 		for (int i = 0; i < m_parameterCount; ++i)
@@ -154,7 +163,6 @@ void iAImageSampler::newSamplingRun()
 			argumentList << value;
 		}
 		iACommandRunner* cmd = new iACommandRunner(m_parameters[spnExecutable].toString(), argumentList);
-
 		m_runningComputation.insert(cmd, m_curSample);
 		connect(cmd, &iACommandRunner::finished, this, &iAImageSampler::computationFinished);
 		cmd->start();
@@ -181,7 +189,7 @@ void iAImageSampler::start()
 		statusMsg(QString("Executable '%1' doesn't exist!").arg(m_parameters[spnExecutable].toString()));
 		return;
 	}
-	if (m_fileNames.size() == 0)
+	if (m_datasets->size() == 0)
 	{
 		statusMsg("No input given!");
 		return;
@@ -230,20 +238,20 @@ void iAImageSampler::start()
 
 void iAImageSampler::computationFinished()
 {
-	iACommandRunner* cmd = dynamic_cast<iACommandRunner*>(QObject::sender());
-	if (!cmd)
+	iASampleOperation* op = dynamic_cast<iASampleOperation*>(QObject::sender());
+	if (!op)
 	{
 		statusMsg("Invalid state: nullptr sender in computationFinished!");
 		return;
 	}
-	int id = m_runningComputation[cmd];
-	m_runningComputation.remove(cmd);
-	iAPerformanceTimer::DurationType computationTime = cmd->duration();
+	int id = m_runningComputation[op];
+	m_runningComputation.remove(op);
+	iAPerformanceTimer::DurationType computationTime = op->duration();
 	statusMsg(QString("Finished in %1 seconds. Output: %2\n")
 		.arg(QString::number(computationTime))
-		.arg(cmd->output()));
+		.arg(op->output()));
 	m_computationDuration += computationTime;
-	if (!cmd->success())
+	if (!op->success())
 	{
 		statusMsg("Computation was NOT successful.");
 		if (m_parameters[spnAbortOnError].toBool())
@@ -287,7 +295,7 @@ void iAImageSampler::computationFinished()
 			statusMsg("Error writing parameter file.");
 		}
 	}
-	delete cmd;
+	delete op;
 	newSamplingRun();
 }
 

@@ -20,33 +20,25 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAttributes.h"
-#include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
+#include "iASampleOperation.h"
 
-class iAModalityList;
+#include <QMap>
+#include <QString>
+#include <QThread>
 
-class iASampleFilter : public iAFilter
+class iAConnector;
+
+class iASampleFilterRunner : public QThread, public iASampleOperation
 {
+	Q_OBJECT
 public:
-	static QSharedPointer<iASampleFilter> create();
-	void setParameters(QSharedPointer<iAModalityList> input, QSharedPointer<iAAttributes> parameterRanges,
-		QString const & parameterRangeFile, QString const & parameterSetFile, QString const & derivedOutFile, int samplingID);
+	iASampleFilterRunner(QMap<QString, QVariant> const& parameters,
+		QVector<iAConnector*> input);
+	QString output() const override;
+	bool success() const override;
+	double duration() const override;
 private:
-	void performWork(QMap<QString, QVariant> const& parameters) override;
-	iASampleFilter();
-	QSharedPointer<iAModalityList> m_input;
-	QSharedPointer<iAAttributes> m_parameterRanges;
-	QString m_parameterRangeFile,
-		m_parameterSetFile,
-		m_derivedOutFile;
-	int m_samplingID;
-};
-
-class iASampleFilterRunner : public iAFilterRunnerGUI
-{
-public:
-	static QSharedPointer<iAFilterRunnerGUI> create();
-	bool askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant>& paramValues,
-		MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput) override;
+	void run() override;
+	QMap<QString, QVariant> const& m_parameters;
+	QVector<iAConnector*> m_input;
 };

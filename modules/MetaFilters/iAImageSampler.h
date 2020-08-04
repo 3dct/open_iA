@@ -34,17 +34,19 @@
 #include <QSharedPointer>
 #include <QThread>
 
+class iADerivedOutputCalculator;
+class iASampleOperation;
 class iASamplingResults;
 class iASingleResult;
-class iADerivedOutputCalculator;
-class iACommandRunner;
+
+class iAModalityList;
 
 class MetaFilters_API iAImageSampler: public QObject, public iADurationEstimator, public iAAbortListener
 {
 	Q_OBJECT
 public:
 	iAImageSampler(
-		QStringList fileNames,
+		QSharedPointer<iAModalityList> datasets,
 		QMap<QString, QVariant> const & parameters,
 		QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAParameterGenerator> sampleGenerator,
@@ -65,7 +67,7 @@ signals:
 private:
 	//! @{
 	//! input
-	QStringList m_fileNames;
+	QSharedPointer<iAModalityList> m_datasets;
 	QMap<QString, QVariant> const& m_parameters;
 	QSharedPointer<iAAttributes> m_parameterRanges;
 	QSharedPointer<iAParameterGenerator> m_sampleGenerator;
@@ -87,7 +89,7 @@ private:
 
 	// intention: running several sampled algorithms in parallel
 	// downside: seems to slow down rather than speed up overall process
-	QMap<iACommandRunner*, int > m_runningComputation;
+	QMap<iASampleOperation*, int > m_runningComputation;
 	QMap<iADerivedOutputCalculator*, QSharedPointer<iASingleResult> > m_runningDerivedOutput;
 
 	QSharedPointer<iASamplingResults> m_results;

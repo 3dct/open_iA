@@ -20,20 +20,22 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iASampleOperation.h"
+
 #include <iAPerformanceHelper.h>
 
 #include <QProcess>
 #include <QThread>
 
-class iACommandRunner : public QThread
+class iACommandRunner : public QThread, public iASampleOperation
 {
 	Q_OBJECT
 public:
 	iACommandRunner(QString const & executable, QStringList const & arguments);
 	void run();
-	iAPerformanceTimer::DurationType duration() const;
-	QString output() const;
-	bool success() const;
+	iAPerformanceTimer::DurationType duration() const override;
+	QString output() const override;
+	bool success() const override;
 private slots:
 	void errorOccured(QProcess::ProcessError);
 private:
