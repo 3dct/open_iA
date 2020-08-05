@@ -21,8 +21,6 @@
 * ************************************************************************************/
 #include "iASampleBuiltInFilterOperation.h"
 
-#include "iASampleParameterNames.h"
-
 #include "iAConnector.h"
 #include "iAConsole.h"
 #include "iAFilter.h"
@@ -33,17 +31,20 @@
 #include <QFileInfo>
 
 iASampleBuiltInFilterOperation::iASampleBuiltInFilterOperation(
+	QString const& filterName,
+	bool compressOutput,
 	QMap<QString, QVariant> const& parameters,
 	QVector<iAConnector*> input,
-	QString const & outputFileName,
-	iALogger * logger):
+	QString const& outputFileName,
+	iALogger* logger) :
+	m_filterName(filterName),
+	m_compressOutput(compressOutput),
 	m_parameters(parameters),
 	m_input(input),
 	m_outputFileName(outputFileName),
-	m_success(false),
-	m_logger(logger)
+	m_logger(logger),
+	m_success(false)
 {
-	assert(m_parameters[spnAlgorithmType].toString() == atBuiltIn);
 }
 
 QString iASampleBuiltInFilterOperation::output() const
@@ -53,12 +54,10 @@ QString iASampleBuiltInFilterOperation::output() const
 
 void iASampleBuiltInFilterOperation::performWork()
 {
-	QString filterName = m_parameters[spnFilter].toString();
-	bool compress = m_parameters[spnCompressOutput].toBool();
-	auto filter = iAFilterRegistry::filter(filterName);
+	auto filter = iAFilterRegistry::filter(m_filterName);
 	if (!filter)
 	{
-		QString msg = QString("Filter '%1' does not exist!").arg(filterName);
+		QString msg = QString("Filter '%1' does not exist!").arg(m_filterName);
 		DEBUG_LOG(msg);
 		return;
 	}
@@ -92,8 +91,8 @@ void iASampleBuiltInFilterOperation::performWork()
 			return;
 		}
 		DEBUG_LOG(QString("Writing output %1 to file: '%2' (compression: %3)")
-				.arg(o).arg(outFileName).arg(compress ? "on" : "off"))
-		iAITKIO::writeFile(outFileName, filter->output()[o]->itkImage(), filter->output()[o]->itkScalarPixelType(), compress);
+				.arg(o).arg(outFileName).arg(m_compressOutput ? "on" : "off"))
+		iAITKIO::writeFile(outFileName, filter->output()[o]->itkImage(), filter->output()[o]->itkScalarPixelType(), m_compressOutput);
 	}
 	/*
 	// required options:

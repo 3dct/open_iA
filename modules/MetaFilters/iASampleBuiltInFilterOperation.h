@@ -32,16 +32,22 @@ class iASampleBuiltInFilterOperation : public iASampleOperation
 {
 	Q_OBJECT
 public:
-	iASampleBuiltInFilterOperation(QMap<QString, QVariant> const& parameters,
+	iASampleBuiltInFilterOperation(
+		QString const& filterName,
+		bool compressOutput,
+		QMap<QString, QVariant> const& parameters,
 		QVector<iAConnector*> input,
 		QString const& outputFileName,
 		iALogger * logger);
 	QString output() const override;
 private:
 	void performWork() override;
+
+	QString m_filterName;
+	bool m_compressOutput;
 	QMap<QString, QVariant> const & m_parameters;
 	QVector<iAConnector*> m_input;
 	QString m_outputFileName;
-	bool m_success;
 	iALogger * m_logger;
+	bool m_success;
 };

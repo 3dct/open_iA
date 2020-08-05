@@ -589,7 +589,7 @@ void dlg_samplingSettings::setParametersFromFile(QString const& fileName)
 	}
 	QTextStream in(&file);
 	auto attributes = createAttributes(in);
-	setParameters(*attributes.data());
+	setParameters(attributes);
 	m_lastParamsFileName = fileName;
 	m_lastFilterName.clear();  // if we change to built-in, it should reload parameters
 }
@@ -602,17 +602,18 @@ void dlg_samplingSettings::setParametersFromFilter(QString const& filterName)
 		return;
 	}
 	auto filter = iAFilterRegistry::filter(filterName);
-	auto params = filter->parameters();
+	auto params = QSharedPointer<iAAttributes>(new iAAttributes(filter->parameters()));
 	setParameters(params);
 	m_lastFilterName = filterName;
 	m_lastParamsFileName.clear();   // if we change to external, it should reload parameters
 }
 
-void dlg_samplingSettings::setParameters(iAAttributes const& params)
+void dlg_samplingSettings::setParameters(QSharedPointer<iAAttributes> params)
 {
+	m_paramSpecs = params;
 	m_paramInputs.clear();
 	int curGridLine = m_startLine+1;
-	for (auto p: params)
+	for (auto p: *params.data())
 	{
 		QString pName(p->name());
 		if (pName.startsWith("Mod "))
@@ -668,6 +669,16 @@ void dlg_samplingSettings::runClicked()
 	QString minStr = QString::number(std::numeric_limits<double>::lowest(), 'g', ContinuousPrecision);
 	QString maxStr = QString::number(std::numeric_limits<double>::max(), 'g', ContinuousPrecision);
 	QString msg;
+	if (!m_paramSpecs)
+	{
+		msg += QString("Parameter specifications not set, cannot run!");
+	}
+	if (m_paramInputs.size() != m_paramSpecs->size())
+	{
+		msg += QString("Number of shown parameters (=%1) is not the same "
+			"as the number of parameters for the filter (=%2)!")
+			.arg(m_paramInputs.size()).arg(m_paramSpecs->size());
+	}
 	for (int l = 0; l < m_paramInputs.size(); ++l)
 	{
 		auto desc = m_paramInputs[l]->currentDescriptor();
@@ -689,6 +700,14 @@ void dlg_samplingSettings::runClicked()
 					"(current minimum %2 is bigger than maximum %3)!").arg(desc->name())
 					.arg(desc->min()).arg(desc->max());
 			}
+			if (desc->min() < m_paramSpecs->at(l)->min() ||
+				desc->max() > m_paramSpecs->at(l)->max())
+			{
+				msg += QString("Parameter '%1': Specified interval (%2, %3) outside of "
+					"valid range for this parameter (%4, %5)").arg(desc->name())
+					.arg(desc->min()).arg(desc->max())
+					.arg(m_paramSpecs->at(l)->min()).arg(m_paramSpecs->at(l)->max());
+			}
 		}
 		if (desc->valueType() == Categorical && desc->defaultValue().toString().size() == 0)
 		{
@@ -705,7 +724,7 @@ void dlg_samplingSettings::runClicked()
 	}
 	if (!msg.isEmpty())
 	{
-		QMessageBox::warning(this, "Invalid input", msg);
+		QMessageBox::warning(this, "Invalid configuration", msg);
 		return;
 	}
 	accept();

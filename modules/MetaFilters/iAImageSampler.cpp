@@ -125,8 +125,15 @@ void iAImageSampler::newSamplingRun()
 			fi.completeSuffix().size() > 0 ? QString(".%1").arg(fi.completeSuffix()) : QString(""))
 		);
 	iASampleOperation* op(nullptr);
+
 	if (m_parameters[spnAlgorithmType].toString() == atBuiltIn)
 	{
+		QMap<QString, QVariant> singleRunParams;
+		for (int i = 0; i < m_parameterCount; ++i)
+		{
+			auto desc = m_parameterRanges->at(i);
+			singleRunParams.insert(desc->name(), paramSet.at(i));
+		}
 		QVector<iAConnector*> input; // TODO - pass in...?
 		for (int m = 0; m < m_datasets->size(); ++m)
 		{
@@ -134,7 +141,10 @@ void iAImageSampler::newSamplingRun()
 			con->setImage(m_datasets->get(m)->image());
 			input.push_back(con);
 		}
-		op = new iASampleBuiltInFilterOperation(m_parameters, input, outputFile, m_logger);
+		op = new iASampleBuiltInFilterOperation(
+			m_parameters[spnFilter].toString(),
+			m_parameters[spnCompressOutput].toBool(),
+			singleRunParams, input, outputFile, m_logger);
 	}
 	else if (m_parameters[spnAlgorithmType].toString() == atExternal)
 	{

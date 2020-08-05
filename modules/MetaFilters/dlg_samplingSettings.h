@@ -73,7 +73,7 @@ private slots:
 	void runClicked();
 private:
 	void setInputsFromMap(iASettings const & values);
-	void setParameters(iAAttributes const & params);
+	void setParameters(QSharedPointer<iAAttributes> params);
 	void setParameterValues(iASettings const& values);
 	void setParametersFromFilter(QString const& filterName);
 	void setParametersFromFile(QString const& fileName);
@@ -84,4 +84,5 @@ private:
 	QVector<QSharedPointer<iAParameterInputs> > m_paramInputs;
 	iAWidgetMap m_widgetMap;
 	iAQRadioButtonVector m_rgAlgorithmType;
+	QSharedPointer<iAAttributes> m_paramSpecs;
 };
