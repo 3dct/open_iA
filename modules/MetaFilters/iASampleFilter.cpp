@@ -111,15 +111,15 @@ void iASampleFilter::setParameters(QSharedPointer<iAModalityList> input, QShared
 
 
 
-IAFILTER_RUNNER_CREATE(iASampleFilterRunner);
+IAFILTER_RUNNER_CREATE(iASampleFilterRunnerGUI);
 
-bool iASampleFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant>& parameters,
+bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant>& parameters,
 	MdiChild* sourceMdi, MainWindow* mainWnd, bool /*askForAdditionalInput*/)
 {
 	iASampleFilter* sampleFilter = dynamic_cast<iASampleFilter*>(filter.data());
 	if (!sampleFilter)
 	{
-		DEBUG_LOG("Invalid use of iASampleFilterRunner for filter other than Sample Filter!");
+		DEBUG_LOG("Invalid use of iASampleFilterRunnerGUI for a filter other than Sample Filter!");
 		return false;
 	}
 	dlg_samplingSettings dlg(mainWnd, sourceMdi->modalities()->size(), parameters);

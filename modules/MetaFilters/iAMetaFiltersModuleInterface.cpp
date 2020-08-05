@@ -31,6 +31,6 @@ void iAMetaFiltersModuleInterface::Initialize()
 {
 	REGISTER_FILTER(iABatchFilter);
 	REGISTER_FILTER(iAPatchFilter);
-	REGISTER_FILTER_WITH_RUNNER(iASampleFilter, iASampleFilterRunner);
+	REGISTER_FILTER_WITH_RUNNER(iASampleFilter, iASampleFilterRunnerGUI);
 	REGISTER_FILTER(iAStackReaderFilter);
 }

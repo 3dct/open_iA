@@ -19,7 +19,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iASampleFilterRunner.h"
+#include "iASampleBuiltInFilterOperation.h"
 
 #include "iASampleParameterNames.h"
 
@@ -31,7 +31,7 @@
 
 #include <QFileInfo>
 
-iASampleFilterRunner::iASampleFilterRunner(
+iASampleBuiltInFilterOperation::iASampleBuiltInFilterOperation(
 	QMap<QString, QVariant> const& parameters,
 	QVector<iAConnector*> input,
 	QString const & outputFileName):
@@ -43,12 +43,12 @@ iASampleFilterRunner::iASampleFilterRunner(
 	assert(m_parameters[spnAlgorithmType].toString() == atBuiltIn);
 }
 
-QString iASampleFilterRunner::output() const
+QString iASampleBuiltInFilterOperation::output() const
 {
 	return "";
 }
 
-void iASampleFilterRunner::performWork()
+void iASampleBuiltInFilterOperation::performWork()
 {
 	QString filterName = m_parameters[spnFilter].toString();
 	bool compress = m_parameters[spnCompressOutput].toBool();

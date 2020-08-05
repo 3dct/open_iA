@@ -27,11 +27,11 @@
 
 class iAConnector;
 
-class iASampleFilterRunner : public iASampleOperation
+class iASampleBuiltInFilterOperation : public iASampleOperation
 {
 	Q_OBJECT
 public:
-	iASampleFilterRunner(QMap<QString, QVariant> const& parameters,
+	iASampleBuiltInFilterOperation(QMap<QString, QVariant> const& parameters,
 		QVector<iAConnector*> input,
 		QString const& outputFileName);
 	QString output() const override;

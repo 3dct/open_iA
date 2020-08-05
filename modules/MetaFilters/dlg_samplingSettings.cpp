@@ -42,6 +42,43 @@
 
 #include <cassert>
 
+
+class iANumberParameterInputs : public iAParameterInputs
+{
+public:
+	QLineEdit* from;
+	QLineEdit* to;
+	QCheckBox* logScale;
+	iANumberParameterInputs();
+	~iANumberParameterInputs();
+	void retrieveInputValues(iASettings& values) override;
+	void changeInputValues(iASettings const& values) override;
+	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
+};
+
+class iACategoryParameterInputs : public iAParameterInputs
+{
+public:
+	QVector<QCheckBox*> m_features;
+	~iACategoryParameterInputs();
+	QString featureString();
+	void retrieveInputValues(iASettings& values) override;
+	void changeInputValues(iASettings const& values) override;
+	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
+};
+
+class iAOtherParameterInputs : public iAParameterInputs
+{
+public:
+	QLineEdit* m_valueEdit;
+	iAOtherParameterInputs();
+	~iAOtherParameterInputs();
+	void retrieveInputValues(iASettings& values) override;
+	void changeInputValues(iASettings const& values) override;
+	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
+};
+
+
 dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	int inputImageCount,
 	iASettings const & values):
@@ -389,6 +426,7 @@ void dlg_samplingSettings::setInputsFromMap(iASettings const & values)
 		setParametersFromFilter(values[spnFilter].toString());
 	}
 	algoTypeChanged();
+	setParameterValues(values);
 	if (!values.contains(spnFilter) || values[spnFilter].toString().isEmpty())
 	{
 		pbFilterSelect->setText(SelectFilterDefaultText);
@@ -418,6 +456,14 @@ void dlg_samplingSettings::getValues(iASettings& values) const
 	for (int i = 0; i < m_paramInputs.size(); ++i)
 	{
 		m_paramInputs[i]->retrieveInputValues(values);
+	}
+}
+
+void dlg_samplingSettings::setParameterValues(iASettings const& values)
+{
+	for (int i = 0; i < m_paramInputs.size(); ++i)
+	{
+		m_paramInputs[i]->changeInputValues(values);
 	}
 }
 

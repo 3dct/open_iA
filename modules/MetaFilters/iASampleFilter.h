@@ -43,7 +43,7 @@ private:
 	int m_samplingID;
 };
 
-class iASampleFilterRunner : public iAFilterRunnerGUI
+class iASampleFilterRunnerGUI : public iAFilterRunnerGUI
 {
 public:
 	static QSharedPointer<iAFilterRunnerGUI> create();

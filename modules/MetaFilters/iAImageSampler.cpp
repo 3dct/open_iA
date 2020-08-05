@@ -25,7 +25,7 @@
 #include "iADerivedOutputCalculator.h"
 #include "iAParameterGenerator.h"
 #include "iASingleResult.h"
-#include "iASampleFilterRunner.h"
+#include "iASampleBuiltInFilterOperation.h"
 #include "iASampleParameterNames.h"
 #include "iASamplingResults.h"
 
@@ -132,7 +132,7 @@ void iAImageSampler::newSamplingRun()
 			con->setImage(m_datasets->get(m)->image());
 			input.push_back(con);
 		}
-		op = new iASampleFilterRunner(m_parameters, input, outputFile);
+		op = new iASampleBuiltInFilterOperation(m_parameters, input, outputFile);
 	}
 	else if (m_parameters[spnAlgorithmType].toString() == atExternal)
 	{
@@ -173,7 +173,7 @@ void iAImageSampler::newSamplingRun()
 		return;
 	}
 	m_runningComputation.insert(op, m_curSample);
-	connect(op, &iASampleFilterRunner::finished, this, &iAImageSampler::computationFinished);
+	connect(op, &iASampleBuiltInFilterOperation::finished, this, &iAImageSampler::computationFinished);
 	op->start();
 	++m_curSample;
 }

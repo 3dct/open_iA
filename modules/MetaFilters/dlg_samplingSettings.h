@@ -53,41 +53,6 @@ public:
 	virtual QSharedPointer<iAAttributeDescriptor> currentDescriptor() = 0;
 };
 
-class iANumberParameterInputs: public iAParameterInputs
-{
-public:
-	QLineEdit* from;
-	QLineEdit* to;
-	QCheckBox* logScale;
-	iANumberParameterInputs();
-	~iANumberParameterInputs();
-	void retrieveInputValues(iASettings& values) override;
-	void changeInputValues(iASettings const & values) override;
-	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
-};
-
-class iACategoryParameterInputs : public iAParameterInputs
-{
-public:
-	QVector<QCheckBox*> m_features;
-	~iACategoryParameterInputs();
-	QString featureString();
-	void retrieveInputValues(iASettings& values) override;
-	void changeInputValues(iASettings const & values) override;
-	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
-};
-
-class iAOtherParameterInputs: public iAParameterInputs
-{
-public:
-	QLineEdit* m_valueEdit;
-	iAOtherParameterInputs();
-	~iAOtherParameterInputs();
-	void retrieveInputValues(iASettings& values) override;
-	void changeInputValues(iASettings const& values) override;
-	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
-};
-
 class MetaFilters_API dlg_samplingSettings : public dlg_samplingSettingsUI
 {
 	Q_OBJECT
@@ -109,6 +74,7 @@ private slots:
 private:
 	void setInputsFromMap(iASettings const & values);
 	void setParameters(iAAttributes const & params);
+	void setParameterValues(iASettings const& values);
 	void setParametersFromFilter(QString const& filterName);
 	void setParametersFromFile(QString const& fileName);
 
