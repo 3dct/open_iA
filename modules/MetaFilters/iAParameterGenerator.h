@@ -25,14 +25,14 @@
 #include <QSharedPointer>
 #include <QVector>
 
-typedef QVector<QVariant> ParameterSet;
-typedef QVector<ParameterSet> ParameterSets;
-typedef QSharedPointer<ParameterSets> ParameterSetsPointer;
+typedef QVector<QVariant> iAParameterSet;
+typedef QVector<iAParameterSet> iAParameterSets;
+typedef QSharedPointer<iAParameterSets> iAParameterSetsPointer;
 
 class iAParameterGenerator
 {
 public:
 	virtual ~iAParameterGenerator();
 	virtual QString name() const =0;
-	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameters, int sampleCount) =0;
+	virtual iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameters, int sampleCount) =0;
 };

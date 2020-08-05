@@ -34,67 +34,65 @@
 iAParameterGenerator::~iAParameterGenerator()
 {}
 
-class RandomGenerator
+class iARandomGenerator
 {
+protected:
+	std::mt19937 rng;
 public:
-	virtual ~RandomGenerator() {}
-	virtual double next() =0;
+	iARandomGenerator()
+	{
+		rng.seed(std::random_device{}());
+	}
+	virtual ~iARandomGenerator() {}
+	virtual QVariant next() =0;
 };
 
-class DblLinRandom: public RandomGenerator
+class iADblLinRandom: public iARandomGenerator
 {
 private:
 	std::uniform_real_distribution<double> dist;
-	std::mt19937 rng;
 public:
-	DblLinRandom(double min, double max):
+	iADblLinRandom(double min, double max):
 		dist(min, max)
-	{
-		rng.seed(std::random_device{}()); //Initialize with non-deterministic seeds
-	}
-	virtual double next()
+	{}
+	QVariant next() override
 	{
 		return dist(rng);
 	}
 };
 
-class DblLogRandom: public RandomGenerator
+class iADblLogRandom: public iARandomGenerator
 {
 private:
 	std::uniform_real_distribution<double> dist;
-	std::mt19937 rng;
 public:
-	DblLogRandom(double min, double max):
+	iADblLogRandom(double min, double max):
 		dist(std::log(min), std::log(max))
 	{
 		assert(min>0);
-		rng.seed(std::random_device{}()); //Initialize with non-deterministic seeds
 	}
-	virtual double next()
+	QVariant next() override
 	{
 		return exp(dist(rng));
 	}
 };
 
 
-class IntLinRandom: public RandomGenerator
+class iAIntLinRandom: public iARandomGenerator
 {
 private:
 	std::uniform_real_distribution<double> dist;
-	std::mt19937 rng; //Mersenne Twister: Good quality random number generator
 	int m_min;
 	int m_max;
 public:
 
-	IntLinRandom(int min, int max) :
+	iAIntLinRandom(int min, int max) :
 		dist(0, 1),
 		m_min(min),
 		m_max(max)
-	{
-		rng.seed(std::random_device{}()); //Initialize with non-deterministic seeds
-	}
+	{}
 	//! return a random number between 0 and max-1, uniformly distributed
-	double next()
+	QVariant next() override
 	{
 		return clamp(m_min, m_max,
 			static_cast<int>(m_min +  dist(rng) * (m_max-m_min+1))
@@ -102,23 +100,20 @@ public:
 	}
 };
 
-class IntLogRandom: public RandomGenerator
+class iAIntLogRandom: public iARandomGenerator
 {
 private:
 	std::uniform_real_distribution<double> dist;
-	std::mt19937 rng; //Mersenne Twister: Good quality random number generator
 	int m_min;
 	int m_max;
 public:
-	IntLogRandom(int min, int max) :
+	iAIntLogRandom(int min, int max) :
 		dist(0, 1),
 		m_min(min),
 		m_max(max)
-	{
-		rng.seed(std::random_device{}()); //Initialize with non-deterministic seeds
-	}
-	//! return a random number between 0 and max-1, uniformly distributed
-	double next()
+	{}
+	//! return a random number between 0 and max-1, logarithmically distributed
+	QVariant next() override
 	{
 		double logMin = std::log(m_min);
 		double logRange = std::log(m_max + 1) - logMin;
@@ -131,13 +126,42 @@ public:
 	}
 };
 
-class MyExtDblRandom
+class iACategoryRandom : public iARandomGenerator
+{
+private:
+	QStringList m_options;
+	iAIntLinRandom m_intRandom;
+public:
+	iACategoryRandom(QStringList const & options):
+		m_options(options),
+		m_intRandom(0, options.size())
+	{}
+	QVariant next() override
+	{
+		return m_options[m_intRandom.next().toInt()];
+	}
+};
+
+class iAFixedDummyRandom : public iARandomGenerator
+{
+private:
+	QVariant m_value;
+public:
+	iAFixedDummyRandom(QVariant v) : m_value(v)
+	{}
+	QVariant next() override
+	{
+		return m_value;
+	}
+};
+
+class iAExtDblRandom
 {
 private:
 	std::uniform_real_distribution<double> dist;
 	std::mt19937 rng;
 public:
-	MyExtDblRandom():
+	iAExtDblRandom():
 		dist(0, 1)
 	{
 		rng.seed(std::random_device{}()); //Initialize with non-deterministic seeds
@@ -149,14 +173,13 @@ public:
 };
 
 template <typename T>
-class MyRangeRandom
+class iARangeRandom
 {
 private:
 	std::uniform_real_distribution<double> dist;
 	std::mt19937 rng; //Mersenne Twister: Good quality random number generator
 public:
-
-	MyRangeRandom():
+	iARangeRandom():
 		dist(0, 1)
 	{
 		rng.seed(std::random_device{}()); //Initialize with non-deterministic seeds
@@ -168,18 +191,21 @@ public:
 	}
 };
 
-QSharedPointer<RandomGenerator> CreateRand(bool log, double min, double max, iAValueType valueType)
+QSharedPointer<iARandomGenerator> createRandomGenerator(QSharedPointer<iAAttributeDescriptor> a)
 {
-	switch (valueType)
+	switch (a->valueType())
 	{
-	case Discrete:
+	case Boolean:  // intentional fall-through - C++ 17: [[fallthrough]]
 	case Categorical:
-		if (log) return QSharedPointer<RandomGenerator>(new IntLogRandom(min, max));
-		    else return QSharedPointer<RandomGenerator>(new IntLinRandom(min, max));
-	default:
+		return QSharedPointer<iARandomGenerator>(new iACategoryRandom(a->defaultValue().toStringList()));
+	case Discrete:
+		if (a->isLogScale()) return QSharedPointer<iARandomGenerator>(new iAIntLogRandom(a->min(), a->max()));
+		    else return QSharedPointer<iARandomGenerator>(new iAIntLinRandom(a->min(), a->max()));
 	case Continuous:
-		if (log) return QSharedPointer<RandomGenerator>(new DblLogRandom(min, max));
-		else return QSharedPointer<RandomGenerator>(new DblLinRandom(min, max));
+		if (a->isLogScale()) return QSharedPointer<iARandomGenerator>(new iADblLogRandom(a->min(), a->max()));
+		else return QSharedPointer<iARandomGenerator>(new iADblLinRandom(a->min(), a->max()));
+	default:
+		return QSharedPointer<iARandomGenerator>(new iAFixedDummyRandom(a->defaultValue()));
 	}
 }
 
@@ -188,24 +214,19 @@ QString iARandomParameterGenerator::name() const
 	return QString("Random");
 }
 
-ParameterSetsPointer iARandomParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
+iAParameterSetsPointer iARandomParameterGenerator::parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
 {
-	ParameterSetsPointer result(new ParameterSets);
+	iAParameterSetsPointer result(new iAParameterSets);
 
-	QVector<QSharedPointer<RandomGenerator> > random;
+	QVector<QSharedPointer<iARandomGenerator> > random;
 	for (int p = 0; p < parameter->size(); ++p)
 	{
-		random.push_back(CreateRand(
-			parameter->at(p)->isLogScale(),
-			parameter->at(p)->min(),
-			parameter->at(p)->max(),
-			parameter->at(p)->valueType()
-		));
+		random.push_back(createRandomGenerator(parameter->at(p)));
 	}
 
 	for (int s = 0; s < sampleCount; ++s)
 	{
-		ParameterSet set;
+		iAParameterSet set;
 		for (int p = 0; p < parameter->size(); ++p)
 		{
 			set.push_back(random[p]->next());
@@ -214,7 +235,6 @@ ParameterSetsPointer iARandomParameterGenerator::GetParameterSets(QSharedPointer
 	}
 	return result;
 }
-
 
 template <typename T>
 T pop_at(QVector<T>& v, typename QVector<T>::size_type n)
@@ -278,7 +298,7 @@ private:
 	double m_factor;
 };
 
-QSharedPointer<iARange> CreateRange(bool log, double min, double max, int count, iAValueType valueType)
+QSharedPointer<iARange> createRange(bool log, double min, double max, int count, iAValueType valueType)
 {
 	if (log)
 	{
@@ -294,44 +314,62 @@ QString iALatinHypercubeParameterGenerator::name() const
 	return QString("Latin HyperCube");
 }
 
-ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
+iAParameterSetsPointer iALatinHypercubeParameterGenerator::parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
 {
-	ParameterSetsPointer result(new ParameterSets);
+	iAParameterSetsPointer result(new iAParameterSets);
 
 	// for each parameter, create a "range", dividing its interval into sampleCount pieces
-	QVector<QSharedPointer<RandomGenerator> > random;
-	ParameterSets sampleValues;
+	QVector<QSharedPointer<iARandomGenerator> > random;
+	iAParameterSets sampleValues;
 
-	MyExtDblRandom dblRand;
+	iAExtDblRandom dblRand;
 	for (int p = 0; p < parameter->size(); ++p)
 	{
-		iAValueType valueType = parameter->at(p)->valueType();
-		QSharedPointer<iARange> range = CreateRange(parameter->at(p)->isLogScale(),
-			parameter->at(p)->min(),
-			parameter->at(p)->max(),
-			sampleCount,
-			valueType);
-
-		sampleValues.push_back(ParameterSet());
-		// iterate over sampleCount, and for each parameter, create one value per piece
-		for (int s = 0; s < sampleCount; ++s)
+		auto param = parameter->at(p);
+		iAValueType valueType = param->valueType();
+		sampleValues.push_back(iAParameterSet());
+		if (valueType == Continuous || valueType == Discrete)
 		{
-			// TODO: special handling for log? otherwise within the piece, we have linear distribution
-			double value = range->min(s) == range->max(s) ? range->min(s) :
-				dblRand.next(range->min(s), range->max(s));
-			if (valueType == Discrete || valueType == Categorical)
+			QSharedPointer<iARange> range = createRange(param->isLogScale(),
+				param->min(), param->max(), sampleCount, valueType);
+			// iterate over sampleCount, and for each parameter, create one value per piece
+			for (int s = 0; s < sampleCount; ++s)
 			{
-				value = static_cast<int>(value);
+				// TODO: special handling for log? otherwise within the piece, we have linear distribution
+				double value = dblRand.next(range->min(s), range->max(s));
+				if (valueType == Discrete)
+				{
+					value = static_cast<int>(value);
+				}
+				sampleValues[p].push_back(value);
 			}
-			sampleValues[p].push_back(value);
+		}
+		else if(valueType == Boolean || valueType == Categorical)
+		{
+			auto options = param->defaultValue().toStringList();
+			int maxOptIdx = options.size();
+			for (int s = 0; s < sampleCount; ++s)
+			{
+				int optIdx = s % maxOptIdx;
+				sampleValues[p].push_back(options[optIdx]);
+			}
+		}
+		else
+		{
+			DEBUG_LOG(QString("Sampling not supported for value type %1, using default value %2")
+				.arg(valueType).arg(param->defaultValue().toString()));
+			for (int s = 0; s < sampleCount; ++s)
+			{
+				sampleValues[p].push_back(param->defaultValue());
+			}
 		}
 	}
 
-	MyRangeRandom<int> intRand;
+	iARangeRandom<int> intRand;
 	// iterate over sampleCount, and for each parameter, randomly select one of the pieces
 	for (int s = sampleCount; s > 0 ; --s)
 	{
-		ParameterSet set;
+		iAParameterSet set;
 		for (int p = 0; p < parameter->size(); ++p)
 		{
 			// randomly select one of the previously chosen values, and put it into the parameter set
@@ -342,14 +380,15 @@ ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QShare
 	return result;
 }
 
+
 QString iACartesianGridParameterGenerator::name() const
 {
 	return QString("Cartesian Grid");
 }
 
-ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
+iAParameterSetsPointer iACartesianGridParameterGenerator::parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
 {
-	ParameterSetsPointer result(new ParameterSets);
+	iAParameterSetsPointer result(new iAParameterSets);
 	int samplesPerParameter = static_cast<int>(std::pow(10, std::log10(sampleCount) / parameter->size()));
 	samplesPerParameter = std::max(2, samplesPerParameter); // at least 2 sample values per parameter
 
@@ -370,7 +409,7 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 	{
 		iAValueType valueType = parameter->at(p)->valueType();
 		ranges.push_back(
-			CreateRange(
+			createRange(
 				parameter->at(p)->isLogScale(),
 				parameter->at(p)->min(),
 				parameter->at(p)->max(),
@@ -383,7 +422,7 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 
 	for (int sampleIdx = 0; sampleIdx < actualSampleCount; ++sampleIdx)
 	{
-		ParameterSet set;
+		iAParameterSet set;
 		for (int p = 0; p < parameter->size(); ++p)
 		{
 			double value = ranges[p]->min(parameterRangeIdx[p]);
@@ -413,6 +452,7 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 	return result;
 }
 
+
 QString iASensitivityParameterGenerator::name() const
 {
 	return QString("Sensitivity");
@@ -434,7 +474,7 @@ namespace
 	}
 }
 
-ParameterSetsPointer iASensitivityParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
+iAParameterSetsPointer iASensitivityParameterGenerator::parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
 {
 	int samplesPerParameter = static_cast<int>(std::pow(10, std::log10(sampleCount) / parameter->size()));
 	samplesPerParameter = std::max(1, samplesPerParameter); // at least 2 sample values per parameter
@@ -445,7 +485,7 @@ ParameterSetsPointer iASensitivityParameterGenerator::GetParameterSets(QSharedPo
 	// calculate actual sample count (have to adhere to grid structure / powers):
 	// maybe get sample count per parameter?
 	int actualSampleCount = std::pow(samplesPerParameter, parameter->size());
-	ParameterSetsPointer result(new ParameterSets);
+	iAParameterSetsPointer result(new iAParameterSets);
 
 	QVector<double> offsetFactors;
 	int samplesPerSide = samplesPerParameter / 2;
@@ -454,7 +494,7 @@ ParameterSetsPointer iASensitivityParameterGenerator::GetParameterSets(QSharedPo
 	{
 		offsetFactors.push_back(getSensitivityValue(i) / maxSensitivityValue);
 	}
-	ParameterSets allValues(parameter->size());
+	iAParameterSets allValues(parameter->size());
 	for (int p = 0; p < parameter->size(); ++p)
 	{
 		allValues[p].resize(samplesPerParameter);
@@ -480,7 +520,7 @@ ParameterSetsPointer iASensitivityParameterGenerator::GetParameterSets(QSharedPo
 	QVector<int> parameterRangeIdx(parameter->size(), 0);
 	for (int sampleIdx = 0; sampleIdx < actualSampleCount; ++sampleIdx)
 	{
-		ParameterSet set;
+		iAParameterSet set;
 		for (int p = 0; p < parameter->size(); ++p)
 		{
 			set.push_back(allValues[p][parameterRangeIdx[p]]);
@@ -505,7 +545,24 @@ ParameterSetsPointer iASensitivityParameterGenerator::GetParameterSets(QSharedPo
 	return result;
 }
 
-QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators()
+
+iASelectionParameterGenerator::iASelectionParameterGenerator(QString const & name, iAParameterSetsPointer parameterSets):
+	m_name(name),
+	m_parameterSets(parameterSets)
+{}
+
+iAParameterSetsPointer iASelectionParameterGenerator::parameterSets(QSharedPointer<iAAttributes> /*parameter*/, int /*sampleCount*/)
+{
+	return m_parameterSets;
+}
+
+QString iASelectionParameterGenerator::name() const
+{
+	return m_name;
+}
+
+
+QVector<QSharedPointer<iAParameterGenerator> >& getParameterGenerators()
 {
 	static QVector<QSharedPointer<iAParameterGenerator> > parameterGenerators;
 	if (parameterGenerators.empty())
@@ -518,11 +575,10 @@ QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators()
 	return parameterGenerators;
 }
 
-
-QSharedPointer<iAParameterGenerator> GetParameterGenerator(QString const& name)
+QSharedPointer<iAParameterGenerator> getParameterGenerator(QString const& name)
 {
 	QSharedPointer<iAParameterGenerator> result;
-	auto & paramGens = GetParameterGenerators();
+	auto& paramGens = getParameterGenerators();
 	for (QSharedPointer<iAParameterGenerator> paramGen : paramGens)
 	{
 		if (paramGen->name() == name)
@@ -535,22 +591,4 @@ QSharedPointer<iAParameterGenerator> GetParameterGenerator(QString const& name)
 		DEBUG_LOG(QString("Could not find parameter generator '%1'").arg(name));
 	}
 	return result;
-}
-
-
-iASelectionParameterGenerator::iASelectionParameterGenerator(QString const & name, ParameterSetsPointer parameterSets):
-	m_name(name),
-	m_parameterSets(parameterSets)
-{
-
-}
-
-ParameterSetsPointer iASelectionParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> /*parameter*/, int /*sampleCount*/)
-{
-	return m_parameterSets;
-}
-
-QString iASelectionParameterGenerator::name() const
-{
-	return m_name;
 }

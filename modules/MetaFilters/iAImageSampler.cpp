@@ -104,7 +104,7 @@ void iAImageSampler::newSamplingRun()
 			.arg(m_curSample).arg(m_runningComputation.size()));
 	}
 	statusMsg(QString("Sampling run %1.").arg(m_curSample));
-	ParameterSet const& paramSet = m_parameterSets->at(m_curSample);
+	iAParameterSet const& paramSet = m_parameterSets->at(m_curSample);
 	QString outputDirectory(m_parameters[spnOutputFolder].toString());
 	if (m_parameters[spnSubfolderPerSample].toBool())
 	{
@@ -205,7 +205,7 @@ void iAImageSampler::start()
 	statusMsg("");
 	statusMsg("---------- SAMPLING STARTED ----------");
 	statusMsg("Generating sampling parameter sets...");
-	m_parameterSets = m_sampleGenerator->GetParameterSets(m_parameterRanges, m_parameters[spnNumberOfSamples].toInt());
+	m_parameterSets = m_sampleGenerator->parameterSets(m_parameterRanges, m_parameters[spnNumberOfSamples].toInt());
 	if (!m_parameterSets)
 	{
 		statusMsg("No Parameters available!");
@@ -273,7 +273,7 @@ void iAImageSampler::computationFinished()
 			return;
 		}
 	}
-	ParameterSet const & param = m_parameterSets->at(id);
+	iAParameterSet const & param = m_parameterSets->at(id);
 
 	// TODO: check/change: the filename here should probably match outputFile from newSamplingRun, or be removed?
 	QSharedPointer<iASingleResult> result = iASingleResult::create(id, *m_results.data(), param,

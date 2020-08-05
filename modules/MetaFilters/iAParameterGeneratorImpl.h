@@ -28,14 +28,14 @@ class iARandomParameterGenerator: public iAParameterGenerator
 {
 public:
 	QString name() const override;
-	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
 };
 
 class iALatinHypercubeParameterGenerator: public iAParameterGenerator
 {
 public:
 	QString name() const override;
-	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
 };
 
 //! as all parameter values are supposed to be equally spaced,
@@ -45,7 +45,7 @@ class iACartesianGridParameterGenerator : public iAParameterGenerator
 {
 public:
 	QString name() const override;
-	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
 };
 
 //! Generates parameters around middle of given range for each parameter
@@ -55,19 +55,19 @@ class iASensitivityParameterGenerator : public iAParameterGenerator
 {
 public:
 	QString name() const override;
-	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
 };
 
 class MetaFilters_API iASelectionParameterGenerator : public iAParameterGenerator
 {
 public:
-	iASelectionParameterGenerator(QString const & name, ParameterSetsPointer parameterSets);
+	iASelectionParameterGenerator(QString const & name, iAParameterSetsPointer parameterSets);
 	virtual QString name() const;
-	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
+	virtual iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
 private:
 	QString m_name;
-	ParameterSetsPointer m_parameterSets;
+	iAParameterSetsPointer m_parameterSets;
 };
 
-MetaFilters_API QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators();
-MetaFilters_API QSharedPointer<iAParameterGenerator> GetParameterGenerator(QString const& name);
+MetaFilters_API QVector<QSharedPointer<iAParameterGenerator> > & getParameterGenerators();
+MetaFilters_API QSharedPointer<iAParameterGenerator> getParameterGenerator(QString const& name);

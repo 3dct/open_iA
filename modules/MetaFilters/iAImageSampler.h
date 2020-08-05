@@ -76,7 +76,7 @@ private:
 	QString m_derivedOutputFile;
 	//! @}
 
-	ParameterSetsPointer m_parameterSets;
+	iAParameterSetsPointer m_parameterSets;
 	int m_curSample;
 	bool m_aborted;
 

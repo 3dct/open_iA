@@ -202,7 +202,7 @@ void dlg_GEMSeControl::startSampling()
 			return;
 		}
 		m_simpleLabelInfo->setLabelCount(m_samplingSettings["Number of labels"].toInt());
-		auto parameterSetGenerator = GetParameterGenerator(m_samplingSettings[spnSamplingMethod].toString());
+		auto parameterSetGenerator = getParameterGenerator(m_samplingSettings[spnSamplingMethod].toString());
 		if (!parameterSetGenerator)
 		{
 			return;

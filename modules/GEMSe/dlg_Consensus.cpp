@@ -949,7 +949,7 @@ void dlg_Consensus::LoadConfig()
 			return;
 		}
 		auto samplingResults = iASamplingResults::load(smpFileName, s);
-		ParameterSetsPointer parameterSets(new QVector<ParameterSet>());
+		iAParameterSetsPointer parameterSets(new QVector<iAParameterSet>());
 		for (int i = 0; i < samplingResults->size(); ++i)
 		{
 			if (bestParameterSetIDs[s].contains(i) || mvParameterSetIDs[s].contains(i))

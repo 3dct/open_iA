@@ -110,7 +110,7 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	m_startLine = parameterLayout->rowCount();
 
 	cbSamplingMethod->clear();
-	auto & paramGens = GetParameterGenerators();
+	auto & paramGens = getParameterGenerators();
 	for (QSharedPointer<iAParameterGenerator> paramGen : paramGens)
 	{
 		cbSamplingMethod->addItem(paramGen->name());

@@ -52,7 +52,7 @@ iASampleFilter::iASampleFilter() :
 	addParameter(spnParameterDescriptor, FileNameOpen, "");
 	addParameter(spnAdditionalArguments, String, "");
 	QStringList samplingMethods;
-	auto& paramGens = GetParameterGenerators();
+	auto& paramGens = getParameterGenerators();
 	for (QSharedPointer<iAParameterGenerator> paramGen : paramGens)
 	{
 		samplingMethods << paramGen->name();
@@ -71,7 +71,7 @@ iASampleFilter::iASampleFilter() :
 void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 {
 	// ITK_TYPED_CALL(sample, inputPixelType(), this, parameters);
-	auto parameterSetGenerator = GetParameterGenerator(parameters["Sampling method"].toString());
+	auto parameterSetGenerator = getParameterGenerator(parameters["Sampling method"].toString());
 	if (!parameterSetGenerator)
 	{
 		return;
