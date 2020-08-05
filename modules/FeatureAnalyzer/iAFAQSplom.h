@@ -36,7 +36,11 @@ class iAFAQSplom : public iAQSplom
 {
 	Q_OBJECT
 public:
-	iAFAQSplom(MainWindow *mainWind,  QWidget * parent = 0, Qt::WindowFlags f = 0 );
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+	iAFAQSplom(MainWindow *mainWind,  QWidget * parent = nullptr, Qt::WindowFlags f = 0 );
+#else
+	iAFAQSplom(MainWindow* mainWind, QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+#endif
 public:
 	void setData( const QTableWidget * data );
 	void setPreviewSliceNumbers( QList<int> sliceNumber );

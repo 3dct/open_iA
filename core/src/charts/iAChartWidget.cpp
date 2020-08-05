@@ -149,11 +149,15 @@ void iAChartWidget::wheelEvent(QWheelEvent *event)
 	if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier ||
 		(event->modifiers() & Qt::AltModifier) == Qt::Key_AltGr)
 	{
-		zoomAlongY(event->delta(), true);
+		zoomAlongY(event->angleDelta().y(), true);
 	}
 	else
 	{
-		zoomAlongX(event->delta(), event->x(), true);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+		zoomAlongX(event->angleDelta().y(), event->position().x(), true);
+#else
+		zoomAlongX(event->angleDelta().y(), event->x(), true);
+#endif
 	}
 	event->accept();
 	update();

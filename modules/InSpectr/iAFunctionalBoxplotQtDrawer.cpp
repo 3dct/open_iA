@@ -25,6 +25,7 @@
 #include <QColor>
 #include <QImage>
 #include <QPainter>
+#include <QPainterPath>
 #include <QPoint>
 #include <QPolygon>
 

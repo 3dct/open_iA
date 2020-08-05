@@ -43,7 +43,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
-#include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
 
 #include <QSharedPointer>

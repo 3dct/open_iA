@@ -26,6 +26,8 @@
 #include <QWidget>
 #include <QPixmap>
 
+#include <algorithm>    // for std::fill
+
 //ParamWidget impl//////////////////////////////////////////////////////////////////////////
 iAParamWidget::iAParamWidget():
 	pxmp(nullptr),
@@ -71,7 +73,7 @@ int iAParamWidget::AllocateBuffer(int width, int height)
 	{
 		buffer[i] = 0;
 	}
-	memset(buffer, 0, s*sizeof(buffer[0]));
+	std::fill(buffer, buffer+s, 0);
 	bufferWidth = width;
 	bufferHeight = height;
 	return 1;

@@ -118,7 +118,6 @@
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
 #include <vtkVariantArray.h>
-#include <vtkVersion.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 
@@ -495,7 +494,7 @@ void dlg_FeatureScout::setupViews()
 	// preparing chart and view for Parallel Coordinates
 	m_pcView = vtkSmartPointer<vtkContextView>::New();
 	m_lengthDistrView = vtkSmartPointer<vtkContextView>::New();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_pcView->SetRenderWindow(m_pcWidget->GetRenderWindow());
 	m_pcView->SetInteractor(m_pcWidget->GetInteractor());
 	m_lengthDistrView->SetRenderWindow(m_lengthDistrWidget->GetRenderWindow());
@@ -515,7 +514,7 @@ void dlg_FeatureScout::setupViews()
 
 	m_pcConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 	// Gets right button release event (on a parallel coordinates).
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_pcConnections->Connect(m_pcWidget->GetRenderWindow()->GetInteractor(),
 #else
 	m_pcConnections->Connect(m_pcWidget->renderWindow()->GetInteractor(),
@@ -526,7 +525,7 @@ void dlg_FeatureScout::setupViews()
 		popup2, 1.0);
 
 	// Gets right button press event (on a scatter plot).
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_pcConnections->Connect(m_pcWidget->GetRenderWindow()->GetInteractor(),
 #else
 	m_pcConnections->Connect(m_pcWidget->renderWindow()->GetInteractor(),
@@ -1142,7 +1141,7 @@ void dlg_FeatureScout::RenderMeanObject()
 
 		m_dwMO->verticalLayout->addWidget(m_meanObjectWidget);
 		auto renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		renderWindowInteractor->SetRenderWindow(m_meanObjectWidget->GetRenderWindow());
 #else
 		renderWindowInteractor->SetRenderWindow(m_meanObjectWidget->renderWindow());
@@ -1164,7 +1163,7 @@ void dlg_FeatureScout::RenderMeanObject()
 	m_dwMO->raise();
 
 	// Remove old renderers
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_meanObjectWidget->GetRenderWindow()->GetRenderers()->RemoveAllItems();
 #else
 	m_meanObjectWidget->renderWindow()->GetRenderers()->RemoveAllItems();
@@ -1183,7 +1182,7 @@ void dlg_FeatureScout::RenderMeanObject()
 		m_MOData.moRendererList.append(renderer);
 		renderer->GetActiveCamera()->ParallelProjectionOn();
 		renderer->SetBackground(1.0, 1.0, 1.0);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		m_meanObjectWidget->GetRenderWindow()->AddRenderer(m_MOData.moRendererList[i]);
 #else
 		m_meanObjectWidget->renderWindow()->AddRenderer(m_MOData.moRendererList[i]);
@@ -1238,7 +1237,7 @@ void dlg_FeatureScout::RenderMeanObject()
 			renderer->AddActor(cubeAxesActor);
 			renderer->AddActor(outlineActor);
 		}
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		m_meanObjectWidget->GetRenderWindow()->Render();
 #else
 		m_meanObjectWidget->renderWindow()->Render();
@@ -1261,7 +1260,7 @@ void dlg_FeatureScout::modifyMeanObjectTF()
 
 void dlg_FeatureScout::updateMOView()
 {
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_meanObjectWidget->GetRenderWindow()->Render();
 #else
 	m_meanObjectWidget->renderWindow()->Render();
@@ -1517,7 +1516,7 @@ void dlg_FeatureScout::RenderOrientation()
 	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetBackground(1, 1, 1);
 	renderer->AddActor(actor);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	vtkRenderWindow* renW = m_polarPlotWidget->GetRenderWindow();
 #else
 	vtkRenderWindow* renW = m_polarPlotWidget->renderWindow();
@@ -1634,7 +1633,7 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	m_lengthDistrView->GetScene()->ClearItems();
 	m_lengthDistrView->GetScene()->AddItem(chart);
 
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_lengthDistrWidget->GetRenderWindow()->Render();
 #else
 	m_lengthDistrWidget->renderWindow()->Render();
@@ -2072,7 +2071,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 			iAVtkOldWidget* dvqvtkWidget;
 			CREATE_OLDVTKWIDGET(dvqvtkWidget);
 			m_dwDV->setWidget(dvqvtkWidget);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			m_dvContextView->SetRenderWindow(dvqvtkWidget->GetRenderWindow());
 			m_dvContextView->SetInteractor(dvqvtkWidget->GetInteractor());
 #else
@@ -3414,7 +3413,7 @@ void dlg_FeatureScout::drawOrientationScalarBar(vtkScalarsToColors* lut)
 	m_scalarBarPP->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
 	m_scalarBarPP->SetTitle("Frequency");
 	m_scalarBarPP->SetNumberOfLabels(5);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_scalarWidgetPP->SetInteractor(m_polarPlotWidget->GetInteractor());
 #else
 	m_scalarWidgetPP->SetInteractor(m_polarPlotWidget->interactor());
@@ -3519,7 +3518,7 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetBackground(1, 1, 1);
 
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	auto renW = m_polarPlotWidget->GetRenderWindow();
 #else
 	auto renW = m_polarPlotWidget->renderWindow();
@@ -3536,7 +3535,7 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 	drawAnnotations(renderer);
 	drawOrientationScalarBar(cTFun);
 	renderer->ResetCamera();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_polarPlotWidget->GetRenderWindow()->Render();
 #else
 	m_polarPlotWidget->renderWindow()->Render();

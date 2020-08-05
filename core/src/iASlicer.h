@@ -36,11 +36,11 @@ class iASlicerProfile;
 class iASlicerProfileHandles;
 class iAChannelData;
 class iAChannelSlicerData;
-class iAInteractorStyleImage;
 class iAMagicLens;
 class iARulerWidget;
 class iASingleSlicerSettings;
 class iASlicer;
+class iASlicerInteractorStyle;
 class iASnakeSpline;
 class iAWrapperText;
 class MdiChild;
@@ -260,6 +260,7 @@ private slots:
 	void toggleLinearInterpolation();
 	void toggleWindowLevelAdjust();
 	void toggleShowTooltip();
+	void fisheyeLensToggled(bool enabled);
 
 signals:
 	void addedPoint(double x, double y, double z);
@@ -288,9 +289,10 @@ signals:
 	//! @param sliceNumber number of the slice that was switched to
 	void sliceNumberChanged(int mode, int sliceNumber);
 	void sliceRangeChanged(int minIdx, int maxIdx);
+	void magicLensToggled(bool enabled);
 
 protected:
-	QAction* m_actionLinearInterpolation, * m_actionToggleWindowLevelAdjust,
+	QAction* m_actionLinearInterpolation, * m_actionToggleWindowLevelAdjust, * m_actionFisheyeLens,
 		* m_actionMagicLens, * m_actionMagicLensCentered, * m_actionMagicLensOffset,
 		* m_actionDeleteSnakeLine, * m_actionShowTooltip;
 	QMenu *         m_contextMenu;               //!< context menu
@@ -366,7 +368,7 @@ private:
 	//! @}
 
 	vtkRenderWindowInteractor * m_interactor;  //!< FIXME: only convenience to access interactor of underlying QVTKOpenGLNativeWidget!
-	iAInteractorStyleImage * m_interactorStyle;
+	iASlicerInteractorStyle * m_interactorStyle;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renWin;
 	vtkSmartPointer<vtkRenderer> m_ren;
 	vtkCamera * m_camera; // TODO: smart pointer?

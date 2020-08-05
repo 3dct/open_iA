@@ -52,6 +52,12 @@ namespace
 			mean += hist[i] * grayvalue;
 			histSum += hist[i];
 		}
+		if (histSum == 0)
+		{
+			mean = 0;
+			variance = 0;
+			return;
+		}
 		mean /= histSum;
 
 		variance = 0;

@@ -86,8 +86,8 @@ private slots:
 	void dataAvailable();
 	void modalitySelected(int modalityIdx);
 	void SetIconSize(int newSize);
-	void setColorTheme(const QString &);
-	void SetRepresentative(const QString &);
+	void setColorTheme(int index);
+	void setRepresentative(int index);
 	void loadRefImgSlot();
 	void setMagicLensCount(int);
 	void freeMemory();

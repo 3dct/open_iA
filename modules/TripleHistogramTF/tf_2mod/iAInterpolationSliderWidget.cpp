@@ -23,20 +23,21 @@
 
 #include <iAToolsVTK.h>
 
-#include <QResizeEvent>
+#include <QDebug>
 #include <QGridLayout>
 #include <QImage>
-#include <QTimer>
 #include <QPainter>
+#include <QPainterPath>
+#include <QResizeEvent>
 #include <QSpinBox>
 #include <QSpacerItem>
-#include <QDebug>
+#include <QTimer>
 
 #include <vtkImageData.h>
 //#include <vtkMath.h>
 //#include <vtkSMPTools.h>
 
-#include <math.h>
+#include <cmath>
 #include <cassert>
 
 static const int TIMER_T_MS_DEFAULT = 250; // in milliseconds

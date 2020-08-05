@@ -58,6 +58,7 @@
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 #include <io/iAFileChooserWidget.h>
+#include <iAVtkVersion.h>
 #include <io/iAIOProvider.h>
 #include <io/iAITKIO.h>
 #include <mainwindow.h>
@@ -84,7 +85,6 @@
 #include <vtkRenderer.h>
 #include <vtkTable.h>
 #include <vtkUnsignedCharArray.h>
-#include <vtkVersion.h>
 #include <vtkVertexGlyphFilter.h>
 
 #include <QButtonGroup>
@@ -343,7 +343,7 @@ void iAFiAKErController::resultsLoaded()
 void iAFiAKErController::setupMain3DView()
 {
 	m_main3DWidget = m_mdiChild->renderDockWidget()->vtkWidgetRC;
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	auto renWin = m_main3DWidget->GetRenderWindow();
 #else
 	auto renWin = m_main3DWidget->renderWindow();
@@ -493,11 +493,11 @@ void iAFiAKErController::setupSettingsView()
 	connect(m_settingsView->cbLinkPreviews, &QCheckBox::stateChanged, this, &iAFiAKErController::linkPreviewsToggled);
 	connect(m_settingsView->cmbboxDistributionPlotType, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, &iAFiAKErController::distributionChartTypeChanged);
-	connect(m_settingsView->cmbboxStackedBarChartColors, QOverload<QString const&>::of(&QComboBox::currentIndexChanged),
+	connect(m_settingsView->cmbboxStackedBarChartColors, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, &iAFiAKErController::stackedBarColorThemeChanged);
-	connect(m_settingsView->cmbboxDistributionColors, QOverload<QString const&>::of(&QComboBox::currentIndexChanged),
+	connect(m_settingsView->cmbboxDistributionColors, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, &iAFiAKErController::distributionColorThemeChanged);
-	connect(m_settingsView->cmbboxResultColors, QOverload<QString const&>::of(&QComboBox::currentIndexChanged),
+	connect(m_settingsView->cmbboxResultColors, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, &iAFiAKErController::resultColorThemeChanged);
 	connect(m_settingsView->pbSensitivity, &QPushButton::clicked, this, &iAFiAKErController::sensitivitySlot);
 }
@@ -722,7 +722,7 @@ QWidget* iAFiAKErController::setupResultListView()
 			ren->SetUseDepthPeeling(true);
 			ren->SetMaximumNumberOfPeels(10);
 			renWin->AddRenderer(ren);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			ui.vtkWidget->SetRenderWindow(renWin);
 #else
 			ui.vtkWidget->setRenderWindow(renWin);
@@ -734,7 +734,7 @@ QWidget* iAFiAKErController::setupResultListView()
 			ren->ResetCamera();
 			ui.previewWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
 			connect(ui.previewWidget, &iAFixedAspectWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			connect(ui.vtkWidget, &iAVtkWidget::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
 #else
 #ifndef _MSC_VER
@@ -972,8 +972,9 @@ void iAFiAKErController::histogramBinsChanged(int value)
 	changeDistributionSource(m_distributionChoice->currentIndex());
 }
 
-void iAFiAKErController::distributionColorThemeChanged(QString const & colorThemeName)
+void iAFiAKErController::distributionColorThemeChanged(int index)
 {
+	QString const colorThemeName = m_settingsView->cmbboxDistributionColors->itemText(index);
 	addInteraction(QString("Changed distribution color theme to '%1'.").arg(colorThemeName));
 	m_colorByThemeName = colorThemeName;
 	changeDistributionSource(m_distributionChoice->currentIndex());
@@ -986,8 +987,9 @@ bool iAFiAKErController::matchQualityVisActive() const
 	return (colorLookupParam >= m_data->spmData->numParams() - 1);
 }
 
-void iAFiAKErController::resultColorThemeChanged(QString const & colorThemeName)
+void iAFiAKErController::resultColorThemeChanged(int index)
 {
+	QString const colorThemeName = m_settingsView->cmbboxResultColors->itemText(index);
 	addInteraction(QString("Changed result color theme to '%1'.").arg(colorThemeName));
 	m_resultColorTheme = iAColorThemeManager::instance().theme(colorThemeName);
 
@@ -1304,8 +1306,9 @@ void iAFiAKErController::dissimMatrixColorMapChanged(int idx)
 	m_matrixWidget->update();
 }
 
-void iAFiAKErController::stackedBarColorThemeChanged(QString const & colorThemeName)
+void iAFiAKErController::stackedBarColorThemeChanged(int index)
 {
+	QString const colorThemeName = m_settingsView->cmbboxStackedBarChartColors->itemText(index);
 	addInteraction(QString("Changed stacked bar color theme to '%1'.").arg(colorThemeName));
 	auto colorTheme = iAColorThemeManager::instance().theme(colorThemeName);
 	m_stackedBarsHeaders->setColorTheme(colorTheme);
@@ -1487,7 +1490,11 @@ void iAFiAKErController::exportDissimilarities()
 	{
 		out << "," << measureNames[measureID];
 	}
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+	out << Qt::endl;
+#else
 	out << endl;
+#endif
 	QFileInfo fi(fileName);
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -1506,7 +1513,11 @@ void iAFiAKErController::exportDissimilarities()
 				out << "," << avgMeasure[m];
 			}
 		}
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+		out << Qt::endl;
+#else
 		out << endl;
+#endif
 
 		if (resultID == m_referenceID)
 		{
@@ -1530,7 +1541,11 @@ void iAFiAKErController::exportDissimilarities()
 					<< "," << measureNames[measureID] << QString(" Dissimilarity %1").arg(i);
 			}
 		}
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+		resultOut << Qt::endl;
+#else
 		resultOut << endl;
+#endif
 		for (int fiberID = 0; fiberID < r.refDiffFiber.size(); ++fiberID)
 		{
 			auto& f = r.refDiffFiber[fiberID].dist;
@@ -1542,7 +1557,11 @@ void iAFiAKErController::exportDissimilarities()
 					resultOut << "," << f[m][i].index << "," << f[m][i].dissimilarity;
 				}
 			}
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+			resultOut << Qt::endl;
+#else
 			resultOut << endl;
+#endif
 		}
 		resultOutFile.close();
 	}
@@ -2336,7 +2355,7 @@ void iAFiAKErController::updateFiberContext()
 {
 	for (auto actor : m_contextActors)
 	{
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
 #else
 		m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
@@ -2385,7 +2404,7 @@ void iAFiAKErController::updateFiberContext()
 				if (!m_mergeContextBoxes)
 				{
 					auto actor = getCubeActor(minCoord, maxCoord);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 					m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
 #else
 					m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
@@ -2397,7 +2416,7 @@ void iAFiAKErController::updateFiberContext()
 		if (m_mergeContextBoxes)
 		{
 			auto actor = getCubeActor(minCoord, maxCoord);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
 #else
 			m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
@@ -2418,7 +2437,7 @@ namespace
 		if (ui.previewWidget && ui.vtkWidget)
 		{
 			ui.previewWidget->setBackgroundColor(color);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
 #else
 			ui.vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
@@ -2922,7 +2941,7 @@ void iAFiAKErController::changeReferenceDisplay()
 
 	if (m_refLineActor)
 	{
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
 #else
 		m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
@@ -3118,7 +3137,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	m_refLineActor = vtkSmartPointer<vtkActor>::New();
 	m_refLineActor->SetMapper(mapper);
 	m_refLineActor->GetProperty()->SetLineWidth(2);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_refLineActor);
 #else
 	m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_refLineActor);
@@ -3215,7 +3234,7 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 	m_sampleActor->SetMapper(sampleMapper);
 	sampleMapper->Update();
 	m_sampleActor->GetProperty()->SetPointSize(2);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
 #else
 	m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
@@ -3239,7 +3258,7 @@ void iAFiAKErController::hideSamplePointsPrivate()
 {
 	if (m_sampleActor)
 	{
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
 #else
 		m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
@@ -3354,7 +3373,7 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 
 void iAFiAKErController::update3D()
 {
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_main3DWidget->GetRenderWindow()->Render();
 #else
 	m_main3DWidget->renderWindow()->Render();
@@ -3384,13 +3403,13 @@ void iAFiAKErController::applyRenderSettings()
 
 		if (m_resultUIs[resultID].vtkWidget)
 		{
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			auto ren = m_resultUIs[resultID].vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 #else
 			auto ren = m_resultUIs[resultID].vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer();
 #endif
 			ren->SetUseDepthPeeling(m_mdiChild->renderSettings().UseDepthPeeling);
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
+#if (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
 			ren->SetUseDepthPeelingForVolumes(m_mdiChild->renderSettings().UseDepthPeeling);
 #endif
 			ren->SetMaximumNumberOfPeels(m_mdiChild->renderSettings().DepthPeels);
@@ -3427,7 +3446,7 @@ void iAFiAKErController::linkPreviewsToggled()
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & ui = m_resultUIs[resultID];
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		auto ren = ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 #else
 		auto ren = ui.vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer();

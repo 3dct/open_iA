@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
-#include <QSlider>
-#include <QRect>
+#include <QPainterPath>
 #include <QPen>
+#include <QRect>
+#include <QSlider>
+#include <QWidget>
 
 #include <vtkSmartPointer.h>
 

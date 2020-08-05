@@ -41,7 +41,7 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	m_tag(0),
 	m_indexInReferenceLib(std::numeric_limits<size_t>::max())
 {
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	renContainer->SetRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_renderer->renderWindow()));
 #else
 	renContainer->setRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_renderer->renderWindow()));

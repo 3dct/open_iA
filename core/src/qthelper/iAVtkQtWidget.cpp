@@ -24,7 +24,7 @@
 
 void iAVtkQtWidget::updateAll()
 {
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	GetRenderWindow()->Render();
 #else
 	renderWindow()->Render();

@@ -35,6 +35,9 @@
 #include <QFileInfo>
 #include <QList>
 #include <QMap>
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+#include <QRandomGenerator>
+#endif
 #include <QRegularExpression>
 #include <QString>
 #include <QStringList>
@@ -468,9 +471,13 @@ struct ParameterInfo : public IParameterInfo
 	}
 	inline virtual void randomInRange()
 	{
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+		val = range[0] + QRandomGenerator::global()->bounded(range[1] - range[0]);
+#else
 		double randVal = qrand() / static_cast<double>(RAND_MAX);
 		randVal = range[0] + (range[1] - range[0]) * randVal;
 		val = randVal;
+#endif
 	}
 	inline virtual int asInt() const
 	{
@@ -645,11 +652,11 @@ inline QMap<double, QList<double> > calculateHistogram( QList<double> data, doub
 	for ( int k = 0; k < NumberOfBins; ++k )
 		pops[k] = 0;
 
-	QMap<double, QList<double> > map;
+	QMultiMap<double, QList<double> > map;
 	for ( double bin = 0.0; bin < extents->GetSize(); ++bin )
 	{
 		QList<double> list;
-		map.insertMulti( bin, list );
+		map.insert( bin, list );
 	}
 
 	for ( vtkIdType j = 0; j < in->GetNumberOfTuples(); ++j )

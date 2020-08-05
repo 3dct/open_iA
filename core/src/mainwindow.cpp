@@ -51,7 +51,6 @@
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkSmartVolumeMapper.h>
-#include <vtkVersion.h>
 
 #include <QCloseEvent>
 #include <QDragEnterEvent>
@@ -67,6 +66,8 @@
 #include <QTimer>
 #include <QtXml/QDomDocument>
 #include <QDesktopServices>
+
+const int MainWindow::MaxRecentFiles;
 
 MainWindow::MainWindow(QString const & appName, QString const & version, QString const & buildInformation, QString const & splashImage ):
 	QMainWindow(),
@@ -1384,10 +1385,10 @@ void MainWindow::toggleMagicLens3D(bool isChecked)
 
 void MainWindow::rendererCamPosition()
 {
-	int pos = sender()->property("camPosition").toInt();
-	if (activeChild<iAChangeableCameraWidget>())
+	if (activeMdiChild())
 	{
-		activeChild<iAChangeableCameraWidget>()->setCamPosition(pos);
+		int pos = sender()->property("camPosition").toInt();
+		activeMdiChild()->setCamPosition(pos);
 	}
 }
 
@@ -1594,14 +1595,13 @@ void MainWindow::updateMenus()
 	actionInteractionModeCamera->setEnabled(hasMdiChild);
 	actionInteractionModeRegistration->setEnabled(hasMdiChild);
 
-	bool hasChangeableRenderer = activeChild<iAChangeableCameraWidget>();
-	actionViewXDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionViewmXDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionViewYDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionViewmYDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionViewZDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionViewmZDirectionInRaycaster->setEnabled(hasChangeableRenderer);
-	actionIsometricViewInRaycaster->setEnabled(hasChangeableRenderer);
+	actionViewXDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewmXDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewYDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewmYDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewZDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewmZDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionIsometricViewInRaycaster->setEnabled(hasMdiChild);
 	actionAssignView->setEnabled(hasMdiChild);
 	actionLoadCameraSettings->setEnabled(hasMdiChild);
 	actionSaveCameraSettings->setEnabled(hasMdiChild);
@@ -1626,8 +1626,7 @@ void MainWindow::updateMenus()
 	actionRawProfile->setChecked(hasMdiChild && child->isSliceProfileToggled());
 	QSignalBlocker blockSnakeSlicer(actionSnakeSlicer);
 	actionSnakeSlicer->setChecked(hasMdiChild && child->isSnakeSlicerToggled());
-	QSignalBlocker blockMagicLens2D(actionMagicLens2D);
-	actionMagicLens2D->setChecked(hasMdiChild && child->isMagicLens2DEnabled());
+	updateMagicLens2DCheckState(hasMdiChild && child->isMagicLens2DEnabled());
 	QSignalBlocker blockMagicLens3D(actionMagicLens3D);
 	actionMagicLens3D->setChecked(hasMdiChild && child->isMagicLens3DEnabled());
 
@@ -1665,6 +1664,12 @@ void MainWindow::updateMenus()
 		actionDeletePoint->setEnabled(false);
 		actionChangeColor->setEnabled(false);
 	}
+}
+
+void MainWindow::updateMagicLens2DCheckState(bool enabled)
+{
+	QSignalBlocker blockMagicLens2D(actionMagicLens2D);
+	actionMagicLens2D->setChecked(enabled);
 }
 
 void MainWindow::updateWindowMenu()
@@ -2534,6 +2539,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	QString const& buildInformation, QString const & splashPath, QString const & iconPath)
 {
 	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
+	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
 	MainWindow::initResources();
 	QApplication app(argc, argv);
 	QString msg;
@@ -2559,7 +2565,6 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 		return 1;
 	}
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
-	app.setAttribute(Qt::AA_ShareOpenGLContexts);
 	iAGlobalLogger::setLogger(iAConsole::instance());
 	MainWindow mainWin(appName, version, buildInformation, splashPath);
 	CheckSCIFIO(QCoreApplication::applicationDirPath());

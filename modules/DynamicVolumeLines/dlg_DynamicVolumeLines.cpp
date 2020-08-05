@@ -294,7 +294,7 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	m_mrvBGRen->AddActor2D(m_mrvTxtAct);
 
 	CREATE_OLDVTKWIDGET(wgtContainer);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	auto mrvRenWin = wgtContainer->GetRenderWindow();
 #else
 	auto mrvRenWin = wgtContainer->renderWindow();
@@ -1204,7 +1204,7 @@ void dlg_DynamicVolumeLines::mouseWheel(QWheelEvent* e)
 void dlg_DynamicVolumeLines::selectionChangedByUser()
 {
 	// TODO: change transfer function for "hidden" values; should be HistogramRangeMinimum-1
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	wgtContainer->GetRenderWindow()->GetRenderers()->RemoveAllItems();
 	wgtContainer->GetRenderWindow()->AddRenderer(m_mrvBGRen);
 #else
@@ -1467,7 +1467,7 @@ void dlg_DynamicVolumeLines::selectCompLevel()
 		}
 	}
 
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	wgtContainer->GetRenderWindow()->GetRenderers()->RemoveAllItems();
 	wgtContainer->GetRenderWindow()->AddRenderer(m_mrvBGRen);
 #else
@@ -1593,7 +1593,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 		m_volRen->applySettings(m_mdiChild->volumeSettings());
 		m_volRen->addTo(ren);
 		m_volRen->addBoundingBoxTo(ren);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		wgtContainer->GetRenderWindow()->AddRenderer(ren);
 	}
 	wgtContainer->GetRenderWindow()->Render();
@@ -1613,7 +1613,7 @@ void dlg_DynamicVolumeLines::setNoSelectionForPlots()
 		m_linearScaledPlot->graph(i)->setSelection(noSelection);
 	}
 
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	wgtContainer->GetRenderWindow()->GetRenderers()->RemoveAllItems();
 	m_mrvTxtAct->VisibilityOn();
 	wgtContainer->GetRenderWindow()->AddRenderer(m_mrvBGRen);

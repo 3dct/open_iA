@@ -55,6 +55,7 @@
 #include "iAToolsVTK.h"
 #include "iATransferFunction.h"
 #include "iAVolumeStack.h"
+#include "iAVtkVersion.h"
 #include "io/extension2id.h"
 #include "io/iAFileUtils.h"    // for fileNameOnly
 #include "io/iAIO.h"
@@ -1471,6 +1472,7 @@ void MdiChild::setupSlicers(iASlicerSettings const& ss, bool init)
 		{
 			connect(m_slicer[i], &iASlicer::profilePointChanged, this, &MdiChild::updateProbe);
 			connect(m_slicer[i], &iASlicer::profilePointChanged, m_renderer, &iARenderer::setProfilePoint);
+			connect(m_slicer[i], &iASlicer::magicLensToggled, this, &MdiChild::toggleMagicLens2D);
 			for (int j = 0; j < 3; ++j)
 			{
 				if (i != j)	// connect each slicer's signals to the other slicer's slots, except for its own:
@@ -1493,7 +1495,7 @@ bool MdiChild::editRendererSettings(iARenderSettings const& rs, iAVolumeSettings
 	applyVolumeSettings(false);
 	m_renderer->applySettings(renderSettings(), m_slicerVisibility);
 	m_dwRenderer->vtkWidgetRC->show();
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_dwRenderer->vtkWidgetRC->GetRenderWindow()->Render();
 #else
 	m_dwRenderer->vtkWidgetRC->renderWindow()->Render();
@@ -1807,7 +1809,7 @@ void MdiChild::toggleMagicLens2D(bool isEnabled)
 	}
 	setMagicLensEnabled(isEnabled);
 	updateSlicers();
-
+	m_mainWnd->updateMagicLens2DCheckState(isEnabled);
 	emit magicLensToggled(m_isMagicLensEnabled);
 }
 

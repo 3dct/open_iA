@@ -21,7 +21,6 @@
 #pragma once
 
 // FiAKEr:
-#include "iAChangeableCameraWidget.h"
 #include "iAFiberCharData.h"            // for iAFiberSimilarity -> REFACTOR!!!
 #include "iASavableProject.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
@@ -184,9 +183,9 @@ private slots:
 	void selectionModeChanged(int);
 	void distributionChoiceChanged(int index);
 	void histogramBinsChanged(int value);
-	void distributionColorThemeChanged(QString const & colorThemeName);
-	void resultColorThemeChanged(QString const & colorThemeName);
-	void stackedBarColorThemeChanged(QString const & colorThemeName);
+	void distributionColorThemeChanged(int index);
+	void resultColorThemeChanged(int index);
+	void stackedBarColorThemeChanged(int index);
 	void showReferenceInChartToggled();
 	void linkPreviewsToggled();
 	void distributionChartTypeChanged(int);

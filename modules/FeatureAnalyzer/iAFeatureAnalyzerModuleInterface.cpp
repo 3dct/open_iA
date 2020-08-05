@@ -57,7 +57,9 @@ void iAFeatureAnalyzerModuleInterface::Initialize()
 	}
 	Q_INIT_RESOURCE(FeatureAnalyzer);
 	iAProjectRegistry::addProject<iAFeatureAnalyzerProject>(iAFeatureAnalyzerProject::ID);
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
 	qsrand(QTime::currentTime().msec());
+#endif
 
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuFeatureAnalyzer = getMenuWithTitle( toolsMenu, QString( "FeatureAnalyzer" ), false );

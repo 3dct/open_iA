@@ -63,9 +63,9 @@ void iARangeSliderDiagramView::setData( const QTableWidget * newData )
 	show();
 }
 
-QMap<QString, QList<double> > iARangeSliderDiagramView::prepareData( const QTableWidget * tableData, bool porOrDev, bool statisticMeasurements )
+QMultiMap<QString, QList<double> > iARangeSliderDiagramView::prepareData( const QTableWidget * tableData, bool porOrDev, bool statisticMeasurements )
 {
-	QMap<QString, QList<double> > map;
+	QMultiMap<QString, QList<double> > map;
 	int NbOfParam = tableData->columnCount() - 4;
 
 	// Traverse all parameters
@@ -105,7 +105,7 @@ QMap<QString, QList<double> > iARangeSliderDiagramView::prepareData( const QTabl
 				meanValues.append(median(unsortedValues));
 			}
 		}
-		map.insertMulti(tableData->item( 0, param )->text(), meanValues );
+		map.insert(tableData->item( 0, param )->text(), meanValues );
 	}
 	return map;
 }
@@ -337,7 +337,7 @@ void iARangeSliderDiagramView::setupHistogram()
 void iARangeSliderDiagramView::setupDiagrams()
 {
 	//Setup parameter diagrams (INPUT)
-	QMap<QString, QList<double> > paramPorOrDevMap = prepareData( m_rawTable, m_cbPorDev->currentIndex(),
+	auto paramPorOrDevMap = prepareData( m_rawTable, m_cbPorDev->currentIndex(),
 																  m_cbStatisticMeasurements->currentIndex() );
 
 

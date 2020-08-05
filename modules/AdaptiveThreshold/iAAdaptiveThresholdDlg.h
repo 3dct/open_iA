@@ -51,7 +51,11 @@ Q_OBJECT
 
 public:
 	//! Create a new dialog, all parameters are optional
-	iAAdaptiveThresholdDlg(QWidget * parent = 0, Qt::WindowFlags f = 0);
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
+	iAAdaptiveThresholdDlg(QWidget * parent = nullptr, Qt::WindowFlags f = 0);
+#else
+	iAAdaptiveThresholdDlg(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+#endif
 	void setupUIActions();
 	void initAxes(double xmin, double xmax, double ymin, double yMax, bool setDefaultAxis);
 	void prepareDataSeries(QtCharts::QXYSeries* aSeries, const std::vector<double>& x_vals, const std::vector<double>& y_vals, QString* grText, bool useDefaultValues, bool updateCoords);

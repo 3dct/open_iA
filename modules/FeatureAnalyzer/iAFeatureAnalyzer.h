@@ -57,7 +57,11 @@ class iAFeatureAnalyzer : public FeatureAnalyzerConnector, public iASavableProje
 	Q_OBJECT
 
 public:
-	iAFeatureAnalyzer(MainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent = 0, Qt::WindowFlags f = 0 );
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+	iAFeatureAnalyzer(MainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent = nullptr, Qt::WindowFlags f = 0 );
+#else
+	iAFeatureAnalyzer(MainWindow* mWnd, const QString& resDir, const QString& datasetsDir, QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+#endif
 	~iAFeatureAnalyzer();
 	void LoadStateAndShow();
 

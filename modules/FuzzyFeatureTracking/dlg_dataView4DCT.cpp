@@ -27,6 +27,7 @@
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeStack.h>
+#include <iAVtkVersion.h>
 #include <mdichild.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <iAQVTKWidgetMouseReleaseWorkaround.h>
@@ -64,7 +65,7 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 		);
 		m_volumeRenderer[i] = new iAVolumeRenderer(&transferFunction, m_volumeStack->volume(i));
 		m_renderers[i]->setAxesTransform(m_axesTransform);
-#if VTK_MAJOR_VERSION < 9
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		m_vtkWidgets[i]->SetRenderWindow(m_renderers[i]->renderWindow());
 #else
 		m_vtkWidgets[i]->setRenderWindow(m_renderers[i]->renderWindow());
