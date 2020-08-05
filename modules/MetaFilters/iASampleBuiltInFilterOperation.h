@@ -35,7 +35,7 @@ public:
 	iASampleBuiltInFilterOperation(
 		QString const& filterName,
 		bool compressOutput,
-		QMap<QString, QVariant> const& parameters,
+		QMap<QString, QVariant> parameters,
 		QVector<iAConnector*> input,
 		QString const& outputFileName,
 		iALogger * logger);
@@ -45,7 +45,7 @@ private:
 
 	QString m_filterName;
 	bool m_compressOutput;
-	QMap<QString, QVariant> const & m_parameters;
+	QMap<QString, QVariant> m_parameters;
 	QVector<iAConnector*> m_input;
 	QString m_outputFileName;
 	iALogger * m_logger;

@@ -132,7 +132,8 @@ QString iASingleResult::toString(QSharedPointer<iAAttributes> attributes, int ty
 			{
 				result += ValueSplitString;
 			}
-			if (attributes->at(i)->nameMapper())
+			if (attributes->at(i)->valueType() == Categorical &&
+				m_attributeValues[i].toInt() < attributes->at(i)->nameMapper()->size())
 			{
 				result += attributes->at(i)->nameMapper()->name(m_attributeValues[i].toInt());
 			}

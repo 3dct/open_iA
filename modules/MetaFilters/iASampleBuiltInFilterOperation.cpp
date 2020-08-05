@@ -33,7 +33,7 @@
 iASampleBuiltInFilterOperation::iASampleBuiltInFilterOperation(
 	QString const& filterName,
 	bool compressOutput,
-	QMap<QString, QVariant> const& parameters,
+	QMap<QString, QVariant> parameters,
 	QVector<iAConnector*> input,
 	QString const& outputFileName,
 	iALogger* logger) :
