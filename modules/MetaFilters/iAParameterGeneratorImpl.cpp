@@ -47,82 +47,44 @@ public:
 	virtual QVariant next() =0;
 };
 
-class iADblLinRandom: public iARandomGenerator
+class iADblRandom: public iARandomGenerator
 {
 private:
+	bool m_isLog;
 	std::uniform_real_distribution<double> dist;
 public:
-	iADblLinRandom(double min, double max):
-		dist(min, max)
+	iADblRandom(double min, double max, bool isLog):
+		m_isLog(isLog),
+		dist(isLog ? std::log(min) : min, isLog ? std::log(max) : max)
 	{}
 	QVariant next() override
 	{
-		return dist(rng);
+		double rndVal = dist(rng);
+		return m_isLog ? exp(rndVal) : rndVal;
 	}
 };
 
-class iADblLogRandom: public iARandomGenerator
+class iAIntRandom: public iARandomGenerator
 {
 private:
 	std::uniform_real_distribution<double> dist;
+	int m_min, m_max;
+	bool m_isLog;
 public:
-	iADblLogRandom(double min, double max):
-		dist(std::log(min), std::log(max))
-	{
-		assert(min>0);
-	}
-	QVariant next() override
-	{
-		return exp(dist(rng));
-	}
-};
-
-
-class iAIntLinRandom: public iARandomGenerator
-{
-private:
-	std::uniform_real_distribution<double> dist;
-	int m_min;
-	int m_max;
-public:
-
-	iAIntLinRandom(int min, int max) :
+	iAIntRandom(int min, int max, bool isLog) :
 		dist(0, 1),
 		m_min(min),
-		m_max(max)
+		m_max(max),
+		m_isLog(isLog)
 	{}
 	//! return a random number between 0 and max-1, uniformly distributed
 	QVariant next() override
 	{
-		return clamp(m_min, m_max,
-			static_cast<int>(m_min +  dist(rng) * (m_max-m_min+1))
-		);
-	}
-};
-
-class iAIntLogRandom: public iARandomGenerator
-{
-private:
-	std::uniform_real_distribution<double> dist;
-	int m_min;
-	int m_max;
-public:
-	iAIntLogRandom(int min, int max) :
-		dist(0, 1),
-		m_min(min),
-		m_max(max)
-	{}
-	//! return a random number between 0 and max-1, logarithmically distributed
-	QVariant next() override
-	{
-		double logMin = std::log(m_min);
-		double logRange = std::log(m_max + 1) - logMin;
-		return
-			clamp(m_min, m_max,
-				static_cast<int>(
-					exp(logMin + dist(rng) * logRange)
-				)
-			);
+		double randMin = m_isLog ? std::log(m_min) : m_min;
+		double randRng = m_isLog ? std::log(m_max + 1) - randMin : (m_max - m_min + 1);
+		double randDbl = randMin + dist(rng) * randRng;
+		int randInt = static_cast<int>(m_isLog ? exp(randDbl) : randDbl);
+		return clamp(m_min, m_max, randInt);
 	}
 };
 
@@ -130,11 +92,11 @@ class iACategoryRandom : public iARandomGenerator
 {
 private:
 	QStringList m_options;
-	iAIntLinRandom m_intRandom;
+	iAIntRandom m_intRandom;
 public:
 	iACategoryRandom(QStringList const & options):
 		m_options(options),
-		m_intRandom(0, options.size())
+		m_intRandom(0, options.size(), false)
 	{}
 	QVariant next() override
 	{
@@ -164,7 +126,7 @@ public:
 	iAExtDblRandom():
 		dist(0, 1)
 	{
-		rng.seed(std::random_device{}()); //Initialize with non-deterministic seeds
+		rng.seed(std::random_device{}());
 	}
 	double next(double min, double max)
 	{
@@ -177,7 +139,7 @@ class iARangeRandom
 {
 private:
 	std::uniform_real_distribution<double> dist;
-	std::mt19937 rng; //Mersenne Twister: Good quality random number generator
+	std::mt19937 rng;
 public:
 	iARangeRandom():
 		dist(0, 1)
@@ -199,11 +161,9 @@ QSharedPointer<iARandomGenerator> createRandomGenerator(QSharedPointer<iAAttribu
 	case Categorical:
 		return QSharedPointer<iARandomGenerator>(new iACategoryRandom(a->defaultValue().toStringList()));
 	case Discrete:
-		if (a->isLogScale()) return QSharedPointer<iARandomGenerator>(new iAIntLogRandom(a->min(), a->max()));
-		    else return QSharedPointer<iARandomGenerator>(new iAIntLinRandom(a->min(), a->max()));
+		return QSharedPointer<iARandomGenerator>(new iAIntRandom(a->min(), a->max(), a->isLogScale()));
 	case Continuous:
-		if (a->isLogScale()) return QSharedPointer<iARandomGenerator>(new iADblLogRandom(a->min(), a->max()));
-		else return QSharedPointer<iARandomGenerator>(new iADblLinRandom(a->min(), a->max()));
+		return QSharedPointer<iARandomGenerator>(new iADblRandom(a->min(), a->max(), a->isLogScale()));
 	default:
 		return QSharedPointer<iARandomGenerator>(new iAFixedDummyRandom(a->defaultValue()));
 	}
