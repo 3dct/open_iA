@@ -80,11 +80,11 @@ QSharedPointer<iAFilter> iAFilterRunnerGUIThread::filter()
 
 namespace
 {
-	QString SettingName(QSharedPointer<iAFilter> filter, QSharedPointer<iAAttributeDescriptor> param)
+	QString SettingName(QSharedPointer<iAFilter> filter, QString paramName)
 	{
 		QString filterNameShort(filter->name());
 		filterNameShort.replace(" ", "");
-		return QString("Filters/%1/%2/%3").arg(filter->category()).arg(filterNameShort).arg(param->name());
+		return QString("Filters/%1/%2/%3").arg(filter->category()).arg(filterNameShort).arg(paramName);
 	}
 }
 
@@ -105,7 +105,7 @@ QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilte
 	for (auto param : params)
 	{
 		QVariant defaultValue = (param->valueType() == Categorical) ? "" : param->defaultValue();
-		result.insert(param->name(), settings.value(SettingName(filter, param), defaultValue));
+		result.insert(param->name(), settings.value(SettingName(filter, param->name()), defaultValue));
 	}
 	return result;
 }
@@ -114,9 +114,17 @@ void iAFilterRunnerGUI::storeParameters(QSharedPointer<iAFilter> filter, QMap<QS
 {
 	auto params = filter->parameters();
 	QSettings settings;
+	for (QString key : paramValues.keys())
+	{
+		settings.setValue(SettingName(filter, key), paramValues[key]);
+	}
+	// just some checking whether there are values for all parameters:
 	for (auto param : params)
 	{
-		settings.setValue(SettingName(filter, param), paramValues[param->name()]);
+		if (!paramValues.contains(param->name()))
+		{
+			DEBUG_LOG(QString("No value for parameter '%1'").arg(param->name()));
+		}
 	}
 }
 
