@@ -215,7 +215,8 @@ void dlg_GEMSeControl::startSampling()
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
-			m_dlgSamplings->GetSamplings()->size()
+			m_dlgSamplings->GetSamplings()->size(),
+			iAGlobalLogger::get()
 		));
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());

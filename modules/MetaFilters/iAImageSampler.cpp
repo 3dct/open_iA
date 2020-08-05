@@ -55,7 +55,8 @@ iAImageSampler::iAImageSampler(
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
 		QString const & derivedOutputFile,
-		int samplingID) :
+		int samplingID,
+		iALogger * logger) :
 	m_datasets(dataset),
 	m_parameters(parameters),
 	m_parameterRanges(parameterRanges),
@@ -67,7 +68,8 @@ iAImageSampler::iAImageSampler(
 	m_aborted(false),
 	m_computationDuration(0),
 	m_derivedOutputDuration(0),
-	m_samplingID(samplingID)
+	m_samplingID(samplingID),
+	m_logger(logger)
 {
 }
 
@@ -132,7 +134,7 @@ void iAImageSampler::newSamplingRun()
 			con->setImage(m_datasets->get(m)->image());
 			input.push_back(con);
 		}
-		op = new iASampleBuiltInFilterOperation(m_parameters, input, outputFile);
+		op = new iASampleBuiltInFilterOperation(m_parameters, input, outputFile, m_logger);
 	}
 	else if (m_parameters[spnAlgorithmType].toString() == atExternal)
 	{

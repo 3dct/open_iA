@@ -265,7 +265,10 @@ QSharedPointer<iARange> createRange(bool log, double min, double max, int count,
 		assert(valueType != Categorical);
 		return QSharedPointer<iARange>(new iALogRange(min, max + ((valueType == Discrete) ? 0.999999 : 0), count));
 	}
-	else return QSharedPointer<iARange>(new iALinRange(min, max + ((valueType == Categorical || valueType == Discrete) ? 0.999999 : 0), count));
+	else
+	{
+		return QSharedPointer<iARange>(new iALinRange(min, max + ((valueType == Categorical || valueType == Discrete) ? 0.999999 : 0), count));
+	}
 }
 
 

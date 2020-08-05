@@ -27,6 +27,7 @@
 #include "iAConsole.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
+#include "iAProgress.h"
 #include "io/iAITKIO.h"
 
 #include <QFileInfo>
@@ -34,11 +35,13 @@
 iASampleBuiltInFilterOperation::iASampleBuiltInFilterOperation(
 	QMap<QString, QVariant> const& parameters,
 	QVector<iAConnector*> input,
-	QString const & outputFileName):
+	QString const & outputFileName,
+	iALogger * logger):
 	m_parameters(parameters),
 	m_input(input),
 	m_outputFileName(outputFileName),
-	m_success(false)
+	m_success(false),
+	m_logger(logger)
 {
 	assert(m_parameters[spnAlgorithmType].toString() == atBuiltIn);
 }
@@ -63,8 +66,9 @@ void iASampleBuiltInFilterOperation::performWork()
 	{
 		filter->addInput(in);
 	}
-	//QObject::connect(&progress, &iAProgress::progress, ... , &::progress);
-	//filter->setProgress(&progress);
+	iAProgress p;	// dummy progress swallowing progress from filter which we don't want to propagate
+	filter->setProgress(&p);
+	filter->setLogger(m_logger);
 	filter->run(m_parameters);
 	// adapted from iACommandLineProcessor; maybe this could be merged?
 	for (int o = 0; o < filter->output().size(); ++o)
@@ -91,10 +95,24 @@ void iASampleBuiltInFilterOperation::performWork()
 				.arg(o).arg(outFileName).arg(compress ? "on" : "off"))
 		iAITKIO::writeFile(outFileName, filter->output()[o]->itkImage(), filter->output()[o]->itkScalarPixelType(), compress);
 	}
-	for (auto outputValue : filter->outputValues())
+	/*
+	// required options:
+	//   - combined CSV / one CSV per sample
+	//   - base CSV name
+	//  (- append?)
+	QString outputFile = m_parameters[spnOutputCSV].toString();
+	if (!outputFile.isEmpty())
 	{
-		std::cout << outputValue.first.toStdString() << ": "
-			<< outputValue.second.toString().toStdString() << std::endl;
+		QFile file(outputFile);
+		if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+		{
+			QTextStream textStream(&file);
+		for (auto outputValue : filter->outputValues())
+		{
+			<< outputValue.first.toStdString() << ": "
+				<< outputValue.second.toString().toStdString() << std::endl;
+		}
 	}
+	*/
 	m_success = true;
 }

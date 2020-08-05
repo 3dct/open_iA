@@ -39,6 +39,7 @@ class iASampleOperation;
 class iASamplingResults;
 class iASingleResult;
 
+class iALogger;
 class iAModalityList;
 
 class MetaFilters_API iAImageSampler: public QObject, public iADurationEstimator, public iAAbortListener
@@ -53,7 +54,8 @@ public:
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
 		QString const & derivedOutputFile,
-		int samplingID);
+		int samplingID,
+		iALogger * logger);
 	QSharedPointer<iASamplingResults> results();
 	void start();
 	double elapsed() const override;
@@ -98,6 +100,7 @@ private:
 	
 	QStringList m_additionalArgumentList;
 	int m_numDigits;
+	iALogger * m_logger;
 
 	void newSamplingRun();
 	void statusMsg(QString const & msg);

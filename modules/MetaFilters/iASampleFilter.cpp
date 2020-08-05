@@ -84,7 +84,8 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 		m_parameterRangeFile,
 		m_parameterSetFile,
 		m_derivedOutFile,
-		m_samplingID
+		m_samplingID,
+		logger()
 	);
 	QObject::connect(&sampler, &iAImageSampler::progress, progress(), &iAProgress::emitProgress);
 	//connect(&sampler, &iAImageSampler::status, ...);

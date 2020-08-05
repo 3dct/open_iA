@@ -1013,7 +1013,8 @@ void dlg_Consensus::LoadConfig()
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
-			lastSamplingID+s
+			lastSamplingID+s,
+			iAGlobalLogger::get()
 		));
 		m_queuedSamplers.push_back(sampler);
 	}

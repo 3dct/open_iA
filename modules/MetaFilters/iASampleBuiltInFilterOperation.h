@@ -26,6 +26,7 @@
 #include <QString>
 
 class iAConnector;
+class iALogger;
 
 class iASampleBuiltInFilterOperation : public iASampleOperation
 {
@@ -33,7 +34,8 @@ class iASampleBuiltInFilterOperation : public iASampleOperation
 public:
 	iASampleBuiltInFilterOperation(QMap<QString, QVariant> const& parameters,
 		QVector<iAConnector*> input,
-		QString const& outputFileName);
+		QString const& outputFileName,
+		iALogger * logger);
 	QString output() const override;
 private:
 	void performWork() override;
@@ -41,4 +43,5 @@ private:
 	QVector<iAConnector*> m_input;
 	QString m_outputFileName;
 	bool m_success;
+	iALogger * m_logger;
 };
