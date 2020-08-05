@@ -25,6 +25,7 @@
 #include "iAVRMetrics.h"
 #include "iAVR3DText.h"
 #include "iAVRDashboard.h"
+#include "iAVRDistributionVis.h"
 #include "iAVRVolume.h"
 #include "iACsvIO.h"
 
@@ -78,7 +79,7 @@ public:
 	iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io);
 	void startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp); //Press, Touch
 	void endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4],vtkProp3D* pickedProp); //Release, Untouch
-	void onMove(vtkEventDataDevice3D* device, double movePosition[3], double eventOrientation[4], vtkProp3D* pickedProp); //Movement
+	void onMove(vtkEventDataDevice3D* device, double movePosition[3], double eventOrientation[4]); //Movement
 	int currentOctreeLevel;
 
 private:
@@ -95,6 +96,7 @@ private:
 	iAVRDashboard* m_dashboard;
 	iACsvIO m_io;
 	iAVRMetrics* fiberMetrics;
+	iAVRDistributionVis* m_distributionVis;
 	int currentFeature;
 	int currentMiMDisplacementType;
 	std::vector<vtkIdType>* multiPickIDs;
@@ -123,6 +125,8 @@ private:
 	bool m_iDMappingThreadRunning = true;
 	// True if the corresponding actor is visible
 	bool modelInMiniatureActive = false;
+	// True if the MIP Panels should be visible
+	bool m_MIPPanelsVisible = false;
 	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
 	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
 	vtkPoints* newIntersectionPoints;

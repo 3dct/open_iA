@@ -38,6 +38,17 @@
 #include "vtkTexture.h"
 #include "vtkTextActor3D.h"
 
+struct HistogramParameters
+{
+	std::vector<int>* featureList;
+	std::vector<double> minValue;
+	std::vector<double> maxValue;
+	std::vector<double> histogramWidth;
+	int bins;
+	std::vector<std::vector<int>> histogramRegion1;
+	std::vector<std::vector<int>> histogramRegion2;
+};
+
 //!This class calculates the metrics used in the Model in Miniature Heatmap
 class iAVRMetrics
 {
@@ -60,6 +71,8 @@ public:
 	void createSingleMIPPanel(int octreeLevel, int feature, int viewDir);
 	void hideMIPPanels();
 	double getMaxNumberOfFibersInRegion(int level);
+	int getMaxNumberOfHistogramBins(int level);
+	HistogramParameters* getHistogram(int level, std::vector<int>* featureList, int region1, int region2);
 
 	static double histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax);
 	static double histogramNormalizationExpo(double value, double newMin, double newMax, double oldMin, double oldMax);
@@ -77,6 +90,10 @@ private:
 	std::vector<std::vector<std::vector<double>>>* m_jaccardValues;
 	//Stores for the [octree level] the max amount of fibers which lie in an octree region
 	std::vector<double>* m_maxNumberOffibersInRegions;
+	//Stores the minValue, maxValue, binWidth and bin amount
+	HistogramParameters* m_histogramParameter;
+	//Stores the currently calculated histogram for the two [regions] and their [bins] with the cumulative number of observations 
+	std::vector<std::vector<int>>* m_currentHistogram;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkActor> m_ColorBar;
@@ -92,6 +109,7 @@ private:
 	//Stores the info if at a specific octree [level] a specific [feature] is already calculated
 	std::vector<std::vector<bool>>* isAlreadyCalculated;
 	int numberOfFeatures;
+	bool m_maxCoverageisAlreadyCalculated;
 
 	void calculateWeightedAverage(int octreeLevel, int feature);
 	vtkSmartPointer<vtkLookupTable> calculateLUT(double min, double max, int tableSize);
@@ -104,4 +122,6 @@ private:
 	double calculateJaccardDistance(int level, int region1, int region2);
 	std::vector<QColor>* calculateMIPColoring(int direction, int level, int feature);
 	void calculateMaxNumberOfFibersInRegion();
+	void calculateBinWidth(int level, std::vector<int>* featureList, int region1, int region2, std::vector<std::vector<std::vector<double>>>* regionValues);
+	void calculateHistogramValues(int level, std::vector<int>* featureList, int region1, int region2);
 };

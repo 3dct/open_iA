@@ -111,7 +111,6 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	activeInput = m_style->getActiveInput();
 	multiPickIDs = new std::vector<vtkIdType>();
 
-
 	//Initialize Text Lables vector
 	m_3DTextLabels = new std::vector<iAVR3DText*>();
 	m_3DTextLabels->push_back(new iAVR3DText(m_vrEnv->renderer()));// [0] for Octree level change
@@ -123,6 +122,9 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 
 	//Initialize Dashboard
 	m_dashboard = new iAVRDashboard(m_vrEnv);
+
+	//Initialize Distribution Vis
+	m_distributionVis = new iAVRDistributionVis(m_vrEnv->renderer(), fiberMetrics, m_objectTable, m_io);
 
 	//Add Input Mapping
 	//Press, Touch
@@ -221,7 +223,7 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 		this->resetSelection();
 		break;
 	case iAVROperations::ExplodeMiM:
-		this->explodeMiM(currentMiMDisplacementType, 25);
+		this->explodeMiM(currentMiMDisplacementType, 20);
 		break;
 	case iAVROperations::ChangeMiMDisplacementType:
 		this->ChangeMiMDisplacementType();
@@ -238,7 +240,7 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 
 	//DEBUG_LOG(QString("[START] active Input rc = %1, lc = %2").arg(activeInput->at(1)).arg(activeInput->at(2)));
 	//Update Changes //ToDO: Required? Or is render Selection enough?
-	m_vrEnv->update();
+	//m_vrEnv->update();
 }
 
 void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp)
@@ -274,7 +276,7 @@ void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition
 	m_vrEnv->update();
 }
 
-void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], double eventOrientation[4], vtkProp3D * pickedProp)
+void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], double eventOrientation[4])
 {
 	//Currently moved controller
 	int deviceID = static_cast<int>(device->GetDevice());
@@ -308,7 +310,7 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 	//Movement of Head
 	if (deviceID == static_cast<int>(vtkEventDataDevice::HeadMountedDisplay))
 	{
-		double* headOrientation = m_vrEnv->renderer()->GetActiveCamera()->GetOrientation();
+		//double* headOrientation = m_vrEnv->renderer()->GetActiveCamera()->GetOrientation();
 
 		//DEBUG_LOG(QString("Event Orie is: %1 / %2 / %3").arg(cOrie[deviceID][1]).arg(cOrie[deviceID][2]).arg(cOrie[deviceID][3]));
 		//DEBUG_LOG(QString("> Head Orie is: %1 / %2 / %3").arg(headOrientation[0]).arg(headOrientation[1]).arg(headOrientation[2]));
@@ -328,20 +330,28 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 		double* tempViewDirection = m_vrEnv->renderer()->GetActiveCamera()->GetDirectionOfProjection();
 		viewDirection = static_cast<int>(m_style->getViewDirection(tempViewDirection));
 
+		if (modelInMiniatureActive)
+		{
+			//Calc half distance of focalPoint vec
+			iAVec3d focalP = iAVec3d(tempFocalPos);
+			iAVec3d viewD = iAVec3d(tempViewDirection);
+			viewD = viewD * (focalP/2);
+			focalP = focalP - viewD;
+
+			m_distributionVis->showAxisMarksInView(focalP.data());
+		}
+
+		//Create MIP panel in View direction
 		if(oldViewDirection != viewDirection)
 		{
 			if (modelInMiniatureActive)
 			{
-				fiberMetrics->createSingleMIPPanel(currentOctreeLevel, currentFeature, viewDirection);
+				if(m_MIPPanelsVisible)
+				{
+					fiberMetrics->createSingleMIPPanel(currentOctreeLevel, currentFeature, viewDirection);
+				}
 			}
 		}
-
-		//if (!checkEqualArrays(viewDirection, oldViewDirection))
-		//{
-		//	DEBUG_LOG(QString("< OldFocal Pos is: %1 / %2 / %3").arg(oldViewDirection[0]).arg(oldViewDirection[1]).arg(oldViewDirection[2]));
-		//	DEBUG_LOG(QString("> Focal Pos is: %1 / %2 / %3").arg(viewDirection[0]).arg(viewDirection[1]).arg(viewDirection[2]));
-		//}
-		//fiberMetrics->rotateColorBarLegend(0, -movementOrie[0], 0);
 	}
 
 	//Movement of Left controller
@@ -350,13 +360,6 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 		//For active Model in Minature MiM
 		if(modelInMiniatureActive)
 		{
-			double* centerPos = m_modelInMiniature->getActor()->GetCenter();
-
-			//Set Orientation!!	
-			double* modellOrientation = m_modelInMiniature->getActor()->GetOrientationWXYZ();
-			modellOrientation[1] = vtkMath::DegreesFromRadians(modellOrientation[1]);
-			modellOrientation[2] = vtkMath::DegreesFromRadians(modellOrientation[2]);
-			modellOrientation[3] = vtkMath::DegreesFromRadians(modellOrientation[3]);
 
 			 //m_modelInMiniature->getActor()->AddOrientation(movementOrie[1] - modellOrientation[1], movementOrie[2] - modellOrientation[2], movementOrie[3] - modellOrientation[3]);
 			 //m_modelInMiniature->getActor()->AddOrientation(cOrie[deviceID][1], cOrie[deviceID][2], cOrie[deviceID][3]);
@@ -373,14 +376,15 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 		
 			double colorLegendlcPos[3] = { cPos[deviceID][0] + 70, cPos[deviceID][1] - 70, cPos[deviceID][2] + 10};
 			fiberMetrics->moveColorBarLegend(colorLegendlcPos);
+			fiberMetrics->setLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
 			fiberMetrics->showColorBarLegend();
 		}
 
 		double lcPos[3] = { cPos[deviceID][0], cPos[deviceID][1] - 24, cPos[deviceID][2]};
 		m_3DTextLabels->at(1)->setLabelPos(lcPos);
-		m_3DTextLabels->at(1)->moveInEyeDir(25, 25, 25);
+		m_3DTextLabels->at(1)->moveInEyeDir(33, 33, 33);
 
-		m_slider->setPosition(lcPos[0], lcPos[1] - 20, lcPos[2] + 60);
+		m_slider->setPosition(lcPos[0], lcPos[1] - 22, lcPos[2] + 70);
 	}
 
 	//Movement of Right controller
@@ -388,7 +392,7 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 	{
 		double rcPos[3] = { cPos[deviceID][0], cPos[deviceID][1] - 22, cPos[deviceID][2]};
 		m_3DTextLabels->at(0)->setLabelPos(rcPos);
-		m_3DTextLabels->at(0)->moveInEyeDir(24, 24, 24);
+		m_3DTextLabels->at(0)->moveInEyeDir(33, 33, 33);
 	}
 }
 
@@ -905,7 +909,8 @@ void iAVRMain::calculateMetrics()
 
 			fiberMetrics->setLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
 
-			//fiberMetrics->createMIPPanels(currentOctreeLevel, currentFeature);
+			m_MIPPanelsVisible = true;
+			fiberMetrics->createSingleMIPPanel(currentOctreeLevel, currentFeature,viewDirection);
 		}
 	}
 }
@@ -1074,12 +1079,12 @@ void iAVRMain::multiPickMiMRegion()
 void iAVRMain::resetSelection()
 {
 	m_volume->renderSelection(std::vector<size_t>(), 0, QColor(140, 140, 140, 255), nullptr);
+	m_volume->removeHighlightedGlyphs();
 	if(modelInMiniatureActive)
 	{
 		std::vector<QColor>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature, 1);
 		m_modelInMiniature->applyHeatmapColoring(rgba); //Reset Color
 		m_modelInMiniature->removeHighlightedGlyphs();
-		m_volume->removeHighlightedGlyphs();
 		//fiberMetrics->hideMIPPanels();
 	}
 }
@@ -1110,17 +1115,26 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 
 		m_modelInMiniature->show();
 
+		std::vector<vtkIdType>* regions = new std::vector<vtkIdType>(); //
+		regions->push_back(0); //
+		regions->push_back(1); //
+		m_distributionVis->createVisualization(eventPosition, currentOctreeLevel, regions); //
+		m_distributionVis->show(); //
+
 		fiberMetrics->moveColorBarLegend(eventPosition);
 		fiberMetrics->showColorBarLegend();
 	}
 	else
 	{
 		modelInMiniatureActive = false;
+		m_MIPPanelsVisible = false;
 		m_modelInMiniature->hide();
 		m_modelInMiniature->removeHighlightedGlyphs();
 		m_volume->removeHighlightedGlyphs();
 		fiberMetrics->hideColorBarLegend();
+		fiberMetrics->hideMIPPanels();
 		m_slider->hide();
+		m_distributionVis->hide(); //
 	}
 }
 
@@ -1128,6 +1142,9 @@ void iAVRMain::explodeMiM(int currentMiMDisplacementType, double offset)
 {
 	if(modelInMiniatureActive && currentOctreeLevel > 0)
 	{
+		m_MIPPanelsVisible = false;
+		fiberMetrics->hideMIPPanels();
+
 		switch (m_style->getTouchedPadSide(touchPadPosition))
 		{
 		case iAVRTouchpadPosition::Up:
@@ -1155,21 +1172,23 @@ void iAVRMain::explodeMiM(int currentMiMDisplacementType, double offset)
 			break;
 		case 0:
 			m_modelInMiniature->applyRelativeCubeOffset(offset);
-			m_volume->applyRelativeCubeOffset(offset);
-			m_volume->moveFibersByMaxCoverage(fiberMetrics->getMaxCoverageFiberPerRegion(), offset);
+			m_volume->applyRelativeCubeOffset(offset * 2.5);
+			m_volume->moveFibersByMaxCoverage(fiberMetrics->getMaxCoverageFiberPerRegion(), offset * 2.5);
 			break;
 		case 1:
 			m_modelInMiniature->applyLinearCubeOffset(offset);
-			m_volume->applyLinearCubeOffset(offset);
-			m_volume->moveFibersByMaxCoverage(fiberMetrics->getMaxCoverageFiberPerRegion(), offset);
+			m_volume->applyLinearCubeOffset(offset * 2.5);
+			m_volume->moveFibersByMaxCoverage(fiberMetrics->getMaxCoverageFiberPerRegion(), offset * 2.5);
 			//m_volume->moveFibersbyAllCoveredRegions(offset);
 			break;
 		case 2:
 			m_modelInMiniature->apply4RegionCubeOffset(offset);
-			m_volume->apply4RegionCubeOffset(offset);
+			m_volume->apply4RegionCubeOffset(offset * 2.5);
 			break;
 		}
-		fiberMetrics->hideMIPPanels();
+
+		//std::thread th(&iAVRVolume::moveFibersByMaxCoverage, m_volume, fiberMetrics->getMaxCoverageFiberPerRegion(), offset);
+		//th.detach();
 		m_volume->createRegionLinks(fiberMetrics->getWeightedJaccardIndex(currentOctreeLevel), fiberMetrics->getMaxNumberOfFibersInRegion(currentOctreeLevel));
 	}
 }

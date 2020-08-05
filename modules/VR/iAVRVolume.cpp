@@ -40,7 +40,6 @@
 #include <vtkCleanPolyData.h>
 #include <vtkCubeSource.h>
 
-
 iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io) :m_objectTable(objectTable), m_io(io), iAVRCubicRepresentation{ren}
 {
 	defaultColor = QColor(126, 0, 223, 255);
@@ -190,21 +189,21 @@ void iAVRVolume::createNewVolume(std::vector<size_t> fiberIDs)
 //! Should only be called if the mappers are set!
 void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset)
 {
-	double maxLength = m_octree->getMaxDistanceOctCenterToRegionCenter();// m_octree->getMaxDistanceOctCenterToFiber();
+	double maxLength = 0; // m_octree->getMaxDistanceOctCenterToRegionCenter();// m_octree->getMaxDistanceOctCenterToFiber();
 	double centerPoint[3];
 	double regionCenterPoint[3];
 	m_octree->calculateOctreeCenterPos(centerPoint);
 	iAVec3d centerPos = iAVec3d(centerPoint);
 
-	//for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
-	//{
-	//	m_octree->calculateOctreeRegionCenterPos(region, regionCenterPoint);
+	for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+	{
+		m_octree->calculateOctreeRegionCenterPos(region, regionCenterPoint);
 
-	//	iAVec3d currentRegionCenterPoint = iAVec3d(regionCenterPoint);
-	//	iAVec3d direction = currentRegionCenterPoint - centerPos;
-	//	double length = direction.length();
-	//	if (length > maxLength) maxLength = length;		// Get max length
-	//}
+		iAVec3d currentRegionCenterPoint = iAVec3d(regionCenterPoint);
+		iAVec3d direction = currentRegionCenterPoint - centerPos;
+		double length = direction.length();
+		if (length > maxLength) maxLength = length;		// Get max length
+	}
 
 	for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
 	{
@@ -234,7 +233,7 @@ void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtk
 		}
 	}
 	
-	m_cylinderVis->getPolyData()->Modified();
+	m_cylinderVis->getPolyData()->GetPoints()->GetData()->Modified();
 	//m_octree->getOctree()->Modified();
 }
 
@@ -243,7 +242,6 @@ void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtk
 //! Should only be called if the mappers are set!
 void iAVRVolume::moveFibersbyAllCoveredRegions(double offset)
 {
-	double maxLength = m_octree->getMaxDistanceOctCenterToRegionCenter();
 	double centerPoint[3];
 	double regionCenterPoint[3];
 	m_octree->calculateOctreeCenterPos(centerPoint);
@@ -283,7 +281,7 @@ void iAVRVolume::moveFibersbyAllCoveredRegions(double offset)
 		}
 
 	}
-	m_cylinderVis->getPolyData()->Modified();
+	m_cylinderVis->getPolyData()->GetPoints()->GetData()->Modified();
 	//m_octree->getOctree()->Modified();
 }
 

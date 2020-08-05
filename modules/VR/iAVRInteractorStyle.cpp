@@ -121,9 +121,9 @@ void iAVRInteractorStyle::OnMove3D(vtkEventData * edata)
 	m_eventOrientation[2] = vtkMath::DegreesFromRadians(m_eventOrientation[2]);
 	m_eventOrientation[3] = vtkMath::DegreesFromRadians(m_eventOrientation[3]);
 
-	this->FindPickedActor(m_movePosition, nullptr);
+	//this->FindPickedActor(m_movePosition, nullptr);
 
-	m_vrMain->onMove(device, m_movePosition, m_eventOrientation, InteractionProp);
+	m_vrMain->onMove(device, m_movePosition, m_eventOrientation);
 
 }
 

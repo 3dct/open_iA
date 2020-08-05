@@ -22,6 +22,8 @@
 
 #include <iAConsole.h>
 
+#include <vtkProperty.h>
+
 iAVRSlider::iAVRSlider(vtkRenderer* ren, vtkRenderWindowInteractor* interactor) : m_renderer(ren), m_interactor(interactor)
 {
 	m_sliderRep = vtkSmartPointer<vtkSliderRepresentation3D>::New();
@@ -41,11 +43,12 @@ void iAVRSlider::createSlider(double minValue, double maxValue, QString title)
 	m_sliderRep->SetMinimumValue(minValue);
 	m_sliderRep->SetMaximumValue(maxValue);
 	m_sliderRep->SetTitleText(title.toUtf8());
-	m_sliderRep->SetTubeWidth(0.06);
-	m_sliderRep->SetSliderWidth(0.1);
-	//m_sliderRep->SetEndCapWidth(0.15);
-	m_sliderRep->SetSliderLength(0.06);
-	//m_sliderRep->SetEndCapLength(0.03);
+	m_sliderRep->SetHandleSize(5);
+	m_sliderRep->SetTubeWidth(0.07);
+	m_sliderRep->SetSliderWidth(0.12);
+	//m_sliderRep->SetEndCapWidth(0.05);
+	//m_sliderRep->SetSliderLength(0.06);
+	m_sliderRep->SetEndCapLength(0.2);
 	m_sliderWidget->SetAnimationModeToAnimate();
 	
 }
