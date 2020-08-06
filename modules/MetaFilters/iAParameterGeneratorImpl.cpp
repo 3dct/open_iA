@@ -157,7 +157,10 @@ QSharedPointer<iARandomGenerator> createRandomGenerator(QSharedPointer<iAAttribu
 {
 	switch (a->valueType())
 	{
-	case Boolean:  // intentional fall-through - C++ 17: [[fallthrough]]
+	case Boolean:
+#if __cplusplus >= 201703L
+		[[fallthrough]];
+#endif
 	case Categorical:
 		return QSharedPointer<iARandomGenerator>(new iACategoryRandom(a->defaultValue().toStringList()));
 	case Discrete:
