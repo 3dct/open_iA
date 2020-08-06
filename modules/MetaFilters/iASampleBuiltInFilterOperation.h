@@ -37,6 +37,7 @@ public:
 		bool compressOutput,
 		QMap<QString, QVariant> parameters,
 		QVector<iAConnector*> input,
+		QVector<QString> inputfileNames,
 		QString const& outputFileName,
 		iALogger * logger);
 	QString output() const override;
@@ -47,6 +48,7 @@ private:
 	bool m_compressOutput;
 	QMap<QString, QVariant> m_parameters;
 	QVector<iAConnector*> m_input;
+	QVector<QString> m_inputFileNames;
 	QString m_outputFileName;
 	iALogger * m_logger;
 	bool m_success;

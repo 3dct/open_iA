@@ -130,7 +130,7 @@ vtkSmartPointer<vtkPolyData> iAFilter::polyOutput() const
 	return m_outputMesh;
 }
 
-QVector<iAConnector*> const & iAFilter::output()
+QVector<iAConnector*> const & iAFilter::output() const
 {
 	return m_output;
 }
@@ -148,14 +148,20 @@ void iAFilter::clearInput()
 // TODO: Allow to check type of input files (e.g. to check if input images are
 // of a specific type, or all of the same type), e.g. in addInput or
 // checkParameters.
-void iAFilter::addInput(iAConnector* con)
+void iAFilter::addInput(iAConnector* con, QString const& fileName)
 {
 	m_input.push_back(con);
+	m_fileNames.push_back(fileName);
 }
 
-QVector<iAConnector*> const & iAFilter::input()
+QVector<iAConnector*> const & iAFilter::input() const
 {
 	return m_input;
+}
+
+QVector<QString> const& iAFilter::fileNames() const
+{
+	return m_fileNames;
 }
 
 itk::ImageIOBase::IOComponentType iAFilter::inputPixelType() const

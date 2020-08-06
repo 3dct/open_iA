@@ -135,16 +135,18 @@ void iAImageSampler::newSamplingRun()
 			singleRunParams.insert(desc->name(), paramSet.at(i));
 		}
 		QVector<iAConnector*> input; // TODO - pass in...?
+		QVector<QString> fileNames;
 		for (int m = 0; m < m_datasets->size(); ++m)
 		{
 			auto con = new iAConnector();
 			con->setImage(m_datasets->get(m)->image());
 			input.push_back(con);
+			fileNames.push_back(m_datasets->get(m)->fileName());
 		}
 		op = new iASampleBuiltInFilterOperation(
 			m_parameters[spnFilter].toString(),
 			m_parameters[spnCompressOutput].toBool(),
-			singleRunParams, input, outputFile, m_logger);
+			singleRunParams, input, fileNames, outputFile, m_logger);
 	}
 	else if (m_parameters[spnAlgorithmType].toString() == atExternal)
 	{

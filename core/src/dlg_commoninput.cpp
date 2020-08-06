@@ -233,7 +233,9 @@ void dlg_commoninput::SelectFilter()
 			auto runner = iAFilterRegistry::filterRunner(filterID)->create();
 			QMap<QString, QVariant> paramValues = runner->loadParameters(filter, m_sourceMdiChild);
 			if (!runner->askForParameters(filter, paramValues, m_sourceMdiChild, m_mainWnd, false))
+			{
 				return;
+			}
 			QString paramStr;
 			for (auto param: filter->parameters())
 			{

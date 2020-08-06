@@ -49,17 +49,23 @@ class vtkImageData;
 
 // iAFilterRunnerGUIThread
 
-iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild) :
+iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter,
+	QMap<QString, QVariant> paramValues, MdiChild* mdiChild, QString const & fileName) :
 	iAAlgorithm(filter->name(), mdiChild->imagePointer(), mdiChild->polyData(), mdiChild->logger(), mdiChild),
 	m_filter(filter),
 	m_paramValues(paramValues)
-{}
+{
+	m_fileNames.push_back(fileName);
+}
 
 void iAFilterRunnerGUIThread::performWork()
 {
 	m_filter->setProgress(ProgressObserver());
-	for (iAConnector* con : Connectors())
-		m_filter->addInput(con);
+	assert(Connectors().size() == m_fileNames.size());
+	for (int i = 0; i < Connectors().size(); ++i)
+	{
+		m_filter->addInput(Connectors()[i], m_fileNames[i]);
+	}
 	if (!m_filter->run(m_paramValues))
 	{
 		m_filter->logger()->log("Running filter failed!");
@@ -75,6 +81,12 @@ void iAFilterRunnerGUIThread::performWork()
 QSharedPointer<iAFilter> iAFilterRunnerGUIThread::filter()
 {
 	return m_filter;
+}
+
+void iAFilterRunnerGUIThread::addInput(vtkImageData* img, QString const& fileName)
+{
+	AddImage(img);
+	m_fileNames.push_back(fileName);
 }
 
 
@@ -213,6 +225,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 			for (int m = 0; m < otherMdis[mdiIdx]->modalities()->size(); ++m)
 			{
 				m_additionalInput.push_back(otherMdis[mdiIdx]->modality(m)->image());
+				m_additionalFileNames.push_back(otherMdis[mdiIdx]->modality(m)->fileName());
 			}
 		}
 	}
@@ -260,7 +273,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 		return;
 	}
 	filterGUIPreparations(filter, mdiChild, mainWnd, paramValues);
-	iAFilterRunnerGUIThread* thread = new iAFilterRunnerGUIThread(filter, paramValues, mdiChild);
+	iAFilterRunnerGUIThread* thread = new iAFilterRunnerGUIThread(filter, paramValues, mdiChild, mdiChild->fileName());
 	if (!thread)
 	{
 		mainWnd->statusBar()->showMessage("Cannot create result calculation thread!", 5000);
@@ -269,12 +282,12 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	// TODO: move all image adding here?
 	for (int m = 1; m < sourceMdi->modalities()->size(); ++m)
 	{
-		thread->AddImage(sourceMdi->modality(m)->image());
+		thread->addInput(sourceMdi->modality(m)->image(), sourceMdi->modality(m)->fileName());
 	}
 	filter->setFirstInputChannels(sourceMdi->modalities()->size());
-	for (auto img : m_additionalInput)
+	for (int a=0; a < m_additionalInput.size(); ++a)
 	{
-		thread->AddImage(img);
+		thread->addInput(m_additionalInput[a], m_additionalFileNames[a]);
 	}
 	if (thread->Connectors().size() < filter->requiredInputs())
 	{

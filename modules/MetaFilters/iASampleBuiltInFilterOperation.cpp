@@ -35,12 +35,14 @@ iASampleBuiltInFilterOperation::iASampleBuiltInFilterOperation(
 	bool compressOutput,
 	QMap<QString, QVariant> parameters,
 	QVector<iAConnector*> input,
+	QVector<QString> inputFileNames,
 	QString const& outputFileName,
 	iALogger* logger) :
 	m_filterName(filterName),
 	m_compressOutput(compressOutput),
 	m_parameters(parameters),
 	m_input(input),
+	m_inputFileNames(inputFileNames),
 	m_outputFileName(outputFileName),
 	m_logger(logger),
 	m_success(false)
@@ -61,9 +63,10 @@ void iASampleBuiltInFilterOperation::performWork()
 		DEBUG_LOG(msg);
 		return;
 	}
-	for (auto in : m_input)
+	assert(m_input.size() == m_inputFileNames.size());
+	for (int i=0; i<m_input.size(); ++i)
 	{
-		filter->addInput(in);
+		filter->addInput(m_input[i], m_inputFileNames[i]);
 	}
 	iAProgress p;	// dummy progress swallowing progress from filter which we don't want to propagate
 	filter->setProgress(&p);

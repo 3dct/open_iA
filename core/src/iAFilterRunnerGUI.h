@@ -37,20 +37,23 @@ class MdiChild;
 
 class vtkImageData;
 
-//! GUI Runner Thread for descendants of iAFilter
+//! GUI Runner Thread for running descendants of iAFilter.
 //!
-//! Used in RunFilter (see below) as thread to run a descendant of iAFilter inside its
+//! Used in iAFilterRunnerGUI::run (see below) as thread to run a descendant of iAFilter inside its
 //! own thread
 class open_iA_Core_API iAFilterRunnerGUIThread : public iAAlgorithm
 {
 	Q_OBJECT
 public:
-	iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild);
+	iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter,
+		QMap<QString, QVariant> paramValues, MdiChild* mdiChild, QString const& fileName);
 	void performWork();
 	QSharedPointer<iAFilter> filter();
+	void addInput(vtkImageData* img, QString const& fileName);
 private:
 	QSharedPointer<iAFilter> m_filter;
 	QMap<QString, QVariant> m_paramValues;
+	QVector<QString> m_fileNames;
 };
 
 
@@ -124,6 +127,7 @@ signals:
 	void finished();
 private:
 	QVector<vtkSmartPointer<vtkImageData> > m_additionalInput;
+	QVector<QString> m_additionalFileNames;
 };
 
 #define IAFILTER_RUNNER_CREATE(FilterRunnerName) \

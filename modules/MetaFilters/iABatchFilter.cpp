@@ -116,9 +116,11 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 	QString batchDir = parameters["Image folder"].toString();
 	QVector<iAConnector*> inputImages;
 	QStringList additionalInput = splitPossiblyQuotedString(parameters["Additional Input"].toString());
+	QStringList additionalFileNames;
 	for (QString fileName : additionalInput)
 	{
 		fileName = MakeAbsolute(batchDir, fileName);
+		additionalFileNames.push_back(fileName);
 		auto newCon = new iAConnector();
 		iAITKIO::ScalarPixelType pixelType;
 		iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
@@ -211,13 +213,15 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 					iAITKIO::ScalarPixelType pixelType;
 					iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
 					con.setImage(img);
-					filter->addInput(&con);
+					filter->addInput(&con, fileName);
 					for (int i = 0; i < inputImages.size(); ++i)
-						filter->addInput(inputImages[i]);
+					{
+						filter->addInput(inputImages[i], additionalFileNames[i]);
+					}
 				}
-				else
+				for (int i = 0; i < inputImages.size(); ++i)
 				{
-					filterParams["File name"] = fileName;
+					filterParams[QString("Input file %1").arg(i)] = fileName;
 				}
 			}
 			filter->run(filterParams);

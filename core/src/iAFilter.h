@@ -109,7 +109,7 @@ public:
 	//! and you want to call it with new input images
 	void clearInput();
 	//! Adds an image as input.
-	void addInput(iAConnector* con);
+	void addInput(iAConnector* con, QString const & fileName);
 	//! Initialize and run the filter
 	//! @param parameters the map of parameters to use in this specific filter run
 	bool run(QMap<QString, QVariant> const & parameters);
@@ -130,8 +130,9 @@ public:
 	//! @return the number of images required as input
 	int requiredInputs() const;
 	//! input/output connectors
-	QVector<iAConnector*> const & input();
-	QVector<iAConnector*> const & output();
+	QVector<iAConnector*> const & input() const;
+	QVector<iAConnector*> const & output() const;
+	QVector<QString> const & fileNames() const;
 
 	itk::ImageIOBase::IOComponentType inputPixelType() const;
 	//! returns the number of input channels from the first input image
@@ -193,6 +194,7 @@ private:
 
 	//! variables required to run the filter:
 	QVector<iAConnector*> m_input;
+	QVector<QString> m_fileNames;
 	QVector<iAConnector*> m_output;
 	vtkSmartPointer<vtkPolyData> m_outputMesh;
 	QVector<QPair<QString, QVariant> > m_outputValues;

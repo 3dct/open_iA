@@ -105,7 +105,7 @@ void iAFoamCharacterizationItemBinarization::executeBinarization()
 	auto filter = iAFilterRegistry::filter("Binary Thresholding");
 	filter->setLogger(iAConsoleLogger::get());
 	filter->setProgress(pObserver.data());
-	filter->addInput(&con);
+	filter->addInput(&con, "");
 	QMap<QString, QVariant> parameters;
 	parameters["Lower threshold"] = m_usLowerThreshold;
 	parameters["Upper threshold"] = m_usUpperThreshold;
@@ -125,7 +125,7 @@ void iAFoamCharacterizationItemBinarization::executeOtzu()
 	auto filter = iAFilterRegistry::filter("Otsu Threshold");
 	filter->setLogger(iAConsoleLogger::get());
 	filter->setProgress(pObserver.data());
-	filter->addInput(&con);
+	filter->addInput(&con, "");
 	QMap<QString, QVariant> parameters;
 	parameters["Remove peaks"] = false;
 	parameters["Number of histogram bins"] = m_uiOtzuHistogramBins;
