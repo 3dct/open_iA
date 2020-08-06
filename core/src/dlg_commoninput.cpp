@@ -120,7 +120,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 					m_filterWithParameters.push_back(i - 1); // remember this for the filter selection
 				}
 #if __cplusplus >= 201703L
-				[[fallthrough]];  // intentional fall-through
+				[[fallthrough]];
 #endif
 			case '#':
 				newWidget = new QLineEdit(m_container);
@@ -233,7 +233,9 @@ void dlg_commoninput::SelectFilter()
 			auto runner = iAFilterRegistry::filterRunner(filterID)->create();
 			QMap<QString, QVariant> paramValues = runner->loadParameters(filter, m_sourceMdiChild);
 			if (!runner->askForParameters(filter, paramValues, m_sourceMdiChild, m_mainWnd, false))
+			{
 				return;
+			}
 			QString paramStr;
 			for (auto param: filter->parameters())
 			{
@@ -252,9 +254,13 @@ void dlg_commoninput::SelectFilter()
 			}
 			QLineEdit* e = qobject_cast<QLineEdit*>(m_widgetList[idx + 1]);
 			if (e)
+			{
 				e->setText(paramStr);
+			}
 			else
+			{
 				DEBUG_LOG(QString("Parameter string %1 could not be set!").arg(paramStr));
+			}
 		}
 		sender->setText(filterName);
 	}
@@ -269,11 +275,15 @@ void dlg_commoninput::updateValues(QList<QVariant> values)
 	{
 		QLineEdit *lineEdit = qobject_cast<QLineEdit*>(children.at(i));
 		if (lineEdit)
+		{
 			lineEdit->setText(values[paramIdx++].toString());
+		}
 
 		QPlainTextEdit *plainTextEdit = qobject_cast<QPlainTextEdit*>(children.at(i));
 		if (plainTextEdit)
+		{
 			plainTextEdit->setPlainText(values[paramIdx++].toString());
+		}
 
 		QComboBox *comboBox = qobject_cast<QComboBox*>(children.at(i));
 		if (comboBox)
@@ -298,30 +308,44 @@ void dlg_commoninput::updateValues(QList<QVariant> values)
 		if (checkBox)
 		{
 			if (values[paramIdx] == tr("true"))
+			{
 				checkBox->setChecked(true);
+			}
 			else if (values[paramIdx] == tr("false"))
+			{
 				checkBox->setChecked(false);
+			}
 			else
-				checkBox->setChecked(values[paramIdx]!=0);
+			{
+				checkBox->setChecked(values[paramIdx] != 0);
+			}
 			paramIdx++;
 
 		}
 
 		QSpinBox *spinBox = qobject_cast<QSpinBox*>(children.at(i));
 		if (spinBox)
+		{
 			spinBox->setValue(values[paramIdx++].toDouble());
+		}
 
 		QDoubleSpinBox *doubleSpinBox = qobject_cast<QDoubleSpinBox*>(children.at(i));
 		if (doubleSpinBox)
+		{
 			doubleSpinBox->setValue(values[paramIdx++].toDouble());
+		}
 
 		QPushButton *button = qobject_cast<QPushButton*>(children.at(i));
 		if (button)
+		{
 			button->setText(values[paramIdx++].toString());
+		}
 
 		iAFileChooserWidget* fileChooser = qobject_cast<iAFileChooserWidget*>(children.at(i));
 		if (fileChooser)
+		{
 			fileChooser->setText(values[paramIdx++].toString());
+		}
 	}
 }
 
