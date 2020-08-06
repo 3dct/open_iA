@@ -33,6 +33,8 @@
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iANameMapper.h>
+#include <mainwindow.h>
+#include <mdichild.h>
 #include <qthelper/iAQFlowLayout.h>
 
 #include <QCheckBox>
@@ -79,10 +81,10 @@ public:
 };
 
 
-dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
+dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWdgt,
 	int inputImageCount,
 	iASettings const & values):
-	dlg_samplingSettingsUI(parentWidget),
+	dlg_samplingSettingsUI(parentWdgt),
 	m_inputImageCount(inputImageCount)
 {
 	// to make sure that the radio button text matches the available options of the filter:
@@ -714,9 +716,39 @@ void dlg_samplingSettings::runClicked()
 			msg += QString("Parameter '%1': Currently, no value is selected; you must select at least one value!").arg(desc->name());
 		}
 	}
-	if (rbBuiltIn->isChecked() && pbFilterSelect->text() == SelectFilterDefaultText)
+	if (rbBuiltIn->isChecked())
 	{
-		msg += "Built-in sampling: No filter selected!";
+		if (pbFilterSelect->text() == SelectFilterDefaultText)
+		{
+			msg += "Built-in sampling: No filter selected!";
+		}
+		else
+		{
+			QString filterName = pbFilterSelect->text();
+			auto filter = iAFilterRegistry::filter(filterName);
+			if (!filter)
+			{
+				msg += "Built-in sampling: Invalid filter name - no filter found with that name!";
+			}
+			else
+			{
+				auto mainWnd = dynamic_cast<MainWindow*>(parentWidget());
+				if (mainWnd)
+				{
+					auto child = mainWnd->activeChild<MdiChild>();
+					int curChildInputCount = child->modalities()->size();
+					int childCount = mainWnd->childList<MdiChild>().size();
+					int inputCount = (curChildInputCount + childCount - 1);
+					if (filter->requiredInputs() > inputCount)
+					{
+						msg += QString("Filter requires more inputs (%1) "
+							"than the number of datasets currently loaded (%2)!")
+							.arg(filter->requiredInputs())
+							.arg(inputCount);
+					}
+				}
+			}
+		}
 	}
 	else if (rbExternal->isChecked() && leExecutable->text().isEmpty() || leParamDescriptor->text().isEmpty())
 	{
