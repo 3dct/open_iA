@@ -661,7 +661,7 @@ iALabelImageToSeeds::iALabelImageToSeeds() :
 		"This text file can be used as input for segmentation algorithms such as"
 		"Random Walker or (Probabilistic) Support Vector Machines.", 1, 0)
 {
-	addParameter("File name", FileNameSave, "");
+	addParameter("File name", FileNameSave, ".txt");
 }
 
 IAFILTER_CREATE(iALabelImageToSeeds)

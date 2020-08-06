@@ -306,7 +306,7 @@ iAPatchFilter::iAPatchFilter():
 	addParameter("Filter", FilterName, "Image Quality");
 	addParameter("Parameters", FilterParameters, "");
 	addParameter("Additional input", FileNamesOpen, "");
-	addParameter("Output csv file", FileNameSave, "");
+	addParameter("Output csv file", FileNameSave, ".csv");
 	addParameter("Write output value image", Boolean, true);
 	addParameter("Output image base name", String, "output.mhd");
 	addParameter("Compress image", Boolean, true);

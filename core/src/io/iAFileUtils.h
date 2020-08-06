@@ -26,6 +26,7 @@
 
 #include <string>
 
+class QFileInfo;
 class QString;
 class QStringList;
 
@@ -45,3 +46,7 @@ open_iA_Core_API void FindFiles(QString const & directory, QStringList const & f
 open_iA_Core_API std::string getLocalEncodingFileName(QString const & fileName);
 
 open_iA_Core_API QString fileNameOnly(QString const & fileName);
+
+//! returns the full path of the given file along with the file's basename.
+//! e.g. if the given QFileInfo points to C:/test/data.mhd, the function would return C:/test/data
+open_iA_Core_API QString pathFileBaseName(QFileInfo const& fi);

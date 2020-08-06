@@ -119,8 +119,10 @@ void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const
 		myfile.open(getLocalEncodingFileName(parameters["Label file"].toString()));
 		myfile << " Total Objects " << "," << no_of_Objects << endl;
 		myfile << "Object Number" << "," << "Object Size (PhysicalUnits)" << endl;
-		for ( int i = 0; i < no_of_Objects; i++ )
+		for (int i = 0; i < no_of_Objects; i++)
+		{
 			myfile << i << "," << rccFilter->GetSizeOfObjectsInPhysicalUnits()[i] << endl;
+		}
 		myfile.close();
 	}
 	filter->addOutput(rccFilter->GetOutput());
@@ -153,5 +155,5 @@ iARelabelComponents::iARelabelComponents() :
 {
 	addParameter("Minimum object size", Discrete, 1, 1);
 	addParameter("Write labels to file", Boolean, false);
-	addParameter("Label file", FileNameSave, "");
+	addParameter("Label file", FileNameSave, ".csv");
 }

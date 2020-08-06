@@ -49,20 +49,23 @@ enum ContainerSize {
 
 namespace
 {
-	iAFileChooserWidget* createFileChooser(iAValueType type, QString const & value)
+	iAFileChooserWidget::ChoiceType mapValueTypeToFileChoiceType(iAValueType valueType)
 	{
-		iAFileChooserWidget* newWidget = nullptr;
-		switch (type)
+		switch (valueType)
 		{
 		default:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
-		case FileNameOpen:  newWidget = new iAFileChooserWidget(nullptr, iAFileChooserWidget::FileNameOpen);  break;
-		case FileNamesOpen: newWidget = new iAFileChooserWidget(nullptr, iAFileChooserWidget::FileNamesOpen); break;
-		case FileNameSave:  newWidget = new iAFileChooserWidget(nullptr, iAFileChooserWidget::FileNameSave);  break;
-		case Folder:        newWidget = new iAFileChooserWidget(nullptr, iAFileChooserWidget::Folder);        break;
+		case FileNameOpen:  return iAFileChooserWidget::FileNameOpen;
+		case FileNamesOpen: return iAFileChooserWidget::FileNamesOpen;
+		case FileNameSave:  return iAFileChooserWidget::FileNameSave;
+		case Folder:        return iAFileChooserWidget::Folder;
 		}
+	}
+	iAFileChooserWidget* createFileChooser(iAValueType type, QString const & value)
+	{
+		auto newWidget =  new iAFileChooserWidget(nullptr, mapValueTypeToFileChoiceType(type));
 		newWidget->setText(value);
 		return newWidget;
 	}

@@ -30,6 +30,7 @@
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAParameterDlg.h"
+#include "io/iAFileUtils.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
@@ -109,7 +110,7 @@ QSharedPointer<iAFilterRunnerGUI> iAFilterRunnerGUI::create()
 	return QSharedPointer<iAFilterRunnerGUI>(new iAFilterRunnerGUI());
 }
 
-QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* /*sourceMdi*/)
+QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
 {
 	auto params = filter->parameters();
 	QMap<QString, QVariant> result;
@@ -117,7 +118,10 @@ QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilte
 	for (auto param : params)
 	{
 		QVariant defaultValue = (param->valueType() == Categorical) ? "" : param->defaultValue();
-		result.insert(param->name(), settings.value(SettingName(filter, param->name()), defaultValue));
+		QVariant value = (param->valueType() == FileNameSave) ?
+			pathFileBaseName(sourceMdi->fileInfo()) + param->defaultValue().toString() :
+			settings.value(SettingName(filter, param->name()), defaultValue);
+		result.insert(param->name(), value);
 	}
 	return result;
 }

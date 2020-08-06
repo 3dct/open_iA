@@ -85,7 +85,7 @@ iABatchFilter::iABatchFilter():
 	addParameter("Output suffix", String, "");
 	addParameter("Overwrite output", Boolean, false);
 	addParameter("Compress output", Boolean, true);
-	addParameter("Output csv file", FileNameSave, "");
+	addParameter("Output csv file", FileNameSave, ".csv");
 	addParameter("Append to output", Boolean, true);
 	addParameter("Add filename", Boolean, true);
 	addParameter("Continue on error", Boolean, true);
