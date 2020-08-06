@@ -659,7 +659,7 @@ iALabelImageToSeeds::iALabelImageToSeeds() :
 		"the output will be a text file containing entries like this: <br/>"
 		"x y z label<br/>"
 		"This text file can be used as input for segmentation algorithms such as"
-		"Random Walker or (Probabilistic) Support Vector Machines.")
+		"Random Walker or (Probabilistic) Support Vector Machines.", 1, 0)
 {
 	addParameter("File name", FileNameSave, "");
 }

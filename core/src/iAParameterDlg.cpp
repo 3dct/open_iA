@@ -54,7 +54,10 @@ namespace
 		iAFileChooserWidget* newWidget = nullptr;
 		switch (type)
 		{
-		default: // intentional fall-through
+		default:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case FileNameOpen:  newWidget = new iAFileChooserWidget(nullptr, iAFileChooserWidget::FileNameOpen);  break;
 		case FileNamesOpen: newWidget = new iAFileChooserWidget(nullptr, iAFileChooserWidget::FileNamesOpen); break;
 		case FileNameSave:  newWidget = new iAFileChooserWidget(nullptr, iAFileChooserWidget::FileNameSave);  break;
@@ -184,7 +187,10 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 			newWidget = comboBox;
 			break;
 		}
-		default:     // intentional fall-through
+		default:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case String:
 		{
 			auto textEdit = new QLineEdit(m_container);
@@ -207,9 +213,18 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 			connect(button, &QPushButton::clicked, this, &iAParameterDlg::selectFilter);
 			break;
 		}
-		case FileNameOpen:  // intentional fall-through
-		case FileNamesOpen: // intentional fall-through
-		case FileNameSave:  // intentional fall-through
+		case FileNameOpen:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+		case FileNamesOpen:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+		case FileNameSave:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case Folder:
 		{
 			newWidget = createFileChooser(p->valueType(), p->defaultValue().toString());
@@ -441,7 +456,10 @@ QMap<QString, QVariant> iAParameterDlg::parameterValues() const
 			result.insert(p->name(), t->currentText());
 			break;
 		}
-		default:     // intentional fall-through
+		default:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case String:
 		{
 			QLineEdit* t = qobject_cast<QLineEdit*>(m_widgetList[i]);
@@ -463,9 +481,18 @@ QMap<QString, QVariant> iAParameterDlg::parameterValues() const
 			result.insert(p->name(), t->text());
 			break;
 		}
-		case FileNameOpen:  // intentional fall-through
-		case FileNamesOpen: // intentional fall-through
-		case FileNameSave:  // intentional fall-through
+		case FileNameOpen:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+		case FileNamesOpen:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+		case FileNameSave:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case Folder:
 		{
 			iAFileChooserWidget* t = qobject_cast<iAFileChooserWidget*>(m_widgetList[i]);

@@ -114,7 +114,7 @@ namespace
 					std::cout << " max=" << p->max();
 				}
 #if __cplusplus >= 201703L
-				[[fallthrough]];  // intentional fall-through
+				[[fallthrough]];
 #endif
 			case Boolean:
 				std::cout << " default=" << p->defaultValue().toString().toStdString();
@@ -134,7 +134,10 @@ namespace
 			case Folder:
 				std::cout << " specify a folder.";
 				break;
-			case String: // intentional fall-through!
+			case String:
+#if __cplusplus >= 201703L
+				[[fallthrough]];
+#endif
 			case Text:
 				std::cout << " text, see filter description for details.";
 				break;

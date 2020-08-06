@@ -130,7 +130,10 @@ size_t mapVTKTypeToSize(int vtkType)
 	switch (vtkType)
 	{
 	case VTK_UNSIGNED_CHAR: return sizeof(unsigned char);
-	case VTK_SIGNED_CHAR:	// intentional fall-through
+	case VTK_SIGNED_CHAR:
+#if __cplusplus >= 201703L
+		[[fallthrough]];
+#endif
 	case VTK_CHAR:			return sizeof(char);
 	case VTK_UNSIGNED_SHORT:return sizeof(unsigned short);
 	case VTK_SHORT:			return sizeof(short);

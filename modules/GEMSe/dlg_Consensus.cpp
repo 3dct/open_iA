@@ -1158,7 +1158,10 @@ vtkIdType AddPlot(int plotType,
 	vtkSmartPointer<vtkPlot> plot;
 	switch (plotType)
 	{
-		default: // intentional fall-through
+		default:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case vtkChart::POINTS: plot = vtkSmartPointer<vtkPlotPoints>::New(); break;
 		case vtkChart::LINE: plot = vtkSmartPointer<vtkPlotLine>::New(); break;
 	}
