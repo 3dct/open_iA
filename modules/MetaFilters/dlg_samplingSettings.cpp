@@ -102,7 +102,7 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWdgt,
 	m_widgetMap.insert(spnSamplingMethod, cbSamplingMethod);
 	m_widgetMap.insert(spnNumberOfSamples, sbNumberOfSamples);
 	m_widgetMap.insert(spnOutputFolder, leOutputFolder);
-	m_widgetMap.insert(spnBaseName, leImageBaseName);
+	m_widgetMap.insert(spnBaseName, leBaseName);
 	m_widgetMap.insert(spnSubfolderPerSample, cbSeparateFolder);
 	m_widgetMap.insert(spnAbortOnError, cbAbortOnError);
 	m_widgetMap.insert(spnCompressOutput, cbCompressOutput);
@@ -130,9 +130,13 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWdgt,
 	connect(rbBuiltIn, &QRadioButton::toggled, this, &dlg_samplingSettings::algoTypeChanged);
 	connect(rbExternal, &QRadioButton::toggled, this, &dlg_samplingSettings::algoTypeChanged);
 	connect(pbFilterSelect, &QPushButton::clicked, this, &dlg_samplingSettings::selectFilter);
+	connect(leOutputFolder, &QLineEdit::editingFinished, this, &dlg_samplingSettings::outputBaseChanged);
+	connect(leBaseName, &QLineEdit::editingFinished, this, &dlg_samplingSettings::outputBaseChanged);
+	connect(cbSeparateFolder, &QCheckBox::toggled, this, &dlg_samplingSettings::outputBaseChanged);
+	connect(sbNumberOfSamples, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_samplingSettings::outputBaseChanged);
 
-	connect (pbRun, &QPushButton::clicked, this, &dlg_samplingSettings::runClicked);
-	connect (pbCancel, &QPushButton::clicked, this, &dlg_samplingSettings::reject);
+	connect(pbRun, &QPushButton::clicked, this, &dlg_samplingSettings::runClicked);
+	connect(pbCancel, &QPushButton::clicked, this, &dlg_samplingSettings::reject);
 };
 
 namespace
@@ -208,7 +212,9 @@ namespace
 		else
 		{
 			auto otherInputs = new iAOtherParameterInputs();
-			otherInputs->m_valueEdit->setText(descriptor->defaultValue().toString());
+			otherInputs->m_valueEdit->setText(descriptor->valueType() == FileNameSave ? "" :
+				descriptor->defaultValue().toString());
+			otherInputs->m_valueEdit->setReadOnly(descriptor->valueType() == FileNameSave);
 			gridLay->addWidget(otherInputs->m_valueEdit, curGridLine, 1, 1, 3);
 			result = QSharedPointer<iAParameterInputs>(otherInputs);
 			// DEBUG_LOG(QString("Don't know how to handle parameters with type %1").arg(descriptor->valueType()));
@@ -428,11 +434,12 @@ void dlg_samplingSettings::setInputsFromMap(iASettings const & values)
 		setParametersFromFilter(values[spnFilter].toString());
 	}
 	algoTypeChanged();
-	setParameterValues(values);
 	if (!values.contains(spnFilter) || values[spnFilter].toString().isEmpty())
 	{
 		pbFilterSelect->setText(SelectFilterDefaultText);
 	}
+	setParameterValues(values);
+	outputBaseChanged();
 }
 
 void dlg_samplingSettings::algoTypeChanged()
@@ -546,6 +553,30 @@ void dlg_samplingSettings::selectFilter()
 	QString filterName = filterSelectionDlg.selectedFilterName();
 	sender->setText(filterName);
 	setParametersFromFilter(filterName);
+}
+
+void dlg_samplingSettings::outputBaseChanged()
+{
+	if (!m_paramSpecs)
+	{
+		return;
+	}
+	for (int p = 0; p < m_paramSpecs->size(); ++p)
+	{
+		if (m_paramSpecs->at(p)->valueType() == FileNameSave)
+		{
+			auto inputs = dynamic_cast<iAOtherParameterInputs*>(m_paramInputs[p].data());
+			assert(inputs);
+			int sampleNr = 0;
+			bool createSubFolder = cbSeparateFolder->isChecked();
+			int numDigits = requiredDigits(sbNumberOfSamples->value());
+			auto outputFolder = getOutputFolder(leOutputFolder->text(), createSubFolder, sampleNr, numDigits);
+			auto outFile = getOutputFileName(outputFolder, leBaseName->text(),
+				createSubFolder, sampleNr, numDigits) + m_paramSpecs->at(p)->defaultValue().toString();
+			int requiredDigits(int largestNumber);
+			inputs->m_valueEdit->setText(QString("Example: %1 (Set automatically during sampling)").arg(outFile));
+		}
+	}
 }
 
 void dlg_samplingSettings::chooseParameterDescriptor()

@@ -45,6 +45,37 @@
 const int CONCURRENT_COMPUTATION_RUNS = 1;
 
 
+// TODO: find better place - declaration currently in iASampleParameterNames.h
+
+#include <QFileInfo>
+
+QString getOutputFolder(QString const& baseFolder, bool createSubFolder, int sampleNr, int numDigits)
+{
+	QString outputFolder(baseFolder);
+	if (createSubFolder)
+	{
+		outputFolder = outputFolder + QString("/sample%1").arg(sampleNr, numDigits, 10, QChar('0'));
+	}
+	return outputFolder;
+}
+
+QString getOutputFileName(QString const& outputFolder, QString const& baseName,
+	bool createSubFolder, int sampleNr, int numDigits)
+{
+	QFileInfo fi(baseName);
+	return outputFolder + "/" + (createSubFolder ?
+		baseName :
+		QString("%1%2%3").arg(fi.baseName()).arg(sampleNr, numDigits, 10, QChar('0')).arg(
+			fi.completeSuffix().size() > 0 ? QString(".%1").arg(fi.completeSuffix()) : QString(""))
+		);
+}
+
+int requiredDigits(int largestNumber)
+{  // number of required digits for number >= 1
+	return std::floor(std::log10(std::abs(largestNumber))) + 1;
+}
+
+
 iAPerformanceTimer m_computationTimer;
 
 iAImageSampler::iAImageSampler(
@@ -107,23 +138,17 @@ void iAImageSampler::newSamplingRun()
 	}
 	statusMsg(QString("Sampling run %1.").arg(m_curSample));
 	iAParameterSet const& paramSet = m_parameterSets->at(m_curSample);
-	QString outputDirectory(m_parameters[spnOutputFolder].toString());
-	if (m_parameters[spnSubfolderPerSample].toBool())
-	{
-		outputDirectory = outputDirectory + "/sample" + QString::number(m_curSample);
-	}
+	QString outputFolder(getOutputFolder(
+		m_parameters[spnOutputFolder].toString(),
+		m_parameters[spnSubfolderPerSample].toBool(), m_curSample, m_numDigits));
 	QDir d(QDir::root());
-	if (!QDir(outputDirectory).exists() && !d.mkpath(outputDirectory))
+	if (!QDir(outputFolder).exists() && !d.mkpath(outputFolder))
 	{
-		statusMsg(QString("Could not create output directory '%1'").arg(outputDirectory));
+		statusMsg(QString("Could not create output folder '%1'").arg(outputFolder));
 		return;
 	}
-	QFileInfo fi(m_parameters[spnBaseName].toString());
-	QString outputFile = outputDirectory + "/" + (m_parameters[spnSubfolderPerSample].toBool() ?
-		m_parameters[spnBaseName].toString() :
-		QString("%1%2%3").arg(fi.baseName()).arg(m_curSample, m_numDigits, 10, QChar('0')).arg(
-			fi.completeSuffix().size() > 0 ? QString(".%1").arg(fi.completeSuffix()) : QString(""))
-		);
+	QString outputFile(getOutputFileName(outputFolder, m_parameters[spnBaseName].toString(),
+		m_parameters[spnSubfolderPerSample].toBool(), m_curSample, m_numDigits));
 	iASampleOperation* op(nullptr);
 
 	if (m_parameters[spnAlgorithmType].toString() == atBuiltIn)
@@ -132,7 +157,12 @@ void iAImageSampler::newSamplingRun()
 		for (int i = 0; i < m_parameterCount; ++i)
 		{
 			auto desc = m_parameterRanges->at(i);
-			singleRunParams.insert(desc->name(), paramSet.at(i));
+			auto value = paramSet.at(i);
+			if (m_parameterRanges->at(i)->valueType() == FileNameSave)
+			{	// all output file names need to be adapted to output file name
+				value = pathFileBaseName(outputFile) + value.toString();
+			}
+			singleRunParams.insert(desc->name(), value);
 		}
 		QVector<iAConnector*> input; // TODO - pass in...?
 		QVector<QString> fileNames;
@@ -251,7 +281,7 @@ void iAImageSampler::start()
 		m_parameters[spnAlgorithmName].toString(),
 		m_samplingID));
 
-	m_numDigits = std::floor(std::log10(std::abs(m_parameterSets->size()))) + 1;  // number of required digits for number >= 1
+	m_numDigits = requiredDigits(m_parameterSets->size());
 	for (int i = 0; i < CONCURRENT_COMPUTATION_RUNS; ++i)
 	{
 		newSamplingRun();
@@ -289,9 +319,19 @@ void iAImageSampler::computationFinished()
 	}
 	iAParameterSet const & param = m_parameterSets->at(id);
 
-	// TODO: check/change: the filename here should probably match outputFile from newSamplingRun, or be removed?
+	QString outputFolder(getOutputFolder(
+		m_parameters[spnOutputFolder].toString(),
+		m_parameters[spnSubfolderPerSample].toBool(), id, m_numDigits));
+	QDir d(QDir::root());
+	if (!QDir(outputFolder).exists() && !d.mkpath(outputFolder))
+	{
+		statusMsg(QString("Could not create output folder '%1'").arg(outputFolder));
+		return;
+	}
+	QString outputFile(getOutputFileName(outputFolder, m_parameters[spnBaseName].toString(),
+		m_parameters[spnSubfolderPerSample].toBool(), id, m_numDigits));
 	QSharedPointer<iASingleResult> result = iASingleResult::create(id, *m_results.data(), param,
-		m_parameters[spnOutputFolder].toString() + "/sample" + QString::number(id) + +"/label.mhd");
+		outputFile);
 
 	result->setAttribute(m_parameterCount+2, computationTime);
 	m_results->attributes()->at(m_parameterCount+2)->adjustMinMax(computationTime);

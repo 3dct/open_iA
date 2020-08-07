@@ -29,6 +29,7 @@
 #include <iAModalityList.h>
 #include <iAModality.h>
 #include <iAProgress.h>
+#include <io/iAFileUtils.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 
@@ -138,10 +139,10 @@ bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, 
 		return false;
 	}
 	auto parameterRanges = dlg.parameterRanges();
-	QString outBaseName = parameters["Base name"].toString();
-	QString parameterRangeFile = outBaseName + "-parameterRanges.csv";  // iASEAFile::DefaultSMPFileName,
-	QString parameterSetFile = outBaseName + "-parameterSets.csv";		// iASEAFile::DefaultSPSFileName,
-	QString derivedOutputFile = outBaseName + "-derivedOutput.csv";		// iASEAFile::DefaultCHRFileName,
+	QString outBaseName = pathFileBaseName(parameters["Base name"].toString());
+	QString parameterRangeFile = outBaseName + "-parameterRanges.csv"; // iASEAFile::DefaultSMPFileName,
+	QString parameterSetFile   = outBaseName + "-parameterSets.csv";   // iASEAFile::DefaultSPSFileName,
+	QString derivedOutputFile  = outBaseName + "-derivedOutput.csv";   // iASEAFile::DefaultCHRFileName,
 
 	int SamplingID = 0;
 	sampleFilter->setParameters(sourceMdi->modalities(), parameterRanges, parameterRangeFile, parameterSetFile, derivedOutputFile, SamplingID);

@@ -72,6 +72,7 @@ private slots:
 	void algoTypeChanged();
 	void selectFilter();
 	void runClicked();
+	void outputBaseChanged();
 private:
 	void setInputsFromMap(iASettings const & values);
 	void setParameters(QSharedPointer<iAAttributes> params);

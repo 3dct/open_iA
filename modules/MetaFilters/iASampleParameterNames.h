@@ -17,4 +17,11 @@ const QString spnCompressOutput("Compress Output");
 const QString spnNumberOfLabels("Number of labels");
 // Valid values for algorithm type parameter:
 const QString atBuiltIn("Built-in");
-const QString atExternal("External");;
+const QString atExternal("External");
+
+
+// TODO: find better place (implementation currently in iAImageSampler.cpp):
+QString getOutputFolder(QString const& baseFolder, bool createSubFolder, int sampleNr, int numDigits);
+QString getOutputFileName(QString const& outputFolder, QString const& baseName,
+	bool createSubFolder, int sampleNr, int numDigits);
+int requiredDigits(int largestNumber);

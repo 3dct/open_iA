@@ -44,8 +44,7 @@ iASampleBuiltInFilterOperation::iASampleBuiltInFilterOperation(
 	m_input(input),
 	m_inputFileNames(inputFileNames),
 	m_outputFileName(outputFileName),
-	m_logger(logger),
-	m_success(false)
+	m_logger(logger)
 {
 }
 
@@ -116,5 +115,5 @@ void iASampleBuiltInFilterOperation::performWork()
 		}
 	}
 	*/
-	m_success = true;
+	setSuccess(true);
 }

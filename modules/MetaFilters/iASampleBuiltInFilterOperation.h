@@ -51,5 +51,4 @@ private:
 	QVector<QString> m_inputFileNames;
 	QString m_outputFileName;
 	iALogger * m_logger;
-	bool m_success;
 };
