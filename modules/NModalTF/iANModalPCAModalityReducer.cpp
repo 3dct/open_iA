@@ -137,8 +137,17 @@ void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector> &c) {
 		str += "\n"; \
 	} \
 	DEBUG_LOG(str); }
+#define DEBUG_LOG_VECTOR(vector, string) \
+	{ QString str = string; \
+	str += "\n"; \
+	for (int i = 0; i < vector.size(); i++) { \
+		str += QString::number(vector[i]) + "     "; \
+	} \
+	str += "\n"; \
+	DEBUG_LOG(str); }
 #else
-#define DEBUG_LOG_MATRIX(matrix)
+#define DEBUG_LOG_MATRIX(matrix, string)
+#define DEBUG_LOG_VECTOR(vector, string)
 #endif
 
 template<class T>
@@ -183,7 +192,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 #pragma omp single
 		numThreads = omp_get_num_threads();
 	}
-	DEBUG_LOG(QString::number(numThreads) + " threads available");
+	DEBUG_LOG(QString::number(numThreads) + " threads available\n");
 #endif
 
 	// Calculate means
@@ -207,12 +216,14 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 		means[img_i] /= numVoxels;
 	}
 
+	DEBUG_LOG_VECTOR(means, "Means");
+
 	// Calculate inner product (lower triangle) (for covariance matrix)
 	vnl_matrix<double> innerProd;
 	innerProd.set_size(numInputs, numInputs);
 	innerProd.fill(0);
 	for (int ix = 0; ix < numInputs; ix++) {
-		for (int iy = 0; iy < ix; iy++) {
+		for (int iy = 0; iy <= ix; iy++) {
 #pragma omp parallel
 			{
 				double innerProd_thread = 0;
@@ -228,6 +239,11 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 #pragma omp barrier
 #pragma omp atomic
 				innerProd[ix][iy] += innerProd_thread;
+
+/*#ifndef NDEBUG
+#pragma omp single
+				DEBUG_LOG_MATRIX(innerProd, "Inner product (not complete)");
+#endif*/
 			} // end of parallel block
 		}
 	}
@@ -238,16 +254,19 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 			innerProd[ix][iy] = innerProd[iy][ix];
 		}
 	}
+	DEBUG_LOG_MATRIX(innerProd, "Inner product");
+
+	// Make covariance matrix (divide by N-1)
 	if (numInputs - 1 != 0) {
-		innerProd /= (numInputs - 1);
+		innerProd /= (numVoxels - 1);
 	} else {
 		innerProd.fill(0);
 	}
+	DEBUG_LOG_MATRIX(innerProd, "Covariance matrix");
 
 	// Solve eigenproblem
 	vnl_matrix<double> eye(numInputs, numInputs); // (eye)dentity matrix
 	eye.set_identity();
-	DEBUG_LOG_MATRIX(innerProd, "Inner product");
 	//DEBUG_LOG_MATRIX(eye, "Identity");
 	vnl_generalized_eigensystem evecs_evals_innerProd(innerProd, eye);
 	auto evecs_innerProd = evecs_evals_innerProd.V;
@@ -256,6 +275,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 	//auto evals_innerProd = evecs_evals_innerProd.D.diagonal();
 
 	DEBUG_LOG_MATRIX(evecs_innerProd, "Eigenvectors");
+	DEBUG_LOG_VECTOR(evecs_evals_innerProd.D.diagonal(), "Eigenvalues");
 	
 	// Initialize the reconstructed matrix (with zeros)
 	vnl_matrix<double> reconstructed(numOutputs, numVoxels);
