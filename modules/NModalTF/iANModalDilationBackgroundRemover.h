@@ -62,7 +62,7 @@ class iANModalDilationBackgroundRemover : public QObject, public iANModalBackgro
 
 public:
 	iANModalDilationBackgroundRemover(MdiChild *mdiChild);
-	vtkSmartPointer<vtkImageData> removeBackground(QList<QSharedPointer<iAModality>>) override;
+	Mask removeBackground(QList<QSharedPointer<iAModality>>) override;
 
 private:
 	typedef itk::ImageBase<3>::Pointer ImagePointer;
@@ -76,7 +76,10 @@ private:
 
 	// return - true if a modality and a threshold were successfully chosen
 	//        - false otherwise
-	bool selectModalityAndThreshold(QWidget *parent, QList<QSharedPointer<iAModality>> modalities, int &out_threshold, QSharedPointer<iAModality> &out_modality);
+	bool selectModalityAndThreshold(QWidget *parent, QList<QSharedPointer<iAModality>> modalities,
+		int &out_threshold,
+		QSharedPointer<iAModality> &out_modality,
+		iANModalBackgroundRemover::MaskMode &out_maskMode);
 	
 	// TODO describe
 	bool iterativeDilation(ImagePointer mask, int regionCountGoal);
@@ -115,6 +118,7 @@ private:
 
 	void itkDilateAndCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponents, bool dilate = true);
 	void itkCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponents);
+	void itkDilate(ImagePointer itkImgPtr);
 	void itkErode(ImagePointer itkImgPtr, int count);
 
 	bool m_canceled = false;
@@ -122,6 +126,7 @@ private:
 public:
 	iANModalIterativeDilationThread(iANModalProgressWidget *progressWidget, iAProgress *progress[3], ImagePointer mask, int regionCountGoal);
 	void run() override;
+	ImagePointer mask() { return m_mask; }
 
 public slots:
 	void setCanceled(bool);

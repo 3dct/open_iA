@@ -41,12 +41,18 @@ class iANModalPreprocessor {
 public:
 	iANModalPreprocessor(MdiChild *mdiChild);
 
+	enum MaskMode {
+		IGNORE_MASK,
+		HIDE_ON_RENDER
+	};
+
 	struct Output {
 		Output() {}
 		Output(bool valid) : valid(valid) {}
 		QList<QSharedPointer<iAModality>> modalities;
 		//bool hasMask = false;
 		vtkSmartPointer<vtkImageData> mask;
+		MaskMode maskMode;
 		bool valid = true;
 	};
 	

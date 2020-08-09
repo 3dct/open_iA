@@ -31,6 +31,20 @@ class iAModality;
 
 class iANModalBackgroundRemover {
 public:
+	enum OutputType {
+		BACKGROUND = 0,
+		FOREGROUND = 1
+	};
+	enum MaskMode {
+		INVALID,
+		NONE,
+		REMOVE,
+		HIDE
+	};
+	struct Mask {
+		vtkSmartPointer<vtkImageData> mask;
+		MaskMode maskMode;
+	};
 	virtual ~iANModalBackgroundRemover() {};
-	virtual	vtkSmartPointer<vtkImageData> removeBackground(QList<QSharedPointer<iAModality>>) = 0; // returns a binary volume (a mask)
+	virtual	Mask removeBackground(QList<QSharedPointer<iAModality>>) = 0; // TODO: make input std::vector<vtkSmartPointer<vtkImageData>>
 };

@@ -35,6 +35,7 @@
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
 #include <vtkPiecewiseFunction.h>
+#include <vtkImageCast.h>
 
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryDilateImageFilter.h>
@@ -51,12 +52,6 @@
 #include <QVBoxLayout>
 #include <QPointer>
 #include <QPainter>
-
-namespace
-{
-static const int BACKGROUND = 0;
-static const int FOREGROUND = 1;
-}
 
 template <class T>
 void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector &conn, int loThresh, int upThresh)
@@ -93,7 +88,7 @@ void iANModalIterativeDilationThread::itkDilateAndCountConnectedComponents(
 	typename BDIFType::Pointer dilationFilter;
 
 	auto connCompFilter = CCIFType::New();
-	connCompFilter->SetBackgroundValue(BACKGROUND);
+	connCompFilter->SetBackgroundValue(iANModalBackgroundRemover::BACKGROUND);
 	m_progCc->observe(connCompFilter);
 
 	auto input = dynamic_cast<ImageType *>(itkImgPtr.GetPointer());
@@ -101,7 +96,7 @@ void iANModalIterativeDilationThread::itkDilateAndCountConnectedComponents(
 	{
 		// dilate the background (region of higher intensity)...
 		dilationFilter = BDIFType::New();
-		dilationFilter->SetDilateValue(BACKGROUND);
+		dilationFilter->SetDilateValue(iANModalBackgroundRemover::BACKGROUND);
 		dilationFilter->SetKernel(structuringElement);
 		dilationFilter->SetInput(input);
 		m_progDil->observe(dilationFilter);
@@ -119,6 +114,7 @@ void iANModalIterativeDilationThread::itkDilateAndCountConnectedComponents(
 	//filter->addOutput(binThreshFilter->GetOutput());
 	//conn.setImage(binThreshFilter->GetOutput());
 	m_mask = connCompFilter->GetOutput();
+	//m_mask = dilationFilter->GetOutput();
 
 	connectedComponentsOut = connCompFilter->GetObjectCount();
 }
@@ -126,6 +122,45 @@ void iANModalIterativeDilationThread::itkDilateAndCountConnectedComponents(
 void iANModalIterativeDilationThread::itkCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponentsOut)
 {
 	itkDilateAndCountConnectedComponents(itkImgPtr, connectedComponentsOut, false);
+	return;
+
+	typedef itk::Image<int, DIM> ImageType;
+	typedef itk::ConnectedComponentImageFilter<ImageType, ImageType> CCIFType;
+
+	auto connCompFilter = CCIFType::New();
+	connCompFilter->SetBackgroundValue(iANModalBackgroundRemover::BACKGROUND);
+	m_progCc->observe(connCompFilter);
+
+	auto input = dynamic_cast<ImageType *>(itkImgPtr.GetPointer());
+	connCompFilter->SetInput(input);
+
+	connCompFilter->Update();
+
+	//m_mask = connCompFilter->GetOutput();
+	connectedComponentsOut = connCompFilter->GetObjectCount();
+}
+
+void iANModalIterativeDilationThread::itkDilate(ImagePointer itkImgPtr)
+{
+	typedef itk::Image<int, DIM> ImageType;
+
+	typedef itk::FlatStructuringElement<DIM> StructuringElementType;
+	typename StructuringElementType::RadiusType elementRadius;
+	elementRadius.Fill(1);
+	auto structuringElement = StructuringElementType::Ball(elementRadius);
+
+	typedef itk::BinaryDilateImageFilter<ImageType, ImageType, StructuringElementType> BDIFType;
+	typename BDIFType::Pointer dilationFilter;
+
+	auto input = dynamic_cast<ImageType *>(itkImgPtr.GetPointer());
+	dilationFilter = BDIFType::New();
+	dilationFilter->SetDilateValue(iANModalBackgroundRemover::BACKGROUND);
+	dilationFilter->SetKernel(structuringElement);
+	dilationFilter->SetInput(input);
+	m_progDil->observe(dilationFilter);
+
+	dilationFilter->Update();
+	m_mask = dilationFilter->GetOutput();
 }
 
 void iANModalIterativeDilationThread::itkErode(ImagePointer itkImgPtr, int count)
@@ -149,13 +184,13 @@ void iANModalIterativeDilationThread::itkErode(ImagePointer itkImgPtr, int count
 	{
 		erosionFilters[i] = BDIFType::New();
 		erosionFilters[i]->SetKernel(structuringElement);
-		erosionFilters[i]->SetErodeValue(FOREGROUND);
+		erosionFilters[i]->SetErodeValue(iANModalBackgroundRemover::BACKGROUND);
+		erosionFilters[i]->SetBackgroundValue(iANModalBackgroundRemover::FOREGROUND);
 		erosionFilters[i]->SetInput(i == 0 ? input : erosionFilters[i - 1]->GetOutput());
 		m_progEro->observe(erosionFilters[i]);
 	}
 
 	erosionFilters[count - 1]->Update();
-
 	m_mask = erosionFilters[count - 1]->GetOutput();
 }
 
@@ -198,18 +233,19 @@ iANModalDilationBackgroundRemover::iANModalDilationBackgroundRemover(MdiChild *m
 	m_colorTf->Build();
 }
 
-vtkSmartPointer<vtkImageData> iANModalDilationBackgroundRemover::removeBackground(
+iANModalBackgroundRemover::Mask iANModalDilationBackgroundRemover::removeBackground(
 	QList<QSharedPointer<iAModality>> modalities)
 {
 	QSharedPointer<iAModality> selectedMod;
+	iANModalBackgroundRemover::MaskMode maskMode;
 	int upThresh;
 	int loThresh = 0;
 	int regionCountGoal = 1;
 
-	bool skipped = !selectModalityAndThreshold(nullptr, modalities, upThresh, selectedMod);
+	bool skipped = !selectModalityAndThreshold(nullptr, modalities, upThresh, selectedMod, maskMode);
 	if (skipped)
 	{
-		return nullptr;
+		return {nullptr, INVALID};
 	}
 
 	iAConnector conn;
@@ -223,32 +259,40 @@ vtkSmartPointer<vtkImageData> iANModalDilationBackgroundRemover::removeBackgroun
 	}
 	else
 	{  // example if == itk::ImageIOBase::RGBA
-		return nullptr;
+		return {nullptr, INVALID};
 	}
 
 	bool success = iterativeDilation(m_itkTempImg, regionCountGoal);
 	if (success)
 	{
 		conn.setImage(m_itkTempImg);
-		return conn.vtkImage();  // If doesn't work, keep iAConnector alive (member variable)
+
+		auto castFilter = vtkSmartPointer<vtkImageCast>::New();
+		castFilter->SetInputData(conn.vtkImage());
+		castFilter->SetOutputScalarTypeToUnsignedChar();
+		castFilter->Update();
+		auto output = vtkSmartPointer<vtkImageData>(castFilter->GetOutput());
+
+		//return conn.vtkImage(); // If doesn't work, keep iAConnector alive (member variable)
+		return {output, maskMode};
 	}
 	else
 	{
-		return nullptr;
+		return {nullptr, INVALID};
 	}
 }
 
 // return - true if a modality and a threshold were successfully chosen
 //        - false otherwise
 bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *parent,
-	QList<QSharedPointer<iAModality>> modalities, int &out_threshold, QSharedPointer<iAModality> &out_modality)
+	QList<QSharedPointer<iAModality>> modalities,
+	int &out_threshold, QSharedPointer<iAModality> &out_modality, iANModalBackgroundRemover::MaskMode &out_maskMode)
 {
 	QDialog *dialog = new QDialog(parent);
 	// TODO: set dialog title
 	dialog->setModal(true);
 
 	auto layout = new QVBoxLayout(dialog);
-
 
 	auto displayWidget = new QWidget(dialog);
 	auto displayLayout = new QVBoxLayout(displayWidget);
@@ -290,7 +334,12 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 	layout->addWidget(thresholdWidget);
 	layout->setStretchFactor(thresholdWidget, 0);
 
-	QWidget *footerWidget = iANModalDisplay::createOkSkipFooter(dialog);
+	const QString REMOVE = "Remove background";
+	const QString HIDE = "Hide backgrond";
+	const QString SKIP = "Skip";
+
+	//QWidget *footerWidget = iANModalDisplay::createOkSkipFooter(dialog);
+	iANModalDisplay::Footer *footerWidget = iANModalDisplay::createFooter(dialog, {REMOVE, HIDE}, {SKIP});
 	layout->addWidget(footerWidget);
 	layout->setStretchFactor(footerWidget, 0);
 
@@ -299,6 +348,14 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 	{
 		return false;
 	}
+
+	const QString t = footerWidget->m_textOfButtonClicked;
+	out_maskMode =
+		t == REMOVE ? MaskMode::REMOVE : (
+		t == HIDE   ? MaskMode::HIDE
+		: MaskMode::INVALID);
+
+	DEBUG_LOG(QString("Option chosen: ") + t + QString("\n"));
 
 	out_threshold = m_threshold->threshold();
 	out_modality = m_display->singleSelection();
@@ -376,6 +433,8 @@ bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int
 	pw->showDialog();
 	if (pw->isCanceled()) {
 		thread->setCanceled(true);
+	} else {
+		m_itkTempImg = thread->mask();
 	}
 
 	return !pw->isCanceled();
@@ -427,10 +486,16 @@ void iANModalIterativeDilationThread::run() {
 		auto t = QString::number(m_regionCountGoal);
 		IANMODAL_REQUIRE_NCANCELED();
 		itkDilateAndCountConnectedComponents(m_mask, connectedComponents);
+		//itkDilate(m_mask);
+		//itkCountConnectedComponents(m_mask, connectedComponents);
 		//storeImage(m_itkTempImg, "connectedComponents" + QString::number(dilationCount) + ".mhd", true);
 		emit addValue(connectedComponents);
 		dilationCount++;
 	}
+
+#ifndef NDEBUG
+	//storeImage2(m_mask, "mask_after_dilations", true);
+#endif
 
 	emit setValue("ero", 0);
 
@@ -438,6 +503,10 @@ void iANModalIterativeDilationThread::run() {
 	emit setText("ero", "Erosion (" + QString::number(dilationCount) + ")");
 	IANMODAL_REQUIRE_NCANCELED();
 	itkErode(m_mask, dilationCount);
+
+#ifndef NDEBUG
+	//storeImage2(m_mask, "mask_after_erosions", true);
+#endif
 
 	IANMODAL_REQUIRE_NCANCELED();
 	emit finish();

@@ -169,24 +169,33 @@ QList<QSharedPointer<iAModality>> iANModalDisplay::selectModalities(
 	return display->selection();
 }
 
-QWidget* iANModalDisplay::_createFooter(QDialog *dialog, QString acceptText, QString rejectText) {
-	auto footerWigdet = new QWidget(dialog);
+iANModalDisplay::Footer* iANModalDisplay::createFooter(QDialog *dialog, QList<QString> acceptText, QList<QString> rejectText) {
+	auto footerWigdet = new Footer(dialog);
 	auto footerLabel = new QLabel(footerWigdet);
 	auto footerLayout = new QHBoxLayout(footerWigdet); {
-		auto footerOK = new QPushButton(acceptText);
-		QObject::connect(footerOK, SIGNAL(clicked()), dialog, SLOT(accept()));
-
-		auto footerCancel = new QPushButton(rejectText);
-		QObject::connect(footerCancel, SIGNAL(clicked()), dialog, SLOT(reject()));
 
 		footerLayout->addWidget(footerLabel);
 		footerLayout->setStretchFactor(footerLabel, 1);
 
-		footerLayout->addWidget(footerOK);
-		footerLayout->setStretchFactor(footerOK, 0);
+		for (QString text : acceptText) {
+			auto button = new QPushButton(text);
+			QObject::connect(button, &QPushButton::clicked, dialog, [footerWigdet, text]{
+				footerWigdet->m_textOfButtonClicked = text;
+			});
+			QObject::connect(button, SIGNAL(clicked()), dialog, SLOT(accept()));
+			footerLayout->addWidget(button);
+			footerLayout->setStretchFactor(button, 0);
+		}
 
-		footerLayout->addWidget(footerCancel);
-		footerLayout->setStretchFactor(footerCancel, 0);
+		for (QString text : rejectText) {
+			auto button = new QPushButton(text);
+			QObject::connect(button, &QPushButton::clicked, dialog, [footerWigdet, text] {
+				footerWigdet->m_textOfButtonClicked = text;
+				});
+			QObject::connect(button, SIGNAL(clicked()), dialog, SLOT(reject()));
+			footerLayout->addWidget(button);
+			footerLayout->setStretchFactor(button, 0);
+		}
 
 		footerWigdet->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	}

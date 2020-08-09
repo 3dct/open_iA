@@ -27,9 +27,11 @@
 #include <QColor>
 #include <QList>
 #include <QMap>
-#include <QSet>
+//#include <QSet>
 #include <QSharedPointer>
 #include <QString>
+
+#include <unordered_set>
 
 class dlg_labels;
 
@@ -52,8 +54,10 @@ public:
 	void initialize();
 
 	int countModalities();
-	bool setMask(vtkSmartPointer<vtkImageData> mask);
-	bool setModalities(QList<QSharedPointer<iAModality>> modalities);
+	void setModalities(QList<QSharedPointer<iAModality>> modalities);
+	void resetTf(QSharedPointer<iAModality> modality);
+	void resetTf(QList<QSharedPointer<iAModality>> modalities);
+
 	void reinitialize();
 
 	void updateLabel(iANModalLabel);
@@ -88,7 +92,7 @@ private:
 	uint m_slicerChannel_label = 1;
 	uint m_mainSlicerChannel_nModal;
 
-	QSet<iANModalSeed> m_seeds;
+	std::unordered_set<iANModalSeed, iANModalSeed::Hasher, iANModalSeed::Comparator> m_seeds;
 	int m_maxLabelId = -1;
 
 	void applyVolumeSettings();

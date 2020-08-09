@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iANModalController.h"
 
+#include "iANModalBackgroundRemover.h" // for BACKGROUND and FOREGROUND values
+
 #include "iALabellingAttachment.h"
 #include "dlg_labels.h"
 
@@ -34,6 +36,7 @@
 #include "mdichild.h"
 //#include "iAChartWithFunctionsWidget.h" // Why doesn't it work?
 #include "dlg_modalities.h"
+//#include "iAToolsVTK.h"
 
 #include <vtkImageData.h>
 #include <vtkColorTransferFunction.h>
@@ -46,6 +49,7 @@
 #include <vtkCamera.h>
 #include <vtkImageReslice.h>
 #include <vtkSmartPointer.h>
+//#include <vtkImageMask.h>
 
 iANModalController::iANModalController(MdiChild *mdiChild) :
 	m_mdiChild(mdiChild)
@@ -127,6 +131,7 @@ inline iASlicer* iANModalController::_initializeSlicer(QSharedPointer<iAModality
 	double min = range[0];
 	double max = range[1];
 	colorTf->AddRGBPoint(min, 0.0, 0.0, 0.0);
+	//if (m_maskApplied) colorTf->AddRGBPoint(min+1, 0.0, 0.0, 0.0);
 	colorTf->AddRGBPoint(max, 1.0, 1.0, 1.0);
 	slicer->addChannel(m_slicerChannel_main, iAChannelData(modality->name(), image, colorTf), true);
 
@@ -307,36 +312,37 @@ bool iANModalController::_matchModalities(QSharedPointer<iAModality> m1, QShared
 	return true;
 }
 
-bool iANModalController::setMask(vtkSmartPointer<vtkImageData> mask) {
-	return false;
+void iANModalController::setModalities(QList<QSharedPointer<iAModality>> modalities) {
+	if (!_checkModalities(modalities)) {
+		return;
+	}
+	resetTf(modalities);
+	m_modalities = modalities;
 }
 
-bool iANModalController::setModalities(QList<QSharedPointer<iAModality>> modalities) {
-	if (!_checkModalities(modalities)) {
-		return false;
-	}
+void iANModalController::resetTf(QSharedPointer<iAModality> modality) {
+	double range[2];
+	modality->image()->GetScalarRange(range);
+	double min = range[0];
+	double max = range[1];
 
-	
+	auto tf = modality->transfer();
 
+	tf->colorTF()->RemoveAllPoints();
+	tf->colorTF()->AddRGBPoint(min, 0.0, 0.0, 0.0);
+	//if (m_maskApplied) tf->colorTF()->AddRGBPoint(min+1, 0.0, 0.0, 0.0);
+	tf->colorTF()->AddRGBPoint(max, 0.0, 0.0, 0.0);
+
+	tf->opacityTF()->RemoveAllPoints();
+	tf->opacityTF()->AddPoint(min, 0.0);
+	//if (m_maskApplied) tf->opacityTF()->AddPoint(min + 1, 0.0, 0.0, 0.0);
+	tf->opacityTF()->AddPoint(max, 0.0);
+}
+
+void iANModalController::resetTf(QList<QSharedPointer<iAModality>> modalities) {
 	for (auto modality : modalities) {
-		double range[2];
-		modality->image()->GetScalarRange(range);
-		double min = range[0];
-		double max = range[1];
-
-		auto tf = modality->transfer();
-
-		tf->colorTF()->RemoveAllPoints();
-		tf->colorTF()->AddRGBPoint(min, 0.0, 0.0, 0.0);
-		tf->colorTF()->AddRGBPoint(max, 0.0, 0.0, 0.0);
-
-		tf->opacityTF()->RemoveAllPoints();
-		tf->opacityTF()->AddPoint(min, 0.0);
-		tf->opacityTF()->AddPoint(max, 0.0);
+		resetTf(modality);
 	}
-
-	m_modalities = modalities;
-	return true;
 }
 
 void iANModalController::updateLabel(iANModalLabel label) {
@@ -388,8 +394,9 @@ void iANModalController::addSeeds(QList<iANModalSeed> seeds, iANModalLabel label
 		auto opacityTf = modality->transfer()->opacityTF();
 		
 		double scalar;
-		auto ite = m_seeds.constFind(seed);
-		if (ite != m_seeds.constEnd()) {
+		//auto ite = m_seeds.constFind(seed);
+		auto ite = m_seeds.find(seed);
+		if (ite != m_seeds.end()) {
 			colorTf->RemovePoint(seed.scalar);
 			opacityTf->RemovePoint(seed.scalar);
 			scalar = ite->scalar;
@@ -416,7 +423,7 @@ void iANModalController::addSeeds(QList<iANModalSeed> seeds, iANModalLabel label
 
 void iANModalController::removeSeeds(QList<iANModalSeed> seeds) {
 	for (auto seed : seeds) {
-		if (m_seeds.remove(seed)) {
+		if (m_seeds.erase(seed) == 1) { // If one element (seed) was removed
 			auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
 			auto colorTf = modality->transfer()->colorTF();
 			auto opacityTf = modality->transfer()->opacityTF();
@@ -428,15 +435,18 @@ void iANModalController::removeSeeds(QList<iANModalSeed> seeds) {
 }
 
 void iANModalController::removeSeeds(int labelId) {
-	// raises an exception. TODO fix!
-	for (auto seed : m_seeds) {
+	auto ite = m_seeds.cbegin();
+	while (ite != m_seeds.cend()) {
+		auto const seed = *ite;
 		if (seed.labelId == labelId) {
 			auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
 			auto colorTf = modality->transfer()->colorTF();
 			auto opacityTf = modality->transfer()->opacityTF();
 			colorTf->RemovePoint(seed.scalar);
 			opacityTf->RemovePoint(seed.scalar);
-			m_seeds.remove(seed);
+			ite = m_seeds.erase(ite);
+		} else {
+			++ite;
 		}
 	}
 }

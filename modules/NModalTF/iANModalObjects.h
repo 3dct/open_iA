@@ -39,6 +39,18 @@ struct iANModalSeed {
 	int z;
 	int overlayImageId;
 
+	struct Hasher {
+		std::size_t operator()(const iANModalSeed &key) const {
+			return qHash(key.x ^ key.y ^ key.z ^ key.overlayImageId);
+		}
+	};
+
+	struct Comparator {
+		bool operator()(const iANModalSeed& i1, const iANModalSeed& i2) const {
+			return i1.x == i2.x && i1.y == i2.y && i1.z == i2.z && i1.overlayImageId == i2.overlayImageId;
+		}
+	};
+
 private:
 	int labelId;
 	double scalar;

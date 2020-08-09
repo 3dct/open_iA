@@ -31,8 +31,10 @@
 
 #include "iANModalDisplay.h"
 #include "iAModality.h"
+#include "iAToolsVTK.h"
 
 #include <vtkImageData.h>
+#include <vtkImageMask.h>
 
 #include <QComboBox>
 #include <QTextEdit>
@@ -44,8 +46,8 @@ namespace {
 		}
 	};
 	class PassthroughBackgroundRemover : public iANModalBackgroundRemover {
-		vtkSmartPointer<vtkImageData> removeBackground(QList<QSharedPointer<iAModality>>) {
-			return nullptr;
+		iANModalBackgroundRemover::Mask removeBackground(QList<QSharedPointer<iAModality>>) {
+			return {nullptr, NONE};
 		}
 	};
 }
@@ -56,13 +58,15 @@ iANModalPreprocessor::iANModalPreprocessor(MdiChild *mdiChild) :
 
 }
 
+inline void applyMask(vtkSmartPointer<vtkImageData> mask, QList<QSharedPointer<iAModality>> modalities);
+
 iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPointer<iAModality>> modalities) {
 
 	Output output;
 
 	QList<ModalitiesGroup> groups;
 	groupModalities(modalities, groups);
-	modalities = chooseGroup(groups);
+	auto modalities_original = chooseGroup(groups);
 
 	// Step 1: Dimensionality reduction
 	modalities = chooseModalityReducer()->reduce(modalities);
@@ -73,6 +77,20 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPoint
 
 	// Step 2: Remove background
 	auto mask = chooseBackgroundRemover()->removeBackground(modalities);
+	if (mask.maskMode == iANModalBackgroundRemover::MaskMode::INVALID) {
+		// TODO return Output(false)?
+		output.maskMode = IGNORE_MASK;
+
+	} else if (mask.maskMode == iANModalBackgroundRemover::MaskMode::REMOVE) {
+		output.maskMode = IGNORE_MASK;
+		applyMask(mask.mask, modalities);
+
+	} else if (mask.maskMode == iANModalBackgroundRemover::MaskMode::HIDE) {
+		output.maskMode = HIDE_ON_RENDER;
+
+	} else {
+		output.maskMode = IGNORE_MASK;
+	}
 
 	// TODO set modality voxel to zero everywhere where mask is 1
 
@@ -80,7 +98,7 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPoint
 	// TODO
 
 	output.modalities = modalities;
-	output.mask = mask;
+	output.mask = mask.mask;
 
 	return output;
 }
@@ -146,6 +164,64 @@ QList<QSharedPointer<iAModality>> iANModalPreprocessor::chooseGroup(QList<Modali
 	return groups[0].modalities;
 }
 
+inline void applyMask(
+	vtkSmartPointer<vtkImageData> mask,
+	QList<QSharedPointer<iAModality>> modalities) {
+
+	/* TODO (28th July 2020)
+	As of now, the way the mask works does not support dynamic addition of modalities.
+
+	If setModalities() is called with modality A
+	Then applyMask() is called (=> modality A is changed to reserve 0)
+	Then setModalities() is called again with modality A
+
+	That will result in modality A being changed again.
+
+	That's ok for now. In the future, if dynamic addition of modalities is to be supported, this must be fixed!
+	*/
+
+#ifndef NDEBUG
+	//storeImage2(output, "pca_output_before_conversion_" + QString::number(out_i) + ".mhd", true);
+	storeImage(mask, "mask.mhd", true);
+#endif
+
+	for (auto mod : modalities) {
+		auto img = mod->image();
+
+		auto maskFilter = vtkSmartPointer<vtkImageMask>::New();
+		maskFilter->SetInput1Data(img);
+		maskFilter->SetInput2Data(mask);
+		//maskFilter->SetMaskedOutputValue(0, 1, 0);
+		maskFilter->NotMaskOn();
+		maskFilter->Update();
+
+		img = vtkSmartPointer<vtkImageData>(maskFilter->GetOutput());
+		mod->setData(img);
+	}
+
+	return;
+
+	//#pragma omp parallel for collapse(4) // is SetScalarComponentFromDouble thread safe? TODO uncomment?
+	for (auto mod : modalities) {
+		auto img = mod->image();
+		auto max = img->GetScalarTypeMax();
+		//auto min = img->GetScalarTypeMin();
+		FOR_VTKIMG_PIXELS(img, x, y, z) {
+			double valueOld = img->GetScalarComponentAsDouble(x, y, z, 0);
+
+			float maskValueFloat = mask->GetScalarComponentAsFloat(x, y, z, 0);
+			bool maskValue = maskValueFloat > 0;
+
+			if (maskValue == iANModalBackgroundRemover::BACKGROUND) {
+				img->SetScalarComponentFromDouble(x, y, z, 0, 0);
+			}
+			else {
+				double valueNew = valueOld / max * (max - 1) + 1; // Reserve 0
+				img->SetScalarComponentFromDouble(x, y, z, 0, valueNew);
+			}
+		}
+	}
+}
 
 // iANModalPreprocessorSelector ------------------------------------------------------------
 
