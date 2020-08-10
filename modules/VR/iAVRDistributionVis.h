@@ -39,21 +39,24 @@ class iAVRDistributionVis
 {
 public:
 	iAVRDistributionVis(vtkRenderer* ren, iAVRMetrics* fiberMetric, vtkTable* objectTable, iACsvIO io);
-	void createVisualization(double *pos, int level, std::vector<vtkIdType>* regions);
+	void createVisualization(double *pos, int level, std::vector<vtkIdType>* regions, std::vector<int>* featureList);
 	void show();
 	void showAxisMarksInView(double* viewDir);
 	void hide();
-	void showHistogram(int axis);
 
 private:
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkActor> m_sphereActor;
 	vtkSmartPointer<vtkActor> m_activeHistogramActor;
+	vtkSmartPointer<vtkActor> m_inactiveHistogramActor;
 	vtkSmartPointer<vtkActor> m_axisActor;
-	vtkSmartPointer<vtkGlyph3D> m_activeGlyphHistogram;
+	//Stores for an [axis] the glyphs (cubes) for the histogram
+	std::vector<vtkSmartPointer<vtkGlyph3D>>* m_histogramGlyphs;
 	//Stores for an [axis] and a [direction] (x,y) the different 3D TextLabels of the axis pair
 	std::vector<std::vector<std::vector<iAVR3DText>>>* m_axisLabelActor;
+	//Stores for an [axis] its title
+	std::vector<iAVR3DText>* m_axisTitleActor;
 	iACsvIO m_io;
 	iAVRMetrics* m_fiberMetric;
 	//Stores the [axis] polydata with the 3 points which create a X axis and the y axis
@@ -67,14 +70,24 @@ private:
 	int m_numberOfYBins;
 	double m_offsetFromCenter;
 	double m_radius;
+	double m_axisLength;
+	double axisAngle;
 	int axisInView;
+	double binY;
+	HistogramParameters* m_histogramParameter;
 
 	void calculateAxisPositionInCircle(int axis, int numberOfAxes, double *centerPos, double radius, double* pointOnCircle);
 	void drawAxes();
+	void drawHistogram();
+	void calculateHistogram(int axis);
 	void calculateAxis(double *pos1, double *pos2);
 	void calculateCenterOffsetPos(double* pos1, double* pos2, double* newPos);
+	double calculateAxisLength(double* pos1, double radius);
 	void createAxisMarks(int axis);
 	void createAxisLabels(int axis);
 	void calculateAxesViewDir(int axis);
 	void calculateBarsWithCubes(double* markPos, double* cubeSize, int stackSize, vtkPoints* barPoints, vtkUnsignedCharArray* colorArray, QColor barColor);
+	void calculateFittingCubeSize(double* cubeSize);
+
+	iAVec3d applyShiftToVector(double point1[3], double point2[3], double shift[3]);
 };

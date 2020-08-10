@@ -40,11 +40,17 @@
 
 struct HistogramParameters
 {
+	//featureList needed to map from array position back to feature id
 	std::vector<int>* featureList;
+	//Stores for every [feature] the min value of both regions
 	std::vector<double> minValue;
+	//Stores for every [feature] the max value of both regions
 	std::vector<double> maxValue;
+	//Stores for every [feature] the calculated bin width
 	std::vector<double> histogramWidth;
+	//Amount of bins for current histogram
 	int bins;
+	//Stores for every [feature] the occurency in every [bin]
 	std::vector<std::vector<int>> histogramRegion1;
 	std::vector<std::vector<int>> histogramRegion2;
 };

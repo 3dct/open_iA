@@ -23,6 +23,7 @@
 #include <iAConsole.h>
 #include <iAvec3.h>
 
+#include <vtkMath.h>
 #include <vtkRegularPolygonSource.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
@@ -30,7 +31,6 @@
 #include <vtkProperty.h>
 #include <vtkTextProperty.h>
 #include <vtkTextActor3D.h>
-#include <vtkMath.h>
 #include <vtkStringArray.h>
 #include <vtkPropCollection.h>
 #include <vtkPointData.h>
@@ -41,6 +41,8 @@
 #include <vtkDoubleArray.h>
 #include <vtkUnsignedCharArray.h>
 #include <vtkCubeSource.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 
 iAVRDistributionVis::iAVRDistributionVis(vtkRenderer* ren, iAVRMetrics* fiberMetric, vtkTable* objectTable, iACsvIO io) :m_renderer(ren), m_fiberMetric(fiberMetric), m_sphereActor(vtkSmartPointer<vtkActor>::New()), m_objectTable(objectTable), m_io(io)
 {
@@ -49,18 +51,26 @@ iAVRDistributionVis::iAVRDistributionVis(vtkRenderer* ren, iAVRMetrics* fiberMet
 	m_axesMarksPoly = new std::vector<std::vector<vtkSmartPointer<vtkPolyData>>>();
 	m_axisActor = vtkSmartPointer<vtkActor>::New();
 	m_axisLabelActor = new std::vector<std::vector<std::vector<iAVR3DText>>>();
+	m_axisTitleActor = new std::vector<iAVR3DText>();
 	m_AxesViewDir = new std::unordered_map<vtkIdType, iAVec3d>();
 	m_activeHistogramActor = vtkSmartPointer<vtkActor>::New();
+	m_histogramGlyphs = new std::vector<vtkSmartPointer<vtkGlyph3D>>();
 
-	m_radius = 280;
+	m_radius = 380;
 	m_numberOfXBins = 6;
-	m_numberOfYBins = 6;
+	m_numberOfYBins = 14;
 	m_offsetFromCenter = 65;
 	axisInView = -1;
 }
 
-void iAVRDistributionVis::createVisualization(double *pos, int level, std::vector<vtkIdType>* regions)
+void iAVRDistributionVis::createVisualization(double *pos, int level, std::vector<vtkIdType>* regions, std::vector<int>* featureList)
 {
+	if(regions->size() < 2)
+	{
+		DEBUG_LOG("Too few regions selected!");
+		return;
+	}
+
 	// Create a circle
 	vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
 	polygonSource->GeneratePolygonOff(); // Uncomment this line to generate only the outline of the circle
@@ -80,24 +90,32 @@ void iAVRDistributionVis::createVisualization(double *pos, int level, std::vecto
 	m_axesMarksPoly->clear();
 	m_axisLabelActor->clear();
 	m_AxesViewDir->clear();
+	m_histogramGlyphs->clear();
+
+	//Calculate Histogram Values
+	m_histogramParameter = m_fiberMetric->getHistogram(level, featureList, regions->at(0), regions->at(1));
+	m_numberOfXBins = m_histogramParameter->bins;
+
+	//Lenght of the axes with offset from center
+	m_axisLength = calculateAxisLength(pos, m_radius);
 
 	//start from new centerPos
 	double* newCenterPos = new double();
 	
-	for (int features = 0; features < 5; features++)
+	for (int i = 0; i < featureList->size(); i++)
 	{
 		double posOnCircle[3];
-		calculateAxisPositionInCircle(features, 5, pos, m_radius, posOnCircle);
+		calculateAxisPositionInCircle(i, featureList->size(), pos, m_radius, posOnCircle);
 		calculateCenterOffsetPos(pos, posOnCircle, newCenterPos);
 		calculateAxis(newCenterPos, posOnCircle);
-		createAxisMarks(features);
-		createAxisLabels(features);
-		calculateAxesViewDir(features);
+		createAxisMarks(i);
+		createAxisLabels(i);
+		calculateAxesViewDir(i);
+		calculateHistogram(i);
 	}
-	drawAxes();
-	showHistogram(0);
 
-	m_fiberMetric->getHistogram(level, nullptr, regions->at(0), regions->at(1));
+	drawAxes();
+	drawHistogram();
 }
 
 void iAVRDistributionVis::show()
@@ -125,7 +143,7 @@ void iAVRDistributionVis::show()
 	m_visible = true;
 }
 
-//! Show the axis marks depinding on the view direction
+//! Show the axis marks depending on the view direction
 //! Hide the last shown axis marks
 void iAVRDistributionVis::showAxisMarksInView(double* viewDir)
 {
@@ -147,11 +165,13 @@ void iAVRDistributionVis::showAxisMarksInView(double* viewDir)
 			newAxisInView = i;
 		}
 	}
+
 	if(newAxisInView != -1 && axisInView != newAxisInView)
 	{
 		if(axisInView != -1)
 		{
 			//Delete old
+			m_axisTitleActor->at(axisInView).hide();
 			for (int j = 0; j < m_axisLabelActor->at(axisInView).size(); j++)
 			{
 				for (int k = 0; k < m_axisLabelActor->at(axisInView).at(j).size(); k++)
@@ -161,6 +181,7 @@ void iAVRDistributionVis::showAxisMarksInView(double* viewDir)
 			}
 		}
 		//Create new
+		m_axisTitleActor->at(newAxisInView).show();
 		for (int j = 0; j < m_axisLabelActor->at(newAxisInView).size(); j++)
 		{
 			for (int k = 0; k < m_axisLabelActor->at(newAxisInView).at(j).size(); k++)
@@ -185,6 +206,8 @@ void iAVRDistributionVis::hide()
 
 	for (int i = 0; i < m_axisLabelActor->size(); i++)
 	{
+		m_axisTitleActor->at(i).hide();
+
 		for (int j = 0; j < m_axisLabelActor->at(i).size(); j++)
 		{
 			for (int k = 0; k < m_axisLabelActor->at(i).at(j).size(); k++)
@@ -194,76 +217,26 @@ void iAVRDistributionVis::hide()
 		}
 	}
 
+	axisInView = -1;
 	m_visible = false;
 }
 
-void iAVRDistributionVis::showHistogram(int axis)
-{
-	vtkSmartPointer<vtkPoints> barPoints = vtkSmartPointer<vtkPoints>::New();
-	vtkSmartPointer<vtkPolyData> bars = vtkSmartPointer<vtkPolyData>::New();
-
-	//vtkSmartPointer<vtkDoubleArray> glyphScales = vtkSmartPointer<vtkDoubleArray>::New();
-	//glyphScales->SetName("scales");
-	//glyphScales->SetNumberOfComponents(3);
-
-	vtkSmartPointer<vtkUnsignedCharArray> glyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
-	glyphColor->SetName("colors");
-	glyphColor->SetNumberOfComponents(4);
-
-	double cubeSize[3] = {12,12,12}; //Should depend on size between two marks
-
-	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
-	cubeSource->SetXLength(cubeSize[0]);
-	cubeSource->SetYLength(cubeSize[1]);
-	cubeSource->SetZLength(cubeSize[2]);
-
-	for (vtkIdType point = 0; point < m_axesMarksPoly->at(axis).at(0)->GetNumberOfPoints(); point += 2)
-	{
-		// Move first cube a little bit to the left and second to the right
-		auto markPos = m_axesMarksPoly->at(axis).at(0)->GetPoint(point);
-		double markPosShiftedLeft[3] = { markPos[0] - cubeSize[0] / 2, markPos[1], markPos[2] };
-		double markPosShiftedRight[3] = { markPos[0] + cubeSize[0] / 2, markPos[1], markPos[2] };
-		
-		calculateBarsWithCubes(markPosShiftedLeft, cubeSize, point, barPoints, glyphColor, QColor(85,217,73,255));
-		calculateBarsWithCubes(markPosShiftedRight, cubeSize, point +1, barPoints, glyphColor, QColor(217, 73, 157, 255));
-	}
-
-	bars->SetPoints(barPoints);
-	bars->GetPointData()->AddArray(glyphColor);
-	//bars->GetPointData()->SetScalars(glyphScales);
-
-	m_activeGlyphHistogram = vtkSmartPointer<vtkGlyph3D>::New();
-	m_activeGlyphHistogram->GeneratePointIdsOn();
-	m_activeGlyphHistogram->SetSourceConnection(cubeSource->GetOutputPort());
-	m_activeGlyphHistogram->SetInputData(bars);
-
-	// Create a mapper and actor
-	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	glyphMapper->SetInputConnection(m_activeGlyphHistogram->GetOutputPort());
-
-	m_activeHistogramActor->SetMapper(glyphMapper);
-	m_activeHistogramActor->GetMapper()->ScalarVisibilityOn();
-	m_activeHistogramActor->GetMapper()->SetScalarModeToUsePointFieldData();
-	m_activeHistogramActor->GetMapper()->SelectColorArray("colors");
-	m_activeHistogramActor->Modified();
-
-}
-
-//!Calculates the point on the circle for a specific Axis.
+//! Calculates the point on the circle for a specific Axis.
 //! The circle with the given radius and centerPos gets equally divided and the position is return in pointOnCircle
 void iAVRDistributionVis::calculateAxisPositionInCircle(int axis, int numberOfAxes, double *centerPos, double radius, double *pointOnCircle)
 {
-	double angleSteps = (2.0 * vtkMath::Pi()) / double(numberOfAxes); // 360° = 2*PI
-	double currentAngle = axis * angleSteps;
+	axisAngle = (2.0 * vtkMath::Pi()) / double(numberOfAxes); // 360° = 2*PI
+	double currentAngle = axis * axisAngle;
 
 	pointOnCircle[0] = centerPos[0] + (radius * cos(currentAngle));
 	pointOnCircle[1] = centerPos[1];
 	pointOnCircle[2] = centerPos[2] + (radius * sin(currentAngle));
 }
 
+//! Appends all Axes to one Actor which can then be rendered
 void iAVRDistributionVis::drawAxes()
 {
-	vtkSmartPointer<vtkAppendPolyData> appendFilter =	vtkSmartPointer<vtkAppendPolyData>::New();
+	vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
 
 	for (int axisPoly = 0; axisPoly < m_axesPoly->size(); axisPoly++)
 	{
@@ -283,6 +256,99 @@ void iAVRDistributionVis::drawAxes()
 	m_axisActor->SetPickable(false);
 	m_axisActor->GetProperty()->SetLineWidth(3);
 	m_axisActor->GetProperty()->SetColor(0.4, 0.4, 0.4);
+}
+
+void iAVRDistributionVis::drawHistogram()
+{
+	vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
+
+	for (int axis = 0; axis < m_histogramGlyphs->size(); axis++)
+	{
+		appendFilter->AddInputConnection(m_histogramGlyphs->at(axis)->GetOutputPort());
+	}
+
+	appendFilter->Update();
+
+	// Create a mapper and actor
+	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	glyphMapper->SetInputConnection(appendFilter->GetOutputPort());
+
+	m_activeHistogramActor->SetMapper(glyphMapper);
+	m_activeHistogramActor->GetMapper()->ScalarVisibilityOn();
+	m_activeHistogramActor->GetMapper()->SetScalarModeToUsePointFieldData();
+	m_activeHistogramActor->GetMapper()->SelectColorArray("colors");
+	m_activeHistogramActor->Modified();
+}
+
+void iAVRDistributionVis::calculateHistogram(int axis)
+{
+	vtkSmartPointer<vtkPoints> barPoints = vtkSmartPointer<vtkPoints>::New();
+	vtkSmartPointer<vtkPolyData> bars = vtkSmartPointer<vtkPolyData>::New();
+
+	//vtkSmartPointer<vtkDoubleArray> glyphNormal = vtkSmartPointer<vtkDoubleArray>::New();
+	//glyphNormal->SetName("normal");
+	//glyphNormal->SetNumberOfComponents(3);
+
+	vtkSmartPointer<vtkUnsignedCharArray> glyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	glyphColor->SetName("colors");
+	glyphColor->SetNumberOfComponents(4);
+
+	double* cubeSize = new double();
+	calculateFittingCubeSize(cubeSize); //Should depend on size between two marks
+
+	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+	cubeSource->SetXLength(cubeSize[0]);
+	cubeSource->SetYLength(cubeSize[1]);
+	cubeSource->SetZLength(cubeSize[2]);
+
+	iAVec3d direction = iAVec3d(0,0,0);
+	if (m_axesMarksPoly->at(axis).at(0)->GetNumberOfPoints() > 1)
+	{
+		direction = iAVec3d(m_axesMarksPoly->at(axis).at(0)->GetPoint(0)) - iAVec3d(m_axesMarksPoly->at(axis).at(0)->GetPoint(2));
+		direction.normalize();
+		direction = direction * (cubeSize[0] / 2);
+	}
+
+	int binCount = 0;
+	for (vtkIdType point = 0; point < m_axesMarksPoly->at(axis).at(0)->GetNumberOfPoints(); point += 2)
+	{
+		auto stackSizeR1 = (m_histogramParameter->histogramRegion1.at(axis).at(binCount) * ((double)m_numberOfYBins)) / (binCount);
+		auto stackSizeR2 = (m_histogramParameter->histogramRegion2.at(axis).at(binCount) * ((double)m_numberOfYBins)) / (binCount);
+
+		// Move first cube a little bit to the left and second to the right
+		auto markPos = m_axesMarksPoly->at(axis).at(0)->GetPoint(point);
+
+		//double markPosShiftedLeft[3] = {markPos[0] - (cubeSize[0] / 2), markPos[1], markPos[2]};
+		//double markPosShiftedRight[3] = {markPos[0] + (cubeSize[0] / 2), markPos[1], markPos[2] };
+
+		double markPosShiftedLeft[3]; 
+		double markPosShiftedRight[3];
+		vtkMath::Subtract(markPos, (direction).data(), markPosShiftedLeft);
+		vtkMath::Add(markPos, (direction).data(), markPosShiftedRight);
+
+		calculateBarsWithCubes(markPosShiftedLeft, cubeSize, stackSizeR1, barPoints, glyphColor, QColor(85, 217, 73, 255));
+		calculateBarsWithCubes(markPosShiftedRight, cubeSize, stackSizeR2, barPoints, glyphColor, QColor(217, 73, 157, 255));
+		binCount++;
+	}
+
+	bars->SetPoints(barPoints);
+	bars->GetPointData()->AddArray(glyphColor);
+	//bars->GetPointData()->SetVectors(glyphNormal);
+
+	//Rotate cube with position in circle (aligned to axis)
+	double angle = vtkMath::DegreesFromRadians(axisAngle * axis);
+	vtkSmartPointer<vtkTransform> transformation = vtkSmartPointer<vtkTransform>::New();
+	transformation->RotateY(-angle);
+	vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+	transformFilter->SetInputConnection(cubeSource->GetOutputPort());
+	transformFilter->SetTransform(transformation);
+	transformFilter->Update();
+
+	m_histogramGlyphs->push_back(vtkSmartPointer<vtkGlyph3D>::New());
+	m_histogramGlyphs->at(axis)->GeneratePointIdsOn();
+	m_histogramGlyphs->at(axis)->SetSourceConnection(transformFilter->GetOutputPort());
+	m_histogramGlyphs->at(axis)->SetInputData(bars);
+
 }
 
 //! Calculates the 3 Points and their two lines which create a X and Y Axis and saves thm in a vector
@@ -330,6 +396,23 @@ void iAVRDistributionVis::calculateCenterOffsetPos(double* pos1, double* pos2, d
 	newPos[2] = pos1[2] + normDir[2];
 }
 
+//! Calculates the lenght between the startPoint (with offset) to the second point on the circle
+double iAVRDistributionVis::calculateAxisLength(double* pos1, double radius)
+{
+	double* pos2 = new double();
+	calculateAxisPositionInCircle(0, 1, pos1, radius, pos2); // axis and number of Axes are not important as we just want any point on the circle
+
+	double* newPos1 = new double();
+	calculateCenterOffsetPos(pos1, pos2, newPos1);
+
+	iAVec3d newLine = iAVec3d();
+	newLine[0] = pos2[0] - newPos1[0];
+	newLine[1] = pos2[1] - newPos1[1];
+	newLine[2] = pos2[2] - newPos1[2];
+
+	return newLine.length();
+}
+
 //! Creates as many Marks on the axis as defined by m_numberOfXBins and m_numberOfYBins
 //! The Marks have 2% of the length of the axis
 void iAVRDistributionVis::createAxisMarks(int axis)
@@ -344,15 +427,25 @@ void iAVRDistributionVis::createAxisMarks(int axis)
 	normDirX.normalize();
 	double stepX = rangeX / m_numberOfXBins;
 
+	double* cubeSize = new double();
+	calculateFittingCubeSize(cubeSize);
+
 	iAVec3d normDirY = pos3 - pos2;
 	double rangeY = normDirY.length();
 	normDirY.normalize();
-	double stepY = rangeY / m_numberOfYBins;
+	binY = rangeY / cubeSize[1]; //possible division into cubes
+	double stepY = (binY/ ((double)m_numberOfYBins)) * cubeSize[1]; // Divide Axis in CubeSize steps with 'm_numberOfYBins' bins
+	
+
+	double markLengthXInside = rangeY * 0;
+	double markLengthXOutside = rangeY * 0.02;
+	double markLengthYInside = rangeX * 1;
+	double markLengthYOutside = rangeX * 1.05;
 
 	vtkSmartPointer<vtkPoints> markPoints = vtkSmartPointer<vtkPoints>::New();
 	vtkSmartPointer<vtkCellArray> markLines = vtkSmartPointer<vtkCellArray>::New();
 	vtkSmartPointer<vtkPolyData> markPoly = vtkSmartPointer<vtkPolyData>::New();
-	double markLengthX = rangeX * 0.02;
+	//double markLengthX = rangeX * 0.02;
 	vtkIdType pointID = 0;
 
 	for (int x = 0; x < m_numberOfXBins; x++)
@@ -360,8 +453,9 @@ void iAVRDistributionVis::createAxisMarks(int axis)
 		iAVec3d move = normDirX * (stepX * x);
 		iAVec3d mark = pos1 + move;
 
-		markPoints->InsertNextPoint(mark[0], mark[1] + markLengthX, mark[2]); // upperPoint
-		markPoints->InsertNextPoint(mark[0], mark[1] - markLengthX, mark[2]); // lowerPoint
+		//markPoints->InsertNextPoint(mark[0], mark[1] + markLengthX, mark[2]); // upperPoint
+		markPoints->InsertNextPoint(mark[0], mark[1] + markLengthXInside, mark[2]); // upperPoint ON Line
+		markPoints->InsertNextPoint(mark[0], mark[1] - markLengthXOutside, mark[2]); // lowerPoint
 
 		auto l = vtkSmartPointer<vtkLine>::New();
 		//x Axis
@@ -378,16 +472,21 @@ void iAVRDistributionVis::createAxisMarks(int axis)
 	markPoints = vtkSmartPointer<vtkPoints>::New();
 	markLines = vtkSmartPointer<vtkCellArray>::New();
 	markPoly = vtkSmartPointer<vtkPolyData>::New();
-	double markLengthY = rangeY * 0.02;
+	//double markLengthY = rangeY * 0.02;
 	pointID = 0;
 
 	for (int y = 0; y < m_numberOfYBins; y++)
 	{
 		iAVec3d move = normDirY * (stepY *y);
-		iAVec3d mark = pos2 + move;
+		iAVec3d mark = pos2 + move; // Add here to pos2 the markLengthXInside offset
+		
+		double a[3] = { markLengthYInside ,markLengthYInside ,markLengthYInside };
+		double b[3] = { markLengthYOutside ,markLengthYOutside ,markLengthYOutside };
 
-		markPoints->InsertNextPoint(mark[0] - markLengthY, mark[1], mark[2]); // leftPoint
-		markPoints->InsertNextPoint(mark[0] + markLengthY, mark[1], mark[2]); // rightPoint
+		markPoints->InsertNextPoint(applyShiftToVector(iAVec3d(pos1[0], mark[1], pos1[2]).data(), mark.data(), a).data()); // leftPoint
+		markPoints->InsertNextPoint(applyShiftToVector(mark.data(), iAVec3d(pos1[0], mark[1], pos1[2]).data(), b).data()); // rightPoint
+		//markPoints->InsertNextPoint(mark[0] - markLengthYInside, mark[1], mark[2]); // leftPoint
+		//markPoints->InsertNextPoint(mark[0] + markLengthOutside, mark[1], mark[2]); // rightPoint
 
 		auto l = vtkSmartPointer<vtkLine>::New();
 		//y Axis
@@ -405,39 +504,60 @@ void iAVRDistributionVis::createAxisMarks(int axis)
 
 void iAVRDistributionVis::createAxisLabels(int axis)
 {
-	//m_axisLabelActor->clear();
+	m_axisTitleActor->push_back(iAVR3DText(m_renderer));
 	m_axisLabelActor->push_back(std::vector<std::vector<iAVR3DText>>());
 
-	double offsetXAxis = 9.0;
+	double offsetXAxis = 9.5;
 	double offsetYAxis = 8.0;
+	int loopCount = 0;
 
+	auto minVal = m_histogramParameter->minValue.at(axis);
 	//X Dir
 	m_axisLabelActor->at(axis).push_back(std::vector<iAVR3DText>());
 	for (vtkIdType point = 1; point < m_axesMarksPoly->at(axis).at(0)->GetNumberOfPoints(); point+=2)
 	{
 		double* pos = m_axesMarksPoly->at(axis).at(0)->GetPoint(point);
-		pos[1] -= offsetXAxis; //Add offset to y
+		
+		if (loopCount % 2 == 0) pos[1] -= offsetXAxis; //Add offset to y
+		else pos[1] -= offsetXAxis * 2;
+		
 		auto tempText = iAVR3DText(m_renderer);
-		tempText.createSmall3DLabel(QString("Px%1").arg(point));
+		QString textLabel = QString("[%1-%2]").arg(minVal,0,'f',1).arg(minVal + (m_histogramParameter->histogramWidth.at(axis)),0,'f',1);
+		tempText.createSmall3DLabel(textLabel);
 		tempText.setLabelPos(pos);
 		
 		m_axisLabelActor->at(axis).at(0).push_back(tempText);
+		minVal += m_histogramParameter->histogramWidth.at(axis);
+		loopCount++;
 	}
 
 
-	//X Dir
+	double* cubeSize = new double();
+	calculateFittingCubeSize(cubeSize);
+	//Y Dir
 	m_axisLabelActor->at(axis).push_back(std::vector<iAVR3DText>());
+	int count = 0;
 	for (vtkIdType point = 1; point < m_axesMarksPoly->at(axis).at(1)->GetNumberOfPoints(); point += 2)
 	{
 		double* pos = m_axesMarksPoly->at(axis).at(1)->GetPoint(point);
 		pos[0] += offsetYAxis; //Add offset to x
+		
+		auto occurence = (binY / ((double)m_numberOfYBins)) * (count);
+		
 		auto tempText = iAVR3DText(m_renderer);
-		tempText.createSmall3DLabel(QString("Py%1").arg(point));
+		tempText.createSmall3DLabel(QString("%1").arg(occurence, 0, 'f', 1));
 		tempText.setLabelPos(pos);
 
 		m_axisLabelActor->at(axis).at(1).push_back(tempText);
+		count++;
 	}
 
+	double* titlePos = new double();
+	titlePos[0] = m_axesMarksPoly->at(axis).at(0)->GetPoint(m_axesMarksPoly->at(axis).at(0)->GetNumberOfPoints() - 1)[0];
+	titlePos[1] = m_axesMarksPoly->at(axis).at(1)->GetPoint(m_axesMarksPoly->at(axis).at(1)->GetNumberOfPoints()-1)[1];
+	titlePos[2] = m_axesMarksPoly->at(axis).at(0)->GetPoint(0)[2];
+	m_axisTitleActor->at(axis).create3DLabel(QString("%1").arg(m_fiberMetric->getFeatureName(m_histogramParameter->featureList->at(axis))));
+	m_axisTitleActor->at(axis).setLabelPos(titlePos);
 }
 
 //! Calculates with the 3 points of the two axes, the normal of the plane which they create
@@ -470,17 +590,48 @@ void iAVRDistributionVis::calculateAxesViewDir(int axis)
 
 void iAVRDistributionVis::calculateBarsWithCubes(double* markPos, double* cubeSize, int stackSize, vtkPoints* barPoints, vtkUnsignedCharArray* colorArray, QColor barColor)
 {
-	double* p = markPos; // m_axesMarksPoly->at(axis).at(0)->GetPoint(point);
-	barPoints->InsertNextPoint(p[0], p[1] + (cubeSize[1] / 2), p[2]);
-
-	colorArray->InsertNextTuple4(barColor.red(), barColor.green(), barColor.blue(), barColor.alpha());
-
-	double nextCubeHeight = 0;
-	for (int y = 0; y < stackSize; y++)
+	//At least one cube (occurrence)
+	if(stackSize > 0)
 	{
-		nextCubeHeight += cubeSize[1];
-		barPoints->InsertNextPoint(p[0], p[1] + nextCubeHeight, p[2]);
+		double* p = markPos; // m_axesMarksPoly->at(axis).at(0)->GetPoint(point);
+		barPoints->InsertNextPoint(p[0], p[1] + (cubeSize[1] / 2), p[2]);
 
 		colorArray->InsertNextTuple4(barColor.red(), barColor.green(), barColor.blue(), barColor.alpha());
+
+		double nextCubeHeight = cubeSize[1] / 2;
+		for (int y = 0; y < stackSize -1; y++)
+		{
+			nextCubeHeight += cubeSize[1];
+			barPoints->InsertNextPoint(p[0], p[1] + nextCubeHeight, p[2]);
+
+			colorArray->InsertNextTuple4(barColor.red(), barColor.green(), barColor.blue(), barColor.alpha());
+		}
 	}
+}
+
+//! Calculates the cube size based on the axis length and number of x bins
+void iAVRDistributionVis::calculateFittingCubeSize(double* cubeSize)
+{
+	double xSize = (m_axisLength / m_numberOfXBins) / 2.2;
+	
+	cubeSize[0] = xSize;
+	cubeSize[1] = xSize;
+	cubeSize[2] = xSize;
+}
+
+//! Calculates the shifted coordinates based on the vector between two points
+//! The point p2 is shifted in the direction of p1
+iAVec3d iAVRDistributionVis::applyShiftToVector(double point1[3], double point2[3], double shift[3])
+{
+	iAVec3d p1 =iAVec3d(point1);
+	iAVec3d p2 = iAVec3d(point2);
+	if (p1 == p2) DEBUG_LOG("POINTS ARE EQUAL: p1 == p2");
+	iAVec3d ray = p1 - p2;
+	iAVec3d ray_normalized = ray;
+	ray_normalized.normalize();
+
+	iAVec3d move = ray_normalized * iAVec3d(shift);
+	iAVec3d shiftedVec = p2 + move;
+	
+	return shiftedVec;
 }

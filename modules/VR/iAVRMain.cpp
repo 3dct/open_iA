@@ -215,6 +215,7 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 		break;
 	case iAVROperations::MultiPickMiMRegion:	
 		activeInput->at(deviceID) = static_cast<int>(iAVROperations::MultiPickMiMRegion); // For Multitouch
+		multiPickIDs->clear();
 		break;
 	case iAVROperations::ChangeOctreeAndMetric:
 		this->changeOctreeAndMetric();
@@ -1072,7 +1073,7 @@ void iAVRMain::multiPickMiMRegion()
 
 		m_volume->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
 
-		multiPickIDs->clear();
+		//multiPickIDs->clear();
 	}
 }
 
@@ -1115,10 +1116,15 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 
 		m_modelInMiniature->show();
 
-		std::vector<vtkIdType>* regions = new std::vector<vtkIdType>(); //
-		regions->push_back(0); //
-		regions->push_back(1); //
-		m_distributionVis->createVisualization(eventPosition, currentOctreeLevel, regions); //
+		std::vector<int>* featureList = new std::vector<int>(); //
+		//featureList->push_back(currentFeature); //
+		featureList->push_back(7); //
+		featureList->push_back(8); //
+		featureList->push_back(11); //
+		featureList->push_back(12); //
+		featureList->push_back(13); //
+
+		m_distributionVis->createVisualization(eventPosition, currentOctreeLevel, multiPickIDs, featureList); //
 		m_distributionVis->show(); //
 
 		fiberMetrics->moveColorBarLegend(eventPosition);

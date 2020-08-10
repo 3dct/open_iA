@@ -505,6 +505,8 @@ int iAVRMetrics::getMaxNumberOfHistogramBins(int level)
 	return round(bins);
 }
 
+//! Returns all parameters of the histogram calculation of the two given regions
+//! If no feature are choosen (nullptr or empty) all avaiable features are calculated
 HistogramParameters* iAVRMetrics::getHistogram(int level, std::vector<int>* featureList, int region1, int region2)
 {
 	//If no feature is choosen, calculate all
@@ -819,34 +821,36 @@ void iAVRMetrics::calculateBinWidth(int level, std::vector<int>* featureList, in
 	m_histogramParameter->minValue = std::vector<double>(featureList->size(),std::numeric_limits<double>::infinity());
 	m_histogramParameter->maxValue = std::vector<double>(featureList->size(), -1);
 
-	for (int feature = 0; feature < featureList->size(); feature++)
+	for (int i = 0; i < featureList->size(); i++)
 	{
+		int feature = featureList->at(i);
+
 		regionValues->push_back(std::vector<std::vector<double>>());
 
 		//Region1
-		regionValues->at(feature).push_back(std::vector<double>());
+		regionValues->at(i).push_back(std::vector<double>());
 		for (auto fiber : *fibersInRegion1)
 		{
 			auto value = m_objectTable->GetValue(fiber.first, feature).ToFloat();
-			regionValues->at(feature).at(0).push_back(value);
+			regionValues->at(i).at(0).push_back(value);
 
-			if (value > m_histogramParameter->maxValue[feature]) m_histogramParameter->maxValue[feature] = value;
-			if (value < m_histogramParameter->minValue[feature]) m_histogramParameter->minValue[feature] = value;
+			if (value > m_histogramParameter->maxValue[i]) m_histogramParameter->maxValue[i] = value;
+			if (value < m_histogramParameter->minValue[i]) m_histogramParameter->minValue[i] = value;
 		}
 	
 		//Region2
-		regionValues->at(feature).push_back(std::vector<double>());
+		regionValues->at(i).push_back(std::vector<double>());
 		for (auto fiber : *fibersInRegion2)
 		{
 			auto value = m_objectTable->GetValue(fiber.first, feature).ToFloat();
-			regionValues->at(feature).at(1).push_back(value);
+			regionValues->at(i).at(1).push_back(value);
 
-			if (value > m_histogramParameter->maxValue[feature]) m_histogramParameter->maxValue[feature] = value;
-			if (value < m_histogramParameter->minValue[feature]) m_histogramParameter->minValue[feature] = value;
+			if (value > m_histogramParameter->maxValue[i]) m_histogramParameter->maxValue[i] = value;
+			if (value < m_histogramParameter->minValue[i]) m_histogramParameter->minValue[i] = value;
 		}
-		double binWidth = (m_histogramParameter->maxValue[feature] - m_histogramParameter->minValue[feature]) / m_histogramParameter->bins;
+		double binWidth = (m_histogramParameter->maxValue[i] - m_histogramParameter->minValue[i]) / m_histogramParameter->bins;
 		if (binWidth <= 0) binWidth = 0.0001; // If min, max is 0 -> binWidth is 0 which would yield division by 0
-		m_histogramParameter->histogramWidth[feature] = binWidth;
+		m_histogramParameter->histogramWidth[i] = binWidth;
 	}
 }
 
@@ -868,25 +872,26 @@ void iAVRMetrics::calculateHistogramValues(int level, std::vector<int>* featureL
 	m_histogramParameter->histogramRegion2 = std::vector<std::vector<int>>(featureList->size(), binsInRegion2);
 	
 	//CHANGE TO NOT RUN FROM 0 TO SIZE BUT USE VALUES IN (!!) FEATURELIST !!!
-	for (int feature = 0; feature < featureList->size(); feature++)
+	for (int i = 0; i < featureList->size(); i++)
 	{
-		auto fibersInRegion1 = regionValues->at(feature).at(0);
-		auto fibersInRegion2 = regionValues->at(feature).at(1);
+
+		auto fibersInRegion1 = regionValues->at(i).at(0);
+		auto fibersInRegion2 = regionValues->at(i).at(1);
 
 		//Region1
 		for (auto fiberVal : fibersInRegion1)
 		{
-			int bin = (int)floor((fiberVal - m_histogramParameter->minValue[feature]) / m_histogramParameter->histogramWidth[feature]);
+			int bin = (int)floor((fiberVal - m_histogramParameter->minValue[i]) / m_histogramParameter->histogramWidth[i]);
 			if (bin > m_histogramParameter->bins - 1) bin = bin - 1; // max value is in last bin included
-			m_histogramParameter->histogramRegion1.at(feature).at(bin) += 1;
+			m_histogramParameter->histogramRegion1.at(i).at(bin) += 1;
 		}
 
 		//Region2
 		for (auto fiberVal : fibersInRegion2)
 		{
-			int bin = (int)floor((fiberVal - m_histogramParameter->minValue[feature]) / m_histogramParameter->histogramWidth[feature]);
+			int bin = (int)floor((fiberVal - m_histogramParameter->minValue[i]) / m_histogramParameter->histogramWidth[i]);
 			if (bin > m_histogramParameter->bins - 1) bin = bin - 1;
-			m_histogramParameter->histogramRegion2.at(feature).at(bin) += 1;
+			m_histogramParameter->histogramRegion2.at(i).at(bin) += 1;
 		}
 	}
 }
