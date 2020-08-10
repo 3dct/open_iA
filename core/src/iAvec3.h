@@ -121,9 +121,11 @@ template <typename T1, typename T2> iAVec3T<T1> operator / (const iAVec3T<T1>& u
 template <typename T1, typename T2> iAVec3T<T1> operator / (const iAVec3T<T1>& u, const iAVec3T<T2>& v);
 //! @}
 
-//! alias for dot product (deprecated!)
+//! Compute dot product.
+//! @deprecated use dotProduct(...) instead!
 template <typename T1, typename T2> T1 operator & (const iAVec3T<T1>& u, const iAVec3T<T2>& v);
-//! alias for cross product (deprecated!)
+//! Compute cross product.
+//! @deprecated use crossProduct(...) instead!
 template <typename T1, typename T2> iAVec3T<T1> operator ^ (const iAVec3T<T1>& u, const iAVec3T<T2>& v);
 
 

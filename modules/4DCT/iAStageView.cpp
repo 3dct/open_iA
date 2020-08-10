@@ -31,7 +31,7 @@ iAStageView::iAStageView( QWidget* parent /*= 0*/ )
 {
 	setupUi( this );
 	lvImages->setStageView( this );
-	connect( lForce, SIGNAL( valueChanged( int ) ), this, SLOT( forceValueChanged( int ) ) );
+	connect( lForce, &iA4DCTForceWidget::valueChanged, this, &iAStageView::forceValueChanged);
 }
 
 iAStageView::~iAStageView( )

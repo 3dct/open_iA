@@ -33,22 +33,19 @@
 #include <QList>
 #include <QSharedPointer>
 
-class iASlicer;
 class iAColorTheme;
+class iAImageCoordinate;
 class iAModality;
+class iASlicer;
+class iAvtkImageData;
 class MdiChild;
-
-struct OverlayImage;
 
 class QStandardItem;
 class QStandardItemModel;
 
-class iAvtkImageData;
 class vtkLookupTable;
 class vtkObject;
 class vtkPiecewiseFunction;
-
-struct iAImageCoordinate;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
 

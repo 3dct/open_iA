@@ -26,6 +26,8 @@
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-overflow"
 #include <itkCastImageFilter.h>
 #include <itkConvolutionImageFilter.h>
 #include <itkFFTConvolutionImageFilter.h>
@@ -33,7 +35,7 @@
 #include <itkNormalizedCorrelationImageFilter.h>
 #include <itkPipelineMonitorImageFilter.h>
 #include <itkStreamingImageFilter.h>
-
+#pragma GCC diagnostic pop
 
 template<class T> void convolution(iAFilter* filter)
 {

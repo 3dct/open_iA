@@ -43,16 +43,18 @@ iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWn
 void iAParameterExplorerAttachment::LoadCSV(QString const & csvFileName)
 {
 	if (csvFileName.isEmpty())
+	{
 		return;
+	}
 	m_csvFileName = csvFileName;
 	m_tableView = new iAParamTableView(csvFileName);
 	m_spatialView = new iAParamSpatialView(m_tableView, QFileInfo(csvFileName).absolutePath(),
 		m_child->histogram(), m_child->preferences().HistogramBins);
 	m_SPLOMView = new iAParamSPLOMView(m_tableView, m_spatialView);
 	m_featuresView = new iAParamFeaturesView(m_tableView->Table());
-	connect(m_featuresView, SIGNAL(ShowFeature(int, bool)), m_SPLOMView, SLOT(ShowFeature(int, bool)));
-	connect(m_featuresView, SIGNAL(ShowFeature(int, bool)), m_tableView, SLOT(ShowFeature(int, bool)));
-	connect(m_featuresView, SIGNAL(InvertFeature(int, bool)), m_SPLOMView, SLOT(InvertFeature(int, bool)));
+	connect(m_featuresView, &iAParamFeaturesView::ShowFeature, m_SPLOMView, &iAParamSPLOMView::ShowFeature);
+	connect(m_featuresView, &iAParamFeaturesView::ShowFeature, m_tableView, &iAParamTableView::ShowFeature);
+	connect(m_featuresView, &iAParamFeaturesView::InvertFeature, m_SPLOMView, &iAParamSPLOMView::InvertFeature);
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial", "ParamSpatialView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_SPLOMView, "Scatter Plot Matrix", "ParamSPLOMView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_tableView, "Table", "ParamTableView"));

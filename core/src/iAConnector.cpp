@@ -22,10 +22,6 @@
 #include "iAExtendedTypedCallHelper.h"
 #include "iAToolsITK.h"
 
-#include <vtkImageData.h>
-#include <vtkImageExport.h>
-#include <vtkImageImport.h>
-
 #include <itkVTKImageImport.h>
 #include <itkVTKImageExport.h>
 

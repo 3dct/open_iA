@@ -35,11 +35,13 @@ namespace
 void iAPolygonPrimitivesModuleInterface::Initialize()
 {
 	if (!m_mainWnd)    // if m_mainWnd is not set, we are running in command line mode
+	{
 		return;        // in that case, we do not do anything as we can not add a menu entry there
+	}
 	QMenu* filtersMenu = m_mainWnd->toolsMenu();  // alternatively, you can use getToolsMenu() here if you want to add a tool
 	QAction* actionTest = new QAction(Title, nullptr);
 	AddActionToMenuAlphabeticallySorted(filtersMenu, actionTest);
-	connect(actionTest, SIGNAL(triggered()), this, SLOT(addPolygonObject()));
+	connect(actionTest, &QAction::triggered, this, &iAPolygonPrimitivesModuleInterface::addPolygonObject);
 }
 
 void iAPolygonPrimitivesModuleInterface::addPolygonObject()

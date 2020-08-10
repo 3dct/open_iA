@@ -114,7 +114,7 @@ void iABoneThickness::calculate()
 	if (m_pPoints)
 	{
 		// Initialize point locator variable for detecting mesh vertices
-        vtkSmartPointer<vtkPointLocator> pPointLocator(vtkSmartPointer<vtkPointLocator>::New());
+		vtkSmartPointer<vtkPointLocator> pPointLocator(vtkSmartPointer<vtkPointLocator>::New());
 		pPointLocator->SetDataSet(m_pPolyData);
 		pPointLocator->BuildLocator();
 
@@ -463,8 +463,8 @@ void iABoneThickness::save(const QString& _sFilename) const
 			const double* pPoint(m_pPoints->GetPoint(i));
 
 			tsOut << ii << "," << pPoint[0] << "," << pPoint[1] << "," << pPoint[2]
-				        << "," << m_daDistance->GetTuple1(i) << "," << m_daThickness->GetTuple1(i)
-				        << "," << "\n";
+			      << "," << m_daDistance->GetTuple1(i) << "," << m_daThickness->GetTuple1(i)
+			      << "," << "\n";
 		}
 
 		fFile.close();

@@ -30,7 +30,7 @@ iAEnsembleView::iAEnsembleView():
 	layout()->setSpacing(0);
 	layout()->setContentsMargins(4, 4, 4, 4);
 	layout()->addWidget(m_list);
-	connect(m_list, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(EnsembleDblClicked(QListWidgetItem*)));
+	connect(m_list, &QListWidget::itemDoubleClicked, this, &iAEnsembleView::EnsembleDblClicked);
 }
 
 

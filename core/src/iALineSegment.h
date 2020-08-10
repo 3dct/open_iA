@@ -31,7 +31,8 @@ class vtkLineSource;
 struct iALineSegment
 {
 	iALineSegment();
-	vtkSmartPointer<vtkPoints>			points;
+	void point(int idx, double * point_out);
+	void setPoint(int idx, double x, double y, double z);
 	vtkSmartPointer<vtkActor>			actor;
 	vtkSmartPointer<vtkPolyDataMapper>	mapper;
 	vtkSmartPointer<vtkLineSource>		lineSource;

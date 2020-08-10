@@ -142,7 +142,7 @@ const char * OkcData::read_till(FILE *fp,
 }
 /*
 bool OkcData::read(const char *fname){
-	string ext = strrchr(fname, '.');
+	std::string ext = strrchr(fname, '.');
 
 	// open and read the data file based on the file extension name
 	if(ext==".okc"){
@@ -201,10 +201,10 @@ int OkcData::substring_index(const char *s1,const char *s2, int pos){
 }
 
 
-char* OkcData::fgetcsvline(vector<string> &csv_databuf, FILE *fhead) {
+char* OkcData::fgetcsvline(std::vector<std::string> &csv_databuf, FILE *fhead) {
 	char  *ret_stat;
 	char  data_buf[1024];
-	string stringbuf;
+	std::string stringbuf;
 	ret_stat = fgets( data_buf, 1024, fhead );
 
 	if (ret_stat != nullptr)
@@ -214,10 +214,10 @@ char* OkcData::fgetcsvline(vector<string> &csv_databuf, FILE *fhead) {
 		{
 			int pos = substring_index(data_buf,",",0);
 			int startpos = 0;
-			string csv_buf;
+			std::string csv_buf;
 			while (pos > 0)
 			{
-				stringbuf = (string)data_buf;
+				stringbuf = (std::string)data_buf;
 				csv_buf = stringbuf.substr(startpos, pos - startpos);
 				char* name_ = new char[csv_buf.length() + 4];    // name is as assigned but never read?
 				strcpy(name_, csv_buf.c_str());
@@ -261,7 +261,7 @@ bool OkcData::readCSV(const char *fname){
 	setTitle ( QFileInfo(fname).baseName () );
 
 	char *ret_stat;
-	vector<string> csv_data;
+	std::vector<std::string> csv_data;
 	ret_stat = fgetcsvline(csv_data, fp);
 
 	// get the dimenison number
@@ -270,7 +270,7 @@ bool OkcData::readCSV(const char *fname){
 	names.resize(dims);
 
 	int i;
-	string dname;
+	std::string dname;
 	for (i = 0; i < dims; i++) {
 		dname = csv_data[i];
 
@@ -288,12 +288,12 @@ bool OkcData::readCSV(const char *fname){
 	cg_dim_max.resize(dims);
 	cardinality.resize(dims);
 
-	string sValue;
+	std::string sValue;
 
 	int index = 0;
 
-	vector <vector < double > > all_data_values;
-	vector<double> one_data;
+	std::vector<std::vector< double > > all_data_values;
+	std::vector<double> one_data;
 
 	int loop = 2;
 	csv_data.clear();
@@ -391,7 +391,7 @@ bool OkcData::createOKC(const char *fname){
 
 	char * ext;
 	ext = strrchr(okc_filename,'s');
-	string okc_ext = ".okc";
+	std::string okc_ext = ".okc";
 
 	int size_t = strlen(okc_filename);
 
@@ -581,7 +581,7 @@ OkcData::ReadOkcResult OkcData::readOKC(const char *fname)
 	// for max and min values for each dimension.
 	// This is used in the log file because the values
 	// in dim_min and dim_max might be adjusted.
-	vector<double> origDimMin, origDimMax;
+	std::vector<double> origDimMin, origDimMax;
 	origDimMin.resize(dims);
 	origDimMax.resize(dims);
 	for (i = 0; i < dims; i++)

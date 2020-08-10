@@ -36,7 +36,7 @@ class QSplitter;
 class iAHistogramStack : public iAHistogramAbstract
 {
 public:
-	iAHistogramStack(QWidget* parent, iATripleModalityWidget *tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+	iAHistogramStack(iATripleModalityWidget *tripleModalityWidget);
 
 	// OVERRIDES
 	void initialize(QString const names[3]) override;

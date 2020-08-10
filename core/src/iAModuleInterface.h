@@ -39,7 +39,7 @@ class QAction;
 
 //! Base class for a module interface.
 //! A class derived from this class, and having a name in the form iA<ModuleName>ModuleInterface needs to be part of each module.
-//! E.g. the XRF module needs to contain a class iAXRFModuleInterface.
+//! E.g. the FeatureScout module needs to contain a class iAFeatureScoutModuleInterface.
 //! At least the Initialize method needs to be overriden in order to add the custom code of the module to open_iA.
 //! This can either be the addition of some filters, or adding an entry directly to open_iA's toolbar or menu.
 class open_iA_Core_API iAModuleInterface : public QObject

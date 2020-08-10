@@ -25,12 +25,14 @@
 #include "iAChartFunctionGaussian.h"
 #include "iAChartFunctionTransfer.h"
 #include "iAConsole.h"
-#include "iAPlotData.h"
+#include "iAMapper.h"
 #include "iAMathUtility.h"
+#include "iAPlotData.h"
 #include "iAXmlSettings.h"
 #include "mdichild.h"
 
 #include <vtkColorTransferFunction.h>
+#include <vtkMath.h>
 #include <vtkPiecewiseFunction.h>
 
 #include <QFileDialog>
@@ -103,7 +105,7 @@ void iAChartWithFunctionsWidget::drawFunctions(QPainter &painter)
 
 		if (counter == m_selectedFunction)
 		{
-			func->draw(painter, QColor(255,128,0,255), 2);
+			func->draw(painter, QColor(255,128,0,255), iAChartFunction::LineWidthSelected);
 		}
 		else
 		{
@@ -146,7 +148,7 @@ void iAChartWithFunctionsWidget::mousePressEvent(QMouseEvent *event)
 				m_translationStartX = m_translationX;
 				changeMode(MOVE_VIEW_MODE, event);
 			}
-			else if (!isContextMenuVisible())
+			else
 			{
 				changeMode(MOVE_POINT_MODE, event);
 			}
@@ -193,7 +195,6 @@ void iAChartWithFunctionsWidget::mouseReleaseEvent(QMouseEvent *event)
 		emit updateViews();
 	}
 	m_mode = NO_MODE;
-	m_contextMenuVisible = false;
 	func->mouseReleaseEvent(event);
 }
 
@@ -260,6 +261,10 @@ void iAChartWithFunctionsWidget::keyPressEvent(QKeyEvent *event)
 
 		update();
 	}
+	else if (event->key() == Qt::Key_Delete)
+	{
+		deletePoint();
+	}
 }
 
 void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
@@ -275,36 +280,49 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 			{
 				QAction *changeColorAction = new QAction(QIcon(":/images/changeColor.png"), tr("Change Color"), this);
 				contextMenu->setDefaultAction(changeColorAction);
-				connect(changeColorAction, SIGNAL(triggered()), this, SLOT(changeColor()));
+				connect(changeColorAction, &QAction::triggered, [this] { changeColor(nullptr); });
 				contextMenu->addAction(changeColorAction);
 			}
 
 			if (func->isDeletable(func->getSelectedPoint()))
 			{
-				contextMenu->addAction(QIcon(":/images/deletePoint.png"), tr("Delete"), this, SLOT(deletePoint()));
+				contextMenu->addAction(QIcon(":/images/deletePoint.png"), tr("Delete"), this, &iAChartWithFunctionsWidget::deletePoint);
 			}
 			contextMenu->addSeparator();
 		}
-		contextMenu->addAction(QIcon(":/images/TFTableView.png"), tr("Transfer Function Table View"), this, SLOT(showTFTable()));
-		contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Load transfer function"), this, SLOT(loadTransferFunction()));
-		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Save transfer function"), this, SLOT(saveTransferFunction()));
-		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Apply transfer function for all"), this, SLOT(applyTransferFunctionForAll()));
+		contextMenu->addAction(QIcon(":/images/TFTableView.png"), tr("Transfer Function Table View"), this, &iAChartWithFunctionsWidget::showTFTable);
+		contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Load transfer function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::loadTransferFunction));
+		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Save transfer function"), this, &iAChartWithFunctionsWidget::saveTransferFunction);
+		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Apply transfer function for all"), this, &iAChartWithFunctionsWidget::applyTransferFunctionForAll);
 		if (m_allowTrfReset)
 		{
-			contextMenu->addAction(QIcon(":/images/resetTrf.png"), tr("Reset transfer function"), this, SLOT(resetTrf()));
+			contextMenu->addAction(QIcon(":/images/resetTrf.png"), tr("Reset transfer function"), this, &iAChartWithFunctionsWidget::resetTrf);
 		}
 		contextMenu->addSeparator();
 	}
 	if (m_enableAdditionalFunctions)
 	{
-		contextMenu->addAction(QIcon(":/images/addBezier.png"), tr("Add bezier function"), this, SLOT(addBezierFunction()));
-		contextMenu->addAction(QIcon(":/images/addGaussian.png"), tr("Add gaussian function"), this, SLOT(addGaussianFunction()));
-		contextMenu->addAction(QIcon(":/images/openFkt.png"), tr("Load functions"), this, SLOT(loadFunctions()));
-		contextMenu->addAction(QIcon(":/images/saveFkt.png"), tr("Save functions"), this, SLOT(saveFunctions()));
+		contextMenu->addAction(QIcon(":/images/addBezier.png"), tr("Add bezier function"), this, &iAChartWithFunctionsWidget::addBezierFunction);
+		contextMenu->addAction(QIcon(":/images/addGaussian.png"), tr("Add gaussian function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::addGaussianFunction));
+		contextMenu->addAction(QIcon(":/images/openFkt.png"), tr("Load functions"), this, &iAChartWithFunctionsWidget::loadFunctions);
+		contextMenu->addAction(QIcon(":/images/saveFkt.png"), tr("Save functions"), this, &iAChartWithFunctionsWidget::saveFunctions);
 
 		if (m_selectedFunction != 0)
 		{
-			contextMenu->addAction(QIcon(":/images/removeFkt.png"), tr("Remove selected function"), this, SLOT(removeFunction()));
+			contextMenu->addAction(QIcon(":/images/removeFkt.png"), tr("Remove selected function"), this, &iAChartWithFunctionsWidget::removeFunction);
+		}
+		if (m_functions.size() > 1)
+		{
+			auto selectionMenu = contextMenu->addMenu("Select function");
+			for (size_t f = 0; f < m_functions.size(); ++f)
+			{
+				auto action = selectionMenu->addAction(QString("%1: %2").arg(f)
+					.arg(m_functions[f]->name()),
+					[this, f]() { selectFunction(f); }
+				);
+				action->setCheckable(true);
+				action->setChecked(m_selectedFunction == f);
+			}
 		}
 	}
 }
@@ -323,6 +341,7 @@ void iAChartWithFunctionsWidget::changeMode(int newMode, QMouseEvent *event)
 			iAChartFunction *func = *(it + m_selectedFunction);
 			int x = event->x() - leftMargin();
 			int y = geometry().height() - event->y() -bottomMargin();
+			// TODO: check whether/why we need to pass in x here!
 			int selectedPoint = func->selectPoint(event, &x);
 
 			// don't do anything if outside of diagram region:
@@ -381,7 +400,10 @@ int iAChartWithFunctionsWidget::deletePoint()
 {
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	iAChartFunction *func = *(it + m_selectedFunction);
-
+	if (!func->isDeletable(func->getSelectedPoint()))
+	{
+		return -1;
+	}
 	int selectedPoint = func->getSelectedPoint();
 	func->removePoint(selectedPoint);
 	update();
@@ -478,7 +500,7 @@ void iAChartWithFunctionsWidget::applyTransferFunctionForAll()
 void iAChartWithFunctionsWidget::addBezierFunction()
 {
 	iAChartFunctionBezier *bezier = new iAChartFunctionBezier(this, PredefinedColors()[m_functions.size() % 7]);
-	bezier->addPoint(contextMenuPos().x(), activeHeight()- contextMenuPos().y());
+	bezier->addPoint(contextMenuPos().x(), chartHeight()- contextMenuPos().y());
 	m_selectedFunction = m_functions.size();
 	m_functions.push_back(bezier);
 
@@ -489,7 +511,11 @@ void iAChartWithFunctionsWidget::addBezierFunction()
 
 void iAChartWithFunctionsWidget::addGaussianFunction()
 {
-	addGaussianFunction(contextMenuPos().x(), geometry().width() / 6, (int)((activeHeight() - contextMenuPos().y())*yZoom()));
+	double mean = m_xMapper->dstToSrc(contextMenuPos().x() - leftMargin() - xShift());
+	double sigma = m_xMapper->dstToSrc(geometry().width() / 20) - xBounds()[0];
+	int contextYHeight = chartHeight() - contextMenuPos().y();
+	double multiplier = yMapper().dstToSrc(contextYHeight) * (sigma * sqrt(2 * vtkMath::Pi()));
+	addGaussianFunction(mean, sigma, multiplier);
 }
 
 void iAChartWithFunctionsWidget::addGaussianFunction(double mean, double sigma, double multiplier)
@@ -613,36 +639,30 @@ void iAChartWithFunctionsWidget::saveProbabilityFunctions(iAXmlSettings &xml)
 	// add new function nodes
 	for (unsigned int f = 1; f < m_functions.size(); ++f)
 	{
-		switch (m_functions[f]->getType())
+		if (dynamic_cast<iAChartFunctionBezier*>(m_functions[f]))
 		{
-			case iAChartFunction::BEZIER:
+			QDomElement bezierElement = xml.createElement("bezier", functionsNode);
+			auto bezier = dynamic_cast<iAChartFunctionBezier*>(m_functions[f]);
+			std::vector<QPointF> points = bezier->getPoints();
+			std::vector<QPointF>::iterator it = points.begin();
+			while (it != points.end())
 			{
-				QDomElement bezierElement = xml.createElement("bezier", functionsNode);
-				std::vector<QPointF> points = ((iAChartFunctionBezier*)m_functions[f])->getPoints();
-				std::vector<QPointF>::iterator it = points.begin();
-				while (it != points.end())
-				{
-					QPointF point = *it;
-					QDomElement nodeElement = xml.createElement("node", bezierElement);
-					nodeElement.setAttribute("value", tr("%1").arg(point.x()));
-					nodeElement.setAttribute("fktValue", tr("%1").arg(point.y()));
-					++it;
-				}
-				break;
+				QPointF point = *it;
+				QDomElement nodeElement = xml.createElement("node", bezierElement);
+				nodeElement.setAttribute("value", tr("%1").arg(point.x()));
+				nodeElement.setAttribute("fktValue", tr("%1").arg(point.y()));
+				++it;
 			}
-			case iAChartFunction::GAUSSIAN:
-			{
-				QDomElement gaussianElement = xml.createElement("gaussian", functionsNode);
-				iAChartFunctionGaussian * gaussian = (iAChartFunctionGaussian*)m_functions[f];
-				gaussianElement.setAttribute("mean", tr("%1").arg(gaussian->getMean()));
-				gaussianElement.setAttribute("sigma", tr("%1").arg(gaussian->getSigma()));
-				gaussianElement.setAttribute("multiplier", tr("%1").arg(gaussian->getMultiplier()));
-				break;
-			}
-			default:
-			// unknown function type, do nothing
-				break;
 		}
+		else if (dynamic_cast<iAChartFunctionGaussian*>(m_functions[f]))
+		{
+			QDomElement gaussianElement = xml.createElement("gaussian", functionsNode);
+			auto gaussian = dynamic_cast<iAChartFunctionGaussian*>(m_functions[f]);
+			gaussianElement.setAttribute("mean", tr("%1").arg(gaussian->getMean()));
+			gaussianElement.setAttribute("sigma", tr("%1").arg(gaussian->getSigma()));
+			gaussianElement.setAttribute("multiplier", tr("%1").arg(gaussian->getMultiplier()));
+		}
+		// otherwise: unknown function type, do nothing
 	}
 }
 
@@ -687,11 +707,6 @@ iAChartFunction *iAChartWithFunctionsWidget::selectedFunction()
 	return m_functions[m_selectedFunction];
 }
 
-int iAChartWithFunctionsWidget::chartHeight() const
-{
-	return geometry().height() - bottomMargin();
-}
-
 std::vector<iAChartFunction*> &iAChartWithFunctionsWidget::functions()
 {
 	return m_functions;
@@ -719,34 +734,18 @@ void iAChartWithFunctionsWidget::showTFTable()
 		m_TFTable->setAttribute( Qt::WA_DeleteOnClose, true);
 		m_TFTable->show();
 
-		connect(m_TFTable, SIGNAL( destroyed( QObject* ) ), this, SLOT( tfTableIsFinished() ) );
-		connect( this, SIGNAL( updateTFTable() ), m_TFTable, SLOT( updateTable() ) );
+		connect(m_TFTable, &dlg_TFTable::destroyed, this, &iAChartWithFunctionsWidget::tfTableIsFinished);
+		connect(this, &iAChartWithFunctionsWidget::updateTFTable, m_TFTable, &dlg_TFTable::updateTable);
 	}
-}
-
-QPoint iAChartWithFunctionsWidget::getTFTablePos() const
-{
-	return m_TFTable->pos();
-}
-
-void iAChartWithFunctionsWidget::setTFTablePos( QPoint pos )
-{
-	m_TFTable->move( pos );
-}
-
-bool iAChartWithFunctionsWidget::isTFTableCreated() const
-{
-	bool created;
-	m_TFTable ? created = true : created = false;
-	return created;
-}
-
-void iAChartWithFunctionsWidget::closeTFTable()
-{
-	m_TFTable->close();
 }
 
 void iAChartWithFunctionsWidget::tfTableIsFinished()
 {
 	m_TFTable = nullptr;
+}
+
+void iAChartWithFunctionsWidget::selectFunction(size_t functionIndex)
+{
+	m_selectedFunction = functionIndex;
+	update();
 }

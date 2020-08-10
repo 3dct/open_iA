@@ -101,7 +101,7 @@ void iAFoamCharacterizationItemBinarization::executeBinarization()
 	iAConnector con;
 	con.setImage(m_pImageData);
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
+	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
 	auto filter = iAFilterRegistry::filter("Binary Thresholding");
 	filter->setLogger(iAConsoleLogger::get());
 	filter->setProgress(pObserver.data());
@@ -121,7 +121,7 @@ void iAFoamCharacterizationItemBinarization::executeOtzu()
 	iAConnector con;
 	con.setImage(m_pImageData);
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
+	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
 	auto filter = iAFilterRegistry::filter("Otsu Threshold");
 	filter->setLogger(iAConsoleLogger::get());
 	filter->setProgress(pObserver.data());

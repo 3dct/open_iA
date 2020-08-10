@@ -22,19 +22,12 @@
 
 #include "open_iA_Core_export.h"
 
-#include <itkMesh.h>
-
 #include <vtkSmartPointer.h>
 
 #include <QElapsedTimer>
-#include <QMutex>
 #include <QThread>
-#include <QWaitCondition>
 #include <QVector>
 
-class vtkActor;
-class vtkActor2D;
-class vtkCornerAnnotation;
 class vtkImageData;
 class vtkPolyData;
 
@@ -42,10 +35,10 @@ class iAConnector;
 class iALogger;
 class iAProgress;
 
-typedef itk::DefaultStaticMeshTraits< double, 3, 2, double, double >  MeshTraits;
-typedef itk::Mesh< double, 3, MeshTraits > MeshType;
-typedef itk::PointSet< double, 3, MeshTraits > PointSetType;
-
+//! Base class for algorithms running in the background.
+//! @deprecated For operations producing some kind of output
+//!     (image or output values), derive from iAFilter instead.
+//!     For other operations, there is no clear successor yet.
 class open_iA_Core_API iAAlgorithm : public QThread
 {
 	Q_OBJECT
@@ -53,8 +46,8 @@ public:
 	iAAlgorithm( QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l, QObject *parent = nullptr );
 	virtual ~iAAlgorithm();
 
-	void Start(); //< Start counting the running time and set the start time
-	int Stop();   //< Get the elapsed time since Start call
+	void Start(); //!< Start counting the running time and set the start time
+	int Stop();   //!< Get the elapsed time since Start call
 
 	void setup(QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l );
 	void addMsg(QString txt);
@@ -74,12 +67,9 @@ public:
 	void allocConnectors(int size);
 
 	iAProgress* ProgressObserver();
-
-	// TODO: Find out if used somewhere / move somewhere else:
-	// {
-	void vtkPolydata_itkMesh ( vtkPolyData* polyData, MeshType::Pointer mesh );
-	void itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* polyData );
-	// }
+	
+	//! probably NOT "safe", just calls QThread::terminate (note there: "Warning: This function is dangerous and its use is discouraged.")
+	//! There is no safe way to terminate algorithms implemented yet.
 	virtual void SafeTerminate();
 
 public slots:

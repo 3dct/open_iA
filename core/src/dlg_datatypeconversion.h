@@ -45,10 +45,10 @@ class dlg_datatypeconversion : public QDialog, public Ui_DataTypeConversion
 
 public:
 	dlg_datatypeconversion ( QWidget *parent, QString const & filename, iARawFileParameters const & p,
-		unsigned int zSkip, size_t numBins, double* c, double* inPara );
+		unsigned int zSkip, size_t numBins, double* inPara );
 	~dlg_datatypeconversion();
 
-	QString convert(QString const & filename, iARawFileParameters const & p, int outdatatype,
+	QString convert(QString const & filename, int outdatatype,
 		double minrange, double maxrange, double minout, double maxout);
 	QString convertROI(QString const & filename, iARawFileParameters const & p, int outdatatype,
 		double minrange, double maxrange, double minout, double maxout, double* roi);

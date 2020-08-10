@@ -89,7 +89,10 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 		return;
 	}
 	m_config.fileName = MakeAbsolute(path, csvFileName);
-	m_config.curvedFiberFileName = MakeAbsolute(path, projectFile.value("CurvedFileName").toString());
+	if (projectFile.contains("CurvedFileName") && !projectFile.value("CurvedFileName").toString().isEmpty())
+	{
+		m_config.curvedFiberFileName = MakeAbsolute(path, projectFile.value("CurvedFileName").toString());
+	}
 	iAFeatureScoutModuleInterface * featureScout = m_mainWindow->moduleDispatcher().module<iAFeatureScoutModuleInterface>();
 	featureScout->LoadFeatureScout(m_config, m_mdiChild);
 	QString layoutName = projectFile.value("Layout").toString();
@@ -104,7 +107,10 @@ void iAFeatureScoutProject::saveProject(QSettings & projectFile, QString const &
 	m_config.save(projectFile, "CSVFormat");
 	QString path(QFileInfo(fileName).absolutePath());
 	projectFile.setValue("CSVFileName", MakeRelative(path, m_config.fileName));
-	projectFile.setValue("CurvedFileName", MakeRelative(path, m_config.curvedFiberFileName));
+	if (!m_config.curvedFiberFileName.isEmpty())
+	{
+		projectFile.setValue("CurvedFileName", MakeRelative(path, m_config.curvedFiberFileName));
+	}
 	if (m_mdiChild)
 	{
 		projectFile.setValue("Layout", m_mdiChild->layoutName());
@@ -122,7 +128,7 @@ void iAFeatureScoutModuleInterface::Initialize()
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionFibreScout = new QAction( QObject::tr("FeatureScout"), nullptr );
 	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreScout, false );
-	connect(actionFibreScout, SIGNAL(triggered()), this, SLOT(FeatureScout()));
+	connect(actionFibreScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout);
 	tlbFeatureScout = nullptr;
 }
 
@@ -229,11 +235,11 @@ void iAFeatureScoutModuleInterface::SetupToolbar()
 	}
 	tlbFeatureScout = new iAFeatureScoutToolbar( m_mainWnd );
 	m_mainWnd->addToolBar( Qt::BottomToolBarArea, tlbFeatureScout );
-	connect( tlbFeatureScout->actionLength_Distribution, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
-	connect( tlbFeatureScout->actionMeanObject, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
-	connect( tlbFeatureScout->actionMultiRendering, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
-	connect( tlbFeatureScout->actionOrientation_Rendering, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
-	connect( tlbFeatureScout->actionActivate_SPM, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
+	connect( tlbFeatureScout->actionLength_Distribution, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
+	connect( tlbFeatureScout->actionMeanObject, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
+	connect( tlbFeatureScout->actionMultiRendering, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
+	connect( tlbFeatureScout->actionOrientation_Rendering, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
+	connect( tlbFeatureScout->actionActivate_SPM, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
 	tlbFeatureScout->setVisible( true );
 }
 
@@ -268,7 +274,7 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		return false;
 	}
 	AttachToMdiChild(m_mdiChild);
-	connect(m_mdiChild, SIGNAL(closed()), this, SLOT(onChildClose()));
+	connect(m_mdiChild, &MdiChild::closed, this, &iAFeatureScoutModuleInterface::onChildClose);
 	iAFeatureScoutAttachment* attach = attachment<iAFeatureScoutAttachment>(m_mdiChild);
 	if (!attach)
 	{

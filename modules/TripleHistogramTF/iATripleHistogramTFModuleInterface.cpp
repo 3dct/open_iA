@@ -35,12 +35,12 @@ void iATripleHistogramTFModuleInterface::Initialize()
 	QAction *action_2mod = new QAction(m_mainWnd);
 	action_2mod->setText(QApplication::translate("MainWindow", "Double Histogram Transfer Function", 0));
 	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, action_2mod, true);
-	connect(action_2mod, SIGNAL(triggered()), this, SLOT(menuItemSelected_2mod()));
+	connect(action_2mod, &QAction::triggered, this, &iATripleHistogramTFModuleInterface::menuItemSelected_2mod);
 
 	QAction *action_3mod = new QAction(m_mainWnd);
 	action_3mod->setText(QApplication::translate("MainWindow", "Triple Histogram Transfer Function", 0));
 	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, action_3mod, true);
-	connect(action_3mod, SIGNAL(triggered()), this, SLOT(menuItemSelected_3mod()));
+	connect(action_3mod, &QAction::triggered, this, &iATripleHistogramTFModuleInterface::menuItemSelected_3mod);
 }
 
 iAModuleAttachmentToChild* iATripleHistogramTFModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild* child)

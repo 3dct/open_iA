@@ -57,14 +57,16 @@ void iAVtkGraphDrawer::fillGraph(vtkMutableDirectedGraph* graph)
 		int rankSource = graph->GetVertexData()->GetAbstractArray("Layer")->GetVariantValue(idVtk.Source).ToInt();
 		int rankTarget = graph->GetVertexData()->GetAbstractArray("Layer")->GetVariantValue(idVtk.Target).ToInt();
 		assert (rankSource != rankTarget);		// FIMXE: we can't have a edges are connected two vertex on a same rank
-		iAGraph::idType id;
+		//iAGraph::idType id;
 		if (rankSource < rankTarget)
 		{
-			id = m_graph.addEdge(m_vertMapFromVtk[idVtk.Source], m_vertMapFromVtk[idVtk.Target]);
+			//id =
+			m_graph.addEdge(m_vertMapFromVtk[idVtk.Source], m_vertMapFromVtk[idVtk.Target]);
 		}
 		else
 		{
-			id = m_graph.addEdge(m_vertMapFromVtk[idVtk.Target], m_vertMapFromVtk[idVtk.Source]);
+			//id =
+			m_graph.addEdge(m_vertMapFromVtk[idVtk.Target], m_vertMapFromVtk[idVtk.Source]);
 		}
 // 		m_edgeMapToVtk[id] = idVtk;
 // 		m_edgeMapFromVtk[idVtk] = id;

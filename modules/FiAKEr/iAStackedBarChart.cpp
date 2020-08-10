@@ -147,7 +147,7 @@ void iAStackedBarChart::paintEvent(QPaintEvent* /*ev*/)
 		painter.fillRect(barRect, barBrush);
 		barRect.adjust(TextPadding, 0, -TextPadding, 0);
 		painter.drawText(barRect, Qt::AlignVCenter,
-			(m_header ? bar.name : QString::number(bar.value)));
+			(m_header ? bar.name : QString::number(bar.value, 'g', 3)));
 		m_dividers.push_back(accumulatedWidth + bWidth);
 		accumulatedWidth += m_stack ? bWidth : static_cast<int>(bar.weight * geometry().width());
 	}

@@ -25,15 +25,15 @@
 class iARandomParameterGenerator: public iAParameterGenerator
 {
 public:
-	virtual QString name() const;
-	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
+	QString name() const override;
+	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
 };
 
 class iALatinHypercubeParameterGenerator: public iAParameterGenerator
 {
 public:
-	virtual QString name() const;
-	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
+	QString name() const override;
+	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
 };
 
 //! as all parameter values are supposed to be equally spaced,
@@ -42,8 +42,18 @@ public:
 class iACartesianGridParameterGenerator : public iAParameterGenerator
 {
 public:
-	virtual QString name() const;
-	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
+	QString name() const override;
+	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+};
+
+//! Generates parameters around middle of given range for each parameter
+//! for linear range, equivalent to Cartesian Grid sampler;
+//! for logarithmic range, it starts in the middle, and expands outward
+class iASensitivityParameterGenerator : public iAParameterGenerator
+{
+public:
+	QString name() const override;
+	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
 };
 
 class iASelectionParameterGenerator : public iAParameterGenerator

@@ -38,9 +38,9 @@ iA4DCTAllVisualizationsDockWidget::iA4DCTAllVisualizationsDockWidget( QWidget* p
 
 	lvVisModules->setModel( &m_standardItemModel );
 
-	connect( pbDelete, SIGNAL( clicked( ) ), this, SLOT( onDeleteButtonClicked( ) ) );
-	connect( &m_standardItemModel, SIGNAL( itemChanged( QStandardItem * ) ), this, SLOT( itemChanged( QStandardItem * ) ) );
-	connect( lvVisModules->selectionModel( ), SIGNAL( selectionChanged( QItemSelection, QItemSelection ) ), this, SLOT( selectionChanged( QItemSelection, QItemSelection ) ) );
+	connect( pbDelete, &QPushButton::clicked, this, &iA4DCTAllVisualizationsDockWidget::onDeleteButtonClicked);
+	connect( &m_standardItemModel, &QStandardItemModel::itemChanged, this, &iA4DCTAllVisualizationsDockWidget::itemChanged);
+	connect( lvVisModules->selectionModel(), &QItemSelectionModel::selectionChanged, this, &iA4DCTAllVisualizationsDockWidget::selectionChanged);
 }
 
 iA4DCTAllVisualizationsDockWidget::~iA4DCTAllVisualizationsDockWidget( )
@@ -54,17 +54,24 @@ void iA4DCTAllVisualizationsDockWidget::setCollection( iAVisModulesCollection * 
 
 void iA4DCTAllVisualizationsDockWidget::updateContext( )
 {
-	if( m_collection == nullptr )
+	if (m_collection == nullptr)
+	{
 		return;
+	}
 
 	m_standardItemModel.clear( );
-	for( auto m : m_collection->getModules( ) ) {
+	for (auto m : m_collection->getModules( ))
+	{
 		QStandardItem * item = new QStandardItem( m->name );
 		item->setCheckable( true );
-		if( m->stages.contains( m_currentStage ) )
-			item->setCheckState( Qt::Checked );
+		if (m->stages.contains(m_currentStage))
+		{
+			item->setCheckState(Qt::Checked);
+		}
 		else
-			item->setCheckState( Qt::Unchecked );
+		{
+			item->setCheckState(Qt::Unchecked);
+		}
 		m_standardItemModel.appendRow( item );
 	}
 }
@@ -105,28 +112,40 @@ void iA4DCTAllVisualizationsDockWidget::itemChanged( QStandardItem * item )
 	const QModelIndex index = item->model( )->indexFromItem( item );
 	iAVisModuleItem * module = m_collection->getModules( ).at( index.row( ) );
 	module->name = item->text( );
-	if( item->checkState( ) == Qt::Checked ) {
-		if( !module->stages.contains( m_currentStage ) )
-			module->stages.append( m_currentStage );
+	if (item->checkState( ) == Qt::Checked)
+	{
+		if (!module->stages.contains(m_currentStage))
+		{
+			module->stages.append(m_currentStage);
+		}
 	}
-	else {
-		if( module->stages.contains( m_currentStage ) )
-			module->stages.removeOne( m_currentStage );
+	else
+	{
+		if (module->stages.contains(m_currentStage))
+		{
+
+			module->stages.removeOne(m_currentStage);
+		}
 	}
 	emit updateVisualizations( );
 }
 
 void iA4DCTAllVisualizationsDockWidget::selectionChanged( const QItemSelection & selected, const QItemSelection & /*deselected*/ )
 {
-	if( selected.size( ) == 0 ) {
+	if (selected.size( ) == 0)
+	{
 		emit selectedVisModule( nullptr );
 	}
-	else if( selected.size( ) == 1 ) {
+	else if (selected.size( ) == 1)
+	{
 		QModelIndex index = selected.indexes( )[0];
 		QStandardItem * item = m_standardItemModel.item( index.row( ), index.column( ) );
-		if( item->checkState( ) != Qt::Checked ) {
+		if (item->checkState( ) != Qt::Checked)
+		{
 			emit selectedVisModule( nullptr );
-		} else {
+		}
+		else
+		{
 			iAVisModule * module = m_collection->getModules( )[index.row( )]->module;
 			emit selectedVisModule( module );
 		}

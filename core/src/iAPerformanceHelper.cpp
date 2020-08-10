@@ -35,6 +35,7 @@
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
 #define NOMINMAX
 #include <windows.h>
 #include <psapi.h>
@@ -214,6 +215,11 @@ iAPerformanceTimer::DurationType iAPerformanceHelper::stop()
 	return duration;
 }
 
+iAPerformanceTimer::DurationType iAPerformanceHelper::elapsed() const
+{
+	return m_pImpl->m_perfTimer.elapsed();
+}
+
 
 // class iATimeGuard
 
@@ -230,6 +236,11 @@ void iATimeGuard::time(std::string const & caption)
 iATimeGuard::~iATimeGuard()
 {
 	m_perfHelper.stop();
+}
+
+iAPerformanceTimer::DurationType iATimeGuard::elapsed() const
+{
+	return m_perfHelper.elapsed();
 }
 
 QString formatDuration(double duration)

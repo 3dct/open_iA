@@ -72,7 +72,7 @@ public:
 	//! Get the type of file being read
 	int ioID() const;
 
-Q_SIGNALS:
+signals:
 	void done(bool active = false);
 	void failed();
 

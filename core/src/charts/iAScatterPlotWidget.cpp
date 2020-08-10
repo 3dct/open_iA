@@ -203,8 +203,14 @@ int iAScatterPlotWidget::PaddingBottom()
 
 void iAScatterPlotWidget::wheelEvent(QWheelEvent * event)
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&
 		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom()))
+#else
+	QPointF p = event->position();
+	if (p.x() >= PaddingLeft() && p.x() <= (width() - PaddingRight) &&
+		p.y() >= PaddingTop && p.y() <= (height() - PaddingBottom()))
+#endif
 	{
 		m_scatterplot->SPLOMWheelEvent(event);
 		update();

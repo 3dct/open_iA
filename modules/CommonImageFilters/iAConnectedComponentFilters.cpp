@@ -115,7 +115,7 @@ void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const
 	if (parameters["Write labels to file"].toBool())
 	{
 		long int no_of_Objects = rccFilter->GetNumberOfObjects();
-		ofstream myfile;
+		std::ofstream myfile;
 		myfile.open(getLocalEncodingFileName(parameters["Label file"].toString()));
 		myfile << " Total Objects " << "," << no_of_Objects << endl;
 		myfile << "Object Number" << "," << "Object Size (PhysicalUnits)" << endl;

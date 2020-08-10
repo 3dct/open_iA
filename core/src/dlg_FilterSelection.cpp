@@ -29,45 +29,62 @@ dlg_FilterSelection::dlg_FilterSelection(QWidget * parent, QString const & prese
 	dlg_FilterSelectionConnector(parent),
 	m_curMatches(0)
 {
-	connect(leFilterSearch, SIGNAL(textEdited(QString const &)), this, SLOT(FilterChanged(QString const &)));
-	connect(lwFilterList, SIGNAL(currentItemChanged(QListWidgetItem *, QListWidgetItem *)),
-		this, SLOT(ListSelectionChanged(QListWidgetItem *, QListWidgetItem *)));
-	connect(lwFilterList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(accept()));
+	connect(leFilterSearch, &QLineEdit::textEdited, this, &dlg_FilterSelection::filterChanged);
+	connect(lwFilterList, &QListWidget::currentItemChanged, this, &dlg_FilterSelection::listSelectionChanged);
+	connect(lwFilterList, &QListWidget::itemDoubleClicked, this, &dlg_FilterSelection::accept);
 	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 	for (auto filterFactory : iAFilterRegistry::filterFactories())
+	{
 		lwFilterList->addItem(filterFactory->create()->name());
+	}
 	if (!preselectedFilter.isEmpty())
 	{
 		auto matching = lwFilterList->findItems(preselectedFilter, Qt::MatchExactly);
 		if (matching.size() > 0)
+		{
 			lwFilterList->setCurrentItem(matching[0]);
+		}
 	}
 }
 
 void dlg_FilterSelection::filterChanged(QString const & filter)
 {
-	for (int row=0; row < lwFilterList->count(); ++row)
+	for (int row = 0; row < lwFilterList->count(); ++row)
+	{
 		lwFilterList->item(row)->setHidden(true);
+	}
 	QList<QListWidgetItem*> matches(lwFilterList->findItems(filter, Qt::MatchFlag::MatchContains));
 	m_curMatches = matches.size();
 	for (QListWidgetItem* item : matches)
 	{
 		item->setHidden(false);
 		if (matches.size() == 1)
+		{
 			lwFilterList->setCurrentItem(item);
+		}
 	}
-	enableOKButton();
+	updateOKAndDescription();
 }
 
-void dlg_FilterSelection::enableOKButton()
+void dlg_FilterSelection::updateOKAndDescription()
 {
-	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(m_curMatches == 1 ||
-		(lwFilterList->currentItem() != nullptr && !lwFilterList->currentItem()->isHidden()));
+	bool enable = m_curMatches == 1 ||
+		(lwFilterList->currentItem() != nullptr && !lwFilterList->currentItem()->isHidden());
+	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(enable);
+	QString description;
+	if (enable)
+	{
+		QString filterName = lwFilterList->currentItem()->text();
+		auto filter = iAFilterRegistry::filter(filterName);
+		assert(filter);
+		description = filter->description();
+	}
+	teDescription->setText(description);
 }
 
 void dlg_FilterSelection::listSelectionChanged(QListWidgetItem * /*current*/, QListWidgetItem * /*previous*/)
 {
-	enableOKButton();
+	updateOKAndDescription();
 }
 
 QString dlg_FilterSelection::selectedFilterName() const

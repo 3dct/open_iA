@@ -54,7 +54,7 @@ iAClusterAttribChart::iAClusterAttribChart(
 	m_checkbox->setFont(f);
 	m_checkbox->setMinimumWidth(10);
 	mainLayout->addWidget(m_checkbox);
-	connect(m_checkbox, SIGNAL(toggled(bool)), this, SIGNAL(Toggled(bool)));
+	connect(m_checkbox, &QCheckBox::toggled, this, &iAClusterAttribChart::Toggled);
 
 	m_charts = new iAFilterChart(this, caption, data, nameMapper);
 	m_charts->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -62,8 +62,8 @@ iAClusterAttribChart::iAClusterAttribChart(
 
 	setLayout(mainLayout);
 
-	connect(m_charts, SIGNAL(dblClicked()), this,  SIGNAL(ChartDblClicked()));
-	connect(m_charts, SIGNAL(selectionChanged()), this, SLOT(SelectionChanged()));
+	connect(m_charts, &iAFilterChart::dblClicked, this, &iAClusterAttribChart::ChartDblClicked);
+	connect(m_charts, &iAFilterChart::selectionChanged, this, &iAClusterAttribChart::SelectionChanged);
 }
 
 void iAClusterAttribChart::SetAdditionalDrawer(QSharedPointer<iAPlot>& drawer, QSharedPointer<iAPlot> newDrawer)

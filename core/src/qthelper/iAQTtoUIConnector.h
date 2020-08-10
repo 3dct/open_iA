@@ -26,7 +26,11 @@ template <typename QtContainerType, typename uiType>
 class iAQTtoUIConnector : public QtContainerType, public uiType
 {
 public:
-	iAQTtoUIConnector( QWidget * parent = 0, Qt::WindowFlags f = 0 ) : QtContainerType( parent, f )
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
+	iAQTtoUIConnector( QWidget * parent = nullptr, Qt::WindowFlags f = 0 ) : QtContainerType( parent, f )
+#else
+	iAQTtoUIConnector(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>()) : QtContainerType(parent, f)
+#endif
 	{
 		this->setupUi(this);
 	}
@@ -36,7 +40,7 @@ template <typename uiType>
 class iAQTtoUIConnector<QToolBar, uiType> : public QToolBar, public uiType
 {
 public:
-	iAQTtoUIConnector(QString const & title, QWidget * parent = 0) : QToolBar(title, parent)
+	iAQTtoUIConnector(QString const & title, QWidget * parent = nullptr) : QToolBar(title, parent)
 	{
 		this->setupUi(this);
 	}

@@ -124,7 +124,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	m_scatterPlotWidget->SetSelection(selection);
 	m_scatterPlotWidget->setMinimumWidth(width() / 2);
 	m_scatterPlotContainer->layout()->addWidget(m_scatterPlotWidget);
-	connect(m_scatterPlotWidget->m_scatterplot, SIGNAL(selectionModified()), this, SLOT(SelectionUpdated()));
+	connect(m_scatterPlotWidget->m_scatterplot, &iAScatterPlot::selectionModified, this, &iAScatterPlotView::SelectionUpdated);
 }
 
 
@@ -163,8 +163,8 @@ void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 		{
 			yButton->setChecked(true);
 		}
-		connect(xButton, SIGNAL(clicked()), this, SLOT(XAxisChoice()));
-		connect(yButton, SIGNAL(clicked()), this, SLOT(YAxisChoice()));
+		connect(xButton, &QToolButton::clicked, this, &iAScatterPlotView::XAxisChoice);
+		connect(yButton, &QToolButton::clicked, this, &iAScatterPlotView::YAxisChoice);
 		m_xAxisChooser->layout()->addWidget(xButton);
 		m_yAxisChooser->layout()->addWidget(yButton);
 	}

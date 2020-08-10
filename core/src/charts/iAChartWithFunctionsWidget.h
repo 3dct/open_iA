@@ -63,8 +63,6 @@ public:
 	//! Get the index of the selected point in the selected function.
 	int selectedFuncPoint() const;
 	bool isFuncEndPoint(int index) const;
-	//! The height of the chart area itself (in pixels), without bottom margin (where the x axis, captions and labels are drawn).
-	int chartHeight() const;
 	//! Set the transfer functions to be displayed on top of the chart.
 	void setTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
 	//! Get the currently selected function.
@@ -75,13 +73,6 @@ public:
 	void setAllowTrfReset(bool allow);
 	//! Set whether the user can add additional functions (Bezier and Gaussian curves), in addition to the standard transfer function.
 	void setEnableAdditionalFunctions(bool enable);
-
-	//! @{ Transfer Function Table dialog related.
-	bool isTFTableCreated() const;
-	void closeTFTable();
-	QPoint getTFTablePos() const;
-	void setTFTablePos(QPoint pos);
-	//! @}
 
 	//! Add a Gaussian function with the given parameters.
 	void addGaussianFunction(double mean, double sigma, double multiplier);
@@ -137,6 +128,9 @@ public slots:
 	void removeFunction();
 	void showTFTable();
 	void tfTableIsFinished();
+
+private slots:
+	void selectFunction(size_t functionIndex);
 
 private:
 	bool m_allowTrfReset;

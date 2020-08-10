@@ -28,8 +28,8 @@ iA4DCTBoundingBoxDockWidget::iA4DCTBoundingBoxDockWidget( QWidget * parent )
 	: QDockWidget( parent )
 {
 	setupUi( this );
-	connect( cbBoundingBox, SIGNAL( colorChanged( QColor ) ), this, SLOT( changeColor( QColor ) ) );
-	connect( sWidth, SIGNAL( valueChanged( int ) ), this, SLOT( changeLineWidth( int ) ) );
+	connect(cbBoundingBox, &iAColorBox::colorChanged, this, &iA4DCTBoundingBoxDockWidget::changeColor);
+	connect(sWidth, &QSlider::valueChanged, this, &iA4DCTBoundingBoxDockWidget::changeLineWidth);
 
 	// default values
 	cbBoundingBox->setColor( QColor( 0xff, 0xff, 0xff ) );

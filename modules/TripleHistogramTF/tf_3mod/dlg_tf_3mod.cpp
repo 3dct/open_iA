@@ -68,6 +68,6 @@ dlg_tf_3mod::dlg_tf_3mod(MdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */
 	dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
 	QHBoxLayout *layout = new QHBoxLayout(dockWidgetContents);
 
-	m_tripleModalityWidget = new iATripleModalityWidget(dockWidgetContents, mdiChild);
+	m_tripleModalityWidget = new iATripleModalityWidget(mdiChild);
 	layout->addWidget(m_tripleModalityWidget);
 }

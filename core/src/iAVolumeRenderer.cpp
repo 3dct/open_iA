@@ -24,16 +24,11 @@
 #include "iATransferFunction.h"
 #include "iAVolumeSettings.h"
 
+#include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
-#include <vtkOutlineFilter.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRendererCollection.h>
-#include <vtkSmartVolumeMapper.h>
-#include <vtkVolume.h>
-#include <vtkVolumeProperty.h>
-#include "vtkColorTransferFunction.h"
 
 bool IsFlat(int extent[6])
 {
@@ -95,42 +90,6 @@ void iAVolumeRenderer::setImage(iATransferFunction * transfer, vtkSmartPointer<v
 		}
 		m_volProp->SetColor(0, transfer->colorTF());
 		m_volProp->SetScalarOpacity(0, transfer->opacityTF());
-	}
-	m_volProp->Modified();
-	m_outlineFilter->SetInputData(imgData);
-	update();
-}
-
-void iAVolumeRenderer::setImage(vtkImageData * imgData)
-{
-	DEBUG_LOG("update image");
-	vtkSmartPointer<vtkColorTransferFunction>volumeColor =
-		vtkSmartPointer<vtkColorTransferFunction>::New();
-
-	volumeColor->AddRGBPoint(0, 0.0, 0.0, 0.0);
-	volumeColor->AddRGBPoint(500, 1.0, 0.5, 0.3);
-	volumeColor->AddRGBPoint(1000, 1.0, 0.5, 0.3);
-	volumeColor->AddRGBPoint(1150, 1.0, 1.0, 0.9);
-	m_isFlat = IsFlat(imgData->GetExtent());
-	if (m_isFlat)
-	{
-		return;
-	}
-	m_volMapper->SetInputData(imgData);
-	if (imgData->GetNumberOfScalarComponents() > 1)
-	{
-		m_volMapper->SetBlendModeToComposite();
-		m_volProp->SetIndependentComponents(0);
-	}
-	else
-	{
-		if (m_volSettings.ScalarOpacityUnitDistance < 0)
-		{
-			m_volSettings.ScalarOpacityUnitDistance = imgData->GetSpacing()[0];
-			m_volProp->SetScalarOpacityUnitDistance(imgData->GetSpacing()[0]);
-		}
-		m_volProp->SetColor(0, volumeColor);
-		//m_volProp->SetScalarOpacity(0, transfer->opacityTF());
 	}
 	m_volProp->Modified();
 	m_outlineFilter->SetInputData(imgData);
@@ -275,7 +234,6 @@ void iAVolumeRenderer::updateBoundingBox()
 	m_outlineActor->SetOrientation(m_volume->GetOrientation());
 	m_outlineActor->SetPosition(m_volume->GetPosition());
 }
-
 
 vtkSmartPointer<vtkVolume> iAVolumeRenderer::volume()
 {

@@ -50,7 +50,7 @@ public:
 	bool isMagicLensEnabled() const;
 
 signals:
-	void MouseMoved( );
+	void mouseMoved();
 
 protected:
 	void mouseMoveEvent( QMouseEvent * event ) override;

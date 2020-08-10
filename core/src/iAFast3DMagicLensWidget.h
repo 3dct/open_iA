@@ -36,7 +36,7 @@ protected:
 private:
 	double m_viewAngle;
 	double calculateZ( double viewAngle );
-Q_SIGNALS:
+signals:
 	void rightButtonReleasedSignal();
 	void leftButtonReleasedSignal();
 };

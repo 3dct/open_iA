@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "BarycentricTriangle.h"
+#include "iABarycentricTriangle.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
@@ -37,21 +37,21 @@ class iABarycentricContextRenderer : public QWidget
 
 public:
 	iABarycentricContextRenderer();
-	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle);
-	void setTriangle(BarycentricTriangle triangle);
+	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, iABarycentricTriangle triangle);
+	void setTriangle(iABarycentricTriangle triangle);
 	QImage* getImage();
 	QRect getImageRect();
 
 private:
 	void calculateCoordinates(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
-	void updateTriangle(BarycentricTriangle triangle);
+	void updateTriangle(iABarycentricTriangle triangle);
 	void drawImageLater();
 	void drawImageNow();
 
 	vtkSmartPointer<vtkImageData> m_barycentricCoordinates;
 	QImage *m_image;
 	QRect m_imageRect;
-	BarycentricTriangle m_triangle;
+	iABarycentricTriangle m_triangle;
 
 	QTimer *m_timer_heatmap;
 	int m_timerWait_heatmap;

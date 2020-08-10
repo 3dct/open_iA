@@ -119,23 +119,25 @@ double iABlobImplicitFunction::JustEvaluateFunction (double x[3])
 {
 	LineInfo* line;
 	double value = 0;
-	double pValue, pDist;
+	double pDist;
 	if (this->mbCount == 0)
+	{
 		return 0;
+	}
 
 	line = this->mb;
 	for (unsigned int i = 0; i < this->mbCount; i++, line++)
 	{
-		pValue = line->strength;
 		pDist = DistancePointToLine (line->point1, line->point2, x);
-		if(0 == i)
+		if (0 == i)
+		{
 			value = pDist;
-		else if(pDist <= value)
+		}
+		else if (pDist <= value)
+		{
 			value = pDist;
-		//value += (pValue / pDist);
+		}
 	}
-
-	//printf("EvalFun: %lf, %lf, %lf = %lf\n", x[0], x[1], x[2], value);
 
 	return value;
 }

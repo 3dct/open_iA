@@ -63,7 +63,7 @@ QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(QList<QShar
 		auto mod = new iAModality(name, "", -1, imageData, iAModality::NoRenderer);
 
 #ifndef NDEBUG
-		storeImage2(connectors[i].itkImage(), "pca_output_" + QString::number(i) + ".mhd", true);
+		storeImage(connectors[i].itkImage(), "pca_output_" + QString::number(i) + ".mhd", true);
 #endif
 
 		//QSharedPointer<iAVolumeRenderer> renderer(new iAVolumeRenderer(mod->transfer().data(), mod->image()));
@@ -180,8 +180,8 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 		}
 
 #ifndef NDEBUG
-		storeImage2(c[row_i].itkImage(), "pca_input_itk_" + QString::number(row_i) + ".mhd", true);
-		storeImage2(dynamic_cast<ImageType *>(c[row_i].itkImage()), "pca_input_itkcast_" + QString::number(row_i) + ".mhd", true);
+		storeImage(c[row_i].itkImage(), "pca_input_itk_" + QString::number(row_i) + ".mhd", true);
+		storeImage(dynamic_cast<ImageType *>(c[row_i].itkImage()), "pca_input_itkcast_" + QString::number(row_i) + ".mhd", true);
 #endif
 	}
 
@@ -358,7 +358,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 		}
 
 #ifndef NDEBUG
-		storeImage2(output, "pca_output_before_conversion_" + QString::number(out_i) + ".mhd", true);
+		storeImage(output, "pca_output_before_conversion_" + QString::number(out_i) + ".mhd", true);
 #endif
 
 		c[out_i].setImage(output);

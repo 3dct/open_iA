@@ -45,7 +45,7 @@ iAFoamCharacterizationDialogFilter::iAFoamCharacterizationDialogFilter
 	m_pComboBox2->addItem("Median", 2);
 	m_pComboBox2->addItem("Non-local means", 3);
 	m_pComboBox2->setWhatsThis("Choose the filter type.");
-	connect(m_pComboBox2, SIGNAL(currentIndexChanged(const int&)), this, SLOT(slotComboBox2(const int&)));
+	connect(m_pComboBox2, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFoamCharacterizationDialogFilter::slotComboBox2);
 
 	m_pWidgetAnisotropic = new QWidget(m_pGroupBox2);
 

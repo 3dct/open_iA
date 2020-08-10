@@ -146,18 +146,22 @@ bool iAModuleInterface::AttachToMdiChild( MdiChild * child )
 {
 	//check if already attached
 	m_mdiChild = child;
-	if( isAttached() )
+	if (isAttached())
+	{
 		return false;
+	}
 	//create attachment
 	try
 	{
 		iAModuleAttachmentToChild * attachment = CreateAttachment( m_mainWnd, child );
-		if( !attachment )
+		if (!attachment)
+		{
 			return false;
+		}
 		//add an attachment
 		m_attachments.push_back( attachment );
-		connect( child, SIGNAL( closed() ), this, SLOT( attachedChildClosed() ) );
-		connect ( attachment, SIGNAL( detach() ), this, SLOT (detach() ) );
+		connect(child, &MdiChild::closed, this, &iAModuleInterface::attachedChildClosed);
+		connect(attachment, &iAModuleAttachmentToChild::detach, this, &iAModuleInterface::detach);
 	}
 	catch( itk::ExceptionObject &excep )
 	{  // check why we catch an ITK exception here! in the attachment initialization, no ITK filters should be called...

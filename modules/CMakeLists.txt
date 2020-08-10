@@ -75,10 +75,6 @@ FOREACH( indx RANGE ${len} )
 		MESSAGE(STATUS "${module_name}:")
 	ENDIF()
 	LIST(APPEND ENABLED_MODULE_NAMES ${module_name})
-	IF (EXISTS "${module_full_path}/enabled.cmake")
-		MESSAGE(STATUS "    Running ${module_full_path}/enabled.cmake...")
-		INCLUDE("${module_full_path}/enabled.cmake")
-	ENDIF()
 
 	# clean module name for use as identifier (if leading number, then add "_" prefix)
 	string(REGEX REPLACE "^([0123456789])" "_\\1" ident_module_name ${module_name})
@@ -96,8 +92,7 @@ FOREACH( indx RANGE ${len} )
 	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/modules ) # ui files in module folders
 
 	IF (openiA_PRECOMPILE)
-		IF (CMAKE_MAJOR_VERSION GREATER 4 OR
-		(CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 15))
+		IF (CMAKE_VERSION VERSION_GREATER "3.15.99")
 			IF (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${module_name}/precompile.cmake")
 				INCLUDE(${module_name}/precompile.cmake)
 				# MESSAGE(STATUS "    Creating precompiled headers for module ${module_name}: ${${module_name}_PRECOMPILE_INCLUDES}")
@@ -161,18 +156,19 @@ FOREACH( indx RANGE ${len} )
 		SET_PROPERTY(TARGET ${module_name} PROPERTY FOLDER "Modules")
 	ENDIF()
 
-	IF (CMAKE_CONFIGURATION_TYPES)
+	IF (MSVC)
 		set_target_properties(${module_name} PROPERTIES
 			RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/plugins"
 			RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/plugins"
 			RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO}/plugins"
 			RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL}/plugins"
 		)
+	ELSEIF (CMAKE_CONFIGURATION_TYPES)
 		set_target_properties(${module_name} PROPERTIES
-			LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG}/plugins"
-			LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE}/plugins"
-			LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO}/plugins"
-			LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL}/plugins"
+			LIBRARY_OUTPUT_DIRECTORY_Debug "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG}/plugins"
+			LIBRARY_OUTPUT_DIRECTORY_Release "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE}/plugins"
+			LIBRARY_OUTPUT_DIRECTORY_RelWithDebInfo "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO}/plugins"
+			LIBRARY_OUTPUT_DIRECTORY_MinSizeRel "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL}/plugins"
 	)
 	ELSE()
 		set_target_properties(${module_name} PROPERTIES
@@ -200,6 +196,11 @@ FOREACH( indx RANGE ${len} )
 		LIST (APPEND BUNDLE_LIBS "\${CMAKE_INSTALL_PREFIX}/bin/plugins/${CMAKE_SHARED_LIBRARY_PREFIX}${module_name}${CMAKE_SHARED_LIBRARY_SUFFIX}")
 	ELSE()
 		LIST (APPEND BUNDLE_LIBS "\${CMAKE_INSTALL_PREFIX}/plugins/${CMAKE_SHARED_LIBRARY_PREFIX}${module_name}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+	ENDIF()
+
+	IF (EXISTS "${module_full_path}/enabled.cmake")
+		MESSAGE(STATUS "    Running ${module_full_path}/enabled.cmake...")
+		INCLUDE("${module_full_path}/enabled.cmake")
 	ENDIF()
 ENDFOREACH()
 SET (BUNDLE_LIBS "${BUNDLE_LIBS}" PARENT_SCOPE)

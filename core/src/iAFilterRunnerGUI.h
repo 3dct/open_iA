@@ -74,7 +74,8 @@ public:
 	static QSharedPointer<iAFilterRunnerGUI> create();
 
 	//! do any potentially necessary GUI preparations (directly before the filter is run)
-	virtual void filterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd);
+	virtual void filterGUIPreparations(QSharedPointer<iAFilter> filter,
+		MdiChild* mdiChild, MainWindow* mainWnd, QMap<QString, QVariant> const& params);
 
 	//! Main run method. Calls all the other (non-static) methods in this class.
 	//! Override only if you want to change the whole way the filter running works;

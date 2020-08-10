@@ -26,7 +26,7 @@ iAColorBox::iAColorBox( QWidget * parent )
 	: QWidget( parent )
 {
 	m_dialog.setCurrentColor( Qt::red );
-	connect( &m_dialog, SIGNAL( currentColorChanged( QColor ) ), this, SLOT( onCurrentColorChanged( QColor ) ) );
+	connect( &m_dialog, &QColorDialog::currentColorChanged, this, &iAColorBox::onCurrentColorChanged);
 	setAutoFillBackground( true );
 }
 

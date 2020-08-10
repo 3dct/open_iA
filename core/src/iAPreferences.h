@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "defines.h"
+#include "defines.h" // for DefaultMagicLensSize
 
 //! Collection of generic open_iA program preferences.
 class iAPreferences
@@ -32,15 +32,17 @@ public:
 		MagicLensFrameWidth;
 	bool Compression,
 		ResultInNewWindow,
-		PrintParameters;
+		PrintParameters,
+		HistogramLogarithmicYAxis;
 		//LogToFile;
 	iAPreferences():
-		HistogramBins(DefaultHistogramBins),
+		HistogramBins(2048),
 		StatisticalExtent(3),
 		MagicLensSize(DefaultMagicLensSize),
 		MagicLensFrameWidth(3),
 		Compression(true),
 		ResultInNewWindow(true),
-		PrintParameters(true)
+		PrintParameters(true),
+		HistogramLogarithmicYAxis(false)
 	{}
 };

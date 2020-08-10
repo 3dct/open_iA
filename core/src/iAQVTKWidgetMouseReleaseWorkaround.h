@@ -33,11 +33,15 @@ class open_iA_Core_API iAQVTKWidgetMouseReleaseWorkaround : public iAVtkOldWidge
 {
 	Q_OBJECT
 public:
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iAQVTKWidgetMouseReleaseWorkaround(QWidget* parent = nullptr, Qt::WindowFlags f = 0);
+#else
+	iAQVTKWidgetMouseReleaseWorkaround(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+#endif
 protected:
 	virtual void mouseReleaseEvent ( QMouseEvent * event );
 	virtual void resizeEvent ( QResizeEvent * event );
-Q_SIGNALS:
+signals:
 	void rightButtonReleasedSignal();
 	void leftButtonReleasedSignal();
 };

@@ -76,7 +76,7 @@ void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvT
 	matrix->settings.enableColorSettings = true;
 	connect(matrix, &iAQSplom::selectionModified, this, &iAFeatureScoutSPLOM::selectionModified);
 	connect(matrix, &iAQSplom::parameterVisibilityChanged, this, &iAFeatureScoutSPLOM::parameterVisibilityChanged);
-	connect(matrix, SIGNAL(lookupTableChanged()), this, SLOT(lookupTableChanged()));
+	connect(matrix, &iAQSplom::lookupTableChanged, this, &iAFeatureScoutSPLOM::lookupTableChanged);
 
 	QAction* addClass = new QAction(QObject::tr("Add class"), nullptr);
 	connect(addClass, &QAction::triggered, this, &iAFeatureScoutSPLOM::addClass);
@@ -86,7 +86,9 @@ void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvT
 void iAFeatureScoutSPLOM::multiClassRendering(QList<QColor> const & colors)
 {
 	if (!matrix)
+	{
 		return;
+	}
 	matrix->resetFilter();
 	iALookupTable lookupTable;
 	lookupTable.allocate(colors.size());

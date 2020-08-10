@@ -112,7 +112,11 @@ public:
 		rmAutomatic,       //!< Range is automatically determined from chosen parameter
 		rmManual           //!< Range is manually set via minimum and maximum inputs
 	};
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
 	iAQSplom( QWidget * parent = 0, Qt::WindowFlags f = 0 );
+#else
+	iAQSplom(QWidget* parent = 0, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+#endif
 	~iAQSplom();
 
 	void setData(QSharedPointer<iASPLOMData> data, std::vector<char> const & visibility);                  //! set SPLOM data directly.
@@ -163,8 +167,8 @@ public slots:
 	void setHistogramBins(int bins);                                 //!< set the number of histogram bins
 	void showSettings();                                             //!< Show the settings dialog
 	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
-	void setColorTheme(QString const& themeName);                    //!< Call to adapt color theme used for coloring by a continuous parameter
-	void setColorThemeQual(QString const& themeName);                //!< Call to adapt color theme used for coloring by a qualitative parameter
+	void setColorTheme(QString const & themeName);                   //!< Call to adapt color theme used for coloring by a continuous parameter
+	void setColorThemeQual(int index);                               //!< Call to adapt color theme used for coloring by a qualitative parameter
 	void rangeFromParameter();                                       //!< Call when color range should be determined from parameter
 signals:
 	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
@@ -207,6 +211,7 @@ protected:
 	virtual void addHighlightedPoint(size_t index);                  //!< Keep a point with index always highlighted
 	virtual void removeHighlightedPoint(size_t index);               //!< Remove a point from the highlighted list
 protected slots:
+	void setColorThemeFromComboBox(int index);                       //!< Called when color theme changed via combobox in settings dialog
 	virtual void currentPointUpdated(size_t index);                  //!< When hovered over a new point.
 private:
 	void dataChanged(std::vector<char> visibleParams);               //!< handles changes of the internal data
@@ -223,7 +228,8 @@ private slots:
 	void selectionUpdated();                                         //!< When selection of data points is modified.
 	void transformUpdated( double scale, QPointF deltaOffset );      //!< When transform of scatter plots is modified.
 	void setQuadraticPlots(bool quadratic);                          //!< set whether plots are restricted to quadratic size
-	void setShowPCC(bool showPCC);                                   //!< set whether the correlation coefficient is shown in each plot
+	void setShowPCC(bool showPCC);                                   //!< set whether the Pearson's correlation coefficient is shown in each plot
+	void setShowSCC(bool showSCC);                                   //!< set whether the Spearman's correlation coefficient is shown in each plot
 	void setShowColorLegend(bool showColorLegend);                   //!< set whether the color legend is shown left of the maximized plot
 	void selectionModePolygon();                                     //!< set selection mode to polygon
 	void selectionModeRectangle();                                   //!< set selection mode to rectangle
@@ -275,7 +281,7 @@ public:
 		int selectionMode;                       //!< The selection mode of all scatter plots
 		bool selectionEnabled;                   //!< Whether selection is enabled in the SPLOM
 		bool quadraticPlots;                     //!< Whether the scatter plots are constrained to quadratic sizes
-		bool showPCC;                            //!< Whether to show the Pearson's correlation coefficient
+		bool showPCC, showSCC;                  //!< Whether to show Pearson's/Spearman's correlation coefficient
 		bool showColorLegend;                    //!< Whether the color legend is shown
 		ColorMode colorMode;                     //!< How the matrix dots are colored
 		ColorParameterMode colorParameterMode;   //!< How parameters are translated to colors if colored by parameter
@@ -314,7 +320,7 @@ protected:
 	QMenu* m_columnPickMenu;                     //!< sub-menu of the context menu for picking which columns are visible
 private:
 	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction, *quadraticPlotsAction,
-		*showPCCAction, *flipAxesAction, *showColorLegendAction;
+		*showPCCAction, *showSCCAction, *flipAxesAction, *showColorLegendAction;
 	std::vector<iAChartWidget*> m_histograms;    //!< histograms of scatter plot matrix
 	iASPMSettings * m_settingsDlg;               //!< dialog with all the SPLOM settings (which params are visible, opacity of each dot, which column to use for coloring...
 };

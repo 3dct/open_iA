@@ -88,7 +88,7 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 	con.setImage(m_childData->imageData());
 
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	//connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
+	//connect(pObserver.data(), &iAProgress::pprogress, this, &iAImageProcessingHelper::slotObserver);
 	auto filter = iAFilterRegistry::filter("Binary Thresholding");
 	if (!filter)
 	{

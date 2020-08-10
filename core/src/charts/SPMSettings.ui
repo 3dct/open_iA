@@ -58,7 +58,35 @@
         <property name="spacing">
          <number>4</number>
         </property>
-        <item row="3" column="1" colspan="2">
+        <item row="5" column="2">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Bins</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="lbSelectionMode">
+          <property name="text">
+           <string>Selection Mode</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="3">
+         <widget class="QCheckBox" name="cbQuadraticPlots">
+          <property name="text">
+           <string>Quadratic Plot Aspect Ratio</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="3">
+         <widget class="QCheckBox" name="cbShowPCC">
+          <property name="text">
+           <string>Show Pearson's Correlation Coeefficient</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1" colspan="2">
          <widget class="QComboBox" name="cbSelectionMode">
           <item>
            <property name="text">
@@ -72,7 +100,14 @@
           </item>
          </widget>
         </item>
-        <item row="4" column="1">
+        <item row="7" column="0" colspan="3">
+         <widget class="QCheckBox" name="cbShowColorLegend">
+          <property name="text">
+           <string>Show color legend</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
          <widget class="QSpinBox" name="sbHistogramBins">
           <property name="minimum">
            <number>2</number>
@@ -85,7 +120,7 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="0">
+        <item row="5" column="0">
          <widget class="QCheckBox" name="cbShowHistograms">
           <property name="text">
            <string>Show Histograms with</string>
@@ -95,59 +130,31 @@
           </property>
          </widget>
         </item>
-        <item row="7" column="1" colspan="2">
-         <widget class="QPushButton" name="pbLoadSettings">
-          <property name="text">
-           <string>Load Settings</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="lbSelectionMode">
-          <property name="text">
-           <string>Selection Mode</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0" colspan="3">
-         <widget class="QCheckBox" name="cbFlipAxes">
-          <property name="text">
-           <string>Flip axes of maximized plot</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0">
+        <item row="8" column="0">
          <widget class="QPushButton" name="pbSaveSettings">
           <property name="text">
            <string>Save Settings</string>
           </property>
          </widget>
         </item>
-        <item row="4" column="2">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Bins</string>
-          </property>
-         </widget>
-        </item>
         <item row="6" column="0" colspan="3">
-         <widget class="QCheckBox" name="cbShowColorLegend">
+         <widget class="QCheckBox" name="cbFlipAxes">
           <property name="text">
-           <string>Show color legend</string>
+           <string>Flip axes of maximized plot</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="0" colspan="3">
-         <widget class="QCheckBox" name="cbQuadraticPlots">
+        <item row="8" column="1" colspan="2">
+         <widget class="QPushButton" name="pbLoadSettings">
           <property name="text">
-           <string>Quadratic Plot Aspect Ratio</string>
+           <string>Load Settings</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="0" colspan="3">
-         <widget class="QCheckBox" name="cbShowCorrelationCoefficient">
+        <item row="3" column="0" colspan="3">
+         <widget class="QCheckBox" name="cbShowSCC">
           <property name="text">
-           <string>Show Pearson's Correlation Coeefficient</string>
+           <string>Show Spearman's Correlation Coeefficient</string>
           </property>
          </widget>
         </item>

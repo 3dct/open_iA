@@ -130,7 +130,7 @@ void iAFoamCharacterizationItemFilter::executeAnisotropic()
 
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->observe(pFilter);
-	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
+	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemFilter::slotObserver);
 
 	pFilter->Update();
 
@@ -158,7 +158,7 @@ void iAFoamCharacterizationItemFilter::executeGaussian()
 
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->observe(pFilter);
-	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
+	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemFilter::slotObserver);
 
 	pFilter->Update();
 
@@ -182,7 +182,7 @@ void iAFoamCharacterizationItemFilter::executeMedian()
 
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->observe(pFilter);
-	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
+	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemFilter::slotObserver);
 
 	pFilter->Update();
 
@@ -448,7 +448,7 @@ void iAFoamCharacterizationItemFilter::executeNonLocalMeans()
 
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->observe(pFilter);
-	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
+	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemFilter::slotObserver);
 
 	pFilter->Update();
 

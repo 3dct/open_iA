@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAMagicLens.h"
 
-#include "defines.h"
+#include "defines.h"    // for DefaultMagicLensSize
 #include "iAConsole.h"
 #include "iAMathUtility.h"
 
@@ -35,7 +35,6 @@
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
 #include <vtkPolyData.h>
-#include <vtkPolyDataMapper2D.h>
 #include <vtkPolyLine.h>
 #include <vtkProperty2D.h>
 #include <vtkRenderer.h>
@@ -44,7 +43,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
-#include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
 
 #include <QSharedPointer>

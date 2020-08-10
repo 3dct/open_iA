@@ -39,6 +39,6 @@ dlg_tf_2mod::dlg_tf_2mod(MdiChild *mdiChild, Qt::WindowFlags f)
 	dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
 	QHBoxLayout *layout = new QHBoxLayout(dockWidgetContents);
 
-	m_bimodalWidget = new iABimodalWidget(dockWidgetContents, mdiChild);
+	m_bimodalWidget = new iABimodalWidget(mdiChild);
 	layout->addWidget(m_bimodalWidget);
 }

@@ -100,6 +100,7 @@ public:
 	void start(std::string const & caption = "", bool printMemUsage = true);
 	iAPerformanceTimer::DurationType time(std::string const & caption = "") const;
 	iAPerformanceTimer::DurationType stop();
+	iAPerformanceTimer::DurationType elapsed() const;
 
 	//! helper method for printing the time (and optionally memory usage)
 	static void printTime(iAPerformanceTimer::DurationType, std::string const & caption = "", bool printMemUsage = false);
@@ -120,6 +121,7 @@ public:
 	iATimeGuard(std::string const & caption = "", bool printMemUsage = true);
 	//! output an intermediate time with an optional caption
 	void time(std::string const & caption = "");
+	iAPerformanceTimer::DurationType elapsed() const;
 	//! destructor, stops timer and outputs duration (and optionally memory
 	//! usage) to the debug console
 	~iATimeGuard();

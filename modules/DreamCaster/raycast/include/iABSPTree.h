@@ -331,20 +331,22 @@ public:
 	}
 	bool has_left() const {return masked_vars&0x40;}
 	bool has_right() const {return masked_vars&0x20;}
-	void set_has_left (bool has){
+	void set_has_left (bool has)
+	{
 		masked_vars&=0xbf;//off
 		if(has) masked_vars|=0x40;//on
 	}
-	void set_has_right(bool has){
+	void set_has_right(bool has)
+	{
 		masked_vars&=0xdf;//off
 		if(has) masked_vars|=0x20;//on
 	}
 
 	unsigned int internal1, internal2; //!< shared data, depends if node is leaf or not
 	unsigned int masked_vars;          //!< Is this node a leaf-node first bit -- is leaf, has left, has right, else -- axis index
-	inline unsigned int tri_start() {return internal1;}
-	inline unsigned int tri_count() {return internal2;}
-	inline unsigned int offset()    {return internal1;}
+	inline unsigned int tri_start() const {return internal1;}
+	inline unsigned int tri_count() const {return internal2;}
+	inline unsigned int offset()    const {return internal1;}
 	inline float & splitCoord()       {return *((float*)&internal2);}
 	inline void set_tri_start(unsigned int val) { internal1=val; }
 	inline void set_tri_count(unsigned int val) { internal2=val; }

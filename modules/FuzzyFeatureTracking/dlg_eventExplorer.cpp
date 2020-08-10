@@ -114,8 +114,8 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 	this->comboBoxY->addItem(" Event Type");
 	this->comboBoxY->setCurrentIndex(m_propertyYId);
 
-	connect(comboBoxX, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxXSelectionChanged(int)));
-	connect(comboBoxY, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxYSelectionChanged(int)));
+	connect(comboBoxX, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_eventExplorer::comboBoxXSelectionChanged);
+	connect(comboBoxY, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_eventExplorer::comboBoxYSelectionChanged);
 
 	creationCheckBox->setChecked(true);
 	continuationCheckBox->setChecked(true);
@@ -123,22 +123,22 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 	mergeCheckBox->setChecked(true);
 	dissipationCheckBox->setChecked(true);
 
-	connect(creationSlider, SIGNAL (sliderMoved(int)), this, SLOT(updateOpacityCreation(int)));
-	connect(continuationSlider, SIGNAL (sliderMoved(int)), this, SLOT(updateOpacityContinuation(int)));
-	connect(splitSlider, SIGNAL (sliderMoved(int)), this, SLOT(updateOpacitySplit(int)));
-	connect(mergeSlider, SIGNAL (sliderMoved(int)), this, SLOT(updateOpacityMerge(int)));
-	connect(dissipationSlider, SIGNAL (sliderMoved(int)), this, SLOT(updateOpacityDissipation(int)));
+	connect(creationSlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::updateOpacityCreation);
+	connect(continuationSlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::updateOpacityContinuation);
+	connect(splitSlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::updateOpacitySplit);
+	connect(mergeSlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::updateOpacityMerge);
+	connect(dissipationSlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::updateOpacityDissipation);
 
-	connect(gridOpacitySlider, SIGNAL(sliderMoved(int)), this, SLOT(updateOpacityGrid(int)));
+	connect(gridOpacitySlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::updateOpacityGrid);
 
-	connect(creationCheckBox, SIGNAL (stateChanged(int)), this, SLOT(updateCheckBoxCreation(int)));
-	connect(continuationCheckBox, SIGNAL (stateChanged(int)), this, SLOT(updateCheckBoxContinuation(int)));
-	connect(splitCheckBox, SIGNAL (stateChanged(int)), this, SLOT(updateCheckBoxSplit(int)));
-	connect(mergeCheckBox, SIGNAL (stateChanged(int)), this, SLOT(updateCheckBoxMerge(int)));
-	connect(dissipationCheckBox, SIGNAL (stateChanged(int)), this, SLOT(updateCheckBoxDissipation(int)));
+	connect(creationCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxCreation);
+	connect(continuationCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxContinuation);
+	connect(splitCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxSplit);
+	connect(mergeCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxMerge);
+	connect(dissipationCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxDissipation);
 
-	connect(logXCheckBox, SIGNAL(stateChanged(int)), this, SLOT(updateCheckBoxLogX(int)));
-	connect(logYCheckBox, SIGNAL(stateChanged(int)), this, SLOT(updateCheckBoxLogY(int)));
+	connect(logXCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxLogX);
+	connect(logYCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxLogY);
 
 	m_chartConnections = vtkEventQtSlotConnect::New();
 
@@ -153,7 +153,11 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		m_contextViews.push_back(vtkSmartPointer<vtkContextView>::New());
 		m_charts.push_back(vtkSmartPointer<vtkChartXY>::New());
 
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		m_contextViews.at(i)->SetRenderWindow(m_widgets.at(i)->GetRenderWindow());
+#else
+		m_contextViews.at(i)->SetRenderWindow(m_widgets.at(i)->renderWindow());
+#endif
 		m_contextViews.at(i)->GetScene()->AddItem(m_charts.at(i));
 
 		m_chartConnections->Connect(m_charts.at(i),
@@ -391,7 +395,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 
 		/*for (int i = 1; i <= numberOfRows; i++)
 		{
-			vector<iAFeatureTrackingCorrespondence> correspondences;
+			std::vector<iAFeatureTrackingCorrespondence> correspondences;
 			if (t > 0)
 				correspondences = ft->FromUtoV(i);
 			else
@@ -1413,17 +1417,13 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 						//	featureEvent = trackedFeaturesBackwards.at(layer - 1)->FromUtoV(c.id).at(0).featureEvent;
 						if (m_trackedFeaturesForwards.at(layer + 1)->FromUtoV(c.id).size() > 0)
 						{
-							// featureEvent = ??? otherwise result unused (warning!)
-							m_trackedFeaturesForwards.at(layer + 1)->FromUtoV(c.id).at(0).featureEvent;
-						}
-						else
-						{
-							featureEvent = 0;
+							featureEvent = m_trackedFeaturesForwards.at(layer + 1)->FromUtoV(c.id).at(0).featureEvent;
 						}
 
 						newVertexId = m_graph->AddVertex();
 						m_labels->InsertValue(newVertexId, std::to_string(c.id) +" (" + std::to_string((long long)(1 - c.likelyhood)) + ")");
 						m_nodeLayer->InsertValue(newVertexId, layer + 1);
+
 						m_colorR->InsertValue(newVertexId, m_rgb[featureEvent][0]);
 						m_colorG->InsertValue(newVertexId, m_rgb[featureEvent][1]);
 						m_colorB->InsertValue(newVertexId, m_rgb[featureEvent][2]);

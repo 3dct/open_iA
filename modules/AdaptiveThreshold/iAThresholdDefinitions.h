@@ -169,18 +169,18 @@ namespace threshold_defs
 
 		void normalizeXValues(double min, double max)
 		{
-			peakMinXThreshold = minMaxNormalize(min, max, peakMinXThreshold);
-			iso50ValueThr = minMaxNormalize(min, max, iso50ValueThr);
-			lokalPeakAirThrX = minMaxNormalize(min, max, lokalPeakAirThrX);
-			MaterialPeakThrX = minMaxNormalize(min, max, MaterialPeakThrX);
+			peakMinXThreshold = mapToNormNoClamp(min, max, peakMinXThreshold);
+			iso50ValueThr = mapToNormNoClamp(min, max, iso50ValueThr);
+			lokalPeakAirThrX = mapToNormNoClamp(min, max, lokalPeakAirThrX);
+			MaterialPeakThrX = mapToNormNoClamp(min, max, MaterialPeakThrX);
 		}
 
 		void mapNormalizedBackToMinMax(double min, double max)
 		{
-			peakMinXThreshold = normalizedToMinMax(min, max, peakMinXThreshold);
-			iso50ValueThr = normalizedToMinMax(min, max, iso50ValueThr);
-			lokalPeakAirThrX = normalizedToMinMax(min, max, lokalPeakAirThrX);
-			MaterialPeakThrX = normalizedToMinMax(min, max, MaterialPeakThrX);
+			peakMinXThreshold = mapNormTo(min, max, peakMinXThreshold);
+			iso50ValueThr = mapNormTo(min, max, iso50ValueThr);
+			lokalPeakAirThrX = mapNormTo(min, max, lokalPeakAirThrX);
+			MaterialPeakThrX = mapNormTo(min, max, MaterialPeakThrX);
 		}
 
 		//apply custom min max

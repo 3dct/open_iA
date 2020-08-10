@@ -26,9 +26,11 @@
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-overflow"
 #include <itkMorphologicalWatershedImageFilter.h>
 #include <itkWatershedImageFilter.h>
-
+#pragma GCC diagnostic pop
 
 // Watershed segmentation
 

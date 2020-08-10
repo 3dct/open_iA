@@ -61,6 +61,7 @@ namespace
 	const QString CfgKeyShowColorLegend("SPM/ShowColorLegend");
 	const QString CfgKeyQuadraticPlots("SPM/QuadraticPlots");
 	const QString CfgKeyShowPCC("SPM/ShowPCC");
+	const QString CfgKeyShowSCC("SPM/ShowSCC");
 	const QString CfgKeyColorMode("SPM/ColorScheme"); // mismatch between setting name is a legacy issue; don't change otherwise old settings aren't readable anymore...
 	const QString CfgKeyColorThemeName("SPM/ColorThemeName");
 	const QString CfgKeyColorThemeQualName("SPM/ColorThemeQualName");
@@ -99,6 +100,7 @@ iAQSplom::Settings::Settings() :
 	selectionEnabled(true),
 	quadraticPlots(false),
 	showPCC(false),
+	showSCC(false),
 	showColorLegend(true),
 	colorMode(cmAllPointsSame),
 	colorParameterMode(pmContinuous),
@@ -263,6 +265,9 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	showPCCAction = new QAction(tr("Show Pearsons's Correlation Coefficient"), this);
 	showPCCAction->setCheckable(true);
 	showPCCAction->setChecked(settings.quadraticPlots);
+	showSCCAction = new QAction(tr("Show Spearman's Correlation Coefficient"), this);
+	showSCCAction->setCheckable(true);
+	showSCCAction->setChecked(settings.quadraticPlots);
 	selectionModePolygonAction = new QAction(tr("Polygon Selection Mode"), this);
 	QActionGroup * selectionModeGroup = new QActionGroup(m_contextMenu);
 	selectionModeGroup->setExclusive(true);
@@ -275,6 +280,7 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	QAction* showSettingsAction = new QAction(tr("Settings..."), this);
 	addContextMenuAction(quadraticPlotsAction);
 	addContextMenuAction(showPCCAction);
+	addContextMenuAction(showSCCAction);
 	addContextMenuAction(selectionModeRectangleAction);
 	addContextMenuAction(selectionModePolygonAction);
 	addContextMenuAction(showHistogramAction);
@@ -286,35 +292,37 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	connect(flipAxesAction, &QAction::toggled, this, &iAQSplom::setFlipAxes);
 	connect(quadraticPlotsAction, &QAction::toggled, this, &iAQSplom::setQuadraticPlots);
 	connect(showPCCAction, &QAction::toggled, this, &iAQSplom::setShowPCC);
-	connect(selectionModePolygonAction, SIGNAL(toggled(bool)), this, SLOT(selectionModePolygon()));
-	connect(selectionModeRectangleAction, SIGNAL(toggled(bool)), this, SLOT(selectionModeRectangle()));
-	connect(showSettingsAction, SIGNAL(triggered()), this, SLOT(showSettings()));
-	connect(m_settingsDlg->parametersList, SIGNAL(itemChanged(QListWidgetItem *)), this, SLOT(changeParamVisibility(QListWidgetItem *)));
-	connect(m_settingsDlg->cbColorParameter, SIGNAL(currentIndexChanged(int)), this, SLOT(setParameterToColorCode(int)));
-	connect(m_settingsDlg->cbColorMode, SIGNAL(currentIndexChanged(int)), this, SLOT(colorModeChanged(int)) );
-	connect(m_settingsDlg->sbMin, SIGNAL(valueChanged(double)), this, SLOT(updateLookupTable()));
-	connect(m_settingsDlg->sbMax, SIGNAL(valueChanged(double)), this, SLOT(updateLookupTable()));
-	connect(m_settingsDlg->slPointOpacity, SIGNAL(valueChanged(int)), this, SLOT(pointOpacityChanged(int)));
-	connect(m_settingsDlg->slPointSize, SIGNAL(valueChanged(int)), this, SLOT(pointRadiusChanged(int)));
+	connect(showSCCAction, &QAction::toggled, this, &iAQSplom::setShowSCC);
+	connect(selectionModePolygonAction, &QAction::toggled, this, &iAQSplom::selectionModePolygon);
+	connect(selectionModeRectangleAction, &QAction::toggled, this, &iAQSplom::selectionModeRectangle);
+	connect(showSettingsAction, &QAction::triggered, this, &iAQSplom::showSettings);
+	connect(m_settingsDlg->parametersList, &QListWidget::itemChanged, this, &iAQSplom::changeParamVisibility);
+	connect(m_settingsDlg->cbColorParameter, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setParameterToColorCode);
+	connect(m_settingsDlg->cbColorMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::colorModeChanged);
+	connect(m_settingsDlg->sbMin, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &iAQSplom::updateLookupTable);
+	connect(m_settingsDlg->sbMax, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &iAQSplom::updateLookupTable);
+	connect(m_settingsDlg->slPointOpacity, &QSlider::valueChanged, this, &iAQSplom::pointOpacityChanged);
+	connect(m_settingsDlg->slPointSize, &QSlider::valueChanged, this, &iAQSplom::pointRadiusChanged);
 	connect(m_settingsDlg->pbPointColor, &QPushButton::clicked, this, &iAQSplom::changePointColor);
 	connect(m_settingsDlg->pbRangeFromParameter, &QPushButton::clicked, this, &iAQSplom::rangeFromParameter);
 	connect(m_settingsDlg->pbSaveSettings, &QPushButton::clicked, this, &iAQSplom::saveSettingsSlot);
 	connect(m_settingsDlg->pbLoadSettings, &QPushButton::clicked, this, &iAQSplom::loadSettingsSlot);
-	connect(m_settingsDlg->cbSelectionMode, SIGNAL(currentIndexChanged(int)), this, SLOT(setSelectionMode(int)));
+	connect(m_settingsDlg->cbSelectionMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setSelectionMode);
 	connect(m_settingsDlg->cbQuadraticPlots, &QCheckBox::toggled, this, &iAQSplom::setQuadraticPlots);
-	connect(m_settingsDlg->cbShowCorrelationCoefficient, &QCheckBox::toggled, this, &iAQSplom::setShowPCC);
+	connect(m_settingsDlg->cbShowPCC, &QCheckBox::toggled, this, &iAQSplom::setShowPCC);
+	connect(m_settingsDlg->cbShowSCC, &QCheckBox::toggled, this, &iAQSplom::setShowSCC);
 	connect(m_settingsDlg->cbShowHistograms, &QCheckBox::toggled, this, &iAQSplom::setHistogramVisible);
-	connect(m_settingsDlg->sbHistogramBins, SIGNAL(valueChanged(int)), this, SLOT(setHistogramBins(int)));
+	connect(m_settingsDlg->sbHistogramBins, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAQSplom::setHistogramBins);
 	connect(m_settingsDlg->cbFlipAxes, &QCheckBox::toggled, this, &iAQSplom::setFlipAxes);
 	connect(m_settingsDlg->cbShowColorLegend, &QCheckBox::toggled, this, &iAQSplom::setShowColorLegend);
 	connect(m_settingsDlg->rbContinuous, &QRadioButton::toggled, this, &iAQSplom::setContinousParamMode);
 	connect(m_settingsDlg->rbQualitative, &QRadioButton::toggled, this, &iAQSplom::setQualitativeParamMode);
-	connect(m_settingsDlg->cbColorRangeMode, SIGNAL(currentIndexChanged(int)), this, SLOT(colorRangeModeChanged()));
+	connect(m_settingsDlg->cbColorRangeMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::colorRangeModeChanged);
 	m_settingsDlg->cbColorTheme->addItems(iALUT::GetColorMapNames());
 	m_settingsDlg->cbColorThemeQual->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsDlg->cbColorThemeQual->setCurrentIndex(1); // to avoid "Black" default theme
-	connect(m_settingsDlg->cbColorTheme, SIGNAL(currentIndexChanged(QString const&)), this, SLOT(setColorTheme(QString const&)));
-	connect(m_settingsDlg->cbColorThemeQual, SIGNAL(currentIndexChanged(QString const&)), this, SLOT(setColorThemeQual(QString const&)));
+	connect(m_settingsDlg->cbColorTheme, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeFromComboBox);
+	connect(m_settingsDlg->cbColorThemeQual, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeQual);
 	m_columnPickMenu = m_contextMenu->addMenu("Columns");
 }
 
@@ -447,6 +455,7 @@ void iAQSplom::createScatterPlot(size_t y, size_t x, bool initial)
 	s->setSelectionColor(settings.selectionColor);
 	s->setPointRadius(settings.pointRadius);
 	s->settings.showPCC = settings.showPCC;
+	s->settings.showSCC = settings.showSCC;
 	if (!initial)
 	{
 		s->setLookupTable(m_lut, m_colorLookupParam);
@@ -485,13 +494,6 @@ void iAQSplom::dataChanged(std::vector<char> visibleParams)
 	m_paramVisibility = visibleParams;
 	m_columnPickMenu->clear();
 	size_t numParams = m_splomData->numParams();
-
-	// cleanup old histograms (if any)
-	for (auto histo : m_histograms)
-	{
-		delete histo;
-	}
-	m_histograms.clear();
 
 	QSignalBlocker blockListSignals(m_settingsDlg->parametersList);
 	QSignalBlocker colorSignals(m_settingsDlg->cbColorParameter);
@@ -738,6 +740,10 @@ void iAQSplom::clear()
 		row.clear();
 	}
 	m_matrix.clear();
+	for (auto histo : m_histograms)
+	{
+		delete histo;
+	}
 	m_histograms.clear();
 	m_paramVisibility.clear();
 }
@@ -920,8 +926,8 @@ void iAQSplom::setQuadraticPlots(bool quadratic)
 void iAQSplom::setShowPCC(bool showPCC)
 {
 	settings.showPCC = showPCC;
-	QSignalBlocker sb(m_settingsDlg->cbShowCorrelationCoefficient);
-	m_settingsDlg->cbShowCorrelationCoefficient->setChecked(showPCC);
+	QSignalBlocker sb(m_settingsDlg->cbShowPCC);
+	m_settingsDlg->cbShowPCC->setChecked(showPCC);
 	for (auto row : m_matrix)
 	{
 		for (auto s : row)
@@ -939,6 +945,28 @@ void iAQSplom::setShowPCC(bool showPCC)
 	update();
 }
 
+void iAQSplom::setShowSCC(bool showSCC)
+{
+	settings.showSCC = showSCC;
+	QSignalBlocker sb(m_settingsDlg->cbShowSCC);
+	m_settingsDlg->cbShowSCC->setChecked(showSCC);
+	for (auto row : m_matrix)
+	{
+		for (auto s : row)
+		{
+			if (s)
+			{
+				s->settings.showSCC = showSCC;
+			}
+		}
+	}
+	if (m_maximizedPlot)
+	{
+		m_maximizedPlot->settings.showSCC = showSCC;
+	}
+	update();
+}
+
 void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 {
 	showHistogramAction->setChecked(settings.histogramVisible);
@@ -952,6 +980,7 @@ void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 		selectionModePolygonAction->setChecked(settings.selectionMode == iAScatterPlot::Polygon);
 	}
 	showPCCAction->setChecked(settings.showPCC);
+	showSCCAction->setChecked(settings.showSCC);
 	for (auto col : m_columnPickMenu->actions())
 	{
 		size_t paramIdx = m_splomData->paramIndex(col->text());
@@ -1018,6 +1047,7 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 	m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(settings.selectionMode);
 	m_maximizedPlot->settings.selectionEnabled = settings.selectionEnabled;
 	m_maximizedPlot->settings.showPCC = settings.showPCC;
+	m_maximizedPlot->settings.showSCC = settings.showSCC;
 	updateMaxPlotRect();
 	if (selectedPlot->getRect().height() > 0)
 	{
@@ -1178,7 +1208,10 @@ void iAQSplom::paintEvent(QPaintEvent * /*event*/)
 	switch (settings.colorMode)
 	{
 	case cmAllPointsSame: scalarBarCaption = "Uniform"; break;
-	case cmCustom:        // intentional fall-through:
+	case cmCustom:
+#if __cplusplus >= 201703L
+		[[fallthrough]];
+#endif
 	case cmByParameter  : scalarBarCaption = m_splomData->parameterName(m_colorLookupParam); break;
 	default:              scalarBarCaption = "Unknown"; break;
 	}
@@ -1471,9 +1504,13 @@ void iAQSplom::resetTransform()
 	update();
 }
 
-void iAQSplom::wheelEvent( QWheelEvent * event )
+void iAQSplom::wheelEvent( QWheelEvent * event)
 {
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
 	iAScatterPlot * s = getScatterplotAt( event->pos() );
+#else
+	iAScatterPlot* s = getScatterplotAt(event->position().toPoint());
+#endif
 	if( s )
 	{
 		s->SPLOMWheelEvent( event );
@@ -1723,7 +1760,9 @@ void iAQSplom::updateLookupTable()
 			{
 				DEBUG_LOG("Invalid color state!");
 			}
-			// intentional fall-through!
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case cmCustom:
 			m_lut->setOpacity(alpha);
 	}
@@ -1876,7 +1915,7 @@ void iAQSplom::loadSettingsSlot()
 	double pointRadius;
 	bool histogramVisible; int histogramBins;
 	int selectionMode;
-	bool flipAxes, quadraticPlots, showPCC;
+	bool flipAxes, quadraticPlots, showPCC, showSCC;
 	ColorMode colorMode;  same color for all points, color-code by parameter value, custom (lut set by application)
 	QString colorThemeName;
 	QString colorThemeNameQual;
@@ -1902,6 +1941,7 @@ void iAQSplom::saveSettings(QSettings & iniFile) const
 	iniFile.setValue(CfgKeyShowColorLegend, settings.showColorLegend);
 	iniFile.setValue(CfgKeyQuadraticPlots, settings.quadraticPlots);
 	iniFile.setValue(CfgKeyShowPCC, settings.showPCC);
+	iniFile.setValue(CfgKeyShowSCC, settings.showSCC);
 	iniFile.setValue(CfgKeyColorMode, settings.colorMode);
 	iniFile.setValue(CfgKeyColorThemeName, settings.colorThemeName);
 	iniFile.setValue(CfgKeyColorThemeQualName, settings.colorThemeQualName);
@@ -1968,6 +2008,11 @@ void iAQSplom::loadSettings(iASettings const & config)
 	{
 		setShowPCC(newShowPCC);
 	}
+	bool newShowSCC = config.value(CfgKeyShowSCC, settings.showSCC).toBool();
+	if (settings.showSCC != newShowSCC)
+	{
+		setShowSCC(newShowSCC);
+	}
 
 	// load visible parameters:
 	if (config.contains(CfgKeyVisibleParameters))
@@ -1985,8 +2030,8 @@ void iAQSplom::loadSettings(iASettings const & config)
 			}
 			if (idx >= newParamVis.size())
 			{
-				DEBUG_LOG(QString("Index %1 in VisibleParameter settings is larger than currently available number of parameter; "
-					"probably these settings were stored for a different Scatter Plot Matrix!").arg(idx));
+				DEBUG_LOG(QString("Index %1 in VisibleParameter settings is larger than currently available number of parameters (%2); "
+					"probably these settings were stored for a different Scatter Plot Matrix!").arg(idx).arg(newParamVis.size()));
 			}
 			else
 			{
@@ -2026,9 +2071,19 @@ void iAQSplom::loadSettings(iASettings const & config)
 	settings.colorRangeMode = static_cast<ColorRangeMode>(config.value(CfgKeyColorRangeMode, settings.colorRangeMode).toInt());
 	m_settingsDlg->cbColorRangeMode->setCurrentIndex(settings.colorRangeMode);
 
-	m_colorLookupParam = config.value(CfgKeyColorLookupParam, static_cast<qulonglong>(m_colorLookupParam)).toULongLong();
-	QSignalBlocker blockColorParameter(m_settingsDlg->cbColorParameter);
-	m_settingsDlg->cbColorParameter->setCurrentIndex(static_cast<int>(m_colorLookupParam));
+	auto tmpColorLookupParam = config.value(CfgKeyColorLookupParam, static_cast<qulonglong>(m_colorLookupParam)).toULongLong();
+	if (tmpColorLookupParam < m_splomData->numParams())
+	{
+		m_colorLookupParam = tmpColorLookupParam;
+		QSignalBlocker blockColorParameter(m_settingsDlg->cbColorParameter);
+		m_settingsDlg->cbColorParameter->setCurrentIndex(static_cast<int>(m_colorLookupParam));
+	}
+	else
+	{
+		DEBUG_LOG(QString("Stored index of parameter to color by (%1) exceeds valid range (0..%2)")
+			.arg(tmpColorLookupParam)
+			.arg(m_splomData->numParams()));
+	}
 
 	if (settings.colorRangeMode == rmManual)
 	{
@@ -2181,6 +2236,11 @@ void iAQSplom::updateColorControls()
 	updateLookupTable();
 }
 
+void iAQSplom::setColorThemeFromComboBox(int index)
+{
+	setColorTheme(m_settingsDlg->cbColorTheme->itemText(index));
+}
+
 void iAQSplom::setColorTheme(QString const & themeName)
 {
 	settings.colorThemeName = themeName;
@@ -2195,8 +2255,9 @@ void iAQSplom::setColorTheme(QString const & themeName)
 	}
 }
 
-void iAQSplom::setColorThemeQual(QString const& themeName)
+void iAQSplom::setColorThemeQual(int index)
 {
+	QString const themeName = m_settingsDlg->cbColorThemeQual->itemText(index);
 	settings.colorThemeQualName = themeName;
 	if (m_settingsDlg->cbColorThemeQual->currentText() != themeName)
 	{

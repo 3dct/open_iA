@@ -26,36 +26,36 @@
 
 #include <QLinearGradient>
 
-class QColorDialog;
 class QDomNode;
 
 class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 
+//! Class representing a transfer function in a histogram chart.
+//! Draws itself, and allows adding, removing and modifying point (color and opacity).
 class open_iA_Core_API iAChartTransferFunction : public iAChartFunction, public iATransferFunction
 {
 Q_OBJECT
 
 public:
 	iAChartTransferFunction(iAChartWithFunctionsWidget *histogram, QColor color);
-	~iAChartTransferFunction();
 
-	int getType() override { return TRANSFER; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
 	void drawOnTop(QPainter &painter) override;
 	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
-	int getSelectedPoint() override { return m_selectedPoint; }
+	int getSelectedPoint() const override { return m_selectedPoint; }
 	int addPoint(int x, int y) override;
 	void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) override;
 	void removePoint(int index) override;
 	void moveSelectedPoint(int x, int y) override;
 	void changeColor(QMouseEvent *event) override;
 	void mouseReleaseEventAfterNewPoint(QMouseEvent *event) override;
-	bool isColored() override { return true; }
-	bool isEndPoint(int index) override;
-	bool isDeletable(int index) override;
+	bool isColored() const override { return true; }
+	bool isEndPoint(int index) const override;
+	bool isDeletable(int index) const override;
 	void reset() override;
+	virtual QString name() const override;
 	size_t numPoints() const override;
 
 	vtkPiecewiseFunction* opacityTF() override { return m_opacityTF; }
@@ -67,36 +67,24 @@ public:
 	void setColorFunction(vtkColorTransferFunction *colorTF) { m_colorTF = colorTF; }
 	void triggerOnChange();
 signals:
-	void Changed();
+	void changed();
 private:
-	void setColorPoint(int selectedPoint, double x, double red, double green, double blue);
-	void setColorPoint(int selectedPoint, int x, double red, double green, double blue);
-	void setColorPoint(int selectedPoint, int x);
-	void setPoint(int selectedPoint, int x, int y);
-	void setPointX(int selectedPoint, int x);
-	void setPointY(int selectedPoint, int y);
+	void setPointColor(int selectedPoint, double chartX, double red, double green, double blue);
+	void setPointOpacity(int selectedPoint, int pixelX, int pixelY);
+	void setPointOpacity(int selectedPoint, int pixelY);
+	
+	//! convert from pixel coordinate on chart [0..maxDiagPixelHeight] to opacity [0..1]
+	double pixelY2Opacity(int pixelY);
 
-	// convert view to data
-	double v2dX(int x);
-	double v2dY(int y);
-
-	// conver data to view
-	int d2vX(double x, double oldDataRange0 = -1, double oldDataRange1 = -1);
-	int d2vY(double y);
-
-	//convert data to image
-	int d2iX(double x);
-	int d2iY(double y);
+	//! convert from opacity [0..1] to pixel coordinate on chart [0..maxDiagPixelHeight]
+	int opacity2PixelY(double opacity);
 
 	bool m_rangeSliderHandles;
 	int m_selectedPoint;
-
-	QColor          m_color;
-	QColorDialog    *m_colorDlg;
+	QColor m_color;
 	QLinearGradient m_gradient;
-
-	vtkPiecewiseFunction     *m_opacityTF;
-	vtkColorTransferFunction *m_colorTF;
+	vtkPiecewiseFunction* m_opacityTF;
+	vtkColorTransferFunction* m_colorTF;
 
 	static const int PIE_RADIUS = 16;
 	static const int PIE_SIZE = 2 * PIE_RADIUS;

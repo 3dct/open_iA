@@ -28,8 +28,8 @@ dlg_samplings::dlg_samplings():
 	m_itemModel(new QStandardItemModel()),
 	m_samplings(new QVector<SamplingResultPtr>())
 {
-	connect(pbAdd, SIGNAL(clicked()), this, SIGNAL(AddSampling()));
-	connect(pbRemove, SIGNAL(clicked()), this, SLOT(Remove()));
+	connect(pbAdd, &QPushButton::clicked, this, &dlg_samplings::AddSampling);
+	connect(pbRemove, &QPushButton::clicked, this, &dlg_samplings::Remove);
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Samplings"));
 	lvSamplings->setModel(m_itemModel);
 }

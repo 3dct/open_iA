@@ -55,6 +55,7 @@
 #include "iAToolsVTK.h"
 #include "iATransferFunction.h"
 #include "iAVolumeStack.h"
+#include "iAVtkVersion.h"
 #include "io/extension2id.h"
 #include "io/iAFileUtils.h"    // for fileNameOnly
 #include "io/iAIO.h"
@@ -100,7 +101,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_isSmthMaximized(false),
 	m_isUntitled(true),
 	m_isSliceProfileEnabled(false),
-	m_isArbProfileEnabled(false),
+	m_profileHandlesEnabled(false),
 	m_isMagicLensEnabled(false),
 	m_reInitializeRenderWindows(true),
 	m_raycasterInitialized(false),
@@ -127,13 +128,15 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_initVolumeRenderers(false),
 	m_interactionMode(imCamera)
 {
+	m_histogram->setYMappingMode(prefs.HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
+	std::fill(m_slicerVisibility, m_slicerVisibility + 3, false);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
 #endif
 	setWindowModified(unsavedChanges);
 	setupUi(this);
 	//prepare window for handling dock widgets
-	this->setCentralWidget(nullptr);
+	setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
 
 	//insert default dock widgets and arrange them in a simple layout
@@ -147,7 +150,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_pbar = new QProgressBar(this);
 	m_pbar->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 	m_pbar->setMaximumSize(350, 17);
-	this->statusBar()->addPermanentWidget(m_pbar);
+	statusBar()->addPermanentWidget(m_pbar);
 	m_pbarMaxVal = m_pbar->maximum();
 	m_dwLog = new dlg_logs(this);
 	addDockWidget(Qt::LeftDockWidgetArea, m_dwRenderer);
@@ -224,37 +227,46 @@ MdiChild::~MdiChild()
 	delete m_dwProfile;
 }
 
+void MdiChild::slicerVisibilityChanged(int mode)
+{
+	if (m_dwSlicer[mode]->isVisible() == m_slicerVisibility[mode])
+	{
+		return; // no change
+	}
+	m_slicerVisibility[mode] = m_dwSlicer[mode]->isVisible();
+	if (m_renderSettings.ShowSlicePlanes)
+	{
+		m_renderer->showSlicePlane(mode, m_slicerVisibility[mode]);
+	}
+	m_renderer->update();
+}
+
 void MdiChild::connectSignalsToSlots()
 {
-	connect(m_dwSlicer[iASlicerMode::XY]->pbMax, SIGNAL(clicked()), this, SLOT(maximizeXY()));
-	connect(m_dwSlicer[iASlicerMode::XZ]->pbMax, SIGNAL(clicked()), this, SLOT(maximizeXZ()));
-	connect(m_dwSlicer[iASlicerMode::YZ]->pbMax, SIGNAL(clicked()), this, SLOT(maximizeYZ()));
+	for (int mode = 0; mode < iASlicerMode::SlicerCount; ++mode)
+	{
+		connect(m_dwSlicer[mode]->pbMax, &QPushButton::clicked, [this, mode] { maximizeSlicer(mode); });
+		connect(m_dwSlicer[mode], &QDockWidget::visibilityChanged, [this, mode]{ slicerVisibilityChanged(mode); });
+	}
 
-	connect(m_dwRenderer->pushMaxRC, SIGNAL(clicked()), this, SLOT(maximizeRC()));
-	connect(m_dwRenderer->pushStopRC, SIGNAL(clicked()), this, SLOT(triggerInteractionRaycaster()));
+	connect(m_dwRenderer->pushMaxRC, &QPushButton::clicked, this, &MdiChild::maximizeRC);
+	connect(m_dwRenderer->pushStopRC, &QPushButton::clicked, this, &MdiChild::triggerInteractionRaycaster);
 
-	connect(m_dwRenderer->pushPX, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
-	m_dwRenderer->pushPX->setProperty("camPosition", iACameraPosition::PX);
-	connect(m_dwRenderer->pushPY, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
-	m_dwRenderer->pushPY->setProperty("camPosition", iACameraPosition::PY);
-	connect(m_dwRenderer->pushPZ, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
-	m_dwRenderer->pushPZ->setProperty("camPosition", iACameraPosition::PZ);
-	connect(m_dwRenderer->pushMX, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
-	m_dwRenderer->pushMX->setProperty("camPosition", iACameraPosition::MX);
-	connect(m_dwRenderer->pushMY, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
-	m_dwRenderer->pushMY->setProperty("camPosition", iACameraPosition::MY);
-	connect(m_dwRenderer->pushMZ, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
-	m_dwRenderer->pushMZ->setProperty("camPosition", iACameraPosition::MZ);
-	connect(m_dwRenderer->pushIso, SIGNAL(clicked()), this, SLOT(rendererCamPos()));
-	m_dwRenderer->pushIso->setProperty("camPosition", iACameraPosition::Iso);
-	connect(m_dwRenderer->pushSaveRC, SIGNAL(clicked()), this, SLOT(saveRC()));
-	connect(m_dwRenderer->pushMovRC, SIGNAL(clicked()), this, SLOT(saveMovRC()));
+	connect(m_dwRenderer->pushPX,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PX); });
+	connect(m_dwRenderer->pushPY,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PY); });
+	connect(m_dwRenderer->pushPZ,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PZ); });
+	connect(m_dwRenderer->pushMX,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::MX); });
+	connect(m_dwRenderer->pushMY,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::MY); });
+	connect(m_dwRenderer->pushMZ,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::MZ); });
+	connect(m_dwRenderer->pushIso, &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::Iso); });
+	connect(m_dwRenderer->pushSaveRC, &QPushButton::clicked, this, &MdiChild::saveRC);
+	connect(m_dwRenderer->pushMovRC, &QPushButton::clicked, this, &MdiChild::saveMovRC);
 
-	connect(m_dwLog->pushClearLogs, SIGNAL(clicked()), this, SLOT(clearLogs()));
+	connect(m_dwLog->pushClearLogs, &QPushButton::clicked, this, &MdiChild::clearLogs);
 
-	connect(m_dwRenderer->vtkWidgetRC, SIGNAL(rightButtonReleasedSignal()), m_renderer, SLOT(mouseRightButtonReleasedSlot()));
-	connect(m_dwRenderer->vtkWidgetRC, SIGNAL(leftButtonReleasedSignal()), m_renderer, SLOT(mouseLeftButtonReleasedSlot()));
-	connect(m_dwRenderer->spinBoxRC, SIGNAL(valueChanged(int)), this, SLOT(setChannel(int)));
+	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARenderer::mouseRightButtonReleasedSlot);
+	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARenderer::mouseLeftButtonReleasedSlot);
+	connect(m_dwRenderer->spinBoxRC, QOverload<int>::of(&QSpinBox::valueChanged), this, &MdiChild::setChannel);
 
 	for (int s = 0; s < 3; ++s)
 	{
@@ -274,7 +286,7 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, &iAChartWithFunctionsWidget::noPointSelected, this, &MdiChild::noPointSelected);
 	connect(m_histogram, &iAChartWithFunctionsWidget::endPointSelected, this, &MdiChild::endPointSelected);
 	connect(m_histogram, &iAChartWithFunctionsWidget::active, this, &MdiChild::active);
-	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), &iAChartTransferFunction::Changed, this, &MdiChild::modalityTFChanged);
+	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), &iAChartTransferFunction::changed, this, &MdiChild::modalityTFChanged);
 
 	connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateImageProperties);
 	connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateViews);
@@ -284,29 +296,29 @@ void MdiChild::connectSignalsToSlots()
 
 void MdiChild::connectThreadSignalsToChildSlots(iAAlgorithm* thread)
 {
-	connect(thread, SIGNAL(startUpdate(int)), this, SLOT(updateRenderWindows(int)));
-	connect(thread, SIGNAL(finished()), this, SLOT(enableRenderWindows()));
+	connect(thread, &iAAlgorithm::startUpdate, this, &MdiChild::updateRenderWindows);
+	connect(thread, &iAAlgorithm::finished, this, &MdiChild::enableRenderWindows);
 	connectAlgorithmSignalsToChildSlots(thread);
 }
 
 void MdiChild::connectIOThreadSignals(iAIO* thread)
 {
 	connectAlgorithmSignalsToChildSlots(thread);
-	connect(thread, SIGNAL(finished()), this, SLOT(ioFinished()));
+	connect(thread, &iAIO::finished, this, &MdiChild::ioFinished);
 }
 
 void MdiChild::connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread)
 {
-	connect(thread, SIGNAL(aprogress(int)), this, SLOT(updateProgressBar(int)));
-	connect(thread, SIGNAL(started()), this, SLOT(initProgressBar()));
-	connect(thread, SIGNAL(finished()), this, SLOT(hideProgressBar()));
+	connect(thread, &iAAlgorithm::aprogress, this, &MdiChild::updateProgressBar);
+	connect(thread, &iAAlgorithm::started, this, &MdiChild::initProgressBar);
+	connect(thread, &iAAlgorithm::finished, this, &MdiChild::hideProgressBar);
 	addAlgorithm(thread);
 }
 
 void MdiChild::addAlgorithm(iAAlgorithm* thread)
 {
 	m_workingAlgorithms.push_back(thread);
-	connect(thread, SIGNAL(finished()), this, SLOT(removeFinishedAlgorithms()));
+	connect(thread, &iAAlgorithm::finished, this, &MdiChild::removeFinishedAlgorithms);
 }
 
 void MdiChild::updateRenderWindows(int channels)
@@ -409,11 +421,11 @@ void MdiChild::updateProgressBar(int i)
 
 void MdiChild::updatePositionMarker(int x, int y, int z, int mode)
 {
-	if (!m_slicerSettings.LinkViews)
-	{
-		return;
-	}
 	m_position[0] = x; m_position[1] = y; m_position[2] = z;
+	if (m_renderSettings.ShowRPosition)
+	{
+		m_renderer->setCubeCenter(x, y, z);
+	}
 	double spacing[3];
 	// TODO: Use a separate "display" spacing here instead of the one from the first modality?
 	modality(0)->image()->GetSpacing(spacing);
@@ -423,20 +435,21 @@ void MdiChild::updatePositionMarker(int x, int y, int z, int mode)
 		{
 			continue;
 		}
+		if (m_slicerSettings.LinkViews)
+		{
+			m_slicer[i]->setIndex(x, y, z);
+			m_dwSlicer[i]->sbSlice->setValue(m_position[mapSliceToGlobalAxis(i, iAAxisIndex::Z)]);
+		}
 		if (m_slicerSettings.SingleSlicer.ShowPosition)
 		{
 			int slicerXAxisIdx = mapSliceToGlobalAxis(i, iAAxisIndex::X);
 			int slicerYAxisIdx = mapSliceToGlobalAxis(i, iAAxisIndex::Y);
+			int slicerZAxisIdx = mapSliceToGlobalAxis(i, iAAxisIndex::Z);
 			m_slicer[i]->setPositionMarkerCenter(
 				m_position[slicerXAxisIdx] * spacing[slicerXAxisIdx],
-				m_position[slicerYAxisIdx] * spacing[slicerYAxisIdx]);
+				m_position[slicerYAxisIdx] * spacing[slicerYAxisIdx],
+				m_position[slicerZAxisIdx] * spacing[slicerZAxisIdx]);
 		}
-		m_slicer[i]->setIndex(x, y, z);
-		m_dwSlicer[i]->sbSlice->setValue(m_position[mapSliceToGlobalAxis(i, iAAxisIndex::Z)]);
-	}
-	if (m_renderSettings.ShowRPosition)
-	{
-		m_renderer->setCubeCenter(x, y, z);
 	}
 }
 
@@ -472,7 +485,7 @@ bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyD
 
 	initView(title);
 	setWindowTitle(title);
-	m_renderer->applySettings(m_renderSettings);
+	m_renderer->applySettings(m_renderSettings, m_slicerVisibility);
 	setupSlicers(m_slicerSettings, true);
 
 	if (m_imageData->GetExtent()[1] <= 1)
@@ -526,9 +539,9 @@ bool MdiChild::loadRaw(const QString& f)
 	setCurrentFile(f);
 	waitForPreviousIO();
 	m_ioThread = new iAIO(m_imageData, nullptr, m_logger, this);
-	connect(m_ioThread, SIGNAL(done(bool)), this, SLOT(setupView(bool)));
+	connect(m_ioThread, &iAIO::done, this, &MdiChild::setupView);
 	connectIOThreadSignals(m_ioThread);
-	connect(m_ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
+	connect(m_ioThread, &iAIO::done, this, &MdiChild::enableRenderWindows);
 	m_polyData->ReleaseData();
 	//m_imageData->ReleaseData();
 	if (!m_ioThread->setupIO(RAW_READER, f))
@@ -570,23 +583,23 @@ bool MdiChild::loadFile(const QString& f, bool isStack)
 	if (f.endsWith(iAIOProvider::ProjectFileExtension) ||
 		f.endsWith(iAIOProvider::NewProjectFileExtension))
 	{
-		connect(m_ioThread, SIGNAL(done(bool)), this, SLOT(setupProject(bool)));
+		connect(m_ioThread, &iAIO::done, this, &MdiChild::setupProject);
 	}
 	else
 	{
 		if (!isStack || Is2DImageFile(f))
 		{
-			connect(m_ioThread, SIGNAL(done(bool)), this, SLOT(setupView(bool)));
+			connect(m_ioThread, &iAIO::done, this, &MdiChild::setupView);
 		}
 		else
 		{
-			connect(m_ioThread, SIGNAL(done(bool)), this, SLOT(setupStackView(bool)));
+			connect(m_ioThread, &iAIO::done, this, &MdiChild::setupStackView);
 		}
-		connect(m_ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
+		connect(m_ioThread, &iAIO::done, this, &MdiChild::enableRenderWindows);
 	}
 	connectIOThreadSignals(m_ioThread);
-	connect(m_dwModalities, SIGNAL(modalityAvailable(int)), this, SLOT(modalityAdded(int)));
-	connect(m_ioThread, SIGNAL(done()), this, SIGNAL(fileLoaded()));
+	connect(m_dwModalities, &dlg_modalities::modalityAvailable, this, &MdiChild::modalityAdded);
+	connect(m_ioThread, &iAIO::done, this, &MdiChild::fileLoaded);
 
 	m_polyData->ReleaseData();
 
@@ -734,7 +747,7 @@ void MdiChild::setupViewInternal(bool active)
 	}
 
 	m_volumeSettings.SampleDistance = m_imageData->GetSpacing()[0];
-	m_renderer->applySettings(m_renderSettings);
+	m_renderer->applySettings(m_renderSettings, m_slicerVisibility);
 	setupSlicers(m_slicerSettings, true);
 
 	if (m_imageData->GetExtent()[1] <= 1)
@@ -1049,7 +1062,7 @@ bool MdiChild::saveFile(const QString& f, int modalityNr, int componentNr)
 
 	m_ioThread = new iAIO(m_tmpSaveImg, m_polyData, m_logger, this);
 	connectIOThreadSignals(m_ioThread);
-	connect(m_ioThread, SIGNAL(done()), this, SLOT(saveFinished()));
+	connect(m_ioThread, &iAIO::done, this, &MdiChild::saveFinished);
 	m_storedModalityNr = modalityNr;
 	if (!setupSaveIO(f))
 	{
@@ -1085,19 +1098,9 @@ void MdiChild::clearLogs()
 	m_dwLog->listWidget->clear();
 }
 
-void MdiChild::maximizeXY()
+void MdiChild::maximizeSlicer(int mode)
 {
-	resizeDockWidget(m_dwSlicer[iASlicerMode::XY]);
-}
-
-void MdiChild::maximizeXZ()
-{
-	resizeDockWidget(m_dwSlicer[iASlicerMode::XZ]);
-}
-
-void MdiChild::maximizeYZ()
-{
-	resizeDockWidget(m_dwSlicer[iASlicerMode::YZ]);
+	resizeDockWidget(m_dwSlicer[mode]);
 }
 
 void MdiChild::maximizeRC()
@@ -1369,6 +1372,7 @@ bool MdiChild::editPrefs(iAPreferences const& prefs)
 		return true;
 	}
 	setHistogramModality(m_currentModality);	// to update Histogram bin count
+	m_histogram->setYMappingMode(prefs.HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
 	applyViewerPreferences();
 	if (isMagicLens2DEnabled())
 	{
@@ -1466,22 +1470,19 @@ void MdiChild::setupSlicers(iASlicerSettings const& ss, bool init)
 		// connect signals for making slicers update other views in snake slicers mode:
 		for (int i = 0; i < 3; ++i)
 		{
-			connect(m_slicer[i], SIGNAL(arbitraryProfileChanged(int, double*)), this, SLOT(updateProbe(int, double*)));
-			connect(m_slicer[i], SIGNAL(arbitraryProfileChanged(int, double*)), m_renderer, SLOT(setArbitraryProfile(int, double*)));
+			connect(m_slicer[i], &iASlicer::profilePointChanged, this, &MdiChild::updateProbe);
+			connect(m_slicer[i], &iASlicer::profilePointChanged, m_renderer, &iARenderer::setProfilePoint);
+			connect(m_slicer[i], &iASlicer::magicLensToggled, this, &MdiChild::toggleMagicLens2D);
 			for (int j = 0; j < 3; ++j)
 			{
 				if (i != j)	// connect each slicer's signals to the other slicer's slots, except for its own:
 				{
-					//Adding new point to the parametric spline for snake slicer
-					connect(m_slicer[i], SIGNAL(addedPoint(double, double, double)), m_slicer[j], SLOT(addPoint(double, double, double)));
-					//Moving point
-					connect(m_slicer[i], SIGNAL(movedPoint(size_t, double, double, double)), m_slicer[j], SLOT(movePoint(size_t, double, double, double)));
-					//Changing arbitrary profile positioning
-					connect(m_slicer[i], SIGNAL(arbitraryProfileChanged(int, double*)), m_slicer[j], SLOT(setArbitraryProfile(int, double*)));
-
-					connect(m_slicer[i], SIGNAL(switchedMode(int)), m_slicer[j], SLOT(switchInteractionMode(int)));
-					connect(m_slicer[i], SIGNAL(deletedSnakeLine()), m_slicer[j], SLOT(deleteSnakeLine()));
-					connect(m_slicer[i], SIGNAL(deselectedPoint()), m_slicer[j], SLOT(deselectPoint()));
+					connect(m_slicer[i], &iASlicer::addedPoint, m_slicer[j], &iASlicer::addPoint);
+					connect(m_slicer[i], &iASlicer::movedPoint, m_slicer[j], &iASlicer::movePoint);
+					connect(m_slicer[i], &iASlicer::profilePointChanged, m_slicer[j], &iASlicer::setProfilePoint);
+					connect(m_slicer[i], &iASlicer::switchedMode, m_slicer[j], &iASlicer::switchInteractionMode);
+					connect(m_slicer[i], &iASlicer::deletedSnakeLine, m_slicer[j], &iASlicer::deleteSnakeLine);
+					connect(m_slicer[i], &iASlicer::deselectedPoint, m_slicer[j], &iASlicer::deselectPoint);
 				}
 			}
 		}
@@ -1492,9 +1493,13 @@ bool MdiChild::editRendererSettings(iARenderSettings const& rs, iAVolumeSettings
 {
 	setRenderSettings(rs, vs);
 	applyVolumeSettings(false);
-	m_renderer->applySettings(renderSettings());
+	m_renderer->applySettings(renderSettings(), m_slicerVisibility);
 	m_dwRenderer->vtkWidgetRC->show();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_dwRenderer->vtkWidgetRC->GetRenderWindow()->Render();
+#else
+	m_dwRenderer->vtkWidgetRC->renderWindow()->Render();
+#endif
 	emit renderSettingsChanged();
 	return true;
 }
@@ -1804,7 +1809,7 @@ void MdiChild::toggleMagicLens2D(bool isEnabled)
 	}
 	setMagicLensEnabled(isEnabled);
 	updateSlicers();
-
+	m_mainWnd->updateMagicLens2DCheckState(isEnabled);
 	emit magicLensToggled(m_isMagicLensEnabled);
 }
 
@@ -1876,11 +1881,11 @@ bool MdiChild::initView(QString const& title)
 
 	if (isVolumeDataLoaded())
 	{
-		this->addImageProperty();
-		if (m_imageData->GetNumberOfScalarComponents() == 1) //No histogram/profile for rgb, rgba or vector pixel type images
-		{
+		addImageProperty();
+		if (m_imageData->GetNumberOfScalarComponents() == 1)
+		{   // No histogram/profile for rgb, rgba or vector pixel type images
 			tabifyDockWidget(m_dwLog, m_dwHistogram);
-			this->addProfile();
+			addProfile();
 		}
 	}
 	else
@@ -1888,8 +1893,6 @@ bool MdiChild::initView(QString const& title)
 		showPoly();
 		hideHistogram();
 	}
-
-	//Load the layout to the child
 	updateLayout();
 
 	return true;
@@ -1937,7 +1940,7 @@ bool MdiChild::addVolumePlayer()
 	{
 		m_checkedList.append(0);
 	}
-	connect(m_histogram, SIGNAL(applyTFForAll()), m_dwVolumePlayer, SLOT(applyForAll()));
+	connect(m_histogram, &iAChartWithFunctionsWidget::applyTFForAll, m_dwVolumePlayer, &dlg_volumePlayer::applyForAll);
 
 	return true;
 }
@@ -2072,7 +2075,7 @@ void MdiChild::multiview()
 void MdiChild::hideVolumeWidgets()
 {
 	setVisibility(QList<QWidget*>() << m_dwSlicer[iASlicerMode::XY] << m_dwSlicer[iASlicerMode::XZ] << m_dwSlicer[iASlicerMode::YZ] << m_dwRenderer, false);
-	this->update();
+	update();
 }
 
 void MdiChild::setVisibility(QList<QWidget*> widgets, bool show)
@@ -2247,27 +2250,27 @@ void MdiChild::addProfile()
 	}
 	for (int s = 0; s < 3; ++s)
 	{
-		m_slicer[s]->setArbitraryProfile(0, start);
-		m_slicer[s]->setArbitraryProfile(1, end);
+		m_slicer[s]->setProfilePoint(0, start);
+		m_slicer[s]->setProfilePoint(1, end);
 	}
-	m_renderer->setArbitraryProfile(0, start);
-	m_renderer->setArbitraryProfile(1, end);
+	m_renderer->setProfilePoint(0, start);
+	m_renderer->setProfilePoint(1, end);
 	m_profileProbe->updateProbe(0, start);
 	m_profileProbe->updateProbe(1, end);
 	m_profileProbe->updateData();
 	m_dwProfile = new dlg_profile(this, m_profileProbe->m_profileData, m_profileProbe->rayLength());
 	tabifyDockWidget(m_dwLog, m_dwProfile);
-	connect(m_dwProfile->profileMode, SIGNAL(toggled(bool)), this, SLOT(toggleArbitraryProfile(bool)));
+	connect(m_dwProfile->profileMode, &QCheckBox::toggled, this, &MdiChild::toggleProfileHandles);
 }
 
-void MdiChild::toggleArbitraryProfile(bool isChecked)
+void MdiChild::toggleProfileHandles(bool isChecked)
 {
-	m_isArbProfileEnabled = (bool)isChecked;
+	m_profileHandlesEnabled = (bool)isChecked;
 	for (int s = 0; s < 3; ++s)
 	{
-		m_slicer[s]->setArbitraryProfileOn(m_isArbProfileEnabled);
+		m_slicer[s]->setProfileHandlesOn(m_profileHandlesEnabled);
 	}
-	m_renderer->setArbitraryProfileOn(m_isArbProfileEnabled);
+	m_renderer->setProfileHandlesOn(m_profileHandlesEnabled);
 }
 
 void MdiChild::updateProbe(int ptIndex, double* newPos)
@@ -2295,7 +2298,7 @@ int MdiChild::sliceNumber(int mode) const
 
 void MdiChild::maximizeDockWidget(QDockWidget* dw)
 {
-	m_beforeMaximizeState = this->saveState();
+	m_beforeMaximizeState = saveState();
 	QList<QDockWidget*> dockWidgets = findChildren<QDockWidget*>();
 	for (int i = 0; i < dockWidgets.size(); ++i)
 	{
@@ -2311,7 +2314,7 @@ void MdiChild::maximizeDockWidget(QDockWidget* dw)
 
 void MdiChild::demaximizeDockWidget(QDockWidget* /*dw*/)
 {
-	this->restoreState(m_beforeMaximizeState);
+	restoreState(m_beforeMaximizeState);
 	m_isSmthMaximized = false;
 }
 
@@ -2426,15 +2429,15 @@ void MdiChild::check2DMode()
 
 	if (dim[0] == 1 && dim[1] > 1 && dim[2] > 1)
 	{
-		maximizeYZ();
+		maximizeSlicer(iASlicerMode::YZ);
 	}
 	else if (dim[0] > 1 && dim[1] == 1 && dim[2] > 1)
 	{
-		maximizeXZ();
+		maximizeSlicer(iASlicerMode::XZ);
 	}
 	else if (dim[0] > 1 && dim[1] > 1 && dim[2] == 1)
 	{
-		maximizeXY();
+		maximizeSlicer(iASlicerMode::XY);
 	}
 }
 
@@ -2691,12 +2694,6 @@ void MdiChild::modalityAdded(int modalityIdx)
 	}
 }
 
-void MdiChild::rendererCamPos()
-{
-	int pos = sender()->property("camPosition").toInt();
-	m_renderer->setCamPosition(pos);
-}
-
 void MdiChild::histogramDataAvailable(int modalityIdx)
 {
 	QString modalityName = modality(modalityIdx)->name();
@@ -2715,7 +2712,7 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 	if (!findChild<iADockWidgetWrapper*>("Histogram"))
 	{
 		tabifyDockWidget(m_dwLog, m_dwHistogram);
-		this->addProfile();
+		addProfile();
 	}
 	emit histogramAvailable();
 }
@@ -2801,8 +2798,7 @@ void MdiChild::initVolumeRenderers()
 		m_dwModalities->initDisplay(modality(i));
 	}
 	applyVolumeSettings(true);
-	connect(modalities().data(), SIGNAL(added(QSharedPointer<iAModality>)),
-		m_dwModalities, SLOT(modalityAdded(QSharedPointer<iAModality>)));
+	connect(modalities().data(), &iAModalityList::added, m_dwModalities, &dlg_modalities::modalityAdded);
 	m_renderer->renderer()->ResetCamera();
 }
 
@@ -2822,20 +2818,8 @@ void MdiChild::saveProject(QString const& fileName)
 	setCurrentFile(fileName);
 }
 
-void MdiChild::doSaveProject()
+bool MdiChild::doSaveProject(QString const & projectFileName)
 {
-	QString projectFileName = QFileDialog::getSaveFileName(
-		QApplication::activeWindow(),
-		tr("Select Output File"),
-		m_path,
-		iAIOProvider::NewProjectFileTypeFilter + iAIOProvider::ProjectFileTypeFilter);
-	if (projectFileName.isEmpty())
-	{
-		return;
-	}
-
-	// TODO:
-	//   - work in background
 	QVector<int> unsavedModalities;
 	for (int i = 0; i < modalities()->size(); ++i)
 	{
@@ -2850,16 +2834,18 @@ void MdiChild::doSaveProject()
 			"This window has some unsaved modalities, you need to save them before you can store the project. Save them now?",
 			QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) != QMessageBox::Yes)
 		{
-			return;
+			return false;
 		}
 		for (int modNr : unsavedModalities)
 		{
 			if (!saveAs(modNr))
 			{
-				return;
+				return false;
 			}
 		}
 	}
+	// TODO:
+	//   - work in background
 	saveProject(projectFileName);
 	if (projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
@@ -2873,6 +2859,7 @@ void MdiChild::doSaveProject()
 			projectFile.endGroup();
 		}
 	}
+	return true;
 }
 
 void MdiChild::addProject(QString const& key, QSharedPointer<iAProjectBase> project)

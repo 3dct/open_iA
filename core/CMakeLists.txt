@@ -1,9 +1,6 @@
 FILE( GLOB_RECURSE open_iA_core_SRCS "src/*.cpp" "src/*.h" )
-FILE( GLOB_RECURSE open_iA_core_test_srcs "src/*Test.cpp" "src/*Test.cxx" )
-IF ( NOT "${open_iA_core_test_srcs}" STREQUAL "" )
-	LIST( REMOVE_ITEM open_iA_core_SRCS ${open_iA_core_test_srcs} )
-ENDIF ()
 FILE( GLOB_RECURSE open_iA_core_UI "src/*.ui" )
+FILE( GLOB_RECURSE open_iA_core_test_srcs "test/*.cpp")
 SET( open_iA_core_QRC open_iA.qrc)
 
 QT5_WRAP_UI( open_iA_core_SRCS ${open_iA_core_UI})
@@ -13,6 +10,11 @@ SET (LIB_TYPE SHARED)
 
 # Generate core dll file / shared object:
 add_library(${CORE_LIBRARY_NAME} ${LIB_TYPE} ${open_iA_core_SRCS} ${open_iA_core_QRC} )
+if (VTK_MAJOR_VERSION GREATER 8)
+	vtk_module_autoinit(
+	  TARGETS ${CORE_LIBRARY_NAME}
+	  MODULES ${VTK_LIBRARIES})
+endif()
 TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${QT_LIBRARIES} ${VTK_LIBRARIES} ${ITK_LIBRARIES})
 IF (HDF5_FOUND)
 	# as HDF5 is required only in core, we could link privately, but under Linux this leads
@@ -61,8 +63,11 @@ ENDIF()
 
 
 IF (openiA_TESTING_ENABLED)
+
+	# CMAKE_CURRENT_BINARY_DIR include required for open_iA_Core_export.h
+
 	# StringHelperTest
-	ADD_EXECUTABLE(StringHelperTest src/iAStringHelperTest.cpp src/iAStringHelper.cpp)
+	ADD_EXECUTABLE(StringHelperTest test/iAStringHelperTest.cpp src/iAStringHelper.cpp)
 	TARGET_INCLUDE_DIRECTORIES(StringHelperTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 	TARGET_LINK_LIBRARIES(StringHelperTest PRIVATE ${QT_LIBRARIES})
 	target_compile_definitions(StringHelperTest PRIVATE NO_DLL_LINKAGE)
@@ -73,14 +78,27 @@ IF (openiA_TESTING_ENABLED)
 	ENDIF()
 
 	# Vec3Test
-	ADD_EXECUTABLE(Vec3Test src/iAVec3Test.cpp)
-	TARGET_INCLUDE_DIRECTORIES(Vec3Test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
+	ADD_EXECUTABLE(Vec3Test test/iAVec3Test.cpp)
+	TARGET_INCLUDE_DIRECTORIES(Vec3Test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 	target_compile_definitions(Vec3Test PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME Vec3Test COMMAND Vec3Test)
+	
+	ADD_EXECUTABLE(MathUtilTest test/iAMathUtilityTest.cpp src/iAMathUtility.cpp)
+	TARGET_INCLUDE_DIRECTORIES(MathUtilTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
+	TARGET_LINK_LIBRARIES(MathUtilTest PRIVATE ${VTK_LIBRARIES})
+	target_compile_definitions(MathUtilTest PRIVATE NO_DLL_LINKAGE)
+	ADD_TEST(NAME MathUtilTest COMMAND MathUtilTest)
+
+	ADD_EXECUTABLE(FunctionalBoxplotTest test/iAFunctionalBoxplotTest.cpp)
+	TARGET_INCLUDE_DIRECTORIES(FunctionalBoxplotTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+	target_compile_definitions(FunctionalBoxplotTest PRIVATE NO_DLL_LINKAGE)
+	ADD_TEST(NAME FunctionalBoxplotTest COMMAND FunctionalBoxplotTest)
 
 	IF (openiA_USE_IDE_FOLDERS)
 		SET_PROPERTY(TARGET StringHelperTest PROPERTY FOLDER "Tests")
 		SET_PROPERTY(TARGET Vec3Test PROPERTY FOLDER "Tests")
+		SET_PROPERTY(TARGET MathUtilTest PROPERTY FOLDER "Tests")
+		SET_PROPERTY(TARGET FunctionalBoxplotTest PROPERTY FOLDER "Tests")
 	ENDIF()
 
 ENDIF()
@@ -92,9 +110,6 @@ IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	#   - why fvisibility=hidden
 	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic -fvisibility=hidden")
 	SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic -fvisibility=hidden")
-ENDIF()
-IF( "${CMAKE_SYSTEM_NAME}" MATCHES "Darwin" )
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework OpenGL")
 ENDIF()
 
 # Installation

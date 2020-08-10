@@ -59,20 +59,6 @@ namespace
 // cImageHistogram
 // ===========================================================================
 
-/** \fn int cImageHistogram::CreateHist(float* fImage, unsigned int nPixelH, unsigned int nPixelW, unsigned int nPixelD, int n, float min, float max, bool ConsiderRecoFillZeroes, unsigned long long nCutL, unsigned long long nCutH)
- *	\brief Calculate the histogram of the float image with n bins in the range of min to max. If truncation values >0, the initial histogramm is used to calculate a new min/max range. The final histogramm is calculated using the new truncated min/max range. If (nCutL+nCutH) is greater or equal datasize the truncation is disabled.
- *	\param fImage a float pointer to the source image.
- *	\param nPixelH a unsigned int. The image height in pixel.
- *	\param nPixelW a unsigned int. The image width in pixel.
- *	\param nPixelD a unsigned int. The image depth in pixel.
- *	\param n a int. The histogram has n bins, whose values are ranging from min...max in steps of (max-min)/(n-1).
- *	\param min a float.
- *	\param max a float.
- *	\param ConsiderRecoFillZeroes a bool. To consider reco fill zeroes or not. If not, the zero peak is replace with the mean of its neighbours
- *	\param nCutL a unsigned long long. The number of data points truncated from the lower value end.
- *	\param nCutH a unsigned long long. The number of data points truncated from the upper value end.
- *	\return a int. The number of used bins.
- */
 int cImageHistogram::CreateHist(float* fImage, unsigned int nPixelH, unsigned int nPixelW, unsigned int nPixelD, int n, float min, float max, bool ConsiderRecoFillZeroes, unsigned long long nCutL, unsigned long long nCutH)
 {
 	assert(n >= 0);
@@ -180,17 +166,6 @@ int cImageHistogram::CreateHist(float* fImage, unsigned int nPixelH, unsigned in
 	return (int)hist_y.size();
 }
 
-
-/** \fn unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned int dgauss_size_BINscale, unsigned int gauss_size_P2Pscale, double threshold_x , double threshold_y, bool consTruncBin);
- *	\brief The algorithm searches nPeaks peaks and nPeaks-1 valleys. x-positions and heights per peak and valley are save in member variables. The highest nPeaks peaks found by y'=0 and y''=neg are detected. nPeaks-1 minima are calculated between two peaks by finding the minimal value after gaussian smoothing in the histogram (Gauss kernel size 1/gauss_size_P2Pscale of peak distance). If consTruncBin true: the first and last bin are considered as possible, setting to false may be necessary if the histogram range has been truncated for the generation of the histogram.
-*	\param nPeaks a unsigned int. The number of peaks to find
- *	\param gauss_size_P2Pscale a unsigned int. Gauss smoothing for finding local minima between two peaks, Gauss kernel size is (peak to peak distance)/gauss_sz_scal, typical value 20, the kernel size will be forced to odd values, setting the vallue to histbins will end in a size of 3
- *	\param dgauss_size_BINscale a unsigned int. Derivated gauss kernel size is histbins/dgauss_size_BINscale, typical values are 128,64,32 for histbins=512, the kernel size will be forced to odd values, setting the vallue to histbins will end in a size of 3
- *	\param threshold_x a double. Peaks are vaild if x is equal or greater this threshold.
- *	\param threshold_y a double. Peaks are vaild if y is equal or greater this threshold.
- *	\param consTruncBin a bool. If consTruncBin true: the first and last bin are considered as possible, setting to false may be necessary if the histogram range has been truncated for the generation of the histogram.
- *	\return a unsigned int. The number of found peaks.
- */
 unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned int dgauss_size_BINscale, unsigned int gauss_size_P2Pscale, double threshold_x , double threshold_y, bool consTruncBin)
 {
 	std::vector<double> gauss_knl, dgauss_knl;
@@ -322,13 +297,6 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 	return (int)Peaks.size();
 }
 
-/** \fn float cImageHistogram::CalcQ(std::vector<int> thrsh_IDX, std::vector<ClassMeasure> &result, int Q_equation)
- *	\brief The algorithm calculates quality measures in total and per class of the histogram using the given thresholds.
- *	\param thrsh_IDX a std::vector<int>. The indices of the thresholds.
- *	\param result a std::vector<ClassMeasure>. The quality measures per class.
- *	\param Q_equation a int. Select the used Q equation. 0 ... sqrt(sigma*sigma) else ... sqrt(sigma^2+sigma^2)
- *	\return a float. The number total quality measure.
- */
 float cImageHistogram::CalcQ(std::vector<int> thrsh_IDX, std::vector<ClassMeasure> &result, int Q_equation)
 {
 	int CStart, CEnd,
@@ -413,10 +381,6 @@ float cImageHistogram::CalcQ(std::vector<int> thrsh_IDX, std::vector<ClassMeasur
 	}
 }
 
- /** \fn float cImageHistogram::CalcEntropy(std::vector<int> , std::vector<ClassMeasure> &result, int Q_equation)
- *	\brief The algorithm calculates the relative Shannon Entropy measure
- *	\return a float. The Entropy.
- */
 float cImageHistogram::CalcEntropy()
 {
 	double H=0.0,Hmax=0.0,counttotal=0;
@@ -462,10 +426,6 @@ float cImageHistogram::CalcEntropy()
 	return (float)H;
 }
 
-/** \fn std::vector<int> cImageHistogram::GetValleyThreshold_IDX()
- *	\brief Return the indices of the precalculated valley thresholds.
- *	\return a std::vector<int>. The calculated thresholds.
- */
 std::vector<int> cImageHistogram::GetValleyThreshold_IDX()
 {
 	std::vector<int> thrsh;
@@ -478,10 +438,6 @@ std::vector<int> cImageHistogram::GetValleyThreshold_IDX()
 	return thrsh;
 }
 
-/** \fn std::vector<float> cImageHistogram::GetValleyThreshold()
- *	\brief Return the precalculated valley thresholds.
- *	\return a std::vector<float>. The calculated thresholds.
- */
 std::vector<float> cImageHistogram::GetValleyThreshold()
 {
 	std::vector<float> thrsh;

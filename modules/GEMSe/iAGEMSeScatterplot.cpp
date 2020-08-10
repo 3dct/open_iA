@@ -27,6 +27,7 @@
 #include "iAImageTreeNode.h"
 
 #include <iAAttributeDescriptor.h>
+#include <iAVtkVersion.h>
 
 #include <vtkAxis.h>
 #include <vtkFloatArray.h>
@@ -47,9 +48,14 @@ iAGEMSeScatterplot::iAGEMSeScatterplot(QWidget* parent):
 	m_chart1ID(-1),
 	m_chart2ID(-1)
 {
-	SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	vtkSmartPointer<vtkContextView> contextView(vtkSmartPointer<vtkContextView>::New());
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	contextView->SetRenderWindow(GetRenderWindow());
+#else
+	setRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
+	contextView->SetRenderWindow(renderWindow());
+#endif
 	m_chart = vtkSmartPointer<vtkChartXY>::New();
 	m_chart->SetSelectionMode(vtkContextScene::SELECTION_NONE);
 	contextView->GetScene()->AddItem(m_chart);

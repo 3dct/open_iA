@@ -32,7 +32,7 @@ class iAMultiStepProgressObserver : public QObject, public vtkCommand
 public:
 	iAMultiStepProgressObserver(double overallSteps);
 	void SetCompletedSteps(int steps);
-Q_SIGNALS:
+signals:
 	void progress(int progress);
 private:
 	virtual void Execute(vtkObject *caller, unsigned long, void*);

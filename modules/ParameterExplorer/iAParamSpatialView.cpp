@@ -56,7 +56,7 @@ iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & 
 	m_binCount(binCount)
 {
 	m_sliceControl->setMaximum(0);
-	connect(m_sliceControl, SIGNAL(valueChanged(int)), this, SLOT(SliceChanged(int)));
+	connect(m_sliceControl, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAParamSpatialView::SliceChanged);
 
 	auto sliceButtonBar = new QToolBar();			// same order as in iASlicerMode!
 	static const char* const slicerModeButtonLabels[] = { "YZ", "XY", "XZ" };
@@ -66,7 +66,7 @@ iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & 
 		slicerModeButton[i]->setText(slicerModeButtonLabels[i]);
 		slicerModeButton[i]->setAutoExclusive(true);
 		slicerModeButton[i]->setCheckable(true);
-		connect(slicerModeButton[i], SIGNAL(clicked(bool)), this, SLOT(SlicerModeButtonClicked(bool)));
+		connect(slicerModeButton[i], &QToolButton::clicked, this, &iAParamSpatialView::SlicerModeButtonClicked);
 		sliceButtonBar->addWidget(slicerModeButton[i]);
 	}
 	slicerModeButton[m_curMode]->setChecked(true);
@@ -130,7 +130,7 @@ void iAParamSpatialView::setImage(size_t id)
 	else
 	{
 		auto creator = QSharedPointer<iAHistogramCreator>(new iAHistogramCreator(img, m_binCount, id));
-		connect(creator.data(), SIGNAL(finished()), this, SLOT(HistogramReady()));
+		connect(creator.data(), &iAHistogramCreator::finished, this, &iAParamSpatialView::HistogramReady);
 		m_histogramCreaters.push_back(creator);
 		creator->start();
 	}

@@ -118,7 +118,6 @@
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
 #include <vtkVariantArray.h>
-#include <vtkVersion.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 
@@ -494,29 +493,43 @@ void dlg_FeatureScout::setupViews()
 
 	// preparing chart and view for Parallel Coordinates
 	m_pcView = vtkSmartPointer<vtkContextView>::New();
+	m_lengthDistrView = vtkSmartPointer<vtkContextView>::New();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_pcView->SetRenderWindow(m_pcWidget->GetRenderWindow());
 	m_pcView->SetInteractor(m_pcWidget->GetInteractor());
-
-	m_lengthDistrView = vtkSmartPointer<vtkContextView>::New();
 	m_lengthDistrView->SetRenderWindow(m_lengthDistrWidget->GetRenderWindow());
 	m_lengthDistrView->SetInteractor(m_lengthDistrWidget->GetInteractor());
+#else
+	m_pcView->SetRenderWindow(m_pcWidget->renderWindow());
+	m_pcView->SetInteractor(m_pcWidget->interactor());
+	m_lengthDistrView->SetRenderWindow(m_lengthDistrWidget->renderWindow());
+	m_lengthDistrView->SetInteractor(m_lengthDistrWidget->interactor());
+#endif
 
 	// Creates a popup menu
 	QMenu* popup2 = new QMenu(m_pcWidget);
 	popup2->addAction("Add class");
 	popup2->setStyleSheet("font-size: 11px; background-color: #9B9B9B; border: 1px solid black;");
-	connect(popup2, SIGNAL(triggered(QAction*)), this, SLOT(spPopupSelection(QAction*)));
+	connect(popup2, &QMenu::triggered, this, &dlg_FeatureScout::spPopupSelection);
 
 	m_pcConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 	// Gets right button release event (on a parallel coordinates).
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_pcConnections->Connect(m_pcWidget->GetRenderWindow()->GetInteractor(),
+#else
+	m_pcConnections->Connect(m_pcWidget->renderWindow()->GetInteractor(),
+#endif
 		vtkCommand::RightButtonReleaseEvent,
 		this,
 		SLOT(spPopup(vtkObject*, unsigned long, void*, void*, vtkCommand*)),
 		popup2, 1.0);
 
 	// Gets right button press event (on a scatter plot).
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_pcConnections->Connect(m_pcWidget->GetRenderWindow()->GetInteractor(),
+#else
+	m_pcConnections->Connect(m_pcWidget->renderWindow()->GetInteractor(),
+#endif
 		vtkCommand::RightButtonPressEvent,
 		this,
 		SLOT(spBigChartMouseButtonPressed(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
@@ -646,7 +659,7 @@ void dlg_FeatureScout::initClassTreeModel()
 void dlg_FeatureScout::PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, const bool useTabSeparator, const QString& outputPath, const QString* fileName) const
 {
 	std::string separator = (useTabSeparator) ? "\t" : ",";
-	ofstream debugfile;
+	std::ofstream debugfile;
 	std::string OutfileName = "";
 	if (fileName)
 	{
@@ -757,24 +770,24 @@ void dlg_FeatureScout::setupConnections()
 	m_objectAdd = new QAction(tr("Add object"), m_classTreeView);
 	m_objectDelete = new QAction(tr("Delete object"), m_classTreeView);
 
-	connect(m_blobRendering, SIGNAL(triggered()), this, SLOT(EnableBlobRendering()));
-	connect(m_blobRemoveRendering, SIGNAL(triggered()), this, SLOT(DisableBlobRendering()));
-	connect(m_saveBlobMovie, SIGNAL(triggered()), this, SLOT(SaveBlobMovie()));
-	connect(m_objectAdd, SIGNAL(triggered()), this, SLOT(addObject()));
-	connect(m_objectDelete, SIGNAL(triggered()), this, SLOT(deleteObject()));
-	connect(m_classTreeView, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
-	connect(this->add_class, SIGNAL(clicked()), this, SLOT(ClassAddButton()));
-	connect(this->save_class, SIGNAL(released()), this, SLOT(ClassSaveButton()));
-	connect(this->load_class, SIGNAL(released()), this, SLOT(ClassLoadButton()));
-	connect(this->delete_class, SIGNAL(clicked()), this, SLOT(ClassDeleteButton()));
-	connect(this->wisetex_save, SIGNAL(released()), this, SLOT(WisetexSaveButton()));
-	connect(this->export_class, SIGNAL(clicked()), this, SLOT(ExportClassButton()));
-	connect(this->csv_dv, SIGNAL(released()), this, SLOT(CsvDVSaveButton()));
+	connect(m_blobRendering, &QAction::triggered, this, &dlg_FeatureScout::EnableBlobRendering);
+	connect(m_blobRemoveRendering, &QAction::triggered, this, &dlg_FeatureScout::DisableBlobRendering);
+	connect(m_saveBlobMovie, &QAction::triggered, this, &dlg_FeatureScout::SaveBlobMovie);
+	connect(m_objectAdd, &QAction::triggered, this, &dlg_FeatureScout::addObject);
+	connect(m_objectDelete, &QAction::triggered, this, &dlg_FeatureScout::deleteObject);
+	connect(m_classTreeView, &QTreeView::customContextMenuRequested, this, &dlg_FeatureScout::showContextMenu);
+	connect(this->add_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassAddButton);
+	connect(this->save_class, &QToolButton::released, this, &dlg_FeatureScout::ClassSaveButton);
+	connect(this->load_class, &QToolButton::released, this, &dlg_FeatureScout::ClassLoadButton);
+	connect(this->delete_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassDeleteButton);
+	connect(this->wisetex_save, &QToolButton::released, this, &dlg_FeatureScout::WisetexSaveButton);
+	connect(this->export_class, &QPushButton::clicked, this, &dlg_FeatureScout::ExportClassButton);
+	connect(this->csv_dv, &QToolButton::released, this, &dlg_FeatureScout::CsvDVSaveButton);
 
-	connect(m_elementTableModel, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(updateVisibility(QStandardItem*)));
-	connect(m_classTreeView, SIGNAL(clicked(QModelIndex)), this, SLOT(classClicked(QModelIndex)));
-	connect(m_classTreeView, SIGNAL(activated(QModelIndex)), this, SLOT(classClicked(QModelIndex)));
-	connect(m_classTreeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(classDoubleClicked(QModelIndex)));
+	connect(m_elementTableModel, &QStandardItemModel::itemChanged, this, &dlg_FeatureScout::updateVisibility);
+	connect(m_classTreeView, &QTreeView::clicked, this, &dlg_FeatureScout::classClicked);
+	connect(m_classTreeView, &QTreeView::activated, this, &dlg_FeatureScout::classClicked);
+	connect(m_classTreeView, &QTreeView::doubleClicked, this, &dlg_FeatureScout::classDoubleClicked);
 
 	connect(m_splom.data(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart);
 	connect(m_splom.data(), &iAFeatureScoutSPLOM::addClass, this, &dlg_FeatureScout::ClassAddButton);
@@ -1119,23 +1132,24 @@ void dlg_FeatureScout::RenderMeanObject()
 	if (!m_dwMO)
 	{
 		m_dwMO = new dlg_MeanObject(this);
-		connect(m_dwMO->pb_ModTF, SIGNAL(clicked()), this, SLOT(modifyMeanObjectTF()));
-		connect(m_dwMO->tb_OpenDataFolder, SIGNAL(clicked()), this, SLOT(browseFolderDialog()));
-		connect(m_dwMO->tb_SaveStl, SIGNAL(clicked()), this, SLOT(saveStl()));
+		connect(m_dwMO->pb_ModTF, &QToolButton::clicked, this, &dlg_FeatureScout::modifyMeanObjectTF);
+		connect(m_dwMO->tb_OpenDataFolder, &QToolButton::clicked, this, &dlg_FeatureScout::browseFolderDialog);
+		connect(m_dwMO->tb_SaveStl, &QToolButton::clicked, this, &dlg_FeatureScout::saveStl);
 
 		// Create a render window and an interactor for all the MObjects
 		CREATE_OLDVTKWIDGET(m_meanObjectWidget);
 
 		m_dwMO->verticalLayout->addWidget(m_meanObjectWidget);
 		auto renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		renderWindowInteractor->SetRenderWindow(m_meanObjectWidget->GetRenderWindow());
+#else
+		renderWindowInteractor->SetRenderWindow(m_meanObjectWidget->renderWindow());
+#endif
 		auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
 		renderWindowInteractor->SetInteractorStyle(style);
 
 		m_dwMO->setWindowTitle(QString("%1 Mean Object View").arg(MapObjectTypeToString(m_filterID)));
-
-		m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwMO);
-		m_dwMO->show();
 	}
 
 	// Update MOClass comboBox
@@ -1149,7 +1163,11 @@ void dlg_FeatureScout::RenderMeanObject()
 	m_dwMO->raise();
 
 	// Remove old renderers
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_meanObjectWidget->GetRenderWindow()->GetRenderers()->RemoveAllItems();
+#else
+	m_meanObjectWidget->renderWindow()->GetRenderers()->RemoveAllItems();
+#endif
 
 	// Define viewport variables
 	int numberOfMeanObjectVolumes = m_MOData.moVolumesList.size();
@@ -1164,7 +1182,11 @@ void dlg_FeatureScout::RenderMeanObject()
 		m_MOData.moRendererList.append(renderer);
 		renderer->GetActiveCamera()->ParallelProjectionOn();
 		renderer->SetBackground(1.0, 1.0, 1.0);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		m_meanObjectWidget->GetRenderWindow()->AddRenderer(m_MOData.moRendererList[i]);
+#else
+		m_meanObjectWidget->renderWindow()->AddRenderer(m_MOData.moRendererList[i]);
+#endif
 		renderer->SetViewport(fmod(i, viewportColumns) * fieldLengthX,
 			1 - (ceil((i + 1.0) / viewportColumns) / viewportRows),
 			fmod(i, viewportColumns) * fieldLengthX + fieldLengthX,
@@ -1215,7 +1237,11 @@ void dlg_FeatureScout::RenderMeanObject()
 			renderer->AddActor(cubeAxesActor);
 			renderer->AddActor(outlineActor);
 		}
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		m_meanObjectWidget->GetRenderWindow()->Render();
+#else
+		m_meanObjectWidget->renderWindow()->Render();
+#endif
 	}
 }
 
@@ -1226,7 +1252,7 @@ void dlg_FeatureScout::modifyMeanObjectTF()
 		.arg(m_dwMO->cb_Classes->itemText(m_dwMO->cb_Classes->currentIndex()))
 		.arg(MapObjectTypeToString(m_filterID)));
 	iAChartWithFunctionsWidget* histogram = m_activeChild->histogram();
-	connect(histogram, SIGNAL(updateViews()), this, SLOT(updateMOView()));
+	connect(histogram, &iAChartWithFunctionsWidget::updateViews, this, &dlg_FeatureScout::updateMOView);
 	m_motfView->horizontalLayout->addWidget(histogram);
 	histogram->show();
 	m_motfView->show();
@@ -1234,7 +1260,11 @@ void dlg_FeatureScout::modifyMeanObjectTF()
 
 void dlg_FeatureScout::updateMOView()
 {
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_meanObjectWidget->GetRenderWindow()->Render();
+#else
+	m_meanObjectWidget->renderWindow()->Render();
+#endif
 }
 
 void dlg_FeatureScout::browseFolderDialog()
@@ -1258,8 +1288,8 @@ void dlg_FeatureScout::saveStl()
 
 	iAProgress marCubProgress;
 	iAProgress stlWriProgress;
-	connect(&marCubProgress, SIGNAL(progress(int)), this, SLOT(updateMarProgress(int)));
-	connect(&stlWriProgress, SIGNAL(progress(int)), this, SLOT(updateStlProgress(int)));
+	connect(&marCubProgress, &iAProgress::progress, this, &dlg_FeatureScout::updateMarProgress);
+	connect(&stlWriProgress, &iAProgress::progress, this, &dlg_FeatureScout::updateStlProgress);
 
 	auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
 	marCubProgress.observe(moSurface);
@@ -1486,7 +1516,11 @@ void dlg_FeatureScout::RenderOrientation()
 	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetBackground(1, 1, 1);
 	renderer->AddActor(actor);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	vtkRenderWindow* renW = m_polarPlotWidget->GetRenderWindow();
+#else
+	vtkRenderWindow* renW = m_polarPlotWidget->renderWindow();
+#endif
 	auto ren = renW->GetRenderers()->GetFirstRenderer();
 	renW->RemoveRenderer(ren);
 	renW->AddRenderer(renderer);
@@ -1599,7 +1633,11 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	m_lengthDistrView->GetScene()->ClearItems();
 	m_lengthDistrView->GetScene()->AddItem(chart);
 
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_lengthDistrWidget->GetRenderWindow()->Render();
+#else
+	m_lengthDistrWidget->renderWindow()->Render();
+#endif
 	m_lengthDistrWidget->update();
 	m_dwPP->legendLayout->removeWidget(m_polarPlotWidget);
 	m_dwPP->legendLayout->addWidget(m_lengthDistrWidget);
@@ -1971,7 +2009,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		//Writes csv file
 		if (saveFile)
 		{
-			ofstream file(getLocalEncodingFileName(filename).c_str(), std::ios::app);
+			std::ofstream file(getLocalEncodingFileName(filename).c_str(), std::ios::app);
 			if (file.is_open())
 			{
 				vtkIdType tColNb = disTable->GetNumberOfColumns();
@@ -2033,8 +2071,13 @@ void dlg_FeatureScout::CsvDVSaveButton()
 			iAVtkOldWidget* dvqvtkWidget;
 			CREATE_OLDVTKWIDGET(dvqvtkWidget);
 			m_dwDV->setWidget(dvqvtkWidget);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			m_dvContextView->SetRenderWindow(dvqvtkWidget->GetRenderWindow());
 			m_dvContextView->SetInteractor(dvqvtkWidget->GetInteractor());
+#else
+			m_dvContextView->SetRenderWindow(dvqvtkWidget->renderWindow());
+			m_dvContextView->SetInteractor(dvqvtkWidget->interactor());
+#endif
 			m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwDV);
 			m_dwDV->show();
 		}
@@ -2191,7 +2234,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector& con, const QString&
 		++in;
 		++out;
 	}
-	storeImage<OutputImageType>(out_img, fOutPath, m_activeChild->preferences().Compression);
+	storeImage(out_img, fOutPath, m_activeChild->preferences().Compression);
 	m_activeChild->addMsg("Stored image of of classes.");
 }
 
@@ -2458,11 +2501,10 @@ void dlg_FeatureScout::showScatterPlot()
 		return;
 	}
 	m_dwSPM = new iADockWidgetWrapper("Scatter Plot Matrix", "FeatureScoutSPM");
-	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwSPM);
-	m_dwSPM->show();
-	m_activeChild->tabifyDockWidget(m_dwDV ? m_dwDV : (m_dwMO ? (QDockWidget*)m_dwMO : m_dwPC), m_dwSPM);
+	m_activeChild->splitDockWidget(m_activeChild->renderDockWidget(), m_dwSPM, Qt::Vertical);
 	m_dwSPM->show();
 	m_dwSPM->raise();
+	QSignalBlocker spmBlock(m_splom.data()); //< no need to trigger updates while we're creating SPM
 	m_splom->initScatterPlot(m_dwSPM, m_csvTable, m_columnVisibility);
 	if (m_renderMode == rmMultiClass)
 	{
@@ -3371,7 +3413,11 @@ void dlg_FeatureScout::drawOrientationScalarBar(vtkScalarsToColors* lut)
 	m_scalarBarPP->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
 	m_scalarBarPP->SetTitle("Frequency");
 	m_scalarBarPP->SetNumberOfLabels(5);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_scalarWidgetPP->SetInteractor(m_polarPlotWidget->GetInteractor());
+#else
+	m_scalarWidgetPP->SetInteractor(m_polarPlotWidget->interactor());
+#endif
 	m_scalarWidgetPP->SetScalarBarActor(m_scalarBarPP);
 	m_scalarWidgetPP->SetEnabled(true);
 	m_scalarWidgetPP->SetRepositionable(true);
@@ -3472,7 +3518,11 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetBackground(1, 1, 1);
 
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	auto renW = m_polarPlotWidget->GetRenderWindow();
+#else
+	auto renW = m_polarPlotWidget->renderWindow();
+#endif
 	auto ren = renW->GetRenderers()->GetFirstRenderer();
 	if (ren)
 	{
@@ -3485,7 +3535,11 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 	drawAnnotations(renderer);
 	drawOrientationScalarBar(cTFun);
 	renderer->ResetCamera();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_polarPlotWidget->GetRenderWindow()->Render();
+#else
+	m_polarPlotWidget->renderWindow()->Render();
+#endif
 }
 
 void dlg_FeatureScout::setupPolarPlotResolution(float grad)
@@ -3706,7 +3760,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	{
 		m_dwPP->hide();
 	}
-	connect(m_dwPP->orientationColorMap, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderOrientation()));
+	connect(m_dwPP->orientationColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_FeatureScout::RenderOrientation);
 
 	if (m_visualization == iACsvConfig::UseVolume)
 	{

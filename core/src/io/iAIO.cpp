@@ -63,7 +63,6 @@
 #include <vtkStringArray.h>
 #include <vtkTable.h>
 #include <vtkTIFFReader.h>
-#include <vtkVersion.h>
 #include <vtkXMLImageDataReader.h>
 #include <vtkGenericDataObjectReader.h>
 #include <vtkRectilinearGrid.h>
@@ -108,9 +107,13 @@ void read_raw_image_template (iARawFileParameters const & params,
 		io->SetOrigin(i, params.m_origin[i]);
 	}
 	if (params.m_byteOrder == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN)
+	{
 		io->SetByteOrderToLittleEndian();
+	}
 	else
+	{
 		io->SetByteOrderToBigEndian();
+	}
 
 	typedef itk::Image< T, DIM>   InputImageType;
 	typedef itk::ImageFileReader<InputImageType> ReaderType;
@@ -710,8 +713,17 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 	switch (m_ioID)
 	{
 		case MHD_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case STL_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case MHD_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case STL_READER:
 			m_fileName = f; m_compression = c; break;
 		case VTK_READER:
@@ -723,8 +735,17 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 		case VGI_READER:
 			return setupVGIReader(f);
 		case TIF_STACK_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case JPG_STACK_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case PNG_STACK_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case BMP_STACK_READER:
 			return setupStackReader(f);
 		case VOLUME_STACK_READER:
@@ -736,19 +757,55 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 		case VOLUME_STACK_VOLSTACK_WRITER:
 			return setupVolumeStackVolStackWriter(f);
 
-		case PROJECT_READER:  // intentional fall-throughs
+		case PROJECT_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case PROJECT_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case TIF_STACK_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case JPG_STACK_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case PNG_STACK_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case BMP_STACK_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case DCM_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case DCM_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		//case NRRD_READER:
 		case OIF_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case AM_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case AM_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case CSV_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case VTI_READER:
 			m_fileName = f; break;
 #ifdef USE_HDF5
@@ -865,6 +922,9 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 		}
 #endif
 		case UNKNOWN_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		default:
 			DEBUG_LOG(QString("Unknown IO type '%1' for file '%2'!").arg(m_ioID).arg(f));
 			addMsg(tr("Unknown IO type"));
@@ -1683,18 +1743,22 @@ void iAIO::storeIOSettings()
 void iAIO::loadIOSettings()
 {
 	QSettings settings;
-	m_rawFileParams.m_origin[0] = settings.value("IO/rawOriginX").toDouble();
-	m_rawFileParams.m_origin[1] = settings.value("IO/rawOriginY").toDouble();
-	m_rawFileParams.m_origin[2] = settings.value("IO/rawOriginZ").toDouble();
-	m_rawFileParams.m_spacing[0] = settings.value("IO/rawSpaceX", 1).toDouble();	if (m_rawFileParams.m_spacing[0] == 0) m_rawFileParams.m_spacing[0] = 1;
-	m_rawFileParams.m_spacing[1] = settings.value("IO/rawSpaceY", 1).toDouble();	if (m_rawFileParams.m_spacing[1] == 0) m_rawFileParams.m_spacing[1] = 1;
-	m_rawFileParams.m_spacing[2] = settings.value("IO/rawSpaceZ", 1).toDouble();	if (m_rawFileParams.m_spacing[2] == 0) m_rawFileParams.m_spacing[2] = 1;
-	m_rawFileParams.m_size[0] = settings.value("IO/rawSizeX").toInt();
-	m_rawFileParams.m_size[1] = settings.value("IO/rawSizeY").toInt();
-	m_rawFileParams.m_size[2] = settings.value("IO/rawSizeZ").toInt();
-	m_rawFileParams.m_scalarType = settings.value("IO/rawScalar", 2).toInt(); // default data type: unsigned char
-	m_rawFileParams.m_byteOrder = settings.value("IO/rawByte", 0).toInt();    // default byte order: little endian
-	m_rawFileParams.m_headersize = settings.value("IO/rawHeader").toInt();
+	iARawFileParameters defaultRawParams;
+	m_rawFileParams.m_origin[0] = settings.value("IO/rawOriginX", defaultRawParams.m_origin[0]).toDouble();
+	m_rawFileParams.m_origin[1] = settings.value("IO/rawOriginY", defaultRawParams.m_origin[1]).toDouble();
+	m_rawFileParams.m_origin[2] = settings.value("IO/rawOriginZ", defaultRawParams.m_origin[2]).toDouble();
+	m_rawFileParams.m_spacing[0] = settings.value("IO/rawSpaceX", defaultRawParams.m_spacing[0]).toDouble();
+	if (m_rawFileParams.m_spacing[0] == 0) m_rawFileParams.m_spacing[0] = 1;
+	m_rawFileParams.m_spacing[1] = settings.value("IO/rawSpaceY", defaultRawParams.m_spacing[1]).toDouble();
+	if (m_rawFileParams.m_spacing[1] == 0) m_rawFileParams.m_spacing[1] = 1;
+	m_rawFileParams.m_spacing[2] = settings.value("IO/rawSpaceZ", defaultRawParams.m_spacing[2]).toDouble();
+	if (m_rawFileParams.m_spacing[2] == 0) m_rawFileParams.m_spacing[2] = 1;
+	m_rawFileParams.m_size[0] = settings.value("IO/rawSizeX", defaultRawParams.m_size[0]).toInt();
+	m_rawFileParams.m_size[1] = settings.value("IO/rawSizeY", defaultRawParams.m_size[1]).toInt();
+	m_rawFileParams.m_size[2] = settings.value("IO/rawSizeZ", defaultRawParams.m_size[2]).toInt();
+	m_rawFileParams.m_scalarType = settings.value("IO/rawScalar", defaultRawParams.m_scalarType).toInt();
+	m_rawFileParams.m_byteOrder = settings.value("IO/rawByte", defaultRawParams.m_byteOrder).toInt();
+	m_rawFileParams.m_headersize = settings.value("IO/rawHeader", defaultRawParams.m_headersize).toInt();
 }
 
 void iAIO::printSTLFileInfos()

@@ -30,7 +30,8 @@ public:
 		ShowIsoLines,
 		ShowPosition,
 		ShowAxesCaption,
-		ShowTooltip;
+		ShowTooltip,
+		AdjustWindowLevelEnabled;
 	double MinIsoValue, MaxIsoValue;
 	int NumberOfIsoLines,
 		ToolTipFontSize;
@@ -42,6 +43,7 @@ public:
 		ShowPosition(false),
 		ShowAxesCaption(false),
 		ShowTooltip(true),
+		AdjustWindowLevelEnabled(false),
 		MinIsoValue(20000),
 		MaxIsoValue(40000),
 		NumberOfIsoLines(5),

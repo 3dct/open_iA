@@ -71,7 +71,7 @@ void iAVRModuleInterface::info()
 	DEBUG_LOG(QString("    Is Runtime installed: %1").arg(vr::VR_IsRuntimeInstalled() ? "yes" : "no"));
 	const uint32_t MaxRuntimePathLength = 1024;
 	uint32_t actualLength;
-#if OPENVR_VERSION_MINOR > 3
+#if OPENVR_VERSION_MAJOR > 1 || (OPENVR_VERSION_MAJOR == 1 && OPENVR_VERSION_MINOR > 3)
 	char runtimePath[MaxRuntimePathLength];
 	vr::VR_GetRuntimePath(runtimePath, MaxRuntimePathLength, &actualLength);
 #else // OpenVR <= 1.3.22:

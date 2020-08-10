@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
-#include <QSlider>
-#include <QRect>
+#include <QPainterPath>
 #include <QPen>
+#include <QRect>
+#include <QSlider>
+#include <QWidget>
 
 #include <vtkSmartPointer.h>
 
@@ -44,7 +45,7 @@ class iAInterpolationSliderWidget : public QWidget
 
 public:
 	//iAInterpolationSliderWidget(Qt::Orientation orientation, QWidget* parent = Q_NULLPTR);
-	iAInterpolationSliderWidget(QWidget* parent = Q_NULLPTR);
+	iAInterpolationSliderWidget();
 
 	double getT();
 	void setT(double t);
@@ -87,7 +88,7 @@ class iAInterpolationSlider : public QWidget
 	Q_OBJECT
 
 public:
-	iAInterpolationSlider(QWidget* parent = Q_NULLPTR);
+	iAInterpolationSlider();
 
 	double getT();
 	void setT(double t);
@@ -99,9 +100,9 @@ public:
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
-	void resizeEvent(QResizeEvent* event);
-	void mousePressEvent(QMouseEvent* event);
-	void mouseMoveEvent(QMouseEvent* event);
+	void resizeEvent(QResizeEvent* event) override;
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
 	void calculateCoordinatesNow();

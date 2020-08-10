@@ -78,7 +78,7 @@ iAExampleImageWidget::iAExampleImageWidget(double aspectRatio, iAPreviewWidgetPo
 	QWidget* container = new QWidget();
 	QPushButton* refreshButton = new QPushButton(">");
 	refreshButton->setFixedWidth(30);
-	connect(refreshButton, SIGNAL(clicked()), this, SLOT(UpdateImages()));
+	connect(refreshButton, &QPushButton::clicked, this, &iAExampleImageWidget::UpdateImages);
 	m_gridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 	container->setLayout(new QHBoxLayout());
@@ -110,10 +110,10 @@ void iAExampleImageWidget::AdaptLayout()
 	// remove existing widgets from layout
 	for (int i=0; i<m_gridWidget->m_previews.size(); ++i)
 	{
-		disconnect(m_gridWidget->m_previews[i], SIGNAL(clicked()), this, SLOT(ImageClicked()));
-		disconnect(m_gridWidget->m_previews[i], SIGNAL(rightClicked()), this, SLOT(ImageRightClicked()));
-		disconnect(m_gridWidget->m_previews[i], SIGNAL(mouseHover()), this, SLOT(ImageHovered()));
-		disconnect(m_gridWidget->m_previews[i], SIGNAL(updated()), this, SLOT(ImageUpdated()));
+		disconnect(m_gridWidget->m_previews[i], &iAImagePreviewWidget::clicked, this, &iAExampleImageWidget::ImageClicked);
+		disconnect(m_gridWidget->m_previews[i], &iAImagePreviewWidget::rightClicked, this, &iAExampleImageWidget::ImageRightClicked);
+		disconnect(m_gridWidget->m_previews[i], &iAImagePreviewWidget::mouseHover, this, &iAExampleImageWidget::ImageHovered);
+		disconnect(m_gridWidget->m_previews[i], &iAImagePreviewWidget::updated, this, &iAExampleImageWidget::ImageUpdated);
 		m_layout->removeWidget(m_gridWidget->m_previews[i]);
 		m_previewPool->returnWidget(m_gridWidget->m_previews[i]);
 	}
@@ -139,10 +139,10 @@ void iAExampleImageWidget::AdaptLayout()
 			iAImagePreviewWidget * imgWidget = m_gridWidget->m_previews[idx];
 			imgWidget->show();
 			m_layout->addWidget(imgWidget, y, x);
-			connect(imgWidget, SIGNAL(clicked()), this, SLOT(ImageClicked()));
-			connect(imgWidget, SIGNAL(rightClicked()), this, SLOT(ImageRightClicked()));
-			connect(imgWidget, SIGNAL(mouseHover()), this, SLOT(ImageHovered()));
-			connect(imgWidget, SIGNAL(updated()), this, SLOT(ImageUpdated()) );
+			connect(imgWidget, &iAImagePreviewWidget::clicked, this, &iAExampleImageWidget::ImageClicked);
+			connect(imgWidget, &iAImagePreviewWidget::rightClicked, this, &iAExampleImageWidget::ImageRightClicked);
+			connect(imgWidget, &iAImagePreviewWidget::mouseHover, this, &iAExampleImageWidget::ImageHovered);
+			connect(imgWidget, &iAImagePreviewWidget::updated, this, &iAExampleImageWidget::ImageUpdated );
 		}
 	}
 	UpdateImages();

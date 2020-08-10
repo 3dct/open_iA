@@ -23,7 +23,7 @@
 #include "iAMultimodalWidget.h"
 
 #include "iAHistogramAbstract.h"
-#include "BCoord.h"
+#include "iABCoord.h"
 
 #include <iASlicerMode.h>
 
@@ -50,7 +50,7 @@ class iATripleModalityWidget : public iAMultimodalWidget
 	Q_OBJECT
 
 public:
-	iATripleModalityWidget(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+	iATripleModalityWidget(MdiChild *mdiChild);
 	~iATripleModalityWidget();
 
 	iAHistogramAbstractType getLayoutTypeAt(int comboBoxIndex);
@@ -66,8 +66,8 @@ public:
 
 private slots:
 	void layoutComboBoxIndexChanged(int newIndex);
-	void triangleWeightChanged(BCoord newWeights);
-	void weightsChangedSlot(BCoord newWeights);
+	void triangleWeightChanged(iABCoord newWeights);
+	void weightsChangedSlot(iABCoord newWeights);
 	void modalitiesLoaded_beforeUpdateSlot();
 
 private:

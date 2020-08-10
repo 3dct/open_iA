@@ -22,6 +22,8 @@
 
 #include <stdexcept>
 
+#include <itkConfigure.h>    // for ITK_VERSION...
+
 // Requirements:
 // |function| return type must be void
 //
@@ -87,7 +89,9 @@
 		break;                                              \
 	default:                                                \
 		throw itk::ExceptionObject(__FILE__, __LINE__,      \
-			"Typed Call: Unknown component type.");         \
+			QString("Typed Call: Unknown component type (%1).") \
+				.arg(static_cast<unsigned char>(itk_scalar_type)) \
+				.toStdString().c_str());                    \
 		break;                                              \
 	}                                                       \
 }
@@ -131,7 +135,7 @@
 		break;                                              \
 	default:                                                \
 		throw itk::ExceptionObject(__FILE__, __LINE__,      \
-			"Typed Call: Unknown component type.");         \
+			QString("Typed Call: Unknown component type (%1).").arg(itk_scalar_type).toStdString().c_str());\
 		break;                                              \
 	}                                                       \
 }
@@ -180,8 +184,7 @@
 		break;                                              \
 	default:                                                \
 	throw std::runtime_error(QString(                       \
-		"Typed Call: Unknown component type. File: %1:%2")  \
-		.arg(__FILE__).arg(__LINE__).toStdString().c_str());\
+		"Typed Call: Unknown component type (%1).").arg(vtk_scalar_type).toStdString()); \
 	break;                                                  \
 	}                                                       \
 }

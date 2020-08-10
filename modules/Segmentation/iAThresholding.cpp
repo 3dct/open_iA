@@ -402,10 +402,14 @@ IAFILTER_CREATE(iAParameterlessThresholding)
 
 iAParameterlessThresholding::iAParameterlessThresholding() :
 	iAFilter("Parameterless Thresholding", "Segmentation/Global Thresholding",
-		"Performs a \"parameterless\" global thresholding, that is, a thresholding"
-		"where the threshold is determined automatically based on the histogram."
+		"Performs a parameterless global thresholding (threshold determined automatically based on histogram).<br/>"
 		"Several different <em>Method</em>s for determining the threshold are available, "
-		"you can also set the <em>Number of histogram")
+		"you can also set the <em>Number of histogram bins</em> employed in the histogram used for determining the threshold. "
+		"The <em>Outside value</em> is assigned to values below the computed threshold value, the <em>Inside value</em> is assigned to values above threshold value.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuMultipleThresholdsImageFilter.html\">"
+		"Otsu Multiple Threshold Filter</a> in the ITK documentation."
+	)
 {
 	addParameter("Method", Categorical, GetParameterlessThresholdingNames());
 	addParameter("Number of histogram bins", Discrete, 128, 2);

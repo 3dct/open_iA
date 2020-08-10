@@ -21,7 +21,6 @@
 #include "iADreamCaster.h"
 
 #include "iAComparisonAndWeighting.h"
-#include "dlg_histogram_simple.h"
 #include "raycast/include/iACutFigList.h"
 #include "raycast/include/iARayTracer.h"
 #include "raycast/include/iAScene.h"
@@ -33,6 +32,9 @@
 #include "iAPaintWidget.h"
 #include "iAStabilityWidget.h"
 
+#include <charts/iAPlotTypes.h>
+#include <charts/iAChartWidget.h>
+#include <charts/iAHistogramData.h>
 #include <iAVtkWidget.h>
 #include <io/iAFileUtils.h>
 
@@ -77,6 +79,8 @@
 #include <QElapsedTimer>
 #include <QFileDialog>
 
+#include <algorithm>    // for std::fill
+
 #define DEG_IN_PI  180
 #define DEG2RAD M_PI/DEG_IN_PI
 
@@ -95,7 +99,6 @@ namespace
 	const QString SettingsWindowStateKey = "DreamCaster/windowState";
 }
 
-//#include "enable_memleak.h"
 const int CutAABSkipedSize = iACutAAB::getSkipedSizeInFile();
 const int RenderFromPositionSkipedSize = iARenderFromPosition::getSkipedSizeInFile();
 
@@ -147,46 +150,37 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	isStopped = false;
 
 	ui.setupUi(this);
-	connect(ui.openSTLFile,  SIGNAL(clicked()), this, SLOT(OpenModelSlot()));
-	///connect(ui.tb_openModel,  SIGNAL(clicked()), this, SLOT(OpenModelSlot()));
-	///connect(ui.actionShow_logs,  SIGNAL(triggered()), this, SLOT(ShowLogsSlot()));
-	connect(ui.saveTree,  SIGNAL(clicked()), this, SLOT(SaveTree()));
+	connect(ui.openSTLFile, &QPushButton::clicked, this, &iADreamCaster::OpenModelSlot);
+	connect(ui.saveTree, &QPushButton::clicked, this, &iADreamCaster::SaveTree);
 	logsUi.setupUi(ui.logsWidget);
-	//logs.show();
 	resUi.setupUi(&res);
 	settingsUi.setupUi(&settings);
-	connect(resUi.pb_Save, SIGNAL(clicked()), this, SLOT(SaveResultsSlot()));
-	connect(settingsUi.pb_SaveSettings, SIGNAL(clicked()), this, SLOT(SaveSettingsSlot()));
-	connect(settingsUi.pb_Reset,        SIGNAL(clicked()), this, SLOT(ResetSettingsSlot()));
-	//histUi.setupUi(&hist);
-	//connect(histUi.pb_update,  SIGNAL(clicked()), this, SLOT(UpdateHistogramSlot()));
-	//hist.show();
-	initHistograms();
+	connect(resUi.pb_Save, &QPushButton::clicked, this, &iADreamCaster::SaveResultsSlot);
+	connect(settingsUi.pb_SaveSettings, &QPushButton::clicked, this, &iADreamCaster::SaveSettingsSlot);
+	connect(settingsUi.pb_Reset, &QPushButton::clicked, this, &iADreamCaster::ResetSettingsSlot);
 	modelFileName = "No model opened";
 	setFileName = "";
 	formPainter = new QPainter();
-	//int s = VFRAME_W*VFRAME_H;
-	viewsBuffer = 0;//new Pixel[s];
-	//for ( int i = 0; i < s; i++ ) viewsBuffer[i] = 0;
-	//
+	viewsBuffer = nullptr;
 	comparisonTab = new iAParametersView(stngs.VFRAME_W, stngs.VFRAME_H, ui.w_comparison1, ui.w_comparison2, ui.w_comparison3);
 	//connect heightmaps of parameters on comparison tab to each other
 	for (unsigned int i=0; i<3; i++)
 	{
 		comparisonTab->paramWidgets[i].paintWidget->SetHighlightStyle(qcolYellow, 2.0);
-		connect(comparisonTab->paramWidgets[i].paintWidget, SIGNAL(mouseReleaseEventSignal(int, int)), this, SLOT(ComparisonTabPlacementPickedSlot(int, int)));
+		connect(comparisonTab->paramWidgets[i].paintWidget, QOverload<int,int>::of(&iAPaintWidget::mouseReleaseEventSignal),
+			this, &iADreamCaster::ComparisonTabPlacementPickedSlot);
 		for (unsigned int j = 0; j < 3; j++)
 		{
 			if (i != j)
 			{
-				connect(comparisonTab->paramWidgets[i].paintWidget, SIGNAL(ChangedSignal(double&, double&, double&)),
-					comparisonTab->paramWidgets[j].paintWidget, SLOT(UpdateSlot(double&, double&, double&)));
+				connect(comparisonTab->paramWidgets[i].paintWidget, &iAPaintWidget::ChangedSignal,
+					comparisonTab->paramWidgets[j].paintWidget, &iAPaintWidget::UpdateSlot);
 			}
 		}
 	}
-	//
 	weightingTab = new iACombinedParametersView(ui.w_results, stngs.VFRAME_W, stngs.VFRAME_H);
-	connect(weightingTab->results.paintWidget, SIGNAL(mouseReleaseEventSignal(int, int)), this, SLOT(WeightingResultsPlacementPickedSlot(int, int)));
+	connect(weightingTab->results.paintWidget, QOverload<int, int>::of(&iAPaintWidget::mouseReleaseEventSignal),
+		this, &iADreamCaster::WeightingResultsPlacementPickedSlot);
 	renderPxmp = new QPixmap(stngs.RFRAME_W, stngs.RFRAME_H);
 	float ratio = stngs.RFRAME_H/stngs.RFRAME_W;
 	RenderFrame = new iAPaintWidget(renderPxmp, ui.RenderViewWidget);
@@ -201,11 +195,11 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	ViewsFrame->setCursor(ui.HeightWidget->cursor());
 	ViewsFrame->SetHighlightStyle(qcolYellow, 2.0);
 	stabilityView = new iAStabilityWidget(ui.w_stabilityWidget);
-	stabilityView->setGeometry(0, 0, ui.w_stabilityWidget->geometry().width(), ui.w_stabilityWidget->geometry().height());
-	connect(ViewsFrame, SIGNAL(mouseReleaseEventSignal()), this, SLOT(RenderFrameMouseReleasedSlot()));
-	//
-	hist = new dlg_histogram_simple(ui.histWidget);
-	hist->setGeometry(0, 0, ui.histWidget->geometry().width(), ui.histWidget->geometry().height());
+	ui.w_stabilityWidget->layout()->addWidget(stabilityView);
+	connect(ViewsFrame, QOverload<>::of(&iAPaintWidget::mouseReleaseEventSignal), this, &iADreamCaster::RenderFrameMouseReleasedSlot);
+
+	hist = new iAChartWidget(ui.histWidget, "Penetration length", "Frequency");
+	ui.histWidget->layout()->addWidget(hist);
 
 	ren = vtkRenderer::New();
 
@@ -221,7 +215,11 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	ui.gridLayout_4->addWidget(qvtkPlot3d);
 	ui.gridLayout_1->addWidget(qvtkWeighing);
 
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkWidget->GetRenderWindow()->AddRenderer(ren);
+#else
+	qvtkWidget->renderWindow()->AddRenderer(ren);
+#endif
 	stlReader = vtkSTLReader::New();
 	mapper = vtkPolyDataMapper::New();
 	actor = vtkActor::New();
@@ -240,48 +238,18 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	depthSort = 0;
 	vtkInteractorStyleSwitch *style = vtkInteractorStyleSwitch::New();
 	style->SetCurrentStyleToTrackballCamera();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkWidget->GetInteractor()->SetInteractorStyle(style);
+#else
+	qvtkWidget->interactor()->SetInteractorStyle(style);
+#endif
 	style->Delete();
 
-	//
-//TODO: peredelat' pod openCL!!
-// 	int            deviceCount;
-// 	cudaDeviceProp devProp;
-// 	cudaGetDeviceCount ( &deviceCount );
-// 	this->log( QString("Found ")+QString::number(deviceCount)+ QString(" CUDA devices"));
-// 	if(deviceCount==0)//if no cuda devices disable cuda enable option
-// 	{
-// 		ui.cudaEnabled->setChecked(0);
-// 		ui.cudaEnabled->setDisabled(1);
-// 	}
-// 	int device;
-// 	for ( device = 0; device < deviceCount; device++ )
-// 	{
-// 		cudaGetDeviceProperties ( &devProp, device );
-//
-// 		this->log( "Device "+QString::number(device) );
-// 		this->log( "Compute capability "+QString::number(devProp.major)+QString::number(devProp.minor) );
-// 		this->log( "Name                   : "+QString(devProp.name) );
-// 		this->log( "mult.proc. on device   : "+QString::number(devProp.multiProcessorCount) );
-// 		this->log( "Total Global Memory    : "+QString::number(devProp.totalGlobalMem) );
-// 		this->log( "Shared memory per block: "+QString::number(devProp.sharedMemPerBlock) );
-// 		this->log( "Registers per block    : "+QString::number(devProp.regsPerBlock) );
-// 		this->log( "Warp size              : "+QString::number(devProp.warpSize) );
-// 		this->log( "Max threads per block  : "+QString::number(devProp.maxThreadsPerBlock) );
-// 		this->log( "Total constant memory  : "+QString::number(devProp.totalConstMem) );
-// 		this->log( "Maximum size of each dimension of a grid: ["+QString::number(devProp.maxGridSize[0])+", "+QString::number(devProp.maxGridSize[1])+", "+QString::number(devProp.maxGridSize[2])+"]");
-// 		this->log( "Maximum size of each dimension of a block:["+QString::number(devProp.maxThreadsDim[0])+", "+QString::number(devProp.maxThreadsDim[1])+", "+QString::number(devProp.maxThreadsDim[2])+"]");
-// 		this->log(" ");
-// 	}
-// 	//do batch size check
-// 	cudaGetDevice(&device);
-// 	cudaGetDeviceProperties ( &devProp, device );
-	//TODO: define constants in common namespace
 	#define THREAD_W 2
 	#define THREAD_H 32
 	#define MAX_BATCH_SIZE 500
-	int maxGridDim[3] = {2048, 2048, 2048};//{devProp.maxGridSize[0], devProp.maxGridSize[1], devProp.maxGridSize[2]};//TODO: peredelat' pod openCL!!
-	int maxBatchSize = 100;//maxGridDim[0] * THREAD_W / stngs.RFRAME_W;//TODO: peredelat' pod openCL!!
+	int maxGridDim[3] = {2048, 2048, 2048};
+	int maxBatchSize = 100;
 	if ((int)stngs.BATCH_SIZE > maxBatchSize)
 	{
 		this->log( "Warning: Batch size is too big for GPU compatibilities! Batch size decreased to: "+QString::number(maxBatchSize) );
@@ -294,53 +262,50 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	}
 	if (stngs.RFRAME_H/THREAD_H > maxGridDim[1])
 		this->log( "Warning: Resolution is too high for GPU compatibilities!");
-	//
+
 	cutFigList = new iACutFigList();
-	//
 	dcast = this;
 	//CONNECTIONS
-	connect(ui.pb_stop, SIGNAL(clicked()), this, SLOT(StopRenderingSlot()));
-	connect(ui.btnStart, SIGNAL(clicked()), this, SLOT(RenderSingleViewSlot()));
-	connect(ui.btnRenderViews, SIGNAL(clicked()), this, SLOT(RenderViewsSlot()));
-	///connect(ui.tb_new, SIGNAL(clicked()), this, SLOT(NewSetSlot()));
-	///connect(ui.tb_open, SIGNAL(clicked()), this, SLOT(OpenSetSlot()));
-	connect(ui.pbSetPosition, SIGNAL(clicked()), this, SLOT(pbSetPositionSlot()));
-	connect(ui.pb_grab3D, SIGNAL(clicked()), this, SLOT(pbGrab3DSlot()));
-	connect(ui.pbShowResults, SIGNAL(clicked()), this, SLOT(ShowResultsSlot()));
-	connect(ui.tb_opends,  SIGNAL(clicked()), this, SLOT(OpenSetSlot()));
-	connect(ui.tb_specifyds,  SIGNAL(clicked()), this, SLOT(NewSetSlot()));
-	connect(ui.configureSettings, SIGNAL(clicked()), this, SLOT(ConfigureSettingsSlot()));
-	connect(ui.cb_rangeParameter, SIGNAL(currentIndexChanged(int)), this, SLOT(CurrentParameterChangedSlot()));
-	connect(ui.hs_projection, SIGNAL(valueChanged(int)), this, SLOT(ProjectionChangedSlot()));
-	connect(ui.pb_showRays, SIGNAL(clicked()), this, SLOT(ShowRangeRays()));
-	connect(ui.pb_hideRays, SIGNAL(clicked()), this, SLOT(HideRays()));
-	connect(ui.pb_updatePlot, SIGNAL(clicked()), this, SLOT(UpdatePlotSlot()));
-	connect(ui.s_sensitivity, SIGNAL(valueChanged(int)), this, SLOT(SensitivityChangedSlot()));
-	connect(ui.cb_updateStabilityOnMouseMove, SIGNAL(clicked(bool)), this, SLOT(UpdateStabilityOnMouseMoveCheckedSlot()));
-	connect(ui.pb_update, SIGNAL(clicked()), this, SLOT(UpdateHistogramSlot()));
-	connect(ui.s_sensRes, SIGNAL(valueChanged(int)), this, SLOT(StabilityResolutionChangedSlot()));
-	connect(ui.hs_topPlacements, SIGNAL(valueChanged(int)), this, SLOT(TopPlacementsChangedSlot()));
-	connect(ui.s_lowCut1, SIGNAL(valueChanged(int)), this, SLOT(LowCutParam1Slot()));
-	connect(ui.s_lowCut2, SIGNAL(valueChanged(int)), this, SLOT(LowCutParam2Slot()));
-	connect(ui.s_lowCut3, SIGNAL(valueChanged(int)), this, SLOT(LowCutParam3Slot()));
-	connect(ui.pb_updateResults, SIGNAL(clicked()), this, SLOT(UpdateWeightingResultsSlot()));
-	connect(ui.s_lowCutRes, SIGNAL(valueChanged(int)), this, SLOT(LowCutWeightingResSlot()));
-	connect(ui.tb_add, SIGNAL(clicked()), this, SLOT(AddCutFigSlot()));
-	connect(ui.tb_remove, SIGNAL(clicked()), this, SLOT(RemoveCutFigSlot()));
-	connect(ui.listCutFig, SIGNAL(clicked(QModelIndex)), this, SLOT(CutFigPicked()));
-	connect(ui.s_aab_maxx, SIGNAL(valueChanged(int)), this, SLOT(CutFigParametersChanged()));
-	connect(ui.s_aab_maxy, SIGNAL(valueChanged(int)), this, SLOT(CutFigParametersChanged()));
-	connect(ui.s_aab_maxz, SIGNAL(valueChanged(int)), this, SLOT(CutFigParametersChanged()));
-	connect(ui.s_aab_minx, SIGNAL(valueChanged(int)), this, SLOT(CutFigParametersChanged()));
-	connect(ui.s_aab_miny, SIGNAL(valueChanged(int)), this, SLOT(CutFigParametersChanged()));
-	connect(ui.s_aab_minz, SIGNAL(valueChanged(int)), this, SLOT(CutFigParametersChanged()));
-	connect(ui.pb_colorAngles, SIGNAL(clicked()), this, SLOT(ColorBadAngles()));
-	connect(ui.pb_hideColoring, SIGNAL(clicked()), this, SLOT(HideColoring()));
-	connect(ui.push3DView, SIGNAL(clicked()), this, SLOT(maximize3DView()));
-	connect(ui.pushRaycast, SIGNAL(clicked()), this, SLOT(maximizeRC()));
-	connect(ui.pushPlacements, SIGNAL(clicked()), this, SLOT(maximizePlacements()));
-	connect(ui.pushStability, SIGNAL(clicked()), this, SLOT(maximizeStability()));
-	connect(ui.pushMaxTab, SIGNAL(clicked()), this, SLOT(maximizeBottom()));
+	connect(ui.pb_stop, &QPushButton::clicked, this, &iADreamCaster::StopRenderingSlot);
+	connect(ui.btnStart, &QPushButton::clicked, this, &iADreamCaster::RenderSingleViewSlot);
+	connect(ui.btnRenderViews, &QPushButton::clicked, this, &iADreamCaster::RenderViewsSlot);
+	connect(ui.pbSetPosition, &QPushButton::clicked, this, &iADreamCaster::pbSetPositionSlot);
+	connect(ui.pb_grab3D, &QPushButton::clicked, this, &iADreamCaster::pbGrab3DSlot);
+	connect(ui.pbShowResults, &QPushButton::clicked, this, &iADreamCaster::ShowResultsSlot);
+	connect(ui.tb_opends,  &QToolButton::clicked, this, &iADreamCaster::OpenSetSlot);
+	connect(ui.tb_specifyds, &QToolButton::clicked, this, &iADreamCaster::NewSetSlot);
+	connect(ui.configureSettings, &QPushButton::clicked, this, &iADreamCaster::ConfigureSettingsSlot);
+	connect(ui.cb_rangeParameter, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iADreamCaster::CurrentParameterChangedSlot);
+	connect(ui.hs_projection, &QSlider::valueChanged, this, &iADreamCaster::ProjectionChangedSlot);
+	connect(ui.pb_showRays, &QPushButton::clicked, this, &iADreamCaster::ShowRangeRays);
+	connect(ui.pb_hideRays, &QPushButton::clicked, this, &iADreamCaster::HideRays);
+	connect(ui.pb_updatePlot, &QPushButton::clicked, this, &iADreamCaster::UpdatePlotSlot);
+	connect(ui.s_sensitivity, &QSlider::valueChanged, this, &iADreamCaster::SensitivityChangedSlot);
+	connect(ui.cb_updateStabilityOnMouseMove, &QCheckBox::clicked, this, &iADreamCaster::UpdateStabilityOnMouseMoveCheckedSlot);
+	connect(ui.pb_update, &QPushButton::clicked, this, &iADreamCaster::UpdateHistogramSlot);
+	connect(ui.s_sensRes, &QSlider::valueChanged, this, &iADreamCaster::StabilityResolutionChangedSlot);
+	connect(ui.hs_topPlacements, &QSlider::valueChanged, this, &iADreamCaster::TopPlacementsChangedSlot);
+	connect(ui.s_lowCut1, &QSlider::valueChanged, this, &iADreamCaster::LowCutParam1Slot);
+	connect(ui.s_lowCut2, &QSlider::valueChanged, this, &iADreamCaster::LowCutParam2Slot);
+	connect(ui.s_lowCut3, &QSlider::valueChanged, this, &iADreamCaster::LowCutParam3Slot);
+	connect(ui.pb_updateResults, &QPushButton::clicked, this, &iADreamCaster::UpdateWeightingResultsSlot);
+	connect(ui.s_lowCutRes, &QSlider::valueChanged, this, &iADreamCaster::LowCutWeightingResSlot);
+	connect(ui.tb_add, &QToolButton::clicked, this, &iADreamCaster::AddCutFigSlot);
+	connect(ui.tb_remove, &QToolButton::clicked, this, &iADreamCaster::RemoveCutFigSlot);
+	connect(ui.listCutFig, &QListWidget::clicked, this, &iADreamCaster::CutFigPicked);
+	connect(ui.s_aab_maxx, &QSlider::valueChanged, this, &iADreamCaster::CutFigParametersChanged);
+	connect(ui.s_aab_maxy, &QSlider::valueChanged, this, &iADreamCaster::CutFigParametersChanged);
+	connect(ui.s_aab_maxz, &QSlider::valueChanged, this, &iADreamCaster::CutFigParametersChanged);
+	connect(ui.s_aab_minx, &QSlider::valueChanged, this, &iADreamCaster::CutFigParametersChanged);
+	connect(ui.s_aab_miny, &QSlider::valueChanged, this, &iADreamCaster::CutFigParametersChanged);
+	connect(ui.s_aab_minz, &QSlider::valueChanged, this, &iADreamCaster::CutFigParametersChanged);
+	connect(ui.pb_colorAngles, &QPushButton::clicked, this, &iADreamCaster::ColorBadAngles);
+	connect(ui.pb_hideColoring, &QPushButton::clicked, this, &iADreamCaster::HideColoring);
+	connect(ui.push3DView, &QToolButton::clicked, this, &iADreamCaster::maximize3DView);
+	connect(ui.pushRaycast, &QToolButton::clicked, this, &iADreamCaster::maximizeRC);
+	connect(ui.pushPlacements, &QToolButton::clicked, this, &iADreamCaster::maximizePlacements);
+	connect(ui.pushStability, &QToolButton::clicked, this, &iADreamCaster::maximizeStability);
+	connect(ui.pushMaxTab, &QToolButton::clicked, this, &iADreamCaster::maximizeBottom);
 	//restore previous window state
 	QSettings settingsStore;
 	if (settingsStore.contains(SettingsWindowStateKey))
@@ -348,72 +313,64 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 		QByteArray state = settingsStore.value(SettingsWindowStateKey).toByteArray();
 		restoreState(state, 0);
 	}
-	//plot3d stuff
 	plot3d = new iAPlot3DVtk;
-	//plot3d->GetRenderer()->GetActiveCamera()->SetParallelProjection(1);
 	plot3d->GetRenderer()->SetBackground(stngs.BG_COL_R/255.0, stngs.BG_COL_G/255.0, stngs.BG_COL_B/255.0);//(0,0,0);//
 	plot3d->GetRenderer()->SetBackground2(0.5, 0.66666666666666666666666666666667, 1);
-	qvtkPlot3d->GetRenderWindow()->AddRenderer(plot3d->GetRenderer());
 	vtkInteractorStyleSwitch *cube_style = vtkInteractorStyleSwitch::New();
 	cube_style->SetCurrentStyleToTrackballCamera();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	qvtkPlot3d->GetRenderWindow()->AddRenderer(plot3d->GetRenderer());
 	qvtkPlot3d->GetInteractor()->SetInteractorStyle(cube_style);
+#else
+	qvtkPlot3d->renderWindow()->AddRenderer(plot3d->GetRenderer());
+	qvtkPlot3d->interactor()->SetInteractorStyle(cube_style);
+#endif
 	cube_style->Delete();
 	plot3d->SetPalette(100, stngs.COL_RANGE_MIN_R, stngs.COL_RANGE_MIN_G, stngs.COL_RANGE_MIN_B, stngs.COL_RANGE_MAX_R, stngs.COL_RANGE_MAX_G, stngs.COL_RANGE_MAX_B);
 	plot3d->Update();
 	//TODO: callback not used?
 	vtkCallbackCommand* callback = vtkCallbackCommand::New();
-	//callback->SetCallback(&(plot3d->Pick));
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkPlot3d->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, callback, 1.0);
+#else
+	qvtkPlot3d->renderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, callback, 1.0);
+#endif
 	callback->Delete();
 	//plot3dWeighting stuff
 	plot3dWeighting = new iAPlot3DVtk;
 	plot3dWeighting->GetRenderer()->SetBackground(stngs.BG_COL_R/255.0, stngs.BG_COL_G/255.0, stngs.BG_COL_B/255.0);//(0,0,0);//
 	plot3dWeighting->GetRenderer()->SetBackground2(0.5, 0.66666666666666666666666666666667, 1);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkWeighing->GetRenderWindow()->AddRenderer(plot3dWeighting->GetRenderer());
+#else
+	qvtkWeighing->renderWindow()->AddRenderer(plot3dWeighting->GetRenderer());
+#endif
 	vtkInteractorStyleSwitch *cube_style2 = vtkInteractorStyleSwitch::New();
 	cube_style2->SetCurrentStyleToTrackballCamera();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkWeighing->GetInteractor()->SetInteractorStyle(cube_style2);
+#else
+	qvtkWeighing->interactor()->SetInteractorStyle(cube_style2);
+#endif
 	cube_style2->Delete();
 	plot3dWeighting->SetPalette(100, stngs.COL_RANGE_MIN_R, stngs.COL_RANGE_MIN_G, stngs.COL_RANGE_MIN_B, stngs.COL_RANGE_MAX_R, stngs.COL_RANGE_MAX_G, stngs.COL_RANGE_MAX_B);
 	plot3dWeighting->Update();
 
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	qvtkPlot3d->GetRenderWindow()->Render();
-	//
+#else
+	qvtkPlot3d->renderWindow()->Render();
+#endif
 	qvtkPlot3d->installEventFilter(this);
 	ui.RenderViewWidget->installEventFilter(this);
 	ui.HeightWidget->installEventFilter(this);
-	ui.w_stabilityWidget->installEventFilter(this);
-	ui.histWidget->installEventFilter(this);
-
 	ui.w_results->installEventFilter(this);
-
 	ui.w_comparison1->installEventFilter(this);
 	ui.w_comparison2->installEventFilter(this);
 	ui.w_comparison3->installEventFilter(this);
-	//
+
 	UpdateSlot();
 	UpdateStabilityOnMouseMoveCheckedSlot();
-}
-
-void iADreamCaster::initHistograms()
-{
-	///
-	/*QwtPlot * hplot = ui.histPlot;
-	hplot->setCanvasBackground(QColor(Qt::white));
-	hplot->setTitle("Histogram");
-	plotGrid.enableXMin(false);
-	plotGrid.enableYMin(false);
-	plotGrid.setMajPen(QPen(Qt::black, 0, Qt::DotLine));
-	plotGrid.setMinPen(QPen(Qt::gray, 0 , Qt::DotLine));
-	plotGrid.attach(hplot);
-
-	histogram.setColor(Qt::darkCyan);
-
-	histogram.attach(hplot);
-
-	//hplot->setAxisAutoScale(QwtPlot::yLeft);
-	//hplot->setAxisAutoScale(QwtPlot::xBottom);
-	hplot->replot();*/
 }
 
 void iADreamCaster::initRaycast()
@@ -450,9 +407,6 @@ void iADreamCaster::initRaycast()
 
 	loadModel();
 	setWindowTitle(QString("DreamCaster ")+modelFileName);
-	//readSTLFile("../datasets/ContourFilter.stl");
-	//readSTLFile("D:/MasterThesis/DreamCaster/datasets/ContourFilter.stl");
-	//readSTLFile("D:\\MasterThesis\\DreamCaster\\datasets\\cylinders.stl");
 
 	dcast = this;//for correct logging when there are several DC childs open
 	if (ui.rb_buldNewTree->isChecked())
@@ -482,7 +436,7 @@ void iADreamCaster::initRaycast()
 	ui.l_zmin2->setText(QString::number(tracer->scene()->getBSPTree()->m_aabb.z1));
 	ui.l_zmax1->setText(QString::number(tracer->scene()->getBSPTree()->m_aabb.z2));
 	ui.l_zmax2->setText(QString::number(tracer->scene()->getBSPTree()->m_aabb.z2));
-	//setup VTK stuff
+
 	setup3DView();
 
 	size_t tri_count = tracer->scene()->getNrTriangles();
@@ -499,8 +453,6 @@ void iADreamCaster::initRaycast()
 	{
 		nodes.push_back(*(tracer->scene()->getBSPTree()->nodes[i]));
 	}
-
-	//TODO!!
 	try
 	{
 		tracer->AllocateOpenCLBuffers();
@@ -525,22 +477,15 @@ iADreamCaster::~iADreamCaster()
 	QByteArray state = saveState(0);
 	settingsStore.setValue("DreamCaster/windowState", state);
 
-	ClearPrevData();//plotData,rotations,plotColumnData
+	ClearPrevData();
 	delete scrBuffer;
 	delete cutFigList;
 	delete [] cuda_avpl_buff;
 	delete [] cuda_dipang_buff;
-	///
-	/*histogram.detach();
-	plotGrid.detach();
-	if(plot)
-		delete plot;*/
 	delete comparisonTab;
 	delete weightingTab;
-	//
 	delete formPainter;
 	delete [] viewsBuffer;
-	//
 	delete RenderFrame;
 	delete ViewsFrame;
 	delete renderPxmp;
@@ -549,7 +494,7 @@ iADreamCaster::~iADreamCaster()
 	delete plot3d;
 	delete plot3dWeighting;
 	delete hist;
-	//
+
 	//VTK cleanup
 	stlReader->Delete();
 	mapper->Delete();
@@ -595,7 +540,6 @@ void iADreamCaster::OpenModelSlot()
 	initRaycast();
 	log("Opened model size (triangles):");
 	log(QString::number(mdata.stlMesh.size()),true);
-	///ui.l_modelName->setText(modelFileName);
 	modelOpened = true;
 	for (int i=0; i<cutFigList->count(); i++)
 	{
@@ -658,9 +602,7 @@ void iADreamCaster::RenderViewsSlot()
 	curIndX=0;
 	curIndY=0;
 	curIndZ=0;
-	//delete prev data
-	ClearPrevData();//plotData,rotations,plotColumnData
-	//
+	ClearPrevData();
 	renderCntX = ui.sb_countX->value();
 	if (ui.cb_RadonSA->currentIndex() == 2)
 	{
@@ -677,8 +619,8 @@ void iADreamCaster::RenderViewsSlot()
 	}
 	int s = renderCntX* renderCntZ;
 	viewsBuffer = new unsigned int[s];
-	memset(viewsBuffer, 0, s*sizeof(viewsBuffer[0]));
-	AllocateData();//plotData,rotations,plotColumnData
+	std::fill(viewsBuffer, viewsBuffer+s, 0);
+	AllocateData();
 
 	unsigned int curRend=0;
 	float minValX = ui.sb_min_x->value()*DEG2RAD;
@@ -715,7 +657,6 @@ void iADreamCaster::RenderViewsSlot()
 	{
 		cutFigList->item(i)->Write2File(fptr);
 	}
-	//
 	int totalTime=0;
 	QElapsedTimer totalQTime;
 	totalQTime.start();
@@ -800,9 +741,8 @@ void iADreamCaster::RenderViewsSlot()
 		ui.l_ttime->setText(QString(t2));
 		ui.simulationProgress->setValue(100);
 	}
-	else if(ui.cudaEnabled->isChecked())//using GPU
+	else if(ui.cbOpenCLEnabled->isChecked())//using GPU
 	{
-		SetupGPUBuffers();
 		int counter = 0;
 		unsigned int batch_counter=0;
 		//batch parameters for every render
@@ -917,7 +857,6 @@ void iADreamCaster::RenderViewsSlot()
 					tracer->curBatchRenders[batch].badAreaPercentage = placementsParams[ xs[batch] ][ zs[batch] ].badAreaPercentage;
 					//write data to file
 					tracer->curBatchRenders[batch].write2BinaryFile(fptr, ui.cb_saveAdditionalData->isChecked());
-					//
 					rotationsParams[ xs[batch] ][ ys[batch] ][ zs[batch] ].avPenLen = tracer->curBatchRenders[batch].avPenetrLen;
 					rotationsParams[ xs[batch] ][ ys[batch] ][ zs[batch] ].avDipAng = tracer->curBatchRenders[batch].avDipAngle;
 					rotationsParams[ xs[batch] ][ ys[batch] ][ zs[batch] ].maxPenLen = tracer->curBatchRenders[batch].maxPenetrLen;
@@ -955,19 +894,12 @@ void iADreamCaster::RenderViewsSlot()
 						{
 							s1_cur_param = 1.f;
 						}
-						//Pixel lencol = (lenval << 16) + (0 << 8) + (255-lenval);
 						unsigned int s1_lencol = ((unsigned int)(stngs.COL_RANGE_MIN_R+stngs.COL_RANGE_DR*s1_cur_param) << 16) +
 							((unsigned int)(stngs.COL_RANGE_MIN_G+stngs.COL_RANGE_DG*s1_cur_param) << 8) +
 							(unsigned int)(stngs.COL_RANGE_MIN_B+stngs.COL_RANGE_DB*s1_cur_param);
 						viewsBuffer[ xs[batch] + zs[batch]* renderCntX] = s1_lencol;
 					}
 				}
-				///plot->loadFromData(plotData, cntX, cntY, 0,1,0,1);
-				//if(max_param==0)
-				//	max_param=1;
-				///plot->setScale(1.,1., 1./max_param);
-				///plot->updateData();
-				///plot->updateGL();
 				UpdateSlot();
 				RenderFrame->repaint();
 				stabilityView->repaint();
@@ -1032,7 +964,6 @@ void iADreamCaster::RenderViewsSlot()
 					}
 					QElapsedTimer localTime;
 					localTime.start();//int fstart = GetTickCount();
-					//while (!tracer->Render()) UpdateSlot();
 					Render(vp_corners, vp_delta, &o, true);
 					int ftime = localTime.elapsed();// GetTickCount() - fstart;
 					char t[] = "00:00.000";
@@ -1048,41 +979,9 @@ void iADreamCaster::RenderViewsSlot()
 					tracer->curRender.badAreaPercentage = placementsParams[x][z].badAreaPercentage;
 					//write data to file
 					tracer->curRender.write2BinaryFile(fptr, ui.cb_saveAdditionalData->isChecked());
-					//
-					/*float cur_param;// = tracer->curRender.m_avPenetrLen;
-					switch(paramIndex)
-					{
-					case 0:
-						cur_param = tracer->curRender.m_avPenetrLen;
-						break;
-					case 1:
-						cur_param = tracer->curRender.m_avDipAngle;
-						break;
-					case 2:
-						cur_param = tracer->curRender.m_maxPenetrLen;
-						break;
-					default:
-						break;
-					}
-					plotData[x][y][z] = cur_param;*/
-
 					rotationsParams[x][y][z].avPenLen = tracer->curRender.avPenetrLen;
 					rotationsParams[x][y][z].avDipAng = tracer->curRender.avDipAngle;
 					rotationsParams[x][y][z].maxPenLen = tracer->curRender.maxPenetrLen;
-
-					/*switch(paramIndex)
-					{
-					case 0:
-						plotColumnData[x][z] += cur_param;
-						break;
-					case 1:
-						plotColumnData[x][z] += cur_param;
-						break;
-					case 2:
-						if(cur_param > plotColumnData[x][z])
-							plotColumnData[x][z] = cur_param;
-						break;
-					}*/
 					placementsParams[x][z].avPenLen += rotationsParams[x][y][z].avPenLen;
 					placementsParams[x][z].avDipAng += rotationsParams[x][y][z].avDipAng;
 					if (rotationsParams[x][y][z].maxPenLen > placementsParams[x][z].maxPenLen)
@@ -1094,25 +993,8 @@ void iADreamCaster::RenderViewsSlot()
 					counter++;
 				}
 
-				/*switch(paramIndex)
-				{
-				case 0:
-					plotColumnData[x][z] /= cntY;
-					break;
-				case 1:
-					plotColumnData[x][z] /= cntY;
-					break;
-				case 2:
-					;
-					break;
-				}*/
 				placementsParams[x][z].avPenLen /= renderCntY;
 				placementsParams[x][z].avDipAng /= renderCntY;
-				//if(plotColumnData[x][z] > max_param)
-				//	max_param =  plotColumnData[x][z];
-				//if(plotColumnData[x][z] < min_param)
-				//	min_param =  plotColumnData[x][z];
-				//float avlen = 0.5f*cur_param/SCALE_COEF;
 				float cur_param = 0.0f;
 				switch(paramIndex)
 				{
@@ -1144,12 +1026,6 @@ void iADreamCaster::RenderViewsSlot()
 				RenderFrame->repaint();
 				stabilityView->repaint();
 				app->processEvents();
-				///plot->loadFromData(plotData, renderCntX, renderCntY, 0,1,0,1);
-				//if(max_param==0)
-				//	max_param=1;
-				///plot->setScale(1.,1., 1./max_param);
-				///plot->updateData();
-				///plot->updateGL();
 			}
 		}
 		totalTime = totalQTime.elapsed();//GetTickCount() - totalStart;
@@ -1170,20 +1046,11 @@ void iADreamCaster::UpdateHistogramSlot()
 	{
 		return;
 	}
-	///SetMemLeakCheckActive(true);
-	const unsigned int numIntervals = ui.sb_bars->value();
+	const unsigned int numBins = ui.sb_bars->value();
 	const double min_x = ui.sb_x_min->value();
 	const double max_x = ui.sb_x_max->value();
-	const double maxval = max_x - min_x;
-	const double width = maxval / ((double)numIntervals);
-	double dataRange[2] = {min_x, max_x};
-	std::vector<unsigned int> values;
-	for (unsigned int i = 0; i < numIntervals; i++)
-	{
-		values.push_back(0);
-	}
+	std::vector<double> values;
 
-	unsigned int numValues;
 	tracer->SetCutAABBList(&(cutFigList->aabbs));
 	int startY = curIndY;//for single rendering
 	int endY = curIndY + 1;
@@ -1209,37 +1076,26 @@ void iADreamCaster::UpdateHistogramSlot()
 		iAVec3f vp_corners[2];// plane's corners in 3d
 		iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
 		InitRender(vp_corners, vp_delta, &o);
-
-		if (ui.cudaEnabled->isChecked())
-		{
-			SetupGPUBuffers();
-		}
 		Render(vp_corners, vp_delta, &o, true);
 		iARenderFromPosition * curRender = &tracer->curRender;
 		//////////////////////////////////////////////////////////////////////////
-		numValues = (unsigned int) curRender->rays.size();
-		for (unsigned int i = 0; i < numValues; i++ )
+		for (unsigned int i = 0; i < curRender->rays.size(); i++ )
 		{
 			double rayPenLen = curRender->rays[i]->totalPenetrLen;
 			if (rayPenLen < min_x || rayPenLen > max_x)
 			{
 				continue;
 			}
-			int bar = (int)((rayPenLen - min_x) / width);
-			if (bar < (int)numIntervals)
-			{
-				values[bar]++;
-			}
+			values.push_back(rayPenLen);
 		}
-		//curRender->clear();
-		//delete curRender;
 		delete readRender;
 		app->processEvents();
 	}
-	hist->initialize(&values[0], numIntervals, dataRange);
-	hist->drawHistogram();
-	// DumpUnfreed();
-	// SetMemLeakCheckActive(false);
+	hist->clearPlots();
+	auto histData = iAHistogramData::create(values, numBins, Continuous, min_x, max_x);
+	auto histPlot = QSharedPointer<iAPlot>(new iABarGraphPlot(histData, QColor(0, 0, 255, 255)));
+	hist->addPlot(histPlot);
+	hist->update();
 }
 
 void iADreamCaster::RenderSingleViewSlot()
@@ -1274,8 +1130,6 @@ void iADreamCaster::RenderSingleViewSlot()
 	QElapsedTimer time;
 	time.start();
 	//fstart = GetTickCount();
-	if(ui.cudaEnabled->isChecked())
-		SetupGPUBuffers();
 	tracer->SetCutAABBList(&cutFigList->aabbs);
 	Render(vp_corners, vp_delta, &o, false);
 	ftime = time.elapsed();//GetTickCount() - fstart;
@@ -1302,7 +1156,6 @@ void iADreamCaster::RenderSingleViewSlot()
 	cutAABActor->RotateZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curZ->value()));
 	cutAABActor->SetPosition(pos[0], pos[1], pos[2]);
 	UpdateSlot();
-	//UpdateHistogramSlot();
 }
 
 void iADreamCaster::UpdateSlot()
@@ -1442,14 +1295,11 @@ void iADreamCaster::readRenderFromBinaryFile(unsigned int x, unsigned int y, uns
 		}
 		rend->intersections.push_back(new iAIntersection(tri_index, cos_ang));
 	}
-	//that's all, folks
 	fclose(fptr);
 }
 
 void iADreamCaster::closeEvent ( QCloseEvent * /*event*/ )
 {
-	//hist.close();
-	//logs.close();
 	res.close();
 }
 
@@ -1467,7 +1317,6 @@ void iADreamCaster::setup3DView()
 	vtkIdType tids[3] = {0,1,2};
 	vtkDoubleArray* scalars = vtkDoubleArray::New();
 	scalars->SetNumberOfComponents(1);
-	//scalars->SetNumberOfTuples(stlMesh.size());
 	scalars->SetNumberOfValues(mdata.stlMesh.size());
 	for (unsigned int i=0; i<mdata.stlMesh.size(); i++)
 	{
@@ -1486,23 +1335,6 @@ void iADreamCaster::setup3DView()
 	modelPolys->Delete();
 	modelPD->GetCellData()->SetScalars((vtkDataArray*)scalars);
 	scalars->Delete();
-
-	//VTK window
-	//model
-	//no need in vtk stl-loader, we use own crooked loader =)
-	///stlReader->SetFileName (modelFileName.toAscii().constData()); //param: char * filename
-	///stlReader->Update();
-	//transform
-	// 	vtkTransform * scale_center = vtkTransform::New();
-	// 	float scale_coef, translate[3];
-	// 	scale_center->Translate(getTranslate());
-	// 	scale_center->Scale(scale, scale, scale);
-	// 	vtkTransformPolyDataFilter* transformer = vtkTransformPolyDataFilter::New();
-	// 	transformer->SetInputConnection(stlReader->GetOutputPort());
-	// 	transformer->SetTransform(scale_center);
-
-	//mapper->ImmediateModeRenderingOff();
-	//mapper->SetInput(stlReader->GetOutput());//transformer->GetOutput());
 	mapper->SetInputData(modelPD);
 	mapper->SetScalarRange(0,100);
 	vtkLookupTable *lt = (vtkLookupTable*)mapper->GetLookupTable();
@@ -1637,11 +1469,6 @@ void iADreamCaster::ShowRangeRays()
 	iAVec3f vp_corners[2];// plane's corners in 3d
 	iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
 	InitRender(vp_corners, vp_delta, &o);
-
-	if (ui.cudaEnabled->isChecked())
-	{
-		SetupGPUBuffers();
-	}
 	tracer->SetCutAABBList(&cutFigList->aabbs);
 	Render(vp_corners, vp_delta, &o, true);
 	for (unsigned int i = 0; i < curRender->rays.size(); i++)
@@ -1671,7 +1498,6 @@ void iADreamCaster::ShowRangeRays()
 			iARayPenetration* tpl = curRender->rays[i];
 			if(tpl->totalPenetrLen>=rmin && tpl->totalPenetrLen<=rmax)
 			{
-				//TODO: ,         ,
 				raysPts->InsertNextPoint(stngs.PLANE_H_W-(2*tpl->m_X)*deltax,  stngs.PLANE_H_H-(2*tpl->m_Y)*deltay, stngs.PLANE_Z);
 				raysCount++;
 				a_cell[1] = raysCount;
@@ -1702,115 +1528,8 @@ void iADreamCaster::ShowRangeRays()
 		pd->Delete();
 		pdProj->Delete();
 
-		/*if (depthSort!=0) {
-			depthSort->Delete();
-			depthSort = 0;
-		}
-		depthSort = vtkDepthSortPolyData::New();
-		depthSort->SetCamera(ren->GetActiveCamera());
-		depthSort->SetDepthSortModeToParametricCenter();
-		depthSort->SetDirectionToBackToFront();
-		depthSort->SetInput(mapper->GetInput());
-		mapper->SetInput(depthSort->GetOutput());
-		mapper->Update();
-		actor->SetMapper(mapper);*/
-		//actor->GetProperty()->SetOpacity(0.9);
 		planeActor->GetProperty()->SetOpacity(1.0);
-
-		/*vtkCameraPass *cameraP=vtkCameraPass::New();
-
-		vtkSequencePass *seq=vtkSequencePass::New();
-		vtkOpaquePass *opaque=vtkOpaquePass::New();
-		vtkDepthPeelingPass *peeling=vtkDepthPeelingPass::New();
-		peeling->SetMaximumNumberOfPeels(200);
-		peeling->SetOcclusionRatio(0.1);
-
-		vtkTranslucentPass *translucent=vtkTranslucentPass::New();
-		peeling->SetTranslucentPass(translucent);
-		vtkLightsPass *lights=vtkLightsPass::New();
-
-		vtkRenderPassCollection *passes=vtkRenderPassCollection::New();
-		passes->AddItem(lights);
-		passes->AddItem(opaque);
-		passes->AddItem(peeling);
-		//  passes->AddItem(translucent);
-
-		seq->SetPasses(passes);
-		cameraP->SetDelegatePass(seq);
-
-		ren->SetPass(cameraP);
-		//  renderer->SetPass(cameraP);
-
-		opaque->Delete();
-		peeling->Delete();
-		translucent->Delete();
-		seq->Delete();
-		passes->Delete();
-		cameraP->Delete();
-		lights->Delete();*/
-
-		/*//SETUP DEPTH PEELING
-		vtkRenderWindow *renderWindow = ren->GetRenderWindow();
-		renderWindow->SetAlphaBitPlanes(true);
-		// 2. Force to not pick a framebuffer with a multisample buffer
-		// (as initial value is 8):
-		//renderWindow->SetMultiSamples(8);
-		// 3. Choose to use depth peeling (if supported) (initial value is 0 (false)):
-		ren->SetUseDepthPeeling(true);
-		// 4. Set depth peeling parameters
-		// - Set the maximum number of rendering passes (initial value is 4):
-		ren->SetMaximumNumberOfPeels(10);
-		// - Set the occlusion ratio (initial value is 0.0, exact image):
-		ren->SetOcclusionRatio(0.0);*/
-
 	}//av. penetration parameter choosed
-	/*else//dip angle cos parameter choosed
-	{
-		//clear prev scalars
-		vtkDataArray *da = vtkFloatArray::New();//mapper->GetInput()->GetCellData()->GetScalars();
-		da->SetNumberOfComponents(1);
-		da->SetNumberOfTuples(0);
-		double val=0.0;
-		unsigned int numTris = mapper->GetInput()->GetNumberOfPolys();
-		unsigned int * numTriHits = new unsigned int[numTris];
-		double * scalars = new double[numTris];
-		for (unsigned int i=0; i<numTris; i++)
-		{
-			da->InsertNextTuple1(val);
-			numTriHits[i]=0;
-			scalars[i]=0;
-		}
-		//
-		const unsigned int numValues = curRender->intersections.size();
-		double rmin = ui.sb_range_min->value();
-		double rmax = ui.sb_range_max->value();
-		//check all intersections of current render, if they are in defined range
-		float abscos;
-		unsigned int tri_ind;
-		for (unsigned int i = 0; i < numValues; i++ )
-		{
-			iAIntersection* tpl = curRender->intersections[i];
-			abscos = abs(tpl->dip_angle);
-			if(abscos>=rmin && abscos<=rmax)
-			{
-				//colour corresponding tris
-				val = (abscos-rmin)/(rmax-rmin)*100;
-				//val=100;
-				tri_ind=tpl->tri_index;
-				numTriHits[tri_ind]++;
-				scalars[tri_ind]+=val;
-			}
-		}
-		for (unsigned int i = 0; i < numTris; i++ )
-		{
-			da->SetTuple1(i, scalars[i]/numTriHits[i]);
-		}
-		delete [] numTriHits;
-		delete [] scalars;
-		mapper->GetInput()->GetCellData()->SetScalars(da);
-		da->Delete();
-		mapper->ScalarVisibilityOn();
-	}*/
 
 	UpdateSlot();
 }
@@ -1848,7 +1567,6 @@ void iADreamCaster::pbGrab3DSlot()
 	ui.sb_posy_2->setValue(pos[1]);
 	ui.sb_posz_2->setValue(pos[2]);
 	actor->GetOrientation(rot);
-	//actor->SetOrientation(rot[0], rot[1], 0);
 	rot[0]=vtkMath::RadiansFromDegrees(rot[0])/M_PI;
 	rot[1]=vtkMath::RadiansFromDegrees(rot[1])/M_PI;
 	if (rot[0] < 0)
@@ -1879,9 +1597,7 @@ void iADreamCaster::UpdatePlotSlot()
 		log("Error! Cannot open set file for reading.");
 		return;
 	}
-	//delete prev data
-	ClearPrevData();//plotData,rotations,plotColumnData
-	//
+	ClearPrevData();
 	float minValX, maxValX, minValZ, maxValZ;
 
 	if (fread(&renderCntX, sizeof(renderCntX), 1, fptr) != 1 ||
@@ -1947,9 +1663,9 @@ void iADreamCaster::UpdatePlotSlot()
 	}
 	int s = renderCntX * renderCntZ;
 	viewsBuffer = new unsigned int[s];
-	memset(viewsBuffer, 0, s*sizeof(viewsBuffer[0]));
+	std::fill(viewsBuffer, viewsBuffer+s, 0);
 
-	AllocateData();//plotData, rotations, plotColumnData
+	AllocateData();
 	unsigned int raysSize;
 	unsigned int isecSize;
 	float avpl;
@@ -1999,7 +1715,6 @@ void iADreamCaster::UpdatePlotSlot()
 				if (fread(&set_pos[0], sizeof(float), 1, fptr) != 1 ||
 					fread(&set_pos[1], sizeof(float), 1, fptr) != 1 ||
 					fread(&set_pos[2], sizeof(float), 1, fptr) != 1 ||
-					//fseek(fptr, 4*3, SEEK_CUR);//skip postition
 					fread(&avpl, sizeof(avpl), 1, fptr) != 1 ||
 					fread(&avang, sizeof(avang), 1, fptr) != 1 ||
 					fread(&maxpl, sizeof(maxpl), 1, fptr) != 1 ||
@@ -2009,43 +1724,10 @@ void iADreamCaster::UpdatePlotSlot()
 					log("Reading file failed - expected number of bytes read does not match actual number of bytes read.");
 					return;
 				}
-				/*switch(paramIndex)
-				{
-				case 0:
-					curParam = avpl;
-					break;
-				case 1:
-					curParam = avang;
-					break;
-				case 2:
-					curParam = maxpl;
-					break;
-				default:
-					break;
-				}
-				rotationsParams[x][y][z] = curParam;
-				*/
 				rotationsParams[x][y][z].avPenLen = avpl;
 				rotationsParams[x][y][z].avDipAng = avang;
 				rotationsParams[x][y][z].maxPenLen = maxpl;
 				rotationsParams[x][y][z].badAreaPercentage = badArPrcnt;
-
-				/*switch(paramIndex)
-				{
-				case 0:
-					placementsParams[x][z] += curParam;
-					break;
-				case 1:
-					placementsParams[x][z] += curParam;
-					break;
-				case 2:
-					if(curParam > placementsParams[x][z])
-						placementsParams[x][z] = curParam;
-					break;
-				default:
-					break;
-				}
-				*/
 				placementsParams[x][z].avPenLen += rotationsParams[x][y][z].avPenLen;
 				placementsParams[x][z].avDipAng += rotationsParams[x][y][z].avDipAng;
 				if (rotationsParams[x][y][z].maxPenLen > placementsParams[x][z].maxPenLen)
@@ -2068,20 +1750,6 @@ void iADreamCaster::UpdatePlotSlot()
 	{
 		for (int z = 0; z < renderCntZ; z++)
 		{
-			/*switch(paramIndex)
-			{
-			case 0:
-				placementsParams[x][z] /= cntY;
-				break;
-			case 1:
-				placementsParams[x][z] /= cntY;
-				break;
-			case 2:
-				;
-				break;
-			default:
-				break;
-			}*/
 			placementsParams[x][z].avPenLen /= renderCntY;
 			placementsParams[x][z].avDipAng /= renderCntY;
 
@@ -2106,7 +1774,7 @@ void iADreamCaster::UpdatePlotSlot()
 	paramMax = max_param;
 	datasetOpened = true;
 	SensitivityChangedSlot();
-///
+
 	double * scalarVals = new double[renderCntX*renderCntZ];
 	double * plotData = new double[renderCntX*renderCntZ];
 	double lookupNumber = plot3d->GetNumberOfLookupTableValues();
@@ -2145,33 +1813,23 @@ void iADreamCaster::UpdatePlotSlot()
 	}
 	//Comparison and weighting tabs
 	weightingTab->results.AllocateBuffer(renderCntX, renderCntZ);
-	//TODO: vynesty vverh indices
 	for (unsigned int i=0; i<3; i++)
 	{
-		/*if(i==1)
-			i++;*/
 		comparisonTab->paramWidgets[i].AllocateBuffer(renderCntX, renderCntZ);
-		//weightingTab->paramWidgets[i].AllocateBuffer(cntX, cntZ);
 		fillParamBuffer(comparisonTab->paramWidgets[i].buffer, indices[i]);
-		//fillParamBuffer(weightingTab->paramWidgets[i].buffer, indices[i]);
 	}
 	comparisonTab->Update();
 	weightingTab->Update();
-///
+
 	//plot3D fill with data
 	plot3d->SetUserScalarRange(0, 100);
-	/*double *plotData = new double[cntX*cntZ];
-	for (int z=0; z<cntZ; z++)
-		for (int x=0; x<cntX; x++)
-			plotData[x + z*cntX] = (placementsParams[x][z])[paramIndex];*/
 	plot3d->loadFromData(plotData, scalarVals, renderCntX, renderCntZ);
 	plot3d->ShowWireGrid(1, 0,0,0);
 	plot3d->Update();
 	plot3d->GetRenderer()->GetRenderWindow()->Render();
 	delete [] plotData;
 	delete [] scalarVals;
-///
-	//plot->setScale(1.,1., 1./scalec);
+
 	if(renderCntX || renderCntZ)
 	{
 		double **localPlotData = new double*[renderCntX];
@@ -2186,7 +1844,6 @@ void iADreamCaster::UpdatePlotSlot()
 				localPlotData[x][z] = (placementsParams[x][z])[paramIndex];
 			}
 		}
-		//plot->loadFromData(plotData, cntX, cntZ, 0,1,0,1);
 		if(localPlotData)
 		{
 			for (int x=0; x < renderCntX; x++)
@@ -2199,10 +1856,7 @@ void iADreamCaster::UpdatePlotSlot()
 			delete [] localPlotData;
 		}
 	}
-	//plot->updateData();
-	//plot->updateGL();
 	UpdateSlot();
-	//that's all, folks
 	fclose(fptr);
 }
 
@@ -2232,15 +1886,6 @@ void iADreamCaster::RenderFrameMouseReleasedSlot()
 	}
 	curIndZ = buf;
 	setPickedPlacement(curIndX, curIndY, curIndZ);
-	/*int inds[2] = {(int)curIndX, (int)curIndZ};
-	ViewsFrame->SetHiglightedIndices(&inds[0], &inds[1], 1);
-	ViewsFrame->update();
-	plot3d->setPicked(inds[0], inds[1]);
-	UpdateInfoLabels();
-	if(ui.cb_UpdateViews->isChecked() && modelOpened && datasetOpened)
-		UpdateView();
-	UpdateStabilityWidget();
-	//log("Yes!");*/
 }
 
 void iADreamCaster::ShowResultsSlot()
@@ -2659,11 +2304,11 @@ void iADreamCaster::UpdateStabilityOnMouseMoveCheckedSlot()
 {
 	if (ui.cb_updateStabilityOnMouseMove->isChecked())
 	{
-		connect(ViewsFrame, SIGNAL(mouseMoveEventSignal()), this, SLOT(ViewsMouseMoveSlot()));
+		connect(ViewsFrame, &iAPaintWidget::mouseMoveEventSignal, this, &iADreamCaster::ViewsMouseMoveSlot);
 	}
 	else
 	{
-		disconnect(ViewsFrame, SIGNAL(mouseMoveEventSignal()), this, SLOT(ViewsMouseMoveSlot()));
+		disconnect(ViewsFrame, &iAPaintWidget::mouseMoveEventSignal, this, &iADreamCaster::ViewsMouseMoveSlot);
 	}
 }
 
@@ -2691,7 +2336,6 @@ void iADreamCaster::CurrentParameterChangedSlot()
 
 void iADreamCaster::ClearPrevData()
 {
-	//plotData
 	if(rotationsParams)
 	{
 		for (int x=0; x< renderCntX; x++)
@@ -2710,7 +2354,6 @@ void iADreamCaster::ClearPrevData()
 		}
 		delete [] rotationsParams;
 	}
-	//rotations
 	if(rotations)
 	{
 		for (int x=0; x< renderCntX; x++)
@@ -2729,7 +2372,6 @@ void iADreamCaster::ClearPrevData()
 		}
 		delete [] rotations;
 	}
-	//plotColumnData
 	if(placementsParams)
 	{
 		for (int x=0; x< renderCntX; x++)
@@ -2741,7 +2383,6 @@ void iADreamCaster::ClearPrevData()
 		delete [] placementsParams;
 		placementsParams=0;
 	}
-	//weightedParams
 	if(weightedParams)
 	{
 		for (int x=0; x< renderCntX; x++)
@@ -2759,7 +2400,6 @@ void iADreamCaster::ClearPrevData()
 
 void iADreamCaster::AllocateData()
 {
-	//plotData
 	rotationsParams = new iAparameters_t**[renderCntX];
 	for (int x = 0; x < renderCntX; x++)
 	{
@@ -2769,7 +2409,6 @@ void iADreamCaster::AllocateData()
 			rotationsParams[x][y] = new iAparameters_t[renderCntZ];
 		}
 	}
-	//rotations
 	rotations = new iArotation_t**[renderCntX];
 	for (int x = 0; x < renderCntX; x++)
 	{
@@ -2779,13 +2418,11 @@ void iADreamCaster::AllocateData()
 			rotations[x][y] = new iArotation_t[renderCntZ];
 		}
 	}
-	//plotColumnData
 	placementsParams = new iAparameters_t*[renderCntX];
 	for (int x = 0; x < renderCntX; x++)
 	{
 		placementsParams[x] = new iAparameters_t[renderCntZ];
 	}
-	//weightedParams
 	weightedParams = new double*[renderCntX];
 	for (int x = 0; x < renderCntX; x++)
 	{
@@ -2810,7 +2447,6 @@ void iADreamCaster::ProjectionChangedSlot()
 
 void iADreamCaster::UpdateView()
 {
-	// go
 	tracer->setPositon(set_pos);
 	tracer->setRotations(M_PI*rotations[curIndX][curIndY][curIndZ].rotX, M_PI*rotations[curIndX][curIndY][curIndZ].rotY, M_PI*rotations[curIndX][curIndY][curIndZ].rotZ);
 	iAVec3f o; // rays' origin point
@@ -3763,28 +3399,6 @@ void iADreamCaster::StopRenderingSlot()
 	isStopped = true;
 }
 
-void iADreamCaster::SetupGPUBuffers()
-{
-	/*unsigned int tri_count = (unsigned int) tracer->scene()->getNrTriangles();
-	unsigned int nodes_count = tracer->scene()->getBSPTree()->nodes.size();
-	const unsigned int id_count = tracer->scene()->getBSPTree()->tri_ind.size();
-	// Bind all textures
-	try
-	{
-		tracer->setup_nodes(&nodes[0], nodes_count);
-		tracer->setup_tris(&wald[0], tri_count);
-		tracer->setup_ids(&tracer->scene()->getBSPTree()->tri_ind[0], id_count);
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		log(tr("OpenCL texture setup terminated unexpectedly."));
-		log(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}*/
-}
-
 void iADreamCaster::Pick(int pickPos[2] )
 {
 	plot3d->Pick(pickPos[0], pickPos[1]);
@@ -3842,12 +3456,6 @@ bool iADreamCaster::eventFilter(QObject *obj, QEvent *event)
 				offset[1] = 0.0f;
 			}
 			((QWidget*)wobj->children()[0])->setGeometry((int)offset[0], (int)offset[1], (int)minDim, (int)minDim);
-			//RenderFrame->setGeometry(offset[0], offset[1], minDim, minDim);
-		}
-		if(obj == ui.w_stabilityWidget || obj == ui.histWidget)
-		{
-			QWidget * wobj = (QWidget*)obj;
-			((QWidget*)wobj->children()[0])->setGeometry(0, 0, wobj->geometry().width(), wobj->geometry().height());
 		}
 	}
 	return QMainWindow::eventFilter(obj, event);
@@ -3979,7 +3587,6 @@ void iADreamCaster::setRangeSB( float minX, float maxX, float minZ, float maxZ )
 {
 	ui.sb_min_x->setValue(minX*DEG_IN_PI);
 	ui.sb_max_x->setValue(maxX*DEG_IN_PI);
-
 	ui.sb_min_z->setValue(minZ*DEG_IN_PI);
 	ui.sb_max_z->setValue(maxZ*DEG_IN_PI);
 }
@@ -3992,7 +3599,6 @@ void iADreamCaster::loadFile(const QString filename)
 	initRaycast();
 	log("Opened model size (triangles):");
 	log(QString::number(mdata.stlMesh.size()), true);
-	///ui.l_modelName->setText(modelFileName);
 	modelOpened = true;
 	for (int i=0; i<cutFigList->count(); i++)
 	{
@@ -4046,7 +3652,7 @@ void iADreamCaster::Render(const iAVec3f * vp_corners, const iAVec3f * vp_delta,
 {
 	try
 	{
-		tracer->Render(vp_corners, vp_delta, o, rememberData, ui.cb_dipAsColor->isChecked(), ui.cudaEnabled->isChecked(), ui.cb_rasterization->isChecked());
+		tracer->Render(vp_corners, vp_delta, o, rememberData, ui.cb_dipAsColor->isChecked(), ui.cbOpenCLEnabled->isChecked(), ui.cb_rasterization->isChecked());
 	}
 	catch( itk::ExceptionObject &excep)
 	{

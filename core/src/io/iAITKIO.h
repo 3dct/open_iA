@@ -34,9 +34,11 @@
 
 namespace iAITKIO
 {
+	// type definitions - unify with iAITKIO definitions, and with defines.h DIM!
 	static const int m_DIM = 3;
 	typedef itk::ImageBase< m_DIM > ImageBaseType;
 	typedef ImageBaseType::Pointer ImagePointer;
+	typedef ImageBaseType* ImagePtr;
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 
 	template<class T>
@@ -57,7 +59,7 @@ namespace iAITKIO
 	}
 
 	template<class T>
-	inline void write_image_template( bool comp, QString const & fileName, ImagePointer image )
+	inline void write_image_template( bool comp, QString const & fileName, ImagePtr image )
 	{
 		typedef itk::Image< T, m_DIM>   InputImageType;
 		typedef itk::ImageFileWriter<InputImageType> WriterType;
@@ -66,9 +68,11 @@ namespace iAITKIO
 		writer->ReleaseDataFlagOn();
 		std::string encodedFileName = getLocalEncodingFileName(fileName);
 		if (encodedFileName.empty())
+		{
 			return;
+		}
 		writer->SetFileName( encodedFileName.c_str() );
-		writer->SetInput( dynamic_cast<InputImageType *> (image.GetPointer()) );
+		writer->SetInput( dynamic_cast<InputImageType *> (image) );
 		writer->SetUseCompression( comp );
 		writer->Update();
 	}
@@ -94,7 +98,7 @@ namespace iAITKIO
 		return image;
 	}
 
-	inline void writeFile (QString const & fileName, ImagePointer image, ScalarPixelType pixelType, bool useCompression = false )
+	inline void writeFile (QString const & fileName, ImagePtr image, ScalarPixelType pixelType, bool useCompression = false )
 	{
 		ITK_TYPED_CALL(write_image_template, pixelType, useCompression, fileName, image);
 	}

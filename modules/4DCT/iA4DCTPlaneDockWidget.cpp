@@ -34,17 +34,17 @@ iA4DCTPlaneDockWidget::iA4DCTPlaneDockWidget( iA4DCTVisWin * parent )
 {
 	setupUi( this );
 
-	connect( sSlice, SIGNAL( valueChanged( int ) ), this, SLOT( changedSlice( int ) ) );
-	connect( sOpacity, SIGNAL( valueChanged( int ) ), this, SLOT( changedOpacity( int ) ) );
-	connect( cbShading, SIGNAL( stateChanged( int ) ), this, SLOT( enableShading( int ) ) );
-	connect( rbXY, SIGNAL( clicked( ) ), this, SLOT( setXYDir( ) ) );
-	connect( rbXZ, SIGNAL( clicked( ) ), this, SLOT( setXZDir( ) ) );
-	connect( rbYZ, SIGNAL( clicked( ) ), this, SLOT( setYZDir( ) ) );
-	connect( pbHighlightDefects, SIGNAL( clicked( ) ), this, SLOT( hightlightDefectsButtonClicked( ) ) );
-	connect( pbDensityMap, SIGNAL( clicked( ) ), this, SLOT( densityMapButtonClicked( ) ) );
-	connect( pbNext, SIGNAL( clicked( ) ), this, SLOT( nextSlice( ) ) );
-	connect( pbPrevious, SIGNAL( clicked( ) ), this, SLOT( previousSlice( ) ) );
-	connect( cbHighlighting, SIGNAL( stateChanged( int ) ), this, SLOT( enableHighlighting( int ) ) );
+	connect( sSlice, &QSlider::valueChanged, this, &iA4DCTPlaneDockWidget::changedSlice);
+	connect( sOpacity, &QSlider::valueChanged, this, &iA4DCTPlaneDockWidget::changedOpacity );
+	connect( cbShading, &QCheckBox::stateChanged, this, &iA4DCTPlaneDockWidget::enableShading);
+	connect( rbXY, &QRadioButton::clicked, this, &iA4DCTPlaneDockWidget::setXYDir);
+	connect( rbXZ, &QRadioButton::clicked, this, &iA4DCTPlaneDockWidget::setXZDir);
+	connect( rbYZ, &QRadioButton::clicked, this, &iA4DCTPlaneDockWidget::setYZDir);
+	connect( pbHighlightDefects, &QPushButton::clicked, this, &iA4DCTPlaneDockWidget::hightlightDefectsButtonClicked);
+	connect( pbDensityMap, &QPushButton::clicked, this, &iA4DCTPlaneDockWidget::densityMapButtonClicked);
+	connect( pbNext, &QPushButton::clicked, this, &iA4DCTPlaneDockWidget::nextSlice);
+	connect( pbPrevious, &QPushButton::clicked, this, &iA4DCTPlaneDockWidget::previousSlice);
+	connect( cbHighlighting, &QCheckBox::stateChanged, this, &iA4DCTPlaneDockWidget::enableHighlighting);
 }
 
 void iA4DCTPlaneDockWidget::attachTo( iAPlaneVisModule * module )

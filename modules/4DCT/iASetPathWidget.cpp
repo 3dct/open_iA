@@ -28,7 +28,7 @@ iASetPathWidget::iASetPathWidget(QWidget* parent/* = 0*/)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
-	connect(ui.Browse, SIGNAL(clicked()), SLOT(onBrowseButtonClicked()));
+	connect(ui.Browse, &QPushButton::clicked, this, &iASetPathWidget::onBrowseButtonClicked);
 }
 
 iASetPathWidget::~iASetPathWidget()

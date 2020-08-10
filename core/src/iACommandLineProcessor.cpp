@@ -114,7 +114,7 @@ namespace
 					std::cout << " max=" << p->max();
 				}
 #if __cplusplus >= 201703L
-				[[fallthrough]];  // intentional fall-through
+				[[fallthrough]];
 #endif
 			case Boolean:
 				std::cout << " default=" << p->defaultValue().toString().toStdString();
@@ -134,7 +134,10 @@ namespace
 			case Folder:
 				std::cout << " specify a folder.";
 				break;
-			case String: // intentional fall-through!
+			case String:
+#if __cplusplus >= 201703L
+				[[fallthrough]];
+#endif
 			case Text:
 				std::cout << " text, see filter description for details.";
 				break;
@@ -159,6 +162,18 @@ namespace
 			for (int i = 0; i < filter->requiredInputs(); ++i)
 			{
 				std::cout << "    " << filter->inputName(i).toStdString() << std::endl;
+			}
+		}
+		if (filter->outputCount() == 0)
+		{
+			std::cout << "No output images." << std::endl;
+		}
+		else
+		{
+			std::cout << "Output images:" << std::endl;
+			for (int i = 0; i < filter->outputCount(); ++i)
+			{
+				std::cout << "    " << filter->outputName(i).toStdString() << std::endl;
 			}
 		}
 	}
@@ -374,7 +389,7 @@ namespace
 			}
 			iAProgress progress;
 			iACommandLineProgressIndicator progressIndicator(50, quiet);
-			QObject::connect(&progress, SIGNAL(progress(int)), &progressIndicator, SLOT(Progress(int)));
+			QObject::connect(&progress, &iAProgress::progress, &progressIndicator, &iACommandLineProgressIndicator::Progress);
 			filter->setProgress(&progress);
 			if (!filter->checkParameters(parameters))
 			{   // output already happened in CheckParameters via logger

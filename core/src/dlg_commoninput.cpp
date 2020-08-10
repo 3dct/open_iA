@@ -120,7 +120,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 					m_filterWithParameters.push_back(i - 1); // remember this for the filter selection
 				}
 #if __cplusplus >= 201703L
-				[[fallthrough]];  // intentional fall-through
+				[[fallthrough]];
 #endif
 			case '#':
 				newWidget = new QLineEdit(m_container);
@@ -143,9 +143,12 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 				newWidget = new QPlainTextEdit(m_container);
 				break;
 			case '&':
-				newWidget = new QPushButton(m_container);
-				connect(newWidget, SIGNAL(clicked()), this, SLOT(SelectFilter()));
+			{
+				auto pb = new QPushButton(m_container);
+				connect(pb, &QPushButton::clicked, this, &dlg_commoninput::SelectFilter);
+				newWidget = pb;
 				break;
+			}
 			case '<':
 				newWidget = new iAFileChooserWidget(m_container, iAFileChooserWidget::FileNameOpen);
 				break;
@@ -206,7 +209,7 @@ void  dlg_commoninput::setSourceMdi(MdiChild* child, MainWindow* mainWnd)
 {
 	m_sourceMdiChild = child;
 	m_mainWnd = mainWnd;
-	connect(child, SIGNAL(closed()), this, SLOT(SourceChildClosed()));
+	connect(child, &MdiChild::closed, this, &dlg_commoninput::SourceChildClosed);
 }
 
 QVector<QWidget*> dlg_commoninput::widgetList()
@@ -230,7 +233,9 @@ void dlg_commoninput::SelectFilter()
 			auto runner = iAFilterRegistry::filterRunner(filterID)->create();
 			QMap<QString, QVariant> paramValues = runner->loadParameters(filter, m_sourceMdiChild);
 			if (!runner->askForParameters(filter, paramValues, m_sourceMdiChild, m_mainWnd, false))
+			{
 				return;
+			}
 			QString paramStr;
 			for (auto param: filter->parameters())
 			{
@@ -249,9 +254,13 @@ void dlg_commoninput::SelectFilter()
 			}
 			QLineEdit* e = qobject_cast<QLineEdit*>(m_widgetList[idx + 1]);
 			if (e)
+			{
 				e->setText(paramStr);
+			}
 			else
+			{
 				DEBUG_LOG(QString("Parameter string %1 could not be set!").arg(paramStr));
+			}
 		}
 		sender->setText(filterName);
 	}
@@ -266,11 +275,15 @@ void dlg_commoninput::updateValues(QList<QVariant> values)
 	{
 		QLineEdit *lineEdit = qobject_cast<QLineEdit*>(children.at(i));
 		if (lineEdit)
+		{
 			lineEdit->setText(values[paramIdx++].toString());
+		}
 
 		QPlainTextEdit *plainTextEdit = qobject_cast<QPlainTextEdit*>(children.at(i));
 		if (plainTextEdit)
+		{
 			plainTextEdit->setPlainText(values[paramIdx++].toString());
+		}
 
 		QComboBox *comboBox = qobject_cast<QComboBox*>(children.at(i));
 		if (comboBox)
@@ -295,30 +308,44 @@ void dlg_commoninput::updateValues(QList<QVariant> values)
 		if (checkBox)
 		{
 			if (values[paramIdx] == tr("true"))
+			{
 				checkBox->setChecked(true);
+			}
 			else if (values[paramIdx] == tr("false"))
+			{
 				checkBox->setChecked(false);
+			}
 			else
-				checkBox->setChecked(values[paramIdx]!=0);
+			{
+				checkBox->setChecked(values[paramIdx] != 0);
+			}
 			paramIdx++;
 
 		}
 
 		QSpinBox *spinBox = qobject_cast<QSpinBox*>(children.at(i));
 		if (spinBox)
+		{
 			spinBox->setValue(values[paramIdx++].toDouble());
+		}
 
 		QDoubleSpinBox *doubleSpinBox = qobject_cast<QDoubleSpinBox*>(children.at(i));
 		if (doubleSpinBox)
+		{
 			doubleSpinBox->setValue(values[paramIdx++].toDouble());
+		}
 
 		QPushButton *button = qobject_cast<QPushButton*>(children.at(i));
 		if (button)
+		{
 			button->setText(values[paramIdx++].toString());
+		}
 
 		iAFileChooserWidget* fileChooser = qobject_cast<iAFileChooserWidget*>(children.at(i));
 		if (fileChooser)
+		{
 			fileChooser->setText(values[paramIdx++].toString());
+		}
 	}
 }
 
@@ -340,7 +367,11 @@ void dlg_commoninput::showROI()
 		QSpinBox *input = dynamic_cast<QSpinBox*>(children.at(i));
 		if (input && (input->objectName().contains("Index") || input->objectName().contains("Size")))
 		{
-			connect(input, SIGNAL(valueChanged(QString)), this, SLOT(ROIUpdated(QString)));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+			connect(input, &QSpinBox::textChanged, this, &dlg_commoninput::ROIUpdated);
+#else
+			connect(input, QOverload<QString const&>::of(&QSpinBox::valueChanged), this, &dlg_commoninput::ROIUpdated);
+#endif
 			UpdateROIPart(input->objectName(), input->text());
 		}
 	}
@@ -351,7 +382,9 @@ void dlg_commoninput::showROI()
 void dlg_commoninput::ROIUpdated(QString text)
 {
 	if (m_sourceMdiChildClosed)
+	{
 		return;
+	}
 	QString senderName = QObject::sender()->objectName();
 	UpdateROIPart(senderName, text);
 	// size may not be smaller than 1 (otherwise there's a vtk error):
@@ -493,7 +526,7 @@ int dlg_commoninput::exec()
 		return QDialog::Rejected;
 	if (m_sourceMdiChild)
 	{
-		disconnect(m_sourceMdiChild, SIGNAL(closed()), this, SLOT(SourceChildClosed()));
+		disconnect(m_sourceMdiChild, &MdiChild::closed, this, &dlg_commoninput::SourceChildClosed);
 		m_sourceMdiChild->setROIVisible(false);
 	}
 	return result;

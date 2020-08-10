@@ -26,15 +26,17 @@ dlg_regionView::dlg_regionView( QWidget * parent )
 	: QDialog( parent )
 {
 	setupUi( this );
-	connect( pbSelectImage, SIGNAL( clicked( ) ), this, SLOT( onSelectButtonClicked( ) ) );
+	connect( pbSelectImage, &QPushButton::clicked, this, &dlg_regionView::onSelectButtonClicked);
 }
 
 void dlg_regionView::onSelectButtonClicked( )
 {
 	dlg_4DCTFileOpen dialog( this );
 	dialog.setData( m_data );
-	if( dialog.exec( ) != QDialog::Accepted )
+	if (dialog.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 	m_file = dialog.getFile( );
 	lFilename->setText( m_file.Name );
 }

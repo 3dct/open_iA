@@ -24,8 +24,6 @@
 #include "io/iARawFileParameters.h"
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
 
-#include <vtkImageReader.h>  // for VTK_FILE_BYTE_ORDER_... constants
-
 #include <QComboBox>
 #include <QFileInfo>
 #include <QLabel>
@@ -59,7 +57,9 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(QString const & fileName, QWidget
 	QString selectedType = mapVTKTypeToReadableDataType(rawFileParams.m_scalarType);
 	int selectedIdx = datatype.indexOf(selectedType);
 	if (selectedIdx != -1)
+	{
 		datatype[selectedIdx] = "!" + datatype[selectedIdx];
+	}
 	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
 	byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)];
 	QStringList labels = (QStringList()
@@ -93,16 +93,18 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(QString const & fileName, QWidget
 
 	m_inputDlg->gridLayout->addWidget(m_inputDlg->buttonBox, labels.size() + 2, 0, 1, 1);
 
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeXIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeYIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeZIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_headerSizeIdx]), SIGNAL(textChanged(const QString)), this, SLOT(checkFileSize()));
-	connect(qobject_cast<QComboBox*>(m_inputDlg->widgetList()[m_voxelSizeIdx]), SIGNAL(currentIndexChanged(int)), this, SLOT(checkFileSize()));
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeXIdx])     , &QLineEdit::textChanged, this, &dlg_openfile_sizecheck::checkFileSize);
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeYIdx])     , &QLineEdit::textChanged, this, &dlg_openfile_sizecheck::checkFileSize);
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeZIdx])     , &QLineEdit::textChanged, this, &dlg_openfile_sizecheck::checkFileSize);
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_headerSizeIdx]), &QLineEdit::textChanged, this, &dlg_openfile_sizecheck::checkFileSize);
+	connect(qobject_cast<QComboBox*>(m_inputDlg->widgetList()[m_voxelSizeIdx]), QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_openfile_sizecheck::checkFileSize);
 
 	checkFileSize();
 
 	if (m_inputDlg->exec() != QDialog::Accepted)
+	{
 		return;
+	}
 
 	for (int i = 0; i < 3; ++i)
 	{
@@ -113,9 +115,13 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(QString const & fileName, QWidget
 	rawFileParams.m_headersize = m_inputDlg->getDblValue(9);
 	rawFileParams.m_scalarType = mapReadableDataTypeToVTKType(m_inputDlg->getComboBoxValue(10));
 	if (m_inputDlg->getComboBoxValue(11) == "Little Endian")
+	{
 		rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
+	}
 	else if (m_inputDlg->getComboBoxValue(11) == "Big Endian")
+	{
 		rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
+	}
 	m_accepted = true;
 }
 

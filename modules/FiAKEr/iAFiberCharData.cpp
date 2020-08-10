@@ -142,15 +142,25 @@ iACsvConfig getCsvConfig(QString const & formatName)
 	if (!result.load(settings, formatName))
 	{
 		if (formatName == iACsvConfig::LegacyFiberFormat)
+		{
 			result = iACsvConfig::getLegacyFiberFormat("");
+		}
 		else if (formatName == iACsvConfig::LegacyVoidFormat)
+		{
 			result = iACsvConfig::getLegacyPoreFormat("");
+		}
 		else if (formatName == iAFiberResultsCollection::LegacyFormat)
+		{
 			result = getLegacyConfig();
+		}
 		else if (formatName == iAFiberResultsCollection::SimpleFormat)
+		{
 			result = getSimpleConfig();
+		}
 		else
+		{
 			DEBUG_LOG(QString("Invalid format %1!").arg(formatName));
+		}
 	}
 	return result;
 }
@@ -169,7 +179,9 @@ iAFiberResultsCollection::iAFiberResultsCollection():
 	minFiberCount(std::numeric_limits<size_t>::max()),
 	maxFiberCount(0),
 	optimStepMax(1),
-	stepShift(0)
+	stepShift(0),
+	m_resultIDColumn(0),
+	m_projectionErrorColumn(0)
 {}
 
 bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const & cfg, double newStepShift, iAProgress * progress)
@@ -194,6 +206,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 
 	QStringList noStepFiberFiles;
 	QString stepInfoErrorMsgs;
+	size_t totalFiberCount = 0;
 	// load all datasets:
 	for (QString csvFile : csvFileNames)
 	{
@@ -211,6 +224,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		iAFiberCharData curData;
 		curData.table = tableCreator.table();
 		curData.fiberCount = curData.table->GetNumberOfRows();
+		totalFiberCount += curData.fiberCount;
 		if (curData.fiberCount > std::numeric_limits<int>::max())
 		{
 			DEBUG_LOG(QString("Large number of objects (%1) detected - currently only up to %2 objects are supported!")
@@ -306,7 +320,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 					++fiberID;
 				}
 
-				for (int curFiber=0; curFiber<curData.fiberCount; ++curFiber)
+				for (int curFiber=0; static_cast<size_t>(curFiber) < curData.fiberCount; ++curFiber)
 				{
 					QString fiberStepCsv = QString("fiber%1_paramlog.csv").arg(curFiber, 3, 10, QChar('0'));
 					QFileInfo fiberStepCsvInfo(stepInfo.absoluteFilePath() + "/" + fiberStepCsv);
@@ -355,7 +369,8 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						double phi = values[3].toDouble();
 						double radius = values[5].toDouble() * 0.5;
 
-						std::vector<double> stepValues(iAFiberCharData::FiberValueCount);
+						static const int StepFiberValuesCount = 13;
+						std::vector<double> stepValues(StepFiberValuesCount);
 						// convert spherical to cartesian coordinates:
 						double dir[3];
 						dir[0] = radius * std::sin(phi) * std::cos(theta);
@@ -404,7 +419,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 				//DEBUG_LOG("Looking for optimization step info in new (curved) format...");
 				// check if we can load new, curved step data:
 				curData.projectionError.resize(curData.fiberCount);
-				for (int curFiber = 0; curFiber < curData.fiberCount; ++curFiber)
+				for (int curFiber = 0; static_cast<size_t>(curFiber) < curData.fiberCount; ++curFiber)
 				{
 					QString fiberStepCsv = QString("fiber_%1.csv").arg(curFiber, 4, 10, QChar('0'));
 					QFileInfo fiberStepCsvInfo(stepInfo.absoluteFilePath() + "/" + fiberStepCsv);
@@ -539,59 +554,40 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		);
 	}
 
-	// create SPM data:
-	paramNames.push_back("StartXShift");
-	paramNames.push_back("StartYShift");
-	paramNames.push_back("StartZShift");
-	paramNames.push_back("EndXShift");
-	paramNames.push_back("EndYShift");
-	paramNames.push_back("EndZShift");
-	paramNames.push_back("XmShift");
-	paramNames.push_back("YmShift");
-	paramNames.push_back("ZmShift");
-	paramNames.push_back("PhiDiff");
-	paramNames.push_back("ThetaDiff");
-	paramNames.push_back("LengthDiff");
-	paramNames.push_back("DiameterDiff");
-
-	auto similarityMeasures = iARefDistCompute::getDissimilarityMeasureNames();
-	for (auto name: similarityMeasures)
-		paramNames.push_back(name);
-
-	paramNames.push_back("Proj. Error Red.");
 	paramNames.push_back("Result_ID");
-	spmData->setParameterNames(paramNames);
+	paramNames.push_back("Proj. Error Red.");
+
+	spmData->setParameterNames(paramNames, totalFiberCount);
 	size_t numParams = spmData->numParams();
 	size_t spmStartIdx = 0;
-	for (resultID=0; resultID<result.size(); ++resultID)
+	m_resultIDColumn = static_cast<uint>(numParams) - 2;
+	m_projectionErrorColumn = static_cast<uint>(numParams) - 1;
+	for (resultID=0; static_cast<size_t>(resultID) < result.size(); ++resultID)
 	{
 		auto & curData = result[resultID];
 		vtkIdType numTableColumns = curData.table->GetNumberOfColumns();
-		for (int i = (iARefDistCompute::SimilarityMeasureCount+iAFiberCharData::FiberValueCount+iARefDistCompute::EndColumns); i >= iARefDistCompute::EndColumns; --i)
-		{
-			spmData->data()[numParams - i].resize(spmData->data()[numParams - i].size() + curData.fiberCount, 0);
-		}
+
+		addColumn(curData.table, resultID, spmData->parameterName(m_resultIDColumn).toStdString().c_str(), curData.fiberCount);
+		addColumn(curData.table, resultID, spmData->parameterName(m_projectionErrorColumn).toStdString().c_str(), curData.fiberCount);
 		for (size_t fiberID = 0; fiberID < curData.fiberCount; ++fiberID)
 		{
+			//size_t spmFiberID = spmStartIdx + fiberID;
 			for (vtkIdType col = 0; col < numTableColumns; ++col)
 			{
 				double value = curData.table->GetValue(fiberID, col).ToDouble();
 				spmData->data()[col].push_back(value);
 			}
-			spmData->data()[numParams-1].push_back(resultID);
+			spmData->data()[m_resultIDColumn].push_back(resultID);
 
 			double projErrorRed = curData.projectionError.size() > 0 ?
 				curData.projectionError[fiberID][0] - curData.projectionError[fiberID][curData.projectionError[fiberID].size() - 1]
 					: 0;
-			spmData->data()[numParams-2][spmStartIdx + fiberID] = projErrorRed;
-			curData.table->SetValue(fiberID, numParams - 2, projErrorRed);
+			spmData->data()[m_projectionErrorColumn].push_back(projErrorRed);
+
+			curData.table->SetValue(fiberID, m_resultIDColumn, resultID);
+			curData.table->SetValue(fiberID, m_projectionErrorColumn, projErrorRed);
 		}
 		// TODO: reuse spmData also for 3d visualization?
-		for (int col = 0; col < (iARefDistCompute::SimilarityMeasureCount+ iAFiberCharData::FiberValueCount+iARefDistCompute::EndColumns-1); ++col)
-		{
-			addColumn(curData.table, 0, spmData->parameterName(numTableColumns+col).toStdString().c_str(), curData.fiberCount);
-		}
-		addColumn(curData.table, resultID, spmData->parameterName(numParams-1).toStdString().c_str(), curData.fiberCount);
 
 		spmStartIdx += curData.fiberCount;
 	}

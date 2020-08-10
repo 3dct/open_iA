@@ -32,11 +32,11 @@ dlg_highlightDefects::dlg_highlightDefects( QWidget * parent )
 	: QDialog( parent )
 {
 	setupUi( this );
-	connect( pbPullouts, SIGNAL( clicked( ) ), this, SLOT( pulloutsButtonClicked( ) ) );
-	connect( pbBreakages, SIGNAL( clicked( ) ), this, SLOT( breakagesButtonClicked( ) ) );
-	connect( pbCracks, SIGNAL( clicked( ) ), this, SLOT( cracksButtonClicked( ) ) );
-	connect( pbDebondings, SIGNAL( clicked( ) ), this, SLOT( debondingsButtonClicked( ) ) );
-	connect( pbLabeledImg, SIGNAL( clicked( ) ), this, SLOT( labeledImgButtonClicked( ) ) );
+	connect( pbPullouts,   &QPushButton::clicked, this, &dlg_highlightDefects::pulloutsButtonClicked);
+	connect( pbBreakages,  &QPushButton::clicked, this, &dlg_highlightDefects::breakagesButtonClicked);
+	connect( pbCracks,     &QPushButton::clicked, this, &dlg_highlightDefects::cracksButtonClicked);
+	connect( pbDebondings, &QPushButton::clicked, this, &dlg_highlightDefects::debondingsButtonClicked);
+	connect( pbLabeledImg, &QPushButton::clicked, this, &dlg_highlightDefects::labeledImgButtonClicked);
 
 	cbPullouts->setColor( PulloutColor );
 	cbBreakages->setColor( BreakageColor );

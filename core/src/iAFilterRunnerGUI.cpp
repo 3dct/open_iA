@@ -211,7 +211,8 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	return true;
 }
 
-void iAFilterRunnerGUI::filterGUIPreparations(QSharedPointer<iAFilter> /*filter*/, MdiChild* /*mdiChild*/, MainWindow* /*mainWnd*/)
+void iAFilterRunnerGUI::filterGUIPreparations(QSharedPointer<iAFilter> /*filter*/,
+	MdiChild* /*mdiChild*/, MainWindow* /*mainWnd*/, QMap<QString, QVariant> const & /*params*/)
 {
 }
 
@@ -250,7 +251,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 		mainWnd->statusBar()->showMessage("Cannot create result child!", 5000);
 		return;
 	}
-	filterGUIPreparations(filter, mdiChild, mainWnd);
+	filterGUIPreparations(filter, mdiChild, mainWnd, paramValues);
 	iAFilterRunnerGUIThread* thread = new iAFilterRunnerGUIThread(filter, paramValues, mdiChild);
 	if (!thread)
 	{
@@ -298,7 +299,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 
 void iAFilterRunnerGUI::connectThreadSignals(MdiChild* mdiChild, iAFilterRunnerGUIThread* thread)
 {
-	connect(thread, SIGNAL(finished()), this, SLOT(filterFinished()));
+	connect(thread, &QThread::finished, this, &iAFilterRunnerGUI::filterFinished);
 	mdiChild->connectThreadSignalsToChildSlots(thread);
 }
 

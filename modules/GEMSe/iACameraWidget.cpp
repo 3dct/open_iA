@@ -90,8 +90,8 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 		*/
 
 		gridLay->addWidget(m_sliceViews[i], GridSlicerMap[i].x(), GridSlicerMap[i].y());
-		connect(m_sliceViews[i], SIGNAL(clicked()), this, SLOT( MiniSlicerClicked() ));
-		connect(m_sliceViews[i], SIGNAL(updated()), this, SLOT( MiniSlicerUpdated() ));
+		connect(m_sliceViews[i], &iAImagePreviewWidget::clicked, this, &iACameraWidget::MiniSlicerClicked);
+		connect(m_sliceViews[i], &iAImagePreviewWidget::updated, this, &iACameraWidget::MiniSlicerUpdated);
 		m_sliceViews[i]->resetCamera();
 	}
 	miniSlicerContainer->setLayout(gridLay);
@@ -107,7 +107,7 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 	setLayout(mainLay);
 	updateScrollBar(m_sliceViews[static_cast<int>(InitialSlicerMode)]->sliceNumber());
 
-	connect(m_sliceScrollBar, SIGNAL(valueChanged(int)), this, SLOT(ScrollBarChanged(int)));
+	connect(m_sliceScrollBar, &QScrollBar::valueChanged, this, &iACameraWidget::ScrollBarChanged);
 }
 
 void iACameraWidget::updateScrollBar(int sliceNumber)

@@ -24,17 +24,17 @@
 
 #include <itkImageBase.h>
 #include <itkImageIOBase.h>
-#include <vtkSmartPointer.h>
 
-class vtkImageData;
-class vtkImageExport;
-class vtkImageImport;
+#include <vtkImageData.h>
+#include <vtkImageExport.h>
+#include <vtkImageImport.h>
+#include <vtkSmartPointer.h>
 
 //! Converts VTK images to ITK and vice versa. It is written to replace the ImageConverter of VTKEdge.
 class open_iA_Core_API iAConnector
 {
 public:
-	// Type definitions
+	// Type definitions - unify with iAITKIO definitions, and with defines.h DIM!
 	typedef itk::ImageBase< 3 >					ImageBaseType;
 	typedef ImageBaseType::Pointer				ImagePointer;
 	typedef itk::ImageIOBase::IOComponentType	ITKScalarPixelType;

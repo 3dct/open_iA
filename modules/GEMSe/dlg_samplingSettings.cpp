@@ -351,7 +351,11 @@ void dlg_samplingSettings::saveSettings()
 	QTextStream stream(&file);
 	for (QString key : settings.keys())
 	{
+#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
+		stream << key << KeyValueSeparator << settings[key] << Qt::endl;
+#else
 		stream << key << KeyValueSeparator << settings[key] << endl;
+#endif
 	}
 }
 

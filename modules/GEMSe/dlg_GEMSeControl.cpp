@@ -151,10 +151,10 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(m_dlgModalities, &dlg_modalities::modalityAvailable, this, &dlg_GEMSeControl::dataAvailable);
 	connect(m_dlgModalities, &dlg_modalities::modalitySelected, this, &dlg_GEMSeControl::modalitySelected);
 
-	connect(sbClusterViewPreviewSize, SIGNAL(valueChanged(int)), this, SLOT(SetIconSize(int)));
-	connect(sbMagicLensCount, SIGNAL(valueChanged(int)), this, SLOT(setMagicLensCount(int)));
-	connect(cbColorThemes, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(setColorTheme(const QString &)));
-	connect(cbRepresentative, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetRepresentative(const QString &)));
+	connect(sbClusterViewPreviewSize, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_GEMSeControl::SetIconSize);
+	connect(sbMagicLensCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_GEMSeControl::setMagicLensCount);
+	connect(cbColorThemes, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_GEMSeControl::setColorTheme);
+	connect(cbRepresentative, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_GEMSeControl::setRepresentative);
 	connect(cbProbabilityProbing, &QCheckBox::stateChanged, this, &dlg_GEMSeControl::setProbabilityProbing);
 	connect(cbCorrectnessUncertainty, &QCheckBox::stateChanged, this, &dlg_GEMSeControl::setCorrectnessUncertainty);
 
@@ -572,15 +572,17 @@ void dlg_GEMSeControl::SetIconSize(int newSize)
 	m_dlgGEMSe->SetIconSize(newSize);
 }
 
-void dlg_GEMSeControl::setColorTheme(const QString &themeName)
+void dlg_GEMSeControl::setColorTheme(int index)
 {
+	QString const themeName = cbColorThemes->itemText(index);
 	iAColorTheme const * theme = iAColorThemeManager::instance().theme(themeName);
 	m_simpleLabelInfo->setColorTheme(theme);
 	m_dlgGEMSe->setColorTheme(theme, m_simpleLabelInfo.data());
 }
 
-void dlg_GEMSeControl::SetRepresentative(const QString & reprType)
+void dlg_GEMSeControl::setRepresentative(int index)
 {
+	QString const reprType = cbRepresentative->itemText(index);
 	// Difference
 	// Average Entropy
 	// Label Distribution

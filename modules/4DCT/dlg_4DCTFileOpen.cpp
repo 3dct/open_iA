@@ -27,7 +27,7 @@ dlg_4DCTFileOpen::dlg_4DCTFileOpen( QWidget * parent )
 {
 	setupUi( this );
 	twFiles->setModel( &m_model );
-	connect( twFiles, SIGNAL( doubleClicked( QModelIndex ) ), this, SLOT( onTreeViewDoubleClicked( QModelIndex ) ) );
+	connect( twFiles, &QTreeView::doubleClicked, this, &dlg_4DCTFileOpen::onTreeViewDoubleClicked);
 }
 
 void dlg_4DCTFileOpen::setData( iA4DCTData * newData )

@@ -32,7 +32,7 @@ class iABimodalWidget : public iAMultimodalWidget
 	Q_OBJECT
 
 public:
-	iABimodalWidget(QWidget *parent, MdiChild *mdiChild);
+	iABimodalWidget(MdiChild *mdiChild);
 	void initialize();
 
 private:

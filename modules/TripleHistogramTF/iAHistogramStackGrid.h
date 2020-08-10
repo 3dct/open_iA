@@ -40,7 +40,11 @@ public:
 		QVector<iAChartWithFunctionsWidget*> const & histograms,
 		QVector<iASimpleSlicerWidget*> const & slicers,
 		QVector<QLabel*> const & labels,
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 		Qt::WindowFlags f = 0);
+#else
+		Qt::WindowFlags f = QFlags<Qt::WindowType>());
+#endif
 
 	void adjustStretch() { adjustStretch(size().width()); }
 protected:
