@@ -131,15 +131,15 @@ bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, 
 	}
 
 	dlg.getValues(parameters);
-	QDir outputFolder(parameters["Output folder"].toString());
+	QDir outputFolder(parameters[spnOutputFolder].toString());
 	outputFolder.mkpath(".");
-	if (parameters["Compute derived output"].toBool() && parameters["Number of labels"].toInt() < 2)
+	if (parameters[spnComputeDerivedOutput].toBool() && parameters[spnNumberOfLabels].toInt() < 2)
 	{
 		DEBUG_LOG("'Number of labels' must not be smaller than 2!");
 		return false;
 	}
 	auto parameterRanges = dlg.parameterRanges();
-	QString outBaseName = pathFileBaseName(parameters["Base name"].toString());
+	QString outBaseName = QFileInfo(parameters[spnBaseName].toString()).completeBaseName();
 	QString parameterRangeFile = outBaseName + "-parameterRanges.csv"; // iASEAFile::DefaultSMPFileName,
 	QString parameterSetFile   = outBaseName + "-parameterSets.csv";   // iASEAFile::DefaultSPSFileName,
 	QString derivedOutputFile  = outBaseName + "-derivedOutput.csv";   // iASEAFile::DefaultCHRFileName,

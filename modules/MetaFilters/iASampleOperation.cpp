@@ -36,7 +36,7 @@ void iASampleOperation::run()
 	{
 		performWork();
 	}
-	catch (std::runtime_error& e)
+	catch (std::exception& e)
 	{
 		DEBUG_LOG(QString("iASampleOperation: An exception has occurred: %1").arg(e.what()));
 		setSuccess(false);

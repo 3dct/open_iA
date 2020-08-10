@@ -573,7 +573,6 @@ void dlg_samplingSettings::outputBaseChanged()
 			auto outputFolder = getOutputFolder(leOutputFolder->text(), createSubFolder, sampleNr, numDigits);
 			auto outFile = getOutputFileName(outputFolder, leBaseName->text(),
 				createSubFolder, sampleNr, numDigits) + m_paramSpecs->at(p)->defaultValue().toString();
-			int requiredDigits(int largestNumber);
 			inputs->m_valueEdit->setText(QString("Example: %1 (Set automatically during sampling)").arg(outFile));
 		}
 	}

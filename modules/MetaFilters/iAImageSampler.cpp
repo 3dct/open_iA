@@ -65,8 +65,8 @@ QString getOutputFileName(QString const& outputFolder, QString const& baseName,
 	QFileInfo fi(baseName);
 	return outputFolder + "/" + (createSubFolder ?
 		baseName :
-		QString("%1%2%3").arg(fi.baseName()).arg(sampleNr, numDigits, 10, QChar('0')).arg(
-			fi.completeSuffix().size() > 0 ? QString(".%1").arg(fi.completeSuffix()) : QString(""))
+		QString("%1%2%3").arg(fi.completeBaseName()).arg(sampleNr, numDigits, 10, QChar('0')).arg(
+			fi.suffix().size() > 0 ? QString(".%1").arg(fi.suffix()) : QString(""))
 		);
 }
 
@@ -157,12 +157,7 @@ void iAImageSampler::newSamplingRun()
 		for (int i = 0; i < m_parameterCount; ++i)
 		{
 			auto desc = m_parameterRanges->at(i);
-			auto value = paramSet.at(i);
-			if (m_parameterRanges->at(i)->valueType() == FileNameSave)
-			{	// all output file names need to be adapted to output file name
-				value = pathFileBaseName(outputFile) + value.toString();
-			}
-			singleRunParams.insert(desc->name(), value);
+			singleRunParams.insert(desc->name(), paramSet.at(i));
 		}
 		QVector<iAConnector*> input; // TODO - pass in...?
 		QVector<QString> fileNames;
