@@ -134,8 +134,8 @@ void dlg_labels::addSlicer(iASlicer *slicer, int imageId, uint channelId)
 
 	oi->slicers.append(slicer);
 
-	QSharedPointer<SlicerData> data = m_mapSlicer2data.value(slicer);
-	if (data.isNull())
+	auto slicerData = m_mapSlicer2data.value(slicer);
+	if (slicerData.isNull())
 	{
 		int id = oi->id;
 
@@ -147,12 +147,12 @@ void dlg_labels::addSlicer(iASlicer *slicer, int imageId, uint channelId)
 		auto channelData = iAChannelData("name", oi->image, m_labelColorTF, m_labelOpacityTF);
 		slicer->addChannel(channelId, channelData, true);
 
-		auto data = new SlicerData(channelData, channelId, c, id);
-		m_mapSlicer2data.insert(slicer, QSharedPointer<SlicerData>(data));
+		auto newSlicerData = new SlicerData(channelData, channelId, c, id);
+		m_mapSlicer2data.insert(slicer, QSharedPointer<SlicerData>(newSlicerData));
 	}
 	else
 	{
-		if (!data->overlayImageId != imageId)
+		if (!slicerData->overlayImageId != imageId)
 		{
 			//TODO: throw error
 			assert(false);
@@ -163,14 +163,14 @@ void dlg_labels::addSlicer(iASlicer *slicer, int imageId, uint channelId)
 
 void dlg_labels::removeSlicer(iASlicer* slicer)
 {
-	auto data = m_mapSlicer2data.value(slicer);
-	if (!data) {
+	auto slicerData = m_mapSlicer2data.value(slicer);
+	if (!slicerData) {
 		return;
 	}
 
-	slicer->removeChannel(data->channelId);
+	slicer->removeChannel(slicerData->channelId);
 
-	auto connections = data->connections;
+	auto connections = slicerData->connections;
 	for (auto c : connections) {
 		disconnect(c);
 	}
@@ -180,10 +180,10 @@ void dlg_labels::removeSlicer(iASlicer* slicer)
 	// WARNING (26.08.2019)
 	// Adding same slicer twice is not allowed (see assert in 'addSlicer(iASlicer*, QString, int*, double*)')
 	// So we can assume here that no slicer has been added twice
-	QSharedPointer<OverlayImage> oi = m_mapId2image.value(data->overlayImageId);
+	QSharedPointer<OverlayImage> oi = m_mapId2image.value(slicerData->overlayImageId);
 	oi->slicers.removeOne(slicer);
 	if (oi->slicers.isEmpty()) {
-		auto removed = m_mapId2image.remove(data->overlayImageId);
+		auto removed = m_mapId2image.remove(slicerData->overlayImageId);
 	}
 }
 
@@ -284,11 +284,14 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicer* slicer)
 				int x = coord[0];
 				int y = coord[1];
 				int z = coord[2];
-				auto imageId = m_mapSlicer2data.value(slicer)->overlayImageId;
+				// auto imageId = m_mapSlicer2data.value(slicer)->overlayImageId; // already set above
 				auto item = addSeedItem(labelRow, coord[0], coord[1], coord[2], imageId);
 				if (item)
+				{
 					items.append(item);
-				if (m_trackingSeeds) {
+				}
+				if (m_trackingSeeds)
+				{
 					addedSeeds.append(iASeed(x, y, z, imageId, m_labels[labelRow]));
 				}
 			}
@@ -590,12 +593,12 @@ int dlg_labels::chooseOverlayImage(QString title)
 
 bool dlg_labels::load(QString const & filename)
 {
-	int id = chooseOverlayImage("Choose an image to load onto");
-	if (id == -1)
+	int overlayImageId = chooseOverlayImage("Choose an image to load onto");
+	if (overlayImageId == -1)
 	{
 		return false;
 	}
-	QSharedPointer<OverlayImage> oi = m_mapId2image.value(id);
+	QSharedPointer<OverlayImage> oi = m_mapId2image.value(overlayImageId);
 	
 	clearImage<LabelPixelType>(oi->image, 0);
 
@@ -983,12 +986,12 @@ void dlg_labels::opacityChanged(int newValue)
 	double opacity = static_cast<double>(newValue) / slOpacity->maximum();
 	for (auto slicer : m_mapSlicer2data.keys())
 	{
-		auto data = m_mapSlicer2data.value(slicer);
+		auto slicerData = m_mapSlicer2data.value(slicer);
 
-		auto channelData = &data->channelData;
-		channelData->setOpacity(opacity);
+		auto & channelData = slicerData->channelData;
+		channelData.setOpacity(opacity);
 
-		slicer->setChannelOpacity(data->channelId, opacity);
+		slicer->setChannelOpacity(slicerData->channelId, opacity);
 
 		slicer->update();
 	}

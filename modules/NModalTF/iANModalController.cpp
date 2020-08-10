@@ -141,7 +141,7 @@ inline iASlicer* iANModalController::_initializeSlicer(QSharedPointer<iAModality
 
 	double xc = origin[0] + 0.5*(extent[0] + extent[1])*spacing[0];
 	double yc = origin[1] + 0.5*(extent[2] + extent[3])*spacing[1];
-	double xd = (extent[1] - extent[0] + 1)*spacing[0];
+	//double xd = (extent[1] - extent[0] + 1)*spacing[0];
 	double yd = (extent[3] - extent[2] + 1)*spacing[1];
 
 	vtkCamera* camera = slicer->camera();
@@ -299,6 +299,7 @@ bool iANModalController::_checkModalities(QList<QSharedPointer<iAModality>> moda
 }
 
 bool iANModalController::_matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2) {
+	/*
 	auto image1 = m1->image();
 	const int *extent1 = image1->GetExtent();
 	const double *spacing1 = image1->GetSpacing();
@@ -308,6 +309,7 @@ bool iANModalController::_matchModalities(QSharedPointer<iAModality> m1, QShared
 	const int *extent2 = image2->GetExtent();
 	const double *spacing2 = image2->GetSpacing();
 	const double *origin2 = image2->GetOrigin();
+	*/
 
 	return true;
 }

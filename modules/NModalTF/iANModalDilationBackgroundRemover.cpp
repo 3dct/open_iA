@@ -239,7 +239,7 @@ iANModalBackgroundRemover::Mask iANModalDilationBackgroundRemover::removeBackgro
 	QSharedPointer<iAModality> selectedMod;
 	iANModalBackgroundRemover::MaskMode maskMode;
 	int upThresh;
-	int loThresh = 0;
+	//int loThresh = 0;
 	int regionCountGoal = 1;
 
 	bool skipped = !selectModalityAndThreshold(nullptr, modalities, upThresh, selectedMod, maskMode);
@@ -641,7 +641,7 @@ void iANModalIterativeDilationPlot::paintEvent(QPaintEvent* event) {
 	p.drawLine(left, bottom, right, bottom);
 
 	int centerx = left + (int)((float)wAvailable / 2.0f);
-	int centery = top + (int)((float)hAvailable / 2.0f);
+	//int centery = top + (int)((float)hAvailable / 2.0f);
 
 	QString xlabel = "# dilations";
 	int xlabelwidth = fm.horizontalAdvance(xlabel);
