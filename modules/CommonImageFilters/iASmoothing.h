@@ -22,7 +22,7 @@
 
 #include <iAFilter.h>
 
-#if (ITK_VERSION_MAJOR == 5 && ITK_VERSION_MINOR == 1)
+#if (!defined(ITKNOGPU) && ITK_VERSION_MAJOR == 5 && ITK_VERSION_MINOR == 1)
 #ifndef _MSC_VER
 #warning("ITK 5.1 FixME: GPU option not working together with shared libraries, see https://github.com/InsightSoftwareConsortium/ITK/issues/1381. Disabling GPU support")
 #else
