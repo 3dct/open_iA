@@ -1172,11 +1172,11 @@ void iARunBatchThread::initRunsCSVFile( QTableWidget & runsCSV, QString batchDir
 		//Insert a header
 		runsCSV.setRowCount( 1 );
 		runsCSV.setColumnCount( runsCSVHeader.size() + paramNames.size() );
-		for (const QString l : runsCSVHeader)
+		for (const QString & l : runsCSVHeader)
 		{
 			runsCSV.setItem(0, col++, new QTableWidgetItem(l));
 		}
-		for (const ParamNameType pnt : paramNames)
+		for (const ParamNameType & pnt : paramNames)
 		{
 			runsCSV.setItem(0, col++, new QTableWidgetItem(pnt.name()));
 		}
@@ -1429,7 +1429,7 @@ void iARunBatchThread::updateComputerCSVFile( QTableWidget & settingsCSV )
 		//Insert a header
 		m_computerCSVData.setRowCount( 1 );
 		m_computerCSVData.setColumnCount( computerCSVHeader.size() );
-		for (const QString l : computerCSVHeader)
+		for (const QString & l : computerCSVHeader)
 		{
 			m_computerCSVData.setItem(0, col++, new QTableWidgetItem(l));
 		}
