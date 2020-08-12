@@ -261,7 +261,7 @@
    </item>
    <item row="1" column="1" colspan="3">
     <widget class="QLineEdit" name="edFilename">
-     <property name="enabled">
+     <property name="readOnly">
       <bool>false</bool>
      </property>
     </widget>
@@ -302,7 +302,7 @@
    </item>
    <item row="2" column="1" colspan="3">
     <widget class="QLineEdit" name="edChannel">
-     <property name="enabled">
+     <property name="readOnly">
       <bool>false</bool>
      </property>
     </widget>
