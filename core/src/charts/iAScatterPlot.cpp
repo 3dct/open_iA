@@ -265,14 +265,22 @@ void iAScatterPlot::enter()
 
 void iAScatterPlot::paintOnParent( QPainter & painter )
 {
-	if ( !hasData() )
+	if (!hasData())
+	{
 		return;
+	}
 	if (!m_pointsBuffer)
+	{
 		createVBO();
+	}
 	if (!m_pointsBuffer) // if still not initialized here, then we cannot draw
+	{
 		return;
+	}
 	if (m_pointsOutdated)
+	{
 		fillVBO();
+	}
 	painter.save();
 	painter.translate( m_globRect.x(), m_globRect.y());
 	QColor bg(settings.backgroundColor);
@@ -344,7 +352,6 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 			isUpdate = true;
 		}
 	}
-
 	else if ( m_dragging )
 	{
 		QPointF deltaOffset = locPos - m_prevPos;
@@ -354,7 +361,6 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		calculateNiceSteps();
 		emit transformModified( m_scale, deltaOffset );
 	}
-
 	else if ( event->buttons()&Qt::LeftButton && settings.selectionEnabled ) // selection
 	{
 		if (settings.selectionMode == Polygon)
@@ -371,9 +377,10 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		}
 		isUpdate = true;
 	}
-
-	if ( isUpdate)
+	if (isUpdate)
+	{
 		m_parentWidget->update();
+	}
 }
 
 void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
@@ -422,7 +429,9 @@ double iAScatterPlot::p2tx( double pval ) const
 {
 	double norm = mapToNorm(m_prX, pval);
 	if (m_splomData->isInverted(m_paramIndices[0]))
+	{
 		norm = 1.0 - norm;
+	}
 	return norm;
 }
 
@@ -431,7 +440,9 @@ double iAScatterPlot::p2x( double pval ) const
 	double rangeDst[2] = { m_locRect.left(), m_locRect.right() };
 	double pixelX = mapValue( m_prX, rangeDst, pval);
 	if (m_splomData->isInverted(m_paramIndices[0]))
+	{
 		pixelX = invertValue(rangeDst, pixelX);
+	}
 	return applyTransformX(pixelX);
 }
 
@@ -442,7 +453,9 @@ double iAScatterPlot::x2p( double x ) const
 	double revTransX = clamp(rangeSrc[0]<rangeSrc[1]?rangeSrc[0]:rangeSrc[1],
 		rangeSrc[0]<rangeSrc[1] ? rangeSrc[1] : rangeSrc[0], revertTransformX(x));
 	if (m_splomData->isInverted(m_paramIndices[0]))
+	{
 		revTransX = invertValue(rangeSrc, revTransX);
+	}
 	return mapValue( rangeSrc, m_prX, revTransX);
 }
 
@@ -457,7 +470,9 @@ double iAScatterPlot::p2ty( double pval ) const
 {
 	double norm = mapToNorm( m_prY, pval );
 	if (!m_splomData->isInverted(m_paramIndices[1])) // y needs to be inverted normally
+	{
 		norm = 1.0 - norm;
+	}
 	return norm;
 }
 
@@ -466,7 +481,9 @@ double iAScatterPlot::p2y( double pval ) const
 	double rangeDst[2] = { m_locRect.bottom(), m_locRect.top() };
 	double pixelY = mapValue(m_prY, rangeDst, pval);
 	if (m_splomData->isInverted(m_paramIndices[1]))
+	{
 		pixelY = invertValue(rangeDst, pixelY);
+	}
 	return applyTransformY( pixelY );
 }
 
@@ -477,7 +494,9 @@ double iAScatterPlot::y2p(double y) const
 	double revTransY = clamp(rangeSrc[0] < rangeSrc[1] ? rangeSrc[0] : rangeSrc[1],
 		rangeSrc[0] < rangeSrc[1] ? rangeSrc[1] : rangeSrc[0], revertTransformY(y));
 	if (m_splomData->isInverted(m_paramIndices[1]))
+	{
 		revTransY = invertValue(rangeSrc, revTransY);
+	}
 	return mapValue( rangeSrc, m_prY, revTransY);
 }
 
@@ -504,14 +523,18 @@ double iAScatterPlot::revertTransformY( double v ) const
 void iAScatterPlot::initGrid()
 {
 	m_gridDims[0] = m_gridDims[1] = settings.defaultGridDimensions;
-	for ( int i = 0; i < m_gridDims[0] * m_gridDims[1]; ++i )
-		m_pointsGrid.push_back( QList<size_t>() );
+	for (int i = 0; i < m_gridDims[0] * m_gridDims[1]; ++i)
+	{
+		m_pointsGrid.push_back(QList<size_t>());
+	}
 }
 
 void iAScatterPlot::updateGrid()
 {
-	for ( int i = 0; i < m_gridDims[0] * m_gridDims[1]; ++i )
+	for (int i = 0; i < m_gridDims[0] * m_gridDims[1]; ++i)
+	{
 		m_pointsGrid[i].clear();
+	}
 
 	for ( size_t i = 0; i < m_splomData->numPoints(); ++i )
 	{
@@ -527,7 +550,9 @@ void iAScatterPlot::updateGrid()
 void iAScatterPlot::dataChanged(size_t paramIndex)
 {
 	if (paramIndex != m_paramIndices[0] && paramIndex != m_paramIndices[1])
+	{
 		return;
+	}
 	applyMarginToRanges();
 	updateGrid();
 	updatePoints();
@@ -556,8 +581,10 @@ void iAScatterPlot::applyMarginToRanges()
 
 void iAScatterPlot::calculateNiceSteps()
 {
-	if ( m_locRect.width() == 0 || m_locRect.height() == 0 )
+	if (m_locRect.width() == 0 || m_locRect.height() == 0)
+	{
 		return;
+	}
 	double rx[2] = { x2p( 0 ), x2p( m_locRect.width() ) };
 	double ry[2] = { y2p( m_locRect.height() ), y2p( 0 ) };
 	calculateNiceSteps( rx, &m_ticksX );
@@ -566,8 +593,10 @@ void iAScatterPlot::calculateNiceSteps()
 
 void iAScatterPlot::calculateNiceSteps( double * r, QList<double> * ticks )
 {
-	if ( m_numTicks <= 0 )
+	if (m_numTicks <= 0)
+	{
 		return;
+	}
 	double range = r[1] - r[0];
 	double delta = range / m_numTicks;
 	int goodNums[3] = { 1, 2, 5 };
@@ -599,7 +628,10 @@ void iAScatterPlot::calculateNiceSteps( double * r, QList<double> * ticks )
 	double tick = stepSize*ip;
 	if (stepSize > 0)
 	{
-		while (tick < r[0]) tick += stepSize;
+		while (tick < r[0])
+		{
+			tick += stepSize;
+		}
 		while (tick <= r[1])
 		{
 			ticks->push_back(tick);
@@ -608,7 +640,10 @@ void iAScatterPlot::calculateNiceSteps( double * r, QList<double> * ticks )
 	}
 	else
 	{
-		while (tick > r[0]) tick += stepSize;
+		while (tick > r[0])
+		{
+			tick += stepSize;
+		}
 		while (tick >= r[1])
 		{
 			ticks->push_back(tick);
@@ -701,7 +736,9 @@ void iAScatterPlot::updateSelectedPoints(bool append, bool remove)
 				for(auto i: pts)
 				{
 					if (!m_splomData->matchesFilter(i))
+					{
 						continue;
+					}
 					QPointF pt(m_splomData->paramData(m_paramIndices[0])[i], m_splomData->paramData(m_paramIndices[1])[i]);
 					if (pPoly.containsPoint(pt, Qt::OddEvenFill))
 					{
@@ -747,22 +784,31 @@ QPoint iAScatterPlot::getLocalPos( QPoint pos ) const
 QPoint iAScatterPlot::cropLocalPos( QPoint locPos ) const
 {
 	QPoint res = locPos;
-	if ( locPos.x() < 0 )
-		res.setX( 0 );
-	if ( locPos.x() > m_globRect.width() - 1 )
-		res.setX( m_globRect.width() - 1 );
-	if ( locPos.y() < 0 )
-		res.setY( 0 );
-	if ( locPos.y() > m_globRect.height() - 1 )
-		res.setY( m_globRect.height() - 1 );
+	if (locPos.x() < 0)
+	{
+		res.setX(0);
+	}
+	if (locPos.x() > m_globRect.width() - 1)
+	{
+		res.setX(m_globRect.width() - 1);
+	}
+	if (locPos.y() < 0)
+	{
+		res.setY(0);
+	}
+	if (locPos.y() > m_globRect.height() - 1)
+	{
+		res.setY(m_globRect.height() - 1);
+	}
 	return res;
 }
 
 void iAScatterPlot::drawPoints( QPainter &painter )
 {
-	if ( !m_splomData )
+	if (!m_splomData)
+	{
 		return;
-
+	}
 	// all points
 	int pwidth  = m_parentWidget->width();
 	int pheight = m_parentWidget->height();
@@ -807,12 +853,14 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 
 	// draw selection:
 	auto const & selInds = m_splom->getFilteredSelection();
-	// TODO: This still limits the data to be drawn to the maximum of unsigned int (i.e. 2^32!)
-	//       but unfortunately, there is no GL_UNSIGNED_LONG_LONG (yet)
 	std::vector<uint> uintSelInds;
 	for (size_t idx : selInds)
+	{
+		// copy doesn't work as it would require explicit conversion from size_t to uint
 		uintSelInds.push_back(static_cast<uint>(idx));
-	// copy doesn't work as it would require explicit conversion from size_t to uint
+	}
+	// TODO: This still limits the data to be drawn to the maximum of unsigned int (i.e. 2^32!)
+	//       but unfortunately, there is no GL_UNSIGNED_LONG_LONG (yet)
 	glDrawElements(GL_POINTS, static_cast<GLsizei>(selInds.size()), GL_UNSIGNED_INT, uintSelInds.data());
 	glDisableClientState( GL_VERTEX_ARRAY );
 	m_pointsBuffer->release();
@@ -993,9 +1041,10 @@ void iAScatterPlot::createVBO()
 void iAScatterPlot::fillVBO()
 {
 	//draw data points
-	if ( !hasData() || !m_lut->initialized())
+	if (!hasData() || !m_lut->initialized())
+	{
 		return;
-
+	}
 	int elSz = CordDim + ColChan;
 	bool res = m_pointsBuffer->bind();
 	if (!res)
@@ -1012,7 +1061,9 @@ void iAScatterPlot::fillVBO()
 	for ( size_t i = 0; i < m_splomData->numPoints(); ++i )
 	{
 		if (!m_splomData->matchesFilter(i))
+		{
 			continue;
+		}
 		double tx = p2tx( m_splomData->paramData( m_paramIndices[0] )[i] );
 		double ty = p2ty( m_splomData->paramData( m_paramIndices[1] )[i] );
 		buffer[elSz * m_curVisiblePts + 0] = tx;

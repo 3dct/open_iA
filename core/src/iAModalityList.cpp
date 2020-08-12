@@ -419,12 +419,11 @@ ModalityCollection iAModalityList::load(QString const & filename, QString const 
 	{
 		if (split) // load one modality for each channel
 		{
-			int channels = volumes.size();
-			for (int i = 0; i < channels; ++i)
+			for (size_t i = 0; i < volumes.size(); ++i)
 			{
 				QSharedPointer<iAModality> newModality(new iAModality(
 					QString("%1-%2").arg(nameBase).arg(i),
-					filename, i, volumes[i], renderFlags));		// TODO: use different renderFlag for first channel?
+					filename, static_cast<int>(i), volumes[i], renderFlags));		// TODO: use different renderFlag for first channel?
 				result.push_back(newModality);
 			}
 		}
