@@ -18,32 +18,40 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAQGLWidget.h"
 
-#include <QtGlobal>
-
-#if (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
-
-#include <QOpenGLWidget>
-
-typedef QOpenGLWidget iAQGLWidget;
-typedef QSurfaceFormat iAQGLFormat;
-
-#define GRAB_FRAMEBUFFER grabFramebuffer
-
-#else
-
-#define WIN32_LEAN_AND_MEAN		// apparently QGLWidget might include windows.h...
-#define VC_EXTRALEAN
-#define NOMINMAX
-
-#include <QGLWidget>
-
-typedef QGLWidget iAQGLWidget;
-typedef QGLFormat iAQGLFormat;
-
-#define GRAB_FRAMEBUFFER grabFrameBuffer
-
-#endif
-
-iAQGLFormat defaultOpenGLFormat();
+iAQGLFormat defaultOpenGLFormat()
+{
+	iAQGLFormat fmt;
+//#if (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
+//	fmt.setVersion(3, 2);
+//#else
+	fmt.setVersion(1, 0);
+//#endif
+	fmt.setSamples(8);
+	fmt.setStereo(true);
+	fmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+	fmt.setRedBufferSize(8);
+	fmt.setGreenBufferSize(8);
+	fmt.setBlueBufferSize(8);
+	fmt.setDepthBufferSize(8);
+	fmt.setAlphaBufferSize(-1);
+	fmt.setStencilBufferSize(0);
+	/*
+	DEBUG_LOG(QString("Default GL format: version: %1.%2;"
+		" buffer sizes r: %3, g: %4, b: %5, a: %6, d: %7, s: %8; stereo: %9, samples: %10, hasAlpha: %11")
+		.arg(fmt.majorVersion())
+		.arg(fmt.minorVersion())
+		.arg(fmt.redBufferSize())
+		.arg(fmt.greenBufferSize())
+		.arg(fmt.blueBufferSize())
+		.arg(fmt.alphaBufferSize())
+		.arg(fmt.depthBufferSize())
+		.arg(fmt.stencilBufferSize())
+		.arg(fmt.stereo())
+		.arg(fmt.samples())
+		.arg(fmt.hasAlpha())
+	);
+	*/
+	return fmt;
+}
