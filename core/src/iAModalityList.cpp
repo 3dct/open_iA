@@ -109,7 +109,7 @@ iAModalityList::iAModalityList() :
 
 bool iAModalityList::modalityExists(QString const & filename, int channel) const
 {
-	for (QSharedPointer<iAModality> mod: m_modalitiesActive)
+	for (QSharedPointer<iAModality> mod: m_modalities)
 	{
 		if (mod->fileName() == filename && mod->channel() == channel)
 		{
@@ -147,13 +147,13 @@ void iAModalityList::store(QString const & filename, vtkCamera* camera)
 		settings.setValue(CameraFocalPointKey, arrayToString(camera->GetFocalPoint(), 3));
 		settings.setValue(CameraViewUpKey, arrayToString(camera->GetViewUp(), 3));
 	}
-	for (int i = 0; i<m_modalitiesActive.size(); ++i)
+	for (int i = 0; i< m_modalities.size(); ++i)
 	{
-		QFileInfo modalityFileInfo(m_modalitiesActive[i]->fileName());
+		QFileInfo modalityFileInfo(m_modalities[i]->fileName());
 		if (!modalityFileInfo.exists() || !modalityFileInfo.isFile())
 		{	// TODO: provide option to store as .mhd?
 			QMessageBox::warning(nullptr, "Save Project",
-				QString("Cannot reference %1 in project. Maybe this is an image stack? Please store modality first as file.").arg(m_modalitiesActive[i]->fileName()));
+				QString("Cannot reference %1 in project. Maybe this is an image stack? Please store modality first as file.").arg(m_modalities[i]->fileName()));
 			if (fi.exists())
 			{
 				// remove any half-written project file
@@ -161,18 +161,18 @@ void iAModalityList::store(QString const & filename, vtkCamera* camera)
 			}
 			return;
 		}
-		settings.setValue(GetModalityKey(i, "Name"), m_modalitiesActive[i]->name());
-		settings.setValue(GetModalityKey(i, "File"), MakeRelative(fi.absolutePath(), m_modalitiesActive[i]->fileName()));
-		if (m_modalitiesActive[i]->channel() >= 0)
+		settings.setValue(GetModalityKey(i, "Name"), m_modalities[i]->name());
+		settings.setValue(GetModalityKey(i, "File"), MakeRelative(fi.absolutePath(), m_modalities[i]->fileName()));
+		if (m_modalities[i]->channel() >= 0)
 		{
-			settings.setValue(GetModalityKey(i, "Channel"), m_modalitiesActive[i]->channel());
+			settings.setValue(GetModalityKey(i, "Channel"), m_modalities[i]->channel());
 		}
-		settings.setValue(GetModalityKey(i, "RenderFlags"), GetRenderFlagString(m_modalitiesActive[i]));
-		settings.setValue(GetModalityKey(i, "Orientation"), m_modalitiesActive[i]->orientationString());
-		settings.setValue(GetModalityKey(i, "Position"), m_modalitiesActive[i]->positionString());
+		settings.setValue(GetModalityKey(i, "RenderFlags"), GetRenderFlagString(m_modalities[i]));
+		settings.setValue(GetModalityKey(i, "Orientation"), m_modalities[i]->orientationString());
+		settings.setValue(GetModalityKey(i, "Position"), m_modalities[i]->positionString());
 
 		//save renderer volume settings for each modality
-		iAVolumeSettings const & volumeSettings = m_modalitiesActive[i]->renderer()->volumeSettings();
+		iAVolumeSettings const & volumeSettings = m_modalities[i]->renderer()->volumeSettings();
 		settings.setValue(GetModalityKey(i, "Shading"), volumeSettings.Shading);
 		settings.setValue(GetModalityKey(i, "LinearInterpolation"), volumeSettings.LinearInterpolation);
 		settings.setValue(GetModalityKey(i, "SampleDistance"), volumeSettings.SampleDistance);
@@ -183,8 +183,8 @@ void iAModalityList::store(QString const & filename, vtkCamera* camera)
 		settings.setValue(GetModalityKey(i, "ScalarOpacityUnitDistance"), volumeSettings.ScalarOpacityUnitDistance);
 		settings.setValue(GetModalityKey(i, "RenderMode"), volumeSettings.RenderMode);
 
-		QFileInfo modFileInfo(m_modalitiesActive[i]->fileName());
-		QString absoluteTFFileName(m_modalitiesActive[i]->transferFileName());
+		QFileInfo modFileInfo(m_modalities[i]->fileName());
+		QString absoluteTFFileName(m_modalities[i]->transferFileName());
 		if (absoluteTFFileName.isEmpty())
 		{
 			absoluteTFFileName = MakeAbsolute(fi.absolutePath(), modFileInfo.fileName() + "_tf.xml");
@@ -200,7 +200,7 @@ void iAModalityList::store(QString const & filename, vtkCamera* camera)
 		QString tfFileName = MakeRelative(fi.absolutePath(), absoluteTFFileName);
 		settings.setValue(GetModalityKey(i, "TransferFunction"), tfFileName);
 		iAXmlSettings s;
-		s.saveTransferFunction(m_modalitiesActive[i]->transfer().data());
+		s.saveTransferFunction(m_modalities[i]->transfer().data());
 		s.save(absoluteTFFileName);
 	}
 }
@@ -297,7 +297,7 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 			}
 			mod[0]->setStringSettings(positionSettings, orientationSettings, tfFileName);
 			mod[0]->setVolSettings(volSettings);
-			m_modalitiesActive.push_back(mod[0]);
+			m_modalities.push_back(mod[0]);
 			emit added(mod[0]);
 		}
 		++currIdx;
@@ -336,46 +336,46 @@ namespace
 
 void iAModalityList::add(QSharedPointer<iAModality> mod)
 {
-	if (m_modalitiesActive.size() > 0)
+	if (m_modalities.size() > 0)
 	{
 		// make sure that size & spacing fit:
 		/*
-		if (m_modalitiesActive[0]->GetWidth() != mod->GetWidth() ||
-		m_modalitiesActive[0]->GetHeight() != mod->GetHeight() ||
-		m_modalitiesActive[0]->GetDepth() != mod->GetDepth() ||
-		m_modalitiesActive[0]->GetSpacing()[0] != mod->GetSpacing()[0] ||
-		m_modalitiesActive[0]->GetSpacing()[1] != mod->GetSpacing()[1] ||
-		m_modalitiesActive[0]->GetSpacing()[2] != mod->GetSpacing()[2])
+		if (m_modalities[0]->GetWidth() != mod->GetWidth() ||
+		m_modalities[0]->GetHeight() != mod->GetHeight() ||
+		m_modalities[0]->GetDepth() != mod->GetDepth() ||
+		m_modalities[0]->GetSpacing()[0] != mod->GetSpacing()[0] ||
+		m_modalities[0]->GetSpacing()[1] != mod->GetSpacing()[1] ||
+		m_modalities[0]->GetSpacing()[2] != mod->GetSpacing()[2])
 		{
 		DebugOut() << "Measurements of new modality " <<
 		GetMeasurementString(mod) << " don't fit measurements of existing one: " <<
-		GetMeasurementString(m_modalitiesActive[0]) << std::endl;
+		GetMeasurementString(m_modalities[0]) << std::endl;
 		return;
 		}
 		*/
 	}
-	m_modalitiesActive.push_back(mod);
+	m_modalities.push_back(mod);
 	emit added(mod);
 }
 
 void iAModalityList::remove(int idx)
 {
-	m_modalitiesActive.remove(idx);
+	m_modalities.remove(idx);
 }
 
 QSharedPointer<iAModality> iAModalityList::get(int idx)
 {
-	return m_modalitiesActive[idx];
+	return m_modalities[idx];
 }
 
 QSharedPointer<iAModality const> iAModalityList::get(int idx) const
 {
-	return m_modalitiesActive[idx];
+	return m_modalities[idx];
 }
 
 int iAModalityList::size() const
 {
-	return m_modalitiesActive.size();
+	return m_modalities.size();
 }
 
 ModalityCollection iAModalityList::load(QString const & filename, QString const & name, int channel, bool split, int renderFlags)
@@ -457,9 +457,9 @@ ModalityCollection iAModalityList::load(QString const & filename, QString const 
 
 bool iAModalityList::hasUnsavedModality() const
 {
-	for (int i = 0; i < m_modalitiesActive.size(); ++i)
+	for (int i = 0; i < m_modalities.size(); ++i)
 	{
-		if (m_modalitiesActive[i]->fileName().isEmpty() || !QFileInfo(m_modalitiesActive[i]->fileName()).exists())
+		if (m_modalities[i]->fileName().isEmpty() || !QFileInfo(m_modalities[i]->fileName()).exists())
 		{
 			return true;
 		}

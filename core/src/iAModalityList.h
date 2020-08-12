@@ -55,7 +55,7 @@ signals:
 	void added(QSharedPointer<iAModality> mod);
 private:
 	bool modalityExists(QString const & filename, int channel) const;
-	ModalityCollection m_modalitiesActive;
+	ModalityCollection m_modalities;
 	QString m_fileName;
 	bool m_camSettingsAvailable;
 	double m_camPosition[3], m_camFocalPoint[3], m_camViewUp[3];
