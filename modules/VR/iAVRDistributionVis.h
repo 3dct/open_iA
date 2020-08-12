@@ -25,7 +25,8 @@
 #include <vtkActor.h>
 #include "vtkTable.h"
 #include <vtkAxisActor.h>
-#include <vtkGlyph3D.h>
+#include <vtkGlyph3DMapper.h>
+#include <vtkAssembly.h>
 
 #include "iACsvIO.h"
 #include "iAVR3DText.h"
@@ -41,8 +42,9 @@ public:
 	iAVRDistributionVis(vtkRenderer* ren, iAVRMetrics* fiberMetric, vtkTable* objectTable, iACsvIO io);
 	void createVisualization(double *pos, int level, std::vector<vtkIdType>* regions, std::vector<int>* featureList);
 	void show();
-	void showAxisMarksInView(double* viewDir);
 	void hide();
+	void determineHistogramInView(double* viewDir);
+	void rotateVisualization(double y);
 
 private:
 	vtkSmartPointer<vtkRenderer> m_renderer;
@@ -50,9 +52,11 @@ private:
 	vtkSmartPointer<vtkActor> m_sphereActor;
 	vtkSmartPointer<vtkActor> m_activeHistogramActor;
 	vtkSmartPointer<vtkActor> m_inactiveHistogramActor;
-	vtkSmartPointer<vtkActor> m_axisActor;
-	//Stores for an [axis] the glyphs (cubes) for the histogram
-	std::vector<vtkSmartPointer<vtkGlyph3D>>* m_histogramGlyphs;
+	vtkSmartPointer<vtkActor> m_activeAxisActor;
+	vtkSmartPointer<vtkActor> m_inactiveAxisActor;
+	vtkSmartPointer<vtkAssembly> visualizationActor;
+	//Stores for an [axis] the bars (points) for the histogram
+	std::vector<vtkSmartPointer<vtkPolyData>>* m_histogramBars;
 	//Stores for an [axis] and a [direction] (x,y) the different 3D TextLabels of the axis pair
 	std::vector<std::vector<std::vector<iAVR3DText>>>* m_axisLabelActor;
 	//Stores for an [axis] its title
@@ -68,26 +72,34 @@ private:
 	bool m_visible;
 	int m_numberOfXBins;
 	int m_numberOfYBins;
+	double m_centerOfVis[3];
 	double m_offsetFromCenter;
 	double m_radius;
 	double m_axisLength;
 	double axisAngle;
-	int axisInView;
+	int currentlyShownAxis;
+	int m_axisInView;
 	double binY;
 	HistogramParameters* m_histogramParameter;
 
-	void calculateAxisPositionInCircle(int axis, int numberOfAxes, double *centerPos, double radius, double* pointOnCircle);
-	void drawAxes();
-	void drawHistogram();
+	void initialize();
+	void mergeActors();
+	void showHistogramInView();
+	void calculateAxisPositionInCircle(int axis, int numberOfAxes, double centerPos[3], double radius, double pointOnCircle[3]);
+	void drawAxes(int visibleAxis);
+	void drawHistogram(int visibleAxis);
+	void createHistogramMapper(vtkSmartPointer<vtkGlyph3DMapper> glyphMapper);
 	void calculateHistogram(int axis);
-	void calculateAxis(double *pos1, double *pos2);
-	void calculateCenterOffsetPos(double* pos1, double* pos2, double* newPos);
-	double calculateAxisLength(double* pos1, double radius);
+	void calculateAxis(double pos1[3], double pos2[3]);
+	void calculateCenterOffsetPos(double pos1[3], double pos2[3], double newPos[3]);
+	double calculateAxisLength(double pos1[3], double radius);
 	void createAxisMarks(int axis);
 	void createAxisLabels(int axis);
 	void calculateAxesViewDir(int axis);
 	void calculateBarsWithCubes(double* markPos, double* cubeSize, int stackSize, vtkPoints* barPoints, vtkUnsignedCharArray* colorArray, QColor barColor);
 	void calculateFittingCubeSize(double* cubeSize);
+	int getMaxBinOccurrences(int axis);
+	int getMinYCubeSize(int axis);
 
 	iAVec3d applyShiftToVector(double point1[3], double point2[3], double shift[3]);
 };

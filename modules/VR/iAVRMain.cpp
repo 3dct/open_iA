@@ -230,6 +230,7 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 		this->ChangeMiMDisplacementType();
 		break;
 	case iAVROperations::ChangeRegionLinks:
+		//m_distributionVis->rotateVisualization(30);
 		//Test
 		m_volume->filterRegionLinks();
 		m_slider->createSlider(0.0, 1.0, QString("Jaccard Index").toUtf8());
@@ -339,7 +340,7 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 			viewD = viewD * (focalP/2);
 			focalP = focalP - viewD;
 
-			m_distributionVis->showAxisMarksInView(focalP.data());
+			m_distributionVis->determineHistogramInView(focalP.data());
 		}
 
 		//Create MIP panel in View direction
@@ -1120,9 +1121,9 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 		//featureList->push_back(currentFeature); //
 		featureList->push_back(7); //
 		featureList->push_back(8); //
+		featureList->push_back(9); //
 		featureList->push_back(11); //
 		featureList->push_back(12); //
-		featureList->push_back(13); //
 
 		m_distributionVis->createVisualization(eventPosition, currentOctreeLevel, multiPickIDs, featureList); //
 		m_distributionVis->show(); //

@@ -167,6 +167,11 @@ void iAVR3DText::moveInEyeDir(double x, double y, double z)
 	m_textActor3D->AddPosition(normDir[0] *x, normDir[1] * y, normDir[2] * z);
 }
 
+vtkSmartPointer<vtkBillboardTextActor3D> iAVR3DText::getTextActor()
+{
+	return m_textActor3D;
+}
+
 void iAVR3DText::showInputTooltip()
 {
 	for (int d = 0; d < vtkEventDataNumberOfDevices; ++d)

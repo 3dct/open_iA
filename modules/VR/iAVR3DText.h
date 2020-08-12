@@ -37,6 +37,7 @@ public:
 	void setLabelPos(double pos[3]);
 	void drawInputTooltip(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, QString text);
 	void moveInEyeDir(double x, double y, double z);
+	vtkSmartPointer<vtkBillboardTextActor3D> getTextActor();
 	void showInputTooltip();
 	void updateInputTooltip();
 	void show();
