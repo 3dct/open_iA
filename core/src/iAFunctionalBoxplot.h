@@ -309,7 +309,8 @@ iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunctio
 		//}
 	}
 	// calculate final step sizes:
-	unsigned long long funcStepSize = std::sqrt(static_cast<double>((functions.size()*functions.size()) / funcStepCnt));
+	// long used because of OpenMP restrictions (probably only for versions < 3)
+	long funcStepSize = static_cast<long>(std::sqrt(static_cast<double>((functions.size()*functions.size()) / funcStepCnt)));
 	//unsigned long long argStepSize = (argMax-argMin) / argStepCnt;
 	// factor which should normalize everything to 0..1
 	//double normalizeFactor = (2 * funcStepCnt * funcStepCnt * argStepCnt) /
