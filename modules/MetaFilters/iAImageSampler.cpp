@@ -120,6 +120,7 @@ void iAImageSampler::newSamplingRun()
 	if (m_aborted)
 	{
 		statusMsg("----------SAMPLING ABORTED!----------");
+		emit finished();
 		return;
 	}
 	if (m_curSample >= m_parameterSets->size())
@@ -135,6 +136,7 @@ void iAImageSampler::newSamplingRun()
 	{
 		statusMsg(QString("Tried to start sampling run %1 when still %2 computations running!")
 			.arg(m_curSample).arg(m_runningComputation.size()));
+		return;
 	}
 	statusMsg(QString("Sampling run %1.").arg(m_curSample));
 	iAParameterSet const& paramSet = m_parameterSets->at(m_curSample);
@@ -321,7 +323,12 @@ void iAImageSampler::computationFinished()
 	QDir d(QDir::root());
 	if (!QDir(outputFolder).exists() && !d.mkpath(outputFolder))
 	{
-		statusMsg(QString("Could not create output folder '%1'").arg(outputFolder));
+		statusMsg(QString("Could not create output folder '%1'. Critical error, aborting sampling.").arg(outputFolder));
+		m_aborted = true;
+		if (m_runningComputation.size() == 0)
+		{
+			emit finished();
+		}
 		return;
 	}
 	QString outputFile(getOutputFileName(outputFolder, m_parameters[spnBaseName].toString(),

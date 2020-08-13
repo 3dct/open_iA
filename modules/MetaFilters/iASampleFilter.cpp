@@ -61,7 +61,7 @@ iASampleFilter::iASampleFilter() :
 	addParameter(spnSamplingMethod, Categorical, samplingMethods);
 	addParameter(spnNumberOfSamples, Discrete, 100);
 	addParameter(spnOutputFolder, Folder, "C:/sampling");
-	addParameter(spnBaseName, FileNameSave, "sample.mhd");
+	addParameter(spnBaseName, String, "sample.mhd");
 	addParameter(spnOverwriteOutput, Boolean, false);
 	addParameter(spnSubfolderPerSample, Boolean, false);
 	addParameter(spnComputeDerivedOutput, Boolean, false);
