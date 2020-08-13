@@ -219,7 +219,7 @@ void iAQSplom::selectionModeRectangle()
 }
 
 iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
-	iAQGLWidget(parent),
+	iAQGLWidget(parent, f),
 	settings(),
 	m_lut(new iALookupTable()),
 	m_colorLookupParam(0),
@@ -238,14 +238,10 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	m_contextMenu(new QMenu(this)),
 	m_settingsDlg(new iASPMSettings(this, f))
 {
-	setWindowFlags(f);
+	setFormat(defaultOpenGLFormat());
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
 	setBackgroundRole(QPalette::Base);
-	setAutoFillBackground(true);
-	iAQGLFormat format;
-	format.setSamples(4);
-	setFormat(format);
 	m_animationIn->setDuration( settings.animDuration );
 	m_animationOut->setDuration( settings.animDuration );
 
@@ -1076,7 +1072,7 @@ int iAQSplom::invert( int val ) const
 	return ( getVisibleParametersCount() - val - 1 );
 }
 
-void iAQSplom::paintEvent(QPaintEvent * /*event*/)
+void iAQSplom::paintGL()
 {
 	QPainter painter( this );
 	painter.setRenderHint(QPainter::Antialiasing);

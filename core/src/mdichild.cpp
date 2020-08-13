@@ -2212,20 +2212,23 @@ void MdiChild::removeChannel(uint id)
 
 void MdiChild::removeFinishedAlgorithms()
 {
-	for (int i = m_workingAlgorithms.size() - 1; i >= 0; i--)
+	for (size_t i = 0; i < m_workingAlgorithms.size(); )
 	{
 		if (m_workingAlgorithms[i]->isFinished())
 		{
 			delete m_workingAlgorithms[i];
 			m_workingAlgorithms.erase(m_workingAlgorithms.begin() + i);
 		}
+		else
+		{
+			++i;
+		}
 	}
 }
 
 void MdiChild::cleanWorkingAlgorithms()
 {
-	unsigned int workingAlgorithmsSize = m_workingAlgorithms.size();
-	for (unsigned int i = 0; i < workingAlgorithmsSize; ++i)
+	for (size_t i = 0; i < m_workingAlgorithms.size(); ++i)
 	{
 		if (m_workingAlgorithms[i]->isRunning())
 		{

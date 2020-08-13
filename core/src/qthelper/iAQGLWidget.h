@@ -45,3 +45,5 @@ typedef QGLFormat iAQGLFormat;
 #define GRAB_FRAMEBUFFER grabFrameBuffer
 
 #endif
+
+iAQGLFormat defaultOpenGLFormat();

@@ -35,7 +35,7 @@
 template<class T> void calcFeatureCharacteristics_template(iAConnector *image, iAProgress* progress,
 	QString pathCSV, bool feretDiameter, bool calculateAdvancedChars, bool calculateRoundness)
 {
-	// Cast iamge to type long
+	// Cast image to type long
 	typedef itk::Image< T, DIM > InputImageType;
 	typename InputImageType::Pointer inputImage;
 	inputImage = dynamic_cast<InputImageType *>( image->itkImage() );
@@ -99,7 +99,7 @@ template<class T> void calcFeatureCharacteristics_template(iAConnector *image, i
 				/*<< "RadiusManually" << ","*/
 				<< "RatioAxisLongToAxisMiddle" << ","
 				<< "RatioMiddleToSmallest" << ","
-			    << "Dir2_X1" << "," << "Dir2_Y1" << "," << "Dir2_Z1" << ","
+				<< "Dir2_X1" << "," << "Dir2_Y1" << "," << "Dir2_Z1" << ","
 				<< "Dir2_X2" << "," << "Dir_Y2" << "," << "Dir2_Z2" << ",";
 		}
 		fout << '\n';
@@ -200,12 +200,10 @@ template<class T> void calcFeatureCharacteristics_template(iAConnector *image, i
 		{
 			phi = 180.0 - phi;
 		}
-
 		if ( phi < 0.0 )
 		{
 			phi = phi + 360.0;
 		}
-
 		if ( dx == 0 && dy == 0 )
 		{
 			phi = 0.0;

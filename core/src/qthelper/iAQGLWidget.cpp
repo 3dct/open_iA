@@ -18,46 +18,42 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAQGLWidget.h"
 
-#include "open_iA_Core_export.h"
-
-#include <QSharedPointer>
-#include <QVector>
-
-class iAModality;
-class iAProgress;
-class iAVolumeSettings;
-
-class vtkCamera;
-
-typedef QVector<QSharedPointer<iAModality> > ModalityCollection;
-
-//! Holds a list of datasets, and provides methods to save and load such lists.
-class open_iA_Core_API iAModalityList : public QObject
+iAQGLFormat defaultOpenGLFormat()
 {
-	Q_OBJECT
-public:
-	iAModalityList();
-	void store(QString const & filename, vtkCamera* cam);
-	bool load(QString const & filename, iAProgress& progress);
-	void applyCameraSettings(vtkCamera* cam);
-
-	int size() const;
-	QSharedPointer<iAModality> get(int idx);
-	QSharedPointer<iAModality const> get(int idx) const;
-	void add(QSharedPointer<iAModality> mod);
-	void remove(int idx);
-	QString const & fileName() const;
-	static ModalityCollection load(QString const & filename, QString const & name, int channel, bool split, int renderFlags);
-	bool hasUnsavedModality() const;
-signals:
-	void added(QSharedPointer<iAModality> mod);
-private:
-	bool modalityExists(QString const & filename, int channel) const;
-	ModalityCollection m_modalities;
-	QString m_fileName;
-	bool m_camSettingsAvailable;
-	double m_camPosition[3], m_camFocalPoint[3], m_camViewUp[3];
-};
-
+	iAQGLFormat fmt;
+#if (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
+	fmt.setVersion(3, 2);
+#else
+	fmt.setVersion(1, 0);
+#endif
+	fmt.setRenderableType(QSurfaceFormat::OpenGL);
+	fmt.setProfile(QSurfaceFormat::CoreProfile);
+	fmt.setSamples(8);
+	fmt.setStereo(true);
+	fmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+	fmt.setRedBufferSize(8);
+	fmt.setGreenBufferSize(8);
+	fmt.setBlueBufferSize(8);
+	fmt.setDepthBufferSize(8);
+	fmt.setAlphaBufferSize(8);
+	fmt.setStencilBufferSize(0);
+	/*
+	DEBUG_LOG(QString("Default GL format: version: %1.%2;"
+		" buffer sizes r: %3, g: %4, b: %5, a: %6, d: %7, s: %8; stereo: %9, samples: %10, hasAlpha: %11")
+		.arg(fmt.majorVersion())
+		.arg(fmt.minorVersion())
+		.arg(fmt.redBufferSize())
+		.arg(fmt.greenBufferSize())
+		.arg(fmt.blueBufferSize())
+		.arg(fmt.alphaBufferSize())
+		.arg(fmt.depthBufferSize())
+		.arg(fmt.stencilBufferSize())
+		.arg(fmt.stereo())
+		.arg(fmt.samples())
+		.arg(fmt.hasAlpha())
+	);
+	*/
+	return fmt;
+}
