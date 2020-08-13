@@ -56,6 +56,7 @@ private:
 	QSharedPointer<iAFilter> m_filter;
 	QMap<QString, QVariant> m_paramValues;
 	QVector<QString> m_fileNames;
+	bool m_aborted;
 };
 
 

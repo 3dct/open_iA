@@ -54,7 +54,8 @@ iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter
 	QMap<QString, QVariant> paramValues, MdiChild* mdiChild, QString const & fileName) :
 	iAAlgorithm(filter->name(), mdiChild->imagePointer(), mdiChild->polyData(), mdiChild->logger(), mdiChild),
 	m_filter(filter),
-	m_paramValues(paramValues)
+	m_paramValues(paramValues),
+	m_aborted(false)
 {
 	m_fileNames.push_back(fileName);
 }
@@ -72,6 +73,10 @@ void iAFilterRunnerGUIThread::performWork()
 		m_filter->logger()->log("Running filter failed!");
 		return;
 	}
+	if (m_aborted)
+	{
+		return;
+	}
 	allocConnectors(m_filter->output().size());
 	for (int i = 0; i < m_filter->output().size(); ++i)
 	{
@@ -81,6 +86,7 @@ void iAFilterRunnerGUIThread::performWork()
 
 void iAFilterRunnerGUIThread::abort()
 {
+	m_aborted = true;
 	m_filter->abort();
 }
 
