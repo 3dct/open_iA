@@ -247,6 +247,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	if (filter->requiredInputs() > 0 && (!sourceMdi || !sourceMdi->isFullyLoaded()))
 	{
 		mainWnd->statusBar()->showMessage("Please wait until file is fully loaded!");
+		emit finished();
 		return;
 	}
 
@@ -255,6 +256,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 
 	if (!askForParameters(filter, paramValues, sourceMdi, mainWnd, true))
 	{
+		emit finished();
 		return;
 	}
 	storeParameters(filter, paramValues);
@@ -262,6 +264,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	//! TODO: find way to check parameters already in dlg_commoninput (before closing)
 	if (!filter->checkParameters(paramValues))
 	{
+		emit finished();
 		return;
 	}
 
@@ -274,6 +277,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	if (!mdiChild)
 	{
 		mainWnd->statusBar()->showMessage("Cannot create result child!", 5000);
+		emit finished();
 		return;
 	}
 	filterGUIPreparations(filter, mdiChild, mainWnd, paramValues);
@@ -281,6 +285,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	if (!thread)
 	{
 		mainWnd->statusBar()->showMessage("Cannot create result calculation thread!", 5000);
+		emit finished();
 		return;
 	}
 	// TODO: move all image adding here?
@@ -297,6 +302,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	{
 		mdiChild->addMsg(QString("Not enough inputs specified, filter %1 requires %2 input images!")
 			.arg(filter->name()).arg(filter->requiredInputs()));
+		emit finished();
 		return;
 	}
 	if (mdiChild->preferences().PrintParameters && !filter->parameters().isEmpty())
