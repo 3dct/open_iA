@@ -18,21 +18,16 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include <QVTKOpenGLNativeWidget.h>
-
 #include <QOpenGLFunctions>
 #include <QString>
 #include <QWindow>
-
-//#include <iostream>
 
 bool checkOpenGLVersion(QString & msg)
 {
 	try
 	{
 		QWindow test;
-		QSurfaceFormat fmt(QVTKOpenGLNativeWidget::defaultFormat());
-		QSurfaceFormat::setDefaultFormat(fmt);
+		QSurfaceFormat fmt;
 #if defined(__APPLE__) && defined(__MACH__)
 		fmt.setVersion(3, 2);
 		fmt.setProfile(QSurfaceFormat::CoreProfile);

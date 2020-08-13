@@ -23,11 +23,13 @@
 iAQGLFormat defaultOpenGLFormat()
 {
 	iAQGLFormat fmt;
-//#if (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
-//	fmt.setVersion(3, 2);
-//#else
+#if (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
+	fmt.setVersion(3, 2);
+#else
 	fmt.setVersion(1, 0);
-//#endif
+#endif
+	fmt.setRenderableType(QSurfaceFormat::OpenGL);
+	fmt.setProfile(QSurfaceFormat::CoreProfile);
 	fmt.setSamples(8);
 	fmt.setStereo(true);
 	fmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
@@ -35,7 +37,7 @@ iAQGLFormat defaultOpenGLFormat()
 	fmt.setGreenBufferSize(8);
 	fmt.setBlueBufferSize(8);
 	fmt.setDepthBufferSize(8);
-	fmt.setAlphaBufferSize(-1);
+	fmt.setAlphaBufferSize(8);
 	fmt.setStencilBufferSize(0);
 	/*
 	DEBUG_LOG(QString("Default GL format: version: %1.%2;"
