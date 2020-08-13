@@ -51,9 +51,6 @@ void iAJobListView::addJob(QString name, iAProgress * p, QThread * t, iAAbortLis
 	auto statusLabel = new QLabel("");
 
 	auto statusWidget = new QWidget();
-	DEBUG_LOG(QString("Color: %1, colorname: %2")
-		.arg(QWidget::palette().color(QPalette::Button).name() + ";"));
-	statusWidget->setStyleSheet("background-color:" + QWidget::palette().color(QPalette::Button).name() + ";");
 	statusWidget->setLayout(new QVBoxLayout);
 	statusWidget->layout()->setContentsMargins(0, 0, 0, 0);
 	statusWidget->layout()->setSpacing(4);
@@ -62,6 +59,37 @@ void iAJobListView::addJob(QString name, iAProgress * p, QThread * t, iAAbortLis
 
 	auto abortButton = new QPushButton("Abort");
 	abortButton->setEnabled(abortListener);
+
+	auto contentWidget = new QWidget();
+	contentWidget->setLayout(new QHBoxLayout);
+	contentWidget->layout()->setContentsMargins(0, 0, 0, 0);
+	contentWidget->layout()->setSpacing(4);
+	contentWidget->layout()->addWidget(statusWidget);
+	contentWidget->layout()->addWidget(abortButton);
+
+	auto jobWidget = new QWidget();
+	jobWidget->setStyleSheet("background-color:" + QWidget::palette().color(QPalette::AlternateBase).name() + ";");
+	jobWidget->setLayout(new QVBoxLayout());
+	jobWidget->setContentsMargins(4, 4, 4, 4);
+	jobWidget->layout()->setSpacing(4);
+	jobWidget->layout()->addWidget(titleLabel);
+	jobWidget->layout()->addWidget(contentWidget);
+	jobWidget->setMaximumHeight(150);
+
+	layout()->addWidget(jobWidget);
+
+	// connections
+	connect(p, &iAProgress::progress, progressBar, &QProgressBar::setValue);
+	connect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
+	connect(t, &QThread::finished, [this, jobWidget]()
+	{
+		int oldJobCount = m_runningJobs.fetchAndAddOrdered(-1);
+		if (oldJobCount == 1)
+		{
+			emit allJobsDone();
+		}
+		jobWidget->deleteLater();
+	});
 	if (abortListener)
 	{
 		connect(abortButton, &QPushButton::clicked, [this, abortButton, abortListener, statusLabel, p]()
@@ -72,36 +100,4 @@ void iAJobListView::addJob(QString name, iAProgress * p, QThread * t, iAAbortLis
 				abortListener->abort();
 			});
 	}
-
-	auto contentWidget = new QWidget();
-	contentWidget->setStyleSheet("background-color:#" + QWidget::palette().color(QPalette::Button).name() + ";");
-	contentWidget->setLayout(new QHBoxLayout);
-	contentWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	contentWidget->layout()->setSpacing(4);
-	contentWidget->layout()->addWidget(statusWidget);
-	contentWidget->layout()->addWidget(abortButton);
-
-	auto jobWidget = new QWidget();
-	jobWidget->setStyleSheet("background-color:#" + QWidget::palette().color(QPalette::Button).name() + ";");
-	jobWidget->setLayout(new QVBoxLayout());
-	jobWidget->setContentsMargins(4, 4, 4, 4);
-	jobWidget->layout()->setSpacing(4);
-	//jobWidget->setStyleSheet("background-color:#" + QWidget::palette().color(QPalette::Button).name() + ";");
-	jobWidget->layout()->addWidget(titleLabel);
-	jobWidget->layout()->addWidget(contentWidget);
-	jobWidget->setMaximumHeight(150);
-	connect(p, &iAProgress::progress, progressBar, &QProgressBar::setValue);
-	connect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
-	connect(t, &QThread::finished, [this, jobWidget]()
-		{
-			int oldJobCount = m_runningJobs.fetchAndAddOrdered(-1);
-			if (oldJobCount == 1)
-			{
-				emit allJobsDone();
-			}
-			jobWidget->deleteLater();
-		});
-	//connect(t, &QThread::finished, jobWidget, &QWidget::deleteLater);
-
-	layout()->addWidget(jobWidget);
 }
