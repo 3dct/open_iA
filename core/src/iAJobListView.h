@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QMap>
+#include <QAtomicInteger>
 #include <QWidget>
 
+class iAAbortListener;
 class iAProgress;
 
 class QThread;
@@ -33,8 +34,9 @@ class iAJobListView : public QWidget
 	Q_OBJECT
 public:
 	iAJobListView();
-	void addJob(QString name, iAProgress * p, QThread * t);
+	void addJob(QString name, iAProgress * p, QThread * t, iAAbortListener* abortListener = nullptr);
+signals:
+	void allJobsDone();
 private:
-	//QMap<iAProgress*, iAJobData> m_jobData;
-	QMap<QThread*, iAProgress*> m_jobProgress;
+	QAtomicInteger<int> m_runningJobs;
 };

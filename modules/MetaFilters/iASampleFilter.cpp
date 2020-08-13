@@ -42,7 +42,8 @@ iASampleFilter::iASampleFilter() :
 	iAFilter("Sample Filter", "Image Ensembles",
 		"Sample any internal filter or external algorithm.<br/>"
 		"If <em>Abort on error</em> is set to true, sampling is aborted if any error is encountered, "
-		"otherwise sampling continues with the next parameter set", 1, 0)
+		"otherwise sampling continues with the next parameter set", 1, 0),
+	m_sampler(nullptr)
 {
 	addParameter(spnAlgorithmName, String, "");
 	QStringList algorithmTypes;
@@ -77,7 +78,7 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 	{
 		return;
 	}
-	iAImageSampler sampler(
+	m_sampler = new iAImageSampler(
 		m_input,
 		parameters,
 		m_parameterRanges,
@@ -88,11 +89,12 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 		m_samplingID,
 		logger()
 	);
-	QObject::connect(&sampler, &iAImageSampler::progress, progress(), &iAProgress::emitProgress);
+	QObject::connect(m_sampler, &iAImageSampler::progress, progress(), &iAProgress::emitProgress);
+	QObject::connect(m_sampler, &iAImageSampler::status, progress(), &iAProgress::setStatus);
 	//connect(&sampler, &iAImageSampler::status, ...);
 	QEventLoop loop;
-	QObject::connect(&sampler, &iAImageSampler::finished, &loop, &QEventLoop::quit);
-	sampler.start();  //< returns as soon as first sampling run is started,
+	QObject::connect(m_sampler, &iAImageSampler::finished, &loop, &QEventLoop::quit);
+	m_sampler->start();  //< returns as soon as first sampling run is started,
 	loop.exec();	  //< so wait for finished event
 }
 
@@ -109,7 +111,18 @@ void iASampleFilter::setParameters(QSharedPointer<iAModalityList> input, QShared
 	m_samplingID = samplingID;
 }
 
+void iASampleFilter::abort()
+{
+	if (m_sampler)
+	{
+		m_sampler->abort();
+	}
+}
 
+bool iASampleFilter::canAbort()
+{
+	return true;
+}
 
 
 

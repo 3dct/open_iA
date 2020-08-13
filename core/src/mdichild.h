@@ -56,6 +56,7 @@ class vtkPolyData;
 class vtkScalarsToColors;
 class vtkTransform;
 
+class iAAbortListener;
 class iAChartFunction;
 class dlg_imageproperty;
 class dlg_modalities;
@@ -68,11 +69,13 @@ class iAChannelData;
 class iAChartWithFunctionsWidget;
 class iADockWidgetWrapper;
 class iAIO;
+class iAJobListView;
 class iALogger;
 class iAModality;
 class iAModalityList;
 class iAParametricSpline;
 class iAPlot;
+class iAProgress;
 struct iAProfileProbe;
 class iAProjectBase;
 class iARenderer;
@@ -230,7 +233,6 @@ public:
 	void updateChannelMappers();
 	//! @}
 
-
 	//! @{ Magic Lens
 	void toggleMagicLens2D(bool isEnabled);
 	void toggleMagicLens3D(bool isEnabled);
@@ -304,6 +306,9 @@ public:
 	void setMeshDataMovable(bool movable);
 	//! maximize slicer dockwidget with the given mode
 	void maximizeSlicer(int mode);
+
+	//! makes job status window visible and adds the given job there.
+	void addJob(QString name, iAProgress* p, QThread* t, iAAbortListener* abortListener = nullptr);
 
 signals:
 	void rendererDeactivated(int c);
@@ -482,8 +487,9 @@ private:
 	iAChartWithFunctionsWidget * m_histogram;
 	QSharedPointer<iAPlot> m_histogramPlot;
 
+	iAJobListView* m_jobs;
 	//! @{ dock widgets
-	iADockWidgetWrapper * m_dwHistogram;
+	iADockWidgetWrapper * m_dwHistogram, * m_dwJobs;
 	dlg_imageproperty * m_dwImgProperty;
 	dlg_volumePlayer * m_dwVolumePlayer;
 	dlg_profile* m_dwProfile;

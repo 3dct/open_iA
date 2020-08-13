@@ -258,19 +258,14 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 	m_config.addClassID = false;
 	m_useStepData = useStepData;
 	m_showPreviews = showPreviews;
-	m_jobs = new iAJobListView();
-	m_jobs->layout()->setContentsMargins(1, 0, 0, 0);
-	m_jobs->layout()->setSpacing(ControlSpacing);
 	m_views.resize(DockWidgetCount);
-	m_views[JobView] = new iADockWidgetWrapper(m_jobs, "Jobs", "foeJobs");
-	m_mdiChild->addDockWidget(Qt::BottomDockWidgetArea, m_views[JobView]);
 	connect(m_mdiChild, &MdiChild::renderSettingsChanged, this, &iAFiAKErController::applyRenderSettings);
 
 	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, m_config, stepShift);
 	connect(resultsLoader, &iAFiberResultsLoader::success, this, &iAFiAKErController::resultsLoaded);
 	connect(resultsLoader, &iAFiberResultsLoader::failed,  this, &iAFiAKErController::resultsLoadFailed);
-	m_jobs->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
+	m_mdiChild->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
 	resultsLoader->start();
 }
 
@@ -305,8 +300,7 @@ void iAFiAKErController::resultsLoaded()
 	m_views[SelectionView]  = new iADockWidgetWrapper(selectionView, "FIAKER Selections", "foeSelections");
 	m_views[SettingsView]   = new iADockWidgetWrapper(m_settingsView, "FIAKER Settings", "foeSettings");
 
-	m_mdiChild->splitDockWidget(m_views[JobView], m_views[ResultListView], Qt::Vertical);
-	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[OptimStepChart], Qt::Vertical);
+	m_mdiChild->splitDockWidget(m_mdiChild->renderDockWidget(), m_views[OptimStepChart], Qt::Vertical);
 	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[SPMView], Qt::Horizontal);
 	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[ProtocolView], Qt::Vertical);
 	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[SelectionView], Qt::Vertical);
@@ -863,7 +857,6 @@ void iAFiAKErController::loadStateAndShow()
 	m_views[SettingsView]->hide();
 	m_views[ProtocolView]->hide();
 	m_views[SelectionView]->hide();
-	m_views[JobView]->hide();
 	m_showReferenceWidget->hide();
 
 	emit setupFinished();
@@ -2760,8 +2753,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 		m_refDistCompute->setMeasuresToCompute(measures, optimizationMeasure, bestMeasure);
 	}
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiAKErController::refDistAvailable);
-	m_views[JobView]->show();
-	m_jobs->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
+	m_mdiChild->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
 	m_refDistCompute->start();
 }
 
@@ -2924,8 +2916,6 @@ void iAFiAKErController::refDistAvailable()
 	m_colorByDistribution->setChecked(true);
 	showMainVis(m_referenceID, Qt::Checked);
 	changeDistributionSource(m_data->spmData->numParams() - 1);
-
-	m_views[JobView]->hide();
 
 	emit referenceComputed();
 }

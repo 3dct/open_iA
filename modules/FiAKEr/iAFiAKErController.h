@@ -286,7 +286,7 @@ private:
 	// The different views and their elements:
 	std::vector<iADockWidgetWrapper*> m_views;
 	enum {
-		JobView, ResultListView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
+		ResultListView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
 	};
 	// 3D View:
 	iAVtkWidget* m_main3DWidget;
@@ -335,9 +335,6 @@ private:
 	QSlider* m_optimStepSlider;
 	QVBoxLayout* m_optimChartLayout;
 	size_t m_chartCount;
-
-	// Jobs:
-	iAJobListView * m_jobs;
 
 	// Interaction Protocol:
 	QTreeView* m_interactionProtocol;

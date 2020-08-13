@@ -24,6 +24,7 @@
 #include "iAFilter.h"
 #include "iAFilterRunnerGUI.h"
 
+class iAImageSampler;
 class iAModalityList;
 
 class iASampleFilter : public iAFilter
@@ -32,6 +33,8 @@ public:
 	static QSharedPointer<iASampleFilter> create();
 	void setParameters(QSharedPointer<iAModalityList> input, QSharedPointer<iAAttributes> parameterRanges,
 		QString const & parameterRangeFile, QString const & parameterSetFile, QString const & derivedOutFile, int samplingID);
+	void abort() override;
+	bool canAbort() override;
 private:
 	void performWork(QMap<QString, QVariant> const& parameters) override;
 	iASampleFilter();
@@ -41,6 +44,7 @@ private:
 		m_parameterSetFile,
 		m_derivedOutFile;
 	int m_samplingID;
+	iAImageSampler * m_sampler;
 };
 
 class iASampleFilterRunnerGUI : public iAFilterRunnerGUI

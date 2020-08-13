@@ -79,6 +79,11 @@ void iAFilterRunnerGUIThread::performWork()
 	}
 }
 
+void iAFilterRunnerGUIThread::abort()
+{
+	m_filter->abort();
+}
+
 QSharedPointer<iAFilter> iAFilterRunnerGUIThread::filter()
 {
 	return m_filter;
@@ -324,6 +329,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	}
 	connectThreadSignals(mdiChild, thread);
 	mdiChild->addStatusMsg(filter->name());
+	mdiChild->addJob(filter->name(), thread->ProgressObserver(), thread, filter->canAbort() ? thread : nullptr);
 	mainWnd->statusBar()->showMessage(filter->name(), 5000);
 	thread->start();
 }

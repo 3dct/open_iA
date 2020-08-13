@@ -22,6 +22,7 @@
 
 #include "open_iA_Core_export.h"
 
+#include "iAAbortListener.h"
 #include "iAAlgorithm.h"
 
 #include <vtkSmartPointer.h>
@@ -41,7 +42,7 @@ class vtkImageData;
 //!
 //! Used in iAFilterRunnerGUI::run (see below) as thread to run a descendant of iAFilter inside its
 //! own thread
-class open_iA_Core_API iAFilterRunnerGUIThread : public iAAlgorithm
+class open_iA_Core_API iAFilterRunnerGUIThread : public iAAlgorithm, public iAAbortListener
 {
 	Q_OBJECT
 public:
@@ -50,6 +51,7 @@ public:
 	void performWork();
 	QSharedPointer<iAFilter> filter();
 	void addInput(vtkImageData* img, QString const& fileName);
+	void abort() override;
 private:
 	QSharedPointer<iAFilter> m_filter;
 	QMap<QString, QVariant> m_paramValues;

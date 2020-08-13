@@ -382,3 +382,12 @@ void iAFilter::addOutputValue(QString const & name)
 {
 	m_outputValueNames.push_back(name);
 }
+
+void iAFilter::abort()
+{	// Filters don't support abort by default
+}
+
+bool iAFilter::canAbort()
+{
+	return false;
+}

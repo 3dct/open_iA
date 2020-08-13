@@ -71,7 +71,8 @@ iABatchFilter::iABatchFilter():
 		"in case there is an error. If it is disabled, an error will interrupt the whole batch run. "
 		"Under <em>Work on</em> it can be specified whether the batched filter should get passed "
 		"only files, only folders, or both files and folders."
-		"<em>Output format</em> specifies the file format for the output image(s).", 0, 0)
+		"<em>Output format</em> specifies the file format for the output image(s).", 0, 0),
+	m_aborted(false)
 {
 	QStringList filesFoldersBoth;
 	filesFoldersBoth << "Files" << "Folders" << "Both Files and Folders";
@@ -119,6 +120,10 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 	QStringList additionalFileNames;
 	for (QString fileName : additionalInput)
 	{
+		if (m_aborted)
+		{
+			break;
+		}
 		fileName = MakeAbsolute(batchDir, fileName);
 		additionalFileNames.push_back(fileName);
 		auto newCon = new iAConnector();
@@ -198,6 +203,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 	int curLine = 0;
 	for (QString fileName : files)
 	{
+		progress()->setStatus(QString("Processing file %1...").arg(fileName));
 		try
 		{
 			filter->clearInput();
@@ -300,9 +306,13 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			}
 		}
 		progress()->emitProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
+		if (m_aborted)
+		{
+			break;
+		}
 	}
 
-	if (!outputFile.isEmpty())
+	if (!m_aborted && !outputFile.isEmpty())
 	{
 		QFile file(outputFile);
 		if (file.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -319,6 +329,16 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			file.close();
 		}
 	}
+}
+
+void iABatchFilter::abort()
+{
+	m_aborted = true;
+}
+
+bool iABatchFilter::canAbort()
+{
+	return true;
 }
 
 IAFILTER_CREATE(iABatchFilter);

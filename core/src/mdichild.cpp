@@ -36,6 +36,7 @@
 #include "iAChannelSlicerData.h"
 #include "iAConsole.h"
 #include "qthelper/iADockWidgetWrapper.h"
+#include "iAJobListView.h"
 #include "iALogger.h"
 #include "iAMdiChildLogger.h"
 #include "iAModality.h"
@@ -116,7 +117,9 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_volumeStack(new iAVolumeStack),
 	m_ioThread(nullptr),
 	m_histogram(new iAChartWithFunctionsWidget(nullptr, this, " Histogram", "Frequency")),
+	m_jobs(new iAJobListView()),
 	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
+	m_dwJobs(new iADockWidgetWrapper(m_jobs, "Jobs", "Jobs")),
 	m_dwImgProperty(nullptr),
 	m_dwProfile(nullptr),
 	m_nextChannelID(0),
@@ -160,6 +163,9 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XZ], Qt::Horizontal);
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::YZ], Qt::Vertical);
 	splitDockWidget(m_dwSlicer[iASlicerMode::XZ], m_dwSlicer[iASlicerMode::XY], Qt::Vertical);
+	splitDockWidget(m_dwLog, m_dwJobs, Qt::Horizontal);
+	m_dwJobs->hide();
+	connect(m_jobs, &iAJobListView::allJobsDone, m_dwJobs, &QDockWidget::hide);
 
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -1101,6 +1107,12 @@ void MdiChild::clearLogs()
 void MdiChild::maximizeSlicer(int mode)
 {
 	resizeDockWidget(m_dwSlicer[mode]);
+}
+
+void MdiChild::addJob(QString name, iAProgress* p, QThread* t, iAAbortListener* abortListener)
+{
+	m_dwJobs->show();
+	m_jobs->addJob(name, p, t, abortListener);
 }
 
 void MdiChild::maximizeRC()

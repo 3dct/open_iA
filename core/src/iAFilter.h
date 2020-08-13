@@ -22,6 +22,7 @@
 
 #include "open_iA_Core_export.h"
 
+#include "iAAbortListener.h"
 #include "iAAttributes.h"
 
 #include <itkImageBase.h>
@@ -48,7 +49,7 @@ class iAProgress;
 //!     - override the SetParameters method to transfer the parameters to the actual algorithm
 //!     - override the Run method to perform the actual calculations
 //!       on m_inImg and (allocate and) store the result in m_outImg
-class open_iA_Core_API iAFilter
+class open_iA_Core_API iAFilter: public iAAbortListener
 {
 public:
 	//! Constructor initializing name, category and description of the filter
@@ -176,6 +177,10 @@ public:
 	QString inputName(unsigned int i) const;
 	//! Retrieve the name of the output image with given index.
 	QString outputName(unsigned int i, QString defaultName=QString()) const;
+	//! Abort the filter.
+	void abort() override;
+	//! Whether the filter supports aborting
+	virtual bool canAbort();
 protected:
 	//! Set the name of the input with the given index.
 	void setInputName(unsigned int i, QString const & name);
