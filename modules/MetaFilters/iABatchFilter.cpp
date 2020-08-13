@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iABatchFilter.h"
 
+#include "iAParameterNames.h"
+
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
@@ -79,17 +81,17 @@ iABatchFilter::iABatchFilter():
 	addParameter("Image folder", Folder, "");
 	addParameter("Recursive", Boolean, false);
 	addParameter("File mask", String, "*.mhd");
-	addParameter("Filter", FilterName, "Image Quality");
+	addParameter(spnFilter, FilterName, "Image Quality");
 	addParameter("Parameters", FilterParameters, "");
 	addParameter("Additional Input", FileNamesOpen, "");
-	addParameter("Output directory", Folder, "");
+	addParameter(spnOutputFolder, Folder, "");
 	addParameter("Output suffix", String, "");
-	addParameter("Overwrite output", Boolean, false);
-	addParameter("Compress output", Boolean, true);
+	addParameter(spnOverwriteOutput, Boolean, false);
+	addParameter(spnCompressOutput, Boolean, true);
 	addParameter("Output csv file", FileNameSave, ".csv");
 	addParameter("Append to output", Boolean, true);
 	addParameter("Add filename", Boolean, true);
-	addParameter("Continue on error", Boolean, true);
+	addParameter(spnContinueOnError, Boolean, false);
 	addParameter("Work on", Categorical, filesFoldersBoth);
 	QStringList outputFormat;
 	outputFormat << "Same as input"
@@ -99,10 +101,10 @@ iABatchFilter::iABatchFilter():
 
 void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	auto filter = iAFilterRegistry::filter(parameters["Filter"].toString());
+	auto filter = iAFilterRegistry::filter(parameters[spnFilter].toString());
 	if (!filter)
 	{
-		addMsg(QString("Batch: Cannot run filter '%1', it does not exist!").arg(parameters["Filter"].toString()));
+		addMsg(QString("Batch: Cannot run filter '%1', it does not exist!").arg(parameters[spnFilter].toString()));
 		return;
 	}
 	QMap<QString, QVariant> filterParams;
@@ -175,7 +177,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		filesFolders |= Folders;
 	}
 	FindFiles(batchDir, filters, parameters["Recursive"].toBool(), files, filesFolders);
-	QString outDir(parameters["Output directory"].toString());
+	QString outDir(parameters[spnOutputFolder].toString());
 	if (!outDir.isEmpty())
 	{
 		QFileInfo fi(outDir);
@@ -198,8 +200,8 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		outDir = batchDir;
 	}
 	QString outSuffix = parameters["Output suffix"].toString();
-	bool overwrite = parameters["Overwrite output"].toBool();
-	bool useCompression = parameters["Compress output"].toBool();
+	bool overwrite = parameters[spnOverwriteOutput].toBool();
+	bool useCompression = parameters[spnCompressOutput].toBool();
 	int curLine = 0;
 	for (QString fileName : files)
 	{

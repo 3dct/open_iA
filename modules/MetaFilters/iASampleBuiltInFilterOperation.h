@@ -35,6 +35,7 @@ public:
 	iASampleBuiltInFilterOperation(
 		QString const& filterName,
 		bool compressOutput,
+		bool overwriteOutput,
 		QMap<QString, QVariant> parameters,
 		QVector<iAConnector*> input,
 		QVector<QString> inputfileNames,
@@ -45,7 +46,7 @@ private:
 	void performWork() override;
 
 	QString m_filterName;
-	bool m_compressOutput;
+	bool m_compressOutput, m_overwriteOutput;
 	QMap<QString, QVariant> m_parameters;
 	QVector<iAConnector*> m_input;
 	QVector<QString> m_inputFileNames;

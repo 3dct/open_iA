@@ -22,7 +22,7 @@
 
 #include "iAAttributes.h"
 #include "iAParameterGeneratorImpl.h"
-#include "iASampleParameterNames.h"
+#include "iAParameterNames.h"
 
 #include <dlg_FilterSelection.h>
 #include <iAAttributeDescriptor.h>
@@ -104,8 +104,9 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWdgt,
 	m_widgetMap.insert(spnOutputFolder, leOutputFolder);
 	m_widgetMap.insert(spnBaseName, leBaseName);
 	m_widgetMap.insert(spnSubfolderPerSample, cbSeparateFolder);
-	m_widgetMap.insert(spnAbortOnError, cbAbortOnError);
+	m_widgetMap.insert(spnOverwriteOutput, cbOverwriteOutput);
 	m_widgetMap.insert(spnCompressOutput, cbCompressOutput);
+	m_widgetMap.insert(spnContinueOnError, cbContinueOnError);
 	m_widgetMap.insert(spnComputeDerivedOutput, cbCalcChar);
 	m_widgetMap.insert(spnNumberOfLabels, sbLabelCount);
 

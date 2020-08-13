@@ -26,7 +26,7 @@
 #include "iAParameterGenerator.h"
 #include "iASingleResult.h"
 #include "iASampleBuiltInFilterOperation.h"
-#include "iASampleParameterNames.h"
+#include "iAParameterNames.h"
 #include "iASamplingResults.h"
 
 #include <iAAttributeDescriptor.h>
@@ -45,7 +45,7 @@
 const int CONCURRENT_COMPUTATION_RUNS = 1;
 
 
-// TODO: find better place - declaration currently in iASampleParameterNames.h
+// TODO: find better place - declaration currently in iAParameterNames.h
 
 #include <QFileInfo>
 
@@ -171,6 +171,7 @@ void iAImageSampler::newSamplingRun()
 		op = new iASampleBuiltInFilterOperation(
 			m_parameters[spnFilter].toString(),
 			m_parameters[spnCompressOutput].toBool(),
+			m_parameters[spnOverwriteOutput].toBool(),
 			singleRunParams, input, fileNames, outputFile, m_logger);
 	}
 	else if (m_parameters[spnAlgorithmType].toString() == atExternal)
@@ -301,7 +302,7 @@ void iAImageSampler::computationFinished()
 	if (!op->success())
 	{
 		statusMsg("Computation was NOT successful.");
-		if (m_parameters[spnAbortOnError].toBool())
+		if (!m_parameters[spnContinueOnError].toBool())
 		{
 			statusMsg("Aborting, since the user requested to abort on errors.");
 			m_aborted = true;

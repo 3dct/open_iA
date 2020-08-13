@@ -23,7 +23,7 @@
 #include "dlg_samplingSettings.h"
 #include "iAImageSampler.h"
 #include "iAParameterGeneratorImpl.h"
-#include "iASampleParameterNames.h"
+#include "iAParameterNames.h"
 
 #include <iAConsole.h>
 #include <iAModalityList.h>
@@ -40,9 +40,8 @@ IAFILTER_CREATE(iASampleFilter)
 
 iASampleFilter::iASampleFilter() :
 	iAFilter("Sample Filter", "Image Ensembles",
-		"Sample any internal filter or external algorithm.<br/>"
-		"If <em>Abort on error</em> is set to true, sampling is aborted if any error is encountered, "
-		"otherwise sampling continues with the next parameter set", 1, 0),
+		"Sample any internal filter or external algorithm.<br/>",
+		1, 0),
 	m_sampler(nullptr)
 {
 	addParameter(spnAlgorithmName, String, "");
@@ -63,9 +62,10 @@ iASampleFilter::iASampleFilter() :
 	addParameter(spnNumberOfSamples, Discrete, 100);
 	addParameter(spnOutputFolder, Folder, "C:/sampling");
 	addParameter(spnBaseName, FileNameSave, "sample.mhd");
+	addParameter(spnOverwriteOutput, Boolean, false);
 	addParameter(spnSubfolderPerSample, Boolean, false);
 	addParameter(spnComputeDerivedOutput, Boolean, false);
-	addParameter(spnAbortOnError, Boolean, true);
+	addParameter(spnContinueOnError, Boolean, false);
 	addParameter(spnCompressOutput, Boolean, true);
 	addParameter(spnNumberOfLabels, Discrete, 2);
 }

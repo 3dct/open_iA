@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAPatchFilter.h"
 
+#include "iAParameterNames.h"
+
 #include <defines.h>    // for DIM
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
@@ -66,10 +68,10 @@ namespace
 	template <typename T>
 	void patch(iAFilter* patchFilter, QMap<QString, QVariant> const & parameters)
 	{
-		auto filter = iAFilterRegistry::filter(parameters["Filter"].toString());
+		auto filter = iAFilterRegistry::filter(parameters[spnFilter].toString());
 		if (!filter)
 		{
-			patchFilter->addMsg(QString("Patch: Cannot run filter '%1', it does not exist!").arg(parameters["Filter"].toString()));
+			patchFilter->addMsg(QString("Patch: Cannot run filter '%1', it does not exist!").arg(parameters[spnFilter].toString()));
 			return;
 		}
 		typedef itk::Image<T, DIM> InputImageType;
@@ -303,14 +305,14 @@ iAPatchFilter::iAPatchFilter():
 	addParameter("Step size Y", Discrete, 1, 1);
 	addParameter("Step size Z", Discrete, 1, 1);
 	addParameter("Center patch", Boolean, true);
-	addParameter("Filter", FilterName, "Image Quality");
+	addParameter(spnFilter, FilterName, "Image Quality");
 	addParameter("Parameters", FilterParameters, "");
 	addParameter("Additional input", FileNamesOpen, "");
 	addParameter("Output csv file", FileNameSave, ".csv");
 	addParameter("Write output value image", Boolean, true);
 	addParameter("Output image base name", String, "output.mhd");
 	addParameter("Compress image", Boolean, true);
-	addParameter("Continue on error", Boolean, true);
+	addParameter(spnContinueOnError, Boolean, false);
 }
 
 void iAPatchFilter::performWork(QMap<QString, QVariant> const & parameters)

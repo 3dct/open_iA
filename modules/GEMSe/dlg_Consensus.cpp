@@ -38,7 +38,7 @@
 #include <iAColorTheme.h>
 #include <iAConsole.h>
 #include <iALookupTable.h>
-#include <iASampleParameterNames.h>
+#include <iAParameterNames.h>
 #include <iAToolsITK.h>
 #include <iAVtkWidget.h>
 #include <io/iAFileUtils.h>
@@ -1003,7 +1003,8 @@ void dlg_Consensus::LoadConfig()
 		params.insert(spnBaseName, "label.mhd");
 		params.insert(spnSubfolderPerSample, true);
 		params.insert(spnComputeDerivedOutput, true);
-		params.insert(spnAbortOnError, true);
+		params.insert(spnContinueOnError, true);
+		params.insert(spnOverwriteOutput, true);
 		params.insert(spnCompressOutput, true);
 		auto sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
 			m_mdiChild->modalities(),

@@ -39,8 +39,6 @@ dlg_progress::dlg_progress(QWidget *parentWidget,
 void dlg_progress::setProgress(int progress)
 {
 	progressBar->setValue(progress);
-
-
 	if (m_durationEstimator->elapsed() > 0)
 	{
 		double estimatedRemaining = m_durationEstimator->estimatedTimeRemaining();

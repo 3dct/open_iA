@@ -33,6 +33,7 @@
 iASampleBuiltInFilterOperation::iASampleBuiltInFilterOperation(
 	QString const& filterName,
 	bool compressOutput,
+	bool overwriteOutput,
 	QMap<QString, QVariant> parameters,
 	QVector<iAConnector*> input,
 	QVector<QString> inputFileNames,
@@ -40,6 +41,7 @@ iASampleBuiltInFilterOperation::iASampleBuiltInFilterOperation(
 	iALogger* logger) :
 	m_filterName(filterName),
 	m_compressOutput(compressOutput),
+	m_overwriteOutput(overwriteOutput),
 	m_parameters(parameters),
 	m_input(input),
 	m_inputFileNames(inputFileNames),
@@ -72,6 +74,12 @@ void iASampleBuiltInFilterOperation::performWork()
 		if (param->valueType() == FileNameSave)
 		{	// all output file names need to be adapted to output file name
 			auto value = pathFileBaseName(m_outputFileName) + param->defaultValue().toString();
+			if (QFile::exists(value) && !m_overwriteOutput)
+			{
+				DEBUG_LOG(QString("Output file '%1' already exists! Aborting. "
+					"Check 'Overwrite output' to overwrite existing files.").arg(value));
+				return;
+			}
 			m_parameters[param->name()] = value;
 		}
 	}
@@ -93,11 +101,11 @@ void iASampleBuiltInFilterOperation::performWork()
 			outFileName = QString("%1/%2%3.%4").arg(fi.absolutePath()).arg(fi.baseName())
 				.arg(o + 1).arg(fi.completeSuffix());
 		}
-		if (QFile(outFileName).exists())
+		if (QFile(outFileName).exists() && !m_overwriteOutput)
 		{
 			// TODO: check at beginning to avoid aborting after long operation? But output count might not be known then...
 			DEBUG_LOG(QString("Output file '%1' already exists! Aborting. "
-				"Specify -f to overwrite existing files.").arg(outFileName));
+				"Check 'Overwrite output' to overwrite existing files.").arg(outFileName));
 			return;
 		}
 		DEBUG_LOG(QString("Writing output %1 to file: '%2' (compression: %3)")

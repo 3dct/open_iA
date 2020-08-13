@@ -36,7 +36,7 @@
 #include <iAImageSampler.h>
 #include <iAParameterGeneratorImpl.h>
 #include <iASamplingResults.h>
-#include <iASampleParameterNames.h>
+#include <iAParameterNames.h>
 #include <dlg_samplingSettings.h>
 
 // core
@@ -191,17 +191,17 @@ void dlg_GEMSeControl::startSampling()
 	{
 		QSharedPointer<iAAttributes> parameterRanges = m_dlgSamplingSettings->parameterRanges();
 		m_dlgSamplingSettings->getValues(m_samplingSettings);
-		m_outputFolder = m_samplingSettings["Output folder"].toString();
+		m_outputFolder = m_samplingSettings[spnOutputFolder].toString();
 		QDir outputFolder(m_outputFolder);
 		outputFolder.mkpath(".");
-		if (m_samplingSettings["Compute derived output"].toBool() &&
-			m_samplingSettings["Number of labels"].toInt() < 2)
+		if (m_samplingSettings[spnComputeDerivedOutput].toBool() &&
+			m_samplingSettings[spnNumberOfLabels].toInt() < 2)
 		{
 			DEBUG_LOG("Label Count must not be smaller than 2!");
 			QMessageBox::warning(this, "GEMSe", "Label Count must not be smaller than 2!");
 			return;
 		}
-		m_simpleLabelInfo->setLabelCount(m_samplingSettings["Number of labels"].toInt());
+		m_simpleLabelInfo->setLabelCount(m_samplingSettings[spnNumberOfLabels].toInt());
 		auto parameterSetGenerator = getParameterGenerator(m_samplingSettings[spnSamplingMethod].toString());
 		if (!parameterSetGenerator)
 		{
