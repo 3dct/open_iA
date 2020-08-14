@@ -31,11 +31,26 @@
 #define ITKNOGPU
 #endif
 
+namespace itk
+{
+	class ProcessObject;
+}
+
 // Blurring
 IAFILTER_DEFAULT_CLASS(iADiscreteGaussian);
 IAFILTER_DEFAULT_CLASS(iARecursiveGaussian);
 IAFILTER_DEFAULT_CLASS(iAMedianFilter);
-IAFILTER_DEFAULT_CLASS(iANonLocalMeans);
+class iANonLocalMeans : public iAFilter
+{
+public:
+	static QSharedPointer<iANonLocalMeans> create();
+	void abort() override;
+	bool canAbort() const override;
+private:
+	void performWork(QMap<QString, QVariant> const& parameters) override;
+	iANonLocalMeans();
+	itk::ProcessObject * m_itkProcess;
+};
 
 // Edge-Preserving
 IAFILTER_DEFAULT_CLASS(iAGradientAnisotropicDiffusion);

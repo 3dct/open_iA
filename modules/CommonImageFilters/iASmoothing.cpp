@@ -170,9 +170,13 @@ void discreteGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
 	filter->progress()->observe(dgFilter);
 	dgFilter->Update();
 	if (params["Convert back to input type"].toBool())
+	{
 		filter->addOutput(castImageTo<T>(dgFilter->GetOutput()));
+	}
 	else
+	{
 		filter->addOutput(dgFilter->GetOutput());
+	}
 }
 
 IAFILTER_CREATE(iADiscreteGaussian)
@@ -198,12 +202,14 @@ iADiscreteGaussian::iADiscreteGaussian() :
 	addParameter("Convert back to input type", Boolean, false);
 }
 
+
 template<class T>
-void patchBasedDenoising(iAFilter* filter, QMap<QString, QVariant> const & params)
+void patchBasedDenoising(iAFilter* filter, QMap<QString, QVariant> const & params, itk::ProcessObject* & itkProcess)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::PatchBasedDenoisingImageFilter<ImageType, ImageType> NonLocalMeansFilter;
 	auto nlmFilter(NonLocalMeansFilter::New());
+	itkProcess = nlmFilter.GetPointer();
 	nlmFilter->SetInput(dynamic_cast<ImageType*>(filter->input()[0]->itkImage()));
 	nlmFilter->SetNumberOfIterations(params["Number of iterations"].toDouble());
 	nlmFilter->SetKernelBandwidthEstimation(params["Kernel bandwidth estimation"].toBool());
@@ -217,11 +223,21 @@ IAFILTER_CREATE(iANonLocalMeans)
 
 void iANonLocalMeans::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(patchBasedDenoising, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(patchBasedDenoising, inputPixelType(), this, parameters, m_itkProcess);
+}
+
+void iANonLocalMeans::abort()
+{
+	m_itkProcess->SetAbortGenerateData(true);
+}
+
+bool iANonLocalMeans::canAbort() const
+{
+	return true;
 }
 
 iANonLocalMeans::iANonLocalMeans() :
-	iAFilter("Non-Local Means", "Smoothing/",
+	iAFilter("Non-Local Means", "Smoothing",
 		"Performs a non-local means (= patch-based denoising) filtering.<br/>"
 		"Implements a denoising filter that uses iterative non-local, "
 		"or semi-local, weighted averaging of image patches for image denoising.<br/>"
@@ -233,7 +249,8 @@ iANonLocalMeans::iANonLocalMeans() :
 		//<em>Noise Sigma</em> specifies the sigma of the noise model, where appropriate (in percent of the image intensity range)."
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1PatchBasedDenoisingImageFilter.html\">"
-		"Patch Based Denoising Filter</a> in the ITK documentation.")
+		"Patch Based Denoising Filter</a> in the ITK documentation."),
+	m_itkProcess(nullptr)
 {
 	// parameters in base class:
 	// Patch Weights
@@ -272,9 +289,13 @@ void gradientAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> cons
 	filter->progress()->observe(gadFilter);
 	gadFilter->Update();
 	if (params["Convert back to input type"].toBool())
+	{
 		filter->addOutput(castImageTo<T>(gadFilter->GetOutput()));
+	}
 	else
+	{
 		filter->addOutput(gadFilter->GetOutput());
+	}
 }
 
 IAFILTER_CREATE(iAGradientAnisotropicDiffusion)
@@ -322,9 +343,13 @@ void GPU_gradient_anisotropic_diffusion(iAFilter* filter, QMap<QString, QVariant
 	filter->progress()->observe(gadFilter);
 	gadFilter->Update();
 	if (params["Convert back to input type"].toBool())
+	{
 		filter->addOutput(castImageTo<T>(gadFilter->GetOutput()));
+	}
 	else
+	{
 		filter->addOutput(gadFilter->GetOutput());
+	}
 }
 
 void iAGPUEdgePreservingSmoothing::performWork(QMap<QString, QVariant> const & parameters)
@@ -351,11 +376,11 @@ iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing() :
 
 
 template<class T>
-void curvatureAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> const & params)
+void curvatureAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> const& params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::CurvatureAnisotropicDiffusionImageFilter<RealImageType, RealImageType > CADIFType;
-	auto realImage = castImageTo<RealType>(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	auto realImage = castImageTo<RealType>(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
 	auto cadFilter = CADIFType::New();
 	cadFilter->SetNumberOfIterations(params["Number of iterations"].toUInt());
 	cadFilter->SetTimeStep(params["Time step"].toDouble());
@@ -364,9 +389,13 @@ void curvatureAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> con
 	filter->progress()->observe(cadFilter);
 	cadFilter->Update();
 	if (params["Convert back to input type"].toBool())
+	{
 		filter->addOutput(castImageTo<T>(cadFilter->GetOutput()));
+	}
 	else
+	{
 		filter->addOutput(cadFilter->GetOutput());
+	}
 }
 
 IAFILTER_CREATE(iACurvatureAnisotropicDiffusion)
@@ -405,9 +434,13 @@ void curvatureFlow(iAFilter* filter, QMap<QString, QVariant> const & params)
 	filter->progress()->observe(cfFfilter);
 	cfFfilter->Update();
 	if (params["Convert back to input type"].toBool())
+	{
 		filter->addOutput(castImageTo<T>(cfFfilter->GetOutput()));
+	}
 	else
+	{
 		filter->addOutput(cfFfilter->GetOutput());
+	}
 }
 
 IAFILTER_CREATE(iACurvatureFlow)
@@ -445,9 +478,13 @@ void bilateralFilter(iAFilter* filter, QMap<QString, QVariant> const & params)
 	filter->progress()->observe(biFilter);
 	biFilter->Update();
 	if (params["Convert back to input type"].toBool())
+	{
 		filter->addOutput(castImageTo<T>(biFilter->GetOutput()));
+	}
 	else
+	{
 		filter->addOutput(biFilter->GetOutput());
+	}
 }
 
 IAFILTER_CREATE(iABilateral)
