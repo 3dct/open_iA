@@ -25,14 +25,15 @@ iAQGLFormat defaultOpenGLFormat()
 	iAQGLFormat fmt;
 #if (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
 	fmt.setVersion(3, 2);
+	fmt.setRenderableType(QSurfaceFormat::OpenGL);
+	fmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
 #else
 	fmt.setVersion(1, 0);
+	fmt.setDoubleBuffer(true);
 #endif
-	fmt.setRenderableType(QSurfaceFormat::OpenGL);
-	fmt.setProfile(QSurfaceFormat::CoreProfile);
+	fmt.setProfile(iAQGLFormat::CoreProfile);
 	fmt.setSamples(8);
 	fmt.setStereo(true);
-	fmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
 	fmt.setRedBufferSize(8);
 	fmt.setGreenBufferSize(8);
 	fmt.setBlueBufferSize(8);
