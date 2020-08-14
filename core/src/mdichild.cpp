@@ -2716,7 +2716,7 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 	m_histogram->removePlot(m_histogramPlot);
 	m_histogramPlot = QSharedPointer<iAPlot>(new
 		iABarGraphPlot(modality(modalityIdx)->histogramData(),
-			QColor(70, 70, 70, 255)));
+			QWidget::palette().color(QPalette::Shadow)));
 	m_histogram->addPlot(m_histogramPlot);
 	m_histogram->setXCaption("Histogram " + modalityName);
 	m_histogram->setTransferFunctions(modality(modalityIdx)->transfer()->colorTF(),
@@ -2958,6 +2958,6 @@ void MdiChild::styleChanged()
 {
 	if (m_histogramPlot)
 	{
-		m_histogramPlot->setColor(QWidget::palette().color(QPalette::Dark));
+		m_histogramPlot->setColor(QWidget::palette().color(QPalette::Shadow));
 	}
 }
