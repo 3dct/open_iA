@@ -180,7 +180,7 @@ public:
 	//! Abort the filter.
 	void abort() override;
 	//! Whether the filter supports aborting
-	virtual bool canAbort();
+	virtual bool canAbort() const;
 protected:
 	//! Set the name of the input with the given index.
 	void setInputName(unsigned int i, QString const & name);

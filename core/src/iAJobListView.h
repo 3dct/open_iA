@@ -39,4 +39,5 @@ signals:
 	void allJobsDone();
 private:
 	QAtomicInteger<int> m_runningJobs;
+	QWidget* m_insideWidget;
 };

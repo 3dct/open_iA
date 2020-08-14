@@ -27,7 +27,7 @@ class iABatchFilter : public iAFilter
 public:
 	static QSharedPointer<iABatchFilter> create();
 	void abort() override;
-	bool canAbort() override;
+	bool canAbort() const override;
 private:
 	void performWork(QMap<QString, QVariant> const& parameters) override;
 	iABatchFilter();

@@ -151,7 +151,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	}
 
 	m_pbar = new QProgressBar(this);
-	m_pbar->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 	m_pbar->setMaximumSize(350, 17);
 	statusBar()->addPermanentWidget(m_pbar);
 	m_pbarMaxVal = m_pbar->maximum();

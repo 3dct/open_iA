@@ -387,7 +387,7 @@ void iAFilter::abort()
 {	// Filters don't support abort by default
 }
 
-bool iAFilter::canAbort()
+bool iAFilter::canAbort() const
 {
 	return false;
 }

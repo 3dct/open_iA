@@ -338,7 +338,7 @@ void iABatchFilter::abort()
 	m_aborted = true;
 }
 
-bool iABatchFilter::canAbort()
+bool iABatchFilter::canAbort() const
 {
 	return true;
 }

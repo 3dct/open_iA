@@ -119,7 +119,7 @@ void iASampleFilter::abort()
 	}
 }
 
-bool iASampleFilter::canAbort()
+bool iASampleFilter::canAbort() const
 {
 	return true;
 }

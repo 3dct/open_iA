@@ -1,4 +1,3 @@
-
 /****************************************************************************
 General
 ****************************************************************************/
@@ -40,6 +39,20 @@ General
 		color: rgba(255, 168, 0, 255);
 	}
 
+	QComboBox,
+	QDockWidget::title,
+	QDoubleSpinBox,
+	QLineEdit,
+	QListWidget,
+	QProgressBar,
+	QSlider::groove:horizontal,
+	QSpinBox,
+	QTabBar::tab,
+	QWidget[qssClass="jobList"]
+	{
+		border: 1px solid rgba(100, 100, 100, 255);
+	}
+
 /****************************************************************************
 QToolBar
 QToolButton
@@ -47,7 +60,7 @@ QToolButton
 	QToolBar
 	{
 		color: rgba(230, 230, 230, 255);
-		background: rgba(80, 80, 80, 255)
+		background-color: rgba(80, 80, 80, 255);
 		/*spacing: 4px;*/ /* spacing between items in the tool bar */
 	}
 
@@ -60,12 +73,12 @@ QToolButton
 	
 	QToolButton:hover
 	{
-		background: rgba(102, 102, 102, 255);
+		background-color: rgba(102, 102, 102, 255);
 	}
 	
 	QToolButton:checked
 	{
-		background: rgba(45, 45, 45, 255);
+		background-color: rgba(45, 45, 45, 255);
 	}
 	
 	QToolButton#qt_toolbar_ext_button
@@ -79,7 +92,7 @@ QStatusBar
 	QStatusBar
 	{
 		color: rgba(230, 230, 230, 255);
-		background: rgba(60, 60, 60, 255)
+		background: rgba(60, 60, 60, 255);
 		/*spacing: 4px;*/ /* spacing between items in the tool bar */
 	}
 
@@ -142,7 +155,7 @@ QMenu
 		stop:0.617034 rgba(100, 146, 212, 255), 
 		stop:0.618034 rgba(100, 146, 212, 255), 
 		stop:1 rgba(70, 122, 201, 255));*/
-		background-color: rgba(60, 60, 60, 255)
+		background-color: rgba(60, 60, 60, 255);
 	}
 
 	QMenu::item:disabled
@@ -174,7 +187,7 @@ QPushButton
 		border-bottom: 1px solid 	rgba(45, 45, 45, 255);
 		border-left: 1px solid 		rgba(45, 45, 45, 255);
 		border-right: 1px solid		rgba(45, 45, 45, 255);
-		color: rgba(255, 168, 0, 255)
+		color: rgba(255, 168, 0, 255);
 	}
 
 	QPushButton:pressed
@@ -217,7 +230,7 @@ QTabBar
 
 	QTabBar::tab
 	{
-		/* Style the tab using the tab sub-control. Note thatit reads QTabBar _not_ QTabWidget */
+		/* Style the tab using the tab sub-control. Note that it reads QTabBar _not_ QTabWidget */
 		color: rgba(230, 230, 230, 255);
 		/*background: qlineargradient(spread:pad, 
 		x1:0, y1:0, 
@@ -226,10 +239,6 @@ QTabBar
 		stop:0.617034 rgba(23, 23, 23, 255), 
 		stop:0.618034 rgba(23, 23, 23, 255), 
 		stop:1 rgba(20, 20, 20, 255));*/
-		border: 1px solid rgba(100, 100, 100, 255);
-		/*border-top-left-radius: 4px;
-		border-top-right-radius: 10px;*/
-		/*min-width:36ex;*/
 		padding:1px 4px;
 	}
 
@@ -282,7 +291,6 @@ QLineEdit
 	QLineEdit
 	{
 		color: rgba(230, 230, 230, 255);
-		border: 1px solid rgba(100, 100, 100, 255);
 	}
 
 /****************************************************************************
@@ -292,7 +300,6 @@ QDoubleSpinBox
 	QSpinBox, 
 	QDoubleSpinBox
 	{
-		border: 1px solid rgba(100, 100, 100, 255);
 		color: rgba(230, 230, 230, 255);
 	}
 
@@ -353,7 +360,8 @@ QProgressBar
 ****************************************************************************/
 	QProgressBar
 	{
-		border: 0px solid rgba(100, 100, 100, 255);
+		text-align: center;
+		vertical-align: center;
 		color: rgba(230, 230, 230, 255);
 		border-bottom-right-radius: 0px;
 		border-top-right-radius:  0px;
@@ -438,7 +446,6 @@ QTreeView
 	}
 
 /****************************************************************************
-QGroupBox
 QRadioButton
 QCheckBox
 ****************************************************************************/
@@ -452,11 +459,6 @@ QCheckBox
 	}
 
 /****************************************************************************
-QGroupBox
-****************************************************************************/
-
-
-/****************************************************************************
 QSlider
 ****************************************************************************/
 	QSlider
@@ -465,7 +467,6 @@ QSlider
 	}
 	QSlider::groove:horizontal
 	{
-		border: 1px solid rgba(100, 100, 100, 255);
 		height: 5px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */
 		background: qlineargradient(spread:pad, 
 		x1:0, y1:0, 
@@ -527,7 +528,6 @@ QComboBox
 	QComboBox
 	{
 		padding-right: 20px; /* make room for the arrows */
-		border: 1px solid rgba(100, 100, 100, 255);
 		color: rgba(230, 230, 230, 255);
 	}
 	QComboBox::drop-down, 
@@ -735,3 +735,27 @@ QSizeGrip
             height: 16px;
         }
 
+/****************************************************************************
+Specific / Custom Widgets
+****************************************************************************/
+
+	QWidget[qssClass="jobWidget"]
+	{
+		background-color: rgba(60, 60, 60, 255);
+		min-height:  80px;
+		border-radius: 4px;
+	}
+	QWidget[qssClass="jobWidget"] *
+	{
+		padding: 0px;
+	}
+	QWidget[qssClass="jobWidget"] .QWidget,
+	QWidget[qssClass="jobWidget"] QLabel,
+	QWidget[qssClass="jobWidget"] QToolButton:!hover
+	{
+		background-color: transparent;
+	}
+	QWidget[qssClass="jobWidget"] QLabel[qssClass="titleLabel"]
+	{
+		font-weight: bold;
+	}

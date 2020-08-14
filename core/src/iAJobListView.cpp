@@ -27,22 +27,30 @@
 //#include <QHBoxLayout>
 #include <QLabel>
 #include <QProgressBar>
-#include <QPushButton>
+#include <QToolButton>
 #include <QThread>
+#include <QVariant>
 #include <QVBoxLayout>
 
-iAJobListView::iAJobListView()
+iAJobListView::iAJobListView():
+	m_insideWidget(new QWidget)
 {
+	m_insideWidget->setProperty("qssClass", "jobList");
+	m_insideWidget->setLayout(new QVBoxLayout());
+	m_insideWidget->layout()->setContentsMargins(4, 4, 4, 4);
+	m_insideWidget->layout()->setSpacing(4);
+	m_insideWidget->layout()->setAlignment(Qt::AlignTop);
 	setLayout(new QVBoxLayout());
-	layout()->setContentsMargins(4, 4, 4, 4);
-	layout()->setSpacing(4);
+	layout()->setContentsMargins(1, 0, 1, 0);
+	layout()->setSpacing(0);
+	layout()->addWidget(m_insideWidget);
 }
 
 void iAJobListView::addJob(QString name, iAProgress * p, QThread * t, iAAbortListener* abortListener)
 {
 	m_runningJobs.fetchAndAddOrdered(1);
 	auto titleLabel = new QLabel(name);
-	titleLabel->setStyleSheet("font-weight: bold;");
+	titleLabel->setProperty("qssClass", "titleLabel");
 
 	auto progressBar = new QProgressBar();
 	progressBar->setRange(0, 100);
@@ -53,30 +61,30 @@ void iAJobListView::addJob(QString name, iAProgress * p, QThread * t, iAAbortLis
 	auto statusWidget = new QWidget();
 	statusWidget->setLayout(new QVBoxLayout);
 	statusWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	statusWidget->layout()->setSpacing(4);
+	statusWidget->layout()->setSpacing(2);
 	statusWidget->layout()->addWidget(statusLabel);
 	statusWidget->layout()->addWidget(progressBar);
 
-	auto abortButton = new QPushButton("Abort");
+	auto abortButton = new QToolButton();
+	abortButton->setIcon(QIcon(":/images/remove.png"));
 	abortButton->setEnabled(abortListener);
 
 	auto contentWidget = new QWidget();
 	contentWidget->setLayout(new QHBoxLayout);
 	contentWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	contentWidget->layout()->setSpacing(4);
+	contentWidget->layout()->setSpacing(2);
 	contentWidget->layout()->addWidget(statusWidget);
 	contentWidget->layout()->addWidget(abortButton);
 
 	auto jobWidget = new QWidget();
-	jobWidget->setStyleSheet("background-color:" + QWidget::palette().color(QPalette::AlternateBase).name() + ";");
+	jobWidget->setProperty("qssClass", "jobWidget");
 	jobWidget->setLayout(new QVBoxLayout());
-	jobWidget->setContentsMargins(4, 4, 4, 4);
+	jobWidget->layout()->setContentsMargins(4, 4, 4, 4);
 	jobWidget->layout()->setSpacing(4);
 	jobWidget->layout()->addWidget(titleLabel);
 	jobWidget->layout()->addWidget(contentWidget);
-	jobWidget->setMaximumHeight(150);
 
-	layout()->addWidget(jobWidget);
+	m_insideWidget->layout()->addWidget(jobWidget);
 
 	// connections
 	connect(p, &iAProgress::progress, progressBar, &QProgressBar::setValue);
@@ -92,7 +100,7 @@ void iAJobListView::addJob(QString name, iAProgress * p, QThread * t, iAAbortLis
 	});
 	if (abortListener)
 	{
-		connect(abortButton, &QPushButton::clicked, [this, abortButton, abortListener, statusLabel, p]()
+		connect(abortButton, &QToolButton::clicked, [this, abortButton, abortListener, statusLabel, p]()
 			{
 				abortButton->setEnabled(false);
 				statusLabel->setText("Aborting...");
