@@ -326,7 +326,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 #pragma omp for
 			for (int i = 0; i < numVoxels; i++) {
 				auto old = reconstructed[vec_i][i];
-				reconstructed[vec_i][i] = (old - min_val) / (max_val - min_val) * 65536.0;
+				reconstructed[vec_i][i] = (old - min_val) / (max_val - min_val) * 65535.0;
 			}
 		} // end of parallel block
 	}
