@@ -73,7 +73,7 @@ public:
 	iAITKIO::ImagePointer probabilityImg(int l);
 
 	//! loads all probability images (given the number of them) and returns them as QVector
-	QVector<ProbabilityImagePointer> iASingleResult::probabilityImgs(int labelCount);
+	QVector<ProbabilityImagePointer> probabilityImgs(int labelCount);
 
 	bool probabilityAvailable() const;
 

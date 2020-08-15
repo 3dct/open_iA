@@ -24,6 +24,7 @@
 
 #include <QMap>
 #include <QString>
+#include <QVector>
 
 class iAConnector;
 class iALogger;
