@@ -100,11 +100,11 @@ void iAJobListView::addJob(QString name, iAProgress * p, QThread * t, iAAbortLis
 	});
 	if (abortListener)
 	{
-		connect(abortButton, &QToolButton::clicked, [this, abortButton, abortListener, statusLabel, p]()
+		connect(abortButton, &QToolButton::clicked, [abortButton, abortListener, statusLabel, p]()
 			{
 				abortButton->setEnabled(false);
 				statusLabel->setText("Aborting...");
-				disconnect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
+				QObject::disconnect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
 				abortListener->abort();
 			});
 	}

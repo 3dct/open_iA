@@ -48,7 +48,7 @@ class open_iA_Core_API iAFilterRunnerGUIThread : public iAAlgorithm, public iAAb
 public:
 	iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter,
 		QMap<QString, QVariant> paramValues, MdiChild* mdiChild, QString const& fileName);
-	void performWork();
+	void performWork() override;
 	QSharedPointer<iAFilter> filter();
 	void addInput(vtkImageData* img, QString const& fileName);
 	void abort() override;
