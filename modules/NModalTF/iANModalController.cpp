@@ -383,9 +383,7 @@ void iANModalController::updateLabels(QList<iANModalLabel> labelsList) {
 
 			auto label = labels[seed.labelId];
 			auto o = label.opacity;
-			auto c = o == 0
-				? QColor(0, 0, 0)
-				: label.color;
+			auto c = o == 0 ? QColor(0,0,0) : label.color;
 
 			//DEBUG_LOG("updating at " + QString::number(seed.scalar));
 
@@ -421,8 +419,8 @@ void iANModalController::addSeeds(QList<iANModalSeed> seeds, iANModalLabel label
 
 		//DEBUG_LOG(QString("adding ") + QString::number(seeds.size()) + QString(" seed(s). one at ") + QString::number(seed.scalar));
 
-		auto c = label.color;
 		auto o = label.opacity;
+		auto c = o == 0 ? QColor(0,0,0) : label.color;
 		colorTf->AddRGBPoint(seed.scalar, c.redF(), c.greenF(), c.blueF());
 		opacityTf->AddPoint(seed.scalar, o);
 
