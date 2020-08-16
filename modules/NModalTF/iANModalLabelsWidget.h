@@ -44,7 +44,7 @@ public:
 
 	float opacity(int row);
 
-	int row(const iANModalLabel &);
+	int row(int labelId);
 
 private:
 

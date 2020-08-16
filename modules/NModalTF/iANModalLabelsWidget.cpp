@@ -80,10 +80,15 @@ void iANModalLabelsWidget::removeLabel(int rowIndex) {
 	assert(containsLabel(rowIndex));
 	Row row = m_rows[rowIndex];
 	if (row.row != -1) {
-		m_layout->removeWidget(row.color);
-		m_layout->removeWidget(row.opacity);
-		row.color->setParent(nullptr);
-		row.opacity->setParent(nullptr);
+		m_rows.removeAt(rowIndex);
+		m_labels.removeAt(rowIndex);
+
+		//m_layout->removeWidget(row.color);
+		//m_layout->removeWidget(row.opacity);
+		//row.color->setParent(nullptr);
+		//row.opacity->setParent(nullptr);
+		row.color->deleteLater();
+		row.opacity->deleteLater();
 	}
 }
 
@@ -96,8 +101,13 @@ float iANModalLabelsWidget::opacity(int row) {
 	return getOpacity(m_rows[row].opacity);
 }
 
-int iANModalLabelsWidget::row(const iANModalLabel &label) {
-	return m_labels.lastIndexOf(label);
+int iANModalLabelsWidget::row(int labelId) {
+	//return m_labels.lastIndexOf(label);
+	for (int i = 0; i < m_labels.size(); ++i) {
+		auto label = m_labels[i];
+		if (label.id == labelId) return i;
+	}
+	return -1;
 }
 
 void iANModalLabelsWidget::addRow(int rowIndex, iANModalLabel label, float opacity) {
@@ -131,6 +141,6 @@ void iANModalLabelsWidget::updateRow(int rowIndex, iANModalLabel label) {
 	setOpacity(row.opacity, label.opacity);
 
 	auto labelId = label.id;
-	disconnect(row.opacity);
+	row.opacity->disconnect();
 	connect(row.opacity, &QSlider::valueChanged, this, [this, labelId]() { emit labelOpacityChanged(labelId); });
 }

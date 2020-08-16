@@ -196,11 +196,11 @@ void iANModalWidget::onLabelsColorChanged(QList<iALabel> labels) {
 		auto ite = m_labels.find(label.id);
 		ite.value().color = label.color;
 
-		iANModalLabel labelPrev = m_labels.value(label.id);
-		int row = m_labelsWidget->row(labelPrev);
-		float opacity = m_labelsWidget->opacity(row);
-
-		nmLabels.append(iANModalLabel(label.id, label.name, label.color, opacity));
+		int row = m_labelsWidget->row(label.id);
+		if (row >= 0) {
+			float opacity = m_labelsWidget->opacity(row);
+			nmLabels.append(iANModalLabel(label.id, label.name, label.color, opacity));
+		}
 	}
 	m_labelsWidget->updateTable(m_labels.values());
 	m_c->updateLabels(nmLabels);
@@ -210,7 +210,7 @@ void iANModalWidget::onLabelsColorChanged(QList<iALabel> labels) {
 void iANModalWidget::onLabelOpacityChanged(int labelId) {
 	if (m_labels.contains(labelId)) {
 		iANModalLabel label = m_labels.value(labelId);
-		int row = m_labelsWidget->row(label);
+		int row = m_labelsWidget->row(labelId);
 		float opacity = m_labelsWidget->opacity(row);
 		if (label.opacity != opacity) {
 			label.opacity = opacity;
