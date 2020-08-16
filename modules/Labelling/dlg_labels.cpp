@@ -361,9 +361,9 @@ int dlg_labels::addLabelItem(QString const & labelText)
 	newRow.append(newItem);
 	newRow.append(newItemCount);
 	m_itemModel->appendRow(newRow);
-	auto label = QSharedPointer<iALabel>(new iALabel(getNextLabelId(), labelText, color));
+	auto id = getNextLabelId();
+	auto label = QSharedPointer<iALabel>(new iALabel(id, QString::number(id), color));
 	m_labels.append(label);
-	newItem->setData(m_labels.size() - 1, Qt::UserRole + 1); // index of label corresponding to this row
 	emit labelAdded(*label);
 	return newItem->row();
 }
@@ -387,8 +387,7 @@ void dlg_labels::recolorItems()
 		QColor color = m_colorTheme->color(row);
 		auto item = m_itemModel->item(row);
 		item->setData(color, Qt::DecorationRole);
-		int i = item->data(Qt::UserRole + 1).toInt();
-		m_labels[i]->color = color;
+		m_labels[row]->color = color;
 	}
 	emit labelsColorChanged(createLabelsList(m_labels));
 }
@@ -460,7 +459,6 @@ void dlg_labels::remove()
 			}
 		}
 		m_itemModel->removeRow(curLabel);
-		auto label = m_labels[curLabel];
 		m_labels.removeAt(curLabel);
 		for (int l = curLabel; l < m_itemModel->rowCount(); ++l)
 		{
@@ -483,6 +481,15 @@ void dlg_labels::remove()
 		}
 		recolorItems();
 		updateChannels();
+
+		auto label = m_labels[curLabel];
+
+		// TODO remove respective OverlayImage from m_mapId2image
+		// ... with that, the image (vtkSmartPointer<iAvtkImageData>) should also be deleted
+
+		// TODO remove respective SlicerData from m_mapSlicer2data
+		// ... by going through all entries and checking if overlayImageId matches that of the removed image
+
 		emit labelRemoved(*label);
 	}
 	else
