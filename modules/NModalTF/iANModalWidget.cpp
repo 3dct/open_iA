@@ -98,18 +98,6 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 		// TODO do not proceed
 	}
 
-
-	//auto modList = QSharedPointer<iAModalityList>(new iAModalityList());
-	/*auto modList = QList<QSharedPointer<iAModality>>();
-	int numMods = output.modalities.size();
-	for (auto mod : output.modalities) {
-		//modList->add(mod);
-		m_mdiChild->modalitiesDockWidget()->addModality(mod->image(), mod->name());
-		auto modNew = m_mdiChild->modality(numMods++);
-		modList.append(modNew);
-	}*/
-	//m_mdiChild->setModalities(modList);
-
 	m_c->setModalities(output.modalities);
 	//m_c->setModalities(modList);
 	//if (output.mask) m_c->applyMask(output.mask);

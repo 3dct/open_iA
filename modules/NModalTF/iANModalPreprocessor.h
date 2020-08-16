@@ -73,6 +73,9 @@ private:
 	bool areModalitiesCompatible(QSharedPointer<iAModality>, QSharedPointer <iAModality>);
 	void groupModalities(QList<QSharedPointer<iAModality>>, QList<ModalitiesGroup> &output);
 	QList<QSharedPointer<iAModality>> chooseGroup(QList<ModalitiesGroup>);
+
+	QList<QSharedPointer<iAModality>> extractNewModalities(QList<QSharedPointer<iAModality>>);
+	void addModalitiesToMdiChild(QList<QSharedPointer<iAModality>>);
 };
 
 class iANModalPreprocessorSelector : public QObject {

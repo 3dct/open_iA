@@ -32,6 +32,8 @@
 #include "iANModalDisplay.h"
 #include "iAModality.h"
 #include "iAToolsVTK.h"
+#include "dlg_modalities.h"
+#include "iAModalityList.h"
 
 #include <vtkImageData.h>
 #include <vtkImageMask.h>
@@ -58,7 +60,7 @@ iANModalPreprocessor::iANModalPreprocessor(MdiChild *mdiChild) :
 
 }
 
-inline void applyMask(vtkSmartPointer<vtkImageData> mask, QList<QSharedPointer<iAModality>> modalities);
+inline QList<QSharedPointer<iAModality>> applyMask(vtkSmartPointer<vtkImageData> mask, QList<QSharedPointer<iAModality>> modalities);
 
 iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPointer<iAModality>> modalities) {
 
@@ -66,7 +68,7 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPoint
 
 	QList<ModalitiesGroup> groups;
 	groupModalities(modalities, groups);
-	auto modalities_original = chooseGroup(groups);
+	modalities = chooseGroup(groups);
 
 	// Step 1: Dimensionality reduction
 	modalities = chooseModalityReducer()->reduce(modalities);
@@ -83,7 +85,7 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPoint
 
 	} else if (mask.maskMode == iANModalBackgroundRemover::MaskMode::REMOVE) {
 		output.maskMode = IGNORE_MASK;
-		applyMask(mask.mask, modalities);
+		modalities = applyMask(mask.mask, modalities);
 
 	} else if (mask.maskMode == iANModalBackgroundRemover::MaskMode::HIDE) {
 		output.maskMode = HIDE_ON_RENDER;
@@ -94,11 +96,14 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPoint
 
 	// TODO set modality voxel to zero everywhere where mask is 1
 
-	// Step 3: Dimensionality reduction (again!)
-	// TODO
+	// Step 3: Dimensionality reduction?
+	// TODO?
 
 	output.modalities = modalities;
 	output.mask = mask.mask;
+
+	auto newModalities = extractNewModalities(modalities);
+	addModalitiesToMdiChild(newModalities);
 
 	return output;
 }
@@ -164,7 +169,31 @@ QList<QSharedPointer<iAModality>> iANModalPreprocessor::chooseGroup(QList<Modali
 	return groups[0].modalities;
 }
 
-inline void applyMask(
+QList<QSharedPointer<iAModality>> iANModalPreprocessor::extractNewModalities(QList<QSharedPointer<iAModality>> modalities) {
+	auto list = m_mdiChild->modalitiesDockWidget()->modalities();
+	auto currentModalities = QList<QSharedPointer<iAModality>>();
+	for (int i = 0; i < list->size(); ++i) {
+		auto modality = list->get(i);
+		currentModalities.append(modality);
+	}
+
+	auto newModalities = QList<QSharedPointer<iAModality>>();
+	for (auto potentiallyNewModality : modalities) {
+		if (!currentModalities.contains(potentiallyNewModality)) {
+			newModalities.append(potentiallyNewModality);
+		}
+	}
+
+	return newModalities;
+}
+
+void iANModalPreprocessor::addModalitiesToMdiChild(QList<QSharedPointer<iAModality>> modalities) {
+	for (auto mod : modalities) {
+		m_mdiChild->modalitiesDockWidget()->addModality(mod->image(), mod->name());
+	}
+}
+
+inline QList<QSharedPointer<iAModality>> applyMask(
 	vtkSmartPointer<vtkImageData> mask,
 	QList<QSharedPointer<iAModality>> modalities) {
 
@@ -185,42 +214,24 @@ inline void applyMask(
 	storeImage(mask, "mask.mhd", true);
 #endif
 
-	for (auto mod : modalities) {
-		auto img = mod->image();
+	auto newModalities = QList<QSharedPointer<iAModality>>();
 
+	QString nameSuffix = "_noBackground";
+
+	for (auto modOld : modalities) {
 		auto maskFilter = vtkSmartPointer<vtkImageMask>::New();
-		maskFilter->SetInput1Data(img);
+		maskFilter->SetInput1Data(modOld->image());
 		maskFilter->SetInput2Data(mask);
 		//maskFilter->SetMaskedOutputValue(0, 1, 0);
 		maskFilter->NotMaskOn();
 		maskFilter->Update();
 
-		img = vtkSmartPointer<vtkImageData>(maskFilter->GetOutput());
-		mod->setData(img);
+		QString name = modOld->name() + nameSuffix;
+		auto modNew = new iAModality(name, "", -1, maskFilter->GetOutput(), iAModality::NoRenderer);
+		newModalities.append(QSharedPointer<iAModality>(modNew));
 	}
 
-	return;
-
-	//#pragma omp parallel for collapse(4) // is SetScalarComponentFromDouble thread safe? TODO uncomment?
-	for (auto mod : modalities) {
-		auto img = mod->image();
-		auto max = img->GetScalarTypeMax();
-		//auto min = img->GetScalarTypeMin();
-		FOR_VTKIMG_PIXELS(img, x, y, z) {
-			double valueOld = img->GetScalarComponentAsDouble(x, y, z, 0);
-
-			float maskValueFloat = mask->GetScalarComponentAsFloat(x, y, z, 0);
-			bool maskValue = maskValueFloat > 0;
-
-			if (maskValue == iANModalBackgroundRemover::BACKGROUND) {
-				img->SetScalarComponentFromDouble(x, y, z, 0, 0);
-			}
-			else {
-				double valueNew = valueOld / max * (max - 1) + 1; // Reserve 0
-				img->SetScalarComponentFromDouble(x, y, z, 0, valueNew);
-			}
-		}
-	}
+	return newModalities;
 }
 
 // iANModalPreprocessorSelector ------------------------------------------------------------
