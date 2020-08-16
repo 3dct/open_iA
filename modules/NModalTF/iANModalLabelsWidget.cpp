@@ -80,9 +80,10 @@ void iANModalLabelsWidget::removeLabel(int rowIndex) {
 	assert(containsLabel(rowIndex));
 	Row row = m_rows[rowIndex];
 	if (row.row != -1) {
-		m_layout->removeWidget(row.name);
 		m_layout->removeWidget(row.color);
 		m_layout->removeWidget(row.opacity);
+		row.color->setParent(nullptr);
+		row.opacity->setParent(nullptr);
 	}
 }
 
@@ -95,11 +96,15 @@ float iANModalLabelsWidget::opacity(int row) {
 	return getOpacity(m_rows[row].opacity);
 }
 
+int iANModalLabelsWidget::row(const iANModalLabel &label) {
+	return m_labels.lastIndexOf(label);
+}
+
 void iANModalLabelsWidget::addRow(int rowIndex, iANModalLabel label, float opacity) {
 	assert(rowIndex <= m_layout->rowCount());
 	int labelId = label.id;
 
-	QLabel *lName = new QLabel(label.name);
+	//QLabel *lName = new QLabel(label.name);
 
 	QLabel *lColor = new QLabel();
 	setLabelColor(lColor, label.color);
@@ -108,22 +113,24 @@ void iANModalLabelsWidget::addRow(int rowIndex, iANModalLabel label, float opaci
 	sOpacity->setMinimum(0);
 	sOpacity->setMaximum(SLIDER_MAX);
 	setOpacity(sOpacity, opacity);
-	connect(sOpacity, &QSlider::valueChanged, this, [this, labelId]() { emit labelOpacityChanged(labelId); });
 
-	m_layout->addWidget(lName, rowIndex, NAME);
 	m_layout->addWidget(lColor, rowIndex, COLOR);
 	m_layout->addWidget(sOpacity, rowIndex, OPACITY);
 
 	if (rowIndex >= m_rows.size()) {
 		m_rows.resize(rowIndex + 1);
 	}
-	m_rows[rowIndex] = Row(rowIndex, lName, lColor, sOpacity);
+	m_rows[rowIndex] = Row(rowIndex, lColor, sOpacity);
+	updateRow(rowIndex, label);
 }
 
 void iANModalLabelsWidget::updateRow(int rowIndex, iANModalLabel label) {
 	assert(containsLabel(rowIndex));
 	Row row = m_rows[rowIndex];
-	row.name->setText(label.name);
 	setLabelColor(row.color, label.color);
 	setOpacity(row.opacity, label.opacity);
+
+	auto labelId = label.id;
+	disconnect(row.opacity);
+	connect(row.opacity, &QSlider::valueChanged, this, [this, labelId]() { emit labelOpacityChanged(labelId); });
 }

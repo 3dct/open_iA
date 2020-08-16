@@ -42,23 +42,23 @@ public:
 	void removeLabel(int row);
 	bool containsLabel(int row);
 
-	float opacity(int labelId);
+	float opacity(int row);
+
+	int row(const iANModalLabel &);
 
 private:
 
 	enum Column {
-		NAME = 0,
-		COLOR = 1,
-		OPACITY = 2
+		COLOR = 0,
+		OPACITY = 1
 	};
 
 	struct Row {
 		Row() {}
-		Row(int _row, QLabel *_name, QLabel *_color, QSlider *_opacity) : 
-			row(_row), name(_name), color(_color), opacity(_opacity)
+		Row(int _row, QLabel *_color, QSlider *_opacity) : 
+			row(_row), color(_color), opacity(_opacity)
 		{}
 		int row = -1;
-		QLabel *name = nullptr;
 		QLabel *color = nullptr;
 		QSlider *opacity = nullptr;
 	};

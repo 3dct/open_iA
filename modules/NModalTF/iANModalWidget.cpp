@@ -130,19 +130,6 @@ void iANModalWidget::onButtonRefreshModalitiesClicked() {
 	m_c->reinitialize();*/
 }
 
-namespace {
-	inline void populateLabel(QSharedPointer<iANModalLabel> label, QStandardItem* item, iANModalLabelsWidget* labelControls, int row) {
-		label->id = row;
-		label->name = item->text();
-		label->color = qvariant_cast<QColor>(item->data(Qt::DecorationRole));
-		if (labelControls->containsLabel(row)) {
-			label->opacity = labelControls->opacity(label->id);
-		} else {
-			label->opacity = 1.0f;
-		}
-	}
-}
-
 void iANModalWidget::onAllSlicersInitialized() {
 	for (int i = 0; i < m_c->m_slicers.size(); i++) {
 		auto slicer = m_c->m_slicers[i];
@@ -208,7 +195,11 @@ void iANModalWidget::onLabelsColorChanged(QList<iALabel> labels) {
 	for (auto label : labels) {
 		auto ite = m_labels.find(label.id);
 		ite.value().color = label.color;
-		float opacity = m_labelsWidget->opacity(label.id);
+
+		iANModalLabel labelPrev = m_labels.value(label.id);
+		int row = m_labelsWidget->row(labelPrev);
+		float opacity = m_labelsWidget->opacity(row);
+
 		nmLabels.append(iANModalLabel(label.id, label.name, label.color, opacity));
 	}
 	m_labelsWidget->updateTable(m_labels.values());
@@ -219,7 +210,8 @@ void iANModalWidget::onLabelsColorChanged(QList<iALabel> labels) {
 void iANModalWidget::onLabelOpacityChanged(int labelId) {
 	if (m_labels.contains(labelId)) {
 		iANModalLabel label = m_labels.value(labelId);
-		float opacity = m_labelsWidget->opacity(labelId);
+		int row = m_labelsWidget->row(label);
+		float opacity = m_labelsWidget->opacity(row);
 		if (label.opacity != opacity) {
 			label.opacity = opacity;
 			//m_labels.remove(labelId);
