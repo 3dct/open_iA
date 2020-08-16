@@ -443,11 +443,15 @@ void dlg_labels::remove()
 				return;
 			}
 		}
+
 		int curLabel = curLabelRow();
 		if (curLabel == -1)
 		{
 			return;
 		}
+
+		auto label = m_labels[curLabel];
+
 		for (int s = item->rowCount()-1; s >= 0; --s)
 		{
 			auto seed = item->child(s);
@@ -481,8 +485,6 @@ void dlg_labels::remove()
 		}
 		recolorItems();
 		updateChannels();
-
-		auto label = m_labels[curLabel];
 
 		// TODO remove respective OverlayImage from m_mapId2image
 		// ... with that, the image (vtkSmartPointer<iAvtkImageData>) should also be deleted
