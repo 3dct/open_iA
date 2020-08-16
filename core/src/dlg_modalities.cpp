@@ -170,7 +170,7 @@ void dlg_modalities::addToList(QSharedPointer<iAModality> mod)
 	lwModalities->addItem(listItem);
 	lwModalities->setCurrentItem(listItem);
 	listItem->setFlags(listItem->flags() | Qt::ItemIsUserCheckable);
-	listItem->setCheckState(Qt::Checked);
+	setChecked(listItem, Qt::Checked);
 }
 
 void dlg_modalities::addListItem(QSharedPointer<iAModality> mod)
@@ -184,6 +184,54 @@ void dlg_modalities::modalityAdded(QSharedPointer<iAModality> mod)
 	addListItem(mod);
 	initDisplay(mod);
 	emit modalityAvailable(lwModalities->count()-1);
+}
+
+QListWidgetItem* dlg_modalities::item(QSharedPointer<iAModality> modWanted)
+{
+	for (int i = 0; i < m_modalities->size(); ++i) {
+		auto modFound = m_modalities->get(i);
+		if (modWanted == modFound) {
+			return lwModalities->item(i);
+		}
+	}
+	return nullptr;
+}
+
+
+QList<QListWidgetItem*> dlg_modalities::items(QList<QSharedPointer<iAModality>> modsWanted)
+{
+	auto list = QList<QListWidgetItem*>();
+	for (int i = 0; i < m_modalities->size(); ++i) {
+		auto modFound = m_modalities->get(i);
+		if (modsWanted.contains(modFound)) {
+			auto item = lwModalities->item(i);
+			list.append(item);
+		}
+	}
+	return list;
+}
+
+void dlg_modalities::setChecked(QSharedPointer<iAModality> modality, Qt::CheckState checked)
+{
+	auto item = this->item(modality);
+	setChecked(item, checked);
+}
+
+void dlg_modalities::setChecked(QList<QSharedPointer<iAModality>> modalities, Qt::CheckState checked)
+{
+	auto items = this->items(modalities);
+	setChecked(items, checked);
+}
+
+void dlg_modalities::setAllChecked(Qt::CheckState checked)
+{
+	for (int i = 0; i < m_modalities->size(); ++i) {
+		auto mod = m_modalities->get(i);
+		auto item = this->item(mod);
+		if (item != nullptr) {
+			setChecked(item, checked);
+		}
+	}
 }
 
 void dlg_modalities::enableUI()
@@ -446,6 +494,18 @@ void dlg_modalities::showChecked(QListWidgetItem* item)
 	bool isChecked = item->checkState() == Qt::Checked;
 	renderer->showVolume(isChecked);
 	m_mainRenderer->GetRenderWindow()->Render();
+}
+
+void dlg_modalities::setChecked(QListWidgetItem* item, Qt::CheckState checked)
+{
+	item->setCheckState(checked);
+}
+
+void dlg_modalities::setChecked(QList<QListWidgetItem*> items, Qt::CheckState checked)
+{
+	for (auto item : items) {
+		setChecked(item, checked);
+	}
 }
 
 QSharedPointer<iAModalityList const> dlg_modalities::modalities() const

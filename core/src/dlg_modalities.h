@@ -76,6 +76,10 @@ public:
 public slots:
 	//! add modality to list, create transfer function, add volume to renderers
 	void modalityAdded(QSharedPointer<iAModality> mod);
+	void setChecked(QSharedPointer<iAModality>, Qt::CheckState checked);
+	void setChecked(QList<QSharedPointer<iAModality>>, Qt::CheckState checked);
+	void setAllChecked(Qt::CheckState checked);
+
 signals:
 	void modalityAvailable(int modalityIdx);
 	void modalitySelected(int modalityIdx);
@@ -96,6 +100,8 @@ private slots:
 	void setModalitySelectionMovable(int selectedRow);
 
 	void showChecked(QListWidgetItem* item);
+	void setChecked(QListWidgetItem* item, Qt::CheckState checked);
+	void setChecked(QList<QListWidgetItem*> items, Qt::CheckState checked);
 
 private:
 
@@ -114,4 +120,7 @@ private:
 	void addToList(QSharedPointer<iAModality> mod);
 	//! initialize a modality's transfer function
 	void initTransfer(QSharedPointer<iAModality> mod);
+
+	QListWidgetItem* item(QSharedPointer<iAModality>);
+	QList<QListWidgetItem*> items(QList<QSharedPointer<iAModality>>);
 };
