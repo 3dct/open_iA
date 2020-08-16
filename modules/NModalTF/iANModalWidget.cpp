@@ -99,8 +99,9 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 	}
 
 	m_c->setModalities(output.modalities);
-	//m_c->setModalities(modList);
-	//if (output.mask) m_c->applyMask(output.mask);
+	if (output.maskMode == iANModalPreprocessor::MaskMode::HIDE_ON_RENDER) {
+		m_c->setMask(output.mask);
+	}
 
 	m_c->initialize();
 }

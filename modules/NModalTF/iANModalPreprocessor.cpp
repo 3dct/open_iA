@@ -189,7 +189,8 @@ QList<QSharedPointer<iAModality>> iANModalPreprocessor::extractNewModalities(QLi
 
 void iANModalPreprocessor::addModalitiesToMdiChild(QList<QSharedPointer<iAModality>> modalities) {
 	for (auto mod : modalities) {
-		m_mdiChild->modalitiesDockWidget()->addModality(mod->image(), mod->name());
+		//m_mdiChild->modalitiesDockWidget()->addModality(mod->image(), mod->name());
+		m_mdiChild->modalitiesDockWidget()->addModality(mod);
 	}
 }
 
