@@ -249,6 +249,8 @@ inline void iANModalController::_initializeCombinedVol() {
 			renderer->remove();
 	}
 	m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);
+
+	m_mdiChild->modalitiesDockWidget()->setAllChecked(Qt::Unchecked);
 }
 
 inline void iANModalController::applyVolumeSettings() {
