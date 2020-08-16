@@ -2535,6 +2535,9 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 {
 	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
 	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
+#if defined(__APPLE__) && defined(__MACH__)
+	QSurfaceFormat::setDefaultFormat(QVTKOpenGLNativeWidget::defaultFormat());
+#endif
 	MainWindow::initResources();
 	QApplication app(argc, argv);
 	QString msg;

@@ -88,6 +88,9 @@ FOREACH( indx RANGE ${len} )
 	if(MSVC)
 		set_target_properties(${module_name} PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
 	endif()
+	if (VTK_MAJOR_VERSION GREATER 8)
+		vtk_module_autoinit(TARGETS ${module_name} MODULES ${VTK_LIBRARIES})
+	endif()
 	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${module_full_path} )
 	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/modules ) # ui files in module folders
 
