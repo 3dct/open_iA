@@ -68,6 +68,7 @@ public:
 	//! initialize a modality's display in renderers
 	void initDisplay(QSharedPointer<iAModality> mod);
 	void addModality(vtkSmartPointer<vtkImageData>, QString const & name);
+	void addModality(QSharedPointer<iAModality> mod);
 	void selectRow(int idx);
 	void enableUI();
 	void setFileName(int modality, QString const & fileName);

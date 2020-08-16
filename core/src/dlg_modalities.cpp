@@ -539,6 +539,11 @@ void dlg_modalities::addModality(vtkSmartPointer<vtkImageData> img, QString cons
 	m_modalities->add(newModality);
 }
 
+void dlg_modalities::addModality(QSharedPointer<iAModality> mod) {
+	mod->setRenderFlag(iAModality::MainRenderer); // TODO remove?
+	m_modalities->add(mod);
+}
+
 void dlg_modalities::setFileName(int modality, QString const & fileName)
 {
 	m_modalities->get(modality)->setFileName(fileName);
