@@ -21,6 +21,8 @@
 #pragma once
 
 #include "iANModalBackgroundRemover.h"
+
+#include <defines.h>  // for DIM
 #include "iANModalProgressWidget.h"
 
 #include <itkImageBase.h>
@@ -65,7 +67,7 @@ public:
 	Mask removeBackground(QList<QSharedPointer<iAModality>>) override;
 
 private:
-	typedef itk::ImageBase<3>::Pointer ImagePointer;
+	using ImagePointer = itk::ImageBase<DIM>::Pointer;
 
 	//iAConnector *m_temp_connector = nullptr;
 	//vtkSmartPointer<vtkImageData> m_vtkTempImg;
@@ -85,7 +87,7 @@ private:
 	bool iterativeDilation(ImagePointer mask, int regionCountGoal);
 
 	iANModalDisplay *m_display;
-	uint m_threholdingMaskChannelId;
+	unsigned int m_threholdingMaskChannelId;
 	vtkSmartPointer<vtkLookupTable> m_colorTf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_opacityTf;
 
@@ -108,7 +110,7 @@ class iANModalIterativeDilationThread : public iANModalProgressUpdater {
 	Q_OBJECT
 
 private:
-	typedef itk::ImageBase<3>::Pointer ImagePointer;
+	typedef itk::ImageBase<DIM>::Pointer ImagePointer;
 
 	iAProgress *m_progDil;
 	iAProgress *m_progCc;
@@ -119,7 +121,7 @@ private:
 	void itkDilateAndCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponents, bool dilate = true);
 	void itkCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponents);
 	void itkDilate(ImagePointer itkImgPtr);
-	void itkErode(ImagePointer itkImgPtr, int count);
+	void itkErodeAndInvert(ImagePointer itkImgPtr, int count);
 
 	bool m_canceled = false;
 

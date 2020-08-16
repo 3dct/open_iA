@@ -40,9 +40,10 @@ class iASlicer;
 class MdiChild;
 
 class vtkVolume;
-class vtkSmartVolumeMapper;
 class vtkRenderer;
 class vtkImageData;
+class vtkSmartVolumeMapper;
+//#include <vtkSmartVolumeMapper.h>
 
 class iANModalController : public QObject {
 	Q_OBJECT
@@ -55,6 +56,7 @@ public:
 
 	int countModalities();
 	void setModalities(QList<QSharedPointer<iAModality>> modalities);
+	void setMask(vtkSmartPointer<vtkImageData> mask);
 	void resetTf(QSharedPointer<iAModality> modality);
 	void resetTf(QList<QSharedPointer<iAModality>> modalities);
 

@@ -24,7 +24,6 @@
 #include "iANModalDisplay.h"
 #include "iANModalProgressWidget.h"
 
-#include <defines.h>  // for DIM
 #include "iAConnector.h"
 #include "iAModality.h"
 #include "iASlicer.h"
@@ -42,6 +41,8 @@
 #include <itkBinaryErodeImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkConnectedComponentImageFilter.h>
+#include <itkMultiplyImageFilter.h>
+#include <itkInvertIntensityImageFilter.h>
 
 #include <QDialog>
 #include <QLabel>
@@ -57,7 +58,7 @@ template <class T>
 void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector &conn, int loThresh, int upThresh)
 {
 	typedef itk::Image<T, DIM> InputImageType;
-	typedef itk::Image<int, DIM> OutputImageType;
+	typedef itk::Image<unsigned short, DIM> OutputImageType;
 	typedef itk::BinaryThresholdImageFilter<InputImageType, OutputImageType> BTIFType;
 
 	auto binThreshFilter = BTIFType::New();
@@ -76,7 +77,7 @@ void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector &conn, in
 void iANModalIterativeDilationThread::itkDilateAndCountConnectedComponents(
 	ImagePointer itkImgPtr, int &connectedComponentsOut, bool dilate /*= true*/)
 {
-	typedef itk::Image<int, DIM> ImageType;
+	typedef itk::Image<unsigned short, DIM> ImageType;
 	typedef itk::ConnectedComponentImageFilter<ImageType, ImageType> CCIFType;
 
 	typedef itk::FlatStructuringElement<DIM> StructuringElementType;
@@ -124,7 +125,7 @@ void iANModalIterativeDilationThread::itkCountConnectedComponents(ImagePointer i
 	itkDilateAndCountConnectedComponents(itkImgPtr, connectedComponentsOut, false);
 	return;
 
-	typedef itk::Image<int, DIM> ImageType;
+	typedef itk::Image<unsigned short, DIM> ImageType;
 	typedef itk::ConnectedComponentImageFilter<ImageType, ImageType> CCIFType;
 
 	auto connCompFilter = CCIFType::New();
@@ -142,7 +143,7 @@ void iANModalIterativeDilationThread::itkCountConnectedComponents(ImagePointer i
 
 void iANModalIterativeDilationThread::itkDilate(ImagePointer itkImgPtr)
 {
-	typedef itk::Image<int, DIM> ImageType;
+	typedef itk::Image<unsigned short, DIM> ImageType;
 
 	typedef itk::FlatStructuringElement<DIM> StructuringElementType;
 	typename StructuringElementType::RadiusType elementRadius;
@@ -163,10 +164,10 @@ void iANModalIterativeDilationThread::itkDilate(ImagePointer itkImgPtr)
 	m_mask = dilationFilter->GetOutput();
 }
 
-void iANModalIterativeDilationThread::itkErode(ImagePointer itkImgPtr, int count)
+void iANModalIterativeDilationThread::itkErodeAndInvert(ImagePointer itkImgPtr, int count)
 {
 	typedef itk::FlatStructuringElement<DIM> StructuringElementType;
-	typedef itk::Image<int, DIM> ImageType;
+	typedef itk::Image<unsigned short, DIM> ImageType;
 	typedef itk::BinaryErodeImageFilter<ImageType, ImageType, StructuringElementType> BDIFType;
 
 	typename StructuringElementType::RadiusType elementRadius;
@@ -189,6 +190,15 @@ void iANModalIterativeDilationThread::itkErode(ImagePointer itkImgPtr, int count
 		erosionFilters[i]->SetInput(i == 0 ? input : erosionFilters[i - 1]->GetOutput());
 		m_progEro->observe(erosionFilters[i]);
 	}
+	
+	/*typedef itk::InvertIntensityImageFilter<ImageType> IIIFType;
+	auto invertFilter = IIIFType::New();
+	invertFilter->SetMaximum(iANModalBackgroundRemover::FOREGROUND);
+	invertFilter->SetInput(erosionFilters[count - 1]->GetOutput());
+
+	invertFilter->Update();
+
+	m_mask = invertFilter->GetOutput();*/
 
 	erosionFilters[count - 1]->Update();
 	m_mask = erosionFilters[count - 1]->GetOutput();
@@ -401,6 +411,9 @@ void iANModalDilationBackgroundRemover::updateThreshold()
 
 bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int regionCountGoal)
 {
+#ifndef NDEBUG
+	storeImage(mask, "thresholded.mhd", true);
+#endif
 
 	auto pw = new iANModalProgressWidget();
 
@@ -502,7 +515,7 @@ void iANModalIterativeDilationThread::run() {
 	emit setValue("status", 2);
 	emit setText("ero", "Erosion (" + QString::number(dilationCount) + ")");
 	IANMODAL_REQUIRE_NCANCELED();
-	itkErode(m_mask, dilationCount);
+	itkErodeAndInvert(m_mask, dilationCount);
 
 #ifndef NDEBUG
 	//storeImage2(m_mask, "mask_after_erosions", true);

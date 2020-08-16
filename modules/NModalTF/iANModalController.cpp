@@ -49,6 +49,7 @@
 #include <vtkCamera.h>
 #include <vtkImageReslice.h>
 #include <vtkSmartPointer.h>
+//#include <vtkGPUVolumeRayCastMapper.h>
 //#include <vtkImageMask.h>
 
 iANModalController::iANModalController(MdiChild *mdiChild) :
@@ -320,6 +321,15 @@ void iANModalController::setModalities(QList<QSharedPointer<iAModality>> modalit
 	}
 	resetTf(modalities);
 	m_modalities = modalities;
+}
+
+void iANModalController::setMask(vtkSmartPointer<vtkImageData> mask) {
+
+	// TODO multiply every voxel in mask by 255
+
+	//auto gpuMapper = m_combinedVolMapper->GetGPUMapper(); // Inaccessible TODO find alternative
+	//gpuMapper->SetMaskTypeToBinary();
+	//gpuMapper->SetMaskInput(mask);
 }
 
 void iANModalController::resetTf(QSharedPointer<iAModality> modality) {
