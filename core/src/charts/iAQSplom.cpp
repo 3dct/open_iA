@@ -218,8 +218,8 @@ void iAQSplom::selectionModeRectangle()
 	setSelectionMode(iAScatterPlot::Rectangle);
 }
 
-iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
-	iAQGLWidget(parent, f),
+iAQSplom::iAQSplom(QWidget * parent):
+	iAQGLWidget(parent),
 	settings(),
 	m_lut(new iALookupTable()),
 	m_colorLookupParam(0),
@@ -236,7 +236,7 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	m_separationIdx(-1),
 	m_bgColorTheme(iAColorThemeManager::instance().theme("White")),
 	m_contextMenu(new QMenu(this)),
-	m_settingsDlg(new iASPMSettings(this, f))
+	m_settingsDlg(new iASPMSettings(this))
 {
 	setFormat(defaultOpenGLFormat());
 	setMouseTracking( true );

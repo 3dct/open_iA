@@ -28,8 +28,8 @@ class iASPMSettings : public SPMSettingsContainer
 {
 	Q_OBJECT
 public:
-	iASPMSettings( QWidget * parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags())
-		: SPMSettingsContainer( parent, f )
+	iASPMSettings(QWidget * parent = nullptr)
+		: SPMSettingsContainer(parent)
 	{
 	}
 };
