@@ -34,7 +34,7 @@
 
 // MetaFilters
 #include <iAImageSampler.h>
-#include <iAParameterGeneratorImpl.h>
+#include <iASamplingMethodImpl.h>
 #include <iASamplingResults.h>
 #include <iAParameterNames.h>
 #include <dlg_samplingSettings.h>
@@ -202,8 +202,8 @@ void dlg_GEMSeControl::startSampling()
 			return;
 		}
 		m_simpleLabelInfo->setLabelCount(m_samplingSettings[spnNumberOfLabels].toInt());
-		auto parameterSetGenerator = getParameterGenerator(m_samplingSettings[spnSamplingMethod].toString());
-		if (!parameterSetGenerator)
+		auto samplingMethod = createSamplingMethod(m_samplingSettings);
+		if (!samplingMethod)
 		{
 			return;
 		}
@@ -211,7 +211,7 @@ void dlg_GEMSeControl::startSampling()
 			m_dlgModalities->modalities(),
 			m_samplingSettings,
 			parameterRanges,
-			parameterSetGenerator,
+			samplingMethod,
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,

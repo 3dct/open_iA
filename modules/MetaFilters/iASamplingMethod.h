@@ -29,10 +29,10 @@ typedef QVector<QVariant> iAParameterSet;
 typedef QVector<iAParameterSet> iAParameterSets;
 typedef QSharedPointer<iAParameterSets> iAParameterSetsPointer;
 
-class iAParameterGenerator
+class iASamplingMethod
 {
 public:
-	virtual ~iAParameterGenerator();
+	virtual ~iASamplingMethod();
 	virtual QString name() const =0;
 	virtual iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameters, int sampleCount) =0;
 };

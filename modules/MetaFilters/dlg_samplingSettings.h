@@ -34,7 +34,7 @@
 
 class iAAttributeDescriptor;
 class iAModalityList;
-class iAParameterGenerator;
+class iASamplingMethod;
 
 class QCheckBox;
 class QShortcut;

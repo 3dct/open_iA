@@ -851,7 +851,7 @@ namespace
 #include "iAAttributeDescriptor.h"
 #include "iAImageSampler.h"
 #include "iAMeasures.h"
-#include "iAParameterGeneratorImpl.h"
+#include "iASamplingMethodImpl.h"
 #include "iASEAFile.h"
 
 void dlg_Consensus::LoadConfig()
@@ -987,12 +987,12 @@ void dlg_Consensus::LoadConfig()
 		}
 		QString executable = checkAlgoParams.getText(0);
 		QString additionalParameters = checkAlgoParams.getText(1);
-		QSharedPointer<iASelectionParameterGenerator> generator(
-			new iASelectionParameterGenerator(QString("Holdout Comparison, Algorithm %1").arg(s),
+		QSharedPointer<iASelectionSamplingMethod> generator(
+			new iASelectionSamplingMethod(QString("Holdout Comparison, Algorithm %1").arg(s),
 				parameterSets));
 		m_samplerParameters.push_back(QMap<QString, QVariant>());
 		auto & params = m_samplerParameters[m_samplerParameters.size() - 1];
-		params.insert(spnNumberOfSamples, 0); // iASelectionParameterGenerator doesn't need this parameter
+		params.insert(spnNumberOfSamples, 0); // iASelectionSamplingMethod doesn't need this parameter
 		params.insert(spnSamplingMethod, generator->name());
 		params.insert(spnNumberOfLabels, m_labelCount);
 		params.insert(spnOutputFolder, outputFolder);

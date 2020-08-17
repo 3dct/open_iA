@@ -22,7 +22,7 @@
 
 #include "dlg_samplingSettings.h"
 #include "iAImageSampler.h"
-#include "iAParameterGeneratorImpl.h"
+#include "iASamplingMethodImpl.h"
 #include "iAParameterNames.h"
 
 #include <iAConsole.h>
@@ -52,12 +52,7 @@ iASampleFilter::iASampleFilter() :
 	addParameter(spnExecutable, FileNameOpen, "");
 	addParameter(spnParameterDescriptor, FileNameOpen, "");
 	addParameter(spnAdditionalArguments, String, "");
-	QStringList samplingMethods;
-	auto& paramGens = getParameterGenerators();
-	for (QSharedPointer<iAParameterGenerator> paramGen : paramGens)
-	{
-		samplingMethods << paramGen->name();
-	}
+	QStringList samplingMethods(samplingMethodNames());
 	addParameter(spnSamplingMethod, Categorical, samplingMethods);
 	addParameter(spnNumberOfSamples, Discrete, 100);
 	addParameter(spnOutputFolder, Folder, "C:/sampling");
@@ -68,13 +63,18 @@ iASampleFilter::iASampleFilter() :
 	addParameter(spnContinueOnError, Boolean, false);
 	addParameter(spnCompressOutput, Boolean, true);
 	addParameter(spnNumberOfLabels, Discrete, 2);
+	
+	samplingMethods.removeAll(iAGeneralSensitivitySamplingMethod::Name);
+	// parameters only required for "General Sensitivity" sampling:
+	addParameter(spnBaseSamplingMethod, Categorical, samplingMethods);
+	addParameter(spnSensitivityDelta, Continuous, 0.1);
 }
 
 void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 {
 	// ITK_TYPED_CALL(sample, inputPixelType(), this, parameters);
-	auto parameterSetGenerator = getParameterGenerator(parameters["Sampling method"].toString());
-	if (!parameterSetGenerator)
+	auto samplingMethod = createSamplingMethod(parameters);
+	if (!samplingMethod)
 	{
 		return;
 	}
@@ -82,7 +82,7 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 		m_input,
 		parameters,
 		m_parameterRanges,
-		parameterSetGenerator,
+		samplingMethod,
 		m_parameterRangeFile,
 		m_parameterSetFile,
 		m_derivedOutFile,

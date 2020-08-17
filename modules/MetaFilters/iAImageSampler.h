@@ -23,7 +23,7 @@
 #include "MetaFilters_export.h"
 
 #include "iADurationEstimator.h"
-#include "iAParameterGenerator.h"
+#include "iASamplingMethod.h"
 
 #include <iAAbortListener.h>
 #include <iAAttributes.h>
@@ -50,7 +50,7 @@ public:
 		QSharedPointer<iAModalityList> datasets,
 		QMap<QString, QVariant> const & parameters,
 		QSharedPointer<iAAttributes> parameterRanges,
-		QSharedPointer<iAParameterGenerator> sampleGenerator,
+		QSharedPointer<iASamplingMethod> samplingMethod,
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
 		QString const & derivedOutputFile,
@@ -72,7 +72,7 @@ private:
 	QSharedPointer<iAModalityList> m_datasets;
 	QMap<QString, QVariant> const& m_parameters;
 	QSharedPointer<iAAttributes> m_parameterRanges;
-	QSharedPointer<iAParameterGenerator> m_sampleGenerator;
+	QSharedPointer<iASamplingMethod> m_samplingMethod;
 	QString m_parameterRangeFile;
 	QString m_parameterSetFile;
 	QString m_derivedOutputFile;

@@ -18,10 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAParameterGeneratorImpl.h"
+#include "iASamplingMethodImpl.h"
 
-#include "iAAttributes.h"
+#include "iAParameterNames.h"
 
+#include <iAAttributes.h>
 #include <iAAttributeDescriptor.h>
 #include <iAConsole.h>
 #include <iAMathUtility.h>
@@ -30,9 +31,7 @@
 #include <cmath>
 #include <random>
 
-
-iAParameterGenerator::~iAParameterGenerator()
-{}
+// Various helper classes for random generation:
 
 class iARandomGenerator
 {
@@ -172,12 +171,84 @@ QSharedPointer<iARandomGenerator> createRandomGenerator(QSharedPointer<iAAttribu
 	}
 }
 
-QString iARandomParameterGenerator::name() const
+class iARange
 {
-	return QString("Random");
+public:
+	virtual ~iARange() {}
+	virtual double min(int i) = 0;
+	virtual double max(int i) = 0;
+};
+
+
+class iALinRange : public iARange
+{
+public:
+	iALinRange(double min, double max, int count) :
+		m_min(min),
+		m_step((max - min) / count)
+	{}
+	double min(int i) override
+	{
+		return m_min + i * m_step;
+	}
+	double max(int i) override
+	{
+		return m_min + (i + 1) * m_step;
+	}
+private:
+	double m_min;
+	double m_step;
+};
+
+class iALogRange : public iARange
+{
+public:
+	iALogRange(double min, double max, int count) :
+		m_min(min),
+		m_factor(std::pow(max / min, 1.0 / count))
+	{
+		assert(min > 0);
+	}
+	double min(int i) override
+	{
+		return m_min * std::pow(m_factor, i + 1);
+	}
+	double max(int i) override
+	{
+		return m_min * std::pow(m_factor, i + 1);
+	}
+private:
+	double m_min;
+	double m_factor;
+};
+
+QSharedPointer<iARange> createRange(bool log, double min, double max, int count, iAValueType valueType)
+{
+	if (log)
+	{
+		assert(valueType != Categorical);
+		return QSharedPointer<iARange>(new iALogRange(min, max + ((valueType == Discrete) ? 0.999999 : 0), count));
+	}
+	else
+	{
+		return QSharedPointer<iARange>(new iALinRange(min, max + ((valueType == Categorical || valueType == Discrete) ? 0.999999 : 0), count));
+	}
 }
 
-iAParameterSetsPointer iARandomParameterGenerator::parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
+// The actual sampling strategies:
+
+iASamplingMethod::~iASamplingMethod()
+{}
+
+
+QString iARandomSamplingMethod::Name("Random");
+
+QString iARandomSamplingMethod::name() const
+{
+	return iARandomSamplingMethod::Name;
+}
+
+iAParameterSetsPointer iARandomSamplingMethod::parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
 {
 	iAParameterSetsPointer result(new iAParameterSets);
 
@@ -210,77 +281,14 @@ T pop_at(QVector<T>& v, typename QVector<T>::size_type n)
 }
 
 
-class iARange
-{
-public:
-	virtual ~iARange() {}
-	virtual double min(int i) =0;
-	virtual double max(int i) =0;
-};
+QString iALatinHypercubeSamplingMethod::Name("Latin HyperCube");
 
-
-class iALinRange: public iARange
+QString iALatinHypercubeSamplingMethod::name() const
 {
-public:
-	iALinRange(double min, double max, int count):
-		m_min(min),
-		m_step((max-min)/count)
-	{}
-	double min(int i) override
-	{
-		return m_min+ i*m_step;
-	}
-	double max(int i) override
-	{
-		return m_min+ (i+1)*m_step;
-	}
-private:
-	double m_min;
-	double m_step;
-};
-
-class iALogRange: public iARange
-{
-public:
-	iALogRange(double min, double max, int count):
-		m_min(min),
-		m_factor(std::pow(max/min, 1.0/count))
-	{
-		assert(min > 0);
-	}
-	double min(int i) override
-	{
-		return m_min*std::pow(m_factor, i+1);
-	}
-	double max(int i) override
-	{
-		return m_min*std::pow(m_factor, i+1);
-	}
-private:
-	double m_min;
-	double m_factor;
-};
-
-QSharedPointer<iARange> createRange(bool log, double min, double max, int count, iAValueType valueType)
-{
-	if (log)
-	{
-		assert(valueType != Categorical);
-		return QSharedPointer<iARange>(new iALogRange(min, max + ((valueType == Discrete) ? 0.999999 : 0), count));
-	}
-	else
-	{
-		return QSharedPointer<iARange>(new iALinRange(min, max + ((valueType == Categorical || valueType == Discrete) ? 0.999999 : 0), count));
-	}
+	return iALatinHypercubeSamplingMethod::Name;
 }
 
-
-QString iALatinHypercubeParameterGenerator::name() const
-{
-	return QString("Latin HyperCube");
-}
-
-iAParameterSetsPointer iALatinHypercubeParameterGenerator::parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
+iAParameterSetsPointer iALatinHypercubeSamplingMethod::parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
 {
 	iAParameterSetsPointer result(new iAParameterSets);
 
@@ -347,20 +355,22 @@ iAParameterSetsPointer iALatinHypercubeParameterGenerator::parameterSets(QShared
 }
 
 
-QString iACartesianGridParameterGenerator::name() const
+QString iACartesianGridSamplingMethod::Name("Cartesian Grid");
+
+QString iACartesianGridSamplingMethod::name() const
 {
-	return QString("Cartesian Grid");
+	return iACartesianGridSamplingMethod::Name;
 }
 
-iAParameterSetsPointer iACartesianGridParameterGenerator::parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
+iAParameterSetsPointer iACartesianGridSamplingMethod::parameterSets(QSharedPointer<iAAttributes> parameters, int sampleCount)
 {
 	iAParameterSetsPointer result(new iAParameterSets);
-	int samplesPerParameter = static_cast<int>(std::pow(10, std::log10(sampleCount) / parameter->size()));
+	int samplesPerParameter = static_cast<int>(std::pow(10, std::log10(sampleCount) / parameters->size()));
 	samplesPerParameter = std::max(2, samplesPerParameter); // at least 2 sample values per parameter
 
 	// calculate actual sample count (have to adhere to grid structure / powers):
 	// maybe get sample count per parameter?
-	int actualSampleCount = std::pow(samplesPerParameter, parameter->size());
+	int actualSampleCount = std::pow(samplesPerParameter, parameters->size());
 /*
 	DEBUG_LOG(QString("param. count: %1, samples/param.: %2, targeted samples: %3, actual samples: %4")
 		.arg(parameter->size())
@@ -371,28 +381,28 @@ iAParameterSetsPointer iACartesianGridParameterGenerator::parameterSets(QSharedP
 */
 
 	QVector<QSharedPointer<iARange>> ranges;
-	for (int p = 0; p < parameter->size(); ++p)
+	for (int p = 0; p < parameters->size(); ++p)
 	{
-		iAValueType valueType = parameter->at(p)->valueType();
+		iAValueType valueType = parameters->at(p)->valueType();
 		ranges.push_back(
 			createRange(
-				parameter->at(p)->isLogScale(),
-				parameter->at(p)->min(),
-				parameter->at(p)->max(),
+				parameters->at(p)->isLogScale(),
+				parameters->at(p)->min(),
+				parameters->at(p)->max(),
 				samplesPerParameter-1, // -1 because we choose from the edges of the range
 				valueType)
 			);
 	}
 	// to keep track of which grid index for which parameter we are currently using
-	QVector<int> parameterRangeIdx(parameter->size(), 0);
+	QVector<int> parameterRangeIdx(parameters->size(), 0);
 
 	for (int sampleIdx = 0; sampleIdx < actualSampleCount; ++sampleIdx)
 	{
 		iAParameterSet set;
-		for (int p = 0; p < parameter->size(); ++p)
+		for (int p = 0; p < parameters->size(); ++p)
 		{
 			double value = ranges[p]->min(parameterRangeIdx[p]);
-			iAValueType valueType = parameter->at(p)->valueType();
+			iAValueType valueType = parameters->at(p)->valueType();
 			if (valueType == Discrete || valueType == Categorical)
 			{
 				value = static_cast<int>(value);
@@ -405,11 +415,11 @@ iAParameterSetsPointer iACartesianGridParameterGenerator::parameterSets(QSharedP
 		// increase indices into the parameter range:
 		++parameterRangeIdx[0];
 		int curIdx = 0;
-		while (curIdx < parameter->size() && parameterRangeIdx[curIdx] >= samplesPerParameter)
+		while (curIdx < parameters->size() && parameterRangeIdx[curIdx] >= samplesPerParameter)
 		{
 			parameterRangeIdx[curIdx] = 0;
 			++curIdx;
-			if (curIdx < parameter->size())
+			if (curIdx < parameters->size())
 			{
 				parameterRangeIdx[curIdx]++;
 			}
@@ -418,10 +428,11 @@ iAParameterSetsPointer iACartesianGridParameterGenerator::parameterSets(QSharedP
 	return result;
 }
 
+QString iALocalSensitivitySamplingMethod::Name("Local Sensitivity");
 
-QString iASensitivityParameterGenerator::name() const
+QString iALocalSensitivitySamplingMethod::name() const
 {
-	return QString("Sensitivity");
+	return iALocalSensitivitySamplingMethod::Name;
 }
 
 namespace
@@ -440,9 +451,9 @@ namespace
 	}
 }
 
-iAParameterSetsPointer iASensitivityParameterGenerator::parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
+iAParameterSetsPointer iALocalSensitivitySamplingMethod::parameterSets(QSharedPointer<iAAttributes> parameters, int sampleCount)
 {
-	int samplesPerParameter = static_cast<int>(std::pow(10, std::log10(sampleCount) / parameter->size()));
+	int samplesPerParameter = static_cast<int>(std::pow(10, std::log10(sampleCount) / parameters->size()));
 	samplesPerParameter = std::max(1, samplesPerParameter); // at least 2 sample values per parameter
 	if (samplesPerParameter % 2 == 0)
 	{
@@ -450,7 +461,7 @@ iAParameterSetsPointer iASensitivityParameterGenerator::parameterSets(QSharedPoi
 	}
 	// calculate actual sample count (have to adhere to grid structure / powers):
 	// maybe get sample count per parameter?
-	int actualSampleCount = std::pow(samplesPerParameter, parameter->size());
+	int actualSampleCount = std::pow(samplesPerParameter, parameters->size());
 	iAParameterSetsPointer result(new iAParameterSets);
 
 	QVector<double> offsetFactors;
@@ -460,19 +471,19 @@ iAParameterSetsPointer iASensitivityParameterGenerator::parameterSets(QSharedPoi
 	{
 		offsetFactors.push_back(getSensitivityValue(i) / maxSensitivityValue);
 	}
-	iAParameterSets allValues(parameter->size());
-	for (int p = 0; p < parameter->size(); ++p)
+	iAParameterSets allValues(parameters->size());
+	for (int p = 0; p < parameters->size(); ++p)
 	{
 		allValues[p].resize(samplesPerParameter);
-		iAValueType valueType = parameter->at(p)->valueType();
+		iAValueType valueType = parameters->at(p)->valueType();
 		if (valueType != Continuous)
 		{
 			DEBUG_LOG("Sensitivity Parameter Generator only works for Continuous parameters!");
 			return result;
 		}
 
-		double halfRange = (parameter->at(p)->max() - parameter->at(p)->min()) / 2;
-		double middle = parameter->at(p)->min() + halfRange;
+		double halfRange = (parameters->at(p)->max() - parameters->at(p)->min()) / 2;
+		double middle = parameters->at(p)->min() + halfRange;
 		for (int s =  0; s < samplesPerSide; ++s)
 		{
 			double curOfs = offsetFactors[s] * halfRange;
@@ -483,11 +494,11 @@ iAParameterSetsPointer iASensitivityParameterGenerator::parameterSets(QSharedPoi
 	}
 
 	// build power set of above values
-	QVector<int> parameterRangeIdx(parameter->size(), 0);
+	QVector<int> parameterRangeIdx(parameters->size(), 0);
 	for (int sampleIdx = 0; sampleIdx < actualSampleCount; ++sampleIdx)
 	{
 		iAParameterSet set;
-		for (int p = 0; p < parameter->size(); ++p)
+		for (int p = 0; p < parameters->size(); ++p)
 		{
 			set.push_back(allValues[p][parameterRangeIdx[p]]);
 		}
@@ -497,11 +508,11 @@ iAParameterSetsPointer iASensitivityParameterGenerator::parameterSets(QSharedPoi
 		// increase indices into the parameter range:
 		++parameterRangeIdx[0];
 		int curIdx = 0;
-		while (curIdx < parameter->size() && parameterRangeIdx[curIdx] >= samplesPerParameter)
+		while (curIdx < parameters->size() && parameterRangeIdx[curIdx] >= samplesPerParameter)
 		{
 			parameterRangeIdx[curIdx] = 0;
 			++curIdx;
-			if (curIdx < parameter->size())
+			if (curIdx < parameters->size())
 			{
 				parameterRangeIdx[curIdx]++;
 			}
@@ -512,49 +523,104 @@ iAParameterSetsPointer iASensitivityParameterGenerator::parameterSets(QSharedPoi
 }
 
 
-iASelectionParameterGenerator::iASelectionParameterGenerator(QString const & name, iAParameterSetsPointer parameterSets):
+QString iAGeneralSensitivitySamplingMethod::Name("General Sensitivity");
+
+iAGeneralSensitivitySamplingMethod::iAGeneralSensitivitySamplingMethod(
+	QSharedPointer<iASamplingMethod> otherGenerator, double delta):
+	m_baseGenerator(otherGenerator),
+	m_delta(delta)
+{}
+
+QString iAGeneralSensitivitySamplingMethod::name() const
+{
+	return iAGeneralSensitivitySamplingMethod::Name;
+}
+
+iAParameterSetsPointer iAGeneralSensitivitySamplingMethod::parameterSets(QSharedPointer<iAAttributes> parameters, int sampleCount)
+{
+	iAParameterSetsPointer baseParameterSets = m_baseGenerator->parameterSets(parameters, sampleCount);
+	iAParameterSetsPointer result(new iAParameterSets);
+	for (auto parameterSet: *baseParameterSets)
+	{
+		/*
+		for (int p = 0; p < parameters->size(); ++p)
+		{
+		}
+		*/
+		result->push_back(parameterSet);
+	}
+	return result;
+}
+
+
+iASelectionSamplingMethod::iASelectionSamplingMethod(QString const & name, iAParameterSetsPointer parameterSets):
 	m_name(name),
 	m_parameterSets(parameterSets)
 {}
 
-iAParameterSetsPointer iASelectionParameterGenerator::parameterSets(QSharedPointer<iAAttributes> /*parameter*/, int /*sampleCount*/)
+iAParameterSetsPointer iASelectionSamplingMethod::parameterSets(QSharedPointer<iAAttributes> /*parameters*/, int /*sampleCount*/)
 {
 	return m_parameterSets;
 }
 
-QString iASelectionParameterGenerator::name() const
+QString iASelectionSamplingMethod::name() const
 {
 	return m_name;
 }
 
 
-QVector<QSharedPointer<iAParameterGenerator> >& getParameterGenerators()
+QStringList const& samplingMethodNames()
 {
-	static QVector<QSharedPointer<iAParameterGenerator> > parameterGenerators;
-	if (parameterGenerators.empty())
+	static QStringList result;
+	if (result.empty())
 	{
-		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iARandomParameterGenerator()));
-		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iALatinHypercubeParameterGenerator()));
-		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iACartesianGridParameterGenerator()));
-		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iASensitivityParameterGenerator));
-	}
-	return parameterGenerators;
-}
-
-QSharedPointer<iAParameterGenerator> getParameterGenerator(QString const& name)
-{
-	QSharedPointer<iAParameterGenerator> result;
-	auto& paramGens = getParameterGenerators();
-	for (QSharedPointer<iAParameterGenerator> paramGen : paramGens)
-	{
-		if (paramGen->name() == name)
-		{
-			result = paramGen;
-		}
-	}
-	if (!result)
-	{
-		DEBUG_LOG(QString("Could not find parameter generator '%1'").arg(name));
+		result.push_back(iARandomSamplingMethod::Name);
+		result.push_back(iALatinHypercubeSamplingMethod::Name);
+		result.push_back(iACartesianGridSamplingMethod::Name);
+		result.push_back(iALocalSensitivitySamplingMethod::Name);
+		result.push_back(iAGeneralSensitivitySamplingMethod::Name);
 	}
 	return result;
+}
+
+QSharedPointer<iASamplingMethod> createSamplingMethod(iASettings const& parameters)
+{
+	QString methodName = parameters[spnSamplingMethod].toString();
+	if (methodName == iARandomSamplingMethod::Name)
+	{
+		return QSharedPointer<iASamplingMethod>(new iARandomSamplingMethod);
+	}
+	else if (methodName == iALatinHypercubeSamplingMethod::Name)
+	{
+		return QSharedPointer<iASamplingMethod>(new iALatinHypercubeSamplingMethod);
+	}
+	else if (methodName == iACartesianGridSamplingMethod::Name)
+	{
+		return QSharedPointer<iASamplingMethod>(new iACartesianGridSamplingMethod);
+	}
+	else if (methodName == iALocalSensitivitySamplingMethod::Name)
+	{
+		return QSharedPointer<iASamplingMethod>(new iALocalSensitivitySamplingMethod);
+	}
+	else if (methodName == iAGeneralSensitivitySamplingMethod::Name)
+	{
+		iASettings newParams(parameters);
+		newParams[spnSamplingMethod] = parameters[spnBaseSamplingMethod];
+		if (newParams[spnSamplingMethod] == iAGeneralSensitivitySamplingMethod::Name)
+		{
+			DEBUG_LOG(QString("Cannot generate general sensitivity sampling: Base sampling method must not also be '%1'").arg(iAGeneralSensitivitySamplingMethod::Name));
+			return QSharedPointer<iASamplingMethod>();
+		}
+		bool ok;
+		double delta = parameters[spnSensitivityDelta].toDouble(&ok);
+		if (!ok)
+		{
+			DEBUG_LOG(QString("Invalid value '%1' for parameter '%2'").arg(spnSensitivityDelta));
+			return QSharedPointer<iASamplingMethod>();
+		}
+		auto otherSamplingMethod = createSamplingMethod(parameters);
+		return QSharedPointer<iASamplingMethod>(new iAGeneralSensitivitySamplingMethod(otherSamplingMethod, delta));
+	}
+	DEBUG_LOG(QString("Could not find sampling method '%1'").arg(methodName));
+	return QSharedPointer<iASamplingMethod>();
 }

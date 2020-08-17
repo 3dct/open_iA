@@ -16,6 +16,11 @@ const QString spnComputeDerivedOutput("Compute derived output");
 const QString spnContinueOnError("Continue on error");
 const QString spnCompressOutput("Compress output");
 const QString spnNumberOfLabels("Number of labels");
+
+// Parameters for general sensitivity sampling method:
+const QString spnBaseSamplingMethod("Base sampling method");
+const QString spnSensitivityDelta("Sensitivity delta");
+
 // Valid values for algorithm type parameter:
 const QString atBuiltIn("Built-in");
 const QString atExternal("External");

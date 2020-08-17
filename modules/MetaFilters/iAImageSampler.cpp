@@ -23,7 +23,7 @@
 #include "iAAttributes.h"
 #include "iACommandRunner.h"
 #include "iADerivedOutputCalculator.h"
-#include "iAParameterGenerator.h"
+#include "iASamplingMethod.h"
 #include "iASingleResult.h"
 #include "iASampleBuiltInFilterOperation.h"
 #include "iAParameterNames.h"
@@ -82,7 +82,7 @@ iAImageSampler::iAImageSampler(
 		QSharedPointer<iAModalityList> dataset,
 		QMap<QString, QVariant> const & parameters,
 		QSharedPointer<iAAttributes> parameterRanges,
-		QSharedPointer<iAParameterGenerator> sampleGenerator,
+		QSharedPointer<iASamplingMethod> samplingMethod,
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
 		QString const & derivedOutputFile,
@@ -91,7 +91,7 @@ iAImageSampler::iAImageSampler(
 	m_datasets(dataset),
 	m_parameters(parameters),
 	m_parameterRanges(parameterRanges),
-	m_sampleGenerator(sampleGenerator),
+	m_samplingMethod(samplingMethod),
 	m_parameterRangeFile(parameterRangeFile),
 	m_parameterSetFile  (parameterSetFile),
 	m_derivedOutputFile (derivedOutputFile),
@@ -247,7 +247,7 @@ void iAImageSampler::start()
 	statusMsg("");
 	statusMsg("---------- SAMPLING STARTED ----------");
 	statusMsg("Generating sampling parameter sets...");
-	m_parameterSets = m_sampleGenerator->parameterSets(m_parameterRanges, m_parameters[spnNumberOfSamples].toInt());
+	m_parameterSets = m_samplingMethod->parameterSets(m_parameterRanges, m_parameters[spnNumberOfSamples].toInt());
 	if (!m_parameterSets)
 	{
 		statusMsg("No Parameters available!");
@@ -272,7 +272,7 @@ void iAImageSampler::start()
 
 	m_results = QSharedPointer<iASamplingResults>(new iASamplingResults(
 		m_parameterRanges,
-		m_sampleGenerator->name(),
+		m_samplingMethod->name(),
 		m_parameters[spnOutputFolder].toString(),
 		m_parameters[spnExecutable].toString(),
 		m_parameters[spnAdditionalArguments].toString(),

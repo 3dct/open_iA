@@ -21,7 +21,7 @@
 #include "dlg_samplingSettings.h"
 
 #include "iAAttributes.h"
-#include "iAParameterGeneratorImpl.h"
+#include "iASamplingMethodImpl.h"
 #include "iAParameterNames.h"
 
 #include <dlg_FilterSelection.h>
@@ -112,12 +112,8 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWdgt,
 
 	m_startLine = parameterLayout->rowCount();
 
-	cbSamplingMethod->clear();
-	auto & paramGens = getParameterGenerators();
-	for (QSharedPointer<iAParameterGenerator> paramGen : paramGens)
-	{
-		cbSamplingMethod->addItem(paramGen->name());
-	}
+	//cbSamplingMethod->clear();
+	cbSamplingMethod->addItems(samplingMethodNames());
 	cbSamplingMethod->setCurrentIndex(1);
 
 	setInputsFromMap(values);
