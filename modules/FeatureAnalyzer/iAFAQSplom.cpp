@@ -44,14 +44,13 @@
 
 const int maskOpacity = 127;
 
-iAFAQSplom::iAFAQSplom( MainWindow *mWnd, QWidget * parent, Qt::WindowFlags f /*= 0 */):
-	iAQSplom(parent, f),
+iAFAQSplom::iAFAQSplom( MainWindow *mWnd, QWidget * parent):
+	iAQSplom(parent),
 	m_fixedPointInd(iAScatterPlot::NoPointIndex),
 	m_mainWnd(mWnd),
 	m_mdiChild(nullptr),
 	m_csvName("")
 {
-	setWindowFlags(f);
 	m_fixAction = m_contextMenu->addAction( "Fix Point", this, &iAFAQSplom::fixPoint);
 	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, &iAFAQSplom::removeFixedPoint);
 	m_detailsToFeatureScoutAction = m_contextMenu->addAction("Detailed View...", this, &iAFAQSplom::sendToFeatureScout);

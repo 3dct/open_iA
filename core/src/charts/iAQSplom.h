@@ -112,11 +112,7 @@ public:
 		rmAutomatic,       //!< Range is automatically determined from chosen parameter
 		rmManual           //!< Range is manually set via minimum and maximum inputs
 	};
-#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
-	iAQSplom( QWidget * parent = nullptr, Qt::WindowFlags f = 0 );
-#else
-	iAQSplom(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
+	iAQSplom(QWidget * parent = nullptr);
 	~iAQSplom();
 
 	void setData(QSharedPointer<iASPLOMData> data, std::vector<char> const & visibility);                  //! set SPLOM data directly.
