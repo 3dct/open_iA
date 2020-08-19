@@ -36,6 +36,7 @@
 #include "itkMirrorPadImageFilter.h"
 
 #include "onnxruntime_cxx_api.h"
+
 //#include "cuda_provider_factory.h"
 
 #include "dml_provider_factory.h"
@@ -97,7 +98,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	// ORT_ENABLE_BASIC -> To enable basic optimizations (Such as redundant node removals)
 	// ORT_ENABLE_EXTENDED -> To enable extended optimizations (Includes level 1 + more complex optimizations like node fusions)
 	// ORT_ENABLE_ALL -> To Enable All possible opitmizations
-	session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
+	session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
 
 	//*************************************************************************
 	// create session and load model into memory
