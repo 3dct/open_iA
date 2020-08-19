@@ -523,30 +523,28 @@ iAParameterSetsPointer iALocalSensitivitySamplingMethod::parameterSets(QSharedPo
 }
 
 
-QString iAGeneralSensitivitySamplingMethod::Name("General Sensitivity");
+QString iAGlobalSensitivitySamplingMethod::Name("Global sensitivity (star)");
 
-iAGeneralSensitivitySamplingMethod::iAGeneralSensitivitySamplingMethod(
+iAGlobalSensitivitySamplingMethod::iAGlobalSensitivitySamplingMethod(
 	QSharedPointer<iASamplingMethod> otherGenerator, double delta):
 	m_baseGenerator(otherGenerator),
 	m_delta(delta)
 {}
 
-QString iAGeneralSensitivitySamplingMethod::name() const
+QString iAGlobalSensitivitySamplingMethod::name() const
 {
-	return iAGeneralSensitivitySamplingMethod::Name;
+	return iAGlobalSensitivitySamplingMethod::Name;
 }
 
-iAParameterSetsPointer iAGeneralSensitivitySamplingMethod::parameterSets(QSharedPointer<iAAttributes> parameters, int sampleCount)
+iAParameterSetsPointer iAGlobalSensitivitySamplingMethod::parameterSets(QSharedPointer<iAAttributes> parameters, int sampleCount)
 {
 	iAParameterSetsPointer baseParameterSets = m_baseGenerator->parameterSets(parameters, sampleCount);
 	iAParameterSetsPointer result(new iAParameterSets);
 	for (auto parameterSet: *baseParameterSets)
 	{
-		/*
 		for (int p = 0; p < parameters->size(); ++p)
 		{
 		}
-		*/
 		result->push_back(parameterSet);
 	}
 	return result;
@@ -578,7 +576,7 @@ QStringList const& samplingMethodNames()
 		result.push_back(iALatinHypercubeSamplingMethod::Name);
 		result.push_back(iACartesianGridSamplingMethod::Name);
 		result.push_back(iALocalSensitivitySamplingMethod::Name);
-		result.push_back(iAGeneralSensitivitySamplingMethod::Name);
+		result.push_back(iAGlobalSensitivitySamplingMethod::Name);
 	}
 	return result;
 }
@@ -602,24 +600,18 @@ QSharedPointer<iASamplingMethod> createSamplingMethod(iASettings const& paramete
 	{
 		return QSharedPointer<iASamplingMethod>(new iALocalSensitivitySamplingMethod);
 	}
-	else if (methodName == iAGeneralSensitivitySamplingMethod::Name)
+	else if (methodName == iAGlobalSensitivitySamplingMethod::Name)
 	{
 		iASettings newParams(parameters);
 		newParams[spnSamplingMethod] = parameters[spnBaseSamplingMethod];
-		if (newParams[spnSamplingMethod] == iAGeneralSensitivitySamplingMethod::Name)
+		if (newParams[spnSamplingMethod] == iAGlobalSensitivitySamplingMethod::Name)
 		{
-			DEBUG_LOG(QString("Cannot generate general sensitivity sampling: Base sampling method must not also be '%1'").arg(iAGeneralSensitivitySamplingMethod::Name));
+			DEBUG_LOG(QString("Cannot generate global sensitivity sampling: Base sampling method must not also be '%1'").arg(iAGlobalSensitivitySamplingMethod::Name));
 			return QSharedPointer<iASamplingMethod>();
 		}
-		bool ok;
-		double delta = parameters[spnSensitivityDelta].toDouble(&ok);
-		if (!ok)
-		{
-			DEBUG_LOG(QString("Invalid value '%1' for parameter '%2'").arg(spnSensitivityDelta));
-			return QSharedPointer<iASamplingMethod>();
-		}
+		double delta = parameters[spnSensitivityDelta].toDouble();
 		auto otherSamplingMethod = createSamplingMethod(parameters);
-		return QSharedPointer<iASamplingMethod>(new iAGeneralSensitivitySamplingMethod(otherSamplingMethod, delta));
+		return QSharedPointer<iASamplingMethod>(new iAGlobalSensitivitySamplingMethod(otherSamplingMethod, delta));
 	}
 	DEBUG_LOG(QString("Could not find sampling method '%1'").arg(methodName));
 	return QSharedPointer<iASamplingMethod>();

@@ -20,6 +20,7 @@ const QString spnNumberOfLabels("Number of labels");
 // Parameters for general sensitivity sampling method:
 const QString spnBaseSamplingMethod("Base sampling method");
 const QString spnSensitivityDelta("Sensitivity delta");
+const QString spnSamplesPerPoint("Samples per point");
 
 // Valid values for algorithm type parameter:
 const QString atBuiltIn("Built-in");

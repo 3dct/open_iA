@@ -110,11 +110,19 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWdgt,
 	m_widgetMap.insert(spnComputeDerivedOutput, cbCalcChar);
 	m_widgetMap.insert(spnNumberOfLabels, sbLabelCount);
 
+	m_widgetMap.insert(spnBaseSamplingMethod, cbBaseSamplingMethod);
+	m_widgetMap.insert(spnSensitivityDelta, sbSensitivityDelta);
+	m_widgetMap.insert(spnSamplesPerPoint, sbSamplesPerPoint);
+
 	m_startLine = parameterLayout->rowCount();
 
-	//cbSamplingMethod->clear();
-	cbSamplingMethod->addItems(samplingMethodNames());
+	QStringList methods(samplingMethodNames());
+	cbSamplingMethod->addItems(methods);
 	cbSamplingMethod->setCurrentIndex(1);
+
+	methods.removeAll(iAGlobalSensitivitySamplingMethod::Name);
+	cbBaseSamplingMethod->addItems(methods);
+	cbBaseSamplingMethod->setCurrentIndex(1);
 
 	setInputsFromMap(values);
 
@@ -131,6 +139,7 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWdgt,
 	connect(leBaseName, &QLineEdit::editingFinished, this, &dlg_samplingSettings::outputBaseChanged);
 	connect(cbSeparateFolder, &QCheckBox::toggled, this, &dlg_samplingSettings::outputBaseChanged);
 	connect(sbNumberOfSamples, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_samplingSettings::outputBaseChanged);
+	connect(cbSamplingMethod, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_samplingSettings::samplingMethodChanged);
 
 	connect(pbRun, &QPushButton::clicked, this, &dlg_samplingSettings::runClicked);
 	connect(pbCancel, &QPushButton::clicked, this, &dlg_samplingSettings::reject);
@@ -437,6 +446,7 @@ void dlg_samplingSettings::setInputsFromMap(iASettings const & values)
 	}
 	setParameterValues(values);
 	outputBaseChanged();
+	samplingMethodChanged();
 }
 
 void dlg_samplingSettings::algoTypeChanged()
@@ -573,6 +583,11 @@ void dlg_samplingSettings::outputBaseChanged()
 			inputs->m_valueEdit->setText(QString("Example: %1 (Set automatically during sampling)").arg(outFile));
 		}
 	}
+}
+
+void dlg_samplingSettings::samplingMethodChanged()
+{
+	globalSensitivitySettingsWidget->setVisible(cbSamplingMethod->currentText() == iAGlobalSensitivitySamplingMethod::Name);
 }
 
 void dlg_samplingSettings::chooseParameterDescriptor()

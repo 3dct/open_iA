@@ -73,6 +73,7 @@ private slots:
 	void selectFilter();
 	void runClicked();
 	void outputBaseChanged();
+	void samplingMethodChanged();
 private:
 	void setInputsFromMap(iASettings const & values);
 	void setParameters(QSharedPointer<iAAttributes> params);

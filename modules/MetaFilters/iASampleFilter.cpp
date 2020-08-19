@@ -40,7 +40,25 @@ IAFILTER_CREATE(iASampleFilter)
 
 iASampleFilter::iASampleFilter() :
 	iAFilter("Sample Filter", "Image Ensembles",
-		"Sample any internal filter or external algorithm.<br/>",
+		QString("Sample any internal filter or external algorithm.<br/>"
+
+		"If '%1' sampling method is chosen, "
+		"some additional options are available: <em>%2</em> determines "
+		"the sampling method used to generate the base parameter set; then, "
+		"for each of the parameter sets created by this method, <em>%3</em> "
+		"additional samples are created. <em>%4</em> specifies the distance between "
+		"samples as a ratio of the specified range for a given parameter (e.g. 0.05 would "
+		"mean a step of 5% of the parameter range). <em>%3</em> samples will created "
+		"per parameter in a distance of x*<em>%4</em> "
+		"(with x=1,2,3, ...) from the point in the parameter space determined by "
+		"the parameter set. If <em>%3</em> is left at the default value of 0, "
+		"the number of additional samples is "
+		"automatically determined as the number of samples fitting into the "
+		"parameter's whole range, i.e. 1 / <em>%4</em> (this will also be used as upper limit).")
+		.arg(iAGlobalSensitivitySamplingMethod::Name)
+		.arg(spnBaseSamplingMethod)
+		.arg(spnSamplesPerPoint)
+		.arg(spnSensitivityDelta),
 		1, 0),
 	m_sampler(nullptr)
 {
@@ -64,10 +82,11 @@ iASampleFilter::iASampleFilter() :
 	addParameter(spnCompressOutput, Boolean, true);
 	addParameter(spnNumberOfLabels, Discrete, 2);
 	
-	samplingMethods.removeAll(iAGeneralSensitivitySamplingMethod::Name);
-	// parameters only required for "General Sensitivity" sampling:
+	samplingMethods.removeAll(iAGlobalSensitivitySamplingMethod::Name);
+	// parameters only required for "Global sensitivity (star)" sampling:
 	addParameter(spnBaseSamplingMethod, Categorical, samplingMethods);
 	addParameter(spnSensitivityDelta, Continuous, 0.1);
+	addParameter(spnSamplesPerPoint, Discrete, 0);
 }
 
 void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
