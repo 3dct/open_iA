@@ -47,6 +47,7 @@ enum class iAVRInteractionOptions {
   Anywhere,
   MiniatureModel,
   Volume,
+  Histogram,
   NumberOfInteractionOptions
 };
 
@@ -64,6 +65,7 @@ enum class iAVROperations {
   ExplodeMiM,
   ChangeMiMDisplacementType,
   ChangeRegionLinks,
+  RotateVis,
   NumberOfOperations
 };
 
@@ -91,6 +93,9 @@ private:
 	vtkSmartPointer<iAVRInteractorStyle> m_style;
 	vtkSmartPointer<vtkTable> m_objectTable;
 
+	//Stores the x,y and z length of the volume in octree level 0
+	double m_volumeSize[3];
+	bool m_networkGraphMode;
 	std::vector<iAVR3DText*>* m_3DTextLabels;
 	iAVRSlider* m_slider;
 	iAVRDashboard* m_dashboard;
@@ -130,6 +135,10 @@ private:
 	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
 	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
 	vtkPoints* newIntersectionPoints;
+	double m_rotationOfDisVis;
+	double controllerTravelledDistance;
+	int sign;
+	vtkSmartPointer<vtkActor> pointsActor;
 
 	void mapAllPointiDs();
 	void mapAllPointiDsAndCalculateFiberCoverage();
@@ -159,5 +168,6 @@ private:
 	void resetSelection();
 	void spawnModelInMiniature(double eventPosition[3], bool hide);
 	void explodeMiM(int displacementType, double offset);
-	void ChangeMiMDisplacementType();
+	void changeMiMDisplacementType();
+	void rotateDistributionVis(double eventPosition[3], bool startAction);
 };

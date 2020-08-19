@@ -108,6 +108,17 @@ vtkSmartPointer<vtkActor> iAVRVolume::getVolumeActor()
 	return m_volumeActor;
 }
 
+
+double* iAVRVolume::getCubePos(int region)
+{
+	return m_cubePolyData->GetPoint(region);
+}
+
+double iAVRVolume::getCubeSize(int region)
+{
+	return nodeGlyphScales->GetTuple3(region)[0];
+}
+
 void iAVRVolume::setMappers(std::unordered_map<vtkIdType, vtkIdType> pointIDToCsvIndex, std::unordered_multimap<vtkIdType, vtkIdType> csvIndexToPointID)
 {
 	m_pointIDToCsvIndex = pointIDToCsvIndex;
@@ -142,46 +153,6 @@ void iAVRVolume::createCubeModel()
 void iAVRVolume::renderSelection(std::vector<size_t> const& sortedSelInds, int classID, QColor const& classColor, QStandardItem* activeClassItem)
 {
 	m_cylinderVis->renderSelection(sortedSelInds, classID, classColor, activeClassItem);
-}
-
-void iAVRVolume::createNewVolume(std::vector<size_t> fiberIDs)
-{
-	hide();
-
-	vtkSmartPointer<vtkTable> reducedTable = vtkSmartPointer<vtkTable>::New();
-	//reducedTable->DeepCopy(m_objectTable);
-	//reducedTable->SetNumberOfRows(fiberIDs.size());
-
-	DEBUG_LOG(QString("Number Of Columns = %1").arg(m_objectTable->GetNumberOfColumns()));
-
-	for (int column = 0; column < m_objectTable->GetNumberOfColumns(); column++)
-	{
-		vtkSmartPointer<vtkFloatArray> col = vtkSmartPointer<vtkFloatArray>::New();
-		col->SetName(m_objectTable->GetColumn(column)->GetName());
-
-		for(int row = 0; row < fiberIDs.size(); row++)
-		{
-			col->InsertNextValue(0);
-		}
-
-		//reducedTable->AddColumn(m_objectTable->GetColumn(column));
-		reducedTable->AddColumn(col);
-	}
-
-	DEBUG_LOG(QString("Number Of Rows = %1").arg(reducedTable->GetNumberOfRows()));
-
-	for (int i = 0; i < fiberIDs.size(); i++)
-	{
-		DEBUG_LOG(QString("fiber = [%1]").arg(fiberIDs.at(i)));
-		reducedTable->SetRow(i, m_objectTable->GetRow(fiberIDs.at(i) - 1));
-
-		DEBUG_LOG(QString("fiber nr in new table = [%1]").arg(reducedTable->GetValue(i, 0).ToFloat()));
-		DEBUG_LOG(QString("Value 1 in new table = [%1]").arg(reducedTable->GetValue(i, 1).ToFloat()));
-	}
-
-	m_cylinderVis = new iA3DCylinderObjectVis(m_renderer, reducedTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), std::map<size_t, std::vector<iAVec3f> >());
-	m_volumeActor = m_cylinderVis->getActor();
-	show();
 }
 
 //! Moves all fibers from the octree center away.
@@ -372,7 +343,7 @@ void iAVRVolume::createRegionNodes(double maxFibersInRegions)
 	//cleanPolyData->Update();
 	//regionNodes = cleanPolyData->GetOutput();
 
-	vtkSmartPointer<vtkDoubleArray> nodeGlyphScales = vtkSmartPointer<vtkDoubleArray>::New();
+	nodeGlyphScales = vtkSmartPointer<vtkDoubleArray>::New();
 	nodeGlyphScales->SetName("scales");
 	nodeGlyphScales->SetNumberOfComponents(3);
 

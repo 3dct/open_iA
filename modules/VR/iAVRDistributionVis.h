@@ -24,7 +24,6 @@
 #include <vtkRenderer.h>
 #include <vtkActor.h>
 #include "vtkTable.h"
-#include <vtkAxisActor.h>
 #include <vtkGlyph3DMapper.h>
 #include <vtkAssembly.h>
 
@@ -40,11 +39,14 @@ class iAVRDistributionVis
 {
 public:
 	iAVRDistributionVis(vtkRenderer* ren, iAVRMetrics* fiberMetric, vtkTable* objectTable, iACsvIO io);
-	void createVisualization(double *pos, int level, std::vector<vtkIdType>* regions, std::vector<int>* featureList);
+	void createVisualization(double* pos, double offset, int level, std::vector<vtkIdType>* regions, std::vector<int>* featureList);
+	vtkSmartPointer<vtkAssembly> getVisAssembly();
 	void show();
 	void hide();
 	void determineHistogramInView(double* viewDir);
 	void rotateVisualization(double y);
+	void flipThroughHistograms(double flipDir);
+	double getRadius();
 
 private:
 	vtkSmartPointer<vtkRenderer> m_renderer;
@@ -55,6 +57,7 @@ private:
 	vtkSmartPointer<vtkActor> m_activeAxisActor;
 	vtkSmartPointer<vtkActor> m_inactiveAxisActor;
 	vtkSmartPointer<vtkAssembly> visualizationActor;
+	vtkSmartPointer<vtkActor> outlineActor;
 	//Stores for an [axis] the bars (points) for the histogram
 	std::vector<vtkSmartPointer<vtkPolyData>>* m_histogramBars;
 	//Stores for an [axis] and a [direction] (x,y) the different 3D TextLabels of the axis pair
@@ -72,14 +75,16 @@ private:
 	bool m_visible;
 	int m_numberOfXBins;
 	int m_numberOfYBins;
-	double m_centerOfVis[3];
+	double* m_centerOfVis;
 	double m_offsetFromCenter;
 	double m_radius;
 	double m_axisLength;
-	double axisAngle;
+	double axisAngle; //in RAD
 	int currentlyShownAxis;
 	int m_axisInView;
 	double binY;
+	//[0] Left (0°), [1] Right (180°) Axis
+	int m_frontAxes[2];
 	HistogramParameters* m_histogramParameter;
 
 	void initialize();
@@ -95,11 +100,11 @@ private:
 	double calculateAxisLength(double pos1[3], double radius);
 	void createAxisMarks(int axis);
 	void createAxisLabels(int axis);
-	void calculateAxesViewDir(int axis);
+	void calculateAxesViewPoint(int axis);
 	void calculateBarsWithCubes(double* markPos, double* cubeSize, int stackSize, vtkPoints* barPoints, vtkUnsignedCharArray* colorArray, QColor barColor);
-	void calculateFittingCubeSize(double* cubeSize);
+	double getXZCubeSize();
 	int getMaxBinOccurrences(int axis);
-	int getMinYCubeSize(int axis);
+	double getMinYCubeSize(int axis);
 
 	iAVec3d applyShiftToVector(double point1[3], double point2[3], double shift[3]);
 };
