@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>883</width>
-    <height>554</height>
+    <width>596</width>
+    <height>563</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -711,35 +711,33 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QLabel" name="lbSettings">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
+       <widget class="QToolButton" name="tbSaveSettings">
         <property name="text">
-         <string>Settings: </string>
+         <string>Save Settings...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../../core/open_iA.qrc">
+          <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
+        </property>
+        <property name="popupMode">
+         <enum>QToolButton::InstantPopup</enum>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonIconOnly</enum>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pbSaveSettings">
-        <property name="toolTip">
-         <string>Save the current settings in this dialog to a file for later use</string>
-        </property>
+       <widget class="QToolButton" name="tbLoadSettings">
         <property name="text">
-         <string>Save</string>
+         <string>Load Settings...</string>
         </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pbLoadSettings">
-        <property name="toolTip">
-         <string>Load settings in this dialog from a file stored via the 'Save' button to the left</string>
+        <property name="icon">
+         <iconset resource="../../core/open_iA.qrc">
+          <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
         </property>
-        <property name="text">
-         <string>Load</string>
+        <property name="popupMode">
+         <enum>QToolButton::InstantPopup</enum>
         </property>
        </widget>
       </item>
@@ -788,6 +786,8 @@
   <tabstop>pbRun</tabstop>
   <tabstop>pbCancel</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../../core/open_iA.qrc"/>
+ </resources>
  <connections/>
 </ui>

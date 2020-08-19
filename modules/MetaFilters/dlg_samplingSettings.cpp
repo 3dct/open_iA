@@ -130,8 +130,8 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWdgt,
 	connect(pbChooseOutputFolder, &QPushButton::clicked, this, &dlg_samplingSettings::chooseOutputFolder);
 	connect(pbChooseParameterDescriptor, &QPushButton::clicked, this, &dlg_samplingSettings::chooseParameterDescriptor);
 	connect(pbChooseExecutable, &QPushButton::clicked, this, &dlg_samplingSettings::chooseExecutable);
-	connect(pbSaveSettings, &QPushButton::clicked, this, &dlg_samplingSettings::saveSettings);
-	connect(pbLoadSettings, &QPushButton::clicked, this, &dlg_samplingSettings::loadSettings);
+	connect(tbSaveSettings, &QToolButton::clicked, this, &dlg_samplingSettings::saveSettings);
+	connect(tbLoadSettings, &QToolButton::clicked, this, &dlg_samplingSettings::loadSettings);
 	connect(rbBuiltIn, &QRadioButton::toggled, this, &dlg_samplingSettings::algoTypeChanged);
 	connect(rbExternal, &QRadioButton::toggled, this, &dlg_samplingSettings::algoTypeChanged);
 	connect(pbFilterSelect, &QPushButton::clicked, this, &dlg_samplingSettings::selectFilter);
@@ -186,6 +186,8 @@ namespace
 			iAQFlowLayout* checkLay = new iAQFlowLayout();
 			int minVal = isCategorical ? descriptor->min() : 0,
 			    maxVal = isCategorical ? descriptor->max() : 1;
+			checkLay->setContentsMargins(0, 0, 0, 0);
+			checkLay->setSpacing(4);
 			for (int categoryIdx = minVal; categoryIdx <= maxVal; ++categoryIdx)
 			{
 				QString title = isCategorical ? descriptor->nameMapper()->name(categoryIdx) : categoryIdx == 0 ? "false" : "true";
@@ -519,7 +521,7 @@ void dlg_samplingSettings::loadSettings()
 {
 	QString fileName = QFileDialog::getOpenFileName(
 		this,
-		"Store Sampling Settings",
+		"Load Sampling Settings",
 		QString(),
 		"Sampling Settings File (*.ssf);;");
 	if (fileName.isEmpty())
