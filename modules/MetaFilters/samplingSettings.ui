@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>596</width>
+    <width>674</width>
     <height>645</height>
    </rect>
   </property>
@@ -636,7 +636,7 @@
         </widget>
         <widget class="QGroupBox" name="parameterGroupBox">
          <property name="title">
-          <string>Algorithm Details</string>
+          <string>Algorithm details &amp;&amp; parameter ranges</string>
          </property>
          <layout class="QGridLayout" name="parameterLayout">
           <property name="leftMargin">
