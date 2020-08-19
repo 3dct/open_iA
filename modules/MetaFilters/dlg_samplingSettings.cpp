@@ -120,9 +120,13 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWdgt,
 	cbSamplingMethod->addItems(methods);
 	cbSamplingMethod->setCurrentIndex(1);
 
-	methods.removeAll(iAGlobalSensitivitySamplingMethod::Name);
+	methods.removeAll(iASamplingMethodName::GlobalSensitivity);
 	cbBaseSamplingMethod->addItems(methods);
 	cbBaseSamplingMethod->setCurrentIndex(1);
+
+	QTextDocument* sampleFilterDescDoc = new QTextDocument(textSamplingDescription); // set parent so it will get deleted along with it
+	sampleFilterDescDoc->setHtml(SampleFilterDescription);
+	textSamplingDescription->setDocument(sampleFilterDescDoc);
 
 	setInputsFromMap(values);
 
@@ -589,7 +593,7 @@ void dlg_samplingSettings::outputBaseChanged()
 
 void dlg_samplingSettings::samplingMethodChanged()
 {
-	globalSensitivitySettingsWidget->setVisible(cbSamplingMethod->currentText() == iAGlobalSensitivitySamplingMethod::Name);
+	globalSensitivitySettingsWidget->setVisible(cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivity);
 }
 
 void dlg_samplingSettings::chooseParameterDescriptor()
@@ -650,6 +654,11 @@ void dlg_samplingSettings::setParametersFromFilter(QString const& filterName)
 	auto filter = iAFilterRegistry::filter(filterName);
 	auto params = QSharedPointer<iAAttributes>(new iAAttributes(filter->parameters()));
 	setParameters(params);
+
+	QTextDocument* sampleFilterDescDoc = new QTextDocument(textAlgorithmDescription); // set parent so it will get deleted along with it
+	sampleFilterDescDoc->setHtml(filter->description());
+	textAlgorithmDescription->setDocument(sampleFilterDescDoc);
+
 	m_lastFilterName = filterName;
 	m_lastParamsFileName.clear();   // if we change to external, it should reload parameters
 }
@@ -658,7 +667,7 @@ void dlg_samplingSettings::setParameters(QSharedPointer<iAAttributes> params)
 {
 	m_paramSpecs = params;
 	m_paramInputs.clear();
-	int curGridLine = m_startLine+1;
+	int curGridLine = m_startLine;
 	for (auto p: *params.data())
 	{
 		QString pName(p->name());
@@ -671,7 +680,7 @@ void dlg_samplingSettings::setParameters(QSharedPointer<iAAttributes> params)
 					p,
 					parameterLayout,
 					curGridLine);
-				curGridLine++;
+				++curGridLine;
 				m_paramInputs.push_back(pInput);
 			}
 		}

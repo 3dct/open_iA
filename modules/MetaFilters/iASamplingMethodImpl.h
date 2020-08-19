@@ -30,7 +30,6 @@
 class iARandomSamplingMethod : public iASamplingMethod
 {
 public:
-	static QString Name;
 	QString name() const override;
 	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
 };
@@ -42,7 +41,6 @@ public:
 class iACartesianGridSamplingMethod : public iASamplingMethod
 {
 public:
-	static QString Name;
 	QString name() const override;
 	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
 };
@@ -52,7 +50,6 @@ public:
 class iALatinHypercubeSamplingMethod : public iASamplingMethod
 {
 public:
-	static QString Name;
 	QString name() const override;
 	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
 };
@@ -63,7 +60,6 @@ public:
 class iALocalSensitivitySamplingMethod : public iASamplingMethod
 {
 public:
-	static QString Name;
 	QString name() const override;
 	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
 };
@@ -74,7 +70,6 @@ class MetaFilters_API iAGlobalSensitivitySamplingMethod : public iASamplingMetho
 {
 public:
 	iAGlobalSensitivitySamplingMethod(QSharedPointer<iASamplingMethod> otherGenerator, double delta);
-	static QString Name;
 	QString name() const override;
 	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
 private:

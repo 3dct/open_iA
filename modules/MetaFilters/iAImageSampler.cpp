@@ -45,37 +45,6 @@
 const int CONCURRENT_COMPUTATION_RUNS = 1;
 
 
-// TODO: find better place - declaration currently in iAParameterNames.h
-
-#include <QFileInfo>
-
-QString getOutputFolder(QString const& baseFolder, bool createSubFolder, int sampleNr, int numDigits)
-{
-	QString outputFolder(baseFolder);
-	if (createSubFolder)
-	{
-		outputFolder = outputFolder + QString("/sample%1").arg(sampleNr, numDigits, 10, QChar('0'));
-	}
-	return outputFolder;
-}
-
-QString getOutputFileName(QString const& outputFolder, QString const& baseName,
-	bool createSubFolder, int sampleNr, int numDigits)
-{
-	QFileInfo fi(baseName);
-	return outputFolder + "/" + (createSubFolder ?
-		baseName :
-		QString("%1%2%3").arg(fi.completeBaseName()).arg(sampleNr, numDigits, 10, QChar('0')).arg(
-			fi.suffix().size() > 0 ? QString(".%1").arg(fi.suffix()) : QString(""))
-		);
-}
-
-int requiredDigits(int largestNumber)
-{  // number of required digits for number >= 1
-	return std::floor(std::log10(std::abs(largestNumber))) + 1;
-}
-
-
 iAPerformanceTimer m_computationTimer;
 
 iAImageSampler::iAImageSampler(
