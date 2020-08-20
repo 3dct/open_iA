@@ -300,6 +300,7 @@ void iAFiAKErController::resultsLoaded()
 	m_views[SelectionView]  = new iADockWidgetWrapper(selectionView, "FIAKER Selections", "foeSelections");
 	m_views[SettingsView]   = new iADockWidgetWrapper(m_settingsView, "FIAKER Settings", "foeSettings");
 
+	m_mdiChild->splitDockWidget(m_mdiChild->renderDockWidget(), m_views[ResultListView], Qt::Horizontal);
 	m_mdiChild->splitDockWidget(m_mdiChild->renderDockWidget(), m_views[OptimStepChart], Qt::Vertical);
 	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[SPMView], Qt::Horizontal);
 	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[ProtocolView], Qt::Vertical);
