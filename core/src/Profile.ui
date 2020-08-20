@@ -41,6 +41,23 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
+      <layout class="QVBoxLayout" name="profileLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+      </layout>
      </widget>
     </item>
     <item>
@@ -52,7 +69,7 @@
        </sizepolicy>
       </property>
       <property name="text">
-       <string>Points Editing Mode</string>
+       <string>Edit Points</string>
       </property>
      </widget>
     </item>
