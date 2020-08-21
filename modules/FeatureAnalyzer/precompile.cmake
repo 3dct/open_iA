@@ -1,8 +1,10 @@
 SET (FeatureAnalyzer_PRECOMPILE_INCLUDES <defines.h>
+<FeatureAnalyzerHelpers.h>
 <iAConsole.h>
 <iACSVToQTableWidgetConverter.h>
-<iALUT.h>
 <iAFeatureAnalyzerModuleInterface.h>
+<iAFeatureAnalyzerProject.h>
+<iALUT.h>
 <iARangeSliderDiagramData.h>
 <iASegm3DView.h>
 <iASelection.h>
@@ -11,7 +13,6 @@ SET (FeatureAnalyzer_PRECOMPILE_INCLUDES <defines.h>
 <io/iAITKIO.h>
 <itkImage.h>
 <mainwindow.h>
-<FeatureAnalyzerHelpers.h>
 <QCheckBox>
 <QDebug>
 <QDir>
@@ -26,6 +27,7 @@ SET (FeatureAnalyzer_PRECOMPILE_INCLUDES <defines.h>
 <QPixmap>
 <QScopedPointer>
 <QSettings>
+<QSharedPointer>
 <QString>
 <QStringList>
 <QTableWidget>
