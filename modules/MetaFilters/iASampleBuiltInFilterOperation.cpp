@@ -1,4 +1,3 @@
-
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
@@ -21,12 +20,12 @@
 * ************************************************************************************/
 #include "iASampleBuiltInFilterOperation.h"
 
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iAFilter.h"
-#include "iAFilterRegistry.h"
-#include "iAProgress.h"
-#include "io/iAITKIO.h"
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAFilter.h>
+#include <iAFilterRegistry.h>
+#include <iAProgress.h>
+#include <io/iAITKIO.h>
 
 #include <QFileInfo>
 

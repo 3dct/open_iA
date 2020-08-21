@@ -24,6 +24,7 @@
 #include "iACSVtoMHD.h"
 #include "iAUncertaintyAttachment.h"
 
+#include <dlg_commoninput.h>
 #include <iAConsole.h>
 #include <iAFilterRegistry.h>
 #include <mainwindow.h>
@@ -133,8 +134,6 @@ void iAUncertaintyModuleInterface::CalculateNewSubEnsemble()
 	}
 	attach->CalculateNewSubEnsemble();
 }
-
-#include "dlg_commoninput.h"
 
 void iAUncertaintyModuleInterface::WriteFullDataFile()
 {

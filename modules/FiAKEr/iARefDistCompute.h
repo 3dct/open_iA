@@ -20,10 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAProgress.h"
-
 #include "iAFiberData.h"
 #include "iAFiberCharData.h"
+
+#include <iAProgress.h>
 
 #include <QDataStream>
 #include <QSharedPointer>

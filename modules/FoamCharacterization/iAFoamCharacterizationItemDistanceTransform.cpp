@@ -23,8 +23,8 @@
 #include "iAFoamCharacterizationItemBinarization.h"
 #include "iAFoamCharacterizationDialogDistanceTransform.h"
 
-#include "iAConnector.h"
-#include "iAProgress.h"
+#include <iAConnector.h>
+#include <iAProgress.h>
 
 #include <itkDanielssonDistanceMapImageFilter.h>
 #include <itkInvertIntensityImageFilter.h>

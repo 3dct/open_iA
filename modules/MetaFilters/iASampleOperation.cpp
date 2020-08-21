@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASampleOperation.h"
 
-#include "iAConsole.h"
+#include <iAConsole.h>
 
 iASampleOperation::iASampleOperation():
 	m_success(false)

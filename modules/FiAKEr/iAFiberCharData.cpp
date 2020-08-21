@@ -25,9 +25,9 @@
 #include "iACsvIO.h"
 #include "iACsvVtkTableCreator.h"
 
-#include "charts/iASPLOMData.h"
-#include "iAConsole.h"
-#include "io/iAFileUtils.h" // for FindFiles
+#include <charts/iASPLOMData.h>
+#include <iAConsole.h>
+#include <io/iAFileUtils.h> // for FindFiles
 
 #include <vtkFloatArray.h>
 #include <vtkTable.h>

@@ -24,7 +24,7 @@
 #include "iACsvConfig.h"
 #include "iACsvQTableCreator.h"
 
-#include "iAConsole.h"
+#include <iAConsole.h>
 
 #include <QFileDialog>
 #include <QKeyEvent>

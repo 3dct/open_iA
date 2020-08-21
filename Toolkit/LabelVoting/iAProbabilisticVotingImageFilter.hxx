@@ -27,7 +27,7 @@
 #include <itkProgressReporter.h>
 #include <itkStatisticsImageFilter.h>
 
-#include "iAMathUtility.h"
+#include <iAMathUtility.h>
 
 template< typename TInputImage, typename TOutputImage >
 iAProbabilisticVotingImageFilter<TInputImage, TOutputImage>::iAProbabilisticVotingImageFilter():

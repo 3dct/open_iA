@@ -22,8 +22,8 @@
 
 #include "iAFoamCharacterizationDialogWatershed.h"
 
-#include "iAConnector.h"
-#include "iAProgress.h"
+#include <iAConnector.h>
+#include <iAProgress.h>
 
 #include <itkCastImageFilter.h>
 #include <itkGradientMagnitudeImageFilter.h>
