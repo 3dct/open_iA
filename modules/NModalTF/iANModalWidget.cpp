@@ -45,31 +45,19 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 	m_c = new iANModalController(mdiChild);
 
 	// QWidgets
-	QWidget* widgetTop = new QWidget();
 	QWidget *widgetSlicersGrid = new QWidget();
 
 	// Layouts
 	QVBoxLayout *layoutMain = new QVBoxLayout(this);
-	QHBoxLayout *layoutTop = new QHBoxLayout(widgetTop);
 	m_layoutSlicersGrid = new QGridLayout(widgetSlicersGrid);
 	//setLayout(layoutMain);
 
 	// Other widgets
-	QLabel *labelTitle = new QLabel("n-Modal Transfer Function");
 	m_labelsWidget = new iANModalLabelsWidget();
 
-	QPushButton *buttonRefreshModalities = new QPushButton("Refresh modalities");
-	buttonRefreshModalities->setEnabled(false);
-
-	layoutMain->addWidget(widgetTop);
 	layoutMain->addWidget(m_labelsWidget);
 	layoutMain->addWidget(widgetSlicersGrid);
 
-	layoutTop->addWidget(labelTitle);
-	layoutTop->addWidget(buttonRefreshModalities);
-
-	// Connect
-	connect(buttonRefreshModalities, SIGNAL(clicked()), this, SLOT(onButtonRefreshModalitiesClicked()));
 
 	connect(m_labelsWidget, SIGNAL(labelOpacityChanged(int)), this, SLOT(onLabelOpacityChanged(int)));
 	//connect(m_labelsWidget, &iANModalLabelsWidget::labelRemoverStateChanged, this, &iANModalWidget::onLabelRemoverStateChanged);
