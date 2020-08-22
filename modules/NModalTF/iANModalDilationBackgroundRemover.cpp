@@ -191,17 +191,17 @@ void iANModalIterativeDilationThread::itkErodeAndInvert(ImagePointer itkImgPtr, 
 		m_progEro->observe(erosionFilters[i]);
 	}
 	
-	/*typedef itk::InvertIntensityImageFilter<ImageType> IIIFType;
+	typedef itk::InvertIntensityImageFilter<ImageType> IIIFType;
 	auto invertFilter = IIIFType::New();
 	invertFilter->SetMaximum(iANModalBackgroundRemover::FOREGROUND);
 	invertFilter->SetInput(erosionFilters[count - 1]->GetOutput());
 
 	invertFilter->Update();
 
-	m_mask = invertFilter->GetOutput();*/
+	m_mask = invertFilter->GetOutput();
 
-	erosionFilters[count - 1]->Update();
-	m_mask = erosionFilters[count - 1]->GetOutput();
+	//erosionFilters[count - 1]->Update();
+	//m_mask = erosionFilters[count - 1]->GetOutput();
 }
 
 #ifndef NDEBUG
