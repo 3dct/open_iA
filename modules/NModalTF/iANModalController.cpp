@@ -50,10 +50,18 @@
 #include <vtkCamera.h>
 #include <vtkImageReslice.h>
 #include <vtkSmartPointer.h>
+#include <vtkImageActor.h>
+#include <vtkGPUVolumeRayCastMapper.h>
+//#include <vtkImageMapToColors.h>
 //#include <vtkGPUVolumeRayCastMapper.h>
 //#include <vtkImageMask.h>
 
+#include <array>
+
 vtkStandardNewMacro(iANModalSmartVolumeMapper);
+
+static constexpr int NUM_SLICERS = iASlicerMode::SlicerCount;
+
 iANModalController::iANModalController(MdiChild *mdiChild) :
 	m_mdiChild(mdiChild)
 {
@@ -185,6 +193,8 @@ inline void iANModalController::_initializeMainSlicers() {
 		m_mdiChild->initChannelRenderer(channelId, false, true);
 	}
 
+	// Allocate a 2D image for each main slicer
+	// This will be useful in the method _updateMainSlicers
 	for (int mainSlicerIndex = 0; mainSlicerIndex < iASlicerMode::SlicerCount; mainSlicerIndex++) {
 
 		auto reslicer = slicerArray[mainSlicerIndex]->channel(m_channelIds[0])->reslicer();
@@ -201,13 +211,13 @@ inline void iANModalController::_initializeMainSlicers() {
 		imgOut->SetDimensions(dims);
 		imgOut->SetSpacing(spc);
 		imgOut->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
-		m_slicerImages[mainSlicerIndex] = imgOut;
+		m_sliceImages2D[mainSlicerIndex] = imgOut;
 	}
 }
 
 void iANModalController::onHistogramAvailable() {
 	if (m_initialized && countModalities() > 0) {
-		_initializeCombinedVol();
+		//_initializeCombinedVol();
 	}
 }
 
@@ -476,97 +486,115 @@ void iANModalController::update() {
 	_updateMainSlicers();
 }
 
+using Rgb = std::array<unsigned char, 3>;
+using Colors = std::vector<Rgb>;
+using Alphas = std::vector<float>;
+inline void combineColors(const Colors &colors, const Alphas &opacities, Rgb &output) {
+	assert(colors.size() == opacities.size());
+	output = {0, 0, 0};
+	for (int i = 0; i < colors.size(); ++i) {
+		float opacity = opacities[i];
+		output[0] += (colors[i][0] * opacity);
+		output[1] += (colors[i][1] * opacity);
+		output[2] += (colors[i][2] * opacity);
+	}
+}
+inline void setRgbaComponent(vtkSmartPointer<vtkImageData> img, int x, int y, int z, const Rgb &color, float alpha = 255) {
+	for (int i = 0; i < 3; ++i)
+		img->SetScalarComponentFromFloat(x, y, z, i, color[i]);
+	img->SetScalarComponentFromFloat(x, y, z, 4, alpha);
+}
+
 void iANModalController::_updateMainSlicers() {
+
+	for (int i = 0; i < NUM_SLICERS; ++i) {
+		m_mdiChild->slicer(i)->update();
+	}
+	return;
+
 	// TODO
-	/*
-	iASlicer* slicerArray[] = {
-		m_mdiChild->slicer(iASlicerMode::YZ),
-		m_mdiChild->slicer(iASlicerMode::XY),
-		m_mdiChild->slicer(iASlicerMode::XZ)
+	
+	iASlicerMode slicerModes[NUM_SLICERS] = {
+		iASlicerMode::YZ,
+		iASlicerMode::XY,
+		iASlicerMode::XZ
 	};
 
-	for (int mainSlicerIndex = 0; mainSlicerIndex < 3; mainSlicerIndex++) {
+	const auto numModalities = countModalities();
 
-		auto slicer = slicerArray[mainSlicerIndex];
+	for (int mainSlicerIndex = 0; mainSlicerIndex < NUM_SLICERS; ++mainSlicerIndex) {
 
-		vtkSmartPointer<vtkImageData> slicersColored[3];
-		vtkSmartPointer<vtkImageData> slicerInput[3];
-		vtkPiecewiseFunction* slicerOpacity[3];
-		for (int modalityIndex = 0; modalityIndex < m_numOfMod; modalityIndex++) {
-			auto channel = slicer->channel(m_channelID[modalityIndex]);
-			slicer->setChannelOpacity(m_channelID[modalityIndex], 0);
+		auto slicer = m_mdiChild->slicer(slicerModes[mainSlicerIndex]);
 
-			// This changes everytime the TF changes!
-			auto imgMod = channel->reslicer()->GetOutput();
-			slicerInput[modalityIndex] = imgMod;
-			slicerOpacity[modalityIndex] = channel->opacityTF();
+		QVector<vtkSmartPointer<vtkImageData>> sliceImgs2D(numModalities);
+		QVector<vtkScalarsToColors*> sliceColorTf(numModalities);
+		QVector<vtkPiecewiseFunction*> sliceOpacityTf(numModalities);
 
-			// Source: https://vtk.org/Wiki/VTK/Examples/Cxx/Images/ImageMapToColors
-			// This changes everytime the TF changes!
-			auto scalarValuesToColors = vtkSmartPointer<vtkImageMapToColors>::New(); // Will it work?
-			//scalarValuesToColors->SetLookupTable(channel->m_lut);
-			scalarValuesToColors->SetLookupTable(channel->colorTF());
-			scalarValuesToColors->SetInputData(imgMod);
-			scalarValuesToColors->Update();
-			slicersColored[modalityIndex] = scalarValuesToColors->GetOutput();
+		for (int modalityIndex = 0; modalityIndex < countModalities(); ++modalityIndex) {
+			
+			// Get channel for modality
+			// ...this will allow us to get the 2D slice image and the transfer functions
+			auto channel = slicer->channel(m_channelIds[modalityIndex]);
+
+			// Make modality transparent
+			// TODO: find a better way... this shouldn't be necessary
+			slicer->setChannelOpacity(m_channelIds[modalityIndex], 0);
+
+			// Get the 2D slice image
+			auto sliceImg2D = channel->reslicer()->GetOutput();
+			auto dim = sliceImg2D->GetDimensions();
+			assert(dim[0] == 1 || dim[1] == 1 || dim[2] == 1);
+
+			// Save 2D slice image and transfer functions for future processing
+			sliceImgs2D[modalityIndex] = sliceImg2D;
+			sliceColorTf[modalityIndex] = channel->colorTF();
+			sliceOpacityTf[modalityIndex] = channel->opacityTF();
 		}
-		auto imgOut = m_slicerImages[mainSlicerIndex];
 
-		// if you want to try out alternative using buffers below, start commenting out here
-		auto w = getWeights();
-		FOR_VTKIMG_PIXELS(imgOut, x, y, z) {
+		auto sliceImg2D_out = m_sliceImages2D[mainSlicerIndex];
 
-			float modRGB[3][3];
-			float weight[3];
-			float weightSum = 0;
-			for (int mod = 0; mod < m_numOfMod; ++mod)
-			{
-				// compute weight for this modality:
-				weight[mod] = w[mod];
-				if (m_checkBox_weightByOpacity->isChecked())
-				{
-					float intensity = slicerInput[mod]->GetScalarComponentAsFloat(x, y, z, 0);
-					double opacity = slicerOpacity[mod]->GetValue(intensity);
-					weight[mod] *= std::max(m_minimumWeight, opacity);
+//#pragma omp parallel for // TODO collapse(3)
+		FOR_VTKIMG_PIXELS(sliceImg2D_out, x, y, z) {
+			
+			Colors colors(numModalities);
+			Alphas opacities(numModalities);
+			float opacitySum = 0;
 
+			// Gather the colors and opacities for this voxel xyz (for each modality)
+			for (int mod_i = 0; mod_i < numModalities; ++mod_i) {
+			
+				float scalar = sliceImgs2D[mod_i]->GetScalarComponentAsFloat(x, y, z, 0);
+				const unsigned char *color = sliceColorTf[mod_i]->MapValue(scalar); // 4 bytes (RGBA)
+				float opacity = sliceOpacityTf[mod_i]->GetValue(scalar);
+
+				colors[mod_i] = { color[0], color[1], color[2] }; // RGB (ignore A)
+				opacities[mod_i] = opacity;
+				opacitySum += opacity;
+			}
+
+			// Normalize opacities so that their sum is 1
+			if (opacitySum == 0) {
+				for (int mod_i = 0; mod_i < numModalities; ++mod_i) {
+					opacities[mod_i] = 1 / numModalities;
+					opacitySum = 1;
 				}
-				weightSum += weight[mod];
-				// get color of this modality:
-				for (int component = 0; component < 3; ++component)
-					modRGB[mod][component] = (mod >= m_numOfMod) ? 0
-					: slicersColored[mod]->GetScalarComponentAsFloat(x, y, z, component);
+			} else {
+				for (int mod_i = 0; mod_i < numModalities; ++mod_i) {
+					opacities[mod_i] /= opacitySum;
+				}
 			}
-			// "normalize" weights (i.e., make their sum equal to 1):
-			if (weightSum == 0)
-			{
-				for (int mod = 0; mod < m_numOfMod; ++mod)
-					weight[mod] = 1 / m_numOfMod;
-			}
-			else
-			{
-				for (int mod = 0; mod < m_numOfMod; ++mod)
-					weight[mod] /= weightSum;
-			}
-			// compute and set final color values:
-			for (int component = 0; component < 3; ++component)
-			{
-				float value = 0;
-				for (int mod = 0; mod < m_numOfMod; ++mod)
-					value += modRGB[mod][component] * weight[mod];
-				imgOut->SetScalarComponentFromFloat(x, y, z, component, value);
-			}
-			float a = 255; // Max alpha!
-			imgOut->SetScalarComponentFromFloat(x, y, z, 3, a);
-		}
 
-		// Sets the INPUT image which will be sliced again, but we have a sliced image already
-		//m_mdiChild->getSlicerDataYZ()->changeImageData(imgOut);
-		imgOut->Modified();
-		slicer->channel(0)->imageActor()->SetInputData(imgOut);
+			Rgb combinedColor;
+			combineColors(colors, opacities, combinedColor);
+			setRgbaComponent(sliceImg2D_out, x, y, z, combinedColor);
+
+		} // end of FOR_VTKIMG_PIXELS
+
+		sliceImg2D_out->Modified();
+		slicer->channel(0)->imageActor()->SetInputData(sliceImg2D_out);
 	}
-	*/
 
-	for (int i = 0; i < 3; ++i) { // 3 hardcoded TODO improve
+	for (int i = 0; i < NUM_SLICERS; ++i) {
 		m_mdiChild->slicer(i)->update();
 	}
 }
