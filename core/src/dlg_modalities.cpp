@@ -49,6 +49,7 @@
 
 #include <QFileDialog>
 #include <QSettings>
+#include <QSignalBlocker>
 
 #include <cassert>
 
@@ -71,7 +72,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	connect(pbEdit,   &QPushButton::clicked, this, &dlg_modalities::editClicked);
 
 	connect(lwModalities, &QListWidget::itemClicked, this, &dlg_modalities::listClicked);
-	connect(lwModalities, &QListWidget::itemChanged, this, &dlg_modalities::showChecked);
+	connect(lwModalities, &QListWidget::itemChanged, this, &dlg_modalities::checkboxClicked);
 }
 
 void dlg_modalities::setModalities(QSharedPointer<iAModalityList> modList)
@@ -197,30 +198,10 @@ QListWidgetItem* dlg_modalities::item(QSharedPointer<iAModality> modWanted)
 	return nullptr;
 }
 
-
-QList<QListWidgetItem*> dlg_modalities::items(QList<QSharedPointer<iAModality>> modsWanted)
-{
-	auto list = QList<QListWidgetItem*>();
-	for (int i = 0; i < m_modalities->size(); ++i) {
-		auto modFound = m_modalities->get(i);
-		if (modsWanted.contains(modFound)) {
-			auto item = lwModalities->item(i);
-			list.append(item);
-		}
-	}
-	return list;
-}
-
 void dlg_modalities::setChecked(QSharedPointer<iAModality> modality, Qt::CheckState checked)
 {
 	auto item = this->item(modality);
 	setChecked(item, checked);
-}
-
-void dlg_modalities::setChecked(QList<QSharedPointer<iAModality>> modalities, Qt::CheckState checked)
-{
-	auto items = this->items(modalities);
-	setChecked(items, checked);
 }
 
 void dlg_modalities::setAllChecked(Qt::CheckState checked)
@@ -483,29 +464,33 @@ void dlg_modalities::setModalitySelectionMovable(int selectedRow)
 	}
 }
 
-void dlg_modalities::showChecked(QListWidgetItem* item)
-{
+void dlg_modalities::checkboxClicked(QListWidgetItem* item) {
 	int i = lwModalities->row(item);
-	QSharedPointer<iAVolumeRenderer> renderer = m_modalities->get(i)->renderer();
-	if (!renderer)
-	{
-		return;
-	}
-	bool isChecked = item->checkState() == Qt::Checked;
-	renderer->showVolume(isChecked);
-	m_mainRenderer->GetRenderWindow()->Render();
+	auto mod = m_modalities->get(i);
+	setModalityVisibility(mod, item->checkState() == Qt::Checked);
 }
 
 void dlg_modalities::setChecked(QListWidgetItem* item, Qt::CheckState checked)
 {
-	item->setCheckState(checked);
+	QSignalBlocker blocker(lwModalities);
+	{
+		item->setCheckState(checked);
+	}
+	blocker.unblock();
+
+	int i = lwModalities->row(item);
+	auto mod = m_modalities->get(i);
+	setModalityVisibility(mod, checked == Qt::Checked);
 }
 
-void dlg_modalities::setChecked(QList<QListWidgetItem*> items, Qt::CheckState checked)
-{
-	for (auto item : items) {
-		setChecked(item, checked);
+void dlg_modalities::setModalityVisibility(QSharedPointer<iAModality> mod, bool visible) {
+	QSharedPointer<iAVolumeRenderer> renderer = mod->renderer();
+	if (!renderer)
+	{
+		return;
 	}
+	renderer->showVolume(visible);
+	m_mainRenderer->GetRenderWindow()->Render();
 }
 
 QSharedPointer<iAModalityList const> dlg_modalities::modalities() const
@@ -600,7 +585,7 @@ void dlg_modalities::addModality(vtkSmartPointer<vtkImageData> img, QString cons
 }
 
 void dlg_modalities::addModality(QSharedPointer<iAModality> mod) {
-	mod->setRenderFlag(iAModality::MainRenderer); // TODO remove?
+	mod->setRenderFlag(iAModality::MainRenderer);
 	m_modalities->add(mod);
 }
 
