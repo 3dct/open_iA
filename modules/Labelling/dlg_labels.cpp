@@ -253,7 +253,7 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicer* slicer)
 		QList<iASeed> addedSeeds;
 
 	int radius = spinBox->value() - 1; // -1 because the center voxel shouldn't count
-	iATimeGuard timer(QString("Drawing circle of radius %1").arg(radius).toStdString());
+	//iATimeGuard timer(QString("Drawing circle of radius %1").arg(radius).toStdString());
 
 	int imageId = m_mapSlicer2data.value(slicer)->overlayImageId;
 	QSharedPointer<OverlayImage> oi = m_mapId2image.value(imageId);
