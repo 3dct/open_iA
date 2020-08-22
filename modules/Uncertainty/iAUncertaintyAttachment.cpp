@@ -24,9 +24,9 @@
 #include "iAEnsemble.h"
 #include "iAEnsembleView.h"
 #include "iAHistogramView.h"
-#include "iAMember.h"
 #include "iAMemberView.h"
 #include "iAScatterPlotView.h"
+#include "iASingleResult.h"
 #include "iASpatialView.h"
 #include "iAUncertaintyColors.h"
 
@@ -177,7 +177,7 @@ void iAUncertaintyAttachment::CalculateNewSubEnsemble()
 
 void iAUncertaintyAttachment::MemberSelected(int memberIdx)
 {
-	iAITKIO::ImagePointer itkImg = m_currentEnsemble->Member(memberIdx)->LabelImage();
+	iAITKIO::ImagePointer itkImg = m_currentEnsemble->Member(memberIdx)->labelImage();
 	iAConnector con;
 	con.setImage(itkImg);
 	bool keep = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);

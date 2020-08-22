@@ -20,27 +20,29 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAAttributeDescriptor.h>
-#include <iAValueType.h>
-
-#include <QVector>
 #include <QSharedPointer>
+#include <QThread>
 
-class iANameMapper;
+class iASingleResult;
 
-class QTextStream;
+class QString;
 
-class iAAttributes
+class iADerivedOutputCalculator : public QThread
 {
 public:
-	static QSharedPointer<iAAttributes> Create(QTextStream & in);
-	int size() const;
-	QSharedPointer<iAAttributeDescriptor const> at(int idx) const;
-	QSharedPointer<iAAttributeDescriptor> at(int idx);
-	void add(QSharedPointer<iAAttributeDescriptor> range);
-	void store(QTextStream & out);
-	int find(QString const & name);
-	int count(iAAttributeDescriptor::iAAttributeType type=iAAttributeDescriptor::None) const;
+	iADerivedOutputCalculator(
+		QSharedPointer<iASingleResult> result,
+		int objCountIdx,
+		int avgUncIdx,
+		int labelCount);
+	bool success();
+
 private:
-	QVector<QSharedPointer<iAAttributeDescriptor> > m_attributes;
+	QSharedPointer<iASingleResult> m_result;
+	int m_objCountIdx;
+	int m_avgUncIdx;
+	bool m_success;
+	int m_labelCount;
+
+	void run() override;
 };

@@ -20,16 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include <itkImage.h>
-
 #include <vtkSmartPointer.h>
 
 class vtkImageData;
 
 typedef vtkSmartPointer<vtkImageData> vtkImagePointer;
-
-typedef itk::Image<double, 3> DoubleImage;
-typedef itk::Image<int, 3> IntImage;
 
 class QString;
 

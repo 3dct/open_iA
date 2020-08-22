@@ -24,10 +24,10 @@
 #include <itkCannySegmentationLevelSetImageFilter.h>
 #include <itkZeroCrossingImageFilter.h>
 
-#include "defines.h"    // for DIM
-#include "iAConnector.h"
-#include "iAProgress.h"
-#include "iATypedCallHelper.h"
+#include <defines.h>    // for DIM
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
 
 template<class T>
 void laplacianSegmentationLevelSet(iAFilter* filter, QMap<QString, QVariant> const & parameters)

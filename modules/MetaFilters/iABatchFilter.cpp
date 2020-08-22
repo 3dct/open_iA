@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iABatchFilter.h"
 
+#include "iAParameterNames.h"
+
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
@@ -71,24 +73,25 @@ iABatchFilter::iABatchFilter():
 		"in case there is an error. If it is disabled, an error will interrupt the whole batch run. "
 		"Under <em>Work on</em> it can be specified whether the batched filter should get passed "
 		"only files, only folders, or both files and folders."
-		"<em>Output format</em> specifies the file format for the output image(s).", 0, 0)
+		"<em>Output format</em> specifies the file format for the output image(s).", 0, 0),
+	m_aborted(false)
 {
 	QStringList filesFoldersBoth;
 	filesFoldersBoth << "Files" << "Folders" << "Both Files and Folders";
 	addParameter("Image folder", Folder, "");
 	addParameter("Recursive", Boolean, false);
 	addParameter("File mask", String, "*.mhd");
-	addParameter("Filter", FilterName, "Image Quality");
+	addParameter(spnFilter, FilterName, "Image Quality");
 	addParameter("Parameters", FilterParameters, "");
 	addParameter("Additional Input", FileNamesOpen, "");
-	addParameter("Output directory", Folder, "");
+	addParameter(spnOutputFolder, Folder, "");
 	addParameter("Output suffix", String, "");
-	addParameter("Overwrite output", Boolean, false);
-	addParameter("Compress output", Boolean, true);
-	addParameter("Output csv file", FileNameSave, "");
+	addParameter(spnOverwriteOutput, Boolean, false);
+	addParameter(spnCompressOutput, Boolean, true);
+	addParameter("Output csv file", FileNameSave, ".csv");
 	addParameter("Append to output", Boolean, true);
 	addParameter("Add filename", Boolean, true);
-	addParameter("Continue on error", Boolean, true);
+	addParameter(spnContinueOnError, Boolean, false);
 	addParameter("Work on", Categorical, filesFoldersBoth);
 	QStringList outputFormat;
 	outputFormat << "Same as input"
@@ -98,10 +101,10 @@ iABatchFilter::iABatchFilter():
 
 void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	auto filter = iAFilterRegistry::filter(parameters["Filter"].toString());
+	auto filter = iAFilterRegistry::filter(parameters[spnFilter].toString());
 	if (!filter)
 	{
-		addMsg(QString("Batch: Cannot run filter '%1', it does not exist!").arg(parameters["Filter"].toString()));
+		addMsg(QString("Batch: Cannot run filter '%1', it does not exist!").arg(parameters[spnFilter].toString()));
 		return;
 	}
 	QMap<QString, QVariant> filterParams;
@@ -116,9 +119,15 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 	QString batchDir = parameters["Image folder"].toString();
 	QVector<iAConnector*> inputImages;
 	QStringList additionalInput = splitPossiblyQuotedString(parameters["Additional Input"].toString());
+	QStringList additionalFileNames;
 	for (QString fileName : additionalInput)
 	{
+		if (m_aborted)
+		{
+			break;
+		}
 		fileName = MakeAbsolute(batchDir, fileName);
+		additionalFileNames.push_back(fileName);
 		auto newCon = new iAConnector();
 		iAITKIO::ScalarPixelType pixelType;
 		iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
@@ -168,7 +177,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		filesFolders |= Folders;
 	}
 	FindFiles(batchDir, filters, parameters["Recursive"].toBool(), files, filesFolders);
-	QString outDir(parameters["Output directory"].toString());
+	QString outDir(parameters[spnOutputFolder].toString());
 	if (!outDir.isEmpty())
 	{
 		QFileInfo fi(outDir);
@@ -191,11 +200,12 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		outDir = batchDir;
 	}
 	QString outSuffix = parameters["Output suffix"].toString();
-	bool overwrite = parameters["Overwrite output"].toBool();
-	bool useCompression = parameters["Compress output"].toBool();
+	bool overwrite = parameters[spnOverwriteOutput].toBool();
+	bool useCompression = parameters[spnCompressOutput].toBool();
 	int curLine = 0;
 	for (QString fileName : files)
 	{
+		progress()->setStatus(QString("Processing file %1...").arg(fileName));
 		try
 		{
 			filter->clearInput();
@@ -211,13 +221,15 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 					iAITKIO::ScalarPixelType pixelType;
 					iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
 					con.setImage(img);
-					filter->addInput(&con);
+					filter->addInput(&con, fileName);
 					for (int i = 0; i < inputImages.size(); ++i)
-						filter->addInput(inputImages[i]);
+					{
+						filter->addInput(inputImages[i], additionalFileNames[i]);
+					}
 				}
-				else
+				for (int i = 0; i < inputImages.size(); ++i)
 				{
-					filterParams["File name"] = fileName;
+					filterParams[QString("Input file %1").arg(i)] = fileName;
 				}
 			}
 			filter->run(filterParams);
@@ -296,9 +308,13 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			}
 		}
 		progress()->emitProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
+		if (m_aborted)
+		{
+			break;
+		}
 	}
 
-	if (!outputFile.isEmpty())
+	if (!m_aborted && !outputFile.isEmpty())
 	{
 		QFile file(outputFile);
 		if (file.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -315,6 +331,16 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			file.close();
 		}
 	}
+}
+
+void iABatchFilter::abort()
+{
+	m_aborted = true;
+}
+
+bool iABatchFilter::canAbort() const
+{
+	return true;
 }
 
 IAFILTER_CREATE(iABatchFilter);

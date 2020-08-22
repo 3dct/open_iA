@@ -27,8 +27,8 @@
 
 #define DIM 3
 
-const QString organisationName = "FHW";
-const QString applicationName = "open_iA";
+open_iA_Core_API extern const QString organisationName;
+open_iA_Core_API extern const QString applicationName;
 
 enum iAIOType
 {

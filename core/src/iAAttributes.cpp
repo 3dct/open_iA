@@ -18,29 +18,59 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAAttributes.h"
 
-#include <iAAttributeDescriptor.h>
-#include <iAValueType.h>
+#include <QTextStream>
 
-#include <QVector>
-#include <QSharedPointer>
-
-class iANameMapper;
-
-class QTextStream;
-
-class iAAttributes
+QSharedPointer<iAAttributes> createAttributes(QTextStream & in)
 {
-public:
-	static QSharedPointer<iAAttributes> create(QTextStream & in);
-	int size() const;
-	QSharedPointer<iAAttributeDescriptor const> at(int idx) const;
-	QSharedPointer<iAAttributeDescriptor> at(int idx);
-	void add(QSharedPointer<iAAttributeDescriptor> range);
-	void store(QTextStream & out);
-	int find(QString const & name);
-	int count(iAAttributeDescriptor::iAAttributeType type=iAAttributeDescriptor::None) const;
-private:
-	QVector<QSharedPointer<iAAttributeDescriptor> > m_attributes;
-};
+	QSharedPointer<iAAttributes> result(new iAAttributes);
+	while (!in.atEnd())
+	{
+		QString line = in.readLine();
+		QSharedPointer<iAAttributeDescriptor> descriptor =
+			iAAttributeDescriptor::create(line);
+		if (descriptor)
+		{
+			result->push_back(descriptor);
+		}
+		else
+		{
+			return QSharedPointer<iAAttributes>(new iAAttributes);
+		}
+	}
+	return result;
+}
+
+void storeAttributes(QTextStream & out, iAAttributes const & attributes)
+{
+	for (int i = 0; i < attributes.size(); ++i)
+	{
+		out << attributes[i]->toString();
+	}
+}
+
+int findAttribute(iAAttributes const& attributes, QString const & name)
+{
+	for (int i = 0; i < attributes.size(); ++i)
+	{
+		if (attributes[i]->name() == name)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+int countAttributes(iAAttributes const& attributes, iAAttributeDescriptor::iAAttributeType type)
+{
+	int count = 0;
+	for (int i = 0; i < attributes.size(); ++i)
+	{
+		if (type == iAAttributeDescriptor::None	|| attributes[i]->attribType() == type)
+		{
+			count++;
+		}
+	}
+	return count;
+}

@@ -6,7 +6,6 @@ SET (GEMSe_PRECOMPILE_INCLUDES <cassert>
 <dlg_modalities.h>
 <dlg_progress.h>
 <dlg_samplings.h>
-<iAAbortListener.h>
 <iAAttitudes.h>
 <iAAttributeDescriptor.h>
 <iAAttributes.h>
@@ -17,14 +16,12 @@ SET (GEMSe_PRECOMPILE_INCLUDES <cassert>
 <iAColorTheme.h>
 <iAConnector.h>
 <iAConsole.h>
-<iADurationEstimator.h>
 <iAFakeTreeNode.h>
 <iAGEMSeConstants.h>
 <iAGEMSeProject.h>
 <iAImageCoordinate.h>
 <iAImageNodeWidget.h>
 <iAImagePreviewWidget.h>
-<iAImageSampler.h>
 <iAImageTree.h>
 <iAImageTreeInternalNode.h>
 <iAImageTreeLeaf.h>
@@ -35,11 +32,7 @@ SET (GEMSe_PRECOMPILE_INCLUDES <cassert>
 <iAMeasures.h>
 <iAModality.h>
 <iAModalityList.h>
-<iANameMapper.h>
-<iAParameterGenerator.h>
-<iAParameterGeneratorImpl.h>
 <iAParamHistogramData.h>
-<iAPerformanceHelper.h>
 <iAPreviewWidgetPool.h>
 <iAQtCaptionWidget.h>
 <iARepresentative.h>
@@ -50,7 +43,6 @@ SET (GEMSe_PRECOMPILE_INCLUDES <cassert>
 <iASlicerMode.h>
 <iAToolsITK.h>
 <iAToolsVTK.h>
-<iAValueType.h>
 <iAVtkDraw.h>
 <io/iAFileUtils.h>
 <io/iAITKIO.h>
@@ -71,14 +63,12 @@ SET (GEMSe_PRECOMPILE_INCLUDES <cassert>
 <QSharedPointer>
 <QSplitter>
 <QStandardItemModel>
-<QString>
 <QTextStream>
 <qthelper/iAQTtoUIConnector.h>
 <QThread>
 <QVBoxLayout>
 <QVector>
 <QWidget>
-<random>
 <vtkImageData.h>
 <vtkLookupTable.h>
 <vtkPiecewiseFunction.h>

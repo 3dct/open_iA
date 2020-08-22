@@ -22,87 +22,46 @@
 
 #include "ui_samplingSettings.h"
 
+#include "MetaFilters_export.h"
+
+#include <iAAttributes.h>
+#include <iASettings.h>
 #include <qthelper/iAQTtoUIConnector.h>
+#include <qthelper/iAWidgetSettingsMapper.h>
 
 #include <QMap>
 
-class iAAttributes;
+
 class iAAttributeDescriptor;
 class iAModalityList;
-class iAParameterGenerator;
+class iASamplingMethod;
 
 class QCheckBox;
 class QShortcut;
 
-typedef iAQTtoUIConnector<QDialog, Ui_samplingSettings> dlg_samplingSettingsUI;
+
+using dlg_samplingSettingsUI = iAQTtoUIConnector<QDialog, Ui_samplingSettings>;
 
 class iAParameterInputs
 {
 public:
-	virtual ~iAParameterInputs() {}
 	QLabel* label;
 	QSharedPointer<iAAttributeDescriptor> descriptor;
-	iAParameterInputs():
-		label(0)
-	{}
-	virtual void retrieveInputValues(QMap<QString, QString> & values) =0;
-	virtual void changeInputValues(QMap<QString, QString> const & values) =0;
-	void deleteGUI();
+	iAParameterInputs();
+	virtual ~iAParameterInputs();
+	virtual void retrieveInputValues(iASettings & values) =0;
+	virtual void changeInputValues(iASettings const & values) =0;
 	virtual QSharedPointer<iAAttributeDescriptor> currentDescriptor() = 0;
-private:
-	virtual void deleteGUIComponents() = 0;
 };
 
-class iANumberParameterInputs: public iAParameterInputs
-{
-public:
-	QLineEdit* from;
-	QLineEdit* to;
-	QCheckBox* logScale;
-	iANumberParameterInputs():
-		iAParameterInputs(),
-		from(0),
-		to(0),
-		logScale(0)
-	{}
-	void retrieveInputValues(QMap<QString, QString> & values) override;
-	void changeInputValues(QMap<QString, QString> const & values) override;
-	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
-private:
-	void deleteGUIComponents() override;
-};
-
-class iACategoryParameterInputs : public iAParameterInputs
-{
-public:
-	QVector<QCheckBox*> m_features;
-	QString featureString();
-	void retrieveInputValues(QMap<QString, QString> & values) override;
-	void changeInputValues(QMap<QString, QString> const & values) override;
-	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
-private:
-	void deleteGUIComponents() override;
-};
-
-class dlg_samplingSettings : public dlg_samplingSettingsUI
+class MetaFilters_API dlg_samplingSettings : public dlg_samplingSettingsUI
 {
 	Q_OBJECT
 public:
-	dlg_samplingSettings(QWidget *parentWidget,
-		QSharedPointer<iAModalityList const> modalities,
-		QMap<QString, QString> const & values);
-	QSharedPointer<iAParameterGenerator> GetGenerator();
-	QSharedPointer<iAAttributes> GetAttributes();
-	QString GetOutputFolder() const;
-	QString GetExecutable() const;
-	QString GetAdditionalArguments() const;
-	QString GetPipelineName() const;
-	int GetSampleCount() const;
-	int labelCount() const;
-	void GetValues(QMap<QString, QString> & values) const;
-	QString GetImageBaseName() const;
-	bool GetSeparateFolder() const;
-	bool GetCalcChar() const;
+	dlg_samplingSettings(QWidget* parentWdgt, int inputImageCount,
+		iASettings const & values);
+	QSharedPointer<iAAttributes> parameterRanges();
+	void getValues(iASettings & values) const;
 private slots:
 	void chooseOutputFolder();
 	void chooseParameterDescriptor();
@@ -110,15 +69,23 @@ private slots:
 	void parameterDescriptorChanged();
 	void saveSettings();
 	void loadSettings();
+	void algoTypeChanged();
+	void selectFilter();
+	void runClicked();
+	void outputBaseChanged();
+	void samplingMethodChanged();
 private:
-	void setInputsFromMap(QMap<QString, QString> const & values);
-	void loadDescriptor(QString const & fileName);
+	void setInputsFromMap(iASettings const & values);
+	void setParameters(QSharedPointer<iAAttributes> params);
+	void setParameterValues(iASettings const& values);
+	void setParametersFromFilter(QString const& filterName);
+	void setParametersFromFile(QString const& fileName);
 
-	int m_nbOfSamples;
-	double m_imagePixelCount;
 	int m_startLine;
-	int m_modalityCount;
-	QSharedPointer<iAAttributes> m_descriptor;
-	QString m_descriptorFileName;
+	int m_inputImageCount;
+	QString m_lastParamsFileName, m_lastFilterName;
 	QVector<QSharedPointer<iAParameterInputs> > m_paramInputs;
+	iAWidgetMap m_widgetMap;
+	iAQRadioButtonVector m_rgAlgorithmType;
+	QSharedPointer<iAAttributes> m_paramSpecs;
 };

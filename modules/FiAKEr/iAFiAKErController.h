@@ -33,6 +33,7 @@
 #include <iASettings.h>
 #include <iAVtkWidget.h>
 #include <qthelper/iAQTtoUIConnector.h>
+#include <qthelper/iAWidgetSettingsMapper.h>
 
 #include <vtkSmartPointer.h>
 
@@ -45,14 +46,18 @@
 class iAFiberResultsCollection;
 class iAFiberCharUIData;
 class iAJobListView;
-class iAMatrixWidget;
 class iAStackedBarChart;
+
+// Sensitivity:
+class iAMatrixWidget;
+class iAParameterListView;
 
 class iA3DColoredPolyObjectVis;
 class iA3DCylinderObjectVis;
 
 class iAChartWidget;
 class iAColorTheme;
+class iACsvVectorTableCreator;
 class iADockWidgetWrapper;
 class iAFileChooserWidget;
 class iAMapper;
@@ -87,10 +92,6 @@ class QTimer;
 class QTreeView;
 class QVBoxLayout;
 
-// To be able to put non-QObject derived class in settingsWidgetMap
-class iAQCheckBoxVector: public QObject, public QVector<QCheckBox*> { };
-class iAQLineEditVector: public QObject, public QVector<QLineEdit*> { };
-
 class iAVtkQtWidget;
 class iAFixedAspectWidget;
 class iASignallingWidget;
@@ -115,15 +116,16 @@ public:
 class iAResultPairInfo
 {
 public:
-	iAResultPairInfo(int measureCount) :
-		avgDissim(measureCount)
-	{}
+	iAResultPairInfo();
+	iAResultPairInfo(int measureCount);
 	// average dissimilarity, per dissimilarity measure
 	QVector<double> avgDissim;
 
 	// for every fiber, and every dissimilarity measure, the n best matching fibers (in descending match quality)
 	QVector<QVector<QVector<iAFiberSimilarity>>> fiberDissim;
 };
+
+using iADissimilarityMatrixType = QVector<QVector<iAResultPairInfo>>;
 
 class iAFiAKErController: public QObject, public iASelectionProvider
 {
@@ -252,6 +254,7 @@ private:
 	QWidget* setupResultListView();
 	QWidget* setupProtocolView();
 	QWidget* setupSelectionView();
+	QWidget* setupMatrixView(QStringList paramNames, std::vector<std::vector<double>> const& paramValues, QVector<int> const & measures);
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;
@@ -271,18 +274,19 @@ private:
 	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame, m_showLines;
 	double m_contextSpacing;
 	QString m_parameterFile; //! (.csv-)file containing eventual parameters used in creating the loaded results
+	std::vector<std::vector<double>> m_paramValues;
 
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 
 	vtkSmartPointer<vtkActor> m_sampleActor;
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
-	QMap<QString, QObject*> m_settingsWidgetMap;
+	iAWidgetMap m_settingsWidgetMap;
 
 	// The different views and their elements:
 	std::vector<iADockWidgetWrapper*> m_views;
 	enum {
-		JobView, ResultListView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
+		ResultListView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
 	};
 	// 3D View:
 	iAVtkWidget* m_main3DWidget;
@@ -332,9 +336,6 @@ private:
 	QVBoxLayout* m_optimChartLayout;
 	size_t m_chartCount;
 
-	// Jobs:
-	iAJobListView * m_jobs;
-
 	// Interaction Protocol:
 	QTreeView* m_interactionProtocol;
 	QStandardItemModel* m_interactionProtocolModel;
@@ -347,6 +348,11 @@ private:
 	std::vector<SelectionType> m_selections;
 
 	// Sensitivity
-	std::vector<std::vector<iAResultPairInfo>> m_dissimilarityMatrix;
+	iADissimilarityMatrixType m_dissimilarityMatrix;
 	iAMatrixWidget* m_matrixWidget;
+	iAParameterListView* m_parameterListView;
+
+	QString dissimilarityMatrixCacheFileName();
+	bool readDissimilarityMatrixCache(QVector<int>& measures);
+	void writeDissimilarityMatrixCache(QVector<int> const& measures);
 };

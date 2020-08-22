@@ -20,30 +20,37 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QSharedPointer>
-#include <QThread>
+#include "iAAttributes.h"
+#include "iAFilter.h"
+#include "iAFilterRunnerGUI.h"
 
-class iAAttributes;
-class iASingleResult;
+class iAImageSampler;
+class iAModalityList;
 
-class QString;
-
-class iADerivedOutputCalculator : public QThread
+class iASampleFilter : public iAFilter
 {
 public:
-	iADerivedOutputCalculator(
-		QSharedPointer<iASingleResult> result,
-		int objCountIdx,
-		int avgUncIdx,
-		int labelCount);
-	bool success();
-
+	static QSharedPointer<iASampleFilter> create();
+	void setParameters(QSharedPointer<iAModalityList> input, QSharedPointer<iAAttributes> parameterRanges,
+		QString const & parameterRangeFile, QString const & parameterSetFile, QString const & derivedOutFile, int samplingID);
+	void abort() override;
+	bool canAbort() const override;
 private:
-	QSharedPointer<iASingleResult> m_result;
-	int m_objCountIdx;
-	int m_avgUncIdx;
-	bool m_success;
-	int m_labelCount;
+	void performWork(QMap<QString, QVariant> const& parameters) override;
+	iASampleFilter();
+	QSharedPointer<iAModalityList> m_input;
+	QSharedPointer<iAAttributes> m_parameterRanges;
+	QString m_parameterRangeFile,
+		m_parameterSetFile,
+		m_derivedOutFile;
+	int m_samplingID;
+	iAImageSampler * m_sampler;
+};
 
-	void run() override;
+class iASampleFilterRunnerGUI : public iAFilterRunnerGUI
+{
+public:
+	static QSharedPointer<iAFilterRunnerGUI> create();
+	bool askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant>& paramValues,
+		MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput) override;
 };

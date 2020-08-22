@@ -18,84 +18,59 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAAttributes.h"
+#include "iACommandRunner.h"
 
-#include <iAAttributeDescriptor.h>
+#include <iAConsole.h>
 
-#include <QTextStream>
+#include <QFileInfo>
 
-QSharedPointer<iAAttributes> iAAttributes::create(QTextStream & in)
+iACommandRunner::iACommandRunner(QString const & executable, QStringList const & arguments) :
+	m_executable(executable),
+	m_arguments(arguments)
 {
-	QSharedPointer<iAAttributes> result(new iAAttributes);
-	while (!in.atEnd())
+}
+
+void iACommandRunner::performWork()
+{
+	QProcess myProcess;
+	myProcess.setProgram(m_executable);
+	QFileInfo fi(m_executable);
+	myProcess.setWorkingDirectory(fi.absolutePath());
+	myProcess.setArguments(m_arguments);
+	DEBUG_LOG(QString("Running '%1' with arguments '%2'").arg(m_executable).arg(m_arguments.join(" ")));
+	myProcess.setProcessChannelMode(QProcess::MergedChannels);
+	connect(&myProcess, &QProcess::errorOccurred, this, &iACommandRunner::errorOccured);
+	myProcess.start();
+	myProcess.waitForFinished(-1);
+	if (myProcess.exitStatus() != QProcess::NormalExit)
 	{
-		QString line = in.readLine();
-		QSharedPointer<iAAttributeDescriptor> descriptor =
-			iAAttributeDescriptor::create(line);
-		if (descriptor)
-		{
-			result->m_attributes.push_back(descriptor);
-		}
-		else
-		{
-			return QSharedPointer<iAAttributes>(new iAAttributes);
-		}
+		DEBUG_LOG("Program crashed!");
 	}
-	return result;
-}
-
-int iAAttributes::size() const
-{
-	return m_attributes.size();
-}
-
-
-QSharedPointer<iAAttributeDescriptor> iAAttributes::at(int idx)
-{
-	return m_attributes[idx];
-}
-
-QSharedPointer<iAAttributeDescriptor const> iAAttributes::at(int idx) const
-{
-	return m_attributes[idx];
-}
-
-
-void iAAttributes::add(QSharedPointer<iAAttributeDescriptor> range)
-{
-	m_attributes.push_back(range);
-}
-
-void iAAttributes::store(QTextStream & out)
-{
-	for (int i = 0; i < m_attributes.size(); ++i)
+	else
 	{
-		out << m_attributes[i]->toString();
-	}
-}
-
-int iAAttributes::find(QString const & name)
-{
-	for (int i = 0; i < m_attributes.size(); ++i)
-	{
-		if (m_attributes[i]->name() == name)
+		int statusCode = myProcess.exitCode();
+		setSuccess(statusCode == 0);
+		if (!success())
 		{
-			return i;
+			DEBUG_LOG(QString("Program exited with status code %1").arg(myProcess.exitCode()));
 		}
 	}
-	return -1;
+	m_output = myProcess.readAllStandardOutput();
+	m_output.replace("\r", "");
 }
 
-
-int iAAttributes::count(iAAttributeDescriptor::iAAttributeType type) const
+void iACommandRunner::errorOccured(QProcess::ProcessError p)
 {
-	int count = 0;
-	for (int i = 0; i < m_attributes.size(); ++i)
-	{
-		if (type == iAAttributeDescriptor::None	|| m_attributes[i]->attribType() == type)
-		{
-			count++;
-		}
-	}
-	return count;
+	DEBUG_LOG(QString("CommandRunner: An error has occured %1").arg
+	(p == QProcess::FailedToStart ? "failed to start" :
+		p == QProcess::Crashed ? "Crashed" :
+		p == QProcess::Timedout ? "Timedout" :
+		p == QProcess::ReadError ? "Read Error" :
+		p == QProcess::WriteError ? "Write Error" :
+		"Unknown Error"));
+}
+
+QString iACommandRunner::output() const
+{
+	return m_output;
 }

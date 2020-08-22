@@ -20,10 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAbortListener.h"
-#include "iADurationEstimator.h"
-#include "iAParameterGenerator.h"
+#include "MetaFilters_export.h"
 
+#include "iADurationEstimator.h"
+#include "iASamplingMethod.h"
+
+#include <iAAbortListener.h>
+#include <iAAttributes.h>
 #include <iAPerformanceHelper.h>
 
 #include <QMap>
@@ -31,67 +34,52 @@
 #include <QSharedPointer>
 #include <QThread>
 
-class iAAttributes;
-class iAModalityList;
+class iADerivedOutputCalculator;
+class iASampleOperation;
 class iASamplingResults;
 class iASingleResult;
-class iADerivedOutputCalculator;
-class iACommandRunner;
 
-class iAImageSampler: public QThread, public iADurationEstimator, public iAAbortListener
+class iALogger;
+class iAModalityList;
+
+class MetaFilters_API iAImageSampler: public QObject, public iADurationEstimator, public iAAbortListener
 {
 	Q_OBJECT
 public:
 	iAImageSampler(
-		QSharedPointer<iAModalityList const> modalities,
-		QSharedPointer<iAAttributes> range,
-		QSharedPointer<iAParameterGenerator> sampleGenerator,
-		int sampleCount,
-		int labelCount,
-		QString const & outputBaseDir,
+		QSharedPointer<iAModalityList> datasets,
+		QMap<QString, QVariant> const & parameters,
+		QSharedPointer<iAAttributes> parameterRanges,
+		QSharedPointer<iASamplingMethod> samplingMethod,
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
 		QString const & derivedOutputFile,
-		QString const & computationExecutable,
-		QString const & additionalArguments,
-		QString const & pipelineName,
-		QString const & imageBaseName,
-		bool separateOutputDir,
-		bool calculateChar,
-		int samplingID);
-	QSharedPointer<iASamplingResults> GetResults();
-	void run() override;
+		int samplingID,
+		iALogger * logger);
+	QSharedPointer<iASamplingResults> results();
+	void start();
 	double elapsed() const override;
 	double estimatedTimeRemaining() const override;
 	void abort() override;
-	bool IsAborted();
+	bool isAborted();
 signals:
-	void Progress(int);
-	void Status(QString const &);
+	void progress(int);
+	void status(QString const &);
+	void finished();
 private:
 	//! @{
 	//! input
-	QSharedPointer<iAModalityList const> m_modalities;
-	QSharedPointer<iAAttributes> m_parameters;
-	QSharedPointer<iAParameterGenerator> m_sampleGenerator;
-	int m_sampleCount;
-	int m_labelCount;
-	ParameterSetsPointer m_parameterSets;
-	QString m_executable;
-	QString m_additionalArguments;
-	QString m_outputBaseDir;
-	QString m_pipelineName;
-
+	QSharedPointer<iAModalityList> m_datasets;
+	QMap<QString, QVariant> const& m_parameters;
+	QSharedPointer<iAAttributes> m_parameterRanges;
+	QSharedPointer<iASamplingMethod> m_samplingMethod;
 	QString m_parameterRangeFile;
 	QString m_parameterSetFile;
 	QString m_derivedOutputFile;
-
-	QString m_imageBaseName;
-	bool m_separateOutputDir;
-	bool m_calculateCharacteristics;
 	//! @}
 
-	int m_curLoop;
+	iAParameterSetsPointer m_parameterSets;
+	int m_curSample;
 	bool m_aborted;
 
 	//! @{
@@ -103,16 +91,19 @@ private:
 
 	// intention: running several sampled algorithms in parallel
 	// downside: seems to slow down rather than speed up overall process
-	QMap<iACommandRunner*, int > m_runningComputation;
+	QMap<iASampleOperation*, int > m_runningComputation;
 	QMap<iADerivedOutputCalculator*, QSharedPointer<iASingleResult> > m_runningDerivedOutput;
 
 	QSharedPointer<iASamplingResults> m_results;
-	QMutex m_mutex;
-	int m_runningOperations;
 	int m_parameterCount;
 	int m_samplingID;
+	
+	QStringList m_additionalArgumentList;
+	int m_numDigits;
+	iALogger * m_logger;
 
-	void StatusMsg(QString const & msg);
+	void newSamplingRun();
+	void statusMsg(QString const & msg);
 private slots:
 	void computationFinished();
 	void derivedOutputFinished();

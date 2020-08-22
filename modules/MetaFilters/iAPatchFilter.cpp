@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAPatchFilter.h"
 
+#include "iAParameterNames.h"
+
 #include <defines.h>    // for DIM
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
@@ -66,10 +68,10 @@ namespace
 	template <typename T>
 	void patch(iAFilter* patchFilter, QMap<QString, QVariant> const & parameters)
 	{
-		auto filter = iAFilterRegistry::filter(parameters["Filter"].toString());
+		auto filter = iAFilterRegistry::filter(parameters[spnFilter].toString());
 		if (!filter)
 		{
-			patchFilter->addMsg(QString("Patch: Cannot run filter '%1', it does not exist!").arg(parameters["Filter"].toString()));
+			patchFilter->addMsg(QString("Patch: Cannot run filter '%1', it does not exist!").arg(parameters[spnFilter].toString()));
 			return;
 		}
 		typedef itk::Image<T, DIM> InputImageType;
@@ -87,8 +89,10 @@ namespace
 			return;
 		}
 		QMap<QString, QVariant> filterParams;
-		for (int i = 0; i<filterParamStrs.size(); ++i)
+		for (int i = 0; i < filterParamStrs.size(); ++i)
+		{
 			filterParams.insert(filter->parameters()[i]->name(), filterParamStrs[i]);
+		}
 
 		QVector<iAConnector*> inputImages;
 		inputImages.push_back(new iAConnector);
@@ -138,11 +142,13 @@ namespace
 		QVector<iAITKIO::ImagePointer> outputImages;
 		QStringList outputNames;
 		if (doImage)
+		{
 			while (outputImages.size() < filter->outputValueNames().size())
 			{
 				outputImages.push_back(allocateImage(blockCount, outputSpacing, itk::ImageIOBase::DOUBLE));
 				outputNames << filter->outputValueNames()[outputImages.size() - 1];
 			}
+		}
 		filter->setLogger(patchFilter->logger());
 		filter->setProgress(&dummyProgress);
 		// iterate over all patches:
@@ -190,13 +196,17 @@ namespace
 
 						// run filter on inputs:
 						filter->clearInput();
-						for (int i=0; i<smallImageInput.size(); ++i)
-							filter->addInput(smallImageInput[i]);
+						for (int i = 0; i < smallImageInput.size(); ++i)
+						{  // maybe modify original filename to reflect that only a patch of it is passed on?
+							filter->addInput(smallImageInput[i], patchFilter->fileNames()[i]);
+						}
 						filter->run(filterParams);
 
 						// get output images and values from filter:
 						if (filter->outputCount() > 0 || filter->output().size() > 0)
+						{
 							warnOutputNotSupported = true;
+						}
 
 						if (filter->outputValues().size() > 0)
 						{
@@ -213,11 +223,17 @@ namespace
 							QStringList values;
 							values << QString::number(x) << QString::number(y) << QString::number(z);
 							for (auto outValue : filter->outputValues())
+							{
 								values.append(outValue.second.toString());
+							}
 							outputBuffer.append(values.join(","));
 							if (doImage)
+							{
 								for (int i = 0; i < filter->outputValues().size(); ++i)
+								{
 									(dynamic_cast<OutputImageType*>(outputImages[i].GetPointer()))->SetPixel(outIdx, filter->outputValues()[i].second.toDouble());
+								}
+							}
 						}
 					}
 					catch (std::exception& e)
@@ -227,7 +243,9 @@ namespace
 							DEBUG_LOG(QString("Patch filter: An error has occurred: %1, continueing anyway.").arg(e.what()));
 						}
 						else
+						{
 							throw e;
+						}
 					}
 
 					patchFilter->progress()->emitProgress(static_cast<int>(100.0 * curOp / totalOps));
@@ -239,7 +257,9 @@ namespace
 			++outIdx[0];
 		}
 		if (warnOutputNotSupported)
-			DEBUG_LOG("Creating output images from each patch not yet supported!");
+		{
+			DEBUG_LOG("Creating output images from each patch not (yet) supported!");
+		}
 
 		QString outputFile = parameters["Output csv file"].toString();
 		QFile file(outputFile);
@@ -257,7 +277,9 @@ namespace
 			file.close();
 		}
 		else
+		{
 			DEBUG_LOG(QString("Output file not specified, or could not be opened (%1)").arg(outputFile));
+		}
 		for (int i = 0; i < outputImages.size(); ++i)
 		{
 			QFileInfo fi(parameters["Output image base name"].toString());
@@ -283,14 +305,14 @@ iAPatchFilter::iAPatchFilter():
 	addParameter("Step size Y", Discrete, 1, 1);
 	addParameter("Step size Z", Discrete, 1, 1);
 	addParameter("Center patch", Boolean, true);
-	addParameter("Filter", FilterName, "Image Quality");
+	addParameter(spnFilter, FilterName, "Image Quality");
 	addParameter("Parameters", FilterParameters, "");
 	addParameter("Additional input", FileNamesOpen, "");
-	addParameter("Output csv file", FileNameSave, "");
+	addParameter("Output csv file", FileNameSave, ".csv");
 	addParameter("Write output value image", Boolean, true);
 	addParameter("Output image base name", String, "output.mhd");
 	addParameter("Compress image", Boolean, true);
-	addParameter("Continue on error", Boolean, true);
+	addParameter(spnContinueOnError, Boolean, false);
 }
 
 void iAPatchFilter::performWork(QMap<QString, QVariant> const & parameters)

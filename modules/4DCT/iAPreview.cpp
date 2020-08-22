@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAPreview.h"
 
-#include "iAConsole.h"
+#include <iAConsole.h>
 
 #include <QMouseEvent>
 #include <QToolTip>

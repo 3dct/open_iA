@@ -22,12 +22,14 @@
 
 #include "iAUncertaintyImages.h"
 
+#include <iAITKImageTypes.h>
+
 #include <QSharedPointer>
 #include <QString>
 #include <QVector>
 
 class iAEnsembleDescriptorFile;
-class iAMember;
+class iASingleResult;
 class iAModalityList;
 class iASamplingResults;
 
@@ -44,7 +46,7 @@ public:
 	static QSharedPointer<iAEnsemble> Create(int entropyBinCount,
 		QSharedPointer<iAEnsembleDescriptorFile> ensembleFile);
 	static QSharedPointer<iAEnsemble> Create(int entropyBinCount,
-		QVector<QSharedPointer<iAMember> > members,
+		QVector<QSharedPointer<iASingleResult> > members,
 		QSharedPointer<iASamplingResults> superSet, int labelCount, QString const & cachePath, int id,
 		IntImage::Pointer referenceImage);
 	vtkImagePointer GetEntropy(int source) const override;
@@ -55,7 +57,7 @@ public:
 	int LabelCount() const;
 	double * EntropyHistogram() const;
 	int EntropyBinCount() const;
-	QSharedPointer<iAMember> const Member(size_t memberIdx) const;
+	QSharedPointer<iASingleResult> const Member(size_t memberIdx) const;
 	size_t MemberCount() const;
 	std::vector<double> const & MemberAttribute(size_t idx) const;
 	QSharedPointer<iASamplingResults> Sampling(size_t idx) const;

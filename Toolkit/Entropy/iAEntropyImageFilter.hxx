@@ -26,7 +26,7 @@
 #include <itkMath.h>
 #include <itkProgressReporter.h>
 
-#include "iAMathUtility.h"
+#include <iAMathUtility.h>
 
 
 template< typename TInputImage, typename TOutputImage >

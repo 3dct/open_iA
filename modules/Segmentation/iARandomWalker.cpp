@@ -22,15 +22,15 @@
 
 #include "iAGraphWeights.h"
 #include "iAImageGraph.h"
-#ifndef NDEBUG
-#include "iAMathUtility.h"    // for dblApproxEqual used in assert
-#endif
 #include "iANormalizerImpl.h"
 #include "iAVectorArrayImpl.h"
 #include "iAVectorDistanceImpl.h"
 
 #include <defines.h>     // for DIM
 #include <iAConnector.h>
+#ifndef NDEBUG
+#include <iAMathUtility.h>    // for dblApproxEqual used in assert
+#endif
 #include <iASeedType.h>
 #include <iATypedCallHelper.h>
 #include <iAToolsITK.h>
@@ -661,7 +661,7 @@ iALabelImageToSeeds::iALabelImageToSeeds() :
 		"This text file can be used as input for segmentation algorithms such as"
 		"Random Walker or (Probabilistic) Support Vector Machines.", 1, 0)
 {
-	addParameter("File name", FileNameSave, "");
+	addParameter("File name", FileNameSave, ".txt");
 }
 
 IAFILTER_CREATE(iALabelImageToSeeds)

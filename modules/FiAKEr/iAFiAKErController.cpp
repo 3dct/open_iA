@@ -57,7 +57,6 @@
 #include <iAToolsVTK.h>    // for setCamPos
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
-#include <io/iAFileChooserWidget.h>
 #include <iAVtkVersion.h>
 #include <io/iAIOProvider.h>
 #include <io/iAITKIO.h>
@@ -201,6 +200,13 @@ namespace
 	// }
 }
 
+
+iAResultPairInfo::iAResultPairInfo()
+{}
+iAResultPairInfo::iAResultPairInfo(int measureCount) :
+	avgDissim(measureCount)
+{}
+
 const QString iAFiAKErController::FIAKERProjectID("FIAKER");
 
 iAFiAKErController::iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild) :
@@ -252,19 +258,14 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 	m_config.addClassID = false;
 	m_useStepData = useStepData;
 	m_showPreviews = showPreviews;
-	m_jobs = new iAJobListView();
-	m_jobs->layout()->setContentsMargins(1, 0, 0, 0);
-	m_jobs->layout()->setSpacing(ControlSpacing);
 	m_views.resize(DockWidgetCount);
-	m_views[JobView] = new iADockWidgetWrapper(m_jobs, "Jobs", "foeJobs");
-	m_mdiChild->addDockWidget(Qt::BottomDockWidgetArea, m_views[JobView]);
 	connect(m_mdiChild, &MdiChild::renderSettingsChanged, this, &iAFiAKErController::applyRenderSettings);
 
 	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, m_config, stepShift);
 	connect(resultsLoader, &iAFiberResultsLoader::success, this, &iAFiAKErController::resultsLoaded);
 	connect(resultsLoader, &iAFiberResultsLoader::failed,  this, &iAFiAKErController::resultsLoadFailed);
-	m_jobs->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
+	m_mdiChild->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
 	resultsLoader->start();
 }
 
@@ -299,8 +300,8 @@ void iAFiAKErController::resultsLoaded()
 	m_views[SelectionView]  = new iADockWidgetWrapper(selectionView, "FIAKER Selections", "foeSelections");
 	m_views[SettingsView]   = new iADockWidgetWrapper(m_settingsView, "FIAKER Settings", "foeSettings");
 
-	m_mdiChild->splitDockWidget(m_views[JobView], m_views[ResultListView], Qt::Vertical);
-	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[OptimStepChart], Qt::Vertical);
+	m_mdiChild->splitDockWidget(m_mdiChild->renderDockWidget(), m_views[ResultListView], Qt::Horizontal);
+	m_mdiChild->splitDockWidget(m_mdiChild->renderDockWidget(), m_views[OptimStepChart], Qt::Vertical);
 	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[SPMView], Qt::Horizontal);
 	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[ProtocolView], Qt::Vertical);
 	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[SelectionView], Qt::Vertical);
@@ -547,6 +548,13 @@ namespace
 		case iACsvConfig::Cylinders: return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DCylinderObjectVis(renderer, table, mapping, color, curvedFiberData));
 		}
 	}
+
+	void addHeaderLabel(QGridLayout* layout, int column, QString const& text)
+	{
+		auto headerLabel = new QLabel(text);
+		headerLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		layout->addWidget(headerLabel, 0, column);
+	}
 }
 
 QWidget* iAFiAKErController::setupResultListView()
@@ -605,8 +613,6 @@ QWidget* iAFiAKErController::setupResultListView()
 	connect(m_stackedBarsHeaders, &iAStackedBarChart::doubleClicked, this, &iAFiAKErController::sortByCurrentWeighting);
 	m_stackedBarsHeaders->contextMenu()->addSeparator();
 
-	auto nameActionsLabel = new QLabel("Name/Actions");
-	nameActionsLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	m_distributionChoice = new QComboBox();
 	QStringList paramNames;
 	for (size_t curIdx = 0; curIdx < m_data->m_resultIDColumn; ++curIdx)
@@ -627,13 +633,11 @@ QWidget* iAFiAKErController::setupResultListView()
 	histHeader->layout()->addWidget(m_colorByDistribution);
 	histHeader->layout()->addWidget(m_distributionChoice);
 
-	m_resultsListLayout->addWidget(nameActionsLabel, 0, NameActionColumn);
+	addHeaderLabel(m_resultsListLayout, NameActionColumn, "Name/Actions");
 	if (m_showPreviews)
 	{
 		m_resultsListLayout->setColumnStretch(PreviewColumn, 1);
-		auto previewLabel = new QLabel("Preview");
-		previewLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		m_resultsListLayout->addWidget(previewLabel, 0, PreviewColumn);
+		addHeaderLabel(m_resultsListLayout, PreviewColumn, "Preview");
 	}
 	m_resultsListLayout->addWidget(m_stackedBarsHeaders, 0, StackedBarColumn);
 	m_resultsListLayout->addWidget(histHeader, 0, HistogramColumn);
@@ -854,7 +858,6 @@ void iAFiAKErController::loadStateAndShow()
 	m_views[SettingsView]->hide();
 	m_views[ProtocolView]->hide();
 	m_views[SelectionView]->hide();
-	m_views[JobView]->hide();
 	m_showReferenceWidget->hide();
 
 	emit setupFinished();
@@ -1069,10 +1072,16 @@ bool readParameterCSV(QString const& fileName, QString const & encoding, QString
 class iAMatrixWidget: public QWidget
 {
 public:
-	iAMatrixWidget(std::vector<std::vector<iAResultPairInfo>>& data) :
+	iAMatrixWidget(iADissimilarityMatrixType const & data,
+		std::vector<std::vector<double>> const& paramValues, bool showScalarBar, bool showAxes) :
 		m_data(data),
+		m_paramValues(paramValues),
 		m_sortParam(0),
-		m_dataIdx(0)
+		m_dataIdx(0),
+		m_showScalarBar(showScalarBar),
+		m_showAxes(showAxes)
+		//m_paramName(paramName)
+		//m_quadraticAspectRatio(true)
 	{
 		m_range[0] = m_range[1] = 0;
 	}
@@ -1105,10 +1114,6 @@ public:
 	{
 		m_lut = lut;
 	}
-	void setParameterValues(std::vector<std::vector<double>> paramValues)
-	{
-		m_paramValues = paramValues;
-	}
 	void setSortParameter(int paramIdx)
 	{
 		m_sortParam = paramIdx;
@@ -1119,6 +1124,22 @@ public:
 		return m_range;
 	}
 private:
+	void drawAxisText(QPainter& p, int textStartX, int textBoxWidth, int textHeight, int outerAxisPadding, double value)
+	{
+		// x label:
+		p.drawText(textStartX, outerAxisPadding, textBoxWidth, textHeight, Qt::AlignCenter, QString::number(value));
+		// y label:
+		p.save();
+		p.translate(outerAxisPadding, textStartX + textBoxWidth);
+		p.rotate(-90);
+		p.drawText(0, 0, textBoxWidth, textHeight, Qt::AlignCenter, QString::number(value));
+		p.restore();
+	}
+	void drawAxisTick(QPainter& p, int axisPos, int outTickDist, int tickPos)
+	{
+		p.drawLine(tickPos, outTickDist, tickPos, axisPos);    // x tick
+		p.drawLine(outTickDist, tickPos, axisPos, tickPos);    // y tick
+	}
 	void paintEvent(QPaintEvent* /*event*/) override
 	{
 		if (!m_lut.initialized())
@@ -1131,6 +1152,9 @@ private:
 
 		int scalarBarWidth = 20;
 		int scalarBarPadding = 4;
+		int outerAxisPadding = 0;
+		int innerAxisPadding = 4;
+		int axisTickHeight = 5;
 
 		QString minStr = dblToStringWithUnits(m_range[0]);
 		QString maxStr = dblToStringWithUnits(m_range[1]);
@@ -1139,54 +1163,276 @@ private:
 #else
 		int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
 #endif
-
-
+		int textHeight = fm.height();
+		int fullScalarBarWidth = m_showScalarBar ? (3 * scalarBarPadding + scalarBarWidth + textWidth) : 0;
+		int axisSize = m_showAxes ? (textHeight + innerAxisPadding + outerAxisPadding + axisTickHeight) : 0;
 		int cellPixel = std::max(1,
-			std::min(geometry().height() / static_cast<int>(m_data.size()),
-				(geometry().width() - (3 * scalarBarPadding + scalarBarWidth + textWidth)) / static_cast<int>(m_data.size())));
+			std::min((geometry().height() - axisSize) / static_cast<int>(m_data.size()),
+				(geometry().width() - fullScalarBarWidth - axisSize) / static_cast<int>(m_data.size())));
+		QRect matrixRect(axisSize, axisSize, m_data.size() * cellPixel, m_data.size() * cellPixel);
 		for (size_t x = 0; x < m_data.size(); ++x)
 		{
 			for (size_t y = 0; y < m_data[x].size(); ++y)
 			{
-				QRect rect(static_cast<int>(x * cellPixel), static_cast<int>(y * cellPixel), cellPixel, cellPixel);
+				QRect cellRect(matrixRect.left() + static_cast<int>(x * cellPixel),
+					matrixRect.top() + static_cast<int>(y * cellPixel),
+					cellPixel, cellPixel);
 				double value = m_data[m_sortOrder[x]][m_sortOrder[y]].avgDissim[m_dataIdx];
 				QColor color = m_lut.getQColor(value);
-				p.fillRect(rect, color);
+				p.fillRect(cellRect, color);
 			}
 		}
 
-		// Draw scalar bar (duplicated from iAQSplom!)
-		QPoint topLeft(geometry().width() - (scalarBarPadding + scalarBarWidth), scalarBarPadding);
-
-		QRect colorBarRect(topLeft.x(), topLeft.y(),
-			scalarBarWidth, height() - 2*scalarBarPadding);
-		QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y() + colorBarRect.height());
-		QMap<double, QColor>::iterator it;
-		for (size_t i = 0; i < m_lut.numberOfValues(); ++i)
+		if (m_showAxes)
 		{
-			double rgba[4];
-			m_lut.getTableValue(i, rgba);
-			QColor color(rgba[0] * 255, rgba[1] * 255, rgba[2] * 255, rgba[3] * 255);
-			double key = 1 - (static_cast<double>(i) / (m_lut.numberOfValues() - 1));
-			grad.setColorAt(key, color);
+			//p.drawText(axisSize, axisPadding, matrixRect.width(), textHeight, m_paramName);
+			// draw x axis line:
+			int outTickDist = outerAxisPadding + textHeight;
+			int axisPos = outTickDist + axisTickHeight;
+			p.drawLine(axisSize, axisPos, axisSize + matrixRect.width(), axisPos);
+			// draw y axis line:
+			p.drawLine(axisPos, axisSize, axisPos, axisSize + matrixRect.height());
+			
+			const size_t NoRangeStart = std::numeric_limits<size_t>::max();
+			const double NoValue = std::numeric_limits<double>::infinity();
+			double prevValue = NoValue;
+			size_t rangeStart = NoRangeStart;
+			auto const& pv = m_paramValues[m_sortParam];
+			for (size_t i = 0; i <= m_sortOrder.size(); ++i)
+			{
+				double curValue = i < m_sortOrder.size() ? pv[m_sortOrder[i]] : NoValue;
+				if (curValue != prevValue)
+				{
+					bool rangeStarts = (i < m_sortOrder.size()-1) && pv[m_sortOrder[i]] == pv[m_sortOrder[i + 1]];
+					bool rangeEnds = rangeStart != NoRangeStart;
+					if (rangeEnds)
+					{    // does a previously started range end here? if yes, draw label and end tick
+						drawAxisText(p, axisSize + rangeStart * cellPixel, (i - rangeStart) * cellPixel, textHeight, outerAxisPadding, prevValue);
+						drawAxisTick(p, axisPos, outTickDist, axisSize + (i * cellPixel));
+					}
+					if (!rangeStarts && i < m_sortOrder.size())
+					{   // draw tick and label for single cell not belonging to range
+						drawAxisText(p, axisSize + (i * cellPixel), cellPixel, textHeight, outerAxisPadding, curValue);
+						drawAxisTick(p, axisPos, outTickDist, axisSize + static_cast<int>((i + 0.5) * cellPixel));
+						rangeStart = NoRangeStart;
+					}
+					if (rangeStarts)
+					{
+						rangeStart = i;
+						if (!rangeEnds)
+						{
+							drawAxisTick(p, axisPos, outTickDist, axisSize + (rangeStart * cellPixel));
+						}
+					}
+					prevValue = m_paramValues[m_sortParam][m_sortOrder[i]];
+				}
+			}
 		}
-		p.fillRect(colorBarRect, grad);
-		p.drawRect(colorBarRect);
-		// Draw color bar / name of parameter used for coloring
-		int colorBarTextX = topLeft.x() - (textWidth + scalarBarPadding);
-		p.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
-		p.drawText(colorBarTextX, height() - (fm.height() + scalarBarPadding), minStr);
+
+		if (m_showScalarBar)
+		{
+			// Draw scalar bar (duplicated from iAQSplom!)
+			QPoint topLeft(geometry().width() - (scalarBarPadding + scalarBarWidth), scalarBarPadding);
+
+			QRect colorBarRect(topLeft.x(), topLeft.y(),
+				scalarBarWidth, height() - 2 * scalarBarPadding);
+			QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y() + colorBarRect.height());
+			QMap<double, QColor>::iterator it;
+			for (size_t i = 0; i < m_lut.numberOfValues(); ++i)
+			{
+				double rgba[4];
+				m_lut.getTableValue(i, rgba);
+				QColor color(rgba[0] * 255, rgba[1] * 255, rgba[2] * 255, rgba[3] * 255);
+				double key = 1 - (static_cast<double>(i) / (m_lut.numberOfValues() - 1));
+				grad.setColorAt(key, color);
+			}
+			p.fillRect(colorBarRect, grad);
+			p.drawRect(colorBarRect);
+			// Draw color bar / name of parameter used for coloring
+			int colorBarTextX = topLeft.x() - (textWidth + scalarBarPadding);
+			p.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
+			p.drawText(colorBarTextX, height() - (fm.height() + scalarBarPadding), minStr);
+		}
 	}
-	std::vector<std::vector<iAResultPairInfo>> m_data;
-	std::vector<std::vector<double>> m_paramValues;
+	iADissimilarityMatrixType const & m_data;
+	std::vector<std::vector<double>> const & m_paramValues;
 	int m_sortParam;
 	int m_dataIdx;
 	iALookupTable m_lut;
 	double m_range[2];
 	std::vector<size_t> m_sortOrder;
+	bool m_showScalarBar, m_showAxes;
 };
 
 using iADissimilarityMatrixDockContent = iAQTtoUIConnector<QWidget, Ui_DissimilarityMatrix>;
+
+QWidget* iAFiAKErController::setupMatrixView(QStringList paramNames, std::vector<std::vector<double>> const& paramValues, QVector<int> const & measures)
+{
+	iADissimilarityMatrixDockContent* dissimDockContent = new iADissimilarityMatrixDockContent();
+	auto measureNames = getAvailableDissimilarityMeasureNames();
+	QStringList computedMeasureNames;
+	for (size_t m = 0; m < measures.size(); ++m)
+	{
+		computedMeasureNames << measureNames[measures[m]];
+	}
+	dissimDockContent->cbMeasure->addItems(computedMeasureNames);
+	dissimDockContent->cbParameter->addItems(paramNames);
+	dissimDockContent->cbColorMap->addItems(iALUT::GetColorMapNames());
+	connect(dissimDockContent->cbMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixMeasureChanged);
+	connect(dissimDockContent->cbParameter, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixParameterChanged);
+	connect(dissimDockContent->cbColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixColorMapChanged);
+	m_matrixWidget = new iAMatrixWidget(m_dissimilarityMatrix, paramValues, true, true);
+	m_matrixWidget->setSortParameter(0);
+	m_matrixWidget->setData(0);
+	m_matrixWidget->setLookupTable(iALUT::Build(m_matrixWidget->range(), iALUT::GetColorMapNames()[0], 255, 255));
+	dissimDockContent->matrix->layout()->addWidget(m_matrixWidget);
+	return dissimDockContent;
+}
+
+class iAParameterListView : public QWidget
+{
+public:
+	iAParameterListView(QStringList const& paramNames,
+		std::vector<std::vector<double>> const& paramValues,
+		iADissimilarityMatrixType const& dissimMatrix)
+	{
+		auto paramScrollArea = new QScrollArea();
+		paramScrollArea->setWidgetResizable(true);
+		auto paramList = new QWidget();
+		paramScrollArea->setWidget(paramList);
+		paramScrollArea->setContentsMargins(0, 0, 0, 0);
+		auto paramListLayout = new QGridLayout();
+		paramListLayout->setSpacing(ControlSpacing);
+		paramListLayout->setContentsMargins(ResultListMargin, ResultListMargin, ResultListMargin, ResultListMargin);
+		paramListLayout->setColumnStretch(0, 1);
+		paramListLayout->setColumnStretch(1, 2);
+
+		enum ParamColumns
+		{
+			NameCol = 0,
+			MatrixCol
+		};
+		addHeaderLabel(paramListLayout, NameCol, "Parameter");
+		addHeaderLabel(paramListLayout, MatrixCol, "Sensitivity Matrix");
+		for (int p = 0; p < paramNames.size(); ++p)
+		{
+			auto paramNameLabel = new QLabel(paramNames[p]);
+			paramNameLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+			paramListLayout->addWidget(paramNameLabel, p + 1, NameCol);
+
+			auto paramMatrix = new iAMatrixWidget(dissimMatrix, paramValues, false, false);
+			paramMatrix->setSortParameter(p);
+			paramMatrix->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+			paramMatrix->setData(0);
+			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::GetColorMapNames()[0], 255, 255));
+			m_matrixPerParam.push_back(paramMatrix);
+			paramListLayout->addWidget(paramMatrix, p + 1, MatrixCol);
+		}
+		setLayout(paramListLayout);
+	}
+
+	void dissimMatrixMeasureChanged(int idx)
+	{
+		for (auto paramMatrix : m_matrixPerParam)
+		{
+			paramMatrix->setData(idx);
+			paramMatrix->update();
+		}
+	}
+
+	void dissimMatrixColorMapChanged(int idx)
+	{
+		for (auto paramMatrix : m_matrixPerParam)
+		{
+			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::GetColorMapNames()[idx], 255, 255));
+			paramMatrix->update();
+		}
+	}
+private:
+	std::vector<iAMatrixWidget*> m_matrixPerParam;
+};
+
+QDataStream& operator<<(QDataStream& out, const iAResultPairInfo& pairInfo)
+{
+	out << pairInfo.avgDissim;
+	out << pairInfo.fiberDissim;
+	return out;
+}
+
+QDataStream& operator>>(QDataStream& in, iAResultPairInfo& pairInfo)
+{
+	in >> pairInfo.avgDissim;
+	in >> pairInfo.fiberDissim;
+	return in;
+}
+
+QString iAFiAKErController::dissimilarityMatrixCacheFileName()
+{
+	return m_data->folder + "/cache/dissimilarityMatrix.cache";
+}
+
+namespace
+{
+	const QString DissimilarityMatrixCacheFileIdentifier("DissimilarityMatrixCache");
+	const quint32 DissimilarityMatrixCacheFileVersion(1);
+}
+
+bool iAFiAKErController::readDissimilarityMatrixCache(QVector<int>& measures)
+{
+	QFile cacheFile(dissimilarityMatrixCacheFileName());
+	// unify with verifyOpenCacheFile?
+	if (!cacheFile.exists())
+	{
+		return false;
+	}
+	if (!cacheFile.open(QFile::ReadOnly))
+	{
+		DEBUG_LOG(QString("Couldn't open file %1 for reading!").arg(cacheFile.fileName()));
+		return false;
+	}
+	// unify with readResultRefComparison / common cache file version/identifier pattern?
+	QDataStream in(&cacheFile);
+	in.setVersion(CacheFileQtDataStreamVersion);
+	QString identifier;
+	in >> identifier;
+	if (identifier != DissimilarityMatrixCacheFileIdentifier)
+	{
+		DEBUG_LOG(QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
+			.arg(cacheFile.fileName())
+			.arg(identifier).arg(DissimilarityMatrixCacheFileIdentifier));
+		return false;
+	}
+	quint32 version;
+	in >> version;
+	if (version > DissimilarityMatrixCacheFileVersion)
+	{
+		DEBUG_LOG(QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
+			.arg(cacheFile.fileName())
+			.arg(version).arg(DissimilarityMatrixCacheFileVersion));
+		return false;
+	}
+	in >> measures;
+	in >> m_dissimilarityMatrix;
+	return true;
+}
+
+void iAFiAKErController::writeDissimilarityMatrixCache(QVector<int> const& measures)
+{
+	QFile cacheFile(dissimilarityMatrixCacheFileName());
+	if (!cacheFile.open(QFile::WriteOnly))
+	{
+		DEBUG_LOG(QString("Couldn't open file %1 for writing!").arg(cacheFile.fileName()));
+		return;
+	}
+	QDataStream out(&cacheFile);
+	out.setVersion(CacheFileQtDataStreamVersion);
+	// write header:
+	out << DissimilarityMatrixCacheFileIdentifier;
+	out << DissimilarityMatrixCacheFileVersion;
+
+	out << measures;
+	out << m_dissimilarityMatrix;
+}
 
 void iAFiAKErController::sensitivitySlot()
 {
@@ -1201,90 +1447,83 @@ void iAFiAKErController::sensitivitySlot()
 		return;
 	}
 	assert(tblCreator.table().size() > 0 && tblCreator.table()[0].size() == m_data->result.size());
+	m_paramValues = tblCreator.table();
 	m_parameterFile = fileName;
 	// compute pairwise dissimilarities between results:
+	QVector<int> measures;
 
-	iAMeasureSelectionDlg selectMeasure;
-	if (selectMeasure.exec() != QDialog::Accepted)
+	if (!readDissimilarityMatrixCache(measures))
 	{
-		return;
-	}
-	auto measures = selectMeasure.measures();
-	auto optimizationMeasureIdx = selectMeasure.optimizeMeasureIdx();
-
-	m_dissimilarityMatrix = std::vector<std::vector<iAResultPairInfo>>(m_data->result.size(),
-		std::vector<iAResultPairInfo>(m_data->result.size(),
-			iAResultPairInfo(measures.size())));
-	
-	for (size_t resultID1 = 0; resultID1 < m_data->result.size(); ++resultID1)
-	{
-		auto& res1 = m_data->result[resultID1];
-		auto const& mapping = *res1.mapping.data();
-		double const* cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
-			* cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
-			* czr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterZ]);
-		double a = cxr[1] - cxr[0], b = cyr[1] - cyr[0], c = czr[1] - czr[0];
-		double diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
-		double const* lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
-		double maxLength = lengthRange[1] - lengthRange[0];
-		for (size_t resultID2 = 0; resultID2 < m_data->result.size(); ++resultID2)
+		iAMeasureSelectionDlg selectMeasure;
+		if (selectMeasure.exec() != QDialog::Accepted)
 		{
-			for (size_t m = 0; m < measures.size(); ++m)
+			return;
+		}
+		auto measuresComputed = selectMeasure.measures();
+		auto optimizationMeasureIdx = selectMeasure.optimizeMeasureIdx();
+
+		m_dissimilarityMatrix = iADissimilarityMatrixType(m_data->result.size(),
+			QVector<iAResultPairInfo>(m_data->result.size(),
+				iAResultPairInfo(measuresComputed.size())));
+		for (size_t m = 0; m < measuresComputed.size(); ++m)
+		{
+			measures.push_back(measuresComputed[m].first);
+		}
+
+		for (size_t resultID1 = 0; resultID1 < m_data->result.size(); ++resultID1)
+		{
+			auto& res1 = m_data->result[resultID1];
+			auto const& mapping = *res1.mapping.data();
+			double const* cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
+				* cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
+				* czr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterZ]);
+			double a = cxr[1] - cxr[0], b = cyr[1] - cyr[0], c = czr[1] - czr[0];
+			double diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
+			double const* lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
+			double maxLength = lengthRange[1] - lengthRange[0];
+			for (size_t resultID2 = 0; resultID2 < m_data->result.size(); ++resultID2)
 			{
-				m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] = 0;
-			}
-			if (resultID1 == resultID2)
-			{
-				continue;
-			}
-			auto& res2 = m_data->result[resultID2];
-			qint64 const fiberCount = res2.table->GetNumberOfRows();
-			auto& dissimilarities = m_dissimilarityMatrix[resultID1][resultID2].fiberDissim;
-			dissimilarities.resize(fiberCount);
-#pragma omp parallel for
-			for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
-			{
-				auto it = res2.curveInfo.find(fiberID);
-				// find the best-matching fibers in reference & compute difference:
-				iAFiberData fiber(res2.table, fiberID, mapping, (it != res2.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
-				getBestMatches(fiber, mapping, res1.table, dissimilarities[fiberID], res1.curveInfo,
-					diagonalLength, maxLength, measures, optimizationMeasureIdx);
-				for (size_t m = 0; m < measures.size(); ++m)
+				for (size_t m = 0; m < measuresComputed.size(); ++m)
 				{
-					m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
+					m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] = 0;
+				}
+				if (resultID1 == resultID2)
+				{
+					continue;
+				}
+				auto& res2 = m_data->result[resultID2];
+				qint64 const fiberCount = res2.table->GetNumberOfRows();
+				auto& dissimilarities = m_dissimilarityMatrix[resultID1][resultID2].fiberDissim;
+				dissimilarities.resize(fiberCount);
+#pragma omp parallel for
+				for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
+				{
+					auto it = res2.curveInfo.find(fiberID);
+					// find the best-matching fibers in reference & compute difference:
+					iAFiberData fiber(res2.table, fiberID, mapping, (it != res2.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
+					getBestMatches(fiber, mapping, res1.table, dissimilarities[fiberID], res1.curveInfo,
+						diagonalLength, maxLength, measuresComputed, optimizationMeasureIdx);
+					for (size_t m = 0; m < measuresComputed.size(); ++m)
+					{
+						m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
+					}
+				}
+				for (size_t m = 0; m < measuresComputed.size(); ++m)
+				{
+					m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] /= res2.fiberCount;
 				}
 			}
-			for (size_t m = 0; m < measures.size(); ++m)
-			{
-				m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] /= res2.fiberCount;
-			}
 		}
+		writeDissimilarityMatrixCache(measures);
 	}
-	iADissimilarityMatrixDockContent* dissimDockContent = new iADissimilarityMatrixDockContent();
-
-	auto measureNames = getAvailableDissimilarityMeasureNames();
-	QStringList computedMeasureNames;
-	for (size_t m = 0; m < measures.size(); ++m)
-	{
-		computedMeasureNames << measureNames[measures[m].first];
-	}
-	dissimDockContent->cbMeasure->addItems(computedMeasureNames);
-
-	dissimDockContent->cbParameter->addItems(tblCreator.header());
-
-	dissimDockContent->cbColorMap->addItems(iALUT::GetColorMapNames());
-
-	connect(dissimDockContent->cbMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixMeasureChanged);
-	connect(dissimDockContent->cbParameter, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixParameterChanged);
-	connect(dissimDockContent->cbColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixColorMapChanged);
-	m_matrixWidget = new iAMatrixWidget(m_dissimilarityMatrix);
-	m_matrixWidget->setParameterValues(tblCreator.table());
-	m_matrixWidget->setSortParameter(0);
-	m_matrixWidget->setData(0);
-	m_matrixWidget->setLookupTable(iALUT::Build(m_matrixWidget->range(), iALUT::GetColorMapNames()[0], 255, 255));
-	dissimDockContent->matrix->layout()->addWidget(m_matrixWidget);
+	QWidget* dissimDockContent = setupMatrixView(tblCreator.header(), m_paramValues, measures);
 	m_views.push_back(new iADockWidgetWrapper(dissimDockContent, "Dissimilarity Matrix", "foeMatrix"));
 	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[m_views.size()-1], Qt::Vertical);
+
+	m_parameterListView = new iAParameterListView(tblCreator.header(), m_paramValues, m_dissimilarityMatrix);
+	m_views.push_back(new iADockWidgetWrapper(m_parameterListView, "Parameter View", "foeParameters"));
+	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[m_views.size() - 1], Qt::Vertical);
+
 	dissimMatrixMeasureChanged(0);
 }
 
@@ -1292,6 +1531,7 @@ void iAFiAKErController::dissimMatrixMeasureChanged(int idx)
 {
 	m_matrixWidget->setData(idx);
 	m_matrixWidget->update();
+	m_parameterListView->dissimMatrixMeasureChanged(idx);
 }
 
 void iAFiAKErController::dissimMatrixParameterChanged(int idx)
@@ -1304,6 +1544,7 @@ void iAFiAKErController::dissimMatrixColorMapChanged(int idx)
 {
 	m_matrixWidget->setLookupTable(iALUT::Build(m_matrixWidget->range(), iALUT::GetColorMapNames()[idx], 255, 255));
 	m_matrixWidget->update();
+	m_parameterListView->dissimMatrixColorMapChanged(idx);
 }
 
 void iAFiAKErController::stackedBarColorThemeChanged(int index)
@@ -2513,168 +2754,8 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 		m_refDistCompute->setMeasuresToCompute(measures, optimizationMeasure, bestMeasure);
 	}
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiAKErController::refDistAvailable);
-	m_views[JobView]->show();
-	m_jobs->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
+	m_mdiChild->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
 	m_refDistCompute->start();
-}
-
-namespace
-{
-	void loadSettings(iASettings const & settings, QMap<QString, QObject*> const & settingsWidgetMap)
-	{
-		for (QString key : settingsWidgetMap.keys())
-		{
-			if (settings.contains(key))
-			{
-				QObject* w = settingsWidgetMap[key];
-				if (qobject_cast<QComboBox*>(w))
-				{
-					int idx = qobject_cast<QComboBox*>(w)->findText(settings.value(key).toString());
-					if (idx != -1)
-					{
-						qobject_cast<QComboBox*>(w)->setCurrentIndex(idx);
-					}
-				}
-				else if (qobject_cast<QCheckBox*>(w))
-				{
-					qobject_cast<QCheckBox*>(w)->setChecked(settings.value(key).toBool());
-				}
-				else if (qobject_cast<QSlider*>(w))
-				{
-					qobject_cast<QSlider*>(w)->setValue(settings.value(key).toInt());
-				}
-				else if (qobject_cast<QDoubleSpinBox*>(w))
-				{
-					qobject_cast<QDoubleSpinBox*>(w)->setValue(settings.value(key).toDouble());
-				}
-				else if (qobject_cast<QSpinBox*>(w))
-				{
-					qobject_cast<QSpinBox*>(w)->setValue(settings.value(key).toInt());
-				}
-				else if (qobject_cast<QLineEdit*>(w))
-				{
-					qobject_cast<QLineEdit*>(w)->setText(settings[key].toString());
-				}
-				else if (qobject_cast<iAFileChooserWidget*>(w))
-				{
-					qobject_cast<iAFileChooserWidget*>(w)->setText(settings[key].toString());
-				}
-				else if (dynamic_cast<iAQLineEditVector*>(w))
-				{
-					auto & lineEditVector = *dynamic_cast<iAQLineEditVector*>(w);
-					QStringList values = settings.value(key).toString().split(",");
-					if (values.size() != lineEditVector.size())
-					{
-						DEBUG_LOG(QString("Invalid value '%1' for key=%2 - should be able to split that into %3 values, but encountered %4")
-							.arg(settings.value(key).toString())
-							.arg(key)
-							.arg(lineEditVector.size())
-							.arg(values.size()));
-					}
-					for (int i = 0; i < lineEditVector.size() && i < values.size(); ++i)
-						lineEditVector[i]->setText(values[i]);
-				}
-				else if (dynamic_cast<iAQCheckBoxVector*>(w))
-				{
-					auto & checkBoxVector = *dynamic_cast<iAQCheckBoxVector*>(w);
-					QStringList values = settings.value(key).toString().split(",");
-					// first uncheck all entries:
-					for (auto checkbox: checkBoxVector)
-						checkbox->setChecked(false);
-					QString fullStr = settings.value(key).toString();
-					if (fullStr.isEmpty())
-						continue;
-					// then check those mentioned in settings:
-					for (QString v : values)
-					{
-						bool ok;
-						int idx = v.toInt(&ok);
-						if (!ok || idx < 0 || idx > checkBoxVector.size())
-						{
-							DEBUG_LOG(QString("Invalid value '%1' for key=%2; entry %3 is either not convertible to int or outside of valid range 0..%4.")
-								.arg(settings.value(key).toString())
-								.arg(key)
-								.arg(idx)
-								.arg(checkBoxVector.size()));
-						}
-						else
-						{
-							checkBoxVector[idx]->setChecked(true);
-						}
-					}
-				}
-				else
-				{
-					DEBUG_LOG(QString("Widget type for key=%1 unknown!").arg(key));
-				}
-			}
-			else
-			{
-				DEBUG_LOG(QString("No value found for key=%1 in settings.").arg(key));
-			}
-		}
-	}
-
-	void saveSettings(QSettings & settings, QMap<QString, QObject*> const & settingsWidgetMap)
-	{
-		for (QString key : settingsWidgetMap.keys())
-		{
-			QObject* w = settingsWidgetMap[key];
-			if (qobject_cast<QComboBox*>(w))
-			{
-				settings.setValue(key, qobject_cast<QComboBox*>(w)->currentText());
-			}
-			else if (qobject_cast<QCheckBox*>(w))
-			{
-				settings.setValue(key, qobject_cast<QCheckBox*>(w)->isChecked());
-			}
-			else if (qobject_cast<QSlider*>(w))
-			{
-				settings.setValue(key, qobject_cast<QSlider*>(w)->value());
-			}
-			else if (qobject_cast<QDoubleSpinBox*>(w))
-			{
-				settings.setValue(key, qobject_cast<QDoubleSpinBox*>(w)->value());
-			}
-			else if (qobject_cast<QSpinBox*>(w))
-			{
-				settings.setValue(key, qobject_cast<QSpinBox*>(w)->value());
-			}
-			else if (qobject_cast<QLineEdit*>(w))
-			{
-				settings.setValue(key, qobject_cast<QLineEdit*>(w)->text());
-			}
-			else if (qobject_cast<iAFileChooserWidget*>(w))
-			{
-				settings.setValue(key, qobject_cast<iAFileChooserWidget*>(w)->text());
-			}
-			else if (dynamic_cast<iAQLineEditVector*>(w))
-			{
-				QStringList values;
-				auto & list = *dynamic_cast<iAQLineEditVector*>(w);
-				for (auto edit: list)
-					values << edit->text();
-				settings.setValue(key, values.join(","));
-			}
-			else if (dynamic_cast<iAQCheckBoxVector*>(w))
-			{
-				auto & list = *dynamic_cast<iAQCheckBoxVector*>(w);
-				QStringList values;
-				for (int i = 0; i < list.size(); ++i)
-				{
-					if (list[i]->isChecked())
-					{
-						values << QString::number(i);
-					}
-				}
-				settings.setValue(key, values.join(","));
-			}
-			else
-			{
-				DEBUG_LOG(QString("Widget type for key=%1 unknown!").arg(key));
-			}
-		}
-	}
 }
 
 bool iAFiAKErController::loadReferenceInternal(iASettings settings)
@@ -2836,8 +2917,6 @@ void iAFiAKErController::refDistAvailable()
 	m_colorByDistribution->setChecked(true);
 	showMainVis(m_referenceID, Qt::Checked);
 	changeDistributionSource(m_data->spmData->numParams() - 1);
-
-	m_views[JobView]->hide();
 
 	emit referenceComputed();
 }

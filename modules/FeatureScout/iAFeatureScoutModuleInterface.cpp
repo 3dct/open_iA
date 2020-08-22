@@ -142,8 +142,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 	if (m_mainWnd->activeMdiChild())
 	{
 		auto mdi = m_mainWnd->activeMdiChild();
-		QString testCSVFileName = mdi->fileInfo().canonicalPath() + "/" +
-				mdi->fileInfo().completeBaseName() + ".csv";
+		QString testCSVFileName = pathFileBaseName(mdi->fileInfo()) + ".csv";
 		if (QFile(testCSVFileName).exists())
 		{
 			dlg.setFileName(testCSVFileName);

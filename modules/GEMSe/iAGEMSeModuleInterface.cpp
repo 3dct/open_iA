@@ -20,16 +20,16 @@
 * ************************************************************************************/
 #include "iAGEMSeModuleInterface.h"
 
-#include "iAConnector.h"
-#include "iAFilter.h"
-#include "iAFilterRegistry.h"
 #include "iAGEMSeAttachment.h"
 #include "iAGEMSeProject.h"
 #include "iARepresentative.h"
 #include "iASEAFile.h"
 
 #include <dlg_modalities.h>
+#include <iAConnector.h>
 #include <iAConsole.h>
+#include <iAFilter.h>
+#include <iAFilterRegistry.h>
 #include <iAModality.h>
 #include <iAProjectRegistry.h>
 #include <mainwindow.h>

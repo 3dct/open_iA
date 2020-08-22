@@ -18,84 +18,22 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAAttributes.h"
+#pragma once
 
-#include <iAAttributeDescriptor.h>
+#include <io/iAITKIO.h>
 
-#include <QTextStream>
+// TODO: Replace with some other definition / template?
+const int Dimensions = 3;
+typedef int LabelPixelType;
+typedef itk::Image<LabelPixelType, Dimensions> LabelImageType;
+typedef LabelImageType::Pointer LabelImagePointer;
 
-QSharedPointer<iAAttributes> iAAttributes::Create(QTextStream & in)
-{
-	QSharedPointer<iAAttributes> result(new iAAttributes);
-	while (!in.atEnd())
-	{
-		QString line = in.readLine();
-		QSharedPointer<iAAttributeDescriptor> descriptor =
-			iAAttributeDescriptor::create(line);
-		if (descriptor)
-		{
-			result->m_attributes.push_back(descriptor);
-		}
-		else
-		{
-			return QSharedPointer<iAAttributes>(new iAAttributes);
-		}
-	}
-	return result;
-}
+typedef double ProbabilityPixelType;
+typedef itk::Image<ProbabilityPixelType, 3> ProbabilityImageType;
+typedef ProbabilityImageType::Pointer ProbabilityImagePointer;
 
-int iAAttributes::size() const
-{
-	return m_attributes.size();
-}
+typedef itk::Image<int, Dimensions> IntImage;
+typedef IntImage::Pointer IntImagePointer;
 
-
-QSharedPointer<iAAttributeDescriptor> iAAttributes::at(int idx)
-{
-	return m_attributes[idx];
-}
-
-QSharedPointer<iAAttributeDescriptor const> iAAttributes::at(int idx) const
-{
-	return m_attributes[idx];
-}
-
-
-void iAAttributes::add(QSharedPointer<iAAttributeDescriptor> range)
-{
-	m_attributes.push_back(range);
-}
-
-void iAAttributes::store(QTextStream & out)
-{
-	for (int i = 0; i < m_attributes.size(); ++i)
-	{
-		out << m_attributes[i]->toString();
-	}
-}
-
-int iAAttributes::find(QString const & name)
-{
-	for (int i = 0; i < m_attributes.size(); ++i)
-	{
-		if (m_attributes[i]->name() == name)
-		{
-			return i;
-		}
-	}
-	return -1;
-}
-
-
-int iAAttributes::count(iAAttributeDescriptor::iAAttributeType type) const
-{
-	int count = 0;
-	for (int i = 0; i < m_attributes.size(); ++i)
-	{
-		if (type == iAAttributeDescriptor::None	|| m_attributes[i]->attribType() == type)
-		{
-			count++;
-		}
-	}
-	return count;
-}
+typedef itk::Image<double, Dimensions> DoubleImage;
+typedef DoubleImage::Pointer DoubleImagePointer;

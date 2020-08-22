@@ -193,6 +193,11 @@ iAITKIO::ImagePointer castImageTo(iAITKIO::ImagePointer img)
 			return internalCastImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img);
 		default:
 			DEBUG_LOG("ERROR: Invalid/Unknown itk pixel datatype in rescale!");
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#else
+			/* fall through */
+#endif
 		case itk::ImageIOBase::DOUBLE:
 			return internalCastImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img);
 	}
@@ -242,6 +247,11 @@ iAITKIO::ImagePointer rescaleImageTo(iAITKIO::ImagePointer img, double min, doub
 		return internalRescaleImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	default:
 		DEBUG_LOG("ERROR: Invalid/Unknown itk pixel datatype in rescale!");
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#else
+			/* fall through */
+#endif
 	case itk::ImageIOBase::DOUBLE:
 		return internalRescaleImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	}

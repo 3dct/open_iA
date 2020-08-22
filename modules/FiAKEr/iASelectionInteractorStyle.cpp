@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #include "iASelectionInteractorStyle.h"
 
-#include "iAConsole.h"
-#include "iAMathUtility.h"
+#include <iAConsole.h>
+#include <iAMathUtility.h>
 
 #include <vtkAreaPicker.h>
 #include <vtkCellPicker.h>

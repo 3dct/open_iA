@@ -24,7 +24,7 @@
 #include "iACsvConfig.h"
 #include "iACsvQTableCreator.h"
 
-#include "iAConsole.h"
+#include <iAConsole.h>
 
 #include <QFileDialog>
 #include <QKeyEvent>
@@ -144,7 +144,7 @@ void dlg_CSVInput::connectSignals()
 	connect(cmbbox_ObjectType, &QComboBox::currentTextChanged, this, &dlg_CSVInput::switchObjectType);
 	connect(cmbbox_Encoding, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updatePreview);
 	connect(cmbbox_VisualizeAs, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_CSVInput::visualizationTypeChanged);
-	connect(buttonBox, &QDialogButtonBox::accepted, this, &dlg_CSVInput::okBtnClicked);
+	connect(btn_OK, &QPushButton::clicked, this, &dlg_CSVInput::okBtnClicked);
 	connect(ed_SkipLinesStart, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_CSVInput::updatePreview);
 	connect(ed_SkipLinesEnd,   QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_CSVInput::updatePreview);
 	connect(sb_PreviewLines,   QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_CSVInput::updatePreview);

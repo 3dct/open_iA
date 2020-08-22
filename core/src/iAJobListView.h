@@ -18,41 +18,26 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAJobListView.h"
+#pragma once
 
-#include "iAConsole.h"
-#include "iAProgress.h"
+#include <QAtomicInteger>
+#include <QWidget>
 
-//#include <QHBoxLayout>
-#include <QLabel>
-#include <QProgressBar>
-#include <QThread>
-#include <QVBoxLayout>
+class iAAbortListener;
+class iAProgress;
 
+class QThread;
 
-
-iAJobListView::iAJobListView()
+//! A simple widget showing a list of currently running jobs and their progress.
+class iAJobListView : public QWidget
 {
-	setLayout(new QVBoxLayout());
-}
-
-void iAJobListView::addJob(QString name, iAProgress * p, QThread * t)
-{
-	auto jobWidget = new QWidget();
-	jobWidget->setLayout(new QVBoxLayout());
-	jobWidget->setStyleSheet("background-color:#"+QWidget::palette().color(QPalette::Button).name()+";");
-	auto progressBar = new QProgressBar();
-	progressBar->setRange(0, 100);
-	progressBar->setValue(0);
-	auto titleLabel = new QLabel(name);
-	titleLabel->setStyleSheet("font-weight: bold;");
-	jobWidget->layout()->addWidget(titleLabel);
-	auto statusLabel = new QLabel("");
-	jobWidget->layout()->addWidget(statusLabel);
-	jobWidget->layout()->addWidget(progressBar);
-	layout()->addWidget(jobWidget);
-	jobWidget->setMaximumHeight(100);
-	connect(p, &iAProgress::progress, progressBar, &QProgressBar::setValue);
-	connect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
-	connect(t, &QThread::finished, jobWidget, &QWidget::deleteLater);
-}
+	Q_OBJECT
+public:
+	iAJobListView();
+	void addJob(QString name, iAProgress * p, QThread * t, iAAbortListener* abortListener = nullptr);
+signals:
+	void allJobsDone();
+private:
+	QAtomicInteger<int> m_runningJobs;
+	QWidget* m_insideWidget;
+};

@@ -20,21 +20,25 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QMap>
-#include <QWidget>
+#include <iAPerformanceHelper.h>
 
-class iAProgress;
+#include <QString>
+#include <QThread>
 
-class QThread;
-
-//! A simple widget showing a list of currently running jobs and their progress.
-class iAJobListView : public QWidget
+class iASampleOperation: public QThread
 {
-	Q_OBJECT
 public:
-	iAJobListView();
-	void addJob(QString name, iAProgress * p, QThread * t);
+	iASampleOperation();
+	virtual ~iASampleOperation();
+	virtual QString output() const = 0;
+	bool success() const;
+	iAPerformanceTimer::DurationType duration() const;
+protected:
+	virtual void performWork() =0;
+	void setSuccess(bool success);
 private:
-	//QMap<iAProgress*, iAJobData> m_jobData;
-	QMap<QThread*, iAProgress*> m_jobProgress;
+	void run() override;
+	iAPerformanceTimer m_timer;
+	iAPerformanceTimer::DurationType m_duration;
+	bool m_success;
 };

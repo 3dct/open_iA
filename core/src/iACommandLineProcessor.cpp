@@ -375,7 +375,7 @@ namespace
 				iAITKIO::ImagePointer img = iAITKIO::readFile(inputFiles[i], pixelType, false);
 				iAConnector * con = new iAConnector();
 				con->setImage(img);
-				filter->addInput(con);
+				filter->addInput(con, inputFiles[i]);
 			}
 
 			if (!quiet)

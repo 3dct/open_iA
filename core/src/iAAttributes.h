@@ -20,19 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QSharedPointer>
+#include "open_iA_Core_export.h"
+
+#include <iAAttributeDescriptor.h>
+
 #include <QVector>
+#include <QSharedPointer>
 
-class iAAttributes;
+class QTextStream;
 
-typedef QVector<double> ParameterSet;
-typedef QVector<ParameterSet> ParameterSets;
-typedef QSharedPointer<ParameterSets> ParameterSetsPointer;
+using iAAttributes = QVector<QSharedPointer<iAAttributeDescriptor>>;
 
-class iAParameterGenerator
-{
-public:
-	virtual ~iAParameterGenerator();
-	virtual QString name() const =0;
-	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameters, int sampleCount) =0;
-};
+open_iA_Core_API QSharedPointer<iAAttributes> createAttributes(QTextStream& in);
+open_iA_Core_API void storeAttributes(QTextStream& out, iAAttributes const& attributes);
+open_iA_Core_API int findAttribute(iAAttributes const& attributes, QString const& name);
+open_iA_Core_API int countAttributes(iAAttributes const& attributes, iAAttributeDescriptor::iAAttributeType type = iAAttributeDescriptor::None);

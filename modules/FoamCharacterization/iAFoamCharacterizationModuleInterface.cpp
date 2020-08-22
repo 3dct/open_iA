@@ -22,7 +22,7 @@
 
 #include "iAFoamCharacterizationAttachment.h"
 
-#include "mainwindow.h"
+#include <mainwindow.h>
 
 void iAFoamCharacterizationModuleInterface::Initialize( )
 {

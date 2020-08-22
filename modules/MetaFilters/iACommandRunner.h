@@ -20,51 +20,21 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAParameterGenerator.h"
+#include "iASampleOperation.h"
 
-class iARandomParameterGenerator: public iAParameterGenerator
-{
-public:
-	QString name() const override;
-	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
-};
+#include <QProcess>
 
-class iALatinHypercubeParameterGenerator: public iAParameterGenerator
+class iACommandRunner : public iASampleOperation
 {
+	Q_OBJECT
 public:
-	QString name() const override;
-	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
-};
-
-//! as all parameter values are supposed to be equally spaced,
-//! and the number of values equally distributed among all parameters,
-//! this algorithm will typically give less than the specified amount of samples
-class iACartesianGridParameterGenerator : public iAParameterGenerator
-{
-public:
-	QString name() const override;
-	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
-};
-
-//! Generates parameters around middle of given range for each parameter
-//! for linear range, equivalent to Cartesian Grid sampler;
-//! for logarithmic range, it starts in the middle, and expands outward
-class iASensitivityParameterGenerator : public iAParameterGenerator
-{
-public:
-	QString name() const override;
-	ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
-};
-
-class iASelectionParameterGenerator : public iAParameterGenerator
-{
-public:
-	iASelectionParameterGenerator(QString const & name, ParameterSetsPointer parameterSets);
-	virtual QString name() const;
-	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
+	iACommandRunner(QString const & executable, QStringList const & arguments);
+	QString output() const override;
+private slots:
+	void errorOccured(QProcess::ProcessError);
 private:
-	QString m_name;
-	ParameterSetsPointer m_parameterSets;
+	void performWork() override;
+	QString m_executable;
+	QStringList m_arguments;
+	QString m_output;
 };
-
-QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators();
