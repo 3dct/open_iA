@@ -23,6 +23,7 @@
 #include "iANModalObjects.h"
 
 #include <vtkSmartPointer.h>
+#include <vtkSmartVolumeMapper.h>
 
 #include <QColor>
 #include <QList>
@@ -42,8 +43,17 @@ class MdiChild;
 class vtkVolume;
 class vtkRenderer;
 class vtkImageData;
-class vtkSmartVolumeMapper;
-//#include <vtkSmartVolumeMapper.h>
+
+
+class iANModalSmartVolumeMapper : public vtkSmartVolumeMapper {
+public:
+	static iANModalSmartVolumeMapper *New();
+	vtkTypeMacro(iANModalSmartVolumeMapper, vtkSmartVolumeMapper);
+	vtkGPUVolumeRayCastMapper* getGPUMapper() { return GPUMapper; }
+	//vtkGPUVolumeRayCastMapper* getGPULowResMapper() { return GPULowResMapper; }
+	//vtkFixedPointVolumeRayCastMapper  *RayCastMapper;
+};
+
 
 class iANModalController : public QObject {
 	Q_OBJECT
@@ -85,9 +95,9 @@ private:
 	QMap<int, QSharedPointer<iAModality>> m_mapOverlayImageId2modality;
 	QList<uint> m_channelIds;
 	vtkSmartPointer<vtkVolume> m_combinedVol;
-	vtkSmartPointer<vtkSmartVolumeMapper> m_combinedVolMapper;
+	vtkSmartPointer<iANModalSmartVolumeMapper> m_combinedVolMapper;
 	vtkSmartPointer<vtkRenderer> m_combinedVolRenderer;
-	vtkSmartPointer<vtkImageData> m_slicerImages[3];
+	vtkSmartPointer<vtkImageData> m_sliceImages2D[3];
 	bool m_initialized = false;
 
 	uint m_slicerChannel_main = 0;

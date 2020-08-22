@@ -34,6 +34,7 @@
 #include "iAChannelSlicerData.h"
 #include "iAChannelData.h"
 #include "mdichild.h"
+#include <iAToolsVTK.h>
 //#include "iAChartWithFunctionsWidget.h" // Why doesn't it work?
 #include "dlg_modalities.h"
 //#include "iAToolsVTK.h"
@@ -52,6 +53,7 @@
 //#include <vtkGPUVolumeRayCastMapper.h>
 //#include <vtkImageMask.h>
 
+vtkStandardNewMacro(iANModalSmartVolumeMapper);
 iANModalController::iANModalController(MdiChild *mdiChild) :
 	m_mdiChild(mdiChild)
 {
@@ -228,7 +230,7 @@ inline void iANModalController::_initializeCombinedVol() {
 
 	m_combinedVol->SetProperty(combinedVolProp);
 
-	m_combinedVolMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
+	m_combinedVolMapper = vtkSmartPointer<iANModalSmartVolumeMapper>::New();
 	m_combinedVolMapper->SetBlendModeToComposite();
 	m_combinedVolMapper->SetInputData(appendFilter->GetOutput());
 	m_combinedVolMapper->Update();
@@ -328,10 +330,15 @@ void iANModalController::setModalities(QList<QSharedPointer<iAModality>> modalit
 void iANModalController::setMask(vtkSmartPointer<vtkImageData> mask) {
 
 	// TODO multiply every voxel in mask by 255
+	FOR_VTKIMG_PIXELS(mask, x, y, z) {
+		float scalar = mask->GetScalarComponentAsFloat(x, y, z, 0);
+		scalar *= 255;
+		mask->SetScalarComponentFromFloat(x, y, z, 0, scalar);
+	}
 
-	//auto gpuMapper = m_combinedVolMapper->GetGPUMapper(); // Inaccessible TODO find alternative
-	//gpuMapper->SetMaskTypeToBinary();
-	//gpuMapper->SetMaskInput(mask);
+	auto gpuMapper = m_combinedVolMapper->getGPUMapper();
+	gpuMapper->SetMaskTypeToBinary();
+	gpuMapper->SetMaskInput(mask);
 }
 
 void iANModalController::resetTf(QSharedPointer<iAModality> modality) {
