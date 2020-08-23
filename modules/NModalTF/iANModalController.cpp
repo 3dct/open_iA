@@ -593,10 +593,12 @@ void iANModalController::_updateMainSlicers() {
 
 #ifdef iANModal_USE_GETSCALARPOINTER
 		auto ptr = static_cast<unsigned char *>(sliceImg2D_out->GetScalarPointer());
+#ifndef NDEBUG
 		int numVoxels = sliceImg2D_out->GetDimensions()[0] * sliceImg2D_out->GetDimensions()[1] * sliceImg2D_out->GetDimensions()[2];
 #endif
+#endif
 
-//#pragma omp parallel for
+#pragma omp parallel for
 		FOR_VTKIMG_PIXELS(sliceImg2D_out, x, y, z) {
 
 			if (x + y + z == 0) perfHelp.start("Processing first voxel");
