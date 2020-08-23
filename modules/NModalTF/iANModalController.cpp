@@ -341,11 +341,16 @@ void iANModalController::setModalities(QList<QSharedPointer<iAModality>> modalit
 
 void iANModalController::setMask(vtkSmartPointer<vtkImageData> mask) {
 
-	// TODO multiply every voxel in mask by 255
+	m_mask = vtkSmartPointer<vtkImageData>::New();
+	m_mask->DeepCopy(mask);
+	mask = m_mask;
+
+	unsigned char *ptr = static_cast<unsigned char *>(mask->GetScalarPointer());
+#pragma omp parallel for
 	FOR_VTKIMG_PIXELS(mask, x, y, z) {
-		float scalar = mask->GetScalarComponentAsFloat(x, y, z, 0);
-		scalar *= 255;
-		mask->SetScalarComponentFromFloat(x, y, z, 0, scalar);
+		int ijk[3] = { x, y, z };
+		int id = mask->ComputePointId(ijk);
+		ptr[id] *= 255;
 	}
 
 	auto gpuMapper = m_combinedVolMapper->getGPUMapper();

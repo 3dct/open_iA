@@ -92,6 +92,7 @@ private:
 	void _updateMainSlicers();
 
 	QList<QSharedPointer<iAModality>> m_modalities;
+	vtkSmartPointer<vtkImageData> m_mask = nullptr;
 	QMap<int, QSharedPointer<iAModality>> m_mapOverlayImageId2modality;
 	QList<uint> m_channelIds;
 	vtkSmartPointer<vtkVolume> m_combinedVol;
