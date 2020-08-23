@@ -38,6 +38,8 @@
 //#include "iAChartWithFunctionsWidget.h" // Why doesn't it work?
 #include "dlg_modalities.h"
 //#include "iAToolsVTK.h"
+#include "iAPerformanceHelper.h"
+#include "iAConsole.h"
 
 #include <vtkImageData.h>
 #include <vtkColorTransferFunction.h>
@@ -499,20 +501,44 @@ inline void combineColors(const Colors &colors, const Alphas &opacities, Rgb &ou
 		output[2] += (colors[i][2] * opacity);
 	}
 }
-inline void setRgbaComponent(vtkSmartPointer<vtkImageData> img, int x, int y, int z, const Rgb &color, float alpha = 255) {
+
+inline void setRgba(const vtkSmartPointer<vtkImageData> &img, const int &x, const int &y, const int &z, const Rgb &color, const float &alpha = 255) {
 	for (int i = 0; i < 3; ++i)
 		img->SetScalarComponentFromFloat(x, y, z, i, color[i]);
-	img->SetScalarComponentFromFloat(x, y, z, 4, alpha);
+	img->SetScalarComponentFromFloat(x, y, z, 3, alpha);
 }
+
+inline double getScalar(const vtkSmartPointer<vtkImageData> &img, const int &x, const int &y, const int &z) {
+	return img->GetScalarComponentAsDouble(x, y, z, 0);
+}
+
+inline void setRgba(unsigned char *ptr, const int &id, const Rgb &color, const float &alpha = 255) {
+	ptr[id+0] = color[0];
+	ptr[id+1] = color[1];
+	ptr[id+2] = color[2];
+	ptr[id+3] = alpha;
+	//unsigned char rgba[4] = { color[0], color[1], color[2], alpha };
+	//memcpy(&ptr[id], rgba, 4 * sizeof(unsigned char));
+}
+
+template <typename T>
+inline double getScalar(T *ptr, const int &id) {
+	return ptr[id];
+}
+
+#define iANModal_USE_GETSCALARPOINTER
+#ifdef iANModal_USE_GETSCALARPOINTER
+#define iANModal_IF_USE_GETSCALARPOINTER(a) a
+#else
+#define iANModal_IF_USE_GETSCALARPOINTER(a)
+#endif
 
 void iANModalController::_updateMainSlicers() {
 
-	for (int i = 0; i < NUM_SLICERS; ++i) {
+	/*for (int i = 0; i < NUM_SLICERS; ++i) {
 		m_mdiChild->slicer(i)->update();
 	}
-	return;
-
-	// TODO
+	return;*/
 	
 	iASlicerMode slicerModes[NUM_SLICERS] = {
 		iASlicerMode::YZ,
@@ -522,16 +548,22 @@ void iANModalController::_updateMainSlicers() {
 
 	const auto numModalities = countModalities();
 
+	iATimeGuard testAll("Process (2D) slice images");
+	iAPerformanceHelper perfHelp = iAPerformanceHelper();
+
 	for (int mainSlicerIndex = 0; mainSlicerIndex < NUM_SLICERS; ++mainSlicerIndex) {
+
+		QString testSliceCaption = QString("Process (2D) slice image %1/%2").arg(QString::number(mainSlicerIndex + 1)).arg(QString::number(NUM_SLICERS));
+		iATimeGuard testSlice(testSliceCaption.toStdString());
 
 		auto slicer = m_mdiChild->slicer(slicerModes[mainSlicerIndex]);
 
-		QVector<vtkSmartPointer<vtkImageData>> sliceImgs2D(numModalities);
-		QVector<vtkScalarsToColors*> sliceColorTf(numModalities);
-		QVector<vtkPiecewiseFunction*> sliceOpacityTf(numModalities);
+		std::vector<vtkSmartPointer<vtkImageData>> sliceImgs2D(numModalities);
+		iANModal_IF_USE_GETSCALARPOINTER(std::vector<unsigned short *> sliceImgs2D_ptrs(numModalities));
+		std::vector<vtkScalarsToColors*>           sliceColorTf(numModalities);
+		std::vector<vtkPiecewiseFunction*>         sliceOpacityTf(numModalities);
 
 		for (int modalityIndex = 0; modalityIndex < countModalities(); ++modalityIndex) {
-			
 			// Get channel for modality
 			// ...this will allow us to get the 2D slice image and the transfer functions
 			auto channel = slicer->channel(m_channelIds[modalityIndex]);
@@ -547,14 +579,42 @@ void iANModalController::_updateMainSlicers() {
 
 			// Save 2D slice image and transfer functions for future processing
 			sliceImgs2D[modalityIndex] = sliceImg2D;
+			iANModal_IF_USE_GETSCALARPOINTER(sliceImgs2D_ptrs[modalityIndex] = static_cast<unsigned short *>(sliceImg2D->GetScalarPointer()));
 			sliceColorTf[modalityIndex] = channel->colorTF();
 			sliceOpacityTf[modalityIndex] = channel->opacityTF();
+
+			assert(sliceImg2D->GetNumberOfScalarComponents() == 1);
+			assert(sliceImg2D->GetScalarType() == VTK_UNSIGNED_SHORT); // TODO reinforce on Release (e.g. check and display error message on setModalities(...))
 		}
+
+		testSlice.time("All info gathered");
 
 		auto sliceImg2D_out = m_sliceImages2D[mainSlicerIndex];
 
-//#pragma omp parallel for // TODO collapse(3)
+#ifdef iANModal_USE_GETSCALARPOINTER
+		auto ptr = static_cast<unsigned char *>(sliceImg2D_out->GetScalarPointer());
+		int numVoxels = sliceImg2D_out->GetDimensions()[0] * sliceImg2D_out->GetDimensions()[1] * sliceImg2D_out->GetDimensions()[2];
+#endif
+
+//#pragma omp parallel for
 		FOR_VTKIMG_PIXELS(sliceImg2D_out, x, y, z) {
+
+			if (x + y + z == 0) perfHelp.start("Processing first voxel");
+
+#ifdef iANModal_USE_GETSCALARPOINTER
+			int ijk[3] = {x, y, z};
+			int id_scalar = sliceImg2D_out->ComputePointId(ijk);
+			int id_rgba = id_scalar * 4;
+
+#ifndef NDEBUG
+			{
+				assert(id_scalar < numVoxels);
+				unsigned char *ptr_test1 = &ptr[id_rgba];
+				unsigned char *ptr_test2 = static_cast<unsigned char *>(sliceImg2D_out->GetScalarPointer(x, y, z));
+				assert(ptr_test1 == ptr_test2);
+			}
+#endif
+#endif
 			
 			Colors colors(numModalities);
 			Alphas opacities(numModalities);
@@ -562,8 +622,32 @@ void iANModalController::_updateMainSlicers() {
 
 			// Gather the colors and opacities for this voxel xyz (for each modality)
 			for (int mod_i = 0; mod_i < numModalities; ++mod_i) {
-			
-				float scalar = sliceImgs2D[mod_i]->GetScalarComponentAsFloat(x, y, z, 0);
+#ifdef iANModal_USE_GETSCALARPOINTER
+				unsigned short *ptr2 = sliceImgs2D_ptrs[mod_i];
+
+#ifndef NDEBUG
+				{
+					int id_scalar_test = sliceImgs2D[mod_i]->ComputePointId(ijk);
+					assert(id_scalar == id_scalar_test);
+					unsigned short *ptr2_test1 = &ptr2[id_scalar_test];
+					unsigned short *ptr2_test2 = static_cast<unsigned short *>(sliceImgs2D[mod_i]->GetScalarPointer(x, y, z));
+					assert(ptr2_test1 == ptr2_test2);
+				}
+#endif
+
+				unsigned short scalar = getScalar(ptr2, id_scalar);
+
+#ifndef NDEBUG
+			{
+					unsigned short scalar_test = sliceImgs2D[mod_i]->GetScalarComponentAsDouble(x, y, z, 0);
+					assert(scalar == scalar_test);
+			}
+#endif
+				
+#else
+				float scalar = getScalar(sliceImgs2D[mod_i], x, y, z);
+#endif
+
 				const unsigned char *color = sliceColorTf[mod_i]->MapValue(scalar); // 4 bytes (RGBA)
 				float opacity = sliceOpacityTf[mod_i]->GetValue(scalar);
 
@@ -586,13 +670,39 @@ void iANModalController::_updateMainSlicers() {
 
 			Rgb combinedColor;
 			combineColors(colors, opacities, combinedColor);
-			setRgbaComponent(sliceImg2D_out, x, y, z, combinedColor);
+
+			/*unsigned char aaa = index % 2 == 0 ? 255 : 127;
+			switch(omp_get_thread_num()) {
+			case 0: combinedColor = { aaa, 0, 0 }; break;
+			case 1: combinedColor = { 0, aaa, 0 }; break;
+			case 2: combinedColor = { 0, 0, aaa }; break;
+			case 3: combinedColor = { aaa, aaa, 0 }; break;
+			case 4: combinedColor = { aaa, 0, aaa }; break;
+			case 5: combinedColor = { 0, aaa, aaa }; break;
+			case 6: combinedColor = { aaa, aaa, aaa }; break;
+			default: combinedColor = { 0, 0, 0 }; break;
+			}*/
+
+#ifdef iANModal_USE_GETSCALARPOINTER
+			setRgba(ptr, id_rgba, combinedColor);
+#else
+			setRgba(sliceImg2D_out, x, y, z, combinedColor);
+#endif
+
+			if (x + y + z == 0) {
+				perfHelp.time("First voxel processed");
+				perfHelp.stop();
+			}
 
 		} // end of FOR_VTKIMG_PIXELS
+
+		testSlice.time("All voxels processed");
 
 		sliceImg2D_out->Modified();
 		slicer->channel(0)->imageActor()->SetInputData(sliceImg2D_out);
 	}
+
+	testAll.time("Done!");
 
 	for (int i = 0; i < NUM_SLICERS; ++i) {
 		m_mdiChild->slicer(i)->update();
