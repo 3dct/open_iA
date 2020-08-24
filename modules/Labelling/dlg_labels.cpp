@@ -483,8 +483,6 @@ void dlg_labels::remove()
 		{
 			pbStore->setEnabled(false);
 		}
-		recolorItems();
-		updateChannels();
 
 		// TODO remove respective OverlayImage from m_mapId2image
 		// ... with that, the image (vtkSmartPointer<iAvtkImageData>) should also be deleted
@@ -493,6 +491,9 @@ void dlg_labels::remove()
 		// ... by going through all entries and checking if overlayImageId matches that of the removed image
 
 		emit labelRemoved(*label);
+
+		recolorItems();
+		updateChannels();
 	}
 	else
 	{	// remove a single seed
