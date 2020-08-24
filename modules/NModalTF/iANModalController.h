@@ -36,6 +36,8 @@
 
 class dlg_labels;
 
+class iANModalTFManager;
+
 class iAModality;
 class iASlicer;
 class MdiChild;
@@ -92,6 +94,7 @@ private:
 	void _updateMainSlicers();
 
 	QList<QSharedPointer<iAModality>> m_modalities;
+	QList<QSharedPointer<iANModalTFManager>> m_tfs;
 	vtkSmartPointer<vtkImageData> m_mask = nullptr;
 	QMap<int, QSharedPointer<iAModality>> m_mapOverlayImageId2modality;
 	QList<uint> m_channelIds;
@@ -105,7 +108,7 @@ private:
 	uint m_slicerChannel_label = 1;
 	uint m_mainSlicerChannel_nModal;
 
-	std::unordered_set<iANModalSeed, iANModalSeed::Hasher, iANModalSeed::Comparator> m_seeds;
+	//std::unordered_set<iANModalSeed, iANModalSeed::Hasher, iANModalSeed::Comparator> m_seeds;
 	int m_maxLabelId = -1;
 
 	void applyVolumeSettings();

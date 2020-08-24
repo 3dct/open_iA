@@ -18,75 +18,67 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include <QString>
-#include <QColor>
-#include <QList>
+#include "iANModalObjects.h"
 
-struct iANModalSeed {
+#include "QSharedPointer.h"
 
-	friend class iANModalController;
+#include "vtkSmartPointer.h"
 
-	iANModalSeed(int X, int Y, int Z, int oiid)
-		: x(X), y(Y), z(Z), overlayImageId(oiid), labelId(-1), scalar(-1)
-	{}
-	//iANModalSeed(int X, int Y, int Z, int oiid, int lid, double s)
-	//	: x(X), y(Y), z(Z), overlayImageId(oiid), labelId(lid), scalar(s)
-	//{}
-	int x;
-	int y;
-	int z;
-	int overlayImageId;
+#include <vector>
 
-	struct Hasher {
-		std::size_t operator()(const iANModalSeed &key) const {
-			return qHash(key.x ^ key.y ^ key.z ^ key.overlayImageId);
-		}
-	};
+class iAModality;
 
-	struct Comparator {
-		bool operator()(const iANModalSeed& i1, const iANModalSeed& i2) const {
-			return i1.x == i2.x && i1.y == i2.y && i1.z == i2.z && i1.overlayImageId == i2.overlayImageId;
-		}
-	};
+class vtkColorTransferFunction;
+class vtkPiecewiseFunction;
+
+class iANModalTFManager {
+public:
+	iANModalTFManager(QSharedPointer<iAModality> modality);
+
+	void addControlPoint(unsigned int x, const iANModalLabel &label);
+	void addControlPoint(unsigned int x, const double (&rgba)[4]);
+
+	void removeControlPoint(unsigned int x);
+	void removeControlPoints(int labelId);
+	void removeAllControlPoints();
+
+	void updateLabels(const std::vector<iANModalLabel> &labels);
+
+	void update();
+
+	unsigned int minx() { return 0; }
+	unsigned int maxx() { return m_cps.size() - 1; }
 
 private:
-	int labelId;
-	double scalar;
+
+	struct CP {
+		CP() : x(0), r(0), g(0), b(0), a(0), labelId(-1) {}
+		CP(unsigned int X, float R, float G, float B, float A) : x(X), r(R), g(G), b(B), a(A), labelId(-1) {}
+		CP(unsigned int X, float R, float G, float B, float A, int LabelId) : x(X), r(R), g(G), b(B), a(A), labelId(LabelId) {}
+
+		unsigned int x;
+		float r, g, b, a;
+		int labelId;
+
+		bool operator==(const CP &other) const {
+			return (null() && other.null()) || (null() == other.null() && labelId == other.labelId);
+		}
+
+		bool operator!=(const CP &other) const {
+			return !operator==(other);
+		}
+
+		bool null() const {
+			return labelId < 0;
+		}
+	};
+
+	vtkSmartPointer<vtkColorTransferFunction> m_colorTf;
+	vtkSmartPointer<vtkPiecewiseFunction> m_opacityTf;
+	std::vector<CP> m_cps;
+
+	inline void addControlPointToTfs(const CP &cp);
+	inline void removeControlPointFromTfs(unsigned int x);
+
 };
-
-inline bool operator==(const iANModalSeed& i1, const iANModalSeed& i2)
-{
-	return i1.x == i2.x && i1.y == i2.y && i1.z == i2.z && i1.overlayImageId == i2.overlayImageId;
-}
-
-inline uint qHash(const iANModalSeed& key, uint seed)
-{
-	return qHash(key.x ^ key.y ^ key.z ^ key.overlayImageId, seed);
-}
-
-struct iANModalLabel {
-	iANModalLabel() :
-		id(-1), opacity(0.0f)
-	{}
-	iANModalLabel(int i, QString n, QColor c, float o)
-		: id(i), name(n), color(c), opacity(o)
-	{}
-	int id;
-	QString name;
-	QColor color;
-	float opacity;
-
-	bool null() { return id == -1; }
-};
-
-inline bool operator==(const iANModalLabel& i1, const iANModalLabel& i2)
-{
-	return i1.id == i2.id;
-}
-
-inline uint qHash(const iANModalLabel& key, uint seed)
-{
-	return qHash(key.id, seed);
-}

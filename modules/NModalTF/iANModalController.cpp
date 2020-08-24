@@ -21,6 +21,7 @@
 #include "iANModalController.h"
 
 #include "iANModalBackgroundRemover.h" // for BACKGROUND and FOREGROUND values
+#include "iANModalSeedManager.h"
 
 #include "iALabellingAttachment.h"
 #include "dlg_labels.h"
@@ -144,7 +145,6 @@ inline iASlicer* iANModalController::_initializeSlicer(QSharedPointer<iAModality
 	double min = range[0];
 	double max = range[1];
 	colorTf->AddRGBPoint(min, 0.0, 0.0, 0.0);
-	//if (m_maskApplied) colorTf->AddRGBPoint(min+1, 0.0, 0.0, 0.0);
 	colorTf->AddRGBPoint(max, 1.0, 1.0, 1.0);
 	slicer->addChannel(m_slicerChannel_main, iAChannelData(modality->name(), image, colorTf), true);
 
@@ -335,8 +335,14 @@ void iANModalController::setModalities(QList<QSharedPointer<iAModality>> modalit
 	if (!_checkModalities(modalities)) {
 		return;
 	}
-	resetTf(modalities);
 	m_modalities = modalities;
+
+	m_tfs.clear();
+	for (auto mod : modalities) {
+		m_tfs.append(QSharedPointer<iANModalTFManager>(new iANModalTFManager(mod)));
+	}
+
+	resetTf(modalities);
 }
 
 void iANModalController::setMask(vtkSmartPointer<vtkImageData> mask) {
@@ -359,22 +365,18 @@ void iANModalController::setMask(vtkSmartPointer<vtkImageData> mask) {
 }
 
 void iANModalController::resetTf(QSharedPointer<iAModality> modality) {
-	double range[2];
-	modality->image()->GetScalarRange(range);
-	double min = range[0];
-	double max = range[1];
+	auto transfer = modality->transfer();
+	transfer->opacityTF()->RemoveAllPoints();
+	transfer->colorTF()->RemoveAllPoints();
 
-	auto tf = modality->transfer();
+	int i = m_modalities.lastIndexOf(modality);
+	auto tf = m_tfs[i];
 
-	tf->colorTF()->RemoveAllPoints();
-	tf->colorTF()->AddRGBPoint(min, 0.0, 0.0, 0.0);
-	//if (m_maskApplied) tf->colorTF()->AddRGBPoint(min+1, 0.0, 0.0, 0.0);
-	tf->colorTF()->AddRGBPoint(max, 0.0, 0.0, 0.0);
+	tf->removeAllControlPoints();
+	tf->addControlPoint(tf->minx(), { 0, 0, 0, 0 });
+	tf->addControlPoint(tf->maxx(), { 0, 0, 0, 0 });
 
-	tf->opacityTF()->RemoveAllPoints();
-	tf->opacityTF()->AddPoint(min, 0.0);
-	//if (m_maskApplied) tf->opacityTF()->AddPoint(min + 1, 0.0, 0.0, 0.0);
-	tf->opacityTF()->AddPoint(max, 0.0);
+	tf->update();
 }
 
 void iANModalController::resetTf(QList<QSharedPointer<iAModality>> modalities) {
@@ -390,7 +392,7 @@ void iANModalController::updateLabel(iANModalLabel label) {
 }
 
 void iANModalController::updateLabels(QList<iANModalLabel> labelsList) {
-	auto labels = QVector<iANModalLabel>(m_maxLabelId + 1);
+	/*auto labels = QVector<iANModalLabel>(m_maxLabelId + 1);
 	auto used = QVector<bool>(m_maxLabelId + 1);
 	used.fill(false);
 	for (auto label : labelsList) {
@@ -419,12 +421,17 @@ void iANModalController::updateLabels(QList<iANModalLabel> labelsList) {
 			opacityTf->RemovePoint(seed.scalar);
 			opacityTf->AddPoint(seed.scalar, o);
 		}
-	}
+	}*/
 	//m_mdiChild->histogram()->updateTrf(); // TODO include iAChartWithFunctionsWidget.h
+	std::vector<iANModalLabel> labels = labelsList.toVector().toStdVector();
+	for (auto tf : m_tfs) {
+		tf->updateLabels(labels);
+		tf->update();
+	}
 }
 
 void iANModalController::addSeeds(QList<iANModalSeed> seeds, iANModalLabel label) {
-	for (auto seed : seeds) {
+	/*for (auto seed : seeds) {
 		auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
 		auto colorTf = modality->transfer()->colorTF();
 		auto opacityTf = modality->transfer()->opacityTF();
@@ -454,11 +461,25 @@ void iANModalController::addSeeds(QList<iANModalSeed> seeds, iANModalLabel label
 	}
 	if (label.id > m_maxLabelId) {
 		m_maxLabelId = label.id;
+	}*/
+	for (auto seed : seeds) {
+		auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
+		unsigned int x = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
+		int i = m_modalities.lastIndexOf(modality);
+
+		int size = m_tfs.size();
+		assert(size > 0);
+
+		auto tf = m_tfs[i];
+		tf->addControlPoint(x, label);
+	}
+	for (auto tf : m_tfs) {
+		tf->update();
 	}
 }
 
 void iANModalController::removeSeeds(QList<iANModalSeed> seeds) {
-	for (auto seed : seeds) {
+	/*for (auto seed : seeds) {
 		if (m_seeds.erase(seed) == 1) { // If one element (seed) was removed
 			auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
 			auto colorTf = modality->transfer()->colorTF();
@@ -467,11 +488,21 @@ void iANModalController::removeSeeds(QList<iANModalSeed> seeds) {
 			colorTf->RemovePoint(seed.scalar);
 			opacityTf->RemovePoint(seed.scalar);
 		}
+	}*/
+	for (auto seed : seeds) {
+		auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
+		unsigned int x = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
+		int i = m_modalities.lastIndexOf(modality);
+		auto tf = m_tfs[i];
+		tf->removeControlPoint(x);
+	}
+	for (auto tf : m_tfs) {
+		tf->update();
 	}
 }
 
 void iANModalController::removeSeeds(int labelId) {
-	auto ite = m_seeds.cbegin();
+	/*auto ite = m_seeds.cbegin();
 	while (ite != m_seeds.cend()) {
 		auto const seed = *ite;
 		if (seed.labelId == labelId) {
@@ -484,6 +515,10 @@ void iANModalController::removeSeeds(int labelId) {
 		} else {
 			++ite;
 		}
+	}*/
+	for (auto tf : m_tfs) {
+		tf->removeControlPoints(labelId);
+		tf->update();
 	}
 }
 
@@ -575,7 +610,8 @@ void iANModalController::_updateMainSlicers() {
 	}
 	return;*/
 
-	
+	iATimeAdder ta_color;
+	iATimeAdder ta_opacity;
 
 	const auto numModalities = countModalities();
 
@@ -625,13 +661,14 @@ void iANModalController::_updateMainSlicers() {
 
 #ifdef iANModal_USE_GETSCALARPOINTER
 		auto ptr = static_cast<unsigned char *>(sliceImg2D_out->GetScalarPointer());
-		auto maskPtr = static_cast<unsigned char *>(m_mask->GetScalarPointer());
+		unsigned char *maskPtr;
+		if (m_mask) maskPtr = static_cast<unsigned char *>(m_mask->GetScalarPointer());
 #ifndef NDEBUG
 		int numVoxels = sliceImg2D_out->GetDimensions()[0] * sliceImg2D_out->GetDimensions()[1] * sliceImg2D_out->GetDimensions()[2];
 #endif
 #endif
 
-#pragma omp parallel for
+//#pragma omp parallel for
 		FOR_VTKIMG_PIXELS(sliceImg2D_out, x, y, z) {
 
 #ifdef iANModal_USE_GETSCALARPOINTER
@@ -704,8 +741,13 @@ void iANModalController::_updateMainSlicers() {
 				float scalar = getScalar(sliceImgs2D[mod_i], x, y, z);
 #endif
 
+				ta_color.resume();
 				const unsigned char *color = sliceColorTf[mod_i]->MapValue(scalar); // 4 bytes (RGBA)
+				ta_color.pause();
+
+				ta_opacity.resume();
 				float opacity = sliceOpacityTf[mod_i]->GetValue(scalar);
+				ta_opacity.pause();
 
 				colors[mod_i] = { color[0], color[1], color[2] }; // RGB (ignore A)
 				opacities[mod_i] = opacity;
@@ -748,6 +790,17 @@ void iANModalController::_updateMainSlicers() {
 		sliceImg2D_out->Modified();
 		slicer->channel(0)->imageActor()->SetInputData(sliceImg2D_out);
 	}
+
+	double time_color = ta_color.elapsed();
+	double time_opacity = ta_opacity.elapsed();
+
+	QString duration_color = formatDuration(time_color);
+	QString duration_opacity = formatDuration(time_opacity);
+	QString duration_both = formatDuration(time_color + time_opacity);
+
+	DEBUG_LOG("Accumulated time for color TF mapping: " + duration_color);
+	DEBUG_LOG("Accumulated time for opacity TF mapping: " + duration_opacity);
+	DEBUG_LOG("Accumulated time for color + opacity TF mapping: " + duration_both);
 
 	testAll.time("Done!");
 
