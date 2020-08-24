@@ -803,7 +803,7 @@ void dlg_samplingSettings::runClicked()
 			}
 		}
 	}
-	else if (rbExternal->isChecked() && leExecutable->text().isEmpty() || leParamDescriptor->text().isEmpty())
+	else if (rbExternal->isChecked() && (leExecutable->text().isEmpty() || leParamDescriptor->text().isEmpty()))
 	{
 		msg += "External sampling: No executable and/or parameter descriptor chosen!";
 	}
