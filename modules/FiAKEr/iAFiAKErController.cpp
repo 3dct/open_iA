@@ -122,19 +122,16 @@ namespace
 	const int HistogramMinWidth = 80;
 	const int StackedBarMinWidth = 70;
 	const int DefaultPlayDelay = 1000;
-	int HistogramBins = 20;
-	int SelectionOpacity = iA3DLineObjectVis::DefaultSelectionOpacity;
-	int ContextOpacity = iA3DLineObjectVis::DefaultContextOpacity;
+	const int DefaultHistogramBins = 20;
 	const double MinDiameterFactor = 0.02;
 	const double MaxDiameterFactor = 2;
 	const int MinFactorSliderVal = 1;
 	const int MaxFactorSliderVal = 100;
-	double DiameterFactor = 1.0;
-	double ContextDiameterFactor = 1.0;
+	const double DefaultDiameterFactor = 1.0;
+	const double DefaultContextDiameterFactor = 1.0;
 	const size_t NoPlotsIdx = std::numeric_limits<size_t>::max();
 	const size_t NoResult = std::numeric_limits<size_t>::max();
 	const QString RefMarker(" (Reference)");
-
 
 	const QString DefaultResultColorTheme("Brewer Accent (max. 8)");
 	const QString DefaultStackedBarColorTheme("Material red (max. 10)");
@@ -142,11 +139,6 @@ namespace
 	const int DistributionRefAlpha = 80;
 	const QColor OptimStepMarkerColor(192, 0, 0);
 	const QColor SelectionColor(0, 0, 0);
-
-	int NameActionColumn = 0;
-	int PreviewColumn = 1;
-	int StackedBarColumn = 2;
-	int HistogramColumn = 3;
 
 	// { SETTING NAMES:
 	const QString ProjectFileFolder("Folder");
@@ -221,6 +213,15 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild) 
 	m_showWireFrame(false),
 	m_showLines(false),
 	m_contextSpacing(0.0),
+	m_histogramBins(DefaultHistogramBins),
+	m_selectionOpacity(iA3DLineObjectVis::DefaultSelectionOpacity),
+	m_contextOpacity(iA3DLineObjectVis::DefaultContextOpacity),
+	m_diameterFactor(DefaultDiameterFactor),
+	m_contextDiameterFactor(DefaultContextDiameterFactor),
+	m_nameActionColumn(0),
+	m_previewColumn(1),
+	m_stackedBarColumn(2),
+	m_histogramColumn(3),
 	m_playTimer(new QTimer(mainWnd)),
 	m_refDistCompute(nullptr),
 	m_cameraInitialized(false),
@@ -386,22 +387,22 @@ void iAFiAKErController::setupSettingsView()
 {
 	m_settingsView = new iAFIAKERSettingsWidget();
 
-	m_settingsView->slOpacityDefault->setValue(SelectionOpacity);
-	m_settingsView->lbOpacityDefaultValue->setText(QString::number(SelectionOpacity, 'f', 2));
+	m_settingsView->slOpacityDefault->setValue(m_selectionOpacity);
+	m_settingsView->lbOpacityDefaultValue->setText(QString::number(m_selectionOpacity, 'f', 2));
 
-	m_settingsView->slOpacityContext->setValue(ContextOpacity);
-	m_settingsView->lbOpacityContextValue->setText(QString::number(ContextOpacity, 'f', 2));
+	m_settingsView->slOpacityContext->setValue(m_contextOpacity);
+	m_settingsView->lbOpacityContextValue->setText(QString::number(m_contextOpacity, 'f', 2));
 
 	m_diameterFactorMapper = new iALinearMapper(MinDiameterFactor, MaxDiameterFactor, MinFactorSliderVal, MaxFactorSliderVal);
 	m_settingsView->slDiameterFactorDefault->setMinimum(MinFactorSliderVal);
 	m_settingsView->slDiameterFactorDefault->setMaximum(MaxFactorSliderVal);
-	int factorSliderValue = static_cast<int>(m_diameterFactorMapper->srcToDst(DiameterFactor));
+	int factorSliderValue = static_cast<int>(m_diameterFactorMapper->srcToDst(m_diameterFactor));
 	m_settingsView->slDiameterFactorDefault->setValue(factorSliderValue);
 	m_settingsView->lbDiameterFactorDefaultValue->setText(QString::number(m_diameterFactorMapper->dstToSrc(factorSliderValue), 'f', 2));
 
 	m_settingsView->slDiameterFactorContext->setMinimum(MinFactorSliderVal);
 	m_settingsView->slDiameterFactorContext->setMaximum(MaxFactorSliderVal);
-	int contextFactorSlider = static_cast<int>(m_diameterFactorMapper->srcToDst(ContextDiameterFactor));
+	int contextFactorSlider = static_cast<int>(m_diameterFactorMapper->srcToDst(m_contextDiameterFactor));
 	m_settingsView->slDiameterFactorContext->setValue(contextFactorSlider);
 	m_settingsView->lbDiameterFactorContextValue->setText(QString::number(m_diameterFactorMapper->dstToSrc(contextFactorSlider), 'f', 2));
 
@@ -461,7 +462,7 @@ void iAFiAKErController::setupSettingsView()
 	auto grid = static_cast<QGridLayout*>(m_settingsView->tab3DView->layout());
 	grid->addWidget(m_showReferenceWidget, grid->rowCount(), 0, 1, 7);
 
-	m_settingsView->sbHistogramBins->setValue(HistogramBins);
+	m_settingsView->sbHistogramBins->setValue(m_histogramBins);
 
 	m_settingsView->cmbboxStackedBarChartColors->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsView->cmbboxStackedBarChartColors->setCurrentText(DefaultStackedBarColorTheme);
@@ -561,8 +562,8 @@ QWidget* iAFiAKErController::setupResultListView()
 {
 	if (!m_showPreviews)
 	{
-		StackedBarColumn = 1;
-		HistogramColumn = 2;
+		m_stackedBarColumn = 1;
+		m_histogramColumn = 2;
 	}
 	int commonPrefixLength = 0, commonSuffixLength = 0;
 	QString baseName0;
@@ -593,8 +594,8 @@ QWidget* iAFiAKErController::setupResultListView()
 	m_resultsListLayout = new QGridLayout();
 	m_resultsListLayout->setSpacing(ControlSpacing);
 	m_resultsListLayout->setContentsMargins(ResultListMargin, ResultListMargin, ResultListMargin, ResultListMargin);
-	m_resultsListLayout->setColumnStretch(StackedBarColumn, static_cast<int>(m_data->result.size()));
-	m_resultsListLayout->setColumnStretch(HistogramColumn, static_cast<int>(2 * m_data->result.size()));
+	m_resultsListLayout->setColumnStretch(m_stackedBarColumn, static_cast<int>(m_data->result.size()));
+	m_resultsListLayout->setColumnStretch(m_histogramColumn, static_cast<int>(2 * m_data->result.size()));
 
 	auto colorTheme = iAColorThemeManager::instance().theme(DefaultStackedBarColorTheme);
 	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
@@ -633,14 +634,14 @@ QWidget* iAFiAKErController::setupResultListView()
 	histHeader->layout()->addWidget(m_colorByDistribution);
 	histHeader->layout()->addWidget(m_distributionChoice);
 
-	addHeaderLabel(m_resultsListLayout, NameActionColumn, "Name/Actions");
+	addHeaderLabel(m_resultsListLayout, m_nameActionColumn, "Name/Actions");
 	if (m_showPreviews)
 	{
-		m_resultsListLayout->setColumnStretch(PreviewColumn, 1);
-		addHeaderLabel(m_resultsListLayout, PreviewColumn, "Preview");
+		m_resultsListLayout->setColumnStretch(m_previewColumn, 1);
+		addHeaderLabel(m_resultsListLayout, m_previewColumn, "Preview");
 	}
-	m_resultsListLayout->addWidget(m_stackedBarsHeaders, 0, StackedBarColumn);
-	m_resultsListLayout->addWidget(histHeader, 0, HistogramColumn);
+	m_resultsListLayout->addWidget(m_stackedBarsHeaders, 0, m_stackedBarColumn);
+	m_resultsListLayout->addWidget(histHeader, 0, m_histogramColumn);
 
 	m_showResultVis.resize(m_data->result.size());
 	m_showResultBox.resize(m_data->result.size());
@@ -878,7 +879,7 @@ void iAFiAKErController::addStackedBar(int index)
 		}
 		m_resultUIs[resultID].stackedBars->addBar(title, value, maxValue);
 	}
-	m_resultsListLayout->setColumnStretch(StackedBarColumn, static_cast<int>(m_stackedBarsHeaders->numberOfBars()* m_data->result.size()) );
+	m_resultsListLayout->setColumnStretch(m_stackedBarColumn, static_cast<int>(m_stackedBarsHeaders->numberOfBars()* m_data->result.size()) );
 }
 
 void iAFiAKErController::removeStackedBar(int index)
@@ -889,7 +890,7 @@ void iAFiAKErController::removeStackedBar(int index)
 	{
 		m_resultUIs[resultID].stackedBars->removeBar(title);
 	}
-	m_resultsListLayout->setColumnStretch(StackedBarColumn, static_cast<int>(m_stackedBarsHeaders->numberOfBars()*m_data->result.size()));
+	m_resultsListLayout->setColumnStretch(m_stackedBarColumn, static_cast<int>(m_stackedBarsHeaders->numberOfBars()*m_data->result.size()));
 }
 
 void iAFiAKErController::updateResultList()
@@ -904,13 +905,13 @@ void iAFiAKErController::updateResultList()
 		}
 		m_resultsListLayout->removeWidget(ui.stackedBars);
 		m_resultsListLayout->removeWidget(ui.histoChart);
-		m_resultsListLayout->addWidget(ui.nameActions, m_resultListSorting[resultID] + 1, NameActionColumn);
+		m_resultsListLayout->addWidget(ui.nameActions, m_resultListSorting[resultID] + 1, m_nameActionColumn);
 		if (ui.previewWidget)
 		{
-			m_resultsListLayout->addWidget(ui.previewWidget, m_resultListSorting[resultID] + 1, PreviewColumn);
+			m_resultsListLayout->addWidget(ui.previewWidget, m_resultListSorting[resultID] + 1, m_previewColumn);
 		}
-		m_resultsListLayout->addWidget(ui.stackedBars, m_resultListSorting[resultID] + 1, StackedBarColumn);
-		m_resultsListLayout->addWidget(ui.histoChart, m_resultListSorting[resultID] + 1, HistogramColumn);
+		m_resultsListLayout->addWidget(ui.stackedBars, m_resultListSorting[resultID] + 1, m_stackedBarColumn);
+		m_resultsListLayout->addWidget(ui.histoChart, m_resultListSorting[resultID] + 1, m_histogramColumn);
 	}
 }
 
@@ -961,7 +962,7 @@ void iAFiAKErController::distributionChoiceChanged(int index)
 void iAFiAKErController::histogramBinsChanged(int value)
 {
 	addInteraction(QString("Changed number of histogram bins to %1.").arg(value));
-	HistogramBins = value;
+	m_histogramBins = value;
 	changeDistributionSource(m_distributionChoice->currentIndex());
 }
 
@@ -1584,7 +1585,7 @@ void iAFiAKErController::changeDistributionSource(int index)
 			fiberData[fiberID] = matchQualityVisActive() ? m_data->avgRefFiberMatch[fiberID]
 				: d.table->GetValue(fiberID, index).ToDouble();
 		}
-		auto histogramData = iAHistogramData::create(fiberData, HistogramBins, Continuous, range[0], range[1]);
+		auto histogramData = iAHistogramData::create(fiberData, m_histogramBins, Continuous, range[0], range[1]);
 		QSharedPointer<iAPlot> histogramPlot =
 			(m_settingsView->cmbboxDistributionPlotType->currentIndex() == 0) ?
 			QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, getResultColor(resultID)))
@@ -1609,7 +1610,7 @@ void iAFiAKErController::changeDistributionSource(int index)
 
 void iAFiAKErController::updateHistogramColors()
 {
-	double range[2] = { 0.0, static_cast<double>(HistogramBins) };
+	double range[2] = { 0.0, static_cast<double>(m_histogramBins) };
 	auto lut = m_colorByDistribution->isChecked() ?
 		QSharedPointer<iALookupTable>(new iALookupTable(iALUT::Build(range, m_colorByThemeName, 255, 1)))
 		: QSharedPointer<iALookupTable>();
@@ -1823,7 +1824,7 @@ void iAFiAKErController::sortByCurrentWeighting()
 QColor iAFiAKErController::getResultColor(size_t resultID)
 {
 	QColor color = m_resultColorTheme->color( resultID % m_resultColorTheme->size() );
-	color.setAlpha(SelectionOpacity);
+	color.setAlpha(m_selectionOpacity);
 	return color;
 }
 
@@ -1971,16 +1972,16 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 	auto & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
 	{
-		ui.main3DVis->setSelectionOpacity(SelectionOpacity);
-		ui.main3DVis->setContextOpacity(ContextOpacity);
+		ui.main3DVis->setSelectionOpacity(m_selectionOpacity);
+		ui.main3DVis->setContextOpacity(m_contextOpacity);
 		ui.main3DVis->setShowWireFrame(m_showWireFrame);
 		ui.main3DVis->setShowLines(m_showLines);
 		setClippingPlanes(ui.main3DVis);
 		auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
 		if (vis)
 		{
-			vis->setDiameterFactor(DiameterFactor);
-			vis->setContextDiameterFactor(ContextDiameterFactor);
+			vis->setDiameterFactor(m_diameterFactor);
+			vis->setContextDiameterFactor(m_contextDiameterFactor);
 		}
 		if (matchQualityVisActive())
 		{
@@ -2214,7 +2215,7 @@ void iAFiAKErController::showSelectionInPlot(int chartID)
 			QColor color(getResultColor(resultID));
 			if (isAnythingSelected())
 			{
-				color.setAlpha(ContextOpacity);
+				color.setAlpha(m_contextOpacity);
 			}
 			for (size_t fiberID=0; fiberID < m_data->result[resultID].fiberCount; ++fiberID)
 			{
@@ -2418,10 +2419,10 @@ void iAFiAKErController::mainOpacityChanged(int opacity)
 {
 	addInteraction(QString("Set main opacity to %1.").arg(opacity));
 	m_settingsView->lbOpacityDefaultValue->setText(QString::number(opacity, 'f', 2));
-	SelectionOpacity = opacity;
-	visitAllVisibleVis([](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
+	m_selectionOpacity = opacity;
+	visitAllVisibleVis([opacity](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
 	{
-		vis->setSelectionOpacity(SelectionOpacity);
+		vis->setSelectionOpacity(opacity);
 		vis->updateColorSelectionRendering();
 	});
 }
@@ -2430,10 +2431,10 @@ void iAFiAKErController::contextOpacityChanged(int opacity)
 {
 	addInteraction(QString("Set context opacity to %1.").arg(opacity));
 	m_settingsView->lbOpacityContextValue->setText(QString::number(opacity, 'f', 2));
-	ContextOpacity = opacity;
-	visitAllVisibleVis([](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
+	m_contextOpacity = opacity;
+	visitAllVisibleVis([opacity](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
 	{
-		vis->setContextOpacity(ContextOpacity);
+		vis->setContextOpacity(opacity);
 		vis->updateColorSelectionRendering();
 	});
 	showSelectionInPlots();
@@ -2445,12 +2446,12 @@ void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 	{
 		return;
 	}
-	DiameterFactor = m_diameterFactorMapper->dstToSrc(diameterFactorInt);
-	addInteraction(QString("Set diameter modification factor to %1.").arg(DiameterFactor));
-	m_settingsView->lbDiameterFactorDefaultValue->setText(QString::number(DiameterFactor, 'f', 2));
-	visitAllVisibleVis([](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
+	m_diameterFactor = m_diameterFactorMapper->dstToSrc(diameterFactorInt);
+	addInteraction(QString("Set diameter modification factor to %1.").arg(m_diameterFactor));
+	m_settingsView->lbDiameterFactorDefaultValue->setText(QString::number(m_diameterFactor, 'f', 2));
+	visitAllVisibleVis([=](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
 	{
-		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setDiameterFactor(DiameterFactor);
+		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setDiameterFactor(m_diameterFactor);
 	});
 }
 
@@ -2460,12 +2461,12 @@ void iAFiAKErController::contextDiameterFactorChanged(int contextDiameterFactorI
 	{
 		return;
 	}
-	ContextDiameterFactor = m_diameterFactorMapper->dstToSrc(contextDiameterFactorInt);
-	addInteraction(QString("Set context diameter modification factor to %1.").arg(ContextDiameterFactor));
-	m_settingsView->lbDiameterFactorContextValue->setText(QString::number(ContextDiameterFactor, 'f', 2));
-	visitAllVisibleVis([](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
+	m_contextDiameterFactor = m_diameterFactorMapper->dstToSrc(contextDiameterFactorInt);
+	addInteraction(QString("Set context diameter modification factor to %1.").arg(m_contextDiameterFactor));
+	m_settingsView->lbDiameterFactorContextValue->setText(QString::number(m_contextDiameterFactor, 'f', 2));
+	visitAllVisibleVis([=](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
 	{
-		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setContextDiameterFactor(ContextDiameterFactor);
+		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setContextDiameterFactor(m_contextDiameterFactor);
 	});
 }
 
@@ -2931,7 +2932,7 @@ void iAFiAKErController::showSpatialOverview()
 	}
 	double range[2] = {-1.0, 1.0};
 	QSharedPointer<iALookupTable> lut(new iALookupTable());
-	*lut = iALUT::Build(range, m_colorByThemeName, 255, SelectionOpacity);
+	*lut = iALUT::Build(range, m_colorByThemeName, 255, m_selectionOpacity);
 	auto ref3D = m_resultUIs[m_referenceID].main3DVis;
 	QSignalBlocker cbBlock(m_showResultVis[m_referenceID]);
 	m_showResultVis[m_referenceID]->setChecked(true);

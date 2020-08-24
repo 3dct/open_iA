@@ -276,6 +276,15 @@ private:
 	QString m_parameterFile; //! (.csv-)file containing eventual parameters used in creating the loaded results
 	std::vector<std::vector<double>> m_paramValues;
 
+	//! number of bins in histograms in result list
+	int m_histogramBins;
+	//! opacity (0..255) of current selection and of context
+	int m_selectionOpacity, m_contextOpacity;
+	//! factors for the diameter of the current selection and of the context (< 1 -> shrink, > 1 extend, = 1.0 no change)
+	double m_diameterFactor, m_contextDiameterFactor;
+	//! column index for the columns of the result list:
+	int m_nameActionColumn, m_previewColumn, m_stackedBarColumn, m_histogramColumn;
+
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 
 	vtkSmartPointer<vtkActor> m_sampleActor;
