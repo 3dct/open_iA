@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <itkConfigure.h>    // for ITK_VERSION...
+#include "iAItkVersion.h"
 
 #include <QString>
 // Requirements:
@@ -44,7 +44,7 @@
 // for foo with 0 arguments write this:
 //   xxx_TYPED_CALL(foo, type, );
 //
-#if ITK_VERSION_MAJOR > 4 || (ITK_VERSION_MAJOR == 4 && ITK_VERSION_MINOR > 12)
+#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(4, 13, 0)
 #define ITK_EXTENDED_TYPED_CALL(function, itk_scalar_type, itk_image_type, ...) \
 {                                                                           \
 	if (itk_image_type == itk::ImageIOBase::SCALAR)                         \

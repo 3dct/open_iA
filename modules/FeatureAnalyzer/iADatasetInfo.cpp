@@ -23,6 +23,7 @@
 #include "iAFeatureAnalyzerModuleInterface.h"
 #include "FeatureAnalyzerHelpers.h"
 
+#include <iAItkVersion.h>
 #include <iAToolsITK.h>
 #include <io/iAITKIO.h>
 
@@ -225,11 +226,15 @@ void iADatasetInfo::calculateInfo()
 					generateInfo<float>( datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb ); break;
 				case itk::ImageIOBase::DOUBLE:
 					generateInfo<double>( datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb ); break;
-#if ITK_VERSION_MAJOR > 4 || (ITK_VERSION_MAJOR == 4 && ITK_VERSION_MINOR > 12)
+#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(4, 13, 0)
 				case itk::ImageIOBase::LONGLONG:
 					generateInfo<long long>(datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb); break;
 				case itk::ImageIOBase::ULONGLONG:
 					generateInfo<unsigned long long>(datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb); break;
+#endif
+#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(5, 1, 0)
+				case itk::IOComponentEnum::LDOUBLE:
+					throw std::runtime_error("Invalid component type (LDOUBLE)"); break;
 #endif
 				case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
 					//

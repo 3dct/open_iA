@@ -24,6 +24,7 @@
 #include <iAConnector.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
+#include <iAItkVersion.h>
 #include <iATypedCallHelper.h>
 
 #include <itkBilateralImageFilter.h>
@@ -36,13 +37,12 @@
 #include <itkRecursiveGaussianImageFilter.h>
 #ifndef ITKNOGPU
 #define CL_TARGET_OPENCL_VERSION 220
-#include <itkConfigure.h>    // for ITK_VERSION...
 #include <itkGPUImage.h>
 #include <itkGPUKernelManager.h>
 #include <itkGPUContextManager.h>
 #include <itkGPUImageToImageFilter.h>
 #include <itkGPUGradientAnisotropicDiffusionImageFilter.h>
-#if ITK_VERSION_MAJOR > 5 || (ITK_VERSION_MAJOR == 5 && ITK_VERSION_MINOR >= 1)
+#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(5, 1, 0)
 // split into a separate file starting with ITK 5.1 (previously included in itkGPUGradientAnisotropicDiffusionImageFilter.h)
 #include <itkGPUGradientAnisotropicDiffusionImageFilterFactory.h>
 #endif

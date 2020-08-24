@@ -20,45 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAFilter.h>
-
 #include <itkConfigure.h>    // for ITK_VERSION...
 
-#if (!defined(ITKNOGPU) && ITK_VERSION_MAJOR == 5 && ITK_VERSION_MINOR == 1)
-#ifndef _MSC_VER
-#warning("ITK 5.1 FixME: GPU option not working together with shared libraries, see https://github.com/InsightSoftwareConsortium/ITK/issues/1381. Disabling GPU support")
-#else
-#pragma message("ITK 5.1 FixME: GPU option not working together with shared libraries, see https://github.com/InsightSoftwareConsortium/ITK/issues/1381. Disabling GPU support")
-#endif
-#define ITKNOGPU
-#endif
+#define ITK_VERSION_CHECK(major, minor, patch)                              \
+  (10000000000ULL * major + 100000000ULL * minor + patch)
+#define ITK_VERSION_NUMBER                                                  \
+  ITK_VERSION_CHECK(ITK_VERSION_MAJOR, ITK_VERSION_MINOR, ITK_VERSION_PATCH)
 
-namespace itk
-{
-	class ProcessObject;
-}
-
-// Blurring
-IAFILTER_DEFAULT_CLASS(iADiscreteGaussian);
-IAFILTER_DEFAULT_CLASS(iARecursiveGaussian);
-IAFILTER_DEFAULT_CLASS(iAMedianFilter);
-class iANonLocalMeans : public iAFilter
-{
-public:
-	static QSharedPointer<iANonLocalMeans> create();
-	void abort() override;
-	bool canAbort() const override;
-private:
-	void performWork(QMap<QString, QVariant> const& parameters) override;
-	iANonLocalMeans();
-	itk::ProcessObject * m_itkProcess;
-};
-
-// Edge-Preserving
-IAFILTER_DEFAULT_CLASS(iAGradientAnisotropicDiffusion);
-IAFILTER_DEFAULT_CLASS(iACurvatureAnisotropicDiffusion);
-IAFILTER_DEFAULT_CLASS(iACurvatureFlow);
-IAFILTER_DEFAULT_CLASS(iABilateral);
-#ifndef ITKNOGPU
-IAFILTER_DEFAULT_CLASS(iAGPUEdgePreservingSmoothing)
-#endif

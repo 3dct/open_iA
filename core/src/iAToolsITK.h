@@ -21,6 +21,7 @@
 #pragma once
 
 #include "iAConsole.h"
+#include "iAItkVersion.h"
 #include "io/iAITKIO.h"
 #include "open_iA_Core_export.h"
 
@@ -183,7 +184,7 @@ iAITKIO::ImagePointer castImageTo(iAITKIO::ImagePointer img)
 			return internalCastImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img);
 		case itk::ImageIOBase::ULONG:
 			return internalCastImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img);
-#if ITK_VERSION_MAJOR > 4 || (ITK_VERSION_MAJOR == 4 && ITK_VERSION_MINOR > 12)
+#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(4, 13, 0)
 		case itk::ImageIOBase::LONGLONG:
 			return internalCastImageTo<itk::Image<long long, 3>, itk::Image<ResultPixelType, 3> >(img);
 		case itk::ImageIOBase::ULONGLONG:
@@ -237,7 +238,7 @@ iAITKIO::ImagePointer rescaleImageTo(iAITKIO::ImagePointer img, double min, doub
 		return internalRescaleImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	case itk::ImageIOBase::ULONG:
 		return internalRescaleImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
-#if ITK_VERSION_MAJOR > 4 || (ITK_VERSION_MAJOR == 4 && ITK_VERSION_MINOR > 12)
+#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(4, 13, 0)
 	case itk::ImageIOBase::LONGLONG:
 		return internalRescaleImageTo<itk::Image<long long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	case itk::ImageIOBase::ULONGLONG:
