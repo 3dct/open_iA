@@ -21,7 +21,7 @@
 #include "iANModalController.h"
 
 #include "iANModalBackgroundRemover.h" // for BACKGROUND and FOREGROUND values
-#include "iANModalSeedManager.h"
+#include "iANModalTFManager.h"
 
 #include "iALabellingAttachment.h"
 #include "dlg_labels.h"

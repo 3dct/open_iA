@@ -19,7 +19,7 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
-#include "iANModalSeedManager.h"
+#include "iANModalTFManager.h"
 
 #include "iAModality.h"
 #include "iAModalityTransfer.h"
