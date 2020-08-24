@@ -737,18 +737,8 @@ QWidget* iAFiAKErController::setupResultListView()
 			ui.mini3DVis->show();
 			ren->ResetCamera();
 			ui.previewWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
-			connect(ui.previewWidget, &iAFixedAspectWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-			connect(ui.vtkWidget, &iAVtkWidget::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
-#else
-#ifndef _MSC_VER
-			#warning("VTK >= 9.0 - Fix required for missing mouseEvent signal in QVTKOpenGLNativeWidget")
-#else
-#pragma message("VTK >= 9.0 - Fix required for missing mouseEvent signal in QVTKOpenGLNativeWidget")
-#endif
-#endif
-			// connect changes to visualizations to an update of the 3D widget:
-			// {
+			connect(ui.previewWidget, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
+			connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
 			connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
 		}
 		ui.main3DVis = create3DVis(m_ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
@@ -2363,19 +2353,19 @@ void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> cons
 	}
 }
 
-void iAFiAKErController::miniMouseEvent(QMouseEvent* ev)
-{
-	if (ev->buttons() == Qt::RightButton && ev->type() == QEvent::MouseButtonPress)
+void iAFiAKErController::previewMouseClick(Qt::MouseButton button, Qt::KeyboardModifiers modifiers)
+{	// require Ctrl + Left mouse click:
+	if (button != Qt::LeftButton || !modifiers.testFlag(Qt::ControlModifier))
 	{
-		size_t resultID = QObject::sender()->property("resultID").toULongLong();
-		addInteraction(QString("Started FiberScout for %1.").arg(resultName(resultID)));
-		MdiChild* newChild = m_mainWnd->createMdiChild(false);
-		newChild->show();
-		// wait a bit to make sure MdiChild is shown and all initialization is done
-		// TODO: Replace by connection to a signal which is emitted when MdiChild initialization done
-		QTimer::singleShot(1000, [this, resultID, newChild] { startFeatureScout(resultID, newChild); });
-		ev->accept();  // not sure if this helps, sometimes still the context menu seems to pop up
+		return;
 	}
+	size_t resultID = QObject::sender()->property("resultID").toULongLong();
+	addInteraction(QString("Started FiberScout for %1.").arg(resultName(resultID)));
+	MdiChild* newChild = m_mainWnd->createMdiChild(false);
+	newChild->show();
+	// wait a bit to make sure MdiChild is shown and all initialization is done
+	// TODO: Replace by connection to a signal which is emitted when MdiChild initialization done
+	QTimer::singleShot(1000, [this, resultID, newChild] { startFeatureScout(resultID, newChild); });
 }
 
 void iAFiAKErController::startFeatureScout(int resultID, MdiChild* newChild)

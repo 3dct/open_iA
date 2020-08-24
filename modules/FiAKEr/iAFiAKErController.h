@@ -157,7 +157,7 @@ private slots:
 	void toggleVis(int);
 	void toggleBoundingBox(int);
 	void referenceToggled();
-	void miniMouseEvent(QMouseEvent* ev);
+	void previewMouseClick(Qt::MouseButton buttons, Qt::KeyboardModifiers modifiers);
 	void optimStepSliderChanged(int);
 	void mainOpacityChanged(int);
 	void contextOpacityChanged(int);
