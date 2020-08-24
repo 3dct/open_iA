@@ -74,31 +74,15 @@ public:
 	{
 	public:
 		// default constructor
-		LabelSetMeasures()
+		LabelSetMeasures():
+			m_Source(0),
+			m_Target(0),
+			m_Union(0),
+			m_Intersection(0),
+			m_SourceComplement(0),
+			m_TargetComplement(0)
 		{
-			m_Source = 0;
-			m_Target = 0;
-			m_Union = 0;
-			m_Intersection = 0;
-			m_SourceComplement = 0;
-			m_TargetComplement = 0;
 		}
-
-		// added for completeness
-		LabelSetMeasures& operator=(const LabelSetMeasures& l)
-		{
-			if (this != &l)
-			{
-				m_Source = l.m_Source;
-				m_Target = l.m_Target;
-				m_Union = l.m_Union;
-				m_Intersection = l.m_Intersection;
-				m_SourceComplement = l.m_SourceComplement;
-				m_TargetComplement = l.m_TargetComplement;
-			}
-			return *this;
-		}
-
 		unsigned long m_Source;
 		unsigned long m_Target;
 		unsigned long m_Union;

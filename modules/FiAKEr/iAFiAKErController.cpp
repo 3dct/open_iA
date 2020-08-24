@@ -1090,9 +1090,9 @@ public:
 		m_dataIdx = idx;
 		m_range[0] = std::numeric_limits<double>::max();
 		m_range[1] = std::numeric_limits<double>::lowest();
-		for (size_t i = 0; i < m_data.size(); ++i)
+		for (iADissimilarityMatrixType::size_type i = 0; i < m_data.size(); ++i)
 		{
-			for (size_t j = 0; j < m_data[i].size(); ++j)
+			for (iADissimilarityMatrixType::size_type j = 0; j < m_data[i].size(); ++j)
 			{
 				double value = m_data[i][j].avgDissim[m_dataIdx];
 				if (value < m_range[0])
@@ -1170,9 +1170,9 @@ private:
 			std::min((geometry().height() - axisSize) / static_cast<int>(m_data.size()),
 				(geometry().width() - fullScalarBarWidth - axisSize) / static_cast<int>(m_data.size())));
 		QRect matrixRect(axisSize, axisSize, m_data.size() * cellPixel, m_data.size() * cellPixel);
-		for (size_t x = 0; x < m_data.size(); ++x)
+		for (iADissimilarityMatrixType::size_type x = 0; x < m_data.size(); ++x)
 		{
-			for (size_t y = 0; y < m_data[x].size(); ++y)
+			for (iADissimilarityMatrixType::size_type y = 0; y < m_data[x].size(); ++y)
 			{
 				QRect cellRect(matrixRect.left() + static_cast<int>(x * cellPixel),
 					matrixRect.top() + static_cast<int>(y * cellPixel),
@@ -1271,7 +1271,7 @@ QWidget* iAFiAKErController::setupMatrixView(QStringList paramNames, std::vector
 	iADissimilarityMatrixDockContent* dissimDockContent = new iADissimilarityMatrixDockContent();
 	auto measureNames = getAvailableDissimilarityMeasureNames();
 	QStringList computedMeasureNames;
-	for (size_t m = 0; m < measures.size(); ++m)
+	for (int m = 0; m < measures.size(); ++m)
 	{
 		computedMeasureNames << measureNames[measures[m]];
 	}
