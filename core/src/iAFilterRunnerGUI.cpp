@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAFilterRunnerGUI.h"
 
-#include "dlg_commoninput.h"
 #include "dlg_modalities.h"
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
@@ -272,7 +271,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	}
 	storeParameters(filter, paramValues);
 
-	//! TODO: find way to check parameters already in dlg_commoninput (before closing)
+	//! TODO: find way to check parameters already in iAParameterDlg (before closing)
 	if (!filter->checkParameters(paramValues))
 	{
 		emit finished();
