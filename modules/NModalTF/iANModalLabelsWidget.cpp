@@ -35,7 +35,7 @@ namespace {
 		label->setAutoFillBackground(true);
 		label->setPalette(palette);
 	}
-	const static int SLIDER_MAX = 100;
+	const static int SLIDER_MAX = 65535;
 	inline void setOpacity(QSlider* slider, float opacityF) {
 		int opacity = opacityF * SLIDER_MAX;
 		slider->setValue(opacity);
