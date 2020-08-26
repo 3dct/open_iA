@@ -112,11 +112,7 @@ public:
 		rmAutomatic,       //!< Range is automatically determined from chosen parameter
 		rmManual           //!< Range is manually set via minimum and maximum inputs
 	};
-#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
-	iAQSplom( QWidget * parent = 0, Qt::WindowFlags f = 0 );
-#else
-	iAQSplom(QWidget* parent = 0, Qt::WindowFlags f = QFlags<Qt::WindowType>());
-#endif
+	iAQSplom(QWidget * parent = nullptr);
 	~iAQSplom();
 
 	void setData(QSharedPointer<iASPLOMData> data, std::vector<char> const & visibility);                  //! set SPLOM data directly.
@@ -178,7 +174,7 @@ signals:
 protected:
 	void clear();                                                    //!< Clear all scatter plots in the SPLOM.
 	void initializeGL() override;                                    //!< overrides function inherited from base class.
-	void paintEvent( QPaintEvent * event ) override;                 //!< Draws all scatter plots, tick labels and axes.
+	void paintGL() override;                                         //!< Draws all scatter plots, tick labels and axes.
 	virtual bool drawPopup( QPainter& painter );                     //!< Draws popup on the splom
 	iAScatterPlot * getScatterplotAt( QPoint pos );                  //!< Get a scatter plot at mouse position.
 	void changeActivePlot( iAScatterPlot * s);

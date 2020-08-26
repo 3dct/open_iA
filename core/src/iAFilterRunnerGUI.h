@@ -22,6 +22,7 @@
 
 #include "open_iA_Core_export.h"
 
+#include "iAAbortListener.h"
 #include "iAAlgorithm.h"
 
 #include <vtkSmartPointer.h>
@@ -37,20 +38,25 @@ class MdiChild;
 
 class vtkImageData;
 
-//! GUI Runner Thread for descendants of iAFilter
+//! GUI Runner Thread for running descendants of iAFilter.
 //!
-//! Used in RunFilter (see below) as thread to run a descendant of iAFilter inside its
+//! Used in iAFilterRunnerGUI::run (see below) as thread to run a descendant of iAFilter inside its
 //! own thread
-class open_iA_Core_API iAFilterRunnerGUIThread : public iAAlgorithm
+class open_iA_Core_API iAFilterRunnerGUIThread : public iAAlgorithm, public iAAbortListener
 {
 	Q_OBJECT
 public:
-	iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild);
-	void performWork();
+	iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter,
+		QMap<QString, QVariant> paramValues, MdiChild* mdiChild, QString const& fileName);
+	void performWork() override;
 	QSharedPointer<iAFilter> filter();
+	void addInput(vtkImageData* img, QString const& fileName);
+	void abort() override;
 private:
 	QSharedPointer<iAFilter> m_filter;
 	QMap<QString, QVariant> m_paramValues;
+	QVector<QString> m_fileNames;
+	bool m_aborted;
 };
 
 
@@ -124,6 +130,7 @@ signals:
 	void finished();
 private:
 	QVector<vtkSmartPointer<vtkImageData> > m_additionalInput;
+	QVector<QString> m_additionalFileNames;
 };
 
 #define IAFILTER_RUNNER_CREATE(FilterRunnerName) \

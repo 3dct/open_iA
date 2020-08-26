@@ -22,6 +22,7 @@
 
 #include "iABatchFilter.h"
 #include "iAPatchFilter.h"
+#include "iASampleFilter.h"
 #include "iAStackReaderFilter.h"
 
 #include <iAFilterRegistry.h>
@@ -30,5 +31,6 @@ void iAMetaFiltersModuleInterface::Initialize()
 {
 	REGISTER_FILTER(iABatchFilter);
 	REGISTER_FILTER(iAPatchFilter);
+	REGISTER_FILTER_WITH_RUNNER(iASampleFilter, iASampleFilterRunnerGUI);
 	REGISTER_FILTER(iAStackReaderFilter);
 }

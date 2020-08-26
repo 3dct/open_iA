@@ -40,7 +40,7 @@ void dlg_imageproperty::Clear()
 	lWidget->clear();
 }
 
-void dlg_imageproperty::AddInfo(vtkImageData* src, iAImageInfo const & info, QString const & name, int channelCount)
+void dlg_imageproperty::AddInfo(vtkImageData* src, iAImageInfo const & info, QString const & name, size_t channelCount)
 {
 	EnterMsg(name);
 	EnterMsg( QString( "    %1: [%2 %3]  [%4 %5]  [%6 %7]" )

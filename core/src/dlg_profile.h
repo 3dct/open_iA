@@ -33,11 +33,5 @@ class dlg_profile : public QDockWidget, public Ui_Profile
 	Q_OBJECT
 public:
 	dlg_profile(QWidget *parent, vtkPolyData* profData, double rayLength);
-	~dlg_profile();
-
-public:
-	iAProfileWidget *profileWidget;
-	QGridLayout *layout;
-protected:
-	void resizeEvent (QResizeEvent *event);
+	iAProfileWidget * profileWidget;
 };

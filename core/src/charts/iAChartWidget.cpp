@@ -129,9 +129,7 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_maxXAxisSteps(AxisTicksXDefault),
 	m_drawXAxisAtZero(false)
 {
-	iAQGLFormat fmt;
-	fmt.setSamples(8);
-	setFormat(fmt);
+	setFormat(defaultOpenGLFormat());
 	updateBounds();
 	setMouseTracking(true);
 	setFocusPolicy(Qt::WheelFocus);
@@ -146,10 +144,10 @@ iAChartWidget::~iAChartWidget()
 
 void iAChartWidget::wheelEvent(QWheelEvent *event)
 {
-	if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier ||
-		(event->modifiers() & Qt::AltModifier) == Qt::Key_AltGr)
-	{
-		zoomAlongY(event->angleDelta().y(), true);
+	if (event->angleDelta().x() != 0)  // by taking .x() here, we allow to either
+	{	// use a secondary mouse wheel axis (horizontal), or the Alt modifier key
+		// (which in Qt makes primary mouse wheel act like secondary) to be used
+		zoomAlongY(event->angleDelta().x(), true);
 	}
 	else
 	{

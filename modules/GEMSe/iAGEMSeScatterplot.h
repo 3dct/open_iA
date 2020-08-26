@@ -20,13 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
+#include <iAAttributes.h>
 #include <iAVtkWidget.h>
 
 #include <vtkSmartPointer.h>
 
 #include <QSharedPointer>
 
-class iAAttributes;
 class iAChartAttributeMapper;
 class iAChartFilter;
 class iAImageTreeNode;

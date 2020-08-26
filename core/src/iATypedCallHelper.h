@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <stdexcept>
+#include "iAItkVersion.h"
 
-#include <itkConfigure.h>    // for ITK_VERSION...
+#include <stdexcept>
 
 // Requirements:
 // |function| return type must be void
@@ -46,7 +46,7 @@
 //   xxx_TYPED_CALL(foo, type, );
 //
 
-#if ITK_VERSION_MAJOR > 4 || (ITK_VERSION_MAJOR == 4 && ITK_VERSION_MINOR > 12)
+#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(4, 13, 0)
 #define ITK_TYPED_CALL(function, itk_scalar_type, ...)      \
 {                                                           \
 	switch (itk_scalar_type)                                \

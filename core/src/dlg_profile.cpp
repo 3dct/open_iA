@@ -27,21 +27,6 @@
 dlg_profile::dlg_profile(QWidget *parent, vtkPolyData* profData, double rayLength ): QDockWidget (parent)
 {
 	setupUi(this);
-	QString yCapt = "Greyvalue";
-	QString xCapt = "Distance";
-	profileWidget = new iAProfileWidget(profileAreaWidget, profData, rayLength, yCapt, xCapt);
-	layout = new QGridLayout(profileAreaWidget);
-	layout->setContentsMargins(0, 0, 0, 0);
-	layout->setObjectName(QString::fromUtf8("ProfileLayout"));
-	layout->addWidget(profileWidget);
-}
-
-dlg_profile::~dlg_profile()
-{
-	delete profileWidget;
-}
-
-void dlg_profile::resizeEvent( QResizeEvent *event )
-{
-	QWidget::resizeEvent(event);
+	profileWidget = new iAProfileWidget(profileAreaWidget, profData, rayLength, "Greyvalue", "Distance");
+	profileLayout->addWidget(profileWidget);
 }

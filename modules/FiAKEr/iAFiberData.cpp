@@ -22,7 +22,7 @@
 
 #include "iACsvConfig.h"
 
-#include "iAConsole.h"
+#include <iAConsole.h>
 
 #include <vtkMath.h>
 #include <vtkTable.h>

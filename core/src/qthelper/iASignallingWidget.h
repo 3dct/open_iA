@@ -34,9 +34,10 @@ public:
 
 signals:
 	void dblClicked();
-
+	void clicked(Qt::MouseButton button, Qt::KeyboardModifiers modifiers);
 private:
 	void mouseDoubleClickEvent(QMouseEvent* ev) override;
+	void mouseReleaseEvent(QMouseEvent* ev) override;
 	void paintEvent(QPaintEvent* ev) override;
 
 	QColor m_bgColor;

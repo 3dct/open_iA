@@ -161,7 +161,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 		<< ";Result folder"
 		<< "+CSV cormat"
 		<< "#Step coordinate shift"
-		<< "$Use last step curved data (instead of separate final curved data)"
+		<< "$Use step data"
 		<< "$Show result previews in list";
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
 	if (!formatEntries.contains(iAFiberResultsCollection::SimpleFormat))

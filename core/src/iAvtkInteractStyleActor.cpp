@@ -329,7 +329,10 @@ void iAvtkInteractStyleActor::rotate2D()
 	switch (m_currentSliceMode)
 	{
 	default:
-		DEBUG_LOG("Invalid slicer mode");  // intentional fall-through - C++ 17: [[fallthrough]]
+		DEBUG_LOG("Invalid slicer mode, defaulting to YZ.");
+#if __cplusplus >= 201703L
+		[[fallthrough]];
+#endif
 	case iASlicerMode::YZ:
 		rotationDir = transformationMode::x;
 		break;

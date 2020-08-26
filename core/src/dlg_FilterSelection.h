@@ -20,13 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 #include "ui_FilterSelection.h"
 #include "qthelper/iAQTtoUIConnector.h"
 
 
 typedef iAQTtoUIConnector<QDialog, Ui_FilterSelectionDlg> dlg_FilterSelectionConnector;
 
-class dlg_FilterSelection : public dlg_FilterSelectionConnector
+class open_iA_Core_API dlg_FilterSelection : public dlg_FilterSelectionConnector
 {
 Q_OBJECT
 public:

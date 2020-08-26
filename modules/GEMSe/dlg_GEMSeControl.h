@@ -121,5 +121,5 @@ private:
 	QString                              m_m_metaFileName;
 	QSharedPointer<iASimpleLabelInfo>    m_simpleLabelInfo;
 	LabelImagePointer                    m_refImg;
-	QMap<QString, QString>               m_samplingSettings;
+	QMap<QString, QVariant>              m_samplingSettings;
 };

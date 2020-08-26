@@ -22,11 +22,11 @@
 
 #include "iAFoamCharacterizationDialogBinarization.h"
 
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iAFilter.h"
-#include "iAFilterRegistry.h"
-#include "iAProgress.h"
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAFilter.h>
+#include <iAFilterRegistry.h>
+#include <iAProgress.h>
 
 #include <vtkImageData.h>
 
@@ -35,15 +35,15 @@
 #include <QFile>
 
 iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
-																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
-	                                : iAFoamCharacterizationItem(_pTable, _pImageData, iAFoamCharacterizationItem::itBinarization)
+	(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
+	: iAFoamCharacterizationItem(_pTable, _pImageData, iAFoamCharacterizationItem::itBinarization)
 {
 	m_pImageDataMask = vtkSmartPointer<vtkImageData>::New();
 }
 
 iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
-                                                                          (iAFoamCharacterizationItemBinarization* _pBinarization)
-	                                                                                  : iAFoamCharacterizationItem(_pBinarization)
+	(iAFoamCharacterizationItemBinarization* _pBinarization)
+	: iAFoamCharacterizationItem(_pBinarization)
 {
 	setName(_pBinarization->name());
 
@@ -63,7 +63,7 @@ iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
 void iAFoamCharacterizationItemBinarization::dialog()
 {
 	QScopedPointer<iAFoamCharacterizationDialogBinarization> pDialog
-	                                                    (new iAFoamCharacterizationDialogBinarization(this, qApp->focusWidget()));
+		(new iAFoamCharacterizationDialogBinarization(this, qApp->focusWidget()));
 	pDialog->exec();
 }
 
@@ -105,7 +105,7 @@ void iAFoamCharacterizationItemBinarization::executeBinarization()
 	auto filter = iAFilterRegistry::filter("Binary Thresholding");
 	filter->setLogger(iAConsoleLogger::get());
 	filter->setProgress(pObserver.data());
-	filter->addInput(&con);
+	filter->addInput(&con, "");
 	QMap<QString, QVariant> parameters;
 	parameters["Lower threshold"] = m_usLowerThreshold;
 	parameters["Upper threshold"] = m_usUpperThreshold;
@@ -125,7 +125,7 @@ void iAFoamCharacterizationItemBinarization::executeOtzu()
 	auto filter = iAFilterRegistry::filter("Otsu Threshold");
 	filter->setLogger(iAConsoleLogger::get());
 	filter->setProgress(pObserver.data());
-	filter->addInput(&con);
+	filter->addInput(&con, "");
 	QMap<QString, QVariant> parameters;
 	parameters["Remove peaks"] = false;
 	parameters["Number of histogram bins"] = m_uiOtzuHistogramBins;
@@ -200,7 +200,7 @@ void iAFoamCharacterizationItemBinarization::save(QFile* _pFileSave)
 }
 
 void iAFoamCharacterizationItemBinarization::setItemFilterType
-                                                 (const iAFoamCharacterizationItemBinarization::EItemFilterType& _eItemFilterType)
+	(const iAFoamCharacterizationItemBinarization::EItemFilterType& _eItemFilterType)
 {
 	m_eItemFilterType = _eItemFilterType;
 }

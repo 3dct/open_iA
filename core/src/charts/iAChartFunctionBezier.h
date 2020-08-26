@@ -29,12 +29,13 @@
 
 class QPointF;
 
+//! Class representing a bezier curve in an iAChartWithFunctionsWidget.
+//! Draws itself, and allows adding, removing and modifying points (and their directions).
 class open_iA_Core_API iAChartFunctionBezier : public iAChartFunction
 {
 public:
 	iAChartFunctionBezier(iAChartWithFunctionsWidget *chart, QColor &color, bool reset = true);
 
-	int getType() const override { return BEZIER; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor penColor, int lineWidth) override;
 	void drawOnTop(QPainter&) override {}

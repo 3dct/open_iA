@@ -20,11 +20,17 @@
 * ************************************************************************************/
 #include "iASignallingWidget.h"
 
+#include <QMouseEvent>
 #include <QPainter>
 
-void iASignallingWidget::mouseDoubleClickEvent(QMouseEvent* /*ev*/)
+void iASignallingWidget::mouseDoubleClickEvent(QMouseEvent*)
 {
 	emit dblClicked();
+}
+
+void iASignallingWidget::mouseReleaseEvent(QMouseEvent* ev)
+{
+	emit clicked(ev->button(), ev->modifiers());
 }
 
 void iASignallingWidget::setBackgroundColor(QColor const & color)
@@ -37,6 +43,8 @@ void iASignallingWidget::paintEvent(QPaintEvent* /*ev*/)
 {
 	QPainter painter(this);
 	if (!m_bgColor.isValid())
+	{
 		m_bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	}
 	painter.fillRect(rect(), QBrush(m_bgColor));
 }

@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #include "iAStackedBarChart.h"
 
-#include "iAColorTheme.h"
-#include "iAConsole.h"
-#include "iAMathUtility.h"
+#include <iAColorTheme.h>
+#include <iAConsole.h>
+#include <iAMathUtility.h>
 
 #include <QAction>
 #include <QMenu>

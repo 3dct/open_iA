@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAFilterRunnerGUI.h"
 
-#include "dlg_commoninput.h"
 #include "dlg_modalities.h"
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
@@ -30,6 +29,7 @@
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAParameterDlg.h"
+#include "io/iAFileUtils.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
@@ -49,20 +49,31 @@ class vtkImageData;
 
 // iAFilterRunnerGUIThread
 
-iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild) :
+iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter,
+	QMap<QString, QVariant> paramValues, MdiChild* mdiChild, QString const & fileName) :
 	iAAlgorithm(filter->name(), mdiChild->imagePointer(), mdiChild->polyData(), mdiChild->logger(), mdiChild),
 	m_filter(filter),
-	m_paramValues(paramValues)
-{}
+	m_paramValues(paramValues),
+	m_aborted(false)
+{
+	m_fileNames.push_back(fileName);
+}
 
 void iAFilterRunnerGUIThread::performWork()
 {
 	m_filter->setProgress(ProgressObserver());
-	for (iAConnector* con : Connectors())
-		m_filter->addInput(con);
+	assert(Connectors().size() == m_fileNames.size());
+	for (int i = 0; i < Connectors().size(); ++i)
+	{
+		m_filter->addInput(Connectors()[i], m_fileNames[i]);
+	}
 	if (!m_filter->run(m_paramValues))
 	{
 		m_filter->logger()->log("Running filter failed!");
+		return;
+	}
+	if (m_aborted)
+	{
 		return;
 	}
 	allocConnectors(m_filter->output().size());
@@ -72,19 +83,31 @@ void iAFilterRunnerGUIThread::performWork()
 	}
 }
 
+void iAFilterRunnerGUIThread::abort()
+{
+	m_aborted = true;
+	m_filter->abort();
+}
+
 QSharedPointer<iAFilter> iAFilterRunnerGUIThread::filter()
 {
 	return m_filter;
 }
 
+void iAFilterRunnerGUIThread::addInput(vtkImageData* img, QString const& fileName)
+{
+	AddImage(img);
+	m_fileNames.push_back(fileName);
+}
+
 
 namespace
 {
-	QString SettingName(QSharedPointer<iAFilter> filter, QSharedPointer<iAAttributeDescriptor> param)
+	QString SettingName(QSharedPointer<iAFilter> filter, QString paramName)
 	{
 		QString filterNameShort(filter->name());
 		filterNameShort.replace(" ", "");
-		return QString("Filters/%1/%2/%3").arg(filter->category()).arg(filterNameShort).arg(param->name());
+		return QString("Filters/%1/%2/%3").arg(filter->category()).arg(filterNameShort).arg(paramName);
 	}
 }
 
@@ -97,7 +120,7 @@ QSharedPointer<iAFilterRunnerGUI> iAFilterRunnerGUI::create()
 	return QSharedPointer<iAFilterRunnerGUI>(new iAFilterRunnerGUI());
 }
 
-QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* /*sourceMdi*/)
+QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
 {
 	auto params = filter->parameters();
 	QMap<QString, QVariant> result;
@@ -105,7 +128,10 @@ QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilte
 	for (auto param : params)
 	{
 		QVariant defaultValue = (param->valueType() == Categorical) ? "" : param->defaultValue();
-		result.insert(param->name(), settings.value(SettingName(filter, param), defaultValue));
+		QVariant value = (param->valueType() == FileNameSave) ?
+			pathFileBaseName(sourceMdi->fileInfo()) + param->defaultValue().toString() :
+			settings.value(SettingName(filter, param->name()), defaultValue);
+		result.insert(param->name(), value);
 	}
 	return result;
 }
@@ -114,20 +140,28 @@ void iAFilterRunnerGUI::storeParameters(QSharedPointer<iAFilter> filter, QMap<QS
 {
 	auto params = filter->parameters();
 	QSettings settings;
+	for (QString key : paramValues.keys())
+	{
+		settings.setValue(SettingName(filter, key), paramValues[key]);
+	}
+	// just some checking whether there are values for all parameters:
 	for (auto param : params)
 	{
-		settings.setValue(SettingName(filter, param), paramValues[param->name()]);
+		if (!paramValues.contains(param->name()))
+		{
+			DEBUG_LOG(QString("No value for parameter '%1'").arg(param->name()));
+		}
 	}
 }
 
 bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
 	MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput)
 {
-	QVector<pParameter> dlgParams;
+	iAAttributes dlgParams;
 	bool showROI = false;	// TODO: find better way to check this?
 	for (auto filterParam : filter->parameters())
 	{
-		pParameter p(filterParam->clone());
+		QSharedPointer<iAAttributeDescriptor> p(filterParam->clone());
 		if (p->valueType() == Categorical)
 		{
 			QStringList comboValues = p->defaultValue().toStringList();
@@ -205,6 +239,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 			for (int m = 0; m < otherMdis[mdiIdx]->modalities()->size(); ++m)
 			{
 				m_additionalInput.push_back(otherMdis[mdiIdx]->modality(m)->image());
+				m_additionalFileNames.push_back(otherMdis[mdiIdx]->modality(m)->fileName());
 			}
 		}
 	}
@@ -222,6 +257,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	if (filter->requiredInputs() > 0 && (!sourceMdi || !sourceMdi->isFullyLoaded()))
 	{
 		mainWnd->statusBar()->showMessage("Please wait until file is fully loaded!");
+		emit finished();
 		return;
 	}
 
@@ -230,13 +266,15 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 
 	if (!askForParameters(filter, paramValues, sourceMdi, mainWnd, true))
 	{
+		emit finished();
 		return;
 	}
 	storeParameters(filter, paramValues);
 
-	//! TODO: find way to check parameters already in dlg_commoninput (before closing)
+	//! TODO: find way to check parameters already in iAParameterDlg (before closing)
 	if (!filter->checkParameters(paramValues))
 	{
+		emit finished();
 		return;
 	}
 
@@ -249,29 +287,32 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	if (!mdiChild)
 	{
 		mainWnd->statusBar()->showMessage("Cannot create result child!", 5000);
+		emit finished();
 		return;
 	}
 	filterGUIPreparations(filter, mdiChild, mainWnd, paramValues);
-	iAFilterRunnerGUIThread* thread = new iAFilterRunnerGUIThread(filter, paramValues, mdiChild);
+	iAFilterRunnerGUIThread* thread = new iAFilterRunnerGUIThread(filter, paramValues, mdiChild, mdiChild->fileName());
 	if (!thread)
 	{
 		mainWnd->statusBar()->showMessage("Cannot create result calculation thread!", 5000);
+		emit finished();
 		return;
 	}
 	// TODO: move all image adding here?
 	for (int m = 1; m < sourceMdi->modalities()->size(); ++m)
 	{
-		thread->AddImage(sourceMdi->modality(m)->image());
+		thread->addInput(sourceMdi->modality(m)->image(), sourceMdi->modality(m)->fileName());
 	}
 	filter->setFirstInputChannels(sourceMdi->modalities()->size());
-	for (auto img : m_additionalInput)
+	for (int a=0; a < m_additionalInput.size(); ++a)
 	{
-		thread->AddImage(img);
+		thread->addInput(m_additionalInput[a], m_additionalFileNames[a]);
 	}
 	if (thread->Connectors().size() < filter->requiredInputs())
 	{
 		mdiChild->addMsg(QString("Not enough inputs specified, filter %1 requires %2 input images!")
 			.arg(filter->name()).arg(filter->requiredInputs()));
+		emit finished();
 		return;
 	}
 	if (mdiChild->preferences().PrintParameters && !filter->parameters().isEmpty())
@@ -293,6 +334,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	}
 	connectThreadSignals(mdiChild, thread);
 	mdiChild->addStatusMsg(filter->name());
+	mdiChild->addJob(filter->name(), thread->ProgressObserver(), thread, filter->canAbort() ? thread : nullptr);
 	mainWnd->statusBar()->showMessage(filter->name(), 5000);
 	thread->start();
 }

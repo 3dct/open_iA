@@ -22,7 +22,7 @@
 
 #include "iAVRInteractor.h"
 
-#include "iAConsole.h"
+#include <iAConsole.h>
 
 #include <vtkOpenVRRenderer.h>
 #include <vtkOpenVRRenderWindow.h>

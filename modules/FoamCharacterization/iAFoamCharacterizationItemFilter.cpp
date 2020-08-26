@@ -23,8 +23,8 @@
 #include "iAFoamCharacterizationDialogFilter.h"
 #include "iAFoamCharacterizationTable.h"
 
-#include "iAConnector.h"
-#include "iAProgress.h"
+#include <iAConnector.h>
+#include <iAProgress.h>
 
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>

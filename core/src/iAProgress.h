@@ -51,6 +51,7 @@ public:
 	//! observe a VTK algorithm (and pass on its progress report)
 	//! @param caller the VTK algorithm to observe
 	void observe( vtkAlgorithm* caller );
+public slots:
 	//! Trigger a progress event manually.
 	//! @param p the current percentage of progress (number between 0 and 100)
 	void emitProgress(int p);

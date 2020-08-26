@@ -218,7 +218,7 @@ void iAQSplom::selectionModeRectangle()
 	setSelectionMode(iAScatterPlot::Rectangle);
 }
 
-iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
+iAQSplom::iAQSplom(QWidget * parent):
 	iAQGLWidget(parent),
 	settings(),
 	m_lut(new iALookupTable()),
@@ -236,16 +236,12 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	m_separationIdx(-1),
 	m_bgColorTheme(iAColorThemeManager::instance().theme("White")),
 	m_contextMenu(new QMenu(this)),
-	m_settingsDlg(new iASPMSettings(this, f))
+	m_settingsDlg(new iASPMSettings(this))
 {
-	setWindowFlags(f);
+	setFormat(defaultOpenGLFormat());
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
 	setBackgroundRole(QPalette::Base);
-	setAutoFillBackground(true);
-	iAQGLFormat format;
-	format.setSamples(4);
-	setFormat(format);
 	m_animationIn->setDuration( settings.animDuration );
 	m_animationOut->setDuration( settings.animDuration );
 
@@ -1076,7 +1072,7 @@ int iAQSplom::invert( int val ) const
 	return ( getVisibleParametersCount() - val - 1 );
 }
 
-void iAQSplom::paintEvent(QPaintEvent * /*event*/)
+void iAQSplom::paintGL()
 {
 	QPainter painter( this );
 	painter.setRenderHint(QPainter::Antialiasing);
@@ -1208,7 +1204,10 @@ void iAQSplom::paintEvent(QPaintEvent * /*event*/)
 	switch (settings.colorMode)
 	{
 	case cmAllPointsSame: scalarBarCaption = "Uniform"; break;
-	case cmCustom:        // intentional fall-through:
+	case cmCustom:
+#if __cplusplus >= 201703L
+		[[fallthrough]];
+#endif
 	case cmByParameter  : scalarBarCaption = m_splomData->parameterName(m_colorLookupParam); break;
 	default:              scalarBarCaption = "Unknown"; break;
 	}
@@ -1757,7 +1756,9 @@ void iAQSplom::updateLookupTable()
 			{
 				DEBUG_LOG("Invalid color state!");
 			}
-			// intentional fall-through!
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case cmCustom:
 			m_lut->setOpacity(alpha);
 	}

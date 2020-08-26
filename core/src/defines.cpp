@@ -20,6 +20,9 @@
 * ************************************************************************************/
 #include "defines.h"
 
+const QString organisationName("FHW");
+const QString applicationName("open_iA");
+
 QColor* PredefinedColors()
 {
 	static QColor PredefColors[7] = {

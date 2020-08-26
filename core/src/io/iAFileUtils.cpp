@@ -88,3 +88,8 @@ QString fileNameOnly(QString const & f)
 {
 	return QFileInfo(f).fileName();
 }
+
+QString pathFileBaseName(QFileInfo const& fi)
+{
+	return fi.absolutePath() + "/" + fi.completeBaseName();
+}

@@ -41,7 +41,7 @@ QSharedPointer<iASamplingResults> dlg_samplings::GetSampling(int idx)
 
 void dlg_samplings::Add(QSharedPointer<iASamplingResults> samplingResults)
 {
-	QStandardItem* newItem = new QStandardItem(samplingResults->GetFileName());
+	QStandardItem* newItem = new QStandardItem(samplingResults->fileName());
 	m_samplings->push_back(samplingResults);
 	m_itemModel->appendRow(newItem);
 }

@@ -24,10 +24,10 @@
 #include <itkCannySegmentationLevelSetImageFilter.h>
 #include <itkZeroCrossingImageFilter.h>
 
-#include "defines.h"    // for DIM
-#include "iAConnector.h"
-#include "iAProgress.h"
-#include "iATypedCallHelper.h"
+#include <defines.h>    // for DIM
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
 
 template<class T>
 void laplacianSegmentationLevelSet(iAFilter* filter, QMap<QString, QVariant> const & parameters)
@@ -64,7 +64,7 @@ iALaplacianSegmentationLevelSet::iALaplacianSegmentationLevelSet() :
 		"Laplacian Segmentation Level Set Image Filter</a> in the ITK documentation.", 2)
 {
 	addParameter("Maximum RMS error", Continuous, 0.002, 0.0, 1.0);
-	addParameter("Number of iterations", Discrete, 1000, 1, std::numeric_limits<unsigned long long>::max());
+	addParameter("Number of iterations", Discrete, 1000, 1, static_cast<double>(std::numeric_limits<uint64_t>::max()));
 	addParameter("Advection scaling", Continuous, 1.0);
 	addParameter("Propagation scaling", Continuous, 1.0);
 	addParameter("Curvature scaling", Continuous, 1.0);
@@ -114,7 +114,7 @@ iACannySegmentationLevelSet::iACannySegmentationLevelSet() :
 		"Canny Segmentation Level Set Image Filter</a> in the ITK documentation.", 2)
 {
 	addParameter("Maximum RMS error", Continuous, 0.002, 0.0, 1.0);
-	addParameter("Number of iterations", Discrete, 1000, 1, std::numeric_limits<unsigned long long>::max());
+	addParameter("Number of iterations", Discrete, 1000, 1, static_cast<double>(std::numeric_limits<uint64_t>::max()));
 	addParameter("Advection scaling", Continuous, 1.0);
 	addParameter("Propagation scaling", Continuous, 1.0);
 	addParameter("Curvature scaling", Continuous, 1.0);

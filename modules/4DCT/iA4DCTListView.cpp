@@ -22,7 +22,8 @@
 
 #include "iA4DCTSettings.h"
 #include "iAStageView.h"
-#include "mainwindow.h"
+
+#include <mainwindow.h>
 
 #include <QMenu>
 #include <QAction>

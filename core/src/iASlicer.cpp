@@ -43,7 +43,7 @@
 #include "iAToolsITK.h"
 #include "iAToolsVTK.h"
 #include "iAVtkVersion.h"
-#include "iAWrapperText.h"
+#include "iAVtkText.h"
 #include "io/iAIOProvider.h"
 #include "mainwindow.h"
 #include "mdichild.h"
@@ -376,13 +376,12 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 			m_axisTransform[i] = vtkSmartPointer<vtkTransform>::New();
 			m_axisTextActor[i] = vtkSmartPointer<vtkTextActor3D>::New();
 		}
-		m_textInfo = vtkSmartPointer<iAWrapperText>::New();
+		m_textInfo = vtkSmartPointer<iAVtkText>::New();
 		m_rulerWidget = vtkSmartPointer<iARulerWidget>::New();
 
-		m_textInfo->AddToScene(m_ren);
-		m_textInfo->SetText(" ");
-		m_textInfo->SetPosition(iAWrapperText::POS_LOWER_LEFT);
-		m_textInfo->Show(1);
+		m_textInfo->addToScene(m_ren);
+		m_textInfo->setText(" ");
+		m_textInfo->show(true);
 
 		QImage img;
 		img.load(":/images/fhlogo.png");
@@ -637,8 +636,8 @@ void iASlicer::setup( iASingleSlicerSettings const & settings )
 	{
 		m_axisTextActor[0]->SetVisibility(settings.ShowAxesCaption);
 		m_axisTextActor[1]->SetVisibility(settings.ShowAxesCaption);
-		m_textInfo->GetTextMapper()->GetTextProperty()->SetFontSize(settings.ToolTipFontSize);
-		m_textInfo->GetActor()->SetVisibility(settings.ShowTooltip);
+		m_textInfo->setFontSize(settings.ToolTipFontSize);
+		m_textInfo->show(settings.ShowTooltip);
 	}
 	if (m_magicLens)
 	{
@@ -1563,8 +1562,8 @@ void iASlicer::printVoxelInformation()
 	}
 
 	// Update the info text with pixel coordinates/value if requested.
-	m_textInfo->GetActor()->SetPosition(m_interactor->GetEventPosition()[0] + 10, m_interactor->GetEventPosition()[1] + 10);
-	m_textInfo->GetTextMapper()->SetInput(strDetails.toStdString().c_str());
+	m_textInfo->setPosition(m_interactor->GetEventPosition()[0] + 10, m_interactor->GetEventPosition()[1] + 10);
+	m_textInfo->setText(strDetails.toStdString().c_str());
 	m_positionMarkerMapper->Update();
 }
 
@@ -1597,7 +1596,7 @@ void iASlicer::executeKeyPressEvent()
 		break;
 	}
 }
-
+/*
 void iASlicer::defaultOutput()
 {
 	if (!m_decorations)
@@ -1605,13 +1604,13 @@ void iASlicer::defaultOutput()
 		return;
 	}
 	QString strDetails(" ");
-	m_textInfo->GetActor()->SetPosition(20, 20);
-	m_textInfo->GetTextMapper()->SetInput(strDetails.toStdString().c_str());
+	//m_textInfo->actor()->SetPosition(20, 20);
+	m_textInfo->setText(strDetails.toStdString().c_str());
 	m_positionMarkerActor->SetVisibility(false);
 	m_interactor->ReInitialize();
 	m_interactor->Render();
 }
-
+*/
 /*
 void iASlicer::snapToHighGradient(double &x, double &y)
 {
@@ -1807,7 +1806,7 @@ void iASlicer::setShowText(bool isVisible)
 	{
 		return;
 	}
-	m_textInfo->Show(isVisible);
+	m_textInfo->show(isVisible);
 }
 
 void iASlicer::enableChannel(uint id, bool enabled)
@@ -2251,7 +2250,7 @@ void iASlicer::mouseDoubleClickEvent(QMouseEvent* event)
 void iASlicer::contextMenuEvent(QContextMenuEvent *event)
 {
 	m_actionToggleWindowLevelAdjust->setChecked(m_interactorStyle->windowLevelAdjustEnabled());
-	m_actionShowTooltip->setChecked(m_textInfo->GetActor()->GetVisibility());
+	m_actionShowTooltip->setChecked(m_textInfo->isShown());
 	m_actionFisheyeLens->setChecked(m_fisheyeLensActivated);
 	if (m_magicLens)
 	{
@@ -2496,7 +2495,7 @@ void iASlicer::toggleWindowLevelAdjust()
 
 void iASlicer::toggleShowTooltip()
 {
-	m_textInfo->GetActor()->SetVisibility(m_actionShowTooltip->isChecked());
+	m_textInfo->show(m_actionShowTooltip->isChecked());
 }
 
 void iASlicer::fisheyeLensToggled(bool enabled)

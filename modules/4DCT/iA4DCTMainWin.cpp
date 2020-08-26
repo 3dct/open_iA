@@ -25,11 +25,12 @@
 #include "iA4DCTProjectReaderWriter.h"
 #include "iA4DCTSettings.h"
 #include "iA4DCTVisWin.h"
-#include "iAConsole.h"
 #include "iAMhdFileInfo.h"
 #include "iAPreviewMaker.h"
 #include "iAStageView.h"
-#include "mainwindow.h"
+
+#include <iAConsole.h>
+#include <mainwindow.h>
 
 #include <itkImageFileReader.h>
 #include <itkImageRegionIterator.h>

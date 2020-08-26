@@ -25,7 +25,7 @@
 #include <cassert>
 #include <cstdlib>
 
-inline float Rand( float a_Range ) { return ((float)rand() / RAND_MAX) * a_Range; }
+inline float Rand( float a_Range ) { return (rand() / static_cast<float>(RAND_MAX)) * a_Range; }
 
 int ParseConfigFile(iADreamCasterSettings * s)
 {

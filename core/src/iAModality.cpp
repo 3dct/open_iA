@@ -227,9 +227,9 @@ void iAModality::updateRenderer()
 
 template <typename T>
 void getTypeMinMaxRange(double & minR, double & maxR)
-{
-	minR = std::numeric_limits<T>::lowest();
-	maxR = std::numeric_limits<T>::max();
+{	// closest representation in double for data type range; for 64bit types this deviates slightly from actual range!
+	minR = static_cast<double>(std::numeric_limits<T>::lowest());
+	maxR = static_cast<double>(std::numeric_limits<T>::max());
 }
 
 void iAModality::setData(vtkSmartPointer<vtkImageData> imgData)
