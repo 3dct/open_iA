@@ -155,8 +155,8 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			file.close();
 		}
 	}
-	iAProgress p;	// dummy progress swallowing progress from filter which we don't want to propagate
-	filter->setProgress(&p);
+	iAProgress dummyProgress;	// dummy progress swallowing progress from filter which we don't want to propagate
+	filter->setProgress(&dummyProgress);
 	filter->setLogger(logger());
 
 	QStringList filters = parameters["File mask"].toString().split(";");
@@ -227,9 +227,29 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 						filter->addInput(inputImages[i], additionalFileNames[i]);
 					}
 				}
+				/*
+				// attempt to make input filename accessible to filter,
+				// in order for filters to be able to deduce their output names automatically
+				// -> now rather FileNameSave parameters get set by Batch and Sample filters!
 				for (int i = 0; i < inputImages.size(); ++i)
 				{
 					filterParams[QString("Input file %1").arg(i)] = fileName;
+				}
+				*/
+			}
+			for (auto const& param: filter->parameters())
+			{
+				if (param->valueType() == FileNameSave)
+				{	// all output file names need to be adapted to output file name;
+					// merge with code in iASampleBuiltInFilterOperation?
+					auto value = pathFileBaseName(fileName) + param->defaultValue().toString();
+					if (QFile::exists(value) && !overwrite)
+					{
+						DEBUG_LOG(QString("Output file '%1' already exists! Aborting. "
+							"Check '%2' to overwrite existing files.").arg(value).arg(spnOverwriteOutput));
+						return;
+					}
+					filterParams[param->name()] = value;
 				}
 			}
 			filter->run(filterParams);
