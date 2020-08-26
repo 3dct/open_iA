@@ -54,11 +54,11 @@ public:
 	virtual QSharedPointer<iAAttributeDescriptor> currentDescriptor() = 0;
 };
 
-class MetaFilters_API dlg_samplingSettings : public dlg_samplingSettingsUI
+class MetaFilters_API iASamplingSettingsDlg : public dlg_samplingSettingsUI
 {
 	Q_OBJECT
 public:
-	dlg_samplingSettings(QWidget* parentWdgt, int inputImageCount,
+	iASamplingSettingsDlg(QWidget* parentWdgt, int inputImageCount,
 		iASettings const & values);
 	QSharedPointer<iAAttributes> parameterRanges();
 	void getValues(iASettings & values) const;

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASampleFilter.h"
 
-#include "dlg_samplingSettings.h"
+#include "iASamplingSettingsDlg.h"
 #include "iAImageSampler.h"
 #include "iASamplingMethodImpl.h"
 #include "iAParameterNames.h"
@@ -138,7 +138,7 @@ bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, 
 		DEBUG_LOG("Invalid use of iASampleFilterRunnerGUI for a filter other than Sample Filter!");
 		return false;
 	}
-	dlg_samplingSettings dlg(mainWnd, sourceMdi->modalities()->size(), parameters);
+	iASamplingSettingsDlg dlg(mainWnd, sourceMdi->modalities()->size(), parameters);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;

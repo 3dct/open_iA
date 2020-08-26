@@ -39,7 +39,7 @@ class dlg_Consensus;
 class dlg_modalities;
 class dlg_progress;
 class dlg_samplings;
-class dlg_samplingSettings;
+class iASamplingSettingsDlg;
 class iAColorTheme;
 class iASimpleLabelInfo;
 class iASamplingResults;
@@ -105,7 +105,7 @@ private:
 
 
 	dlg_modalities*                      m_dlgModalities;
-	dlg_samplingSettings*                m_dlgSamplingSettings;
+	iASamplingSettingsDlg*               m_dlgSamplingSettings;
 	dlg_progress*						 m_dlgProgress;
 	dlg_GEMSe*                           m_dlgGEMSe;
 	dlg_labels*                          m_dlgLabels;
