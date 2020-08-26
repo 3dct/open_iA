@@ -20,43 +20,35 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_TFTable.h"
+#include "open_iA_Core_export.h"
+
+#include "ui_FilterSelection.h"
 #include "qthelper/iAQTtoUIConnector.h"
 
-#include <vtkSmartPointer.h>
 
-class iAChartFunction;
-class iAChartWithFunctionsWidget;
+typedef iAQTtoUIConnector<QDialog, Ui_FilterSelectionDlg> iAFilterSelectionConnector;
 
-class vtkPiecewiseFunction;
-class vtkColorTransferFunction;
-
-typedef iAQTtoUIConnector<QDialog, Ui_TFTableWidget>  dlg_TFTableWidgetConnector;
-
-class dlg_TFTable : public dlg_TFTableWidgetConnector
+//! Dialog for selecting a filter from the ones currently registered with the iAFilterRegistry.
+class open_iA_Core_API iAFilterSelectionDlg : public iAFilterSelectionConnector
 {
-	Q_OBJECT
-
+Q_OBJECT
 public:
-	dlg_TFTable( iAChartWithFunctionsWidget * parent, iAChartFunction* func );
-
+	//! Create a new filter selection dialog.
+	//! @param parent the parent widget of the dialog (dialog will be a top level window if you pass nullptr)
+	//! @param preselectedFilter the name of a filter that should be preselected in the dialog
+	iAFilterSelectionDlg(QWidget * parent, QString const & preselectedFilter = "");
+	//! Retrieve the name of the filter that the user has selected.
+	//! @return a filter name as it can be passed to iAFilterRegistry::filter() for creating an instance of the filter.
+	QString selectedFilterName() const;
 public slots:
-	void changeColor();
-	void addPoint();
-	void removeSelectedPoint();
-	void updateHistogram();
-	void itemClicked( QTableWidgetItem * );
-	void cellValueChanged( int, int );
-	void updateTable();
-
+	//! Called when the user has changed the content of the input field on top of the dialog.
+	//! Causes the list of filters to be updated to only show the ones
+	//! where at least a part of the name matches what the user has entered.
+	void filterChanged(QString const &);
+	//! Called when the user selects a filter from the list.
+	void listSelectionChanged(QListWidgetItem *, QListWidgetItem *);
 private:
-	void Init();
-	bool isValueXValid(double xVal, int row = -1);
-
-	vtkSmartPointer<vtkPiecewiseFunction> m_oTF;
-	vtkSmartPointer<vtkColorTransferFunction> m_cTF;
-	QColor m_newPointColor;
-	double m_xRange[2];
-	double m_oldItemValue;
-	iAChartWithFunctionsWidget* m_parent;
+	//! check whether one (shown) item is selected, and if it is, show its description and enable OK button.
+	void updateOKAndDescription();
+	int m_curMatches;
 };

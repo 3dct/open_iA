@@ -24,7 +24,7 @@
 #include "iASamplingMethodImpl.h"
 #include "iAParameterNames.h"
 
-#include <dlg_FilterSelection.h>
+#include <iAFilterSelectionDlg.h>
 #include <iAAttributeDescriptor.h>
 #include <iAConsole.h>
 #include <iAFilter.h>
@@ -558,7 +558,7 @@ void dlg_samplingSettings::loadSettings()
 void dlg_samplingSettings::selectFilter()
 {
 	QPushButton* sender = qobject_cast<QPushButton*>(QObject::sender());
-	dlg_FilterSelection filterSelectionDlg(this, sender->text());
+	iAFilterSelectionDlg filterSelectionDlg(this, sender->text());
 	if (!filterSelectionDlg.exec())
 	{
 		return;

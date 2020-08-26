@@ -21,7 +21,7 @@
 #include "dlg_commoninput.h"
 
 #include "iAAttributeDescriptor.h"
-#include "dlg_FilterSelection.h"
+#include "iAFilterSelectionDlg.h"
 #include "iAConsole.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
@@ -220,7 +220,7 @@ QVector<QWidget*> dlg_commoninput::widgetList()
 void dlg_commoninput::SelectFilter()
 {
 	QPushButton* sender = qobject_cast<QPushButton*>(QObject::sender());
-	dlg_FilterSelection dlg(this, sender->text());
+	iAFilterSelectionDlg dlg(this, sender->text());
 	if (dlg.exec())
 	{
 		QString filterName = dlg.selectedFilterName();

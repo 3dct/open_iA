@@ -2372,6 +2372,7 @@ void iAFiAKErController::previewMouseClick(Qt::MouseButton button, Qt::KeyboardM
 void iAFiAKErController::startFeatureScout(int resultID, MdiChild* newChild)
 {
 	iACsvConfig config(m_config);
+	// fails if config.visType is labelled volume
 	config.fileName = m_data->result[resultID].fileName;
 	config.curvedFiberFileName = m_data->result[resultID].curvedFileName;
 	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();

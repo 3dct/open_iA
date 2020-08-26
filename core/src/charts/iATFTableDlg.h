@@ -20,25 +20,43 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
-
-#include "ui_FilterSelection.h"
+#include "ui_TFTable.h"
 #include "qthelper/iAQTtoUIConnector.h"
 
+#include <vtkSmartPointer.h>
 
-typedef iAQTtoUIConnector<QDialog, Ui_FilterSelectionDlg> dlg_FilterSelectionConnector;
+class iAChartFunction;
+class iAChartWithFunctionsWidget;
 
-class open_iA_Core_API dlg_FilterSelection : public dlg_FilterSelectionConnector
+class vtkPiecewiseFunction;
+class vtkColorTransferFunction;
+
+typedef iAQTtoUIConnector<QDialog, Ui_TFTableWidget>  iATFTableWidgetConnector;
+
+//! Dialog for editing the precise values of a transfer function.
+class iATFTableDlg : public iATFTableWidgetConnector
 {
-Q_OBJECT
+	Q_OBJECT
+
 public:
-	dlg_FilterSelection(QWidget * parent, QString const & preselectedFilter = "");
-	QString selectedFilterName() const;
+	iATFTableDlg( iAChartWithFunctionsWidget * parent, iAChartFunction* func );
+
 public slots:
-	void filterChanged(QString const &);
-	void listSelectionChanged(QListWidgetItem *, QListWidgetItem *);
+	void changeColor();
+	void addPoint();
+	void removeSelectedPoint();
+	void updateHistogram();
+	void itemClicked( QTableWidgetItem * );
+	void cellValueChanged( int, int );
+	void updateTable();
+
 private:
-	//! check whether one (shown) item is selected, and if it is, show its description and enable OK button.
-	void updateOKAndDescription();
-	int m_curMatches;
+	bool isValueXValid(double xVal, int row = -1);
+
+	vtkSmartPointer<vtkPiecewiseFunction> m_oTF;
+	vtkSmartPointer<vtkColorTransferFunction> m_cTF;
+	QColor m_newPointColor;
+	double m_xRange[2];
+	double m_oldItemValue;
+	iAChartWithFunctionsWidget* m_parent;
 };

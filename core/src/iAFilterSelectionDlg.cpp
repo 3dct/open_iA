@@ -18,20 +18,20 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_FilterSelection.h"
+#include "iAFilterSelectionDlg.h"
 
 #include "iAFilterRegistry.h"
 #include "iAFilter.h"
 
 #include <QPushButton>
 
-dlg_FilterSelection::dlg_FilterSelection(QWidget * parent, QString const & preselectedFilter):
-	dlg_FilterSelectionConnector(parent),
+iAFilterSelectionDlg::iAFilterSelectionDlg(QWidget * parent, QString const & preselectedFilter):
+	iAFilterSelectionConnector(parent),
 	m_curMatches(0)
 {
-	connect(leFilterSearch, &QLineEdit::textEdited, this, &dlg_FilterSelection::filterChanged);
-	connect(lwFilterList, &QListWidget::currentItemChanged, this, &dlg_FilterSelection::listSelectionChanged);
-	connect(lwFilterList, &QListWidget::itemDoubleClicked, this, &dlg_FilterSelection::accept);
+	connect(leFilterSearch, &QLineEdit::textEdited, this, &iAFilterSelectionDlg::filterChanged);
+	connect(lwFilterList, &QListWidget::currentItemChanged, this, &iAFilterSelectionDlg::listSelectionChanged);
+	connect(lwFilterList, &QListWidget::itemDoubleClicked, this, &iAFilterSelectionDlg::accept);
 	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 	for (auto filterFactory : iAFilterRegistry::filterFactories())
 	{
@@ -47,7 +47,7 @@ dlg_FilterSelection::dlg_FilterSelection(QWidget * parent, QString const & prese
 	}
 }
 
-void dlg_FilterSelection::filterChanged(QString const & filter)
+void iAFilterSelectionDlg::filterChanged(QString const & filter)
 {
 	for (int row = 0; row < lwFilterList->count(); ++row)
 	{
@@ -66,7 +66,7 @@ void dlg_FilterSelection::filterChanged(QString const & filter)
 	updateOKAndDescription();
 }
 
-void dlg_FilterSelection::updateOKAndDescription()
+void iAFilterSelectionDlg::updateOKAndDescription()
 {
 	bool enable = m_curMatches == 1 ||
 		(lwFilterList->currentItem() != nullptr && !lwFilterList->currentItem()->isHidden());
@@ -82,12 +82,12 @@ void dlg_FilterSelection::updateOKAndDescription()
 	teDescription->setText(description);
 }
 
-void dlg_FilterSelection::listSelectionChanged(QListWidgetItem * /*current*/, QListWidgetItem * /*previous*/)
+void iAFilterSelectionDlg::listSelectionChanged(QListWidgetItem * /*current*/, QListWidgetItem * /*previous*/)
 {
 	updateOKAndDescription();
 }
 
-QString dlg_FilterSelection::selectedFilterName() const
+QString iAFilterSelectionDlg::selectedFilterName() const
 {
 	return lwFilterList->currentItem() == nullptr ? QString() : lwFilterList->currentItem()->text();
 }

@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #include "iAModuleDispatcher.h"
 
-#include "dlg_FilterSelection.h"
 #include "iAConsole.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
 #include "iAFilterRunnerGUI.h"
+#include "iAFilterSelectionDlg.h"
 #include "iALogger.h"
 #include "iAModuleInterface.h"
 #include "mainwindow.h"
@@ -249,7 +249,7 @@ void iAModuleDispatcher::executeFilter()
 
 void iAModuleDispatcher::selectAndRunFilter()
 {
-	dlg_FilterSelection filterSelection(m_mainWnd);
+	iAFilterSelectionDlg filterSelection(m_mainWnd);
 	if (filterSelection.exec() == QDialog::Accepted)
 	{
 		runFilter(iAFilterRegistry::filterID(filterSelection.selectedFilterName()));
