@@ -39,7 +39,7 @@ class iAVRDistributionVis
 {
 public:
 	iAVRDistributionVis(vtkRenderer* ren, iAVRMetrics* fiberMetric, vtkTable* objectTable, iACsvIO io);
-	void createVisualization(double* pos, double offset, int level, std::vector<vtkIdType>* regions, std::vector<int>* featureList);
+	void createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType>* regions, std::vector<int>* featureList);
 	vtkSmartPointer<vtkAssembly> getVisAssembly();
 	void show();
 	void hide();
@@ -47,6 +47,7 @@ public:
 	void rotateVisualization(double y);
 	void flipThroughHistograms(double flipDir);
 	double getRadius();
+	std::vector<QColor> getBarColors();
 
 private:
 	vtkSmartPointer<vtkRenderer> m_renderer;
@@ -75,7 +76,7 @@ private:
 	bool m_visible;
 	int m_numberOfXBins;
 	int m_numberOfYBins;
-	double* m_centerOfVis;
+	double m_centerOfVis[3];
 	double m_offsetFromCenter;
 	double m_radius;
 	double m_axisLength;
@@ -86,6 +87,8 @@ private:
 	//[0] Left (0°), [1] Right (180°) Axis
 	int m_frontAxes[2];
 	HistogramParameters* m_histogramParameter;
+	QColor barColorR1;
+	QColor barColorR2;
 
 	void initialize();
 	void mergeActors();

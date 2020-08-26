@@ -30,6 +30,9 @@
 #include "vtkProperty.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkOpenVRModel.h"
+#include "vtkCamera.h"
+#include "vtkTransform.h"
+#include "vtkMatrix4x4.h"
 
 #include <vtkMath.h>
 
@@ -79,6 +82,7 @@ void iAVRInteractorStyle::OnButton3D(vtkEventData* edata)
 	m_eventOrientation[2] = vtkMath::DegreesFromRadians(m_eventOrientation[2]);
 	m_eventOrientation[3] = vtkMath::DegreesFromRadians(m_eventOrientation[3]);
 
+	this->PickingManagedOn();
 	this->FindPickedActor(m_eventPosition, nullptr);
 
 	if(action == vtkEventDataAction::Press || action == vtkEventDataAction::Touch)
@@ -125,6 +129,54 @@ void iAVRInteractorStyle::OnMove3D(vtkEventData * edata)
 
 	m_vrMain->onMove(device, m_movePosition, m_eventOrientation);
 
+}
+
+void iAVRInteractorStyle::OnPinch()
+{
+	double dyf = this->Interactor->GetScale() / this->Interactor->GetLastScale();
+	vtkCamera* camera = this->CurrentRenderer->GetActiveCamera();
+	vtkRenderWindowInteractor3D* rwi = static_cast<vtkRenderWindowInteractor3D*>(this->Interactor);
+	double physicalScale = rwi->GetPhysicalScale();
+	this->SetScale(camera, physicalScale / dyf);
+
+	m_vrMain->onZoom();
+}
+
+void iAVRInteractorStyle::OnRotate()
+{
+	
+	vtkOpenVRRenderWindowInteractor* rwi = static_cast<vtkOpenVRRenderWindowInteractor*>(this->Interactor);
+	//vtkOpenVRRenderWindow* rw = static_cast<vtkOpenVRRenderWindow*>(rwi->GetRenderWindow());
+
+	//vtkCamera* camera = this->CurrentRenderer->GetActiveCamera();
+	//double* cameraPos = camera->GetPosition();
+	double angle = rwi->GetRotation() - rwi->GetLastRotation();
+	//double physicalScale = rwi->GetPhysicalScale();
+
+	//vtkSmartPointer<vtkMatrix4x4> m = vtkSmartPointer<vtkMatrix4x4>::New();
+	//rw->GetPhysicalToWorldMatrix(m);
+
+	//vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+	//transform->PostMultiply();
+	//transform->SetMatrix(m);
+	////transform->Translate(0, 0, 0);
+	//transform->RotateY(angle);
+	////transform->Translate(cameraPos[0], cameraPos[1], cameraPos[2]);
+
+	//vtkSmartPointer<vtkMatrix4x4> tMInv = vtkSmartPointer<vtkMatrix4x4>::New();
+	//vtkMatrix4x4::Invert(transform->GetMatrix(), tMInv);
+
+	//rw->SetPhysicalToWorldMatrix(transform->GetMatrix());
+
+	//if (this->AutoAdjustCameraClippingRange)
+	//{
+	//	this->CurrentRenderer->ResetCameraClippingRange();
+	//}
+	//if (this->Interactor->GetLightFollowCamera())
+	//{
+	//	this->CurrentRenderer->UpdateLightsGeometryToFollowCamera();
+	//}
+	m_vrMain->onRotate(angle);
 }
 
 //! Returns a vector for the input scheme

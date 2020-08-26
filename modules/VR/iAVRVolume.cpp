@@ -46,6 +46,8 @@ iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io) :m_o
 	m_volumeActor = vtkSmartPointer<vtkActor>::New();
 	m_RegionLinksActor = vtkSmartPointer<vtkActor>::New();
 	m_RegionNodesActor = vtkSmartPointer<vtkActor>::New();
+	m_lut = vtkSmartPointer<vtkLookupTable>::New();
+	nodeGlyphResetColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
 
 	m_volumeVisible = false;
 	m_regionLinksVisible = false;
@@ -117,6 +119,29 @@ double* iAVRVolume::getCubePos(int region)
 double iAVRVolume::getCubeSize(int region)
 {
 	return nodeGlyphScales->GetTuple3(region)[0];
+}
+
+//! Colors the cube nodes with the given region IDs with a given color
+//! Both vectors must have equal length
+void iAVRVolume::setNodeColor(std::vector<vtkIdType> regions, std::vector<QColor> color)
+{
+	if (nodeGlyphResetColor->GetNumberOfTuples() >0)
+	{
+		for (vtkIdType i = 0; i < regions.size(); i++)
+		{
+			nodeGlyphColor->SetTuple3(regions.at(i), color.at(i).red(), color.at(i).green(), color.at(i).blue());
+			nodeGlyph3D->Modified();
+		}
+	}
+}
+
+void iAVRVolume::resetNodeColor()
+{
+	if (nodeGlyphResetColor->GetNumberOfTuples() > 0)
+	{
+		nodeGlyphColor->DeepCopy(nodeGlyphResetColor);
+		nodeGlyph3D->Modified();
+	}
 }
 
 void iAVRVolume::setMappers(std::unordered_map<vtkIdType, vtkIdType> pointIDToCsvIndex, std::unordered_multimap<vtkIdType, vtkIdType> csvIndexToPointID)
@@ -256,24 +281,29 @@ void iAVRVolume::moveFibersbyAllCoveredRegions(double offset)
 	//m_octree->getOctree()->Modified();
 }
 
-void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions)
+void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions, double worldSize)
 {
 	vtkSmartPointer<vtkPoints> linePoints = vtkSmartPointer<vtkPoints>::New();
 	m_linePolyData = vtkSmartPointer<vtkPolyData>::New();
 	vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
 
 	int numbPoints = m_cubePolyData->GetNumberOfPoints();
+	auto minRadius = worldSize * 0.00084;
+	auto maxRadius = worldSize * 0.007;
+
+	calculateNodeLUT(minRadius, maxRadius, 0);
 
 	auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
 	//tubeRadius->SetNumberOfTuples(m_cubePolyData->GetNumberOfPoints());
 	tubeRadius->SetNumberOfComponents(1);
 	tubeRadius->SetName("TubeRadius");
 
-	/*auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-	colors->SetName("Colors");
-	colors->SetNumberOfComponents(3);
-	colors->SetNumberOfTuples(m_cubePolyData->GetNumberOfPoints());*/
+	linkGlyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	linkGlyphColor->SetName("linkColor");
+	linkGlyphColor->SetNumberOfComponents(3);
+
 	vtkIdType pointID = 0;
+	double rgb[3] = { 0,0,0 };
 
 	for (int i = 0; i < numbPoints; i++)
 	{
@@ -292,9 +322,13 @@ void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>
 				l->GetPointIds()->SetId(1, pointID+1);
 				lines->InsertNextCell(l);
 
-				double lineThicknessLog = iAVRMetrics::histogramNormalizationExpo(radius, 1, 9, 0, 1);
+				double lineThicknessLog = iAVRMetrics::histogramNormalizationExpo(radius, minRadius, maxRadius, 0.0, 1.0);
 				tubeRadius->InsertNextTuple1(lineThicknessLog);
 				tubeRadius->InsertNextTuple1(lineThicknessLog);
+
+				m_lut->GetColor(lineThicknessLog, rgb);
+				linkGlyphColor->InsertNextTuple3(rgb[0] * 255, rgb[1] * 255, rgb[2] * 255);
+				linkGlyphColor->InsertNextTuple3(rgb[0] * 255, rgb[1] * 255, rgb[2] * 255);
 
 				pointID+= 2;
 			}
@@ -304,9 +338,9 @@ void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>
 	m_linePolyData->SetPoints(linePoints);
 	m_linePolyData->SetLines(lines);
 
-	//linePolyData->GetCellData()->AddArray(tubeRadius);
-	//linePolyData->GetCellData()->SetActiveScalars("TubeRadius");
 	m_linePolyData->GetPointData()->AddArray(tubeRadius);
+	//m_linePolyData->GetCellData()->AddArray(linkGlyphColor);
+	m_linePolyData->GetPointData()->AddArray(linkGlyphColor);
 	m_linePolyData->GetPointData()->SetActiveScalars("TubeRadius");
 
 	vtkSmartPointer<vtkTubeFilter> tubeFilter =	vtkSmartPointer<vtkTubeFilter>::New();
@@ -327,21 +361,25 @@ void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>
 	m_RegionLinksActor->SetMapper(lineMapper);
 	m_RegionLinksActor->SetPickable(false);
 	//m_RegionLinksActor->GetProperty()->SetRenderLinesAsTubes(true);
-	//m_RegionLinksActor->GetProperty()->SetLineWidth(3);
-	m_RegionLinksActor->GetProperty()->SetColor(0.980, 0.607, 0);
-	//m_RegionLinksActor->GetProperty()->SetOpacity(0.7);
+	m_RegionLinksActor->GetMapper()->ScalarVisibilityOn();
+	m_RegionLinksActor->GetMapper()->SetScalarModeToUsePointFieldData();
+	m_RegionLinksActor->GetMapper()->SelectColorArray("linkColor");
 
-	createRegionNodes(maxFibersInRegions);
+	createRegionNodes(maxFibersInRegions, worldSize);
 }
 
-void iAVRVolume::createRegionNodes(double maxFibersInRegions)
+void iAVRVolume::createRegionNodes(double maxFibersInRegions, double worldSize)
 {
 	vtkSmartPointer<vtkPolyData> regionNodes = vtkSmartPointer<vtkPolyData>::New();
 	regionNodes->ShallowCopy(m_cubePolyData);
-	//vtkSmartPointer<vtkCleanPolyData> cleanPolyData = vtkSmartPointer<vtkCleanPolyData>::New();
-	//cleanPolyData->SetInputData(m_linePolyData);
-	//cleanPolyData->Update();
-	//regionNodes = cleanPolyData->GetOutput();
+
+	auto min = worldSize * 0.01;
+	auto max = worldSize * 0.077;
+	calculateNodeLUT(min, max, 1);
+
+	nodeGlyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	nodeGlyphColor->SetName("nodeColor");
+	nodeGlyphColor->SetNumberOfComponents(3);
 
 	nodeGlyphScales = vtkSmartPointer<vtkDoubleArray>::New();
 	nodeGlyphScales->SetName("scales");
@@ -351,19 +389,23 @@ void iAVRVolume::createRegionNodes(double maxFibersInRegions)
 	{
 		double fibersInRegion = (double)(m_fiberCoverage->at(m_octree->getLevel()).at(p)->size());	
 		double sizeLog = 0;
+		double rgb[3] = { 0,0,0 };
 		if(fibersInRegion > 0)
 		{
-			sizeLog = iAVRMetrics::histogramNormalizationExpo(fibersInRegion, 17, 130, 1, maxFibersInRegions);
+			sizeLog = iAVRMetrics::histogramNormalizationExpo(fibersInRegion, min, max, 1, maxFibersInRegions);
+			m_lut->GetColor(sizeLog, rgb);
 		}
 		nodeGlyphScales->InsertNextTuple3(sizeLog, sizeLog, sizeLog);
+		nodeGlyphColor->InsertNextTuple3(rgb[0] * 255, rgb[1] * 255, rgb[2] * 255);
 	}
+	nodeGlyphResetColor->DeepCopy(nodeGlyphColor);
 
 	regionNodes->GetPointData()->SetScalars(nodeGlyphScales);
-	//regionNodes->GetPointData()->AddArray(glyphColor);
+	regionNodes->GetPointData()->AddArray(nodeGlyphColor);
 
 	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
 	
-	vtkSmartPointer<vtkGlyph3D> nodeGlyph3D = vtkSmartPointer<vtkGlyph3D>::New();
+	nodeGlyph3D = vtkSmartPointer<vtkGlyph3D>::New();
 	nodeGlyph3D->SetSourceConnection(cubeSource->GetOutputPort());
 	nodeGlyph3D->SetInputData(regionNodes);
 	nodeGlyph3D->SetScaleModeToScaleByScalar();
@@ -373,13 +415,57 @@ void iAVRVolume::createRegionNodes(double maxFibersInRegions)
 	glyphMapper->SetInputConnection(nodeGlyph3D->GetOutputPort());
 
 	m_RegionNodesActor->SetMapper(glyphMapper);
-	//m_RegionNodesActor->GetMapper()->ScalarVisibilityOn();
-	//m_RegionNodesActor->GetMapper()->SetScalarModeToUsePointFieldData();
-	//m_RegionNodesActor->GetMapper()->SelectColorArray("colors");
-	m_RegionNodesActor->GetMapper()->ScalarVisibilityOff();
-	m_RegionNodesActor->GetProperty()->SetColor(0.95, 0.32, 0);
+	m_RegionNodesActor->GetMapper()->ScalarVisibilityOn();
+	m_RegionNodesActor->GetMapper()->SetScalarModeToUsePointFieldData();
+	m_RegionNodesActor->GetMapper()->SelectColorArray("nodeColor");
+	//m_RegionNodesActor->GetMapper()->ScalarVisibilityOff();
+	//m_RegionNodesActor->GetProperty()->SetColor(0.95, 0.32, 0);
 	m_RegionNodesActor->PickableOff();
 	m_RegionNodesActor->Modified();
+}
+
+//! Calculates the LUT for the regionLinks (0) and the regionNodes (1)
+void iAVRVolume::calculateNodeLUT(double min, double max, int colorScheme)
+{
+	QColor a;
+	QColor b;
+	QColor c;
+	QColor d;
+	QColor e;
+	QColor f;
+	
+	if(colorScheme == 0)
+	{
+		a = QColor(255,177,105);
+		b = QColor(255,155,60);
+		c = QColor(255,123,0);
+		d = QColor(214,104,0);
+		e = QColor(178,84,0);
+		f = QColor(128,62,0);
+	}
+	else if(colorScheme == 1)
+	{
+		a = QColor(242, 240, 247);
+		b = QColor(218, 218, 235);
+		c = QColor(188, 189, 220);
+		d = QColor(158, 154, 200);
+		e = QColor(117, 107, 177);
+		f = QColor(84, 39, 143);
+	}
+
+	m_lut = vtkSmartPointer<vtkLookupTable>::New();
+
+	m_lut->SetNumberOfTableValues(6);
+	m_lut->Build();
+
+	m_lut->SetTableValue(0, f.redF(), f.greenF(), f.blueF());
+	m_lut->SetTableValue(1, e.redF(), e.greenF(), e.blueF());
+	m_lut->SetTableValue(2, d.redF(), d.greenF(), d.blueF());
+	m_lut->SetTableValue(3, c.redF(), c.greenF(), c.blueF());
+	m_lut->SetTableValue(4, b.redF(), b.greenF(), b.blueF());
+	m_lut->SetTableValue(5, a.redF(), a.greenF(), a.blueF());
+
+	m_lut->SetTableRange(min, max);
 }
 
 //! Cycles between values from 0.9 to 0

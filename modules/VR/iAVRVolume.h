@@ -24,12 +24,12 @@
 #include "iACsvIO.h"
 
 #include <vtkTable.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkLookupTable.h>
 
 #include <QStandardItem>
 
 #include <unordered_map>
-
-#include <vtkRenderWindowInteractor.h>
 
 class iA3DCylinderObjectVis;
 
@@ -47,12 +47,14 @@ public:
 	vtkSmartPointer<vtkActor> getVolumeActor();
 	double* getCubePos(int region);
 	double getCubeSize(int region);
+	void setNodeColor(std::vector<vtkIdType> regions, std::vector<QColor> color);
+	void resetNodeColor();
 	void setMappers(std::unordered_map<vtkIdType, vtkIdType> pointIDToCsvIndex, std::unordered_multimap<vtkIdType, vtkIdType> csvIndexToPointID);
 	vtkSmartPointer<vtkPolyData> getVolumeData();
 	void renderSelection(std::vector<size_t> const& sortedSelInds, int classID, QColor const& classColor, QStandardItem* activeClassItem);
 	void moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset);
 	void moveFibersbyAllCoveredRegions(double offset);
-	void createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions);
+	void createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions, double worldSize);
 	void filterRegionLinks();
 	double getJaccardFilterVal();
 
@@ -66,10 +68,16 @@ private:
 	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
 	std::unordered_multimap<vtkIdType, vtkIdType> m_csvIndexToPointID;
 	iACsvIO m_io;
+	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkDoubleArray> nodeGlyphScales;
+	vtkSmartPointer<vtkUnsignedCharArray> linkGlyphColor;
+	vtkSmartPointer<vtkUnsignedCharArray> nodeGlyphColor;
+	vtkSmartPointer<vtkUnsignedCharArray> nodeGlyphResetColor;
+	vtkSmartPointer<vtkGlyph3D> nodeGlyph3D;
 	bool m_volumeVisible;
 	bool m_regionLinksVisible;
 	double m_regionLinkDrawRadius;
 
-	void createRegionNodes(double maxFibersInRegions);
+	void createRegionNodes(double maxFibersInRegions, double worldSize);
+	void calculateNodeLUT(double min, double max, int colorScheme);
 };

@@ -244,6 +244,11 @@ void iAVRCubicRepresentation::redrawHighlightedGlyphs()
 	highlightGlyphs(&activeRegions);
 }
 
+double* iAVRCubicRepresentation::getDefaultActorSize()
+{
+	return defaultActorSize;
+}
+
 //! This Method iterates through all leaf regions of the octree and stores its center point in an vtkPolyData
 //! It also calculates the region size and adds the scalar array for it
 void iAVRCubicRepresentation::calculateStartPoints()

@@ -193,7 +193,7 @@ vtkSmartPointer<vtkLookupTable> iAVRMetrics::calculateLUT(double min, double max
 	m_lut->SetBelowRangeColor(1, 1, 1, 1);
 	m_lut->UseBelowRangeColorOn();
 
-	calculateColorBarLegend();
+	//calculateColorBarLegend();
 
 	return m_lut;
 }
@@ -215,8 +215,11 @@ std::vector<std::vector<std::vector<vtkIdType>>>* iAVRMetrics::getMaxCoverageFib
 	}
 }
 
-void iAVRMetrics::calculateColorBarLegend()
+void iAVRMetrics::calculateColorBarLegend(double physicalScale)
 {
+	auto width = physicalScale * 0.05; //5%
+	auto height = physicalScale * 0.15; //15%
+
 	//Remove old colorBar
 	hideColorBarLegend();
 
@@ -225,8 +228,8 @@ void iAVRMetrics::calculateColorBarLegend()
 	colorBarPlane->SetYResolution(m_lut->GetNumberOfAvailableColors());
 
 	colorBarPlane->SetOrigin(0, 0, 0.0);
-	colorBarPlane->SetPoint1(35, 0, 0.0); //width
-	colorBarPlane->SetPoint2(0, 100, 0.0); // height
+	colorBarPlane->SetPoint1(width, 0, 0.0); //width
+	colorBarPlane->SetPoint2(0, height, 0.0); // height
 	colorBarPlane->Update();
 
 	vtkSmartPointer<vtkUnsignedCharArray> colorData = vtkSmartPointer<vtkUnsignedCharArray>::New();
@@ -282,7 +285,8 @@ void iAVRMetrics::calculateColorBarLegend()
 	titleTextSource->GetTextProperty()->SetColor(0, 0, 0);
 	titleTextSource->GetTextProperty()->SetBackgroundColor(0.6, 0.6, 0.6);
 	titleTextSource->GetTextProperty()->SetBackgroundOpacity(1.0);
-	titleTextSource->GetTextProperty()->SetFontSize(20);
+	titleTextSource->GetTextProperty()->SetFontSize(30);
+	
 
 	// Create text
 	textSource = vtkSmartPointer<vtkTextActor3D>::New();
@@ -290,18 +294,26 @@ void iAVRMetrics::calculateColorBarLegend()
 	textSource->GetTextProperty()->SetColor(0, 0, 0);
 	textSource->GetTextProperty()->SetBackgroundColor(0.6, 0.6, 0.6);
 	textSource->GetTextProperty()->SetBackgroundOpacity(1.0);
-	textSource->GetTextProperty()->SetFontSize(16);
+	textSource->GetTextProperty()->SetFontSize(19);
 
 	double actorBounds[6];
-	double pos[3] = { 0, 0, 0 };
 	m_ColorBar->GetBounds(actorBounds);
+	//double pos[3] = { 0, 0, 0 };
 	// ((maxY - minY) / #Labels) and then /2 for the center of a row
-	double subScale = ((actorBounds[3] - actorBounds[2]) / (m_lut->GetNumberOfAvailableColors() - 1));
+	//double subScale = ((actorBounds[3] - actorBounds[2]) / (m_lut->GetNumberOfAvailableColors() - 1));
+	initialTextOffset = physicalScale * 0.00001;
 
-	textSource->SetPosition(actorBounds[1] + 1, actorBounds[2] + 1, -1);
-	textSource->SetScale(0.9, 0.72, 1);
+	textSource->SetPosition(actorBounds[1] + initialTextOffset, actorBounds[2] + initialTextOffset, actorBounds[4]);
+	textSource->SetScale(physicalScale * 0.0005, physicalScale * 0.0009, 1);
 
-	titleTextSource->SetPosition(actorBounds[0] + 1, actorBounds[3] + 5, 0);
+	titleTextSource->SetPosition(actorBounds[0] , actorBounds[3] + initialTextOffset, actorBounds[4]);
+	titleTextSource->SetScale(physicalScale * 0.0008, physicalScale * 0.001, 1);
+	
+	for (int i = 0; i < 3; i++)
+	{
+		titleFieldScale[i] = titleTextSource->GetScale()[i];
+		textFieldScale[i] = textSource->GetScale()[i];
+	}
 }
 
 void iAVRMetrics::showColorBarLegend()
@@ -347,8 +359,8 @@ void iAVRMetrics::moveColorBarLegend(double* pos)
 	double actorBounds[6];
 	m_ColorBar->GetBounds(actorBounds);
 
-	textSource->SetPosition(actorBounds[1] + 1, actorBounds[2] + 1, actorBounds[4] - 1);
-	titleTextSource->SetPosition(actorBounds[0] + 1, actorBounds[3] + 5, actorBounds[4] - 1);
+	textSource->SetPosition(actorBounds[1] + initialTextOffset, actorBounds[2] + initialTextOffset, actorBounds[4]);
+	titleTextSource->SetPosition(actorBounds[0], actorBounds[3] + initialTextOffset, actorBounds[4]);
 	
 }
 
@@ -357,6 +369,13 @@ void iAVRMetrics::rotateColorBarLegend(double x, double y, double z)
 	m_ColorBar->AddOrientation(x, y, z);
 	titleTextSource->AddOrientation(x, y, z);
 	textSource->AddOrientation(x, y, z);	
+}
+
+void iAVRMetrics::resizeColorBarLegend(double scale)
+{
+	m_ColorBar->SetScale(scale);
+	titleTextSource->SetScale(scale * titleFieldScale[0], scale * titleFieldScale[1], scale * titleFieldScale[2]);
+	textSource->SetScale(scale * textFieldScale[0], scale * textFieldScale[1], scale * textFieldScale[2]);
 }
 
 void iAVRMetrics::setLegendTitle(QString title)

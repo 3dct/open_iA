@@ -33,6 +33,7 @@
 #include <vtkImageFlip.h>
 #include <vtkLight.h>
 #include <vtkLightKit.h>
+#include <vtkPickingManager.h>
 
 iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_interactor(vtkSmartPointer<iAVRInteractor>::New()), 
 m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New())
@@ -84,6 +85,8 @@ void iAVREnvironment::start()
 	m_renderer->ResetCamera();
 	m_renderer->ResetCameraClippingRange();
 	m_renderWindow->Render();
+	m_worldScale = m_interactor->GetPhysicalScale();
+	m_interactor->GetPickingManager()->EnabledOn();
 	m_interactor->Start();
 	--runningInstances;
 	emit finished();
@@ -100,6 +103,11 @@ void iAVREnvironment::createLightKit()
 	vtkSmartPointer<vtkLightKit> light = vtkSmartPointer<vtkLightKit>::New();
 	light->SetKeyLightIntensity(0.88);
 	light->AddLightsToRenderer(m_renderer);
+}
+
+double iAVREnvironment::getInitialWorldScale()
+{
+	return m_worldScale;
 }
 
 void iAVREnvironment::createSkybox(int skyboxImage)

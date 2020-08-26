@@ -82,6 +82,8 @@ public:
 	void startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp); //Press, Touch
 	void endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4],vtkProp3D* pickedProp); //Release, Untouch
 	void onMove(vtkEventDataDevice3D* device, double movePosition[3], double eventOrientation[4]); //Movement
+	void onZoom();
+	void onRotate(double angle);
 	int currentOctreeLevel;
 
 private:
@@ -93,8 +95,6 @@ private:
 	vtkSmartPointer<iAVRInteractorStyle> m_style;
 	vtkSmartPointer<vtkTable> m_objectTable;
 
-	//Stores the x,y and z length of the volume in octree level 0
-	double m_volumeSize[3];
 	bool m_networkGraphMode;
 	std::vector<iAVR3DText*>* m_3DTextLabels;
 	iAVRSlider* m_slider;
@@ -157,6 +157,7 @@ private:
 	void calculateMetrics();
 	void updateModelInMiniatureData();
 	void colorMiMCubes(std::vector<vtkIdType>* regionIDs);
+	double calculateWorldScaleFactor();
 
 	//# Methods for interaction #//
 	void changeOctreeAndMetric();
@@ -170,4 +171,5 @@ private:
 	void explodeMiM(int displacementType, double offset);
 	void changeMiMDisplacementType();
 	void rotateDistributionVis(double eventPosition[3], bool startAction);
+	void changeRegionLinks();
 };

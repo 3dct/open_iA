@@ -42,9 +42,9 @@
 
 iAVRModelInMiniature::iAVRModelInMiniature(vtkRenderer* ren):iAVRCubicRepresentation{ren}
 {
-	defaultActorSize[0] = 0.15;
-	defaultActorSize[1] = 0.15;
-	defaultActorSize[2] = 0.15;
+	defaultActorSize[0] = 0.18;
+	defaultActorSize[1] = 0.18;
+	defaultActorSize[2] = 0.18;
 }
 
 //! Creates for every region of the octree a cube glyph. The cubes are stored in one actor.

@@ -52,7 +52,7 @@ public:
 	void highlightGlyphs(std::vector<vtkIdType>* regionIDs);
 	void removeHighlightedGlyphs();
 	void redrawHighlightedGlyphs();
-
+	double* getDefaultActorSize();
 	void applyLinearCubeOffset(double offset);
 	void applyRelativeCubeOffset(double offset);
 	void apply4RegionCubeOffset(double offset);

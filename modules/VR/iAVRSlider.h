@@ -25,8 +25,37 @@
 #include <vtkSliderWidget.h>
 #include <vtkSliderRepresentation3D.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkCommand.h>
+#include <vtkCallbackCommand.h>
+#include <vtkProp3D.h>
+
+#include <iAConsole.h>
 
 #include <QString>
+
+
+//class vtkSliderCallback : public vtkCommand
+//{
+//public:
+//	static vtkSliderCallback* New()
+//	{
+//		return new vtkSliderCallback;
+//	}
+//
+//	virtual void Execute(vtkObject* caller, unsigned long e, void*)
+//	{
+//
+//		vtkSliderWidget* sliderWidget =
+//			reinterpret_cast<vtkSliderWidget*>(caller);
+//
+//		//DEBUG_LOG(QString("SLIDER WORKS and has Val: %1").arg(static_cast<vtkSliderRepresentation*>(sliderWidget->GetRepresentation())->GetValue()));
+//		DEBUG_LOG(QString("SLIDER WORKS with event: %1").arg(e));
+//
+//	}
+//
+//	vtkSliderCallback() {}
+//
+//};
 
 //! Creates 3D Sliders in the VR Environment
 class iAVRSlider
@@ -36,6 +65,8 @@ public:
 	void createSlider(double minValue, double maxValue, QString title = "Slider");
 	void show();
 	void hide();
+	vtkSmartPointer<vtkProp> getSlider();
+	void setSliderLength(double length);
 	void setPosition(double x, double y, double z);
 	void setTitel(QString title);
 	void setValue(double val);
@@ -47,4 +78,5 @@ private:
 	vtkSmartPointer<vtkSliderRepresentation3D> m_sliderRep;
 	vtkSmartPointer<vtkSliderWidget> m_sliderWidget;
 	bool m_visible;
+	double m_sliderLength;
 };

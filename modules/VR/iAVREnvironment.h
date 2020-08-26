@@ -44,11 +44,14 @@ public:
 	void start();
 	void stop();
 	void createLightKit();
+	double getInitialWorldScale();
 private:
 	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
 	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<iAVRInteractor> m_interactor;
 	vtkSmartPointer<vtkSkybox> skyboxActor;
+	//Stores the world scale at start
+	double m_worldScale;
 
 	void createSkybox(int skyboxImage);
 	vtkSmartPointer<vtkTexture> ReadCubeMap(std::string const& folderPath,
