@@ -337,7 +337,7 @@ void iAVRCubicRepresentation::applyLinearCubeOffset(double offset)
 
 		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
 	}
-	m_cubePolyData->Modified();
+	m_cubePolyData->GetPoints()->GetData()->Modified();
 	redrawHighlightedGlyphs();
 }
 
@@ -379,7 +379,7 @@ void iAVRCubicRepresentation::applyRelativeCubeOffset(double offset)
 
 		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
 	}
-	m_cubePolyData->Modified();
+	m_cubePolyData->GetPoints()->GetData()->Modified();
 	redrawHighlightedGlyphs();
 }
 
@@ -433,6 +433,6 @@ void iAVRCubicRepresentation::apply4RegionCubeOffset(double offset)
 		}
 		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
 	}
-	m_cubePolyData->Modified();
+	m_cubePolyData->GetPoints()->GetData()->Modified();
 	redrawHighlightedGlyphs();
 }

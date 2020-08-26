@@ -74,6 +74,20 @@ void iAVR3DText::create3DLabel(QString text)
 	m_textActor3D->GetTextProperty()->SetFontSize(32);
 }
 
+void iAVR3DText::createSmall3DLabel(QString text)
+{
+	m_textActor3D->SetScale(1, 1, 1);
+	m_textActor3D->SetInput(text.toUtf8());
+
+	m_textActor3D->GetTextProperty()->SetJustificationToCentered();
+	m_textActor3D->GetTextProperty()->SetFrame(1);
+	m_textActor3D->GetTextProperty()->SetFrameColor(0.6, 0.6, 0.6);
+	m_textActor3D->GetTextProperty()->SetFrameWidth(1.6);
+	m_textActor3D->GetTextProperty()->SetBackgroundOpacity(1.0);
+	m_textActor3D->GetTextProperty()->SetBackgroundColor(0.4, 0.4, 0.4);
+	m_textActor3D->GetTextProperty()->SetFontSize(14);
+}
+
 void iAVR3DText::setLabelPos(double pos[3])
 {
 	m_textActor3D->SetPosition(pos);
@@ -151,6 +165,11 @@ void iAVR3DText::moveInEyeDir(double x, double y, double z)
 	normDir.normalize();
 
 	m_textActor3D->AddPosition(normDir[0] *x, normDir[1] * y, normDir[2] * z);
+}
+
+vtkSmartPointer<vtkBillboardTextActor3D> iAVR3DText::getTextActor()
+{
+	return m_textActor3D;
 }
 
 void iAVR3DText::showInputTooltip()

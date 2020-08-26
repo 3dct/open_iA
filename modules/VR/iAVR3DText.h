@@ -33,9 +33,11 @@ class iAVR3DText
 public:
 	iAVR3DText(vtkRenderer* ren);
 	void create3DLabel(QString text);
+	void createSmall3DLabel(QString text);
 	void setLabelPos(double pos[3]);
 	void drawInputTooltip(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, QString text);
 	void moveInEyeDir(double x, double y, double z);
+	vtkSmartPointer<vtkBillboardTextActor3D> getTextActor();
 	void showInputTooltip();
 	void updateInputTooltip();
 	void show();

@@ -40,7 +40,6 @@
 #include <vtkCleanPolyData.h>
 #include <vtkCubeSource.h>
 
-
 iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io) :m_objectTable(objectTable), m_io(io), iAVRCubicRepresentation{ren}
 {
 	defaultColor = QColor(126, 0, 223, 255);
@@ -109,6 +108,17 @@ vtkSmartPointer<vtkActor> iAVRVolume::getVolumeActor()
 	return m_volumeActor;
 }
 
+
+double* iAVRVolume::getCubePos(int region)
+{
+	return m_cubePolyData->GetPoint(region);
+}
+
+double iAVRVolume::getCubeSize(int region)
+{
+	return nodeGlyphScales->GetTuple3(region)[0];
+}
+
 void iAVRVolume::setMappers(std::unordered_map<vtkIdType, vtkIdType> pointIDToCsvIndex, std::unordered_multimap<vtkIdType, vtkIdType> csvIndexToPointID)
 {
 	m_pointIDToCsvIndex = pointIDToCsvIndex;
@@ -145,66 +155,26 @@ void iAVRVolume::renderSelection(std::vector<size_t> const& sortedSelInds, int c
 	m_cylinderVis->renderSelection(sortedSelInds, classID, classColor, activeClassItem);
 }
 
-void iAVRVolume::createNewVolume(std::vector<size_t> fiberIDs)
-{
-	hide();
-
-	vtkSmartPointer<vtkTable> reducedTable = vtkSmartPointer<vtkTable>::New();
-	//reducedTable->DeepCopy(m_objectTable);
-	//reducedTable->SetNumberOfRows(fiberIDs.size());
-
-	DEBUG_LOG(QString("Number Of Columns = %1").arg(m_objectTable->GetNumberOfColumns()));
-
-	for (int column = 0; column < m_objectTable->GetNumberOfColumns(); column++)
-	{
-		vtkSmartPointer<vtkFloatArray> col = vtkSmartPointer<vtkFloatArray>::New();
-		col->SetName(m_objectTable->GetColumn(column)->GetName());
-
-		for(int row = 0; row < fiberIDs.size(); row++)
-		{
-			col->InsertNextValue(0);
-		}
-
-		//reducedTable->AddColumn(m_objectTable->GetColumn(column));
-		reducedTable->AddColumn(col);
-	}
-
-	DEBUG_LOG(QString("Number Of Rows = %1").arg(reducedTable->GetNumberOfRows()));
-
-	for (int i = 0; i < fiberIDs.size(); i++)
-	{
-		DEBUG_LOG(QString("fiber = [%1]").arg(fiberIDs.at(i)));
-		reducedTable->SetRow(i, m_objectTable->GetRow(fiberIDs.at(i) - 1));
-
-		DEBUG_LOG(QString("fiber nr in new table = [%1]").arg(reducedTable->GetValue(i, 0).ToFloat()));
-		DEBUG_LOG(QString("Value 1 in new table = [%1]").arg(reducedTable->GetValue(i, 1).ToFloat()));
-	}
-
-	m_cylinderVis = new iA3DCylinderObjectVis(m_renderer, reducedTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), std::map<size_t, std::vector<iAVec3f> >());
-	m_volumeActor = m_cylinderVis->getActor();
-	show();
-}
-
 //! Moves all fibers from the octree center away.
 //! The fibers belong to the region in which they have their maximum coverage
 //! Should only be called if the mappers are set!
 void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset)
 {
-	double maxLength = m_octree->getMaxDistanceOctCenterToRegionCenter();// m_octree->getMaxDistanceOctCenterToFiber();
+	double maxLength = 0; // m_octree->getMaxDistanceOctCenterToRegionCenter();// m_octree->getMaxDistanceOctCenterToFiber();
 	double centerPoint[3];
 	double regionCenterPoint[3];
 	m_octree->calculateOctreeCenterPos(centerPoint);
 	iAVec3d centerPos = iAVec3d(centerPoint);
 
-	//for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
-	//{
-	//	m_octree->calculateOctreeRegionCenterPos(region, regionCenterPoint);
+	for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+	{
+		m_octree->calculateOctreeRegionCenterPos(region, regionCenterPoint);
 
-	//	iAVec3d currentRegionCenterPoint = iAVec3d(regionCenterPoint);
-	//	iAVec3d direction = currentRegionCenterPoint - centerPos;
-	//	double length = direction.length();
-	//	if (length > maxLength) maxLength = length;		// Get max length
-	//}
+		iAVec3d currentRegionCenterPoint = iAVec3d(regionCenterPoint);
+		iAVec3d direction = currentRegionCenterPoint - centerPos;
+		double length = direction.length();
+		if (length > maxLength) maxLength = length;		// Get max length
+	}
 
 	for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
 	{
@@ -234,7 +204,7 @@ void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtk
 		}
 	}
 	
-	m_cylinderVis->getPolyData()->Modified();
+	m_cylinderVis->getPolyData()->GetPoints()->GetData()->Modified();
 	//m_octree->getOctree()->Modified();
 }
 
@@ -243,7 +213,6 @@ void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtk
 //! Should only be called if the mappers are set!
 void iAVRVolume::moveFibersbyAllCoveredRegions(double offset)
 {
-	double maxLength = m_octree->getMaxDistanceOctCenterToRegionCenter();
 	double centerPoint[3];
 	double regionCenterPoint[3];
 	m_octree->calculateOctreeCenterPos(centerPoint);
@@ -283,7 +252,7 @@ void iAVRVolume::moveFibersbyAllCoveredRegions(double offset)
 		}
 
 	}
-	m_cylinderVis->getPolyData()->Modified();
+	m_cylinderVis->getPolyData()->GetPoints()->GetData()->Modified();
 	//m_octree->getOctree()->Modified();
 }
 
@@ -374,7 +343,7 @@ void iAVRVolume::createRegionNodes(double maxFibersInRegions)
 	//cleanPolyData->Update();
 	//regionNodes = cleanPolyData->GetOutput();
 
-	vtkSmartPointer<vtkDoubleArray> nodeGlyphScales = vtkSmartPointer<vtkDoubleArray>::New();
+	nodeGlyphScales = vtkSmartPointer<vtkDoubleArray>::New();
 	nodeGlyphScales->SetName("scales");
 	nodeGlyphScales->SetNumberOfComponents(3);
 

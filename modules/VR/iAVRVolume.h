@@ -45,10 +45,11 @@ public:
 	void showRegionLinks();
 	void hideRegionLinks();
 	vtkSmartPointer<vtkActor> getVolumeActor();
+	double* getCubePos(int region);
+	double getCubeSize(int region);
 	void setMappers(std::unordered_map<vtkIdType, vtkIdType> pointIDToCsvIndex, std::unordered_multimap<vtkIdType, vtkIdType> csvIndexToPointID);
 	vtkSmartPointer<vtkPolyData> getVolumeData();
 	void renderSelection(std::vector<size_t> const& sortedSelInds, int classID, QColor const& classColor, QStandardItem* activeClassItem);
-	void createNewVolume(std::vector<size_t> fiberIDs);
 	void moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset);
 	void moveFibersbyAllCoveredRegions(double offset);
 	void createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions);
@@ -65,6 +66,7 @@ private:
 	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
 	std::unordered_multimap<vtkIdType, vtkIdType> m_csvIndexToPointID;
 	iACsvIO m_io;
+	vtkSmartPointer<vtkDoubleArray> nodeGlyphScales;
 	bool m_volumeVisible;
 	bool m_regionLinksVisible;
 	double m_regionLinkDrawRadius;
