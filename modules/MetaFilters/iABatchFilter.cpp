@@ -38,6 +38,7 @@
 
 iABatchFilter::iABatchFilter():
 	iAFilter("Batch...", "",
+		QString(
 		"Runs a filter on a selected set of images.<br/>"
 		"Specify an <em>Image folder</em> which contains the images to be processed. "
 		"<em>Recursive</em> toggles whether or not to also consider subdirectories. "
@@ -69,11 +70,12 @@ iABatchFilter::iABatchFilter():
 		"with the batch run that created the file in the first place. "
 		"If <em>Add filename</em> is enabled, then the name of the file processed for that "
 		"line will be appended before the first output value from that file."
-		"When <em>Continue on error</em> is enabled, then batch processing will continue with the next file "
+		"When <em>%1</em> is enabled, then batch processing will continue with the next file "
 		"in case there is an error. If it is disabled, an error will interrupt the whole batch run. "
 		"Under <em>Work on</em> it can be specified whether the batched filter should get passed "
 		"only files, only folders, or both files and folders."
-		"<em>Output format</em> specifies the file format for the output image(s).", 0, 0),
+		"<em>Output format</em> specifies the file format for the output image(s)."
+		).arg(spnContinueOnError), 0, 0),
 	m_aborted(false)
 {
 	QStringList filesFoldersBoth;

@@ -22,4 +22,15 @@
 
 #include <iAFilter.h>
 
-IAFILTER_DEFAULT_CLASS(iAPatchFilter);
+class iAPatchFilter : public iAFilter
+{
+public:
+	static QSharedPointer<iAPatchFilter> create();
+	void abort() override;
+	bool canAbort() const override;
+	bool isAborted() const;
+private:
+	void performWork(QMap<QString, QVariant> const& parameters) override;
+	iAPatchFilter();
+	bool m_aborted;
+};
