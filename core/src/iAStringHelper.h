@@ -23,6 +23,7 @@
 #include "open_iA_Core_export.h"
 
 #include <QStringList>
+#include <QVariant>
 #include <QVector>
 
 #include <cassert>
@@ -187,6 +188,8 @@ QString joinAsString(Container<Element> const & vec, QString const & joinStr)
 	}
 	return result;
 }
+
+open_iA_Core_API QString joinQVariantAsString(QVector<QVariant> const& vec, QString const& joinStr);
 
 //! Find the (length of the) greatest common prefix of the two given strings.
 //! example: str1 ="BaseMethod", str2="BaseMember" => result: "BaseMe"

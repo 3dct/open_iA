@@ -115,6 +115,25 @@ QString dblToStringWithUnits(double value)
 	return QString::number(value, 'g', 3);
 }
 
+QString joinQVariantAsString(QVector<QVariant> const& vec, QString const& joinStr)
+{
+	QString result;
+	bool first = true;
+	for (auto elem : vec)
+	{
+		if (!first)
+		{
+			result += joinStr;
+		}
+		else
+		{
+			first = false;
+		}
+		result += elem.toString();
+	}
+	return result;
+}
+
 int greatestCommonPrefixLength(QString const & str1, QString const & str2)
 {
 	int pos = 0;
