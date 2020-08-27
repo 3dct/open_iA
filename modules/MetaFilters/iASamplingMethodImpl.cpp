@@ -550,13 +550,25 @@ iAParameterSetsPointer iAGlobalSensitivitySamplingMethod::parameterSets(QSharedP
 			//     - not just full range split by sample count, but fixed delta
 			//     - "centered" on given parameter set
 			auto range = param->max() - param->min();
+			if (range < std::numeric_limits<double>::epsilon())
+			{   // skip parameters which don't vary in our sampling
+				continue;
+			}
 			auto step = range * m_delta;
-			double minVal = std::floor((parameterSet[p].toDouble() - param->min()) / step);
-
-			for (double value = minVal; value <= param->max(); value += step)
+			double paramValue = parameterSet[p].toDouble();
+			int numStepsToMin = static_cast<int>(std::floor((paramValue - param->min()) / step));
+			for (int count = 1; count <= numStepsToMin; ++count)
 			{
 				iAParameterSet shiftedSet(parameterSet);
-				shiftedSet[p].setValue(value);
+				shiftedSet[p].setValue(paramValue - (count * step) );
+				result->push_back(shiftedSet);
+			}
+			int numStepsToMax = static_cast<int>(std::floor((param->max() - paramValue) / step));
+			for (int count = 1; count <= numStepsToMax; ++count)
+			{
+				iAParameterSet shiftedSet(parameterSet);
+				shiftedSet[p].setValue(paramValue + (count * step));
+				result->push_back(shiftedSet);
 			}
 		}
 	}
