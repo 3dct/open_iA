@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Select Filter</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,2,1,0">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
     <number>4</number>
    </property>
@@ -37,26 +37,35 @@
     </widget>
    </item>
    <item>
-    <widget class="QListWidget" name="lwFilterList">
-     <property name="sizeAdjustPolicy">
-      <enum>QAbstractScrollArea::AdjustToContents</enum>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
      </property>
-     <property name="editTriggers">
-      <set>QAbstractItemView::NoEditTriggers</set>
+     <property name="handleWidth">
+      <number>4</number>
      </property>
-     <property name="sortingEnabled">
-      <bool>true</bool>
+     <property name="childrenCollapsible">
+      <bool>false</bool>
      </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QTextEdit" name="teDescription">
-     <property name="sizeAdjustPolicy">
-      <enum>QAbstractScrollArea::AdjustToContents</enum>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
+     <widget class="QListWidget" name="lwFilterList">
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContents</enum>
+      </property>
+      <property name="editTriggers">
+       <set>QAbstractItemView::NoEditTriggers</set>
+      </property>
+      <property name="sortingEnabled">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QTextEdit" name="teDescription">
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContents</enum>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
     </widget>
    </item>
    <item>
