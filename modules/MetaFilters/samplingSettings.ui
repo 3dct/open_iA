@@ -281,6 +281,9 @@
                <property name="toolTip">
                 <string>The overall number of samples</string>
                </property>
+               <property name="minimum">
+                <number>1</number>
+               </property>
                <property name="maximum">
                 <number>999999999</number>
                </property>
@@ -396,7 +399,7 @@
                 <item row="2" column="1">
                  <widget class="QSpinBox" name="sbSamplesPerPoint">
                   <property name="minimum">
-                   <number>0</number>
+                   <number>3</number>
                   </property>
                   <property name="maximum">
                    <number>999</number>
