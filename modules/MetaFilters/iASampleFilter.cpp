@@ -68,7 +68,6 @@ iASampleFilter::iASampleFilter() :
 	// parameters only required for "Global sensitivity (star)" sampling:
 	addParameter(spnBaseSamplingMethod, Categorical, samplingMethods);
 	addParameter(spnSensitivityDelta, Continuous, 0.1);
-	addParameter(spnSamplesPerPoint, Discrete, 0);
 }
 
 void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)

@@ -46,7 +46,6 @@ const QString spnNumberOfLabels("Number of labels");
 // Parameters for general sensitivity sampling method:
 const QString spnBaseSamplingMethod("Base sampling method");
 const QString spnSensitivityDelta("Sensitivity delta");
-const QString spnSamplesPerPoint("Samples per point");
 
 // Valid values for algorithm type parameter:
 const QString atBuiltIn("Built-in");
@@ -66,19 +65,15 @@ const QString SampleFilterDescription(QString("Sample any internal filter or ext
 	"If '%1' sampling method is chosen, "
 	"some additional options are available: <em>%2</em> determines "
 	"the sampling method used to generate the base parameter set; then, "
-	"for each of the parameter sets created by this method, <em>%3</em> "
-	"additional samples are created. <em>%4</em> specifies the distance between "
+	"for each of the parameter sets created by this method, "
+	"additional samples are created. <em>%3</em> specifies the distance between "
 	"samples as a ratio of the specified range for a given parameter (e.g. 0.05 would "
-	"mean a step of 5% of the parameter range). <em>%3</em> samples will created "
-	"per parameter in a distance of x*<em>%4</em> "
+	"mean a step of 5% of the parameter range). 1 / <em>%3</em> number of samples will be created "
+	"per parameter in a distance of x*<em>%3</em> "
 	"(with x=1,2,3, ...) from the point in the parameter space determined by "
-	"the parameter set. If <em>%3</em> is left at the default value of 0, "
-	"the number of additional samples is "
-	"automatically determined as the number of samples fitting into the "
-	"parameter's whole range, i.e. 1 / <em>%4</em> (this will also be used as upper limit).")
+	"the parameter set. ")
 	.arg(iASamplingMethodName::GlobalSensitivity)
 	.arg(spnBaseSamplingMethod)
-	.arg(spnSamplesPerPoint)
 	.arg(spnSensitivityDelta));
 
 QString getOutputFolder(QString const& baseFolder, bool createSubFolder, int sampleNr, int numDigits)

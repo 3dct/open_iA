@@ -112,7 +112,6 @@ iASamplingSettingsDlg::iASamplingSettingsDlg(QWidget *parentWdgt,
 
 	m_widgetMap.insert(spnBaseSamplingMethod, cbBaseSamplingMethod);
 	m_widgetMap.insert(spnSensitivityDelta, sbSensitivityDelta);
-	m_widgetMap.insert(spnSamplesPerPoint, sbSamplesPerPoint);
 
 	m_startLine = parameterLayout->rowCount();
 

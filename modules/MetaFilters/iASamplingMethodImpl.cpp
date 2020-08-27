@@ -533,8 +533,8 @@ iAParameterSetsPointer iAGlobalSensitivitySamplingMethod::parameterSets(QSharedP
 	iAParameterSetsPointer baseParameterSets = m_baseGenerator->parameterSets(parameters, sampleCount);
 	iAParameterSetsPointer result(new iAParameterSets);
 
-	int maxPerParameterValues = static_cast<int>(1.0 / m_delta);
-	int perParameterValues = clamp(1, maxPerParameterValues, m_samplesPerPoint);
+	//int maxPerParameterValues = static_cast<int>(1.0 / m_delta);
+	//int perParameterValues = clamp(1, maxPerParameterValues, m_samplesPerPoint);
 
 	for (auto parameterSet : *baseParameterSets)
 	{

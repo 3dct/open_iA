@@ -45,7 +45,6 @@ MetaFilters_API extern const QString spnNumberOfLabels;
 // Parameters for general sensitivity sampling method:
 MetaFilters_API extern const QString spnBaseSamplingMethod;
 MetaFilters_API extern const QString spnSensitivityDelta;
-MetaFilters_API extern const QString spnSamplesPerPoint;
 
 // Valid values for algorithm type parameter:
 MetaFilters_API extern const QString atBuiltIn;
