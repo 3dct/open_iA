@@ -222,6 +222,13 @@ void iAImageSampler::start()
 		statusMsg("No Parameters available!");
 		return;
 	}
+	DEBUG_LOG("Parameter combinations that will be sampled:");
+	for (auto parameterSet: *m_parameterSets.data())
+	{
+		DEBUG_LOG(QString(joinQVariantAsString(parameterSet, ",")));
+
+	}
+
 	m_parameterCount = countAttributes(*m_parameterRanges.data(), iAAttributeDescriptor::Parameter);
 
 	m_additionalArgumentList = splitPossiblyQuotedString(m_parameters[spnAdditionalArguments].toString());
