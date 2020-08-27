@@ -91,7 +91,7 @@ private:
 	void fillFileNameArray(int * indexRange, int digitsInIndex, int stepSize = 1);
 
 	void readImageStack();
-	void readRawImage();
+	void readRawImage(bool reportProgress);
 	void loadMetaImageFile(QString const & fileName);
 	void readVTKFile();
 
