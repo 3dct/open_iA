@@ -69,12 +69,14 @@ public:
 class MetaFilters_API iAGlobalSensitivitySamplingMethod : public iASamplingMethod
 {
 public:
-	iAGlobalSensitivitySamplingMethod(QSharedPointer<iASamplingMethod> otherGenerator, double delta);
+	iAGlobalSensitivitySamplingMethod(QSharedPointer<iASamplingMethod> otherGenerator,
+		double delta, int samplesPerPoint);
 	QString name() const override;
 	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
 private:
 	QSharedPointer<iASamplingMethod> m_baseGenerator;
 	double m_delta;
+	int m_samplesPerPoint;
 };
 
 class MetaFilters_API iASelectionSamplingMethod : public iASamplingMethod

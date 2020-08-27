@@ -517,9 +517,10 @@ iAParameterSetsPointer iALocalSensitivitySamplingMethod::parameterSets(QSharedPo
 
 
 iAGlobalSensitivitySamplingMethod::iAGlobalSensitivitySamplingMethod(
-	QSharedPointer<iASamplingMethod> otherGenerator, double delta):
+	QSharedPointer<iASamplingMethod> otherGenerator, double delta, int samplesPerPoint):
 	m_baseGenerator(otherGenerator),
-	m_delta(delta)
+	m_delta(delta),
+	m_samplesPerPoint(samplesPerPoint)
 {}
 
 QString iAGlobalSensitivitySamplingMethod::name() const
@@ -531,12 +532,27 @@ iAParameterSetsPointer iAGlobalSensitivitySamplingMethod::parameterSets(QSharedP
 {
 	iAParameterSetsPointer baseParameterSets = m_baseGenerator->parameterSets(parameters, sampleCount);
 	iAParameterSetsPointer result(new iAParameterSets);
-	for (auto parameterSet: *baseParameterSets)
+
+	int maxPerParameterValues = static_cast<int>(1.0 / m_delta);
+	int perParameterValues = clamp(1, maxPerParameterValues, m_samplesPerPoint);
+
+	for (auto parameterSet : *baseParameterSets)
 	{
+		result->push_back(parameterSet);
 		for (int p = 0; p < parameters->size(); ++p)
 		{
+			auto param = parameters->at(p);
+			if (param->valueType() != Continuous && param->valueType() != Discrete)
+			{	// we only support sensitivity of numerical parameters currently
+				continue;	// TODO: supporting categorical would probably work too - but just if all values are tried
+			}
+			// re-use iARange here? slightly different use case:
+			//     - not just full range split by sample count, but fixed delta
+			//     - "centered" on given parameter set
+			auto range = param->max() - param->min();
+			auto delta = range * m_delta;
+
 		}
-		result->push_back(parameterSet);
 	}
 	return result;
 }
@@ -601,8 +617,10 @@ QSharedPointer<iASamplingMethod> createSamplingMethod(iASettings const& paramete
 			return QSharedPointer<iASamplingMethod>();
 		}
 		double delta = parameters[spnSensitivityDelta].toDouble();
+		int samplesPerPoint = parameters[spnSensitivityDelta].toInt();
 		auto otherSamplingMethod = createSamplingMethod(parameters);
-		return QSharedPointer<iASamplingMethod>(new iAGlobalSensitivitySamplingMethod(otherSamplingMethod, delta));
+		return QSharedPointer<iASamplingMethod>(new iAGlobalSensitivitySamplingMethod(
+			otherSamplingMethod, delta, samplesPerPoint));
 	}
 	DEBUG_LOG(QString("Could not find sampling method '%1'").arg(methodName));
 	return QSharedPointer<iASamplingMethod>();
