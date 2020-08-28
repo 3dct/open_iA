@@ -68,20 +68,6 @@ void iASampleBuiltInFilterOperation::performWork()
 	{
 		filter->addInput(m_input[i], m_inputFileNames[i]);
 	}
-	for (auto param: filter->parameters())
-	{
-		if (param->valueType() == FileNameSave)
-		{	// all output file names need to be adapted to output file name
-			auto value = pathFileBaseName(m_outputFileName) + param->defaultValue().toString();
-			if (QFile::exists(value) && !m_overwriteOutput)
-			{
-				DEBUG_LOG(QString("Output file '%1' already exists! Aborting. "
-					"Check 'Overwrite output' to overwrite existing files.").arg(value));
-				return;
-			}
-			m_parameters[param->name()] = value;
-		}
-	}
 	iAProgress p;	// dummy progress swallowing progress from filter which we don't want to propagate
 	filter->setProgress(&p);
 	filter->setLogger(m_logger);

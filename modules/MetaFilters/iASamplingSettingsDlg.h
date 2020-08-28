@@ -61,6 +61,7 @@ public:
 	iASamplingSettingsDlg(QWidget* parentWdgt, int inputImageCount,
 		iASettings const & values);
 	QSharedPointer<iAAttributes> parameterRanges();
+	QSharedPointer<iAAttributes> parameterSpecs();
 	void getValues(iASettings & values) const;
 private slots:
 	void chooseOutputFolder();

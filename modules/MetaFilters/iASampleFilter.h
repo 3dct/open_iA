@@ -32,14 +32,15 @@ class iASampleFilter : public iAFilter
 public:
 	static QSharedPointer<iASampleFilter> create();
 	void setParameters(QSharedPointer<iAModalityList> input, QSharedPointer<iAAttributes> parameterRanges,
-		QString const & parameterRangeFile, QString const & parameterSetFile, QString const & derivedOutFile, int samplingID);
+		QSharedPointer<iAAttributes> parameterSpecs, QString const& parameterRangeFile, QString const& parameterSetFile,
+		QString const& derivedOutFile, int samplingID);
 	void abort() override;
 	bool canAbort() const override;
 private:
 	void performWork(QMap<QString, QVariant> const& parameters) override;
 	iASampleFilter();
 	QSharedPointer<iAModalityList> m_input;
-	QSharedPointer<iAAttributes> m_parameterRanges;
+	QSharedPointer<iAAttributes> m_parameterRanges, m_parameterSpecs;
 	QString m_parameterRangeFile,
 		m_parameterSetFile,
 		m_derivedOutFile;

@@ -709,6 +709,11 @@ QSharedPointer<iAAttributes> iASamplingSettingsDlg::parameterRanges()
 	return result;
 }
 
+QSharedPointer<iAAttributes> iASamplingSettingsDlg::parameterSpecs()
+{
+	return m_paramSpecs;
+}
+
 void iASamplingSettingsDlg::chooseOutputFolder()
 {
 	QFileDialog dialog;

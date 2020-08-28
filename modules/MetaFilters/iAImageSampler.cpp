@@ -47,19 +47,14 @@ const int CONCURRENT_COMPUTATION_RUNS = 1;
 
 iAPerformanceTimer m_computationTimer;
 
-iAImageSampler::iAImageSampler(
-		QSharedPointer<iAModalityList> dataset,
-		QMap<QString, QVariant> const & parameters,
-		QSharedPointer<iAAttributes> parameterRanges,
-		QSharedPointer<iASamplingMethod> samplingMethod,
-		QString const & parameterRangeFile,
-		QString const & parameterSetFile,
-		QString const & derivedOutputFile,
-		int samplingID,
-		iALogger * logger) :
+iAImageSampler::iAImageSampler(QSharedPointer<iAModalityList> dataset, QMap<QString, QVariant> const& parameters,
+	QSharedPointer<iAAttributes> parameterRanges, QSharedPointer<iAAttributes> parameterSpecs,
+	QSharedPointer<iASamplingMethod> samplingMethod, QString const& parameterRangeFile, QString const& parameterSetFile,
+	QString const& derivedOutputFile, int samplingID, iALogger* logger) :
 	m_datasets(dataset),
 	m_parameters(parameters),
 	m_parameterRanges(parameterRanges),
+	m_parameterSpecs(parameterSpecs),
 	m_samplingMethod(samplingMethod),
 	m_parameterRangeFile(parameterRangeFile),
 	m_parameterSetFile  (parameterSetFile),
@@ -222,6 +217,30 @@ void iAImageSampler::start()
 		statusMsg("No Parameters available!");
 		return;
 	}
+	m_numDigits = requiredDigits(m_parameterSets->size());
+	for (auto & paramSet : *m_parameterSets.data())
+	{
+		for (int p = 0; p < m_parameterRanges->size(); ++p)
+		{
+			auto const & param = m_parameterRanges->at(p);
+			if (param->valueType() == FileNameSave)
+			{	// all output file names need to be adapted to output file name
+				QString outputFolder(getOutputFolder(
+					m_parameters[spnOutputFolder].toString(),
+					m_parameters[spnSubfolderPerSample].toBool(), m_curSample, m_numDigits));
+				QString outputFile(getOutputFileName(outputFolder, m_parameters[spnBaseName].toString(),
+					m_parameters[spnSubfolderPerSample].toBool(), m_curSample, m_numDigits));
+				auto value = pathFileBaseName(outputFile) + m_parameterSpecs->at(p)->defaultValue().toString();
+				if (QFile::exists(value) && !m_parameters[spnOverwriteOutput].toBool())
+				{
+					DEBUG_LOG(QString("Output file '%1' already exists! Aborting. "
+						"Check 'Overwrite output' to overwrite existing files.").arg(value));
+					return;
+				}
+				paramSet[p] = value;
+			}
+		}
+	}
 	DEBUG_LOG("Parameter combinations that will be sampled:");
 	for (auto parameterSet: *m_parameterSets.data())
 	{
@@ -255,7 +274,6 @@ void iAImageSampler::start()
 		m_parameters[spnAlgorithmName].toString(),
 		m_samplingID));
 
-	m_numDigits = requiredDigits(m_parameterSets->size());
 	for (int i = 0; i < CONCURRENT_COMPUTATION_RUNS; ++i)
 	{
 		newSamplingRun();

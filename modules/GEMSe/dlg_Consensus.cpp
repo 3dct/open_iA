@@ -1010,6 +1010,7 @@ void dlg_Consensus::LoadConfig()
 			m_mdiChild->modalities(),
 			params,
 			samplingResults->attributes(),
+			samplingResults->attributes(), // TODO: check if this hack of using the same for ranges and spec works
 			generator,
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,

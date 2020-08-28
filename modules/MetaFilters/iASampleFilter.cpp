@@ -82,6 +82,7 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 		m_input,
 		parameters,
 		m_parameterRanges,
+		m_parameterSpecs,
 		samplingMethod,
 		m_parameterRangeFile,
 		m_parameterSetFile,
@@ -99,12 +100,13 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 }
 
 void iASampleFilter::setParameters(QSharedPointer<iAModalityList> input, QSharedPointer<iAAttributes> parameterRanges,
+	QSharedPointer<iAAttributes> parameterSpecs,
 	QString const& parameterRangeFile, QString const& parameterSetFile, QString const& derivedOutFile, int samplingID)
 {
 	// TODO: get parameter ranges and filenames in cmd/gui-agnostical way?
 	m_input = input;
 	m_parameterRanges = parameterRanges;
-
+	m_parameterSpecs = parameterSpecs;
 	m_parameterRangeFile = parameterRangeFile;
 	m_parameterSetFile = parameterSetFile;
 	m_derivedOutFile = derivedOutFile;
@@ -151,13 +153,13 @@ bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, 
 		DEBUG_LOG("'Number of labels' must not be smaller than 2!");
 		return false;
 	}
-	auto parameterRanges = dlg.parameterRanges();
 	QString outBaseName = QFileInfo(parameters[spnBaseName].toString()).completeBaseName();
 	QString parameterRangeFile = outBaseName + "-parameterRanges.csv"; // iASEAFile::DefaultSMPFileName,
 	QString parameterSetFile   = outBaseName + "-parameterSets.csv";   // iASEAFile::DefaultSPSFileName,
 	QString derivedOutputFile  = outBaseName + "-derivedOutput.csv";   // iASEAFile::DefaultCHRFileName,
 
 	int SamplingID = 0;
-	sampleFilter->setParameters(sourceMdi->modalities(), parameterRanges, parameterRangeFile, parameterSetFile, derivedOutputFile, SamplingID);
+	sampleFilter->setParameters(sourceMdi->modalities(), dlg.parameterRanges(), dlg.parameterSpecs(),
+		parameterRangeFile, parameterSetFile, derivedOutputFile, SamplingID);
 	return true;
 }
